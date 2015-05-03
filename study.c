@@ -221,6 +221,13 @@ void init_study(struct descriptor_data *d, int class) {
   LEVELUP(ch)->trains = GET_TRAINS(ch);
   LEVELUP(ch)->num_boosts = GET_BOOSTS(ch);
 
+  LEVELUP(ch)->str = GET_REAL_STR(ch);
+  LEVELUP(ch)->dex = GET_REAL_DEX(ch);
+  LEVELUP(ch)->con = GET_REAL_CON(ch);
+  LEVELUP(ch)->inte = GET_REAL_INT(ch);
+  LEVELUP(ch)->wis = GET_REAL_WIS(ch);
+  LEVELUP(ch)->cha = GET_REAL_CHA(ch);
+
   //send_to_char(ch, "%d %d %d %d\r\n", LEVELUP(ch)->feat_points,
   //                                LEVELUP(ch)->class_feat_points,
   //                                LEVELUP(ch)->epic_feat_points,
@@ -269,6 +276,13 @@ void finalize_study(struct descriptor_data *d) {
   GET_PRACTICES(ch) = LEVELUP(ch)->practices;
   GET_TRAINS(ch) = LEVELUP(ch)->trains;
   GET_BOOSTS(ch) = LEVELUP(ch)->num_boosts;
+
+  GET_REAL_STR(ch)  = LEVELUP(ch)->str;
+  GET_REAL_DEX(ch)  = LEVELUP(ch)->dex;
+  GET_REAL_CON(ch)  = LEVELUP(ch)->con;
+  GET_REAL_INT(ch)  = LEVELUP(ch)->inte;
+  GET_REAL_WIS(ch)  = LEVELUP(ch)->wis;
+  GET_REAL_CHA(ch)  = LEVELUP(ch)->cha;
 
 /*
   for (i = 0; i < 6; i++)
@@ -634,6 +648,140 @@ static void favored_enemy_submenu(struct descriptor_data *d, int favored) {
   OLC_MODE(d) = FAVORED_ENEMY_SUB;
 }
 
+#define TOTAL_STAT_POINTS 30
+#define BASE_STAT 8
+int stat_cost_chart[11] = { /* cost for total points */
+/*0  1  2  3  4  5  6  7  8   9   10 */
+  0, 1, 2, 3, 4, 5, 6, 8, 10, 13, 16
+};
+int compute_base_dex(struct char_data *ch) {
+  int base_dex = BASE_STAT;
+  switch (GET_RACE(ch)) {
+    case RACE_ELF:      base_dex += 2; break;
+    case RACE_HALFLING: base_dex += 2; break;
+    case RACE_TROLL:    base_dex += 2; break;
+    case RACE_TRELUX:   base_dex += 8; break;
+  }
+  return base_dex;
+}
+int compute_dex_cost(struct char_data *ch) {
+  int base_dex = compute_base_dex(ch), current_dex = LEVELUP(ch)->dex;
+  return stat_cost_chart[current_dex - base_dex];
+}
+int compute_base_str(struct char_data *ch) {
+  int base_str = BASE_STAT;
+  switch (GET_RACE(ch)) {
+    case RACE_HALFLING:        base_str -= 2; break;
+    case RACE_GNOME:           base_str -= 2; break;
+    case RACE_TROLL:           base_str += 2; break;
+    case RACE_CRYSTAL_DWARF:   base_str += 2; break;
+    case RACE_TRELUX:          base_str += 2; break;
+    case RACE_ARCANA_GOLEM:    base_str -= 2; break;
+  }
+  return base_str;
+}
+int compute_str_cost(struct char_data *ch) {
+  int base_str = compute_base_str(ch), current_str = LEVELUP(ch)->str;
+  return stat_cost_chart[current_str - base_str];
+}
+int compute_base_con(struct char_data *ch) {
+  int base_con = BASE_STAT;
+  switch (GET_RACE(ch)) {
+    case RACE_ELF:             base_con -= 2; break;
+    case RACE_DWARF:           base_con += 2; break;
+    case RACE_GNOME:           base_con += 2; break;
+    case RACE_TROLL:           base_con += 2; break;
+    case RACE_CRYSTAL_DWARF:   base_con += 8; break;
+    case RACE_TRELUX:          base_con += 4; break;
+    case RACE_ARCANA_GOLEM:    base_con -= 2; break;
+  }
+  return base_con;
+}
+int compute_con_cost(struct char_data *ch) {
+  int base_con = compute_base_con(ch), current_con = LEVELUP(ch)->con;
+  return stat_cost_chart[current_con - base_con];
+}
+int compute_base_inte(struct char_data *ch) {
+  int base_inte = BASE_STAT;
+  switch (GET_RACE(ch)) {
+    case RACE_TROLL:          base_inte -= 4; break;
+    case RACE_ARCANA_GOLEM:   base_inte += 2; break;
+  }
+  return base_inte;
+}
+int compute_inte_cost(struct char_data *ch) {
+  int base_inte = compute_base_inte(ch), current_inte = LEVELUP(ch)->inte;
+  return stat_cost_chart[current_inte - base_inte];
+}
+int compute_base_wis(struct char_data *ch) {
+  int base_wis = BASE_STAT;
+  switch (GET_RACE(ch)) {
+    case RACE_TROLL:           base_wis -= 4; break;
+    case RACE_CRYSTAL_DWARF:   base_wis += 2; break;
+    case RACE_ARCANA_GOLEM:    base_wis += 2; break;
+  }
+  return base_wis;
+}
+int compute_wis_cost(struct char_data *ch) {
+  int base_wis = compute_base_wis(ch), current_wis = LEVELUP(ch)->wis;
+  return stat_cost_chart[current_wis - base_wis];
+}
+int compute_base_cha(struct char_data *ch) {
+  int base_cha = BASE_STAT;
+  switch (GET_RACE(ch)) {
+    case RACE_DWARF:            base_cha -= 2; break;
+    case RACE_TROLL:            base_cha -= 4; break;
+    case RACE_CRYSTAL_DWARF:    base_cha += 2; break;
+    case RACE_ARCANA_GOLEM:     base_cha += 2; break;
+  }
+  return base_cha;
+}
+int compute_cha_cost(struct char_data *ch) {
+  int base_cha = compute_base_cha(ch), current_cha = LEVELUP(ch)->cha;
+  return stat_cost_chart[current_cha - base_cha];
+}
+
+int compute_total_stat_points(struct char_data *ch) {
+  return (compute_cha_cost(ch)+compute_wis_cost(ch)+compute_inte_cost(ch)+
+          compute_str_cost(ch)+compute_dex_cost(ch)+compute_con_cost(ch));
+}
+
+static void set_stats_menu(struct descriptor_data *d) {
+  get_char_colors(d->character);
+  clear_screen(d);
+
+  write_to_output(d,
+          "\r\n-- %sSet Character Stats%s\r\n"
+          "\r\n"
+          "%s 0%s) Strength:      %d%s\r\n"
+          "%s 1%s) Dexterity:     %d%s\r\n"
+          "%s 2%s) Constitution:  %d%s\r\n"
+          "%s 3%s) Intelligence:  %d%s\r\n"
+          "%s 4%s) Wisdom:        %d%s\r\n"
+          "%s 5%s) Charisma:      %d%s\r\n"
+          "%sPoints Left:         %d%s\r\n"
+          "\r\n"
+          "%s Q%s) Quit\r\n"
+          "\r\n"
+          "Enter Choice : ",
+
+          mgn, nrm,
+          /* empty line */
+          grn, nrm, LEVELUP(d->character)->str, nrm,
+          grn, nrm, LEVELUP(d->character)->dex, nrm,
+          grn, nrm, LEVELUP(d->character)->con, nrm,
+          grn, nrm, LEVELUP(d->character)->inte, nrm,
+          grn, nrm, LEVELUP(d->character)->wis, nrm,
+          grn, nrm, LEVELUP(d->character)->cha, nrm,
+          grn, (TOTAL_STAT_POINTS-compute_total_stat_points(d->character)), nrm,
+          /* empty line */
+          grn, nrm
+          /* empty line */
+          );
+
+  OLC_MODE(d) = STUDY_SET_STATS;
+}
+
 static void favored_enemy_menu(struct descriptor_data *d) {
   get_char_colors(d->character);
   clear_screen(d);
@@ -894,6 +1042,7 @@ static void generic_main_disp_menu(struct descriptor_data *d) {
           "%s 3%s) Choose Familiar\r\n"
           "%s 4%s) Animal Companion\r\n"
           "%s 5%s) Favored Enemy\r\n"
+          "%s 6%s) Set Stats\r\n"
           "\r\n"
           "%s Q%s) Quit\r\n"
           "\r\n"
@@ -905,6 +1054,7 @@ static void generic_main_disp_menu(struct descriptor_data *d) {
           MENU_OPT(CAN_STUDY_FAMILIAR(ch)),
           MENU_OPT(CAN_STUDY_COMPANION(ch)),
           MENU_OPT(CAN_STUDY_FAVORED_ENEMY(ch)),
+          MENU_OPT(CAN_SET_STATS(ch)),
           grn, nrm
           );
 
@@ -1033,6 +1183,14 @@ void study_parse(struct descriptor_data *d, char *arg) {
         case '5':
           if (CAN_STUDY_FAVORED_ENEMY(ch))
             favored_enemy_menu(d);
+          else {
+            write_to_output(d, "That is an invalid choice!\r\n");
+            generic_main_disp_menu(d);
+          }
+          break;
+        case '6':
+          if (CAN_SET_STATS(ch))
+            set_stats_menu(d);
           else {
             write_to_output(d, "That is an invalid choice!\r\n");
             generic_main_disp_menu(d);

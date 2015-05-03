@@ -1103,12 +1103,12 @@ int BAB(struct char_data *ch) {
 // old random roll system abandoned for base stats + point distribution
 
 void roll_real_abils(struct char_data *ch) {
-  GET_REAL_INT(ch) = 12;
-  GET_REAL_WIS(ch) = 12;
-  GET_REAL_CHA(ch) = 12;
-  GET_REAL_STR(ch) = 12;
-  GET_REAL_DEX(ch) = 12;
-  GET_REAL_CON(ch) = 12;
+  GET_REAL_INT(ch) = 8;
+  GET_REAL_WIS(ch) = 8;
+  GET_REAL_CHA(ch) = 8;
+  GET_REAL_STR(ch) = 8;
+  GET_REAL_DEX(ch) = 8;
+  GET_REAL_CON(ch) = 8;
   ch->aff_abils = ch->real_abils;
 }
 

@@ -3152,6 +3152,13 @@ struct level_data {
 /*        int spells_known[NUM_SPELLS];*/
   int spell_slots[10];
 
+  /* setting stats */
+  int str;
+  int dex;
+  int con;
+  int inte;
+  int wis;
+  int cha;
 };
 
 /** The list element that makes up a list of characters following this
