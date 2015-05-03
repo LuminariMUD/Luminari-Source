@@ -1510,7 +1510,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
       break;
     /***** end study set stats */
     case SET_STAT_STR:
-      number = atoi(arg);
+      number = MAX(-10, MIN(atoi(arg), 10));
       points_left = stat_points_left(d->character);
       new_stat = LEVELUP(d->character)->str + number;
       if (new_stat < compute_base_str(d->character) ||
@@ -1523,7 +1523,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
         if (new_stat >= compute_base_str(d->character) &&
             new_stat <= (compute_base_str(d->character)+MAX_POINTS_IN_A_STAT)) {
           /* success! */
-          LEVELUP(d->character)->str += number;
+          LEVELUP(d->character)->str = new_stat;
           OLC_MODE(d) = STUDY_SET_STATS;
           set_stats_menu(d);
           return;
