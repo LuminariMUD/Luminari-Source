@@ -40,7 +40,7 @@
 #define TOTAL_STAT_POINTS 30
 #define MAX_POINTS_IN_A_STAT 10
 #define BASE_STAT 8
-int stat_cost_chart[11] = { /* cost for total points */
+int stats_cost_chart[11] = { /* cost for total points */
 /*0  1  2  3  4  5  6  7  8   9   10 */
   0, 1, 2, 3, 4, 5, 6, 8, 10, 13, 16
 };
@@ -56,7 +56,7 @@ int comp_base_dex(struct char_data *ch) {
 }
 int comp_dex_cost(struct char_data *ch, int number) {
   int base_dex = comp_base_dex(ch), current_dex = GET_REAL_DEX(ch) + number;
-  return stat_cost_chart[current_dex - base_dex];
+  return stats_cost_chart[current_dex - base_dex];
 }
 int comp_base_str(struct char_data *ch) {
   int base_str = BASE_STAT;
@@ -73,7 +73,7 @@ int comp_base_str(struct char_data *ch) {
 int comp_str_cost(struct char_data *ch, int number) {
   int base_str = comp_base_str(ch),
           current_str = GET_REAL_STR(ch) + number;
-  return stat_cost_chart[current_str - base_str];
+  return stats_cost_chart[current_str - base_str];
 }
 int comp_base_con(struct char_data *ch) {
   int base_con = BASE_STAT;
@@ -90,7 +90,7 @@ int comp_base_con(struct char_data *ch) {
 }
 int comp_con_cost(struct char_data *ch, int number) {
   int base_con = comp_base_con(ch), current_con = GET_REAL_CON(ch)+number;
-  return stat_cost_chart[current_con - base_con];
+  return stats_cost_chart[current_con - base_con];
 }
 int comp_base_inte(struct char_data *ch) {
   int base_inte = BASE_STAT;
@@ -102,7 +102,7 @@ int comp_base_inte(struct char_data *ch) {
 }
 int comp_inte_cost(struct char_data *ch, int number) {
   int base_inte = comp_base_inte(ch), current_inte = GET_REAL_INT(ch)+number;
-  return stat_cost_chart[current_inte - base_inte];
+  return stats_cost_chart[current_inte - base_inte];
 }
 int comp_base_wis(struct char_data *ch) {
   int base_wis = BASE_STAT;
@@ -115,7 +115,7 @@ int comp_base_wis(struct char_data *ch) {
 }
 int comp_wis_cost(struct char_data *ch, int number) {
   int base_wis = comp_base_wis(ch), current_wis = GET_REAL_WIS(ch)+number;
-  return stat_cost_chart[current_wis - base_wis];
+  return stats_cost_chart[current_wis - base_wis];
 }
 int comp_base_cha(struct char_data *ch) {
   int base_cha = BASE_STAT;
@@ -129,7 +129,7 @@ int comp_base_cha(struct char_data *ch) {
 }
 int comp_cha_cost(struct char_data *ch, int number) {
   int base_cha = comp_base_cha(ch), current_cha = GET_REAL_CHA(ch)+number;
-  return stat_cost_chart[current_cha - base_cha];
+  return stats_cost_chart[current_cha - base_cha];
 }
 
 int comp_total_stat_points(struct char_data *ch) {
