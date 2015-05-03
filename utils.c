@@ -37,6 +37,109 @@
    Functions directly related to utils.h needs
  */
 
+#define TOTAL_STAT_POINTS 30
+#define MAX_POINTS_IN_A_STAT 10
+#define BASE_STAT 8
+int stat_cost_chart[11] = { /* cost for total points */
+/*0  1  2  3  4  5  6  7  8   9   10 */
+  0, 1, 2, 3, 4, 5, 6, 8, 10, 13, 16
+};
+int comp_base_dex(struct char_data *ch) {
+  int base_dex = BASE_STAT;
+  switch (GET_RACE(ch)) {
+    case RACE_ELF:      base_dex += 2; break;
+    case RACE_HALFLING: base_dex += 2; break;
+    case RACE_TROLL:    base_dex += 2; break;
+    case RACE_TRELUX:   base_dex += 8; break;
+  }
+  return base_dex;
+}
+int comp_dex_cost(struct char_data *ch, int number) {
+  int base_dex = comp_base_dex(ch), current_dex = GET_REAL_DEX(ch) + number;
+  return stat_cost_chart[current_dex - base_dex];
+}
+int comp_base_str(struct char_data *ch) {
+  int base_str = BASE_STAT;
+  switch (GET_RACE(ch)) {
+    case RACE_HALFLING:        base_str -= 2; break;
+    case RACE_GNOME:           base_str -= 2; break;
+    case RACE_TROLL:           base_str += 2; break;
+    case RACE_CRYSTAL_DWARF:   base_str += 2; break;
+    case RACE_TRELUX:          base_str += 2; break;
+    case RACE_ARCANA_GOLEM:    base_str -= 2; break;
+  }
+  return base_str;
+}
+int comp_str_cost(struct char_data *ch, int number) {
+  int base_str = comp_base_str(ch),
+          current_str = GET_REAL_STR(ch) + number;
+  return stat_cost_chart[current_str - base_str];
+}
+int comp_base_con(struct char_data *ch) {
+  int base_con = BASE_STAT;
+  switch (GET_RACE(ch)) {
+    case RACE_ELF:             base_con -= 2; break;
+    case RACE_DWARF:           base_con += 2; break;
+    case RACE_GNOME:           base_con += 2; break;
+    case RACE_TROLL:           base_con += 2; break;
+    case RACE_CRYSTAL_DWARF:   base_con += 8; break;
+    case RACE_TRELUX:          base_con += 4; break;
+    case RACE_ARCANA_GOLEM:    base_con -= 2; break;
+  }
+  return base_con;
+}
+int comp_con_cost(struct char_data *ch, int number) {
+  int base_con = comp_base_con(ch), current_con = GET_REAL_CON(ch)+number;
+  return stat_cost_chart[current_con - base_con];
+}
+int comp_base_inte(struct char_data *ch) {
+  int base_inte = BASE_STAT;
+  switch (GET_RACE(ch)) {
+    case RACE_TROLL:          base_inte -= 4; break;
+    case RACE_ARCANA_GOLEM:   base_inte += 2; break;
+  }
+  return base_inte;
+}
+int comp_inte_cost(struct char_data *ch, int number) {
+  int base_inte = comp_base_inte(ch), current_inte = GET_REAL_INT(ch)+number;
+  return stat_cost_chart[current_inte - base_inte];
+}
+int comp_base_wis(struct char_data *ch) {
+  int base_wis = BASE_STAT;
+  switch (GET_RACE(ch)) {
+    case RACE_TROLL:           base_wis -= 4; break;
+    case RACE_CRYSTAL_DWARF:   base_wis += 2; break;
+    case RACE_ARCANA_GOLEM:    base_wis += 2; break;
+  }
+  return base_wis;
+}
+int comp_wis_cost(struct char_data *ch, int number) {
+  int base_wis = comp_base_wis(ch), current_wis = GET_REAL_WIS(ch)+number;
+  return stat_cost_chart[current_wis - base_wis];
+}
+int comp_base_cha(struct char_data *ch) {
+  int base_cha = BASE_STAT;
+  switch (GET_RACE(ch)) {
+    case RACE_DWARF:            base_cha -= 2; break;
+    case RACE_TROLL:            base_cha -= 4; break;
+    case RACE_CRYSTAL_DWARF:    base_cha += 2; break;
+    case RACE_ARCANA_GOLEM:     base_cha += 2; break;
+  }
+  return base_cha;
+}
+int comp_cha_cost(struct char_data *ch, int number) {
+  int base_cha = comp_base_cha(ch), current_cha = GET_REAL_CHA(ch)+number;
+  return stat_cost_chart[current_cha - base_cha];
+}
+
+int comp_total_stat_points(struct char_data *ch) {
+  return (comp_cha_cost(ch,0)+comp_wis_cost(ch,0)+comp_inte_cost(ch,0)+
+          comp_str_cost(ch,0)+comp_dex_cost(ch,0)+comp_con_cost(ch,0));
+}
+int stats_point_left(struct char_data *ch) {
+  return (TOTAL_STAT_POINTS-comp_total_stat_points(ch));
+}
+
 /* unused */
 int spell_level_ch(struct char_data *ch, int spell) {
   int domain = 0, domain_spell = 0, this_spell = -1, i = 0;

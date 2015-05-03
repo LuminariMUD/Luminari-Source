@@ -40,6 +40,20 @@
  * are made available with the function definition. */
 #define isspace_ignoretabs(c) ((c)!='\t' && isspace(c))
 
+int stats_point_left(struct char_data *ch);
+int comp_total_stat_points(struct char_data *ch);
+int comp_cha_cost(struct char_data *ch, int number);
+int comp_base_cha(struct char_data *ch);
+int comp_wis_cost(struct char_data *ch, int number);
+int comp_base_wis(struct char_data *ch);
+int comp_inte_cost(struct char_data *ch, int number);
+int comp_base_inte(struct char_data *ch);
+int comp_con_cost(struct char_data *ch, int number);
+int comp_base_con(struct char_data *ch);
+int comp_str_cost(struct char_data *ch, int number);
+int comp_base_str(struct char_data *ch);
+int comp_dex_cost(struct char_data *ch, int number);
+int comp_base_dex(struct char_data *ch);
 int compute_level_domain_spell_is_granted(int domain, int spell);
 int compute_current_size(struct char_data *ch);
 room_vnum what_vnum_is_in_this_direction(room_rnum room_origin, int direction);
