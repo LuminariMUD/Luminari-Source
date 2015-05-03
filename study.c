@@ -665,8 +665,8 @@ int compute_base_dex(struct char_data *ch) {
   }
   return base_dex;
 }
-int compute_dex_cost(struct char_data *ch) {
-  int base_dex = compute_base_dex(ch), current_dex = LEVELUP(ch)->dex;
+int compute_dex_cost(struct char_data *ch, int number) {
+  int base_dex = compute_base_dex(ch), current_dex = LEVELUP(ch)->dex + number;
   return stat_cost_chart[current_dex - base_dex];
 }
 int compute_base_str(struct char_data *ch) {
@@ -699,8 +699,8 @@ int compute_base_con(struct char_data *ch) {
   }
   return base_con;
 }
-int compute_con_cost(struct char_data *ch) {
-  int base_con = compute_base_con(ch), current_con = LEVELUP(ch)->con;
+int compute_con_cost(struct char_data *ch, int number) {
+  int base_con = compute_base_con(ch), current_con = LEVELUP(ch)->con+number;
   return stat_cost_chart[current_con - base_con];
 }
 int compute_base_inte(struct char_data *ch) {
@@ -711,8 +711,8 @@ int compute_base_inte(struct char_data *ch) {
   }
   return base_inte;
 }
-int compute_inte_cost(struct char_data *ch) {
-  int base_inte = compute_base_inte(ch), current_inte = LEVELUP(ch)->inte;
+int compute_inte_cost(struct char_data *ch, int number) {
+  int base_inte = compute_base_inte(ch), current_inte = LEVELUP(ch)->inte+number;
   return stat_cost_chart[current_inte - base_inte];
 }
 int compute_base_wis(struct char_data *ch) {
@@ -724,8 +724,8 @@ int compute_base_wis(struct char_data *ch) {
   }
   return base_wis;
 }
-int compute_wis_cost(struct char_data *ch) {
-  int base_wis = compute_base_wis(ch), current_wis = LEVELUP(ch)->wis;
+int compute_wis_cost(struct char_data *ch, int number) {
+  int base_wis = compute_base_wis(ch), current_wis = LEVELUP(ch)->wis+number;
   return stat_cost_chart[current_wis - base_wis];
 }
 int compute_base_cha(struct char_data *ch) {
@@ -738,14 +738,14 @@ int compute_base_cha(struct char_data *ch) {
   }
   return base_cha;
 }
-int compute_cha_cost(struct char_data *ch) {
-  int base_cha = compute_base_cha(ch), current_cha = LEVELUP(ch)->cha;
+int compute_cha_cost(struct char_data *ch, int number) {
+  int base_cha = compute_base_cha(ch), current_cha = LEVELUP(ch)->cha+number;
   return stat_cost_chart[current_cha - base_cha];
 }
 
 int compute_total_stat_points(struct char_data *ch) {
-  return (compute_cha_cost(ch)+compute_wis_cost(ch)+compute_inte_cost(ch)+
-          compute_str_cost(ch,0)+compute_dex_cost(ch)+compute_con_cost(ch));
+  return (compute_cha_cost(ch,0)+compute_wis_cost(ch,0)+compute_inte_cost(ch,0)+
+          compute_str_cost(ch,0)+compute_dex_cost(ch,0)+compute_con_cost(ch,0));
 }
 int stat_points_left(struct char_data *ch) {
   return (TOTAL_STAT_POINTS-compute_total_stat_points(ch));
@@ -1517,12 +1517,12 @@ void study_parse(struct descriptor_data *d, char *arg) {
         if (LEVELUP(d->character)->str+number >= compute_base_str(d->character) &&
             LEVELUP(d->character)->str+number <= compute_base_str(d->character)+MAX_POINTS_IN_A_STAT) {
           /* success! */
-          LEVELUP(ch)->str += number;
+          LEVELUP(d->character)->str += number;
           OLC_MODE(d) = STUDY_SET_STATS;
           set_stats_menu(d);
           return;
         } else {
-          write_to_output(d, "That would put you above the stat-cap!\r\n");
+          write_to_output(d, "That would put you below/above the stat-cap!\r\n");
           break;
         }
       } else {
@@ -1531,14 +1531,109 @@ void study_parse(struct descriptor_data *d, char *arg) {
       }
       break;
     case SET_STAT_DEX:
+      number = atoi(arg);
+      points_left = stat_points_left(d->character);
+      cost_for_number = compute_dex_cost(d->character, number);
+      if ((points_left - cost_for_number) >= 0) {
+        if (LEVELUP(d->character)->dex+number >= compute_base_dex(d->character) &&
+            LEVELUP(d->character)->dex+number <= compute_base_dex(d->character)+MAX_POINTS_IN_A_STAT) {
+          /* success! */
+          LEVELUP(d->character)->dex += number;
+          OLC_MODE(d) = STUDY_SET_STATS;
+          set_stats_menu(d);
+          return;
+        } else {
+          write_to_output(d, "That would put you below/above the stat-cap!\r\n");
+          break;
+        }
+      } else {
+        write_to_output(d, "You do not have enough points!\r\n");
+        break;
+      }
       break;
     case SET_STAT_CON:
+      number = atoi(arg);
+      points_left = stat_points_left(d->character);
+      cost_for_number = compute_con_cost(d->character, number);
+      if ((points_left - cost_for_number) >= 0) {
+        if (LEVELUP(d->character)->con+number >= compute_base_con(d->character) &&
+            LEVELUP(d->character)->con+number <= compute_base_con(d->character)+MAX_POINTS_IN_A_STAT) {
+          /* success! */
+          LEVELUP(d->character)->con += number;
+          OLC_MODE(d) = STUDY_SET_STATS;
+          set_stats_menu(d);
+          return;
+        } else {
+          write_to_output(d, "That would put you below/above the stat-cap!\r\n");
+          break;
+        }
+      } else {
+        write_to_output(d, "You do not have enough points!\r\n");
+        break;
+      }
       break;
     case SET_STAT_INTE:
+      number = atoi(arg);
+      points_left = stat_points_left(d->character);
+      cost_for_number = compute_inte_cost(d->character, number);
+      if ((points_left - cost_for_number) >= 0) {
+        if (LEVELUP(d->character)->inte+number >= compute_base_inte(d->character) &&
+            LEVELUP(d->character)->inte+number <= compute_base_inte(d->character)+MAX_POINTS_IN_A_STAT) {
+          /* success! */
+          LEVELUP(d->character)->inte += number;
+          OLC_MODE(d) = STUDY_SET_STATS;
+          set_stats_menu(d);
+          return;
+        } else {
+          write_to_output(d, "That would put you below/above the stat-cap!\r\n");
+          break;
+        }
+      } else {
+        write_to_output(d, "You do not have enough points!\r\n");
+        break;
+      }
       break;
     case SET_STAT_WIS:
+      number = atoi(arg);
+      points_left = stat_points_left(d->character);
+      cost_for_number = compute_wis_cost(d->character, number);
+      if ((points_left - cost_for_number) >= 0) {
+        if (LEVELUP(d->character)->wis+number >= compute_base_wis(d->character) &&
+            LEVELUP(d->character)->wis+number <= compute_base_wis(d->character)+MAX_POINTS_IN_A_STAT) {
+          /* success! */
+          LEVELUP(d->character)->wis += number;
+          OLC_MODE(d) = STUDY_SET_STATS;
+          set_stats_menu(d);
+          return;
+        } else {
+          write_to_output(d, "That would put you below/above the stat-cap!\r\n");
+          break;
+        }
+      } else {
+        write_to_output(d, "You do not have enough points!\r\n");
+        break;
+      }
       break;
     case SET_STAT_CHA:
+      number = atoi(arg);
+      points_left = stat_points_left(d->character);
+      cost_for_number = compute_cha_cost(d->character, number);
+      if ((points_left - cost_for_number) >= 0) {
+        if (LEVELUP(d->character)->cha+number >= compute_base_cha(d->character) &&
+            LEVELUP(d->character)->cha+number <= compute_base_cha(d->character)+MAX_POINTS_IN_A_STAT) {
+          /* success! */
+          LEVELUP(d->character)->cha += number;
+          OLC_MODE(d) = STUDY_SET_STATS;
+          set_stats_menu(d);
+          return;
+        } else {
+          write_to_output(d, "That would put you below/above the stat-cap!\r\n");
+          break;
+        }
+      } else {
+        write_to_output(d, "You do not have enough points!\r\n");
+        break;
+      }
       break;
 
     case FAVORED_ENEMY:
