@@ -1514,7 +1514,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
       points_left = stat_points_left(d->character);
       cost_for_number = compute_str_cost(d->character, number);
       if ((points_left - cost_for_number) >= 0) {
-        if (LEVELUP(d->character)->str+number >= compute_base_str(d->character) ||
+        if (LEVELUP(d->character)->str+number >= compute_base_str(d->character) &&
             LEVELUP(d->character)->str+number <= compute_base_str(d->character)+MAX_POINTS_IN_A_STAT) {
           /* success! */
           LEVELUP(ch)->str += number;
