@@ -92,7 +92,7 @@ ACMD(do_domain) {
   int i = 0, j = 0;;
 
   for (i = 1; i < NUM_DOMAINS; i++) {
-    send_to_char(ch, "%-20s %-22s\r\n %s\r\n",
+    send_to_char(ch, "Domain: %-20s Favored Weapon: %-22s\r\nDescription: %s\r\n",
                  domain_list[i].name,
                  weapon_list[domain_list[i].favored_weapon].name,
                  domain_list[i].description

@@ -1095,6 +1095,8 @@ do                                                              \
                                GET_LEVELUP_EPIC_FEAT_POINTS(ch) + \
                                GET_LEVELUP_EPIC_CLASS_FEATS(ch) > 0 ? 1 : 0))
 
+#define CAN_SET_STATS(ch) (GET_LEVEL(ch) <= 1)
+
 #define CAN_STUDY_CLASS_FEATS(ch) (CAN_STUDY_FEATS(ch) || (GET_LEVELUP_CLASS_FEATS(ch) + \
                                                            GET_LEVELUP_EPIC_CLASS_FEATS(ch) > 0 ? 1 : 0))
 

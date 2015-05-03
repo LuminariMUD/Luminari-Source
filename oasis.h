@@ -111,7 +111,7 @@ struct oasis_olc_data {
   struct quest_entry *hlquest;
   struct quest_entry *entry;
   struct quest_command *qcom;
-  
+
   int script_mode;
   int trigger_position;
   int item_type;
@@ -520,7 +520,7 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn, *red;
 
 /* study Submodes of connectedness. */
 #define STUDY_SPELLS           1
-#define FAVORED_ENEMY          2 
+#define FAVORED_ENEMY          2
 #define ANIMAL_COMPANION       3
 #define FAVORED_ENEMY_SUB      4
 #define ANIMAL_COMPANION_SUB   5
@@ -537,6 +537,7 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn, *red;
 #define STUDY_SORC_KNOWN_SPELLS_MENU 16
 #define STUDY_BARD_KNOWN_SPELLS_MENU 17
 #define STUDY_CONFIRM_ADD_FEAT 18
+#define STUDY_SET_STATS 19
 
 int save_config(IDXTYPE nowhere);
 
