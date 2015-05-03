@@ -1524,7 +1524,8 @@ void study_parse(struct descriptor_data *d, char *arg) {
         write_to_output(d, "This would put you below/above the stat-cap!\r\n");
         break;
       }
-      cost_for_number = compute_str_cost(d->character, number);
+      cost_for_number = compute_str_cost(d->character, number) -
+              compute_str_cost(d->character, 0); /*total cost*/
       if (number < 0)
         cost_for_number = -cost_for_number;
       /*debug*/
