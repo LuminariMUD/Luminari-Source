@@ -1547,14 +1547,30 @@ void study_parse(struct descriptor_data *d, char *arg) {
       }
       break;
     case SET_STAT_DEX:
-      number = atoi(arg);
+      number = MAX(-10, MIN(atoi(arg), 10));
+      /*debug*/
+      write_to_output(d, "Number: %d\r\n", number);
       points_left = stat_points_left(d->character);
+      /*debug*/
+      write_to_output(d, "Points Left: %d\r\n", points_left);
+      new_stat = LEVELUP(d->character)->dex + number;
+      /*debug*/
+      write_to_output(d, "New Stat: %d\r\n", new_stat);
+      if (new_stat < compute_base_dex(d->character) ||
+          new_stat > compute_base_dex(d->character) + MAX_POINTS_IN_A_STAT) {
+        write_to_output(d, "This would put you below/above the stat-cap!\r\n");
+        break;
+      }
       cost_for_number = compute_dex_cost(d->character, number);
+      if (number < 0)
+        cost_for_number = -cost_for_number;
+      /*debug*/
+      write_to_output(d, "Cost for 'Number': %d\r\n", cost_for_number);
       if ((points_left - cost_for_number) >= 0) {
-        if (LEVELUP(d->character)->dex+number >= compute_base_dex(d->character) &&
-            LEVELUP(d->character)->dex+number <= compute_base_dex(d->character)+MAX_POINTS_IN_A_STAT) {
+        if (new_stat >= compute_base_dex(d->character) &&
+            new_stat <= (compute_base_dex(d->character)+MAX_POINTS_IN_A_STAT)) {
           /* success! */
-          LEVELUP(d->character)->dex += number;
+          LEVELUP(d->character)->dex = new_stat;
           OLC_MODE(d) = STUDY_SET_STATS;
           set_stats_menu(d);
           return;
@@ -1568,14 +1584,30 @@ void study_parse(struct descriptor_data *d, char *arg) {
       }
       break;
     case SET_STAT_CON:
-      number = atoi(arg);
+      number = MAX(-10, MIN(atoi(arg), 10));
+      /*debug*/
+      write_to_output(d, "Number: %d\r\n", number);
       points_left = stat_points_left(d->character);
+      /*debug*/
+      write_to_output(d, "Points Left: %d\r\n", points_left);
+      new_stat = LEVELUP(d->character)->con + number;
+      /*debug*/
+      write_to_output(d, "New Stat: %d\r\n", new_stat);
+      if (new_stat < compute_base_con(d->character) ||
+          new_stat > compute_base_con(d->character) + MAX_POINTS_IN_A_STAT) {
+        write_to_output(d, "This would put you below/above the stat-cap!\r\n");
+        break;
+      }
       cost_for_number = compute_con_cost(d->character, number);
+      if (number < 0)
+        cost_for_number = -cost_for_number;
+      /*debug*/
+      write_to_output(d, "Cost for 'Number': %d\r\n", cost_for_number);
       if ((points_left - cost_for_number) >= 0) {
-        if (LEVELUP(d->character)->con+number >= compute_base_con(d->character) &&
-            LEVELUP(d->character)->con+number <= compute_base_con(d->character)+MAX_POINTS_IN_A_STAT) {
+        if (new_stat >= compute_base_con(d->character) &&
+            new_stat <= (compute_base_con(d->character)+MAX_POINTS_IN_A_STAT)) {
           /* success! */
-          LEVELUP(d->character)->con += number;
+          LEVELUP(d->character)->con = new_stat;
           OLC_MODE(d) = STUDY_SET_STATS;
           set_stats_menu(d);
           return;
@@ -1589,14 +1621,30 @@ void study_parse(struct descriptor_data *d, char *arg) {
       }
       break;
     case SET_STAT_INTE:
-      number = atoi(arg);
+      number = MAX(-10, MIN(atoi(arg), 10));
+      /*debug*/
+      write_to_output(d, "Number: %d\r\n", number);
       points_left = stat_points_left(d->character);
+      /*debug*/
+      write_to_output(d, "Points Left: %d\r\n", points_left);
+      new_stat = LEVELUP(d->character)->inte + number;
+      /*debug*/
+      write_to_output(d, "New Stat: %d\r\n", new_stat);
+      if (new_stat < compute_base_inte(d->character) ||
+          new_stat > compute_base_inte(d->character) + MAX_POINTS_IN_A_STAT) {
+        write_to_output(d, "This would put you below/above the stat-cap!\r\n");
+        break;
+      }
       cost_for_number = compute_inte_cost(d->character, number);
+      if (number < 0)
+        cost_for_number = -cost_for_number;
+      /*debug*/
+      write_to_output(d, "Cost for 'Number': %d\r\n", cost_for_number);
       if ((points_left - cost_for_number) >= 0) {
-        if (LEVELUP(d->character)->inte+number >= compute_base_inte(d->character) &&
-            LEVELUP(d->character)->inte+number <= compute_base_inte(d->character)+MAX_POINTS_IN_A_STAT) {
+        if (new_stat >= compute_base_inte(d->character) &&
+            new_stat <= (compute_base_inte(d->character)+MAX_POINTS_IN_A_STAT)) {
           /* success! */
-          LEVELUP(d->character)->inte += number;
+          LEVELUP(d->character)->inte = new_stat;
           OLC_MODE(d) = STUDY_SET_STATS;
           set_stats_menu(d);
           return;
@@ -1610,14 +1658,30 @@ void study_parse(struct descriptor_data *d, char *arg) {
       }
       break;
     case SET_STAT_WIS:
-      number = atoi(arg);
+      number = MAX(-10, MIN(atoi(arg), 10));
+      /*debug*/
+      write_to_output(d, "Number: %d\r\n", number);
       points_left = stat_points_left(d->character);
+      /*debug*/
+      write_to_output(d, "Points Left: %d\r\n", points_left);
+      new_stat = LEVELUP(d->character)->wis + number;
+      /*debug*/
+      write_to_output(d, "New Stat: %d\r\n", new_stat);
+      if (new_stat < compute_base_wis(d->character) ||
+          new_stat > compute_base_wis(d->character) + MAX_POINTS_IN_A_STAT) {
+        write_to_output(d, "This would put you below/above the stat-cap!\r\n");
+        break;
+      }
       cost_for_number = compute_wis_cost(d->character, number);
+      if (number < 0)
+        cost_for_number = -cost_for_number;
+      /*debug*/
+      write_to_output(d, "Cost for 'Number': %d\r\n", cost_for_number);
       if ((points_left - cost_for_number) >= 0) {
-        if (LEVELUP(d->character)->wis+number >= compute_base_wis(d->character) &&
-            LEVELUP(d->character)->wis+number <= compute_base_wis(d->character)+MAX_POINTS_IN_A_STAT) {
+        if (new_stat >= compute_base_wis(d->character) &&
+            new_stat <= (compute_base_wis(d->character)+MAX_POINTS_IN_A_STAT)) {
           /* success! */
-          LEVELUP(d->character)->wis += number;
+          LEVELUP(d->character)->wis = new_stat;
           OLC_MODE(d) = STUDY_SET_STATS;
           set_stats_menu(d);
           return;
@@ -1631,14 +1695,30 @@ void study_parse(struct descriptor_data *d, char *arg) {
       }
       break;
     case SET_STAT_CHA:
-      number = atoi(arg);
+      number = MAX(-10, MIN(atoi(arg), 10));
+      /*debug*/
+      write_to_output(d, "Number: %d\r\n", number);
       points_left = stat_points_left(d->character);
+      /*debug*/
+      write_to_output(d, "Points Left: %d\r\n", points_left);
+      new_stat = LEVELUP(d->character)->cha + number;
+      /*debug*/
+      write_to_output(d, "New Stat: %d\r\n", new_stat);
+      if (new_stat < compute_base_cha(d->character) ||
+          new_stat > compute_base_cha(d->character) + MAX_POINTS_IN_A_STAT) {
+        write_to_output(d, "This would put you below/above the stat-cap!\r\n");
+        break;
+      }
       cost_for_number = compute_cha_cost(d->character, number);
+      if (number < 0)
+        cost_for_number = -cost_for_number;
+      /*debug*/
+      write_to_output(d, "Cost for 'Number': %d\r\n", cost_for_number);
       if ((points_left - cost_for_number) >= 0) {
-        if (LEVELUP(d->character)->cha+number >= compute_base_cha(d->character) &&
-            LEVELUP(d->character)->cha+number <= compute_base_cha(d->character)+MAX_POINTS_IN_A_STAT) {
+        if (new_stat >= compute_base_cha(d->character) &&
+            new_stat <= (compute_base_cha(d->character)+MAX_POINTS_IN_A_STAT)) {
           /* success! */
-          LEVELUP(d->character)->cha += number;
+          LEVELUP(d->character)->cha = new_stat;
           OLC_MODE(d) = STUDY_SET_STATS;
           set_stats_menu(d);
           return;
