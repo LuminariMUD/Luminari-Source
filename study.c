@@ -1118,7 +1118,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
   struct char_data *ch = d->character;
   int number = -1;
   int counter;
-  int points_left = 0, cost_for_number = 0;
+  int points_left = 0, cost_for_number = 0, new_stat = 0;
 
   switch (OLC_MODE(d)) {
     case STUDY_CONFIRM_SAVE:
@@ -1512,10 +1512,16 @@ void study_parse(struct descriptor_data *d, char *arg) {
     case SET_STAT_STR:
       number = atoi(arg);
       points_left = stat_points_left(d->character);
+      new_stat = LEVELUP(d->character)->str + number;
+      if (new_stat < compute_base_str(d->character) ||
+          new_stat > compute_base_str(d->character) + MAX_POINTS_IN_A_STAT) {
+        write_to_output(d, "That would put you below/above the stat-cap!\r\n");
+        break;
+      }
       cost_for_number = compute_str_cost(d->character, number);
       if ((points_left - cost_for_number) >= 0) {
-        if (LEVELUP(d->character)->str+number >= compute_base_str(d->character) &&
-            LEVELUP(d->character)->str+number <= compute_base_str(d->character)+MAX_POINTS_IN_A_STAT) {
+        if (new_stat >= compute_base_str(d->character) &&
+            new_stat <= (compute_base_str(d->character)+MAX_POINTS_IN_A_STAT)) {
           /* success! */
           LEVELUP(d->character)->str += number;
           OLC_MODE(d) = STUDY_SET_STATS;
