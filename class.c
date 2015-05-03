@@ -3517,7 +3517,6 @@ int level_exp(struct char_data *ch, int level) {
       break;
   }
 
-
   return exp;
 }
 

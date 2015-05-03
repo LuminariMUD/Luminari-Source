@@ -20,6 +20,7 @@
 #include "class.h"
 #include "mud_event.h"
 #include "assign_wpn_armor.h"
+#include "domains_schools.h"
 
 /* Local Functions */
 /* Prerequisite definition procedures */

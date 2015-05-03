@@ -29,6 +29,7 @@
 #include "spec_abilities.h"
 #include "feats.h"
 #include "assign_wpn_armor.h"
+#include "domains_schools.h"
 
 /* local functions */
 static void oedit_disp_size_menu(struct descriptor_data *d);

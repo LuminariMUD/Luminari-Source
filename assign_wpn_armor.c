@@ -400,8 +400,7 @@ bool has_missile_in_ammo_pouch(struct char_data *ch, struct obj_data *wielded,
 }
 /* ranged combat (archery, etc)
  * this function will check for a ranged weapon, ammo and does
- * a check of loaded-status (like x-bow) and "has_missile_in_ammo_pouch"
- */
+ * a check of loaded-status (like x-bow) and "has_missile_in_ammo_pouch" */
 bool can_fire_arrow(struct char_data *ch, bool silent) {
   struct obj_data *wielded = NULL;
 
@@ -427,7 +426,7 @@ bool can_fire_arrow(struct char_data *ch, bool silent) {
   }
 
   if (this_weapon_needs_reloading(ch, wielded) && !weapon_is_loaded(ch, silent)) {
-    /* a message is ent in weapon_is_loaded() */
+    /* a message is sent in weapon_is_loaded() */
     FIRING(ch) = FALSE;
     return FALSE;
   }
@@ -499,14 +498,20 @@ bool this_weapon_needs_reloading(struct char_data *ch, struct obj_data *wielded)
 /* light weapons - necessary for some feats such as weapon finesse */
 bool is_using_light_weapon(struct char_data *ch, struct obj_data *wielded) {
 
-  if (!wielded)
+  if (!wielded) /* fists are light?  i need to check this */
     return FALSE;
+
   if (GET_OBJ_SIZE(wielded) > GET_SIZE(ch))
     return FALSE;
 
   if (IS_SET(weapon_list[GET_OBJ_VAL(wielded, 0)].weaponFlags, WEAPON_FLAG_LIGHT))
     return TRUE;
 
+  /* if you are two size classes bigger than the weapon, then it is light */
+  if (GET_SIZE(ch) - GET_OBJ_SIZE(wielded) >= 2)
+    return TRUE;
+
+  /* not a light weapon! */
   return FALSE;
 }
 

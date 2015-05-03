@@ -49,6 +49,7 @@
 #include "actionqueues.h"
 #include "combat_modes.h"
 #include "traps.h"
+#include "domains_schools.h"
 
 /* local (file scope) functions */
 static int perform_dupe_check(struct descriptor_data *d);
@@ -202,6 +203,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "detecttrap", "detecttrap", POS_STANDING, do_detecttrap, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}},
   { "disabletrap", "disabletrap", POS_STANDING, do_disabletrap, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}},
   { "disarm", "disarm", POS_FIGHTING, do_process_attack, 1, AA_DISARM, FALSE, ACTION_NONE, {0, 0}},
+  { "domain", "domain", POS_DEAD, do_domain, 0, 0, TRUE, ACTION_NONE, {0, 0}},
 
   { "eat", "ea", POS_RECLINING, do_eat, 0, SCMD_EAT, FALSE, ACTION_MOVE, {0, 6}},
   { "echo", "ec", POS_SLEEPING, do_echo, LVL_IMMORT, SCMD_ECHO, TRUE, ACTION_NONE, {0, 0}},

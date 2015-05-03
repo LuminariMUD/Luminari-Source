@@ -23,6 +23,7 @@
 #include "class.h"
 #include "constants.h"
 #include "assign_wpn_armor.h"
+#include "domains_schools.h"
 
 /*-------------------------------------------------------------------*/
 /*. Function prototypes . */

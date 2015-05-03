@@ -338,6 +338,11 @@ int load_char(const char *name, struct char_data *ch) {
     GET_PRACTICES(ch) = PFDEF_PRACTICES;
     GET_TRAINS(ch) = PFDEF_TRAINS;
     GET_BOOSTS(ch) = PFDEF_BOOSTS;
+    GET_SPECIALTY_SCHOOL(ch) = PFDEF_SPECIALTY_SCHOOL;
+    GET_1ST_RESTRICTED_SCHOOL(ch) = PFDEF_RESTRICTED_SCHOOL_1;
+    GET_2ND_RESTRICTED_SCHOOL(ch) = PFDEF_RESTRICTED_SCHOOL_2;
+    GET_1ST_DOMAIN(ch) = PFDEF_DOMAIN_1;
+    GET_2ND_DOMAIN(ch) = PFDEF_DOMAIN_2;
     GET_GOLD(ch) = PFDEF_GOLD;
     GET_BANK_GOLD(ch) = PFDEF_BANK;
     GET_EXP(ch) = PFDEF_EXP;
@@ -488,11 +493,13 @@ int load_char(const char *name, struct char_data *ch) {
           else if (!strcmp(tag, "Drnk")) GET_COND(ch, DRUNK) = atoi(line);
           else if (!strcmp(tag, "Drol")) GET_REAL_DAMROLL(ch) = atoi(line);
           else if (!strcmp(tag, "DipT")) GET_DIPTIMER(ch) = atoi(line);
-          else if (!strcmp(tag, "DRac"))  GET_DISGUISE_RACE(ch) = atoi(line);
-          else if (!strcmp(tag, "DDex"))  GET_DISGUISE_DEX(ch) = atoi(line);
-          else if (!strcmp(tag, "DStr"))  GET_DISGUISE_STR(ch) = atoi(line);
-          else if (!strcmp(tag, "DCon"))  GET_DISGUISE_CON(ch) = atoi(line);
-          else if (!strcmp(tag, "DAC"))  GET_DISGUISE_AC(ch) = atoi(line);
+          else if (!strcmp(tag, "DRac")) GET_DISGUISE_RACE(ch) = atoi(line);
+          else if (!strcmp(tag, "DDex")) GET_DISGUISE_DEX(ch) = atoi(line);
+          else if (!strcmp(tag, "DStr")) GET_DISGUISE_STR(ch) = atoi(line);
+          else if (!strcmp(tag, "DCon")) GET_DISGUISE_CON(ch) = atoi(line);
+          else if (!strcmp(tag, "DAC ")) GET_DISGUISE_AC(ch) = atoi(line);
+          else if (!strcmp(tag, "Dom1")) GET_1ST_DOMAIN(ch) = atoi(line);
+          else if (!strcmp(tag, "Dom2")) GET_2ND_DOMAIN(ch) = atoi(line);
           break;
 
         case 'E':
@@ -604,6 +611,8 @@ int load_char(const char *name, struct char_data *ch) {
           else if (!strcmp(tag, "ResI")) GET_REAL_RESISTANCES(ch, 18) = atoi(line);
           else if (!strcmp(tag, "ResJ")) GET_REAL_RESISTANCES(ch, 19) = atoi(line);
           else if (!strcmp(tag, "ResK")) GET_REAL_RESISTANCES(ch, 20) = atoi(line);
+          else if (!strcmp(tag, "RSc1")) GET_1ST_RESTRICTED_SCHOOL(ch) = atoi(line);
+          else if (!strcmp(tag, "RSc2")) GET_2ND_RESTRICTED_SCHOOL(ch) = atoi(line);
           break;
 
         case 'S':
@@ -623,6 +632,7 @@ int load_char(const char *name, struct char_data *ch) {
           else if (!strcmp(tag, "SpRs")) GET_REAL_SPELL_RES(ch) = atoi(line);
           else if (!strcmp(tag, "Size")) GET_REAL_SIZE(ch) = atoi(line);
           else if (!strcmp(tag, "Str ")) load_HMVS(ch, line, LOAD_STRENGTH);
+          else if (!strcmp(tag, "SSch")) GET_SPECIALTY_SCHOOL(ch) = atoi(line);
           break;
 
         case 'T':
@@ -901,6 +911,12 @@ void save_char(struct char_data * ch, int mode) {
   if (GET_PRACTICES(ch) != PFDEF_PRACTICES) fprintf(fl, "Lern: %d\n", GET_PRACTICES(ch));
   if (GET_TRAINS(ch) != PFDEF_TRAINS) fprintf(fl, "Trns: %d\n", GET_TRAINS(ch));
   if (GET_BOOSTS(ch) != PFDEF_BOOSTS) fprintf(fl, "Bost: %d\n", GET_BOOSTS(ch));
+
+  if (GET_1ST_DOMAIN(ch) != PFDEF_DOMAIN_1) fprintf(fl, "Dom1: %d\n", GET_1ST_DOMAIN(ch));
+  if (GET_2ND_DOMAIN(ch) != PFDEF_DOMAIN_2) fprintf(fl, "Dom2: %d\n", GET_2ND_DOMAIN(ch));
+  if (GET_SPECIALTY_SCHOOL(ch) != PFDEF_SPECIALTY_SCHOOL) fprintf(fl, "SSch: %d\n", GET_SPECIALTY_SCHOOL(ch));
+  if (GET_1ST_RESTRICTED_SCHOOL(ch) != PFDEF_RESTRICTED_SCHOOL_1) fprintf(fl, "RSc1: %d\n", GET_1ST_RESTRICTED_SCHOOL(ch));
+  if (GET_2ND_RESTRICTED_SCHOOL(ch) != PFDEF_RESTRICTED_SCHOOL_2) fprintf(fl, "RSc2: %d\n", GET_2ND_RESTRICTED_SCHOOL(ch));
 
   if (GET_FEAT_POINTS(ch) != 0) fprintf(fl, "Ftpt: %d\n", GET_FEAT_POINTS(ch));
 

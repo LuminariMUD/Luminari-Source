@@ -27,6 +27,7 @@
 #include "class.h"
 #include "actions.h"
 #include "assign_wpn_armor.h"
+#include "domains_schools.h"
 
 #define SINFO spell_info[spellnum]
 
@@ -139,7 +140,7 @@ int lowest_spell_level(int spellnum) {
   return lvl;
 }
 
-/* displays substitude text for spells to represent 'magical phrases' */
+/* displays substitute text for spells to represent 'magical phrases' */
 static void say_spell(struct char_data *ch, int spellnum, struct char_data *tch,
         struct obj_data *tobj, bool start) {
   char lbuf[MEDIUM_STRING], buf[MEDIUM_STRING],
@@ -1481,8 +1482,9 @@ void unused_spell(int spl) {
  *  number should be positive, but represents the reduction in mana cost as
  *  the caster's level increases.
  * minpos  :  Minimum position the caster must be in for the spell to work
- *  (usually fighting or standing). targets :  A "list" of the valid targets
- *  for the spell, joined with bitwise OR ('|').
+ *  (usually fighting or standing).
+ * targets :  A "list" of the valid targets for the spell, joined with bitwise
+ *  OR ('|').
  * violent :  TRUE or FALSE, depending on if this is considered a violent
  *  spell and should not be cast in PEACEFUL rooms or on yourself.  Should be
  *  set on any spell that inflicts damage, is considered aggressive (i.e.
@@ -1492,24 +1494,9 @@ void unused_spell(int spl) {
  * time:  casting time of the spell
  * memtime:  memtime of the spell
  * schoolOfMagic:  if magical spell, which school does it belong?
- * Note about - schoolOfMagic:  for skills this is used to categorize it
+ *  Note about - schoolOfMagic:  for skills this is used to categorize it
  * quest:  quest spell or not?  TRUE or FALSE
- *
- * See the documentation for a more detailed description of these fields. You
- * only need a spello() call to define a new spell; to decide who gets to use
- * a spell or skill, look in class.c.  -JE */
-
-/* please leave these here for my usage -zusuk */
-/* evocation */
-/* conjuration */
-/* necromancy */
-/* enchantment */
-/* illusion */
-/* divination */
-/* abjuration */
-
-/* transmutation */
-
+ */
 void mag_assign_spells(void) {
   int i;
 
@@ -1520,6 +1507,16 @@ void mag_assign_spells(void) {
 
   // sorted the spells by shared / magical / divine, and by circle
   // in each category (school) -zusuk
+
+  /* please leave these here for my usage -zusuk */
+  /* evocation */
+  /* conjuration */
+  /* necromancy */
+  /* enchantment */
+  /* illusion */
+  /* divination */
+  /* abjuration */
+  /* transmutation */
 
   //shared
   spello(SPELL_INFRAVISION, "infravision", 0, 0, 0, POS_FIGHTING, //enchant

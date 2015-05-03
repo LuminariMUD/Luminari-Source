@@ -29,12 +29,59 @@
 #include "spec_abilities.h"
 #include "assign_wpn_armor.h"
 #include "wilderness.h"
+#include "domains_schools.h"
 
 /* kavir's protocol (isspace_ignoretabes() was moved to utils.h */
 
 /* Functions of a general utility nature
    Functions directly related to utils.h needs
  */
+
+/* unused */
+int spell_level_ch(struct char_data *ch, int spell) {
+  int domain = 0, domain_spell = 0, this_spell = -1, i = 0;
+
+  if (CLASS_LEVEL(ch, CLASS_CLERIC)) {
+    for (domain = 0; domain < NUM_DOMAINS; domain++) {
+
+      if (GET_1ST_DOMAIN(ch) == domain || GET_2ND_DOMAIN(ch) == domain) {
+        /* we have this domain, check if spell is granted */
+
+        for (domain_spell = 0; domain_spell < MAX_DOMAIN_SPELLS; domain_spell++) {
+          this_spell = domain_list[domain].domain_spells[domain_spell];
+          if (this_spell == spell) {
+            return ((domain_spell + 1) * 2 - 1); /* returning level that corresponds to circle (i) */
+          }
+
+        }
+
+      }
+    }
+  } else { /* not cleric */
+  }
+
+  for (i = 0; i < NUM_CLASSES; i++) {
+    if (spell_info[spell].min_level[i] < LVL_IMMORT) {
+      return (spell_info[spell].min_level[i]);
+    }
+  }
+
+  return (LVL_IMPL + 1);
+}
+
+int compute_level_domain_spell_is_granted(int domain, int spell) {
+  int i = 0, this_spell = -1;
+
+  for (i = 0; i < MAX_DOMAIN_SPELLS; i++) {
+    this_spell = domain_list[domain].domain_spells[i];
+    if (this_spell == spell) {
+      return ((i + 1) * 2 - 1); /* returning level that corresponds to circle (i) */
+    }
+  }
+
+  /* failed */
+  return (LVL_IMPL + 1);
+}
 
 /* check if the player's size should be different than that stored in-file */
 int compute_current_size(struct char_data *ch) {

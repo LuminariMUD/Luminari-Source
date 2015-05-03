@@ -30,17 +30,18 @@
 #include "dg_event.h"
 #include "spells.h"
 #include "spec_abilities.h"
+#include "domains_schools.h"
 
 struct special_ability_info_type weapon_special_ability_info[NUM_WEAPON_SPECABS];
 struct special_ability_info_type armor_special_ability_info[NUM_ARMOR_SPECABS];
 
 const char *unused_specabname = "!UNUSED!"; /* So we can get &unused_specabname */
 
-const char *activation_methods[NUM_ACTIVATION_METHODS + 1] = { "None", 
-                                                               "On Wear", 
-                                                               "On Use", 
+const char *activation_methods[NUM_ACTIVATION_METHODS + 1] = { "None",
+                                                               "On Wear",
+                                                               "On Use",
                                                                "Command Word",
-                                                               "On Hit", 
+                                                               "On Hit",
                                                                "On Crit",
                                                                "\n" };
 
@@ -68,7 +69,7 @@ static void add_armor_special_ability(int specab, const char *name, int level, i
   armor_special_ability_info[specab].school = school;
   armor_special_ability_info[specab].cost = cost;
   armor_special_ability_info[specab].special_ability_proc = specab_proc;
-  
+
 }
  */
 
@@ -85,13 +86,13 @@ static void add_unused_weapon_special_ability(int specab) {
 }
 
 static void add_unused_armor_special_ability(int specab) {
-  armor_special_ability_info[specab].level = 0; 
+  armor_special_ability_info[specab].level = 0;
   armor_special_ability_info[specab].activation_method = 0;
   armor_special_ability_info[specab].targets = 0;
   armor_special_ability_info[specab].violent = 0;
   armor_special_ability_info[specab].name = unused_specabname;
   armor_special_ability_info[specab].time = 0;
-  armor_special_ability_info[specab].school = NOSCHOOL; 
+  armor_special_ability_info[specab].school = NOSCHOOL;
   armor_special_ability_info[specab].cost = 0;
   armor_special_ability_info[specab].special_ability_proc = NULL;
 
@@ -129,7 +130,7 @@ void initialize_special_abilities(void) {
   add_weapon_special_ability( WEAPON_SPECAB_AXIOMATIC, "Axiomatic", 7, ACTMTD_NONE,
     TAR_IGNORE, FALSE, 0, EVOCATION, 2, NULL);
 
-  add_weapon_special_ability( WEAPON_SPECAB_BANE, "Bane", 8, ACTMTD_ON_HIT|ACTMTD_ON_CRIT, 
+  add_weapon_special_ability( WEAPON_SPECAB_BANE, "Bane", 8, ACTMTD_ON_HIT|ACTMTD_ON_CRIT,
     TAR_FIGHT_VICT, FALSE, 0, CONJURATION, 1, weapon_specab_bane);
 
   add_weapon_special_ability( WEAPON_SPECAB_BRILLIANT_ENERGY, "Brilliant Energy", 16, ACTMTD_NONE,
@@ -200,7 +201,7 @@ void initialize_special_abilities(void) {
 
   add_weapon_special_ability( WEAPON_SPECAB_THROWING, "Throwing", 5, ACTMTD_NONE,
     TAR_IGNORE, FALSE, 0, TRANSMUTATION, 1, NULL);
-  
+
   add_weapon_special_ability( WEAPON_SPECAB_UNHOLY, "Unholy", 7, ACTMTD_NONE,
     TAR_IGNORE, FALSE, 0, EVOCATION, 2, NULL);
 
@@ -241,8 +242,8 @@ struct obj_special_ability* get_obj_special_ability(struct obj_data *obj, int ab
 /* Returns the number of activated abilites. */
 int  process_weapon_abilities(struct obj_data  *weapon, /* The weapon to check for special abilities. */
                               struct char_data *ch,     /* The wielder of the weapon. */
-                              struct char_data *victim, /* The target of the ability (either fighting or 
-							 * specified explicitly. */ 
+                              struct char_data *victim, /* The target of the ability (either fighting or
+							 * specified explicitly. */
                               int    actmtd,            /* Activation method */
                               char   *cmdword)          /* Command word (optional, NULL if none. */
 
@@ -263,15 +264,15 @@ int  process_weapon_abilities(struct obj_data  *weapon, /* The weapon to check f
       }
       activated_abilities++;
       (*weapon_special_ability_info[specab->ability].special_ability_proc) (specab, weapon, ch, victim, actmtd);
-      
+
     }
-  }  
-  
+  }
+
   return activated_abilities;
 }
 
 WEAPON_SPECIAL_ABILITY(weapon_specab_flaming) {
-  /* 
+  /*
    * level
    * weapon
    * ch
@@ -280,22 +281,22 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_flaming) {
    */
   switch(actmtd) {
     case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
-    case ACTMTD_USE:          /* User USEs the item. */ 
+    case ACTMTD_USE:          /* User USEs the item. */
       /* Activate the flaming ability.
-       *  - Set the FLAMING bit on the weapon (this affects the display, 
+       *  - Set the FLAMING bit on the weapon (this affects the display,
        *    and is used to toggle the effect.)
        */
       if(OBJ_FLAGGED(weapon, ITEM_FLAMING)) {
         /* Flaming is on, turn it off. */
         send_to_char(ch,"The magical flames wreathing your weapon vanish.\r\n");
         act("The magical flames wreathing $n's $o vanish.", FALSE, ch, weapon, NULL, TO_ROOM);
-  
+
         REMOVE_OBJ_FLAG(weapon, ITEM_FLAMING);
       } else {
         /* FLAME ON! */
         send_to_char(ch, "Magical flames spread down the length of your weapon!\r\n");
         act("Magical flames spread down the length of $n's $o!", FALSE, ch, weapon, NULL, TO_ROOM);
-    
+
         SET_OBJ_FLAG(weapon, ITEM_FLAMING);
       }
       break;
@@ -316,7 +317,7 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_flaming) {
 /* A weapon with Flaming burst functions as a flaming weapon, except on critical hits it
  * performs a flame burst for 1d10 extra damage. */
 WEAPON_SPECIAL_ABILITY(weapon_specab_flaming_burst) {
-  /* 
+  /*
    * level
    * weapon
    * ch
@@ -327,7 +328,7 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_flaming_burst) {
     case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
     case ACTMTD_USE:          /* User USEs the item. */
       /* Activate the flaming ability.
-       *  - Set the FLAMING bit on the weapon (this affects the display, 
+       *  - Set the FLAMING bit on the weapon (this affects the display,
        *    and is used to toggle the effect.)
        */
       if(OBJ_FLAGGED(weapon, ITEM_FLAMING)) {
@@ -367,7 +368,7 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_flaming_burst) {
 
 /* A weapon wne prints messages when fighting it's favored enemy... */
 WEAPON_SPECIAL_ABILITY(weapon_specab_bane) {
-  /* 
+  /*
    * level
    * weapon
    * ch
@@ -388,7 +389,7 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_bane) {
      act("Waves of pleasure course into you from your $o as you strike $N!", FALSE, ch, weapon, victim, TO_CHAR);
     }
     break;
-    default: 
+    default:
       /* Do nothing. */
       break;
   }
@@ -397,7 +398,7 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_bane) {
 /* A weapon with the frost special ability generates cold, becoming encrusted with frost and dealing
  * cold damage on a regular hit. */
 WEAPON_SPECIAL_ABILITY(weapon_specab_frost) {
-  /* 
+  /*
    * level
    * weapon
    * ch
@@ -408,7 +409,7 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_frost) {
     case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
     case ACTMTD_USE:          /* User USEs the item. */
       /* Activate the flaming ability.
-       *  - Set the FROST bit on the weapon (this affects the display, 
+       *  - Set the FROST bit on the weapon (this affects the display,
        *    and is used to toggle the effect.)
        */
       if(OBJ_FLAGGED(weapon, ITEM_FROST)) {
