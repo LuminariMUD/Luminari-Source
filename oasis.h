@@ -619,6 +619,21 @@ ACMD(do_oasis_qedit);
 /* public functions from study.c */
 ACMD(do_study);
 void study_parse(struct descriptor_data *d, char *arg);
+int stat_points_left(struct char_data *ch);
+int compute_total_stat_points(struct char_data *ch);
+int compute_cha_cost(struct char_data *ch, int number);
+int compute_base_cha(struct char_data *ch);
+int compute_wis_cost(struct char_data *ch, int number);
+int compute_base_wis(struct char_data *ch);
+int compute_inte_cost(struct char_data *ch, int number);
+int compute_base_inte(struct char_data *ch);
+int compute_con_cost(struct char_data *ch, int number);
+int compute_base_con(struct char_data *ch);
+int compute_str_cost(struct char_data *ch, int number);
+int compute_base_str(struct char_data *ch);
+int compute_dex_cost(struct char_data *ch, int number);
+int compute_base_dex(struct char_data *ch);
+
 
 /* public functions from msgedit.c */
 ACMD(do_msgedit);
