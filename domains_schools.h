@@ -32,14 +32,17 @@ extern "C" {
 
 #define DOMAIN_UNDEFINED        0
 #define DOMAIN_AIR              1
+#define DOMAIN_EARTH            2
 /****************/
-#define NUM_DOMAINS             2
+#define NUM_DOMAINS             3
 
 #define DOMAIN_POWER_UNDEFINED                0
 #define DOMAIN_POWER_LIGHTNING_ARC            1
 #define DOMAIN_POWER_ELECTRICITY_RESISTANCE   2
+#define DOMAIN_POWER_ACID_DART                3
+#define DOMAIN_POWER_ACID_RESISTANCE          4
   /****************/
-#define NUM_DOMAIN_POWERS                     3
+#define NUM_DOMAIN_POWERS                     5
 /****************/
 
   /****************/
