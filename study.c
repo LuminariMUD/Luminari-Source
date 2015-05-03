@@ -1562,7 +1562,8 @@ void study_parse(struct descriptor_data *d, char *arg) {
         write_to_output(d, "This would put you below/above the stat-cap!\r\n");
         break;
       }
-      cost_for_number = compute_dex_cost(d->character, number);
+      cost_for_number = compute_dex_cost(d->character, number) -
+              compute_dex_cost(d->character, 0);
       if (number < 0)
         cost_for_number = -cost_for_number;
       /*debug*/
@@ -1599,7 +1600,8 @@ void study_parse(struct descriptor_data *d, char *arg) {
         write_to_output(d, "This would put you below/above the stat-cap!\r\n");
         break;
       }
-      cost_for_number = compute_con_cost(d->character, number);
+      cost_for_number = compute_con_cost(d->character, number) -
+              compute_con_cost(d->character, 0);
       if (number < 0)
         cost_for_number = -cost_for_number;
       /*debug*/
@@ -1636,7 +1638,8 @@ void study_parse(struct descriptor_data *d, char *arg) {
         write_to_output(d, "This would put you below/above the stat-cap!\r\n");
         break;
       }
-      cost_for_number = compute_inte_cost(d->character, number);
+      cost_for_number = compute_inte_cost(d->character, number) -
+              compute_inte_cost(d->character, 0);
       if (number < 0)
         cost_for_number = -cost_for_number;
       /*debug*/
@@ -1673,7 +1676,8 @@ void study_parse(struct descriptor_data *d, char *arg) {
         write_to_output(d, "This would put you below/above the stat-cap!\r\n");
         break;
       }
-      cost_for_number = compute_wis_cost(d->character, number);
+      cost_for_number = compute_wis_cost(d->character, number) -
+              compute_wis_cost(d->character, 0);
       if (number < 0)
         cost_for_number = -cost_for_number;
       /*debug*/
@@ -1710,7 +1714,8 @@ void study_parse(struct descriptor_data *d, char *arg) {
         write_to_output(d, "This would put you below/above the stat-cap!\r\n");
         break;
       }
-      cost_for_number = compute_cha_cost(d->character, number);
+      cost_for_number = compute_cha_cost(d->character, number) -
+              compute_cha_cost(d->character, 0);
       if (number < 0)
         cost_for_number = -cost_for_number;
       /*debug*/
