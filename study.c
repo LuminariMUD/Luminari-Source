@@ -649,6 +649,7 @@ static void favored_enemy_submenu(struct descriptor_data *d, int favored) {
 }
 
 #define TOTAL_STAT_POINTS 30
+#define MAX_POINTS_IN_A_STAT 10
 #define BASE_STAT 8
 int stat_cost_chart[11] = { /* cost for total points */
 /*0  1  2  3  4  5  6  7  8   9   10 */
@@ -680,8 +681,9 @@ int compute_base_str(struct char_data *ch) {
   }
   return base_str;
 }
-int compute_str_cost(struct char_data *ch) {
-  int base_str = compute_base_str(ch), current_str = LEVELUP(ch)->str;
+int compute_str_cost(struct char_data *ch, int number) {
+  int base_str = compute_base_str(ch),
+          current_str = LEVELUP(ch)->str + number;
   return stat_cost_chart[current_str - base_str];
 }
 int compute_base_con(struct char_data *ch) {
@@ -743,7 +745,10 @@ int compute_cha_cost(struct char_data *ch) {
 
 int compute_total_stat_points(struct char_data *ch) {
   return (compute_cha_cost(ch)+compute_wis_cost(ch)+compute_inte_cost(ch)+
-          compute_str_cost(ch)+compute_dex_cost(ch)+compute_con_cost(ch));
+          compute_str_cost(ch,0)+compute_dex_cost(ch)+compute_con_cost(ch));
+}
+int stat_points_left(struct char_data *ch) {
+  return (TOTAL_STAT_POINTS-compute_total_stat_points(ch));
 }
 
 static void set_stats_menu(struct descriptor_data *d) {
@@ -773,7 +778,7 @@ static void set_stats_menu(struct descriptor_data *d) {
           grn, nrm, LEVELUP(d->character)->inte, nrm,
           grn, nrm, LEVELUP(d->character)->wis, nrm,
           grn, nrm, LEVELUP(d->character)->cha, nrm,
-          grn, (TOTAL_STAT_POINTS-compute_total_stat_points(d->character)), nrm,
+          grn, stat_points_left(d->character), nrm,
           /* empty line */
           grn, nrm
           /* empty line */
@@ -1113,6 +1118,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
   struct char_data *ch = d->character;
   int number = -1;
   int counter;
+  int points_left = 0, cost_for_number = 0;
 
   switch (OLC_MODE(d)) {
     case STUDY_CONFIRM_SAVE:
@@ -1453,7 +1459,87 @@ void study_parse(struct descriptor_data *d, char *arg) {
           break;
       }
       break;
-      /******* end bard **********/
+    /******* end bard **********/
+
+    case STUDY_SET_STATS:
+      switch (*arg) {
+        case 'q':
+        case 'Q':
+          display_main_menu(d);
+          break;
+
+        default:
+          number = atoi(arg);
+          switch (number) {
+            case 0: /* str */
+              write_to_output(d, "Please enter stat modification, if you want to"
+                      " reduce your stat by x, then you would type -x\r\n");
+              OLC_MODE(d) = SET_STAT_STR;
+              return;
+            case 1: /* dex */
+              write_to_output(d, "Please enter stat modification, if you want to"
+                      " reduce your stat by x, then you would type -x\r\n");
+              OLC_MODE(d) = SET_STAT_DEX;
+              return;
+            case 2: /* con */
+              write_to_output(d, "Please enter stat modification, if you want to"
+                      " reduce your stat by x, then you would type -x\r\n");
+              OLC_MODE(d) = SET_STAT_CON;
+              return;
+            case 3: /* inte */
+              write_to_output(d, "Please enter stat modification, if you want to"
+                      " reduce your stat by x, then you would type -x\r\n");
+              OLC_MODE(d) = SET_STAT_INTE;
+              return;
+            case 4: /* wis */
+              write_to_output(d, "Please enter stat modification, if you want to"
+                      " reduce your stat by x, then you would type -x\r\n");
+              OLC_MODE(d) = SET_STAT_WIS;
+              return;
+            case 5: /* cha */
+              write_to_output(d, "Please enter stat modification, if you want to"
+                      " reduce your stat by x, then you would type -x\r\n");
+              OLC_MODE(d) = SET_STAT_CHA;
+              return;
+            default: break;
+          }
+          OLC_MODE(d) = STUDY_SET_STATS;
+          set_stats_menu(d);
+          break;
+      }
+      break;
+    /***** end study set stats */
+    case SET_STAT_STR:
+      number = atoi(arg);
+      points_left = stat_points_left(d->character);
+      cost_for_number = compute_str_cost(d->character, number);
+      if ((points_left - cost_for_number) >= 0) {
+        if (LEVELUP(d->character)->str+number >= compute_base_str(d->character) ||
+            LEVELUP(d->character)->str+number <= compute_base_str(d->character)+MAX_POINTS_IN_A_STAT) {
+          /* success! */
+          LEVELUP(ch)->str += number;
+          OLC_MODE(d) = STUDY_SET_STATS;
+          set_stats_menu(d);
+          return;
+        } else {
+          write_to_output(d, "That would put you above the stat-cap!\r\n");
+          break;
+        }
+      } else {
+        write_to_output(d, "You do not have enough points!\r\n");
+        break;
+      }
+      break;
+    case SET_STAT_DEX:
+      break;
+    case SET_STAT_CON:
+      break;
+    case SET_STAT_INTE:
+      break;
+    case SET_STAT_WIS:
+      break;
+    case SET_STAT_CHA:
+      break;
 
     case FAVORED_ENEMY:
       switch (*arg) {
