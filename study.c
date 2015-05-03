@@ -1526,8 +1526,6 @@ void study_parse(struct descriptor_data *d, char *arg) {
       }
       cost_for_number = compute_str_cost(d->character, number) -
               compute_str_cost(d->character, 0); /*total cost*/
-      if (number < 0)
-        cost_for_number = -cost_for_number;
       /*debug*/
       write_to_output(d, "Cost for 'Number': %d\r\n", cost_for_number);
       if ((points_left - cost_for_number) >= 0) {
@@ -1564,8 +1562,6 @@ void study_parse(struct descriptor_data *d, char *arg) {
       }
       cost_for_number = compute_dex_cost(d->character, number) -
               compute_dex_cost(d->character, 0);
-      if (number < 0)
-        cost_for_number = -cost_for_number;
       /*debug*/
       write_to_output(d, "Cost for 'Number': %d\r\n", cost_for_number);
       if ((points_left - cost_for_number) >= 0) {
@@ -1602,8 +1598,6 @@ void study_parse(struct descriptor_data *d, char *arg) {
       }
       cost_for_number = compute_con_cost(d->character, number) -
               compute_con_cost(d->character, 0);
-      if (number < 0)
-        cost_for_number = -cost_for_number;
       /*debug*/
       write_to_output(d, "Cost for 'Number': %d\r\n", cost_for_number);
       if ((points_left - cost_for_number) >= 0) {
@@ -1640,8 +1634,6 @@ void study_parse(struct descriptor_data *d, char *arg) {
       }
       cost_for_number = compute_inte_cost(d->character, number) -
               compute_inte_cost(d->character, 0);
-      if (number < 0)
-        cost_for_number = -cost_for_number;
       /*debug*/
       write_to_output(d, "Cost for 'Number': %d\r\n", cost_for_number);
       if ((points_left - cost_for_number) >= 0) {
@@ -1678,8 +1670,6 @@ void study_parse(struct descriptor_data *d, char *arg) {
       }
       cost_for_number = compute_wis_cost(d->character, number) -
               compute_wis_cost(d->character, 0);
-      if (number < 0)
-        cost_for_number = -cost_for_number;
       /*debug*/
       write_to_output(d, "Cost for 'Number': %d\r\n", cost_for_number);
       if ((points_left - cost_for_number) >= 0) {
@@ -1716,8 +1706,6 @@ void study_parse(struct descriptor_data *d, char *arg) {
       }
       cost_for_number = compute_cha_cost(d->character, number) -
               compute_cha_cost(d->character, 0);
-      if (number < 0)
-        cost_for_number = -cost_for_number;
       /*debug*/
       write_to_output(d, "Cost for 'Number': %d\r\n", cost_for_number);
       if ((points_left - cost_for_number) >= 0) {
