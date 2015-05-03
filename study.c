@@ -1511,14 +1511,22 @@ void study_parse(struct descriptor_data *d, char *arg) {
     /***** end study set stats */
     case SET_STAT_STR:
       number = MAX(-10, MIN(atoi(arg), 10));
+      /*debug*/
+      write_to_output(d, "Number: %d\r\n", number);
       points_left = stat_points_left(d->character);
+      /*debug*/
+      write_to_output(d, "Points Left: %d\r\n", points_left);
       new_stat = LEVELUP(d->character)->str + number;
+      /*debug*/
+      write_to_output(d, "New Stat: %d\r\n", new_stat);
       if (new_stat < compute_base_str(d->character) ||
           new_stat > compute_base_str(d->character) + MAX_POINTS_IN_A_STAT) {
-        write_to_output(d, "That would put you below/above the stat-cap!\r\n");
+        write_to_output(d, "This would put you below/above the stat-cap!\r\n");
         break;
       }
       cost_for_number = compute_str_cost(d->character, number);
+      /*debug*/
+      write_to_output(d, "Cost for 'Number': %d\r\n", cost_for_number);
       if ((points_left - cost_for_number) >= 0) {
         if (new_stat >= compute_base_str(d->character) &&
             new_stat <= (compute_base_str(d->character)+MAX_POINTS_IN_A_STAT)) {
