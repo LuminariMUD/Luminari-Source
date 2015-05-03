@@ -868,17 +868,7 @@
 /*****Note Skills use this same***/
 /********category for "type"******/
 /*********************************/
-#define NOSCHOOL       0	// non magical spells
-#define ABJURATION     1
-#define CONJURATION    2
-#define DIVINATION     3
-#define ENCHANTMENT    4
-#define EVOCATION      5
-#define ILLUSION       6
-#define NECROMANCY     7
-#define TRANSMUTATION  8
-
-#define NUM_SCHOOLS    9
+/* this now exists in domains_schools.h */
 /*--------------------------------*/
 
 

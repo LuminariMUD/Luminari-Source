@@ -21,6 +21,7 @@
 #include "spells.h"
 #include "craft.h"
 #include "feats.h"
+#include "domains_schools.h"
 
 /** Current LuminariMUD version.
  * @todo defined with _LUMINARIMUD so we don't have multiple constants to change.

@@ -2960,6 +2960,13 @@ struct player_special_data_saved {
 
   byte church;  // homeland-port
 
+  /* schools / domains */
+  byte domain_1; /* cleric domains */
+  byte domain_2; /* cleric domains */
+  byte specialty_school; /* wizard specialty */
+  byte restricted_school_1; /* restricted school */
+  byte restricted_school_2; /* restricted school */
+
   int wimp_level; /**< Below this # of hit points, flee! */
   byte freeze_level; /**< Level of god who froze char, if any */
   sh_int invis_level; /**< level of invisibility */

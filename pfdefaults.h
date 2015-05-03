@@ -1,7 +1,7 @@
 /**
 * @file pfdefaults.h
 * ASCII player file defaults.
-* 
+*
 * Part of the core tbaMUD source code distribution, which is a derivative
 * of, and continuation of, CircleMUD.
 *
@@ -10,10 +10,15 @@
 #ifndef _PFDEFAULTS_H_
 #define _PFDEFAULTS_H_
 
-/* WARNING:  Do not change the values below if you have existing ascii player 
+/* WARNING:  Do not change the values below if you have existing ascii player
  * files you don't want to screw up. */
 
 #define PFDEF_SIZE		-1
+#define PFDEF_DOMAIN_1		0
+#define PFDEF_DOMAIN_2		0
+#define PFDEF_SPECIALTY_SCHOOL		0
+#define PFDEF_RESTRICTED_SCHOOL_1		0
+#define PFDEF_RESTRICTED_SCHOOL_2		0
 #define PFDEF_BOOSTS		0
 #define PFDEF_MORPHED		0
 #define PFDEF_SEX		0
@@ -60,15 +65,15 @@
 #define PFDEF_HUNGER		0
 #define PFDEF_THIRST		0
 #define PFDEF_DRUNK		0
-#define PFDEF_OLC               NOWHERE 
+#define PFDEF_OLC               NOWHERE
 #define PFDEF_PAGELENGTH        22
 #define PFDEF_SCREENWIDTH       80
 #define PFDEF_QUESTPOINTS       0
 #define PFDEF_QUESTCOUNT        0
 #define PFDEF_COMPQUESTS        0
 #define PFDEF_CURRQUEST         NOTHING
-#define PFDEF_LASTMOTD          0 
-#define PFDEF_LASTNEWS          0 
+#define PFDEF_LASTMOTD          0
+#define PFDEF_LASTNEWS          0
 #define PFDEF_RACE		0
 #define PFDEF_CLAN              0
 #define PFDEF_CLANRANK          0
@@ -81,5 +86,5 @@
 #define PFDEF_AUTOCQUEST_GOLD      0
 #define PFDEF_AUTOCQUEST_DESC         NULL
 #define PFDEF_AUTOCQUEST_MATERIAL     0
-    
+
 #endif /* _PFDEFAULTS_H_ */

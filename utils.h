@@ -40,6 +40,7 @@
  * are made available with the function definition. */
 #define isspace_ignoretabs(c) ((c)!='\t' && isspace(c))
 
+int compute_level_domain_spell_is_granted(int domain, int spell);
 int compute_current_size(struct char_data *ch);
 room_vnum what_vnum_is_in_this_direction(room_rnum room_origin, int direction);
 int convert_alignment(int align);
@@ -499,7 +500,6 @@ do                                                              \
 #define SPELL_ROUTINES(spl)	(spell_info[spl].routines)
 
 
-
 /* IS_MOB() acts as a VALID_MOB_RNUM()-like function.*/
 /** 1 if the character has the NPC bit set, 0 if the character does not.
  * Used to prevents NPCs and mobs from doing things they shouldn't, even
@@ -917,14 +917,27 @@ do                                                              \
 /** The room to load player ch into. */
 #define GET_LOADROOM(ch)	CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.load_room))
 
-
-
-
 // practices, training and boost sessions remaining
 #define GET_PRACTICES(ch)	CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.spells_to_learn))
 #define GET_TRAINS(ch)		CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.abilities_to_learn))
 #define GET_BOOSTS(ch)		CHECK_PLAYER_SPECIAL((ch), \
 				((ch)->player_specials->saved.boosts))
+
+/* domain and school macros */
+#define GET_1ST_DOMAIN(ch)	CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.domain_1))
+#define GET_2ND_DOMAIN(ch)	CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.domain_2))
+#define GET_SPECIALTY_SCHOOL(ch)	CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.specialty_school))
+#define GET_1ST_RESTRICTED_SCHOOL(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.restricted_school_1))
+#define GET_2ND_RESTRICTED_SCHOOL(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.restricted_school_2))
+#define HAS_DOMAIN(ch, domain) (GET_1ST_DOMAIN(ch) == i || GET_2ND_DOMAIN(ch) == i)
+#define IS_RESTRICTED_SCHOOL(ch, i) ( GET_1ST_RESTRICTED_SCHOOL(ch) == i || \
+                                      GET_2ND_RESTRICTED_SCHOOL(ch) == i )
+/* macro for determining the level you get a spell, added to support
+ domain granted-spells */
+/* this will return 99 if the 'domain' doesn't grant the 'spell' */
+#define LEVEL_DOMAIN_GRANTS_SPELL(domain, spell) (compute_level_domain_spell_is_granted(domain, spell))
+#define SPELL_LEVEL(spell, class, domain) ( MIN( spell_info[spell].min_level[class], \
+    LEVEL_DOMAIN_GRANTS_SPELL(domain, spell) ) )
 
 /** Current invisibility level of ch. */
 #define GET_INVIS_LEV(ch)	CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.invis_level))
