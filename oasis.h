@@ -533,11 +533,17 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn, *red;
 #define STUDY_SKFEAT_MENU      12
 #define STUDY_CONFIRM_SAVE     13
 #define STUDY_GEN_MAIN_MENU    14
-#define STUDY_EPIC_CLASS_FEAT_MENU 15
+#define STUDY_EPIC_CLASS_FEAT_MENU   15
 #define STUDY_SORC_KNOWN_SPELLS_MENU 16
 #define STUDY_BARD_KNOWN_SPELLS_MENU 17
 #define STUDY_CONFIRM_ADD_FEAT 18
-#define STUDY_SET_STATS 19
+#define STUDY_SET_STATS        19
+#define SET_STAT_STR           20
+#define SET_STAT_DEX           21
+#define SET_STAT_CON           22
+#define SET_STAT_INTE          23
+#define SET_STAT_WIS           24
+#define SET_STAT_CHA           25
 
 int save_config(IDXTYPE nowhere);
 
