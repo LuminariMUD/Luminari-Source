@@ -91,17 +91,17 @@ void assign_domains(void) {
 ACMD(do_domain) {
   int i = 0, j = 0;;
 
-  for (i = 0; i < NUM_DOMAINS; i++) {
-    send_to_char(ch, "%-20s, %-22s\r\n %s\r\n",
+  for (i = 1; i < NUM_DOMAINS; i++) {
+    send_to_char(ch, "%-20s %-22s\r\n %s\r\n",
                  domain_list[i].name,
                  weapon_list[domain_list[i].favored_weapon].name,
                  domain_list[i].description
                 );
 
-    send_to_char(ch, "| ");
+    send_to_char(ch, "Granted spells: |");
     for (j = 0; j < MAX_DOMAIN_SPELLS; j++) {
       if (domain_list[i].domain_spells[j] != SPELL_RESERVED_DBC) {
-        send_to_char(ch, "%s |", spell_info[domain_list[i].domain_spells[j]].name);
+        send_to_char(ch, "%s|", spell_info[domain_list[i].domain_spells[j]].name);
       }
     }
     send_to_char(ch, "\r\n");
