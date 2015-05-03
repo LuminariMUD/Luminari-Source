@@ -51,6 +51,7 @@
 #include "mysql.h"
 #include "feats.h"
 #include "actionqueues.h"
+#include "domains_schools.h"
 
 #include <sys/stat.h>
 /*  declarations of most of the 'global' variables */
@@ -552,6 +553,9 @@ void boot_world(void) {
 
   log("Loading Homeland quests.");
   index_boot(DB_BOOT_HLQST);
+
+  log("Loading Domains.");
+  assign_domains();
 
   log("Loading Weapons.");
   load_weapons();

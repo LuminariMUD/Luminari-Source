@@ -10,6 +10,7 @@
 #ifdef	__cplusplus
 extern "C" {
 #endif
+/******************************************/
 
 /* if these two values are changed, you have to adjust the respect add_
  functions */
@@ -65,7 +66,15 @@ struct school_info {
 };
 struct school_info school_list[NUM_SCHOOLS];
 
+/******************************************/
+
+void assign_domains(void);
+
+/******************************************/
+
 ACMD(do_domain);
+
+/******************************************/
 
 #ifdef	__cplusplus
 }
