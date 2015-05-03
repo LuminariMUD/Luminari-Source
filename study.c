@@ -757,6 +757,8 @@ static void set_stats_menu(struct descriptor_data *d) {
 
   write_to_output(d,
           "\r\n-- %sSet Character Stats%s\r\n"
+          "Points invested:   1  2  3  4  5  6  7  8   9   10\r\n"
+          "Point cost:        1  2  3  4  5  6  8  10  13  16\r\n"
           "\r\n"
           "%s 0%s) Strength:      %d%s\r\n"
           "%s 1%s) Dexterity:     %d%s\r\n"

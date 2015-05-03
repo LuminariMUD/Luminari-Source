@@ -85,6 +85,21 @@ void assign_domains(void) {
       /* 9th circle */
       SPELL_ELEMENTAL_SWARM);
 
+  /* Earth Domain */
+  add_domain(DOMAIN_EARTH, "Earth", WEAPON_TYPE_WARHAMMER,
+      "You have mastery over earth, metal, and stone, can fire darts of acid, "
+          "and command earth creatures.");
+  add_domain_powers(DOMAIN_EARTH, DOMAIN_POWER_ACID_DART, DOMAIN_POWER_ACID_RESISTANCE,
+      DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED);
+                                /* 1st circle */      /* 2nd circle */
+  add_domain_spells(DOMAIN_EARTH, SPELL_IRON_GUTS, SPELL_ACID_ARROW,
+      /* 3rd circle */    /* 4th circle */       /* 5th circle */
+      SPELL_FLY,          SPELL_STONESKIN,  SPELL_ACID_SHEATH,
+      /* 6th circle */    /* 7th circle */           /* 8th circle */
+      SPELL_ACID_FOG,     SPELL_WAVES_OF_EXHAUSTION, SPELL_MASS_DOMINATION,
+      /* 9th circle */
+      SPELL_ELEMENTAL_SWARM);
+
   /* end */
 }
 
@@ -104,7 +119,7 @@ ACMD(do_domain) {
         send_to_char(ch, "%s|", spell_info[domain_list[i].domain_spells[j]].name);
       }
     }
-    send_to_char(ch, "\r\n");
+    send_to_char(ch, "\r\n\r\n");
 
   }
 }
