@@ -2057,7 +2057,7 @@ void init_start_char(struct char_data *ch) {
   GET_REAL_MAX_MOVE(ch) = 82;
   GET_PRACTICES(ch) = 0;
   GET_TRAINS(ch) = 0;
-  GET_BOOSTS(ch) = 4; //freebies
+  GET_BOOSTS(ch) = 0;
   GET_FEAT_POINTS(ch) = 0;
   GET_EPIC_FEAT_POINTS(ch) = 0;
 
