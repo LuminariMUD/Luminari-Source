@@ -763,7 +763,6 @@ int epic_level_feats[][7] = {
 
   // This is always the last one
   { CLASS_UNDEFINED, 0, 0, 0, TRUE, FEAT_UNDEFINED, 0}
-
 };
 
 
@@ -2171,25 +2170,30 @@ void init_start_char(struct char_data *ch) {
       break;
   }
 
+  /* this is a hack - you can set your stats at level 1, which means the very
+   first starting level you are going to get stats based on starting stats of 8,
+   so as compensation, we're treating all starting characters as having 12 int */
   //class-related inits
+  int int_bonus = GET_INT_BONUS(ch); /* this is the way it should be */
+  int_bonus = 1; /* this we're forcing because of set-stats at level 1 */
   switch (GET_CLASS(ch)) {
     case CLASS_WARRIOR:
       GET_CLASS_FEATS(ch, CLASS_WARRIOR)++; /* Bonus Feat */
     case CLASS_WIZARD:
     case CLASS_CLERIC:
-      trains += MAX(1, (2 + (int) (GET_INT_BONUS(ch))) * 3);
+      trains += MAX(1, (2 + (int) (int_bonus)) * 3);
       break;
     case CLASS_DRUID:
     case CLASS_RANGER:
     case CLASS_BERSERKER:
     case CLASS_MONK:
-      trains += MAX(1, (4 + (int) (GET_INT_BONUS(ch))) * 3);
+      trains += MAX(1, (4 + (int) (int_bonus)) * 3);
       break;
     case CLASS_BARD:
-      trains += MAX(1, (6 + (int) (GET_INT_BONUS(ch))) * 3);
+      trains += MAX(1, (6 + (int) (int_bonus)) * 3);
       break;
     case CLASS_ROGUE:
-      trains += MAX(1, (8 + (int) (GET_INT_BONUS(ch))) * 3);
+      trains += MAX(1, (8 + (int) (int_bonus)) * 3);
       break;
   }
 
@@ -2205,7 +2209,7 @@ void init_start_char(struct char_data *ch) {
 void do_start(struct char_data *ch) {
   init_start_char(ch);
 
-  //from level 0 -> level
+  //from level 0 -> level 1
   advance_level(ch, GET_CLASS(ch));
   GET_HIT(ch) = GET_MAX_HIT(ch);
   GET_MANA(ch) = GET_MAX_MANA(ch);
