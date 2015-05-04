@@ -1204,7 +1204,7 @@ ACMD(do_gain) {
     if ((GET_PRACTICES(ch) != 0) ||
             (GET_TRAINS(ch) != 0) ||
             (GET_BOOSTS(ch) != 0) ||
-            (stats_point_left(ch)) ) {//    ||
+            (stats_point_left(ch) && GET_LEVEL(ch) == 1) ) {//    ||
       /*         ((CLASS_LEVEL(ch, CLASS_SORCERER) && !IS_SORC_LEARNED(ch)) ||
                (CLASS_LEVEL(ch, CLASS_WIZARD)   && !IS_WIZ_LEARNED(ch))  ||
                (CLASS_LEVEL(ch, CLASS_BARD)     && !IS_BARD_LEARNED(ch)) ||
