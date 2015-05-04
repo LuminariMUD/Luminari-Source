@@ -20,8 +20,24 @@ struct domain_info domain_list[NUM_DOMAINS];
 struct school_info school_list[NUM_SCHOOLS];
 
 /* special spells granted by domains have to be assigned */
-void assign_domain_spell_levels() {
+void assign_domain_spells(struct char_data *ch) {
+  if (!CLASS_LEVEL(ch, CLASS_CLERIC))
+    return;
 
+  int i, j, spellnum;
+
+  for (j = 1; j < NUM_DOMAINS; j++) {
+    if (GET_1ST_DOMAIN(ch) != j && GET_2ND_DOMAIN(ch) != j)
+      continue;
+    /* we have this domain */
+    for (i = 0; i < MAX_DOMAIN_SPELLS; i++) {
+      spellnum = domain_list[j].domain_spells[i];
+      if (!GET_SKILL(ch, spellnum))
+        SET_SKILL(ch, spellnum, 99);
+    }
+  }
+
+  return;
 }
 
 /* go through and init the list of domains with "empty" values */
@@ -94,13 +110,45 @@ void assign_domains(void) {
                                 /* 1st circle */      /* 2nd circle */
   add_domain_spells(DOMAIN_EARTH, SPELL_IRON_GUTS, SPELL_ACID_ARROW,
       /* 3rd circle */    /* 4th circle */       /* 5th circle */
-      SPELL_FLY,          SPELL_STONESKIN,  SPELL_ACID_SHEATH,
+      SPELL_SLOW,          SPELL_STONESKIN,  SPELL_ACID_SHEATH,
       /* 6th circle */    /* 7th circle */           /* 8th circle */
       SPELL_ACID_FOG,     SPELL_WAVES_OF_EXHAUSTION, SPELL_MASS_DOMINATION,
       /* 9th circle */
       SPELL_ELEMENTAL_SWARM);
 
   /* end */
+  /* this has to be at the end */
+  init_domain_spell_level();
+}
+
+void domain_spell_level(int spell, int level, int domain) {
+  int bad = 0;
+
+  if (spell < 0 || spell > TOP_SPELL_DEFINE) {
+    log("SYSERR: attempting assign to illegal domain spellnum %d/%d", spell, TOP_SPELL_DEFINE);
+    return;
+  }
+
+  if (level < 1 || level > LVL_IMPL) {
+    log("SYSERR: assigning domain '%s' to illegal level %d/%d.", skill_name(spell),
+            level, LVL_IMPL);
+    bad = 1;
+  }
+
+  if (!bad)
+    spell_info[spell].domain[domain] = level;
+}
+
+void init_domain_spell_level(void) {
+  int domain, j, spellnum;
+
+  for (domain = 1; domain < NUM_DOMAINS; domain++) {
+    for (j = 0; j < MAX_DOMAIN_SPELLS; j++) {
+      spellnum = domain_list[domain].domain_spells[j];
+      domain_spell_level(spellnum, (j+1)*2-1, domain);
+    }
+  }
+
 }
 
 ACMD(do_domain) {

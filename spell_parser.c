@@ -944,8 +944,14 @@ EVENTFUNC(event_casting) {
     if (!castingCheckOk(ch))
       return 0;
     else {
+      int spell_level = spell_info[spellnum].min_level[CASTING_CLASS(ch)];
+      if (CASTING_CLASS(ch) == CLASS_CLERIC) {
+        spell_level = MIN_SPELL_LVL(spellnum, CLASS_CLERIC, GET_1ST_DOMAIN(ch));
+        int spell_level2 = MIN_SPELL_LVL(spellnum, CLASS_CLERIC, GET_2ND_DOMAIN(ch));
+        spell_level = MIN(spell_level, spell_level2);
+      }
       // concentration challenge
-      failure += spell_info[spellnum].min_level[CASTING_CLASS(ch)] * 2;
+      failure +=  spell_level * 2;
       if (!IS_NPC(ch))
         failure -= CASTER_LEVEL(ch) + ((compute_ability(ch, ABILITY_CONCENTRATION) - 3) * 2);
       else
@@ -1428,6 +1434,8 @@ static void spello(int spl, const char *name, int max_mana, int min_mana,
 
   for (i = 0; i < NUM_CLASSES; i++)
     spell_info[spl].min_level[i] = LVL_IMMORT;
+  for (i = 0; i < NUM_DOMAINS; i++)
+    spell_info[spl].domain[i] = LVL_IMMORT;
   spell_info[spl].mana_max = max_mana;
   spell_info[spl].mana_min = min_mana;
   spell_info[spl].mana_change = mana_change;
@@ -1449,6 +1457,8 @@ void unused_spell(int spl) {
 
   for (i = 0; i < NUM_CLASSES; i++)
     spell_info[spl].min_level[i] = LVL_IMPL + 1;
+  for (i = 0; i < NUM_DOMAINS; i++)
+    spell_info[spl].domain[i] = LVL_IMPL + 1;
   spell_info[spl].mana_max = 0;
   spell_info[spl].mana_min = 0;
   spell_info[spl].mana_change = 0;

@@ -34,6 +34,7 @@
 #include "class.h"
 #include "assign_wpn_armor.h"
 #include "pfdefaults.h"
+#include "domains_schools.h"
 
 int *free_start_feats[];
 
@@ -1391,6 +1392,7 @@ void monk_skills(struct char_data *ch, int level) {
   return;
 }
 
+/* this is used to assign all the spells */
 void init_class(struct char_data *ch, int class, int level) {
   int i, j;
 
@@ -1680,6 +1682,9 @@ void init_class(struct char_data *ch, int class, int level) {
       break;
 
     case CLASS_CLERIC:
+      /* we also have to add this to study where we set our domains */
+      assign_domain_spells(ch);
+
       //spell init
       //1st circle
       SET_SKILL(ch, SPELL_ARMOR, 99);

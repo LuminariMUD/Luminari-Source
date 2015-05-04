@@ -30,11 +30,7 @@ extern "C" {
 /****************/
 #define NUM_SCHOOLS    9
 
-#define DOMAIN_UNDEFINED        0
-#define DOMAIN_AIR              1
-#define DOMAIN_EARTH            2
-/****************/
-#define NUM_DOMAINS             3
+/* domains are in structs.h */
 
 #define DOMAIN_POWER_UNDEFINED                0
 #define DOMAIN_POWER_LIGHTNING_ARC            1
@@ -72,6 +68,8 @@ struct school_info school_list[NUM_SCHOOLS];
 /******************************************/
 
 void assign_domains(void);
+void init_domain_spell_level(void);
+void assign_domain_spells(struct char_data *ch);
 
 /******************************************/
 

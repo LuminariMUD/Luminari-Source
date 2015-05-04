@@ -783,7 +783,7 @@ void init_spell_slots(struct char_data *ch) {
 }
 
 /* given class and spellnum, returns spells circle */
-int spellCircle(int class, int spellnum) {
+int spellCircle(int class, int spellnum, int domain) {
   switch (class) {
     case CLASS_BARD:
       switch (spell_info[spellnum].min_level[class]) {
@@ -871,7 +871,9 @@ int spellCircle(int class, int spellnum) {
           return 99;
       }
       return 1;
-      /* wizard, druid, cleric */
+    case CLASS_CLERIC:
+      return ((int) ((MIN_SPELL_LVL(spellnum, CLASS_CLERIC, domain) + 1) / 2));
+      /* wizard, druid */
     default:
       return ((int) ((spell_info[spellnum].min_level[class] + 1) / 2));
   }
@@ -944,13 +946,13 @@ void addSpellMemming(struct char_data *ch, int spellnum, int time, int class) {
    * are just storing the spellnum's circle */
   if (class == CLASS_SORCERER) {
     /* replace spellnum with its circle */
-    spellnum = spellCircle(class, spellnum);
+    spellnum = spellCircle(class, spellnum, DOMAIN_UNDEFINED);
     /* replace time with slot-mem-time */
     time = SORC_TIME_FACTOR * spellnum;
   }
   else if (class == CLASS_BARD) {
     /* replace spellnum with its circle */
-    spellnum = spellCircle(class, spellnum);
+    spellnum = spellCircle(class, spellnum, DOMAIN_UNDEFINED);
     /* replace time with slot-mem-time */
     time = BARD_TIME_FACTOR * spellnum;
   }
@@ -1210,12 +1212,23 @@ int numSpells(struct char_data *ch, int circle, int class) {
       if (PREPARATION_QUEUE(ch, slot, classArray(class)) == circle)
         num++;
     }
-  } else {
-    /* wizard-types */
+  } else if (class == CLASS_CLERIC) {
     for (slot = 0; slot < (MAX_MEM); slot++) {
-      if (spellCircle(class, PREPARED_SPELLS(ch, slot, classArray(class))) == circle)
+      if (spellCircle(class, PREPARED_SPELLS(ch, slot, classArray(class)), GET_1ST_DOMAIN(ch)) == circle)
         num++;
-      if (spellCircle(class, PREPARATION_QUEUE(ch, slot, classArray(class))) == circle)
+      if (spellCircle(class, PREPARED_SPELLS(ch, slot, classArray(class)), GET_2ND_DOMAIN(ch)) == circle)
+        num++;
+      if (spellCircle(class, PREPARATION_QUEUE(ch, slot, classArray(class)), GET_1ST_DOMAIN(ch)) == circle)
+        num++;
+      if (spellCircle(class, PREPARATION_QUEUE(ch, slot, classArray(class)), GET_2ND_DOMAIN(ch)) == circle)
+        num++;
+    }
+  } else {
+    /* every other class  */
+    for (slot = 0; slot < (MAX_MEM); slot++) {
+      if (spellCircle(class, PREPARED_SPELLS(ch, slot, classArray(class)), DOMAIN_UNDEFINED) == circle)
+        num++;
+      if (spellCircle(class, PREPARATION_QUEUE(ch, slot, classArray(class)), DOMAIN_UNDEFINED) == circle)
         num++;
     }
   }
@@ -1230,11 +1243,11 @@ int count_sorc_known(struct char_data *ch, int circle, int class) {
   for (slot = 0; slot < MAX_MEM; slot++) {
     if (class == CLASS_SORCERER) {
       if (spellCircle(CLASS_SORCERER,
-              PREPARED_SPELLS(ch, slot, classArray(CLASS_SORCERER))) == circle)
+              PREPARED_SPELLS(ch, slot, classArray(CLASS_SORCERER)), DOMAIN_UNDEFINED) == circle)
         num++;
     } else if (class == CLASS_BARD) {
       if (spellCircle(CLASS_BARD,
-              PREPARED_SPELLS(ch, slot, classArray(CLASS_BARD))) == circle)
+              PREPARED_SPELLS(ch, slot, classArray(CLASS_BARD)), DOMAIN_UNDEFINED) == circle)
         num++;
     }
 
@@ -1294,7 +1307,7 @@ void sorc_extract_known(struct char_data *ch, int spellnum, int class) {
 int sorc_add_known(struct char_data *ch, int spellnum, int class) {
   int slot, circle;
 
-  circle = spellCircle(class, spellnum);
+  circle = spellCircle(class, spellnum, DOMAIN_UNDEFINED);
 
   if (class == CLASS_SORCERER) {
     if ((sorcererKnown[CLASS_LEVEL(ch, class)][circle - 1] -
@@ -1347,7 +1360,7 @@ int hasSpell(struct char_data *ch, int spellnum) {
   if (CLASS_LEVEL(ch, CLASS_SORCERER)) {
     // is this one of the "known" spells?
     if (sorcKnown(ch, spellnum, CLASS_SORCERER)) {
-      int circle = spellCircle(CLASS_SORCERER, spellnum);
+      int circle = spellCircle(CLASS_SORCERER, spellnum, DOMAIN_UNDEFINED);
       // do we have any slots left?
       // take total slots for the correct circle and subtract from used
       if ((comp_slots(ch, circle, CLASS_SORCERER) -
@@ -1359,7 +1372,7 @@ int hasSpell(struct char_data *ch, int spellnum) {
   if (CLASS_LEVEL(ch, CLASS_BARD)) {
     // is this one of the "known" spells?
     if (sorcKnown(ch, spellnum, CLASS_BARD)) {
-      int circle = spellCircle(CLASS_BARD, spellnum);
+      int circle = spellCircle(CLASS_BARD, spellnum, DOMAIN_UNDEFINED);
       // do we have any slots left?
       // take total slots for the correct circle and subtract from used
       if ((comp_slots(ch, circle, CLASS_BARD) -
@@ -1706,8 +1719,8 @@ void display_memmed(struct char_data*ch, int class) {
       printed = FALSE;
       for (memSlot = 0; memSlot < (MAX_MEM); memSlot++) {
         if (PREPARED_SPELLS(ch, memSlot, classArray(class)) != 0 &&
-                spellCircle(class, PREPARED_SPELLS(ch, memSlot, classArray(class))) ==
-                slot) {
+            (spellCircle(class, PREPARED_SPELLS(ch, memSlot, classArray(class)), GET_1ST_DOMAIN(ch)) == slot ||
+             spellCircle(class, PREPARED_SPELLS(ch, memSlot, classArray(class)), GET_2ND_DOMAIN(ch)) == slot)) {
           if (num[PREPARED_SPELLS(ch, memSlot, classArray(class))] != 0) {
             if (!printed) {
               send_to_char(ch, "[Circle: %d]          %2d - %s\r\n",
@@ -1735,7 +1748,7 @@ void display_memmed(struct char_data*ch, int class) {
 /* displays current memming list */
 void display_memming(struct char_data *ch, int class) {
   int slot = 0;
-  int spellLevel = 0;
+  int spellLevel = 0, spellLevel2 = 0;
 
   if (classArray(class) == -1)
     return;
@@ -1786,12 +1799,17 @@ void display_memming(struct char_data *ch, int class) {
     }
     for (slot = 0; slot < (MAX_MEM); slot++) {
       if (PREPARATION_QUEUE(ch, slot, classArray(class)) != 0) {
-        spellLevel = spellCircle(class, PREPARATION_QUEUE(ch, slot, classArray(class)));
+        if (class == CLASS_CLERIC) {
+          spellLevel  = (MIN_SPELL_LVL(PREPARATION_QUEUE(ch, slot, classArray(class)), class, GET_1ST_DOMAIN(ch)) + 1) / 2;
+          spellLevel2 = (MIN_SPELL_LVL(PREPARATION_QUEUE(ch, slot, classArray(class)), class, GET_2ND_DOMAIN(ch)) + 1) / 2;
+          spellLevel = MIN(spellLevel, spellLevel2);
+        } else
+          spellLevel = spellCircle(class, PREPARATION_QUEUE(ch, slot, classArray(class)), DOMAIN_UNDEFINED);
         send_to_char(ch, "  %s [%d%s] with %d seconds remaining.\r\n",
-                spell_info[PREPARATION_QUEUE(ch, slot, classArray(class))].name,
-                spellLevel, spellLevel == 1 ? "st" : spellLevel == 2 ?
-                "nd" : spellLevel == 3 ? "rd" : "th",
-                PREP_TIME(ch, slot, classArray(class)));
+                     spell_info[PREPARATION_QUEUE(ch, slot, classArray(class))].name,
+                     spellLevel, spellLevel == 1 ? "st" : spellLevel == 2 ?
+                     "nd" : spellLevel == 3 ? "rd" : "th",
+                     PREP_TIME(ch, slot, classArray(class)));
       }
     }
   }
@@ -2186,13 +2204,23 @@ ACMD(do_gen_memorize) {
     return;
   }
 
-  if (CLASS_LEVEL(ch, class) < spell_info[spellnum].min_level[class]) {
+  int minLevel = 0, minLevel2 = 0, compSlots = 0;
+
+  if (class == CLASS_CLERIC) {
+    minLevel =  MIN_SPELL_LVL(spellnum, CLASS_CLERIC, GET_1ST_DOMAIN(ch));
+    minLevel2 = MIN_SPELL_LVL(spellnum, CLASS_CLERIC, GET_2ND_DOMAIN(ch));
+    minLevel = MIN(minLevel, minLevel2);
+    if (CLASS_LEVEL(ch, CLASS_CLERIC) < minLevel) {
+      send_to_char(ch, "You have heard of that spell....\r\n");
+      return;
+    }
+  } else if (CLASS_LEVEL(ch, class) < spell_info[spellnum].min_level[class]) {
     send_to_char(ch, "You have heard of that spell....\r\n");
     return;
   }
 
-  int minLevel = 0, compSlots = 0;
-  minLevel = spellCircle(class, spellnum);
+  minLevel = spellCircle(class, spellnum, GET_1ST_DOMAIN(ch));
+  minLevel = MIN(minLevel, spellCircle(class, spellnum, GET_2ND_DOMAIN(ch)));
   compSlots = comp_slots(ch, minLevel, class);
   num_spells = numSpells(ch, minLevel, class);
 
