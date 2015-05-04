@@ -12,6 +12,8 @@
 #ifndef _SPELLS_H_
 #define _SPELLS_H_
 
+#include "domains_schools.h"
+
 /* renamed 0-values to help clarify context in code */
 #define NO_DICEROLL  0
 #define NO_MOD       0
@@ -40,6 +42,30 @@
 #define MAG_MANUAL        (1 << 10)
 #define MAG_ROOM          (1 << 11)
 
+#define NO_SUBSCHOOL             0
+#define SUBSCHOOL_CALLING        1
+#define SUBSCHOOL_CREATION       2
+#define SUBSCHOOL_HEALING        3
+#define SUBSCHOOL_SUMMONING      4
+#define SUBSCHOOL_TELEPORTATION  5
+#define SUBSCHOOL_CHARM          6
+#define SUBSCHOOL_COMPULSION     7
+#define SUBSCHOOL_FIGMENT        8
+#define SUBSCHOOL_GLAMER         9
+#define SUBSCHOOL_PATTERN        10
+#define SUBSCHOOL_PHANTASM       11
+#define SUBSCHOOL_SHADOW         12
+#define SUBSCHOOL_POLYMORPH      13
+/*------*/
+#define NUM_SUBSCHOOLS           14
+/************************/
+
+#define COMPONENT_VERBAL           (1 << 0)
+#define COMPONENT_SOMATIC           (1 << 0)
+#define COMPONENT_MATERIAL           (1 << 0)
+#define COMPONENT_FOCUS          (1 << 0)
+#define COMPONENT_DIVINE_FOCUS          (1 << 0)
+/**********************************/
 
 #define TYPE_UNDEFINED               (-1)
 #define SPELL_RESERVED_DBC            0  /* SKILL NUMBER ZERO -- RESERVED */
@@ -581,22 +607,6 @@
 #define TYPE_SPECAB_ICY_BURST		603
 /* up to 610 */
 
-#define SKILL_LANG_EWOKESE      611
-#define SKILL_LANG_GAMORREAN    612
-#define SKILL_LANG_GUNGANESE    613
-#define SKILL_LANG_HIGH_GALACTIC 614
-#define SKILL_LANG_HUTTESE      615
-#define SKILL_LANG_ITHORESE     616
-#define SKILL_LANG_JAWA         617
-#define SKILL_LANG_KEL_DOR      618
-#define SKILL_LANG_MON_CALAMARIAN 619
-#define SKILL_LANG_QUARRENESE   620
-#define SKILL_LANG_RODESE       621
-#define SKILL_LANG_RYL          622
-#define SKILL_LANG_SHYRIIWOOK   623
-#define SKILL_LANG_SULLUSTESE   624
-#define SKILL_LANG_ZABRAK       625
-#define SKILL_LANG_CHEUNH       626
 #define SKILL_LANG_COMMON       601
 #define SKILL_LANG_THIEVES_CANT 602
 #define SKILL_LANG_DRUIDIC      603
@@ -624,6 +634,7 @@
 #define SKILL_LANG_BALIFORIAN   619
 #define SKILL_LANG_TUIGAN       619
 #define SKILL_LANG_KHAROLISIAN  620
+
 #define SKILL_LANG_LANTANESE    620
 #define SKILL_LANG_NORDMAARIAN  621
 #define SKILL_LANG_MULHORANDI   621
@@ -636,7 +647,6 @@
 #define SKILL_LANG_ANCIENT      629
 #define SKILL_LANG_BINARY       630
 #define SKILL_LANG_BOCCE        631
-//#define SKILL_LANG_GNOME        632
 #define SKILL_LANG_BOTHESE      633
 #define SKILL_LANG_CEREAN       634
 #define SKILL_LANG_DOSH         635
@@ -667,24 +677,24 @@
 /* WEAPON ATTACK TYPES */
 #define TYPE_UNDEFINED_WTYPE 0
 
-#define TYPE_HIT          700
-#define TYPE_STING        701
+#define TYPE_HIT          700 /* barehand */
+#define TYPE_STING        701 /* pierce */
 #define TYPE_WHIP         702
-#define TYPE_SLASH        703
+#define TYPE_SLASH        703 /* slash */
 #define TYPE_BITE         704
-#define TYPE_BLUDGEON     705
-#define TYPE_CRUSH        706
-#define TYPE_POUND        707
+#define TYPE_BLUDGEON     705 /* bludgeon */
+#define TYPE_CRUSH        706 /* bludgeon */
+#define TYPE_POUND        707 /* bludgeon */
 #define TYPE_CLAW         708
 #define TYPE_MAUL         709
 #define TYPE_THRASH       710
-#define TYPE_PIERCE       711
+#define TYPE_PIERCE       711 /* pierce */
 #define TYPE_BLAST        712
-#define TYPE_PUNCH        713
-#define TYPE_STAB         714
-#define TYPE_SLICE        715
-#define TYPE_THRUST       716
-#define TYPE_HACK         717
+#define TYPE_PUNCH        713 /* barehand */
+#define TYPE_STAB         714 /* pierce */
+#define TYPE_SLICE        715 /* slash */
+#define TYPE_THRUST       716 /* pierce */
+#define TYPE_HACK         717 /* slash */
 /** The total number of attack types */
 #define NUM_ATTACK_TYPES  18
 /* (stock)
@@ -928,7 +938,7 @@ struct spell_info_type {
   int mana_max; /* Max amount of mana used by a spell (lowest lev) */
   int mana_change; /* Change in mana used by spell from lev to lev */
 
-  int min_level[NUM_CLASSES];
+  int min_level[NUM_CLASSES]; /* the level [class] gets this spell (lvl_impl + 1, if they don't get */
   int routines;
   byte violent;
   int targets; /* See below for use with TAR_XXX  */
@@ -939,20 +949,34 @@ struct spell_info_type {
   int schoolOfMagic; // school of magic, category for skills
 
   bool quest;  // is this a quest spell?
+
+  /* TODO: d20pfsrd expansion */
+
+  /* school declared above as "schoolOfMagic" */
+
+  /* sub-schools: calling, creation, healing, summoning, teleportation, charm,
+      compulsion, figment, glamer, pattern, phantasm, shadow, and polymorph */
+  int sub_school;
+  /*The descriptors are acid, air, chaotic, cold, curse, darkness, death, disease,
+   *  earth, electricity, emotion, evil, fear, fire, force, good, language-dependent,
+   *  lawful, light, mind-affecting, pain, poison, shadow, sonic, and water.
+    Most of these descriptors have no game effect by themselves, but they govern
+   *  how the spell interacts with other spells, with special abilities, with unusual
+   *  creatures, with alignment, and so on.*/
+  int descriptor;
+  int action_time; /* casting time, in the form of action consumed */
+  int component; /* verbal, somatic, material, focus, or divine-focus */
+  int domain[NUM_DOMAINS]; /* cleric domains! this is level, not circle like it should be */
+
+  /* probably not ever going to use */
+  int range; /* targets covers this currently */
+  int aim_type; /* ray, spread, area,  burst, emanation, cone, cylinder, line, sphere, etc */
+  int duration; /* assigned in the code currently */
+  int saving_throw; /* assigned in the code currently */
+  int resistance; /* spell resistance, assigned in code currently */
 };
 
-/* Possible Targets:
-   bit 0 : IGNORE TARGET
-   bit 1 : PC/NPC in room
-   bit 2 : PC/NPC in world
-   bit 3 : Object held
-   bit 4 : Object in inventory
-   bit 5 : Object in room
-   bit 6 : Object in world
-   bit 7 : If fighting, and no argument, select tar_char as self
-   bit 8 : If fighting, and no argument, select tar_char as victim (fighting)
-   bit 9 : If no argument, select self, if argument check that it IS self. */
-
+/* spell types */
 #define SPELL_TYPE_SPELL   0
 #define SPELL_TYPE_POTION  1
 #define SPELL_TYPE_WAND    2

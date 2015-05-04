@@ -101,7 +101,7 @@ static void sub_write_to_char(char_data *ch, char *tokens[], void *otokens[], ch
         else
           strcat(sb,HMHR((char_data *) otokens[i]));
       break;
-      
+
       case '?':
         if (!otokens[i])
           strcat(sb,"something");
@@ -127,7 +127,7 @@ void sub_write(char *arg, char_data *ch, byte find_invis, int targets)
   obj_data *obj;
   int i, tmp;
   /* mainly for windows compiles */
-  //int to_sleeping = 1; 
+  //int to_sleeping = 1;
 
   if (!arg)
     return;
@@ -183,7 +183,7 @@ void sub_write(char *arg, char_data *ch, byte find_invis, int targets)
 
   /* unknown issue with teleporter, sloppy attempt to fix - zusuk */
   if (ch)
-    if (IN_ROOM(ch))
+    if (IN_ROOM(ch) != NOWHERE)
         if (world[IN_ROOM(ch)].people)
           if (IS_SET(targets, TO_ROOM))
             for (to = world[IN_ROOM(ch)].people; to; to = to->next_in_room)
@@ -215,6 +215,6 @@ void send_to_world(char *messg)
   for (pt = descriptor_list; pt; pt = pt->next)
     if (IS_PLAYING(pt) && pt->character)
       send_to_char(pt->character, "%s\r\n", messg);
- 
+
 }
 
