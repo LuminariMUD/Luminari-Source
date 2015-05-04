@@ -938,8 +938,12 @@ do                                                              \
 				((ch)->player_specials->saved.boosts))
 
 /* domain and school macros */
+/*
 #define GET_1ST_DOMAIN(ch)	CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.domain_1))
 #define GET_2ND_DOMAIN(ch)	CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.domain_2))
+*/
+#define GET_1ST_DOMAIN(ch)	((ch)->player_specials->saved.domain_1)
+#define GET_2ND_DOMAIN(ch)	((ch)->player_specials->saved.domain_2)
 #define GET_SPECIALTY_SCHOOL(ch)	CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.specialty_school))
 #define GET_1ST_RESTRICTED_SCHOOL(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.restricted_school_1))
 #define GET_2ND_RESTRICTED_SCHOOL(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.restricted_school_2))
@@ -950,8 +954,7 @@ do                                                              \
  domain granted-spells */
 /* this will return 99 if the 'domain' doesn't grant the 'spell' */
 #define LEVEL_DOMAIN_GRANTS_SPELL(domain, spell) (compute_level_domain_spell_is_granted(domain, spell))
-#define SPELL_LEVEL(spell, class, domain) ( MIN( spell_info[spell].min_level[class], \
-    LEVEL_DOMAIN_GRANTS_SPELL(domain, spell) ) )
+#define MIN_SPELL_LVL(spell, chclass, chdomain) (MIN((spell_info[spell].min_level[chclass]), (spell_info[spell].domain[chdomain])))
 
 /** Current invisibility level of ch. */
 #define GET_INVIS_LEV(ch)	CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.invis_level))

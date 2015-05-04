@@ -44,6 +44,8 @@
 #include "assign_wpn_armor.h"
 #include "item.h"
 #include "oasis.h"
+#include "domains_schools.h"
+#include "spells.h"
 
 /* Local defined utility functions */
 /* do_group utility functions */
@@ -3116,11 +3118,15 @@ ACMD(do_use) {
           }
         }
 
+        int i;
+        i = MIN_SPELL_LVL(spell, CLASS_CLERIC, DOMAIN_AIR);
+
         /* 2.b. Check the spell is on class spell list */
         if (!(((spell_info[spell].min_level[CLASS_WIZARD]   < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_WIZARD) > 0) ||
               ((spell_info[spell].min_level[CLASS_SORCERER] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_SORCERER) > 0) ||
               ((spell_info[spell].min_level[CLASS_BARD]     < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_BARD) > 0) ||
-              ((spell_info[spell].min_level[CLASS_CLERIC]   < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_CLERIC) > 0) ||
+              ((MIN_SPELL_LVL(spell, CLASS_CLERIC, GET_1ST_DOMAIN(ch))   < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_CLERIC) > 0) ||
+              ((MIN_SPELL_LVL(spell, CLASS_CLERIC, GET_2ND_DOMAIN(ch))   < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_CLERIC) > 0) ||
               ((spell_info[spell].min_level[CLASS_DRUID]    < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_DRUID) > 0) ||
               ((spell_info[spell].min_level[CLASS_PALADIN]  < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_PALADIN) > 0) ||
               ((spell_info[spell].min_level[CLASS_RANGER]   < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_RANGER) > 0)))
@@ -3133,19 +3139,21 @@ ACMD(do_use) {
       umd_ability_score = (skill_check(ch, ABILITY_USE_MAGIC_DEVICE, 15));
       bool passed = FALSE;
       if (spell_info[spell].min_level[CLASS_WIZARD] < LVL_STAFF)
-        passed = (((GET_INT(ch) > umd_ability_score) ? GET_INT(ch) : umd_ability_score) > (10 + spellCircle(CLASS_WIZARD, spell)) ? TRUE : passed);
+        passed = (((GET_INT(ch) > umd_ability_score) ? GET_INT(ch) : umd_ability_score) > (10 + spellCircle(CLASS_WIZARD, spell, DOMAIN_UNDEFINED)) ? TRUE : passed);
       if (spell_info[spell].min_level[CLASS_SORCERER] < LVL_STAFF)
-        passed = (((GET_CHA(ch) > umd_ability_score) ? GET_CHA(ch) : umd_ability_score) > (10 + spellCircle(CLASS_SORCERER, spell)) ? TRUE : passed);
+        passed = (((GET_CHA(ch) > umd_ability_score) ? GET_CHA(ch) : umd_ability_score) > (10 + spellCircle(CLASS_SORCERER, spell, DOMAIN_UNDEFINED)) ? TRUE : passed);
       if (spell_info[spell].min_level[CLASS_BARD] < LVL_STAFF)
-        passed = (((GET_CHA(ch) > umd_ability_score) ? GET_CHA(ch) : umd_ability_score) > (10 + spellCircle(CLASS_BARD, spell)) ? TRUE : passed);
-      if (spell_info[spell].min_level[CLASS_CLERIC] < LVL_STAFF)
-        passed = (((GET_WIS(ch) > umd_ability_score) ? GET_WIS(ch) : umd_ability_score) > (10 + spellCircle(CLASS_CLERIC, spell)) ? TRUE : passed);
+        passed = (((GET_CHA(ch) > umd_ability_score) ? GET_CHA(ch) : umd_ability_score) > (10 + spellCircle(CLASS_BARD, spell, DOMAIN_UNDEFINED)) ? TRUE : passed);
+      if (MIN_SPELL_LVL(spell, CLASS_CLERIC, GET_1ST_DOMAIN(ch)) < LVL_STAFF)
+        passed = (((GET_WIS(ch) > umd_ability_score) ? GET_WIS(ch) : umd_ability_score) > (10 + spellCircle(CLASS_CLERIC, spell, GET_1ST_DOMAIN(ch))) ? TRUE : passed);
+      if (MIN_SPELL_LVL(spell, CLASS_CLERIC, GET_2ND_DOMAIN(ch)) < LVL_STAFF)
+        passed = (((GET_WIS(ch) > umd_ability_score) ? GET_WIS(ch) : umd_ability_score) > (10 + spellCircle(CLASS_CLERIC, spell, GET_2ND_DOMAIN(ch))) ? TRUE : passed);
       if (spell_info[spell].min_level[CLASS_DRUID] < LVL_STAFF)
-        passed = (((GET_WIS(ch) > umd_ability_score) ? GET_WIS(ch) : umd_ability_score) > (10 + spellCircle(CLASS_DRUID, spell)) ? TRUE : passed);
+        passed = (((GET_WIS(ch) > umd_ability_score) ? GET_WIS(ch) : umd_ability_score) > (10 + spellCircle(CLASS_DRUID, spell, DOMAIN_UNDEFINED)) ? TRUE : passed);
       if (spell_info[spell].min_level[CLASS_PALADIN] < LVL_STAFF)
-        passed = (((GET_CHA(ch) > umd_ability_score) ? GET_CHA(ch) : umd_ability_score) > (10 + spellCircle(CLASS_PALADIN, spell)) ? TRUE : passed);
+        passed = (((GET_CHA(ch) > umd_ability_score) ? GET_CHA(ch) : umd_ability_score) > (10 + spellCircle(CLASS_PALADIN, spell, DOMAIN_UNDEFINED)) ? TRUE : passed);
       if (spell_info[spell].min_level[CLASS_RANGER] < LVL_STAFF)
-        passed = (((GET_WIS(ch) > umd_ability_score) ? GET_WIS(ch) : umd_ability_score) > (10 + spellCircle(CLASS_RANGER, spell)) ? TRUE : passed);
+        passed = (((GET_WIS(ch) > umd_ability_score) ? GET_WIS(ch) : umd_ability_score) > (10 + spellCircle(CLASS_RANGER, spell, DOMAIN_UNDEFINED)) ? TRUE : passed);
       if (passed == FALSE)
       {
         send_to_char(ch, "You are physically incapable of casting the spell inscribed on the scroll.\r\n");
@@ -3209,7 +3217,8 @@ ACMD(do_use) {
             if (!(((spell_info[spell].min_level[CLASS_WIZARD]   < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_WIZARD) > 0) ||
                   ((spell_info[spell].min_level[CLASS_SORCERER] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_SORCERER) > 0) ||
                   ((spell_info[spell].min_level[CLASS_BARD]     < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_BARD) > 0) ||
-                  ((spell_info[spell].min_level[CLASS_CLERIC]   < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_CLERIC) > 0) ||
+                  ((MIN_SPELL_LVL(spell, CLASS_CLERIC, GET_1ST_DOMAIN(ch))   < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_CLERIC) > 0) ||
+                  ((MIN_SPELL_LVL(spell, CLASS_CLERIC, GET_2ND_DOMAIN(ch))   < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_CLERIC) > 0) ||
                   ((spell_info[spell].min_level[CLASS_DRUID]    < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_DRUID) > 0) ||
                   ((spell_info[spell].min_level[CLASS_PALADIN]  < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_PALADIN) > 0) ||
                   ((spell_info[spell].min_level[CLASS_RANGER]   < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_RANGER) > 0)))

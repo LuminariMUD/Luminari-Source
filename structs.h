@@ -368,6 +368,14 @@ NOPRIME (27)     ROOM_NORECALL  (27)
  */
 /**************************/
 
+/* cleric domains */
+#define DOMAIN_UNDEFINED        0
+#define DOMAIN_AIR              1
+#define DOMAIN_EARTH            2
+/****************/
+#define NUM_DOMAINS             3
+
+
 // warding spells that need to be saved
 #define MIRROR			0
 #define STONESKIN		1

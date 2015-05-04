@@ -12,8 +12,6 @@
 #ifndef _SPELLS_H_
 #define _SPELLS_H_
 
-#include "domains_schools.h"
-
 /* renamed 0-values to help clarify context in code */
 #define NO_DICEROLL  0
 #define NO_MOD       0
@@ -60,11 +58,11 @@
 #define NUM_SUBSCHOOLS           14
 /************************/
 
-#define COMPONENT_VERBAL           (1 << 0)
-#define COMPONENT_SOMATIC           (1 << 0)
-#define COMPONENT_MATERIAL           (1 << 0)
-#define COMPONENT_FOCUS          (1 << 0)
-#define COMPONENT_DIVINE_FOCUS          (1 << 0)
+#define COMPONENT_VERBAL                (1 << 0)
+#define COMPONENT_SOMATIC               (1 << 1)
+#define COMPONENT_MATERIAL              (1 << 2)
+#define COMPONENT_FOCUS                 (1 << 3)
+#define COMPONENT_DIVINE_FOCUS          (1 << 4)
 /**********************************/
 
 #define TYPE_UNDEFINED               (-1)
@@ -312,9 +310,9 @@
 #define SPELL_SPRING_OF_LIFE       238  //done
 #define SPELL_PLANE_SHIFT          239  //done
 #define SPELL_STORM_OF_VENGEANCE   240  //done
-#define SPELL_DEATH_SHIELD         241
-#define SPELL_COMMAND              242
-#define SPELL_AIR_WALKER           243
+#define SPELL_DEATH_SHIELD         241 // unfinished
+#define SPELL_COMMAND              242 // unfinished
+#define SPELL_AIR_WALKER           243 // unfinished
 #define SPELL_GROUP_SUMMON         244  //done
 #define SPELL_MASS_CURE_CRIT       245  //done
 /* some druid spells */
@@ -1117,7 +1115,7 @@ bool spellbook_ok(struct char_data *ch, int spellnum, int class, bool check_scro
 ACMD(do_scribe);
 /* memorize related functions */
 void init_spell_slots(struct char_data *ch);
-int spellCircle(int class, int spellnum);
+int spellCircle(int class, int spellnum, int domain);
 int comp_slots(struct char_data *ch, int circle, int class);
 void addSpellMemming(struct char_data *ch, int spellnum, int time, int mode);
 void resetMemtimes(struct char_data *ch, int class);
