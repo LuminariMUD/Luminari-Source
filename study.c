@@ -1548,6 +1548,8 @@ void study_parse(struct descriptor_data *d, char *arg) {
       }
       GET_2ND_DOMAIN(ch) = number;
       write_to_output(d, "Choice selected.\r\n");
+      OLC_MODE(d) = STUDY_SET_DOMAINS;
+      set_domain_menu(d);
       break;
     case STUDY_SET_DOMAINS:
       switch (*arg) {
@@ -1570,7 +1572,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
             default: break;
           }
           OLC_MODE(d) = STUDY_SET_DOMAINS;
-          set_stats_menu(d);
+          set_domain_menu(d);
           break;
       }
       break;
