@@ -85,6 +85,8 @@ void add_domain_spells(int domain, int s1, int s2, int s3, int s4, int s5,
 }
 
 void assign_domains(void) {
+  /* start by initializing */
+  init_domains();
 
   /* Air Domain */
   add_domain(DOMAIN_AIR, "Air", WEAPON_TYPE_SHORT_SWORD,
