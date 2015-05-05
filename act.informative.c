@@ -67,6 +67,7 @@ int boot_high = 0;
 
 /*******  UTILITY FUNCTIONS ***********/
 
+
 /* special affect that allows you to sense 'aggro' enemies */
 void check_dangersense(struct char_data *ch, room_rnum room) {
   struct char_data *tch;
@@ -1549,6 +1550,34 @@ void list_scanned_chars(struct char_data * list, struct char_data * ch, int
 /*****  End Utility Functions *****/
 
 /****  Commands ACMD ******/
+
+ACMD(do_class) {
+  int class = CLASS_UNDEFINED, i = 0, feat = 0;
+
+  skip_spaces(&argument);
+  if (!argument || !*argument) {
+    send_to_char(ch, "Please type in the class you wish to view, example: class wizard \r\n");
+    return;
+  }
+
+  class = parse_class_long(argument);
+  if (class == CLASS_UNDEFINED) {
+    send_to_char(ch, "Invalid class!\r\n");
+    return;
+  }
+
+  /* we should have a valid class to list now */
+  while (feat != FEAT_UNDEFINED) {
+    feat = level_feats[i][4];
+    if (level_feats[i][0] == class) {
+      /* found a class feat! */
+      send_to_char(ch, "%s\r\n", feat_list[feat].name);
+    }
+    i++;
+  }
+  send_to_char(ch, "\r\n");
+}
+
 
 ACMD(do_masterlist) {
   size_t len = 0, nlen = 0;

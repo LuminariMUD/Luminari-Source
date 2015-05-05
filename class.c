@@ -346,13 +346,11 @@ int preferred_save[5][NUM_CLASSES] = {
 };
 // fortitude / reflex / will / ( poison / death )
 
-/* Derived from the SRD under OGL, see ../doc/srd.txt for information */
 int free_start_feats_wizard[] = {
   FEAT_WEAPON_PROFICIENCY_WIZARD,
   FEAT_SCRIBE_SCROLL,
   0
 };
-/* Derived from the SRD under OGL, see ../doc/srd.txt for information */
 int free_start_feats_cleric[] = {
   FEAT_SIMPLE_WEAPON_PROFICIENCY,
   FEAT_ARMOR_PROFICIENCY_HEAVY,
@@ -361,15 +359,12 @@ int free_start_feats_cleric[] = {
   FEAT_ARMOR_PROFICIENCY_SHIELD,
   0
 };
-
-/* Derived from the SRD under OGL, see ../doc/srd.txt for information */
 int free_start_feats_rogue[] = {
   FEAT_SIMPLE_WEAPON_PROFICIENCY,
   FEAT_WEAPON_PROFICIENCY_ROGUE,
   FEAT_ARMOR_PROFICIENCY_LIGHT,
   0
 };
-/* Derived from the SRD under OGL, see ../doc/srd.txt for information */
 int free_start_feats_warrior[] = {
   FEAT_SIMPLE_WEAPON_PROFICIENCY,
   FEAT_MARTIAL_WEAPON_PROFICIENCY,
@@ -380,7 +375,6 @@ int free_start_feats_warrior[] = {
   FEAT_ARMOR_PROFICIENCY_TOWER_SHIELD,
   0
 };
-/* Derived from the SRD under OGL, see ../doc/srd.txt for information */
 int free_start_feats_monk[] = {
   FEAT_SIMPLE_WEAPON_PROFICIENCY,
   FEAT_WEAPON_PROFICIENCY_MONK,
@@ -399,7 +393,6 @@ int free_start_feats_paladin[] = {
   FEAT_DETECT_EVIL,
   0
 };
-
 int free_start_feats_berserker[] = {
   FEAT_SIMPLE_WEAPON_PROFICIENCY,
   FEAT_ARMOR_PROFICIENCY_LIGHT,
@@ -421,7 +414,6 @@ int free_start_feats_druid[] = {
   FEAT_WILD_EMPATHY,
   0
 };
-
 int free_start_feats_bard[] = {
   FEAT_SIMPLE_WEAPON_PROFICIENCY,
   FEAT_WEAPON_PROFICIENCY_BARD,
@@ -436,7 +428,6 @@ int free_start_feats_sorcerer[] = {
   FEAT_SUMMON_FAMILIAR,
   0
 };
-
 int free_start_feats_ranger[] = {
   FEAT_SIMPLE_WEAPON_PROFICIENCY,
   FEAT_ARMOR_PROFICIENCY_LIGHT,
@@ -447,12 +438,9 @@ int free_start_feats_ranger[] = {
   FEAT_MARTIAL_WEAPON_PROFICIENCY,
   0
 };
-
 int free_start_feats_none[] = {
   0
 };
-
-/* Derived from the SRD under OGL, see ../doc/srd.txt for information */
 int *free_start_feats[] = {
   /* CLASS_WIZARD        */ free_start_feats_wizard,
   /* CLASS_CLERIC        */ free_start_feats_cleric,
