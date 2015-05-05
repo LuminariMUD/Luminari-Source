@@ -798,11 +798,11 @@ static void set_domain_submenu(struct descriptor_data *d) {
   get_char_colors(d->character);
   clear_screen(d);
 
-  for (i = 1; i < NUM_DOMAINS; i++) {
-    domain_names[i] = domain_list[i].name;
+  for (i = 0; i < NUM_DOMAINS - 1; i++) {
+    domain_names[i] = domain_list[i + 1].name;
   }
 
-  column_list(d->character, 0, domain_names, NUM_DOMAINS, TRUE);
+  column_list(d->character, 0, domain_names, NUM_DOMAINS - 1, TRUE);
   write_to_output(d, "\r\n%sEnter domain name selection : ", nrm);
 }
 static void set_domain_menu(struct descriptor_data *d) {
@@ -1521,34 +1521,34 @@ void study_parse(struct descriptor_data *d, char *arg) {
         write_to_output(d, "Invalid value!  Try again.\r\n");
         OLC_MODE(d) = SET_1ST_DOMAIN;
         set_domain_submenu(d);
-        break;
+        return;
       }
       if (number >= NUM_DOMAINS) {
         write_to_output(d, "Invalid value!  Try again.\r\n");
         OLC_MODE(d) = SET_1ST_DOMAIN;
         set_domain_submenu(d);
-        break;
+        return;
       }
       GET_1ST_DOMAIN(ch) = number;
       write_to_output(d, "Choice selected.\r\n");
-      return;
+      break;
     case SET_2ND_DOMAIN:
       number = atoi(arg);
       if (number < 0) {
         write_to_output(d, "Invalid value!  Try again.\r\n");
         OLC_MODE(d) = SET_2ND_DOMAIN;
         set_domain_submenu(d);
-        break;
+        return;
       }
       if (number >= NUM_DOMAINS) {
         write_to_output(d, "Invalid value!  Try again.\r\n");
         OLC_MODE(d) = SET_2ND_DOMAIN;
         set_domain_submenu(d);
-        break;
+        return;
       }
       GET_2ND_DOMAIN(ch) = number;
       write_to_output(d, "Choice selected.\r\n");
-      return;
+      break;
     case STUDY_SET_DOMAINS:
       switch (*arg) {
         case 'q':
