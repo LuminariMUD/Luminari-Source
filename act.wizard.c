@@ -45,6 +45,7 @@
 #include "feats.h"
 #include "assign_wpn_armor.h"
 #include "item.h"
+#include "feats.h"
 
 /* local utility functions with file scope */
 static int perform_set(struct char_data *ch, struct char_data *vict, int mode, char *val_arg);
@@ -647,10 +648,12 @@ static void do_stat_room(struct char_data *ch, struct room_data *rm) {
   list_zone_commands_room(ch, rm->number);
 }
 
+static void do_featstat_character(struct char_data *ch, struct char_data *k) {
+  list_feats(k, "", LIST_FEATS_KNOWN, ch);
+}
+
 static void do_affstat_character(struct char_data *ch, struct char_data *k) {
-
   perform_affects(ch, k);
-
 }
 
 static void do_stat_character(struct char_data *ch, struct char_data *k) {
@@ -1044,6 +1047,15 @@ ACMD(do_stat) {
     } else {
       if ((victim = get_player_vis(ch, buf2, NULL, FIND_CHAR_WORLD)) != NULL)
         do_stat_character(ch, victim);
+      else
+        send_to_char(ch, "No such player around.\r\n");
+    }
+  } else if (is_abbrev(buf1, "feat")) {
+    if (!*buf2) {
+      send_to_char(ch, "Feats on which player/mobile?\r\n");
+    } else {
+      if ((victim = get_char_vis(ch, buf2, NULL, FIND_CHAR_WORLD)) != NULL)
+        do_featstat_character(ch, victim);
       else
         send_to_char(ch, "No such player around.\r\n");
     }

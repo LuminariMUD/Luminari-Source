@@ -118,6 +118,21 @@ void assign_domains(void) {
       /* 9th circle */
       SPELL_ELEMENTAL_SWARM);
 
+  /* Fire Domain */
+  add_domain(DOMAIN_FIRE, "Fire", WEAPON_TYPE_WARHAMMER,
+      "You can call forth fire, command creatures of the inferno, and your "
+          "flesh does not burn.");
+  add_domain_powers(DOMAIN_FIRE, DOMAIN_POWER_FIRE_BOLT, DOMAIN_POWER_FIRE_RESISTANCE,
+      DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED);
+                                /* 1st circle */      /* 2nd circle */
+  add_domain_spells(DOMAIN_FIRE, SPELL_BURNING_HANDS, SPELL_CONTINUAL_FLAME,
+      /* 3rd circle */     /* 4th circle */ /* 5th circle */
+      SPELL_SCORCHING_RAY, SPELL_FIREBALL,  SPELL_FIRE_SHIELD,
+      /* 6th circle */    /* 7th circle */   /* 8th circle */
+      SPELL_FIREBRAND,     SPELL_FIRE_SEEDS, SPELL_FIRE_STORM,
+      /* 9th circle */
+      SPELL_ELEMENTAL_SWARM);
+
   /* end */
   /* this has to be at the end */
   init_domain_spell_level();
