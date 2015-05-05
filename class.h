@@ -49,6 +49,7 @@ extern const char *church_types[];
 extern int prac_params[][NUM_CLASSES];
 extern struct guild_info_type guild_info[];
 extern int class_ability[NUM_ABILITIES][NUM_CLASSES];
+extern int level_feats[][LEVEL_FEATS];
 
 extern const int *class_bonus_feats[NUM_CLASSES];
 

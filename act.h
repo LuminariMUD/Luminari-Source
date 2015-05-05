@@ -127,6 +127,7 @@ ACMD(do_where);
 ACMD(do_who);
 ACMD(do_whois);
 ACMD(do_track);
+ACMD(do_class);
 
 /*****************************************************************************
  * Begin Functions and defines for act.item.c
