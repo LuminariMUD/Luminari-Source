@@ -1567,11 +1567,13 @@ ACMD(do_class) {
   }
 
   /* we should have a valid class to list now */
-  while (feat != FEAT_UNDEFINED) {
-    feat = level_feats[i][4];
-    if (level_feats[i][0] == class) {
+  while (level_feats[i][LF_FEAT] != FEAT_UNDEFINED) {
+    feat = level_feats[i][LF_FEAT];
+    if (level_feats[i][LF_CLASS] == class) {
       /* found a class feat! */
-      send_to_char(ch, "%s\r\n", feat_list[feat].name);
+      send_to_char(ch, "Level: %d, Feat: %s\r\n",
+                   level_feats[i][LF_MIN_LVL],
+                   feat_list[feat].name);
     }
     i++;
   }
