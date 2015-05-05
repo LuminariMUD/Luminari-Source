@@ -1529,6 +1529,12 @@ void study_parse(struct descriptor_data *d, char *arg) {
         set_domain_submenu(d);
         return;
       }
+      if (GET_2ND_DOMAIN(ch) == number) {
+        write_to_output(d, "You already have that domain!  Try again.\r\n");
+        OLC_MODE(d) = SET_1ST_DOMAIN;
+        set_domain_submenu(d);
+        return;
+      }
       GET_1ST_DOMAIN(ch) = number;
       write_to_output(d, "Choice selected.\r\n");
       break;
@@ -1542,6 +1548,12 @@ void study_parse(struct descriptor_data *d, char *arg) {
       }
       if (number >= NUM_DOMAINS) {
         write_to_output(d, "Invalid value!  Try again.\r\n");
+        OLC_MODE(d) = SET_2ND_DOMAIN;
+        set_domain_submenu(d);
+        return;
+      }
+      if (GET_1ST_DOMAIN(ch) == number) {
+        write_to_output(d, "You already have that domain!  Try again.\r\n");
         OLC_MODE(d) = SET_2ND_DOMAIN;
         set_domain_submenu(d);
         return;
