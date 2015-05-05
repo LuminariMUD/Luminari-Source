@@ -1216,11 +1216,11 @@ int numSpells(struct char_data *ch, int circle, int class) {
     for (slot = 0; slot < (MAX_MEM); slot++) {
       if (spellCircle(class, PREPARED_SPELLS(ch, slot, classArray(class)), GET_1ST_DOMAIN(ch)) == circle)
         num++;
-      if (spellCircle(class, PREPARED_SPELLS(ch, slot, classArray(class)), GET_2ND_DOMAIN(ch)) == circle)
+      else if (spellCircle(class, PREPARED_SPELLS(ch, slot, classArray(class)), GET_2ND_DOMAIN(ch)) == circle)
         num++;
       if (spellCircle(class, PREPARATION_QUEUE(ch, slot, classArray(class)), GET_1ST_DOMAIN(ch)) == circle)
         num++;
-      if (spellCircle(class, PREPARATION_QUEUE(ch, slot, classArray(class)), GET_2ND_DOMAIN(ch)) == circle)
+      else if (spellCircle(class, PREPARATION_QUEUE(ch, slot, classArray(class)), GET_2ND_DOMAIN(ch)) == circle)
         num++;
     }
   } else {
@@ -1871,7 +1871,7 @@ void display_slots(struct char_data *ch, int class) {
     }
   }
   if (!printed)
-    send_to_char(ch, " no more spells.\r\n");
+    send_to_char(ch, " for no more spells.\r\n");
   else
     send_to_char(ch, " circle spell%s.\r\n",
           empty[last] == 1 ? "" : "s");
