@@ -439,6 +439,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   if (victim == NULL || ch == NULL)
     return (0);
 
+  /* is this a hack? */
   magic_level = divine_level = level;
   if (MAGIC_LEVEL(ch) > magic_level)
     magic_level = MAGIC_LEVEL(ch);
@@ -447,6 +448,12 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   if (wpn)
     if (HAS_SPELLS(wpn))
       magic_level = divine_level = level;
+
+  /* hack because of domain spells */
+  if (magic_level > divine_level)
+    divine_level = magic_level;
+  if (divine_level > magic_level)
+    magic_level = divine_level;
 
   /* need to include:
    * 1)  save = SAVING_x   -1 means no saving throw
@@ -1314,6 +1321,12 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   if (wpn)
     if (HAS_SPELLS(wpn))
       magic_level = divine_level = level;
+
+  /* another hack because of domain spells */
+  if (magic_level > divine_level)
+    divine_level = magic_level;
+  if (divine_level > magic_level)
+    magic_level = divine_level;
 
   switch (spellnum) {
 
