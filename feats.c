@@ -2362,7 +2362,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
  *  Stackable Feat                      Weapon Focus (Greatsword)
  *  --------------------------------------------------------------------------------
  */
-void list_feats(struct char_data *ch, char *arg, int list_type) {
+void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data *viewer) {
   int i, sortpos, j;
   int none_shown = TRUE;
   int mode = 0;
@@ -2860,7 +2860,10 @@ void list_feats(struct char_data *ch, char *arg, int list_type) {
   strcat(buf2, line_string(line_length, '-', '-'));
   strcat(buf2, "\tDSyntax: feats <known|available|all <description>>\tn\r\n");
 
-  page_string(ch->desc, buf2, 1);
+  if (!viewer)
+    viewer = ch;
+
+  page_string(viewer->desc, buf2, 1);
 }
 
 int is_class_feat(int featnum, int class) {
@@ -3049,7 +3052,7 @@ ACMD(do_feats) {
   one_argument(featname, arg2);
 
   if (is_abbrev(arg, "known") || !*arg) {
-    list_feats(ch, arg2, LIST_FEATS_KNOWN);
+    list_feats(ch, arg2, LIST_FEATS_KNOWN, ch);
   } else if (is_abbrev(arg, "info")) {
 
     if (!strcmp(featname, "")) {
@@ -3058,9 +3061,9 @@ ACMD(do_feats) {
       send_to_char(ch, "Could not find that feat.\r\n");
     }
   } else if (is_abbrev(arg, "available")) {
-    list_feats(ch, arg2, LIST_FEATS_AVAILABLE);
+    list_feats(ch, arg2, LIST_FEATS_AVAILABLE, ch);
   } else if (is_abbrev(arg, "all")) {
-    list_feats(ch, arg2, LIST_FEATS_ALL);
+    list_feats(ch, arg2, LIST_FEATS_ALL, ch);
   }
 }
 

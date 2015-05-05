@@ -61,6 +61,8 @@ int feat_to_skfeat(int feat);
 
 ACMD(do_feats);
 
+void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data *viewer);
+
 extern struct feat_info feat_list[];
 extern int feat_sort_info[MAX_FEATS];
 

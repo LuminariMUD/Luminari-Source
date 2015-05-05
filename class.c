@@ -2062,8 +2062,9 @@ void init_start_char(struct char_data *ch) {
 
   /* reset skills/abilities */
   /* we don't want players to lose their hard-earned crafting skills */
-  //for (i = 1; i <= NUM_SKILLS; i++)
-    //SET_SKILL(ch, i, 0);
+  for (i = 1; i <= NUM_SKILLS; i++)
+    if (spell_info[i].schoolOfMagic != CRAFTING_SKILL)
+      SET_SKILL(ch, i, 0);
   for (i = 1; i <= NUM_ABILITIES; i++)
     SET_ABILITY(ch, i, 0);
   for (i = 1; i < NUM_FEATS; i++)

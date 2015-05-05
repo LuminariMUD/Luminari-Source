@@ -37,8 +37,10 @@ extern "C" {
 #define DOMAIN_POWER_ELECTRICITY_RESISTANCE   2
 #define DOMAIN_POWER_ACID_DART                3
 #define DOMAIN_POWER_ACID_RESISTANCE          4
+#define DOMAIN_POWER_FIRE_BOLT                5
+#define DOMAIN_POWER_FIRE_RESISTANCE          6
   /****************/
-#define NUM_DOMAIN_POWERS                     5
+#define NUM_DOMAIN_POWERS                     7
 /****************/
 
   /****************/

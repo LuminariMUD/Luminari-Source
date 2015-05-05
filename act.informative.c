@@ -1566,12 +1566,17 @@ ACMD(do_class) {
     return;
   }
 
+  if (class == CLASS_WARRIOR) {
+    send_to_char(ch, "The warrior class gets a bonus class feat every two "
+            "levels.\r\n");
+  }
+
   /* we should have a valid class to list now */
   while (level_feats[i][LF_FEAT] != FEAT_UNDEFINED) {
     feat = level_feats[i][LF_FEAT];
     if (level_feats[i][LF_CLASS] == class) {
       /* found a class feat! */
-      send_to_char(ch, "Level: %d, Feat: %s\r\n",
+      send_to_char(ch, "Level: %-2d, Feat: %s\r\n",
                    level_feats[i][LF_MIN_LVL],
                    feat_list[feat].name);
     }
