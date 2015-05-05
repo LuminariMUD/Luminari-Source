@@ -368,8 +368,10 @@ void finalize_study(struct descriptor_data *d) {
     }
   } /* for loop running through feats */
 
-  /* Set to learned. */
+  /* set spells learned for domain */
+  assign_domain_spells(ch);
 
+  /* Set to learned. */
 }
 
 ACMD(do_study) {
@@ -789,6 +791,46 @@ static void set_stats_menu(struct descriptor_data *d) {
   OLC_MODE(d) = STUDY_SET_STATS;
 }
 
+static void set_domain_submenu(struct descriptor_data *d) {
+  const char *domain_names[NUM_DOMAINS];
+  int i;
+
+  get_char_colors(d->character);
+  clear_screen(d);
+
+  for (i = 1; i < NUM_DOMAINS; i++) {
+    domain_names[i] = domain_list[i].name;
+  }
+
+  column_list(d->character, 0, domain_names, NUM_DOMAINS, TRUE);
+  write_to_output(d, "\r\n%sEnter domain name selection : ", nrm);
+}
+static void set_domain_menu(struct descriptor_data *d) {
+  get_char_colors(d->character);
+  clear_screen(d);
+
+  write_to_output(d,
+          "\r\n-- %sSet Domains%s\r\n"
+          "\r\n"
+          "%s 0%s) 1st Domain:      %s%s\r\n"
+          "%s 1%s) 2nd Domain:      %s%s\r\n"
+          "\r\n"
+          "%s Q%s) Quit\r\n"
+          "\r\n"
+          "Enter Choice : ",
+
+          mgn, nrm,
+          /* empty line */
+          grn, nrm, domain_list[GET_1ST_DOMAIN(d->character)].name, nrm,
+          grn, nrm, domain_list[GET_2ND_DOMAIN(d->character)].name, nrm,
+          /* empty line */
+          grn, nrm
+          /* empty line */
+          );
+
+  OLC_MODE(d) = STUDY_SET_DOMAINS;
+}
+
 static void favored_enemy_menu(struct descriptor_data *d) {
   get_char_colors(d->character);
   clear_screen(d);
@@ -1050,6 +1092,7 @@ static void generic_main_disp_menu(struct descriptor_data *d) {
           "%s 4%s) Animal Companion\r\n"
           "%s 5%s) Favored Enemy\r\n"
           "%s 6%s) Set Stats\r\n"
+          "%s 7%s) Domain Selection\r\n"
           "\r\n"
           "%s Q%s) Quit\r\n"
           "\r\n"
@@ -1062,6 +1105,7 @@ static void generic_main_disp_menu(struct descriptor_data *d) {
           MENU_OPT(CAN_STUDY_COMPANION(ch)),
           MENU_OPT(CAN_STUDY_FAVORED_ENEMY(ch)),
           MENU_OPT(CAN_SET_STATS(ch)),
+          MENU_OPT(CAN_SET_DOMAIN(ch)),
           grn, nrm
           );
 
@@ -1199,6 +1243,14 @@ void study_parse(struct descriptor_data *d, char *arg) {
         case '6':
           if (CAN_SET_STATS(ch))
             set_stats_menu(d);
+          else {
+            write_to_output(d, "That is an invalid choice!\r\n");
+            generic_main_disp_menu(d);
+          }
+          break;
+        case '7':
+          if (CAN_SET_DOMAIN(ch))
+            set_domain_menu(d);
           else {
             write_to_output(d, "That is an invalid choice!\r\n");
             generic_main_disp_menu(d);
@@ -1462,6 +1514,66 @@ void study_parse(struct descriptor_data *d, char *arg) {
       }
       break;
     /******* end bard **********/
+
+    case SET_1ST_DOMAIN:
+      number = atoi(arg);
+      if (number < 0) {
+        write_to_output(d, "Invalid value!  Try again.\r\n");
+        OLC_MODE(d) = SET_1ST_DOMAIN;
+        set_domain_submenu(d);
+        break;
+      }
+      if (number >= NUM_DOMAINS) {
+        write_to_output(d, "Invalid value!  Try again.\r\n");
+        OLC_MODE(d) = SET_1ST_DOMAIN;
+        set_domain_submenu(d);
+        break;
+      }
+      GET_1ST_DOMAIN(ch) = number;
+      write_to_output(d, "Choice selected.\r\n");
+      return;
+    case SET_2ND_DOMAIN:
+      number = atoi(arg);
+      if (number < 0) {
+        write_to_output(d, "Invalid value!  Try again.\r\n");
+        OLC_MODE(d) = SET_2ND_DOMAIN;
+        set_domain_submenu(d);
+        break;
+      }
+      if (number >= NUM_DOMAINS) {
+        write_to_output(d, "Invalid value!  Try again.\r\n");
+        OLC_MODE(d) = SET_2ND_DOMAIN;
+        set_domain_submenu(d);
+        break;
+      }
+      GET_2ND_DOMAIN(ch) = number;
+      write_to_output(d, "Choice selected.\r\n");
+      return;
+    case STUDY_SET_DOMAINS:
+      switch (*arg) {
+        case 'q':
+        case 'Q':
+          display_main_menu(d);
+          break;
+
+        default:
+          number = atoi(arg);
+          switch (number) {
+            case 0:
+              set_domain_submenu(d);
+              OLC_MODE(d) = SET_1ST_DOMAIN;
+              return;
+            case 1:
+              set_domain_submenu(d);
+              OLC_MODE(d) = SET_2ND_DOMAIN;
+              return;
+            default: break;
+          }
+          OLC_MODE(d) = STUDY_SET_DOMAINS;
+          set_stats_menu(d);
+          break;
+      }
+      break;
 
     case STUDY_SET_STATS:
       switch (*arg) {
