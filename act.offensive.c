@@ -2419,7 +2419,7 @@ ACMD(do_treatinjury) {
   /* first attempt to recover lost health */
   if (GET_MAX_HIT(vict) != GET_HIT(vict)) {
     GET_HIT(vict) += MIN((GET_MAX_HIT(vict) - GET_HIT(vict)),
-            (10 + compute_ability(ch, ABILITY_HEAL) + GET_WIS_BONUS(ch)));
+            (20 + compute_ability(ch, ABILITY_HEAL) + GET_WIS_BONUS(ch)));
     update_pos(vict);
   }
   /* TODO: poison */
