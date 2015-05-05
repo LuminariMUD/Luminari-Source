@@ -36,7 +36,6 @@
 #include "pfdefaults.h"
 #include "domains_schools.h"
 
-int *free_start_feats[];
 
 /* Names first */
 const char *class_abbrevs[] = {

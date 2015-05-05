@@ -1552,7 +1552,7 @@ void list_scanned_chars(struct char_data * list, struct char_data * ch, int
 /****  Commands ACMD ******/
 
 ACMD(do_class) {
-  int class = CLASS_UNDEFINED, i = 0, feat = 0;
+  int class = CLASS_UNDEFINED, i = 0, j = 0, feat = 0;
 
   skip_spaces(&argument);
   if (!argument || !*argument) {
@@ -1571,7 +1571,14 @@ ACMD(do_class) {
             "levels.\r\n");
   }
 
-  /* we should have a valid class to list now */
+  /* starting feats */
+  for (i = 0; (j = free_start_feats[class][i]); i++) {
+    send_to_char(ch, "Staring Feat: %s\r\n",
+                   feat_list[j].name);
+  }
+
+  /* level feats */
+  i = 0;
   while (level_feats[i][LF_FEAT] != FEAT_UNDEFINED) {
     feat = level_feats[i][LF_FEAT];
     if (level_feats[i][LF_CLASS] == class) {
