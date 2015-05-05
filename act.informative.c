@@ -34,6 +34,7 @@
 #include "quest.h" /* so you can identify questmaster mobiles */
 #include "feats.h"
 #include "assign_wpn_armor.h"
+#include "domains_schools.h"
 
 /* prototypes of local functions */
 /* do_diagnose utility functions */
@@ -2136,6 +2137,13 @@ ACMD(do_score) {
       send_to_char(ch, "%sPOOFOUT: %s%s disappears in a puff of smoke.%s\r\n", QCYN, QNRM, GET_NAME(ch), QNRM);
     send_to_char(ch, "\tcYour current zone:\tn %s%d%s\r\n", CCCYN(ch, C_NRM), GET_OLC_ZONE(ch), CCNRM(ch, C_NRM));
     send_to_char(ch, "\tC");
+    draw_line(ch, line_length, '-', '-');
+  }
+
+  if (CLASS_LEVEL(ch, CLASS_CLERIC)) {
+    send_to_char(ch, "\tc1st Domain: \tn%s\tc, 2nd Domain: \tn%s\tc.\r\n",
+                 domain_list[GET_1ST_DOMAIN(ch)].name,
+                 domain_list[GET_2ND_DOMAIN(ch)].name);
     draw_line(ch, line_length, '-', '-');
   }
 
