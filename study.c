@@ -1537,6 +1537,8 @@ void study_parse(struct descriptor_data *d, char *arg) {
       }
       GET_1ST_DOMAIN(ch) = number;
       write_to_output(d, "Choice selected.\r\n");
+      OLC_MODE(d) = STUDY_SET_DOMAINS;
+      set_domain_menu(d);
       break;
     case SET_2ND_DOMAIN:
       number = atoi(arg);
