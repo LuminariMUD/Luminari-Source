@@ -544,6 +544,10 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn, *red;
 #define SET_STAT_INTE          23
 #define SET_STAT_WIS           24
 #define SET_STAT_CHA           25
+#define STUDY_SET_DOMAINS      26
+#define SET_1ST_DOMAIN         27
+#define SET_2ND_DOMAIN         28
+
 
 int save_config(IDXTYPE nowhere);
 
