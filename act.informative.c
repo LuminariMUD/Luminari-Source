@@ -1573,7 +1573,7 @@ ACMD(do_class) {
 
   /* starting feats */
   for (i = 0; (j = free_start_feats[class][i]); i++) {
-    send_to_char(ch, "Staring Feat: %s\r\n",
+    send_to_char(ch, "Starting Feat: %s\r\n",
                    feat_list[j].name);
   }
 

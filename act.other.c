@@ -3078,6 +3078,10 @@ ACMD(do_use) {
   switch (subcmd) {
 
     case SCMD_RECITE:
+      spell = GET_OBJ_VAL(mag_item, 1);
+      /* remove curse and identify you can use regardless */
+      if (spell == SPELL_REMOVE_CURSE || spell == SPELL_IDENTIFY)
+        break;
 
       /* 1. Decipher Writing
        *    Spellcraft check: DC 20 + spell level */
@@ -3093,7 +3097,6 @@ ACMD(do_use) {
       /* 2.a. Check the spell type
        *      ARCANE - Wizard, Sorcerer, Bard
        *      DIVINE - Cleric, Druid, Paladin, Ranger */
-      spell = GET_OBJ_VAL(mag_item, 1);
       if ((check_result = skill_check(ch, ABILITY_USE_MAGIC_DEVICE, dc)) < 0)
       {
         if(spell_info[spell].min_level[CLASS_WIZARD]   < LVL_STAFF ||

@@ -375,8 +375,8 @@ int free_start_feats_warrior[] = {
   0
 };
 int free_start_feats_monk[] = {
-  FEAT_SIMPLE_WEAPON_PROFICIENCY,
   FEAT_WEAPON_PROFICIENCY_MONK,
+  FEAT_UNARMED_STRIKE,
   FEAT_IMPROVED_UNARMED_STRIKE,
   FEAT_FLURRY_OF_BLOWS,
   0
@@ -399,23 +399,21 @@ int free_start_feats_berserker[] = {
   FEAT_ARMOR_PROFICIENCY_SHIELD,
   FEAT_MARTIAL_WEAPON_PROFICIENCY,
   FEAT_FAST_MOVEMENT,
-  FEAT_RAGE,
   0
 };
 int free_start_feats_druid[] = {
-  FEAT_SIMPLE_WEAPON_PROFICIENCY,
   FEAT_WEAPON_PROFICIENCY_DRUID,
   FEAT_ARMOR_PROFICIENCY_LIGHT,
   FEAT_ARMOR_PROFICIENCY_MEDIUM,
   FEAT_ARMOR_PROFICIENCY_SHIELD,
   FEAT_ANIMAL_COMPANION,
   FEAT_NATURE_SENSE,
-  FEAT_WILD_EMPATHY,
   0
 };
 int free_start_feats_bard[] = {
   FEAT_SIMPLE_WEAPON_PROFICIENCY,
   FEAT_WEAPON_PROFICIENCY_BARD,
+  FEAT_WEAPON_PROFICIENCY_ROGUE,
   FEAT_ARMOR_PROFICIENCY_LIGHT,
   FEAT_ARMOR_PROFICIENCY_SHIELD,
   0
@@ -432,8 +430,6 @@ int free_start_feats_ranger[] = {
   FEAT_ARMOR_PROFICIENCY_LIGHT,
   FEAT_ARMOR_PROFICIENCY_MEDIUM,
   FEAT_ARMOR_PROFICIENCY_SHIELD,
-  FEAT_SIMPLE_WEAPON_PROFICIENCY,
-  FEAT_ARMOR_PROFICIENCY_LIGHT,
   FEAT_MARTIAL_WEAPON_PROFICIENCY,
   0
 };
@@ -498,7 +494,6 @@ int level_feats[][LEVEL_FEATS] = {
    as a temporary (?) solution, every 3 levels we are giving rogues
    hand selected talents */
   /* class, race, stacks?, level, feat-name */
-  {CLASS_ROGUE, RACE_UNDEFINED, FALSE, 1, FEAT_WEAPON_PROFICIENCY_ROGUE},
   {CLASS_ROGUE, RACE_UNDEFINED, TRUE, 1, FEAT_SNEAK_ATTACK},
   {CLASS_ROGUE, RACE_UNDEFINED, FALSE, 1, FEAT_TRAPFINDING},
   {CLASS_ROGUE, RACE_UNDEFINED, FALSE, 2, FEAT_EVASION},
@@ -551,9 +546,6 @@ int level_feats[][LEVEL_FEATS] = {
 
   /* monk */
   /* class, race, stacks?, level, feat_ name */
-  {CLASS_MONK, RACE_UNDEFINED, FALSE, 1, FEAT_FLURRY_OF_BLOWS},
-  {CLASS_MONK, RACE_UNDEFINED, FALSE, 1, FEAT_UNARMED_STRIKE},
-  {CLASS_MONK, RACE_UNDEFINED, FALSE, 1, FEAT_IMPROVED_UNARMED_STRIKE},
   {CLASS_MONK, RACE_UNDEFINED, FALSE, 2, FEAT_EVASION},
   {CLASS_MONK, RACE_UNDEFINED, FALSE, 3, FEAT_STILL_MIND},
   {CLASS_MONK, RACE_UNDEFINED, TRUE, 4, FEAT_KI_STRIKE},
@@ -595,7 +587,6 @@ int level_feats[][LEVEL_FEATS] = {
    hand selected rage-powers */
   /* class, race, stacks?, level, feat_ name */
   {CLASS_BERSERKER, RACE_UNDEFINED, TRUE, 1, FEAT_RAGE},
-  {CLASS_BERSERKER, RACE_UNDEFINED, FALSE, 1, FEAT_FAST_MOVEMENT},
   {CLASS_BERSERKER, RACE_UNDEFINED, FALSE, 2, FEAT_UNCANNY_DODGE},
   {CLASS_BERSERKER, RACE_UNDEFINED, TRUE, 3, FEAT_TRAP_SENSE},
   /* rage power (level 3) */
@@ -672,8 +663,6 @@ int level_feats[][LEVEL_FEATS] = {
 
   /* druid */
   /* class, race, stacks?, level, feat_ name */
-  {CLASS_DRUID, RACE_UNDEFINED, FALSE, 1, FEAT_ANIMAL_COMPANION},
-  {CLASS_DRUID, RACE_UNDEFINED, FALSE, 1, FEAT_NATURE_SENSE},
   {CLASS_DRUID, RACE_UNDEFINED, FALSE, 2, FEAT_WILD_EMPATHY},
   {CLASS_DRUID, RACE_UNDEFINED, FALSE, 2, FEAT_WOODLAND_STRIDE},
   {CLASS_DRUID, RACE_UNDEFINED, FALSE, 3, FEAT_TRACKLESS_STEP},
@@ -780,6 +769,7 @@ const int class_feats_wizard[] = {
   FEAT_ENHANCED_SPELL_DAMAGE,
   FEAT_ENHANCE_SPELL,
   FEAT_EPIC_SPELLCASTING,
+  /*end*/
   FEAT_UNDEFINED
 };
 /*
@@ -926,6 +916,7 @@ const int class_feats_fighter[] = {
   FEAT_ROBILARS_GAMBIT,
   FEAT_KNOCKDOWN,
   FEAT_EPIC_TOUGHNESS,
+  /*end*/
   FEAT_UNDEFINED
 };
 const int class_feats_paladin[] = {
@@ -934,6 +925,7 @@ const int class_feats_paladin[] = {
   FEAT_ARMOR_SKIN,
   FEAT_GREAT_SMITING,
   FEAT_EPIC_TOUGHNESS,
+  /*end*/
   FEAT_UNDEFINED
 };
 const int class_feats_monk[] = {
@@ -946,10 +938,12 @@ const int class_feats_monk[] = {
   FEAT_FAST_HEALING,
   FEAT_DAMAGE_REDUCTION,
   FEAT_EPIC_TOUGHNESS,
+  /*end*/
   FEAT_UNDEFINED
 };
 const int class_feats_druid[] = {
   FEAT_FAST_HEALING,
+  /*end*/
   FEAT_UNDEFINED
 };
 const int class_feats_berserker[] = {
@@ -963,6 +957,7 @@ const int class_feats_berserker[] = {
   FEAT_RP_HEAVY_SHRUG,
   FEAT_RP_FEARLESS_RAGE,
   FEAT_RP_COME_AND_GET_ME,
+  /*end*/
   FEAT_UNDEFINED
 };
 const int class_feats_ranger[] = {
@@ -970,9 +965,11 @@ const int class_feats_ranger[] = {
   FEAT_EPIC_PROWESS,
   FEAT_SWARM_OF_ARROWS,
   FEAT_EPIC_TOUGHNESS,
+  /*end*/
   FEAT_UNDEFINED
 };
 const int no_class_feats[] = {
+  /*end*/
   FEAT_UNDEFINED
 };
 

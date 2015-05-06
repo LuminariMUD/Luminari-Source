@@ -2422,9 +2422,22 @@ ACMD(do_treatinjury) {
             (20 + compute_ability(ch, ABILITY_HEAL) + GET_WIS_BONUS(ch)));
     update_pos(vict);
   }
-  /* TODO: poison */
-  /* TODO: disease */
 
+  /* attempt to cure poison */
+  if (compute_ability(ch, ABILITY_HEAL) >= 22) {
+    if (affected_by_spell(vict, SPELL_POISON))
+      affect_from_char(vict, SPELL_POISON);
+    if (AFF_FLAGGED(vict, AFF_POISON))
+      REMOVE_BIT_AR(AFF_FLAGS(vict), AFF_POISON);
+  }
+
+  /* attempt to cure disease */
+  if (compute_ability(ch, ABILITY_HEAL) >= 33) {
+    if (affected_by_spell(vict, SPELL_EYEBITE))
+      affect_from_char(vict, SPELL_EYEBITE);
+    if (AFF_FLAGGED(vict, AFF_DISEASE))
+      REMOVE_BIT_AR(AFF_FLAGS(vict), AFF_DISEASE);
+  }
 
   /* Actions */
   USE_STANDARD_ACTION(ch);
