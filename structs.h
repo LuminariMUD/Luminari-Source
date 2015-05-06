@@ -373,8 +373,20 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define DOMAIN_AIR              1
 #define DOMAIN_EARTH            2
 #define DOMAIN_FIRE             3
+#define DOMAIN_WATER            4
+#define DOMAIN_CHAOS            5
+#define DOMAIN_DESTRUCTION      6
+#define DOMAIN_EVIL             7
+#define DOMAIN_GOOD             8
+#define DOMAIN_HEALING          9
+#define DOMAIN_KNOWLEDGE       10
+#define DOMAIN_LAW             11
+#define DOMAIN_TRICKERY        12
+#define DOMAIN_PROTECTION      13
+#define DOMAIN_TRAVEL          14
+#define DOMAIN_WAR             15
 /****************/
-#define NUM_DOMAINS             4
+#define NUM_DOMAINS            16
 
 
 // warding spells that need to be saved

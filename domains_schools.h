@@ -39,8 +39,10 @@ extern "C" {
 #define DOMAIN_POWER_ACID_RESISTANCE          4
 #define DOMAIN_POWER_FIRE_BOLT                5
 #define DOMAIN_POWER_FIRE_RESISTANCE          6
+#define DOMAIN_POWER_ICICLE                   7
+#define DOMAIN_POWER_COLD_RESISTANCE          8
   /****************/
-#define NUM_DOMAIN_POWERS                     7
+#define NUM_DOMAIN_POWERS                     9
 /****************/
 
   /****************/
@@ -72,6 +74,7 @@ struct school_info school_list[NUM_SCHOOLS];
 void assign_domains(void);
 void init_domain_spell_level(void);
 void assign_domain_spells(struct char_data *ch);
+int has_domain_power(struct char_data *ch, int domain_power);
 
 /******************************************/
 
