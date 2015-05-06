@@ -15,6 +15,7 @@
 #include "spells.h"
 #include "domains_schools.h"
 #include "assign_wpn_armor.h"
+#include "screen.h"
 
 struct domain_info domain_list[NUM_DOMAINS];
 struct school_info school_list[NUM_SCHOOLS];
@@ -133,6 +134,8 @@ void assign_domains(void) {
       /* 9th circle */
       SPELL_ELEMENTAL_SWARM);
 
+  /* Water Domain */
+
   /* end */
   /* this has to be at the end */
   init_domain_spell_level();
@@ -172,16 +175,16 @@ ACMD(do_domain) {
   int i = 0, j = 0;;
 
   for (i = 1; i < NUM_DOMAINS; i++) {
-    send_to_char(ch, "Domain: %-20s Favored Weapon: %-22s\r\nDescription: %s\r\n",
-                 domain_list[i].name,
-                 weapon_list[domain_list[i].favored_weapon].name,
-                 domain_list[i].description
+    send_to_char(ch, "%sDomain:%s %-20s %sFavored Weapon:%s %-22s\r\n%sDescription:%s %s\r\n",
+                 QCYN, QNRM, domain_list[i].name,
+                 QCYN, QNRM, weapon_list[domain_list[i].favored_weapon].name,
+                 QCYN, QNRM, domain_list[i].description
                 );
 
-    send_to_char(ch, "Granted spells: |");
+    send_to_char(ch, "%sGranted spells: |%s", QCYN, QNRM);
     for (j = 0; j < MAX_DOMAIN_SPELLS; j++) {
       if (domain_list[i].domain_spells[j] != SPELL_RESERVED_DBC) {
-        send_to_char(ch, "%s|", spell_info[domain_list[i].domain_spells[j]].name);
+        send_to_char(ch, "%s%s|%s", spell_info[domain_list[i].domain_spells[j]].name, QCYN, QNRM);
       }
     }
     send_to_char(ch, "\r\n\r\n");

@@ -950,6 +950,10 @@ void assign_feats(void) {
   feato(FEAT_UNARMED_STRIKE, "unarmed strike", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "Unarmed attacks are considered to be weapons.",
     "Unarmed attacks are considered to be weapons.");
+  feato(FEAT_IMPROVED_UNARMED_STRIKE, "improved unarmed strike", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Unarmed attacks are considered to be weapons.",
+    "Unarmed attacks are considered to be weapons.  You can disarm foes without "
+          "a penalty when fighting unarmed.  Also you get access to the headbutt combat maneuver.");
   /*unfinished*/feato(FEAT_KI_STRIKE, "ki strike", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "unarmed attack considered a magical weapon (unfinished)",
     "unarmed attack considered a magical weapon [note: until fixed this feat "
