@@ -938,12 +938,12 @@ do                                                              \
 				((ch)->player_specials->saved.boosts))
 
 /* domain and school macros */
-/*
 #define GET_1ST_DOMAIN(ch)	CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.domain_1))
 #define GET_2ND_DOMAIN(ch)	CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.domain_2))
-*/
+/*
 #define GET_1ST_DOMAIN(ch)	((ch)->player_specials->saved.domain_1)
 #define GET_2ND_DOMAIN(ch)	((ch)->player_specials->saved.domain_2)
+*/
 #define GET_SPECIALTY_SCHOOL(ch)	CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.specialty_school))
 #define GET_1ST_RESTRICTED_SCHOOL(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.restricted_school_1))
 #define GET_2ND_RESTRICTED_SCHOOL(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.restricted_school_2))
