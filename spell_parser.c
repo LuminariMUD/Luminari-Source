@@ -1518,7 +1518,6 @@ void mag_assign_spells(void) {
 
   // sorted the spells by shared / magical / divine, and by circle
   // in each category (school) -zusuk
-
   /* please leave these here for my usage -zusuk */
   /* evocation */
   /* conjuration */
