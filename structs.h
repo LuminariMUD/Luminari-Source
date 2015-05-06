@@ -3587,6 +3587,9 @@ typedef enum {
 
 #define MAX_CHARS_PER_ACCOUNT         100
 
+#define MAX_UNLOCKED_CLASSES           20
+#define MAX_UNLOCKED_RACES             20
+
 /* Account data structure.  Account data is kept in the database,
  * but loaded into this structure while the player is in-game. */
 struct account_data {
@@ -3605,8 +3608,8 @@ struct account_data {
 //        char * websiteAccount;
 //        byte polls[100];
 //        char * web_password;
-//        int classes[MAX_UNLOCKED_CLASSES];
-//        int races[MAX_UNLOCKED_RACES];
+        int classes[MAX_UNLOCKED_CLASSES];
+        int races[MAX_UNLOCKED_RACES];
         char *email;
 //        int surveys[4];
 //        struct obj_data *item_bank;

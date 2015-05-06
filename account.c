@@ -1,6 +1,8 @@
+/* Luminari Account System, Inspired by D20mud's Account System
+   Created By: Ornir */
+
 #include "conf.h"
 #include "sysdep.h"
-
 #include "structs.h"
 #include "mysql.h"
 #include "utils.h"
@@ -27,13 +29,13 @@ int load_account(char *name, struct account_data *account)
   MYSQL_ROW row;
   char buf[2048];
 
-  /* Check if the account has data, if so, clear it. */ 
+  /* Check if the account has data, if so, clear it. */
 /*   if (account != NULL) {
     if (account->name != NULL)
       free(account->name);
     if (account->email != NULL)
       free(account->email);
-    for (i = 0; i < MAX_CHARS_PER_ACCOUNT; i++) 
+    for (i = 0; i < MAX_CHARS_PER_ACCOUNT; i++)
       if (account->character_names[i] != NULL)
         free(account->character_names[i]);
   }
@@ -54,9 +56,9 @@ int load_account(char *name, struct account_data *account)
     return -1;
   }
 
-  if(!(row = mysql_fetch_row(result))) 
+  if(!(row = mysql_fetch_row(result)))
     return -1; /* Account not found. */
-    
+
   account->id         = atoi(row[0]);
   account->name       = strdup(row[1]);
   strncpy(account->password, row[2], MAX_PWD_LENGTH + 1);
@@ -92,12 +94,12 @@ void load_account_characters(struct account_data *account) {
   }
 
   i = 0;
-  while((row = mysql_fetch_row(result))) {   
+  while((row = mysql_fetch_row(result))) {
     account->character_names[i] = strdup(row[0]);
     i++;
   }
 
-  mysql_free_result(result);                                                      
+  mysql_free_result(result);
   return;
 }
 
@@ -112,12 +114,12 @@ char *get_char_account_name(char *name) {
   if (mysql_query(conn, buf)) {
     log("SYSERR: Unable to retrieve account name for character %s: %s", name, mysql_error(conn));
     return NULL;
-  }  
+  }
   if (!(result = mysql_store_result(conn))) {
-    log("SYSERR: Unable to retreive account name for character %s: %s", name, mysql_error(conn));  
+    log("SYSERR: Unable to retreive account name for character %s: %s", name, mysql_error(conn));
     return NULL;
   }
-  while ((row = mysql_fetch_row(result))) 
+  while ((row = mysql_fetch_row(result)))
     acct_name = (row[0] ? strdup(row[0]) : NULL);
   mysql_free_result(result);
   return acct_name;
@@ -134,11 +136,11 @@ void save_account(struct account_data *account)
     log("SYSERR: Attempted to save NULL account.");
     return;
   }
-  
+
   sprintf(buf, "INSERT into account_data (id, name, password, experience, email) values (%d, '%s', '%s', %d, %s%s%s)"
                " on duplicate key update password = VALUES(password), "
                "                         experience = VALUES(experience), "
-               "                         email = VALUES(email);", 
+               "                         email = VALUES(email);",
                account->id,
                account->name,
                account->password,
@@ -164,8 +166,8 @@ void save_account(struct account_data *account)
     if (mysql_query(conn, buf)) {
       log("SYSERR: Unable to UPSERT player_data: %s", mysql_error(conn));
     return;
-    }   
-  }   
+    }
+  }
 }
 
 void show_account_menu(struct descriptor_data *d)
@@ -173,16 +175,13 @@ void show_account_menu(struct descriptor_data *d)
   int i = 0;
   struct char_data *tch = NULL;
   char class_list[MAX_INPUT_LENGTH];
-  
 
-//  write_to_output(d, "Account Menu\r\n");
   write_to_output(d, "\tC%s\tn", text_line_string("", 80, '-', '-'));
   write_to_output(d, "  \tc#  \tC| \tcName                \tC| \tcLvl \tC| \tcRace \tC| \tcClass\tn \r\n");
   write_to_output(d, "\tC%s\tn", text_line_string("", 80, '-', '-'));
 
   /*  Check the connection, reconnect if necessary. */
   mysql_ping(conn);
-
 
   MYSQL_RES *res = NULL;
   MYSQL_ROW row = NULL;
@@ -217,15 +216,15 @@ void show_account_menu(struct descriptor_data *d)
                 write_to_output(d, " \tR---===||DELETED||===---\tn\r\n");
                 return;
               }
-              
+
               write_to_output(d, " %3d \tC|\tn %4s \tC|\tn", GET_LEVEL(tch), RACE_ABBR(tch));
-              
+
               if (GET_LEVEL(tch) >= LVL_IMMORT) {
                 /* Staff */
                 write_to_output(d, " %-36s", admin_level_names[(GET_LEVEL(tch) - LVL_IMMORT)]);
               } else {
                 /* Mortal */
-              
+
                 int inc, classCount = 0;
                 class_list[0] = '\0';
                 for (inc = 0; inc < MAX_CLASSES; inc++) {
@@ -257,7 +256,7 @@ void show_account_menu(struct descriptor_data *d)
   /* Set this here so we don't have to do it everywhere this procedure is called. */
   STATE(d) = CON_ACCOUNT_MENU;
 }
-/*  
+/*
 void combine_accounts(void) {
 
   struct descriptor_data *d;
@@ -265,7 +264,7 @@ void combine_accounts(void) {
 
   for (d = descriptor_list; d; d = d->next) {
     for (k = descriptor_list; k; k = k->next) {
-      if (d && k && d->account && k->account && d->account != k->account && 
+      if (d && k && d->account && k->account && d->account != k->account &&
         d->character && k->character && d->character->account_name && k->character->account_name &&
         !strcmp(d->character->account_name, k->character->account_name)) {
         d->account = k->account;
@@ -276,8 +275,8 @@ void combine_accounts(void) {
 }
 */
 
-ACMD(do_account)
-{
+ACMD(do_account) {
+  bool found = FALSE;
 
   if (IS_NPC(ch) || !ch->desc || !ch->desc->account) {
     send_to_char(ch, "The account command can only be used by player characters with a valid account.\r\n");
@@ -307,29 +306,30 @@ ACMD(do_account)
       send_to_char(ch, "  \tn%s\r\n", acc->character_names[i]);
   }
 
-/*  
-  send_to_char(ch, "Unlocked Advanced Races:\r\n");
+  /* show unlocked races */
+  send_to_char(ch, "Unlocked Races:\r\n");
   for (i = 0; i < MAX_UNLOCKED_RACES; i++) {
     if (acc->races[i] > 0 && race_list[acc->races[i]].is_pc) {
       send_to_char(ch, "  %s\r\n", race_list[acc->races[i]].name);
       found = TRUE;
     }
-  }  
+  }
   if (!found)
     send_to_char(ch, "  None.\r\n");
 
   found = FALSE;
 
-  send_to_char(ch, "Unlocked Prestige Classes:\r\n");
+  /* show unlocked classes */
+  send_to_char(ch, "Unlocked Classes:\r\n");
   for (i = 0; i < MAX_UNLOCKED_CLASSES; i++) {
     if (acc->classes[i] < 999) {
-      send_to_char(ch, "  %s\r\n", class_names_dl_aol[acc->classes[i]]);
+      send_to_char(ch, "  %s\r\n", pc_class_types[acc->classes[i]]);
       found = TRUE;
     }
-  }  
+  }
   if (!found)
     send_to_char(ch, "  None.\r\n");
-*/
+
   send_to_char(ch, "\tC");
   draw_line(ch, 80, '-', '-');
 }
@@ -346,7 +346,7 @@ void remove_char_from_account(struct char_data *ch, struct account_data *account
     log("SYSERR: Tried to remove a character from a NULL account!");
     return;
   }
-  
+
   sprintf(buf, "DELETE from player_data where lower(name) = lower('%s') and account_id = %d;",
                GET_NAME(ch), account->id);
 
@@ -355,7 +355,7 @@ void remove_char_from_account(struct char_data *ch, struct account_data *account
     return;
   }
 
-  /* Reload the character names */  
+  /* Reload the character names */
   load_account_characters(account);
 
   log("INFO: Character %s removed from account %s : %s", GET_NAME(ch), account->name, mysql_info(conn));
