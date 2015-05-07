@@ -135,7 +135,6 @@ cpp_extern const struct command_info cmd_info[] = {
   { "autoreload", "autoreload", POS_DEAD, do_gen_tog, 0, SCMD_AUTORELOAD, TRUE, ACTION_NONE, {0, 0}},
   { "accexp", "accexp", POS_DEAD, do_accexp, 0, 0, TRUE, ACTION_NONE, {0, 0}},
 
-
   { "backstab", "ba", POS_STANDING, do_backstab, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}},
   { "ban", "ban", POS_DEAD, do_ban, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}},
   { "balance", "bal", POS_STANDING, do_not_here, 1, 0, TRUE, ACTION_NONE, {0, 0}},
