@@ -93,9 +93,6 @@ int has_unlocked_race(struct char_data *ch, int race) {
   if (!locked_races[race])
     return TRUE;
 
-  if (GET_LEVEL(ch) >= LVL_IMMORT)
-    return TRUE;
-
   int i = 0;
 
   for (i = 0; i < MAX_UNLOCKED_RACES; i++)
@@ -110,9 +107,6 @@ int has_unlocked_class(struct char_data *ch, int class) {
     return FALSE;
 
   if (!locked_classes[class])
-    return TRUE;
-
-  if (GET_LEVEL(ch) >= LVL_IMMORT)
     return TRUE;
 
   int i = 0;
