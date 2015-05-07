@@ -694,6 +694,8 @@ int gain_exp(struct char_data *ch, int gain) {
 
     /* new gain xp cap -zusuk */
     GET_EXP(ch) += gain;
+    if (gain >= 1000)
+      ch->desc->account->experience += gain / 1000;
 
   } else if (gain < 0) {
 
