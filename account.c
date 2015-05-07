@@ -22,29 +22,253 @@ extern MYSQL *conn;
 
 /* Forward reference */
 void load_account_characters(struct account_data *account);
+void load_account_unlocks(struct account_data *account);
 
-int load_account(char *name, struct account_data *account)
-{
+#define Y TRUE
+#define N FALSE
+
+/**/
+
+int locked_races_cost[NUM_RACES] = {
+  0, /*Human*/
+  0, /*Elf*/
+  0, /*Dwarf*/
+  100, /*Troll (advanced)*/
+  1000, /*crystal dwarf (epic)*/
+  0, /*halfling*/
+  0, /*half elf*/
+  0, /*half orc*/
+  0, /*gnome*/
+  1000, /*trelux (epic)*/
+  100, /*arcana golem (advanced)*/
+};
+
+bool locked_races[NUM_RACES] = {
+  N, /*Human*/
+  N, /*Elf*/
+  N, /*Dwarf*/
+  Y, /*Troll (advanced)*/
+  Y, /*crystal dwarf (epic)*/
+  N, /*halfling*/
+  N, /*half elf*/
+  N, /*half orc*/
+  N, /*gnome*/
+  Y, /*trelux (epic)*/
+  Y, /*arcana golem (advanced)*/
+};
+
+int locked_classes_cost[NUM_CLASSES] = {
+  0, /*Wizard*/
+  0, /*Cleric*/
+  0, /*Rogue*/
+  0, /*Warrior*/
+  0, /*Monk*/
+  0, /*Druid*/
+  0, /*Berserker*/
+  0, /*Sorcerer*/
+  0, /*Paladin*/
+  0, /*Ranger*/
+  10, /*Bard*/
+};
+
+bool locked_classes[NUM_CLASSES] = {
+  N, /*Wizard*/
+  N, /*Cleric*/
+  N, /*Rogue*/
+  N, /*Warrior*/
+  N, /*Monk*/
+  N, /*Druid*/
+  N, /*Berserker*/
+  N, /*Sorcerer*/
+  N, /*Paladin*/
+  N, /*Ranger*/
+  Y, /*Bard*/
+};
+
+int has_unlocked_race(struct char_data *ch, int race) {
+  if (!ch || !ch->desc || !ch->desc->account)
+    return FALSE;
+
+  if (race_list[race].level_adjustment == 0)
+    return TRUE;
+
+  if (GET_LEVEL(ch) >= LVL_IMMORT)
+    return TRUE;
+
+  int i = 0;
+
+  for (i = 0; i < MAX_UNLOCKED_RACES; i++)
+    if (ch->desc->account->races[i] == race)
+      return TRUE;
+
+  return FALSE;
+}
+
+int has_unlocked_class(struct char_data *ch, int class) {
+  if (!ch || !ch->desc || !ch->desc->account)
+    return FALSE;
+
+  if (!locked_classes[class])
+    return TRUE;
+
+  if (GET_LEVEL(ch) >= LVL_IMMORT)
+    return TRUE;
+
+  int i = 0;
+
+  for (i = 0; i < MAX_UNLOCKED_CLASSES; i++)
+    if (ch->desc->account->classes[i] == class)
+      return TRUE;
+
+  return FALSE;
+}
+
+ACMD(do_accexp) {
+  char arg[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
+  int i = 0, j = 0;
+  int cost = 0;
+
+  two_arguments(argument, arg, arg2);
+
+  if (!*arg) {
+    send_to_char(ch, "Would you like to spend account exp on an advanced @Yrace@n "
+            "or a prestige @Yclass@n?\r\n");
+    return;
+  }
+
+  /* try to unlock a race */
+  if (is_abbrev(arg, "race")) {
+    if (!*arg2) {
+      send_to_char(ch, "Please choose from the following races:\r\n");
+      for (i = 0; i < NUM_RACES; i++) {
+        if (!locked_races[i] || has_unlocked_race(ch, i))
+          continue;
+        cost = locked_races_cost[i];
+        send_to_char(ch, "%s (%d account experience)\r\n", pc_race_types[i], cost);
+      }
+      return;
+    }
+    for (i = 0; i < NUM_RACES; i++) {
+      if (is_abbrev(arg2, race_list[i].name) && locked_races[i] &&
+          !has_unlocked_race(ch, i)) {
+        cost = locked_races_cost[i];
+        break;
+      }
+    }
+    if (i >= NUM_RACES) {
+      send_to_char(ch, "Either that race does not exist, is not an advanced race, "
+              "is not available for players, or you've already unlocked it.\r\n");
+      return;
+    }
+    if (ch->desc && ch->desc->account) {
+      for (j = 0; j < MAX_UNLOCKED_RACES; j++) {
+        if (ch->desc->account->races[j] == 0) /* race 0 is human, never locked */
+          break;
+      }
+      if (j >= MAX_UNLOCKED_RACES) {
+        send_to_char(ch, "All of your advanced race slots are filled.  Please "
+                "submit a petition to ask for the limit to be increased.\r\n");
+        return;
+      }
+      if (ch->desc->account->experience >= cost) {
+        ch->desc->account->experience -= cost;
+        ch->desc->account->races[j] = i;
+        save_account(ch->desc->account);
+        send_to_char(ch, "You have unlocked the advanced race '%s' for all character "
+                "and future characters on your account!.\r\n", pc_race_types[i]);
+        return;
+      } else {
+        send_to_char(ch, "You need %d account experience to purchase that advanced "
+                "race and you only have %d.\r\n", cost, ch->desc->account->experience);
+        return;
+      }
+    } else {
+      send_to_char(ch, "There is a problem with your account and the race could "
+              "not be unlocked.  Please submit a request to staff.\r\n");
+      return;
+    }
+
+    /* try to unlock a locked class */
+  } else if (is_abbrev(arg, "class")) {
+    if (!*arg2) {
+      send_to_char(ch, "Please choose from the following classes:\r\n");
+      for (i = 0; i < NUM_CLASSES; i++) {
+        if (has_unlocked_class(ch, i) || !locked_classes[i])
+          continue;
+        cost = locked_classes_cost[i];
+        send_to_char(ch, "%s (%d account experience)\r\n", pc_class_types[i], cost);
+      }
+      return;
+    }
+    for (i = 0; i < NUM_CLASSES; i++) {
+      if (is_abbrev(arg2, pc_class_types[i]) && !has_unlocked_class(ch, i) &&
+          locked_classes[i]) {
+        cost = locked_classes_cost[i];
+        break;
+      }
+    }
+    if (i >= NUM_CLASSES) {
+      send_to_char(ch, "Either that class does not exist, is not a prestige class, "
+              "is not available for players, or you've already unlocked it.\r\n");
+      return;
+    }
+    if (ch->desc && ch->desc->account) {
+      for (j = 0; j < MAX_UNLOCKED_CLASSES; j++) {
+        if (ch->desc->account->classes[j] == 0) /* class 0 = wizard, never locked */
+          break;
+      }
+      if (j >= MAX_UNLOCKED_CLASSES) {
+        send_to_char(ch, "All of your prestige class slots are filled.  Please "
+                "Ask the staff for the limit to be increased.\r\n");
+        return;
+      }
+      if (ch->desc->account->experience >= cost) {
+        ch->desc->account->experience -= cost;
+        ch->desc->account->classes[j] = i;
+        save_account(ch->desc->account);
+        send_to_char(ch, "You have unlocked the prestige class '%s' for all "
+                "character and future characters on your account!.\r\n",
+                     pc_class_types[i]);
+        return;
+      } else {
+        send_to_char(ch, "You need %d account experience to purchase that prestige class and you only have %d.\r\n",
+                     cost, ch->desc->account->experience);
+        return;
+      }
+    } else {
+      send_to_char(ch, "There is a problem with your account and the class could "
+              "not be unlocked.  Please submit your issue to the staff.\r\n");
+      return;
+    }
+
+  } else {
+    send_to_char(ch, "You must choose to unlock either a race or a class.\r\n");
+    return;
+  }
+
+}
+
+int load_account(char *name, struct account_data *account) {
   MYSQL_RES *result;
   MYSQL_ROW row;
   char buf[2048];
 
   /* Check if the account has data, if so, clear it. */
-/*   if (account != NULL) {
-    if (account->name != NULL)
-      free(account->name);
-    if (account->email != NULL)
-      free(account->email);
-    for (i = 0; i < MAX_CHARS_PER_ACCOUNT; i++)
-      if (account->character_names[i] != NULL)
-        free(account->character_names[i]);
-  }
-*/
+  /*   if (account != NULL) {
+      if (account->name != NULL)
+        free(account->name);
+      if (account->email != NULL)
+        free(account->email);
+      for (i = 0; i < MAX_CHARS_PER_ACCOUNT; i++)
+        if (account->character_names[i] != NULL)
+          free(account->character_names[i]);
+    }
+   */
   /* Check the connection, reconnect if necessary. */
   mysql_ping(conn);
 
   sprintf(buf, "SELECT id, name, password, experience, email from account_data where lower(name) = lower('%s')",
-               name);
+          name);
 
   if (mysql_query(conn, buf)) {
     log("SYSERR: Unable to SELECT from account_data: %s", mysql_error(conn));
@@ -56,17 +280,19 @@ int load_account(char *name, struct account_data *account)
     return -1;
   }
 
-  if(!(row = mysql_fetch_row(result)))
+  if (!(row = mysql_fetch_row(result)))
     return -1; /* Account not found. */
 
-  account->id         = atoi(row[0]);
-  account->name       = strdup(row[1]);
+  account->id = atoi(row[0]);
+  account->name = strdup(row[1]);
   strncpy(account->password, row[2], MAX_PWD_LENGTH + 1);
   account->experience = atoi(row[3]);
-  account->email      = (row[4] ? strdup(row[4]) : NULL);
+  account->email = (row[4] ? strdup(row[4]) : NULL);
 
   mysql_free_result(result);
   load_account_characters(account);
+  load_account_unlocks(account);
+
   return (0);
 }
 
@@ -94,11 +320,56 @@ void load_account_characters(struct account_data *account) {
   }
 
   i = 0;
-  while((row = mysql_fetch_row(result))) {
+  while ((row = mysql_fetch_row(result))) {
     account->character_names[i] = strdup(row[0]);
     i++;
   }
 
+  mysql_free_result(result);
+  return;
+}
+
+void load_account_unlocks(struct account_data *account) {
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  char buf[2048];
+  int i = 0;
+
+  /* load locked classes */
+  sprintf(buf, "SELECT class_id from unlocked_classes "
+               "WHERE account_id = %d", account->id);
+  if (mysql_query(conn, buf)) {
+    log("SYSERR: Unable to SELECT from unlocked_classes: %s", mysql_error(conn));
+    return;
+  }
+  if (!(result = mysql_store_result(conn))) {
+    log("SYSERR: Unable to SELECT from unlocked_classes: %s", mysql_error(conn));
+    return;
+  }
+  i = 0;
+  while ((row = mysql_fetch_row(result))) {
+    account->classes[i] = atoi(row[0]);
+    i++;
+  }
+
+  /* load locked races */
+  sprintf(buf, "SELECT class_id from unlocked_races "
+               "WHERE account_id = %d", account->id);
+  if (mysql_query(conn, buf)) {
+    log("SYSERR: Unable to SELECT from unlocked_races: %s", mysql_error(conn));
+    return;
+  }
+  if (!(result = mysql_store_result(conn))) {
+    log("SYSERR: Unable to SELECT from unlocked_races: %s", mysql_error(conn));
+    return;
+  }
+  i = 0;
+  while ((row = mysql_fetch_row(result))) {
+    account->races[i] = atoi(row[0]);
+    i++;
+  }
+
+  /* cleanup */
   mysql_free_result(result);
   return;
 }
@@ -126,9 +397,7 @@ char *get_char_account_name(char *name) {
 
 }
 
-
-void save_account(struct account_data *account)
-{
+void save_account(struct account_data *account) {
   char buf[2048];
   int i = 0;
 
@@ -138,16 +407,16 @@ void save_account(struct account_data *account)
   }
 
   sprintf(buf, "INSERT into account_data (id, name, password, experience, email) values (%d, '%s', '%s', %d, %s%s%s)"
-               " on duplicate key update password = VALUES(password), "
-               "                         experience = VALUES(experience), "
-               "                         email = VALUES(email);",
-               account->id,
-               account->name,
-               account->password,
-               account->experience,
-               (account->email ? "'" : ""),
-               (account->email ? account->email : "NULL"),
-               (account->email ? "'" : ""));
+          " on duplicate key update password = VALUES(password), "
+          "                         experience = VALUES(experience), "
+          "                         email = VALUES(email);",
+          account->id,
+          account->name,
+          account->password,
+          account->experience,
+          (account->email ? "'" : ""),
+          (account->email ? account->email : "NULL"),
+          (account->email ? "'" : ""));
 
   if (mysql_query(conn, buf)) {
     log("SYSERR: Unable to UPSERT into account_data: %s", mysql_error(conn));
@@ -157,21 +426,45 @@ void save_account(struct account_data *account)
   if (account->id == 0) /* This is a new account! */
     account->id = mysql_insert_id(conn);
 
-  for (i = 0; (i < MAX_CHARS_PER_ACCOUNT) && (account->character_names[i] != NULL);i++) {
+  for (i = 0; (i < MAX_CHARS_PER_ACCOUNT) && (account->character_names[i] != NULL); i++) {
     buf[0] = '\0';
     sprintf(buf, "INSERT into player_data (name, account_id) "
-                 "VALUES('%s', %d) "
-                 "on duplicate key update account_id = VALUES(account_id);",
-                 account->character_names[i], account->id);
+            "VALUES('%s', %d) "
+            "on duplicate key update account_id = VALUES(account_id);",
+            account->character_names[i], account->id);
     if (mysql_query(conn, buf)) {
       log("SYSERR: Unable to UPSERT player_data: %s", mysql_error(conn));
-    return;
+      return;
     }
   }
+
+  /* save unlocked races */
+  for (i = 0; i < MAX_UNLOCKED_RACES; i++) {
+    buf[0] = '\0';
+    sprintf(buf, "INSERT into unlocked_races (account_id, race_id) "
+            "VALUES (%d, %d);",
+            account->id, account->races[i]);
+    if (mysql_query(conn, buf)) {
+      log("SYSERR: Unable to UPSERT unlocked_races: %s", mysql_error(conn));
+      return;
+    }
+  }
+
+  /* save unlocked classes */
+  for (i = 0; i < MAX_UNLOCKED_CLASSES; i++) {
+    buf[0] = '\0';
+    sprintf(buf, "INSERT into unlocked_classes (account_id, class_id) "
+            "VALUES (%d, %d);",
+            account->id, account->classes[i]);
+    if (mysql_query(conn, buf)) {
+      log("SYSERR: Unable to UPSERT unlocked_classes: %s", mysql_error(conn));
+      return;
+    }
+  }
+
 }
 
-void show_account_menu(struct descriptor_data *d)
-{
+void show_account_menu(struct descriptor_data *d) {
   int i = 0;
   struct char_data *tch = NULL;
   char class_list[MAX_INPUT_LENGTH];
@@ -237,8 +530,8 @@ void show_account_menu(struct descriptor_data *d)
                 }
                 write_to_output(d, " %-36s", class_list);
               }
-           }
-           free_char(tch);
+            }
+            free_char(tch);
           }
         }
         mysql_free_result(res);
@@ -256,6 +549,7 @@ void show_account_menu(struct descriptor_data *d)
   /* Set this here so we don't have to do it everywhere this procedure is called. */
   STATE(d) = CON_ACCOUNT_MENU;
 }
+
 /*
 void combine_accounts(void) {
 
@@ -273,13 +567,15 @@ void combine_accounts(void) {
     }
   }
 }
-*/
+ */
 
 ACMD(do_account) {
   bool found = FALSE;
+  int i = 0;
 
   if (IS_NPC(ch) || !ch->desc || !ch->desc->account) {
-    send_to_char(ch, "The account command can only be used by player characters with a valid account.\r\n");
+    send_to_char(ch, "The account command can only be used by player characters "
+            "with a valid account.\r\n");
     return;
   }
 
@@ -287,20 +583,19 @@ ACMD(do_account) {
   send_to_char(ch, "\tC");
   draw_line(ch, 80, '-', '-');
   send_to_char(ch,
-    "\tcAccount Information for \tW%s\tc\r\n",
-    acc->name);
+               "\tcAccount Information for \tW%s\tc\r\n",
+               acc->name);
   send_to_char(ch, "\tC");
   draw_line(ch, 80, '-', '-');
   send_to_char(ch,
-    "\tcEmail: \tn%s\r\n"
-//    "Level: %d\r\n"
-    "\tcExperience: \tn%d\r\n"
-//    "Gift Experience: %d\r\n"
-//    "Web Site Password: %s\r\n"
-    "\tcCharacters:\tn\r\n",
-    (acc->email ? acc->email : "\trNot Set\tn"), acc->experience);
+               "\tcEmail: \tn%s\r\n"
+               //    "Level: %d\r\n"
+               "\tcExperience: \tn%d\r\n"
+               //    "Gift Experience: %d\r\n"
+               //    "Web Site Password: %s\r\n"
+               "\tcCharacters:\tn\r\n",
+               (acc->email ? acc->email : "\trNot Set\tn"), acc->experience);
 
-  int i = 0;
   for (i = 0; i < MAX_CHARS_PER_ACCOUNT; i++) {
     if (acc->character_names[i] != NULL)
       send_to_char(ch, "  \tn%s\r\n", acc->character_names[i]);
@@ -309,20 +604,19 @@ ACMD(do_account) {
   /* show unlocked races */
   send_to_char(ch, "Unlocked Races:\r\n");
   for (i = 0; i < MAX_UNLOCKED_RACES; i++) {
-    if (acc->races[i] > 0 && race_list[acc->races[i]].is_pc) {
-      send_to_char(ch, "  %s\r\n", race_list[acc->races[i]].name);
+    if (acc->races[i] != 0) {
+      send_to_char(ch, "  %s\r\n", pc_race_types[acc->races[i]]);
       found = TRUE;
     }
   }
   if (!found)
     send_to_char(ch, "  None.\r\n");
 
-  found = FALSE;
-
   /* show unlocked classes */
+  found = FALSE;
   send_to_char(ch, "Unlocked Classes:\r\n");
   for (i = 0; i < MAX_UNLOCKED_CLASSES; i++) {
-    if (acc->classes[i] < 999) {
+    if (acc->classes[i] != 0) {
       send_to_char(ch, "  %s\r\n", pc_class_types[acc->classes[i]]);
       found = TRUE;
     }
@@ -333,7 +627,6 @@ ACMD(do_account) {
   send_to_char(ch, "\tC");
   draw_line(ch, 80, '-', '-');
 }
-
 
 /* Remove the player from the database, so that accounts do not reference it. */
 void remove_char_from_account(struct char_data *ch, struct account_data *account) {
@@ -348,7 +641,7 @@ void remove_char_from_account(struct char_data *ch, struct account_data *account
   }
 
   sprintf(buf, "DELETE from player_data where lower(name) = lower('%s') and account_id = %d;",
-               GET_NAME(ch), account->id);
+          GET_NAME(ch), account->id);
 
   if (mysql_query(conn, buf)) {
     log("SYSERR: Unable to DELETE from player_data: %s", mysql_error(conn));
