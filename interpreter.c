@@ -148,7 +148,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "buck", "buck", POS_FIGHTING, do_buck, 1, 0, FALSE, ACTION_MOVE, {0, 6}},
   { "bodyslam", "bodyslam", POS_FIGHTING, do_bodyslam, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}},
 
-  { "cast", "c", POS_SITTING, do_cast, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
+  { "cast", "c", POS_SITTING, do_cast, 1, 0, FALSE, ACTION_MOVE, {0, 6}},
   { "cedit", "cedit", POS_DEAD, do_oasis_cedit, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}},
   { "chat", "chat", POS_SLEEPING, do_gen_comm, 0, SCMD_GOSSIP, TRUE, ACTION_NONE, {0, 0}},
   { "changelog", "cha", POS_DEAD, do_changelog, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}},

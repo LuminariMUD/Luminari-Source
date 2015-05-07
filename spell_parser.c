@@ -1159,7 +1159,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     say_spell(ch, spellnum, tch, tobj, FALSE);
 
     /* prevents spell spamming */
-    USE_SWIFT_ACTION(ch);
+    USE_MOVE_ACTION(ch);
 
     return (call_magic(ch, tch, tobj, spellnum, CASTER_LEVEL(ch), CAST_SPELL));
   }
