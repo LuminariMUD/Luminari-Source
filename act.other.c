@@ -432,7 +432,6 @@ void perform_call(struct char_data *ch, int call_type, int level) {
           Y_LOC(k->follower) = world[IN_ROOM(ch)].coords[1];
         }
 
-
         char_to_room(k->follower, IN_ROOM(ch));
         act("$n calls $N!", FALSE, ch, 0, k->follower, TO_ROOM);
         act("You call forth $N!", FALSE, ch, 0, k->follower, TO_CHAR);
@@ -521,7 +520,6 @@ void perform_call(struct char_data *ch, int call_type, int level) {
     Y_LOC(mob) = world[IN_ROOM(ch)].coords[1];
   }
 
-
   char_to_room(mob, IN_ROOM(ch));
   IS_CARRYING_W(mob) = 0;
   IS_CARRYING_N(mob) = 0;
@@ -563,6 +561,8 @@ void perform_call(struct char_data *ch, int call_type, int level) {
     attach_mud_event(new_mud_event(eC_MOUNT, ch, NULL), 4 * SECS_PER_MUD_DAY);
   }
 
+  send_to_char(ch, "You can 'call' your companion even if you get separated.  "
+      "You can also 'dismiss' your companion to reduce your cooldown drastically.\r\n");
 }
 
 ACMD(do_call) {

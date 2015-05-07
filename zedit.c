@@ -208,7 +208,7 @@ void perform_zone_restat(struct descriptor_data *d) {
     }
   }
   send_to_char(ch, "Medit state OK...\r\n");
-  
+
   /* cycle through all mobiles in zone, autostatting them */
   for (i = genolc_zone_bottom(zone_num); i <= zone_table[zone_num].top; i++) {
     if ((rmob = real_mobile(i)) == NOBODY)
@@ -220,11 +220,11 @@ void perform_zone_restat(struct descriptor_data *d) {
     char_to_room(mob, real_room(1));
     */
     medit_setup_existing(d, rmob);
-    autoroll_mob(mob, FALSE);
-    save_mobiles(zone_num); 
+    autoroll_mob(mob, FALSE, FALSE);
+    save_mobiles(zone_num);
     //extract_char(mob);
   }
-  
+
 }
 
 static void zedit_setup(struct descriptor_data *d, int room_num) {
@@ -530,7 +530,7 @@ static void zedit_disp_menu(struct descriptor_data *d) {
         write_to_output(d, "%sLoad %s [%s%d%s], Max (%s) : %d (%d%%)",
                 buf1, // MYCMD.if_flag ? " then " : "",
                 mob_proto[MYCMD.arg1].player.short_descr, cyn,
-                mob_index[MYCMD.arg1].vnum, yel, 
+                mob_index[MYCMD.arg1].vnum, yel,
                 (MYCMD.arg2 < 0 ? "in room" : "in game"),
                 abs(MYCMD.arg2), MYCMD.arg4
                 );
@@ -631,7 +631,7 @@ static void zedit_disp_menu(struct descriptor_data *d) {
           case 16:
             sprintf(door_reset_string, "locked (hard)");
             break;
-        }   
+        }
 
         write_to_output(d, "%sSet door %s as %s.",
                 buf1, // MYCMD.if_flag ? " then " : "",
@@ -1392,7 +1392,7 @@ void zedit_parse(struct descriptor_data *d, char *arg) {
               break;
             default:
               write_to_output(d, "(g)lobal or (r)oom : ");
-              break;              
+              break;
           }
           break;
         case 'E':
@@ -1475,7 +1475,7 @@ void zedit_parse(struct descriptor_data *d, char *arg) {
       }
 
       break;
-      
+
     case ZEDIT_GR_QUERY:
       switch (OLC_CMD(d).command) {
         case 'M':
@@ -1491,7 +1491,7 @@ void zedit_parse(struct descriptor_data *d, char *arg) {
               break;
             default:
               write_to_output(d, "(g)lobal or (r)oom : ");
-              break;              
+              break;
           }
           break;
         case 'E':
@@ -1541,7 +1541,7 @@ void zedit_parse(struct descriptor_data *d, char *arg) {
       } else {
         write_to_output(d, "\t\nExiting restat!\r\n\r\n");
       }
-      
+
       zedit_disp_menu(d);
       break;
       */

@@ -4115,7 +4115,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     case SPELL_SUMMON_NATURES_ALLY_7:
     case SPELL_SUMMON_CREATURE_7: //conjuration
       if (!mob_level)
-        mob_level = MAX(16, CASTER_LEVEL(ch) - rand_number(5, 10));
+        mob_level = MAX(14, CASTER_LEVEL(ch) - rand_number(5, 10));
       handle_corpse = FALSE;
       fmsg = rand_number(2, 6); /* Random fail message. */
       switch (dice(1, 4)) {
@@ -4224,7 +4224,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
         /* (Zusuk) Temporary variable for capping elementals, etc */
         temp_level = MIN(CASTER_LEVEL(ch), mob_level);
         GET_LEVEL(mob) = MIN(20, temp_level);
-        autoroll_mob(mob, TRUE);
+        autoroll_mob(mob, TRUE, TRUE);
         GET_LEVEL(mob) = temp_level;
         break;
       case SPELL_CLONE:
@@ -4251,6 +4251,8 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     }
     extract_obj(obj);
   }
+
+  send_to_char(ch, "You can 'dismiss <creature-name>' if you are in the same room, or 'dismiss' with no argument to dismiss all your non-present summoned creatures.\r\n");
 }
 #undef OBJ_CLONE
 #undef MOB_CLONE
