@@ -21,6 +21,9 @@
 
 #include "utils.h" /* for the ACMD macro */
 
+/* from accounts.c */
+ACMD(do_accexp);
+
 /*****************************************************************************
  * Begin Functions and defines for act.comm.c
  ****************************************************************************/

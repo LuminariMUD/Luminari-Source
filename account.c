@@ -17,6 +17,7 @@
 #include "spells.h"
 #include "screen.h"
 #include "class.h"
+#include "act.h"
 
 extern MYSQL *conn;
 
