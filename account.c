@@ -132,8 +132,8 @@ ACMD(do_accexp) {
   two_arguments(argument, arg, arg2);
 
   if (!*arg) {
-    send_to_char(ch, "Would you like to spend account exp on an advanced @Yrace@n "
-            "or a prestige @Yclass@n?\r\n");
+    send_to_char(ch, "Would you like to spend account exp on an advanced \tYrace\tn "
+            "or a prestige \tYclass\tn?\r\n");
     return;
   }
 
