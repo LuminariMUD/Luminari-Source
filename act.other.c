@@ -1204,7 +1204,7 @@ ACMD(do_gain) {
       return;
     }
     if ((GET_PRACTICES(ch) != 0) ||
-            (GET_TRAINS(ch) != 0) ||
+            (GET_TRAINS(ch) > 1) ||
             (GET_BOOSTS(ch) != 0) ||
             (stats_point_left(ch) && GET_LEVEL(ch) == 1) ) {//    ||
       /*         ((CLASS_LEVEL(ch, CLASS_SORCERER) && !IS_SORC_LEARNED(ch)) ||
@@ -1218,10 +1218,14 @@ ACMD(do_gain) {
        * vis 'study' before they can gain a level. */
       //      if (GET_PRACTICES(ch) != 0)
       //        send_to_char(ch, "You must use all practices before gaining another level.  You have %d practice%s remaining.\r\n", GET_PRACTICES(ch), (GET_PRACTICES(ch) > 1 ? "s" : ""));
-      if (GET_TRAINS(ch) > 0)
-        send_to_char(ch, "You must use all trains before gaining another level.  You have %d train%s remaining.\r\n", GET_TRAINS(ch), (GET_TRAINS(ch) > 1 ? "s" : ""));
+      if (GET_TRAINS(ch) > 1)
+        send_to_char(ch, "You must use all but one of your trains before gaining "
+                "another level.  You have %d train%s remaining.\r\n",
+                     GET_TRAINS(ch), (GET_TRAINS(ch) > 1 ? "s" : ""));
       if (GET_BOOSTS(ch) != 0)
-        send_to_char(ch, "You must use all boosts before gaining another level.  You have %d boost%s remaining.\r\n", GET_BOOSTS(ch), (GET_BOOSTS(ch) > 1 ? "s" : ""));
+        send_to_char(ch, "You must use all boosts before gaining another level.  "
+                "You have %d boost%s remaining.\r\n",
+                     GET_BOOSTS(ch), (GET_BOOSTS(ch) > 1 ? "s" : ""));
       if (stats_point_left(ch) && GET_LEVEL(ch) == 1)
         send_to_char(ch, "You must spend all your stat points before gaining a level.\r\n");
       /*       if(CLASS_LEVEL(ch, CLASS_SORCERER) && !IS_SORC_LEARNED(ch))
