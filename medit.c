@@ -1886,7 +1886,7 @@ void medit_string_cleanup(struct descriptor_data *d, int terminator) {
    2)  their BAB will match their class/level
    3)  their saving-throws will match their class/level
  */
-void autoroll_mob(struct char_data *mob, bool realmode) {
+void autoroll_mob(struct char_data *mob, bool realmode, bool summoned) {
   int level = 0, bonus = 0;
   int armor_class = 100; /* base 10 AC */
 
@@ -1921,7 +1921,10 @@ void autoroll_mob(struct char_data *mob, bool realmode) {
   bonus = level / 2;  // bonus applied to stats
 
   /* hp, default */
-  MOBS_HPS = (level * level) + (level * 10);
+  if (summoned)
+    MOBS_HPS = 40 + level * 12;
+  else
+    MOBS_HPS = (level * level) + (level * 10);
 
   /* damage dice default */
   GET_NDD(mob) = 1; /* number damage dice */
@@ -2124,7 +2127,7 @@ void autoroll_mob(struct char_data *mob, bool realmode) {
 
 void medit_autoroll_stats(struct descriptor_data *d) {
 
-  autoroll_mob(OLC_MOB(d), FALSE);
+  autoroll_mob(OLC_MOB(d), FALSE, FALSE);
 
 }
 

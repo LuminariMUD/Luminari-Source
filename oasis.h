@@ -564,7 +564,7 @@ void medit_parse(struct descriptor_data *d, char *arg);
 void medit_string_cleanup(struct descriptor_data *d, int terminator);
 ACMD(do_oasis_medit);
 void medit_autoroll_stats(struct descriptor_data *d);
-void autoroll_mob(struct char_data *mob, bool realmode);
+void autoroll_mob(struct char_data *mob, bool realmode, bool summoned);
 
 /* public functions from oedit.c */
 void oedit_setup_existing(struct descriptor_data *d, int rnum);

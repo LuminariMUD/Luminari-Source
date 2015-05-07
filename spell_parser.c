@@ -1175,7 +1175,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
   NEW_EVENT(eCASTING, ch, NULL, 1 * PASSES_PER_SEC);
 
   /* mandatory wait-state for any spell */
-  USE_SWIFT_ACTION(ch);
+  USE_MOVE_ACTION(ch);
 
   //this return value has to be checked -zusuk
   return (1);

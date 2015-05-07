@@ -1107,6 +1107,7 @@ void raw_kill(struct char_data *ch, struct char_data *killer) {
   entry_memory_mtrigger(ch);
   greet_mtrigger(ch, -1);
   greet_memory_mtrigger(ch);
+  resetCastingData(ch);
 
   save_char(ch, 0);
   Crash_delete_crashfile(ch);
