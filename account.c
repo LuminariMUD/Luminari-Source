@@ -90,7 +90,7 @@ int has_unlocked_race(struct char_data *ch, int race) {
   if (!ch || !ch->desc || !ch->desc->account)
     return FALSE;
 
-  if (race_list[race].level_adjustment == 0)
+  if (!locked_races[race])
     return TRUE;
 
   if (GET_LEVEL(ch) >= LVL_IMMORT)
@@ -349,7 +349,7 @@ void load_account_unlocks(struct account_data *account) {
   }
   i = 0;
   while ((row = mysql_fetch_row(result))) {
-    account->classes[i] = atoi(row[0]);
+    account->classes[i] = atoi(row[1]);
     i++;
   }
 
@@ -366,7 +366,7 @@ void load_account_unlocks(struct account_data *account) {
   }
   i = 0;
   while ((row = mysql_fetch_row(result))) {
-    account->races[i] = atoi(row[0]);
+    account->races[i] = atoi(row[1]);
     i++;
   }
 
