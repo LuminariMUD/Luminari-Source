@@ -150,7 +150,7 @@ ACMD(do_accexp) {
       return;
     }
     for (i = 0; i < NUM_RACES; i++) {
-      if (is_abbrev(arg2, race_list[i].name) && locked_races[i] &&
+      if (is_abbrev(arg2, pc_race_types[i]) && locked_races[i] &&
           !has_unlocked_race(ch, i)) {
         cost = locked_races_cost[i];
         break;
