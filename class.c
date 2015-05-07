@@ -276,7 +276,7 @@ int class_ability[NUM_ABILITIES][NUM_CLASSES] = {
   { CC, CC, CC, CC, CC, CC, CA, CC, CA, CC, CA}, //7 intimidate
   { CA, CA, CC, CA, CA, CA, CC, CA, CA, CA, CA}, //8 concentration
   { CA, CA, CC, CC, CC, CA, CC, CA, CC, CC, CA}, //9 spellcraft
-  { CC, CC, CA, CC, CC, CC, CC, CC, CC, CC, CA}, //10 appraise
+  { CA, CC, CA, CC, CC, CC, CC, CC, CC, CC, CA}, //10 appraise
   { CC, CC, CC, CA, CC, CC, CA, CC, CA, CA, CA}, //11 discipline
   { CC, CA, CA, CA, CA, CA, CA, CC, CA, CA, CA}, //12 total defense
   { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //13 lore
@@ -285,7 +285,7 @@ int class_ability[NUM_ABILITIES][NUM_CLASSES] = {
   { CC, CC, CA, CA, CA, CC, CA, CC, CC, CA, CA}, //16 climb
   { CC, CC, CA, CC, CC, CC, CC, CC, CC, CC, CC}, //17 open lock
   { CC, CC, CA, CC, CC, CC, CC, CC, CC, CC, CA}, //18 sleight of hand
-  { CC, CC, CA, CC, CC, CC, CC, CC, CC, CA, CC}, //19 search
+  { CA, CC, CA, CC, CC, CC, CC, CC, CC, CA, CC}, //19 search
   { CC, CC, CA, CC, CC, CC, CC, CA, CC, CC, CA}, //20 bluff
   { CA, CC, CA, CC, CC, CC, CC, CC, CC, CC, CA}, //21 decipher script
   { CC, CA, CA, CC, CA, CA, CC, CC, CA, CC, CA}, //22 diplomacy
@@ -297,7 +297,7 @@ int class_ability[NUM_ABILITIES][NUM_CLASSES] = {
   { CC, CC, CA, CC, CA, CC, CC, CC, CA, CC, CA}, //28 sense motive
   { CC, CC, CC, CC, CC, CA, CA, CC, CC, CA, CC}, //29 survival
   { CC, CC, CA, CA, CA, CA, CA, CC, CC, CA, CA}, //30 swim
-  { CC, CC, CA, CC, CC, CC, CC, CC, CC, CC, CA}, //31 use magic device
+  { CA, CC, CA, CC, CC, CC, CC, CC, CC, CC, CA}, //31 use magic device
   { CC, CC, CA, CC, CC, CC, CC, CC, CC, CA, CC}, //32 use rope
   { CC, CC, CA, CC, CA, CC, CC, CC, CC, CC, CA}, //33 perform
   { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //34 Craft (woodworking)
