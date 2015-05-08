@@ -396,6 +396,7 @@ char *get_char_account_name(char *name) {
 void save_account(struct account_data *account) {
   char buf[2048];
   int i = 0;
+  struct descriptor_data *j, *next_desc;
 
   if (account == NULL) {
     log("SYSERR: Attempted to save NULL account.");
@@ -458,6 +459,15 @@ void save_account(struct account_data *account) {
       log("SYSERR: Unable to UPSERT unlocked_classes: %s", mysql_error(conn));
       return;
     }
+  }
+
+  /* what happens if you have multiple characters logged on at the same time?
+     We need to update all characters in game with this account id */
+  for (j = descriptor_list; j; j = next_desc) {
+    next_desc = j->next;
+
+    if (j->account->id == account->id)
+      load_account_unlocks(j->account);
   }
 
 }
