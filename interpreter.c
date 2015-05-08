@@ -2114,7 +2114,12 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
           return;
       }
 
-      write_to_output(d, "%s\r\nRace: ", race_menu);
+      for (i = 0; i < NUM_RACES; i++) {
+        if (!locked_races[i] || has_unlocked_race(d->character, i))
+          write_to_output(d, "%s\r\n", pc_race_types[i]);
+      }
+      write_to_output(d, "\r\nRace Selection (select 'human' if you do not know "
+              "what to pick): ");
       STATE(d) = CON_QRACE;
       break;
 
@@ -2122,6 +2127,10 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
       load_result = parse_race(*arg);
       if (load_result == RACE_UNDEFINED) {
         write_to_output(d, "\r\nThat's not a race.\r\nRace: ");
+        return;
+      } else if (locked_races[i] && !has_unlocked_race(d->character, i)) {
+        write_to_output(d, "\r\nYou have not unlocked that race yet, type 'account' "
+                "in-game to view your unlocked races.\r\nRace: ");
         return;
       } else
         GET_REAL_RACE(d->character) = load_result;
@@ -2154,6 +2163,12 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
         case RACE_ARCANA_GOLEM:
           perform_help(d, "race-arcana-golem");
           break;
+        case RACE_CRYSTAL_DWARF:
+          perform_help(d, "race-crystal-dwarf");
+          break;
+        case RACE_TRELUX:
+          perform_help(d, "race-trelux");
+          break;
         default:
           write_to_output(d, "\r\nCommand not understood.\r\n");
           return;
@@ -2173,13 +2188,23 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
         STATE(d) = CON_QRACE_HELP;
         return;
       } else {
-        write_to_output(d, "%s\r\nRace: ", race_menu);
+        for (i = 0; i < NUM_RACES; i++) {
+          if (!locked_races[i] || has_unlocked_race(d->character, i))
+            write_to_output(d, "%s\r\n", pc_race_types[i]);
+        }
+        write_to_output(d, "\r\nRace Selection (select 'human' if you do not know "
+                "what to pick): ");
         STATE(d) = CON_QRACE;
         return;
       }
 
       /* display class menu */
-      write_to_output(d, "%s\r\nClass: ", class_menu);
+      for (i = 0; i < NUM_CLASSES; i++) {
+        if (!locked_classes[i] || has_unlocked_class(d->character, i))
+          write_to_output(d, "%s\r\n", pc_class_types[i]);
+      }
+      write_to_output(d, "\r\nClass Selection (select 'warrior' if you do not know "
+              "what to pick): ");
       STATE(d) = CON_QCLASS;
       break;
 
@@ -2188,6 +2213,10 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
       load_result = parse_class(*arg);
       if (load_result == CLASS_UNDEFINED) {
         write_to_output(d, "\r\nThat's not a class.\r\nClass: ");
+        return;
+      } else if (locked_classes[i] && !has_unlocked_class(d->character, i)) {
+        write_to_output(d, "\r\nYou have not unlocked that class yet, type 'account' "
+                "in-game to view your unlocked classes.\r\nClass: ");
         return;
       } else
         GET_CLASS(d->character) = load_result;
@@ -2246,10 +2275,16 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
         STATE(d) = CON_QCLASS_HELP;
         return;
       } else {
-        write_to_output(d, "%s\r\nClass: ", class_menu);
+        for (i = 0; i < NUM_CLASSES; i++) {
+          if (!locked_classes[i] || has_unlocked_class(d->character, i))
+            write_to_output(d, "%s\r\n", pc_class_types[i]);
+        }
+        write_to_output(d, "\r\nClass Selection (select 'warrior' if you do not know "
+                "what to pick): ");
         STATE(d) = CON_QCLASS;
         return;
       }
+
 #define CHARGEN_NO_STATISTICS
 #ifndef CHARGEN_NO_STATISTICS
       int stat_points = 25;
