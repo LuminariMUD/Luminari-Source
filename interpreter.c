@@ -2124,7 +2124,7 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
       break;
 
     case CON_QRACE:
-      load_result = parse_race(*arg);
+      load_result = parse_race_long(arg);
       if (load_result == RACE_UNDEFINED) {
         write_to_output(d, "\r\nThat's not a race.\r\nRace: ");
         return;
@@ -2181,7 +2181,7 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
     case CON_QRACE_HELP:
 
       if (UPPER(*arg) == 'Y')
-        write_to_output(d, "\r\nClass Confirmed!\r\n");
+        write_to_output(d, "\r\nRace Confirmed!\r\n");
       else if (UPPER(*arg) != 'N') {
         write_to_output(d, "\r\nY)es to confirm N)o to reselect.\r\n");
         write_to_output(d, "Do you want to select this race? (y/n) : ");
@@ -2210,7 +2210,7 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
 
 
     case CON_QCLASS:
-      load_result = parse_class(*arg);
+      load_result = parse_class_long(arg);
       if (load_result == CLASS_UNDEFINED) {
         write_to_output(d, "\r\nThat's not a class.\r\nClass: ");
         return;
