@@ -3600,7 +3600,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       send_to_char(ch, "%s's %s for %s set to %d.\r\n", GET_NAME(vict), set_fields[mode].cmd, arg1, value);
       break;
     case 80: /* accexp - account experience */
-      vict->desc->account->experience = RANGE(0, 99999);
+      vict->desc->account->experience = RANGE(0, 34000);
       break;
     default:
       send_to_char(ch, "Can't set that!\r\n");
