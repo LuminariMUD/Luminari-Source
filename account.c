@@ -534,12 +534,11 @@ void show_account_menu(struct descriptor_data *d) {
         }
         mysql_free_result(res);
         write_to_output(d, "\r\n");
-        write_to_output(d, "You can view more info about your account by typing "
-                "'account' in-game.\r\n");
-
       }
     }
   }
+  write_to_output(d, "You can view more info about your account by typing "
+                "'account' in-game.\r\n");
   write_to_output(d, "\tC%s\tn", text_line_string("", 80, '-', '-'));
   write_to_output(d, "\tcType the # of a character listed above or choose one of the following:\r\n");
   write_to_output(d, "\tC%s\tn", text_line_string("", 80, '-', '-'));
