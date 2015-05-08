@@ -403,7 +403,7 @@ void medit_disp_size(struct descriptor_data *d) {
             !(++columns % 2) ? "\r\n" : "");
     write_to_output(d, buf);
   }
-  write_to_output(d, "Enter size number (-1 for default): ");
+  write_to_output(d, "\r\nEnter size number (-1 for default): ");
 }
 
 /* Display attack types menu. */
@@ -1807,7 +1807,8 @@ void medit_parse(struct descriptor_data *d, char *arg) {
 
     case MEDIT_SIZE:
       GET_REAL_SIZE(OLC_MOB(d)) = LIMIT(i, 0, NUM_SIZES - 1);
-      break;
+      (OLC_MOB(d))->points.size = GET_REAL_SIZE(OLC_MOB(d));
+        break;
 
     case MEDIT_PATH_DELAY:
       PATH_SIZE(OLC_MOB(d)) = 0;
