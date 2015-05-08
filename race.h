@@ -21,6 +21,7 @@
 int parse_race(char arg);
 bitvector_t find_race_bitvector(const char *arg);
 int invalid_race(struct char_data *ch, struct obj_data *obj);
+int parse_race_long(char *arg);
 
 /* extended races file (races_ext.c) */
 void assign_races(void);

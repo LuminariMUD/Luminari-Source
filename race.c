@@ -165,7 +165,7 @@ const char *npc_subrace_abbrevs[] = {
 
 
 // made this for shapechange, a tad tacky -zusuk
-const char *npc_race_menu = 
+const char *npc_race_menu =
 "\r\n"
 "  \tbRea\tclms \tWof Lu\tcmin\tbari\tn | npc race selection\r\n"
 "---------------------+\r\n"
@@ -279,7 +279,7 @@ const char *morph_to_room[] = {
   /* Plant */
 "Thin vines and shoots curl away from $n's body as $s skin changes to a "
 "\tGmottled green plant\tn.",
-  /* Vermin */ 
+  /* Vermin */
 " "
 };
 
@@ -321,7 +321,7 @@ const char *morph_to_char[] = {
   /* Plant */
 "Thin vines and shoots curl away from your body as your skin changes to a "
 "\tGmottled green plant\tn.",
-  /* Vermin */ 
+  /* Vermin */
 " "
 };
 
@@ -348,20 +348,20 @@ const char *pc_race_types[] = {
         "Elf",
         "Dwarf",
         "Troll",
-        "Crystal Dwarf",
+        "Crystal-Dwarf",
         "Halfling",
-        "Half Elf",
-        "Half Orc",
+        "Half-Elf",
+        "Half-Orc",
         "Gnome",
         "Trelux",
-        "Arcana Golem",
+        "Arcana-Golem",
         "\n"
 };
 
 
 // pc character creation menu
 // notice, epic races are not manually or in-game settable at this stage
-const char *race_menu = 
+const char *race_menu =
 "\r\n"
 "  \tbRea\tclms \tWof Lu\tcmin\tbari\tn | race selection\r\n"
 "---------------------+\r\n"
@@ -389,12 +389,38 @@ int parse_race(char arg)
   case 'c': return RACE_DWARF;
   case 'd': return RACE_TROLL;
   case 'f': return RACE_HALFLING;
-  case 'g': return RACE_H_ELF;  
+  case 'g': return RACE_H_ELF;
   case 'h': return RACE_H_ORC;
   case 'i': return RACE_GNOME;
   case 'j': return RACE_ARCANA_GOLEM;
   default:  return RACE_UNDEFINED;
   }
+}
+
+/* accept short descrip, return race */
+int parse_race_long(char *arg) {
+  int l = 0; /* string length */
+
+  for (l = 0; *(arg + l); l++) /* convert to lower case */
+    *(arg + l) = LOWER(*(arg + l));
+
+  if (is_abbrev(arg, "human")) return RACE_HUMAN;
+  if (is_abbrev(arg, "elf")) return RACE_ELF;
+  if (is_abbrev(arg, "dwarf")) return RACE_DWARF;
+  if (is_abbrev(arg, "troll")) return RACE_TROLL;
+  if (is_abbrev(arg, "halfling")) return RACE_HALFLING;
+  if (is_abbrev(arg, "halfelf")) return RACE_H_ELF;
+  if (is_abbrev(arg, "half-elf")) return RACE_H_ELF;
+  if (is_abbrev(arg, "halforc")) return RACE_H_ORC;
+  if (is_abbrev(arg, "half-orc")) return RACE_H_ORC;
+  if (is_abbrev(arg, "gnome")) return RACE_GNOME;
+  if (is_abbrev(arg, "arcanagolem")) return RACE_ARCANA_GOLEM;
+  if (is_abbrev(arg, "arcana-golem")) return RACE_ARCANA_GOLEM;
+  if (is_abbrev(arg, "trelux")) return RACE_TRELUX;
+  if (is_abbrev(arg, "crystaldwarf")) return RACE_CRYSTAL_DWARF;
+  if (is_abbrev(arg, "crystal-dwarf")) return RACE_CRYSTAL_DWARF;
+
+  return RACE_UNDEFINED;
 }
 
 
