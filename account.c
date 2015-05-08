@@ -31,17 +31,17 @@ void load_account_unlocks(struct account_data *account);
 /**/
 
 int locked_races_cost[NUM_RACES] = {
-  0, /*Human*/
-  0, /*Elf*/
-  0, /*Dwarf*/
-  100, /*Troll (advanced)*/
-  1000, /*crystal dwarf (epic)*/
-  0, /*halfling*/
-  0, /*half elf*/
-  0, /*half orc*/
-  0, /*gnome*/
-  1000, /*trelux (epic)*/
-  100, /*arcana golem (advanced)*/
+      0, /*Human*/
+      0, /*Elf*/
+      0, /*Dwarf*/
+   1000, /*Troll (advanced)*/
+  30000, /*crystal dwarf (epic)*/
+      0, /*halfling*/
+      0, /*half elf*/
+      0, /*half orc*/
+      0, /*gnome*/
+  30000, /*trelux (epic)*/
+   1000, /*arcana golem (advanced)*/
 };
 
 bool locked_races[NUM_RACES] = {
@@ -69,7 +69,7 @@ int locked_classes_cost[NUM_CLASSES] = {
   0, /*Sorcerer*/
   0, /*Paladin*/
   0, /*Ranger*/
-  10, /*Bard*/
+  0, /*Bard*/
 };
 
 bool locked_classes[NUM_CLASSES] = {
@@ -83,7 +83,7 @@ bool locked_classes[NUM_CLASSES] = {
   N, /*Sorcerer*/
   N, /*Paladin*/
   N, /*Ranger*/
-  Y, /*Bard*/
+  N, /*Bard*/
 };
 
 int has_unlocked_race(struct char_data *ch, int race) {
