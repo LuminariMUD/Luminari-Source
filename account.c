@@ -590,7 +590,7 @@ ACMD(do_account) {
   send_to_char(ch,
                "\tcEmail: \tn%s\r\n"
                //    "Level: %d\r\n"
-               "\tcExperience: \tn%d\r\n"
+               "\tcExperience: \tn%d (notice: this caps at 34,000)\r\n"
                //    "Gift Experience: %d\r\n"
                //    "Web Site Password: %s\r\n"
                "\tcCharacters:\tn\r\n",
