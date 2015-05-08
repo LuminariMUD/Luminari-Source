@@ -3067,6 +3067,7 @@ struct set_struct {
   { "epicfeatpoints", LVL_STAFF, PC, NUMBER}, /* 77 */
   { "classfeats", LVL_STAFF, PC, MISC}, /* 78 */
   { "epicclassfeats", LVL_STAFF, PC, MISC}, /* 79 */
+  { "accexp", LVL_IMPL, PC, NUMBER}, /* 80 */
 
   { "\n", 0, BOTH, MISC}
 };
@@ -3597,6 +3598,9 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       value = atoi(arg2);
       GET_EPIC_CLASS_FEATS(vict, class) = RANGE(0, 20);
       send_to_char(ch, "%s's %s for %s set to %d.\r\n", GET_NAME(vict), set_fields[mode].cmd, arg1, value);
+      break;
+    case 80: /* accexp - account experience */
+      vict->desc->account->experience = RANGE(0, 99999);
       break;
     default:
       send_to_char(ch, "Can't set that!\r\n");
