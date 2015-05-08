@@ -23,6 +23,10 @@
 
 /* from accounts.c */
 ACMD(do_accexp);
+bool locked_races[NUM_RACES];
+bool locked_classes[NUM_CLASSES];
+int has_unlocked_race(struct char_data *ch, int race);
+int has_unlocked_class(struct char_data *ch, int class);
 
 /*****************************************************************************
  * Begin Functions and defines for act.comm.c
