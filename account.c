@@ -349,7 +349,7 @@ void load_account_unlocks(struct account_data *account) {
   }
 
   /* load locked races */
-  sprintf(buf, "SELECT class_id from unlocked_races "
+  sprintf(buf, "SELECT race_id from unlocked_races "
                "WHERE account_id = %d", account->id);
   if (mysql_query(conn, buf)) {
     log("SYSERR: Unable to SELECT from unlocked_races: %s", mysql_error(conn));
