@@ -343,7 +343,7 @@ void load_account_unlocks(struct account_data *account) {
   }
   i = 0;
   while ((row = mysql_fetch_row(result))) {
-    account->classes[i] = atoi(row[1]);
+    account->classes[i] = atoi(row[0]);
     i++;
   }
 
@@ -360,7 +360,7 @@ void load_account_unlocks(struct account_data *account) {
   }
   i = 0;
   while ((row = mysql_fetch_row(result))) {
-    account->races[i] = atoi(row[1]);
+    account->races[i] = atoi(row[0]);
     i++;
   }
 
@@ -437,7 +437,8 @@ void save_account(struct account_data *account) {
   for (i = 0; i < MAX_UNLOCKED_RACES; i++) {
     buf[0] = '\0';
     sprintf(buf, "INSERT into unlocked_races (account_id, race_id) "
-            "VALUES (%d, %d);",
+            "VALUES (%d, %d)"
+            "on duplicate key update race_id = VALUES(race_id);",
             account->id, account->races[i]);
     if (mysql_query(conn, buf)) {
       log("SYSERR: Unable to UPSERT unlocked_races: %s", mysql_error(conn));
@@ -449,7 +450,8 @@ void save_account(struct account_data *account) {
   for (i = 0; i < MAX_UNLOCKED_CLASSES; i++) {
     buf[0] = '\0';
     sprintf(buf, "INSERT into unlocked_classes (account_id, class_id) "
-            "VALUES (%d, %d);",
+            "VALUES (%d, %d)"
+            "on duplicate key update class_id = VALUES(class_id);",
             account->id, account->classes[i]);
     if (mysql_query(conn, buf)) {
       log("SYSERR: Unable to UPSERT unlocked_classes: %s", mysql_error(conn));
