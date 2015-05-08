@@ -2128,7 +2128,7 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
       if (load_result == RACE_UNDEFINED) {
         write_to_output(d, "\r\nThat's not a race.\r\nRace: ");
         return;
-      } else if (locked_races[i] && !has_unlocked_race(d->character, i)) {
+      } else if (locked_races[load_result] && !has_unlocked_race(d->character, load_result)) {
         write_to_output(d, "\r\nYou have not unlocked that race yet, type 'account' "
                 "in-game to view your unlocked races.\r\nRace: ");
         return;
@@ -2214,7 +2214,7 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
       if (load_result == CLASS_UNDEFINED) {
         write_to_output(d, "\r\nThat's not a class.\r\nClass: ");
         return;
-      } else if (locked_classes[i] && !has_unlocked_class(d->character, i)) {
+      } else if (locked_classes[load_result] && !has_unlocked_class(d->character, load_result)) {
         write_to_output(d, "\r\nYou have not unlocked that class yet, type 'account' "
                 "in-game to view your unlocked classes.\r\nClass: ");
         return;
