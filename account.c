@@ -127,8 +127,8 @@ ACMD(do_accexp) {
   two_arguments(argument, arg, arg2);
 
   if (!*arg) {
-    send_to_char(ch, "Would you like to spend account exp on an advanced \tYrace\tn "
-            "or a prestige \tYclass\tn?\r\n");
+    send_to_char(ch, "Usage: accexp [class | race] [<class-name to unlock> | "
+            "<race-name to unlock>]\r\n");
     return;
   }
 
@@ -534,6 +534,9 @@ void show_account_menu(struct descriptor_data *d) {
         }
         mysql_free_result(res);
         write_to_output(d, "\r\n");
+        write_to_output(d, "You can view more info about your account by typing "
+                "'account' in-game.\r\n");
+
       }
     }
   }
@@ -621,6 +624,8 @@ ACMD(do_account) {
   }
   if (!found)
     send_to_char(ch, "  None.\r\n");
+
+  send_to_char(ch, "You can unlock races and classes via the 'accexp' command.\r\n");
 
   send_to_char(ch, "\tC");
   draw_line(ch, 80, '-', '-');
