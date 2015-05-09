@@ -1479,17 +1479,19 @@ static char *make_prompt(struct descriptor_data *d)
     /*********************************/
 
     /* position of enemey and closing ">", also option carrier-return */
-    if ((len < sizeof(prompt)) && !IS_NPC(d->character) &&
-          !PRF_FLAGGED(d->character, PRF_COMPACT)) {
-      count = sprintf(prompt + strlen(prompt), "(%s)> \r\n",
-                        position_types[GET_POS(char_fighting)]);
-      if (count >= 0)
-        len += count;
-    } else if (len < sizeof(prompt)) {
-      count = sprintf(prompt + strlen(prompt), "(%s)> ",
-                        position_types[GET_POS(char_fighting)]);
-      if (count >= 0)
-        len += count;
+    if (FIGHTING(d->character)) {
+      if ((len < sizeof(prompt)) && !IS_NPC(d->character) &&
+            !PRF_FLAGGED(d->character, PRF_COMPACT)) {
+        count = sprintf(prompt + strlen(prompt), "(%s)> \r\n",
+                          position_types[GET_POS(char_fighting)]);
+        if (count >= 0)
+          len += count;
+      } else if (len < sizeof(prompt)) {
+        count = sprintf(prompt + strlen(prompt), "(%s)> ",
+                          position_types[GET_POS(char_fighting)]);
+        if (count >= 0)
+          len += count;
+      }
     }
 
     /* here we have our NPC prompt */
