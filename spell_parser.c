@@ -938,7 +938,7 @@ EVENTFUNC(event_casting) {
   }
 
   // still some time left to cast
-  if ((CASTING_TIME(ch) > 0) && !time_stopped) {
+  if ((CASTING_TIME(ch) > 0) && !time_stopped && GET_LEVEL(ch) < LVL_STAFF) {
 
     //checking positions, targets
     if (!castingCheckOk(ch))
