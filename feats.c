@@ -527,6 +527,14 @@ void assign_feats(void) {
       "whenever an opponent tries to disarm you.");
     feat_prereq_attribute(FEAT_IMPROVED_DISARM, AB_INT, 13);
     feat_prereq_feat(FEAT_IMPROVED_DISARM, FEAT_COMBAT_EXPERTISE, 1);
+  feato(FEAT_GREATER_DISARM, "greater disarm", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "knock weapon to ground on successful disarm",
+    "On a successful disarm, normally the weapon is knocked to the opponent's "
+          "inventory, but with greater disarm, the weapon gets knocked into "
+          "the room.");
+    feat_prereq_attribute(FEAT_GREATER_DISARM, AB_INT, 13);
+    feat_prereq_feat(FEAT_IMPROVED_DISARM, FEAT_COMBAT_EXPERTISE, 1);
+    feat_prereq_feat(FEAT_GREATER_DISARM, FEAT_IMPROVED_DISARM, 1);
 
   feato(FEAT_IMPROVED_FEINT, "improved feint", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
     "can feint as a move action",

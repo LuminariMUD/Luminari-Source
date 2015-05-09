@@ -3730,7 +3730,10 @@ int perform_disarm(struct char_data *ch, struct char_data *vict, int mod) {
   if (result > 0) { /* success! */
     act("$n disarms $N of $S $p.", FALSE, ch, wielded, vict,TO_ROOM );
     act("You manage to knock $p out of $N's hands.", FALSE, ch, wielded, vict,TO_CHAR );
-    obj_to_room(unequip_char(vict, pos), vict->in_room);
+    if (HAS_FEAT(ch, FEAT_GREATER_DISARM))
+      obj_to_room(unequip_char(vict, pos), vict->in_room);
+    else
+      obj_to_char(unequip_char(vict, pos), vict);
   } else if (result <= -10) { /* critical failure */
     /* have to check if we have a weapon to lose */
     if (GET_EQ(ch, WEAR_WIELD_2H)) {
