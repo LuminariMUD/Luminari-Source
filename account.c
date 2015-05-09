@@ -466,8 +466,9 @@ void save_account(struct account_data *account) {
   for (j = descriptor_list; j; j = next_desc) {
     next_desc = j->next;
 
-    if (j->account->id == account->id)
-      load_account_unlocks(j->account);
+    if (j->account)
+      if (j->account->id == account->id)
+        load_account_unlocks(j->account);
   }
 
 }
