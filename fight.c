@@ -765,7 +765,6 @@ void set_fighting(struct char_data *ch, struct char_data *vict) {
     return;
   }
 
-
   GET_INITIATIVE(ch) = roll_initiative(ch);
 
   if (combat_list == NULL) {
