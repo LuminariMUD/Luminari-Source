@@ -1444,7 +1444,7 @@ static char *make_prompt(struct descriptor_data *d)
       /* tank combat-position,  enemy name */
       if (len < sizeof(prompt))
         count = sprintf(prompt + strlen(prompt), " (%s)> <\tRE:\tn %s",
-              position_types[GET_POS(tank)],
+              tank ? position_types[GET_POS(tank)] : " ",
               (CAN_SEE(d->character, char_fighting) ?
               GET_NAME(char_fighting) : "someone"));
       if (count >= 0)
