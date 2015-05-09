@@ -752,6 +752,11 @@ void assign_feats(void) {
     "can cause fear in or destroy undead based on class level and charisma bonus",
     "can cause fear in or destroy undead based on class level and charisma bonus");
 
+  /* Paladin / Champion of Torm */
+  feato(FEAT_DIVINE_GRACE, "divine grace", TRUE, TRUE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "charisma bonus added to all saving throw checks",
+    "charisma bonus added to all saving throw checks");
+
   /* Paladin */
   /* turn undead is above, shared with cleric */
   feato(FEAT_AURA_OF_COURAGE, "aura of courage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
@@ -1242,7 +1247,6 @@ void assign_feats(void) {
   feato(FEAT_IMPROVED_TURNING, "improved turning", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
 
   /* paladin / champion of torm [shared] */
-  feato(FEAT_DIVINE_GRACE, "divine grace", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "charisma bonus added to all saving throw checks", "charisma bonus added to all saving throw checks");
   /* epic */
   feato(FEAT_GREAT_SMITING, "great smiting", FALSE, TRUE, TRUE, FEAT_TYPE_COMBAT, "For each rank in this feat you add your level in damage to all smite attacks", "For each rank in this feat you add your level in damage to all smite attacks");
 
