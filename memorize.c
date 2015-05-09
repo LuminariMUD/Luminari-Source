@@ -1522,7 +1522,7 @@ void updateMemming(struct char_data *ch, int class) {
 
   /* continue memorizing */
   PREP_TIME(ch, 0, classArray(class)) -= bonus;
-  if (PREP_TIME(ch, 0, classArray(class)) <= 0) {
+  if (PREP_TIME(ch, 0, classArray(class)) <= 0 || GET_LEVEL(ch) >= LVL_IMMORT) {
     switch (class) {
       case CLASS_CLERIC:
         sprintf(buf, "You finish praying for %s.\r\n",
