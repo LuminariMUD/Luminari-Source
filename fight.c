@@ -3019,6 +3019,9 @@ int handle_warding(struct char_data *ch, struct char_data *victim, int dam) {
   int warding = 0;
 
   if (affected_by_spell(victim, SPELL_STONESKIN)) {
+    return dam;
+    /* comment or delete this line above to re-enable old stone skin */
+
     if (GET_STONESKIN(victim) <= 0) {
       send_to_char(victim, "\tDYour skin has reverted from stone!\tn\r\n");
       affect_from_char(victim, SPELL_STONESKIN);
@@ -4027,8 +4030,9 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   dam += sneakdam;
 
   /* Melee warding modifies damage. */
-  //if ((dam = handle_warding(ch, victim, dam)) == -1)
-  //  return (HIT_MISS);
+  /* once Damage Reduction is ready to launch, this should be removed */
+  if ((dam = handle_warding(ch, victim, dam)) == -1)
+    return (HIT_MISS);
 
   /* Apply Damage Reduction */
   if ((dam = apply_damage_reduction(ch, victim, wielded, dam)) == -1)
