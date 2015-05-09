@@ -606,7 +606,7 @@ const char *action_bits[NUM_MOB_FLAGS + 1] = {
   "Lit-Up",  //35
   "Planar-Ally",
   "No-Steal",
-  "unused",
+  "Info-Kill",
   "unused",
   "unused", //40
   "unused",

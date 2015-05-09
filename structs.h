@@ -801,7 +801,7 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define MOB_LIT            35  /* light up mob */
 #define MOB_PLANAR_ALLY    36  /* is a planar ally (currently unused) */
 #define MOB_NOSTEAL        37  /* Can't steal from mob*/
-#define MOB_UNUSED_1       38
+#define MOB_INFO_KILL      38 /* mob, when killed, sends a message in game to everyone */
 #define MOB_UNUSED_2       39
 #define MOB_UNUSED_3       40
 #define MOB_UNUSED_4       41
