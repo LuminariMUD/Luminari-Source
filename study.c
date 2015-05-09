@@ -424,12 +424,15 @@ bool add_levelup_feat(struct descriptor_data *d, int feat) {
     return FALSE;
   }
   if ((feat_type == FEAT_TYPE_NORMAL_CLASS) &&
-      ((LEVELUP(ch)->class_feat_points < 1) &&
-       (LEVELUP(ch)->feat_points < 1))) {
+      ( (LEVELUP(ch)->class_feat_points < 1) &&
+        (LEVELUP(ch)->feat_points < 1) &&
+        (LEVELUP(ch)->epic_class_feat_points < 1) &&
+        (LEVELUP(ch)->epic_feat_points < 1) )) {
     write_to_output(d, "You do not have enough class feat points to gain that feat.\r\n");
     return FALSE;
   }
-  if ((feat_type == FEAT_TYPE_NORMAL) && (LEVELUP(ch)->feat_points < 1)) {
+  if ((feat_type == FEAT_TYPE_NORMAL) && (LEVELUP(ch)->feat_points < 1) &&
+      (LEVELUP(ch)->epic_feat_points < 1)) {
     write_to_output(d, "You do not have enough feat points to gain that feat.\r\n");
     return FALSE;
   }
@@ -448,11 +451,29 @@ bool add_levelup_feat(struct descriptor_data *d, int feat) {
     case FEAT_TYPE_NORMAL_CLASS:
       if (LEVELUP(ch)->class_feat_points > 0)
         LEVELUP(ch)->class_feat_points--;
-      else
+      else if (LEVELUP(ch)->feat_points > 0)
         LEVELUP(ch)->feat_points--;
+      else if (LEVELUP(ch)->epic_class_feat_points > 0) {
+        LEVELUP(ch)->epic_class_feat_points--;
+        write_to_output(d, "You have used an epic class feat point to acquire a normal "
+            "class feat, if you do not want to do this, exit out of the study menu "
+                "without saving.\r\n");
+      } else {
+        LEVELUP(ch)->epic_feat_points--;
+        write_to_output(d, "You have used an epic feat point to acquire a normal "
+            "class feat, if you do not want to do this, exit out of the study menu "
+                "without saving.\r\n");
+      }
       break;
     case FEAT_TYPE_NORMAL:
-      LEVELUP(ch)->feat_points--;
+      if (LEVELUP(ch)->feat_points > 0)
+        LEVELUP(ch)->feat_points--;
+      else {
+        LEVELUP(ch)->epic_feat_points--;
+        write_to_output(d, "You have used an epic feat point to acquire a normal "
+            "feat, if you do not want to do this, exit out of the study menu "
+                "without saving.\r\n");
+      }
       break;
   }
 

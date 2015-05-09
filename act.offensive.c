@@ -1739,7 +1739,8 @@ ACMD(do_backstab) {
   struct char_data *vict;
 
   if (IS_NPC(ch) || (CLASS_LEVEL(ch, CLASS_ROGUE) < 1)) {
-    send_to_char(ch, "You have no idea how to do that.\r\n");
+    send_to_char(ch, "You have no idea how to do that (you need at least 1 level "
+            "in the rogue class to perform a backstab).\r\n");
     return;
   }
 
@@ -2795,7 +2796,8 @@ ACMD(do_circle) {
   struct char_data *vict = NULL;
 
   if (IS_NPC(ch) || (CLASS_LEVEL(ch, CLASS_ROGUE) < 1)) {
-    send_to_char(ch, "You have no idea how to do that.\r\n");
+    send_to_char(ch, "You have no idea how to do that (circle requires at least "
+            "1 level in the rogue class).\r\n");
     return;
   }
 
@@ -2922,7 +2924,7 @@ ACMD(do_sap) {
   one_argument(argument, buf);
 
   if (!HAS_FEAT(ch, FEAT_SAP)) {
-    send_to_char(ch, "But you do not know how?\r\n");
+    send_to_char(ch, "But you do not know how!\r\n");
     return;
   }
 
