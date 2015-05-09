@@ -753,11 +753,12 @@ void assign_feats(void) {
     "can cause fear in or destroy undead based on class level and charisma bonus");
 
   /* Paladin / Champion of Torm */
-  feato(FEAT_DIVINE_GRACE, "divine grace", TRUE, TRUE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+  feato(FEAT_DIVINE_GRACE, "divine grace", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "charisma bonus added to all saving throw checks",
     "charisma bonus added to all saving throw checks");
 
   /* Paladin */
+  /* divine grace is above, shared with champion of torm */
   /* turn undead is above, shared with cleric */
   feato(FEAT_AURA_OF_COURAGE, "aura of courage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "Immunity to fear attacks, +4 bonus to fear saves for group members",
