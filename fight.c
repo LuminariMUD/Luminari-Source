@@ -1038,7 +1038,6 @@ void kill_quest_completion_check(struct char_data *killer, struct char_data *ch)
    but only on the condition of corpse-saving code */
 void raw_kill(struct char_data *ch, struct char_data *killer) {
   struct char_data *k, *temp;
-  struct descriptor_data *pt;
 
   //stop relevant fighting
   if (FIGHTING(ch))
@@ -1086,28 +1085,6 @@ void raw_kill(struct char_data *ch, struct char_data *killer) {
   } else
     death_cry(ch);
   GET_POS(ch) = POS_DEAD;
-
-  /* Info-Kill mobs, print info about the death of this mob to the world
-   * TODO: add info channel for these guys */
-  if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_INFO_KILL)) {
-    for (pt = descriptor_list; pt; pt = pt->next) {
-      if (IS_PLAYING(pt) && pt->character) {
-        if (GROUP(killer) && GROUP(killer)->members->iSize) {
-          send_to_char(pt->character, "[Info] %s of %s's group has defeated %s!\r\n",
-                       GET_NAME(killer), GET_NAME(killer->group->leader), GET_NAME(ch));
-
-        } else if (IS_NPC(killer) && killer->master) {
-          send_to_char(pt->character, "[Info] %s's follower has defeated %s!\r\n",
-                       GET_NAME(killer->master), GET_NAME(ch));
-
-        } else {
-          send_to_char(pt->character, "[Info] %s has defeated %s!\r\n",
-                       GET_NAME(killer), GET_NAME(ch));
-
-        }
-      }
-    }
-  }
 
   /* make sure group gets credit for kill if ch involved in quest */
   kill_quest_completion_check(killer, ch);
@@ -1198,6 +1175,7 @@ void raw_kill_npc(struct char_data *ch, struct char_data *killer) {
 /* called after striking the mortal blow to ch */
 void die(struct char_data *ch, struct char_data *killer) {
   struct char_data *temp;
+  struct descriptor_data *pt;
 
   if (GET_LEVEL(ch) <= 6) {
     // no xp loss for newbs - Bakarus
@@ -1222,6 +1200,28 @@ void die(struct char_data *ch, struct char_data *killer) {
   for (temp = character_list; temp; temp = temp->next) {
     if (GUARDING(temp) == ch) {
       GUARDING(temp) = NULL;
+    }
+  }
+
+  /* Info-Kill mobs, print info about the death of this mob to the world
+   * TODO: add info channel for these guys */
+  if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_INFO_KILL)) {
+    for (pt = descriptor_list; pt; pt = pt->next) {
+      if (IS_PLAYING(pt) && pt->character) {
+        if (GROUP(killer) && GROUP(killer)->members->iSize) {
+          send_to_char(pt->character, "[Info] %s of %s's group has defeated %s!\r\n",
+                       GET_NAME(killer), GET_NAME(killer->group->leader), GET_NAME(ch));
+
+        } else if (IS_NPC(killer) && killer->master) {
+          send_to_char(pt->character, "[Info] %s's follower has defeated %s!\r\n",
+                       GET_NAME(killer->master), GET_NAME(ch));
+
+        } else {
+          send_to_char(pt->character, "[Info] %s has defeated %s!\r\n",
+                       GET_NAME(killer), GET_NAME(ch));
+
+        }
+      }
     }
   }
 
