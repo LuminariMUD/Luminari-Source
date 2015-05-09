@@ -761,6 +761,11 @@ void set_fighting(struct char_data *ch, struct char_data *vict) {
     return;
   }
 
+  if (char_has_mud_event(ch, eCOMBAT_ROUND)) {
+    return;
+  }
+
+
   GET_INITIATIVE(ch) = roll_initiative(ch);
 
   if (combat_list == NULL) {
