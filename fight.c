@@ -1209,15 +1209,15 @@ void die(struct char_data *ch, struct char_data *killer) {
     for (pt = descriptor_list; pt; pt = pt->next) {
       if (IS_PLAYING(pt) && pt->character) {
         if (GROUP(killer) && GROUP(killer)->members->iSize) {
-          send_to_char(pt->character, "[Info] %s of %s's group has defeated %s!\r\n",
+          send_to_char(pt->character, "\tR[\tWInfo\tR]\tn %s of %s's group has defeated %s!\r\n",
                        GET_NAME(killer), GET_NAME(killer->group->leader), GET_NAME(ch));
 
         } else if (IS_NPC(killer) && killer->master) {
-          send_to_char(pt->character, "[Info] %s's follower has defeated %s!\r\n",
+          send_to_char(pt->character, "\tR[\tWInfo\tR]\tn %s's follower has defeated %s!\r\n",
                        GET_NAME(killer->master), GET_NAME(ch));
 
         } else {
-          send_to_char(pt->character, "[Info] %s has defeated %s!\r\n",
+          send_to_char(pt->character, "\tR[\tWInfo\tR]\tn %s has defeated %s!\r\n",
                        GET_NAME(killer), GET_NAME(ch));
 
         }
