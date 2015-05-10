@@ -2214,9 +2214,8 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
       if (load_result == CLASS_UNDEFINED) {
         write_to_output(d, "\r\nThat's not a class.\r\nClass: ");
         return;
-      } else if (locked_classes[load_result] && !has_unlocked_class(d->character, load_result)) {
-        write_to_output(d, "\r\nYou have not unlocked that class yet, type 'account' "
-                "in-game to view your unlocked classes.\r\nClass: ");
+      } else if (locked_classes[load_result]) {
+        write_to_output(d, "\r\nPrestige classes cannot be taken at 1st level.\r\nClass: ");
         return;
       } else
         GET_CLASS(d->character) = load_result;
@@ -2279,7 +2278,7 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
         return;
       } else {
         for (i = 0; i < NUM_CLASSES; i++) {
-          if (!locked_classes[i] || has_unlocked_class(d->character, i))
+          if (!locked_classes[i])
             write_to_output(d, "%s\r\n", pc_class_types[i]);
         }
         write_to_output(d, "\r\nClass Selection (type 'warrior' if you do not know "
