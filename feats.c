@@ -1131,6 +1131,25 @@ void assign_feats(void) {
     "proficiency in wizard weapons",
     "You are proficient in the usage of daggers, quarterstaff, club, heavy and light crossbows.");
 
+  /* weapon master */
+  /*lvl 1*/feato(FEAT_WEAPON_OF_CHOICE, "weapons of choice", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "All weapons with weapon focus gain special abilities",
+    "All weapons with weapon focus gain special abilities");
+  /*lvl 2*/feato(FEAT_SUPERIOR_WEAPON_FOCUS, "superior weapon focus", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Weapons of choice have +1 to hit",
+    "Weapons of choice have +1 to hit");
+  /*lvl 4*/feato(FEAT_CRITICAL_SPECIALIST, "critical specialist", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
+    "Weapons of choice have +1 to threat range per rank",
+    "Weapons of choice have +1 to threat range per rank");
+  /*lvl 6*/feato(FEAT_UNSTOPPABLE_STRIKE, "unstoppable strike", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Weapons of Choice have 5 percent chance to deal max damage",
+    "Weapons of Choice have 5 percent chance to deal max damage");
+  /*lvl 8 - 2nd rank of critical specialist */
+  /*lvl 10*/feato(FEAT_INCREASED_MULTIPLIER, "increased multiplier", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Weapons of choice have +1 to their critical multiplier",
+    "Weapons of choice have +1 to their critical multiplier");
+
+
   /* class feats that are implemented on classes that are not yet in the game */
 
   /* Duelist */
@@ -1377,13 +1396,6 @@ void assign_feats(void) {
   feato(FEAT_ENHANCE_ARROW_MAGIC, "enhance arrow (magic)", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "+1 to hit and damage with bows per rank", "+1 to hit and damage with bows per rank");
   /* epic */
   feato(FEAT_SWARM_OF_ARROWS, "swarm of arrows", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "allows you to make a single ranged attack against everyone in range.", "allows you to make a single ranged attack against everyone in range.");
-
-  /* weapon master */
-  feato(FEAT_INCREASED_MULTIPLIER, "increased multiplier", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Weapons of choice have +1 to their critical multiplier", "Weapons of choice have +1 to their critical multiplier");
-  feato(FEAT_KI_CRITICAL, "ki critical", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Weapons of choice have +1 to threat range per rank", "Weapons of choice have +1 to threat range per rank");
-  feato(FEAT_KI_DAMAGE, "ki damage", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Weapons of Choice have 5 percent chance to deal max damage", "Weapons of Choice have 5 percent chance to deal max damage");
-  feato(FEAT_SUPERIOR_WEAPON_FOCUS, "superior weapon focus", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Weapons of choice have +1 to hit", "Weapons of choice have +1 to hit");
-  feato(FEAT_WEAPON_OF_CHOICE, "weapons of choice", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "All weapons with weapon focus gain special abilities", "All weapons with weapon focus gain special abilities");
 
   /* wizard / sorc */
   feato(FEAT_BREW_POTION, "brew potion", FALSE, FALSE, FALSE, FEAT_TYPE_CRAFT, "can create magical potions ", "can create magical potions ");

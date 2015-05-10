@@ -2748,11 +2748,21 @@ int determine_threat_range(struct char_data *ch, struct obj_data *wielded) {
   else
     threat_range = 20;
 
+  /* mods */
+
   if (HAS_FEAT(ch, FEAT_IMPROVED_CRITICAL)) { /* Check the weapon type, make sure it matches. */
     if(((wielded != NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_IMPROVED_CRITICAL), GET_WEAPON_TYPE(wielded))) ||
        ((wielded == NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_IMPROVED_CRITICAL), WEAPON_TYPE_UNARMED)))
       threat_range--;
   }
+
+  if (HAS_FEAT(ch, FEAT_CRITICAL_SPECIALIST)) { /* Check the weapon type, make sure it matches. */
+    if(((wielded != NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), GET_WEAPON_TYPE(wielded))) ||
+       ((wielded == NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), WEAPON_TYPE_UNARMED)))
+      threat_range -= HAS_FEAT(ch, FEAT_CRITICAL_SPECIALIST);
+  }
+
+  /* end mods */
 
   if (threat_range <= 2) /* just in case */
     threat_range = 3;
@@ -2782,6 +2792,12 @@ int determine_critical_multiplier(struct char_data *ch, struct obj_data *wielded
         crit_multi = 6;
         break;
     }
+  }
+
+  if (HAS_FEAT(ch, FEAT_INCREASED_MULTIPLIER)) { /* Check the weapon type, make sure it matches. */
+    if(((wielded != NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), GET_WEAPON_TYPE(wielded))) ||
+       ((wielded == NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), WEAPON_TYPE_UNARMED)))
+      crit_multi += HAS_FEAT(ch, FEAT_INCREASED_MULTIPLIER);
   }
 
   /* establish some caps */
@@ -2849,6 +2865,13 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
     send_to_char(ch, "Threat Range: %d, ", determine_threat_range(ch, wielded));
     send_to_char(ch, "Critical Multiplier: %d, ", determine_critical_multiplier(ch, wielded));
   send_to_char(ch, "Damage Dice: %dD%d, ", diceOne, diceTwo);
+  }
+
+  /* mods */
+  if (HAS_FEAT(ch, FEAT_UNSTOPPABLE_STRIKE) && !rand_number(0, 19)) { /* Check the weapon type, make sure it matches. */
+    if(((wielded != NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), GET_WEAPON_TYPE(wielded))) ||
+       ((wielded == NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), WEAPON_TYPE_UNARMED)))
+      return (diceOne * diceTwo); /* max damage! */
   }
 
   return dice(diceOne, diceTwo);
@@ -3465,12 +3488,25 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
 
   if (HAS_FEAT(ch, FEAT_WEAPON_FOCUS)) {
     if (wielded) {
-      if (HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), GET_WEAPON_TYPE(wielded)) )
+      /* weapon focus - wielded */
+      if (HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), GET_WEAPON_TYPE(wielded)) ) {
         bonuses[BONUS_TYPE_UNDEFINED] += 1;
-    } else if (HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), WEAPON_TYPE_UNARMED))
+        /* superior weapon focus - wielded */
+        if (HAS_FEAT(ch, FEAT_WEAPON_OF_CHOICE) &&
+            HAS_FEAT(ch, FEAT_SUPERIOR_WEAPON_FOCUS))
+          bonuses[BONUS_TYPE_UNDEFINED] += 1;
+      }
+    /* weapon focus - unarmed */
+    } else if (HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), WEAPON_TYPE_UNARMED)) {
       bonuses[BONUS_TYPE_UNDEFINED] += 1;
+      /* superior weapon focus - unarmed */
+      if (HAS_FEAT(ch, FEAT_WEAPON_OF_CHOICE) &&
+          HAS_FEAT(ch, FEAT_SUPERIOR_WEAPON_FOCUS))
+        bonuses[BONUS_TYPE_UNDEFINED] += 1;
+    }
   }
 
+  /* greater weapon focus */
   if (HAS_FEAT(ch, FEAT_GREATER_WEAPON_FOCUS)) {
     if (wielded) {
       if (HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), GET_WEAPON_TYPE(wielded)))
@@ -3490,6 +3526,7 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
       bonuses[BONUS_TYPE_UNDEFINED]++;
   }
 
+  /* smite! */
   if (affected_by_spell(ch, SKILL_SMITE)) {
     bonuses[BONUS_TYPE_UNDEFINED] += GET_CHA_BONUS(ch);
   }
@@ -3498,9 +3535,7 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_EPIC_PROWESS))
     bonuses[BONUS_TYPE_UNDEFINED] += HAS_FEAT(ch, FEAT_EPIC_PROWESS);
 
-  /* paladin's divine bond */
-  /* maximum of 6 hitroll
-     1 + level / 3 (past level 5) */
+  /* paladin's divine bond, maximum of 6 hitroll: 1 + level / 3 (past level 5) */
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_DIVINE_BOND)) {
     bonuses[BONUS_TYPE_UNDEFINED] += MIN(6, 1 + MAX(0, (CLASS_LEVEL(ch, CLASS_PALADIN) - 5) / 3));
   }

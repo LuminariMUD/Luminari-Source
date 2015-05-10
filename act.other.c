@@ -1001,6 +1001,7 @@ int valid_align_by_class(int alignment, int class) {
     case CLASS_RANGER:
     case CLASS_ROGUE:
     case CLASS_WARRIOR:
+    case CLASS_WEAPON_MASTER:
     case CLASS_SORCERER:
       return 1;
   }
@@ -1015,6 +1016,7 @@ int valid_align_by_class(int alignment, int class) {
 
 int meet_class_reqs(struct char_data *ch, int class) {
   int i;
+  bool passed = TRUE;
 
   /* alignment restrictions */
   if (!valid_align_by_class(convert_alignment(GET_ALIGNMENT(ch)), class))
@@ -1041,6 +1043,38 @@ int meet_class_reqs(struct char_data *ch, int class) {
 
   /* stat, and other restrictions */
   switch (class) {
+    case CLASS_WEAPON_MASTER:
+      if (!HAS_FEAT(ch, FEAT_WEAPON_FOCUS)) {
+        passed = FALSE;
+        send_to_char(ch, "Feat required: Weapon Focus\r\n");
+      }
+      if (!HAS_FEAT(ch, FEAT_DODGE)) {
+        passed = FALSE;
+        send_to_char(ch, "Feat required: Dodge\r\n");
+      }
+      if (!HAS_FEAT(ch, FEAT_MOBILITY)) {
+        passed = FALSE;
+        send_to_char(ch, "Feat required: Mobility\r\n");
+      }
+      if (!HAS_FEAT(ch, FEAT_SPRING_ATTACK)) {
+        passed = FALSE;
+        send_to_char(ch, "Feat required: Spring Attack\r\n");
+      }
+      if (!HAS_FEAT(ch, FEAT_WHIRLWIND_ATTACK)) {
+        passed = FALSE;
+        send_to_char(ch, "Feat required: Whirlwind Attack\r\n");
+      }
+      if (BAB(ch) < 5) {
+        passed = FALSE;
+        send_to_char(ch, "Base attack bonus of +5 required.\r\n");
+      }
+      if (GET_ABILITY(ch, ABILITY_INTIMIDATE)) {
+        passed = FALSE;
+        send_to_char(ch, "Minimum ability required:  Intimidate 4 Ranks\r\n");
+      }
+      if (passed)
+        return 1;
+      break;
     case CLASS_WIZARD:
       //if (GET_REAL_INT(ch) >= 9)
         return 1;
@@ -1091,13 +1125,23 @@ int meet_class_reqs(struct char_data *ch, int class) {
 
 /* simple function to list classes with a "valid" check */
 void list_valid_classes(struct char_data *ch) {
-  int i;
+  int i, max_levels = 30;
 
   for (i = 0; i < NUM_CLASSES; i++) {
-    if (meet_class_reqs(ch, i)) {
-      send_to_char(ch, "%s\r\n", pc_class_types[i]);
+    max_levels = class_max_ranks[i];
+    if (max_levels == -1)
+      max_levels = LVL_IMMORT - 1;
+    switch (i) {
+      default:
+        if (meet_class_reqs(ch, i) && has_unlocked_class(ch, i) &&
+            CLASS_LEVEL(ch, i) < max_levels) {
+          send_to_char(ch, "%s\r\n", pc_class_types[i]);
+        }
+
+        break;
     }
   }
+
   send_to_char(ch, "\r\n");
 }
 
@@ -1201,6 +1245,11 @@ ACMD(do_gain) {
     if (classCount >= MULTICAP) {
       send_to_char(ch, "Current cap on multi-classing is %d.\r\n", MULTICAP);
       send_to_char(ch, "Please select one of the classes you already have!\r\n");
+      return;
+    }
+    /* cap for class ranks */
+    if (CLASS_LEVEL(ch, class) >= class_max_ranks[class]) {
+      send_to_char(ch, "You have reached the maximum amount of levels for that class.\r\n");
       return;
     }
     if ((GET_PRACTICES(ch) != 0) ||

@@ -1324,6 +1324,7 @@ const char *extra_bits[NUM_ITEM_FLAGS + 1] = {
   "Flaming",  //45
   "Frosty",
   "Ki-Focus",
+  "Anti-WeaponMaster",
   "\n"
 };
 
