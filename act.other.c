@@ -1193,7 +1193,6 @@ ACMD(do_respec) {
       send_to_char(ch, "Sorry staff can't respec...\r\n");
       return;
     }
-
     if (locked_classes[class]) {
       send_to_char(ch, "You cannot respec into a prestige class, you must respec "
               "to a base class and meet all the prestige-class requirements to "
@@ -1201,6 +1200,7 @@ ACMD(do_respec) {
       return;
     }
 
+    /* in the clear! */
     int tempXP = GET_EXP(ch);
     GET_CLASS(ch) = class;
     /* Make sure that players can't make wildshaped forms permanent.*/
