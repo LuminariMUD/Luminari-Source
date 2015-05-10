@@ -1053,6 +1053,10 @@ int meet_class_reqs(struct char_data *ch, int class) {
         passed = FALSE;
         send_to_char(ch, "  -Feat required: Weapon Focus\r\n");
       }
+      if (!HAS_FEAT(ch, FEAT_COMBAT_EXPERTISE)) {
+        passed = FALSE;
+        send_to_char(ch, "  -Feat required: Combat Expertise\r\n");
+      }
       if (!HAS_FEAT(ch, FEAT_DODGE)) {
         passed = FALSE;
         send_to_char(ch, "  -Feat required: Dodge\r\n");

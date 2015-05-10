@@ -2507,6 +2507,16 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         }
         strcat(buf2, buf);
         none_shown = FALSE;
+      } else if (i == FEAT_CRITICAL_SPECIALIST) {
+        if (mode == 1) {
+          sprintf(buf3, "%s (-%d threat)", feat_list[i].name, has_feat(ch, FEAT_CRITICAL_SPECIALIST));
+          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+        } else {
+          sprintf(buf3, "%s (-%d threat)", feat_list[i].name, has_feat(ch, FEAT_CRITICAL_SPECIALIST));
+          sprintf(buf, "%-40s ", buf3);
+        }
+        strcat(buf2, buf);
+        none_shown = FALSE;
       } else if (i == FEAT_SLOW_FALL) {
         if (mode == 1) {
           sprintf(buf3, "%s (+%d feet)", feat_list[i].name, 10 * has_feat(ch, FEAT_SLOW_FALL));
