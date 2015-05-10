@@ -680,7 +680,8 @@ int gain_exp(struct char_data *ch, int gain) {
 
     /* flat rate for now! */
     if (gain >= 1000 && ch->desc->account->experience < 33999) {
-      send_to_char(ch, "You gain %d account experience points!\r\n", gain/1000);
+      if (gain/1000 >= 5) /*reduce spam*/
+        send_to_char(ch, "You gain %d account experience points!\r\n", gain/1000);
       ch->desc->account->experience += gain / 1000;
     }
 
