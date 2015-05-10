@@ -573,6 +573,10 @@ void assign_feats(void) {
     "extra ranged attack when rapid shot turned on");
     feat_prereq_attribute(FEAT_EPIC_MANYSHOT, AB_DEX, 19);
     feat_prereq_feat(FEAT_EPIC_MANYSHOT, FEAT_MANYSHOT, 1);
+  feato(FEAT_BLINDING_SPEED, "blinding speed", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "get an extra attack, as if hasted",
+    "You get an extra attack, as if hasted.");
+    feat_prereq_attribute(FEAT_PERFECT_TWO_WEAPON_FIGHTING, AB_DEX, 25);
 
   /*****************/
   /* General feats */
