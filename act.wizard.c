@@ -3068,6 +3068,7 @@ struct set_struct {
   { "classfeats", LVL_STAFF, PC, MISC}, /* 78 */
   { "epicclassfeats", LVL_STAFF, PC, MISC}, /* 79 */
   { "accexp", LVL_IMPL, PC, NUMBER}, /* 80 */
+  { "weaponmaster", LVL_STAFF, PC, NUMBER}, /* 81 */
 
   { "\n", 0, BOTH, MISC}
 };
@@ -3578,10 +3579,10 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       GET_EPIC_FEAT_POINTS(vict) = RANGE(0, 20);
       break;
     case 78: /* classfeats (points) */
-      two_arguments(val_arg, arg1, arg2); /* set classfeats <class> <#> */
+      two_arguments(val_arg, arg1, arg2); /* set <name> classfeats <class> <#> */
       class = parse_class_long(arg1);
       if (class == CLASS_UNDEFINED) {
-        send_to_char(ch, "Invalid class! <example: set featclass warrior 2>\r\n");
+        send_to_char(ch, "Invalid class! <example: set zusuk classfeat warrior 2>\r\n");
         return 0;
       }
       value = atoi(arg2);
@@ -3589,10 +3590,10 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       send_to_char(ch, "%s's %s for %s set to %d.\r\n", GET_NAME(vict), set_fields[mode].cmd, arg1, value);
       break;
     case 79: /* epicclassfeats (points) */
-      two_arguments(val_arg, arg1, arg2); /* set epicclassfeats <class> <#> */
+      two_arguments(val_arg, arg1, arg2); /* set <name> epicclassfeats <class> <#> */
       class = parse_class_long(arg1);
       if (class == CLASS_UNDEFINED) {
-        send_to_char(ch, "Invalid class! <example: set featclass warrior 2>\r\n");
+        send_to_char(ch, "Invalid class! <example: set zusuk epicclassfeat warrior 2>\r\n");
         return 0;
       }
       value = atoi(arg2);
@@ -3601,6 +3602,10 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       break;
     case 80: /* accexp - account experience */
       vict->desc->account->experience = RANGE(0, 34000);
+      break;
+    case 81: // weapon-master level
+      CLASS_LEVEL(vict, CLASS_WEAPON_MASTER) = RANGE(0, LVL_IMMORT - 1);
+      affect_total(vict);
       break;
     default:
       send_to_char(ch, "Can't set that!\r\n");
@@ -5959,6 +5964,7 @@ int get_eq_score(obj_rnum a) {
         case ITEM_ANTI_CLERIC:
         case ITEM_ANTI_ROGUE:
         case ITEM_ANTI_WARRIOR:
+        case ITEM_ANTI_WEAPONMASTER:
         case ITEM_ANTI_CRYSTAL_DWARF:
         case ITEM_ANTI_HALFLING:
         case ITEM_ANTI_H_ELF:

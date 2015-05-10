@@ -1,6 +1,6 @@
 account.o: account.c conf.h sysdep.h structs.h protocol.h lists.h mysql.h \
  utils.h race.h db.h handler.h feats.h dg_scripts.h comm.h interpreter.h \
- genmob.h constants.h spells.h screen.h class.h
+ genmob.h constants.h spells.h screen.h class.h act.h
 act.comm.o: act.comm.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h comm.h interpreter.h handler.h db.h screen.h \
  improved-edit.h dg_scripts.h act.h modify.h hlquest.h
@@ -135,7 +135,7 @@ dg_wldcmd.o: dg_wldcmd.c conf.h sysdep.h structs.h protocol.h lists.h \
  constants.h genzon.h fight.h
 domains_schools.o: domains_schools.c conf.h sysdep.h structs.h protocol.h \
  lists.h utils.h race.h comm.h interpreter.h db.h spells.h \
- domains_schools.h assign_wpn_armor.h
+ domains_schools.h assign_wpn_armor.h screen.h
 feats.o: feats.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h spells.h handler.h db.h constants.h interpreter.h \
  dg_scripts.h modify.h feats.h class.h mud_event.h dg_event.h \

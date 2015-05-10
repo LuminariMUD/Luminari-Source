@@ -1600,6 +1600,7 @@ do                                                              \
 #define IS_DRUID(ch)		(CLASS_LEVEL(ch, CLASS_DRUID))
 #define IS_ROGUE(ch)		(CLASS_LEVEL(ch, CLASS_ROGUE))
 #define IS_WARRIOR(ch)		(CLASS_LEVEL(ch, CLASS_WARRIOR))
+#define IS_WEAPONMASTER(ch)		(CLASS_LEVEL(ch, CLASS_WEAPON_MASTER))
 #define IS_MONK(ch)	          (CLASS_LEVEL(ch, CLASS_MONK))
 #define IS_BERSERKER(ch)		(CLASS_LEVEL(ch, CLASS_BERSERKER))
 #define IS_PALADIN(ch)		(CLASS_LEVEL(ch, CLASS_PALADIN))

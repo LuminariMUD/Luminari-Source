@@ -337,20 +337,21 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 /***/
 
 /* PC classes */
-#define CLASS_UNDEFINED	 (-1) /**< PC Class undefined */
-#define CLASS_WIZARD      0    /**< PC Class wizard */
-#define CLASS_CLERIC      1    /**< PC Class Cleric */
-#define CLASS_ROGUE       2    /**< PC Class Rogue (former Thief) */
-#define CLASS_WARRIOR     3    /**< PC Class Warrior */
-#define CLASS_MONK	      4    /**< PC Class monk */
-#define CLASS_DRUID	      5	//druids
-#define CLASS_BERSERKER	 6	//berserker
-#define CLASS_SORCERER    7
-#define CLASS_PALADIN     8
-#define CLASS_RANGER      9
-#define CLASS_BARD        10
+#define CLASS_UNDEFINED	   (-1) /**< PC Class undefined */
+#define CLASS_WIZARD        0    /**< PC Class wizard */
+#define CLASS_CLERIC        1    /**< PC Class Cleric */
+#define CLASS_ROGUE         2    /**< PC Class Rogue (former Thief) */
+#define CLASS_WARRIOR       3    /**< PC Class Warrior */
+#define CLASS_MONK	        4    /**< PC Class monk */
+#define CLASS_DRUID	        5	//druids
+#define CLASS_BERSERKER	   6	//berserker
+#define CLASS_SORCERER      7
+#define CLASS_PALADIN       8
+#define CLASS_RANGER        9
+#define CLASS_BARD          10
+#define CLASS_WEAPON_MASTER 11
 /** Total number of available PC Classes */
-#define NUM_CLASSES       11
+#define NUM_CLASSES         12
 
 // related to pc (classes, etc)
 /* note that max_classes was established to reign in some of the
@@ -1362,7 +1363,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_THOUSAND_FACES 180
 #define FEAT_WILD_SHAPE_5 181 // level 12
 #define FEAT_SAP 182
-#define FEAT_GREATER_DISARM 183 /* ===--- UNUSED ---=== */
+#define FEAT_GREATER_DISARM 183
 #define FEAT_FAVORED_ENEMY_AVAILABLE 184
 #define FEAT_CALL_MOUNT 185
 #define FEAT_ABLE_LEARNER 186
@@ -1372,9 +1373,9 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_DEFENSIVE_STANCE 190
 #define FEAT_MOBILE_DEFENSE 191
 #define FEAT_WEAPON_OF_CHOICE 192
-#define FEAT_KI_DAMAGE 193
+#define FEAT_UNSTOPPABLE_STRIKE 193
 #define FEAT_INCREASED_MULTIPLIER 194
-#define FEAT_KI_CRITICAL 195
+#define FEAT_CRITICAL_SPECIALIST 195
 #define FEAT_SUPERIOR_WEAPON_FOCUS 196
 #define FEAT_WHIRLWIND_ATTACK     197
 #define FEAT_WEAPON_PROFICIENCY_DRUID   198
@@ -1849,9 +1850,10 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define ITEM_FLAMING              45  /* Item is ON FIRE! Used to toggle special ability.*/
 #define ITEM_FROST                46  /* Item is sheathed in magical FROST! SPECAB toggle. */
 #define ITEM_KI_FOCUS             47
+#define ITEM_ANTI_WEAPONMASTER    48
 /**/
 /** Total number of item flags */
-#define NUM_ITEM_FLAGS            48
+#define NUM_ITEM_FLAGS            49
 
 /* homeland-port */
 /*

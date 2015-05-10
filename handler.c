@@ -423,17 +423,18 @@ void compute_char_cap(struct char_data *ch) {
   save_cap = SAVE_CAP;
 
   /* here for reference
-  "Wizard"     int, dex, wis
-  "Cleric"     wis, str, cha
-  "Rogue"      dex,           hitroll, damroll, (str / int)
-  "Warrior"    str, con,      hitroll, damroll
-  "Monk"       wis, dex,      hitroll, damroll
-  "Druid"      wis, str, dex
-  "Berserker"  str, con,      hitroll, damroll
-  "Sorcerer"   cha, dex, int
-  "Paladin"    cha, str,      hitroll, damroll
-  "Ranger"     dex,           hitroll, damroll, (str / wis)
-  "Bard"       cha, dex,      (hitroll, damroll, str, int)
+  "Wizard"       int, dex, wis
+  "Cleric"       wis, str, cha
+  "Rogue"        dex,           hitroll, damroll, (str / int)
+  "Warrior"      str, con,      hitroll, damroll
+  "WeaponMaster" str, dex,      hitroll, damroll
+  "Monk"         wis, dex,      hitroll, damroll
+  "Druid"        wis, str, dex
+  "Berserker"    str, con,      hitroll, damroll
+  "Sorcerer"     cha, dex, int
+  "Paladin"      cha, str,      hitroll, damroll
+  "Ranger"       dex,           hitroll, damroll, (str / wis)
+  "Bard"         cha, dex,      (hitroll, damroll, str, int)
    */
 
   /* here is the actual class modifiers */
@@ -460,6 +461,12 @@ void compute_char_cap(struct char_data *ch) {
         case CLASS_WARRIOR:
           str_cap += class_level / 4 + 1;
           con_cap += class_level / 4 + 1;
+          hit_cap += class_level / 3;
+          dam_cap += class_level / 3;
+          break;
+        case CLASS_WEAPON_MASTER:
+          str_cap += class_level / 4 + 1;
+          dex_cap += class_level / 4 + 1;
           hit_cap += class_level / 3;
           dam_cap += class_level / 3;
           break;

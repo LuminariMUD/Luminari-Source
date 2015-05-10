@@ -187,28 +187,28 @@ int valid_offensive_spell[OFFENSIVE_SPELLS] = {
 struct char_data *npc_find_target(struct char_data *ch, int *num_targets) {
   struct list_data *target_list = NULL;
   struct char_data *tch = NULL;
-  
+
   if (!ch || IN_ROOM(ch) == NOWHERE || !FIGHTING(ch))
     return NULL;
 
   /* dynamic memory allocation required */
   target_list = create_list();
-  
+
   /* loop through chars in room to find possible targets to build list */
   for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room) {
     if (tch == ch)
       continue;
-    
+
     if (!CAN_SEE(ch, tch))
       continue;
-    
+
     if (!IS_NPC(tch) && PRF_FLAGGED(tch, PRF_NOHASSLE))
       continue;
 
     /* in mobile memory? */
     if (is_in_memory(ch, tch))
       add_to_list(tch, target_list);
-    
+
     /* hunting target? */
     if (HUNTING(ch) == tch)
       add_to_list(tch, target_list);
@@ -216,23 +216,23 @@ struct char_data *npc_find_target(struct char_data *ch, int *num_targets) {
     /* fighting me? */
     if (FIGHTING(tch) == ch)
       add_to_list(tch, target_list);
-    
+
     /* me fighting? */
     if (FIGHTING(ch) == tch)
       add_to_list(tch, target_list);
   }
-  
+
   /* did we snag anything? */
   if (target_list->iSize == 0) {
     free_list(target_list);
     return NULL;
   }
-  
+
   /* ok should be golden, go ahead snag a random and free list */
   /* always can just return fighting target */
   tch = random_from_list(target_list);
   *num_targets = target_list->iSize;  // yay pointers!
-  
+
   if (target_list)
     free_list(target_list);
 
@@ -247,15 +247,15 @@ bool npc_switch_opponents(struct char_data *ch, struct char_data *vict) {
   //mudlog(NRM, LVL_IMMORT, TRUE, "%s trying to switch opponents!", ch->player.short_descr);
   if (!ch || !vict)
     return FALSE;
-  
+
   if (!CAN_SEE(ch, vict))
     return FALSE;
-  
+
   if (GET_POS(ch) <= POS_SITTING) {
     send_to_char(ch, "You are in no position to switch opponents!\r\n");
     return FALSE;
   }
-  
+
   if (FIGHTING(ch) == vict) {
     send_to_char(ch, "You can't switch opponents to an opponent you are "
             "already fighting!\r\n");
@@ -266,22 +266,22 @@ bool npc_switch_opponents(struct char_data *ch, struct char_data *vict) {
     if (ch->next_in_room != vict && vict->next_in_room != ch) {
       send_to_char(ch, "You can't reach to switch opponents!\r\n");
       return FALSE;
-    }  
+    }
   }
-  
+
   /* should be a valid opponent */
   if (FIGHTING(ch))
     stop_fighting(ch);
   send_to_char(ch, "You switch opponents!\r\n");
   act("$n switches opponents to $N!", FALSE, ch, 0, vict, TO_ROOM);
   hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
-  
+
   return TRUE;
 }
 
 /* this function will attempt to rescue
    1)  master
-   2)  group member 
+   2)  group member
  * returns TRUE if rescue attempt is made
  */
 /* how many times will you loop group list to find rescue target cap */
@@ -314,7 +314,7 @@ bool npc_rescue(struct char_data *ch) {
       return TRUE;
     }
   }
-  
+
   return FALSE;
 }
 #undef RESCUE_LOOP
@@ -339,8 +339,8 @@ bool move_on_path(struct char_data *ch) {
     PATH_DELAY(ch)--;
     return FALSE;
   }
-  
-  send_to_char(ch, "OK, I am in room %d (%d)...  ", GET_ROOM_VNUM(IN_ROOM(ch)), 
+
+  send_to_char(ch, "OK, I am in room %d (%d)...  ", GET_ROOM_VNUM(IN_ROOM(ch)),
                IN_ROOM(ch));
 
   PATH_DELAY(ch) = PATH_RESET(ch);
@@ -349,7 +349,7 @@ bool move_on_path(struct char_data *ch) {
     PATH_INDEX(ch) = 0;
 
   next = GET_PATH(ch, PATH_INDEX(ch));
-  
+
   send_to_char(ch, "PATH:  Path-Index:  %d, Next (get-path vnum):  %d (%d).\r\n",
                PATH_INDEX(ch), next, real_room(next));
 
@@ -363,7 +363,7 @@ bool move_on_path(struct char_data *ch) {
   } else {
     send_to_char(ch, "... it looks like my path is perfect so far!\r\n");
   }
-          
+
   switch (dir) {
     case BFS_ERROR:
       send_to_char(ch, "Hmm.. something seems to be seriously wrong.\r\n");
@@ -373,7 +373,7 @@ bool move_on_path(struct char_data *ch) {
       send_to_char(ch, "I seem to be in the right room already!\r\n");
       break;
     case BFS_NO_PATH:
-      send_to_char(ch, "I can't sense a trail to %d (%d) from here.\r\n", 
+      send_to_char(ch, "I can't sense a trail to %d (%d) from here.\r\n",
               next, real_room(next));
       log("NO PATH: Mob %s, in room %d, trying to get to %d", GET_NAME(ch), world[IN_ROOM(ch)].number, next);
       break;
@@ -384,7 +384,7 @@ bool move_on_path(struct char_data *ch) {
   }
 
   PATH_INDEX(ch)++;
-  
+
   return TRUE;
 }
 
@@ -438,16 +438,16 @@ bool is_in_memory(struct char_data *ch, struct char_data *vict) {
 
   if (!IS_NPC(ch))
     return FALSE;
-  
+
   if (!MOB_FLAGGED(ch, MOB_MEMORY))
     return FALSE;
 
   if (!MEMORY(ch))
     return FALSE;
-  
+
   if (IS_NPC(vict) || !CAN_SEE(ch, vict) || PRF_FLAGGED(vict, PRF_NOHASSLE))
     return FALSE;
-  
+
   /* at this stage vict should be a valid target to check, now loop
    through ch's memory to cross-reference it */
   for (names = MEMORY(ch); names; names = names->next) {
@@ -557,7 +557,7 @@ void npc_racial_behave(struct char_data *ch) {
   /* retrieve random valid target and number of targets */
   if (!(vict = npc_find_target(ch, &num_targets)))
     return;
-  
+
   //first figure out which race we are dealing with
   switch (GET_RACE(ch)) {
     case NPCRACE_ANIMAL:
@@ -606,7 +606,7 @@ void npc_monk_behave(struct char_data *ch, struct char_data *vict,
    3) stunning fist
    4) quivering palm
    */
-  
+
   /* switch opponents attempt */
   if (!rand_number(0, 2) && npc_switch_opponents(ch, vict))
     return;
@@ -685,7 +685,7 @@ void npc_bard_behave(struct char_data *ch, struct char_data *vict,
 }
 // warrior behaviour, behave based on circle
 
-void npc_warrior_behave(struct char_data *ch, struct char_data *vict, 
+void npc_warrior_behave(struct char_data *ch, struct char_data *vict,
         int engaged) {
 
   /* list of skills to use:
@@ -728,7 +728,7 @@ void npc_ranger_behave(struct char_data *ch, struct char_data *vict,
 
   /* attempt to call companion */
   perform_call(ch, MOB_C_ANIMAL, GET_LEVEL(ch));
-  
+
   /* next rescue friends/master */
   if (npc_rescue(ch))
     return;
@@ -738,7 +738,7 @@ void npc_ranger_behave(struct char_data *ch, struct char_data *vict,
     return;
 
   perform_kick(ch, vict);
-  
+
 }
 
 // paladin behaviour, behave based on level
@@ -761,15 +761,15 @@ void npc_paladin_behave(struct char_data *ch, struct char_data *vict,
   /* switch opponents attempt */
   if (!rand_number(0, 2) && npc_switch_opponents(ch, vict))
     return;
-  
+
   if (IS_EVIL(vict))
     perform_smite(ch);
-  
+
   if (percent <= 25.0)
     perform_layonhands(ch, ch);
-  
+
 }
-     
+
 // berserk behaviour, behave based on level
 
 void npc_berserker_behave(struct char_data *ch, struct char_data *vict,
@@ -791,7 +791,7 @@ void npc_berserker_behave(struct char_data *ch, struct char_data *vict,
     return;
 
   perform_rage(ch);
-  
+
   perform_headbutt(ch, vict);
 }
 
@@ -809,7 +809,7 @@ void npc_class_behave(struct char_data *ch) {
   /* retrieve random valid target and number of targets */
   if (!(vict = npc_find_target(ch, &num_targets)))
     return;
-  
+
   switch (GET_CLASS(ch)) {
     case CLASS_BARD:
       npc_bard_behave(ch, vict, num_targets);
@@ -830,6 +830,7 @@ void npc_class_behave(struct char_data *ch) {
       npc_monk_behave(ch, vict, num_targets);
       break;
     case CLASS_WARRIOR:
+    case CLASS_WEAPON_MASTER: /*todo!*/
     default:
       npc_warrior_behave(ch, vict, num_targets);
       break;
@@ -837,7 +838,7 @@ void npc_class_behave(struct char_data *ch) {
 }
 
 /* this defines maximum amount of times the function will check the
- spellup array for a valid spell 
+ spellup array for a valid spell
  note:  npc_offensive_spells() uses this define as well */
 #define MAX_LOOPS 20
 
@@ -945,7 +946,7 @@ void npc_offensive_spells(struct char_data *ch) {
 
   if (!ch)
     return;
-  
+
   if (MOB_FLAGGED(ch, MOB_NOCLASS))
     return;
 
@@ -990,7 +991,7 @@ void npc_offensive_spells(struct char_data *ch) {
   /* find random target, and num targets */
   if (!(tch = npc_find_target(ch, &use_aoe)))
     return;
-    
+
   /* random offensive spell */
   if (use_aoe >= 2) {
     do {
@@ -1039,7 +1040,7 @@ void mobile_activity(void) {
 
     if (IN_ROOM(ch) > top_of_world)
       continue;
-    
+
     if (!IS_MOB(ch))
       continue;
 
@@ -1152,7 +1153,7 @@ void mobile_activity(void) {
     /* loop through room, check if each person is in memory */
     for (vict = world[IN_ROOM(ch)].people; vict && !found;
             vict = vict->next_in_room) {
-      
+
       /* this function cross-references memory-list with vict */
       if (!is_in_memory(ch, vict))
         continue;
@@ -1192,7 +1193,7 @@ void mobile_activity(void) {
       if (found)
         continue;
     }
-    
+
     /* Mob Movement */
 
     /* follow set path for mobile (like patrols) */
@@ -1215,7 +1216,7 @@ void mobile_activity(void) {
         }
       }
     }
-    
+
     /* random movement */
     if (!rand_number(0, 2)) //customize frequency
       if (!MOB_FLAGGED(ch, MOB_SENTINEL) && (GET_POS(ch) == POS_STANDING) &&
@@ -1229,7 +1230,7 @@ void mobile_activity(void) {
           perform_move(ch, door, 1);
       }
 
-    /* helping group members use to be here, now its in 
+    /* helping group members use to be here, now its in
      * perform_violence() in fight.c */
 
     /* a function to move mobile back to its loadroom (if sentinel) */
@@ -1244,7 +1245,7 @@ void mobile_activity(void) {
       HUNTING(ch) = ch->master;
       hunt_victim(ch);
     }
-    
+
     /* return mobile to preferred (default) position if necessary */
     if (GET_POS(ch) != GET_DEFAULT_POS(ch) && MOB_FLAGGED(ch, MOB_SENTINEL) &&
             GET_MOB_LOADROOM(ch) == IN_ROOM(ch)) {

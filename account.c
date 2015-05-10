@@ -60,17 +60,18 @@ bool locked_races[NUM_RACES] = {
 };
 
 int locked_classes_cost[NUM_CLASSES] = {
-  0, /*Wizard*/
-  0, /*Cleric*/
-  0, /*Rogue*/
-  0, /*Warrior*/
-  0, /*Monk*/
-  0, /*Druid*/
-  0, /*Berserker*/
-  0, /*Sorcerer*/
-  0, /*Paladin*/
-  0, /*Ranger*/
-  0, /*Bard*/
+  0,     /*Wizard*/
+  0,     /*Cleric*/
+  0,     /*Rogue*/
+  0,     /*Warrior*/
+  0,     /*Monk*/
+  0,     /*Druid*/
+  0,     /*Berserker*/
+  0,     /*Sorcerer*/
+  0,     /*Paladin*/
+  0,     /*Ranger*/
+  0,     /*Bard*/
+  5000,  /*WeaponMaster*/
 };
 
 bool locked_classes[NUM_CLASSES] = {
@@ -85,6 +86,7 @@ bool locked_classes[NUM_CLASSES] = {
   N, /*Paladin*/
   N, /*Ranger*/
   N, /*Bard*/
+  Y, /*WeaponMaster*/
 };
 
 int has_unlocked_race(struct char_data *ch, int race) {

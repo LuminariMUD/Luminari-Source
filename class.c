@@ -50,6 +50,7 @@ const char *class_abbrevs[] = {
   "\tWPal\tn",
   "\tYRan\tn",
   "\tCBar\tn",
+  "\tcWpM\tn",
   "\n"
 };
 
@@ -65,6 +66,7 @@ const char *class_abbrevs_no_color[] = {
   "Pal",
   "Ran",
   "Bar",
+  "WpM",
   "\n"
 };
 
@@ -80,6 +82,7 @@ const char *pc_class_types[] = {
   "Paladin",
   "Ranger",
   "Bard",
+  "WeaponMaster",
   "\n"
 };
 
@@ -98,7 +101,8 @@ const char *class_menu =
         "  p)  \tWPaladin\tn\r\n"
         "  s)  \tMSorcerer\tn\r\n"
         "  r)  \tYRanger\tn\r\n"
-        "  a)  \tCBard\tn\r\n";
+        "  a)  \tCBard\tn\r\n"
+        "  e)  \tcWeaponMaster\tn\r\n";
 
 
 /* homeland-port */
@@ -137,6 +141,7 @@ int parse_class(char arg) {
     case 'p': return CLASS_PALADIN;
     case 'r': return CLASS_RANGER;
     case 'a': return CLASS_BARD;
+    case 'e': return CLASS_WEAPON_MASTER;
     default: return CLASS_UNDEFINED;
   }
 }
@@ -159,6 +164,8 @@ int parse_class_long(char *arg) {
   if (is_abbrev(arg, "paladin")) return CLASS_PALADIN;
   if (is_abbrev(arg, "ranger")) return CLASS_RANGER;
   if (is_abbrev(arg, "bard")) return CLASS_BARD;
+  if (is_abbrev(arg, "weaponmaster")) return CLASS_WEAPON_MASTER;
+  if (is_abbrev(arg, "weapon-master")) return CLASS_WEAPON_MASTER;
 
   return CLASS_UNDEFINED;
 }
@@ -203,11 +210,11 @@ bitvector_t find_class_bitvector(const char *arg) {
 /* #define PRAC_TYPE		3  should it say 'spell' or 'skill'?	*/
 
 int prac_params[4][NUM_CLASSES] = {
-  /* MG  CL  TH WR  MN  DR  BK  SR  PL  RA  BA*/
-  { 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75}, /* learned level */
-  { 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75}, /* max per practice */
-  { 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75}, /* min per practice */
-  { SK, SK, SK, SK, SK, SK, SK, SK, SK, SK, SK}, /* prac name */
+  /* MG  CL  TH WR  MN  DR  BK  SR  PL  RA  BA  WM */
+  { 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75}, /* learned level */
+  { 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75}, /* max per practice */
+  { 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75}, /* min per practice */
+  { SK, SK, SK, SK, SK, SK, SK, SK, SK, SK, SK, SK}, /* prac name */
 };
 #undef SP
 #undef SK
@@ -229,6 +236,7 @@ struct guild_info_type guild_info[] = {
   { CLASS_ROGUE, 3027, EAST},
   { CLASS_BARD, 3027, EAST},
   { CLASS_WARRIOR, 3021, EAST},
+  { CLASS_WEAPON_MASTER, 3021, EAST},
   { CLASS_RANGER, 3021, EAST},
   { CLASS_PALADIN, 3021, EAST},
   { CLASS_BERSERKER, 3021, EAST},
@@ -245,17 +253,18 @@ struct guild_info_type guild_info[] = {
  * -1 indicates no limit to the number of levels in this
  *  class according to epic rules. */
 int class_max_ranks[NUM_CLASSES] = {
-  /* Wizard    */ -1,
-  /* Cleric    */ -1,
-  /* Rogue     */ -1,
-  /* Warrior   */ -1,
-  /* Monk      */ -1,
-  /* Druid     */ -1,
-  /* Berserker */ -1,
-  /* Sorcerer  */ -1,
-  /* Paladin   */ -1,
-  /* Ranger    */ -1,
-  /* Bard      */ -1
+  /* Wizard       */ -1,
+  /* Cleric       */ -1,
+  /* Rogue        */ -1,
+  /* Warrior      */ -1,
+  /* Monk         */ -1,
+  /* Druid        */ -1,
+  /* Berserker    */ -1,
+  /* Sorcerer     */ -1,
+  /* Paladin      */ -1,
+  /* Ranger       */ -1,
+  /* Bard         */ -1,
+  /* WeaponMaster */ 10
 };
 
 /* This array determines whether an ability is cross-class or a class-ability
@@ -264,63 +273,63 @@ int class_max_ranks[NUM_CLASSES] = {
 #define		CC	1	//cross class
 #define		CA	2	//class ability
 int class_ability[NUM_ABILITIES][NUM_CLASSES] = {
-  //  MU  CL  TH  WA  MO  DR  BZ  SR  PL  RA  BA
-  { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}, //0 - reserved
+//  MU  CL  TH  WA  MO  DR  BZ  SR  PL  RA  BA  WM
+  { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}, //0 - reserved
 
-  { CC, CC, CA, CC, CA, CC, CC, CC, CC, CC, CA}, //1 - Acrobatics
-  { CC, CC, CA, CC, CA, CC, CC, CC, CC, CA, CA}, //2 - hide
-  { CC, CC, CA, CC, CA, CC, CC, CC, CC, CA, CA}, //3 move silently
-  { CC, CC, CA, CC, CA, CC, CC, CC, CC, CA, CC}, //4 spot
-  { CC, CC, CA, CC, CA, CC, CA, CC, CC, CA, CA}, //5 listen
-  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //6 heal
-  { CC, CC, CC, CC, CC, CC, CA, CC, CA, CC, CA}, //7 intimidate
-  { CA, CA, CC, CA, CA, CA, CC, CA, CA, CA, CA}, //8 concentration
-  { CA, CA, CC, CC, CC, CA, CC, CA, CC, CC, CA}, //9 spellcraft
-  { CA, CC, CA, CC, CC, CC, CC, CC, CC, CC, CA}, //10 appraise
-  { CC, CC, CC, CA, CC, CC, CA, CC, CA, CA, CA}, //11 discipline
-  { CC, CA, CA, CA, CA, CA, CA, CC, CA, CA, CA}, //12 total defense
-  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //13 lore
-  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //14 ride
-  { CC, CC, CA, CC, CA, CC, CC, CC, CC, CC, CC}, //15 balance
-  { CC, CC, CA, CA, CA, CC, CA, CC, CC, CA, CA}, //16 climb
-  { CC, CC, CA, CC, CC, CC, CC, CC, CC, CC, CC}, //17 open lock
-  { CC, CC, CA, CC, CC, CC, CC, CC, CC, CC, CA}, //18 sleight of hand
-  { CA, CC, CA, CC, CC, CC, CC, CC, CC, CA, CC}, //19 search
-  { CC, CC, CA, CC, CC, CC, CC, CA, CC, CC, CA}, //20 bluff
-  { CA, CC, CA, CC, CC, CC, CC, CC, CC, CC, CA}, //21 decipher script
-  { CC, CA, CA, CC, CA, CA, CC, CC, CA, CC, CA}, //22 diplomacy
-  { CC, CC, CA, CC, CC, CC, CC, CC, CC, CC, CC}, //23 disable device
-  { CC, CC, CA, CC, CC, CC, CC, CC, CC, CC, CA}, //24 disguise
-  { CC, CC, CA, CC, CA, CC, CC, CC, CC, CC, CA}, //25 escape artist
-  { CC, CC, CC, CA, CC, CA, CA, CC, CA, CA, CC}, //26 handle animal
-  { CC, CC, CA, CA, CA, CC, CA, CC, CC, CA, CA}, //27 jump
-  { CC, CC, CA, CC, CA, CC, CC, CC, CA, CC, CA}, //28 sense motive
-  { CC, CC, CC, CC, CC, CA, CA, CC, CC, CA, CC}, //29 survival
-  { CC, CC, CA, CA, CA, CA, CA, CC, CC, CA, CA}, //30 swim
-  { CA, CC, CA, CC, CC, CC, CC, CC, CC, CC, CA}, //31 use magic device
-  { CC, CC, CA, CC, CC, CC, CC, CC, CC, CA, CC}, //32 use rope
-  { CC, CC, CA, CC, CA, CC, CC, CC, CC, CC, CA}, //33 perform
-  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //34 Craft (woodworking)
-  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //35 Craft (weaving)
-  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //36 Craft (alchemy)
-  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //37 Craft (armorsmithing)
-  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //38 Craft (weaponsmithing)
-  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //39 Craft (bowmaking)
-  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //40 Craft (gemcutting)
-  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //41 Craft (leatherworking)
-  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //42 Craft (trapmaking)
-  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //43 Craft (poisonmaking)
-  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //44 Craft (metalworking)
-  { CA, CA, CC, CC, CA, CC, CC, CA, CC, CC, CA}, //46 Knowledge (arcana)
-  { CA, CC, CC, CC, CC, CC, CC, CC, CC, CC, CA}, //47 Knowledge (engineering)
-  { CA, CC, CC, CC, CC, CC, CC, CC, CC, CA, CA}, //48 Knowledge (dungeoneering)
-  { CA, CC, CC, CC, CC, CC, CC, CC, CC, CA, CA}, //49 Knowledge (geography)
-  { CA, CA, CC, CC, CC, CC, CC, CC, CC, CC, CA}, //50 Knowledge (history)
-  { CA, CC, CA, CC, CC, CC, CC, CC, CC, CC, CA}, //51 Knowledge (local)
-  { CA, CC, CC, CC, CC, CA, CC, CC, CC, CA, CA}, //52 Knowledge (nature)
-  { CA, CC, CC, CC, CC, CC, CC, CC, CA, CC, CA}, //53 Knowledge (nobility)
-  { CA, CA, CC, CC, CA, CC, CC, CC, CA, CC, CA}, //54 Knowledge (religion)
-  { CA, CA, CC, CC, CC, CC, CC, CC, CC, CC, CA}, //55 Knowledge (the planes)
+  { CC, CC, CA, CC, CA, CC, CC, CC, CC, CC, CA, CC}, //1 - Acrobatics
+  { CC, CC, CA, CC, CA, CC, CC, CC, CC, CA, CA, CC}, //2 - hide
+  { CC, CC, CA, CC, CA, CC, CC, CC, CC, CA, CA, CC}, //3 move silently
+  { CC, CC, CA, CC, CA, CC, CC, CC, CC, CA, CC, CC}, //4 spot
+  { CC, CC, CA, CC, CA, CC, CA, CC, CC, CA, CA, CC}, //5 listen
+  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //6 heal
+  { CC, CC, CC, CC, CC, CC, CA, CC, CA, CC, CA, CA}, //7 intimidate
+  { CA, CA, CC, CA, CA, CA, CC, CA, CA, CA, CA, CA}, //8 concentration
+  { CA, CA, CC, CC, CC, CA, CC, CA, CC, CC, CA, CC}, //9 spellcraft
+  { CA, CC, CA, CC, CC, CC, CC, CC, CC, CC, CA, CC}, //10 appraise
+  { CC, CC, CC, CA, CC, CC, CA, CC, CA, CA, CA, CA}, //11 discipline
+  { CC, CA, CA, CA, CA, CA, CA, CC, CA, CA, CA, CA}, //12 total defense
+  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //13 lore
+  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //14 ride
+  { CC, CC, CA, CC, CA, CC, CC, CC, CC, CC, CC, CC}, //15 balance
+  { CC, CC, CA, CA, CA, CC, CA, CC, CC, CA, CA, CC}, //16 climb
+  { CC, CC, CA, CC, CC, CC, CC, CC, CC, CC, CC, CC}, //17 open lock
+  { CC, CC, CA, CC, CC, CC, CC, CC, CC, CC, CA, CC}, //18 sleight of hand
+  { CA, CC, CA, CC, CC, CC, CC, CC, CC, CA, CC, CC}, //19 search
+  { CC, CC, CA, CC, CC, CC, CC, CA, CC, CC, CA, CA}, //20 bluff
+  { CA, CC, CA, CC, CC, CC, CC, CC, CC, CC, CA, CC}, //21 decipher script
+  { CC, CA, CA, CC, CA, CA, CC, CC, CA, CC, CA, CC}, //22 diplomacy
+  { CC, CC, CA, CC, CC, CC, CC, CC, CC, CC, CC, CC}, //23 disable device
+  { CC, CC, CA, CC, CC, CC, CC, CC, CC, CC, CA, CC}, //24 disguise
+  { CC, CC, CA, CC, CA, CC, CC, CC, CC, CC, CA, CC}, //25 escape artist
+  { CC, CC, CC, CA, CC, CA, CA, CC, CA, CA, CC, CC}, //26 handle animal
+  { CC, CC, CA, CA, CA, CC, CA, CC, CC, CA, CA, CC}, //27 jump
+  { CC, CC, CA, CC, CA, CC, CC, CC, CA, CC, CA, CA}, //28 sense motive
+  { CC, CC, CC, CC, CC, CA, CA, CC, CC, CA, CC, CC}, //29 survival
+  { CC, CC, CA, CA, CA, CA, CA, CC, CC, CA, CA, CA}, //30 swim
+  { CA, CC, CA, CC, CC, CC, CC, CC, CC, CC, CA, CC}, //31 use magic device
+  { CC, CC, CA, CC, CC, CC, CC, CC, CC, CA, CC, CC}, //32 use rope
+  { CC, CC, CC, CC, CC, CC, CC, CC, CC, CC, CA, CC}, //33 perform
+  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //34 Craft (woodworking)
+  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //35 Craft (weaving)
+  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //36 Craft (alchemy)
+  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //37 Craft (armorsmithing)
+  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //38 Craft (weaponsmithing)
+  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //39 Craft (bowmaking)
+  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //40 Craft (gemcutting)
+  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //41 Craft (leatherworking)
+  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //42 Craft (trapmaking)
+  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //43 Craft (poisonmaking)
+  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //44 Craft (metalworking)
+  { CA, CA, CC, CC, CA, CC, CC, CA, CC, CC, CA, CC}, //46 Knowledge (arcana)
+  { CA, CC, CC, CC, CC, CC, CC, CC, CC, CC, CA, CC}, //47 Knowledge (engineering)
+  { CA, CC, CC, CC, CC, CC, CC, CC, CC, CA, CA, CC}, //48 Knowledge (dungeoneering)
+  { CA, CC, CC, CC, CC, CC, CC, CC, CC, CA, CA, CC}, //49 Knowledge (geography)
+  { CA, CA, CC, CC, CC, CC, CC, CC, CC, CC, CA, CC}, //50 Knowledge (history)
+  { CA, CC, CA, CC, CC, CC, CC, CC, CC, CC, CA, CC}, //51 Knowledge (local)
+  { CA, CC, CC, CC, CC, CA, CC, CC, CC, CA, CA, CC}, //52 Knowledge (nature)
+  { CA, CC, CC, CC, CC, CC, CC, CC, CA, CC, CA, CC}, //53 Knowledge (nobility)
+  { CA, CA, CC, CC, CA, CC, CC, CC, CA, CC, CA, CC}, //54 Knowledge (religion)
+  { CA, CA, CC, CC, CC, CC, CC, CC, CC, CC, CA, CC}, //55 Knowledge (the planes)
 };
 #undef NA
 #undef CC
@@ -331,17 +340,17 @@ int class_ability[NUM_ABILITIES][NUM_CLASSES] = {
 #define		H	1	//high
 #define		L	0	//low
 int preferred_save[5][NUM_CLASSES] = {
-  //MU CL TH WA MO DR BK SR PL RA BA
+  //MU CL TH WA MO DR BK SR PL RA BA WM
   /*fort */
-  { L, H, L, H, H, H, H, L, H, H, L},
+  { L, H, L, H, H, H, H, L, H, H, L, L},
   /*refl */
-  { L, L, H, L, H, L, L, L, L, L, H},
+  { L, L, H, L, H, L, L, L, L, L, H, H},
   /*will */
-  { H, H, L, L, H, H, L, H, L, L, H},
+  { H, H, L, L, H, H, L, H, L, L, H, L},
   /*psn  */
-  { L, L, L, L, L, L, L, L, L, L, L},
+  { L, L, L, L, L, L, L, L, L, L, L, L},
   /*death*/
-  { L, L, L, L, L, L, L, L, L, L, L},
+  { L, L, L, L, L, L, L, L, L, L, L, L},
 };
 // fortitude / reflex / will / ( poison / death )
 
@@ -418,7 +427,6 @@ int free_start_feats_bard[] = {
   FEAT_ARMOR_PROFICIENCY_SHIELD,
   0
 };
-
 int free_start_feats_sorcerer[] = {
   FEAT_WEAPON_PROFICIENCY_WIZARD,
   FEAT_SIMPLE_WEAPON_PROFICIENCY,
@@ -431,6 +439,10 @@ int free_start_feats_ranger[] = {
   FEAT_ARMOR_PROFICIENCY_MEDIUM,
   FEAT_ARMOR_PROFICIENCY_SHIELD,
   FEAT_MARTIAL_WEAPON_PROFICIENCY,
+  0
+};
+int free_start_feats_weaponmaster[] = {
+  FEAT_WEAPON_OF_CHOICE,
   0
 };
 int free_start_feats_none[] = {
@@ -447,7 +459,8 @@ int *free_start_feats[] = {
   /* CLASS_SORC          */ free_start_feats_sorcerer,
   /* CLASS_PALADIN       */ free_start_feats_paladin,
   /* CLASS_RANGER        */ free_start_feats_ranger,
-  /* CLASS_BARD          */ free_start_feats_bard
+  /* CLASS_BARD          */ free_start_feats_bard,
+  /* CLASS_WEAPON_MASTER */ free_start_feats_weaponmaster
 };
 
 /* Information required for character leveling in regards to free feats
@@ -707,6 +720,15 @@ int level_feats[][LEVEL_FEATS] = {
   {CLASS_BARD, RACE_UNDEFINED, FALSE, 15, FEAT_INSPIRE_HEROICS},
   {CLASS_BARD, RACE_UNDEFINED, FALSE, 18, FEAT_MASS_SUGGESTION},
   {CLASS_BARD, RACE_UNDEFINED, TRUE, 20, FEAT_INSPIRE_COURAGE},
+
+  /* weapon master */
+  /* class, race, stacks?, level, feat_ name */
+  /* lvl 1 - weapon of choice, assigned during "free feats" */
+  {CLASS_WEAPON_MASTER, RACE_UNDEFINED, FALSE, 2,  FEAT_SUPERIOR_WEAPON_FOCUS},
+  {CLASS_WEAPON_MASTER, RACE_UNDEFINED, TRUE,  4,  FEAT_CRITICAL_SPECIALIST},
+  {CLASS_WEAPON_MASTER, RACE_UNDEFINED, FALSE, 6,  FEAT_UNSTOPPABLE_STRIKE},
+  {CLASS_WEAPON_MASTER, RACE_UNDEFINED, TRUE,  8,  FEAT_CRITICAL_SPECIALIST},
+  {CLASS_WEAPON_MASTER, RACE_UNDEFINED, FALSE, 10, FEAT_INCREASED_MULTIPLIER},
 
   /* Racial feats */
   /* class, race, stacks?, level, feat_ name */
@@ -968,6 +990,35 @@ const int class_feats_ranger[] = {
   /*end*/
   FEAT_UNDEFINED
 };
+const int class_feats_weaponmaster[] = {
+  FEAT_BLIND_FIGHT,
+  FEAT_CLEAVE,
+  FEAT_COMBAT_EXPERTISE,
+  FEAT_COMBAT_REFLEXES,
+  FEAT_DEFLECT_ARROWS,
+  FEAT_EXOTIC_WEAPON_PROFICIENCY,
+  FEAT_GREAT_CLEAVE,
+  FEAT_GREATER_TWO_WEAPON_FIGHTING,
+  FEAT_IMPROVED_CRITICAL,
+  FEAT_IMPROVED_SUNDER,
+  FEAT_IMPROVED_TWO_WEAPON_FIGHTING,
+  FEAT_IMPROVED_UNARMED_STRIKE,
+  FEAT_POWER_ATTACK,
+  FEAT_RAPID_RELOAD,
+  FEAT_RAPID_SHOT,
+  FEAT_SHOT_ON_THE_RUN,
+  FEAT_TWO_WEAPON_DEFENSE,
+  FEAT_TWO_WEAPON_FIGHTING,
+  FEAT_WEAPON_FINESSE,
+  FEAT_WEAPON_FOCUS,
+
+  /* epic */
+  FEAT_EPIC_PROWESS,
+  FEAT_EPIC_TOUGHNESS,
+
+  /*end*/
+  FEAT_UNDEFINED
+};
 const int no_class_feats[] = {
   /*end*/
   FEAT_UNDEFINED
@@ -977,17 +1028,18 @@ const int no_class_feats[] = {
  * and is used during level gain to show the allowed feats.
  * SEE NOTE FOR ROGUE FEATS */
 const int *class_bonus_feats[NUM_CLASSES] = {
-  /* Wizard    */ class_feats_wizard,
-  /* Cleric    */ no_class_feats,
-  /* Rogue     */ class_feats_rogue,
-  /* Warrior   */ class_feats_fighter,
-  /* Monk      */ class_feats_monk,
-  /* Druid     */ class_feats_druid,
-  /* Berserker */ class_feats_berserker,
-  /* Sorcerer  */ no_class_feats,
-  /* Paladin   */ class_feats_paladin,
-  /* Ranger    */ class_feats_ranger,
-  /* Bard      */ no_class_feats
+  /* Wizard       */ class_feats_wizard,
+  /* Cleric       */ no_class_feats,
+  /* Rogue        */ class_feats_rogue,
+  /* Warrior      */ class_feats_fighter,
+  /* Monk         */ class_feats_monk,
+  /* Druid        */ class_feats_druid,
+  /* Berserker    */ class_feats_berserker,
+  /* Sorcerer     */ no_class_feats,
+  /* Paladin      */ class_feats_paladin,
+  /* Ranger       */ class_feats_ranger,
+  /* Bard         */ no_class_feats,
+  /* WeaponMaster */ class_feats_weaponmaster
 };
 
 byte saving_throws(struct char_data *ch, int type) {
@@ -1033,6 +1085,7 @@ int BAB(struct char_data *ch) {
       case CLASS_MONK:
         return ( (int) (GET_LEVEL(ch) * 3 / 4));
       case CLASS_WARRIOR:
+      case CLASS_WEAPON_MASTER:
       case CLASS_RANGER:
       case CLASS_PALADIN:
       case CLASS_BERSERKER:
@@ -1061,6 +1114,7 @@ int BAB(struct char_data *ch) {
           bab += level * 3 / 4;
           break;
         case CLASS_WARRIOR:
+        case CLASS_WEAPON_MASTER:
         case CLASS_RANGER:
         case CLASS_PALADIN:
         case CLASS_BERSERKER:
@@ -1278,7 +1332,7 @@ void newbieEquipment(struct char_data *ch) {
 
 /* init spells for a class as they level up
  * i.e free skills  ;  make sure to set in spec_procs too
- */
+ * Note:  this is not currently used */
 void berserker_skills(struct char_data *ch, int level) {
   switch (level) {
     default:
@@ -1286,37 +1340,16 @@ void berserker_skills(struct char_data *ch, int level) {
   }
   return;
 }
-
-/* init spells for a class as they level up
- * i.e free skills  ;  make sure to set in spec_procs too
- */
 void bard_skills(struct char_data *ch, int level) {
 }
-
-/* init spells for a class as they level up
- * i.e free skills  ;  make sure to set in spec_procs too
- */
 void ranger_skills(struct char_data *ch, int level) {
 }
-
-/* init spells for a class as they level up
- * i.e free skills  ;  make sure to set in spec_procs too
- */
 #define MOB_PALADIN_MOUNT 70
-
 void paladin_skills(struct char_data *ch, int level) {
 }
 #undef MOB_PALADIN_MOUNT
-
-/* init spells for a class as they level up
- * i.e free skills  ;  make sure to set in spec_procs too
- */
 void sorc_skills(struct char_data *ch, int level) {
 }
-
-/* init spells for a class as they level up
- * i.e free skills  ;  make sure to set in spec_procs too
- */
 void wizard_skills(struct char_data *ch, int level) {
   IS_WIZ_LEARNED(ch) = 0;
   send_to_char(ch,
@@ -1328,16 +1361,8 @@ void wizard_skills(struct char_data *ch, int level) {
   }
   return;
 }
-
-/* init spells for a class as they level up
- * i.e free skills  ;  make sure to set in spec_procs too
- */
 void cleric_skills(struct char_data *ch, int level) {
 }
-
-/* init spells for a class as they level up
- * i.e free skills  ;  make sure to set in spec_procs too
- */
 void warrior_skills(struct char_data *ch, int level) {
   switch (level) {
     default:
@@ -1345,10 +1370,6 @@ void warrior_skills(struct char_data *ch, int level) {
   }
   return;
 }
-
-/* init spells for a class as they level up
- * i.e free skills  ;  make sure to set in spec_procs too
- */
 void druid_skills(struct char_data *ch, int level) {
   IS_DRUID_LEARNED(ch) = 0;
   switch (level) {
@@ -1357,10 +1378,6 @@ void druid_skills(struct char_data *ch, int level) {
   }
   return;
 }
-
-/* init spells for a class as they level up
- * i.e free skills  ;  make sure to set in spec_procs too
- */
 void rogue_skills(struct char_data *ch, int level) {
   switch (level) {
     default:
@@ -1368,11 +1385,10 @@ void rogue_skills(struct char_data *ch, int level) {
   }
   return;
 }
-
-/* init spells for a class as they level up
- * i.e free skills  ;  make sure to set in spec_procs too
- */
 void monk_skills(struct char_data *ch, int level) {
+  return;
+}
+void weaponmaster_skills(struct char_data *ch, int level) {
   return;
 }
 
@@ -1931,7 +1947,6 @@ void init_class(struct char_data *ch, int class, int level) {
       send_to_char(ch, "Rogue Done.\tn\r\n");
       break;
 
-
     case CLASS_WARRIOR:
       send_to_char(ch, "Warrior Done.\tn\r\n");
       break;
@@ -1974,6 +1989,10 @@ void init_class(struct char_data *ch, int class, int level) {
 
     case CLASS_MONK:
       send_to_char(ch, "Monk Done.\tn\r\n");
+      break;
+
+    case CLASS_WEAPON_MASTER:
+      send_to_char(ch, "WeaponMaster Done.\tn\r\n");
       break;
 
     default:
@@ -2169,6 +2188,8 @@ void init_start_char(struct char_data *ch) {
   switch (GET_CLASS(ch)) {
     case CLASS_WARRIOR:
       GET_CLASS_FEATS(ch, CLASS_WARRIOR)++; /* Bonus Feat */
+      /* fallthrough */
+    case CLASS_WEAPON_MASTER:
     case CLASS_WIZARD:
     case CLASS_CLERIC:
       trains += MAX(1, (2 + (int) (int_bonus)) * 3);
@@ -2506,6 +2527,20 @@ void advance_level(struct char_data *ch, int class) {
       }
 
       break;
+    case CLASS_WEAPON_MASTER:
+      weaponmaster_skills(ch, CLASS_LEVEL(ch, CLASS_WEAPON_MASTER));
+      add_hp += rand_number(5, 10);
+      add_mana = 0;
+      add_move = 1;
+
+      trains += MAX(1, (2 + (GET_REAL_INT_BONUS(ch))));
+
+      //epic
+      if (!(CLASS_LEVEL(ch, class) % 3) && GET_LEVEL(ch) >= 20) {
+        epic_class_feats++;
+      }
+
+      break;
   }
 
   process_level_feats(ch, class);
@@ -2627,6 +2662,9 @@ int invalid_class(struct char_data *ch, struct obj_data *obj) {
     return TRUE;
 
   if (OBJ_FLAGGED(obj, ITEM_ANTI_WARRIOR) && IS_WARRIOR(ch))
+    return TRUE;
+
+  if (OBJ_FLAGGED(obj, ITEM_ANTI_WEAPON_MASTER) && IS_WEAPONMASTER(ch))
     return TRUE;
 
   if (OBJ_FLAGGED(obj, ITEM_ANTI_MONK) && IS_MONK(ch))
@@ -3476,6 +3514,7 @@ int level_exp(struct char_data *ch, int level) {
     case CLASS_DRUID:
     case CLASS_RANGER:
     case CLASS_WARRIOR:
+    case CLASS_WEAPON_MASTER:
     case CLASS_ROGUE:
     case CLASS_BARD:
     case CLASS_BERSERKER:
@@ -3915,6 +3954,45 @@ const char *titles(int chclass, int level) {
         case LVL_STAFF: return "the Extirpator";
         case LVL_GRSTAFF: return "the God of War";
         default: return "the Warrior";
+      }
+      break;
+
+    case CLASS_WEAPON_MASTER:
+      switch (level) {
+        case 1:
+        case 2:
+        case 3:
+        case 4: return "";
+        case 5:
+        case 6:
+        case 7:
+        case 8:
+        case 9: return "the Inexperienced Weapon";
+        case 10:
+        case 11:
+        case 12:
+        case 13:
+        case 14: return "the Weapon";
+        case 15:
+        case 16:
+        case 17:
+        case 18:
+        case 19: return "the Skilled Weapon";
+        case 20:
+        case 21:
+        case 22:
+        case 23:
+        case 24: return "the Master of Weapons";
+        case 25:
+        case 26:
+        case 27:
+        case 28:
+        case 29: return "the Master of All Weapons";
+        case 30: return "the Unmatched Weapon";
+        case LVL_IMMORT: return "the Immortal WeaponMaster";
+        case LVL_STAFF: return "the Relentless Weapon";
+        case LVL_GRSTAFF: return "the God of Weapons";
+        default: return "the WeaponMaster";
       }
       break;
 

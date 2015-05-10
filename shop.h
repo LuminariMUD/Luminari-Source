@@ -1,13 +1,13 @@
 /**
 * @file shop.h
 * Shop file definitions, structures, constants.
-* 
+*
 * Part of the core tbaMUD source code distribution, which is a derivative
 * of, and continuation of, CircleMUD.
-*                                                                        
-* All rights reserved.  See license for complete information.                                                                
-* Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University 
-* CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.               
+*
+* All rights reserved.  See license for complete information.
+* Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University
+* CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.
 */
 #ifndef _SHOP_H_
 #define _SHOP_H_
@@ -88,17 +88,18 @@ struct shop_data {
 #define TRADE_NOPALADIN      (1 << 11)
 #define TRADE_NORANGER       (1 << 12)
 #define TRADE_NOBARD         (1 << 13)
-#define TRADE_NOHUMAN        (1 << 14)
-#define TRADE_NOELF          (1 << 15)
-#define TRADE_NODWARF        (1 << 16)
-#define TRADE_NOTROLL        (1 << 17)
-#define TRADE_NOHALFLING     (1 << 18)
-#define TRADE_NOH_ELF        (1 << 19)
-#define TRADE_NOH_ORC        (1 << 20)
-#define TRADE_NOGNOME        (1 << 21)
-#define TRADE_NOARCANAGOLEM  (1 << 22)
+#define TRADE_NOWEAPONMASTER (1 << 14)
+#define TRADE_NOHUMAN        (1 << 15)
+#define TRADE_NOELF          (1 << 16)
+#define TRADE_NODWARF        (1 << 17)
+#define TRADE_NOTROLL        (1 << 18)
+#define TRADE_NOHALFLING     (1 << 19)
+#define TRADE_NOH_ELF        (1 << 20)
+#define TRADE_NOH_ORC        (1 << 21)
+#define TRADE_NOGNOME        (1 << 22)
+#define TRADE_NOARCANAGOLEM  (1 << 23)
 /** Total number of trade types */
-#define NUM_TRADERS     23
+#define NUM_TRADERS     24
 
 struct stack_data {
    int data[100];
@@ -148,6 +149,7 @@ struct stack_data {
 #define NOTRADE_BERSERKER(i)		(IS_SET(SHOP_TRADE_WITH((i)), TRADE_NOBERSERKER))
 #define NOTRADE_PALADIN(i)		(IS_SET(SHOP_TRADE_WITH((i)), TRADE_NOPALADIN))
 #define NOTRADE_BARD(i)		(IS_SET(SHOP_TRADE_WITH((i)), TRADE_NOBARD))
+#define NOTRADE_WEAPONMASTER(i)		(IS_SET(SHOP_TRADE_WITH((i)), TRADE_NOWEAPONMASTER))
 
 #define NOTRADE_HUMAN(i)        (IS_SET(SHOP_TRADE_WITH((i)), TRADE_NOHUMAN))
 #define NOTRADE_ELF(i)          (IS_SET(SHOP_TRADE_WITH((i)), TRADE_NOELF))

@@ -1882,7 +1882,10 @@ ACMD(do_enter) {
                (OBJ_FLAGGED(portal, ITEM_ANTI_BARD))) ||
 
               ((IS_WARRIOR(ch)) &&
-               (OBJ_FLAGGED(portal, ITEM_ANTI_WARRIOR)))
+               (OBJ_FLAGGED(portal, ITEM_ANTI_WARRIOR))) ||
+
+              ((IS_WEAPONMASTER(ch)) &&
+               (OBJ_FLAGGED(portal, ITEM_ANTI_WEAPONMASTER)))
               ) {
             act("You try to enter $p, but a mysterious power "
                 "forces you back!", FALSE, ch, portal, 0, TO_CHAR);

@@ -68,8 +68,8 @@ extern struct guild_info_type guild_info[];
 extern int class_ability[NUM_ABILITIES][NUM_CLASSES];
 extern int level_feats[][LEVEL_FEATS];
 extern int *free_start_feats[];
-
 extern const int *class_bonus_feats[NUM_CLASSES];
+extern int class_max_ranks[NUM_CLASSES];
 
 #endif /* __CLASS_C__ */
 

@@ -2118,7 +2118,7 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
         if (!locked_races[i] || has_unlocked_race(d->character, i))
           write_to_output(d, "%s\r\n", pc_race_types[i]);
       }
-      write_to_output(d, "\r\nRace Selection (select 'human' if you do not know "
+      write_to_output(d, "\r\nRace Selection (type 'human' if you do not know "
               "what to pick): ");
       STATE(d) = CON_QRACE;
       break;
@@ -2192,7 +2192,7 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
           if (!locked_races[i] || has_unlocked_race(d->character, i))
             write_to_output(d, "%s\r\n", pc_race_types[i]);
         }
-        write_to_output(d, "\r\nRace Selection (select 'human' if you do not know "
+        write_to_output(d, "\r\nRace Selection (type 'human' if you do not know "
                 "what to pick): ");
         STATE(d) = CON_QRACE;
         return;
@@ -2203,7 +2203,7 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
         if (!locked_classes[i] || has_unlocked_class(d->character, i))
           write_to_output(d, "%s\r\n", pc_class_types[i]);
       }
-      write_to_output(d, "\r\nClass Selection (select 'warrior' if you do not know "
+      write_to_output(d, "\r\nClass Selection (type 'warrior' if you do not know "
               "what to pick): ");
       STATE(d) = CON_QCLASS;
       break;
@@ -2234,6 +2234,9 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
           break;
         case CLASS_WARRIOR:
           perform_help(d, "class-warrior");
+          break;
+        case CLASS_WEAPON_MASTER:
+          perform_help(d, "class-weaponmaster");
           break;
         case CLASS_PALADIN:
           perform_help(d, "class-paladin");
@@ -2279,7 +2282,7 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
           if (!locked_classes[i] || has_unlocked_class(d->character, i))
             write_to_output(d, "%s\r\n", pc_class_types[i]);
         }
-        write_to_output(d, "\r\nClass Selection (select 'warrior' if you do not know "
+        write_to_output(d, "\r\nClass Selection (type 'warrior' if you do not know "
                 "what to pick): ");
         STATE(d) = CON_QCLASS;
         return;
