@@ -1073,12 +1073,12 @@ int meet_class_reqs(struct char_data *ch, int class) {
         passed = FALSE;
         send_to_char(ch, "  -Base attack bonus of +5 required.\r\n");
       }
-      if (GET_ABILITY(ch, ABILITY_INTIMIDATE)) {
+      if (GET_ABILITY(ch, ABILITY_INTIMIDATE) < 4) {
         passed = FALSE;
         send_to_char(ch, "  -Minimum ability required:  Intimidate 4 Ranks\r\n");
       }
       if (passed) {
-        send_to_char(ch, "WeaponMaster requirements have been met!\r\n");
+        send_to_char(ch, "  WeaponMaster requirements have been met!\r\n");
         return 1;
       }
       break;
