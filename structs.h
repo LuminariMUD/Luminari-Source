@@ -150,17 +150,17 @@
 #define ROOM_NOFLY         26  /* can't fly in this room */
 #define ROOM_FOG           27  /* fogged (hamper vision/stops daylight) */
 #define ROOM_AIRY          28  /* airy (breathe underwater) */
-
 #define ROOM_OCCUPIED      29  /* Used only in wilderness zones, if set the
                                   room will be kept and used for the set
                                   coordinates. */
-
-#define ROOM_HASTRAP       30  /* has trap (not implemented yet) */
-
+#define ROOM_SIZE_TINY        30 /* need to be tiny or smaller to enter */
+#define ROOM_SIZE_DIMINUTIVE  31 /* need to be diminutive or smaller to enter */
+#define ROOM_CLIMB_NEEDED     32 /* need climb skill, based on zone level */
+#define ROOM_HASTRAP          33  /* has trap (not implemented yet) */
 /* idea:  possible room-flag for doing free memorization w/o spellbooks */
 /****/
 /** The total number of Room Flags */
-#define NUM_ROOM_FLAGS     31
+#define NUM_ROOM_FLAGS     34
 
 /* homeland-port reference */
 /*

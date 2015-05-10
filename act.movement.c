@@ -713,6 +713,31 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
     return 0;
   }
 
+  /* size restricted to enter that room */
+  if (ROOM_FLAGGED(going_to, ROOM_SIZE_TINY) && GET_SIZE(ch) > SIZE_TINY) {
+    send_to_char(ch, "You'd have to be tiny or smaller to go there.\r\n");
+    return 0;
+  }
+  if (ROOM_FLAGGED(going_to, ROOM_SIZE_DIMINUTIVE) && GET_SIZE(ch) > SIZE_DIMINUTIVE) {
+    send_to_char(ch, "You'd have to be diminutive or smaller to go there.\r\n");
+    return 0;
+  }
+
+  /* climb is needed to get to going_to, skill required is based on min-level of zone */
+  if (ROOM_FLAGGED(going_to, ROOM_CLIMB_NEEDED)) {
+    /* do a climb check */
+    int climb_dc = 13 + ZONE_MINLVL(GET_ROOM_ZONE(going_to));
+    send_to_char(ch, "Climb DC: %d - ", climb_dc);
+    if (!skill_check(ch, ABILITY_CLIMB, climb_dc)) {
+      send_to_char(ch, "You attempt to climb to that area, but fall and get hurt!\r\n");
+      damage((ch), (ch), dice(climb_dc-10, 4), -1, -1, -1);
+      update_pos(ch);
+      return 0;
+    } else { /*success!*/
+      send_to_char(ch, "You successfully climb!: ");
+    }
+  }
+
   /* Houses: Can the player walk into the house? */
   if (ROOM_FLAGGED(was_in, ROOM_ATRIUM)) {
     if (!House_can_enter(ch, GET_ROOM_VNUM(going_to))) {

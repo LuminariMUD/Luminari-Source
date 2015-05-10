@@ -369,6 +369,9 @@ const char *room_bits[NUM_ROOM_FLAGS + 1] = {
   "Fogged",
   "Airy",
   "Occupied",
+  "Tiny-Sized-Room",
+  "Diminutive-Sized-Room",
+  "Climb-Needed",
   "Trapped",
   "\n"
 };
