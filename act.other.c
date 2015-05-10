@@ -1048,36 +1048,39 @@ int meet_class_reqs(struct char_data *ch, int class) {
         send_to_char(ch, "[LOCKED] WeaponMaster (type 'accexp class weaponmaster' to unlock)\r\n");
         break;
       }
+      send_to_char(ch, "WeaponMaster Missing Requirements:\r\n");
       if (!HAS_FEAT(ch, FEAT_WEAPON_FOCUS)) {
         passed = FALSE;
-        send_to_char(ch, "Feat required: Weapon Focus\r\n");
+        send_to_char(ch, "  -Feat required: Weapon Focus\r\n");
       }
       if (!HAS_FEAT(ch, FEAT_DODGE)) {
         passed = FALSE;
-        send_to_char(ch, "Feat required: Dodge\r\n");
+        send_to_char(ch, "  -Feat required: Dodge\r\n");
       }
       if (!HAS_FEAT(ch, FEAT_MOBILITY)) {
         passed = FALSE;
-        send_to_char(ch, "Feat required: Mobility\r\n");
+        send_to_char(ch, "  -Feat required: Mobility\r\n");
       }
       if (!HAS_FEAT(ch, FEAT_SPRING_ATTACK)) {
         passed = FALSE;
-        send_to_char(ch, "Feat required: Spring Attack\r\n");
+        send_to_char(ch, "  -Feat required: Spring Attack\r\n");
       }
       if (!HAS_FEAT(ch, FEAT_WHIRLWIND_ATTACK)) {
         passed = FALSE;
-        send_to_char(ch, "Feat required: Whirlwind Attack\r\n");
+        send_to_char(ch, "  -Feat required: Whirlwind Attack\r\n");
       }
       if (BAB(ch) < 5) {
         passed = FALSE;
-        send_to_char(ch, "Base attack bonus of +5 required.\r\n");
+        send_to_char(ch, "  -Base attack bonus of +5 required.\r\n");
       }
       if (GET_ABILITY(ch, ABILITY_INTIMIDATE)) {
         passed = FALSE;
-        send_to_char(ch, "Minimum ability required:  Intimidate 4 Ranks\r\n");
+        send_to_char(ch, "  -Minimum ability required:  Intimidate 4 Ranks\r\n");
       }
-      if (passed)
+      if (passed) {
+        send_to_char(ch, "WeaponMaster requirements have been met!\r\n");
         return 1;
+      }
       break;
     case CLASS_WIZARD:
       //if (GET_REAL_INT(ch) >= 9)
