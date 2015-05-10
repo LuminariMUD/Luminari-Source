@@ -1044,6 +1044,10 @@ int meet_class_reqs(struct char_data *ch, int class) {
   /* stat, and other restrictions */
   switch (class) {
     case CLASS_WEAPON_MASTER:
+      if (!has_unlocked_class(ch, CLASS_WEAPON_MASTER)) {
+        send_to_char(ch, "[LOCKED] WeaponMaster (type 'accexp class weaponmaster' to unlock)\r\n");
+        break;
+      }
       if (!HAS_FEAT(ch, FEAT_WEAPON_FOCUS)) {
         passed = FALSE;
         send_to_char(ch, "Feat required: Weapon Focus\r\n");
@@ -1248,7 +1252,10 @@ ACMD(do_gain) {
       return;
     }
     /* cap for class ranks */
-    if (CLASS_LEVEL(ch, class) >= class_max_ranks[class]) {
+    int max_class_level = class_max_ranks[class];
+    if (max_class_level == -1)
+      max_class_level = LVL_IMMORT - 1;
+    if (CLASS_LEVEL(ch, class) >= max_class_level) {
       send_to_char(ch, "You have reached the maximum amount of levels for that class.\r\n");
       return;
     }
