@@ -942,10 +942,11 @@ ACMD(do_tame) {
   act("$n tames $N.", FALSE, ch, 0, vict, TO_NOTVICT);
 }
 
-
+/* some defines for gain/respec */
+#define MODE_NORMAL 0
+#define MODE_RESPEC 1
 /* does the ch have a valid alignment for proposed class? */
 /* returns 1 for valid alignment */
-
 /* returns 0 for problem with alignment */
 int valid_align_by_class(int alignment, int class) {
 
@@ -1143,6 +1144,7 @@ void list_valid_classes(struct char_data *ch) {
     if (max_levels == -1)
       max_levels = LVL_IMMORT - 1;
     switch (i) {
+      //case CLASS_x:
       default:
         if (meet_class_reqs(ch, i) && has_unlocked_class(ch, i) &&
             CLASS_LEVEL(ch, i) < max_levels) {
@@ -1189,6 +1191,13 @@ ACMD(do_respec) {
     }
     if (GET_LEVEL(ch) >= LVL_IMMORT) {
       send_to_char(ch, "Sorry staff can't respec...\r\n");
+      return;
+    }
+
+    if (locked_classes[class]) {
+      send_to_char(ch, "You cannot respec into a prestige class, you must respec "
+              "to a base class and meet all the prestige-class requirements to "
+              "advance in it.\r\n");
       return;
     }
 
@@ -1335,6 +1344,8 @@ ACMD(do_gain) {
   }
 }
 #undef MULTICAP
+#undef MODE_NORMAL
+#undef MODE_RESPEC
 
 /*************************/
 /* shapechange functions */
