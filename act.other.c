@@ -2052,6 +2052,10 @@ int display_eligible_disguise_races(struct char_data *ch, char *argument, int si
       default: continue;
     }
 
+    if (!silent) {
+      send_to_char(ch, "%s\r\n", race_list[i].name);
+    }
+
     if (!strcmp(argument, race_list[i].name)) /* match argument? */
       break;
   }
