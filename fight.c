@@ -1764,7 +1764,7 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type) {
     case DAM_FIRE:
       if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
         damtype_reduction += 20;
-      if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TROLL)
+      if (!IS_NPC(ch) && GET_RACE(ch) == RACE_HALF_TROLL)
         damtype_reduction += -50;
       if (affected_by_spell(ch, SPELL_ENDURE_ELEMENTS))
         damtype_reduction += 10;
@@ -1808,7 +1808,7 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type) {
     case DAM_ACID:
       if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
         damtype_reduction += 20;
-      if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TROLL)
+      if (!IS_NPC(ch) && GET_RACE(ch) == RACE_HALF_TROLL)
         damtype_reduction += -25;
       if (!IS_NPC(ch) && GET_RACE(ch) == RACE_CRYSTAL_DWARF)
         damtype_reduction += 10;
@@ -1858,7 +1858,7 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type) {
         damtype_reduction += 20;
       if (!IS_NPC(ch) && GET_RACE(ch) == RACE_CRYSTAL_DWARF)
         damtype_reduction += 10;
-      if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TROLL)
+      if (!IS_NPC(ch) && GET_RACE(ch) == RACE_HALF_TROLL)
         damtype_reduction += 25;
       break;
     case DAM_DISEASE:
@@ -1866,7 +1866,7 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type) {
         damtype_reduction += 20;
       if (!IS_NPC(ch) && GET_RACE(ch) == RACE_CRYSTAL_DWARF)
         damtype_reduction += 10;
-      if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TROLL)
+      if (!IS_NPC(ch) && GET_RACE(ch) == RACE_HALF_TROLL)
         damtype_reduction += 50;
       break;
     case DAM_NEGATIVE:

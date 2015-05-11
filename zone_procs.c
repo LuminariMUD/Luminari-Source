@@ -1651,7 +1651,7 @@ SPECIAL(vaprak_claws) {
   if (!argument)
     return 0;
 
-  if (GET_RACE(ch) != RACE_OGRE && GET_RACE(ch) != RACE_TROLL)
+  if (GET_RACE(ch) != RACE_OGRE && GET_RACE(ch) != RACE_HALF_TROLL)
     return 0;
 
   if (!is_wearing(ch, 196062))

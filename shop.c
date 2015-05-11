@@ -52,7 +52,7 @@ const char *trade_letters[] = {
         "Human",                /* then the race based ones */
         "Elf",
         "Dwarf",
-        "Troll",
+        "Half Troll",
         "Halfling",
         "Half Elf",
         "Half Orc",
@@ -165,7 +165,7 @@ static int is_ok_char(struct char_data *keeper, struct char_data *ch, int shop_n
 
   if ((IS_HUMAN(ch) && NOTRADE_HUMAN(shop_nr)) ||
        (IS_ELF(ch) && NOTRADE_ELF(shop_nr)) ||
-       (IS_TROLL(ch) && NOTRADE_TROLL(shop_nr)) ||
+       (IS_HALF_TROLL(ch) && NOTRADE_HALF_TROLL(shop_nr)) ||
        (IS_HALFLING(ch) && NOTRADE_HALFLING(shop_nr)) ||
        (IS_H_ELF(ch) && NOTRADE_H_ELF(shop_nr)) ||
        (IS_H_ORC(ch) && NOTRADE_H_ORC(shop_nr)) ||

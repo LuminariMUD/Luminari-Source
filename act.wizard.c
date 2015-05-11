@@ -5957,7 +5957,7 @@ int get_eq_score(obj_rnum a) {
         case ITEM_ANTI_HUMAN:
         case ITEM_ANTI_ELF:
         case ITEM_ANTI_DWARF:
-        case ITEM_ANTI_TROLL:
+        case ITEM_ANTI_HALF_TROLL:
         case ITEM_ANTI_MONK:
         case ITEM_ANTI_DRUID:
         case ITEM_ANTI_WIZARD:
