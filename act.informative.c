@@ -1106,6 +1106,8 @@ static void look_at_target(struct char_data *ch, char *arg) {
     return;
   }
 
+  /* due to disguise and wildshape we have */
+
   bits = generic_find(arg, FIND_OBJ_INV | FIND_OBJ_ROOM | FIND_OBJ_EQUIP |
                       FIND_CHAR_ROOM, ch, &found_char, &found_obj);
 

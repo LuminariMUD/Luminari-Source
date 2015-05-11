@@ -1774,11 +1774,22 @@ struct char_data *get_char_room_vis(struct char_data *ch, char *name, int *numbe
   if (*number == 0)
     return (get_player_vis(ch, name, NULL, FIND_CHAR_ROOM));
 
-  for (i = world[IN_ROOM(ch)].people; i && *number; i = i->next_in_room)
-    if (isname(name, i->player.name))
-      if (CAN_SEE(ch, i) || CAN_INFRA(ch, i))
-        if (--(*number) == 0)
+  for (i = world[IN_ROOM(ch)].people; i && *number; i = i->next_in_room) {
+    /* we have to handle disguises */
+    if (GET_DISGUISE_RACE(i)) {
+      if (is_abbrev(name, race_list[GET_DISGUISE_RACE(i)].name)) {
+        return (i);
+      }
+    }
+
+    if (isname(name, i->player.name)) {
+      if (CAN_SEE(ch, i) || CAN_INFRA(ch, i)) {
+        if (--(*number) == 0) {
           return (i);
+        }
+      }
+    }
+  }
 
   return (NULL);
 }
