@@ -1625,8 +1625,8 @@ do                                                              \
         (GET_RACE(ch) == RACE_ELF))
 #define IS_DWARF(ch)            (!IS_NPC(ch) && \
         (GET_RACE(ch) == RACE_DWARF))
-#define IS_TROLL(ch)            (!IS_NPC(ch) && \
-        (GET_RACE(ch) == RACE_TROLL))
+#define IS_HALF_TROLL(ch)            (!IS_NPC(ch) && \
+        (GET_RACE(ch) == RACE_HALF_TROLL))
 #define IS_CRYSTAL_DWARF(ch)            (!IS_NPC(ch) && \
         (GET_RACE(ch) == RACE_CRYSTAL_DWARF))
 #define IS_TRELUX(ch)            (!IS_NPC(ch) && \

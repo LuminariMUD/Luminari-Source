@@ -2146,8 +2146,8 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
         case RACE_DWARF:
           perform_help(d, "race-dwarf");
           break;
-        case RACE_TROLL:
-          perform_help(d, "race-troll");
+        case RACE_HALF_TROLL:
+          perform_help(d, "race-half-troll");
           break;
         case RACE_HALFLING:
           perform_help(d, "race-halfling");

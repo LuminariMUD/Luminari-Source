@@ -35,7 +35,7 @@ int locked_races_cost[NUM_RACES] = {
       0, /*Human*/
       0, /*Elf*/
       0, /*Dwarf*/
-   1000, /*Troll (advanced)*/
+   1000, /*Half Troll (advanced)*/
   30000, /*crystal dwarf (epic)*/
       0, /*halfling*/
       0, /*half elf*/
@@ -49,7 +49,7 @@ bool locked_races[NUM_RACES] = {
   N, /*Human*/
   N, /*Elf*/
   N, /*Dwarf*/
-  Y, /*Troll (advanced)*/
+  Y, /*Half Troll (advanced)*/
   Y, /*crystal dwarf (epic)*/
   N, /*halfling*/
   N, /*half elf*/

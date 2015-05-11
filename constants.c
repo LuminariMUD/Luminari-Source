@@ -1299,7 +1299,7 @@ const char *extra_bits[NUM_ITEM_FLAGS + 1] = {
   "Anti-Human",
   "Anti-Elf",
   "Anti-Dwarf",  //20
-  "Anti-Troll",
+  "Anti-Half-Troll",
   "Anti-Monk",
   "Anti-Druid",
   "Mold",

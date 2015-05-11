@@ -434,8 +434,8 @@ void regen_update(struct char_data *ch) {
   if (AFF_FLAGGED(ch, AFF_REGEN))
     hp *= 2;
 
-  // troll racial innate regeneration
-  if (GET_RACE(ch) == RACE_TROLL) {
+  // half-troll racial innate regeneration
+  if (GET_RACE(ch) == RACE_HALF_TROLL) {
     hp *= 2;
     if (FIGHTING(ch))
       hp *= 2;

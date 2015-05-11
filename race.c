@@ -330,7 +330,7 @@ const char *race_abbrevs[] = {
         "\tBHumn\tn",
         "\tYElf \tn",
         "\tgDwrf\tn",
-        "\trTrol\tn",
+        "\trHTrl\tn",
         "\tCC\tgDwf\tn",
         "\tcHflg\tn",
         "\twH\tYElf\tn",
@@ -347,7 +347,7 @@ const char *pc_race_types[] = {
         "Human",
         "Elf",
         "Dwarf",
-        "Troll",
+        "Half-Troll",
         "Crystal-Dwarf",
         "Halfling",
         "Half-Elf",
@@ -368,7 +368,7 @@ const char *race_menu =
 "  a)  \tBHuman\tn\r\n"
 "  b)  \tYElf\tn\r\n"
 "  c)  \tgDwarf\tn\r\n"
-"  d)  \trTroll\tn\r\n"
+"  d)  \trHalf Troll\tn\r\n"
 "  f)  \tcHalfling\tn\r\n"
 "  g)  \twHalf \tYElf\tn\r\n"
 "  h)  \twHalf \tROrc\tn\r\n"
@@ -387,7 +387,7 @@ int parse_race(char arg)
   case 'a': return RACE_HUMAN;
   case 'b': return RACE_ELF;
   case 'c': return RACE_DWARF;
-  case 'd': return RACE_TROLL;
+  case 'd': return RACE_HALF_TROLL;
   case 'f': return RACE_HALFLING;
   case 'g': return RACE_H_ELF;
   case 'h': return RACE_H_ORC;
@@ -407,7 +407,8 @@ int parse_race_long(char *arg) {
   if (is_abbrev(arg, "human")) return RACE_HUMAN;
   if (is_abbrev(arg, "elf")) return RACE_ELF;
   if (is_abbrev(arg, "dwarf")) return RACE_DWARF;
-  if (is_abbrev(arg, "troll")) return RACE_TROLL;
+  if (is_abbrev(arg, "half-troll")) return RACE_HALF_TROLL;
+  if (is_abbrev(arg, "halftroll")) return RACE_HALF_TROLL;
   if (is_abbrev(arg, "halfling")) return RACE_HALFLING;
   if (is_abbrev(arg, "halfelf")) return RACE_H_ELF;
   if (is_abbrev(arg, "half-elf")) return RACE_H_ELF;
@@ -440,7 +441,7 @@ bitvector_t find_race_bitvector(const char *arg)
 int invalid_race(struct char_data *ch, struct obj_data *obj) {
   if ((OBJ_FLAGGED(obj, ITEM_ANTI_HUMAN) && IS_HUMAN(ch)) ||
       (OBJ_FLAGGED(obj, ITEM_ANTI_ELF)   && IS_ELF(ch)) ||
-      (OBJ_FLAGGED(obj, ITEM_ANTI_TROLL)   && IS_TROLL(ch)) ||
+      (OBJ_FLAGGED(obj, ITEM_ANTI_HALF_TROLL)   && IS_HALF_TROLL(ch)) ||
       (OBJ_FLAGGED(obj, ITEM_ANTI_HALFLING)   && IS_HALFLING(ch)) ||
       (OBJ_FLAGGED(obj, ITEM_ANTI_H_ELF)   && IS_H_ELF(ch)) ||
       (OBJ_FLAGGED(obj, ITEM_ANTI_H_ORC)   && IS_H_ORC(ch)) ||

@@ -435,7 +435,7 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define RACE_HUMAN           0 /* Race Human */
 #define RACE_ELF             1 /* Race Elf   */
 #define RACE_DWARF           2 /* Race Dwarf */
-#define RACE_TROLL           3 /* Race Troll (advanced) */
+#define RACE_HALF_TROLL           3 /* Race Troll (advanced) */
 #define RACE_CRYSTAL_DWARF   4  /* crystal dwarf (epic) */
 #define RACE_HALFLING        5  // halfling
 #define RACE_H_ELF           6  // half elf
@@ -529,7 +529,7 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define RACE_BAAZ_DRACONIAN         103
 #define RACE_KAPAK_DRACONIAN        104
 #define RACE_HALF_DRAGON            105
-//#define RACE_TROLL                  106
+//#define RACE_HALF_TROLL                  106
 #define RACE_DINOSAUR               107
 #define RACE_FEY                    108
 #define RACE_MEDIUM_FIRE_ELEMENTAL  109
@@ -1821,7 +1821,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define ITEM_ANTI_HUMAN           18   /* Not usable by Humans*/
 #define ITEM_ANTI_ELF             19   /* Not usable by Elfs */
 #define ITEM_ANTI_DWARF           20   /* Not usable by Dwarf*/
-#define ITEM_ANTI_TROLL           21   /* Not usable by Troll */
+#define ITEM_ANTI_HALF_TROLL           21   /* Not usable by Half Troll */
 #define ITEM_ANTI_MONK		    22   /**< Not usable by monks */
 #define ITEM_ANTI_DRUID		    23   // not usable by druid
 #define ITEM_MOLD                 24

@@ -2142,7 +2142,7 @@ void init_start_char(struct char_data *ch) {
       GET_REAL_CON(ch) += 2;
       GET_REAL_STR(ch) -= 2;
       break;
-    case RACE_TROLL:
+    case RACE_HALF_TROLL:
       GET_REAL_SIZE(ch) = SIZE_LARGE;
       GET_REAL_CON(ch) += 2;
       GET_REAL_STR(ch) += 2;
@@ -3533,7 +3533,7 @@ int level_exp(struct char_data *ch, int level) {
   //can add other exp penalty/bonuses here
   switch (GET_RACE(ch)) {
       //advanced races
-    case RACE_TROLL:
+    case RACE_HALF_TROLL:
       exp *= 2;
       break;
     case RACE_ARCANA_GOLEM:

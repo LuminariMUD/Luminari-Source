@@ -683,7 +683,7 @@ int compute_base_dex(struct char_data *ch) {
   switch (GET_RACE(ch)) {
     case RACE_ELF:      base_dex += 2; break;
     case RACE_HALFLING: base_dex += 2; break;
-    case RACE_TROLL:    base_dex += 2; break;
+    case RACE_HALF_TROLL:    base_dex += 2; break;
     case RACE_TRELUX:   base_dex += 8; break;
   }
   return base_dex;
@@ -697,7 +697,7 @@ int compute_base_str(struct char_data *ch) {
   switch (GET_RACE(ch)) {
     case RACE_HALFLING:        base_str -= 2; break;
     case RACE_GNOME:           base_str -= 2; break;
-    case RACE_TROLL:           base_str += 2; break;
+    case RACE_HALF_TROLL:           base_str += 2; break;
     case RACE_CRYSTAL_DWARF:   base_str += 2; break;
     case RACE_TRELUX:          base_str += 2; break;
     case RACE_ARCANA_GOLEM:    base_str -= 2; break;
@@ -715,7 +715,7 @@ int compute_base_con(struct char_data *ch) {
     case RACE_ELF:             base_con -= 2; break;
     case RACE_DWARF:           base_con += 2; break;
     case RACE_GNOME:           base_con += 2; break;
-    case RACE_TROLL:           base_con += 2; break;
+    case RACE_HALF_TROLL:           base_con += 2; break;
     case RACE_CRYSTAL_DWARF:   base_con += 8; break;
     case RACE_TRELUX:          base_con += 4; break;
     case RACE_ARCANA_GOLEM:    base_con -= 2; break;
@@ -729,7 +729,7 @@ int compute_con_cost(struct char_data *ch, int number) {
 int compute_base_inte(struct char_data *ch) {
   int base_inte = BASE_STAT;
   switch (GET_RACE(ch)) {
-    case RACE_TROLL:          base_inte -= 4; break;
+    case RACE_HALF_TROLL:          base_inte -= 4; break;
     case RACE_ARCANA_GOLEM:   base_inte += 2; break;
   }
   return base_inte;
@@ -741,7 +741,7 @@ int compute_inte_cost(struct char_data *ch, int number) {
 int compute_base_wis(struct char_data *ch) {
   int base_wis = BASE_STAT;
   switch (GET_RACE(ch)) {
-    case RACE_TROLL:           base_wis -= 4; break;
+    case RACE_HALF_TROLL:           base_wis -= 4; break;
     case RACE_CRYSTAL_DWARF:   base_wis += 2; break;
     case RACE_ARCANA_GOLEM:    base_wis += 2; break;
   }
@@ -755,7 +755,7 @@ int compute_base_cha(struct char_data *ch) {
   int base_cha = BASE_STAT;
   switch (GET_RACE(ch)) {
     case RACE_DWARF:            base_cha -= 2; break;
-    case RACE_TROLL:            base_cha -= 4; break;
+    case RACE_HALF_TROLL:            base_cha -= 4; break;
     case RACE_CRYSTAL_DWARF:    base_cha += 2; break;
     case RACE_ARCANA_GOLEM:     base_cha += 2; break;
   }

@@ -1934,7 +1934,7 @@ ACMD(do_innates) {
         send_to_char(ch, "combat training versus giants "
                      "(+1 size bonus vs. larger opponents)\r\n");
         break;
-      case RACE_TROLL:
+      case RACE_HALF_TROLL:
         send_to_char(ch, "regeneration\r\n");
         send_to_char(ch, "\tRweakness to acid (25%%)\tn\r\n");
         send_to_char(ch, "\tRweakness to fire (50%%)\tn\r\n");

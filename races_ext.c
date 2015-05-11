@@ -388,7 +388,7 @@ void assign_races(void) {
            180, 180, 65, 65, 55, Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
   add_race(RACE_GOBLIN, "goblin", "Goblin", "Goblin", RACE_TYPE_GOBLINOID, N, Y, Y, -2, 2, 0, 0, 2, -2, 150,
            150, 150, 45, 45, 40, Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_SMALL, FALSE, CLASS_WARRIOR, SKILL_LANG_GOBLIN, 0);
-  add_race(RACE_TROLL, "troll", "Troll", "Troll", RACE_TYPE_GIANT, N, Y, Y, 2, 4, 0, 0, 0, -2, 220,
+  add_race(RACE_HALF_TROLL, "troll", "Troll", "Troll", RACE_TYPE_GIANT, N, Y, Y, 2, 4, 0, 0, 0, -2, 220,
            220, 220, 75, 75, 70, Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_LARGE, FALSE, CLASS_WARRIOR, SKILL_LANG_GOBLIN, 0);
 
   // Giants
