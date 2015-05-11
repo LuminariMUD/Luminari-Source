@@ -1534,7 +1534,8 @@ do                                                              \
 
 /** If vict can see ch, return ch name, else return "someone". */
 #define PERS(ch, vict)  \
-	(CAN_SEE(vict, ch) ? GET_NAME(ch) : "someone")
+	(!CAN_SEE(vict, ch) ? "someone" : !GET_DISGUISE_RACE(ch) ? GET_NAME(ch) : \
+     race_list[GET_DISGUISE_RACE(ch)].name)
 
 
 /** If vict can see obj, return obj short description, else return
