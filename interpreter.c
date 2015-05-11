@@ -206,6 +206,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "disabletrap", "disabletrap", POS_STANDING, do_disabletrap, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}},
   { "disarm", "disarm", POS_FIGHTING, do_process_attack, 1, AA_DISARM, FALSE, ACTION_NONE, {0, 0}},
   { "domain", "domain", POS_DEAD, do_domain, 0, 0, TRUE, ACTION_NONE, {0, 0}},
+  { "disguise", "disguise", POS_RESTING ,do_disguise, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
 
   { "eat", "ea", POS_RECLINING, do_eat, 0, SCMD_EAT, FALSE, ACTION_MOVE, {0, 6}},
   { "echo", "ec", POS_SLEEPING, do_echo, LVL_IMMORT, SCMD_ECHO, TRUE, ACTION_NONE, {0, 0}},
@@ -513,7 +514,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "wizlock", "wizlock", POS_DEAD, do_wizlock, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}},
   { "write", "write", POS_STANDING, do_write, 1, 0, FALSE, ACTION_NONE, {0, 0}},
   { "wholenessofbody", "wholenessofbody", POS_RECLINING, do_wholenessofbody, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
-  { "wildshape", "wildshape"    , POS_RESTING , do_wildshape, 1, 0, FALSE, ACTION_STANDARD , {6, 0} },
+  { "wildshape", "wildshape", POS_RESTING ,do_wildshape, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
 
   { "zreset", "zreset", POS_DEAD, do_zreset, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},
   { "zedit", "zedit", POS_DEAD, do_oasis_zedit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},
