@@ -956,13 +956,16 @@ EVENTFUNC(event_casting) {
         failure -= CASTER_LEVEL(ch) + ((compute_ability(ch, ABILITY_CONCENTRATION) - 3) * 2);
       else
         failure -= (GET_LEVEL(ch)) * 3;
-      //chance of failure calculated here, so far:  taunt, grappled
+      //chance of failure calculated here, so far:  taunt, intimidate, grappled
       if (char_has_mud_event(ch, eTAUNTED))
+        failure += 15;
+      if (char_has_mud_event(ch, eINTIMIDATED))
         failure += 15;
       if (AFF_FLAGGED(ch, AFF_GRAPPLED))
         failure += 15;
-      if (!FIGHTING(ch))
-        failure -= 50;
+      /* this needs to be changed to no combat in the room at all */
+      //if (!FIGHTING(ch))
+        //failure -= 50;
 
       if (dice(1, 101) < failure) {
         send_to_char(ch, "You lost your concentration!\r\n");

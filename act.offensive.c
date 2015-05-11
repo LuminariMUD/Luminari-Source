@@ -1916,14 +1916,52 @@ ACMD(do_disengage) {
   }
 }
 
+/* taunt engine */
+int perform_taunt(struct char_data *ch, struct char_data *vict) {
+  int attempt = dice(1, 20), resist = 10;
+  int success = 0;
+
+  /* we started with base roll and defense in the variable declaration */
+  if (!IS_NPC(vict))
+    attempt += compute_ability(ch, ABILITY_DIPLOMACY);
+  else
+    attempt += GET_LEVEL(vict);
+  if (!IS_NPC(vict))
+    resist += compute_ability(vict, ABILITY_CONCENTRATION);
+  else
+    resist += GET_LEVEL(vict);
+
+  /* Should last one round, plus one second for every point over the resist */
+  if (attempt >= resist) {
+    send_to_char(ch, "You taunt your opponent!\r\n");
+    act("You are \tRtaunted\tn by $N!", FALSE, vict, 0, ch, TO_CHAR);
+    act("$n \tWtaunts\tn $N!", FALSE, ch, 0, vict, TO_NOTVICT);
+    attach_mud_event(new_mud_event(eTAUNTED, vict, NULL), (attempt - resist + 6) * PASSES_PER_SEC);
+    success = 1;
+  } else {
+    send_to_char(ch, "You fail to taunt your opponent!\r\n");
+    act("$N fails to \tRtaunt\tn you...", FALSE, vict, 0, ch, TO_CHAR);
+    act("$n fails to \tWtaunt\tn $N!", FALSE, ch, 0, vict, TO_NOTVICT);
+  }
+  if (!FIGHTING(vict))
+    hit(vict, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+
+  if (HAS_FEAT(ch, FEAT_IMPROVED_TAUNTING)) {
+    USE_MOVE_ACTION(ch);
+  } else {
+    USE_STANDARD_ACTION(ch);
+  }
+
+  return success;
+}
+
 ACMD(do_taunt) {
   char arg[MAX_INPUT_LENGTH];
   struct char_data *vict;
-  int attempt = dice(1, 20), resist = 10;
 
   one_argument(argument, arg);
 
-  if (IS_NPC(ch) || !GET_ABILITY(ch, ABILITY_INTIMIDATE)) {
+  if (IS_NPC(ch) || !GET_ABILITY(ch, ABILITY_DIPLOMACY)) {
     send_to_char(ch, "You have no idea how.\r\n");
     return;
   }
@@ -1952,15 +1990,18 @@ ACMD(do_taunt) {
     return;
   }
 
-  /* replaced with a standard action */
-  /*
-  if (char_has_mud_event(ch, eTAUNT)) {
-    send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
-    return;
-  }
-  */
+  perform_taunt(ch, vict);
+}
 
-  attempt += compute_ability(ch, ABILITY_INTIMIDATE);
+int perform_intimidate(struct char_data *ch, struct char_data *vict) {
+  int success = 0;
+  int attempt = dice(1, 20), resist = 10;
+
+  /* we started with base roll and defense in the variable declaration */
+  if (!IS_NPC(vict))
+    attempt += compute_ability(ch, ABILITY_INTIMIDATE);
+  else
+    attempt += GET_LEVEL(vict);
   if (!IS_NPC(vict))
     resist += compute_ability(vict, ABILITY_CONCENTRATION);
   else
@@ -1968,22 +2009,64 @@ ACMD(do_taunt) {
 
   /* Should last one round, plus one second for every point over the resist */
   if (attempt >= resist) {
-    send_to_char(ch, "You taunt your opponent!\r\n");
-    act("You are \tRtaunted\tn by $N!", FALSE, vict, 0, ch, TO_CHAR);
-    act("$n \tWtaunts\tn $N!", FALSE, ch, 0, vict, TO_NOTVICT);
+    send_to_char(ch, "You intimidate your opponent!\r\n");
+    act("You are \tRintimidated\tn by $N!", FALSE, vict, 0, ch, TO_CHAR);
+    act("$n \tWintimidates\tn $N!", FALSE, ch, 0, vict, TO_NOTVICT);
     attach_mud_event(new_mud_event(eTAUNTED, vict, NULL), (attempt - resist + 6) * PASSES_PER_SEC);
+    success = 1;
   } else {
-    send_to_char(ch, "You fail to taunt your opponent!\r\n");
-    act("$N fails to \tRtaunt\tn you...", FALSE, vict, 0, ch, TO_CHAR);
-    act("$n fails to \tWtaunt\tn $N!", FALSE, ch, 0, vict, TO_NOTVICT);
+    send_to_char(ch, "You fail to intimidate your opponent!\r\n");
+    act("$N fails to \tRintimidate\tn you...", FALSE, vict, 0, ch, TO_CHAR);
+    act("$n fails to \tWintimidate\tn $N!", FALSE, ch, 0, vict, TO_NOTVICT);
   }
   if (!FIGHTING(vict))
     hit(vict, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
 
-  /* swapped with standard action */
-  //attach_mud_event(new_mud_event(eTAUNT, ch, NULL), 8 * PASSES_PER_SEC);
+  if (HAS_FEAT(ch, FEAT_IMPROVED_INTIMIDATION)) {
+    USE_MOVE_ACTION(ch);
+  } else {
+    USE_STANDARD_ACTION(ch);
+  }
 
-  USE_STANDARD_ACTION(ch);
+  return success;
+}
+
+ACMD(do_intimidate) {
+  char arg[MAX_INPUT_LENGTH];
+  struct char_data *vict;
+
+  one_argument(argument, arg);
+
+  if (IS_NPC(ch) || !GET_ABILITY(ch, ABILITY_INTIMIDATE)) {
+    send_to_char(ch, "You have no idea how.\r\n");
+    return;
+  }
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return;
+  }
+  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
+    if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch))) {
+      vict = FIGHTING(ch);
+    } else {
+      send_to_char(ch, "Intimidate who?\r\n");
+      return;
+    }
+  }
+  if (vict == ch) {
+    send_to_char(ch, "Aren't we funny today...\r\n");
+    return;
+  }
+  if (MOB_FLAGGED(vict, MOB_NOKILL)) {
+    send_to_char(ch, "This mob is protected.\r\n");
+    return;
+  }
+  if (char_has_mud_event(vict, eINTIMIDATED)) {
+    send_to_char(ch, "Your target is already intimidated...\r\n");
+    return;
+  }
+
+  perform_intimidate(ch, vict);
 }
 
 /* do_frightful - Perform an AoE attack that terrifies the victims, causign them to flee.

@@ -655,10 +655,10 @@ void cleanup_disguise(struct char_data *ch) {
       REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_WILD_SHAPE);
     set_bonus_attributes(ch, 0, 0, 0, 0);
   }
-  if (!AFF_FLAGGED(ch, AFF_WILD_SHAPE)) {
-    GET_DISGUISE_RACE(ch) = 0;
-    set_bonus_attributes(ch, 0, 0, 0, 0);
-  }
+  //if (!AFF_FLAGGED(ch, AFF_WILD_SHAPE)) {
+  //  GET_DISGUISE_RACE(ch) = 0;
+  //  set_bonus_attributes(ch, 0, 0, 0, 0);
+  //}
 }
 
 /* This updates a character by subtracting everything he is affected by

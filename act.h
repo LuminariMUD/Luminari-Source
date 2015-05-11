@@ -310,6 +310,7 @@ ACMD(do_abundantstep);
 ACMD(do_animatedead);
 ACMD(do_rescue);
 ACMD(do_taunt);
+ACMD(do_intimidate);
 ACMD(do_treatinjury);
 ACMD(do_emptybody);
 ACMD(do_wholenessofbody);
