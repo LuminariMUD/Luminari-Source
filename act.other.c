@@ -1793,6 +1793,10 @@ ACMD(do_wildshape) {
     send_to_char(ch, "You must return to your normal shape before assuming a new form.\r\n");
     return;
   }
+  if (GET_DISGUISE_RACE(ch)) {
+    send_to_char(ch, "You must remove your disguise before using wildshape.\r\n");
+    return;
+  }
 
   /* try to match argument to the list */
   i = display_eligible_wildshape_races(ch, argument, TRUE);
@@ -2111,6 +2115,10 @@ ACMD(do_disguise) {
 
   /*attempting to apply a disguise*/
 
+  if (AFF_FLAGGED(ch, AFF_WILD_SHAPE)) {
+    send_to_char(ch, "You must return to your normal shape before trying to assume a disguise.\r\n");
+    return;
+  }
   if (GET_DISGUISE_RACE(ch)) {
     send_to_char(ch, "You must 'return' to your normal race before assuming a new disguise.\r\n");
     return;
