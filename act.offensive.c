@@ -2012,7 +2012,7 @@ int perform_intimidate(struct char_data *ch, struct char_data *vict) {
     send_to_char(ch, "You intimidate your opponent!\r\n");
     act("You are \tRintimidated\tn by $N!", FALSE, vict, 0, ch, TO_CHAR);
     act("$n \tWintimidates\tn $N!", FALSE, ch, 0, vict, TO_NOTVICT);
-    attach_mud_event(new_mud_event(eTAUNTED, vict, NULL), (attempt - resist + 6) * PASSES_PER_SEC);
+    attach_mud_event(new_mud_event(eINTIMIDATED, vict, NULL), (attempt - resist + 6) * PASSES_PER_SEC);
     success = 1;
   } else {
     send_to_char(ch, "You fail to intimidate your opponent!\r\n");

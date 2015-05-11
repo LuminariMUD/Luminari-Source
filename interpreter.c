@@ -2116,6 +2116,7 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
           return;
       }
 
+      write_to_output(d, "Races of Luminari\r\n\r\n");
       for (i = 0; i < NUM_RACES; i++) {
         if (!locked_races[i] || has_unlocked_race(d->character, i))
           write_to_output(d, "%s\r\n", pc_race_types[i]);
@@ -2190,6 +2191,7 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
         STATE(d) = CON_QRACE_HELP;
         return;
       } else {
+        write_to_output(d, "Races of Luminari\r\n\r\n");
         for (i = 0; i < NUM_RACES; i++) {
           if (!locked_races[i] || has_unlocked_race(d->character, i))
             write_to_output(d, "%s\r\n", pc_race_types[i]);
@@ -2201,6 +2203,7 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
       }
 
       /* display class menu */
+      write_to_output(d, "Classes of Luminari\r\n\r\n");
       for (i = 0; i < NUM_CLASSES; i++) {
         if (!locked_classes[i] || has_unlocked_class(d->character, i))
           write_to_output(d, "%s\r\n", pc_class_types[i]);
@@ -2279,6 +2282,7 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
         STATE(d) = CON_QCLASS_HELP;
         return;
       } else {
+        write_to_output(d, "Classes of Luminari\r\n\r\n");
         for (i = 0; i < NUM_CLASSES; i++) {
           if (!locked_classes[i])
             write_to_output(d, "%s\r\n", pc_class_types[i]);
