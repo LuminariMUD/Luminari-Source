@@ -1736,7 +1736,7 @@ void set_bonus_stats(struct char_data *ch, int str, int con, int dex, int ac) {
 }
 #undef WILDSHAPE_AFFECTS
 
-/* wildshape port from d20, in progress -Zusuk */
+/* wildshape, in progress -Zusuk */
 ACMD(do_wildshape) {
   int i = 0;
   char buf[200];
@@ -2035,6 +2035,107 @@ ACMD(do_shapechange) {
 
 /*****************************/
 
+int display_eligible_disguise_races(struct char_data *ch, char *argument, int silent) {
+  int i = 0;
+
+  for (i = 0; i < NUM_EXTENDED_RACES; i++) {
+    switch (race_list[i].family) {
+      case RACE_TYPE_HUMAN:
+      case RACE_TYPE_ELF:
+      case RACE_TYPE_DWARF:
+      case RACE_TYPE_HALFLING:
+      case RACE_TYPE_GNOME:
+      case RACE_TYPE_HALF_ELF:
+        if (race_list[i].size == GET_SIZE(ch)) {
+          break;
+        }
+      default: continue;
+    }
+
+    if (!strcmp(argument, race_list[i].name)) /* match argument? */
+      break;
+  }
+
+  if (i >= NUM_EXTENDED_RACES)
+    return 0; /* failed to find anything */
+  else
+    return i;
+}
+
+ACMD(do_disguise) {
+  int i = 0;
+  char buf[200];
+
+  skip_spaces(&argument);
+
+  if (!GET_ABILITY(ch, ABILITY_DISGUISE)) {
+    send_to_char(ch, "You do not have the ability to disguise!\r\n");
+    return;
+  }
+
+  if (!*argument) {
+    send_to_char(ch, "Please select a race to disguise or select 'return' to remove your disguise.\r\n");
+    display_eligible_disguise_races(ch, argument, FALSE);
+    return;
+  }
+
+  if (strlen(argument) > 100) {
+    send_to_char(ch, "The race name argument cannot be any longer than 100 characters.\r\n");
+    return;
+  }
+
+  if (!strcmp(argument, "return")) {
+    if (!GET_DISGUISE_RACE(ch)) {
+      send_to_char(ch, "You are not currently disguised.\r\n");
+      return;
+    }
+
+    GET_DISGUISE_RACE(ch) = 0;
+    affect_total(ch);
+    save_char(ch, 0);
+    Crash_crashsave(ch);
+
+    sprintf(buf, "You remove your disguise and now again appear like a: %s.", pc_race_types[GET_RACE(ch)]);
+    act(buf, true, ch, 0, 0, TO_CHAR);
+    sprintf(buf, "$n removes $s disguise, revealing $s race: %s.", pc_race_types[GET_RACE(ch)]);
+    act(buf, true, ch, 0, 0, TO_ROOM);
+
+    USE_STANDARD_ACTION(ch);
+
+    return;
+  }
+
+  /*attempting to apply a disguise*/
+
+  if (GET_DISGUISE_RACE(ch)) {
+    send_to_char(ch, "You must 'return' to your normal race before assuming a new disguise.\r\n");
+    return;
+  }
+
+  /* try to match argument to the list */
+  i = display_eligible_disguise_races(ch, argument, TRUE);
+
+  if (i == 0) { /* failed to find the race */
+    send_to_char(ch, "Please select a race to disguise to or select 'return'.\r\n");
+    display_eligible_disguise_races(ch, argument, FALSE);
+    return;
+  }
+
+  /* we're in the clear, set the disguise race! */
+  GET_DISGUISE_RACE(ch) = i;
+  affect_total(ch);
+  save_char(ch, 0);
+  Crash_crashsave(ch);
+
+  sprintf(buf, "You disguises into a %s.", race_list[GET_DISGUISE_RACE(ch)].name);
+  act(buf, true, ch, 0, 0, TO_CHAR);
+  sprintf(buf, "$n disguises into a %s.", race_list[GET_DISGUISE_RACE(ch)].name);
+  act(buf, true, ch, 0, 0, TO_ROOM);
+
+  USE_STANDARD_ACTION(ch);
+
+  return;
+}
 
 ACMD(do_quit) {
   if (IS_NPC(ch) || !ch->desc)

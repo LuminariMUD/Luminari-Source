@@ -543,6 +543,18 @@ void assign_feats(void) {
     feat_prereq_attribute(FEAT_IMPROVED_FEINT, AB_INT, 13);
     feat_prereq_feat(FEAT_IMPROVED_FEINT, FEAT_COMBAT_EXPERTISE, 1);
 
+  feato(FEAT_IMPROVED_TAUNTING, "improved taunting", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "can taunt as a move action",
+    "You can make a diplomacy check to taunt in combat as a move action as opposed "
+      "to standard action.");
+    feat_prereq_ability(FEAT_IMPROVED_TAUNTING, ABILITY_DIPLOMACY, 10);
+
+  feato(FEAT_IMPROVED_INTIMIDATION, "improved intimidation", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "can intimidate as a move action",
+    "You can make a intimidate check to taunt in combat as a move action as opposed "
+      "to standard action.");
+    feat_prereq_ability(FEAT_IMPROVED_INTIMIDATION, ABILITY_INTIMIDATE, 10);
+
   feato(FEAT_STUNNING_FIST, "stunning fist", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
     "may make unarmed attack to stun opponent for one round",
     "may make unarmed attack to stun opponent for one round");
@@ -553,8 +565,9 @@ void assign_feats(void) {
 
   feato(FEAT_WEAPON_FINESSE, "weapon finesse", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
     "use dex for hit roll of weapons",
-    "use dexterity bonus for hit roll of weapons (if better than strength bonus), "
-      "there is no benefit to this feat for archery");
+    "Use dexterity bonus for hit roll of weapons (if better than strength bonus), "
+      "there is no benefit to this feat for archery.  Only works for 'light' classed "
+      "weapons, or weapons that are a smaller size class than the character.");
     feat_prereq_bab(FEAT_WEAPON_FINESSE, 1);
 
   /* epic */
@@ -1188,7 +1201,6 @@ void assign_feats(void) {
   feato(FEAT_GREATER_COMBAT_CHALLENGE, "greater combat challenge", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "as improved combat challenge, but regular challenge is a minor action & challenge all is a move action", "as improved combat challenge, but regular challenge is a minor action & challenge all is a move action");
   feato(FEAT_IMPROVED_COMBAT_CHALLENGE, "improved combat challenge", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "allows you to make all mobs focus their attention on you", "allows you to make all mobs focus their attention on you");
   feato(FEAT_IMPROVED_NATURAL_WEAPON, "improved natural weapons", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "increase damage dice by one category for natural weapons", "increase damage dice by one category for natural weapons");
-  feato(FEAT_IMPROVED_TAUNTING, "improved taunting", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
   feato(FEAT_IMPROVED_WEAPON_FINESSE, "improved weapon finesse", FALSE, TRUE, TRUE, FEAT_TYPE_COMBAT, "add dex bonus to damage instead of str for light weapons", "add dex bonus to damage instead of str for light weapons");
   feato(FEAT_KNOCKDOWN, "knockdown", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "when active, any melee attack that deals 10 damage or more invokes a free automatic trip attempt against your target", "when active, any melee attack that deals 10 damage or more invokes a free automatic trip attempt against your target");
   feato(FEAT_HEROIC_INITIATIVE, "heroic initiative", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "bonus to initiative checks", "bonus to initiative checks");
@@ -1932,7 +1944,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
         return TRUE;
 
       case FEAT_IMPROVED_TAUNTING:
-        if (GET_ABILITY(ch, ABILITY_BLUFF) < 10)
+        if (GET_ABILITY(ch, ABILITY_DIPLOMACY) < 10)
           return FALSE;
         return TRUE;
 
@@ -2044,7 +2056,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
         return TRUE;
 
       case FEAT_STUNNING_FIST:
-        if (has_feat(ch, FEAT_IMPROVED_UNARMED_STRIKE) && ch->real_abils.str >= 13 && ch->real_abils.dex >= 13 && BAB(ch) >= 8)
+        if (has_feat(ch, FEAT_IMPROVED_UNARMED_STRIKE) && ch->real_abils.wis >= 13 && ch->real_abils.dex >= 13 && BAB(ch) >= 8)
           return TRUE;
         if (CLASS_LEVEL(ch, CLASS_MONK) > 0)
           return TRUE;

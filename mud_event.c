@@ -31,7 +31,7 @@ struct mud_event_list mud_event_index[] = {
   { "Casting", event_casting, EVENT_CHAR}, /* eCASTING */
   { "Lay on hands", event_countdown, EVENT_CHAR}, // eLAYONHANDS
   { "Treat injury", event_countdown, EVENT_CHAR}, // eTREATINJURY
-  { "Taunt", event_countdown, EVENT_CHAR}, // eTAUNT
+  { "Taunt Cool Down", event_countdown, EVENT_CHAR}, // eTAUNT
   { "Taunted", event_countdown, EVENT_CHAR}, // eTAUNTED
   { "Mummy dust", event_countdown, EVENT_CHAR}, // eMUMMYDUST
   { "Dragon knight", event_countdown, EVENT_CHAR}, //  eDRAGONKNIGHT
@@ -84,6 +84,8 @@ struct mud_event_list mud_event_index[] = {
   { "Animate Dead", event_daily_use_cooldown, EVENT_CHAR}, //eANIMATEDEAD
   { "Vanish", event_countdown, EVENT_CHAR}, //eVANISH
   { "Vanish Cool Down", event_daily_use_cooldown, EVENT_CHAR}, //eVANISHED
+  { "Intimidated", event_countdown, EVENT_CHAR}, //eINTIMIDATED
+  { "Intimidated Cool Down", event_countdown, EVENT_CHAR}, //eINTIMIDATE_COOLDOWN
 };
 
 /* init_events() is the ideal function for starting global events. This
@@ -225,6 +227,12 @@ EVENTFUNC(event_countdown) {
       break;
     case eTAUNTED:
       send_to_char(ch, "You feel the effects of the taunt wear off.\r\n");
+      break;
+    case eINTIMIDATED:
+      send_to_char(ch, "You feel the effects of the intimidation wear off.\r\n");
+      break;
+    case eINTIMIDATE_COOLDOWN:
+      send_to_char(ch, "You are now able to intimidate again.\r\n");
       break;
    case eEMPTYBODY:
       send_to_char(ch, "You are now able to use Empty Body again.\r\n");

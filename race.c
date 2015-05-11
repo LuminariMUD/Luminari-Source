@@ -328,7 +328,7 @@ const char *morph_to_char[] = {
 // pc race abbreviations, with color
 const char *race_abbrevs[] = {
         "\tBHumn\tn",
-        "\tYElf\tn",
+        "\tYElf \tn",
         "\tgDwrf\tn",
         "\trTrol\tn",
         "\tCC\tgDwf\tn",

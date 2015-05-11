@@ -2292,6 +2292,8 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
       HUNTING(victim) = ch->master;  // help curb pet-fodder methods
   }
 
+  /* modify damage: concealment, trelux leap, mirror image, energey absorb
+       damage-type reduction, old-skool damage reduction, inertial barrier */
   dam = damage_handling(ch, victim, dam, w_type, dam_type); //modify damage
   if (dam == -1) // make sure message handling has been done!
     return 0;
@@ -2460,12 +2462,14 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
 
   /* strength bonus */
   switch (attack_type) {
+
     case ATTACK_TYPE_PRIMARY:
       if (GET_EQ(ch, WEAR_WIELD_2H) && !is_using_double_weapon(ch))
         dambonus += GET_STR_BONUS(ch) * 3 / 2; /* 2handed weapon */
       else
         dambonus += GET_STR_BONUS(ch);
       break;
+
     case ATTACK_TYPE_OFFHAND:
       dambonus += GET_STR_BONUS(ch) / 2;
       break;
@@ -2523,6 +2527,8 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     default:break;
   }
 
+  /* penalties */
+
   /* Circumstance penalty */
   switch (GET_POS(ch)) {
     case POS_SITTING:
@@ -2543,6 +2549,13 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   if (AFF_FLAGGED(ch, AFF_FATIGUED))
     dambonus -= 2;
 
+  /* current implementation of intimidate */
+  if (char_has_mud_event(ch, eINTIMIDATED)) {
+    dambonus -= 6;
+  }
+
+  /* end penalties */
+
   /* size */
   dambonus += size_modifiers[GET_SIZE(ch)];
 
@@ -2561,7 +2574,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
       dambonus += 2;
   }
 
-  /* weapon enhancement bonus, might need some work */
+  /* weapon enhancement bonus */
   if (wielded)
     dambonus += GET_ENHANCEMENT_BONUS(wielded);
 
@@ -2604,7 +2617,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   if (affected_by_spell(ch, SKILL_POWERFUL_BLOW)) {
     dambonus += CLASS_LEVEL(ch, CLASS_BERSERKER) / 4 + 1;
   } /* THIS IS JUST FOR SHOW, it gets taken out before the damage is calculated
-     * the actual damage bonus is inserted in the code below */
+     * the actual damage bonus is inserted in the damage code */
 
   /* if the victim is using 'come and get me' then they will be vulnerable */
   if (vict && affected_by_spell(vict, SKILL_COME_AND_GET_ME)) {
@@ -2877,7 +2890,7 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
   return dice(diceOne, diceTwo);
 }
 
-/* simple test for testing critical hit */
+/* simple test for testing (confirming) critical hit */
 int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll,
                   int calc_bab, int victim_ac) {
   int threat_range, confirm_roll = dice(1,20) + calc_bab;
