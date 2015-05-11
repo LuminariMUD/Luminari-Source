@@ -283,7 +283,7 @@ void char_from_furniture(struct char_data *ch);
 
 
 
-/** If c is an upper case letter, return the upper case. */
+/** If c is an upper case letter, return the lower case. */
 #define LOWER(c)   (((c)>='A'  && (c) <= 'Z') ? ((c)+('a'-'A')) : (c))
 
 /** If c is a lower case letter, return the upper case. */

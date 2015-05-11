@@ -539,8 +539,13 @@ static void list_one_char(struct char_data *i, struct char_data *ch) {
     if (!GET_DISGUISE_RACE(i))
       send_to_char(ch, "\tn[%s] %s%s%s", RACE_ABBR(i), i->player.name,
                  *GET_TITLE(i) ? " " : "", GET_TITLE(i));
-    else
-      send_to_char(ch, "%s %s", CAP(AN(race_list[GET_DISGUISE_RACE(i)].type)), race_list[GET_DISGUISE_RACE(i)].type);
+    else {
+      char *a_an;
+      a_an = strdup(AN(race_list[GET_DISGUISE_RACE(i)].type));
+      send_to_char(ch, "%s %s", CAP(a_an), race_list[GET_DISGUISE_RACE(i)].type);
+      free(a_an);
+      a_an = NULL;
+    }
   }
 
 
