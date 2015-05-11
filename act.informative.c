@@ -535,9 +535,14 @@ static void list_one_char(struct char_data *i, struct char_data *ch) {
     send_to_char(ch, "%s", CAP(short_descr));
     free(short_descr);
     short_descr = NULL;
-  } else
-    send_to_char(ch, "\tn[%s] %s%s%s", RACE_ABBR(i), i->player.name,
+  } else {
+    if (!GET_DISGUISE_RACE(i))
+      send_to_char(ch, "\tn[%s] %s%s%s", RACE_ABBR(i), i->player.name,
                  *GET_TITLE(i) ? " " : "", GET_TITLE(i));
+    else
+      send_to_char(ch, "%s %s", AN(race_list[GET_DISGUISE_RACE(i)].type), race_list[GET_DISGUISE_RACE(i)].type);
+  }
+
 
   if (AFF_FLAGGED(i, AFF_INVISIBLE))
     send_to_char(ch, " (invisible)");
