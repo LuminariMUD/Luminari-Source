@@ -347,6 +347,9 @@ static void diag_char_to_char(struct char_data *i, struct char_data *ch) {
   };
   int percent, ar_index;
   char *pers = strdup(PERS(i, ch));
+  int is_disguised = GET_DISGUISE_RACE(i);
+
+
 
   if (GET_MAX_HIT(i) > 0)
     percent = (100 * GET_HIT(i)) / GET_MAX_HIT(i);
@@ -357,7 +360,10 @@ static void diag_char_to_char(struct char_data *i, struct char_data *ch) {
     if (percent >= diagnosis[ar_index].percent)
       break;
 
-  if (!IS_NPC(i))
+  if (is_disguised) {
+    send_to_char(ch, "%s \tn[%s %s\tn] %s\r\n", race_list[is_disguised].type,
+                 size_names[GET_SIZE(i)], RACE_ABBR(i), diagnosis[ar_index].text);
+  } else if (!IS_NPC(i))
     send_to_char(ch, "%s \tn[%s %s\tn] %s\r\n", CAP(pers), size_names[GET_SIZE(i)],
                  RACE_ABBR(i), diagnosis[ar_index].text);
   else if (IS_NPC(i) && GET_RACE(i) <= NPCRACE_UNKNOWN)
@@ -386,13 +392,18 @@ static void diag_char_to_char(struct char_data *i, struct char_data *ch) {
 }
 
 static void look_at_char(struct char_data *i, struct char_data *ch) {
-  int j, found;
+  int j, found, is_disguised = FALSE;
   char buf[MAX_INPUT_LENGTH];
 
   if (!ch->desc)
     return;
 
-  if (i->player.description)
+  if (GET_DISGUISE_RACE(i))
+    is_disguised = GET_DISGUISE_RACE(i);
+
+  if (is_disguised) {
+    ;/*todo, put in descriptions!*/
+  } else if (i->player.description)
     send_to_char(ch, "%s", i->player.description);
   else
     act("You see nothing special about $m.", FALSE, i, 0, ch, TO_VICT);
@@ -421,7 +432,7 @@ static void look_at_char(struct char_data *i, struct char_data *ch) {
     if (GET_EQ(i, j) && CAN_SEE_OBJ(ch, GET_EQ(i, j)))
       found = TRUE;
 
-  if (found) {
+  if (found && !is_disguised) {
     send_to_char(ch, "\r\n"); /* act() does capitalization. */
     act("$n is using:", FALSE, i, 0, ch, TO_VICT);
     for (j = 0; j < NUM_WEARS; j++)
@@ -1105,8 +1116,6 @@ static void look_at_target(struct char_data *ch, char *arg) {
     send_to_char(ch, "Look at what?\r\n");
     return;
   }
-
-  /* due to disguise and wildshape we have */
 
   bits = generic_find(arg, FIND_OBJ_INV | FIND_OBJ_ROOM | FIND_OBJ_EQUIP |
                       FIND_CHAR_ROOM, ch, &found_char, &found_obj);
