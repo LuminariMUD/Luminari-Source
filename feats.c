@@ -589,7 +589,7 @@ void assign_feats(void) {
   feato(FEAT_BLINDING_SPEED, "blinding speed", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
     "get an extra attack, as if hasted",
     "You get an extra attack, as if hasted.");
-    feat_prereq_attribute(FEAT_PERFECT_TWO_WEAPON_FIGHTING, AB_DEX, 25);
+    feat_prereq_attribute(FEAT_BLINDING_SPEED, AB_DEX, 25);
 
   /*****************/
   /* General feats */
@@ -1520,6 +1520,8 @@ void assign_feats(void) {
   epicfeat(FEAT_SNEAK_ATTACK_OF_OPPORTUNITY);
   epicfeat(FEAT_AUTOMATIC_QUICKEN_SPELL);
   epicfeat(FEAT_IMPROVED_SPELL_RESISTANCE);
+  epicfeat(FEAT_BLINDING_SPEED);
+
   epicfeat(FEAT_LAST_FEAT);
 
   /* Feats with "Daily Use" Mechanic */
@@ -2096,29 +2098,35 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
         return FALSE;
 
       case FEAT_GREATER_TWO_WEAPON_FIGHTING:
-        if (ch->real_abils.dex >= 19 && has_feat(ch, FEAT_TWO_WEAPON_FIGHTING) && has_feat(ch, FEAT_IMPROVED_TWO_WEAPON_FIGHTING) && BAB(ch) >= 11)
+        if (ch->real_abils.dex >= 19 && has_feat(ch, FEAT_TWO_WEAPON_FIGHTING) &&
+            has_feat(ch, FEAT_IMPROVED_TWO_WEAPON_FIGHTING) && BAB(ch) >= 11)
           return TRUE;
         return FALSE;
-        /*
-          case FEAT_PERFECT_TWO_WEAPON_FIGHTING:
-            if (ch->real_abils.dex >= 25 && has_feat(ch, FEAT_GREATER_TWO_WEAPON_FIGHTING))
-              return TRUE;
-            return FALSE;
-         */
+
+      case FEAT_PERFECT_TWO_WEAPON_FIGHTING:
+        if (ch->real_abils.dex >= 21 && has_feat(ch, FEAT_GREATER_TWO_WEAPON_FIGHTING))
+          return TRUE;
+        return FALSE;
+
+      case FEAT_BLINDING_SPEED:
+        if (ch->real_abils.dex >= 25)
+          return TRUE;
+        return FALSE;
+
       case FEAT_IMPROVED_CRITICAL:
         if (BAB(ch) < 8)
           return FALSE;
         if (!iarg || is_proficient_with_weapon(ch, iarg))
           return TRUE;
         return FALSE;
-        /*
-          case FEAT_POWER_CRITICAL:
-            if (BAB(ch) < 4)
-              return FALSE;
-            if (!iarg || has_combat_feat(ch, CFEAT_WEAPON_FOCUS, iarg))
-              return TRUE;
-            return FALSE;
 
+      case FEAT_POWER_CRITICAL:
+        if (BAB(ch) < 4)
+          return FALSE;
+        if (!iarg || has_combat_feat(ch, CFEAT_WEAPON_FOCUS, iarg))
+          return TRUE;
+        return FALSE;
+/*
           case FEAT_WEAPON_MASTERY:
             if (BAB(ch) < 8)
               return FALSE;
