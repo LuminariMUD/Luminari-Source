@@ -1534,129 +1534,129 @@ void mag_assign_spells(void) {
   //shared
   spello(SPELL_INFRAVISION, "infravision", 0, 0, 0, POS_FIGHTING, //enchant
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "Your night vision seems to fade.", 4, 8,
+          "Your night vision seems to fade.", 13, 13,
           ENCHANTMENT, FALSE); // wizard 4, cleric 4
   spello(SPELL_DETECT_POISON, "detect poison", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_OBJ_INV | TAR_OBJ_ROOM, FALSE, MAG_MANUAL,
-          "The detect poison wears off.", 4, 11,
+          "The detect poison wears off.", 19, 10,
           DIVINATION, FALSE); // wizard 7, cleric 2
   spello(SPELL_POISON, "poison", 0, 0, 0, POS_FIGHTING, //enchantment
           TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_OBJ_INV, TRUE,
           MAG_AFFECTS | MAG_ALTER_OBJS,
-          "You feel less sick.", 5, 8,
+          "You feel less sick.", 5, 13,
           ENCHANTMENT, FALSE); // wizard 4, cleric 5
   spello(SPELL_ENERGY_DRAIN, "energy drain", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE | MAG_MANUAL,
-          NULL, 9, 14,
+          NULL, 9, 23,
           NECROMANCY, FALSE); // wizard 9, cleric 9
   spello(SPELL_REMOVE_CURSE, "remove curse", 0, 0, 0, POS_FIGHTING, //abjur
           TAR_CHAR_ROOM | TAR_OBJ_INV | TAR_OBJ_EQUIP, FALSE,
           MAG_UNAFFECTS | MAG_ALTER_OBJS,
-          NULL, 4, 8, ABJURATION, FALSE); // wizard 4, cleric 4
+          NULL, 4, 13, ABJURATION, FALSE); // wizard 4, cleric 4
   spello(SPELL_ENDURANCE, "endurance", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "Your magical endurance has faded away.", 2, 6,
+          "Your magical endurance has faded away.", 2, 11,
           TRANSMUTATION, FALSE); // wizard 1, cleric 1
   spello(SPELL_RESIST_ENERGY, "resist energy", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "Your energy resistance dissipates.", 2, 6,
+          "Your energy resistance dissipates.", 2, 11,
           ABJURATION, FALSE); // wizard 1, cleric 1
   spello(SPELL_CUNNING, "cunning", 30, 15, 1, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "Your magical cunning has faded away.", 3, 7,
+          "Your magical cunning has faded away.", 3, 11,
           TRANSMUTATION, FALSE); // wizard 2, cleric 3
   spello(SPELL_WISDOM, "wisdom", 30, 15, 1, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "Your magical wisdom has faded away.", 3, 7,
+          "Your magical wisdom has faded away.", 3, 11,
           TRANSMUTATION, FALSE); // wizard 2, cleric 2
   spello(SPELL_CHARISMA, "charisma", 30, 15, 1, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "Your magical charisma has faded away.", 3, 7,
+          "Your magical charisma has faded away.", 3, 11,
           TRANSMUTATION, FALSE); // wizard 2, cleric 2
   spello(SPELL_CONTROL_WEATHER, "control weather", 72, 57, 1, POS_STANDING,
           TAR_IGNORE, FALSE, MAG_MANUAL,
-          NULL, 14, 11, CONJURATION, FALSE); // wiz 7, cleric x
+          NULL, 14, 19, CONJURATION, FALSE); // wiz 7, cleric x
   spello(SPELL_NEGATIVE_ENERGY_RAY, "negative energy ray", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
-          NULL, 1, 5, NECROMANCY, FALSE); // wiz 1, cleric 1
+          NULL, 1, 7, NECROMANCY, FALSE); // wiz 1, cleric 1
   spello(SPELL_ENDURE_ELEMENTS, "endure elements", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "You feel your element protection wear off.", 2, 5, ABJURATION, FALSE); //wiz1 cle1
+          "You feel your element protection wear off.", 2, 7, ABJURATION, FALSE); //wiz1 cle1
   spello(SPELL_PROT_FROM_EVIL, "protection from evil", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "You feel less protected from evil.", 5, 5, ABJURATION, FALSE); //wiz1 cle1
+          "You feel less protected from evil.", 5, 7, ABJURATION, FALSE); //wiz1 cle1
   spello(SPELL_PROT_FROM_GOOD, "protection from good", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "You feel less protected from good.", 5, 5, ABJURATION, FALSE); //wiz1 cle1
+          "You feel less protected from good.", 5, 7, ABJURATION, FALSE); //wiz1 cle1
   spello(SPELL_SUMMON_CREATURE_1, "summon creature i", 0, 0, 0, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_SUMMONS,
-          NULL, 5, 5, CONJURATION, FALSE); //wiz1, cle1
+          NULL, 5, 10, CONJURATION, FALSE); //wiz1, cle1
   spello(SPELL_STRENGTH, "strength", 65, 50, 1, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "You feel weaker.", 2, 6, TRANSMUTATION, FALSE); //wiz2, cle1
+          "You feel weaker.", 2, 7, TRANSMUTATION, FALSE); //wiz2, cle1
   spello(SPELL_GRACE, "grace", 65, 50, 1, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "You feel less dextrous.", 2, 6, TRANSMUTATION, FALSE); //wiz2, cle1
+          "You feel less dextrous.", 2, 7, TRANSMUTATION, FALSE); //wiz2, cle1
   spello(SPELL_SCARE, "scare", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
-          "You no longer feel scared.", 1, 5, ILLUSION, FALSE); //wiz1, cle2
+          "You no longer feel scared.", 1, 7, ILLUSION, FALSE); //wiz1, cle2
   spello(SPELL_SUMMON_CREATURE_2, "summon creature ii", 0, 0, 0, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_SUMMONS,
-          NULL, 6, 6, CONJURATION, FALSE); //wiz2, cle2
+          NULL, 6, 9, CONJURATION, FALSE); //wiz2, cle2
   spello(SPELL_DETECT_MAGIC, "detect magic", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "The detect magic wears off.", 1, 6, DIVINATION, FALSE); //wiz2, cle2
+          "The detect magic wears off.", 1, 9, DIVINATION, FALSE); //wiz2, cle2
   spello(SPELL_DARKNESS, "darkness", 0, 0, 0, POS_STANDING,
           TAR_IGNORE, FALSE, MAG_ROOM,
-          "The cloak of darkness in the area dissolves.", 5, 6, DIVINATION, FALSE); //wiz2, cle2
+          "The cloak of darkness in the area dissolves.", 5, 9, DIVINATION, FALSE); //wiz2, cle2
   spello(SPELL_SUMMON_CREATURE_3, "summon creature iii", 95, 80, 1, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_SUMMONS,
-          NULL, 7, 7, CONJURATION, FALSE); //wiz3, cle3
+          NULL, 7, 11, CONJURATION, FALSE); //wiz3, cle3
   spello(SPELL_DEAFNESS, "deafness", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
-          "You feel like you can hear again.", 3, 6,
+          "You feel like you can hear again.", 3, 11,
           NECROMANCY, FALSE); //wiz2, cle3
   spello(SPELL_DISPEL_MAGIC, "dispel magic", 65, 50, 1, POS_FIGHTING,
           TAR_OBJ_ROOM | TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_MANUAL,
-          NULL, 4, 7, DIVINATION, FALSE); //wiz3, cle3
+          NULL, 4, 11, DIVINATION, FALSE); //wiz3, cle3
   spello(SPELL_ANIMATE_DEAD, "animate dead", 72, 57, 1, POS_FIGHTING,
           TAR_OBJ_ROOM, FALSE, MAG_SUMMONS,
-          NULL, 10, 8, NECROMANCY, FALSE); //wiz4, cle3
+          NULL, 10, 13, NECROMANCY, FALSE); //wiz4, cle3
   spello(SPELL_SUMMON_CREATURE_4, "summon creature iv", 95, 80, 1,
-          POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 8, 8, CONJURATION, FALSE); //wiz4, cle4
+          POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 8, 13, CONJURATION, FALSE); //wiz4, cle4
   spello(SPELL_BLINDNESS, "blindness", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
-          "You feel a cloak of blindness dissolve.", 3, 6,
+          "You feel a cloak of blindness dissolve.", 3, 11,
           NECROMANCY, FALSE); // wiz2, cle3
   spello(SPELL_CIRCLE_A_EVIL, "circle against evil", 58, 43, 1,
           POS_FIGHTING, TAR_IGNORE, FALSE, MAG_GROUPS,
-          NULL, 7, 7, ABJURATION, FALSE); //wiz3 cle4
+          NULL, 7, 13, ABJURATION, FALSE); //wiz3 cle4
   spello(SPELL_CIRCLE_A_GOOD, "circle against good", 58, 43, 1,
           POS_FIGHTING, TAR_IGNORE, FALSE, MAG_GROUPS,
-          NULL, 7, 7, ABJURATION, FALSE); //wiz3 cle4
+          NULL, 7, 13, ABJURATION, FALSE); //wiz3 cle4
   spello(SPELL_CURSE, "curse", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_OBJ_INV, TRUE, MAG_AFFECTS |
-          MAG_ALTER_OBJS, "You feel more optimistic.", 7, 8, NECROMANCY, FALSE); //wiz4 cle4
+          MAG_ALTER_OBJS, "You feel more optimistic.", 7, 13, NECROMANCY, FALSE); //wiz4 cle4
   spello(SPELL_DAYLIGHT, "daylight", 50, 25, 5, POS_STANDING,
           TAR_IGNORE, FALSE, MAG_ROOM,
-          "The artificial daylight fades away.", 6, 7, ILLUSION, FALSE); //wiz3, cle4
+          "The artificial daylight fades away.", 6, 13, ILLUSION, FALSE); //wiz3, cle4
   spello(SPELL_SUMMON_CREATURE_6, "summon creature vi", 0, 0, 0,
-          POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 9, 10, CONJURATION, FALSE); //wiz6 cle6
+          POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 9, 17, CONJURATION, FALSE); //wiz6 cle6
   spello(SPELL_EYEBITE, "eyebite", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS |
-          MAG_ALTER_OBJS, "You feel the disease fade away.", 6, 10, NECROMANCY, FALSE); //wiz6 cle6
+          MAG_ALTER_OBJS, "You feel the disease fade away.", 6, 17, NECROMANCY, FALSE); //wiz6 cle6
   spello(SPELL_MASS_WISDOM, "mass wisdom", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, //wiz7, cle6
-          FALSE, MAG_GROUPS, "The wisdom spell fades away.", 5, 11, TRANSMUTATION, FALSE); //wiz7, cle6
+          FALSE, MAG_GROUPS, "The wisdom spell fades away.", 5, 19, TRANSMUTATION, FALSE); //wiz7, cle6
   spello(SPELL_MASS_CHARISMA, "mass charisma", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, //wiz7, cle6
-          FALSE, MAG_GROUPS, "The charisma spell fades away.", 5, 11, TRANSMUTATION, FALSE);
+          FALSE, MAG_GROUPS, "The charisma spell fades away.", 5, 19, TRANSMUTATION, FALSE);
   spello(SPELL_MASS_CUNNING, "mass cunning", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
-          FALSE, MAG_GROUPS, "The cunning spell fades away.", 5, 11, TRANSMUTATION, FALSE);
+          FALSE, MAG_GROUPS, "The cunning spell fades away.", 5, 19, TRANSMUTATION, FALSE);
   spello(SPELL_MASS_STRENGTH, "mass strength", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
-          FALSE, MAG_GROUPS, "You feel weaker.", 5, 11, TRANSMUTATION, FALSE);
+          FALSE, MAG_GROUPS, "You feel weaker.", 5, 19, TRANSMUTATION, FALSE);
   spello(SPELL_MASS_GRACE, "mass grace", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
-          FALSE, MAG_GROUPS, "You feel less dextrous.", 5, 11, TRANSMUTATION, FALSE);
+          FALSE, MAG_GROUPS, "You feel less dextrous.", 5, 19, TRANSMUTATION, FALSE);
   spello(SPELL_MASS_ENDURANCE, "mass endurance", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
-          FALSE, MAG_GROUPS, "Your magical endurance has faded away.", 5, 11, TRANSMUTATION, FALSE);
+          FALSE, MAG_GROUPS, "Your magical endurance has faded away.", 5, 19, TRANSMUTATION, FALSE);
   /**  end shared list **/
 
 
@@ -1683,7 +1683,7 @@ void mag_assign_spells(void) {
   /* = =  4th circle  = = */
   spello(SPELL_HOLY_SWORD, "holy sword", 37, 22, 1, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_CREATIONS,
-          NULL, 2, 7, NOSCHOOL, FALSE);
+          NULL, 2, 23, NOSCHOOL, FALSE);
 
   // magical
 
@@ -1700,71 +1700,71 @@ void mag_assign_spells(void) {
   /* evocation */
   spello(SPELL_MAGIC_MISSILE, "magic missile", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
-          NULL, 0, 5, EVOCATION, FALSE);
+          NULL, 0, 7, EVOCATION, FALSE);
   spello(SPELL_HORIZIKAULS_BOOM, "horizikauls boom", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE | MAG_AFFECTS,
-          NULL, 1, 5, EVOCATION, FALSE);
+          NULL, 1, 7, EVOCATION, FALSE);
   spello(SPELL_BURNING_HANDS, "burning hands", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
-          NULL, 1, 5, EVOCATION, FALSE);
+          NULL, 1, 7, EVOCATION, FALSE);
   spello(SPELL_FAERIE_FIRE, "faerie fire", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
-          NULL, 1, 5, EVOCATION, FALSE);
+          NULL, 1, 7, EVOCATION, FALSE);
   spello(SPELL_PRODUCE_FLAME, "produce flame", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
-          NULL, 3, 5, EVOCATION, FALSE);
+          NULL, 3, 7, EVOCATION, FALSE);
   /* conjuration */
   spello(SPELL_ICE_DAGGER, "ice dagger", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
-          NULL, 1, 5, CONJURATION, FALSE);
+          NULL, 1, 7, CONJURATION, FALSE);
   spello(SPELL_MAGE_ARMOR, "mage armor", 0, 0, 0, POS_FIGHTING,
-          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS, "You feel less protected.", 4, 5,
+          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS, "You feel less protected.", 4, 7,
           CONJURATION, FALSE);
   spello(SPELL_OBSCURING_MIST, "obscuring mist", 0, 0, 0, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_ROOM,
-          "The obscuring mist begins to dissipate.", 3, 5, CONJURATION, FALSE);
+          "The obscuring mist begins to dissipate.", 3, 7, CONJURATION, FALSE);
   spello(SPELL_SUMMON_NATURES_ALLY_1, "natures ally i", 0, 0, 0, POS_FIGHTING,
-          TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 4, 5, CONJURATION, FALSE);
+          TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 4, 7, CONJURATION, FALSE);
   // summon creature 1 - shared
   /* necromancy */
   spello(SPELL_CHILL_TOUCH, "chill touch", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE | MAG_AFFECTS,
-          "You feel your strength return.", 1, 5, NECROMANCY, FALSE);
+          "You feel your strength return.", 1, 7, NECROMANCY, FALSE);
   spello(SPELL_RAY_OF_ENFEEBLEMENT, "ray of enfeeblement", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
-          "You feel your strength return.", 1, 5, NECROMANCY, FALSE);
+          "You feel your strength return.", 1, 7, NECROMANCY, FALSE);
   // negative energy ray - shared
   /* enchantment */
   spello(SPELL_CHARM_ANIMAL, "charm animal", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_MANUAL,
-          "You feel more self-confident.", 4, 5, ENCHANTMENT, FALSE);
+          "You feel more self-confident.", 4, 7, ENCHANTMENT, FALSE);
   spello(SPELL_CHARM, "charm person", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_MANUAL,
-          "You feel more self-confident.", 4, 5, ENCHANTMENT, FALSE);
+          "You feel more self-confident.", 4, 7, ENCHANTMENT, FALSE);
   spello(SPELL_ENCHANT_WEAPON, "enchant weapon", 0, 0, 0, POS_FIGHTING,
           TAR_OBJ_INV, FALSE, MAG_MANUAL,
-          NULL, 5, 5, ENCHANTMENT, FALSE);
+          NULL, 5, 7, ENCHANTMENT, FALSE);
   spello(SPELL_SLEEP, "sleep", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
-          "You feel less tired.", 4, 5, ENCHANTMENT, FALSE);
+          "You feel less tired.", 4, 7, ENCHANTMENT, FALSE);
   /* illusion */
   spello(SPELL_COLOR_SPRAY, "color spray", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE | MAG_AFFECTS,
-          NULL, 1, 5, ILLUSION, FALSE);
+          NULL, 1, 7, ILLUSION, FALSE);
   //scare - shared
   spello(SPELL_TRUE_STRIKE, "true strike", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "You feel you are no longer able to strike true!", 0, 5, ILLUSION, FALSE);
+          "You feel you are no longer able to strike true!", 0, 7, ILLUSION, FALSE);
   /* divination */
   spello(SPELL_IDENTIFY, "identify", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_OBJ_INV | TAR_OBJ_ROOM, FALSE, MAG_MANUAL,
-          NULL, 5, 5, DIVINATION, FALSE);
+          NULL, 5, 7, DIVINATION, FALSE);
   spello(SPELL_SHELGARNS_BLADE, "shelgarns blade", 0, 0, 0, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_SUMMONS,
-          NULL, 6, 5, DIVINATION, FALSE);
+          NULL, 6, 7, DIVINATION, FALSE);
   spello(SPELL_GREASE, "grease", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
-          "You feel the grease spell wear off.", 1, 5, DIVINATION, FALSE);
+          "You feel the grease spell wear off.", 1, 7, DIVINATION, FALSE);
   /* abjuration */
   // endure elements - shared
   // protect from evil - shared
@@ -1772,107 +1772,107 @@ void mag_assign_spells(void) {
   /* transmutation */
   spello(SPELL_EXPEDITIOUS_RETREAT, "expeditious retreat", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "You feel less expeditious.", 0, 5,
+          "You feel less expeditious.", 0, 7,
           TRANSMUTATION, FALSE);
   spello(SPELL_GOODBERRY, "goodberry", 0, 0, 0, POS_STANDING,
           TAR_IGNORE, FALSE, MAG_CREATIONS,
-          NULL, 3, 5, TRANSMUTATION, FALSE);
+          NULL, 3, 7, TRANSMUTATION, FALSE);
   spello(SPELL_IRON_GUTS, "iron guts", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "Your guts feel less resillient.", 3, 5, TRANSMUTATION, FALSE);
+          "Your guts feel less resillient.", 3, 7, TRANSMUTATION, FALSE);
   spello(SPELL_JUMP, "jump", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "You feel your jumping ability return to normal.", 3, 5, TRANSMUTATION, FALSE);
+          "You feel your jumping ability return to normal.", 3, 7, TRANSMUTATION, FALSE);
   spello(SPELL_MAGIC_FANG, "magic fang", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "Your magic fang wears off.", 3, 5, TRANSMUTATION, FALSE);
+          "Your magic fang wears off.", 3, 7, TRANSMUTATION, FALSE);
   spello(SPELL_MAGIC_STONE, "magic stone", 0, 0, 0, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_CREATIONS,
-          NULL, 3, 5, TRANSMUTATION, FALSE);
+          NULL, 3, 7, TRANSMUTATION, FALSE);
   spello(SPELL_SHIELD, "shield", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "Your magical shield fades away.", 3, 5, TRANSMUTATION, FALSE);
+          "Your magical shield fades away.", 3, 7, TRANSMUTATION, FALSE);
 
 
   /* = =  2nd circle  = = */
   /* evocation */
   spello(SPELL_ACID_ARROW, "acid arrow", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_MANUAL,
-          NULL, 2, 6, EVOCATION, FALSE);
+          NULL, 2, 9, EVOCATION, FALSE);
   spello(SPELL_SHOCKING_GRASP, "shocking grasp", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
-          NULL, 2, 6, EVOCATION, FALSE);
+          NULL, 2, 9, EVOCATION, FALSE);
   spello(SPELL_SCORCHING_RAY, "scorching ray", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
-          NULL, 2, 6, EVOCATION, FALSE);
+          NULL, 2, 9, EVOCATION, FALSE);
   spello(SPELL_CONTINUAL_FLAME, "continual flame", 0, 0, 0, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_CREATIONS,
-          NULL, 5, 6, EVOCATION, FALSE);
+          NULL, 5, 9, EVOCATION, FALSE);
   spello(SPELL_FLAME_BLADE, "flame blade", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
-          NULL, 2, 6, EVOCATION, FALSE);
+          NULL, 2, 9, EVOCATION, FALSE);
   spello(SPELL_FLAMING_SPHERE, "flaming sphere", 0, 0, 0, POS_FIGHTING,
           TAR_IGNORE, TRUE, MAG_AREAS,
-          NULL, 5, 6, EVOCATION, FALSE);
+          NULL, 5, 9, EVOCATION, FALSE);
   /* conjuration */
   //summon creature 2 - shared
   spello(SPELL_SUMMON_NATURES_ALLY_2, "natures ally ii", 0, 0, 0, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_SUMMONS,
-          NULL, 4, 7, CONJURATION, FALSE);
+          NULL, 4, 9, CONJURATION, FALSE);
   spello(SPELL_SUMMON_SWARM, "summon swarm", 0, 0, 0, POS_FIGHTING,
           TAR_IGNORE, TRUE, MAG_AREAS,
-          NULL, 5, 8, CONJURATION, FALSE);
+          NULL, 5, 9, CONJURATION, FALSE);
   spello(SPELL_WEB, "web", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_AFFECTS,
-          "You feel the sticky strands of the magical web dissolve.", 2, 6,
+          "You feel the sticky strands of the magical web dissolve.", 2, 9,
           CONJURATION, FALSE);
   /* necromancy */
   //blindness - shared
   spello(SPELL_FALSE_LIFE, "false life", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "You feel your necromantic-life drain away.", 4, 6, ILLUSION, FALSE);
+          "You feel your necromantic-life drain away.", 4, 9, ILLUSION, FALSE);
   /* enchantment */
   spello(SPELL_DAZE_MONSTER, "daze monster", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
-          "You no longer feel dazed.", 2, 6,
+          "You no longer feel dazed.", 2, 9,
           ENCHANTMENT, FALSE);
   spello(SPELL_HIDEOUS_LAUGHTER, "hideous laughter", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
-          "You feel able to control your laughter again.", 2, 6,
+          "You feel able to control your laughter again.", 2, 9,
           ENCHANTMENT, FALSE);
   spello(SPELL_HOLD_ANIMAL, "hold animal", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
-          "You feel able to control yourself again.", 3, 7,
+          "You feel able to control yourself again.", 3, 9,
           ENCHANTMENT, FALSE);
   spello(SPELL_TOUCH_OF_IDIOCY, "touch of idiocy", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
-          "You begin to feel less incompetent.", 2, 6,
+          "You begin to feel less incompetent.", 2, 9,
           ENCHANTMENT, FALSE);
   /* illusion */
   spello(SPELL_BLUR, "blur", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "You feel your blur spell wear off.", 2, 6, ILLUSION, FALSE);
+          "You feel your blur spell wear off.", 2, 9, ILLUSION, FALSE);
   spello(SPELL_INVISIBLE, "invisibility", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_OBJ_INV | TAR_OBJ_ROOM, FALSE, MAG_AFFECTS | MAG_ALTER_OBJS,
-          "You feel yourself exposed.", 4, 6, ILLUSION, FALSE);
+          "You feel yourself exposed.", 4, 9, ILLUSION, FALSE);
   spello(SPELL_MIRROR_IMAGE, "mirror image", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "You watch as your images vanish.", 3, 6, ILLUSION, FALSE);
+          "You watch as your images vanish.", 3, 9, ILLUSION, FALSE);
   /* divination */
   spello(SPELL_DETECT_INVIS, "detect invisibility", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "Your eyes stop tingling.", 1, 6, DIVINATION, FALSE);
+          "Your eyes stop tingling.", 1, 9, DIVINATION, FALSE);
   //detect magic - shared
   //darkness - shared
   /* abjuration */
   //resist energy
   spello(SPELL_ENERGY_SPHERE, "energy sphere", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
-          NULL, 2, 6, ABJURATION, FALSE);
+          NULL, 2, 9, ABJURATION, FALSE);
   /* transmutation */
   spello(SPELL_BARKSKIN, "barkskin", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "You feel your barkskin wear off.", 3, 6, TRANSMUTATION, FALSE);
+          "You feel your barkskin wear off.", 3, 9, TRANSMUTATION, FALSE);
   //endurance - shared
   //strengrth - shared
   //grace - shared
@@ -1882,88 +1882,88 @@ void mag_assign_spells(void) {
   /* evocation */
   spello(SPELL_LIGHTNING_BOLT, "lightning bolt", 44, 29, 1, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
-          NULL, 3, 7, EVOCATION, FALSE);
+          NULL, 3, 11, EVOCATION, FALSE);
   spello(SPELL_FIREBALL, "fireball", 44, 29, 1, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
-          NULL, 3, 7, EVOCATION, FALSE);
+          NULL, 3, 11, EVOCATION, FALSE);
   spello(SPELL_WATER_BREATHE, "water breathe", 79, 64, 1, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "Your magical gears fade away.", 7, 7, EVOCATION, FALSE);
+          "Your magical gears fade away.", 7, 11, EVOCATION, FALSE);
   /* conjuration */
   spello(SPELL_SUMMON_NATURES_ALLY_3, "natures ally iii", 0, 0, 0, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_SUMMONS,
-          NULL, 5, 8, CONJURATION, FALSE);
+          NULL, 5, 11, CONJURATION, FALSE);
   //summon creature 3 - shared
   spello(SPELL_PHANTOM_STEED, "phantom steed", 95, 80, 1, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_SUMMONS,
-          NULL, 7, 7, CONJURATION, FALSE);
+          NULL, 7, 11, CONJURATION, FALSE);
   spello(SPELL_STINKING_CLOUD, "stinking cloud", 65, 50, 1, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_ROOM,
-          "You watch as the noxious gasses fade away.", 4, 7,
+          "You watch as the noxious gasses fade away.", 4, 11,
           CONJURATION, FALSE);
   /* necromancy */
   spello(SPELL_BLIGHT, "blight", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
-          NULL, 4, 7, NECROMANCY, FALSE);
+          NULL, 4, 11, NECROMANCY, FALSE);
   spello(SPELL_CONTAGION, "contagion", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
-          "You feel much better as your disease wears off.", 5, 7, NECROMANCY, FALSE);
+          "You feel much better as your disease wears off.", 5, 11, NECROMANCY, FALSE);
   spello(SPELL_HALT_UNDEAD, "halt undead", 65, 50, 1, POS_FIGHTING,
           TAR_IGNORE, TRUE, MAG_AREAS,
-          "You feel the necromantic halt spell fade away.", 5, 7,
+          "You feel the necromantic halt spell fade away.", 5, 11,
           NECROMANCY, FALSE);
   spello(SPELL_VAMPIRIC_TOUCH, "vampiric touch", 44, 29, 1, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE | MAG_POINTS,
-          NULL, 3, 7, NECROMANCY, FALSE);
+          NULL, 3, 11, NECROMANCY, FALSE);
   spello(SPELL_HEROISM, "deathly heroism", 30, 15, 1, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "Your deathly heroism fades away.", 4, 7,
+          "Your deathly heroism fades away.", 4, 11,
           NECROMANCY, FALSE);
   /* enchantment */
   spello(SPELL_FLY, "fly", 37, 22, 1, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "You drift slowly to the ground.", 3, 7, ENCHANTMENT, FALSE);
+          "You drift slowly to the ground.", 3, 11, ENCHANTMENT, FALSE);
   spello(SPELL_HOLD_PERSON, "hold person", 65, 50, 1, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
           "You feel able to control your laughter again.", 3, 7,
           ENCHANTMENT, FALSE);
   spello(SPELL_DEEP_SLUMBER, "deep slumber", 58, 43, 1, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
-          "You feel less tired.", 4, 7, ENCHANTMENT, FALSE);
+          "You feel less tired.", 4, 11, ENCHANTMENT, FALSE);
   /* illusion */
   spello(SPELL_WALL_OF_FOG, "wall of fog", 50, 25, 5, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_ROOM,
-          "The wall of fog blows away.", 6, 7, ILLUSION, FALSE);
+          "The wall of fog blows away.", 6, 11, ILLUSION, FALSE);
   spello(SPELL_INVISIBILITY_SPHERE, "invisibility sphere", 58, 43, 1,
           POS_FIGHTING, TAR_IGNORE, FALSE, MAG_GROUPS,
-          NULL, 7, 7, ILLUSION, FALSE);
+          NULL, 7, 11, ILLUSION, FALSE);
   //daylight - shared
   /* divination */
   spello(SPELL_CLAIRVOYANCE, "clairvoyance", 65, 50, 1, POS_FIGHTING,
           TAR_CHAR_WORLD | TAR_NOT_SELF, FALSE, MAG_MANUAL,
-          NULL, 5, 7,
+          NULL, 5, 11,
           DIVINATION, FALSE);
   spello(SPELL_NON_DETECTION, "nondetection", 37, 22, 1, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "Your non-detection spell wore off.", 6, 7, DIVINATION, FALSE);
+          "Your non-detection spell wore off.", 6, 11, DIVINATION, FALSE);
   //dispel magic - shared
   /* abjuration */
   spello(SPELL_HASTE, "haste", 37, 22, 1, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "You feel your haste spell wear off.", 4, 7, ABJURATION, FALSE);
+          "You feel your haste spell wear off.", 4, 11, ABJURATION, FALSE);
   spello(SPELL_SLOW, "slow", 65, 50, 1, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
-          "You feel the slow spell wear off.", 4, 7,
+          "You feel the slow spell wear off.", 4, 11,
           ABJURATION, FALSE);
   //circle against evil - shared
   //circle against good - shared
   /* transmutation */
   spello(SPELL_GREATER_MAGIC_FANG, "greater magic fang", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "Your greater magic fang wears off.", 4, 7, TRANSMUTATION, FALSE);
+          "Your greater magic fang wears off.", 4, 11, TRANSMUTATION, FALSE);
   spello(SPELL_SPIKE_GROWTH, "spike growth", 0, 0, 0, POS_STANDING,
           TAR_IGNORE, FALSE, MAG_ROOM,
-          "The large spikes retract back into the earth.", 5, 8, TRANSMUTATION, FALSE);
+          "The large spikes retract back into the earth.", 5, 11, TRANSMUTATION, FALSE);
   //cunning - shared
   //wisdom - shared
   //charisma - shared
@@ -1972,21 +1972,21 @@ void mag_assign_spells(void) {
   /* evocation */
   spello(SPELL_ICE_STORM, "ice storm", 58, 43, 1, POS_FIGHTING,
           TAR_IGNORE, TRUE, MAG_AREAS,
-          NULL, 5, 8, EVOCATION, FALSE);
+          NULL, 5, 13, EVOCATION, FALSE);
   spello(SPELL_FIRE_SHIELD, "fire shield", 37, 22, 1, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS,
-          "You watch your fire shield fade away.", 5, 8, EVOCATION, FALSE);
+          "You watch your fire shield fade away.", 5, 13, EVOCATION, FALSE);
   spello(SPELL_COLD_SHIELD, "cold shield", 37, 22, 1, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS,
-          "You watch your cold shield fade away.", 5, 8, EVOCATION, FALSE);
+          "You watch your cold shield fade away.", 5, 13, EVOCATION, FALSE);
   /* conjuration */
   spello(SPELL_BILLOWING_CLOUD, "billowing cloud", 65, 50, 1, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_ROOM,
-          "You watch as the thick billowing cloud dissipates.", 7, 8,
+          "You watch as the thick billowing cloud dissipates.", 7, 13,
           CONJURATION, FALSE);
   spello(SPELL_SUMMON_NATURES_ALLY_4, "natures ally iv", 0, 0, 0, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_SUMMONS,
-          NULL, 6, 9, CONJURATION, FALSE);
+          NULL, 6, 13, CONJURATION, FALSE);
   //summon creature 4 - shared
   /* necromancy */
   //curse - shared
@@ -1996,238 +1996,238 @@ void mag_assign_spells(void) {
   /* illusion */
   spello(SPELL_GREATER_INVIS, "greater invisibility", 58, 43, 1,
           POS_FIGHTING, TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE,
-          MAG_AFFECTS | MAG_ALTER_OBJS, "You feel yourself exposed.", 8, 8,
+          MAG_AFFECTS | MAG_ALTER_OBJS, "You feel yourself exposed.", 8, 13,
           ILLUSION, FALSE);
   spello(SPELL_RAINBOW_PATTERN, "rainbow pattern", 65, 50, 1, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
-          "You no longer feel dazed.", 5, 8,
+          "You no longer feel dazed.", 5, 13,
           ILLUSION, FALSE);
   /* divination */
   spello(SPELL_WIZARD_EYE, "wizard eye", 65, 50, 1, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_MANUAL,
-          NULL, 6, 8, DIVINATION, FALSE);
+          NULL, 6, 13, DIVINATION, FALSE);
   spello(SPELL_LOCATE_CREATURE, "locate creature", 58, 43, 1, POS_FIGHTING,
           TAR_CHAR_WORLD, FALSE, MAG_MANUAL,
-          NULL, 12, 8, DIVINATION, FALSE);
+          NULL, 12, 13, DIVINATION, FALSE);
   /* abjuration */
   spello(SPELL_FREE_MOVEMENT, "freedom of movement(inc)", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "You are no longer able to move freely.", 3, 8, ABJURATION, FALSE);
+          "You are no longer able to move freely.", 3, 13, ABJURATION, FALSE);
   spello(SPELL_STONESKIN, "stone skin", 51, 36, 1, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "Your skin returns to its normal texture.", 3, 8, ABJURATION, FALSE);
+          "Your skin returns to its normal texture.", 3, 13, ABJURATION, FALSE);
   spello(SPELL_MINOR_GLOBE, "minor globe", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS, "Your minor globe has faded away.", 8,
-          8, ABJURATION, FALSE);
+          13, ABJURATION, FALSE);
   //remove curse
   /* transmutation */
   spello(SPELL_ENLARGE_PERSON, "enlarge person", 37, 22, 1, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "You feel your enlargement spell wear off.", 8, 8, TRANSMUTATION, FALSE);
+          "You feel your enlargement spell wear off.", 8, 13, TRANSMUTATION, FALSE);
   spello(SPELL_SHRINK_PERSON, "shrink person", 37, 22, 1, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "You feel your shrink spell wear off.", 8, 8, TRANSMUTATION, FALSE);
+          "You feel your shrink spell wear off.", 8, 13, TRANSMUTATION, FALSE);
   spello(SPELL_SPIKE_STONES, "spike stone", 0, 0, 0, POS_STANDING,
           TAR_IGNORE, FALSE, MAG_ROOM,
-          "The large spike stones morph back into their natural form.", 8, 8, TRANSMUTATION, FALSE);
+          "The large spike stones morph back into their natural form.", 8, 13, TRANSMUTATION, FALSE);
 
   // 5th circle
   /* evocation */
   spello(SPELL_BALL_OF_LIGHTNING, "ball of lightning", 65, 50, 1, POS_FIGHTING,
-          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE, NULL, 5, 9, EVOCATION, FALSE);
+          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE, NULL, 5, 15, EVOCATION, FALSE);
   spello(SPELL_CALL_LIGHTNING_STORM, "call lightning storm", 0, 0, 0, POS_FIGHTING,
-          TAR_IGNORE, TRUE, MAG_AREAS, NULL, 8, 9, EVOCATION, FALSE);
+          TAR_IGNORE, TRUE, MAG_AREAS, NULL, 8, 15, EVOCATION, FALSE);
   spello(SPELL_HALLOW, "hallow", 0, 0, 0, POS_STANDING,
-          TAR_IGNORE, FALSE, MAG_ROOM, NULL, 8, 9, EVOCATION, FALSE);
+          TAR_IGNORE, FALSE, MAG_ROOM, NULL, 8, 15, EVOCATION, FALSE);
   spello(SPELL_INTERPOSING_HAND, "interposing hand", 80, 50, 1, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
-          "You feel more optimistic.", 7, 9, EVOCATION, FALSE);
+          "You feel more optimistic.", 7, 15, EVOCATION, FALSE);
   spello(SPELL_UNHALLOW, "unhallow", 0, 0, 0, POS_STANDING,
-          TAR_IGNORE, FALSE, MAG_ROOM, NULL, 8, 9, EVOCATION, FALSE);
+          TAR_IGNORE, FALSE, MAG_ROOM, NULL, 8, 15, EVOCATION, FALSE);
   spello(SPELL_WALL_OF_FIRE, "wall of fire", 0, 0, 0, POS_FIGHTING,
-          TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 7, 9, EVOCATION, FALSE);
+          TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 7, 15, EVOCATION, FALSE);
   spello(SPELL_WALL_OF_FORCE, "wall of force", 65, 50, 1, POS_FIGHTING,
-          TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 6, 9, EVOCATION, FALSE);
+          TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 6, 15, EVOCATION, FALSE);
   /* conjuration */
   spello(SPELL_SUMMON_NATURES_ALLY_5, "natures ally v", 0, 0, 0, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_SUMMONS,
-          NULL, 7, 9, CONJURATION, FALSE);
+          NULL, 7, 15, CONJURATION, FALSE);
   spello(SPELL_CLOUDKILL, "cloudkill", 65, 50, 1, POS_FIGHTING,
-          TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 8, 9, CONJURATION, FALSE);
+          TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 8, 15, CONJURATION, FALSE);
   spello(SPELL_INSECT_PLAGUE, "insect plague", 0, 0, 0, POS_FIGHTING,
           TAR_IGNORE, TRUE, MAG_AREAS,
-          NULL, 9, 9, CONJURATION, FALSE);
+          NULL, 9, 15, CONJURATION, FALSE);
   spello(SPELL_SUMMON_CREATURE_5, "summon creature v", 95, 80, 1,
-          POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 9, 9, CONJURATION, FALSE);
+          POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 9, 15, CONJURATION, FALSE);
   spello(SPELL_WALL_OF_THORNS, "wall of thorns", 0, 0, 0, POS_FIGHTING,
-          TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 7, 9, CONJURATION, FALSE);
+          TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 7, 15, CONJURATION, FALSE);
   /* necromancy */
   spello(SPELL_DEATH_WARD, "death ward", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS,
-          "You are no longer warded against the effects of death magic.", 7, 9, NECROMANCY, FALSE);
+          "You are no longer warded against the effects of death magic.", 7, 15, NECROMANCY, FALSE);
   spello(SPELL_SYMBOL_OF_PAIN, "symbol of pain", 58, 43, 1, POS_FIGHTING,
-          TAR_IGNORE, TRUE, MAG_AREAS, NULL, 8, 9, NECROMANCY, FALSE);
+          TAR_IGNORE, TRUE, MAG_AREAS, NULL, 8, 15, NECROMANCY, FALSE);
   spello(SPELL_WAVES_OF_FATIGUE, "waves of fatigue", 65, 50, 1, POS_FIGHTING,
           TAR_IGNORE, TRUE, MAG_AREAS, "You feel the magical fatigue fade away.", 7,
           9, NECROMANCY, FALSE);
   /* enchantment */
   spello(SPELL_DOMINATE_PERSON, "dominate person", 51, 36, 1, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_MANUAL,
-          "You feel the domination effects wear off.", 10, 9, ENCHANTMENT, FALSE);
+          "You feel the domination effects wear off.", 10, 15, ENCHANTMENT, FALSE);
   spello(SPELL_FEEBLEMIND, "feeblemind", 80, 50, 1, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
-          "Your enfeebled mind returns to normal.", 7, 9, ENCHANTMENT, FALSE);
+          "Your enfeebled mind returns to normal.", 7, 15, ENCHANTMENT, FALSE);
   /* illusion */
   spello(SPELL_NIGHTMARE, "nightmare", 30, 15, 1, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE | MAG_AFFECTS,
-          "You are able to shake the horrid nightmare.", 7, 9, ILLUSION, FALSE);
+          "You are able to shake the horrid nightmare.", 7, 15, ILLUSION, FALSE);
   spello(SPELL_MIND_FOG, "mind fog", 80, 50, 1, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
-          "Your fogged mind returns to normal.", 7, 9, ILLUSION, FALSE);
+          "Your fogged mind returns to normal.", 7, 15, ILLUSION, FALSE);
   /* divination */
   spello(SPELL_FAITHFUL_HOUND, "faithful hound", 95, 80, 1,
-          POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 9, 9, DIVINATION, FALSE);
+          POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 9, 15, DIVINATION, FALSE);
   spello(SPELL_ACID_SHEATH, "acid sheath", 37, 22, 1, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS,
-          "You watch your acid sheath fade away.", 6, 9, DIVINATION, FALSE);
+          "You watch your acid sheath fade away.", 6, 15, DIVINATION, FALSE);
   /* abjuration */
   spello(SPELL_DISMISSAL, "dismissal", 51, 36, 1, POS_FIGHTING,
-          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_MANUAL, NULL, 7, 9,
+          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_MANUAL, NULL, 7, 15,
           ABJURATION, FALSE);
   spello(SPELL_CONE_OF_COLD, "cone of cold", 65, 50, 1, POS_FIGHTING,
-          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE, NULL, 9, 9, ABJURATION, FALSE);
+          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE, NULL, 9, 15, ABJURATION, FALSE);
   /* transmutation */
   spello(SPELL_TELEKINESIS, "telekinesis", 65, 50, 1, POS_FIGHTING,
-          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE, NULL, 9, 9,
+          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE, NULL, 9, 15,
           TRANSMUTATION, FALSE);
   spello(SPELL_FIREBRAND, "firebrand", 65, 50, 1, POS_FIGHTING,
-          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE, NULL, 9, 9,
+          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE, NULL, 9, 15,
           TRANSMUTATION, FALSE);
 
 
   // 6th circle
   /* evocation */
   spello(SPELL_FREEZING_SPHERE, "freezing sphere", 0, 0, 0, POS_FIGHTING,
-          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE, NULL, 5, 10, EVOCATION, FALSE);
+          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE, NULL, 5, 17, EVOCATION, FALSE);
   /* conjuration */
   spello(SPELL_SUMMON_NATURES_ALLY_6, "natures ally vi", 0, 0, 0, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_SUMMONS,
-          NULL, 8, 10, CONJURATION, FALSE);
+          NULL, 8, 17, CONJURATION, FALSE);
   spello(SPELL_ACID_FOG, "acid fog", 0, 0, 0, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_ROOM,
-          "You watch as the acid fog dissipates.", 7, 8,
+          "You watch as the acid fog dissipates.", 7, 17,
           CONJURATION, FALSE);
   spello(SPELL_FIRE_SEEDS, "fire seeds", 0, 0, 0, POS_FIGHTING,
-          TAR_IGNORE, FALSE, MAG_CREATIONS, NULL, 7, 8, CONJURATION, FALSE);
+          TAR_IGNORE, FALSE, MAG_CREATIONS, NULL, 7, 17, CONJURATION, FALSE);
   spello(SPELL_TRANSPORT_VIA_PLANTS, "transport via plants", 0, 0, 0, POS_STANDING,
-          TAR_OBJ_ROOM, FALSE, MAG_MANUAL, NULL, 8, 10, CONJURATION, FALSE);
+          TAR_OBJ_ROOM, FALSE, MAG_MANUAL, NULL, 8, 17, CONJURATION, FALSE);
   //summon creature 6 - shared
   /* necromancy */
   spello(SPELL_TRANSFORMATION, "transformation", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS,
-          "You feel your transformation fade.", 5, 10, NECROMANCY, FALSE);
+          "You feel your transformation fade.", 5, 17, NECROMANCY, FALSE);
   //eyebite - shared
   /* enchantment */
   spello(SPELL_MASS_HASTE, "mass haste", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
-          FALSE, MAG_GROUPS, "The haste spell fades away.", 8, 10, ENCHANTMENT, FALSE);
+          FALSE, MAG_GROUPS, "The haste spell fades away.", 8, 17, ENCHANTMENT, FALSE);
   spello(SPELL_GREATER_HEROISM, "greater heroism", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS, "Your greater heroism fades away.",
-          6, 10, ENCHANTMENT, FALSE);
+          6, 17, ENCHANTMENT, FALSE);
   /* illusion */
   spello(SPELL_ANTI_MAGIC_FIELD, "anti magic field", 0, 0, 0, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_ROOM,
-          "You watch as the shimmering anti-magic field dissipates.", 7, 10,
+          "You watch as the shimmering anti-magic field dissipates.", 7, 17,
           ILLUSION, FALSE);
   spello(SPELL_GREATER_MIRROR_IMAGE, "greater mirror image", 0, 0, 0,
           POS_FIGHTING, TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS,
-          "You watch as your images vanish.", 5, 10, ILLUSION, FALSE);
+          "You watch as your images vanish.", 5, 17, ILLUSION, FALSE);
   /* divination */
   spello(SPELL_LOCATE_OBJECT, "locate object", 0, 0, 0, POS_FIGHTING,
           TAR_OBJ_WORLD, FALSE, MAG_MANUAL,
-          NULL, 10, 10, DIVINATION, FALSE);
+          NULL, 10, 17, DIVINATION, FALSE);
   spello(SPELL_TRUE_SEEING, "true seeing", 0, 0, 0, POS_FIGHTING,
-          TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS, "Your eyes stop seeing true.", 5, 10,
+          TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS, "Your eyes stop seeing true.", 5, 17,
           DIVINATION, FALSE);
   /* abjuration */
   spello(SPELL_GLOBE_OF_INVULN, "globe of invuln", 0, 0, 0,
           POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "Your globe of invulnerability has faded away.", 6, 10, ABJURATION, FALSE);
+          "Your globe of invulnerability has faded away.", 6, 17, ABJURATION, FALSE);
   spello(SPELL_GREATER_DISPELLING, "greater dispelling", 0, 0, 0, POS_FIGHTING,
-          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_MANUAL, NULL, 4, 7, ABJURATION, FALSE);
+          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_MANUAL, NULL, 4, 17, ABJURATION, FALSE);
   /* transmutation */
   spello(SPELL_CLONE, "clone", 0, 0, 0, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_SUMMONS,
-          NULL, 9, 10, TRANSMUTATION, FALSE);
+          NULL, 9, 17, TRANSMUTATION, FALSE);
   spello(SPELL_SPELLSTAFF, "spellstaff", 0, 0, 0, POS_STANDING,
-          TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 9, 10, TRANSMUTATION, FALSE);
+          TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 9, 17, TRANSMUTATION, FALSE);
   spello(SPELL_WATERWALK, "waterwalk", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "Your feet seem less buoyant.", 7, 10, TRANSMUTATION, FALSE);
+          "Your feet seem less buoyant.", 7, 17, TRANSMUTATION, FALSE);
 
 
   // 7th circle
   /* evocation */
   spello(SPELL_FIRE_STORM, "fire storm", 0, 0, 0, POS_FIGHTING,
-          TAR_IGNORE, TRUE, MAG_AREAS, NULL, 7, 11, EVOCATION, FALSE);
+          TAR_IGNORE, TRUE, MAG_AREAS, NULL, 7, 19, EVOCATION, FALSE);
   spello(SPELL_GRASPING_HAND, "grasping hand", 72, 57, 1, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE | MAG_AFFECTS,
-          NULL, 6, 11, EVOCATION, FALSE); //grapples opponent
+          NULL, 6, 19, EVOCATION, FALSE); //grapples opponent
   spello(SPELL_MISSILE_STORM, "missile storm", 72, 57, 1, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
-          NULL, 6, 11, EVOCATION, FALSE);
+          NULL, 6, 19, EVOCATION, FALSE);
   spello(SPELL_SUNBEAM, "sunbeam", 0, 0, 0,
           POS_FIGHTING, TAR_IGNORE, TRUE, MAG_AREAS | MAG_ROOM,
-          "You feel a cloak of blindness dissolve.", 6, 11, EVOCATION, FALSE);
+          "You feel a cloak of blindness dissolve.", 6, 19, EVOCATION, FALSE);
   /* conjuration */
   spello(SPELL_SUMMON_NATURES_ALLY_7, "natures ally vii", 0, 0, 0, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_SUMMONS,
-          NULL, 9, 12, CONJURATION, FALSE);
+          NULL, 9, 19, CONJURATION, FALSE);
   spello(SPELL_CREEPING_DOOM, "creeping doom", 0, 0, 0, POS_FIGHTING,
-          TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 10, 11, CONJURATION, FALSE);
+          TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 10, 19, CONJURATION, FALSE);
   spello(SPELL_SUMMON_CREATURE_7, "summon creature vii", 0, 0, 0,
-          POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 10, 11, CONJURATION, FALSE);
+          POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 10, 19, CONJURATION, FALSE);
   //control weather, enhances some spells (shared)
   /* necromancy */
   spello(SPELL_POWER_WORD_BLIND, "power word blind", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
-          "You feel a cloak of blindness dissolve.", 0, 11,
+          "You feel a cloak of blindness dissolve.", 0, 19,
           NECROMANCY, FALSE);
   spello(SPELL_WAVES_OF_EXHAUSTION, "waves of exhaustion", 65, 50, 1, POS_FIGHTING,
           TAR_IGNORE, TRUE, MAG_AREAS, "You feel the magical exhaustion fade away.", 8,
-          11, NECROMANCY, FALSE); //like waves of fatigue, but no save?
+          19, NECROMANCY, FALSE); //like waves of fatigue, but no save?
   /* enchantment */
   spello(SPELL_MASS_HOLD_PERSON, "mass hold person", 65, 50, 1, POS_FIGHTING,
           TAR_IGNORE, TRUE, MAG_AREAS, "You feel the magical hold fade away.", 8,
-          11, ENCHANTMENT, FALSE);
+          19, ENCHANTMENT, FALSE);
   spello(SPELL_MASS_FLY, "mass fly", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
-          FALSE, MAG_GROUPS, "The fly spell fades away.", 7, 11, ENCHANTMENT, FALSE);
+          FALSE, MAG_GROUPS, "The fly spell fades away.", 7, 19, ENCHANTMENT, FALSE);
   /* illusion */
   spello(SPELL_DISPLACEMENT, "displacement", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "You feel your displacement spell wear off.", 6, 11, ILLUSION, FALSE);
+          "You feel your displacement spell wear off.", 6, 19, ILLUSION, FALSE);
   spello(SPELL_PRISMATIC_SPRAY, "prismatic spray", 79, 64, 1, POS_FIGHTING,
           TAR_IGNORE, TRUE, MAG_AREAS,
-          NULL, 7, 11, ILLUSION, FALSE);
+          NULL, 7, 19, ILLUSION, FALSE);
   /* divination */
   spello(SPELL_POWER_WORD_STUN, "power word stun", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
-          "You no longer feel stunned.", 0, 11,
+          "You no longer feel stunned.", 0, 19,
           DIVINATION, FALSE);
   spello(SPELL_PROTECT_FROM_SPELLS, "protection from spells", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "You feel your spell protection wear off.", 6, 11, DIVINATION, FALSE);
+          "You feel your spell protection wear off.", 6, 19, DIVINATION, FALSE);
   //detect poison - shared
   /* abjuration */
   spello(SPELL_THUNDERCLAP, "thunderclap", 79, 64, 1, POS_FIGHTING,
           TAR_IGNORE, TRUE, MAG_AREAS,
-          NULL, 7, 11, ABJURATION, FALSE); //aoe damage and affect
+          NULL, 7, 19, ABJURATION, FALSE); //aoe damage and affect
   spello(SPELL_SPELL_MANTLE, "spell mantle", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "You feel your spell mantle wear off.", 6, 11, ABJURATION, FALSE);
+          "You feel your spell mantle wear off.", 6, 19, ABJURATION, FALSE);
   /* transmutation */
   spello(SPELL_TELEPORT, "teleport", 72, 57, 1, POS_FIGHTING,
           TAR_CHAR_WORLD | TAR_NOT_SELF, FALSE, MAG_MANUAL,
-          NULL, 2, 11, TRANSMUTATION, FALSE);
+          NULL, 2, 19, TRANSMUTATION, FALSE);
   //mass wisdom - shared
   //mass charisma - shared
   //mass cunning - shared
@@ -2237,150 +2237,148 @@ void mag_assign_spells(void) {
   /* evocation */
   spello(SPELL_CLENCHED_FIST, "clenched fist", 72, 57, 1, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
-          NULL, 7, 12, EVOCATION, FALSE);
+          NULL, 7, 21, EVOCATION, FALSE);
   spello(SPELL_CHAIN_LIGHTNING, "chain lightning", 79, 64, 1, POS_FIGHTING,
           TAR_IGNORE, TRUE, MAG_AREAS,
-          NULL, 8, 12, EVOCATION, FALSE);
+          NULL, 8, 21, EVOCATION, FALSE);
   spello(SPELL_WHIRLWIND, "whirlwind", 0, 0, 0, POS_FIGHTING,
-          TAR_IGNORE, TRUE, MAG_AREAS, NULL, 8, 12, EVOCATION, FALSE);
+          TAR_IGNORE, TRUE, MAG_AREAS, NULL, 8, 21, EVOCATION, FALSE);
   /* conjuration */
   spello(SPELL_SUMMON_NATURES_ALLY_8, "natures ally viii", 0, 0, 0, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_SUMMONS,
-          NULL, 10, 13, CONJURATION, FALSE);
+          NULL, 10, 21, CONJURATION, FALSE);
   spello(SPELL_INCENDIARY_CLOUD, "incendiary cloud", 65, 50, 1, POS_FIGHTING,
-          TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 9, 12, CONJURATION, FALSE);
+          TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 9, 21, CONJURATION, FALSE);
   spello(SPELL_SUMMON_CREATURE_8, "summon creature viii", 0, 0, 0,
-          POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 11, 12, CONJURATION, FALSE);
+          POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 11, 21, CONJURATION, FALSE);
   /* necromancy */
   spello(SPELL_FINGER_OF_DEATH, "finger of death", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
-          NULL, 8, 12, NECROMANCY, FALSE);
+          NULL, 8, 21, NECROMANCY, FALSE);
   spello(SPELL_GREATER_ANIMATION, "greater animation", 72, 57, 1, POS_FIGHTING,
           TAR_OBJ_ROOM, FALSE, MAG_SUMMONS,
-          NULL, 11, 12, NECROMANCY, FALSE);
+          NULL, 11, 21, NECROMANCY, FALSE);
   spello(SPELL_HORRID_WILTING, "horrid wilting", 79, 64, 1, POS_FIGHTING,
           TAR_IGNORE, TRUE, MAG_AREAS,
-          NULL, 9, 12, NECROMANCY, FALSE);
+          NULL, 9, 21, NECROMANCY, FALSE);
   /* enchantment */
   spello(SPELL_IRRESISTIBLE_DANCE, "irresistible dance", 65, 50, 1, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
-          "You no longer feel the urge to moonwalk.", 5, 12,
+          "You no longer feel the urge to moonwalk.", 5, 21,
           ENCHANTMENT, FALSE);
   spello(SPELL_MASS_DOMINATION, "mass domination", 0, 0, 0, POS_FIGHTING,
-          TAR_IGNORE, TRUE, MAG_MANUAL, "You no longer feel dominated.", 6, 12, ENCHANTMENT, FALSE);
+          TAR_IGNORE, TRUE, MAG_MANUAL, "You no longer feel dominated.", 6, 21, ENCHANTMENT, FALSE);
   /* illusion */
   spello(SPELL_SCINT_PATTERN, "scint pattern", 65, 50, 1, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
-          "The pattern no longer traps you.", 5, 12,
+          "The pattern no longer traps you.", 5, 21,
           ILLUSION, FALSE);
   spello(SPELL_REFUGE, "refuge", 0, 0, 0, POS_FIGHTING,
-          TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 6, 12, ILLUSION, FALSE);
+          TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 6, 21, ILLUSION, FALSE);
   /* divination */
   spello(SPELL_BANISH, "banish", 51, 36, 1, POS_FIGHTING,
-          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_MANUAL, NULL, 8, 12,
+          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_MANUAL, NULL, 8, 21,
           DIVINATION, FALSE);
   spello(SPELL_SUNBURST, "sunburst", 72, 57, 1, POS_FIGHTING,
           TAR_IGNORE, TRUE, MAG_AREAS | MAG_ROOM,
-          NULL, 7, 12, DIVINATION, FALSE);
+          NULL, 7, 21, DIVINATION, FALSE);
   /* abjuration */
   spello(SPELL_SPELL_TURNING, "spell turning", 79, 64, 1, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "Your spell-turning field fades away.", 8, 12, ABJURATION, FALSE);
+          "Your spell-turning field fades away.", 8, 21, ABJURATION, FALSE);
   spello(SPELL_MIND_BLANK, "mind blank", 79, 64, 1, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "Your mind-blank fades.", 8, 12, ABJURATION, FALSE);
+          "Your mind-blank fades.", 8, 21, ABJURATION, FALSE);
   /* transmutation */
   spello(SPELL_CONTROL_PLANTS, "control plants", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_MANUAL,
-          "You are able to control yourself again.", 7, 12, TRANSMUTATION, FALSE);
+          "You are able to control yourself again.", 7, 21, TRANSMUTATION, FALSE);
   spello(SPELL_IRONSKIN, "iron skin", 51, 36, 1, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "Your skin loses its iron-like texture.", 4, 12, TRANSMUTATION, FALSE);
+          "Your skin loses its iron-like texture.", 4, 21, TRANSMUTATION, FALSE);
   spello(SPELL_PORTAL, "portal", 37, 22, 1, POS_FIGHTING, TAR_CHAR_WORLD |
-          TAR_NOT_SELF, FALSE, MAG_CREATIONS, NULL, 12, 12, TRANSMUTATION, FALSE);
+          TAR_NOT_SELF, FALSE, MAG_CREATIONS, NULL, 12, 21, TRANSMUTATION, FALSE);
 
 
   // 9th circle
   /* evocation */
   spello(SPELL_METEOR_SWARM, "meteor swarm", 85, 70, 1, POS_FIGHTING,
-          TAR_IGNORE, TRUE, MAG_AREAS, NULL, 9, 13, EVOCATION, FALSE);
+          TAR_IGNORE, TRUE, MAG_AREAS, NULL, 9, 23, EVOCATION, FALSE);
   spello(SPELL_BLADE_OF_DISASTER, "blade of disaster", 0, 0, 0,
-          POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 14, 13, EVOCATION, FALSE);
+          POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 14, 23, EVOCATION, FALSE);
   /* conjuration */
   spello(SPELL_SUMMON_NATURES_ALLY_9, "natures ally ix", 0, 0, 0, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_SUMMONS,
-          NULL, 11, 14, CONJURATION, FALSE);
+          NULL, 11, 23, CONJURATION, FALSE);
   spello(SPELL_ELEMENTAL_SWARM, "elemental swarm", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
-          FALSE, MAG_SUMMONS, NULL, 12, 13, CONJURATION, FALSE);
+          FALSE, MAG_SUMMONS, NULL, 12, 23, CONJURATION, FALSE);
   spello(SPELL_GATE, "gate", 51, 36, 1, POS_FIGHTING, TAR_IGNORE, FALSE,
-          MAG_CREATIONS, NULL, 9, 13, CONJURATION, FALSE);
+          MAG_CREATIONS, NULL, 9, 23, CONJURATION, FALSE);
   spello(SPELL_SHAMBLER, "shambler", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, FALSE,
-          MAG_SUMMONS, NULL, 9, 13, CONJURATION, FALSE);
+          MAG_SUMMONS, NULL, 9, 23, CONJURATION, FALSE);
   spello(SPELL_SUMMON_CREATURE_9, "summon creature ix", 0, 0, 0,
-          POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 12, 13, CONJURATION, FALSE);
+          POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 12, 23, CONJURATION, FALSE);
   /* necromancy */
   //*energy drain, shared
   spello(SPELL_WAIL_OF_THE_BANSHEE, "wail of the banshee", 85, 70, 1,
-          POS_FIGHTING, TAR_IGNORE, TRUE, MAG_AREAS, NULL, 10, 13, NECROMANCY, FALSE);
+          POS_FIGHTING, TAR_IGNORE, TRUE, MAG_AREAS, NULL, 10, 23, NECROMANCY, FALSE);
   /* enchantment */
   spello(SPELL_POWER_WORD_KILL, "power word kill", 72, 57, 1, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
-          NULL, 0, 13, EVOCATION, FALSE);
+          NULL, 0, 23, EVOCATION, FALSE);
   spello(SPELL_ENFEEBLEMENT, "enfeeblement", 65, 50, 1, POS_FIGHTING,
-          TAR_IGNORE, TRUE, MAG_AREAS, "You no longer feel enfeebled.", 4, 13,
+          TAR_IGNORE, TRUE, MAG_AREAS, "You no longer feel enfeebled.", 4, 23,
           ENCHANTMENT, FALSE);
   /* illusion */
   spello(SPELL_WEIRD, "weird", 65, 50, 1, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE | MAG_AFFECTS,
-          "The phantasmal killer stop chasing you.", 4, 13,
+          "The phantasmal killer stop chasing you.", 4, 23,
           ENCHANTMENT, FALSE);
   spello(SPELL_SHADOW_SHIELD, "shadow shield", 95, 80, 1, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "You feel the shadow shield dissipate.", 5, 13, ILLUSION, FALSE);
+          "You feel the shadow shield dissipate.", 5, 23, ILLUSION, FALSE);
   /* divination */
   spello(SPELL_PRISMATIC_SPHERE, "prismatic sphere", 65, 50, 1, POS_FIGHTING,
-          TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 8, 13, DIVINATION, FALSE);
+          TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 8, 23, DIVINATION, FALSE);
   spello(SPELL_IMPLODE, "implode", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_MANUAL,
-          NULL, 3, 13, DIVINATION, FALSE);
+          NULL, 3, 23, DIVINATION, FALSE);
   /* abjuration */
   spello(SPELL_TIMESTOP, "timestop", 95, 80, 1, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS,
-          "Time begins to move again.", 0, 13, ABJURATION, FALSE);
+          "Time begins to move again.", 0, 23, ABJURATION, FALSE);
   spello(SPELL_GREATER_SPELL_MANTLE, "greater spell mantle", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS,
-          "You feel your greater spell mantle wear off.", 8, 13, ABJURATION, FALSE);
+          "You feel your greater spell mantle wear off.", 8, 23, ABJURATION, FALSE);
   /* transmutation */
   spello(SPELL_POLYMORPH, "polymorph self", 58, 43, 1, POS_FIGHTING,
-          TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 9, 13, TRANSMUTATION, FALSE);
+          TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 9, 23, TRANSMUTATION, FALSE);
   spello(SPELL_MASS_ENHANCE, "mass enhance", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
-          FALSE, MAG_GROUPS, "The physical enhancement spell wears off.", 2, 13,
+          FALSE, MAG_GROUPS, "The physical enhancement spell wears off.", 2, 23,
           TRANSMUTATION, FALSE);
 
 
   // epic magical
   spello(SPELL_EPIC_MAGE_ARMOR, "epic mage armor", 95, 80, 1, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "You feel less protected.", 4, 14, ABJURATION, FALSE);
+          "You feel less protected.", 4, 1, ABJURATION, FALSE);
   spello(SPELL_EPIC_WARDING, "epic warding", 95, 80, 1, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "Your massive magical ward dissipates.", 4, 14, ABJURATION, FALSE);
+          "Your massive magical ward dissipates.", 4, 1, ABJURATION, FALSE);
   // end magical
-
-
 
   // divine spells
   // 1st circle
   spello(SPELL_CURE_LIGHT, "cure light", 30, 15, 1, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_POINTS,
-          NULL, 1, 6, NOSCHOOL, FALSE);
+          NULL, 1, 8, NOSCHOOL, FALSE);
   spello(SPELL_CAUSE_LIGHT_WOUNDS, "cause light wound", 30, 15, 1, POS_FIGHTING,
-          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE, NULL, 2, 6, NOSCHOOL, FALSE);
+          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE, NULL, 2, 8, NOSCHOOL, FALSE);
   spello(SPELL_ARMOR, "armor", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE,
-          MAG_AFFECTS, "You feel less protected.", 4, 6, CONJURATION, FALSE);
+          MAG_AFFECTS, "You feel less protected.", 4, 8, CONJURATION, FALSE);
   spello(SPELL_REMOVE_FEAR, "remove fear", 44, 29, 1, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_UNAFFECTS,
-          NULL, 3, 6, NOSCHOOL, FALSE);
+          NULL, 3, 8, NOSCHOOL, FALSE);
   //endurance - shared
   //negative energy ray - shared
   //endure elements - shared
@@ -2393,14 +2391,14 @@ void mag_assign_spells(void) {
 
   // 2nd circle
   spello(SPELL_CREATE_FOOD, "create food", 37, 22, 1, POS_FIGHTING, TAR_IGNORE,
-          FALSE, MAG_CREATIONS, NULL, 2, 7, NOSCHOOL, FALSE);
+          FALSE, MAG_CREATIONS, NULL, 2, 10, NOSCHOOL, FALSE);
   spello(SPELL_CREATE_WATER, "create water", 37, 22, 1, POS_FIGHTING,
-          TAR_OBJ_INV | TAR_OBJ_EQUIP, FALSE, MAG_MANUAL, NULL, 2, 7, NOSCHOOL, FALSE);
+          TAR_OBJ_INV | TAR_OBJ_EQUIP, FALSE, MAG_MANUAL, NULL, 2, 10, NOSCHOOL, FALSE);
   spello(SPELL_CURE_MODERATE, "cure moderate", 30, 15, 1, POS_FIGHTING,
-          TAR_CHAR_ROOM, FALSE, MAG_POINTS, NULL, 2, 7, NOSCHOOL, FALSE);
+          TAR_CHAR_ROOM, FALSE, MAG_POINTS, NULL, 2, 10, NOSCHOOL, FALSE);
   spello(SPELL_CAUSE_MODERATE_WOUNDS, "cause moderate wound", 37, 22, 1,
           POS_FIGHTING, TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
-          NULL, 3, 7, NOSCHOOL, FALSE);
+          NULL, 3, 10, NOSCHOOL, FALSE);
   //detect poison - shared
   //scare - shared
   //summon creature ii - shared
@@ -2413,23 +2411,23 @@ void mag_assign_spells(void) {
   // 3rd circle
   spello(SPELL_DETECT_ALIGN, "detect alignment", 44, 29, 1, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "You feel less aware.", 3, 8, NOSCHOOL, FALSE);
+          "You feel less aware.", 3, 12, NOSCHOOL, FALSE);
   spello(SPELL_CURE_BLIND, "cure blind", 44, 29, 1, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_UNAFFECTS,
-          NULL, 3, 8, NOSCHOOL, FALSE);
+          NULL, 3, 12, NOSCHOOL, FALSE);
   spello(SPELL_BLESS, "bless", 44, 29, 1, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_OBJ_INV, FALSE, MAG_AFFECTS | MAG_ALTER_OBJS,
-          "You feel less righteous.", 3, 8, NOSCHOOL, FALSE);
+          "You feel less righteous.", 3, 12, NOSCHOOL, FALSE);
   spello(SPELL_CURE_SERIOUS, "cure serious", 30, 15, 1, POS_FIGHTING,
-          TAR_CHAR_ROOM, FALSE, MAG_POINTS, NULL, 3, 8, NOSCHOOL, FALSE);
+          TAR_CHAR_ROOM, FALSE, MAG_POINTS, NULL, 3, 12, NOSCHOOL, FALSE);
   spello(SPELL_CAUSE_SERIOUS_WOUNDS, "cause serious wound", 44, 29, 1,
           POS_FIGHTING, TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
-          NULL, 4, 9, NOSCHOOL, FALSE);
+          NULL, 4, 12, NOSCHOOL, FALSE);
   spello(SPELL_CURE_DEAFNESS, "cure deafness", 44, 29, 1, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_UNAFFECTS,
-          NULL, 5, 9, NOSCHOOL, FALSE);
+          NULL, 5, 12, NOSCHOOL, FALSE);
   spello(SPELL_FAERIE_FOG, "faerie fog", 65, 50, 1, POS_FIGHTING,
-          TAR_IGNORE, TRUE, MAG_AREAS, NULL, 4, 7, NOSCHOOL, FALSE);
+          TAR_IGNORE, TRUE, MAG_AREAS, NULL, 4, 12, NOSCHOOL, FALSE);
   //summon creature 3 - shared
   //deafness - shared
   //cunning - shared
@@ -2439,18 +2437,18 @@ void mag_assign_spells(void) {
   // 4th circle
   spello(SPELL_CURE_CRITIC, "cure critic", 51, 36, 1, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_POINTS,
-          NULL, 3, 10, NOSCHOOL, FALSE);
+          NULL, 3, 14, NOSCHOOL, FALSE);
   spello(SPELL_CAUSE_CRITICAL_WOUNDS, "cause critical wound", 51, 36, 1,
           POS_FIGHTING, TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
-          NULL, 5, 10, NOSCHOOL, FALSE);
+          NULL, 5, 14, NOSCHOOL, FALSE);
   spello(SPELL_MASS_CURE_LIGHT, "mass cure light", 85, 70, 1, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_GROUPS,
-          NULL, 5, 10, NOSCHOOL, FALSE);
+          NULL, 5, 14, NOSCHOOL, FALSE);
   spello(SPELL_AID, "aid", 44, 29, 1, POS_FIGHTING, TAR_IGNORE, FALSE,
           MAG_GROUPS, "You feel the aid spell fade away.", 5, 10, NOSCHOOL, FALSE);
   spello(SPELL_BRAVERY, "bravery", 44, 29, 1, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_UNAFFECTS | MAG_AFFECTS,
-          "You feel your bravery spell wear off.", 8, 10, NOSCHOOL, FALSE);
+          "You feel your bravery spell wear off.", 8, 14, NOSCHOOL, FALSE);
   //summon creature iv - shared
   //remove curse - shared
   //infravision - shared
@@ -2462,31 +2460,31 @@ void mag_assign_spells(void) {
   // 5th circle
   spello(SPELL_REMOVE_POISON, "remove poison", 65, 50, 1, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_OBJ_INV | TAR_OBJ_ROOM, FALSE, MAG_UNAFFECTS | MAG_ALTER_OBJS,
-          NULL, 7, 12, NOSCHOOL, FALSE);
+          NULL, 7, 16, NOSCHOOL, FALSE);
   spello(SPELL_PROT_FROM_EVIL, "protection from evil", 58, 43, 1, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "You feel less protected from evil.", 5, 11, NOSCHOOL, FALSE);
+          "You feel less protected from evil.", 5, 16, NOSCHOOL, FALSE);
   spello(SPELL_GROUP_ARMOR, "group armor", 58, 43, 1, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_GROUPS,
-          NULL, 5, 11, NOSCHOOL, FALSE);
+          NULL, 5, 16, NOSCHOOL, FALSE);
   spello(SPELL_FLAME_STRIKE, "flame strike", 58, 43, 1, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
-          NULL, 6, 11, NOSCHOOL, FALSE);
+          NULL, 6, 16, NOSCHOOL, FALSE);
   spello(SPELL_PROT_FROM_GOOD, "protection from good", 58, 43, 1, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "You feel less protected from good.", 5, 11, NOSCHOOL, FALSE);
+          "You feel less protected from good.", 5, 16, NOSCHOOL, FALSE);
   spello(SPELL_MASS_CURE_MODERATE, "mass cure moderate", 85, 70, 1, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_GROUPS,
-          NULL, 6, 11, NOSCHOOL, FALSE);
+          NULL, 6, 16, NOSCHOOL, FALSE);
   spello(SPELL_REGENERATION, "regeneration", 58, 43, 1, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS | MAG_POINTS,
-          "You feel the regeneration spell wear off.", 5, 11, NOSCHOOL, FALSE);
+          "You feel the regeneration spell wear off.", 5, 16, NOSCHOOL, FALSE);
   spello(SPELL_FREE_MOVEMENT, "free movement", 58, 43, 1, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS | MAG_UNAFFECTS,
-          "You feel the free movement spell wear off.", 5, 11, NOSCHOOL, FALSE);
+          "You feel the free movement spell wear off.", 5, 16, NOSCHOOL, FALSE);
   spello(SPELL_STRENGTHEN_BONE, "strengthen bones", 58, 43, 1, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "You feel your undead bones weaken again.", 5, 11, NOSCHOOL, FALSE);
+          "You feel your undead bones weaken again.", 5, 16, NOSCHOOL, FALSE);
   //poison - shared
   //summon creature 5 - shared
   //waterbreath - shared
@@ -2495,24 +2493,24 @@ void mag_assign_spells(void) {
   // 6th circle
   spello(SPELL_DISPEL_EVIL, "dispel evil", 65, 50, 1, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
-          NULL, 5, 12, NOSCHOOL, FALSE);
+          NULL, 5, 18, NOSCHOOL, FALSE);
   spello(SPELL_HARM, "harm", 65, 50, 1, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
-          NULL, 7, 12, NOSCHOOL, FALSE);
+          NULL, 7, 18, NOSCHOOL, FALSE);
   spello(SPELL_HEAL, "heal", 65, 50, 1, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_POINTS | MAG_UNAFFECTS,
-          NULL, 5, 12, NOSCHOOL, FALSE);
+          NULL, 5, 18, NOSCHOOL, FALSE);
   spello(SPELL_DISPEL_GOOD, "dispel good", 65, 50, 1, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
-          NULL, 5, 12, NOSCHOOL, FALSE);
+          NULL, 5, 18, NOSCHOOL, FALSE);
   spello(SPELL_MASS_CURE_SERIOUS, "mass cure serious", 85, 70, 1, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_GROUPS,
-          NULL, 6, 12, NOSCHOOL, FALSE);
+          NULL, 6, 18, NOSCHOOL, FALSE);
   spello(SPELL_PRAYER, "prayer", 44, 29, 1, POS_FIGHTING, TAR_IGNORE, FALSE,
-          MAG_GROUPS, "You feel the aid spell fade away.", 8, 12, NOSCHOOL, FALSE);
+          MAG_GROUPS, "You feel the aid spell fade away.", 8, 18, NOSCHOOL, FALSE);
   spello(SPELL_REMOVE_DISEASE, "remove disease", 44, 29, 1, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_UNAFFECTS,
-          NULL, 7, 12, NOSCHOOL, FALSE);
+          NULL, 7, 18, NOSCHOOL, FALSE);
   //summon creature 6 - shared
   //eyebite - shared
   //mass wisdom - shared
@@ -2522,29 +2520,29 @@ void mag_assign_spells(void) {
   // 7th circle
   spello(SPELL_CALL_LIGHTNING, "call lightning", 72, 57, 1, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
-          NULL, 8, 13, NOSCHOOL, FALSE);
+          NULL, 8, 20, NOSCHOOL, FALSE);
   spello(SPELL_SUMMON, "summon", 72, 57, 1, POS_FIGHTING,
           TAR_CHAR_WORLD | TAR_NOT_SELF, FALSE, MAG_MANUAL,
-          NULL, 10, 13, NOSCHOOL, FALSE);
+          NULL, 10, 20, NOSCHOOL, FALSE);
   spello(SPELL_WORD_OF_RECALL, "word of recall", 72, 57, 1, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_MANUAL,
-          NULL, 0, 13, NOSCHOOL, FALSE);
+          NULL, 0, 20, NOSCHOOL, FALSE);
   spello(SPELL_MASS_CURE_CRIT, "mass cure critic", 85, 70, 1, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_GROUPS,
-          NULL, 7, 13, NOSCHOOL, FALSE);
+          NULL, 7, 20, NOSCHOOL, FALSE);
   spello(SPELL_SENSE_LIFE, "sense life", 79, 64, 1, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "You feel less aware of your surroundings.", 8, 14, NOSCHOOL, FALSE);
+          "You feel less aware of your surroundings.", 8, 20, NOSCHOOL, FALSE);
   spello(SPELL_BLADE_BARRIER, "blade barrier", 0, 0, 0, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_ROOM,
-          "You watch as the barrier of blades dissipates.", 7, 13,
+          "You watch as the barrier of blades dissipates.", 7, 20,
           CONJURATION, FALSE);
   spello(SPELL_BATTLETIDE, "battletide", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS,
-          "You feel the battletide fade.", 10, 13, NOSCHOOL, FALSE);
+          "You feel the battletide fade.", 10, 20, NOSCHOOL, FALSE);
   spello(SPELL_SPELL_RESISTANCE, "magic resistance", 79, 64, 1, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "You feel your spell resistance fade.", 8, 14, NOSCHOOL, FALSE);
+          "You feel your spell resistance fade.", 8, 20, NOSCHOOL, FALSE);
   //control weather - shared
   //summon creature 7 - shared
   //greater dispelling - shared
@@ -2553,43 +2551,43 @@ void mag_assign_spells(void) {
   // 8th circle
   spello(SPELL_SANCTUARY, "sanctuary", 79, 64, 1, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "The white aura around your body fades.", 8, 14, NOSCHOOL, FALSE);
+          "The white aura around your body fades.", 8, 22, NOSCHOOL, FALSE);
   spello(SPELL_DESTRUCTION, "destruction", 79, 64, 1, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
-          NULL, 9, 14, NOSCHOOL, FALSE);
+          NULL, 9, 22, NOSCHOOL, FALSE);
   spello(SPELL_WORD_OF_FAITH, "word of faith", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
-          "You no longer feel divinely inflicted.", 0, 14,
+          "You no longer feel divinely inflicted.", 0, 22,
           NOSCHOOL, FALSE);
   spello(SPELL_DIMENSIONAL_LOCK, "dimensional lock", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
-          "You feel locked to this dimension.", 0, 14,
+          "You feel locked to this dimension.", 0, 22,
           NOSCHOOL, FALSE);
   spello(SPELL_SALVATION, "salvation", 79, 64, 1, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_MANUAL,
-          NULL, 8, 14, NOSCHOOL, FALSE);
+          NULL, 8, 22, NOSCHOOL, FALSE);
   spello(SPELL_SPRING_OF_LIFE, "spring of life", 37, 22, 1, POS_FIGHTING,
-          TAR_IGNORE, FALSE, MAG_CREATIONS, NULL, 14, 14, NOSCHOOL, FALSE);
+          TAR_IGNORE, FALSE, MAG_CREATIONS, NULL, 14, 22, NOSCHOOL, FALSE);
   //druid spell
   spello(SPELL_ANIMAL_SHAPES, "animal shapes", 85, 70, 1, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_GROUPS,
-          "The primal spell wears off!", 5, 15, NOSCHOOL, FALSE);
+          "The primal spell wears off!", 5, 22, NOSCHOOL, FALSE);
 
   // 9th circle
   spello(SPELL_EARTHQUAKE, "earthquake", 85, 70, 1, POS_FIGHTING,
           TAR_IGNORE, TRUE, MAG_AREAS,
-          NULL, 10, 15, NOSCHOOL, FALSE);
+          NULL, 10, 25, NOSCHOOL, FALSE);
   spello(SPELL_PLANE_SHIFT, "plane shift", 85, 70, 1, POS_FIGHTING,
-          TAR_IGNORE, TRUE, MAG_MANUAL, NULL, 2, 15, NOSCHOOL, FALSE);
+          TAR_IGNORE, TRUE, MAG_MANUAL, NULL, 2, 25, NOSCHOOL, FALSE);
   spello(SPELL_GROUP_HEAL, "group heal", 85, 70, 1, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_GROUPS,
-          NULL, 5, 15, NOSCHOOL, FALSE);
+          NULL, 5, 25, NOSCHOOL, FALSE);
   spello(SPELL_GROUP_SUMMON, "group summon", 85, 70, 1, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_MANUAL,
-          NULL, 5, 15, NOSCHOOL, FALSE);
+          NULL, 5, 25, NOSCHOOL, FALSE);
   spello(SPELL_STORM_OF_VENGEANCE, "storm of vengeance", 85, 70, 1, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_MANUAL,
-          NULL, 12, 15, NOSCHOOL, FALSE);
+          NULL, 12, 25, NOSCHOOL, FALSE);
   //energy drain - shared
 
 
