@@ -937,10 +937,34 @@ int comp_slots(struct char_data *ch, int circle, int class) {
    and the corresponding prep-time in  prep-time list
    WIZARD types:  adds <spellnum> to the characters prep-list, and
    places the corresponding prep-time in prep-time list  */
-#define SORC_TIME_FACTOR  10
-#define BARD_TIME_FACTOR  12
+#define RANGER_TIME_FACTOR  7
+#define PALADIN_TIME_FACTOR  7
+#define DRUID_TIME_FACTOR  4
+#define WIZ_TIME_FACTOR  2
+#define CLERIC_TIME_FACTOR  4
+#define SORC_TIME_FACTOR  5
+#define BARD_TIME_FACTOR  6
 void addSpellMemming(struct char_data *ch, int spellnum, int time, int class) {
   int slot;
+
+  /* modifier to our 'normal' memorizers */
+  switch (class) {
+    case CLASS_RANGER:
+      time *= RANGER_TIME_FACTOR;
+      break;
+    case CLASS_PALADIN:
+      time *= PALADIN_TIME_FACTOR;
+      break;
+    case CLASS_DRUID:
+      time *= DRUID_TIME_FACTOR;
+      break;
+    case CLASS_WIZARD:
+      time *= WIZ_TIME_FACTOR;
+      break;
+    case CLASS_CLERIC:
+      time *= CLERIC_TIME_FACTOR;
+      break;
+  }
 
   /* sorcerer type system, we are not storing a spellnum to the prep-list, we
    * are just storing the spellnum's circle */
@@ -1467,7 +1491,7 @@ void updateMemming(struct char_data *ch, int class) {
 
   /* calaculate memtime bonus based on concentration */
   if (!IS_NPC(ch) && GET_ABILITY(ch, ABILITY_CONCENTRATION)) {
-    if(dice(1, 100) >= compute_ability(ch, ABILITY_CONCENTRATION))
+    if((10 + GET_LEVEL(ch)) <= compute_ability(ch, ABILITY_CONCENTRATION))
       bonus++;
   }
 
@@ -1522,6 +1546,10 @@ void updateMemming(struct char_data *ch, int class) {
 
   /* continue memorizing */
   PREP_TIME(ch, 0, classArray(class)) -= bonus;
+  /* bonus feat */
+  if (HAS_FEAT(ch, FEAT_FASTER_MEMORIZATION)) {
+    PREP_TIME(ch, 0, classArray(class)) -= bonus;
+  }
   if (PREP_TIME(ch, 0, classArray(class)) <= 0 || GET_LEVEL(ch) >= LVL_IMMORT) {
     switch (class) {
       case CLASS_CLERIC:
