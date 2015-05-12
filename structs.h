@@ -1575,11 +1575,15 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_VANISH                         388
 #define FEAT_IMPROVED_VANISH                389
 #define FEAT_WEAPON_PROFICIENCY_BARD        390
+#define FEAT_RAGING_CRITICAL                391
+#define FEAT_EATER_OF_MAGIC                392
+#define FEAT_RAGE_RESISTANCE                393
+#define FEAT_DEATHLESS_FRENZY                394
 
 /** reserved **/
-#define FEAT_LAST_FEAT                   391
+#define FEAT_LAST_FEAT                   395
 /*****/
-#define NUM_FEATS                        392
+#define NUM_FEATS                        396
 /*****/
 #define MAX_FEATS                        750
 /*****/

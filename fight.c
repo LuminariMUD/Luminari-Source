@@ -676,6 +676,14 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
 
 // the whole update_pos system probably needs to be rethought -zusuk
 void update_pos_dam(struct char_data *victim) {
+
+  if (HAS_FEAT(victim, FEAT_DEATHLESS_FRENZY) && affected_by_spell(victim, SKILL_RAGE)) {
+    if (GET_HIT(victim) <= -51)
+      GET_POS(victim) = POS_DEAD;
+    else
+      return;
+  }
+
   if (GET_HIT(victim) <= -11)
     GET_POS(victim) = POS_DEAD;
   else if (GET_HIT(victim) <= -6)
@@ -696,6 +704,13 @@ void update_pos_dam(struct char_data *victim) {
   }
 }
 void update_pos(struct char_data *victim) {
+
+  if (HAS_FEAT(victim, FEAT_DEATHLESS_FRENZY) && affected_by_spell(victim, SKILL_RAGE)) {
+    if (GET_HIT(victim) <= -51)
+      GET_POS(victim) = POS_DEAD;
+    else
+      return;
+  }
 
   if ((GET_HIT(victim) > 0) && (GET_POS(victim) > POS_STUNNED))
     return;
@@ -1759,6 +1774,10 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type) {
 
   /* universal bonsues */
   damtype_reduction += GET_RESISTANCES(ch, dam_type);
+
+  if (HAS_FEAT(ch, FEAT_RAGE_RESISTANCE) && affected_by_spell(ch, SKILL_RAGE)) {
+    damtype_reduction += 10;
+  }
 
   switch (dam_type) {
     case DAM_FIRE:
@@ -2979,6 +2998,19 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
     /* handle critical hit damage here */
     if (is_critical && !(IS_NPC(victim) && GET_RACE(victim) == NPCRACE_UNDEAD)) { /* critical bonus */
       dam *= determine_critical_multiplier(ch, wielded);
+      if (HAS_FEAT(ch, FEAT_RAGING_CRITICAL) && affected_by_spell(ch, SKILL_RAGE)) {
+        if ((GET_SIZE(ch) - GET_SIZE(victim)) >= 2) ;
+        else if ((GET_SIZE(victim) - GET_SIZE(ch)) >= 2) ;
+        else if (GET_POS(victim) <= POS_SITTING) ;
+        else if (IS_INCORPOREAL(victim)) ;
+        else if (MOB_FLAGGED(victim, MOB_NOBASH)) ;
+        else {
+          GET_POS(victim) = POS_SITTING;
+          act("\tyYou knock $N to the ground with your powerful blow!\tn", FALSE, ch, NULL, victim, TO_CHAR);
+          act("\ty$n knocks you to the ground with $s powerful blow!\tn", FALSE, ch, NULL, victim, TO_VICT);
+          act("\ty$n knocks $N to the ground with $s powerful blow!\tn", FALSE, ch, NULL, victim, TO_NOTVICT);
+        }
+      }
     }
 
     /* mounted charging character using charging weapons, whether this goes up
