@@ -68,7 +68,7 @@ ACMD(do_oasis_copy)
     return;
 
   /* No copying as a mob or while being forced. */
-  if (IS_NPC(ch) || !ch->desc || STATE(ch->desc) != CON_PLAYING) 
+  if (IS_NPC(ch) || !ch->desc || STATE(ch->desc) != CON_PLAYING)
     return;
 
   /* We need two arguments. */
@@ -170,12 +170,25 @@ ACMD(do_dig)
     return;
   }
 
+  /* set up some variables */
   rawvnum = atoi(sroom);
   if (rawvnum == -1)
     rvnum = NOWHERE;
   else
     rvnum = (room_vnum)rawvnum;
   rrnum = real_room(rvnum);
+
+  /* wilderness dyanmic room dummy checks */
+  if (IS_DYNAMIC(IN_ROOM(ch))) {
+    send_to_char(ch, "You cannot use the 'dig' command from a dynamic room.\r\n");
+    return;
+  }
+  if (IS_DYNAMIC(rrnum)) {
+    send_to_char(ch, "You cannot use the 'dig' command to a dynamic room.\r\n");
+    return;
+  }
+
+  /* continue setting up some variables */
   dir = search_block(sdir, dirs, FALSE);
   zone = world[IN_ROOM(ch)].zone;
 
@@ -188,7 +201,7 @@ ACMD(do_dig)
     send_to_char(ch, "You do not have permission to edit this zone.\r\n");
     return;
   }
-  /* Lets not allow digging to limbo. After all, it'd just get us more errors 
+  /* Lets not allow digging to limbo. After all, it'd just get us more errors
    * on 'show errors.' */
   if (rvnum == 0) {
    send_to_char(ch, "The target exists, but you can't dig to limbo!\r\n");
@@ -231,7 +244,7 @@ ACMD(do_dig)
   /* Now we know the builder is allowed to make the link. */
   /* If the room doesn't exist, create it.*/
   if (rrnum == NOWHERE) {
-    /* Give the descriptor an olc struct. This way we can let 
+    /* Give the descriptor an olc struct. This way we can let
      * redit_save_internally handle the room adding. */
     if (d->olc) {
       mudlog(BRF, LVL_IMMORT, TRUE, "SYSERR: do_dig: Player already had olc structure.");
@@ -254,7 +267,7 @@ ACMD(do_dig)
     OLC_ROOM(d)->zone = OLC_ZNUM(d);
     OLC_ROOM(d)->number = NOWHERE;
 
-    /* Save the new room to memory. redit_save_internally handles adding the 
+    /* Save the new room to memory. redit_save_internally handles adding the
      * room in the right place, etc. */
     redit_save_internally(d);
     OLC_VAL(d) = 0;
@@ -299,7 +312,7 @@ static room_vnum redit_find_new_vnum(zone_rnum zone)
   /* Handle wilderness limits differently. */
   if(ZONE_FLAGGED(zone, ZONE_WILDERNESS)) {
     vnum = WILD_ROOM_VNUM_START;
-    top = WILD_ROOM_VNUM_END;  
+    top = WILD_ROOM_VNUM_END;
   } else {
     vnum = genolc_zone_bottom(zone);
     top = zone_table[zone].top;
@@ -366,7 +379,7 @@ int buildwalk(struct char_data *ch, int dir)
       send_to_char(ch, "No free vnums are available in this zone!\r\n");
     } else {
       struct descriptor_data *d = ch->desc;
-      /* Give the descriptor an olc struct. This way we can let 
+      /* Give the descriptor an olc struct. This way we can let
        * redit_save_internally handle the room adding. */
       if (d->olc) {
         mudlog(BRF, LVL_IMMORT, TRUE, "SYSERR: buildwalk(): Player already had olc structure.");
@@ -388,14 +401,14 @@ int buildwalk(struct char_data *ch, int dir)
       /* If this is a wilderness zone, set the coordinates */
       if(ZONE_FLAGGED(OLC_ZNUM(d), ZONE_WILDERNESS)) {
         OLC_ROOM(d)->coords[0] = new_x;
-        OLC_ROOM(d)->coords[1] = new_y;      
+        OLC_ROOM(d)->coords[1] = new_y;
       }
-	  
-      /* Save the new room to memory. redit_save_internally handles adding the 
+
+      /* Save the new room to memory. redit_save_internally handles adding the
        * room in the right place, etc. */
       redit_save_internally(d);
       OLC_VAL(d) = 0;
-      
+
       /* Link rooms */
       rnum = real_room(vnum);
 
@@ -418,7 +431,7 @@ int buildwalk(struct char_data *ch, int dir)
         EXIT(ch, dir)->to_room = rnum;
         CREATE(world[rnum].dir_option[rev_dir[dir]], struct room_direction_data, 1);
         world[rnum].dir_option[rev_dir[dir]]->to_room = IN_ROOM(ch);
-   
+
         /* Report room creation to user */
         send_to_char(ch, "%sRoom #%d created by BuildWalk.%s\r\n", yel, vnum, nrm);
       }
