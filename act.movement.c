@@ -470,7 +470,10 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
 
   if (dir < 0 || dir >= NUM_OF_DIRS)
     return 0;
-  /* dummy check */
+
+  /* dummy check, if you teleport while in a falling event, BOOM otherwise :P */
+  if (!EXIT(ch, dir))
+    return 0;
 
   /* The following is to support the wilderness code. */
   if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS) && (EXIT(ch, dir)->to_room == real_room(1000000))) {
