@@ -28,9 +28,17 @@
 
 /* added this for falling event, general dummy check */
 bool death_check(struct char_data *ch) {
+  /* we're just making sure damage() is called if he should be dead */
 
-  if (GET_HIT(ch) <= -12) {
-    /* we're just making sure damage() is called if he should be dead */
+  if (HAS_FEAT(ch, FEAT_DEATHLESS_FRENZY) && affected_by_spell(ch, SKILL_RAGE)) {
+    if (GET_HIT(ch) <= -51) {
+      damage(ch, ch, 999, TYPE_UNDEFINED, DAM_FORCE, FALSE);
+      return TRUE; // dead for sure now!
+    } else
+      return FALSE;
+  }
+
+  if (GET_HIT(ch) <= -12 ) {
     damage(ch, ch, 999, TYPE_UNDEFINED, DAM_FORCE, FALSE);
     return TRUE; // dead for sure now!
   }
