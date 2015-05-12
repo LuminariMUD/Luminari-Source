@@ -192,6 +192,12 @@ int mag_savingthrow(struct char_data *ch, struct char_data *vict,
         send_to_char(ch, "\tR*(Challenge:%d<%s:%d) Opponent Saved!*\tn ",
               challenge, save_names[type], savethrow);
     }
+
+    if (HAS_FEAT(vict, FEAT_EATER_OF_MAGIC) && affected_by_spell(vict, SKILL_RAGE)) {
+      GET_HIT(vict) += CLASS_LEVEL(vict, CLASS_BERSERKER);
+      send_to_char(vict, "\tWResisting the spell restores some of your vitality!\tn\r\n");
+    }
+
     return (TRUE);
   }
 

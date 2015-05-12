@@ -1,4 +1,5 @@
- /*****************************************************************************
+
+/*****************************************************************************
  ** FEATS.C                                                                  **
  ** Source code for the Gates of Krynn Feats System.                         **
  ** Initial code by Paladine (Stephen Squires), Ported by Ornir to Luminari  **
@@ -1143,6 +1144,21 @@ void assign_feats(void) {
       "on attack and damage rolls against the berserker until the beginning of "
       "her next turn, but every attack against the berserker provokes an attack "
       "of opportunity from her, which is resolved prior to resolving each enemy attack. ");
+  /*epic*/feato(FEAT_RAGING_CRITICAL, "raging critical", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "your criticals knock over opponents while raging",
+    "While raging, on successful criticals, against opponents that are standing, and not too "
+      "much larger or smaller than you, your powerful critical attacks will knock "
+      "them down.");
+  /*epic*/feato(FEAT_EATER_OF_MAGIC, "eater of magic", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "successful saving throws will heal rager",
+    "While raging, if the rager makes a successful saving throw, they recover "
+      "their level in hit points.");
+  /*epic*/feato(FEAT_RAGE_RESISTANCE, "rage resistance", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "gain boost in resistances while raging",
+    "While raging, you will gain a 10 bonus to all your resistances.");
+  /*epic*/feato(FEAT_DEATHLESS_FRENZY, "deathless frenzy", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "the rager is nearly unstoppable",
+    "While raging, you have to be brought to -51 or lower to be stopped.");
 
   /* Sorcerer/Wizard */
   feato(FEAT_SUMMON_FAMILIAR, "summon familiar", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
