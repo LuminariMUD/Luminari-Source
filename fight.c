@@ -3285,10 +3285,14 @@ void weapon_poison(struct char_data *ch, struct char_data *victim, struct obj_da
   act("The \tGpoison\tn from $p attaches to $n.",
           FALSE, victim, wielded, 0, TO_ROOM);
   call_magic(ch, victim, wielded, wielded->weapon_poison.poison, wielded->weapon_poison.poison_level,
-          CAST_POTION);
-  wielded->weapon_poison.poison_level -= wielded->weapon_poison.poison_level / 4;
+          CAST_WEAPON_POISON);
+
+  wielded->weapon_poison.poison_level -= 2;
+  if (wielded->weapon_poison.poison_level <= 0)
+    wielded->weapon_poison.poison_level = 1;
+
   wielded->weapon_poison.poison_hits--;
-  if (wielded->weapon_poison.poison_hits <= 0)
+  if (wielded->weapon_poison.poison_hits < 0)
     wielded->weapon_poison.poison = 0;
 }
 
@@ -3315,7 +3319,7 @@ void weapon_spells(struct char_data *ch, struct char_data *vict,
           act("$p leaps to action with an attack of its own.",
                   TRUE, ch, wpn, 0, TO_ROOM);
           if (call_magic(ch, vict, wpn, GET_WEAPON_SPELL(wpn, i),
-                  GET_WEAPON_SPELL_LVL(wpn, i), CAST_WAND) < 0)
+                  GET_WEAPON_SPELL_LVL(wpn, i), CAST_WEAPON_SPELL) < 0)
             return;
         }
       }
@@ -3345,7 +3349,7 @@ void idle_weapon_spells(struct char_data *ch) {
           act("$p leaps to action.",
                   TRUE, ch, wielded, 0, TO_ROOM);
           call_magic(ch, ch, NULL, GET_WEAPON_SPELL(wielded, j),
-                  GET_WEAPON_SPELL_LVL(wielded, j), CAST_WAND);
+                  GET_WEAPON_SPELL_LVL(wielded, j), CAST_WEAPON_SPELL);
         }
       }
     }
@@ -3362,7 +3366,7 @@ void idle_weapon_spells(struct char_data *ch) {
           act("$p leaps to action.",
                   TRUE, ch, offWield, 0, TO_ROOM);
           call_magic(ch, ch, NULL, GET_WEAPON_SPELL(offWield, j),
-                  GET_WEAPON_SPELL_LVL(offWield, j), CAST_WAND);
+                  GET_WEAPON_SPELL_LVL(offWield, j), CAST_WEAPON_SPELL);
         }
       }
     }

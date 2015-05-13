@@ -19,13 +19,23 @@
 #define DEFAULT_STAFF_LVL    12
 #define DEFAULT_WAND_LVL     12
 
-#define CAST_UNDEFINED	(-1)
-#define CAST_SPELL       0
-#define CAST_POTION      1
-#define CAST_WAND        2
-#define CAST_STAFF       3
-#define CAST_SCROLL      4
-#define CAST_INNATE      5 /* For innate abilities */
+/* spell types */
+#define SPELL_TYPE_SPELL   0
+#define SPELL_TYPE_POTION  1
+#define SPELL_TYPE_WAND    2
+#define SPELL_TYPE_STAFF   3
+#define SPELL_TYPE_SCROLL  4
+
+
+#define CAST_UNDEFINED	   (-1)
+#define CAST_SPELL          0
+#define CAST_POTION         1
+#define CAST_WAND           2
+#define CAST_STAFF          3
+#define CAST_SCROLL         4
+#define CAST_INNATE         5 /* For innate abilities */
+#define CAST_WEAPON_POISON  6 /* For apply poison */
+#define CAST_WEAPON_SPELL   7 /* For casting weapons */
 
 #define MAG_DAMAGE        (1 << 0)
 #define MAG_AFFECTS       (1 << 1)
@@ -974,13 +984,6 @@ struct spell_info_type {
   int resistance; /* spell resistance, assigned in code currently */
 };
 
-/* spell types */
-#define SPELL_TYPE_SPELL   0
-#define SPELL_TYPE_POTION  1
-#define SPELL_TYPE_WAND    2
-#define SPELL_TYPE_STAFF   3
-#define SPELL_TYPE_SCROLL  4
-
 /* wall struct for wall spells, like wall of fire, force, thorns, etc */
 struct wall_information {
   bool stops_movement;
@@ -1052,28 +1055,30 @@ ASPELL(spell_wizard_eye);
 /* basic magic calling functions */
 int find_skill_num(char *name);
 int find_ability_num(char *name);
+
 int mag_damage(int level, struct char_data *ch, struct char_data *victim,
-        struct obj_data *obj, int spellnum, int savetype);
+        struct obj_data *obj, int spellnum, int savetype, int casttype);
 void mag_affects(int level, struct char_data *ch, struct char_data *victim,
-        struct obj_data *obj, int spellnum, int savetype);
+        struct obj_data *obj, int spellnum, int savetype, int casttype);
 void mag_groups(int level, struct char_data *ch, struct obj_data *obj,
-        int spellnum, int savetype);
+        int spellnum, int savetype, int casttype);
 void mag_masses(int level, struct char_data *ch, struct obj_data *obj,
-        int spellnum, int savetype);
+        int spellnum, int savetype, int casttype);
 void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
-        int spellnum, int savetype);
+        int spellnum, int savetype, int casttype);
 void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
-        int spellnum, int savetype);
+        int spellnum, int savetype, int casttype);
 void mag_points(int level, struct char_data *ch, struct char_data *victim,
-        struct obj_data *obj, int spellnum, int savetype);
+        struct obj_data *obj, int spellnum, int savetype, int casttype);
 void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
-        struct obj_data *obj, int spellnum, int type);
+        struct obj_data *obj, int spellnum, int type, int casttype);
 void mag_alter_objs(int level, struct char_data *ch, struct obj_data *obj,
-        int spellnum, int type);
+        int spellnum, int type, int casttype);
 void mag_creations(int level, struct char_data *ch, struct char_data *vict,
-        struct obj_data *obj, int spellnum);
+        struct obj_data *obj, int spellnum, int casttype);
 void mag_room(int level, struct char_data *ch, struct obj_data *obj,
-        int spellnum);
+        int spellnum, int casttype);
+
 int call_magic(struct char_data *caster, struct char_data *cvict,
         struct obj_data *ovict, int spellnum, int level, int casttype);
 void mag_objectmagic(struct char_data *ch, struct obj_data *obj,

@@ -101,6 +101,7 @@ bool check_wall(struct char_data *victim, int dir) {
   int level = 0;
   bool found_player = FALSE; /* you can pass through your own walls */
   int wall_spellnum = 0;
+  int casttype = CAST_SPELL;
 
   for (wall = world[victim->in_room].contents; wall; wall = wall->next_content) {
     if (GET_OBJ_TYPE(wall) == ITEM_WALL && GET_OBJ_VAL(wall, WALL_DIR) == dir) {
@@ -135,9 +136,9 @@ bool check_wall(struct char_data *victim, int dir) {
         /* we can add mag_effects, whatever we want here */
 
         /* the "creator" or caster of the spell was determined above */
-        if (!found_player && mag_damage(level, victim, victim, NULL, wall_spellnum, SAVING_FORT) < 0) {
+        if (!found_player && mag_damage(level, victim, victim, NULL, wall_spellnum, SAVING_FORT, casttype) < 0) {
           return TRUE; /* couldn't find the creator, victim died! */
-        } else if (mag_damage(level, ch, victim, NULL, wall_spellnum, SAVING_FORT) < 0) {
+        } else if (mag_damage(level, ch, victim, NULL, wall_spellnum, SAVING_FORT, casttype) < 0) {
           return TRUE; /* he died! */
         }
       }
