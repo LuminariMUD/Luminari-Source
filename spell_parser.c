@@ -338,25 +338,25 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
   if (!cast_mtrigger(caster, cvict, spellnum))
     return 0;
 
-  if (caster && caster->in_room && caster->in_room != NOWHERE &&  caster->in_room < top_of_world && ROOM_AFFECTED(caster->in_room, RAFF_ANTI_MAGIC)) {
+  if ((casttype != CAST_WEAPON_POISON) && caster && caster->in_room && caster->in_room != NOWHERE &&  caster->in_room < top_of_world && ROOM_AFFECTED(caster->in_room, RAFF_ANTI_MAGIC)) {
     send_to_char(caster, "Your magic fizzles out and dies!\r\n");
     act("$n's magic fizzles out and dies...", FALSE, caster, 0, 0, TO_ROOM);
     return (0);
   }
 
-  if (cvict && cvict->in_room && cvict->in_room != NOWHERE && cvict->in_room < top_of_world && ROOM_AFFECTED(cvict->in_room, RAFF_ANTI_MAGIC)) {
+  if ((casttype != CAST_WEAPON_POISON) && cvict && cvict->in_room && cvict->in_room != NOWHERE && cvict->in_room < top_of_world && ROOM_AFFECTED(cvict->in_room, RAFF_ANTI_MAGIC)) {
     send_to_char(caster, "Your magic fizzles out and dies!\r\n");
     act("$n's magic fizzles out and dies...", FALSE, caster, 0, 0, TO_ROOM);
     return (0);
   }
 
-  if (caster && caster->in_room && caster->in_room != NOWHERE && caster->in_room < top_of_world && ROOM_FLAGGED(IN_ROOM(caster), ROOM_NOMAGIC)) {
+  if ((casttype != CAST_WEAPON_POISON) && caster && caster->in_room && caster->in_room != NOWHERE && caster->in_room < top_of_world && ROOM_FLAGGED(IN_ROOM(caster), ROOM_NOMAGIC)) {
     send_to_char(caster, "Your magic fizzles out and dies.\r\n");
     act("$n's magic fizzles out and dies.", FALSE, caster, 0, 0, TO_ROOM);
     return (0);
   }
 
-  if (cvict && cvict->in_room && cvict->in_room != NOWHERE &&  cvict->in_room < top_of_world && ROOM_FLAGGED(IN_ROOM(cvict), ROOM_NOMAGIC)) {
+  if ((casttype != CAST_WEAPON_POISON) && cvict && cvict->in_room && cvict->in_room != NOWHERE &&  cvict->in_room < top_of_world && ROOM_FLAGGED(IN_ROOM(cvict), ROOM_NOMAGIC)) {
     send_to_char(caster, "Your magic fizzles out and dies.\r\n");
     act("$n's magic fizzles out and dies.", FALSE, caster, 0, 0, TO_ROOM);
     return (0);
@@ -377,6 +377,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
   /* armor arcane failure check, these functions can be found in class.c */
  if ((casttype != CAST_INNATE) &&
      (casttype != CAST_POTION) &&
+     (casttype != CAST_WEAPON_POISON) &&
      (casttype != CAST_WAND)   && !IS_NPC(caster))
     switch (CASTING_CLASS(caster)) {
       case CLASS_BARD:
@@ -491,6 +492,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
     case CAST_STAFF:
     case CAST_SCROLL:
     case CAST_POTION:
+    case CAST_WEAPON_POISON:
     case CAST_WAND:
       savetype = SAVING_WILL;
       break;
@@ -517,38 +519,38 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
   }
 
   if (IS_SET(SINFO.routines, MAG_DAMAGE))
-    if (mag_damage(level, caster, cvict, ovict, spellnum, savetype) == -1)
+    if (mag_damage(level, caster, cvict, ovict, spellnum, savetype, casttype) == -1)
       return (-1); /* Successful and target died, don't cast again. */
 
   if (IS_SET(SINFO.routines, MAG_AFFECTS))
-    mag_affects(level, caster, cvict, ovict, spellnum, savetype);
+    mag_affects(level, caster, cvict, ovict, spellnum, savetype, casttype);
 
   if (IS_SET(SINFO.routines, MAG_UNAFFECTS))
-    mag_unaffects(level, caster, cvict, ovict, spellnum, savetype);
+    mag_unaffects(level, caster, cvict, ovict, spellnum, savetype, casttype);
 
   if (IS_SET(SINFO.routines, MAG_POINTS))
-    mag_points(level, caster, cvict, ovict, spellnum, savetype);
+    mag_points(level, caster, cvict, ovict, spellnum, savetype, casttype);
 
   if (IS_SET(SINFO.routines, MAG_ALTER_OBJS))
-    mag_alter_objs(level, caster, ovict, spellnum, savetype);
+    mag_alter_objs(level, caster, ovict, spellnum, savetype, casttype);
 
   if (IS_SET(SINFO.routines, MAG_GROUPS))
-    mag_groups(level, caster, ovict, spellnum, savetype);
+    mag_groups(level, caster, ovict, spellnum, savetype, casttype);
 
   if (IS_SET(SINFO.routines, MAG_MASSES))
-    mag_masses(level, caster, ovict, spellnum, savetype);
+    mag_masses(level, caster, ovict, spellnum, savetype, casttype);
 
   if (IS_SET(SINFO.routines, MAG_AREAS))
-    mag_areas(level, caster, ovict, spellnum, savetype);
+    mag_areas(level, caster, ovict, spellnum, savetype, casttype);
 
   if (IS_SET(SINFO.routines, MAG_SUMMONS))
-    mag_summons(level, caster, ovict, spellnum, savetype);
+    mag_summons(level, caster, ovict, spellnum, savetype, casttype);
 
   if (IS_SET(SINFO.routines, MAG_CREATIONS))
-    mag_creations(level, caster, cvict, ovict, spellnum);
+    mag_creations(level, caster, cvict, ovict, spellnum, casttype);
 
   if (IS_SET(SINFO.routines, MAG_ROOM))
-    mag_room(level, caster, ovict, spellnum);
+    mag_room(level, caster, ovict, spellnum, casttype);
 
   /* this switch statement sends us to spells.c for the manual spells */
   if (IS_SET(SINFO.routines, MAG_MANUAL))

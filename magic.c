@@ -36,7 +36,7 @@ static int mag_materials(struct char_data *ch, IDXTYPE item0, IDXTYPE item1,
         IDXTYPE item2, int extract, int verbose);
 static void perform_mag_groups(int level, struct char_data *ch,
         struct char_data *tch, struct obj_data *obj, int spellnum,
-        int savetype);
+        int savetype, int casttype);
 
 // Magic Resistance, ch is challenger, vict is resistor, modifier applys to vict
 int compute_spell_res(struct char_data *ch, struct char_data *vict, int modifier) {
@@ -152,11 +152,11 @@ const char *save_names[] = {"Fort", "Refl", "Will", "", ""};
 // FALSE = Failed to resist
 // modifier applies to victim, higher the better (for the victim)
 int mag_savingthrow(struct char_data *ch, struct char_data *vict,
-        int type, int modifier) {
+                    int type, int modifier) {
   int challenge = 10, // 10 is base DC
-      diceroll = dice(1, 20),
-      stat_bonus = 0,
-      savethrow = compute_mag_saves(vict, type, modifier) + diceroll;
+          diceroll = dice(1, 20),
+          stat_bonus = 0,
+          savethrow = compute_mag_saves(vict, type, modifier) + diceroll;
 
 
   if (GET_POS(vict) == POS_DEAD)
@@ -164,15 +164,15 @@ int mag_savingthrow(struct char_data *ch, struct char_data *vict,
 
   //can add challenge bonus/penalties here (ch)
   if (ch) {
-  challenge += (DIVINE_LEVEL(ch) + MAGIC_LEVEL(ch)) / 2; /* caster level */
+    challenge += (DIVINE_LEVEL(ch) + MAGIC_LEVEL(ch)) / 2; /* caster level */
 
-  stat_bonus = GET_WIS_BONUS(ch);
-  if (GET_CHA_BONUS(ch) > stat_bonus)
-    stat_bonus = GET_CHA_BONUS(ch);
-  if (GET_INT_BONUS(ch) > stat_bonus)
-    stat_bonus = GET_INT_BONUS(ch);
+    stat_bonus = GET_WIS_BONUS(ch);
+    if (GET_CHA_BONUS(ch) > stat_bonus)
+      stat_bonus = GET_CHA_BONUS(ch);
+    if (GET_INT_BONUS(ch) > stat_bonus)
+      stat_bonus = GET_INT_BONUS(ch);
 
-  challenge += stat_bonus;
+    challenge += stat_bonus;
   }
 
   if (AFF_FLAGGED(vict, AFF_PROTECT_GOOD) && IS_GOOD(ch))
@@ -187,10 +187,10 @@ int mag_savingthrow(struct char_data *ch, struct char_data *vict,
         send_to_char(ch, "\tR*Save Roll Twenty!\tn ");
     } else {
       send_to_char(vict, "\tW*(%s:%d>Challenge:%d) Saved!*\tn ", save_names[type],
-              savethrow, challenge);
+                   savethrow, challenge);
       if (ch && vict && vict != ch)
         send_to_char(ch, "\tR*(Challenge:%d<%s:%d) Opponent Saved!*\tn ",
-              challenge, save_names[type], savethrow);
+                     challenge, save_names[type], savethrow);
     }
 
     if (HAS_FEAT(vict, FEAT_EATER_OF_MAGIC) && affected_by_spell(vict, SKILL_RAGE)) {
@@ -208,10 +208,10 @@ int mag_savingthrow(struct char_data *ch, struct char_data *vict,
       send_to_char(ch, "\tW*Save Roll One!\tn ");
   } else {
     send_to_char(vict, "\tR*(%s:%d<Challenge:%d) Failed Save!*\tn ", save_names[type],
-          savethrow, challenge);
+                 savethrow, challenge);
     if (ch && vict && vict != ch)
       send_to_char(ch, "\tW*(Challenge:%d>%s:%d) Opponent Failed Save!*\tn ",
-          challenge, save_names[type], savethrow);
+                   challenge, save_names[type], savethrow);
   }
   return (FALSE);
 }
@@ -440,7 +440,7 @@ static int mag_materials(struct char_data *ch, IDXTYPE item0,
 // default    ->  magic resistance
 // returns damage, -1 if dead
 int mag_damage(int level, struct char_data *ch, struct char_data *victim,
-        struct obj_data *wpn, int spellnum, int savetype) {
+        struct obj_data *wpn, int spellnum, int savetype, int casttype) {
   int dam = 0, element = 0, num_dice = 0, save = savetype, size_dice = 0,
           bonus = 0, magic_level = 0, divine_level = 0, mag_resist = TRUE;
 
@@ -1278,7 +1278,7 @@ int isMagicArmored(struct char_data *victim) {
 #define MAX_SPELL_AFFECTS 6	/* change if more needed */
 
 void mag_affects(int level, struct char_data *ch, struct char_data *victim,
-  struct obj_data *wpn, int spellnum, int savetype) {
+    struct obj_data *wpn, int spellnum, int savetype, int casttype) {
   struct affected_type af[MAX_SPELL_AFFECTS];
   bool accum_affect = FALSE, accum_duration = FALSE;
   const char *to_vict = NULL, *to_room = NULL;
@@ -3354,71 +3354,71 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
  * the one you should change to add new group spells. */
 static void perform_mag_groups(int level, struct char_data *ch,
         struct char_data *tch, struct obj_data *obj, int spellnum,
-        int savetype) {
+        int savetype, int casttype) {
 
   switch (spellnum) {
     case SPELL_GROUP_HEAL:
-      mag_points(level, ch, tch, obj, SPELL_HEAL, savetype);
+      mag_points(level, ch, tch, obj, SPELL_HEAL, savetype, casttype);
       break;
     case SPELL_GROUP_ARMOR:
-      mag_affects(level, ch, tch, obj, SPELL_ARMOR, savetype);
+      mag_affects(level, ch, tch, obj, SPELL_ARMOR, savetype, casttype);
       break;
     case SPELL_MASS_HASTE:
-      mag_affects(level, ch, tch, obj, SPELL_HASTE, savetype);
+      mag_affects(level, ch, tch, obj, SPELL_HASTE, savetype, casttype);
       break;
     case SPELL_MASS_CURE_CRIT:
-      mag_affects(level, ch, tch, obj, SPELL_CURE_CRITIC, savetype);
+      mag_affects(level, ch, tch, obj, SPELL_CURE_CRITIC, savetype, casttype);
       break;
     case SPELL_MASS_CURE_SERIOUS:
-      mag_affects(level, ch, tch, obj, SPELL_CURE_SERIOUS, savetype);
+      mag_affects(level, ch, tch, obj, SPELL_CURE_SERIOUS, savetype, casttype);
       break;
     case SPELL_MASS_CURE_MODERATE:
-      mag_affects(level, ch, tch, obj, SPELL_CURE_MODERATE, savetype);
+      mag_affects(level, ch, tch, obj, SPELL_CURE_MODERATE, savetype, casttype);
       break;
     case SPELL_MASS_CURE_LIGHT:
-      mag_affects(level, ch, tch, obj, SPELL_CURE_LIGHT, savetype);
+      mag_affects(level, ch, tch, obj, SPELL_CURE_LIGHT, savetype, casttype);
       break;
     case SPELL_CIRCLE_A_EVIL:
-      mag_affects(level, ch, tch, obj, SPELL_PROT_FROM_EVIL, savetype);
+      mag_affects(level, ch, tch, obj, SPELL_PROT_FROM_EVIL, savetype, casttype);
       break;
     case SPELL_CIRCLE_A_GOOD:
-      mag_affects(level, ch, tch, obj, SPELL_PROT_FROM_GOOD, savetype);
+      mag_affects(level, ch, tch, obj, SPELL_PROT_FROM_GOOD, savetype, casttype);
       break;
     case SPELL_INVISIBILITY_SPHERE:
-      mag_affects(level, ch, tch, obj, SPELL_INVISIBLE, savetype);
+      mag_affects(level, ch, tch, obj, SPELL_INVISIBLE, savetype, casttype);
       break;
     case SPELL_GROUP_RECALL:
       spell_recall(level, ch, tch, NULL);
       break;
     case SPELL_MASS_FLY:
-      mag_affects(level, ch, tch, obj, SPELL_FLY, savetype);
+      mag_affects(level, ch, tch, obj, SPELL_FLY, savetype, casttype);
       break;
     case SPELL_MASS_CUNNING:
-      mag_affects(level, ch, tch, obj, SPELL_MASS_CUNNING, savetype);
+      mag_affects(level, ch, tch, obj, SPELL_MASS_CUNNING, savetype, casttype);
       break;
     case SPELL_MASS_CHARISMA:
-      mag_affects(level, ch, tch, obj, SPELL_MASS_CHARISMA, savetype);
+      mag_affects(level, ch, tch, obj, SPELL_MASS_CHARISMA, savetype, casttype);
       break;
     case SPELL_MASS_WISDOM:
-      mag_affects(level, ch, tch, obj, SPELL_MASS_WISDOM, savetype);
+      mag_affects(level, ch, tch, obj, SPELL_MASS_WISDOM, savetype, casttype);
       break;
     case SPELL_MASS_ENHANCE:
-      mag_affects(level, ch, tch, obj, SPELL_MASS_ENHANCE, savetype);
+      mag_affects(level, ch, tch, obj, SPELL_MASS_ENHANCE, savetype, casttype);
       break;
     case SPELL_AID:
-      mag_affects(level, ch, tch, obj, SPELL_AID, savetype);
+      mag_affects(level, ch, tch, obj, SPELL_AID, savetype, casttype);
       break;
     case SPELL_PRAYER:
-      mag_affects(level, ch, tch, obj, SPELL_PRAYER, savetype);
+      mag_affects(level, ch, tch, obj, SPELL_PRAYER, savetype, casttype);
       break;
     case SPELL_MASS_ENDURANCE:
-      mag_affects(level, ch, tch, obj, SPELL_MASS_ENDURANCE, savetype);
+      mag_affects(level, ch, tch, obj, SPELL_MASS_ENDURANCE, savetype, casttype);
       break;
     case SPELL_MASS_GRACE:
-      mag_affects(level, ch, tch, obj, SPELL_MASS_GRACE, savetype);
+      mag_affects(level, ch, tch, obj, SPELL_MASS_GRACE, savetype, casttype);
       break;
     case SPELL_MASS_STRENGTH:
-      mag_affects(level, ch, tch, obj, SPELL_MASS_STRENGTH, savetype);
+      mag_affects(level, ch, tch, obj, SPELL_MASS_STRENGTH, savetype, casttype);
       break;
     case SPELL_ANIMAL_SHAPES:
       /* found in act.other.c */
@@ -3434,7 +3434,7 @@ static void perform_mag_groups(int level, struct char_data *ch,
  * Just add a new case to perform_mag_groups.
  * UPDATE:  added some to_char and to_room messages here for fun  */
 void mag_groups(int level, struct char_data *ch, struct obj_data *obj,
-        int spellnum, int savetype) {
+        int spellnum, int savetype, int casttype) {
   char *to_char = NULL, *to_room = NULL;
   struct char_data *tch;
 
@@ -3492,14 +3492,14 @@ void mag_groups(int level, struct char_data *ch, struct obj_data *obj,
           NULL) {
     if (IN_ROOM(tch) != IN_ROOM(ch))
       continue;
-    perform_mag_groups(level, ch, tch, obj, spellnum, savetype);
+    perform_mag_groups(level, ch, tch, obj, spellnum, savetype, casttype);
   }
 }
 
 /* Mass spells affect every creature in the room except the caster. No spells
  * of this class currently implemented. */
 void mag_masses(int level, struct char_data *ch, struct obj_data *obj,
-        int spellnum, int savetype) {
+        int spellnum, int savetype, int casttype) {
   struct char_data *tch, *tch_next;
   int isEffect = FALSE;
 
@@ -3519,9 +3519,9 @@ void mag_masses(int level, struct char_data *ch, struct obj_data *obj,
     }
 
     if (isEffect)
-      mag_affects(level, ch, tch, obj, spellnum, savetype);
+      mag_affects(level, ch, tch, obj, spellnum, savetype, casttype);
     else
-      mag_damage(level, ch, tch, obj, spellnum, 1);
+      mag_damage(level, ch, tch, obj, spellnum, 1, casttype);
   }
 }
 
@@ -3622,7 +3622,7 @@ int aoeOK(struct char_data *ch, struct char_data *tch, int spellnum) {
  * All spells listed here must also have a case in mag_damage() in order for
  * them to work. Area spells have limited targets within the room. */
 void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
-        int spellnum, int savetype) {
+        int spellnum, int savetype, int casttype) {
   struct char_data *tch, *next_tch;
   const char *to_char = NULL, *to_room = NULL;
   int isEffect = FALSE, is_eff_and_dam = FALSE, is_uneffect = FALSE;
@@ -3763,14 +3763,14 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
 
     if (aoeOK(ch, tch, spellnum)) {
       if (is_eff_and_dam) {
-        mag_damage(level, ch, tch, obj, spellnum, 1);
-        mag_affects(level, ch, tch, obj, spellnum, savetype);
+        mag_damage(level, ch, tch, obj, spellnum, 1, casttype);
+        mag_affects(level, ch, tch, obj, spellnum, savetype, casttype);
       } else if (isEffect)
-        mag_affects(level, ch, tch, obj, spellnum, savetype);
+        mag_affects(level, ch, tch, obj, spellnum, savetype, casttype);
       else if (is_uneffect)
-        mag_unaffects(level, ch, tch, obj, spellnum, savetype);
+        mag_unaffects(level, ch, tch, obj, spellnum, savetype, casttype);
       else
-        mag_damage(level, ch, tch, obj, spellnum, 1);
+        mag_damage(level, ch, tch, obj, spellnum, 1, casttype);
 
       /* we gotta start combat here */
       if (isEffect && spell_info[spellnum].violent && tch && GET_POS(tch) == POS_STANDING &&
@@ -3900,7 +3900,7 @@ static const char *mag_summon_fail_msgs[] = {
 #define MOB_DIRE_RAT    9400 // summon natures ally i
 
 void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
-        int spellnum, int savetype) {
+        int spellnum, int savetype, int casttype) {
   struct char_data *mob = NULL;
   struct obj_data *tobj, *next_obj;
   int pfail = 0, msg = 0, fmsg = 0, num = 1, handle_corpse = FALSE, i;
@@ -4289,7 +4289,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
 
 
 void mag_points(int level, struct char_data *ch, struct char_data *victim,
-        struct obj_data *obj, int spellnum, int savetype) {
+        struct obj_data *obj, int spellnum, int savetype, int casttype) {
   int healing = 0, move = 0;
   const char *to_notvict = NULL, *to_char = NULL, *to_vict = NULL;
 
@@ -4394,7 +4394,7 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
 }
 
 void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
-        struct obj_data *obj, int spellnum, int type) {
+        struct obj_data *obj, int spellnum, int type, int casttype) {
   int spell = 0, msg_not_affected = TRUE, affect = 0;
   const char *to_vict = NULL, *to_char = NULL, *to_notvict = NULL;
 
@@ -4516,7 +4516,7 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
 }
 
 void mag_alter_objs(int level, struct char_data *ch, struct obj_data *obj,
-        int spellnum, int savetype) {
+        int spellnum, int savetype, int casttype) {
   const char *to_char = NULL, *to_room = NULL;
 
   if (obj == NULL)
@@ -4582,7 +4582,7 @@ void mag_alter_objs(int level, struct char_data *ch, struct obj_data *obj,
 }
 
 void mag_creations(int level, struct char_data *ch, struct char_data *vict,
-        struct obj_data *obj, int spellnum) {
+        struct obj_data *obj, int spellnum, int casttype) {
   struct obj_data *tobj = NULL, *portal = NULL;
   obj_vnum object_vnum = 0;
   const char *to_char = NULL, *to_room = NULL;
@@ -4881,7 +4881,7 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
    room-affections AND room-events now
  */
 void mag_room(int level, struct char_data *ch, struct obj_data *obj,
-        int spellnum) {
+        int spellnum, int casttype) {
   long aff = -1; /* what affection, -1 means it must be an event */
   int rounds = 0; /* how many rounds this spell lasts (duration) */
   char *to_char = NULL;
