@@ -96,12 +96,13 @@ const char *weapon_damage_types[NUM_WEAPON_DAMAGE_TYPES + 1] = {
 
 /* What type of trap */
 const char *trap_type[MAX_TRAP_TYPES + 1] = {
-  "Enter Room",
+  "Leave Room",
   "Open Door",
   "Unlock Door",
   "Open Container",
   "Unlock Container",
   "Get Object",
+  "Enter Room",
   "\n"
 };
 

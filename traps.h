@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   traps.h
  * Author: Zusuk
  *
@@ -11,19 +11,20 @@
 /* TRAPS [ in structs.h now ] */
 /* trap types */
 /*
-#define TRAP_TYPE_ENTER_ROOM         0
+#define TRAP_TYPE_LEAVE_ROOM         0
 #define TRAP_TYPE_OPEN_DOOR          1
 #define TRAP_TYPE_UNLOCK_DOOR        2
 #define TRAP_TYPE_OPEN_CONTAINER     3
 #define TRAP_TYPE_UNLOCK_CONTAINER   4
 #define TRAP_TYPE_GET_OBJECT         5
+#define TRAP_TYPE_ENTER_ROOM         6
 */
 /**/
 /*
-#define MAX_TRAP_TYPES               6
+#define MAX_TRAP_TYPES               7
 */
 /******************************************/
-/* trap effects 
+/* trap effects
    if the effect is < 1000, its just suppose to cast a spell */
 /*
 #define TRAP_EFFECT_FIRST_VALUE         1000

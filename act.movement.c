@@ -784,8 +784,8 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
     }
   }
 
-  /* check for traps */
-  check_trap(ch, TRAP_TYPE_ENTER_ROOM, ch->in_room, 0, 0);
+  /* check for traps (leave room) */
+  check_trap(ch, TRAP_TYPE_LEAVE_ROOM, ch->in_room, 0, 0);
 
   /* check for magical walls, such as wall of force (also death from wall damage) */
   if (check_wall(ch, dir)) /* true = wall stopped ch somehow */
@@ -1458,6 +1458,9 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
         perform_detecttrap(ch, TRUE); /* silent */
     }
   }
+
+  /* check for traps (enter room) */
+  check_trap(ch, TRAP_TYPE_ENTER_ROOM, ch->in_room, 0, 0);
 
   return (1);
 }
