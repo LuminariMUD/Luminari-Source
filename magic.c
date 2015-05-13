@@ -143,7 +143,7 @@ int compute_mag_saves(struct char_data *vict,
   saves += GET_SAVE(vict, type);
   saves += modifier;
 
-  return MIN(50, MAX(saves, 0));
+  return MIN(99, MAX(saves, 0));
 }
 
 

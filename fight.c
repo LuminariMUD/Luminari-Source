@@ -4031,13 +4031,20 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   }
   if (affected_by_spell(ch, SKILL_STUNNING_FIST)) {
     if(!wielded || (OBJ_FLAGGED(wielded, ITEM_KI_FOCUS)) || (weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily == WEAPON_FAMILY_MONK)) {
-      send_to_char(ch, "[STUNNING-FIST] ");
-      send_to_char(victim, "[\tRSTUNNING-FIST\tn] ");
-      act("$n performs a \tYstunning fist\tn attack on $N!",
-                FALSE, ch, wielded, victim, TO_NOTVICT);
-      if (!char_has_mud_event(victim, eSTUNNED)) {
-        attach_mud_event(new_mud_event(eSTUNNED, victim, NULL), 6 * PASSES_PER_SEC);
+      /* check for save */
+      if (!savingthrow(victim, SAVING_FORT, 0, (10 + (CLASS_LEVEL(ch, CLASS_MONK) / 2) + GET_WIS_BONUS(ch)))) {
+        send_to_char(ch, "[STUNNING-FIST] ");
+        send_to_char(victim, "[\tRSTUNNING-FIST\tn] ");
+        act("$n performs a \tYstunning fist\tn attack on $N!",
+                  FALSE, ch, wielded, victim, TO_NOTVICT);
+        if (!char_has_mud_event(victim, eSTUNNED)) {
+          attach_mud_event(new_mud_event(eSTUNNED, victim, NULL), 6 * PASSES_PER_SEC);
+        }
+      } else {
+        send_to_char(ch, "[\tRstunning fist saved\tn] ");
+        send_to_char(victim, "[\tWstunning fist saved\tn] ");
       }
+      /* regardless, remove affect */
       affect_from_char(ch, SKILL_STUNNING_FIST);
     }
   }
