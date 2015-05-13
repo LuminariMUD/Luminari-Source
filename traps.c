@@ -78,6 +78,8 @@ bool check_trap(struct char_data *ch, int trap_type, int room, struct obj_data *
       switch (trap_type) {
         case TRAP_TYPE_ENTER_ROOM:
           break;
+        case TRAP_TYPE_LEAVE_ROOM:
+          break;
         case TRAP_TYPE_OPEN_DOOR:
         case TRAP_TYPE_UNLOCK_DOOR:
           if (dir != GET_OBJ_VAL(trap, 1))
@@ -241,7 +243,7 @@ EVENTFUNC(event_trap_triggered) {
       af.modifier = 0;
       af.location = APPLY_NONE;
       af.bonus_type = BONUS_TYPE_UNDEFINED;
-      
+
       for (i = 0; i < AF_ARRAY_MAX; i++) af.bitvector[i] = AFF_DONTUSE;
 
       /* check for valid effect */
@@ -382,7 +384,7 @@ EVENTFUNC(event_trap_triggered) {
 
           case TRAP_EFFECT_SPIDER_WEBS:
             af.spell = SPELL_WEB;
-            SET_BIT_AR(af.bitvector, AFF_GRAPPLED);  
+            SET_BIT_AR(af.bitvector, AFF_GRAPPLED);
             af.duration = 20;
             to_char = "\tLYou are suddenly entangled in sticky strands of \twspider silk\tL, held fast as spiders descend from above.\tn";
             to_room = "\tn$n \tLis suddenly encased in a cocoon of silk, held fast as spiders descend on $m from all sides.\tn";

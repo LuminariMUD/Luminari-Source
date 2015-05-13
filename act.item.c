@@ -103,6 +103,8 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
       switch (GET_OBJ_VAL(item, 0)) {
         case TRAP_TYPE_ENTER_ROOM:
           break;
+        case TRAP_TYPE_LEAVE_ROOM:
+          break;
         case TRAP_TYPE_OPEN_DOOR:
           /*fall-through*/
         case TRAP_TYPE_UNLOCK_DOOR:

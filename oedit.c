@@ -862,6 +862,7 @@ static void oedit_disp_val2_menu(struct descriptor_data *d) {
         case TRAP_TYPE_GET_OBJECT:
           write_to_output(d, "VNUM of object trap should apply to : ");
           break;
+        case TRAP_TYPE_LEAVE_ROOM:
         case TRAP_TYPE_ENTER_ROOM:
         default:
           write_to_output(d, "Press ENTER to continue.");
