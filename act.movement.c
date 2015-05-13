@@ -1450,17 +1450,19 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
 
   /* trap sense will allow a rogue/berserker to auto detect traps if they
    make a successful check vs DC xx (defined right below ) */
+  bool sensed_trap = FALSE;
   if (!IS_NPC(ch)) {
     int trap_check = 0;
     int dc = 21;
     if ((trap_check = HAS_FEAT(ch, FEAT_TRAP_SENSE))) {
       if (skill_check(ch, ABILITY_PERCEPTION, (dc - trap_check)))
-        perform_detecttrap(ch, TRUE); /* silent */
+        sensed_trap = perform_detecttrap(ch, TRUE); /* silent */
     }
   }
 
   /* check for traps (enter room) */
-  check_trap(ch, TRAP_TYPE_ENTER_ROOM, ch->in_room, 0, 0);
+  if (!sensed_trap)
+    check_trap(ch, TRAP_TYPE_ENTER_ROOM, ch->in_room, 0, 0);
 
   return (1);
 }
