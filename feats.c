@@ -565,6 +565,7 @@ void assign_feats(void) {
     feat_prereq_feat(FEAT_STUNNING_FIST, FEAT_IMPROVED_UNARMED_STRIKE, 1);
     feat_prereq_bab(FEAT_STUNNING_FIST, 8);
 
+    /* rogues get this feat for free */
   feato(FEAT_WEAPON_FINESSE, "weapon finesse", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
     "use dex for hit roll of weapons",
     "Use dexterity bonus for hit roll of weapons (if better than strength bonus), "
@@ -766,6 +767,32 @@ void assign_feats(void) {
 
   /*****/
   /* Class ability feats */
+
+  /* warrior */
+  feato(FEAT_ARMOR_TRAINING, "armor training", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "reduced armor penalty, increased maxdex",
+    "The penalty caused by wearing armor is reduced by 1 per rank of this feat.  "
+      "In addition your maximum dexterity for your armoring increased 1 per rank.");
+  feato(FEAT_WEAPON_TRAINING, "weapon training", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "+2 confirm crit, +1 min diceroll",
+    "You get to reroll your attack diceroll if you roll 1, per rank of this feat "
+      "(example: 4 ranks means you cannot roll lower than 5).  In addition, you "
+      "get +2 to confirming critical hits per rank.");
+  feato(FEAT_ARMOR_MASTERY, "armor mastery i", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "gains Damage Reduction 5/— when armored",
+    "Gain Damage Reduction 5/— whenever wearing armor or using a shield.");
+  feato(FEAT_WEAPON_MASTERY, "weapon mastery i", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "cannot be disarmed, +2 ac when using any weapon",
+    "Gain immunity to disarm attempts, in addition, while wielding any type of "
+      "weapon, gain a bonus 2 to deflection AC.");
+  feato(FEAT_ARMOR_MASTERY_2, "armor mastery ii", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "become extremely skilled with shields",
+    "You gain 2 bonus AC while using a shield, in addition you gain 25 magic "
+      "resistance while using a shield.");
+  feato(FEAT_WEAPON_MASTERY_2, "weapon mastery ii", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "+6 to CMD and CMB",
+    "While wielding a weapon, gain a +6 bonus to all combat maneuver attempts and +6 bonus to defending "
+      "against any combat maneuver.");
 
   /* Cleric */
   /* turn undead is below, shared with paladin */

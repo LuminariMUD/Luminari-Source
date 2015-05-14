@@ -482,8 +482,21 @@ int level_feats[][LEVEL_FEATS] = {
   {CLASS_CLERIC, RACE_UNDEFINED, FALSE, 1, FEAT_TURN_UNDEAD},
 
   /* warrior */
-  /* no automatic class feats for warriors, they select from a master list
-   of combat feats every 2 levels */
+  /* bonus: they select from a master list of combat feats every 2 levels */
+  {CLASS_WARRIOR, RACE_UNDEFINED, TRUE, 3, FEAT_ARMOR_TRAINING},
+  {CLASS_WARRIOR, RACE_UNDEFINED, TRUE, 5, FEAT_WEAPON_TRAINING},
+  {CLASS_WARRIOR, RACE_UNDEFINED, TRUE, 7, FEAT_ARMOR_TRAINING},
+  {CLASS_WARRIOR, RACE_UNDEFINED, TRUE, 9, FEAT_WEAPON_TRAINING},
+  {CLASS_WARRIOR, RACE_UNDEFINED, TRUE, 11, FEAT_ARMOR_TRAINING},
+  {CLASS_WARRIOR, RACE_UNDEFINED, TRUE, 13, FEAT_WEAPON_TRAINING},
+  {CLASS_WARRIOR, RACE_UNDEFINED, TRUE, 15, FEAT_ARMOR_TRAINING},
+  {CLASS_WARRIOR, RACE_UNDEFINED, TRUE, 17, FEAT_WEAPON_TRAINING},
+  /* epic */
+  {CLASS_WARRIOR, RACE_UNDEFINED, TRUE, 20, FEAT_ARMOR_MASTERY},
+  {CLASS_WARRIOR, RACE_UNDEFINED, TRUE, 23, FEAT_WEAPON_MASTERY},
+  {CLASS_WARRIOR, RACE_UNDEFINED, TRUE, 26, FEAT_WEAPON_TRAINING},
+  {CLASS_WARRIOR, RACE_UNDEFINED, TRUE, 29, FEAT_WEAPON_MASTERY_2},
+
 
   /* paladin */
   {CLASS_PALADIN, RACE_UNDEFINED, TRUE, 1, FEAT_SMITE_EVIL},
@@ -3553,10 +3566,10 @@ int level_exp(struct char_data *ch, int level) {
       break;
       //epic races
     case RACE_CRYSTAL_DWARF:
-      exp *= 30;
+      exp *= 15;
       break;
     case RACE_TRELUX:
-      exp *= 30;
+      exp *= 15;
       break;
     default:
       break;

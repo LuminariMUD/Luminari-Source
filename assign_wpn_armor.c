@@ -1041,6 +1041,7 @@ int compute_gear_armor_penalty(struct char_data *ch) {
 
   if (count) {
     armor_penalty = armor_penalty / count;
+    armor_penalty += HAS_FEAT(ch, FEAT_ARMOR_TRAINING);
   }
 
   if (armor_penalty > 0)
@@ -1065,20 +1066,21 @@ int compute_gear_max_dex(struct char_data *ch) {
          i == WEAR_SHIELD)) {
       /* ok we have an armor piece... */
       armor_max_dexterity = armor_list[GET_OBJ_VAL(obj, 1)].dexBonus;
-      if (armor_max_dexterity > 8) /* no limit */
-        armor_max_dexterity = 9;
-      dexterity_cap += armor_max_dexterity;
+      if (armor_max_dexterity == 99) /* no limit to dexterity */
+        count--;
+      else
+        dexterity_cap += armor_max_dexterity;
       count++;
     }
   }
 
-  if (count) {
+  if (count > 0) {
     dexterity_cap = dexterity_cap / count;
-  } else
+    dexterity_cap += HAS_FEAT(ch, FEAT_ARMOR_TRAINING);
+  } else /* not wearing armor */
     dexterity_cap = 99;
 
-  if (dexterity_cap > 8)
-    dexterity_cap = 99; /* no limit */
+
   if (dexterity_cap < 0)
     dexterity_cap = 0;
 

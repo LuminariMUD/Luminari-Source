@@ -3810,7 +3810,7 @@ int perform_disarm(struct char_data *ch, struct char_data *vict, int mod) {
   }
 
   int result = combat_maneuver_check(ch, vict, COMBAT_MANEUVER_TYPE_DISARM);
-  if (result > 0) { /* success! */
+  if (result > 0 && !HAS_FEAT(vict, FEAT_WEAPON_MASTERY)) { /* success! */
     act("$n disarms $N of $S $p.", FALSE, ch, wielded, vict,TO_ROOM );
     act("You manage to knock $p out of $N's hands.", FALSE, ch, wielded, vict,TO_CHAR );
     if (HAS_FEAT(ch, FEAT_GREATER_DISARM))
