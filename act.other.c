@@ -288,7 +288,7 @@ ACMD(do_ethshift) {
     do {
       shift_dest = rand_number(0, top_of_world);
       counter++;
-    } while (counter < 999999 && (ZONE_FLAGGED(GET_ROOM_ZONE(shift_dest), ZONE_ELEMENTAL) ||
+    } while ((ZONE_FLAGGED(GET_ROOM_ZONE(shift_dest), ZONE_ELEMENTAL) ||
               ZONE_FLAGGED(GET_ROOM_ZONE(shift_dest), ZONE_ETH_PLANE) ||
               ZONE_FLAGGED(GET_ROOM_ZONE(shift_dest), ZONE_ASTRAL_PLANE))
              );
@@ -302,7 +302,11 @@ ACMD(do_ethshift) {
     do {
       shift_dest = rand_number(0, top_of_world);
       counter++;
-    } while (counter < 9999999 && !ZONE_FLAGGED(GET_ROOM_ZONE(shift_dest), ZONE_ETH_PLANE));
+    } while (!ZONE_FLAGGED(GET_ROOM_ZONE(shift_dest), ZONE_ETH_PLANE));
+  } else {
+    send_to_char(ch, "This power only works when you are on the prime or ethereal "
+            "planes!\r\n");
+    return;
   }
 
   if (shift_dest == NOWHERE || shift_dest <= -1) {
