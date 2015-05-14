@@ -328,7 +328,7 @@ ACMD(do_ethshift) {
   greet_mtrigger(shiftee, -1);
   greet_memory_mtrigger(shiftee);
 
-  USE_STANDARD_ACTION(ch);
+  USE_FULL_ROUND_ACTION(ch);
 }
 
 /* apply poison to a weapon */
