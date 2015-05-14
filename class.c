@@ -815,7 +815,11 @@ const int class_feats_wizard[] = {
   FEAT_FASTER_MEMORIZATION,
   FEAT_ENHANCED_SPELL_DAMAGE,
   FEAT_ENHANCE_SPELL,
+
+  /* epic class */
+  FEAT_GREAT_INTELLIGENCE,
   FEAT_EPIC_SPELLCASTING,
+
   /*end*/
   FEAT_UNDEFINED
 };
@@ -962,7 +966,13 @@ const int class_feats_fighter[] = {
   FEAT_WEAPON_SUPREMACY,
   FEAT_ROBILARS_GAMBIT,
   FEAT_KNOCKDOWN,
+
+  /* epic */
+  FEAT_GREAT_STRENGTH,
+  FEAT_GREAT_DEXTERITY,
+  FEAT_GREAT_CONSTITUTION,
   FEAT_EPIC_TOUGHNESS,
+
   /*end*/
   FEAT_UNDEFINED
 };
@@ -971,7 +981,11 @@ const int class_feats_paladin[] = {
   FEAT_EPIC_PROWESS,
   FEAT_ARMOR_SKIN,
   FEAT_GREAT_SMITING,
+
+  /* epic */
+  FEAT_GREAT_CHARISMA,
   FEAT_EPIC_TOUGHNESS,
+
   /*end*/
   FEAT_UNDEFINED
 };
@@ -984,12 +998,20 @@ const int class_feats_monk[] = {
   FEAT_COMBAT_REFLEXES,
   FEAT_FAST_HEALING,
   FEAT_DAMAGE_REDUCTION,
+
+  /* epic */
+  FEAT_GREAT_WISDOM,
   FEAT_EPIC_TOUGHNESS,
+
   /*end*/
   FEAT_UNDEFINED
 };
 const int class_feats_druid[] = {
   FEAT_FAST_HEALING,
+
+  /* epic */
+  FEAT_GREAT_WISDOM,
+
   /*end*/
   FEAT_UNDEFINED
 };
@@ -1004,6 +1026,11 @@ const int class_feats_berserker[] = {
   FEAT_RP_HEAVY_SHRUG,
   FEAT_RP_FEARLESS_RAGE,
   FEAT_RP_COME_AND_GET_ME,
+
+  /* epic */
+  FEAT_GREAT_CONSTITUTION,
+  FEAT_GREAT_STRENGTH,
+
   /*end*/
   FEAT_UNDEFINED
 };
@@ -1011,7 +1038,11 @@ const int class_feats_ranger[] = {
   FEAT_FAST_HEALING,
   FEAT_EPIC_PROWESS,
   FEAT_SWARM_OF_ARROWS,
+
+  /*epic*/
   FEAT_EPIC_TOUGHNESS,
+  FEAT_GREAT_DEXTERITY,
+
   /*end*/
   FEAT_UNDEFINED
 };
@@ -1040,6 +1071,32 @@ const int class_feats_weaponmaster[] = {
   /* epic */
   FEAT_EPIC_PROWESS,
   FEAT_EPIC_TOUGHNESS,
+  FEAT_GREAT_STRENGTH,
+  FEAT_GREAT_DEXTERITY,
+
+  /*end*/
+  FEAT_UNDEFINED
+};
+const int class_feats_cleric[] = {
+
+  /* epic */
+  FEAT_GREAT_WISDOM,
+
+  /*end*/
+  FEAT_UNDEFINED
+};
+const int class_feats_sorcerer[] = {
+
+  /* epic */
+  FEAT_GREAT_CHARISMA,
+
+  /*end*/
+  FEAT_UNDEFINED
+};
+const int class_feats_bard[] = {
+
+  /* epic */
+  FEAT_GREAT_CHARISMA,
 
   /*end*/
   FEAT_UNDEFINED
@@ -1054,16 +1111,16 @@ const int no_class_feats[] = {
  * SEE NOTE FOR ROGUE FEATS */
 const int *class_bonus_feats[NUM_CLASSES] = {
   /* Wizard       */ class_feats_wizard,
-  /* Cleric       */ no_class_feats,
+  /* Cleric       */ class_feats_cleric,
   /* Rogue        */ class_feats_rogue,
   /* Warrior      */ class_feats_fighter,
   /* Monk         */ class_feats_monk,
   /* Druid        */ class_feats_druid,
   /* Berserker    */ class_feats_berserker,
-  /* Sorcerer     */ no_class_feats,
+  /* Sorcerer     */ class_feats_sorcerer,
   /* Paladin      */ class_feats_paladin,
   /* Ranger       */ class_feats_ranger,
-  /* Bard         */ no_class_feats,
+  /* Bard         */ class_feats_bard,
   /* WeaponMaster */ class_feats_weaponmaster
 };
 
