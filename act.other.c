@@ -244,6 +244,91 @@ ACMD(do_abundantstep) {
   return;
 }
 
+/* ethereal shift - monk epic feat skill, allows shifting of self and group members
+   to the ethereal plane and back */
+ACMD(do_ethshift) {
+  struct char_data *shiftee = NULL;
+  room_rnum shift_dest = NOWHERE;
+  int counter = 0;
+
+  skip_spaces(&argument);
+
+  if (!HAS_FEAT(ch, FEAT_OUTSIDER)) {
+    send_to_char(ch, "You do not know how!\r\n");
+    return;
+  }
+
+  if (!argument) {
+    shiftee = ch;
+  } else {
+    /* there is an argument, lets make sure it is valid */
+    if (!(shiftee = get_char_vis(ch, argument, NULL, FIND_CHAR_ROOM))) {
+      send_to_char(ch, "Whom do you wish to shift?\r\n");
+      return;
+    }
+
+    /* ok we have a target, is this target groupped? */
+    if (GROUP(shiftee) != GROUP(ch)) {
+      send_to_char(ch, "You can only shift someone else if they are in the same "
+              "group as you.\r\n");
+      return;
+    }
+  }
+
+  /* ok make sure it is ok to teleport */
+  if (!valid_mortal_tele_dest(shiftee, IN_ROOM(ch), FALSE)) {
+    send_to_char(ch, "Something in this area is stopping your power!\r\n");
+    return;
+  }
+
+  /* check if shiftee is already on eth */
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ETH_PLANE)) {
+    send_to_char(ch, "Attempting to shift to the prime plane...\r\n");
+
+    do {
+      shift_dest = rand_number(0, top_of_world);
+      counter++;
+    } while (counter < 999999 && (ZONE_FLAGGED(GET_ROOM_ZONE(shift_dest), ZONE_ELEMENTAL) ||
+              ZONE_FLAGGED(GET_ROOM_ZONE(shift_dest), ZONE_ETH_PLANE) ||
+              ZONE_FLAGGED(GET_ROOM_ZONE(shift_dest), ZONE_ASTRAL_PLANE))
+             );
+
+    /* check if shiftee is on prime */
+  } else if ( !ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ASTRAL_PLANE) &&
+       !ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ETH_PLANE) &&
+       !ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ELEMENTAL) ) {
+    send_to_char(ch, "Attempting to shift to the ethereal plane...\r\n");
+
+    do {
+      shift_dest = rand_number(0, top_of_world);
+      counter++;
+    } while (counter < 999999 && !ZONE_FLAGGED(GET_ROOM_ZONE(shift_dest), ZONE_ETH_PLANE));
+  }
+
+  if (shift_dest == NOWHERE || shift_dest <= -1) {
+    send_to_char(ch, "You fail to successfully shift!\r\n");
+    return;
+  }
+
+  if (!valid_mortal_tele_dest(shiftee, shift_dest, FALSE)) {
+    send_to_char(ch, "Your power is being block at the destination!\r\n");
+    return;
+  }
+
+  /* should be successful now */
+  send_to_char(shiftee, "You slowly fade out of existence...\r\n");
+  act("$n slowly fades out of existence and is gone.",
+          FALSE, shiftee, 0, 0, TO_ROOM);
+  char_from_room(shiftee);
+  char_to_room(shiftee, shift_dest);
+  act("$n slowly fades into existence.", FALSE, shiftee, 0, 0, TO_ROOM);
+  send_to_char(shiftee, "You slowly fade back into existence...\r\n");
+  look_at_room(shiftee, 0);
+  entry_memory_mtrigger(shiftee);
+  greet_mtrigger(shiftee, -1);
+  greet_memory_mtrigger(shiftee);
+}
+
 /* apply poison to a weapon */
 ACMD(do_applypoison) {
   char arg1[MAX_INPUT_LENGTH];

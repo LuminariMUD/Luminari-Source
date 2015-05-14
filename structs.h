@@ -1580,11 +1580,12 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_EATER_OF_MAGIC                392
 #define FEAT_RAGE_RESISTANCE                393
 #define FEAT_DEATHLESS_FRENZY                394
-
-/** reserved **/
-#define FEAT_LAST_FEAT                   395
-/*****/
-#define NUM_FEATS                        396
+#define FEAT_KEEN_STRIKE                395
+#define FEAT_OUTSIDER                   396
+/** reserved above feat# + 1**/
+#define FEAT_LAST_FEAT                   397
+/** feat_last_feat + 1 ***/
+#define NUM_FEATS                        398
 /*****/
 #define MAX_FEATS                        750
 /*****/

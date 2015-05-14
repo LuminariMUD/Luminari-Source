@@ -427,7 +427,7 @@ ACMD(do_visible);
 ACMD(do_wildshape);
 ACMD(do_vanish);
 ACMD(do_disguise);
-
+ACMD(do_ethshift);
 
 /*****************************************************************************
  * Begin Functions and defines for act.social.c
