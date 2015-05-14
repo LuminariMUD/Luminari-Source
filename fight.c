@@ -614,6 +614,10 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
   /**/
 
   /* bonus type undefined */
+  /* stalwart warrior - warrior feat */
+  if (HAS_FEAT(ch, FEAT_STALWART_WARRIOR)) {
+    bonuses[BONUS_TYPE_UNDEFINED] += GET_CON_BONUS(ch);
+  }
   /* favored enemy */
   if (attacker && attacker != ch && !IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_RANGER)) {
     // checking if we have humanoid favored enemies for PC victims
@@ -670,9 +674,8 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
       return ac_penalty;
       break;
     case MODE_ARMOR_CLASS_COMBAT_MANEUVER_DEFENSE:
-      break;
-    default:
     case MODE_ARMOR_CLASS_NORMAL:
+    default:
       if (!is_touch)
         for (i = 0; i < NUM_BONUS_TYPES; i++)
           armorclass += bonuses[i];

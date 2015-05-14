@@ -1587,10 +1587,12 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_ARMOR_MASTERY                  399
 #define FEAT_WEAPON_MASTERY_2               400
 #define FEAT_ARMOR_MASTERY_2                401
+#define FEAT_STALWART_WARRIOR               402
+#define FEAT_EPIC_WEAPON_SPECIALIZATION     403
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT                      402
+#define FEAT_LAST_FEAT                      404
 /** feat_last_feat + 1 ***/
-#define NUM_FEATS                           403
+#define NUM_FEATS                           405
 /*****/
 #define MAX_FEATS                           750
 /*****/
@@ -1613,8 +1615,9 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define CFEAT_WEAPON_FLURRY                    14
 #define CFEAT_WEAPON_SUPREMACY                 15
 #define CFEAT_TRIPLE_CRIT                      16
+#define CFEAT_EPIC_WEAPON_SPECIALIZATION       17
 /**/
-#define NUM_CFEATS                             17
+#define NUM_CFEATS                             18
 /**/
 
 /* Spell feats that apply to a specific school of spells */

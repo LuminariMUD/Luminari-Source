@@ -346,9 +346,12 @@ void assign_feats(void) {
     feat_prereq_weapon_proficiency(FEAT_WEAPON_SPECIALIZATION);
     feat_prereq_cfeat(FEAT_WEAPON_SPECIALIZATION, FEAT_WEAPON_FOCUS);
     feat_prereq_class_level(FEAT_WEAPON_SPECIALIZATION, CLASS_WARRIOR, 4);
-  feato(FEAT_GREATER_WEAPON_SPECIALIZATION, "greater weapon specialization", FALSE, TRUE, TRUE, FEAT_TYPE_COMBAT,
-    "+2 damage with weapon",
-    "additional +2 dam with weapon (stacks)");
+  feato(FEAT_GREATER_WEAPON_SPECIALIZATION, "greater weapon specialization", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "+4 damage with weapon",
+    "Choose one type of weapon, such as halberd, for which you have already "
+      "selected the Weapon Focus feat. You can also choose unarmed strike as "
+      "your weapon for purposes of this feat. You gain a +4 bonus on damage "
+      "using the selected weapon (stacks).");
     feat_prereq_weapon_proficiency(FEAT_GREATER_WEAPON_SPECIALIZATION);
     feat_prereq_cfeat(FEAT_GREATER_WEAPON_SPECIALIZATION, FEAT_WEAPON_FOCUS);
     feat_prereq_cfeat(FEAT_GREATER_WEAPON_SPECIALIZATION, FEAT_GREATER_WEAPON_FOCUS);
@@ -534,7 +537,7 @@ void assign_feats(void) {
           "inventory, but with greater disarm, the weapon gets knocked into "
           "the room.");
     feat_prereq_attribute(FEAT_GREATER_DISARM, AB_INT, 13);
-    feat_prereq_feat(FEAT_IMPROVED_DISARM, FEAT_COMBAT_EXPERTISE, 1);
+    feat_prereq_feat(FEAT_GREATER_DISARM, FEAT_COMBAT_EXPERTISE, 1);
     feat_prereq_feat(FEAT_GREATER_DISARM, FEAT_IMPROVED_DISARM, 1);
 
   feato(FEAT_IMPROVED_FEINT, "improved feint", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
@@ -593,6 +596,14 @@ void assign_feats(void) {
     "get an extra attack, as if hasted",
     "You get an extra attack, as if hasted.");
     feat_prereq_attribute(FEAT_BLINDING_SPEED, AB_DEX, 25);
+  feato(FEAT_EPIC_WEAPON_SPECIALIZATION, "epic weapon specialization", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "+3 hit/dam with weapon",
+    "Choose one type of weapon, such as halberd, for which you have already "
+      "selected the Weapon Focus feat. You can also choose unarmed strike as "
+      "your weapon for purposes of this feat. You gain a +3 bonus on damage "
+      "and attack bonus using the selected weapon (stacks).");
+    feat_prereq_cfeat(FEAT_EPIC_WEAPON_SPECIALIZATION, FEAT_GREATER_WEAPON_SPECIALIZATION);
+    feat_prereq_class_level(FEAT_EPIC_WEAPON_SPECIALIZATION, CLASS_WARRIOR, 20);
 
   /*****************/
   /* General feats */
@@ -778,6 +789,9 @@ void assign_feats(void) {
     "You get to reroll your attack diceroll if you roll 1, per rank of this feat "
       "(example: 4 ranks means you cannot roll lower than 5).  In addition, you "
       "get +2 to confirming critical hits per rank.");
+  feato(FEAT_STALWART_WARRIOR, "stalwart warrior", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "apply con bonus to AC",
+    "The warrior gets to apply full con bonus as untyped to AC.");
   feato(FEAT_ARMOR_MASTERY, "armor mastery i", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "gains Damage Reduction 5/— when armored",
     "Gain Damage Reduction 5/— whenever wearing armor or using a shield.");
@@ -1348,7 +1362,6 @@ void assign_feats(void) {
   feato(FEAT_EXTRA_RAGE, "extra rage", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
 
   /* fighter */
-  feato(FEAT_WEAPON_MASTERY, "weapon mastery", FALSE, FALSE, TRUE, FEAT_TYPE_COMBAT, "+2 to hit and damage with that weapon", "+2 to hit and damage with that weapon");
   feato(FEAT_WEAPON_FLURRY, "weapon flurry", FALSE, TRUE, TRUE, FEAT_TYPE_COMBAT, "2nd attack at -5 to hit with standard action or extra attack at full bonus with full round action", "2nd attack at -5 to hit with standard action or extra attack at full bonus with full round action");
   feato(FEAT_WEAPON_SUPREMACY, "weapon supremacy", FALSE, TRUE, TRUE, FEAT_TYPE_COMBAT, "+4 to resist disarm, ignore grapples, add +5 to hit roll when miss by 5 or less, can take 10 on attack rolls, +1 bonus to AC when wielding weapon", "+4 to resist disarm, ignore grapples, add +5 to hit roll when miss by 5 or less, can take 10 on attack rolls, +1 bonus to AC when wielding weapon");
   feato(FEAT_ARMOR_SPECIALIZATION_HEAVY, "armor specialization (heavy)", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "DR 2/- when wearing heavy armor", "DR 2/- when wearing heavy armor");
@@ -1546,11 +1559,12 @@ void assign_feats(void) {
   combatfeat(FEAT_IMPROVED_WEAPON_FINESSE);
   combatfeat(FEAT_MONKEY_GRIP);
   combatfeat(FEAT_POWER_CRITICAL);
-  combatfeat(FEAT_WEAPON_MASTERY);
   combatfeat(FEAT_WEAPON_FLURRY);
   combatfeat(FEAT_WEAPON_SUPREMACY);
+  combatfeat(FEAT_EPIC_WEAPON_SPECIALIZATION);
 
   /* Epic Feats */
+  epicfeat(FEAT_EPIC_WEAPON_SPECIALIZATION);
   epicfeat(FEAT_EPIC_PROWESS);
   epicfeat(FEAT_SWARM_OF_ARROWS);
   epicfeat(FEAT_SELF_CONCEALMENT);
@@ -2089,7 +2103,15 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
         return FALSE;
 
       case FEAT_IMPROVED_DISARM:
-        if (has_feat(ch, FEAT_COMBAT_EXPERTISE))
+        if (has_feat(ch, FEAT_COMBAT_EXPERTISE) &&
+            ch->real_abils.intel >= 13)
+          return TRUE;
+        return FALSE;
+
+      case FEAT_GREATER_DISARM:
+        if (has_feat(ch, FEAT_IMPROVED_DISARM) &&
+            has_feat(ch, FEAT_COMBAT_EXPERTISE) &&
+            ch->real_abils.intel >= 13)
           return TRUE;
         return FALSE;
 
@@ -2183,19 +2205,6 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
           return TRUE;
         return FALSE;
 /*
-          case FEAT_WEAPON_MASTERY:
-            if (BAB(ch) < 8)
-              return FALSE;
-            if (!iarg)
-              return TRUE;
-            if (!is_proficient_with_weapon(ch, iarg))
-              return FALSE;
-            if (!has_combat_feat(ch, CFEAT_WEAPON_FOCUS, iarg))
-              return FALSE;
-            if (!has_combat_feat(ch, CFEAT_WEAPON_SPECIALIZATION, iarg))
-              return FALSE;
-            return TRUE;
-
           case FEAT_WEAPON_FLURRY:
             if (BAB(ch) < 14)
               return FALSE;
@@ -2276,14 +2285,6 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
             if (!iarg || is_proficient_with_weapon(ch, iarg))
               return TRUE;
             return FALSE;
-         */
-      case FEAT_WEAPON_SPECIALIZATION:
-        if (BAB(ch) < 4 || CLASS_LEVEL(ch, CLASS_WARRIOR) < 4)
-          return FALSE;
-        if (!iarg || is_proficient_with_weapon(ch, iarg))
-          return TRUE;
-        return FALSE;
-        /*
           case FEAT_GREATER_WEAPON_FOCUS:
             if (CLASS_LEVEL(ch, CLASS_WARRIOR) < 8)
               return FALSE;
@@ -2314,6 +2315,12 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
 
              return TRUE;
          */
+      case FEAT_WEAPON_SPECIALIZATION:
+        if (BAB(ch) < 4 || CLASS_LEVEL(ch, CLASS_WARRIOR) < 4)
+          return FALSE;
+        if (!iarg || is_proficient_with_weapon(ch, iarg))
+          return TRUE;
+        return FALSE;
       case FEAT_GREATER_WEAPON_SPECIALIZATION:
         if (CLASS_LEVEL(ch, CLASS_WARRIOR) < 12)
           return FALSE;
@@ -2323,6 +2330,15 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
                 has_combat_feat(ch, CFEAT_GREATER_WEAPON_FOCUS, iarg) &&
                 has_combat_feat(ch, CFEAT_WEAPON_SPECIALIZATION, iarg) &&
                 has_combat_feat(ch, CFEAT_WEAPON_FOCUS, iarg))
+          return TRUE;
+        return FALSE;
+      case FEAT_EPIC_WEAPON_SPECIALIZATION:
+        if (CLASS_LEVEL(ch, CLASS_WARRIOR) < 20)
+          return FALSE;
+        if (!iarg)
+          return TRUE;
+        if (is_proficient_with_weapon(ch, iarg) &&
+                has_combat_feat(ch, FEAT_GREATER_WEAPON_SPECIALIZATION, iarg) )
           return TRUE;
         return FALSE;
 
@@ -2587,6 +2603,26 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         }
         strcat(buf2, buf);
         none_shown = FALSE;
+      } else if (i == FEAT_ARMOR_TRAINING) {
+        if (mode == 1) {
+          sprintf(buf3, "%s (+%d ranks)", feat_list[i].name, has_feat(ch, FEAT_ARMOR_TRAINING));
+          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+        } else {
+          sprintf(buf3, "%s (+%d ranks)", feat_list[i].name, has_feat(ch, FEAT_ARMOR_TRAINING));
+          sprintf(buf, "%-40s ", buf3);
+        }
+        strcat(buf2, buf);
+        none_shown = FALSE;
+      } else if (i == FEAT_WEAPON_TRAINING) {
+        if (mode == 1) {
+          sprintf(buf3, "%s (+%d ranks)", feat_list[i].name, has_feat(ch, FEAT_WEAPON_TRAINING));
+          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+        } else {
+          sprintf(buf3, "%s (+%d ranks)", feat_list[i].name, has_feat(ch, FEAT_WEAPON_TRAINING));
+          sprintf(buf, "%-40s ", buf3);
+        }
+        strcat(buf2, buf);
+        none_shown = FALSE;
       } else if (i == FEAT_CRITICAL_SPECIALIST) {
         if (mode == 1) {
           sprintf(buf3, "%s (-%d threat)", feat_list[i].name, has_feat(ch, FEAT_CRITICAL_SPECIALIST));
@@ -2723,16 +2759,6 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         } else {
           sprintf(buf3, "%s (+%d dam / die)", feat_list[i].name, has_feat(ch, FEAT_ENHANCED_SPELL_DAMAGE));
-          sprintf(buf, "%-40s ", buf3);
-        }
-        strcat(buf2, buf);
-        none_shown = FALSE;
-      } else if (i == FEAT_FASTER_MEMORIZATION) {
-        if (mode == 1) {
-          sprintf(buf3, "%s (+%d ranks)", feat_list[i].name, has_feat(ch, FEAT_FASTER_MEMORIZATION));
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
-        } else {
-          sprintf(buf3, "%s (+%d ranks)", feat_list[i].name, has_feat(ch, FEAT_FASTER_MEMORIZATION));
           sprintf(buf, "%-40s ", buf3);
         }
         strcat(buf2, buf);
@@ -3202,14 +3228,14 @@ int feat_to_cfeat(int feat) {
       return CFEAT_GREATER_WEAPON_FOCUS;
     case FEAT_GREATER_WEAPON_SPECIALIZATION:
       return CFEAT_GREATER_WEAPON_SPECIALIZATION;
+    case FEAT_EPIC_WEAPON_SPECIALIZATION:
+      return CFEAT_EPIC_WEAPON_SPECIALIZATION;
     case FEAT_IMPROVED_WEAPON_FINESSE:
       return CFEAT_IMPROVED_WEAPON_FINESSE;
    // case FEAT_EXOTIC_WEAPON_PROFICIENCY:
    //   return CFEAT_EXOTIC_WEAPON_PROFICIENCY;
     case FEAT_MONKEY_GRIP:
       return CFEAT_MONKEY_GRIP;
-    case FEAT_WEAPON_MASTERY:
-      return CFEAT_WEAPON_MASTERY;
     case FEAT_WEAPON_FLURRY:
       return CFEAT_WEAPON_FLURRY;
     case FEAT_WEAPON_SUPREMACY:
