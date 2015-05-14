@@ -383,15 +383,17 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     send_to_char(ch, "\r\n");
   }
   //code to support proc information..
-  name = obj_index[GET_OBJ_RNUM(item)].func;
-  if (mode == ITEM_STAT_MODE_IMMORTAL) {
-    send_to_char(ch, "Special Procedure 'identify' tag:\r\n");
-    if (name)
-      (name)(ch, item, 0, "identify"); /* show identify info tagged in the actual proc */
-  } else {
-    send_to_char(ch, "Special 'identify' tag:\r\n");
-    if (name)
-      (name)(ch, item, 0, "identify"); /* show identify info tagged in the actual proc */
+  if (GET_OBJ_RNUM(item) != NOTHING) {
+    name = obj_index[GET_OBJ_RNUM(item)].func;
+    if (mode == ITEM_STAT_MODE_IMMORTAL) {
+      send_to_char(ch, "Special Procedure 'identify' tag:\r\n");
+      if (name)
+        (name)(ch, item, 0, "identify"); /* show identify info tagged in the actual proc */
+    } else {
+      send_to_char(ch, "Special 'identify' tag:\r\n");
+      if (name)
+        (name)(ch, item, 0, "identify"); /* show identify info tagged in the actual proc */
+    }
   }
 
 }
