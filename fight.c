@@ -2606,7 +2606,14 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     /* Check the weapon type, make sure it matches. */
     if(((wielded != NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_GREATER_WEAPON_SPECIALIZATION), GET_WEAPON_TYPE(wielded))) ||
        ((wielded == NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_GREATER_WEAPON_SPECIALIZATION), WEAPON_TYPE_UNARMED)))
-      dambonus += 2;
+      dambonus += 4;
+  }
+
+  if (HAS_FEAT(ch, FEAT_EPIC_WEAPON_SPECIALIZATION)) {
+    /* Check the weapon type, make sure it matches. */
+    if(((wielded != NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_EPIC_WEAPON_SPECIALIZATION), GET_WEAPON_TYPE(wielded))) ||
+       ((wielded == NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_EPIC_WEAPON_SPECIALIZATION), WEAPON_TYPE_UNARMED)))
+      dambonus += 3;
   }
 
   /* weapon enhancement bonus */
@@ -3556,7 +3563,7 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
   /* Size bonus */
   bonuses[BONUS_TYPE_SIZE] = MAX(bonuses[BONUS_TYPE_SIZE], size_modifiers[GET_SIZE(ch)]);
 
-  /* Unnamed bonus (stacks) */
+  /* Unnamed / Undefined bonus (stacks) */
 
   if (HAS_FEAT(ch, FEAT_WEAPON_FOCUS)) {
     if (wielded) {
@@ -3587,10 +3594,19 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
       bonuses[BONUS_TYPE_UNDEFINED] += 1;
   }
 
+  /* epic weapon specialization */
+  if (HAS_FEAT(ch, FEAT_EPIC_WEAPON_SPECIALIZATION)) {
+    if (wielded) {
+      if (HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_EPIC_WEAPON_SPECIALIZATION), GET_WEAPON_TYPE(wielded)))
+        bonuses[BONUS_TYPE_UNDEFINED] += 3;
+    } else if (HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_EPIC_WEAPON_SPECIALIZATION), WEAPON_TYPE_UNARMED))
+      bonuses[BONUS_TYPE_UNDEFINED] += 3;
+  }
+
   if (victim) {
     /* blind fighting */
     if (!CAN_SEE(victim, ch) && !HAS_FEAT(victim, FEAT_BLIND_FIGHT))
-      bonuses[BONUS_TYPE_UNDEFINED] += 2;
+      bonuses[BONUS_TYPE_UNDEFINED] += 4;
 
   /* point blank shot will give +1 bonus to hitroll if you are using a ranged
    * attack in the same room as victim */
