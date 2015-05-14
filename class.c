@@ -357,6 +357,7 @@ int preferred_save[5][NUM_CLASSES] = {
 int free_start_feats_wizard[] = {
   FEAT_WEAPON_PROFICIENCY_WIZARD,
   FEAT_SCRIBE_SCROLL,
+  FEAT_SUMMON_FAMILIAR,
   0
 };
 int free_start_feats_cleric[] = {
@@ -371,6 +372,7 @@ int free_start_feats_rogue[] = {
   FEAT_SIMPLE_WEAPON_PROFICIENCY,
   FEAT_WEAPON_PROFICIENCY_ROGUE,
   FEAT_ARMOR_PROFICIENCY_LIGHT,
+  FEAT_WEAPON_FINESSE,
   0
 };
 int free_start_feats_warrior[] = {
