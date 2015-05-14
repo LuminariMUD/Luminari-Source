@@ -317,9 +317,10 @@ ACMD(do_ethshift) {
     return;
   }
   */
-  
+
   if (!valid_mortal_tele_dest(shiftee, shift_dest, FALSE)) {
-    send_to_char(ch, "Your power is being block at the destination!\r\n");
+    send_to_char(ch, "Your power is being block at the destination (try again)!\r\n");
+    USE_MOVE_ACTION(ch);
     return;
   }
 
