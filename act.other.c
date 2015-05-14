@@ -311,11 +311,13 @@ ACMD(do_ethshift) {
     return;
   }
 
+  /*
   if (shift_dest >= top_of_world || shift_dest <= -1) {
     send_to_char(ch, "You fail to successfully shift!\r\n");
     return;
   }
-
+  */
+  
   if (!valid_mortal_tele_dest(shiftee, shift_dest, FALSE)) {
     send_to_char(ch, "Your power is being block at the destination!\r\n");
     return;
