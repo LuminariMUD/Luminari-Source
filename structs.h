@@ -1559,7 +1559,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_APPLY_POISON                373
 #define FEAT_DIRT_KICK                   374
 #define FEAT_INDOMITABLE_RAGE            375
-/* rage powers */
+/* rage powers (1st batch) */
 #define FEAT_RP_SUPRISE_ACCURACY         376
 #define FEAT_RP_POWERFUL_BLOW            377
 #define FEAT_RP_RENEWED_VIGOR            378
@@ -1567,48 +1567,55 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_RP_FEARLESS_RAGE            380
 #define FEAT_RP_COME_AND_GET_ME          381
 /* end rage powers */
-#define FEAT_DUAL_WEAPON_FIGHTING          382
-#define FEAT_IMPROVED_DUAL_WEAPON_FIGHTING 383
-#define FEAT_GREATER_DUAL_WEAPON_FIGHTING  384
-#define FEAT_PERFECT_DUAL_WEAPON_FIGHTING  385
-#define FEAT_EPIC_MANYSHOT                 386
+#define FEAT_DUAL_WEAPON_FIGHTING           382
+#define FEAT_IMPROVED_DUAL_WEAPON_FIGHTING  383
+#define FEAT_GREATER_DUAL_WEAPON_FIGHTING   384
+#define FEAT_PERFECT_DUAL_WEAPON_FIGHTING   385
+#define FEAT_EPIC_MANYSHOT                  386
 #define FEAT_BLINDING_SPEED                 387
 #define FEAT_VANISH                         388
 #define FEAT_IMPROVED_VANISH                389
 #define FEAT_WEAPON_PROFICIENCY_BARD        390
 #define FEAT_RAGING_CRITICAL                391
-#define FEAT_EATER_OF_MAGIC                392
+#define FEAT_EATER_OF_MAGIC                 392
 #define FEAT_RAGE_RESISTANCE                393
-#define FEAT_DEATHLESS_FRENZY                394
-#define FEAT_KEEN_STRIKE                395
-#define FEAT_OUTSIDER                   396
+#define FEAT_DEATHLESS_FRENZY               394
+#define FEAT_KEEN_STRIKE                    395
+#define FEAT_OUTSIDER                       396
+#define FEAT_ARMOR_TRAINING                 397
+#define FEAT_WEAPON_TRAINING                398
+#define FEAT_ARMOR_MASTERY                  399
+#define FEAT_WEAPON_MASTERY_2               400
+#define FEAT_ARMOR_MASTERY_2                401
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT                   397
+#define FEAT_LAST_FEAT                      402
 /** feat_last_feat + 1 ***/
-#define NUM_FEATS                        398
+#define NUM_FEATS                           403
 /*****/
-#define MAX_FEATS                        750
+#define MAX_FEATS                           750
 /*****/
 
 /* Combat feats that apply to a specific weapon type */
-#define CFEAT_IMPROVED_CRITICAL     		0
-#define CFEAT_WEAPON_FINESSE      		1
-#define CFEAT_WEAPON_FOCUS      		2
-#define CFEAT_WEAPON_SPECIALIZATION   		3
-#define CFEAT_GREATER_WEAPON_FOCUS    		4
-#define CFEAT_GREATER_WEAPON_SPECIALIZATION 	5
-#define CFEAT_IMPROVED_WEAPON_FINESSE 		6
-#define CFEAT_SKILL_FOCUS 			7
-#define CFEAT_EXOTIC_WEAPON_PROFICIENCY 	8
-#define CFEAT_MONKEY_GRIP 			9
-#define CFEAT_FAVORED_ENEMY 			10
-#define CFEAT_EPIC_SKILL_FOCUS 			11
-#define CFEAT_POWER_CRITICAL 			12
-#define CFEAT_WEAPON_MASTERY 			13
-#define CFEAT_WEAPON_FLURRY 			14
-#define CFEAT_WEAPON_SUPREMACY 			15
-#define CFEAT_TRIPLE_CRIT 			16
-#define NUM_CFEATS       			17
+#define CFEAT_IMPROVED_CRITICAL                0
+#define CFEAT_WEAPON_FINESSE                   1
+#define CFEAT_WEAPON_FOCUS                     2
+#define CFEAT_WEAPON_SPECIALIZATION            3
+#define CFEAT_GREATER_WEAPON_FOCUS             4
+#define CFEAT_GREATER_WEAPON_SPECIALIZATION    5
+#define CFEAT_IMPROVED_WEAPON_FINESSE          6
+#define CFEAT_SKILL_FOCUS                      7
+#define CFEAT_EXOTIC_WEAPON_PROFICIENCY        8
+#define CFEAT_MONKEY_GRIP                      9
+#define CFEAT_FAVORED_ENEMY                    10
+#define CFEAT_EPIC_SKILL_FOCUS                 11
+#define CFEAT_POWER_CRITICAL                   12
+#define CFEAT_WEAPON_MASTERY                   13
+#define CFEAT_WEAPON_FLURRY                    14
+#define CFEAT_WEAPON_SUPREMACY                 15
+#define CFEAT_TRIPLE_CRIT                      16
+/**/
+#define NUM_CFEATS                             17
+/**/
 
 /* Spell feats that apply to a specific school of spells */
 #define SFEAT_SPELL_FOCUS     0

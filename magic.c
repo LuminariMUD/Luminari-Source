@@ -55,6 +55,9 @@ int compute_spell_res(struct char_data *ch, struct char_data *vict, int modifier
     resist += 10;
   if (IS_AFFECTED(vict, AFF_SPELL_RESISTANT))
     resist += 12 + GET_LEVEL(vict);
+  if (!IS_NPC(vict) && GET_EQ(vict, WEAR_SHIELD) &&
+          HAS_FEAT(vict, FEAT_ARMOR_MASTERY_2))
+    resist += 25;
 
   return MIN(99, MAX(0, resist));
 }

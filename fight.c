@@ -498,6 +498,10 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
           GET_SKILL(ch, SKILL_SHIELD_SPECIALIST)) {
     bonuses[BONUS_TYPE_SHIELD] += 2;
   }
+  if (!is_touch && !IS_NPC(ch) && GET_EQ(ch, WEAR_SHIELD) &&
+          HAS_FEAT(ch, FEAT_ARMOR_MASTERY_2)) {
+    bonuses[BONUS_TYPE_SHIELD] += 2;
+  }
   /**/
 
   /* bonus type deflection */
@@ -506,6 +510,11 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
     bonuses[BONUS_TYPE_DEFLECTION]++;
   } else if (!IS_NPC(ch) && GET_EQ(ch, WEAR_WIELD_OFFHAND) && HAS_FEAT(ch, FEAT_TWO_WEAPON_DEFENSE)) {
     bonuses[BONUS_TYPE_DEFLECTION]++;
+  }
+
+  if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_WEAPON_MASTERY) &&
+      (GET_EQ(ch, WEAR_WIELD_1) || GET_EQ(ch, WEAR_WIELD_OFFHAND || GET_EQ(ch, WEAR_WIELD_2H))) ) {
+    bonuses[BONUS_TYPE_DEFLECTION] += 2;
   }
 
   if (attacker) {
@@ -1945,6 +1954,8 @@ int compute_damage_reduction(struct char_data *ch, int dam_type) {
     damage_reduction += 3;
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_RP_HEAVY_SHRUG) && affected_by_spell(ch, SKILL_RAGE))
     damage_reduction += 3;
+  if (HAS_FEAT(ch, FEAT_ARMOR_MASTERY) && (GET_EQ(ch, WEAR_BODY) || GET_EQ(ch, WEAR_SHIELD)))
+    damage_reduction += 5;
 
   //damage reduction cap is 20
   return (MIN(MAX_DAM_REDUC, damage_reduction));
@@ -2928,6 +2939,9 @@ int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll
          ((wielded == NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_POWER_CRITICAL), WEAPON_TYPE_UNARMED)))
         confirm_roll += 4;
     }
+    if (HAS_FEAT(ch, FEAT_WEAPON_TRAINING)) {
+      confirm_roll += HAS_FEAT(ch, FEAT_WEAPON_TRAINING) * 2;
+    }
     if (confirm_roll >= victim_ac)  /* confirm critical */
       return 1; /* yep, critical! */
   }
@@ -3731,9 +3745,15 @@ int combat_maneuver_check(struct char_data *ch, struct char_data *vict,
 
   /* CMB = Base attack bonus + Strength modifier + special size modifier, etc */
   cm_bonus = compute_cmb(ch, combat_maneuver_type) + attack_roll;
+  if (HAS_FEAT(ch, FEAT_WEAPON_MASTERY_2) &&
+      (GET_EQ(ch, WEAR_WIELD_1) || GET_EQ(ch, WEAR_WIELD_OFFHAND || GET_EQ(ch, WEAR_WIELD_2H))) )
+    cm_bonus += 6;
 
   /* CMD = 10 + Base attack bonus + Strength modifier + Dexterity modifier + special size modifier + miscellaneous modifiers */
   cm_defense = compute_cmd(vict, combat_maneuver_type);
+  if (HAS_FEAT(vict, FEAT_WEAPON_MASTERY_2) &&
+      (GET_EQ(vict, WEAR_WIELD_1) || GET_EQ(vict, WEAR_WIELD_OFFHAND || GET_EQ(vict, WEAR_WIELD_2H))))
+    cm_defense += 6;
 
   /* result! */
   result = cm_bonus - cm_defense;
@@ -4450,7 +4470,10 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
     send_to_char(victim, "\tW[\tRAOO\tW]\tn");
   }
 
-  diceroll = rand_number(1, 20);
+  if (HAS_FEAT(ch, FEAT_WEAPON_TRAINING))
+    diceroll = rand_number(1+HAS_FEAT(ch, FEAT_WEAPON_TRAINING), 20);
+  else
+    diceroll = rand_number(1, 20);
   if (is_critical_hit(ch, wielded, diceroll, calc_bab, victim_ac)) {
     dam = TRUE;
     is_critical = TRUE;
