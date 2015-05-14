@@ -311,7 +311,7 @@ ACMD(do_ethshift) {
     return;
   }
 
-  if (shift_dest == NOWHERE || shift_dest <= -1) {
+  if (shift_dest >= top_of_world || shift_dest <= -1) {
     send_to_char(ch, "You fail to successfully shift!\r\n");
     return;
   }
