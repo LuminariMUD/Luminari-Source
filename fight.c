@@ -1968,6 +1968,8 @@ int compute_concealment(struct char_data *ch) {
     concealment += 20;
   if (AFF_FLAGGED(ch, AFF_DISPLACE))
     concealment += 50;
+  if (HAS_FEAT(ch, FEAT_OUTSIDER))
+    concealment += 15;
 
   // concealment cap is 50% normally
   concealment_cap = MIN(MAX_CONCEAL, concealment);
@@ -2792,6 +2794,10 @@ int determine_threat_range(struct char_data *ch, struct obj_data *wielded) {
     if(((wielded != NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), GET_WEAPON_TYPE(wielded))) ||
        ((wielded == NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), WEAPON_TYPE_UNARMED)))
       threat_range -= HAS_FEAT(ch, FEAT_CRITICAL_SPECIALIST);
+  }
+
+  if (HAS_FEAT(ch, FEAT_KEEN_STRIKE) && (wielded == NULL)) {
+    threat_range--;
   }
 
   /* end mods */
@@ -4036,7 +4042,8 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   if (affected_by_spell(ch, SKILL_STUNNING_FIST)) {
     if(!wielded || (OBJ_FLAGGED(wielded, ITEM_KI_FOCUS)) || (weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily == WEAPON_FAMILY_MONK)) {
       /* check for save */
-      if (!savingthrow(victim, SAVING_FORT, 0, (10 + (CLASS_LEVEL(ch, CLASS_MONK) / 2) + GET_WIS_BONUS(ch)))) {
+      if ( !savingthrow( victim, SAVING_FORT, 0,
+            ( (HAS_FEAT(ch, FEAT_KEEN_STRIKE)*4) + 10 + (CLASS_LEVEL(ch, CLASS_MONK) / 2) + GET_WIS_BONUS(ch)) ) ) {
         send_to_char(ch, "[STUNNING-FIST] ");
         send_to_char(victim, "[\tRSTUNNING-FIST\tn] ");
         act("$n performs a \tYstunning fist\tn attack on $N!",

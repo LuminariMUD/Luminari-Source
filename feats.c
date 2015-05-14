@@ -556,6 +556,7 @@ void assign_feats(void) {
       "to standard action.");
     feat_prereq_ability(FEAT_IMPROVED_INTIMIDATION, ABILITY_INTIMIDATE, 10);
 
+    /* note: monks get this for free */
   feato(FEAT_STUNNING_FIST, "stunning fist", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
     "may make unarmed attack to stun opponent for one round",
     "may make unarmed attack to stun opponent for one round");
@@ -1043,6 +1044,15 @@ void assign_feats(void) {
     "proficiency in monk weapons",
     "You are proficient in the usage of quarterstaff, kama, siangham, and shuriken.");
   /* not imped */feato(FEAT_TONGUE_OF_THE_SUN_AND_MOON, "tongue of the sun and moon [not impd]", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "[not implemented] can speak any language", "[not implemented] can speak any language");
+  /*epic*//* free blinding speed */
+  /*epic*/feato(FEAT_KEEN_STRIKE, "keen strike", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "critical more unarmed, better stunning fist",
+    "Your threat range with unarmed attacks increase by 1, in addition you get "
+      "a +4 bonus to your stunning fist DC.");
+  /*epic*/feato(FEAT_OUTSIDER, "outsider", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "you become an outsider",
+    "You gain the ability to shift at will to the ethereal plane and back "
+      "additionally you gain 15% concealment.");
 
   /* Bard */
   /* unfinished */ feato(FEAT_BARDIC_KNOWLEDGE, "bardic knowledge", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
