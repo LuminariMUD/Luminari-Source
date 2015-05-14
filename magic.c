@@ -4694,7 +4694,7 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
         return;
       }
       if (!valid_mortal_tele_dest(ch, gate_dest, FALSE)) {
-        send_to_char(ch, "Your magic is being block at the destination!\r\n");
+        send_to_char(ch, "Your magic is being blocked at the destination!\r\n");
         return;
       }
 
