@@ -258,7 +258,7 @@ ACMD(do_ethshift) {
     return;
   }
 
-  if (!argument) {
+  if (!*argument) {
     shiftee = ch;
   } else {
     /* there is an argument, lets make sure it is valid */
@@ -302,7 +302,7 @@ ACMD(do_ethshift) {
     do {
       shift_dest = rand_number(0, top_of_world);
       counter++;
-    } while (counter < 999999 && !ZONE_FLAGGED(GET_ROOM_ZONE(shift_dest), ZONE_ETH_PLANE));
+    } while (counter < 9999999 && !ZONE_FLAGGED(GET_ROOM_ZONE(shift_dest), ZONE_ETH_PLANE));
   }
 
   if (shift_dest == NOWHERE || shift_dest <= -1) {
@@ -327,6 +327,8 @@ ACMD(do_ethshift) {
   entry_memory_mtrigger(shiftee);
   greet_mtrigger(shiftee, -1);
   greet_memory_mtrigger(shiftee);
+
+  USE_STANDARD_ACTION(ch);
 }
 
 /* apply poison to a weapon */
