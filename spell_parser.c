@@ -378,6 +378,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
  if ((casttype != CAST_INNATE) &&
      (casttype != CAST_POTION) &&
      (casttype != CAST_WEAPON_POISON) &&
+     (casttype != CAST_WEAPON_SPELL) &&
      (casttype != CAST_WAND)   && !IS_NPC(caster))
     switch (CASTING_CLASS(caster)) {
       case CLASS_BARD:
@@ -487,12 +488,15 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
     }
   }
 
-  /* determine the type of saving throw */
+  /* determine the type of saving throw, other casttype mods */
   switch (casttype) {
+    case CAST_WEAPON_POISON:
+    case CAST_WEAPON_SPELL:
+      savetype = SAVING_WILL;
+      break;
     case CAST_STAFF:
     case CAST_SCROLL:
     case CAST_POTION:
-    case CAST_WEAPON_POISON:
     case CAST_WAND:
       savetype = SAVING_WILL;
       break;

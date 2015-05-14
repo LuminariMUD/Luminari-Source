@@ -447,7 +447,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   if (victim == NULL || ch == NULL)
     return (0);
 
-  /* is this a hack? */
+  /* is this a hack? yes yes hackalicious! */
   magic_level = divine_level = level;
   if (MAGIC_LEVEL(ch) > magic_level)
     magic_level = MAGIC_LEVEL(ch);
@@ -456,6 +456,10 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   if (wpn)
     if (HAS_SPELLS(wpn))
       magic_level = divine_level = level;
+
+  /* weapon poison */
+  if (casttype == CAST_WEAPON_POISON)
+    magic_level = divine_level = level;
 
   /* hack because of domain spells */
   if (magic_level > divine_level)
@@ -1276,9 +1280,8 @@ int isMagicArmored(struct char_data *victim) {
 // 1200 rounds = 1 real hour
 // old tick = 75 seconds, or 1.25 minutes or 25 rounds
 #define MAX_SPELL_AFFECTS 6	/* change if more needed */
-
 void mag_affects(int level, struct char_data *ch, struct char_data *victim,
-    struct obj_data *wpn, int spellnum, int savetype, int casttype) {
+         struct obj_data *wpn, int spellnum, int savetype, int casttype) {
   struct affected_type af[MAX_SPELL_AFFECTS];
   bool accum_affect = FALSE, accum_duration = FALSE;
   const char *to_vict = NULL, *to_room = NULL;
@@ -1329,6 +1332,10 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   if (wpn)
     if (HAS_SPELLS(wpn))
       magic_level = divine_level = level;
+
+  /* weapon poison */
+  if (casttype == CAST_WEAPON_POISON)
+    magic_level = divine_level = level;
 
   /* another hack because of domain spells */
   if (magic_level > divine_level)
@@ -3496,8 +3503,7 @@ void mag_groups(int level, struct char_data *ch, struct obj_data *obj,
   }
 }
 
-/* Mass spells affect every creature in the room except the caster. No spells
- * of this class currently implemented. */
+/* Mass spells affect every creature in the room except the caster. */
 void mag_masses(int level, struct char_data *ch, struct obj_data *obj,
         int spellnum, int savetype, int casttype) {
   struct char_data *tch, *tch_next;
@@ -4296,8 +4302,11 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
   if (victim == NULL)
     return;
 
-  /* bards also get some healing spells */
-  level = DIVINE_LEVEL(ch) + CLASS_LEVEL(ch, CLASS_BARD);
+  if (casttype == CAST_WEAPON_POISON || casttype == CAST_WEAPON_SPELL)
+    ;
+  else
+    /* bards also get some healing spells */
+    level = DIVINE_LEVEL(ch) + CLASS_LEVEL(ch, CLASS_BARD);
 
   switch (spellnum) {
     case SPELL_CURE_LIGHT:
