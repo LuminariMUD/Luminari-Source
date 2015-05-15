@@ -53,6 +53,7 @@
  *  implemented yet.
  */
 
+#define MODE_CAP 12
 struct combat_mode_data combat_mode_info[] = {
   {"!UNDEFINED!", 0, 0, FALSE, MODE_GROUP_NONE},
   /* Group 1 */
@@ -64,6 +65,8 @@ struct combat_mode_data combat_mode_info[] = {
   {"dual wield"         , AFF_DUAL_WIELD         , FEAT_UNDEFINED      , FALSE, MODE_GROUP_2},
   {"flurry of blows"    , AFF_FLURRY_OF_BLOWS    , FEAT_FLURRY_OF_BLOWS, FALSE, MODE_GROUP_2},
   {"rapid shot"         , AFF_RAPID_SHOT         , FEAT_RAPID_SHOT     , FALSE, MODE_GROUP_2},
+  /* Group 3 */
+  /* none currently */
   /* No Group */
   {"counterspell"     , AFF_COUNTERSPELL     , FEAT_UNDEFINED, FALSE, MODE_GROUP_NONE},
   {"defensive casting", AFF_DEFENSIVE_CASTING, FEAT_UNDEFINED, FALSE, MODE_GROUP_NONE},
@@ -176,6 +179,11 @@ ACMD(do_mode) {
       send_to_char(ch, "The minimum value you can sepcify for %s is 1.\r\n", combat_mode_info[mode].name);
       return;
     }
+    if ( !IS_NPC(ch) && number > MODE_CAP ) {
+      send_to_char(ch, "The maximum value you can specify for %s is %d (upper limit).\r\n", combat_mode_info[mode].name, MODE_CAP);
+      return;
+    }
+    MODE_CAP
   }
   if (!is_mode_enabled(ch, mode)) {
     send_to_char(ch, "You enter %s mode.\r\n", combat_mode_info[mode].name);
@@ -286,7 +294,8 @@ ACMD(do_spellbattle) {
           1 * SECS_PER_REAL_HOUR);
 
 }
+
 #undef SPELLBATTLE_CAP
 #undef SPELLBATTLE_AFFECTS
-
+#undef MODE_CAP
 

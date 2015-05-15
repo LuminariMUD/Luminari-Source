@@ -2476,9 +2476,9 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 
 // other MAX_ defines
 #define MAX_WEAPON_SPELLS     3
-#define MAX_BAB               60
+#define MAX_BAB               50
 #define MAX_DAM_BONUS         60
-#define MAX_AC                55
+#define MAX_AC                60
 #define MAX_CONCEAL           50 // its percentage
 #define MAX_DAM_REDUC         20
 #define MAX_ENERGY_ABSORB     20
