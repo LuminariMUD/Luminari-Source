@@ -616,7 +616,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
   /* bonus type undefined */
   /* stalwart warrior - warrior feat */
   if (HAS_FEAT(ch, FEAT_STALWART_WARRIOR)) {
-    bonuses[BONUS_TYPE_UNDEFINED] += GET_CON_BONUS(ch);
+    bonuses[BONUS_TYPE_UNDEFINED] += (CLASS_LEVEL(ch, CLASS_WARRIOR) / 4);
   }
   /* favored enemy */
   if (attacker && attacker != ch && !IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_RANGER)) {

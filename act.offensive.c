@@ -1564,11 +1564,15 @@ ACMD(do_rage) {
     USE_STANDARD_ACTION(ch);
   }
 
+  /* causing issues with balance */
+  /*
   if (GET_HIT(ch) < GET_MAX_HIT(ch)) {
     //little boost in current hps
     GET_HIT(ch) += MIN(GET_MAX_HIT(ch) + 170 - GET_HIT(ch),
           CLASS_LEVEL(ch, CLASS_BERSERKER) * bonus / 2);
   }
+  */
+  
 }
 #undef RAGE_AFFECTS
 

@@ -790,8 +790,8 @@ void assign_feats(void) {
       "(example: 4 ranks means you cannot roll lower than 5).  In addition, you "
       "get +2 to confirming critical hits per rank.");
   feato(FEAT_STALWART_WARRIOR, "stalwart warrior", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "apply con bonus to AC",
-    "The warrior gets to apply full con bonus as untyped to AC.");
+    "apply class level to AC",
+    "The warrior gets to apply all warrior-levels divided by 4 to AC.");
   feato(FEAT_ARMOR_MASTERY, "armor mastery i", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "gains Damage Reduction 5/— when armored",
     "Gain Damage Reduction 5/— whenever wearing armor or using a shield.");
