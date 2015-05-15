@@ -325,7 +325,7 @@ int find_ability_num(char *name) {
  * ignored here, to make callers simpler. */
 int call_magic(struct char_data *caster, struct char_data *cvict,
         struct obj_data *ovict, int spellnum, int level, int casttype) {
-  int savetype = 0;
+  int savetype = 0, spell_level = 0;
   struct char_data *tmp = NULL;
 
   if (spellnum < 1 || spellnum > TOP_SPELL_DEFINE)
@@ -488,24 +488,71 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
     }
   }
 
-  /* determine the type of saving throw, other casttype mods */
+  /* we are going to determine the level of this call here based on casttype
+     the saving throw will be determined later, so we are just defaulting to
+     SAVING_WILL here...  */
   switch (casttype) {
+    case CAST_INNATE:
+      savetype = SAVING_WILL;
+      spell_level = level;
+      break;
     case CAST_WEAPON_POISON:
+      savetype = SAVING_WILL;
+      spell_level = level;
+      break;
     case CAST_WEAPON_SPELL:
       savetype = SAVING_WILL;
+      spell_level = level;
       break;
     case CAST_STAFF:
+      savetype = SAVING_WILL;
+      spell_level = level;
+      break;
     case CAST_SCROLL:
+      savetype = SAVING_WILL;
+      spell_level = level;
+      break;
     case CAST_POTION:
+      savetype = SAVING_WILL;
+      spell_level = level;
+      break;
     case CAST_WAND:
       savetype = SAVING_WILL;
+      spell_level = level;
       break;
+
+    /* default and casting a spell */
     case CAST_SPELL:
       savetype = SAVING_WILL;
-      break;
+      switch (CASTING_CLASS(caster)) {
+        case CLASS_WIZARD:
+          spell_level = level;
+          break;
+        case CLASS_CLERIC:
+          spell_level = level;
+          break;
+        case CLASS_DRUID:
+          spell_level = level;
+          break;
+        case CLASS_SORCERER:
+          spell_level = level;
+          break;
+        case CLASS_PALADIN:
+          spell_level = level;
+          break;
+        case CLASS_RANGER:
+          spell_level = level;
+          break;
+        case CLASS_BARD:
+          spell_level = level;
+          break;
+      }
+
     default:
       savetype = SAVING_WILL;
+      spell_level = level;
       break;
+
   }
 
   /* spell turning */
@@ -523,38 +570,38 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
   }
 
   if (IS_SET(SINFO.routines, MAG_DAMAGE))
-    if (mag_damage(level, caster, cvict, ovict, spellnum, savetype, casttype) == -1)
+    if (mag_damage(spell_level, caster, cvict, ovict, spellnum, savetype, casttype) == -1)
       return (-1); /* Successful and target died, don't cast again. */
 
   if (IS_SET(SINFO.routines, MAG_AFFECTS))
-    mag_affects(level, caster, cvict, ovict, spellnum, savetype, casttype);
+    mag_affects(spell_level, caster, cvict, ovict, spellnum, savetype, casttype);
 
   if (IS_SET(SINFO.routines, MAG_UNAFFECTS))
-    mag_unaffects(level, caster, cvict, ovict, spellnum, savetype, casttype);
+    mag_unaffects(spell_level, caster, cvict, ovict, spellnum, savetype, casttype);
 
   if (IS_SET(SINFO.routines, MAG_POINTS))
-    mag_points(level, caster, cvict, ovict, spellnum, savetype, casttype);
+    mag_points(spell_level, caster, cvict, ovict, spellnum, savetype, casttype);
 
   if (IS_SET(SINFO.routines, MAG_ALTER_OBJS))
-    mag_alter_objs(level, caster, ovict, spellnum, savetype, casttype);
+    mag_alter_objs(spell_level, caster, ovict, spellnum, savetype, casttype);
 
   if (IS_SET(SINFO.routines, MAG_GROUPS))
-    mag_groups(level, caster, ovict, spellnum, savetype, casttype);
+    mag_groups(spell_level, caster, ovict, spellnum, savetype, casttype);
 
   if (IS_SET(SINFO.routines, MAG_MASSES))
-    mag_masses(level, caster, ovict, spellnum, savetype, casttype);
+    mag_masses(spell_level, caster, ovict, spellnum, savetype, casttype);
 
   if (IS_SET(SINFO.routines, MAG_AREAS))
-    mag_areas(level, caster, ovict, spellnum, savetype, casttype);
+    mag_areas(spell_level, caster, ovict, spellnum, savetype, casttype);
 
   if (IS_SET(SINFO.routines, MAG_SUMMONS))
-    mag_summons(level, caster, ovict, spellnum, savetype, casttype);
+    mag_summons(spell_level, caster, ovict, spellnum, savetype, casttype);
 
   if (IS_SET(SINFO.routines, MAG_CREATIONS))
-    mag_creations(level, caster, cvict, ovict, spellnum, casttype);
+    mag_creations(spell_level, caster, cvict, ovict, spellnum, casttype);
 
   if (IS_SET(SINFO.routines, MAG_ROOM))
-    mag_room(level, caster, ovict, spellnum, casttype);
+    mag_room(spell_level, caster, ovict, spellnum, casttype);
 
   /* this switch statement sends us to spells.c for the manual spells */
   if (IS_SET(SINFO.routines, MAG_MANUAL))

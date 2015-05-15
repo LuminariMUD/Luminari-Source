@@ -204,6 +204,8 @@ EVENTFUNC(event_trap_triggered) {
   int dam = 0;
   int count = 0;
   int i;
+  int casttype = CAST_TRAP;
+  int level = (LVL_STAFF - 1);
 
   pMudEvent = (struct mud_event_data *) event_obj;
 
@@ -251,8 +253,7 @@ EVENTFUNC(event_trap_triggered) {
         if (effect >= LAST_SPELL_DEFINE) {
           log("SYSERR: perform_trap_effect event called with invalid spell effect!\r\n");
         } else {
-          /* CAST_STAFF?  Maybe should make a unique casttype for traps */
-          call_magic(ch, ch, NULL, effect, (LVL_STAFF - 1), CAST_STAFF);
+          call_magic(ch, ch, NULL, effect, level, casttype);
         }
 
       } else {
@@ -413,7 +414,7 @@ EVENTFUNC(event_trap_triggered) {
 
         /* handle anything left over */
         if (effect == TRAP_EFFECT_DISPEL_MAGIC) /* special handling */
-          spell_dispel_magic(LVL_IMPL, ch, ch, NULL);
+          spell_dispel_magic(LVL_IMPL, ch, ch, NULL, casttype);
         if (af.spell != TYPE_UNDEFINED) /* has an affection to add? */
           affect_join(ch, &af, 1, FALSE, FALSE, FALSE);
         if (dam) /* has damage to process? */

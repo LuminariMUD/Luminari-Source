@@ -299,7 +299,7 @@ int isname_obj(char *search, char *list) {
 
 /* the main engine of charm spell, and similar */
 void effect_charm(struct char_data *ch, struct char_data *victim,
-        int spellnum) {
+        int spellnum, int casttype, int level) {
   struct affected_type af;
   int bonus = 0;
 
@@ -356,7 +356,7 @@ void effect_charm(struct char_data *ch, struct char_data *victim,
     if (IS_NPC(victim))
       hit(victim, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
   }
-  else if (mag_savingthrow(ch, victim, SAVING_WILL, bonus)) {
+  else if (mag_savingthrow(ch, victim, SAVING_WILL, bonus, casttype, level)) {
     send_to_char(ch, "Your victim resists!\r\n");
     if (IS_NPC(victim))
       hit(victim, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
@@ -365,7 +365,7 @@ void effect_charm(struct char_data *ch, struct char_data *victim,
     /* slippery mind gives a second save */
     if (!IS_NPC(victim) && HAS_FEAT(victim, FEAT_SLIPPERY_MIND)) {
       send_to_char(victim, "\tW*Slippery Mind*\tn  ");
-      if (mag_savingthrow(ch, victim, SAVING_WILL, 0)) {
+      if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level)) {
         return;
       }
     }
@@ -537,6 +537,8 @@ EVENTFUNC(event_chain_lightning) {
 EVENTFUNC(event_acid_arrow) {
   struct char_data *ch, *victim = NULL;
   struct mud_event_data *pMudEvent;
+  int casttype = CAST_SPELL;
+  int level = 0;
 
   /* This is just a dummy check, but we'll do it anyway */
   if (event_obj == NULL)
@@ -561,7 +563,12 @@ EVENTFUNC(event_acid_arrow) {
   if (mag_resistance(ch, victim, 0))
     return 0;
 
-  if (mag_savingthrow(ch, victim, SAVING_REFL, 0))
+  /* how about wands and everything else?? */
+  level = CASTER_LEVEL(ch);
+  if (level < 1)
+    level = 15; /* so lame */
+
+  if (mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level))
     damage(ch, victim, (dice(3, 6)/2), SPELL_ACID_ARROW, DAM_ENERGY,
           FALSE);
   else
@@ -578,6 +585,8 @@ EVENTFUNC(event_acid_arrow) {
 EVENTFUNC(event_implode) {
   struct char_data *ch, *victim = NULL;
   struct mud_event_data *pMudEvent;
+  int casttype = CAST_SPELL;
+  int level = 0;
 
   /* This is just a dummy check, but we'll do it anyway */
   if (event_obj == NULL)
@@ -602,7 +611,12 @@ EVENTFUNC(event_implode) {
   if (mag_resistance(ch, victim, 0))
     return 0;
 
-  if (mag_savingthrow(ch, victim, SAVING_REFL, 0))
+  /* how about wands and everything else?? */
+  level = CASTER_LEVEL(ch);
+  if (level < 1)
+    level = 15; /* so lame */
+
+  if (mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level))
     damage(ch, victim, (dice(CASTER_LEVEL(ch), 6)/2), SPELL_IMPLODE, DAM_PUNCTURE,
           FALSE);
   else
@@ -672,7 +686,7 @@ ASPELL(spell_charm) // enchantment
   if (victim == NULL || ch == NULL)
     return;
 
-  effect_charm(ch, victim, SPELL_CHARM);
+  effect_charm(ch, victim, SPELL_CHARM, casttype, level);
 }
 
 ASPELL(spell_charm_animal) // enchantment
@@ -681,7 +695,7 @@ ASPELL(spell_charm_animal) // enchantment
     return;
 
   if (IS_NPC(victim) && GET_RACE(victim) == NPCRACE_ANIMAL) {
-    effect_charm(ch, victim, SPELL_CHARM_ANIMAL);
+    effect_charm(ch, victim, SPELL_CHARM_ANIMAL, casttype, level);
   } else {
     send_to_char(ch, "This spell can only be used on animals.");
   }
@@ -734,7 +748,7 @@ ASPELL(spell_control_plants) {
     return;
 
   if (IS_NPC(victim) && GET_RACE(victim) == NPCRACE_PLANT) {
-    effect_charm(ch, victim, SPELL_CONTROL_PLANTS);
+    effect_charm(ch, victim, SPELL_CONTROL_PLANTS, casttype, level);
   } else {
     send_to_char(ch, "This spell can only be used on plants.");
   }
@@ -877,7 +891,7 @@ ASPELL(spell_dominate_person) // enchantment
   if (victim == NULL || ch == NULL)
     return;
 
-  effect_charm(ch, victim, SPELL_DOMINATE_PERSON);
+  effect_charm(ch, victim, SPELL_DOMINATE_PERSON, casttype, level);
 }
 
 
@@ -1105,7 +1119,7 @@ ASPELL(spell_mass_domination) // enchantment
     next_tch = tch->next_in_room;
 
     if (aoeOK(ch, tch, -1)) {
-      effect_charm(ch, tch, SPELL_MASS_DOMINATION);
+      effect_charm(ch, tch, SPELL_MASS_DOMINATION, casttype, level);
     }
   }
 }
@@ -1495,7 +1509,7 @@ ASPELL(spell_summon) {
     send_to_char(ch, "Your victim seems unsummonable.");
     return;
   }
-  if (IS_NPC(victim) && mag_savingthrow(ch, victim, SAVING_WILL, 0)) {
+  if (IS_NPC(victim) && mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level)) {
     send_to_char(ch, "%s", SUMMON_FAIL);
     return;
   }

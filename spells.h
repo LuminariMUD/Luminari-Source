@@ -36,6 +36,7 @@
 #define CAST_INNATE         5 /* For innate abilities */
 #define CAST_WEAPON_POISON  6 /* For apply poison */
 #define CAST_WEAPON_SPELL   7 /* For casting weapons */
+#define CAST_TRAP           8
 
 #define MAG_DAMAGE        (1 << 0)
 #define MAG_AFFECTS       (1 << 1)
@@ -1007,9 +1008,9 @@ struct wall_information {
 /* manual spell header info */
 #define ASPELL(spellname) \
 void	spellname(int level, struct char_data *ch, \
-		  struct char_data *victim, struct obj_data *obj)
+		  struct char_data *victim, struct obj_data *obj, int casttype)
 
-#define MANUAL_SPELL(spellname)	spellname(level, caster, cvict, ovict);
+#define MANUAL_SPELL(spellname)	spellname(level, caster, cvict, ovict, casttype);
 
 /* manual spells */
 ASPELL(spell_acid_arrow);
@@ -1101,7 +1102,7 @@ bool check_wall(struct char_data *victim, int dir);
 int compute_mag_saves(struct char_data *vict,
         int type, int modifier);
 int mag_savingthrow(struct char_data *ch, struct char_data *vict,
-        int type, int modifier);
+        int type, int modifier, int casttype, int level);
 void affect_update(void);
 int mag_resistance(struct char_data *ch, struct char_data *vict, int modifier);
 int compute_spell_res(struct char_data *ch, struct char_data *vict, int mod);
