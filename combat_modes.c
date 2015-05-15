@@ -183,7 +183,6 @@ ACMD(do_mode) {
       send_to_char(ch, "The maximum value you can specify for %s is %d (upper limit).\r\n", combat_mode_info[mode].name, MODE_CAP);
       return;
     }
-    MODE_CAP
   }
   if (!is_mode_enabled(ch, mode)) {
     send_to_char(ch, "You enter %s mode.\r\n", combat_mode_info[mode].name);
