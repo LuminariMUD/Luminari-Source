@@ -316,6 +316,9 @@ void finalize_study(struct descriptor_data *d) {
           break;
         case FEAT_GREAT_CONSTITUTION:
           GET_REAL_CON(ch) += LEVELUP(ch)->feats[i];
+          if (!(GET_REAL_CON(ch) % 2) && LEVELUP(ch)->feats[i]) {
+            GET_REAL_MAX_HIT(ch) += GET_LEVEL(ch);
+          }
           break;
         case FEAT_GREAT_DEXTERITY:
           GET_REAL_DEX(ch) += LEVELUP(ch)->feats[i];
