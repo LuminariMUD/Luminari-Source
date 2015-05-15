@@ -50,6 +50,8 @@ bool death_check(struct char_data *ch) {
 void room_aff_tick(struct raff_node *raff) {
   struct room_data *caster_room = NULL;
   struct char_data *caster = NULL;
+  int casttype = CAST_SPELL;
+  int level = DG_SPELL_LEVEL;
 
   switch (raff->spell) {
     case SPELL_ACID_FOG:
@@ -71,7 +73,7 @@ void room_aff_tick(struct raff_node *raff) {
     case SPELL_BILLOWING_CLOUD:
       for (caster = world[raff->room].people; caster; caster = caster->next_in_room) {
         if (caster && GET_LEVEL(caster) < 13) {
-          if (!mag_savingthrow(caster, caster, SAVING_FORT, 0)) {
+          if (!mag_savingthrow(caster, caster, SAVING_FORT, 0, casttype, level)) {
             send_to_char(caster, "You are bogged down by the billowing cloud!\r\n");
             act("$n is bogged down by the billowing cloud.", TRUE, caster, 0, NULL, TO_ROOM);
             USE_MOVE_ACTION(caster);
