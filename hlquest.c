@@ -122,6 +122,10 @@ void show_quest_to_player(struct char_data *ch, struct quest_entry *quest) {
             send_to_char(ch, "\tcLOADOBJECT\tn <Missing Object>\r\n");
             break;
           }
+          if (NOWHERE == real_room(qcom->location)) {
+            send_to_char(ch, "\tcLOADOBJECT\tn <Missing Room>\r\n");
+            break;
+          }
           sprintf(buf, "\tcLOADOBJECT\tn %s in %s\r\n",
                   obj_proto[ real_object(qcom->value)].short_description,
                   (qcom->location == 0 ? "CurrentRoom" :
