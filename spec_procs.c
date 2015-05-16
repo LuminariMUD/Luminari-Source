@@ -803,9 +803,10 @@ int compute_ability(struct char_data *ch, int abilityNum) {
       if (GET_RACE(ch) == RACE_H_ELF)
         value += 2;
       value += GET_STR_BONUS(ch);
+      value += compute_gear_armor_penalty(ch);
       return value;
     case ABILITY_TOTAL_DEFENSE: /* not srd */
-      value += GET_DEX_BONUS(ch);
+      value += GET_CON_BONUS(ch);
       value += compute_gear_armor_penalty(ch);
       return value;
     case ABILITY_LORE: /* NOT SRD! */
@@ -816,6 +817,7 @@ int compute_ability(struct char_data *ch, int abilityNum) {
       value += GET_INT_BONUS(ch);
       return value;
     case ABILITY_RIDE:
+      value += compute_gear_armor_penalty(ch);
       value += GET_DEX_BONUS(ch);
       if (HAS_FEAT(ch, FEAT_ANIMAL_AFFINITY)) {
         /* Unnamed bonus */

@@ -953,7 +953,7 @@ int compute_gear_shield_type(struct char_data *ch) {
 /* enhancement bonus + material bonus */
 int compute_gear_enhancement_bonus(struct char_data *ch) {
   struct obj_data *obj = NULL;
-  int enhancement_bonus = 0, material_bonus = 0, i, count = 0;
+  int enhancement_bonus = 0, material_bonus = 0, i, count = 0, mat_count = 0;
 
   for (i = 0; i < NUM_WEARS; i++) {
     /* exit slots */
@@ -966,6 +966,7 @@ int compute_gear_enhancement_bonus(struct char_data *ch) {
         (i == WEAR_BODY || i == WEAR_HEAD || i == WEAR_LEGS || i == WEAR_ARMS ||
          i == WEAR_SHIELD) ) {
       count++;
+      mat_count++;
       /* ok we have an armor piece... */
       enhancement_bonus += GET_OBJ_VAL(obj, 4);
       switch (GET_OBJ_MATERIAL(obj)) {
@@ -984,7 +985,7 @@ int compute_gear_enhancement_bonus(struct char_data *ch) {
 
   if (count) {/* divide by zero! :p */
     enhancement_bonus = enhancement_bonus / count;
-    enhancement_bonus += MAX(0, material_bonus / count);
+    enhancement_bonus += MAX(0, material_bonus / mat_count);
   }
 
   return enhancement_bonus;

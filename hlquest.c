@@ -66,6 +66,8 @@ void show_quest_to_player(struct char_data *ch, struct quest_entry *quest) {
 
   if (!quest)
     return;
+  if (!ch)
+    return;
 
   if (quest->approved)
     send_to_char(ch, "\tc*** \tCQuest is Approved\tc ***\tn\r\n");
@@ -167,11 +169,19 @@ void show_quest_to_player(struct char_data *ch, struct quest_entry *quest) {
           send_to_char(ch, "\tcREMOVE_MOB\tn\r\n");
           break;
         case QUEST_COMMAND_TEACH_SPELL:
+          if (qcom->value <= SPELL_RESERVED_DBC || qcom->value >= NUM_SPELLS) {
+            send_to_char(ch, "\tcTEACH-SPELL\tn <Invalid Spellnum>\r\n");
+            break;
+          }
           sprintf(buf, "\tcTEACH_SPELL\tn %s\r\n",
                   spell_info[qcom->value].name);
           send_to_char(ch, buf);
           break;
         case QUEST_COMMAND_CAST_SPELL:
+          if (qcom->value <= SPELL_RESERVED_DBC || qcom->value >= NUM_SPELLS) {
+            send_to_char(ch, "\tcCAST-SPELL\tn <Invalid Spellnum>\r\n");
+            break;
+          }
           sprintf(buf, "\tcCAST_SPELL\tn %s\r\n",
                   spell_info[qcom->value].name);
           send_to_char(ch, buf);
