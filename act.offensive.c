@@ -845,6 +845,8 @@ void perform_headbutt(struct char_data *ch, struct char_data *vict) {
 
 /* engine for layonhands skill */
 void perform_layonhands(struct char_data *ch, struct char_data *vict) {
+  int heal_amount = 0;
+  
   if (char_has_mud_event(ch, eLAYONHANDS)) {
     send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
     return;
@@ -856,17 +858,27 @@ void perform_layonhands(struct char_data *ch, struct char_data *vict) {
     return;
   }
 
-  send_to_char(ch, "Your hands flash \tWbright white\tn as you reach out...\r\n");
-  act("You are \tWhealed\tn by $N!", FALSE, vict, 0, ch, TO_CHAR);
-  act("$n \tWheals\tn $N!", FALSE, ch, 0, vict, TO_NOTVICT);
-
-  attach_mud_event(new_mud_event(eLAYONHANDS, ch, NULL), 2 * SECS_PER_MUD_DAY);
-  GET_HIT(vict) += MIN(GET_MAX_HIT(vict) - GET_HIT(vict),
+  heal_amount = MIN(GET_MAX_HIT(vict) - GET_HIT(vict),
           20 + GET_LEVEL(ch) +
           (GET_CHA_BONUS(ch) * CLASS_LEVEL(ch, CLASS_PALADIN)));
+
+  send_to_char(ch, "Your hands flash \tWbright white\tn as you reach out...\r\n");
+  if (ch == vict) {
+    send_to_char(ch, "You heal yourself! [%d]\r\n", heal_amount);
+    act("$n \tWheals\tn $sself!", FALSE, ch, 0, vict, TO_NOTVICT);
+  } else {
+    act("You are \tWhealed\tn by $N!", FALSE, vict, 0, ch, TO_CHAR);
+    act("$n \tWheals\tn $N!", FALSE, ch, 0, vict, TO_NOTVICT);
+  }
+
+  attach_mud_event(new_mud_event(eLAYONHANDS, ch, NULL), 2 * SECS_PER_MUD_DAY);
+  GET_HIT(vict) += heal_amount;
   update_pos(vict);
 
-  USE_STANDARD_ACTION(ch);
+  if (ch != vict) {
+    USE_STANDARD_ACTION(ch);
+  }
+  /* free action to use it on yourself */
 }
 
 /* engine for sap skill */
@@ -1572,7 +1584,7 @@ ACMD(do_rage) {
           CLASS_LEVEL(ch, CLASS_BERSERKER) * bonus / 2);
   }
   */
-  
+
 }
 #undef RAGE_AFFECTS
 
