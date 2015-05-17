@@ -859,7 +859,7 @@ void perform_layonhands(struct char_data *ch, struct char_data *vict) {
   send_to_char(ch, "Your hands flash \tWbright white\tn as you reach out...\r\n");
   if (ch == vict) {
     send_to_char(ch, "You heal yourself! [%d]\r\n", heal_amount);
-    act("$n \tWheals\tn $sself!", FALSE, ch, 0, vict, TO_NOTVICT);
+    act("$n \tWheals\tn $mself!", FALSE, ch, 0, vict, TO_NOTVICT);
   } else {
     send_to_char(ch, "You heal %s! [%d]\r\n", GET_NAME(vict), heal_amount);
     act("You are \tWhealed\tn by $N!", FALSE, vict, 0, ch, TO_CHAR);
