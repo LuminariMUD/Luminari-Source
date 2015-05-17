@@ -853,14 +853,15 @@ void perform_layonhands(struct char_data *ch, struct char_data *vict) {
     return;
   }
 
-  heal_amount = MIN(GET_MAX_HIT(vict) - GET_HIT(vict),
-          20 + GET_CHA_BONUS(ch) + dice(CLASS_LEVEL(ch, CLASS_PALADIN) / 2, 6));
+  heal_amount = MIN( GET_MAX_HIT(vict) - GET_HIT(vict),
+          20 + GET_CHA_BONUS(ch) + dice(CLASS_LEVEL(ch, CLASS_PALADIN) , 6) );
 
   send_to_char(ch, "Your hands flash \tWbright white\tn as you reach out...\r\n");
   if (ch == vict) {
     send_to_char(ch, "You heal yourself! [%d]\r\n", heal_amount);
     act("$n \tWheals\tn $sself!", FALSE, ch, 0, vict, TO_NOTVICT);
   } else {
+    send_to_char(ch, "You heal %s! [%d]\r\n", GET_NAME(vict), heal_amount);
     act("You are \tWhealed\tn by $N!", FALSE, vict, 0, ch, TO_CHAR);
     act("$n \tWheals\tn $N!", FALSE, ch, 0, vict, TO_NOTVICT);
   }
