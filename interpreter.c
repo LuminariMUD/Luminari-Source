@@ -134,6 +134,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "animatedead", "animatedead", POS_STANDING, do_animatedead, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
   { "autoreload", "autoreload", POS_DEAD, do_gen_tog, 0, SCMD_AUTORELOAD, TRUE, ACTION_NONE, {0, 0}},
   { "accexp", "accexp", POS_DEAD, do_accexp, 0, 0, TRUE, ACTION_NONE, {0, 0}},
+  { "aciddart", "aciddart", POS_FIGHTING, do_aciddart, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
 
   { "backstab", "ba", POS_STANDING, do_backstab, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}},
   { "ban", "ban", POS_DEAD, do_ban, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}},
@@ -235,6 +236,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "fire", "fire", POS_FIGHTING, do_fire, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
   { "flurryofblows", "flurryofblows", POS_FIGHTING, do_mode, 1, MODE_FLURRY_OF_BLOWS, FALSE, ACTION_NONE, {0, 0}},
   { "feint", "feint", POS_FIGHTING, do_feint, 1, 0, FALSE, ACTION_NONE, {0, 0}},
+  { "firebolt", "firebolt", POS_FIGHTING, do_firebolt, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
 
   { "get", "g", POS_RECLINING, do_get, 0, 0, FALSE, ACTION_NONE, {0, 0}},
   { "gecho", "gecho", POS_DEAD, do_gecho, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}},
@@ -282,6 +284,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "invis", "invi", POS_DEAD, do_invis, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}},
   { "innates", "innates", POS_DEAD, do_innates, 0, 0, TRUE, ACTION_NONE, {0, 0}},
   { "intimidate", "intimidate", POS_FIGHTING, do_intimidate, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
+  { "icicle", "icicle", POS_FIGHTING, do_icicle, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
 
   { "junk", "j", POS_RECLINING, do_drop, 0, SCMD_JUNK, FALSE, ACTION_NONE, {0, 0}},
 
@@ -302,6 +305,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "land", "land", POS_FIGHTING, do_land, 1, 0, FALSE, ACTION_MOVE, {0, 6}},
   { "loadmagic", "loadmagic", POS_DEAD, do_loadmagic, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}},
   { "loadmagicspecific", "loadmagicspecific", POS_DEAD, do_loadmagicspecific, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}},
+  { "lightningarc", "lightningarc", POS_FIGHTING, do_lightningarc, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
 
   { "memorize", "memorize", POS_RESTING, do_gen_memorize, 0, SCMD_MEMORIZE, FALSE, ACTION_NONE, {0, 0}},
   { "mail", "mail", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}},
