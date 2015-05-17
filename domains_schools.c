@@ -79,8 +79,8 @@ void add_domain_feats(struct char_data *ch) {
   for (i = 0; i < NUM_DOMAIN_POWERS; i++) {
     if (has_domain_power(ch, i)) {
       featnum = domain_power_to_feat(i);
-      if (featnum != FEAT_UNDEFINED && !HAS_FEAT(ch, featnum)) {
-        SET_FEAT(ch, i, 1);
+      if (featnum != FEAT_UNDEFINED && !HAS_REAL_FEAT(ch, featnum)) {
+        SET_FEAT(ch, featnum, 1);
       }
     }
   }
