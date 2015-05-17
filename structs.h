@@ -1190,7 +1190,6 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define NUM_RANGED_MISSILES   2
 
 /* Feats defined below up to MAX_FEATS */
-
 #define FEAT_UNDEFINED        0
 #define FEAT_ALERTNESS        1
 #define FEAT_ARMOR_PROFICIENCY_HEAVY    3
@@ -1589,10 +1588,18 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_ARMOR_MASTERY_2                401
 #define FEAT_STALWART_WARRIOR               402
 #define FEAT_EPIC_WEAPON_SPECIALIZATION     403
+#define FEAT_LIGHTNING_ARC                  404
+#define FEAT_ACID_DART                      405
+#define FEAT_FIRE_BOLT                      406
+#define FEAT_ICICLE                         407
+#define FEAT_DOMAIN_ELECTRIC_RESIST         408
+#define FEAT_DOMAIN_ACID_RESIST             409
+#define FEAT_DOMAIN_FIRE_RESIST             410
+#define FEAT_DOMAIN_COLD_RESIST             411
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT                      404
+#define FEAT_LAST_FEAT                      412
 /** feat_last_feat + 1 ***/
-#define NUM_FEATS                           405
+#define NUM_FEATS                           413
 /*****/
 #define MAX_FEATS                           750
 /*****/

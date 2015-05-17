@@ -29,7 +29,7 @@ struct mud_event_list mud_event_index[] = {
   { "Protocol", get_protocols, EVENT_DESC}, /* ePROTOCOLS */
   { "Whirlwind", event_whirlwind, EVENT_CHAR}, /* eWHIRLWIND */
   { "Casting", event_casting, EVENT_CHAR}, /* eCASTING */
-  { "Lay on hands", event_countdown, EVENT_CHAR}, // eLAYONHANDS
+  { "Lay on hands", event_daily_use_cooldown, EVENT_CHAR}, // eLAYONHANDS
   { "Treat injury", event_countdown, EVENT_CHAR}, // eTREATINJURY
   { "Taunt Cool Down", event_countdown, EVENT_CHAR}, // eTAUNT
   { "Taunted", event_countdown, EVENT_CHAR}, // eTAUNTED
@@ -45,7 +45,7 @@ struct mud_event_list mud_event_index[] = {
   { "Crafting", event_crafting, EVENT_CHAR}, //eCRAFTING
   { "Crystal fist", event_daily_use_cooldown, EVENT_CHAR}, //eCRYSTALFIST
   { "Crystal body", event_daily_use_cooldown, EVENT_CHAR}, //eCRYRSTALBODY
-  { "Rage", event_countdown, EVENT_CHAR}, //eRAGE
+  { "Rage", event_daily_use_cooldown, EVENT_CHAR}, //eRAGE
   { "Acid arrow", event_acid_arrow, EVENT_CHAR}, //eACIDARROW
   { "Defensive Roll", event_countdown, EVENT_CHAR}, // eD_ROLL
   { "Purify", event_countdown, EVENT_CHAR}, // ePURIFY
@@ -53,7 +53,7 @@ struct mud_event_list mud_event_index[] = {
   { "Call Familiar", event_countdown, EVENT_CHAR}, // eC_FAMILIAR
   { "Call Mount", event_countdown, EVENT_CHAR}, // eC_MOUNT
   { "Implode", event_implode, EVENT_CHAR}, //eIMPLODE
-  { "Smite Evil", event_countdown, EVENT_CHAR}, // eSMITE
+  { "Smite Evil", event_daily_use_cooldown, EVENT_CHAR}, // eSMITE
   { "Perform", event_countdown, EVENT_CHAR}, // ePERFORM
   { "Mob Purge", event_countdown, EVENT_CHAR}, // ePURGEMOB
   { "SoV Ice Storm", event_ice_storm, EVENT_CHAR}, // eICE_STORM
@@ -86,6 +86,10 @@ struct mud_event_list mud_event_index[] = {
   { "Vanish Cool Down", event_daily_use_cooldown, EVENT_CHAR}, //eVANISHED
   { "Intimidated", event_countdown, EVENT_CHAR}, //eINTIMIDATED
   { "Intimidated Cool Down", event_countdown, EVENT_CHAR}, //eINTIMIDATE_COOLDOWN
+  { "Lightning Arc Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eLIGHTNING_ARC
+  { "Acid Dart Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eACID_DART
+  { "Fire Bolt Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eFIRE_BOLT
+  { "Icicle Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eICICLE
 };
 
 /* init_events() is the ideal function for starting global events. This
@@ -323,6 +327,46 @@ EVENTFUNC(event_daily_use_cooldown) {
       featnum = FEAT_CRYSTAL_FIST;
       send_to_char(ch, "You may enhance your unarmed attacks again.\r\n");
       break;
+    case eLAYONHANDS:
+      featnum = FEAT_LAYHANDS;
+      send_to_char(ch, "One of your lay on hands uses has recovered.\r\n");
+      break;
+    case ePURIFY:
+      featnum = FEAT_REMOVE_DISEASE;
+      send_to_char(ch, "One of your remove disease (purify) uses has recovered.\r\n");
+      break;
+    case eRAGE:
+      featnum = FEAT_RAGE;
+      send_to_char(ch, "One of your rage uses has recovered.\r\n");
+      break;
+    case eVANISHED:
+      featnum = FEAT_VANISH;
+      send_to_char(ch, "One of your vanish uses has recovered.\r\n");
+      break;
+    case eSMITE:
+      featnum = FEAT_SMITE_EVIL;
+      send_to_char(ch, "One of your smite evil uses has recovered.\r\n");
+      break;
+    case eTURN_UNDEAD:
+      featnum = FEAT_TURN_UNDEAD;
+      send_to_char(ch, "One of your turn undead uses has recovered.\r\n");
+      break;
+    case eLIGHTNING_ARC:
+      featnum = FEAT_LIGHTNING_ARC;
+      send_to_char(ch, "One of your lightning arc uses has recovered.\r\n");
+      break;
+    case eACID_DART:
+      featnum = FEAT_ACID_DART;
+      send_to_char(ch, "One of your acid dart uses has recovered.\r\n");
+      break;
+    case eFIRE_BOLT:
+      featnum = FEAT_FIRE_BOLT;
+      send_to_char(ch, "One of your fire bolt uses has recovered.\r\n");
+      break;
+    case eICICLE:
+      featnum = FEAT_ICICLE;
+      send_to_char(ch, "One of your icicle uses has recovered.\r\n");
+      break;
     default:
       break;
   }
@@ -337,9 +381,7 @@ EVENTFUNC(event_daily_use_cooldown) {
     cooldown = (SECS_PER_MUD_DAY/get_daily_uses(ch, featnum)) RL_SEC;
   }
 
-
   return cooldown;
-
 }
 
 /* As of 3.63, there are only global, descriptor, and character events. This

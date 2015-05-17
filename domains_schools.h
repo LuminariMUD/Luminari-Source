@@ -76,6 +76,9 @@ void assign_domains(void);
 void init_domain_spell_level(void);
 void assign_domain_spells(struct char_data *ch);
 int has_domain_power(struct char_data *ch, int domain_power);
+void clear_domain_feats(struct char_data *ch);
+void add_domain_feats(struct char_data *ch);
+
 
 /******************************************/
 
