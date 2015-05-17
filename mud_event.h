@@ -84,6 +84,10 @@ typedef enum {
   eVANISHED, /* vanish daily cooldown */
   eINTIMIDATED, /* intimidated victim! */
   eINTIMIDATE_COOLDOWN, /* cooldown to reuse intimidate */
+  eLIGHTNING_ARC, /* cooldown to reuse lightning arc */
+  eACID_DART, /* cooldown to reuse acid dart */
+  eFIRE_BOLT, /* cooldown to reuse fire bolt */
+  eICICLE, /* cooldown to reuse icicle */
 } event_id;
 
 /* probaly a smart place to mention to not forget to update:

@@ -13,12 +13,78 @@
 #include "interpreter.h"
 #include "db.h"
 #include "spells.h"
+#include "feats.h"
 #include "domains_schools.h"
 #include "assign_wpn_armor.h"
 #include "screen.h"
 
 struct domain_info domain_list[NUM_DOMAINS];
 struct school_info school_list[NUM_SCHOOLS];
+
+/* translates whether a given domain power has a corresponding feat */
+int domain_power_to_feat(int domain_power) {
+  int featnum = FEAT_UNDEFINED;
+
+  switch (domain_power) {
+    case DOMAIN_POWER_LIGHTNING_ARC:
+      featnum = FEAT_LIGHTNING_ARC;
+      break;
+    case DOMAIN_POWER_ELECTRICITY_RESISTANCE:
+      featnum = FEAT_DOMAIN_ELECTRIC_RESIST;
+      break;
+    case DOMAIN_POWER_ACID_DART:
+      featnum = FEAT_ACID_DART;
+      break;
+    case DOMAIN_POWER_ACID_RESISTANCE:
+      featnum = FEAT_DOMAIN_ACID_RESIST;
+      break;
+    case DOMAIN_POWER_FIRE_BOLT:
+      featnum = FEAT_FIRE_BOLT;
+      break;
+    case DOMAIN_POWER_FIRE_RESISTANCE:
+      featnum = FEAT_DOMAIN_FIRE_RESIST;
+      break;
+    case DOMAIN_POWER_ICICLE:
+      featnum = FEAT_ICICLE;
+      break;
+    case DOMAIN_POWER_COLD_RESISTANCE:
+      featnum = FEAT_DOMAIN_COLD_RESIST;
+      break;
+    default:
+      featnum = FEAT_UNDEFINED;
+      break;
+  }
+
+  return featnum;
+}
+
+/* will clear all the domain feats off a character, used for clerics that
+ switch their selected domains */
+void clear_domain_feats(struct char_data *ch) {
+  int i = 1;
+
+  for (i = 1; i < NUM_FEATS; i++) {
+    if (feat_list[i].feat_type == FEAT_TYPE_DOMAIN_ABILITY)
+      SET_FEAT(ch, i, 0);
+  }
+}
+
+/* this will check the two character's selected domains for domain-feats
+ and add them to the character's feat list, this assumes you've already
+ ran clear_domain_feats() - used for clerics selecting or switching
+ their domains */
+void add_domain_feats(struct char_data *ch) {
+  int i = 0, featnum = FEAT_UNDEFINED;
+
+  for (i = 0; i < NUM_DOMAIN_POWERS; i++) {
+    if (has_domain_power(ch, i)) {
+      featnum = domain_power_to_feat(i);
+      if (featnum != FEAT_UNDEFINED && !HAS_FEAT(ch, featnum)) {
+        SET_FEAT(ch, i, 1);
+      }
+    }
+  }
+}
 
 int has_domain_power(struct char_data *ch, int domain_power) {
   int i = 0;

@@ -40,7 +40,6 @@ struct feat_prerequisite {
   struct feat_prerequisite *next;
 };
 
-
 void load_weapons(void);
 void load_armor(void);
 void assign_feats(void);
@@ -54,18 +53,17 @@ int has_feat(struct char_data *ch, int featnum);
 bool display_feat_info(struct char_data *ch, char *featname);
 
 /*int find_feat_num(char *name);*/
-
 int feat_to_cfeat(int feat);
 int feat_to_sfeat(int feat);
 int feat_to_skfeat(int feat);
 
-ACMD(do_feats);
-
 void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data *viewer);
-
 extern struct feat_info feat_list[];
 extern int feat_sort_info[MAX_FEATS];
 
+/*****/
+
+ACMD(do_feats);
 
 /* FEAT defines moved to structs.h */
 
@@ -83,8 +81,9 @@ extern int feat_sort_info[MAX_FEATS];
 
 #define FEAT_TYPE_CLASS_ABILITY  8
 #define FEAT_TYPE_INNATE_ABILITY 9
+#define FEAT_TYPE_DOMAIN_ABILITY 10
 
-#define NUM_FEAT_TYPES 10
+#define NUM_FEAT_TYPES           11
 
 /*  LIST_FEAT defines, for list_feats function. */
 #define LIST_FEATS_KNOWN         0

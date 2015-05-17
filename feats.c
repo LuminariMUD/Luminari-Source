@@ -776,6 +776,49 @@ void assign_feats(void) {
     "Reduces crafting time",
     "Reduces crafting time");
 
+  /* Cleric Domain Feats */
+  feato(FEAT_LIGHTNING_ARC, "lightning arc", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
+    "you can unleash an arc of electricity",
+    "As a standard action, you can unleash an arc of electricity. This arc of "
+          "electricity deals 1d6+10 points of electricity damage + 1 point for "
+          "every two cleric levels you possess. You can use this ability a number "
+          "of times per day equal to 3 + your Wisdom modifier.");
+  feato(FEAT_ACID_DART, "acid dart", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
+    "you can unleash a dart of acid",
+    "As a standard action, you can unleash a dart of acid. This dart of "
+          "acid deals 1d6+10 points of acid damage + 1 point for "
+          "every two cleric levels you possess. You can use this ability a number "
+          "of times per day equal to 3 + your Wisdom modifier.");
+  feato(FEAT_FIRE_BOLT, "fire bolt", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
+    "you can unleash a bolt of fire",
+    "As a standard action, you can unleash a bolt of fire. This bolt of "
+          "fire deals 1d6+10 points of acid damage + 1 point for "
+          "every two cleric levels you possess. You can use this ability a number "
+          "of times per day equal to 3 + your Wisdom modifier.");
+  feato(FEAT_ICICLE, "icicle", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
+    "you can unleash an icicle",
+    "As a standard action, you can unleash an icicle. This icicle "
+          "deals 1d6+10 points of cold damage + 1 point for "
+          "every two cleric levels you possess. You can use this ability a number "
+          "of times per day equal to 3 + your Wisdom modifier.");
+  feato(FEAT_DOMAIN_ELECTRIC_RESIST, "domain electric resistance", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
+    "gain electricity resistance",
+    "At 6th cleric levels, you gain resist electricity 10. This resistance increases "
+          "to 20 at 12th level and to 50 at 20th level.");
+  feato(FEAT_DOMAIN_ACID_RESIST, "domain acid resistance", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
+    "gain acid resistance",
+    "At 6th cleric levels, you gain resist acid 10. This resistance increases "
+          "to 20 at 12th level and to 50 at 20th level.");
+  feato(FEAT_DOMAIN_FIRE_RESIST, "domain fire resistance", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
+    "gain fire resistance",
+    "At 6th cleric levels, you gain resist fire 10. This resistance increases "
+          "to 20 at 12th level and to 50 at 20th level.");
+  feato(FEAT_DOMAIN_COLD_RESIST, "domain cold resistance", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
+    "gain cold resistance",
+    "At 6th cleric levels, you gain resist cold 10. This resistance increases "
+          "to 20 at 12th level and to 50 at 20th level.");
+
+
   /*****/
   /* Class ability feats */
 
@@ -1561,7 +1604,7 @@ void assign_feats(void) {
   combatfeat(FEAT_POWER_CRITICAL);
   combatfeat(FEAT_WEAPON_FLURRY);
   combatfeat(FEAT_WEAPON_SUPREMACY);
-  combatfeat(FEAT_EPIC_WEAPON_SPECIALIZATION);
+  /*epic combat feat*/combatfeat(FEAT_EPIC_WEAPON_SPECIALIZATION);
 
   /* Epic Feats */
   epicfeat(FEAT_EPIC_WEAPON_SPECIALIZATION);
@@ -1594,18 +1637,24 @@ void assign_feats(void) {
 
   epicfeat(FEAT_LAST_FEAT);
 
-  /* Feats with "Daily Use" Mechanic */
+  /* Feats with "Daily Use" Mechanic, make sure to add to
+   * EVENTFUNC(event_daily_use_cooldown) ind mud_event.c */
+  dailyfeat(FEAT_QUIVERING_PALM, eQUIVERINGPALM);
   dailyfeat(FEAT_STUNNING_FIST, eSTUNNINGFIST);
   dailyfeat(FEAT_ANIMATE_DEAD, eANIMATEDEAD);
+  dailyfeat(FEAT_WILD_SHAPE, eWILD_SHAPE);
+  dailyfeat(FEAT_CRYSTAL_BODY, eCRYSTALBODY);
+  dailyfeat(FEAT_CRYSTAL_FIST, eCRYSTALFIST);
   dailyfeat(FEAT_LAYHANDS, eLAYONHANDS);
+  dailyfeat(FEAT_REMOVE_DISEASE, ePURIFY);
   dailyfeat(FEAT_RAGE, eRAGE);
   dailyfeat(FEAT_VANISH, eVANISHED);
   dailyfeat(FEAT_SMITE_EVIL, eSMITE);
   dailyfeat(FEAT_TURN_UNDEAD, eTURN_UNDEAD);
-  dailyfeat(FEAT_WILD_SHAPE, eWILD_SHAPE);
-  dailyfeat(FEAT_QUIVERING_PALM, eQUIVERINGPALM);
-  dailyfeat(FEAT_CRYSTAL_BODY, eCRYSTALBODY);
-  dailyfeat(FEAT_CRYSTAL_FIST, eCRYSTALFIST);
+  dailyfeat(FEAT_LIGHTNING_ARC, eLIGHTNING_ARC);
+  dailyfeat(FEAT_ACID_DART, eACID_DART);
+  dailyfeat(FEAT_FIRE_BOLT, eFIRE_BOLT);
+  dailyfeat(FEAT_ICICLE, eICICLE);
 
   /** END **/
 }

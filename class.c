@@ -1222,14 +1222,13 @@ int BAB(struct char_data *ch) {
   }
 
   if (!IS_NPC(ch)) /* cap pc bab at 30 */
-    return (MIN(bab, 31));
+    return (MIN(bab, 30));
 
   return bab;
 }
 
 
 // old random roll system abandoned for base stats + point distribution
-
 void roll_real_abils(struct char_data *ch) {
   GET_REAL_INT(ch) = 8;
   GET_REAL_WIS(ch) = 8;
@@ -1239,7 +1238,6 @@ void roll_real_abils(struct char_data *ch) {
   GET_REAL_CON(ch) = 8;
   ch->aff_abils = ch->real_abils;
 }
-
 
 //   give newbie's some eq to start with
 #define NOOB_TELEPORTER    82
@@ -1251,9 +1249,7 @@ void roll_real_abils(struct char_data *ch) {
 #define NOOB_BOW           814
 #define NOOB_QUIVER        816
 #define NOOB_ARROW         815
-
 #define NUM_NOOB_ARROWS    40
-
 void newbieEquipment(struct char_data *ch) {
   int objNums[] = {
     NOOB_TELEPORTER,
@@ -1423,66 +1419,28 @@ void newbieEquipment(struct char_data *ch) {
 /* init spells for a class as they level up
  * i.e free skills  ;  make sure to set in spec_procs too
  * Note:  this is not currently used */
-void berserker_skills(struct char_data *ch, int level) {
-  switch (level) {
-    default:
-      break;
-  }
-  return;
-}
-void bard_skills(struct char_data *ch, int level) {
-}
-void ranger_skills(struct char_data *ch, int level) {
-}
+void berserker_skills(struct char_data *ch, int level) {}
+void bard_skills(struct char_data *ch, int level) {}
+void ranger_skills(struct char_data *ch, int level) {}
 #define MOB_PALADIN_MOUNT 70
-void paladin_skills(struct char_data *ch, int level) {
-}
+void paladin_skills(struct char_data *ch, int level) {}
 #undef MOB_PALADIN_MOUNT
-void sorc_skills(struct char_data *ch, int level) {
-}
+void sorc_skills(struct char_data *ch, int level) {}
 void wizard_skills(struct char_data *ch, int level) {
   IS_WIZ_LEARNED(ch) = 0;
   send_to_char(ch,
           "\tnType \tDstudy wizard\tn to adjust your wizard skills.\r\n");
-
-  switch (level) {
-    default:
-      break;
-  }
-  return;
 }
-void cleric_skills(struct char_data *ch, int level) {
-}
-void warrior_skills(struct char_data *ch, int level) {
-  switch (level) {
-    default:
-      break;
-  }
-  return;
-}
+void cleric_skills(struct char_data *ch, int level) {}
+void warrior_skills(struct char_data *ch, int level) {}
 void druid_skills(struct char_data *ch, int level) {
   IS_DRUID_LEARNED(ch) = 0;
-  switch (level) {
-    default:
-      break;
-  }
-  return;
 }
-void rogue_skills(struct char_data *ch, int level) {
-  switch (level) {
-    default:
-      break;
-  }
-  return;
-}
-void monk_skills(struct char_data *ch, int level) {
-  return;
-}
-void weaponmaster_skills(struct char_data *ch, int level) {
-  return;
-}
+void rogue_skills(struct char_data *ch, int level) {}
+void monk_skills(struct char_data *ch, int level) {}
+void weaponmaster_skills(struct char_data *ch, int level) {}
 
-/* this is used to assign all the spells */
+/* this is used to assign all the spells and also starting feats */
 void init_class(struct char_data *ch, int class, int level) {
   int i, j;
 

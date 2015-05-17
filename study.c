@@ -374,6 +374,10 @@ void finalize_study(struct descriptor_data *d) {
   /* set spells learned for domain */
   assign_domain_spells(ch);
 
+  /* in case adding or changing clear domains, clean up and re-assign */
+  clear_domain_feats(ch);
+  add_domain_feats(ch);
+
   /* Set to learned. */
 }
 

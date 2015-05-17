@@ -3016,6 +3016,11 @@ int get_daily_uses(struct char_data *ch, int featnum){
     case FEAT_CRYSTAL_BODY:
       daily_uses = 3;
       break;
+    case FEAT_FIRE_BOLT: /* fallthrough */
+    case FEAT_ICICLE: /* fallthrough */
+    case FEAT_ACID_DART: /* fallthrough */
+    case FEAT_LIGHTNING_ARC:
+      daily_uses = 3 + GET_WIS_BONUS(ch);
     case FEAT_SMITE_EVIL:
     case FEAT_RAGE:
     case FEAT_QUIVERING_PALM:

@@ -1255,6 +1255,14 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k) {
     send_to_char(ch, "Wild Shape Cooldown  - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSHIELD_RECOVERY)))
     send_to_char(ch, "Shield Recovery Cooldown  - Duration %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eLIGHTNING_ARC)))
+    send_to_char(ch, "Lightning Arc Cooldown  - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eACID_DART)))
+    send_to_char(ch, "Acid Dart Cooldown  - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eFIRE_BOLT)))
+    send_to_char(ch, "Fire Bolt Cooldown  - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eICICLE)))
+    send_to_char(ch, "Icicle Cooldown  - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
 
   send_to_char(ch, "\tC");
   draw_line(ch, 80, '-', '-');
