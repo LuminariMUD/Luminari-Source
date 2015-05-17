@@ -57,6 +57,7 @@ struct domain_info {
 };
 struct domain_info domain_list[NUM_DOMAINS];
 
+/* haven't started this yet */
 struct school_info {
   char *name;
   int ethos;
@@ -79,6 +80,11 @@ int has_domain_power(struct char_data *ch, int domain_power);
 /******************************************/
 
 ACMD(do_domain);
+
+ACMD(do_lightningarc);
+ACMD(do_aciddart);
+ACMD(do_firebolt);
+ACMD(do_icicle);
 
 /******************************************/
 

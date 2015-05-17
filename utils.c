@@ -3001,7 +3001,7 @@ int get_daily_uses(struct char_data *ch, int featnum){
       daily_uses += CLASS_LEVEL(ch, CLASS_MONK) + (GET_LEVEL(ch) - CLASS_LEVEL(ch, CLASS_MONK))/4;
       break;
     case FEAT_LAYHANDS:
-      daily_uses += CLASS_LEVEL(ch, CLASS_PALADIN) * GET_CHA_BONUS(ch);
+      daily_uses += CLASS_LEVEL(ch, CLASS_PALADIN) / 2 + GET_CHA_BONUS(ch);
       break;
     case FEAT_TURN_UNDEAD:
       daily_uses += 3 + GET_CHA_BONUS(ch) + HAS_FEAT(ch, FEAT_EXTRA_TURNING) * 2;

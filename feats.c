@@ -770,8 +770,8 @@ void assign_feats(void) {
     "All weapons and armor made have higher bonuses",
     "All weapons and armor made have higher bonuses");
   feato(FEAT_ELVEN_CRAFTING, "elven crafting", TRUE, FALSE, FALSE, FEAT_TYPE_CRAFT,
-    "All equipment made is 50% weight and uses 50% materials",
-    "All equipment made is 50% weight and uses 50% materials");
+    "All equipment made is 50 percent weight and uses 50 percent materials",
+    "All equipment made is 50 percent weight and uses 50 percent materials");
   feato(FEAT_FAST_CRAFTER, "fast crafter", TRUE, FALSE, FALSE, FEAT_TYPE_CRAFT,
     "Reduces crafting time",
     "Reduces crafting time");
@@ -890,10 +890,10 @@ void assign_feats(void) {
     "escape combat!",
     "Once per day, you can use vanish as a free action to completely escape combat "
       "effectively disengaging and entering a sneak/hidden mode.  This also heals "
-      "10 hitpoints and gives 25% concealment for 2 rounds.");
+      "10 hitpoints and gives 25 percent concealment for 2 rounds.");
   /*epic talent*/feato(FEAT_IMPROVED_VANISH, "improved vanish", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "improves vanish feat",
-    "Vanish now heals 20 hitpoints and gives 100% concealment for 2 rounds.");
+    "Vanish now heals 20 hitpoints and gives 100 percent concealment for 2 rounds.");
   /*talent*/feato(FEAT_SLIPPERY_MIND, "slippery mind", TRUE, TRUE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "extra chance for will saves vs mind affecting spells",
     "extra chance for will saves vs mind affecting spells");
@@ -1021,7 +1021,7 @@ void assign_feats(void) {
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_TIMELESS_BODY, "timeless body", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
   "immune to negative aging effects (unfinished)",
-  "immune to negative aging effects (unfinished) - currently gives a flat 25% "
+  "immune to negative aging effects (unfinished) - currently gives a flat 25 percent "
     "reduction to all incoming negative damage");
 
   /* Monk */
@@ -1093,7 +1093,7 @@ void assign_feats(void) {
   /*epic*/feato(FEAT_OUTSIDER, "outsider", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "you become an outsider",
     "You gain the ability to shift at will to the ethereal plane and back "
-      "additionally you gain 15% concealment.");
+      "additionally you gain 15 percent concealment.");
 
   /* Bard */
   /* unfinished */ feato(FEAT_BARDIC_KNOWLEDGE, "bardic knowledge", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
@@ -1371,12 +1371,12 @@ void assign_feats(void) {
   /* rogue (make talent or advanced talent?) */
   feato(FEAT_BLEEDING_ATTACK, "bleeding attack", FALSE, TRUE, FALSE, FEAT_TYPE_CLASS_ABILITY, "causes bleed damage on living targets who are hit by sneak attack.", "causes bleed damage on living targets who are hit by sneak attack.");
   feato(FEAT_OPPORTUNIST, "opportunist", FALSE, TRUE, FALSE, FEAT_TYPE_CLASS_ABILITY, "once per round the rogue may make an attack of opportunity against a foe an ally just struck", "once per round the rogue may make an attack of opportunity against a foe an ally just struck");
-  feato(FEAT_IMPROVED_SNEAK_ATTACK, "improved sneak attack", FALSE, TRUE, TRUE, FEAT_TYPE_COMBAT, "each rank gives +5% chance per attack, per rank to be a sneak attack.", "each rank gives +5% chance per attack, per rank to be a sneak attack.");
+  feato(FEAT_IMPROVED_SNEAK_ATTACK, "improved sneak attack", FALSE, TRUE, TRUE, FEAT_TYPE_COMBAT, "each rank gives +5 percent chance per attack, per rank to be a sneak attack.", "each rank gives +5 percent chance per attack, per rank to be a sneak attack.");
   feato(FEAT_ROBILARS_GAMBIT, "robilars gambit", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "when active enemies gain +4 to hit and damage against you, but all melee attacks invoke an attack of opportunity from you.", "when active enemies gain +4 to hit and damage against you, but all melee attacks invoke an attack of opportunity from you.");
   feato(FEAT_POWERFUL_SNEAK, "powerful sneak", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "opt to take -2 to attacks and treat all sneak attack dice rolls of 1 as a 2", "opt to take -2 to attacks and treat all sneak attack dice rolls of 1 as a 2");
   /* epic */
   feato(FEAT_SNEAK_ATTACK_OF_OPPORTUNITY, "sneak attack of opportunity", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "makes all opportunity attacks sneak attacks", "makes all opportunity attacks sneak attacks");
-  feato(FEAT_SELF_CONCEALMENT, "self concealment", FALSE, TRUE, TRUE, FEAT_TYPE_COMBAT, "10% miss chance for attacks against you per rank", "10% miss chance for attacks against you per rank");
+  feato(FEAT_SELF_CONCEALMENT, "self concealment", FALSE, TRUE, TRUE, FEAT_TYPE_COMBAT, "10 percent miss chance for attacks against you per rank", "10 percent miss chance for attacks against you per rank");
 
   /* knight of the rose (dragonlance) */
   feato(FEAT_FINAL_STAND, "final stand", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
@@ -1421,7 +1421,7 @@ void assign_feats(void) {
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
 
   /* Pale/Death Master */
-  feato(FEAT_BONE_ARMOR, "bone armor", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows creation of bone armor and 10% arcane spell failure reduction in bone armor per rank.", "allows creation of bone armor and 10% arcane spell failure reduction in bone armor per rank.");
+  feato(FEAT_BONE_ARMOR, "bone armor", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows creation of bone armor and 10 percent arcane spell failure reduction in bone armor per rank.", "allows creation of bone armor and 10 percent arcane spell failure reduction in bone armor per rank.");
   feato(FEAT_ESSENCE_OF_UNDEATH, "essence of undeath", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "gives immunity to poison, disease, sneak attack and critical hits", "gives immunity to poison, disease, sneak attack and critical hits");
   feato(FEAT_SUMMON_GREATER_UNDEAD, "summon greater undead", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows innate use of summon greater undead spell 3x per day", "allows innate use of summon greater undead spell 3x per day");
   feato(FEAT_SUMMON_UNDEAD, "summon undead", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows innate use of summon undead spell 3x per day", "allows innate use of summon undead spell 3x per day");
@@ -1493,7 +1493,7 @@ void assign_feats(void) {
   feato(FEAT_WIDEN_SPELL, "widen spell", FALSE, FALSE, FALSE, FEAT_TYPE_METAMAGIC, "ask staff", "ask staff");
   feato(FEAT_EMPOWER_SPELL, "empower spell", FALSE, TRUE, FALSE, FEAT_TYPE_METAMAGIC, "all variable numerical effects of a spell are increased by one half ", "all variable numerical effects of a spell are increased by one half ");
   feato(FEAT_EMPOWERED_MAGIC, "empowered magic", FALSE, TRUE, FALSE, FEAT_TYPE_METAMAGIC, "+1 to all spell dcs", "+1 to all spell dcs");
-  feato(FEAT_EXTEND_SPELL, "extend spell", FALSE, TRUE, FALSE, FEAT_TYPE_METAMAGIC, "durations of spells are 50% longer when enabled ", "durations of spells are 50% longer when enabled ");
+  feato(FEAT_EXTEND_SPELL, "extend spell", FALSE, TRUE, FALSE, FEAT_TYPE_METAMAGIC, "durations of spells are 50 percent longer when enabled ", "durations of spells are 50 percent longer when enabled ");
   feato(FEAT_MAXIMIZE_SPELL, "maximize spell", FALSE, TRUE, FALSE, FEAT_TYPE_METAMAGIC, "all spells cast while maximised enabled do maximum effect.", "all spells cast while maximised enabled do maximum effect.");
   feato(FEAT_QUICKEN_SPELL, "quicken spell", FALSE, TRUE, FALSE, FEAT_TYPE_METAMAGIC, "allows you to cast spell as a move action instead of standard action", "allows you to cast spell as a move action instead of standard action");
   feato(FEAT_ESCHEW_MATERIALS, "eschew materials", FALSE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING, "ask staff", "ask staff");
