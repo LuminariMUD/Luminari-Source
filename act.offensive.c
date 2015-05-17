@@ -846,11 +846,6 @@ void perform_headbutt(struct char_data *ch, struct char_data *vict) {
 /* engine for layonhands skill */
 void perform_layonhands(struct char_data *ch, struct char_data *vict) {
   int heal_amount = 0;
-  
-  if (char_has_mud_event(ch, eLAYONHANDS)) {
-    send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
-    return;
-  }
 
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
           ch->next_in_room != vict && vict->next_in_room != ch) {
@@ -871,7 +866,9 @@ void perform_layonhands(struct char_data *ch, struct char_data *vict) {
     act("$n \tWheals\tn $N!", FALSE, ch, 0, vict, TO_NOTVICT);
   }
 
-  attach_mud_event(new_mud_event(eLAYONHANDS, ch, NULL), 2 * SECS_PER_MUD_DAY);
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_LAYHANDS);
+
   GET_HIT(vict) += heal_amount;
   update_pos(vict);
 
@@ -2299,6 +2296,7 @@ ACMD(do_trip) {
 ACMD(do_layonhands) {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
+  int uses_remaining = 0;
 
   if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_LAYHANDS)) {
     send_to_char(ch, "You have no idea how.\r\n");
@@ -2308,6 +2306,16 @@ ACMD(do_layonhands) {
   one_argument(argument, arg);
   if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
     send_to_char(ch, "Whom do you want to lay hands on?\r\n");
+    return;
+  }
+
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_LAYHANDS)) == 0) {
+    send_to_char(ch, "You must recover the divine energy required to lay on hands.\r\n");
+    return;
+  }
+
+  if (uses_remaining < 0) {
+    send_to_char(ch, "You are not experienced enough.\r\n");
     return;
   }
 
