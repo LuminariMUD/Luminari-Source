@@ -854,8 +854,7 @@ void perform_layonhands(struct char_data *ch, struct char_data *vict) {
   }
 
   heal_amount = MIN(GET_MAX_HIT(vict) - GET_HIT(vict),
-          20 + GET_LEVEL(ch) +
-          (GET_CHA_BONUS(ch) * CLASS_LEVEL(ch, CLASS_PALADIN)));
+          20 + GET_CHA_BONUS(ch) + dice(CLASS_LEVEL(ch, CLASS_PALADIN) / 2, 6));
 
   send_to_char(ch, "Your hands flash \tWbright white\tn as you reach out...\r\n");
   if (ch == vict) {
