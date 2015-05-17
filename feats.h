@@ -67,7 +67,7 @@ ACMD(do_feats);
 
 /* FEAT defines moved to structs.h */
 
-/* Feat types */
+/* Feat types, don't forget to update in constants.c feat_types[] */
 #define FEAT_TYPE_NONE           0
 #define FEAT_TYPE_GENERAL        1
 #define FEAT_TYPE_COMBAT         2
@@ -76,7 +76,6 @@ ACMD(do_feats);
 #define FEAT_TYPE_CRAFT          5
 #define FEAT_TYPE_WILD           6
 #define FEAT_TYPE_DIVINE         7
-
 #define NUM_LEARNABLE_FEAT_TYPES 8
 
 #define FEAT_TYPE_CLASS_ABILITY  8

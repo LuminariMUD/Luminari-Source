@@ -4535,7 +4535,10 @@ ACMD(do_copyover) {
     return;
   }
 
-  sprintf(buf, "\n\r *** Time stops for a moment as %s folds space and time!\n\r",
+  sprintf(buf, "\n\r *** Time stops for a moment as %s folds space and time!\n\r"
+          "(The game will pause for about 10 seconds while new code is being imported, "
+          "you will need to reform if you were groupped.  If you get disconnected, "
+          "you should be able to reconnect within 30 seconds.)\r\n",
           GET_NAME(ch));
 
   /* write boot_time as first line in file */

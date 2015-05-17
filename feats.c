@@ -895,6 +895,17 @@ void assign_feats(void) {
     "bonuses to attack and damage rolls",
     "Hitroll and Damage bonus of 1 + paladin-level/3 for levels above 5, the "
       "bonus caps at 6");
+  feato(FEAT_GLORIOUS_RIDER, "glorious rider", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "use charisma instead of dex for ride checks",
+    "Normally ride checks for performing skills while mounted, uses your dexterity "
+      "bonus to compute your chance.  With this feat you can use your charisma bonus instead.");
+  feato(FEAT_LEGENDARY_RIDER, "legendary rider", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "no armor penalty to ride check, can block extra attack",
+    "You can now block up to two attacks a round with a successful ride check "
+          "against the incoming attack.  In addition, you no longer suffer any penalty because of armor while mounted.");
+  feato(FEAT_EPIC_MOUNT, "epic mount", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "you get a more powerful mount",
+    "You get an epic level mount with some special abilities.");
 
   /* Rogue */
   /* trap sense below (shared with berserker) */
