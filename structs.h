@@ -1596,10 +1596,13 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_DOMAIN_ACID_RESIST             409
 #define FEAT_DOMAIN_FIRE_RESIST             410
 #define FEAT_DOMAIN_COLD_RESIST             411
+#define FEAT_GLORIOUS_RIDER                 412
+#define FEAT_LEGENDARY_RIDER                413
+#define FEAT_EPIC_MOUNT                     414
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT                      412
+#define FEAT_LAST_FEAT                      415
 /** feat_last_feat + 1 ***/
-#define NUM_FEATS                           413
+#define NUM_FEATS                           416
 /*****/
 #define MAX_FEATS                           750
 /*****/

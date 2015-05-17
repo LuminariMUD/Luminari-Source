@@ -86,6 +86,7 @@
       <in>dg_triggers.c</in>
       <in>dg_variables.c</in>
       <in>dg_wldcmd.c</in>
+      <in>domain_powers.c</in>
       <in>domains_schools.c</in>
       <in>domains_schools.h</in>
       <in>feats.c</in>

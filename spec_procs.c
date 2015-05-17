@@ -817,8 +817,12 @@ int compute_ability(struct char_data *ch, int abilityNum) {
       value += GET_INT_BONUS(ch);
       return value;
     case ABILITY_RIDE:
-      value += compute_gear_armor_penalty(ch);
-      value += GET_DEX_BONUS(ch);
+      if (!HAS_FEAT(ch, FEAT_LEGENDARY_RIDER))
+        value += compute_gear_armor_penalty(ch);
+      if (!HAS_FEAT(ch, FEAT_GLORIOUS_RIDER))
+        value += GET_DEX_BONUS(ch);
+      else
+        value += GET_CHA_BONUS(ch);
       if (HAS_FEAT(ch, FEAT_ANIMAL_AFFINITY)) {
         /* Unnamed bonus */
         value += 2;

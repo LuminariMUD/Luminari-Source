@@ -504,6 +504,7 @@ ACMD(do_perform) {
 
 
 #define MOB_PALADIN_MOUNT 70
+#define MOB_EPIC_PALADIN_MOUNT 79
 
 void perform_call(struct char_data *ch, int call_type, int level) {
   int i = 0;
@@ -575,8 +576,11 @@ void perform_call(struct char_data *ch, int call_type, int level) {
 
       break;
     case MOB_C_MOUNT:
-      /* for now just one selection for paladins */
-      GET_MOUNT(ch) = MOB_PALADIN_MOUNT;
+      /* for now just one selection for paladins, soon to be changed */
+      if (HAS_FEAT(ch, FEAT_EPIC_MOUNT))
+        GET_MOUNT(ch) = MOB_EPIC_PALADIN_MOUNT;
+      else
+        GET_MOUNT(ch) = MOB_PALADIN_MOUNT;
 
       /* do they even have a valid selection yet? */
       if (GET_MOUNT(ch) <= 0) {
@@ -621,20 +625,38 @@ void perform_call(struct char_data *ch, int call_type, int level) {
   IS_CARRYING_N(mob) = 0;
 
   /* setting mob strength according to 'level' */
-  GET_LEVEL(mob) = level;
-  GET_REAL_MAX_HIT(mob) += 20;
-  for (i = 0; i < level; i++)
-    GET_REAL_MAX_HIT(mob) += dice(3, 12) + 1;
-  GET_HIT(mob) = GET_REAL_MAX_HIT(mob);
-  GET_REAL_HITROLL(mob) += level / 3;
-  GET_REAL_DAMROLL(mob) += level / 3;
-  GET_REAL_AC(mob) += (level * 4); /* 12 ac at level 30 */
-
-  /* make sure paladin mount is appropriate size to ride */
-  if (call_type == MOB_C_MOUNT) {
-    GET_REAL_SIZE(mob) = GET_SIZE(ch) + 1;
-    GET_MOVE(mob) = GET_REAL_MAX_MOVE(mob) = 500;
+  switch (call_type) {
+    case MOB_C_ANIMAL:
+      GET_REAL_MAX_HIT(mob) += 20;
+      for (i = 0; i < level; i++)
+        GET_REAL_MAX_HIT(mob) += dice(1, 20) + 1;
+      GET_REAL_HITROLL(mob) += level / 3;
+      GET_REAL_DAMROLL(mob) += level / 3;
+      GET_REAL_AC(mob) += (level * 5); /* 15 ac at level 30 */
+      break;
+    case MOB_C_FAMILIAR:
+      GET_REAL_MAX_HIT(mob) += 10;
+      for (i = 0; i < level; i++)
+        GET_REAL_MAX_HIT(mob) += dice(2, 4) + 1;
+      break;
+    case MOB_C_MOUNT:
+      GET_REAL_MAX_HIT(mob) += 20;
+      GET_REAL_HITROLL(mob) += level / 3;
+      GET_REAL_DAMROLL(mob) += level / 4;
+      for (i = 0; i < level; i++) {
+        if (GET_MOUNT(ch) == MOB_EPIC_PALADIN_MOUNT)
+          GET_REAL_MAX_HIT(mob) += dice(2, 12) + 1;
+        else
+          GET_REAL_MAX_HIT(mob) += dice(1, 12) + 1;
+      }
+      GET_REAL_AC(mob) += (level * 4); /* 12 ac at level 30 */
+      /* make sure paladin mount is appropriate size to ride */
+      GET_REAL_SIZE(mob) = GET_SIZE(ch) + 1;
+      GET_MOVE(mob) = GET_REAL_MAX_MOVE(mob) = 500;
+      break;
   }
+  GET_LEVEL(mob) = level;
+  GET_HIT(mob) = GET_REAL_MAX_HIT(mob);
 
   affect_total(mob);
 
@@ -704,7 +726,7 @@ ACMD(do_call) {
 
     call_type = MOB_C_FAMILIAR;
   } else if (is_abbrev(argument, "mount")) {
-    level = CLASS_LEVEL(ch, CLASS_PALADIN) - 2;
+    level = CLASS_LEVEL(ch, CLASS_PALADIN);
 
     if (!HAS_FEAT(ch, FEAT_CALL_MOUNT)) {
       send_to_char(ch, "You do not have a mount that you can call.\r\n");

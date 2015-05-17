@@ -2333,6 +2333,7 @@ const char *feat_types[] = {
   "Divine",
   "Class Ability",
   "Innate Ability",
+  "Domain Power",
   "\n"
 };
 

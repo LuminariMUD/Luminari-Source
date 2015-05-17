@@ -1804,7 +1804,16 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type) {
       if (GET_NPC_RACE(ch) == NPCRACE_ELEMENTAL &&
               HAS_SUBRACE(ch, SUBRACE_FIRE))
         damtype_reduction += 100;
+
+      if (HAS_FEAT(ch, FEAT_DOMAIN_FIRE_RESIST) && CLASS_LEVEL(ch, CLASS_CLERIC) >= 20)
+        damtype_reduction += 50;
+      else if (HAS_FEAT(ch, FEAT_DOMAIN_FIRE_RESIST) && CLASS_LEVEL(ch, CLASS_CLERIC) >= 12)
+        damtype_reduction += 20;
+      else if (HAS_FEAT(ch, FEAT_DOMAIN_FIRE_RESIST) && CLASS_LEVEL(ch, CLASS_CLERIC) >= 6)
+        damtype_reduction += 10;
+
       break;
+
     case DAM_COLD:
       if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
         damtype_reduction += -20;
@@ -1815,6 +1824,14 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type) {
       if (GET_NPC_RACE(ch) == NPCRACE_ELEMENTAL &&
               HAS_SUBRACE(ch, SUBRACE_FIRE))
         damtype_reduction -= 100;
+
+      if (HAS_FEAT(ch, FEAT_DOMAIN_COLD_RESIST) && CLASS_LEVEL(ch, CLASS_CLERIC) >= 20)
+        damtype_reduction += 50;
+      else if (HAS_FEAT(ch, FEAT_DOMAIN_COLD_RESIST) && CLASS_LEVEL(ch, CLASS_CLERIC) >= 12)
+        damtype_reduction += 20;
+      else if (HAS_FEAT(ch, FEAT_DOMAIN_COLD_RESIST) && CLASS_LEVEL(ch, CLASS_CLERIC) >= 6)
+        damtype_reduction += 10;
+
       break;
     case DAM_AIR:
       if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
@@ -1848,6 +1865,14 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type) {
       if (GET_NPC_RACE(ch) == NPCRACE_ELEMENTAL &&
               HAS_SUBRACE(ch, SUBRACE_EARTH))
         damtype_reduction += 50;
+
+      if (HAS_FEAT(ch, FEAT_DOMAIN_ACID_RESIST) && CLASS_LEVEL(ch, CLASS_CLERIC) >= 20)
+        damtype_reduction += 50;
+      else if (HAS_FEAT(ch, FEAT_DOMAIN_ACID_RESIST) && CLASS_LEVEL(ch, CLASS_CLERIC) >= 12)
+        damtype_reduction += 20;
+      else if (HAS_FEAT(ch, FEAT_DOMAIN_ACID_RESIST) && CLASS_LEVEL(ch, CLASS_CLERIC) >= 6)
+        damtype_reduction += 10;
+
       break;
     case DAM_HOLY:
       if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
@@ -1861,6 +1886,14 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type) {
       if (GET_NPC_RACE(ch) == NPCRACE_ELEMENTAL &&
               HAS_SUBRACE(ch, SUBRACE_WATER))
         damtype_reduction -= 100;
+
+      if (HAS_FEAT(ch, FEAT_DOMAIN_ELECTRIC_RESIST) && CLASS_LEVEL(ch, CLASS_CLERIC) >= 20)
+        damtype_reduction += 50;
+      else if (HAS_FEAT(ch, FEAT_DOMAIN_ELECTRIC_RESIST) && CLASS_LEVEL(ch, CLASS_CLERIC) >= 12)
+        damtype_reduction += 20;
+      else if (HAS_FEAT(ch, FEAT_DOMAIN_ELECTRIC_RESIST) && CLASS_LEVEL(ch, CLASS_CLERIC) >= 6)
+        damtype_reduction += 10;
+
       break;
     case DAM_UNHOLY:
       if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
@@ -5316,6 +5349,8 @@ void perform_violence(struct char_data *ch, int phase) {
      * your Ride check result is greater than the opponent's attack roll. */
     if (RIDING(ch) && HAS_FEAT(ch, FEAT_MOUNTED_COMBAT))
       MOUNTED_BLOCKS_LEFT(ch) = 1;
+    if (RIDING(ch) && HAS_FEAT(ch, FEAT_LEGENDARY_RIDER))
+      MOUNTED_BLOCKS_LEFT(ch) += 1;
   }
 
   if (AFF_FLAGGED(ch, AFF_PARALYZED)) {
