@@ -44,6 +44,7 @@ extern "C" {
   /****************/
 #define NUM_DOMAIN_POWERS                     9
 /****************/
+  /* placed in constants.c */
 extern const char *domain_power_names[NUM_DOMAIN_POWERS + 1];
 
   /****************/
