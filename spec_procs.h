@@ -77,6 +77,9 @@ SPECIAL(cf_trainingmaster);
 SPECIAL(cf_alathar);
 SPECIAL(jot_invasion_loader);
 
+/* rooms */
+SPECIAL(wizard_library);
+
 /* new batch - 10/20/13 */
 SPECIAL(air_sphere);  //weapon
 SPECIAL(chionthar_ferry);  //transport
