@@ -672,6 +672,10 @@ void assign_feats(void) {
   feato(FEAT_DILIGENT, "diligent", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
     "+2 bonus to appraise and use magical device skill checks",
     "+2 bonus to appraise and use magical device skill checks");
+  feato(FEAT_ENDURANCE, "endurance", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+    "larger movement gain, and recovery",
+    "One with endurance will gain extra movement points per level and in addition "
+      "recover movement points quicker.");
 
   /* extra cleric feat */
   feato(FEAT_EXTRA_TURNING, "extra turning", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
@@ -1011,15 +1015,22 @@ void assign_feats(void) {
   feato(FEAT_GREATER_DUAL_WEAPON_FIGHTING, "greater dual weapon fighting", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
     "gives an additional offhand weapon attack at -10 penalty",
     "gives an additional offhand weapon attack at -10 penalty while wearing light or lighter armor");
+    /* point blank shot */
+    /* rapid shot */
+    /* manyshot */
   /* epic */
+    /* epic manyshot */
   feato(FEAT_PERFECT_DUAL_WEAPON_FIGHTING, "perfect dual weapon fighting", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
     "Extra attack with offhand weapon",
     "Extra attack with offhand weapon while wearing light or lighter armor");
-  /* point blank shot */
-  /* rapid shot */
-  /* manyshot */
-    /* epic: */
-  /* epic manyshot */
+  feato(FEAT_BANE_OF_ENEMIES, "bane of enemies", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "weapon acts as bane",
+    "Any weapon you wield that strikes an opponent that is a favored enemy will "
+      "act as a bane weapon and do an additional 2d6 damage.");
+  feato(FEAT_EPIC_FAVORED_ENEMY, "epic favored enemy", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "gain extra bonus to dam against fav enemy",
+    "You will gain an extra +4 to attack bonus and damage against any of your "
+      "favored enemies.");
 
   /* Ranger / Druid */
   feato(FEAT_ANIMAL_COMPANION, "animal companion", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
@@ -1341,7 +1352,6 @@ void assign_feats(void) {
   feato(FEAT_DIEHARD, "diehard", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "will stay alive and conscious until -10 hp or lower", "will stay alive and conscious until -10 hp or lower");
   feato(FEAT_RUN, "run", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
   feato(FEAT_SKILL_FOCUS, "skill focus", FALSE, TRUE, TRUE, FEAT_TYPE_GENERAL, "+3 in chosen skill", "+3 in chosen skill");
-  feato(FEAT_ENDURANCE, "endurance", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+4 to con and skill checks made to resist fatigue and 1 extra move point per level ", "+4 to con and skill checks made to resist fatigue and 1 extra move point per level ");
   feato(FEAT_ENERGY_RESISTANCE, "energy resistance", FALSE, TRUE, TRUE, FEAT_TYPE_GENERAL, "reduces all energy related damage by 3 per rank", "reduces all energy related damage by 3 per rank");
   feato(FEAT_FAST_HEALER, "fast healer", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 hp healed per round", "+2 hp healed per round");
   feato(FEAT_LEADERSHIP, "leadership", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "can have more and higher level followers, group members get extra exp on kills and hit/ac bonuses", "can have more and higher level followers, group members get extra exp on kills and hit/ac bonuses");

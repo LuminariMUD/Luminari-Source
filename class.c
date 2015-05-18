@@ -697,28 +697,36 @@ int level_feats[][LEVEL_FEATS] = {
   /* ranger */ /* CM = combat matery substitute */
   /* class, race, stacks?, level, feat_ name */
   {CLASS_RANGER, RACE_UNDEFINED, TRUE,  1,  FEAT_FAVORED_ENEMY_AVAILABLE},
-  {CLASS_RANGER, RACE_UNDEFINED, FALSE, 1,  FEAT_TRACK},
+  {CLASS_RANGER, RACE_UNDEFINED, FALSE, 2,  FEAT_TRACK},
   {CLASS_RANGER, RACE_UNDEFINED, FALSE, 2,  FEAT_WILD_EMPATHY},
-  {CLASS_RANGER, RACE_UNDEFINED, FALSE, 2,  FEAT_DUAL_WEAPON_FIGHTING},/*CM*/
-  {CLASS_RANGER, RACE_UNDEFINED, FALSE, 2,  FEAT_POINT_BLANK_SHOT},/*CM*/
-  {CLASS_RANGER, RACE_UNDEFINED, FALSE, 3,  FEAT_ENDURANCE},
+  {CLASS_RANGER, RACE_UNDEFINED, FALSE, 3,  FEAT_DUAL_WEAPON_FIGHTING},/*CM*/
+  {CLASS_RANGER, RACE_UNDEFINED, FALSE, 4,  FEAT_POINT_BLANK_SHOT},/*CM*/
+  {CLASS_RANGER, RACE_UNDEFINED, FALSE, 4,  FEAT_ENDURANCE},
   {CLASS_RANGER, RACE_UNDEFINED, FALSE, 4,  FEAT_ANIMAL_COMPANION},
   {CLASS_RANGER, RACE_UNDEFINED, TRUE,  5,  FEAT_FAVORED_ENEMY_AVAILABLE},
   {CLASS_RANGER, RACE_UNDEFINED, FALSE, 6,  FEAT_IMPROVED_DUAL_WEAPON_FIGHTING},/*CM*/
-  {CLASS_RANGER, RACE_UNDEFINED, FALSE, 6,  FEAT_RAPID_SHOT},/*CM*/
-  {CLASS_RANGER, RACE_UNDEFINED, FALSE, 7,  FEAT_WOODLAND_STRIDE},
-  {CLASS_RANGER, RACE_UNDEFINED, FALSE, 8,  FEAT_SWIFT_TRACKER},
-  {CLASS_RANGER, RACE_UNDEFINED, FALSE, 9,  FEAT_EVASION},
+  {CLASS_RANGER, RACE_UNDEFINED, FALSE, 7,  FEAT_RAPID_SHOT},/*CM*/
+  {CLASS_RANGER, RACE_UNDEFINED, FALSE, 8,  FEAT_WOODLAND_STRIDE},
+  {CLASS_RANGER, RACE_UNDEFINED, FALSE, 9,  FEAT_SWIFT_TRACKER},
+  {CLASS_RANGER, RACE_UNDEFINED, FALSE, 10, FEAT_EVASION},
   {CLASS_RANGER, RACE_UNDEFINED, TRUE,  10, FEAT_FAVORED_ENEMY_AVAILABLE},
   {CLASS_RANGER, RACE_UNDEFINED, FALSE, 11, FEAT_GREATER_DUAL_WEAPON_FIGHTING},/*CM*/
-  {CLASS_RANGER, RACE_UNDEFINED, FALSE, 11, FEAT_MANYSHOT},/*CM*/
+  {CLASS_RANGER, RACE_UNDEFINED, FALSE, 12, FEAT_MANYSHOT},/*CM*/
   {CLASS_RANGER, RACE_UNDEFINED, FALSE, 13, FEAT_CAMOUFLAGE},
   {CLASS_RANGER, RACE_UNDEFINED, TRUE,  15, FEAT_FAVORED_ENEMY_AVAILABLE},
   {CLASS_RANGER, RACE_UNDEFINED, FALSE, 17, FEAT_HIDE_IN_PLAIN_SIGHT},
+  /* Epic */
   {CLASS_RANGER, RACE_UNDEFINED, TRUE,  20, FEAT_FAVORED_ENEMY_AVAILABLE},
   {CLASS_RANGER, RACE_UNDEFINED, FALSE, 21, FEAT_PERFECT_DUAL_WEAPON_FIGHTING},/*CM*/
-  {CLASS_RANGER, RACE_UNDEFINED, FALSE, 21, FEAT_EPIC_MANYSHOT},/*CM*/
-
+  {CLASS_RANGER, RACE_UNDEFINED, FALSE, 22, FEAT_EPIC_MANYSHOT},/*CM*/
+  /* bonus feat - improved evasion 23 */
+  {CLASS_RANGER, RACE_UNDEFINED, FALSE, 23, FEAT_IMPROVED_EVASION},
+  {CLASS_RANGER, RACE_UNDEFINED, TRUE,  25, FEAT_FAVORED_ENEMY_AVAILABLE},
+  /* bonus feat - bane of enemies 26 */
+  {CLASS_RANGER, RACE_UNDEFINED, FALSE, 26, FEAT_BANE_OF_ENEMIES},
+  /* bonus feat - epic favored enemy 29 */
+  {CLASS_RANGER, RACE_UNDEFINED, FALSE, 29, FEAT_EPIC_FAVORED_ENEMY},
+  {CLASS_RANGER, RACE_UNDEFINED, TRUE,  30, FEAT_FAVORED_ENEMY_AVAILABLE},
 
   /* druid */
   /* class, race, stacks?, level, feat_ name */
@@ -2481,7 +2489,7 @@ void advance_level(struct char_data *ch, int class) {
       rogue_skills(ch, CLASS_LEVEL(ch, CLASS_ROGUE));
       add_hp += rand_number(3, 6);
       add_mana = 0;
-      add_move = rand_number(2, 4);
+      add_move = rand_number(0, 2);
 
       trains += MAX(1, (8 + (GET_REAL_INT_BONUS(ch))));
 
@@ -2495,7 +2503,7 @@ void advance_level(struct char_data *ch, int class) {
       bard_skills(ch, CLASS_LEVEL(ch, CLASS_BARD));
       add_hp += rand_number(3, 6);
       add_mana = 0;
-      add_move = rand_number(2, 4);
+      add_move = rand_number(0, 2);
 
       trains += MAX(1, (6 + (GET_REAL_INT_BONUS(ch))));
 
@@ -2508,7 +2516,7 @@ void advance_level(struct char_data *ch, int class) {
       monk_skills(ch, CLASS_LEVEL(ch, CLASS_MONK));
       add_hp += rand_number(4, 8);
       add_mana = 0;
-      add_move = rand_number(2, 4);
+      add_move = rand_number(0, 2);
 
       trains += MAX(1, (4 + (GET_REAL_INT_BONUS(ch))));
 
@@ -2522,7 +2530,7 @@ void advance_level(struct char_data *ch, int class) {
       berserker_skills(ch, CLASS_LEVEL(ch, CLASS_BERSERKER));
       add_hp += rand_number(6, 12);
       add_mana = 0;
-      add_move = rand_number(2, 6);
+      add_move = rand_number(0, 2);
 
       trains += MAX(1, (4 + (GET_REAL_INT_BONUS(ch))));
 
@@ -2536,7 +2544,7 @@ void advance_level(struct char_data *ch, int class) {
       druid_skills(ch, CLASS_LEVEL(ch, CLASS_SORCERER));
       add_hp += rand_number(4, 8);
       add_mana = 0;
-      add_move = rand_number(4, 8);
+      add_move = rand_number(0, 2);
 
       trains += MAX(1, (4 + (GET_REAL_INT_BONUS(ch))));
 
@@ -2550,7 +2558,7 @@ void advance_level(struct char_data *ch, int class) {
       ranger_skills(ch, CLASS_LEVEL(ch, CLASS_RANGER));
       add_hp += rand_number(5, 10);
       add_mana = 0;
-      add_move = rand_number(4, 8);
+      add_move = rand_number(0, 2);
 
       trains += MAX(1, (4 + (GET_REAL_INT_BONUS(ch))));
 
@@ -2564,7 +2572,7 @@ void advance_level(struct char_data *ch, int class) {
       paladin_skills(ch, CLASS_LEVEL(ch, CLASS_PALADIN));
       add_hp += rand_number(5, 10);
       add_mana = 0;
-      add_move = 1;
+      add_move = rand_number(0, 2);
 
       trains += MAX(1, (2 + (GET_REAL_INT_BONUS(ch))));
 
@@ -2578,7 +2586,7 @@ void advance_level(struct char_data *ch, int class) {
       warrior_skills(ch, CLASS_LEVEL(ch, CLASS_WARRIOR));
       add_hp += rand_number(5, 10);
       add_mana = 0;
-      add_move = rand_number(1, 2);
+      add_move = rand_number(0, 2);
 
       trains += MAX(1, (2 + (GET_REAL_INT_BONUS(ch))));
       if (!(CLASS_LEVEL(ch, class) % 2) && !IS_EPIC(ch)) {
@@ -2593,7 +2601,7 @@ void advance_level(struct char_data *ch, int class) {
       weaponmaster_skills(ch, CLASS_LEVEL(ch, CLASS_WEAPON_MASTER));
       add_hp += rand_number(5, 10);
       add_mana = 0;
-      add_move = 1;
+      add_move = rand_number(0, 2);
 
       trains += MAX(1, (2 + (GET_REAL_INT_BONUS(ch))));
 
@@ -2603,6 +2611,14 @@ void advance_level(struct char_data *ch, int class) {
       }
 
       break;
+  }
+
+  /* further movement modifications */
+  if (HAS_FEAT(ch, FEAT_ENDURANCE)) {
+    add_move += rand_number(1, 2);
+  }
+  if (HAS_FEAT(ch, FEAT_FAST_MOVEMENT)) {
+    add_move += rand_number(1, 2);
   }
 
   process_level_feats(ch, class);
