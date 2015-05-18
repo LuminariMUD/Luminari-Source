@@ -22,7 +22,7 @@ struct domain_info domain_list[NUM_DOMAINS];
 struct school_info school_list[NUM_SCHOOLS];
 
 /* domain power names */
-const char *domain_power_names[NUM_DOMAIN_POWERS + 1] = {
+char *domain_power_names[NUM_DOMAIN_POWERS + 1] = {
   "Undefined",
   "Lightning Arc",
   "Electricity Resistance",
