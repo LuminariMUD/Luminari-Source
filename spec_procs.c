@@ -3678,6 +3678,7 @@ SPECIAL(wizard_library) {
 
   if (!CMD_IS("research"))
     return (FALSE);
+  
   if (!CLASS_LEVEL(ch, CLASS_WIZARD)) {
     send_to_char(ch, "You are not a wizard!\r\n");
     return FALSE;
@@ -3712,9 +3713,7 @@ SPECIAL(wizard_library) {
     return FALSE;
   }
 
-  if (CLASS_LEVEL(ch, CLASS_WIZARD) >= spell_level && GET_SKILL(ch, i)) {
-    /* we already checked if the spell is already in spellbook, should be OK now */
-
+  if (CLASS_LEVEL(ch, CLASS_WIZARD) >= spell_level && GET_SKILL(ch, spellnum)) {
     /* 1st make sure we have a spellbook handy */
     /* for-loop for inventory */
     for (obj = ch->carrying; obj && !found; obj = obj->next_content) {
