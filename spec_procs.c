@@ -3787,6 +3787,7 @@ SPECIAL(wizard_library) {
     "into your spellbook, which takes up %d pages and cost %d coins.\r\n",
     spell_info[spellnum].name, obj->sbinfo[i].pages, cost );
 
+  USE_FULL_ROUND_ACTION(ch);
   return TRUE;
 }
 
