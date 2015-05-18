@@ -597,10 +597,8 @@ void assign_mobiles(void)
   ASSIGNMOB(145182, ttf_rotbringer);
   ASSIGNMOB(145189, ttf_patrol);
 
-  /* not yet defined
   ASSIGNMOB(113751, dracolich);
   ASSIGNMOB(113750, tiamat);
-  */
 
   ASSIGNMOB(132910, kt_kenjin);
 
