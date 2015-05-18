@@ -3685,7 +3685,7 @@ SPECIAL(wizard_library) {
 
   skip_spaces(&argument);
 
-  if (!argument) {
+  if (!*argument) {
     send_to_char(ch, "You need to indicate which spell you want to research.\r\n");
     return FALSE;
   }
