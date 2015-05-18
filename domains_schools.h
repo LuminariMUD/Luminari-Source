@@ -44,19 +44,7 @@ extern "C" {
   /****************/
 #define NUM_DOMAIN_POWERS                     9
 /****************/
-/* domain power names */
-const char *domain_power_names[NUM_DOMAIN_POWERS + 1] = {
-  "Undefined",
-  "Lightning Arc",
-  "Electricity Resistance",
-  "Acid Dart",
-  "Acid Resistance",
-  "Fire Bolt",
-  "Fire Resistance",
-  "Icicle",
-  "Cold Resistance",
-  "\n"
-};
+extern const char *domain_power_names[NUM_DOMAIN_POWERS + 1];
 
   /****************/
   /****************/

@@ -33,6 +33,20 @@ cpp_extern const char *luminari_version = "LuminariMUD 2.267 (tbaMUD 3.64)";
 /* strings corresponding to ordinals/bitvectors in structs.h */
 /* (Note: strings for class definitions in class.c instead of here) */
 
+/* domain power names */
+const char *domain_power_names[NUM_DOMAIN_POWERS + 1] = {
+  "Undefined",
+  "Lightning Arc",
+  "Electricity Resistance",
+  "Acid Dart",
+  "Acid Resistance",
+  "Fire Bolt",
+  "Fire Resistance",
+  "Icicle",
+  "Cold Resistance",
+  "\n"
+};
+
 /* ammo types */
 const char *ammo_types[NUM_AMMO_TYPES + 1] = {
   "Undefined",
