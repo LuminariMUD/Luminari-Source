@@ -3678,65 +3678,47 @@ SPECIAL(wizard_library) {
 
   if (!CMD_IS("research"))
     return (FALSE);
-  
-  if (!CLASS_LEVEL(ch, CLASS_WIZARD)) {
-    send_to_char(ch, "You are not a wizard!\r\n");
-    return FALSE;
-  }
 
-  skip_spaces(&argument);
+  else if (CMD_IS("research")) {
 
-  if (!*argument) {
-    send_to_char(ch, "You need to indicate which spell you want to research.\r\n");
-    return FALSE;
-  }
-
-  spellnum = find_skill_num(argument);
-
-  if (spellnum <= SPELL_RESERVED_DBC || spellnum >= NUM_SPELLS) {
-    send_to_char(ch, "Invalid spell!\r\n");
-    return FALSE;
-  }
-
-  spell_level = spell_info[spellnum].min_level[CLASS_WIZARD];
-
-  if (spell_level <= 0 || spell_level >= LVL_IMMORT) {
-    send_to_char(ch, "That spell is not available to wizards.\r\n");
-    return FALSE;
-  }
-
-  cost = (spell_level * 500) * (spell_level);
-
-  if (GET_GOLD(ch) < cost) {
-    send_to_char(ch, "You do not have enough coins to research this spell, you "
-            "need %d coins.\r\n", cost);
-    return FALSE;
-  }
-
-  if (CLASS_LEVEL(ch, CLASS_WIZARD) >= spell_level && GET_SKILL(ch, spellnum)) {
-    /* 1st make sure we have a spellbook handy */
-    /* for-loop for inventory */
-    for (obj = ch->carrying; obj && !found; obj = obj->next_content) {
-      if (GET_OBJ_TYPE(obj) == ITEM_SPELLBOOK) {
-        if (spell_in_book(obj, spellnum)) {
-          send_to_char(ch, "You already have the spell '%s' in this spellbook.\r\n",
-                       spell_info[spellnum].name);
-          return FALSE;
-        }
-        /* found a spellbook that doesn't have the spell! */
-        found = TRUE;
-        break; /* our obj variable is now pointing to this spellbook */
-      }
+    if (!CLASS_LEVEL(ch, CLASS_WIZARD)) {
+      send_to_char(ch, "You are not a wizard!\r\n");
+      return FALSE;
     }
 
-    /* for-loop for gear */
-    if (!found) {
-      for (i = 0; i < NUM_WEARS; i++) {
-        if (GET_EQ(ch, i))
-          obj = GET_EQ(ch, i);
-        else
-          continue;
+    skip_spaces(&argument);
 
+    if (!*argument) {
+      send_to_char(ch, "You need to indicate which spell you want to research.\r\n");
+      return FALSE;
+    }
+
+    spellnum = find_skill_num(argument);
+
+    if (spellnum <= SPELL_RESERVED_DBC || spellnum >= NUM_SPELLS) {
+      send_to_char(ch, "Invalid spell!\r\n");
+      return FALSE;
+    }
+
+    spell_level = spell_info[spellnum].min_level[CLASS_WIZARD];
+
+    if (spell_level <= 0 || spell_level >= LVL_IMMORT) {
+      send_to_char(ch, "That spell is not available to wizards.\r\n");
+      return FALSE;
+    }
+
+    cost = (spell_level * 500) * (spell_level);
+
+    if (GET_GOLD(ch) < cost) {
+      send_to_char(ch, "You do not have enough coins to research this spell, you "
+                   "need %d coins.\r\n", cost);
+      return FALSE;
+    }
+
+    if (CLASS_LEVEL(ch, CLASS_WIZARD) >= spell_level && GET_SKILL(ch, spellnum)) {
+      /* 1st make sure we have a spellbook handy */
+      /* for-loop for inventory */
+      for (obj = ch->carrying; obj && !found; obj = obj->next_content) {
         if (GET_OBJ_TYPE(obj) == ITEM_SPELLBOOK) {
           if (spell_in_book(obj, spellnum)) {
             send_to_char(ch, "You already have the spell '%s' in this spellbook.\r\n",
@@ -3748,46 +3730,68 @@ SPECIAL(wizard_library) {
           break; /* our obj variable is now pointing to this spellbook */
         }
       }
-    }
-  } else {
-    send_to_char(ch, "You are not powerful enough to scribe that spell!\r\n");
-    return FALSE;
-  }
 
-  if (!found) {
-    send_to_char(ch, "No ready spellbook found in your inventory or equipped...\r\n");
-    return FALSE;
-  }
+      /* for-loop for gear */
+      if (!found) {
+        for (i = 0; i < NUM_WEARS; i++) {
+          if (GET_EQ(ch, i))
+            obj = GET_EQ(ch, i);
+          else
+            continue;
 
-  /* ok obj variable pointing to spellbook, let's make sure it has space */
-  if (!obj->sbinfo) { /* un-initialized spellbook, allocate memory */
-    CREATE(obj->sbinfo, struct obj_spellbook_spell, SPELLBOOK_SIZE);
-    memset((char *) obj->sbinfo, 0, SPELLBOOK_SIZE * sizeof (struct obj_spellbook_spell));
-  }
-  for (i = 0; i < SPELLBOOK_SIZE; i++) { /* check for space */
-    if (obj->sbinfo[i].spellname == 0) {
-      full_spellbook = FALSE;
-      break;
+          if (GET_OBJ_TYPE(obj) == ITEM_SPELLBOOK) {
+            if (spell_in_book(obj, spellnum)) {
+              send_to_char(ch, "You already have the spell '%s' in this spellbook.\r\n",
+                           spell_info[spellnum].name);
+              return FALSE;
+            }
+            /* found a spellbook that doesn't have the spell! */
+            found = TRUE;
+            break; /* our obj variable is now pointing to this spellbook */
+          }
+        }
+      }
     } else {
-      continue;
+      send_to_char(ch, "You are not powerful enough to scribe that spell!\r\n");
+      return FALSE;
     }
-  } /* i = location in spellbook */
 
-  if (full_spellbook) {
-    send_to_char(ch, "There is not enough space in that spellbook!\r\n");
-    return FALSE;
+    if (!found) {
+      send_to_char(ch, "No ready spellbook found in your inventory or equipped...\r\n");
+      return FALSE;
+    }
+
+    /* ok obj variable pointing to spellbook, let's make sure it has space */
+    if (!obj->sbinfo) { /* un-initialized spellbook, allocate memory */
+      CREATE(obj->sbinfo, struct obj_spellbook_spell, SPELLBOOK_SIZE);
+      memset((char *) obj->sbinfo, 0, SPELLBOOK_SIZE * sizeof (struct obj_spellbook_spell));
+    }
+    for (i = 0; i < SPELLBOOK_SIZE; i++) { /* check for space */
+      if (obj->sbinfo[i].spellname == 0) {
+        full_spellbook = FALSE;
+        break;
+      } else {
+        continue;
+      }
+    } /* i = location in spellbook */
+
+    if (full_spellbook) {
+      send_to_char(ch, "There is not enough space in that spellbook!\r\n");
+      return FALSE;
+    }
+
+    /* we made it! */
+    GET_GOLD(ch) -= cost;
+    obj->sbinfo[i].spellname = spellnum;
+    obj->sbinfo[i].pages = MAX(1, lowest_spell_level(spellnum) / 2);
+    send_to_char(ch, "Your research is successful and you scribe the spell '%s' "
+                 "into your spellbook, which takes up %d pages and cost %d coins.\r\n",
+                 spell_info[spellnum].name, obj->sbinfo[i].pages, cost);
+
+    USE_FULL_ROUND_ACTION(ch);
+    return TRUE;
   }
-
-  /* we made it! */
-  GET_GOLD(ch) -= cost;
-  obj->sbinfo[i].spellname = spellnum;
-  obj->sbinfo[i].pages = MAX(1, lowest_spell_level(spellnum) / 2);
-  send_to_char(ch, "Your research is successful and you scribe the spell '%s' "
-    "into your spellbook, which takes up %d pages and cost %d coins.\r\n",
-    spell_info[spellnum].name, obj->sbinfo[i].pages, cost );
-
-  USE_FULL_ROUND_ACTION(ch);
-  return TRUE;
+  return FALSE;
 }
 
 SPECIAL(dump) {
