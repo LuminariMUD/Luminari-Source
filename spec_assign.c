@@ -165,9 +165,11 @@ void assign_mobiles(void)
   /* more homeland assigns, unsorted */
   ASSIGNMOB(200002, postmaster);
   ASSIGNMOB(200001, receptionist);
+  /* not yet defined
   ASSIGNMOB(200000, guild_golem);
-
   ASSIGNMOB(155699, cube_slider);
+  */
+
 
   ASSIGNMOB(126907, receptionist);
 
@@ -194,6 +196,7 @@ void assign_mobiles(void)
   ASSIGNMOB(126621, dog);
 
   /* Trade master mobs */
+  /* not yet defined
   ASSIGNMOB(122000, trade_master);
   ASSIGNMOB(122001, trade_master);
   ASSIGNMOB(122002, trade_master);
@@ -205,8 +208,9 @@ void assign_mobiles(void)
   ASSIGNMOB(122008, trade_master);
   ASSIGNMOB(122009, trade_master);
   ASSIGNMOB(122010, trade_master);
-
+  */
   /* trade object mobs */
+  /* not yet defined
   ASSIGNOBJ(122000, trade_object);
   ASSIGNOBJ(122001, trade_object);
   ASSIGNOBJ(122002, trade_object);
@@ -240,8 +244,10 @@ void assign_mobiles(void)
   ASSIGNOBJ(122030, trade_object);
   ASSIGNOBJ(122031, trade_object);
   ASSIGNOBJ(122032, trade_object);
+  */
 
   /* Trade Bandit mobs */
+  /* not yet defined
   ASSIGNMOB(122030, trade_bandit);
   ASSIGNMOB(122031, trade_bandit);
   ASSIGNMOB(122032, trade_bandit);
@@ -261,6 +267,7 @@ void assign_mobiles(void)
   ASSIGNMOB(122046, trade_bandit);
   ASSIGNMOB(122047, trade_bandit);
   ASSIGNMOB(122048, trade_bandit);
+  */
 
   /* bandit guard */
   ASSIGNMOB(143304, bandit_guard);
@@ -586,17 +593,20 @@ void assign_mobiles(void)
   ASSIGNMOB(106000, cf_alathar);
   ASSIGNMOB(106040, cf_trainingmaster);
 
+  /* not yet defined
   ASSIGNMOB(145146, ttf_monstrosity);
   ASSIGNMOB(145116, ttf_abomination);
   ASSIGNMOB(145182, ttf_rotbringer);
   ASSIGNMOB(145189, ttf_patrol);
 
-  ASSIGNMOB(132910, kt_kenjin);
-
-  ASSIGNMOB(112600, wallach);
-  ASSIGNMOB(112607, beltush);
   ASSIGNMOB(113751, dracolich);
   ASSIGNMOB(113750, tiamat);
+  */
+
+  ASSIGNMOB(132910, kt_kenjin);
+  
+  ASSIGNMOB(112600, wallach);
+  ASSIGNMOB(112607, beltush);
   ASSIGNMOB(100580, imix);
   ASSIGNMOB(100508, practice_dummy);
   ASSIGNMOB(100509, practice_dummy);
@@ -717,8 +727,10 @@ void assign_objects(void)
   ASSIGNOBJ(103673, bought_pet);
   ASSIGNOBJ(103674, bought_pet);
 
+  /* not yet defined
   ASSIGNOBJ(101290, storage_chest);
   ASSIGNOBJ(101291, storage_chest);
+  */
 
   /* Mere Teleports*/
   ASSIGNOBJ(126703, floating_teleport);
@@ -727,12 +739,14 @@ void assign_objects(void)
   ASSIGNOBJ(126714, floating_teleport);
   ASSIGNOBJ(126715, floating_teleport);
 
+  /* not yet defined
   ASSIGNOBJ(100600, forest_idol);
   ASSIGNOBJ(100601, forest_idol);
   ASSIGNOBJ(100602, forest_idol);
   ASSIGNOBJ(100603, forest_idol);
   ASSIGNOBJ(100604, forest_idol);
   ASSIGNOBJ(100605, forest_idol);
+  */
 
   /* Weapon Procs */
   ASSIGNOBJ(141914, witherdirk);
@@ -758,8 +772,6 @@ void assign_objects(void)
   ASSIGNOBJ(109802, whisperwind);
   ASSIGNOBJ(127224, sparksword);
   ASSIGNOBJ(100581, tyrantseye);
-  ASSIGNOBJ(132115, warbow);
-  ASSIGNOBJ(132101, malevolence);
   ASSIGNOBJ(113898, flaming_scimitar);
   ASSIGNOBJ(113897, frosty_scimitar);
   ASSIGNOBJ(129011, purity);
@@ -783,11 +795,16 @@ void assign_objects(void)
   ASSIGNOBJ(100596, tormblade);
   ASSIGNOBJ(100599, tormblade);
 
+  /* not yet defined
+  ASSIGNOBJ(132115, warbow);
+  ASSIGNOBJ(132101, malevolence);
   ASSIGNOBJ(132118, tia_moonblade);
   ASSIGNOBJ(132126, drow_scimitar);
-  ASSIGNOBJ(132125, tia_rapier);
   ASSIGNOBJ(133103, mithril_rapier);
   ASSIGNOBJ(141800, treantshield);
+  */
+
+  ASSIGNOBJ(132125, tia_rapier);
   ASSIGNOBJ(138447, disruption_mace);
   ASSIGNOBJ(138415, haste_bracers);
   ASSIGNOBJ(135626, menzo_chokers);
