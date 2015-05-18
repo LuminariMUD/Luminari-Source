@@ -3680,28 +3680,28 @@ SPECIAL(wizard_library) {
 
     if (!CLASS_LEVEL(ch, CLASS_WIZARD)) {
       send_to_char(ch, "You are not a wizard!\r\n");
-      return FALSE;
+      return TRUE;
     }
 
     skip_spaces(&argument);
 
     if (!*argument) {
       send_to_char(ch, "You need to indicate which spell you want to research.\r\n");
-      return FALSE;
+      return TRUE;
     }
 
     spellnum = find_skill_num(argument);
 
     if (spellnum <= SPELL_RESERVED_DBC || spellnum >= NUM_SPELLS) {
       send_to_char(ch, "Invalid spell!\r\n");
-      return FALSE;
+      return TRUE;
     }
 
     spell_level = spell_info[spellnum].min_level[CLASS_WIZARD];
 
     if (spell_level <= 0 || spell_level >= LVL_IMMORT) {
       send_to_char(ch, "That spell is not available to wizards.\r\n");
-      return FALSE;
+      return TRUE;
     }
 
     cost = (spell_level * 500) * (spell_level);
@@ -3709,7 +3709,7 @@ SPECIAL(wizard_library) {
     if (GET_GOLD(ch) < cost) {
       send_to_char(ch, "You do not have enough coins to research this spell, you "
                    "need %d coins.\r\n", cost);
-      return FALSE;
+      return TRUE;
     }
 
     if (CLASS_LEVEL(ch, CLASS_WIZARD) >= spell_level && GET_SKILL(ch, spellnum)) {
@@ -3720,7 +3720,7 @@ SPECIAL(wizard_library) {
           if (spell_in_book(obj, spellnum)) {
             send_to_char(ch, "You already have the spell '%s' in this spellbook.\r\n",
                          spell_info[spellnum].name);
-            return FALSE;
+            return TRUE;
           }
           /* found a spellbook that doesn't have the spell! */
           found = TRUE;
@@ -3740,7 +3740,7 @@ SPECIAL(wizard_library) {
             if (spell_in_book(obj, spellnum)) {
               send_to_char(ch, "You already have the spell '%s' in this spellbook.\r\n",
                            spell_info[spellnum].name);
-              return FALSE;
+              return TRUE;
             }
             /* found a spellbook that doesn't have the spell! */
             found = TRUE;
@@ -3750,12 +3750,12 @@ SPECIAL(wizard_library) {
       }
     } else {
       send_to_char(ch, "You are not powerful enough to scribe that spell!\r\n");
-      return FALSE;
+      return TRUE;
     }
 
     if (!found) {
       send_to_char(ch, "No ready spellbook found in your inventory or equipped...\r\n");
-      return FALSE;
+      return TRUE;
     }
 
     /* ok obj variable pointing to spellbook, let's make sure it has space */
@@ -3774,7 +3774,7 @@ SPECIAL(wizard_library) {
 
     if (full_spellbook) {
       send_to_char(ch, "There is not enough space in that spellbook!\r\n");
-      return FALSE;
+      return TRUE;
     }
 
     /* we made it! */
