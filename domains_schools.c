@@ -457,7 +457,7 @@ ACMD(do_domain) {
     send_to_char(ch, "%sGranted powers: |%s", QCYN, QNRM);
     for (j = 0; j < MAX_GRANTED_POWERS; j++) {
       if (domain_list[i].granted_powers[j] != DOMAIN_POWER_UNDEFINED) {
-        send_to_char(ch, "%s%s|%s", domain_power_names[domain_list[i].granted_powers[j]], QCYN, QNRM);
+        send_to_char(ch, "%s%s|%s", domainpower_names[domain_list[i].granted_powers[j]], QCYN, QNRM);
       }
     }
     send_to_char(ch, "\r\n");
