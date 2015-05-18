@@ -1243,7 +1243,7 @@ void tiamat_on_death(struct char_data *ch) {
   /*Still got HEADS!!, means they did shitload of damage et..*/
   if (tiamat_heads > 1) {
     check_heads(ch); //to get right message..
-    lich = read_mobile(13750, VIRTUAL);
+    lich = read_mobile(113750, VIRTUAL);
     char_to_room(lich, ch->in_room);
     GET_MAX_HIT(lich) = 29999;
     GET_HIT(lich) = 29999;
