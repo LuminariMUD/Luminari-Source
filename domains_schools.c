@@ -21,6 +21,8 @@
 struct domain_info domain_list[NUM_DOMAINS];
 struct school_info school_list[NUM_SCHOOLS];
 
+
+
 /* translates whether a given domain power has a corresponding feat */
 int domain_power_to_feat(int domain_power) {
   int featnum = FEAT_UNDEFINED;
@@ -438,6 +440,14 @@ ACMD(do_domain) {
                  QCYN, QNRM, weapon_list[domain_list[i].favored_weapon].name,
                  QCYN, QNRM, domain_list[i].description
                 );
+
+    send_to_char(ch, "%sGranted powers: |%s", QCYN, QNRM);
+    for (j = 0; j < MAX_GRANTED_POWERS; j++) {
+      if (domain_list[i].granted_powers[j] != DOMAIN_POWER_UNDEFINED) {
+        send_to_char(ch, "%s%s|%s", domain_power_names[domain_list[i].granted_powers[j]], QCYN, QNRM);
+      }
+    }
+    send_to_char(ch, "\r\n");
 
     send_to_char(ch, "%sGranted spells: |%s", QCYN, QNRM);
     for (j = 0; j < MAX_DOMAIN_SPELLS; j++) {
