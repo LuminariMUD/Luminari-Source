@@ -1272,6 +1272,7 @@ void roll_real_abils(struct char_data *ch) {
 #define NOOB_QUIVER        816
 #define NOOB_ARROW         815
 #define NUM_NOOB_ARROWS    40
+#define NOOB_WIZ_NOTE      850
 void newbieEquipment(struct char_data *ch) {
   int objNums[] = {
     NOOB_TELEPORTER,
@@ -1402,8 +1403,8 @@ void newbieEquipment(struct char_data *ch) {
       break;
 
     case CLASS_WIZARD:
+      obj_to_char(read_object(NOOB_WIZ_NOTE, VIRTUAL), ch); //wizard note
       obj_to_char(read_object(812, VIRTUAL), ch); //spellbook
-
       /* switch fallthrough */
     case CLASS_SORCERER:
       obj = read_object(854, VIRTUAL);
