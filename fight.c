@@ -2676,10 +2676,17 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   /* favored enemy */
   if (vict && vict != ch && !IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_RANGER)) {
     // checking if we have humanoid favored enemies for PC victims
-    if (!IS_NPC(vict) && IS_FAV_ENEMY_OF(ch, NPCRACE_HUMAN))
+    if (!IS_NPC(vict) && IS_FAV_ENEMY_OF(ch, NPCRACE_HUMAN)) {
       dambonus += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
-    else if (IS_NPC(vict) && IS_FAV_ENEMY_OF(ch, GET_RACE(vict)))
+      if (HAS_FEAT(ch, FEAT_EPIC_FAVORED_ENEMY)) {
+        dambonus += 4;
+      }
+    } else if (IS_NPC(vict) && IS_FAV_ENEMY_OF(ch, GET_RACE(vict))) {
       dambonus += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
+      if (HAS_FEAT(ch, FEAT_EPIC_FAVORED_ENEMY)) {
+        dambonus += 4;
+      }
+    }
   }
 
   /* paladin's divine bond */
@@ -3119,6 +3126,16 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
         int *value = get_obj_special_ability(wielded, WEAPON_SPECAB_BANE)->value;
         if((GET_RACE(victim) == value[0]) && (HAS_SUBRACE(victim, value[1]))) {
           /*send_to_char(ch, "Your weapon hums in delight as it strikes!\r\n");*/
+          dam += dice(2, 6);
+        }
+      }
+
+      if (HAS_FEAT(ch, FEAT_BANE_OF_ENEMIES) && HAS_FEAT(ch, FEAT_FAVORED_ENEMY)) {
+        if (!IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, NPCRACE_HUMAN)) {
+          send_to_char(ch, "Your weapon hums in delight as it strikes!\r\n");
+          dam += dice(2, 6);
+        } else if (IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, GET_RACE(victim))) {
+          send_to_char(ch, "Your weapon hums in delight as it strikes!\r\n");
           dam += dice(2, 6);
         }
       }
@@ -3672,10 +3689,17 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
   /* favored enemy - Needs work */
   if (victim && victim != ch && !IS_NPC(ch) && HAS_FEAT(ch, FEAT_FAVORED_ENEMY)) {
     // checking if we have humanoid favored enemies for PC victims
-    if (!IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, NPCRACE_HUMAN))
+    if (!IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, NPCRACE_HUMAN)) {
       bonuses[BONUS_TYPE_UNDEFINED] += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
-    else if (IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, GET_RACE(victim)))
+      if (HAS_FEAT(ch, FEAT_EPIC_FAVORED_ENEMY)) {
+        bonuses[BONUS_TYPE_UNDEFINED] += 4;
+      }
+    } else if (IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, GET_RACE(victim))) {
       bonuses[BONUS_TYPE_UNDEFINED] += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
+      if (HAS_FEAT(ch, FEAT_EPIC_FAVORED_ENEMY)) {
+        bonuses[BONUS_TYPE_UNDEFINED] += 4;
+      }
+    }
   }
 
   /* spellbattle */

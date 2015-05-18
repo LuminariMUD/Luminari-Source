@@ -470,6 +470,8 @@ void regen_update(struct char_data *ch) {
     int move_regen = hp;
     if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_FAST_MOVEMENT))
       move_regen++;
+    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_ENDURANCE))
+      move_regen += 2;
     GET_MOVE(ch) = MIN(GET_MOVE(ch) + (move_regen * 3), GET_MAX_MOVE(ch));
   }
   if (GET_MANA(ch) > GET_MAX_MANA(ch)) {

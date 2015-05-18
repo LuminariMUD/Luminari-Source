@@ -1599,10 +1599,12 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_GLORIOUS_RIDER                 412
 #define FEAT_LEGENDARY_RIDER                413
 #define FEAT_EPIC_MOUNT                     414
+#define FEAT_BANE_OF_ENEMIES                415
+#define FEAT_EPIC_FAVORED_ENEMY             416
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT                      415
+#define FEAT_LAST_FEAT                      417
 /** feat_last_feat + 1 ***/
-#define NUM_FEATS                           416
+#define NUM_FEATS                           418
 /*****/
 #define MAX_FEATS                           750
 /*****/
