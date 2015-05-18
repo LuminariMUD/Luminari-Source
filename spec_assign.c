@@ -167,9 +167,8 @@ void assign_mobiles(void)
   ASSIGNMOB(200001, receptionist);
   /* not yet defined
   ASSIGNMOB(200000, guild_golem);
-  ASSIGNMOB(155699, cube_slider);
   */
-
+  ASSIGNMOB(155699, cube_slider);
 
   ASSIGNMOB(126907, receptionist);
 
@@ -593,18 +592,18 @@ void assign_mobiles(void)
   ASSIGNMOB(106000, cf_alathar);
   ASSIGNMOB(106040, cf_trainingmaster);
 
-  /* not yet defined
   ASSIGNMOB(145146, ttf_monstrosity);
   ASSIGNMOB(145116, ttf_abomination);
   ASSIGNMOB(145182, ttf_rotbringer);
   ASSIGNMOB(145189, ttf_patrol);
 
+  /* not yet defined
   ASSIGNMOB(113751, dracolich);
   ASSIGNMOB(113750, tiamat);
   */
 
   ASSIGNMOB(132910, kt_kenjin);
-  
+
   ASSIGNMOB(112600, wallach);
   ASSIGNMOB(112607, beltush);
   ASSIGNMOB(100580, imix);
