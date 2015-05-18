@@ -3676,10 +3676,7 @@ SPECIAL(wizard_library) {
   struct obj_data *obj = NULL;
   int spellnum = SPELL_RESERVED_DBC, spell_level = 0, cost = 100, i = 0;
 
-  if (!CMD_IS("research"))
-    return (FALSE);
-
-  else if (CMD_IS("research")) {
+  if (CMD_IS("research")) {
 
     if (!CLASS_LEVEL(ch, CLASS_WIZARD)) {
       send_to_char(ch, "You are not a wizard!\r\n");
@@ -3791,6 +3788,8 @@ SPECIAL(wizard_library) {
     USE_FULL_ROUND_ACTION(ch);
     return TRUE;
   }
+
+  /* they did not type research */
   return FALSE;
 }
 
