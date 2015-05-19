@@ -5546,7 +5546,7 @@ void perform_violence(struct char_data *ch, int phase) {
     }
   }
 
-  //your charmee, even if not groupped, should assist
+  //your charmee, even if not grouped, should assist
   for (charmee = world[IN_ROOM(ch)].people; charmee;
           charmee = charmee->next_in_room)
     if (AFF_FLAGGED(charmee, AFF_CHARM) && charmee->master == ch &&

@@ -513,7 +513,7 @@ int random_bonus_value(int apply_value, int level, int mod) {
   return adjust_bonus_value(apply_value, bonus);
 }
 
-/* when groupped, determine random recipient from group */
+/* when grouped, determine random recipient from group */
 struct char_data *find_treasure_recipient(struct char_data *ch) {
   struct group_data *group = NULL;
   struct char_data *target = NULL;

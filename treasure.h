@@ -193,7 +193,7 @@ extern const char *head_types[];
 /* some spells are not appropriate for expendable items, this simple
  function returns TRUE if the spell is OK, FALSE if not */
 bool valid_item_spell(int spellnum);
-/* when groupped, determine random recipient from group */
+/* when grouped, determine random recipient from group */
 struct char_data *find_treasure_recipient(struct char_data *killer);
 
 // determines whether the character will get treasure or not
