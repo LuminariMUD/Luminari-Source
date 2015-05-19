@@ -21,6 +21,9 @@
 #include "constants.h"
 #include "graph.h"
 #include "fight.h"
+#include "spec_procs.h"
+#include "mud_event.h"
+#include "actions.h"
 
 /* local functions */
 static int VALID_EDGE(room_rnum x, int y);
@@ -34,7 +37,8 @@ struct bfs_queue_struct {
   struct bfs_queue_struct *next;
 };
 
-static struct bfs_queue_struct *queue_head = 0, *queue_tail = 0;
+/* had to rename queue_head because it already exists in dg_event.h */
+static struct bfs_queue_struct *queue_head_2 = 0, *queue_tail = 0;
 
 /* Utility macros */
 #define MARK(room)	(SET_BIT_AR(ROOM_FLAGS(room), ROOM_BFS_MARK))
@@ -66,26 +70,26 @@ static void bfs_enqueue(room_rnum room, int dir) {
     queue_tail->next = curr;
     queue_tail = curr;
   } else
-    queue_head = queue_tail = curr;
+    queue_head_2 = queue_tail = curr;
 }
 
 static void bfs_dequeue(void) {
   struct bfs_queue_struct *curr;
 
-  curr = queue_head;
+  curr = queue_head_2;
 
-  if (!(queue_head = queue_head->next))
+  if (!(queue_head_2 = queue_head_2->next))
     queue_tail = 0;
   free(curr);
 }
 
 static void bfs_clear_queue(void) {
-  while (queue_head)
+  while (queue_head_2)
     bfs_dequeue();
 }
 
-/* find_first_step: given a source room and a target room, find the first step 
- * on the shortest path from the source to the target. Intended usage: in 
+/* find_first_step: given a source room and a target room, find the first step
+ * on the shortest path from the source to the target. Intended usage: in
  * mobile_activity, give a mob a dir to go if they're tracking another mob or a
  * PC.  Or, a 'track' skill for PCs. */
 int find_first_step(room_rnum src, room_rnum target) {
@@ -119,16 +123,16 @@ int find_first_step(room_rnum src, room_rnum target) {
     }
 
   /* now, do the classic BFS. */
-  while (queue_head) {
-    if (queue_head->room == target) {
-      curr_dir = queue_head->dir;
+  while (queue_head_2) {
+    if (queue_head_2->room == target) {
+      curr_dir = queue_head_2->dir;
       bfs_clear_queue();
       return (curr_dir);
     } else {
       for (curr_dir = 0; curr_dir < DIR_COUNT; curr_dir++)
-        if (VALID_EDGE(queue_head->room, curr_dir)) {
-          MARK(TOROOM(queue_head->room, curr_dir));
-          bfs_enqueue(TOROOM(queue_head->room, curr_dir), queue_head->dir);
+        if (VALID_EDGE(queue_head_2->room, curr_dir)) {
+          MARK(TOROOM(queue_head_2->room, curr_dir));
+          bfs_enqueue(TOROOM(queue_head_2->room, curr_dir), queue_head_2->dir);
         }
       bfs_dequeue();
     }
@@ -136,17 +140,19 @@ int find_first_step(room_rnum src, room_rnum target) {
 
   return (BFS_NO_PATH);
 }
-#undef FOOBAR
-#ifdef FOOBAR
 
 /* Functions and Commands which use the above functions. */
+
+/* our pimritive version of track, to be upgraded by Ornir at some point
+   (that work can be found commented out in act.informative.c do_track) */
 ACMD(do_track) {
   char arg[MAX_INPUT_LENGTH];
   struct char_data *vict;
-  int dir;
+  int dir, track_dc = 0;
+  int ch_in_wild = FALSE, vict_in_wild = FALSE;
 
   /* The character must have the track skill. */
-  if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_TRACK)) {
+  if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_TRACK)) {
     send_to_char(ch, "You have no idea how.\r\n");
     return;
   }
@@ -170,8 +176,14 @@ ACMD(do_track) {
     return;
   }
 
-  /* 101 is a complete failure, no matter what the proficiency. */
-  if (rand_number(0, 101) >= GET_SKILL(ch, SKILL_TRACK)) {
+  /* skill check */
+  if (IS_NPC(vict)) {
+    track_dc = GET_LEVEL(vict) + 10;
+  } else
+    track_dc = 10 + compute_ability(vict, ABILITY_SURVIVAL);
+
+  if (!skill_check(ch, ABILITY_SURVIVAL, track_dc)) {
+    USE_MOVE_ACTION(ch);
     int tries = 10;
     /* Find a random direction. :) */
     do {
@@ -182,25 +194,66 @@ ACMD(do_track) {
   }
 
   /* They passed the skill check. */
-  dir = find_first_step(IN_ROOM(ch), IN_ROOM(vict));
 
-  switch (dir) {
-    case BFS_ERROR:
-      send_to_char(ch, "Hmm.. something seems to be wrong.\r\n");
-      break;
-    case BFS_ALREADY_THERE:
-      send_to_char(ch, "You're already in the same room!!\r\n");
-      break;
-    case BFS_NO_PATH:
-      send_to_char(ch, "You can't sense a trail to %s from here.\r\n", HMHR(vict));
-      break;
-    default: /* Success! */
-      send_to_char(ch, "You sense a trail %s from here!\r\n", dirs[dir]);
-      break;
+  /* we are not handling transition between wilderness and zones at this stage */
+  if ( ((ch_in_wild = ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS)) &&
+         !ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(vict)), ZONE_WILDERNESS)) ||
+       (!ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS) &&
+         (vict_in_wild = ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(vict)), ZONE_WILDERNESS)))
+                     ) {
+    send_to_char(ch, "The trail has gone cold.");
+    return;
   }
-}
 
-#endif
+  /* handle wilderness */
+  if (ch_in_wild && vict_in_wild) {
+    int ch_x_location = X_LOC(ch);
+    int ch_y_location = Y_LOC(ch);
+    int vict_x_location = X_LOC(vict);
+    int vict_y_location = Y_LOC(vict);
+
+    if (vict_y_location == ch_y_location && vict_x_location == ch_x_location) {
+      send_to_char(ch, "You are already in the same room!");
+      return;
+    }
+
+    send_to_char(ch, "You sense a trail ");
+
+    /* y corresponds to north/south (duh) */
+    if (vict_y_location > ch_y_location) /* north! */
+      send_to_char(ch, "north");
+    else if (vict_y_location < ch_y_location) /* south! */
+      send_to_char(ch, "south");
+
+    /* x corresponds to east/west (duh) */
+    if (vict_x_location > ch_x_location) /* east! */
+      send_to_char(ch, "east");
+    else if (vict_x_location < ch_x_location) /* west! */
+      send_to_char(ch, "west");
+
+    send_to_char(ch, " from here!\r\n");
+  }
+
+  /* handle inside of a zone (stock) */
+  else {
+    dir = find_first_step(IN_ROOM(ch), IN_ROOM(vict));
+    switch (dir) {
+      case BFS_ERROR:
+        send_to_char(ch, "Hmm.. something seems to be wrong.\r\n");
+        break;
+      case BFS_ALREADY_THERE:
+        send_to_char(ch, "You're already in the same room!!\r\n");
+        break;
+      case BFS_NO_PATH:
+        send_to_char(ch, "You can't sense a trail to %s from here.\r\n", HMHR(vict));
+        break;
+      default: /* Success! */
+        send_to_char(ch, "You sense a trail %s from here!\r\n", dirs[dir]);
+        break;
+    }
+  }
+
+}
 
 void hunt_victim(struct char_data *ch) {
   int dir;
@@ -216,7 +269,7 @@ void hunt_victim(struct char_data *ch) {
   if (!HUNTING(ch)) {
     if (MOB_FLAGGED(ch, MOB_MEMORY) && MEMORY(ch)) {
       mem_found = FALSE;
-      for (mem_found = FALSE, tmp = character_list; tmp && !mem_found; 
+      for (mem_found = FALSE, tmp = character_list; tmp && !mem_found;
               tmp = tmp->next) {
         if (IS_NPC(tmp) || !CAN_SEE(ch, tmp) || PRF_FLAGGED(tmp, PRF_NOHASSLE))
           continue;
@@ -234,7 +287,7 @@ void hunt_victim(struct char_data *ch) {
     } else
       return;
   }
-  
+
   /* make sure the char still exists */
   for (found = FALSE, tmp = character_list; tmp && !found; tmp = tmp->next)
     if (HUNTING(ch) == tmp)
@@ -247,6 +300,8 @@ void hunt_victim(struct char_data *ch) {
     HUNTING(ch) = NULL;
     return;
   }
+
+
   if ((dir = find_first_step(IN_ROOM(ch), IN_ROOM(HUNTING(ch)))) < 0) {
     char buf[MAX_INPUT_LENGTH];
 

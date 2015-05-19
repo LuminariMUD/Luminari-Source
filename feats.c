@@ -717,6 +717,12 @@ void assign_feats(void) {
   feato(FEAT_TOUGHNESS, "toughness", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
     "+1 hp per level, +(level) hp upon taking",
     "+1 hp per level, +(level) hp upon taking");
+  /* rangers get this for free */
+  feato(FEAT_TRACK, "track", TRUE, FALSE, FALSE, FEAT_TYPE_GENERAL,
+    "use survival skill to track others",
+    "use survival skill to track others");
+    feat_prereq_ability(FEAT_TRACK, ABILITY_SURVIVAL, 19);
+
 
   /* Epic */
   feato(FEAT_EPIC_TOUGHNESS, "epic toughness", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
@@ -1345,7 +1351,6 @@ void assign_feats(void) {
   feato(FEAT_IMPROVED_REACTION, "improved reaction", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "+2 bonus to initiative checks (+4 at 8th class level)", "+2 bonus to initiative checks (+4 at 8th class level)");
   feato(FEAT_IMPROVED_SUNDER, "improved sunder", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
   feato(FEAT_SUNDER, "sunder", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
-  feato(FEAT_TRACK, "track", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "use survival skill to track others", "use survival skill to track others");
   feato(FEAT_MONKEY_GRIP, "monkey grip", FALSE, TRUE, TRUE, FEAT_TYPE_GENERAL, "can wield weapons one size larger than wielder in one hand with -2 to attacks.", "can wield weapons one size larger than wielder in one hand with -2 to attacks.");
   feato(FEAT_IMPROVED_INSTIGATION, "improved instigation", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
   feato(FEAT_IMPROVED_INTIMIDATION, "improved intimidation", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");

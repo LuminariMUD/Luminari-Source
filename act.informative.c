@@ -4011,6 +4011,7 @@ ACMD(do_exits) {
 }
 
 /* work in progress by Ornir */
+/*
 ACMD(do_track) {
 
   send_to_char(ch, "This skill is under construction currently..\r\n");
@@ -4089,6 +4090,7 @@ ACMD(do_track) {
     }
   }
 //}
+*/
 
 /* Event function for tracks, causing decay and eventual removal. */
 EVENTFUNC(event_tracks) {
