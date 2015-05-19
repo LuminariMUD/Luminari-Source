@@ -189,6 +189,7 @@
       <in>tedit.c</in>
       <in>telnet.h</in>
       <in>trade.c</in>
+      <in>trade.h</in>
       <in>traps.c</in>
       <in>traps.h</in>
       <in>treasure.c</in>
