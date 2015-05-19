@@ -314,18 +314,26 @@ void hunt_victim(struct char_data *ch) {
     int vict_x_location = X_LOC(vict);
     int vict_y_location = Y_LOC(vict);
 
+    if (vict_y_location == ch_y_location && vict_x_location == ch_x_location) {
+      /* found victim! */
+      act("'!!!!', exclaims $n.", FALSE, ch, 0, 0, TO_ROOM);
+      hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+      return;
+    }
+
     /* y corresponds to north/south (duh) */
     if (vict_y_location > ch_y_location) /* north! */
       perform_move(ch, NORTH, 1);
     else if (vict_y_location < ch_y_location) /* south! */
       perform_move(ch, SOUTH, 1);
     /* x corresponds to east/west (duh) */
-    else if (vict_x_location > ch_x_location) /* east! */
+    /* note we can make two moves */
+    if (vict_x_location > ch_x_location) /* east! */
       perform_move(ch, EAST, 1);
     else if (vict_x_location < ch_x_location) /* west! */
       perform_move(ch, WEST, 1);
 
-    if (vict_y_location == ch_y_location && vict_x_location == ch_x_location) {
+    if (IN_ROOM(ch) == IN_ROOM(vict)) {
       /* found victim! */
       act("'!!!!', exclaims $n.", FALSE, ch, 0, 0, TO_ROOM);
       hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
@@ -342,7 +350,7 @@ void hunt_victim(struct char_data *ch) {
       HUNTING(ch) = NULL;
     } else {
       perform_move(ch, dir, 1);
-      if (IN_ROOM(ch) == IN_ROOM(HUNTING(ch)) && !IS_PET(ch) && !FIGHTING(ch)) {
+      if (IN_ROOM(ch) == IN_ROOM(vict) && !IS_PET(ch) && !FIGHTING(ch)) {
         act("'!!!!', exclaims $n.", FALSE, ch, 0, 0, TO_ROOM);
         hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
       }
