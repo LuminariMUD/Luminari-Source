@@ -267,7 +267,7 @@ ACMD(do_ethshift) {
       return;
     }
 
-    /* ok we have a target, is this target groupped? */
+    /* ok we have a target, is this target grouped? */
     if (GROUP(shiftee) != GROUP(ch)) {
       send_to_char(ch, "You can only shift someone else if they are in the same "
               "group as you.\r\n");
