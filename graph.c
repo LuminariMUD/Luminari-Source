@@ -196,19 +196,8 @@ ACMD(do_track) {
 
   /* They passed the skill check. */
 
-  /* we are not handling transition between wilderness and zones at this stage */
   ch_in_wild = IS_WILDERNESS_VNUM(GET_ROOM_VNUM(IN_ROOM(ch)));
   vict_in_wild = IS_WILDERNESS_VNUM(GET_ROOM_VNUM(IN_ROOM(vict)));
-
-  /*
-  if ( ((ch_in_wild = ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS)) &&
-         !ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(vict)), ZONE_WILDERNESS)) ||
-       (!ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS) &&
-         (vict_in_wild = ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(vict)), ZONE_WILDERNESS)))
-                     ) {
-    return;
-  }
-  */
 
   /* handle wilderness */
   if (ch_in_wild && vict_in_wild) {
@@ -257,7 +246,8 @@ ACMD(do_track) {
         break;
     }
   }
-  /* one person in wild, one is not, no go */
+
+  /* one person in wild, one is not, we don't handle currently */
   else {
     send_to_char(ch, "The trail has gone cold.\r\n");
   }
@@ -268,8 +258,9 @@ void hunt_victim(struct char_data *ch) {
   int dir;
   byte found;
   bool mem_found = FALSE;
-  struct char_data *tmp;
+  struct char_data *tmp, *vict;
   memory_rec *names = NULL;
+  int ch_in_wild = FALSE, vict_in_wild = FALSE;
 
   if (!ch || FIGHTING(ch))
     return;
@@ -310,18 +301,51 @@ void hunt_victim(struct char_data *ch) {
     return;
   }
 
+  /* easier reference */
+  vict = HUNTING(ch);
 
-  if ((dir = find_first_step(IN_ROOM(ch), IN_ROOM(HUNTING(ch)))) < 0) {
-    char buf[MAX_INPUT_LENGTH];
+  ch_in_wild = IS_WILDERNESS_VNUM(GET_ROOM_VNUM(IN_ROOM(ch)));
+  vict_in_wild = IS_WILDERNESS_VNUM(GET_ROOM_VNUM(IN_ROOM(vict)));
 
-    snprintf(buf, sizeof (buf), "!?!");
-    do_say(ch, buf, 0, 0);
-    HUNTING(ch) = NULL;
-  } else {
-    perform_move(ch, dir, 1);
-    if (IN_ROOM(ch) == IN_ROOM(HUNTING(ch)) && !IS_PET(ch) && !FIGHTING(ch)) {
+  /* handle wilderness */
+  if (ch_in_wild && vict_in_wild) {
+    int ch_x_location = X_LOC(ch);
+    int ch_y_location = Y_LOC(ch);
+    int vict_x_location = X_LOC(vict);
+    int vict_y_location = Y_LOC(vict);
+
+    /* y corresponds to north/south (duh) */
+    if (vict_y_location > ch_y_location) /* north! */
+      perform_move(ch, NORTH, 1);
+    else if (vict_y_location < ch_y_location) /* south! */
+      perform_move(ch, SOUTH, 1);
+    /* x corresponds to east/west (duh) */
+    else if (vict_x_location > ch_x_location) /* east! */
+      perform_move(ch, EAST, 1);
+    else if (vict_x_location < ch_x_location) /* west! */
+      perform_move(ch, WEST, 1);
+
+    if (vict_y_location == ch_y_location && vict_x_location == ch_x_location) {
+      /* found victim! */
       act("'!!!!', exclaims $n.", FALSE, ch, 0, 0, TO_ROOM);
-      hit(ch, HUNTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+      hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+      return;
+    }
+  }
+    /* handle inside of a zone (stock) */
+  else if (!ch_in_wild && !vict_in_wild) {
+    if ((dir = find_first_step(IN_ROOM(ch), IN_ROOM(vict))) < 0) {
+      char buf[MAX_INPUT_LENGTH];
+
+      snprintf(buf, sizeof (buf), "!?!");
+      do_say(ch, buf, 0, 0);
+      HUNTING(ch) = NULL;
+    } else {
+      perform_move(ch, dir, 1);
+      if (IN_ROOM(ch) == IN_ROOM(HUNTING(ch)) && !IS_PET(ch) && !FIGHTING(ch)) {
+        act("'!!!!', exclaims $n.", FALSE, ch, 0, 0, TO_ROOM);
+        hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+      }
     }
   }
 }
