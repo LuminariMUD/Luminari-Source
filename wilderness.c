@@ -675,11 +675,24 @@ void show_wilderness_map(struct char_data* ch, int size, int x, int y) {
 
   //  send_to_char(ch, "%s", wilderness_map_to_string(map, size));
 
-  send_to_char(ch,
+  if (!IS_NPC(ch))
+    send_to_char(ch,
                "%s",
                strpaste(wilderness_map_to_string(map, size, WILD_MAP_SHAPE_CIRCLE),
                         strfrmt(world[IN_ROOM(ch)].description,
                                 GET_SCREEN_WIDTH(ch) - size,
+                                size,
+                                FALSE,
+                                TRUE,
+                                TRUE),
+                        " \tn")
+               );
+  else
+    send_to_char(ch,
+               "%s",
+               strpaste(wilderness_map_to_string(map, size, WILD_MAP_SHAPE_CIRCLE),
+                        strfrmt(world[IN_ROOM(ch)].description,
+                                80 - size,
                                 size,
                                 FALSE,
                                 TRUE,
