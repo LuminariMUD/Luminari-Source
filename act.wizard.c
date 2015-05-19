@@ -1250,8 +1250,8 @@ ACMD(do_switch) {
   struct char_data *victim;
 
   /* temporarily disabled while adapting to wilderness */
-  /**/send_to_char(ch, "Under construction.\r\n");   /**/
-  /**/return;                                        /**/
+  //send_to_char(ch, "Under construction.\r\n");   /**/
+  //return;                                        /**/
   /* temporarily disabled while adapting to wilderness */
 
   one_argument(argument, arg);
