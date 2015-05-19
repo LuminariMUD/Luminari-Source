@@ -225,11 +225,6 @@ int crystal_bonus(struct obj_data *crystal, int mod) {
 
   switch (GET_OBJ_VAL(crystal, 0)) {
 
-    case APPLY_CHAR_WEIGHT:
-    case APPLY_CHAR_HEIGHT:
-      bonus *= 10;
-      break;
-
     case APPLY_HIT:
       bonus *= 12;
       break;
@@ -238,14 +233,6 @@ int crystal_bonus(struct obj_data *crystal, int mod) {
       bonus *= 24;
       break;
 
-    case APPLY_AC:
-      bonus *= -5;
-      break;
-
-    case APPLY_HITROLL:
-    case APPLY_DAMROLL:
-      bonus += 2;
-      break;
 
     default: // default - unmodified
       break;
