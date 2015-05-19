@@ -4206,6 +4206,10 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       send_to_char(ch, "You don't quite remember how to make that creature.\r\n");
       return;
     }
+    if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS)) {
+      X_LOC(mob) = world[IN_ROOM(ch)].coords[0];
+      Y_LOC(mob) = world[IN_ROOM(ch)].coords[1];
+    }
     char_to_room(mob, IN_ROOM(ch));
     IS_CARRYING_W(mob) = 0;
     IS_CARRYING_N(mob) = 0;
