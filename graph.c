@@ -24,6 +24,7 @@
 #include "spec_procs.h"
 #include "mud_event.h"
 #include "actions.h"
+#include "wilderness.h"
 
 /* local functions */
 static int VALID_EDGE(room_rnum x, int y);
@@ -196,14 +197,18 @@ ACMD(do_track) {
   /* They passed the skill check. */
 
   /* we are not handling transition between wilderness and zones at this stage */
+  ch_in_wild = IS_WILDERNESS_VNUM(GET_ROOM_VNUM(IN_ROOM(ch)));
+  vict_in_wild = IS_WILDERNESS_VNUM(GET_ROOM_VNUM(IN_ROOM(vict)));
+
+  /*
   if ( ((ch_in_wild = ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS)) &&
          !ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(vict)), ZONE_WILDERNESS)) ||
        (!ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS) &&
          (vict_in_wild = ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(vict)), ZONE_WILDERNESS)))
                      ) {
-    send_to_char(ch, "The trail has gone cold.");
     return;
   }
+  */
 
   /* handle wilderness */
   if (ch_in_wild && vict_in_wild) {
@@ -235,7 +240,7 @@ ACMD(do_track) {
   }
 
   /* handle inside of a zone (stock) */
-  else {
+  else if (!ch_in_wild && !vict_in_wild) {
     dir = find_first_step(IN_ROOM(ch), IN_ROOM(vict));
     switch (dir) {
       case BFS_ERROR:
@@ -251,6 +256,10 @@ ACMD(do_track) {
         send_to_char(ch, "You sense a trail %s from here!\r\n", dirs[dir]);
         break;
     }
+  }
+  /* one person in wild, one is not, no go */
+  else {
+    send_to_char(ch, "The trail has gone cold.\r\n");
   }
 
 }
