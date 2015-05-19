@@ -28,7 +28,8 @@
  function returns TRUE if the spell is OK, FALSE if not */
 bool valid_item_spell(int spellnum) {
   /* just list exceptions NOTE if you add any exception here, better make
-   sure wizards have another way of getting the spell */
+   sure wizards have another way of getting the spell
+   * update: added 'research' so wizards have another way to acquire spells */
   switch (spellnum) {
     case SPELL_VENTRILOQUATE:
     case SPELL_MUMMY_DUST:
@@ -124,320 +125,159 @@ int choose_cloth_material(void) {
   }
 }
 
-/* returns random apply value from a list of values staff approved */
-/* used for crystals and misc. wear-slots (not weapon or primary armor slots) */
-int random_apply_value(void) {
-  int val = APPLY_NONE;
+/* determine appropriate stat bonus apply for this piece of gear */
+int determine_stat_apply(int wear) {
+  int stat = APPLY_NONE;
 
-  /* There will be different groupings based on item type and wear location,
-   * for example weapons will get hit/dam bonus (the +) and armor will get
-   * ac_apply_new bonus (the +). */
-  switch (dice(1, 12)) {
-    case 1:
-      val = APPLY_HIT;
-      break;
-    case 2:
-      val = APPLY_STR;
-      break;
-    case 3:
-      val = APPLY_CON;
-      break;
-    case 4:
-      val = APPLY_DEX;
-      break;
-    case 5:
-      val = APPLY_INT;
-      break;
-    case 6:
-      val = APPLY_WIS;
-      break;
-    case 7:
-      val = APPLY_CHA;
-      break;
-    case 8:
-      val = APPLY_MOVE;
-      break;
-    case 9:
-      val = APPLY_SAVING_FORT;
-      break;
-    case 10:
-      val = APPLY_SAVING_REFL;
-      break;
-    case 11:
-      val = APPLY_SAVING_WILL;
-      break;
-    default:
-      switch (rand_number(1, 20)) {
+  switch (wear) {
+    case WEAR_FINGER_R:
+    case WEAR_FINGER_L:
+      switch (rand_number(1, 7)) {
         case 1:
-          val = APPLY_RES_FIRE;
+          stat = APPLY_WIS;
           break;
         case 2:
-          val = APPLY_RES_COLD;
+          stat = APPLY_SAVING_WILL;
           break;
         case 3:
-          val = APPLY_RES_AIR;
+          stat = APPLY_HIT;
           break;
         case 4:
-          val = APPLY_RES_EARTH;
+          stat = APPLY_RES_FIRE;
           break;
         case 5:
-          val = APPLY_RES_ACID;
+          stat = APPLY_RES_PUNCTURE;
           break;
         case 6:
-          val = APPLY_RES_HOLY;
+          stat = APPLY_RES_ILLUSION;
           break;
         case 7:
-          val = APPLY_RES_ELECTRIC;
-          break;
-        case 8:
-          val = APPLY_RES_UNHOLY;
-          break;
-        case 9:
-          val = APPLY_RES_SLICE;
-          break;
-        case 10:
-          val = APPLY_RES_PUNCTURE;
-          break;
-        case 11:
-          val = APPLY_RES_FORCE;
-          break;
-        case 12:
-          val = APPLY_RES_SOUND;
-          break;
-        case 13:
-          val = APPLY_RES_POISON;
-          break;
-        case 14:
-          val = APPLY_RES_DISEASE;
-          break;
-        case 15:
-          val = APPLY_RES_NEGATIVE;
-          break;
-        case 16:
-          val = APPLY_RES_ILLUSION;
-          break;
-        case 17:
-          val = APPLY_RES_MENTAL;
-          break;
-        case 18:
-          val = APPLY_RES_LIGHT;
-          break;
-        case 19:
-          val = APPLY_RES_ENERGY;
-          break;
-        case 20:
-          val = APPLY_RES_WATER;
+          stat = APPLY_RES_ENERGY;
           break;
       }
-  }
-  return val;
-}
-
-/* Return apply value for armor from a list of values staff approved */
-int random_armor_apply_value(void) {
-  int val = APPLY_NONE;
-
-  switch (dice(1, 12)) {
-    case 1:
-      val = APPLY_STR;
       break;
-    case 2:
-      val = APPLY_CON;
-      break;
-    case 3:
-      val = APPLY_DEX;
-      break;
-    case 4:
-      val = APPLY_INT;
-      break;
-    case 5:
-      val = APPLY_WIS;
-      break;
-    case 6:
-      val = APPLY_CHA;
-      break;
-    case 7:
-      val = APPLY_MOVE;
-      break;
-    case 8:
-      val = APPLY_HIT;
-      break;
-    case 9:
-      val = APPLY_SAVING_FORT;
-      break;
-    case 10:
-      val = APPLY_SAVING_REFL;
-      break;
-    case 11:
-      val = APPLY_SAVING_WILL;
-      break;
-    default:
-      switch (rand_number(1, 20)) {
+    case WEAR_NECK_1:
+    case WEAR_NECK_2:
+      switch (rand_number(1, 7)) {
         case 1:
-          val = APPLY_RES_FIRE;
+          stat = APPLY_INT;
           break;
         case 2:
-          val = APPLY_RES_COLD;
+          stat = APPLY_SAVING_REFL;
           break;
         case 3:
-          val = APPLY_RES_AIR;
+          stat = APPLY_RES_COLD;
           break;
         case 4:
-          val = APPLY_RES_EARTH;
+          stat = APPLY_RES_AIR;
           break;
         case 5:
-          val = APPLY_RES_ACID;
+          stat = APPLY_RES_FORCE;
           break;
         case 6:
-          val = APPLY_RES_HOLY;
+          stat = APPLY_RES_MENTAL;
           break;
         case 7:
-          val = APPLY_RES_ELECTRIC;
-          break;
-        case 8:
-          val = APPLY_RES_UNHOLY;
-          break;
-        case 9:
-          val = APPLY_RES_SLICE;
-          break;
-        case 10:
-          val = APPLY_RES_PUNCTURE;
-          break;
-        case 11:
-          val = APPLY_RES_FORCE;
-          break;
-        case 12:
-          val = APPLY_RES_SOUND;
-          break;
-        case 13:
-          val = APPLY_RES_POISON;
-          break;
-        case 14:
-          val = APPLY_RES_DISEASE;
-          break;
-        case 15:
-          val = APPLY_RES_NEGATIVE;
-          break;
-        case 16:
-          val = APPLY_RES_ILLUSION;
-          break;
-        case 17:
-          val = APPLY_RES_MENTAL;
-          break;
-        case 18:
-          val = APPLY_RES_LIGHT;
-          break;
-        case 19:
-          val = APPLY_RES_ENERGY;
-          break;
-        case 20:
-          val = APPLY_RES_WATER;
+          stat = APPLY_RES_WATER;
           break;
       }
-  }
-  return val;
-}
-
-/* Returns apply value for weapons from a list of values staff approved */
-int random_weapon_apply_value(void) {
-  int val = APPLY_NONE;
-
-  switch (dice(1, 11)) {
-    case 1:
-      val = APPLY_AC_NEW;
       break;
-    case 2:
-      val = APPLY_STR;
-      break;
-    case 3:
-      val = APPLY_CON;
-      break;
-    case 4:
-      val = APPLY_DEX;
-      break;
-    case 5:
-      val = APPLY_INT;
-      break;
-    case 6:
-      val = APPLY_WIS;
-      break;
-    case 7:
-      val = APPLY_CHA;
-      break;
-    case 8:
-      val = APPLY_SAVING_FORT;
-      break;
-    case 9:
-      val = APPLY_SAVING_REFL;
-      break;
-    case 10:
-      val = APPLY_SAVING_WILL;
-      break;
-    default:
-      switch (rand_number(1, 20)) {
+    case WEAR_WRIST_R:
+    case WEAR_WRIST_L:
+      switch (rand_number(1, 6)) {
         case 1:
-          val = APPLY_RES_FIRE;
+          stat = APPLY_SAVING_FORT;
           break;
         case 2:
-          val = APPLY_RES_COLD;
+          stat = APPLY_MANA;
           break;
         case 3:
-          val = APPLY_RES_AIR;
+          stat = APPLY_RES_ELECTRIC;
           break;
         case 4:
-          val = APPLY_RES_EARTH;
+          stat = APPLY_RES_UNHOLY;
           break;
         case 5:
-          val = APPLY_RES_ACID;
+          stat = APPLY_RES_SOUND;
           break;
         case 6:
-          val = APPLY_RES_HOLY;
-          break;
-        case 7:
-          val = APPLY_RES_ELECTRIC;
-          break;
-        case 8:
-          val = APPLY_RES_UNHOLY;
-          break;
-        case 9:
-          val = APPLY_RES_SLICE;
-          break;
-        case 10:
-          val = APPLY_RES_PUNCTURE;
-          break;
-        case 11:
-          val = APPLY_RES_FORCE;
-          break;
-        case 12:
-          val = APPLY_RES_SOUND;
-          break;
-        case 13:
-          val = APPLY_RES_POISON;
-          break;
-        case 14:
-          val = APPLY_RES_DISEASE;
-          break;
-        case 15:
-          val = APPLY_RES_NEGATIVE;
-          break;
-        case 16:
-          val = APPLY_RES_ILLUSION;
-          break;
-        case 17:
-          val = APPLY_RES_MENTAL;
-          break;
-        case 18:
-          val = APPLY_RES_LIGHT;
-          break;
-        case 19:
-          val = APPLY_RES_ENERGY;
-          break;
-        case 20:
-          val = APPLY_RES_WATER;
+          stat = APPLY_RES_LIGHT;
           break;
       }
+      break;
+    case WEAR_HOLD_1:
+    case WEAR_HOLD_2:
+    case WEAR_HOLD_2H:
+      switch (rand_number(1, 3)) {
+        case 1:
+          stat = APPLY_INT;
+          break;
+        case 2:
+          stat = APPLY_CHA;
+          break;
+        case 3:
+          stat = APPLY_HIT;
+          break;
+      }
+      break;
+    case WEAR_FEET:
+      switch (rand_number(1, 3)) {
+        case 1:
+          stat = APPLY_RES_POISON;
+          break;
+        case 2:
+          stat = APPLY_DEX;
+          break;
+        case 3:
+          stat = APPLY_MOVE;
+          break;
+      }
+      break;
+    case WEAR_HANDS:
+      switch (rand_number(1, 3)) {
+        case 1:
+          stat = APPLY_RES_SLICE;
+          break;
+        case 2:
+          stat = APPLY_STR;
+          break;
+        case 3:
+          stat = APPLY_RES_DISEASE;
+          break;
+      }
+      break;
+    case WEAR_ABOUT:
+      switch (rand_number(1, 3)) {
+        case 1:
+          stat = APPLY_RES_ACID;
+          break;
+        case 2:
+          stat = APPLY_CHA;
+          break;
+        case 3:
+          stat = APPLY_RES_NEGATIVE;
+          break;
+      }
+      break;
+    case WEAR_WAIST:
+      switch (rand_number(1, 3)) {
+        case 1:
+          stat = APPLY_RES_HOLY;
+          break;
+        case 2:
+          stat = APPLY_CON;
+          break;
+        case 3:
+          stat = APPLY_RES_EARTH;
+          break;
+      }
+      break;
+    default:
+      stat = APPLY_NONE;
+
   }
-  return val;
+
+  return stat;
 }
 
 /* added this because the apply_X bonus is capped, stop it before
@@ -447,59 +287,26 @@ int random_weapon_apply_value(void) {
 /* called by random_bonus_value(), cp_modify_object_applies(), */
 int adjust_bonus_value(int apply_location, int bonus) {
   int adjusted_bonus = bonus;
-
   switch (apply_location) {
-    case APPLY_AC_NEW:
-      adjusted_bonus = MIN(1, bonus/2);
-      break;
     case APPLY_HIT:
     case APPLY_MOVE:
-      adjusted_bonus = bonus * 10;
+      adjusted_bonus = bonus * 12;
       break;
     /* no modifications */
-    case APPLY_HITROLL:
-    case APPLY_DAMROLL:
-    case APPLY_STR:
-    case APPLY_CON:
-    case APPLY_DEX:
-    case APPLY_INT:
-    case APPLY_WIS:
-    case APPLY_CHA:
-    case APPLY_SAVING_FORT:
-    case APPLY_SAVING_REFL:
-    case APPLY_SAVING_WILL:
     default:
       break;
   }
-
   return MIN(RANDOM_BONUS_CAP, adjusted_bonus);
 }
 
 /* assign bonus-types to the bonus */
 /* called by: cp_modify_object_applies() */
 int adjust_bonus_type(int apply_location) {
-  int roll = dice(1,100); // Roll percentile
-
   switch (apply_location) {
-    case APPLY_AC_NEW:
-      if (roll > 80) { // 20%
-        return BONUS_TYPE_DEFLECTION;
-      } else
-        return BONUS_TYPE_ARMOR;
     case APPLY_SAVING_FORT:
     case APPLY_SAVING_REFL:
     case APPLY_SAVING_WILL:
       return BONUS_TYPE_RESISTANCE;
-    case APPLY_HIT:
-    case APPLY_MOVE:
-    case APPLY_HITROLL:
-    case APPLY_DAMROLL:
-    case APPLY_STR:
-    case APPLY_CON:
-    case APPLY_DEX:
-    case APPLY_INT:
-    case APPLY_WIS:
-    case APPLY_CHA:
     default:
       return BONUS_TYPE_ENHANCEMENT;
       break;
@@ -642,6 +449,113 @@ void award_magic_item(int number, struct char_data *ch, int level, int grade) {
   }
 }
 
+int random_apply_value(void) {
+  int val = APPLY_NONE;
+
+  /* There will be different groupings based on item type and wear location,
+   * for example weapons will get hit/dam bonus (the +) and armor will get
+   * ac_apply_new bonus (the +). */
+  switch (dice(1, 12)) {
+    case 1:
+      val = APPLY_HIT;
+      break;
+    case 2:
+      val = APPLY_STR;
+      break;
+    case 3:
+      val = APPLY_CON;
+      break;
+    case 4:
+      val = APPLY_DEX;
+      break;
+    case 5:
+      val = APPLY_INT;
+      break;
+    case 6:
+      val = APPLY_WIS;
+      break;
+    case 7:
+      val = APPLY_CHA;
+      break;
+    case 8:
+      val = APPLY_MOVE;
+      break;
+    case 9:
+      val = APPLY_SAVING_FORT;
+      break;
+    case 10:
+      val = APPLY_SAVING_REFL;
+      break;
+    case 11:
+      val = APPLY_SAVING_WILL;
+      break;
+    default:
+      switch (rand_number(1, 20)) {
+        case 1:
+          val = APPLY_RES_FIRE;
+          break;
+        case 2:
+          val = APPLY_RES_COLD;
+          break;
+        case 3:
+          val = APPLY_RES_AIR;
+          break;
+        case 4:
+          val = APPLY_RES_EARTH;
+          break;
+        case 5:
+          val = APPLY_RES_ACID;
+          break;
+        case 6:
+          val = APPLY_RES_HOLY;
+          break;
+        case 7:
+          val = APPLY_RES_ELECTRIC;
+          break;
+        case 8:
+          val = APPLY_RES_UNHOLY;
+          break;
+        case 9:
+          val = APPLY_RES_SLICE;
+          break;
+        case 10:
+          val = APPLY_RES_PUNCTURE;
+          break;
+        case 11:
+          val = APPLY_RES_FORCE;
+          break;
+        case 12:
+          val = APPLY_RES_SOUND;
+          break;
+        case 13:
+          val = APPLY_RES_POISON;
+          break;
+        case 14:
+          val = APPLY_RES_DISEASE;
+          break;
+        case 15:
+          val = APPLY_RES_NEGATIVE;
+          break;
+        case 16:
+          val = APPLY_RES_ILLUSION;
+          break;
+        case 17:
+          val = APPLY_RES_MENTAL;
+          break;
+        case 18:
+          val = APPLY_RES_LIGHT;
+          break;
+        case 19:
+          val = APPLY_RES_ENERGY;
+          break;
+        case 20:
+          val = APPLY_RES_WATER;
+          break;
+      }
+  }
+  return val;
+}
+
 /* function to create a random crystal */
 void award_random_crystal(struct char_data *ch, int level) {
   int color1 = -1, color2 = -1, desc = -1, roll = 0;
@@ -656,6 +570,7 @@ void award_random_crystal(struct char_data *ch, int level) {
   /* this is just to make sure the item is set correctly */
   GET_OBJ_TYPE(obj) = ITEM_CRYSTAL;
   GET_OBJ_LEVEL(obj) = rand_number(6, level);
+  level = GET_OBJ_LEVEL(obj); /* for determining bonus */
   GET_OBJ_COST(obj) = GET_OBJ_LEVEL(obj) * 100;
   GET_OBJ_MATERIAL(obj) = MATERIAL_CRYSTAL;
 
@@ -663,8 +578,8 @@ void award_random_crystal(struct char_data *ch, int level) {
   obj->affected[0].location = random_apply_value();
   /* determine bonus */
   /* this is deprecated, level determines modifier now (in craft.c) */
-  obj->affected[0].modifier =
-          random_bonus_value(obj->affected[0].location, GET_OBJ_LEVEL(obj), 0);
+  obj->affected[0].modifier = level / 5 + rand_number(0, 2);
+  obj->affected[0].bonus_type = adjust_bonus_type(obj->affected[0].location);
 
   /* random color(s) and description */
   color1 = rand_number(0, NUM_A_COLORS);
@@ -976,8 +891,72 @@ void award_expendable_item(struct char_data *ch, int grade, int type) {
   act(buf, FALSE, ch, 0, ch, TO_NOTVICT);
 }
 
-/* Here is where the significant changes start (cp = Creation Points) - Ornir */
+/* this is a very simplified version of this function, the original version was
+ incomplete and creating some very strange gear with some crazy stats.  The
+ original version is right below this */
 void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
+        int rare_grade, int level, int cp_type) {
+  int bonus_value = 0, bonus_location = APPLY_NONE;
+  bool has_enhancement = FALSE;
+  char buf[MAX_STRING_LENGTH] = {'\0'};
+
+  level = (rand_number(1, level)); /* this is as random as it gets right now */
+  bonus_value = level / 5; if (bonus_value <= 0) bonus_value = 1;
+
+  /* items that will only get an enhancement bonus */
+  if (CAN_WEAR(obj, ITEM_WEAR_WIELD) || CAN_WEAR(obj, ITEM_WEAR_SHIELD) ||
+      CAN_WEAR(obj, ITEM_WEAR_HEAD) || CAN_WEAR(obj, ITEM_WEAR_BODY) ||
+      CAN_WEAR(obj, ITEM_WEAR_LEGS) || CAN_WEAR(obj, ITEM_WEAR_ARMS)
+      ) {
+    GET_OBJ_VAL(obj, 4) = level / 5;
+    has_enhancement = TRUE;
+  }
+  else if (CAN_WEAR(obj, ITEM_WEAR_FINGER)) {
+    bonus_location = determine_stat_apply(WEAR_FINGER_R);
+  }
+  else if (CAN_WEAR(obj, ITEM_WEAR_NECK)) {
+    bonus_location = determine_stat_apply(WEAR_NECK_1);
+  }
+  else if (CAN_WEAR(obj, ITEM_WEAR_FEET)) {
+    bonus_location = determine_stat_apply(WEAR_FEET);
+  }
+  else if (CAN_WEAR(obj, ITEM_WEAR_HANDS)) {
+    bonus_location = determine_stat_apply(WEAR_HANDS);
+  }
+  else if (CAN_WEAR(obj, ITEM_WEAR_ABOUT)) {
+    bonus_location = determine_stat_apply(WEAR_ABOUT);
+  }
+  else if (CAN_WEAR(obj, ITEM_WEAR_WAIST)) {
+    bonus_location = determine_stat_apply(WEAR_WAIST);
+  }
+  else if (CAN_WEAR(obj, ITEM_WEAR_WRIST)) {
+    bonus_location = determine_stat_apply(WEAR_WRIST_R);
+  }
+  else if (CAN_WEAR(obj, ITEM_WEAR_HOLD)) {
+    bonus_location = determine_stat_apply(WEAR_HOLD_1);
+  }
+
+  if (!has_enhancement) {
+    obj->affected[0].location = bonus_location;
+    obj->affected[0].modifier = adjust_bonus_value(bonus_location, bonus_value);
+    obj->affected[0].bonus_type = adjust_bonus_type(bonus_location);
+  }
+
+  GET_OBJ_LEVEL(obj) = level;
+  GET_OBJ_COST(obj) = GET_OBJ_LEVEL(obj) * 100;  // set value
+  REMOVE_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MOLD);  // make sure not mold
+  if (level >= 5)
+    SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC);  // add magic tag
+
+  obj_to_char(obj, ch); // deliver object
+
+  send_to_char(ch, "\tYYou have found %s in a nearby lair!\tn\r\n", obj->short_description);
+  sprintf(buf, "$n \tYhas found %s in a nearby lair!\tn", obj->short_description);
+  act(buf, FALSE, ch, 0, ch, TO_NOTVICT);
+}
+/* this is ornir's original version, taken out until he has time to finish it */
+/* Here is where the significant changes start (cp = Creation Points) - Ornir */
+/*void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
         int rare_grade, int level, int cp_type) {
   int max_slots = 0;
   int current_slot = 1;
@@ -992,38 +971,38 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
 
   switch (cp_type) {
     case CP_TYPE_MISC:
-      max_slots = 1; /* Trinkets */
+      max_slots = 1; // Trinkets
       break;
     case CP_TYPE_ARMOR:
-      max_slots = 2; /* AC_APPLY takes 1! */
+      max_slots = 2; // AC_APPLY takes 1!
       break;
     case CP_TYPE_WEAPON:
-      max_slots = 3; /* TOHIT/TODAM takes 2! */
+      max_slots = 3; // TOHIT/TODAM takes 2!
       break;
     default:
       break;
   }
 
-  /* Get the base CP for the item based on the level. */
+  // Get the base CP for the item based on the level.
   current_cp = CP_BASE_VALUE(level);
 
-  /* Add bonus CP and slots for rarity */
+  // Add bonus CP and slots for rarity
   current_cp += rare_grade * 100;
   if (rare_grade >= 2)
     max_slots += 1;
 
-  /* DEBUG */
+  // DEBUG
   if (GET_LEVEL(ch) >= LVL_IMMORTAL)
     send_to_char(ch, "\tyItem created, level: %d CP: %d\tn\r\n", level, current_cp);
 
-  /* Add bonuses, one bonus to each slot. */
+  // Add bonuses, one bonus to each slot.
   while (current_slot <= max_slots) {
 
-    /* Determine bonus location, check if first bonus too */
+    // Determine bonus location, check if first bonus too
     switch (cp_type) {
       case CP_TYPE_ARMOR:
-        /* Since this is armor, the first bonus is ALWAYS AC
-         Note: this is just a marker now, we have enhancement bonus instead */
+        // Since this is armor, the first bonus is ALWAYS AC
+        // Note: this is just a marker now, we have enhancement bonus instead
         if(current_slot == 1)
           bonus_location = APPLY_AC_NEW;
         else
@@ -1031,19 +1010,19 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
         break;
 
       case CP_TYPE_WEAPON:
-        /* Since this is a weapon, the first 2 bonuses are TOHIT and TODAM
-         Note: this is just a marker now, we have enhancement bonus instead */
+        // Since this is a weapon, the first 2 bonuses are TOHIT and TODAM
+        // Note: this is just a marker now, we have enhancement bonus instead
         if(current_slot == 1)
           bonus_location = APPLY_HITROLL; // We Apply TODAM later...
         else
           bonus_location = random_weapon_apply_value();
         break;
-      default: /* misc types */
+      default: // misc types
         bonus_location = random_apply_value();
         break;
     }
 
-    /* Check for duplicate affects */
+    // Check for duplicate affects
     duplicate_affect = FALSE;
     for(i = 0; i > MAX_OBJ_AFFECT; i++){
       if(obj->affected[i].location == bonus_location){
@@ -1051,10 +1030,10 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
         break;
       }
     }
-    /* Only add the affect if it is not a duplicate affect location! */
+    // Only add the affect if it is not a duplicate affect location!
     if(duplicate_affect != TRUE) {
 
-      /* Based on CP remaining, how HIGH a bonus can we get here? */
+      // Based on CP remaining, how HIGH a bonus can we get here?
       switch (cp_type) {
         case CP_TYPE_ARMOR:
           max_bonus = TREASURE_MAX_BONUS;
@@ -1070,18 +1049,18 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
         max_bonus_cp_cost = CP_COST(max_bonus);
       }
 
-      /* If we CAN apply a bonus, based on CP, then determine value. */
+      // If we CAN apply a bonus, based on CP, then determine value.
       if (max_bonus > 0) {
-        /* Choose a bonus value from 1 to that bonus amount. */
+        // Choose a bonus value from 1 to that bonus amount.
         bonus_value = rand_number(1, max_bonus);
         current_cp -= CP_COST(bonus_value);
         if (cp_type == CP_TYPE_WEAPON && bonus_location == APPLY_HITROLL) {
-          GET_OBJ_VAL(obj, 4) = adjust_bonus_value(APPLY_DAMROLL, bonus_value); /* Set enhancement bonus.*/
+          GET_OBJ_VAL(obj, 4) = adjust_bonus_value(APPLY_DAMROLL, bonus_value); // Set enhancement bonus
           current_slot++;
-          /* added this code to handle armor enhancement -zusuk */
+          // added this code to handle armor enhancement -zusuk
         } else if (cp_type == CP_TYPE_ARMOR && bonus_location == APPLY_AC_NEW) {
-          /* it doesn't matter we're sending APPLY_DAMROLL here */
-          GET_OBJ_VAL(obj, 4) = adjust_bonus_value(APPLY_DAMROLL, bonus_value); /* Set enhancement bonus.*/
+          // it doesn't matter we're sending APPLY_DAMROLL here
+          GET_OBJ_VAL(obj, 4) = adjust_bonus_value(APPLY_DAMROLL, bonus_value); // Set enhancement bonus.
           //current_slot++;
         } else {
           obj->affected[current_slot - 1].location = bonus_location;
@@ -1092,20 +1071,21 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
       }
     }
     current_slot++;
-  } /* end while */
+  } // end while
 
   GET_OBJ_LEVEL(obj) = level;
-  GET_OBJ_COST(obj) = GET_OBJ_LEVEL(obj) * 100;  /* set value */
-  REMOVE_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MOLD);  /* make sure not mold */
+  GET_OBJ_COST(obj) = GET_OBJ_LEVEL(obj) * 100;  // set value
+  REMOVE_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MOLD);  // make sure not mold
   if (level >= 5)
-    SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC);  /* add magic tag */
+    SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC);  // add magic tag
 
-  obj_to_char(obj, ch); /* deliver object */
+  obj_to_char(obj, ch); // deliver object
 
   send_to_char(ch, "\tYYou have found %s in a nearby lair!\tn\r\n", obj->short_description);
   sprintf(buf, "$n \tYhas found %s in a nearby lair!\tn", obj->short_description);
   act(buf, FALSE, ch, 0, ch, TO_NOTVICT);
 }
+*/
 
 /* Give away random magic armor, new method by Ornir
  * (includes:  body/head/legs/arms/shield)
