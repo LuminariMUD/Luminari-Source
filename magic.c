@@ -27,6 +27,8 @@
 #include "mudlim.h"
 #include "oasis.h"  // mob autoroller
 #include "assign_wpn_armor.h"
+#include "domains_schools.h"
+#include "feats.h"
 
 //external
 extern struct raff_node *raff_list;
@@ -155,7 +157,7 @@ const char *save_names[] = {"Fort", "Refl", "Will", "", ""};
 // FALSE = Failed to resist
 // modifier applies to victim, higher the better (for the victim)
 int mag_savingthrow(struct char_data *ch, struct char_data *vict,
-                    int type, int modifier, int casttype, int level) {
+                    int type, int modifier, int casttype, int level, int school) {
   int challenge = 10, // 10 is base DC
           diceroll = dice(1, 20),
           stat_bonus = 0,
@@ -190,6 +192,12 @@ int mag_savingthrow(struct char_data *ch, struct char_data *vict,
         challenge += stat_bonus;
       }
       break;
+  }
+
+  if (has_feat(ch, FEAT_SPELL_FOCUS) && HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_SPELL_FOCUS), school)) {
+    /*deubg*/
+    send_to_char(ch, "Bingo!\r\n");
+    challenge++;
   }
 
   if (AFF_FLAGGED(vict, AFF_PROTECT_GOOD) && IS_GOOD(ch))
@@ -459,13 +467,14 @@ static int mag_materials(struct char_data *ch, IDXTYPE item0,
 int mag_damage(int level, struct char_data *ch, struct char_data *victim,
         struct obj_data *wpn, int spellnum, int savetype, int casttype) {
   int dam = 0, element = 0, num_dice = 0, save = savetype, size_dice = 0,
-          bonus = 0, mag_resist = TRUE;
+          bonus = 0, mag_resist = TRUE, spell_school = NOSCHOOL;
 
   if (victim == NULL || ch == NULL)
     return (0);
 
+  spell_school = spell_info[spellnum].schoolOfMagic;
+
   /* level should be determined in call_magic() */
-  /* is this a hack? yes yes hackalicious! */
 
   /* need to include:
    * 1)  save = SAVING_x   -1 means no saving throw
@@ -1234,13 +1243,13 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
 
   // figure saving throw for finger of death here, because it's not half damage
   if (spellnum == SPELL_FINGER_OF_DEATH) {
-    if (mag_savingthrow(ch, victim, save, race_bonus, casttype, level)) {
+    if (mag_savingthrow(ch, victim, save, race_bonus, casttype, level, NECROMANCY)) {
       dam = dice(num_dice, size_dice) + MIN(25, level);
     }
   }
   else if (dam && (save != -1)) {
     //saving throw for half damage if applies
-    if (mag_savingthrow(ch, victim, save, race_bonus, casttype, level)) {
+    if (mag_savingthrow(ch, victim, save, race_bonus, casttype, level, spell_school)) {
       if ((!IS_NPC(victim)) && save == SAVING_REFL && // evasion
               (HAS_FEAT(victim, FEAT_EVASION) ||
               (HAS_FEAT(victim, FEAT_IMPROVED_EVASION))))
@@ -1284,7 +1293,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   struct affected_type af[MAX_SPELL_AFFECTS];
   bool accum_affect = FALSE, accum_duration = FALSE;
   const char *to_vict = NULL, *to_room = NULL;
-  int i, j;
+  int i, j, spell_school = NOSCHOOL;
   int enchantment_bonus = 0, illusion_bonus = 0, success = 0;
   bool is_mind_affect = FALSE;
   struct damage_reduction_type *new_dr = NULL;
@@ -1329,6 +1338,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
   /* note, hopefully we have calculated the proper level for this spell
      in call_magic() */
+
+  spell_school = spell_info[spellnum].schoolOfMagic;
 
   switch (spellnum) {
 
@@ -1470,7 +1481,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       }
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level)) {
+      if (mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, NECROMANCY)) {
         send_to_char(ch, "You fail.\r\n");
         return;
       }
@@ -1524,7 +1535,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     case SPELL_CHILL_TOUCH: //necromancy
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level))
+      if (mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, NECROMANCY))
         return;
 
       af[0].location = APPLY_STR;
@@ -1556,7 +1567,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       }
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus, casttype, level)) {
+      if (mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus, casttype, level, ENCHANTMENT)) {
         return;
       }
 
@@ -1638,7 +1649,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     case SPELL_CURSE: //necromancy
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level)) {
+      if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NECROMANCY)) {
         send_to_char(ch, "%s", CONFIG_NOEFFECT);
         return;
       }
@@ -1671,7 +1682,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       }
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus, casttype, level)) {
+      if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus, casttype, level, ENCHANTMENT)) {
         return;
       }
       if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
@@ -1696,7 +1707,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       }
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level)) {
+      if (mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, NECROMANCY)) {
         send_to_char(ch, "You fail.\r\n");
         return;
       }
@@ -1732,7 +1743,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         send_to_char(ch, "Your victim doesn't seem vulnerable to your spell.");
         return;
       }
-      if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level)) {
+      if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, ENCHANTMENT)) {
         return;
       }
 
@@ -1777,7 +1788,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     case SPELL_DIMENSIONAL_LOCK: //divination
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level)) {
+      if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, DIVINATION)) {
         send_to_char(ch, "%s", CONFIG_NOEFFECT);
         return;
       }
@@ -1819,7 +1830,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       if (mag_resistance(ch, victim, 0))
         return;
 
-      if (mag_savingthrow(ch, victim, SAVING_FORT, (enchantment_bonus-4), casttype, level)) {
+      if (mag_savingthrow(ch, victim, SAVING_FORT, (enchantment_bonus-4), casttype, level, ENCHANTMENT)) {
         send_to_char(ch, "%s", CONFIG_NOEFFECT);
         return;
       }
@@ -1891,7 +1902,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     case SPELL_EYEBITE: //necromancy
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level)) {
+      if (mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, NECROMANCY)) {
         send_to_char(ch, "%s", CONFIG_NOEFFECT);
         return;
       }
@@ -1929,7 +1940,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     case SPELL_FEEBLEMIND: //enchantment
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus, casttype, level)) {
+      if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus, casttype, level, ENCHANTMENT)) {
         return;
       }
       if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
@@ -2013,7 +2024,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     case SPELL_GRASPING_HAND: //evocation (also does damage)
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level))
+      if (mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, EVOCATION))
         return;
 
       SET_BIT_AR(af[0].bitvector, AFF_GRAPPLED);
@@ -2026,7 +2037,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     case SPELL_GREASE: //divination
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level)) {
+      if (mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, DIVINATION)) {
         send_to_char(ch, "You fail.\r\n");
         return;
       }
@@ -2138,7 +2149,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       }
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level)) {
+      if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NECROMANCY)) {
         return;
       }
 
@@ -2194,7 +2205,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       }
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus, casttype, level)) {
+      if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus, casttype, level, ENCHANTMENT)) {
         return;
       }
       if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
@@ -2223,7 +2234,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       }
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus, casttype, level)) {
+      if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus, casttype, level, ENCHANTMENT)) {
         return;
       }
 
@@ -2240,7 +2251,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       }
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus, casttype, level)) {
+      if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus, casttype, level, ENCHANTMENT)) {
         return;
       }
 
@@ -2250,10 +2261,10 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       to_vict = "You are overcome by a powerful hold spell!";
       break;
 
-    case SPELL_HORIZIKAULS_BOOM:
+    case SPELL_HORIZIKAULS_BOOM: //evocation
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level)) {
+      if (mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, EVOCATION)) {
         return;
       }
 
@@ -2445,7 +2456,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     case SPELL_MASS_HOLD_PERSON: //enchantment
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus, casttype, level)) {
+      if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus, casttype, level, ENCHANTMENT)) {
         return;
       }
 
@@ -2498,7 +2509,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     case SPELL_MIND_FOG: //illusion
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus, casttype, level)) {
+      if (mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus, casttype, level, ILLUSION)) {
         send_to_char(ch, "%s", CONFIG_NOEFFECT);
         return;
       }
@@ -2535,7 +2546,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     case SPELL_NIGHTMARE: //illusion
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_FORT, illusion_bonus, casttype, level))
+      if (mag_savingthrow(ch, victim, SAVING_FORT, illusion_bonus, casttype, level, ILLUSION))
         return;
       if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
         send_to_char(ch, "Mind blank protects %s!", GET_NAME(victim));
@@ -2568,7 +2579,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       if (GET_RACE(ch) == RACE_DWARF || //dwarf dwarven poison resist
               GET_RACE(ch) == RACE_CRYSTAL_DWARF)
         bonus += 2;
-      if (mag_savingthrow(ch, victim, SAVING_FORT, bonus, casttype, level)) {
+      if (mag_savingthrow(ch, victim, SAVING_FORT, bonus, casttype, level, ENCHANTMENT)) {
         send_to_char(ch, "%s", CONFIG_NOEFFECT);
         return;
       }
@@ -2588,7 +2599,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       }
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_REFL, -4, casttype, level)) {
+      if (mag_savingthrow(ch, victim, SAVING_REFL, -4, casttype, level, NECROMANCY)) {
         send_to_char(ch, "You fail.\r\n");
         return;
       }
@@ -2657,7 +2668,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     case SPELL_PRISMATIC_SPRAY: //illusion, does damage too
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus, casttype, level)) {
+      if (mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus, casttype, level, ILLUSION)) {
         return;
       }
 
@@ -2729,7 +2740,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       }
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus, casttype, level)) {
+      if (mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus, casttype, level, ILLUSION)) {
         return;
       }
       if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
@@ -2750,7 +2761,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     case SPELL_RAY_OF_ENFEEBLEMENT: //necromancy
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level)) {
+      if (mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, NECROMANCY)) {
         send_to_char(ch, "%s", CONFIG_NOEFFECT);
         return;
       }
@@ -2803,7 +2814,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus, casttype, level)) {
+      if (mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus, casttype, level, ILLUSION)) {
         return;
       }
       if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
@@ -2917,7 +2928,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         send_to_char(ch, "Your victim doesn't seem vulnerable to your spell.");
         return;
       }
-      if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level)) {
+      if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, ENCHANTMENT)) {
         return;
       }
 
@@ -2944,7 +2955,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       }
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level)) {
+      if (mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, ABJURATION)) {
         send_to_char(ch, "%s", CONFIG_NOEFFECT);
         return;
       }
@@ -2991,7 +3002,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       if (GET_LEVEL(victim) >= 9) {
         return;
       }
-      if (mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level)) {
+      if (mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, ABJURATION)) {
         return;
       }
 
@@ -3063,7 +3074,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       }
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level)) {
+      if (mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, DIVINATION)) {
         return;
       }
 
@@ -3085,7 +3096,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       success = 0;
 
       if (!MOB_FLAGGED(victim, MOB_NODEAF) &&
-              !mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level) &&
+              !mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, ABJURATION) &&
               !mag_resistance(ch, victim, 0)) {
         af[0].duration = 10;
         SET_BIT_AR(af[0].bitvector, AFF_DEAF);
@@ -3095,7 +3106,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         success = 1;
       }
 
-      if (!mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level) &&
+      if (!mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, ABJURATION) &&
               !mag_resistance(ch, victim, 0)) {
         af[1].duration = 4;
         SET_BIT_AR(af[1].bitvector, AFF_STUN);
@@ -3105,7 +3116,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         success = 1;
       }
 
-      if (!mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level) &&
+      if (!mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, ABJURATION) &&
               !mag_resistance(ch, victim, 0)) {
         GET_POS(victim) = POS_SITTING;
 
@@ -3129,7 +3140,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     case SPELL_TOUCH_OF_IDIOCY: //enchantment
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus, casttype, level)) {
+      if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus, casttype, level, ENCHANTMENT)) {
         send_to_char(ch, "%s", CONFIG_NOEFFECT);
         return;
       }
@@ -3200,7 +3211,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level)) {
+      if (mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, NECROMANCY)) {
         return;
       }
       if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
@@ -3248,7 +3259,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     case SPELL_WAVES_OF_FATIGUE: //necromancy
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level)) {
+      if (mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, NECROMANCY)) {
         return;
       }
       SET_BIT_AR(af[0].bitvector, AFF_FATIGUED);
@@ -3263,7 +3274,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         send_to_char(ch, "Your opponent doesn't seem webbable.\r\n");
         return;
       }
-      if (mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level)) {
+      if (mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, CONJURATION)) {
         send_to_char(ch, "You fail.\r\n");
         return;
       }
@@ -3306,7 +3317,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   if (is_mind_affect && !IS_NPC(victim) &&
       HAS_FEAT(victim, FEAT_SLIPPERY_MIND)) {
     send_to_char(victim, "\tW*Slippery Mind*\tn  ");
-    if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level)) {
+    if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, spell_school)) {
       return;
     }
   }
