@@ -775,7 +775,18 @@ void assign_feats(void) {
   feato(FEAT_SPELL_FOCUS, "spell focus", TRUE, TRUE, TRUE, FEAT_TYPE_SPELLCASTING,
     "+1 to all spell dcs for all spells in school/domain",
     "+1 to all spell dcs for all spells in school/domain");
-  feato(FEAT_GREATER_SPELL_FOCUS, "greater spell focus", TRUE, TRUE, TRUE, FEAT_TYPE_SPELLCASTING,
+
+  feato(FEAT_IMPROVED_FAMILIAR, "improved familiar", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
+    "your familiar gets more powerful",
+    "Each rank in this feat will give your familiar: 1 AC, 10 Hit-points, +1 to "
+          "strength, dexterity and constitution.");
+
+  feato(FEAT_QUICK_CHANT, "quick chant", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
+    "you can cast spells faster",
+    "You can cast spells about 50 percent faster than normal with this feat.");
+
+  /* epic spellcasting feats */
+  /*epic*/feato(FEAT_GREATER_SPELL_FOCUS, "greater spell focus", TRUE, TRUE, TRUE, FEAT_TYPE_SPELLCASTING,
     "+2 to all spell dcs for all spells in school/domain",
     "+2 to all spell dcs for all spells in school/domain");
 
@@ -1575,7 +1586,6 @@ void assign_feats(void) {
   feato(FEAT_QUICKEN_SPELL, "quicken spell", FALSE, TRUE, FALSE, FEAT_TYPE_METAMAGIC, "allows you to cast spell as a move action instead of standard action", "allows you to cast spell as a move action instead of standard action");
   feato(FEAT_ESCHEW_MATERIALS, "eschew materials", FALSE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING, "ask staff", "ask staff");
   feato(FEAT_IMPROVED_COUNTERSPELL, "improved counterspell", FALSE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING, "ask staff", "ask staff");
-  feato(FEAT_IMPROVED_FAMILIAR, "improved familiar", FALSE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING, "ask staff", "ask staff");
   feato(FEAT_SPELL_MASTERY, "spell mastery", FALSE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING, "ask staff", "ask staff");
   feato(FEAT_AUGMENT_SUMMONING, "augment summoning", FALSE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING, "gives all creatures you have from summoning spells +4 to strength and constitution", "gives all creatures you have from summoning spells +4 to strength and constitution");
   feato(FEAT_COMBAT_CASTING, "combat casting", FALSE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING, "+4 to concentration checks made in combat or when grappled ", "+4 to concentration checks made in combat or when grappled ");
@@ -2425,6 +2435,36 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
 
       case FEAT_SPELL_FOCUS:
         if (CLASS_LEVEL(ch, CLASS_WIZARD))
+          return TRUE;
+        return FALSE;
+
+      case FEAT_MUMMY_DUST:
+        if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) >= 23 && CASTER_LEVEL(ch) >= 20)
+          return TRUE;
+        return FALSE;
+      case FEAT_DRAGON_KNIGHT:
+        if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) >= 25 && CASTER_LEVEL(ch) >= 21)
+          return TRUE;
+        return FALSE;
+      case FEAT_GREATER_RUIN:
+        if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) >= 27 && CASTER_LEVEL(ch) >= 22)
+          return TRUE;
+        return FALSE;
+      case FEAT_HELLBALL:
+        if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) >= 29 && CASTER_LEVEL(ch) >= 23)
+          return TRUE;
+        return FALSE;
+      case FEAT_EPIC_MAGE_ARMOR:
+        if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) >= 31 && CASTER_LEVEL(ch) >= 24)
+          return TRUE;
+        return FALSE;
+      case FEAT_EPIC_WARDING:
+        if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) >= 33 && CASTER_LEVEL(ch) >= 25)
+          return TRUE;
+        return FALSE;
+
+      case FEAT_IMPROVED_FAMILIAR:
+        if (CLASS_LEVEL(ch, CLASS_WIZARD) || CLASS_LEVEL(ch, CLASS_SORCERER))
           return TRUE;
         return FALSE;
 

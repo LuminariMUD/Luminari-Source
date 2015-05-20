@@ -201,7 +201,7 @@ int mag_savingthrow(struct char_data *ch, struct char_data *vict,
   }
   if (has_feat(ch, FEAT_GREATER_SPELL_FOCUS) && HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_GREATER_SPELL_FOCUS), school)) {
     /*deubg*/
-    send_to_char(ch, "Bingo 2!\r\n");
+    //send_to_char(ch, "Bingo 2!\r\n");
     challenge += 2;
   }
 
