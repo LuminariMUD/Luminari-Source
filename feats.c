@@ -775,6 +775,9 @@ void assign_feats(void) {
   feato(FEAT_SPELL_FOCUS, "spell focus", TRUE, TRUE, TRUE, FEAT_TYPE_SPELLCASTING,
     "+1 to all spell dcs for all spells in school/domain",
     "+1 to all spell dcs for all spells in school/domain");
+  feato(FEAT_GREATER_SPELL_FOCUS, "greater spell focus", TRUE, TRUE, TRUE, FEAT_TYPE_SPELLCASTING,
+    "+2 to all spell dcs for all spells in school/domain",
+    "+2 to all spell dcs for all spells in school/domain");
 
   /* Crafting feats */
   feato(FEAT_DRACONIC_CRAFTING, "draconic crafting", TRUE, FALSE, FALSE, FEAT_TYPE_CRAFT,
@@ -1571,7 +1574,6 @@ void assign_feats(void) {
   feato(FEAT_MAXIMIZE_SPELL, "maximize spell", FALSE, TRUE, FALSE, FEAT_TYPE_METAMAGIC, "all spells cast while maximised enabled do maximum effect.", "all spells cast while maximised enabled do maximum effect.");
   feato(FEAT_QUICKEN_SPELL, "quicken spell", FALSE, TRUE, FALSE, FEAT_TYPE_METAMAGIC, "allows you to cast spell as a move action instead of standard action", "allows you to cast spell as a move action instead of standard action");
   feato(FEAT_ESCHEW_MATERIALS, "eschew materials", FALSE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING, "ask staff", "ask staff");
-  feato(FEAT_GREATER_SPELL_FOCUS, "greater spell focus", FALSE, FALSE, TRUE, FEAT_TYPE_SPELLCASTING, "ask staff", "ask staff");
   feato(FEAT_IMPROVED_COUNTERSPELL, "improved counterspell", FALSE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING, "ask staff", "ask staff");
   feato(FEAT_IMPROVED_FAMILIAR, "improved familiar", FALSE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING, "ask staff", "ask staff");
   feato(FEAT_SPELL_MASTERY, "spell mastery", FALSE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING, "ask staff", "ask staff");
