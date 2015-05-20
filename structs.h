@@ -1601,10 +1601,17 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_EPIC_MOUNT                     414
 #define FEAT_BANE_OF_ENEMIES                415
 #define FEAT_EPIC_FAVORED_ENEMY             416
+#define FEAT_QUICK_CHANT                    417
+#define FEAT_MUMMY_DUST                     418
+#define FEAT_DRAGON_KNIGHT                  419
+#define FEAT_GREATER_RUIN                   420
+#define FEAT_HELLBALL                       421
+#define FEAT_EPIC_MAGE_ARMOR                422
+#define FEAT_EPIC_WARDING                   423
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT                      417
+#define FEAT_LAST_FEAT                      424
 /** feat_last_feat + 1 ***/
-#define NUM_FEATS                           418
+#define NUM_FEATS                           425
 /*****/
 #define MAX_FEATS                           750
 /*****/

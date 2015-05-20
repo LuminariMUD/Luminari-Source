@@ -638,6 +638,13 @@ void perform_call(struct char_data *ch, int call_type, int level) {
       GET_REAL_MAX_HIT(mob) += 10;
       for (i = 0; i < level; i++)
         GET_REAL_MAX_HIT(mob) += dice(2, 4) + 1;
+      if (HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR)) {
+        GET_REAL_MAX_HIT(mob) += HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR) * 10;
+        GET_REAL_AC(mob) += HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR) * 10;
+        GET_REAL_STR(mob) += HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR);
+        GET_REAL_DEX(mob) += HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR);
+        GET_REAL_CON(mob) += HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR);
+      }
       break;
     case MOB_C_MOUNT:
       GET_REAL_MAX_HIT(mob) += 20;

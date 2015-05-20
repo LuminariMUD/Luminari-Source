@@ -1033,8 +1033,8 @@ EVENTFUNC(event_casting) {
       strcat(buf, "\r\n");
       send_to_char(ch, buf);
 
-      if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_QUICK_CHANT))
-        if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_QUICK_CHANT) > dice(1, 100))
+      if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_QUICK_CHANT))
+        if (rand_number(0, 1))
           CASTING_TIME(ch)--;
 
       CASTING_TIME(ch)--;
@@ -1305,9 +1305,49 @@ ACMD(do_cast) {
   }
 
   /* this is the block to make sure they meet the min-level reqs */
-  if (isEpicSpell(spellnum))
-    ;
-  else if (CLASS_LEVEL(ch, CLASS_WIZARD) < SINFO.min_level[CLASS_WIZARD] &&
+  if (isEpicSpell(spellnum)) {
+    switch (spellnum) {
+      case SPELL_MUMMY_DUST:
+        if (!HAS_FEAT(ch, FEAT_MUMMY_DUST)) {
+          send_to_char(ch, "You do not have the 'mummy dust' feat!!\r\n");
+          return;
+        }
+        break;
+      case SPELL_DRAGON_KNIGHT:
+        if (!HAS_FEAT(ch, FEAT_DRAGON_KNIGHT)) {
+          send_to_char(ch, "You do not have the 'dragon knight' feat!!\r\n");
+          return;
+        }
+        break;
+      case SPELL_GREATER_RUIN:
+        if (!HAS_FEAT(ch, FEAT_GREATER_RUIN)) {
+          send_to_char(ch, "You do not have the 'greater ruin' feat!!\r\n");
+          return;
+        }
+        break;
+      case SPELL_HELLBALL:
+        if (!HAS_FEAT(ch, FEAT_HELLBALL)) {
+          send_to_char(ch, "You do not have the 'hellball' feat!!\r\n");
+          return;
+        }
+        break;
+      case SPELL_EPIC_MAGE_ARMOR:
+        if (!HAS_FEAT(ch, FEAT_EPIC_MAGE_ARMOR)) {
+          send_to_char(ch, "You do not have the 'epic mage armor' feat!!\r\n");
+          return;
+        }
+        break;
+      case SPELL_EPIC_WARDING:
+        if (!HAS_FEAT(ch, FEAT_EPIC_WARDING)) {
+          send_to_char(ch, "You do not have the 'epic warding' feat!!\r\n");
+          return;
+        }
+        break;
+      default:
+        send_to_char(ch, "You do not have the appropriate feat!!\r\n");
+        return;
+    }
+  } else if (CLASS_LEVEL(ch, CLASS_WIZARD) < SINFO.min_level[CLASS_WIZARD] &&
           CLASS_LEVEL(ch, CLASS_CLERIC) < MIN_SPELL_LVL(spellnum, CLASS_CLERIC, GET_1ST_DOMAIN(ch)) &&
           CLASS_LEVEL(ch, CLASS_CLERIC) < MIN_SPELL_LVL(spellnum, CLASS_CLERIC, GET_2ND_DOMAIN(ch)) &&
           CLASS_LEVEL(ch, CLASS_DRUID) < SINFO.min_level[CLASS_DRUID] &&

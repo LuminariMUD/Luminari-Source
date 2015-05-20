@@ -76,6 +76,7 @@ ACMD(do_feats);
 #define FEAT_TYPE_CRAFT          5
 #define FEAT_TYPE_WILD           6
 #define FEAT_TYPE_DIVINE         7
+
 #define NUM_LEARNABLE_FEAT_TYPES 8
 
 #define FEAT_TYPE_CLASS_ABILITY  8
@@ -83,6 +84,7 @@ ACMD(do_feats);
 #define FEAT_TYPE_DOMAIN_ABILITY 10
 
 #define NUM_FEAT_TYPES           11
+/******************/
 
 /*  LIST_FEAT defines, for list_feats function. */
 #define LIST_FEATS_KNOWN         0

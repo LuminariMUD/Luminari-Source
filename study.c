@@ -311,6 +311,30 @@ void finalize_study(struct descriptor_data *d) {
       }
       /* Handle specific feats here: */
       switch (i) {
+        case FEAT_MUMMY_DUST:
+          send_to_char(ch, "\tMYou gained Epic Spell:  Mummy Dust!\tn\r\n");
+          SET_SKILL(ch, SPELL_MUMMY_DUST, 99);
+          break;
+        case FEAT_DRAGON_KNIGHT:
+          send_to_char(ch, "\tMYou gained Epic Spell:  Dragon Knight!\tn\r\n");
+          SET_SKILL(ch, SPELL_DRAGON_KNIGHT, 99);
+          break;
+        case FEAT_GREATER_RUIN:
+          send_to_char(ch, "\tMYou gained Epic Spell:  Greater Ruin!\tn\r\n");
+          SET_SKILL(ch, SPELL_GREATER_RUIN, 99);
+          break;
+        case FEAT_HELLBALL:
+          send_to_char(ch, "\tMYou gained Epic Spell:  Hellball!\tn\r\n");
+          SET_SKILL(ch, SPELL_HELLBALL, 99);
+          break;
+        case FEAT_EPIC_MAGE_ARMOR:
+          send_to_char(ch, "\tMYou gained Epic Spell:  Epic Mage Armor!\tn\r\n");
+          SET_SKILL(ch, SPELL_EPIC_MAGE_ARMOR, 99);
+          break;
+        case FEAT_EPIC_WARDING:
+          send_to_char(ch, "\tMYou gained Epic Spell:  Epic Warding!\tn\r\n");
+          SET_SKILL(ch, SPELL_EPIC_WARDING, 99);
+          break;
         case FEAT_GREAT_CHARISMA:
           GET_REAL_CHA(ch) += LEVELUP(ch)->feats[i];
           break;
