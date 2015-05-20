@@ -88,6 +88,21 @@ bool has_combat_feat(struct char_data *ch, int cfeat, int compare) {
   return FALSE;
 }
 
+/* checks if ch has feat (compare) as one of his/her spells (school) feats (sfeat) */
+/*
+bool has_spell_feat(struct char_data *ch, int sfeat, int school) {
+  if (ch->desc && LEVELUP(ch)) {
+    if ((IS_SET_AR(LEVELUP(ch)->combat_feats[(sfeat)], (school))))
+      return TRUE;
+  }
+
+  if ((IS_SET_AR((ch)->char_specials.saved.spell_feats[(sfeat)], (compare))))
+    return TRUE;
+
+  return FALSE;
+}
+*/
+
 /* create/allocate memory for a pre-req struct, then assign the prereqs */
 struct feat_prerequisite* create_prerequisite(int prereq_type, int val1, int val2, int val3) {
   struct feat_prerequisite *prereq = NULL;
@@ -787,8 +802,9 @@ void assign_feats(void) {
   feato(FEAT_QUICK_CHANT, "quick chant", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
     "you can cast spells faster",
     "You can cast spells about 50 percent faster than normal with this feat.");
+  /* zusuk marker */
 
-  /* epic spellcasting feats */
+  /* epic type spellcasting feats */
   feato(FEAT_MUMMY_DUST, "mummy dust", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
     "gain access to epic spell - mummy dust",
     "Once per game day, you can cast a spell that will conjure a powerful Mummy "
@@ -819,6 +835,7 @@ void assign_feats(void) {
     "Once per game day, you can cast a spell that will absorb a massive amount "
           "of damage.");
     feat_prereq_ability(FEAT_EPIC_WARDING, ABILITY_SPELLCRAFT, 32);
+  /* zusuk marker */
 
 
   /* Crafting feats */
@@ -1604,8 +1621,10 @@ void assign_feats(void) {
   feato(FEAT_SWARM_OF_ARROWS, "swarm of arrows", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "allows you to make a single ranged attack against everyone in range.", "allows you to make a single ranged attack against everyone in range.");
 
   /* wizard / sorc */
+  /*craft*/
   feato(FEAT_BREW_POTION, "brew potion", FALSE, FALSE, FALSE, FEAT_TYPE_CRAFT, "can create magical potions ", "can create magical potions ");
   feato(FEAT_SCRIBE_SCROLL, "scribe scroll", FALSE, FALSE, FALSE, FEAT_TYPE_CRAFT, "can scribe spells from memory onto scrolls", "can scribe spells from memory onto scrolls");
+  /*metamagic*/
   feato(FEAT_ENLARGE_SPELL, "enlarge spell", FALSE, FALSE, FALSE, FEAT_TYPE_METAMAGIC, "ask staff ", "ask staff ");
   feato(FEAT_HEIGHTEN_SPELL, "heighten spell", FALSE, FALSE, FALSE, FEAT_TYPE_METAMAGIC, "ask staff ", "ask staff ");
   feato(FEAT_SILENT_SPELL, "silent spell", FALSE, FALSE, FALSE, FEAT_TYPE_METAMAGIC, "ask staff", "ask staff");
@@ -1616,6 +1635,7 @@ void assign_feats(void) {
   feato(FEAT_EXTEND_SPELL, "extend spell", FALSE, TRUE, FALSE, FEAT_TYPE_METAMAGIC, "durations of spells are 50 percent longer when enabled ", "durations of spells are 50 percent longer when enabled ");
   feato(FEAT_MAXIMIZE_SPELL, "maximize spell", FALSE, TRUE, FALSE, FEAT_TYPE_METAMAGIC, "all spells cast while maximised enabled do maximum effect.", "all spells cast while maximised enabled do maximum effect.");
   feato(FEAT_QUICKEN_SPELL, "quicken spell", FALSE, TRUE, FALSE, FEAT_TYPE_METAMAGIC, "allows you to cast spell as a move action instead of standard action", "allows you to cast spell as a move action instead of standard action");
+  /*spellcasting*/
   feato(FEAT_ESCHEW_MATERIALS, "eschew materials", FALSE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING, "ask staff", "ask staff");
   feato(FEAT_IMPROVED_COUNTERSPELL, "improved counterspell", FALSE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING, "ask staff", "ask staff");
   feato(FEAT_SPELL_MASTERY, "spell mastery", FALSE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING, "ask staff", "ask staff");
@@ -1623,7 +1643,9 @@ void assign_feats(void) {
   feato(FEAT_COMBAT_CASTING, "combat casting", FALSE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING, "+4 to concentration checks made in combat or when grappled ", "+4 to concentration checks made in combat or when grappled ");
   feato(FEAT_ENHANCED_SPELL_DAMAGE, "enhanced spell damage", FALSE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING, "+1 spell damage per die rolled", "+1 spell damage per die rolled");
   /* epic */
+  /*spellcasting*/
   feato(FEAT_EPIC_SPELLCASTING, "epic spellcasting", FALSE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING, "allows you to cast epic spells", "allows you to cast epic spells");
+  /*metamagic*/
   feato(FEAT_INTENSIFY_SPELL, "intensify spell", FALSE, TRUE, FALSE, FEAT_TYPE_METAMAGIC, "maximizes damage/healing and then doubles it.", "maximizes damage/healing and then doubles it.");
   feato(FEAT_ENHANCE_SPELL, "increase spell damage", FALSE, TRUE, FALSE, FEAT_TYPE_METAMAGIC, "increase max number of damage dice for certain damage based spell by 5", "increase max number of damage dice for certain damage based spell by 5");
   feato(FEAT_AUTOMATIC_QUICKEN_SPELL, "automatic quicken spell", FALSE, TRUE, TRUE, FEAT_TYPE_METAMAGIC, "You can cast level 0, 1, 2 & 3 spells automatically as if quickened.  Every addition rank increases the max spell level by 3.", "You can cast level 0, 1, 2 & 3 spells automatically as if quickened.  Every addition rank increases the max spell level by 3.");
@@ -1651,13 +1673,12 @@ void assign_feats(void) {
   /* Arcana Golem */
   feato(FEAT_SPELLBATTLE, "spellbattle", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "Strengthen your body with Arcane power.", "By channeling their inner magic, Arcana Golems can use it to provide a huge surge to their physical attributes in the rare cases in which they must resort to physical violence. While the eldritch energies cloud their mind and finesse, the bonus to durability and power can provide that edge when need.  \r\nSpell Battle is a mode. When this mode is activated, you receive a penalty to attack rolls equal to the argument and caster levels equal to half. In return, you gain a bonus to AC and saving throws equal to the penalty taken, a bonus to BAB equal to 2/3rds of this penalty (partially but not completely negating the attack penalty), and a bonus to maximum hit points equal to 10 * penalty taken. Arcana Golems take an additional -2 penalty to Intelligence, * Wisdom, and Charisma while in Spell Battle.\r\nSpell battle without any arguments will cancel the mode, but an Arcana Golem can only cancel Spell Battle after spending 6 minutes in it. The surge of energy is not easily turned off.\r\nYou cannot use Spell-Battle at the same time you use Power Attack, Combat Expertise, or similar effects");
 
-  /* Various */
+  /* Shared - Various */
   feato(FEAT_DARKVISION, "darkvision", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "ask staff", "ask staff");
   feato(FEAT_LOW_LIGHT_VISION, "low light vision", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "can see in the dark outside only", "can see in the dark outside only");
 
   /* End Racial ability feats */
 
-  /* UNSORTED */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
 
   /* self explanatory */
@@ -2474,6 +2495,11 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
 
       case FEAT_SPELL_FOCUS:
         if (CLASS_LEVEL(ch, CLASS_WIZARD))
+          return TRUE;
+        return FALSE;
+      case FEAT_GREATER_SPELL_FOCUS:
+        if (CLASS_LEVEL(ch, CLASS_WIZARD) && has_feat(ch, FEAT_SPELL_FOCUS) &&
+            HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_SPELL_FOCUS), iarg))
           return TRUE;
         return FALSE;
 
