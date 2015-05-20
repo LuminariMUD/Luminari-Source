@@ -1419,7 +1419,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
       if(HAS_SCHOOL_FEAT(ch, feat_to_sfeat(LEVELUP(d->character)->tempFeat), number) ||
          HAS_LEVELUP_SCHOOL_FEAT(ch, feat_to_sfeat(LEVELUP(d->character)->tempFeat), number)) {
         write_to_output(d, "You already have that school selected for this feat!\r\n\r\n");
-        cfeat_disp_menu(d);
+        sfeat_disp_menu(d);
         break;
       }
 
