@@ -1231,6 +1231,8 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   } /* switch(spellnum) */
 
   dam = dice(num_dice, size_dice) + bonus;
+  if (HAS_FEAT(ch, FEAT_ENHANCED_SPELL_DAMAGE))
+    dam += num_dice;
 
   //resistances to magic
   if (dam && mag_resist)
@@ -4255,6 +4257,14 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
         break;
     }
 
+    /* summon augmentation feat */
+    if (HAS_FEAT(ch, FEAT_AUGMENT_SUMMONING)) {
+      send_to_char(ch, "*augmented* ");
+      GET_REAL_STR(mob) += 4;
+      GET_REAL_CON(mob) += 4;
+      GET_REAL_MAX_HIT(mob) += 2 * GET_LEVEL(mob); /* con bonus */
+    }
+
     act(mag_summon_msgs[msg], FALSE, ch, 0, mob, TO_ROOM);
     act(mag_summon_to_msgs[msg], FALSE, ch, 0, mob, TO_CHAR);
     load_mtrigger(mob);
@@ -4297,7 +4307,6 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
 
 /*----------------------------------------------------------------------------*/
 /* End Magic Summoning - Generic Routines and Local Globals */
-
 /*----------------------------------------------------------------------------*/
 
 

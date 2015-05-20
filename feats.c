@@ -802,7 +802,18 @@ void assign_feats(void) {
   feato(FEAT_QUICK_CHANT, "quick chant", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
     "you can cast spells faster",
     "You can cast spells about 50 percent faster than normal with this feat.");
-  /* zusuk marker */
+
+  feato(FEAT_AUGMENT_SUMMONING, "augment summoning", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
+    "enhance summoned creatures",
+    "Gives all creatures you have from summoning spells +4 to strength and "
+      "constitution.  Note: this will not augment your familiar, called companions, "
+      "or charmed/dominated victims.");
+
+  feato(FEAT_ENHANCED_SPELL_DAMAGE, "enhanced spell damage", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
+    "+1 spell damage per die rolled",
+    "You gain +1 spell damage per die rolled, example:  if you are level 10 and "
+      "normally create a 10d6 damage fireball, with this feat your fireball would "
+      "do 10d6+10.");
 
   /* epic type spellcasting feats */
   feato(FEAT_MUMMY_DUST, "mummy dust", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
@@ -1639,9 +1650,7 @@ void assign_feats(void) {
   feato(FEAT_ESCHEW_MATERIALS, "eschew materials", FALSE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING, "ask staff", "ask staff");
   feato(FEAT_IMPROVED_COUNTERSPELL, "improved counterspell", FALSE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING, "ask staff", "ask staff");
   feato(FEAT_SPELL_MASTERY, "spell mastery", FALSE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING, "ask staff", "ask staff");
-  feato(FEAT_AUGMENT_SUMMONING, "augment summoning", FALSE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING, "gives all creatures you have from summoning spells +4 to strength and constitution", "gives all creatures you have from summoning spells +4 to strength and constitution");
   feato(FEAT_COMBAT_CASTING, "combat casting", FALSE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING, "+4 to concentration checks made in combat or when grappled ", "+4 to concentration checks made in combat or when grappled ");
-  feato(FEAT_ENHANCED_SPELL_DAMAGE, "enhanced spell damage", FALSE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING, "+1 spell damage per die rolled", "+1 spell damage per die rolled");
   /* epic */
   /*spellcasting*/
   feato(FEAT_EPIC_SPELLCASTING, "epic spellcasting", FALSE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING, "allows you to cast epic spells", "allows you to cast epic spells");
@@ -2104,8 +2113,8 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
 
       case FEAT_AUGMENT_SUMMONING:
         if (has_feat(ch, FEAT_SPELL_FOCUS) && HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_SPELL_FOCUS), CONJURATION))
-          return true;
-        return false;
+          return TRUE;
+        return FALSE;
 
       case FEAT_FASTER_MEMORIZATION:
         if (IS_CASTER(ch))
@@ -2498,8 +2507,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
           return TRUE;
         return FALSE;
       case FEAT_GREATER_SPELL_FOCUS:
-        if (CLASS_LEVEL(ch, CLASS_WIZARD) && has_feat(ch, FEAT_SPELL_FOCUS) &&
-            HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_SPELL_FOCUS), iarg))
+        if (CLASS_LEVEL(ch, CLASS_WIZARD) && has_feat(ch, FEAT_SPELL_FOCUS))
           return TRUE;
         return FALSE;
 
