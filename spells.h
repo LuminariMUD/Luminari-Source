@@ -1102,7 +1102,7 @@ bool check_wall(struct char_data *victim, int dir);
 int compute_mag_saves(struct char_data *vict,
         int type, int modifier);
 int mag_savingthrow(struct char_data *ch, struct char_data *vict,
-        int type, int modifier, int casttype, int level);
+        int type, int modifier, int casttype, int level, int school);
 void affect_update(void);
 int mag_resistance(struct char_data *ch, struct char_data *vict, int modifier);
 int compute_spell_res(struct char_data *ch, struct char_data *vict, int mod);

@@ -25,6 +25,7 @@
 #include "mudlim.h"
 #include "act.h"
 #include "actions.h"
+#include "domains_schools.h"
 
 /* added this for falling event, general dummy check */
 bool death_check(struct char_data *ch) {
@@ -73,7 +74,7 @@ void room_aff_tick(struct raff_node *raff) {
     case SPELL_BILLOWING_CLOUD:
       for (caster = world[raff->room].people; caster; caster = caster->next_in_room) {
         if (caster && GET_LEVEL(caster) < 13) {
-          if (!mag_savingthrow(caster, caster, SAVING_FORT, 0, casttype, level)) {
+          if (!mag_savingthrow(caster, caster, SAVING_FORT, 0, casttype, level, CONJURATION)) {
             send_to_char(caster, "You are bogged down by the billowing cloud!\r\n");
             act("$n is bogged down by the billowing cloud.", TRUE, caster, 0, NULL, TO_ROOM);
             USE_MOVE_ACTION(caster);

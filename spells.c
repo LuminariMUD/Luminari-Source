@@ -28,6 +28,7 @@
 #include "mudlim.h"
 #include "string.h"
 #include "item.h"
+#include "domains_schools.h"
 
 #define WALL_ITEM 101220
 /* object values for walls */
@@ -356,7 +357,7 @@ void effect_charm(struct char_data *ch, struct char_data *victim,
     if (IS_NPC(victim))
       hit(victim, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
   }
-  else if (mag_savingthrow(ch, victim, SAVING_WILL, bonus, casttype, level)) {
+  else if (mag_savingthrow(ch, victim, SAVING_WILL, bonus, casttype, level, ENCHANTMENT)) {
     send_to_char(ch, "Your victim resists!\r\n");
     if (IS_NPC(victim))
       hit(victim, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
@@ -365,7 +366,7 @@ void effect_charm(struct char_data *ch, struct char_data *victim,
     /* slippery mind gives a second save */
     if (!IS_NPC(victim) && HAS_FEAT(victim, FEAT_SLIPPERY_MIND)) {
       send_to_char(victim, "\tW*Slippery Mind*\tn  ");
-      if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level)) {
+      if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, ENCHANTMENT)) {
         return;
       }
     }
@@ -568,7 +569,7 @@ EVENTFUNC(event_acid_arrow) {
   if (level < 1)
     level = 15; /* so lame */
 
-  if (mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level))
+  if (mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, EVOCATION))
     damage(ch, victim, (dice(3, 6)/2), SPELL_ACID_ARROW, DAM_ENERGY,
           FALSE);
   else
@@ -616,7 +617,7 @@ EVENTFUNC(event_implode) {
   if (level < 1)
     level = 15; /* so lame */
 
-  if (mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level))
+  if (mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, DIVINATION))
     damage(ch, victim, (dice(CASTER_LEVEL(ch), 6)/2), SPELL_IMPLODE, DAM_PUNCTURE,
           FALSE);
   else
@@ -1509,7 +1510,7 @@ ASPELL(spell_summon) {
     send_to_char(ch, "Your victim seems unsummonable.");
     return;
   }
-  if (IS_NPC(victim) && mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level)) {
+  if (IS_NPC(victim) && mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, CONJURATION)) {
     send_to_char(ch, "%s", SUMMON_FAIL);
     return;
   }
