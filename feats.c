@@ -772,6 +772,10 @@ void assign_feats(void) {
     "decreases spell memorization time",
     "decreases spell memorization time");
 
+  feato(FEAT_SPELL_FOCUS, "spell focus", TRUE, TRUE, TRUE, FEAT_TYPE_SPELLCASTING,
+    "+1 to all spell dcs for all spells in school/domain",
+    "+1 to all spell dcs for all spells in school/domain");
+
   /* Crafting feats */
   feato(FEAT_DRACONIC_CRAFTING, "draconic crafting", TRUE, FALSE, FALSE, FEAT_TYPE_CRAFT,
     "All magical items created gain higher bonuses w/o increasing level",
@@ -1574,7 +1578,6 @@ void assign_feats(void) {
   feato(FEAT_AUGMENT_SUMMONING, "augment summoning", FALSE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING, "gives all creatures you have from summoning spells +4 to strength and constitution", "gives all creatures you have from summoning spells +4 to strength and constitution");
   feato(FEAT_COMBAT_CASTING, "combat casting", FALSE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING, "+4 to concentration checks made in combat or when grappled ", "+4 to concentration checks made in combat or when grappled ");
   feato(FEAT_ENHANCED_SPELL_DAMAGE, "enhanced spell damage", FALSE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING, "+1 spell damage per die rolled", "+1 spell damage per die rolled");
-  feato(FEAT_SPELL_FOCUS, "spell focus", FALSE, TRUE, TRUE, FEAT_TYPE_SPELLCASTING, "+1 to all spell dcs for all spells in school/domain", "+1 to all spell dcs for all spells in school/domain");
   /* epic */
   feato(FEAT_EPIC_SPELLCASTING, "epic spellcasting", FALSE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING, "allows you to cast epic spells", "allows you to cast epic spells");
   feato(FEAT_INTENSIFY_SPELL, "intensify spell", FALSE, TRUE, FALSE, FEAT_TYPE_METAMAGIC, "maximizes damage/healing and then doubles it.", "maximizes damage/healing and then doubles it.");
