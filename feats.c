@@ -786,11 +786,43 @@ void assign_feats(void) {
     "You can cast spells about 50 percent faster than normal with this feat.");
 
   /* epic spellcasting feats */
-  /*epic*/feato(FEAT_GREATER_SPELL_FOCUS, "greater spell focus", TRUE, TRUE, TRUE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_GREATER_SPELL_FOCUS, "greater spell focus", TRUE, TRUE, TRUE, FEAT_TYPE_SPELLCASTING,
     "+2 to all spell dcs for all spells in school/domain",
     "+2 to all spell dcs for all spells in school/domain");
+  feato(FEAT_MUMMY_DUST, "mummy dust", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+    "gain access to epic spell - mummy dust",
+    "Once per game day, you can cast a spell that will conjure a powerful Mummy "
+          "Lord to assist you in combat.");
+    feat_prereq_ability(FEAT_MUMMY_DUST, ABILITY_SPELLCRAFT, 23);
+  feato(FEAT_DRAGON_KNIGHT, "dragon knight", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+    "gain access to epic spell - dragon knight",
+    "Once per game day, you can cast a spell that will conjure a small red dragon"
+          " to assist you in combat.");
+    feat_prereq_ability(FEAT_DRAGON_KNIGHT, ABILITY_SPELLCRAFT, 25);
+  feato(FEAT_GREATER_RUIN, "greater ruin", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+    "gain access to epic spell - greater ruin",
+    "Once per game day, you can cast a spell that will cause serious damage to "
+          "a selected target.");
+    feat_prereq_ability(FEAT_GREATER_RUIN, ABILITY_SPELLCRAFT, 27);
+  feato(FEAT_HELLBALL, "hellball", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+    "gain access to epic spell - greater ruin",
+    "Once per game day, you can cast a spell that will cause serious damage to "
+          "all the targets in a room.");
+    feat_prereq_ability(FEAT_HELLBALL, ABILITY_SPELLCRAFT, 29);
+  feato(FEAT_EPIC_MAGE_ARMOR, "epic mage armor", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+    "gain access to epic spell - epic mage armor",
+    "Once per game day, you can cast a spell that will give a massive AC bonus to "
+          "the caster.");
+    feat_prereq_ability(FEAT_EPIC_MAGE_ARMOR, ABILITY_SPELLCRAFT, 31);
+  feato(FEAT_EPIC_WARDING, "epic warding", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+    "gain access to epic spell - epic warding",
+    "Once per game day, you can cast a spell that will absorb a massive amount "
+          "of damage.");
+    feat_prereq_ability(FEAT_EPIC_WARDING, ABILITY_SPELLCRAFT, 32);
+
 
   /* Crafting feats */
+
   feato(FEAT_DRACONIC_CRAFTING, "draconic crafting", TRUE, FALSE, FALSE, FEAT_TYPE_CRAFT,
     "All magical items created gain higher bonuses w/o increasing level",
     "All magical items created gain higher bonuses w/o increasing level");
@@ -2459,7 +2491,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
           return TRUE;
         return FALSE;
       case FEAT_EPIC_WARDING:
-        if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) >= 33 && CASTER_LEVEL(ch) >= 25)
+        if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) >= 32 && CASTER_LEVEL(ch) >= 25)
           return TRUE;
         return FALSE;
 
