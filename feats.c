@@ -775,8 +775,11 @@ void assign_feats(void) {
   feato(FEAT_SPELL_FOCUS, "spell focus", TRUE, TRUE, TRUE, FEAT_TYPE_SPELLCASTING,
     "+1 to all spell dcs for all spells in school/domain",
     "+1 to all spell dcs for all spells in school/domain");
+  feato(FEAT_GREATER_SPELL_FOCUS, "greater spell focus", TRUE, TRUE, TRUE, FEAT_TYPE_SPELLCASTING,
+    "+2 to all spell dcs for all spells in school/domain",
+    "+2 to all spell dcs for all spells in school/domain");
 
-  feato(FEAT_IMPROVED_FAMILIAR, "improved familiar", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_IMPROVED_FAMILIAR, "improved familiar", TRUE, TRUE, TRUE, FEAT_TYPE_SPELLCASTING,
     "your familiar gets more powerful",
     "Each rank in this feat will give your familiar: 1 AC, 10 Hit-points, +1 to "
           "strength, dexterity and constitution.");
@@ -786,9 +789,6 @@ void assign_feats(void) {
     "You can cast spells about 50 percent faster than normal with this feat.");
 
   /* epic spellcasting feats */
-  feato(FEAT_GREATER_SPELL_FOCUS, "greater spell focus", TRUE, TRUE, TRUE, FEAT_TYPE_SPELLCASTING,
-    "+2 to all spell dcs for all spells in school/domain",
-    "+2 to all spell dcs for all spells in school/domain");
   feato(FEAT_MUMMY_DUST, "mummy dust", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
     "gain access to epic spell - mummy dust",
     "Once per game day, you can cast a spell that will conjure a powerful Mummy "
@@ -1708,6 +1708,13 @@ void assign_feats(void) {
   epicfeat(FEAT_AUTOMATIC_QUICKEN_SPELL);
   epicfeat(FEAT_IMPROVED_SPELL_RESISTANCE);
   epicfeat(FEAT_BLINDING_SPEED);
+  /* epic spell feats */
+  epicfeat(FEAT_MUMMY_DUST);
+  epicfeat(FEAT_DRAGON_KNIGHT);
+  epicfeat(FEAT_GREATER_RUIN);
+  epicfeat(FEAT_HELLBALL);
+  epicfeat(FEAT_EPIC_MAGE_ARMOR);
+  epicfeat(FEAT_EPIC_WARDING);
 
   epicfeat(FEAT_LAST_FEAT);
 
@@ -2509,12 +2516,12 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
         return FALSE;
 
       case FEAT_SPELL_PENETRATION:
-        if (GET_LEVEL(ch))
+        if (CASTER_LEVEL(ch))
           return TRUE;
         return FALSE;
 
       case FEAT_BREW_POTION:
-        if (GET_LEVEL(ch) >= 3)
+        if (CASTER_LEVEL(ch) >= 3)
           return TRUE;
         return FALSE;
 
@@ -2524,17 +2531,17 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
         return FALSE;
 
       case FEAT_CRAFT_ROD:
-        if (GET_LEVEL(ch) >= 9)
+        if (CASTER_LEVEL(ch) >= 9)
           return TRUE;
         return FALSE;
 
       case FEAT_CRAFT_STAFF:
-        if (GET_LEVEL(ch) >= 12)
+        if (CASTER_LEVEL(ch) >= 12)
           return TRUE;
         return FALSE;
 
       case FEAT_CRAFT_WAND:
-        if (GET_LEVEL(ch) >= 5)
+        if (CASTER_LEVEL(ch) >= 5)
           return TRUE;
         return FALSE;
 
@@ -2544,7 +2551,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
         return FALSE;
 
       case FEAT_SCRIBE_SCROLL:
-        if (GET_LEVEL(ch) >= 1)
+        if (CASTER_LEVEL(ch) >= 1)
           return TRUE;
         return FALSE;
 
