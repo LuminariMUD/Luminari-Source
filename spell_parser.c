@@ -404,32 +404,32 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
   //attach event for epic spells, increase skill
   switch (spellnum) {
     case SPELL_MUMMY_DUST:
-      attach_mud_event(new_mud_event(eMUMMYDUST, caster, NULL), 3 * SECS_PER_MUD_DAY);
+      attach_mud_event(new_mud_event(eMUMMYDUST, caster, NULL), 9 * SECS_PER_MUD_DAY);
       if (!IS_NPC(caster))
         increase_skill(caster, SKILL_MUMMY_DUST);
       break;
     case SPELL_DRAGON_KNIGHT:
-      attach_mud_event(new_mud_event(eDRAGONKNIGHT, caster, NULL), 3 * SECS_PER_MUD_DAY);
+      attach_mud_event(new_mud_event(eDRAGONKNIGHT, caster, NULL), 9 * SECS_PER_MUD_DAY);
       if (!IS_NPC(caster))
         increase_skill(caster, SKILL_DRAGON_KNIGHT);
       break;
     case SPELL_GREATER_RUIN:
-      attach_mud_event(new_mud_event(eGREATERRUIN, caster, NULL), 3 * SECS_PER_MUD_DAY);
+      attach_mud_event(new_mud_event(eGREATERRUIN, caster, NULL), 9 * SECS_PER_MUD_DAY);
       if (!IS_NPC(caster))
         increase_skill(caster, SKILL_GREATER_RUIN);
       break;
     case SPELL_HELLBALL:
-      attach_mud_event(new_mud_event(eHELLBALL, caster, NULL), 3 * SECS_PER_MUD_DAY);
+      attach_mud_event(new_mud_event(eHELLBALL, caster, NULL), 9 * SECS_PER_MUD_DAY);
       if (!IS_NPC(caster))
         increase_skill(caster, SKILL_HELLBALL);
       break;
     case SPELL_EPIC_MAGE_ARMOR:
-      attach_mud_event(new_mud_event(eEPICMAGEARMOR, caster, NULL), 3 * SECS_PER_MUD_DAY);
+      attach_mud_event(new_mud_event(eEPICMAGEARMOR, caster, NULL), 9 * SECS_PER_MUD_DAY);
       if (!IS_NPC(caster))
         increase_skill(caster, SKILL_EPIC_MAGE_ARMOR);
       break;
     case SPELL_EPIC_WARDING:
-      attach_mud_event(new_mud_event(eEPICWARDING, caster, NULL), 3 * SECS_PER_MUD_DAY);
+      attach_mud_event(new_mud_event(eEPICWARDING, caster, NULL), 9 * SECS_PER_MUD_DAY);
       if (!IS_NPC(caster))
         increase_skill(caster, SKILL_EPIC_WARDING);
       break;

@@ -2475,7 +2475,9 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
           return TRUE;
         return FALSE;
       case FEAT_DRAGON_KNIGHT:
-        if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) >= 25 && CASTER_LEVEL(ch) >= 21)
+        if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) >= 25 && CASTER_LEVEL(ch) >= 21 &&
+            (CLASS_LEVEL(ch, CLASS_WIZARD) > 17 ||
+              CLASS_LEVEL(ch, CLASS_SORCERER) > 19))
           return TRUE;
         return FALSE;
       case FEAT_GREATER_RUIN:
@@ -2483,15 +2485,21 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
           return TRUE;
         return FALSE;
       case FEAT_HELLBALL:
-        if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) >= 29 && CASTER_LEVEL(ch) >= 23)
+        if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) >= 29 && CASTER_LEVEL(ch) >= 23 &&
+              (CLASS_LEVEL(ch, CLASS_WIZARD) > 16 ||
+              CLASS_LEVEL(ch, CLASS_SORCERER) > 18))
           return TRUE;
         return FALSE;
       case FEAT_EPIC_MAGE_ARMOR:
-        if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) >= 31 && CASTER_LEVEL(ch) >= 24)
+        if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) >= 31 && CASTER_LEVEL(ch) >= 24 &&
+            (CLASS_LEVEL(ch, CLASS_WIZARD) > 13 ||
+             CLASS_LEVEL(ch, CLASS_SORCERER) > 13))
           return TRUE;
         return FALSE;
       case FEAT_EPIC_WARDING:
-        if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) >= 32 && CASTER_LEVEL(ch) >= 25)
+        if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) >= 32 && CASTER_LEVEL(ch) >= 25 &&
+            (CLASS_LEVEL(ch, CLASS_WIZARD) > 15 ||
+             CLASS_LEVEL(ch, CLASS_SORCERER) > 15))
           return TRUE;
         return FALSE;
 
