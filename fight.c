@@ -2231,8 +2231,8 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim) {
   INCENDIARY(victim) = 0; //stop any incendiary bursts
 
   if (!IS_NPC(victim)) { //forget victim, log
-    mudlog(BRF, LVL_IMMORT, TRUE, "%s killed by %s at %s", GET_NAME(victim),
-            GET_NAME(ch), world[IN_ROOM(victim)].name);
+    mudlog(BRF, LVL_IMMORT, TRUE, "%s killed by %s (%d) at %s (%d)", GET_NAME(victim),
+        GET_NAME(ch), GET_MOB_VNUM(ch), world[IN_ROOM(victim)].name, GET_ROOM_VNUM(IN_ROOM(victim)));
     if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_MEMORY))
       forget(ch, victim);
     if (IS_NPC(ch) && HUNTING(ch) == victim)
