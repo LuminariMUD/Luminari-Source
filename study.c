@@ -1437,7 +1437,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
       }
       if ((number < 1) || (number >= NUM_SCHOOLS)) {
         write_to_output(d, "That is an invalid choice!\r\n");
-        cfeat_disp_menu(d);
+        sfeat_disp_menu(d);
         break;
       }
       if(HAS_SCHOOL_FEAT(ch, feat_to_sfeat(LEVELUP(d->character)->tempFeat), number) ||
