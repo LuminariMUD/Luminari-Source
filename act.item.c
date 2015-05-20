@@ -2256,7 +2256,13 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where) {
   if (where != WEAR_WIELD_1 && where != WEAR_WIELD_OFFHAND &&
           where != WEAR_HOLD_1 && where != WEAR_HOLD_2 &&
           where != WEAR_SHIELD && where != WEAR_WIELD_2H &&
-          where != WEAR_HOLD_2H && where != WEAR_LIGHT
+          where != WEAR_HOLD_2H && where != WEAR_LIGHT &&
+          where != WEAR_NECK_1 && where != WEAR_NECK_2 &&
+          where != WEAR_WAIST && where != WEAR_WRIST_R &&
+          where != WEAR_WRIST_L && where != WEAR_AMMO_POUCH &&
+          where != WEAR_FINGER_R && where != WEAR_FINGER_L &&
+          where != WEAR_EAR_R && where != WEAR_EAR_L &&
+          where != WEAR_EYES && where != WEAR_BADGE
           ) {
     if (GET_OBJ_SIZE(obj) < GET_SIZE(ch)) {
       send_to_char(ch, "This item is too small for you (HELP RESIZE).\r\n");
