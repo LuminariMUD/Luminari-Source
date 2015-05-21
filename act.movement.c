@@ -314,8 +314,8 @@ EVENTFUNC(event_falling)
 }
 /*  END falling system */
 
-/* simple function to determine if char can walk on water */
-int has_boat(struct char_data *ch) {
+/* simple function to determine if char can walk on water (or swim through it )*/
+int has_boat(struct char_data *ch, room_rnum going_to) {
   struct obj_data *obj;
   int i;
 
@@ -334,6 +334,18 @@ int has_boat(struct char_data *ch) {
   for (i = 0; i < NUM_WEARS; i++)
     if (GET_EQ(ch, i) && GET_OBJ_TYPE(GET_EQ(ch, i)) == ITEM_BOAT)
       return (1);
+
+  /* we should do a swim check now */
+  int swim_dc = 13 + ZONE_MINLVL(GET_ROOM_ZONE(going_to));
+  send_to_char(ch, "Swim DC: %d - ", swim_dc);
+  if (!skill_check(ch, ABILITY_SWIM, swim_dc)) {
+    send_to_char(ch, "You attempt to swim, but fail!\r\n");
+    USE_MOVE_ACTION(ch);
+    return 0;
+  } else { /*success!*/
+    send_to_char(ch, "You successfully swim!: ");
+    return 1;
+  }
 
   return (0);
 }
@@ -668,7 +680,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
   /* Water, No Swimming Rooms: Does the deep water prevent movement? */
   if ((SECT(was_in) == SECT_WATER_NOSWIM) || (SECT(was_in) == SECT_UD_NOSWIM) ||
           (SECT(going_to) == SECT_WATER_NOSWIM) || (SECT(going_to) == SECT_UD_NOSWIM)) {
-    if ((riding && !has_boat(RIDING(ch))) || !has_boat(ch)) {
+    if ((riding && !has_boat(RIDING(ch), going_to)) || !has_boat(ch, going_to)) {
       send_to_char(ch, "You need a boat to go there.\r\n");
       return (0);
     }

@@ -2296,7 +2296,7 @@ void mag_assign_spells(void) {
           FALSE, MAG_GROUPS, "The fly spell fades away.", 7, 19, ENCHANTMENT, FALSE);
   /* illusion */
   spello(SPELL_DISPLACEMENT, "displacement", 0, 0, 0, POS_FIGHTING,
-          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+          TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS,
           "You feel your displacement spell wear off.", 6, 19, ILLUSION, FALSE);
   spello(SPELL_PRISMATIC_SPRAY, "prismatic spray", 79, 64, 1, POS_FIGHTING,
           TAR_IGNORE, TRUE, MAG_AREAS,
