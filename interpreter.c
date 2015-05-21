@@ -150,6 +150,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "boosts", "boost", POS_RECLINING, do_boosts, 1, 0, FALSE, ACTION_NONE, {0, 0}},
   { "buck", "buck", POS_FIGHTING, do_buck, 1, 0, FALSE, ACTION_MOVE, {0, 6}},
   { "bodyslam", "bodyslam", POS_FIGHTING, do_bodyslam, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}},
+  { "bind", "bind", POS_FIGHTING, do_bind, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
 
   { "cast", "c", POS_SITTING, do_cast, 1, 0, FALSE, ACTION_MOVE, {0, 6}},
   { "cedit", "cedit", POS_DEAD, do_oasis_cedit, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}},
@@ -366,6 +367,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "prayer", "prayer", POS_RECLINING, do_gen_memorize, 0, SCMD_PRAY, FALSE, ACTION_NONE, {0, 0}},
   { "perform", "perform", POS_FIGHTING, do_perform, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}},
   { "powerfulblow", "powerfulblow", POS_FIGHTING, do_powerfulblow, 1, 0, FALSE, ACTION_NONE, {0, 0}},
+  { "pin", "pin", POS_FIGHTING, do_pin, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
 
   { "queue", "q", POS_DEAD, do_queue, 0, SCMD_ACTION_QUEUE, FALSE, ACTION_NONE, {0, 0}},
   { "qedit", "qedit", POS_DEAD, do_oasis_qedit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},
