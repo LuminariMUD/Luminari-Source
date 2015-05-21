@@ -52,6 +52,7 @@
 #include "feats.h"
 #include "actionqueues.h"
 #include "domains_schools.h"
+#include "grapple.h"
 
 #include <sys/stat.h>
 /*  declarations of most of the 'global' variables */
@@ -4287,6 +4288,8 @@ void reset_char(struct char_data *ch) {
   ch->next_fighting = NULL;
   ch->next_in_room = NULL;
   FIGHTING(ch) = NULL;
+  GRAPPLE_TARGET(ch) = NULL;
+  GRAPPLE_ATTACKER(ch) = NULL;
   HUNTING(ch) = NULL;
   char_from_furniture(ch);
   resetCastingData(ch);
@@ -4492,6 +4495,8 @@ void init_char(struct char_data *ch) {
 
   /* more inits */
   FIGHTING(ch) = NULL;
+  GRAPPLE_TARGET(ch) = NULL;
+  GRAPPLE_ATTACKER(ch) = NULL;
   SITTING(ch) = NULL;
   NEXT_SITTING(ch) = NULL;
   RIDING(ch) = NULL;

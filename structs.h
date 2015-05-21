@@ -2988,6 +2988,9 @@ struct char_special_data {
   struct queue_type *attack_queue; /**< Attack action queue */
 
   struct char_special_data_saved saved; /**< Constants saved for PCs. */
+
+  struct char_data *grapple_target; /**< Target of grapple attempt; else NULL */
+  struct char_data *grapple_attacker; /**< Who is grappling me?; else NULL */
 };
 
 /** Data only needed by PCs, and needs to be saved to disk. */
