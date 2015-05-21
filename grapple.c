@@ -116,7 +116,7 @@ bool valid_grapple_cond(struct char_data *ch) {
   }
 
   /* same room check */
-  if (IN_ROOM(ch) != IN_ROOM(GRAPPLE_ATTACKER(ch))) {
+  if (GRAPPLE_ATTACKER(ch) && IN_ROOM(ch) != IN_ROOM(GRAPPLE_ATTACKER(ch))) {
     if (AFF_FLAGGED(ch, AFF_GRAPPLED))
       REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_GRAPPLED);
     GRAPPLE_ATTACKER(ch) = NULL;
@@ -124,7 +124,7 @@ bool valid_grapple_cond(struct char_data *ch) {
   }
 
   /* same room check */
-  if (IN_ROOM(ch) != IN_ROOM(GRAPPLE_TARGET(ch))) {
+  if (GRAPPLE_TARGET(ch) && IN_ROOM(ch) != IN_ROOM(GRAPPLE_TARGET(ch))) {
     if (AFF_FLAGGED(ch, AFF_GRAPPLED))
       REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_GRAPPLED);
     GRAPPLE_TARGET(ch) = NULL;
@@ -164,9 +164,6 @@ void clear_grapple(struct char_data *ch, struct char_data *vict) {
 
 /* primary grapple and reversal entry point */
 ACMD(do_grapple) {
-  send_to_char(ch, "Under construction.\r\n");
-  return;
-
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
 
