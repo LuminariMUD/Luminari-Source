@@ -167,10 +167,12 @@ ACMD(do_grapple) {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
 
+  /*
   if (IS_NPC(ch)) {
     send_to_char(ch, "You have no idea how.\r\n");
     return;
   }
+  */
 
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
