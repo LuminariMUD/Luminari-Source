@@ -210,7 +210,7 @@ ACMD(do_wield);
  * Begin Functions and defines for act.movement.c
  ****************************************************************************/
 
-int has_boat(struct char_data *ch);
+int has_boat(struct char_data *ch, room_rnum going_to);
 int has_flight(struct char_data *ch);
 
 /* Functions with subcommands */
