@@ -26,6 +26,7 @@
 #include "act.h"
 #include "actions.h"
 #include "domains_schools.h"
+#include "grapple.h"
 
 /* added this for falling event, general dummy check */
 bool death_check(struct char_data *ch) {
@@ -318,6 +319,9 @@ void pulse_luminari() {
 
     /* an assortment of affliction types */
     affliction_tick(i);
+
+    /* grapple cleanup */
+    grapple_cleanup(i);
 
   } // end char list loop
 }
