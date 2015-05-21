@@ -1096,7 +1096,8 @@ int valid_mortal_tele_dest(struct char_data *ch, room_rnum dest, bool is_tele);
 
 /* spells.c */
 bool check_wall(struct char_data *victim, int dir);
-
+void effect_charm(struct char_data *ch, struct char_data *victim,
+        int spellnum, int casttype, int level);
 
 /* From magic.c */
 int compute_mag_saves(struct char_data *vict,

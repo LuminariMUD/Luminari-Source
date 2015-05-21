@@ -54,6 +54,66 @@ static void display_group_list(struct char_data * ch);
 
 /*****************/
 
+ACMD(do_handleanimal) {
+  struct char_data *vict = NULL;
+  int dc = 0;
+
+  if (!GET_ABILITY(ch, ABILITY_HANDLE_ANIMAL)) {
+    send_to_char(ch, "You have no idea how to do that!\r\n");
+    return;
+  }
+
+  skip_spaces(&argument);
+
+  if (!*argument) {
+    send_to_char(ch, "You need a target to attempt this.\r\n");
+    return;
+  } else {
+    /* there is an argument, lets make sure it is valid */
+    if (!(vict = get_char_vis(ch, argument, NULL, FIND_CHAR_ROOM))) {
+      send_to_char(ch, "Whom do you wish to shift?\r\n");
+      return;
+    }
+  }
+
+  if (vict == ch) {
+    send_to_char(ch, "You are trying to animal-handle yourself?\r\n");
+    return;
+  }
+
+  if (!IS_ANIMAL(vict)) {
+    send_to_char(ch, "You can only 'handle animals' that are actually animals.\r\n");
+    return;
+  }
+
+  /* you have to be higher level to have a chance */
+  if (GET_LEVEL(vict) >= GET_LEVEL(ch)) {
+    dc += 99; /* impossible */
+  }
+
+  /* skill check */
+  /* dc = hit-dice + 20 */
+  dc = GET_LEVEL(vict) + 20;
+  if (!skill_check(ch, ABILITY_HANDLE_ANIMAL, dc)) {
+    /* failed, do another check to see if you pissed off the animal */
+    if (!skill_check(ch, ABILITY_HANDLE_ANIMAL, dc)) {
+      send_to_char(ch, "You failed to properly train the animal to follow your "
+              "commands, and the animal now seems aggressive.\r\n");
+      hit(vict, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+      return;
+    }
+    /* escaped unscathed :P */
+    send_to_char(ch, "You failed to properly train the animal to follow your commands.\r\n");
+    return;
+  }
+
+  /* success! but they now get a saving throw */
+
+  effect_charm(ch, vict, SPELL_CHARM_ANIMAL, CAST_INNATE, GET_LEVEL(ch));
+
+  return;
+}
+
 /* innate animate dead ability */
 #define MOB_ZOMBIE            11   /* animate dead levels 1-7 */
 #define MOB_GHOUL             35   // " " level 11+
