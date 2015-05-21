@@ -355,6 +355,9 @@ void hunt_victim(struct char_data *ch) {
         hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
       }
     }
+  } else {
+    send_to_char(ch, "The trail has gone cold.\r\n");
+    /*todo: handle transition between zones/wilderness*/
   }
 }
 
