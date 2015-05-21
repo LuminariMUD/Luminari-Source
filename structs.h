@@ -2340,11 +2340,14 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define ATTACK_TYPE_TWOHAND   4 /* doesn't really serve any purpose */
 
 /* combat maneuver types*/
-#define COMBAT_MANEUVER_TYPE_UNDEFINED  0
-#define COMBAT_MANEUVER_TYPE_KNOCKDOWN  1
-#define COMBAT_MANEUVER_TYPE_KICK       2
-#define COMBAT_MANEUVER_TYPE_DISARM     3
-
+#define COMBAT_MANEUVER_TYPE_UNDEFINED    0
+#define COMBAT_MANEUVER_TYPE_KNOCKDOWN    1
+#define COMBAT_MANEUVER_TYPE_KICK         2
+#define COMBAT_MANEUVER_TYPE_DISARM       3
+#define COMBAT_MANEUVER_TYPE_GRAPPLE      4
+#define COMBAT_MANEUVER_TYPE_REVERSAL     5 /* try to reverse grapple */
+#define COMBAT_MANEUVER_TYPE_INIT_GRAPPLE 6
+ 
 /* Critical hit types */
 #define CRIT_X2   0
 #define CRIT_X3   1

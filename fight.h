@@ -38,7 +38,8 @@ void perform_flee(struct char_data *ch);
 void appear(struct char_data *ch, bool forced);
 void check_killer(struct char_data *ch, struct char_data *vict);
 int perform_attacks(struct char_data *ch, int mode, int phase);
-int combat_maneuver_check(struct char_data *ch, struct char_data *vict, int combat_maneuver_type);
+int combat_maneuver_check(struct char_data *ch, struct char_data *vict,
+        int combat_maneuver_type, int attacker_bonus);
 int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is_touch, int mode);
 int compute_damage_reduction(struct char_data *ch, int dam_type);
 int compute_concealment(struct char_data *ch);

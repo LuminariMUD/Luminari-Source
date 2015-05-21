@@ -2732,7 +2732,7 @@ ACMD(do_sneak) {
 /* entry point for hide, the command just flips the flag */
 ACMD(do_hide) {
 
-  if (FIGHTING(ch)) {
+  if (FIGHTING(ch) && !AFF_FLAGGED(ch, AFF_GRAPPLED)) {
     if (HAS_FEAT(ch, FEAT_HIDE_IN_PLAIN_SIGHT)) {
       USE_STANDARD_ACTION(ch);
       if ((skill_roll(FIGHTING(ch), ABILITY_PERCEPTION)) < (skill_roll(ch, ABILITY_STEALTH) - 8)) {

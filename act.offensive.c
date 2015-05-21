@@ -2810,7 +2810,7 @@ void perform_kick(struct char_data *ch, struct char_data *vict) {
   if (diceTwo < 2)
     diceTwo = 2;
 
-  if (combat_maneuver_check(ch, vict, COMBAT_MANEUVER_TYPE_KICK) > 0) {
+  if (combat_maneuver_check(ch, vict, COMBAT_MANEUVER_TYPE_KICK, 0) > 0) {
     damage(ch, vict, dice(diceOne, diceTwo) + GET_STR_BONUS(ch), SKILL_KICK, DAM_FORCE, FALSE);
     if (!savingthrow(vict, SAVING_REFL, GET_STR_BONUS(vict), dc)) {
       USE_MOVE_ACTION(vict);
@@ -3781,7 +3781,7 @@ ACMD(do_feint) {
 
 /* disarm mechanic */
 int perform_disarm(struct char_data *ch, struct char_data *vict, int mod) {
-  int pos, aoo_dam;
+  int pos;
   struct obj_data *wielded = NULL;
 
   if (!vict) {
@@ -3822,7 +3822,7 @@ int perform_disarm(struct char_data *ch, struct char_data *vict, int mod) {
 
   // Trigger AOO, save damage for modifying the CMD roll.
   if (!HAS_FEAT(ch, FEAT_IMPROVED_DISARM))
-    aoo_dam = attack_of_opportunity(vict, ch, 0);
+    mod -= attack_of_opportunity(vict, ch, 0);
 
   // Check to see what we are wielding.
   if ((GET_EQ(ch, WEAR_WIELD_2H) == NULL) &&
@@ -3833,7 +3833,7 @@ int perform_disarm(struct char_data *ch, struct char_data *vict, int mod) {
     mod -= 4;
   }
 
-  int result = combat_maneuver_check(ch, vict, COMBAT_MANEUVER_TYPE_DISARM);
+  int result = combat_maneuver_check(ch, vict, COMBAT_MANEUVER_TYPE_DISARM, mod);
   if (result > 0 && !HAS_FEAT(vict, FEAT_WEAPON_MASTERY)) { /* success! */
     act("$n disarms $N of $S $p.", FALSE, ch, wielded, vict,TO_ROOM );
     act("You manage to knock $p out of $N's hands.", FALSE, ch, wielded, vict,TO_CHAR );

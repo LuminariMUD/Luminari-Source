@@ -3740,19 +3740,6 @@ int compute_cmb (struct char_data *ch,              /* Attacker */
 {
   int cm_bonus = 0; /* combat maneuver bonus */
 
-  switch (combat_maneuver_type) {
-    case COMBAT_MANEUVER_TYPE_KNOCKDOWN:
-      break;
-    case COMBAT_MANEUVER_TYPE_KICK:
-      break;
-    case COMBAT_MANEUVER_TYPE_DISARM:
-      if (HAS_FEAT(ch, FEAT_IMPROVED_DISARM))
-        cm_bonus += 2;
-      break;
-    case COMBAT_MANEUVER_TYPE_UNDEFINED:
-    default: break;
-  }
-
   /* CMB = Base attack bonus + Strength modifier + special size modifier */
   cm_bonus += BAB(ch);
   /* Creatures that are size Tiny or smaller use their Dexterity modifier in place of their Strength modifier to determine their CMB. */
@@ -3762,6 +3749,25 @@ int compute_cmb (struct char_data *ch,              /* Attacker */
     cm_bonus += GET_DEX_BONUS(ch);
   cm_bonus += size_modifiers[GET_SIZE(ch)];
   /* misc here*/
+
+  switch (combat_maneuver_type) {
+    case COMBAT_MANEUVER_TYPE_KNOCKDOWN:
+      break;
+    case COMBAT_MANEUVER_TYPE_KICK:
+      break;
+    case COMBAT_MANEUVER_TYPE_DISARM:
+      if (HAS_FEAT(ch, FEAT_IMPROVED_DISARM))
+        cm_bonus += 2;
+      break;
+      /* for grapple reversals, the person attempting the reversal can use their
+       escape artist instead of their cmb */
+    case COMBAT_MANEUVER_TYPE_REVERSAL:
+      if (compute_ability(ch, ABILITY_ESCAPE_ARTIST) > cm_bonus)
+        cm_bonus = compute_ability(ch, ABILITY_ESCAPE_ARTIST);
+      break;
+    case COMBAT_MANEUVER_TYPE_UNDEFINED:
+    default: break;
+  }
 
   return cm_bonus;
 }
@@ -3804,9 +3810,9 @@ int compute_cmd(struct char_data *vict,            /* Defender */
  * this returns the level of success or failure, which applies in cases such as bull rush
  * 1 or higher = success, 0 or lower = failure */
 int combat_maneuver_check(struct char_data *ch, struct char_data *vict,
-                          int combat_maneuver_type) {
+                          int combat_maneuver_type, int attacker_bonus) {
   int attack_roll = dice(1, 20);
-  int cm_bonus = 0; /* combat maneuver bonus */
+  int cm_bonus = attacker_bonus; /* combat maneuver bonus */
   int cm_defense = 0; /* combat maneuver defense */
   int result = 0;
 
@@ -3831,6 +3837,14 @@ int combat_maneuver_check(struct char_data *ch, struct char_data *vict,
       (GET_EQ(vict, WEAR_WIELD_1) || GET_EQ(vict, WEAR_WIELD_OFFHAND || GET_EQ(vict, WEAR_WIELD_2H))))
     cm_defense += 6;
 
+  /* other modifications based on what type of maneuver (note: the combat maneuver
+   type also gets carried to compute_cmb()/compute_cmd() */
+  switch (combat_maneuver_type) {
+    case COMBAT_MANEUVER_TYPE_REVERSAL:
+      cm_defense += 5; /* current grappler gets bonus to maintain grapple */
+      break;
+    default: break;
+  }
   /* result! */
   result = cm_bonus - cm_defense;
 
