@@ -993,7 +993,7 @@ ACMD(do_dismount) {
   if (!RIDING(ch)) {
     send_to_char(ch, "You aren't even riding anything.\r\n");
     return;
-  } else if (SECT(ch->in_room) == SECT_WATER_NOSWIM && !has_boat(ch)) {
+  } else if (SECT(ch->in_room) == SECT_WATER_NOSWIM && !has_boat(ch, IN_ROOM(ch))) {
     send_to_char(ch, "Yah, right, and then drown...\r\n");
     return;
   }
