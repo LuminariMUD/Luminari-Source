@@ -91,6 +91,8 @@ ACMD(do_handleanimal) {
     dc += 99; /* impossible */
   }
 
+  USE_STANDARD_ACTION(ch);
+
   /* skill check */
   /* dc = hit-dice + 20 */
   dc = GET_LEVEL(vict) + 20;
