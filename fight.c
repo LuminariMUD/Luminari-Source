@@ -3769,6 +3769,7 @@ int compute_cmb (struct char_data *ch,              /* Attacker */
     default: break;
   }
 
+  send_to_char(ch, "<CMB:%d|", cm_bonus);
   return cm_bonus;
 }
 
@@ -3803,6 +3804,7 @@ int compute_cmd(struct char_data *vict,            /* Defender */
    * deflection, dodge, insight, luck, morale, profane, and sacred bonuses to
    * AC to its CMD. Any penalties to a creature's AC also apply to its CMD. */
 
+  send_to_char(vict, "CMD:%d>", cm_defense);
   return cm_defense;
 }
 
