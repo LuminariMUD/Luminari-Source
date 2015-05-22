@@ -140,15 +140,18 @@ bool valid_grapple_cond(struct char_data *ch) {
 
   return valid_conditions;
 }
-
 /* disengage ch from grappling vict */
 void clear_grapple(struct char_data *ch, struct char_data *vict) {
-  GRAPPLE_ATTACKER(ch) = NULL;
-  GRAPPLE_TARGET(vict) = NULL;
-  if (AFF_FLAGGED(ch, AFF_GRAPPLED))
-    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_GRAPPLED);
-  if (AFF_FLAGGED(vict, AFF_GRAPPLED))
-    REMOVE_BIT_AR(AFF_FLAGS(vict), AFF_GRAPPLED);
+  if (ch) {
+    GRAPPLE_ATTACKER(ch) = NULL;
+    if (AFF_FLAGGED(ch, AFF_GRAPPLED))
+      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_GRAPPLED);
+  }
+  if (vict) {
+    GRAPPLE_TARGET(vict) = NULL;
+    if (AFF_FLAGGED(vict, AFF_GRAPPLED))
+      REMOVE_BIT_AR(AFF_FLAGS(vict), AFF_GRAPPLED);
+  }
 }
 
 /* called by pulse_luminari to make sure we don't have extraneous funky
