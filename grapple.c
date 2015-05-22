@@ -267,6 +267,8 @@ ACMD(do_struggle) {
     return;
   }
 
+  /* add event cooldown check here */
+
   struct char_data *vict = GRAPPLE_ATTACKER(ch);
 
   if (combat_maneuver_check(ch, vict, COMBAT_MANEUVER_TYPE_REVERSAL, 0) > 0) {
@@ -282,6 +284,7 @@ ACMD(do_struggle) {
     act("\ty$n fails to grapple $N!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);
   }
   /* gotta make sure we don't allow this more than once a around */
+  /* add 6 second event here */
 }
 
 /* as a free action, release your grapple victim */
