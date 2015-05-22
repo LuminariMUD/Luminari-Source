@@ -318,7 +318,9 @@ ACMD(do_struggle) {
 
 /* as a free action, release your grapple victim */
 ACMD(do_free_grapple) {
+  if (!ch) return;
   struct char_data *vict = GRAPPLE_TARGET(ch);
+  if (!vict) return;
   clear_grapple(vict, ch);
   act("\tyYou release $N from your grapple!\tn", FALSE, ch, NULL, vict, TO_CHAR);
   act("\ty$n releases you from the grapple!\tn", FALSE, ch, NULL, vict, TO_VICT);
