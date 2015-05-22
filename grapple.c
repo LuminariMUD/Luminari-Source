@@ -283,7 +283,7 @@ ACMD(do_grapple) {
  * round */
 ACMD(do_struggle) {
   if (!GRAPPLE_ATTACKER(ch) || !AFF_FLAGGED(ch, AFF_GRAPPLED)) {
-    send_to_char(ch, "But you are not grappled!\r\n");
+    send_to_char(ch, "But you are not the victim of grapple!\r\n");
     return;
   }
 
@@ -303,9 +303,9 @@ ACMD(do_struggle) {
     clear_grapple(ch, vict);
   } else {
     /* failed, continue grapple */
-    act("\tyYou fail to grapple $N!\tn", FALSE, ch, NULL, vict, TO_CHAR);
-    act("\tyYou deftly avoid a grapple attempt from $n\tn", FALSE, ch, NULL, vict, TO_VICT);
-    act("\ty$n fails to grapple $N!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);
+    act("\tyYou fail to escape the grapple from $N!\tn", FALSE, ch, NULL, vict, TO_CHAR);
+    act("\ty$n fails to escape your grapple!\tn", FALSE, ch, NULL, vict, TO_VICT);
+    act("\ty$n fails to escape the grapple from $N!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);
   }
   /* gotta make sure we don't allow this more than once a around */
   attach_mud_event(new_mud_event(eSTRUGGLE, ch, NULL), (6 * PASSES_PER_SEC));
