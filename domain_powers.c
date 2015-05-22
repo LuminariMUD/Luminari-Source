@@ -38,6 +38,11 @@ ACMD(do_lightningarc) {
     return;
   }
 
+  if (!CLASS_LEVEL(ch, CLASS_CLERIC)) {
+    send_to_char(ch, "You do not have any clerical powers!\r\n");
+    return;
+  }
+
   if ((uses_remaining = daily_uses_remaining(ch, FEAT_LIGHTNING_ARC)) == 0) {
     send_to_char(ch, "You must recover the divine energy required to use another lightning arc.\r\n");
     return;
@@ -100,6 +105,11 @@ ACMD(do_aciddart) {
 
   if (!HAS_FEAT(ch, FEAT_ACID_DART)) {
     send_to_char(ch, "You do not have that feat!\r\n");
+    return;
+  }
+
+  if (!CLASS_LEVEL(ch, CLASS_CLERIC)) {
+    send_to_char(ch, "You do not have any clerical powers!\r\n");
     return;
   }
 
@@ -168,6 +178,11 @@ ACMD(do_firebolt) {
     return;
   }
 
+  if (!CLASS_LEVEL(ch, CLASS_CLERIC)) {
+    send_to_char(ch, "You do not have any clerical powers!\r\n");
+    return;
+  }
+
   if ((uses_remaining = daily_uses_remaining(ch, FEAT_FIRE_BOLT)) == 0) {
     send_to_char(ch, "You must recover the divine energy required to use another fire bolt.\r\n");
     return;
@@ -230,6 +245,11 @@ ACMD(do_icicle) {
 
   if (!HAS_FEAT(ch, FEAT_ICICLE)) {
     send_to_char(ch, "You do not have that feat!\r\n");
+    return;
+  }
+
+  if (!CLASS_LEVEL(ch, CLASS_CLERIC)) {
+    send_to_char(ch, "You do not have any clerical powers!\r\n");
     return;
   }
 
