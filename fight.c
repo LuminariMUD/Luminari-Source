@@ -2622,7 +2622,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     dambonus -= 6;
   }
 
-  if (AFF_FLAGGED(vict, AFF_GRAPPLED))
+  if (AFF_FLAGGED(ch, AFF_GRAPPLED))
     dambonus -= 2;
 
   /* end penalties */
