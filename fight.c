@@ -5614,7 +5614,7 @@ void perform_violence(struct char_data *ch, int phase) {
             ( !is_using_light_weapon(ch, GET_EQ(ch, WEAR_WIELD_1)) ||
               !is_using_light_weapon(ch, GET_EQ(ch, WEAR_WIELD_OFFHAND)) ||
               GET_EQ(ch, WEAR_WIELD_2H)) )
-    ;
+    send_to_char(ch, "You need to fight unarmed or with light weapons while grappling or being grappled!\r\n");
   else {
 #define NORMAL_ATTACK_ROUTINE 0
     perform_attacks(ch, NORMAL_ATTACK_ROUTINE, phase);
