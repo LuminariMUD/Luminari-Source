@@ -88,6 +88,7 @@ typedef enum {
   eACID_DART, /* cooldown to reuse acid dart */
   eFIRE_BOLT, /* cooldown to reuse fire bolt */
   eICICLE, /* cooldown to reuse icicle */
+  eSTRUGGLE, /* struggle cooldown (escape from grapple) */
 } event_id;
 
 /* probaly a smart place to mention to not forget to update:

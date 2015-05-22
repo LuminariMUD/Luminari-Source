@@ -1117,6 +1117,7 @@ void save_char(struct char_data * ch, int mode) {
     /* Not going to save every event */
     fprintf(fl, "Evnt:\n");
     /* Order:  Event-ID   Duration */
+    /* eSTRUGGLE - don't need to save this */
     if ((pMudEvent = char_has_mud_event(ch, eVANISHED)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eVANISH)))

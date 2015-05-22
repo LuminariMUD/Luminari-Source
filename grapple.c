@@ -136,10 +136,24 @@ bool valid_grapple_cond(struct char_data *ch) {
   return valid_conditions;
 }
 
+/* disengage ch from grappling vict */
+void clear_grapple(struct char_data *ch, struct char_data *vict) {
+  GRAPPLE_ATTACKER(ch) = NULL;
+  GRAPPLE_TARGET(vict) = NULL;
+  if (AFF_FLAGGED(ch, AFF_GRAPPLED))
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_GRAPPLED);
+  if (AFF_FLAGGED(vict, AFF_GRAPPLED))
+    REMOVE_BIT_AR(AFF_FLAGS(vict), AFF_GRAPPLED);
+}
+
 /* called by pulse_luminari to make sure we don't have extraneous funky
    grappling situations */
 void grapple_cleanup(struct char_data *ch) {
-  valid_grapple_cond(ch);
+  if (!ch) return;
+  struct char_data *vict = GRAPPLE_TARGET(ch);
+  if (!valid_grapple_cond(ch) && vict)
+    /* cleanup! */
+    clear_grapple(ch, vict);
 }
 
 /* set ch grappling vict, with ch in the dominant position */
@@ -152,15 +166,6 @@ void set_grapple(struct char_data *ch, struct char_data *vict) {
     SET_BIT_AR(AFF_FLAGS(vict), AFF_GRAPPLED);
 }
 
-/* disengage ch from grappling vict */
-void clear_grapple(struct char_data *ch, struct char_data *vict) {
-  GRAPPLE_ATTACKER(ch) = NULL;
-  GRAPPLE_TARGET(vict) = NULL;
-  if (AFF_FLAGGED(ch, AFF_GRAPPLED))
-    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_GRAPPLED);
-  if (AFF_FLAGGED(vict, AFF_GRAPPLED))
-    REMOVE_BIT_AR(AFF_FLAGS(vict), AFF_GRAPPLED);
-}
 
 /* primary grapple and reversal entry point */
 ACMD(do_grapple) {
@@ -255,6 +260,15 @@ ACMD(do_grapple) {
       act("\ty$n fails to grapple $N!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);
     }
     USE_STANDARD_ACTION(ch);
+
+    if (vict != ch) { /* make sure combat starts */
+      if (GET_POS(ch) > POS_STUNNED && (FIGHTING(ch) == NULL))
+        set_fighting(ch, vict);
+      if (GET_POS(vict) > POS_STUNNED && (FIGHTING(vict) == NULL)) {
+        set_fighting(vict, ch);
+      }
+    }
+
     return;
   }
 }
@@ -267,7 +281,11 @@ ACMD(do_struggle) {
     return;
   }
 
-  /* add event cooldown check here */
+  if (char_has_mud_event(ch, eSTRUGGLE)) {
+    send_to_char(ch, "You can only attempt to struggle (free action), once per "
+            "round.\r\n");
+    return;
+  }
 
   struct char_data *vict = GRAPPLE_ATTACKER(ch);
 
@@ -284,7 +302,7 @@ ACMD(do_struggle) {
     act("\ty$n fails to grapple $N!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);
   }
   /* gotta make sure we don't allow this more than once a around */
-  /* add 6 second event here */
+  attach_mud_event(new_mud_event(eSTRUGGLE, ch, NULL), (6 * PASSES_PER_SEC));
 }
 
 /* as a free action, release your grapple victim */
