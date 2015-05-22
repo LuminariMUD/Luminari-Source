@@ -101,6 +101,8 @@
 bool valid_grapple_cond(struct char_data *ch) {
   bool valid_conditions = TRUE;
 
+  if (!ch) return FALSE;
+
   /* vict of grapple, must have grapple affection flag */
   if (GRAPPLE_ATTACKER(ch) && !AFF_FLAGGED(ch, AFF_GRAPPLED)) {
     GRAPPLE_ATTACKER(ch) = NULL;
