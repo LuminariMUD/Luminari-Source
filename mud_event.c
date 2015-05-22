@@ -90,6 +90,7 @@ struct mud_event_list mud_event_index[] = {
   { "Acid Dart Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eACID_DART
   { "Fire Bolt Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eFIRE_BOLT
   { "Icicle Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eICICLE
+  { "Struggle Cooldown", event_countdown, EVENT_CHAR}, // eSTRUGGLE
 };
 
 /* init_events() is the ideal function for starting global events. This
@@ -249,6 +250,10 @@ EVENTFUNC(event_countdown) {
       break;
     case eTREATINJURY:
       send_to_char(ch, "You are now able to treat injuries again.\r\n");
+      break;
+    case eSTRUGGLE:
+      if (AFF_FLAGGED(ch, AFF_GRAPPLED)) /*no need for message if not grappling*/
+        send_to_char(ch, "You are now able to 'struggle' again.\r\n");
       break;
     case eWAIT:
       send_to_char(ch, "You are able to act again.\r\n");
