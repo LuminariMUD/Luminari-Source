@@ -205,7 +205,7 @@ ACMD(do_grapple) {
   if (GRAPPLE_ATTACKER(ch) && GRAPPLE_ATTACKER(ch) == vict &&
       AFF_FLAGGED(ch, AFF_GRAPPLED)) {
     /* cmb, escape artist: check which is better is done in compute_cmb() */
-    if (combat_maneuver_check(ch, vict, COMBAT_MANEUVER_TYPE_REVERSAL, 0)) {
+    if (combat_maneuver_check(ch, vict, COMBAT_MANEUVER_TYPE_REVERSAL, 0) > 0) {
       /* reversal! */
       GRAPPLE_TARGET(ch) = vict;
       GRAPPLE_ATTACKER(ch) = NULL;
@@ -239,7 +239,7 @@ ACMD(do_grapple) {
       grapple_penalty = attack_of_opportunity(vict, ch, 0);
     }
 
-    if (combat_maneuver_check(ch, vict, COMBAT_MANEUVER_TYPE_INIT_GRAPPLE, -(grapple_penalty))) {
+    if (combat_maneuver_check(ch, vict, COMBAT_MANEUVER_TYPE_INIT_GRAPPLE, -(grapple_penalty)) > 0) {
       /* success! */
       act("\tyAn opportune moment presents itself, you quickly lunge towards $N "
               "engaging with a successful grapple!!\tn", FALSE, ch, NULL, vict, TO_CHAR);
@@ -269,7 +269,7 @@ ACMD(do_struggle) {
 
   struct char_data *vict = GRAPPLE_ATTACKER(ch);
 
-  if (combat_maneuver_check(ch, vict, COMBAT_MANEUVER_TYPE_REVERSAL, 0)) {
+  if (combat_maneuver_check(ch, vict, COMBAT_MANEUVER_TYPE_REVERSAL, 0) > 0) {
     /* success, defender escapes! */
     act("\tyYou succeed in escaping the grapple from $N!\tn", FALSE, ch, NULL, vict, TO_CHAR);
     act("\ty$n succeeds in escaping from your grapple!\tn", FALSE, ch, NULL, vict, TO_VICT);

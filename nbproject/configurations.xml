@@ -109,6 +109,8 @@
       <in>genzon.h</in>
       <in>graph.c</in>
       <in>graph.h</in>
+      <in>grapple.c</in>
+      <in>grapple.h</in>
       <in>handler.c</in>
       <in>handler.h</in>
       <in>hedit.c</in>
