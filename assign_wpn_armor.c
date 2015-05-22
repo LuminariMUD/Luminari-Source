@@ -499,7 +499,7 @@ bool this_weapon_needs_reloading(struct char_data *ch, struct obj_data *wielded)
 bool is_using_light_weapon(struct char_data *ch, struct obj_data *wielded) {
 
   if (!wielded) /* fists are light?  i need to check this */
-    return FALSE;
+    return TRUE;
 
   if (GET_OBJ_SIZE(wielded) > GET_SIZE(ch))
     return FALSE;

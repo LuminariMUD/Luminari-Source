@@ -28,6 +28,7 @@
 #include "actions.h"
 #include "assign_wpn_armor.h"
 #include "domains_schools.h"
+#include "grapple.h"
 
 #define SINFO spell_info[spellnum]
 
@@ -970,7 +971,7 @@ void finishCasting(struct char_data *ch) {
 EVENTFUNC(event_casting) {
   struct char_data *ch;
   struct mud_event_data *pMudEvent;
-  int x, failure = -1, time_stopped = FALSE;
+  int x, time_stopped = FALSE;
   char buf[MAX_INPUT_LENGTH];
 
   //initialize everything and dummy checks
@@ -997,30 +998,30 @@ EVENTFUNC(event_casting) {
     if (!castingCheckOk(ch))
       return 0;
     else {
+
+      /* concentration check */
       int spell_level = spell_info[spellnum].min_level[CASTING_CLASS(ch)];
+      int concentration_dc = 0;
+
       if (CASTING_CLASS(ch) == CLASS_CLERIC) {
         spell_level = MIN_SPELL_LVL(spellnum, CLASS_CLERIC, GET_1ST_DOMAIN(ch));
         int spell_level2 = MIN_SPELL_LVL(spellnum, CLASS_CLERIC, GET_2ND_DOMAIN(ch));
         spell_level = MIN(spell_level, spell_level2);
       }
-      // concentration challenge
-      failure +=  spell_level * 2;
-      if (!IS_NPC(ch))
-        failure -= CASTER_LEVEL(ch) + ((compute_ability(ch, ABILITY_CONCENTRATION) - 3) * 2);
-      else
-        failure -= (GET_LEVEL(ch)) * 3;
-      //chance of failure calculated here, so far:  taunt, intimidate, grappled
-      if (char_has_mud_event(ch, eTAUNTED))
-        failure += 15;
-      if (char_has_mud_event(ch, eINTIMIDATED))
-        failure += 15;
-      if (AFF_FLAGGED(ch, AFF_GRAPPLED))
-        failure += 15;
-      /* this needs to be changed to no combat in the room at all */
-      //if (!FIGHTING(ch))
-        //failure -= 50;
+      concentration_dc += spell_level;
 
-      if (dice(1, 101) < failure) {
+      if (!is_tanking(ch))
+        concentration_dc -= 20;
+      if (char_has_mud_event(ch, eTAUNTED))
+        concentration_dc += 6;
+      if (char_has_mud_event(ch, eINTIMIDATED))
+        concentration_dc += 6;
+      if (AFF_FLAGGED(ch, AFF_GRAPPLED))
+        if (GRAPPLE_ATTACKER(ch))
+          concentration_dc +=
+                  compute_cmb(GRAPPLE_ATTACKER(ch), COMBAT_MANEUVER_TYPE_GRAPPLE);
+
+      if (!skill_check(ch, ABILITY_CONCENTRATION, concentration_dc)) {
         send_to_char(ch, "You lost your concentration!\r\n");
         resetCastingData(ch);
         return 0;
