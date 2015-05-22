@@ -37,6 +37,15 @@
    Functions directly related to utils.h needs
  */
 
+int compute_dexterity_bonus(struct char_data *ch) {
+  if (!ch) return 0;
+  int dexterity_bonus = (GET_DEX(ch) - 10) / 2;
+  if (AFF_FLAGGED(ch, AFF_GRAPPLED))
+    dexterity_bonus -= 2;
+
+  return (MIN(compute_gear_max_dex(ch), dexterity_bonus));
+}
+
 #define TOTAL_STAT_POINTS 30
 #define MAX_POINTS_IN_A_STAT 10
 #define BASE_STAT 8

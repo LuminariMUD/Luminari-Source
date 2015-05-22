@@ -40,6 +40,7 @@
  * are made available with the function definition. */
 #define isspace_ignoretabs(c) ((c)!='\t' && isspace(c))
 
+int compute_dexterity_bonus(struct char_data *ch);
 int stats_point_left(struct char_data *ch);
 int comp_total_stat_points(struct char_data *ch);
 int comp_cha_cost(struct char_data *ch, int number);
@@ -745,7 +746,7 @@ do                                                              \
 #define GET_DISGUISE_DEX(ch) ((ch)->disguise_abils.dex)
 #define GET_DEX(ch) ((AFF_FLAGGED(ch, AFF_WILD_SHAPE) && GET_DISGUISE_RACE(ch)) ? \
   GET_DISGUISE_DEX(ch)+(ch)->aff_abils.dex : (ch)->aff_abils.dex)
-#define GET_DEX_BONUS(ch)	(MIN(compute_gear_max_dex(ch), (GET_DEX(ch) - 10) / 2))
+#define GET_DEX_BONUS(ch)	(compute_dexterity_bonus(ch))
 
 /** Current constitution of ch. */
 #define GET_REAL_CON(ch)     	((ch)->real_abils.con)

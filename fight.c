@@ -2622,6 +2622,9 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     dambonus -= 6;
   }
 
+  if (AFF_FLAGGED(vict, AFF_GRAPPLED))
+    dambonus -= 2;
+
   /* end penalties */
 
   /* size */
@@ -3613,7 +3616,20 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
   /* Size bonus */
   bonuses[BONUS_TYPE_SIZE] = MAX(bonuses[BONUS_TYPE_SIZE], size_modifiers[GET_SIZE(ch)]);
 
-  /* Unnamed / Undefined bonus (stacks) */
+  /* Unnamed / Undefined (stacks) */
+
+    /*unnamed penalties*/
+  if (AFF_FLAGGED(ch, AFF_GRAPPLED))
+    bonuses[BONUS_TYPE_UNDEFINED] -= 2;
+    /* Modify this to store a player-chosen number for power attack and expertise */
+  if (AFF_FLAGGED(ch, AFF_POWER_ATTACK) || AFF_FLAGGED(ch, AFF_EXPERTISE))
+    bonuses[BONUS_TYPE_UNDEFINED] -= COMBAT_MODE_VALUE(ch);
+  /* spellbattle */
+  if (char_has_mud_event(ch, eSPELLBATTLE) && SPELLBATTLE(ch) > 0)
+    bonuses[BONUS_TYPE_UNDEFINED] -= SPELLBATTLE(ch);
+    /*****/
+
+   /*unnamed bonuses*/
 
   if (HAS_FEAT(ch, FEAT_WEAPON_FOCUS)) {
     if (wielded) {
@@ -3682,10 +3698,6 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_KI_STRIKE))
     bonuses[BONUS_TYPE_UNDEFINED] += HAS_FEAT(ch, FEAT_KI_STRIKE);
 
-  /* Modify this to store a player-chosen number for power attack and expertise */
-  if (AFF_FLAGGED(ch, AFF_POWER_ATTACK) || AFF_FLAGGED(ch, AFF_EXPERTISE))
-    bonuses[BONUS_TYPE_UNDEFINED] -= COMBAT_MODE_VALUE(ch);
-
   /* favored enemy - Needs work */
   if (victim && victim != ch && !IS_NPC(ch) && HAS_FEAT(ch, FEAT_FAVORED_ENEMY)) {
     // checking if we have humanoid favored enemies for PC victims
@@ -3702,14 +3714,12 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
     }
   }
 
-  /* spellbattle */
-  if (char_has_mud_event(ch, eSPELLBATTLE) && SPELLBATTLE(ch) > 0)
-    bonuses[BONUS_TYPE_UNDEFINED] -= SPELLBATTLE(ch);
-
   /* if the victim is using 'come and get me' then they will be vulnerable */
   if (victim && affected_by_spell(victim, SKILL_COME_AND_GET_ME)) {
     bonuses[BONUS_TYPE_UNDEFINED] += 4;
   }
+
+  /* end bonuses */
 
   /*  Check armor/weapon proficiency
    *  If not proficient with weapon, -4 penalty applies. */
@@ -3768,8 +3778,14 @@ int compute_cmb (struct char_data *ch,              /* Attacker */
     case COMBAT_MANEUVER_TYPE_UNDEFINED:
     default: break;
   }
+  if (combat_maneuver_type != COMBAT_MANEUVER_TYPE_REVERSAL &&
+      combat_maneuver_type != COMBAT_MANEUVER_TYPE_INIT_GRAPPLE &&
+      combat_maneuver_type != COMBAT_MANEUVER_TYPE_GRAPPLE &&
+      AFF_FLAGGED(ch, AFF_GRAPPLED))
+    cm_bonus -= 2; /*cmb penalty if you aren't attempting grapple related checks
+                      * while being grappled */
 
-  send_to_char(ch, "<CMB:%d|", cm_bonus);
+  send_to_char(ch, "<CMB:%d> ", cm_bonus);
   return cm_bonus;
 }
 
@@ -3799,12 +3815,20 @@ int compute_cmd(struct char_data *vict,            /* Defender */
   if (!AFF_FLAGGED(vict, AFF_FLAT_FOOTED))
     cm_defense += GET_DEX_BONUS(vict);
   cm_defense += size_modifiers[GET_SIZE(vict)];
+
+  if (combat_maneuver_type != COMBAT_MANEUVER_TYPE_REVERSAL &&
+      combat_maneuver_type != COMBAT_MANEUVER_TYPE_INIT_GRAPPLE &&
+      combat_maneuver_type != COMBAT_MANEUVER_TYPE_GRAPPLE &&
+      AFF_FLAGGED(vict, AFF_GRAPPLED))
+    cm_defense -= 2; /*cmd penalty if you aren't defending from grapple related checks
+                      * while being grappled */
+
   /* misc here */
   /* should include: A creature can also add any circumstance,
    * deflection, dodge, insight, luck, morale, profane, and sacred bonuses to
    * AC to its CMD. Any penalties to a creature's AC also apply to its CMD. */
 
-  send_to_char(vict, "CMD:%d>", cm_defense);
+  send_to_char(vict, "<CMD:%d>", cm_defense);
   return cm_defense;
 }
 
@@ -3847,6 +3871,7 @@ int combat_maneuver_check(struct char_data *ch, struct char_data *vict,
       break;
     default: break;
   }
+
   /* result! */
   result = cm_bonus - cm_defense;
 
@@ -3914,6 +3939,9 @@ int attack_roll(struct char_data *ch,           /* Attacker */
 int attack_of_opportunity(struct char_data *ch, struct char_data *victim, int penalty) {
 
   if (AFF_FLAGGED(ch, AFF_FLAT_FOOTED) && !HAS_FEAT(ch, FEAT_COMBAT_REFLEXES))
+    return 0;
+
+  if (AFF_FLAGGED(ch, AFF_GRAPPLED))
     return 0;
 
   if (GET_TOTAL_AOO(ch) < (!HAS_FEAT(ch, FEAT_COMBAT_REFLEXES) ? 1 : GET_DEX_BONUS(ch))) {
@@ -5574,10 +5602,24 @@ void perform_violence(struct char_data *ch, int phase) {
     send_to_char(ch, "You continue the battle in defensive positioning!\r\n");
 
   /* here is our entry point for melee attack rotation */
-  if (!IS_CASTING(ch) && !AFF_FLAGGED(ch, AFF_TOTAL_DEFENSE))
+  /* conditions for not performing melee attacks:
+     -casting
+     -total defense
+     -grappling without light weapons*/
+  if (IS_CASTING(ch))
+    ;
+  else if (AFF_FLAGGED(ch, AFF_TOTAL_DEFENSE))
+    ;
+  else if (AFF_FLAGGED(ch, AFF_GRAPPLED) &&
+            ( !is_using_light_weapon(ch, GET_EQ(ch, WEAR_WIELD_1)) ||
+              !is_using_light_weapon(ch, GET_EQ(ch, WEAR_WIELD_OFFHAND)) ||
+              GET_EQ(ch, WEAR_WIELD_2H)) )
+    ;
+  else {
 #define NORMAL_ATTACK_ROUTINE 0
     perform_attacks(ch, NORMAL_ATTACK_ROUTINE, phase);
 #undef NORMAL_ATTACK_ROUTINE
+  }
   /**/
 
   if (MOB_FLAGGED(ch, MOB_SPEC) && GET_MOB_SPEC(ch) &&

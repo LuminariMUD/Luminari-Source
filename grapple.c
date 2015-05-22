@@ -92,6 +92,11 @@
  * on the grappled creature's combat maneuver check.
  */
 
+/* how does the mechanic work?  simple:  both grappler and grapled get the
+ grapple affection (and all the penalties of it), there is one who is in the
+ dominant position that has more choices/power on how to continue, and the
+ person in the disadvantage, whom has less choices*/
+
 /* check and cleanup grapple */
 bool valid_grapple_cond(struct char_data *ch) {
   bool valid_conditions = TRUE;
@@ -113,7 +118,7 @@ bool valid_grapple_cond(struct char_data *ch) {
       !GRAPPLE_ATTACKER(ch)) {
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_GRAPPLED);
     valid_conditions = FALSE;
-  }
+  } /* uh oh, how about grapple affects such as web spell? TODO:FIX! */
 
   /* same room check */
   if (GRAPPLE_ATTACKER(ch) && IN_ROOM(ch) != IN_ROOM(GRAPPLE_ATTACKER(ch))) {
@@ -173,6 +178,7 @@ ACMD(do_grapple) {
   struct char_data *vict = NULL;
 
   /*
+  //this isn't necessary
   if (IS_NPC(ch)) {
     send_to_char(ch, "You have no idea how.\r\n");
     return;
