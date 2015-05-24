@@ -160,7 +160,8 @@ void clear_grapple(struct char_data *ch, struct char_data *vict) {
    grappling situations */
 void grapple_cleanup(struct char_data *ch) {
   if (!ch) return;
-  struct char_data *vict = GRAPPLE_TARGET(ch);
+  struct char_data *vict = GRAPPLE_ATTACKER(ch);
+  //struct char_data *vict = GRAPPLE_TARGET(ch);
   if (!valid_grapple_cond(ch) && vict)
     /* cleanup! */
     clear_grapple(ch, vict);
