@@ -2939,8 +2939,15 @@ int get_feat_value(struct char_data *ch, int featnum)
     return 0;
   }
 
+  int featval;
+
   /* Check for the feat. */
-  int featval = HAS_REAL_FEAT(ch, featnum);
+  if (IS_NPC(ch))
+    featval = MOB_HAS_FEAT(ch, featnum);
+  else if (AFF_FLAGGED(ch, AFF_WILD_SHAPE) && GET_DISGUISE_RACE(ch))
+    featval = MOB_HAS_FEAT(ch, featnum);
+  else
+    featval = HAS_REAL_FEAT(ch, featnum);
 
   return featval;
 }

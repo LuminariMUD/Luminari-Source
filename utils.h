@@ -1061,6 +1061,10 @@ do                                                              \
 #define LEVELUP(ch) (ch->player_specials->levelup)
 
 /* Feats */
+/*#define MOB_FEATS(ch)           ((ch)->char_specials.saved.feats[i])*/
+#define MOB_HAS_FEAT(ch, i)     ((ch)->char_specials.mob_feats[i])
+#define MOB_SET_FEAT(ch, i, j)  ((ch)->char_specials.mob_feats[i] = j)
+
 #define GET_FEAT_POINTS(ch)         (ch->player_specials->saved.feat_points)
 #define GET_EPIC_FEAT_POINTS(ch)    (ch->player_specials->saved.epic_feat_points)
 #define GET_CLASS_FEATS(ch,cl)      (ch->player_specials->saved.class_feat_points[cl])
@@ -1071,9 +1075,6 @@ do                                                              \
 #define HAS_REAL_FEAT(ch, i)    ((ch)->char_specials.saved.feats[i])
 #define HAS_FEAT(ch, i)         (get_feat_value((ch), i))
 #define SET_FEAT(ch, i, j)      ((ch)->char_specials.saved.feats[i] = j)
-#define MOB_FEATS(ch)           ((ch)->char_specials.saved.feats[i])
-#define MOB_HAS_FEAT(ch, i)     (HAS_FEAT(ch, i))
-#define MOB_SET_FEAT(ch, i)     (SET_FEAT(ch, i))
 #define HAS_COMBAT_FEAT(ch,i,j) (IS_SET_AR((ch)->char_specials.saved.combat_feats[i], j))
 #define SET_COMBAT_FEAT(ch,i,j) (SET_BIT_AR((ch)->char_specials.saved.combat_feats[(i)], (j)))
 #define HAS_SCHOOL_FEAT(ch,i,j) (IS_SET((ch)->char_specials.saved.school_feats[(i)], (1 << (j))))
