@@ -2076,7 +2076,7 @@ static void parse_enhanced_mob(FILE *mob_f, int i, int nr) {
 
 void parse_mobile(FILE *mob_f, int nr) {
   static int i = 0;
-  int j, t[10], retval;
+  int j, t[10], retval, counter;
   char line[READ_SIZE], *tmpptr, letter;
   char f1[128], f2[128], f3[128], f4[128], f5[128], f6[128], f7[128], f8[128], buf2[128];
   //  char walk[MAX_STRING_LENGTH];
@@ -2187,6 +2187,9 @@ void parse_mobile(FILE *mob_f, int nr) {
     REMOVE_BIT_AR(MOB_FLAGS(mob_proto + i), MOB_NOTDEADYET);
   }
 
+  for (counter = 0; counter < NUM_FEATS; counter++)
+    MOB_SET_FEAT((mob_proto + i), counter, 0);
+
   switch (UPPER(letter)) {
     case 'S': /* Simple monsters */
       parse_simple_mob(mob_f, i, nr);
@@ -2213,6 +2216,8 @@ void parse_mobile(FILE *mob_f, int nr) {
 
   for (j = 0; j < NUM_WEARS; j++)
     mob_proto[i].equipment[j] = NULL;
+
+
 
   mob_proto[i].nr = i;
   mob_proto[i].desc = NULL;

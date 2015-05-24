@@ -636,6 +636,9 @@ void npc_rogue_behave(struct char_data *ch, struct char_data *vict,
    3) sap  //todo
    4) backstab / circle
    */
+  if (GET_LEVEL(ch) >= 1 && !HAS_FEAT(ch, FEAT_SNEAK_ATTACK)) {
+    MOB_SET_FEAT(ch, FEAT_SNEAK_ATTACK, (GET_LEVEL(ch)) / 2);
+  }
 
   switch (rand_number(1, 2)) {
     case 1:

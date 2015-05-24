@@ -1925,7 +1925,7 @@ void set_bonus_stats(struct char_data *ch, int str, int con, int dex, int ac) {
 
 /* wildshape, in progress -Zusuk */
 ACMD(do_wildshape) {
-  int i = 0;
+  int i = 0, counter = 0;
   char buf[200];
   struct wild_shape_mods *abil_mods;
   int uses_remaining = 0;
@@ -2010,6 +2010,9 @@ ACMD(do_wildshape) {
   set_bonus_stats(ch, abil_mods->strength, abil_mods->constitution,
                        abil_mods->dexterity, abil_mods->natural_armor);
   /* all stat modifications are done */
+  for (counter = 0; counter < NUM_FEATS; counter++)
+    MOB_SET_FEAT((ch), counter, 0);
+  /* TODO:assign appropriate racial/mobile feats here */
 
   GET_HIT(ch) += GET_LEVEL(ch);
   GET_HIT(ch) = MIN(GET_HIT(ch), GET_MAX_HIT(ch));

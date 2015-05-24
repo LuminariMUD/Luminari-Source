@@ -2347,7 +2347,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define COMBAT_MANEUVER_TYPE_GRAPPLE      4
 #define COMBAT_MANEUVER_TYPE_REVERSAL     5 /* try to reverse grapple */
 #define COMBAT_MANEUVER_TYPE_INIT_GRAPPLE 6
- 
+
 /* Critical hit types */
 #define CRIT_X2   0
 #define CRIT_X3   1
@@ -2967,7 +2967,7 @@ struct char_special_data {
   int carry_weight; /**< Carried weight */
   byte carry_items; /**< Number of items carried */
 
-  /** casting **/
+  /** casting (time) **/
   bool isCasting; // casting or not
   int castingTime; // casting time
   int castingSpellnum; // spell casting
@@ -2981,6 +2981,9 @@ struct char_special_data {
   struct obj_data *crafting_object;  // refers to obj crafting (deprecated)
   ubyte crafting_repeat; // multiple objects created in one session
   int crafting_bonus; // bonus for crafting the item
+
+  /* mob feats (npc's and pc shifted) */
+  byte mob_feats[MAX_FEATS];  /* Feats (booleans and counters)  */
 
   /* miscellaneous */
   int prayin[NUM_CASTERS]; //memorization
