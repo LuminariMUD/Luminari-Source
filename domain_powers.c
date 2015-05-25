@@ -62,6 +62,8 @@ void perform_destructiveaura(struct char_data *ch) {
     act("A destructive aura from $n enhances you!", FALSE, ch, NULL, tch, TO_VICT);
   }
 
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_DESTRUCTIVE_AURA);
 }
 
 ACMD(do_destructiveaura) {

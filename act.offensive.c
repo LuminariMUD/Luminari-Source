@@ -1159,25 +1159,25 @@ void perform_smite(struct char_data *ch, int smite_type) {
   switch (smite_type) {
     case SMITE_TYPE_EVIL:
       af.spell = SKILL_SMITE_EVIL;
+      if (!IS_NPC(ch))
+        start_daily_use_cooldown(ch, FEAT_SMITE_EVIL);
       break;
     case SMITE_TYPE_GOOD:
       af.spell = SKILL_SMITE_GOOD;
+      if (!IS_NPC(ch))
+        start_daily_use_cooldown(ch, FEAT_SMITE_GOOD);
       break;
     case SMITE_TYPE_DESTRUCTION:
       af.spell = SKILL_SMITE_DESTRUCTION;
+      if (!IS_NPC(ch))
+        start_daily_use_cooldown(ch, FEAT_DESTRUCTIVE_SMITE);
       break;
   }
   af.duration = 24;
 
   affect_to_char(ch, &af);
 
-  if (!IS_NPC(ch))
-    start_daily_use_cooldown(ch, FEAT_SMITE_EVIL);
-
   send_to_char(ch, "You prepare to wreak vengeance upon your foe.\r\n");
-  //  act("The mighty force of $N's faith blasts $n out of existence!", FALSE, NULL,
-  //          NULL, ch, TO_NOTVICT);
-
 }
 
 /* the primary engine for backstab */
