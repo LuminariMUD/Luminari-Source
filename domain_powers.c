@@ -23,11 +23,89 @@
 #include "act.h"
 
 
+
+#define DESTRUCTIVE_AURA_AFFECTS 1
+void perform_destructiveaura(struct char_data *ch) {
+  struct affected_type af[DESTRUCTIVE_AURA_AFFECTS];
+  int  i = 0, duration = 0;
+  struct char_data *tch = NULL;
+
+  if (!GROUP(ch)) return;
+
+  duration = 2;
+
+  /* init affect array */
+  for (i = 0; i < DESTRUCTIVE_AURA_AFFECTS; i++) {
+    new_affect(&(af[i]));
+    af[i].spell = SKILL_DESTRUCTIVE_AURA;
+    af[i].duration = duration;
+  }
+
+  af[0].location = APPLY_DAMROLL;
+  af[0].modifier = MAX(1, CLASS_LEVEL(ch, CLASS_CLERIC)/2);
+
+  USE_STANDARD_ACTION(ch);
+
+  act("$n glows with a ominous \trred\tn aura!!", FALSE, ch, NULL, NULL, TO_ROOM);
+  act("You activate your destructive aura!!", FALSE, ch, NULL, NULL, TO_CHAR);
+
+  while ((tch = (struct char_data *) simple_list(GROUP(ch)->members)) !=
+          NULL) {
+    if (IN_ROOM(tch) != IN_ROOM(ch))
+      continue;
+    if (ch == tch)
+      continue; /*doesn't work on initiator*/
+    if (affected_by_spell(tch, SKILL_DESTRUCTIVE_AURA))
+      continue;
+    for (i = 0; i < DESTRUCTIVE_AURA_AFFECTS; i++)
+      affect_join(tch, af + i, FALSE, FALSE, FALSE, FALSE);
+    act("A destructive aura from $n enhances you!", FALSE, ch, NULL, tch, TO_VICT);
+  }
+
+}
+
+ACMD(do_destructiveaura) {
+  int uses_remaining = 0;
+
+  if (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_DESTRUCTIVE_AURA)) {
+    send_to_char(ch, "You don't know how to perform.\r\n");
+    return;
+  }
+
+  if (!has_domain_power(ch, DOMAIN_POWER_DESTRUCTIVE_AURA)) {
+    send_to_char(ch, "You do not have that domain power!\r\n");
+    return;
+  }
+
+  if (!GROUP(ch)) {
+    send_to_char(ch, "This will only work if you are groupped!\r\n");
+    return;
+  }
+
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_DESTRUCTIVE_AURA)) == 0) {
+    send_to_char(ch, "You must recover the divine energy required to use destructive aura.\r\n");
+    return;
+  }
+
+  if (uses_remaining < 0) {
+    send_to_char(ch, "You are not experienced enough.\r\n");
+    return;
+  }
+
+  perform_destructiveaura(ch);
+}
+#undef BARD_AFFECTS
+
 ACMD(do_destructivesmite) {
   int uses_remaining = 0;
 
   if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_DESTRUCTIVE_SMITE)) {
     send_to_char(ch, "You have no idea how.\r\n");
+    return;
+  }
+
+  if (!has_domain_power(ch, DOMAIN_POWER_DESTRUCTIVE_SMITE)) {
+    send_to_char(ch, "You do not have that domain power!\r\n");
     return;
   }
 

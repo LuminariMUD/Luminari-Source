@@ -2883,6 +2883,7 @@ void mag_assign_spells(void) {
   skillo(SKILL_FEINT, "feint", ACTIVE_SKILL); //533
   skillo(SKILL_SMITE_GOOD, "smite good", ACTIVE_SKILL); //534
   skillo(SKILL_SMITE_DESTRUCTION, "destructive smite", ACTIVE_SKILL); //535
+  skillo(SKILL_DESTRUCTIVE_AURA, "destructive aura", ACTIVE_SKILL); //536
 
   /****note weapon specialist and luck of heroes inserted in free slots ***/
 

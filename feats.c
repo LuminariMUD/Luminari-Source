@@ -920,6 +920,11 @@ void assign_feats(void) {
       "cleric level (minimum 1). You must declare the destructive smite before "
       "making the attack. You can use this ability a number of times per day "
       "equal to 3 + your Wisdom modifier.");
+  feato(FEAT_DESTRUCTIVE_AURA, "destructive aura", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
+    "add 1/2 cleric level to group's damage",
+    "As a standard action, you can unleash a destructive aura which will give "
+      "all your group companions cleric-level/2 bonus damage for 2 rounds.  You can use "
+      "this ability a number of times per day equal to your Wisdom modifier.");
 
   /*****/
   /* Class ability feats */

@@ -613,9 +613,10 @@
 #define SKILL_FEINT                     533
 #define SKILL_SMITE_GOOD                534
 #define SKILL_SMITE_DESTRUCTION         535
+#define SKILL_DESTRUCTIVE_AURA          536
 
 /* New skills may be added here up to MAX_SKILLS (600) */
-#define NUM_SKILLS                      536
+#define NUM_SKILLS                      537
 
 /* Special Abilities for weapons */
 

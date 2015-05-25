@@ -297,6 +297,9 @@ void alt_wear_off_msg(struct char_data *ch, int skillnum) {
       send_to_char(ch, "Your bard-song morale has faded...\r\n");
       SONG_AFF_VAL(ch) = 0;
       break;
+    case SKILL_DESTRUCTIVE_AURA:
+      send_to_char(ch, "Your destructive aura has faded...\r\n");
+      break;
     case SKILL_CRIP_STRIKE:
       send_to_char(ch, "You have recovered from the crippling strike...\r\n");
       break;
