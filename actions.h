@@ -8,7 +8,7 @@
 /* Defines for attack actions */
 #define AA_TRIP              0
 #define AA_CHARGE            1
-#define AA_SMITE             2
+#define AA_SMITE_EVIL        2
 #define AA_STUNNINGFIST      3
 #define AA_HEADBUTT          4
 #define AA_KICK              5
@@ -18,8 +18,10 @@
 #define AA_POWERFUL_BLOW     9
 #define AA_COME_AND_GET_ME   10
 #define AA_DISARM            11
+#define AA_SMITE_GOOD        12
+#define AA_SMITE_DESTRUCTION 13
 /**/
-#define NUM_ATTACK_ACTIONS   12
+#define NUM_ATTACK_ACTIONS   14
 /**************************/
 
 #define USE_STANDARD_ACTION(ch)   start_action_cooldown(ch, atSTANDARD, 6 RL_SEC)

@@ -352,10 +352,9 @@ void assign_domains(void) {
       /* 9th circle */
       SPELL_ELEMENTAL_SWARM);
 
-  /*unfinished domains*/
   /* Chaos Domain */
   add_domain(DOMAIN_CHAOS, "Chaos", WEAPON_TYPE_DAGGER,
-      "(UNFINISHED)Your touch infuses life and weapons with chaos, and you revel in all "
+      "Your touch infuses life and weapons with chaos, and you revel in all "
           "things anarchic.");
   add_domain_powers(DOMAIN_CHAOS, DOMAIN_POWER_CURSE_TOUCH, DOMAIN_POWER_CHAOTIC_WEAPON,
       DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED);
@@ -367,6 +366,8 @@ void assign_domains(void) {
       SPELL_RESERVED_DBC, SPELL_WAVES_OF_EXHAUSTION, SPELL_RESERVED_DBC,
       /* 9th circle */
       SPELL_ENFEEBLEMENT);
+
+  /*unfinished domains*/
   /* Destruction Domain */
   add_domain(DOMAIN_DESTRUCTION, "Destruction", WEAPON_TYPE_SPEAR,
       "(UNFINISHED)You revel in ruin and devastation, and can deliver particularly "

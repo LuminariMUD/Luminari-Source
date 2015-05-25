@@ -913,7 +913,13 @@ void assign_feats(void) {
     "your weapon becomes chaotic",
     "Any weapon you wield behaves as if it is chaotic, and will do additional 2d6 "
       "damage against chaotic-raced and chaotic-aligned opponents.");
-
+  feato(FEAT_DESTRUCTIVE_SMITE, "destructive smite", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
+    "add 1/2 cleric level to damage",
+    "You gain the destructive smite power: the supernatural ability to make a "
+      "single melee attack with a morale bonus on damage rolls equal to 1/2 your "
+      "cleric level (minimum 1). You must declare the destructive smite before "
+      "making the attack. You can use this ability a number of times per day "
+      "equal to 3 + your Wisdom modifier.");
 
   /*****/
   /* Class ability feats */
@@ -1409,6 +1415,11 @@ void assign_feats(void) {
     "+2 reflex saves",
     "gain a +2 bonus on Reflex saves");
 
+  /* Blackguard */   /* knight of the skull (dragonlance) */
+  feato(FEAT_SMITE_GOOD, "smite good", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "add level to hit roll and charisma bonus to damage",
+    "add level to hit roll and charisma bonus to damage");
+
   /* Pale/Death Master */
   feato(FEAT_ANIMATE_DEAD, "animate dead", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "allows innate use of animate dead spell",
@@ -1572,7 +1583,6 @@ void assign_feats(void) {
   feato(FEAT_DETECT_GOOD, "detect good", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
   feato(FEAT_DISCERN_LIES, "discern lies", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
   feato(FEAT_FAVOR_OF_DARKNESS, "favor of darkness", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_SMITE_GOOD, "smite good", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
 
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
 
@@ -1768,7 +1778,9 @@ void assign_feats(void) {
   dailyfeat(FEAT_REMOVE_DISEASE, ePURIFY);
   dailyfeat(FEAT_RAGE, eRAGE);
   dailyfeat(FEAT_VANISH, eVANISHED);
-  dailyfeat(FEAT_SMITE_EVIL, eSMITE);
+  dailyfeat(FEAT_SMITE_EVIL, eSMITE_EVIL);
+  dailyfeat(FEAT_SMITE_GOOD, eSMITE_EVIL);
+  dailyfeat(FEAT_DESTRUCTIVE_SMITE, eSMITE_DESTRUCTION);
   dailyfeat(FEAT_TURN_UNDEAD, eTURN_UNDEAD);
   dailyfeat(FEAT_LIGHTNING_ARC, eLIGHTNING_ARC);
   dailyfeat(FEAT_ACID_DART, eACID_DART);

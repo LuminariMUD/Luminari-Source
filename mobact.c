@@ -766,7 +766,7 @@ void npc_paladin_behave(struct char_data *ch, struct char_data *vict,
     return;
 
   if (IS_EVIL(vict))
-    perform_smite(ch);
+    perform_smite(ch, SMITE_TYPE_EVIL);
 
   if (percent <= 25.0)
     perform_layonhands(ch, ch);

@@ -51,7 +51,7 @@ typedef enum {
   eC_FAMILIAR, //  familiar cooldown
   eC_MOUNT, //  paladin's called mount cooldown
   eIMPLODE, //  implode damage event
-  eSMITE, //  smite eeeevil cooldown
+  eSMITE_EVIL, //  smite eeeevil cooldown
   ePERFORM, //  Bard performance
   ePURGEMOB, //  mob purge
   eICE_STORM, //  storm of vengeance - ice storm
@@ -90,6 +90,8 @@ typedef enum {
   eICICLE, /* cooldown to reuse icicle */
   eSTRUGGLE, /* struggle cooldown (escape from grapple) */
   eCURSE_TOUCH, /* cooldown to reuse curse touch */
+  eSMITE_GOOD, //  smite goooodies cooldown
+  eSMITE_DESTRUCTION, //  destructive smite cooldown
 } event_id;
 
 /* probaly a smart place to mention to not forget to update:

@@ -1150,13 +1150,23 @@ void perform_springleap(struct char_data *ch, struct char_data *vict) {
   USE_MOVE_ACTION(ch);
 }
 
-/* smite evil (eventually good?) engine */
-void perform_smite(struct char_data *ch) {
+/* smite engine */
+void perform_smite(struct char_data *ch, int smite_type) {
   struct affected_type af;
 
   new_affect(&af);
 
-  af.spell = SKILL_SMITE;
+  switch (smite_type) {
+    case SMITE_TYPE_EVIL:
+      af.spell = SKILL_SMITE_EVIL;
+      break;
+    case SMITE_TYPE_GOOD:
+      af.spell = SKILL_SMITE_GOOD;
+      break;
+    case SMITE_TYPE_DESTRUCTION:
+      af.spell = SKILL_SMITE_DESTRUCTION;
+      break;
+  }
   af.duration = 24;
 
   affect_to_char(ch, &af);
@@ -2745,7 +2755,28 @@ ACMD(do_powerfulblow) {
   perform_powerfulblow(ch);
 }
 
-ACMD(do_smite) {
+ACMD(do_smitegood) {
+  int uses_remaining = 0;
+
+  if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_SMITE_GOOD)) {
+    send_to_char(ch, "You have no idea how.\r\n");
+    return;
+  }
+
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_SMITE_GOOD)) == 0) {
+    send_to_char(ch, "You must recover the divine energy required to smite good.\r\n");
+    return;
+  }
+
+  if (uses_remaining < 0) {
+    send_to_char(ch, "You are not experienced enough.\r\n");
+    return;
+  }
+
+  perform_smite(ch, SMITE_TYPE_GOOD);
+}
+
+ACMD(do_smiteevil) {
   int uses_remaining = 0;
 
   if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_SMITE_EVIL)) {
@@ -2763,7 +2794,7 @@ ACMD(do_smite) {
     return;
   }
 
-  perform_smite(ch);
+  perform_smite(ch, SMITE_TYPE_EVIL);
 }
 
 /* kick engine */
