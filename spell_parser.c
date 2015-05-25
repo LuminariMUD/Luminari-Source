@@ -2850,7 +2850,7 @@ void mag_assign_spells(void) {
   skillo(SKILL_DIVINE_HEALTH, "divine health", PASSIVE_SKILL); //500
   skillo(SKILL_LAY_ON_HANDS, "lay on hands", ACTIVE_SKILL); //501
   skillo(SKILL_COURAGE, "courage", PASSIVE_SKILL); //502
-  skillo(SKILL_SMITE, "smite", ACTIVE_SKILL); //503
+  skillo(SKILL_SMITE_EVIL, "smite evil", ACTIVE_SKILL); //503
   skillo(SKILL_REMOVE_DISEASE, "purify", ACTIVE_SKILL); //504
   skillo(SKILL_RECHARGE, "recharge", CASTER_SKILL); //505
   skillo(SKILL_STEALTHY, "stealthy", PASSIVE_SKILL); //506
@@ -2880,7 +2880,9 @@ void mag_assign_spells(void) {
   skillo(SKILL_POWERFUL_BLOW, "powerful blow", ACTIVE_SKILL); //530
   skillo(SKILL_RAGE_FATIGUE, "rage fatigue", ACTIVE_SKILL); //531
   skillo(SKILL_COME_AND_GET_ME, "come and get me", ACTIVE_SKILL); //532
-  skillo(SKILL_FEINT, "feint", ACTIVE_SKILL); //532
+  skillo(SKILL_FEINT, "feint", ACTIVE_SKILL); //533
+  skillo(SKILL_SMITE_GOOD, "smite good", ACTIVE_SKILL); //534
+  skillo(SKILL_SMITE_DESTRUCTION, "destructive smite", ACTIVE_SKILL); //535
 
   /****note weapon specialist and luck of heroes inserted in free slots ***/
 

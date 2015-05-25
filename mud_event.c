@@ -53,7 +53,7 @@ struct mud_event_list mud_event_index[] = {
   { "Call Familiar", event_countdown, EVENT_CHAR}, // eC_FAMILIAR
   { "Call Mount", event_countdown, EVENT_CHAR}, // eC_MOUNT
   { "Implode", event_implode, EVENT_CHAR}, //eIMPLODE
-  { "Smite Evil", event_daily_use_cooldown, EVENT_CHAR}, // eSMITE
+  { "Smite Evil", event_daily_use_cooldown, EVENT_CHAR}, // eSMITE_EVIL
   { "Perform", event_countdown, EVENT_CHAR}, // ePERFORM
   { "Mob Purge", event_countdown, EVENT_CHAR}, // ePURGEMOB
   { "SoV Ice Storm", event_ice_storm, EVENT_CHAR}, // eICE_STORM
@@ -92,6 +92,8 @@ struct mud_event_list mud_event_index[] = {
   { "Icicle Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eICICLE
   { "Struggle Cooldown", event_countdown, EVENT_CHAR}, // eSTRUGGLE
   { "Curse Touch Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eCURSE_TOUCH
+  { "Smite Good", event_daily_use_cooldown, EVENT_CHAR}, // eSMITE_GOOD
+  { "Destructive Smite", event_daily_use_cooldown, EVENT_CHAR}, // eSMITE_DESTRUCTION
 };
 
 /* init_events() is the ideal function for starting global events. This
@@ -201,8 +203,14 @@ EVENTFUNC(event_countdown) {
     case eRAGE:
       send_to_char(ch, "You are now able to Rage again.\r\n");
       break;
-    case eSMITE:
-      send_to_char(ch, "You are once again prepared to smite your foe.\r\n");
+    case eSMITE_EVIL:
+      send_to_char(ch, "You are once again prepared to smite your evil foes.\r\n");
+      break;
+    case eSMITE_GOOD:
+      send_to_char(ch, "You are once again prepared to smite your good foes.\r\n");
+      break;
+    case eSMITE_DESTRUCTION:
+      send_to_char(ch, "You are once again prepared to smite your foes.\r\n");
       break;
     case eSTUNNED:
       send_to_char(ch, "You are now free from the stunning affect.\r\n");
@@ -349,9 +357,17 @@ EVENTFUNC(event_daily_use_cooldown) {
       featnum = FEAT_VANISH;
       send_to_char(ch, "One of your vanish uses has recovered.\r\n");
       break;
-    case eSMITE:
+    case eSMITE_EVIL:
       featnum = FEAT_SMITE_EVIL;
       send_to_char(ch, "One of your smite evil uses has recovered.\r\n");
+      break;
+    case eSMITE_GOOD:
+      featnum = FEAT_SMITE_GOOD;
+      send_to_char(ch, "One of your smite good uses has recovered.\r\n");
+      break;
+    case eSMITE_DESTRUCTION:
+      featnum = FEAT_DESTRUCTIVE_SMITE;
+      send_to_char(ch, "One of your destructive smite uses has recovered.\r\n");
       break;
     case eTURN_UNDEAD:
       featnum = FEAT_TURN_UNDEAD;

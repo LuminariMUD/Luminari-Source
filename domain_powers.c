@@ -20,6 +20,30 @@
 #include "mud_event.h"
 #include "actions.h"
 #include "fight.h"
+#include "act.h"
+
+
+ACMD(do_destructivesmite) {
+  int uses_remaining = 0;
+
+  if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_DESTRUCTIVE_SMITE)) {
+    send_to_char(ch, "You have no idea how.\r\n");
+    return;
+  }
+
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_DESTRUCTIVE_SMITE)) == 0) {
+    send_to_char(ch, "You must recover the divine energy required to use destructive smite.\r\n");
+    return;
+  }
+
+  if (uses_remaining < 0) {
+    send_to_char(ch, "You are not experienced enough.\r\n");
+    return;
+  }
+
+  perform_smite(ch, SMITE_TYPE_DESTRUCTION);
+}
+
 
 ACMD(do_lightningarc) {
   int dam = 0;
@@ -368,11 +392,10 @@ ACMD(do_cursetouch) {
     return;
   }
 
-  call_magic(ch, vict, 0, SPELL_CURSE, CLASS_LEVEL(ch, CLASS_CLERIC), CAST_INNATE);
-
   act("A \trred\tn aura shoots from your fingertips towards $N!", FALSE, ch, 0, vict, TO_CHAR);
   act("$n shoots a \trred\tn aura towards you!", FALSE, ch, 0, vict, TO_VICT);
   act("$n shoots a \trred\tn aura towards $N!", FALSE, ch, 0, vict, TO_NOTVICT);
+  call_magic(ch, vict, 0, SPELL_CURSE, CLASS_LEVEL(ch, CLASS_CLERIC), CAST_INNATE);
 
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_CURSE_TOUCH);

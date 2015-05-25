@@ -129,6 +129,7 @@ ACMD(do_aciddart);
 ACMD(do_firebolt);
 ACMD(do_icicle);
 ACMD(do_cursetouch);
+ACMD(do_destructivesmite);
 
 /******************************************/
 

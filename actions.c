@@ -18,6 +18,7 @@
 #include "mud_event.h"
 #include "actions.h"
 #include "act.h"
+#include "domains_schools.h"
 
 /*  Attack action definitions - Define the relationships between
  *  AA_XXXXX and do_XXXXX. */
@@ -28,7 +29,7 @@ void (*attack_actions[NUM_ATTACK_ACTIONS])(struct char_data *ch,
                                            int subcmd) = {
   do_trip,              /* AA_TRIP */
   do_charge,            /* AA_CHARGE */
-  do_smite,             /* AA_SMITE */
+  do_smiteevil,         /* AA_SMITE_EVIL */
   do_stunningfist,      /* AA_STUNNINGFIST */
   do_headbutt,          /* AA_HEDABUTT */
   do_kick,              /* AA_KICK */
@@ -38,6 +39,8 @@ void (*attack_actions[NUM_ATTACK_ACTIONS])(struct char_data *ch,
   do_powerfulblow,      /* AA_POWERFUL_BLOW */
   do_comeandgetme,      /* AA_COME_AND_GET_ME */
   do_disarm,            /* AA_DISARM */
+  do_smitegood,         /* AA_SMITE_GOOD */
+  do_destructivesmite,  /* AA_SMITE_DESTRUCTION */
 };
 
 /* Action Cooldown events are:
@@ -106,7 +109,7 @@ bool is_action_available(struct char_data * ch, action_type act_type, bool msg_t
       result = FALSE;
     } else
       result = TRUE;
-    
+
   } else if (act_type == atSWIFT) {
     /* Is ch on swift action cooldown? */
     if (char_has_mud_event(ch, eSWIFTACTION)) {

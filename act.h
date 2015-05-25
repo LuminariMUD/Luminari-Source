@@ -247,7 +247,7 @@ void clear_rage(struct char_data *ch);
 void perform_stunningfist(struct char_data *ch);
 void perform_quiveringpalm(struct char_data *ch);
 void perform_rescue(struct char_data *ch, struct char_data *vict);
-void perform_smite(struct char_data *ch);
+void perform_smite(struct char_data *ch, int smite_type);
 void perform_rage(struct char_data *ch);
 void perform_layonhands(struct char_data *ch, struct char_data *vict);
 bool perform_knockdown(struct char_data *ch, struct char_data *vict,
@@ -300,7 +300,8 @@ ACMD(do_flee);
 ACMD(do_stunningfist);
 ACMD(do_quiveringpalm);
 ACMD(do_kick);
-ACMD(do_smite);
+ACMD(do_smiteevil);
+ACMD(do_smitegood);
 ACMD(do_kill);
 ACMD(do_layonhands);
 ACMD(do_order);

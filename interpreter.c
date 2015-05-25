@@ -211,6 +211,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "disarm", "disarm", POS_FIGHTING, do_process_attack, 1, AA_DISARM, FALSE, ACTION_NONE, {0, 0}},
   { "domain", "domain", POS_DEAD, do_domain, 0, 0, TRUE, ACTION_NONE, {0, 0}},
   { "disguise", "disguise", POS_RESTING ,do_disguise, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
+  { "destructivesmite", "destructivesmite", POS_FIGHTING, do_destructivesmite, 1, 0, FALSE, ACTION_NONE, {0, 0}},
 
   { "eat", "ea", POS_RECLINING, do_eat, 0, SCMD_EAT, FALSE, ACTION_MOVE, {0, 6}},
   { "echo", "ec", POS_SLEEPING, do_echo, LVL_IMMORT, SCMD_ECHO, TRUE, ACTION_NONE, {0, 0}},
@@ -437,7 +438,8 @@ cpp_extern const struct command_info cmd_info[] = {
   { "skillset", "skillset", POS_SLEEPING, do_skillset, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}},
   { "sleep", "sl", POS_SLEEPING, do_sleep, 0, 0, FALSE, ACTION_NONE, {0, 0}},
   { "slist", "slist", POS_SLEEPING, do_oasis_list, LVL_BUILDER, SCMD_OASIS_SLIST, TRUE, ACTION_NONE, {0, 0}},
-  { "smite", "smite", POS_FIGHTING, do_smite, 1, 0, FALSE, ACTION_NONE, {0, 0}},
+  { "smiteevil", "smiteevil", POS_FIGHTING, do_smiteevil, 1, 0, FALSE, ACTION_NONE, {0, 0}},
+  { "smitegood", "smitegood", POS_FIGHTING, do_smitegood, 1, 0, FALSE, ACTION_NONE, {0, 0}},
   { "sneak", "sneak", POS_STANDING, do_sneak, 1, 0, FALSE, ACTION_NONE, {0, 0}},
   { "snoop", "snoop", POS_DEAD, do_snoop, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}},
   { "socials", "socials", POS_DEAD, do_commands, 0, SCMD_SOCIALS, TRUE, ACTION_NONE, {0, 0}},

@@ -2670,10 +2670,22 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     dambonus += 3;
 
   /* smite evil (remove after one attack) */
-  if (affected_by_spell(ch, SKILL_SMITE) && vict && IS_EVIL(vict)) {
+  if (affected_by_spell(ch, SKILL_SMITE_EVIL) && vict && IS_EVIL(vict)) {
     dambonus += CLASS_LEVEL(ch, CLASS_PALADIN);
     if (mode == MODE_NORMAL_HIT)
-      affect_from_char(ch, SKILL_SMITE);
+      affect_from_char(ch, SKILL_SMITE_EVIL);
+  }
+  /* smite good (remove after one attack) */
+  if (affected_by_spell(ch, SKILL_SMITE_GOOD) && vict && IS_EVIL(vict)) {
+    //dambonus += CLASS_LEVEL(ch, CLASS_PALADIN);
+    if (mode == MODE_NORMAL_HIT)
+      affect_from_char(ch, SKILL_SMITE_GOOD);
+  }
+  /* destructive smite (remove after one attack) */
+  if (affected_by_spell(ch, SKILL_SMITE_DESTRUCTION) && vict) {
+    dambonus += (CLASS_LEVEL(ch, CLASS_CLERIC) / 2) + 1;
+    if (mode == MODE_NORMAL_HIT)
+      affect_from_char(ch, SKILL_SMITE_DESTRUCTION);
   }
 
   /* favored enemy */
@@ -3686,7 +3698,7 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
   }
 
   /* smite! */
-  if (affected_by_spell(ch, SKILL_SMITE)) {
+  if (affected_by_spell(ch, SKILL_SMITE_EVIL) || affected_by_spell(ch, SKILL_SMITE_GOOD)) {
     bonuses[BONUS_TYPE_UNDEFINED] += GET_CHA_BONUS(ch);
   }
 
@@ -4176,10 +4188,26 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       /* what is this?  because we are removing the affect, it won't
        be calculated properly in damage_bonus, so we just tag it on afterwards */
   }
-  if (affected_by_spell(ch, SKILL_SMITE)) {
+  if (affected_by_spell(ch, SKILL_SMITE_EVIL)) {
     if (IS_EVIL(victim)) {
-      send_to_char(ch, "[SMITE] ");
-      send_to_char(victim, "[\tRSMITE\tn] ");
+      send_to_char(ch, "[SMITE-EVIL] ");
+      send_to_char(victim, "[\tRSMITE-EVIL\tn] ");
+      act("$n performs a \tYsmiting\tn attack on $N!",
+                  FALSE, ch, wielded, victim, TO_NOTVICT);
+    }
+  }
+  if (affected_by_spell(ch, SKILL_SMITE_GOOD)) {
+    if (IS_GOOD(victim)) {
+      send_to_char(ch, "[SMITE-GOOD] ");
+      send_to_char(victim, "[\tRSMITE-GOOD\tn] ");
+      act("$n performs a \tYsmiting\tn attack on $N!",
+                  FALSE, ch, wielded, victim, TO_NOTVICT);
+    }
+  }
+  if (affected_by_spell(ch, SKILL_SMITE_DESTRUCTION)) {
+    if (victim) {
+      send_to_char(ch, "[DESTRUCTIVE-SMITE] ");
+      send_to_char(victim, "[\tRDESTRUCTIVE-SMITE\tn] ");
       act("$n performs a \tYsmiting\tn attack on $N!",
                   FALSE, ch, wielded, victim, TO_NOTVICT);
     }

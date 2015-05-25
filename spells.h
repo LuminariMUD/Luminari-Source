@@ -19,6 +19,13 @@
 #define DEFAULT_STAFF_LVL    12
 #define DEFAULT_WAND_LVL     12
 
+/* smite types */
+#define SMITE_TYPE_UNDEFINED    0
+#define SMITE_TYPE_EVIL         1
+#define SMITE_TYPE_GOOD         2
+#define SMITE_TYPE_DESTRUCTION  3
+
+
 /* spell types */
 #define SPELL_TYPE_SPELL   0
 #define SPELL_TYPE_POTION  1
@@ -26,7 +33,7 @@
 #define SPELL_TYPE_STAFF   3
 #define SPELL_TYPE_SCROLL  4
 
-
+/* cast types */
 #define CAST_UNDEFINED	   (-1)
 #define CAST_SPELL          0
 #define CAST_POTION         1
@@ -573,7 +580,7 @@
 #define SKILL_DIVINE_HEALTH             500  //implemented
 #define SKILL_LAY_ON_HANDS              501  //implemented
 #define SKILL_COURAGE                   502  //implemented
-#define SKILL_SMITE                     503  //implemented
+#define SKILL_SMITE_EVIL                503  //implemented
 #define SKILL_REMOVE_DISEASE            504  //implemented
 #define SKILL_RECHARGE                  505  //implemented
 #define SKILL_STEALTHY                  506  //implemented
@@ -604,9 +611,11 @@
 #define SKILL_RAGE_FATIGUE              531  //implemented
 #define SKILL_COME_AND_GET_ME           532
 #define SKILL_FEINT                     533
+#define SKILL_SMITE_GOOD                534
+#define SKILL_SMITE_DESTRUCTION         535
 
 /* New skills may be added here up to MAX_SKILLS (600) */
-#define NUM_SKILLS                      534
+#define NUM_SKILLS                      536
 
 /* Special Abilities for weapons */
 
