@@ -1792,6 +1792,7 @@ void assign_feats(void) {
   dailyfeat(FEAT_FIRE_BOLT, eFIRE_BOLT);
   dailyfeat(FEAT_ICICLE, eICICLE);
   dailyfeat(FEAT_CURSE_TOUCH, eCURSE_TOUCH);
+  dailyfeat(FEAT_DESTRUCTIVE_AURA, eDESTRUCTIVE_AURA);
 
   /** END **/
 }
