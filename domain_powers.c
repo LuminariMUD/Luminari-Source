@@ -32,7 +32,7 @@ void perform_destructiveaura(struct char_data *ch) {
 
   if (!GROUP(ch)) return;
 
-  duration = 2;
+  duration = 1;
 
   /* init affect array */
   for (i = 0; i < DESTRUCTIVE_AURA_AFFECTS; i++) {
