@@ -2934,12 +2934,12 @@ char *get_align_by_num(int align) {
 /* Feats */
 int get_feat_value(struct char_data *ch, int featnum)
 {
-  if ((featnum < 0) || (featnum > NUM_FEATS)) {
+  if ((featnum <= FEAT_UNDEFINED) || (featnum >= FEAT_LAST_FEAT)) {
     log("SYSERR: get_feat_value called with invalid featnum: %d", featnum);
     return 0;
   }
 
-  int featval;
+  int featval = 0;
 
   /* Check for the feat. */
   if (IS_NPC(ch))
