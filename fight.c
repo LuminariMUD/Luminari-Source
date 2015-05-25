@@ -2676,7 +2676,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
       affect_from_char(ch, SKILL_SMITE_EVIL);
   }
   /* smite good (remove after one attack) */
-  if (affected_by_spell(ch, SKILL_SMITE_GOOD) && vict && IS_EVIL(vict)) {
+  if (affected_by_spell(ch, SKILL_SMITE_GOOD) && vict && IS_GOOD(vict)) {
     //dambonus += CLASS_LEVEL(ch, CLASS_PALADIN);
     if (mode == MODE_NORMAL_HIT)
       affect_from_char(ch, SKILL_SMITE_GOOD);
