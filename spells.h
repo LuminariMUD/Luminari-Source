@@ -25,7 +25,6 @@
 #define SMITE_TYPE_GOOD         2
 #define SMITE_TYPE_DESTRUCTION  3
 
-
 /* spell types */
 #define SPELL_TYPE_SPELL   0
 #define SPELL_TYPE_POTION  1
