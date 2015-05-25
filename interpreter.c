@@ -188,6 +188,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "craft", "craft", POS_RECLINING, do_practice, 1, 0, FALSE, ACTION_NONE, {0, 0}},
   { "comeandgetme", "comeandgetme", POS_FIGHTING, do_comeandgetme, 1, 0, FALSE, ACTION_NONE, {0, 0}},
   { "class", "class", POS_DEAD, do_class, 0, 0, TRUE, ACTION_NONE, {0, 0}},
+  { "cursetouch", "cursetouch", POS_FIGHTING, do_cursetouch, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
 
   { "date", "da", POS_DEAD, do_date, 1, SCMD_DATE, TRUE, ACTION_NONE, {0, 0}},
   { "dc", "dc", POS_DEAD, do_dc, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}},

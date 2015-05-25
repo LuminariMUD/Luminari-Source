@@ -3107,32 +3107,37 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
       /* process weapon abilities - critical */
       if (is_critical && !(IS_NPC(victim) && GET_RACE(victim) == NPCRACE_UNDEAD))
         process_weapon_abilities(wielded, ch, victim, ACTMTD_ON_CRIT, NULL);
-
-      if((obj_has_special_ability(wielded, WEAPON_SPECAB_ANARCHIC))
+      /*chaotic weapon*/
+      if((obj_has_special_ability(wielded, WEAPON_SPECAB_ANARCHIC) ||
+          HAS_FEAT(ch, FEAT_CHAOTIC_WEAPON))
          && ((IS_LG(victim)) ||
              (IS_LN(victim)) ||
              (IS_LE(victim)) ||
-             (IS_NPC(victim) || HAS_SUBRACE(victim, SUBRACE_LAWFUL)))) {
-        /* Do 2d6 more damage. */
+             (IS_NPC(victim) && HAS_SUBRACE(victim, SUBRACE_LAWFUL)))) {
+        send_to_char(ch, "Your weapon hums chaotically as it strikes!\r\n");
         dam += dice(2, 6);
       }
-      if((obj_has_special_ability(wielded, WEAPON_SPECAB_AXIOMATIC))
+      /*lawful weapon*/
+      if((obj_has_special_ability(wielded, WEAPON_SPECAB_AXIOMATIC) ||
+          HAS_FEAT(ch, FEAT_LAWFUL_WEAPON))
          && ((IS_CG(victim)) ||
              (IS_CN(victim)) ||
              (IS_CE(victim)) ||
-             (IS_NPC(victim) || HAS_SUBRACE(victim, SUBRACE_CHAOTIC)))) {
+             (IS_NPC(victim) && HAS_SUBRACE(victim, SUBRACE_CHAOTIC)))) {
         /* Do 2d6 more damage. */
+        send_to_char(ch, "Your weapon hums lawfully as it strikes!\r\n");
         dam += dice(2, 6);
       }
+      /*bane weapon*/
       if((obj_has_special_ability(wielded, WEAPON_SPECAB_BANE))) {
         /* Check the values in the special ability record for the NPCRACE and SUBRACE. */
         int *value = get_obj_special_ability(wielded, WEAPON_SPECAB_BANE)->value;
         if((GET_RACE(victim) == value[0]) && (HAS_SUBRACE(victim, value[1]))) {
-          /*send_to_char(ch, "Your weapon hums in delight as it strikes!\r\n");*/
+          send_to_char(ch, "Your weapon hums in delight as it strikes!\r\n");
           dam += dice(2, 6);
         }
       }
-
+      /*bane weapon*/
       if (HAS_FEAT(ch, FEAT_BANE_OF_ENEMIES) && HAS_FEAT(ch, FEAT_FAVORED_ENEMY)) {
         if (!IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, NPCRACE_HUMAN)) {
           send_to_char(ch, "Your weapon hums in delight as it strikes!\r\n");

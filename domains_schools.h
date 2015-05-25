@@ -33,16 +33,54 @@ extern "C" {
 /* domains are in structs.h */
 
 #define DOMAIN_POWER_UNDEFINED                0
+  /*air*/
 #define DOMAIN_POWER_LIGHTNING_ARC            1
 #define DOMAIN_POWER_ELECTRICITY_RESISTANCE   2
+  /*earth*/
 #define DOMAIN_POWER_ACID_DART                3
 #define DOMAIN_POWER_ACID_RESISTANCE          4
+  /*fire*/
 #define DOMAIN_POWER_FIRE_BOLT                5
 #define DOMAIN_POWER_FIRE_RESISTANCE          6
+  /*water*/
 #define DOMAIN_POWER_ICICLE                   7
 #define DOMAIN_POWER_COLD_RESISTANCE          8
+  /*chaos*/
+#define DOMAIN_POWER_CURSE_TOUCH              9
+#define DOMAIN_POWER_CHAOTIC_WEAPON           10
+  /*destruction*/
+#define DOMAIN_POWER_DESTRUCTIVE_SMITE        11
+#define DOMAIN_POWER_DESTRUCTIVE_AURA         12
+  /*evil*/
+#define DOMAIN_POWER_EVIL_TOUCH               13
+#define DOMAIN_POWER_EVIL_SCYTHE              14
+  /*good*/
+#define DOMAIN_POWER_GOOD_TOUCH               15
+#define DOMAIN_POWER_GOOD_LANCE               16
+  /*healing*/
+#define DOMAIN_POWER_HEALING_TOUCH            17
+#define DOMAIN_POWER_EMPOWERED_HEALING        18
+  /*knowledge*/
+#define DOMAIN_POWER_KNOWLEDGE                19
+#define DOMAIN_POWER_EYE_OF_KNOWLEDGE         20
+  /*law*/
+#define DOMAIN_POWER_BLESSED_TOUCH            21
+#define DOMAIN_POWER_LAWFUL_WEAPON            22
+  /*trickery*/
+#define DOMAIN_POWER_DECEPTION                23
+#define DOMAIN_POWER_COPYCAT                  24
+#define DOMAIN_POWER_MASS_INVIS               25
+  /*protection*/
+#define DOMAIN_POWER_RESISTANCE               26
+#define DOMAIN_POWER_SAVES                    27
+#define DOMAIN_POWER_AURA_OF_PROTECTION       28
+  /*travel*/
+#define DOMAIN_POWER_ETH_SHIFT                29
+  /*war*/
+#define DOMAIN_POWER_BATTLE_RAGE              30
+#define DOMAIN_POWER_WEAPON_EXPERT            31
   /****************/
-#define NUM_DOMAIN_POWERS                     9
+#define NUM_DOMAIN_POWERS                     32
 /****************/
 
 //extern const char *domain_power_names[NUM_DOMAIN_POWERS + 1];
@@ -90,6 +128,7 @@ ACMD(do_lightningarc);
 ACMD(do_aciddart);
 ACMD(do_firebolt);
 ACMD(do_icicle);
+ACMD(do_cursetouch);
 
 /******************************************/
 

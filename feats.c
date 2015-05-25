@@ -905,6 +905,14 @@ void assign_feats(void) {
     "gain cold resistance",
     "At 6th cleric levels, you gain resist cold 10. This resistance increases "
           "to 20 at 12th level and to 50 at 20th level.");
+  feato(FEAT_CURSE_TOUCH, "curse touch", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
+    "you can unleash a curse",
+    "As a standard action, you can unleash a curse (like the spell).  You can use "
+      "this ability a number of times per day equal to 3 + your Wisdom modifier.");
+  feato(FEAT_CHAOTIC_WEAPON, "chaotic weapon", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
+    "your weapon becomes chaotic",
+    "Any weapon you wield behaves as if it is chaotic, and will do additional 2d6 "
+      "damage against chaotic-raced and chaotic-aligned opponents.");
 
 
   /*****/
