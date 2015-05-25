@@ -1784,7 +1784,7 @@ void assign_feats(void) {
   dailyfeat(FEAT_RAGE, eRAGE);
   dailyfeat(FEAT_VANISH, eVANISHED);
   dailyfeat(FEAT_SMITE_EVIL, eSMITE_EVIL);
-  dailyfeat(FEAT_SMITE_GOOD, eSMITE_EVIL);
+  dailyfeat(FEAT_SMITE_GOOD, eSMITE_GOOD);
   dailyfeat(FEAT_DESTRUCTIVE_SMITE, eSMITE_DESTRUCTION);
   dailyfeat(FEAT_TURN_UNDEAD, eTURN_UNDEAD);
   dailyfeat(FEAT_LIGHTNING_ARC, eLIGHTNING_ARC);
