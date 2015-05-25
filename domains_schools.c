@@ -89,6 +89,8 @@ void clear_domain_feats(struct char_data *ch) {
  ran clear_domain_feats() - used for clerics selecting or switching
  their domains */
 void add_domain_feats(struct char_data *ch) {
+  if (!CLASS_LEVEL(ch, CLASS_CLERIC)) return;
+
   int i = 0, featnum = FEAT_UNDEFINED;
 
   for (i = 0; i < NUM_DOMAIN_POWERS; i++) {
@@ -102,6 +104,8 @@ void add_domain_feats(struct char_data *ch) {
 }
 
 int has_domain_power(struct char_data *ch, int domain_power) {
+  if (!CLASS_LEVEL(ch, CLASS_CLERIC)) return FALSE;
+
   int i = 0;
 
   /* we have to loop through the list of powers for each domain the pc has */
