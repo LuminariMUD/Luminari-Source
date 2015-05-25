@@ -132,6 +132,21 @@ ACMD(do_icicle);
 ACMD(do_cursetouch);
 ACMD(do_destructivesmite);
 ACMD(do_destructiveaura);
+ACMD(do_eviltouch);
+ACMD(do_evilscythe);
+ACMD(do_goodtouch);
+ACMD(do_goodlance);
+ACMD(do_healingtouch);
+ACMD(do_eyeofknowledge);
+ACMD(do_blessedtouch);
+ACMD(do_copycat);
+ACMD(do_massinvis);
+ACMD(do_auraofprotection);
+ACMD(do_battlerage);
+/* //this is in act.other.c, shared with monks 'outsider' feat
+ACMD(do_ethshift);
+*/
+
 
 /******************************************/
 

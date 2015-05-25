@@ -95,6 +95,18 @@ struct mud_event_list mud_event_index[] = {
   { "Smite Good", event_daily_use_cooldown, EVENT_CHAR}, // eSMITE_GOOD
   { "Destructive Smite", event_daily_use_cooldown, EVENT_CHAR}, // eSMITE_DESTRUCTION
   { "Destructive Aura", event_daily_use_cooldown, EVENT_CHAR}, // eDESTRUCTIVE_AURA
+  { "Evil Touch", event_daily_use_cooldown, EVENT_CHAR}, // eEVIL_TOUCH
+  { "Evil Scythe", event_daily_use_cooldown, EVENT_CHAR}, // eEVIL_SCYTHE
+  { "Good Touch", event_daily_use_cooldown, EVENT_CHAR}, // eGOOD_TOUCH
+  { "Good Lance", event_daily_use_cooldown, EVENT_CHAR}, // eGOOD_LANCE
+  { "Healing Touch", event_daily_use_cooldown, EVENT_CHAR}, // eHEALING_TOUCH
+  { "Eye of Knowledge", event_daily_use_cooldown, EVENT_CHAR}, // eEYE_OF_KNOWLEDGE
+  { "Blessed Touch", event_daily_use_cooldown, EVENT_CHAR}, // eBLESSED_TOUCH
+  { "Lawful Weapon", event_daily_use_cooldown, EVENT_CHAR}, // eLAWFUL_WEAPON
+  { "Copycat", event_daily_use_cooldown, EVENT_CHAR}, // eCOPYCAT
+  { "Mass Invis", event_daily_use_cooldown, EVENT_CHAR}, // eMASS_INVIS
+  { "Aura of Protection", event_daily_use_cooldown, EVENT_CHAR}, // eAURA_OF_PROTECTION
+  { "Battle Rage", event_daily_use_cooldown, EVENT_CHAR}, // eBATTLE_RAGE
 };
 
 /* init_events() is the ideal function for starting global events. This
@@ -397,6 +409,50 @@ EVENTFUNC(event_daily_use_cooldown) {
     case eDESTRUCTIVE_AURA:
       featnum = FEAT_DESTRUCTIVE_AURA;
       send_to_char(ch, "One of your destructive aura uses has recovered.\r\n");
+      break;
+    case eEVIL_TOUCH:
+      featnum = FEAT_EVIL_TOUCH;
+      send_to_char(ch, "One of your evil touch uses has recovered.\r\n");
+      break;
+    case eEVIL_SCYTHE:
+      featnum = FEAT_EVIL_SCYTHE;
+      send_to_char(ch, "One of your evil scythe uses has recovered.\r\n");
+      break;
+    case eGOOD_TOUCH:
+      featnum = FEAT_GOOD_TOUCH;
+      send_to_char(ch, "One of your good touch uses has recovered.\r\n");
+      break;
+    case eGOOD_LANCE:
+      featnum = FEAT_GOOD_LANCE;
+      send_to_char(ch, "One of your good lance uses has recovered.\r\n");
+      break;
+    case eHEALING_TOUCH:
+      featnum = FEAT_HEALING_TOUCH;
+      send_to_char(ch, "One of your healing touch uses has recovered.\r\n");
+      break;
+    case eEYE_OF_KNOWLEDGE:
+      featnum = FEAT_EYE_OF_KNOWLEDGE;
+      send_to_char(ch, "One of your eye of knowledge uses has recovered.\r\n");
+      break;
+    case eBLESSED_TOUCH:
+      featnum = FEAT_BLESSED_TOUCH;
+      send_to_char(ch, "One of your blessed touch uses has recovered.\r\n");
+      break;
+    case eCOPYCAT:
+      featnum = FEAT_COPYCAT;
+      send_to_char(ch, "One of your copycat uses has recovered.\r\n");
+      break;
+    case eMASS_INVIS:
+      featnum = FEAT_MASS_INVIS;
+      send_to_char(ch, "One of your mass invis uses has recovered.\r\n");
+      break;
+    case eAURA_OF_PROTECTION:
+      featnum = FEAT_AURA_OF_PROTECTION;
+      send_to_char(ch, "One of your aura of protection uses has recovered.\r\n");
+      break;
+    case eBATTLE_RAGE:
+      featnum = FEAT_BATTLE_RAGE;
+      send_to_char(ch, "One of your battle rage uses has recovered.\r\n");
       break;
     default:
       break;

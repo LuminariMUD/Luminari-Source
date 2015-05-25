@@ -3032,9 +3032,17 @@ int get_daily_uses(struct char_data *ch, int featnum){
     case FEAT_CRYSTAL_BODY:
       daily_uses = 3;
       break;
+    case FEAT_BATTLE_RAGE:/*fallthrough*/
+    case FEAT_MASS_INVIS:/*fallthrough*/
+    case FEAT_COPYCAT:/*fallthrough*/
     case FEAT_DESTRUCTIVE_AURA:
       daily_uses = GET_WIS_BONUS(ch);
       break;
+    case FEAT_AURA_OF_PROTECTION:/*fallthrough*/
+    case FEAT_BLESSED_TOUCH:/*fallthrough*/
+    case FEAT_EYE_OF_KNOWLEDGE:/*fallthrough*/
+    case FEAT_HEALING_TOUCH:/*fallthrough*/
+    case FEAT_GOOD_TOUCH: /*fallthrough*/
     case FEAT_FIRE_BOLT: /* fallthrough */
     case FEAT_ICICLE: /* fallthrough */
     case FEAT_ACID_DART: /* fallthrough */
@@ -3043,6 +3051,11 @@ int get_daily_uses(struct char_data *ch, int featnum){
     case FEAT_LIGHTNING_ARC:
       daily_uses = 3 + GET_WIS_BONUS(ch);
       break;
+    case FEAT_EVIL_SCYTHE:/*fallthrough*/
+    case FEAT_GOOD_LANCE:
+      daily_uses = CLASS_LEVEL(ch, CLASS_CLERIC) / 4;
+      break;
+    case FEAT_EVIL_TOUCH:
     case FEAT_SMITE_EVIL:
     case FEAT_SMITE_GOOD:
     case FEAT_RAGE:

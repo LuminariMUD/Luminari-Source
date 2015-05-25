@@ -306,8 +306,8 @@ ACMD(do_abundantstep) {
   return;
 }
 
-/* ethereal shift - monk epic feat skill, allows shifting of self and group members
-   to the ethereal plane and back */
+/* ethereal shift - monk epic feat skill/cleric travel domain power/feat, allows
+ * shifting of self and group members to the ethereal plane and back */
 ACMD(do_ethshift) {
   struct char_data *shiftee = NULL;
   room_rnum shift_dest = NOWHERE;
@@ -315,7 +315,7 @@ ACMD(do_ethshift) {
 
   skip_spaces(&argument);
 
-  if (!HAS_FEAT(ch, FEAT_OUTSIDER)) {
+  if (!HAS_FEAT(ch, FEAT_OUTSIDER) && !HAS_FEAT(ch, FEAT_ETH_SHIFT)) {
     send_to_char(ch, "You do not know how!\r\n");
     return;
   }

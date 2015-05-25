@@ -93,6 +93,17 @@ typedef enum {
   eSMITE_GOOD, //  smite goooodies cooldown
   eSMITE_DESTRUCTION, //  destructive smite cooldown
   eDESTRUCTIVE_AURA, //  destructive aura cooldown
+  eEVIL_TOUCH, /*more domain powers*/
+  eEVIL_SCYTHE, /*more domain powers*/
+  eGOOD_TOUCH, /*more domain powers*/
+  eGOOD_LANCE, /*more domain powers*/
+  eHEALING_TOUCH, /*more domain powers*/
+  eEYE_OF_KNOWLEDGE, /*more domain powers*/
+  eBLESSED_TOUCH, /*more domain powers*/
+  eCOPYCAT, /*more domain powers*/
+  eMASS_INVIS, /*more domain powers*/
+  eAURA_OF_PROTECTION, /*more domain powers*/
+  eBATTLE_RAGE /*more domain powers*/
 } event_id;
 
 /* probaly a smart place to mention to not forget to update:
