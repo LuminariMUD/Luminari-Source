@@ -91,6 +91,7 @@ struct mud_event_list mud_event_index[] = {
   { "Fire Bolt Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eFIRE_BOLT
   { "Icicle Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eICICLE
   { "Struggle Cooldown", event_countdown, EVENT_CHAR}, // eSTRUGGLE
+  { "Curse Touch Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eCURSE_TOUCH
 };
 
 /* init_events() is the ideal function for starting global events. This
@@ -371,6 +372,10 @@ EVENTFUNC(event_daily_use_cooldown) {
     case eICICLE:
       featnum = FEAT_ICICLE;
       send_to_char(ch, "One of your icicle uses has recovered.\r\n");
+      break;
+    case eCURSE_TOUCH:
+      featnum = FEAT_CURSE_TOUCH;
+      send_to_char(ch, "One of your curse touch uses has recovered.\r\n");
       break;
     default:
       break;
