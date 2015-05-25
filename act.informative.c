@@ -1275,6 +1275,30 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k) {
   if ((pMudEvent = char_has_mud_event(k, eDESTRUCTIVE_AURA)))
     send_to_char(ch, "Destructive Aura Cooldown  - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
 
+  if ((pMudEvent = char_has_mud_event(k, eEVIL_TOUCH)))
+    send_to_char(ch, "Evil Touch Cooldown  - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eEVIL_SCYTHE)))
+    send_to_char(ch, "Evil Scythe Cooldown  - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eGOOD_TOUCH)))
+    send_to_char(ch, "Good Touch Cooldown  - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eGOOD_LANCE)))
+    send_to_char(ch, "Good Lance Cooldown  - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eHEALING_TOUCH)))
+    send_to_char(ch, "Healing Touch Cooldown  - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eEYE_OF_KNOWLEDGE)))
+    send_to_char(ch, "Eye of Knowledge Cooldown  - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eBLESSED_TOUCH)))
+    send_to_char(ch, "Blessed Touch Cooldown  - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eCOPYCAT)))
+    send_to_char(ch, "Copycat Cooldown  - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eMASS_INVIS)))
+    send_to_char(ch, "Mass Invis Cooldown  - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eAURA_OF_PROTECTION)))
+    send_to_char(ch, "Aura of Protection Cooldown  - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eBATTLE_RAGE)))
+    send_to_char(ch, "Battle Rage Cooldown  - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+
+
   send_to_char(ch, "\tC");
   draw_line(ch, 80, '-', '-');
   send_to_char(ch, "\tn");

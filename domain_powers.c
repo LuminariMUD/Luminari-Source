@@ -22,7 +22,43 @@
 #include "fight.h"
 #include "act.h"
 
+ACMD(do_eviltouch) {
+}
 
+ACMD(do_evilscythe) {
+}
+
+ACMD(do_goodtouch) {
+}
+
+ACMD(do_goodlance) {
+}
+
+ACMD(do_healingtouch) {
+}
+
+ACMD(do_eyeofknowledge) {
+}
+
+ACMD(do_blessedtouch) {
+}
+
+ACMD(do_copycat) {
+}
+
+ACMD(do_massinvis) {
+}
+
+ACMD(do_auraofprotection) {
+}
+
+/* //this is in act.other.c, shared with monks 'outsider' feat
+ACMD(do_ethshift) {
+}
+*/
+
+ACMD(do_battlerage) {
+}
 
 #define DESTRUCTIVE_AURA_AFFECTS 1
 void perform_destructiveaura(struct char_data *ch) {

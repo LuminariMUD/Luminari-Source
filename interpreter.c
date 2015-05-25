@@ -136,6 +136,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "autoreload", "autoreload", POS_DEAD, do_gen_tog, 0, SCMD_AUTORELOAD, TRUE, ACTION_NONE, {0, 0}},
   { "accexp", "accexp", POS_DEAD, do_accexp, 0, 0, TRUE, ACTION_NONE, {0, 0}},
   { "aciddart", "aciddart", POS_FIGHTING, do_aciddart, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
+  { "auraofprotection", "auraofprotection", POS_FIGHTING, do_auraofprotection, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
 
   { "backstab", "ba", POS_STANDING, do_backstab, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}},
   { "ban", "ban", POS_DEAD, do_ban, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}},
@@ -151,6 +152,8 @@ cpp_extern const struct command_info cmd_info[] = {
   { "buck", "buck", POS_FIGHTING, do_buck, 1, 0, FALSE, ACTION_MOVE, {0, 6}},
   { "bodyslam", "bodyslam", POS_FIGHTING, do_bodyslam, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}},
   { "bind", "bind", POS_FIGHTING, do_bind, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
+  { "blessedtouch", "blessedtouch", POS_STANDING, do_blessedtouch, 0, 0, FALSE, ACTION_STANDARD, {6, 0}},
+  { "battlerage", "battlerage", POS_STANDING, do_battlerage, 0, 0, FALSE, ACTION_STANDARD, {6, 0}},
 
   { "cast", "c", POS_SITTING, do_cast, 1, 0, FALSE, ACTION_MOVE, {0, 6}},
   { "cedit", "cedit", POS_DEAD, do_oasis_cedit, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}},
@@ -189,6 +192,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "comeandgetme", "comeandgetme", POS_FIGHTING, do_comeandgetme, 1, 0, FALSE, ACTION_NONE, {0, 0}},
   { "class", "class", POS_DEAD, do_class, 0, 0, TRUE, ACTION_NONE, {0, 0}},
   { "cursetouch", "cursetouch", POS_FIGHTING, do_cursetouch, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
+  { "copycat", "copycat", POS_FIGHTING, do_copycat, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
 
   { "date", "da", POS_DEAD, do_date, 1, SCMD_DATE, TRUE, ACTION_NONE, {0, 0}},
   { "dc", "dc", POS_DEAD, do_dc, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}},
@@ -227,6 +231,9 @@ cpp_extern const struct command_info cmd_info[] = {
   { "eqrating", "eqrating", POS_SLEEPING, do_eqrating, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},
   { "emptybody", "emptybody", POS_RECLINING, do_emptybody, 1, 0, FALSE, ACTION_MOVE, {0, 6}},
   { "ethshift", "ethshift", POS_STANDING, do_ethshift, 0, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}},
+  { "evilscythe", "evilscythe", POS_STANDING, do_evilscythe, 0, 0, FALSE, ACTION_STANDARD, {6, 0}},
+  { "eviltouch", "eviltouch", POS_STANDING, do_eviltouch, 0, 0, FALSE, ACTION_STANDARD, {6, 0}},
+  { "eyeofknowledge", "eyeofknowledge", POS_STANDING, do_eyeofknowledge, 0, 0, FALSE, ACTION_STANDARD, {6, 0}},
 
   { "feats", "fea", POS_SLEEPING, do_feats, 0, 0, FALSE, ACTION_NONE, {0, 0}},
   { "force", "force", POS_SLEEPING, do_force, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}},
@@ -261,6 +268,8 @@ cpp_extern const struct command_info cmd_info[] = {
   { "gain", "gain", POS_RECLINING, do_gain, 1, 0, FALSE, ACTION_NONE, {0, 0}},
   { "guard", "guard", POS_FIGHTING, do_guard, 1, 0, FALSE, ACTION_NONE, {0, 0}},
   { "grapple", "grapple", POS_FIGHTING, do_grapple, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
+  { "goodlance", "goodlance", POS_STANDING, do_goodlance, 0, 0, FALSE, ACTION_STANDARD, {6, 0}},
+  { "goodtouch", "goodtouch", POS_STANDING, do_goodtouch, 0, 0, FALSE, ACTION_STANDARD, {6, 0}},
 
   { "help", "h", POS_DEAD, do_help, 0, 0, TRUE, ACTION_NONE, {0, 0}},
   { "happyhour", "ha", POS_DEAD, do_happyhour, 0, 0, TRUE, ACTION_NONE, {0, 0}},
@@ -282,6 +291,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "headbutt", "headbutt", POS_FIGHTING, do_process_attack, 1, AA_HEADBUTT, FALSE, ACTION_NONE, {0, 0}},
   { "hitall", "hitall", POS_FIGHTING, do_hitall, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}},
   { "handleanimal", "handleanimal", POS_STANDING, do_handleanimal, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
+  { "healingtouch", "healingtouch", POS_STANDING, do_healingtouch, 0, 0, FALSE, ACTION_STANDARD, {6, 0}},
 
   { "inventory", "i", POS_DEAD, do_inventory, 0, 0, TRUE, ACTION_NONE, {0, 0}},
   { "identify", "id", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}},
@@ -327,6 +337,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "mute", "mute", POS_DEAD, do_wizutil, LVL_STAFF, SCMD_MUTE, TRUE, ACTION_NONE, {0, 0}},
   { "mount", "mount", POS_FIGHTING, do_mount, 0, 0, FALSE, ACTION_MOVE, {0, 6}},
   { "masterlist", "masterlist", POS_DEAD, do_masterlist, 0, 0, TRUE, ACTION_NONE, {0, 0}},
+  { "massinvis", "massinvis", POS_FIGHTING, do_massinvis, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
 
   { "news", "news", POS_SLEEPING, do_gen_ps, 0, SCMD_NEWS, TRUE, ACTION_NONE, {0, 0}},
   { "noauction", "noauction", POS_DEAD, do_gen_tog, 0, SCMD_NOAUCTION, TRUE, ACTION_NONE, {0, 0}},

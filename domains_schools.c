@@ -367,10 +367,9 @@ void assign_domains(void) {
       /* 9th circle */
       SPELL_ENFEEBLEMENT);
 
-  /*unfinished domains*/
   /* Destruction Domain */
   add_domain(DOMAIN_DESTRUCTION, "Destruction", WEAPON_TYPE_SPEAR,
-      "(UNFINISHED)You revel in ruin and devastation, and can deliver particularly "
+      "You revel in ruin and devastation, and can deliver particularly "
           "destructive attacks.");
   add_domain_powers(DOMAIN_DESTRUCTION, DOMAIN_POWER_DESTRUCTIVE_SMITE, DOMAIN_POWER_DESTRUCTIVE_AURA,
       DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED);
@@ -382,6 +381,8 @@ void assign_domains(void) {
       SPELL_SYMBOL_OF_PAIN, SPELL_RESERVED_DBC, SPELL_RESERVED_DBC,
       /* 9th circle */
       SPELL_HORRID_WILTING);
+
+  /*unfinished domains*/
   /* Evil Domain */
   add_domain(DOMAIN_EVIL, "Evil", WEAPON_TYPE_SPIKED_CHAIN,
       "(UNFINISHED)You are sinister and cruel, and have wholly pledged your soul to the "
@@ -474,20 +475,20 @@ void assign_domains(void) {
   add_domain_powers(DOMAIN_PROTECTION, DOMAIN_POWER_RESISTANCE, DOMAIN_POWER_SAVES,
       DOMAIN_POWER_AURA_OF_PROTECTION, DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED);
                                   /* 1st circle */    /* 2nd circle */
-  add_domain_spells(DOMAIN_PROTECTION, SPELL_RESERVED_DBC, SPELL_RESERVED_DBC,
+  add_domain_spells(DOMAIN_PROTECTION, SPELL_MAGE_ARMOR, SPELL_SHIELD,
       /* 3rd circle */    /* 4th circle */    /* 5th circle */
-      SPELL_RESERVED_DBC, SPELL_RESERVED_DBC, SPELL_RESERVED_DBC,
+      SPELL_RESERVED_DBC, SPELL_HOLD_PERSON, SPELL_RESERVED_DBC,
       /* 6th circle */    /* 7th circle */    /* 8th circle */
-      SPELL_RESERVED_DBC, SPELL_RESERVED_DBC, SPELL_RESERVED_DBC,
+      SPELL_MINOR_GLOBE, SPELL_RESERVED_DBC, SPELL_ANTI_MAGIC_FIELD,
       /* 9th circle */
-      SPELL_RESERVED_DBC);
+      SPELL_REFUGE);
   /* Travel Domain */
   add_domain(DOMAIN_TRAVEL, "Travel", WEAPON_TYPE_SCYTHE,
       "(UNFINISHED)You are an explorer and find enlightenment in the simple joy of travel, "
           "be it by foot or conveyance or magic. Increase your base speed by 10 feet.");
   add_domain_powers(DOMAIN_TRAVEL, DOMAIN_POWER_ETH_SHIFT, DOMAIN_POWER_UNDEFINED,
       DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED);
-                                  /* 1st circle */    /* 2nd circle */
+                                  /* 1st circle */           /* 2nd circle */
   add_domain_spells(DOMAIN_TRAVEL, SPELL_EXPEDITIOUS_RETREAT, SPELL_RESERVED_DBC,
       /* 3rd circle */    /* 4th circle */    /* 5th circle */
       SPELL_PHANTOM_STEED, SPELL_RESERVED_DBC, SPELL_MASS_FLY,
