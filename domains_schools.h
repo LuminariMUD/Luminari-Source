@@ -118,6 +118,7 @@ void assign_domain_spells(struct char_data *ch);
 int has_domain_power(struct char_data *ch, int domain_power);
 void clear_domain_feats(struct char_data *ch);
 void add_domain_feats(struct char_data *ch);
+void perform_destructiveaura(struct char_data *ch);
 
 
 /******************************************/
@@ -130,6 +131,7 @@ ACMD(do_firebolt);
 ACMD(do_icicle);
 ACMD(do_cursetouch);
 ACMD(do_destructivesmite);
+ACMD(do_destructiveaura);
 
 /******************************************/
 
