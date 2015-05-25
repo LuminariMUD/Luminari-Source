@@ -1774,6 +1774,7 @@ void assign_feats(void) {
   dailyfeat(FEAT_ACID_DART, eACID_DART);
   dailyfeat(FEAT_FIRE_BOLT, eFIRE_BOLT);
   dailyfeat(FEAT_ICICLE, eICICLE);
+  dailyfeat(FEAT_CURSE_TOUCH, eCURSE_TOUCH);
 
   /** END **/
 }
