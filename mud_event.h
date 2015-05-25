@@ -92,6 +92,7 @@ typedef enum {
   eCURSE_TOUCH, /* cooldown to reuse curse touch */
   eSMITE_GOOD, //  smite goooodies cooldown
   eSMITE_DESTRUCTION, //  destructive smite cooldown
+  eDESTRUCTIVE_AURA, //  destructive aura cooldown
 } event_id;
 
 /* probaly a smart place to mention to not forget to update:

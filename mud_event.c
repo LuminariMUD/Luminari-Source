@@ -94,6 +94,7 @@ struct mud_event_list mud_event_index[] = {
   { "Curse Touch Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eCURSE_TOUCH
   { "Smite Good", event_daily_use_cooldown, EVENT_CHAR}, // eSMITE_GOOD
   { "Destructive Smite", event_daily_use_cooldown, EVENT_CHAR}, // eSMITE_DESTRUCTION
+  { "Destructive Aura", event_daily_use_cooldown, EVENT_CHAR}, // eDESTRUCTIVE_AURA
 };
 
 /* init_events() is the ideal function for starting global events. This
@@ -392,6 +393,10 @@ EVENTFUNC(event_daily_use_cooldown) {
     case eCURSE_TOUCH:
       featnum = FEAT_CURSE_TOUCH;
       send_to_char(ch, "One of your curse touch uses has recovered.\r\n");
+      break;
+    case eDESTRUCTIVE_AURA:
+      featnum = FEAT_DESTRUCTIVE_AURA;
+      send_to_char(ch, "One of your destructive aura uses has recovered.\r\n");
       break;
     default:
       break;
