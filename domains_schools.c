@@ -23,15 +23,38 @@ struct school_info school_list[NUM_SCHOOLS];
 
 /* domain power names */
 char *domainpower_names[NUM_DOMAIN_POWERS + 1] = {
-  "Undefined",
+  "Undefined", //0
   "Lightning Arc",
   "Electricity Resistance",
   "Acid Dart",
   "Acid Resistance",
-  "Fire Bolt",
+  "Fire Bolt", //5
   "Fire Resistance",
   "Icicle",
   "Cold Resistance",
+  "Curse Touch",
+  "Chaotic Weapon", //10
+  "Destructive Smite",
+  "Destructive Aura",
+  "Evil Touch",
+  "Evil Scythe",
+  "Good Touch", //15
+  "Good Lance",
+  "Healing Touch",
+  "Enpowered Healing",
+  "Knowledge",
+  "Eye of Knowledge", //20
+  "Blessed Touch",
+  "Lawful Weapon",
+  "Deception",
+  "Copycat",
+  "Mass Invis", //25
+  "Resistance",
+  "Saves",
+  "Aura of Protection",
+  "Ethereal Shift",
+  "Battle Rage", //30
+  "Weapon Expert",
   "\n"
 };
 
@@ -64,6 +87,75 @@ int domain_power_to_feat(int domain_power) {
       break;
     case DOMAIN_POWER_COLD_RESISTANCE:
       featnum = FEAT_DOMAIN_COLD_RESIST;
+      break;
+    case DOMAIN_POWER_CHAOTIC_WEAPON:
+      featnum = FEAT_CHAOTIC_WEAPON;
+      break;
+    case DOMAIN_POWER_CURSE_TOUCH:
+      featnum = FEAT_CURSE_TOUCH;
+      break;
+    case DOMAIN_POWER_DESTRUCTIVE_SMITE:
+      featnum = FEAT_DESTRUCTIVE_SMITE;
+      break;
+    case DOMAIN_POWER_DESTRUCTIVE_AURA:
+      featnum = FEAT_DESTRUCTIVE_AURA;
+      break;
+    case DOMAIN_POWER_EVIL_TOUCH:
+      featnum = FEAT_EVIL_TOUCH;
+      break;
+    case DOMAIN_POWER_EVIL_SCYTHE:
+      featnum = FEAT_EVIL_SCYTHE;
+      break;
+    case DOMAIN_POWER_GOOD_TOUCH:
+      featnum = FEAT_GOOD_TOUCH;
+      break;
+    case DOMAIN_POWER_GOOD_LANCE:
+      featnum = FEAT_GOOD_LANCE;
+      break;
+    case DOMAIN_POWER_HEALING_TOUCH:
+      featnum = FEAT_HEALING_TOUCH;
+      break;
+    case DOMAIN_POWER_EMPOWERED_HEALING:
+      featnum = FEAT_EMPOWERED_HEALING;
+      break;
+    case DOMAIN_POWER_KNOWLEDGE:
+      featnum = FEAT_KNOWLEDGE;
+      break;
+    case DOMAIN_POWER_EYE_OF_KNOWLEDGE:
+      featnum = FEAT_EYE_OF_KNOWLEDGE;
+      break;
+    case DOMAIN_POWER_BLESSED_TOUCH:
+      featnum = FEAT_BLESSED_TOUCH;
+      break;
+    case DOMAIN_POWER_LAWFUL_WEAPON:
+      featnum = FEAT_LAWFUL_WEAPON;
+      break;
+    case DOMAIN_POWER_DECEPTION:
+      featnum = FEAT_DECEPTION;
+      break;
+    case DOMAIN_POWER_COPYCAT:
+      featnum = FEAT_COPYCAT;
+      break;
+    case DOMAIN_POWER_MASS_INVIS:
+      featnum = FEAT_MASS_INVIS;
+      break;
+    case DOMAIN_POWER_RESISTANCE:
+      featnum = FEAT_RESISTANCE;
+      break;
+    case DOMAIN_POWER_SAVES:
+      featnum = FEAT_SAVES;
+      break;
+    case DOMAIN_POWER_AURA_OF_PROTECTION:
+      featnum = FEAT_AURA_OF_PROTECTION;
+      break;
+    case DOMAIN_POWER_ETH_SHIFT:
+      featnum = FEAT_ETH_SHIFT;
+      break;
+    case DOMAIN_POWER_BATTLE_RAGE:
+      featnum = FEAT_BATTLE_RAGE;
+      break;
+    case DOMAIN_POWER_WEAPON_EXPERT:
+      featnum = FEAT_WEAPON_EXPERT;
       break;
     default:
       featnum = FEAT_UNDEFINED;
@@ -128,7 +220,10 @@ int has_domain_power(struct char_data *ch, int domain_power) {
   return FALSE; /*did not find it!*/
 }
 
-/* special spells granted by domains have to be assigned */
+/* special spells granted by domains have to be assigned
+ TODO: somewhat a hack, we don't clear the spells that are set
+ when we swap our domains, this still works fine at this stage
+ because of the domain-spell-levels that are assigned/required below */
 void assign_domain_spells(struct char_data *ch) {
   if (!CLASS_LEVEL(ch, CLASS_CLERIC))
     return;
@@ -141,7 +236,7 @@ void assign_domain_spells(struct char_data *ch) {
     /* we have this domain */
     for (i = 0; i < MAX_DOMAIN_SPELLS; i++) {
       spellnum = domain_list[j].domain_spells[i];
-      if (!GET_SKILL(ch, spellnum))
+      if (spellnum != SPELL_RESERVED_DBC && !GET_SKILL(ch, spellnum))
         SET_SKILL(ch, spellnum, 99);
     }
   }
@@ -262,67 +357,67 @@ void assign_domains(void) {
   add_domain(DOMAIN_CHAOS, "Chaos", WEAPON_TYPE_DAGGER,
       "(UNFINISHED)Your touch infuses life and weapons with chaos, and you revel in all "
           "things anarchic.");
-  add_domain_powers(DOMAIN_CHAOS, DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED,
+  add_domain_powers(DOMAIN_CHAOS, DOMAIN_POWER_CURSE_TOUCH, DOMAIN_POWER_CHAOTIC_WEAPON,
       DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED);
                                   /* 1st circle */    /* 2nd circle */
-  add_domain_spells(DOMAIN_CHAOS, SPELL_RESERVED_DBC, SPELL_RESERVED_DBC,
+  add_domain_spells(DOMAIN_CHAOS, SPELL_RESERVED_DBC, SPELL_HIDEOUS_LAUGHTER,
       /* 3rd circle */    /* 4th circle */    /* 5th circle */
-      SPELL_RESERVED_DBC, SPELL_RESERVED_DBC, SPELL_RESERVED_DBC,
+      SPELL_RESERVED_DBC, SPELL_RESERVED_DBC, SPELL_WAVES_OF_FATIGUE,
       /* 6th circle */    /* 7th circle */    /* 8th circle */
-      SPELL_RESERVED_DBC, SPELL_RESERVED_DBC, SPELL_RESERVED_DBC,
+      SPELL_RESERVED_DBC, SPELL_WAVES_OF_EXHAUSTION, SPELL_RESERVED_DBC,
       /* 9th circle */
-      SPELL_RESERVED_DBC);
+      SPELL_ENFEEBLEMENT);
   /* Destruction Domain */
   add_domain(DOMAIN_DESTRUCTION, "Destruction", WEAPON_TYPE_SPEAR,
       "(UNFINISHED)You revel in ruin and devastation, and can deliver particularly "
           "destructive attacks.");
-  add_domain_powers(DOMAIN_DESTRUCTION, DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED,
+  add_domain_powers(DOMAIN_DESTRUCTION, DOMAIN_POWER_DESTRUCTIVE_SMITE, DOMAIN_POWER_DESTRUCTIVE_AURA,
       DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED);
                                   /* 1st circle */    /* 2nd circle */
   add_domain_spells(DOMAIN_DESTRUCTION, SPELL_RESERVED_DBC, SPELL_RESERVED_DBC,
       /* 3rd circle */    /* 4th circle */    /* 5th circle */
-      SPELL_RESERVED_DBC, SPELL_RESERVED_DBC, SPELL_RESERVED_DBC,
+      SPELL_RESERVED_DBC, SPELL_RESERVED_DBC, SPELL_CLOUDKILL,
       /* 6th circle */    /* 7th circle */    /* 8th circle */
-      SPELL_RESERVED_DBC, SPELL_RESERVED_DBC, SPELL_RESERVED_DBC,
+      SPELL_SYMBOL_OF_PAIN, SPELL_RESERVED_DBC, SPELL_RESERVED_DBC,
       /* 9th circle */
-      SPELL_RESERVED_DBC);
+      SPELL_HORRID_WILTING);
   /* Evil Domain */
   add_domain(DOMAIN_EVIL, "Evil", WEAPON_TYPE_SPIKED_CHAIN,
       "(UNFINISHED)You are sinister and cruel, and have wholly pledged your soul to the "
           "cause of evil.");
-  add_domain_powers(DOMAIN_EVIL, DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED,
+  add_domain_powers(DOMAIN_EVIL, DOMAIN_POWER_EVIL_TOUCH, DOMAIN_POWER_EVIL_SCYTHE,
       DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED);
                                   /* 1st circle */    /* 2nd circle */
-  add_domain_spells(DOMAIN_EVIL, SPELL_RESERVED_DBC, SPELL_RESERVED_DBC,
+  add_domain_spells(DOMAIN_EVIL, SPELL_PROT_FROM_GOOD, SPELL_CIRCLE_A_GOOD,
       /* 3rd circle */    /* 4th circle */    /* 5th circle */
-      SPELL_RESERVED_DBC, SPELL_RESERVED_DBC, SPELL_RESERVED_DBC,
+      SPELL_RESERVED_DBC, SPELL_RESERVED_DBC, SPELL_SYMBOL_OF_PAIN,
       /* 6th circle */    /* 7th circle */    /* 8th circle */
-      SPELL_RESERVED_DBC, SPELL_RESERVED_DBC, SPELL_RESERVED_DBC,
+      SPELL_RESERVED_DBC, SPELL_EYEBITE, SPELL_RESERVED_DBC,
       /* 9th circle */
-      SPELL_RESERVED_DBC);
+      SPELL_WAIL_OF_THE_BANSHEE);
   /* Good Domain */
   add_domain(DOMAIN_GOOD, "Good", WEAPON_TYPE_SHORT_BOW,
       "(UNFINISHED)You have pledged your life and soul to goodness and purity.");
-  add_domain_powers(DOMAIN_GOOD, DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED,
+  add_domain_powers(DOMAIN_GOOD, DOMAIN_POWER_GOOD_TOUCH, DOMAIN_POWER_GOOD_LANCE,
       DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED);
                                   /* 1st circle */    /* 2nd circle */
-  add_domain_spells(DOMAIN_GOOD, SPELL_RESERVED_DBC, SPELL_RESERVED_DBC,
+  add_domain_spells(DOMAIN_GOOD, SPELL_PROT_FROM_EVIL, SPELL_RESERVED_DBC,
       /* 3rd circle */    /* 4th circle */    /* 5th circle */
-      SPELL_RESERVED_DBC, SPELL_RESERVED_DBC, SPELL_RESERVED_DBC,
+      SPELL_HEROISM, SPELL_RESERVED_DBC, SPELL_CIRCLE_A_EVIL,
       /* 6th circle */    /* 7th circle */    /* 8th circle */
-      SPELL_RESERVED_DBC, SPELL_RESERVED_DBC, SPELL_RESERVED_DBC,
+      SPELL_RESERVED_DBC, SPELL_INTERPOSING_HAND, SPELL_MASS_HASTE,
       /* 9th circle */
-      SPELL_RESERVED_DBC);
+      SPELL_PROTECT_FROM_SPELLS);
   /* Healing Domain */
   add_domain(DOMAIN_HEALING, "Healing", WEAPON_TYPE_QUARTERSTAFF,
       "(UNFINISHED)Your touch staves off pain and death, and your healing magic is "
           "particularly vital and potent.");
-  add_domain_powers(DOMAIN_HEALING, DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED,
+  add_domain_powers(DOMAIN_HEALING, DOMAIN_POWER_HEALING_TOUCH, DOMAIN_POWER_EMPOWERED_HEALING,
       DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED);
                                   /* 1st circle */    /* 2nd circle */
   add_domain_spells(DOMAIN_HEALING, SPELL_RESERVED_DBC, SPELL_RESERVED_DBC,
       /* 3rd circle */    /* 4th circle */    /* 5th circle */
-      SPELL_RESERVED_DBC, SPELL_RESERVED_DBC, SPELL_RESERVED_DBC,
+      SPELL_FALSE_LIFE, SPELL_RESERVED_DBC, SPELL_VAMPIRIC_TOUCH,
       /* 6th circle */    /* 7th circle */    /* 8th circle */
       SPELL_RESERVED_DBC, SPELL_RESERVED_DBC, SPELL_RESERVED_DBC,
       /* 9th circle */
@@ -331,52 +426,52 @@ void assign_domains(void) {
   add_domain(DOMAIN_KNOWLEDGE, "Knowledge", WEAPON_TYPE_SICKLE,
       "(UNFINISHED)You are a scholar and a sage of legends. In addition, you treat all "
           "Knowledge skills as class skills.");
-  add_domain_powers(DOMAIN_KNOWLEDGE, DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED,
+  add_domain_powers(DOMAIN_KNOWLEDGE, DOMAIN_POWER_KNOWLEDGE, DOMAIN_POWER_EYE_OF_KNOWLEDGE,
       DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED);
                                   /* 1st circle */    /* 2nd circle */
-  add_domain_spells(DOMAIN_KNOWLEDGE, SPELL_RESERVED_DBC, SPELL_RESERVED_DBC,
+  add_domain_spells(DOMAIN_KNOWLEDGE, SPELL_IDENTIFY, SPELL_RESERVED_DBC,
       /* 3rd circle */    /* 4th circle */    /* 5th circle */
-      SPELL_RESERVED_DBC, SPELL_RESERVED_DBC, SPELL_RESERVED_DBC,
+      SPELL_CLAIRVOYANCE, SPELL_RESERVED_DBC, SPELL_WIZARD_EYE,
       /* 6th circle */    /* 7th circle */    /* 8th circle */
-      SPELL_RESERVED_DBC, SPELL_RESERVED_DBC, SPELL_RESERVED_DBC,
+      SPELL_RESERVED_DBC, SPELL_WALL_OF_FORCE, SPELL_LOCATE_OBJECT,
       /* 9th circle */
-      SPELL_RESERVED_DBC);
+      SPELL_MASS_DOMINATION);
   /* Law Domain */
   add_domain(DOMAIN_LAW, "Law", WEAPON_TYPE_LIGHT_HAMMER,
       "(UNFINISHED)You follow a strict and ordered code of laws, and in so doing, achieve "
           "enlightenment.");
-  add_domain_powers(DOMAIN_LAW, DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED,
+  add_domain_powers(DOMAIN_LAW, DOMAIN_POWER_BLESSED_TOUCH, DOMAIN_POWER_LAWFUL_WEAPON,
       DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED);
                                   /* 1st circle */    /* 2nd circle */
-  add_domain_spells(DOMAIN_LAW, SPELL_RESERVED_DBC, SPELL_RESERVED_DBC,
+  add_domain_spells(DOMAIN_LAW, SPELL_RESERVED_DBC, SPELL_ENCHANT_WEAPON,
       /* 3rd circle */    /* 4th circle */    /* 5th circle */
-      SPELL_RESERVED_DBC, SPELL_RESERVED_DBC, SPELL_RESERVED_DBC,
+      SPELL_RESERVED_DBC, SPELL_SLOW, SPELL_RESERVED_DBC,
       /* 6th circle */    /* 7th circle */    /* 8th circle */
-      SPELL_RESERVED_DBC, SPELL_RESERVED_DBC, SPELL_RESERVED_DBC,
+      SPELL_INTERPOSING_HAND, SPELL_RESERVED_DBC, SPELL_FAITHFUL_HOUND,
       /* 9th circle */
-      SPELL_RESERVED_DBC);
+      SPELL_MASS_HOLD_PERSON);
   /* Trickery Domain */
   add_domain(DOMAIN_TRICKERY, "Trickery", WEAPON_TYPE_SLING,
       "(UNFINISHED)You are a master of illusions and deceptions. Bluff, Disguise, and "
           "Stealth are class skills.");
-  add_domain_powers(DOMAIN_TRICKERY, DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED,
-      DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED);
+  add_domain_powers(DOMAIN_TRICKERY, DOMAIN_POWER_DECEPTION, DOMAIN_POWER_COPYCAT,
+      DOMAIN_POWER_MASS_INVIS, DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED);
                                   /* 1st circle */    /* 2nd circle */
-  add_domain_spells(DOMAIN_TRICKERY, SPELL_RESERVED_DBC, SPELL_RESERVED_DBC,
+  add_domain_spells(DOMAIN_TRICKERY, SPELL_RESERVED_DBC, SPELL_DETECT_INVIS,
       /* 3rd circle */    /* 4th circle */    /* 5th circle */
-      SPELL_RESERVED_DBC, SPELL_RESERVED_DBC, SPELL_RESERVED_DBC,
+      SPELL_INVISIBLE, SPELL_RESERVED_DBC, SPELL_INVISIBILITY_SPHERE,
       /* 6th circle */    /* 7th circle */    /* 8th circle */
-      SPELL_RESERVED_DBC, SPELL_RESERVED_DBC, SPELL_RESERVED_DBC,
+      SPELL_SHRINK_PERSON, SPELL_MIND_FOG, SPELL_GREATER_INVIS,
       /* 9th circle */
-      SPELL_RESERVED_DBC);
+      SPELL_DISPLACEMENT);
   /* Protection Domain */
   add_domain(DOMAIN_PROTECTION, "Protection", WEAPON_TYPE_LIGHT_MACE,
       "(UNFINISHED)Your faith is your greatest source of protection, and you can use that "
           "faith to defend others. In addition, you receive a +1 resistance "
           "bonus on saving throws. This bonus increases by 1 for every 5 levels "
           "you possess.");
-  add_domain_powers(DOMAIN_PROTECTION, DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED,
-      DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED);
+  add_domain_powers(DOMAIN_PROTECTION, DOMAIN_POWER_RESISTANCE, DOMAIN_POWER_SAVES,
+      DOMAIN_POWER_AURA_OF_PROTECTION, DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED);
                                   /* 1st circle */    /* 2nd circle */
   add_domain_spells(DOMAIN_PROTECTION, SPELL_RESERVED_DBC, SPELL_RESERVED_DBC,
       /* 3rd circle */    /* 4th circle */    /* 5th circle */
@@ -389,29 +484,29 @@ void assign_domains(void) {
   add_domain(DOMAIN_TRAVEL, "Travel", WEAPON_TYPE_SCYTHE,
       "(UNFINISHED)You are an explorer and find enlightenment in the simple joy of travel, "
           "be it by foot or conveyance or magic. Increase your base speed by 10 feet.");
-  add_domain_powers(DOMAIN_TRAVEL, DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED,
+  add_domain_powers(DOMAIN_TRAVEL, DOMAIN_POWER_ETH_SHIFT, DOMAIN_POWER_UNDEFINED,
       DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED);
                                   /* 1st circle */    /* 2nd circle */
-  add_domain_spells(DOMAIN_TRAVEL, SPELL_RESERVED_DBC, SPELL_RESERVED_DBC,
+  add_domain_spells(DOMAIN_TRAVEL, SPELL_EXPEDITIOUS_RETREAT, SPELL_RESERVED_DBC,
       /* 3rd circle */    /* 4th circle */    /* 5th circle */
-      SPELL_RESERVED_DBC, SPELL_RESERVED_DBC, SPELL_RESERVED_DBC,
+      SPELL_PHANTOM_STEED, SPELL_RESERVED_DBC, SPELL_MASS_FLY,
       /* 6th circle */    /* 7th circle */    /* 8th circle */
-      SPELL_RESERVED_DBC, SPELL_RESERVED_DBC, SPELL_RESERVED_DBC,
+      SPELL_TELEPORT, SPELL_RESERVED_DBC, SPELL_PORTAL,
       /* 9th circle */
-      SPELL_RESERVED_DBC);
+      SPELL_GATE);
   /* War Domain */
   add_domain(DOMAIN_WAR, "War", WEAPON_TYPE_LONG_SWORD,
       "(UNFINISHED)You are a crusader for your faith, always ready and willing to fight to defend your faith.");
-  add_domain_powers(DOMAIN_WAR, DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED,
+  add_domain_powers(DOMAIN_WAR, DOMAIN_POWER_BATTLE_RAGE, DOMAIN_POWER_WEAPON_EXPERT,
       DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED);
                                   /* 1st circle */    /* 2nd circle */
-  add_domain_spells(DOMAIN_WAR, SPELL_RESERVED_DBC, SPELL_RESERVED_DBC,
+  add_domain_spells(DOMAIN_WAR, SPELL_TRUE_STRIKE, SPELL_RESERVED_DBC,
       /* 3rd circle */    /* 4th circle */    /* 5th circle */
-      SPELL_RESERVED_DBC, SPELL_RESERVED_DBC, SPELL_RESERVED_DBC,
+      SPELL_ENLARGE_PERSON, SPELL_RESERVED_DBC, SPELL_RESERVED_DBC,
       /* 6th circle */    /* 7th circle */    /* 8th circle */
-      SPELL_RESERVED_DBC, SPELL_RESERVED_DBC, SPELL_RESERVED_DBC,
+      SPELL_RESERVED_DBC, SPELL_HASTE, SPELL_CLENCHED_FIST,
       /* 9th circle */
-      SPELL_RESERVED_DBC);
+      SPELL_TRANSFORMATION);
 
   /* end */
   /* this has to be at the end */

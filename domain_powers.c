@@ -253,7 +253,7 @@ ACMD(do_icicle) {
     send_to_char(ch, "You do not have that feat!\r\n");
     return;
   }
-  
+
   /*
   if (!CLASS_LEVEL(ch, CLASS_CLERIC)) {
     send_to_char(ch, "You do not have any clerical powers!\r\n");
@@ -305,6 +305,77 @@ ACMD(do_icicle) {
 
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_ICICLE);
+
+  USE_STANDARD_ACTION(ch);
+}
+
+
+ACMD(do_cursetouch) {
+  int uses_remaining = 0;
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  struct char_data *vict = NULL;
+
+  if (!has_domain_power(ch, DOMAIN_POWER_CURSE_TOUCH)) {
+    send_to_char(ch, "You do not have that domain power!\r\n");
+    return;
+  }
+
+  if (!HAS_FEAT(ch, FEAT_CURSE_TOUCH)) {
+    send_to_char(ch, "You do not have that feat!\r\n");
+    return;
+  }
+
+  /*
+  if (!CLASS_LEVEL(ch, CLASS_CLERIC)) {
+    send_to_char(ch, "You do not have any clerical powers!\r\n");
+    return;
+  }
+  */
+
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_CURSE_TOUCH)) == 0) {
+    send_to_char(ch, "You must recover the divine energy required to use another icicle.\r\n");
+    return;
+  }
+
+  if (uses_remaining < 0) {
+    send_to_char(ch, "You are not experienced enough.\r\n");
+    return;
+  }
+
+  one_argument(argument, arg);
+  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
+    if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch))) {
+      vict = FIGHTING(ch);
+    } else {
+      send_to_char(ch, "Target who?\r\n");
+      return;
+    }
+  }
+
+  if (vict == ch) {
+    send_to_char(ch, "Aren't we funny today...\r\n");
+    return;
+  }
+
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return;
+  }
+
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
+          ch->next_in_room != vict && vict->next_in_room != ch) {
+    send_to_char(ch, "You simply can't reach that far.\r\n");
+    return;
+  }
+
+  call_magic(ch, vict, 0, SPELL_CURSE, CLASS_LEVEL(ch, CLASS_CLERIC), CAST_INNATE);
+
+  act("A \trred\tn aura shoots from your fingertips towards $N!", FALSE, ch, 0, vict, TO_CHAR);
+  act("$n shoots a \trred\tn aura towards you!", FALSE, ch, 0, vict, TO_VICT);
+  act("$n shoots a \trred\tn aura towards $N!", FALSE, ch, 0, vict, TO_NOTVICT);
+
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_CURSE_TOUCH);
 
   USE_STANDARD_ACTION(ch);
 }

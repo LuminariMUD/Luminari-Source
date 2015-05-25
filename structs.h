@@ -1608,10 +1608,33 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_HELLBALL                       421
 #define FEAT_EPIC_MAGE_ARMOR                422
 #define FEAT_EPIC_WARDING                   423
+#define FEAT_CHAOTIC_WEAPON                 424
+#define FEAT_CURSE_TOUCH                    425
+#define FEAT_DESTRUCTIVE_SMITE              426
+#define FEAT_DESTRUCTIVE_AURA               427
+#define FEAT_EVIL_TOUCH                     428
+#define FEAT_EVIL_SCYTHE                    429
+#define FEAT_GOOD_TOUCH                     430
+#define FEAT_GOOD_LANCE                     431
+#define FEAT_HEALING_TOUCH                  432
+#define FEAT_EMPOWERED_HEALING              433
+#define FEAT_KNOWLEDGE                      434
+#define FEAT_EYE_OF_KNOWLEDGE               435
+#define FEAT_BLESSED_TOUCH                  436
+#define FEAT_LAWFUL_WEAPON                  437
+#define FEAT_DECEPTION                      438
+#define FEAT_COPYCAT                        439
+#define FEAT_MASS_INVIS                     440
+#define FEAT_RESISTANCE                     441
+#define FEAT_SAVES                          442
+#define FEAT_AURA_OF_PROTECTION             443
+#define FEAT_ETH_SHIFT                      444
+#define FEAT_BATTLE_RAGE                    445
+#define FEAT_WEAPON_EXPERT                  446
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT                      424
+#define FEAT_LAST_FEAT                      447
 /** feat_last_feat + 1 ***/
-#define NUM_FEATS                           425
+#define NUM_FEATS                           448
 /*****/
 #define MAX_FEATS                           750
 /*****/
