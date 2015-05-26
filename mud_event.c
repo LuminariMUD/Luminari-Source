@@ -96,9 +96,7 @@ struct mud_event_list mud_event_index[] = {
   { "Destructive Smite", event_daily_use_cooldown, EVENT_CHAR}, // eSMITE_DESTRUCTION
   { "Destructive Aura", event_daily_use_cooldown, EVENT_CHAR}, // eDESTRUCTIVE_AURA
   { "Evil Touch", event_daily_use_cooldown, EVENT_CHAR}, // eEVIL_TOUCH
-  { "Evil Scythe", event_daily_use_cooldown, EVENT_CHAR}, // eEVIL_SCYTHE
   { "Good Touch", event_daily_use_cooldown, EVENT_CHAR}, // eGOOD_TOUCH
-  { "Good Lance", event_daily_use_cooldown, EVENT_CHAR}, // eGOOD_LANCE
   { "Healing Touch", event_daily_use_cooldown, EVENT_CHAR}, // eHEALING_TOUCH
   { "Eye of Knowledge", event_daily_use_cooldown, EVENT_CHAR}, // eEYE_OF_KNOWLEDGE
   { "Blessed Touch", event_daily_use_cooldown, EVENT_CHAR}, // eBLESSED_TOUCH
@@ -414,17 +412,9 @@ EVENTFUNC(event_daily_use_cooldown) {
       featnum = FEAT_EVIL_TOUCH;
       send_to_char(ch, "One of your evil touch uses has recovered.\r\n");
       break;
-    case eEVIL_SCYTHE:
-      featnum = FEAT_EVIL_SCYTHE;
-      send_to_char(ch, "One of your evil scythe uses has recovered.\r\n");
-      break;
     case eGOOD_TOUCH:
       featnum = FEAT_GOOD_TOUCH;
       send_to_char(ch, "One of your good touch uses has recovered.\r\n");
-      break;
-    case eGOOD_LANCE:
-      featnum = FEAT_GOOD_LANCE;
-      send_to_char(ch, "One of your good lance uses has recovered.\r\n");
       break;
     case eHEALING_TOUCH:
       featnum = FEAT_HEALING_TOUCH;

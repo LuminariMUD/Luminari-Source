@@ -93,10 +93,123 @@ ACMD(do_eviltouch) {
   USE_STANDARD_ACTION(ch);
 }
 
-ACMD(do_goodtouch) {
+ACMD(do_blessedtouch) {
+  int uses_remaining = 0;
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  struct char_data *vict = NULL;
+
+  if (!has_domain_power(ch, DOMAIN_POWER_BLESSED_TOUCH)) {
+    send_to_char(ch, "You do not have that domain power!\r\n");
+    return;
+  }
+
+  if (!HAS_FEAT(ch, FEAT_BLESSED_TOUCH)) {
+    send_to_char(ch, "You do not have that feat!\r\n");
+    return;
+  }
+
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_BLESSED_TOUCH)) == 0) {
+    send_to_char(ch, "You must recover the divine energy required to use this feat again.\r\n");
+    return;
+  }
+
+  if (uses_remaining < 0) {
+    send_to_char(ch, "You are not experienced enough.\r\n");
+    return;
+  }
+
+  if (!*argument) {
+    vict = ch;
+  } else {
+    one_argument(argument, arg);
+
+    if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
+      send_to_char(ch, "Target who?\r\n");
+      return;
+    }
+  }
+
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
+          ch->next_in_room != vict && vict->next_in_room != ch) {
+    send_to_char(ch, "You simply can't reach that far.\r\n");
+    return;
+  }
+
+  if (vict == ch) {
+    send_to_char(ch, "You heal yourself with your power!\r\n");
+    act("$n glows white and gains some power!", FALSE, ch, 0, vict, TO_NOTVICT);
+  } else {
+    act("A \tWwhite\tn aura shoots from your fingertips towards $N!", FALSE, ch, 0, vict, TO_CHAR);
+    act("$n shoots a \tWwhite\tn aura towards you!", FALSE, ch, 0, vict, TO_VICT);
+    act("$n shoots a \tWwhite\tn aura towards $N!", FALSE, ch, 0, vict, TO_NOTVICT);
+  }
+  call_magic(ch, vict, 0, SPELL_AID, CLASS_LEVEL(ch, CLASS_CLERIC), CAST_INNATE);
+
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_BLESSED_TOUCH);
+
+  USE_STANDARD_ACTION(ch);
 }
 
-ACMD(do_blessedtouch) {
+ACMD(do_goodtouch) {
+  int uses_remaining = 0;
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  struct char_data *vict = NULL;
+
+  if (!has_domain_power(ch, DOMAIN_POWER_GOOD_TOUCH)) {
+    send_to_char(ch, "You do not have that domain power!\r\n");
+    return;
+  }
+
+  if (!HAS_FEAT(ch, FEAT_GOOD_TOUCH)) {
+    send_to_char(ch, "You do not have that feat!\r\n");
+    return;
+  }
+
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_GOOD_TOUCH)) == 0) {
+    send_to_char(ch, "You must recover the divine energy required to use this feat again.\r\n");
+    return;
+  }
+
+  if (uses_remaining < 0) {
+    send_to_char(ch, "You are not experienced enough.\r\n");
+    return;
+  }
+
+  if (!*argument) {
+    vict = ch;
+  } else {
+    one_argument(argument, arg);
+
+    if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
+      send_to_char(ch, "Target who?\r\n");
+      return;
+    }
+  }
+
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
+          ch->next_in_room != vict && vict->next_in_room != ch) {
+    send_to_char(ch, "You simply can't reach that far.\r\n");
+    return;
+  }
+
+  if (vict == ch) {
+    send_to_char(ch, "You heal yourself with your power!\r\n");
+    act("$n glows white and heals some afflictions!", FALSE, ch, 0, vict, TO_NOTVICT);
+  } else {
+    act("A \tWwhite\tn aura shoots from your fingertips towards $N!", FALSE, ch, 0, vict, TO_CHAR);
+    act("$n shoots a \tWwhite\tn aura towards you!", FALSE, ch, 0, vict, TO_VICT);
+    act("$n shoots a \tWwhite\tn aura towards $N!", FALSE, ch, 0, vict, TO_NOTVICT);
+  }
+  mag_unaffects(CLASS_LEVEL(ch, CLASS_CLERIC), ch, vict,
+        NULL, SPELL_REMOVE_POISON, 0, CAST_INNATE);
+  mag_unaffects(CLASS_LEVEL(ch, CLASS_CLERIC), ch, vict,
+        NULL, SPELL_REMOVE_DISEASE, 0, CAST_INNATE);
+
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_GOOD_TOUCH);
+
+  USE_STANDARD_ACTION(ch);
 }
 
 ACMD(do_evilscythe) {
@@ -243,6 +356,11 @@ ACMD(do_massinvis) {
 
   if (!HAS_FEAT(ch, FEAT_MASS_INVIS)) {
     send_to_char(ch, "You do not have that feat!\r\n");
+    return;
+  }
+
+  if (!GROUP(ch)) {
+    send_to_char(ch, "This will only work if you are grouped!\r\n");
     return;
   }
 
