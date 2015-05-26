@@ -3144,6 +3144,28 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
         send_to_char(ch, "Your weapon hums lawfully as it strikes!\r\n");
         dam += dice(2, 6);
       }
+      /*evil weapon*/
+      if((obj_has_special_ability(wielded, WEAPON_SPECAB_UNHOLY) ||
+          HAS_FEAT(ch, FEAT_EVIL_SCYTHE))
+         && ((IS_CG(victim)) ||
+             (IS_NG(victim)) ||
+             (IS_LG(victim)) ||
+             (IS_NPC(victim) && HAS_SUBRACE(victim, SUBRACE_GOOD)))) {
+        /* Do 2d6 more damage. */
+        send_to_char(ch, "Your weapon hums evilly as it strikes!\r\n");
+        dam += dice(2, 6);
+      }
+      /*good weapon*/
+      if((obj_has_special_ability(wielded, WEAPON_SPECAB_HOLY) ||
+          HAS_FEAT(ch, FEAT_GOOD_LANCE))
+         && ((IS_CE(victim)) ||
+             (IS_NE(victim)) ||
+             (IS_LE(victim)) ||
+             (IS_NPC(victim) && HAS_SUBRACE(victim, SUBRACE_EVIL)))) {
+        /* Do 2d6 more damage. */
+        send_to_char(ch, "Your weapon hums with goodness as it strikes!\r\n");
+        dam += dice(2, 6);
+      }
       /*bane weapon*/
       if((obj_has_special_ability(wielded, WEAPON_SPECAB_BANE))) {
         /* Check the values in the special ability record for the NPCRACE and SUBRACE. */

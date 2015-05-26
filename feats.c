@@ -925,26 +925,24 @@ void assign_feats(void) {
     "As a standard action, you can unleash a destructive aura which will give "
       "all your group companions cleric-level/2 bonus damage for 1 round.  You can use "
       "this ability a number of times per day equal to your Wisdom modifier.");
-
   feato(FEAT_EVIL_TOUCH, "evil touch", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
     "inflict disease with touch attack",
     "You can cause a creature to become sickened as a melee touch attack.  This "
           "ability lasts for a number of rounds equal to 1/2 "
           "your cleric level (minimum 1). You can use this ability a number of times "
           "per day equal to 3 + your Wisdom modifier.");
-  /*unfinished*/feato(FEAT_EVIL_SCYTHE, "evil scythe", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
+  feato(FEAT_EVIL_SCYTHE, "evil scythe", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
     "empower your weapon with unholy damage",
     "At 8th level, you can give a weapon touched the unholy special weapon quality "
           "for a number of rounds equal to 1/2 your cleric level. You can use "
           "this ability once per day at 8th level, and an additional time per "
           "day for every four levels beyond 8th.");
-  /*unfinished*/feato(FEAT_GOOD_TOUCH, "good touch", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
+  feato(FEAT_GOOD_TOUCH, "good touch", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
     "cure disease and poison with touch",
-    "You can touch a creature as a standard action, granting a sacred bonus on "
-          "attack rolls, skill checks, ability checks, and saving throws equal to "
-          "half your cleric level (minimum 1) for 1 round. You can use this ability "
+    "You can touch a creature as a standard action, removing one poison affliction "
+          "and one disease per usage. You can use this ability "
           "a number of times per day equal to 3 + your Wisdom modifier.");
-  /*unfinished*/feato(FEAT_GOOD_LANCE, "good lance", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
+  feato(FEAT_GOOD_LANCE, "good lance", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
     "empower your weapon with holy damage",
     "At 8th level, you can give a weapon you touch the holy special weapon quality "
           "for a number of rounds equal to 1/2 your cleric level. You can use this "
@@ -971,7 +969,7 @@ void assign_feats(void) {
     "Like the 'wizard eye' spell available to arcane casters, you can summon a "
           "wizard eye which you can control to scout for you.  You can use this "
           "ability a number of times per day equal to 3 + your Wisdom modifier.");
-  /*unfinished*/feato(FEAT_BLESSED_TOUCH, "blessed touch", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
+  feato(FEAT_BLESSED_TOUCH, "blessed touch", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
     "can bless with your touch",
     "You can touch a willing creature as a standard action, infusing it with the "
           "power of divine order and allowing it to treat all attack rolls, skill "
@@ -1888,9 +1886,7 @@ void assign_feats(void) {
   dailyfeat(FEAT_CURSE_TOUCH, eCURSE_TOUCH);
   dailyfeat(FEAT_DESTRUCTIVE_AURA, eDESTRUCTIVE_AURA);
   dailyfeat(FEAT_EVIL_TOUCH, eEVIL_TOUCH);
-  dailyfeat(FEAT_EVIL_SCYTHE, eEVIL_SCYTHE);
   dailyfeat(FEAT_GOOD_TOUCH, eGOOD_TOUCH);
-  dailyfeat(FEAT_GOOD_LANCE, eGOOD_LANCE);
   dailyfeat(FEAT_HEALING_TOUCH, eHEALING_TOUCH);
   dailyfeat(FEAT_EYE_OF_KNOWLEDGE, eEYE_OF_KNOWLEDGE);
   dailyfeat(FEAT_BLESSED_TOUCH, eBLESSED_TOUCH);

@@ -94,9 +94,7 @@ typedef enum {
   eSMITE_DESTRUCTION, //  destructive smite cooldown
   eDESTRUCTIVE_AURA, //  destructive aura cooldown
   eEVIL_TOUCH, /*more domain powers*/
-  eEVIL_SCYTHE, /*more domain powers*/
   eGOOD_TOUCH, /*more domain powers*/
-  eGOOD_LANCE, /*more domain powers*/
   eHEALING_TOUCH, /*more domain powers*/
   eEYE_OF_KNOWLEDGE, /*more domain powers*/
   eBLESSED_TOUCH, /*more domain powers*/
