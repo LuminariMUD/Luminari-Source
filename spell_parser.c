@@ -1010,8 +1010,10 @@ EVENTFUNC(event_casting) {
       }
       concentration_dc += spell_level;
 
+      if (HAS_FEAT(ch, FEAT_COMBAT_CASTING))
+        concentration_dc -= 4;
       if (!is_tanking(ch))
-        concentration_dc -= 20;
+        concentration_dc -= 10;
       if (char_has_mud_event(ch, eTAUNTED))
         concentration_dc += 6;
       if (char_has_mud_event(ch, eINTIMIDATED))
@@ -1050,7 +1052,7 @@ EVENTFUNC(event_casting) {
         finishCasting(ch);  /* we cleared all our casting checks! */
         return 0;
       } else
-        return (7);
+        return (10);
     }
 
     //spell needs to be completed now (casting time <= 0)
