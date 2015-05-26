@@ -815,6 +815,10 @@ void assign_feats(void) {
       "normally create a 10d6 damage fireball, with this feat your fireball would "
       "do 10d6+10.");
 
+  feato(FEAT_COMBAT_CASTING, "combat casting", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
+    "+4 to concentration checks made in combat or when grappled ",
+    "+4 to concentration checks made in combat or when grappled ");
+
   /* epic type spellcasting feats */
   feato(FEAT_MUMMY_DUST, "mummy dust", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
     "gain access to epic spell - mummy dust",
@@ -1765,7 +1769,6 @@ void assign_feats(void) {
   feato(FEAT_ESCHEW_MATERIALS, "eschew materials", FALSE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING, "ask staff", "ask staff");
   feato(FEAT_IMPROVED_COUNTERSPELL, "improved counterspell", FALSE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING, "ask staff", "ask staff");
   feato(FEAT_SPELL_MASTERY, "spell mastery", FALSE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING, "ask staff", "ask staff");
-  feato(FEAT_COMBAT_CASTING, "combat casting", FALSE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING, "+4 to concentration checks made in combat or when grappled ", "+4 to concentration checks made in combat or when grappled ");
   /* epic */
   /*spellcasting*/
   feato(FEAT_EPIC_SPELLCASTING, "epic spellcasting", FALSE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING, "allows you to cast epic spells", "allows you to cast epic spells");
