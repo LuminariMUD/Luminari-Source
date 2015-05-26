@@ -129,6 +129,41 @@ static int mag_manacost(struct char_data *ch, int spellnum)
 }
  */
 
+/* makes a concentration check for casting, returns TRUE if passed, otherwise
+   FALSE = failure and spell should be aborted */
+bool concentration_check(struct char_data *ch, int spellnum) {
+  /* concentration check */
+  int spell_level = spell_info[spellnum].min_level[CASTING_CLASS(ch)];
+  int concentration_dc = 0;
+
+  if (CASTING_CLASS(ch) == CLASS_CLERIC) {
+    spell_level = MIN_SPELL_LVL(spellnum, CLASS_CLERIC, GET_1ST_DOMAIN(ch));
+    int spell_level2 = MIN_SPELL_LVL(spellnum, CLASS_CLERIC, GET_2ND_DOMAIN(ch));
+    spell_level = MIN(spell_level, spell_level2);
+  }
+  concentration_dc += spell_level;
+
+  if (HAS_FEAT(ch, FEAT_COMBAT_CASTING))
+    concentration_dc -= 4;
+  if (!is_tanking(ch))
+    concentration_dc -= 10;
+  if (char_has_mud_event(ch, eTAUNTED))
+    concentration_dc += 6;
+  if (char_has_mud_event(ch, eINTIMIDATED))
+    concentration_dc += 6;
+  if (AFF_FLAGGED(ch, AFF_GRAPPLED))
+    if (GRAPPLE_ATTACKER(ch))
+      concentration_dc +=
+            compute_cmb(GRAPPLE_ATTACKER(ch), COMBAT_MANEUVER_TYPE_GRAPPLE);
+
+  if (!skill_check(ch, ABILITY_CONCENTRATION, concentration_dc)) {
+    send_to_char(ch, "You lost your concentration!\r\n");
+    resetCastingData(ch);
+    return FALSE;
+  } else
+    return TRUE;
+}
+
 /* calculates lowest possible level of a spell (spells can be different
  levels for different classes) */
 int lowest_spell_level(int spellnum) {
@@ -999,35 +1034,8 @@ EVENTFUNC(event_casting) {
       return 0;
     else {
 
-      /* concentration check */
-      int spell_level = spell_info[spellnum].min_level[CASTING_CLASS(ch)];
-      int concentration_dc = 0;
-
-      if (CASTING_CLASS(ch) == CLASS_CLERIC) {
-        spell_level = MIN_SPELL_LVL(spellnum, CLASS_CLERIC, GET_1ST_DOMAIN(ch));
-        int spell_level2 = MIN_SPELL_LVL(spellnum, CLASS_CLERIC, GET_2ND_DOMAIN(ch));
-        spell_level = MIN(spell_level, spell_level2);
-      }
-      concentration_dc += spell_level;
-
-      if (HAS_FEAT(ch, FEAT_COMBAT_CASTING))
-        concentration_dc -= 4;
-      if (!is_tanking(ch))
-        concentration_dc -= 10;
-      if (char_has_mud_event(ch, eTAUNTED))
-        concentration_dc += 6;
-      if (char_has_mud_event(ch, eINTIMIDATED))
-        concentration_dc += 6;
-      if (AFF_FLAGGED(ch, AFF_GRAPPLED))
-        if (GRAPPLE_ATTACKER(ch))
-          concentration_dc +=
-                  compute_cmb(GRAPPLE_ATTACKER(ch), COMBAT_MANEUVER_TYPE_GRAPPLE);
-
-      if (!skill_check(ch, ABILITY_CONCENTRATION, concentration_dc)) {
-        send_to_char(ch, "You lost your concentration!\r\n");
-        resetCastingData(ch);
+      if (!concentration_check(ch, spellnum))
         return 0;
-      }
 
       //display time left to finish spell
       sprintf(buf, "Casting: %s ", SINFO.name);
@@ -1212,6 +1220,11 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
   clevel = CLASS_LEVEL(ch, class);
   CASTING_CLASS(ch) = class;
 
+  /* concentration check */
+  if (!concentration_check(ch, spellnum)) {
+    return 0;
+  }
+
   /* handle spells with no casting time */
   if (SINFO.time <= 0) {
     send_to_char(ch, "%s", CONFIG_OK);
@@ -1221,21 +1234,21 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     USE_MOVE_ACTION(ch);
 
     return (call_magic(ch, tch, tobj, spellnum, CASTER_LEVEL(ch), CAST_SPELL));
+  } else {
+
+    /* casting time entry point */
+    send_to_char(ch, "You begin casting your spell...\r\n");
+    say_spell(ch, spellnum, tch, tobj, TRUE);
+    IS_CASTING(ch) = TRUE;
+    CASTING_TIME(ch) = SINFO.time;
+    CASTING_TCH(ch) = tch;
+    CASTING_TOBJ(ch) = tobj;
+    CASTING_SPELLNUM(ch) = spellnum;
+    NEW_EVENT(eCASTING, ch, NULL, 1 * PASSES_PER_SEC);
+
+    /* mandatory wait-state for any spell */
+    USE_MOVE_ACTION(ch);
   }
-
-  /* casting time entry point */
-  send_to_char(ch, "You begin casting your spell...\r\n");
-  say_spell(ch, spellnum, tch, tobj, TRUE);
-  IS_CASTING(ch) = TRUE;
-  CASTING_TIME(ch) = SINFO.time;
-  CASTING_TCH(ch) = tch;
-  CASTING_TOBJ(ch) = tobj;
-  CASTING_SPELLNUM(ch) = spellnum;
-  NEW_EVENT(eCASTING, ch, NULL, 1 * PASSES_PER_SEC);
-
-  /* mandatory wait-state for any spell */
-  USE_MOVE_ACTION(ch);
-
   //this return value has to be checked -zusuk
   return (1);
 }
