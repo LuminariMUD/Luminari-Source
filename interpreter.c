@@ -249,7 +249,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "flurryofblows", "flurryofblows", POS_FIGHTING, do_mode, 1, MODE_FLURRY_OF_BLOWS, FALSE, ACTION_NONE, {0, 0}},
   { "feint", "feint", POS_FIGHTING, do_feint, 1, 0, FALSE, ACTION_NONE, {0, 0}},
   { "firebolt", "firebolt", POS_FIGHTING, do_firebolt, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
-  { "freegrapple", "freegrapple", POS_FIGHTING, do_free_grapple, 1, 0, FALSE, ACTION_NONE, {0, 0}},
+  { "freegrapple", "freegrapple", POS_RECLINING, do_free_grapple, 1, 0, FALSE, ACTION_NONE, {0, 0}},
 
   { "get", "g", POS_RECLINING, do_get, 0, 0, FALSE, ACTION_NONE, {0, 0}},
   { "gecho", "gecho", POS_DEAD, do_gecho, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}},
@@ -267,7 +267,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "gtell", "gt", POS_SLEEPING, do_gsay, 0, 0, TRUE, ACTION_NONE, {0, 0}},
   { "gain", "gain", POS_RECLINING, do_gain, 1, 0, FALSE, ACTION_NONE, {0, 0}},
   { "guard", "guard", POS_FIGHTING, do_guard, 1, 0, FALSE, ACTION_NONE, {0, 0}},
-  { "grapple", "grapple", POS_FIGHTING, do_grapple, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
+  { "grapple", "grapple", POS_RECLINING, do_grapple, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
   { "goodlance", "goodlance", POS_STANDING, do_goodlance, 0, 0, FALSE, ACTION_STANDARD, {6, 0}},
   { "goodtouch", "goodtouch", POS_STANDING, do_goodtouch, 0, 0, FALSE, ACTION_STANDARD, {6, 0}},
 
@@ -477,7 +477,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "shieldslam", "shields", POS_FIGHTING, do_shieldslam, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}},
   { "springleap", "springleap", POS_SITTING, do_springleap, 1, 0, FALSE, ACTION_MOVE, {0, 6}},
   { "supriseaccuracy", "supriseaccuracy", POS_FIGHTING, do_supriseaccuracy, 1, 0, FALSE, ACTION_NONE, {0, 0}},
-  { "struggle", "struggle", POS_FIGHTING, do_struggle, 1, 0, FALSE, ACTION_NONE, {0, 0}},
+  { "struggle", "struggle", POS_RECLINING, do_struggle, 1, 0, FALSE, ACTION_NONE, {0, 0}},
 
   { "tell", "t", POS_DEAD, do_tell, 0, 0, TRUE, ACTION_NONE, {0, 0}},
   { "take", "ta", POS_RECLINING, do_get, 0, 0, FALSE, ACTION_NONE, {0, 0}},
