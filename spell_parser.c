@@ -158,6 +158,7 @@ bool concentration_check(struct char_data *ch, int spellnum) {
 
   if (!skill_check(ch, ABILITY_CONCENTRATION, concentration_dc)) {
     send_to_char(ch, "You lost your concentration!\r\n");
+    act("$n's concentration is lost, and spell is aborted!", TRUE, ch, 0, 0, TO_ROOM);
     resetCastingData(ch);
     return FALSE;
   } else
