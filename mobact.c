@@ -843,7 +843,7 @@ void npc_class_behave(struct char_data *ch) {
 /* this defines maximum amount of times the function will check the
  spellup array for a valid spell
  note:  npc_offensive_spells() uses this define as well */
-#define MAX_LOOPS 20
+#define MAX_LOOPS 40
 
 /* generic function for spelling up as a caster */
 void npc_spellup(struct char_data *ch) {
