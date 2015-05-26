@@ -2403,6 +2403,8 @@ ACMD(do_lore) {
   struct char_data *tch = NULL;
   struct obj_data *tobj = NULL;
   int target = 0;
+  bool knowledge = FALSE;
+  int lore_bonus = 0;
 
   if (IS_NPC(ch))
     return;
@@ -2430,18 +2432,43 @@ ACMD(do_lore) {
   send_to_char(ch, "You attempt to utilize your vast knowledge of lore...\r\n");
   USE_STANDARD_ACTION(ch);
 
-  if (tobj && GET_OBJ_COST(tobj) > lore_app[(compute_ability(ch, ABILITY_LORE)
-          + CLASS_LEVEL(ch, CLASS_BARD))]) {
+  /* establish any lore bonus */
+  if (HAS_FEAT(ch, FEAT_KNOWLEDGE)) {
+    lore_bonus += 4;
+    if (GET_WIS_BONUS(ch) > 0)
+      lore_bonus += GET_WIS_BONUS(ch);
+  }
+  if (CLASS_LEVEL(ch, CLASS_BARD)) {
+    lore_bonus += CLASS_LEVEL(ch, CLASS_BARD);
+  }
+
+  /* good enough lore for object? */
+  if (tobj && GET_OBJ_COST(tobj) <=
+       lore_app[(compute_ability(ch, ABILITY_LORE) + lore_bonus)]
+      ) {
+    knowledge = TRUE;
+  }
+
+  if (!knowledge) {
     send_to_char(ch, "Your knowledge is not extensive enough to know about this object!\r\n");
     return;
   }
-  if (tch && GET_LEVEL(tch) > compute_ability(ch, ABILITY_LORE)) {
+
+  /* good enough lore for mobile? */
+  knowledge = FALSE;
+  if ( tch && (GET_LEVEL(tch) * 2) <=
+       lore_app[(compute_ability(ch, ABILITY_LORE) + lore_bonus)]
+      ) {
+    knowledge = TRUE;
+  }
+
+  if (!knowledge) {
     send_to_char(ch, "Your knowledge is not extensive enough to know about this creature!\r\n");
     return;
   }
 
+  /* success! */
   if (tobj) {
-    /* success! */
     do_stat_object(ch, tobj, ITEM_STAT_MODE_LORE_SKILL);
   } else if (tch) { /* victim */
     send_to_char(ch, "Name: %s\r\n", GET_NAME(tch));

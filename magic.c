@@ -132,13 +132,12 @@ int compute_mag_saves(struct char_data *vict,
     saves++;
   if (!IS_NPC(vict) && GET_RACE(vict) == RACE_HALFLING)
     saves++;
-  if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_GRACE)) {
-    /* this might need capping */
+  if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_GRACE))
     saves += GET_CHA_BONUS(vict);
-  }
-  if (char_has_mud_event(vict, eSPELLBATTLE) && SPELLBATTLE(vict) > 0) {
+  if (char_has_mud_event(vict, eSPELLBATTLE) && SPELLBATTLE(vict) > 0)
     saves += SPELLBATTLE(vict);
-  }
+  if (HAS_FEAT(vict, FEAT_SAVES))
+    saves += CLASS_LEVEL(vict, CLASS_CLERIC) / 6;
 
   /* determine base, add/minus bonus/penalty and return */
   if (IS_NPC(vict))
@@ -299,6 +298,9 @@ void alt_wear_off_msg(struct char_data *ch, int skillnum) {
       break;
     case SKILL_DESTRUCTIVE_AURA:
       send_to_char(ch, "Your destructive aura has faded...\r\n");
+      break;
+    case SKILL_AURA_OF_PROTECTION:
+      send_to_char(ch, "Your protective aura has faded...\r\n");
       break;
     case SKILL_CRIP_STRIKE:
       send_to_char(ch, "You have recovered from the crippling strike...\r\n");
@@ -4402,8 +4404,12 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
   }
 
   /* black mantle reduces effectiveness of healing by 20% */
-  if (AFF_FLAGGED(ch, AFF_BLACKMANTLE))
-    healing = healing - (healing * 20 / 100);
+  if (AFF_FLAGGED(victim, AFF_BLACKMANTLE) || AFF_FLAGGED(ch, AFF_BLACKMANTLE))
+    healing = healing - (healing / 5);
+
+  /* healing domain */
+  if (HAS_FEAT(ch, FEAT_EMPOWERED_HEALING))
+    healing = (float)healing * 1.50;
 
   send_to_char(ch, "<%d> ", healing);
   if (ch != victim)

@@ -1997,7 +1997,6 @@ SPECIAL(guild) {
     return (TRUE);
 
   } else if (CMD_IS("train")) {
-
     //training code
 
     if (!*argument) {
@@ -2042,30 +2041,30 @@ SPECIAL(guild) {
     }
 
     //ability not available to this class
-    if (class_ability[skill_num][GET_CLASS(ch)] == 0) {
+    if (modify_class_ability(ch, skill_num, GET_CLASS(ch)) == 0) {
       send_to_char(ch, "This ability is not available to your class...\r\n");
       return (TRUE);
     }
 
     //cross-class ability
-    if (GET_TRAINS(ch) < 2 && class_ability[skill_num][GET_CLASS(ch)] == 1) {
+    if (GET_TRAINS(ch) < 2 && modify_class_ability(ch, skill_num, GET_CLASS(ch)) == 1) {
       send_to_char(ch, "(Cross-Class) You don't have enough training sessions to train that ability...\r\n");
       return (TRUE);
     }
-    if (GET_ABILITY(ch, skill_num) >= ((int) ((GET_LEVEL(ch) + 3) / 2)) && class_ability[skill_num][GET_CLASS(ch)] == 1) {
+    if (GET_ABILITY(ch, skill_num) >= ((int) ((GET_LEVEL(ch) + 3) / 2)) && modify_class_ability(ch, skill_num, GET_CLASS(ch)) == 1) {
       send_to_char(ch, "You are already trained in that area.\r\n");
       return (TRUE);
     }
 
     //class ability
-    if (GET_ABILITY(ch, skill_num) >= (GET_LEVEL(ch) + 3) && class_ability[skill_num][GET_CLASS(ch)] == 2) {
+    if (GET_ABILITY(ch, skill_num) >= (GET_LEVEL(ch) + 3) && modify_class_ability(ch, skill_num, GET_CLASS(ch)) == 2) {
       send_to_char(ch, "You are already trained in that area.\r\n");
       return (TRUE);
     }
 
     send_to_char(ch, "You train for a while...\r\n");
     GET_TRAINS(ch)--;
-    if (class_ability[skill_num][GET_CLASS(ch)] == 1) {
+    if (modify_class_ability(ch, skill_num, GET_CLASS(ch)) == 1) {
       GET_TRAINS(ch)--;
       send_to_char(ch, "You used two training sessions to train a cross-class ability...\r\n");
     }

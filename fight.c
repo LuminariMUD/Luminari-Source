@@ -1779,7 +1779,7 @@ int compute_energy_absorb(struct char_data *ch, int dam_type) {
 }
 
 
-// can return negative values, which indicates vulnerability
+// can return negative values, which indicates vulnerability (this is percent)
 // dam_ defines are in spells.h
 int compute_damtype_reduction(struct char_data *ch, int dam_type) {
   int damtype_reduction = 0;
@@ -1789,6 +1789,10 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type) {
 
   if (HAS_FEAT(ch, FEAT_RAGE_RESISTANCE) && affected_by_spell(ch, SKILL_RAGE)) {
     damtype_reduction += 10;
+  }
+
+  if (HAS_FEAT(ch, FEAT_RESISTANCE)) {
+    damtype_reduction += CLASS_LEVEL(ch, CLASS_CLERIC)/6;
   }
 
   switch (dam_type) {
@@ -3647,6 +3651,9 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
     /*****/
 
    /*unnamed bonuses*/
+
+  if (HAS_FEAT(ch, FEAT_WEAPON_EXPERT) && wielded)
+    bonuses[BONUS_TYPE_UNDEFINED]++;
 
   if (HAS_FEAT(ch, FEAT_WEAPON_FOCUS)) {
     if (wielded) {

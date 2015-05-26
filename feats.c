@@ -928,24 +928,23 @@ void assign_feats(void) {
 
   feato(FEAT_EVIL_TOUCH, "evil touch", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
     "inflict disease with touch attack",
-    "You can cause a creature to become sickened as a melee touch attack. Creatures "
-          "sickened by your touch count as good for the purposes of spells with the "
-          "evil descriptor. This ability lasts for a number of rounds equal to 1/2 "
+    "You can cause a creature to become sickened as a melee touch attack.  This "
+          "ability lasts for a number of rounds equal to 1/2 "
           "your cleric level (minimum 1). You can use this ability a number of times "
           "per day equal to 3 + your Wisdom modifier.");
-  feato(FEAT_EVIL_SCYTHE, "evil scythe", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
+  /*unfinished*/feato(FEAT_EVIL_SCYTHE, "evil scythe", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
     "empower your weapon with unholy damage",
     "At 8th level, you can give a weapon touched the unholy special weapon quality "
           "for a number of rounds equal to 1/2 your cleric level. You can use "
           "this ability once per day at 8th level, and an additional time per "
           "day for every four levels beyond 8th.");
-  feato(FEAT_GOOD_TOUCH, "good touch", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
+  /*unfinished*/feato(FEAT_GOOD_TOUCH, "good touch", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
     "cure disease and poison with touch",
     "You can touch a creature as a standard action, granting a sacred bonus on "
           "attack rolls, skill checks, ability checks, and saving throws equal to "
           "half your cleric level (minimum 1) for 1 round. You can use this ability "
           "a number of times per day equal to 3 + your Wisdom modifier.");
-  feato(FEAT_GOOD_LANCE, "good lance", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
+  /*unfinished*/feato(FEAT_GOOD_LANCE, "good lance", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
     "empower your weapon with holy damage",
     "At 8th level, you can give a weapon you touch the holy special weapon quality "
           "for a number of rounds equal to 1/2 your cleric level. You can use this "
@@ -953,9 +952,9 @@ void assign_feats(void) {
           "every four levels beyond 8th.");
   feato(FEAT_HEALING_TOUCH, "healing touch", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
     "you can heal with your touch",
-    "You can touch a living creature as a standard action, healing it for 1d4 points "
+    "You can touch a living creature as a standard action, healing it for 20 + 1d4 points "
           "of damage plus 1 for every two cleric levels you possess. You can only "
-          "use this ability on a creature that is below 0 hit points. You can use "
+          "use this ability on a creature that is below half their total hit points. You can use "
           "this ability a number of times per day equal to 3 + your Wisdom modifier.");
   feato(FEAT_EMPOWERED_HEALING, "empowered healing", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
     "heal spells empowered",
@@ -972,7 +971,7 @@ void assign_feats(void) {
     "Like the 'wizard eye' spell available to arcane casters, you can summon a "
           "wizard eye which you can control to scout for you.  You can use this "
           "ability a number of times per day equal to 3 + your Wisdom modifier.");
-  feato(FEAT_BLESSED_TOUCH, "blessed touch", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
+  /*unfinished*/feato(FEAT_BLESSED_TOUCH, "blessed touch", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
     "can bless with your touch",
     "You can touch a willing creature as a standard action, infusing it with the "
           "power of divine order and allowing it to treat all attack rolls, skill "
@@ -1002,8 +1001,8 @@ void assign_feats(void) {
     "gain bonus to all saves",
     "You get +1 to all your saves per 6 cleric levels.");
   feato(FEAT_AURA_OF_PROTECTION, "aura of protection", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
-    "grant AC bonus to group",
-    "You can grant +1 to all resistances and saves per 6 cleric levels to all your "
+    "grant AC/sves bonus to group",
+    "You can grant +1 to all saves and AC per 6 cleric levels to all your "
           "group members for 4 rounds.  You can use this ability a number of times "
           "per day equal to 3 + your Wisdom modifier.");
   feato(FEAT_ETH_SHIFT, "eth shift", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
@@ -1012,8 +1011,8 @@ void assign_feats(void) {
           "ethereal plane and back to the prime material plane.");
   feato(FEAT_BATTLE_RAGE, "battle rage", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
     "bonus to hitroll/damage",
-    "You add your cleric level / 4 to both your hitroll and damroll for 1 turn "
-          "(10 rounds).  You can use this ability a number of times per day equal "
+    "You add your cleric level / 4 to both your hitroll and damroll for "
+          "5 rounds.  You can use this ability a number of times per day equal "
           "to your Wisdom modifier.");
   feato(FEAT_WEAPON_EXPERT, "weapon expert", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
     "+1 to attack rolls, can use all martial weapons",
