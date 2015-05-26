@@ -382,10 +382,9 @@ void assign_domains(void) {
       /* 9th circle */
       SPELL_HORRID_WILTING);
 
-  /*unfinished domains*/
   /* Evil Domain */
   add_domain(DOMAIN_EVIL, "Evil", WEAPON_TYPE_SPIKED_CHAIN,
-      "(UNFINISHED)You are sinister and cruel, and have wholly pledged your soul to the "
+      "You are sinister and cruel, and have wholly pledged your soul to the "
           "cause of evil.");
   add_domain_powers(DOMAIN_EVIL, DOMAIN_POWER_EVIL_TOUCH, DOMAIN_POWER_EVIL_SCYTHE,
       DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED);
@@ -397,9 +396,10 @@ void assign_domains(void) {
       SPELL_RESERVED_DBC, SPELL_EYEBITE, SPELL_RESERVED_DBC,
       /* 9th circle */
       SPELL_WAIL_OF_THE_BANSHEE);
+
   /* Good Domain */
   add_domain(DOMAIN_GOOD, "Good", WEAPON_TYPE_SHORT_BOW,
-      "(UNFINISHED)You have pledged your life and soul to goodness and purity.");
+      "You have pledged your life and soul to goodness and purity.");
   add_domain_powers(DOMAIN_GOOD, DOMAIN_POWER_GOOD_TOUCH, DOMAIN_POWER_GOOD_LANCE,
       DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED);
                                   /* 1st circle */    /* 2nd circle */
@@ -410,9 +410,10 @@ void assign_domains(void) {
       SPELL_RESERVED_DBC, SPELL_INTERPOSING_HAND, SPELL_MASS_HASTE,
       /* 9th circle */
       SPELL_PROTECT_FROM_SPELLS);
+
   /* Healing Domain */
   add_domain(DOMAIN_HEALING, "Healing", WEAPON_TYPE_QUARTERSTAFF,
-      "(UNFINISHED)Your touch staves off pain and death, and your healing magic is "
+      "(Your touch staves off pain and death, and your healing magic is "
           "particularly vital and potent.");
   add_domain_powers(DOMAIN_HEALING, DOMAIN_POWER_HEALING_TOUCH, DOMAIN_POWER_EMPOWERED_HEALING,
       DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED);
@@ -424,9 +425,10 @@ void assign_domains(void) {
       SPELL_RESERVED_DBC, SPELL_RESERVED_DBC, SPELL_RESERVED_DBC,
       /* 9th circle */
       SPELL_RESERVED_DBC);
+
   /* Knowledge Domain */
   add_domain(DOMAIN_KNOWLEDGE, "Knowledge", WEAPON_TYPE_SICKLE,
-      "(UNFINISHED)You are a scholar and a sage of legends. In addition, you treat all "
+      "You are a scholar and a sage of legends. In addition, you treat all "
           "Knowledge skills as class skills.");
   add_domain_powers(DOMAIN_KNOWLEDGE, DOMAIN_POWER_KNOWLEDGE, DOMAIN_POWER_EYE_OF_KNOWLEDGE,
       DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED);
@@ -438,9 +440,10 @@ void assign_domains(void) {
       SPELL_RESERVED_DBC, SPELL_WALL_OF_FORCE, SPELL_LOCATE_OBJECT,
       /* 9th circle */
       SPELL_MASS_DOMINATION);
+
   /* Law Domain */
   add_domain(DOMAIN_LAW, "Law", WEAPON_TYPE_LIGHT_HAMMER,
-      "(UNFINISHED)You follow a strict and ordered code of laws, and in so doing, achieve "
+      "You follow a strict and ordered code of laws, and in so doing, achieve "
           "enlightenment.");
   add_domain_powers(DOMAIN_LAW, DOMAIN_POWER_BLESSED_TOUCH, DOMAIN_POWER_LAWFUL_WEAPON,
       DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED);
@@ -452,9 +455,10 @@ void assign_domains(void) {
       SPELL_INTERPOSING_HAND, SPELL_RESERVED_DBC, SPELL_FAITHFUL_HOUND,
       /* 9th circle */
       SPELL_MASS_HOLD_PERSON);
+
   /* Trickery Domain */
   add_domain(DOMAIN_TRICKERY, "Trickery", WEAPON_TYPE_SLING,
-      "(UNFINISHED)You are a master of illusions and deceptions. Bluff, Disguise, and "
+      "You are a master of illusions and deceptions. Disguise, and "
           "Stealth are class skills.");
   add_domain_powers(DOMAIN_TRICKERY, DOMAIN_POWER_DECEPTION, DOMAIN_POWER_COPYCAT,
       DOMAIN_POWER_MASS_INVIS, DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED);
@@ -466,9 +470,10 @@ void assign_domains(void) {
       SPELL_SHRINK_PERSON, SPELL_MIND_FOG, SPELL_GREATER_INVIS,
       /* 9th circle */
       SPELL_DISPLACEMENT);
+
   /* Protection Domain */
   add_domain(DOMAIN_PROTECTION, "Protection", WEAPON_TYPE_LIGHT_MACE,
-      "(UNFINISHED)Your faith is your greatest source of protection, and you can use that "
+      "Your faith is your greatest source of protection, and you can use that "
           "faith to defend others. In addition, you receive a +1 resistance "
           "bonus on saving throws. This bonus increases by 1 for every 5 levels "
           "you possess.");
@@ -482,9 +487,10 @@ void assign_domains(void) {
       SPELL_MINOR_GLOBE, SPELL_RESERVED_DBC, SPELL_ANTI_MAGIC_FIELD,
       /* 9th circle */
       SPELL_REFUGE);
+
   /* Travel Domain */
   add_domain(DOMAIN_TRAVEL, "Travel", WEAPON_TYPE_SCYTHE,
-      "(UNFINISHED)You are an explorer and find enlightenment in the simple joy of travel, "
+      "You are an explorer and find enlightenment in the simple joy of travel, "
           "be it by foot or conveyance or magic. Increase your base speed by 10 feet.");
   add_domain_powers(DOMAIN_TRAVEL, DOMAIN_POWER_ETH_SHIFT, DOMAIN_POWER_UNDEFINED,
       DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED);
@@ -496,9 +502,10 @@ void assign_domains(void) {
       SPELL_TELEPORT, SPELL_RESERVED_DBC, SPELL_PORTAL,
       /* 9th circle */
       SPELL_GATE);
+
   /* War Domain */
   add_domain(DOMAIN_WAR, "War", WEAPON_TYPE_LONG_SWORD,
-      "(UNFINISHED)You are a crusader for your faith, always ready and willing to fight to defend your faith.");
+      "You are a crusader for your faith, always ready and willing to fight to defend your faith.");
   add_domain_powers(DOMAIN_WAR, DOMAIN_POWER_BATTLE_RAGE, DOMAIN_POWER_WEAPON_EXPERT,
       DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED);
                                   /* 1st circle */    /* 2nd circle */

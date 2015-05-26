@@ -84,6 +84,7 @@ extern "C" {
 /****************/
 
 //extern const char *domain_power_names[NUM_DOMAIN_POWERS + 1];
+char *domainpower_names[NUM_DOMAIN_POWERS + 1];
 
   /****************/
   /****************/
