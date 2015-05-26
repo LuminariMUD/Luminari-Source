@@ -3048,6 +3048,7 @@ int get_daily_uses(struct char_data *ch, int featnum){
     case FEAT_ACID_DART: /* fallthrough */
     case FEAT_CURSE_TOUCH: /* fallthrough */
     case FEAT_DESTRUCTIVE_SMITE: /* fallthrough */
+    case FEAT_EVIL_TOUCH:/*fallthrough*/
     case FEAT_LIGHTNING_ARC:
       daily_uses = 3 + GET_WIS_BONUS(ch);
       break;
@@ -3055,7 +3056,6 @@ int get_daily_uses(struct char_data *ch, int featnum){
     case FEAT_GOOD_LANCE:
       daily_uses = CLASS_LEVEL(ch, CLASS_CLERIC) / 4;
       break;
-    case FEAT_EVIL_TOUCH:
     case FEAT_SMITE_EVIL:
     case FEAT_SMITE_GOOD:
     case FEAT_RAGE:
