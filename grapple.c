@@ -236,6 +236,12 @@ ACMD(do_grapple) {
     /* cmb, escape artist: check which is better is done in compute_cmb() */
     if (combat_maneuver_check(ch, vict, COMBAT_MANEUVER_TYPE_REVERSAL, 0) > 0) {
       /* reversal! */
+      if (AFF_FLAGGED(ch, AFF_PINNED)) {
+        REMOVE_BIT_AR(AFF_FLAGS(vict), AFF_PINNED);
+        act("\tyYou break $N's pin on you!\tn", FALSE, ch, NULL, vict, TO_CHAR);
+        act("\ty$n breaks your pin!\tn", FALSE, ch, NULL, vict, TO_VICT);
+        act("\ty$n breaks $N's pin!!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);
+      }
       GRAPPLE_TARGET(ch) = vict;
       GRAPPLE_ATTACKER(ch) = NULL;
       GRAPPLE_TARGET(vict) = NULL;
