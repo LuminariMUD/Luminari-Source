@@ -208,11 +208,6 @@ ACMD(do_grapple) {
     return;
   }
 
-  if (GET_POS(ch) <= POS_SITTING) {
-    send_to_char(ch, "You need to stand to grapple!\r\n");
-    return;
-  }
-
   one_argument(argument, arg);
 
   if (!*arg) {
@@ -267,6 +262,11 @@ ACMD(do_grapple) {
     return;
   }
   else { /* attempt to grapple */
+    if (GET_POS(ch) <= POS_SITTING) {
+      send_to_char(ch, "You need to stand to grapple!\r\n");
+      return;
+    }
+
     int grapple_penalty = 0;
 
     /* aoo damage becomes a penalty */
