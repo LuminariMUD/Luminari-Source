@@ -5571,7 +5571,7 @@ void perform_violence(struct char_data *ch, int phase) {
    POS_SITTING	6
    POS_FIGHTING	7
    POS_STANDING	8	*/
-  if (GET_POS(ch) < POS_SITTING) {
+  if (GET_POS(ch) < POS_SITTING && GET_POS(ch) != POS_RECLINING) {
     send_to_char(ch, "You are in no position to fight!!\r\n");
     return;
   }
