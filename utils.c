@@ -42,6 +42,8 @@ int compute_dexterity_bonus(struct char_data *ch) {
   int dexterity_bonus = (GET_DEX(ch) - 10) / 2;
   if (AFF_FLAGGED(ch, AFF_GRAPPLED))
     dexterity_bonus -= 2;
+  if (AFF_FLAGGED(ch, AFF_PINNED))
+    dexterity_bonus = -5;
 
   return (MIN(compute_gear_max_dex(ch), dexterity_bonus));
 }

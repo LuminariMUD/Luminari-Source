@@ -148,11 +148,15 @@ void clear_grapple(struct char_data *ch, struct char_data *vict) {
     GRAPPLE_ATTACKER(ch) = NULL;
     if (AFF_FLAGGED(ch, AFF_GRAPPLED))
       REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_GRAPPLED);
+    if (AFF_FLAGGED(ch, AFF_PINNED))
+      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_PINNED);
   }
   if (vict) {
     GRAPPLE_TARGET(vict) = NULL;
     if (AFF_FLAGGED(vict, AFF_GRAPPLED))
       REMOVE_BIT_AR(AFF_FLAGS(vict), AFF_GRAPPLED);
+    if (AFF_FLAGGED(vict, AFF_PINNED))
+      REMOVE_BIT_AR(AFF_FLAGS(vict), AFF_PINNED);
   }
 }
 
@@ -177,6 +181,14 @@ void set_grapple(struct char_data *ch, struct char_data *vict) {
     SET_BIT_AR(AFF_FLAGS(vict), AFF_GRAPPLED);
 }
 
+/* set ch pinning vict, with ch in the dominant position */
+/* pinning makes your dex bonus -5, and you are treated as if you have no
+ dex bonus for the sake of sneak attacks etc */
+void set_pin(struct char_data *ch, struct char_data *vict) {
+  if (!AFF_FLAGGED(vict, AFF_PINNED))
+    SET_BIT_AR(AFF_FLAGS(vict), AFF_PINNED);
+  GET_POS(vict) = POS_RECLINING;
+}
 
 /* primary grapple and reversal entry point */
 ACMD(do_grapple) {
@@ -285,8 +297,9 @@ ACMD(do_grapple) {
   }
 }
 
-/* as a free action, attempt to free oneself from grapple, can attempt once per
- * round */
+/* as a switf action, attempt to free oneself from grapple, can attempt once per
+ * round, note: as soon as swift action is fixed, this should use a swift action
+ * as opposed to the current setup */
 ACMD(do_struggle) {
   if (!GRAPPLE_ATTACKER(ch) || !AFF_FLAGGED(ch, AFF_GRAPPLED)) {
     send_to_char(ch, "But you are not the victim of grapple!\r\n");
@@ -330,7 +343,52 @@ ACMD(do_free_grapple) {
 
 /* as a standard action, try to pin grappled opponent */
 ACMD(do_pin) {
-  send_to_char(ch, "Under construction.\r\n");
+  if (GRAPPLE_ATTACKER(ch)) {
+    send_to_char(ch, "You have to be in the dominant position of a grapple to attempt a pin!\r\n");
+    return;
+  }
+
+  if (GRAPPLE_TARGET(ch) && AFF_FLAGGED(ch, AFF_GRAPPLED) && AFF_FLAGGED(GRAPPLE_TARGET(ch), AFF_GRAPPLED))
+    ; /* good conditions */
+  else {
+    /* conditions are not met */
+    send_to_char(ch, "You need to be in the dominant position of a grapple to attempt a pin!\r\n");
+    return;
+  }
+
+  /* we're assuming we are now in a position to attempt a pin */
+  int grapple_penalty = 4;
+  struct char_data *vict = GRAPPLE_TARGET(ch);
+
+  if (vict == ch) return; /*huh?*/
+
+  /* aoo damage becomes a penalty */
+  if (!HAS_FEAT(ch, FEAT_IMPROVED_GRAPPLE)) {
+    grapple_penalty += attack_of_opportunity(vict, ch, 0);
+  }
+
+  if (combat_maneuver_check(ch, vict, COMBAT_MANEUVER_TYPE_PIN, -(grapple_penalty)) > 0) {
+    /* success! */
+    act("\tyYou take $N to the ground with a pin maneuver!\tn", FALSE, ch, NULL, vict, TO_CHAR);
+    act("\ty$n takes you to the ground with a pin maneuver!\tn", FALSE, ch, NULL, vict, TO_VICT);
+    act("\ty$n takes $N to the ground with a pin maneuver!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);
+    set_pin(ch, vict);
+  } else {
+    /* failure! */
+    act("\tyYou fail to pin $N!\tn", FALSE, ch, NULL, vict, TO_CHAR);
+    act("\tyYou deftly avoid a pin attempt from $n\tn", FALSE, ch, NULL, vict, TO_VICT);
+    act("\ty$n fails to pin $N!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);
+  }
+  USE_STANDARD_ACTION(ch);
+
+  if (vict != ch) { /* make sure combat starts */
+    if (GET_POS(ch) > POS_STUNNED && (FIGHTING(ch) == NULL))
+      set_fighting(ch, vict);
+    if (GET_POS(vict) > POS_STUNNED && (FIGHTING(vict) == NULL)) {
+      set_fighting(vict, ch);
+    }
+  }
+
   return;
 }
 
