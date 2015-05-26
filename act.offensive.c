@@ -2348,7 +2348,7 @@ ACMD(do_crystalfist) {
   }
 
   send_to_char(ch, "\tCLarge, razor sharp crystals sprout from your hands and arms!\tn\r\n");
-  act("\tCYou watch as razor sharp crystals sprout from $n's arms and hands!\tn",
+  act("\tCRazor sharp crystals sprout from $n's arms and hands!\tn",
           FALSE, ch, 0, 0, TO_NOTVICT);
 
   if (!IS_NPC(ch))
@@ -2451,7 +2451,7 @@ ACMD(do_wholenessofbody) {
   attach_mud_event(new_mud_event(eWHOLENESSOFBODY, ch, NULL),
           (4 * SECS_PER_MUD_DAY));
   GET_HIT(ch) += MIN((GET_MAX_HIT(ch) - GET_HIT(ch)),
-          (20 + (CLASS_LEVEL(ch, CLASS_MONK) * 2)));
+          (20 + (CLASS_LEVEL(ch, CLASS_MONK) * 2) + GET_WIS_BONUS(ch)));
   update_pos(ch);
 
   /* Actions */

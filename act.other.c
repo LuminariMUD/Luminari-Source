@@ -2689,7 +2689,7 @@ ACMD(do_vanish) {
   }
 
   /* success! */
-  send_to_char(ch, "You vanish!.\r\n");
+  send_to_char(ch, "You vanish!\r\n");
   act("With an audible pop, you watch as $n vanishes!", FALSE, ch, 0, 0, TO_ROOM);
   start_daily_use_cooldown(ch, FEAT_VANISH);
 
