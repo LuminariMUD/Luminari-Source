@@ -26,11 +26,11 @@ const char *weapon_type[NUM_WEAPON_TYPES];
 /* simply checks if ch has proficiency with given weapon_type */
 int is_proficient_with_weapon(struct char_data *ch, int weapon) {
 
-  if (has_feat(ch, FEAT_SIMPLE_WEAPON_PROFICIENCY) &&
+  if ((has_feat(ch, FEAT_SIMPLE_WEAPON_PROFICIENCY) || HAS_FEAT(ch, FEAT_WEAPON_EXPERT))&&
           IS_SET(weapon_list[weapon].weaponFlags, WEAPON_FLAG_SIMPLE))
     return TRUE;
 
-  if (has_feat(ch, FEAT_MARTIAL_WEAPON_PROFICIENCY) &&
+  if ((has_feat(ch, FEAT_MARTIAL_WEAPON_PROFICIENCY) || HAS_FEAT(ch, FEAT_WEAPON_EXPERT))&&
           IS_SET(weapon_list[weapon].weaponFlags, WEAPON_FLAG_MARTIAL))
     return TRUE;
 

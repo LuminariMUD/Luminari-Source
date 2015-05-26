@@ -331,10 +331,19 @@ int class_ability[NUM_ABILITIES][NUM_CLASSES] = {
   { CA, CA, CC, CC, CA, CC, CC, CC, CA, CC, CA, CC}, //54 Knowledge (religion)
   { CA, CA, CC, CC, CC, CC, CC, CC, CC, CC, CA, CC}, //55 Knowledge (the planes)
 };
+int modify_class_ability(struct char_data *ch, int ability, int class) {
+  int ability_value = class_ability[ability][class];
+
+  if (HAS_FEAT(ch, FEAT_DECEPTION)) {
+    if (ability == ABILITY_DISGUISE || ability == ABILITY_STEALTH)
+      ability_value = CA;
+  }
+
+  return ability_value;
+}
 #undef NA
 #undef CC
 #undef CA
-
 
 // Saving Throw System
 #define		H	1	//high
