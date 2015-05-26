@@ -151,10 +151,14 @@ bool concentration_check(struct char_data *ch, int spellnum) {
     concentration_dc += 6;
   if (char_has_mud_event(ch, eINTIMIDATED))
     concentration_dc += 6;
-  if (AFF_FLAGGED(ch, AFF_GRAPPLED))
+  if (AFF_FLAGGED(ch, AFF_GRAPPLED)) {
     if (GRAPPLE_ATTACKER(ch))
       concentration_dc +=
             compute_cmb(GRAPPLE_ATTACKER(ch), COMBAT_MANEUVER_TYPE_GRAPPLE);
+    else if (GRAPPLE_TARGET(ch))
+      concentration_dc +=
+            compute_cmb(GRAPPLE_TARGET(ch), COMBAT_MANEUVER_TYPE_GRAPPLE);
+  }
 
   if (!skill_check(ch, ABILITY_CONCENTRATION, concentration_dc)) {
     send_to_char(ch, "You lost your concentration!\r\n");
