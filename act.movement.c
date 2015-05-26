@@ -2160,6 +2160,10 @@ ACMD(do_leave) {
 
 /* Stand - Standing costs a move action. */
 ACMD(do_stand) {
+  if (AFF_FLAGGED(ch, AFF_PINNED)) {
+    send_to_char(ch, "You can't, you are pinned! (try struggle or grapple <target>).\r\n");
+    return;
+  }
   switch (GET_POS(ch)) {
     case POS_STANDING:
       send_to_char(ch, "You are already standing.\r\n");

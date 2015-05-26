@@ -296,7 +296,12 @@ bool has_dex_bonus_to_ac(struct char_data *attacker, struct char_data *ch) {
     return FALSE;
   }
 
-  /*under discussion*/ /*(GET_POS(ch) < POS_FIGHTING))*/
+  if (AFF_FLAGGED(ch, AFF_PINNED)) {
+    /* debug */
+    /*if (FIGHTING(ch))
+      send_to_char(ch, "has_dex_bonus_to_ac() - %s pinned  ", GET_NAME(ch));*/
+    return FALSE;
+  }
 
   /* ch unable to see attacker WITHOUT blind-fighting feat */
   if (attacker) {

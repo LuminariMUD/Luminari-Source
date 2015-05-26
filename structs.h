@@ -993,8 +993,9 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define AFF_CHARGING         92 /* charging in combat */
 #define AFF_WILD_SHAPE       93
 #define AFF_FEINTED          94
+#define AFF_PINNED           95
 /*---*/
-#define NUM_AFF_FLAGS        95
+#define NUM_AFF_FLAGS        96
 /********************************/
 
 /* Bonus types */
@@ -2370,6 +2371,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define COMBAT_MANEUVER_TYPE_GRAPPLE      4
 #define COMBAT_MANEUVER_TYPE_REVERSAL     5 /* try to reverse grapple */
 #define COMBAT_MANEUVER_TYPE_INIT_GRAPPLE 6
+#define COMBAT_MANEUVER_TYPE_PIN          7
 
 /* Critical hit types */
 #define CRIT_X2   0

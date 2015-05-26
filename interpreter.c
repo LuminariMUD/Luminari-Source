@@ -425,6 +425,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "recline", "recline", POS_SLEEPING, do_recline, 0, 0, FALSE, ACTION_NONE, {0, 0}},
   { "renewedvigor", "renewedvigor", POS_RECLINING, do_renewedvigor, 1, 0, FALSE, ACTION_SWIFT, {0, 0}},
   { "research", "research", POS_STANDING, do_not_here, 0, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}},
+  { "releasegrapple", "releasegrapple", POS_FIGHTING, do_free_grapple, 1, 0, FALSE, ACTION_NONE, {0, 0}},
 
   { "sacrifice", "sac", POS_RECLINING, do_sac, 0, 0, FALSE, ACTION_NONE, {0, 0}},
   { "say", "s", POS_RECLINING, do_say, 0, 0, TRUE, ACTION_NONE, {0, 0}},
