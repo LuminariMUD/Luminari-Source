@@ -883,6 +883,33 @@ static void set_domain_menu(struct descriptor_data *d) {
   OLC_MODE(d) = STUDY_SET_DOMAINS;
 }
 
+void print_domain_info(struct descriptor_data *d, int domain_number) {
+  int j = 0;
+
+  write_to_output(d, "%sDomain:%s %-20s %sFavored Weapon:%s %-22s\r\n%sDescription:%s %s\r\n",
+                  cyn, nrm, domain_list[domain_number].name,
+                  cyn, nrm, weapon_list[domain_list[domain_number].favored_weapon].name,
+                  cyn, nrm, domain_list[domain_number].description
+                  );
+
+  write_to_output(d, "%sGranted powers: |%s", cyn, nrm);
+  for (j = 0; j < MAX_GRANTED_POWERS; j++) {
+    if (domain_list[domain_number].granted_powers[j] != DOMAIN_POWER_UNDEFINED) {
+      write_to_output(d, "%s%s|%s", domainpower_names[domain_list[domain_number].granted_powers[j]], cyn, nrm);
+    }
+  }
+  write_to_output(d, "\r\n");
+
+  write_to_output(d, "%sGranted spells: |%s", cyn, nrm);
+  for (j = 0; j < MAX_DOMAIN_SPELLS; j++) {
+    if (domain_list[domain_number].domain_spells[j] != SPELL_RESERVED_DBC) {
+      write_to_output(d, "%s%s|%s", spell_info[domain_list[domain_number].domain_spells[j]].name, cyn, nrm);
+    }
+  }
+
+}
+
+
 static void favored_enemy_menu(struct descriptor_data *d) {
   get_char_colors(d->character);
   clear_screen(d);
@@ -1589,6 +1616,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
       }
       GET_1ST_DOMAIN(ch) = number;
       write_to_output(d, "Choice selected.\r\n");
+      print_domain_info(d, number);
       OLC_MODE(d) = STUDY_SET_DOMAINS;
       set_domain_menu(d);
       break;
@@ -1614,6 +1642,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
       }
       GET_2ND_DOMAIN(ch) = number;
       write_to_output(d, "Choice selected.\r\n");
+      print_domain_info(d, number);
       OLC_MODE(d) = STUDY_SET_DOMAINS;
       set_domain_menu(d);
       break;
