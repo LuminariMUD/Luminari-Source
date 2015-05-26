@@ -2449,7 +2449,7 @@ ACMD(do_lore) {
     knowledge = TRUE;
   }
 
-  if (!knowledge) {
+  if (tobj && !knowledge) {
     send_to_char(ch, "Your knowledge is not extensive enough to know about this object!\r\n");
     return;
   }
@@ -2462,7 +2462,7 @@ ACMD(do_lore) {
     knowledge = TRUE;
   }
 
-  if (!knowledge) {
+  if (tch && !knowledge) {
     send_to_char(ch, "Your knowledge is not extensive enough to know about this creature!\r\n");
     return;
   }

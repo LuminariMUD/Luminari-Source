@@ -864,7 +864,7 @@ void assign_feats(void) {
     "Reduces crafting time",
     "Reduces crafting time");
 
-  /* Cleric Domain Feats */
+  /* Cleric Domain (ability) Feats */
   feato(FEAT_LIGHTNING_ARC, "lightning arc", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
     "you can unleash an arc of electricity",
     "As a standard action, you can unleash an arc of electricity. This arc of "
