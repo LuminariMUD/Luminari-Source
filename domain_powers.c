@@ -224,7 +224,7 @@ ACMD(do_copycat) {
     return;
   }
 
-  call_magic(ch, NULL, 0, SPELL_MIRROR_IMAGE, CLASS_LEVEL(ch, CLASS_CLERIC), CAST_INNATE);
+  call_magic(ch, ch, 0, SPELL_MIRROR_IMAGE, CLASS_LEVEL(ch, CLASS_CLERIC), CAST_INNATE);
 
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_COPYCAT);
@@ -256,7 +256,7 @@ ACMD(do_massinvis) {
     return;
   }
 
-  call_magic(ch, NULL, 0, SPELL_INVISIBILITY_SPHERE, CLASS_LEVEL(ch, CLASS_CLERIC), CAST_INNATE);
+  call_magic(ch, ch, 0, SPELL_INVISIBILITY_SPHERE, CLASS_LEVEL(ch, CLASS_CLERIC), CAST_INNATE);
 
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_MASS_INVIS);
