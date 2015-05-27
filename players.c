@@ -298,9 +298,9 @@ int load_char(const char *name, struct char_data *ch) {
       GET_ABILITY(ch, i) = 0;
     for (i = 0; i < NUM_FEATS; i++)
       SET_FEAT(ch, i, 0);
-    for (i = 0; i < NUM_SKFEATS; i++)
-      for (j = MAX_SPELLS + 1; j < NUM_SKILLS; j++)
-        ch->player_specials->saved.skill_focus[i][j - MAX_SPELLS + 1] = 0;
+    for (i = 0; i < (END_GENERAL_ABILITIES+1); i++)
+      for (j = 0; j < NUM_SKFEATS; j++)
+        ch->player_specials->saved.skill_focus[i][j] = 0;
     for (i = 0; i < NUM_CFEATS; i++)
       for (j = 0; j < FT_ARRAY_MAX; j++)
         ch->char_specials.saved.combat_feats[i][j] = 0;
@@ -699,7 +699,7 @@ void save_char(struct char_data * ch, int mode) {
   char filename[40] = {'\0'}, buf[MAX_STRING_LENGTH] = {'\0'},
   bits[127] = {'\0'}, bits2[127] = {'\0'},
   bits3[127] = {'\0'}, bits4[127] = {'\0'};
-  int i = 0, j = 0, k = 0, id = 0, save_index = FALSE;
+  int i = 0, j = 0, id = 0, save_index = FALSE;
   struct affected_type *aff = NULL;
   struct affected_type tmp_aff[MAX_AFFECT] = {
     {0}
@@ -1032,12 +1032,14 @@ void save_char(struct char_data * ch, int mode) {
 
   /* Save Skill Foci */
   fprintf(fl, "SklF:\n");
-  for (i = 0; i < NUM_SKFEATS; i++)
-    for (j = MAX_SPELLS + 1; j < NUM_SKILLS; j++) {
-      for (k = 0; k < ch->player_specials->saved.skill_focus[i][j-MAX_SPELLS + 1]; k++)
-        fprintf(fl, "%d %d\n", i, j);
+  for (i = 0; i < MAX_ABILITIES; i++) {
+    fprintf(fl, "%d ", i);
+    for (j = 0; j < NUM_SKFEATS; j++) {
+      fprintf(fl, "%d ", ch->player_specials->saved.skill_focus[i][j]);
+    }
+    fprintf(fl, "\n");
   }
-  fprintf(fl, "0\n");
+  fprintf(fl, "-1 -1 -1\n");
 
   /* Save feats */
   fprintf(fl, "Feat:\n");
@@ -1680,27 +1682,32 @@ void load_epic_class_feat_points(FILE *fl, struct char_data *ch)
 
 }
 
-void load_skill_focus(FILE *fl, struct char_data *ch)
-{
-  int num_fields = 0;
-  int skfeat = 0, skill = 0;
+  /* if NUM_SKFEATS changes, this must be modified manually */
+void load_skill_focus(FILE *fl, struct char_data *ch) {
+  int skfeat = 0, skill = 0, skfeat_epic = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
   do {
     get_line(fl, line);
-    if((num_fields = sscanf(line, "%d %d", &skfeat, &skill)) == 1) {
-      if(skfeat == 0)
-        /* exit condition */
-        return;
-
-      /* Old version. */
-      skill = skfeat;
-      skfeat = 0;
+    sscanf(line, "%d %d %d", &skill, &skfeat, &skfeat_epic);
+    if (skill != -1) {
+      ch->player_specials->saved.skill_focus[skill][0] = skfeat;
+      ch->player_specials->saved.skill_focus[skill][1] = skfeat_epic;
     }
+  } while (skill != -1);
+}
 
-    ch->player_specials->saved.skill_focus[skfeat][skill - MAX_SPELLS + 1] = 1;
+static void load_events(FILE *fl, struct char_data *ch) {
+  int num = 0;
+  long num2 = 0;
+  char line[MAX_INPUT_LENGTH + 1];
 
-  } while (1);
+  do {
+    get_line(fl, line);
+    sscanf(line, "%d %ld", &num, &num2);
+    if (num != -1)
+      attach_mud_event(new_mud_event(num, ch, NULL), num2);
+  } while (num != -1);
 }
 
 void load_quests(FILE *fl, struct char_data *ch) {
@@ -1741,19 +1748,6 @@ static void load_HMVS(struct char_data *ch, const char *line, int mode) {
       ch->real_abils.str_add = num2;
       break;
   }
-}
-
-static void load_events(FILE *fl, struct char_data *ch) {
-  int num = 0;
-  long num2 = 0;
-  char line[MAX_INPUT_LENGTH + 1];
-
-  do {
-    get_line(fl, line);
-    sscanf(line, "%d %ld", &num, &num2);
-    if (num != -1)
-      attach_mud_event(new_mud_event(num, ch, NULL), num2);
-  } while (num != -1);
 }
 
 static void write_aliases_ascii(FILE *file, struct char_data *ch) {

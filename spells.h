@@ -776,6 +776,7 @@
  * If an ability/skill here isn't part of the pfsrd, we marked the comment
  * with UNIQUE, some old deprecated skills have been phased out and are marked
  * as UNUSED in the comments -Zusuk      */
+#define ABILITY_UNDEFINED               0
 #define START_GENERAL_ABILITIES         1
 
 #define ABILITY_ACROBATICS              1  /* acrobatics, matches pfsrd */
