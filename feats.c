@@ -778,8 +778,11 @@ void assign_feats(void) {
     "use survival skill to track others");
     feat_prereq_ability(FEAT_TRACK, ABILITY_SURVIVAL, 19);
 
-
   /* Epic */
+  feato(FEAT_EPIC_SKILL_FOCUS, "epic skill focus", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
+    "+6 in chosen skill",
+    "Taking epic skill focus will give you +6 in chosen skill, this feat can be taken "
+          "multiple times, but only once per skill chosen.");
   feato(FEAT_EPIC_TOUGHNESS, "epic toughness", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
     "gain 30 hps",
     "Gain 30 more maximum hit points");
@@ -1628,7 +1631,6 @@ void assign_feats(void) {
   /* epic */
   feato(FEAT_EPIC_COMBAT_CHALLENGE, "epic combat challenge", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "as improved combat challenge, but both regular challenges and challenge all are minor actions", "as improved combat challenge, but both regular challenges and challenge all are minor actions");
   feato(FEAT_EPIC_DODGE, "epic dodge", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "automatically dodge first attack against you each round", "automatically dodge first attack against you each round");
-  feato(FEAT_EPIC_SKILL_FOCUS, "epic skill focus", FALSE, TRUE, TRUE, FEAT_TYPE_GENERAL, "+10 in chosen skill", "+10 in chosen skill");
 
   /****/
   /* class feats */
@@ -2607,6 +2609,13 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
         if (BAB(ch) < 1)
           return FALSE;
         return TRUE;
+
+      case FEAT_EPIC_SKILL_FOCUS:
+        if (!iarg)
+          return TRUE;
+        if (GET_ABILITY(ch, iarg) >= 20)
+          return TRUE;
+        return FALSE;
         /*
           case FEAT_WEAPON_FOCUS:
             if (BAB(ch) < 1)
@@ -2620,13 +2629,6 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
             if (!iarg)
               return TRUE;
             if (is_proficient_with_weapon(ch, iarg) && has_combat_feat(ch, CFEAT_WEAPON_FOCUS, iarg))
-              return TRUE;
-            return FALSE;
-
-          case FEAT_EPIC_SKILL_FOCUS:
-            if (!iarg)
-              return TRUE;
-            if (GET_ABILITY(ch, iarg) >= 20)
               return TRUE;
             return FALSE;
 
