@@ -1237,7 +1237,7 @@ static void skfeat_disp_menu(struct descriptor_data *d) {
   get_char_colors(d->character);
   clear_screen(d);
 
-  for(i = 0; i < NUM_ABILITIES; i++)
+  for(i = 1; i < END_GENERAL_ABILITIES + 1; i++)
     write_to_output(d, "%d) %s\r\n", i, ability_names[i]);
 
   write_to_output(d, "\r\n%sChoose a skill for the %s feat : ", nrm,
@@ -1505,7 +1505,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
         gen_feat_disp_menu(d);
         break;
       }
-      if ((number < 1) || (number >= NUM_ABILITIES)) {
+      if ((number < 1) || (number > END_GENERAL_ABILITIES)) {
         write_to_output(d, "That is an invalid choice!\r\n");
         skfeat_disp_menu(d);
         break;
