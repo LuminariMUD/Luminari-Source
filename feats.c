@@ -545,6 +545,15 @@ void assign_feats(void) {
     "can make a number of attacks of opportunity equal to dex bonus",
     "can make a number of attacks of opportunity equal to dex bonus");
 
+  feato(FEAT_IMPROVED_GRAPPLE, "improved grapple", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "improve your grappling",
+    "You do not provoke an attack of opportunity when performing a grapple combat "
+          "maneuver. In addition, you receive a +2 bonus on checks made to grapple "
+          "a foe. You also receive a +2 bonus to your Combat Maneuver Defense "
+          "whenever an opponent tries to grapple you.");
+    feat_prereq_feat(FEAT_IMPROVED_GRAPPLE, FEAT_IMPROVED_UNARMED_STRIKE, 1);
+    feat_prereq_attribute(FEAT_IMPROVED_GRAPPLE, AB_DEX, 13);
+
   feato(FEAT_IMPROVED_INITIATIVE, "improved initiative", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
     "+4 to initiative checks to see who attacks first each round",
     "+4 to initiative checks to see who attacks first each round");
@@ -591,6 +600,13 @@ void assign_feats(void) {
     "You can make a intimidate check to taunt in combat as a move action as opposed "
       "to standard action.");
     feat_prereq_ability(FEAT_IMPROVED_INTIMIDATION, ABILITY_INTIMIDATE, 10);
+
+    /* monks get this for free */
+  feato(FEAT_IMPROVED_UNARMED_STRIKE, "improved unarmed strike", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "Unarmed attacks are considered to be weapons.",
+    "You are considered to be armed even when unarmed—you do not provoke attacks "
+          "of opportunity when you attack foes while unarmed.  You can disarm foes without "
+          "a penalty when fighting unarmed.  Also you get access to the headbutt combat maneuver.");
 
     /* note: monks get this for free */
   feato(FEAT_STUNNING_FIST, "stunning fist", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
@@ -641,6 +657,12 @@ void assign_feats(void) {
   /*****************/
   /* General feats */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
+
+  /*skill focus*/
+  feato(FEAT_SKILL_FOCUS, "skill focus", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
+    "+3 in chosen skill",
+    "Taking skill focus will give you +3 in chosen skill, this feat can be taken "
+          "multiple times, but only once per skill chosen.");
 
   /* weapon / armor proficiency */
   feato(FEAT_ARMOR_PROFICIENCY_LIGHT, "light armor proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
@@ -1311,10 +1333,7 @@ void assign_feats(void) {
   feato(FEAT_UNARMED_STRIKE, "unarmed strike", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "Unarmed attacks are considered to be weapons.",
     "Unarmed attacks are considered to be weapons.");
-  feato(FEAT_IMPROVED_UNARMED_STRIKE, "improved unarmed strike", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "Unarmed attacks are considered to be weapons.",
-    "Unarmed attacks are considered to be weapons.  You can disarm foes without "
-          "a penalty when fighting unarmed.  Also you get access to the headbutt combat maneuver.");
+  /* improved unarmed strike monks get for free */
   /*unfinished*/feato(FEAT_KI_STRIKE, "ki strike", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "unarmed attack considered a magical weapon (unfinished)",
     "unarmed attack considered a magical weapon [note: until fixed this feat "
@@ -1553,13 +1572,10 @@ void assign_feats(void) {
   /* not class feats */
 
   /*todo asap*/
-  /* difficult to implement, but a basic feat that has dependencies */
 
   /*combat*/
-  feato(FEAT_IMPROVED_GRAPPLE, "improved grapple", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
   /*general*/
   feato(FEAT_HEROIC_INITIATIVE, "heroic initiative", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "bonus to initiative checks", "bonus to initiative checks");
-  feato(FEAT_IMPROVED_INTIMIDATION, "improved intimidation", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
   feato(FEAT_ENERGY_RESISTANCE, "energy resistance", FALSE, TRUE, TRUE, FEAT_TYPE_GENERAL, "reduces all energy related damage by 3 per rank", "reduces all energy related damage by 3 per rank");
   feato(FEAT_FAST_HEALER, "fast healer", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 hp healed per round", "+2 hp healed per round");
   feato(FEAT_ARMOR_SPECIALIZATION_HEAVY, "armor specialization (heavy)", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "DR 2/- when wearing heavy armor", "DR 2/- when wearing heavy armor");
@@ -1589,7 +1605,6 @@ void assign_feats(void) {
   feato(FEAT_IMPROVED_INSTIGATION, "improved instigation", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
   feato(FEAT_DIEHARD, "diehard", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "will stay alive and conscious until -10 hp or lower", "will stay alive and conscious until -10 hp or lower");
   feato(FEAT_RUN, "run", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
-  feato(FEAT_SKILL_FOCUS, "skill focus", FALSE, TRUE, TRUE, FEAT_TYPE_GENERAL, "+3 in chosen skill", "+3 in chosen skill");
   feato(FEAT_LEADERSHIP, "leadership", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "can have more and higher level followers, group members get extra exp on kills and hit/ac bonuses", "can have more and higher level followers, group members get extra exp on kills and hit/ac bonuses");
   feato(FEAT_HONORBOUND, "honorbound", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 to saving throws against fear or compulsion effects, +2 to sense motive checks", "+2 to saving throws against fear or compulsion effects, +2 to sense motive checks");
   feato(FEAT_STEADFAST_DETERMINATION, "steadfast determination", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "allows you to use your con bonus instead of your wis bonus for will saves", "allows you to use your con bonus instead of your wis bonus for will saves");
@@ -2426,6 +2441,11 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
 
       case FEAT_IMPROVED_TRIP:
         if (has_feat(ch, FEAT_COMBAT_EXPERTISE))
+          return TRUE;
+        return FALSE;
+
+      case FEAT_IMPROVED_GRAPPLE:
+        if (has_feat(ch, FEAT_IMPROVED_UNARMED_STRIKE) && ch->real_abils.intel >= 13)
           return TRUE;
         return FALSE;
 
