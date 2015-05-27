@@ -113,27 +113,27 @@ const char *npc_race_abbrevs[] = {
 
 // npc subrace
 const char *npc_subrace_types[] = {
-   "Unknown",
-   "Air",
-   "Angelic",
-   "Aquatic",
-   "Archon",
-   "Augmented",
-   "Chaotic",
-   "Cold",
-   "Earth",
-   "Evil",
-   "Extraplanar",
-   "Fire",
-   "Goblinoid",
-   "Good",
-   "Incorporeal",
-   "Lawful",
-   "Native",
-   "Reptilian",
-   "Shapechanger",
-   "Swarm",
-   "Water"
+   "Unknown",/**/
+   "Air",/**/
+   "Angelic",/**/
+   "Aquatic",/**/
+   "Archon",/**/
+   "Augmented",/**/
+   "Chaotic",/**/
+   "Cold",/**/
+   "Earth",/**/
+   "Evil",/**/
+   "Extraplanar",/**/
+   "Fire",/**/
+   "Goblinoid",/**/
+   "Good",/**/
+   "Incorporeal",/**/
+   "Lawful",/**/
+   "Native",/**/
+   "Reptilian",/**/
+   "Shapechanger",/**/
+   "Swarm",/**/
+   "Water"/**/
 };
 
 
