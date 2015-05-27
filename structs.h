@@ -1671,7 +1671,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 // Skill feats that apply to a specific skill
 #define SKFEAT_SKILL_FOCUS 0
 #define SKFEAT_EPIC_SKILL_FOCUS 1
-#define NUM_SKFEATS 2
+#define NUM_SKFEATS 2 /* if this is changed, load_skill_focus() must be modified */
 
 /* object-related defines */
 /* Item types: used by obj_data.obj_flags.type_flag */
@@ -3036,7 +3036,7 @@ struct player_special_data_saved {
   byte class_feat_points[NUM_CLASSES];      /* How many class feats you can take  */
   byte epic_class_feat_points[NUM_CLASSES]; /* How many epic class feats    */
 
-  int skill_focus[NUM_SKFEATS][MAX_ABILITIES + 1]; /* Data for FEAT_SKILL_FOCUS */
+  bool skill_focus[MAX_ABILITIES + 1][NUM_SKFEATS]; /* Data for FEAT_SKILL_FOCUS */
 
   ubyte morphed; //polymorphed and form
   byte class_level[MAX_CLASSES]; //multi class
@@ -3221,7 +3221,7 @@ struct level_data {
   int combat_feats[NUM_CFEATS][FT_ARRAY_MAX];
   int school_feats[NUM_SFEATS];
   int boosts[6];
-  int skill_focus[NUM_SKFEATS][MAX_ABILITIES+1];
+  bool skill_focus[MAX_ABILITIES + 1][NUM_SKFEATS]; /* Data for FEAT_SKILL_FOCUS */
 
   /* Feat point information */
   int feat_points;

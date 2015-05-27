@@ -251,9 +251,9 @@ void init_study(struct descriptor_data *d, int class) {
   for (i = 0; i < NUM_CFEATS; i++)
     for (j = 0; j < FT_ARRAY_MAX; j++)
       LEVELUP(ch)->combat_feats[i][j] = 0;
-  for (i = 0; i < NUM_SKFEATS; i++)
-    for (j = 0; j < MAX_ABILITIES + 1; j++)
-      LEVELUP(ch)->skill_focus[i][j] = 0;
+  for (i = 0; i < MAX_ABILITIES; i++)
+    for (j = 0; j < NUM_SKFEATS; j++)
+      LEVELUP(ch)->skill_focus[i][j] = FALSE;
   for (i = 0; i < NUM_SFEATS; i ++)
     LEVELUP(ch)->school_feats[i] = 0;
 
@@ -291,24 +291,28 @@ void finalize_study(struct descriptor_data *d) {
 
   for (i = 0; i < NUM_FEATS; i++) {
     if (LEVELUP(ch)->feats[i]) {
+
       /* zusuk was here */
-      SET_FEAT(ch, i,
-          HAS_REAL_FEAT(ch, i) + LEVELUP(ch)->feats[i]);
+      SET_FEAT(ch, i, HAS_REAL_FEAT(ch, i) + LEVELUP(ch)->feats[i]);
+
       if ((subfeat = feat_to_skfeat(i)) != -1) {
         for (j = 0; j < MAX_ABILITIES + 1; j++)
-          if (LEVELUP(ch)->skill_focus[subfeat][j])
-            GET_SKILL_FEAT(ch, i, j) += LEVELUP(ch)->skill_focus[subfeat][j];
+          if (LEVELUP(ch)->skill_focus[j][subfeat])
+            GET_SKILL_FEAT(ch, j, subfeat) = TRUE;
       }
+
       if ((subfeat = feat_to_cfeat(i)) != -1) {
         for (j = 0; j < NUM_WEAPON_TYPES; j++)
           if (HAS_LEVELUP_COMBAT_FEAT(ch, subfeat, j))
             SET_COMBAT_FEAT(ch, subfeat, j);
       }
+
       if ((subfeat = feat_to_sfeat(i)) != -1) {
         for (j = 1; j < NUM_SCHOOLS; j++)
           if (HAS_LEVELUP_SCHOOL_FEAT(ch, subfeat, j))
             SET_SCHOOL_FEAT(ch, subfeat, j);
       }
+
       /* Handle specific feats here: */
       switch (i) {
         case FEAT_MUMMY_DUST:
@@ -1214,7 +1218,7 @@ static void cfeat_disp_menu(struct descriptor_data *d) {
 }
 
 static void sfeat_disp_menu(struct descriptor_data *d) {
-  int i=0;
+  int i = 0;
 
   get_char_colors(d->character);
   clear_screen(d);
@@ -1228,8 +1232,16 @@ static void sfeat_disp_menu(struct descriptor_data *d) {
 }
 
 static void skfeat_disp_menu(struct descriptor_data *d) {
+  int i = 0;
+
   get_char_colors(d->character);
   clear_screen(d);
+
+  for(i = 0; i < NUM_ABILITIES; i++)
+    write_to_output(d, "%d) %s\r\n", i, ability_names[i]);
+
+  write_to_output(d, "\r\n%sChoose a skill for the %s feat : ", nrm,
+                  feat_list[LEVELUP(d->character)->tempFeat].name);
 
   OLC_MODE(d) = STUDY_SKFEAT_MENU;
 }
@@ -1487,6 +1499,33 @@ void study_parse(struct descriptor_data *d, char *arg) {
 
     /* Skill feats require the selection of a skill. */
     case STUDY_SKFEAT_MENU:
+      number = atoi(arg);
+      if (number == -1) {
+        LEVELUP(d->character)->tempFeat = -1;
+        gen_feat_disp_menu(d);
+        break;
+      }
+      if ((number < 1) || (number >= NUM_ABILITIES)) {
+        write_to_output(d, "That is an invalid choice!\r\n");
+        skfeat_disp_menu(d);
+        break;
+      }
+      if(HAS_SKILL_FEAT(ch, number, feat_to_skfeat(LEVELUP(d->character)->tempFeat)) ||
+         HAS_LEVELUP_SKILL_FEAT(ch, number, feat_to_skfeat(LEVELUP(ch)->tempFeat))) {
+        write_to_output(d, "You already have that skill selected for this feat!\r\n\r\n");
+        skfeat_disp_menu(d);
+        break;
+      }
+      /* Now we have the skill - set it in the structure. */
+      if (add_levelup_feat(d, LEVELUP(d->character)->tempFeat)) {
+        SET_LEVELUP_SKILL_FEAT(d->character, number, feat_to_skfeat(LEVELUP(d->character)->tempFeat));
+
+        write_to_output(d, "Feat %s (%s) chosen!\r\n", feat_list[LEVELUP(d->character)->tempFeat].name, ability_names[number]);
+
+      } else {
+        LEVELUP(d->character)->tempFeat = -1;
+      }
+      gen_feat_disp_menu(d);
       break;
 
     /******* start sorcerer **********/

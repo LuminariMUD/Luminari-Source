@@ -1079,6 +1079,11 @@ do                                                              \
 #define SET_COMBAT_FEAT(ch,i,j) (SET_BIT_AR((ch)->char_specials.saved.combat_feats[(i)], (j)))
 #define HAS_SCHOOL_FEAT(ch,i,j) (IS_SET((ch)->char_specials.saved.school_feats[(i)], (1 << (j))))
 #define SET_SCHOOL_FEAT(ch,i,j) (SET_BIT((ch)->char_specials.saved.school_feats[(i)], (1 << (j))))
+#define HAS_SKILL_FEAT(ch,i,j)  ((ch)->player_specials->saved.skill_focus[i][j])
+#define SET_SKILL_FEAT(ch,i,j)  (((ch)->player_specials->saved.skill_focus[i][j]) ? \
+  (ch)->player_specials->saved.skill_focus[i][j] = FALSE : \
+  (ch)->player_specials->saved.skill_focus[i][j] = TRUE)
+#define GET_SKILL_FEAT(ch,i,j)  ((ch)->player_specials->saved.skill_focus[i][j])
 
 /* Macros to check LEVELUP feats. */
 #define HAS_LEVELUP_FEAT(ch, i)         (get_feat_value((ch), i))
@@ -1087,13 +1092,17 @@ do                                                              \
 #define SET_LEVELUP_COMBAT_FEAT(ch,i,j) (SET_BIT_AR(LEVELUP(ch)->combat_feats[(i)], (j)))
 #define HAS_LEVELUP_SCHOOL_FEAT(ch,i,j) (IS_SET(LEVELUP(ch)->school_feats[(i)], (1 << (j))))
 #define SET_LEVELUP_SCHOOL_FEAT(ch,i,j) (SET_BIT(LEVELUP(ch)->school_feats[(i)], (1 << (j))))
+#define HAS_LEVELUP_SKILL_FEAT(ch,i,j)  (LEVELUP(ch)->skill_focus[i][j])
+#define SET_LEVELUP_SKILL_FEAT(ch,i,j)  (LEVELUP(ch)->skill_focus[i][j] = TRUE)
+/*#define SET_LEVELUP_SKILL_FEAT(ch,i,j)  ((LEVELUP(ch)->skill_focus[i][j]) ? \
+                LEVELUP(ch)->skill_focus[i][j] = FALSE : \
+                LEVELUP(ch)->skill_focus[i][j] = TRUE)*/
 
 #define GET_LEVELUP_FEAT_POINTS(ch)         (LEVELUP(ch)->feat_points)
 #define GET_LEVELUP_EPIC_FEAT_POINTS(ch)    (LEVELUP(ch)->epic_feat_points)
 #define GET_LEVELUP_CLASS_FEATS(ch)      (LEVELUP(ch)->class_feat_points)
 #define GET_LEVELUP_EPIC_CLASS_FEATS(ch) (LEVELUP(ch)->epic_class_feat_points)
 
-#define GET_SKILL_FEAT(ch,feat,skill)  ((ch)->player_specials->saved.skill_focus[feat][skill])
 
 /* MACRO to get a weapon's type. */
 #define GET_WEAPON_TYPE(obj) ((GET_OBJ_TYPE(obj) == ITEM_WEAPON) || (GET_OBJ_TYPE(obj) == ITEM_FIREWEAPON) ? GET_OBJ_VAL(obj, 0) : 0)
