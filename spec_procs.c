@@ -32,6 +32,7 @@
 #include "actions.h"
 #include "assign_wpn_armor.h"
 #include "domains_schools.h"
+#include "feats.h"
 
 /* locally defined functions of local (file) scope */
 static int compare_spells(const void *x, const void *y);
@@ -709,7 +710,10 @@ int compute_ability(struct char_data *ch, int abilityNum) {
     value += SONG_AFF_VAL(ch);
   if (HAS_FEAT(ch, FEAT_ABLE_LEARNER))
     value += 1;
-
+  if (HAS_SKILL_FEAT(ch, abilityNum, feat_to_skfeat(FEAT_SKILL_FOCUS)))
+    value += 3;
+  if (HAS_SKILL_FEAT(ch, abilityNum, feat_to_skfeat(FEAT_EPIC_SKILL_FOCUS)))
+    value += 6;
   // try to avoid sending NPC's here, but just in case:
   /* Note on this:  More and more it seems necessary to have some
    * sort of NPC skill system in place, either an actual set
