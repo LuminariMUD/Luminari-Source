@@ -2863,7 +2863,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
   int none_shown = TRUE;
   int mode = 0;
   char buf [MAX_STRING_LENGTH], buf2[MAX_STRING_LENGTH], buf3[150];
-  int count = 0;
+  int count = 0, xfeat_count = 0;
   int subfeat;
   int line_length = 80; /* Width of the display. */
 
@@ -2889,6 +2889,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
     i = feat_sort_info[sortpos];
     /*  Print the feat, depending on the type of list. */
     if (feat_list[i].in_game && (list_type == LIST_FEATS_KNOWN && (has_feat(ch, i)))) {
+
       if ((subfeat = feat_to_sfeat(i)) != -1) {
         /* This is a 'school feat' */
         for (j = 1; j < NUM_SCHOOLS; j++) {
@@ -2899,8 +2900,12 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
             } else {
               sprintf(buf3, "%s (%s)", feat_list[i].name, spell_schools[j]);
               sprintf(buf, "%-40s ", buf3);
+              xfeat_count++;
             }
             strcat(buf2, buf);
+            if (xfeat_count % 2 == 0)
+              strcat(buf2, "\r\n");
+            xfeat_count = 0;
             none_shown = FALSE;
           }
         }
@@ -2914,8 +2919,12 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
             } else {
               sprintf(buf3, "%s (%s)", feat_list[i].name, weapon_list[j].name);
               sprintf(buf, "%-40s ", buf3);
+              xfeat_count++;
             }
             strcat(buf2, buf);
+            if (xfeat_count % 2 == 0)
+              strcat(buf2, "\r\n");
+            xfeat_count = 0;
             none_shown = FALSE;
           }
         }
@@ -2929,8 +2938,12 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
             } else {
               sprintf(buf3, "%s (%s) ", feat_list[i].name, ability_names[j]);
               sprintf(buf, "%-40s ", buf3);
+              xfeat_count++;
             }
             strcat(buf2, buf);
+            if (xfeat_count % 2 == 0)
+              strcat(buf2, "\r\n");
+            xfeat_count = 0;
             none_shown = FALSE;
           }
         }
@@ -3340,6 +3353,8 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         if (count % 2 == 0)
           strcat(buf2, "\r\n");
       }
+
+      /* alternatively */
     } else if (feat_list[i].in_game &&
             ((list_type == LIST_FEATS_ALL) ||
             (list_type == LIST_FEATS_AVAILABLE && (feat_is_available(ch, i, 0, NULL) && feat_list[i].can_learn)))) {
