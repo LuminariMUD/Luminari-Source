@@ -2922,7 +2922,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       } else if ((subfeat = feat_to_skfeat(i)) != -1) {
         /* This is a 'skill' feat */
         for (j = 0; j < NUM_ABILITIES; j++) {
-          if (ch->player_specials->saved.skill_focus[j][i] != FALSE) {
+          if (ch->player_specials->saved.skill_focus[j][subfeat] != FALSE) {
             if (mode == 1) {
               sprintf(buf3, "%s (%s)", feat_list[i].name, ability_names[j]);
               sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
