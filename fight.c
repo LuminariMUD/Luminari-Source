@@ -1801,6 +1801,7 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type) {
   }
 
   switch (dam_type) {
+
     case DAM_FIRE:
       if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
         damtype_reduction += 20;
@@ -1810,9 +1811,6 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type) {
         damtype_reduction += 10;
       if (affected_by_spell(ch, SPELL_COLD_SHIELD))
         damtype_reduction += 50;
-      if (GET_NPC_RACE(ch) == NPCRACE_ELEMENTAL &&
-              HAS_SUBRACE(ch, SUBRACE_FIRE))
-        damtype_reduction += 100;
 
       if (HAS_FEAT(ch, FEAT_DOMAIN_FIRE_RESIST) && CLASS_LEVEL(ch, CLASS_CLERIC) >= 20)
         damtype_reduction += 50;
@@ -1821,18 +1819,27 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type) {
       else if (HAS_FEAT(ch, FEAT_DOMAIN_FIRE_RESIST) && CLASS_LEVEL(ch, CLASS_CLERIC) >= 6)
         damtype_reduction += 10;
 
+      /* npc vulnerabilities/strengths */
+      if (GET_NPC_RACE(ch) == NPCRACE_ELEMENTAL &&
+              HAS_SUBRACE(ch, SUBRACE_FIRE))
+        damtype_reduction += 100;
+      if (IS_NPC(ch)) {
+        if (HAS_SUBRACE(ch, SUBRACE_FIRE))
+          damtype_reduction += 50;
+        if (HAS_SUBRACE(ch, SUBRACE_SWARM))
+          damtype_reduction -= 50;
+      }
+
       break;
 
     case DAM_COLD:
+
       if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
         damtype_reduction += -20;
       if (affected_by_spell(ch, SPELL_ENDURE_ELEMENTS))
         damtype_reduction += 10;
       if (affected_by_spell(ch, SPELL_FIRE_SHIELD))
         damtype_reduction += 50;
-      if (GET_NPC_RACE(ch) == NPCRACE_ELEMENTAL &&
-              HAS_SUBRACE(ch, SUBRACE_FIRE))
-        damtype_reduction -= 100;
 
       if (HAS_FEAT(ch, FEAT_DOMAIN_COLD_RESIST) && CLASS_LEVEL(ch, CLASS_CLERIC) >= 20)
         damtype_reduction += 50;
@@ -1841,16 +1848,36 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type) {
       else if (HAS_FEAT(ch, FEAT_DOMAIN_COLD_RESIST) && CLASS_LEVEL(ch, CLASS_CLERIC) >= 6)
         damtype_reduction += 10;
 
+      /* npc vulnerabilities/strengths */
+      if (GET_NPC_RACE(ch) == NPCRACE_ELEMENTAL &&
+              HAS_SUBRACE(ch, SUBRACE_FIRE))
+        damtype_reduction -= 100;
+      if (IS_NPC(ch)) {
+        if (HAS_SUBRACE(ch, SUBRACE_FIRE))
+          damtype_reduction -= 50;
+        if (HAS_SUBRACE(ch, SUBRACE_REPTILIAN))
+          damtype_reduction -= 25;
+      }
+
       break;
+
     case DAM_AIR:
       if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
         damtype_reduction += 20;
       if (affected_by_spell(ch, SPELL_ENDURE_ELEMENTS))
         damtype_reduction += 10;
+
+      /* npc vulnerabilities/strengths */
       if (GET_NPC_RACE(ch) == NPCRACE_ELEMENTAL &&
               HAS_SUBRACE(ch, SUBRACE_AIR))
         damtype_reduction += 100;
+      if (IS_NPC(ch)) {
+        if (HAS_SUBRACE(ch, SUBRACE_AIR))
+          damtype_reduction += 50;
+      }
+
       break;
+
     case DAM_EARTH:
       if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
         damtype_reduction += 20;
@@ -1858,10 +1885,18 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type) {
         damtype_reduction += 10;
       if (affected_by_spell(ch, SPELL_ACID_SHEATH))
         damtype_reduction += 50;
+
+      /* npc vulnerabilities/strengths */
       if (GET_NPC_RACE(ch) == NPCRACE_ELEMENTAL &&
               HAS_SUBRACE(ch, SUBRACE_EARTH))
         damtype_reduction += 100;
+      if (IS_NPC(ch)) {
+        if (HAS_SUBRACE(ch, SUBRACE_EARTH))
+          damtype_reduction += 50;
+      }
+
       break;
+
     case DAM_ACID:
       if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
         damtype_reduction += 20;
@@ -1871,9 +1906,6 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type) {
         damtype_reduction += 10;
       if (affected_by_spell(ch, SPELL_ENDURE_ELEMENTS))
         damtype_reduction += 10;
-      if (GET_NPC_RACE(ch) == NPCRACE_ELEMENTAL &&
-              HAS_SUBRACE(ch, SUBRACE_EARTH))
-        damtype_reduction += 50;
 
       if (HAS_FEAT(ch, FEAT_DOMAIN_ACID_RESIST) && CLASS_LEVEL(ch, CLASS_CLERIC) >= 20)
         damtype_reduction += 50;
@@ -1882,19 +1914,42 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type) {
       else if (HAS_FEAT(ch, FEAT_DOMAIN_ACID_RESIST) && CLASS_LEVEL(ch, CLASS_CLERIC) >= 6)
         damtype_reduction += 10;
 
+      /* npc vulnerabilities/strengths */
+      if (GET_NPC_RACE(ch) == NPCRACE_ELEMENTAL &&
+              HAS_SUBRACE(ch, SUBRACE_EARTH))
+        damtype_reduction += 50;
+      if (IS_NPC(ch)) {
+        if (HAS_SUBRACE(ch, SUBRACE_EARTH))
+          damtype_reduction += 25;
+      }
+
       break;
+
     case DAM_HOLY:
       if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
         damtype_reduction += 20;
+
+      /* npc vulnerabilities/strengths */
+      if (IS_NPC(ch)) {
+        if (GET_NPC_RACE(ch) == NPCRACE_UNDEAD)
+          damtype_reduction -= 50;
+        if (HAS_SUBRACE(ch, SUBRACE_ANGEL))
+          damtype_reduction += 50;
+        if (HAS_SUBRACE(ch, SUBRACE_ARCHON))
+          damtype_reduction += 50;
+        if (HAS_SUBRACE(ch, SUBRACE_EVIL))
+          damtype_reduction -= 50;
+        if (HAS_SUBRACE(ch, SUBRACE_GOOD))
+          damtype_reduction += 50;
+      }
+
       break;
+
     case DAM_ELECTRIC:
       if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
         damtype_reduction += 20;
       if (affected_by_spell(ch, SPELL_ENDURE_ELEMENTS))
         damtype_reduction += 10;
-      if (GET_NPC_RACE(ch) == NPCRACE_ELEMENTAL &&
-              HAS_SUBRACE(ch, SUBRACE_WATER))
-        damtype_reduction -= 100;
 
       if (HAS_FEAT(ch, FEAT_DOMAIN_ELECTRIC_RESIST) && CLASS_LEVEL(ch, CLASS_CLERIC) >= 20)
         damtype_reduction += 50;
@@ -1903,29 +1958,85 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type) {
       else if (HAS_FEAT(ch, FEAT_DOMAIN_ELECTRIC_RESIST) && CLASS_LEVEL(ch, CLASS_CLERIC) >= 6)
         damtype_reduction += 10;
 
+      /* npc vulnerabilities/strengths */
+      if (GET_NPC_RACE(ch) == NPCRACE_ELEMENTAL &&
+              HAS_SUBRACE(ch, SUBRACE_WATER))
+        damtype_reduction -= 100;
+      if (IS_NPC(ch)) {
+        if (HAS_SUBRACE(ch, SUBRACE_WATER))
+          damtype_reduction -= 50;
+      }
+
       break;
+
     case DAM_UNHOLY:
       if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
         damtype_reduction += 20;
+
+      /* npc vulnerabilities/strengths */
+      if (IS_NPC(ch)) {
+        if (GET_NPC_RACE(ch) == NPCRACE_UNDEAD)
+          damtype_reduction += 75;
+        if (HAS_SUBRACE(ch, SUBRACE_ANGEL))
+          damtype_reduction -= 50;
+        if (HAS_SUBRACE(ch, SUBRACE_ARCHON))
+          damtype_reduction -= 50;
+        if (HAS_SUBRACE(ch, SUBRACE_EVIL))
+          damtype_reduction += 50;
+        if (HAS_SUBRACE(ch, SUBRACE_GOOD))
+          damtype_reduction -= 50;
+      }
+
       break;
+
     case DAM_SLICE:
       if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
         damtype_reduction += 20;
+
+      /* npc vulnerabilities/strengths */
+      if (IS_NPC(ch)) {
+
+      }
+
       break;
+
     case DAM_PUNCTURE:
       if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
         damtype_reduction += 20;
       if (!IS_NPC(ch) && GET_RACE(ch) == RACE_CRYSTAL_DWARF)
         damtype_reduction += 10;
+
+      /* npc vulnerabilities/strengths */
+      if (IS_NPC(ch)) {
+
+      }
+
       break;
+
     case DAM_FORCE:
       if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
         damtype_reduction += 20;
+
+      /* npc vulnerabilities/strengths */
+      if (IS_NPC(ch)) {
+
+      }
+
       break;
+
     case DAM_SOUND:
       if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
         damtype_reduction += 20;
+
+      /* npc vulnerabilities/strengths */
+      if (IS_NPC(ch)) {
+        if (GET_NPC_RACE(ch) == NPCRACE_OOZE)
+          damtype_reduction += 50;
+
+      }
+
       break;
+
     case DAM_POISON:
       if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
         damtype_reduction += 20;
@@ -1933,7 +2044,19 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type) {
         damtype_reduction += 10;
       if (!IS_NPC(ch) && GET_RACE(ch) == RACE_HALF_TROLL)
         damtype_reduction += 25;
+
+      /* npc vulnerabilities/strengths */
+      if (IS_NPC(ch)) {
+        if (GET_NPC_RACE(ch) == NPCRACE_CONSTRUCT)
+          damtype_reduction += 50;
+        if (GET_NPC_RACE(ch) == NPCRACE_PLANT)
+          damtype_reduction += 50;
+        if (GET_NPC_RACE(ch) == NPCRACE_UNDEAD)
+          damtype_reduction += 75;
+      }
+
       break;
+
     case DAM_DISEASE:
       if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
         damtype_reduction += 20;
@@ -1941,7 +2064,17 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type) {
         damtype_reduction += 10;
       if (!IS_NPC(ch) && GET_RACE(ch) == RACE_HALF_TROLL)
         damtype_reduction += 50;
+
+      /* npc vulnerabilities/strengths */
+      if (IS_NPC(ch)) {
+        if (GET_NPC_RACE(ch) == NPCRACE_CONSTRUCT)
+          damtype_reduction += 50;
+        if (GET_NPC_RACE(ch) == NPCRACE_UNDEAD)
+          damtype_reduction += 50;
+      }
+
       break;
+
     case DAM_NEGATIVE:
       if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
         damtype_reduction += 20;
@@ -1949,39 +2082,105 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type) {
         damtype_reduction += 25;
 //      if (AFF_FLAGGED(ch, AFF_SHADOW_SHIELD))
 //        damtype_reduction += 100;
+
+      /* npc vulnerabilities/strengths */
+      if (IS_NPC(ch)) {
+        if (GET_NPC_RACE(ch) == NPCRACE_CONSTRUCT)
+          damtype_reduction += 50;
+        if (GET_NPC_RACE(ch) == NPCRACE_UNDEAD)
+          damtype_reduction += 75;
+        if (HAS_SUBRACE(ch, SUBRACE_ANGEL))
+          damtype_reduction -= 25;
+        if (HAS_SUBRACE(ch, SUBRACE_ARCHON))
+          damtype_reduction -= 25;
+      }
+
       break;
+
     case DAM_ILLUSION:
       if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
         damtype_reduction += 20;
+
+      /* npc vulnerabilities/strengths */
+      if (IS_NPC(ch)) {
+        if (GET_NPC_RACE(ch) == NPCRACE_CONSTRUCT)
+          damtype_reduction += 50;
+        if (GET_NPC_RACE(ch) == NPCRACE_OOZE)
+          damtype_reduction += 50;
+        if (GET_NPC_RACE(ch) == NPCRACE_PLANT)
+          damtype_reduction += 50;
+        if (GET_NPC_RACE(ch) == NPCRACE_UNDEAD)
+          damtype_reduction += 50;
+      }
+
       break;
+
     case DAM_MENTAL:
       if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
         damtype_reduction += 20;
+
+      /* npc vulnerabilities/strengths */
+      if (IS_NPC(ch)) {
+        if (GET_NPC_RACE(ch) == NPCRACE_CONSTRUCT)
+          damtype_reduction += 50;
+        if (GET_NPC_RACE(ch) == NPCRACE_UNDEAD)
+          damtype_reduction += 50;
+      }
+
       break;
+
     case DAM_LIGHT:
       if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
         damtype_reduction += 20;
+
+      /* npc vulnerabilities/strengths */
+      if (IS_NPC(ch)) {
+        if (GET_NPC_RACE(ch) == NPCRACE_UNDEAD)
+          damtype_reduction -= 25;
+      }
+
       break;
+
     case DAM_ENERGY:
       if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
         damtype_reduction += 20;
       if (affected_by_spell(ch, SPELL_ENDURE_ELEMENTS))
         damtype_reduction += 10;
+
+      /* npc vulnerabilities/strengths */
+      if (IS_NPC(ch)) {
+
+      }
+
       break;
+
     case DAM_WATER:
       if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
         damtype_reduction += 20;
       if (affected_by_spell(ch, SPELL_ENDURE_ELEMENTS))
         damtype_reduction += 10;
+
+      /* npc vulnerabilities/strengths */
       if (GET_NPC_RACE(ch) == NPCRACE_ELEMENTAL &&
               HAS_SUBRACE(ch, SUBRACE_WATER))
         damtype_reduction += 100;
+      if (IS_NPC(ch)) {
+        if (HAS_SUBRACE(ch, SUBRACE_WATER))
+          damtype_reduction += 50;
+      }
+
       break;
 
     default: break;
   }
 
-  return damtype_reduction; //no cap as of yet
+  /* caps */
+  if (damtype_reduction < -999)
+    damtype_reduction = -999; /* 10x vulnerability? */
+  if (damtype_reduction > 100)
+    damtype_reduction = 100; /* complete resistance */
+
+  return damtype_reduction;
 }
 
 /* this is straight damage reduction, applies to ALL attacks
