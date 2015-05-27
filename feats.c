@@ -2863,7 +2863,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
   int none_shown = TRUE;
   int mode = 0;
   char buf [MAX_STRING_LENGTH], buf2[MAX_STRING_LENGTH], buf3[150];
-  int count = 0, xfeat_count = 0;
+  int count = 0;
   int subfeat;
   int line_length = 80; /* Width of the display. */
 
@@ -2899,13 +2899,9 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
               sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
             } else {
               sprintf(buf3, "%s (%s)", feat_list[i].name, spell_schools[j]);
-              sprintf(buf, "%-40s ", buf3);
-              xfeat_count++;
+              sprintf(buf, "%-40s\r\n", buf3);
             }
             strcat(buf2, buf);
-            if (xfeat_count % 2 == 0)
-              strcat(buf2, "\r\n");
-            xfeat_count = 0;
             none_shown = FALSE;
           }
         }
@@ -2918,13 +2914,9 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
               sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
             } else {
               sprintf(buf3, "%s (%s)", feat_list[i].name, weapon_list[j].name);
-              sprintf(buf, "%-40s ", buf3);
-              xfeat_count++;
+              sprintf(buf, "%-40s\r\n", buf3);
             }
             strcat(buf2, buf);
-            if (xfeat_count % 2 == 0)
-              strcat(buf2, "\r\n");
-            xfeat_count = 0;
             none_shown = FALSE;
           }
         }
@@ -2937,13 +2929,9 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
               sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
             } else {
               sprintf(buf3, "%s (%s) ", feat_list[i].name, ability_names[j]);
-              sprintf(buf, "%-40s ", buf3);
-              xfeat_count++;
+              sprintf(buf, "%-40s\r\n", buf3);
             }
             strcat(buf2, buf);
-            if (xfeat_count % 2 == 0)
-              strcat(buf2, "\r\n");
-            xfeat_count = 0;
             none_shown = FALSE;
           }
         }
