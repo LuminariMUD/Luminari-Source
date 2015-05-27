@@ -2420,7 +2420,7 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim) {
 
   if (ch != victim && (IS_NPC(victim) || victim->desc)) { //xp gain
     /* pets give xp to their master */
-    if (IS_PET(ch)) {
+    if (IS_PET(ch) && ch->master && IN_ROOM(ch) == IN_ROOM(ch->master)) {
       if (GROUP(ch))
         group_gain(ch->master, victim);
       else
@@ -4019,21 +4019,37 @@ int compute_cmb (struct char_data *ch,              /* Attacker */
       if (HAS_FEAT(ch, FEAT_IMPROVED_DISARM))
         cm_bonus += 2;
       break;
+    case COMBAT_MANEUVER_TYPE_GRAPPLE:
+      if (HAS_FEAT(ch, FEAT_IMPROVED_GRAPPLE))
+        cm_bonus += 2;
+      break;
+    case COMBAT_MANEUVER_TYPE_PIN:
+      if (HAS_FEAT(ch, FEAT_IMPROVED_GRAPPLE))
+        cm_bonus += 2;
+      break;
+    case COMBAT_MANEUVER_TYPE_INIT_GRAPPLE:
+      if (HAS_FEAT(ch, FEAT_IMPROVED_GRAPPLE))
+        cm_bonus += 2;
+      break;
+    case COMBAT_MANEUVER_TYPE_REVERSAL:
       /* for grapple reversals, the person attempting the reversal can use their
        escape artist instead of their cmb */
-    case COMBAT_MANEUVER_TYPE_REVERSAL:
       if (compute_ability(ch, ABILITY_ESCAPE_ARTIST) > cm_bonus)
         cm_bonus = compute_ability(ch, ABILITY_ESCAPE_ARTIST);
+      if (HAS_FEAT(ch, FEAT_IMPROVED_GRAPPLE))
+        cm_bonus += 2;
       break;
     case COMBAT_MANEUVER_TYPE_UNDEFINED:
     default: break;
   }
+
+  /*cmb penalty if you aren't attempting grapple related checks while being grappled */
   if (combat_maneuver_type != COMBAT_MANEUVER_TYPE_REVERSAL &&
       combat_maneuver_type != COMBAT_MANEUVER_TYPE_INIT_GRAPPLE &&
       combat_maneuver_type != COMBAT_MANEUVER_TYPE_GRAPPLE &&
+      combat_maneuver_type != COMBAT_MANEUVER_TYPE_PIN &&
       AFF_FLAGGED(ch, AFF_GRAPPLED))
-    cm_bonus -= 2; /*cmb penalty if you aren't attempting grapple related checks
-                      * while being grappled */
+    cm_bonus -= 2;
 
   send_to_char(ch, "<CMB:%d> ", cm_bonus);
   return cm_bonus;
@@ -4054,6 +4070,26 @@ int compute_cmd(struct char_data *vict,            /* Defender */
       if (HAS_FEAT(vict, FEAT_IMPROVED_DISARM))
         cm_defense += 2;
       break;
+    case COMBAT_MANEUVER_TYPE_GRAPPLE:
+      if (HAS_FEAT(vict, FEAT_IMPROVED_GRAPPLE))
+        cm_defense += 2;
+      break;
+    case COMBAT_MANEUVER_TYPE_PIN:
+      if (HAS_FEAT(vict, FEAT_IMPROVED_GRAPPLE))
+        cm_defense += 2;
+      break;
+    case COMBAT_MANEUVER_TYPE_INIT_GRAPPLE:
+      if (HAS_FEAT(vict, FEAT_IMPROVED_GRAPPLE))
+        cm_defense += 2;
+      break;
+    case COMBAT_MANEUVER_TYPE_REVERSAL:
+      /* for grapple reversals, the person attempting the reversal can use their
+       escape artist instead of their cmb */
+      if (compute_ability(vict, ABILITY_ESCAPE_ARTIST) > cm_defense)
+        cm_defense = compute_ability(vict, ABILITY_ESCAPE_ARTIST);
+      if (HAS_FEAT(vict, FEAT_IMPROVED_GRAPPLE))
+        cm_defense += 2;
+      break;
     case COMBAT_MANEUVER_TYPE_UNDEFINED:
     default: break;
   }
@@ -4066,12 +4102,12 @@ int compute_cmd(struct char_data *vict,            /* Defender */
     cm_defense += GET_DEX_BONUS(vict);
   cm_defense += size_modifiers[GET_SIZE(vict)];
 
+  /*cmd penalty if you aren't defending from grapple related checks while being grappled*/
   if (combat_maneuver_type != COMBAT_MANEUVER_TYPE_REVERSAL &&
       combat_maneuver_type != COMBAT_MANEUVER_TYPE_INIT_GRAPPLE &&
       combat_maneuver_type != COMBAT_MANEUVER_TYPE_GRAPPLE &&
       AFF_FLAGGED(vict, AFF_GRAPPLED))
-    cm_defense -= 2; /*cmd penalty if you aren't defending from grapple related checks
-                      * while being grappled */
+    cm_defense -= 2;
 
   /* misc here */
   /* should include: A creature can also add any circumstance,
