@@ -17,6 +17,7 @@
 #include "domains_schools.h"
 #include "assign_wpn_armor.h"
 #include "screen.h"
+#include "modify.h"
 
 struct domain_info domain_list[NUM_DOMAINS];
 struct school_info school_list[NUM_SCHOOLS];
@@ -553,30 +554,51 @@ void init_domain_spell_level(void) {
 }
 
 ACMD(do_domain) {
-  int i = 0, j = 0;;
+  int i = 0, j = 0;
+  char buf[MAX_STRING_LENGTH];
+  size_t len = 0;
 
   for (i = 1; i < NUM_DOMAINS; i++) {
+    len += snprintf(buf + len, sizeof (buf) - len,
+              "%sDomain:%s %-20s %sFavored Weapon:%s %-22s\r\n%sDescription:%s %s\r\n",
+                 QCYN, QNRM, domain_list[i].name,
+                 QCYN, QNRM, weapon_list[domain_list[i].favored_weapon].name,
+                 QCYN, QNRM, domain_list[i].description);
+    /*
     send_to_char(ch, "%sDomain:%s %-20s %sFavored Weapon:%s %-22s\r\n%sDescription:%s %s\r\n",
                  QCYN, QNRM, domain_list[i].name,
                  QCYN, QNRM, weapon_list[domain_list[i].favored_weapon].name,
                  QCYN, QNRM, domain_list[i].description
-                );
+                );*/
 
-    send_to_char(ch, "%sGranted powers: |%s", QCYN, QNRM);
+    len += snprintf(buf + len, sizeof (buf) - len,
+             "%sGranted powers: |%s", QCYN, QNRM);
+
+/*                    send_to_char(ch, "%sGranted powers: |%s", QCYN, QNRM);*/
+
     for (j = 0; j < MAX_GRANTED_POWERS; j++) {
       if (domain_list[i].granted_powers[j] != DOMAIN_POWER_UNDEFINED) {
-        send_to_char(ch, "%s%s|%s", domainpower_names[domain_list[i].granted_powers[j]], QCYN, QNRM);
+        len += snprintf(buf + len, sizeof (buf) - len,
+                 "%s%s|%s", domainpower_names[domain_list[i].granted_powers[j]], QCYN, QNRM);
+        /*send_to_char(ch, "%s%s|%s", domainpower_names[domain_list[i].granted_powers[j]], QCYN, QNRM);*/
       }
     }
-    send_to_char(ch, "\r\n");
+    len += snprintf(buf + len, sizeof (buf) - len, "\r\n");
+    /*send_to_char(ch, "\r\n");*/
 
-    send_to_char(ch, "%sGranted spells: |%s", QCYN, QNRM);
+    len += snprintf(buf + len, sizeof (buf) - len, "%sGranted spells: |%s", QCYN, QNRM);
+    /*send_to_char(ch, "%sGranted spells: |%s", QCYN, QNRM);*/
     for (j = 0; j < MAX_DOMAIN_SPELLS; j++) {
       if (domain_list[i].domain_spells[j] != SPELL_RESERVED_DBC) {
-        send_to_char(ch, "%s%s|%s", spell_info[domain_list[i].domain_spells[j]].name, QCYN, QNRM);
+        len += snprintf(buf + len, sizeof (buf) - len,
+                 "%s%s|%s", spell_info[domain_list[i].domain_spells[j]].name, QCYN, QNRM);
+        /*send_to_char(ch, "%s%s|%s", spell_info[domain_list[i].domain_spells[j]].name, QCYN, QNRM);*/
       }
     }
-    send_to_char(ch, "\r\n\r\n");
-
+    len += snprintf(buf + len, sizeof (buf) - len, "\r\n\r\n");
+    /*send_to_char(ch, "\r\n\r\n");*/
   }
+
+  page_string(ch->desc, buf, 1);
+
 }
