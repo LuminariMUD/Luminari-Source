@@ -2076,7 +2076,7 @@ void init_class(struct char_data *ch, int class, int level) {
       SET_SKILL(ch, SPELL_CURE_MODERATE, 99);
       SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_3, 99);
       //4th circle
-      SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_4, 99);
+      SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_6, 99);
       SET_SKILL(ch, SPELL_FREE_MOVEMENT, 99);
       SET_SKILL(ch, SPELL_DISPEL_MAGIC, 99);
       SET_SKILL(ch, SPELL_CURE_SERIOUS, 99);
