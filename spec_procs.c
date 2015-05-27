@@ -1021,7 +1021,8 @@ void list_abilities(struct char_data *ch, int ability_type) {
     }
     send_to_char(ch, "%-28s [%d] \tC[%d]\tn %s\r\n",
             ability_names[i], GET_ABILITY(ch, i), compute_ability(ch, i),
-            cross_names[class_ability[i][GET_CLASS(ch)]]);
+            cross_names[modify_class_ability(ch, i, GET_CLASS(ch))]);
+
   }
 }
 
