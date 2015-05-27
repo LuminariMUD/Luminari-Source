@@ -414,7 +414,7 @@ void assign_domains(void) {
 
   /* Healing Domain */
   add_domain(DOMAIN_HEALING, "Healing", WEAPON_TYPE_QUARTERSTAFF,
-      "(Your touch staves off pain and death, and your healing magic is "
+      "Your touch staves off pain and death, and your healing magic is "
           "particularly vital and potent.");
   add_domain_powers(DOMAIN_HEALING, DOMAIN_POWER_HEALING_TOUCH, DOMAIN_POWER_EMPOWERED_HEALING,
       DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED);
