@@ -993,20 +993,9 @@ ASPELL(spell_identify) // divination
   if (obj) {
     do_stat_object(ch, obj, ITEM_STAT_MODE_IDENTIFY_SPELL);
 
-  } else if (victim) { /* victim */
-    send_to_char(ch, "Name: %s\r\n", GET_NAME(victim));
-    if (!IS_NPC(victim))
-      send_to_char(ch, "%s is %d years, %d months, %d days and %d hours old.\r\n",
-            GET_NAME(victim), age(victim)->year, age(victim)->month,
-            age(victim)->day, age(victim)->hours);
-    send_to_char(ch, "Alignment: %d.\r\n", GET_ALIGNMENT(victim));
-    /* there is no height/weight, just size classes */
-    //send_to_char(ch, "Height %d cm, Weight %d pounds\r\n", GET_HEIGHT(victim), GET_WEIGHT(victim));
-    send_to_char(ch, "Level: %d, Hits: %d, Mana: %d\r\n", GET_LEVEL(victim), GET_HIT(victim), GET_MANA(victim));
-    send_to_char(ch, "AC: %d, Hitroll: %d, Damroll: %d\r\n", compute_armor_class(NULL, victim, FALSE, MODE_ARMOR_CLASS_NORMAL),GET_HITROLL(victim), GET_DAMROLL(victim));
-    send_to_char(ch, "Str: %d/%d, Int: %d, Wis: %d, Dex: %d, Con: %d, Cha: %d\r\n",
-            GET_STR(victim), GET_ADD(victim), GET_INT(victim),
-            GET_WIS(victim), GET_DEX(victim), GET_CON(victim), GET_CHA(victim));
+  } else if (victim) {
+    /* victim */
+    lore_id_vict(ch, victim);
   }
 }
 

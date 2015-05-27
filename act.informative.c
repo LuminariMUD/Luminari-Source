@@ -67,6 +67,33 @@ int boot_high = 0;
 
 /*******  UTILITY FUNCTIONS ***********/
 
+/* function to display some basic info about a mobile that is 'identified' or
+ victim of 'lore' */
+void lore_id_vict(struct char_data *ch, struct char_data *tch) {
+  int i = 0;
+
+  send_to_char(ch, "Name: %s\r\n", GET_NAME(tch));
+  if (!IS_NPC(tch))
+    send_to_char(ch, "%s is %d years, %d months, %d days and %d hours old.\r\n",
+                 GET_NAME(tch), age(tch)->year, age(tch)->month,
+                 age(tch)->day, age(tch)->hours);
+  send_to_char(ch, "Alignment: %s.\r\n", get_align_by_num(GET_ALIGNMENT(tch)));
+  send_to_char(ch, "Level: %d, Hits: %d, Mana: %d\r\n", GET_LEVEL(tch),
+               GET_HIT(tch), GET_MANA(tch));
+  send_to_char(ch, "AC: %d, Hitroll: %d, Damroll: %d\r\n",
+               compute_armor_class(NULL, tch, FALSE, MODE_ARMOR_CLASS_NORMAL),
+               GET_HITROLL(tch), GET_DAMROLL(tch));
+  send_to_char(ch, "Str: %d/%d, Int: %d, Wis: %d, Dex: %d, Con: %d, Cha: %d\r\n",
+               GET_STR(tch), GET_ADD(tch), GET_INT(tch),
+               GET_WIS(tch), GET_DEX(tch), GET_CON(tch), GET_CHA(tch));
+  text_line(ch, "\tYDamage Type Resistance / Vulnerability\tC", 80, '-', '-');
+  for (i = 0; i < NUM_DAM_TYPES - 1; i++) {
+    send_to_char(ch, "     %-15s: %-4d%% (%-2d)         ", damtype_display[i + 1],
+                 compute_damtype_reduction(tch, i + 1), compute_energy_absorb(tch, i + 1));
+    if (i % 2)
+      send_to_char(ch, "\r\n");
+  }
+}
 
 /* special affect that allows you to sense 'aggro' enemies */
 void check_dangersense(struct char_data *ch, room_rnum room) {

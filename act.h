@@ -67,6 +67,7 @@ void perform_affects(struct char_data *ch, struct char_data *k);
 // displaying more info -zusuk
 void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int mxp_type);
 #define SHOW_OBJ_SHORT	1
+void lore_id_vict(struct char_data *ch, struct char_data *tch);
 
 /** @todo Move to a utility library */
 char *find_exdesc(char *word, struct extra_descr_data *list);
