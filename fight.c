@@ -5639,6 +5639,51 @@ EVENTFUNC(event_combat_round) {
   return 2 RL_SEC; /* 6 second rounds, hack! */
 }
 
+void handle_cleave(struct char_data *ch) {
+  struct list_data *target_list = NULL;
+  struct char_data *tch = NULL;
+
+  /* find target */
+  if (!ch || IN_ROOM(ch) == NOWHERE || !FIGHTING(ch))
+    return;
+
+  /* dynamic memory allocation required */
+  target_list = create_list();
+  /* loop through chars in room to find possible targets to build list */
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room) {
+    if (tch == ch)
+      continue;
+    if (!CAN_SEE(ch, tch))
+      continue;
+    if (!IS_NPC(tch) && PRF_FLAGGED(tch, PRF_NOHASSLE))
+      continue;
+    /* me fighting? */
+    if (FIGHTING(ch) == tch)
+      continue;
+    /* fighting me? */
+    if (FIGHTING(tch) == ch)
+      add_to_list(tch, target_list);
+  }
+  /* did we snag anything? */
+  if (target_list->iSize == 0) {
+    free_list(target_list);
+    return;
+  }
+  /* ok should be golden, go ahead snag a random and free list */
+  tch = random_from_list(target_list);
+  if (target_list) /*cleanup*/
+    free_list(target_list);
+  if (!tch) return;
+
+
+  hit(ch, tch, TYPE_UNDEFINED, DAM_RESERVED_DBC,
+                -4, ATTACK_TYPE_PRIMARY); /* whack with mainhand */
+
+  if (HAS_FEAT(ch, FEAT_GREAT_CLEAVE) && !is_using_ranged_weapon(ch))
+    hit(ch, tch, TYPE_UNDEFINED, DAM_RESERVED_DBC,
+                0, ATTACK_TYPE_PRIMARY); /* whack with mainhand */
+}
+
 /* control the fights going on.
  * Called from combat round event. */
 void perform_violence(struct char_data *ch, int phase) {
@@ -5865,9 +5910,6 @@ void perform_violence(struct char_data *ch, int phase) {
             GET_POS(charmee) == POS_STANDING && CAN_SEE(charmee, ch))
       perform_assist(charmee, ch);
 
-  if (AFF_FLAGGED(ch, AFF_TOTAL_DEFENSE))
-    send_to_char(ch, "You continue the battle in defensive positioning!\r\n");
-
   /* here is our entry point for melee attack rotation */
   /* conditions for not performing melee attacks:
      -casting
@@ -5876,7 +5918,7 @@ void perform_violence(struct char_data *ch, int phase) {
   if (IS_CASTING(ch))
     ;
   else if (AFF_FLAGGED(ch, AFF_TOTAL_DEFENSE))
-    ;
+    send_to_char(ch, "You continue the battle in defensive positioning!\r\n");
   else if (AFF_FLAGGED(ch, AFF_GRAPPLED) &&
             ( !is_using_light_weapon(ch, GET_EQ(ch, WEAR_WIELD_1)) ||
               !is_using_light_weapon(ch, GET_EQ(ch, WEAR_WIELD_OFFHAND)) ||
@@ -5886,6 +5928,9 @@ void perform_violence(struct char_data *ch, int phase) {
 #define NORMAL_ATTACK_ROUTINE 0
     perform_attacks(ch, NORMAL_ATTACK_ROUTINE, phase);
 #undef NORMAL_ATTACK_ROUTINE
+    /* handle cleave */
+    if (phase == 1 && HAS_FEAT(ch, FEAT_CLEAVE) && !is_using_ranged_weapon(ch))
+      handle_cleave(ch);
   }
   /**/
 
