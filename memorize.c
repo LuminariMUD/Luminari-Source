@@ -1831,10 +1831,8 @@ void display_memming(struct char_data *ch, int class) {
     for (slot = 0; slot < (MAX_MEM); slot++) {
       if (PREPARATION_QUEUE(ch, slot, classArray(class)) != 0) {
         if (class == CLASS_CLERIC) {
-          if (GET_1ST_DOMAIN(ch))
-            spellLevel  = (MIN_SPELL_LVL(PREPARATION_QUEUE(ch, slot, classArray(class)), class, GET_1ST_DOMAIN(ch)) + 1) / 2;
-          if (GET_2ND_DOMAIN(ch))
-            spellLevel2 = (MIN_SPELL_LVL(PREPARATION_QUEUE(ch, slot, classArray(class)), class, GET_2ND_DOMAIN(ch)) + 1) / 2;
+          spellLevel  = (MIN_SPELL_LVL(PREPARATION_QUEUE(ch, slot, classArray(class)), class, GET_1ST_DOMAIN(ch)) + 1) / 2;
+          spellLevel2 = (MIN_SPELL_LVL(PREPARATION_QUEUE(ch, slot, classArray(class)), class, GET_2ND_DOMAIN(ch)) + 1) / 2;
           spellLevel = MIN(spellLevel, spellLevel2);
         } else
           spellLevel = spellCircle(class, PREPARATION_QUEUE(ch, slot, classArray(class)), DOMAIN_UNDEFINED);
