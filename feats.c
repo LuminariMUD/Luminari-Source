@@ -698,6 +698,23 @@ void assign_feats(void) {
     feat_prereq_feat(FEAT_EXOTIC_WEAPON_PROFICIENCY, FEAT_MARTIAL_WEAPON_PROFICIENCY, 1);
   /********/
 
+    /* armor specialization */
+  feato(FEAT_ARMOR_SPECIALIZATION_HEAVY, "armor specialization (heavy)", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+    "DR 2/- when wearing heavy armor",
+    "DR 2/- when wearing heavy armor");
+    feat_prereq_bab(FEAT_ARMOR_SPECIALIZATION_HEAVY, 11);
+    feat_prereq_feat(FEAT_ARMOR_SPECIALIZATION_HEAVY, FEAT_ARMOR_PROFICIENCY_HEAVY, 1);
+  feato(FEAT_ARMOR_SPECIALIZATION_LIGHT, "armor specialization (light)", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+    "DR 2/- when wearing light armor",
+    "DR 2/- when wearing light armor");
+    feat_prereq_bab(FEAT_ARMOR_SPECIALIZATION_LIGHT, 11);
+    feat_prereq_feat(FEAT_ARMOR_SPECIALIZATION_LIGHT, FEAT_ARMOR_PROFICIENCY_LIGHT, 1);
+  feato(FEAT_ARMOR_SPECIALIZATION_MEDIUM, "armor specialization (medium)", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+    "DR 2/- when wearing medium armor",
+    "DR 2/- when wearing medium armor");
+    feat_prereq_bab(FEAT_ARMOR_SPECIALIZATION_MEDIUM, 11);
+    feat_prereq_feat(FEAT_ARMOR_SPECIALIZATION_MEDIUM, FEAT_ARMOR_PROFICIENCY_MEDIUM, 1);
+
   feato(FEAT_ABLE_LEARNER, "able learner", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
     "+1 to all skills",
     "+1 to all skills");
@@ -1581,9 +1598,6 @@ void assign_feats(void) {
   feato(FEAT_HEROIC_INITIATIVE, "heroic initiative", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "bonus to initiative checks", "bonus to initiative checks");
   feato(FEAT_ENERGY_RESISTANCE, "energy resistance", FALSE, TRUE, TRUE, FEAT_TYPE_GENERAL, "reduces all energy related damage by 3 per rank", "reduces all energy related damage by 3 per rank");
   feato(FEAT_FAST_HEALER, "fast healer", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 hp healed per round", "+2 hp healed per round");
-  feato(FEAT_ARMOR_SPECIALIZATION_HEAVY, "armor specialization (heavy)", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "DR 2/- when wearing heavy armor", "DR 2/- when wearing heavy armor");
-  feato(FEAT_ARMOR_SPECIALIZATION_LIGHT, "armor specialization (light)", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "DR 2/- when wearing light armor", "DR 2/- when wearing light armor");
-  feato(FEAT_ARMOR_SPECIALIZATION_MEDIUM, "armor specialization (medium)", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "DR 2/- when wearing medium armor", "DR 2/- when wearing medium armor");
   /*epic*/
   feato(FEAT_DAMAGE_REDUCTION, "damage reduction", FALSE, TRUE, TRUE, FEAT_TYPE_GENERAL, "1/- damage reduction per rank of feat, 3/- for epic", "1/- damage reduction per rank of feat, 3/- for epic");
   feato(FEAT_FAST_HEALING, "fast healing", FALSE, TRUE, TRUE, FEAT_TYPE_GENERAL, "Heals 3 hp per rank each combat round if fighting otherwise every 6 seconds", "Heals 3 hp per rank each combat round if fighting otherwise every 6 seconds");
@@ -2587,21 +2601,21 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
       case FEAT_ARMOR_SPECIALIZATION_LIGHT:
         if (!has_feat(ch, FEAT_ARMOR_PROFICIENCY_LIGHT))
           return FALSE;
-        if (BAB(ch) < 12)
+        if (BAB(ch) < 11)
           return FALSE;
         return TRUE;
 
       case FEAT_ARMOR_SPECIALIZATION_MEDIUM:
         if (!has_feat(ch, FEAT_ARMOR_PROFICIENCY_MEDIUM))
           return FALSE;
-        if (BAB(ch) < 12)
+        if (BAB(ch) < 11)
           return FALSE;
         return TRUE;
 
       case FEAT_ARMOR_SPECIALIZATION_HEAVY:
         if (!has_feat(ch, FEAT_ARMOR_PROFICIENCY_HEAVY))
           return FALSE;
-        if (BAB(ch) < 12)
+        if (BAB(ch) < 11)
           return FALSE;
         return TRUE;
 
