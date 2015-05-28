@@ -1547,13 +1547,20 @@ static void load_praying(FILE *fl, struct char_data *ch) {
     sscanf(line, "%d %d %d %d %d %d %d %d", &num, &num2, &num3, &num4, &num5,
             &num6, &num7, &num8);
     if (num != -1) {
-      PREPARATION_QUEUE(ch, num, 0) = num2;
-      PREPARATION_QUEUE(ch, num, 1) = num3;
-      PREPARATION_QUEUE(ch, num, 2) = num4;
-      PREPARATION_QUEUE(ch, num, 3) = num5;
-      PREPARATION_QUEUE(ch, num, 4) = num6;
-      PREPARATION_QUEUE(ch, num, 5) = num7;
-      PREPARATION_QUEUE(ch, num, 6) = num8;
+      if (num2 < 99)
+        PREPARATION_QUEUE(ch, num, 0) = num2;
+      if (num2 < 99)
+        PREPARATION_QUEUE(ch, num, 1) = num3;
+      if (num2 < 99)
+        PREPARATION_QUEUE(ch, num, 2) = num4;
+      if (num2 < 99)
+        PREPARATION_QUEUE(ch, num, 3) = num5;
+      if (num2 < 99)
+        PREPARATION_QUEUE(ch, num, 4) = num6;
+      if (num2 < 99)
+        PREPARATION_QUEUE(ch, num, 5) = num7;
+      if (num2 < 99)
+        PREPARATION_QUEUE(ch, num, 6) = num8;
     }
   } while (num != -1);
 }
