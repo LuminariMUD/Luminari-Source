@@ -547,7 +547,8 @@ void init_domain_spell_level(void) {
   for (domain = 1; domain < NUM_DOMAINS; domain++) {
     for (j = 0; j < MAX_DOMAIN_SPELLS; j++) {
       spellnum = domain_list[domain].domain_spells[j];
-      domain_spell_level(spellnum, (j+1)*2-1, domain);
+      if (spellnum != SPELL_RESERVED_DBC)
+        domain_spell_level(spellnum, (j+1)*2-1, domain);
     }
   }
 
