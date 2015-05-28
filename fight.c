@@ -2200,6 +2200,16 @@ int compute_damage_reduction(struct char_data *ch, int dam_type) {
     damage_reduction += 3;
   if (HAS_FEAT(ch, FEAT_ARMOR_MASTERY) && (GET_EQ(ch, WEAR_BODY) || GET_EQ(ch, WEAR_SHIELD)))
     damage_reduction += 5;
+  /* armor specialization, doesn't stack */
+  if (HAS_FEAT(ch, FEAT_ARMOR_SPECIALIZATION_HEAVY) &&
+      compute_gear_armor_type(ch) == ARMOR_TYPE_HEAVY)
+    damage_reduction += 2;
+  else if (HAS_FEAT(ch, FEAT_ARMOR_SPECIALIZATION_MEDIUM) &&
+      compute_gear_armor_type(ch) == ARMOR_TYPE_MEDIUM)
+    damage_reduction += 2;
+  else if (HAS_FEAT(ch, FEAT_ARMOR_SPECIALIZATION_LIGHT) &&
+      compute_gear_armor_type(ch) == ARMOR_TYPE_LIGHT)
+    damage_reduction += 2;
 
   //damage reduction cap is 20
   return (MIN(MAX_DAM_REDUC, damage_reduction));
