@@ -2531,13 +2531,18 @@ ACMD(do_treatinjury) {
   send_to_char(ch, "You skillfully dress the wounds...\r\n");
   act("Your injuries are \tWtreated\tn by $N!", FALSE, vict, 0, ch, TO_CHAR);
   act("$n \tWtreats\tn $N's injuries!", FALSE, ch, 0, vict, TO_NOTVICT);
-  attach_mud_event(new_mud_event(eTREATINJURY, ch, NULL),
-          (18 * SECS_PER_MUD_HOUR));
+
+  if (HAS_FEAT(ch, FEAT_FAST_HEALER))
+    attach_mud_event(new_mud_event(eTREATINJURY, ch, NULL),
+            (10 * SECS_PER_MUD_HOUR));
+  else
+    attach_mud_event(new_mud_event(eTREATINJURY, ch, NULL),
+            (20 * SECS_PER_MUD_HOUR));
 
   /* first attempt to recover lost health */
   if (GET_MAX_HIT(vict) != GET_HIT(vict)) {
     GET_HIT(vict) += MIN((GET_MAX_HIT(vict) - GET_HIT(vict)),
-            (20 + compute_ability(ch, ABILITY_HEAL) + GET_WIS_BONUS(ch)));
+            (20 + compute_ability(ch, ABILITY_HEAL) + GET_LEVEL(ch)));
     update_pos(vict);
   }
 

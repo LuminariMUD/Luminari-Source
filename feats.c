@@ -626,6 +626,18 @@ void assign_feats(void) {
     feat_prereq_bab(FEAT_WEAPON_FINESSE, 1);
 
   /* epic */
+  feato(FEAT_DAMAGE_REDUCTION, "damage reduction", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT,
+    "3/- damage reduction per rank of feat",
+    "You get 3/- damage reduction per rank of feat, this stacks with other forms "
+          "of damage reduction.  Note that damage reduction caps at 20.");
+    feat_prereq_attribute(FEAT_DAMAGE_REDUCTION, AB_CON, 21);
+  feato(FEAT_SELF_CONCEALMENT, "self concealment", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT,
+    "10 percent miss chance for attacks against you per rank",
+    "You get 10 percent miss chance for all incoming attacks against you per rank, "
+          "concealment caps at 50 percent.");
+    feat_prereq_ability(FEAT_SELF_CONCEALMENT, ABILITY_STEALTH, 25);
+    feat_prereq_ability(FEAT_SELF_CONCEALMENT, ABILITY_ACROBATICS, 25);
+    feat_prereq_attribute(FEAT_SELF_CONCEALMENT, AB_DEX, 21);
   feato(FEAT_EPIC_PROWESS, "epic prowess", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT,
     "+1 to all attacks per rank",
     "+1 to all attacks per rank");
@@ -657,6 +669,17 @@ void assign_feats(void) {
   /*****************/
   /* General feats */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
+
+  feato(FEAT_ENERGY_RESISTANCE, "energy resistance", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
+    "reduces all energy related damage by 1 per rank",
+    "Reduces all energy related damage by 1 per rank, this includes: fire, cold, "
+          "air, earth, acid, holy, electric, unholy, slice, puncture, force, sound, "
+          "poison, disease, negative, illusion, mental, light and energy.");
+
+  feato(FEAT_FAST_HEALER, "fast healer", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+    "improve treatinjury ability",
+    "You have become proficient in treating injuries, when using the treatinjury "
+          "ability, the cooldown will be half as long.");
 
   /*skill focus*/
   feato(FEAT_SKILL_FOCUS, "skill focus", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
@@ -796,6 +819,11 @@ void assign_feats(void) {
     feat_prereq_ability(FEAT_TRACK, ABILITY_SURVIVAL, 19);
 
   /* Epic */
+  feato(FEAT_FAST_HEALING, "fast healing", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
+    "accelerated regeneration of hps",
+    "Heals extra 3 hp per 5 seconds.  This feat stacks with itself and other "
+          "regeneration abilities, spells and racial innates.");
+    feat_prereq_attribute(FEAT_FAST_HEALING, AB_CON, 21);
   feato(FEAT_EPIC_SKILL_FOCUS, "epic skill focus", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
     "+6 in chosen skill",
     "Taking epic skill focus will give you +6 in chosen skill, this feat can be taken "
@@ -1596,13 +1624,8 @@ void assign_feats(void) {
   /*combat*/
   /*general*/
   feato(FEAT_HEROIC_INITIATIVE, "heroic initiative", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "bonus to initiative checks", "bonus to initiative checks");
-  feato(FEAT_ENERGY_RESISTANCE, "energy resistance", FALSE, TRUE, TRUE, FEAT_TYPE_GENERAL, "reduces all energy related damage by 3 per rank", "reduces all energy related damage by 3 per rank");
-  feato(FEAT_FAST_HEALER, "fast healer", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 hp healed per round", "+2 hp healed per round");
   /*epic*/
-  feato(FEAT_DAMAGE_REDUCTION, "damage reduction", FALSE, TRUE, TRUE, FEAT_TYPE_GENERAL, "1/- damage reduction per rank of feat, 3/- for epic", "1/- damage reduction per rank of feat, 3/- for epic");
-  feato(FEAT_FAST_HEALING, "fast healing", FALSE, TRUE, TRUE, FEAT_TYPE_GENERAL, "Heals 3 hp per rank each combat round if fighting otherwise every 6 seconds", "Heals 3 hp per rank each combat round if fighting otherwise every 6 seconds");
   /*combat*/
-  feato(FEAT_SELF_CONCEALMENT, "self concealment", FALSE, TRUE, TRUE, FEAT_TYPE_COMBAT, "10 percent miss chance for attacks against you per rank", "10 percent miss chance for attacks against you per rank");
 
   /* probably don't want in game at this stage */feato(FEAT_LEADERSHIP_BONUS, "improved leadership", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
   feato(FEAT_IMPROVED_OVERRUN, "improved overrun", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
@@ -2162,16 +2185,16 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
         return TRUE;
 
       case FEAT_FAST_HEALING:
-        if (ch->real_abils.con < 25)
+        if (ch->real_abils.con < 21)
           return FALSE;
         return TRUE;
 
       case FEAT_SELF_CONCEALMENT:
-        if (GET_ABILITY(ch, ABILITY_STEALTH) < 30)
+        if (GET_ABILITY(ch, ABILITY_STEALTH) < 25)
           return FALSE;
-        if (GET_ABILITY(ch, ABILITY_ACROBATICS) < 30)
+        if (GET_ABILITY(ch, ABILITY_ACROBATICS) < 25)
           return FALSE;
-        if (ch->real_abils.dex < 30)
+        if (ch->real_abils.dex < 21)
           return FALSE;
         return TRUE;
 
@@ -2302,11 +2325,9 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
         return FALSE;
 
       case FEAT_DAMAGE_REDUCTION:
-        /*    if (ch->real_abils.con < 21)
-              return FALSE;
-            return TRUE;
-         */
-        return false;
+        if (ch->real_abils.con < 21)
+          return FALSE;
+        return TRUE;
 
       case FEAT_MONKEY_GRIP:
         /*    if (!iarg)
@@ -2953,10 +2974,10 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         }
       } else if (i == FEAT_FAST_HEALING) {
         if (mode == 1) {
-          sprintf(buf3, "%s (+%d hp/round)", feat_list[i].name, has_feat(ch, FEAT_FAST_HEALING) * 3);
+          sprintf(buf3, "%s (+%d hp/5 sec)", feat_list[i].name, has_feat(ch, FEAT_FAST_HEALING) * 3);
           sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         } else {
-          sprintf(buf3, "%s (+%d hp/round)", feat_list[i].name, has_feat(ch, FEAT_FAST_HEALING) * 3);
+          sprintf(buf3, "%s (+%d hp/5 sec)", feat_list[i].name, has_feat(ch, FEAT_FAST_HEALING) * 3);
           sprintf(buf, "%-40s ", buf3);
         }
         strcat(buf2, buf);
