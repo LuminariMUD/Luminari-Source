@@ -1258,7 +1258,7 @@ int numSpells(struct char_data *ch, int circle, int class) {
   }
 
   /*debug*/
-  send_to_char(ch, "Circle:%d,Num:%d\r\n", circle, num);
+  //send_to_char(ch, "Circle:%d,Num:%d\r\n", circle, num);
 
   return (num);
 }
