@@ -3007,7 +3007,7 @@ struct char_special_data {
   ubyte crafting_repeat; // multiple objects created in one session
   int crafting_bonus; // bonus for crafting the item
 
-  /* mob feats (npc's and pc shifted) */
+  /* mob feats (npc's and pc wildshaped) */
   byte mob_feats[MAX_FEATS];  /* Feats (booleans and counters)  */
 
   /* miscellaneous */

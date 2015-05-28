@@ -1307,7 +1307,7 @@ int create(char *argument, struct obj_data *kit,
     /* determine crystal bonus, etc */
     int mod = 0;
     for (i = 0; i <= MAX_CRAFT_CRIT; i++) {
-      if (dice(1, 100) < 1)
+      if (dice(1, 100) == 100)
         mod++;
       if (mod)
         send_to_char(ch, "@l@WYou have received a critical success on your "
@@ -1343,7 +1343,7 @@ int create(char *argument, struct obj_data *kit,
           CAN_WEAR(mold, ITEM_WEAR_NECK) ||
           CAN_WEAR(mold, ITEM_WEAR_HOLD)
           ) {
-    skill = ABILITY_CRAFT_GEMCUTTING;
+    skill = SKILL_JEWELRY_MAKING;
   }
     /* body armor pieces: either armor-smith/leather-worker/or knitting */
   else if (CAN_WEAR(mold, ITEM_WEAR_BODY) ||
@@ -1356,27 +1356,27 @@ int create(char *argument, struct obj_data *kit,
           CAN_WEAR(mold, ITEM_WEAR_WAIST)
           ) {
     if (IS_HARD_METAL(GET_OBJ_MATERIAL(mold)))
-      skill = ABILITY_CRAFT_ARMORSMITHING;
+      skill = SKILL_ARMOR_SMITHING;
     else if (IS_LEATHER(GET_OBJ_MATERIAL(mold)))
-      skill = ABILITY_CRAFT_LEATHERWORKING;
+      skill = SKILL_LEATHER_WORKING;
     else
-      skill = ABILITY_CRAFT_TAILORING;
+      skill = SKILL_KNITTING;
   }
     /* about body */
   else if (CAN_WEAR(mold, ITEM_WEAR_ABOUT)) {
-    skill = ABILITY_CRAFT_TAILORING;
+    skill = SKILL_KNITTING;
   }
     /* weapon-smithing:  weapons and shields */
   else if (CAN_WEAR(mold, ITEM_WEAR_WIELD) ||
           CAN_WEAR(mold, ITEM_WEAR_SHIELD)
           ) {
-    skill = ABILITY_CRAFT_WEAPONSMITHING;
+    skill = SKILL_WEAPON_SMITHING;
   }
 
   /* skill restriction */
-  if ((compute_ability(ch, skill) + 5) < obj_level) {
+  if (GET_SKILL(ch, skill)/3 < obj_level) {
     send_to_char(ch, "Your skill in %s is too low to create that item.\r\n",
-             ability_names[skill]);
+             spell_info[skill].name);
     return 1;
   }
 
@@ -1395,7 +1395,7 @@ int create(char *argument, struct obj_data *kit,
     send_to_char(ch, "The item will be level: %d.\r\n", obj_level);
     send_to_char(ch, "It will make use of your %s skill, which has a value "
             "of %d.\r\n",
-            ability_names[skill], compute_ability(ch, skill));
+            spell_info[skill].name, GET_SKILL(ch, skill));
     send_to_char(ch, "This crafting session will take 60 seconds.\r\n");
     send_to_char(ch, "You need %d gold on hand to make this item.\r\n", cost);
     return 1;

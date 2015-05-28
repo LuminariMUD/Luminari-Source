@@ -350,7 +350,10 @@ int graf(int grafage, int p0, int p1, int p2, int p3, int p4, int p5, int p6) {
 
 void regen_update(struct char_data *ch) {
   struct char_data *tch = NULL;
-  int hp = 1, found = 0;
+  int hp = 0, found = 0;
+
+  if (rand_number(0, 1))
+    hp++;
 
   // poisoned, and dying people should suffer their damage from anyone they are
   // fighting in order that xp goes to the killer (who doesn't strike the last blow)
@@ -443,6 +446,10 @@ void regen_update(struct char_data *ch) {
     hp += dice(1, 4);
   else if (GET_POS(ch) == POS_SLEEPING)
     hp += dice(3, 2);
+
+  if (HAS_FEAT(ch, FEAT_FAST_HEALING)) {
+    hp += HAS_FEAT(ch, FEAT_FAST_HEALING) * 3;
+  }
 
   if (ROOM_FLAGGED(ch->in_room, ROOM_REGEN))
     hp *= 2;

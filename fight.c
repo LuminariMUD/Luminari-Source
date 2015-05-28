@@ -1724,6 +1724,9 @@ int compute_energy_absorb(struct char_data *ch, int dam_type) {
   int dam_reduction = 0;
 
   /* universal bonuses */
+  if (HAS_FEAT(ch, FEAT_ENERGY_RESISTANCE))
+    dam_reduction += HAS_FEAT(ch, FEAT_ENERGY_RESISTANCE);
+
   switch (dam_type) {
     case DAM_FIRE:
       if (affected_by_spell(ch, SPELL_RESIST_ENERGY))
@@ -2210,6 +2213,8 @@ int compute_damage_reduction(struct char_data *ch, int dam_type) {
   else if (HAS_FEAT(ch, FEAT_ARMOR_SPECIALIZATION_LIGHT) &&
       compute_gear_armor_type(ch) == ARMOR_TYPE_LIGHT)
     damage_reduction += 2;
+  if (HAS_FEAT(ch, FEAT_DAMAGE_REDUCTION))
+    damage_reduction += HAS_FEAT(ch, FEAT_DAMAGE_REDUCTION) * 3;
 
   //damage reduction cap is 20
   return (MIN(MAX_DAM_REDUC, damage_reduction));
@@ -2221,12 +2226,12 @@ int compute_concealment(struct char_data *ch) {
   int concealment = 0;
   int concealment_cap = 0; /* vanish can push you over */
 
-  if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_SELF_CONCEAL_1))
-    concealment += 10;
-  if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_SELF_CONCEAL_2))
-    concealment += 10;
-  if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_SELF_CONCEAL_3))
-    concealment += 10;
+  //if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_SELF_CONCEAL_1))
+    //concealment += 10;
+  //if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_SELF_CONCEAL_2))
+    //concealment += 10;
+  //if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_SELF_CONCEAL_3))
+    //concealment += 10;
   if (AFF_FLAGGED(ch, AFF_BLUR))
     concealment += 20;
   if (ROOM_AFFECTED(IN_ROOM(ch), RAFF_OBSCURING_MIST))
@@ -2235,6 +2240,8 @@ int compute_concealment(struct char_data *ch) {
     concealment += 50;
   if (HAS_FEAT(ch, FEAT_OUTSIDER))
     concealment += 15;
+  if (HAS_FEAT(ch, FEAT_SELF_CONCEALMENT))
+    concealment += HAS_FEAT(ch, FEAT_SELF_CONCEALMENT) * 10;
 
   // concealment cap is 50% normally
   concealment_cap = MIN(MAX_CONCEAL, concealment);
