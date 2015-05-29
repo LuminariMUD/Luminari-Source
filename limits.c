@@ -352,9 +352,6 @@ void regen_update(struct char_data *ch) {
   struct char_data *tch = NULL;
   int hp = 0, found = 0;
 
-  if (rand_number(0, 1))
-    hp++;
-
   // poisoned, and dying people should suffer their damage from anyone they are
   // fighting in order that xp goes to the killer (who doesn't strike the last blow)
   // -zusuk
@@ -437,6 +434,9 @@ void regen_update(struct char_data *ch) {
     return;
   }
 
+  if (rand_number(0, 1))
+    hp++;
+  
   //position, other bonuses
   if (GET_POS(ch) == POS_SITTING && SITTING(ch) && GET_OBJ_TYPE(SITTING(ch)) == ITEM_FURNITURE)
     hp += dice(3, 2) + 1;
@@ -458,6 +458,8 @@ void regen_update(struct char_data *ch) {
 
   // half-troll racial innate regeneration
   if (GET_RACE(ch) == RACE_HALF_TROLL) {
+    if (!hp)
+      hp++;
     hp *= 2;
     if (FIGHTING(ch))
       hp *= 2;
