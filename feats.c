@@ -2899,7 +2899,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
   int i, sortpos, j;
   int none_shown = TRUE;
   int mode = 0;
-  char buf [MAX_STRING_LENGTH], buf2[MAX_STRING_LENGTH], buf3[150];
+  char buf [MAX_STRING_LENGTH] = { '\0' }, buf2[MAX_STRING_LENGTH] = { '\0' }, buf3[150] = { '\0' };
   int count = 0;
   int subfeat;
   int line_length = 80; /* Width of the display. */
