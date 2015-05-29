@@ -2927,6 +2927,9 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
     /*  Print the feat, depending on the type of list. */
     if (feat_list[i].in_game && (list_type == LIST_FEATS_KNOWN && (has_feat(ch, i)))) {
 
+      /* target listing of known feats, the following is customization of output
+         for certain feats [such as: weapon focus (longsword)]*/
+
       if ((subfeat = feat_to_sfeat(i)) != -1) {
         /* This is a 'school feat' */
         for (j = 1; j < NUM_SCHOOLS; j++) {
@@ -2942,6 +2945,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
             none_shown = FALSE;
           }
         }
+
       } else if ((subfeat = feat_to_cfeat(i)) != -1) {
         /* This is a 'combat feat' */
         for (j = 1; j < NUM_WEAPON_TYPES; j++) {
@@ -2957,6 +2961,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
             none_shown = FALSE;
           }
         }
+
       } else if ((subfeat = feat_to_skfeat(i)) != -1) {
         /* This is a 'skill' feat */
         for (j = 0; j < NUM_ABILITIES; j++) {
@@ -2972,6 +2977,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
             none_shown = FALSE;
           }
         }
+
       } else if (i == FEAT_FAST_HEALING) {
         if (mode == 1) {
           sprintf(buf3, "%s (+%d hp/5 sec)", feat_list[i].name, has_feat(ch, FEAT_FAST_HEALING) * 3);
@@ -2982,6 +2988,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         }
         strcat(buf2, buf);
         none_shown = FALSE;
+
       } else if (i == FEAT_DAMAGE_REDUCTION) {
         if (mode == 1) {
           sprintf(buf3, "%s (%d/-)", feat_list[i].name, has_feat(ch, FEAT_DAMAGE_REDUCTION));
@@ -2992,6 +2999,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         }
         strcat(buf2, buf);
         none_shown = FALSE;
+
       } else if (i == FEAT_SHRUG_DAMAGE) {
         if (mode == 1) {
           sprintf(buf3, "%s (%d/-)", feat_list[i].name, has_feat(ch, FEAT_SHRUG_DAMAGE));
@@ -3002,6 +3010,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         }
         strcat(buf2, buf);
         none_shown = FALSE;
+
       } else if (i == FEAT_ARMOR_SKIN) {
         if (mode == 1) {
           sprintf(buf3, "%s (+%d ac)", feat_list[i].name, has_feat(ch, FEAT_ARMOR_SKIN));
@@ -3012,6 +3021,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         }
         strcat(buf2, buf);
         none_shown = FALSE;
+
       } else if (i == FEAT_ARMOR_TRAINING) {
         if (mode == 1) {
           sprintf(buf3, "%s (+%d ranks)", feat_list[i].name, has_feat(ch, FEAT_ARMOR_TRAINING));
@@ -3022,6 +3032,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         }
         strcat(buf2, buf);
         none_shown = FALSE;
+
       } else if (i == FEAT_WEAPON_TRAINING) {
         if (mode == 1) {
           sprintf(buf3, "%s (+%d ranks)", feat_list[i].name, has_feat(ch, FEAT_WEAPON_TRAINING));
@@ -3032,6 +3043,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         }
         strcat(buf2, buf);
         none_shown = FALSE;
+
       } else if (i == FEAT_CRITICAL_SPECIALIST) {
         if (mode == 1) {
           sprintf(buf3, "%s (-%d threat)", feat_list[i].name, has_feat(ch, FEAT_CRITICAL_SPECIALIST));
@@ -3042,6 +3054,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         }
         strcat(buf2, buf);
         none_shown = FALSE;
+
       } else if (i == FEAT_SLOW_FALL) {
         if (mode == 1) {
           sprintf(buf3, "%s (+%d feet)", feat_list[i].name, 10 * has_feat(ch, FEAT_SLOW_FALL));
@@ -3052,6 +3065,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         }
         strcat(buf2, buf);
         none_shown = FALSE;
+
       } else if (i == FEAT_EPIC_PROWESS) {
         if (mode == 1) {
           sprintf(buf3, "%s (+%d attack bonus)", feat_list[i].name, has_feat(ch, FEAT_EPIC_PROWESS));
@@ -3062,6 +3076,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         }
         strcat(buf2, buf);
         none_shown = FALSE;
+
       } else if (i == FEAT_EPIC_TOUGHNESS) {
         if (mode == 1) {
           sprintf(buf3, "%s (+%d hp)", feat_list[i].name, (has_feat(ch, FEAT_EPIC_TOUGHNESS) * 30));
@@ -3072,6 +3087,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         }
         strcat(buf2, buf);
         none_shown = FALSE;
+
       } else if (i == FEAT_ENERGY_RESISTANCE) {
         if (mode == 1) {
           sprintf(buf3, "%s (%d/-)", feat_list[i].name, has_feat(ch, FEAT_ENERGY_RESISTANCE) * 3);
@@ -3082,6 +3098,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         }
         strcat(buf2, buf);
         none_shown = FALSE;
+
       } else if (i == FEAT_HASTE) {
         if (mode == 1) {
           sprintf(buf3, "%s (3x/day)", feat_list[i].name);
@@ -3092,6 +3109,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         }
         strcat(buf2, buf);
         none_shown = FALSE;
+
       } else if (i == FEAT_SACRED_FLAMES) {
         if (mode == 1) {
           sprintf(buf3, "%s (3x/day)", feat_list[i].name);
@@ -3102,6 +3120,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         }
         strcat(buf2, buf);
         none_shown = FALSE;
+
       } else if (i == FEAT_DRAGON_MOUNT_BREATH) {
         if (mode == 1) {
           sprintf(buf3, "%s (%dx/day)", feat_list[i].name, has_feat(ch, FEAT_DRAGON_MOUNT_BREATH));
@@ -3112,6 +3131,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         }
         strcat(buf2, buf);
         none_shown = FALSE;
+
       } else if (i == FEAT_DRAGON_MOUNT_BOOST) {
         if (mode == 1) {
           sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_DRAGON_MOUNT_BOOST));
@@ -3122,6 +3142,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         }
         strcat(buf2, buf);
         none_shown = FALSE;
+
       } else if (i == FEAT_BREATH_WEAPON) {
         if (mode == 1) {
           sprintf(buf3, "%s (%dd8 dmg|%dx/day)", feat_list[i].name, has_feat(ch, FEAT_BREATH_WEAPON), HAS_FEAT(ch, FEAT_BREATH_WEAPON));
@@ -3132,6 +3153,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         }
         strcat(buf2, buf);
         none_shown = FALSE;
+
       } else if (i == FEAT_LEADERSHIP) {
         if (mode == 1) {
           sprintf(buf3, "%s (+%d%% group exp)", feat_list[i].name, 5 * (1 + has_feat(ch, FEAT_LEADERSHIP)));
@@ -3142,6 +3164,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         }
         strcat(buf2, buf);
         none_shown = FALSE;
+
       } else if (i == FEAT_RAGE) {
         if (mode == 1) {
           sprintf(buf3, "%s (%d / day)", feat_list[i].name, has_feat(ch, FEAT_RAGE));
@@ -3152,6 +3175,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         }
         strcat(buf2, buf);
         none_shown = FALSE;
+
       } else if (i == FEAT_DEFENSIVE_STANCE) {
         if (mode == 1) {
           sprintf(buf3, "%s (%d / day)", feat_list[i].name, has_feat(ch, FEAT_DEFENSIVE_STANCE));
@@ -3162,6 +3186,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         }
         strcat(buf2, buf);
         none_shown = FALSE;
+
       } else if (i == FEAT_ENHANCED_SPELL_DAMAGE) {
         if (mode == 1) {
           sprintf(buf3, "%s (+%d dam / die)", feat_list[i].name, has_feat(ch, FEAT_ENHANCED_SPELL_DAMAGE));
@@ -3172,6 +3197,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         }
         strcat(buf2, buf);
         none_shown = FALSE;
+
       } else if (i == FEAT_EMPOWERED_MAGIC) {
         if (mode == 1) {
           sprintf(buf3, "%s (+%d to dcs)", feat_list[i].name, has_feat(ch, FEAT_EMPOWERED_MAGIC));
@@ -3182,6 +3208,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         }
         strcat(buf2, buf);
         none_shown = FALSE;
+
       } else if (i == FEAT_ENHANCE_SPELL) {
         if (mode == 1) {
           sprintf(buf3, "%s (+%d dam dice)", feat_list[i].name, has_feat(ch, FEAT_ENHANCE_SPELL) * 5);
@@ -3192,6 +3219,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         }
         strcat(buf2, buf);
         none_shown = FALSE;
+
       } else if (i == FEAT_NATURAL_ARMOR_INCREASE) {
         if (mode == 1) {
           sprintf(buf3, "%s (+%d ac)", feat_list[i].name, has_feat(ch, FEAT_NATURAL_ARMOR_INCREASE));
@@ -3202,6 +3230,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         }
         strcat(buf2, buf);
         none_shown = FALSE;
+
       } else if (i == FEAT_GREAT_STRENGTH) {
         if (mode == 1) {
           sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_GREAT_STRENGTH));
@@ -3212,6 +3241,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         }
         strcat(buf2, buf);
         none_shown = FALSE;
+
       } else if (i == FEAT_GREAT_DEXTERITY) {
         if (mode == 1) {
           sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_GREAT_DEXTERITY));
@@ -3222,6 +3252,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         }
         strcat(buf2, buf);
         none_shown = FALSE;
+
       } else if (i == FEAT_GREAT_CONSTITUTION) {
         if (mode == 1) {
           sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_GREAT_CONSTITUTION));
@@ -3232,6 +3263,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         }
         strcat(buf2, buf);
         none_shown = FALSE;
+
       } else if (i == FEAT_GREAT_INTELLIGENCE) {
         if (mode == 1) {
           sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_GREAT_INTELLIGENCE));
@@ -3242,6 +3274,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         }
         strcat(buf2, buf);
         none_shown = FALSE;
+
       } else if (i == FEAT_GREAT_WISDOM) {
         if (mode == 1) {
           sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_GREAT_WISDOM));
@@ -3252,6 +3285,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         }
         strcat(buf2, buf);
         none_shown = FALSE;
+
       } else if (i == FEAT_GREAT_CHARISMA) {
         if (mode == 1) {
           sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_GREAT_CHARISMA));
@@ -3262,6 +3296,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         }
         strcat(buf2, buf);
         none_shown = FALSE;
+
       } else if (i == FEAT_POISON_SAVE_BONUS) {
         if (mode == 1) {
           sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_POISON_SAVE_BONUS));
@@ -3272,6 +3307,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         }
         strcat(buf2, buf);
         none_shown = FALSE;
+
       } else if (i == FEAT_SNEAK_ATTACK) {
         if (mode == 1) {
           sprintf(buf3, "%s (+%dd6)", feat_list[i].name, has_feat(ch, FEAT_SNEAK_ATTACK));
@@ -3282,6 +3318,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         }
         strcat(buf2, buf);
         none_shown = FALSE;
+
       } else if (i == FEAT_ANIMATE_DEAD) {
         if (mode == 1) {
           sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_ANIMATE_DEAD));
@@ -3292,6 +3329,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         }
         strcat(buf2, buf);
         none_shown = FALSE;
+
       } else if (i == FEAT_ARMORED_SPELLCASTING) {
         if (mode == 1) {
           sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_ARMORED_SPELLCASTING));
@@ -3302,6 +3340,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         }
         strcat(buf2, buf);
         none_shown = FALSE;
+
       } else if (i == FEAT_TRAP_SENSE) {
         if (mode == 1) {
           sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_TRAP_SENSE));
@@ -3312,6 +3351,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         }
         strcat(buf2, buf);
         none_shown = FALSE;
+
       } else if (i == FEAT_SELF_CONCEALMENT) {
         if (mode == 1) {
           sprintf(buf3, "%s (%d%% miss)", feat_list[i].name, has_feat(ch, FEAT_SELF_CONCEALMENT) * 10);
@@ -3322,6 +3362,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         }
         strcat(buf2, buf);
         none_shown = FALSE;
+
       } else if (i == FEAT_ENHANCE_ARROW_MAGIC) {
         if (mode == 1) {
           sprintf(buf3, "%s (+%d)", feat_list[i].name, has_feat(ch, FEAT_ENHANCE_ARROW_MAGIC));
@@ -3332,6 +3373,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         }
         strcat(buf2, buf);
         none_shown = FALSE;
+
       } else if (i == FEAT_FAST_CRAFTER) {
         if (mode == 1) {
           sprintf(buf3, "%s (%d%% less time)", feat_list[i].name, has_feat(ch, FEAT_FAST_CRAFTER) * 10);
@@ -3342,6 +3384,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         }
         strcat(buf2, buf);
         none_shown = FALSE;
+
       } else if (i == FEAT_PROFICIENT_CRAFTER) {
         if (mode == 1) {
           sprintf(buf3, "%s (+%d to checks)", feat_list[i].name, has_feat(ch, FEAT_PROFICIENT_CRAFTER));
@@ -3352,6 +3395,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         }
         strcat(buf2, buf);
         none_shown = FALSE;
+
       } else if (i == FEAT_PROFICIENT_HARVESTER) {
         if (mode == 1) {
           sprintf(buf3, "%s (+%d to checks)", feat_list[i].name, has_feat(ch, FEAT_PROFICIENT_HARVESTER));
@@ -3362,6 +3406,8 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         }
         strcat(buf2, buf);
         none_shown = FALSE;
+
+      /* DEFAULT output */
       } else {
         if (mode == 1) {
           sprintf(buf3, "%s", feat_list[i].name);
@@ -3372,6 +3418,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         strcat(buf2, buf); /* The above, ^ should always be safe to do. */
         none_shown = FALSE;
       }
+
       /*  If we are not in description mode, split the output up in columns. */
       if (!mode) {
         count++;
@@ -3379,7 +3426,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           strcat(buf2, "\r\n");
       }
 
-      /* alternatively */
+    /* alternatively, list available or full feat lists */
     } else if (feat_list[i].in_game &&
             ((list_type == LIST_FEATS_ALL) ||
             (list_type == LIST_FEATS_AVAILABLE && (feat_is_available(ch, i, 0, NULL) && feat_list[i].can_learn)))) {
@@ -3402,7 +3449,11 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           strcat(buf2, "\r\n");
       }
     }
-  }
+
+  } /*end for loop*/
+
+  /* regardless of the listing type (known, all, available, etc), you will
+   end up here*/
 
   if (none_shown) {
     sprintf(buf, "You do not know any feats at this time.\r\n");
