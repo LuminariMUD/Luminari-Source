@@ -325,6 +325,55 @@ void assign_feats(void) {
 
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
 
+  /******/
+  /* Racial ability feats */
+
+  /* Elf */
+  feato(FEAT_WEAPON_PROFICIENCY_ELF, "weapon proficiency - elves", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "gain bonus weapon proficiency",
+    "As part of your elf upbringing, you were trained in the usage of long swords, "
+          "rapiers, long bows, composite bows, short bows and composite short bows.");
+
+  /* Crystal Dwarf */
+  feato(FEAT_CRYSTAL_BODY, "crystal body", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "damage reduction 3/- temporarily",
+    "Allows you to harden your crystal-like body for a short time. "
+          "(Damage reduction 3/-)");
+  feato(FEAT_CRYSTAL_FIST, "crystal fist", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "melee +3 damage temporarily",
+    "Allows you to innately grow jagged and sharp crystals on your arms and legs "
+          "to enhance damage in melee. (+3 damage)");
+
+  /* Arcana Golem */
+  feato(FEAT_SPELLBATTLE, "spellbattle", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "strengthen your body with arcane power",
+    "By channeling their inner magic, Arcana Golems can use it to provide a huge "
+          "surge to their physical attributes in the rare cases in which they "
+          "must resort to physical violence. While the eldritch energies cloud "
+          "their mind and finesse, the bonus to durability and power can provide "
+          "that edge when need.  Spell Battle is a mode. When this mode is activated, "
+          "you receive a penalty to attack rolls equal to the argument and caster "
+          "levels equal to half. In return, you gain a bonus to AC and saving throws "
+          "equal to the penalty taken, a bonus to BAB equal to 2/3rds of this penalty "
+          "(partially but not completely negating the attack penalty), and a bonus "
+          "to maximum hit points equal to 10 * penalty taken. Arcana Golems take an "
+          "additional -2 penalty to Intelligence, * Wisdom, and Charisma while in "
+          "Spell Battle.  Spell battle without any arguments will cancel the mode, "
+          "but an Arcana Golem can only cancel Spell Battle after spending 6 minutes "
+          "in it. The surge of energy is not easily turned off.  You cannot use "
+          "Spell-Battle at the same time you use Power Attack, Combat Expertise, "
+          "or similar effects");
+
+  /* Shared - Various */
+  feato(FEAT_DARKVISION, "darkvision", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "ask staff",
+    "ask staff");
+  feato(FEAT_LOW_LIGHT_VISION, "low light vision", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "can see in the dark outside only",
+    "can see in the dark outside only");
+
+  /* End Racial ability feats */
+
   /***/
   /* Combat feats */
   /***/
@@ -1110,6 +1159,13 @@ void assign_feats(void) {
           "in all weapons except for exotic ones.  In addition you get a +1 to all "
           "attack rolls when wielding a weapon.");
 
+  /* Wild Feats (druid) */
+  feato(FEAT_NATURAL_SPELL, "natural spell", TRUE, TRUE, FALSE, FEAT_TYPE_WILD,
+    "allows casting of spells while wildshaped",
+    "Upon selecting this feat, the character is able to cast spells while wildshaped.");
+    feat_prereq_attribute(FEAT_NATURAL_SPELL, AB_WIS, 13);
+    feat_prereq_feat(FEAT_NATURAL_SPELL, FEAT_WILD_SHAPE, 1);
+
   /*****/
   /* Class ability feats */
 
@@ -1604,7 +1660,7 @@ void assign_feats(void) {
   /* Blackguard */   /* knight of the skull (dragonlance) */
   feato(FEAT_SMITE_GOOD, "smite good", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "add level to hit roll and charisma bonus to damage",
-    "add level to hit roll and charisma bonus to damage");
+    "add level to hit roll and charisma bonus to damage against good aligned targets");
 
   /* Pale/Death Master */
   feato(FEAT_ANIMATE_DEAD, "animate dead", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
@@ -1617,18 +1673,9 @@ void assign_feats(void) {
 
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
 
-  /* not class feats */
-
-  /*todo asap*/
-
-  /*combat*/
-  /*general*/
-  feato(FEAT_HEROIC_INITIATIVE, "heroic initiative", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "bonus to initiative checks", "bonus to initiative checks");
-  /*epic*/
-  /*combat*/
-
   /* probably don't want in game at this stage */feato(FEAT_LEADERSHIP_BONUS, "improved leadership", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
   feato(FEAT_IMPROVED_OVERRUN, "improved overrun", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
+  feato(FEAT_HEROIC_INITIATIVE, "heroic initiative", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "bonus to initiative checks", "bonus to initiative checks");
   feato(FEAT_QUICK_DRAW, "quick draw", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
   feato(FEAT_SHOT_ON_THE_RUN, "shot on the run", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
   feato(FEAT_COMBAT_CHALLENGE, "combat challenge", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "allows you to make a mob focus their attention on you", "allows you to make a mob focus their attention on you");
@@ -1649,7 +1696,6 @@ void assign_feats(void) {
   feato(FEAT_HONORBOUND, "honorbound", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 to saving throws against fear or compulsion effects, +2 to sense motive checks", "+2 to saving throws against fear or compulsion effects, +2 to sense motive checks");
   feato(FEAT_STEADFAST_DETERMINATION, "steadfast determination", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "allows you to use your con bonus instead of your wis bonus for will saves", "allows you to use your con bonus instead of your wis bonus for will saves");
   feato(FEAT_WEAPON_PROFICIENCY_BASTARD_SWORD, "weapon proficiency - bastard sword", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
-
 
   /* artisan */
   feato(FEAT_LEARNED_CRAFTER, "learned crafter", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Artisan gains exp for crafting items and harvesting", "Artisan gains exp for crafting items and harvesting");
@@ -1852,33 +1898,9 @@ void assign_feats(void) {
   /* sacred fist */
   feato(FEAT_SACRED_FLAMES, "sacred flames", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows you to use innate 'flame weapon' 3 times per 10 minutes", "allows you to use innate 'flame weapon' 3 times per 10 minutes");
 
-  /* druid */
-  feato(FEAT_NATURAL_SPELL, "natural spell", FALSE, TRUE, FALSE, FEAT_TYPE_WILD, "allows casting of spells while wild shaped.", "allows casting of spells while wild shaped.");
-
   /* monk */
 
   /* End Class ability Feats */
-
-  /******/
-  /* Racial ability feats */
-
-  /* Elf */
-  feato(FEAT_WEAPON_PROFICIENCY_ELF, "weapon proficiency - elves", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
-
-  /* Crystal Dwarf */
-  feato(FEAT_CRYSTAL_BODY, "crystal body", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "Allows you to harden your crystal-like body for a short time. (Damage reduction 3/-)", "Allows you to harden your crystal-like body for a short time. (Damage reduction 3/-)");
-  feato(FEAT_CRYSTAL_FIST, "crystal fist", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "Allows you to innately grow jagged and sharp crystals on your arms and legs to enhance damage in melee. (+3 damage)", "Allows you to innately grow jagged and sharp crystals on your arms and legs to enhance damage in melee. (+3 damage)");
-
-  /* Arcana Golem */
-  feato(FEAT_SPELLBATTLE, "spellbattle", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "Strengthen your body with Arcane power.", "By channeling their inner magic, Arcana Golems can use it to provide a huge surge to their physical attributes in the rare cases in which they must resort to physical violence. While the eldritch energies cloud their mind and finesse, the bonus to durability and power can provide that edge when need.  \r\nSpell Battle is a mode. When this mode is activated, you receive a penalty to attack rolls equal to the argument and caster levels equal to half. In return, you gain a bonus to AC and saving throws equal to the penalty taken, a bonus to BAB equal to 2/3rds of this penalty (partially but not completely negating the attack penalty), and a bonus to maximum hit points equal to 10 * penalty taken. Arcana Golems take an additional -2 penalty to Intelligence, * Wisdom, and Charisma while in Spell Battle.\r\nSpell battle without any arguments will cancel the mode, but an Arcana Golem can only cancel Spell Battle after spending 6 minutes in it. The surge of energy is not easily turned off.\r\nYou cannot use Spell-Battle at the same time you use Power Attack, Combat Expertise, or similar effects");
-
-  /* Shared - Various */
-  feato(FEAT_DARKVISION, "darkvision", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_LOW_LIGHT_VISION, "low light vision", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "can see in the dark outside only", "can see in the dark outside only");
-
-  /* End Racial ability feats */
-
-  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
 
   /* self explanatory */
   feato(FEAT_LAST_FEAT, "do not take me", FALSE, FALSE, FALSE, FEAT_TYPE_NONE, "placeholder feat", "placeholder feat");

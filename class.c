@@ -804,6 +804,9 @@ int level_feats[][LEVEL_FEATS] = {
   {CLASS_UNDEFINED, RACE_CRYSTAL_DWARF, FALSE, 1, FEAT_CRYSTAL_BODY},
   {CLASS_UNDEFINED, RACE_CRYSTAL_DWARF, FALSE, 1, FEAT_CRYSTAL_FIST},
 
+  /* Arcana Golem */
+  {CLASS_UNDEFINED, RACE_ARCANA_GOLEM, FALSE, 1, FEAT_SPELLBATTLE},
+
   /*****************************************/
   /* This is always the last array element */
   /*****************************************/
