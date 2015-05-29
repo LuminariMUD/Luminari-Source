@@ -1223,9 +1223,9 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k) {
   if ((pMudEvent = char_has_mud_event(k, eRAGE)))
     send_to_char(ch, "Rage Cooldown - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eCRYSTALFIST)))
-    send_to_char(ch, "Crystal Fist - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Crystal Fist Cooldown - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eCRYSTALBODY)))
-    send_to_char(ch, "Crystal Body - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Crystal Body Cooldown - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eLAYONHANDS)))
     send_to_char(ch, "Lay on Hands Cooldown - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eWHOLENESSOFBODY)))

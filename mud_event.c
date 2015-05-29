@@ -105,6 +105,8 @@ struct mud_event_list mud_event_index[] = {
   { "Mass Invis", event_daily_use_cooldown, EVENT_CHAR}, // eMASS_INVIS
   { "Aura of Protection", event_daily_use_cooldown, EVENT_CHAR}, // eAURA_OF_PROTECTION
   { "Battle Rage", event_daily_use_cooldown, EVENT_CHAR}, // eBATTLE_RAGE
+  { "Crystal fist", event_countdown, EVENT_CHAR}, //eCRYSTALFIST_AFF
+  { "Crystal body", event_countdown, EVENT_CHAR}, //eCRYRSTALBODY_AFF
 };
 
 /* init_events() is the ideal function for starting global events. This
@@ -156,11 +158,11 @@ EVENTFUNC(event_countdown) {
     case eC_MOUNT:
       send_to_char(ch, "You are now able to 'call mount' again.\r\n");
       break;
-    case eCRYSTALBODY:
-      send_to_char(ch, "You are now able to use crystal body again.\r\n");
+    case eCRYSTALBODY_AFF:
+      send_to_char(ch, "Your body loses its crystal-like properties.\r\n");
       break;
-    case eCRYSTALFIST:
-      send_to_char(ch, "You are now able to use crystal fist again.\r\n");
+    case eCRYSTALFIST_AFF:
+      send_to_char(ch, "Your body loses its crystal-like properties.\r\n");
       break;
     case eDARKNESS:
       REMOVE_BIT_AR(ROOM_FLAGS(rnum), ROOM_DARK);

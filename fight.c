@@ -2191,7 +2191,7 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type) {
 int compute_damage_reduction(struct char_data *ch, int dam_type) {
   int damage_reduction = 0;
 
-  if (char_has_mud_event(ch, eCRYSTALBODY))
+  if (char_has_mud_event(ch, eCRYSTALBODY_AFF))
     damage_reduction += 3;
 //  if (CLASS_LEVEL(ch, CLASS_BERSERKER))
 //    damage_reduction += CLASS_LEVEL(ch, CLASS_BERSERKER) / 4;
@@ -2891,7 +2891,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     dambonus += COMBAT_MODE_VALUE(ch);
 
   /* crystal fist */
-  if (char_has_mud_event(ch, eCRYSTALFIST))
+  if (char_has_mud_event(ch, eCRYSTALFIST_AFF))
     dambonus += 3;
 
   /* smite evil (remove after one attack) */
