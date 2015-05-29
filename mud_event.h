@@ -101,7 +101,9 @@ typedef enum {
   eCOPYCAT, /*more domain powers*/
   eMASS_INVIS, /*more domain powers*/
   eAURA_OF_PROTECTION, /*more domain powers*/
-  eBATTLE_RAGE /*more domain powers*/
+  eBATTLE_RAGE, /*more domain powers*/
+  eCRYSTALFIST_AFF, //  crystal fist affect
+  eCRYSTALBODY_AFF, //  crystal body affect
 } event_id;
 
 /* probaly a smart place to mention to not forget to update:

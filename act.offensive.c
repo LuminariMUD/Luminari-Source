@@ -2341,7 +2341,6 @@ ACMD(do_crystalfist) {
     return;
   }
 
-
   if ((uses_remaining = daily_uses_remaining(ch, FEAT_CRYSTAL_FIST)) == 0) {
     send_to_char(ch, "You are too exhausted to use crystal fist.\r\n");
     return;
@@ -2350,6 +2349,9 @@ ACMD(do_crystalfist) {
   send_to_char(ch, "\tCLarge, razor sharp crystals sprout from your hands and arms!\tn\r\n");
   act("\tCRazor sharp crystals sprout from $n's arms and hands!\tn",
           FALSE, ch, 0, 0, TO_NOTVICT);
+
+  attach_mud_event(new_mud_event(eCRYSTALFIST_AFF, ch, NULL),
+          (3 * SECS_PER_MUD_HOUR));
 
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_CRYSTAL_FIST);
@@ -2374,10 +2376,11 @@ ACMD(do_crystalbody) {
   act("\tCYou watch as $n's crystalline body becomes harder!\tn",
           FALSE, ch, 0, 0, TO_NOTVICT);
 
+  attach_mud_event(new_mud_event(eCRYSTALBODY_AFF, ch, NULL),
+          (3 * SECS_PER_MUD_HOUR));
+
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_CRYSTAL_BODY);
-
-  /* Create the affect that gives the crystal body DR bonus. */
 
 }
 
