@@ -1205,15 +1205,19 @@ void raw_kill_npc(struct char_data *ch, struct char_data *killer) {
 }
 
 /* called after striking the mortal blow to ch */
+#define XP_LOSS_FACTOR 5 /*20%*/
 void die(struct char_data *ch, struct char_data *killer) {
   struct char_data *temp;
   struct descriptor_data *pt;
+  int xp_to_lvl =
+    level_exp(ch, GET_LEVEL(ch) + 1) - level_exp(ch, GET_LEVEL(ch));
+  int penalty = xp_to_lvl / XP_LOSS_FACTOR;
 
   if (GET_LEVEL(ch) <= 6) {
     // no xp loss for newbs - Bakarus
   } else {
     // if not a newbie then bang that xp! - Bakarus
-    gain_exp(ch, -(GET_EXP(ch) / 2));
+    gain_exp(ch, -penalty);
   }
 
   if (!IS_NPC(ch)) {
