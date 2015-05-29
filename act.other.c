@@ -1202,7 +1202,7 @@ int valid_align_by_class(int alignment, int class) {
 // if you meet the class pre-reqs, return 1, otherwise 0
 // class = class attempting to level in
 
-int meet_class_reqs(struct char_data *ch, int class) {
+int meet_class_reqs(struct char_data *ch, int class, int mode) {
   int i;
   bool passed = TRUE;
 
@@ -1210,23 +1210,25 @@ int meet_class_reqs(struct char_data *ch, int class) {
   if (!valid_align_by_class(convert_alignment(GET_ALIGNMENT(ch)), class))
     return 0;
 
-  // this is to make sure an epic race doesn't multiclass
-  for (i = 0; i < NUM_CLASSES; i++)
-    if (CLASS_LEVEL(ch, i)) /* found char current class */
-      break;
-  switch (GET_RACE(ch)) {
-    case RACE_CRYSTAL_DWARF:
-      if (class == i) /* char class selection and current class match? */
-        return 1;
-      else
-        return 0;
-    case RACE_TRELUX:
-      if (class == i) /* char class selection and current class match? */
-        return 1;
-      else
-        return 0;
-    default:
-      break;
+  if (mode == MODE_NORMAL) {
+    // this is to make sure an epic race doesn't multiclass
+    for (i = 0; i < NUM_CLASSES; i++)
+      if (CLASS_LEVEL(ch, i)) /* found char current class */
+        break;
+    switch (GET_RACE(ch)) {
+      case RACE_CRYSTAL_DWARF:
+        if (class == i) /* char class selection and current class match? */
+          return 1;
+        else
+          return 0;
+      case RACE_TRELUX:
+        if (class == i) /* char class selection and current class match? */
+          return 1;
+        else
+          return 0;
+      default:
+        break;
+    }
   }
 
   /* stat, and other restrictions */
@@ -1323,7 +1325,7 @@ int meet_class_reqs(struct char_data *ch, int class) {
 }
 
 /* simple function to list classes with a "valid" check */
-void list_valid_classes(struct char_data *ch) {
+void list_valid_classes(struct char_data *ch, int mode) {
   int i, max_levels = 30;
 
   for (i = 0; i < NUM_CLASSES; i++) {
@@ -1333,7 +1335,7 @@ void list_valid_classes(struct char_data *ch) {
     switch (i) {
       //case CLASS_x:
       default:
-        if (meet_class_reqs(ch, i) && has_unlocked_class(ch, i) &&
+        if (meet_class_reqs(ch, i, mode) && has_unlocked_class(ch, i) &&
             CLASS_LEVEL(ch, i) < max_levels) {
           send_to_char(ch, "%s\r\n", pc_class_types[i]);
         }
@@ -1358,18 +1360,18 @@ ACMD(do_respec) {
   if (!*arg) {
     send_to_char(ch, "You need to select a starting class to respec to,"
             " here are your options:\r\n");
-    list_valid_classes(ch);
+    list_valid_classes(ch, MODE_RESPEC);
     return;
   } else {
     class = get_class_by_name(arg);
     if (class == -1) {
       send_to_char(ch, "Invalid class.\r\n");
-      list_valid_classes(ch);
+      list_valid_classes(ch, MODE_RESPEC);
       return;
     }
-    if (class >= NUM_CLASSES || !meet_class_reqs(ch, class)) {
+    if (class >= NUM_CLASSES || !meet_class_reqs(ch, class, MODE_RESPEC)) {
       send_to_char(ch, "That is not a valid class!  These are valid choices:\r\n");
-      list_valid_classes(ch);
+      list_valid_classes(ch, MODE_RESPEC);
       return;
     }
     if (GET_LEVEL(ch) < 2) {
@@ -1427,20 +1429,20 @@ ACMD(do_gain) {
 
   if (!*arg) {
     send_to_char(ch, "You may gain a level in one of the following classes:\r\n\r\n");
-    list_valid_classes(ch);
+    list_valid_classes(ch, MODE_NORMAL);
     send_to_char(ch, "Type 'gain <classname>' to gain a level in the chosen class.\r\n");
     return;
   } else {
     class = get_class_by_name(arg);
     if (class == -1) {
       send_to_char(ch, "Invalid class.\r\n");
-      list_valid_classes(ch);
+      list_valid_classes(ch, MODE_NORMAL);
       return;
     }
 
-    if (class < 0 || class >= NUM_CLASSES || !meet_class_reqs(ch, class)) {
+    if (class < 0 || class >= NUM_CLASSES || !meet_class_reqs(ch, class, MODE_NORMAL)) {
       send_to_char(ch, "That is not a valid class!  These are valid choices:\r\n");
-      list_valid_classes(ch);
+      list_valid_classes(ch, MODE_NORMAL);
       return;
     }
 

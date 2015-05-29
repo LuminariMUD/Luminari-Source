@@ -2920,7 +2920,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
 
   for (sortpos = 1; sortpos < NUM_FEATS; sortpos++) {
 
-    if (strlen(buf2) > MAX_STRING_LENGTH - 32)
+    if (strlen(buf2) > MAX_STRING_LENGTH - 180)
       break;
 
     i = feat_sort_info[sortpos];
