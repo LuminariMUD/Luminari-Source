@@ -1315,7 +1315,7 @@ ACMD(do_cast) {
     return;
   }
 
-  if (IS_AFFECTED(ch, AFF_WILDSHAPE) && !HAS_FEAT(ch, FEAT_NATURAL_SPELL)) {
+  if (IS_AFFECTED(ch, AFF_WILD_SHAPE) && !HAS_FEAT(ch, FEAT_NATURAL_SPELL)) {
     send_to_char(ch, "Cast?  You have no idea how!\r\n");
     return;
   }
