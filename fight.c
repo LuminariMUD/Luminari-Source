@@ -4876,7 +4876,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
   }
 
   /* Get the important numbers : ch's Attack bonus and victim's AC
-   * attack rolls: 1 = stumble, 20 = hit, possible crit */
+   * attack rolls: 1 = stumble, 20 = hit, also check for threat-range for criticals */
   victim_ac = compute_armor_class(ch, victim, FALSE, MODE_ARMOR_CLASS_NORMAL);
   switch (attack_type) {
     case ATTACK_TYPE_OFFHAND: /* secondary or 'off' hand */
