@@ -2296,7 +2296,7 @@ ACMD(do_score) {
   }
 
   if (CLASS_LEVEL(ch, CLASS_WIZARD)) {
-    send_to_char(ch, "\tcSpecialty School: \tn%s\tc, Restricted School: \tn%s\tc.\r\n",
+    send_to_char(ch, "\tcSpecialty School: \tn%s\tc, Restricted: \tn%s\tc.\r\n",
                  school_names[GET_SPECIALTY_SCHOOL(ch)],
                  school_names[restricted_school_reference[GET_SPECIALTY_SCHOOL(ch)]]);
     draw_line(ch, line_length, '-', '-');
