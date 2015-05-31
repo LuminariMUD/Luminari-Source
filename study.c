@@ -930,6 +930,14 @@ static void set_domain_menu(struct descriptor_data *d) {
   OLC_MODE(d) = STUDY_SET_DOMAINS;
 }
 
+void print_school_info(struct descriptor_data *d, int school_number) {
+
+  write_to_output(d, "\r\n");
+  write_to_output(d, "%s\r\n", school_benefits[school_number]);
+  write_to_output(d, "\r\n");
+
+}
+
 void print_domain_info(struct descriptor_data *d, int domain_number) {
   int j = 0;
 
@@ -1781,6 +1789,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
       GET_SPECIALTY_SCHOOL(ch) = number;
       write_to_output(d, "Choice selected.\r\n");
       OLC_MODE(d) = STUDY_SET_SCHOOL;
+      print_school_info(d, number);
       set_school_menu(d);
       break;
     case STUDY_SET_SCHOOL:
