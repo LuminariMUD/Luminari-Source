@@ -938,24 +938,21 @@ do                                                              \
 #define GET_BOOSTS(ch)		CHECK_PLAYER_SPECIAL((ch), \
 				((ch)->player_specials->saved.boosts))
 
-/* domain and school macros */
+/* domain macros */
 #define GET_1ST_DOMAIN(ch)	CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.domain_1))
 #define GET_2ND_DOMAIN(ch)	CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.domain_2))
-/*
-#define GET_1ST_DOMAIN(ch)	((ch)->player_specials->saved.domain_1)
-#define GET_2ND_DOMAIN(ch)	((ch)->player_specials->saved.domain_2)
-*/
-#define GET_SPECIALTY_SCHOOL(ch)	CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.specialty_school))
-#define GET_1ST_RESTRICTED_SCHOOL(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.restricted_school_1))
-#define GET_2ND_RESTRICTED_SCHOOL(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.restricted_school_2))
 #define HAS_DOMAIN(ch, domain) (GET_1ST_DOMAIN(ch) == i || GET_2ND_DOMAIN(ch) == i)
-#define IS_RESTRICTED_SCHOOL(ch, i) ( GET_1ST_RESTRICTED_SCHOOL(ch) == i || \
-                                      GET_2ND_RESTRICTED_SCHOOL(ch) == i )
 /* macro for determining the level you get a spell, added to support
  domain granted-spells */
 /* this will return 99 if the 'domain' doesn't grant the 'spell' */
 #define LEVEL_DOMAIN_GRANTS_SPELL(domain, spell) (compute_level_domain_spell_is_granted(domain, spell))
 #define MIN_SPELL_LVL(spell, chclass, chdomain) (MIN((spell_info[spell].min_level[chclass]), (spell_info[spell].domain[chdomain])))
+/* wizard school of magic specialty */
+#define GET_SPECIALTY_SCHOOL(ch)	CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.specialty_school))
+#define GET_1ST_RESTRICTED_SCHOOL(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.restricted_school_1))
+#define GET_2ND_RESTRICTED_SCHOOL(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.restricted_school_2))
+#define IS_RESTRICTED_SCHOOL(ch, i) ( GET_1ST_RESTRICTED_SCHOOL(ch) == i || \
+                                      GET_2ND_RESTRICTED_SCHOOL(ch) == i )
 
 /** Current invisibility level of ch. */
 #define GET_INVIS_LEV(ch)	CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.invis_level))
@@ -1126,6 +1123,7 @@ do                                                              \
 #define CAN_SET_STATS(ch) (GET_LEVEL(ch) <= 1)
 
 #define CAN_SET_DOMAIN(ch) (CLASS_LEVEL(ch, CLASS_CLERIC))
+#define CAN_SET_SCHOOL(ch) (CLASS_LEVEL(ch, CLASS_WIZARD))
 
 #define CAN_STUDY_CLASS_FEATS(ch) (CAN_STUDY_FEATS(ch) || (GET_LEVELUP_CLASS_FEATS(ch) + \
                                                            GET_LEVELUP_EPIC_CLASS_FEATS(ch) > 0 ? 1 : 0))

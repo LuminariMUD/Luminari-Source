@@ -85,6 +85,8 @@ extern "C" {
 
 //extern const char *domain_power_names[NUM_DOMAIN_POWERS + 1];
 char *domainpower_names[NUM_DOMAIN_POWERS + 1];
+char *school_names[NUM_SCHOOLS + 1];
+int restricted_school_reference[NUM_SCHOOLS + 1];
 
   /****************/
   /****************/
@@ -120,6 +122,7 @@ int has_domain_power(struct char_data *ch, int domain_power);
 void clear_domain_feats(struct char_data *ch);
 void add_domain_feats(struct char_data *ch);
 void perform_destructiveaura(struct char_data *ch);
+void disable_restricted_school_spells(struct char_data *ch);
 
 
 /******************************************/

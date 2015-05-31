@@ -402,6 +402,9 @@ void finalize_study(struct descriptor_data *d) {
   /* set spells learned for domain */
   assign_domain_spells(ch);
 
+  /* make sure to disable restricted school spells */
+  disable_restricted_school_spells(ch);
+
   /* in case adding or changing clear domains, clean up and re-assign */
   clear_domain_feats(ch);
   add_domain_feats(ch);
@@ -847,6 +850,46 @@ static void set_stats_menu(struct descriptor_data *d) {
   OLC_MODE(d) = STUDY_SET_STATS;
 }
 
+static void set_school_submenu(struct descriptor_data *d) {
+  int i;
+
+  get_char_colors(d->character);
+  clear_screen(d);
+
+  write_to_output(d, "\r\n");
+  for (i = 0; i < NUM_SCHOOLS - 1; i++) {
+    write_to_output(d, "%d) %s\r\n", i, school_names[i]);
+  }
+  write_to_output(d, "\r\n");
+
+  write_to_output(d, "\r\n%sEnter magical art to specialize in : ", nrm);
+}
+static void set_school_menu(struct descriptor_data *d) {
+  get_char_colors(d->character);
+  clear_screen(d);
+
+  write_to_output(d,
+          "\r\n-- %sSet School of Magic Specialty%s\r\n"
+          "\r\n"
+          "%s 0%s) Specialty School:      %s%s\r\n"
+          "%s      Restricted School:     %s%s\r\n"
+          "\r\n"
+          "%s Q%s) Quit\r\n"
+          "\r\n"
+          "Enter Choice : ",
+
+          mgn, nrm,
+          /* empty line */
+          grn, nrm, school_names[GET_SPECIALTY_SCHOOL(d->character)], nrm,
+          nrm, school_names[restricted_school_reference[GET_SPECIALTY_SCHOOL(d->character)]], nrm,
+          /* empty line */
+          grn, nrm
+          /* empty line */
+          );
+
+  OLC_MODE(d) = STUDY_SET_SCHOOL;
+}
+
 static void set_domain_submenu(struct descriptor_data *d) {
   const char *domain_names[NUM_DOMAINS];
   int i;
@@ -1173,9 +1216,10 @@ static void generic_main_disp_menu(struct descriptor_data *d) {
           "%s 2%s) Known Spells\r\n"
           "%s 3%s) Choose Familiar\r\n"
           "%s 4%s) Animal Companion\r\n"
-          "%s 5%s) Favored Enemy\r\n"
+          "%s 5%s) Ranger Favored Enemy\r\n"
           "%s 6%s) Set Stats\r\n"
-          "%s 7%s) Domain Selection\r\n"
+          "%s 7%s) Cleric Domain Selection\r\n"
+          "%s 8%s) Wizard School Selection\r\n"
           "\r\n"
           "%s Q%s) Quit\r\n"
           "\r\n"
@@ -1189,6 +1233,7 @@ static void generic_main_disp_menu(struct descriptor_data *d) {
           MENU_OPT(CAN_STUDY_FAVORED_ENEMY(ch)),
           MENU_OPT(CAN_SET_STATS(ch)),
           MENU_OPT(CAN_SET_DOMAIN(ch)),
+          MENU_OPT(CAN_SET_SCHOOL(ch)),
           grn, nrm
           );
 
@@ -1342,6 +1387,14 @@ void study_parse(struct descriptor_data *d, char *arg) {
         case '7':
           if (CAN_SET_DOMAIN(ch))
             set_domain_menu(d);
+          else {
+            write_to_output(d, "That is an invalid choice!\r\n");
+            generic_main_disp_menu(d);
+          }
+          break;
+        case '8':
+          if (CAN_SET_SCHOOL(ch))
+            set_school_menu(d);
           else {
             write_to_output(d, "That is an invalid choice!\r\n");
             generic_main_disp_menu(d);
@@ -1710,6 +1763,49 @@ void study_parse(struct descriptor_data *d, char *arg) {
           break;
       }
       break;
+
+    case SET_SCHOOL:
+      number = atoi(arg);
+      if (number < 0) {
+        write_to_output(d, "Invalid value!  Try again.\r\n");
+        OLC_MODE(d) = SET_SCHOOL;
+        set_school_submenu(d);
+        return;
+      }
+      if (number >= NUM_SCHOOLS) {
+        write_to_output(d, "Invalid value!  Try again.\r\n");
+        OLC_MODE(d) = SET_SCHOOL;
+        set_school_submenu(d);
+        return;
+      }
+      GET_SPECIALTY_SCHOOL(ch) = number;
+      write_to_output(d, "Choice selected.\r\n");
+      OLC_MODE(d) = STUDY_SET_SCHOOL;
+      set_school_menu(d);
+      break;
+    case STUDY_SET_SCHOOL:
+      switch (*arg) {
+        case 'q':
+        case 'Q':
+          display_main_menu(d);
+          break;
+
+        default:
+          number = atoi(arg);
+          switch (number) {
+            case 0:
+              set_school_submenu(d);
+              OLC_MODE(d) = SET_SCHOOL;
+              return;
+            default: break;
+          }
+          OLC_MODE(d) = STUDY_SET_SCHOOL;
+          set_school_menu(d);
+          break;
+      }
+      break;
+
+      /*****/
 
     case STUDY_SET_STATS:
       switch (*arg) {

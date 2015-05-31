@@ -55,6 +55,8 @@ byte saving_throws(struct char_data *, int type);
 int BAB(struct char_data *ch);
 const char *titles(int chclass, int level);
 int modify_class_ability(struct char_data *ch, int ability, int class);
+void init_class(struct char_data *ch, int class, int level);
+
 
 /* Global variables */
 

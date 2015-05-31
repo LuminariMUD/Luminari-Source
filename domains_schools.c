@@ -18,9 +18,40 @@
 #include "assign_wpn_armor.h"
 #include "screen.h"
 #include "modify.h"
+#include "class.h"
 
 struct domain_info domain_list[NUM_DOMAINS];
 struct school_info school_list[NUM_SCHOOLS];
+
+int restricted_school_reference[NUM_SCHOOLS + 1] = {
+  /*universalist*/  NOSCHOOL,
+
+  /*abjuration*/    DIVINATION,
+  /*conjuration*/   TRANSMUTATION,
+  /*Divination*/    ABJURATION,
+  /*Enchantment*/   ILLUSION,
+  /*Evocation*/     NECROMANCY,
+  /*Illusion*/      ENCHANTMENT,
+  /*Necromancy*/    EVOCATION,
+  /*Transmutation*/ CONJURATION,
+
+  /* just in case we need a terminator */
+  -1
+};
+
+/* schools of magic names */
+char *school_names[NUM_SCHOOLS + 1] = {
+  "Universalist (No Specialty)", //0
+  "Abjurer (Abjuration)",  //1
+  "Conjurer (Conjuration)",  //2
+  "Diviner (Divination)",  //3
+  "Enchanter (Enchantment)",  //4
+  "Invoker (Evocation)",  //5
+  "Illusionist (Illusion)",  //6
+  "Necromancer (Necromancy)",  //7
+  "Transmuter (Transmutation)",  //8
+  "\n"
+};
 
 /* domain power names */
 char *domainpower_names[NUM_DOMAIN_POWERS + 1] = {
@@ -219,6 +250,31 @@ int has_domain_power(struct char_data *ch, int domain_power) {
   }
 
   return FALSE; /*did not find it!*/
+}
+
+/* once a specialty school is selected, we have to disable some
+ * spells based on that selection...  in order to allow for players
+ * to swap schools freely, we have to reset their list of default
+ * wizard spells first before we do that */
+void disable_restricted_school_spells(struct char_data *ch) {
+  if (!CLASS_LEVEL(ch, CLASS_WIZARD))
+    return;
+
+  int spellnum;
+
+  /* first reassign them all spells in case this is a swap */
+  init_class(ch, CLASS_WIZARD, 1);
+  if (GET_SPECIALTY_SCHOOL(ch) == NOSCHOOL)
+    return; /* universalist exits here */
+
+  /* now go through and disable opposing school's */
+  for (spellnum = 1; spellnum < NUM_SPELLS; spellnum++) {
+    if (spell_info[spellnum].schoolOfMagic ==
+            restricted_school_reference[GET_SPECIALTY_SCHOOL(ch)])
+      SET_SKILL(ch, spellnum, 0);
+  }
+
+  return;
 }
 
 /* special spells granted by domains have to be assigned
