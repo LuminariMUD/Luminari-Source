@@ -4725,7 +4725,10 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       damage(victim, ch, dice(1, 6), SPELL_FSHIELD_DAM, DAM_FIRE, attack_type);
     } else if (dam && victim && GET_HIT(victim) >= -1 &&
             IS_AFFECTED(victim, AFF_ASHIELD)) { // acid shield
-      damage(victim, ch, dice(2, 6), SPELL_ASHIELD_DAM, DAM_ACID, attack_type);
+      if (IS_SPECIALTY_SPELL(ch, SPELL_ACID_SHEATH))
+        damage(victim, ch, dice(5, 6), SPELL_ASHIELD_DAM, DAM_ACID, attack_type);
+      else
+        damage(victim, ch, dice(2, 6), SPELL_ASHIELD_DAM, DAM_ACID, attack_type);
     }
   }
 
