@@ -1877,6 +1877,11 @@ ACMD(do_enter) {
   //int iPlayerClan = 0;
   //room_rnum rClanhall = 0;
 
+  if (FIGHTING(ch)) {
+    send_to_char(ch, "You are too busy fighting to enter!\r\n");
+    return;
+  }
+
   was_in = IN_ROOM(ch);
 
   one_argument(argument, buf);

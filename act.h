@@ -397,6 +397,7 @@ ACMD(do_diplomacy);
 #define DIP_WAIT  (diplomacy_types[dip_num].wait)
 /* Functions without subcommands */
 ACMD(do_recharge);
+ACMD(do_nop);
 ACMD(do_buck);
 ACMD(do_dismount);
 ACMD(do_mount);

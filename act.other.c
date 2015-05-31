@@ -54,6 +54,10 @@ static void display_group_list(struct char_data * ch);
 
 /*****************/
 
+ACMD(do_nop) {
+  send_to_char(ch, "\r\n");
+}
+
 ACMD(do_handleanimal) {
   struct char_data *vict = NULL;
   int dc = 0;
