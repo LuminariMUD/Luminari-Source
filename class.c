@@ -2706,15 +2706,15 @@ void advance_level(struct char_data *ch, int class) {
     send_to_char(ch, "\tMTotal Mana:\tn %d\r\n", add_mana);
   }
   GET_FEAT_POINTS(ch) += feats;
-  GET_CLASS_FEATS(ch, GET_CLASS(ch)) += class_feats;
-  GET_EPIC_FEAT_POINTS(ch) += epic_feats;
-  GET_EPIC_CLASS_FEATS(ch, GET_CLASS(ch)) += epic_class_feats;
   if (feats)
     send_to_char(ch, "%d \tMFeat points gained.\tn\r\n", feats);
+  GET_CLASS_FEATS(ch, GET_CLASS(ch)) += class_feats;
   if (class_feats)
     send_to_char(ch, "%d \tMClass feat points gained.\tn\r\n", class_feats);
+  GET_EPIC_FEAT_POINTS(ch) += epic_feats;
   if (epic_feats)
     send_to_char(ch, "%d \tMEpic feat points gained.\tn\r\n", epic_feats);
+  GET_EPIC_CLASS_FEATS(ch, GET_CLASS(ch)) += epic_class_feats;
   if (epic_class_feats)
     send_to_char(ch, "%d \tMEpic class feat points gained.\tn\r\n", epic_class_feats);
   GET_TRAINS(ch) += trains;

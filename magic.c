@@ -4210,6 +4210,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       break;
     case SPELL_ANIMATE_DEAD:
     case SPELL_GREATER_ANIMATION:
+    case SPELL_MUMMY_DUST:
       if (HAS_PET_UNDEAD(ch)) {
         send_to_char(ch, "You can't control more undead!\r\n");
         return;
@@ -4268,6 +4269,31 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       GET_REAL_STR(mob) += 4;
       GET_REAL_CON(mob) += 4;
       GET_REAL_MAX_HIT(mob) += 2 * GET_LEVEL(mob); /* con bonus */
+    }
+
+    if (GET_SPECIALTY_SCHOOL(ch) == CONJURATION &&
+        ( spellnum != SPELL_ANIMATE_DEAD &&
+          spellnum != SPELL_GREATER_ANIMATION &&
+          spellnum != SPELL_MUMMY_DUST &&
+          spellnum != SPELL_DRAGON_KNIGHT )
+        ) {
+      send_to_char(ch, "*conjurer* ");
+      GET_REAL_STR(mob) += CLASS_LEVEL(ch, CLASS_WIZARD) / 6 + 1;
+      GET_REAL_CON(mob) += CLASS_LEVEL(ch, CLASS_WIZARD) / 6 + 1;
+      GET_REAL_DEX(mob) += CLASS_LEVEL(ch, CLASS_WIZARD) / 6 + 1;
+      GET_REAL_AC(mob) += (CLASS_LEVEL(ch, CLASS_WIZARD) / 6 + 1) * 10;
+      GET_REAL_MAX_HIT(mob) += (CLASS_LEVEL(ch, CLASS_WIZARD) / 10 + 1) * GET_LEVEL(mob); /* con bonus */
+    } else if (GET_SPECIALTY_SCHOOL(ch) == CONJURATION &&
+        ( spellnum == SPELL_ANIMATE_DEAD ||
+          spellnum == SPELL_GREATER_ANIMATION ||
+          spellnum == SPELL_MUMMY_DUST )
+         ) {
+      send_to_char(ch, "*necromancer* ");
+      GET_REAL_STR(mob) += CLASS_LEVEL(ch, CLASS_WIZARD) / 6 + 1;
+      GET_REAL_CON(mob) += CLASS_LEVEL(ch, CLASS_WIZARD) / 6 + 1;
+      GET_REAL_DEX(mob) += CLASS_LEVEL(ch, CLASS_WIZARD) / 6 + 1;
+      GET_REAL_AC(mob) += (CLASS_LEVEL(ch, CLASS_WIZARD) / 6 + 1) * 10;
+      GET_REAL_MAX_HIT(mob) += (CLASS_LEVEL(ch, CLASS_WIZARD) / 10 + 1) * GET_LEVEL(mob); /* con bonus */
     }
 
     act(mag_summon_msgs[msg], FALSE, ch, 0, mob, TO_ROOM);
