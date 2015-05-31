@@ -53,6 +53,20 @@ char *school_names[NUM_SCHOOLS + 1] = {
   "\n"
 };
 
+/* schools of magic names */
+char *school_names_specific[NUM_SCHOOLS + 1] = {
+  "No School", //0
+  "Abjuration",  //1
+  "Conjuration",  //2
+  "Divination",  //3
+  "Enchantment",  //4
+  "Evocation",  //5
+  "Illusion",  //6
+  "Necromancy",  //7
+  "Transmutation",  //8
+  "\n"
+};
+
 /* domain power names */
 char *domainpower_names[NUM_DOMAIN_POWERS + 1] = {
   "Undefined", //0
