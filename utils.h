@@ -1122,8 +1122,8 @@ do                                                              \
 
 #define CAN_SET_STATS(ch) (GET_LEVEL(ch) <= 1)
 
-#define CAN_SET_DOMAIN(ch) (CLASS_LEVEL(ch, CLASS_CLERIC))
-#define CAN_SET_SCHOOL(ch) (CLASS_LEVEL(ch, CLASS_WIZARD))
+#define CAN_SET_DOMAIN(ch) (CLASS_LEVEL(ch, CLASS_CLERIC) == 1)
+#define CAN_SET_SCHOOL(ch) (CLASS_LEVEL(ch, CLASS_WIZARD) == 1)
 
 #define CAN_STUDY_CLASS_FEATS(ch) (CAN_STUDY_FEATS(ch) || (GET_LEVELUP_CLASS_FEATS(ch) + \
                                                            GET_LEVELUP_EPIC_CLASS_FEATS(ch) > 0 ? 1 : 0))
