@@ -2295,6 +2295,13 @@ ACMD(do_score) {
     draw_line(ch, line_length, '-', '-');
   }
 
+  if (CLASS_LEVEL(ch, CLASS_WIZARD)) {
+    send_to_char(ch, "\tcSpecialty School: \tn%s\tc, Restricted School: \tn%s\tc.\r\n",
+                 school_names[GET_SPECIALTY_SCHOOL(ch)],
+                 school_names[restricted_school_reference[GET_SPECIALTY_SCHOOL(ch)]]);
+    draw_line(ch, line_length, '-', '-');
+  }
+
   if (!IS_NPC(ch)) {
     send_to_char(ch, "\tc");
     if (GET_COND(ch, DRUNK) > 10)
