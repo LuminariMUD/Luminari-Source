@@ -496,7 +496,7 @@ void list_spells(struct char_data *ch, int mode, int class) {
                 CLASS_LEVEL(ch, class) >= sinfo && spellCircle(class, i, DOMAIN_UNDEFINED) == slot &&
                 GET_SKILL(ch, i)) {
           nlen = snprintf(buf2 + len, sizeof (buf2) - len,
-                  "%-20s \tRReady\tn\r\n", spell_info[i].name);
+                  "%-20s %s\tRReady\tn\r\n", spell_info[i].name, school_names[i]);
           if (len + nlen >= sizeof (buf2) || nlen < 0)
             break;
           len += nlen;
@@ -3754,7 +3754,7 @@ SPECIAL(wizard_library) {
         }
       }
     } else {
-      send_to_char(ch, "You are not powerful enough to scribe that spell!\r\n");
+      send_to_char(ch, "You are not powerful enough to scribe that spell! (or this spell is from a restricted school)\r\n");
       return TRUE;
     }
 
