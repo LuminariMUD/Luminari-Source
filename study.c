@@ -857,7 +857,7 @@ static void set_school_submenu(struct descriptor_data *d) {
   clear_screen(d);
 
   write_to_output(d, "\r\n");
-  for (i = 0; i < NUM_SCHOOLS - 1; i++) {
+  for (i = 0; i < NUM_SCHOOLS; i++) {
     write_to_output(d, "%d) %s\r\n", i, school_names[i]);
   }
   write_to_output(d, "\r\n");
@@ -872,7 +872,7 @@ static void set_school_menu(struct descriptor_data *d) {
           "\r\n-- %sSet School of Magic Specialty%s\r\n"
           "\r\n"
           "%s 0%s) Specialty School:      %s%s\r\n"
-          "%s      Restricted School:     %s%s\r\n"
+          "%s    Restricted School:     %s%s\r\n"
           "\r\n"
           "%s Q%s) Quit\r\n"
           "\r\n"
