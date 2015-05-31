@@ -87,6 +87,7 @@ extern "C" {
 char *domainpower_names[NUM_DOMAIN_POWERS + 1];
 char *school_names[NUM_SCHOOLS + 1];
 int restricted_school_reference[NUM_SCHOOLS + 1];
+char *school_names_specific[NUM_SCHOOLS + 1];
 
   /****************/
   /****************/
