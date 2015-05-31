@@ -622,7 +622,10 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       element = DAM_FIRE;
       num_dice = MIN(22, level);
       size_dice = 6;
-      bonus = 0;
+      if (IS_SPECIALTY_SPELL(ch, spellnum))
+        bonus = CLASS_LEVEL(ch, CLASS_WIZARD);
+      else
+        bonus = 0;
       break;
 
     case SPELL_FLAME_BLADE: // evocation
@@ -730,7 +733,10 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       save = -1;
       mag_resist = TRUE;
       element = DAM_ILLUSION;
-      num_dice = level;
+      if (IS_SPECIALTY_SPELL(ch, spellnum))
+        num_dice = level + 5;
+      else
+        num_dice = level;
       size_dice = 4;
       bonus = 10;
       break;
@@ -741,7 +747,9 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       element = DAM_MENTAL;
       num_dice = 10;
       size_dice = 2;
-      if (GET_HIT(victim) <= 121)
+      if (IS_SPECIALTY_SPELL(ch, spellnum)&& GET_HIT(victim) <= 191)
+        bonus = GET_HIT(victim) + 10;
+      else if (GET_HIT(victim) <= 121)
         bonus = GET_HIT(victim) + 10;
       else
         bonus = 0;
@@ -791,7 +799,10 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       element = DAM_FORCE;
       num_dice = MIN(20, level);
       size_dice = 4;
-      bonus = 0;
+      if (IS_SPECIALTY_SPELL(ch, spellnum))
+        bonus = CLASS_LEVEL(ch, CLASS_WIZARD);
+      else
+        bonus = 0;
       //60% chance of knockdown, target can't be more than 2 size classes bigger
       if (dice(1, 100) < 60 && (GET_SIZE(ch) + 2) >= GET_SIZE(victim)) {
         act("Your telekinetic wave knocks $N over!",
@@ -1117,6 +1128,8 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       mag_resist = TRUE;
       element = DAM_ILLUSION;
       num_dice = MIN(26, level);
+      if (IS_SPECIALTY_SPELL(ch, spellnum))
+        num_dice += 4;
       size_dice = 4;
       bonus = 0;
       break;
@@ -1135,9 +1148,17 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       save = SAVING_WILL;
       mag_resist = TRUE;
       element = DAM_FIRE;
-      num_dice = MIN(26, level);
-      size_dice = 5;
+      if (IS_SPECIALTY_SPELL(ch, spellnum))
+        num_dice = MIN(26, level) + 5;
+      else
+        num_dice = MIN(26, level);
+      if (IS_SPECIALTY_SPELL(ch, spellnum))
+        size_dice = 6;
+      else
+        size_dice = 5;
       bonus = level;
+      if (IS_SPECIALTY_SPELL(ch, spellnum))
+        bonus += 10;
       break;
 
     case SPELL_SYMBOL_OF_PAIN: //necromancy
@@ -1236,8 +1257,13 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   } /* switch(spellnum) */
 
   dam = dice(num_dice, size_dice) + bonus;
+
+  /* damage enhancements (feats, etc) */
   if (HAS_FEAT(ch, FEAT_ENHANCED_SPELL_DAMAGE))
     dam += num_dice;
+  if (GET_SPECIALTY_SCHOOL(ch) == EVOCATION &&
+      spell_info[spellnum].schoolOfMagic == EVOCATION)
+    dam += CLASS_LEVEL(ch, CLASS_WIZARD);
 
   //resistances to magic
   if (dam && mag_resist)
@@ -1688,7 +1714,10 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case SPELL_DAZE_MONSTER: //enchantment
-      if (GET_LEVEL(victim) > 8) {
+      if (IS_SPECIALTY_SPELL(ch, spellnum) && GET_LEVEL(victim) > 9) {
+        send_to_char(ch, "Your target is too powerful to be affected by this illusion.\r\n");
+        return;
+      } else if (!IS_SPECIALTY_SPELL(ch, spellnum) && GET_LEVEL(victim) > 7) {
         send_to_char(ch, "Your target is too powerful to be affected by this illusion.\r\n");
         return;
       }
@@ -1742,9 +1771,15 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case SPELL_DEEP_SLUMBER: //enchantment
-      if (GET_LEVEL(victim) >= 15 ||
-              (!IS_NPC(victim) && GET_RACE(victim) == RACE_ELF)) {
+      if (IS_SPECIALTY_SPELL(ch, spellnum) && GET_LEVEL(victim) > 15) {
         send_to_char(ch, "The target is too powerful for this enchantment!\r\n");
+        return;
+      } else if (!IS_SPECIALTY_SPELL(ch, spellnum) && GET_LEVEL(victim) >= 13) {
+        send_to_char(ch, "The target is too powerful for this enchantment!\r\n");
+        return;
+      }
+      if ((!IS_NPC(victim) && GET_RACE(victim) == RACE_ELF)) {
+        send_to_char(ch, "Elevs are immune to sleep enchantments!!\r\n");
         return;
       }
       if (mag_resistance(ch, victim, 0))
@@ -2067,19 +2102,31 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         return;
       }
       af[0].location = APPLY_HITROLL;
-      af[0].modifier = 4;
+      if (IS_SPECIALTY_SPELL(ch, spellnum))
+        af[0].modifier = 5;
+      else
+        af[0].modifier = 3;
       af[0].duration = 300;
 
       af[1].location = APPLY_SAVING_WILL;
-      af[1].modifier = 4;
+      if (IS_SPECIALTY_SPELL(ch, spellnum))
+        af[1].modifier = 5;
+      else
+        af[1].modifier = 3;
       af[1].duration = 300;
 
       af[2].location = APPLY_SAVING_FORT;
-      af[2].modifier = 4;
+      if (IS_SPECIALTY_SPELL(ch, spellnum))
+        af[2].modifier = 5;
+      else
+        af[2].modifier = 3;
       af[2].duration = 300;
 
       af[3].location = APPLY_SAVING_REFL;
-      af[3].modifier = 4;
+      if (IS_SPECIALTY_SPELL(ch, spellnum))
+        af[3].modifier = 5;
+      else
+        af[3].modifier = 3;
       af[3].duration = 300;
 
       to_room = "$n is now very heroic!";
@@ -2133,7 +2180,10 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       af[0].duration = 300;
       to_room = "$n grins as multiple images pop up and smile!";
       to_vict = "You watch as multiple images pop up and smile at you!";
-      GET_IMAGES(victim) = 6 + (level / 3);
+      if (IS_SPECIALTY_SPELL(ch, spellnum))
+        GET_IMAGES(victim) = 7 + (level / 3);
+      else
+        GET_IMAGES(victim) = 5 + (level / 3);
       break;
 
     case SPELL_GREATER_SPELL_MANTLE: //abjuration
@@ -2144,7 +2194,10 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
       af[0].duration = level * 4;
       SET_BIT_AR(af[0].bitvector, AFF_SPELL_MANTLE);
-      GET_SPELL_MANTLE(victim) = 4;
+      if (IS_SPECIALTY_SPELL(ch, spellnum))
+        GET_SPELL_MANTLE(victim) = 5;
+      else
+        GET_SPELL_MANTLE(victim) = 4;
       accum_duration = FALSE;
       to_room = "$n begins to shimmer from a greater magical mantle!";
       to_vict = "You begin to shimmer from a greater magical mantle.";
@@ -2211,7 +2264,10 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case SPELL_HIDEOUS_LAUGHTER: //enchantment
-      if (GET_LEVEL(victim) > 8) {
+      if (IS_SPECIALTY_SPELL(ch, spellnum) && GET_LEVEL(victim) > 9) {
+        send_to_char(ch, "Your target is too powerful to be affected by this illusion.\r\n");
+        return;
+      } else if (!IS_SPECIALTY_SPELL(ch, spellnum) && GET_LEVEL(victim) > 7) {
         send_to_char(ch, "Your target is too powerful to be affected by this illusion.\r\n");
         return;
       }
@@ -2257,7 +2313,10 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case SPELL_HOLD_PERSON: //enchantment
-      if (GET_LEVEL(victim) > 11) {
+      if (IS_SPECIALTY_SPELL(ch, spellnum) && GET_LEVEL(victim) > 12) {
+        send_to_char(ch, "Your target is too powerful to be affected by this enchantment.\r\n");
+        return;
+      } else if (!IS_SPECIALTY_SPELL(ch, spellnum) && GET_LEVEL(victim) > 10) {
         send_to_char(ch, "Your target is too powerful to be affected by this enchantment.\r\n");
         return;
       }
@@ -2340,7 +2399,10 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       af[0].duration = 600;
       to_room = "$n's skin takes on the texture of iron!";
       to_vict = "Your skin takes on the texture of iron!";
-      GET_STONESKIN(victim) = MIN(450, CASTER_LEVEL(ch) * 35);
+      if (IS_SPECIALTY_SPELL(ch, spellnum))
+        GET_STONESKIN(victim) = MIN(450, CASTER_LEVEL(ch) * 20);
+      else
+        GET_STONESKIN(victim) = MIN(350, CASTER_LEVEL(ch) * 15);
       break;
 
     case SPELL_IRRESISTIBLE_DANCE: //enchantment
@@ -2349,7 +2411,10 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       // no save
 
       SET_BIT_AR(af[0].bitvector, AFF_PARALYZED);
-      af[0].duration = dice(1, 4) + 1;
+      if (IS_SPECIALTY_SPELL(ch, spellnum))
+        af[0].duration = dice(1, 4) + 1;
+      else
+        af[0].duration = dice(1, 4);
       to_room = "$n begins to dance uncontrollably!";
       to_vict = "You begin to dance uncontrollably!";
       break;
@@ -2439,16 +2504,22 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       af[0].location = APPLY_STR;
       af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
       af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
+      if (IS_SPECIALTY_SPELL(ch, spellnum))
+        af[0].modifier += 2;
       af[0].bonus_type = BONUS_TYPE_ENHANCEMENT;
 
       af[1].location = APPLY_DEX;
       af[1].duration = (CASTER_LEVEL(ch) * 12) + 100;
       af[1].modifier = 2 + (CASTER_LEVEL(ch) / 5);
+      if (IS_SPECIALTY_SPELL(ch, spellnum))
+        af[1].modifier += 2;
       af[1].bonus_type = BONUS_TYPE_ENHANCEMENT;
 
       af[2].location = APPLY_CON;
       af[2].duration = (CASTER_LEVEL(ch) * 12) + 100;
       af[2].modifier = 2 + (CASTER_LEVEL(ch) / 5);
+      if (IS_SPECIALTY_SPELL(ch, spellnum))
+        af[2].modifier += 2;
       af[2].bonus_type = BONUS_TYPE_ENHANCEMENT;
 
       accum_duration = TRUE;
@@ -2473,7 +2544,10 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       }
 
       SET_BIT_AR(af[0].bitvector, AFF_PARALYZED);
-      af[0].duration = dice(3, 4);
+      if (IS_SPECIALTY_SPELL(ch, spellnum))
+        af[0].duration = dice(2, 4);
+      else
+        af[0].duration = dice(1, 6);
       to_room = "$n is overcome by a powerful hold spell!";
       to_vict = "You are overcome by a powerful hold spell!";
       break;
@@ -2552,7 +2626,10 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       af[0].duration = 300;
       to_room = "$n grins as multiple images pop up and smile!";
       to_vict = "You watch as multiple images pop up and smile at you!";
-      GET_IMAGES(victim) = 4 + MIN(5, (int) (level / 3));
+      if (IS_SPECIALTY_SPELL(ch, spellnum))
+        GET_IMAGES(victim) = 5 + MIN(7, (int) (level / 3));
+      else
+        GET_IMAGES(victim) = 3 + MIN(5, (int) (level / 3));
       break;
 
     case SPELL_NIGHTMARE: //illusion
@@ -2636,7 +2713,10 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       // no save
 
       SET_BIT_AR(af[0].bitvector, AFF_STUN);
-      af[0].duration = dice(1, 4);
+      if (IS_SPECIALTY_SPELL(ch, spellnum))
+        af[0].duration = dice(2, 3);
+      else
+        af[0].duration = dice(1, 4);
       to_room = "$n is stunned by a powerful magical word!";
       to_vict = "You are stunned by a powerful magical word!";
       break;
@@ -2896,7 +2976,10 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       new_dr->bypass_cat[2] = DR_BYPASS_CAT_UNUSED;
       new_dr->bypass_val[2] = 0; /* Unused. */
 
-      new_dr->amount     = 12;
+      if (IS_SPECIALTY_SPELL(ch, spellnum))
+        new_dr->amount     = 15;
+      else
+        new_dr->amount     = 10;
       new_dr->max_damage = -1;
       new_dr->spell      = SPELL_SHADOW_SHIELD;
       new_dr->feat       = FEAT_UNDEFINED;
@@ -2913,6 +2996,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
       af[0].location = APPLY_AC_NEW;
       af[0].modifier = 2;
+      if (IS_SPECIALTY_SPELL(ch, spellnum))
+        af[0].modifier++;
       af[0].duration = 300;
       af[0].bonus_type = BONUS_TYPE_SHIELD;
       to_vict = "You feel someone protecting you.";
@@ -3024,7 +3109,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       to_vict = "You become nauseated from the stinky fumes!";
       break;
 
-    case SPELL_STONESKIN:
+    case SPELL_STONESKIN: /* abjuration */
       if (affected_by_spell(victim, SPELL_EPIC_WARDING) ||
               affected_by_spell(victim, SPELL_IRONSKIN)) {
         send_to_char(ch, "A magical ward is already in effect on target.\r\n");
@@ -3047,8 +3132,14 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       new_dr->bypass_cat[2] = DR_BYPASS_CAT_UNUSED;
       new_dr->bypass_val[2] = 0; /* Unused. */
 
-      new_dr->amount     = 10;
-      new_dr->max_damage = MIN(150, level * 10);
+      if (IS_SPECIALTY_SPELL(ch, spellnum))
+        new_dr->amount     = 15;
+      else
+        new_dr->amount     = 10;
+      if (IS_SPECIALTY_SPELL(ch, spellnum))
+        new_dr->max_damage = MIN(200, level * 12);
+      else
+        new_dr->max_damage = MIN(150, level * 10);
       new_dr->spell      = SPELL_STONESKIN;
       new_dr->feat       = FEAT_UNDEFINED;
       new_dr->next       = GET_DR(victim);
@@ -3141,7 +3232,10 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case SPELL_TIMESTOP:  //abjuration
-      af[0].duration = 7;
+      if (IS_SPECIALTY_SPELL(ch, spellnum))
+        af[0].duration = 12;
+      else
+        af[0].duration = 7;
       SET_BIT_AR(af[0].bitvector, AFF_TIME_STOPPED);
 
       accum_duration = FALSE;
@@ -4271,25 +4365,8 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob) += 2 * GET_LEVEL(mob); /* con bonus */
     }
 
-    if (GET_SPECIALTY_SCHOOL(ch) == CONJURATION &&
-        ( spellnum != SPELL_ANIMATE_DEAD &&
-          spellnum != SPELL_GREATER_ANIMATION &&
-          spellnum != SPELL_MUMMY_DUST &&
-          spellnum != SPELL_DRAGON_KNIGHT )
-        ) {
-      send_to_char(ch, "*conjurer* ");
-      GET_REAL_STR(mob) = (mob)->aff_abils.str += CLASS_LEVEL(ch, CLASS_WIZARD) / 6 + 1;
-      GET_REAL_CON(mob) = (mob)->aff_abils.con += CLASS_LEVEL(ch, CLASS_WIZARD) / 6 + 1;
-      GET_REAL_DEX(mob) = (mob)->aff_abils.dex += CLASS_LEVEL(ch, CLASS_WIZARD) / 6 + 1;
-      GET_REAL_AC(mob) = (mob)->points.armor += (CLASS_LEVEL(ch, CLASS_WIZARD) / 6 + 1) * 10;
-      GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob) += (CLASS_LEVEL(ch, CLASS_WIZARD) / 10 + 1) * GET_LEVEL(mob); /* con bonus */
-      GET_HIT(mob) = GET_MAX_HIT(mob);
-    } else if (GET_SPECIALTY_SCHOOL(ch) == NECROMANCY &&
-        ( spellnum == SPELL_ANIMATE_DEAD ||
-          spellnum == SPELL_GREATER_ANIMATION ||
-          spellnum == SPELL_MUMMY_DUST )
-         ) {
-      send_to_char(ch, "*necromancer* ");
+    if (IS_SPECIALTY_SPELL(ch, spellnum)) {
+      send_to_char(ch, "*specialist* ");
       GET_REAL_STR(mob) = (mob)->aff_abils.str += CLASS_LEVEL(ch, CLASS_WIZARD) / 6 + 1;
       GET_REAL_CON(mob) = (mob)->aff_abils.con += CLASS_LEVEL(ch, CLASS_WIZARD) / 6 + 1;
       GET_REAL_DEX(mob) = (mob)->aff_abils.dex += CLASS_LEVEL(ch, CLASS_WIZARD) / 6 + 1;
