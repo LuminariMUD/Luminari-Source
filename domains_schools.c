@@ -53,7 +53,7 @@ char *school_names[NUM_SCHOOLS + 1] = {
   "\n"
 };
 
-/* schools of magic names */
+/* schools of magic names (less detail) */
 char *school_names_specific[NUM_SCHOOLS + 1] = {
   "No School", //0
   "Abjuration",  //1
@@ -64,6 +64,20 @@ char *school_names_specific[NUM_SCHOOLS + 1] = {
   "Illusion",  //6
   "Necromancy",  //7
   "Transmutation",  //8
+  "\n"
+};
+
+/* description of school benefits */
+char *school_benefits[NUM_SCHOOLS + 1] = {
+  /*no school*/      "No benefits, but you will have access to all spells.", //0
+  /*abjuration*/     "Your abjuration spells are much more powerful.", //1
+  /*Conjuration*/    "Your conjured creatures are much more powerful.", //2
+  /*Divination*/     "Your divination spells become more powerful.", //3
+  /*Enchantment*/    "You can enchant higher level victims, and it is much harder to resist your enchantments.", //4
+  /*Evocation*/      "Do much more damage with your evocation spells.", //5
+  /*Illusion*/       "Your illusion spells are much more powerful.", //6
+  /*Necromancy*/     "You create much more powerful undead.", //7
+  /*Transmutation*/  "Your warding spells (such as iron skin), are much more powerful.", //8
   "\n"
 };
 
