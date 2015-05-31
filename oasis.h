@@ -547,6 +547,8 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn, *red;
 #define STUDY_SET_DOMAINS      26
 #define SET_1ST_DOMAIN         27
 #define SET_2ND_DOMAIN         28
+#define STUDY_SET_SCHOOL       29
+#define SET_SCHOOL             30
 
 
 int save_config(IDXTYPE nowhere);
