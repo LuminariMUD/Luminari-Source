@@ -496,7 +496,7 @@ void list_spells(struct char_data *ch, int mode, int class) {
                 CLASS_LEVEL(ch, class) >= sinfo && spellCircle(class, i, DOMAIN_UNDEFINED) == slot &&
                 GET_SKILL(ch, i)) {
           nlen = snprintf(buf2 + len, sizeof (buf2) - len,
-                  "%-20s %s \tRReady\tn\r\n", spell_info[i].name,
+                  "%-20s %-29s \tRReady\tn\r\n", spell_info[i].name,
                           school_names[spell_info[i].schoolOfMagic]);
           if (len + nlen >= sizeof (buf2) || nlen < 0)
             break;
