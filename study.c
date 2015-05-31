@@ -1342,7 +1342,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
       switch (*arg) {
         case 'q':
         case 'Q':
-          write_to_output(d, "If you save your changes, you will not be able to study again until your next level.\r\n");
+          write_to_output(d, "[DISABLED: You can currently study as much as you want per level] If you save your changes, you will not be able to study again until your next level.\r\n");
           write_to_output(d, "Do you wish to save your changes? : ");
           OLC_MODE(d) = STUDY_CONFIRM_SAVE;
           break;
