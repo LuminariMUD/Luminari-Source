@@ -4283,6 +4283,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       GET_REAL_DEX(mob) += CLASS_LEVEL(ch, CLASS_WIZARD) / 6 + 1;
       GET_REAL_AC(mob) += (CLASS_LEVEL(ch, CLASS_WIZARD) / 6 + 1) * 10;
       GET_REAL_MAX_HIT(mob) += (CLASS_LEVEL(ch, CLASS_WIZARD) / 10 + 1) * GET_LEVEL(mob); /* con bonus */
+      GET_HIT(mob) = GET_REAL_MAX_HIT(mob);
     } else if (GET_SPECIALTY_SCHOOL(ch) == NECROMANCY &&
         ( spellnum == SPELL_ANIMATE_DEAD ||
           spellnum == SPELL_GREATER_ANIMATION ||
@@ -4293,7 +4294,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       GET_REAL_CON(mob) += CLASS_LEVEL(ch, CLASS_WIZARD) / 6 + 1;
       GET_REAL_DEX(mob) += CLASS_LEVEL(ch, CLASS_WIZARD) / 6 + 1;
       GET_REAL_AC(mob) += (CLASS_LEVEL(ch, CLASS_WIZARD) / 6 + 1) * 10;
-      GET_REAL_MAX_HIT(mob) += (CLASS_LEVEL(ch, CLASS_WIZARD) / 10 + 1) * GET_LEVEL(mob); /* con bonus */
+      GET_HIT(mob) = GET_REAL_MAX_HIT(mob);
     }
 
     act(mag_summon_msgs[msg], FALSE, ch, 0, mob, TO_ROOM);
