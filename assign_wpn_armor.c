@@ -900,6 +900,11 @@ void load_weapons(void) {
   setweapon(WEAPON_TYPE_SHURIKEN, "shuriken", 1, 2, 0, 2, WEAPON_FLAG_EXOTIC |
           WEAPON_FLAG_THROWN, 20, DAMAGE_TYPE_PIERCING, 1, 10, WEAPON_FAMILY_MONK, SIZE_SMALL,
           MATERIAL_STEEL, HANDLE_TYPE_GRIP, HEAD_TYPE_BLADE);
+
+  /* mobiles (wildshape) */
+  setweapon(WEAPON_TYPE_NATURAL_WEAPON, "natural weapon", 1, 4, 0, 2, WEAPON_FLAG_EXOTIC, 0,
+          DAMAGE_TYPE_PIERCING | DAMAGE_TYPE_SLASHING, 1, 0, WEAPON_FAMILY_NATURAL, SIZE_SMALL, MATERIAL_ORGANIC,
+          HANDLE_TYPE_GLOVE, HEAD_TYPE_FIST);
 }
 
 /************** ------- ARMOR ----------************************************/

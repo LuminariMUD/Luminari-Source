@@ -1349,6 +1349,7 @@ void newbieEquipment(struct char_data *ch) {
   switch (GET_CLASS(ch)) {
     case CLASS_PALADIN:
     case CLASS_CLERIC:
+    case CLASS_DRUID:
       // holy symbol
 
       obj = read_object(854, VIRTUAL);

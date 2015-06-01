@@ -2165,8 +2165,9 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define WEAPON_FAMILY_POLEARM          13
 #define WEAPON_FAMILY_BOW              14
 #define WEAPON_FAMILY_WHIP             15
+#define WEAPON_FAMILY_NATURAL          16
 
-#define NUM_WEAPON_FAMILIES            16
+#define NUM_WEAPON_FAMILIES            17
 
 /* Armor types */
 #define ARMOR_TYPE_NONE     0
@@ -2334,6 +2335,8 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define WEAPON_TYPE_COMPOSITE_SHORTBOW_5  73
 /**/
 #define NUM_WEAPON_TYPES            74
+/* natural weapons, etc */
+#define WEAPON_TYPE_NATURAL_WEAPON   (NUM_WEAPON_TYPES + 0)
 
 /* different ammo types */
 #define AMMO_TYPE_UNDEFINED             0
