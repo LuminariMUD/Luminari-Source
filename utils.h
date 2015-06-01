@@ -949,6 +949,9 @@ do                                                              \
 #define MIN_SPELL_LVL(spell, chclass, chdomain) (MIN((spell_info[spell].min_level[chclass]), (spell_info[spell].domain[chdomain])))
 /* wizard school of magic specialty */
 #define GET_SPECIALTY_SCHOOL(ch)	CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.specialty_school))
+#define IS_SPECIALTY_SCHOOL(ch, spellnum) (IS_NPC(ch) ? 0 : \
+  GET_SPECIALTY_SCHOOL(ch) == spell_info[spellnum].schoolOfMagic)
+
 #define GET_1ST_RESTRICTED_SCHOOL(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.restricted_school_1))
 #define GET_2ND_RESTRICTED_SCHOOL(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.restricted_school_2))
 #define IS_RESTRICTED_SCHOOL(ch, i) ( GET_1ST_RESTRICTED_SCHOOL(ch) == i || \

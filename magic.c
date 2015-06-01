@@ -4271,25 +4271,8 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob) += 2 * GET_LEVEL(mob); /* con bonus */
     }
 
-    if (GET_SPECIALTY_SCHOOL(ch) == CONJURATION &&
-        ( spellnum != SPELL_ANIMATE_DEAD &&
-          spellnum != SPELL_GREATER_ANIMATION &&
-          spellnum != SPELL_MUMMY_DUST &&
-          spellnum != SPELL_DRAGON_KNIGHT )
-        ) {
-      send_to_char(ch, "*conjurer* ");
-      GET_REAL_STR(mob) = (mob)->aff_abils.str += CLASS_LEVEL(ch, CLASS_WIZARD) / 6 + 1;
-      GET_REAL_CON(mob) = (mob)->aff_abils.con += CLASS_LEVEL(ch, CLASS_WIZARD) / 6 + 1;
-      GET_REAL_DEX(mob) = (mob)->aff_abils.dex += CLASS_LEVEL(ch, CLASS_WIZARD) / 6 + 1;
-      GET_REAL_AC(mob) = (mob)->points.armor += (CLASS_LEVEL(ch, CLASS_WIZARD) / 6 + 1) * 10;
-      GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob) += (CLASS_LEVEL(ch, CLASS_WIZARD) / 10 + 1) * GET_LEVEL(mob); /* con bonus */
-      GET_HIT(mob) = GET_MAX_HIT(mob);
-    } else if (GET_SPECIALTY_SCHOOL(ch) == NECROMANCY &&
-        ( spellnum == SPELL_ANIMATE_DEAD ||
-          spellnum == SPELL_GREATER_ANIMATION ||
-          spellnum == SPELL_MUMMY_DUST )
-         ) {
-      send_to_char(ch, "*necromancer* ");
+    if (IS_SPECIALTY_SCHOOL(ch, spellnum)) {
+      send_to_char(ch, "*specialist* ");
       GET_REAL_STR(mob) = (mob)->aff_abils.str += CLASS_LEVEL(ch, CLASS_WIZARD) / 6 + 1;
       GET_REAL_CON(mob) = (mob)->aff_abils.con += CLASS_LEVEL(ch, CLASS_WIZARD) / 6 + 1;
       GET_REAL_DEX(mob) = (mob)->aff_abils.dex += CLASS_LEVEL(ch, CLASS_WIZARD) / 6 + 1;
