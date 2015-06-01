@@ -91,11 +91,13 @@ ACMD(do_oasis_redit)
   }
 
   /* dummy check, we can't redit the dynamic vnums in wilderness */
+  /*
   if (real_room(number) != NOWHERE && IS_DYNAMIC(real_room(number))) {
     send_to_char(ch, "Dynamic Wilderness rooms cannot be editted, please use "
             "buildwalk, then redit those rooms created with buildwalk.\r\n");
     return;
   }
+  */
 
   /* Retrieve the player's descriptor. */
   d = ch->desc;
