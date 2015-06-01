@@ -1632,11 +1632,10 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_ETH_SHIFT                      444
 #define FEAT_BATTLE_RAGE                    445
 #define FEAT_WEAPON_EXPERT                  446
-#define FEAT_NATURAL_ATTACK                  447
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT                      448
+#define FEAT_LAST_FEAT                      447
 /** feat_last_feat + 1 ***/
-#define NUM_FEATS                           449
+#define NUM_FEATS                           448
 /*****/
 #define MAX_FEATS                           750
 /*****/
@@ -2166,9 +2165,8 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define WEAPON_FAMILY_POLEARM          13
 #define WEAPON_FAMILY_BOW              14
 #define WEAPON_FAMILY_WHIP             15
-#define WEAPON_FAMILY_NATURAL          16
 
-#define NUM_WEAPON_FAMILIES            17
+#define NUM_WEAPON_FAMILIES            16
 
 /* Armor types */
 #define ARMOR_TYPE_NONE     0
@@ -2336,8 +2334,6 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define WEAPON_TYPE_COMPOSITE_SHORTBOW_5  73
 /**/
 #define NUM_WEAPON_TYPES            74
-/* natural weapons, etc */
-#define WEAPON_TYPE_NATURAL_WEAPON   (NUM_WEAPON_TYPES + 0)
 
 /* different ammo types */
 #define AMMO_TYPE_UNDEFINED             0

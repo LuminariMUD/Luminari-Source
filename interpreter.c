@@ -316,7 +316,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "levels", "lev", POS_DEAD, do_levels, 0, 0, TRUE, ACTION_NONE, {0, 0}},
   { "list", "lis", POS_STANDING, do_not_here, 0, 0, FALSE, ACTION_NONE, {0, 0}},
   { "listen", "listen", POS_STANDING, do_listen, 1, 0, FALSE, ACTION_NONE, {0, 0}},
-  { "links", "lin", POS_STANDING, do_links, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}},
+  { "links", "lin", POS_STANDING, do_links, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}},
   { "lock", "loc", POS_SITTING, do_gen_door, 0, SCMD_LOCK, FALSE, ACTION_NONE, {0, 0}},
   { "load", "load", POS_DEAD, do_load, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},
   { "lore", "lore", POS_RESTING, do_lore, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
