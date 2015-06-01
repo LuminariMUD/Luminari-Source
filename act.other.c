@@ -1912,19 +1912,15 @@ void set_bonus_stats(struct char_data *ch, int str, int con, int dex, int ac) {
 
   af[0].location = APPLY_STR;
   af[0].modifier = str;
-  af[0].bonus_type = BONUS_TYPE_RACIAL;
 
   af[1].location = APPLY_DEX;
   af[1].modifier = dex;
-  af[1].bonus_type = BONUS_TYPE_RACIAL;
 
   af[2].location = APPLY_CON;
   af[2].modifier = con;
-  af[2].bonus_type = BONUS_TYPE_RACIAL;
 
   af[3].location = APPLY_AC_NEW;
   af[3].modifier = ac;
-  af[3].bonus_type = BONUS_TYPE_RACIAL;
 
   for (i = 0; i < WILDSHAPE_AFFECTS; i++)
     affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);
@@ -1932,86 +1928,6 @@ void set_bonus_stats(struct char_data *ch, int str, int con, int dex, int ac) {
   return;
 }
 #undef WILDSHAPE_AFFECTS
-
-void set_wildshape_feats(struct char_data *ch) {
-  if (!ch) return;
-  if (!HAS_FEAT(ch, FEAT_WILD_SHAPE)) return;
-  if (!AFF_FLAGGED(ch, AFF_WILD_SHAPE)) return;
-  if (!GET_DISGUISE_RACE(ch)) return;
-
-  int level = CLASS_LEVEL(ch, CLASS_DRUID);
-  /*todo: shapeshifter variable representing total levels of shapeshifting
-   classes you have (YEEEEEAH shapeshifter prestige class!) */
-
-  switch (GET_SIZE(ch)) {
-    case SIZE_SMALL:
-      MOB_SET_FEAT(ch, FEAT_COMBAT_REFLEXES, 1);
-      MOB_SET_FEAT(ch, FEAT_DODGE, 1);
-      break;
-    case SIZE_LARGE:
-      MOB_SET_FEAT(ch, FEAT_UNARMED_STRIKE, 1);
-      MOB_SET_FEAT(ch, FEAT_IMPROVED_UNARMED_STRIKE, 1);
-      break;
-    case SIZE_HUGE:
-      MOB_SET_FEAT(ch, FEAT_IMPROVED_UNARMED_STRIKE, 1);
-      MOB_SET_FEAT(ch, FEAT_CLEAVE, 1);
-      break;
-    case SIZE_TINY:
-      MOB_SET_FEAT(ch, FEAT_EVASION, 1);
-      MOB_SET_FEAT(ch, FEAT_IMPROVED_EVASION, 1);
-      MOB_SET_FEAT(ch, FEAT_IMPROVED_INITIATIVE, 1);
-      break;
-
-    case SIZE_MEDIUM:
-      MOB_SET_FEAT(ch, FEAT_IRON_WILL, 1);
-      MOB_SET_FEAT(ch, FEAT_LIGHTNING_REFLEXES, 1);
-      MOB_SET_FEAT(ch, FEAT_GREAT_FORTITUDE, 1);
-      break;
-
-      /* not currently accessable */
-    case SIZE_DIMINUTIVE:
-      break;
-    case SIZE_FINE:
-      break;
-    case SIZE_GARGANTUAN:
-      break;
-    case SIZE_COLOSSAL:
-      break;
-    default:break;
-  }
-
-  switch (race_list[GET_DISGUISE_RACE(ch)].family) {
-    case RACE_TYPE_ANIMAL:
-      MOB_SET_FEAT(ch, FEAT_RAGE, 1);
-      break;
-    case RACE_TYPE_PLANT:
-      MOB_SET_FEAT(ch, FEAT_BLIND_FIGHT, 1);
-      MOB_SET_FEAT(ch, FEAT_IMPROVED_GRAPPLE, 1);
-      break;
-    case RACE_TYPE_ELEMENTAL:
-      MOB_SET_FEAT(ch, FEAT_BLINDING_SPEED, 1);
-      break;
-    default:break;
-  }
-
-  /* ALL fallthrough */
-  switch (level) {
-    case 30:case 29:case 28:
-    case 27:case 26:case 25:
-    case 24:case 23:case 22:
-    case 21:case 20:case 19:
-    case 18:case 17:case 16:
-    case 15:case 14:case 13:
-    case 12:case 11:case 10:
-    case 9:case 8:case 7:
-    case 6:case 5:case 4:
-    case 3:case 2:case 1:
-    default:break;
-  }
-
-  /*finished*/
-  return;
-}
 
 /* wildshape, in progress -Zusuk */
 ACMD(do_wildshape) {
@@ -2039,8 +1955,6 @@ ACMD(do_wildshape) {
   }
 
   if (!strcmp(argument, "return")) {
-    int counter = 0;
-
     if (!AFF_FLAGGED(ch, AFF_WILD_SHAPE)) {
       send_to_char(ch, "You are not wild shaped.\r\n");
       return;
@@ -2048,8 +1962,6 @@ ACMD(do_wildshape) {
 
     /* cleanup bonuses */
     affect_from_char(ch, SKILL_WILDSHAPE);
-    for (counter = 0; counter < NUM_FEATS; counter++)
-      MOB_SET_FEAT(ch, counter, 0);
 
     /* stat modifications are cleaned up in affect_total() */
     GET_DISGUISE_RACE(ch) = 0;
@@ -2103,7 +2015,6 @@ ACMD(do_wildshape) {
   //                     abil_mods->dexterity, abil_mods->natural_armor);
   set_bonus_stats(ch, abil_mods->strength, abil_mods->constitution,
                        abil_mods->dexterity, abil_mods->natural_armor);
-  set_wildshape_feats(ch);
   /* all stat modifications are done */
   for (counter = 0; counter < NUM_FEATS; counter++)
     MOB_SET_FEAT((ch), counter, 0);
