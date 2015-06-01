@@ -203,6 +203,11 @@ int mag_savingthrow(struct char_data *ch, struct char_data *vict,
     //send_to_char(ch, "Bingo 2!\r\n");
     challenge += 2;
   }
+  if (!IS_NPC(ch) && GET_SPECIALTY_SCHOOL(ch) == school) {
+    /*deubg*/
+    send_to_char(ch, "Bingo 3!\r\n");
+    challenge += 2;
+  }
 
   if (AFF_FLAGGED(vict, AFF_PROTECT_GOOD) && IS_GOOD(ch))
     savethrow += 2;
