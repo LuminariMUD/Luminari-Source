@@ -953,7 +953,7 @@ do                                                              \
 #define GET_2ND_RESTRICTED_SCHOOL(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.restricted_school_2))
 #define IS_RESTRICTED_SCHOOL(ch, i) ( GET_1ST_RESTRICTED_SCHOOL(ch) == i || \
                                       GET_2ND_RESTRICTED_SCHOOL(ch) == i )
-#define IS_SPECIALTY_SPELL(ch, spellnum) (GET_SPECIALTY_SCHOOL(ch) == \
+#define IS_SPECIALTY_SPELL(ch, spellnum) (IS_NPC(ch) ? 0 : GET_SPECIALTY_SCHOOL(ch) == \
                                 spell_info[spellnum].schoolOfMagic)
 
 

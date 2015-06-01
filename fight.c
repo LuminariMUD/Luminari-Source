@@ -3166,7 +3166,9 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
 
   //just information mode
   if (mode == MODE_DISPLAY_PRIMARY) {
-    if (!GET_EQ(ch, WEAR_WIELD_1) && !GET_EQ(ch, WEAR_WIELD_2H)) {
+    if (AFF_FLAGGED(ch, AFF_WILD_SHAPE) && GET_DISGUISE_RACE(ch)) {
+      send_to_char(ch, "Natural Attacks\r\n");
+    } else if (!GET_EQ(ch, WEAR_WIELD_1) && !GET_EQ(ch, WEAR_WIELD_2H)) {
       send_to_char(ch, "Bare-hands\r\n");
     } else {
       if (GET_EQ(ch, WEAR_WIELD_2H))
@@ -3176,7 +3178,9 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
       show_obj_to_char(wielded, ch, SHOW_OBJ_SHORT, 0);
     }
   } else if (mode == MODE_DISPLAY_OFFHAND) {
-    if (is_using_double_weapon(ch)) {
+    if (AFF_FLAGGED(ch, AFF_WILD_SHAPE) && GET_DISGUISE_RACE(ch)) {
+      send_to_char(ch, "Natural Attacks\r\n");
+    } else if (is_using_double_weapon(ch)) {
       show_obj_to_char(GET_EQ(ch, WEAR_WIELD_2H), ch, SHOW_OBJ_SHORT, 0);
     } else if (!GET_EQ(ch, WEAR_WIELD_OFFHAND)) {
       send_to_char(ch, "Bare-hands\r\n");
@@ -3199,9 +3203,13 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
     show_obj_to_char(obj, ch, SHOW_OBJ_SHORT, 0);
     diceOne = GET_OBJ_VAL(obj, 1);
     diceTwo = GET_OBJ_VAL(ammo_pouch->contains, 1);
+  } else if (AFF_FLAGGED(ch, AFF_WILD_SHAPE) && GET_DISGUISE_RACE(ch)) { //wildshape
+    diceOne = HAS_FEAT(ch, FEAT_NATURAL_ATTACK);
+    diceTwo = 4;
   } else { //barehand
     compute_barehand_dam_dice(ch, &diceOne, &diceTwo);
   }
+
   if (mode == MODE_DISPLAY_PRIMARY ||
       mode == MODE_DISPLAY_OFFHAND ||
       mode == MODE_DISPLAY_RANGED) {
@@ -3267,7 +3275,8 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
 
   /* redundancy necessary due to sometimes arriving here without going through
    * hit()*/
-  if (attack_type == ATTACK_TYPE_UNARMED)
+  if (attack_type == ATTACK_TYPE_UNARMED ||
+      (AFF_FLAGGED(ch, AFF_WILD_SHAPE) && GET_DISGUISE_RACE(ch)))
     wielded = NULL;
   else
     wielded = get_wielded(ch, attack_type);
@@ -4343,7 +4352,13 @@ int determine_weapon_type(struct char_data *ch, struct char_data *victim,
     else
       w_type = GET_OBJ_VAL(wielded, 3) + TYPE_HIT;
 
-  } else { /* mobile messages or unarmed */
+  } else if (AFF_FLAGGED(ch, AFF_WILD_SHAPE) && GET_DISGUISE_RACE(ch)) {
+    w_type_array[0] = TYPE_BITE;
+    w_type_array[1] = TYPE_CRUSH;
+    w_type_array[2] = TYPE_CLAW;
+    w_type_array[3] = TYPE_MAUL;
+    w_type = w_type_array[rand_number(0, 3)];
+  } else {/* mobile messages or unarmed */
     if (IS_NPC(ch) && ch->mob_specials.attack_type != 0)
       w_type = ch->mob_specials.attack_type + TYPE_HIT; // We are a mob, and we have an attack type, so use that.
     else
@@ -4771,6 +4786,12 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
   struct obj_data *wielded = get_wielded(ch, attack_type); /* Wielded weapon for this hand (uses offhand) */
   /*if (GET_EQ(ch, WEAR_WIELD_2H) && attack_type != ATTACK_TYPE_RANGED)
     attack_type = ATTACK_TYPE_TWOHAND;*/
+
+  /* wildshaped! */
+  if (AFF_FLAGGED(ch, AFF_WILD_SHAPE) && GET_DISGUISE_RACE(ch)) {
+    attack_type = ATTACK_TYPE_UNARMED;
+    wielded = NULL;
+  }
 
   /* First - check the attack queue.  If we have a queued attack, dispatch!
     The attack queue should be more tightly integrated into the combat system.  Basically,
