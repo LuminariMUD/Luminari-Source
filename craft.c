@@ -1793,11 +1793,13 @@ EVENTFUNC(event_crafting) {
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
         sprintf(buf, "$n creates $p%s.", buf2);
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
+        /*
         if (GET_GOLD(ch) < (GET_OBJ_COST(GET_CRAFTING_OBJ(ch)) / 4)) {
           GET_BANK_GOLD(ch) -= GET_OBJ_COST(GET_CRAFTING_OBJ(ch)) / 4;
         } else {
           GET_GOLD(ch) -= GET_OBJ_COST(GET_CRAFTING_OBJ(ch)) / 4;
         }
+        */
         break;
       case SCMD_AUGMENT:
         // use to be part of crafting
