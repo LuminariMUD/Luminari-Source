@@ -179,11 +179,11 @@ ACMD(do_dig)
   rrnum = real_room(rvnum);
 
   /* wilderness dyanmic room dummy checks */
-  if (IS_DYNAMIC(IN_ROOM(ch))) {
+  if (real_room(IN_ROOM(ch)) != NOWHERE && IS_DYNAMIC(IN_ROOM(ch))) {
     send_to_char(ch, "You cannot use the 'dig' command from a dynamic room.\r\n");
     return;
   }
-  if (IS_DYNAMIC(rrnum)) {
+  if (real_room(rrnum) != NOWHERE && IS_DYNAMIC(rrnum)) {
     send_to_char(ch, "You cannot use the 'dig' command to a dynamic room.\r\n");
     return;
   }
