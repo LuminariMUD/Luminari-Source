@@ -1632,10 +1632,11 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_ETH_SHIFT                      444
 #define FEAT_BATTLE_RAGE                    445
 #define FEAT_WEAPON_EXPERT                  446
+#define FEAT_NATURAL_ATTACK                  447
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT                      447
+#define FEAT_LAST_FEAT                      448
 /** feat_last_feat + 1 ***/
-#define NUM_FEATS                           448
+#define NUM_FEATS                           449
 /*****/
 #define MAX_FEATS                           750
 /*****/
