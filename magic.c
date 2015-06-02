@@ -205,7 +205,7 @@ int mag_savingthrow(struct char_data *ch, struct char_data *vict,
   }
   if (!IS_NPC(ch) && GET_SPECIALTY_SCHOOL(ch) == school) {
     /*deubg*/
-    send_to_char(ch, "Bingo 3!\r\n");
+    //send_to_char(ch, "Bingo 3!\r\n");
     challenge += 2;
   }
 

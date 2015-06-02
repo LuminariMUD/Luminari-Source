@@ -1664,7 +1664,7 @@ ACMD(do_hit) {
         /* ch is taking an action so loses the Flat-footed flag */
         if (AFF_FLAGGED(ch, AFF_FLAT_FOOTED))
           REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLAT_FOOTED);
-        set_fighting(ch, vict);
+        //set_fighting(ch, vict);
         hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE); /* ch first */
       } else {
 
@@ -1679,7 +1679,7 @@ ACMD(do_hit) {
         if (AFF_FLAGGED(vict, AFF_FLAT_FOOTED))
           REMOVE_BIT_AR(AFF_FLAGS(vict), AFF_FLAT_FOOTED);
 
-        set_fighting(vict, ch);
+        //set_fighting(vict, ch);
 
         hit(vict, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE); // victim is first
         update_pos(ch);
@@ -1701,7 +1701,7 @@ ACMD(do_hit) {
       send_to_char(ch, "You switch opponents!\r\n");
       act("$n switches opponents!", FALSE, ch, 0, vict, TO_ROOM);
 
-      set_fighting(ch, vict);
+      //set_fighting(ch, vict);
 
       hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
 
