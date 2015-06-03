@@ -2065,6 +2065,9 @@ bool char_has_infra(struct char_data *ch) {
   if (AFF_FLAGGED(ch, AFF_INFRAVISION))
     return TRUE;
 
+  if (HAS_FEAT(ch, FEAT_INFRAVISION))
+    return TRUE;
+
   if (GET_RACE(ch) == RACE_ELF)
     return TRUE;
   if (GET_RACE(ch) == RACE_DWARF)
@@ -2084,6 +2087,9 @@ bool char_has_infra(struct char_data *ch) {
 /* simple test to check if the given ch has ultra (perfect dark vision) */
 bool char_has_ultra(struct char_data *ch) {
   if (AFF_FLAGGED(ch, AFF_ULTRAVISION))
+    return TRUE;
+
+  if (HAS_FEAT(ch, FEAT_ULTRAVISION))
     return TRUE;
 
   if (GET_RACE(ch) == RACE_HALF_TROLL)

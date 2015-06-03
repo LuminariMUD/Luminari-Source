@@ -88,7 +88,7 @@ bool has_combat_feat(struct char_data *ch, int cfeat, int compare) {
   return FALSE;
 }
 
-/* checks if ch has feat (compare) as one of his/her spells (school) feats (sfeat) */
+/* checks if ch has feat (compare) as one of his/her spells (school) feats (sfeat) [unfinished] */
 /*
 bool has_spell_feat(struct char_data *ch, int sfeat, int school) {
   if (ch->desc && LEVELUP(ch)) {
@@ -328,21 +328,85 @@ void assign_feats(void) {
   /******/
   /* Racial ability feats */
 
-  /* Elf */
-  feato(FEAT_WEAPON_PROFICIENCY_ELF, "weapon proficiency - elves", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "gain bonus weapon proficiency",
-    "As part of your elf upbringing, you were trained in the usage of long swords, "
-          "rapiers, long bows, composite bows, short bows and composite short bows.");
+  /* Human */
+  feato(FEAT_QUICK_TO_MASTER, "quick to master", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "extra starting feat",
+    "You start off with an extra feat.");
+  feato(FEAT_SKILLED, "skilled", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "gain bonus skill point",
+    "4 extra skill points at 1st level, plus 1 additional skill point at each level up");
 
-  /* Crystal Dwarf */
-  feato(FEAT_CRYSTAL_BODY, "crystal body", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "damage reduction 3/- temporarily",
-    "Allows you to harden your crystal-like body for a short time. "
-          "(Damage reduction 3/-)");
-  feato(FEAT_CRYSTAL_FIST, "crystal fist", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "melee +3 damage temporarily",
-    "Allows you to innately grow jagged and sharp crystals on your arms and legs "
-          "to enhance damage in melee. (+3 damage)");
+  /* Dwarf */
+  feato(FEAT_SPELL_HARDINESS, "hardiness", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "+2 spell save versus damaging spells",
+    "+2 spell save versus damaging spells");
+  feato(FEAT_DWARF_RACIAL_ADJUSTMENT, "dwarf racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "+2 con -2 cha",
+    "As a racial adjustment you have +2 to constitution and -2 to charisma");
+
+  /* Halfling */
+  feato(FEAT_SHADOW_HOPPER, "shadow hopper", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "+2 to stealth",
+    "+2 to stealth");
+  feato(FEAT_LUCKY, "lucky", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "+1 bonus to all saves",
+    "+1 bonus to all saves");
+  feato(FEAT_HALFLING_RACIAL_ADJUSTMENT, "halfling racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "+2 dex -2 str",
+    "You gain +2 to dexterity and -2 strength as racial stat adjustments.");
+
+  /* Half-Elf */
+  feato(FEAT_HALF_BLOOD, "half blood", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "+2 discipline and lore",
+    "+2 discipline and lore");
+
+  /* Half-Orc */
+  feato(FEAT_HALF_ORC_RACIAL_ADJUSTMENT, "halforc racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "+2 str, -2 int/cha",
+    "Half-Orcs as a racial adjustment have +2 strength and -2 intelligence/charisma.");
+
+  /* Gnome */
+  feato(FEAT_RESISTANCE_TO_ILLUSIONS, "resistance to illusions", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "+2 saving throw bonus against illusions",
+    "+2 saving throw bonus against illusions");
+  feato(FEAT_ILLUSION_AFFINITY, "illusion affinity", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "+2 DC opponents saves versus their illusions",
+    "+2 DC opponents saves versus their illusions");
+  feato(FEAT_TINKER_FOCUS, "tinker focus", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "+2 concentration and use magic device",
+    "+2 concentration and use magic device");
+  feato(FEAT_GNOME_RACIAL_ADJUSTMENT, "gnome racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "+2 con -2 str",
+    "Gnomes as a racial adjustment have +2 constitution and -2 strength.");
+
+  /* Elf */
+  feato(FEAT_SLEEP_ENCHANTMENT_IMMUNITY, "sleep enchantment immunity", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "immunity to sleep enchantments",
+    "immunity to sleep enchantments");
+  feato(FEAT_ELF_RACIAL_ADJUSTMENT, "elf racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "+2 dex -2 con",
+    "Elven racial adjustment to stats are: +2 dexterity -2 constitution.");
+
+  /* Half-Troll */
+  feato(FEAT_TROLL_REGENERATION, "troll regeneration", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "rapid health regeneration",
+    "Half-Trolls recover health much quicker than other races, and this effect is even more dramatic during combat.");
+  feato(FEAT_WEAKNESS_TO_FIRE, "weakness to fire", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "50 percent vulnerability to fire",
+    "50 percent vulnerability to fire");
+  feato(FEAT_WEAKNESS_TO_ACID, "weakness to acid", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "25 percent vulnerability to acid",
+    "25 percent vulnerability to acid");
+  feato(FEAT_STRONG_AGAINST_POISON, "strong against poison", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "25 percent resist poison",
+    "25 percent resist poison");
+  feato(FEAT_STRONG_AGAINST_DISEASE, "strong against disease", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "50 percent resist disease",
+    "50 percent resist disease");
+  feato(FEAT_HALF_TROLL_RACIAL_ADJUSTMENT, "halftroll racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "+2 str/dex/con -4 int/wis/cha",
+    "As racial stat adjustments Half-Trolls get: +2 to strength/dexterity/constitution and -4 to intelligence/wisdom/charisma.");
+
 
   /* Arcana Golem */
   feato(FEAT_SPELLBATTLE, "spellbattle", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
@@ -363,14 +427,102 @@ void assign_feats(void) {
           "in it. The surge of energy is not easily turned off.  You cannot use "
           "Spell-Battle at the same time you use Power Attack, Combat Expertise, "
           "or similar effects");
+  feato(FEAT_SPELL_VULNERABILITY, "spell vulnerability", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    " -2 damaging spell saves",
+    "You get a -2 penalty to all spell saves involving damage.");
+  feato(FEAT_ENCHANTMENT_VULNERABILITY, "enchantment vulnerability", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "-2 enchantment saves",
+    "You get a -2 penalty to all enchantment spells saves.");
+  feato(FEAT_PHYSICAL_VULNERABILITY, "physical vulnerability", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    " -2 penalty to AC",
+    "You get a -2 penalty to your natural armor class value.");
+  feato(FEAT_MAGICAL_HERITAGE, "magical heritage", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "strong connection to magic",
+    "Arcana Golem gain a 6th of their level as bonus to Caster-Level, Spellcraft Checks and Concentration Checks.");
+  feato(FEAT_ARCANA_GOLEM_RACIAL_ADJUSTMENT, "arcanagolem racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "-2 con/str, +2 int/wis/cha",
+    "Arcana Golem natural racial adjustment to stats are: -2 constitution/strength, +2 intelligence/wisdom/charisma.");
+
+
+  /* Crystal Dwarf */
+  feato(FEAT_CRYSTAL_BODY, "crystal body", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "damage reduction 3/- temporarily",
+    "Allows you to harden your crystal-like body for a short time. "
+          "(Damage reduction 3/-)");
+  feato(FEAT_CRYSTAL_FIST, "crystal fist", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "melee +3 damage temporarily",
+    "Allows you to innately grow jagged and sharp crystals on your arms and legs "
+          "to enhance damage in melee. (+3 damage)");
+  feato(FEAT_CRYSTAL_SKIN, "crystal skin", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "gain some resistances",
+    "10 percent resistance to acid, puncture, poison and disease");
+  feato(FEAT_CRYSTAL_DWARF_RACIAL_ADJUSTMENT, "crystaldwarf racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "+4 con, +2 str, +2 wis, +2 cha",
+    "As a natural racial bonus, crystal-dwarves start with +4 constituion, +2 to strength, wisdom and charisma.");
+
+  /* Trelux */
+  feato(FEAT_VULNERABLE_TO_COLD, "vulnerable to cold", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "20 percent weakness to cold attacks",
+    "20 percent weakness to cold attacks");
+  feato(FEAT_TRELUX_EXOSKELETON, "trelux exoskeleton", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "resistances and natural armor bonus",
+    "Trelux have an extremely strong exoskeleton that gets harder as they mature. "
+          "(They gain +1 AC-bonus every 5 levels)  Also the exoskeleton grants "
+          "resistance to all damage forms except cold.");
+  feato(FEAT_LEAP, "leap", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "20 percent damage avoidance",
+    "Leap is a Trelux ability to completely avoid attacks 20% of the time by "
+          "leaping away from danger with their powerful insect-like legs.");
+  feato(FEAT_WINGS, "wings", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "able to fly",
+    "Commands: 'fly' and 'land'  Those with wings are able to fly at will.");
+  feato(FEAT_TRELUX_EQ, "trelux eq", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "can't use some eq slots",
+    "Due to their pincer-like hands, Trelux cannot wield weapons, hold items, wear "
+          "gloves or wear rings.  Also due to their insect-like legs, Trelux cannot "
+          "wear items on their legs and feet.");
+  feato(FEAT_TRELUX_PINCERS, "trelux pincers", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "trelux natural pincer weapon",
+    "Trelux don't have hands, they have insect-like pincers.  These pincers can "
+          "be used as dangerous weapons.  Trelux Monks gain an extra dice of damage "
+          "due to these pincers.  Also, Trelux pincers have a chance of poisoning "
+          "their victim.");
+  feato(FEAT_TRELUX_RACIAL_ADJUSTMENT, "trelux racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "+4 dex, +2 str, +4 con",
+    "As racial modifiers, Trelux gain 4 dexterity, 2 strength and 4 constitution as a natural starting bonus.");
 
   /* Shared - Various */
-  feato(FEAT_DARKVISION, "darkvision", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "ask staff",
-    "ask staff");
-  feato(FEAT_LOW_LIGHT_VISION, "low light vision", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "can see in the dark outside only",
-    "can see in the dark outside only");
+  feato(FEAT_KEEN_SENSES, "keen senses", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "+2 perception and sense motive",
+    "+2 perception and sense motive");
+  feato(FEAT_WEAPON_PROFICIENCY_ELF, "weapon proficiency - elves", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "gain bonus weapon proficiency",
+    "As part of your elf upbringing, you were trained in the usage of long swords, "
+          "rapiers, long bows, composite bows, short bows and composite short bows.");
+  feato(FEAT_ULTRAVISION, "ultravision", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "you can see perfectly even in complete dark",
+    "you can see perfectly even in complete dark");
+  feato(FEAT_INFRAVISION, "infravision", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "you can see outlines of life in complete dark",
+    "you can see outlines of life in complete dark");
+  feato(FEAT_COMBAT_TRAINING_VS_GIANTS, "combat training vs giants", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "+1 size bonus versus larger opponents",
+    "+1 size bonus versus larger opponents");
+  feato(FEAT_POISON_RESIST, "poison resist", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "+2 saves versus poison",
+    "+2 saves versus poison");
+  feato(FEAT_VITAL, "vital", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "start with +10 hps",
+    "start with +10 hps");
+  feato(FEAT_HARDY, "hardy", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "gain an extra hit point per level",
+    "gain an extra hit point per level");
+  feato(FEAT_RESISTANCE_TO_ENCHANTMENTS, "resistance to enchantments", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "+2 saving throw bonus against enchantments",
+    "+2 saving throw bonus against enchantments");
+  feato(FEAT_STABILITY, "stability", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "+4 resist to bash and trip skill",
+    "+4 resist to bash and trip skill");
 
   /* End Racial ability feats */
 
@@ -1673,9 +1825,7 @@ void assign_feats(void) {
 
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
 
-  /* probably don't want in game at this stage */feato(FEAT_LEADERSHIP_BONUS, "improved leadership", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
   feato(FEAT_IMPROVED_OVERRUN, "improved overrun", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
-  feato(FEAT_HEROIC_INITIATIVE, "heroic initiative", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "bonus to initiative checks", "bonus to initiative checks");
   feato(FEAT_QUICK_DRAW, "quick draw", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
   feato(FEAT_SHOT_ON_THE_RUN, "shot on the run", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
   feato(FEAT_COMBAT_CHALLENGE, "combat challenge", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "allows you to make a mob focus their attention on you", "allows you to make a mob focus their attention on you");
@@ -1691,11 +1841,7 @@ void assign_feats(void) {
   feato(FEAT_MONKEY_GRIP, "monkey grip", FALSE, TRUE, TRUE, FEAT_TYPE_GENERAL, "can wield weapons one size larger than wielder in one hand with -2 to attacks.", "can wield weapons one size larger than wielder in one hand with -2 to attacks.");
   feato(FEAT_IMPROVED_INSTIGATION, "improved instigation", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
   feato(FEAT_DIEHARD, "diehard", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "will stay alive and conscious until -10 hp or lower", "will stay alive and conscious until -10 hp or lower");
-  feato(FEAT_RUN, "run", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
-  feato(FEAT_LEADERSHIP, "leadership", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "can have more and higher level followers, group members get extra exp on kills and hit/ac bonuses", "can have more and higher level followers, group members get extra exp on kills and hit/ac bonuses");
-  feato(FEAT_HONORBOUND, "honorbound", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "+2 to saving throws against fear or compulsion effects, +2 to sense motive checks", "+2 to saving throws against fear or compulsion effects, +2 to sense motive checks");
   feato(FEAT_STEADFAST_DETERMINATION, "steadfast determination", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "allows you to use your con bonus instead of your wis bonus for will saves", "allows you to use your con bonus instead of your wis bonus for will saves");
-  feato(FEAT_WEAPON_PROFICIENCY_BASTARD_SWORD, "weapon proficiency - bastard sword", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
 
   /* artisan */
   feato(FEAT_LEARNED_CRAFTER, "learned crafter", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Artisan gains exp for crafting items and harvesting", "Artisan gains exp for crafting items and harvesting");
@@ -1765,43 +1911,25 @@ void assign_feats(void) {
   feato(FEAT_SNEAK_ATTACK_OF_OPPORTUNITY, "sneak attack of opportunity", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "makes all opportunity attacks sneak attacks", "makes all opportunity attacks sneak attacks");
 
   /* knight of the rose (dragonlance) */
-  feato(FEAT_FINAL_STAND, "final stand", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_KNIGHTHOODS_FLOWER, "knighthood's flower", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
   feato(FEAT_RALLYING_CRY, "rallying cry", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_WISDOM_OF_THE_MEASURE, "wisdom of the measure", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
 
   /* knight of the sword */
-  feato(FEAT_SOUL_OF_KNIGHTHOOD, "soul of knighthood", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
 
   /* knight of the crown (dragonlance) */
   feato(FEAT_HONORABLE_WILL, "honorable will", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_CROWN_OF_KNIGHTHOOD, "crown of knighthood", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_KNIGHTLY_COURAGE, "knightly courage", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "bonus to fear checks", "bonus to fear checks");
-  feato(FEAT_MIGHT_OF_HONOR, "might of honor", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_STRENGTH_OF_HONOR, "strength of honor", FALSE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY, "+4 to strength for several rounds", "+4 to strength for several rounds");
 
   /* knight of the crown / knight of the lily [SHARED] (dragonlance) */
   feato(FEAT_ARMORED_MOBILITY, "armored mobility", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "heavy armor is treated as medium armor", "heavy armor is treated as medium armor");
 
   /* knight of the lily (dragonlance) */
-  feato(FEAT_DEMORALIZE, "demoralize", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_ONE_THOUGHT, "one thought", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
   feato(FEAT_UNBREAKABLE_WILL, "unbreakable will", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
 
   /* knight of the thorn (dragonlance) */
-  feato(FEAT_COSMIC_UNDERSTANDING, "cosmic understanding", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_AURA_OF_TERROR, "aura of terror", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_DIVINER, "diviner", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_READ_OMENS, "read omens", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_READ_PORTENTS, "read portents", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_WEAPON_TOUCH, "weapon touch", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
 
   /* knight of the skull (dragonlance) */
   feato(FEAT_DARK_BLESSING, "dark blessing", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
   feato(FEAT_AURA_OF_EVIL, "aura of evil", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
   feato(FEAT_DETECT_GOOD, "detect good", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_DISCERN_LIES, "discern lies", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_FAVOR_OF_DARKNESS, "favor of darkness", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
 
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
 
@@ -2480,10 +2608,6 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
           return TRUE;
         return FALSE;
 
-      case FEAT_WEAPON_PROFICIENCY_BASTARD_SWORD:
-        if (BAB(ch) >= 1)
-          return TRUE;
-        return FALSE;
 
       case FEAT_IMPROVED_DISARM:
         if (has_feat(ch, FEAT_COMBAT_EXPERTISE) &&
@@ -3171,17 +3295,6 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         } else {
           sprintf(buf3, "%s (%dd8 dmg|%dx/day)", feat_list[i].name, has_feat(ch, FEAT_BREATH_WEAPON), HAS_FEAT(ch, FEAT_BREATH_WEAPON));
-          sprintf(buf, "%-40s ", buf3);
-        }
-        strcat(buf2, buf);
-        none_shown = FALSE;
-
-      } else if (i == FEAT_LEADERSHIP) {
-        if (mode == 1) {
-          sprintf(buf3, "%s (+%d%% group exp)", feat_list[i].name, 5 * (1 + has_feat(ch, FEAT_LEADERSHIP)));
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
-        } else {
-          sprintf(buf3, "%s (+%d%% group exp)", feat_list[i].name, 5 * (1 + has_feat(ch, FEAT_LEADERSHIP)));
           sprintf(buf, "%-40s ", buf3);
         }
         strcat(buf2, buf);
