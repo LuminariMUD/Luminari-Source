@@ -1929,7 +1929,71 @@ void set_bonus_stats(struct char_data *ch, int str, int con, int dex, int ac) {
 }
 #undef WILDSHAPE_AFFECTS
 
-/* wildshape, in progress -Zusuk */
+void assign_wildshape_feats(struct char_data *ch) {
+
+  switch (race_list[GET_DISGUISE_RACE(ch)].family) {
+    case RACE_TYPE_ANIMAL:
+      break;
+    case RACE_TYPE_MAGICAL_BEAST:
+      break;
+    case RACE_TYPE_PLANT:
+      break;
+    case RACE_TYPE_ELEMENTAL:
+      break;
+    default:break;
+  }
+
+  switch (GET_SIZE(ch)) {
+    case SIZE_FINE:
+      break;
+    case SIZE_DIMINUTIVE:
+      break;
+    case SIZE_TINY:
+      break;
+    case SIZE_SMALL:
+      break;
+    case SIZE_MEDIUM:
+      break;
+    case SIZE_LARGE:
+      break;
+    case SIZE_HUGE:
+      break;
+    case SIZE_GARGANTUAN:
+      break;
+    case SIZE_COLOSSAL:
+      break;
+    default:break;
+  }
+
+  /* all fall through */
+  switch (GET_LEVEL(ch)) {
+    case 31:case 32:case 33:case 34:case 35:case 36:
+    case 30:case 29:case 28:
+      MOB_SET_FEAT(ch, FEAT_NATURAL_ATTACK, MOB_HAS_FEAT(ch, FEAT_NATURAL_ATTACK) + 1);
+    case 27:case 26:case 25:
+      MOB_SET_FEAT(ch, FEAT_NATURAL_ATTACK, MOB_HAS_FEAT(ch, FEAT_NATURAL_ATTACK) + 1);
+    case 24:case 23:case 22:
+      MOB_SET_FEAT(ch, FEAT_NATURAL_ATTACK, MOB_HAS_FEAT(ch, FEAT_NATURAL_ATTACK) + 1);
+    case 21:case 20:case 19:
+      MOB_SET_FEAT(ch, FEAT_NATURAL_ATTACK, MOB_HAS_FEAT(ch, FEAT_NATURAL_ATTACK) + 1);
+    case 18:case 17:case 16:
+      MOB_SET_FEAT(ch, FEAT_NATURAL_ATTACK, MOB_HAS_FEAT(ch, FEAT_NATURAL_ATTACK) + 1);
+    case 15:case 14:case 13:
+      MOB_SET_FEAT(ch, FEAT_NATURAL_ATTACK, MOB_HAS_FEAT(ch, FEAT_NATURAL_ATTACK) + 1);
+    case 12:case 11:case 10:
+      MOB_SET_FEAT(ch, FEAT_NATURAL_ATTACK, MOB_HAS_FEAT(ch, FEAT_NATURAL_ATTACK) + 1);
+    case 9:case 8:case 7:
+      MOB_SET_FEAT(ch, FEAT_NATURAL_ATTACK, MOB_HAS_FEAT(ch, FEAT_NATURAL_ATTACK) + 1);
+    case 6:case 5:case 4:
+      MOB_SET_FEAT(ch, FEAT_NATURAL_ATTACK, MOB_HAS_FEAT(ch, FEAT_NATURAL_ATTACK) + 1);
+    case 3:case 2:case 1:
+      MOB_SET_FEAT(ch, FEAT_NATURAL_ATTACK, MOB_HAS_FEAT(ch, FEAT_NATURAL_ATTACK) + 1);
+    default:
+      break;
+  }
+}
+
+/* wildshape!  druids cup o' tea */
 ACMD(do_wildshape) {
   int i = 0, counter = 0;
   char buf[200];
@@ -1966,12 +2030,21 @@ ACMD(do_wildshape) {
     /* stat modifications are cleaned up in affect_total() */
     GET_DISGUISE_RACE(ch) = 0;
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_WILD_SHAPE);
+
+    /* clear mobile feats */
+    for (counter = 0; counter < NUM_FEATS; counter++)
+      MOB_SET_FEAT((ch), counter, 0);
+
+    /* a little bit of healing */
     GET_HIT(ch) += GET_LEVEL(ch);
     GET_HIT(ch) = MIN(GET_HIT(ch), GET_MAX_HIT(ch));
+
+    /* affect total, and save */
     affect_total(ch);
     save_char(ch, 0);
     Crash_crashsave(ch);
 
+    /* messages */
     sprintf(buf, "You change shape into a %s.", pc_race_types[GET_RACE(ch)]);
     act(buf, true, ch, 0, 0, TO_CHAR);
     sprintf(buf, "$n changes shape into a %s.", pc_race_types[GET_RACE(ch)]);
@@ -2019,6 +2092,7 @@ ACMD(do_wildshape) {
   for (counter = 0; counter < NUM_FEATS; counter++)
     MOB_SET_FEAT((ch), counter, 0);
   /* TODO:assign appropriate racial/mobile feats here */
+  assign_wildshape_feats(ch);
 
   GET_HIT(ch) += GET_LEVEL(ch);
   GET_HIT(ch) = MIN(GET_HIT(ch), GET_MAX_HIT(ch));

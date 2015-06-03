@@ -2772,7 +2772,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
 
   /* redundancy necessary due to sometimes arriving here without going through
    * compute_hit_damage()*/
-  if (attack_type == ATTACK_TYPE_UNARMED)
+  if (attack_type == ATTACK_TYPE_UNARMED || IS_WILDSHAPED(ch))
     wielded = NULL;
   else
     wielded = get_wielded(ch, attack_type);
@@ -2907,6 +2907,10 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   /* weapon enhancement bonus */
   if (wielded)
     dambonus += GET_ENHANCEMENT_BONUS(wielded);
+
+  /* wildshape bonus */
+  if (IS_WILDSHAPED(ch))
+    dambonus += HAS_FEAT(ch, FEAT_NATURAL_ATTACK);
 
   /*
   if (wielded && GET_OBJ_MATERIAL(wielded) == MATERIAL_ADAMANTINE)
@@ -3209,6 +3213,7 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
     }
   }
 
+  /* real calculations */
   if (wielded && GET_OBJ_TYPE(wielded) == ITEM_WEAPON) { //weapon
     diceOne = GET_OBJ_VAL(wielded, 1);
     diceTwo = GET_OBJ_VAL(wielded, 2);
@@ -3222,9 +3227,45 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
     show_obj_to_char(obj, ch, SHOW_OBJ_SHORT, 0);
     diceOne = GET_OBJ_VAL(obj, 1);
     diceTwo = GET_OBJ_VAL(ammo_pouch->contains, 1);
+  } else if (IS_WILDSHAPED(ch)) {
+    diceOne = 1 + HAS_FEAT(ch, FEAT_NATURAL_ATTACK);
+    switch (GET_SIZE(ch)) {
+      case SIZE_FINE:
+        diceTwo = 1;
+        break;
+      case SIZE_DIMINUTIVE:
+        diceTwo = 2;
+        break;
+      case SIZE_TINY:
+        diceTwo = 3;
+        break;
+      case SIZE_SMALL:
+        diceTwo = 4;
+        break;
+      case SIZE_MEDIUM:
+        diceTwo = 4;
+        break;
+      case SIZE_LARGE:
+        diceTwo = 4;
+        break;
+      case SIZE_HUGE:
+        diceTwo = 5;
+        break;
+      case SIZE_GARGANTUAN:
+        diceTwo = 6;
+        break;
+      case SIZE_COLOSSAL:
+        diceTwo = 7;
+        break;
+      default:
+        diceTwo = 4;
+        break;
+    }
   } else { //barehand
     compute_barehand_dam_dice(ch, &diceOne, &diceTwo);
   }
+
+  /* display modes */
   if (mode == MODE_DISPLAY_PRIMARY ||
       mode == MODE_DISPLAY_OFFHAND ||
       mode == MODE_DISPLAY_RANGED) {
@@ -3290,7 +3331,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
 
   /* redundancy necessary due to sometimes arriving here without going through
    * hit()*/
-  if (attack_type == ATTACK_TYPE_UNARMED)
+  if (attack_type == ATTACK_TYPE_UNARMED || IS_WILDSHAPED(ch))
     wielded = NULL;
   else
     wielded = get_wielded(ch, attack_type);
@@ -3886,6 +3927,8 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
   /* Enhancement bonus */
   if (wielded)
     bonuses[BONUS_TYPE_ENHANCEMENT] = MAX(bonuses[BONUS_TYPE_ENHANCEMENT], GET_ENHANCEMENT_BONUS(wielded));
+  if (IS_WILDSHAPED(ch))
+    bonuses[BONUS_TYPE_ENHANCEMENT] = MAX(bonuses[BONUS_TYPE_ENHANCEMENT], HAS_FEAT(ch, FEAT_NATURAL_ATTACK));
   /* need to add missile enhancement bonus as well */
   /**/
 
@@ -4080,6 +4123,7 @@ int compute_cmb (struct char_data *ch,              /* Attacker */
        escape artist instead of their cmb */
       if (compute_ability(ch, ABILITY_ESCAPE_ARTIST) > cm_bonus)
         cm_bonus = compute_ability(ch, ABILITY_ESCAPE_ARTIST);
+
       if (HAS_FEAT(ch, FEAT_IMPROVED_GRAPPLE))
         cm_bonus += 2;
       break;
@@ -4365,6 +4409,13 @@ int determine_weapon_type(struct char_data *ch, struct char_data *victim,
       w_type = w_type_array[rand_number(0, count)];
     else
       w_type = GET_OBJ_VAL(wielded, 3) + TYPE_HIT;
+
+  } else if (IS_WILDSHAPED(ch)) {
+    w_type_array[0] = TYPE_BITE;
+    w_type_array[1] = TYPE_CLAW;
+    w_type_array[2] = TYPE_MAUL;
+
+    w_type = w_type_array[rand_number(0, 2)];
 
   } else { /* mobile messages or unarmed */
     if (IS_NPC(ch) && ch->mob_specials.attack_type != 0)
@@ -4791,6 +4842,8 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
   struct obj_data *wielded = get_wielded(ch, attack_type); /* Wielded weapon for this hand (uses offhand) */
   /*if (GET_EQ(ch, WEAR_WIELD_2H) && attack_type != ATTACK_TYPE_RANGED)
     attack_type = ATTACK_TYPE_TWOHAND;*/
+  if (IS_WILDSHAPED(ch))
+    wielded = NULL;
 
   /* First - check the attack queue.  If we have a queued attack, dispatch!
     The attack queue should be more tightly integrated into the combat system.  Basically,

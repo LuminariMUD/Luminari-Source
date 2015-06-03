@@ -1653,10 +1653,11 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_TRELUX_EQ                      465
 #define FEAT_TRELUX_PINCERS                 466
 #define FEAT_TRELUX_RACIAL_ADJUSTMENT       467
+#define FEAT_NATURAL_ATTACK                 468
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT                      468
+#define FEAT_LAST_FEAT                      469
 /** feat_last_feat + 1 ***/
-#define NUM_FEATS                           469
+#define NUM_FEATS                           470
 /*****/
 #define MAX_FEATS                           750
 /*****/
