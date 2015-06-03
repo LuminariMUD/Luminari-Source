@@ -284,22 +284,28 @@ void appear(struct char_data *ch, bool forced) {
 /*  has_dex_bonus_to_ac(attacker, ch)
  *  Helper function to determine if a char can apply his dexterity bonus to his AC. */
 bool has_dex_bonus_to_ac(struct char_data *attacker, struct char_data *ch) {
-  if (!ch)
-    return TRUE;
+  if (!ch) return TRUE; //if (!attacker) return TRUE;
+
   /* conditions for losing dex to ch */
 
   /* ch is sleeping */
   if (!AWAKE(ch)) {
     /* debug */
-    /*if (FIGHTING(ch))
-      send_to_char(ch, "has_dex_bonus_to_ac() - %s not awake  ", GET_NAME(ch));*/
+    /*if (FIGHTING(ch)) {
+        send_to_char(ch, "has_dex_bonus_to_ac() - %s not awake  ", GET_NAME(ch));
+        if (attacker)
+          send_to_char(attacker, "has_dex_bonus_to_ac() - %s not awake  ", GET_NAME(ch));
+      }*/
     return FALSE;
   }
 
   if (AFF_FLAGGED(ch, AFF_PINNED)) {
     /* debug */
-    /*if (FIGHTING(ch))
-      send_to_char(ch, "has_dex_bonus_to_ac() - %s pinned  ", GET_NAME(ch));*/
+    /*if (FIGHTING(ch)) {
+        send_to_char(ch, "has_dex_bonus_to_ac() - %s pinned  ", GET_NAME(ch));
+        if (attacker)
+          send_to_char(attacker, "has_dex_bonus_to_ac() - %s pinned  ", GET_NAME(ch));
+     }*/
     return FALSE;
   }
 
@@ -307,8 +313,10 @@ bool has_dex_bonus_to_ac(struct char_data *attacker, struct char_data *ch) {
   if (attacker) {
     if ( !CAN_SEE(ch, attacker) && !HAS_FEAT(ch, FEAT_BLIND_FIGHT) ) {
       /* debug */
-      /*if (FIGHTING(ch))
-        send_to_char(ch, "has_dex_bonus_to_ac() - %s unable to see attacker  ", GET_NAME(ch));*/
+      /*if (FIGHTING(ch)) {
+          send_to_char(ch, "has_dex_bonus_to_ac() - %s unable to see attacker  ", GET_NAME(ch));
+          send_to_char(attacker, "has_dex_bonus_to_ac() - %s unable to see attacker  ", GET_NAME(ch));
+        }*/
       return FALSE;
     }
   }
@@ -316,38 +324,53 @@ bool has_dex_bonus_to_ac(struct char_data *attacker, struct char_data *ch) {
   /* ch is flat-footed WITHOUT uncanny dodge feat */
   if ((AFF_FLAGGED(ch, AFF_FLAT_FOOTED) && !HAS_FEAT(ch, FEAT_UNCANNY_DODGE))) {
     /* debug */
-    /*if (FIGHTING(ch))
-      send_to_char(ch, "has_dex_bonus_to_ac() - %s flat-footed  ", GET_NAME(ch));*/
+    /*if (FIGHTING(ch)) {
+        send_to_char(ch, "has_dex_bonus_to_ac() - %s flat-footed  ", GET_NAME(ch));
+        if (attacker)
+          send_to_char(attacker, "has_dex_bonus_to_ac() - %s flat-footed  ", GET_NAME(ch));
+      }*/
     return FALSE;
   }
 
   /* ch is stunned */
   if (AFF_FLAGGED(ch, AFF_STUN) || char_has_mud_event(ch, eSTUNNED)) {
     /* debug */
-    /*if (FIGHTING(ch))
-      send_to_char(ch, "has_dex_bonus_to_ac() - %s stunned  ", GET_NAME(ch));*/
+    /*if (FIGHTING(ch)) {
+        send_to_char(ch, "has_dex_bonus_to_ac() - %s stunned  ", GET_NAME(ch));
+        if (attacker)
+          send_to_char(attacker, "has_dex_bonus_to_ac() - %s stunned  ", GET_NAME(ch));
+      }*/
     return FALSE;
   }
 
   /* ch is paralyzed */
   if (AFF_FLAGGED(ch, AFF_PARALYZED)) {
     /* debug */
-    /*if (FIGHTING(ch))
-      send_to_char(ch, "has_dex_bonus_to_ac() - %s paralyzed  ", GET_NAME(ch));*/
+    /*if (FIGHTING(ch)) {
+        send_to_char(ch, "has_dex_bonus_to_ac() - %s paralyzed  ", GET_NAME(ch));
+        if (attacker)
+          send_to_char(attacker, "has_dex_bonus_to_ac() - %s paralyzed  ", GET_NAME(ch));
+      }*/
     return FALSE;
   }
 
   /* ch is feinted */
   if (AFF_FLAGGED(ch, AFF_FEINTED) || affected_by_spell(ch, SKILL_FEINT)) {
     /* debug */
-    /*if (FIGHTING(ch))
-      send_to_char(ch, "has_dex_bonus_to_ac() - %s feinted  ", GET_NAME(ch));*/
+    /*if (FIGHTING(ch)) {
+        send_to_char(ch, "has_dex_bonus_to_ac() - %s feinted  ", GET_NAME(ch));
+        if (attacker)
+          send_to_char(attacker, "has_dex_bonus_to_ac() - %s feinted  ", GET_NAME(ch));
+      }*/
     return FALSE;
   }
 
   /* debug */
-  /*if (FIGHTING(ch))
-    send_to_char(ch, "has_dex_bonus_to_ac() - %s -retained- dex bonus  ", GET_NAME(ch));*/
+  /*if (FIGHTING(ch)) {
+      send_to_char(ch, "has_dex_bonus_to_ac() - %s -retained- dex bonus  ", GET_NAME(ch));
+      if (attacker)
+        send_to_char(attacker, "has_dex_bonus_to_ac() - %s -retained- dex bonus  ", GET_NAME(ch));
+    }*/
   return TRUE; /* ok, made it through, we DO have our dex bonus still */
 }
 
