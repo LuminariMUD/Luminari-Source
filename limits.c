@@ -436,7 +436,7 @@ void regen_update(struct char_data *ch) {
 
   if (rand_number(0, 1))
     hp++;
-  
+
   //position, other bonuses
   if (GET_POS(ch) == POS_SITTING && SITTING(ch) && GET_OBJ_TYPE(SITTING(ch)) == ITEM_FURNITURE)
     hp += dice(3, 2) + 1;
@@ -706,10 +706,10 @@ int gain_exp(struct char_data *ch, int gain) {
 
     /* flat rate for now! */
     if (ch && ch->desc && ch->desc->account) {
-      if (gain >= 1000 && ch->desc->account->experience < 33999) {
-        if (gain/1000 >= 5) /*reduce spam*/
-          send_to_char(ch, "You gain %d account experience points!\r\n", gain/1000);
-        ch->desc->account->experience += gain / 1000;
+      if (gain >= 5000 && ch->desc->account->experience < 33999) {
+        if (gain/5000 >= 5) /*reduce spam*/
+          send_to_char(ch, "You gain %d account experience points!\r\n", gain/5000);
+        ch->desc->account->experience += gain / 5000;
       }
     }
 

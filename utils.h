@@ -721,6 +721,10 @@ do                                                              \
   npc_race_abbrevs[IS_MORPHED(ch)] : (GET_DISGUISE_RACE(ch)) ? \
   race_list[GET_DISGUISE_RACE(ch)].abbrev : race_abbrevs[GET_RACE(ch)])
 
+/* wildshape */
+#define IS_WILDSHAPED(ch) (AFF_FLAGGED(ch, AFF_WILD_SHAPE) && GET_DISGUISE_RACE(ch))
+
+
 /** Height of ch. */
 #define GET_HEIGHT(ch)	((ch)->player.height)
 
