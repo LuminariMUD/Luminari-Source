@@ -2080,12 +2080,7 @@ ACMD(do_wildshape) {
 
   skip_spaces(&argument);
 
-  if (!HAS_FEAT(ch, FEAT_WILD_SHAPE) && !HAS_REAL_FEAT(ch, FEAT_WILD_SHAPE)) {
-    send_to_char(ch, "You do not have the ability to shapechange using wild shape.\r\n");
-    return;
-  }
-
-  if (!*argument) {
+  if (!*argument && HAS_FEAT(ch, FEAT_WILD_SHAPE)) {
     send_to_char(ch, "Please select a race to switch to or select 'return'.\r\n");
     display_eligible_wildshape_races(ch, argument, FALSE);
     return;
@@ -2133,6 +2128,11 @@ ACMD(do_wildshape) {
 
     USE_STANDARD_ACTION(ch);
 
+    return;
+  }
+
+  if (!HAS_FEAT(ch, FEAT_WILD_SHAPE) && !HAS_REAL_FEAT(ch, FEAT_WILD_SHAPE)) {
+    send_to_char(ch, "You do not have the ability to shapechange using wild shape.\r\n");
     return;
   }
 
