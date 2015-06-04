@@ -1974,6 +1974,12 @@ void cleanup_wildshape_feats(struct char_data *ch) {
 /* we also set other special abilities here */
 void assign_wildshape_feats(struct char_data *ch) {
   int counter = 0;
+  int shifter_level = CLASS_LEVEL(ch, CLASS_DRUID);
+
+  if (shifter_level > 30)
+    shifter_level = 30;
+  if (shifter_level < 1)
+    shifter_level = 1;
 
   /* just to be on the safe side, doing a cleanup before assignment*/
   for (counter = 0; counter < NUM_FEATS; counter++)
@@ -1981,13 +1987,13 @@ void assign_wildshape_feats(struct char_data *ch) {
 
   switch (race_list[GET_DISGUISE_RACE(ch)].family) {
     case RACE_TYPE_ANIMAL:
-      MOB_SET_FEAT(ch, FEAT_RAGE, 1);
+      MOB_SET_FEAT(ch, FEAT_RAGE, shifter_level/5 + 1);
       break;
     case RACE_TYPE_MAGICAL_BEAST:
       /* can't currently shift to magical beasts */
       break;
     case RACE_TYPE_PLANT:
-      MOB_SET_FEAT(ch, FEAT_ARMOR_SKIN, 2);
+      MOB_SET_FEAT(ch, FEAT_ARMOR_SKIN, shifter_level/5 + 1);
       break;
     case RACE_TYPE_ELEMENTAL:
       switch (GET_DISGUISE_RACE(ch)) {
@@ -2038,7 +2044,7 @@ void assign_wildshape_feats(struct char_data *ch) {
   }
 
   /* all fall through */
-  switch (GET_LEVEL(ch)) {
+  switch (shifter_level) {
     case 31:case 32:case 33:case 34:case 35:case 36:
     case 30:case 29:case 28:
       MOB_SET_FEAT(ch, FEAT_NATURAL_ATTACK, MOB_HAS_FEAT(ch, FEAT_NATURAL_ATTACK) + 1);
