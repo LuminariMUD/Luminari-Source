@@ -448,33 +448,10 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
   }
 
   /* here is our TODO list:
-     1)  handling shapechanged characters
-     2)  handling armor-affecting spells?
-     3)  calculate equipped armor separately?
-   * 4)  material bonus on equipment (dragonhide, etc) ?
-   * 5)  leadership feat?  */
-
-/* leadership: do we want/need this feat?
- * if (!(k = ch->master))
-      k = ch;
-
-    if (k == ch && !(k->followers)) {
-      // In this case nothing changes
-      armorclass = armorclass;
-    } else if (HAS_FEAT(k, FEAT_LEADERSHIP)) {
-      armorclass += 10;
-    } else {
-      for (f = k->followers; f; f = f->next) {
-        if (AFF_FLAGGED(f->follower, AFF_GROUP) && IN_ROOM(f->follower) == IN_ROOM(ch)) {
-          if (HAS_FEAT(f->follower, FEAT_LEADERSHIP)) {
-            armorclass += 10;
-            break;
-          }
-        }
-      }
-    }
-*/
-
+     1)  handling armor-affecting spells?
+     2)  calculate equipped armor separately?
+   */
+  
   /**********/
   /* bonus types */
 
@@ -497,7 +474,8 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
 
   /* bonus type armor (equipment) */
   /* we assume any ac above 10 will be equipment */
-  bonuses[BONUS_TYPE_ARMOR] += eq_armoring;
+  if (!IS_WILDSHAPED(ch))
+    bonuses[BONUS_TYPE_ARMOR] += eq_armoring;
   /* ...Trelux carapace is not effective vs touch attacks! */
   if (GET_RACE(ch) == RACE_TRELUX) {
     if (GET_LEVEL(ch) >= 5) {

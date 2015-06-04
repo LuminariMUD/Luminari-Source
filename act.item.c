@@ -2391,6 +2391,11 @@ ACMD(do_wear) {
   struct obj_data *obj = NULL, *next_obj = NULL;
   int where = 0, dotmode = 0, items_worn = 0;
 
+  if (IS_WILDSHAPED(ch)) {
+    send_to_char(ch, "Why would you want to wear something? (wildshape)\r\n");
+    return;
+  }
+
   two_arguments(argument, arg1, arg2);
 
   if (!*arg1) {
@@ -2490,6 +2495,11 @@ ACMD(do_wield) {
   char arg[MAX_INPUT_LENGTH];
   struct obj_data *obj;
 
+  if (IS_WILDSHAPED(ch)) {
+    send_to_char(ch, "Why would you want to wield something? (wildshape)\r\n");
+    return;
+  }
+
   one_argument(argument, arg);
 
   if (!*arg)
@@ -2504,6 +2514,11 @@ ACMD(do_wield) {
 ACMD(do_grab) {
   char arg[MAX_INPUT_LENGTH];
   struct obj_data *obj;
+
+  if (IS_WILDSHAPED(ch)) {
+    send_to_char(ch, "Why would you want to grab something? (wildshape)\r\n");
+    return;
+  }
 
   one_argument(argument, arg);
 
@@ -2556,6 +2571,11 @@ void perform_remove(struct char_data *ch, int pos, bool forced) {
 ACMD(do_remove) {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   int i = 0, dotmode = 0, found = 0;
+
+  if (IS_WILDSHAPED(ch)) {
+    send_to_char(ch, "Why would you want to remove something? (wildshape)\r\n");
+    return;
+  }
 
   one_argument(argument, arg);
 

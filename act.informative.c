@@ -2352,6 +2352,11 @@ ACMD(do_equipment) {
   char dex_max[10] = "No-Max";
   int j = compute_gear_max_dex(ch);
 
+  if (IS_WILDSHAPED(ch)) {
+    send_to_char(ch, "Nekked!\r\n");
+    return;
+  }
+
   if (j < 99) // 99 is our signal for no max dex
     sprintf(dex_max, "%d", j);
 
