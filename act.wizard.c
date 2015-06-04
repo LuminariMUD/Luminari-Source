@@ -1696,7 +1696,7 @@ ACMD(do_restore) {
 
     /* this helps for testing */
     bool found = FALSE;
-    if (GET_LEVEL(vict) >= LVL_IMPL) {
+    if (GET_LEVEL(vict) >= LVL_IMMORT) {
       IS_MORPHED(ch) = 0;
       SUBRACE(ch) = 0;
       GET_DISGUISE_RACE(ch) = 0;
