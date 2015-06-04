@@ -247,6 +247,8 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int 
       break;
 
     case SHOW_OBJ_ACTION:
+
+
       switch (GET_OBJ_TYPE(obj)) {
         case ITEM_NOTE:
           if (obj->action_description) {
@@ -279,10 +281,31 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int 
   }
 end:
 
+  show_obj_vals(obj, ch);
   show_obj_modifiers(obj, ch);
   send_to_char(ch, "\r\n");
 }
 
+void show_obj_vals(struct obj_data *obj, struct char_data *ch) {
+  int armor_val = GET_OBJ_VAL(obj, 1);
+
+  /* show object size and material */
+  send_to_char(ch, "[%s] [%s]", GET_OBJ_SIZE(obj)? sizes[GET_OBJ_SIZE(obj)] : "???",
+               GET_OBJ_MATERIAL(obj) ? material_name[GET_OBJ_MATERIAL(obj)] : "???");
+
+  switch (GET_OBJ_TYPE(obj)) {
+    case ITEM_WEAPON:
+      send_to_char(ch, "Weapon: %s ", GET_WEAPON_TYPE(obj) ? weapon_list[GET_WEAPON_TYPE(obj)].name : "???");
+      break;
+    case ITEM_ARMOR:
+      send_to_char(ch, "Armor: %s ", armor_val ? armor_list[armor_val].name : "???");
+      break;
+  }
+}
+
+/* default is just showing object flags here, we've added:
+ 1) special, such as poison
+ 2) size */
 static void show_obj_modifiers(struct obj_data *obj, struct char_data *ch) {
   if (OBJ_FLAGGED(obj, ITEM_INVISIBLE))
     send_to_char(ch, " \tw(invisible)\tn");
