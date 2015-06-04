@@ -1300,7 +1300,7 @@ int BAB(struct char_data *ch) {
   int i, bab = 0, level;
 
   /* gnarly huh? */
-  if (IS_AFFECTED(ch, AFF_TFORM))
+  if (IS_AFFECTED(ch, AFF_TFORM) || IS_WILDSHAPED(ch))
     return (GET_LEVEL(ch));
 
   if (IS_NPC(ch)) {
