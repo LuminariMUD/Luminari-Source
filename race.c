@@ -263,8 +263,8 @@ const char *morph_to_room[] = {
   /* Construct */
 " ",
   /* Elemental */
-"$n bursts into flame, then becomes flame as $s form shifts to that of a "
-"\tRfire elemental\tn.",
+"$n bursts into elemental energy, then becomes that element as $s form shifts to that of a "
+"\tRelemental\tn.",
   /* Fey */
 " ",
   /* Magical Beast */

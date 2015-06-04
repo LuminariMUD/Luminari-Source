@@ -813,7 +813,7 @@ void save_char(struct char_data * ch, int mode) {
   if (GET_SEX(ch) != PFDEF_SEX) fprintf(fl, "Sex : %d\n", GET_SEX(ch));
   if (GET_CLASS(ch) != PFDEF_CLASS) fprintf(fl, "Clas: %d\n", GET_CLASS(ch));
   if (GET_REAL_RACE(ch) != PFDEF_RACE) fprintf(fl, "Race: %d\n", GET_REAL_RACE(ch));
-  if (GET_SIZE(ch) != PFDEF_SIZE) fprintf(fl, "Size: %d\n", GET_SIZE(ch));
+  if (GET_REAL_SIZE(ch) != PFDEF_SIZE) fprintf(fl, "Size: %d\n", GET_REAL_SIZE(ch));
   if (GET_LEVEL(ch) != PFDEF_LEVEL) fprintf(fl, "Levl: %d\n", GET_LEVEL(ch));
   if (GET_DISGUISE_RACE(ch)) fprintf(fl, "DRac: %d\n", GET_DISGUISE_RACE(ch));
   if (GET_DISGUISE_STR(ch)) fprintf(fl, "DStr: %d\n", GET_DISGUISE_STR(ch));
