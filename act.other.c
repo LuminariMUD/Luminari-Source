@@ -1929,16 +1929,88 @@ void set_bonus_stats(struct char_data *ch, int str, int con, int dex, int ac) {
 }
 #undef WILDSHAPE_AFFECTS
 
-void assign_wildshape_feats(struct char_data *ch) {
+/* also clean up anything else assigned such as affections */
+void cleanup_wildshape_feats(struct char_data *ch) {
+  int counter = 0;
+
+  for (counter = 0; counter < NUM_FEATS; counter++)
+    MOB_SET_FEAT((ch), counter, 0);
 
   switch (race_list[GET_DISGUISE_RACE(ch)].family) {
     case RACE_TYPE_ANIMAL:
       break;
     case RACE_TYPE_MAGICAL_BEAST:
+      /* can't currently shift to magical beasts */
       break;
     case RACE_TYPE_PLANT:
       break;
     case RACE_TYPE_ELEMENTAL:
+      switch (GET_DISGUISE_RACE(ch)) {
+        case RACE_SMALL_FIRE_ELEMENTAL:case RACE_MEDIUM_FIRE_ELEMENTAL:
+        case RACE_LARGE_FIRE_ELEMENTAL:case RACE_HUGE_FIRE_ELEMENTAL:
+          REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FSHIELD);
+          break;
+        case RACE_SMALL_EARTH_ELEMENTAL:case RACE_MEDIUM_EARTH_ELEMENTAL:
+        case RACE_LARGE_EARTH_ELEMENTAL:case RACE_HUGE_EARTH_ELEMENTAL:
+          REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_ASHIELD);
+          break;
+        case RACE_SMALL_AIR_ELEMENTAL:case RACE_MEDIUM_AIR_ELEMENTAL:
+        case RACE_LARGE_AIR_ELEMENTAL:case RACE_HUGE_AIR_ELEMENTAL:
+          REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_CSHIELD);
+          REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLYING);
+          break;
+        case RACE_SMALL_WATER_ELEMENTAL:case RACE_MEDIUM_WATER_ELEMENTAL:
+        case RACE_LARGE_WATER_ELEMENTAL:case RACE_HUGE_WATER_ELEMENTAL:
+          REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_SCUBA);
+          REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_WATER_BREATH);
+          REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_MINOR_GLOBE);
+          break;
+      }
+      break;
+    default:break;
+  }
+}
+
+/* we also set other special abilities here */
+void assign_wildshape_feats(struct char_data *ch) {
+  int counter = 0;
+
+  /* just to be on the safe side, doing a cleanup before assignment*/
+  for (counter = 0; counter < NUM_FEATS; counter++)
+    MOB_SET_FEAT((ch), counter, 0);
+
+  switch (race_list[GET_DISGUISE_RACE(ch)].family) {
+    case RACE_TYPE_ANIMAL:
+      MOB_SET_FEAT(ch, FEAT_RAGE, 1);
+      break;
+    case RACE_TYPE_MAGICAL_BEAST:
+      /* can't currently shift to magical beasts */
+      break;
+    case RACE_TYPE_PLANT:
+      MOB_SET_FEAT(ch, FEAT_ARMOR_SKIN, 2);
+      break;
+    case RACE_TYPE_ELEMENTAL:
+      switch (GET_DISGUISE_RACE(ch)) {
+        case RACE_SMALL_FIRE_ELEMENTAL:case RACE_MEDIUM_FIRE_ELEMENTAL:
+        case RACE_LARGE_FIRE_ELEMENTAL:case RACE_HUGE_FIRE_ELEMENTAL:
+          SET_BIT_AR(AFF_FLAGS(ch), AFF_FSHIELD);
+          break;
+        case RACE_SMALL_EARTH_ELEMENTAL:case RACE_MEDIUM_EARTH_ELEMENTAL:
+        case RACE_LARGE_EARTH_ELEMENTAL:case RACE_HUGE_EARTH_ELEMENTAL:
+          SET_BIT_AR(AFF_FLAGS(ch), AFF_ASHIELD);
+          break;
+        case RACE_SMALL_AIR_ELEMENTAL:case RACE_MEDIUM_AIR_ELEMENTAL:
+        case RACE_LARGE_AIR_ELEMENTAL:case RACE_HUGE_AIR_ELEMENTAL:
+          SET_BIT_AR(AFF_FLAGS(ch), AFF_CSHIELD);
+          SET_BIT_AR(AFF_FLAGS(ch), AFF_FLYING);
+          break;
+        case RACE_SMALL_WATER_ELEMENTAL:case RACE_MEDIUM_WATER_ELEMENTAL:
+        case RACE_LARGE_WATER_ELEMENTAL:case RACE_HUGE_WATER_ELEMENTAL:
+          SET_BIT_AR(AFF_FLAGS(ch), AFF_SCUBA);
+          SET_BIT_AR(AFF_FLAGS(ch), AFF_WATER_BREATH);
+          SET_BIT_AR(AFF_FLAGS(ch), AFF_MINOR_GLOBE);
+          break;
+      }
       break;
     default:break;
   }
@@ -1995,7 +2067,7 @@ void assign_wildshape_feats(struct char_data *ch) {
 
 /* wildshape!  druids cup o' tea */
 ACMD(do_wildshape) {
-  int i = 0, counter = 0;
+  int i = 0;
   char buf[200];
   struct wild_shape_mods *abil_mods;
   int uses_remaining = 0;
@@ -2032,8 +2104,7 @@ ACMD(do_wildshape) {
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_WILD_SHAPE);
 
     /* clear mobile feats */
-    for (counter = 0; counter < NUM_FEATS; counter++)
-      MOB_SET_FEAT((ch), counter, 0);
+    cleanup_wildshape_feats(ch);
 
     FIRING(ch) = FALSE; /*just in case*/
 
@@ -2091,9 +2162,8 @@ ACMD(do_wildshape) {
   set_bonus_stats(ch, abil_mods->strength, abil_mods->constitution,
                        abil_mods->dexterity, abil_mods->natural_armor);
   /* all stat modifications are done */
-  for (counter = 0; counter < NUM_FEATS; counter++)
-    MOB_SET_FEAT((ch), counter, 0);
-  /* TODO:assign appropriate racial/mobile feats here */
+
+  /* assign appropriate racial/mobile feats here */
   assign_wildshape_feats(ch);
 
   FIRING(ch) = FALSE; /*just in case*/
