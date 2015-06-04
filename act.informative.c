@@ -117,6 +117,23 @@ void check_dangersense(struct char_data *ch, room_rnum room) {
     send_to_char(ch, "\tRYou feel \trdanger\tR there.\tn\r\n");
 }
 
+void show_obj_info(struct obj_data *obj, struct char_data *ch) {
+  int armor_val = GET_OBJ_VAL(obj, 1);
+
+  /* show object size and material */
+  send_to_char(ch, "[%s] [%s]", GET_OBJ_SIZE(obj)? sizes[GET_OBJ_SIZE(obj)] : "???",
+               GET_OBJ_MATERIAL(obj) ? material_name[GET_OBJ_MATERIAL(obj)] : "???");
+
+  switch (GET_OBJ_TYPE(obj)) {
+    case ITEM_WEAPON:
+      send_to_char(ch, "Weapon: %s ", GET_WEAPON_TYPE(obj) ? weapon_list[GET_WEAPON_TYPE(obj)].name : "???");
+      break;
+    case ITEM_ARMOR:
+      send_to_char(ch, "Armor: %s ", armor_val ? armor_list[armor_val].name : "???");
+      break;
+  }
+}
+
 /* Subcommands */
 /* For show_obj_to_char 'mode'.	/-- arbitrary */
 #define SHOW_OBJ_LONG     0
@@ -281,26 +298,9 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int 
   }
 end:
 
-  show_obj_vals(obj, ch);
+  show_obj_info(obj, ch);
   show_obj_modifiers(obj, ch);
   send_to_char(ch, "\r\n");
-}
-
-void show_obj_vals(struct obj_data *obj, struct char_data *ch) {
-  int armor_val = GET_OBJ_VAL(obj, 1);
-
-  /* show object size and material */
-  send_to_char(ch, "[%s] [%s]", GET_OBJ_SIZE(obj)? sizes[GET_OBJ_SIZE(obj)] : "???",
-               GET_OBJ_MATERIAL(obj) ? material_name[GET_OBJ_MATERIAL(obj)] : "???");
-
-  switch (GET_OBJ_TYPE(obj)) {
-    case ITEM_WEAPON:
-      send_to_char(ch, "Weapon: %s ", GET_WEAPON_TYPE(obj) ? weapon_list[GET_WEAPON_TYPE(obj)].name : "???");
-      break;
-    case ITEM_ARMOR:
-      send_to_char(ch, "Armor: %s ", armor_val ? armor_list[armor_val].name : "???");
-      break;
-  }
 }
 
 /* default is just showing object flags here, we've added:
