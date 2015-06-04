@@ -2035,6 +2035,8 @@ ACMD(do_wildshape) {
     for (counter = 0; counter < NUM_FEATS; counter++)
       MOB_SET_FEAT((ch), counter, 0);
 
+    FIRING(ch) = FALSE; /*just in case*/
+
     /* a little bit of healing */
     GET_HIT(ch) += GET_LEVEL(ch);
     GET_HIT(ch) = MIN(GET_HIT(ch), GET_MAX_HIT(ch));
@@ -2093,6 +2095,8 @@ ACMD(do_wildshape) {
     MOB_SET_FEAT((ch), counter, 0);
   /* TODO:assign appropriate racial/mobile feats here */
   assign_wildshape_feats(ch);
+
+  FIRING(ch) = FALSE; /*just in case*/
 
   GET_HIT(ch) += GET_LEVEL(ch);
   GET_HIT(ch) = MIN(GET_HIT(ch), GET_MAX_HIT(ch));

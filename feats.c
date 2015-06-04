@@ -325,6 +325,14 @@ void assign_feats(void) {
 
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
 
+  /************************************/
+  /* NPC Racial Feats (and wildshape) */
+
+  feato(FEAT_NATURAL_ATTACK, "natural attack", TRUE, FALSE, TRUE, FEAT_TYPE_INNATE_ABILITY,
+    "proficiency with your natural attack",
+    "Depending on the level and size of the shifter, the natural attack of the "
+          "shifted form will get more powerful and accurate.");
+
   /******/
   /* Racial ability feats */
 

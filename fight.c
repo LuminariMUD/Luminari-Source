@@ -3193,7 +3193,9 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
 
   //just information mode
   if (mode == MODE_DISPLAY_PRIMARY) {
-    if (!GET_EQ(ch, WEAR_WIELD_1) && !GET_EQ(ch, WEAR_WIELD_2H)) {
+    if (IS_WILDSHAPED(ch)) {
+      send_to_char(ch, "Claws, Teeth and Smash!\r\n");
+    } else if (!GET_EQ(ch, WEAR_WIELD_1) && !GET_EQ(ch, WEAR_WIELD_2H)) {
       send_to_char(ch, "Bare-hands\r\n");
     } else {
       if (GET_EQ(ch, WEAR_WIELD_2H))
@@ -5106,6 +5108,9 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
 
 /* ch dual wielding or is trelux */
 int is_dual_wielding(struct char_data *ch) {
+
+  if (IS_WILDSHAPED(ch))
+    return FALSE;
 
   if (GET_EQ(ch, WEAR_WIELD_OFFHAND) || GET_RACE(ch) == RACE_TRELUX)
     return TRUE;
