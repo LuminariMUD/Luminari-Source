@@ -2099,12 +2099,14 @@ ACMD(do_wildshape) {
     /* cleanup bonuses */
     affect_from_char(ch, SKILL_WILDSHAPE);
 
+    /* clear mobile feats, this needs to come before resetting disguise-race
+     * because we need to know what race we are cleaning up */
+    cleanup_wildshape_feats(ch);
+
     /* stat modifications are cleaned up in affect_total() */
     GET_DISGUISE_RACE(ch) = 0;
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_WILD_SHAPE);
 
-    /* clear mobile feats */
-    cleanup_wildshape_feats(ch);
 
     FIRING(ch) = FALSE; /*just in case*/
 
