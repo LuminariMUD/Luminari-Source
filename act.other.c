@@ -2092,7 +2092,7 @@ ACMD(do_wildshape) {
   }
 
   if (!strcmp(argument, "return")) {
-    if (!AFF_FLAGGED(ch, AFF_WILD_SHAPE)) {
+    if (!AFF_FLAGGED(ch, AFF_WILD_SHAPE) && !GET_DISGUISE_RACE(ch)) {
       send_to_char(ch, "You are not wild shaped.\r\n");
       return;
     }
