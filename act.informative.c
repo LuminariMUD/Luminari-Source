@@ -1203,6 +1203,7 @@ static void look_at_target(struct char_data *ch, char *arg) {
 
         /* obj size, material, weapon/armor */
         show_obj_info(GET_EQ(ch, j), ch);
+        send_to_char(ch, "\r\n");
 
         send_to_char(ch, "%s", desc);
         found = TRUE;
@@ -1214,8 +1215,10 @@ static void look_at_target(struct char_data *ch, char *arg) {
       if ((desc = find_exdesc(arg, obj->ex_description)) != NULL && ++i == fnum) {
 
         /* obj size, material, weapon/armor */
-        if (!found)
+        if (!found) {
           show_obj_info(obj, ch);
+          send_to_char(ch, "\r\n");
+        }
 
         send_to_char(ch, "%s", desc);
         found = TRUE;
@@ -1228,8 +1231,10 @@ static void look_at_target(struct char_data *ch, char *arg) {
       if ((desc = find_exdesc(arg, obj->ex_description)) != NULL && ++i == fnum) {
 
         /* obj size, material, weapon/armor */
-        if (!found)
+        if (!found) {
           show_obj_info(obj, ch);
+          send_to_char(ch, "\r\n");
+        }
 
         send_to_char(ch, "%s", desc);
         found = TRUE;
