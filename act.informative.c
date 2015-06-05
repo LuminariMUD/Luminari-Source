@@ -121,7 +121,7 @@ void show_obj_info(struct obj_data *obj, struct char_data *ch) {
   int armor_val = GET_OBJ_VAL(obj, 1);
 
   /* show object size and material */
-  send_to_char(ch, "[%s] [%s]", GET_OBJ_SIZE(obj)? sizes[GET_OBJ_SIZE(obj)] : "???",
+  send_to_char(ch, "[%s] [%s] ", GET_OBJ_SIZE(obj)? sizes[GET_OBJ_SIZE(obj)] : "???",
                GET_OBJ_MATERIAL(obj) ? material_name[GET_OBJ_MATERIAL(obj)] : "???");
 
   switch (GET_OBJ_TYPE(obj)) {
@@ -285,6 +285,10 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int 
           send_to_char(ch, "You see nothing special..");
           break;
       }
+
+      /* obj size, material, weapon/armor */
+      show_obj_info(obj, ch);
+
       break;
 
     default:
@@ -298,7 +302,6 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int 
   }
 end:
 
-  show_obj_info(obj, ch);
   show_obj_modifiers(obj, ch);
   send_to_char(ch, "\r\n");
 }
