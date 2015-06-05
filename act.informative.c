@@ -1200,6 +1200,10 @@ static void look_at_target(struct char_data *ch, char *arg) {
   for (j = 0; j < NUM_WEARS && !found; j++)
     if (GET_EQ(ch, j) && CAN_SEE_OBJ(ch, GET_EQ(ch, j)))
       if ((desc = find_exdesc(arg, GET_EQ(ch, j)->ex_description)) != NULL && ++i == fnum) {
+
+        /* obj size, material, weapon/armor */
+        show_obj_info(GET_EQ(ch, j), ch);
+
         send_to_char(ch, "%s", desc);
         found = TRUE;
       }
@@ -1208,6 +1212,11 @@ static void look_at_target(struct char_data *ch, char *arg) {
   for (obj = ch->carrying; obj && !found; obj = obj->next_content) {
     if (CAN_SEE_OBJ(ch, obj))
       if ((desc = find_exdesc(arg, obj->ex_description)) != NULL && ++i == fnum) {
+
+        /* obj size, material, weapon/armor */
+        if (!found)
+          show_obj_info(obj, ch);
+
         send_to_char(ch, "%s", desc);
         found = TRUE;
       }
@@ -1217,6 +1226,11 @@ static void look_at_target(struct char_data *ch, char *arg) {
   for (obj = world[IN_ROOM(ch)].contents; obj && !found; obj = obj->next_content)
     if (CAN_SEE_OBJ(ch, obj))
       if ((desc = find_exdesc(arg, obj->ex_description)) != NULL && ++i == fnum) {
+
+        /* obj size, material, weapon/armor */
+        if (!found)
+          show_obj_info(obj, ch);
+
         send_to_char(ch, "%s", desc);
         found = TRUE;
       }
