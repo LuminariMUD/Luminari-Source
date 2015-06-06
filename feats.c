@@ -3022,6 +3022,15 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
   return TRUE;
 }
 
+/* simple debug command to make sure we have all our assigns set up */
+ACMD(do_featlisting) {
+  int i = 0;
+
+  for (i = 1; i < FEAT_LAST_FEAT; i++) {
+    send_to_char(ch, "%d: %s\r\n", i, feat_list[i].name);
+  }
+}
+
 /*
  *  --------------------------------Known Feats-------------------------------------
  *  Heavy Armor Proficiency       : You are proficient with heavy armor.

@@ -236,6 +236,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "eyeofknowledge", "eyeofknowledge", POS_STANDING, do_eyeofknowledge, 0, 0, FALSE, ACTION_STANDARD, {6, 0}},
 
   { "feats", "fea", POS_SLEEPING, do_feats, 0, 0, FALSE, ACTION_NONE, {0, 0}},
+  { "featlisting", "featlisting", POS_SLEEPING, do_featlisting, LVL_IMMORT, 0, FALSE, ACTION_NONE, {0, 0}},
   { "force", "force", POS_SLEEPING, do_force, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}},
   { "fill", "fil", POS_STANDING, do_pour, 0, SCMD_FILL, FALSE, ACTION_NONE, {0, 0}},
   { "file", "file", POS_SLEEPING, do_file, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}},

@@ -64,6 +64,7 @@ extern int feat_sort_info[MAX_FEATS];
 /*****/
 
 ACMD(do_feats);
+ACMD(do_featlisting);
 
 /* FEAT defines moved to structs.h */
 
