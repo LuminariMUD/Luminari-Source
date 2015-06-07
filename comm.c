@@ -3156,7 +3156,6 @@ static void handle_webster_file(void) {
 #define MODE_DISPLAY_RANGED   4 //Display damage info ranged
 /* KaVir's plugin*/
 static void msdp_update(void) {
-
   const char MsdpVar = (char) MSDP_VAR;
   const char MsdpVal = (char) MSDP_VAL;
 
@@ -3195,11 +3194,14 @@ static void msdp_update(void) {
       MSDPSetNumber(d, eMSDP_CHA, GET_CHA(ch));
 
       if (is_using_ranged_weapon(ch))
-        damage_bonus = compute_hit_damage(ch, ch, TYPE_UNDEFINED_WTYPE, NO_DICEROLL, MODE_NORMAL_HIT, FALSE, ATTACK_TYPE_RANGED);
+        damage_bonus = compute_hit_damage(ch, ch, TYPE_UNDEFINED_WTYPE,
+                                          NO_DICEROLL, MODE_NORMAL_HIT, FALSE, ATTACK_TYPE_RANGED);
       else
-        damage_bonus = compute_hit_damage(ch, ch, TYPE_UNDEFINED_WTYPE, NO_DICEROLL, MODE_NORMAL_HIT, FALSE, ATTACK_TYPE_PRIMARY);
+        damage_bonus = compute_hit_damage(ch, ch, TYPE_UNDEFINED_WTYPE,
+                                          NO_DICEROLL, MODE_NORMAL_HIT, FALSE, ATTACK_TYPE_PRIMARY);
       MSDPSetNumber(d, eMSDP_DAMAGE_BONUS, damage_bonus);
-      MSDPSetNumber(d, eMSDP_ATTACK_BONUS, compute_attack_bonus(ch, ch, ATTACK_TYPE_PRIMARY));
+      MSDPSetNumber(d, eMSDP_ATTACK_BONUS, compute_attack_bonus(ch, ch,
+                                                                ATTACK_TYPE_PRIMARY));
 
       MSDPSetString(d, eMSDP_RACE, RACE_ABBR(ch));
 
@@ -3208,7 +3210,8 @@ static void msdp_update(void) {
 
       /* Location information */
       /*  Only update room stuff if they've changed room */
-      if (IN_ROOM(ch) != NOWHERE && GET_ROOM_VNUM(IN_ROOM(ch)) != d->pProtocol->pVariables[eMSDP_ROOM_VNUM]->ValueInt) {
+      if (IN_ROOM(ch) != NOWHERE &&
+          GET_ROOM_VNUM(IN_ROOM(ch)) != d->pProtocol->pVariables[eMSDP_ROOM_VNUM]->ValueInt) {
 
         /* Format for the room data is:
          * ROOM
@@ -3275,7 +3278,7 @@ static void msdp_update(void) {
         MSDPSetTable(d, eMSDP_ROOM_EXITS, room_exits);
         MSDPSetNumber(d, eMSDP_ROOM_VNUM, GET_ROOM_VNUM(IN_ROOM(ch)));
         MSDPSetTable(d, eMSDP_ROOM, buf2);
-      }
+      } /*end location info*/
 
       MSDPSetNumber(d, eMSDP_MANA, GET_MANA(ch));
       MSDPSetNumber(d, eMSDP_MANA_MAX, GET_MAX_MANA(ch));
@@ -3285,7 +3288,7 @@ static void msdp_update(void) {
       MSDPSetNumber(d, eMSDP_MOVEMENT_MAX, GET_MAX_MOVE(ch));
       MSDPSetNumber(d, eMSDP_AC, compute_armor_class(NULL, ch, FALSE, MODE_ARMOR_CLASS_NORMAL));
 
-      /* This would be better moved elsewhere */
+      /* This would be better moved elsewhere? */
       if (pOpponent != NULL) {
         int hit_points = (GET_HIT(pOpponent) * 100) / GET_MAX_HIT(pOpponent);
         MSDPSetNumber(d, eMSDP_OPPONENT_HEALTH, hit_points);

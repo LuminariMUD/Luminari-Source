@@ -4555,6 +4555,40 @@ ACMD(do_copyover) {
       write_to_descriptor(d->descriptor, "\n\rSorry, we are rebooting. Come back in a few minutes.\n\r");
       close_socket(d); /* throw'em out */
     } else {
+
+      /* and handling we need to do */
+
+      /* gonna clear some events for player convenience */
+      if (char_has_mud_event(och, eMUMMYDUST)) {
+        event_cancel_specific(och, eMUMMYDUST);
+      }
+      if (char_has_mud_event(och, eDRAGONKNIGHT)) {
+        event_cancel_specific(och, eDRAGONKNIGHT);
+      }
+      if (char_has_mud_event(och, eGREATERRUIN)) {
+        event_cancel_specific(och, eGREATERRUIN);
+      }
+      if (char_has_mud_event(och, eHELLBALL)) {
+        event_cancel_specific(och, eHELLBALL);
+      }
+      if (char_has_mud_event(och, eEPICMAGEARMOR)) {
+        event_cancel_specific(och, eEPICMAGEARMOR);
+      }
+      if (char_has_mud_event(och, eEPICWARDING)) {
+        event_cancel_specific(och, eEPICWARDING);
+      }
+      if (char_has_mud_event(och, eC_ANIMAL)) {
+        event_cancel_specific(och, eC_ANIMAL);
+      }
+      if (char_has_mud_event(och, eC_FAMILIAR)) {
+        event_cancel_specific(och, eC_FAMILIAR);
+      }
+      if (char_has_mud_event(och, eC_MOUNT)) {
+        event_cancel_specific(och, eC_MOUNT);
+      }
+
+      /* end special handling */
+
       fprintf(fp, "%d %ld %s %s %s\n", d->descriptor, GET_PREF(och), GET_NAME(och), d->host, CopyoverGet(d));
       /* save och */
       GET_LOADROOM(och) = GET_ROOM_VNUM(IN_ROOM(och));
