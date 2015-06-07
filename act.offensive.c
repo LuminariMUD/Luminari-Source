@@ -1659,7 +1659,7 @@ ACMD(do_hit) {
       if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_IMPROVED_INITIATIVE))
         victInitiative += 4;
       victInitiative += GET_DEX(vict);
-      if (chInitiative >= victInitiative || GET_POS(vict) < POS_FIGHTING) {
+      if (chInitiative >= victInitiative || GET_POS(vict) < POS_FIGHTING || !CAN_SEE(vict, ch)) {
 
         /* ch is taking an action so loses the Flat-footed flag */
         if (AFF_FLAGGED(ch, AFF_FLAT_FOOTED))

@@ -1212,7 +1212,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_ENDURANCE        19
 #define FEAT_ENLARGE_SPELL      20
 #define FEAT_QUICK_TO_MASTER         21
-#define FEAT_EXPERTISE        22
+#define FEAT_UNUSED_6        22
 #define FEAT_EXTEND_SPELL     23
 #define FEAT_EXTRA_TURNING      24
 #define FEAT_FAR_SHOT       25
@@ -1249,6 +1249,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_KEEN_SENSES          56
 #define FEAT_RESISTANCE_TO_ENCHANTMENTS          57
 #define FEAT_RALLYING_CRY      58
+#define FEAT_UNUSED_7            59
 #define FEAT_POISON_RESIST          60
 #define FEAT_IMPROVED_DISARM      61
 #define FEAT_IMPROVED_INITIATIVE    62
@@ -1272,12 +1273,21 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_RIDE_BY_ATTACK     80
 #define FEAT_STABILITY        81
 #define FEAT_SCRIBE_SCROLL      82
-#define FEAT_SHIELD_PROFICIENCY     83
+#define FEAT_UNUSED_8     83
 #define FEAT_SHOT_ON_THE_RUN      84
 #define FEAT_SILENT_SPELL     85
 #define FEAT_SIMPLE_WEAPON_PROFICIENCY    86
 #define FEAT_SKILL_FOCUS      87
 #define FEAT_SPELL_FOCUS      88
+
+#define FEAT_UNUSED_9     89
+#define FEAT_UNUSED_10     90
+#define FEAT_UNUSED_11    91
+#define FEAT_UNUSED_12     92
+#define FEAT_UNUSED_13     93
+#define FEAT_UNUSED_14     94
+#define FEAT_UNUSED_15     95
+
 #define FEAT_SPELL_MASTERY      96
 #define FEAT_SPELL_PENETRATION      97
 #define FEAT_SPIRITED_CHARGE      98
@@ -1294,6 +1304,8 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_COMBAT_TRAINING_VS_GIANTS   109
 #define FEAT_CANNY_DEFENSE      110
 #define FEAT_DWARF_RACIAL_ADJUSTMENT         111
+#define FEAT_UNUSED_16     112
+
 #define FEAT_SHADOW_HOPPER 113
 #define FEAT_LUCKY                                114
 #define FEAT_HALFLING_RACIAL_ADJUSTMENT 115
