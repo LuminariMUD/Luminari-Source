@@ -90,6 +90,7 @@
 #include "mudlim.h"
 #include "actions.h"
 #include "actionqueues.h"
+#include "assign_wpn_armor.h"
 
 #ifndef INVALID_SOCKET
 #define INVALID_SOCKET (-1)
@@ -3149,6 +3150,10 @@ static void handle_webster_file(void) {
   page_string(ch->desc, retval, 1);
 }
 
+#define MODE_NORMAL_HIT       0 //Normal damage calculating in hit()
+#define MODE_DISPLAY_PRIMARY  2 //Display damage info primary
+#define MODE_DISPLAY_OFFHAND  3 //Display damage info offhand
+#define MODE_DISPLAY_RANGED   4 //Display damage info ranged
 /* KaVir's plugin*/
 static void msdp_update(void) {
 
@@ -3162,6 +3167,7 @@ static void msdp_update(void) {
   struct descriptor_data *d;
   int PlayerCount = 0;
   int door;
+  int damage_bonus = 0;
 
   for (d = descriptor_list; d; d = d->next) {
     char buf[MAX_STRING_LENGTH];
@@ -3180,6 +3186,22 @@ static void msdp_update(void) {
       MSDPSetNumber(d, eMSDP_HEALTH, GET_HIT(ch));
       MSDPSetNumber(d, eMSDP_HEALTH_MAX, GET_MAX_HIT(ch));
       MSDPSetNumber(d, eMSDP_LEVEL, GET_LEVEL(ch));
+
+      MSDPSetNumber(d, eMSDP_STR, GET_STR(ch));
+      MSDPSetNumber(d, eMSDP_INT, GET_INT(ch));
+      MSDPSetNumber(d, eMSDP_WIS, GET_WIS(ch));
+      MSDPSetNumber(d, eMSDP_DEX, GET_DEX(ch));
+      MSDPSetNumber(d, eMSDP_CON, GET_CON(ch));
+      MSDPSetNumber(d, eMSDP_CHA, GET_CHA(ch));
+
+      if (is_using_ranged_weapon(ch))
+        damage_bonus = compute_hit_damage(ch, ch, TYPE_UNDEFINED_WTYPE, NO_DICEROLL, MODE_DISPLAY_RANGED, FALSE, ATTACK_TYPE_RANGED);
+      else
+        damage_bonus = compute_hit_damage(ch, ch, TYPE_UNDEFINED_WTYPE, NO_DICEROLL, MODE_DISPLAY_PRIMARY, FALSE, ATTACK_TYPE_PRIMARY);
+      MSDPSetNumber(d, eMSDP_DAMAGE_BONUS, damage_bonus);
+      MSDPSetNumber(d, eMSDP_ATTACK_BONUS, compute_attack_bonus(ch, ch, ATTACK_TYPE_PRIMARY));
+
+      MSDPSetString(d, eMSDP_RACE, RACE_ABBR(ch));
 
       sprinttype(ch->player.chclass, pc_class_types, buf, sizeof (buf));
       MSDPSetString(d, eMSDP_CLASS, buf);
@@ -3286,5 +3308,9 @@ static void msdp_update(void) {
     MSSPSetPlayers(PlayerCount);
   }
 }
+#undef MODE_NORMAL_HIT
+#undef MODE_DISPLAY_PRIMARY
+#undef MODE_DISPLAY_OFFHAND
+#undef MODE_DISPLAY_RANGED
 
 
