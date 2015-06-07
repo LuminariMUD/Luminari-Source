@@ -451,7 +451,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
      1)  handling armor-affecting spells?
      2)  calculate equipped armor separately?
    */
-  
+
   /**********/
   /* bonus types */
 
@@ -3306,7 +3306,7 @@ int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll
  *   ATTACK_TYPE_TWOHAND : Two-handed weapon attack. */
 int compute_hit_damage(struct char_data *ch, struct char_data *victim,
         int w_type, int diceroll, int mode, bool is_critical, int attack_type) {
-  int dam = 0;
+  int dam = 0, damage_holder = 0;
   struct obj_data *wielded = NULL;
 
   /* redundancy necessary due to sometimes arriving here without going through
@@ -3353,6 +3353,8 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
       default: break;
     }
 
+    damage_holder = dam; /* store so we don't multiply a multiply */
+
     /* handle critical hit damage here */
     if (is_critical && !(IS_NPC(victim) && GET_RACE(victim) == NPCRACE_UNDEAD)) { /* critical bonus */
       dam *= determine_critical_multiplier(ch, wielded);
@@ -3377,12 +3379,13 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
       if (HAS_FEAT(ch, FEAT_SPIRITED_CHARGE)) { /* mounted, charging with spirited charge feat */
         if (HAS_WEAPON_FLAG(wielded, WEAPON_FLAG_CHARGE)) { /* with lance too */
           /*debug*//*send_to_char(ch, "DEBUG: Weapon Charge Flag Working on Lance!\r\n");*/
-          dam *= 3;
-        } else
-          dam *= 2;
+          dam += damage_holder * 2; /* x3 */
+        } else {
+          dam += damage_holder; /* x2 */
+        }
       } else if (HAS_WEAPON_FLAG(wielded, WEAPON_FLAG_CHARGE)) { /* mounted charging, no feat, but with lance */
         /*debug*//*send_to_char(ch, "DEBUG: Weapon Charge Flag Working on Lance!\r\n");*/
-        dam *= 2;
+        dam += damage_holder; /* x2 */
       }
     }
 
