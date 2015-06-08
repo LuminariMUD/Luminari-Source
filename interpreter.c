@@ -293,6 +293,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "hitall", "hitall", POS_FIGHTING, do_hitall, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}},
   { "handleanimal", "handleanimal", POS_STANDING, do_handleanimal, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
   { "healingtouch", "healingtouch", POS_STANDING, do_healingtouch, 0, 0, FALSE, ACTION_STANDARD, {6, 0}},
+  { "hp", "hp", POS_DEAD, do_hp, 1, 0, TRUE, ACTION_NONE, {0, 0}},
 
   { "inventory", "i", POS_DEAD, do_inventory, 0, 0, TRUE, ACTION_NONE, {0, 0}},
   { "identify", "id", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}},
@@ -339,6 +340,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "mount", "mount", POS_FIGHTING, do_mount, 0, 0, FALSE, ACTION_MOVE, {0, 6}},
   { "masterlist", "masterlist", POS_DEAD, do_masterlist, 0, 0, TRUE, ACTION_NONE, {0, 0}},
   { "massinvis", "massinvis", POS_FIGHTING, do_massinvis, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
+  { "moves", "moves", POS_DEAD, do_moves, 1, 0, TRUE, ACTION_NONE, {0, 0}},
 
   { "news", "news", POS_SLEEPING, do_gen_ps, 0, SCMD_NEWS, TRUE, ACTION_NONE, {0, 0}},
   { "noauction", "noauction", POS_DEAD, do_gen_tog, 0, SCMD_NOAUCTION, TRUE, ACTION_NONE, {0, 0}},
@@ -506,6 +508,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "tailsweep", "tailsweep", POS_FIGHTING, do_tailsweep, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}},
   { "tame", "tame", POS_FIGHTING, do_tame, 0, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}},
   { "totaldefense", "totaldefense", POS_FIGHTING, do_mode, 1, MODE_TOTAL_DEFENSE, FALSE, ACTION_NONE, {0, 0}},
+  { "tnl", "tnl", POS_DEAD, do_tnl, 1, 0, TRUE, ACTION_NONE, {0, 0}},
 
   { "unlock", "unlock", POS_SITTING, do_gen_door, 0, SCMD_UNLOCK, FALSE, ACTION_NONE, {0, 0}},
   { "unban", "unban", POS_DEAD, do_unban, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}},

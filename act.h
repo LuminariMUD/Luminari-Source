@@ -136,6 +136,10 @@ ACMD(do_who);
 ACMD(do_whois);
 ACMD(do_track);
 ACMD(do_class);
+ACMD(do_hp);
+ACMD(do_tnl);
+ACMD(do_moves);
+
 
 /*****************************************************************************
  * Begin Functions and defines for act.item.c

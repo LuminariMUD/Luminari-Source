@@ -4075,6 +4075,24 @@ ACMD(do_scan) {
   }
 } // end of do_scan
 
+/* informational command requested by screenreader users */
+ACMD(do_hp) {
+  send_to_char(ch, "You have %d hit points out of %d total.\r\n",
+               GET_HIT(ch), GET_MAX_HIT(ch));
+}
+
+/* informational command requested by screenreader users */
+ACMD(do_tnl) {
+  send_to_char(ch, "You need %d experience points to reach your next level.\r\n",
+               level_exp(ch, GET_LEVEL(ch) + 1) - GET_EXP(ch));
+}
+
+/* informational command requested by screenreader users */
+ACMD(do_moves) {
+  send_to_char(ch, "You have %d movement points left.\r\n", GET_MOVE(ch));
+}
+
+/* see exits */
 ACMD(do_exits) {
   int door, len = 0;
 

@@ -855,6 +855,7 @@ void stop_fighting(struct char_data *ch) {
   REMOVE_FROM_LIST(ch, combat_list, next_fighting);
   ch->next_fighting = NULL;
   FIGHTING(ch) = NULL;
+  FIRING(ch) = 0;
   if (GET_POS(ch) > POS_SITTING)
     GET_POS(ch) = POS_STANDING;
   update_pos(ch);
