@@ -3547,7 +3547,7 @@ ACMD(do_fire) {
 
   if (can_fire_arrow(ch, FALSE)) {
     hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, 2); // 2 in last arg indicates ranged
-    if (IN_ROOM(ch) != IN_ROOM(vict)) {
+    if (ch && vict && IN_ROOM(ch) != IN_ROOM(vict)) {
       /* don't forget to remove the fight event! */
       if (char_has_mud_event(ch, eCOMBAT_ROUND)) {
         event_cancel_specific(ch, eCOMBAT_ROUND);
