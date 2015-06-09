@@ -47,6 +47,8 @@
       <in>assign_wpn_armor.h</in>
       <in>ban.c</in>
       <in>ban.h</in>
+      <in>bardic_performance.c</in>
+      <in>bardic_performance.h</in>
       <in>boards.c</in>
       <in>boards.h</in>
       <in>bsd-snprintf.c</in>
