@@ -1759,6 +1759,15 @@ struct wild_shape_mods *set_wild_shape_mods(int race) {
       abil_mods->dexterity = race_list[race].ability_mods[4];
       break;
   }
+
+  /* individual race modifications */
+  switch (race) {
+    case RACE_CHEETAH:
+      abil_mods->dexterity += 4;
+      break;
+    default:break;
+  }
+
   return abil_mods;
 }
 
