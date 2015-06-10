@@ -3391,7 +3391,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
     }
 
     /* Add additional damage dice from weapon special abilities. - Ornir */
-    if (wielded) {
+    if (wielded && FIGHTING(ch)) {
 
       /* process weapon abilities - critical */
       if (is_critical && !(IS_NPC(victim) && GET_RACE(victim) == NPCRACE_UNDEAD))
