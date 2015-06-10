@@ -3444,17 +3444,17 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
         /* Check the values in the special ability record for the NPCRACE and SUBRACE. */
         int *value = get_obj_special_ability(wielded, WEAPON_SPECAB_BANE)->value;
         if((GET_RACE(victim) == value[0]) && (HAS_SUBRACE(victim, value[1]))) {
-          send_to_char(ch, "Your weapon hums in delight as it strikes!\r\n");
+          send_to_char(ch, "Your weapon hums in delight as it strikes!a\r\n");
           dam += dice(2, 6);
         }
       }
       /*bane weapon*/
       if (HAS_FEAT(ch, FEAT_BANE_OF_ENEMIES) && HAS_FEAT(ch, FEAT_FAVORED_ENEMY)) {
         if (!IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, NPCRACE_HUMAN)) {
-          send_to_char(ch, "Your weapon hums in delight as it strikes!\r\n");
+          send_to_char(ch, "Your weapon hums in delight as it strikes!b\r\n");
           dam += dice(2, 6);
         } else if (IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, GET_RACE(victim))) {
-          send_to_char(ch, "Your weapon hums in delight as it strikes!\r\n");
+          send_to_char(ch, "Your weapon hums in delight as it strikes!c\r\n");
           dam += dice(2, 6);
         }
       }
