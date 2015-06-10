@@ -3195,10 +3195,10 @@ static void msdp_update(void) {
 
       if (is_using_ranged_weapon(ch))
         damage_bonus = compute_hit_damage(ch, ch, TYPE_UNDEFINED_WTYPE,
-                                          NO_DICEROLL, MODE_DISPLAY_RANGED, FALSE, ATTACK_TYPE_RANGED);
+                                          NO_DICEROLL, MODE_NORMAL_HIT, FALSE, ATTACK_TYPE_RANGED);
       else
         damage_bonus = compute_hit_damage(ch, ch, TYPE_UNDEFINED_WTYPE,
-                                          NO_DICEROLL, MODE_DISPLAY_PRIMARY, FALSE, ATTACK_TYPE_PRIMARY);
+                                          NO_DICEROLL, MODE_NORMAL_HIT, FALSE, ATTACK_TYPE_PRIMARY);
       MSDPSetNumber(d, eMSDP_DAMAGE_BONUS, damage_bonus);
       MSDPSetNumber(d, eMSDP_ATTACK_BONUS, compute_attack_bonus(ch, ch,
                                                                 ATTACK_TYPE_PRIMARY));
