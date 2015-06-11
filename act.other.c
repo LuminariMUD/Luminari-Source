@@ -1763,7 +1763,7 @@ struct wild_shape_mods *set_wild_shape_mods(int race) {
   /* individual race modifications */
   switch (race) {
     case RACE_CHEETAH:
-      abil_mods->dexterity += 4;
+      abil_mods->dexterity += 8;
       break;
     default:break;
   }
@@ -1984,6 +1984,7 @@ void cleanup_wildshape_feats(struct char_data *ch) {
 void assign_wildshape_feats(struct char_data *ch) {
   int counter = 0;
   int shifter_level = CLASS_LEVEL(ch, CLASS_DRUID);
+  int shifted_race = GET_DISGUISE_RACE(ch);
 
   if (shifter_level > 30)
     shifter_level = 30;
@@ -2076,6 +2077,12 @@ void assign_wildshape_feats(struct char_data *ch) {
     case 3:case 2:case 1:
       MOB_SET_FEAT(ch, FEAT_NATURAL_ATTACK, MOB_HAS_FEAT(ch, FEAT_NATURAL_ATTACK) + 1);
     default:
+      break;
+  }
+
+  switch (shifted_race) {
+    case RACE_CHEETAH:
+      MOB_SET_FEAT(ch, FEAT_DODGE, 1);
       break;
   }
 }
