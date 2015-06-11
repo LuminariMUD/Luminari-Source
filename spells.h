@@ -714,8 +714,14 @@
 #define TYPE_SLICE        715 /* slash */
 #define TYPE_THRUST       716 /* pierce */
 #define TYPE_HACK         717 /* slash */
+#define TYPE_RAKE         718 /* slash? */
+#define TYPE_PECK         719 /* pierce? */
+#define TYPE_SMASH        720 /* bludgeon? */
+#define TYPE_TRAMPLE      721 /* bludgeon? */
+#define TYPE_CHARGE       722 /* pierce? */
+#define TYPE_GORE         723 /* pierce? */
 /** The total number of attack types */
-#define NUM_ATTACK_TYPES  18
+#define NUM_ATTACK_TYPES   24
 /* (stock)
  * hit - 0      blunt
  * sting - 1      piercing
