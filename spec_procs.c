@@ -998,8 +998,8 @@ void list_abilities(struct char_data *ch, int ability_type) {
       end_ability = NUM_ABILITIES;
   }
 
-  if (IS_NPC(ch))
-    return;
+  //if (IS_NPC(ch))
+    //return;
 
   send_to_char(ch, "\tCYou have %d training session%s remaining.\r\n"
           "You know of the following abilities:\tn\r\n", GET_TRAINS(ch),
