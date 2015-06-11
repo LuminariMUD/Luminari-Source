@@ -1765,6 +1765,10 @@ struct wild_shape_mods *set_wild_shape_mods(int race) {
     case RACE_CHEETAH:
       abil_mods->dexterity += 8;
       break;
+    case RACE_WOLF:
+    case RACE_HYENA:
+
+      break;
     default:break;
   }
 
@@ -2083,6 +2087,11 @@ void assign_wildshape_feats(struct char_data *ch) {
   switch (shifted_race) {
     case RACE_CHEETAH:
       MOB_SET_FEAT(ch, FEAT_DODGE, 1);
+      break;
+    case RACE_WOLF:
+    case RACE_HYENA:
+      MOB_SET_FEAT(ch, FEAT_NATURAL_TRACKER, 1);
+      MOB_SET_FEAT(ch, FEAT_INFRAVISION, 1);
       break;
   }
 }
@@ -3286,8 +3295,8 @@ ACMD(do_practice) {
 ACMD(do_train) {
   char arg[MAX_INPUT_LENGTH];
 
-  if (IS_NPC(ch))
-    return;
+  //if (IS_NPC(ch))
+    //return;
 
   one_argument(argument, arg);
 

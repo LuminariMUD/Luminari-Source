@@ -332,6 +332,15 @@ void assign_feats(void) {
     "proficiency with your natural attack",
     "Depending on the level and size of the shifter, the natural attack of the "
           "shifted form will get more powerful and accurate.");
+  feato(FEAT_NATURAL_TRACKER, "natural tracker", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "naturally able to track",
+    "Without this feat (or similar) you are unable to track opponents.");
+
+  /*************************/
+  /* NPC Racial Feats Shared Elsewhere */
+
+
+
 
   /******/
   /* Racial ability feats */

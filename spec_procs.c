@@ -723,7 +723,7 @@ int compute_ability(struct char_data *ch, int abilityNum) {
    * an appropriate set of skills, mostly for intellignet, humanoid
    * NPCs. For now, just use the level, although that will be difficult. */
   if (IS_NPC(ch))
-    value += GET_LEVEL(ch);
+    value += GET_LEVEL(ch) - 1;
   else
     value += GET_ABILITY(ch, abilityNum);
 

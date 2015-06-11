@@ -153,7 +153,7 @@ ACMD(do_track) {
   int ch_in_wild = FALSE, vict_in_wild = FALSE;
 
   /* The character must have the track skill. */
-  if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_TRACK)) {
+  if (!HAS_FEAT(ch, FEAT_NATURAL_TRACKER) && !HAS_FEAT(ch, FEAT_TRACK)) {
     send_to_char(ch, "You have no idea how.\r\n");
     return;
   }
