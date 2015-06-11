@@ -923,7 +923,7 @@ void look_at_room(struct char_data *ch, int ignore_brief) {
    */
 
   /* if we are on the worldmap (and can actually see it), then show it */
-  if ((!room_dark || can_infra_in_dark) && world_map) {
+  if ((!room_dark || can_infra_in_dark) && world_map && PRF_FLAGGED(ch, PRF_AUTOMAP)) {
     //    perform_map(ch, "", show_worldmap(ch));
     show_wilderness_map(ch, 21, ch->coords[0], ch->coords[1]);
 

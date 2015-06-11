@@ -4541,7 +4541,7 @@ void init_char(struct char_data *ch) {
   #define SKILL_DRACONIC_CRAFTING         484
   #define SKILL_DWARVEN_CRAFTING          485
    */
-  /* start crafting skills at 1 */
+  /* start crafting skills at 4 */
   if (GET_LEVEL(ch) < LVL_STAFF) {
     for (i = 471; i <= 485; i++) {
         SET_SKILL(ch, i, 4);
