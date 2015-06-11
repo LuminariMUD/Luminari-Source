@@ -335,6 +335,9 @@ void assign_feats(void) {
   feato(FEAT_NATURAL_TRACKER, "natural tracker", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
     "naturally able to track",
     "Without this feat (or similar) you are unable to track opponents.");
+  feato(FEAT_POISON_BITE, "poison bite", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "your bite can cause poison",
+    "When attacking an opponent, you have a high chance of inflicting poison through your bite.");
 
   /*************************/
   /* NPC Racial Feats Shared Elsewhere */
