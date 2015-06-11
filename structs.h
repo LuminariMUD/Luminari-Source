@@ -1212,7 +1212,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_ENDURANCE        19
 #define FEAT_ENLARGE_SPELL      20
 #define FEAT_QUICK_TO_MASTER         21
-#define FEAT_UNUSED_6        22
+#define FEAT_NATURAL_TRACKER        22
 #define FEAT_EXTEND_SPELL     23
 #define FEAT_EXTRA_TURNING      24
 #define FEAT_FAR_SHOT       25
