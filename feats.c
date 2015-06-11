@@ -2003,7 +2003,6 @@ void assign_feats(void) {
   feato(FEAT_SLEEP_PARALYSIS_IMMUNITY, "sleep & paralysis immunity", FALSE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "ask staff", "ask staff");
   feato(FEAT_STRENGTH_BOOST, "strength boost", FALSE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "ask staff", "ask staff");
   feato(FEAT_TRAMPLE, "trample", FALSE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_WINGS, "wings", FALSE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "ask staff", "ask staff");
   feato(FEAT_NATURAL_ARMOR_INCREASE, "natural armor increase", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
   feato(FEAT_BLINDSENSE, "blindsense", FALSE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "ask staff", "ask staff");
 
