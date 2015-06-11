@@ -2143,7 +2143,7 @@ ACMD(do_affects) {
 
 ACMD(do_attacks) {
   /* show cmb/d info */
-  send_to_char(ch, "Combat Maneuver Bonus: %d, Combat Maneuver Defense: %d",
+  send_to_char(ch, "Combat Maneuver Bonus: %d, Combat Maneuver Defense: %d.\r\n\r\n",
                compute_cmb(ch, 0), compute_cmd(ch, 0));
 #define DISPLAY_ROUTINE_POTENTIAL 2
   perform_attacks(ch, DISPLAY_ROUTINE_POTENTIAL, 0);
