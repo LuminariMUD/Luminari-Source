@@ -2116,6 +2116,10 @@ void assign_wildshape_feats(struct char_data *ch) {
     case RACE_GIANT_CONSTRICTOR_SNAKE:
       MOB_SET_FEAT(ch, FEAT_IMPROVED_GRAPPLE, 1);
       break;
+    case RACE_EAGLE:
+      MOB_SET_FEAT(ch, FEAT_WINGS, 1);
+      break;
+
   }
 
 }
@@ -2711,12 +2715,12 @@ ACMD(do_land) {
 
 /* race trelux innate ability */
 ACMD(do_fly) {
-  if (GET_RACE(ch) != RACE_TRELUX) {
+  if (!HAS_FEAT(ch, FEAT_WINGS)) {
     send_to_char(ch, "You don't have this ability.\r\n");
     return;
   }
 
-  if AFF_FLAGGED(ch, AFF_FLYING) {
+  if (AFF_FLAGGED(ch, AFF_FLYING)) {
     send_to_char(ch, "You are already flying!\r\n");
     return;
   } else {
