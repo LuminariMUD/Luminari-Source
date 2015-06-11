@@ -457,7 +457,10 @@ EVENTFUNC(event_daily_use_cooldown) {
 
     sprintf(buf, "uses:%d", uses);
     pMudEvent->sVariables = strdup(buf);
-    cooldown = (SECS_PER_MUD_DAY/get_daily_uses(ch, featnum)) RL_SEC;
+
+    if (get_daily_uses(ch, featnum)) /* divide by 0! */
+      cooldown = (SECS_PER_MUD_DAY/get_daily_uses(ch, featnum)) RL_SEC;
+
   }
 
   return cooldown;
