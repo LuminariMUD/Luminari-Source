@@ -4712,8 +4712,8 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   /* 20% chance to poison as a trelux. This could be made part of the general poison code, once that is
    * implemented, also, shouldn't they be able to control if they poison or not?  Why not make them envenom
    * their claws before an attack? */
-  if (!victim_is_dead && GET_RACE(ch) == RACE_TRELUX && !IS_AFFECTED(victim, AFF_POISON)
-          && !rand_number(0, 5)) {
+  if (!victim_is_dead && !IS_AFFECTED(victim, AFF_POISON) && !rand_number(0, 5) &&
+      (GET_RACE(ch) == RACE_TRELUX || HAS_FEAT(ch, FEAT_POISON_BITE)) ) {
     /* We are just using the poison spell for this...Maybe there would be a better way, some unique poison?
      * Note the CAST_INNATE, this removes armor spell failure from the call. */
     call_magic(ch, FIGHTING(ch), 0, SPELL_POISON, GET_LEVEL(ch), CAST_INNATE);

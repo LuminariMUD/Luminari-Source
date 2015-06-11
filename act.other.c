@@ -1945,11 +1945,12 @@ void set_bonus_stats(struct char_data *ch, int str, int con, int dex, int ac) {
 /* also clean up anything else assigned such as affections */
 void cleanup_wildshape_feats(struct char_data *ch) {
   int counter = 0;
+  int race = GET_DISGUISE_RACE(ch);
 
   for (counter = 0; counter < NUM_FEATS; counter++)
     MOB_SET_FEAT((ch), counter, 0);
 
-  switch (race_list[GET_DISGUISE_RACE(ch)].family) {
+  switch (race_list[race].family) {
     case RACE_TYPE_ANIMAL:
       break;
     case RACE_TYPE_MAGICAL_BEAST:
@@ -1979,6 +1980,14 @@ void cleanup_wildshape_feats(struct char_data *ch) {
           REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_MINOR_GLOBE);
           break;
       }
+      break;
+    default:break;
+  }
+
+  switch (race) {
+    case RACE_CROCODILE:
+      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_SCUBA);
+      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_WATER_BREATH);
       break;
     default:break;
   }
@@ -2093,7 +2102,22 @@ void assign_wildshape_feats(struct char_data *ch) {
       MOB_SET_FEAT(ch, FEAT_NATURAL_TRACKER, 1);
       MOB_SET_FEAT(ch, FEAT_INFRAVISION, 1);
       break;
+    case RACE_CROCODILE:
+    case RACE_GIANT_CROCODILE:
+      SET_BIT_AR(AFF_FLAGS(ch), AFF_SCUBA);
+      SET_BIT_AR(AFF_FLAGS(ch), AFF_WATER_BREATH);
+      break;
+    case RACE_MEDIUM_VIPER:
+    case RACE_LARGE_VIPER:
+    case RACE_HUGE_VIPER:
+      MOB_SET_FEAT(ch, FEAT_POISON_BITE, 1);
+      break;
+    case RACE_CONSTRICTOR_SNAKE:
+    case RACE_GIANT_CONSTRICTOR_SNAKE:
+      MOB_SET_FEAT(ch, FEAT_IMPROVED_GRAPPLE, 1);
+      break;
   }
+
 }
 
 /* wildshape!  druids cup o' tea */

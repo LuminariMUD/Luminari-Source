@@ -1249,7 +1249,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_KEEN_SENSES          56
 #define FEAT_RESISTANCE_TO_ENCHANTMENTS          57
 #define FEAT_RALLYING_CRY      58
-#define FEAT_UNUSED_7            59
+#define FEAT_POISON_BITE            59
 #define FEAT_POISON_RESIST          60
 #define FEAT_IMPROVED_DISARM      61
 #define FEAT_IMPROVED_INITIATIVE    62
