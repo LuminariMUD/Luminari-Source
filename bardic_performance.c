@@ -19,17 +19,17 @@
 #include "db.h"
 #include "dg_scripts.h"
 
-#define SINFO spell_info[spellnum]
+#define SINFO performance_info_type[performance_num]
 
 /* Global Variables definitions, used elsewhere */
-struct spell_info_type spell_info[TOP_SPELL_DEFINE + 1];
-char cast_arg2[MAX_INPUT_LENGTH];
-const char *unused_spellname = "!UNUSED!"; /* So we can get &unused_spellname */
+struct performance_info_type performance_info[MAX_PERFORMANCES + 1];
+const char *unused_performance = "!UNUSED!"; /* So we can get &unused_performance_name */
 
 /* Local (File Scope) Function Prototypes */
 static void performance_message(struct char_data *ch, int performance_num,
                                 struct obj_data *instrument);
-static void spello(int spl, const char *name, int max_mana, int min_mana, int mana_change, int minpos, int targets, int violent, int routines, const char *wearoff);
+static void performanceo(int performance, const char *name, int minpos, int targets,
+                         int violent, const char *wearoff);
 
 /* Local (File Scope) Variables */
 
@@ -41,17 +41,17 @@ static void performance_message(struct char_data *ch, int performance_num,
 
 }
 
-int find_skill_num(char *name) {
+int find_performance_num(char *name) {
   int skindex, ok;
   char *temp, *temp2;
   char first[256], first2[256], tempbuf[256];
 
-  for (skindex = 1; skindex <= TOP_SPELL_DEFINE; skindex++) {
-    if (is_abbrev(name, spell_info[skindex].name))
+  for (skindex = 1; skindex <= MAX_PERFORMANCES; skindex++) {
+    if (is_abbrev(name, performance_info[skindex].name))
       return (skindex);
 
     ok = TRUE;
-    strlcpy(tempbuf, spell_info[skindex].name, sizeof(tempbuf));	/* strlcpy: OK */
+    strlcpy(tempbuf, performance_info[skindex].name, sizeof(tempbuf));	/* strlcpy: OK */
     temp = any_one_arg(tempbuf, first);
     temp2 = any_one_arg(name, first2);
     while (*first && *first2 && ok) {

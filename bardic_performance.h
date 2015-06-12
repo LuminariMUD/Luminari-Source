@@ -20,13 +20,9 @@ extern "C" {
 #define MAX_PERFORMANCES                   2
 
 struct performance_info_type {
-   byte min_position;	/* Position for caster	 */
-   int mana_min;	/* Min amount of mana used by a spell (highest lev) */
-   int mana_max;	/* Max amount of mana used by a spell (lowest lev) */
-   int mana_change;	/* Change in mana used by spell from lev to lev */
+   byte min_position;	/* Position for performer */
 
    int min_level;
-   int routines;
    byte violent;
    int targets;         /* See below for use with TAR_XXX  */
    const char *name;	/* Input size not limited. Originates from string constants. */
@@ -43,7 +39,7 @@ void performance_inspiration(int level, struct char_data *ch);
 
 /* basic magic calling functions */
 
-int find_skill_num(char *name);
+int find_performance_num(char *name);
 
 int	call_magic(struct char_data *caster, struct char_data *cvict,
   struct obj_data *ovict, int spellnum, int level, int casttype);
