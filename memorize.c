@@ -784,6 +784,10 @@ void init_spell_slots(struct char_data *ch) {
 
 /* given class and spellnum, returns spells circle */
 int spellCircle(int class, int spellnum, int domain) {
+
+  if (spellnum <= SPELL_RESERVED_DBC || spellnum >= NUM_SPELLS)
+    return 99;
+
   switch (class) {
     case CLASS_BARD:
       switch (spell_info[spellnum].min_level[class]) {
