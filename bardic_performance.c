@@ -68,13 +68,13 @@ int find_performance_num(char *name) {
   return (-1);
 }
 
-/* This function is the very heart of the entire magic system.  All invocations
- * of all types of magic -- objects, spoken and unspoken PC and NPC spells, the
+/* This function is the very heart of the entire performance system.  All objects,
+ * spoken and unspoken PC and NPC performances, the
  * works -- all come through this function eventually. This is also the entry
- * point for non-spoken or unrestricted spells. Spellnum 0 is legal but silently
+ * point for non-spoken or unrestricted performances. performancenum 0 is legal but silently
  * ignored here, to make callers simpler. */
-int call_magic(struct char_data *caster, struct char_data *cvict,
-	     struct obj_data *ovict, int spellnum, int level, int casttype)
+int call_performance(struct char_data *performer, struct char_data *vict,
+	     struct obj_data *obj, int performance_num, int level, int performance_type)
 {
   int savetype;
 
@@ -119,155 +119,6 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
     }
 
   return (1);
-}
-
-/* mag_objectmagic: This is the entry-point for all magic items.  This should
- * only be called by the 'quaff', 'use', 'recite', etc. routines.
- * For reference, object values 0-3:
- * staff  - [0]	level	[1] max charges	[2] num charges	[3] spell num
- * wand   - [0]	level	[1] max charges	[2] num charges	[3] spell num
- * scroll - [0]	level	[1] spell num	[2] spell num	[3] spell num
- * potion - [0] level	[1] spell num	[2] spell num	[3] spell num
- * Staves and wands will default to level 14 if the level is not specified; the
- * DikuMUD format did not specify staff and wand levels in the world files */
-void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
-		          char *argument)
-{
-  char arg[MAX_INPUT_LENGTH];
-  int i, k;
-  struct char_data *tch = NULL, *next_tch;
-  struct obj_data *tobj = NULL;
-
-  one_argument(argument, arg);
-
-  k = generic_find(arg, FIND_CHAR_ROOM | FIND_OBJ_INV | FIND_OBJ_ROOM |
-		   FIND_OBJ_EQUIP, ch, &tch, &tobj);
-
-  switch (GET_OBJ_TYPE(obj)) {
-  case ITEM_STAFF:
-    act("You tap $p three times on the ground.", FALSE, ch, obj, 0, TO_CHAR);
-    if (obj->action_description)
-      act(obj->action_description, FALSE, ch, obj, 0, TO_ROOM);
-    else
-      act("$n taps $p three times on the ground.", FALSE, ch, obj, 0, TO_ROOM);
-
-    if (GET_OBJ_VAL(obj, 2) <= 0) {
-      send_to_char(ch, "It seems powerless.\r\n");
-      act("Nothing seems to happen.", FALSE, ch, obj, 0, TO_ROOM);
-    } else {
-      GET_OBJ_VAL(obj, 2)--;
-      WAIT_STATE(ch, PULSE_VIOLENCE);
-      /* Level to cast spell at. */
-      k = GET_OBJ_VAL(obj, 0) ? GET_OBJ_VAL(obj, 0) : DEFAULT_STAFF_LVL;
-
-      /* Area/mass spells on staves can cause crashes. So we use special cases
-       * for those spells spells here. */
-      if (HAS_SPELL_ROUTINE(GET_OBJ_VAL(obj, 3), MAG_MASSES | MAG_AREAS)) {
-        for (i = 0, tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
-	  i++;
-	while (i-- > 0)
-	  call_magic(ch, NULL, NULL, GET_OBJ_VAL(obj, 3), k, CAST_STAFF);
-      } else {
-	for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch) {
-	  next_tch = tch->next_in_room;
-	  if (ch != tch)
-	    call_magic(ch, tch, NULL, GET_OBJ_VAL(obj, 3), k, CAST_STAFF);
-	}
-      }
-    }
-    break;
-  case ITEM_WAND:
-    if (k == FIND_CHAR_ROOM) {
-      if (tch == ch) {
-	act("You point $p at yourself.", FALSE, ch, obj, 0, TO_CHAR);
-	act("$n points $p at $mself.", FALSE, ch, obj, 0, TO_ROOM);
-      } else {
-	act("You point $p at $N.", FALSE, ch, obj, tch, TO_CHAR);
-	if (obj->action_description)
-	  act(obj->action_description, FALSE, ch, obj, tch, TO_ROOM);
-	else
-	  act("$n points $p at $N.", TRUE, ch, obj, tch, TO_ROOM);
-      }
-    } else if (tobj != NULL) {
-      act("You point $p at $P.", FALSE, ch, obj, tobj, TO_CHAR);
-      if (obj->action_description)
-	act(obj->action_description, FALSE, ch, obj, tobj, TO_ROOM);
-      else
-	act("$n points $p at $P.", TRUE, ch, obj, tobj, TO_ROOM);
-    } else if (IS_SET(spell_info[GET_OBJ_VAL(obj, 3)].routines, MAG_AREAS | MAG_MASSES)) {
-      /* Wands with area spells don't need to be pointed. */
-      act("You point $p outward.", FALSE, ch, obj, NULL, TO_CHAR);
-      act("$n points $p outward.", TRUE, ch, obj, NULL, TO_ROOM);
-    } else {
-      act("At what should $p be pointed?", FALSE, ch, obj, NULL, TO_CHAR);
-      return;
-    }
-
-    if (GET_OBJ_VAL(obj, 2) <= 0) {
-      send_to_char(ch, "It seems powerless.\r\n");
-      act("Nothing seems to happen.", FALSE, ch, obj, 0, TO_ROOM);
-      return;
-    }
-    GET_OBJ_VAL(obj, 2)--;
-    WAIT_STATE(ch, PULSE_VIOLENCE);
-    if (GET_OBJ_VAL(obj, 0))
-      call_magic(ch, tch, tobj, GET_OBJ_VAL(obj, 3),
-		 GET_OBJ_VAL(obj, 0), CAST_WAND);
-    else
-      call_magic(ch, tch, tobj, GET_OBJ_VAL(obj, 3),
-		 DEFAULT_WAND_LVL, CAST_WAND);
-    break;
-  case ITEM_SCROLL:
-    if (*arg) {
-      if (!k) {
-	act("There is nothing to here to affect with $p.", FALSE,
-	    ch, obj, NULL, TO_CHAR);
-	return;
-      }
-    } else
-      tch = ch;
-
-    act("You recite $p which dissolves.", TRUE, ch, obj, 0, TO_CHAR);
-    if (obj->action_description)
-      act(obj->action_description, FALSE, ch, obj, tch, TO_ROOM);
-    else
-      act("$n recites $p.", FALSE, ch, obj, NULL, TO_ROOM);
-
-    WAIT_STATE(ch, PULSE_VIOLENCE);
-    for (i = 1; i <= 3; i++)
-      if (call_magic(ch, tch, tobj, GET_OBJ_VAL(obj, i),
-		       GET_OBJ_VAL(obj, 0), CAST_SCROLL) <= 0)
-	break;
-
-    if (obj != NULL)
-      extract_obj(obj);
-    break;
-  case ITEM_POTION:
-    tch = ch;
-
-  if (!consume_otrigger(obj, ch, OCMD_QUAFF))  /* check trigger */
-    return;
-
-    act("You quaff $p.", FALSE, ch, obj, NULL, TO_CHAR);
-    if (obj->action_description)
-      act(obj->action_description, FALSE, ch, obj, NULL, TO_ROOM);
-    else
-      act("$n quaffs $p.", TRUE, ch, obj, NULL, TO_ROOM);
-
-    WAIT_STATE(ch, PULSE_VIOLENCE);
-    for (i = 1; i <= 3; i++)
-      if (call_magic(ch, ch, NULL, GET_OBJ_VAL(obj, i),
-		       GET_OBJ_VAL(obj, 0), CAST_POTION) <= 0)
-	break;
-
-    if (obj != NULL)
-      extract_obj(obj);
-    break;
-  default:
-    log("SYSERR: Unknown object_type %d in mag_objectmagic.",
-	GET_OBJ_TYPE(obj));
-    break;
-  }
 }
 
 /* cast_spell is used generically to cast any spoken spell, assuming we already
