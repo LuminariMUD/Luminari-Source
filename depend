@@ -56,9 +56,7 @@ assign_wpn_armor.o: assign_wpn_armor.c conf.h sysdep.h structs.h \
  actions.h actionqueues.h assign_wpn_armor.h craft.h feats.h
 ban.o: ban.c conf.h sysdep.h structs.h protocol.h lists.h utils.h race.h \
  comm.h interpreter.h handler.h db.h ban.h
-bardic_performance.o: bardic_performance.c conf.h sysdep.h structs.h \
- protocol.h lists.h utils.h race.h interpreter.h spells.h handler.h \
- comm.h db.h dg_scripts.h
+bardic_performance.o: bardic_performance.c
 boards.o: boards.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h db.h boards.h interpreter.h handler.h improved-edit.h \
  modify.h
@@ -213,7 +211,7 @@ interpreter.o: interpreter.c conf.h sysdep.h structs.h protocol.h lists.h \
  constants.h act.h ban.h class.h graph.h hedit.h house.h config.h \
  modify.h quest.h hlquest.h asciimap.h prefedit.h ibt.h mud_event.h \
  dg_event.h clan.h craft.h treasure.h feats.h actions.h actionqueues.h \
- combat_modes.h traps.h domains_schools.h grapple.h
+ combat_modes.h traps.h domains_schools.h grapple.h assign_wpn_armor.h
 kdtree.o: kdtree.c kdtree.h
 limits.o: limits.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h spells.h comm.h db.h handler.h interpreter.h dg_scripts.h class.h \

@@ -33,6 +33,71 @@ cpp_extern const char *luminari_version = "LuminariMUD 2.267 (tbaMUD 3.64)";
 /* strings corresponding to ordinals/bitvectors in structs.h */
 /* (Note: strings for class definitions in class.c instead of here) */
 
+const char *spec_armor_type[NUM_SPEC_ARMOR_TYPES + 1] = {
+  "Undefined",
+/**/
+  "Clothing/Robes",
+  "Padded Armor",
+  "Leather Armor",
+  "Studded Leather Armor",
+  "Light Chain Armor",
+  "Hide Armor",
+  "Scale Armor",
+  "Chainmail",
+  "Piecemeal Armor",
+  "Splint Armor",
+  "Banded Armor",
+  "Halfplate Armor",
+  "Fullplate Armor",
+/**/
+  "Buckler",
+  "Small Shield",
+  "Large Shield",
+  "Tower Shield",
+/**/
+  "Cloth Hood",
+  "Padded Helm",
+  "Leather Helm",
+  "Studded Leather Helm",
+  "Light Chain Helm",
+  "Hide Helm",
+  "Scale Helm",
+  "Chainmail Helm",
+  "Piecemeal Helm",
+  "Splint Helm",
+  "Banded Helm",
+  "Halfplate Helm",
+  "Fullplate Helm",
+/**/
+  "Cloth Sleeves",
+  "Padded Sleeves",
+  "Leather Sleeves",
+  "Studded Leather Sleeves",
+  "Light Chain Sleeves",
+  "Hide Sleeves",
+  "Scale Sleeves",
+  "Chainmail Sleeves",
+  "Piecemeal Sleeves",
+  "Splint Vambraces",
+  "Banded Vambraces",
+  "Halfplate Vambraces",
+  "Fullplate Vambraces",
+  "Fullplate Vambraces",
+/**/
+  "Cloth Pants",
+  "Padded Leggings",
+  "Light Chain Leggings",
+  "Hide Leggings",
+  "Scale Leggings",
+  "Chainmail Leggings",
+  "Piecemeal Leggings",
+  "Splint Greaves",
+  "Banded Greaves",
+  "Halfplate Greaves",
+  "Fullplate Greaves",
+  "\n"
+};
+
 /* ammo types */
 const char *ammo_types[NUM_AMMO_TYPES + 1] = {
   "Undefined",
