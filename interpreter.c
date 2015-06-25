@@ -51,6 +51,7 @@
 #include "traps.h"
 #include "domains_schools.h"
 #include "grapple.h"
+#include "assign_wpn_armor.h"
 
 /* local (file scope) functions */
 static int perform_dupe_check(struct descriptor_data *d);
@@ -137,6 +138,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "accexp", "accexp", POS_DEAD, do_accexp, 0, 0, TRUE, ACTION_NONE, {0, 0}},
   { "aciddart", "aciddart", POS_FIGHTING, do_aciddart, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
   { "auraofprotection", "auraofprotection", POS_FIGHTING, do_auraofprotection, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
+  { "armorlist", "armorlist", POS_DEAD, do_armorlist, 0, 0, TRUE, ACTION_NONE, {0, 0}},
 
   { "backstab", "ba", POS_STANDING, do_backstab, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}},
   { "ban", "ban", POS_DEAD, do_ban, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}},
@@ -549,6 +551,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "write", "write", POS_STANDING, do_write, 1, 0, FALSE, ACTION_NONE, {0, 0}},
   { "wholenessofbody", "wholenessofbody", POS_RECLINING, do_wholenessofbody, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
   { "wildshape", "wildshape", POS_RESTING ,do_wildshape, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
+  { "weaponlist", "weaponlist", POS_DEAD, do_weaponlist, 0, 0, TRUE, ACTION_NONE, {0, 0}},
 
   { "zreset", "zreset", POS_DEAD, do_zreset, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},
   { "zedit", "zedit", POS_DEAD, do_oasis_zedit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},

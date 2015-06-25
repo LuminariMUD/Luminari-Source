@@ -84,6 +84,11 @@ bool auto_reload_weapon(struct char_data *ch);
 bool monk_gear_ok(struct char_data *ch);
 /**/
 
+ACMD(do_weaponlist);
+ACMD(do_armorlist);
+
+/**/
+
 #ifdef	__cplusplus
 extern "C" {
 #endif

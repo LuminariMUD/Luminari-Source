@@ -1532,6 +1532,31 @@ bool monk_gear_ok(struct char_data *ch) {
   return TRUE;
 }
 
+/* ACMD */
+
+/* list all the weapon defines in-game */
+ACMD(do_weaponlist) {
+
+}
+
+/* list all the weapon defines in-game */
+ACMD(do_armorlist) {
+  int i = 0;
+  char buf[MAX_STRING_LENGTH];
+  size_t len = 0;
+
+  for (i = 0; i <= NUM_SPEC_ARMOR_TYPES; i++) {
+/*
+    len += snprintf(buf + len, sizeof (buf) - len, "AC-apply: [%d]");
+    len += snprintf(buf + len, sizeof (buf) - len, "");
+    len += snprintf(buf + len, sizeof (buf) - len, "");
+    len += snprintf(buf + len, sizeof (buf) - len, "");
+*/
+  }
+
+}
+
+/* end ACMD */
 
 /*********** deprecated functions *****************/
 

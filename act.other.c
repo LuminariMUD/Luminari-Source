@@ -3339,7 +3339,8 @@ ACMD(do_train) {
   else
     list_abilities(ch, ABILITY_TYPE_GENERAL);
 
-  send_to_char(ch, "\tDType 'train knowledge' to see your knowledge abilities\tn\r\n");
+  /* no immediate plans to use knowledge */
+  //send_to_char(ch, "\tDType 'train knowledge' to see your knowledge abilities\tn\r\n");
   /* as of 10/30/2014, we have decided to make sure crafting is an indepedent system */
   //send_to_char(ch, "\tDType 'train craft' to see your crafting abilities\tn\r\n");
   send_to_char(ch, "\tDType 'craft' to see your crafting abilities\tn\r\n");
