@@ -4563,9 +4563,11 @@ room_rnum real_room(room_vnum vnum) {
   while (bot <= top) {
     mid = (bot + top) / 2;
 
-    if ((world + mid)->number == vnum)
+    //if ((world + mid)->number == vnum)
+    if ((world[mid])->number == vnum)
       return (mid);
-    if ((world + mid)->number > vnum)
+    //if ((world + mid)->number > vnum)
+    if ((world[mid])->number > vnum) 
       top = mid - 1;
     else
       bot = mid + 1;
