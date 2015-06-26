@@ -203,4 +203,5 @@ struct path_list {
   int glyph_type;
   struct path_list* next;
 };
+
 #endif

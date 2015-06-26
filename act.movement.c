@@ -926,12 +926,16 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
   /* Generate the leave message(s) and display to others in the was_in room. */
   /*****/
 
+  /* actually this mechanic is a necessary one -zusuk */
+
   /* silly to keep people reclining when they leave a room */
+  /*
   if (GET_POS(ch) == POS_RECLINING) {
     send_to_char(ch, "You move from a crawling position to standing as you leave the area.\r\n");
     GET_POS(ch) = POS_STANDING;
   }
-
+  */
+  
   /* scenario:  mounted char */
   if (riding) {
 
