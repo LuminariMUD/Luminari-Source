@@ -951,9 +951,9 @@ void char_to_room(struct char_data *ch, room_rnum room) {
       }
       /* Set occupied flag */
       
-      log("room: %d real_room(room): %d top_of_world: %d is_dynamic(room) %d\n", room, real_room(room), top_of_world, IS_DYNAMIC(room));
+      //log("room: %d real_room(worroom): %d top_of_world: %d is_dynamic(room) %d\n", room, real_room(room), top_of_world, IS_DYNAMIC(room));
       
-      if (real_room(room) != NOWHERE &&  IS_DYNAMIC(room) ) {
+      if (real_room(world[room].number) != NOWHERE &&  IS_DYNAMIC(room) ) {
         log("Setting occupied bit to room: %d", room);
         SET_BIT_AR(ROOM_FLAGS(room), ROOM_OCCUPIED);
         /* Create the event to clear the flag, if it is not already set. */
