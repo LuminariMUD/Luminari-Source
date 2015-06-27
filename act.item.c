@@ -369,6 +369,15 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     case ITEM_SPELLBOOK:
       display_spells(ch, item);
       break;
+    case ITEM_POISON:
+      send_to_char(ch, "Poison:       %s\r\n", skill_name(GET_OBJ_VAL(item, 0)));
+      send_to_char(ch, "Level:        %d\r\n", GET_OBJ_VAL(item, 1));
+      send_to_char(ch, "Applications: %d\r\n", GET_OBJ_VAL(item, 2));
+      send_to_char(ch, "Hits/App:     %d\r\n", GET_OBJ_VAL(item, 3));
+      break;
+    case ITEM_WORN:
+      send_to_char(ch, "Wearable item.\r\n");
+      break;
     default:
       send_to_char(ch, "Report this item to a coder to add the ITEM_type\r\n");
       break;
