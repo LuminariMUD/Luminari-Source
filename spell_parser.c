@@ -151,7 +151,7 @@ bool concentration_check(struct char_data *ch, int spellnum) {
     concentration_dc += 6;
   if (char_has_mud_event(ch, eINTIMIDATED))
     concentration_dc += 6;
-  if (AFF_FLAGGED(ch, AFF_GRAPPLED)) {
+  if (AFF_FLAGGED(ch, AFF_GRAPPLED) || AFF_FLAGGED(ch, AFF_ENTANGLED)) {
     if (GRAPPLE_ATTACKER(ch))
       concentration_dc +=
             compute_cmb(GRAPPLE_ATTACKER(ch), COMBAT_MANEUVER_TYPE_GRAPPLE);

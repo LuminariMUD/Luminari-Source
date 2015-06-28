@@ -31,6 +31,8 @@ struct attack_hit_type {
 };
 
 /* Functions available in fight.c */
+int damage_shield_check(struct char_data *ch, struct char_data *victim,
+                        int attack_type, int dam);
 void idle_weapon_spells(struct char_data *ch);
 int compute_damtype_reduction(struct char_data *ch, int dam_type);
 int compute_energy_absorb(struct char_data *ch, int dam_type);

@@ -2859,7 +2859,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     dambonus -= 6;
   }
 
-  if (AFF_FLAGGED(ch, AFF_GRAPPLED))
+  if (AFF_FLAGGED(ch, AFF_GRAPPLED) || AFF_FLAGGED(ch, AFF_ENTANGLED))
     dambonus -= 2;
 
   /* end penalties */
@@ -3943,7 +3943,7 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
   /* Unnamed / Undefined (stacks) */
 
     /*unnamed penalties*/
-  if (AFF_FLAGGED(ch, AFF_GRAPPLED))
+  if (AFF_FLAGGED(ch, AFF_GRAPPLED) || AFF_FLAGGED(ch, AFF_ENTANGLED))
     bonuses[BONUS_TYPE_UNDEFINED] -= 2;
     /* Modify this to store a player-chosen number for power attack and expertise */
   if (AFF_FLAGGED(ch, AFF_POWER_ATTACK) || AFF_FLAGGED(ch, AFF_EXPERTISE))
@@ -4126,7 +4126,7 @@ int compute_cmb (struct char_data *ch,              /* Attacker */
       combat_maneuver_type != COMBAT_MANEUVER_TYPE_INIT_GRAPPLE &&
       combat_maneuver_type != COMBAT_MANEUVER_TYPE_GRAPPLE &&
       combat_maneuver_type != COMBAT_MANEUVER_TYPE_PIN &&
-      AFF_FLAGGED(ch, AFF_GRAPPLED))
+      (AFF_FLAGGED(ch, AFF_GRAPPLED) || AFF_FLAGGED(ch, AFF_ENTANGLED)))
     cm_bonus -= 2;
 
   //send_to_char(ch, "<CMB:%d> ", cm_bonus);
@@ -4184,7 +4184,7 @@ int compute_cmd(struct char_data *vict,            /* Defender */
   if (combat_maneuver_type != COMBAT_MANEUVER_TYPE_REVERSAL &&
       combat_maneuver_type != COMBAT_MANEUVER_TYPE_INIT_GRAPPLE &&
       combat_maneuver_type != COMBAT_MANEUVER_TYPE_GRAPPLE &&
-      AFF_FLAGGED(vict, AFF_GRAPPLED))
+      (AFF_FLAGGED(vict, AFF_GRAPPLED) || AFF_FLAGGED(vict, AFF_ENTANGLED)))
     cm_defense -= 2;
 
   /* misc here */
@@ -4305,7 +4305,7 @@ int attack_of_opportunity(struct char_data *ch, struct char_data *victim, int pe
   if (AFF_FLAGGED(ch, AFF_FLAT_FOOTED) && !HAS_FEAT(ch, FEAT_COMBAT_REFLEXES))
     return 0;
 
-  if (AFF_FLAGGED(ch, AFF_GRAPPLED))
+  if (AFF_FLAGGED(ch, AFF_GRAPPLED) || AFF_FLAGGED(ch, AFF_ENTANGLED))
     return 0;
 
   if (GET_TOTAL_AOO(ch) < (!HAS_FEAT(ch, FEAT_COMBAT_REFLEXES) ? 1 : GET_DEX_BONUS(ch))) {
@@ -4853,20 +4853,30 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   }
 
   // damage inflicting shields, like fire shield
+  damage_shield_check(ch, victim, attack_type, dam);
+
+  return dam;
+}
+
+/* damage inflicting shields, like fire shield */
+int damage_shield_check(struct char_data *ch, struct char_data *victim,
+                        int attack_type, int dam) {
+  int return_val = 0;
+
   if (attack_type != ATTACK_TYPE_RANGED) {
     if (dam && victim && GET_HIT(victim) >= -1 &&
             IS_AFFECTED(victim, AFF_CSHIELD)) { // cold shield
-      damage(victim, ch, dice(1, 6), SPELL_CSHIELD_DAM, DAM_COLD, attack_type);
+      return_val = damage(victim, ch, dice(1, 6), SPELL_CSHIELD_DAM, DAM_COLD, attack_type);
     } else if (dam && victim && GET_HIT(victim) >= -1 &&
             IS_AFFECTED(victim, AFF_FSHIELD)) { // fire shield
-      damage(victim, ch, dice(1, 6), SPELL_FSHIELD_DAM, DAM_FIRE, attack_type);
+      return_val = damage(victim, ch, dice(1, 6), SPELL_FSHIELD_DAM, DAM_FIRE, attack_type);
     } else if (dam && victim && GET_HIT(victim) >= -1 &&
             IS_AFFECTED(victim, AFF_ASHIELD)) { // acid shield
-      damage(victim, ch, dice(2, 6), SPELL_ASHIELD_DAM, DAM_ACID, attack_type);
+      return_val = damage(victim, ch, dice(2, 6), SPELL_ASHIELD_DAM, DAM_ACID, attack_type);
     }
   }
 
-  return dam;
+  return return_val;
 }
 
 /* primary function for a single melee attack

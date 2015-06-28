@@ -2787,7 +2787,7 @@ ACMD(do_search) {
     return;
   }
 
-  if (AFF_FLAGGED(ch, AFF_GRAPPLED)) {
+  if (AFF_FLAGGED(ch, AFF_GRAPPLED) || AFF_FLAGGED(ch, AFF_ENTANGLED)) {
     send_to_char(ch, "You are unable to move to make your attempt!\r\n");
     return;
   }
@@ -2942,7 +2942,7 @@ ACMD(do_sneak) {
     return;
   }
 
-  if (AFF_FLAGGED(ch, AFF_GRAPPLED)) {
+  if (AFF_FLAGGED(ch, AFF_GRAPPLED) || AFF_FLAGGED(ch, AFF_ENTANGLED)) {
     send_to_char(ch, "You are unable to move to make your attempt!\r\n");
     return;
   }
@@ -2966,7 +2966,7 @@ ACMD(do_sneak) {
 /* entry point for hide, the command just flips the flag */
 ACMD(do_hide) {
 
-  if (FIGHTING(ch) && !AFF_FLAGGED(ch, AFF_GRAPPLED)) {
+  if (FIGHTING(ch) && !AFF_FLAGGED(ch, AFF_GRAPPLED) && !AFF_FLAGGED(ch, AFF_ENTANGLED)) {
     if (HAS_FEAT(ch, FEAT_HIDE_IN_PLAIN_SIGHT)) {
       USE_STANDARD_ACTION(ch);
       if ((skill_roll(FIGHTING(ch), ABILITY_PERCEPTION)) < (skill_roll(ch, ABILITY_STEALTH) - 8)) {
@@ -2989,7 +2989,7 @@ ACMD(do_hide) {
     }
   }
 
-  if (AFF_FLAGGED(ch, AFF_GRAPPLED)) {
+  if (AFF_FLAGGED(ch, AFF_GRAPPLED) || AFF_FLAGGED(ch, AFF_ENTANGLED)) {
     send_to_char(ch, "You are unable to move to make your attempt!\r\n");
     return;
   }
@@ -3012,7 +3012,7 @@ ACMD(do_hide) {
 
 /* listen-mode, similar to search - try to find hidden/sneaking targets */
 ACMD(do_listen) {
-  if (AFF_FLAGGED(ch, AFF_GRAPPLED)) {
+  if (AFF_FLAGGED(ch, AFF_GRAPPLED) || AFF_FLAGGED(ch, AFF_ENTANGLED)) {
     send_to_char(ch, "You are unable to move to make your attempt!\r\n");
     return;
   }
@@ -3037,7 +3037,7 @@ ACMD(do_listen) {
 
 /* spot-mode, similar to search - try to find hidden/sneaking targets */
 ACMD(do_spot) {
-  if (AFF_FLAGGED(ch, AFF_GRAPPLED)) {
+  if (AFF_FLAGGED(ch, AFF_GRAPPLED) || AFF_FLAGGED(ch, AFF_ENTANGLED)) {
     send_to_char(ch, "You are unable to move to make your attempt!\r\n");
     return;
   }

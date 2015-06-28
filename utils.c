@@ -40,7 +40,7 @@
 int compute_dexterity_bonus(struct char_data *ch) {
   if (!ch) return 0;
   int dexterity_bonus = (GET_DEX(ch) - 10) / 2;
-  if (AFF_FLAGGED(ch, AFF_GRAPPLED))
+  if (AFF_FLAGGED(ch, AFF_GRAPPLED) || AFF_FLAGGED(ch, AFF_ENTANGLED))
     dexterity_bonus -= 2;
   if (AFF_FLAGGED(ch, AFF_PINNED))
     dexterity_bonus = -5;

@@ -927,7 +927,7 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define AFF_STUN             31  // stunned
 #define AFF_PARALYZED        32  // paralyzed
 #define AFF_ULTRAVISION      33  /**< Char can see in dark */
-#define AFF_GRAPPLED         34  // grappled
+#define AFF_GRAPPLED         34  // grappled (combat maneuver)
 #define AFF_TAMED            35  // tamed
 #define AFF_CLIMB            36  // affect that allows you to climb
 #define AFF_NAUSEATED        37  // nauseated
@@ -996,8 +996,9 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define AFF_PINNED           95 /* pinned to the ground (grapple) */
 #define AFF_MIRROR_IMAGED    96 /* pinned to the ground (grapple) */
 #define AFF_WARDED           97 /* warded (damage protection) */
+#define AFF_ENTANGLED        98 /* entangled (can't move) */
 /*---*/
-#define NUM_AFF_FLAGS        98
+#define NUM_AFF_FLAGS        99
 /********************************/
 
 /* Bonus types */
