@@ -16,6 +16,8 @@
 #include "assign_wpn_armor.h"
 #include "craft.h"
 #include "feats.h"
+#include "constants.h"
+#include "modify.h"
 
 
 /* global */
@@ -1546,14 +1548,15 @@ ACMD(do_armorlist) {
   size_t len = 0;
 
   for (i = 0; i <= NUM_SPEC_ARMOR_TYPES; i++) {
-/*
-    len += snprintf(buf + len, sizeof (buf) - len, "AC-apply: [%d]");
-    len += snprintf(buf + len, sizeof (buf) - len, "");
-    len += snprintf(buf + len, sizeof (buf) - len, "");
-    len += snprintf(buf + len, sizeof (buf) - len, "");
-*/
+    len += snprintf(buf + len, sizeof (buf) - len, "Armor: %s, Cost: %d, "
+            "AC: %.1f, Max Dex: %d, Armor Penalty: %d, Spell Fail: %d, Weight: %d, "
+            "Material: %s\r\n",
+            armor_list[i].name, armor_list[i].cost, (float)armor_list[i].armorBonus/10.0,
+            armor_list[i].dexBonus, armor_list[i].armorCheck, armor_list[i].spellFail,
+            armor_list[i].weight, material_name[armor_list[i].material]
+                    );
   }
-
+  page_string(ch->desc, buf, 1);
 }
 
 /* end ACMD */
