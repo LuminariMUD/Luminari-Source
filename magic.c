@@ -2052,7 +2052,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       if (mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, EVOCATION))
         return;
 
-      SET_BIT_AR(af[0].bitvector, AFF_GRAPPLED);
+      SET_BIT_AR(af[0].bitvector, AFF_ENTANGLED);
       af[0].duration = dice(2, 4) - 1;
       accum_duration = FALSE;
       to_room = "$n's is grasped by the spell!";
@@ -3302,7 +3302,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       }
 
       af[0].duration = 7 * level;
-      SET_BIT_AR(af[0].bitvector, AFF_GRAPPLED);
+      SET_BIT_AR(af[0].bitvector, AFF_ENTANGLED);
 
       to_room = "$n is covered in a sticky magical web!";
       to_vict = "You are covered in a sticky magical web!";
@@ -4521,7 +4521,7 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
 
     case SPELL_FREE_MOVEMENT:
       spell = SPELL_WEB;
-      affect = AFF_GRAPPLED;
+      affect = AFF_ENTANGLED;
       to_char = "You remove the web from $N.";
       to_vict = "$n removes the web from you.";
       to_notvict = "$N looks like $E can move again.";

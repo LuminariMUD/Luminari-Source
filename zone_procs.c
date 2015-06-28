@@ -1821,7 +1821,7 @@ SPECIAL(gatehouse_guard) {
 
   if (!IS_MOVE(cmd) || AFF_FLAGGED(mob, AFF_BLIND) || AFF_FLAGGED(mob, AFF_SLEEP) ||
           AFF_FLAGGED(mob, AFF_PARALYZED) || AFF_FLAGGED(mob, AFF_GRAPPLED) ||
-          AFF_FLAGGED(mob, AFF_GRAPPLED) || HAS_WAIT(mob))
+          AFF_FLAGGED(mob, AFF_ENTANGLED) || HAS_WAIT(mob))
     return FALSE;
 
   if (cmd == SCMD_EAST && (!IS_NPC(ch) || IS_PET(ch)) && GET_LEVEL(ch) < 31) {

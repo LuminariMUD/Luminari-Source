@@ -564,8 +564,8 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
   if (!leave_otrigger(&world[IN_ROOM(ch)], ch, dir) || IN_ROOM(ch) != was_in)
     return 0;
 
-  if (AFF_FLAGGED(ch, AFF_GRAPPLED)) {
-    send_to_char(ch, "You are unable to leave the area!\r\n");
+  if (AFF_FLAGGED(ch, AFF_GRAPPLED) || AFF_FLAGGED(ch, AFF_ENTANGLED)) {
+    send_to_char(ch, "You struggle to move but you are unable to leave the area!\r\n");
     act("$n struggles to move, but can't!", FALSE, ch, 0, 0, TO_ROOM);
     return 0;
   }
@@ -935,7 +935,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
     GET_POS(ch) = POS_STANDING;
   }
   */
-  
+
   /* scenario:  mounted char */
   if (riding) {
 

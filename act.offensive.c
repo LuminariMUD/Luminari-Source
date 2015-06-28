@@ -587,6 +587,11 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill) 
       }
     }
   }
+
+  /* fire-shield, etc check */
+  if (success)
+    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE);
+
   if (vict != ch) {
     if (GET_POS(ch) > POS_STUNNED && (FIGHTING(ch) == NULL))
       set_fighting(ch, vict);
@@ -651,6 +656,9 @@ bool perform_shieldpunch(struct char_data *ch, struct char_data *vict) {
     name = obj_index[GET_OBJ_RNUM(shield)].func;
     if (name)
       (name)(ch, shield, 0, "shieldpunch");
+
+    /* fire-shield, etc check */
+    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE);
   }
 
   return TRUE;
@@ -711,6 +719,9 @@ bool perform_shieldcharge(struct char_data *ch, struct char_data *vict) {
       (name)(ch, shield, 0, "shieldcharge");
 
     perform_knockdown(ch, vict, SKILL_SHIELD_CHARGE);
+
+    /* fire-shield, etc check */
+    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE);
   }
 
   USE_STANDARD_ACTION(ch);
@@ -783,6 +794,9 @@ bool perform_shieldslam(struct char_data *ch, struct char_data *vict) {
       act("$N appears to be dazed by your blow!", FALSE, ch, shield, vict, TO_CHAR);
       act("$N appears to be dazed by the blow!", FALSE, ch, shield, vict, TO_ROOM);
     }
+
+    /* fire-shield, etc check */
+    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE);
   }
 
   USE_STANDARD_ACTION(ch);
@@ -836,6 +850,10 @@ void perform_headbutt(struct char_data *ch, struct char_data *vict) {
       act("You slam your head into $N with \tRVICIOUS\tn force!", FALSE, ch, 0, vict, TO_CHAR);
       act("$n slams $s head into $N with \tRVICIOUS\tn force!", FALSE, ch, 0, vict, TO_ROOM);
     }
+
+    /* fire-shield, etc check */
+    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE);
+
   } else {
     damage(ch, vict, 0, SKILL_HEADBUTT, DAM_FORCE, FALSE);
 
@@ -988,6 +1006,10 @@ void perform_sap(struct char_data *ch, struct char_data *vict) {
       act("You \tYsavagely\tn beat $N with $p!", FALSE, ch, wielded, vict, TO_CHAR);
       act("$n \tYsavagely\tn beats $N with $p!!", FALSE, ch, wielded, vict, TO_ROOM);
     }
+
+    /* fire-shield, etc check */
+    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE);
+
   } else {
     damage(ch, vict, 0, SKILL_SAP, DAM_FORCE, FALSE);
   }
@@ -1142,6 +1164,9 @@ void perform_springleap(struct char_data *ch, struct char_data *vict) {
         af.duration = dice(1, 2);
         affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
      */
+    /* fire-shield, etc check */
+    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE);
+
   } else {
     damage(ch, vict, 0, SKILL_SPRINGLEAP, DAM_FORCE, FALSE);
   }
@@ -2235,6 +2260,9 @@ ACMD(do_tailsweep) {
                 GET_NAME(ch));
         act("$N is knocked down by a tailsweep from $n.", FALSE, ch, 0, vict,
                 TO_NOTVICT);
+
+        /* fire-shield, etc check */
+        damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE);
       }
 
       if (GET_POS(ch) > POS_STUNNED && (FIGHTING(ch) == NULL)) // ch -> vict
@@ -2857,6 +2885,10 @@ void perform_kick(struct char_data *ch, struct char_data *vict) {
       act("$e is thrown off-blance by your kick at $m!", FALSE, vict, 0, ch, TO_VICT);
       act("$n is thrown off-balance by a kick from $N!", FALSE, vict, 0, ch, TO_NOTVICT);
     }
+
+    /* fire-shield, etc check */
+    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE);
+
   } else
     damage(ch, vict, 0, SKILL_KICK, DAM_FORCE, FALSE);
 }
@@ -3882,6 +3914,10 @@ int perform_disarm(struct char_data *ch, struct char_data *vict, int mod) {
       obj_to_room(unequip_char(vict, pos), vict->in_room);
     else
       obj_to_char(unequip_char(vict, pos), vict);
+
+    /* fire-shield, etc check */
+    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE);
+
   } else if (result <= -10) { /* critical failure */
     /* have to check if we have a weapon to lose */
     if (GET_EQ(ch, WEAR_WIELD_2H)) {

@@ -5932,6 +5932,7 @@ int get_eq_score(obj_rnum a) {
         case AFF_DISEASE:
         case AFF_TAMED:
         case AFF_GRAPPLED:
+        case AFF_ENTANGLED:
         case AFF_DEAF:
         case AFF_FEAR:
         case AFF_STUN:
