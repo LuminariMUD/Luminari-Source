@@ -991,11 +991,13 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define AFF_WHIRLWIND_ATTACK 91 /*  Whirlwind attack mode */
 
 #define AFF_CHARGING         92 /* charging in combat */
-#define AFF_WILD_SHAPE       93
-#define AFF_FEINTED          94
-#define AFF_PINNED           95
+#define AFF_WILD_SHAPE       93 /* wildshape, shapechange */
+#define AFF_FEINTED          94 /* flat-footed */
+#define AFF_PINNED           95 /* pinned to the ground (grapple) */
+#define AFF_MIRROR_IMAGED    96 /* pinned to the ground (grapple) */
+#define AFF_WARDED           97 /* warded (damage protection) */
 /*---*/
-#define NUM_AFF_FLAGS        96
+#define NUM_AFF_FLAGS        98
 /********************************/
 
 /* Bonus types */
