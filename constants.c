@@ -880,6 +880,8 @@ const char *affected_bits[NUM_AFF_FLAGS + 1] =
   "WildShape",
   "Feinted",
   "Pinned",
+  "Mirror Imaged",
+  "Warded",
   "\n"
 };
 
@@ -976,17 +978,19 @@ const char *affected_bit_descs[NUM_AFF_FLAGS + 1] =
   "You can see farther than others.",
   "Your items synergize with each other.",
   "You are firing your ranged weapons more quickly.",
-  "You are dazed.",
+  "You are dazed.",  //85
   "You have been caught unawares.",
   "You are fighting with two weapons.",
   "You are attacking with a flurry of blows.",
   "You will counter any spell you can.",
-  "You are casting defensively.",
+  "You are casting defensively.",  //90
   "You will spread your attacks among all of your enemies.",
   "You are charging into battle.",
   "You are shape-changed into a different race.",
   "You have been feinted in combat (flat-footed).",
-  "You are pinned.",
+  "You are pinned.",  //95
+  "Duplicate illusionary images of you exist.",
+  "You have a powerful ward on you (melee damage absorb).",
   "\n"
 };
 

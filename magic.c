@@ -1908,8 +1908,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         send_to_char(ch, "A magical ward is already in effect on target.\r\n");
         return;
       }
-      af[0].location = APPLY_AC; /* this is just a tag */
-      af[0].modifier = -1;
+      SET_BIT_AR(af[0].bitvector, AFF_WARDED);
       af[0].duration = 600;
       to_room = "$n becomes surrounded by a powerful magical ward!";
       to_vict = "You become surrounded by a powerful magical ward!";
@@ -2142,9 +2141,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         send_to_char(ch, "You already have mirror images!\r\n");
         return;
       }
-      af[0].location = APPLY_AC; /* this is just a tag */
-      af[0].modifier = -1;
       af[0].duration = 300;
+      SET_BIT_AR(af[0].bitvector, AFF_MIRROR_IMAGED);
       to_room = "$n grins as multiple images pop up and smile!";
       to_vict = "You watch as multiple images pop up and smile at you!";
       GET_IMAGES(victim) = 6 + (level / 3);
@@ -2349,8 +2347,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         send_to_char(ch, "A magical ward is already in effect on target.\r\n");
         return;
       }
-      af[0].location = APPLY_AC; /* this is just a tag */
-      af[0].modifier = -1;
+      SET_BIT_AR(af[0].bitvector, AFF_WARDED);
       af[0].duration = 600;
       to_room = "$n's skin takes on the texture of iron!";
       to_vict = "Your skin takes on the texture of iron!";
@@ -2561,9 +2558,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         send_to_char(ch, "You already have mirror images!\r\n");
         return;
       }
-      af[0].location = APPLY_AC; /* this is just a tag */
-      af[0].modifier = -1;
       af[0].duration = 300;
+      SET_BIT_AR(af[0].bitvector, AFF_MIRROR_IMAGED);
       to_room = "$n grins as multiple images pop up and smile!";
       to_vict = "You watch as multiple images pop up and smile at you!";
       GET_IMAGES(victim) = 4 + MIN(5, (int) (level / 3));
