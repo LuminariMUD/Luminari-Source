@@ -199,6 +199,13 @@ void push_result(byte result) {
     result_q.size = RQ_MAXSIZE;
   result_q.tail = (result_q.tail + 1) % RQ_MAXSIZE;
 }
+/* this function will be implemented when command can
+ * be dependent on success or failure of specific command #
+sbyte test_result(sbyte offset) {
+
+}
+ */
+
 /* test_result
  * returns - if offset is positive
  *             TRUE if result stored at tail - abs(offset) is TRUE
@@ -216,7 +223,7 @@ void push_result(byte result) {
  * NOTE: Uses the ZONE_ERROR macro defined for reset_zone */
 sbyte test_result(sbyte offset) {
   if (abs(offset) > result_q.size) {
-    log("ERR: out of bounds if-value in zone reset");
+    log("ERR: out of bounds if-value in zone reset [offset:%d > result_size:%d]", abs(offset), result_q.size);
     return FALSE;
   }
 
@@ -3222,13 +3229,6 @@ void zone_update(void) {
     }
 }
 
-/* this function will be implemented when command can
- * be dependent on success or failure of specific command #
-sbyte test_result(sbyte offset) {
-
-}
- */
-
 int check_max_existing(mob_rnum mob_num, int max, room_rnum room) {
   struct char_data *temp_mob = NULL;
   char buf[MAX_STRING_LENGTH];
@@ -4567,7 +4567,7 @@ room_rnum real_room(room_vnum vnum) {
     if ((world[mid]).number == vnum)
       return (mid);
     //if ((world + mid)->number > vnum)
-    if ((world[mid]).number > vnum) 
+    if ((world[mid]).number > vnum)
       top = mid - 1;
     else
       bot = mid + 1;

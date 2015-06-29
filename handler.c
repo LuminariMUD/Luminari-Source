@@ -950,11 +950,11 @@ void char_to_room(struct char_data *ch, room_rnum room) {
 
       }
       /* Set occupied flag */
-      
+
       //log("room: %d real_room(worroom): %d top_of_world: %d is_dynamic(room) %d\n", room, real_room(room), top_of_world, IS_DYNAMIC(room));
-      
+
       if (real_room(world[room].number) != NOWHERE &&  IS_DYNAMIC(room) ) {
-        log("Setting occupied bit to room: %d", room);
+        //log("Setting occupied bit to room: %d", room); /* spams syslogs */
         SET_BIT_AR(ROOM_FLAGS(room), ROOM_OCCUPIED);
         /* Create the event to clear the flag, if it is not already set. */
         if(!room_has_mud_event(&world[room], eCHECK_OCCUPIED))
@@ -1136,7 +1136,7 @@ void equip_char(struct char_data *ch, struct obj_data *obj, int pos) {
   }
 
   if (GET_EQ(ch, pos)) {
-    log("SYSERR: Char is already equipped: %s, %s", GET_NAME(ch),
+    log("SYSERR: Char [%d] is already equipped: %s, %s", GET_MOB_VNUM(ch), GET_NAME(ch),
             obj->short_description);
     return;
   }
