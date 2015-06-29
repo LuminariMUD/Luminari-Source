@@ -369,9 +369,9 @@ void affect_update(void) {
     }
     /* added in an attempt to address issue with mobiles retaining stats
        from spells -zusuk */
-    if (IS_NPC(i)) {
-      affect_total(i);
-    }
+    //if (IS_NPC(i)) {
+      //affect_total(i);
+    //}
   }
 
   /* update the room affections */
