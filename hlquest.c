@@ -678,16 +678,16 @@ int quest_location_vnum(struct quest_command *qcom) {
 
 /* loading the quests from disk */
 void boot_the_quests(FILE *quest_f, char *filename, int rec_count) {
-  char str[256];
-  char line[256];
-  char inner[256];
-  int temp;
+  char str[256] = {'\0'};
+  char line[256] = {'\0'};
+  char inner[256] = {'\0'};
+  int temp = 0;
   bool done = FALSE;
   bool approved = FALSE;
-  struct char_data *mob = 0;
-  struct quest_command *qcom = 0;
-  struct quest_command *qlast = 0;
-  struct quest_entry *quest = 0;
+  struct char_data *mob = NULL;
+  struct quest_command *qcom = NULL;
+  struct quest_command *qlast = NULL;
+  struct quest_entry *quest = NULL;
   char buf2[MAX_INPUT_LENGTH] = {'\0'};
 
   while (done == FALSE) {
