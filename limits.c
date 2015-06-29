@@ -323,6 +323,13 @@ void pulse_luminari() {
     /* grapple cleanup */
     grapple_cleanup(i);
 
+    /* added in an attempt to address issue with mobiles retaining stats
+       from spells -zusuk */
+    if (IS_NPC(i)) {
+      affect_total(i);
+    }
+
+
   } // end char list loop
 }
 
