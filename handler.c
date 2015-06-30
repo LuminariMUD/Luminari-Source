@@ -746,7 +746,8 @@ void affect_remove(struct char_data *ch, struct affected_type *af) {
   REMOVE_FROM_LIST(af, ch->affected, next);
 
   free_affect(af);
-  
+
+  affect_total(ch);
   affect_total(ch);
 }
 
