@@ -509,8 +509,8 @@ bool is_using_light_weapon(struct char_data *ch, struct obj_data *wielded) {
   if (IS_SET(weapon_list[GET_OBJ_VAL(wielded, 0)].weaponFlags, WEAPON_FLAG_LIGHT))
     return TRUE;
 
-  /* if you are two size classes bigger than the weapon, then it is light */
-  if (GET_SIZE(ch) - GET_OBJ_SIZE(wielded) >= 2)
+  /* if you are a size classes bigger than the weapon, then it is light */
+  if (GET_SIZE(ch) - GET_OBJ_SIZE(wielded) >= 1)
     return TRUE;
 
   /* not a light weapon! */

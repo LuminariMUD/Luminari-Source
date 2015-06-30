@@ -3869,8 +3869,7 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
     case ATTACK_TYPE_OFFHAND:
     case ATTACK_TYPE_PRIMARY:
       if (wielded && HAS_FEAT(ch, FEAT_WEAPON_FINESSE) &&
-            ( GET_OBJ_SIZE(wielded) < GET_SIZE(ch) ||
-             is_using_light_weapon(ch, wielded) ) ) {
+            is_using_light_weapon(ch, wielded)) {
         calc_bab += GET_DEX_BONUS(ch);
       } else {
         calc_bab += GET_STR_BONUS(ch);
@@ -6132,7 +6131,7 @@ void perform_violence(struct char_data *ch, int phase) {
             ( !is_using_light_weapon(ch, GET_EQ(ch, WEAR_WIELD_1)) ||
               !is_using_light_weapon(ch, GET_EQ(ch, WEAR_WIELD_OFFHAND)) ||
               GET_EQ(ch, WEAR_WIELD_2H)) )
-    send_to_char(ch, "You need to fight unarmed or with light weapons while grappling or being grappled!\r\n");
+    send_to_char(ch, "You need to fight unarmed or with light weapons (both hands) while grappling or being grappled!\r\n");
   else {
 #define NORMAL_ATTACK_ROUTINE 0
     perform_attacks(ch, NORMAL_ATTACK_ROUTINE, phase);
