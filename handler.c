@@ -748,7 +748,10 @@ void affect_remove(struct char_data *ch, struct affected_type *af) {
   free_affect(af);
 
   affect_total(ch);
-  affect_total(ch);
+  /* added by zusuk to address an issue with calculation not coming out correct
+   on first run of affect_total() ?  unknown, need to trace and figure it out
+   eventually though */
+  //affect_total(ch);
 }
 
 /* Call affect_remove with every affect from the bitvector "type" */

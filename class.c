@@ -1408,11 +1408,12 @@ void newbieEquipment(struct char_data *ch) {
 
   send_to_char(ch, "\tMYou are given a set of starting equipment...\tn\r\n");
 
-  // give everyone torch, rations, skin, backpack
+  // give everyone torch, rations, skin, backpack, bow, etc
   for (x = 0; objNums[x] != -1; x++) {
     obj = read_object(objNums[x], VIRTUAL);
     if (obj) {
-      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      if (objNums[x] == NOOB_BP)
+        GET_OBJ_SIZE(obj) = GET_SIZE(ch);
       obj_to_char(obj, ch);
     }
   }
@@ -1443,7 +1444,7 @@ void newbieEquipment(struct char_data *ch) {
       obj_to_char(obj, ch); // leather leggings
 
       obj = read_object(861, VIRTUAL);
-      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      //GET_OBJ_SIZE(obj) = GET_SIZE(ch);
       obj_to_char(obj, ch); // slender iron mace
 
       obj = read_object(863, VIRTUAL);
@@ -1470,11 +1471,11 @@ void newbieEquipment(struct char_data *ch) {
 
       if (GET_RACE(ch) == RACE_DWARF) {
         obj = read_object(806, VIRTUAL);
-        GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+        //GET_OBJ_SIZE(obj) = GET_SIZE(ch);
         obj_to_char(obj, ch); // dwarven waraxe
       } else {
         obj = read_object(808, VIRTUAL);
-        GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+        //GET_OBJ_SIZE(obj) = GET_SIZE(ch);
         obj_to_char(obj, ch); // bastard sword
       }
       obj = read_object(863, VIRTUAL);
@@ -1509,11 +1510,11 @@ void newbieEquipment(struct char_data *ch) {
       obj_to_char(obj, ch); // studded leather
 
       obj = read_object(852, VIRTUAL);
-      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      //GET_OBJ_SIZE(obj) = GET_SIZE(ch);
       obj_to_char(obj, ch); // dagger
 
       obj = read_object(852, VIRTUAL);
-      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      //GET_OBJ_SIZE(obj) = GET_SIZE(ch);
       obj_to_char(obj, ch); // dagger
 
       break;
@@ -1532,7 +1533,7 @@ void newbieEquipment(struct char_data *ch) {
       obj_to_char(obj, ch); // leather pants
 
       obj = read_object(852, VIRTUAL);
-      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      //GET_OBJ_SIZE(obj) = GET_SIZE(ch);
       obj_to_char(obj, ch); // dagger
 
       obj = read_object(809, VIRTUAL);
