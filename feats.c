@@ -1355,8 +1355,8 @@ void assign_feats(void) {
     "apply class level to AC",
     "The warrior gets to apply all warrior-levels divided by 4 to AC.");
   feato(FEAT_ARMOR_MASTERY, "armor mastery i", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "gains Damage Reduction 5/— when armored",
-    "Gain Damage Reduction 5/— whenever wearing armor or using a shield.");
+    "gains Damage Reduction 5/all when armored",
+    "Gain Damage Reduction 5/all whenever wearing armor or using a shield.");
   feato(FEAT_WEAPON_MASTERY, "weapon mastery i", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "cannot be disarmed, +2 ac when using any weapon",
     "Gain immunity to disarm attempts, in addition, while wielding any type of "
