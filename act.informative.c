@@ -2390,8 +2390,12 @@ ACMD(do_inventory) {
   send_to_char(ch, "You are carrying:\r\n");
   list_obj_to_char(ch->carrying, ch, SHOW_OBJ_SHORT, TRUE, 1);
 
-  if (!IS_NPC(ch) && ch->desc->pProtocol->pVariables[eMSDP_MXP]->ValueInt)
-    send_to_char(ch, "\r\n\t<send href='equipment'>View equipped items\t</send>\r\n");
+  if (!IS_NPC(ch))
+    if (ch->desc)
+      if (ch->desc->pProtocol)
+        if (ch->desc->pProtocol->pVariables[eMSDP_MXP])
+          if (ch->desc->pProtocol->pVariables[eMSDP_MXP]->ValueInt)
+            send_to_char(ch, "\r\n\t<send href='equipment'>View equipped items\t</send>\r\n");
 }
 
 ACMD(do_equipment) {
