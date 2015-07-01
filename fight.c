@@ -566,7 +566,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
        bonuses[BONUS_TYPE_DODGE] += MAX(0, GET_INT_BONUS(ch));
     }
 
-    if (AFF_FLAGGED(ch, AFF_EXPERTISE)) {
+    if (AFF_FLAGGED(ch, AFF_EXPERTISE) && !IS_CASTING(ch)) {
       bonuses[BONUS_TYPE_DODGE] += COMBAT_MODE_VALUE(ch);
     }
   }

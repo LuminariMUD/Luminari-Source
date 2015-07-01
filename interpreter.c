@@ -788,6 +788,7 @@ void command_interpreter(struct char_data *ch, char *argument) {
           !is_abbrev(complete_cmd_info[cmd].command, "queue") &&
           !is_abbrev(complete_cmd_info[cmd].command, "help") &&
           !is_abbrev(complete_cmd_info[cmd].command, "feat") &&
+          !is_abbrev(complete_cmd_info[cmd].command, "tnl") &&
           !is_abbrev(complete_cmd_info[cmd].command, "attackqueue")
           ) {
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_HIDE);
