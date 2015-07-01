@@ -336,7 +336,7 @@ void perform_rescue(struct char_data *ch, struct char_data *vict) {
 
 /* charge mechanic */
 #define CHARGE_AFFECTS 3
-void perform_charge(struct char_data *ch) {
+void perform_charge(struct char_data *ch, struct char_data *vict) {
   struct affected_type af[CHARGE_AFFECTS];
   extern struct index_data *mob_index;
   int (*name)(struct char_data *ch, void *me, int cmd, char *argument);
@@ -351,7 +351,7 @@ void perform_charge(struct char_data *ch) {
   for (i = 0; i < CHARGE_AFFECTS; i++) {
     new_affect(&(af[i]));
     af[i].spell = SKILL_CHARGE;
-    af[i].duration = 2;
+    af[i].duration = 1;
   }
 
   SET_BIT_AR(af[0].bitvector, AFF_CHARGING);
@@ -382,6 +382,18 @@ void perform_charge(struct char_data *ch) {
   } else {
     USE_FULL_ROUND_ACTION(ch);
   }
+
+  if (!FIGHTING(ch) && vict != ch)
+    hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+
+  if (vict != ch) {
+    if (GET_POS(ch) > POS_STUNNED && (FIGHTING(ch) == NULL))
+      set_fighting(ch, vict);
+    if (GET_POS(vict) > POS_STUNNED && (FIGHTING(vict) == NULL)) {
+      set_fighting(vict, ch);
+    }
+  }
+
 }
 #undef CHARGE_AFFECTS
 
@@ -1024,7 +1036,6 @@ void perform_sap(struct char_data *ch, struct char_data *vict) {
 bool perform_dirtkick(struct char_data *ch, struct char_data *vict) {
   struct affected_type af;
   int dam = 0;
-  int base_probability = 0;
 
   if (!CAN_SEE(ch, vict)) {
     send_to_char(ch, "You don't see well enough to attempt that.\r\n");
@@ -3354,6 +3365,10 @@ ACMD(do_shieldslam) {
 
 /* charging system for combat */
 ACMD(do_charge) {
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  struct char_data *vict = NULL;
+
+  one_argument(argument, arg);
 
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
@@ -3365,7 +3380,13 @@ ACMD(do_charge) {
     return;
   }
 
-  perform_charge(ch);
+  if (!*arg) {
+    if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
+      vict = FIGHTING(ch);
+  } else
+    vict = get_char_room_vis(ch, arg, NULL);
+
+  perform_charge(ch, vict);
 }
 
 /* ranged-weapons, reload mechanic for slings, crossbows */

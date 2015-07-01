@@ -1690,6 +1690,11 @@ EVENTFUNC(event_crafting) {
     return 0;
   }
 
+  if (FIGHTING(ch)) {
+    send_to_char(ch, "You are too busy fighting to do continue!\r\n");
+    return 0;
+  }
+
   if (GET_CRAFTING_TICKS(ch)) {
     // the crafting tick is still going!
     if (GET_CRAFTING_OBJ(ch)) {
@@ -1901,6 +1906,11 @@ ACMD(do_harvest) {
 
   if (IS_CARRYING_N(ch) >= CAN_CARRY_N(ch)) {
     send_to_char(ch, "You must drop something before you can harvest anything else.\r\n");
+    return;
+  }
+
+  if (FIGHTING(ch)) {
+    send_to_char(ch, "You are too busy fighting!\r\n");
     return;
   }
 
