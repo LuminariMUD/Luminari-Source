@@ -383,10 +383,10 @@ void perform_charge(struct char_data *ch, struct char_data *vict) {
     USE_FULL_ROUND_ACTION(ch);
   }
 
-  if (!FIGHTING(ch) && vict != ch)
+  if (!FIGHTING(ch) && vict && vict != ch)
     hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
 
-  if (vict != ch) {
+  if (vict && vict != ch) {
     if (GET_POS(ch) > POS_STUNNED && (FIGHTING(ch) == NULL))
       set_fighting(ch, vict);
     if (GET_POS(vict) > POS_STUNNED && (FIGHTING(vict) == NULL)) {
