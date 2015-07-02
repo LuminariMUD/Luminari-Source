@@ -1296,6 +1296,7 @@ void load_armor(void) {
   /* (armor, name, type,
    *    cost, AC, dexBonusCap, armorCheckPenalty, spellFailChance, (move)30ft, (move)20ft,
    *    weight, material, wear) */
+  /* UNARMORED */
   setarmor(SPEC_ARMOR_TYPE_CLOTHING, "body clothing", ARMOR_TYPE_NONE,
     10, 0, 99, 0, 0, 30, 20,
     1, MATERIAL_COTTON, ITEM_WEAR_BODY);
@@ -1309,6 +1310,7 @@ void load_armor(void) {
     10, 0, 99, 0, 0, 30, 20,
     1, MATERIAL_COTTON, ITEM_WEAR_LEGS);
 
+  /* LIGHT ARMOR ********************/
   setarmor(SPEC_ARMOR_TYPE_PADDED, "padded body armor", ARMOR_TYPE_LIGHT,
     50, 7, 8, 0, 5, 30, 20,
     7, MATERIAL_COTTON, ITEM_WEAR_BODY);
@@ -1364,6 +1366,8 @@ void load_armor(void) {
     1000, 7, 4, -2, 20, 30, 20,
     4, MATERIAL_STEEL, ITEM_WEAR_LEGS);
 
+  /******************* MEDIUM ARMOR *******************************************/
+
   setarmor(SPEC_ARMOR_TYPE_HIDE, "hide armor", ARMOR_TYPE_MEDIUM,
     150, 19, 4, -3, 20, 20, 15,
     13, MATERIAL_LEATHER, ITEM_WEAR_BODY);
@@ -1418,6 +1422,8 @@ void load_armor(void) {
   setarmor(SPEC_ARMOR_TYPE_PIECEMEAL_LEGS, "piecemeal leggings", ARMOR_TYPE_MEDIUM,
     2000, 10, 3, -4, 25, 20, 15,
     7, MATERIAL_STEEL, ITEM_WEAR_LEGS);
+
+  /******************* HEAVY ARMOR *******************************************/
 
   /* (armor, name, type,
    *    cost, AC, dexBonusCap, armorCheckPenalty, spellFailChance, (move)30ft, (move)20ft,
@@ -1483,7 +1489,7 @@ void load_armor(void) {
   setarmor(SPEC_ARMOR_TYPE_BUCKLER, "buckler shield", ARMOR_TYPE_SHIELD,
     150, 10, 99, -1, 5, 999, 999,
     5, MATERIAL_WOOD, ITEM_WEAR_SHIELD);
-  setarmor(SPEC_ARMOR_TYPE_SMALL_SHIELD, "small shield", ARMOR_TYPE_SHIELD,
+  setarmor(SPEC_ARMOR_TYPE_SMALL_SHIELD, "light shield", ARMOR_TYPE_SHIELD,
     90, 10, 99, -1, 5, 999, 999,
     6, MATERIAL_WOOD, ITEM_WEAR_SHIELD);
   setarmor(SPEC_ARMOR_TYPE_LARGE_SHIELD, "heavy shield", ARMOR_TYPE_SHIELD,

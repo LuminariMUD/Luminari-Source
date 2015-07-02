@@ -2903,8 +2903,13 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   */
 
   /* power attack */
-  if (AFF_FLAGGED(ch, AFF_POWER_ATTACK))
-    dambonus += COMBAT_MODE_VALUE(ch);
+  if (AFF_FLAGGED(ch, AFF_POWER_ATTACK)) {
+    if (GET_EQ(ch, WEAR_WIELD_2H) && !is_using_double_weapon(ch)) {
+      dambonus += COMBAT_MODE_VALUE(ch) * 2; /* 2h weapons gets 2x bonus */
+    } else {
+      dambonus += COMBAT_MODE_VALUE(ch);
+    }
+  }
 
   /* crystal fist */
   if (char_has_mud_event(ch, eCRYSTALFIST_AFF))
@@ -3262,7 +3267,7 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
   }
 
   /* mods */
-  if (HAS_FEAT(ch, FEAT_UNSTOPPABLE_STRIKE) && !rand_number(0, 19)) { /* Check the weapon type, make sure it matches. */
+  if ((HAS_FEAT(ch, FEAT_UNSTOPPABLE_STRIKE) * 5) <= rand_number(1, 100)) { /* Check the weapon type, make sure it matches. */
     if(((wielded != NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), GET_WEAPON_TYPE(wielded))) ||
        ((wielded == NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), WEAPON_TYPE_UNARMED)))
       return (diceOne * diceTwo); /* max damage! */
