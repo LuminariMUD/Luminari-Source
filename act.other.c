@@ -2283,7 +2283,7 @@ void perform_shapechange(struct char_data *ch, char *arg, int mode) {
     /* the morph_to_x are in race.c */
     send_to_char(ch, "You transform into a %s!\r\n", RACE_ABBR(ch));
     act(morph_to_char[IS_MORPHED(ch)], TRUE, ch, 0, 0, TO_CHAR);
-    send_to_char(ch, "\tDType 'innates' to see your abilities.\tn\r\n");
+    send_to_char(ch, "\tDType 'innates' to see your abilities.  Type 'shapechange' to revert forms.\tn\r\n");
     act("$n shapechanges!", TRUE, ch, 0, 0, TO_ROOM);
     act(morph_to_room[IS_MORPHED(ch)], TRUE, ch, 0, 0, TO_ROOM);
   }
@@ -2368,8 +2368,16 @@ ACMD(do_shapechange) {
   if (!ch->desc || IS_NPC(ch))
     return;
 
+  /*********  added to factor out this command for the time being ******/
+  if (IS_MORPHED(ch)) {
+    send_to_char(ch, "You shift back into your natural form...\r\n");
+    act("$n shifts back to his natural form.", TRUE, ch, 0, 0, TO_ROOM);
+    IS_MORPHED(ch) = 0;
+  }
+
   send_to_char(ch, "This command has been replaced with 'wildhsape'\r\n");
   return;
+  /*********************************************************************/
 
   skip_spaces(&argument);
 
