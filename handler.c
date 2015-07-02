@@ -481,9 +481,9 @@ void compute_char_cap(struct char_data *ch) {
           dex_cap += class_level / 4 + 1;
           wis_cap += class_level / 4 + 1;
           break;
-        case CLASS_BERSERKER:
-          str_cap += class_level / 4 + 1;
-          con_cap += class_level / 4 + 1;
+        case CLASS_BERSERKER: /*rage*/
+          str_cap += class_level / 4 + 13;
+          con_cap += class_level / 4 + 13;
           hit_cap += class_level / 3;
           dam_cap += class_level / 3;
           break;
