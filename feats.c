@@ -1807,9 +1807,9 @@ void assign_feats(void) {
   /*lvl 4*/feato(FEAT_CRITICAL_SPECIALIST, "critical specialist", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
     "Weapons of choice have +1 to threat range per rank",
     "Weapons of choice have +1 to threat range per rank");
-  /*lvl 6*/feato(FEAT_UNSTOPPABLE_STRIKE, "unstoppable strike", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+  /*lvl 6*/feato(FEAT_UNSTOPPABLE_STRIKE, "unstoppable strike", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
     "Weapons of Choice have 5 percent chance to deal max damage",
-    "Weapons of Choice have 5 percent chance to deal max damage");
+    "Weapons of Choice have 5 percent chance to deal max damage per rank");
   /*lvl 8 - 2nd rank of critical specialist */
   /*lvl 10*/feato(FEAT_INCREASED_MULTIPLIER, "increased multiplier", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "Weapons of choice have +1 to their critical multiplier",

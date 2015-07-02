@@ -2496,7 +2496,7 @@ ACMD(do_disguise) {
   }
 
   if (!*argument) {
-    send_to_char(ch, "Please select a race to disguise or select 'return' to remove your disguise.\r\n");
+    send_to_char(ch, "Please select a race to disguise or type 'disguise remove' to remove your disguise.\r\n");
     display_eligible_disguise_races(ch, argument, FALSE);
     return;
   }
@@ -2506,7 +2506,7 @@ ACMD(do_disguise) {
     return;
   }
 
-  if (!strcmp(argument, "return")) {
+  if (!strcmp(argument, "remove")) {
     if (!GET_DISGUISE_RACE(ch)) {
       send_to_char(ch, "You are not currently disguised.\r\n");
       return;
@@ -2530,11 +2530,11 @@ ACMD(do_disguise) {
   /*attempting to apply a disguise*/
 
   if (AFF_FLAGGED(ch, AFF_WILD_SHAPE)) {
-    send_to_char(ch, "You must return to your normal shape before trying to assume a disguise.\r\n");
+    send_to_char(ch, "You must 'wildshape return' to return to your normal shape before trying to assume a disguise.\r\n");
     return;
   }
   if (GET_DISGUISE_RACE(ch)) {
-    send_to_char(ch, "You must 'return' to your normal race before assuming a new disguise.\r\n");
+    send_to_char(ch, "You must 'disguise remove' to your normal race before assuming a new disguise.\r\n");
     return;
   }
 
@@ -2542,7 +2542,7 @@ ACMD(do_disguise) {
   i = display_eligible_disguise_races(ch, argument, TRUE);
 
   if (i == 0) { /* failed to find the race */
-    send_to_char(ch, "Please select a race to disguise to or select 'return'.\r\n");
+    send_to_char(ch, "Please select a race to disguise to or type 'disguise remove'.\r\n");
     display_eligible_disguise_races(ch, argument, FALSE);
     return;
   }

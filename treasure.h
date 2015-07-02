@@ -88,6 +88,12 @@ extern const char *head_types[];
 #define LEATHER_BODY          3148
 #define PADDED_BODY           3149
 #define CLOTH_BODY            3150
+
+#define BANDED_BODY           3241
+#define SCALE_BODY            3242
+#define HIDE_BODY             3243
+#define LIGHT_CHAIN_BODY      3244
+
 /*head*/
 #define PLATE_HELM            3151
 #define HALFPLATE_HELM        3152  //10
@@ -98,6 +104,12 @@ extern const char *head_types[];
 #define LEATHER_HELM          3157  //15
 #define PADDED_HELM           3158
 #define CLOTH_HELM            3159
+
+#define BANDED_HELM           3245
+#define SCALE_HELM            3246
+#define HIDE_HELM             3247
+#define LIGHT_CHAIN_HELM      3248
+
 /*arms*/
 #define PLATE_ARMS            3160
 #define HALFPLATE_ARMS        3161
@@ -107,6 +119,13 @@ extern const char *head_types[];
 #define LEATHER_ARMS          3165
 #define PADDED_ARMS           3166
 #define CLOTH_ARMS            3167  //25
+
+#define BANDED_ARMS           3249
+#define PIECEPLATE_ARMS       3250
+#define SCALE_ARMS            3251
+#define HIDE_ARMS             3252
+#define LIGHT_CHAIN_ARMS      3253
+
 /*legs*/
 #define PLATE_LEGS            3168
 #define HALFPLATE_LEGS        3169
@@ -116,6 +135,13 @@ extern const char *head_types[];
 #define LEATHER_LEGS          3173
 #define PADDED_LEGS           3174
 #define CLOTH_LEGS            3175
+
+#define BANDED_LEGS           3254
+#define PIECEPLATE_LEGS       3255
+#define SCALE_LEGS            3256
+#define HIDE_LEGS             3257
+#define LIGHT_CHAIN_LEGS      3258
+
 /*shields*/
 #define SHIELD_MEDIUM         3180
 #define SHIELD_LARGE          3181  //35

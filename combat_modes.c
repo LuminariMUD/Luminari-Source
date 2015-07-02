@@ -53,7 +53,7 @@
  *  implemented yet.
  */
 
-#define MODE_CAP 12
+#define MODE_CAP 6
 struct combat_mode_data combat_mode_info[] = {
   {"!UNDEFINED!", 0, 0, FALSE, MODE_GROUP_NONE},
   /* Group 1 */
