@@ -2375,7 +2375,8 @@ ACMD(do_shapechange) {
     IS_MORPHED(ch) = 0;
   }
 
-  send_to_char(ch, "This command has been replaced with 'wildhsape'\r\n");
+  if (*argument)
+    send_to_char(ch, "This command has been replaced with 'wildshape'\r\n");
   return;
   /*********************************************************************/
 
