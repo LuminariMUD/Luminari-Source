@@ -621,8 +621,12 @@ void increase_skill(struct char_data *ch, int skillnum) {
   int notched = FALSE;
 
   //if the skill isn't learned or is mastered, don't adjust
-  if (GET_SKILL(ch, skillnum) < 1 || GET_SKILL(ch, skillnum >= 99))
+  if (GET_SKILL(ch, skillnum) < 1 || GET_SKILL(ch, skillnum) == 99)
     return;
+  if (GET_SKILL(ch, skillnum) > 99) {
+    GET_SKILL(ch, skillnum) = 99;
+    return;
+  }
 
   int use = rand_number(0, USE);
   int pass = rand_number(0, PASS);

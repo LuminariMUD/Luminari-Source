@@ -79,16 +79,15 @@ extern const char *head_types[];
 
 /* armor mold vnums (body, helm, sleeves, leggings) */
 /*body*/
-#define PLATE_BODY            3119  //0
+#define PLATE_BODY            3119
 #define HALFPLATE_BODY        3143
 #define SPLINT_BODY           3144
 #define BREASTPLATE_BODY      3145 /*piecemail armor*/
 #define CHAIN_BODY            3146
-#define STUD_LEATHER_BODY     3147  //5
+#define STUD_LEATHER_BODY     3147
 #define LEATHER_BODY          3148
 #define PADDED_BODY           3149
 #define CLOTH_BODY            3150
-
 #define BANDED_BODY           3241
 #define SCALE_BODY            3242
 #define HIDE_BODY             3243
@@ -96,12 +95,12 @@ extern const char *head_types[];
 
 /*head*/
 #define PLATE_HELM            3151
-#define HALFPLATE_HELM        3152  //10
+#define HALFPLATE_HELM        3152
 #define SPLINT_HELM           3153
 #define PIECEPLATE_HELM       3154
 #define CHAIN_HELM            3155
 #define STUD_LEATHER_HELM     3156
-#define LEATHER_HELM          3157  //15
+#define LEATHER_HELM          3157
 #define PADDED_HELM           3158
 #define CLOTH_HELM            3159
 
@@ -113,12 +112,12 @@ extern const char *head_types[];
 /*arms*/
 #define PLATE_ARMS            3160
 #define HALFPLATE_ARMS        3161
-#define SPLINT_ARMS           3162  //20
+#define SPLINT_ARMS           3162
 #define CHAIN_ARMS            3163
 #define STUD_LEATHER_ARMS     3164
 #define LEATHER_ARMS          3165
 #define PADDED_ARMS           3166
-#define CLOTH_ARMS            3167  //25
+#define CLOTH_ARMS            3167
 
 #define BANDED_ARMS           3249
 #define PIECEPLATE_ARMS       3250
@@ -131,7 +130,7 @@ extern const char *head_types[];
 #define HALFPLATE_LEGS        3169
 #define SPLINT_LEGS           3170
 #define CHAIN_LEGS            3171
-#define STUD_LEATHER_LEGS     3172  //30
+#define STUD_LEATHER_LEGS     3172
 #define LEATHER_LEGS          3173
 #define PADDED_LEGS           3174
 #define CLOTH_LEGS            3175
@@ -144,7 +143,7 @@ extern const char *head_types[];
 
 /*shields*/
 #define SHIELD_MEDIUM         3180
-#define SHIELD_LARGE          3181  //35
+#define SHIELD_LARGE          3181
 #define SHIELD_TOWER          3182
 /* end armor molds */
 #define NUM_ARMOR_MOLDS 37

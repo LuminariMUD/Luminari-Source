@@ -388,6 +388,7 @@ void compute_char_cap(struct char_data *ch) {
   int hp_cap, mana_cap, move_cap, hit_cap, dam_cap, ac_cap,
           save_cap, resist_cap, class, class_level = 0;
   int str_cap, dex_cap, con_cap, wis_cap, int_cap, cha_cap;
+  int rage_bonus = 0;
 
   /* values are between 1..stat-cap, not < 1 and not > stat-cap */
   (ch)->aff_abils.dex = MAX(1, MIN(GET_DEX(ch), STAT_CAP));
@@ -482,8 +483,17 @@ void compute_char_cap(struct char_data *ch) {
           wis_cap += class_level / 4 + 1;
           break;
         case CLASS_BERSERKER: /*rage*/
-          str_cap += class_level / 4 + 13;
-          con_cap += class_level / 4 + 13;
+          if (class_level < 11) /*normal*/
+            rage_bonus = 4;
+          else if (class_level < 20) /*greater*/
+            rage_bonus = 6;
+          else if (class_level < 27) /*mighty*/
+            rage_bonus = 9;
+          else if (class_level >= 27) /*indomitable*/
+            rage_bonus = 12;
+
+          str_cap += class_level / 4 + 1 + rage_bonus;
+          con_cap += class_level / 4 + 1 + rage_bonus;
           hit_cap += class_level / 3;
           dam_cap += class_level / 3;
           break;

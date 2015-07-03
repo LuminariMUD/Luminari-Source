@@ -1173,9 +1173,9 @@ void assign_feats(void) {
   feato(FEAT_ELVEN_CRAFTING, "elven crafting", TRUE, FALSE, FALSE, FEAT_TYPE_CRAFT,
     "All equipment made is 50 percent weight and uses 50 percent materials",
     "All equipment made is 50 percent weight and uses 50 percent materials");
-  feato(FEAT_FAST_CRAFTER, "fast crafter", TRUE, FALSE, FALSE, FEAT_TYPE_CRAFT,
+  /*feato(FEAT_FAST_CRAFTER, "fast crafter", TRUE, FALSE, FALSE, FEAT_TYPE_CRAFT,
     "Reduces crafting time",
-    "Reduces crafting time");
+    "Reduces crafting time");*/
 
   /* Cleric Domain (ability) Feats */
   feato(FEAT_LIGHTNING_ARC, "lightning arc", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
