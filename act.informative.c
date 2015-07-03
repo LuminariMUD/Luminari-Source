@@ -2270,7 +2270,7 @@ ACMD(do_score) {
 
   /* Begin combat section */
 #define RETURN_NUM_ATTACKS 1
-  send_to_char(ch, "\tcBAB        : \tn%-4d \tc# of Attacks : \tn%-3d \tcArmorClass : \tn%-4d \tcWimpy        : \tn%-3d \tcPos   : \tn",
+  send_to_char(ch, "\tcBAB: \tn%-4d \tc# of Attacks: \tn%-3d \tcArmorClass: \tn%-4d \tcWimpy: \tn%-3d \tcPos: \tn",
                calc_bab, perform_attacks(ch, RETURN_NUM_ATTACKS, 0),
                compute_armor_class(NULL, ch, FALSE, MODE_ARMOR_CLASS_NORMAL), GET_WIMP_LEV(ch));
 #undef RETURN_NUM_ATTACKS
