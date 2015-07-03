@@ -617,6 +617,8 @@ int skill_check(struct char_data *ch, int skill, int dc) {
 /* this define is for crafting skills, they increase much easier
  suggested:  (20) */
 #define C_SKILL 20
+/* for stricter crafting skill notching (fast crafting) */
+#define C_SKILL_SLOW 100
 void increase_skill(struct char_data *ch, int skillnum) {
   int notched = FALSE;
 
@@ -631,6 +633,7 @@ void increase_skill(struct char_data *ch, int skillnum) {
   int use = rand_number(0, USE);
   int pass = rand_number(0, PASS);
   int craft = rand_number(0, C_SKILL);
+  int slow_craft = rand_number(0, C_SKILL_SLOW);
 
   switch(skillnum) {
     case SKILL_BACKSTAB:
@@ -1134,7 +1137,7 @@ void increase_skill(struct char_data *ch, int skillnum) {
       }
       break;
     case SKILL_FAST_CRAFTER:
-      if (!craft) {
+      if (!slow_craft) {
         notched = TRUE;
         GET_SKILL(ch, skillnum)++;
       }
