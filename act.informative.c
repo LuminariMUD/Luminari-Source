@@ -1395,8 +1395,23 @@ void perform_resistances(struct char_data *ch, struct char_data *k) {
   }
 
   send_to_char(ch, "\tC");
+  text_line(ch, "\tYSpell Resistance\tC", 80, '-', '-');
+  send_to_char(ch, "\tn");
+  send_to_char(ch, "Spell Resist: %d\r\n", compute_spell_res(NULL, ch, 0));
+
+  send_to_char(ch, "\tC");
+  text_line(ch, "\tYConcealment\tC", 80, '-', '-');
+  send_to_char(ch, "\tn");
+  send_to_char(ch, "Conceal Percent: %d\r\n", compute_concealment(ch));
+
+  send_to_char(ch, "\tC");
   text_line(ch, "\tYDamage Reduction\tC", 80, '-', '-');
   send_to_char(ch, "\tn");
+
+  /* old damage reduction is still used */
+  send_to_char(ch, "General damage reduction: %d\r\n", compute_damage_reduction(ch, 0));
+
+  /* new DR */
   struct damage_reduction_type *dr;
   dr = GET_DR(ch);
   while (dr != NULL) {
@@ -2254,8 +2269,11 @@ ACMD(do_score) {
   text_line(ch, "\tyCombat\tC", line_length, '-', '-');
 
   /* Begin combat section */
-  send_to_char(ch, "\tcArmorClass : \tn%-4d \tcSpell Resist : \tn%-3d \tcWimpy        : \tn%-3d \tcPos   : \tn",
-               compute_armor_class(NULL, ch, FALSE, MODE_ARMOR_CLASS_NORMAL), compute_spell_res(NULL, ch, 0), GET_WIMP_LEV(ch));
+#define RETURN_NUM_ATTACKS 1
+  send_to_char(ch, "\tcBAB        : \tn%-4d \tc# of Attacks : \tn%-3d \tcArmorClass : \tn%-4d \tcWimpy        : \tn%-3d \tcPos   : \tn",
+               calc_bab, perform_attacks(ch, RETURN_NUM_ATTACKS, 0),
+               compute_armor_class(NULL, ch, FALSE, MODE_ARMOR_CLASS_NORMAL), GET_WIMP_LEV(ch));
+#undef RETURN_NUM_ATTACKS
 
   if (FIGHTING(ch))
     send_to_char(ch, "(Fighting) - ");
@@ -2289,12 +2307,6 @@ ACMD(do_score) {
     default: send_to_char(ch, "Floating\r\n");
       break;
   }
-
-
-#define RETURN_NUM_ATTACKS 1
-  send_to_char(ch, "\tcBAB        : \tn%-4d \tc# of Attacks : \tn%-3d \tcConcealment  : \tn%-3d\r\n",
-               calc_bab, perform_attacks(ch, RETURN_NUM_ATTACKS, 0), compute_concealment(ch));
-#undef RETURN_NUM_ATTACKS
 
   text_line(ch, "\tyQuest Info\tC", line_length, '-', '-');
 
