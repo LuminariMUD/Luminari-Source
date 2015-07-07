@@ -992,11 +992,13 @@ static void list_shops(struct char_data *ch, zone_rnum rnum, shop_vnum vmin, sho
       counter++;
 
       /* determine shopkeeper information -zusuk */
-      mob_vnum = mob_index[SHOP_KEEPER(i)].vnum;
-      if (!(mob = read_mobile(mob_vnum, VIRTUAL))) {
-        send_to_char(ch, "Mob data possibly corrupt, please notify a coder.\r\n");
-        mudlog(BRF, LVL_IMMORT, TRUE,
-              "SYSERR: list_shops() - unable to load mobile");
+      if (SHOP_KEEPER(i) > -1 && SHOP_KEEPER(i) < top_of_mobt) {
+        mob_vnum = mob_index[SHOP_KEEPER(i)].vnum;
+        if (!(mob = read_mobile(mob_vnum, VIRTUAL))) {
+          send_to_char(ch, "Mob data possibly corrupt, please notify a coder.\r\n");
+          mudlog(BRF, LVL_IMMORT, TRUE,
+                 "SYSERR: list_shops() - unable to load mobile");
+        }
       }
       if (mob)
         char_to_room(mob, 0);
