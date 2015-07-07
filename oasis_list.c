@@ -993,14 +993,14 @@ static void list_shops(struct char_data *ch, zone_rnum rnum, shop_vnum vmin, sho
       counter++;
 
       /* determine shopkeeper information -zusuk */
-      if (SHOP_KEEPER(i) > -1 && SHOP_KEEPER(i) < top_of_mobt) {
+//      if (SHOP_KEEPER(i) > -1 && SHOP_KEEPER(i) < top_of_mobt) {
         mob_vnum = mob_index[SHOP_KEEPER(i)].vnum;
         if (!(mob = read_mobile(mob_vnum, VIRTUAL))) {
           send_to_char(ch, "Mob data possibly corrupt, please notify a coder.\r\n");
           mudlog(BRF, LVL_IMMORT, TRUE,
                  "SYSERR: list_shops() - unable to load mobile");
         }
-      }
+//      }
       if (mob)
         char_to_room(mob, 0);
 
@@ -1020,7 +1020,7 @@ static void list_shops(struct char_data *ch, zone_rnum rnum, shop_vnum vmin, sho
               QCYN, QYEL, SHOP_ROOM(i, j), QCYN, QNRM);
 
       if (j == 0)
-        send_to_char(ch, "%sNone.%s", QCYN, QNRM);
+        send_to_char(ch, " %sNone.%s", QCYN, QNRM);
 
       send_to_char(ch, "\r\n");
     }
