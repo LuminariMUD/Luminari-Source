@@ -972,8 +972,8 @@ static void list_shops(struct char_data *ch, zone_rnum rnum, shop_vnum vmin, sho
   shop_rnum i;
   shop_vnum bottom, top;
   int j, counter = 0;
-  mob_vnum mob_vnum = NOBODY;
-  struct char_data *mob = NULL;
+  //mob_vnum mob_vnum = NOBODY;
+  //struct char_data *mob = NULL;
 
   if (rnum != NOWHERE) {
     bottom = zone_table[rnum].bot;
@@ -992,6 +992,7 @@ static void list_shops(struct char_data *ch, zone_rnum rnum, shop_vnum vmin, sho
       counter++;
 
       /* determine shopkeeper information -zusuk */
+      /*
       if (SHOP_KEEPER(i) > -1 && SHOP_KEEPER(i) < top_of_mobt) {
         mob_vnum = mob_index[SHOP_KEEPER(i)].vnum;
         if (!(mob = read_mobile(mob_vnum, VIRTUAL))) {
@@ -1002,14 +1003,18 @@ static void list_shops(struct char_data *ch, zone_rnum rnum, shop_vnum vmin, sho
       }
       if (mob)
         char_to_room(mob, 0);
+      */
 
       /* the +1 is strange but fits the rest of the shop code */
-      send_to_char(ch, "%s%4d%s) [%s%-5d%s] [%s%-5d%s] %s%s(%d)",
+      send_to_char(ch, "%s%4d%s) [%s%-5d%s] [%s%-5d%s] %s%s",
               QGRN, counter, QNRM, QGRN, SHOP_NUM(i), QNRM, QGRN, i + 1, QNRM,
-                   mob ? GET_NAME(mob) : "ERR", QNRM, mob_vnum);
+                   mob_proto[SHOP_KEEPER(i)].player.short_descr, QNRM);
 
+      /* get rid of mob */
+      /*
       if (mob)
         extract_char(mob);
+      */
 
       /* Thanks to Ken Ray for this display fix. -Welcor */
       for (j = 0; SHOP_ROOM(i, j) != NOWHERE; j++)
