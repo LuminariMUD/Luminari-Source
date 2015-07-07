@@ -1011,7 +1011,7 @@ static void list_shops(struct char_data *ch, zone_rnum rnum, shop_vnum vmin, sho
       /* the +1 is strange but fits the rest of the shop code */
       send_to_char(ch, "%s%4d%s) [%s%-5d%s] [%s%-5d%s] %s%s",
               QGRN, counter, QNRM, QGRN, SHOP_NUM(i), QNRM, QGRN, i + 1, QNRM ,
-              (SHOP_KEEPER(i) > -1 && SHOP_KEEPER(i) < top_of_mobt) ?
+              (SHOP_KEEPER(i) < top_of_mobt) ?
                 mob_proto[SHOP_KEEPER(i)].player.short_descr : "ERR!", QNRM);
 
       /* get rid of mob */
