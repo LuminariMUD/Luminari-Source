@@ -994,8 +994,8 @@ static void list_shops(struct char_data *ch, zone_rnum rnum, shop_vnum vmin, sho
 
       /* determine shopkeeper information -zusuk */
 //      if (SHOP_KEEPER(i) > -1 && SHOP_KEEPER(i) < top_of_mobt) {
-        mob_vnum = mob_index[SHOP_KEEPER(i)].vnum;
-        if (!(mob = read_mobile(mob_vnum, VIRTUAL))) {
+        //mob_vnum = mob_index[SHOP_KEEPER(i)].vnum;
+        if (!(mob = read_mobile(SHOP_KEEPER(i), REAL))) {
           send_to_char(ch, "Mob data possibly corrupt, please notify a coder.\r\n");
           mudlog(BRF, LVL_IMMORT, TRUE,
                  "SYSERR: list_shops() - unable to load mobile");
