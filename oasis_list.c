@@ -985,7 +985,7 @@ static void list_shops(struct char_data *ch, zone_rnum rnum, shop_vnum vmin, sho
   }
 
   send_to_char(ch,
-          "Index VNum    RNum    Shop Room(s)\r\n"
+          "Index VNum    RNum    Mob Name and Shop Room(s)\r\n"
           "----- ------- ------- -----------------------------------------\r\n");
 
   for (i = 0; i <= top_shop; i++) {
@@ -995,23 +995,29 @@ static void list_shops(struct char_data *ch, zone_rnum rnum, shop_vnum vmin, sho
       /* determine shopkeeper information -zusuk */
 //      if (SHOP_KEEPER(i) > -1 && SHOP_KEEPER(i) < top_of_mobt) {
         //mob_vnum = mob_index[SHOP_KEEPER(i)].vnum;
+      /*
         if (!(mob = read_mobile(SHOP_KEEPER(i), REAL))) {
           send_to_char(ch, "Mob data possibly corrupt, please notify a coder.\r\n");
           mudlog(BRF, LVL_IMMORT, TRUE,
                  "SYSERR: list_shops() - unable to load mobile");
         }
+      */
 //      }
+      /*
       if (mob)
         char_to_room(mob, 0);
+      */
 
       /* the +1 is strange but fits the rest of the shop code */
       send_to_char(ch, "%s%4d%s) [%s%-5d%s] [%s%-5d%s] %s%s",
               QGRN, counter, QNRM, QGRN, SHOP_NUM(i), QNRM, QGRN, i + 1, QNRM,
-                   mob ? GET_NAME(mob) : "ERR", QNRM);
+                   mob_proto[SHOP_KEEPER(i)].player.short_descr, QNRM);
 
       /* get rid of mob */
+      /*
       if (mob)
         extract_char(mob);
+      */
 
       /* Thanks to Ken Ray for this display fix. -Welcor */
       for (j = 0; SHOP_ROOM(i, j) != NOWHERE; j++)
