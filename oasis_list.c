@@ -972,6 +972,8 @@ static void list_shops(struct char_data *ch, zone_rnum rnum, shop_vnum vmin, sho
   shop_rnum i;
   shop_vnum bottom, top;
   int j, counter = 0;
+  mob_vnum mob_vnum = NOBODY;
+  struct char_data *mob = NULL;
 
   if (rnum != NOWHERE) {
     bottom = zone_table[rnum].bot;
@@ -989,9 +991,18 @@ static void list_shops(struct char_data *ch, zone_rnum rnum, shop_vnum vmin, sho
     if (SHOP_NUM(i) >= bottom && SHOP_NUM(i) <= top) {
       counter++;
 
+      /* determine shopkeeper information -zusuk */
+      mob_vnum = mob_index[SHOP_KEEPER(i)].vnum;
+      if (!(mob = read_mobile(mob_vnum, VIRTUAL))) {
+        send_to_char(ch, "Mob data possibly corrupt, please notify a coder.\r\n");
+        mudlog(BRF, LVL_IMMORT, TRUE,
+              "SYSERR: list_shops() - unable to load mobile");
+      }
+
       /* the +1 is strange but fits the rest of the shop code */
-      send_to_char(ch, "%s%4d%s) [%s%-5d%s] [%s%-5d%s]",
-              QGRN, counter, QNRM, QGRN, SHOP_NUM(i), QNRM, QGRN, i + 1, QNRM);
+      send_to_char(ch, "%s%4d%s) [%s%-5d%s] [%s%-5d%s] %s%s(%d)",
+              QGRN, counter, QNRM, QGRN, SHOP_NUM(i), QNRM, QGRN, i + 1, QNRM,
+                   mob ? GET_NAME(mob) : "ERR", QNRM, mob_vnum);
 
       /* Thanks to Ken Ray for this display fix. -Welcor */
       for (j = 0; SHOP_ROOM(i, j) != NOWHERE; j++)
