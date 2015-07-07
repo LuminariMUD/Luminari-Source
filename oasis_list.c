@@ -998,14 +998,16 @@ static void list_shops(struct char_data *ch, zone_rnum rnum, shop_vnum vmin, sho
         mudlog(BRF, LVL_IMMORT, TRUE,
               "SYSERR: list_shops() - unable to load mobile");
       }
-      char_to_room(mob, 0);
+      if (mob)
+        char_to_room(mob, 0);
 
       /* the +1 is strange but fits the rest of the shop code */
       send_to_char(ch, "%s%4d%s) [%s%-5d%s] [%s%-5d%s] %s%s(%d)",
               QGRN, counter, QNRM, QGRN, SHOP_NUM(i), QNRM, QGRN, i + 1, QNRM,
                    mob ? GET_NAME(mob) : "ERR", QNRM, mob_vnum);
 
-      extract_char(mob);
+      if (mob)
+        extract_char(mob);
 
       /* Thanks to Ken Ray for this display fix. -Welcor */
       for (j = 0; SHOP_ROOM(i, j) != NOWHERE; j++)
