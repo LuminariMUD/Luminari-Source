@@ -979,6 +979,11 @@ ACMD(do_spellquests) {
   struct quest_entry *quest;
   struct quest_command *qcom;
 
+  /********** under construction ***************/
+  send_to_char(ch, "Currently not implemented, please tune in later!\r\n");
+  return;
+  /********** under construction ***************/
+
   if (GET_LEVEL(ch) < LVL_IMMORT) {
     sprintf(buf, "(GC) %s looked at spellquest list.", GET_NAME(ch));
     log(buf);

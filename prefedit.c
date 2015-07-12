@@ -206,7 +206,7 @@ static void prefedit_disp_toggles_menu(struct descriptor_data *d)
              CBWHT(d->character, C_NRM));
 
   /* The top section of the actual menu */
-  send_to_char(d->character, "%s1%s) Autoexits    %s[%s%3s%s]      %sA%s) Gossip   %s[%s%3s%s]\r\n"
+  send_to_char(d->character, "%s1%s) Autoexits    %s[%s%3s%s]      %sA%s) Chat/Goss%s[%s%3s%s]\r\n"
                              "%s2%s) Autoloot     %s[%s%3s%s]      %sB%s) Shout    %s[%s%3s%s]\r\n"
                              "%s3%s) Autogold     %s[%s%3s%s]      %sC%s) Tell     %s[%s%3s%s]\r\n"
                              "%s4%s) Autosac      %s[%s%3s%s]      %sD%s) Auction  %s[%s%3s%s]\r\n"

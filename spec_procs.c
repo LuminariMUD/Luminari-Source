@@ -900,6 +900,10 @@ int compute_ability(struct char_data *ch, int abilityNum) {
         /* Unnamed bonus */
         value += 2;
       }
+      if (HAS_FEAT(ch, FEAT_ALERTNESS)) {
+        /* Unnamed bonus */
+        value += 2;
+      }
       return value;
     case ABILITY_SURVIVAL:
       value += GET_WIS_BONUS(ch);
