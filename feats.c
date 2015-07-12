@@ -969,8 +969,8 @@ void assign_feats(void) {
     "+2 to acrobatics and escape artist skill checks",
     "+2 to acrobatics and escape artist skill checks");
   feato(FEAT_ALERTNESS, "alertness", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
-    "+2 to spot and listen skill checks ",
-    "+2 to spot and listen skill checks ");
+    "+2 to perception and sense motive skill checks ",
+    "+2 to perception and sense motive skill checks ");
   feato(FEAT_ANIMAL_AFFINITY, "animal affinity", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
     "+2 to handle animal and ride skill checks",
     "+2 to handle animal and ride skill checks");
