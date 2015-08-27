@@ -617,7 +617,7 @@ void affect_total_plus(struct char_data *ch, int at_armor) {
     empty_bits[i] = 0;
 
   /* restore stored stats */
-  (ch)->points.armor = at_armor;
+  //(ch)->points.armor = at_armor;
 
   /* add gear back on */
   for (i = 0; i < NUM_WEARS; i++) {
