@@ -5790,11 +5790,16 @@ ACMD(do_oconvert) {
 
         for (j = 0; j < MAX_OBJ_AFFECT; j++) {
           if (obj_proto[num].affected[j].modifier) {
-            if (obj_proto[num].affected[j].location == APPLY_HITROLL)
+            if (obj_proto[num].affected[j].location == APPLY_HITROLL) {                       
               hitroll = obj_proto[num].affected[j].modifier;
-            else if (obj_proto[num].affected[j].location == APPLY_DAMROLL)
+              obj_proto[num].affected[j].modifier = 0;
+              obj_proto[num].affected[j].location = 0;
+            }
+            else if (obj_proto[num].affected[j].location == APPLY_DAMROLL) {
               damroll = obj_proto[num].affected[j].modifier;
-
+              obj_proto[num].affected[j].modifier = 0;
+              obj_proto[num].affected[j].location = 0;
+            }
           }
         }
 
