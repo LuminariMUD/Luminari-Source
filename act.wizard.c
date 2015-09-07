@@ -5800,7 +5800,9 @@ ACMD(do_oconvert) {
 
         if (GET_OBJ_VAL(&obj_proto[num], 4) > 5)
           GET_OBJ_VAL(&obj_proto[num], 4) = 5;
-
+        
+        save_objects(real_zone_by_thing(obj_proto[num].item_number));
+        
         found++;
       }
     }
