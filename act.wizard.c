@@ -5780,7 +5780,7 @@ ACMD(do_oconvert) {
       hitroll = 0;
       damroll = 0;
       
-      if !(GET_OBJ_TYPE(obj) == ITEM_WEAPON) continue;
+      if (!(GET_OBJ_TYPE(obj) == ITEM_WEAPON)) continue;
       
       if (is_name(arg2, obj_proto[num].name)) {
 
