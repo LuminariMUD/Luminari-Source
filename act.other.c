@@ -2007,6 +2007,11 @@ void assign_wildshape_feats(struct char_data *ch) {
   /* just to be on the safe side, doing a cleanup before assignment*/
   for (counter = 0; counter < NUM_FEATS; counter++)
     MOB_SET_FEAT((ch), counter, 0);
+  
+  /* make sure these feats transfer over! */
+  if (HAS_FEAT(ch, FEAT_NATURAL_SPELL))
+    MOB_SET_FEAT(ch, FEAT_NATURAL_SPELL, 1);
+  /*****/
 
   switch (race_list[GET_DISGUISE_RACE(ch)].family) {
     case RACE_TYPE_ANIMAL:
