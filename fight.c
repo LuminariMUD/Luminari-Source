@@ -3874,7 +3874,8 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
     case ATTACK_TYPE_OFFHAND:
     case ATTACK_TYPE_PRIMARY:
       if (wielded && HAS_FEAT(ch, FEAT_WEAPON_FINESSE) &&
-            is_using_light_weapon(ch, wielded)) {
+            is_using_light_weapon(ch, wielded) &&
+              GET_DEX_BONUS(ch) > GET_STR_BONUS(ch)) { /* superior bonus is used */
         calc_bab += GET_DEX_BONUS(ch);
       } else {
         calc_bab += GET_STR_BONUS(ch);
