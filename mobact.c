@@ -931,7 +931,19 @@ void npc_spellup(struct char_data *ch) {
       break;
   } while (level < spell_info[spellnum].min_level[GET_CLASS(ch)] ||
           affected_by_spell(victim, spellnum));
-
+  
+  /* we're putting some special restrictions here */
+  if (IS_MOB(ch) && mob_index[GET_MOB_RNUM(ch)].func == shop_keeper &&
+        ( spellnum == SPELL_GREATER_INVIS ||
+          spellnum == SPELL_INVISIBLE
+        )
+          ) {
+    /* shopkeepers invising themselves is silly :p  -zusuk */
+    return;
+  }
+  
+  /* end special restrictions */
+  
   if (loop_counter < (MAX_LOOPS))
     // found a spell, cast it
     cast_spell(ch, victim, NULL, spellnum);

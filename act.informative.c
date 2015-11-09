@@ -956,15 +956,15 @@ static void look_in_direction(struct char_data *ch, int dir) {
   }
 
   if (EXIT(ch, dir)) {
-    if (EXIT(ch, dir)->general_description)
-      send_to_char(ch, "%s", EXIT(ch, dir)->general_description);
-    else
-      send_to_char(ch, "You do not see anything in that direction.\r\n");
-
     if (EXIT_FLAGGED(EXIT(ch, dir), EX_CLOSED) && EXIT(ch, dir)->keyword)
       send_to_char(ch, "The %s is closed.\r\n", fname(EXIT(ch, dir)->keyword));
     else if (EXIT_FLAGGED(EXIT(ch, dir), EX_ISDOOR) && EXIT(ch, dir)->keyword)
       send_to_char(ch, "The %s is open.\r\n", fname(EXIT(ch, dir)->keyword));
+    
+    if (EXIT(ch, dir)->general_description)
+      send_to_char(ch, "%s", EXIT(ch, dir)->general_description);
+    else
+      send_to_char(ch, "You do not see anything particularly special in that direction.\r\n");
 
     check_dangersense(ch, EXIT(ch, dir)->to_room);
   } else
