@@ -25,6 +25,7 @@
 #include "mud_event.h" /* for eSTUNNED */
 #include "modify.h"
 #include "mobact.h"
+#include "shop.h"
 
 /***********/
 
