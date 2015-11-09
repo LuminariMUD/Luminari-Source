@@ -2009,6 +2009,7 @@ void assign_wildshape_feats(struct char_data *ch) {
     MOB_SET_FEAT((ch), counter, 0);
   
   /* make sure these feats transfer over! */
+  send_to_char(ch, "testing\r\n");
   if (HAS_FEAT(ch, FEAT_NATURAL_SPELL))
     MOB_SET_FEAT(ch, FEAT_NATURAL_SPELL, 1);
   /*****/
