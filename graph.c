@@ -168,11 +168,11 @@ ACMD(do_track) {
     return;
   }
   /* We can't track the victim. */
-  if (AFF_FLAGGED(vict, AFF_NOTRACK)) {
+  if (AFF_FLAGGED(vict, AFF_NOTRACK) && GET_LEVEL(ch) < LVL_IMPL) {
     send_to_char(ch, "You sense no trail.\r\n");
     return;
   }
-  if (IS_SET_AR(ROOM_FLAGS(IN_ROOM(ch)), ROOM_FOG)) {
+  if (IS_SET_AR(ROOM_FLAGS(IN_ROOM(ch)), ROOM_FOG) && GET_LEVEL(ch) < LVL_IMPL) {
     send_to_char(ch, "The fog makes it impossible to attempt to track anything from here.");
     return;
   }
@@ -183,7 +183,9 @@ ACMD(do_track) {
   } else
     track_dc = 10 + compute_ability(vict, ABILITY_SURVIVAL);
 
-  if (!skill_check(ch, ABILITY_SURVIVAL, track_dc)) {
+  if (GET_LEVEL(ch) >= LVL_IMPL)
+    ;
+  else if (!skill_check(ch, ABILITY_SURVIVAL, track_dc)) {
     USE_MOVE_ACTION(ch);
     int tries = 10;
     /* Find a random direction. :) */
