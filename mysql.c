@@ -234,6 +234,7 @@ void load_regions() {
   mysql_free_result(result);
 }
 
+/* Move this out to another file... */
 struct region_list* get_enclosing_regions(zone_rnum zone, int x, int y) {
   MYSQL_RES *result;
   MYSQL_ROW row;
@@ -244,7 +245,18 @@ struct region_list* get_enclosing_regions(zone_rnum zone, int x, int y) {
  
   char buf[1024];
  
-  sprintf(buf, "SELECT vnum "
+  /* Need an ORDER BY here, since we can have multiple regions. */
+  sprintf(buf, "SELECT vnum,  "
+               "case " 
+               "  when ST_Within(geomfromtext('Point(%d %d)'), region_polygon) then "
+               "  case "
+               "    when (geomfromtext('Point(%d %d)') = Centroid(region_polygon)) then '1' "
+               "    when (ST_Distance(geomfromtext('Point(%d %d)'), exteriorring(region_polygon)) > "
+               "          ST_Distance(geomfromtext('Point(%d %d)'), Centroid(region_polygon))/2) then '2' "
+               "    else '3' "
+               "  end " 
+               "  else NULL "
+               "end as loc " 
                "  from region_index "
                "  where zone_vnum = %d "
                "  and ST_Within(GeomFromText('POINT(%d %d)'), region_polygon)",               
@@ -268,7 +280,15 @@ struct region_list* get_enclosing_regions(zone_rnum zone, int x, int y) {
  
     /* Allocate memory for the region data. */
     CREATE(new_node, struct region_list, 1);
-    new_node->rnum = real_region(atoi(row[0]));
+    new_node->rnum = real_region(atoi(row[0]));    
+    if (atoi(row[1]) == 1)       
+      new_node->position = REGION_POS_CENTER;
+    else if (atoi(row[1]) == 2)
+      new_node->position = REGION_POS_INSIDE;
+    else if (atoi(row[1]) == 3)
+      new_node->position = REGION_POS_EDGE;
+    else 
+      new_node->position = REGION_POS_UNDEFINED;
     new_node->next = regions;
     regions = new_node;
     new_node = NULL; 

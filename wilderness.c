@@ -480,8 +480,10 @@ room_rnum find_available_wilderness_room() {
 
 void assign_wilderness_room(room_rnum room, int x, int y) {
 
+  /* Set defaults */
   static char *wilderness_name = "The Wilderness of Luminari";
   static char *wilderness_desc = "The wilderness extends in all directions.";
+  
   struct region_list *regions = NULL;
   struct region_list *curr_region = NULL;
   struct path_list *paths = NULL;
@@ -500,14 +502,14 @@ void assign_wilderness_room(room_rnum room, int x, int y) {
   regions = get_enclosing_regions(GET_ROOM_ZONE(room), x, y);
   /* Get the enclosing paths. */
   paths = get_enclosing_paths(GET_ROOM_ZONE(room), x, y);
-
+  
   if (world[room].name && world[room].name != wilderness_name)
     free(world[room].name);
   if (world[room].description && world[room].description != wilderness_desc)
     free(world[room].description);
 
   /* Assign the default values. */
-  world[room].description = wilderness_desc;
+  
   world[room].name = wilderness_name;
   world[room].sector_type = get_sector_type(get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y),
                                             get_temperature(NOISE_MATERIAL_PLANE_ELEV, x, y),
@@ -547,6 +549,9 @@ void assign_wilderness_room(room_rnum room, int x, int y) {
       }
     }
   }
+  
+  /* Generate the description, now that everything else is set up. */
+  world[room].description = gen_room_description(x, y);
 }
 
 
