@@ -83,7 +83,7 @@ char * gen_room_description(struct char_data *ch, struct room_data *rm) {
     else {
       if (IN_ROOM(ch) == NOWHERE) /* Nothing to describe. */
         return NULL;      
-      room = world[IN_ROOM(ch)];
+      room = &world[IN_ROOM(ch)];
     }
   } else {
       room = rm;
