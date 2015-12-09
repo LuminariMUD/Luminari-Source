@@ -1,7 +1,7 @@
 /* *************************************************************************
  *   File: desc_engine.c                               Part of LuminariMUD *
  *  Usage: Code file for the description generation engine.                *
- * Author: Ornir (Derived from CalareyMUD 3 in part.)                      *
+ * Author: Ornir                                                           *
  ***************************************************************************
  *                                                                         *
  ***************************************************************************/
@@ -13,6 +13,7 @@
 #include "comm.h"
 #include "structs.h"
 #include "dg_event.h"
+#include "mysql.h"
 
 /* 
  * Luminari Description Engine
@@ -33,6 +34,112 @@
  * 
  */
 
+/*
+ * Generate the description of the room, as seen by ch.  If rm is null,
+ * use the room ch is standing in currently.  If that room is NOWHERE
+ * then return NULL.
+ */
+
+char * gen_room_description(struct char_data *ch, struct room_data *rm) {  
+  /* Buffers to hold the description*/
+  char buf[MAX_STRING_LENGTH];
+  char rdesc[MAX_STRING_LENGTH];
+  
+  static char *wilderness_desc = "The wilderness extends in all directions.";
+  
+  char sect1[MAX_STRING_LENGTH]; /* Position, season, terrain */
+  char sect2[MAX_STRING_LENGTH]; /* Weather and terrain */
+  char sect3[MAX_STRING_LENGTH]; /* Hand-written, optional. */
+  char sect4[MAX_STRING_LENGTH]; /* Nearby landmarks. */
+  
+  struct region_list *regions = NULL;
+  struct region_list *curr_region = NULL;
+  
+  char *position_strings[NUM_POSITIONS] = {
+    "dead", /* Dead */
+    "mortally wounded", /* Mortally Wounded */
+    "incapacitated", /* Incap. */
+    "stunned", /* Stunned */
+    "sleeping", /* Sleeping */
+    "reclining",  
+    "resting",
+    "sitting",
+    "fighting",
+    "standing"
+  }; // Need to add pos_swimming.
+  
+  // "You are %s %s %s" pos, through (the tall grasses of||The reeds and sedges of||
+  // the burning wastes of||the scorching sands of||the shifting dunes of||the rolling hills of||
+  // the craggy peaks of||etc.||on||over||on the edge of||among the trees of||deep within, region name
+  
+  struct room_data *room = NULL;
+  
+  if (rm == NULL) {
+    if (ch == NULL) /* Nothing to describe */ 
+      return NULL; 
+    else {
+      if (IN_ROOM(ch) == NOWHERE) /* Nothing to describe. */
+        return NULL;      
+      room = world[IN_ROOM(ch)];
+    }
+  } else {
+      room = rm;
+  }
+  
+  /* Now room points to the room we are describing. */
+
+  /* Build the description in pieces, then combine at the end. 
+   *  
+   * Section 1: Viewer's position (standing, walking, flying, etc), season and terrain.
+   * Section 2: Time and terrain.
+   * Section 3: Weather and terrain. 
+   * Section 4: Optional hand-written area description (season and day/night specific). 
+   *
+   * Each of the above usually consists of a single sentence, but can consist of more, 
+   * and sometimes result in fairly lengthy descriptions such as: 
+   *
+   * (You are walking through Whispering Wood, the leaves on the trees a mottled brown from the onset of autumn.  
+   * Many leaves have already fallen to the ground, and they crunch beneath your boots with every step.)  (The 
+   * sun is beginning to rise on the eastern horizon, its red glow barely visible through the tall trees.)  
+   * (Flashes of lightning and the rumble of thunder fill the night air, framed against the backdrop of 
+   * incessant rain which falls through the tree branches overhead before pattering on the ground.  Your cloak 
+   * flaps wildly in the wind, providing little protection against the pouring rain.)  (The trees in this part 
+   * of the forest are tall and sturdy, their great trunks towering high above you. )
+   *
+   * (Above is from Kavir, from Godwars 2.)
+   */
+
+   /* For the first iteration, we are skipping everything to do with the player, 
+    * as we are setting a description on the room itself. */
+  
+  /* Get the enclosing regions. */
+  regions = get_enclosing_regions(GET_ROOM_ZONE(room), x, y);
+  
+  for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next) {
+    switch (region_table[curr_region->rnum].region_type) {
+      case REGION_GEOGRAPHIC:
+        switch(curr_region->pos) {
+          case REGION_POS_CENTER:
+            sprintf(buf, "The Center of %s\r\n", region_table[curr_region->rnum].name);        
+            world[room].name = strdup(buf);
+            break;
+          case REGION_POS_EDGE:
+            sprintf(buf, "The Edge of %s\r\n", region_table[curr_region->rnum].name);
+            world[room].name = strdup(buf);
+            break;
+          default:
+            break;
+        }
+        break;      
+      default:
+        break;
+    }
+  }  
+  
+  return wilderness_desc;
+}
+
+
 #define DO_NOT_COMPILE 1
 #ifndef DO_NOT_COMPILE
 /* Generate a room description for ch based on various aspects
@@ -40,7 +147,7 @@
  * etc. Finally, strip line breaks and add them again at their correct
  * places. -- Scion 
  * 
- * A great dela of this function relies on SMAUG/CalareyMUD specific 
+ * A great deal of this function relies on SMAUG/CalareyMUD specific 
  * functionality.  Most of this needs to be adapted to Luminari. 
  * - Ornir */
 char *gen_room_description(struct char_data *ch, char *desc) {

@@ -55,6 +55,12 @@
 #define REGION_SECTOR_TRANSFORM 3
 #define REGION_SECTOR 4
 
+/* Region position relative to player */
+#define REGION_POS_UNDEFINED 0
+#define REGION_POS_CENTER    1
+#define REGION_POS_INSIDE    2
+#define REGION_POS_EDGE      3
+    
 /* Path types. */
 #define PATH_ROAD        1 /* path_props = Sector type to convert to. */
 #define PATH_DIRT_ROAD   2
@@ -99,6 +105,7 @@ struct region_data {
   int num_vertices;        /* The number of vertices. */
 
 };
+
 
 struct path_data {
 
@@ -194,6 +201,7 @@ int  region_delete_vertex (region_rnum region, int x, int y);
 /* Struct for returning a list of containing regions. */
 struct region_list {
   region_rnum rnum;
+  int pos; /* Are we on the edge of the region or well inside? */
   struct region_list* next;
 };
 
