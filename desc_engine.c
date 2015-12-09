@@ -43,7 +43,7 @@
  * then return NULL.
  */
 
-char * gen_room_description(struct char_data *ch, struct room_data *rm) {  
+char * gen_room_description(struct char_data *ch, room_rnum room) {  
   /* Buffers to hold the description*/
   char buf[MAX_STRING_LENGTH];
   char rdesc[MAX_STRING_LENGTH];
@@ -74,22 +74,6 @@ char * gen_room_description(struct char_data *ch, struct room_data *rm) {
   // "You are %s %s %s" pos, through (the tall grasses of||The reeds and sedges of||
   // the burning wastes of||the scorching sands of||the shifting dunes of||the rolling hills of||
   // the craggy peaks of||etc.||on||over||on the edge of||among the trees of||deep within, region name
-  
-  struct room_data *room = NULL;
-  
-  if (rm == NULL) {
-    if (ch == NULL) /* Nothing to describe */ 
-      return NULL; 
-    else {
-      if (IN_ROOM(ch) == NOWHERE) /* Nothing to describe. */
-        return NULL;      
-      room = &world[IN_ROOM(ch)];
-    }
-  } else {
-      room = rm;
-  }
-  
-  /* Now room points to the room we are describing. */
 
   /* Build the description in pieces, then combine at the end. 
    *  
@@ -116,7 +100,7 @@ char * gen_room_description(struct char_data *ch, struct room_data *rm) {
     * as we are setting a description on the room itself. */
   
   /* Get the enclosing regions. */
-  regions = get_enclosing_regions(GET_ROOM_ZONE(room->rnum), x, y);
+  regions = get_enclosing_regions(GET_ROOM_ZONE(room), world[room].coords[0], world[room].coords[1]);
   
   for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next) {
     switch (region_table[curr_region->rnum].region_type) {
