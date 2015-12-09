@@ -14,6 +14,7 @@
 #include "structs.h"
 #include "dg_event.h"
 #include "mysql.h"
+#include "desc_engine.h"
 
 /* 
  * Luminari Description Engine
