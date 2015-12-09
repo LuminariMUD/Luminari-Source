@@ -205,6 +205,22 @@ struct region_list {
   struct region_list* next;
 };
 
+/* Struct for returning a list of nearby regions. */
+struct region_proximity_list {
+  region_rnum rnum;
+  
+  int n;
+  int s;
+  int e;
+  int w;
+  int ne;
+  int nw;
+  int se;
+  int sw;
+  
+  struct region_list* next;
+};
+
 /* Struct for returning a list of containing paths. */
 struct path_list {
   region_rnum rnum;
