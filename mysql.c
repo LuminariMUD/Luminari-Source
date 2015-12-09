@@ -260,7 +260,13 @@ struct region_list* get_enclosing_regions(zone_rnum zone, int x, int y) {
                "  from region_index "
                "  where zone_vnum = %d "
                "  and ST_Within(GeomFromText('POINT(%d %d)'), region_polygon)",               
-               zone_table[zone].number, x, y);
+               x, y, 
+               x, y,
+               x, y,
+               x, y,
+               zone_table[zone].number,
+               x, y
+               );
                //"  and GISWithin(GeomFromText('POINT(%d %d)'), region_polygon)",
   
   /* Check the connection, reconnect if necessary. */
