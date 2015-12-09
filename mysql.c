@@ -308,8 +308,8 @@ struct region_proximity_list* get_nearby_regions(zone_rnum zone, int x, int y, i
   MYSQL_RES *result;
   MYSQL_ROW row;
 
-  struct region_list *regions = NULL;
-  struct region_list *new_node = NULL; 
+  struct region_proximity_list *regions = NULL;
+  struct region_proximity_list *new_node = NULL; 
 
  
   char buf[1024];
