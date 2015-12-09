@@ -127,7 +127,7 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
     }
   }  
   
-    nearby_regions = get_nearby_regions(GET_ROOM_ZONE(room), world[room].coords[0], world[room].coords[1]);
+    nearby_regions = get_nearby_regions(GET_ROOM_ZONE(room), world[room].coords[0], world[room].coords[1], 10);
   
   for (curr_nearby_region = nearby_regions; curr_nearby_region != NULL; curr_nearby_region = curr_nearby_region->next) {
     log("-> Processing NEARBY REGION : %s", region_table[curr_nearby_region->rnum].name); 
