@@ -116,7 +116,7 @@ char * gen_room_description(struct char_data *ch, struct room_data *rm) {
     * as we are setting a description on the room itself. */
   
   /* Get the enclosing regions. */
-  regions = get_enclosing_regions(GET_ROOM_ZONE(room), x, y);
+  regions = get_enclosing_regions(GET_ROOM_ZONE(room->rnum), x, y);
   
   for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next) {
     switch (region_table[curr_region->rnum].region_type) {
