@@ -380,14 +380,14 @@ struct region_proximity_list* get_nearby_regions(zone_rnum zone, int x, int y, i
     /* Allocate memory for the region data. */
     CREATE(new_node, struct region_proximity_list, 1);
     new_node->rnum = real_region(atoi(row[0]));    
-    new_node->n  = atoi(row[1]));
-    new_node->ne = atoi(row[2]));    
-    new_node->e  = atoi(row[3]));
-    new_node->se = atoi(row[4]));
-    new_node->s  = atoi(row[5]));
-    new_node->sw = atoi(row[6]));
-    new_node->w  = atoi(row[7]));
-    new_node->nw = atoi(row[8]));   
+    new_node->n  = atoi(row[1]);
+    new_node->ne = atoi(row[2]);    
+    new_node->e  = atoi(row[3]);
+    new_node->se = atoi(row[4]);
+    new_node->s  = atoi(row[5]);
+    new_node->sw = atoi(row[6]);
+    new_node->w  = atoi(row[7]);
+    new_node->nw = atoi(row[8]);   
     new_node->next = regions;
     regions = new_node;
     new_node = NULL; 
