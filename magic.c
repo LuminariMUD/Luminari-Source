@@ -3389,16 +3389,16 @@ static void perform_mag_groups(int level, struct char_data *ch,
       mag_affects(level, ch, tch, obj, SPELL_HASTE, savetype, casttype);
       break;
     case SPELL_MASS_CURE_CRIT:
-      mag_affects(level, ch, tch, obj, SPELL_CURE_CRITIC, savetype, casttype);
+      mag_points(level, ch, tch, obj, SPELL_CURE_CRITIC, savetype, casttype);
       break;
     case SPELL_MASS_CURE_SERIOUS:
-      mag_affects(level, ch, tch, obj, SPELL_CURE_SERIOUS, savetype, casttype);
+      mag_points(level, ch, tch, obj, SPELL_CURE_SERIOUS, savetype, casttype);
       break;
     case SPELL_MASS_CURE_MODERATE:
-      mag_affects(level, ch, tch, obj, SPELL_CURE_MODERATE, savetype, casttype);
+      mag_points(level, ch, tch, obj, SPELL_CURE_MODERATE, savetype, casttype);
       break;
     case SPELL_MASS_CURE_LIGHT:
-      mag_affects(level, ch, tch, obj, SPELL_CURE_LIGHT, savetype, casttype);
+      mag_points(level, ch, tch, obj, SPELL_CURE_LIGHT, savetype, casttype);
       break;
     case SPELL_CIRCLE_A_EVIL:
       mag_affects(level, ch, tch, obj, SPELL_PROT_FROM_EVIL, savetype, casttype);
