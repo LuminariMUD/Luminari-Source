@@ -16,6 +16,7 @@
 #include "kdtree.h"
 
 #include "mysql.h"
+#include "desc_engine.h"
 
 struct kdtree* kd_wilderness_rooms = NULL;
 
