@@ -282,13 +282,13 @@ struct region_list* get_enclosing_regions(zone_rnum zone, int x, int y) {
     CREATE(new_node, struct region_list, 1);
     new_node->rnum = real_region(atoi(row[0]));    
     if (atoi(row[1]) == 1)       
-      new_node->position = REGION_POS_CENTER;
+      new_node->pos = REGION_POS_CENTER;
     else if (atoi(row[1]) == 2)
-      new_node->position = REGION_POS_INSIDE;
+      new_node->pos = REGION_POS_INSIDE;
     else if (atoi(row[1]) == 3)
-      new_node->position = REGION_POS_EDGE;
+      new_node->pos = REGION_POS_EDGE;
     else 
-      new_node->position = REGION_POS_UNDEFINED;
+      new_node->pos = REGION_POS_UNDEFINED;
     new_node->next = regions;
     regions = new_node;
     new_node = NULL; 
