@@ -156,7 +156,7 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
       sprintf(buf, "%s lies to the northwest.\r\n", region_table[curr_nearby_region->rnum].name);
       strcat(rdesc, buf);
   }  
-  if rdesc != NULL   
+  if (rdesc != NULL)
     return rdesc; 
   else 
     return wilderness_desc;
