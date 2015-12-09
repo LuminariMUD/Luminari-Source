@@ -17,6 +17,7 @@
 #include "constants.h"
 #include "mysql.h"
 #include "desc_engine.h"
+#include "wilderness.h"
 
 /* 
  * Luminari Description Engine
