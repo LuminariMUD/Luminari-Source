@@ -104,6 +104,7 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
   regions = get_enclosing_regions(GET_ROOM_ZONE(room), world[room].coords[0], world[room].coords[1]);
   
   for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next) {
+    log("-> Processing REGION_TYPE : %d", region_table[curr_region->rnum].region_type); 
     switch (region_table[curr_region->rnum].region_type) {
       case REGION_GEOGRAPHIC:
         switch(curr_region->pos) {
