@@ -267,7 +267,6 @@ struct region_list* get_enclosing_regions(zone_rnum zone, int x, int y) {
                zone_table[zone].number,
                x, y
                );
-               //"  and GISWithin(GeomFromText('POINT(%d %d)'), region_polygon)",
   
   /* Check the connection, reconnect if necessary. */
   mysql_ping(conn);
@@ -295,6 +294,100 @@ struct region_list* get_enclosing_regions(zone_rnum zone, int x, int y) {
       new_node->pos = REGION_POS_EDGE;
     else 
       new_node->pos = REGION_POS_UNDEFINED;
+    new_node->next = regions;
+    regions = new_node;
+    new_node = NULL; 
+  }
+  mysql_free_result(result);
+
+  return regions;
+}
+
+/* Move this out to another file... */
+struct region_proximity_list* get_nearby_regions(zone_rnum zone, int x, int y, int r) {
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+
+  struct region_list *regions = NULL;
+  struct region_list *new_node = NULL; 
+
+ 
+  char buf[1024];
+ 
+  /* Need an ORDER BY here, since we can have multiple regions. */
+  sprintf(buf, "select " 
+               "  ri.vnum, "
+               "  case " 
+               "    when ST_Intersects(ri.region_polygon, "
+               "                       geomfromtext('polygon((%d %d, %d %d, %d %d, %d %d))')) "
+               "    then 1 else 0 end as n, "
+               "  case " 
+               "    when ST_Intersects(ri.region_polygon, "
+               "                       geomfromtext('polygon((%d %d, %d %d, %d %d, %d %d))')) "
+               "    then 1 else 0 end as ne, "
+               "  case " 
+               "    when ST_Intersects(ri.region_polygon, "
+               "                       geomfromtext('polygon((%d %d, %d %d, %d %d, %d %d))')) "
+               "    then 1 else 0 end as e, "
+               "  case " 
+               "    when ST_Intersects(ri.region_polygon, "
+               "                       geomfromtext('polygon((%d %d, %d %d, %d %d, %d %d))')) "
+               "    then 1 else 0 end as se, "
+               "  case " 
+               "    when ST_Intersects(ri.region_polygon, "
+               "                       geomfromtext('polygon((%d %d, %d %d, %d %d, %d %d))')) "
+               "    then 1 else 0 end as s, "
+               "  case " 
+               "    when ST_Intersects(ri.region_polygon, "
+               "                       geomfromtext('polygon((%d %d, %d %d, %d %d, %d %d))')) "
+               "    then 1 else 0 end as sw, "
+               "  case " 
+               "    when ST_Intersects(ri.region_polygon, "
+               "                       geomfromtext('polygon((%d %d, %d %d, %d %d, %d %d))')) "
+               "    then 1 else 0 end as w, "
+               "  case " 
+               "    when ST_Intersects(ri.region_polygon, "
+               "                       geomfromtext('polygon((%d %d, %d %d, %d %d, %d %d))')) "
+               "    then 1 else 0 end as nw "    
+               "  from region_index as ri;",                
+               x, y, (r*-.5 + x), (r*.87 + y), (r*.5 + x), (r*.87 + y), x, y,    /* n */
+               x, y, (r*.5 + x),  (r*.87 + y), (r*.87 + x), (r*.5 + y), x, y,    /* ne */
+               x, y, (r*.87 + x), (r*.5 + y), (r*.87 + x), (r*-.5 + y), x, y,    /* e */           
+               x, y, (r*.87 + x), (r*-.5 + y), (r*.5 + x), (r*-.87 + y), x, y,   /* se */         
+               x, y, (r*.5 + x), (r*-.87 + y), (r*-.5 + x), (r*-.87 + y), x, y,  /* s */
+               x, y, (r*-.5 + x), (r*-.87 + y), (r*-.87 + x), (r*-.5 + y), x, y, /* sw */
+               x, y, (r*-.87 + x), (r*-.5 + y), (r*-.87 + x), (r*.5 + y), x, y,  /* w */
+               x, y, (r*-.87 + x), (r*.5 + y), (r*-.5 + x), (r*.87 + y), x, y
+          ); 
+
+            
+  
+  /* Check the connection, reconnect if necessary. */
+  mysql_ping(conn);
+
+  if (mysql_query(conn, buf)) {
+    log("SYSERR: Unable to SELECT from region_index: %s", mysql_error(conn));
+    exit(1);
+  }
+ 
+  if (!(result = mysql_store_result(conn))) {
+    log("SYSERR: Unable to SELECT from region_index: %s", mysql_error(conn));
+    exit(1);
+  }
+  
+  while ((row = mysql_fetch_row(result))) {
+ 
+    /* Allocate memory for the region data. */
+    CREATE(new_node, struct region_proximity_list, 1);
+    new_node->rnum = real_region(atoi(row[0]));    
+    new_node->n  = atoi(row[1]));
+    new_node->ne = atoi(row[2]));    
+    new_node->e  = atoi(row[3]));
+    new_node->se = atoi(row[4]));
+    new_node->s  = atoi(row[5]));
+    new_node->sw = atoi(row[6]));
+    new_node->w  = atoi(row[7]));
+    new_node->nw = atoi(row[8]));   
     new_node->next = regions;
     regions = new_node;
     new_node = NULL; 

@@ -58,6 +58,8 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
   
   struct region_list *regions = NULL;
   struct region_list *curr_region = NULL;
+  struct region_proximity_list *nearby_regions = NULL;
+  struct region_proximity_list *curr_nearby_region = NULL;
   
   char *position_strings[NUM_POSITIONS] = {
     "dead", /* Dead */
@@ -125,7 +127,37 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
     }
   }  
   
-  return wilderness_desc;
+    nearby_regions = get_nearby_regions(GET_ROOM_ZONE(room), world[room].coords[0], world[room].coords[1]);
+  
+  for (curr_nearby_region = nearby_regions; curr_nearby_region != NULL; curr_nearby_region = curr_nearby_region->next) {
+    log("-> Processing NEARBY REGION : %s", region_table[curr_nearby_region->rnum].name); 
+    if (curr_nearby_region.n)
+      sprintf(buf, "%s lies to the north.\r\n", region_table[curr_nearby_region->rnum].name);
+      strcat(rdesc, buf);
+    if (curr_nearby_region.ne)
+      sprintf(buf, "%s lies to the northeast.\r\n", region_table[curr_nearby_region->rnum].name);
+      strcat(rdesc, buf);
+    if (curr_nearby_region.e)
+      sprintf(buf, "%s lies to the east.\r\n", region_table[curr_nearby_region->rnum].name);
+      strcat(rdesc, buf);
+    if (curr_nearby_region.se)
+      sprintf(buf, "%s lies to the southeast.\r\n", region_table[curr_nearby_region->rnum].name);
+      strcat(rdesc, buf);
+    if (curr_nearby_region.s)
+      sprintf(buf, "%s lies to the south.\r\n", region_table[curr_nearby_region->rnum].name);
+      strcat(rdesc, buf);
+    if (curr_nearby_region.sw)
+      sprintf(buf, "%s lies to the southwest.\r\n", region_table[curr_nearby_region->rnum].name);
+      strcat(rdesc, buf);
+    if (curr_nearby_region.w)
+      sprintf(buf, "%s lies to the west.\r\n", region_table[curr_nearby_region->rnum].name);
+      strcat(rdesc, buf);
+    if (curr_nearby_region.nw)
+      sprintf(buf, "%s lies to the northwest.\r\n", region_table[curr_nearby_region->rnum].name);
+      strcat(rdesc, buf);
+  }  
+    
+  return rdesc; //wilderness_desc;
 }
 
 
@@ -143,7 +175,7 @@ char *gen_room_description(struct char_data *ch, char *desc) {
      char message[MAX_STRING_LENGTH];
 	char buf[MAX_STRING_LENGTH];
 	char temp[MAX_STRING_LENGTH];
-	char rdesc[MAX_STRING_LENGTH];
+	char rdesc[MAX_STRING_LENGTH]-;
 	int i, letters, space, newspace, line;
 	
      //int lights = get_light_room(ch->in_room);
