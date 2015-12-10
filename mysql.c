@@ -392,7 +392,7 @@ struct region_proximity_list* get_nearby_regions(zone_rnum zone, int x, int y, i
     regions = new_node;
     new_node = NULL; 
   }
-  mysql_free_result(result);
+  //mysql_free_result(result);
 
   return regions;
 }
