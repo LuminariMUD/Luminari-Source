@@ -319,35 +319,35 @@ struct region_proximity_list* get_nearby_regions(zone_rnum zone, int x, int y, i
                "  ri.vnum, "
                "  case " 
                "    when ST_Intersects(ri.region_polygon, "
-               "                       geomfromtext('polygon((%d %d, %d %d, %d %d, %d %d))')) "
+               "                       geomfromtext('polygon((%f %f, %f %f, %f %f, %f %f))')) "
                "    then 1 else 0 end as n, "
                "  case " 
                "    when ST_Intersects(ri.region_polygon, "
-               "                       geomfromtext('polygon((%d %d, %d %d, %d %d, %d %d))')) "
+               "                       geomfromtext('polygon((%f %f, %f %f, %f %f, %f %f))')) "
                "    then 1 else 0 end as ne, "
                "  case " 
                "    when ST_Intersects(ri.region_polygon, "
-               "                       geomfromtext('polygon((%d %d, %d %d, %d %d, %d %d))')) "
+               "                       geomfromtext('polygon((%f %f, %f %f, %f %f, %f %f))')) "
                "    then 1 else 0 end as e, "
                "  case " 
                "    when ST_Intersects(ri.region_polygon, "
-               "                       geomfromtext('polygon((%d %d, %d %d, %d %d, %d %d))')) "
+               "                       geomfromtext('polygon((%f %f, %f %f, %f %f, %f %f))')) "
                "    then 1 else 0 end as se, "
                "  case " 
                "    when ST_Intersects(ri.region_polygon, "
-               "                       geomfromtext('polygon((%d %d, %d %d, %d %d, %d %d))')) "
+               "                       geomfromtext('polygon((%f %f, %f %f, %f %f, %f %f))')) "
                "    then 1 else 0 end as s, "
                "  case " 
                "    when ST_Intersects(ri.region_polygon, "
-               "                       geomfromtext('polygon((%d %d, %d %d, %d %d, %d %d))')) "
+               "                       geomfromtext('polygon((%f %f, %f %f, %f %f, %f %f))')) "
                "    then 1 else 0 end as sw, "
                "  case " 
                "    when ST_Intersects(ri.region_polygon, "
-               "                       geomfromtext('polygon((%d %d, %d %d, %d %d, %d %d))')) "
+               "                       geomfromtext('polygon((%f %f, %f %f, %f %f, %f %f))')) "
                "    then 1 else 0 end as w, "
                "  case " 
                "    when ST_Intersects(ri.region_polygon, "
-               "                       geomfromtext('polygon((%d %d, %d %d, %d %d, %d %d))')) "
+               "                       geomfromtext('polygon((%f %f, %f %f, %f %f, %f %f))')) "
                "    then 1 else 0 end as nw "    
                "  from region_index as ri;",                
                x, y, (r*-.5 + x), (r*.87 + y), (r*.5 + x), (r*.87 + y), x, y,    /* n */
@@ -375,10 +375,10 @@ struct region_proximity_list* get_nearby_regions(zone_rnum zone, int x, int y, i
     exit(1);
   }
   
- // while ((row = mysql_fetch_row(result))) {
+  while ((row = mysql_fetch_row(result))) {
  
     /* Allocate memory for the region data. */
- /*   CREATE(new_node, struct region_proximity_list, 1);
+    CREATE(new_node, struct region_proximity_list, 1);
     new_node->rnum = real_region(atoi(row[0]));    
     new_node->n  = atoi(row[1]);
     new_node->ne = atoi(row[2]);    
@@ -394,7 +394,7 @@ struct region_proximity_list* get_nearby_regions(zone_rnum zone, int x, int y, i
     new_node = NULL; 
   }
   mysql_free_result(result);
-*/
+
   return regions;
 }
 
