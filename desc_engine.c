@@ -143,13 +143,7 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
     
     /* Now we have a list of nearby regions including the direction they are located from the player.  */    
     log("-> Processing NEARBY REGION : %s dist : %f", region_table[curr_nearby_region->rnum].name, curr_nearby_region->dist); 
-    if (curr_nearby_region->n) {,
-              (curr_nearby_region->dist <= 1 ? "very near " : 
-                (curr_nearby_region->dist <= 2 ? "near " : 
-                  (curr_nearby_region->dist <= 3 ? "" :
-                    (curr_nearby_region->dist <= 4 ? "far " :
-                      (curr_nearby_region->dist > 4 ? "very far " :
-                        ""))))));
+    if (curr_nearby_region->n) {
       sprintf(buf, "%s lies %sto the north.\r\n", region_table[curr_nearby_region->rnum].name,
               (curr_nearby_region->dist <= 1 ? "very near " : 
                 (curr_nearby_region->dist <= 2 ? "near " : 
