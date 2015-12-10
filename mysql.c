@@ -357,7 +357,7 @@ struct region_proximity_list* get_nearby_regions(zone_rnum zone, int x, int y, i
                "  order by ST_Distance(ri.region_polygon, geomfromtext('Point(%d %d)')) desc " // GEROGRAPHIC regions only.
                " ) nearby_regions "
                "  where ((n = 1) or (ne = 1) or (e = 1) or (se = 1) or (s = 1) or (sw = 1) or (w = 1) or (nw = 1));",                
-               x, y, (r*-.5 + x), (r*.87 + y), (r*.5 + x), (r*.87 + y), x, y,    /* n */
+               x, y, round(r*-.5 + x), (r*.87 + y), (r*.5 + x), (r*.87 + y), x, y,    /* n */
                x, y, (r*.5 + x),  (r*.87 + y), (r*.87 + x), (r*.5 + y), x, y,    /* ne */
                x, y, (r*.87 + x), (r*.5 + y), (r*.87 + x), (r*-.5 + y), x, y,    /* e */           
                x, y, (r*.87 + x), (r*-.5 + y), (r*.5 + x), (r*-.87 + y), x, y,   /* se */         
