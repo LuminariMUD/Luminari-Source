@@ -353,7 +353,7 @@ struct region_proximity_list* get_nearby_regions(zone_rnum zone, int x, int y, i
                "       region_data as rd "
                "  where ri.vnum = rd.vnum and"
                "        rd.region_type = 1 "
-               "  order by ST_Distance(ri.region_polygon, Point(%d, %d) desc " // GEROGRAPHIC regions only.
+               "  order by ST_Distance(ri.region_polygon, 'Point(%d, %d)') desc " // GEROGRAPHIC regions only.
                " ) nearby_regions "
                "  where ((n = 1) or (ne = 1) or (e = 1) or (se = 1) or (s = 1) or (sw = 1) or (w = 1) or (nw = 1));",                
                x, y, (r*-.5 + x), (r*.87 + y), (r*.5 + x), (r*.87 + y), x, y,    /* n */
@@ -363,7 +363,8 @@ struct region_proximity_list* get_nearby_regions(zone_rnum zone, int x, int y, i
                x, y, (r*.5 + x), (r*-.87 + y), (r*-.5 + x), (r*-.87 + y), x, y,  /* s */
                x, y, (r*-.5 + x), (r*-.87 + y), (r*-.87 + x), (r*-.5 + y), x, y, /* sw */
                x, y, (r*-.87 + x), (r*-.5 + y), (r*-.87 + x), (r*.5 + y), x, y,  /* w */
-               x, y, (r*-.87 + x), (r*.5 + y), (r*-.5 + x), (r*.87 + y), x, y
+               x, y, (r*-.87 + x), (r*.5 + y), (r*-.5 + x), (r*.87 + y), x, y,
+               x, y
           );      
   
   /* Check the connection, reconnect if necessary. */
