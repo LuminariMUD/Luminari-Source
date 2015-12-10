@@ -349,12 +349,12 @@ struct region_proximity_list* get_nearby_regions(zone_rnum zone, int x, int y, i
                "    when ST_Intersects(ri.region_polygon, "
                "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) "
                "    then 1 else 0 end as nw, "
-               "  ST_Distance(ri.region_polygon, geomfromtext('Point(%d, %d)')) as dist "    
+               "  ST_Distance(ri.region_polygon, geomfromtext('Point(%d %d)')) as dist "    
                "  from region_index as ri, "
                "       region_data as rd "
                "  where ri.vnum = rd.vnum and"
                "        rd.region_type = 1 "
-               "  order by ST_Distance(ri.region_polygon, geomfromtext('Point(%d, %d)')) desc " // GEROGRAPHIC regions only.
+               "  order by ST_Distance(ri.region_polygon, geomfromtext('Point(%d %d)')) desc " // GEROGRAPHIC regions only.
                " ) nearby_regions "
                "  where ((n = 1) or (ne = 1) or (e = 1) or (se = 1) or (s = 1) or (sw = 1) or (w = 1) or (nw = 1));",                
                x, y, (r*-.5 + x), (r*.87 + y), (r*.5 + x), (r*.87 + y), x, y,    /* n */
