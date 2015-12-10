@@ -359,9 +359,7 @@ struct region_proximity_list* get_nearby_regions(zone_rnum zone, int x, int y, i
                x, y, (r*-.5 + x), (r*-.87 + y), (r*-.87 + x), (r*-.5 + y), x, y, /* sw */
                x, y, (r*-.87 + x), (r*-.5 + y), (r*-.87 + x), (r*.5 + y), x, y,  /* w */
                x, y, (r*-.87 + x), (r*.5 + y), (r*-.5 + x), (r*.87 + y), x, y
-          ); 
-
-  log(buf);          
+          );      
   
   /* Check the connection, reconnect if necessary. */
   mysql_ping(conn);
