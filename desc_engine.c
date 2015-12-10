@@ -165,7 +165,7 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
     }
   }  
   if (rdesc != NULL)
-    return rdesc; 
+    return strdup(rdesc); 
   else 
     return wilderness_desc;
 }
