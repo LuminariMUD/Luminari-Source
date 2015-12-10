@@ -218,7 +218,7 @@ struct region_proximity_list {
   int se;
   int sw;
   
-  struct region_list* next;
+  struct region_proximity_list* next;
 };
 
 /* Struct for returning a list of containing paths. */
