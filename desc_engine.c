@@ -143,43 +143,55 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
     
     /* Now we have a list of nearby regions including the direction they are located from the player.  */    
     log("-> Processing NEARBY REGION : %s dist : %f", region_table[curr_nearby_region->rnum].name, curr_nearby_region->dist); 
-    if (curr_nearby_region->n) {
-      sprintf(buf, "%s lies to the north.\r\n", region_table[curr_nearby_region->rnum].name);
+    if (curr_nearby_region->n) {,
+              (curr_nearby_region->dist <= 1 ? "very near " : 
+                (curr_nearby_region->dist <= 2 ? "near " : 
+                  (curr_nearby_region->dist <= 3 ? "" :
+                    (curr_nearby_region->dist <= 4 ? "far " :
+                      (curr_nearby_region->dist > 4 ? "very far " :
+                        ""))))));
+      sprintf(buf, "%s lies %sto the north.\r\n", region_table[curr_nearby_region->rnum].name,
+              (curr_nearby_region->dist <= 1 ? "very near " : 
+                (curr_nearby_region->dist <= 2 ? "near " : 
+                  (curr_nearby_region->dist <= 3 ? "" :
+                    (curr_nearby_region->dist <= 4 ? "far " :
+                      (curr_nearby_region->dist > 4 ? "very far " :
+                        ""))))));
       strcat(rdesc, buf);
       buf[0] = '\0';
     }
     if (curr_nearby_region->ne) {
-      sprintf(buf, "%s lies to the northeast.\r\n", region_table[curr_nearby_region->rnum].name);
+      sprintf(buf, "%s lies %sto the northeast.\r\n", region_table[curr_nearby_region->rnum].name);
       strcat(rdesc, buf);
       buf[0] = '\0';
     }
     if (curr_nearby_region->e) {
-      sprintf(buf, "%s lies to the east.\r\n", region_table[curr_nearby_region->rnum].name);
+      sprintf(buf, "%s lies %sto the east.\r\n", region_table[curr_nearby_region->rnum].name);
       strcat(rdesc, buf);
       buf[0] = '\0';
     }
     if (curr_nearby_region->se) {
-      sprintf(buf, "%s lies to the southeast.\r\n", region_table[curr_nearby_region->rnum].name);
+      sprintf(buf, "%s lies %sto the southeast.\r\n", region_table[curr_nearby_region->rnum].name);
       strcat(rdesc, buf);
       buf[0] = '\0';
     }
     if (curr_nearby_region->s) {
-      sprintf(buf, "%s lies to the south.\r\n", region_table[curr_nearby_region->rnum].name);
+      sprintf(buf, "%s lies %sto the south.\r\n", region_table[curr_nearby_region->rnum].name);
       strcat(rdesc, buf);
       buf[0] = '\0';
     }
     if (curr_nearby_region->sw) {
-      sprintf(buf, "%s lies to the southwest.\r\n", region_table[curr_nearby_region->rnum].name);
+      sprintf(buf, "%s lies %sto the southwest.\r\n", region_table[curr_nearby_region->rnum].name);
       strcat(rdesc, buf);
       buf[0] = '\0';
     }
     if (curr_nearby_region->w) {
-      sprintf(buf, "%s lies to the west.\r\n", region_table[curr_nearby_region->rnum].name);
+      sprintf(buf, "%s lies %sto the west.\r\n", region_table[curr_nearby_region->rnum].name);
       strcat(rdesc, buf);
       buf[0] = '\0';
     }
     if (curr_nearby_region->nw) {
-      sprintf(buf, "%s lies to the northwest.\r\n", region_table[curr_nearby_region->rnum].name);
+      sprintf(buf, "%s lies %sto the northwest.\r\n", region_table[curr_nearby_region->rnum].name);
       strcat(rdesc, buf);
       buf[0] = '\0';
     }
