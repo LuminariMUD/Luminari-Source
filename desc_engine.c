@@ -127,10 +127,22 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
     }
   }  
   
+  /* Retrieve and process nearby regions ---------------------------------------
+   * For the dynamic description engine it is necessary to gather as much 
+   * information about the game world as we need to build a coherent description
+   * that can augment the visual (or screenreader-compatible) map.
+   * Since regions by definition define 'regions of interest' then it makes sense
+   * to include them in the description.  First we need to determine what regions
+   * are near (and visible to) the player's location and determine WHERE in space 
+   * they are located.  
+   */
+  
   nearby_regions = get_nearby_regions(GET_ROOM_ZONE(room), world[room].coords[0], world[room].coords[1], 10);
   rdesc[0] = '\0'; 
   for (curr_nearby_region = nearby_regions; curr_nearby_region != NULL; curr_nearby_region = curr_nearby_region->next) {
-    log("-> Processing NEARBY REGION : %s", region_table[curr_nearby_region->rnum].name); 
+    
+    /* Now we have a list of nearby regions including the direction they are located from the player.  */    
+    log("-> Processing NEARBY REGION : %s dist : %f", region_table[curr_nearby_region->rnum].name, curr_nearby_region->dist); 
     if (curr_nearby_region->n) {
       sprintf(buf, "%s lies to the north.\r\n", region_table[curr_nearby_region->rnum].name);
       strcat(rdesc, buf);

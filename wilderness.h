@@ -218,6 +218,8 @@ struct region_proximity_list {
   int se;
   int sw;
   
+  double dist;
+  
   struct region_proximity_list* next;
 };
 
