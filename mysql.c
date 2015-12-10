@@ -315,7 +315,7 @@ struct region_proximity_list* get_nearby_regions(zone_rnum zone, int x, int y, i
   char buf[1024];
  
   /* Need an ORDER BY here, since we can have multiple regions. */
-  sprintf(buf, "select " 
+  sprintf(buf, "select * from (select " 
                "  ri.vnum, "
                "  case " 
                "    when ST_Intersects(ri.region_polygon, "
@@ -349,7 +349,8 @@ struct region_proximity_list* get_nearby_regions(zone_rnum zone, int x, int y, i
                "    when ST_Intersects(ri.region_polygon, "
                "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) "
                "    then 1 else 0 end as nw "    
-               "  from region_index as ri;",                
+               "  from region_index as ri) nearby_regions "
+               "  where ((n = 1) or (ne = 1) or (e = 1) or (se = 1) or (s = 1) or (sw = 1) or (w = 1) or (nw = 1));",                
                x, y, (r*-.5 + x), (r*.87 + y), (r*.5 + x), (r*.87 + y), x, y,    /* n */
                x, y, (r*.5 + x),  (r*.87 + y), (r*.87 + x), (r*.5 + y), x, y,    /* ne */
                x, y, (r*.87 + x), (r*.5 + y), (r*.87 + x), (r*-.5 + y), x, y,    /* e */           
