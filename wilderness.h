@@ -210,10 +210,12 @@ struct region_proximity_list {
   region_rnum rnum;
   
   int n;
+  double n_int_area;
   int s;
   int e;
   int w;
   int ne;
+  double ne_int_area;
   int nw;
   int se;
   int sw;

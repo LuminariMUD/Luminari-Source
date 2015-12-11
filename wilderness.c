@@ -1001,4 +1001,3 @@ void save_noise_to_file(int idx, const char* fn, int xsize, int ysize, int zoom)
   gdImageDestroy(im);
 
 }
-
