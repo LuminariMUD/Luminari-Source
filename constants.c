@@ -545,7 +545,7 @@ const char *sector_types_readable[NUM_ROOM_SECTORS + 1] = {
   "inside",  //0
   "in a city",
   "on a field",
-  "in a forest",
+  "among the trees",
   "in hilly terrain",
   "in low mountains",  //5
   "in shallow water",
@@ -555,7 +555,7 @@ const char *sector_types_readable[NUM_ROOM_SECTORS + 1] = {
   "at an entrance",  //10
   "on a road",
   "on a road",
-  "at an intersection of roads",
+  "on a road",
   "in a desert",
   "in oceanic waters",  //15
   "in marshland",
@@ -570,7 +570,7 @@ const char *sector_types_readable[NUM_ROOM_SECTORS + 1] = {
   "in lava",  //25
   "on a dirt road",
   "on a dirt road",
-  "at an intersection of dirt roads",
+  "on a dirt road",
   "in a cave",
   "in a jungle",
   "on the tundra",
