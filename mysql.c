@@ -314,7 +314,7 @@ struct region_proximity_list* get_nearby_regions(zone_rnum zone, int x, int y, i
   struct region_proximity_list *new_node = NULL; 
 
  
-  char buf[4048];
+  char buf[6000];
  
   /* Need an ORDER BY here, since we can have multiple regions. */
   sprintf(buf, "select * from (select " 
@@ -327,31 +327,38 @@ struct region_proximity_list* get_nearby_regions(zone_rnum zone, int x, int y, i
                "  case " 
                "    when ST_Intersects(ri.region_polygon, "
                "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) "
-               "    then 1 else 0 end as ne, "          
+               "    then ST_Area(ST_Intersection(ri.region_polygon, "
+               "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))'))) else 0.0 end as ne, "          
                "  case " 
                "    when ST_Intersects(ri.region_polygon, "
                "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) "
-               "    then 1 else 0 end as e, "
+               "    then ST_Area(ST_Intersection(ri.region_polygon, "
+               "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))'))) else 0.0 end as e, "
                "  case " 
                "    when ST_Intersects(ri.region_polygon, "
                "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) "
-               "    then 1 else 0 end as se, "
+               "    then ST_Area(ST_Intersection(ri.region_polygon, "
+               "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))'))) else 0.0 end as se, "
                "  case " 
                "    when ST_Intersects(ri.region_polygon, "
                "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) "
-               "    then 1 else 0 end as s, "
+               "    then ST_Area(ST_Intersection(ri.region_polygon, "
+               "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))'))) else 0.0 end as s, "
                "  case " 
                "    when ST_Intersects(ri.region_polygon, "
                "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) "
-               "    then 1 else 0 end as sw, "
+               "    then ST_Area(ST_Intersection(ri.region_polygon, "
+               "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))'))) else 0.0 end as sw, "
                "  case " 
                "    when ST_Intersects(ri.region_polygon, "
                "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) "
-               "    then 1 else 0 end as w, "
+               "    then ST_Area(ST_Intersection(ri.region_polygon, "
+               "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))'))) else 0.0 end as w, "
                "  case " 
                "    when ST_Intersects(ri.region_polygon, "
                "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) "
-               "    then 1 else 0 end as nw, "
+               "    then ST_Area(ST_Intersection(ri.region_polygon, "
+               "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))'))) else 0.0 end as nw, "
                "  ST_Distance(ri.region_polygon, geomfromtext('Point(%d %d)')) as dist "    
                "  from region_index as ri, "
                "       region_data as rd "
@@ -363,12 +370,19 @@ struct region_proximity_list* get_nearby_regions(zone_rnum zone, int x, int y, i
                x, y, (r*-.5 + x), (r*.87 + y), (r*.5 + x), (r*.87 + y), x, y,    /* n */
                x, y, (r*-.5 + x), (r*.87 + y), (r*.5 + x), (r*.87 + y), x, y, 
                x, y, (r*.5 + x),  (r*.87 + y), (r*.87 + x), (r*.5 + y), x, y,    /* ne */
-               x, y, (r*.87 + x), (r*.5 + y), (r*.87 + x), (r*-.5 + y), x, y,    /* e */           
-               x, y, (r*.87 + x), (r*-.5 + y), (r*.5 + x), (r*-.87 + y), x, y,   /* se */         
+               x, y, (r*.5 + x),  (r*.87 + y), (r*.87 + x), (r*.5 + y), x, y,
+               x, y, (r*.87 + x), (r*.5 + y), (r*.87 + x), (r*-.5 + y), x, y,    /* e */ 
+               x, y, (r*.87 + x), (r*.5 + y), (r*.87 + x), (r*-.5 + y), x, y,
+               x, y, (r*.87 + x), (r*-.5 + y), (r*.5 + x), (r*-.87 + y), x, y,   /* se */
+               x, y, (r*.87 + x), (r*-.5 + y), (r*.5 + x), (r*-.87 + y), x, y,
                x, y, (r*.5 + x), (r*-.87 + y), (r*-.5 + x), (r*-.87 + y), x, y,  /* s */
+               x, y, (r*.5 + x), (r*-.87 + y), (r*-.5 + x), (r*-.87 + y), x, y,
                x, y, (r*-.5 + x), (r*-.87 + y), (r*-.87 + x), (r*-.5 + y), x, y, /* sw */
+               x, y, (r*-.5 + x), (r*-.87 + y), (r*-.87 + x), (r*-.5 + y), x, y,
                x, y, (r*-.87 + x), (r*-.5 + y), (r*-.87 + x), (r*.5 + y), x, y,  /* w */
+               x, y, (r*-.87 + x), (r*-.5 + y), (r*-.87 + x), (r*.5 + y), x, y,
                x, y, (r*-.87 + x), (r*.5 + y), (r*-.5 + x), (r*.87 + y), x, y,   /* nw */
+               x, y, (r*-.87 + x), (r*.5 + y), (r*-.5 + x), (r*.87 + y), x, y,
                x, y,
                x, y
           );      
