@@ -71,7 +71,7 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
     "southwest",
     "west",
     "northwest"
-  }
+  };
   
   struct region_list *regions = NULL;
   struct region_list *curr_region = NULL;
