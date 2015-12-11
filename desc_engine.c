@@ -196,7 +196,8 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
     
     log("max_area : %f region_dir : %s", max_area, direction_strings[region_dir]);
   }  
-  if (rdesc[0] = '\0') {
+  
+  if (rdesc[0] == '\0') {
     /* No regions nearby...*/
     sprintf(buf, "You are %s.\r\n", sector_types_readable[world[room].sector_type]);
     strcat(rdesc, buf);
