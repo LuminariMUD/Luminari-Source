@@ -159,148 +159,23 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
   for (curr_nearby_region = nearby_regions; curr_nearby_region != NULL; curr_nearby_region = curr_nearby_region->next) {
     
     /* Now we have a list of nearby regions including the direction they are located from the player.  */    
-    log("-> Processing NEARBY REGION : %s dist : %f area : %f ", region_table[curr_nearby_region->rnum].name
+    log("-> Processing NEARBY REGION : %s dist : %f", region_table[curr_nearby_region->rnum].name
                                                                                      , curr_nearby_region->dist
-                                                                                     , curr_nearby_region->n); 
+                                                                                     ); 
     
     max_area  = 0.0;
     region_dir = 0;
     
-    if (curr_nearby_region->n) {
-      if (curr_nearby_region->n > max_area) {
-        max_area = curr_nearby_region->n;
-        region_dir = 1;
-      }      
-/*      sprintf(buf, "%s lies %sto the north.\r\n", region_table[curr_nearby_region->rnum].name,
-              (curr_nearby_region->dist <= 1 ? "very near " : 
-                (curr_nearby_region->dist <= 2 ? "near " : 
-                  (curr_nearby_region->dist <= 3 ? "" :
-                    (curr_nearby_region->dist <= 4 ? "far " :
-                      (curr_nearby_region->dist > 4 ? "very far " :
-                        ""))))));
-      strcat(rdesc, buf);
-      buf[0] = '\0';
-*/ 
-    }
-    if (curr_nearby_region->ne) {
-      if (curr_nearby_region->ne > max_area) {
-        max_area = curr_nearby_region->ne;
-        region_dir = 2;
-      }      
-      /*
-      sprintf(buf, "%s lies %sto the northeast.\r\n", region_table[curr_nearby_region->rnum].name,
-              (curr_nearby_region->dist <= 1 ? "very near " : 
-                (curr_nearby_region->dist <= 2 ? "near " : 
-                  (curr_nearby_region->dist <= 3 ? "" :
-                    (curr_nearby_region->dist <= 4 ? "far " :
-                      (curr_nearby_region->dist > 4 ? "very far " :
-                        ""))))));
-      strcat(rdesc, buf);
-      buf[0] = '\0';
-      */
-    }
-    if (curr_nearby_region->e) {
-      if (curr_nearby_region->e > max_area) {
-        max_area = curr_nearby_region->e;
-        region_dir = 3;
-      }      
-      /*
-      sprintf(buf, "%s lies %sto the east.\r\n", region_table[curr_nearby_region->rnum].name,
-              (curr_nearby_region->dist <= 1 ? "very near " : 
-                (curr_nearby_region->dist <= 2 ? "near " : 
-                  (curr_nearby_region->dist <= 3 ? "" :
-                    (curr_nearby_region->dist <= 4 ? "far " :
-                      (curr_nearby_region->dist > 4 ? "very far " :
-                        ""))))));
-      strcat(rdesc, buf);
-      buf[0] = '\0';
-      */
-    }
-    if (curr_nearby_region->se) {
-      if (curr_nearby_region->se > max_area) {
-        max_area = curr_nearby_region->se;
-        region_dir = 4;
+    for (int i = 0; i < 8; i++) {
+      if (curr_nearby_region->dirs[i]) {
+        if (curr_nearby_region->dirs[i] > max_area) {
+          max_area = curr_nearby_region->dirs[i];
+          region_dir = i + 1;
+        }
+        log("dir : %d area : %f", i, curr_nearby_region->dirs[i]);
       }
-      /*
-      sprintf(buf, "%s lies %sto the southeast.\r\n", region_table[curr_nearby_region->rnum].name,
-              (curr_nearby_region->dist <= 1 ? "very near " : 
-                (curr_nearby_region->dist <= 2 ? "near " : 
-                  (curr_nearby_region->dist <= 3 ? "" :
-                    (curr_nearby_region->dist <= 4 ? "far " :
-                      (curr_nearby_region->dist > 4 ? "very far " :
-                        ""))))));
-      strcat(rdesc, buf);
-      buf[0] = '\0';
-      */
     }
-    if (curr_nearby_region->s) {
-      if (curr_nearby_region->s > max_area) {
-        max_area = curr_nearby_region->s;
-        region_dir = 5;
-      }      
-      /*
-      sprintf(buf, "%s lies %sto the south.\r\n", region_table[curr_nearby_region->rnum].name,
-              (curr_nearby_region->dist <= 1 ? "very near " : 
-                (curr_nearby_region->dist <= 2 ? "near " : 
-                  (curr_nearby_region->dist <= 3 ? "" :
-                    (curr_nearby_region->dist <= 4 ? "far " :
-                      (curr_nearby_region->dist > 4 ? "very far " :
-                        ""))))));
-      strcat(rdesc, buf);
-      buf[0] = '\0';
-      */
-    }
-    if (curr_nearby_region->sw) {
-      if (curr_nearby_region->sw > max_area) {
-        max_area = curr_nearby_region->sw;
-        region_dir = 6;
-      }     
-      /*
-      sprintf(buf, "%s lies %sto the southwest.\r\n", region_table[curr_nearby_region->rnum].name,
-              (curr_nearby_region->dist <= 1 ? "very near " : 
-                (curr_nearby_region->dist <= 2 ? "near " : 
-                  (curr_nearby_region->dist <= 3 ? "" :
-                    (curr_nearby_region->dist <= 4 ? "far " :
-                      (curr_nearby_region->dist > 4 ? "very far " :
-                        ""))))));
-      strcat(rdesc, buf);
-      buf[0] = '\0';
-      */
-    }
-    if (curr_nearby_region->w) {
-      if (curr_nearby_region->w > max_area) {
-        max_area = curr_nearby_region->w;
-        region_dir = 7;
-      }      
-      /*
-      sprintf(buf, "%s lies %sto the west.\r\n", region_table[curr_nearby_region->rnum].name,
-              (curr_nearby_region->dist <= 1 ? "very near " : 
-                (curr_nearby_region->dist <= 2 ? "near " : 
-                  (curr_nearby_region->dist <= 3 ? "" :
-                    (curr_nearby_region->dist <= 4 ? "far " :
-                      (curr_nearby_region->dist > 4 ? "very far " :
-                        ""))))));
-      strcat(rdesc, buf);
-      buf[0] = '\0';
-      */
-    }
-    if (curr_nearby_region->nw) {
-      if (curr_nearby_region->nw > max_area) {
-        max_area = curr_nearby_region->nw;
-        region_dir = 8;
-      }   
-      /*
-      sprintf(buf, "%s lies %sto the northwest.\r\n", region_table[curr_nearby_region->rnum].name,
-              (curr_nearby_region->dist <= 1 ? "very near " : 
-                (curr_nearby_region->dist <= 2 ? "near " : 
-                  (curr_nearby_region->dist <= 3 ? "" :
-                    (curr_nearby_region->dist <= 4 ? "far " :
-                      (curr_nearby_region->dist > 4 ? "very far " :
-                        ""))))));
-      strcat(rdesc, buf);
-      buf[0] = '\0';
-      */
-    }
+    
     sprintf(buf, "%s lies %sto the %s.\r\n", region_table[curr_nearby_region->rnum].name,
               (curr_nearby_region->dist <= 1 ? "very near " : 
                 (curr_nearby_region->dist <= 2 ? "near " : 
@@ -308,8 +183,9 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
                     (curr_nearby_region->dist <= 4 ? "far " :
                       (curr_nearby_region->dist > 4 ? "very far " :
                         ""))))), direction_strings[region_dir]);
-      strcat(rdesc, buf);
-      buf[0] = '\0';  
+    strcat(rdesc, buf);
+    buf[0] = '\0';  
+    
     log("max_area : %f region_dir : %s", max_area, direction_strings[region_dir]);
   }  
   
