@@ -314,7 +314,7 @@ struct region_proximity_list* get_nearby_regions(zone_rnum zone, int x, int y, i
   struct region_proximity_list *new_node = NULL; 
 
  
-  char buf[2048];
+  char buf[4048];
  
   /* Need an ORDER BY here, since we can have multiple regions. */
   sprintf(buf, "select * from (select " 
