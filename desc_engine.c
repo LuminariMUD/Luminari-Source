@@ -60,6 +60,7 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
   double max_area  = 0.0;
   int    region_dir = 0;
   int    i = 0;
+  bool   surrounded = FALSE;
   
   char *direction_strings[9] = {
     "UNDEFINED",
@@ -165,24 +166,31 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
     
     max_area  = 0.0;
     region_dir = 0;
+    surrounded = TRUE;
     
     for (i = 0; i < 8; i++) {
-      if (curr_nearby_region->dirs[i]) {
+      if (curr_nearby_region->dirs[i]) {        
         if (curr_nearby_region->dirs[i] > max_area) {
           max_area = curr_nearby_region->dirs[i];
           region_dir = i + 1;
         }
         log("dir : %d area : %f", i, curr_nearby_region->dirs[i]);
+      } else {
+        surrounded = FALSE;
       }
     }
     
-    sprintf(buf, "%s lies %sto the %s.\r\n", region_table[curr_nearby_region->rnum].name,
+    if (surrounded) {
+      sprintf(buf, "You are within %s.\r\n", region_table[curr_nearby_region->rnum].name);
+    } else {
+      sprintf(buf, "%s lies %sto the %s.\r\n", region_table[curr_nearby_region->rnum].name,
               (curr_nearby_region->dist <= 1 ? "very near " : 
                 (curr_nearby_region->dist <= 2 ? "near " : 
                   (curr_nearby_region->dist <= 3 ? "" :
                     (curr_nearby_region->dist <= 4 ? "far " :
                       (curr_nearby_region->dist > 4 ? "very far " :
                         ""))))), direction_strings[region_dir]);
+    }
     strcat(rdesc, buf);
     buf[0] = '\0';  
     
