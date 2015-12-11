@@ -242,6 +242,7 @@ struct region_list* get_enclosing_regions(zone_rnum zone, int x, int y) {
   struct region_list *regions = NULL;
   struct region_list *new_node = NULL; 
 
+  int i = 0;
  
   char buf[1024];
  
@@ -406,7 +407,7 @@ struct region_proximity_list* get_nearby_regions(zone_rnum zone, int x, int y, i
     CREATE(new_node, struct region_proximity_list, 1);
     new_node->rnum = real_region(atoi(row[0])); 
     
-    for (int i = 0; i < 8; i++) {
+    for (i = 0; i < 8; i++) {
       new_node->dirs[i]  = atof(row[i + 1]);
     }
     new_node->dist = atof(row[9]);
