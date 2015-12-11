@@ -323,10 +323,14 @@ struct region_proximity_list* get_nearby_regions(zone_rnum zone, int x, int y, i
                "    when ST_Intersects(ri.region_polygon, "
                "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) "
                "    then 1 else 0 end as n, "
+               "  ST_Area(ST_Intersection(ri.region_polygon, "
+               "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) as n_int_area, "
                "  case " 
                "    when ST_Intersects(ri.region_polygon, "
                "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) "
                "    then 1 else 0 end as ne, "
+               "  ST_Area(ST_Intersection(ri.region_polygon, "
+               "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) as ne_int_area, "
                "  case " 
                "    when ST_Intersects(ri.region_polygon, "
                "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) "
@@ -360,7 +364,9 @@ struct region_proximity_list* get_nearby_regions(zone_rnum zone, int x, int y, i
                " ) nearby_regions "
                "  where ((n = 1) or (ne = 1) or (e = 1) or (se = 1) or (s = 1) or (sw = 1) or (w = 1) or (nw = 1));",                
                x, y, (r*-.5 + x), (r*.87 + y), (r*.5 + x), (r*.87 + y), x, y,    /* n */
+               x, y, (r*-.5 + x), (r*.87 + y), (r*.5 + x), (r*.87 + y), x, y,
                x, y, (r*.5 + x),  (r*.87 + y), (r*.87 + x), (r*.5 + y), x, y,    /* ne */
+               x, y, (r*.5 + x),  (r*.87 + y), (r*.87 + x), (r*.5 + y), x, y,    
                x, y, (r*.87 + x), (r*.5 + y), (r*.87 + x), (r*-.5 + y), x, y,    /* e */           
                x, y, (r*.87 + x), (r*-.5 + y), (r*.5 + x), (r*-.87 + y), x, y,   /* se */         
                x, y, (r*.5 + x), (r*-.87 + y), (r*-.5 + x), (r*-.87 + y), x, y,  /* s */
@@ -390,14 +396,16 @@ struct region_proximity_list* get_nearby_regions(zone_rnum zone, int x, int y, i
     CREATE(new_node, struct region_proximity_list, 1);
     new_node->rnum = real_region(atoi(row[0]));    
     new_node->n  = atoi(row[1]);
-    new_node->ne = atoi(row[2]);    
-    new_node->e  = atoi(row[3]);
-    new_node->se = atoi(row[4]);
-    new_node->s  = atoi(row[5]);
-    new_node->sw = atoi(row[6]);
-    new_node->w  = atoi(row[7]);
-    new_node->nw = atoi(row[8]);
-    new_node->dist = atof(row[9]);
+    new_node->n_int_area = atof(row[2]);
+    new_node->ne = atoi(row[3]);    
+    new_node->ne_int_area = atof(row[4]);
+    new_node->e  = atoi(row[5]);
+    new_node->se = atoi(row[6]);
+    new_node->s  = atoi(row[7]);
+    new_node->sw = atoi(row[8]);
+    new_node->w  = atoi(row[9]);
+    new_node->nw = atoi(row[10]);
+    new_node->dist = atof(row[11]);
     
     new_node->next = regions;
     regions = new_node;
