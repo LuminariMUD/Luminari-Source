@@ -142,10 +142,9 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
   for (curr_nearby_region = nearby_regions; curr_nearby_region != NULL; curr_nearby_region = curr_nearby_region->next) {
     
     /* Now we have a list of nearby regions including the direction they are located from the player.  */    
-    log("-> Processing NEARBY REGION : %s dist : %f n int area : %f ne int area : %f", region_table[curr_nearby_region->rnum].name
+    log("-> Processing NEARBY REGION : %s dist : %f n int area : %f ", region_table[curr_nearby_region->rnum].name
                                                                                      , curr_nearby_region->dist
-                                                                                     , curr_nearby_region->n_int_area
-                                                                                     , curr_nearby_region->ne_int_area); 
+                                                                                     , curr_nearby_region->n); 
     if (curr_nearby_region->n) {
       sprintf(buf, "%s lies %sto the north.\r\n", region_table[curr_nearby_region->rnum].name,
               (curr_nearby_region->dist <= 1 ? "very near " : 

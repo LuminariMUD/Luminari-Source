@@ -322,15 +322,12 @@ struct region_proximity_list* get_nearby_regions(zone_rnum zone, int x, int y, i
                "  case " 
                "    when ST_Intersects(ri.region_polygon, "
                "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) "
-               "    then 1 else 0 end as n, "
-               "  ST_Area(ST_Intersection(ri.region_polygon, "
-               "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))'))) as n_int_area, "
+               "    then ST_Area(ST_Intersection(ri.region_polygon, "
+               "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))'))) else 0.0 end as n, "         
                "  case " 
                "    when ST_Intersects(ri.region_polygon, "
                "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) "
-               "    then 1 else 0 end as ne, "
-               "  ST_Area(ST_Intersection(ri.region_polygon, "
-               "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))'))) as ne_int_area, "
+               "    then 1 else 0 end as ne, "          
                "  case " 
                "    when ST_Intersects(ri.region_polygon, "
                "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) "
@@ -395,17 +392,15 @@ struct region_proximity_list* get_nearby_regions(zone_rnum zone, int x, int y, i
     /* Allocate memory for the region data. */
     CREATE(new_node, struct region_proximity_list, 1);
     new_node->rnum = real_region(atoi(row[0]));    
-    new_node->n  = atoi(row[1]);
-    //new_node->n_int_area = atof((row[2] == NULL ? "0.0" : row[2]));
+    new_node->n  = atof(row[1]);
     new_node->ne = atoi(row[3]);    
-    //new_node->ne_int_area = atof((row[4] == NULL ? "0.0" : row[4]));
-    new_node->e  = atoi(row[5]);
-    new_node->se = atoi(row[6]);
-    new_node->s  = atoi(row[7]);
-    new_node->sw = atoi(row[8]);
-    new_node->w  = atoi(row[9]);
-    new_node->nw = atoi(row[10]);
-    new_node->dist = atof(row[11]);
+    new_node->e  = atoi(row[4]);
+    new_node->se = atoi(row[5]);
+    new_node->s  = atoi(row[6]);
+    new_node->sw = atoi(row[7]);
+    new_node->w  = atoi(row[8]);
+    new_node->nw = atoi(row[9]);
+    new_node->dist = atof(row[10]);
     
     new_node->next = regions;
     regions = new_node;
