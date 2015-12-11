@@ -396,9 +396,9 @@ struct region_proximity_list* get_nearby_regions(zone_rnum zone, int x, int y, i
     CREATE(new_node, struct region_proximity_list, 1);
     new_node->rnum = real_region(atoi(row[0]));    
     new_node->n  = atoi(row[1]);
-    new_node->n_int_area = atof(row[2]);
+    new_node->n_int_area = atof((row[2] == NULL ? 0.0 : row[2]));
     new_node->ne = atoi(row[3]);    
-    new_node->ne_int_area = atof(row[4]);
+    new_node->ne_int_area = atof((row[4] == NULL ? 0.0 : row[4]));
     new_node->e  = atoi(row[5]);
     new_node->se = atoi(row[6]);
     new_node->s  = atoi(row[7]);
