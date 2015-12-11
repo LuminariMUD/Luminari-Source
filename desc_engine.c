@@ -182,8 +182,8 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
       buf[0] = '\0';
     }
     if (curr_nearby_region->ne) {
-      if (curr_nearby_region->n > max_area) {
-        max_area = curr_nearby_region->n;
+      if (curr_nearby_region->ne > max_area) {
+        max_area = curr_nearby_region->ne;
         region_dir = 1;
       }      
       sprintf(buf, "%s lies %sto the northeast.\r\n", region_table[curr_nearby_region->rnum].name,
@@ -197,8 +197,8 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
       buf[0] = '\0';
     }
     if (curr_nearby_region->e) {
-      if (curr_nearby_region->n > max_area) {
-        max_area = curr_nearby_region->n;
+      if (curr_nearby_region->e > max_area) {
+        max_area = curr_nearby_region->e;
         region_dir = 1;
       }      
       sprintf(buf, "%s lies %sto the east.\r\n", region_table[curr_nearby_region->rnum].name,
@@ -212,8 +212,8 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
       buf[0] = '\0';
     }
     if (curr_nearby_region->se) {
-      if (curr_nearby_region->n > max_area) {
-        max_area = curr_nearby_region->n;
+      if (curr_nearby_region->se > max_area) {
+        max_area = curr_nearby_region->se;
         region_dir = 1;
       }
       sprintf(buf, "%s lies %sto the southeast.\r\n", region_table[curr_nearby_region->rnum].name,
@@ -227,8 +227,8 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
       buf[0] = '\0';
     }
     if (curr_nearby_region->s) {
-      if (curr_nearby_region->n > max_area) {
-        max_area = curr_nearby_region->n;
+      if (curr_nearby_region->s > max_area) {
+        max_area = curr_nearby_region->s;
         region_dir = 1;
       }      
       sprintf(buf, "%s lies %sto the south.\r\n", region_table[curr_nearby_region->rnum].name,
@@ -242,8 +242,8 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
       buf[0] = '\0';
     }
     if (curr_nearby_region->sw) {
-      if (curr_nearby_region->n > max_area) {
-        max_area = curr_nearby_region->n;
+      if (curr_nearby_region->sw > max_area) {
+        max_area = curr_nearby_region->sw;
         region_dir = 1;
       }      
       sprintf(buf, "%s lies %sto the southwest.\r\n", region_table[curr_nearby_region->rnum].name,
@@ -257,8 +257,8 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
       buf[0] = '\0';
     }
     if (curr_nearby_region->w) {
-      if (curr_nearby_region->n > max_area) {
-        max_area = curr_nearby_region->n;
+      if (curr_nearby_region->w > max_area) {
+        max_area = curr_nearby_region->w;
         region_dir = 1;
       }      
       sprintf(buf, "%s lies %sto the west.\r\n", region_table[curr_nearby_region->rnum].name,
@@ -272,8 +272,8 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
       buf[0] = '\0';
     }
     if (curr_nearby_region->nw) {
-      if (curr_nearby_region->n > max_area) {
-        max_area = curr_nearby_region->n;
+      if (curr_nearby_region->nw > max_area) {
+        max_area = curr_nearby_region->nw;
         region_dir = 1;
       }      
       sprintf(buf, "%s lies %sto the northwest.\r\n", region_table[curr_nearby_region->rnum].name,
