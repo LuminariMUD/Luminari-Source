@@ -538,6 +538,47 @@ const char *sector_types[NUM_ROOM_SECTORS + 1] = {
   "\n"
 };
 
+/** Description of the room sector type.
+ * @pre Must be in the same order as the defines.
+ * Must end array with a single newline. */
+const char *sector_types_readable[NUM_ROOM_SECTORS + 1] = {
+  "inside",  //0
+  "in a city",
+  "on a field",
+  "in a forest",
+  "in hilly terrain",
+  "in low mountains",  //5
+  "in shallow water",
+  "in deep water",
+  "in the air",
+  "underwater",
+  "at an entrance",  //10
+  "on a road",
+  "on a road",
+  "at an intersection of roads",
+  "in a desert",
+  "in oceanic waters",  //15
+  "in marshland",
+  "high mountains",
+  "in a planar dimension",
+  "in an underground wilderness",
+  "in an underground city",  //20
+  "underground",
+  "in shallow water underground",
+  "in deep water underground",
+  "in the air underground",
+  "in lava",  //25
+  "on a dirt road",
+  "on a dirt road",
+  "at an intersection of dirt roads",
+  "in a cave",
+  "in a jungle",
+  "on the tundra",
+  "in a coniferous forest",
+  "on a beach",
+  "\n"
+};
+
 /** How much movement is lost moving through a particular sector type. */
 /* make sure it matches SECT_ */
 int movement_loss[NUM_ROOM_SECTORS] =
