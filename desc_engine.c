@@ -57,9 +57,9 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
   char sect4[MAX_STRING_LENGTH]; /* Nearby landmarks. */
   
   /* Variables for calculating which directions the nearby regions are located. */
-  double curr_area = 0.0;
   double max_area  = 0.0;
   int    region_dir = 0;
+  int    i = 0;
   
   char *direction_strings[9] = {
     "UNDEFINED",
@@ -166,7 +166,7 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
     max_area  = 0.0;
     region_dir = 0;
     
-    for (int i = 0; i < 8; i++) {
+    for (i = 0; i < 8; i++) {
       if (curr_nearby_region->dirs[i]) {
         if (curr_nearby_region->dirs[i] > max_area) {
           max_area = curr_nearby_region->dirs[i];
