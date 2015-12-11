@@ -47,6 +47,7 @@ extern const char *room_bits[];
 extern const char *zone_bits[];
 extern const char *exit_bits[];
 extern const char *sector_types[];
+extern const char *sector_types_readable[];
 extern const char *genders[];
 extern const char *position_types[];
 extern const char *player_bits[];
