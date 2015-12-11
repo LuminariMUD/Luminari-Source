@@ -241,8 +241,6 @@ struct region_list* get_enclosing_regions(zone_rnum zone, int x, int y) {
 
   struct region_list *regions = NULL;
   struct region_list *new_node = NULL; 
-
-  int i = 0;
  
   char buf[1024];
  
@@ -313,7 +311,8 @@ struct region_proximity_list* get_nearby_regions(zone_rnum zone, int x, int y, i
 
   struct region_proximity_list *regions = NULL;
   struct region_proximity_list *new_node = NULL; 
-
+  
+  int i = 0;
  
   char buf[6000];
  
