@@ -209,15 +209,7 @@ struct region_list {
 struct region_proximity_list {
   region_rnum rnum;
   
-  double n;
-  int s;
-  int e;
-  int w;
-  int ne;
-  int nw;
-  int se;
-  int sw;
-  
+  double dirs[8];  
   double dist;
   
   struct region_proximity_list* next;
