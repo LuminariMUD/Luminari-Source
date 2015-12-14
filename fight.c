@@ -1303,17 +1303,28 @@ static void perform_group_gain(struct char_data *ch, int base,
 static void group_gain(struct char_data *ch, struct char_data *victim) {
   int tot_members = 0, base, tot_gain;
   struct char_data *k;
-
+  int party_level = 0;
+  
   while ((k = (struct char_data *) simple_list(GROUP(ch)->members)) != NULL) {
     if (IS_PET(k))
       continue;
     if (IN_ROOM(ch) == IN_ROOM(k))
       tot_members++;
+      party_level += GET_LEVEL(k); 
   }
-
+  party_level /= tot_members;
+  
   /* round up to the nearest tot_members */
   tot_gain = (GET_EXP(victim) / 3) + tot_members - 1;
 
+  /* Calculate level-difference bonus */
+  if (GET_LEVEL(victim) < party_level) {
+    if (IS_NPC(ch))
+      tot_gain += MAX(0, (tot_gain * MIN(4, (GET_LEVEL(victim) - party_level))) / 8);
+    else
+      tot_gain += MAX(0, (tot_gain * MIN(8, (GET_LEVEL(victim) - party_level))) / 8);
+  }
+  
   /* prevent illegal xp creation when killing players */
   if (!IS_NPC(victim))
     tot_gain = MIN(CONFIG_MAX_EXP_LOSS * 2 / 3, tot_gain);
