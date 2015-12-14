@@ -982,13 +982,13 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 // don't forget to add to constants.c!
 #define AFF_RAPID_SHOT       84 /* Rapid Shot Mode (FEAT_RAPID_SHOT) */
 #define AFF_DAZED            85 /* Dazed*/
-#define AFF_FLAT_FOOTED      86
+#define AFF_FLAT_FOOTED      86 /* caught off guard! */
 
-#define AFF_DUAL_WIELD       87 /* Dual wield mode */
-#define AFF_FLURRY_OF_BLOWS  88 /* Flurry of blows mode */
-#define AFF_COUNTERSPELL     89 /* Counterspell mode */
+#define AFF_DUAL_WIELD        87 /* Dual wield mode */
+#define AFF_FLURRY_OF_BLOWS   88 /* Flurry of blows mode */
+#define AFF_COUNTERSPELL      89 /* Counterspell mode */
 #define AFF_DEFENSIVE_CASTING 90 /* Defensive casting mode */
-#define AFF_WHIRLWIND_ATTACK 91 /*  Whirlwind attack mode */
+#define AFF_WHIRLWIND_ATTACK  91 /*  Whirlwind attack mode */
 
 #define AFF_CHARGING         92 /* charging in combat */
 #define AFF_WILD_SHAPE       93 /* wildshape, shapechange */
@@ -997,9 +997,20 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define AFF_MIRROR_IMAGED    96 /* pinned to the ground (grapple) */
 #define AFF_WARDED           97 /* warded (damage protection) */
 #define AFF_ENTANGLED        98 /* entangled (can't move) */
+#define AFF_ACROBATIC        99 /* acrobatic!  currently used for druid jump 
+                                   spell, possible expansion to follow */
 /*---*/
-#define NUM_AFF_FLAGS        99
+#define NUM_AFF_FLAGS        100
 /********************************/
+/* add aff_ flag?  don't forget to add to:
+   1)  places in code the affect will directly modify values
+   2)  get_eq_score() in act.wizard.c, so we know the value of this affect-flag
+        on objects
+   3)  constants.c
+ *     const char *affected_bits
+ *     const char *affected_bit_descs
+ *     
+ */
 
 /* Bonus types */
 #define BONUS_TYPE_UNDEFINED     0 /* Undefined bonus type (stacks) */
