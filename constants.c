@@ -924,6 +924,7 @@ const char *affected_bits[NUM_AFF_FLAGS + 1] =
   "Mirror Imaged",
   "Warded",
   "Entangled",
+  "Acrobatic",
   "\n"
 };
 
@@ -1034,6 +1035,7 @@ const char *affected_bit_descs[NUM_AFF_FLAGS + 1] =
   "Duplicate illusionary images of you exist.",
   "You have a powerful ward on you (melee damage absorb).",
   "You are entangled (can't move).",
+  "You feel more acrobatic!",
   "\n"
 };
 

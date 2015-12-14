@@ -2807,7 +2807,7 @@ ACMD(do_who) {
         if (d->connected == CON_HLQEDIT)
           send_to_char(ch, " (HLQuest Edit)");
         if (d->connected == CON_STUDY)
-          send_to_char(ch, " (Spells Known Editor)");
+          send_to_char(ch, " (Studying)");
         if (PRF_FLAGGED(tch, PRF_BUILDWALK))
           send_to_char(ch, " (Buildwalking)");
         if (PRF_FLAGGED(tch, PRF_AFK))

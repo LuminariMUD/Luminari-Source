@@ -727,9 +727,10 @@ int compute_ability(struct char_data *ch, int abilityNum) {
   else
     value += GET_ABILITY(ch, abilityNum);
 
-  /* Check for armor proficiency */
-
+  /* Check for armor proficiency? */
+  
   switch (abilityNum) {
+    
     case ABILITY_ACROBATICS:
       value += GET_DEX_BONUS(ch);
       value += compute_gear_armor_penalty(ch);
@@ -741,7 +742,10 @@ int compute_ability(struct char_data *ch, int abilityNum) {
         /* Unnamed bonus */
         value += 3;
       }
+      if (AFF_FLAGGED(ch, AFF_ACROBATIC))
+        value += 10;      
       return value;
+      
     case ABILITY_STEALTH:
       value += GET_DEX_BONUS(ch);
       if (HAS_FEAT(ch, FEAT_STEALTHY))
@@ -754,6 +758,7 @@ int compute_ability(struct char_data *ch, int abilityNum) {
         value += 4;
       value += compute_gear_armor_penalty(ch);
       return value;
+      
     case ABILITY_PERCEPTION:
       value += GET_WIS_BONUS(ch);
       if (GET_RACE(ch) == RACE_ELF)
