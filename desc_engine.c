@@ -61,6 +61,7 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
   int    region_dir = 0;
   int    i = 0;
   bool   surrounded = FALSE;
+  bool   first_region = TRUE;
   
   char *direction_strings[9] = {
     "UNDEFINED",
@@ -157,6 +158,7 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
   
   nearby_regions = get_nearby_regions(GET_ROOM_ZONE(room), world[room].coords[0], world[room].coords[1], 5);
   rdesc[0] = '\0'; 
+  first_region = TRUE;
   for (curr_nearby_region = nearby_regions; curr_nearby_region != NULL; curr_nearby_region = curr_nearby_region->next) {
     
     /* Now we have a list of nearby regions including the direction they are located from the player.  */    
@@ -181,15 +183,29 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
     }
     
     if (surrounded) {
-      sprintf(buf, "You are %s within %s.\r\n", sector_types_readable[world[room].sector_type], region_table[curr_nearby_region->rnum].name);
+      if (first_region == TRUE) {
+        sprintf(buf, "You are %s within %s.\r\n", sector_types_readable[world[room].sector_type], region_table[curr_nearby_region->rnum].name);
+      } else {
+        sprintf(buf, "You are within %s.\r\n", region_table[curr_nearby_region->rnum].name);
+      }
     } else {
-      sprintf(buf, "You are %s.  %s lies %sto the %s.\r\n", sector_types_readable[world[room].sector_type], region_table[curr_nearby_region->rnum].name,
+      if (first_region == TRUE) {
+        sprintf(buf, "You are %s.  %s lies %sto the %s.\r\n", sector_types_readable[world[room].sector_type], region_table[curr_nearby_region->rnum].name,
               (curr_nearby_region->dist <= 1 ? "very near " : 
                 (curr_nearby_region->dist <= 2 ? "near " : 
                   (curr_nearby_region->dist <= 3 ? "" :
                     (curr_nearby_region->dist <= 4 ? "far " :
                       (curr_nearby_region->dist > 4 ? "very far " :
                         ""))))), direction_strings[region_dir]);
+      } else {
+        sprintf(buf, "%s lies %sto the %s.\r\n", region_table[curr_nearby_region->rnum].name,
+              (curr_nearby_region->dist <= 1 ? "very near " : 
+                (curr_nearby_region->dist <= 2 ? "near " : 
+                  (curr_nearby_region->dist <= 3 ? "" :
+                    (curr_nearby_region->dist <= 4 ? "far " :
+                      (curr_nearby_region->dist > 4 ? "very far " :
+                        ""))))), direction_strings[region_dir]);
+      }
     }
     strcat(rdesc, buf);
     buf[0] = '\0';  
