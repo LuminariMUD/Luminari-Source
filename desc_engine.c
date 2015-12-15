@@ -44,24 +44,24 @@
  * then return NULL.
  */
 
-char * gen_room_description(struct char_data *ch, room_rnum room) {
+char * gen_room_description(struct char_data *ch, room_rnum room) {  
   /* Buffers to hold the description*/
   char buf[MAX_STRING_LENGTH];
   char rdesc[MAX_STRING_LENGTH];
-
+  
   static char *wilderness_desc = "The wilderness extends in all directions.";
-
+  
   char sect1[MAX_STRING_LENGTH]; /* Position, season, terrain */
   char sect2[MAX_STRING_LENGTH]; /* Weather and terrain */
   char sect3[MAX_STRING_LENGTH]; /* Hand-written, optional. */
   char sect4[MAX_STRING_LENGTH]; /* Nearby landmarks. */
-
+  
   /* Variables for calculating which directions the nearby regions are located. */
-  double max_area = 0.0;
-  int region_dir = 0;
-  int i = 0;
-  bool surrounded = FALSE;
-
+  double max_area  = 0.0;
+  int    region_dir = 0;
+  int    i = 0;
+  bool   surrounded = FALSE;
+  
   char *direction_strings[9] = {
     "UNDEFINED",
     "north",
@@ -73,27 +73,25 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
     "west",
     "northwest"
   };
-
+  
   struct region_list *regions = NULL;
   struct region_list *curr_region = NULL;
   struct region_proximity_list *nearby_regions = NULL;
   struct region_proximity_list *curr_nearby_region = NULL;
-
-  bool first_region = TRUE;
-
+  
   char *position_strings[NUM_POSITIONS] = {
     "dead", /* Dead */
     "mortally wounded", /* Mortally Wounded */
     "incapacitated", /* Incap. */
     "stunned", /* Stunned */
     "sleeping", /* Sleeping */
-    "reclining",
+    "reclining",  
     "resting",
     "sitting",
     "fighting",
     "standing"
   }; // Need to add pos_swimming.
-
+  
   // "You are %s %s %s" pos, through (the tall grasses of||The reeds and sedges of||
   // the burning wastes of||the scorching sands of||the shifting dunes of||the rolling hills of||
   // the craggy peaks of||etc.||on||over||on the edge of||among the trees of||deep within, region name
@@ -119,19 +117,19 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
    * (Above is from Kavir, from Godwars 2.)
    */
 
-  /* For the first iteration, we are skipping everything to do with the player, 
-   * as we are setting a description on the room itself. */
-
+   /* For the first iteration, we are skipping everything to do with the player, 
+    * as we are setting a description on the room itself. */
+  
   /* Get the enclosing regions. */
   regions = get_enclosing_regions(GET_ROOM_ZONE(room), world[room].coords[0], world[room].coords[1]);
-
+  
   for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next) {
-    log("-> Processing REGION_TYPE : %d", region_table[curr_region->rnum].region_type);
+    log("-> Processing REGION_TYPE : %d", region_table[curr_region->rnum].region_type); 
     switch (region_table[curr_region->rnum].region_type) {
       case REGION_GEOGRAPHIC:
-        switch (curr_region->pos) {
+        switch(curr_region->pos) {
           case REGION_POS_CENTER:
-            sprintf(buf, "The Center of %s\r\n", region_table[curr_region->rnum].name);
+            sprintf(buf, "The Center of %s\r\n", region_table[curr_region->rnum].name);        
             world[room].name = strdup(buf);
             break;
           case REGION_POS_EDGE:
@@ -141,12 +139,12 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
           default:
             break;
         }
-        break;
+        break;      
       default:
         break;
     }
-  }
-
+  }  
+  
   /* Retrieve and process nearby regions ---------------------------------------
    * For the dynamic description engine it is necessary to gather as much 
    * information about the game world as we need to build a coherent description
@@ -156,24 +154,22 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
    * are near (and visible to) the player's location and determine WHERE in space 
    * they are located.  
    */
-
-  nearby_regions = get_nearby_regions(GET_ROOM_ZONE(room), world[room].coords[0], world[room].coords[1], 5);
-  rdesc[0] = '\0';
   
-  first_region = TRUE;
+  nearby_regions = get_nearby_regions(GET_ROOM_ZONE(room), world[room].coords[0], world[room].coords[1], 5);
+  rdesc[0] = '\0'; 
   for (curr_nearby_region = nearby_regions; curr_nearby_region != NULL; curr_nearby_region = curr_nearby_region->next) {
-
-    /* Now we have a list of nearby regions including the direction they are located from the player.  */
+    
+    /* Now we have a list of nearby regions including the direction they are located from the player.  */    
     log("-> Processing NEARBY REGION : %s dist : %f", region_table[curr_nearby_region->rnum].name
-        , curr_nearby_region->dist
-        );
-
-    max_area = 0.0;
+                                                                                     , curr_nearby_region->dist
+                                                                                     ); 
+    
+    max_area  = 0.0;
     region_dir = 0;
     surrounded = TRUE;
-
+    
     for (i = 0; i < 8; i++) {
-      if (curr_nearby_region->dirs[i]) {
+      if (curr_nearby_region->dirs[i]) {        
         if (curr_nearby_region->dirs[i] > max_area) {
           max_area = curr_nearby_region->dirs[i];
           region_dir = i + 1;
@@ -182,46 +178,32 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
       } else {
         surrounded = FALSE;
       }
-
-      if (surrounded) {
-        if (first_region == TRUE) {
-          first_region = FALSE;
-          sprintf(buf, "You are %s within %s.\r\n", sector_types_readable[world[room].sector_type], region_table[curr_nearby_region->rnum].name);
-        } else {
-          sprintf(buf, "You are within %s.\r\n", region_table[curr_nearby_region->rnum].name);
-        }
-      } else {
-        if (first_region == TRUE) {
-          first_region = FALSE;
-          sprintf(buf, "You are %s.  %s lies %sto the %s.\r\n", sector_types_readable[world[room].sector_type], region_table[curr_nearby_region->rnum].name,
-                  (curr_nearby_region->dist <= 1 ? "very near " :
-                  (curr_nearby_region->dist <= 2 ? "near " :
-                  (curr_nearby_region->dist <= 3 ? "" :
-                  (curr_nearby_region->dist <= 4 ? "far " :
-                  (curr_nearby_region->dist > 4 ? "very far " :
-                  ""))))), direction_strings[region_dir]);
-        } else {
-          sprintf(buf, "%s lies %sto the %s.\r\n", region_table[curr_nearby_region->rnum].name,
-                  (curr_nearby_region->dist <= 1 ? "very near " :
-                  (curr_nearby_region->dist <= 2 ? "near " :
-                  (curr_nearby_region->dist <= 3 ? "" :
-                  (curr_nearby_region->dist <= 4 ? "far " :
-                  (curr_nearby_region->dist > 4 ? "very far " :
-                  ""))))), direction_strings[region_dir]);
-        }
-      }
-      strcat(rdesc, buf);
-      buf[0] = '\0';
-      
-      //log("max_area : %f region_dir : %s", max_area, direction_strings[region_dir]);
     }
-  }
+    
+    if (surrounded) {
+      sprintf(buf, "You are %s within %s.\r\n", sector_types_readable[world[room].sector_type], region_table[curr_nearby_region->rnum].name);
+    } else {
+      sprintf(buf, "You are %s.  %s lies %sto the %s.\r\n", sector_types_readable[world[room].sector_type], region_table[curr_nearby_region->rnum].name,
+              (curr_nearby_region->dist <= 1 ? "very near " : 
+                (curr_nearby_region->dist <= 2 ? "near " : 
+                  (curr_nearby_region->dist <= 3 ? "" :
+                    (curr_nearby_region->dist <= 4 ? "far " :
+                      (curr_nearby_region->dist > 4 ? "very far " :
+                        ""))))), direction_strings[region_dir]);
+    }
+    strcat(rdesc, buf);
+    buf[0] = '\0';  
+    
+    log("max_area : %f region_dir : %s", max_area, direction_strings[region_dir]);
+  }  
+  
   if (rdesc[0] == '\0') {
     /* No regions nearby...*/
     sprintf(buf, "You are %s.\r\n", sector_types_readable[world[room].sector_type]);
     strcat(rdesc, buf);
-    buf[0] = '\0';
+    buf[0] = '\0';  
   }
+  
   return strdup(rdesc);
 }
 
