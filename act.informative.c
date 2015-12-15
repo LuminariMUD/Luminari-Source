@@ -3804,6 +3804,11 @@ ACMD(do_whois) {
   send_to_char(ch, "Name: %s %s\r\nSex: %s\r\n", GET_NAME(victim),
                (victim->player.title ? victim->player.title : ""), buf);
 
+  /* Show immortals account information */
+  if(GET_LEVEL(ch) >= LVL_IMMORT) {
+    send_to_char(ch, "Account Name: %s\r\n", get_char_account_name(GET_NAME(victim)));
+  }
+  
   sprinttype(victim->player.chclass, pc_class_types, buf, sizeof (buf));
   send_to_char(ch, "Current Class: %s\r\n", buf);
 
