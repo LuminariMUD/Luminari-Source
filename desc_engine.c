@@ -159,6 +159,8 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
 
   nearby_regions = get_nearby_regions(GET_ROOM_ZONE(room), world[room].coords[0], world[room].coords[1], 5);
   rdesc[0] = '\0';
+  
+  first_region = TRUE;
   for (curr_nearby_region = nearby_regions; curr_nearby_region != NULL; curr_nearby_region = curr_nearby_region->next) {
 
     /* Now we have a list of nearby regions including the direction they are located from the player.  */
@@ -210,7 +212,7 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
       }
       strcat(rdesc, buf);
       buf[0] = '\0';
-
+      
       //log("max_area : %f region_dir : %s", max_area, direction_strings[region_dir]);
     }
   }
