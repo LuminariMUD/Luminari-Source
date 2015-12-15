@@ -189,7 +189,7 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
         sprintf(buf, "You are within %s.\r\n", region_table[curr_nearby_region->rnum].name);
       }
     } else {
-      if (first_region == TRUE) {
+      if (first_region == TRUE) {        
         sprintf(buf, "You are %s.  %s lies %sto the %s.\r\n", sector_types_readable[world[room].sector_type], region_table[curr_nearby_region->rnum].name,
               (curr_nearby_region->dist <= 1 ? "very near " : 
                 (curr_nearby_region->dist <= 2 ? "near " : 
@@ -211,6 +211,7 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
     buf[0] = '\0';  
     
     log("max_area : %f region_dir : %s", max_area, direction_strings[region_dir]);
+    first_region = FALSE;
   }  
   
   if (rdesc[0] == '\0') {
