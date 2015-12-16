@@ -834,7 +834,7 @@ void look_at_room(struct char_data *ch, int ignore_brief) {
   int can_infra_in_dark = FALSE, world_map = FALSE, room_dark = FALSE;
   zone_rnum zn;
   char buf[MAX_STRING_LENGTH];
-  char* generated_desc := NULL;
+  char* generated_desc = NULL;
 
   if (!ch->desc)
     return;
