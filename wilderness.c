@@ -654,7 +654,8 @@ void show_wilderness_map(struct char_data* ch, int size, int x, int y) {
   struct wild_map_tile **map;
   int i;
   //int j;
-
+  char* generated_desc = NULL;
+  
   int xsize = size;
   int ysize = size;
   int centerx = ((xsize - 1) / 2);
@@ -681,18 +682,39 @@ void show_wilderness_map(struct char_data* ch, int size, int x, int y) {
 
   //  send_to_char(ch, "%s", wilderness_map_to_string(map, size));
 
+  if (IS_SET_AR(ROOM_FLAGS(target_room), ROOM_GENDESC) || IS_DYNAMIC(world[IN_ROOM(ch)].number)) {
+    generated_desc = gen_room_description(ch, IN_ROOM(ch));
+    
+    free(generated_desc);
+  }
+  
   if (!IS_NPC(ch))
-    send_to_char(ch,
-               "%s",
-               strpaste(wilderness_map_to_string(map, size, WILD_MAP_SHAPE_CIRCLE),
-                        strfrmt(world[IN_ROOM(ch)].description,
-                                GET_SCREEN_WIDTH(ch) - size,
-                                size,
-                                FALSE,
-                                TRUE,
-                                TRUE),
-                        " \tn")
-               );
+    if (IS_SET_AR(ROOM_FLAGS(target_room), ROOM_GENDESC) || IS_DYNAMIC(world[IN_ROOM(ch)].number)) {
+      generated_desc = gen_room_description(ch, IN_ROOM(ch));
+      send_to_char(ch,
+                   "%s",
+                   strpaste(wilderness_map_to_string(map, size, WILD_MAP_SHAPE_CIRCLE),
+                            strfrmt(generated_desc,
+                                    GET_SCREEN_WIDTH(ch) - size,
+                                    size,
+                                    FALSE,
+                                    TRUE,
+                                    TRUE),
+                            " \tn")
+                   );
+      free(generated_desc);
+    } else {
+      send_to_char(ch,
+                   "%s",
+                   strpaste(wilderness_map_to_string(map, size, WILD_MAP_SHAPE_CIRCLE),
+                            strfrmt(world[IN_ROOM(ch)].description,
+                                    GET_SCREEN_WIDTH(ch) - size,
+                                    size,
+                                    FALSE,
+                                    TRUE,
+                                    TRUE),
+                            " \tn")
+                   );
   else
     send_to_char(ch,
                "%s",
