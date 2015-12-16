@@ -834,6 +834,7 @@ void look_at_room(struct char_data *ch, int ignore_brief) {
   int can_infra_in_dark = FALSE, world_map = FALSE, room_dark = FALSE;
   zone_rnum zn;
   char buf[MAX_STRING_LENGTH];
+  char* generated_desc := NULL;
 
   if (!ch->desc)
     return;
@@ -936,7 +937,9 @@ void look_at_room(struct char_data *ch, int ignore_brief) {
     } else {
       if (ZONE_FLAGGED(zn, ZONE_WILDERNESS) && (IS_SET_AR(ROOM_FLAGS(target_room), ROOM_GENDESC) 
                                                 || IS_DYNAMIC(world[IN_ROOM(ch)].number))) {
-        send_to_char(ch, "%s", gen_room_description(ch, IN_ROOM(ch)));
+        generated_desc = gen_room_description(ch, IN_ROOM(ch));
+        send_to_char(ch, "%s", generated_desc);
+        delete(generated_desc);
       } else {
         send_to_char(ch, "%s", world[IN_ROOM(ch)].description);  
       }
