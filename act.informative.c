@@ -939,7 +939,7 @@ void look_at_room(struct char_data *ch, int ignore_brief) {
                                                 || IS_DYNAMIC(world[IN_ROOM(ch)].number))) {
         generated_desc = gen_room_description(ch, IN_ROOM(ch));
         send_to_char(ch, "%s", generated_desc);
-        delete(generated_desc);
+        free(generated_desc);
       } else {
         send_to_char(ch, "%s", world[IN_ROOM(ch)].description);  
       }
