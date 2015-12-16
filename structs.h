@@ -158,10 +158,14 @@
 #define ROOM_SIZE_DIMINUTIVE  31 /* need to be diminutive or smaller to enter */
 #define ROOM_CLIMB_NEEDED     32 /* need climb skill, based on zone level */
 #define ROOM_HASTRAP          33  /* has trap (not implemented yet) */
+#define ROOM_GENDESC          34 /* Must be a wilderness room!  Use generated
+                                   descriptions in a static room, useful for 
+                                   rooms that block different directions. 
+                                   (eg. around obstacles.) */
 /* idea:  possible room-flag for doing free memorization w/o spellbooks */
 /****/
 /** The total number of Room Flags */
-#define NUM_ROOM_FLAGS     34
+#define NUM_ROOM_FLAGS     35
 
 /* homeland-port reference */
 /*

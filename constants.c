@@ -439,6 +439,7 @@ const char *room_bits[NUM_ROOM_FLAGS + 1] = {
   "Diminutive-Sized-Room",
   "Climb-Needed",
   "Trapped",
+  "Wild-Generated-Desc",
   "\n"
 };
 
