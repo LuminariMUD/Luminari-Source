@@ -682,14 +682,14 @@ void show_wilderness_map(struct char_data* ch, int size, int x, int y) {
 
   //  send_to_char(ch, "%s", wilderness_map_to_string(map, size));
 
-  if (IS_SET_AR(ROOM_FLAGS(target_room), ROOM_GENDESC) || IS_DYNAMIC(world[IN_ROOM(ch)].number)) {
+  if (IS_SET_AR(ROOM_FLAGS(IN_ROOM(ch)), ROOM_GENDESC) || IS_DYNAMIC(world[IN_ROOM(ch)].number)) {
     generated_desc = gen_room_description(ch, IN_ROOM(ch));
     
     free(generated_desc);
   }
   
   if (!IS_NPC(ch))
-    if (IS_SET_AR(ROOM_FLAGS(target_room), ROOM_GENDESC) || IS_DYNAMIC(world[IN_ROOM(ch)].number)) {
+    if (IS_SET_AR(ROOM_FLAGS(IN_ROOM(ch)), ROOM_GENDESC) || IS_DYNAMIC(world[IN_ROOM(ch)].number)) {
       generated_desc = gen_room_description(ch, IN_ROOM(ch));
       send_to_char(ch,
                    "%s",
