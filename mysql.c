@@ -167,6 +167,8 @@ void load_regions() {
   MYSQL_ROW row;
 
   int i = 0, vtx = 0;
+  int j = 0, k = 0;
+  
   int numrows;
 
   char buf[1024];
@@ -200,6 +202,14 @@ void load_regions() {
  if ( (numrows = mysql_num_rows(result)) < 1) 
    return;
  else {
+   if (region_table != NULL) {
+     /* Clear it */
+     for (j = 0; j <= top_of_region_table;j++) {
+       free(region_table[j].name);
+       free(region_table[j].vertices);                     
+     }
+     free(region_table);
+   }
     /* Allocate memory for all of the region data. */
     CREATE(region_table, struct region_data, numrows);
   }
