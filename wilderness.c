@@ -715,6 +715,7 @@ void show_wilderness_map(struct char_data* ch, int size, int x, int y) {
                                     TRUE),
                             " \tn")
                    );
+    }
   else
     send_to_char(ch,
                "%s",
