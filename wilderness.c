@@ -552,7 +552,7 @@ void assign_wilderness_room(room_rnum room, int x, int y) {
   }
   
   /* Generate the description, now that everything else is set up. */
-  world[room].description = gen_room_description(NULL, room);
+  world[room].description = wilderness_desc;
 }
 
 
