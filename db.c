@@ -499,7 +499,7 @@ ACMD(do_reboot) {
       free_help_table();
       index_boot(DB_BOOT_HLP);
     }
-  } else if (!str_cmp(arg "regions")) {
+  } else if (!str_cmp(arg, "regions")) {
     /* Reload wilderness regions */    
     load_regions();
   } else {
