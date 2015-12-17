@@ -170,6 +170,7 @@ struct wild_map_tile {
   int sector_type;
   char *glyph;
   region_rnum regions[24];
+  int num_regions;
 };
 
 void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_tile **map);
