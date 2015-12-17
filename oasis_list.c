@@ -603,7 +603,7 @@ ACMD(do_oasis_list) {
         send_to_char(ch, "       %sreglist type <num>%s    - List all regions with the specified type\r\n", QYEL, QNRM);
         send_to_char(ch, "Just type %sreglist types%s to view available region types.\r\n", QYEL, QNRM);
         return;
-      } else if is_abbrev(arg, "types") {
+      } else if (is_abbrev(arg, "types")) {
         send_to_char(ch "Available types are:\r\n");
         send_to_char(ch,"\t1 - Geographic\r\n");
         send_to_char(ch,"\t2 - Encounter\r\n");
@@ -625,7 +625,7 @@ ACMD(do_oasis_list) {
           //perform_region_type_list(ch, arg2); 
         }
         if (!*arg2 && is_number(arg)) 
-          77perform_region_dist_list(ch, arg);
+          perform_region_dist_list(ch, arg);
         else
           perform_region_list(ch);        
         return;
