@@ -808,8 +808,8 @@ static void list_regions(struct char_data *ch) {
   char buf[MAX_STRING_LENGTH];
 
   len = strlcpy(buf,
-          "Ind|VNum   |Region Name                                 |Region Type |Props\r\n"
-          "--- ------- -------------------------------------------- ------------ -----\r\n",
+          "Ind|VNum   | Name                                |Type        |Props\r\n"
+          "--- ------- ------------------------------------- ------------ -----\r\n",
           sizeof (buf));
   if (!top_of_region_table)
     return;
@@ -818,11 +818,14 @@ static void list_regions(struct char_data *ch) {
     counter++;
 
     len += snprintf(buf + len, sizeof (buf) - len,
-              "%s%3d%s|%s%-7d%s|%s%44s%s|%s%12d%s|%s%5d%s\r\n",
+              "%s%3d%s|%s%-7d%s|%s%37s%s|%s%12%s|%s%5d%s\r\n",
               QGRN, counter, QNRM,
               QGRN, region_table[i].vnum, QNRM,
               QYEL, region_table[i].name, QNRM,
-              QYEL, region_table[i].region_type, QNRM,
+              QYEL, (region_table[i].region_type == 1 ? "Geographic" :
+                      (region_table[i].region_type == 2 ? "Encounter" :
+                        (region_table[i].region_type == 3 ? "Sect.Transfm" :
+                          (region_table[i].region_type == 4 ? "Sector" : "UNKNOWN" )))), QNRM,
               QYEL, region_table[i].region_props, QNRM
               );
 
