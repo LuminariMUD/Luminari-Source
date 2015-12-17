@@ -28,6 +28,7 @@
 #include "genzon.h"
 #include "class.h"
 #include "genshp.h"
+#include "wilderness.h"
 
 
 #define MAX_OBJ_LIST 100
