@@ -835,7 +835,7 @@ static void list_regions(struct char_data *ch) {
                    mob_proto[i].proto_script ? " [TRIG]" : ""
                    );*/
     len += snprintf(buf + len, sizeof (buf) - len,
-              "%s%3d%s|%s%-7d%s|%s%44s%s|%s%12s%s|%s%5s%s\r\n",
+              "%s%3d%s|%s%-7d%s|%s%44s%s|%s%12d%s|%s%5d%s\r\n",
               QGRN, counter, QNRM,
               QGRN, region_table[i].vnum, QNRM,
               QYEL, region_table[i].name, QNRM,
