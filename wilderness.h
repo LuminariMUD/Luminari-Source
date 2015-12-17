@@ -91,7 +91,7 @@ struct wild_map_info_type {
   char *variant_disp[NUM_VARIANT_GLYPHS];
 };
 
-extern const struct wild_map_info_type wild_map_info[NUM_ROOM_SECTORS];
+extern static struct wild_map_info_type wild_map_info[NUM_ROOM_SECTORS];
 
 struct vertex {
   int x;
