@@ -106,6 +106,9 @@ struct oasis_olc_data {
   struct clan_data *clan; /* used for 'clanedit'      */
   struct message_list *msg;
   struct message_type *m_type;
+  
+  /* Wilderness editing */
+  struct region_data *region; /* Used for 'regedit' */
 
   /* homeland-port */
   struct quest_entry *hlquest;
@@ -147,6 +150,7 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn, *red;
 #define OLC_PREFS(d)   (OLC(d)->prefs)    /**< Preferences structure */
 #define OLC_IBT(d)     (OLC(d)->ibt)      /**< IBT (idea/bug/typo) structure */
 #define OLC_CLAN(d)    (OLC(d)->clan)     /**< Clan structure       */
+#define OLC_REGION(d)  (OLC(d)->region)   /**< Region structure  */
 
 /* homeland-port */
 #define OLC_HLQUEST(d)     (OLC(d)->hlquest) /* hl autoquest */

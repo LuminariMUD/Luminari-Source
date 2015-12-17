@@ -129,6 +129,7 @@ struct alias_data {
 #define SCMD_OASIS_ZLIST       4
 #define SCMD_OASIS_TLIST       5
 #define SCMD_OASIS_QLIST       6
+#define SCMD_OASIS_REGLIST     7
 
 /* Necessary for CMD_IS macro.  Borland needs the structure defined first
  * so it has been moved down here. */

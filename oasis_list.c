@@ -591,6 +591,46 @@ ACMD(do_oasis_list) {
   }
 
   switch (subcmd) {
+    case SCMD_OASIS_REGLIST:
+      two_arguments(argument, arg, arg2);
+      if (!IS_WILDERNESS_VNUM(world[IN_ROOM(ch)].number)) {
+        send_to_char(ch, "This command is only available while in the wilderness.\r\n");
+        return;
+      }        
+      if (is_abbrev(arg, "help")) {
+        send_to_char(ch, "Usage: %sreglist <distance>%s    - List regions within a particular distance\r\n", QYEL, QNRM);
+        send_to_char(ch, "       %sreglist type <num>%s    - List all regions with the specified type\r\n", QYEL, QNRM);
+        send_to_char(ch, "Just type %sreglist types%s to view available region types.\r\n", QYEL, QNRM);
+        return;
+      } else if is_abbrev(arg, "types") {
+        send_to_char(ch "Available types are:\r\n");
+        send_to_char(ch,"\t1 - Geographic\r\n");
+        send_to_char(ch,"\t2 - Encounter\r\n");
+        send_to_char(ch,"\t3 - Sector Transform\r\n");
+        send_to_char(ch,"\t4 - Sector\r\n");
+        return;
+      }
+      if(is_abbrev(arg, "type")) {
+        if (!*arg2) {
+          send_to_char(ch, "Which type of region do you want to list?\r\n");
+          send_to_char(ch "Available types are:\r\n");
+          send_to_char(ch,"\t1 - Geographic\r\n");
+          send_to_char(ch,"\t2 - Encounter\r\n");
+          send_to_char(ch,"\t3 - Sector Transform\r\n");
+          send_to_char(ch,"\t4 - Sector\r\n");
+          send_to_char(ch,"\r\n");
+          return;
+        } else {
+          //perform_region_type_list(ch, arg2); 
+        }
+        if (!*arg2 && is_number(arg)) 
+          77perform_region_dist_list(ch, arg);
+        else
+          perform_region_list(ch);        
+        return;
+      }
+      break;
+      
     case SCMD_OASIS_MLIST:
 
       two_arguments(argument, arg, arg2);
@@ -765,6 +805,52 @@ ACMD(do_oasis_links) {
 }
 
 /* Helper Functions */
+
+/* List all mobiles in a zone. */
+static void list_regions(struct char_data *ch) {
+  int i;
+  int counter = 0, len;
+  char buf[MAX_STRING_LENGTH];
+
+  len = strlcpy(buf,
+          "Ind|VNum   |Region Name                                 |Region Type |Props\r\n"
+          "--- ------- -------------------------------------------- ------------ -----\r\n",
+          sizeof (buf));
+  if (!top_of_region_table)
+    return;
+
+  for (i = 0; i <= top_of_region_table; i++) {
+    counter++;
+
+      /* original
+      len += snprintf(buf + len, sizeof(buf) - len,
+              "%s%4d%s) [%s%-5d%s] %s%-*s %s[%4d]%s%s\r\n",
+                   QGRN, counter, QNRM,
+                   QGRN, mob_index[i].vnum, QNRM,
+                   QCYN, count_color_chars(mob_proto[i].player.short_descr)+44,
+                   mob_proto[i].player.short_descr,
+                   QYEL, mob_proto[i].player.level, QNRM,
+                   mob_proto[i].proto_script ? " [TRIG]" : ""
+                   );*/
+    len += snprintf(buf + len, sizeof (buf) - len,
+              "%s%3d%s|%s%-7d%s|%s%44s%s|%s%12s%s|%s%5s%s\r\n",
+              QGRN, counter, QNRM,
+              QGRN, region_table[i].vnum, QNRM,
+              QYEL, region_table[i].name, QNRM,
+              QYEL, region_table[i].region_type, QNRM,
+              QYEL, region_table[i].region_props, QNRM
+              );
+
+      if (len > sizeof (buf))
+        break;
+    }
+  }
+
+  if (counter == 0)
+    send_to_char(ch, "None found.\r\n");
+  else
+    page_string(ch->desc, buf, TRUE);
+}
 
 /* List all rooms in a zone. */
 static void list_rooms(struct char_data *ch, zone_rnum rnum, room_vnum vmin, room_vnum vmax) {
