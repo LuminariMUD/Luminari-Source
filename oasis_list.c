@@ -604,22 +604,22 @@ ACMD(do_oasis_list) {
         send_to_char(ch, "Just type %sreglist types%s to view available region types.\r\n", QYEL, QNRM);
         return;
       } else if (is_abbrev(arg, "types")) {
-        send_to_char(ch,"Available types are:\r\n");
-        send_to_char(ch,"\t1 - Geographic\r\n");
-        send_to_char(ch,"\t2 - Encounter\r\n");
-        send_to_char(ch,"\t3 - Sector Transform\r\n");
-        send_to_char(ch,"\t4 - Sector\r\n");
+        send_to_char(ch, "Available types are:\r\n");
+        send_to_char(ch, "\t1 - Geographic\r\n");
+        send_to_char(ch, "\t2 - Encounter\r\n");
+        send_to_char(ch, "\t3 - Sector Transform\r\n");
+        send_to_char(ch, "\t4 - Sector\r\n");
         return;
       }
       if(is_abbrev(arg, "type")) {
         if (!*arg2) {
           send_to_char(ch, "Which type of region do you want to list?\r\n");
-          send_to_char(ch "Available types are:\r\n");
-          send_to_char(ch,"\t1 - Geographic\r\n");
-          send_to_char(ch,"\t2 - Encounter\r\n");
-          send_to_char(ch,"\t3 - Sector Transform\r\n");
-          send_to_char(ch,"\t4 - Sector\r\n");
-          send_to_char(ch,"\r\n");
+          send_to_char(ch, "Available types are:\r\n");
+          send_to_char(ch, "\t1 - Geographic\r\n");
+          send_to_char(ch, "\t2 - Encounter\r\n");
+          send_to_char(ch, "\t3 - Sector Transform\r\n");
+          send_to_char(ch, "\t4 - Sector\r\n");
+          send_to_char(ch, "\r\n");
           return;
         } else {
           //perform_region_type_list(ch, arg2); 
