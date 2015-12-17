@@ -84,7 +84,14 @@
 #define WILD_MAP_SHAPE_RECT   2
 
 extern struct kdtree* kd_wilderness_rooms;
-extern struct wild_map_info_type wild_map_info[NUM_ROOM_SECTORS];
+
+struct wild_map_info_type {
+  int sector_type;
+  char disp[20];
+  char *variant_disp[NUM_VARIANT_GLYPHS];
+};
+
+extern const struct wild_map_info_type wild_map_info[NUM_ROOM_SECTORS];
 
 struct vertex {
   int x;
