@@ -23,7 +23,7 @@ struct kdtree* kd_wilderness_rooms = NULL;
 int wild_waterline = 128;
 
 /* \t= changes a color to be BACKGROUND. */
-static struct wild_map_info_type wild_map_info[] = {
+struct wild_map_info_type wild_map_info[] = {
   /* 0 */
   { SECT_INSIDE, "\tn.\tn", { NULL }},
   { SECT_CITY, "\twC\tn", { NULL }},
