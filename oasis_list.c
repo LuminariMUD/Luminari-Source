@@ -625,7 +625,7 @@ ACMD(do_oasis_list) {
           //perform_region_type_list(ch, arg2); 
         }
         if (!*arg2 && is_number(arg)) 
-          perform_region_dist_list(ch, arg);
+          //perform_region_dist_list(ch, arg);
         else
           perform_region_list(ch);        
         return;
