@@ -84,6 +84,7 @@
 #define WILD_MAP_SHAPE_RECT   2
 
 extern struct kdtree* kd_wilderness_rooms;
+extern static struct wild_map_info_type wild_map_info[NUM_ROOM_SECTORS];
 
 struct vertex {
   int x;
