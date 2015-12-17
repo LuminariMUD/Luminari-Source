@@ -818,7 +818,7 @@ static void list_regions(struct char_data *ch) {
     counter++;
 
     len += snprintf(buf + len, sizeof (buf) - len,
-              "%s%3d%s|%s%-7d%s|%s%-37s%s|%s%12s%s|%s%-15d%s\r\n",
+              "%s%3d%s|%s%-7d%s|%s%-37s%s|%s%12s%s|%s%-15s%s\r\n",
               QGRN, counter, QNRM,
               QGRN, region_table[i].vnum, QNRM,
               QYEL, region_table[i].name, QNRM,
