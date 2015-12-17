@@ -420,6 +420,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "restore", "resto", POS_DEAD, do_restore, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}},
   { "return", "retu", POS_DEAD, do_return, 0, 0, FALSE, ACTION_NONE, {0, 0}},
   { "redit", "redit", POS_DEAD, do_oasis_redit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},
+  { "reglist", "reglist", POS_DEAD, do_oasis_list, LVL_BUILDER, SCMD_OASIS_REGLIST, TRUE, ACTION_NONE, {0, 0}},
   { "rlist", "rlist", POS_DEAD, do_oasis_list, LVL_BUILDER, SCMD_OASIS_RLIST, TRUE, ACTION_NONE, {0, 0}},
   { "rcopy", "rcopy", POS_DEAD, do_oasis_copy, LVL_STAFF, CON_REDIT, TRUE, ACTION_NONE, {0, 0}},
   { "roomflags", "roomflags", POS_DEAD, do_gen_tog, LVL_IMMORT, SCMD_SHOWVNUMS, TRUE, ACTION_NONE, {0, 0}},
