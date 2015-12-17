@@ -649,8 +649,8 @@ static char* wilderness_map_to_string(struct wild_map_tile ** map, int size, int
             if (region_table[map[x][y].regions[i]].region_type == 1) { 
               /* Geographic region */
               /* Pick a color */
-              strcpy(mp, s_BackCyan);
-              mp += strlen(s_BackCyan);
+              strcpy(mp, "\033[1;46m");
+              mp += strlen("\033[1;46m");
               region_colored = TRUE;
               break;
             }
@@ -659,8 +659,8 @@ static char* wilderness_map_to_string(struct wild_map_tile ** map, int size, int
           mp += strlen((map[x][y].vis == 0 ? " " : (map[x][y].glyph == NULL ? wild_map_info[map[x][y].sector_type].disp : map[x][y].glyph)));
           if (region_colored == TRUE) {
             /* Set the background color back */
-            strcpy(mp, s_BackBlack);
-            mp += strlen(s_BackBlack);
+            strcpy(mp, "\033[1;40m");
+            mp += strlen("\033[1;40m");
             region_colored = FALSE;
           } 
         }
