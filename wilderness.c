@@ -79,7 +79,7 @@ static struct wild_map_info_type wild_map_info[] = {
 
 /* Initialize the kd-tree that indexes the static rooms of the wilderness.
  * This procedure can be used to do whatever initialization is needed,
- * but be aweare that it is run whenever a room is added or deleted from
+ * but be aware that it is run whenever a room is added or deleted from
  * the wilderness zone. */
 void initialize_wilderness_lists() {
   int i;
@@ -257,7 +257,7 @@ int get_temperature(int map, int x, int y) {
 /* Generate a height map centered on center_x and center_y. */
 void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_tile **map) {
 
-  int x, y;
+  int x, y, i;
   int x_offset, y_offset;
   int trans_x, trans_y;
 
@@ -277,6 +277,7 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
                                               get_temperature(NOISE_MATERIAL_PLANE_ELEV, x + x_offset, y + y_offset),
                                               get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x + x_offset, y + y_offset));
       map[x][y].glyph = NULL;
+      map[x][y].regions = -1;
 
       /* Map should reflect changes from regions */
       struct region_list *regions = NULL;
@@ -293,7 +294,15 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
                                   y + y_offset);
       //log("-> MAP: Processing location (%d, %d)", x + x_offset, y + y_offset);
       /* Override default values with region-based values. */
+      i = 0; /* Counter for region array */
       for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next) {
+        
+        /* Add this region to the tile's region list */        
+        if (i < 24) {
+          map[x][y].regions[i] = curr_region->rnum; 
+          i++;
+        }
+        
         switch (region_table[curr_region->rnum].region_type) {
           case REGION_SECTOR:
             map[x][y].sector_type = region_table[curr_region->rnum].region_props;
