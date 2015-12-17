@@ -297,9 +297,9 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
       for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next) {
         
         /* Add this region to the tile's region list */        
-        if (i < 24) {
-          map[x][y].regions[num_regions] = curr_region->rnum;
-          num_regions++;
+        if ( map[x][y].num_regions < 24) {
+          map[x][y].regions[map[x][y].num_regions] = curr_region->rnum;
+          map[x][y].num_regions++;
         }
         
         switch (region_table[curr_region->rnum].region_type) {
