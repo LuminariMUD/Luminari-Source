@@ -626,23 +626,43 @@ void line_vis(struct wild_map_tile **map, int x, int y, int x2, int y2) {
 static char* wilderness_map_to_string(struct wild_map_tile ** map, int size, int shape) {
   static char strmap[32768];
   char* mp = strmap;
-  int x, y;
-
+  int x, y, i;
+  bool region_colored = FALSE;
   int centerx = ((size - 1) / 2);
   int centery = ((size - 1) / 2);
 
+  
   for (y = size - 1; y >= 0; y--) {
     for (x = 0; x < size; x++) {
+      
       if (((shape == WILD_MAP_SHAPE_CIRCLE) &&
           (sqrt((centerx - x)*(centerx - x) + (centery - y)*(centery - y)) <= (((size - 1) / 2) + 1))) ||
-          (shape == WILD_MAP_SHAPE_RECT)) {
+          (shape == WILD_MAP_SHAPE_RECT)) {        
         if ((x == centerx) && (y == centery)) {
           strcpy(mp, "\tM*\tn");
           mp += strlen("\tM*\tn");
         }
         else {
+          /* Here we have to check the flag on the player, if they are viewing regions (only for STAFF) then the regions will show up
+           * in different colors on the map using background colors. */
+          for (i = 0; i < map[x][y].num_regions; i++) {
+            if (region_table[map[x][y].regions[i]].region_type == 1) { 
+              /* Geographic region */
+              /* Pick a color */
+              strcpy(mp, s_BackCyan);
+              mp += strlen(s_BackCyan);
+              region_colored = TRUE;
+              break;
+            }
+          }          
           strcpy(mp, (map[x][y].vis == 0 ? " " : (map[x][y].glyph == NULL ? wild_map_info[map[x][y].sector_type].disp : map[x][y].glyph)));
           mp += strlen((map[x][y].vis == 0 ? " " : (map[x][y].glyph == NULL ? wild_map_info[map[x][y].sector_type].disp : map[x][y].glyph)));
+          if (region_colored == TRUE) {
+            /* Set the background color back */
+            strcpy(mp, s_BackBlack);
+            mp += strlen(s_BackBlack);
+            region_colored = FALSE;
+          } 
         }
       } else {
         strcpy(mp, " ");
