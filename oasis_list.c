@@ -845,7 +845,7 @@ static void list_regions(struct char_data *ch) {
 
       if (len > sizeof (buf))
         break;
-    }
+    
   }
 
   if (counter == 0)
