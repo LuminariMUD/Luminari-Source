@@ -44,6 +44,7 @@ static void list_mobiles(struct char_data *ch, zone_rnum rnum, mob_vnum vmin, mo
 static void list_objects(struct char_data *ch, zone_rnum rnum, obj_vnum vmin, obj_vnum vmax);
 static void list_shops(struct char_data *ch, zone_rnum rnum, shop_vnum vmin, shop_vnum vmax);
 static void list_zones(struct char_data *ch, zone_rnum rnum, zone_vnum vmin, zone_vnum vmax, char *name);
+static void list_regions(struct char_data *ch);
 
 void perform_mob_flag_list(struct char_data * ch, char *arg) {
   int num, mob_flag, found = 0, len;
