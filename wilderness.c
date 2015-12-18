@@ -640,7 +640,7 @@ static char* wilderness_map_to_string(struct wild_map_tile ** map, int size, int
           /* Here we have to check the flag on the player, if they are viewing regions (only for STAFF) then the regions will show up
            * in different colors on the map using background colors. */
           for (i = 0; i < map[x][y].num_regions; i++) {
-            if (region_table[map[x][y].regions[i]].region_type == 1) { 
+            if (OLC_REGION(ch->desc) != NULL && OLC_REGION(ch->desc)->rnum = map[x][y].regions[i]) { 
               /* Geographic region */
               /* Pick a color */
               strcpy(mp, "\033[1;46m");
