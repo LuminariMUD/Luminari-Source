@@ -689,7 +689,9 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
   /* Flying Required: Does lack of flying prevent movement? */
   if ((SECT(was_in) == SECT_FLYING) || (SECT(going_to) == SECT_FLYING) ||
           (SECT(was_in) == SECT_UD_NOGROUND) || (SECT(going_to) == SECT_UD_NOGROUND)) {
-    if ((riding && !has_flight(RIDING(ch))) || !has_flight(ch)) {
+    if (char_has_mud_event(ch, eFALLING))
+      ; /* zusuk's cheesy falling code */
+    else if ((riding && !has_flight(RIDING(ch))) || !has_flight(ch)) {
       send_to_char(ch, "You need to be flying to go there!\r\n");
       return (0);
     }
