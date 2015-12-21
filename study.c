@@ -818,8 +818,14 @@ static void set_stats_menu(struct descriptor_data *d) {
 
   write_to_output(d,
           "\r\n-- %sSet Character Stats%s\r\n"
-          "Points invested:   1  2  3  4  5  6  7  8   9   10\r\n"
-          "Point cost:        1  2  3  4  5  6  8  10  13  16\r\n"
+          "From this menu you can set your starting stats.  If you are complete\r\n"
+          "unfamiliar with what type of stats you want, it is highly recommneded\r\n"
+          "to keep all values above 10, and spread out your points.  This choice\r\n"
+          "will give you access to the most feats possible regardless of class.\r\n"
+          "As you get more familiar with the feat system, there are opportunities\r\n"
+          "to reset your characters stats to try a different configuration.\r\n"
+          "Change made to base stat:   1  2  3  4  5  6  7  8   9   10\r\n"
+          "Point cost              :   1  2  3  4  5  6  8  10  13  16\r\n"
           "\r\n"
           "%s 0%s) Strength:      %d%s\r\n"
           "%s 1%s) Dexterity:     %d%s\r\n"
@@ -1825,35 +1831,26 @@ void study_parse(struct descriptor_data *d, char *arg) {
 
         default:
           number = atoi(arg);
+          write_to_output(d, "Please enter the value to modify your current stat by."
+              "  Example:  If you want to change your stat from 10 to 14, you would enter "
+              "'4' now.  If you wanted to change your stat from 10 to 8, you would enter '-2' now.\r\n");
           switch (number) {
             case 0: /* str */
-              write_to_output(d, "Please enter stat modification, if you want to"
-                      " reduce your stat by x, then you would type -x\r\n");
               OLC_MODE(d) = SET_STAT_STR;
               return;
             case 1: /* dex */
-              write_to_output(d, "Please enter stat modification, if you want to"
-                      " reduce your stat by x, then you would type -x\r\n");
               OLC_MODE(d) = SET_STAT_DEX;
               return;
             case 2: /* con */
-              write_to_output(d, "Please enter stat modification, if you want to"
-                      " reduce your stat by x, then you would type -x\r\n");
               OLC_MODE(d) = SET_STAT_CON;
               return;
             case 3: /* inte */
-              write_to_output(d, "Please enter stat modification, if you want to"
-                      " reduce your stat by x, then you would type -x\r\n");
               OLC_MODE(d) = SET_STAT_INTE;
               return;
             case 4: /* wis */
-              write_to_output(d, "Please enter stat modification, if you want to"
-                      " reduce your stat by x, then you would type -x\r\n");
               OLC_MODE(d) = SET_STAT_WIS;
               return;
             case 5: /* cha */
-              write_to_output(d, "Please enter stat modification, if you want to"
-                      " reduce your stat by x, then you would type -x\r\n");
               OLC_MODE(d) = SET_STAT_CHA;
               return;
             default: break;
@@ -1867,13 +1864,13 @@ void study_parse(struct descriptor_data *d, char *arg) {
     case SET_STAT_STR:
       number = MAX(-10, MIN(atoi(arg), 10));
       /*debug*/
-      write_to_output(d, "Number: %d\r\n", number);
+      //write_to_output(d, "Number: %d\r\n", number);
       points_left = stat_points_left(d->character);
       /*debug*/
-      write_to_output(d, "Points Left: %d\r\n", points_left);
+      //write_to_output(d, "Points Left: %d\r\n", points_left);
       new_stat = LEVELUP(d->character)->str + number;
       /*debug*/
-      write_to_output(d, "New Stat: %d\r\n", new_stat);
+      //write_to_output(d, "New Stat: %d\r\n", new_stat);
       if (new_stat < compute_base_str(d->character) ||
           new_stat > compute_base_str(d->character) + MAX_POINTS_IN_A_STAT) {
         write_to_output(d, "This would put you below/above the stat-cap!\r\n");
@@ -1882,7 +1879,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
       cost_for_number = compute_str_cost(d->character, number) -
               compute_str_cost(d->character, 0); /*total cost*/
       /*debug*/
-      write_to_output(d, "Cost for 'Number': %d\r\n", cost_for_number);
+      //write_to_output(d, "Cost for 'Number': %d\r\n", cost_for_number);
       if ((points_left - cost_for_number) >= 0) {
         if (new_stat >= compute_base_str(d->character) &&
             new_stat <= (compute_base_str(d->character)+MAX_POINTS_IN_A_STAT)) {
@@ -1903,13 +1900,13 @@ void study_parse(struct descriptor_data *d, char *arg) {
     case SET_STAT_DEX:
       number = MAX(-10, MIN(atoi(arg), 10));
       /*debug*/
-      write_to_output(d, "Number: %d\r\n", number);
+      //write_to_output(d, "Number: %d\r\n", number);
       points_left = stat_points_left(d->character);
       /*debug*/
-      write_to_output(d, "Points Left: %d\r\n", points_left);
+      //write_to_output(d, "Points Left: %d\r\n", points_left);
       new_stat = LEVELUP(d->character)->dex + number;
       /*debug*/
-      write_to_output(d, "New Stat: %d\r\n", new_stat);
+      //write_to_output(d, "New Stat: %d\r\n", new_stat);
       if (new_stat < compute_base_dex(d->character) ||
           new_stat > compute_base_dex(d->character) + MAX_POINTS_IN_A_STAT) {
         write_to_output(d, "This would put you below/above the stat-cap!\r\n");
@@ -1918,7 +1915,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
       cost_for_number = compute_dex_cost(d->character, number) -
               compute_dex_cost(d->character, 0);
       /*debug*/
-      write_to_output(d, "Cost for 'Number': %d\r\n", cost_for_number);
+      //write_to_output(d, "Cost for 'Number': %d\r\n", cost_for_number);
       if ((points_left - cost_for_number) >= 0) {
         if (new_stat >= compute_base_dex(d->character) &&
             new_stat <= (compute_base_dex(d->character)+MAX_POINTS_IN_A_STAT)) {
@@ -1939,13 +1936,13 @@ void study_parse(struct descriptor_data *d, char *arg) {
     case SET_STAT_CON:
       number = MAX(-10, MIN(atoi(arg), 10));
       /*debug*/
-      write_to_output(d, "Number: %d\r\n", number);
+      //write_to_output(d, "Number: %d\r\n", number);
       points_left = stat_points_left(d->character);
       /*debug*/
-      write_to_output(d, "Points Left: %d\r\n", points_left);
+      //write_to_output(d, "Points Left: %d\r\n", points_left);
       new_stat = LEVELUP(d->character)->con + number;
       /*debug*/
-      write_to_output(d, "New Stat: %d\r\n", new_stat);
+      //write_to_output(d, "New Stat: %d\r\n", new_stat);
       if (new_stat < compute_base_con(d->character) ||
           new_stat > compute_base_con(d->character) + MAX_POINTS_IN_A_STAT) {
         write_to_output(d, "This would put you below/above the stat-cap!\r\n");
@@ -1954,7 +1951,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
       cost_for_number = compute_con_cost(d->character, number) -
               compute_con_cost(d->character, 0);
       /*debug*/
-      write_to_output(d, "Cost for 'Number': %d\r\n", cost_for_number);
+      //write_to_output(d, "Cost for 'Number': %d\r\n", cost_for_number);
       if ((points_left - cost_for_number) >= 0) {
         if (new_stat >= compute_base_con(d->character) &&
             new_stat <= (compute_base_con(d->character)+MAX_POINTS_IN_A_STAT)) {
@@ -1975,13 +1972,13 @@ void study_parse(struct descriptor_data *d, char *arg) {
     case SET_STAT_INTE:
       number = MAX(-10, MIN(atoi(arg), 10));
       /*debug*/
-      write_to_output(d, "Number: %d\r\n", number);
+      //write_to_output(d, "Number: %d\r\n", number);
       points_left = stat_points_left(d->character);
       /*debug*/
-      write_to_output(d, "Points Left: %d\r\n", points_left);
+      //write_to_output(d, "Points Left: %d\r\n", points_left);
       new_stat = LEVELUP(d->character)->inte + number;
       /*debug*/
-      write_to_output(d, "New Stat: %d\r\n", new_stat);
+      //write_to_output(d, "New Stat: %d\r\n", new_stat);
       if (new_stat < compute_base_inte(d->character) ||
           new_stat > compute_base_inte(d->character) + MAX_POINTS_IN_A_STAT) {
         write_to_output(d, "This would put you below/above the stat-cap!\r\n");
@@ -1990,7 +1987,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
       cost_for_number = compute_inte_cost(d->character, number) -
               compute_inte_cost(d->character, 0);
       /*debug*/
-      write_to_output(d, "Cost for 'Number': %d\r\n", cost_for_number);
+      //write_to_output(d, "Cost for 'Number': %d\r\n", cost_for_number);
       if ((points_left - cost_for_number) >= 0) {
         if (new_stat >= compute_base_inte(d->character) &&
             new_stat <= (compute_base_inte(d->character)+MAX_POINTS_IN_A_STAT)) {
@@ -2011,13 +2008,13 @@ void study_parse(struct descriptor_data *d, char *arg) {
     case SET_STAT_WIS:
       number = MAX(-10, MIN(atoi(arg), 10));
       /*debug*/
-      write_to_output(d, "Number: %d\r\n", number);
+      //write_to_output(d, "Number: %d\r\n", number);
       points_left = stat_points_left(d->character);
       /*debug*/
-      write_to_output(d, "Points Left: %d\r\n", points_left);
+      //write_to_output(d, "Points Left: %d\r\n", points_left);
       new_stat = LEVELUP(d->character)->wis + number;
       /*debug*/
-      write_to_output(d, "New Stat: %d\r\n", new_stat);
+      //write_to_output(d, "New Stat: %d\r\n", new_stat);
       if (new_stat < compute_base_wis(d->character) ||
           new_stat > compute_base_wis(d->character) + MAX_POINTS_IN_A_STAT) {
         write_to_output(d, "This would put you below/above the stat-cap!\r\n");
@@ -2026,7 +2023,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
       cost_for_number = compute_wis_cost(d->character, number) -
               compute_wis_cost(d->character, 0);
       /*debug*/
-      write_to_output(d, "Cost for 'Number': %d\r\n", cost_for_number);
+      //write_to_output(d, "Cost for 'Number': %d\r\n", cost_for_number);
       if ((points_left - cost_for_number) >= 0) {
         if (new_stat >= compute_base_wis(d->character) &&
             new_stat <= (compute_base_wis(d->character)+MAX_POINTS_IN_A_STAT)) {
@@ -2047,13 +2044,13 @@ void study_parse(struct descriptor_data *d, char *arg) {
     case SET_STAT_CHA:
       number = MAX(-10, MIN(atoi(arg), 10));
       /*debug*/
-      write_to_output(d, "Number: %d\r\n", number);
+      //write_to_output(d, "Number: %d\r\n", number);
       points_left = stat_points_left(d->character);
       /*debug*/
-      write_to_output(d, "Points Left: %d\r\n", points_left);
+      //write_to_output(d, "Points Left: %d\r\n", points_left);
       new_stat = LEVELUP(d->character)->cha + number;
       /*debug*/
-      write_to_output(d, "New Stat: %d\r\n", new_stat);
+      //write_to_output(d, "New Stat: %d\r\n", new_stat);
       if (new_stat < compute_base_cha(d->character) ||
           new_stat > compute_base_cha(d->character) + MAX_POINTS_IN_A_STAT) {
         write_to_output(d, "This would put you below/above the stat-cap!\r\n");
