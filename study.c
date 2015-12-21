@@ -818,9 +818,9 @@ static void set_stats_menu(struct descriptor_data *d) {
 
   write_to_output(d,
           "\r\n-- %sSet Character Stats%s\r\n"
-          "From this menu you can set your starting stats.  If you are complete\r\n"
-          "unfamiliar with what type of stats you want, it is highly recommneded\r\n"
-          "to keep all values above 10, and spread out your points.  This choice\r\n"
+          "From this menu you can set your starting stats.  If you are completely\r\n"
+          "unfamiliar with what type of stats you want, it is highly recommended\r\n"
+          "to keep all values at or above 10, and spread out your points.  This choice\r\n"
           "will give you access to the most feats possible regardless of class.\r\n"
           "As you get more familiar with the feat system, there are opportunities\r\n"
           "to reset your characters stats to try a different configuration.\r\n"
