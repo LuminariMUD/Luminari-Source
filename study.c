@@ -822,6 +822,7 @@ static void set_stats_menu(struct descriptor_data *d) {
           "unfamiliar with what type of stats you want, it is highly recommended\r\n"
           "to keep all values at or above 10, and spread out your points.  This choice\r\n"
           "will give you access to the most feats possible regardless of class.\r\n"
+          "You will be required to use all your points before advancing your char.\r\n"
           "As you get more familiar with the feat system, there are opportunities\r\n"
           "to reset your characters stats to try a different configuration.\r\n"
           "Change made to base stat:   1  2  3  4  5  6  7  8   9   10\r\n"
