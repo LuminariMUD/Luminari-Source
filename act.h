@@ -135,7 +135,7 @@ ACMD(do_where);
 ACMD(do_who);
 ACMD(do_whois);
 ACMD(do_track);
-ACMD(do_class);
+ACMD(do_classfeats);
 ACMD(do_hp);
 ACMD(do_tnl);
 ACMD(do_moves);
