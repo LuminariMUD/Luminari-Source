@@ -1717,7 +1717,7 @@ void list_scanned_chars(struct char_data * list, struct char_data * ch, int
 
 /****  Commands ACMD ******/
 
-ACMD(do_class) {
+ACMD(do_classfeats) {
   int class = CLASS_UNDEFINED, i = 0, j = 0, feat = 0;
 
   skip_spaces(&argument);
