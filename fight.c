@@ -1312,7 +1312,9 @@ static void group_gain(struct char_data *ch, struct char_data *victim) {
       tot_members++;
       party_level += GET_LEVEL(k); 
   }
-  party_level /= tot_members;
+  
+  if (tot_members)
+    party_level /= tot_members;
   
   /* round up to the nearest tot_members */
   tot_gain = (GET_EXP(victim) / 3) + tot_members - 1;
