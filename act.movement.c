@@ -819,6 +819,9 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
   }
 
   //acrobatics check
+  
+  /* for now acrobatics check disabled */
+  /*************************************
   int cantFlee = 0;
 
   if (affected_by_spell(ch, SPELL_EXPEDITIOUS_RETREAT))
@@ -857,6 +860,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
     }
   }
 
+  *****************************/
 
   /* All checks passed, nothing will prevent movement now other than lack of
    * move points. */

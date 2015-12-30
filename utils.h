@@ -942,6 +942,11 @@ do                                                              \
 #define GET_BOOSTS(ch)		CHECK_PLAYER_SPECIAL((ch), \
 				((ch)->player_specials->saved.boosts))
 
+/* special spell macros */
+#define IS_EPIC_SPELL(spellnum) ( spellnum == SPELL_MUMMY_DUST || spellnum == SPELL_DRAGON_KNIGHT || \
+spellnum == SPELL_GREATER_RUIN || spellnum == SPELL_HELLBALL || spellnum == SPELL_EPIC_MAGE_ARMOR || \
+spellnum == SPELL_EPIC_WARDING )
+
 /* domain macros */
 #define GET_1ST_DOMAIN(ch)	CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.domain_1))
 #define GET_2ND_DOMAIN(ch)	CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.domain_2))
