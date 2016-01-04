@@ -502,7 +502,10 @@ ACMD(do_reboot) {
   } else if (!str_cmp(arg, "regions")) {
     /* Reload wilderness regions */    
     load_regions();
-  } else {
+  } else if (!str_cmp(arg, "paths")) {
+    /* Reload wilderness regions */    
+    load_paths();
+  }else {
     send_to_char(ch, "Unknown reload option.\r\n");
     return;
   }
