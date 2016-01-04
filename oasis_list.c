@@ -594,6 +594,37 @@ ACMD(do_oasis_list) {
   }
 
   switch (subcmd) {
+    case SCMD_OASIS_PATHLIST:
+      two_arguments(argument, arg, arg2);
+      if (!IS_WILDERNESS_VNUM(world[IN_ROOM(ch)].number)) {
+        send_to_char(ch, "This command is only available while in the wilderness.\r\n");
+        return;
+      }        
+      if (is_abbrev(arg, "help")) {
+        send_to_char(ch, "Usage: %spathlist <distance>%s    - List paths within a particular distance\r\n", QYEL, QNRM);
+        send_to_char(ch, "       %spathlist type <num>%s    - List all paths with the specified type\r\n", QYEL, QNRM);
+        send_to_char(ch, "Just type %spathlist types%s to view available path types.\r\n", QYEL, QNRM);
+        return;
+      } else if(is_abbrev(arg, "types")) {
+          if (!*arg2) {
+            send_to_char(ch, "Which type of path do you want to list?\r\n");
+            send_to_char(ch, "Available types are:\r\n");
+            send_to_char(ch, "\t1 - Road\r\n");
+            send_to_char(ch, "\t2 - Dirt Road\r\n");
+            send_to_char(ch, "\t5 - Water\r\n");
+            send_to_char(ch, "\r\n");
+            return;
+          } /*else {
+          perform_region_type_list(ch, arg2); 
+        }
+             
+        if (!*arg2 && is_number(arg)) 
+          perform_region_dist_list(ch, arg);
+        else*/
+      }
+      list_paths(ch);        
+        
+      break;  
     case SCMD_OASIS_REGLIST:
       two_arguments(argument, arg, arg2);
       if (!IS_WILDERNESS_VNUM(world[IN_ROOM(ch)].number)) {
@@ -840,6 +871,7 @@ static void list_regions(struct char_data *ch) {
   else
     page_string(ch->desc, buf, TRUE);
 }
+
 /* List all paths in wilderness. */
 static void list_paths(struct char_data *ch) {
   int i;
