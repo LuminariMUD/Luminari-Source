@@ -863,7 +863,7 @@ static void list_paths(struct char_data *ch) {
               QYEL, path_table[i].name, QNRM,
               QYEL, (path_table[i].path_type == 1 ? "Road" :
                       (path_table[i].path_type == 2 ? "Dirt Road" :
-                        (path_table[i].path_type == 5 ? "Water"))), QNRM,
+                        (path_table[i].path_type == 5 ? "Water" : "[UNKNOWN]"))), QNRM,
               QYEL, path_table[i].glyphs[0], path_table[i].glyphs[1], path_table[i].glyphs[2], QNRM
               );
 
