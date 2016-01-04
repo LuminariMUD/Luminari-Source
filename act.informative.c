@@ -834,6 +834,7 @@ void look_at_room(struct char_data *ch, int ignore_brief) {
   int can_infra_in_dark = FALSE, world_map = FALSE, room_dark = FALSE;
   zone_rnum zn;
   char buf[MAX_STRING_LENGTH];
+  char* generated_desc = NULL;
 
   if (!ch->desc)
     return;
@@ -933,8 +934,13 @@ void look_at_room(struct char_data *ch, int ignore_brief) {
              || ignore_brief || ROOM_FLAGGED(IN_ROOM(ch), ROOM_DEATH)) {
     if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOMAP) && can_see_map(ch)) {
       str_and_map(world[target_room].description, ch, target_room);
+    } else if (world_map && !PRF_FLAGGED(ch, PRF_AUTOMAP) { 
+      generated_desc = gen_room_description(ch, IN_ROOM(ch));
+      send_to_char(ch, "%s", generated_desc);
+      free(generated_desc);
     } else {
-      send_to_char(ch, "%s", world[IN_ROOM(ch)].description);  
+        send_to_char(ch, "%s", world[IN_ROOM(ch)].description);  
+      }
     }
   } else if (can_infra_in_dark) {
     send_to_char(ch, "\tDIt is hard to make out too much detail with just \trinfravision\tD.\r\n");
