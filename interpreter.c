@@ -369,7 +369,8 @@ cpp_extern const struct command_info cmd_info[] = {
   { "ocopy", "ocopy", POS_DEAD, do_oasis_copy, LVL_STAFF, CON_OEDIT, TRUE, ACTION_NONE, {0, 0}},
   { "omit", "omit", POS_RECLINING, do_gen_forget, 0, SCMD_OMIT, FALSE, ACTION_NONE, {0, 0}},
   //{ "objlist", "objlist", POS_DEAD, do_objlist, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},
-
+  
+  { "pathlist", "pathlist", POS_DEAD, do_oasis_list, LVL_BUILDER, SCMD_OASIS_PATHLIST, TRUE, ACTION_NONE, {0, 0}},
   { "put", "p", POS_RECLINING, do_put, 0, 0, FALSE, ACTION_NONE, {0, 0}},
   { "peace", "pe", POS_DEAD, do_peace, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},
   { "pick", "pi", POS_STANDING, do_gen_door, 1, SCMD_PICK, FALSE, ACTION_NONE, {0, 0}},
