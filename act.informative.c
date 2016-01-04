@@ -940,7 +940,6 @@ void look_at_room(struct char_data *ch, int ignore_brief) {
       free(generated_desc);
     } else {
         send_to_char(ch, "%s", world[IN_ROOM(ch)].description);  
-      }
     }
   } else if (can_infra_in_dark) {
     send_to_char(ch, "\tDIt is hard to make out too much detail with just \trinfravision\tD.\r\n");
