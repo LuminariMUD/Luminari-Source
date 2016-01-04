@@ -6470,7 +6470,7 @@ SPECIAL(storage_chest) {
 /* from homeland */
 SPECIAL(clang_bracer) {
   if (!cmd && !strcmp(argument, "identify")) {
-    send_to_char(ch, "Dwarf-Only.  Invoke battle prowess by saying 'clangeddin'.\r\n");
+    send_to_char(ch, "Dwarf and Group Only.  Invoke battle prowess by saying 'argenoth'.\r\n");
     return 1;
   }
 
@@ -6499,7 +6499,7 @@ SPECIAL(clang_bracer) {
       return 0;
     skip_spaces(&argument);
 
-    if (!strcmp(argument, "clangeddin")) {
+    if (!strcmp(argument, "argenoth")) {
       if (GET_OBJ_SPECTIMER((struct obj_data *) me, 0) > 0) {
         send_to_char(ch, "You attempt to invoke your bracer, but nothing happens.\r\n");
         return 1;
