@@ -442,7 +442,7 @@ void load_paths() {
   MYSQL_RES *result;
   MYSQL_ROW row;
 
-  int i = 0, vtx = 0;
+  int i = 0, vtx = 0, j = 0;
   int numrows;
 
   char buf[1024];
