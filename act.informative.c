@@ -934,7 +934,7 @@ void look_at_room(struct char_data *ch, int ignore_brief) {
              || ignore_brief || ROOM_FLAGGED(IN_ROOM(ch), ROOM_DEATH)) {
     if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOMAP) && can_see_map(ch)) {
       str_and_map(world[target_room].description, ch, target_room);
-    } else if (world_map && !PRF_FLAGGED(ch, PRF_AUTOMAP) { 
+    } else if (world_map && !PRF_FLAGGED(ch, PRF_AUTOMAP)) { 
       generated_desc = gen_room_description(ch, IN_ROOM(ch));
       send_to_char(ch, "%s", generated_desc);
       free(generated_desc);
