@@ -4661,6 +4661,7 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
     case SPELL_FIRE_SEEDS:
       to_char = "You create $p.";
       to_room = "$n creates $p.";
+      send_to_char(ch, "Drop <item name> to start grenade, it will explode in 3 seconds.\r\n");
       if (rand_number(0, 1))
         object_vnum = 9404;
       else

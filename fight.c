@@ -186,7 +186,7 @@ void guard_check(struct char_data *ch, struct char_data *vict) {
    the engine for fleeing */
 void perform_flee(struct char_data *ch) {
   int i, found = 0, fleeOptions[DIR_COUNT];
-  struct char_data *was_fighting;
+  struct char_data *was_fighting, *k, *temp;
 
   /* disqualifications? */
   if (AFF_FLAGGED(ch, AFF_STUN) || AFF_FLAGGED(ch, AFF_DAZED) ||
@@ -237,9 +237,19 @@ void perform_flee(struct char_data *ch) {
     if (do_simple_move(ch, fleeOptions[rand_number(0, found - 1)], 3)) {
       send_to_char(ch, "You quickly flee from combat...\r\n");
       act("$n quickly flees the battle!", TRUE, ch, 0, 0, TO_ROOM);
-      stop_fighting(ch);
-      if (was_fighting && ch == FIGHTING(was_fighting))
-        stop_fighting(was_fighting);
+      
+      /* lets stop combat here, further consideration might be to continue
+         ranged combat -zusuk */
+      /* fleer */
+      if (FIGHTING(ch))
+        stop_fighting(ch);
+      /* fighting fleer */
+      for (k = combat_list; k; k = temp) {
+        temp = k->next_fighting;
+        if (FIGHTING(k) == ch)
+          stop_fighting(k);
+      }
+      
     } else { //failure
       send_to_char(ch, "You failed to flee the battle...\r\n");
       act("$n failed to flee the battle!", TRUE, ch, 0, 0, TO_ROOM);
@@ -6027,7 +6037,10 @@ void perform_violence(struct char_data *ch, int phase) {
         GET_POS(ch) = POS_FIGHTING;
         attacks_of_opportunity(ch, 0);
         send_to_char(ch, "You scramble to your feet!\r\n");
-        act("$n scrambles to $s feet!", TRUE, ch, 0, 0, TO_ROOM);
+        if (AFF_FLAGGED(ch, AFF_FLYING))
+          act("$n scrambles to $s feet then launches back into the air!", TRUE, ch, 0, 0, TO_ROOM);
+        else
+          act("$n scrambles to $s feet!", TRUE, ch, 0, 0, TO_ROOM);
       }
     }
   }
