@@ -482,6 +482,14 @@ void load_paths() {
    return;
  else {
     /* Allocate memory for all of the region data. */
+   if (path_table != NULL) {
+     /* Clear it */
+     for (j = 0; j <= top_of_path_table;j++) {
+       free(path_table[j].name);
+       free(path_table[j].vertices);                     
+     }
+     free(region_table);
+   }
     CREATE(path_table, struct path_data, numrows);
   }
  

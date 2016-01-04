@@ -45,6 +45,7 @@ static void list_objects(struct char_data *ch, zone_rnum rnum, obj_vnum vmin, ob
 static void list_shops(struct char_data *ch, zone_rnum rnum, shop_vnum vmin, shop_vnum vmax);
 static void list_zones(struct char_data *ch, zone_rnum rnum, zone_vnum vmin, zone_vnum vmax, char *name);
 static void list_regions(struct char_data *ch);
+static void list_paths(struct char_data *ch);
 
 void perform_mob_flag_list(struct char_data * ch, char *arg) {
   int num, mob_flag, found = 0, len;
@@ -801,7 +802,7 @@ ACMD(do_oasis_links) {
 
 /* Helper Functions */
 
-/* List all mobiles in a zone. */
+/* List all regions in wilderness. */
 static void list_regions(struct char_data *ch) {
   int i;
   int counter = 0, len;
@@ -827,6 +828,43 @@ static void list_regions(struct char_data *ch) {
                         (region_table[i].region_type == 3 ? "Sect.Transfm" :
                           (region_table[i].region_type == 4 ? "Sector" : "UNKNOWN" )))), QNRM,
               QYEL, (region_table[i].region_type == 4 ? sector_types[region_table[i].region_props] : "[N/A]"), QNRM
+              );
+
+      if (len > sizeof (buf))
+        break;
+    
+  }
+
+  if (counter == 0)
+    send_to_char(ch, "None found.\r\n");
+  else
+    page_string(ch->desc, buf, TRUE);
+}
+/* List all paths in wilderness. */
+static void list_paths(struct char_data *ch) {
+  int i;
+  int counter = 0, len;
+  char buf[MAX_STRING_LENGTH];
+
+  len = strlcpy(buf,
+          "Ind|VNum   | Name                                |Type        |Glyphs\r\n"
+          "--- ------- ------------------------------------- ------------ ---------------\r\n",
+          sizeof (buf));
+  if (!top_of_path_table)
+    return;
+
+  for (i = 0; i <= top_of_path_table; i++) {
+    counter++;
+
+    len += snprintf(buf + len, sizeof (buf) - len,
+              "%s%3d%s|%s%-7d%s|%s%-37s%s|%s%12s%s|%s%s%s%s%s\r\n",
+              QGRN, counter, QNRM,
+              QGRN, path_table[i].vnum, QNRM,
+              QYEL, path_table[i].name, QNRM,
+              QYEL, (path_table[i].path_type == 1 ? "Road" :
+                      (path_table[i].region_type == 2 ? "Dirt Road" :
+                        (path_table[i].region_type == 5 ? "Water"))), QNRM,
+              QYEL, path_table[i].glyphs[0], path_table[i].glyphs[1], path_table[i].glyphs[2], QNRM
               );
 
       if (len > sizeof (buf))
