@@ -6501,10 +6501,21 @@ SPECIAL(clang_bracer) {
 
     if (!strcmp(argument, "clangeddin")) {
       if (GET_OBJ_SPECTIMER((struct obj_data *) me, 0) > 0) {
-        send_to_char(ch, "Nothing happens.\r\n");
+        send_to_char(ch, "You attempt to invoke your bracer, but nothing happens.\r\n");
         return 1;
       }
+      
+      struct group_data *group;
 
+      if ((group = GROUP(ch)) == NULL) {
+        send_to_char(ch, "You recall from lore this item will not work unless in a group.\r\n");
+        return 0;
+      }
+
+      /* success! */
+      send_to_group(NULL, group, "The memories of ancient battles fills your mind, each "
+          "blow clear as if it were yesterday.  You feel your muscles tighten "
+          "then relax as the skill of ancient warriors is merged with your own.\r\n",);      
       call_magic(ch, ch, 0, SPELL_MASS_ENHANCE, 30, CAST_POTION);
       GET_OBJ_SPECTIMER((struct obj_data *) me, 0) = 24;
       return 1;

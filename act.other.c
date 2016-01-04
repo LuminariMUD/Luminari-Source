@@ -1989,6 +1989,9 @@ void cleanup_wildshape_feats(struct char_data *ch) {
       REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_SCUBA);
       REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_WATER_BREATH);
       break;
+    case RACE_EAGLE:
+      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLYING);
+      break;
     default:break;
   }
 }
