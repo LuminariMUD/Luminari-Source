@@ -312,7 +312,7 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
 
       /* Override default values with path-based values. */
       for (curr_path = paths; curr_path != NULL; curr_path = curr_path->next) {
-        if (curr_path->rnum != NOWHERE) /*added by zusuk*/
+        //if (curr_path->rnum != NOWHERE) /*added by zusuk*/
         switch (path_table[curr_path->rnum].path_type) {
           case PATH_ROAD:
           case PATH_RIVER:
@@ -351,6 +351,7 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
     trans_y = MAX(0, MIN((int) pos[1] - y_offset, ysize));
 
     if ((trans_x < xsize) && (trans_y < ysize)) {
+      log ("Altering room (%d, %d) based on kd-tree index!\r\n", pos[0], pos[1]);
       map[trans_x][trans_y].sector_type = world[*room].sector_type;
       map[trans_x][trans_y].glyph = NULL;
     }
