@@ -315,6 +315,7 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
         //if (curr_path->rnum != NOWHERE) /*added by zusuk*/
         switch (path_table[curr_path->rnum].path_type) {
           case PATH_ROAD:
+          case PATH_DIRT_ROAD:            
           case PATH_RIVER:
             map[x][y].sector_type = path_table[curr_path->rnum].path_props;
             map[x][y].glyph = path_table[curr_path->rnum].glyphs[curr_path->glyph_type];
