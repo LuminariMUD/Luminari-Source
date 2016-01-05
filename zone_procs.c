@@ -1078,32 +1078,32 @@ SPECIAL(tia_rapier) {
 
   if (vict) {
     if (!rand_number(0, 45)) {
-      act("&cWA &cBwave &cWof &cLdarkness &cBoozes &cWslowly from your sword, &cbengulfing &cWthe &c0\r\n"
-          "&cWarea in a &cLvoid &cWof &cLblack.&cW  You begin to perceive the &cBfaint outline &c0\r\n"
-          "&cWof a &cBdragon&cW surrouding your &cbrapier. &cWThe &cBimage &cWbegins to fiercely &cbclaw &c0\r\n"
-          "&cWand &cBsavagely &cbbite &cWat &c0$N's &cWbody.&c0",
+      act("\tWA \tBwave \tWof \tDdarkness \tBoozes \tWslowly from your sword, \tbengulfing \tWthe \tn\r\n"
+          "\tWarea in a \tLvoid \tWof \tLblack.\tW  You begin to perceive the \tBfaint outline \tn\r\n"
+          "\tWof a \tBdragon\tW surrouding your \tbrapier. \tWThe \tBimage \tWbegins to fiercely \tbclaw \tn\r\n"
+          "\tWand \tBsavagely \tbbite \tWat \tn$N's \tWbody.\tn",
           FALSE, ch, 0, vict, TO_CHAR);
-      act("&cwA &cBwave&cW of &cLdarkness &cBoozes &cWslowly from &cb$n's &cWsword, &cbengulfing &cWthe &c0\r\n"
-          "&cWarea in a &cLvoid &cWof &cLblack.&cW  You begin to perceive the &cBfaint outline &c0\r\n"
-          "&cWof a &cBdragon&cW surrouding &cB&s &cbrapier.&cW  The &cBimage &cWbegins to fiercely &cbclaw &c0\r\n"
-          "&cWand &cBsavagely &cbbite &cWat &c0$N's &cWbody.&c0",
+      act("\twA \tBwave\tW of \tLdarkness \tBoozes \tWslowly from \tb$n's \tWsword, \tbengulfing \tWthe \tn\r\n"
+          "\tWarea in a \tLvoid \tWof \tLblack.\tW  You begin to perceive the \tBfaint outline \tn\r\n"
+          "\tWof a \tBdragon\tW surrouding \tB&s \tbrapier.\tW  The \tBimage \tWbegins to fiercely \tbclaw \tn\r\n"
+          "\tWand \tBsavagely \tbbite \tWat \tn$N's \tWbody.\tn",
           FALSE, ch, 0, vict, TO_ROOM);
       damage(ch, vict, rand_number(120, 200), -1, DAM_ENERGY, FALSE);  // type -1 = no dam message
       return 1;
     }
 
     if (!rand_number(0, 120)) {
-      weapons_spells("&cWSuddenly your &c0$p&cW is enveloped by &cbsheer &cLdarkness, &cWleaving only a pair of &c0\r\n"
-                   "&cBblazing eyes &cWgazing directly into the &cBsoul&cW of &c0$N&cW.  A sudden wave of &cBterror &cbovercomes &c0\r\n"
-                   "&c0$N&cW, who begins to &cbtremble violently&cW and lose &cBcontrol &cWof $s senses.&c0",
+      weapons_spells("\tWSuddenly your \tn$p\tW is enveloped by \tbsheer \tLdarkness, \tWleaving only a pair of \tn\r\n"
+                   "\tBblazing eyes \tWgazing directly into the \tBsoul\tW of \tn$N\tW.  A sudden wave of \tBterror \tbovercomes \tn\r\n"
+                   "\tn$N\tW, who begins to \tbtremble violently\tW and lose \tBcontrol \tWof $s senses.\tn",
 
-                   "&cW$n's &cWsword is enveloped by &cbsheer &cLdarkness,&cW leaving only a pair of &cBblazing eyes&cW gazing &c0\r\n"
-                   "&cWdirectly into the &cBsoul&cW of &c0$N&cW.  A sudden wave of &cBterror &cbovercomes &c0$n&cW, who begins to &c0\r\n"
-                   "&cbtremble violenty &cWand lose &cBcontrol&cW of $s senses.&c0",
+                   "\tW$n's \tWsword is enveloped by \tbsheer \tLdarkness,\tW leaving only a pair of \tBblazing eyes\tW gazing \tn\r\n"
+                   "\tWdirectly into the \tBsoul\tW of \tn$N\tW.  A sudden wave of \tBterror \tbovercomes \tn$n\tW, who begins to \tn\r\n"
+                   "\tbtremble violenty \tWand lose \tBcontrol\tW of $s senses.\tn",
 
-                   "&cW$n's sword is enveloped by &cbsheer &cLdarkness,&cW leaving only a pair of &cBblazing eyes&cW gazing &c0\r\n"
-                   "&cWdirectly into the &cBsoul&cb of &c0$N&cW.  A sudden wave of &cBterror &cbovercomes &c0$N&cW, who begins&c0\r\n"
-                   "&cWto &cbtremble violenty &cWand lose &cBcontrol &cWof $S senses.&c0",
+                   "\tW$n's sword is enveloped by \tbsheer \tLdarkness,\tW leaving only a pair of \tBblazing eyes\tW gazing \tn\r\n"
+                   "\tWdirectly into the \tBsoul\tb of \tn$N\tW.  A sudden wave of \tBterror \tbovercomes \tn$N\tW, who begins\tn\r\n"
+                   "\tWto \tbtremble violenty \tWand lose \tBcontrol \tWof $S senses.\tn",
                    ch, vict, (struct obj_data *) me, SPELL_IRRESISTIBLE_DANCE);
       return 1;
     }
