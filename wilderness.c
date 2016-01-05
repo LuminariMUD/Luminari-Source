@@ -351,7 +351,7 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
     trans_y = MAX(0, MIN((int) pos[1] - y_offset, ysize));
 
     if ((trans_x < xsize) && (trans_y < ysize)) {
-      log ("Altering room (%f, %f) based on kd-tree index!\r\n", pos[0], pos[1]);
+      // log ("Altering room (%f, %f) based on kd-tree index!\r\n", pos[0], pos[1]);
       map[trans_x][trans_y].sector_type = world[*room].sector_type;
       map[trans_x][trans_y].glyph = NULL;
     }
@@ -544,7 +544,8 @@ void assign_wilderness_room(room_rnum room, int x, int y) {
       log("PATH: %s found!", path_table[curr_path->rnum].name);
       switch (path_table[curr_path->rnum].path_type) {
         case PATH_ROAD:
-        case PATH_RIVER:
+        case PATH_DIRT_ROAD:
+        case PATH_RIVER:          
           world[room].name = strdup(path_table[curr_path->rnum].name);
           world[room].sector_type = path_table[curr_path->rnum].path_props;
           break;
