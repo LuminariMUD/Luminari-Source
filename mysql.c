@@ -488,7 +488,7 @@ void load_paths() {
        free(path_table[j].name);
        free(path_table[j].vertices);                     
      }
-     free(region_table);
+     free(path_table);
    }
     CREATE(path_table, struct path_data, numrows);
   }
