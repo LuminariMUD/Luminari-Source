@@ -1310,6 +1310,51 @@ static void skfeat_disp_menu(struct descriptor_data *d) {
   The handler
  **************************************************************************/
 
+/* we add to add this function to make sure training points are properly
+ calculated based on stat changes */
+void reset_training_points(struct char_data *ch) {
+  int i = 0, trains = 0, int_bonus = 0;
+
+  /* first reset all trained abilities */  
+  for (i = 1; i <= NUM_ABILITIES; i++)
+    SET_ABILITY(ch, i, 0);
+    
+  /* determine intelligence bonus */
+  int_bonus = (int) ((LEVELUP(ch)->inte - 10) / 2);
+
+  /* use class to establish base skill points */
+  switch (GET_CLASS(ch)) {
+    case CLASS_WARRIOR:
+    case CLASS_WEAPON_MASTER:
+    case CLASS_WIZARD:
+    case CLASS_CLERIC:
+      trains = (2 + int_bonus) * 4;
+      break;
+    case CLASS_DRUID:
+    case CLASS_RANGER:
+    case CLASS_BERSERKER:
+    case CLASS_MONK:
+      trains = (4 + int_bonus) * 4;
+      break;
+    case CLASS_BARD:
+      trains = (6 + int_bonus) * 4;
+      break;
+    case CLASS_ROGUE:
+      trains = (8 + int_bonus) * 4;
+      break;    
+    default: break;
+  }
+  
+  /* minimum value for trains */
+  if (trains < 4)
+    trains = 4;
+  
+  /* human bonus */
+  trains += 4;
+  
+  /* finalize */
+  LEVELUP(ch)->trains = trains;  
+}
 
 void study_parse(struct descriptor_data *d, char *arg) {
   struct char_data *ch = d->character;
@@ -1349,7 +1394,14 @@ void study_parse(struct descriptor_data *d, char *arg) {
       switch (*arg) {
         case 'q':
         case 'Q':
-          write_to_output(d, "[DISABLED: You can currently study as much as you want per level] If you save your changes, you will not be able to study again until your next level.\r\n");
+          if (GET_LEVEL(ch) == 1) {            
+            write_to_output(d, "Your training points will be reset upon exit to "
+                "account for any changes made to stats. (This will only occur at "
+                "level 1)\r\n");
+            reset_training_points(ch);
+          }
+          write_to_output(d, "You can currently study as much as you want per level.\r\n");
+          /* in the future we will probably change study to be limited to 1/ level ?*/
           write_to_output(d, "Do you wish to save your changes? : ");
           OLC_MODE(d) = STUDY_CONFIRM_SAVE;
           break;
