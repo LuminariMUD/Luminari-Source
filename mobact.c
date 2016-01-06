@@ -26,6 +26,8 @@
 #include "modify.h"
 #include "mobact.h"
 #include "shop.h"
+#include "quest.h" /* so you can identify questmaster mobiles */
+#include "dg_scripts.h" /* so you can identify script mobiles */
 
 /***********/
 
@@ -947,6 +949,20 @@ void npc_spellup(struct char_data *ch) {
     return;
   }
   
+  /* mobs with triggers / autoquest / quest will no longer invis */
+  if (IS_MOB(ch) && (
+          (SCRIPT(ch) && TRIGGERS(SCRIPT(ch))) ||
+          (ch->mob_specials.quest) ||
+          (GET_MOB_SPEC(ch) == questmaster)
+          ) &&
+        ( spellnum == SPELL_GREATER_INVIS ||
+          spellnum == SPELL_INVISIBLE
+        )
+          ) {
+    /* these type of mobs casting invis is problematic */
+    return;
+  }
+
   /* end special restrictions */
   
   if (loop_counter < (MAX_LOOPS))

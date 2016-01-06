@@ -2205,8 +2205,6 @@ void join_group(struct char_data *ch, struct group_data *group) {
 }
 
 /* mount related stuff */
-
-
 void dismount_char(struct char_data *ch) {
   if (RIDING(ch)) {
     RIDDEN_BY(RIDING(ch)) = NULL;
