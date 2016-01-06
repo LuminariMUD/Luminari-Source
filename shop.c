@@ -953,7 +953,7 @@ static void shopping_value(char *arg, struct char_data *ch, struct char_data *ke
     do_tell(keeper, buf2, cmd_tell, 0);
   }       
   
-  snprintf(buf, sizeof(buf), "%s I'll give you %d gold coins for that!", GET_NAME(ch), sell_price(obj, shop_nr, keeper, ch));
+  snprintf(buf, sizeof(buf), "%s That is worth %d coins to me...", GET_NAME(ch), sell_price(obj, shop_nr, keeper, ch));
   do_tell(keeper, buf, cmd_tell, 0);
 }
 
