@@ -53,12 +53,17 @@ static int handle_obj(struct obj_data *obj, struct char_data *ch, int locate, st
 static int objsave_write_rentcode(FILE *fl, int rentcode, int cost_per_day, struct char_data *ch);
 
 /* Writes one object record to FILE.  Old name: Obj_to_store() */
+/* this function will basically check if an individual object has been modified
+ from its default state, if so we write those modifications to file, otherwise
+ the vnum is adequate
+ *note: this always will return 1 */
 int objsave_save_obj_record(struct obj_data *obj, FILE *fp, int locate) {
-  int counter2;
+  int counter2, i = 0;
   struct extra_descr_data *ex_desc;
   char buf1[MAX_STRING_LENGTH + 1];
   struct obj_data *temp = NULL;
 
+  /* load up the object */
   if (GET_OBJ_VNUM(obj) != NOTHING)
     temp = read_object(GET_OBJ_VNUM(obj), VIRTUAL);
   else {
@@ -66,16 +71,21 @@ int objsave_save_obj_record(struct obj_data *obj, FILE *fp, int locate) {
     temp->item_number = NOWHERE;
   }
 
+  /* copy the action-description to buf1 */
   if (obj->action_description) {
-
     strcpy(buf1, obj->action_description);
     strip_cr(buf1);
   } else
     *buf1 = 0;
 
   fprintf(fp, "#%d\n", GET_OBJ_VNUM(obj));
+  
+  /* autoequip location? */
   if (locate)
     fprintf(fp, "Loc : %d\n", locate);
+  
+  /**** start checks for modifications to default object! ***/
+  /* is object modified from default values? */
   if (GET_OBJ_VAL(obj, 0) != GET_OBJ_VAL(temp, 0) ||
           GET_OBJ_VAL(obj, 1) != GET_OBJ_VAL(temp, 1) ||
           GET_OBJ_VAL(obj, 2) != GET_OBJ_VAL(temp, 2) ||
@@ -153,7 +163,7 @@ int objsave_save_obj_record(struct obj_data *obj, FILE *fp, int locate) {
   if (TEST_OBJN(wear_flags))
     fprintf(fp, "Wear: %d %d %d %d\n", GET_OBJ_WEAR(obj)[0], GET_OBJ_WEAR(obj)[1], GET_OBJ_WEAR(obj)[2], GET_OBJ_WEAR(obj)[3]);
 
-  /* Do we have affects? */
+  /* Do we have modified affects? */
   for (counter2 = 0; counter2 < MAX_OBJ_AFFECT; counter2++)
     if (obj->affected[counter2].modifier != temp->affected[counter2].modifier)
       fprintf(fp, "Aff : %d %d %d\n",
@@ -162,7 +172,7 @@ int objsave_save_obj_record(struct obj_data *obj, FILE *fp, int locate) {
             obj->affected[counter2].modifier
             );
 
-  /* Do we have extra descriptions? */
+  /* Do we have modified extra descriptions? */
   if (obj->ex_description || temp->ex_description) {
     /* To be reimplemented.  Need to handle this case in loading as
        well */
@@ -186,17 +196,14 @@ int objsave_save_obj_record(struct obj_data *obj, FILE *fp, int locate) {
     }
   }
 
-  int i = 0;
-  /* got spells? */
+  /* got modified spells in spellbook? */
   if (obj->sbinfo) { /*. Yep, save them too . */
     for (i = 0; i < SPELLBOOK_SIZE; i++) {
-  //    if (obj->sbinfo[i].spellname == 0) {
-    //    break;
-  //    }
       fprintf(fp, "Spbk: %d %d\n", obj->sbinfo[i].spellname, obj->sbinfo[i].pages);
-//      continue;
     }
   }
+  
+  /*** end checks for object modifications ****/
 
   fprintf(fp, "\n");
 
@@ -208,7 +215,8 @@ int objsave_save_obj_record(struct obj_data *obj, FILE *fp, int locate) {
 #undef TEST_OBJS
 #undef TEST_OBJN
 
-/* AutoEQ by Burkhard Knopf. */
+/* AutoEQ by Burkhard Knopf.  This function will return items loaded from
+ * file to the correct equipment position slot worn by the char */
 static void auto_equip(struct char_data *ch, struct obj_data *obj, int location) {
   int j;
 
@@ -348,6 +356,7 @@ static void auto_equip(struct char_data *ch, struct obj_data *obj, int location)
     obj_to_char(obj, ch);
 }
 
+/* given a character's name, delete their crash-save-file */
 int Crash_delete_file(char *name) {
   char filename[MAX_INPUT_LENGTH];
   FILE *fl;
@@ -366,6 +375,7 @@ int Crash_delete_file(char *name) {
   if (remove(filename) < 0 && errno != ENOENT)
     log("SYSERR: deleting crash file %s (2): %s", filename, strerror(errno));
 
+  /* we have successfully deleted the crash-save-file */
   return TRUE;
 }
 
@@ -536,6 +546,8 @@ int Crash_load(struct char_data *ch) {
   return (Crash_load_objs(ch));
 }
 
+/* recursive function using linked lists to go through object lists to save
+ all objects to file (like bag contents) */
 static int Crash_save(struct obj_data *obj, FILE *fp, int location) {
   struct obj_data *tmp;
   int result;
@@ -544,6 +556,7 @@ static int Crash_save(struct obj_data *obj, FILE *fp, int location) {
     Crash_save(obj->next_content, fp, location);
     Crash_save(obj->contains, fp, MIN(0, location) - 1);
 
+    /* save a single object to file */
     result = objsave_save_obj_record(obj, fp, location);
 
     for (tmp = obj->in_obj; tmp; tmp = tmp->in_obj)
@@ -555,6 +568,7 @@ static int Crash_save(struct obj_data *obj, FILE *fp, int location) {
   return (TRUE);
 }
 
+/* makes sure containers have proper weight for carrying objects with weight value */
 static void Crash_restore_weight(struct obj_data *obj) {
   if (obj) {
     Crash_restore_weight(obj->contains);
@@ -580,6 +594,7 @@ static void Crash_extract_norent_eq(struct char_data *ch) {
   }
 }
 
+/* recursively remove objects and their contents */
 static void Crash_extract_objs(struct obj_data *obj) {
   if (obj) {
     Crash_extract_objs(obj->contains);
@@ -644,22 +659,28 @@ void Crash_crashsave(struct char_data *ch) {
   if (!(fp = fopen(buf, "w")))
     return;
 
+  /* write to file rentcode: rentcode, time, cost for renting, gold, bank-gold */
   if (!objsave_write_rentcode(fp, RENT_CRASH, 0, ch))
     return;
 
   for (j = 0; j < NUM_WEARS; j++)
     if (GET_EQ(ch, j)) {
+      /* recursive write-to-file function (like bags) */
       if (!Crash_save(GET_EQ(ch, j), fp, j + 1)) {
         fclose(fp);
         return;
       }
+      /* makes sure containers have proper weight for carrying objects with weight value */
       Crash_restore_weight(GET_EQ(ch, j));
     }
 
+  /* inventory: recursive write-to-file function (like bags) */
   if (!Crash_save(ch->carrying, fp, 0)) {
     fclose(fp);
     return;
   }
+  
+  /* makes sure containers have proper weight for carrying objects with weight value */
   Crash_restore_weight(ch->carrying);
 
   fprintf(fp, "$~\n");
@@ -717,19 +738,25 @@ void Crash_idlesave(struct char_data *ch) {
     }
   }
 
+  /* write to file rentcode: rentcode, time, cost for renting, gold, bank-gold */
   if (!objsave_write_rentcode(fp, RENT_TIMEDOUT, cost, ch))
     return;
 
   for (j = 0; j < NUM_WEARS; j++) {
     if (GET_EQ(ch, j)) {
+      /* recursive write-to-file function (like bags) */
       if (!Crash_save(GET_EQ(ch, j), fp, j + 1)) {
         fclose(fp);
         return;
       }
+      /* makes sure containers have proper weight for carrying objects with weight value */
       Crash_restore_weight(GET_EQ(ch, j));
+      /* recursively remove objects and their contents */
       Crash_extract_objs(GET_EQ(ch, j));
     }
   }
+
+  /* inventory: recursive write-to-file function (like bags) */
   if (!Crash_save(ch->carrying, fp, 0)) {
     fclose(fp);
     return;
@@ -737,9 +764,12 @@ void Crash_idlesave(struct char_data *ch) {
   fprintf(fp, "$~\n");
   fclose(fp);
 
+  /* recursively remove objects and their contents */
   Crash_extract_objs(ch->carrying);
 }
 
+/* primary function for saving player object file, will extract objs once
+ * file is closed */
 void Crash_rentsave(struct char_data *ch, int cost) {
   char buf[MAX_INPUT_LENGTH];
   int j;
@@ -754,32 +784,45 @@ void Crash_rentsave(struct char_data *ch, int cost) {
   if (!(fp = fopen(buf, "w")))
     return;
 
+  /* get rid of all !rent items */
   Crash_extract_norent_eq(ch);
   Crash_extract_norents(ch->carrying);
 
+  /* write to file rentcode: rentcode, time, cost for renting, gold, bank-gold */
   if (!objsave_write_rentcode(fp, RENT_RENTED, cost, ch))
     return;
 
-  for (j = 0; j < NUM_WEARS; j++)
+  /* go through all equipment worn and save */
+  for (j = 0; j < NUM_WEARS; j++) {
     if (GET_EQ(ch, j)) {
+      /* recursive save function (like bags) */
       if (!Crash_save(GET_EQ(ch, j), fp, j + 1)) {
         fclose(fp);
         return;
       }
+      /* makes sure containers have proper weight for carrying objects with weight value */
       Crash_restore_weight(GET_EQ(ch, j));
+      /* recursively remove objects and their contents */
       Crash_extract_objs(GET_EQ(ch, j));
 
     }
+  }
+  
+  /* inventory: recursive save function (like bags) */
   if (!Crash_save(ch->carrying, fp, 0)) {
     fclose(fp);
     return;
   }
+  
+  /* file terminating char and close */
   fprintf(fp, "$~\n");
   fclose(fp);
 
+  /* recursively remove objects and their contents */
   Crash_extract_objs(ch->carrying);
 }
 
+/* write to file rentcode: rentcode, time, cost for renting, gold, bank-gold */
 static int objsave_write_rentcode(FILE *fl, int rentcode, int cost_per_day, struct char_data *ch) {
   if (fprintf(fl, "%d %ld %d %d %d %d\r\n",
           rentcode,
@@ -815,25 +858,33 @@ static void Crash_cryosave(struct char_data *ch, int cost) {
 
   GET_GOLD(ch) = MAX(0, GET_GOLD(ch) - cost);
 
+  /* write to file rentcode: rentcode, time, cost for renting, gold, bank-gold */
   if (!objsave_write_rentcode(fp, RENT_CRYO, 0, ch))
     return;
 
   for (j = 0; j < NUM_WEARS; j++)
     if (GET_EQ(ch, j)) {
+      /* recursive save function (like bags) */
       if (!Crash_save(GET_EQ(ch, j), fp, j + 1)) {
         fclose(fp);
         return;
       }
+      /* makes sure containers have proper weight for carrying objects with weight value */      
       Crash_restore_weight(GET_EQ(ch, j));
+      /* recursively remove objects and their contents */
       Crash_extract_objs(GET_EQ(ch, j));
     }
+  
+  /* inventory: recursive save function (like bags) */
   if (!Crash_save(ch->carrying, fp, 0)) {
     fclose(fp);
     return;
   }
+  
   fprintf(fp, "$~\n");
   fclose(fp);
 
+  /* recursively remove objects and their contents */
   Crash_extract_objs(ch->carrying);
   SET_BIT_AR(PLR_FLAGS(ch), PLR_CRYO);
 }
