@@ -2200,9 +2200,10 @@ Gold: 999615                      Gold in Bank : 0
 ACMD(do_score) {
   char buf[MAX_INPUT_LENGTH];
   struct time_info_data playing_time;
-  int calc_bab = MIN(MAX_BAB, BAB(ch)), w_type, i = 0, counter = 0;
+  int calc_bab = MIN(MAX_BAB, BAB(ch)), i = 0, counter = 0;
   struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_1);
   float height = GET_HEIGHT(ch);
+  int w_type = 0;
 
   int line_length = 80;
 

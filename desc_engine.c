@@ -49,12 +49,16 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
   char buf[MAX_STRING_LENGTH];
   char rdesc[MAX_STRING_LENGTH];
   
-  static char *wilderness_desc = "The wilderness extends in all directions.";
+  //static char *wilderness_desc = "The wilderness extends in all directions.";
   
-  char sect1[MAX_STRING_LENGTH]; /* Position, season, terrain */
-  char sect2[MAX_STRING_LENGTH]; /* Weather and terrain */
-  char sect3[MAX_STRING_LENGTH]; /* Hand-written, optional. */
-  char sect4[MAX_STRING_LENGTH]; /* Nearby landmarks. */
+  /* Position, season, terrain */
+  //char sect1[MAX_STRING_LENGTH];
+  /* Weather and terrain */
+  //char sect2[MAX_STRING_LENGTH]; 
+  /* Hand-written, optional. */
+  //char sect3[MAX_STRING_LENGTH];
+  /* Nearby landmarks. */
+  //char sect4[MAX_STRING_LENGTH]; 
   
   /* Variables for calculating which directions the nearby regions are located. */
   double max_area  = 0.0;
@@ -80,19 +84,21 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
   struct region_proximity_list *nearby_regions = NULL;
   struct region_proximity_list *curr_nearby_region = NULL;
   
+  /*
   char *position_strings[NUM_POSITIONS] = {
-    "dead", /* Dead */
-    "mortally wounded", /* Mortally Wounded */
-    "incapacitated", /* Incap. */
-    "stunned", /* Stunned */
-    "sleeping", /* Sleeping */
+    "dead", // Dead
+    "mortally wounded", // Mortally Wounded
+    "incapacitated", // Incap
+    "stunned", // Stunned
+    "sleeping", // Sleeping
     "reclining",  
     "resting",
     "sitting",
     "fighting",
     "standing"
   }; // Need to add pos_swimming.
-  
+  */  
+          
   // "You are %s %s %s" pos, through (the tall grasses of||The reeds and sedges of||
   // the burning wastes of||the scorching sands of||the shifting dunes of||the rolling hills of||
   // the craggy peaks of||etc.||on||over||on the edge of||among the trees of||deep within, region name

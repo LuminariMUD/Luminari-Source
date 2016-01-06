@@ -311,7 +311,8 @@ ACMD(do_export_zone)
   zone_vnum zvnum;
   char sysbuf[MAX_INPUT_LENGTH];
   char zone_name[MAX_INPUT_LENGTH], *f;
-  int success, i;
+  int success;
+  int i;
 
   /* system command locations are relative to
    * where the binary IS, not where it was run
