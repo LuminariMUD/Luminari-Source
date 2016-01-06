@@ -941,7 +941,18 @@ static void shopping_value(char *arg, struct char_data *ch, struct char_data *ke
   one_argument(arg, name);
   if (!(obj = get_selling_obj(ch, name, keeper, shop_nr, TRUE)))
     return;
-
+  
+  /* let the playe know what kind of cash we got */
+  char buf2[MAX_INPUT_LENGTH];
+  
+  if (IS_SET(SHOP_BITVECTOR(shop_nr), HAS_UNLIMITED_CASH)) { 
+    snprintf(buf2, sizeof(buf2), "I have plenty of cash if you are willing to sell!");
+    do_tell(keeper, buf2, cmd_tell, 0);
+  } else {
+    snprintf(buf2, sizeof(buf2), "Just so you know, currently I have %d coins available to purchase goods from customers.", GET_GOLD(keeper) + SHOP_BANK(shop_nr));
+    do_tell(keeper, buf2, cmd_tell, 0);
+  }       
+  
   snprintf(buf, sizeof(buf), "%s I'll give you %d gold coins for that!", GET_NAME(ch), sell_price(obj, shop_nr, keeper, ch));
   do_tell(keeper, buf, cmd_tell, 0);
 }
@@ -1196,8 +1207,10 @@ static int read_type_list(FILE *shop_f, struct shop_buy_data *list,
 		       int new_format, int max)
 {
   int tindex, num, len = 0, error = 0;
-  char *ptr, buf[MAX_STRING_LENGTH], *buf1;
+  char *ptr, buf[MAX_STRING_LENGTH], *buf1 = NULL;
 
+  *buf1 = '\0';
+  
   if (!new_format)
     return (read_list(shop_f, list, 0, max, LIST_TRADE));
 

@@ -427,7 +427,7 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_frost) {
       }
       break;
     case ACTMTD_ON_HIT: /* Called whenever a weapon hits an enemy. */
-      if(OBJ_FLAGGED(weapon, ITEM_FROST))  /* Burn 'em. */
+      if(OBJ_FLAGGED(weapon, ITEM_FROST))  /* Freeze 'em. */
         if (victim) {
           damage(ch, victim, dice(1, 6), TYPE_SPECAB_FROST, DAM_COLD, FALSE);
         }

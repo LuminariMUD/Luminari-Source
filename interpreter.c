@@ -803,10 +803,11 @@ void command_interpreter(struct char_data *ch, char *argument) {
           !is_abbrev(complete_cmd_info[cmd].command, "group") &&
           !is_abbrev(complete_cmd_info[cmd].command, "say") &&
           !is_abbrev(complete_cmd_info[cmd].command, "help") &&
+          !is_abbrev(complete_cmd_info[cmd].command, "reply") &&
           !is_abbrev(complete_cmd_info[cmd].command, "tell")
           )
     send_to_char(ch, "You are too busy crafting. [Available commands: gossip/"
-            "chat/look/score/group/say/tell/help]\r\n");
+            "chat/look/score/group/say/tell/reply/help]\r\n");
   else if (GET_POS(ch) < complete_cmd_info[cmd].minimum_position)
     switch (GET_POS(ch)) {
       case POS_DEAD:

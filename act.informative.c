@@ -313,6 +313,9 @@ end:
 static void show_obj_modifiers(struct obj_data *obj, struct char_data *ch) {
   if (OBJ_FLAGGED(obj, ITEM_INVISIBLE))
     send_to_char(ch, " \tw(invisible)\tn");
+  
+  if (OBJ_FLAGGED(obj, ITEM_FROST))
+    send_to_char(ch, " \tB(frost)\tn");
 
   if (OBJ_FLAGGED(obj, ITEM_FLAMING))
     send_to_char(ch, " \tR(flaming)\tn");
@@ -553,8 +556,10 @@ static void list_one_char(struct char_data *i, struct char_data *ch) {
       }
     }
 
-    if (IS_NPC(i) && (GET_MOB_SPEC(i) == questmaster || i->mob_specials.quest))
+    if (IS_NPC(i) && (i->mob_specials.quest))
       send_to_char(ch, "\tn(\tR!\tn) ");
+    if (IS_NPC(i) && (GET_MOB_SPEC(i) == questmaster))
+      send_to_char(ch, "\tn(\tY!\tn) ");
 
     send_to_char(ch, "%s", i->player.long_descr);
 

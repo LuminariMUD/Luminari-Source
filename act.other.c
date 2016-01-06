@@ -1046,7 +1046,7 @@ ACMD(do_mount) {
   USE_MOVE_ACTION(ch);
 
   if (IS_NPC(vict) && !AFF_FLAGGED(vict, AFF_TAMED) &&
-          compute_ability(ch, ABILITY_RIDE) <= rand_number(1, GET_LEVEL(vict))) {
+          (compute_ability(ch, ABILITY_RIDE) + dice(1,20)) <= rand_number(1, GET_LEVEL(vict))) {
     act("$N suddenly bucks upwards, throwing you violently to the ground!", FALSE, ch, 0, vict, TO_CHAR);
     act("$n is thrown to the ground as $N violently bucks!", TRUE, ch, 0, vict, TO_NOTVICT);
     act("You buck violently and throw $n to the ground.", FALSE, ch, 0, vict, TO_VICT);
@@ -1088,7 +1088,6 @@ ACMD(do_buck) {
     damage(RIDDEN_BY(ch), RIDDEN_BY(ch), dice(2, 4), -1, -1, -1);
   }
   dismount_char(ch);
-
 
   /*
    * you might want to call set_fighting() or some nonsense here if you

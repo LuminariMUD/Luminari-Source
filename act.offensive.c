@@ -512,7 +512,7 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill) 
         act("\ty$n grabs and overpowers you, throwing you to the ground!\tn", FALSE, ch, NULL, vict, TO_VICT);
         act("\ty$n grabs and overpowers $N, throwing $M to the ground!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);
       }
-    } else {
+    } else { /* failed!! */
       /* Messages for shield charge */
       if (skill == SKILL_SHIELD_CHARGE) {
         /* just moved this to damage-messages */
@@ -528,8 +528,9 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill) 
           act("\ty$n grabs $N but $E deftly turns away from $s attack!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);
         }
       }
-      if (skill != SKILL_SHIELD_CHARGE) {
-        /* Victim gets a chance to countertrip */
+      
+      /* Victim gets a chance to countertrip */      
+      if (skill != SKILL_SHIELD_CHARGE && GET_POS(vict) > POS_SITTING) {
         attack_check = (dice(1, 20) + GET_STR_BONUS(vict) + (GET_SIZE(vict) - GET_SIZE(ch))*4);
         defense_check = (dice(1, 20) + MAX(GET_STR_BONUS(ch), GET_DEX_BONUS(ch)));
 
@@ -572,6 +573,9 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill) 
         }
       }
     }
+    
+    
+    /* FAILED attack roll */
   } else {
     /* Messages for a missed unarmed touch attack. */
     if (skill == SKILL_SHIELD_CHARGE) {
@@ -583,16 +587,18 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill) 
     }
   }
 
+  
+  /* further processing: set position, special feats, etc */
   if (!success) {
     if (counter_success) {
       GET_POS(ch) = POS_SITTING;
     }
-  } else {
+  } else { /* success! */
     GET_POS(vict) = POS_SITTING;
     if ((skill == SKILL_TRIP) ||
             (skill == SKILL_BASH) ||
             (skill == SKILL_SHIELD_CHARGE)) {
-      /* Successful trip. */
+      /* Successful trip, cheat for feats */
       if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_IMPROVED_TRIP)) {
         /* You get a free swing on the tripped opponent. */
         hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
@@ -604,6 +610,7 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill) 
   if (success)
     damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE);
 
+  /* make sure combat starts */
   if (vict != ch) {
     if (GET_POS(ch) > POS_STUNNED && (FIGHTING(ch) == NULL))
       set_fighting(ch, vict);

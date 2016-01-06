@@ -4210,6 +4210,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     case SPELL_SUMMON_CREATURE_9: //conjuration
     case SPELL_SUMMON_CREATURE_8: //conjuration
     case SPELL_SUMMON_CREATURE_7: //conjuration
+    case SPELL_ELEMENTAL_SWARM:
       if (HAS_PET_ELEMENTAL(ch)) {
         send_to_char(ch, "You can't control more elementals!\r\n");
         return;

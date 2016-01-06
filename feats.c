@@ -1792,7 +1792,7 @@ void assign_feats(void) {
   /* Sorcerer/Wizard */
   feato(FEAT_SUMMON_FAMILIAR, "summon familiar", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "summon a magical pet",
-    "summon a magical pet");
+    "summon a magical pet - help call familiar for more information");
   feato(FEAT_WEAPON_PROFICIENCY_WIZARD, "weapon proficiency - wizards", TRUE, FALSE, FALSE, FEAT_TYPE_GENERAL,
     "proficiency in wizard weapons",
     "You are proficient in the usage of daggers, quarterstaff, club, heavy and light crossbows.");
