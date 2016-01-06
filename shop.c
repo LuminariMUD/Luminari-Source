@@ -1209,8 +1209,6 @@ static int read_type_list(FILE *shop_f, struct shop_buy_data *list,
   int tindex, num, len = 0, error = 0;
   char *ptr, buf[MAX_STRING_LENGTH], *buf1 = NULL;
 
-  *buf1 = '\0';
-  
   if (!new_format)
     return (read_list(shop_f, list, 0, max, LIST_TRADE));
 
