@@ -193,6 +193,7 @@ static int is_tell_ok(struct char_data *ch, struct char_data *vict)
  * called frequently, and should IMHO be kept as tight as possible. */
 ACMD(do_tell)
 {
+  int i = 0;
   struct char_data *vict = NULL;
   char buf[MAX_INPUT_LENGTH] = { '\0' }, buf2[MAX_INPUT_LENGTH] = { '\0' };
 
@@ -205,7 +206,7 @@ ACMD(do_tell)
    /* getpid() is not portable */
     send_to_char(ch, "Sorry, that is not available in the windows port.\r\n");
 #else /* all other configurations */
-    int i;
+    //int i;
     char word[MAX_INPUT_LENGTH], *p, *q;
 
     if (last_webster_teller != -1L) {

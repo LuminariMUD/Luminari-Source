@@ -1089,7 +1089,7 @@ EVENTFUNC(event_casting) {
 int cast_spell(struct char_data *ch, struct char_data *tch,
         struct obj_data *tobj, int spellnum) {
   int position = GET_POS(ch);
-  int class = CLASS_WIZARD, clevel = 1;
+  int class = CLASS_WIZARD, clevel = 0;
 
   if (spellnum < 0 || spellnum > TOP_SPELL_DEFINE) {
     log("SYSERR: cast_spell trying to call spellnum %d/%d.", spellnum,

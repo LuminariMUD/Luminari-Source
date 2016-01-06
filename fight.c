@@ -2715,10 +2715,12 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
         send_to_char(victim, "\tnYou wish that your wounds would stop "
                 "\tRB\trL\tRE\trE\tRD\trI\tRN\trG\tn so much!\r\n");
 
-        if (ch != victim && MOB_FLAGGED(victim, MOB_WIMPY)) //wimpy mobs
-          if (GET_HIT(victim) > 0)
-            if (!IS_CASTING(victim) && GET_POS(victim) >= POS_FIGHTING)
-              perform_flee(victim);
+        if (ch != victim && MOB_FLAGGED(victim, MOB_WIMPY)) //wimpy mobs          
+          /* mob dex check: mob_dex_bonus + 10 vs 1d20 */
+          if ((GET_DEX_BONUS(victim) + 10) > dice(1,20))
+            if (GET_HIT(victim) > 0)
+              if (!IS_CASTING(victim) && GET_POS(victim) >= POS_FIGHTING)
+                perform_flee(victim);
       }
       if (!IS_NPC(victim) && GET_WIMP_LEV(victim) && (victim != ch) && //pc wimpy
               GET_HIT(victim) < GET_WIMP_LEV(victim) && GET_HIT(victim) > 0 &&
