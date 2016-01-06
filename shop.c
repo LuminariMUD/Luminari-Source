@@ -946,10 +946,10 @@ static void shopping_value(char *arg, struct char_data *ch, struct char_data *ke
   char buf2[MAX_INPUT_LENGTH];
   
   if (IS_SET(SHOP_BITVECTOR(shop_nr), HAS_UNLIMITED_CASH)) { 
-    snprintf(buf2, sizeof(buf2), "I have plenty of cash if you are willing to sell!");
+    snprintf(buf2, sizeof(buf2), "%s I have plenty of cash if you are willing to sell!", GET_NAME(ch));
     do_tell(keeper, buf2, cmd_tell, 0);
   } else {
-    snprintf(buf2, sizeof(buf2), "Just so you know, currently I have %d coins available to purchase goods from customers.", GET_GOLD(keeper) + SHOP_BANK(shop_nr));
+    snprintf(buf2, sizeof(buf2), "%s Just so you know, currently I have %d coins available to purchase goods from customers.", GET_NAME(ch), GET_GOLD(keeper) + SHOP_BANK(shop_nr));
     do_tell(keeper, buf2, cmd_tell, 0);
   }       
   
