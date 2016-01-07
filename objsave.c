@@ -72,9 +72,7 @@ int objsave_save_obj_record(struct obj_data *obj, FILE *fp, int locate) {
 
 #ifdef OBJSAVE_DB
   char ins_buf[36767];  /* For MySQL insert. */
-  ins_buf[0] = '\0';
   char line_buf[MAX_STRING_LENGTH+1]; /* For building MySQL insert statement. */
-  line_buf[0] = '\0';
 #endif
   
   int counter2, i = 0;
@@ -98,8 +96,7 @@ int objsave_save_obj_record(struct obj_data *obj, FILE *fp, int locate) {
     *buf1 = 0;
 
 #ifdef OBJSAVE_DB
-  sprintf(line_buf, "insert into player_save_objs (name, serialized_obj) values ('%s', '", GET_NAME(obj->carried_by));
-  strcat(ins_buf, line_buf);
+  sprintf(ins_buf, "insert into player_save_objs (name, serialized_obj) values ('%s', '", GET_NAME(obj->carried_by));
 #endif  
   
   fprintf(fp, "#%d\n", GET_OBJ_VNUM(obj));
