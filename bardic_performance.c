@@ -98,8 +98,11 @@ ACMD(do_play) {
     }
   }
   
-  if (char_has_mud_event(ch, eBARDIC_PERFORMANCE))
+  if (char_has_mud_event(ch, eBARDIC_PERFORMANCE)) {
+    act("You stopped your current performance.", FALSE, ch, 0, 0, TO_CHAR);
+    act("$n stops performing...", FALSE, ch, 0, 0, TO_ROOM);
     event_cancel_specific(ch, eBARDIC_PERFORMANCE);
+  }
   
   skip_spaces(&argument);
   len = strlen(argument);
@@ -117,6 +120,10 @@ ACMD(do_play) {
         }
         if (char_has_mud_event(ch, ePERFORM)) {
           send_to_char(ch, "You are already performing!\r\n");
+          return;
+        }
+        if (char_has_mud_event(ch, eBARDIC_PERFORMANCE)) {
+          send_to_char(ch, "You are already in the middle of a performance!\r\n");
           return;
         }
         if (compute_ability(ch, ABILITY_PERFORM) <= performance_info[i][PERFORMANCE_DIFF]) {
@@ -149,7 +156,7 @@ ACMD(do_play) {
         act("$n starts singing.", FALSE, ch, 0, 0, TO_ROOM);
         char buf[128];
         sprintf(buf, "%d", i); /* Build the effect string */
-        NEW_EVENT(eBARDIC_PERFORMANCE, ch, strdup(buf), VERSE_INTERVAL);
+        NEW_EVENT(eBARDIC_PERFORMANCE, ch, strdup(buf), 4 * PASSES_PER_SEC);
         return;
       }
     }
@@ -496,6 +503,7 @@ EVENTFUNC(event_bardic_performance) {
   }
 
   /* success, we're coming back in VERSE_INTERVAL */
+  send_to_char(ch, "DEBUG: bardic performance success!\r\n");
   return VERSE_INTERVAL;
 }
 
