@@ -2911,6 +2911,20 @@ void mag_assign_spells(void) {
   skillo(SKILL_SMITE_DESTRUCTION, "destructive smite", ACTIVE_SKILL); //535
   skillo(SKILL_DESTRUCTIVE_AURA, "destructive aura", ACTIVE_SKILL); //536
   skillo(SKILL_AURA_OF_PROTECTION, "protection aura", ACTIVE_SKILL); //537
+  /* songs */
+  skillo(SKILL_SONG_OF_FOCUSED_MIND, "song of focused mind", ACTIVE_SKILL); //588
+  skillo(SKILL_SONG_OF_FEAR, "song of fear", ACTIVE_SKILL); //589
+  skillo(SKILL_SONG_OF_ROOTING, "song of rooting", ACTIVE_SKILL); //590
+  skillo(SKILL_SONG_OF_THE_MAGI, "song of the magi", ACTIVE_SKILL); //591
+  skillo(SKILL_SONG_OF_HEALING, "song of healing", ACTIVE_SKILL); //592
+  skillo(SKILL_SONG_OF_PROTECTION, "song of protection", ACTIVE_SKILL); //593
+  skillo(SKILL_SONG_OF_FLIGHT, "song of flight", ACTIVE_SKILL); //594
+  skillo(SKILL_SONG_OF_HEROISM, "song of heroism", ACTIVE_SKILL); //595
+  skillo(SKILL_SONG_OF_REJUVENATION, "song of rejuvation", ACTIVE_SKILL); //596
+  skillo(SKILL_SONG_OF_FORGETFULNESS, "song of forgetfulness", ACTIVE_SKILL); //597
+  skillo(SKILL_SONG_OF_REVELATION, "song of revelation", ACTIVE_SKILL); //598
+  skillo(SKILL_SONG_OF_DRAGONS, "song of dragons", ACTIVE_SKILL); //599
+  /* end songs */
 
   /****note weapon specialist and luck of heroes inserted in free slots ***/
 
