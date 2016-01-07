@@ -273,7 +273,7 @@ int objsave_save_obj_record(struct obj_data *obj, FILE *fp, int locate) {
   fprintf(fp, "\n");
   
 #ifdef OBJSAVE_DB
-  sprintf(line_buf, "';");
+  sprintf(line_buf, "');");
   strcat(ins_buf, line_buf);
   log("INSERTING: %s",ins_buf);
   if (mysql_query(conn, ins_buf)) {
