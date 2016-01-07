@@ -275,6 +275,7 @@ int objsave_save_obj_record(struct obj_data *obj, FILE *fp, int locate) {
 #ifdef OBJSAVE_DB
   sprintf(line_buf, "';");
   strcat(ins_buf, line_buf);
+  log(ins_buf);
   if (mysql_query(conn, ins_buf)) {
     log("SYSERR: Unable to INSERT into player_save_objs: %s", mysql_error(conn));
     return 1;
