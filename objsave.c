@@ -72,7 +72,9 @@ int objsave_save_obj_record(struct obj_data *obj, FILE *fp, int locate) {
 
 #ifdef OBJSAVE_DB
   char ins_buf[36767];  /* For MySQL insert. */
+  ins_buf[0] = '\0';
   char line_buf[MAX_STRING_LENGTH+1]; /* For building MySQL insert statement. */
+  line_buf[0] = '\0';
 #endif
   
   int counter2, i = 0;
@@ -917,6 +919,7 @@ static int objsave_write_rentcode(FILE *fl, int rentcode, int cost_per_day, stru
   
 #ifdef OBJSAVE_DB
   char buf[2048]; /* For MySQL insert. */
+  
   sprintf(buf, "update player_data set obj_save_header = '%d %ld %d %d %d %d'"
                "where name = '%s';",
           rentcode,
