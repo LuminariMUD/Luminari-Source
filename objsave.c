@@ -376,6 +376,7 @@ int Crash_delete_file(char *name) {
     log("SYSERR: deleting crash file %s (2): %s", filename, strerror(errno));
 
   /* we have successfully deleted the crash-save-file */
+  log("debug: deleting crash file %s (2): %s", filename);
   return TRUE;
 }
 
