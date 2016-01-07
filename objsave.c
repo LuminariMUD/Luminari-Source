@@ -195,47 +195,119 @@ int objsave_save_obj_record(struct obj_data *obj, FILE *fp, int locate) {
     strcat(ins_buf, line_buf);
 #endif   
   }
-  if (TEST_OBJS(obj, temp, short_description))
+  if (TEST_OBJS(obj, temp, short_description)) {
     fprintf(fp, "Shrt: %s\n", obj->short_description ? obj->short_description : "Undefined");
-
+#ifdef OBJSAVE_DB
+    sprintf(line_buf, "Shrt: %s\n", obj->short_description ? obj->short_description : "Undefined");
+    strcat(ins_buf, line_buf);
+#endif    
+  }
+  
   /* These two could be a pain on the read... we'll see... */
-  if (TEST_OBJS(obj, temp, description))
+  if (TEST_OBJS(obj, temp, description)) {
     fprintf(fp, "Desc: %s\n", obj->description ? obj->description : "Undefined");
-
+#ifdef OBJSAVE_DB
+    sprintf(line_buf, "Desc: %s\n", obj->description ? obj->description : "Undefined");
+    strcat(ins_buf, line_buf);
+#endif        
+  }
   /* Only even try to process this if an action desc exists */
-  if (obj->action_description || temp->action_description)
-    if (TEST_OBJS(obj, temp, action_description))
+  if (obj->action_description || temp->action_description) 
+    if (TEST_OBJS(obj, temp, action_description)) {
       fprintf(fp, "ADes:\n%s~\n", buf1);
-
-  if (TEST_OBJN(type_flag))
+#ifdef OBJSAVE_DB
+      sprintf(line_buf, "ADes:\n%s~\n", buf1);
+      strcat(ins_buf, line_buf);
+#endif           
+    }
+  if (TEST_OBJN(type_flag)) {
     fprintf(fp, "Type: %d\n", GET_OBJ_TYPE(obj));
-  if (TEST_OBJN(prof_flag))
+#ifdef OBJSAVE_DB
+    sprintf(line_buf, "Type: %d\n", GET_OBJ_TYPE(obj));
+    strcat(ins_buf, line_buf);
+#endif    
+  }
+  if (TEST_OBJN(prof_flag)) {
     fprintf(fp, "Prof: %d\n", GET_OBJ_PROF(obj));
-  if (TEST_OBJN(material))
+#ifdef OBJSAVE_DB
+    sprintf(line_buf, "Prof: %d\n", GET_OBJ_PROF(obj));
+    strcat(ins_buf, line_buf);
+#endif        
+  }
+  if (TEST_OBJN(material)) {
     fprintf(fp, "Mats: %d\n", GET_OBJ_MATERIAL(obj));
-  if (TEST_OBJN(size))
+#ifdef OBJSAVE_DB
+    sprintf(line_buf, "Mats: %d\n", GET_OBJ_MATERIAL(obj));
+    strcat(ins_buf, line_buf);
+#endif      
+  }
+  if (TEST_OBJN(size)) {
     fprintf(fp, "Size: %d\n", GET_OBJ_SIZE(obj));
-  if (TEST_OBJN(weight))
+#ifdef OBJSAVE_DB
+    sprintf(line_buf, "Size: %d\n", GET_OBJ_SIZE(obj));
+    strcat(ins_buf, line_buf);
+#endif     
+  }
+  if (TEST_OBJN(weight)) {
     fprintf(fp, "Wght: %d\n", GET_OBJ_WEIGHT(obj));
-  if (TEST_OBJN(level))
+#ifdef OBJSAVE_DB
+    sprintf(line_buf, "Wght: %d\n", GET_OBJ_WEIGHT(obj));
+    strcat(ins_buf, line_buf);
+#endif     
+  }
+  if (TEST_OBJN(level)) {
     fprintf(fp, "Levl: %d\n", GET_OBJ_LEVEL(obj));
-  if (TEST_OBJN(cost))
+#ifdef OBJSAVE_DB
+    sprintf(line_buf, "Levl: %d\n", GET_OBJ_LEVEL(obj));
+    strcat(ins_buf, line_buf);
+#endif     
+  }
+  if (TEST_OBJN(cost)) {
     fprintf(fp, "Cost: %d\n", GET_OBJ_COST(obj));
-  if (TEST_OBJN(cost_per_day))
+#ifdef OBJSAVE_DB
+    sprintf(line_buf, "Cost: %d\n", GET_OBJ_COST(obj));
+    strcat(ins_buf, line_buf);
+#endif         
+  }
+  if (TEST_OBJN(cost_per_day)) {
     fprintf(fp, "Rent: %d\n", GET_OBJ_RENT(obj));
-  if (TEST_OBJN(bitvector))
+#ifdef OBJSAVE_DB
+    sprintf(line_buf,"Rent: %d\n", GET_OBJ_RENT(obj));
+    strcat(ins_buf, line_buf);
+#endif             
+  }
+  if (TEST_OBJN(bitvector)) {
     fprintf(fp, "Perm: %d %d %d %d\n", GET_OBJ_PERM(obj)[0], GET_OBJ_PERM(obj)[1], GET_OBJ_PERM(obj)[2], GET_OBJ_PERM(obj)[3]);
-  if (TEST_OBJN(wear_flags))
+#ifdef OBJSAVE_DB
+    sprintf(line_buf,"Perm: %d %d %d %d\n", GET_OBJ_PERM(obj)[0], GET_OBJ_PERM(obj)[1], GET_OBJ_PERM(obj)[2], GET_OBJ_PERM(obj)[3]);
+    strcat(ins_buf, line_buf);
+#endif                 
+  }
+  if (TEST_OBJN(wear_flags)) {
     fprintf(fp, "Wear: %d %d %d %d\n", GET_OBJ_WEAR(obj)[0], GET_OBJ_WEAR(obj)[1], GET_OBJ_WEAR(obj)[2], GET_OBJ_WEAR(obj)[3]);
+#ifdef OBJSAVE_DB
+    sprintf(line_buf,"Wear: %d %d %d %d\n", GET_OBJ_WEAR(obj)[0], GET_OBJ_WEAR(obj)[1], GET_OBJ_WEAR(obj)[2], GET_OBJ_WEAR(obj)[3]);
+    strcat(ins_buf, line_buf);
+#endif         
+  }
 
   /* Do we have modified affects? */
   for (counter2 = 0; counter2 < MAX_OBJ_AFFECT; counter2++)
-    if (obj->affected[counter2].modifier != temp->affected[counter2].modifier)
+    if (obj->affected[counter2].modifier != temp->affected[counter2].modifier) {
       fprintf(fp, "Aff : %d %d %d\n",
             counter2,
             obj->affected[counter2].location,
             obj->affected[counter2].modifier
             );
+#ifdef OBJSAVE_DB
+      sprintf(line_buf,"Aff : %d %d %d\n",
+            counter2,
+            obj->affected[counter2].location,
+            obj->affected[counter2].modifier
+            );
+      strcat(ins_buf, line_buf);
+#endif         
+    }
 
   /* Do we have modified extra descriptions? */
   if (obj->ex_description || temp->ex_description) {
@@ -257,6 +329,15 @@ int objsave_save_obj_record(struct obj_data *obj, FILE *fp, int locate) {
                 ex_desc->keyword,
                 buf1
                 );
+#ifdef OBJSAVE_DB
+      sprintf(line_buf,"EDes:\n"
+                "%s~\n"
+                "%s~\n",
+                ex_desc->keyword,
+                buf1
+                );
+      strcat(ins_buf, line_buf);
+#endif         
       }
     }
   }
@@ -265,6 +346,10 @@ int objsave_save_obj_record(struct obj_data *obj, FILE *fp, int locate) {
   if (obj->sbinfo) { /*. Yep, save them too . */
     for (i = 0; i < SPELLBOOK_SIZE; i++) {
       fprintf(fp, "Spbk: %d %d\n", obj->sbinfo[i].spellname, obj->sbinfo[i].pages);
+#ifdef OBJSAVE_DB
+      sprintf(line_buf,"Spbk: %d %d\n", obj->sbinfo[i].spellname, obj->sbinfo[i].pages);
+      strcat(ins_buf, line_buf);
+#endif           
     }
   }
   
