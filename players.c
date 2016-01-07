@@ -1455,8 +1455,7 @@ static void load_affects(FILE *fl, struct char_data *ch) {
         af.bitvector[2] = num7;
         af.bitvector[3] = num8;
         af.bonus_type   = num9;
-      }
-      if (n_vars == 8) { /* New 128-bit version */
+      } else if (n_vars == 8) { /* New 128-bit version */
         af.bitvector[0] = num5;
         af.bitvector[1] = num6;
         af.bitvector[2] = num7;
