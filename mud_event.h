@@ -98,6 +98,7 @@ typedef enum {
   eHEALING_TOUCH, /*more domain powers*/
   eEYE_OF_KNOWLEDGE, /*more domain powers*/
   eBLESSED_TOUCH, /*more domain powers*/
+  eLAWFUL_WEAPON, /*more domain powers*/
   eCOPYCAT, /*more domain powers*/
   eMASS_INVIS, /*more domain powers*/
   eAURA_OF_PROTECTION, /*more domain powers*/
