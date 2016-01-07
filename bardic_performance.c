@@ -382,6 +382,7 @@ EVENTFUNC(event_bardic_performance) {
     log("SYSERR: event_bardic_performance missing pMudEvent->pStruct!");
     return 0;
   }
+  send_to_char(ch, "DEBUG: bardic performance success 1!\r\n");
   
   /* extract the variable(s) */
   if (pMudEvent->sVariables == NULL) {
@@ -503,7 +504,7 @@ EVENTFUNC(event_bardic_performance) {
   }
 
   /* success, we're coming back in VERSE_INTERVAL */
-  send_to_char(ch, "DEBUG: bardic performance success!\r\n");
+  send_to_char(ch, "DEBUG: bardic performance success 2!\r\n");
   return VERSE_INTERVAL;
 }
 
