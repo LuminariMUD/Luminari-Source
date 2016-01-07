@@ -110,14 +110,43 @@ ACMD(do_play) {
         send_to_char(ch, "But you do not know that performance!\r\n");
         return;
       } else {
-        if (ROOM_FLAGGED(ch->in_room, ROOM_SOUNDPROOF)) {
-          send_to_char(ch, "Your lips move, but no sound is heard!\r\n");
+        /* check for disqualifiers */
+        if (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_BARDIC_MUSIC)) {
+          send_to_char(ch, "You don't know how to perform.\r\n");
           return;
         }
+        if (char_has_mud_event(ch, ePERFORM)) {
+          send_to_char(ch, "You are already performing!\r\n");
+          return;
+        }
+        if (compute_ability(ch, ABILITY_PERFORM) <= performance_info[i][PERFORMANCE_DIFF]) {
+          send_to_char(ch, "You are not trained enough for this performance! "
+                  "(need: %d performance ability)\r\n",
+                  performance_info[i][PERFORMANCE_DIFF]);
+          return;
+        }
+        if (ROOM_FLAGGED(ch->in_room, ROOM_SOUNDPROOF) && (
+                performance_info[i][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_KEYBOARD ||
+                performance_info[i][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_ORATORY ||
+                performance_info[i][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_PERCUSSION ||
+                performance_info[i][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_STRING ||
+                performance_info[i][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_WIND ||
+                performance_info[i][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_SING
+                )) {
+          send_to_char(ch, "The silence effectively stops your performance.\r\n");
+          return;
+        }
+        if (GET_POS(ch) < POS_FIGHTING) {
+          send_to_char(ch, "You can't concentrate on your performance when you are in "
+                  "this position.\r\n");
+          return;
+        }
+        /* the check for hunger/thirst WOULD to be here */
+        /***/
 
+        /* SUCCESS! */
         act("You start singing.", FALSE, ch, 0, 0, TO_CHAR);
         act("$n starts singing.", FALSE, ch, 0, 0, TO_ROOM);
-
         char buf[128];
         sprintf(buf, "%d", i); /* Build the effect string */
         NEW_EVENT(eBARDIC_PERFORMANCE, ch, strdup(buf), 1);
