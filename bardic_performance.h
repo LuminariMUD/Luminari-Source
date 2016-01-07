@@ -11,63 +11,29 @@
 #ifdef	__cplusplus
 extern "C" {
 #endif
+/*********************************************************/
+    
+/* defines */
+#define VERSE_INTERVAL       (7 RL_SEC)
+#define MAX_PERFORMANCES     12
+    
+#define PERFORMANCE_SKILLNUM 0
+#define INSTRUMENT_NUM       1
+#define INSTRUMENT_SKILLNUM  2
 
-#define PERFORMANCE_RESERVED_DBC            0  /* SKILL NUMBER ZERO -- RESERVED */
+/* functions */
+extern struct room_data *world;
+extern void clearMemory(struct char_data * ch);
+extern const char *spells[];
+ACMD(do_play);
 
-/* Performances -- Numbered from 1 to MAX_PERFORMANCES */
-#define PERFORMANCE_BLAH                   1 /* unfinished */
-/** Total Number of defined performances */
-#define MAX_PERFORMANCES                   2
-
-struct performance_info_type {
-   byte min_position;	/* Position for performer */
-
-   int min_level;
-   byte violent;
-   int targets;         /* See below for use with TAR_XXX  */
-   const char *name;	/* Input size not limited. Originates from string constants. */
-   const char *wear_off_msg;	/* Input size not limited. Originates from string constants. */
+/* structs */
+struct song_event_obj {
+  struct char_data *ch;
+  int song;
 };
 
-/* acmd */
-
-ACMD(do_perform);
-
-/* performance defines */
-
-void performance_inspiration(int level, struct char_data *ch);
-
-/* basic magic calling functions */
-
-int find_performance_num(char *name);
-
-int	call_magic(struct char_data *caster, struct char_data *cvict,
-  struct obj_data *ovict, int spellnum, int level, int casttype);
-
-int	cast_spell(struct char_data *ch, struct char_data *tch,
-  struct obj_data *tobj, int spellnum);
-
-void spell_level(int spell, int chclass, int level);
-void init_spell_levels(void);
-const char *skill_name(int num);
-
-int mag_savingthrow(struct char_data *ch, int type, int modifier);
-
-void affect_update(void);
-
-void unused_spell(int spl);
-
-void mag_assign_spells(void);
-
-/* externs */
-
-extern struct spell_info_type spell_info[];
-
-extern char cast_arg2[];
-
-extern const char *unused_spellname;
-
-
+/*********************************************************/
 #ifdef	__cplusplus
 }
 #endif

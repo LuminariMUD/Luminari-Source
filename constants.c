@@ -33,6 +33,15 @@ cpp_extern const char *luminari_version = "LuminariMUD 2.267 (tbaMUD 3.64)";
 /* strings corresponding to ordinals/bitvectors in structs.h */
 /* (Note: strings for class definitions in class.c instead of here) */
 
+const char *instrument_names[MAX_INSTRUMENTS + 1] = {
+  "Lyre",
+  "Flute",
+  "Horn",
+  "Drums",  
+/**/
+  "\n"  
+};
+
 const char *spec_armor_type[NUM_SPEC_ARMOR_TYPES + 1] = {
   "Undefined",
 /**/

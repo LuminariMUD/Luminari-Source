@@ -636,7 +636,7 @@ void assign_objects(void)
   ASSIGNOBJ(103097, gen_board);	/* freeze board */
   ASSIGNOBJ(103098, gen_board);	/* immortal board */
   ASSIGNOBJ(103099, gen_board);	/* mortal board */
-
+          
   ASSIGNOBJ(115, bank);
   ASSIGNOBJ(334, bank);	        /* atm */
   ASSIGNOBJ(336, bank);	        /* cashcard */
@@ -694,7 +694,6 @@ void assign_objects(void)
   ASSIGNOBJ(196073, planetar_sword);
 
   /* more homeland, unsorted */
-  ASSIGNOBJ(103093, gen_board); /* wd market board */
   ASSIGNOBJ(100400, gen_board); /* quedt board */
 
   ASSIGNOBJ(123419, neverwinter_button_control);

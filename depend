@@ -8,7 +8,7 @@ act.informative.o: act.informative.c conf.h sysdep.h structs.h protocol.h \
  lists.h utils.h race.h comm.h interpreter.h handler.h db.h spells.h \
  screen.h constants.h dg_scripts.h mud_event.h dg_event.h mail.h act.h \
  class.h fight.h modify.h asciimap.h clan.h craft.h wilderness.h quest.h \
- feats.h assign_wpn_armor.h domains_schools.h
+ feats.h assign_wpn_armor.h domains_schools.h desc_engine.h
 act.item.o: act.item.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h comm.h screen.h interpreter.h handler.h db.h spells.h \
  constants.h dg_scripts.h oasis.h help.h act.h quest.h spec_procs.h \
@@ -57,7 +57,9 @@ assign_wpn_armor.o: assign_wpn_armor.c conf.h sysdep.h structs.h \
  modify.h
 ban.o: ban.c conf.h sysdep.h structs.h protocol.h lists.h utils.h race.h \
  comm.h interpreter.h handler.h db.h ban.h
-bardic_performance.o: bardic_performance.c
+bardic_performance.o: bardic_performance.c conf.h sysdep.h structs.h \
+ protocol.h lists.h utils.h race.h comm.h interpreter.h handler.h \
+ mud_event.h dg_event.h db.h spells.h bardic_performance.h fight.h
 boards.o: boards.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h db.h boards.h interpreter.h handler.h improved-edit.h \
  modify.h
@@ -99,7 +101,8 @@ db.o: db.c conf.h sysdep.h structs.h protocol.h lists.h utils.h race.h \
  mudlim.h spec_abilities.h perlin.h wilderness.h mysql.h feats.h \
  actionqueues.h domains_schools.h grapple.h
 desc_engine.o: desc_engine.c conf.h sysdep.h structs.h protocol.h lists.h \
- utils.h race.h fight.h comm.h dg_event.h
+ utils.h race.h fight.h comm.h dg_event.h db.h constants.h mysql.h \
+ desc_engine.h wilderness.h
 dg_comm.o: dg_comm.c conf.h sysdep.h structs.h protocol.h lists.h \
  dg_scripts.h utils.h race.h comm.h handler.h db.h constants.h
 dg_db_scripts.o: dg_db_scripts.c conf.h sysdep.h structs.h protocol.h \
@@ -235,7 +238,8 @@ memorize.o: memorize.c conf.h sysdep.h structs.h protocol.h lists.h \
  constants.h act.h handler.h spec_procs.h
 mobact.o: mobact.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h db.h comm.h interpreter.h handler.h spells.h constants.h act.h \
- graph.h fight.h spec_procs.h mud_event.h dg_event.h modify.h mobact.h
+ graph.h fight.h spec_procs.h mud_event.h dg_event.h modify.h mobact.h \
+ shop.h quest.h dg_scripts.h
 modify.o: modify.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h interpreter.h handler.h db.h comm.h spells.h mail.h boards.h \
  improved-edit.h oasis.h help.h class.h dg_scripts.h modify.h quest.h \
@@ -262,7 +266,7 @@ oasis_delete.o: oasis_delete.c conf.h sysdep.h structs.h protocol.h \
 oasis_list.o: oasis_list.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h comm.h interpreter.h handler.h db.h genolc.h oasis.h \
  help.h improved-edit.h shop.h screen.h constants.h dg_scripts.h quest.h \
- modify.h spells.h genzon.h class.h genshp.h
+ modify.h spells.h genzon.h class.h genshp.h wilderness.h
 objsave.o: objsave.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h handler.h db.h interpreter.h spells.h act.h class.h \
  config.h modify.h genolc.h craft.h spec_abilities.h
@@ -281,6 +285,8 @@ prefedit.o: prefedit.c conf.h sysdep.h structs.h protocol.h lists.h \
 protocol.o: protocol.c protocol.h conf.h sysdep.h structs.h lists.h \
  utils.h race.h comm.h interpreter.h handler.h db.h screen.h \
  improved-edit.h dg_scripts.h act.h modify.h
+psionics.o: psionics.c conf.h sysdep.h structs.h protocol.h lists.h \
+ utils.h race.h comm.h interpreter.h handler.h db.h
 qedit.o: qedit.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h db.h oasis.h help.h improved-edit.h screen.h genolc.h \
  genzon.h interpreter.h modify.h quest.h
@@ -347,7 +353,7 @@ weather.o: weather.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h db.h
 wilderness.o: wilderness.c perlin.h conf.h sysdep.h structs.h protocol.h \
  lists.h utils.h race.h comm.h db.h constants.h mud_event.h dg_event.h \
- wilderness.h kdtree.h mysql.h
+ wilderness.h kdtree.h mysql.h desc_engine.h
 zedit.o: zedit.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h interpreter.h db.h constants.h genolc.h genzon.h genmob.h \
  oasis.h help.h dg_scripts.h handler.h
