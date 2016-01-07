@@ -167,7 +167,8 @@ void load_regions() {
   MYSQL_ROW row;
 
   int i = 0, vtx = 0;
-  int j = 0, k = 0;
+  int j = 0;
+  //int k = 0;
   
   int numrows;
 
