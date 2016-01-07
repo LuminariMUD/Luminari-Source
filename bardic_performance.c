@@ -149,7 +149,7 @@ ACMD(do_play) {
         act("$n starts singing.", FALSE, ch, 0, 0, TO_ROOM);
         char buf[128];
         sprintf(buf, "%d", i); /* Build the effect string */
-        NEW_EVENT(eBARDIC_PERFORMANCE, ch, strdup(buf), 1);
+        NEW_EVENT(eBARDIC_PERFORMANCE, ch, strdup(buf), VERSE_INTERVAL);
         return;
       }
     }
@@ -362,13 +362,19 @@ EVENTFUNC(event_bardic_performance) {
 
   /* start handling the event data */
   pMudEvent = (struct mud_event_data *) event_obj;
-  if (!pMudEvent)
+  if (!pMudEvent) {
+    log("SYSERR: event_bardic_performance missing pMudEvent!");
     return 0;
-  if (!pMudEvent->iId)
+  }
+  if (!pMudEvent->iId) {
+    log("SYSERR: event_bardic_performance missing pMudEvent->iId!");
     return 0;
+  }
   ch = (struct char_data *) pMudEvent->pStruct;
-  if (!ch)
+  if (!ch) {
+    log("SYSERR: event_bardic_performance missing pMudEvent->pStruct!");
     return 0;
+  }
   
   /* extract the variable(s) */
   if (pMudEvent->sVariables == NULL) {
@@ -484,8 +490,10 @@ EVENTFUNC(event_bardic_performance) {
     effectiveness = 60;
 
   /* GUTS! message, effect processed in this function */
-  if (!process_performance(ch, spellnum, effectiveness))
+  if (!process_performance(ch, spellnum, effectiveness)) {
+    send_to_char(ch, "Your performance fails!\r\n");
     return 0; /* process performance failed somehow */
+  }
 
   /* success, we're coming back in VERSE_INTERVAL */
   return VERSE_INTERVAL;
