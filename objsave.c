@@ -861,7 +861,6 @@ void Crash_rentsave(struct char_data *ch, int cost) {
     return;
 
 #ifdef OBJSAVE_DB
-  char buf[2048]; /* For MySQL insert. */
   if (mysql_query(conn, "start transaction;")) {
     log("SYSERR: Unable to start transaction for saving of player object data: %s", mysql_error(conn));    
     return ;
@@ -903,7 +902,6 @@ void Crash_rentsave(struct char_data *ch, int cost) {
   fclose(fp);
   
 #ifdef OBJSAVE_DB
-  char buf[2048]; /* For MySQL insert. */
   if (mysql_query(conn, "commit;")) {
     log("SYSERR: Unable to commit transaction for saving of player object data: %s", mysql_error(conn));    
     return ;
