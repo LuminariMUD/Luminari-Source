@@ -378,7 +378,7 @@ bool move_on_path(struct char_data *ch) {
     case BFS_NO_PATH:
       send_to_char(ch, "I can't sense a trail to %d (%d) from here.\r\n",
               next, real_room(next));
-      log("NO PATH: Mob %s, in room %d, trying to get to %d", GET_NAME(ch), world[IN_ROOM(ch)].number, next);
+      //log("NO PATH: Mob %s, in room %d, trying to get to %d", GET_NAME(ch), world[IN_ROOM(ch)].number, next);
       break;
     default: /* Success! */
       send_to_char(ch, "I sense a trail %s from here!\r\n", dirs[dir]);
