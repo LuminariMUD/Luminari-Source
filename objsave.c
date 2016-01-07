@@ -63,8 +63,18 @@ static int objsave_write_rentcode(FILE *fl, int rentcode, int cost_per_day, stru
 /* this function will basically check if an individual object has been modified
  from its default state, if so we write those modifications to file, otherwise
  the vnum is adequate
- *note: this always will return 1 */
+ *note: this always will return 1 
+ 
+ * NB: Database saving is partially implemented. *
+ 
+ */
 int objsave_save_obj_record(struct obj_data *obj, FILE *fp, int locate) {
+
+#ifdef OBJSAVE_DB
+  char ins_buf[36767];  /* For MySQL insert. */
+  char line_buf[MAX_STRING_LENGTH+1]; /* For building MySQL insert statement. */
+#endif
+  
   int counter2, i = 0;
   struct extra_descr_data *ex_desc;
   char buf1[MAX_STRING_LENGTH + 1];
@@ -85,12 +95,27 @@ int objsave_save_obj_record(struct obj_data *obj, FILE *fp, int locate) {
   } else
     *buf1 = 0;
 
+#ifdef OBJSAVE_DB
+  sprintf(line_buf, "insert into player_save_objs (name, serialized_obj) values ('%s', '", GET_NAME(obj->carried_by));
+  strcat(ins_buf, line_buf);
+#endif  
+  
   fprintf(fp, "#%d\n", GET_OBJ_VNUM(obj));
+
+#ifdef OBJSAVE_DB
+  sprintf(line_buf, "#%d\n", GET_OBJ_VNUM(obj));
+  strcat(ins_buf, line_buf);
+#endif
   
   /* autoequip location? */
   if (locate)
     fprintf(fp, "Loc : %d\n", locate);
-  
+
+#ifdef OBJSAVE_DB
+  sprintf(line_buf, "Loc : %d\n", locate);
+  strcat(ins_buf, line_buf);
+#endif
+
   /**** start checks for modifications to default object! ***/
   /* is object modified from default values? */
   if (GET_OBJ_VAL(obj, 0) != GET_OBJ_VAL(temp, 0) ||
@@ -108,7 +133,7 @@ int objsave_save_obj_record(struct obj_data *obj, FILE *fp, int locate) {
           GET_OBJ_VAL(obj, 12) != GET_OBJ_VAL(temp, 12) ||
           GET_OBJ_VAL(obj, 13) != GET_OBJ_VAL(temp, 13) ||
           GET_OBJ_VAL(obj, 14) != GET_OBJ_VAL(temp, 14) ||
-          GET_OBJ_VAL(obj, 15) != GET_OBJ_VAL(temp, 15))
+          GET_OBJ_VAL(obj, 15) != GET_OBJ_VAL(temp, 15)) {
     fprintf(fp,
           "Vals: %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n",
           GET_OBJ_VAL(obj, 0),
@@ -128,15 +153,49 @@ int objsave_save_obj_record(struct obj_data *obj, FILE *fp, int locate) {
           GET_OBJ_VAL(obj, 14),
           GET_OBJ_VAL(obj, 15)
           );
-  if (GET_OBJ_EXTRA(obj) != GET_OBJ_EXTRA(temp))
-    fprintf(fp, "Flag: %d %d %d %d\n", GET_OBJ_EXTRA(obj)[0], GET_OBJ_EXTRA(obj)[1], GET_OBJ_EXTRA(obj)[2], GET_OBJ_EXTRA(obj)[3]);
 
+#ifdef OBJSAVE_DB
+  sprintf(line_buf, "Vals: %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n",
+          GET_OBJ_VAL(obj, 0),
+          GET_OBJ_VAL(obj, 1),
+          GET_OBJ_VAL(obj, 2),
+          GET_OBJ_VAL(obj, 3),
+          GET_OBJ_VAL(obj, 4),
+          GET_OBJ_VAL(obj, 5),
+          GET_OBJ_VAL(obj, 6),
+          GET_OBJ_VAL(obj, 7),
+          GET_OBJ_VAL(obj, 8),
+          GET_OBJ_VAL(obj, 9),
+          GET_OBJ_VAL(obj, 10),
+          GET_OBJ_VAL(obj, 11),
+          GET_OBJ_VAL(obj, 12),
+          GET_OBJ_VAL(obj, 13),
+          GET_OBJ_VAL(obj, 14),
+          GET_OBJ_VAL(obj, 15)
+          );
+  strcat(ins_buf, line_buf);
+#endif
+    
+  }
+  if (GET_OBJ_EXTRA(obj) != GET_OBJ_EXTRA(temp)) {
+    fprintf(fp, "Flag: %d %d %d %d\n", GET_OBJ_EXTRA(obj)[0], GET_OBJ_EXTRA(obj)[1], GET_OBJ_EXTRA(obj)[2], GET_OBJ_EXTRA(obj)[3]);
+#ifdef OBJSAVE_DB
+    sprintf(line_buf, "Flag: %d %d %d %d\n", GET_OBJ_EXTRA(obj)[0], GET_OBJ_EXTRA(obj)[1], GET_OBJ_EXTRA(obj)[2], GET_OBJ_EXTRA(obj)[3]);
+    strcat(ins_buf, line_buf);
+#endif    
+  }
+  
 #define TEST_OBJS(obj1, obj2, field) ((!obj1->field || !obj2->field || \
                                       strcmp(obj1->field, obj2->field)))
 #define TEST_OBJN(field) (obj->obj_flags.field != temp->obj_flags.field)
 
-  if (TEST_OBJS(obj, temp, name))
+  if (TEST_OBJS(obj, temp, name)) {
     fprintf(fp, "Name: %s\n", obj->name ? obj->name : "Undefined");
+#ifdef OBJSAVE_DB
+    sprintf(line_buf, "Name: %s\n", obj->name ? obj->name : "Undefined");
+    strcat(ins_buf, line_buf);
+#endif   
+  }
   if (TEST_OBJS(obj, temp, short_description))
     fprintf(fp, "Shrt: %s\n", obj->short_description ? obj->short_description : "Undefined");
 
@@ -213,7 +272,16 @@ int objsave_save_obj_record(struct obj_data *obj, FILE *fp, int locate) {
   /*** end checks for object modifications ****/
 
   fprintf(fp, "\n");
-
+  
+#ifdef OBJSAVE_DB
+  sprintf(line_buf, "';");
+  strcat(ins_buf, line_buf);
+  if (mysql_query(conn, buf)) {
+    log("SYSERR: Unable to INSERT into player_save_objs: %s", mysql_error(conn));
+    return 1;
+  }
+#endif   
+  
   extract_obj(temp);
 
   return 1;
@@ -792,6 +860,14 @@ void Crash_rentsave(struct char_data *ch, int cost) {
   if (!(fp = fopen(buf, "w")))
     return;
 
+#ifdef OBJSAVE_DB
+  char buf[2048]; /* For MySQL insert. */
+  if (mysql_query(conn, "start transaction;")) {
+    log("SYSERR: Unable to start transaction for saving of player object data: %s", mysql_error(conn));    
+    return ;
+  }  
+#endif
+  
   /* get rid of all !rent items */
   Crash_extract_norent_eq(ch);
   Crash_extract_norents(ch->carrying);
@@ -825,6 +901,14 @@ void Crash_rentsave(struct char_data *ch, int cost) {
   /* file terminating char and close */
   fprintf(fp, "$~\n");
   fclose(fp);
+  
+#ifdef OBJSAVE_DB
+  char buf[2048]; /* For MySQL insert. */
+  if (mysql_query(conn, "commit;")) {
+    log("SYSERR: Unable to commit transaction for saving of player object data: %s", mysql_error(conn));    
+    return ;
+  }  
+#endif
 
   /* recursively remove objects and their contents */
   Crash_extract_objs(ch->carrying);
@@ -845,7 +929,7 @@ static int objsave_write_rentcode(FILE *fl, int rentcode, int cost_per_day, stru
           0,
           GET_NAME(ch));  
   if (mysql_query(conn, buf)) {
-    log("SYSERR: Unable to INSERT obj_save_header into PLAYER_DATA: %s", mysql_error(conn));
+    log("SYSERR: Unable to INSERT obj_save_header into PLAYER_DATA: %s", mysql_error(conn));    
     return FALSE;
   }  
 #endif
