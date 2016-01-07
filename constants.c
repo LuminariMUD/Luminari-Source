@@ -37,7 +37,9 @@ const char *instrument_names[MAX_INSTRUMENTS + 1] = {
   "Lyre",
   "Flute",
   "Horn",
-  "Drums",  
+  "Drum",  
+  "Harp",  
+  "Mandolin",  
 /**/
   "\n"  
 };
