@@ -1622,7 +1622,7 @@ static int Crash_load_objs(struct char_data *ch) {
       break;
     default:
       mudlog(NRM, MAX(LVL_IMMORT, GET_INVIS_LEV(ch)), TRUE,
-              "WARNING: %s entering game with undefined rent code %d.", rentcode, GET_NAME(ch));
+              "WARNING: %s entering game with undefined rent code %d.", GET_NAME(ch), rentcode);
       break;
   }
 
