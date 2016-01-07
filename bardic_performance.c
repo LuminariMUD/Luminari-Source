@@ -152,8 +152,8 @@ ACMD(do_play) {
         /***/
 
         /* SUCCESS! */
-        act("You start singing.", FALSE, ch, 0, 0, TO_CHAR);
-        act("$n starts singing.", FALSE, ch, 0, 0, TO_ROOM);
+        act("You start performing.", FALSE, ch, 0, 0, TO_CHAR);
+        act("$n starts performing.", FALSE, ch, 0, 0, TO_ROOM);
         char buf[128];
         sprintf(buf, "%d", i); /* Build the effect string */
         NEW_EVENT(eBARDIC_PERFORMANCE, ch, strdup(buf), 4 * PASSES_PER_SEC);
@@ -176,7 +176,7 @@ int process_performance(struct char_data *ch, int spellnum, int effectiveness) {
   new_affect(&af);
   SET_BIT_AR(af.bitvector, 0);
   af.modifier = 0;
-  af.duration = 8;
+  af.duration = 2;
   af.location = APPLY_NONE;
   af.spell = spellnum;
   
@@ -340,7 +340,7 @@ int process_performance(struct char_data *ch, int spellnum, int effectiveness) {
             alter_hit(tch, -rand_number(effectiveness / 4, effectiveness / 2), FALSE);
           }
           af.location = APPLY_AC_NEW;
-          af.modifier = MIN(1, effectiveness / 20);
+          af.modifier = MAX(1, (effectiveness+2) / 19);
           affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
           af.location = APPLY_SAVING_REFL;
           af.modifier = effectiveness / 5;
