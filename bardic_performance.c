@@ -105,7 +105,7 @@ ACMD(do_play) {
   len = strlen(argument);
 
   for (i = 0; i < MAX_PERFORMANCES; i++) {
-    if (!strncmp(argument, spells[performance_info[i][PERFORMANCE_SKILLNUM]], len)) {
+    if (!strncmp(argument, skill_name(performance_info[i][PERFORMANCE_SKILLNUM]), len)) {
       if (!GET_SKILL(ch, performance_info[i][PERFORMANCE_SKILLNUM])) {
         send_to_char(ch, "But you do not know that performance!\r\n");
         return;
@@ -137,10 +137,12 @@ int process_performance(struct char_data *ch, int spellnum, int effectiveness) {
   bool nomessage = FALSE;
   
   /* init affection / default values */
+  new_affect(&af);
   SET_BIT_AR(af.bitvector, 0);
   af.modifier = 0;
   af.duration = 8;
   af.location = APPLY_NONE;
+  af.spell = spellnum;
   
   /* performance message */
   switch (spellnum) {
