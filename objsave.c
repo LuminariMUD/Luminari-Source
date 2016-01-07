@@ -25,6 +25,13 @@
 #include "craft.h"
 #include "spec_abilities.h"
 
+#define OBJSAVE_DB 1
+
+#ifdef OBJSAVE_DB
+#include "mysql.h"
+#endif
+
+
 /* these factors should be unique integers */
 #define RENT_FACTOR    1
 #define CRYO_FACTOR    4
@@ -825,6 +832,24 @@ void Crash_rentsave(struct char_data *ch, int cost) {
 
 /* write to file rentcode: rentcode, time, cost for renting, gold, bank-gold */
 static int objsave_write_rentcode(FILE *fl, int rentcode, int cost_per_day, struct char_data *ch) {
+  
+#ifdef OBJSAVE_DB
+  char buf[2048]; /* For MySQL insert. */
+  sprintf(buf, "update player_data set obj_save_header = '%d %ld %d %d %d %d'"
+               "where name = '%s';",
+          rentcode,
+          (long) time(0),
+          cost_per_day,
+          GET_GOLD(ch),
+          GET_BANK_GOLD(ch),
+          0,
+          GET_NAME(ch));  
+  if (mysql_query(conn, buf)) {
+    log("SYSERR: Unable to INSERT obj_save_header into PLAYER_DATA: %s", mysql_error(conn));
+    return FALSE;
+  }  
+#endif
+  
   if (fprintf(fl, "%d %ld %d %d %d %d\r\n",
           rentcode,
           (long) time(0),
