@@ -171,6 +171,7 @@ int process_performance(struct char_data *ch, int spellnum, int effectiveness) {
   struct affected_type af;
   struct char_data *tch = NULL, *tch_next = NULL;
   bool nomessage = FALSE;
+  int return_val = 1;
   
   /* init affection / default values */
   new_affect(&af);
@@ -223,6 +224,7 @@ int process_performance(struct char_data *ch, int spellnum, int effectiveness) {
               TO_ROOM);
       break;
     default:
+      return_val = 0;
       log("SYSERR: messages in process_performance reached default case! "
                 "(spellnum: %d)", spellnum);
       break;
@@ -351,11 +353,12 @@ int process_performance(struct char_data *ch, int spellnum, int effectiveness) {
       default:
         log("SYSERR: room-loop in process_performance reached default case! "
                 "(spellnum: %d)", spellnum);
+        return_val = 0;
         break;
     } /* end switch */
   } /* end for loop */
   
-  return 1; /* we don't have any exit values (yet) */
+  return return_val; /* 0 = fail, 1 = success */
 }
 
 EVENTFUNC(event_bardic_performance) {
