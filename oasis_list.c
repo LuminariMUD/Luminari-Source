@@ -347,7 +347,14 @@ void perform_obj_type_list(struct char_data * ch, char *arg) {
             tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %s[%s%8d%s] %s%s (%s%s/To: %d-%d%s)\r\n",
                     QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, obj_proto[r_num].short_description, QNRM, QYEL, portal_types[v1], v2, v3, QNRM);
             break;
-            /* The 'normal' items - don't provide extra info */
+            
+          case ITEM_INSTRUMENT:
+            tmp_len = snprintf(buf + len, sizeof (buf) - len,
+                    "%s%3d%s) %s%7d%s (%s%s | Difficulty: %d | Level: %d | Breakability: %d) %s%s\r\n",
+                    QGRN, ++found, QNRM, QYEL, ov, QNRM, instrument_names[v1], QNRM, v2, v3, v4, obj_proto[r_num].short_description, QNRM);
+            break;
+            
+          /* The 'normal' items - don't provide extra info */
           case ITEM_TREASURE:
           case ITEM_TRASH:
           case ITEM_OTHER:

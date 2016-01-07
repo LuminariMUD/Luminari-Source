@@ -314,6 +314,8 @@ ACMD(do_export_zone)
   int success;
   int i;
 
+  i = 0;
+  
   /* system command locations are relative to
    * where the binary IS, not where it was run
    * from, thus we act like we are in the bin

@@ -107,6 +107,7 @@ struct mud_event_list mud_event_index[] = {
   { "Battle Rage", event_daily_use_cooldown, EVENT_CHAR}, // eBATTLE_RAGE
   { "Crystal fist", event_countdown, EVENT_CHAR}, //eCRYSTALFIST_AFF
   { "Crystal body", event_countdown, EVENT_CHAR}, //eCRYRSTALBODY_AFF
+  { "Bardic Performance", event_bardic_performance, EVENT_CHAR}, /* eBARDIC_PERFORMANCE */
 };
 
 /* init_events() is the ideal function for starting global events. This

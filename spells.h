@@ -460,8 +460,23 @@
 #define PSIONIC_STASIS_FIELD            365
 #define PSIONIC_INTERTIAL_BARRIER       366
 #define PSIONIC_PLANAR_RIFT             367
+#define PSIONIC_UNNAMED01               368
+#define PSIONIC_UNNAMED02               369
+#define PSIONIC_UNNAMED03               370
+#define PSIONIC_UNNAMED04               371
+#define PSIONIC_UNNAMED05               372
+#define PSIONIC_UNNAMED06               373
+#define PSIONIC_UNNAMED07               374
+#define PSIONIC_UNNAMED08               375
+#define PSIONIC_UNNAMED09               376
+#define PSIONIC_UNNAMED10               377
+#define PSIONIC_UNNAMED11               378
+#define PSIONIC_UNNAMED12               379
+#define PSIONIC_UNNAMED13               380
+#define PSIONIC_UNNAMED14               381
+#define PSIONIC_UNNAMED15               382
 /* end unfinished list */
-#define LAST_SPELL_DEFINE               368
+#define LAST_SPELL_DEFINE               383
 
 /* Other files to be aware of for new spells:
  * 1)  if you want this spell to be avaiable as a npc spellup, mobact.c
@@ -615,6 +630,22 @@
 #define SKILL_DESTRUCTIVE_AURA          536
 #define SKILL_AURA_OF_PROTECTION        537
 
+/* reserving this space for different songs 580 - 599*/
+#define TOP_OF_SONGS                    580
+/***/
+#define SKILL_SONG_OF_FOCUSED_MIND      588
+#define SKILL_SONG_OF_FEAR              589
+#define SKILL_SONG_OF_ROOTING           590
+#define SKILL_SONG_OF_THE_MAGI          591
+#define SKILL_SONG_OF_HEALING           592
+#define SKILL_SONG_OF_PROTECTION        593
+#define SKILL_SONG_OF_FLIGHT            594
+#define SKILL_SONG_OF_HEROISM           595
+#define SKILL_SONG_OF_REJUVENATION      596
+#define SKILL_SONG_OF_FORGETFULNESS     597
+#define SKILL_SONG_OF_REVELATION        598
+#define SKILL_SONG_OF_DRAGONS           599
+/**** end songs ****/
 /* New skills may be added here up to MAX_SKILLS (600) */
 #define NUM_SKILLS                      538
 

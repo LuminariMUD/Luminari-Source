@@ -641,6 +641,8 @@ static void list_one_char(struct char_data *i, struct char_data *ch) {
     send_to_char(ch, " (buildwalk)");
   if (!IS_NPC(i) && PRF_FLAGGED(i, PRF_AFK))
     send_to_char(ch, " (AFK)");
+  if (char_has_mud_event(i, eBARDIC_PERFORMANCE))
+    send_to_char(ch, " (performing)");
   if (char_has_mud_event(i, eTAUNTED))
     send_to_char(ch, " (taunted)");
   if (char_has_mud_event(i, eINTIMIDATED))
@@ -2209,7 +2211,6 @@ ACMD(do_score) {
   struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_1);
   float height = GET_HEIGHT(ch);
   int w_type = 0;
-
   int line_length = 80;
 
   // get some initial info before score display

@@ -824,13 +824,16 @@ void Crash_crashsave(struct char_data *ch) {
 #ifdef OBJSAVE_DB
   char del_buf[2048];
   if (mysql_query(conn, "start transaction;")) {
-    log("SYSERR: Unable to start transaction for saving of player object data: %s", mysql_error(conn));    
+    log("SYSERR: Unable to start transaction for saving of player object data: %s",
+            mysql_error(conn));    
     return ;
   }  
   /* Delete existing save data.  In the future may just flag these for deletion. */
-  sprintf(del_buf, "delete from player_save_objs where name = '%s';", GET_NAME(ch));
+  sprintf(del_buf, "delete from player_save_objs where name = '%s';",
+          GET_NAME(ch));
   if (mysql_query(conn, del_buf)) {
-    log("SYSERR: Unable to delete player object save data: %s", mysql_error(conn));    
+    log("SYSERR: Unable to delete player object save data: %s",
+            mysql_error(conn));    
     return ;
   }  
 #endif  
@@ -864,7 +867,8 @@ void Crash_crashsave(struct char_data *ch) {
   
 #ifdef OBJSAVE_DB
   if (mysql_query(conn, "commit;")) {
-    log("SYSERR: Unable to commit transaction for saving of player object data: %s", mysql_error(conn));    
+    log("SYSERR: Unable to commit transaction for saving of player object data: %s",
+            mysql_error(conn));    
     return ;
   }  
 #endif  
@@ -970,13 +974,16 @@ void Crash_rentsave(struct char_data *ch, int cost) {
 #ifdef OBJSAVE_DB
   char del_buf[2048];
   if (mysql_query(conn, "start transaction;")) {
-    log("SYSERR: Unable to start transaction for saving of player object data: %s", mysql_error(conn));    
+    log("SYSERR: Unable to start transaction for saving of player object data: %s",
+            mysql_error(conn));    
     return ;
   }  
   /* Delete existing save data.  In the future may just flag these for deletion. */
-  sprintf(del_buf, "delete from player_save_objs where name = '%s';", GET_NAME(ch));
+  sprintf(del_buf, "delete from player_save_objs where name = '%s';",
+          GET_NAME(ch));
   if (mysql_query(conn, del_buf)) {
-    log("SYSERR: Unable to delete player object save data: %s", mysql_error(conn));    
+    log("SYSERR: Unable to delete player object save data: %s",
+            mysql_error(conn));    
     return ;
   }  
 #endif

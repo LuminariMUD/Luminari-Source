@@ -104,6 +104,7 @@ typedef enum {
   eBATTLE_RAGE, /*more domain powers*/
   eCRYSTALFIST_AFF, //  crystal fist affect
   eCRYSTALBODY_AFF, //  crystal body affect
+  eBARDIC_PERFORMANCE, // bard performance/song
 } event_id;
 
 /* probaly a smart place to mention to not forget to update:
@@ -162,4 +163,5 @@ EVENTFUNC(event_tracks);
 EVENTFUNC(event_combat_round);
 EVENTFUNC(event_action_cooldown);
 EVENTFUNC(event_trap_triggered);
+EVENTFUNC(event_bardic_performance);
 #endif /* _MUD_EVENT_H_ */

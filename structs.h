@@ -435,6 +435,17 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 /* how much space to reserve in the mem arrays */
 #define MAX_MEM		NUM_SLOTS * NUM_CIRCLES
 
+/* Instruments - bardic_performance */
+#define INSTRUMENT_LYRE       0 
+#define INSTRUMENT_FLUTE      1 
+#define INSTRUMENT_HORN       2 
+#define INSTRUMENT_DRUM       3
+#define INSTRUMENT_HARP       4
+#define INSTRUMENT_MANDOLIN   5
+/**/
+#define MAX_INSTRUMENTS       6
+/***************/
+
 // Races
 #define RACE_UNDEFINED       (-1) /*Race Undefined*/
 #define RACE_HUMAN           0 /* Race Human */
