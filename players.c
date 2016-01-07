@@ -1432,7 +1432,8 @@ static void load_dr(FILE* f1, struct char_data *ch) {
 /* load_affects function now handles both 32-bit and
    128-bit affect bitvectors for backward compatibility */
 static void load_affects(FILE *fl, struct char_data *ch) {
-  int num = 0, num2 = 0, num3 = 0, num4 = 0, num5 = 0, num6 = 0, num7 = 0, num8 = 0, num9 = 0, i, n_vars;
+  int num = 0, num2 = 0, num3 = 0, num4 = 0, num5 = 0, num6 = 0, num7 = 0,
+          num8 = 0, num9 = 0, i, n_vars, num10, num11, num12, num13, num14, num15;
   char line[MAX_INPUT_LENGTH + 1];
   struct affected_type af;
 
@@ -1440,7 +1441,9 @@ static void load_affects(FILE *fl, struct char_data *ch) {
   do {
     new_affect(&af);
     get_line(fl, line);
-    n_vars = sscanf(line, "%d %d %d %d %d %d %d %d %d", &num, &num2, &num3, &num4, &num5, &num6, &num7, &num8, &num9);
+    n_vars = sscanf(line, "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d", &num,
+            &num2, &num3, &num4, &num5, &num6, &num7, &num8, &num9, &num10, &num11,
+            &num12, &num13, &num14, &num15);
     if (num > 0) {
       af.spell = num;
       af.duration = num2;
@@ -1462,7 +1465,7 @@ static void load_affects(FILE *fl, struct char_data *ch) {
         if (num5 > 0 && num5 <= NUM_AFF_FLAGS) /* Ignore invalid values */
           SET_BIT_AR(af.bitvector, num5);
       } else {
-        log("SYSERR: Invalid affects in pfile (%s), expecting 5 or 8 values", GET_NAME(ch));
+        log("SYSERR: Invalid affects in pfile (%s), expecting 5, 8, 9 values, got %d", GET_NAME(ch), n_vars);
       }
       affect_to_char(ch, &af);
       i++;
