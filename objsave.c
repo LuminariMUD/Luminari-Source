@@ -714,7 +714,7 @@ static int Crash_save(struct obj_data *obj, struct char_data *ch, FILE *fp, int 
 
   if (obj) {
     Crash_save(obj->next_content, ch, fp, location);
-    Crash_save(obj->contains, xh, fp, MIN(0, location) - 1);
+    Crash_save(obj->contains, ch, fp, MIN(0, location) - 1);
 
     /* save a single object to file */
     result = objsave_save_obj_record(obj, ch, fp, location);
