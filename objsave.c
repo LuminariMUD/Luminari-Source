@@ -97,9 +97,9 @@ int objsave_save_obj_record(struct obj_data *obj, FILE *fp, int locate) {
 
 #ifdef OBJSAVE_DB
   sprintf(ins_buf, "insert into player_save_objs (name, serialized_obj) values ('%s', '",
-           (obj->carried_by == NULL ?
-            GET_NAME(obj->worn_by) : 
-            GET_NAME(obj->carried_by) ));
+           (obj->carried_by != NULL ?
+            GET_NAME(obj->carried_by) : 
+            GET_NAME(obj->worn_by) ));
 #endif  
   
   fprintf(fp, "#%d\n", GET_OBJ_VNUM(obj));
