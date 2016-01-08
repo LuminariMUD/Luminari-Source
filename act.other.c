@@ -498,7 +498,7 @@ void perform_perform(struct char_data *ch) {
 
   duration = 14 + GET_CHA_BONUS(ch);
 
-  /* init affect array */
+  // init affect array
   for (i = 0; i < BARD_AFFECTS; i++) {
     new_affect(&(af[i]));
     af[i].spell = SKILL_PERFORM;
