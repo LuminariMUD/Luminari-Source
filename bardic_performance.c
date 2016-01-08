@@ -340,7 +340,7 @@ int performance_effects(struct char_data *tch, struct affected_type af,
             
     /* UH OH! */
     default:
-      log("SYSERR: group-loop in process_performance reached default case! "
+      log("SYSERR: performance_effects reached default case! "
               "(spellnum: %d)", spellnum);
       return_val = 0;
       break;
@@ -378,7 +378,7 @@ int process_performance(struct char_data *ch, int spellnum,
               TO_ROOM);
       break;
     case SKILL_SONG_OF_FLIGHT:
-      act("You sing a song that lifts the spirits high", FALSE, ch, 0, 0, TO_CHAR);
+      act("You sing a song that lifts the spirits high.", FALSE, ch, 0, 0, TO_CHAR);
       act("$n sings a song that lifts the spirits high.", FALSE, ch, 0, 0, TO_ROOM);
       break;
     case SKILL_SONG_OF_HEROISM:
