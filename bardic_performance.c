@@ -58,59 +58,59 @@ song of the magi        25 */
 /* NOTE: dont' forget to update MAX_PERFORMANCES in bardic_performance.h */
 /* NOTE: dont' forget to add associated feat */
 int performance_info[MAX_PERFORMANCES][PERFORMANCE_INFO_FIELDS] = {
-  
+  /* 0*/
   {SKILL_SONG_OF_HEALING,      INSTRUMENT_LYRE,      SKILL_LYRE,     4,
     PERFORMANCE_TYPE_SING, PERFORM_AOE_GROUP, FEAT_SONG_OF_HEALING},
-    
+  /* 1*/
   {SKILL_SONG_OF_PROTECTION,    INSTRUMENT_DRUM,     SKILL_DRUM,     5,
     PERFORMANCE_TYPE_SING, PERFORM_AOE_GROUP, FEAT_SONG_OF_PROTECTION},
-    
+  /* 2*/    
   {SKILL_SONG_OF_FOCUSED_MIND,  INSTRUMENT_HARP,     SKILL_HARP,     6,
     PERFORMANCE_TYPE_SING, PERFORM_AOE_GROUP, FEAT_SONG_OF_FOCUSED_MIND},
-    
+  /* 3*/    
   {SKILL_SONG_OF_HEROISM,       INSTRUMENT_DRUM,     SKILL_DRUM,     8,
     PERFORMANCE_TYPE_SING, PERFORM_AOE_GROUP, FEAT_SONG_OF_HEROISM},
-    
+  /* 4*/    
   {SKILL_SONG_OF_REJUVENATION,  INSTRUMENT_LYRE,     SKILL_LYRE,     10,
     PERFORMANCE_TYPE_SING, PERFORM_AOE_GROUP, FEAT_SONG_OF_REJUVENATION},
-    
+  /* 5*/    
   {SKILL_SONG_OF_FLIGHT,        INSTRUMENT_HORN,     SKILL_HORN,     12,
     PERFORMANCE_TYPE_SING, PERFORM_AOE_GROUP, FEAT_SONG_OF_FLIGHT},
-    
+  /* 6*/
   {SKILL_SONG_OF_REVELATION,    INSTRUMENT_FLUTE,    SKILL_FLUTE,    14,
     PERFORMANCE_TYPE_SING, PERFORM_AOE_GROUP, FEAT_SONG_OF_REVELATION},
-    
+  /* 7*/    
   {SKILL_SONG_OF_FEAR,          INSTRUMENT_HARP,     SKILL_HARP,     16,
     PERFORMANCE_TYPE_SING, PERFORM_AOE_FOES,  FEAT_SONG_OF_FEAR},
-    
+  /* 8*/    
   {SKILL_SONG_OF_FORGETFULNESS, INSTRUMENT_FLUTE,    SKILL_FLUTE,    18,
     PERFORMANCE_TYPE_SING, PERFORM_AOE_FOES,  FEAT_SONG_OF_FORGETFULNESS},
-    
+  /* 9*/    
   {SKILL_SONG_OF_ROOTING,       INSTRUMENT_MANDOLIN, SKILL_MANDOLIN, 20,
     PERFORMANCE_TYPE_SING, PERFORM_AOE_FOES,  FEAT_SONG_OF_ROOTING},
-    
+  /*10*/    
   {SKILL_SONG_OF_DRAGONS,       INSTRUMENT_HORN,     SKILL_HORN,     24,
     PERFORMANCE_TYPE_SING, PERFORM_AOE_GROUP, FEAT_SONG_OF_DRAGONS},
-    
+  /*11*/    
   {SKILL_SONG_OF_THE_MAGI,      INSTRUMENT_MANDOLIN, SKILL_MANDOLIN, 29,
     PERFORMANCE_TYPE_SING, PERFORM_AOE_FOES,  FEAT_SONG_OF_THE_MAGI},
-    
+  /*MAX_PERFORMANCES: 12*/    
 };
 
-/* local function for modifying chars points (hitpoints or moves)
+/* local functions for modifying chars points (hitpoints or moves)
  * note: negative (-) is healing */
-void alter_hit(struct char_data *ch, int points, bool unused) {
+static void alter_hit(struct char_data *ch, int points, bool unused) {
   GET_HIT(ch) -= points;
   GET_HIT(ch) = MIN(GET_HIT(ch), GET_MAX_HIT(ch));  
   update_pos(ch);
 }
-void alter_move(struct char_data *ch, int points) {
+static void alter_move(struct char_data *ch, int points) {
   GET_MOVE(ch) -= points;
   GET_MOVE(ch) = MIN(GET_MOVE(ch), GET_MAX_MOVE(ch));  
   update_pos(ch);
 }
 
-/* primary command entry point for the bardice performance */
+/* primary command entry point for the bardic performance */
 ACMD(do_perform) {
   int i;
   int len = 0;
@@ -236,7 +236,7 @@ int performance_effects(struct char_data *tch, struct affected_type af,
       affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
       af.location = APPLY_DAMROLL;
       af.modifier = effectiveness / 13;
-      if (level >= 20 && !AFF_FLAGGED(tch, AFF_HASTE)) {
+      if (level >= 19 && !AFF_FLAGGED(tch, AFF_HASTE)) {
         SET_BIT_AR(af.bitvector, AFF_HASTE);
         act("You feel the world slow down around you.", FALSE, tch, 0, 0,
                 TO_CHAR);
@@ -363,11 +363,14 @@ int process_performance(struct char_data *ch, int spellnum,
   new_affect(&af);
   SET_BIT_AR(af.bitvector, 0);
   af.modifier = 0;
-  af.duration = 2;
+  af.duration = 1;
+  if (HAS_FEAT(ch, FEAT_LINGERING_SONG))
+    af.duration++;    
   af.location = APPLY_NONE;
   af.spell = spellnum;
-  
-  /* performance message */
+  af.bonus_type = BONUS_TYPE_MORALE;  
+
+/* performance message */
   switch (spellnum) {
     case SKILL_SONG_OF_HEALING:
       act("You sing a song to heal all wounds.", FALSE, ch, 0, 0, TO_CHAR);
