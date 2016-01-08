@@ -1577,7 +1577,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_INTENSIFY_SPELL             350
 #define FEAT_SNEAK_ATTACK_OF_OPPORTUNITY 351
 #define FEAT_STEADFAST_DETERMINATION     352
-#define FEAT_BACKSTAB              353
+#define FEAT_BACKSTAB                    353
 #define FEAT_SELF_CONCEALMENT            354
 #define FEAT_SWARM_OF_ARROWS             355
 #define FEAT_EPIC_PROWESS                356
@@ -1695,10 +1695,24 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_TRELUX_PINCERS                 466
 #define FEAT_TRELUX_RACIAL_ADJUSTMENT       467
 #define FEAT_NATURAL_ATTACK                 468
+/* first 12 bardic performances */
+#define FEAT_SONG_OF_FOCUSED_MIND           469
+#define FEAT_SONG_OF_FEAR                   470
+#define FEAT_SONG_OF_ROOTING                471
+#define FEAT_SONG_OF_THE_MAGI               472
+#define FEAT_SONG_OF_HEALING                473
+#define FEAT_SONG_OF_PROTECTION             474
+#define FEAT_SONG_OF_FLIGHT                 475
+#define FEAT_SONG_OF_HEROISM                476
+#define FEAT_SONG_OF_REJUVENATION           477
+#define FEAT_SONG_OF_FORGETFULNESS          478
+#define FEAT_SONG_OF_REVELATION             479
+#define FEAT_SONG_OF_DRAGONS                480
+/* end bardic performances */
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT                      469
+#define FEAT_LAST_FEAT                      481
 /** feat_last_feat + 1 ***/
-#define NUM_FEATS                           470
+#define NUM_FEATS                           482
 /*****/
 #define MAX_FEATS                           750
 /*****/

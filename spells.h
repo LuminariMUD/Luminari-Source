@@ -630,8 +630,8 @@
 #define SKILL_DESTRUCTIVE_AURA          536
 #define SKILL_AURA_OF_PROTECTION        537
 
-/* reserving this space for different songs 580 - 599*/
-#define TOP_OF_SONGS                    580
+/* reserving this space for different performances 580 - 599*/
+#define TOP_OF_PERFORMANCES             580
 /***/
 #define SKILL_SONG_OF_FOCUSED_MIND      588
 #define SKILL_SONG_OF_FEAR              589
@@ -645,6 +645,7 @@
 #define SKILL_SONG_OF_FORGETFULNESS     597
 #define SKILL_SONG_OF_REVELATION        598
 #define SKILL_SONG_OF_DRAGONS           599
+#define END_OF_PERFORMANCES             600
 /**** end songs ****/
 /* New skills may be added here up to MAX_SKILLS (600) */
 #define NUM_SKILLS                      538

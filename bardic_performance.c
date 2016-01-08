@@ -1,7 +1,8 @@
 /*
  * File:   bardic_performance.h
  * Author: Zusuk
- * Functions, commands, etc for the bardic performance system.
+ * Functions, commands, etc for the bardic performance system
+ *   heavy influence from the homelandMUD system
  */
 
 #include "conf.h"
@@ -17,6 +18,7 @@
 #include "bardic_performance.h"
 #include "fight.h"
 #include "spec_procs.h"
+#include "actions.h"
 
 /* performance types
 Act (comedy, drama, pantomime)
@@ -53,18 +55,43 @@ song of the magi        25 */
 /* performance info: this will be our reference/lookup data for each song/performance
    skillnum, instrument, instrument_skill, difficulty */
 int performance_info[MAX_PERFORMANCES][PERFORMANCE_INFO_FIELDS] = {
-  {SKILL_SONG_OF_HEALING,        INSTRUMENT_LYRE,       SKILL_LYRE,      4,   PERFORMANCE_TYPE_SING},
-  {SKILL_SONG_OF_PROTECTION,     INSTRUMENT_DRUM,       SKILL_DRUM,      5,   PERFORMANCE_TYPE_SING},
-  {SKILL_SONG_OF_FOCUSED_MIND,   INSTRUMENT_HARP,       SKILL_HARP,      6,   PERFORMANCE_TYPE_SING},
-  {SKILL_SONG_OF_HEROISM,        INSTRUMENT_DRUM,       SKILL_DRUM,      8,   PERFORMANCE_TYPE_SING},
-  {SKILL_SONG_OF_REJUVENATION,   INSTRUMENT_LYRE,       SKILL_LYRE,      10,  PERFORMANCE_TYPE_SING},
-  {SKILL_SONG_OF_FLIGHT,         INSTRUMENT_HORN,       SKILL_HORN,      12,  PERFORMANCE_TYPE_SING},
-  {SKILL_SONG_OF_REVELATION,     INSTRUMENT_FLUTE,      SKILL_FLUTE,     14,  PERFORMANCE_TYPE_SING},
-  {SKILL_SONG_OF_FEAR,           INSTRUMENT_HARP,       SKILL_HARP,      16,  PERFORMANCE_TYPE_SING},
-  {SKILL_SONG_OF_FORGETFULNESS,  INSTRUMENT_FLUTE,      SKILL_FLUTE,     18,  PERFORMANCE_TYPE_SING},
-  {SKILL_SONG_OF_ROOTING,        INSTRUMENT_MANDOLIN,   SKILL_MANDOLIN,  20,  PERFORMANCE_TYPE_SING},
-  {SKILL_SONG_OF_DRAGONS,        INSTRUMENT_HORN,       SKILL_HORN,      24,  PERFORMANCE_TYPE_SING},
-  {SKILL_SONG_OF_THE_MAGI,       INSTRUMENT_MANDOLIN,   SKILL_MANDOLIN,  29,  PERFORMANCE_TYPE_SING},
+  
+  {SKILL_SONG_OF_HEALING,      INSTRUMENT_LYRE,      SKILL_LYRE,     4,
+    PERFORMANCE_TYPE_SING, PERFORM_AOE_GROUP, FEAT_SONG_OF_HEALING},
+    
+  {SKILL_SONG_OF_PROTECTION,    INSTRUMENT_DRUM,     SKILL_DRUM,     5,
+    PERFORMANCE_TYPE_SING, PERFORM_AOE_GROUP, FEAT_SONG_OF_PROTECTION},
+    
+  {SKILL_SONG_OF_FOCUSED_MIND,  INSTRUMENT_HARP,     SKILL_HARP,     6,
+    PERFORMANCE_TYPE_SING, PERFORM_AOE_GROUP, FEAT_SONG_OF_FOCUSED_MIND},
+    
+  {SKILL_SONG_OF_HEROISM,       INSTRUMENT_DRUM,     SKILL_DRUM,     8,
+    PERFORMANCE_TYPE_SING, PERFORM_AOE_GROUP, FEAT_SONG_OF_HEROISM},
+    
+  {SKILL_SONG_OF_REJUVENATION,  INSTRUMENT_LYRE,     SKILL_LYRE,     10,
+    PERFORMANCE_TYPE_SING, PERFORM_AOE_GROUP, FEAT_SONG_OF_REJUVENATION},
+    
+  {SKILL_SONG_OF_FLIGHT,        INSTRUMENT_HORN,     SKILL_HORN,     12,
+    PERFORMANCE_TYPE_SING, PERFORM_AOE_GROUP, FEAT_SONG_OF_FLIGHT},
+    
+  {SKILL_SONG_OF_REVELATION,    INSTRUMENT_FLUTE,    SKILL_FLUTE,    14,
+    PERFORMANCE_TYPE_SING, PERFORM_AOE_GROUP, FEAT_SONG_OF_REVELATION},
+    
+  {SKILL_SONG_OF_FEAR,          INSTRUMENT_HARP,     SKILL_HARP,     16,
+    PERFORMANCE_TYPE_SING, PERFORM_AOE_FOES,  FEAT_SONG_OF_FEAR},
+    
+  {SKILL_SONG_OF_FORGETFULNESS, INSTRUMENT_FLUTE,    SKILL_FLUTE,    18,
+    PERFORMANCE_TYPE_SING, PERFORM_AOE_FOES,  FEAT_SONG_OF_FORGETFULNESS},
+    
+  {SKILL_SONG_OF_ROOTING,       INSTRUMENT_MANDOLIN, SKILL_MANDOLIN, 20,
+    PERFORMANCE_TYPE_SING, PERFORM_AOE_FOES,  FEAT_SONG_OF_ROOTING},
+    
+  {SKILL_SONG_OF_DRAGONS,       INSTRUMENT_HORN,     SKILL_HORN,     24,
+    PERFORMANCE_TYPE_SING, PERFORM_AOE_GROUP, FEAT_SONG_OF_DRAGONS},
+    
+  {SKILL_SONG_OF_THE_MAGI,      INSTRUMENT_MANDOLIN, SKILL_MANDOLIN, 29,
+    PERFORMANCE_TYPE_SING, PERFORM_AOE_FOES,  FEAT_SONG_OF_THE_MAGI},
+    
 };
 
 /* local function for modifying chars points (hitpoints)
@@ -81,8 +108,8 @@ void alter_move(struct char_data *ch, int points) {
   update_pos(ch);
 }
 
-/* primary command entry point for the play skill */
-ACMD(do_play) {
+/* primary command entry point for the bardice performance */
+ACMD(do_perform) {
   int i;
   int len = 0;
 
@@ -148,6 +175,11 @@ ACMD(do_play) {
                   "this position.\r\n");
           return;
         }
+        if (performance_info[i][PERFORMANCE_AOE] == PERFORM_AOE_GROUP &&
+               !GROUP(ch)) {
+          send_to_char(ch, "This performance requires a group.\r\n");
+          return;
+        }
         /* the check for hunger/thirst WOULD to be here */
         /***/
 
@@ -157,6 +189,7 @@ ACMD(do_play) {
         char buf[128];
         sprintf(buf, "%d", i); /* Build the effect string */
         NEW_EVENT(eBARDIC_PERFORMANCE, ch, strdup(buf), 4 * PASSES_PER_SEC);
+        USE_STANDARD_ACTION(ch);
         return;
       }
     }
@@ -167,7 +200,8 @@ ACMD(do_play) {
 }
 
 /* main function for performance effects / message / etc */
-int process_performance(struct char_data *ch, int spellnum, int effectiveness) {
+int process_performance(struct char_data *ch, int spellnum,
+        int effectiveness, int aoe) {
   struct affected_type af;
   struct char_data *tch = NULL, *tch_next = NULL;
   bool nomessage = FALSE;
@@ -223,6 +257,14 @@ int process_performance(struct char_data *ch, int spellnum, int effectiveness) {
       act("$n sings a song, inspiring you to truly heroic deeds!", FALSE, ch, 0, 0,
               TO_ROOM);
       break;
+    case SKILL_SONG_OF_FOCUSED_MIND:
+      break;
+    case SKILL_SONG_OF_FEAR:
+      break;
+    case SKILL_SONG_OF_ROOTING:
+      break;
+    case SKILL_SONG_OF_THE_MAGI:
+      break;
     default:
       return_val = 0;
       log("SYSERR: messages in process_performance reached default case! "
@@ -230,133 +272,184 @@ int process_performance(struct char_data *ch, int spellnum, int effectiveness) {
       break;
   }
 
-  /* actually guts, currently we affect all in room with performance */
-  for (tch = world[ch->in_room].people; tch; tch = tch_next) {
-    tch_next = tch->next_in_room;
-
-    if (affected_by_spell(tch, spellnum))
-            nomessage = TRUE;
-
-    switch (spellnum) {
-      case SKILL_SONG_OF_HEALING:
-        if (GET_HIT(tch) < GET_MAX_HIT(tch)) {
-          send_to_char(tch, "You are soothed by the power of music!\r\n");
-          alter_hit(tch, -rand_number(effectiveness / 2, effectiveness * 2), FALSE);
-        }
-        break;
-
-      case SKILL_SONG_OF_PROTECTION:
-        af.location = APPLY_AC_NEW;
-        af.modifier = (effectiveness+1) / 10;
-        affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
-        af.location = APPLY_SAVING_WILL;
-        af.modifier = effectiveness / 6;
-        affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
-        break;
-
-      case SKILL_SONG_OF_FLIGHT:
-        if (!AFF_FLAGGED(tch, AFF_FLYING)) {
-          af.duration = 30;
-          SET_BIT_AR(af.bitvector, AFF_FLYING);
-          affect_join(tch, &af, FALSE, 1, FALSE, FALSE);
-          act("You fly through the air, free as a bird!", FALSE, tch, 0, 0,
-                    TO_CHAR);
-          act("$n fly through the air, free as a bird!", FALSE, tch, 0, 0,
-                    TO_ROOM);
-        }
-        alter_move(tch, -rand_number(3, effectiveness / 3));
-        break;
-
-      case SKILL_SONG_OF_HEROISM:
-        af.location = APPLY_HITROLL;
-        af.modifier = 1 + effectiveness / 10;
-        affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
-        af.location = APPLY_DAMROLL;
-        af.modifier = effectiveness / 13;
-        if (GET_LEVEL(ch) >= 20 && !AFF_FLAGGED(tch, AFF_HASTE)) {
-          SET_BIT_AR(af.bitvector, AFF_HASTE);
-          act("You feel the world slow down around you.", FALSE, tch, 0, 0,
-                    TO_CHAR);
-          act("$n starts to move with uncanny speed.", FALSE, tch, 0, 0,
-                    TO_ROOM);
-        }
-        affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
-        break;
-  
-      case SKILL_SONG_OF_REJUVENATION:
-        if (GET_HIT(tch) < GET_MAX_HIT(tch)) {
-          send_to_char(tch, "You are soothed by the power of music!\r\n");
-          alter_hit(tch, -rand_number(effectiveness / 3, effectiveness / 2), FALSE);
-        }
-        alter_move(tch, -rand_number(effectiveness / 3, effectiveness / 2));
-        if (rand_number(0, 100) < effectiveness && affected_by_spell(tch, SPELL_POISON)) {
-          affect_from_char(tch, SPELL_POISON);
-          send_to_char(tch, "The soothing music clears the poison from your body!\r\n");
-        }
-        break;
-
-      case SKILL_SONG_OF_FORGETFULNESS:
-        if (IS_NPC(tch) && rand_number(0, 100) < effectiveness)
-          clearMemory(tch);
-        break;
-
-      case SKILL_SONG_OF_REVELATION:
-        if (!AFF_FLAGGED(tch, AFF_DETECT_INVIS)) {
-          af.location = APPLY_HITROLL;
-          af.modifier = 0;
-          SET_BIT_AR(af.bitvector, AFF_DETECT_INVIS);
-          affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
-        }
-        if (!AFF_FLAGGED(tch, AFF_DETECT_ALIGN) && GET_LEVEL(ch) >= 5) {
-          af.location = APPLY_DAMROLL;
-          af.modifier = 0;
-          SET_BIT_AR(af.bitvector, AFF_DETECT_ALIGN);
-          affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
-        }
-        if (!AFF_FLAGGED(tch, AFF_DETECT_MAGIC) && GET_LEVEL(ch) >= 10) {
-          af.location = APPLY_AC;
-          af.modifier = 0;
-          SET_BIT_AR(af.bitvector, AFF_DETECT_MAGIC);
-          affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
-        }
-        if (!AFF_FLAGGED(tch, AFF_SENSE_LIFE) && GET_LEVEL(ch) >= 15) {
-          af.location = APPLY_DEX;
-          af.modifier = 0;
-          SET_BIT_AR(af.bitvector, AFF_SENSE_LIFE);
-          affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
-        }
-        if (!AFF_FLAGGED(tch, AFF_FARSEE) && GET_LEVEL(ch) >= 20) {
-          af.location = APPLY_AGE;
-          af.modifier = 0;
-          SET_BIT_AR(af.bitvector, AFF_FARSEE);
-          affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
-        }
-        if (nomessage == FALSE)
-          act("You feel your eyes tingle.", FALSE, tch, 0, 0, TO_CHAR);
-        break;
-
-      case SKILL_SONG_OF_DRAGONS:
-        if (!IS_NPC(tch)) {
+  switch (aoe) {
+    
+    /* performance that should affect your group only */
+    case PERFORM_AOE_GROUP:
+      switch (spellnum) {
+        case SKILL_SONG_OF_HEALING:
           if (GET_HIT(tch) < GET_MAX_HIT(tch)) {
             send_to_char(tch, "You are soothed by the power of music!\r\n");
-            alter_hit(tch, -rand_number(effectiveness / 4, effectiveness / 2), FALSE);
+            alter_hit(tch, -rand_number(effectiveness / 2, effectiveness * 2), FALSE);
           }
+          break;
+
+        case SKILL_SONG_OF_PROTECTION:
           af.location = APPLY_AC_NEW;
-          af.modifier = MAX(1, (effectiveness+2) / 19);
+          af.modifier = (effectiveness + 1) / 10;
           affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
-          af.location = APPLY_SAVING_REFL;
-          af.modifier = effectiveness / 5;
+          af.location = APPLY_SAVING_WILL;
+          af.modifier = effectiveness / 6;
           affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
-        }
-        break;
-          
-      default:
-        log("SYSERR: room-loop in process_performance reached default case! "
-                "(spellnum: %d)", spellnum);
-        return_val = 0;
-        break;
-    } /* end switch */
-  } /* end for loop */
+          break;
+        
+        case SKILL_SONG_OF_HEROISM:
+          af.location = APPLY_HITROLL;
+          af.modifier = 1 + effectiveness / 10;
+          affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
+          af.location = APPLY_DAMROLL;
+          af.modifier = effectiveness / 13;
+          if (GET_LEVEL(ch) >= 20 && !AFF_FLAGGED(tch, AFF_HASTE)) {
+            SET_BIT_AR(af.bitvector, AFF_HASTE);
+            act("You feel the world slow down around you.", FALSE, tch, 0, 0,
+                    TO_CHAR);
+            act("$n starts to move with uncanny speed.", FALSE, tch, 0, 0,
+                    TO_ROOM);
+          }
+          affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
+          break;
+
+        case SKILL_SONG_OF_REJUVENATION:
+          if (GET_HIT(tch) < GET_MAX_HIT(tch)) {
+            send_to_char(tch, "You are soothed by the power of music!\r\n");
+            alter_hit(tch, -rand_number(effectiveness / 3, effectiveness / 2), FALSE);
+          }
+          alter_move(tch, -rand_number(effectiveness / 3, effectiveness / 2));
+          if (rand_number(0, 100) < effectiveness && affected_by_spell(tch, SPELL_POISON)) {
+            affect_from_char(tch, SPELL_POISON);
+            send_to_char(tch, "The soothing music clears the poison from your body!\r\n");
+          }
+          break;
+            
+        case SKILL_SONG_OF_REVELATION:
+          if (!AFF_FLAGGED(tch, AFF_DETECT_INVIS)) {
+            af.location = APPLY_HITROLL;
+            af.modifier = 0;
+            SET_BIT_AR(af.bitvector, AFF_DETECT_INVIS);
+            affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
+          }
+          if (!AFF_FLAGGED(tch, AFF_DETECT_ALIGN) && GET_LEVEL(ch) >= 5) {
+            af.location = APPLY_DAMROLL;
+            af.modifier = 0;
+            SET_BIT_AR(af.bitvector, AFF_DETECT_ALIGN);
+            affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
+          }
+          if (!AFF_FLAGGED(tch, AFF_DETECT_MAGIC) && GET_LEVEL(ch) >= 10) {
+            af.location = APPLY_AC;
+            af.modifier = 0;
+            SET_BIT_AR(af.bitvector, AFF_DETECT_MAGIC);
+            affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
+          }
+          if (!AFF_FLAGGED(tch, AFF_SENSE_LIFE) && GET_LEVEL(ch) >= 15) {
+            af.location = APPLY_DEX;
+            af.modifier = 0;
+            SET_BIT_AR(af.bitvector, AFF_SENSE_LIFE);
+            affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
+          }
+          if (!AFF_FLAGGED(tch, AFF_FARSEE) && GET_LEVEL(ch) >= 20) {
+            af.location = APPLY_AGE;
+            af.modifier = 0;
+            SET_BIT_AR(af.bitvector, AFF_FARSEE);
+            affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
+          }
+          if (nomessage == FALSE)
+            act("You feel your eyes tingle.", FALSE, tch, 0, 0, TO_CHAR);
+          break;
+
+        case SKILL_SONG_OF_DRAGONS:
+          if (!IS_NPC(tch)) {
+            if (GET_HIT(tch) < GET_MAX_HIT(tch)) {
+              send_to_char(tch, "You are soothed by the power of music!\r\n");
+              alter_hit(tch, -rand_number(effectiveness / 4, effectiveness / 2), FALSE);
+            }
+            af.location = APPLY_AC_NEW;
+            af.modifier = MAX(1, (effectiveness + 2) / 19);
+            affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
+            af.location = APPLY_SAVING_REFL;
+            af.modifier = effectiveness / 5;
+            affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
+          }
+          break;
+            
+        /* UH OH! */
+        default:
+          log("SYSERR: group-loop in process_performance reached default case! "
+                    "(spellnum: %d)", spellnum);
+          return_val = 0;
+          break;
+      }
+      break;
+      
+    /* performance that should affect those NOT in your group */
+    case PERFORM_AOE_FOES:
+      switch (spellnum) {
+        
+        case SKILL_SONG_OF_FORGETFULNESS:
+          if (IS_NPC(tch) && rand_number(0, 100) < effectiveness)
+            clearMemory(tch);
+          break;
+
+        /* UH OH! */
+        default:
+          log("SYSERR: foes-loop in process_performance reached default case! "
+                    "(spellnum: %d)", spellnum);
+          return_val = 0;
+          break;
+      }
+      break;
+      
+    /* performance that should affect everyone in the room */
+    case PERFORM_AOE_ROOM:
+      /* actual guts, currently we affect all in room with performance */
+      for (tch = world[ch->in_room].people; tch; tch = tch_next) {
+        tch_next = tch->next_in_room;
+
+        if (affected_by_spell(tch, spellnum))
+          nomessage = TRUE;
+
+        switch (spellnum) {
+
+          case SKILL_SONG_OF_FLIGHT:
+            if (!AFF_FLAGGED(tch, AFF_FLYING)) {
+              af.duration = 30;
+              SET_BIT_AR(af.bitvector, AFF_FLYING);
+              affect_join(tch, &af, FALSE, 1, FALSE, FALSE);
+              act("You fly through the air, free as a bird!", FALSE, tch, 0, 0,
+                      TO_CHAR);
+              act("$n fly through the air, free as a bird!", FALSE, tch, 0, 0,
+                      TO_ROOM);
+            }
+            alter_move(tch, -rand_number(3, effectiveness / 3));
+            break;
+
+            /* increases memming / casting effectiveness */
+          case SKILL_SONG_OF_FOCUSED_MIND:
+            break;
+
+            /* enemy fight less effective / flee */
+          case SKILL_SONG_OF_FEAR:
+            break;
+
+            /* enemy fight less effective / entangled */
+          case SKILL_SONG_OF_ROOTING:
+            break;
+
+            /* enemy spell resistance / saves reduced */
+          case SKILL_SONG_OF_THE_MAGI:
+            break;
+
+            /* UH OH! */
+          default:
+            log("SYSERR: room-loop in process_performance reached default case! "
+                    "(spellnum: %d)", spellnum);
+            return_val = 0;
+            break;
+        } /* end switch */
+      } /* end for loop */
+      break;
+      
+    default:break;
+  }
   
   return return_val; /* 0 = fail, 1 = success */
 }
@@ -428,6 +521,12 @@ EVENTFUNC(event_bardic_performance) {
             "this position.\r\n");
     return 0;
   }
+  if (performance_info[performance_num][PERFORMANCE_AOE] == PERFORM_AOE_GROUP &&
+          !GROUP(ch)) {
+    send_to_char(ch, "This performance requires a group.\r\n");
+    return 0;
+  }
+  
   /* the check for hunger/thirst WOULD to be here */
   /***/
   /* end disqualifiers */
@@ -455,9 +554,10 @@ EVENTFUNC(event_bardic_performance) {
     effectiveness -= 3;
     send_to_char(ch, "You sing this verse a-capella...  ");
   } else {
+    /* the effectiveness of our instrument is all handled here */
     difficulty -= GET_OBJ_VAL(instrument, 1);
 
-    /* instrument of quality > 2000 is unbreakable */
+    /* instrument of quality <= 0 is unbreakable */
     if (rand_number(0, 2000) < GET_OBJ_VAL(instrument, 3)) {
       act("Your $p cannot take the strain of magic any longer, and it breaks.", FALSE, ch, instrument, 0, TO_CHAR);
       act("$n's $p cannot take the strain of magic any longer, and it breaks.", FALSE, ch, instrument, 0, TO_ROOM);
