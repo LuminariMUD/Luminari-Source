@@ -1702,8 +1702,12 @@ obj_save_data *objsave_parse_objects_db(char *name) {
                     obj_proto[real_object(temp->item_number)].ex_description))
               temp->ex_description = NULL;
             CREATE(new_desc, struct extra_descr_data, 1);
-            new_desc->keyword = fread_string(fl, error);
-            new_desc->description = fread_string(fl, error);
+            free(*line);
+            ++line;
+            new_desc->keyword = strdup(*line);
+            free(*line);
+            ++line;
+            new_desc->description = strdup(*line);
             new_desc->next = temp->ex_description;
             temp->ex_description = new_desc;
           }
