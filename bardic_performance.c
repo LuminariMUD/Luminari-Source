@@ -175,11 +175,14 @@ ACMD(do_perform) {
                   "this position.\r\n");
           return;
         }
+        /* this isn't necessary */
+        /*
         if (performance_info[i][PERFORMANCE_AOE] == PERFORM_AOE_GROUP &&
                !GROUP(ch)) {
           send_to_char(ch, "This performance requires a group.\r\n");
           return;
         }
+        */
         /* the check for hunger/thirst WOULD to be here */
         /***/
 
