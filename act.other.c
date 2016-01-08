@@ -478,7 +478,7 @@ ACMD(do_applypoison) {
 
 #define BARD_AFFECTS 7
 /* bardic performance moved to: bardic_performance.c */
-/*
+/* this is still being used by NPCs */
 void perform_perform(struct char_data *ch) {
   struct affected_type af[BARD_AFFECTS];
   int level = 0, i = 0, duration = 0;
@@ -558,7 +558,6 @@ void perform_perform(struct char_data *ch) {
   }
 
 }
-*/
 
 /* this has been replaced in bardic_performance.c */
 /*
