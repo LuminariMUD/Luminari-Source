@@ -1617,9 +1617,9 @@ obj_save_data *objsave_parse_objects_db(char *name) {
     temp = NULL;
     
     for(line=lines; line && *line; ++line) {     
-      if (*line == '#') {
+      if (**line == '#') {
         /* check for false alarm. */
-        if (sscanf(line, "#%d", &nr) == 1) {
+        if (sscanf(*line, "#%d", &nr) == 1) {
           /* If we attempt to load an object with a legal VNUM 0-65534, that
            * does not exist, skip it. If the object has a VNUM of NOTHING or
            * NOWHERE, then we assume it doesn't exist on purpose. (Custom Item,
@@ -1660,8 +1660,8 @@ obj_save_data *objsave_parse_objects_db(char *name) {
         continue;
       }
       
-      tag_argument(line, tag);
-      num = atoi(line);
+      tag_argument(*line, tag);
+      num = atoi(*line);
       /* we need an incrementor here */
 
       switch (*tag) {
@@ -1684,7 +1684,7 @@ obj_save_data *objsave_parse_objects_db(char *name) {
           break;
         case 'D':
           if (!strcmp(tag, "Desc"))
-            temp->description = strdup(line);
+            temp->description = strdup(*line);
           break;
         case 'E':
           if (!strcmp(tag, "EDes")) {
@@ -1705,7 +1705,7 @@ obj_save_data *objsave_parse_objects_db(char *name) {
           break;
         case 'F':
           if (!strcmp(tag, "Flag")) {
-            sscanf(line, "%s %s %s %s", f1, f2, f3, f4);
+            sscanf(*line, "%s %s %s %s", f1, f2, f3, f4);
             GET_OBJ_EXTRA(temp)[0] = asciiflag_conv(f1);
             GET_OBJ_EXTRA(temp)[1] = asciiflag_conv(f2);
             GET_OBJ_EXTRA(temp)[2] = asciiflag_conv(f3);
@@ -1724,11 +1724,11 @@ obj_save_data *objsave_parse_objects_db(char *name) {
           break;
         case 'N':
           if (!strcmp(tag, "Name"))
-            temp->name = strdup(line);
+            temp->name = strdup(*line);
           break;
         case 'P':
           if (!strcmp(tag, "Perm")) {
-            sscanf(line, "%s %s %s %s", f1, f2, f3, f4);
+            sscanf(*line, "%s %s %s %s", f1, f2, f3, f4);
             GET_OBJ_PERM(temp)[0] = asciiflag_conv(f1);
             GET_OBJ_PERM(temp)[1] = asciiflag_conv(f2);
             GET_OBJ_PERM(temp)[2] = asciiflag_conv(f3);
@@ -1744,11 +1744,11 @@ obj_save_data *objsave_parse_objects_db(char *name) {
           break;
         case 'S':
           if (!strcmp(tag, "Shrt"))
-            temp->short_description = strdup(line);
+            temp->short_description = strdup(*line);
           else if (!strcmp(tag, "Size"))
             GET_OBJ_SIZE(temp) = num;
           else if (!strcmp(tag, "Spbk")) {
-            sscanf(line, "%d %d", &t[0], &t[1]);
+            sscanf(*line, "%d %d", &t[0], &t[1]);
             if (j < SPELLBOOK_SIZE) {
   
               if (!temp->sbinfo) {
@@ -1767,7 +1767,7 @@ obj_save_data *objsave_parse_objects_db(char *name) {
           break;
         case 'W':
           if (!strcmp(tag, "Wear")) {
-            sscanf(line, "%s %s %s %s", f1, f2, f3, f4);
+            sscanf(*line, "%s %s %s %s", f1, f2, f3, f4);
             GET_OBJ_WEAR(temp)[0] = asciiflag_conv(f1);
             GET_OBJ_WEAR(temp)[1] = asciiflag_conv(f2);
             GET_OBJ_WEAR(temp)[2] = asciiflag_conv(f3);
@@ -1780,7 +1780,7 @@ obj_save_data *objsave_parse_objects_db(char *name) {
             /* Initialize the values. */
             for (i = 0; i < NUM_OBJ_VAL_POSITIONS; i++)
               t[i] = 0;
-            sscanf(line, "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d",
+            sscanf(*line, "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d",
               &t[0], &t[1], &t[2], &t[3], &t[4], &t[5], &t[6], &t[7],
               &t[8], &t[9], &t[10], &t[11], &t[12], &t[13], &t[14], &t[15]);
             for (i = 0; i < NUM_OBJ_VAL_POSITIONS; i++)
