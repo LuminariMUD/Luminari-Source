@@ -97,14 +97,13 @@ int performance_info[MAX_PERFORMANCES][PERFORMANCE_INFO_FIELDS] = {
     
 };
 
-/* local function for modifying chars points (hitpoints)
+/* local function for modifying chars points (hitpoints or moves)
  * note: negative (-) is healing */
 void alter_hit(struct char_data *ch, int points, bool unused) {
   GET_HIT(ch) -= points;
   GET_HIT(ch) = MIN(GET_HIT(ch), GET_MAX_HIT(ch));  
   update_pos(ch);
 }
-
 void alter_move(struct char_data *ch, int points) {
   GET_MOVE(ch) -= points;
   GET_MOVE(ch) = MIN(GET_MOVE(ch), GET_MAX_MOVE(ch));  
@@ -156,9 +155,9 @@ ACMD(do_perform) {
           send_to_char(ch, "You are already in the middle of a performance!\r\n");
           return;
         }
-        if (compute_ability(ch, ABILITY_PERFORM) <= performance_info[i][PERFORMANCE_DIFF]) {
+        if (compute_ability(ch, ABILITY_PERFORM) < performance_info[i][PERFORMANCE_DIFF]) {
           send_to_char(ch, "You are not trained enough for this performance! "
-                  "(need: %d performance ability)\r\n",
+                  "(need: %d 'perform' ability)\r\n",
                   performance_info[i][PERFORMANCE_DIFF]);
           return;
         }
