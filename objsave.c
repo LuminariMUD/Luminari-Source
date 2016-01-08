@@ -1676,7 +1676,7 @@ obj_save_data *objsave_parse_objects_db(char *name) {
             ++line;
             temp->action_description = strdup(*line);
           } else if (!strcmp(tag, "Aff ")) {
-            sscanf(line, "%d %d %d", &t[0], &t[1], &t[2]);
+            sscanf(*line, "%d %d %d", &t[0], &t[1], &t[2]);
             if (t[0] < MAX_OBJ_AFFECT) {
               temp->affected[t[0]].location = t[1];
               temp->affected[t[0]].modifier = t[2];
