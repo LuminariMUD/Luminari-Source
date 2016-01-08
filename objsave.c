@@ -40,7 +40,7 @@
 #define MAX_BAG_ROWS   5
 
 /* local functions */
-static int Crash_save(struct obj_data *obj, FILE *fp, int location);
+static int Crash_save(struct obj_data *obj, struct char_data *ch, FILE *fp, int location);
 static void Crash_extract_norent_eq(struct char_data *ch);
 static void auto_equip(struct char_data *ch, struct obj_data *obj, int location);
 static int Crash_offer_rent(struct char_data *ch, struct char_data *receptionist, int display, int factor);
@@ -68,7 +68,7 @@ static int objsave_write_rentcode(FILE *fl, int rentcode, int cost_per_day, stru
  * NB: Database saving is partially implemented. *
  
  */
-int objsave_save_obj_record(struct obj_data *obj, FILE *fp, int locate) {
+int objsave_save_obj_record(struct obj_data *obj, struct char_data *ch, FILE *fp, int locate) {
 
 #ifdef OBJSAVE_DB
   char ins_buf[36767];  /* For MySQL insert. */
@@ -96,10 +96,7 @@ int objsave_save_obj_record(struct obj_data *obj, FILE *fp, int locate) {
     *buf1 = 0;
 
 #ifdef OBJSAVE_DB
-  sprintf(ins_buf, "insert into player_save_objs (name, serialized_obj) values ('%s', '",
-           (obj->carried_by != NULL ?
-            GET_NAME(obj->carried_by) : 
-            GET_NAME(obj->worn_by) ));
+  sprintf(ins_buf, "insert into player_save_objs (name, serialized_obj) values ('%s', '", GET_NAME(ch) );
 #endif  
   
   fprintf(fp, "#%d\n", GET_OBJ_VNUM(obj));
@@ -711,16 +708,16 @@ int Crash_load(struct char_data *ch) {
 
 /* recursive function using linked lists to go through object lists to save
  all objects to file (like bag contents) */
-static int Crash_save(struct obj_data *obj, FILE *fp, int location) {
+static int Crash_save(struct obj_data *obj, struct char_data *ch, FILE *fp, int location) {
   struct obj_data *tmp;
   int result;
 
   if (obj) {
-    Crash_save(obj->next_content, fp, location);
-    Crash_save(obj->contains, fp, MIN(0, location) - 1);
+    Crash_save(obj->next_content, ch, fp, location);
+    Crash_save(obj->contains, xh, fp, MIN(0, location) - 1);
 
     /* save a single object to file */
-    result = objsave_save_obj_record(obj, fp, location);
+    result = objsave_save_obj_record(obj, ch, fp, location);
 
     for (tmp = obj->in_obj; tmp; tmp = tmp->in_obj)
       GET_OBJ_WEIGHT(tmp) -= GET_OBJ_WEIGHT(obj);
@@ -846,7 +843,7 @@ void Crash_crashsave(struct char_data *ch) {
   for (j = 0; j < NUM_WEARS; j++)
     if (GET_EQ(ch, j)) {
       /* recursive write-to-file function (like bags) */
-      if (!Crash_save(GET_EQ(ch, j), fp, j + 1)) {
+      if (!Crash_save(GET_EQ(ch, j), ch, fp, j + 1)) {
         fclose(fp);
         return;
       }
@@ -855,7 +852,7 @@ void Crash_crashsave(struct char_data *ch) {
     }
 
   /* inventory: recursive write-to-file function (like bags) */
-  if (!Crash_save(ch->carrying, fp, 0)) {
+  if (!Crash_save(ch->carrying, ch, fp, 0)) {
     fclose(fp);
     return;
   }
@@ -933,7 +930,7 @@ void Crash_idlesave(struct char_data *ch) {
   for (j = 0; j < NUM_WEARS; j++) {
     if (GET_EQ(ch, j)) {
       /* recursive write-to-file function (like bags) */
-      if (!Crash_save(GET_EQ(ch, j), fp, j + 1)) {
+      if (!Crash_save(GET_EQ(ch, j), ch, fp, j + 1)) {
         fclose(fp);
         return;
       }
@@ -945,7 +942,7 @@ void Crash_idlesave(struct char_data *ch) {
   }
 
   /* inventory: recursive write-to-file function (like bags) */
-  if (!Crash_save(ch->carrying, fp, 0)) {
+  if (!Crash_save(ch->carrying, ch, fp, 0)) {
     fclose(fp);
     return;
   }
@@ -1001,7 +998,7 @@ void Crash_rentsave(struct char_data *ch, int cost) {
   for (j = 0; j < NUM_WEARS; j++) {
     if (GET_EQ(ch, j)) {
       /* recursive save function (like bags) */
-      if (!Crash_save(GET_EQ(ch, j), fp, j + 1)) {
+      if (!Crash_save(GET_EQ(ch, j), ch, fp, j + 1)) {
         fclose(fp);
         return;
       }
@@ -1014,7 +1011,7 @@ void Crash_rentsave(struct char_data *ch, int cost) {
   }
   
   /* inventory: recursive save function (like bags) */
-  if (!Crash_save(ch->carrying, fp, 0)) {
+  if (!Crash_save(ch->carrying, ch, fp, 0)) {
     fclose(fp);
     return;
   }
@@ -1096,7 +1093,7 @@ static void Crash_cryosave(struct char_data *ch, int cost) {
   for (j = 0; j < NUM_WEARS; j++)
     if (GET_EQ(ch, j)) {
       /* recursive save function (like bags) */
-      if (!Crash_save(GET_EQ(ch, j), fp, j + 1)) {
+      if (!Crash_save(GET_EQ(ch, j), ch, fp, j + 1)) {
         fclose(fp);
         return;
       }
@@ -1107,7 +1104,7 @@ static void Crash_cryosave(struct char_data *ch, int cost) {
     }
   
   /* inventory: recursive save function (like bags) */
-  if (!Crash_save(ch->carrying, fp, 0)) {
+  if (!Crash_save(ch->carrying, ch, fp, 0)) {
     fclose(fp);
     return;
   }
