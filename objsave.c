@@ -1672,7 +1672,9 @@ obj_save_data *objsave_parse_objects_db(char *name) {
           if (!strcmp(tag, "ADes")) {
             char error[40];
             snprintf(error, sizeof (error) - 1, "rent(Ades):%s", temp->name);
-            temp->action_description = fread_string(fl, error);
+            free(*line);
+            ++line;
+            temp->action_description = strdup(*line);
           } else if (!strcmp(tag, "Aff ")) {
             sscanf(line, "%d %d %d", &t[0], &t[1], &t[2]);
             if (t[0] < MAX_OBJ_AFFECT) {
