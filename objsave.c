@@ -1841,7 +1841,7 @@ static int Crash_load_objs(struct char_data *ch) {
 #ifdef OBJSAVE_DB  
   MYSQL_RES *result;
   MYSQL_ROW row;
-  char buf[1024];
+  char sql_buf[1024];
 #endif
   
   if (!get_filename(filename, sizeof (filename), CRASH_FILE, GET_NAME(ch)))
@@ -1854,9 +1854,9 @@ static int Crash_load_objs(struct char_data *ch) {
   
   log("INFO: Loading saved object data from db for: %s", GET_NAME(ch));    
 
-  sprintf(buf, "SELECT obj_save_header from player_data where name = '%s';", GET_NAME(ch));
+  sprintf(sql_buf, "SELECT obj_save_header from player_data where name = '%s';", GET_NAME(ch));
 
-  if (mysql_query(conn, buf)) {
+  if (mysql_query(conn, sql_buf)) {
     log("SYSERR: Unable to get obj_save_header from player_data: %s", mysql_error(conn));
     exit(1);
   } 
