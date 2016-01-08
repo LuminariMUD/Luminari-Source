@@ -96,7 +96,8 @@ int objsave_save_obj_record(struct obj_data *obj, struct char_data *ch, FILE *fp
     *buf1 = 0;
 
 #ifdef OBJSAVE_DB
-  sprintf(ins_buf, "insert into player_save_objs (name, serialized_obj) values ('%s', '", GET_NAME(ch) );
+  if (ch != NULL) /* GHETTTTTOOOOOOOOO */
+    sprintf(ins_buf, "insert into player_save_objs (name, serialized_obj) values ('%s', '", GET_NAME(ch) );
 #endif  
   
   fprintf(fp, "#%d\n", GET_OBJ_VNUM(obj));
@@ -360,10 +361,12 @@ int objsave_save_obj_record(struct obj_data *obj, struct char_data *ch, FILE *fp
 #ifdef OBJSAVE_DB
   sprintf(line_buf, "');");
   strcat(ins_buf, line_buf);
-  log("INSERTING: %s",ins_buf);
-  if (mysql_query(conn, ins_buf)) {
-    log("SYSERR: Unable to INSERT into player_save_objs: %s", mysql_error(conn));
-    return 1;
+  if (ch != NULL) { /* GHETTTTTTTOOOOOOOOO */
+    log("INSERTING: %s",ins_buf);
+    if (mysql_query(conn, ins_buf)) {
+      log("SYSERR: Unable to INSERT into player_save_objs: %s", mysql_error(conn));
+      return 1;
+    }
   }
 #endif   
   
