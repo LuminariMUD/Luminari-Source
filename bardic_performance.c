@@ -53,7 +53,10 @@ song of dragons         21
 song of the magi        25 */
 
 /* performance info: this will be our reference/lookup data for each song/performance
-   skillnum, instrument, instrument_skill, difficulty */
+   skillnum, instrument, instrument_skill, difficulty
+ *   performance-type, area of affect, associated feat */
+/* NOTE: dont' forget to update MAX_PERFORMANCES in bardic_performance.h */
+/* NOTE: dont' forget to add associated feat */
 int performance_info[MAX_PERFORMANCES][PERFORMANCE_INFO_FIELDS] = {
   
   {SKILL_SONG_OF_HEALING,      INSTRUMENT_LYRE,      SKILL_LYRE,     4,
@@ -136,7 +139,7 @@ ACMD(do_perform) {
 
   for (i = 0; i < MAX_PERFORMANCES; i++) {
     if (!strncmp(argument, skill_name(performance_info[i][PERFORMANCE_SKILLNUM]), len)) {
-      if (!GET_SKILL(ch, performance_info[i][PERFORMANCE_SKILLNUM])) {
+      if (!HAS_FEAT(ch, performance_info[i][PERFORMANCE_FEATNUM])) {
         send_to_char(ch, "But you do not know that performance!\r\n");
         return;
       } else {

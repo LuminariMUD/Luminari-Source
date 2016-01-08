@@ -1674,42 +1674,87 @@ void assign_feats(void) {
       "additionally you gain 15 percent concealment.");
 
   /* Bard */
-  /* unfinished */ feato(FEAT_BARDIC_KNOWLEDGE, "bardic knowledge", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "+Int modifier bonus on knowledge checks.",
-    "+Int modifier bonus on knowledge checks.");
-  /* unfinished */ feato(FEAT_BARDIC_MUSIC, "bardic music", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "Use Perform skill to create various magical effects.",
-    "Use Perform skill to create various magical effects.");
-  /* unfinished */ feato(FEAT_COUNTERSONG, "countersong", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "Boost group members' resistance to sonic attacks.",
-    "Boost group members' resistance to sonic attacks.");
-  /* unfinished */ feato(FEAT_FASCINATE, "fascinate", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "Fascinate one opponent plus one additional  for every three bard levels beyond first.",
-    "Fascinate one opponent plus one additional  for every three bard levels beyond first.");
-  /* unfinished */ feato(FEAT_INSPIRE_COMPETENCE, "inspire competence", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "Group members gain a +2 competence bonus on skills.",
-    "Group members gain a +2 competence bonus on skills.");
-  /* unfinished */ feato(FEAT_INSPIRE_GREATNESS, "inspire greatness", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "Grant allies better fighting capability.",
-    "Grant allies better fighting capability.");
-  /* unfinished */ feato(FEAT_INSPIRE_HEROICS, "inspire heroics", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "Grant allies a +4 morale bonus on saving throws and a +4 dodge bonus to AC.",
-    "Grant allies a +4 morale bonus on saving throws and a +4 dodge bonus to AC.");
-  /* unfinished */ feato(FEAT_MASS_SUGGESTION, "mass suggestion", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "Compel a group of opponents to perform an action.",
-    "Compel a group of opponents to perform an action.");
-  /* unfinished */ feato(FEAT_SONG_OF_FREEDOM, "song of freedom", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "Break an enchantment on a single target other than yourself.",
-    "Break an enchantment on a single target other than yourself.");
-  /* unfinished */ feato(FEAT_SUGGESTION, "suggestion", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "Compel a single opponent to perform an action.",
-    "Compel a single opponent to perform an action.");
-  /* unfinished */ feato(FEAT_INSPIRE_COURAGE, "inspire courage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "Bolster group members against fear attacks and improve their combat ability.",
-    "Bolster group members against fear attacks and improve their combat ability.");
   feato(FEAT_WEAPON_PROFICIENCY_BARD, "weapon proficiency - bards", TRUE, FALSE, FALSE, FEAT_TYPE_GENERAL,
     "proficiency in bard weapons",
     "You are proficient in the usage of long swords, rapiers, sap, short swords, short bows and whips.");
+  feato(FEAT_BARDIC_KNOWLEDGE, "bardic knowledge", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "+Int modifier bonus on knowledge checks.",
+    "+Int modifier bonus on knowledge checks.");
+  feato(FEAT_BARDIC_MUSIC, "bardic music", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Use Perform skill to create various magical effects.",
+    "Use Perform skill to create various magical effects.");
+  /* unfinished */ feato(FEAT_COUNTERSONG, "countersong", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "(not yet implemented)Boost group members' resistance to sonic attacks.",
+    "(not yet implemented)Boost group members' resistance to sonic attacks.");
+  /* 1*/feato(FEAT_SONG_OF_HEALING, "song of healing", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "song to heal group members (lyre)",
+    "When this song is played, its beautiful verse allows any present gain the "
+      "benefit of its healing power. The amount of healing it provides is "
+      "dependent on the level of the musician. To play this song, the bard must be "
+      "holding a lyre.");
+  /* 2*/feato(FEAT_SONG_OF_PROTECTION, "song of protection", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "song to protect group members (drum)",
+    "When this song is played, its beautiful verse supplies a level of protection "
+      "to its listeners. It gives bonuses to armor, making it harder for opponents "
+      "to hit the listeners. The song also gives the benefit of a heightened level "
+      "of spell resistance. To play this song, a bard must be holding a drum.");
+  /* 3*/feato(FEAT_SONG_OF_FOCUSED_MIND, "song of focused mind", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "(not yet implemented)song to augment casters (harp)",
+    "(not yet implemented)This song allows the bard to sing a song that speeds up the "
+      "memorization and praying for spells by anyone in the room at the "
+      "time that the song is sung.  This song lends itself to the harp.");
+  /* 5*/feato(FEAT_SONG_OF_HEROISM, "song of heroism", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "song to enhance combat abilities (drum)",
+    "When this song is played, the listeners are enhanced with fighting "
+      "abilities. In most cases, the listeners gain enhancements in their "
+      "abilities to hit targets and to inflict damage upon them. However, if the "
+      "singer is extremely proficient, the listeners may gain an extra attack per "
+      "round. To play this song, a bard must be holding a drum.");
+  /* 7*/feato(FEAT_SONG_OF_REJUVENATION, "song of rejuvenation", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "song of light healing of hps/moves (lyre)",
+    "When this song is played, the listeners regain lost movement points. The "
+      "song also provides a minor level of healing to its listeners, and has a "
+      "slight chance of removing any poisons present in their system. To play this "
+      "song, a bard must be holding a lyre.");
+  /* 9*/feato(FEAT_SONG_OF_FLIGHT, "song of flight", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "song bestows flight and restores moves (horn)",
+    "When listeners hear this song playing, they are given the ability to fly for "
+      "a period of time. Movement points are also slightly restored. To play this "
+      "song, the bard must be holding a horn.");
+  /*11*/feato(FEAT_SONG_OF_REVELATION, "song of revelation", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "song enhances perception (flute)",
+    "When this song is played, the listeners begin to see things which they "
+      "formerly could not see. Depending on the proficiency of the musical artist, "
+      "listeners may see invisible beings, magical enchantments, alignments, hidden "
+      "beings, and adjacent rooms. To play this song, a bard must be holding a "
+      "flute.");
+  /*13*/feato(FEAT_SONG_OF_FEAR, "song of fear", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "(not yet implemented)song inspires fear in foes (harp)",
+    "(not yet implemented)This songs put immense fear into the heart of the bard's enemies. They will "
+      "fight less effectively and attempt to flee as quickly as possible.  This "
+      "song lends itself well to the harp.");
+  /*15*/feato(FEAT_SONG_OF_FORGETFULNESS, "song of forgetfulness", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "song inspires forgetfulness in foes (flute)",
+    "When this song is played, a mob may forget it has been attacked. To play "
+      "this song, a bard must be holding a flute.");
+  /*17*/feato(FEAT_SONG_OF_ROOTING, "song of rooting", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "(not yet implemented)song bogs down foes (mandolin)",
+    "(not yet implemented)This song creates a strong sense of rooting amongst the enemies of the bard. "
+      "Their get sucked into the ground, making them unable to leave the area, while "
+      "also reducing their capabilities to fight effectively.  This song is appropriate "
+      "for the mandolin.");
+        /*epic*/
+  /*21*/feato(FEAT_SONG_OF_DRAGONS, "song of dragons", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "song prepares group for dragon-slaying (horn)",
+    "When this song is played, it can give three different affects to it's "
+      "listeners during each verse: It heals nearly half the affect of the heal "
+      "song, or it grants a great deal of saving versus reflex, as well as enhancing "
+      "armor class. In order to play this song the bard must be holding a horn.");
+  /*25*/feato(FEAT_SONG_OF_THE_MAGI, "song of the magi", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "(not yet implemented)song hampers magic defense of foes (mandolin)",
+    "(not yet implemented)When this song is played, it will strengthen the offensive magic of "
+      "the group-members of the bard, reducing the spell-save and magic resistance "
+      "of all their enemies in the area.  Uses the mandolin.");
 
   /* Berserker */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */

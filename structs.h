@@ -1302,20 +1302,20 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_RIDE_BY_ATTACK     80
 #define FEAT_STABILITY        81
 #define FEAT_SCRIBE_SCROLL      82
-#define FEAT_UNUSED_8     83
+#define FEAT_SONG_OF_FOCUSED_MIND     83
 #define FEAT_SHOT_ON_THE_RUN      84
 #define FEAT_SILENT_SPELL     85
 #define FEAT_SIMPLE_WEAPON_PROFICIENCY    86
 #define FEAT_SKILL_FOCUS      87
 #define FEAT_SPELL_FOCUS      88
 
-#define FEAT_UNUSED_9     89
-#define FEAT_UNUSED_10     90
-#define FEAT_UNUSED_11    91
-#define FEAT_UNUSED_12     92
-#define FEAT_UNUSED_13     93
-#define FEAT_UNUSED_14     94
-#define FEAT_UNUSED_15     95
+#define FEAT_SONG_OF_FEAR     89
+#define FEAT_SONG_OF_ROOTING     90
+#define FEAT_SONG_OF_THE_MAGI    91
+#define FEAT_SONG_OF_HEALING     92
+#define FEAT_SONG_OF_PROTECTION     93
+#define FEAT_SONG_OF_FLIGHT     94
+#define FEAT_SONG_OF_HEROISM     95
 
 #define FEAT_SPELL_MASTERY      96
 #define FEAT_SPELL_PENETRATION      97
@@ -1333,7 +1333,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_COMBAT_TRAINING_VS_GIANTS   109
 #define FEAT_CANNY_DEFENSE      110
 #define FEAT_DWARF_RACIAL_ADJUSTMENT         111
-#define FEAT_UNUSED_16     112
+#define FEAT_SONG_OF_REJUVENATION     112
 
 #define FEAT_SHADOW_HOPPER 113
 #define FEAT_LUCKY                                114
@@ -1366,12 +1366,12 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_IMPROVED_WEAPON_FINESSE 141
 #define FEAT_HALF_BLOOD 142
 #define FEAT_UNBREAKABLE_WILL 143
-#define FEAT_UNUSED_5 144
+#define FEAT_SONG_OF_FORGETFULNESS 144
 #define FEAT_DETECT_GOOD 145
 #define FEAT_SMITE_GOOD 146
 #define FEAT_AURA_OF_EVIL 147
 #define FEAT_DARK_BLESSING 148
-#define FEAT_UNUSED_4 149
+#define FEAT_SONG_OF_REVELATION 149
 #define FEAT_HALF_ORC_RACIAL_ADJUSTMENT 150
 #define FEAT_RESISTANCE_TO_ILLUSIONS 151
 #define FEAT_ILLUSION_AFFINITY 152
@@ -1491,14 +1491,14 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_BARDIC_MUSIC 264
 #define FEAT_BARDIC_KNOWLEDGE 265
 #define FEAT_COUNTERSONG 266
-#define FEAT_FASCINATE 267
-#define FEAT_INSPIRE_COURAGE 268
-#define FEAT_INSPIRE_COMPETENCE 269
-#define FEAT_SUGGESTION 270
-#define FEAT_INSPIRE_GREATNESS 271
-#define FEAT_SONG_OF_FREEDOM 272
-#define FEAT_INSPIRE_HEROICS 273
-#define FEAT_MASS_SUGGESTION 274
+#define FEAT_UNUSED_267   267
+#define FEAT_UNUSED_268   268
+#define FEAT_UNUSED_269   269
+#define FEAT_UNUSED_270   270
+#define FEAT_UNUSED_271   271
+#define FEAT_UNUSED_272   272
+#define FEAT_UNUSED_273   273
+#define FEAT_UNUSED_274   274
 #define FEAT_ULTRAVISION 275
 #define FEAT_LINGERING_SONG 276
 #define FEAT_EXTRA_MUSIC 277
@@ -1673,7 +1673,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_ETH_SHIFT                      444
 #define FEAT_BATTLE_RAGE                    445
 #define FEAT_WEAPON_EXPERT                  446
-#define FEAT_UNUSED                         447
+#define FEAT_SONG_OF_DRAGONS                447
 #define FEAT_STRONG_AGAINST_POISON          448
 #define FEAT_STRONG_AGAINST_DISEASE         449
 #define FEAT_HALF_TROLL_RACIAL_ADJUSTMENT   450
@@ -1695,24 +1695,11 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_TRELUX_PINCERS                 466
 #define FEAT_TRELUX_RACIAL_ADJUSTMENT       467
 #define FEAT_NATURAL_ATTACK                 468
-/* first 12 bardic performances */
-#define FEAT_SONG_OF_FOCUSED_MIND           469
-#define FEAT_SONG_OF_FEAR                   470
-#define FEAT_SONG_OF_ROOTING                471
-#define FEAT_SONG_OF_THE_MAGI               472
-#define FEAT_SONG_OF_HEALING                473
-#define FEAT_SONG_OF_PROTECTION             474
-#define FEAT_SONG_OF_FLIGHT                 475
-#define FEAT_SONG_OF_HEROISM                476
-#define FEAT_SONG_OF_REJUVENATION           477
-#define FEAT_SONG_OF_FORGETFULNESS          478
-#define FEAT_SONG_OF_REVELATION             479
-#define FEAT_SONG_OF_DRAGONS                480
 /* end bardic performances */
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT                      481
+#define FEAT_LAST_FEAT                      469
 /** feat_last_feat + 1 ***/
-#define NUM_FEATS                           482
+#define NUM_FEATS                           470
 /*****/
 #define MAX_FEATS                           750
 /*****/
