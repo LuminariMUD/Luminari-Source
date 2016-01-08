@@ -1867,7 +1867,7 @@ static int Crash_load_objs(struct char_data *ch) {
   }
 
   if (mysql_num_rows(result) > 1) {
-    log("SYSERR: Too many rows returned on SELECT from player_data: %d", zone);
+    log("SYSERR: Too many rows returned on SELECT from player_data for: %s", GET_NAME(ch));
   }
   
   row = mysql_fetch_row(result);
