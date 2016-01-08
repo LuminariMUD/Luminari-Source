@@ -1608,6 +1608,9 @@ obj_save_data *objsave_parse_objects_db(char *name) {
    * processing each one.
    */
   while ((row = mysql_fetch_row(result))) { 
+    char tag[6];
+    int num;
+    
     /* Get the data from the row structure. */
     serialized_obj = strdup(row[0]);
     
