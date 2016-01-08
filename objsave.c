@@ -1566,7 +1566,7 @@ obj_save_data *objsave_parse_objects(FILE *fl) {
 obj_save_data *objsave_parse_objects_db(char *name) {
 
   obj_save_data *head, *current, *tempsave;
-  char f1[128], f2[128], f3[128], f4[128], line[READ_SIZE];
+  char f1[128], f2[128], f3[128], f4[128];
   int t[NUM_OBJ_VAL_POSITIONS], i, j = 0, nr;
   struct obj_data *temp;
   /* MySql Data Structures */
