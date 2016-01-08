@@ -362,7 +362,7 @@ int objsave_save_obj_record(struct obj_data *obj, struct char_data *ch, FILE *fp
   sprintf(line_buf, "');");
   strcat(ins_buf, line_buf);
   if (ch != NULL) { /* GHETTTTTTTOOOOOOOOO */
-    log("INSERTING: %s",ins_buf);
+    --log("INSERTING: %s",ins_buf);
     if (mysql_query(conn, ins_buf)) {
       log("SYSERR: Unable to INSERT into player_save_objs: %s", mysql_error(conn));
       return 1;
@@ -1608,8 +1608,6 @@ obj_save_data *objsave_parse_objects_db(char *name) {
     
     /* Get the data from the row structure. */
     serialized_obj = strdup(row[0]);
-    
-    log("SER_OBJ: %s", serialized_obj);
     
     lines = tokenize(serialized_obj, "\n");
     
