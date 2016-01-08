@@ -477,6 +477,8 @@ ACMD(do_applypoison) {
 
 
 #define BARD_AFFECTS 7
+/* bardic performance moved to: bardic_performance.c */
+/*
 void perform_perform(struct char_data *ch) {
   struct affected_type af[BARD_AFFECTS];
   int level = 0, i = 0, duration = 0;
@@ -556,7 +558,10 @@ void perform_perform(struct char_data *ch) {
   }
 
 }
+*/
 
+/* this has been replaced in bardic_performance.c */
+/*
 ACMD(do_perform) {
 
   if (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_BARDIC_MUSIC)) {
@@ -566,6 +571,7 @@ ACMD(do_perform) {
 
   perform_perform(ch);
 }
+*/
 #undef BARD_AFFECTS
 
 

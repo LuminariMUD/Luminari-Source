@@ -310,7 +310,6 @@ ACMD(do_smitegood);
 ACMD(do_kill);
 ACMD(do_layonhands);
 ACMD(do_order);
-ACMD(do_perform);
 ACMD(do_applypoison);
 ACMD(do_abundantstep);
 ACMD(do_animatedead);
