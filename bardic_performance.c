@@ -539,11 +539,14 @@ EVENTFUNC(event_bardic_performance) {
             "this position.\r\n");
     return 0;
   }
+  /* not necessary */
+  /*
   if (performance_info[performance_num][PERFORMANCE_AOE] == PERFORM_AOE_GROUP &&
           !GROUP(ch)) {
     send_to_char(ch, "This performance requires a group.\r\n");
     return 0;
   }
+  */
   
   /* the check for hunger/thirst WOULD to be here */
   /***/
