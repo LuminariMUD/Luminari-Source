@@ -1594,11 +1594,6 @@ obj_save_data *objsave_parse_objects_db(char *name) {
     log("SYSERR: Unable to SELECT from player_save_objs: %s", mysql_error(conn));
     exit(1);
   }
-
-  if (mysql_num_rows(result) < 1) {
-    /* Player has no objects! */
-    return NULL;
-  }
   
   head = NULL;
   current = NULL;
@@ -1613,6 +1608,8 @@ obj_save_data *objsave_parse_objects_db(char *name) {
     
     /* Get the data from the row structure. */
     serialized_obj = strdup(row[0]);
+    
+    log("SER_OBJ: %s", serialized_obj);
     
     lines = tokenize(serialized_obj, "\n");
     
