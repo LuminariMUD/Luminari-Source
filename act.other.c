@@ -2674,7 +2674,7 @@ ACMD(do_lore) {
     if (GET_WIS_BONUS(ch) > 0)
       lore_bonus += GET_WIS_BONUS(ch);
   }
-  if (CLASS_LEVEL(ch, CLASS_BARD)) {
+  if (CLASS_LEVEL(ch, CLASS_BARD) && HAS_FEAT(ch, FEAT_BARDIC_KNOWLEDGE)) {
     lore_bonus += CLASS_LEVEL(ch, CLASS_BARD);
   }
 
