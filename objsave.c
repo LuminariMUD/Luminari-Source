@@ -640,7 +640,8 @@ void Crash_listrent(struct char_data *ch, char *name) {
   char filename[MAX_INPUT_LENGTH], buf[MAX_STRING_LENGTH], line[READ_SIZE];
   obj_save_data *loaded, *current;
   int rentcode, timed, netcost, gold, account, nitems, numread, len;
-
+  bool using_db = FALSE;
+  
   if (!get_filename(filename, sizeof (filename), CRASH_FILE, name))
     return;
 
@@ -1559,6 +1560,261 @@ obj_save_data *objsave_parse_objects(FILE *fl) {
   return head;
 }
 
+/* Parses the object records stored in the db, and returns the first object in a
+ * linked list, which also handles location if worn. This list can then be
+ * handled by house code, listrent code, autoeq code, etc. */
+obj_save_data *objsave_parse_objects_db(char *name) {
+
+  obj_save_data *head, *current, *tempsave;
+  char f1[128], f2[128], f3[128], f4[128], line[READ_SIZE];
+  int t[NUM_OBJ_VAL_POSITIONS], i, j = 0, nr;
+  struct obj_data *temp;
+  /* MySql Data Structures */
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  char buf[1024];
+  char *serialized_obj;
+  int locate;
+  
+  char** lines;  /* Storage for tokenized serialization */
+  char** line;     /* Token iterator */
+  
+  
+  sprintf(buf, "SELECT   serialized_obj "
+               "FROM     player_save_objs "
+               "WHERE    name = '%s' "
+               "ORDER BY creation_date ASC;", name);
+
+  if (mysql_query(conn, buf)) {
+    log("SYSERR: Unable to SELECT from player_save_objs: %s", mysql_error(conn));
+    exit(1);
+  } 
+  
+  if (!(result = mysql_store_result(conn))) {
+    log("SYSERR: Unable to SELECT from player_save_objs: %s", mysql_error(conn));
+    exit(1);
+  }
+
+  if (mysql_num_rows(result) < 1) {
+    /* Player has no objects! */
+    return NULL;
+  }
+  
+  head = NULL;
+  current = NULL;
+  
+  /* Loop through the rows, each row is a serialized object.
+   * For each row take the serialized object and loop through the lines
+   * processing each one.
+   */
+  while ((row = mysql_fetch_row(result))) { 
+    /* Get the data from the row structure. */
+    serialized_obj = strdup(row[0]);
+    
+    lines = tokenize(serialized_obj, "\n");
+    
+    locate = 0;
+    temp = NULL;
+    
+    for(line=lines; line && *line; ++line) {     
+      if (*line == '#') {
+        /* check for false alarm. */
+        if (sscanf(line, "#%d", &nr) == 1) {
+          /* If we attempt to load an object with a legal VNUM 0-65534, that
+           * does not exist, skip it. If the object has a VNUM of NOTHING or
+           * NOWHERE, then we assume it doesn't exist on purpose. (Custom Item,
+           * Coins, Corpse, etc...) */
+          if (real_object(nr) == NOTHING && nr != NOTHING) {
+            log("SYSERR: Prevented loading of non-existant item #%d.", nr);
+            continue;
+          }
+        } else
+          continue;
+
+        /* we have the number, check it, load obj. */
+        if (nr == NOTHING) { /* then it is unique */
+          temp = create_obj();
+          temp->item_number = NOTHING;
+        } else if (nr < 0) {
+          continue;
+        } else {
+          if (real_object(nr) != NOTHING) {
+            temp = read_object(nr, VIRTUAL);
+            /* Go read next line - nothing more to see here. */
+          } else {
+            log("Nonexistent object %d found in rent file.", nr);
+          }
+        } 
+       
+        /* Reset the counter for spellbooks. */
+        j = 0;
+
+        /* go read next line - nothing more to see here. */
+        continue;
+      }      
+      
+      /* If "temp" is NULL, we are most likely progressing through
+       * a non-existant object, so just keep continuing till we find
+       * the next object */
+      if (temp == NULL) {
+        continue;
+      }
+      
+      tag_argument(line, tag);
+      num = atoi(line);
+      /* we need an incrementor here */
+
+      switch (*tag) {
+        case 'A':
+          if (!strcmp(tag, "ADes")) {
+            char error[40];
+            snprintf(error, sizeof (error) - 1, "rent(Ades):%s", temp->name);
+            temp->action_description = fread_string(fl, error);
+          } else if (!strcmp(tag, "Aff ")) {
+            sscanf(line, "%d %d %d", &t[0], &t[1], &t[2]);
+            if (t[0] < MAX_OBJ_AFFECT) {
+              temp->affected[t[0]].location = t[1];
+              temp->affected[t[0]].modifier = t[2];
+            }
+          }
+          break;
+        case 'C':
+          if (!strcmp(tag, "Cost"))
+            GET_OBJ_COST(temp) = num;
+          break;
+        case 'D':
+          if (!strcmp(tag, "Desc"))
+            temp->description = strdup(line);
+          break;
+        case 'E':
+          if (!strcmp(tag, "EDes")) {
+            struct extra_descr_data *new_desc;
+            char error[40];
+            snprintf(error, sizeof (error) - 1, "rent(Edes): %s", temp->name);
+            if (temp->item_number != NOTHING && /* Regular object */
+                    temp->ex_description && /* with ex_desc == prototype */
+                    (temp->ex_description ==
+                    obj_proto[real_object(temp->item_number)].ex_description))
+              temp->ex_description = NULL;
+            CREATE(new_desc, struct extra_descr_data, 1);
+            new_desc->keyword = fread_string(fl, error);
+            new_desc->description = fread_string(fl, error);
+            new_desc->next = temp->ex_description;
+            temp->ex_description = new_desc;
+          }
+          break;
+        case 'F':
+          if (!strcmp(tag, "Flag")) {
+            sscanf(line, "%s %s %s %s", f1, f2, f3, f4);
+            GET_OBJ_EXTRA(temp)[0] = asciiflag_conv(f1);
+            GET_OBJ_EXTRA(temp)[1] = asciiflag_conv(f2);
+            GET_OBJ_EXTRA(temp)[2] = asciiflag_conv(f3);
+            GET_OBJ_EXTRA(temp)[3] = asciiflag_conv(f4);
+          }
+          break;
+        case 'L':
+          if (!strcmp(tag, "Loc "))
+            locate = num;
+          else if (!strcmp(tag, "Levl"))
+            GET_OBJ_LEVEL(temp) = num;
+          break;
+        case 'M':
+          if (!strcmp(tag, "Mats"))
+            GET_OBJ_MATERIAL(temp) = num;
+          break;
+        case 'N':
+          if (!strcmp(tag, "Name"))
+            temp->name = strdup(line);
+          break;
+        case 'P':
+          if (!strcmp(tag, "Perm")) {
+            sscanf(line, "%s %s %s %s", f1, f2, f3, f4);
+            GET_OBJ_PERM(temp)[0] = asciiflag_conv(f1);
+            GET_OBJ_PERM(temp)[1] = asciiflag_conv(f2);
+            GET_OBJ_PERM(temp)[2] = asciiflag_conv(f3);
+            GET_OBJ_PERM(temp)[3] = asciiflag_conv(f4);
+          }
+          break;
+          if (!strcmp(tag, "Prof"))
+            GET_OBJ_PROF(temp) = num;
+          break;
+        case 'R':
+          if (!strcmp(tag, "Rent"))
+            GET_OBJ_RENT(temp) = num;
+          break;
+        case 'S':
+          if (!strcmp(tag, "Shrt"))
+            temp->short_description = strdup(line);
+          else if (!strcmp(tag, "Size"))
+            GET_OBJ_SIZE(temp) = num;
+          else if (!strcmp(tag, "Spbk")) {
+            sscanf(line, "%d %d", &t[0], &t[1]);
+            if (j < SPELLBOOK_SIZE) {
+  
+              if (!temp->sbinfo) {
+                CREATE(temp->sbinfo, struct obj_spellbook_spell, SPELLBOOK_SIZE);
+                memset((char *) temp->sbinfo, 0, SPELLBOOK_SIZE * sizeof (struct obj_spellbook_spell));
+              }
+  
+              temp->sbinfo[j].spellname = t[0];
+              temp->sbinfo[j].pages = t[1];
+              j++;
+            }   
+          }
+        case 'T':
+          if (!strcmp(tag, "Type"))
+            GET_OBJ_TYPE(temp) = num;
+          break;
+        case 'W':
+          if (!strcmp(tag, "Wear")) {
+            sscanf(line, "%s %s %s %s", f1, f2, f3, f4);
+            GET_OBJ_WEAR(temp)[0] = asciiflag_conv(f1);
+            GET_OBJ_WEAR(temp)[1] = asciiflag_conv(f2);
+            GET_OBJ_WEAR(temp)[2] = asciiflag_conv(f3);
+            GET_OBJ_WEAR(temp)[3] = asciiflag_conv(f4);
+          } else if (!strcmp(tag, "Wght"))
+            GET_OBJ_WEIGHT(temp) = num;
+          break;
+        case 'V':
+          if (!strcmp(tag, "Vals")) {
+            /* Initialize the values. */
+            for (i = 0; i < NUM_OBJ_VAL_POSITIONS; i++)
+              t[i] = 0;
+            sscanf(line, "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d",
+              &t[0], &t[1], &t[2], &t[3], &t[4], &t[5], &t[6], &t[7],
+              &t[8], &t[9], &t[10], &t[11], &t[12], &t[13], &t[14], &t[15]);
+            for (i = 0; i < NUM_OBJ_VAL_POSITIONS; i++)
+              GET_OBJ_VAL(temp, i) = t[i];
+          }
+          break;
+        default:
+          log("Unknown tag in saved obj: %s", tag);
+      }      
+          
+      free(*line);
+    }          
+    
+    /* So now if temp is not null, we have an object. 
+     * Create space for it and add it to the list.  */
+    if (temp) {
+      CREATE(current, obj_save_data, 1);
+      current->obj = temp;
+      current->locate = locate;
+      
+      if (head == NULL) {        
+        head = current;       
+      } 
+      current = current->next;
+      temp = NULL;
+    }
+    
+    free(serialized_obj); /* Done with this! */
+  }
+  
+  mysql_free_result(result);
+  return head;
+}
+
 static int Crash_load_objs(struct char_data *ch) {
   FILE *fl;
   char filename[MAX_STRING_LENGTH];
@@ -1571,13 +1827,57 @@ static int Crash_load_objs(struct char_data *ch) {
   int rentcode, timed, netcost, gold, account, nitems;
   obj_save_data *loaded, *current;
 
+  bool using_db = FALSE; /* Needed outside the ifdefined */
+  
+#ifdef OBJSAVE_DB  
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  char buf[1024];
+#endif
+  
   if (!get_filename(filename, sizeof (filename), CRASH_FILE, GET_NAME(ch)))
     return 1;
 
   for (i = 0; i < MAX_BAG_ROWS; i++)
     cont_row[i] = NULL;
 
-  if (!(fl = fopen(filename, "r"))) {
+#ifdef OBJSAVE_DB
+  
+  log("INFO: Loading saved object data from db for: %s", GET_NAME(ch));    
+
+  sprintf(buf, "SELECT obj_save_header from player_data where name = '%s';", GET_NAME(ch));
+
+  if (mysql_query(conn, buf)) {
+    log("SYSERR: Unable to get obj_save_header from player_data: %s", mysql_error(conn));
+    exit(1);
+  } 
+  
+  if (!(result = mysql_store_result(conn))) {
+    log("SYSERR: Unable to obj_save_header from player_data: %s", mysql_error(conn));
+    exit(1);
+  }
+
+  if (mysql_num_rows(result) > 1) {
+    log("SYSERR: Too many rows returned on SELECT from player_data: %d", zone);
+  }
+  
+  row = mysql_fetch_row(result);
+  if (row[0] != NULL) {
+    /* This player has saved objects in the database */
+    log("INFO: Object save header found for: %s", GET_NAME(ch));
+    sscanf(row[0], "%d %d %d %d %d %d", &rentcode, &timed,
+          &netcost, &gold, &account, &nitems);
+    using_db = TRUE;
+  } else {
+    /* This player has NO saved objects in the database */
+    log("INFO: Object save header not found, using file for: %s", GET_NAME(ch));
+    using_db = FALSE;
+  }
+  mysql_free_result(result);   
+  
+#endif  
+
+  if (!using_db && !(fl = fopen(filename, "r"))) {
     if (errno != ENOENT) { /* if it fails, NOT because of no file */
       sprintf(buf, "SYSERR: READING OBJECT FILE %s (5)", filename);
       perror(buf);
@@ -1588,8 +1888,8 @@ static int Crash_load_objs(struct char_data *ch) {
     mudlog(NRM, MAX(LVL_IMMORT, GET_INVIS_LEV(ch)), TRUE, "%s entering game with no equipment.", GET_NAME(ch));
     return 1;
   }
-
-  if (get_line(fl, line))
+  
+  if (!using_db && get_line(fl, line))
     sscanf(line, "%d %d %d %d %d %d", &rentcode, &timed,
           &netcost, &gold, &account, &nitems);
 
@@ -1634,8 +1934,20 @@ static int Crash_load_objs(struct char_data *ch) {
               "WARNING: %s entering game with undefined rent code %d.", GET_NAME(ch), rentcode);
       break;
   }
-
-  loaded = objsave_parse_objects(fl);
+  /* Load from the db if the header information is found in the player_data table. */
+  if (using_db)  {
+    loaded = objsave_parse_objects_db(GET_NAME(ch));
+   
+    if (loaded == NULL) {
+    /* no equipment stored in the database. */
+    mudlog(NRM, MAX(LVL_IMMORT, GET_INVIS_LEV(ch)), TRUE, "%s entering game with no equipment (db).", GET_NAME(ch));
+    return 1;
+    }
+  } else    
+    loaded = objsave_parse_objects(f);
+  
+  
+    
   for (current = loaded; current != NULL; current = current->next)
     num_objs += handle_obj(current->obj, ch, current->locate, cont_row);
 
