@@ -1803,15 +1803,20 @@ obj_save_data *objsave_parse_objects_db(char *name) {
     /* So now if temp is not null, we have an object. 
      * Create space for it and add it to the list.  */
     if (temp) {
-      CREATE(current, obj_save_data, 1);
-      current->obj = temp;
-      current->locate = locate;
       
-      if (head == NULL) {        
-        head = current;       
-      } 
-      current = current->next;
+      CREATE(tempsave, obj_save_data, 1);
+      tempsave->obj = temp;
+      tempsave->locate = locate;
+      
+      if (current == NULL) {                       
+        head = tempsave;
+        current = head;
+      } else {
+        current->next = tempsave;
+        current = current->next;
+      }
       temp = NULL;
+      
     }
     
     free(serialized_obj); /* Done with this! */
