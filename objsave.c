@@ -1953,7 +1953,7 @@ static int Crash_load_objs(struct char_data *ch) {
     return 1;
     }
   } else    
-    loaded = objsave_parse_objects(f);
+    loaded = objsave_parse_objects(fl);
   
   
     
