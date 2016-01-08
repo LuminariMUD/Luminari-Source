@@ -24,4 +24,6 @@ struct path_list* get_enclosing_paths(zone_rnum zone, int x, int y);
 
 struct region_proximity_list* get_nearby_regions(zone_rnum zone, int x, int y, int r);
 
+char** tokenize(const char* input, const char* delim);
+
 #endif
