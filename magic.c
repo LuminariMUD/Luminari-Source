@@ -2830,16 +2830,16 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         send_to_char(victim, "Your fearless rage protects you!\r\n");
         return;
       }
-
-      if (mag_resistance(ch, victim, 0))
-        return;
-      if (mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus, casttype, level, ILLUSION)) {
-        return;
-      }
       if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
         send_to_char(ch, "Mind blank protects %s!", GET_NAME(victim));
         send_to_char(victim, "Mind blank protects you from %s!",
                 GET_NAME(ch));
+        return;
+      }
+
+      if (mag_resistance(ch, victim, 0))
+        return;
+      if (mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus, casttype, level, ILLUSION)) {
         return;
       }
       is_mind_affect = TRUE;

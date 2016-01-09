@@ -18,6 +18,7 @@ extern "C" {
 /* defines */    
 #define VERSE_INTERVAL       (7 RL_SEC)
 #define MAX_PERFORMANCES     12
+#define MAX_PRFM_EFFECT      60 /* maximum effectiveness of performance */
     
 /* lookup components for song_info */    
 #define PERFORMANCE_SKILLNUM         0
