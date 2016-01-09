@@ -647,6 +647,20 @@ static void oedit_disp_ranged_menu(struct descriptor_data *d) {
   write_to_output(d, "\r\nEnter ranged-weapon type : ");
 }
 
+/* instruments for bardic performance */
+static void oedit_disp_instrument_menu(struct descriptor_data *d) {
+  int counter, columns = 0;
+
+  get_char_colors(d->character);
+  clear_screen(d);
+
+  for (counter = 0; counter < MAX_INSTRUMENTS; counter++) {
+    write_to_output(d, "%s%2d%s) %-20.20s %s", grn, counter, nrm,
+            instrument_names[counter], !(++columns % 2) ? "\r\n" : "");
+  }
+  write_to_output(d, "\r\nSelect instrument type : ");
+}
+
 /* ranged combat, missile-type (like arrow vs bolt) */
 static void oedit_disp_missile_menu(struct descriptor_data *d) {
   int counter, columns = 0;
@@ -829,6 +843,9 @@ static void oedit_disp_val1_menu(struct descriptor_data *d) {
     case ITEM_MISSILE:
       oedit_disp_missile_menu(d);
       break;
+    case ITEM_INSTRUMENT:
+      oedit_disp_instrument_menu(d);
+      break;
     case ITEM_BOAT: // these object types have no 'values' so go back to menu
     case ITEM_KEY:
     case ITEM_NOTE:
@@ -914,6 +931,9 @@ static void oedit_disp_val2_menu(struct descriptor_data *d) {
     case ITEM_CLANARMOR:
       write_to_output(d, "Clan ID Number: ");
       break;
+    case ITEM_INSTRUMENT:
+      write_to_output(d, "Enter how much instrument reduces difficulty (0-30): ");
+      break;
     case ITEM_PORTAL:
       switch (GET_OBJ_VAL(OLC_OBJ(d), 0)) {
         case PORTAL_NORMAL:
@@ -949,6 +969,9 @@ static void oedit_disp_val3_menu(struct descriptor_data *d) {
       break;
     case ITEM_POISON:
       write_to_output(d, "Applications : ");
+      break;
+    case ITEM_INSTRUMENT:
+      write_to_output(d, "Instrument Level (0-10): ");
       break;
     case ITEM_FOOD:
       /* val 3 is unused, jump to 4 */
@@ -1005,7 +1028,7 @@ static void oedit_disp_val4_menu(struct descriptor_data *d) {
   OLC_MODE(d) = OEDIT_VALUE_4;
   switch (GET_OBJ_TYPE(OLC_OBJ(d))) {
     case ITEM_TRAP:
-      write_to_output(d, "Recommendations\r\n");
+      write_to_output(d, "Recommendations:\r\n");
       write_to_output(d, "DC = 20 + level-of-trap for a normal trap\r\n");
       write_to_output(d, "DC = 30 + level-of-trap for a hard trap\r\n");
       write_to_output(d, "DC = 40 + level-of-trap for an epic trap\r\n");
@@ -1019,6 +1042,10 @@ static void oedit_disp_val4_menu(struct descriptor_data *d) {
       break;
     case ITEM_POISON:
       write_to_output(d, "Hits per Application : ");
+      break;
+    case ITEM_INSTRUMENT:
+      write_to_output(d, "Instrument Breakability (0 = unbreakable, 2000 = will "
+              "break on first use) (recommended values 0-30): ");
       break;
     case ITEM_WEAPON:
       //oedit_disp_weapon_menu(d);
@@ -1637,6 +1664,11 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
     case OEDIT_VALUE_1:
       number = atoi(arg);
       switch (GET_OBJ_TYPE(OLC_OBJ(d))) {
+        
+        case ITEM_INSTRUMENT:
+          GET_OBJ_VAL(OLC_OBJ(d), 0) = MIN(MAX(atoi(arg), 0), MAX_INSTRUMENTS - 1);
+          break;
+          
         case ITEM_FURNITURE:
           if (number < 0 || number > MAX_PEOPLE)
             oedit_disp_val1_menu(d);
@@ -1645,6 +1677,7 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
             oedit_disp_val2_menu(d);
           }
           break;
+          
         case ITEM_WEAPON:
           /* Weapon Type */
           GET_OBJ_VAL(OLC_OBJ(d), 0) = MIN(MAX(atoi(arg), 0), NUM_WEAPON_TYPES - 1);
@@ -1674,13 +1707,13 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
           /*  Skip a few. */
           oedit_disp_val5_menu(d);
           return;
+          
         case ITEM_FIREWEAPON:
           GET_OBJ_VAL(OLC_OBJ(d), 0) = MIN(MAX(atoi(arg), 0), NUM_RANGED_WEAPONS - 1);
           break;
 
         case ITEM_MISSILE:
           GET_OBJ_VAL(OLC_OBJ(d), 0) = LIMIT(atoi(arg), 1, NUM_AMMO_TYPES - 1);
-
           /* jump to break probability */
           oedit_disp_val3_menu(d);
           return;
@@ -1689,16 +1722,21 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
         case ITEM_AMMO_POUCH:
           GET_OBJ_VAL(OLC_OBJ(d), 0) = LIMIT(atoi(arg), -1, MAX_CONTAINER_SIZE);
           break;
+          
         default:
           GET_OBJ_VAL(OLC_OBJ(d), 0) = atoi(arg);
       }
       /* proceed to menu 2 */
       oedit_disp_val2_menu(d);
       return;
+      
     case OEDIT_VALUE_2:
       /* Here, I do need to check for out of range values. */
       number = atoi(arg);
       switch (GET_OBJ_TYPE(OLC_OBJ(d))) {
+        case ITEM_INSTRUMENT: /* reduce difficulty */
+          GET_OBJ_VAL(OLC_OBJ(d), 1) = LIMIT(number, 0, 30);
+          break;
         case ITEM_SCROLL:
         case ITEM_POTION:
           if (number == 0 || number == -1)
@@ -1788,6 +1826,10 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
           min_val = 1;
           max_val = NUM_SPELLS;
           break;
+        case ITEM_INSTRUMENT: /* instrument level */
+          min_val = 0;
+          max_val = 10;
+          break;
         case ITEM_WEAPON:
           min_val = 1;
           max_val = MAX_WEAPON_SDICE;
@@ -1849,6 +1891,12 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
         case ITEM_STAFF:
           min_val = 1;
           max_val = NUM_SPELLS;
+          break;
+        case ITEM_INSTRUMENT:
+          /* breakability: 0 = indestructable, 2000 = break on first use
+           * recommended values are 0-30 */
+          min_val = 0;
+          max_val = 2000;
           break;
         case ITEM_WEAPON:
           min_val = 0;
