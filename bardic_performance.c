@@ -204,10 +204,10 @@ ACMD(do_perform) {
   return;
 }
 /* function for processing individual effects */
-int performance_effects(struct char_data *tch, struct affected_type af,
-        int spellnum, int effectiveness, int level) {
+int performance_effects(struct char_data *ch, struct char_data *tch, struct affected_type af,
+        int spellnum, int effectiveness, int aoe) {
   int return_val = 1;
-  bool nomessage = FALSE;
+  bool nomessage = FALSE, engage = TRUE;
 
   if (affected_by_spell(tch, spellnum))
     nomessage = TRUE;
@@ -236,7 +236,7 @@ int performance_effects(struct char_data *tch, struct affected_type af,
       affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
       af.location = APPLY_DAMROLL;
       af.modifier = effectiveness / 13;
-      if (level >= 19 && !AFF_FLAGGED(tch, AFF_HASTE)) {
+      if (GET_LEVEL(ch) >= 19 && !AFF_FLAGGED(tch, AFF_HASTE)) {
         SET_BIT_AR(af.bitvector, AFF_HASTE);
         act("You feel the world slow down around you.", FALSE, tch, 0, 0,
                 TO_CHAR);
@@ -265,25 +265,25 @@ int performance_effects(struct char_data *tch, struct affected_type af,
         SET_BIT_AR(af.bitvector, AFF_DETECT_INVIS);
         affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
       }
-      if (!AFF_FLAGGED(tch, AFF_DETECT_ALIGN) && level >= 5) {
+      if (!AFF_FLAGGED(tch, AFF_DETECT_ALIGN) && GET_LEVEL(ch) >= 5) {
         af.location = APPLY_DAMROLL;
         af.modifier = 0;
         SET_BIT_AR(af.bitvector, AFF_DETECT_ALIGN);
         affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
       }
-      if (!AFF_FLAGGED(tch, AFF_DETECT_MAGIC) && level >= 10) {
+      if (!AFF_FLAGGED(tch, AFF_DETECT_MAGIC) && GET_LEVEL(ch) >= 10) {
         af.location = APPLY_AC;
         af.modifier = 0;
         SET_BIT_AR(af.bitvector, AFF_DETECT_MAGIC);
         affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
       }
-      if (!AFF_FLAGGED(tch, AFF_SENSE_LIFE) && level >= 15) {
+      if (!AFF_FLAGGED(tch, AFF_SENSE_LIFE) && GET_LEVEL(ch) >= 15) {
         af.location = APPLY_DEX;
         af.modifier = 0;
         SET_BIT_AR(af.bitvector, AFF_SENSE_LIFE);
         affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
       }
-      if (!AFF_FLAGGED(tch, AFF_FARSEE) && level >= 20) {
+      if (!AFF_FLAGGED(tch, AFF_FARSEE) && GET_LEVEL(ch) >= 20) {
         af.location = APPLY_AGE;
         af.modifier = 0;
         SET_BIT_AR(af.bitvector, AFF_FARSEE);
@@ -309,8 +309,10 @@ int performance_effects(struct char_data *tch, struct affected_type af,
       break;
 
     case SKILL_SONG_OF_FORGETFULNESS:
-      if (IS_NPC(tch) && rand_number(0, 100) < effectiveness)
+      if (IS_NPC(tch) && rand_number(0, 100) < effectiveness) {
         clearMemory(tch);
+        engage = FALSE;
+      }
       break;
           
     case SKILL_SONG_OF_FLIGHT:
@@ -326,18 +328,61 @@ int performance_effects(struct char_data *tch, struct affected_type af,
 
     /* increases memming / casting effectiveness */
     case SKILL_SONG_OF_FOCUSED_MIND:
+      af.location = APPLY_INT;
+      af.modifier = 1 + effectiveness / 10;
+      affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
+      af.location = APPLY_WIS;
+      af.modifier = 1 + effectiveness / 10;
+      affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
+      af.location = APPLY_CHA;
+      af.modifier = 1 + effectiveness / 10;
+      affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
+      /* using affected_by_spell() for memorization bonus */
       break;
 
     /* enemy fight less effective / flee */
     case SKILL_SONG_OF_FEAR:
+      if (!IS_NPC(tch) && HAS_FEAT(tch, FEAT_AURA_OF_COURAGE))
+        break;
+      if (!IS_NPC(tch) && HAS_FEAT(tch, FEAT_RP_FEARLESS_RAGE) &&
+          affected_by_spell(tch, SKILL_RAGE))
+        break;
+      if (AFF_FLAGGED(tch, AFF_MIND_BLANK))
+        break;
+      if (rand_number(0, 100) < effectiveness) {
+        act("$n shivers with fear.", FALSE, tch, 0, 0, TO_ROOM);
+        SET_BIT_AR(af.bitvector, AFF_FEAR);
+        af.location = APPLY_HITROLL;
+        af.modifier = -(1 + effectiveness / 10);
+        affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
+      }
       break;
 
     /* enemy fight less effective / entangled */
     case SKILL_SONG_OF_ROOTING:
+      if (rand_number(0, 100) < effectiveness) {
+        act("$n has spawned roots.", FALSE, tch, 0, 0, TO_ROOM);
+        SET_BIT_AR(af.bitvector, AFF_ENTANGLED);
+        af.location = APPLY_DAMROLL;
+        af.modifier = -effectiveness / 5;
+        affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
+        af.location = APPLY_AC_NEW;
+        af.modifier = -effectiveness / 9;
+        affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
+      }
       break;
 
     /* enemy spell resistance / saves reduced */
     case SKILL_SONG_OF_THE_MAGI:
+      if (rand_number(0, 100) < effectiveness) {
+        act("$n seems more vulnerable to magic.", FALSE, tch, 0, 0, TO_ROOM);
+        af.location = APPLY_SAVING_WILL;
+        af.modifier = -(1 + effectiveness / 4);
+        affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
+        af.location = APPLY_SPELL_RES;
+        af.modifier = -(2 + effectiveness / 10);
+        affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
+      }
       break;
             
     /* UH OH! */
@@ -348,6 +393,18 @@ int performance_effects(struct char_data *tch, struct affected_type af,
       break;
 
   } /* end switch */
+  
+  /* aggressive song should engage foes */
+  if (aoe == PERFORM_AOE_FOES && !engage) {
+    if (tch != ch) {
+      if (GET_POS(ch) > POS_STUNNED && (FIGHTING(ch) == NULL)) {
+        set_fighting(ch, tch);
+      }
+      if (GET_POS(tch) > POS_STUNNED && (FIGHTING(tch) == NULL)) {
+        set_fighting(tch, ch);
+      }
+    }    
+  }
   
   return return_val;
 }
@@ -370,7 +427,7 @@ int process_performance(struct char_data *ch, int spellnum,
   af.spell = spellnum;
   af.bonus_type = BONUS_TYPE_MORALE;  
 
-/* performance message */
+  /* performance message */
   switch (spellnum) {
     case SKILL_SONG_OF_HEALING:
       act("You sing a song to heal all wounds.", FALSE, ch, 0, 0, TO_CHAR);
@@ -432,14 +489,14 @@ int process_performance(struct char_data *ch, int spellnum,
     /* performance that should affect your group only */
     case PERFORM_AOE_GROUP:
       if (!GROUP(ch)) {
-        performance_effects(ch, af, spellnum, effectiveness, GET_LEVEL(ch));
+        performance_effects(ch, ch, af, spellnum, effectiveness, aoe);
       } else {
         while ((tch = (struct char_data *) simple_list(GROUP(ch)->members)) !=
                 NULL) {
           if (IN_ROOM(tch) != IN_ROOM(ch))
             continue;
           /* found a grouppie! */
-          performance_effects(tch, af, spellnum, effectiveness, GET_LEVEL(ch));
+          performance_effects(ch, tch, af, spellnum, effectiveness, aoe);
         }
       }
       break;
@@ -452,7 +509,7 @@ int process_performance(struct char_data *ch, int spellnum,
         
         /* check if offensive aoe is OK */
         if (aoeOK(ch, tch, spellnum)) {
-          performance_effects(tch, af, spellnum, effectiveness, GET_LEVEL(ch));          
+          performance_effects(ch, tch, af, spellnum, effectiveness, aoe);          
         }        
       } /* end for loop */
       break;
@@ -463,7 +520,7 @@ int process_performance(struct char_data *ch, int spellnum,
       for (tch = world[ch->in_room].people; tch; tch = tch_next) {
         tch_next = tch->next_in_room;
 
-        performance_effects(tch, af, spellnum, effectiveness, GET_LEVEL(ch));                  
+        performance_effects(ch, tch, af, spellnum, effectiveness, aoe);                  
       } /* end for loop */
       break;
       
@@ -501,7 +558,6 @@ EVENTFUNC(event_bardic_performance) {
     log("SYSERR: event_bardic_performance missing pMudEvent->pStruct!");
     return 0;
   }
-  
   /* extract the variable(s) */
   if (pMudEvent->sVariables == NULL) {
     /* This is odd - This field should always be populated! */
@@ -552,7 +608,6 @@ EVENTFUNC(event_bardic_performance) {
     return 0;
   }
   */
-  
   /* the check for hunger/thirst WOULD to be here */
   /***/
   /* end disqualifiers */
@@ -560,7 +615,7 @@ EVENTFUNC(event_bardic_performance) {
   /* base effectiveness of performance */
   effectiveness = 10;
   /* base difficulty */
-  difficulty = 39;
+  difficulty = 40;
 
   /* find an instrument */
   instrument = GET_EQ(ch, WEAR_HOLD_1);
@@ -585,15 +640,18 @@ EVENTFUNC(event_bardic_performance) {
 
     /* instrument of quality <= 0 is unbreakable */
     if (rand_number(0, 2000) < GET_OBJ_VAL(instrument, 3)) {
-      act("Your $p cannot take the strain of magic any longer, and it breaks.", FALSE, ch, instrument, 0, TO_CHAR);
-      act("$n's $p cannot take the strain of magic any longer, and it breaks.", FALSE, ch, instrument, 0, TO_ROOM);
+      act("Your $p cannot take the strain of magic any longer, and it breaks!", FALSE, ch, instrument, 0, TO_CHAR);
+      act("$n's $p cannot take the strain of magic any longer, and it breaks!", FALSE, ch, instrument, 0, TO_ROOM);
       extract_obj(instrument);
       instrument = NULL;
       effectiveness -= 5;
     } else if (GET_OBJ_VAL(instrument, 0) == performance_info[performance_num][INSTRUMENT_NUM]) {
+      /* can add a check to see how proficient one is at given instrument */
       effectiveness += GET_OBJ_VAL(instrument, 2);
-    } else
+    } else { /* wrong instrument */
+      send_to_char(ch, "Not the ideal instrument, but better than nothing!  ");
       effectiveness -= 2;
+    }
   }
 
   if (effectiveness > 20)
@@ -614,16 +672,19 @@ EVENTFUNC(event_bardic_performance) {
     return 0;
   }
 
-  /* this is suppose to be a skill check for how good you are at a particular performance */
-  effectiveness += 3;
+  /* performance check! */
+  if (compute_ability(ch, ABILITY_PERFORM) + dice(1,20) >=
+          performance_info[performance_num][PERFORMANCE_DIFF] + 10) {
+    effectiveness += 3;
+  }
 
-  //effectiveness is from 1-60
-  effectiveness = effectiveness * compute_ability(ch, ABILITY_PERFORM) * 3;
-  effectiveness /= 20;
+  /* this is the currently formula for effectiveness of the performance */
+  effectiveness = effectiveness * compute_ability(ch, ABILITY_PERFORM) / 7;
+  /* effectiveness is from 1 - MAX_PRFM_EFFECT */
   if (effectiveness < 1)
     effectiveness = 1;
-  if (effectiveness > 60)
-    effectiveness = 60;
+  if (effectiveness > MAX_PRFM_EFFECT)
+    effectiveness = MAX_PRFM_EFFECT;
 
   /* GUTS! message, effect processed in this function */
   if ( !process_performance(ch, spellnum, effectiveness,

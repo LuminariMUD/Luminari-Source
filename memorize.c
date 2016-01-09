@@ -1551,12 +1551,17 @@ void updateMemming(struct char_data *ch, int class) {
     return;
   }
 
-  /* continue memorizing */
+  /* bonuses! */
   PREP_TIME(ch, 0, classArray(class)) -= bonus;
   /* bonus feat */
   if (HAS_FEAT(ch, FEAT_FASTER_MEMORIZATION)) {
     PREP_TIME(ch, 0, classArray(class)) -= bonus;
   }
+  if (affected_by_spell(ch, SKILL_SONG_OF_FOCUSED_MIND)) {
+    PREP_TIME(ch, 0, classArray(class)) -= bonus;    
+  }
+  
+  /* continue memorizing */
   if (PREP_TIME(ch, 0, classArray(class)) <= 0 || GET_LEVEL(ch) >= LVL_IMMORT) {
     switch (class) {
       case CLASS_CLERIC:
