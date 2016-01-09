@@ -83,8 +83,9 @@ ACMD(do_featlisting);
 #define FEAT_TYPE_CLASS_ABILITY  8
 #define FEAT_TYPE_INNATE_ABILITY 9
 #define FEAT_TYPE_DOMAIN_ABILITY 10
+#define FEAT_TYPE_PERFORMANCE    11
 
-#define NUM_FEAT_TYPES           11
+#define NUM_FEAT_TYPES           12
 /******************/
 
 /*  LIST_FEAT defines, for list_feats function. */

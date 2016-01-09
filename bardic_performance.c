@@ -19,6 +19,7 @@
 #include "fight.h"
 #include "spec_procs.h"
 #include "actions.h"
+#include "feats.h"
 
 /* performance types
 Act (comedy, drama, pantomime)
@@ -110,6 +111,20 @@ static void alter_move(struct char_data *ch, int points) {
   update_pos(ch);
 }
 
+void list_available_performances(struct char_data *ch) {
+  int i = 0;
+  
+  send_to_char(ch, "Available performances:\r\n");
+  for (i = 0; i < NUM_FEATS; i++) {
+    if (has_feat(ch, i)) {
+      if (feat_list[i].feat_type == FEAT_TYPE_PERFORMANCE) {
+        send_to_char(ch, "%s\r\n", feat_list[i].name);
+      }
+    }
+  }  
+  send_to_char(ch, "\r\n");
+}
+
 /* primary command entry point for the bardic performance */
 ACMD(do_perform) {
   int i;
@@ -123,6 +138,7 @@ ACMD(do_perform) {
       return;
     } else {
       send_to_char(ch, "Play what performance?\r\n");
+      list_available_performances(ch);
       return;
     }
   }
@@ -201,6 +217,7 @@ ACMD(do_perform) {
   }
   
   send_to_char(ch, "But that is not a performance!\r\n");
+  list_available_performances(ch);
   return;
 }
 /* function for processing individual effects */
