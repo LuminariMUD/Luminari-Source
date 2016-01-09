@@ -1736,6 +1736,7 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
       switch (GET_OBJ_TYPE(OLC_OBJ(d))) {
         case ITEM_INSTRUMENT: /* reduce difficulty */
           GET_OBJ_VAL(OLC_OBJ(d), 1) = LIMIT(number, 0, 30);
+          oedit_disp_val3_menu(d);
           break;
         case ITEM_SCROLL:
         case ITEM_POTION:
