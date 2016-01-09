@@ -1,7 +1,7 @@
 
 /*****************************************************************************
- ** FEATS.C                                                                  **
- ** Source code for the Gates of Krynn Feats System.                         **
+ ** feats.c                                                                  **
+ ** Source code for the LuminariMUD Feats System.                            **
  ** Initial code by Paladine (Stephen Squires), Ported by Ornir to Luminari  **
  *****************************************************************************/
 
@@ -890,6 +890,12 @@ void assign_feats(void) {
   /*****************/
   /* General feats */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
+
+  feato(FEAT_LINGERING_SONG, "lingering performance", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+  "extra round for bardic performance",
+  "A bardic performance repeats every 7 seconds, and the effects of the performance "
+          "last for 1 round (6 seconds).  This feat increases the duration of the "
+          "effects to 2 rounds (12 seconds).");
 
   feato(FEAT_ENERGY_RESISTANCE, "energy resistance", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
     "reduces all energy related damage by 1 per rank",
@@ -1950,7 +1956,6 @@ void assign_feats(void) {
     "Either Improved Precise Shot or Greater Two Weapon Fighting, depending on the chosen combat style.");
 
   /* Bard */
-  feato(FEAT_LINGERING_SONG, "lingering song", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "5 extra rounds for bard songs", "5 extra rounds for bard songs");
   feato(FEAT_EXTRA_MUSIC, "extra music", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "4 extra bard music uses per day", "4 extra bard music uses per day");
 
   /* paladin / cleric [shared] */

@@ -1,5 +1,5 @@
 /*
- * File:   bardic_performance.h
+ * File:   bardic_performance.c
  * Author: Zusuk
  * Functions, commands, etc for the bardic performance system
  *   heavy influence from the homelandMUD system
@@ -412,7 +412,7 @@ int performance_effects(struct char_data *ch, struct char_data *tch, struct affe
   } /* end switch */
   
   /* aggressive song should engage foes */
-  if (aoe == PERFORM_AOE_FOES && !engage) {
+  if (aoe == PERFORM_AOE_FOES && engage) {
     if (tch != ch) {
       if (GET_POS(ch) > POS_STUNNED && (FIGHTING(ch) == NULL)) {
         set_fighting(ch, tch);
