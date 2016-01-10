@@ -712,7 +712,7 @@ void assign_feats(void) {
   /* end mounted combat feats */
 
   /* ranged attack + mounted combat feats */
-  feato(FEAT_MOUNTED_ARCHERY, "mounted archery", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+  feato(FEAT_MOUNTED_ARCHERY, "mounted archery", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
     "no penalty for mounted archery attacks",
     "normally mounted archery combat imposes a -4 penalty to attacks, with this "
       "feat you have no penalty to your attacks");
@@ -891,6 +891,7 @@ void assign_feats(void) {
   /* General feats */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
 
+    /* putting bard feats (not free) here */
   feato(FEAT_LINGERING_SONG, "lingering performance", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
   "extra round for bardic performance",
   "A bardic performance repeats every 7 seconds, and the effects of the performance "
