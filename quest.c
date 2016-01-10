@@ -688,7 +688,7 @@ void quest_show(struct char_data *ch, mob_vnum qm) {
             "----- ---------------------------------------------------- ----- --- ---\r\n");
     for (rnum = 0; rnum < total_quests; rnum++)
       if (qm == QST_MASTER(rnum))
-        send_to_char(ch, "\tg%4d\tn) \tc%-52.52s\tn \ty(%5d)\tn \ty(%s)\tn\r\n",
+        send_to_char(ch, "\tg%4d\tn) \tc%-52.52s\tn \ty(%3s)\tn %3d %3d\r\n",
               ++counter, QST_NAME(rnum), (is_complete(ch, QST_NUM(rnum)) ? "Yes" :
                 "No "), QST_MINLEVEL(rnum), QST_MAXLEVEL(rnum));
   }
