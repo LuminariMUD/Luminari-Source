@@ -2132,6 +2132,7 @@ void init_class(struct char_data *ch, int class, int level) {
       SET_SKILL(ch, SPELL_AID, 99);
       SET_SKILL(ch, SPELL_INFRAVISION, 99);
       SET_SKILL(ch, SPELL_REMOVE_CURSE, 99);
+      SET_SKILL(ch, SPELL_REMOVE_POISON, 99);
       SET_SKILL(ch, SPELL_CURE_CRITIC, 99);
       SET_SKILL(ch, SPELL_HOLY_SWORD, 99);
 
@@ -3395,21 +3396,21 @@ void init_spell_levels(void) {
   spell_level(SPELL_CURE_LIGHT, CLASS_PALADIN, 6);
   spell_level(SPELL_ENDURANCE, CLASS_PALADIN, 6); //shared
   spell_level(SPELL_ARMOR, CLASS_PALADIN, 6);
-  spell_level(SPELL_CAUSE_LIGHT_WOUNDS, CLASS_PALADIN, 6);
   //2nd circle
   spell_level(SPELL_CREATE_FOOD, CLASS_PALADIN, 10);
   spell_level(SPELL_CREATE_WATER, CLASS_PALADIN, 10);
   spell_level(SPELL_DETECT_POISON, CLASS_PALADIN, 10); //shared
-  spell_level(SPELL_CAUSE_MODERATE_WOUNDS, CLASS_PALADIN, 10);
+  spell_level(SPELL_CURE_MODERATE, CLASS_PALADIN, 10);
   //3rd circle
   spell_level(SPELL_DETECT_ALIGN, CLASS_PALADIN, 12);
   spell_level(SPELL_CURE_BLIND, CLASS_PALADIN, 12);
   spell_level(SPELL_BLESS, CLASS_PALADIN, 12);
-  spell_level(SPELL_CAUSE_SERIOUS_WOUNDS, CLASS_PALADIN, 12);
+  spell_level(SPELL_CURE_SERIOUS, CLASS_PALADIN, 12);
   //4th circle
+  spell_level(SPELL_AID, CLASS_PALADIN, 15); //shared
   spell_level(SPELL_INFRAVISION, CLASS_PALADIN, 15); //shared
   spell_level(SPELL_REMOVE_CURSE, CLASS_PALADIN, 15); //shared
-  spell_level(SPELL_CAUSE_CRITICAL_WOUNDS, CLASS_PALADIN, 15);
+  spell_level(SPELL_REMOVE_POISON, CLASS_PALADIN, 15); //shared
   spell_level(SPELL_CURE_CRITIC, CLASS_PALADIN, 15);
   spell_level(SPELL_HOLY_SWORD, CLASS_PALADIN, 15); // unique to paladin
 

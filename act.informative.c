@@ -508,18 +508,21 @@ static void list_one_char(struct char_data *i, struct char_data *ch) {
   struct obj_data *furniture;
   char *short_descr;
   const char *positions[NUM_POSITIONS] = {
-                                          " is lying here, dead.",
-                                          " is lying here, mortally wounded.",
-                                          " is lying here, incapacitated.",
-                                          " is lying here, stunned.",
-                                          " is sleeping here.",
-                                          " is reclining here.",
-                                          " is resting here.",
-                                          " is sitting here.",
-                                          "!FIGHTING!",
-                                          " is standing here."
+    " is lying here, dead.",
+    " is lying here, mortally wounded.",
+    " is lying here, incapacitated.",
+    " is lying here, stunned.",
+    " is sleeping here.",
+    " is reclining here.",
+    " is resting here.",
+    " is sitting here.",
+    "!FIGHTING!", /* message elsewhere */
+    " is standing here."
   };
+  
+  /* start display of info BEFORE short-descrip/name/title */
 
+  /* npcs: show vnum / trig info */
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SHOWVNUMS)) {
     if (IS_NPC(i))
       send_to_char(ch, "[%d] ", GET_MOB_VNUM(i));
@@ -531,6 +534,7 @@ static void list_one_char(struct char_data *i, struct char_data *ch) {
     }
   }
 
+  /* pcs: show if groupped */
   if (!IS_NPC(i) && GROUP(i)) {
     if (GROUP(i) == GROUP(ch))
       send_to_char(ch, "(%s) ",
@@ -541,6 +545,7 @@ static void list_one_char(struct char_data *i, struct char_data *ch) {
                    CCNRM(ch, C_NRM));
   }
 
+  /* npcs: default position, not fighting */
   if (IS_NPC(i) && i->player.long_descr && GET_POS(i) == GET_DEFAULT_POS(i) &&
       !FIGHTING(i)) {
     if (AFF_FLAGGED(i, AFF_INVISIBLE))
@@ -572,7 +577,7 @@ static void list_one_char(struct char_data *i, struct char_data *ch) {
 
     return;
 
-    /* for non fighting mobiles */
+  /* npcs: for non fighting mobiles */
   } else if (!MOB_CAN_FIGHT(i) && i->player.long_descr) {
 
     if (AFF_FLAGGED(i, AFF_INVISIBLE))
@@ -600,11 +605,18 @@ static void list_one_char(struct char_data *i, struct char_data *ch) {
     return;
   }
 
+  /* END display of info BEFORE short-descrip/name/title */
+
+  /* start display of "middle": short-descrip/name/title etc */
+  
+  /* npc: send short descrip */
   if (IS_NPC(i)) {
     short_descr = strdup(i->player.short_descr);
     send_to_char(ch, "%s", CAP(short_descr));
     free(short_descr);
     short_descr = NULL;
+    
+  /* pc: name/title if not disguise, otherwise disguise info */  
   } else {
     if (!GET_DISGUISE_RACE(i))
       send_to_char(ch, "\tn[%s] %s%s%s", RACE_ABBR(i), i->player.name,
@@ -628,7 +640,9 @@ static void list_one_char(struct char_data *i, struct char_data *ch) {
     }
   }
 
-
+  /* end display of "middle": short-descrip/name/title etc */
+  
+  /* start display of "ebd": info AFTER short-descrip/name/title etc */
   if (AFF_FLAGGED(i, AFF_INVISIBLE))
     send_to_char(ch, " (invisible)");
   if (AFF_FLAGGED(i, AFF_HIDE))
@@ -663,8 +677,8 @@ static void list_one_char(struct char_data *i, struct char_data *ch) {
     else {
       furniture = SITTING(i);
       send_to_char(ch, " is %s upon %s.", (GET_POS(i) == POS_SLEEPING ?
-                                           "sleeping" : (GET_POS(i) == POS_RECLINING ? "reclining" :
-                                                         (GET_POS(i) == POS_RESTING ? "resting" : "sitting"))),
+                   "sleeping" : (GET_POS(i) == POS_RECLINING ? "reclining" :
+                   (GET_POS(i) == POS_RESTING ? "resting" : "sitting"))),
                    OBJS(furniture, ch));
     }
   } else {
@@ -691,6 +705,7 @@ static void list_one_char(struct char_data *i, struct char_data *ch) {
       send_to_char(ch, "\tB(Blue Aura)\tn ");
     }
   }
+  /* CARRIER RETURN! */
   send_to_char(ch, "\r\n");
 
   if (AFF_FLAGGED(i, AFF_SANCTUARY))
