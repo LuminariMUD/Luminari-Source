@@ -1324,12 +1324,6 @@ void reset_training_points(struct char_data *ch) {
 
   /* use class to establish base skill points */
   switch (GET_CLASS(ch)) {
-    case CLASS_WARRIOR:
-    case CLASS_WEAPON_MASTER:
-    case CLASS_WIZARD:
-    case CLASS_CLERIC:
-      trains = (2 + int_bonus) * 4;
-      break;
     case CLASS_DRUID:
     case CLASS_RANGER:
     case CLASS_BERSERKER:
@@ -1342,7 +1336,16 @@ void reset_training_points(struct char_data *ch) {
     case CLASS_ROGUE:
       trains = (8 + int_bonus) * 4;
       break;    
-    default: break;
+    case CLASS_WARRIOR:
+    case CLASS_WEAPON_MASTER:
+    case CLASS_WIZARD:
+    case CLASS_CLERIC:
+    case CLASS_UNDEFINED:
+    case CLASS_SORCERER:
+    case CLASS_PALADIN:
+    default:
+      trains = (2 + int_bonus) * 4;
+      break;
   }
   
   /* minimum value for trains */

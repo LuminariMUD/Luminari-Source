@@ -2388,6 +2388,9 @@ void init_start_char(struct char_data *ch) {
     case CLASS_WEAPON_MASTER:
     case CLASS_WIZARD:
     case CLASS_CLERIC:
+    case CLASS_UNDEFINED:
+    case CLASS_SORCERER:
+    case CLASS_PALADIN:
       trains += MAX(1, (2 + (int) (int_bonus)) * 3);
       break;
     case CLASS_DRUID:
@@ -2402,6 +2405,7 @@ void init_start_char(struct char_data *ch) {
     case CLASS_ROGUE:
       trains += MAX(1, (8 + (int) (int_bonus)) * 3);
       break;
+    default: break;
   }
 
   /* finalize */
@@ -2737,6 +2741,8 @@ void advance_level(struct char_data *ch, int class) {
       }
 
       break;
+      
+    default:break;
   }
 
   /* further movement modifications */

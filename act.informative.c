@@ -2753,8 +2753,9 @@ ACMD(do_who) {
         continue;
 
       if (short_list) {
+        /* changed this to force showing char real race */
         send_to_char(ch, "[%2d %8s] %-12.12s%s%s",
-                     GET_LEVEL(tch), RACE_ABBR(tch), GET_NAME(tch),
+                     GET_LEVEL(tch), RACE_ABBR_REAL(tch), GET_NAME(tch),
                      CCNRM(ch, C_SPR), ((!(++num_can_see % 4)) ? "\r\n" : ""));
       } else {
         //num_can_see++;
@@ -2763,8 +2764,9 @@ ACMD(do_who) {
           send_to_char(ch, "%13s", admin_level_names[(GET_LEVEL(tch) - LVL_IMMORT)]);
         } else {
           mortals++;
+          /* changed this to force showing char real race */
           send_to_char(ch, "[%2d %4s ",
-                       GET_LEVEL(tch), RACE_ABBR(tch));
+                       GET_LEVEL(tch), RACE_ABBR_REAL(tch));
         }
 
         if (GET_LEVEL(tch) < LVL_IMMORT) {

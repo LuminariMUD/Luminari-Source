@@ -640,7 +640,7 @@ void Crash_listrent(struct char_data *ch, char *name) {
   char filename[MAX_INPUT_LENGTH], buf[MAX_STRING_LENGTH], line[READ_SIZE];
   obj_save_data *loaded, *current;
   int rentcode, timed, netcost, gold, account, nitems, numread, len;
-  bool using_db = FALSE;
+  //bool using_db = FALSE;
   
   if (!get_filename(filename, sizeof (filename), CRASH_FILE, name))
     return;
@@ -1825,7 +1825,7 @@ obj_save_data *objsave_parse_objects_db(char *name) {
 }
 
 static int Crash_load_objs(struct char_data *ch) {
-  FILE *fl;
+  FILE *fl = NULL;
   char filename[MAX_STRING_LENGTH];
   char line[READ_SIZE];
   char buf[MAX_STRING_LENGTH];

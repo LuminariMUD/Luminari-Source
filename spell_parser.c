@@ -2005,7 +2005,7 @@ void mag_assign_spells(void) {
           NULL, 3, 11, EVOCATION, FALSE);
   spello(SPELL_WATER_BREATHE, "water breathe", 79, 64, 1, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "Your magical gears fade away.", 7, 11, EVOCATION, FALSE);
+          "Your water breathe enchantment fades away.", 7, 11, EVOCATION, FALSE);
   /* conjuration */
   spello(SPELL_SUMMON_NATURES_ALLY_3, "natures ally iii", 0, 0, 0, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_SUMMONS,
@@ -2042,7 +2042,7 @@ void mag_assign_spells(void) {
           "You drift slowly to the ground.", 3, 11, ENCHANTMENT, FALSE);
   spello(SPELL_HOLD_PERSON, "hold person", 65, 50, 1, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
-          "You feel able to control your laughter again.", 3, 7,
+          "You feel able to move again.", 3, 7,
           ENCHANTMENT, FALSE);
   spello(SPELL_DEEP_SLUMBER, "deep slumber", 58, 43, 1, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
