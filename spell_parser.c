@@ -1,11 +1,8 @@
 /**************************************************************************
- *  File: spell_parser.c                                    Part of tbaMUD *
+ *  File: spell_parser.c                               Part of LuminariMUD *
  *  Usage: Top-level magic routines; outside points of entry to magic sys. *
  *                                                                         *
  *  All rights reserved.  See license for complete information.            *
- *                                                                         *
- *  Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University *
- *  CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.               *
  **************************************************************************/
 
 #define __SPELL_PARSER_C__
