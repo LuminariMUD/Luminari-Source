@@ -671,15 +671,27 @@ void quest_show(struct char_data *ch, mob_vnum qm) {
   qst_rnum rnum;
   int counter = 0;
 
-  send_to_char(ch,
-          "The following quests are available:\r\n"
-          "Index Quest Name                                           ( Vnum) Done?\r\n"
-          "----- ---------------------------------------------------- ------- -----\r\n");
-  for (rnum = 0; rnum < total_quests; rnum++)
-    if (qm == QST_MASTER(rnum))
-      send_to_char(ch, "\tg%4d\tn) \tc%-52.52s\tn \ty(%5d)\tn \ty(%s)\tn\r\n",
-            ++counter, QST_NAME(rnum), QST_NUM(rnum),
-            (is_complete(ch, QST_NUM(rnum)) ? "Yes" : "No "));
+  if (GET_LEVEL(ch) >= LVL_IMMORT) {
+    send_to_char(ch,
+            "The following quests are available:\r\n"
+            "Index Quest Name                                           ( Vnum) Done?\r\n"
+            "----- ---------------------------------------------------- ------- -----\r\n");
+    for (rnum = 0; rnum < total_quests; rnum++)
+      if (qm == QST_MASTER(rnum))
+        send_to_char(ch, "\tg%4d\tn) \tc%-52.52s\tn \ty(%5d)\tn \ty(%s)\tn\r\n",
+              ++counter, QST_NAME(rnum), QST_NUM(rnum),
+              (is_complete(ch, QST_NUM(rnum)) ? "Yes" : "No "));
+  } else {
+    send_to_char(ch,
+            "The following quests are available:                              Min Max\r\n"
+            "Index Quest Name                                           Done? Lvl Lvl\r\n"
+            "----- ---------------------------------------------------- ----- --- ---\r\n");
+    for (rnum = 0; rnum < total_quests; rnum++)
+      if (qm == QST_MASTER(rnum))
+        send_to_char(ch, "\tg%4d\tn) \tc%-52.52s\tn \ty(%5d)\tn \ty(%s)\tn\r\n",
+              ++counter, QST_NAME(rnum), (is_complete(ch, QST_NUM(rnum)) ? "Yes" :
+                "No "), QST_MINLEVEL(rnum), QST_MAXLEVEL(rnum));
+  }
   if (!counter)
     send_to_char(ch, "There are no quests available here at the moment.\r\n");
 }
