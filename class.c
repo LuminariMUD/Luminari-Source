@@ -3735,7 +3735,7 @@ int level_exp(struct char_data *ch, int level) {
   }
 
   //can add other exp penalty/bonuses here
-  switch (GET_RACE(ch)) {
+  switch (GET_REAL_RACE(ch)) { /* funny bug: use to use disguised/wildshape race */
       //advanced races
     case RACE_HALF_TROLL:
       exp *= 2;
