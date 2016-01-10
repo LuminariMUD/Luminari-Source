@@ -653,7 +653,7 @@ void quest_progress(struct char_data *ch) {
     send_to_char(ch, "Your quest seems to no longer exist.\r\n");
   } else {
     send_to_char(ch, "You are on the following quest:\r\n%s\r\n%s",
-            (rnum), QST_INFO(rnum));
+            QST_NAME(rnum), QST_INFO(rnum));
     if (QST_QUANTITY(rnum) > 1)
       send_to_char(ch,
             "You still have to achieve %d out of %d goals for the quest.\r\n",
