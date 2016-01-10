@@ -2344,7 +2344,8 @@ ACMD(do_score) {
                (!IS_NPC(ch) ? GET_QUESTPOINTS(ch) : 0) );
 
   if (!IS_NPC(ch) && GET_QUEST(ch) != NOTHING)
-    send_to_char(ch, "%d\r\n", GET_QUEST(ch) == NOTHING ? -1 : GET_QUEST(ch));
+    send_to_char(ch, "%-60s\r\n", GET_QUEST(ch) == NOTHING ? "None" :
+      QST_NAME(real_quest(GET_QUEST(ch))) );
   else
     send_to_char(ch, "None\r\n");
 
