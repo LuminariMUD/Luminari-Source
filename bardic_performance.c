@@ -487,12 +487,20 @@ int process_performance(struct char_data *ch, int spellnum,
               TO_ROOM);
       break;
     case SKILL_SONG_OF_FOCUSED_MIND:
+      act("You sing a song which focuses the minds of the listener.", FALSE, ch, 0, 0, TO_CHAR);
+      act("$n sings a song which seems to focus your mind.", FALSE, ch, 0, 0, TO_ROOM);
       break;
     case SKILL_SONG_OF_FEAR:
+      act("You sing a song which strikes fear into your enemies.", FALSE, ch, 0, 0, TO_CHAR);
+      act("$n sings a song which stikes fear into your heart!", FALSE, ch, 0, 0, TO_ROOM);
       break;
     case SKILL_SONG_OF_ROOTING:
+      act("You sing a song which makes your enemies paralysed.", FALSE, ch, 0, 0, TO_CHAR);
+      act("$n sings a song so well, you feel paralysed by the tune.", FALSE, ch, 0, 0, TO_ROOM);
       break;
     case SKILL_SONG_OF_THE_MAGI:
+      act("You sing a song so well, that magic in itself feels strengthened by it.", FALSE, ch, 0, 0, TO_CHAR);
+      act("$n sings a song which makes you forget completely about hostile magic.", FALSE, ch, 0, 0, TO_ROOM);
       break;
     default:
       return_val = 0;

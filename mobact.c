@@ -963,6 +963,17 @@ void npc_spellup(struct char_data *ch) {
     return;
   }
 
+  /* casters that serve as mounts no longer cast invis */
+  if (IS_MOB(ch) && MOB_FLAGGED(ch, MOB_C_MOUNT) &&
+          AFF_FLAGGED(ch, AFF_CHARM) &&
+        ( spellnum == SPELL_GREATER_INVIS ||
+          spellnum == SPELL_INVISIBLE
+        )
+          ) {
+    /* these type of mobs casting invis is problematic */
+    return;
+  }
+
   /* end special restrictions */
   
   if (loop_counter < (MAX_LOOPS))

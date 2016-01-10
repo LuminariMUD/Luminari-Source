@@ -23,7 +23,7 @@
 #define NEW_EVENT(event_id, struct, var, time) (attach_mud_event(new_mud_event(event_id, struct,  var), time))
 
 typedef enum {
-  eNULL,
+  eNULL, /*0*/
   ePROTOCOLS, /* The Protocol Detection Event */
   eWHIRLWIND, /* The Whirlwind Attack */
   eCASTING, //  casting time
