@@ -1427,6 +1427,12 @@ ACMD(do_gain) {
   if (IS_NPC(ch) || !ch->desc)
     return;
 
+  if (GET_DISGUISE_RACE(ch) || IS_MORPHED(ch)) {
+    send_to_char(ch, "You have to remove disguises, wildshape and/or polymorph "
+            "before advancing.\r\n");
+    return;    
+  }
+  
   one_argument(argument, arg);
 
   if (!(GET_LEVEL(ch) < LVL_IMMORT - CONFIG_NO_MORT_TO_IMMORT &&
