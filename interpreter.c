@@ -743,9 +743,11 @@ void command_interpreter(struct char_data *ch, char *argument) {
     }
     send_to_char(ch, "\tDYou can also check the help index, type 'hindex <keyword>'\tn\r\n");
   } else if ((AFF_FLAGGED(ch, AFF_STUN) || AFF_FLAGGED(ch, AFF_PARALYZED) ||
-          char_has_mud_event(ch, eSTUNNED)) && GET_LEVEL(ch) < LVL_IMPL)
+          char_has_mud_event(ch, eSTUNNED)) && GET_LEVEL(ch) < LVL_IMPL &&
+          !is_abbrev(complete_cmd_info[cmd].command, "affects"))
     send_to_char(ch, "You try, but you are unable to move!\r\n");
-  else if (AFF_FLAGGED(ch, AFF_DAZED))
+  else if (AFF_FLAGGED(ch, AFF_DAZED) && GET_LEVEL(ch) < LVL_IMPL &&
+          !is_abbrev(complete_cmd_info[cmd].command, "affects"))
     send_to_char(ch, "You are too dazed to do anything!\r\n");
   else if (!IS_NPC(ch) && PLR_FLAGGED(ch, PLR_FROZEN) && GET_LEVEL(ch) < LVL_IMPL)
     send_to_char(ch, "You try, but the mind-numbing cold prevents you...\r\n");

@@ -2362,7 +2362,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
     case SPELL_JUMP: // transmutation
       
-      af[0].duration = CLASS_LEVEL(ch, CLASS_DRUID);
+      af[0].duration = CLASS_LEVEL(ch, CLASS_DRUID) +
+              CLASS_LEVEL(ch, CLASS_RANGER);
       SET_BIT_AR(af[0].bitvector, AFF_ACROBATIC);
 
       accum_affect = FALSE;
