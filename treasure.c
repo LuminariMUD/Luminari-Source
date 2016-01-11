@@ -2363,11 +2363,11 @@ void award_magic_weapon(struct char_data *ch, int grade, int moblevel) {
   }  
   
   /* pick a random weapon, 0 = undefined 1 = unarmed */
-  roll = dice(2, NUM_WEAPON_TYPES - 1);
+  roll = rand_number(2, NUM_WEAPON_TYPES - 1);
 
   /* now set up this new object */
   set_weapon_object(obj, roll);
-  /* we should have a completely usable weapon now */
+  /* we should have a completely usable weapon now, just missing descripts/stats */
   
   /* determine if rare or not */
   roll = dice(1, 100);
