@@ -193,6 +193,8 @@ extern const char *head_types[];
 /* end weapon molds */
 #define NUM_WEAPON_MOLDS 29
 
+/* weapon blank object */
+#define WEAPON_PROTO     3299
 
 /* misc mold vnums */
 #define RING_MOLD        3176  //0

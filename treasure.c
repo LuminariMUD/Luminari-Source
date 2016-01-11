@@ -2349,7 +2349,7 @@ void set_weapon_object(struct obj_data *obj, int type) {
 #define SHORT_STRING 80
 void award_magic_weapon(struct char_data *ch, int grade, int moblevel) {
   struct obj_data *obj = NULL;
-  int vnum = -1, material = MATERIAL_BRONZE, roll = 0;
+  int material = MATERIAL_BRONZE, roll = 0;
   int rare_grade = 0, color1 = 0, color2 = 0, level = 0, roll2 = 0, roll3 = 0;
   char desc[MEDIUM_STRING] = {'\0'};
   char hilt_color[SHORT_STRING] = {'\0'}, head_color[SHORT_STRING] = {'\0'};
@@ -2357,7 +2357,7 @@ void award_magic_weapon(struct char_data *ch, int grade, int moblevel) {
   char buf[MAX_STRING_LENGTH] = {'\0'};
 
   /* ok load blank object */
-  if ((obj = read_object(vnum, VIRTUAL)) == NULL) {
+  if ((obj = read_object(WEAPON_PROTO, VIRTUAL)) == NULL) {
     log("SYSERR: award_magic_weapon created NULL object");
     return;
   }  
@@ -3068,6 +3068,7 @@ ACMD(do_loadmagic) {
 
   if (!*arg1) {
     send_to_char(ch, "Syntax: loadmagic [mundane | minor | medium | major] [# of items]\r\n");
+    send_to_char(ch, "See also: loadmagicspecific\r\n");
     return;
   }
 
