@@ -122,15 +122,17 @@ void show_obj_info(struct obj_data *obj, struct char_data *ch) {
   int armor_val = GET_OBJ_VAL(obj, 1);
 
   /* show object size and material */
-  send_to_char(ch, "[%s] [%s] ", GET_OBJ_SIZE(obj)? sizes[GET_OBJ_SIZE(obj)] : "???",
+  send_to_char(ch, "[Size: %s, Material: %s] ", GET_OBJ_SIZE(obj)? sizes[GET_OBJ_SIZE(obj)] : "???",
                GET_OBJ_MATERIAL(obj) ? material_name[GET_OBJ_MATERIAL(obj)] : "???");
 
   switch (GET_OBJ_TYPE(obj)) {
     case ITEM_WEAPON:
-      send_to_char(ch, "Weapon: %s ", GET_WEAPON_TYPE(obj) ? weapon_list[GET_WEAPON_TYPE(obj)].name : "???");
+      send_to_char(ch, "Weapon: %s ", GET_WEAPON_TYPE(obj) ?
+                   weapon_list[GET_WEAPON_TYPE(obj)].name : "???");
       break;
     case ITEM_ARMOR:
-      send_to_char(ch, "Armor: %s ", armor_val ? armor_list[armor_val].name : "???");
+      send_to_char(ch, "Armor: %s ", armor_val ?
+                   armor_list[armor_val].name : "???");
       break;
   }
 }

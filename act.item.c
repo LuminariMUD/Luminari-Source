@@ -174,10 +174,9 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
                  weapon_list[GET_WEAPON_TYPE(item)].name,
                  GET_WEAPON_TYPE(item),
                  GET_ENHANCEMENT_BONUS(item));
-      send_to_char(ch, "Todam: %dd%d, Avg Damage: %.1f. Message type: %s\r\n",
+      send_to_char(ch, "Todam: %dd%d, Avg Damage: %.1f.\r\n",
                    GET_OBJ_VAL(item, 1), GET_OBJ_VAL(item, 2),
-                   ((GET_OBJ_VAL(item, 2) + 1) / 2.0) * GET_OBJ_VAL(item, 1),
-                   attack_hit_text[GET_OBJ_VAL(item, 3)].singular);
+                   ((GET_OBJ_VAL(item, 2) + 1) / 2.0) * GET_OBJ_VAL(item, 1));
 
       /* weapon special abilities*/
       bool found = FALSE;
