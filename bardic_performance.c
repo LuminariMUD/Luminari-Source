@@ -245,6 +245,8 @@ int performance_effects(struct char_data *ch, struct char_data *tch, struct affe
       af.location = APPLY_AC_NEW;
       af.modifier = (effectiveness + 1) / 10;
       affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
+      if (!IS_NPC(tch) && tch->desc) /* still issues with AC */
+        save_char(tch, 0);
       af.location = APPLY_SAVING_WILL;
       af.modifier = effectiveness / 6;
       affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
