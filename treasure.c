@@ -901,7 +901,7 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
   bool has_enhancement = FALSE;
   char buf[MAX_STRING_LENGTH] = {'\0'};
 
-  level = (rand_number(1, level)); /* this is as random as it gets right now */
+  level = (rand_number(level/2, level)); /* this is as random as it gets right now */
   bonus_value = level / 5; if (bonus_value <= 0) bonus_value = 1;
 
   /* items that will only get an enhancement bonus */
