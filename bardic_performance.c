@@ -226,8 +226,11 @@ int performance_effects(struct char_data *ch, struct char_data *tch, struct affe
   int return_val = 1;
   bool nomessage = FALSE, engage = TRUE;
 
-  if (affected_by_spell(tch, spellnum))
+  if (affected_by_spell(tch, spellnum)) {
     nomessage = TRUE;
+    /* purpose: refresh song duration */
+    affect_from_char(tch, spellnum);
+  }
 
   switch (spellnum) {
 
