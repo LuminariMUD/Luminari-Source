@@ -108,6 +108,7 @@ struct mud_event_list mud_event_index[] = {
   { "Crystal fist", event_countdown, EVENT_CHAR}, //eCRYSTALFIST_AFF
   { "Crystal body", event_countdown, EVENT_CHAR}, //eCRYRSTALBODY_AFF
   { "Bardic Performance", event_bardic_performance, EVENT_CHAR}, /* eBARDIC_PERFORMANCE */
+  { "Encounter Region Reset", event_countdown, EVENT_REGION}, // eENCOUNTER_REG_RESET
 };
 
 /* init_events() is the ideal function for starting global events. This
@@ -294,6 +295,10 @@ EVENTFUNC(event_countdown) {
     case eSPELLBATTLE:
       send_to_char(ch, "You are able to use spellbattle again.\r\n");
       SPELLBATTLE(ch) = 0;
+      break;
+    case eENCOUNTER_REG_RESET:
+      /* Testing */
+      log("Encounter Region '%s' with vnum: %d reset.", region->name, region->vnum);
       break;
     default:
       break;
