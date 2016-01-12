@@ -546,6 +546,7 @@ void attach_mud_event(struct mud_event_data *pMudEvent, long time) {
       }
       
       region = &region_table[real_region(*regvnum)];
+      log ("Adding event to region %s", region->vnum);
       
       if (region->events == NULL)
         region->events = create_list();
