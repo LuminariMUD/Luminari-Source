@@ -858,7 +858,7 @@ void set_fighting(struct char_data *ch, struct char_data *vict) {
   //  send_to_char(ch, "DEBUG: SETTING FIGHT EVENT!\r\n");
   
   /* make sure firing if appropriate */
-  if (can_fire_arrow(ch, FALSE) && is_using_ranged_weapon(ch))
+  if (can_fire_arrow(ch, TRUE) && is_using_ranged_weapon(ch))
     FIRING(ch) = TRUE;
   
   //if (!char_has_mud_event(ch, eCOMBAT_ROUND))
@@ -2922,7 +2922,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   if (wielded)
     dambonus += GET_ENHANCEMENT_BONUS(wielded);
   /* ranged includes arrow, what a hack */
-  if (can_fire_arrow(ch, FALSE) && is_using_ranged_weapon(ch) && GET_EQ(ch, WEAR_AMMO_POUCH)
+  if (can_fire_arrow(ch, TRUE) && is_using_ranged_weapon(ch) && GET_EQ(ch, WEAR_AMMO_POUCH)
           && GET_EQ(ch, WEAR_AMMO_POUCH)->contains)
     dambonus += GET_ENHANCEMENT_BONUS(GET_EQ(ch, WEAR_AMMO_POUCH)->contains);
 
