@@ -112,6 +112,8 @@ struct region_data {
   struct vertex *vertices; /* Vertex list. */
   int num_vertices;        /* The number of vertices. */
 
+  struct list_data *events;      /* Used for region events */
+  
 };
 
 

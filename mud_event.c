@@ -125,9 +125,12 @@ EVENTFUNC(event_countdown) {
   struct mud_event_data *pMudEvent = NULL;
   struct char_data *ch = NULL;
   struct room_data *room = NULL;
+  struct region_data *region = NULL;
   room_vnum *rvnum;
   room_rnum rnum = NOWHERE;
-
+  region_vnum *regvnum;
+  region_rnum regrnum = NOWHERE;
+  
   pMudEvent = (struct mud_event_data *) event_obj;
 
   if (!pMudEvent)
@@ -145,6 +148,10 @@ EVENTFUNC(event_countdown) {
       rnum = real_room(*rvnum);
       room = &world[real_room(rnum)];
       break;
+    case EVENT_REGION:
+      regvnum = (region_vnum *) pMudEvent->pStruct;
+      regrnum = real_region(*regvnum);
+      region = &region_table[real_region(regrnum)];
     default:
       break;
   }
@@ -471,14 +478,23 @@ EVENTFUNC(event_daily_use_cooldown) {
  * is due to the potential scope of the necessary debugging if events were
  * included with rooms, objects, spells or any other structure type. Adding
  * events to these other systems should be just as easy as adding the current
- * library was, and should be available in a future release. - Vat */
+ * library was, and should be available in a future release. - Vat 
+ *
+ * Update: Events have been added to objects, rooms and characters.
+ *         Region support has also been added for wilderness regions.
+ */
 void attach_mud_event(struct mud_event_data *pMudEvent, long time) {
+  
   struct event * pEvent = NULL;
-  struct descriptor_data * d = NULL;
-  struct char_data * ch = NULL;
-  struct room_data * room = NULL;
-  room_vnum *rvnum = NULL;
-
+  
+  struct descriptor_data * d      = NULL;
+  struct char_data       * ch     = NULL;
+  struct room_data       * room   = NULL;
+  struct region_data     * region = NULL;
+  
+  room_vnum   *rvnum = NULL;
+  region_vnum *regvnum = NULL;
+  
   pEvent = event_create(mud_event_index[pMudEvent->iId].func, pMudEvent, time);
   pEvent->isMudEvent = TRUE;
   pMudEvent->pEvent = pEvent;
@@ -513,6 +529,17 @@ void attach_mud_event(struct mud_event_data *pMudEvent, long time) {
 
       add_to_list(pEvent, room->events);
       break;
+    case EVENT_REGION:
+      CREATE(regvnum, region_vnum, 1);
+      *regvnum = *((region_vnum *) pMudEvent->pStruct);
+      pMudEvent->pStruct = regvnum;
+      region = &region_table[real_region(*regvnum)];
+      
+      if (region->events == NULL)
+        region->events = create_list();
+      
+      add_to_list(pEvent, region->events);
+      break;
   }
 }
 
@@ -532,10 +559,13 @@ struct mud_event_data *new_mud_event(event_id iId, void *pStruct, char *sVariabl
 }
 
 void free_mud_event(struct mud_event_data *pMudEvent) {
-  struct descriptor_data * d = NULL;
-  struct char_data * ch = NULL;
-  struct room_data * room = NULL;
-  room_vnum *rvnum = NULL;
+  struct descriptor_data * d =      NULL;
+  struct char_data       * ch =     NULL;
+  struct room_data       * room =   NULL;
+  struct region_data     * region = NULL;
+  
+  room_vnum   *rvnum = NULL;
+  region_vnum *regvnum = NULL;
 
   switch (mud_event_index[pMudEvent->iId].iEvent_Type) {
     case EVENT_WORLD:
@@ -572,6 +602,20 @@ void free_mud_event(struct mud_event_data *pMudEvent) {
       if (room->events && room->events->iSize == 0) {  /* Added the null check here. - Ornir*/
         free_list(room->events);
         room->events = NULL;
+      }
+      break;
+    case EVENT_REGION:
+      regvnum = (region_vnum *) pMudEvent->pStruct;
+
+      region = &region_table[real_region(*regvnum)];
+
+      free(pMudEvent->pStruct);
+
+      remove_from_list(pMudEvent->pEvent, region->events);
+
+      if (region->events && rregion->events->iSize == 0) {  /* Added the null check here. - Ornir*/
+        free_list(region->events);
+        region->events = NULL;
       }
       break;
   }
@@ -641,6 +685,35 @@ struct mud_event_data *room_has_mud_event(struct room_data *rm, event_id iId) {
 
   simple_list(NULL);
   while ((pEvent = (struct event *) simple_list(rm->events)) != NULL) {
+    if (!pEvent->isMudEvent)
+      continue;
+    pMudEvent = (struct mud_event_data *) pEvent->event_obj;
+    if (pMudEvent->iId == iId) {
+      found = TRUE;
+      break;
+    }
+  }
+  simple_list(NULL);
+
+  if (found)
+    return (pMudEvent);
+
+  return NULL;
+}
+
+struct mud_event_data *region_has_mud_event(struct region_data *reg, event_id iId) {
+  struct event * pEvent = NULL;
+  struct mud_event_data * pMudEvent = NULL;
+  bool found = FALSE;
+
+  if (reg->events == NULL)
+    return NULL;
+
+  if (reg->events->iSize == 0)
+    return NULL;
+
+  simple_list(NULL);
+  while ((pEvent = (struct event *) simple_list(reg->events)) != NULL) {
     if (!pEvent->isMudEvent)
       continue;
     pMudEvent = (struct mud_event_data *) pEvent->event_obj;
@@ -773,6 +846,24 @@ void clear_room_event_list(struct room_data *rm) {
 
 }
 
+void clear_region_event_list(struct region_data *reg) {
+  struct event * pEvent = NULL;
+
+  if (reg->events == NULL)
+    return;
+
+  if (reg->events->iSize == 0)
+    return;
+
+  simple_list(NULL);
+  while ((pEvent = (struct event *) simple_list(reg->events)) != NULL) {
+    if (event_is_queued(pEvent))
+      event_cancel(pEvent);
+  }
+  simple_list(NULL);
+
+}
+
 /* ripley's version of change_event_duration
  * a function to adjust the event time of a given event
  */
@@ -807,41 +898,3 @@ void change_event_duration(struct char_data * ch, event_id iId, long time) {
   }
 
 }
-
-/*  this is vatiken's version, above is ripley's version */
-/*
- void change_event_duration(struct char_data * ch, event_id iId, long time) {
-  struct event *pEvent = NULL;
-  struct mud_event_data *pMudEvent = NULL;
-  bool found = FALSE;
-
-  if (ch->events == NULL);
-    return;
-
-  if (ch->events->iSize == 0)
-    return;
-
-  clear_simple_list();
-
-  while ((pEvent = (struct event *) simple_list(ch->events)) != NULL) {
-
-    if (!pEvent->isMudEvent)
-      continue;
-
-    pMudEvent = (struct mud_event_data *) pEvent->event_obj;
-
-    if (pMudEvent->iId == iId) {
-      found = TRUE;
-      break;
-    }
-  }
-
-  if (found) {
-    // So we found the offending event, now build a new one, with the new time
-    attach_mud_event(new_mud_event(iId, pMudEvent->pStruct, pMudEvent->sVariables), time);
-    event_cancel(pEvent);
-  }
-
-}
- */
-
