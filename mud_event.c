@@ -152,7 +152,7 @@ EVENTFUNC(event_countdown) {
     case EVENT_REGION:
       regvnum = (region_vnum *) pMudEvent->pStruct;
       regrnum = real_region(*regvnum);
-      log("region vnum %d, rnum %d", *regvnum, regrnum)
+      log("region vnum %d, rnum %d", *regvnum, regrnum);
       region = &region_table[real_region(regrnum)];
     default:
       break;
