@@ -15,10 +15,11 @@
 
 #include "dg_event.h"
 
-#define EVENT_WORLD 0
-#define EVENT_DESC  1
-#define EVENT_CHAR  2
-#define EVENT_ROOM  3
+#define EVENT_WORLD  0
+#define EVENT_DESC   1
+#define EVENT_CHAR   2
+#define EVENT_ROOM   3
+#define EVENT_REGION 4
 
 #define NEW_EVENT(event_id, struct, var, time) (attach_mud_event(new_mud_event(event_id, struct,  var), time))
 
@@ -136,9 +137,11 @@ struct mud_event_data *new_mud_event(event_id iId, void *pStruct, char *sVariabl
 void attach_mud_event(struct mud_event_data *pMudEvent, long time);
 void free_mud_event(struct mud_event_data *pMudEvent);
 struct mud_event_data *char_has_mud_event(struct char_data *ch, event_id iId);
-struct mud_event_data *room_has_mud_event(struct room_data *rm, event_id iId); // Ornir
+struct mud_event_data *room_has_mud_event(struct room_data *rm, event_id iId);      // Ornir
+struct mud_event_data *region_has_mud_event(struct region_data *reg, event_id iId); // Ornir
 void clear_char_event_list(struct char_data *ch);
 void clear_room_event_list(struct room_data *rm);
+void clear_region_event_list(struct region_data *reg);
 void change_event_duration(struct char_data *ch, event_id iId, long time);
 void event_cancel_specific(struct char_data *ch, event_id iId);
 
