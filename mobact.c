@@ -1185,10 +1185,13 @@ void mobile_activity(void) {
                 (ch->next_in_room != vict && vict->next_in_room != ch))
           continue;
 
-        if (MOB_FLAGGED(ch, MOB_AGGRESSIVE) ||
+        if (MOB_FLAGGED(ch, MOB_AGGRESSIVE) 
+                /* we want to replace this with factions system */
+                /*||
                 (MOB_FLAGGED(ch, MOB_AGGR_EVIL) && IS_EVIL(vict)) ||
                 (MOB_FLAGGED(ch, MOB_AGGR_NEUTRAL) && IS_NEUTRAL(vict)) ||
-                (MOB_FLAGGED(ch, MOB_AGGR_GOOD) && IS_GOOD(vict))) {
+                (MOB_FLAGGED(ch, MOB_AGGR_GOOD) && IS_GOOD(vict)) */
+                ) {
           hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
           found = TRUE;
         }
