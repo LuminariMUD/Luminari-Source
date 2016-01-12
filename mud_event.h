@@ -15,6 +15,8 @@
 
 #include "dg_event.h"
 
+struct region_data;
+
 #define EVENT_WORLD  0
 #define EVENT_DESC   1
 #define EVENT_CHAR   2
