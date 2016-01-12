@@ -1267,7 +1267,7 @@ static void cfeat_disp_menu(struct descriptor_data *d) {
   /* we want to use column_list here, but we don't have a pre made list
    * of string values (without undefined).  Make one, and make sure it is in order. */
   for (i = 0; i < NUM_WEAPON_TYPES - 1 ; i++) {
-    switch (i) { /* this switch necessary due to composite bow strengths */
+    switch (i + 1) { /* this switch necessary due to composite bow strengths */
       case WEAPON_TYPE_COMPOSITE_LONGBOW_2:
       case WEAPON_TYPE_COMPOSITE_LONGBOW_3:
       case WEAPON_TYPE_COMPOSITE_LONGBOW_4:
