@@ -240,16 +240,17 @@ void load_regions() {
       vtx++;
       free(*it);
     }      
-
+    
+    top_of_region_table = i; 
+    
     /* Add a reset event if this is an encounter region */
     if (region_table[i].region_type == REGION_ENCOUNTER) {
       log (" adding event for vnum %d", region_table[i].vnum);
       NEW_EVENT(eENCOUNTER_REG_RESET, &(region_table[i].vnum), "", 60 RL_SEC);
     }
-    
-    top_of_region_table = i; 
     i++;
   } 
+  
   mysql_free_result(result);
 }
 
