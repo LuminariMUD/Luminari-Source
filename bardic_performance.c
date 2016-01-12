@@ -442,9 +442,9 @@ int process_performance(struct char_data *ch, int spellnum,
   new_affect(&af);
   SET_BIT_AR(af.bitvector, 0);
   af.modifier = 0;
-  af.duration = 1;
+  af.duration = 2;
   if (HAS_FEAT(ch, FEAT_LINGERING_SONG))
-    af.duration++;    
+    af.duration += 2;    
   af.location = APPLY_NONE;
   af.spell = spellnum;
   af.bonus_type = BONUS_TYPE_MORALE;  

@@ -16,7 +16,7 @@ extern "C" {
 #include "utils.h" /* for the ACMD macro */
 
 /* defines */    
-#define VERSE_INTERVAL       (7 RL_SEC)
+#define VERSE_INTERVAL       (11 RL_SEC)
 #define MAX_PERFORMANCES     12
 #define MAX_PRFM_EFFECT      60 /* maximum effectiveness of performance */
     
