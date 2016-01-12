@@ -3612,9 +3612,10 @@ ACMD(do_fire) {
       stop_fighting(ch);
       USE_STANDARD_ACTION(ch);
     } else {
+      if (FIGHTING(ch))
+        USE_MOVE_ACTION(ch);
       hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, 2); // 2 in last arg indicates ranged
       FIRING(ch) = TRUE;
-      USE_MOVE_ACTION(ch);
     }
   }
 }
