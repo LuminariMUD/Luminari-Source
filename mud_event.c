@@ -302,7 +302,7 @@ EVENTFUNC(event_countdown) {
         log("SYSERR: event_countdown for eENCOUNTER_REG_RESET, region out of bounds.");
         break;
       }        
-      log("Encounter Region '%s' with vnum: %d reset.", region_table|[regrnum].name, region_table[regrnum].vnum);
+      log("Encounter Region '%s' with vnum: %d reset.", region_table[regrnum].name, region_table[regrnum].vnum);
       break;
     default:
       break;
