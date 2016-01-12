@@ -3955,6 +3955,10 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
   /* Enhancement bonus */
   if (wielded)
     bonuses[BONUS_TYPE_ENHANCEMENT] = MAX(bonuses[BONUS_TYPE_ENHANCEMENT], GET_ENHANCEMENT_BONUS(wielded));
+  /* ranged includes arrow, what a hack */
+  if (can_fire_arrow(ch, TRUE) && is_using_ranged_weapon(ch) && GET_EQ(ch, WEAR_AMMO_POUCH)
+          && GET_EQ(ch, WEAR_AMMO_POUCH)->contains)
+    bonuses[BONUS_TYPE_ENHANCEMENT] += GET_ENHANCEMENT_BONUS(GET_EQ(ch, WEAR_AMMO_POUCH)->contains);
   if (IS_WILDSHAPED(ch))
     bonuses[BONUS_TYPE_ENHANCEMENT] = MAX(bonuses[BONUS_TYPE_ENHANCEMENT], HAS_FEAT(ch, FEAT_NATURAL_ATTACK));
   /* need to add missile enhancement bonus as well */
