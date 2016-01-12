@@ -1259,7 +1259,7 @@ static void generic_main_disp_menu(struct descriptor_data *d) {
  *  case and needs special handling. */
 static void cfeat_disp_menu(struct descriptor_data *d) {
   const char *feat_weapons[NUM_WEAPON_TYPES - 1];
-  int i = 0;
+  int i = 0, counter = 0;
 
   get_char_colors(d->character);
   clear_screen(d);
@@ -1267,10 +1267,24 @@ static void cfeat_disp_menu(struct descriptor_data *d) {
   /* we want to use column_list here, but we don't have a pre made list
    * of string values (without undefined).  Make one, and make sure it is in order. */
   for (i = 0; i < NUM_WEAPON_TYPES - 1 ; i++) {
-    feat_weapons[i] = weapon_list[i + 1].name;
+    switch (i) { /* this switch necessary due to composite bow strengths */
+      case WEAPON_TYPE_COMPOSITE_LONGBOW_2:
+      case WEAPON_TYPE_COMPOSITE_LONGBOW_3:
+      case WEAPON_TYPE_COMPOSITE_LONGBOW_4:
+      case WEAPON_TYPE_COMPOSITE_LONGBOW_5:
+      case WEAPON_TYPE_COMPOSITE_SHORTBOW_2:
+      case WEAPON_TYPE_COMPOSITE_SHORTBOW_3:
+      case WEAPON_TYPE_COMPOSITE_SHORTBOW_4:
+      case WEAPON_TYPE_COMPOSITE_SHORTBOW_5:
+        break; /* do nothing! we don't want this listed */
+      default: /* normal cases! */
+        feat_weapons[counter] = weapon_list[i + 1].name;
+        counter++;
+        break;
+    }
   }
 
-  column_list(d->character, 3, feat_weapons, NUM_WEAPON_TYPES - 1, TRUE);
+  column_list(d->character, 3, feat_weapons, counter, TRUE);
 
   write_to_output(d, "\r\n%sChoose weapon type for the %s feat : ", nrm, feat_list[LEVELUP(d->character)->tempFeat].name);
 
