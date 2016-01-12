@@ -8,6 +8,7 @@
 #include "mysql.h"
 
 #include "wilderness.h"
+#include "mud_event.h"
 
 MYSQL *conn = NULL;
 
