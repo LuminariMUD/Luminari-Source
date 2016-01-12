@@ -2399,7 +2399,9 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
       }
 #endif
       /* start initial alignment selection code */
-      write_to_output(d, "\r\nSelect Alignment\r\n");
+      write_to_output(d, "\r\nSelect Alignment\r\n"
+        "Note: you may be restricted by your class\r\n"
+        "If you don't know which to select, select 'true neutral'\r\n");
       for (i = 0; i < NUM_ALIGNMENTS; i++) {
         if (valid_align_by_class(i, GET_CLASS(d->character)))
           write_to_output(d, "%d) %s\r\n", i, alignment_names[i]);
