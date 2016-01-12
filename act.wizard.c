@@ -5705,6 +5705,9 @@ ACMD(do_genmap) {
   }
 
   kd_res_free(set);
+  
+  // Test region events
+  
 
 }
 

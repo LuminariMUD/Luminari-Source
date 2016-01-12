@@ -108,7 +108,8 @@ typedef enum {
   eBATTLE_RAGE, /*more domain powers*/
   eCRYSTALFIST_AFF, //  crystal fist affect
   eCRYSTALBODY_AFF, //  crystal body affect
-  eBARDIC_PERFORMANCE, // bard performance/song
+  eBARDIC_PERFORMANCE, // bard performance/song 
+  eENCOUNTER_REG_RESET, // Reset event for encounter regions.          
 } event_id;
 
 /* probably a smart place to mention to not forget to update:
