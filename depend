@@ -344,7 +344,7 @@ traps.o: traps.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  fight.h spells.h traps.h
 treasure.o: treasure.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h race.h comm.h interpreter.h handler.h db.h spells.h constants.h \
- dg_scripts.h treasure.h craft.h
+ dg_scripts.h treasure.h craft.h assign_wpn_armor.h
 treasure_const.o: treasure_const.c conf.h sysdep.h structs.h protocol.h \
  lists.h utils.h race.h interpreter.h treasure.h
 utils.o: utils.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \

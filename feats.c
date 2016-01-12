@@ -1188,7 +1188,7 @@ void assign_feats(void) {
   feato(FEAT_LIGHTNING_ARC, "lightning arc", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
     "you can unleash an arc of electricity",
     "As a standard action, you can unleash an arc of electricity. This arc of "
-          "electricity deals 1d6+10 points of electricity damage + 1 point for "
+          "electricity deals 1d6+10 points of electric damage + 1 point for "
           "every two cleric levels you possess. You can use this ability a number "
           "of times per day equal to 3 + your Wisdom modifier.");
   feato(FEAT_ACID_DART, "acid dart", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
@@ -1200,7 +1200,7 @@ void assign_feats(void) {
   feato(FEAT_FIRE_BOLT, "fire bolt", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
     "you can unleash a bolt of fire",
     "As a standard action, you can unleash a bolt of fire. This bolt of "
-          "fire deals 1d6+10 points of acid damage + 1 point for "
+          "fire deals 1d6+10 points of fire damage + 1 point for "
           "every two cleric levels you possess. You can use this ability a number "
           "of times per day equal to 3 + your Wisdom modifier.");
   feato(FEAT_ICICLE, "icicle", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
@@ -1323,7 +1323,7 @@ void assign_feats(void) {
     "You can grant +1 to all saves and AC per 6 cleric levels to all your "
           "group members for 4 rounds.  You can use this ability a number of times "
           "per day equal to 3 + your Wisdom modifier.");
-  feato(FEAT_ETH_SHIFT, "eth shift", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
+  feato(FEAT_ETH_SHIFT, "ethereal shift", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
     "shift between ethereal/prime planes at will",
     "You gain the ability to shift group members or yourself, at will, to the "
           "ethereal plane and back to the prime material plane.");
