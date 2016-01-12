@@ -613,7 +613,7 @@ void free_mud_event(struct mud_event_data *pMudEvent) {
 
       remove_from_list(pMudEvent->pEvent, region->events);
 
-      if (region->events && rregion->events->iSize == 0) {  /* Added the null check here. - Ornir*/
+      if (region->events && region->events->iSize == 0) {  /* Added the null check here. - Ornir*/
         free_list(region->events);
         region->events = NULL;
       }
