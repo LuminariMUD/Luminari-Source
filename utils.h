@@ -1121,7 +1121,7 @@ spellnum == SPELL_EPIC_WARDING )
 #define IS_LIGHT_WEAPON_TYPE(type) (IS_SET(weapon_list[type].weaponFlags, WEAPON_FLAG_LIGHT))
 #define HAS_WEAPON_FLAG(obj, flag)  ((GET_OBJ_TYPE(obj) == ITEM_WEAPON) || (GET_OBJ_TYPE(obj) == ITEM_FIREWEAPON) ? IS_SET(weapon_list[GET_WEAPON_TYPE(obj)].weaponFlags, flag) : 0)
 #define HAS_DAMAGE_TYPE(obj, flag)  (GET_OBJ_TYPE(obj) == ITEM_WEAPON) || (GET_OBJ_TYPE(obj) == ITEM_FIREWEAPON) ? IS_SET(weapon_list[GET_WEAPON_TYPE(obj)].damageTypes, flag) : 0)
-#define GET_ENHANCEMENT_BONUS(obj) ((GET_OBJ_TYPE(obj) == ITEM_WEAPON) || (GET_OBJ_TYPE(obj) == ITEM_FIREWEAPON) || (GET_OBJ_TYPE(obj) == ITEM_ARMOR) ? GET_OBJ_VAL(obj, 4) : 0)
+#define GET_ENHANCEMENT_BONUS(obj)  (((GET_OBJ_TYPE(obj) == ITEM_WEAPON) || (GET_OBJ_TYPE(obj) == ITEM_FIREWEAPON) || (GET_OBJ_TYPE(obj) == ITEM_ARMOR) || (GET_OBJ_TYPE(obj) == ITEM_MISSILE)) ? GET_OBJ_VAL(obj, 4) : 0)
 
 /* armor related macro's */
 /*
