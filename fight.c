@@ -2921,6 +2921,10 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   /* weapon enhancement bonus */
   if (wielded)
     dambonus += GET_ENHANCEMENT_BONUS(wielded);
+  /* ranged includes arrow, what a hack */
+  if (can_fire_arrow(ch, FALSE) && is_using_ranged_weapon(ch) && GET_EQ(ch, WEAR_AMMO_POUCH)
+          && GET_EQ(ch, WEAR_AMMO_POUCH)->contains)
+    dambonus += GET_ENHANCEMENT_BONUS(GET_EQ(ch, WEAR_AMMO_POUCH)->contains);
 
   /* wildshape bonus */
   if (IS_WILDSHAPED(ch))
