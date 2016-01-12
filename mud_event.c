@@ -126,7 +126,6 @@ EVENTFUNC(event_countdown) {
   struct mud_event_data *pMudEvent = NULL;
   struct char_data *ch = NULL;
   struct room_data *room = NULL;
-  struct region_data *region = NULL;
   room_vnum *rvnum;
   room_rnum rnum = NOWHERE;
   region_vnum *regvnum;
@@ -153,7 +152,6 @@ EVENTFUNC(event_countdown) {
       regvnum = (region_vnum *) pMudEvent->pStruct;
       regrnum = real_region(*regvnum);
       log("region vnum %d, rnum %d", *regvnum, regrnum);
-      region = &region_table[real_region(regrnum)];
       break;
     default:
       break;
@@ -304,7 +302,7 @@ EVENTFUNC(event_countdown) {
         log("SYSERR: event_countdown for eENCOUNTER_REG_RESET, region out of bounds.");
         break;
       }        
-      log("Encounter Region '%s' with vnum: %d reset.", region->name, region->vnum);
+      log("Encounter Region '%s' with vnum: %d reset.", region_table|[regrnum]->name, region_table[regrnum]->vnum);
       break;
     default:
       break;
