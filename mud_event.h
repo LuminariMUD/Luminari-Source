@@ -109,7 +109,7 @@ typedef enum {
   eBARDIC_PERFORMANCE, // bard performance/song
 } event_id;
 
-/* probaly a smart place to mention to not forget to update:
+/* probably a smart place to mention to not forget to update:
    act.informative.c (if you want do_affects to show status)
    players.c (if you want it to save)
  */
