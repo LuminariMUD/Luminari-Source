@@ -2401,7 +2401,13 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
       /* start initial alignment selection code */
       write_to_output(d, "\r\nSelect Alignment\r\n"
         "Note: you may be restricted by your class\r\n"
-        "If you don't know which to select, select 'true neutral'\r\n");
+        "Note: If you don't know which to select, select 'true neutral'\r\n"
+        "\r\nGood characters and creatures protect innocent life. Evil characters "
+        "and creatures debase or destroy innocent life, whether for fun or profit.\r\n"
+        "\r\nLawful characters tell the truth, keep their word, respect authority, "
+        "honor tradition, and judge those who fall short of their duties. Chaotic "
+        "characters follow their consciences, resent being told what to do, favor "
+        "new ideas over tradition, and do what they promise if they feel like it.\r\n\r\n");
       for (i = 0; i < NUM_ALIGNMENTS; i++) {
         if (valid_align_by_class(i, GET_CLASS(d->character)))
           write_to_output(d, "%d) %s\r\n", i, alignment_names[i]);
