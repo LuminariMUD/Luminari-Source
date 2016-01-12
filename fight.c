@@ -856,8 +856,12 @@ void set_fighting(struct char_data *ch, struct char_data *vict) {
     delay = 4 RL_SEC;
 
   //  send_to_char(ch, "DEBUG: SETTING FIGHT EVENT!\r\n");
-
-  //  if (!char_has_mud_event(ch, eCOMBAT_ROUND))
+  
+  /* make sure firing if appropriate */
+  if (can_fire_arrow(ch, FALSE) && is_using_ranged_weapon(ch))
+    FIRING(ch) = TRUE;
+  
+  //if (!char_has_mud_event(ch, eCOMBAT_ROUND))
   attach_mud_event(new_mud_event(eCOMBAT_ROUND, ch, strdup("1")), delay);
 }
 
