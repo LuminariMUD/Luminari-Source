@@ -538,7 +538,14 @@ void attach_mud_event(struct mud_event_data *pMudEvent, long time) {
       CREATE(regvnum, region_vnum, 1);
       *regvnum = *((region_vnum *) pMudEvent->pStruct);
       pMudEvent->pStruct = regvnum;
-      region = &(region_table[real_region(*regvnum)]);
+      
+      if(real_region(*regvnum) > top_of_region_table) {
+        log("SYSERR: Attempt to add event to out-of-range region!");
+        free(regvnum);
+        break;
+      }
+      
+      region = &region_table[real_region(*regvnum)];
       
       if (region->events == NULL)
         region->events = create_list();
