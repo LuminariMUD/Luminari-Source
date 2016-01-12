@@ -542,12 +542,12 @@ void attach_mud_event(struct mud_event_data *pMudEvent, long time) {
       break;
     case EVENT_REGION:
       CREATE(regvnum, region_vnum, 1);
-      *regvnum = *((region_vnum *) pMudEvent->pStruct);
+      *regvnum = ((region_vnum *) pMudEvent->pStruct);
       pMudEvent->pStruct = regvnum;
       
       log("TEST DEBUG REGION EVENTS: %d", real_region(*regvnum));
       
-      if(real_region(*regvnum) > top_of_region_table) {
+      if(real_region(*regvnum) = NOWHERE) {
         log("SYSERR: Attempt to add event to out-of-range region!");
         free(regvnum);
         break;
