@@ -207,7 +207,8 @@ void load_regions() {
      /* Clear it */
      for (j = 0; j <= top_of_region_table;j++) {
        free(region_table[j].name);
-       free(region_table[j].vertices);                     
+       free(region_table[j].vertices);    
+       clear_region_event_list(&region_table[j]);
      }
      free(region_table);
    }
