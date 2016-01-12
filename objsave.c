@@ -1871,7 +1871,8 @@ static int Crash_load_objs(struct char_data *ch) {
   }
   
   row = mysql_fetch_row(result);
-  if (strcmp(row[0], "") != 0) {
+  
+  if (row && (strcmp(row[0], "") != 0)) {
     /* This player has saved objects in the database */
     log("INFO: Object save header found for: %s", GET_NAME(ch));
     sscanf(row[0], "%d %d %d %d %d %d", &rentcode, &timed,
