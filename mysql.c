@@ -243,7 +243,7 @@ void load_regions() {
 
     /* Add a reset event if this is an encounter region */
     if (region_table[i].region_type == REGION_ENCOUNTER) {
-      NEW_EVENT(eENCOUNTER_REG_RESET, &(region_table[i.vnum), "", 60 RL_SEC);
+      NEW_EVENT(eENCOUNTER_REG_RESET, &(region_table[i].vnum), "", 60 RL_SEC);
     }
     
     top_of_region_table = i; 
