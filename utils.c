@@ -51,11 +51,6 @@ bool compute_has_combat_feat(struct char_data *ch, int cfeat, int weapon) {
     case WEAPON_TYPE_COMPOSITE_LONGBOW_3:
     case WEAPON_TYPE_COMPOSITE_LONGBOW_4:
     case WEAPON_TYPE_COMPOSITE_LONGBOW_5:
-    case WEAPON_TYPE_COMPOSITE_SHORTBOW:
-    case WEAPON_TYPE_COMPOSITE_SHORTBOW_2:
-    case WEAPON_TYPE_COMPOSITE_SHORTBOW_3:
-    case WEAPON_TYPE_COMPOSITE_SHORTBOW_4:
-    case WEAPON_TYPE_COMPOSITE_SHORTBOW_5:
       using_comp = TRUE;
       break;
     default:break; /* most cases */
@@ -69,8 +64,25 @@ bool compute_has_combat_feat(struct char_data *ch, int cfeat, int weapon) {
       IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat],
           WEAPON_TYPE_COMPOSITE_LONGBOW_4) ||
       IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat],
-          WEAPON_TYPE_COMPOSITE_LONGBOW_5) ||
-      IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat],
+          WEAPON_TYPE_COMPOSITE_LONGBOW_5)
+      ) { has_comp_feat = TRUE; }
+  
+  if (using_comp && has_comp_feat)
+    return TRUE; /* any comp bow feat, any comp bow used */
+  
+  has_comp_feat = FALSE;
+  using_comp = FALSE;
+  switch (weapon) {
+    case WEAPON_TYPE_COMPOSITE_SHORTBOW:
+    case WEAPON_TYPE_COMPOSITE_SHORTBOW_2:
+    case WEAPON_TYPE_COMPOSITE_SHORTBOW_3:
+    case WEAPON_TYPE_COMPOSITE_SHORTBOW_4:
+    case WEAPON_TYPE_COMPOSITE_SHORTBOW_5:
+      using_comp = TRUE;
+      break;
+    default:break; /* most cases */
+  }
+  if (IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat],
           WEAPON_TYPE_COMPOSITE_SHORTBOW) ||
       IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat],
           WEAPON_TYPE_COMPOSITE_SHORTBOW_2) ||
@@ -80,7 +92,7 @@ bool compute_has_combat_feat(struct char_data *ch, int cfeat, int weapon) {
           WEAPON_TYPE_COMPOSITE_SHORTBOW_4) ||
       IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat],
           WEAPON_TYPE_COMPOSITE_SHORTBOW_5)
-          ) { has_comp_feat = TRUE; }
+      ) { has_comp_feat = TRUE; }
   
   if (using_comp && has_comp_feat)
     return TRUE; /* any comp bow feat, any comp bow used */
