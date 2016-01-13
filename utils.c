@@ -38,7 +38,7 @@
  */
 
 /* check to see if CH has a weapon attached to a combat feat
-this use to be a nice (?) compact macro, but circumstances forced expansion */
+this use to be a nice(?) compact macro, but circumstances forced expansion */
 bool compute_has_combat_feat(struct char_data *ch, int cfeat, int weapon) {
   bool using_comp = FALSE;
   bool has_comp_feat = FALSE;
