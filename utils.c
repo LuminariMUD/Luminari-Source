@@ -55,20 +55,20 @@ bool compute_has_combat_feat(struct char_data *ch, int cfeat, int weapon) {
       break;
     default:break; /* most cases */
   }
-  if (IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat],
+  if ( IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat],
           WEAPON_TYPE_COMPOSITE_LONGBOW) ||
-      IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat],
+       IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat],
           WEAPON_TYPE_COMPOSITE_LONGBOW_2) ||
-      IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat],
+       IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat],
           WEAPON_TYPE_COMPOSITE_LONGBOW_3) ||
-      IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat],
+       IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat],
           WEAPON_TYPE_COMPOSITE_LONGBOW_4) ||
-      IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat],
+       IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat],
           WEAPON_TYPE_COMPOSITE_LONGBOW_5)
       ) { has_comp_feat = TRUE; }
   
   if (using_comp && has_comp_feat)
-    return TRUE; /* any comp bow feat, any comp bow used */
+    return TRUE; /* any comp longbow feat, any comp longbow used */
   
   has_comp_feat = FALSE;
   using_comp = FALSE;
@@ -82,15 +82,15 @@ bool compute_has_combat_feat(struct char_data *ch, int cfeat, int weapon) {
       break;
     default:break; /* most cases */
   }
-  if (IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat],
+  if ( IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat],
           WEAPON_TYPE_COMPOSITE_SHORTBOW) ||
-      IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat],
+       IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat],
           WEAPON_TYPE_COMPOSITE_SHORTBOW_2) ||
-      IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat],
+       IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat],
           WEAPON_TYPE_COMPOSITE_SHORTBOW_3) ||
-      IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat],
+       IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat],
           WEAPON_TYPE_COMPOSITE_SHORTBOW_4) ||
-      IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat],
+       IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat],
           WEAPON_TYPE_COMPOSITE_SHORTBOW_5)
       ) { has_comp_feat = TRUE; }
   
@@ -98,7 +98,11 @@ bool compute_has_combat_feat(struct char_data *ch, int cfeat, int weapon) {
     return TRUE; /* any comp bow feat, any comp bow used */
     
   /* normal test now */  
-  return (IS_SET_AR(((ch)->char_specials.saved.combat_feats[cfeat]), (weapon)));
+  if ( (IS_SET_AR(((ch)->char_specials.saved.combat_feats[(cfeat)]), (weapon))) );
+    return TRUE;
+  
+  /* nope, nothing! */
+  return FALSE;
 }
 
 int compute_dexterity_bonus(struct char_data *ch) {
