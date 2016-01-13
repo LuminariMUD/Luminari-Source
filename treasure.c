@@ -903,6 +903,8 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
 
   level = (rand_number(level/2, level)); /* this is as random as it gets right now */
   bonus_value = level / 5; if (bonus_value <= 0) bonus_value = 1;
+  
+  bonus_value += rare_grade;
 
   /* items that will only get an enhancement bonus */
   if (CAN_WEAR(obj, ITEM_WEAR_WIELD) || CAN_WEAR(obj, ITEM_WEAR_SHIELD) ||
@@ -1118,7 +1120,7 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel, int wear_s
   set_armor_object(obj, roll);
   /* we should have a completely usable armor now, just missing descrip/stats */
   
-  /* determine if rare or not */
+  /* determine if rare or not, start building string */
   roll = dice(1, 100);
   if (roll == 1) {
     rare_grade = 3;
@@ -1130,6 +1132,11 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel, int wear_s
     rare_grade = 1;
     sprintf(desc, "\tG[Rare]\tn ");
   }
+  /* a suit of (body), or a pair of (arm/leg), or AN() (helm) */
+  /*
+  sprintf(desc, "%s %s", desc,
+            );
+  */ 
   
   /* set the object material, check for upgrade */
   GET_OBJ_MATERIAL(obj) = possible_material_upgrade(GET_OBJ_MATERIAL(obj), grade);
@@ -2050,22 +2057,22 @@ ACMD(do_loadmagicspecific) {
       award_magic_weapon(ch, grade, GET_LEVEL(ch));
       break;
     case 2: /* body */
-      award_magic_armor(ch, grade, GET_LEVEL(ch), WEAR_BODY);
+      award_magic_armor(ch, grade, GET_LEVEL(ch), ITEM_WEAR_BODY);
       break;
     case 3: /* legs */
-      award_magic_armor(ch, grade, GET_LEVEL(ch), WEAR_LEGS);
+      award_magic_armor(ch, grade, GET_LEVEL(ch), ITEM_WEAR_LEGS);
       break;
     case 4: /* arms */
-      award_magic_armor(ch, grade, GET_LEVEL(ch), WEAR_ARMS);
+      award_magic_armor(ch, grade, GET_LEVEL(ch), ITEM_WEAR_ARMS);
       break;
     case 5: /* head */
-      award_magic_armor(ch, grade, GET_LEVEL(ch), WEAR_HEAD);
+      award_magic_armor(ch, grade, GET_LEVEL(ch), ITEM_WEAR_HEAD);
       break;
     case 6: /* misc */
       award_misc_magic_item(ch, grade, GET_LEVEL(ch));
       break;
     case 7: /* shield */
-      award_magic_armor(ch, grade, GET_LEVEL(ch), WEAR_SHIELD);
+      award_magic_armor(ch, grade, GET_LEVEL(ch), ITEM_WEAR_SHIELD);
       break;
     default:
       send_to_char(ch, "Syntax: loadmagicspecific [mundane | minor | medium | major] "
