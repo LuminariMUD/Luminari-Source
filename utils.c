@@ -86,7 +86,7 @@ bool compute_has_combat_feat(struct char_data *ch, int cfeat, int weapon) {
     return TRUE; /* any comp bow feat, any comp bow used */
     
   /* normal test now */  
-  return (IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat], weapon));
+  return (IS_SET_AR(((ch)->char_specials.saved.combat_feats[cfeat]), (weapon)));
 }
 
 int compute_dexterity_bonus(struct char_data *ch) {
