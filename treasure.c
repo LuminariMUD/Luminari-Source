@@ -1134,12 +1134,12 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel, int wear_s
   }
   /* a suit of (body), or a pair of (arm/leg), or AN() (helm) */
   if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_BODY)) {
-    sprintf(desc, "%s %s", desc, "a suit of ");    
+    sprintf(desc, "%s%s", desc, "a suit of ");    
   } else if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_HEAD)) {
-    sprintf(desc, "%s %s", desc,
+    sprintf(desc, "%s%s", desc,
             AN(armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS)]));    
   } else {
-    sprintf(desc, "%s %s", desc, "a pair of ");        
+    sprintf(desc, "%s%s", desc, "a pair of ");        
   }
   
   /* set the object material, check for upgrade */
