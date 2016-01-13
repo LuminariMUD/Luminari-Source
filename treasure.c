@@ -1100,7 +1100,7 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
  * 5)  craft description based on object and bonuses */
 void award_magic_armor(struct char_data *ch, int grade, int moblevel, int wear_slot) {
   struct obj_data *obj = NULL;
-  int roll = 0, crest_num = 0;
+  int roll = 0, armor_desc_roll = 0, crest_num = 0;
   int rare_grade = 0, color1 = 0, color2 = 0, level = 0;
   char desc[MEDIUM_STRING] = {'\0'};
   char keywords[MEDIUM_STRING] = {'\0'};
@@ -1137,8 +1137,9 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel, int wear_s
     sprintf(desc, "%s%s", desc, "a suit of");    
   } else if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_HEAD) ||
              IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_SHIELD)) {
+    armor_desc_roll = rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS);
     sprintf(desc, "%s%s", desc,
-            AN(armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS)]));    
+            AN(armor_special_descs[armor_desc_roll]));    
   } else {
     sprintf(desc, "%s%s", desc, "a pair of");        
   }
@@ -1179,9 +1180,9 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel, int wear_s
   roll = dice(1, 3);
   if (roll == 3) { // armor spec adjective in desc?
     sprintf(desc, "%s %s", desc,
-            armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS)]);
+            armor_special_descs[armor_desc_roll]);
     sprintf(keywords, "%s %s", keywords,
-            armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS)]);
+            armor_special_descs[armor_desc_roll]);
   }
 
   roll = dice(1, 5);
