@@ -1506,6 +1506,7 @@ ACMD(do_turnundead) {
 
 /* a function to clear rage and do other dirty work associated with that */
 void clear_rage(struct char_data *ch) {
+  
   send_to_char(ch, "You calm down from your rage...\r\n");
 
   if (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_TIRELESS_RAGE) &&

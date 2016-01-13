@@ -899,7 +899,7 @@ void char_from_room(struct char_data *ch) {
   struct char_data *temp;
 
   if (ch == NULL || IN_ROOM(ch) == NOWHERE) {
-    log("SYSERR: NULL character or NOWHERE in %s, char_from_room", __FILE__);
+    log("SYSERR: NULL character or NOWHERE in %s, char_from_room, shutting game down!", __FILE__);
     exit(1);
   }
 

@@ -342,33 +342,38 @@ void affect_update(void) {
   struct affected_type *af, *next;
   struct char_data *i;
   struct raff_node *raff, *next_raff;
-  int has_message = 0;
+  bool has_message = FALSE;
 
-  for (i = character_list; i; i = i->next) {
-    for (af = i->affected; af; af = next) {
+  for (i = character_list; i; i = i->next) { /* go through everything */
+    for (af = i->affected; af; af = next) { /* loop his/her aff list */
       next = af->next;
-      if (af->duration >= 1)
+      if (af->duration >= 1) /* duration > 0, decrement */
         af->duration--;
-      else if (af->duration == -1) /* No action */
+      else if (af->duration == -1) /* unlimited duration */
         ;
-      else {
+      else { /* affect wore off! */
+        /* handle spells */
         if ((af->spell > 0) && (af->spell <= MAX_SPELLS)) {
           if (!af->next || (af->next->spell != af->spell) ||
                   (af->next->duration > 0)) {
             if (spell_info[af->spell].wear_off_msg) {
               send_to_char(i, "%s\r\n", spell_info[af->spell].wear_off_msg);
-              spec_wear_off(i, af->spell);
-              has_message = 1;
+              has_message = TRUE;
             }
           }
         }
-        if (!has_message)
+        /* handle skills */
+        if (!has_message) {
           alt_wear_off_msg(i, af->spell);
+        }
+        /* handle special cases (like morph) */
+        spec_wear_off(i, af->spell);
+        /* ok, finally remove affect */
         affect_remove(i, af);
       }
     }
   }
-
+  
   /* update the room affections */
   for (raff = raff_list; raff; raff = next_raff) {
     next_raff = raff->next;

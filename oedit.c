@@ -30,6 +30,7 @@
 #include "feats.h"
 #include "assign_wpn_armor.h"
 #include "domains_schools.h"
+#include "treasure.h" /* set_weapon_object */
 
 /* local functions */
 static void oedit_disp_size_menu(struct descriptor_data *d);
@@ -58,9 +59,10 @@ static void oedit_save_to_disk(int zone_num);
 static void oedit_disp_spellbook_menu(struct descriptor_data *d);
 static void oedit_disp_weapon_special_abilities_menu(struct descriptor_data *d);
 static void oedit_disp_assign_weapon_specab_menu(struct descriptor_data *d);
-
+ 
 /* handy macro */
 #define S_PRODUCT(s, i) ((s)->producing[(i)])
+
 
 /* Utility and exported functions */
 ACMD(do_oasis_oedit) {
@@ -1679,30 +1681,9 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
           break;
           
         case ITEM_WEAPON:
-          /* Weapon Type */
-          GET_OBJ_VAL(OLC_OBJ(d), 0) = MIN(MAX(atoi(arg), 0), NUM_WEAPON_TYPES - 1);
-
-          /* Set damdice  and size based on weapon type. */
-          GET_OBJ_VAL(OLC_OBJ(d), 1) = weapon_list[GET_OBJ_VAL(OLC_OBJ(d), 0)].numDice;
-          GET_OBJ_VAL(OLC_OBJ(d), 2) = weapon_list[GET_OBJ_VAL(OLC_OBJ(d), 0)].diceSize;
-          /* cost */
-          GET_OBJ_COST(OLC_OBJ(d)) = weapon_list[GET_OBJ_VAL(OLC_OBJ(d), 0)].cost;
-          /* weight */
-          GET_OBJ_WEIGHT(OLC_OBJ(d)) = weapon_list[GET_OBJ_VAL(OLC_OBJ(d), 0)].weight;
-          /* material */
-          GET_OBJ_MATERIAL(OLC_OBJ(d)) = weapon_list[GET_OBJ_VAL(OLC_OBJ(d), 0)].material;
-          /* size */
-          GET_OBJ_SIZE(OLC_OBJ(d)) = weapon_list[GET_OBJ_VAL(OLC_OBJ(d), 0)].size;
-          /* set the proper wear bits */
-          int wear_inc;
-          /* going to go ahead and reset all the bits off */
-          for (wear_inc = 0; wear_inc < NUM_ITEM_WEARS; wear_inc++) {
-            REMOVE_BIT_AR(GET_OBJ_WEAR(OLC_OBJ(d)), wear_inc);
-          }
-          /* now set take bit */
-          TOGGLE_BIT_AR(GET_OBJ_WEAR(OLC_OBJ(d)), ITEM_WEAR_TAKE);
-          /* now set the appropriate wear flag bit */
-          TOGGLE_BIT_AR(GET_OBJ_WEAR(OLC_OBJ(d)), ITEM_WEAR_WIELD);
+          /* function from treasure.c */
+          set_weapon_object(OLC_OBJ(d),
+                  MIN(MAX(atoi(arg), 0), NUM_WEAPON_TYPES - 1));
 
           /*  Skip a few. */
           oedit_disp_val5_menu(d);
@@ -1764,31 +1745,9 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
           oedit_disp_val3_menu(d);
           break;
         case ITEM_ARMOR:
-          /* Armor Type, 2nd Value */
-          GET_OBJ_VAL(OLC_OBJ(d), 1) = MIN(MAX(atoi(arg), 0), NUM_SPEC_ARMOR_TYPES - 1);
-          /* auto set ac apply, 1st value */
-          GET_OBJ_VAL(OLC_OBJ(d), 0) =
-                  armor_list[GET_OBJ_VAL(OLC_OBJ(d), 1)].armorBonus;
-
-          /* for convenience we are going to go ahead and set some other values */
-          GET_OBJ_COST(OLC_OBJ(d)) =
-                  armor_list[GET_OBJ_VAL(OLC_OBJ(d), 1)].cost;
-          GET_OBJ_WEIGHT(OLC_OBJ(d)) =
-                  armor_list[GET_OBJ_VAL(OLC_OBJ(d), 1)].weight;
-          GET_OBJ_MATERIAL(OLC_OBJ(d)) =
-                  armor_list[GET_OBJ_VAL(OLC_OBJ(d), 1)].material;
-
-          /* set the proper wear bits */
-          int wear_inc;
-          /* going to go ahead and reset all the bits off */
-          for (wear_inc = 0; wear_inc < NUM_ITEM_WEARS; wear_inc++) {
-            REMOVE_BIT_AR(GET_OBJ_WEAR(OLC_OBJ(d)), wear_inc);
-          }
-          /* now set take bit */
-          TOGGLE_BIT_AR(GET_OBJ_WEAR(OLC_OBJ(d)), ITEM_WEAR_TAKE);
-          /* now set the appropriate wear flag bit */
-          TOGGLE_BIT_AR(GET_OBJ_WEAR(OLC_OBJ(d)),
-                          armor_list[GET_OBJ_VAL(OLC_OBJ(d), 1)].wear);
+          /* from treasure.c - auto set some values of this item now! */
+          set_armor_object(OLC_OBJ(d),
+                  MIN(MAX(atoi(arg), 0), NUM_SPEC_ARMOR_TYPES - 1));
 
           /*  Skip to enhancement menu. */
           oedit_disp_val5_menu(d);

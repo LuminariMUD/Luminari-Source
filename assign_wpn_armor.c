@@ -1297,16 +1297,16 @@ void load_armor(void) {
    *    cost, AC, dexBonusCap, armorCheckPenalty, spellFailChance, (move)30ft, (move)20ft,
    *    weight, material, wear) */
   /* UNARMORED */
-  setarmor(SPEC_ARMOR_TYPE_CLOTHING, "body clothing", ARMOR_TYPE_NONE,
+  setarmor(SPEC_ARMOR_TYPE_CLOTHING, "robe", ARMOR_TYPE_NONE,
     10, 0, 99, 0, 0, 30, 20,
     1, MATERIAL_COTTON, ITEM_WEAR_BODY);
-  setarmor(SPEC_ARMOR_TYPE_CLOTHING_HEAD, "clothing hood", ARMOR_TYPE_NONE,
+  setarmor(SPEC_ARMOR_TYPE_CLOTHING_HEAD, "hood", ARMOR_TYPE_NONE,
     10, 0, 99, 0, 0, 30, 20,
     1, MATERIAL_COTTON, ITEM_WEAR_HEAD);
-  setarmor(SPEC_ARMOR_TYPE_CLOTHING_ARMS, "cloth sleeves", ARMOR_TYPE_NONE,
+  setarmor(SPEC_ARMOR_TYPE_CLOTHING_ARMS, "sleeves", ARMOR_TYPE_NONE,
     10, 0, 99, 0, 0, 30, 20,
     1, MATERIAL_COTTON, ITEM_WEAR_ARMS);
-  setarmor(SPEC_ARMOR_TYPE_CLOTHING_LEGS, "cloth leggings", ARMOR_TYPE_NONE,
+  setarmor(SPEC_ARMOR_TYPE_CLOTHING_LEGS, "pants", ARMOR_TYPE_NONE,
     10, 0, 99, 0, 0, 30, 20,
     1, MATERIAL_COTTON, ITEM_WEAR_LEGS);
 

@@ -195,6 +195,8 @@ extern const char *head_types[];
 
 /* weapon blank object */
 #define WEAPON_PROTO     3299
+/* armor blank object */
+#define ARMOR_PROTO     3298
 
 /* misc mold vnums */
 #define RING_MOLD        3176  //0
@@ -240,6 +242,12 @@ void award_magic_weapon(struct char_data *ch, int grade, int moblevel);
 void award_misc_magic_item(struct char_data *ch, int grade, int moblevel);
 // determines bonus modifiers to apply_value
 int random_bonus_value(int apply_value, int level, int mod);
+// take an object, and set its values to an appriopriate weapon of 'type'
+void set_weapon_object(struct obj_data *obj, int type);
+// take an object, and set its values to an appriopriate armor of 'type'
+void set_armor_object(struct obj_data *obj, int type);
+// take base material, check for upgrade based on grade
+int possible_material_upgrade(int base_mat, int grade);
 
 /* Procedures for loading mobs with items, rather than simply handing them out
  * automaticalyl after death.  Used with random treasure load resets.
