@@ -82,7 +82,7 @@ bool has_combat_feat(struct char_data *ch, int cfeat, int compare) {
       return TRUE;
   }
 
-  if ( (IS_SET_AR((ch)->char_specials.saved.combat_feats[(cfeat)], (compare))) )
+  if ((IS_SET_AR((ch)->char_specials.saved.combat_feats[(cfeat)], (compare))))
     return TRUE;
 
   return FALSE;

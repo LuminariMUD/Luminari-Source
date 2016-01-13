@@ -101,7 +101,7 @@ bool compute_has_combat_feat(struct char_data *ch, int cfeat, int weapon) {
   //send_to_char(ch, "feat: %d, weapon: %d\r\n", cfeat, weapon);
   
   /* normal test now */  
-  if ( (IS_SET_AR(((ch)->char_specials.saved.combat_feats[(cfeat)]), (weapon))) );
+  if ((IS_SET_AR((ch)->char_specials.saved.combat_feats[(cfeat)], (weapon))))
     return TRUE;
   
   /* nope, nothing! */
