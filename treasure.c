@@ -1098,8 +1098,8 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
  * 5)  craft description based on object and bonuses */
 void award_magic_armor(struct char_data *ch, int grade, int moblevel, int wear_slot) {
   struct obj_data *obj = NULL;
-  int vnum = -1, roll = 0, crest_num = 0;
-  int rare_grade = 0, color1 = 0, color2 = 0, level = 0, found_slot = FALSE;
+  int roll = 0, crest_num = 0;
+  int rare_grade = 0, color1 = 0, color2 = 0, level = 0;
   char desc[MEDIUM_STRING] = {'\0'};
   char keywords[MEDIUM_STRING] = {'\0'};
 
@@ -1112,7 +1112,7 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel, int wear_s
   /* pick a random armor, 0 = undefined */
   do {
     roll = rand_number(1, NUM_SPEC_ARMOR_TYPES - 1);
-  } while (armor_list[roll].wear != wear_slot);
+  } while (armor_list[roll].wear != wear_slot && wear_slot != -1);
   
   /* now set up this new object */
   set_armor_object(obj, roll);
@@ -1424,7 +1424,7 @@ int possible_material_upgrade(int base_mat, int grade) {
 #define SHORT_STRING 80
 void award_magic_weapon(struct char_data *ch, int grade, int moblevel) {
   struct obj_data *obj = NULL;
-  int material = MATERIAL_BRONZE, roll = 0;
+  int roll = 0;
   int rare_grade = 0, color1 = 0, color2 = 0, level = 0, roll2 = 0, roll3 = 0;
   char desc[MEDIUM_STRING] = {'\0'};
   char hilt_color[SHORT_STRING] = {'\0'}, head_color[SHORT_STRING] = {'\0'};
