@@ -3180,6 +3180,20 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       } else if ((subfeat = feat_to_cfeat(i)) != -1) {
         /* This is a 'combat feat' */
         for (j = 1; j < NUM_WEAPON_TYPES; j++) {
+          
+          /* we are not going to show extra composite bows */
+          switch (j) {
+            case WEAPON_TYPE_COMPOSITE_LONGBOW_2:
+            case WEAPON_TYPE_COMPOSITE_LONGBOW_3:
+            case WEAPON_TYPE_COMPOSITE_LONGBOW_4:
+            case WEAPON_TYPE_COMPOSITE_LONGBOW_5:
+            case WEAPON_TYPE_COMPOSITE_SHORTBOW_2:
+            case WEAPON_TYPE_COMPOSITE_SHORTBOW_3:
+            case WEAPON_TYPE_COMPOSITE_SHORTBOW_4:
+            case WEAPON_TYPE_COMPOSITE_SHORTBOW_5:
+              continue;
+          }
+          
           if (HAS_COMBAT_FEAT(ch, subfeat, j)) {
             if (mode == 1) {
               sprintf(buf3, "%s (%s)", feat_list[i].name, weapon_list[j].name);
