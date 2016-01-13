@@ -97,7 +97,8 @@ bool compute_has_combat_feat(struct char_data *ch, int cfeat, int weapon) {
   if (using_comp && has_comp_feat)
     return TRUE; /* any comp bow feat, any comp bow used */
     
-  send_to_char(ch, "feat: %d, weapon: %d\r\n", cfeat, weapon);
+  /*debug*/
+  //send_to_char(ch, "feat: %d, weapon: %d\r\n", cfeat, weapon);
   
   /* normal test now */  
   if ( (IS_SET_AR(((ch)->char_specials.saved.combat_feats[(cfeat)]), (weapon))) );
