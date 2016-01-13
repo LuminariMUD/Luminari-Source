@@ -1098,11 +1098,26 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
  * 5)  craft description based on object and bonuses */
 void award_magic_armor(struct char_data *ch, int grade, int moblevel, int wear_slot) {
   struct obj_data *obj = NULL;
-  int vnum = -1, material = MATERIAL_BRONZE, roll = 0, crest_num = 0;
+  int vnum = -1, roll = 0, crest_num = 0;
   int rare_grade = 0, color1 = 0, color2 = 0, level = 0, found_slot = FALSE;
-  char desc[MEDIUM_STRING] = {'\0'}, armor_name[MEDIUM_STRING] = {'\0'};
+  char desc[MEDIUM_STRING] = {'\0'};
   char keywords[MEDIUM_STRING] = {'\0'};
 
+  /* ok load blank object */
+  if ((obj = read_object(ARMOR_PROTO, VIRTUAL)) == NULL) {
+    log("SYSERR: award_magic_armor created NULL object");
+    return;
+  }  
+
+  /* pick a random armor, 0 = undefined */
+  do {
+    roll = rand_number(1, NUM_SPEC_ARMOR_TYPES - 1);
+  } while (armor_list[roll].wear != wear_slot);
+  
+  /* now set up this new object */
+  set_armor_object(obj, roll);
+  /* we should have a completely usable armor now, just missing descrip/stats */
+  
   /* determine if rare or not */
   roll = dice(1, 100);
   if (roll == 1) {
@@ -1115,555 +1130,176 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel, int wear_s
     rare_grade = 1;
     sprintf(desc, "\tG[Rare]\tn ");
   }
+  
+  /* set the object material, check for upgrade */
+  GET_OBJ_MATERIAL(obj) = possible_material_upgrade(GET_OBJ_MATERIAL(obj), grade);
 
-  /* attempt to find wear_slot */
-  switch (wear_slot) {
-    case WEAR_BODY:
-      switch (rand_number(1, 9)) {
-          /* body pieces */
-        case 1:
-          vnum = PLATE_BODY;
-          material = MATERIAL_BRONZE;
-          sprintf(desc, "%sa suit of", desc);
-          sprintf(armor_name, "plate mail armor");
-          found_slot = TRUE;
-          break;
-        case 2:
-          vnum = HALFPLATE_BODY;
-          material = MATERIAL_BRONZE;
-          sprintf(desc, "%sa suit of", desc);
-          sprintf(armor_name, "half plate armor");
-          found_slot = TRUE;
-          break;
-        case 3:
-          vnum = SPLINT_BODY;
-          material = MATERIAL_BRONZE;
-          sprintf(desc, "%sa suit of", desc);
-          sprintf(armor_name, "splint mail armor");
-          found_slot = TRUE;
-          break;
-        case 4:
-          vnum = BREASTPLATE_BODY;
-          material = MATERIAL_BRONZE;
-          sprintf(desc, "%sa suit of", desc);
-          sprintf(armor_name, "breastplate armor");
-          found_slot = TRUE;
-          break;
-        case 5:
-          vnum = CHAIN_BODY;
-          material = MATERIAL_BRONZE;
-          sprintf(desc, "%sa suit of", desc);
-          sprintf(armor_name, "chain mail armor");
-          found_slot = TRUE;
-          break;
-        case 6:
-          vnum = STUD_LEATHER_BODY;
-          material = MATERIAL_LEATHER;
-          sprintf(desc, "%sa suit of", desc);
-          sprintf(armor_name, "studded armor");
-          found_slot = TRUE;
-          break;
-        case 7:
-          vnum = LEATHER_BODY;
-          material = MATERIAL_LEATHER;
-          sprintf(desc, "%sa suit of", desc);
-          sprintf(armor_name, "armor");
-          found_slot = TRUE;
-          break;
-        case 8:
-          vnum = PADDED_BODY;
-          material = MATERIAL_COTTON;
-          sprintf(desc, "%sa suit of", desc);
-          sprintf(armor_name, "padded armor");
-          found_slot = TRUE;
-          break;
-        case 9:
-          vnum = CLOTH_BODY;
-          material = MATERIAL_COTTON;
-          sprintf(desc, "%ssome", desc);
-          sprintf(armor_name, "robes");
-          found_slot = TRUE;
-          break;
-        default:
-          found_slot = FALSE;
-          break;
-      }
+  /* determine level */
+  switch (grade) {
+    case GRADE_MUNDANE:
+      level = rand_number(1, 8);
       break;
-    case WEAR_LEGS:
-      switch (rand_number(27, 34)) {
-          /* leg pieces */
-        case 27:
-          vnum = PLATE_LEGS;
-          material = MATERIAL_BRONZE;
-          sprintf(desc, "%sa set of", desc);
-          sprintf(armor_name, "plate mail greaves");
-          found_slot = TRUE;
-          break;
-        case 28:
-          vnum = HALFPLATE_LEGS;
-          material = MATERIAL_BRONZE;
-          sprintf(desc, "%sa set of", desc);
-          sprintf(armor_name, "half plate greaves");
-          found_slot = TRUE;
-          break;
-        case 29:
-          vnum = SPLINT_LEGS;
-          material = MATERIAL_BRONZE;
-          sprintf(desc, "%sa set of", desc);
-          sprintf(armor_name, "splint mail greaves");
-          found_slot = TRUE;
-          break;
-        case 30:
-          vnum = CHAIN_LEGS;
-          material = MATERIAL_BRONZE;
-          sprintf(desc, "%sa set of", desc);
-          sprintf(armor_name, "chain mail leggings");
-          found_slot = TRUE;
-          break;
-        case 31:
-          vnum = STUD_LEATHER_LEGS;
-          material = MATERIAL_LEATHER;
-          sprintf(desc, "%sa set of", desc);
-          sprintf(armor_name, "studded leggings");
-          found_slot = TRUE;
-          break;
-        case 32:
-          vnum = LEATHER_LEGS;
-          material = MATERIAL_LEATHER;
-          sprintf(desc, "%sa set of", desc);
-          sprintf(armor_name, "cuisses");
-          found_slot = TRUE;
-          break;
-        case 33:
-          vnum = PADDED_LEGS;
-          material = MATERIAL_COTTON;
-          sprintf(desc, "%sa set of", desc);
-          sprintf(armor_name, "padded armor leggings");
-          found_slot = TRUE;
-          break;
-        case 34:
-          vnum = CLOTH_LEGS;
-          material = MATERIAL_COTTON;
-          sprintf(desc, "%sa set of", desc);
-          sprintf(armor_name, "cloth pants");
-          found_slot = TRUE;
-          break;
-        default:
-          found_slot = FALSE;
-          break;
-      }
+    case GRADE_MINOR:
+      level = rand_number(9, 16);
       break;
-    case WEAR_ARMS:
-      switch (rand_number(19, 26)) {
-        case 19:
-          vnum = PLATE_ARMS;
-          material = MATERIAL_BRONZE;
-          sprintf(desc, "%sa set of", desc);
-          sprintf(armor_name, "plate mail vambraces");
-          found_slot = TRUE;
-          break;
-        case 20:
-          vnum = HALFPLATE_ARMS;
-          material = MATERIAL_BRONZE;
-          sprintf(desc, "%sa set of", desc);
-          sprintf(armor_name, "half plate vambraces");
-          found_slot = TRUE;
-          break;
-        case 21:
-          vnum = SPLINT_ARMS;
-          material = MATERIAL_BRONZE;
-          sprintf(desc, "%sa set of", desc);
-          sprintf(armor_name, "splint mail vambraces");
-          found_slot = TRUE;
-          break;
-        case 22:
-          vnum = CHAIN_ARMS;
-          material = MATERIAL_BRONZE;
-          sprintf(desc, "%sa set of", desc);
-          sprintf(armor_name, "chain mail sleeves");
-          found_slot = TRUE;
-          break;
-        case 23:
-          vnum = STUD_LEATHER_ARMS;
-          material = MATERIAL_LEATHER;
-          sprintf(desc, "%sa set of", desc);
-          sprintf(armor_name, "studded sleeves");
-          found_slot = TRUE;
-          break;
-        case 24:
-          vnum = LEATHER_ARMS;
-          material = MATERIAL_LEATHER;
-          sprintf(desc, "%sa set of", desc);
-          sprintf(armor_name, "sleeves");
-          found_slot = TRUE;
-          break;
-        case 25:
-          vnum = PADDED_ARMS;
-          material = MATERIAL_COTTON;
-          sprintf(desc, "%sa set of", desc);
-          sprintf(armor_name, "padded armor sleeves");
-          found_slot = TRUE;
-          break;
-        case 26:
-          vnum = CLOTH_ARMS;
-          material = MATERIAL_COTTON;
-          sprintf(desc, "%sa set of", desc);
-          sprintf(armor_name, "cloth sleeves");
-          found_slot = TRUE;
-          break;
-        default:
-          found_slot = FALSE;
-          break;
-      }
+    case GRADE_MEDIUM:
+      level = rand_number(17, 24);
       break;
-    case WEAR_HEAD:
-      switch (rand_number(10, 18)) {
-        case 10:
-          vnum = PLATE_HELM;
-          material = MATERIAL_BRONZE;
-          sprintf(desc, "%sa", desc);
-          sprintf(armor_name, "plate mail helm");
-          found_slot = TRUE;
-          break;
-        case 11:
-          vnum = HALFPLATE_HELM;
-          material = MATERIAL_BRONZE;
-          sprintf(desc, "%sa", desc);
-          sprintf(armor_name, "half plate helm");
-          found_slot = TRUE;
-          break;
-        case 12:
-          vnum = SPLINT_HELM;
-          material = MATERIAL_BRONZE;
-          sprintf(desc, "%sa", desc);
-          sprintf(armor_name, "splint mail helm");
-          found_slot = TRUE;
-          break;
-        case 13:
-          vnum = PIECEPLATE_HELM;
-          material = MATERIAL_BRONZE;
-          sprintf(desc, "%sa", desc);
-          sprintf(armor_name, "piece plate helm");
-          found_slot = TRUE;
-          break;
-        case 14:
-          vnum = CHAIN_HELM;
-          material = MATERIAL_BRONZE;
-          sprintf(desc, "%sa", desc);
-          sprintf(armor_name, "coif");
-          found_slot = TRUE;
-          break;
-        case 15:
-          vnum = STUD_LEATHER_HELM;
-          material = MATERIAL_LEATHER;
-          sprintf(desc, "%sa", desc);
-          sprintf(armor_name, "studded helm");
-          found_slot = TRUE;
-          break;
-        case 16:
-          vnum = LEATHER_HELM;
-          material = MATERIAL_LEATHER;
-          sprintf(desc, "%sa", desc);
-          sprintf(armor_name, "helm");
-          found_slot = TRUE;
-          break;
-        case 17:
-          vnum = PADDED_HELM;
-          material = MATERIAL_COTTON;
-          sprintf(desc, "%sa", desc);
-          sprintf(armor_name, "padded armor helm");
-          found_slot = TRUE;
-          break;
-        case 18:
-          vnum = CLOTH_HELM;
-          material = MATERIAL_COTTON;
-          sprintf(desc, "%sa", desc);
-          sprintf(armor_name, "cloth hood");
-          found_slot = TRUE;
-          break;
-        default:
-          found_slot = FALSE;
-          break;
-      }
-      break;
-    case WEAR_SHIELD:
-      switch (rand_number(35, 37)) {
-          /* shields */
-        case 35:
-          vnum = SHIELD_MEDIUM;
-          material = MATERIAL_WOOD;
-          sprintf(desc, "%sa", desc);
-          sprintf(armor_name, "medium shield");
-          found_slot = TRUE;
-          break;
-        case 36:
-          vnum = SHIELD_LARGE;
-          material = MATERIAL_WOOD;
-          sprintf(desc, "%sa", desc);
-          sprintf(armor_name, "large shield");
-          found_slot = TRUE;
-          break;
-        case 37:
-          vnum = SHIELD_TOWER;
-          material = MATERIAL_WOOD;
-          sprintf(desc, "%sa", desc);
-          sprintf(armor_name, "tower shield");
-          found_slot = TRUE;
-          break;
-        default:
-          found_slot = FALSE;
-          break;
-
-      }
-      break;
-    default:
-      found_slot = FALSE;
+    default: // major grade
+      level = rand_number(25, 30);
       break;
   }
 
-  /* find a random piece of armor
-   * assign base material
-   * and last but not least, give appropriate start of description
-   *  */
-  if (!found_slot) {
-    switch (dice(1, NUM_ARMOR_MOLDS)) {
-        /* body pieces */
-      case 1:
-        vnum = PLATE_BODY;
-        material = MATERIAL_BRONZE;
-        sprintf(desc, "%sa suit of", desc);
-        sprintf(armor_name, "plate mail armor");
-        break;
-      case 2:
-        vnum = HALFPLATE_BODY;
-        material = MATERIAL_BRONZE;
-        sprintf(desc, "%sa suit of", desc);
-        sprintf(armor_name, "half plate armor");
-        break;
-      case 3:
-        vnum = SPLINT_BODY;
-        material = MATERIAL_BRONZE;
-        sprintf(desc, "%sa suit of", desc);
-        sprintf(armor_name, "splint mail armor");
-        break;
-      case 4:
-        vnum = BREASTPLATE_BODY;
-        material = MATERIAL_BRONZE;
-        sprintf(desc, "%sa suit of", desc);
-        sprintf(armor_name, "breastplate armor");
-        break;
-      case 5:
-        vnum = CHAIN_BODY;
-        material = MATERIAL_BRONZE;
-        sprintf(desc, "%sa suit of", desc);
-        sprintf(armor_name, "chain mail armor");
-        break;
-      case 6:
-        vnum = STUD_LEATHER_BODY;
-        material = MATERIAL_LEATHER;
-        sprintf(desc, "%sa suit of", desc);
-        sprintf(armor_name, "studded armor");
-        break;
-      case 7:
-        vnum = LEATHER_BODY;
-        material = MATERIAL_LEATHER;
-        sprintf(desc, "%sa suit of", desc);
-        sprintf(armor_name, "armor");
-        break;
-      case 8:
-        vnum = PADDED_BODY;
-        material = MATERIAL_COTTON;
-        sprintf(desc, "%sa suit of", desc);
-        sprintf(armor_name, "padded armor");
-        break;
-      case 9:
-        vnum = CLOTH_BODY;
-        material = MATERIAL_COTTON;
-        sprintf(desc, "%ssome", desc);
-        sprintf(armor_name, "robes");
-        break;
+  /* BEGIN DESCRIPTION SECTION */
 
-        /* head pieces */
-      case 10:
-        vnum = PLATE_HELM;
-        material = MATERIAL_BRONZE;
-        sprintf(desc, "%sa", desc);
-        sprintf(armor_name, "plate mail helm");
-        break;
-      case 11:
-        vnum = HALFPLATE_HELM;
-        material = MATERIAL_BRONZE;
-        sprintf(desc, "%sa", desc);
-        sprintf(armor_name, "half plate helm");
-        break;
-      case 12:
-        vnum = SPLINT_HELM;
-        material = MATERIAL_BRONZE;
-        sprintf(desc, "%sa", desc);
-        sprintf(armor_name, "splint mail helm");
-        break;
-      case 13:
-        vnum = PIECEPLATE_HELM;
-        material = MATERIAL_BRONZE;
-        sprintf(desc, "%sa", desc);
-        sprintf(armor_name, "piece plate helm");
-        break;
-      case 14:
-        vnum = CHAIN_HELM;
-        material = MATERIAL_BRONZE;
-        sprintf(desc, "%sa", desc);
-        sprintf(armor_name, "coif");
-        break;
-      case 15:
-        vnum = STUD_LEATHER_HELM;
-        material = MATERIAL_LEATHER;
-        sprintf(desc, "%sa", desc);
-        sprintf(armor_name, "studded helm");
-        break;
-      case 16:
-        vnum = LEATHER_HELM;
-        material = MATERIAL_LEATHER;
-        sprintf(desc, "%sa", desc);
-        sprintf(armor_name, "helm");
-        break;
-      case 17:
-        vnum = PADDED_HELM;
-        material = MATERIAL_COTTON;
-        sprintf(desc, "%sa", desc);
-        sprintf(armor_name, "padded armor helm");
-        break;
-      case 18:
-        vnum = CLOTH_HELM;
-        material = MATERIAL_COTTON;
-        sprintf(desc, "%sa", desc);
-        sprintf(armor_name, "cloth hood");
-        break;
+  /* first assign two random colors for usage */
+  color1 = rand_number(0, NUM_A_COLORS);
+  color2 = rand_number(0, NUM_A_COLORS);
+  /* make sure they are not the same colors */
+  while (color2 == color1)
+    color2 = rand_number(0, NUM_A_COLORS);
+  crest_num = rand_number(0, NUM_A_ARMOR_CRESTS);
 
-        /* arm pieces */
-      case 19:
-        vnum = PLATE_ARMS;
-        material = MATERIAL_BRONZE;
-        sprintf(desc, "%sa set of", desc);
-        sprintf(armor_name, "plate mail vambraces");
-        break;
-      case 20:
-        vnum = HALFPLATE_ARMS;
-        material = MATERIAL_BRONZE;
-        sprintf(desc, "%sa set of", desc);
-        sprintf(armor_name, "half plate vambraces");
-        break;
-      case 21:
-        vnum = SPLINT_ARMS;
-        material = MATERIAL_BRONZE;
-        sprintf(desc, "%sa set of", desc);
-        sprintf(armor_name, "splint mail vambraces");
-        break;
-      case 22:
-        vnum = CHAIN_ARMS;
-        material = MATERIAL_BRONZE;
-        sprintf(desc, "%sa set of", desc);
-        sprintf(armor_name, "chain mail sleeves");
-        break;
-      case 23:
-        vnum = STUD_LEATHER_ARMS;
-        material = MATERIAL_LEATHER;
-        sprintf(desc, "%sa set of", desc);
-        sprintf(armor_name, "studded sleeves");
-        break;
-      case 24:
-        vnum = LEATHER_ARMS;
-        material = MATERIAL_LEATHER;
-        sprintf(desc, "%sa set of", desc);
-        sprintf(armor_name, "sleeves");
-        break;
-      case 25:
-        vnum = PADDED_ARMS;
-        material = MATERIAL_COTTON;
-        sprintf(desc, "%sa set of", desc);
-        sprintf(armor_name, "padded armor sleeves");
-        break;
-      case 26:
-        vnum = CLOTH_ARMS;
-        material = MATERIAL_COTTON;
-        sprintf(desc, "%sa set of", desc);
-        sprintf(armor_name, "cloth sleeves");
-        break;
+  /* start with keyword string */
+  sprintf(keywords, "%s %s", keywords, armor_list[GET_ARMOR_TYPE(obj)].name);
+  sprintf(keywords, "%s %s", keywords, material_name[GET_OBJ_MATERIAL(obj)]);
 
-        /* leg pieces */
-      case 27:
-        vnum = PLATE_LEGS;
-        material = MATERIAL_BRONZE;
-        sprintf(desc, "%sa set of", desc);
-        sprintf(armor_name, "plate mail greaves");
-        break;
-      case 28:
-        vnum = HALFPLATE_LEGS;
-        material = MATERIAL_BRONZE;
-        sprintf(desc, "%sa set of", desc);
-        sprintf(armor_name, "half plate greaves");
-        break;
-      case 29:
-        vnum = SPLINT_LEGS;
-        material = MATERIAL_BRONZE;
-        sprintf(desc, "%sa set of", desc);
-        sprintf(armor_name, "splint mail greaves");
-        break;
-      case 30:
-        vnum = CHAIN_LEGS;
-        material = MATERIAL_BRONZE;
-        sprintf(desc, "%sa set of", desc);
-        sprintf(armor_name, "chain mail leggings");
-        break;
-      case 31:
-        vnum = STUD_LEATHER_LEGS;
-        material = MATERIAL_LEATHER;
-        sprintf(desc, "%sa set of", desc);
-        sprintf(armor_name, "studded leggings");
-        break;
-      case 32:
-        vnum = LEATHER_LEGS;
-        material = MATERIAL_LEATHER;
-        sprintf(desc, "%sa set of", desc);
-        sprintf(armor_name, "cuisses");
-        break;
-      case 33:
-        vnum = PADDED_LEGS;
-        material = MATERIAL_COTTON;
-        sprintf(desc, "%sa set of", desc);
-        sprintf(armor_name, "padded armor leggings");
-        break;
-      case 34:
-        vnum = CLOTH_LEGS;
-        material = MATERIAL_COTTON;
-        sprintf(desc, "%sa set of", desc);
-        sprintf(armor_name, "cloth pants");
-        break;
-
-        /* shields */
-      case 35:
-        vnum = SHIELD_MEDIUM;
-        material = MATERIAL_WOOD;
-        sprintf(desc, "%sa", desc);
-        sprintf(armor_name, "medium shield");
-        break;
-      case 36:
-        vnum = SHIELD_LARGE;
-        material = MATERIAL_WOOD;
-        sprintf(desc, "%sa", desc);
-        sprintf(armor_name, "large shield");
-        break;
-      case 37:
-        vnum = SHIELD_TOWER;
-        material = MATERIAL_WOOD;
-        sprintf(desc, "%sa", desc);
-        sprintf(armor_name, "tower shield");
-        break;
-    }
+  roll = dice(1, 3);
+  if (roll == 3) { // armor spec adjective in desc?
+    sprintf(desc, "%s %s", desc,
+            armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS)]);
+    sprintf(keywords, "%s %s", keywords,
+            armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS)]);
   }
 
-  /* we already determined 'base' material, now
-   determine whether an upgrade was achieved by item-grade */
-  roll = dice(1, 100);
+  roll = dice(1, 5);
+  if (roll >= 4) { // color describe #1?
+    sprintf(desc, "%s %s", desc, colors[color1]);
+    sprintf(keywords, "%s %s", keywords, colors[color1]);
+  } else if (roll == 3) { // two colors
+    sprintf(desc, "%s %s and %s", desc, colors[color1], colors[color2]);
+    sprintf(keywords, "%s %s and %s", keywords, colors[color1], colors[color2]);
+  }
+
+  // Insert the material type, then armor type
+  sprintf(desc, "%s %s", desc, material_name[GET_OBJ_MATERIAL(obj)]);
+  sprintf(desc, "%s %s", desc, armor_list[GET_ARMOR_TYPE(obj)].name);
+
+  roll = dice(1, 8);
+  if (roll >= 7) { // crest?
+    sprintf(desc, "%s with %s %s crest", desc,
+            AN(armor_crests[crest_num]),
+            armor_crests[crest_num]);
+    sprintf(keywords, "%s with %s %s crest", keywords,
+            AN(armor_crests[crest_num]),
+            armor_crests[crest_num]);
+  } else if (roll >= 5) { // or symbol?
+    sprintf(desc, "%s covered in symbols of %s %s", desc,
+            AN(armor_crests[crest_num]),
+            armor_crests[crest_num]);
+    sprintf(keywords, "%s covered in symbols of %s %s", keywords,
+            AN(armor_crests[crest_num]),
+            armor_crests[crest_num]);
+  }
+
+  // keywords
+  obj->name = strdup(keywords);
+  // Set descriptions
+  obj->short_description = strdup(desc);
+  desc[0] = toupper(desc[0]);
+  sprintf(desc, "%s is lying here.", desc);
+  obj->description = strdup(desc);
+
+  /* END DESCRIPTION SECTION */
+
+  /* BONUS SECTION */
+  cp_modify_object_applies(ch, obj, rare_grade, level, CP_TYPE_ARMOR);
+  /* END BONUS SECTION */
+}
+
+/* automatically set object up to be a given armor type 
+   armor object values:
+   0 : the base weapon-type, i.e. long sword
+   1 : number of damage dice
+   2 : size of damage dice
+ * everything else is computed via the weapon_list[] */
+void set_armor_object(struct obj_data *obj, int type) {
+  int wear_inc;
+  
+  /* Armor Type, 2nd Value */
+  GET_OBJ_VAL(obj, 1) = type;
+  
+  /* auto set ac apply, 1st value */
+  GET_OBJ_VAL(obj, 0) =
+          armor_list[GET_OBJ_VAL(obj, 1)].armorBonus;
+
+  /* for convenience we are going to go ahead and set some other values */
+  GET_OBJ_COST(obj) =
+          armor_list[GET_OBJ_VAL(obj, 1)].cost;
+  GET_OBJ_WEIGHT(obj) =
+          armor_list[GET_OBJ_VAL(obj, 1)].weight;
+  GET_OBJ_MATERIAL(obj) =
+          armor_list[GET_OBJ_VAL(obj, 1)].material;
+
+  /* set the proper wear bits! */
+  
+  /* going to go ahead and reset all the bits off */
+  for (wear_inc = 0; wear_inc < NUM_ITEM_WEARS; wear_inc++) {
+    REMOVE_BIT_AR(GET_OBJ_WEAR(obj), wear_inc);
+  }
+  
+  /* now set take bit */
+  TOGGLE_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_TAKE);
+  
+  /* now set the appropriate wear flag bit */
+  TOGGLE_BIT_AR(GET_OBJ_WEAR(obj),
+          armor_list[GET_OBJ_VAL(obj, 1)].wear);
+}
+
+/* automatically set object up to be a given weapon type */
+/* weapon object values:
+   0 : the base weapon-type, i.e. long sword
+   1 : number of damage dice
+   2 : size of damage dice
+ * everything else is computed via the weapon_list[] */
+void set_weapon_object(struct obj_data *obj, int type) {
+  int wear_inc;
+  
+  /* Weapon Type */
+  GET_OBJ_VAL(obj, 0) = type;
+
+  /* Set damdice  and size based on weapon type. */
+  GET_OBJ_VAL(obj, 1) = weapon_list[GET_OBJ_VAL(obj, 0)].numDice;
+  GET_OBJ_VAL(obj, 2) = weapon_list[GET_OBJ_VAL(obj, 0)].diceSize;
+  /* cost */
+  GET_OBJ_COST(obj) = weapon_list[GET_OBJ_VAL(obj, 0)].cost;
+  /* weight */
+  GET_OBJ_WEIGHT(obj) = weapon_list[GET_OBJ_VAL(obj, 0)].weight;
+  /* material */
+  GET_OBJ_MATERIAL(obj) = weapon_list[GET_OBJ_VAL(obj, 0)].material;
+  /* size */
+  GET_OBJ_SIZE(obj) = weapon_list[GET_OBJ_VAL(obj, 0)].size;
+  
+  /* set the proper wear bits */
+  
+  /* going to go ahead and reset all the bits off */
+  for (wear_inc = 0; wear_inc < NUM_ITEM_WEARS; wear_inc++) {
+    REMOVE_BIT_AR(GET_OBJ_WEAR(obj), wear_inc);
+  }
+  
+  /* now set take bit */
+  TOGGLE_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_TAKE);
+  
+  /* now set the appropriate wear flag bit */
+  TOGGLE_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_WIELD);
+}
+
+/* given: base material (base_mat), item grade (grade)
+   return: possible material upgrade */
+int possible_material_upgrade(int base_mat, int grade) {
+  int material = base_mat;
+  int roll = dice(1, 100); /* randomness */
+  
   switch (material) {
     case MATERIAL_BRONZE:
       switch (grade) {
@@ -1773,570 +1409,9 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel, int wear_s
           break;
       }
       break;
-  }
-
-  /* determine level */
-  switch (grade) {
-    case GRADE_MUNDANE:
-      level = rand_number(1, 8);
-      break;
-    case GRADE_MINOR:
-      level = rand_number(9, 16);
-      break;
-    case GRADE_MEDIUM:
-      level = rand_number(17, 24);
-      break;
-    default: // major grade
-      level = rand_number(25, 30);
-      break;
-  }
-
-  /* ok load object, set material */
-  if ((obj = read_object(vnum, VIRTUAL)) == NULL) {
-    log("SYSERR: award_magic_armor created NULL object");
-    return;
-  }
-  GET_OBJ_MATERIAL(obj) = material;
-
-  /* BEGIN DESCRIPTION SECTION */
-
-  /* first assign two random colors for usage */
-  color1 = rand_number(0, NUM_A_COLORS);
-  color2 = rand_number(0, NUM_A_COLORS);
-  /* make sure they are not the same colors */
-  while (color2 == color1)
-    color2 = rand_number(0, NUM_A_COLORS);
-  crest_num = rand_number(0, NUM_A_ARMOR_CRESTS);
-
-  /* start with keyword string */
-  sprintf(keywords, "%s %s", keywords, armor_name);
-  sprintf(keywords, "%s %s", keywords, material_name[material]);
-
-  roll = dice(1, 3);
-  if (roll == 3) { // armor spec adjective in desc?
-    sprintf(desc, "%s %s", desc,
-            armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS)]);
-    sprintf(keywords, "%s %s", keywords,
-            armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS)]);
-  }
-
-  roll = dice(1, 5);
-  if (roll >= 4) { // color describe #1?
-    sprintf(desc, "%s %s", desc, colors[color1]);
-    sprintf(keywords, "%s %s", keywords, colors[color1]);
-  } else if (roll == 3) { // two colors
-    sprintf(desc, "%s %s and %s", desc, colors[color1], colors[color2]);
-    sprintf(keywords, "%s %s and %s", keywords, colors[color1], colors[color2]);
-  }
-
-  // Insert the material type, then armor type
-  sprintf(desc, "%s %s", desc, material_name[material]);
-  sprintf(desc, "%s %s", desc, armor_name);
-
-  roll = dice(1, 8);
-  if (roll >= 7) { // crest?
-    sprintf(desc, "%s with %s %s crest", desc,
-            AN(armor_crests[crest_num]),
-            armor_crests[crest_num]);
-    sprintf(keywords, "%s with %s %s crest", keywords,
-            AN(armor_crests[crest_num]),
-            armor_crests[crest_num]);
-  } else if (roll >= 5) { // or symbol?
-    sprintf(desc, "%s covered in symbols of %s %s", desc,
-            AN(armor_crests[crest_num]),
-            armor_crests[crest_num]);
-    sprintf(keywords, "%s covered in symbols of %s %s", keywords,
-            AN(armor_crests[crest_num]),
-            armor_crests[crest_num]);
-  }
-
-  // keywords
-  obj->name = strdup(keywords);
-  // Set descriptions
-  obj->short_description = strdup(desc);
-  desc[0] = toupper(desc[0]);
-  sprintf(desc, "%s is lying here.", desc);
-  obj->description = strdup(desc);
-
-  /* END DESCRIPTION SECTION */
-
-  /* BONUS SECTION */
-  cp_modify_object_applies(ch, obj, rare_grade, level, CP_TYPE_ARMOR);
-  /* END BONUS SECTION */
-}
-
-/* this mess was old d20MUD's version of awarding magic weapon,
- left it here for 'notes' */
-/*
-static char *replace_string(char *str, char *orig, char *rep)
-{
-  static char buffer[4096];
-  char *p;
-
-  if(!(p = strstr(str, orig)))  // Is 'orig' even in 'str'?
-    return str;
-
-  strncpy(buffer, str, p-str); // Copy characters from 'str' start to 'orig' st$
-  buffer[p-str] = '\0';
-
-  sprintf(buffer+(p-str), "%s%s", rep, p+strlen(orig));
-
-  return buffer;
-}
-// automatically set object up to be a given weapon type
-void set_weapon_values(struct obj_data *obj, int type) {
-  GET_OBJ_VAL(obj, 0) = type;
-  GET_OBJ_VAL(obj, 1) = weapon_list[type].numDice;
-  GET_OBJ_VAL(obj, 2) = weapon_list[type].diceSize;
-  GET_OBJ_VAL(obj, 4) = 100;
-  GET_OBJ_VAL(obj, 5) = 100;
-  GET_OBJ_VAL(obj, 6) = weapon_list[type].critMult;
-
-  if (IS_SET(weapon_list[type].weaponFlags, WEAPON_FLAG_RANGED))
-    GET_OBJ_VAL(obj, VAL_WEAPON_DAMTYPE) = TYPE_SHOOT;
-  else if (IS_SET(weapon_list[type].damageTypes, DAMAGE_TYPE_BLUDGEONING))
-    GET_OBJ_VAL(obj, VAL_WEAPON_DAMTYPE) = TYPE_BLUDGEON;
-  else if (IS_SET(weapon_list[type].damageTypes, DAMAGE_TYPE_SLASHING))
-    GET_OBJ_VAL(obj, VAL_WEAPON_DAMTYPE) = TYPE_SLASH;
-  else if (IS_SET(weapon_list[type].damageTypes, DAMAGE_TYPE_PIERCING))
-    GET_OBJ_VAL(obj, VAL_WEAPON_DAMTYPE) = TYPE_PIERCE;
-  else
-    GET_OBJ_VAL(obj, VAL_WEAPON_DAMTYPE) = TYPE_HIT;
-
-  GET_OBJ_VAL(obj, VAL_WEAPON_DAMTYPE) -= TYPE_HIT;
-  GET_OBJ_VAL(obj, 8) = weapon_list[type].critRange;
-  GET_OBJ_VAL(obj, 9) = weapon_list[type].weaponFlags;
-  GET_OBJ_VAL(obj, 10) = weapon_list[type].range;
-  GET_OBJ_VAL(obj, 11) = weapon_list[type].weaponFamily;
-  GET_OBJ_COST(obj) = weapon_list[type].cost;
-  GET_OBJ_WEIGHT(obj) = weapon_list[type].weight;
-  GET_OBJ_SIZE(obj) = weapon_list[type].size;
-  GET_OBJ_MATERIAL(obj) = weapon_list[type].material;
-}
-// give away random magic weapon, directly from d20
-#define VR_WEAPON_OBJ 30200 // vnum of blank object to make weapon out of 
-void award_magic_weapon2(struct char_data *ch, int grade, int moblevel) {
-  int i = 0;
-  int roll = 0;
-  int size = 0;
-  int hit_bonus = 0;
-  int dmg_bonus = 0;
-  struct obj_data *obj;
-  char buf[MAX_STRING_LENGTH];
-  int special_roll = 0;
-  int head_color_roll = 0;
-  int hilt_color_roll = 0;
-  char special[100];
-  char head_color[100];
-  char hilt_color[100];
-  int rare = dice(1, 100);
-  int raregrade = 0;
-
-  if (grade == GRADE_MUNDANE) {
-    hit_bonus = 1;
-    dmg_bonus = 0;
-  } else if (grade == GRADE_MINOR) {
-    roll = dice(1, 100);
-
-    if (roll >= 86) {
-      award_magic_weapon(ch, grade, moblevel);
-      return;
-    } else if (roll >= 71) {
-      hit_bonus = 2;
-      dmg_bonus = 2;
-    } else if (roll >= 51) {
-      hit_bonus = dice(1, 2);
-      dmg_bonus = dice(1, 2);
-    } else {
-      hit_bonus = 1;
-      dmg_bonus = 1;
-    }
-  } else if (grade == GRADE_MEDIUM) {
-    roll = dice(1, 100);
-
-    if (roll >= 69) {
-      award_magic_weapon(ch, grade, moblevel);
-      return;
-    } else if (roll >= 63) {
-      award_magic_weapon(ch, grade, moblevel);
-      return;
-    } else if (roll >= 59) {
-      hit_bonus = 4;
-      dmg_bonus = 4;
-    } else if (roll >= 51) {
-      hit_bonus = dice(1, 2) + 2;
-      dmg_bonus = dice(1, 2) + 2;
-    } else if (roll >= 21) {
-      hit_bonus = 3;
-      dmg_bonus = 3;
-    } else if (roll >= 16) {
-      hit_bonus = dice(1, 2) + 1;
-      dmg_bonus = dice(1, 2) + 1;
-    } else if (roll >= 11) {
-      hit_bonus = 2;
-      dmg_bonus = 2;
-    } else if (roll >= 6) {
-      hit_bonus = dice(1, 2);
-      dmg_bonus = dice(1, 2);
-    } else {
-      hit_bonus = 1;
-      dmg_bonus = 1;
-    }
-  } else {
-    roll = dice(1, 100);
-
-    if (roll >= 64) {
-      award_magic_weapon(ch, grade, moblevel);
-      return;
-    } else if (roll >= 50) {
-      award_magic_weapon(ch, grade, moblevel);
-      return;
-    } else if (roll >= 39) {
-      hit_bonus = 5;
-      dmg_bonus = 5;
-    } else if (roll >= 31) {
-      hit_bonus = dice(1, 2) + 3;
-      dmg_bonus = dice(1, 2) + 3;
-    } else if (roll >= 21) {
-      hit_bonus = 4;
-      dmg_bonus = 4;
-    } else if (roll >= 11) {
-      hit_bonus = dice(1, 2) + 2;
-      dmg_bonus = dice(1, 2) + 2;
-    } else {
-      hit_bonus = 3;
-      dmg_bonus = 3;
-    }
-    moblevel -= 20;
-    if (moblevel > 0) {
-      hit_bonus += moblevel / 4;
-      dmg_bonus += moblevel / 4;
-    }
-  }
-
-  obj = read_object(VR_WEAPON_OBJ, VIRTUAL);
-
-  roll = dice(1, 100);
-  set_weapon_values(obj, roll);
-
-  if (roll == WEAPON_TYPE_UNARMED)
-    GET_OBJ_MATERIAL(obj) = MATERIAL_LEATHER;
-
-  if (GET_OBJ_MATERIAL(obj) == MATERIAL_STEEL) {
-    roll = dice(1, 100);
-
-    if (roll >= 97) {
-      GET_OBJ_MATERIAL(obj) = MATERIAL_ADAMANTINE;
-    } else if (roll >= 90) {
-      GET_OBJ_MATERIAL(obj) = MATERIAL_MITHRIL;
-    } else if (roll >= 81) {
-      GET_OBJ_MATERIAL(obj) = MATERIAL_ALCHEMAL_SILVER;
-    } else if (roll >= 71) {
-      GET_OBJ_MATERIAL(obj) = MATERIAL_COLD_IRON;
-    } else {
-      GET_OBJ_MATERIAL(obj) = MATERIAL_STEEL;
-    }
-  } else if (GET_OBJ_MATERIAL(obj) == MATERIAL_WOOD) {
-    roll = dice(1, 100);
-
-    if (roll >= 90) {
-      GET_OBJ_MATERIAL(obj) = MATERIAL_DARKWOOD;
-    } else {
-      GET_OBJ_MATERIAL(obj) = MATERIAL_WOOD;
-    }
-  }
-
-  if (rare == 1) {
-    raregrade = 3;
-  } else if (rare <= 6) {
-    raregrade = 2;
-  } else if (rare <= 16) {
-    raregrade = 1;
-  }
-
-  char desc[50];
-  if (raregrade == 0)
-    sprintf(desc, "@n");
-  else if (raregrade == 1)
-    sprintf(desc, "@G[Rare]@n ");
-  else if (raregrade == 2)
-    sprintf(desc, "@Y[Legendary]@n ");
-  else if (raregrade == 3)
-    sprintf(desc, "@M[Mythical]@n ");
-
-  i = 0;
-  while (*(colors + i++)) {
-    // counting array 
-  }
-  size = i;
-  head_color_roll = MAX(0, dice(1, (int) size) - 2);
-  hilt_color_roll = MAX(0, dice(1, (int) size) - 2);
-  sprintf(head_color, "%s", colors[head_color_roll]);
-  sprintf(hilt_color, "%s", colors[hilt_color_roll]);
-
-  if (IS_SET(weapon_list[GET_OBJ_VAL(obj, 0)].damageTypes, DAMAGE_TYPE_SLASHING)) {
-    i = 0;
-    while (*(blade_descs + i++)) {
-      // counting array
-    }
-    size = i;
-    special_roll = MAX(0, dice(1, (int) size) - 2);
-    sprintf(special, "%s%s", desc, blade_descs[special_roll]);
-  } else if (IS_SET(weapon_list[GET_OBJ_VAL(obj, 0)].damageTypes, DAMAGE_TYPE_PIERCING)) {
-    i = 0;
-    while (*(piercing_descs + i++)) {
-      // counting array
-    }
-    size = i;
-    special_roll = MAX(0, dice(1, (int) size) - 2);
-    sprintf(special, "%s%s", desc, piercing_descs[special_roll]);
-  } else {
-    i = 0;
-    while (*(blunt_descs + i++)) {
-      // counting array
-    }
-    size = i;
-    special_roll = MAX(0, dice(1, (int) size) - 2);
-    sprintf(special, "%s%s", desc, blunt_descs[special_roll]);
-  }
-
-  roll = dice(1, 100);
-
-  // special, head color, hilt color
-  if (roll >= 91) {
-    sprintf(buf, "%s %s-%s %s %s %s %s", special,
-            head_color, head_types[weapon_list[GET_OBJ_VAL(obj, 0)].head_type],
-            material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_OBJ_VAL(obj, 0)].name,
-            hilt_color,
-            handle_types[weapon_list[GET_OBJ_VAL(obj, 0)].handle_type]);
-    obj->name = strdup(buf);
-
-    sprintf(buf, "%s %s, %s-%s %s %s with %s %s %s", a_or_an(special), special,
-            head_color, head_types[weapon_list[GET_OBJ_VAL(obj, 0)].head_type],
-            material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_OBJ_VAL(obj, 0)].name,
-            a_or_an(hilt_color), hilt_color,
-            handle_types[weapon_list[GET_OBJ_VAL(obj, 0)].handle_type]);
-    obj->short_description = strdup(buf);
-
-    sprintf(buf, "%s %s, %s-%s %s %s with %s %s %s lies here.", a_or_an(special),
-            special,
-            head_color, head_types[weapon_list[GET_OBJ_VAL(obj, 0)].head_type],
-            material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_OBJ_VAL(obj, 0)].name,
-            a_or_an(hilt_color), hilt_color,
-            handle_types[weapon_list[GET_OBJ_VAL(obj, 0)].handle_type]);
-    *buf = UPPER(*buf);
-    obj->description = strdup(buf);
-
-  }// special, head color
-  else if (roll >= 81) {
-    sprintf(buf, "%s %s-%s %s %s", special,
-            head_color, head_types[weapon_list[GET_OBJ_VAL(obj, 0)].head_type],
-            material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_OBJ_VAL(obj, 0)].name);
-    obj->name = strdup(buf);
-
-    sprintf(buf, "%s %s, %s-%s %s %s", a_or_an(special), special,
-            head_color, head_types[weapon_list[GET_OBJ_VAL(obj, 0)].head_type],
-            material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_OBJ_VAL(obj, 0)].name);
-    obj->short_description = strdup(buf);
-
-    sprintf(buf, "%s %s, %s-%s %s %s lies here.", a_or_an(special),
-            special,
-            head_color, head_types[weapon_list[GET_OBJ_VAL(obj, 0)].head_type],
-            material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_OBJ_VAL(obj, 0)].name);
-    *buf = UPPER(*buf);
-    obj->description = strdup(buf);
-
-  }// special, hilt color
-  else if (roll >= 71) {
-    sprintf(buf, "%s %s %s %s %s", special,
-            material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_OBJ_VAL(obj, 0)].name,
-            hilt_color,
-            handle_types[weapon_list[GET_OBJ_VAL(obj, 0)].handle_type]);
-    obj->name = strdup(buf);
-
-    sprintf(buf, "%s %s %s %s with %s %s %s", a_or_an(special), special,
-            material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_OBJ_VAL(obj, 0)].name,
-            a_or_an(hilt_color), hilt_color,
-            handle_types[weapon_list[GET_OBJ_VAL(obj, 0)].handle_type]);
-    obj->short_description = strdup(buf);
-
-    sprintf(buf, "%s %s %s %s with %s %s %s lies here.", a_or_an(special),
-            special,
-            material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_OBJ_VAL(obj, 0)].name,
-            a_or_an(hilt_color), hilt_color,
-            handle_types[weapon_list[GET_OBJ_VAL(obj, 0)].handle_type]);
-    *buf = UPPER(*buf);
-    obj->description = strdup(buf);
-    
-  }// head color, hilt color
-  else if (roll >= 41) {
-    sprintf(buf, "%s-%s %s %s %s %s",
-            head_color, head_types[weapon_list[GET_OBJ_VAL(obj, 0)].head_type],
-            material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_OBJ_VAL(obj, 0)].name,
-            hilt_color,
-            handle_types[weapon_list[GET_OBJ_VAL(obj, 0)].handle_type]);
-    obj->name = strdup(buf);
-
-    sprintf(buf, "%s %s-%s %s %s with %s %s %s", a_or_an(head_color),
-            head_color, head_types[weapon_list[GET_OBJ_VAL(obj, 0)].head_type],
-            material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_OBJ_VAL(obj, 0)].name,
-            a_or_an(hilt_color), hilt_color,
-            handle_types[weapon_list[GET_OBJ_VAL(obj, 0)].handle_type]);
-    obj->short_description = strdup(buf);
-
-    sprintf(buf, "%s %s-%s %s %s with %s %s %s lies here.", a_or_an(head_color),
-            head_color, head_types[weapon_list[GET_OBJ_VAL(obj, 0)].head_type],
-            material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_OBJ_VAL(obj, 0)].name,
-            a_or_an(hilt_color), hilt_color,
-            handle_types[weapon_list[GET_OBJ_VAL(obj, 0)].handle_type]);
-    *buf = UPPER(*buf);
-    obj->description = strdup(buf);
-
-  }// head color
-  else if (roll >= 31) {
-    sprintf(buf, "%s-%s %s %s",
-            head_color, head_types[weapon_list[GET_OBJ_VAL(obj, 0)].head_type],
-            material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_OBJ_VAL(obj, 0)].name);
-    obj->name = strdup(buf);
-
-    sprintf(buf, "%s %s-%s %s %s", a_or_an(head_color),
-            head_color, head_types[weapon_list[GET_OBJ_VAL(obj, 0)].head_type],
-            material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_OBJ_VAL(obj, 0)].name);
-    obj->short_description = strdup(buf);
-
-    sprintf(buf, "%s %s-%s %s %s lies here.", a_or_an(head_color),
-            head_color, head_types[weapon_list[GET_OBJ_VAL(obj, 0)].head_type],
-            material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_OBJ_VAL(obj, 0)].name);
-    *buf = UPPER(*buf);
-    obj->description = strdup(buf);
-
-  }// hilt color
-  else if (roll >= 21) {
-    sprintf(buf, "%s %s %s %s",
-            material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_OBJ_VAL(obj, 0)].name,
-            hilt_color,
-            handle_types[weapon_list[GET_OBJ_VAL(obj, 0)].handle_type]);
-    obj->name = strdup(buf);
-
-    sprintf(buf, "%s %s %s with %s %s %s", a_or_an((char *) material_name[GET_OBJ_MATERIAL(obj)]),
-            material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_OBJ_VAL(obj, 0)].name,
-            a_or_an(hilt_color), hilt_color,
-            handle_types[weapon_list[GET_OBJ_VAL(obj, 0)].handle_type]);
-    obj->short_description = strdup(buf);
-
-    sprintf(buf, "%s %s %s with %s %s %s lies here.",
-            a_or_an((char *) material_name[GET_OBJ_MATERIAL(obj)]),
-            material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_OBJ_VAL(obj, 0)].name,
-            a_or_an(hilt_color), hilt_color,
-            handle_types[weapon_list[GET_OBJ_VAL(obj, 0)].handle_type]);
-    *buf = UPPER(*buf);
-    obj->description = strdup(buf);
-
-  }// special
-  else if (roll >= 11) {
-    sprintf(buf, "%s %s %s", special,
-            material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_OBJ_VAL(obj, 0)].name);
-    obj->name = strdup(buf);
-
-    sprintf(buf, "%s %s %s %s", a_or_an(special), special,
-            material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_OBJ_VAL(obj, 0)].name);
-    obj->short_description = strdup(buf);
-
-    sprintf(buf, "%s %s %s %s lies here.", a_or_an(special), special,
-            material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_OBJ_VAL(obj, 0)].name);
-    *buf = UPPER(*buf);
-    obj->description = strdup(buf);
-  }
-  // none
-  else {
-    sprintf(buf, "%s %s",
-            material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_OBJ_VAL(obj, 0)].name);
-    obj->name = strdup(buf);
-
-    sprintf(buf, "%s %s %s", a_or_an((char *) material_name[GET_OBJ_MATERIAL(obj)]),
-            material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_OBJ_VAL(obj, 0)].name);
-    obj->short_description = strdup(buf);
-
-    sprintf(buf, "%s %s %s lies here.",
-            a_or_an((char *) material_name[GET_OBJ_MATERIAL(obj)]),
-            material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_OBJ_VAL(obj, 0)].name);
-    *buf = UPPER(*buf);
-    obj->description = strdup(buf);
-
-  }
-
-  obj->name = strdup(replace_string(obj->name, "unarmed", "gauntlet"));
-  obj->short_description = strdup(replace_string(obj->short_description, "unarmed", "gauntlet"));
-  obj->description = strdup(replace_string(obj->description, "unarmed", "gauntlet"));
-
-  if (dmg_bonus) {
-    obj->affected[0].location = APPLY_DAMROLL;
-    obj->affected[0].modifier = dmg_bonus;
-  }
-
-  if (hit_bonus) {
-    obj->affected[1].location = APPLY_HITROLL;
-    obj->affected[1].modifier = hit_bonus;
-  }
-
-  GET_OBJ_LEVEL(obj) = MAX(1, moblevel);
-
-  obj->affected[0].modifier += raregrade;
-  obj->affected[1].modifier += raregrade;
-
-  GET_OBJ_COST(obj) = 250 + GET_OBJ_LEVEL(obj) * 50 * MAX(1, GET_OBJ_LEVEL(obj) - 1);
-  GET_OBJ_COST(obj) = GET_OBJ_COST(obj) * (3 + (raregrade * 2)) / 3;
-
-  if (grade > GRADE_MUNDANE)
-    SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC);
-
-  obj_to_char(obj, ch);
-
-  if (!(IS_NPC(ch) && IS_MOB(ch) && GET_MOB_SPEC(ch) == shop_keeper)) {
-    send_to_char(ch, "@YYou have found %s in a nearby lair!@n\r\n", obj->short_description);
-    sprintf(buf, "@Y$n has found %s in a nearby lair!@n", obj->short_description);
-    act(buf, FALSE, ch, 0, ch, TO_NOTVICT);
-  }
-}
-*/
-
-/* automatically set object up to be a given weapon type 
-  TODO: there is a copy of this in oedit.c too, should just merge them */
-/* weapon object values:
-   0 : the base weapon-type, i.e. long sword
-   1 : number of damage dice
-   2 : size of damage dice
- * everything else is computed via the weapon_list[] */
-void set_weapon_object(struct obj_data *obj, int type) {
-  int wear_inc;
+  }  
   
-  /* Weapon Type */
-  GET_OBJ_VAL(obj, 0) = type;
-
-  /* Set damdice  and size based on weapon type. */
-  GET_OBJ_VAL(obj, 1) = weapon_list[GET_OBJ_VAL(obj, 0)].numDice;
-  GET_OBJ_VAL(obj, 2) = weapon_list[GET_OBJ_VAL(obj, 0)].diceSize;
-  /* cost */
-  GET_OBJ_COST(obj) = weapon_list[GET_OBJ_VAL(obj, 0)].cost;
-  /* weight */
-  GET_OBJ_WEIGHT(obj) = weapon_list[GET_OBJ_VAL(obj, 0)].weight;
-  /* material */
-  GET_OBJ_MATERIAL(obj) = weapon_list[GET_OBJ_VAL(obj, 0)].material;
-  /* size */
-  GET_OBJ_SIZE(obj) = weapon_list[GET_OBJ_VAL(obj, 0)].size;
-  
-  /* set the proper wear bits */
-  
-  /* going to go ahead and reset all the bits off */
-  for (wear_inc = 0; wear_inc < NUM_ITEM_WEARS; wear_inc++) {
-    REMOVE_BIT_AR(GET_OBJ_WEAR(obj), wear_inc);
-  }
-  
-  /* now set take bit */
-  TOGGLE_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_TAKE);
-  
-  /* now set the appropriate wear flag bit */
-  TOGGLE_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_WIELD);
+  return material;
 }
 
 /* give away random magic weapon, method:
@@ -2382,67 +1457,9 @@ void award_magic_weapon(struct char_data *ch, int grade, int moblevel) {
     sprintf(desc, "\tG[Rare] \tn");
   }
 
-  /* we already determined 'base' material, now
-   determine whether an upgrade was achieved by item-grade */
-  roll = dice(1, 100);
-  switch (GET_OBJ_MATERIAL(obj)) {
-    case MATERIAL_BRONZE:
-      switch (grade) {
-        case GRADE_MUNDANE:
-          if (roll <= 75)
-            material = MATERIAL_BRONZE;
-          else
-            material = MATERIAL_IRON;
-          break;
-        case GRADE_MINOR:
-          if (roll <= 75)
-            material = MATERIAL_IRON;
-          else
-            material = MATERIAL_STEEL;
-          break;
-        case GRADE_MEDIUM:
-          if (roll <= 50)
-            material = MATERIAL_IRON;
-          else if (roll <= 80)
-            material = MATERIAL_STEEL;
-          else if (roll <= 95)
-            material = MATERIAL_COLD_IRON;
-          else
-            material = MATERIAL_ALCHEMAL_SILVER;
-          break;
-        default: // major grade
-          if (roll <= 50)
-            material = MATERIAL_COLD_IRON;
-          else if (roll <= 80)
-            material = MATERIAL_ALCHEMAL_SILVER;
-          else if (roll <= 95)
-            material = MATERIAL_MITHRIL;
-          else
-            material = MATERIAL_ADAMANTINE;
-          break;
-      }
-      break;
-    case MATERIAL_WOOD:
-      switch (grade) {
-        case GRADE_MUNDANE:
-        case GRADE_MINOR:
-        case GRADE_MEDIUM:
-          material = MATERIAL_WOOD;
-          break;
-        default: // major grade
-          if (roll <= 80)
-            material = MATERIAL_WOOD;
-          else
-            material = MATERIAL_DARKWOOD;
-          break;
-      }
-      break;
-    default:
-      material = GET_OBJ_MATERIAL(obj);
-      break;
-  }
-  /* ok assigning final material here */
-  GET_OBJ_MATERIAL(obj) = material;
+  /* ok assigning final material here, check for upgrade */
+  GET_OBJ_MATERIAL(obj) =
+          possible_material_upgrade(GET_OBJ_MATERIAL(obj), grade);
 
   /* determine level */
   switch (grade) {
@@ -2852,7 +1869,7 @@ void award_misc_magic_item(struct char_data *ch, int grade, int moblevel) {
 
   /* ok load object, set material */
   if ((obj = read_object(vnum, VIRTUAL)) == NULL) {
-    log("SYSERR: award_magic_armor created NULL object");
+    log("SYSERR: award_misc_magic_item created NULL object");
     return;
   }
   GET_OBJ_MATERIAL(obj) = material;
