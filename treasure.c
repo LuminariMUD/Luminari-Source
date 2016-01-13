@@ -1135,7 +1135,8 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel, int wear_s
   /* a suit of (body), or a pair of (arm/leg), or AN() (helm) */
   if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_BODY)) {
     sprintf(desc, "%s%s", desc, "a suit of");    
-  } else if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_HEAD)) {
+  } else if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_HEAD) ||
+             IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_SHIELD)) {
     sprintf(desc, "%s%s", desc,
             AN(armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS)]));    
   } else {
@@ -1236,6 +1237,8 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel, int wear_s
  * everything else is computed via the weapon_list[] */
 void set_armor_object(struct obj_data *obj, int type) {
   int wear_inc;
+
+  GET_OBJ_TYPE(obj) = ITEM_ARMOR;
   
   /* Armor Type, 2nd Value */
   GET_OBJ_VAL(obj, 1) = type;
@@ -1275,6 +1278,8 @@ void set_armor_object(struct obj_data *obj, int type) {
  * everything else is computed via the weapon_list[] */
 void set_weapon_object(struct obj_data *obj, int type) {
   int wear_inc;
+
+  GET_OBJ_TYPE(obj) = ITEM_WEAPON;
   
   /* Weapon Type */
   GET_OBJ_VAL(obj, 0) = type;
