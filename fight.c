@@ -4611,10 +4611,21 @@ void handle_missed_attack(struct char_data *ch, struct char_data *victim,
             dam_type, attack_type);
 
   /* Ranged miss */
-  if (attack_type == ATTACK_TYPE_RANGED)
-    /* Drop the ammo to the ground.  Can add a breakage % chance here as well. */
-    obj_to_room(missile, IN_ROOM(victim));
-
+  if (attack_type == ATTACK_TYPE_RANGED) {
+    /* breakage chance! */
+    if (GET_OBJ_VAL(missile, 2) >= dice(1, 100)) { /*broke!*/   
+      act("\tnThe $o\tn you fire at $N\tn misses badly and ends up breaking!",
+              FALSE, ch, missile, victim, TO_CHAR);
+      act("\tnThe $o\tn that $n\tn fired at you misses and ends up breaking!",
+              FALSE, ch, missile, victim, TO_VICT | TO_SLEEP);
+      act("\tnThe $o\tn that $n\tn fires at $N\tn misses badly and ends up breaking!",
+              FALSE, ch, missile, victim, TO_NOTVICT);
+      extract_obj(missile);
+    } else { /* Drop the ammo to the ground.*/
+      obj_to_room(missile, IN_ROOM(victim));      
+    }
+  }
+  
   return;
 }
 

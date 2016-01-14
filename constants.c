@@ -114,7 +114,7 @@ const char *ammo_types[NUM_AMMO_TYPES + 1] = {
   "Undefined",
   "arrow",
   "bolt",
-  "sling-bullet",
+  "sling bullet",
   "dart",
   "\n"
 };
