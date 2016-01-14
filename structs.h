@@ -2270,7 +2270,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define SPEC_ARMOR_TYPE_HIDE_HEAD            23
 #define SPEC_ARMOR_TYPE_SCALE_HEAD           24
 #define SPEC_ARMOR_TYPE_CHAINMAIL_HEAD       25
-#define SPEC_ARMOR_TYPE_CHAINMAIL_HEAD       26 /* duplicate :( */
+#define SPEC_ARMOR_TYPE_CHAIN_HEAD           26 /* duplicate :( */
 #define SPEC_ARMOR_TYPE_PIECEMEAL_HEAD       27
 #define SPEC_ARMOR_TYPE_SPLINT_HEAD          28
 #define SPEC_ARMOR_TYPE_BANDED_HEAD          29
