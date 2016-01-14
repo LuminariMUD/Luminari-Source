@@ -42,6 +42,7 @@ extern const char *head_types[];
 #define CP_TYPE_ARMOR        1
 #define CP_TYPE_WEAPON       2
 #define CP_TYPE_MISC         3
+#define CP_TYPE_AMMO         4
 
 /* percentage chance of random treasure drop */
 /* DO NOT MAKE OVER 98 (because of happyhour settings) */
@@ -196,7 +197,9 @@ extern const char *head_types[];
 /* weapon blank object */
 #define WEAPON_PROTO     3299
 /* armor blank object */
-#define ARMOR_PROTO     3298
+#define ARMOR_PROTO      3298
+/* ammo blank object */
+#define AMMO_PROTO       3297
 
 /* misc mold vnums */
 #define RING_MOLD        3176  //0
@@ -240,12 +243,16 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel, int wear_s
 void award_magic_weapon(struct char_data *ch, int grade, int moblevel);
 // gives away random armor pieces (outside of body-armor/shield)
 void award_misc_magic_item(struct char_data *ch, int grade, int moblevel);
+// gives away random ammo
+void award_magic_ammo(struct char_data *ch, int grade, int moblevel);
 // determines bonus modifiers to apply_value
 int random_bonus_value(int apply_value, int level, int mod);
-// take an object, and set its values to an appriopriate weapon of 'type'
+// take an object, and set its values to an appropriate weapon of 'type'
 void set_weapon_object(struct obj_data *obj, int type);
-// take an object, and set its values to an appriopriate armor of 'type'
+// take an object, and set its values to an appropriate armor of 'type'
 void set_armor_object(struct obj_data *obj, int type);
+// take an object, and set its values to an appropriate ammo of 'type'
+void set_ammo_object(struct obj_data *obj, int type);
 // take base material, check for upgrade based on grade
 int possible_material_upgrade(int base_mat, int grade);
 

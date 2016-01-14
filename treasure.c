@@ -424,12 +424,12 @@ void award_magic_item(int number, struct char_data *ch, int level, int grade) {
  * weapons drop 10% of the time. */
   for (i = 0; i < number; i++) {
     roll = dice(1, 100);
-    if (roll <= 5)
+    if (roll <= 5)                 /*  1 - 5    5%  */
       award_random_crystal(ch, level);
-    else if (roll <= 15)
+    else if (roll <= 15)           /*  6 - 15   10% */
       award_magic_weapon(ch, grade, level);
-    else if (roll <= 55) {
-      switch (dice(1,4)) {
+    else if (roll <= 55) {         /* 16 - 55   40% */
+      switch (dice(1,6)) {
         case 1:
           award_expendable_item(ch, grade, TYPE_SCROLL);
           break;
@@ -442,10 +442,15 @@ void award_magic_item(int number, struct char_data *ch, int level, int grade) {
         case 4:
           award_expendable_item(ch, grade, TYPE_STAFF);
           break;
+        default: /* giving 3 */
+          award_magic_ammo(ch, grade, level);
+          award_magic_ammo(ch, grade, level);
+          award_magic_ammo(ch, grade, level);
+          break;
       }
-    } else if (roll <= 75)
+    } else if (roll <= 75)         /* 56 - 75   20% */
         award_misc_magic_item(ch, grade, level);
-      else
+      else                         /* 76 - 100  25% */
         award_magic_armor(ch, grade, level, -1);
   }
 }
@@ -909,7 +914,8 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
   /* items that will only get an enhancement bonus */
   if (CAN_WEAR(obj, ITEM_WEAR_WIELD) || CAN_WEAR(obj, ITEM_WEAR_SHIELD) ||
       CAN_WEAR(obj, ITEM_WEAR_HEAD) || CAN_WEAR(obj, ITEM_WEAR_BODY) ||
-      CAN_WEAR(obj, ITEM_WEAR_LEGS) || CAN_WEAR(obj, ITEM_WEAR_ARMS)
+      CAN_WEAR(obj, ITEM_WEAR_LEGS) || CAN_WEAR(obj, ITEM_WEAR_ARMS) ||
+          cp_type == CP_TYPE_AMMO
       ) {
     GET_OBJ_VAL(obj, 4) = level / 5;
     has_enhancement = TRUE;
@@ -945,8 +951,13 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
     obj->affected[0].bonus_type = adjust_bonus_type(bonus_location);
   }
 
+  /* lets modify this ammo's breakability (base 30%) */
+  GET_OBJ_VAL(obj, 2) -= (level / 2 + rare_grade * 10 / 2);
+  
   GET_OBJ_LEVEL(obj) = level;
-  GET_OBJ_COST(obj) = GET_OBJ_LEVEL(obj) * 100;  // set value
+  if (cp_type == CP_TYPE_AMMO) ;
+  else
+    GET_OBJ_COST(obj) = GET_OBJ_LEVEL(obj) * 100;  // set value
   REMOVE_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MOLD);  // make sure not mold
   if (level >= 5)
     SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC);  // add magic tag
@@ -1090,7 +1101,94 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
 }
 */
 
-/* Give away random magic armor, new method by Ornir
+/* Give away random magic ammo */
+void award_magic_ammo(struct char_data *ch, int grade, int moblevel) {
+  struct obj_data *obj = NULL;
+  int armor_desc_roll = 0;
+  int rare_grade = 0, level = 0;
+  char desc[MEDIUM_STRING] = {'\0'};
+  char keywords[MEDIUM_STRING] = {'\0'};
+
+  /* ok load blank object */
+  if ((obj = read_object(AMMO_PROTO, VIRTUAL)) == NULL) {
+    log("SYSERR: award_magic_ammo created NULL object");
+    return;
+  }  
+
+  /* pick a random ammo, 0 = undefined */
+  armor_desc_roll = rand_number(1, NUM_AMMO_TYPES - 1);
+  
+  /* now set up this new object */
+  set_ammo_object(obj, armor_desc_roll);
+  /* we should have a completely usable ammo now, just missing descrip/stats */
+  
+  /* set the object material, check for upgrade */
+  GET_OBJ_MATERIAL(obj) = possible_material_upgrade(GET_OBJ_MATERIAL(obj), grade);
+
+  /* determine level */
+  switch (grade) {
+    case GRADE_MUNDANE:
+      level = rand_number(1, 8);
+      break;
+    case GRADE_MINOR:
+      level = rand_number(9, 16);
+      break;
+    case GRADE_MEDIUM:
+      level = rand_number(17, 24);
+      break;
+    default: // major grade
+      level = rand_number(25, 30);
+      break;
+  }
+
+  /* BEGIN DESCRIPTION SECTION */  
+  
+  /* arrow, bolt, dart
+   * a|an [armor_special_descs, ex. dwarven-made] [material] [arrow|bolt|dart]
+   *   with a [piercing_descs, ex. grooved] tip
+   * sling bullets
+   * a/an [armor_special_descs] [material] sling-bullet
+   */
+  armor_desc_roll = rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS);
+  
+  /* a dwarven-made */
+  sprintf(desc, "%s %s", AN(armor_special_descs[armor_desc_roll]),
+      armor_special_descs[armor_desc_roll]);
+  sprintf(keywords, "%s", armor_special_descs[armor_desc_roll]);
+  
+  /* mithril sling-bullet */
+  sprintf(desc, "%s %s %s", desc, material_name[GET_OBJ_MATERIAL(obj)],
+      ammo_types[GET_OBJ_VAL(obj, 0)]);
+  sprintf(keywords, "%s %s %s", keywords, material_name[GET_OBJ_MATERIAL(obj)],
+      ammo_types[GET_OBJ_VAL(obj, 0)]);
+  
+  /* sling bullets done! */
+  if (GET_OBJ_VAL(obj, 0) == AMMO_TYPE_STONE)
+    ;
+  /* with a grooved tip (arrows, bolts, darts) */
+  else {
+    armor_desc_roll = rand_number(1, NUM_SPEC_ARMOR_TYPES - 1);
+    sprintf(desc, "%s with a %s tip", desc, armor_special_descs[armor_desc_roll]);
+    sprintf(keywords, "%s with a %s tip", keywords,
+            armor_special_descs[armor_desc_roll]);
+  }
+
+  /* finished descrips, so lets assign them */
+  obj->name = strdup(keywords);
+  // Set descriptions
+  obj->short_description = strdup(desc);
+  desc[0] = toupper(desc[0]);
+  sprintf(desc, "%s is lying here.", desc);
+  obj->description = strdup(desc);
+
+  /* END DESCRIPTION SECTION */
+
+  /* BONUS SECTION */
+  cp_modify_object_applies(ch, obj, rare_grade, level, CP_TYPE_AMMO);
+  /* END BONUS SECTION */
+}
+
+/* Give away random magic armor
  * (includes:  body/head/legs/arms/shield)
  * 1)  determine armor type
  * 2)  determine material
@@ -1230,12 +1328,41 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel, int wear_s
   /* END BONUS SECTION */
 }
 
+/* automatically set object up to be a given ammo type, also setting breakability
+   ammo object values:
+ * 0 : ammo type
+   2 : break probability
+   */
+void set_ammo_object(struct obj_data *obj, int type) {
+
+  GET_OBJ_TYPE(obj) = ITEM_MISSILE;
+  
+  /* Ammo Type, 0 Value */
+  GET_OBJ_VAL(obj, 0) = type;
+
+  /* Base breakability 30% */
+  GET_OBJ_VAL(obj, 2) = 30;
+  
+  /* for convenience we are going to go ahead and set some other values */
+  GET_OBJ_COST(obj) = 10;
+  GET_OBJ_WEIGHT(obj) = 0;
+  
+  /* base material */
+  switch (type) {
+    case AMMO_TYPE_STONE:
+      GET_OBJ_MATERIAL(obj) = MATERIAL_STONE;
+      break;
+    default:
+      GET_OBJ_MATERIAL(obj) = MATERIAL_WOOD;      
+      break;
+  }
+}
+
 /* automatically set object up to be a given armor type 
    armor object values:
-   0 : the base weapon-type, i.e. long sword
-   1 : number of damage dice
-   2 : size of damage dice
- * everything else is computed via the weapon_list[] */
+ * 0 : armor bonus
+   1 : the base armor-type, i.e. plate vambraces
+ * everything else is computed via the armor_list[] */
 void set_armor_object(struct obj_data *obj, int type) {
   int wear_inc;
 

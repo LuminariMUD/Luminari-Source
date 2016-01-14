@@ -112,10 +112,10 @@ const char *spec_armor_type[NUM_SPEC_ARMOR_TYPES + 1] = {
 /* ammo types */
 const char *ammo_types[NUM_AMMO_TYPES + 1] = {
   "Undefined",
-  "Arrow",
-  "Bolt",
-  "Stone",
-  "Dart",
+  "arrow",
+  "bolt",
+  "sling-bullet",
+  "dart",
   "\n"
 };
 
