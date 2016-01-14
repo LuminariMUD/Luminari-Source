@@ -1403,6 +1403,10 @@ void load_armor(void) {
   setarmor(SPEC_ARMOR_TYPE_CHAINMAIL_HEAD, "chainmail helm", ARMOR_TYPE_MEDIUM,
     1500, 11, 2, -5, 30, 20, 15,
     11, MATERIAL_STEEL, ITEM_WEAR_HEAD);
+  /* duplicate item */
+  setarmor(SPEC_ARMOR_TYPE_CHAIN_HEAD, "chainmail helm", ARMOR_TYPE_MEDIUM,
+    1500, 11, 2, -5, 30, 20, 15,
+    11, MATERIAL_STEEL, ITEM_WEAR_HEAD);
   setarmor(SPEC_ARMOR_TYPE_CHAINMAIL_ARMS, "chainmail sleeves", ARMOR_TYPE_MEDIUM,
     1500, 11, 2, -5, 30, 20, 15,
     11, MATERIAL_STEEL, ITEM_WEAR_ARMS);
