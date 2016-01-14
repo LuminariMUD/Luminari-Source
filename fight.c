@@ -4779,6 +4779,11 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   /* This comes after computing the other damage since sneak attack damage
    * is not affected by crit multipliers. */
   dam += sneakdam;
+  
+  /* We hit with a ranged weapon, victim gets a new arrow, stuck neatly in his butt. */
+  if (attack_type == ATTACK_TYPE_RANGED) {
+    obj_to_char(missile, victim);
+  }
 
   /* Melee warding modifies damage. */
   /* once Damage Reduction is ready to launch, this should be removed */
@@ -4819,10 +4824,6 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
           victim_is_dead = TRUE;
         }
       } else {
-        /* We hit with a ranged weapon, victim gets a new arrow, stuck neatly in his butt. */
-        if (attack_type == ATTACK_TYPE_RANGED) {
-          obj_to_char(missile, victim);
-        }
         /* charging combat maneuver */
         if (AFF_FLAGGED(ch, AFF_CHARGING)) {
           send_to_char(ch, "You \tYcharge\tn: ");
