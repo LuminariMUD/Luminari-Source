@@ -952,10 +952,12 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
   }
 
   /* lets modify this ammo's breakability (base 30%) */
-  GET_OBJ_VAL(obj, 2) -= (level / 2 + rare_grade * 10 / 2);
+  if (cp_type == CP_TYPE_AMMO)
+    GET_OBJ_VAL(obj, 2) -= (level / 2 + rare_grade * 10 / 2);
   
   GET_OBJ_LEVEL(obj) = level;
-  if (cp_type == CP_TYPE_AMMO) ;
+  if (cp_type == CP_TYPE_AMMO)
+    ;
   else
     GET_OBJ_COST(obj) = GET_OBJ_LEVEL(obj) * 100;  // set value
   REMOVE_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MOLD);  // make sure not mold
