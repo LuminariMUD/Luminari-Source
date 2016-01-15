@@ -342,7 +342,6 @@ void affect_update(void) {
   struct affected_type *af, *next;
   struct char_data *i;
   struct raff_node *raff, *next_raff;
-  bool has_message = FALSE;
 
   for (i = character_list; i; i = i->next) { /* go through everything */
     for (af = i->affected; af; af = next) { /* loop his/her aff list */
@@ -352,20 +351,19 @@ void affect_update(void) {
       else if (af->duration == -1) /* unlimited duration */
         ;
       else { /* affect wore off! */
-        /* handle spells */
-        if ((af->spell > 0) && (af->spell <= MAX_SPELLS)) {
+        /* handle spells/skills (use to just handle spells) */
+        if ((af->spell > 0) && (af->spell <= MAX_SKILLS)) { /*valid spellnum?*/
+          /* this is our check to avoid duplicate wear-off messages */
           if (!af->next || (af->next->spell != af->spell) ||
                   (af->next->duration > 0)) {
+            /* do we have a built-in spell wear-off message? */
             if (spell_info[af->spell].wear_off_msg) {
               send_to_char(i, "%s\r\n", spell_info[af->spell].wear_off_msg);
-              has_message = TRUE;
+            } else { /* check for alternative message! */
+              alt_wear_off_msg(i, af->spell);
             }
           }
-        }
-        /* handle skills */
-        if (!has_message) {
-          alt_wear_off_msg(i, af->spell);
-        }
+        } 
         /* handle special cases (like morph) */
         spec_wear_off(i, af->spell);
         /* ok, finally remove affect */
