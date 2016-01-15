@@ -177,7 +177,7 @@ ACMD(do_perform) {
                   performance_info[i][PERFORMANCE_DIFF]);
           return;
         }
-        if (ROOM_FLAGGED(ch->in_room, ROOM_SOUNDPROOF) && (
+        if (ch->in_room != NOWHERE && ROOM_FLAGGED(ch->in_room, ROOM_SOUNDPROOF) && (
                 performance_info[i][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_KEYBOARD ||
                 performance_info[i][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_ORATORY ||
                 performance_info[i][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_PERCUSSION ||
@@ -615,7 +615,7 @@ EVENTFUNC(event_bardic_performance) {
             performance_info[performance_num][PERFORMANCE_DIFF]);
     return 0;
   }
-  if (ROOM_FLAGGED(ch->in_room, ROOM_SOUNDPROOF) && (
+  if (ch->in_room != NOWHERE && ROOM_FLAGGED(ch->in_room, ROOM_SOUNDPROOF) && (
       performance_info[performance_num][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_KEYBOARD ||
       performance_info[performance_num][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_ORATORY ||
       performance_info[performance_num][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_PERCUSSION ||
