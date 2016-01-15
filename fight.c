@@ -3422,13 +3422,13 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
      * top or bottom of dam calculation can have a dramtic effect on this number */
     if (AFF_FLAGGED(ch, AFF_CHARGING) && RIDING(ch)) {
       if (HAS_FEAT(ch, FEAT_SPIRITED_CHARGE)) { /* mounted, charging with spirited charge feat */
-        if (HAS_WEAPON_FLAG(wielded, WEAPON_FLAG_CHARGE)) { /* with lance too */
+        if (wielded && HAS_WEAPON_FLAG(wielded, WEAPON_FLAG_CHARGE)) { /* with lance too */
           /*debug*//*send_to_char(ch, "DEBUG: Weapon Charge Flag Working on Lance!\r\n");*/
           dam += damage_holder * 2; /* x3 */
         } else {
           dam += damage_holder; /* x2 */
         }
-      } else if (HAS_WEAPON_FLAG(wielded, WEAPON_FLAG_CHARGE)) { /* mounted charging, no feat, but with lance */
+      } else if (wielded && HAS_WEAPON_FLAG(wielded, WEAPON_FLAG_CHARGE)) { /* mounted charging, no feat, but with lance */
         /*debug*//*send_to_char(ch, "DEBUG: Weapon Charge Flag Working on Lance!\r\n");*/
         dam += damage_holder; /* x2 */
       }
