@@ -25,14 +25,16 @@
 /* end defines */
 
 /* class data, unfinished project */
-struct class_data {
-  char *name; /* full name of class, ex. wizard */
-  char *abbrev; /* abbreviation of class, ex. wiz */
+struct class_table {
+  char *name; /* full name of class, ex. wizard (no color) */
+  char *abbrev; /* abbreviation of class, ex. wiz (no color) */
   char *colored_abbrev; /* same as abbrev, but colored */
-  int max_level; /* maximum number of levels you can take in this class */
-  int class_abilities[NUM_ABILITIES]; /* skills that are class, cross-class or unavailable */
-  int preferred_saves[5]; /* high or low saving throw values */
-  int locked_class; /* whether by default this class is locked or not */
+  char *menu_name; /* colored full name of class for menu(s) */
+  int max_level; /* maximum number of levels you can take in this class, -1 unlimited */
+  /*int class_abilities[NUM_ABILITIES];  skills that are class, cross-class or unavailable */
+  /*int preferred_saves[5];  high or low saving throw values */
+  int save_will; int save_fort; int save_refl;
+  bool locked_class; /* whether by default this class is locked or not */
   int base_attack_bonus; /* whether high, medium or low */
   int hit_dice; /* how many hp this class can get on level up */
   int mana_gain; /* how much mana this class gets on level up */

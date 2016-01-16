@@ -36,6 +36,88 @@
 #include "pfdefaults.h"
 #include "domains_schools.h"
 
+/** LOCAL DEFINES **/
+// good/bad
+#define  G   1	 //good
+#define  B   0	 //bad
+// yes/no
+#define  Y   1  //yes
+#define  N   0  //no
+// high/medium/low
+#define  H   2  //high
+#define  M   1  //medium
+#define  L   0  //low
+// spell vs skill
+#define  SP  0  //spell
+#define  SK  1  //skill
+// skill availability by class
+#define  NA  0	 //not available
+#define  CC  1	 //cross class
+#define  CA  2	 //class ability
+//   give newbie's some eq to start with
+#define NOOB_TELEPORTER    82
+#define NOOB_TORCH         858
+#define NOOB_RATIONS       804
+#define NOOB_WATERSKIN     803
+#define NOOB_BP            857
+#define NOOB_CRAFTING_KIT  3118
+#define NOOB_BOW           814
+#define NOOB_QUIVER        816
+#define NOOB_ARROW         815
+#define NUM_NOOB_ARROWS    40
+#define NOOB_WIZ_NOTE      850
+/* absolute xp cap */
+#define EXP_MAX  2100000000
+
+/* global */
+struct class_table class_list[NUM_CLASSES];
+
+/* function that will assign a list of values to a given class */
+void set_class(int class_num, char *name, char *abbrev, char *colored_abbrev,
+        char *menu_name, int max_level, int save_will, int save_fort, int save_refl,
+        bool locked_class, int base_attack_bonus, int hit_dice, int mana_gain,
+        int move_gain, int trains_gain) {
+  class_list[class_num].name = name;
+  class_list[class_num].abbrev = abbrev;
+  class_list[class_num].colored_abbrev = colored_abbrev;
+  class_list[class_num].menu_name = menu_name;
+  class_list[class_num].max_level = max_level;
+  class_list[class_num].save_will = save_will;
+  class_list[class_num].save_fort = save_fort;
+  class_list[class_num].save_refl = save_refl;
+  class_list[class_num].locked_class = locked_class;
+  class_list[class_num].base_attack_bonus = base_attack_bonus;
+  class_list[class_num].hit_dice = hit_dice;
+  class_list[class_num].mana_gain = mana_gain;
+  class_list[class_num].move_gain = move_gain;
+  class_list[class_num].trains_gain = trains_gain;
+}
+
+/* function to give default values for a class before assignment */
+void init_class_list(int class_num) {
+  class_list[class_num].name = "unused class";
+  class_list[class_num].abbrev = "???";
+  class_list[class_num].colored_abbrev = "???";
+  class_list[class_num].menu_name = "???";
+  class_list[class_num].max_level = -1;
+  class_list[class_num].save_will = B;
+  class_list[class_num].save_fort = B;
+  class_list[class_num].save_refl = B;
+  class_list[class_num].locked_class = N;
+  class_list[class_num].base_attack_bonus = L;
+  class_list[class_num].hit_dice = 4;
+  class_list[class_num].mana_gain = 0;
+  class_list[class_num].move_gain = 0;
+  class_list[class_num].trains_gain = 2;  
+}
+
+void load_class_list(void) {
+  int i = 0;
+
+  for (i = 0; i < NUM_CLASSES; i++)
+    init_class_list(i);
+  
+}
 
 /* Names first */
 const char *class_abbrevs[] = {
@@ -201,14 +283,6 @@ bitvector_t find_class_bitvector(const char *arg) {
  * trying to practice (i.e. "You know of the following spells" vs. "You know of
  * the following skills" */
 
-#define SP	0
-#define SK	1
-
-/* #define LEARNED_LEVEL	0  % known which is considered "learned" */
-/* #define MAX_PER_PRAC		1  max percent gain in skill per practice */
-/* #define MIN_PER_PRAC		2  min percent gain in skill per practice */
-/* #define PRAC_TYPE		3  should it say 'spell' or 'skill'?	*/
-
 int prac_params[4][NUM_CLASSES] = {
   /* MG  CL  TH WR  MN  DR  BK  SR  PL  RA  BA  WM */
   { 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75}, /* learned level */
@@ -216,8 +290,6 @@ int prac_params[4][NUM_CLASSES] = {
   { 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75}, /* min per practice */
   { SK, SK, SK, SK, SK, SK, SK, SK, SK, SK, SK, SK}, /* prac name */
 };
-#undef SP
-#undef SK
 /* The appropriate rooms for each guildmaster/guildguard; controls which types
  * of people the various guildguards let through.  i.e., the first line shows
  * that from room 3017, only WIZARDS are allowed to go south. Don't forget
@@ -269,9 +341,6 @@ int class_max_ranks[NUM_CLASSES] = {
 
 /* This array determines whether an ability is cross-class or a class-ability
  * based on class of the character */
-#define		NA	0	//not available
-#define		CC	1	//cross class
-#define		CA	2	//class ability
 int class_ability[NUM_ABILITIES][NUM_CLASSES] = {
 //  MU  CL  TH  WA  MO  DR  BZ  SR  PL  RA  BA  WM
   { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}, //0 - reserved
@@ -341,25 +410,19 @@ int modify_class_ability(struct char_data *ch, int ability, int class) {
 
   return ability_value;
 }
-#undef NA
-#undef CC
-#undef CA
 
-// Saving Throw System
-#define		H	1	//high
-#define		L	0	//low
 int preferred_save[5][NUM_CLASSES] = {
   //MU CL TH WA MO DR BK SR PL RA BA WM
   /*fort */
-  { L, H, L, H, H, H, H, L, H, H, L, L},
+  { B, G, B, G, G, G, G, B, G, G, B, B},
   /*refl */
-  { L, L, H, L, H, L, L, L, L, L, H, H},
+  { B, B, G, B, G, B, B, B, B, B, G, G},
   /*will */
-  { H, H, L, L, H, H, L, H, L, L, H, L},
+  { G, G, B, B, G, G, B, G, B, B, G, B},
   /*psn  */
-  { L, L, L, L, L, L, L, L, L, L, L, L},
+  { B, B, B, B, B, B, B, B, B, B, B, B},
   /*death*/
-  { L, L, L, L, L, L, L, L, L, L, L, L},
+  { B, B, B, B, B, B, B, B, B, B, B, B},
 };
 // fortitude / reflex / will / ( poison / death )
 
@@ -946,7 +1009,8 @@ const int class_feats_wizard[] = {
   /*end*/
   FEAT_UNDEFINED
 };
-/* should pretty much just match wizard, but sorcs don't actually get any bonus feats right?*/
+/* should pretty much just match wizard, but sorcs don't actually get any
+ * bonus feats right?*/
 const int class_feats_sorcerer[] = {
   FEAT_SPELL_PENETRATION,
   FEAT_GREATER_SPELL_PENETRATION,
@@ -1297,12 +1361,8 @@ byte saving_throws(struct char_data *ch, int type) {
 
   return save;
 }
-#undef H
-#undef L
-
 
 // base attack bonus, replacement for THAC0 system
-
 int BAB(struct char_data *ch) {
   int i, bab = 0, level;
 
@@ -1383,18 +1443,6 @@ void roll_real_abils(struct char_data *ch) {
   ch->aff_abils = ch->real_abils;
 }
 
-//   give newbie's some eq to start with
-#define NOOB_TELEPORTER    82
-#define NOOB_TORCH         858
-#define NOOB_RATIONS       804
-#define NOOB_WATERSKIN     803
-#define NOOB_BP            857
-#define NOOB_CRAFTING_KIT  3118
-#define NOOB_BOW           814
-#define NOOB_QUIVER        816
-#define NOOB_ARROW         815
-#define NUM_NOOB_ARROWS    40
-#define NOOB_WIZ_NOTE      850
 void newbieEquipment(struct char_data *ch) {
   int objNums[] = {
     NOOB_TELEPORTER,
@@ -1553,15 +1601,6 @@ void newbieEquipment(struct char_data *ch) {
       break;
   }
 }
-#undef NOOB_TELEPORTER
-#undef NOOB_TORCH
-#undef NOOB_RATIONS
-#undef NOOB_WATERSKIN
-#undef NOOB_BP
-#undef NOOB_CRAFTING_KIT
-#undef NOOB_BOW
-#undef NOOB_QUIVER
-#undef NOOB_ARROW
 
 /* init spells for a class as they level up
  * i.e free skills  ;  make sure to set in spec_procs too
@@ -1569,9 +1608,7 @@ void newbieEquipment(struct char_data *ch) {
 void berserker_skills(struct char_data *ch, int level) {}
 void bard_skills(struct char_data *ch, int level) {}
 void ranger_skills(struct char_data *ch, int level) {}
-#define MOB_PALADIN_MOUNT 70
 void paladin_skills(struct char_data *ch, int level) {}
-#undef MOB_PALADIN_MOUNT
 void sorc_skills(struct char_data *ch, int level) {}
 void wizard_skills(struct char_data *ch, int level) {
   IS_WIZ_LEARNED(ch) = 0;
@@ -2285,8 +2322,8 @@ void init_start_char(struct char_data *ch) {
       (ch)->char_specials.saved.combat_feats[(i)][j] = 0;
   for (i = 0; i < NUM_SFEATS; i++)
     (ch)->char_specials.saved.school_feats[(i)] = 0;
-  for (i = 0; i < NUM_SKFEATS; i++)
-    for (j = 0; j > NUM_ABILITIES; j++)
+  for (i = 0; i < MAX_ABILITIES; i++)
+    for (j = 0; j > NUM_SKFEATS; j++)
       (ch)->player_specials->saved.skill_focus[(i)][j] = 0;
 
 
@@ -2375,12 +2412,10 @@ void init_start_char(struct char_data *ch) {
       break;
   }
 
-  /* this is a hack - you can set your stats at level 1, which means the very
-   first starting level you are going to get stats based on starting stats of 8,
-   so as compensation, we're treating all starting characters as having 12 int */
-  //class-related inits
+  /* when you study it reinitializes your trains now */  
   int int_bonus = GET_INT_BONUS(ch); /* this is the way it should be */
-  int_bonus = 1; /* this we're forcing because of set-stats at level 1 */
+  
+  //class-related inits
   switch (GET_CLASS(ch)) {
     case CLASS_WARRIOR:
       GET_CLASS_FEATS(ch, CLASS_WARRIOR)++; /* Bonus Feat */
@@ -3696,8 +3731,6 @@ void init_spell_levels(void) {
 
 // level_exp ran with level+1 will give xp to next level
 // level_exp+1 - level_exp = exp to next level
-#define EXP_MAX  2100000000
-
 int level_exp(struct char_data *ch, int level) {
   int chclass = GET_CLASS(ch);
   int exp = 0, factor = 0;
@@ -4251,4 +4284,33 @@ const char *titles(int chclass, int level) {
   return "the Classless";
 }
 
+/** LOCAL UNDEFINES **/
+// good/bad
+#undef        G	//good
+#undef        B	//bad
+// yes/no
+#undef        Y    //yes
+#undef        N    //no
+// high/medium/low
+#undef        H    //high
+#undef        M    //medium
+#undef        L    //low
+#undef SP
+#undef SK
+#undef NA
+#undef CC
+#undef CA
+#undef NOOB_TELEPORTER
+#undef NOOB_TORCH
+#undef NOOB_RATIONS
+#undef NOOB_WATERSKIN
+#undef NOOB_BP
+#undef NOOB_CRAFTING_KIT
+#undef NOOB_BOW
+#undef NOOB_QUIVER
+#undef NOOB_ARROW
+#undef NUM_NOOB_ARROWS
+#undef NOOB_WIZ_NOTE
+#undef EXP_MAX
 
+/* EOF */
