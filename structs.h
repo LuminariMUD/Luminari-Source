@@ -347,9 +347,9 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define CLASS_CLERIC        1    /**< PC Class Cleric */
 #define CLASS_ROGUE         2    /**< PC Class Rogue (former Thief) */
 #define CLASS_WARRIOR       3    /**< PC Class Warrior */
-#define CLASS_MONK	        4    /**< PC Class monk */
-#define CLASS_DRUID	        5	//druids
-#define CLASS_BERSERKER	   6	//berserker
+#define CLASS_MONK	    4    /**< PC Class monk */
+#define CLASS_DRUID	    5	//druids
+#define CLASS_BERSERKER	    6	//berserker
 #define CLASS_SORCERER      7
 #define CLASS_PALADIN       8
 #define CLASS_RANGER        9
