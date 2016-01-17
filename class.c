@@ -147,7 +147,7 @@ void class_prereq_feat(int class_num, int feat, int ranks) {
   prereq->next = class_list[class_num].prereq_list;
   class_list[class_num].prereq_list = prereq;
 }
-void feat_prereq_cfeat(int class_num, int feat) {
+void class_prereq_cfeat(int class_num, int feat) {
   struct class_prerequisite *prereq = NULL;
   char buf[80];
 
@@ -160,7 +160,7 @@ void feat_prereq_cfeat(int class_num, int feat) {
   prereq->next = class_list[class_num].prereq_list;
   class_list[class_num].prereq_list = prereq;
 }
-void feat_prereq_ability(int class_num, int ability, int ranks) {
+void class_prereq_ability(int class_num, int ability, int ranks) {
   struct class_prerequisite *prereq = NULL;
   char buf[80];
 
@@ -173,7 +173,7 @@ void feat_prereq_ability(int class_num, int ability, int ranks) {
   prereq->next = class_list[class_num].prereq_list;
   class_list[class_num].prereq_list = prereq;
 }
-void feat_prereq_spellcasting(int class_num, int casting_type, int prep_type, int circle) {
+void class_prereq_spellcasting(int class_num, int casting_type, int prep_type, int circle) {
   struct class_prerequisite *prereq = NULL;
   char buf[80];
 
@@ -200,7 +200,7 @@ void feat_prereq_spellcasting(int class_num, int casting_type, int prep_type, in
   prereq->next = class_list[class_num].prereq_list;
   class_list[class_num].prereq_list = prereq;
 }
-void feat_prereq_race(int class_num, int race) {
+void class_prereq_race(int class_num, int race) {
   struct class_prerequisite *prereq = NULL;
   char buf[80];
 
@@ -213,7 +213,7 @@ void feat_prereq_race(int class_num, int race) {
   prereq->next = class_list[class_num].prereq_list;
   class_list[class_num].prereq_list = prereq;
 }
-void feat_prereq_bab(int class_num, int bab) {
+void class_prereq_bab(int class_num, int bab) {
   struct class_prerequisite *prereq = NULL;
   char buf[80];
 
@@ -226,7 +226,7 @@ void feat_prereq_bab(int class_num, int bab) {
   prereq->next = class_list[class_num].prereq_list;
   class_list[class_num].prereq_list = prereq;
 }
-void feat_prereq_weapon_proficiency(int class_num) {
+void class_prereq_weapon_proficiency(int class_num) {
   struct class_prerequisite *prereq = NULL;
   char buf[80];
 
