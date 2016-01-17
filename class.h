@@ -78,6 +78,7 @@ int BAB(struct char_data *ch);
 const char *titles(int chclass, int level);
 int modify_class_ability(struct char_data *ch, int ability, int class);
 void init_class(struct char_data *ch, int class, int level);
+void load_class_list(void);
 
 /* handy macros for dealing with class_list[] */
 #define CLSLIST_NAME(classnum)            (class_list[classnum].name)
