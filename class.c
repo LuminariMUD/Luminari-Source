@@ -35,6 +35,7 @@
 #include "assign_wpn_armor.h"
 #include "pfdefaults.h"
 #include "domains_schools.h"
+#include "modify.h"
 
 /** LOCAL DEFINES **/
 // good/bad
@@ -578,7 +579,6 @@ void load_class_list(void) {
 }
 
 /* list all the class defines in-game */
-/*
 ACMD(do_classlist) {
   int i = 0;
   char buf[MAX_STRING_LENGTH];
@@ -586,23 +586,53 @@ ACMD(do_classlist) {
 
   send_to_char(ch, "# Name Abrv ClrAbrv MaxLvl Lock Prestige BAB HPs Mvs Train InGame\r\n");
   send_to_char(ch, "  Sv-Fort Sv-Refl Sv-Will\r\n");
-  send_to_char(ch, "  SKILLS NOT CURRENTLY LISTED\r\n");
+  send_to_char(ch, "    acrobatics,stealth,perception,heal,intimidate,concentration,spellcraft\r\n");
+  send_to_char(ch, "    appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff\r\n");
+  send_to_char(ch, "    diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive\r\n");
+  send_to_char(ch, "    survival,swim,use_magic_device,perform\r\n\r\n");
   
   for (i = 0; i < NUM_CLASSES; i++) {
     len += snprintf(buf + len, sizeof (buf) - len,
-        "%d %s %s %d %s %s %s %d %d %d %s\r\n"
-        "   %s %s %s\r\n\r\n",
-            "AC: %.1f, Max Dex: %d, Armor Penalty: %d, Spell Fail: %d, Weight: %d, "
-            "Material: %s\r\n",
-            armor_list[i].name, armor_type[armor_list[i].armorType],
-            armor_list[i].cost, (float)armor_list[i].armorBonus/10.0,
-            armor_list[i].dexBonus, armor_list[i].armorCheck, armor_list[i].spellFail,
-            armor_list[i].weight, material_name[armor_list[i].material]
+        "%d %s %s %s %d %s %s %s %d %d %d %s\r\n"
+        "   %s %s %s\r\n"
+        "     %s %s %s %s %s %s %s\r\n"
+        "     %s %s %s %s %s %s %s %s\r\n"
+        "     %s %s %s %s %s %s\r\n"
+        "     %s %s %s %s\r\n\r\n",
+        i, CLSLIST_NAME(i), CLSLIST_ABBRV(i), CLSLIST_CLRABBRV(i), CLSLIST_MAXLVL(i),
+          CLSLIST_LOCK(i) ? "Y" : "N", CLSLIST_PRESTIGE(i) ? "Y" : "N",
+          (CLSLIST_BAB(i) == 2) ? "H" : (CLSLIST_BAB(i) ? "M" : "L"), CLSLIST_HPS(i),
+          CLSLIST_MVS(i), CLSLIST_TRAINS(i), CLSLIST_INGAME(i) ? "Y" : "N",
+        CLSLIST_SAVES(i, 0) ? "G" : "B", CLSLIST_SAVES(i, 1) ? "G" : "B", CLSLIST_SAVES(i, 2) ? "G" : "B", 
+        (CLSLIST_ABIL(i, ABILITY_ACROBATICS) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_ACROBATICS) ? "CC" : "NA"),
+          (CLSLIST_ABIL(i, ABILITY_STEALTH) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_STEALTH) ? "CC" : "NA"),
+          (CLSLIST_ABIL(i, ABILITY_PERCEPTION) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_PERCEPTION) ? "CC" : "NA"),
+          (CLSLIST_ABIL(i, ABILITY_HEAL) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_HEAL) ? "CC" : "NA"),            
+          (CLSLIST_ABIL(i, ABILITY_INTIMIDATE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_INTIMIDATE) ? "CC" : "NA"),
+          (CLSLIST_ABIL(i, ABILITY_CONCENTRATION) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_CONCENTRATION) ? "CC" : "NA"),
+          (CLSLIST_ABIL(i, ABILITY_SPELLCRAFT) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_SPELLCRAFT) ? "CC" : "NA"),
+        (CLSLIST_ABIL(i, ABILITY_APPRAISE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_APPRAISE) ? "CC" : "NA"),
+          (CLSLIST_ABIL(i, ABILITY_DISCIPLINE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_DISCIPLINE) ? "CC" : "NA"),
+          (CLSLIST_ABIL(i, ABILITY_TOTAL_DEFENSE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_TOTAL_DEFENSE) ? "CC" : "NA"),
+          (CLSLIST_ABIL(i, ABILITY_LORE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_LORE) ? "CC" : "NA"),
+          (CLSLIST_ABIL(i, ABILITY_RIDE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_RIDE) ? "CC" : "NA"),
+          (CLSLIST_ABIL(i, ABILITY_CLIMB) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_CLIMB) ? "CC" : "NA"),
+          (CLSLIST_ABIL(i, ABILITY_SLEIGHT_OF_HAND) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_SLEIGHT_OF_HAND) ? "CC" : "NA"),
+          (CLSLIST_ABIL(i, ABILITY_BLUFF) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_BLUFF) ? "CC" : "NA"),
+        (CLSLIST_ABIL(i, ABILITY_DIPLOMACY) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_DIPLOMACY) ? "CC" : "NA"),
+          (CLSLIST_ABIL(i, ABILITY_DISABLE_DEVICE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_DISABLE_DEVICE) ? "CC" : "NA"),
+          (CLSLIST_ABIL(i, ABILITY_DISGUISE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_DISGUISE) ? "CC" : "NA"),
+          (CLSLIST_ABIL(i, ABILITY_ESCAPE_ARTIST) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_ESCAPE_ARTIST) ? "CC" : "NA"),
+          (CLSLIST_ABIL(i, ABILITY_HANDLE_ANIMAL) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_HANDLE_ANIMAL) ? "CC" : "NA"),
+          (CLSLIST_ABIL(i, ABILITY_SENSE_MOTIVE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_SENSE_MOTIVE) ? "CC" : "NA"),
+        (CLSLIST_ABIL(i, ABILITY_SURVIVAL) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_SURVIVAL) ? "CC" : "NA"),
+          (CLSLIST_ABIL(i, ABILITY_SWIM) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_SWIM) ? "CC" : "NA"),
+          (CLSLIST_ABIL(i, ABILITY_USE_MAGIC_DEVICE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_USE_MAGIC_DEVICE) ? "CC" : "NA"),
+          (CLSLIST_ABIL(i, ABILITY_PERFORM) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_PERFORM) ? "CC" : "NA")
                     );
   }
   page_string(ch->desc, buf, 1);
 }
-*/
 
 /* Names first */
 const char *class_abbrevs[] = {

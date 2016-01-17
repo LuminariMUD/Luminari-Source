@@ -97,6 +97,8 @@ void load_class_list(void);
 #define CLSLIST_SAVES(classnum, savenum)  (class_list[classnum].preferred_saves[savenum])
 #define CLSLIST_ABIL(classnum, abilnum)   (class_list[classnum].class_abil[abilnum])
 
+ACMD(do_classlist);
+
 /* Global variables */
 
 #ifndef __CLASS_C__
