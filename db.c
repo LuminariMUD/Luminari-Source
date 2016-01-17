@@ -580,6 +580,9 @@ void boot_world(void) {
   log("Loading Extended Races");
   assign_races();
 
+  log("Loading Class List");
+  load_class_list();
+
   log("Loading feats.");
   assign_feats();
   sort_feats();
