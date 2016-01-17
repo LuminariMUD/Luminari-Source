@@ -593,7 +593,7 @@ ACMD(do_classlist) {
   
   for (i = 0; i < NUM_CLASSES; i++) {
     len += snprintf(buf + len, sizeof (buf) - len,
-        "%d %s %s %s %d %s %s %s %d %d %d %s\r\n"
+        "%d] %s %s %s %d %s %s %s %d %d %d %s\r\n"
         "   %s %s %s\r\n"
         "     %s %s %s %s %s %s %s\r\n"
         "     %s %s %s %s %s %s %s %s\r\n"
