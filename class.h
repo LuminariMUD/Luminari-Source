@@ -24,22 +24,42 @@
 #define LEVEL_FEATS 5
 /* end defines */
 
-/* class data, unfinished project */
+/* prereq data for class */
+struct class_prerequisite {
+  /* FEAT_PREREQ_* values determine the type */
+  int  prerequisite_type;
+  char *description; /* Generated string value describing prerequisite. */
+
+  /* 0: ability score, class, feat, race, casting type, BAB
+   * 1: ability score value, class, feat, race, prep type, min BAB
+   * 2: N/A, class level, feat ranks, N/A, minimum circle, N/A */
+  int values[3];
+
+  /* Linked list */
+  struct class_prerequisite *next;
+};
+
+
+/* class data, layout for storing class information for each class */
 struct class_table {
   char *name; /* full name of class, ex. wizard (no color) */
   char *abbrev; /* abbreviation of class, ex. wiz (no color) */
   char *colored_abbrev; /* same as abbrev, but colored */
   char *menu_name; /* colored full name of class for menu(s) */
   int max_level; /* maximum number of levels you can take in this class, -1 unlimited */
-  /*int class_abilities[NUM_ABILITIES];  skills that are class, cross-class or unavailable */
-  /*int preferred_saves[5];  high or low saving throw values */
-  int save_will; int save_fort; int save_refl;
   bool locked_class; /* whether by default this class is locked or not */
+  bool prestige_class; /* prestige class? */
   int base_attack_bonus; /* whether high, medium or low */
   int hit_dice; /* how many hp this class can get on level up */
   int mana_gain; /* how much mana this class gets on level up */
   int move_gain; /* how much moves this class gets on level up */
   int trains_gain; /* how many trains this class gets before int bonus */
+  bool in_game; /* class currently in the game? */
+  
+  int preferred_saves[5];  /*high or low saving throw values */
+  int class_abil[NUM_ABILITIES];  /*class ability (not avail, cross-class, class-skill)*/
+  
+  struct class_prerequisite *prereq_list; /* A list of prerequisite sctructures */
 };
 
 
@@ -59,6 +79,22 @@ const char *titles(int chclass, int level);
 int modify_class_ability(struct char_data *ch, int ability, int class);
 void init_class(struct char_data *ch, int class, int level);
 
+/* handy macros for dealing with class_list[] */
+#define CLSLIST_NAME(classnum)            (class_list[classnum].name)
+#define CLSLIST_ABBRV(classnum)           (class_list[classnum].abbrev)
+#define CLSLIST_CLRABBRV(classnum)        (class_list[classnum].colored_abbrev)
+#define CLSLIST_MENU(classnum)            (class_list[classnum].menu_name)
+#define CLSLIST_MAXLVL(classnum)          ( (class_list[classnum].max_level == -1) ? (LVL_IMMORT-1) : (class_list[classnum].max_level) )
+#define CLSLIST_LOCK(classnum)            (class_list[classnum].locked_class)
+#define CLSLIST_PRESTIGE(classnum)        (class_list[classnum].prestige_class)
+#define CLSLIST_BAB(classnum)             (class_list[classnum].base_attack_bonus)
+#define CLSLIST_HPS(classnum)             (class_list[classnum].hit_dice)
+#define CLSLIST_MANA(classnum)            (class_list[classnum].mana_gain)
+#define CLSLIST_MVS(classnum)             (class_list[classnum].move_gain)
+#define CLSLIST_TRAINS(classnum)          (class_list[classnum].trains_gain)
+#define CLSLIST_INGAME(classnum)          (class_list[classnum].in_game)
+#define CLSLIST_SAVES(classnum, savenum)  (class_list[classnum].preferred_saves[savenum])
+#define CLSLIST_ABIL(classnum, abilnum)   (class_list[classnum].class_abil[abilnum])
 
 /* Global variables */
 

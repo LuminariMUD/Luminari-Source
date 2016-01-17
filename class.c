@@ -69,55 +69,540 @@
 /* absolute xp cap */
 #define EXP_MAX  2100000000
 
-/* global */
+/* declarations */
 struct class_table class_list[NUM_CLASSES];
+const char *pc_class_types[];
+
+/* SET OF UTILITY FUNCTIONS for the purpose of class prereqs */
+/* create/allocate memory for a pre-req struct, then assign the prereqs */
+struct class_prerequisite* create_prereq(int prereq_type, int val1,
+        int val2, int val3) {
+  struct class_prerequisite *prereq = NULL;
+
+  CREATE(prereq, struct class_prerequisite, 1);
+  prereq->prerequisite_type = prereq_type;
+  prereq->values[0] = val1;
+  prereq->values[1] = val2;
+  prereq->values[2] = val3;
+
+  return prereq;
+}
+/*  The following procedures are used to define feat prerequisites.
+ *  These prerequisites are automatically checked, if they exist.
+ *  Dynamically assigning prerequisites also allows us to create
+ *  dynamic 'help' and easier to read presentations of feat lists. */
+void feat_prereq_attribute(int class_num, int attribute, int value) {
+  struct class_prerequisite *prereq = NULL;
+  char buf[80];
+
+  const char* attribute_abbr[7] = {
+    "None",
+    "Str",
+    "Dex",
+    "Int",
+    "Wis",
+    "Con",
+    "Cha"
+  };
+
+  prereq = create_prereq(FEAT_PREREQ_ATTRIBUTE, attribute, value, 0);
+
+  /* Generate the description. */
+  sprintf(buf, "%s : %d", attribute_abbr[attribute], value);
+  prereq->description = strdup(buf);
+
+  /*  Link it up. */
+  prereq->next = class_list[class_num].prereq_list;
+  class_list[class_num].prereq_list = prereq;
+}
+void feat_prereq_class_level(int class_num, int cl, int level) {
+  struct class_prerequisite *prereq = NULL;
+  char buf[80];
+
+  prereq = create_prereq(FEAT_PREREQ_CLASS_LEVEL, cl, level, 0);
+
+  /* Generate the description. */
+  sprintf(buf, "%s level %d", pc_class_types[cl], level);
+  prereq->description = strdup(buf);
+
+  /*   Link it up. */
+  prereq->next = class_list[class_num].prereq_list;
+  class_list[class_num].prereq_list = prereq;
+}
+void feat_prereq_feat(int class_num, int feat, int ranks) {
+  struct class_prerequisite *prereq = NULL;
+  char buf[80];
+
+  prereq = create_prereq(FEAT_PREREQ_FEAT, feat, ranks, 0);
+
+  /* Generate the description. */
+  if (ranks > 1)
+    sprintf(buf, "%s (%d ranks)", class_list[feat].name, ranks);
+  else
+    sprintf(buf, "%s", class_list[feat].name);
+
+  prereq->description = strdup(buf);
+
+  /*   Link it up. */
+  prereq->next = class_list[class_num].prereq_list;
+  class_list[class_num].prereq_list = prereq;
+}
+void feat_prereq_cfeat(int class_num, int feat) {
+  struct class_prerequisite *prereq = NULL;
+  char buf[80];
+
+  prereq = create_prereq(FEAT_PREREQ_CFEAT, feat, 0, 0);
+
+  sprintf(buf, "%s (in same weapon)", class_list[feat].name);
+  prereq->description = strdup(buf);
+
+  /*   Link it up. */
+  prereq->next = class_list[class_num].prereq_list;
+  class_list[class_num].prereq_list = prereq;
+}
+void feat_prereq_ability(int class_num, int ability, int ranks) {
+  struct class_prerequisite *prereq = NULL;
+  char buf[80];
+
+  prereq = create_prereq(FEAT_PREREQ_ABILITY, ability, ranks, 0);
+
+  sprintf(buf, "%d ranks in %s", ranks, ability_names[ability]);
+  prereq->description = strdup(buf);
+
+  /*   Link it up. */
+  prereq->next = class_list[class_num].prereq_list;
+  class_list[class_num].prereq_list = prereq;
+}
+void feat_prereq_spellcasting(int class_num, int casting_type, int prep_type, int circle) {
+  struct class_prerequisite *prereq = NULL;
+  char buf[80];
+
+  const char *casting_types[4] = {
+    "None",
+    "Arcane",
+    "Divine",
+    "Any"
+  };
+
+  const char *spell_preparation_types[4] = {
+    "None",
+    "Prepared",
+    "Spontaneous",
+    "Any"
+  };
+
+  prereq = create_prereq(FEAT_PREREQ_SPELLCASTING, casting_type, prep_type, circle);
+
+  sprintf(buf, "Ability to cast %s %s spells", casting_types[casting_type], spell_preparation_types[prep_type]);
+  prereq->description = strdup(buf);
+
+  /*   Link it up. */
+  prereq->next = class_list[class_num].prereq_list;
+  class_list[class_num].prereq_list = prereq;
+}
+void feat_prereq_race(int class_num, int race) {
+  struct class_prerequisite *prereq = NULL;
+  char buf[80];
+
+  prereq = create_prereq(FEAT_PREREQ_RACE, race, 0, 0);
+
+  sprintf(buf, "Race : %s", pc_race_types[race]);
+  prereq->description = strdup(buf);
+
+  /*   Link it up. */
+  prereq->next = class_list[class_num].prereq_list;
+  class_list[class_num].prereq_list = prereq;
+}
+void feat_prereq_bab(int class_num, int bab) {
+  struct class_prerequisite *prereq = NULL;
+  char buf[80];
+
+  prereq = create_prereq(FEAT_PREREQ_BAB, bab, 0, 0);
+
+  sprintf(buf, "BAB +%d", bab);
+  prereq->description = strdup(buf);
+
+  /* Link it up */
+  prereq->next = class_list[class_num].prereq_list;
+  class_list[class_num].prereq_list = prereq;
+}
+void feat_prereq_weapon_proficiency(int class_num) {
+  struct class_prerequisite *prereq = NULL;
+  char buf[80];
+
+  prereq = create_prereq(FEAT_PREREQ_WEAPON_PROFICIENCY, 0, 0, 0);
+
+  sprintf(buf, "Proficiency in same weapon");
+  prereq->description = strdup(buf);
+
+  /*  Link it up */
+  prereq->next = class_list[class_num].prereq_list;
+  class_list[class_num].prereq_list = prereq;
+}
 
 /* function that will assign a list of values to a given class */
-void set_class(int class_num, char *name, char *abbrev, char *colored_abbrev,
-        char *menu_name, int max_level, int save_will, int save_fort, int save_refl,
-        bool locked_class, int base_attack_bonus, int hit_dice, int mana_gain,
-        int move_gain, int trains_gain) {
+void classo(int class_num, char *name, char *abbrev, char *colored_abbrev,
+        char *menu_name, int max_level, bool locked_class, int prestige_class,
+        int base_attack_bonus, int hit_dice, int mana_gain, int move_gain,
+        int trains_gain, bool in_game) {
   class_list[class_num].name = name;
   class_list[class_num].abbrev = abbrev;
   class_list[class_num].colored_abbrev = colored_abbrev;
   class_list[class_num].menu_name = menu_name;
   class_list[class_num].max_level = max_level;
-  class_list[class_num].save_will = save_will;
-  class_list[class_num].save_fort = save_fort;
-  class_list[class_num].save_refl = save_refl;
   class_list[class_num].locked_class = locked_class;
+  class_list[class_num].prestige_class = prestige_class;
   class_list[class_num].base_attack_bonus = base_attack_bonus;
   class_list[class_num].hit_dice = hit_dice;
   class_list[class_num].mana_gain = mana_gain;
   class_list[class_num].move_gain = move_gain;
   class_list[class_num].trains_gain = trains_gain;
+  class_list[class_num].in_game = in_game;
+  /* list of prereqs */
+  class_list[class_num].prereq_list = NULL;  
+}
+
+/* function used for assigned a classes 'preferred' saves */
+void assign_class_saves(int class_num, int save_fort, int save_refl, int save_will,
+        int save_posn, int save_deth) {
+  class_list[class_num].preferred_saves[SAVING_FORT] = save_fort;  
+  class_list[class_num].preferred_saves[SAVING_REFL] = save_refl;  
+  class_list[class_num].preferred_saves[SAVING_WILL] = save_will;  
+  class_list[class_num].preferred_saves[SAVING_POISON] = save_posn;  
+  class_list[class_num].preferred_saves[SAVING_DEATH] = save_deth;  
+}
+
+/* function used for assigning whether a given abiliti is not-available, cross-class
+ or class-skill */
+void assign_class_abils(int class_num,
+        int acrobatics, int stealth, int perception, int heal, int intimidate,
+        int concentration, int spellcraft, int appraise, int discipline,
+        int total_defense, int lore, int ride, int climb, int sleight_of_hand,
+        int bluff, int diplomacy, int disable_device, int disguise, int escape_artist,
+        int handle_animal, int sense_motive, int survival, int swim, int use_magic_device,
+        int perform
+        ) {
+  class_list[class_num].class_abil[ABILITY_ACROBATICS] = acrobatics;
+  class_list[class_num].class_abil[ABILITY_STEALTH] = stealth;
+  class_list[class_num].class_abil[ABILITY_PERCEPTION] = perception;
+  class_list[class_num].class_abil[ABILITY_HEAL] = heal;
+  class_list[class_num].class_abil[ABILITY_INTIMIDATE] = intimidate;
+  class_list[class_num].class_abil[ABILITY_CONCENTRATION] = concentration;
+  class_list[class_num].class_abil[ABILITY_SPELLCRAFT] = spellcraft;
+  class_list[class_num].class_abil[ABILITY_APPRAISE] = appraise;
+  class_list[class_num].class_abil[ABILITY_DISCIPLINE] = discipline;
+  class_list[class_num].class_abil[ABILITY_TOTAL_DEFENSE] = total_defense;
+  class_list[class_num].class_abil[ABILITY_LORE] = lore;
+  class_list[class_num].class_abil[ABILITY_RIDE] = ride;
+  class_list[class_num].class_abil[ABILITY_CLIMB] = climb;
+  class_list[class_num].class_abil[ABILITY_SLEIGHT_OF_HAND] = sleight_of_hand;
+  class_list[class_num].class_abil[ABILITY_BLUFF] = bluff;
+  class_list[class_num].class_abil[ABILITY_DIPLOMACY] = diplomacy;
+  class_list[class_num].class_abil[ABILITY_DISABLE_DEVICE] = disable_device;
+  class_list[class_num].class_abil[ABILITY_DISGUISE] = disguise;
+  class_list[class_num].class_abil[ABILITY_ESCAPE_ARTIST] = escape_artist;
+  class_list[class_num].class_abil[ABILITY_HANDLE_ANIMAL] = handle_animal;
+  class_list[class_num].class_abil[ABILITY_SENSE_MOTIVE] = sense_motive;
+  class_list[class_num].class_abil[ABILITY_SURVIVAL] = survival;
+  class_list[class_num].class_abil[ABILITY_SWIM] = swim;
+  class_list[class_num].class_abil[ABILITY_USE_MAGIC_DEVICE] = use_magic_device;
+  class_list[class_num].class_abil[ABILITY_PERFORM] = perform;
 }
 
 /* function to give default values for a class before assignment */
 void init_class_list(int class_num) {
-  class_list[class_num].name = "unused class";
+  class_list[class_num].name = "unusedclass";
   class_list[class_num].abbrev = "???";
   class_list[class_num].colored_abbrev = "???";
   class_list[class_num].menu_name = "???";
   class_list[class_num].max_level = -1;
-  class_list[class_num].save_will = B;
-  class_list[class_num].save_fort = B;
-  class_list[class_num].save_refl = B;
   class_list[class_num].locked_class = N;
+  class_list[class_num].prestige_class = N;
   class_list[class_num].base_attack_bonus = L;
   class_list[class_num].hit_dice = 4;
   class_list[class_num].mana_gain = 0;
   class_list[class_num].move_gain = 0;
   class_list[class_num].trains_gain = 2;  
+  class_list[class_num].in_game = N;
+  
+  int i = 0;
+  for (i = 0; i < 5; i++)
+    class_list[class_num].preferred_saves[i] = B;
+  for (i = 0; i < NUM_ABILITIES; i++)
+    class_list[class_num].class_abil[i] = NA;
+  
+  class_list[class_num].prereq_list = NULL;  
 }
 
+/* papa function loaded on game boot to assign all the class data */
 void load_class_list(void) {
+  /* initialize a FULL sized list with some default values for safey */
   int i = 0;
-
   for (i = 0; i < NUM_CLASSES; i++)
     init_class_list(i);
   
+  /* here goes assignment, for sanity we arranged it the assignments accordingly:
+   * 1) classo
+   * 2) preferred saves
+   * 3) class abilities
+   * 4) prereqs last  */
+  
+  /****************************************************************************/
+  /*     class-number  name      abrv   clr-abrv     menu-name*/
+  classo(CLASS_WIZARD, "wizard", "Wiz", "\tmWiz\tn", "m) \tmWizard\tn\r\n",
+      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? */
+        -1,       N,    N,        L,  4, 0,   1,   2,     Y);
+  /* class-number then saves: fortitude, reflex, will, poison, death */
+  assign_class_saves(CLASS_WIZARD, B,    B,      G,    B,      B);
+  assign_class_abils(CLASS_WIZARD, /* class number */
+    /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+      CC,        CC,     CC,        CA,  CC,        CA,            CA,
+    /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+      CA,      CC,        CC,           CA,  CA,  CC,   CC,             CC,
+    /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+      CC,       CC,            CC,      CC,           CC,           CA,
+    /*survival,swim,use_magic_device,perform*/
+      CC,      CA,  CA,              CC
+    );
+  /****************************************************************************/
+          
+  
+  /****************************************************************************/
+  /*     class-number  name      abrv   clr-abrv     menu-name*/
+  classo(CLASS_CLERIC, "cleric", "Cle", "\tBCle\tn", "c) \tBCleric\tn\r\n",
+      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? */
+        -1,       N,    N,        M,  8, 0,   1,   2,     Y);
+  /* class-number then saves: fortitude, reflex, will, poison, death */
+  assign_class_saves(CLASS_CLERIC, G,    B,      G,    B,      B);
+  assign_class_abils(CLASS_CLERIC, /* class number */
+    /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+      CC,        CC,     CC,        CA,  CC,        CA,            CA,
+    /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+      CA,      CC,        CA,           CA,  CA,  CC,   CC,             CC,
+    /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+      CA,       CC,            CC,      CC,           CC,           CC,
+    /*survival,swim,use_magic_device,perform*/
+      CC,      CA,  CC,              CC
+    );
+  /****************************************************************************/
+  
+  /****************************************************************************/
+  /*     class-number  name      abrv   clr-abrv     menu-name*/
+  classo(CLASS_ROGUE, "rogue", "Rog", "\twRog\tn", "t) \tWRogue\tn\r\n",
+      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? */
+        -1,       N,    N,        M,  6, 0,   2,   8,     Y);
+  /* class-number then saves: fortitude, reflex, will, poison, death */
+  assign_class_saves(CLASS_ROGUE, B,    G,      B,    B,      B);
+  assign_class_abils(CLASS_ROGUE, /* class number */
+    /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+      CA,        CA,     CA,        CA,  CC,        CC,            CC,
+    /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+      CA,      CC,        CA,           CA,  CA,  CA,   CA,             CA,
+    /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+      CA,       CA,            CA,      CA,           CC,           CA,
+    /*survival,swim,use_magic_device,perform*/
+      CC,      CA,  CA,              CC
+    );
+  /****************************************************************************/
+  
+  /****************************************************************************/
+  /*     class-number  name      abrv   clr-abrv     menu-name*/
+  classo(CLASS_WARRIOR, "warrior", "War", "\tRWar\tn", "w) \tRWarrior\tn\r\n",
+      /* max-lvl  lock? prestige? BAB HD  mana move trains in-game? */
+        -1,       N,    N,        H,  10, 0,   1,   2,     Y);
+  /* class-number then saves: fortitude, reflex, will, poison, death */
+  assign_class_saves(CLASS_WARRIOR, G,    B,      B,    B,      B);
+  assign_class_abils(CLASS_WARRIOR, /* class number */
+    /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+      CC,        CC,     CC,        CA,  CA,        CA,            CC,
+    /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+      CC,      CA,        CA,           CA,  CA,  CA,   CC,             CC,
+    /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+      CA,       CC,            CC,      CC,           CC,           CC,
+    /*survival,swim,use_magic_device,perform*/
+      CC,      CA,  CC,              CC
+    );
+  /****************************************************************************/
+  
+  /****************************************************************************/
+  /*     class-number  name      abrv   clr-abrv     menu-name*/
+  classo(CLASS_MONK, "monk", "Mon", "\tgMon\tn", "o) \tgMonk\tn\r\n",
+      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? */
+        -1,       N,    N,        M,  8, 0,   2,   4,     Y);
+  /* class-number then saves: fortitude, reflex, will, poison, death */
+  assign_class_saves(CLASS_MONK, G,    G,      G,    B,      B);
+  assign_class_abils(CLASS_MONK, /* class number */
+    /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+      CA,        CA,     CA,        CA,  CC,        CA,            CC,
+    /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+      CC,      CA,        CA,           CA,  CA,  CA,   CC,             CC,
+    /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+      CC,       CC,            CC,      CA,           CC,           CC,
+    /*survival,swim,use_magic_device,perform*/
+      CC,      CA,  CC,              CC
+    );
+  /****************************************************************************/
+  
+  /****************************************************************************/
+  /*     class-number  name      abrv   clr-abrv     menu-name*/
+  classo(CLASS_DRUID, "druid", "Dru", "\tGD\tgr\tGu\tn", "d) \tGD\tgr\tGu\tgi\tGd\tn\r\n",
+      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? */
+        -1,       N,    N,        M,  8, 0,   3,   4,     Y);
+  /* class-number then saves: fortitude, reflex, will, poison, death */
+  assign_class_saves(CLASS_DRUID, G,    B,      G,    B,      B);
+  assign_class_abils(CLASS_DRUID, /* class number */
+    /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+      CC,        CC,     CC,        CA,  CC,        CA,            CA,
+    /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+      CC,      CC,        CA,           CA,  CA,  CC,   CC,             CC,
+    /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+      CA,       CC,            CC,      CC,           CA,           CA,
+    /*survival,swim,use_magic_device,perform*/
+      CA,      CA,  CC,              CC
+    );
+  /****************************************************************************/
+  
+  /****************************************************************************/
+  /*     class-number  name      abrv   clr-abrv     menu-name*/
+  classo(CLASS_BERSERKER, "berserker", "Bes", "\trB\tRe\trs\tn", "b) \trBer\tRser\trker\tn\r\n",
+      /* max-lvl  lock? prestige? BAB HD  mana move trains in-game? */
+        -1,       N,    N,        H,  12, 0,   2,   4,     Y);
+  /* class-number then saves: fortitude, reflex, will, poison, death */
+  assign_class_saves(CLASS_BERSERKER, G,    B,      B,    B,      B);
+  assign_class_abils(CLASS_BERSERKER, /* class number */
+    /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+      CC,        CC,     CC,        CA,  CA,        CC,            CC,
+    /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+      CC,      CA,        CC,           CA,  CA,  CA,   CC,             CC,
+    /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+      CC,       CC,            CC,      CA,           CC,           CC,
+    /*survival,swim,use_magic_device,perform*/
+      CC,      CA,  CC,              CC
+    );
+  /****************************************************************************/
+  
+  /****************************************************************************/
+  /*     class-number  name      abrv   clr-abrv     menu-name*/
+  classo(CLASS_SORCERER, "sorcerer", "Sor", "\tMSor\tn", "s) \tMSorcerer\tn\r\n",
+      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? */
+        -1,       N,    N,        L,  4, 0,   1,   2,     Y);
+  /* class-number then saves: fortitude, reflex, will, poison, death */
+  assign_class_saves(CLASS_SORCERER, B,    B,      G,    B,      B);
+  assign_class_abils(CLASS_SORCERER, /* class number */
+    /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+      CC,        CC,     CC,        CA,  CC,        CA,            CA,
+    /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+      CC,      CC,        CC,           CA,  CA,  CC,   CC,             CA,
+    /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+      CC,       CC,            CC,      CC,           CC,           CC,
+    /*survival,swim,use_magic_device,perform*/
+      CC,      CA,  CA,              CC
+    );
+  /****************************************************************************/
+  
+  /****************************************************************************/
+  /*     class-number  name      abrv   clr-abrv     menu-name*/
+  classo(CLASS_PALADIN, "paladin", "Pal", "\tWPal\tn", "p) \tWPaladin\tn\r\n",
+      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? */
+        -1,       N,    N,        H,  10, 0,   1,   2,     Y);
+  /* class-number then saves: fortitude, reflex, will, poison, death */
+  assign_class_saves(CLASS_PALADIN, B,    B,      G,    B,      B);
+  assign_class_abils(CLASS_PALADIN, /* class number */
+    /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+      CC,        CC,     CC,        CA,  CA,        CA,            CC,
+    /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+      CC,      CA,        CA,           CA,  CA,  CC,   CC,             CC,
+    /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+      CA,       CC,            CC,      CC,           CA,           CA,
+    /*survival,swim,use_magic_device,perform*/
+      CC,      CA,  CC,              CC
+    );
+  /****************************************************************************/
+  
+  /****************************************************************************/
+  /*     class-number  name      abrv   clr-abrv     menu-name*/
+  classo(CLASS_RANGER, "ranger", "Ran", "\tYRan\tn", "r) \tYRanger\tn\r\n",
+      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? */
+        -1,       N,    N,        H,  10, 0,   3,   4,     Y);
+  /* class-number then saves: fortitude, reflex, will, poison, death */
+  assign_class_saves(CLASS_RANGER, G,    B,      B,    B,      B);
+  assign_class_abils(CLASS_RANGER, /* class number */
+    /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+      CC,        CA,     CA,        CA,  CC,        CA,            CC,
+    /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+      CC,      CA,        CA,           CA,  CA,  CA,   CC,             CC,
+    /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+      CC,       CC,            CC,      CA,           CA,           CC,
+    /*survival,swim,use_magic_device,perform*/
+      CA,      CA,  CC,              CC
+    );
+  /****************************************************************************/
+  
+  /****************************************************************************/
+  /*     class-number  name      abrv   clr-abrv     menu-name*/
+  classo(CLASS_BARD, "bard", "Bar", "\tCBar\tn", "a) \tCBard\tn\r\n",
+      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? */
+        -1,       N,    N,        M,  6, 0,   2,   6,     Y);
+  /* class-number then saves: fortitude, reflex, will, poison, death */
+  assign_class_saves(CLASS_BARD, B,    G,      G,    B,      B);
+  assign_class_abils(CLASS_BARD, /* class number */
+    /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+      CA,        CA,     CA,        CA,  CC,        CA,            CA,
+    /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+      CA,      CC,        CA,           CA,  CA,  CA,   CA,             CC,
+    /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+      CA,       CC,            CA,      CA,           CC,           CC,
+    /*survival,swim,use_magic_device,perform*/
+      CC,      CA,  CA,              CA
+    );
+  /****************************************************************************/
+  
+  /****************************************************************************/
+  /*     class-number  name      abrv   clr-abrv     menu-name*/
+  classo(CLASS_WEAPON_MASTER, "weaponmaster", "WpM", "\tcWpM\tn", "e) \tcWeaponMaster\tn\r\n",
+      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? */
+        10,       Y,    Y,        H,  10, 0,   1,   2,     Y);
+  /* class-number then saves: fortitude, reflex, will, poison, death */
+  assign_class_saves(CLASS_WEAPON_MASTER, B,    G,      B,    B,      B);
+  assign_class_abils(CLASS_WEAPON_MASTER, /* class number */
+    /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+      CC,        CC,     CC,        CA,  CA,        CC,            CC,
+    /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+      CC,      CA,        CA,           CA,  CA,  CC,   CC,             CA,
+    /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+      CC,       CC,            CC,      CC,           CC,           CA,
+    /*survival,swim,use_magic_device,perform*/
+      CC,      CA,  CC,              CC
+    );
+  /****************************************************************************/
 }
+
+/* list all the class defines in-game */
+/*
+ACMD(do_classlist) {
+  int i = 0;
+  char buf[MAX_STRING_LENGTH];
+  size_t len = 0;
+
+  send_to_char(ch, "# Name Abrv ClrAbrv MaxLvl Lock Prestige BAB HPs Mvs Train InGame\r\n");
+  send_to_char(ch, "  Sv-Fort Sv-Refl Sv-Will\r\n");
+  send_to_char(ch, "  SKILLS NOT CURRENTLY LISTED\r\n");
+  
+  for (i = 0; i < NUM_CLASSES; i++) {
+    len += snprintf(buf + len, sizeof (buf) - len,
+        "%d %s %s %d %s %s %s %d %d %d %s\r\n"
+        "   %s %s %s\r\n\r\n",
+            "AC: %.1f, Max Dex: %d, Armor Penalty: %d, Spell Fail: %d, Weight: %d, "
+            "Material: %s\r\n",
+            armor_list[i].name, armor_type[armor_list[i].armorType],
+            armor_list[i].cost, (float)armor_list[i].armorBonus/10.0,
+            armor_list[i].dexBonus, armor_list[i].armorCheck, armor_list[i].spellFail,
+            armor_list[i].weight, material_name[armor_list[i].material]
+                    );
+  }
+  page_string(ch->desc, buf, 1);
+}
+*/
 
 /* Names first */
 const char *class_abbrevs[] = {
@@ -173,18 +658,18 @@ const char *class_menu =
         "\r\n"
         "  \tbRea\tclms \tWof Lu\tcmin\tbari\tn | class selection\r\n"
         "---------------------+\r\n"
-        "  c)  \tBCleric\tn\r\n"
-        "  t)  \tWRogue\tn\r\n"
-        "  w)  \tRWarrior\tn\r\n"
-        "  o)  \tgMonk\tn\r\n"
-        "  d)  \tGD\tgr\tGu\tgi\tGd\tn\r\n"
-        "  m)  \tmWizard\tn\r\n"
-        "  b)  \trBer\tRser\trker\tn\r\n"
-        "  p)  \tWPaladin\tn\r\n"
-        "  s)  \tMSorcerer\tn\r\n"
-        "  r)  \tYRanger\tn\r\n"
-        "  a)  \tCBard\tn\r\n"
-        "  e)  \tcWeaponMaster\tn\r\n";
+        "  c) \tBCleric\tn\r\n"
+        "  t) \tWRogue\tn\r\n"
+        "  w) \tRWarrior\tn\r\n"
+        "  o) \tgMonk\tn\r\n"
+        "  d) \tGD\tgr\tGu\tgi\tGd\tn\r\n"
+        "  m) \tmWizard\tn\r\n"
+        "  b) \trBer\tRser\trker\tn\r\n"
+        "  p) \tWPaladin\tn\r\n"
+        "  s) \tMSorcerer\tn\r\n"
+        "  r) \tYRanger\tn\r\n"
+        "  a) \tCBard\tn\r\n"
+        "  e) \tcWeaponMaster\tn\r\n";
 
 
 /* homeland-port */
@@ -265,39 +750,8 @@ bitvector_t find_class_bitvector(const char *arg) {
   return (ret);
 }
 
-/* These are definitions which control the guildmasters for each class.
- * The  first field (top line) controls the highest percentage skill level a
- * character of the class is allowed to attain in any skill.  (After this
- * level, attempts to practice will say "You are already learned in this area."
- *
- * The second line controls the maximum percent gain in learnedness a character
- * is allowed per practice -- in other words, if the random die throw comes out
- * higher than this number, the gain will only be this number instead.
- *
- * The third line controls the minimu percent gain in learnedness a character
- * is allowed per practice -- in other words, if the random die throw comes
- * out below this number, the gain will be set up to this number.
- *
- * The fourth line simply sets whether the character knows 'spells' or 'skills'.
- * This does not affect anything except the message given to the character when
- * trying to practice (i.e. "You know of the following spells" vs. "You know of
- * the following skills" */
-
-int prac_params[4][NUM_CLASSES] = {
-  /* MG  CL  TH WR  MN  DR  BK  SR  PL  RA  BA  WM */
-  { 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75}, /* learned level */
-  { 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75}, /* max per practice */
-  { 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75}, /* min per practice */
-  { SK, SK, SK, SK, SK, SK, SK, SK, SK, SK, SK, SK}, /* prac name */
-};
-/* The appropriate rooms for each guildmaster/guildguard; controls which types
- * of people the various guildguards let through.  i.e., the first line shows
- * that from room 3017, only WIZARDS are allowed to go south. Don't forget
- * to visit spec_assign.c if you create any new mobiles that should be a guild
- * master or guard so they can act appropriately. If you "recycle" the
- * existing mobs that are used in other guilds for your new guild, then you
- * don't have to change that file, only here. Guildguards are now implemented
- * via triggers. This code remains as an example. */
+/* guild guards: stops classes from going in certain directions, essentially
+ currently unused */
 struct guild_info_type guild_info[] = {
 
   /* Midgaard */

@@ -43,9 +43,11 @@ void zone_yell(struct char_data *ch, char buf[256]);
 int spell_sort_info[MAX_SKILLS + 1];
 int sorted_spells[MAX_SKILLS + 1];
 int sorted_skills[MAX_SKILLS + 1];
-//int sorted_spells[MAX_SPELLS + 1];
-//int sorted_skills[MAX_SKILLS - MAX_SPELLS + 1];
 
+#define LEARNED_LEVEL	0	/* % known which is considered "learned" */
+#define MAX_PER_PRAC	1	/* max percent gain in skill per practice */
+#define MIN_PER_PRAC	2	/* min percent gain in skill per practice */
+#define PRAC_TYPE	3	/* should it say 'spell' or 'skill'?	 */
 
 static int compare_spells(const void *x, const void *y) {
   int a = *(const int *) x,
@@ -96,18 +98,6 @@ void sort_spells(void) {
           sizeof (int), compare_spells);
 }
 
-const char *prac_types[] = {
-  "spell",
-  "skill"
-};
-#define LEARNED_LEVEL	0	/* % known which is considered "learned" */
-#define MAX_PER_PRAC	1	/* max percent gain in skill per practice */
-#define MIN_PER_PRAC	2	/* min percent gain in skill per practice */
-#define PRAC_TYPE	3	/* should it say 'spell' or 'skill'?	 */
-#define LEARNED(ch) (prac_params[LEARNED_LEVEL][GET_CLASS(ch)])
-#define MINGAIN(ch) (prac_params[MIN_PER_PRAC][GET_CLASS(ch)])
-#define MAXGAIN(ch) (prac_params[MAX_PER_PRAC][GET_CLASS(ch)])
-#define SPLSKL(ch) (prac_types[prac_params[PRAC_TYPE][GET_CLASS(ch)]])
 
 //returns true if you have all the requisites for the skill
 //false if you don't
@@ -1951,7 +1941,10 @@ SPECIAL(guild) {
 
     list_crafting_skills(ch);
     return (TRUE);
+    
+    /***************************************/
     /* everything below this is deprecated */
+    /***************************************/
 
     if (!*argument) {
       list_skills(ch);
@@ -1966,15 +1959,17 @@ SPECIAL(guild) {
 
     if (skill_num < 1 ||
             GET_LEVEL(ch) < spell_info[skill_num].min_level[(int) GET_CLASS(ch)]) {
-      send_to_char(ch, "You do not know of that %s.\r\n", SPLSKL(ch));
+      send_to_char(ch, "You do not know of that skill.\r\n");
       return (TRUE);
     }
 
+    /*
     if (GET_SKILL(ch, skill_num) >= LEARNED(ch)) {
       send_to_char(ch, "You are already learned in that area.\r\n");
       return (TRUE);
     }
-
+    */
+    
     if (skill_num > SPELL_RESERVED_DBC && skill_num < MAX_SPELLS) {
       send_to_char(ch, "You can't practice spells.\r\n");
       return (TRUE);
@@ -1999,14 +1994,16 @@ SPECIAL(guild) {
     GET_PRACTICES(ch)--;
 
     percent = GET_SKILL(ch, skill_num);
-    percent += MIN(MAXGAIN(ch), MAX(MINGAIN(ch), int_app[GET_INT(ch)].learn));
+    percent += int_app[GET_INT(ch)].learn;
 
-    SET_SKILL(ch, skill_num, MIN(LEARNED(ch), percent));
+    SET_SKILL(ch, skill_num, percent);
 
+    /*
     if (GET_SKILL(ch, skill_num) >= LEARNED(ch))
       send_to_char(ch, "You are now \tGlearned\tn in '%s.'\r\n",
             spell_info[skill_num].name);
-
+    */
+    
     //for further expansion - zusuk
     process_skill(ch, skill_num);
 
