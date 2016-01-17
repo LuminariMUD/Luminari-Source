@@ -87,11 +87,11 @@ struct class_prerequisite* create_prereq(int prereq_type, int val1,
 
   return prereq;
 }
-/*  The following procedures are used to define feat prerequisites.
+/*  The following procedures are used to define class prerequisites.
  *  These prerequisites are automatically checked, if they exist.
  *  Dynamically assigning prerequisites also allows us to create
- *  dynamic 'help' and easier to read presentations of feat lists. */
-void feat_prereq_attribute(int class_num, int attribute, int value) {
+ *  dynamic 'help' and easier to read presentations of class lists. */
+void class_prereq_attribute(int class_num, int attribute, int value) {
   struct class_prerequisite *prereq = NULL;
   char buf[80];
 
@@ -115,7 +115,7 @@ void feat_prereq_attribute(int class_num, int attribute, int value) {
   prereq->next = class_list[class_num].prereq_list;
   class_list[class_num].prereq_list = prereq;
 }
-void feat_prereq_class_level(int class_num, int cl, int level) {
+void class_prereq_class_level(int class_num, int cl, int level) {
   struct class_prerequisite *prereq = NULL;
   char buf[80];
 
@@ -129,7 +129,7 @@ void feat_prereq_class_level(int class_num, int cl, int level) {
   prereq->next = class_list[class_num].prereq_list;
   class_list[class_num].prereq_list = prereq;
 }
-void feat_prereq_feat(int class_num, int feat, int ranks) {
+void class_prereq_feat(int class_num, int feat, int ranks) {
   struct class_prerequisite *prereq = NULL;
   char buf[80];
 
