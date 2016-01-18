@@ -898,8 +898,13 @@ void check_room_lighting(room_rnum room, struct char_data *ch, bool enter) {
 void char_from_room(struct char_data *ch) {
   struct char_data *temp;
 
-  if (ch == NULL || IN_ROOM(ch) == NOWHERE) {
-    log("SYSERR: NULL character or NOWHERE in %s, char_from_room, shutting game down!", __FILE__);
+  if (ch == NULL) {
+    log("SYSERR: NULL character in %s, char_from_room, shutting game down!", __FILE__);
+    exit(1);
+  }
+
+  if (IN_ROOM(ch) == NOWHERE) {
+    log("SYSERR: NOWHERE in %s, char_from_room, shutting game down!", __FILE__);
     exit(1);
   }
 
