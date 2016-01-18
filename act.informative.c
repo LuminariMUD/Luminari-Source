@@ -2780,7 +2780,7 @@ ACMD(do_who) {
               if (classCount)
                 len += snprintf(classes_list + len, sizeof (classes_list) - len, "/");
               len += snprintf(classes_list + len, sizeof (classes_list) - len, "%s",
-                      CLSLIST_ABBRV(inc));
+                      CLSLIST_CLRABBRV(inc));
               classCount++;
             }
           }
