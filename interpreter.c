@@ -2254,7 +2254,7 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
       write_to_output(d, "Classes of Luminari\r\n\r\n");
       for (i = 0; i < NUM_CLASSES; i++) {
         if (!locked_classes[i] || has_unlocked_class(d->character, i))
-          write_to_output(d, "%s\r\n", pc_class_types[i]);
+          write_to_output(d, "%s\r\n", CLSLIST_NAME(i));
       }
       write_to_output(d, "\r\nClass Selection (type 'warrior' if you do not know "
               "what to pick): ");
@@ -2333,7 +2333,7 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
         write_to_output(d, "Classes of Luminari\r\n\r\n");
         for (i = 0; i < NUM_CLASSES; i++) {
           if (!locked_classes[i])
-            write_to_output(d, "%s\r\n", pc_class_types[i]);
+            write_to_output(d, "%s\r\n", CLSLIST_NAME(i));
         }
         write_to_output(d, "\r\nClass Selection (type 'warrior' if you do not know "
                 "what to pick): ");

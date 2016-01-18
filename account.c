@@ -194,12 +194,12 @@ ACMD(do_accexp) {
         if (has_unlocked_class(ch, i) || !locked_classes[i])
           continue;
         cost = locked_classes_cost[i];
-        send_to_char(ch, "%s (%d account experience)\r\n", pc_class_types[i], cost);
+        send_to_char(ch, "%s (%d account experience)\r\n", CLSLIST_NAME(i), cost);
       }
       return;
     }
     for (i = 0; i < NUM_CLASSES; i++) {
-      if (is_abbrev(arg2, pc_class_types[i]) && !has_unlocked_class(ch, i) &&
+      if (is_abbrev(arg2, CLSLIST_NAME(i)) && !has_unlocked_class(ch, i) &&
           locked_classes[i]) {
         cost = locked_classes_cost[i];
         break;
@@ -226,7 +226,7 @@ ACMD(do_accexp) {
         save_account(ch->desc->account);
         send_to_char(ch, "You have unlocked the prestige class '%s' for all "
                 "character and future characters on your account!.\r\n",
-                     pc_class_types[i]);
+                     CLSLIST_NAME(i));
         return;
       } else {
         send_to_char(ch, "You need %d account experience to purchase that prestige class and you only have %d.\r\n",
@@ -632,7 +632,7 @@ ACMD(do_account) {
   send_to_char(ch, "Unlocked Classes:\r\n");
   for (i = 0; i < MAX_UNLOCKED_CLASSES; i++) {
     if (acc->classes[i] != 0) {
-      send_to_char(ch, "  %s\r\n", pc_class_types[acc->classes[i]]);
+      send_to_char(ch, "  %s\r\n", CLSLIST_NAME(acc->classes[i]));
       found = TRUE;
     }
   }

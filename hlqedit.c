@@ -99,7 +99,7 @@ void hlqedit_show_classes(struct descriptor_data *d) {
   int i;
 
   for (i = 0; i < NUM_CLASSES; i++) {
-    sprintf(buf, "%d) %s\r\n", i, pc_class_types[i]);
+    sprintf(buf, "%d) %s\r\n", i, CLSLIST_NAME(i));
     send_to_char(d->character, buf);
   }
 }

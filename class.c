@@ -71,7 +71,6 @@
 #define EXP_MAX  2100000000
 
 /* declarations */
-const char *pc_class_types[];
 /* here is our class_list declare */
 struct class_table class_list[NUM_CLASSES];
 
@@ -117,20 +116,22 @@ void class_prereq_attribute(int class_num, int attribute, int value) {
   prereq->next = class_list[class_num].prereq_list;
   class_list[class_num].prereq_list = prereq;
 }
+/*
 void class_prereq_class_level(int class_num, int cl, int level) {
   struct class_prerequisite *prereq = NULL;
   char buf[80];
 
   prereq = create_prereq(FEAT_PREREQ_CLASS_LEVEL, cl, level, 0);
 
-  /* Generate the description. */
+  // Generate the description. 
   sprintf(buf, "%s level %d", pc_class_types[cl], level);
   prereq->description = strdup(buf);
 
-  /*   Link it up. */
+  // Link it up. 
   prereq->next = class_list[class_num].prereq_list;
   class_list[class_num].prereq_list = prereq;
 }
+*/
 void class_prereq_feat(int class_num, int feat, int ranks) {
   struct class_prerequisite *prereq = NULL;
   char buf[80];
@@ -634,57 +635,6 @@ ACMD(do_classlist) {
   }
   page_string(ch->desc, buf, 1);
 }
-
-/* Names first */
-/*
-const char *class_abbrevs[] = {
-  "\tmWiz\tn",
-  "\tBCle\tn",
-  "\twRog\tn",
-  "\tRWar\tn",
-  "\tgMon\tn",
-  "\tGD\tgr\tGu\tn",
-  "\trB\tRe\trs\tn",
-  "\tMSor\tn",
-  "\tWPal\tn",
-  "\tYRan\tn",
-  "\tCBar\tn",
-  "\tcWpM\tn",
-  "\n"
-};
-*/
-
-const char *class_abbrevs_no_color[] = {
-  "Wiz",
-  "Cle",
-  "Rog",
-  "War",
-  "Mon",
-  "Dru",
-  "Bes",
-  "Sor",
-  "Pal",
-  "Ran",
-  "Bar",
-  "WpM",
-  "\n"
-};
-
-const char *pc_class_types[] = {
-  "Wizard",
-  "Cleric",
-  "Rogue",
-  "Warrior",
-  "Monk",
-  "Druid",
-  "Berserker",
-  "Sorcerer",
-  "Paladin",
-  "Ranger",
-  "Bard",
-  "WeaponMaster",
-  "\n"
-};
 
 /* The menu for choosing a class in interpreter.c: */
 const char *class_menu =

@@ -87,8 +87,6 @@ ACMD(do_classlist);
 
 #ifndef __CLASS_C__
 
-//extern const char *class_abbrevs[];
-extern const char *pc_class_types[];
 extern const char *class_menu;
 extern const char *church_types[];
 extern int prac_params[][NUM_CLASSES];

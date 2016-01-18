@@ -643,8 +643,10 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
               } else {
                 snprintf(str, slen, "0");
               }
-            } else
-              sprinttype(GET_CLASS(c), pc_class_types, str, slen);
+            } else {
+              //sprinttype(GET_CLASS(c), CLSLIST_NAME, str, slen);
+                snprintf(str, slen, "%s", CLSLIST_NAME(GET_CLASS(c)));              
+            }
           } else if (!str_cmp(field, "con")) {
             if (subfield && *subfield) {
               int addition = atoi(subfield);
