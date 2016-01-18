@@ -116,22 +116,20 @@ void class_prereq_attribute(int class_num, int attribute, int value) {
   prereq->next = class_list[class_num].prereq_list;
   class_list[class_num].prereq_list = prereq;
 }
-/*
 void class_prereq_class_level(int class_num, int cl, int level) {
   struct class_prerequisite *prereq = NULL;
   char buf[80];
 
   prereq = create_prereq(FEAT_PREREQ_CLASS_LEVEL, cl, level, 0);
 
-  // Generate the description. 
-  sprintf(buf, "%s level %d", pc_class_types[cl], level);
+  /* Generate the description */
+  sprintf(buf, "%s level %d", CLSLIST_NAME(cl), level);
   prereq->description = strdup(buf);
 
-  // Link it up. 
+  /* Link it up */
   prereq->next = class_list[class_num].prereq_list;
   class_list[class_num].prereq_list = prereq;
 }
-*/
 void class_prereq_feat(int class_num, int feat, int ranks) {
   struct class_prerequisite *prereq = NULL;
   char buf[80];
@@ -636,26 +634,7 @@ ACMD(do_classlist) {
   page_string(ch->desc, buf, 1);
 }
 
-/* The menu for choosing a class in interpreter.c: */
-const char *class_menu =
-        "\r\n"
-        "  \tbRea\tclms \tWof Lu\tcmin\tbari\tn | class selection\r\n"
-        "---------------------+\r\n"
-        "  c) \tBCleric\tn\r\n"
-        "  t) \tWRogue\tn\r\n"
-        "  w) \tRWarrior\tn\r\n"
-        "  o) \tgMonk\tn\r\n"
-        "  d) \tGD\tgr\tGu\tgi\tGd\tn\r\n"
-        "  m) \tmWizard\tn\r\n"
-        "  b) \trBer\tRser\trker\tn\r\n"
-        "  p) \tWPaladin\tn\r\n"
-        "  s) \tMSorcerer\tn\r\n"
-        "  r) \tYRanger\tn\r\n"
-        "  a) \tCBard\tn\r\n"
-        "  e) \tcWeaponMaster\tn\r\n";
-
-
-/* homeland-port */
+/* homeland-port currently unused */
 const char *church_types[] = {
   "Ao",
   "Akadi",
@@ -671,8 +650,7 @@ const char *church_types[] = {
   "Shar",
   "Silvanus",
   "\n"
-};
-// 14
+};  // 14
 
 /* The code to interpret a class letter -- used in interpreter.c when a new
  * character is selecting a class and by 'set class' in act.wizard.c. */
@@ -758,87 +736,9 @@ struct guild_info_type guild_info[] = {
   { -1, NOWHERE, -1}
 };
 
-/* Maximum ranks that may be taken in each class.
- * -1 indicates no limit to the number of levels in this
- *  class according to epic rules. */
-int class_max_ranks[NUM_CLASSES] = {
-  /* Wizard       */ -1,
-  /* Cleric       */ -1,
-  /* Rogue        */ -1,
-  /* Warrior      */ -1,
-  /* Monk         */ -1,
-  /* Druid        */ -1,
-  /* Berserker    */ -1,
-  /* Sorcerer     */ -1,
-  /* Paladin      */ -1,
-  /* Ranger       */ -1,
-  /* Bard         */ -1,
-  /* WeaponMaster */ 10
-};
-
-/* This array determines whether an ability is cross-class or a class-ability
- * based on class of the character */
-int class_ability[NUM_ABILITIES][NUM_CLASSES] = {
-//  MU  CL  TH  WA  MO  DR  BZ  SR  PL  RA  BA  WM
-  { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}, //0 - reserved
-
-  { CC, CC, CA, CC, CA, CC, CC, CC, CC, CC, CA, CC}, //1 - Acrobatics
-  { CC, CC, CA, CC, CA, CC, CC, CC, CC, CA, CA, CC}, //2 - hide
-  { CC, CC, CA, CC, CA, CC, CC, CC, CC, CA, CA, CC}, //3 move silently
-  { CC, CC, CA, CC, CA, CC, CC, CC, CC, CA, CC, CC}, //4 spot
-  { CC, CC, CA, CC, CA, CC, CA, CC, CC, CA, CA, CC}, //5 listen
-  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //6 heal
-  { CC, CC, CC, CC, CC, CC, CA, CC, CA, CC, CA, CA}, //7 intimidate
-  { CA, CA, CC, CA, CA, CA, CC, CA, CA, CA, CA, CA}, //8 concentration
-  { CA, CA, CC, CC, CC, CA, CC, CA, CC, CC, CA, CC}, //9 spellcraft
-  { CA, CC, CA, CC, CC, CC, CC, CC, CC, CC, CA, CC}, //10 appraise
-  { CC, CC, CC, CA, CC, CC, CA, CC, CA, CA, CA, CA}, //11 discipline
-  { CC, CA, CA, CA, CA, CA, CA, CC, CA, CA, CA, CA}, //12 total defense
-  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //13 lore
-  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //14 ride
-  { CC, CC, CA, CC, CA, CC, CC, CC, CC, CC, CC, CC}, //15 balance
-  { CC, CC, CA, CA, CA, CC, CA, CC, CC, CA, CA, CC}, //16 climb
-  { CC, CC, CA, CC, CC, CC, CC, CC, CC, CC, CC, CC}, //17 open lock
-  { CC, CC, CA, CC, CC, CC, CC, CC, CC, CC, CA, CC}, //18 sleight of hand
-  { CA, CC, CA, CC, CC, CC, CC, CC, CC, CA, CC, CC}, //19 search
-  { CC, CC, CA, CC, CC, CC, CC, CA, CC, CC, CA, CA}, //20 bluff
-  { CA, CC, CA, CC, CC, CC, CC, CC, CC, CC, CA, CC}, //21 decipher script
-  { CC, CA, CA, CC, CA, CA, CC, CC, CA, CC, CA, CC}, //22 diplomacy
-  { CC, CC, CA, CC, CC, CC, CC, CC, CC, CC, CC, CC}, //23 disable device
-  { CC, CC, CA, CC, CC, CC, CC, CC, CC, CC, CA, CC}, //24 disguise
-  { CC, CC, CA, CC, CA, CC, CC, CC, CC, CC, CA, CC}, //25 escape artist
-  { CC, CC, CC, CA, CC, CA, CA, CC, CA, CA, CC, CC}, //26 handle animal
-  { CC, CC, CA, CA, CA, CC, CA, CC, CC, CA, CA, CC}, //27 jump
-  { CC, CC, CA, CC, CA, CC, CC, CC, CA, CC, CA, CA}, //28 sense motive
-  { CC, CC, CC, CC, CC, CA, CA, CC, CC, CA, CC, CC}, //29 survival
-  { CC, CC, CA, CA, CA, CA, CA, CC, CC, CA, CA, CA}, //30 swim
-  { CA, CC, CA, CC, CC, CC, CC, CC, CC, CC, CA, CC}, //31 use magic device
-  { CC, CC, CA, CC, CC, CC, CC, CC, CC, CA, CC, CC}, //32 use rope
-  { CC, CC, CC, CC, CC, CC, CC, CC, CC, CC, CA, CC}, //33 perform
-  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //34 Craft (woodworking)
-  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //35 Craft (weaving)
-  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //36 Craft (alchemy)
-  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //37 Craft (armorsmithing)
-  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //38 Craft (weaponsmithing)
-  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //39 Craft (bowmaking)
-  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //40 Craft (gemcutting)
-  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //41 Craft (leatherworking)
-  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //42 Craft (trapmaking)
-  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //43 Craft (poisonmaking)
-  { CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA, CA}, //44 Craft (metalworking)
-  { CA, CA, CC, CC, CA, CC, CC, CA, CC, CC, CA, CC}, //46 Knowledge (arcana)
-  { CA, CC, CC, CC, CC, CC, CC, CC, CC, CC, CA, CC}, //47 Knowledge (engineering)
-  { CA, CC, CC, CC, CC, CC, CC, CC, CC, CA, CA, CC}, //48 Knowledge (dungeoneering)
-  { CA, CC, CC, CC, CC, CC, CC, CC, CC, CA, CA, CC}, //49 Knowledge (geography)
-  { CA, CA, CC, CC, CC, CC, CC, CC, CC, CC, CA, CC}, //50 Knowledge (history)
-  { CA, CC, CA, CC, CC, CC, CC, CC, CC, CC, CA, CC}, //51 Knowledge (local)
-  { CA, CC, CC, CC, CC, CA, CC, CC, CC, CA, CA, CC}, //52 Knowledge (nature)
-  { CA, CC, CC, CC, CC, CC, CC, CC, CA, CC, CA, CC}, //53 Knowledge (nobility)
-  { CA, CA, CC, CC, CA, CC, CC, CC, CA, CC, CA, CC}, //54 Knowledge (religion)
-  { CA, CA, CC, CC, CC, CC, CC, CC, CC, CC, CA, CC}, //55 Knowledge (the planes)
-};
+/* certain feats/etc can affect what is an actual class/cross-class ability */
 int modify_class_ability(struct char_data *ch, int ability, int class) {
-  int ability_value = class_ability[ability][class];
+  int ability_value = CLSLIST_ABIL(class, ability);
 
   if (HAS_FEAT(ch, FEAT_DECEPTION)) {
     if (ability == ABILITY_DISGUISE || ability == ABILITY_STEALTH)
@@ -848,20 +748,98 @@ int modify_class_ability(struct char_data *ch, int ability, int class) {
   return ability_value;
 }
 
-int preferred_save[5][NUM_CLASSES] = {
-  //MU CL TH WA MO DR BK SR PL RA BA WM
-  /*fort */
-  { B, G, B, G, G, G, G, B, G, G, B, B},
-  /*refl */
-  { B, B, G, B, G, B, B, B, B, B, G, G},
-  /*will */
-  { G, G, B, B, G, G, B, G, B, B, G, B},
-  /*psn  */
-  { B, B, B, B, B, B, B, B, B, B, B, B},
-  /*death*/
-  { B, B, B, B, B, B, B, B, B, B, B, B},
-};
-// fortitude / reflex / will / ( poison / death )
+/* given ch, and save we need computed, do so here */
+byte saving_throws(struct char_data *ch, int type) {
+  int i, save = 0;
+  float counter = 1.1;
+
+  if (IS_NPC(ch)) {
+    if (CLSLIST_SAVES(GET_CLASS(ch), type))
+      return (GET_LEVEL(ch) / 2 + 1);
+    else
+      return (GET_LEVEL(ch) / 4 + 1);
+  }
+
+  /* actual pc calculation, added float for more(?) accuracy */
+  for (i = 0; i < MAX_CLASSES; i++) {
+    if (CLASS_LEVEL(ch, i)) { // found class and level
+      if (CLSLIST_SAVES(i, type))
+        counter += (float)CLASS_LEVEL(ch, i) / 1.9;
+      else
+        counter += (float)CLASS_LEVEL(ch, i) / 3.9;
+    }
+  }
+  
+  save = (int)counter;
+
+  return save;
+}
+
+// base attack bonus, replacement for THAC0 system
+int BAB(struct char_data *ch) {
+  int i, bab = 0, level;
+  float counter = 0.1;
+
+  /* gnarly huh? */
+  if (IS_AFFECTED(ch, AFF_TFORM) || IS_WILDSHAPED(ch))
+    return (GET_LEVEL(ch));
+
+  /* npc is simple */
+  if (IS_NPC(ch)) {
+    switch (CLSLIST_BAB(GET_CLASS(ch))) {
+      case H:
+        return ( (int) (GET_LEVEL(ch)));
+      case M:
+        return ( (int) (GET_LEVEL(ch) * 3 / 4));
+      case L:
+      default:
+        return ( (int) (GET_LEVEL(ch) / 2));
+    }
+  }
+
+  /* pc: loop through all the possible classes the char could be */
+  for (i = 0; i < MAX_CLASSES; i++) {
+    level = CLASS_LEVEL(ch, i);
+    if (level) {
+      switch (CLSLIST_BAB(i)) {
+        case M:
+          counter += (float)level * 3.1 / 3.9;
+          break;
+        case H:
+          counter += (float)level + 0.1;
+          break;
+        case L:
+        default:
+          counter += (float)level / 1.9;
+          break;
+      }
+    }
+  }
+
+  bab = (int)counter;
+  
+  if (char_has_mud_event(ch, eSPELLBATTLE) && SPELLBATTLE(ch) > 0) {
+    bab += MAX(1, (SPELLBATTLE(ch) * 2 / 3));
+  }
+
+  if (!IS_NPC(ch)) /* cap pc bab at 34 */
+    return (MIN(bab, 34));
+
+  return bab;
+}
+
+/* use to be old rolling system, now its just used to initialize base stats */
+void roll_real_abils(struct char_data *ch) {
+  GET_REAL_INT(ch) = 8;
+  GET_REAL_WIS(ch) = 8;
+  GET_REAL_CHA(ch) = 8;
+  GET_REAL_STR(ch) = 8;
+  GET_REAL_DEX(ch) = 8;
+  GET_REAL_CON(ch) = 8;
+  ch->aff_abils = ch->real_abils;
+}
+
+/* start feat releated stuffs tied to class */
 
 int free_start_feats_wizard[] = {
   FEAT_WEAPON_PROFICIENCY_WIZARD,
@@ -1776,109 +1754,9 @@ const int *class_bonus_feats[NUM_CLASSES] = {
   /* WeaponMaster */ class_feats_weaponmaster
 };
 
-byte saving_throws(struct char_data *ch, int type) {
-  int i, save = 1;
+/* start feat releated stuffs tied to class */
 
-  if (IS_NPC(ch)) {
-    if (preferred_save[type][GET_CLASS(ch)])
-      return (GET_LEVEL(ch) / 2 + 1);
-    else
-      return (GET_LEVEL(ch) / 4 + 1);
-  }
-
-  for (i = 0; i < MAX_CLASSES; i++) {
-    if (CLASS_LEVEL(ch, i)) { // found class and level
-      if (preferred_save[type][i])
-        save += CLASS_LEVEL(ch, i) / 2;
-      else
-        save += CLASS_LEVEL(ch, i) / 4;
-    }
-  }
-
-  return save;
-}
-
-// base attack bonus, replacement for THAC0 system
-int BAB(struct char_data *ch) {
-  int i, bab = 0, level;
-
-  /* gnarly huh? */
-  if (IS_AFFECTED(ch, AFF_TFORM) || IS_WILDSHAPED(ch))
-    return (GET_LEVEL(ch));
-
-  if (IS_NPC(ch)) {
-    switch (GET_CLASS(ch)) {
-      case CLASS_ROGUE:
-      case CLASS_CLERIC:
-      case CLASS_DRUID:
-      case CLASS_BARD:
-      case CLASS_MONK:
-        return ( (int) (GET_LEVEL(ch) * 3 / 4));
-      case CLASS_WARRIOR:
-      case CLASS_WEAPON_MASTER:
-      case CLASS_RANGER:
-      case CLASS_PALADIN:
-      case CLASS_BERSERKER:
-        return ( (int) (GET_LEVEL(ch)));
-      case CLASS_WIZARD:
-      case CLASS_SORCERER:
-      default:
-        return ( (int) (GET_LEVEL(ch) / 2));
-    }
-  }
-
-  /* loop through all the possible classes the char could be */
-  for (i = 0; i < MAX_CLASSES; i++) {
-    level = CLASS_LEVEL(ch, i);
-    if (level) {
-      switch (i) {
-        case CLASS_WIZARD:
-        case CLASS_SORCERER:
-          bab += level / 2;
-          break;
-        case CLASS_ROGUE:
-        case CLASS_CLERIC:
-        case CLASS_DRUID:
-        case CLASS_BARD:
-        case CLASS_MONK:
-          bab += level * 3 / 4;
-          break;
-        case CLASS_WARRIOR:
-        case CLASS_WEAPON_MASTER:
-        case CLASS_RANGER:
-        case CLASS_PALADIN:
-        case CLASS_BERSERKER:
-          bab += level;
-          break;
-      }
-    }
-  }
-
-  if (bab == -1)
-    log("ERROR:  BAB catching -1");
-
-  if (char_has_mud_event(ch, eSPELLBATTLE) && SPELLBATTLE(ch) > 0) {
-    bab += MAX(1, (SPELLBATTLE(ch) * 2 / 3));
-  }
-
-  if (!IS_NPC(ch)) /* cap pc bab at 30 */
-    return (MIN(bab, 30));
-
-  return bab;
-}
-
-
-// old random roll system abandoned for base stats + point distribution
-void roll_real_abils(struct char_data *ch) {
-  GET_REAL_INT(ch) = 8;
-  GET_REAL_WIS(ch) = 8;
-  GET_REAL_CHA(ch) = 8;
-  GET_REAL_STR(ch) = 8;
-  GET_REAL_DEX(ch) = 8;
-  GET_REAL_CON(ch) = 8;
-  ch->aff_abils = ch->real_abils;
-}
-
+/* function that gives chars starting gear */
 void newbieEquipment(struct char_data *ch) {
   int objNums[] = {
     NOOB_TELEPORTER,
@@ -2046,16 +1924,10 @@ void bard_skills(struct char_data *ch, int level) {}
 void ranger_skills(struct char_data *ch, int level) {}
 void paladin_skills(struct char_data *ch, int level) {}
 void sorc_skills(struct char_data *ch, int level) {}
-void wizard_skills(struct char_data *ch, int level) {
-  IS_WIZ_LEARNED(ch) = 0;
-  send_to_char(ch,
-          "\tnType \tDstudy wizard\tn to adjust your wizard skills.\r\n");
-}
+void wizard_skills(struct char_data *ch, int level) {IS_WIZ_LEARNED(ch) = 0;}
 void cleric_skills(struct char_data *ch, int level) {}
 void warrior_skills(struct char_data *ch, int level) {}
-void druid_skills(struct char_data *ch, int level) {
-  IS_DRUID_LEARNED(ch) = 0;
-}
+void druid_skills(struct char_data *ch, int level) {IS_DRUID_LEARNED(ch) = 0;}
 void rogue_skills(struct char_data *ch, int level) {}
 void monk_skills(struct char_data *ch, int level) {}
 void weaponmaster_skills(struct char_data *ch, int level) {}
@@ -2762,7 +2634,6 @@ void init_start_char(struct char_data *ch) {
     for (j = 0; j > NUM_SKFEATS; j++)
       (ch)->player_specials->saved.skill_focus[(i)][j] = 0;
 
-
   /* initialize mem data, allow adjustment of spells known */
   init_spell_slots(ch);
   IS_SORC_LEARNED(ch) = 0;
@@ -2848,36 +2719,15 @@ void init_start_char(struct char_data *ch) {
       break;
   }
 
+  /* warrior bonus */
+  if (GET_CLASS(ch) == CLASS_WARRIOR)
+    GET_CLASS_FEATS(ch, CLASS_WARRIOR)++; /* Bonus Feat */
+  
   /* when you study it reinitializes your trains now */  
   int int_bonus = GET_INT_BONUS(ch); /* this is the way it should be */
-  
-  //class-related inits
-  switch (GET_CLASS(ch)) {
-    case CLASS_WARRIOR:
-      GET_CLASS_FEATS(ch, CLASS_WARRIOR)++; /* Bonus Feat */
-      /* fallthrough */
-    case CLASS_WEAPON_MASTER:
-    case CLASS_WIZARD:
-    case CLASS_CLERIC:
-    case CLASS_UNDEFINED:
-    case CLASS_SORCERER:
-    case CLASS_PALADIN:
-      trains += MAX(1, (2 + (int) (int_bonus)) * 3);
-      break;
-    case CLASS_DRUID:
-    case CLASS_RANGER:
-    case CLASS_BERSERKER:
-    case CLASS_MONK:
-      trains += MAX(1, (4 + (int) (int_bonus)) * 3);
-      break;
-    case CLASS_BARD:
-      trains += MAX(1, (6 + (int) (int_bonus)) * 3);
-      break;
-    case CLASS_ROGUE:
-      trains += MAX(1, (8 + (int) (int_bonus)) * 3);
-      break;
-    default: break;
-  }
+
+  /* assign trains, this gets over-written anyhow during study session at lvl 1 */
+  trains += MAX(1, (CLSLIST_TRAINS(GET_CLASS(ch)) + (int) (int_bonus)) * 3);
 
   /* finalize */
   GET_FEAT_POINTS(ch)++; /* 1st level feat. */
@@ -2901,6 +2751,7 @@ void do_start(struct char_data *ch) {
     SET_BIT_AR(PLR_FLAGS(ch), PLR_SITEOK);
 }
 
+/* at each level we run this function to assign free class related feats */
 void process_level_feats(struct char_data *ch, int class) {
   char featbuf[MAX_STRING_LENGTH];
   int i = 0;
@@ -3018,6 +2869,7 @@ void process_level_feats(struct char_data *ch, int class) {
   send_to_char(ch, "%s", featbuf);
 }
 
+/* our function for leveling up */
 void advance_level(struct char_data *ch, int class) {
   int add_hp = 0, at_armor = 100,
           add_mana = 0, add_move = 0, k, trains = 0;
@@ -3041,29 +2893,30 @@ void advance_level(struct char_data *ch, int class) {
   /* start our primary advancement block */
   send_to_char(ch, "\tMGAINS:\tn\r\n");
 
-  /* class bonuses */
+  /* calculate hps gain */
+  add_hp += rand_number(CLSLIST_HPS(class)/2, CLSLIST_HPS(class));
+  
+  /* calculate moves gain */
+  add_move += rand_number(1, CLSLIST_MVS(class));
+  
+  /* calculate mana gain */
+  //add_mana += rand_number(CLSLIST_MANA(class)/2, CLSLIST_MANA(class));
+  add_mana = 0;
+  
+  /* calculate trains gained */
+  trains += MAX(1, (CLSLIST_TRAINS(class) + (GET_REAL_INT_BONUS(ch))));
+  
+  /* various class bonuses */
   switch (class) {
     case CLASS_SORCERER:
       sorc_skills(ch, CLASS_LEVEL(ch, CLASS_SORCERER));
-      add_hp += rand_number(2, 4);
-      add_mana = 0;
-      add_move = rand_number(0, 2);
-
-      trains += MAX(1, (2 + (GET_REAL_INT_BONUS(ch))));
-
       //epic
       if (!(CLASS_LEVEL(ch, class) % 3) && GET_LEVEL(ch) >= 20) {
         epic_class_feats++;
       }
       break;
     case CLASS_WIZARD:
-      wizard_skills(ch, CLASS_LEVEL(ch, CLASS_WIZARD));
-      add_hp += rand_number(2, 4);
-      add_mana = 0;
-      add_move = rand_number(0, 2);
-
-      trains += MAX(1, (2 + (GET_REAL_INT_BONUS(ch))));
-
+      wizard_skills(ch, CLASS_LEVEL(ch, CLASS_WIZARD));      
       if (!(CLASS_LEVEL(ch, class) % 5) && GET_LEVEL(ch) < 20) {
         class_feats++;
       }
@@ -3071,16 +2924,9 @@ void advance_level(struct char_data *ch, int class) {
       if (!(CLASS_LEVEL(ch, class) % 3) && GET_LEVEL(ch) >= 20) {
         epic_class_feats++;
       }
-
       break;
     case CLASS_CLERIC:
       cleric_skills(ch, CLASS_LEVEL(ch, CLASS_CLERIC));
-      add_hp += rand_number(4, 8);
-      add_mana = 0;
-      add_move = rand_number(0, 2);
-
-      trains += MAX(1, (2 + (GET_REAL_INT_BONUS(ch))));
-
       //epic
       if (!(CLASS_LEVEL(ch, class) % 3) && GET_LEVEL(ch) >= 20) {
         epic_class_feats++;
@@ -3088,26 +2934,13 @@ void advance_level(struct char_data *ch, int class) {
       break;
     case CLASS_ROGUE:
       rogue_skills(ch, CLASS_LEVEL(ch, CLASS_ROGUE));
-      add_hp += rand_number(3, 6);
-      add_mana = 0;
-      add_move = rand_number(0, 2);
-
-      trains += MAX(1, (8 + (GET_REAL_INT_BONUS(ch))));
-
       //epic
       if (!(CLASS_LEVEL(ch, class) % 4) && GET_LEVEL(ch) >= 20) {
         epic_class_feats++;
       }
-
       break;
     case CLASS_BARD:
       bard_skills(ch, CLASS_LEVEL(ch, CLASS_BARD));
-      add_hp += rand_number(3, 6);
-      add_mana = 0;
-      add_move = rand_number(0, 2);
-
-      trains += MAX(1, (6 + (GET_REAL_INT_BONUS(ch))));
-
       //epic
       if (!(CLASS_LEVEL(ch, class) % 3) && GET_LEVEL(ch) >= 20) {
         epic_class_feats++;
@@ -3115,104 +2948,56 @@ void advance_level(struct char_data *ch, int class) {
       break;
     case CLASS_MONK:
       monk_skills(ch, CLASS_LEVEL(ch, CLASS_MONK));
-      add_hp += rand_number(4, 8);
-      add_mana = 0;
-      add_move = rand_number(0, 2);
-
-      trains += MAX(1, (4 + (GET_REAL_INT_BONUS(ch))));
-
       //epic
       if (!(CLASS_LEVEL(ch, class) % 5) && GET_LEVEL(ch) >= 20) {
         epic_class_feats++;
       }
-
       break;
     case CLASS_BERSERKER:
       berserker_skills(ch, CLASS_LEVEL(ch, CLASS_BERSERKER));
-      add_hp += rand_number(6, 12);
-      add_mana = 0;
-      add_move = rand_number(0, 2);
-
-      trains += MAX(1, (4 + (GET_REAL_INT_BONUS(ch))));
-
       //epic
       if (!(CLASS_LEVEL(ch, class) % 4) && GET_LEVEL(ch) >= 20) {
         epic_class_feats++;
       }
-
       break;
     case CLASS_DRUID:
       druid_skills(ch, CLASS_LEVEL(ch, CLASS_SORCERER));
-      add_hp += rand_number(4, 8);
-      add_mana = 0;
-      add_move = rand_number(0, 2);
-
-      trains += MAX(1, (4 + (GET_REAL_INT_BONUS(ch))));
-
       //epic
       if (!(CLASS_LEVEL(ch, class) % 4) && GET_LEVEL(ch) >= 20) {
         epic_class_feats++;
       }
-
       break;
     case CLASS_RANGER:
       ranger_skills(ch, CLASS_LEVEL(ch, CLASS_RANGER));
-      add_hp += rand_number(5, 10);
-      add_mana = 0;
-      add_move = rand_number(0, 2);
-
-      trains += MAX(1, (4 + (GET_REAL_INT_BONUS(ch))));
-
       //epic
       if (!(CLASS_LEVEL(ch, class) % 3) && GET_LEVEL(ch) >= 20) {
         epic_class_feats++;
       }
-
       break;
     case CLASS_PALADIN:
       paladin_skills(ch, CLASS_LEVEL(ch, CLASS_PALADIN));
-      add_hp += rand_number(5, 10);
-      add_mana = 0;
-      add_move = rand_number(0, 2);
-
       trains += MAX(1, (2 + (GET_REAL_INT_BONUS(ch))));
-
       //epic
       if (!(CLASS_LEVEL(ch, class) % 3) && GET_LEVEL(ch) >= 20) {
         epic_class_feats++;
       }
-
       break;
     case CLASS_WARRIOR:
       warrior_skills(ch, CLASS_LEVEL(ch, CLASS_WARRIOR));
-      add_hp += rand_number(5, 10);
-      add_mana = 0;
-      add_move = rand_number(0, 2);
-
-      trains += MAX(1, (2 + (GET_REAL_INT_BONUS(ch))));
       if (!(CLASS_LEVEL(ch, class) % 2) && !IS_EPIC(ch)) {
         class_feats++;
       }
       if (!(CLASS_LEVEL(ch, class) % 2) && IS_EPIC(ch)) {
         epic_class_feats++;
       }
-
       break;
     case CLASS_WEAPON_MASTER:
       weaponmaster_skills(ch, CLASS_LEVEL(ch, CLASS_WEAPON_MASTER));
-      add_hp += rand_number(5, 10);
-      add_mana = 0;
-      add_move = rand_number(0, 2);
-
-      trains += MAX(1, (2 + (GET_REAL_INT_BONUS(ch))));
-
       //epic
       if (!(CLASS_LEVEL(ch, class) % 3) && GET_LEVEL(ch) >= 20) {
         epic_class_feats++;
       }
-
-      break;
-      
+      break;      
     default:break;
   }
 
@@ -3224,6 +3009,7 @@ void advance_level(struct char_data *ch, int class) {
     add_move += rand_number(1, 2);
   }
 
+  /* free class feats gained */
   process_level_feats(ch, class);
 
   //Racial Bonuses
@@ -3262,7 +3048,7 @@ void advance_level(struct char_data *ch, int class) {
   if (HAS_FEAT(ch, FEAT_EPIC_TOUGHNESS)) {
     /* SRD has this listed as +30 hp.  More fun to do it by level perhaps. */
     for (i = HAS_FEAT(ch, FEAT_EPIC_TOUGHNESS); i > 0; i--)
-      add_hp += 1;
+      add_hp++;
   }
 
   /* adjust final and report changes! */
@@ -3313,63 +3099,20 @@ void advance_level(struct char_data *ch, int class) {
   save_char(ch, 0);
 }
 
+/* if you get multiplier for backstab, calculated here */
 int backstab_mult(struct char_data *ch) {
-
   if (HAS_FEAT(ch, FEAT_BACKSTAB))
     return 2;
 
   return 1;
 }
 
-
-// used by handler.c
-
+// used by handler.c, completely depreacted function right now
 int invalid_class(struct char_data *ch, struct obj_data *obj) {
-  /* this is all deprecated by the proficiency system */
-  /*
-  if (OBJ_FLAGGED(obj, ITEM_ANTI_WIZARD) && IS_WIZARD(ch))
-    return TRUE;
-
-  if (OBJ_FLAGGED(obj, ITEM_ANTI_SORCERER) && IS_SORCERER(ch))
-    return TRUE;
-
-  if (OBJ_FLAGGED(obj, ITEM_ANTI_CLERIC) && IS_CLERIC(ch))
-    return TRUE;
-
-  if (OBJ_FLAGGED(obj, ITEM_ANTI_RANGER) && IS_RANGER(ch))
-    return TRUE;
-
-  if (OBJ_FLAGGED(obj, ITEM_ANTI_PALADIN) && IS_PALADIN(ch))
-    return TRUE;
-
-  if (OBJ_FLAGGED(obj, ITEM_ANTI_WARRIOR) && IS_WARRIOR(ch))
-    return TRUE;
-
-  if (OBJ_FLAGGED(obj, ITEM_ANTI_WEAPON_MASTER) && IS_WEAPONMASTER(ch))
-    return TRUE;
-
-  if (OBJ_FLAGGED(obj, ITEM_ANTI_MONK) && IS_MONK(ch))
-    return TRUE;
-
-  if (OBJ_FLAGGED(obj, ITEM_ANTI_BERSERKER) && IS_BERSERKER(ch))
-    return TRUE;
-
-  if (OBJ_FLAGGED(obj, ITEM_ANTI_DRUID) && IS_DRUID(ch))
-    return TRUE;
-
-  if (OBJ_FLAGGED(obj, ITEM_ANTI_BARD) && IS_BARD(ch))
-    return TRUE;
-
-  if (OBJ_FLAGGED(obj, ITEM_ANTI_ROGUE) && IS_ROGUE(ch))
-    return TRUE;
-   */
-
   return FALSE;
 }
 
-
 // vital min level info!
-
 void init_spell_levels(void) {
   int i = 0, j = 0;
 
@@ -4161,9 +3904,7 @@ void init_spell_levels(void) {
   spell_level(SPELL_GREATER_RUIN, CLASS_DRUID, 20);
   spell_level(SPELL_HELLBALL, CLASS_DRUID, 20);
   //end druid spells
-
 }
-
 
 // level_exp ran with level+1 will give xp to next level
 // level_exp+1 - level_exp = exp to next level

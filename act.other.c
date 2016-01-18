@@ -1337,7 +1337,7 @@ void list_valid_classes(struct char_data *ch, int mode) {
   int i, max_levels = 30;
 
   for (i = 0; i < NUM_CLASSES; i++) {
-    max_levels = class_max_ranks[i];
+    max_levels = CLSLIST_MAXLVL(i);
     if (max_levels == -1)
       max_levels = LVL_IMMORT - 1;
     switch (i) {
@@ -1471,7 +1471,7 @@ ACMD(do_gain) {
       return;
     }
     /* cap for class ranks */
-    int max_class_level = class_max_ranks[class];
+    int max_class_level = CLSLIST_MAXLVL(class);
     if (max_class_level == -1)
       max_class_level = LVL_IMMORT - 1;
     if (CLASS_LEVEL(ch, class) >= max_class_level) {

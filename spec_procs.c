@@ -2085,7 +2085,7 @@ SPECIAL(guild) {
 
     if (GET_ABILITY(ch, skill_num) >= (GET_LEVEL(ch) + 3))
       send_to_char(ch, "You are now trained in that area.\r\n");
-    if (GET_ABILITY(ch, skill_num) >= ((int) ((GET_LEVEL(ch) + 3) / 2)) && class_ability[skill_num][GET_CLASS(ch)] == 1)
+    if (GET_ABILITY(ch, skill_num) >= ((int) ((GET_LEVEL(ch) + 3) / 2)) && CLSLIST_ABIL(GET_CLASS(ch), skill_num) == 1)
       send_to_char(ch, "You are already trained in that area.\r\n");
 
     return (TRUE);
