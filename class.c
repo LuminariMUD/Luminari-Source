@@ -388,7 +388,7 @@ void load_class_list(void) {
   /****************************************************************************/
   
   /****************************************************************************/
-  /*     class-number  name      abrv   clr-abrv     menu-name*/
+  /*     class-number  name     abrv   clr-abrv     menu-name*/
   classo(CLASS_ROGUE, "rogue", "Rog", "\twRog\tn", "t) \tWRogue\tn\r\n",
       /* max-lvl  lock? prestige? BAB HD mana move trains in-game? */
         -1,       N,    N,        M,  6, 0,   2,   8,     Y);
@@ -407,7 +407,7 @@ void load_class_list(void) {
   /****************************************************************************/
   
   /****************************************************************************/
-  /*     class-number  name      abrv   clr-abrv     menu-name*/
+  /*     class-number  name        abrv   clr-abrv       menu-name*/
   classo(CLASS_WARRIOR, "warrior", "War", "\tRWar\tn", "w) \tRWarrior\tn\r\n",
       /* max-lvl  lock? prestige? BAB HD  mana move trains in-game? */
         -1,       N,    N,        H,  10, 0,   1,   2,     Y);
@@ -426,12 +426,12 @@ void load_class_list(void) {
   /****************************************************************************/
   
   /****************************************************************************/
-  /*     class-number  name      abrv   clr-abrv     menu-name*/
+  /*     class-number  name    abrv   clr-abrv     menu-name*/
   classo(CLASS_MONK, "monk", "Mon", "\tgMon\tn", "o) \tgMonk\tn\r\n",
       /* max-lvl  lock? prestige? BAB HD mana move trains in-game? */
         -1,       N,    N,        M,  8, 0,   2,   4,     Y);
   /* class-number then saves: fortitude, reflex, will, poison, death */
-  assign_class_saves(CLASS_MONK, G,    G,      G,    B,      B);
+  assign_class_saves(CLASS_MONK,   G,    G,      G,    B,      B);
   assign_class_abils(CLASS_MONK, /* class number */
     /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
       CA,        CA,     CA,        CA,  CC,        CA,            CC,
@@ -445,12 +445,12 @@ void load_class_list(void) {
   /****************************************************************************/
   
   /****************************************************************************/
-  /*     class-number  name      abrv   clr-abrv     menu-name*/
+  /*     class-number  name      abrv   clr-abrv          menu-name*/
   classo(CLASS_DRUID, "druid", "Dru", "\tGD\tgr\tGu\tn", "d) \tGD\tgr\tGu\tgi\tGd\tn\r\n",
       /* max-lvl  lock? prestige? BAB HD mana move trains in-game? */
         -1,       N,    N,        M,  8, 0,   3,   4,     Y);
   /* class-number then saves: fortitude, reflex, will, poison, death */
-  assign_class_saves(CLASS_DRUID, G,    B,      G,    B,      B);
+  assign_class_saves(CLASS_DRUID,  G,    B,      G,    B,      B);
   assign_class_abils(CLASS_DRUID, /* class number */
     /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
       CC,        CC,     CC,        CA,  CC,        CA,            CA,
@@ -464,7 +464,7 @@ void load_class_list(void) {
   /****************************************************************************/
   
   /****************************************************************************/
-  /*     class-number  name      abrv   clr-abrv     menu-name*/
+  /*     class-number        name      abrv   clr-abrv           menu-name*/
   classo(CLASS_BERSERKER, "berserker", "Bes", "\trB\tRe\trs\tn", "b) \trBer\tRser\trker\tn\r\n",
       /* max-lvl  lock? prestige? BAB HD  mana move trains in-game? */
         -1,       N,    N,        H,  12, 0,   2,   4,     Y);
@@ -483,7 +483,7 @@ void load_class_list(void) {
   /****************************************************************************/
   
   /****************************************************************************/
-  /*     class-number  name      abrv   clr-abrv     menu-name*/
+  /*     class-number     name      abrv   clr-abrv     menu-name*/
   classo(CLASS_SORCERER, "sorcerer", "Sor", "\tMSor\tn", "s) \tMSorcerer\tn\r\n",
       /* max-lvl  lock? prestige? BAB HD mana move trains in-game? */
         -1,       N,    N,        L,  4, 0,   1,   2,     Y);
@@ -502,7 +502,7 @@ void load_class_list(void) {
   /****************************************************************************/
   
   /****************************************************************************/
-  /*     class-number  name      abrv   clr-abrv     menu-name*/
+  /*     class-number   name      abrv   clr-abrv     menu-name*/
   classo(CLASS_PALADIN, "paladin", "Pal", "\tWPal\tn", "p) \tWPaladin\tn\r\n",
       /* max-lvl  lock? prestige? BAB HD mana move trains in-game? */
         -1,       N,    N,        H,  10, 0,   1,   2,     Y);
@@ -540,12 +540,12 @@ void load_class_list(void) {
   /****************************************************************************/
   
   /****************************************************************************/
-  /*     class-number  name      abrv   clr-abrv     menu-name*/
+  /*     class-number  name   abrv   clr-abrv     menu-name*/
   classo(CLASS_BARD, "bard", "Bar", "\tCBar\tn", "a) \tCBard\tn\r\n",
       /* max-lvl  lock? prestige? BAB HD mana move trains in-game? */
         -1,       N,    N,        M,  6, 0,   2,   6,     Y);
   /* class-number then saves: fortitude, reflex, will, poison, death */
-  assign_class_saves(CLASS_BARD, B,    G,      G,    B,      B);
+  assign_class_saves(CLASS_BARD,   B,    G,      G,    B,      B);
   assign_class_abils(CLASS_BARD, /* class number */
     /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
       CA,        CA,     CA,        CA,  CC,        CA,            CA,
@@ -559,11 +559,11 @@ void load_class_list(void) {
   /****************************************************************************/
   
   /****************************************************************************/
-  /*     class-number  name      abrv   clr-abrv     menu-name*/
+  /*     class-number               name      abrv   clr-abrv     menu-name*/
   classo(CLASS_WEAPON_MASTER, "weaponmaster", "WpM", "\tcWpM\tn", "e) \tcWeaponMaster\tn\r\n",
       /* max-lvl  lock? prestige? BAB HD mana move trains in-game? */
         10,       Y,    Y,        H,  10, 0,   1,   2,     Y);
-  /* class-number then saves: fortitude, reflex, will, poison, death */
+  /* class-number then saves:        fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_WEAPON_MASTER, B,    G,      B,    B,      B);
   assign_class_abils(CLASS_WEAPON_MASTER, /* class number */
     /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
