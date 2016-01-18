@@ -151,8 +151,8 @@ void show_quest_to_player(struct char_data *ch, struct quest_entry *quest) {
           break;
         case QUEST_COMMAND_KIT:
           sprintf(buf, "\tcSET_KIT\tn of a %s to become %s.\r\n",
-                  pc_class_types[ qcom->location ],
-                  pc_class_types[ qcom->value ]);
+                  CLSLIST_NAME(qcom->location),
+                  CLSLIST_NAME(qcom->value) );
           send_to_char(ch, buf);
           break;
         case QUEST_COMMAND_LOAD_MOB_INROOM:
@@ -374,13 +374,13 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim,
       case QUEST_COMMAND_KIT:
         if (GET_CLASS(ch) != qcom->location) {
           sprintf(buf, "You need to be a %s to learn how to be a %s.\r\n"
-                  , pc_class_types[ qcom->location]
-                  , pc_class_types[ qcom->value]);
+                  , CLSLIST_NAME(qcom->location)
+                  , CLSLIST_NAME(qcom->value));
           give_back_items(victim, ch, quest);
           send_to_char(ch, buf);
         } else if (!has_race_kit(GET_RACE(ch), qcom->value)) {
           sprintf(buf, "Your race can NEVER learn how to become a %s.\r\n"
-                  , pc_class_types[ qcom->value]);
+                  , CLSLIST_NAME(qcom->value));
           send_to_char(ch, buf);
           give_back_items(victim, ch, quest);
           log("quest_log : %s failed to do a kitquest.(Not right race)",
@@ -425,10 +425,10 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim,
             }
           }
 
-          sprintf(buf, "You are now a %s.\r\n", pc_class_types[GET_CLASS(ch)]);
+          sprintf(buf, "You are now a %s.\r\n", CLSLIST_NAME(GET_CLASS(ch)));
           send_to_char(ch, buf);
           log("quest_log : %s have changed to %s", GET_NAME(ch),
-                  pc_class_types[GET_CLASS(ch)]);
+                  CLSLIST_NAME(GET_CLASS(ch)));
         }
         break;
 
@@ -888,7 +888,7 @@ ACMD(do_qinfo) {
                 } else if (qcmd->type == QUEST_COMMAND_FOLLOW) {
                   strcat(buf, " and follows you");
                 } else if (qcmd->type == QUEST_COMMAND_KIT) {
-                  sprintf(buf, "and changes your kit to %s", pc_class_types[qcmd->value]);
+                  sprintf(buf, "and changes your kit to %s", CLSLIST_NAME(qcmd->value));
                   strcat(buf, buf2);
                 } else if (qcmd->type == QUEST_COMMAND_CHURCH) {
                   sprintf(buf2, " and changes your religious affiliation to %s",
@@ -960,7 +960,7 @@ ACMD(do_kitquests) {
         for (qcom = quest->out; qcom; qcom = qcom->next) {
           if (qcom->type == QUEST_COMMAND_KIT) {
             sprintf(buf, "\tc%-32s\tn - %s(\tW%d\tn)\r\n"
-                    , pc_class_types[ qcom->value ]
+                    , CLSLIST_NAME(qcom->value)
                     , mob_proto[i].player.short_descr
                     , mob_index[i].vnum
                     );

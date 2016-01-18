@@ -2865,7 +2865,7 @@ int get_class_by_name(char *classname) {
   int i;
 
   for (i = 0; i < NUM_CLASSES; i++)
-    if (is_abbrev(classname, pc_class_types[i]))
+    if (is_abbrev(classname, CLSLIST_NAME(i)))
       return (i);
 
   return (-1);

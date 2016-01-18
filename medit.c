@@ -385,7 +385,7 @@ void medit_disp_class(struct descriptor_data *d) {
 
   for (counter = 0; counter < NUM_CLASSES; counter++) {
     write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel,
-            pc_class_types[counter], !(++columns % 3) ? "\r\n" : "");
+            CLSLIST_NAME(counter), !(++columns % 3) ? "\r\n" : "");
   }
   write_to_output(d, "\r\n%s(You can choose 99 for random)", nrm);
   write_to_output(d, "\r\n%s(Set the classless MOBFLAG to turn off the class)", nrm);
@@ -594,7 +594,7 @@ static void medit_disp_menu(struct descriptor_data *d) {
           grn, nrm, yel, npc_subrace_types[GET_SUBRACE(mob, 0)],
           grn, nrm, yel, npc_subrace_types[GET_SUBRACE(mob, 1)],
           grn, nrm, yel, npc_subrace_types[GET_SUBRACE(mob, 2)],
-          grn, nrm, yel, pc_class_types[GET_CLASS(mob)],
+          grn, nrm, yel, CLSLIST_NAME(GET_CLASS(mob)),
           grn, nrm, yel, size_names[GET_SIZE(mob)],
           grn, nrm, yel, GET_WALKIN(mob) ? GET_WALKIN(mob) : "Default.",
           grn, nrm, yel, GET_WALKOUT(mob) ? GET_WALKOUT(mob) : "Default.",

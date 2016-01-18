@@ -3842,7 +3842,8 @@ ACMD(do_whois) {
     send_to_char(ch, "Account Name: %s\r\n", get_char_account_name(GET_NAME(victim)));
   }
   
-  sprinttype(victim->player.chclass, pc_class_types, buf, sizeof (buf));
+  //sprinttype(victim->player.chclass, CLSLIST_NAME, buf, sizeof (buf));
+  snprintf(buf, sizeof(buf), "%s", CLSLIST_NAME(victim->player.chclass));              
   send_to_char(ch, "Current Class: %s\r\n", buf);
 
   send_to_char(ch, "\tCClass(es):\tn ");

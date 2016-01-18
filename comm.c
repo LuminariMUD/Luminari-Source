@@ -3159,7 +3159,6 @@ static void msdp_update(void) {
   const char MsdpVar = (char) MSDP_VAR;
   const char MsdpVal = (char) MSDP_VAL;
 
-  extern const char *pc_class_types[];
   extern const char *dirs[];
   extern const char *sector_types[];
 
@@ -3207,7 +3206,8 @@ static void msdp_update(void) {
 
       MSDPSetString(d, eMSDP_RACE, RACE_ABBR(ch));
 
-      sprinttype(ch->player.chclass, pc_class_types, buf, sizeof (buf));
+      //sprinttype(ch->player.chclass, CLSLIST_NAME, buf, sizeof (buf));
+      snprintf(buf, sizeof(buf), "%s", CLSLIST_NAME(ch->player.chclass));              
       MSDPSetString(d, eMSDP_CLASS, buf);
 
       /* Location information */

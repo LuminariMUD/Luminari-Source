@@ -1345,7 +1345,7 @@ void list_valid_classes(struct char_data *ch, int mode) {
       default:
         if (meet_class_reqs(ch, i, mode) && has_unlocked_class(ch, i) &&
             CLASS_LEVEL(ch, i) < max_levels) {
-          send_to_char(ch, "%s\r\n", pc_class_types[i]);
+          send_to_char(ch, "%s\r\n", CLSLIST_NAME(i));
         }
 
         break;
