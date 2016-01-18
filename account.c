@@ -478,7 +478,8 @@ void save_account(struct account_data *account) {
 void show_account_menu(struct descriptor_data *d) {
   int i = 0;
   struct char_data *tch = NULL;
-  char class_list[MAX_INPUT_LENGTH];
+  char buf[MAX_STRING_LENGTH];
+  size_t len = 0;
 
   write_to_output(d, "\tC%s\tn", text_line_string("", 80, '-', '-'));
   write_to_output(d, "  \tc#  \tC| \tcName                \tC| \tcLvl \tC| \tcRace \tC| \tcClass\tn \r\n");
@@ -530,16 +531,16 @@ void show_account_menu(struct descriptor_data *d) {
                 /* Mortal */
 
                 int inc, classCount = 0;
-                class_list[0] = '\0';
                 for (inc = 0; inc < MAX_CLASSES; inc++) {
                   if (CLASS_LEVEL(tch, inc)) {
                     if (classCount)
-                      strcat(class_list, "/");
-                    strcat(class_list, class_abbrevs[inc]);
+                      len += snprintf(buf + len, sizeof (buf) - len, "/");
+                    len += snprintf(buf + len, sizeof (buf) - len, "%s",
+                            CLSLIST_ABBRV(inc));
                     classCount++;
                   }
                 }
-                write_to_output(d, " %-36s", class_list);
+                write_to_output(d, " %-36s", buf);
               }
             }
             free_char(tch);

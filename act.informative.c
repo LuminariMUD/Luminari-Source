@@ -2258,7 +2258,7 @@ ACMD(do_score) {
       if (CLASS_LEVEL(ch, i)) {
         if (counter)
           strcat(buf, " / ");
-        sprintf(buf, "%s%d %s", buf, CLASS_LEVEL(ch, i), class_abbrevs[i]);
+        sprintf(buf, "%s%d %s", buf, CLASS_LEVEL(ch, i), CLSLIST_ABBRV(i));
         counter++;
       }
     }
@@ -2582,7 +2582,7 @@ ACMD(do_who) {
   struct descriptor_data *d;
   struct char_data *tch;
   int i, num_can_see = 0, class_len = 0;
-  char name_search[MAX_INPUT_LENGTH], buf[MAX_INPUT_LENGTH], class_list[MAX_INPUT_LENGTH];
+  char name_search[MAX_INPUT_LENGTH], buf[MAX_INPUT_LENGTH], classes_list[MAX_INPUT_LENGTH];
   char mode;
   int low = 0, high = LVL_IMPL, localwho = 0, questwho = 0;
   int showclass = 0, short_list = 0, outlaws = 0;
@@ -2590,6 +2590,7 @@ ACMD(do_who) {
   int showrace = 0;
   int mortals = 0, staff = 0;
   clan_rnum c_n;
+  size_t len = 0;
 
   struct {
     char *disp;
@@ -2608,7 +2609,7 @@ ACMD(do_who) {
   strcpy(buf, argument); /* strcpy: OK (sizeof: argument == buf) */
   // first char of name_search is now NULL
   name_search[0] = '\0';
-  *class_list = '\0';
+  *classes_list = '\0';
 
   // move along the buf array until '\0'
   while (*buf) {
@@ -2723,7 +2724,7 @@ ACMD(do_who) {
       send_to_char(ch, "%s", rank[i].disp);
 
     for (d = descriptor_list; d; d = d->next) {
-      *class_list = '\0';
+      *classes_list = '\0';
       if (d->original)
         tch = d->original;
       else if (!(tch = d->character))
@@ -2777,19 +2778,18 @@ ACMD(do_who) {
           for (inc = 0; inc < MAX_CLASSES; inc++) {
             if (CLASS_LEVEL(tch, inc)) {
               if (classCount)
-                strcat(class_list, "/");
-              //send_to_char(ch, "/");
-              strcat(class_list, class_abbrevs[inc]);
+                len += snprintf(classes_list + len, sizeof (classes_list) - len, "/");
+              len += snprintf(classes_list + len, sizeof (classes_list) - len, "%s",
+                      CLSLIST_ABBRV(inc));
               classCount++;
             }
           }
-          class_len = strlen(class_list) - count_color_chars(class_list);
+          class_len = strlen(classes_list) - count_color_chars(classes_list);
           while (class_len < 11) {
-            strcat(class_list, " ");
+            len += snprintf(classes_list + len, sizeof (classes_list) - len, " ");
             class_len++;
           }
-          send_to_char(ch, "%s]", class_list);
-          //send_to_char(ch, "]");
+          send_to_char(ch, "%s]", classes_list);
         }
 
         send_to_char(ch, " %s%s%s%s",
@@ -3852,7 +3852,7 @@ ACMD(do_whois) {
     if (CLASS_LEVEL(victim, i)) {
       if (counter)
         send_to_char(ch, " / ");
-      send_to_char(ch, "%d %s", CLASS_LEVEL(victim, i), class_abbrevs[i]);
+      send_to_char(ch, "%d %s", CLASS_LEVEL(victim, i), CLSLIST_ABBRV(i));
       counter++;
     }
   }

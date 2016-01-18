@@ -1606,10 +1606,28 @@ spellnum == SPELL_EPIC_WARDING )
 		((dir) == SOUTHEAST) || ((dir) == SOUTHWEST) )
 
 
+/* handy macros for dealing with class_list[] */
+#define CLSLIST_NAME(classnum)            (class_list[classnum].name)
+#define CLSLIST_ABBRV(classnum)           (class_list[classnum].abbrev)
+#define CLSLIST_CLRABBRV(classnum)        (class_list[classnum].colored_abbrev)
+#define CLSLIST_MENU(classnum)            (class_list[classnum].menu_name)
+#define CLSLIST_MAXLVL(classnum)          ( (class_list[classnum].max_level == -1) ? (LVL_IMMORT-1) : (class_list[classnum].max_level) )
+#define CLSLIST_LOCK(classnum)            (class_list[classnum].locked_class)
+#define CLSLIST_PRESTIGE(classnum)        (class_list[classnum].prestige_class)
+#define CLSLIST_BAB(classnum)             (class_list[classnum].base_attack_bonus)
+#define CLSLIST_HPS(classnum)             (class_list[classnum].hit_dice)
+#define CLSLIST_MANA(classnum)            (class_list[classnum].mana_gain)
+#define CLSLIST_MVS(classnum)             (class_list[classnum].move_gain)
+#define CLSLIST_TRAINS(classnum)          (class_list[classnum].trains_gain)
+#define CLSLIST_INGAME(classnum)          (class_list[classnum].in_game)
+#define CLSLIST_SAVES(classnum, savenum)  (class_list[classnum].preferred_saves[savenum])
+#define CLSLIST_ABIL(classnum, abilnum)   (class_list[classnum].class_abil[abilnum])
+
+
 /** Return the class abbreviation for ch. */
-#define CLASS_ABBR(ch) (class_abbrevs[(int)GET_CLASS(ch)])
+#define CLASS_ABBR(ch) (CLSLIST_ABBRV((int)GET_CLASS(ch)))
 #define CLASS_LEVEL_ABBR(ch, class)	(IS_NPC(ch) ? CLASS_ABBR(ch) : \
-		class_abbrevs[class])
+		CLSLIST_ABBRV(class))
 
 // quick macro to see if someone is an immortal or not - Bakarus
 #define IS_IMMORTAL(ch)         (GET_LEVEL(ch) > LVL_IMMORT)
