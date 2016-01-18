@@ -71,8 +71,9 @@
 #define EXP_MAX  2100000000
 
 /* declarations */
-struct class_table class_list[NUM_CLASSES];
 const char *pc_class_types[];
+/* here is our class_list declare */
+struct class_table class_list[NUM_CLASSES];
 
 /* SET OF UTILITY FUNCTIONS for the purpose of class prereqs */
 /* create/allocate memory for a pre-req struct, then assign the prereqs */
@@ -635,6 +636,7 @@ ACMD(do_classlist) {
 }
 
 /* Names first */
+/*
 const char *class_abbrevs[] = {
   "\tmWiz\tn",
   "\tBCle\tn",
@@ -650,6 +652,7 @@ const char *class_abbrevs[] = {
   "\tcWpM\tn",
   "\n"
 };
+*/
 
 const char *class_abbrevs_no_color[] = {
   "Wiz",

@@ -62,6 +62,7 @@ struct class_table {
   struct class_prerequisite *prereq_list; /* A list of prerequisite sctructures */
 };
 
+extern struct class_table class_list[];
 
 /* Functions available through class.c */
 int backstab_mult(struct char_data *ch);
@@ -80,30 +81,13 @@ int modify_class_ability(struct char_data *ch, int ability, int class);
 void init_class(struct char_data *ch, int class, int level);
 void load_class_list(void);
 
-/* handy macros for dealing with class_list[] */
-#define CLSLIST_NAME(classnum)            (class_list[classnum].name)
-#define CLSLIST_ABBRV(classnum)           (class_list[classnum].abbrev)
-#define CLSLIST_CLRABBRV(classnum)        (class_list[classnum].colored_abbrev)
-#define CLSLIST_MENU(classnum)            (class_list[classnum].menu_name)
-#define CLSLIST_MAXLVL(classnum)          ( (class_list[classnum].max_level == -1) ? (LVL_IMMORT-1) : (class_list[classnum].max_level) )
-#define CLSLIST_LOCK(classnum)            (class_list[classnum].locked_class)
-#define CLSLIST_PRESTIGE(classnum)        (class_list[classnum].prestige_class)
-#define CLSLIST_BAB(classnum)             (class_list[classnum].base_attack_bonus)
-#define CLSLIST_HPS(classnum)             (class_list[classnum].hit_dice)
-#define CLSLIST_MANA(classnum)            (class_list[classnum].mana_gain)
-#define CLSLIST_MVS(classnum)             (class_list[classnum].move_gain)
-#define CLSLIST_TRAINS(classnum)          (class_list[classnum].trains_gain)
-#define CLSLIST_INGAME(classnum)          (class_list[classnum].in_game)
-#define CLSLIST_SAVES(classnum, savenum)  (class_list[classnum].preferred_saves[savenum])
-#define CLSLIST_ABIL(classnum, abilnum)   (class_list[classnum].class_abil[abilnum])
-
 ACMD(do_classlist);
 
 /* Global variables */
 
 #ifndef __CLASS_C__
 
-extern const char *class_abbrevs[];
+//extern const char *class_abbrevs[];
 extern const char *pc_class_types[];
 extern const char *class_menu;
 extern const char *church_types[];
