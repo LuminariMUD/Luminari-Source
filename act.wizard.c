@@ -2432,7 +2432,7 @@ ACMD(do_wizutil) {
   else {
     switch (subcmd) {
       case SCMD_REROLL:
-        send_to_char(ch, "Rerolled...\r\n");
+        send_to_char(ch, "Rerolled...[not currently implemented]\r\n");
         roll_real_abils(vict);
         log("(GC) %s has rerolled %s.\tn", GET_NAME(ch), GET_NAME(vict));
         send_to_char(ch, "New stats: Str %d/%d, Int %d, Wis %d, Dex %d, Con %d, Cha %d\r\n",
