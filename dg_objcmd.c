@@ -399,55 +399,67 @@ static OCMD(do_opurge)
     extract_char(ch);
 }
 
-static OCMD(do_oteleport)
-{
-    char_data *ch, *next_ch;
-    room_rnum target, rm;
-    char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
+static OCMD(do_oteleport) {
+  char_data *ch, *next_ch;
+  room_rnum target, rm;
+  char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
 
-    two_arguments(argument, arg1, arg2);
+  two_arguments(argument, arg1, arg2);
 
-    if (!*arg1 || !*arg2)
-    {
-        obj_log(obj, "oteleport called with too few args");
-        return;
+  if (!*arg1 || !*arg2) {
+    obj_log(obj, "oteleport called with too few args");
+    return;
+  }
+
+  target = find_obj_target_room(obj, arg2);
+
+  if (target == NOWHERE) {
+    obj_log(obj, "oteleport target is an invalid room");
+    return;
+  }
+    
+  /* handle 'all' argument */
+  if (!str_cmp(arg1, "all")) {
+    rm = obj_room(obj);
+    
+    if (target == rm) {
+      obj_log(obj, "oteleport target is itself");
+      return;
     }
 
-    target = find_obj_target_room(obj, arg2);
-
-    if (target == NOWHERE)
-        obj_log(obj, "oteleport target is an invalid room");
-
-    else if (!str_cmp(arg1, "all"))
-    {
-        rm = obj_room(obj);
-        if (target == rm)
-            obj_log(obj, "oteleport target is itself");
-
-        for (ch = world[rm].people; ch; ch = next_ch)
-        {
-            next_ch = ch->next_in_room;
-            if (!valid_dg_target(ch, DG_ALLOW_STAFFS))
-              continue;
-            char_from_room(ch);
-            char_to_room(ch, target);
-            enter_wtrigger(&world[IN_ROOM(ch)], ch, -1);
+    for (ch = world[rm].people; ch; ch = next_ch) {
+      next_ch = ch->next_in_room;
+      
+      if (!valid_dg_target(ch, DG_ALLOW_STAFFS))
+        continue;
+      
+      /* check for wilderness movement */
+      if(ZONE_FLAGGED(GET_ROOM_ZONE(target), ZONE_WILDERNESS)) {
+        X_LOC(ch) = world[target].coords[0];
+        Y_LOC(ch) = world[target].coords[1];
+      }
+      char_from_room(ch);
+      char_to_room(ch, target);
+      enter_wtrigger(&world[IN_ROOM(ch)], ch, -1);
+    }
+    
+    /* normal case */
+  } else {
+    if ((ch = get_char_by_obj(obj, arg1))) {
+      if (valid_dg_target(ch, DG_ALLOW_STAFFS)) {
+        /* check for wilderness movement */
+        if(ZONE_FLAGGED(GET_ROOM_ZONE(target), ZONE_WILDERNESS)) {
+          X_LOC(ch) = world[target].coords[0];
+          Y_LOC(ch) = world[target].coords[1];
         }
+        char_from_room(ch);
+        char_to_room(ch, target);
+        enter_wtrigger(&world[IN_ROOM(ch)], ch, -1);
+      }
+    } else {
+      obj_log(obj, "oteleport: no target found");
     }
-
-    else
-    {
-        if ((ch = get_char_by_obj(obj, arg1))) {
-          if (valid_dg_target(ch, DG_ALLOW_STAFFS)) {
-            char_from_room(ch);
-            char_to_room(ch, target);
-            enter_wtrigger(&world[IN_ROOM(ch)], ch, -1);
-          }
-        }
-
-        else
-            obj_log(obj, "oteleport: no target found");
-    }
+  }
 }
 
 static OCMD(do_dgoload)

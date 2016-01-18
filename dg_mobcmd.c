@@ -586,8 +586,8 @@ ACMD(do_mat) {
  * current room to the specified location. */
 ACMD(do_mteleport) {
   char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
-  room_rnum target;
-  char_data *vict, *next_ch;
+  room_rnum target = NOWHERE;
+  char_data *vict = NULL, *next_ch = NULL;
 
   if (!MOB_OR_IMPL(ch)) {
     send_to_char(ch, "Huh?!?\r\n");
@@ -621,13 +621,14 @@ ACMD(do_mteleport) {
       next_ch = vict->next_in_room;
 
       if (valid_dg_target(vict, DG_ALLOW_STAFFS)) {
+        /* check for wilderness movement */
+        if(ZONE_FLAGGED(GET_ROOM_ZONE(target), ZONE_WILDERNESS)) {
+          X_LOC(vict) = world[target].coords[0];
+          Y_LOC(vict) = world[target].coords[1];
+        }
+        
+        /* we have to check this carefully! -zusuk */
         char_from_room(vict);
-
-      if(ZONE_FLAGGED(GET_ROOM_ZONE(target), ZONE_WILDERNESS)) {
-        X_LOC(vict) = world[target].coords[0];
-        Y_LOC(vict) = world[target].coords[1];
-      }
-
         char_to_room(vict, target);
         enter_wtrigger(&world[IN_ROOM(ch)], ch, -1);
       }
@@ -644,13 +645,14 @@ ACMD(do_mteleport) {
     }
 
     if (valid_dg_target(ch, DG_ALLOW_STAFFS)) {
-      char_from_room(vict);
-
+      /* check for wilderness movement */
       if(ZONE_FLAGGED(GET_ROOM_ZONE(target), ZONE_WILDERNESS)) {
         X_LOC(vict) = world[target].coords[0];
         Y_LOC(vict) = world[target].coords[1];
       }
-
+      
+      /* we have to check this carefully! -zusuk */
+      char_from_room(vict);
       char_to_room(vict, target);
       enter_wtrigger(&world[IN_ROOM(ch)], ch, -1);
     }

@@ -1033,7 +1033,6 @@ int level_feats[][LEVEL_FEATS] = {
 
   /* class, race, stacks?, level, feat_ name */
   /* wizard */
-  {CLASS_WIZARD, RACE_UNDEFINED, FALSE, 6, FEAT_SCRIBE_SCROLL},
 
   /* cleric */
   {CLASS_CLERIC, RACE_UNDEFINED, FALSE, 1, FEAT_TURN_UNDEAD},
