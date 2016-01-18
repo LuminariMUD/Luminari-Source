@@ -531,12 +531,13 @@ void show_account_menu(struct descriptor_data *d) {
                 /* Mortal */
 
                 int inc, classCount = 0;
+                buf[0] = '\0'; len = 0;
                 for (inc = 0; inc < MAX_CLASSES; inc++) {
                   if (CLASS_LEVEL(tch, inc)) {
                     if (classCount)
                       len += snprintf(buf + len, sizeof (buf) - len, "/");
                     len += snprintf(buf + len, sizeof (buf) - len, "%s",
-                            CLSLIST_ABBRV(inc));
+                            CLSLIST_CLRABBRV(inc));
                     classCount++;
                   }
                 }
