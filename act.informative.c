@@ -2725,6 +2725,7 @@ ACMD(do_who) {
 
     for (d = descriptor_list; d; d = d->next) {
       *classes_list = '\0';
+      len = 0;
       if (d->original)
         tch = d->original;
       else if (!(tch = d->character))

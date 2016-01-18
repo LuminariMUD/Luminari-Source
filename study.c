@@ -1336,38 +1336,12 @@ void reset_training_points(struct char_data *ch) {
   /* determine intelligence bonus */
   int_bonus = (int) ((LEVELUP(ch)->inte - 10) / 2);
 
-  /* use class to establish base skill points */
-  switch (GET_CLASS(ch)) {
-    case CLASS_DRUID:
-    case CLASS_RANGER:
-    case CLASS_BERSERKER:
-    case CLASS_MONK:
-      trains = (4 + int_bonus) * 4;
-      break;
-    case CLASS_BARD:
-      trains = (6 + int_bonus) * 4;
-      break;
-    case CLASS_ROGUE:
-      trains = (8 + int_bonus) * 4;
-      break;    
-    case CLASS_WARRIOR:
-    case CLASS_WEAPON_MASTER:
-    case CLASS_WIZARD:
-    case CLASS_CLERIC:
-    case CLASS_UNDEFINED:
-    case CLASS_SORCERER:
-    case CLASS_PALADIN:
-    default:
-      trains = (2 + int_bonus) * 4;
-      break;
-  }
-  
-  /* minimum value for trains */
-  if (trains < 4)
-    trains = 4;
+  /* use class_list to establish base skill points, 4 minimum */
+  trains = MAX( 4, ((CLSLIST_TRAINS(GET_CLASS(ch)) + int_bonus) * 4) );
   
   /* human bonus */
-  trains += 4;
+  if (GET_RACE(ch) == RACE_HUMAN)
+    trains += 4;
   
   /* finalize */
   LEVELUP(ch)->trains = trains;  
