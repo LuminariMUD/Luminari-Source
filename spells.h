@@ -1164,9 +1164,9 @@ int aoeOK(struct char_data *ch, struct char_data *tch, int spellnum);
 /**************/
 
 /* Metamagic Defines*/
-#define METAMAGIC_NONE     0x0
-#define METAMAGIC_QUICKEN  0x1
-#define METAMAGIC_MAXIMIZE 0x2
+#define METAMAGIC_NONE     0
+#define METAMAGIC_QUICKEN  (1 << 0)
+#define METAMAGIC_MAXIMIZE (1 << 1)
 
 /* spellbook functions */
 void display_scroll(struct char_data *ch, struct obj_data *obj);
