@@ -1163,13 +1163,6 @@ int aoeOK(struct char_data *ch, struct char_data *tch, int spellnum);
 /* memorize.c */
 /**************/
 
-/* Data Structures */
-struct prepared_spell_data {
-  int spell;     /* Spell Number */
-  int prep_time; /* Remaining time for preparing this spell. */
-  int metamagic; /* Bitvector of metamagic affecting this spell. */
-};
-
 /* Metamagic Defines*/
 #define METAMAGIC_NONE     0x0
 #define METAMAGIC_QUICKEN  0x1
