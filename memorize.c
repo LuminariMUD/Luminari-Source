@@ -1545,12 +1545,12 @@ void updateMemming(struct char_data *ch, int class) {
         break;
       default: // wizard
         sprintf(buf, "You finish memorizing %s.\r\n",
-                spell_info[PREPARATION_QUEUE(ch, 0, classArray(class))].name).spell;
-        addSpellMemmed(ch, PREPARATION_QUEUE(ch, 0, classArray(class)), class).spell;
+                spell_info[PREPARATION_QUEUE(ch, 0, classArray(class)).spell].name);
+        addSpellMemmed(ch, PREPARATION_QUEUE(ch, 0, classArray(class)).spell, class);
         break;
     }
     send_to_char(ch, buf);
-    removeSpellMemming(ch, PREPARATION_QUEUE(ch, 0, classArray(class)), class).spell;
+    removeSpellMemming(ch, PREPARATION_QUEUE(ch, 0, classArray(class)).spell, class);
     if (PREPARATION_QUEUE(ch, 0, classArray(class)).spell == TERMINATE) {
       switch (class) {
         case CLASS_SORCERER:
