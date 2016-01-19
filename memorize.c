@@ -2282,7 +2282,10 @@ ACMD(do_gen_memorize) {
           if (!spellbook_ok(ch, spellnum, class, TRUE)) {
             return;
           }
-          send_to_char(ch, "You start to memorize %s.\r\n", spell_info[spellnum].name);
+          send_to_char(ch, "You start to memorize %s%s%s.\r\n", 
+                       (IS_SET(metamagic, METAMAGIC_QUICKEN) ? "quickened ": ""),
+                       (IS_SET(metamagic, METAMAGIC_MAXIMIZED) ? "maximized ": ""),
+                       spell_info[spellnum].name);
           break;
       }
       addSpellMemming(ch, spellnum, metamagic, spell_info[spellnum].memtime, class);
