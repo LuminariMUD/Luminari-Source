@@ -3235,10 +3235,10 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
 
       } else if (i == FEAT_DAMAGE_REDUCTION) {
         if (mode == 1) {
-          sprintf(buf3, "%s (%d/-)", feat_list[i].name, has_feat(ch, FEAT_DAMAGE_REDUCTION));
+          sprintf(buf3, "%s (%d/-)", feat_list[i].name, 3*has_feat(ch, FEAT_DAMAGE_REDUCTION));
           sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         } else {
-          sprintf(buf3, "%s (%d/-)", feat_list[i].name, has_feat(ch, FEAT_DAMAGE_REDUCTION));
+          sprintf(buf3, "%s (%d/-)", feat_list[i].name, 3*has_feat(ch, FEAT_DAMAGE_REDUCTION));
           sprintf(buf, "%-40s ", buf3);
         }
         strcat(buf2, buf);

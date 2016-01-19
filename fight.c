@@ -2252,8 +2252,9 @@ int compute_damage_reduction(struct char_data *ch, int dam_type) {
   else if (HAS_FEAT(ch, FEAT_ARMOR_SPECIALIZATION_LIGHT) &&
       compute_gear_armor_type(ch) == ARMOR_TYPE_LIGHT)
     damage_reduction += 2;
-  if (HAS_FEAT(ch, FEAT_DAMAGE_REDUCTION))
-    damage_reduction += HAS_FEAT(ch, FEAT_DAMAGE_REDUCTION) * 3;
+  /* this is now in the new system, study sets it up */
+  //if (HAS_FEAT(ch, FEAT_DAMAGE_REDUCTION))
+    //damage_reduction += HAS_FEAT(ch, FEAT_DAMAGE_REDUCTION) * 3;
 
   //damage reduction cap is 20
   return (MIN(MAX_DAM_REDUC, damage_reduction));

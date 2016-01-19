@@ -2215,6 +2215,11 @@ ACMD(do_wildshape) {
     send_to_char(ch, "You must remove your disguise before using wildshape.\r\n");
     return;
   }
+  
+  if (IS_MORPHED(ch)) {
+    send_to_char(ch, "You can't wildshape while shape-changed!\r\n");
+    return;    
+  }
 
   /* try to match argument to the list */
   i = display_eligible_wildshape_races(ch, argument, TRUE);

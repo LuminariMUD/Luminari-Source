@@ -382,7 +382,7 @@ void finalize_study(struct descriptor_data *d) {
 
           dr->spell = 0;
           dr->feat = FEAT_DAMAGE_REDUCTION;
-          dr->amount = HAS_FEAT(ch, FEAT_DAMAGE_REDUCTION) + 1;
+          dr->amount = HAS_FEAT(ch, FEAT_DAMAGE_REDUCTION) * 3;
           dr->max_damage = -1;
 
           dr->bypass_cat[0] = DR_BYPASS_CAT_NONE;

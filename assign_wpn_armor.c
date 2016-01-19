@@ -1114,6 +1114,9 @@ int compute_gear_max_dex(struct char_data *ch) {
   int dexterity_cap = 0;
   int armor_max_dexterity = 0, i, count = 0;
 
+  if (IS_WILDSHAPED(ch))/* not wearing armor, no limit to dexterity */
+    return 99;
+  
   struct obj_data *obj = NULL;
 
   for (i = 0; i < NUM_WEARS; i++) {
