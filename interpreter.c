@@ -2253,7 +2253,7 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
       /* display class menu */
       write_to_output(d, "Classes of Luminari\r\n\r\n");
       for (i = 0; i < NUM_CLASSES; i++) {
-        if (!locked_classes[i] || has_unlocked_class(d->character, i))
+        if (!CLSLIST_LOCK(i) || has_unlocked_class(d->character, i))
           write_to_output(d, "%s\r\n", CLSLIST_NAME(i));
       }
       write_to_output(d, "\r\nClass Selection (type 'warrior' if you do not know "
@@ -2267,7 +2267,7 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
       if (load_result == CLASS_UNDEFINED) {
         write_to_output(d, "\r\nThat's not a class.\r\nClass: ");
         return;
-      } else if (locked_classes[load_result]) {
+      } else if (CLSLIST_LOCK(load_result)) {
         write_to_output(d, "\r\nPrestige classes cannot be taken at 1st level.\r\nClass: ");
         return;
       } else
@@ -2332,7 +2332,7 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
       } else {
         write_to_output(d, "Classes of Luminari\r\n\r\n");
         for (i = 0; i < NUM_CLASSES; i++) {
-          if (!locked_classes[i])
+          if (!CLSLIST_LOCK(i))
             write_to_output(d, "%s\r\n", CLSLIST_NAME(i));
         }
         write_to_output(d, "\r\nClass Selection (type 'warrior' if you do not know "

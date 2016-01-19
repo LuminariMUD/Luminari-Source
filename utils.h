@@ -1620,6 +1620,7 @@ spellnum == SPELL_EPIC_WARDING )
 #define CLSLIST_MVS(classnum)             (class_list[classnum].move_gain)
 #define CLSLIST_TRAINS(classnum)          (class_list[classnum].trains_gain)
 #define CLSLIST_INGAME(classnum)          (class_list[classnum].in_game)
+#define CLSLIST_COST(classnum)            (class_list[classnum].unlock_cost)
 #define CLSLIST_SAVES(classnum, savenum)  (class_list[classnum].preferred_saves[savenum])
 #define CLSLIST_ABIL(classnum, abilnum)   (class_list[classnum].class_abil[abilnum])
 

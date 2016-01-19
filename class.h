@@ -55,6 +55,7 @@ struct class_table {
   int move_gain; /* how much moves this class gets on level up */
   int trains_gain; /* how many trains this class gets before int bonus */
   bool in_game; /* class currently in the game? */
+  int unlock_cost; /* if locked, cost to unlock in account xp */
   
   int preferred_saves[5];  /*high or low saving throw values */
   int class_abil[NUM_ABILITIES];  /*class ability (not avail, cross-class, class-skill)*/

@@ -59,36 +59,6 @@ bool locked_races[NUM_RACES] = {
   Y, /*arcana golem (advanced)*/
 };
 
-int locked_classes_cost[NUM_CLASSES] = {
-  0,     /*Wizard*/
-  0,     /*Cleric*/
-  0,     /*Rogue*/
-  0,     /*Warrior*/
-  0,     /*Monk*/
-  0,     /*Druid*/
-  0,     /*Berserker*/
-  0,     /*Sorcerer*/
-  0,     /*Paladin*/
-  0,     /*Ranger*/
-  0,     /*Bard*/
-  5000,  /*WeaponMaster*/
-};
-
-bool locked_classes[NUM_CLASSES] = {
-  N, /*Wizard*/
-  N, /*Cleric*/
-  N, /*Rogue*/
-  N, /*Warrior*/
-  N, /*Monk*/
-  N, /*Druid*/
-  N, /*Berserker*/
-  N, /*Sorcerer*/
-  N, /*Paladin*/
-  N, /*Ranger*/
-  N, /*Bard*/
-  Y, /*WeaponMaster*/
-};
-
 int has_unlocked_race(struct char_data *ch, int race) {
   if (!ch || !ch->desc || !ch->desc->account)
     return FALSE;
@@ -109,7 +79,7 @@ int has_unlocked_class(struct char_data *ch, int class) {
   if (!ch || !ch->desc || !ch->desc->account)
     return FALSE;
 
-  if (!locked_classes[class])
+  if (!CLSLIST_LOCK(class))
     return TRUE;
 
   int i = 0;
@@ -191,17 +161,17 @@ ACMD(do_accexp) {
     if (!*arg2) {
       send_to_char(ch, "Please choose from the following classes:\r\n");
       for (i = 0; i < NUM_CLASSES; i++) {
-        if (has_unlocked_class(ch, i) || !locked_classes[i])
+        if (has_unlocked_class(ch, i) || !CLSLIST_LOCK(i))
           continue;
-        cost = locked_classes_cost[i];
+        cost = CLSLIST_COST(i);
         send_to_char(ch, "%s (%d account experience)\r\n", CLSLIST_NAME(i), cost);
       }
       return;
     }
     for (i = 0; i < NUM_CLASSES; i++) {
       if (is_abbrev(arg2, CLSLIST_NAME(i)) && !has_unlocked_class(ch, i) &&
-          locked_classes[i]) {
-        cost = locked_classes_cost[i];
+          CLSLIST_LOCK(i)) {
+        cost = CLSLIST_COST(i);
         break;
       }
     }
