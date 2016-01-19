@@ -3109,6 +3109,8 @@ struct player_special_data_saved {
   ubyte spec_abil[MAX_CLASSES]; //spec abilities (ex. lay on hands)
   ubyte favored_enemy[MAX_ENEMIES]; //list of ranger favored enemies
 
+  extern struct prepared_spell_data;
+  
   struct prepared_spell_data preparing[MAX_MEM][NUM_CASTERS]; //memorization
   struct prepared_spell_data prepared[MAX_MEM][NUM_CASTERS]; //memorization
   //int praytimes[MAX_MEM][NUM_CASTERS]; //memorization
