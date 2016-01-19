@@ -644,9 +644,9 @@ EVENTFUNC(event_bardic_performance) {
   /* end disqualifiers */
   
   /* base effectiveness of performance */
-  effectiveness = 10;
+  effectiveness = rand_number(1, 9);
   /* base difficulty */
-  difficulty = 40;
+  difficulty = 45 - GET_CHA_BONUS(ch);
 
   /* find an instrument */
   instrument = GET_EQ(ch, WEAR_HOLD_1);
@@ -670,7 +670,7 @@ EVENTFUNC(event_bardic_performance) {
     difficulty -= GET_OBJ_VAL(instrument, 1);
 
     /* instrument of quality <= 0 is unbreakable */
-    if (rand_number(0, 2000) < GET_OBJ_VAL(instrument, 3)) {
+    if (rand_number(1, 2001) <= GET_OBJ_VAL(instrument, 3)) {
       act("Your $p cannot take the strain of magic any longer, and it breaks!", FALSE, ch, instrument, 0, TO_CHAR);
       act("$n's $p cannot take the strain of magic any longer, and it breaks!", FALSE, ch, instrument, 0, TO_ROOM);
       extract_obj(instrument);
@@ -697,7 +697,7 @@ EVENTFUNC(event_bardic_performance) {
   spellnum = performance_info[performance_num][PERFORMANCE_SKILLNUM];
 
   /* check for stutter. if stutter, stop performance  */
-  if (!rand_number(0, difficulty)) {
+  if (rand_number(1, 100) < difficulty) {
     send_to_char(ch, "Uh oh.. how did the performance go, anyway?\r\n");
     act("$n stutters in the performance!", FALSE, ch, 0, 0, TO_ROOM);
     return 0;

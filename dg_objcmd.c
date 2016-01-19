@@ -433,6 +433,11 @@ static OCMD(do_oteleport) {
       if (!valid_dg_target(ch, DG_ALLOW_STAFFS))
         continue;
       
+      if (IN_ROOM(ch) == NOWHERE) {
+        log("SYSERR: NOWHERE for %s, spot 1 (dg_objcmd.c)", GET_NAME(ch));
+        continue;
+      }
+      
       /* check for wilderness movement */
       if(ZONE_FLAGGED(GET_ROOM_ZONE(target), ZONE_WILDERNESS)) {
         X_LOC(ch) = world[target].coords[0];
@@ -446,7 +451,11 @@ static OCMD(do_oteleport) {
     /* normal case */
   } else {
     if ((ch = get_char_by_obj(obj, arg1))) {
-      if (valid_dg_target(ch, DG_ALLOW_STAFFS)) {
+      if (valid_dg_target(ch, DG_ALLOW_STAFFS)) {        
+        if (IN_ROOM(ch) == NOWHERE) {
+          log("SYSERR: NOWHERE for %s, spot 2 (dg_objcmd.c)", GET_NAME(ch));
+          return;
+        }
         /* check for wilderness movement */
         if(ZONE_FLAGGED(GET_ROOM_ZONE(target), ZONE_WILDERNESS)) {
           X_LOC(ch) = world[target].coords[0];
