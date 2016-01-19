@@ -2235,7 +2235,8 @@ ACMD(do_gen_memorize) {
         return;
       }      
     }
-    
+  }
+  
   if (GET_POS(ch) != POS_RESTING) {
     send_to_char(ch, "You are not relaxed enough, you must be resting.\r\n");
     return;
