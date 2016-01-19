@@ -2225,7 +2225,7 @@ ACMD(do_gen_memorize) {
     s = strtok(argument, "'");
     
     /* s is at the position of the spell name.  Check the rest of the string. */    
-    for (m = strtok(argument, " "), m && m != s; m = strtok(NULL, " ")) {
+    for (m = strtok(argument, " "); m && m != s; m = strtok(NULL, " ")) {
       switch (m) {
         case is_abbr(m, "quickened"):
           SET_BIT(metamagic, METAMAGIC_QUICKENED);
