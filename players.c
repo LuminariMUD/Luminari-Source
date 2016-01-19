@@ -66,6 +66,7 @@ static void load_warding(FILE *fl, struct char_data *ch);
 static void load_class_level(FILE *fl, struct char_data *ch);
 static void load_coord_location(FILE *fl, struct char_data *ch);
 static void load_praying(FILE *fl, struct char_data *ch);
+static void load_praying_metamagic(FILE *fl, struct char_data *ch);
 static void load_prayed(FILE *fl, struct char_data *ch);
 static void load_prayed_metamagic(FILE *fl, struct char_data *ch);
 static void load_praytimes(FILE *fl, struct char_data *ch);
