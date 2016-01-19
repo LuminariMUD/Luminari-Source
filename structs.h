@@ -3074,7 +3074,7 @@ struct char_special_data {
   byte mob_feats[MAX_FEATS];  /* Feats (booleans and counters)  */
 
   /* miscellaneous */
-  int prayin[NUM_CASTERS]; //memorization
+  int is_preparing[NUM_CASTERS]; //memorization
   byte position; /**< Standing, fighting, sleeping, etc. */
   int timer; /**< Timer for update */
 
@@ -3109,9 +3109,9 @@ struct player_special_data_saved {
   ubyte spec_abil[MAX_CLASSES]; //spec abilities (ex. lay on hands)
   ubyte favored_enemy[MAX_ENEMIES]; //list of ranger favored enemies
 
-  int praying[MAX_MEM][NUM_CASTERS]; //memorization
-  int prayed[MAX_MEM][NUM_CASTERS]; //memorization
-  int praytimes[MAX_MEM][NUM_CASTERS]; //memorization
+  prepared_spell_data preparing[MAX_MEM][NUM_CASTERS]; //memorization
+  prepared_spell_data prepared[MAX_MEM][NUM_CASTERS]; //memorization
+  //int praytimes[MAX_MEM][NUM_CASTERS]; //memorization
 
   byte church;  // homeland-port
 

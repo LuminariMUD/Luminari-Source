@@ -773,8 +773,10 @@ void init_spell_slots(struct char_data *ch) {
 
   for (slot = 0; slot < MAX_MEM; slot++) {
     for (x = 0; x < NUM_CASTERS; x++) {
-      PREPARATION_QUEUE(ch, slot, x) = 0;
-      PREPARED_SPELLS(ch, slot, x) = 0;
+      PREPARATION_QUEUE(ch, slot, x).spell = 0;
+      PREPARATION_QUEUE(ch, slot, x).metamagic = 0;
+      PREPARED_SPELLS(ch, slot, x).spell = 0;
+      PREPARED_SPELLS(ch, slot, x).metamagic = 0;
       PREP_TIME(ch, slot, x) = 0;
     }
   }
@@ -987,46 +989,20 @@ void addSpellMemming(struct char_data *ch, int spellnum, int time, int class) {
 
   /* if you are not a "sorc type" spellnum will carry through to here */
   for (slot = 0; slot < MAX_MEM; slot++) {
-    if (PREPARATION_QUEUE(ch, slot, classArray(class)) == TERMINATE) {
-      PREPARATION_QUEUE(ch, slot, classArray(class)) = spellnum;
+    if (PREPARATION_QUEUE(ch, slot, classArray(class)).spell == TERMINATE) {
+      PREPARATION_QUEUE(ch, slot, classArray(class)).spell = spellnum;
       PREP_TIME(ch, slot, classArray(class)) = time;
       break;
     }
   }
 }
-/* Ornir's Version */
-/*
-void addSpellMemming(struct char_data *ch, int spellnum, int time, int class) {
-  int slot;
-  int circle = spellCircle(class, spellnum);
-
-  switch (class) {
-    case CLASS_SORCERER:
-    case CLASS_BARD:
-      time = MAX(2, (circle * 2 + circle + 4) - GET_CHA_BONUS(ch));
-      break;
-    default:
-      // Wizard
-      time = MAX(2, (circle * 2 + circle + 4) - GET_INT_BONUS(ch));
-      break;
-
-  // wizard type system
-  for (slot = 0; slot < MAX_MEM; slot++) {
-    if (PREPARATION_QUEUE(ch, slot, classArray(class)) == TERMINATE) {
-      PREPARATION_QUEUE(ch, slot, classArray(class)) = spellnum;
-      PREP_TIME(ch, slot, classArray(class)) = time;
-      break;
-    }
-  }
-}
-*/
 
 /* resets the prep-times for character (in case of aborted preparation) */
 void resetMemtimes(struct char_data *ch, int class) {
   int slot;
 
   for (slot = 0; slot < MAX_MEM; slot++) {
-    if (PREPARATION_QUEUE(ch, slot, classArray(class)) == TERMINATE)
+    if (PREPARATION_QUEUE(ch, slot, classArray(class)).spell == TERMINATE)
       break;
 
     /* the formula for prep-time for sorcs is just factor*circle
@@ -1035,40 +1011,15 @@ void resetMemtimes(struct char_data *ch, int class) {
      */
     if (class == CLASS_SORCERER)
       PREP_TIME(ch, slot, classArray(class)) =
-            PREPARATION_QUEUE(ch, slot, classArray(class)) * SORC_TIME_FACTOR;
+            PREPARATION_QUEUE(ch, slot, classArray(class)).spell * SORC_TIME_FACTOR;
     else if (class == CLASS_BARD)
       PREP_TIME(ch, slot, classArray(class)) =
-            PREPARATION_QUEUE(ch, slot, classArray(class)) * BARD_TIME_FACTOR;
+            PREPARATION_QUEUE(ch, slot, classArray(class)).spell * BARD_TIME_FACTOR;
     else
       PREP_TIME(ch, slot, classArray(class)) =
-            spell_info[PREPARATION_QUEUE(ch, slot, classArray(class))].memtime;
+            spell_info[PREPARATION_QUEUE(ch, slot, classArray(class)).spell].memtime;
   }
 }
-/* Ornir's Version */
-/*
-void resetMemtimes(struct char_data *ch, int class) {
-  int slot;
-  int circle;
-
-  for (slot = 0; slot < MAX_MEM; slot++) {
-    if (PREPARATION_QUEUE(ch, slot, classArray(class)) == TERMINATE)
-      break;
-
-    circle = spellCircle(class, PREPARATION_QUEUE(ch, slot, classArray(class)));
-
-    switch (class) {
-      case CLASS_SORCERER:
-      case CLASS_BARD:
-        PREP_TIME(ch, slot, classArray(class)) = MAX(2, (circle * 2 + circle + 4) - GET_CHA_BONUS(ch));
-        break;
-      default:
-        // Wizard
-        PREP_TIME(ch, slot, classArray(class)) = MAX(2, (circle * 2 + circle + 4) - GET_INT_BONUS(ch));
-        break;
-    }
-  }
-}
-*/
 
 /* adds <spellnum> to the next available slot in the characters
    preparation list */
@@ -1076,8 +1027,8 @@ void addSpellMemmed(struct char_data *ch, int spellnum, int class) {
   int slot;
 
   for (slot = 0; slot < MAX_MEM; slot++) {
-    if (PREPARED_SPELLS(ch, slot, classArray(class)) == 0) {
-      PREPARED_SPELLS(ch, slot, classArray(class)) = spellnum;
+    if (PREPARED_SPELLS(ch, slot, classArray(class)).spell == 0) {
+      PREPARED_SPELLS(ch, slot, classArray(class)).spell = spellnum;
       return;
     }
   }
@@ -1096,11 +1047,11 @@ void removeSpellMemming(struct char_data *ch, int spellnum, int class) {
   if (class == CLASS_SORCERER) {
     // iterate until we find 0 (terminate) or end of array
     for (slot = 0;
-            (PREPARATION_QUEUE(ch, slot, classArray(class)) || slot < (MAX_MEM - 1));
+            (PREPARATION_QUEUE(ch, slot, classArray(class)).spell || slot < (MAX_MEM - 1));
             slot++) {
       // shift everything over
-      PREPARATION_QUEUE(ch, slot, classArray(class)) =
-              PREPARATION_QUEUE(ch, slot + 1, classArray(class));
+      PREPARATION_QUEUE(ch, slot, classArray(class)).spell =
+              PREPARATION_QUEUE(ch, slot + 1, classArray(class)).spell;
       PREP_TIME(ch, slot, classArray(class)) =
               PREP_TIME(ch, slot + 1, classArray(class));
     }
@@ -1108,11 +1059,11 @@ void removeSpellMemming(struct char_data *ch, int spellnum, int class) {
   } else if (class == CLASS_BARD) {
     // iterate until we find 0 (terminate) or end of array
     for (slot = 0;
-            (PREPARATION_QUEUE(ch, slot, classArray(class)) || slot < (MAX_MEM - 1));
+            (PREPARATION_QUEUE(ch, slot, classArray(class)).spell || slot < (MAX_MEM - 1));
             slot++) {
       // shift everything over
-      PREPARATION_QUEUE(ch, slot, classArray(class)) =
-              PREPARATION_QUEUE(ch, slot + 1, classArray(class));
+      PREPARATION_QUEUE(ch, slot, classArray(class)).spell =
+              PREPARATION_QUEUE(ch, slot + 1, classArray(class)).spell;
       PREP_TIME(ch, slot, classArray(class)) =
               PREP_TIME(ch, slot + 1, classArray(class));
     }
@@ -1121,22 +1072,22 @@ void removeSpellMemming(struct char_data *ch, int spellnum, int class) {
 
   /* wizard-types */
   for (slot = 0; slot < MAX_MEM; slot++) {
-    if (PREPARATION_QUEUE(ch, slot, classArray(class)) == spellnum) { //found the spell
+    if (PREPARATION_QUEUE(ch, slot, classArray(class)).spell == spellnum) { //found the spell
       /* is there more in the memming list? */
-      if (PREPARATION_QUEUE(ch, slot + 1, classArray(class)) != TERMINATE) {
+      if (PREPARATION_QUEUE(ch, slot + 1, classArray(class)).spell != TERMINATE) {
         for (nextSlot = slot; nextSlot < MAX_MEM - 1; nextSlot++) {
           //go through rest of list and shift everything
-          PREPARATION_QUEUE(ch, nextSlot, classArray(class)) =
-                  PREPARATION_QUEUE(ch, nextSlot + 1, classArray(class));
+          PREPARATION_QUEUE(ch, nextSlot, classArray(class)).spell =
+                  PREPARATION_QUEUE(ch, nextSlot + 1, classArray(class)).spell;
           PREP_TIME(ch, nextSlot, classArray(class)) =
                   PREP_TIME(ch, nextSlot + 1, classArray(class));
         }
         // tag end of list with 'terminate'
-        PREPARATION_QUEUE(ch, nextSlot, classArray(class)) = TERMINATE;
+        PREPARATION_QUEUE(ch, nextSlot, classArray(class)).spell = TERMINATE;
         PREP_TIME(ch, nextSlot, classArray(class)) = TERMINATE;
       } else {
         // must be the spell found was last in list
-        PREPARATION_QUEUE(ch, slot, classArray(class)) = TERMINATE;
+        PREPARATION_QUEUE(ch, slot, classArray(class)).spell = TERMINATE;
         PREP_TIME(ch, slot, classArray(class)) = TERMINATE;
       }
       return;
@@ -1156,17 +1107,17 @@ int forgetSpell(struct char_data *ch, int spellnum, int class) {
 
   /* we know the class */
   if (class != -1) {
-    if (PREPARED_SPELLS(ch, 0, classArray(class))) {
+    if (PREPARED_SPELLS(ch, 0, classArray(class)).spell) {
       for (slot = 0; slot < (MAX_MEM); slot++) {
-        if (PREPARED_SPELLS(ch, slot, classArray(class)) == spellnum) {
-          if (PREPARED_SPELLS(ch, slot + 1, classArray(class)) != 0) {
+        if (PREPARED_SPELLS(ch, slot, classArray(class)).spell == spellnum) {
+          if (PREPARED_SPELLS(ch, slot + 1, classArray(class)).spell != 0) {
             for (nextSlot = slot; nextSlot < (MAX_MEM) - 1; nextSlot++) {
-              PREPARED_SPELLS(ch, nextSlot, classArray(class)) =
-                      PREPARED_SPELLS(ch, nextSlot + 1, classArray(class));
+              PREPARED_SPELLS(ch, nextSlot, classArray(class)).spell =
+                      PREPARED_SPELLS(ch, nextSlot + 1, classArray(class)).spell;
             }
-            PREPARED_SPELLS(ch, nextSlot, classArray(class)) = 0;
+            PREPARED_SPELLS(ch, nextSlot, classArray(class)).spell = 0;
           } else {
-            PREPARED_SPELLS(ch, slot, classArray(class)) = 0;
+            PREPARED_SPELLS(ch, slot, classArray(class)).spell = 0;
           }
           return class;
         }
@@ -1182,17 +1133,17 @@ int forgetSpell(struct char_data *ch, int spellnum, int class) {
         continue;
       if (x == CLASS_BARD) /* checking this separately, last */
         continue;
-      if (PREPARED_SPELLS(ch, 0, classArray(x))) {
+      if (PREPARED_SPELLS(ch, 0, classArray(x)).spell) {
         for (slot = 0; slot < (MAX_MEM); slot++) {
-          if (PREPARED_SPELLS(ch, slot, classArray(x)) == spellnum) {
-            if (PREPARED_SPELLS(ch, slot + 1, classArray(x)) != 0) {
+          if (PREPARED_SPELLS(ch, slot, classArray(x)).spell == spellnum) {
+            if (PREPARED_SPELLS(ch, slot + 1, classArray(x)).spell != 0) {
               for (nextSlot = slot; nextSlot < (MAX_MEM) - 1; nextSlot++) {
-                PREPARED_SPELLS(ch, nextSlot, classArray(x)) =
-                        PREPARED_SPELLS(ch, nextSlot + 1, classArray(x));
+                PREPARED_SPELLS(ch, nextSlot, classArray(x)).spell =
+                        PREPARED_SPELLS(ch, nextSlot + 1, classArray(x)).spell;
               }
-              PREPARED_SPELLS(ch, nextSlot, classArray(x)) = 0;
+              PREPARED_SPELLS(ch, nextSlot, classArray(x)).spell = 0;
             } else {
-              PREPARED_SPELLS(ch, slot, classArray(x)) = 0;
+              PREPARED_SPELLS(ch, slot, classArray(x)).spell = 0;
             }
             return x;
           }
@@ -1232,31 +1183,31 @@ int numSpells(struct char_data *ch, int circle, int class) {
   /* sorc types */
   if (class == CLASS_SORCERER) {
     for (slot = 0; slot < (MAX_MEM); slot++) {
-      if (PREPARATION_QUEUE(ch, slot, classArray(class)) == circle)
+      if (PREPARATION_QUEUE(ch, slot, classArray(class)).spell == circle)
         num++;
     }
   } else if (class == CLASS_BARD) {
     for (slot = 0; slot < (MAX_MEM); slot++) {
-      if (PREPARATION_QUEUE(ch, slot, classArray(class)) == circle)
+      if (PREPARATION_QUEUE(ch, slot, classArray(class)).spell == circle)
         num++;
     }
   } else if (class == CLASS_CLERIC) {
     for (slot = 0; slot < (MAX_MEM); slot++) {
-      if (spellCircle(class, PREPARED_SPELLS(ch, slot, classArray(class)), GET_1ST_DOMAIN(ch)) == circle)
+      if (spellCircle(class, PREPARED_SPELLS(ch, slot, classArray(class)).spell, GET_1ST_DOMAIN(ch)) == circle)
         num++;
-      else if (spellCircle(class, PREPARED_SPELLS(ch, slot, classArray(class)), GET_2ND_DOMAIN(ch)) == circle)
+      else if (spellCircle(class, PREPARED_SPELLS(ch, slot, classArray(class)).spell, GET_2ND_DOMAIN(ch)) == circle)
         num++;
-      if (spellCircle(class, PREPARATION_QUEUE(ch, slot, classArray(class)), GET_1ST_DOMAIN(ch)) == circle)
+      if (spellCircle(class, PREPARATION_QUEUE(ch, slot, classArray(class)).spell, GET_1ST_DOMAIN(ch)) == circle)
         num++;
-      else if (spellCircle(class, PREPARATION_QUEUE(ch, slot, classArray(class)), GET_2ND_DOMAIN(ch)) == circle)
+      else if (spellCircle(class, PREPARATION_QUEUE(ch, slot, classArray(class)).spell, GET_2ND_DOMAIN(ch)) == circle)
         num++;
     }
   } else {
     /* every other class  */
     for (slot = 0; slot < (MAX_MEM); slot++) {
-      if (spellCircle(class, PREPARED_SPELLS(ch, slot, classArray(class)), DOMAIN_UNDEFINED) == circle)
+      if (spellCircle(class, PREPARED_SPELLS(ch, slot, classArray(class)).spell, DOMAIN_UNDEFINED) == circle)
         num++;
-      if (spellCircle(class, PREPARATION_QUEUE(ch, slot, classArray(class)), DOMAIN_UNDEFINED) == circle)
+      if (spellCircle(class, PREPARATION_QUEUE(ch, slot, classArray(class)).spell, DOMAIN_UNDEFINED) == circle)
         num++;
     }
   }
@@ -1274,11 +1225,11 @@ int count_sorc_known(struct char_data *ch, int circle, int class) {
   for (slot = 0; slot < MAX_MEM; slot++) {
     if (class == CLASS_SORCERER) {
       if (spellCircle(CLASS_SORCERER,
-              PREPARED_SPELLS(ch, slot, classArray(CLASS_SORCERER)), DOMAIN_UNDEFINED) == circle)
+              PREPARED_SPELLS(ch, slot, classArray(CLASS_SORCERER)).spell, DOMAIN_UNDEFINED) == circle)
         num++;
     } else if (class == CLASS_BARD) {
       if (spellCircle(CLASS_BARD,
-              PREPARED_SPELLS(ch, slot, classArray(CLASS_BARD)), DOMAIN_UNDEFINED) == circle)
+              PREPARED_SPELLS(ch, slot, classArray(CLASS_BARD)).spell, DOMAIN_UNDEFINED) == circle)
         num++;
     }
 
@@ -1296,10 +1247,10 @@ bool sorcKnown(struct char_data *ch, int spellnum, int class) {
 
   for (slot = 0; slot < MAX_MEM; slot++) {
     if (class == CLASS_SORCERER) {
-      if (PREPARED_SPELLS(ch, slot, classArray(CLASS_SORCERER)) == spellnum)
+      if (PREPARED_SPELLS(ch, slot, classArray(CLASS_SORCERER)).spell == spellnum)
         return TRUE;
     } else if (class == CLASS_BARD) {
-      if (PREPARED_SPELLS(ch, slot, classArray(CLASS_BARD)) == spellnum)
+      if (PREPARED_SPELLS(ch, slot, classArray(CLASS_BARD)).spell == spellnum)
         return TRUE;
     }
 
@@ -1312,19 +1263,19 @@ void sorc_extract_known(struct char_data *ch, int spellnum, int class) {
   int slot, nextSlot;
 
   for (slot = 0; slot < MAX_MEM; slot++) {
-    if (PREPARED_SPELLS(ch, slot, classArray(class)) == spellnum) { //found the spell
+    if (PREPARED_SPELLS(ch, slot, classArray(class)).spell == spellnum) { //found the spell
       /* is there more in the list? */
-      if (PREPARED_SPELLS(ch, slot + 1, classArray(class)) != TERMINATE) {
+      if (PREPARED_SPELLS(ch, slot + 1, classArray(class)).spell != TERMINATE) {
         for (nextSlot = slot; nextSlot < MAX_MEM - 1; nextSlot++) {
           //go through rest of list and shift everything
-          PREPARED_SPELLS(ch, nextSlot, classArray(class)) =
-                  PREPARED_SPELLS(ch, nextSlot + 1, classArray(class));
+          PREPARED_SPELLS(ch, nextSlot, classArray(class)).spell =
+                  PREPARED_SPELLS(ch, nextSlot + 1, classArray(class)).spell;
         }
         // tag end of list with 'terminate'
-        PREPARED_SPELLS(ch, nextSlot, classArray(class)) = TERMINATE;
+        PREPARED_SPELLS(ch, nextSlot, classArray(class)).spell = TERMINATE;
       } else {
         // must be the spell found was last in list
-        PREPARED_SPELLS(ch, slot, classArray(class)) = TERMINATE;
+        PREPARED_SPELLS(ch, slot, classArray(class)).spell = TERMINATE;
       }
       return;
     }
@@ -1355,9 +1306,9 @@ int sorc_add_known(struct char_data *ch, int spellnum, int class) {
   }
 
   for (slot = 0; slot < MAX_MEM; slot++) {
-    if (PREPARED_SPELLS(ch, slot, classArray(class)) == TERMINATE) {
+    if (PREPARED_SPELLS(ch, slot, classArray(class)).spell == TERMINATE) {
       /* found an empty slot! */
-      PREPARED_SPELLS(ch, slot, classArray(class)) = spellnum;
+      PREPARED_SPELLS(ch, slot, classArray(class)).spell = spellnum;
       return TRUE;
     }
   }
@@ -1382,7 +1333,7 @@ int hasSpell(struct char_data *ch, int spellnum) {
     if (x == CLASS_BARD)
       continue;
     for (slot = 0; slot < MAX_MEM; slot++) {
-      if (PREPARED_SPELLS(ch, slot, classArray(x)) == spellnum)
+      if (PREPARED_SPELLS(ch, slot, classArray(x)).spell == spellnum)
         return x;
     }
   }
@@ -1536,14 +1487,14 @@ void updateMemming(struct char_data *ch, int class) {
   }
 
   /* no mem list */
-  if (PREPARATION_QUEUE(ch, 0, classArray(class)) == TERMINATE) {
+  if (PREPARATION_QUEUE(ch, 0, classArray(class)).spell == TERMINATE) {
     IS_PREPARING(ch, classArray(class)) = FALSE;
     return;
   }
 
   /* wizard spellbook requirement */
   if (class == CLASS_WIZARD &&
-          !spellbook_ok(ch, PREPARATION_QUEUE(ch, 0, classArray(class)), CLASS_WIZARD, FALSE)
+          !spellbook_ok(ch, PREPARATION_QUEUE(ch, 0, classArray(class)).spell, CLASS_WIZARD, FALSE)
           ) {
     send_to_char(ch, "You don't seem to have that spell in your spellbook!\r\n");
     resetMemtimes(ch, class);
@@ -1566,41 +1517,41 @@ void updateMemming(struct char_data *ch, int class) {
     switch (class) {
       case CLASS_CLERIC:
         sprintf(buf, "You finish praying for %s.\r\n",
-                spell_info[PREPARATION_QUEUE(ch, 0, classArray(class))].name);
-        addSpellMemmed(ch, PREPARATION_QUEUE(ch, 0, classArray(class)), class);
+                spell_info[PREPARATION_QUEUE(ch, 0, classArray(class)).spell].name);
+        addSpellMemmed(ch, PREPARATION_QUEUE(ch, 0, classArray(class)).spell, class);
         break;
       case CLASS_RANGER:
         sprintf(buf, "You finish adjuring for %s.\r\n",
-                spell_info[PREPARATION_QUEUE(ch, 0, classArray(class))].name);
-        addSpellMemmed(ch, PREPARATION_QUEUE(ch, 0, classArray(class)), class);
+                spell_info[PREPARATION_QUEUE(ch, 0, classArray(class)).spell].name);
+        addSpellMemmed(ch, PREPARATION_QUEUE(ch, 0, classArray(class)).spell, class);
         break;
       case CLASS_PALADIN:
         sprintf(buf, "You finish chanting for %s.\r\n",
-                spell_info[PREPARATION_QUEUE(ch, 0, classArray(class))].name);
-        addSpellMemmed(ch, PREPARATION_QUEUE(ch, 0, classArray(class)), class);
+                spell_info[PREPARATION_QUEUE(ch, 0, classArray(class)).spell].name);
+        addSpellMemmed(ch, PREPARATION_QUEUE(ch, 0, classArray(class)).spell, class);
         break;
       case CLASS_DRUID:
         sprintf(buf, "You finish communing for %s.\r\n",
-                spell_info[PREPARATION_QUEUE(ch, 0, classArray(class))].name);
-        addSpellMemmed(ch, PREPARATION_QUEUE(ch, 0, classArray(class)), class);
+                spell_info[PREPARATION_QUEUE(ch, 0, classArray(class)).spell].name);
+        addSpellMemmed(ch, PREPARATION_QUEUE(ch, 0, classArray(class)).spell, class);
         break;
       case CLASS_SORCERER:
         sprintf(buf, "You have recovered a spell slot: %d.\r\n",
-                PREPARATION_QUEUE(ch, 0, classArray(class)));
+                PREPARATION_QUEUE(ch, 0, classArray(class)).spell);
         break;
       case CLASS_BARD:
         sprintf(buf, "You have recovered a compose slot: %d.\r\n",
-                PREPARATION_QUEUE(ch, 0, classArray(class)));
+                PREPARATION_QUEUE(ch, 0, classArray(class)).spell);
         break;
       default: // wizard
         sprintf(buf, "You finish memorizing %s.\r\n",
-                spell_info[PREPARATION_QUEUE(ch, 0, classArray(class))].name);
-        addSpellMemmed(ch, PREPARATION_QUEUE(ch, 0, classArray(class)), class);
+                spell_info[PREPARATION_QUEUE(ch, 0, classArray(class))].name).spell;
+        addSpellMemmed(ch, PREPARATION_QUEUE(ch, 0, classArray(class)), class).spell;
         break;
     }
     send_to_char(ch, buf);
-    removeSpellMemming(ch, PREPARATION_QUEUE(ch, 0, classArray(class)), class);
-    if (PREPARATION_QUEUE(ch, 0, classArray(class)) == TERMINATE) {
+    removeSpellMemming(ch, PREPARATION_QUEUE(ch, 0, classArray(class)), class).spell;
+    if (PREPARATION_QUEUE(ch, 0, classArray(class)).spell == TERMINATE) {
       switch (class) {
         case CLASS_SORCERER:
           send_to_char(ch, "Your meditations are complete.\r\n");
@@ -1684,7 +1635,7 @@ void display_sorc(struct char_data *ch, int class) {
               numSpells(ch, slot, CLASS_SORCERER));
     }
     send_to_char(ch, "\tn\r\n\r\n");
-    if (PREPARATION_QUEUE(ch, 0, classArray(CLASS_SORCERER)))
+    if (PREPARATION_QUEUE(ch, 0, classArray(CLASS_SORCERER)).spell)
       send_to_char(ch, "\tCTime left for next slot to recover:"
             "  \tn%d\tC seconds.\tn\r\n",
             PREP_TIME(ch, 0, classArray(CLASS_SORCERER)));
@@ -1702,7 +1653,7 @@ void display_sorc(struct char_data *ch, int class) {
               numSpells(ch, slot, CLASS_BARD));
     }
     send_to_char(ch, "\tn\r\n\r\n");
-    if (PREPARATION_QUEUE(ch, 0, classArray(CLASS_BARD)))
+    if (PREPARATION_QUEUE(ch, 0, classArray(CLASS_BARD)).spell)
       send_to_char(ch, "\tCTime left for next slot to recover:"
             "  \tn%d\tC seconds.\tn\r\n",
             PREP_TIME(ch, 0, classArray(CLASS_BARD)));
@@ -1725,14 +1676,14 @@ void display_memmed(struct char_data*ch, int class) {
   /* increment the respective spellnum slot in array according
      to # of spells memmed */
   for (slot = 0; slot < (MAX_MEM); slot++) {
-    if (PREPARED_SPELLS(ch, slot, classArray(class)) == TERMINATE)
+    if (PREPARED_SPELLS(ch, slot, classArray(class)).spell == TERMINATE)
       break;
     else
-      num[PREPARED_SPELLS(ch, slot, classArray(class))]++;
+      num[PREPARED_SPELLS(ch, slot, classArray(class)).spell]++;
   }
 
   /***  display memorized spells ***/
-  if (PREPARED_SPELLS(ch, 0, classArray(class)) != 0) {
+  if (PREPARED_SPELLS(ch, 0, classArray(class)).spell != 0) {
     switch (class) {
       case CLASS_DRUID:
         send_to_char(ch, "\r\n\tGYou have communed for the following"
@@ -1758,23 +1709,23 @@ void display_memmed(struct char_data*ch, int class) {
     for (slot = getCircle(ch, class); slot > 0; slot--) {
       printed = FALSE;
       for (memSlot = 0; memSlot < (MAX_MEM); memSlot++) {
-        if (PREPARED_SPELLS(ch, memSlot, classArray(class)) != 0 &&
-            (spellCircle(class, PREPARED_SPELLS(ch, memSlot, classArray(class)), GET_1ST_DOMAIN(ch)) == slot ||
-             spellCircle(class, PREPARED_SPELLS(ch, memSlot, classArray(class)), GET_2ND_DOMAIN(ch)) == slot)) {
-          if (num[PREPARED_SPELLS(ch, memSlot, classArray(class))] != 0) {
+        if (PREPARED_SPELLS(ch, memSlot, classArray(class)).spell != 0 &&
+            (spellCircle(class, PREPARED_SPELLS(ch, memSlot, classArray(class)).spell, GET_1ST_DOMAIN(ch)) == slot ||
+             spellCircle(class, PREPARED_SPELLS(ch, memSlot, classArray(class)).spell, GET_2ND_DOMAIN(ch)) == slot)) {
+          if (num[PREPARED_SPELLS(ch, memSlot, classArray(class)).spell] != 0) {
             if (!printed) {
               send_to_char(ch, "[Circle: %d]          %2d - %s\r\n",
-                      slot, num[PREPARED_SPELLS(ch, memSlot, classArray(class))],
+                      slot, num[PREPARED_SPELLS(ch, memSlot, classArray(class)).spell],
                       spell_info[PREPARED_SPELLS(ch, memSlot,
-                      classArray(class))].name);
+                      classArray(class)).spell].name);
               printed = TRUE;
-              num[PREPARED_SPELLS(ch, memSlot, classArray(class))] = 0;
+              num[PREPARED_SPELLS(ch, memSlot, classArray(class)).spell] = 0;
             } else {
               send_to_char(ch, "                     %2d - %s\r\n",
-                      num[PREPARED_SPELLS(ch, memSlot, classArray(class))],
+                      num[PREPARED_SPELLS(ch, memSlot, classArray(class)).spell],
                       spell_info[PREPARED_SPELLS(ch, memSlot,
-                      classArray(class))].name);
-              num[PREPARED_SPELLS(ch, memSlot, classArray(class))] = 0;
+                      classArray(class)).spell].name);
+              num[PREPARED_SPELLS(ch, memSlot, classArray(class)).spell] = 0;
             }
           }
         }
@@ -1794,7 +1745,7 @@ void display_memming(struct char_data *ch, int class) {
     return;
 
   /*** Display memorizing spells ***/
-  if (PREPARATION_QUEUE(ch, 0, classArray(class)) != 0) {
+  if (PREPARATION_QUEUE(ch, 0, classArray(class)).spell != 0) {
     if (IS_PREPARING(ch, classArray(class))) {
       switch (class) {
         case CLASS_DRUID:
@@ -1838,15 +1789,15 @@ void display_memming(struct char_data *ch, int class) {
       }
     }
     for (slot = 0; slot < (MAX_MEM); slot++) {
-      if (PREPARATION_QUEUE(ch, slot, classArray(class)) != 0) {
+      if (PREPARATION_QUEUE(ch, slot, classArray(class)).spell != 0) {
         if (class == CLASS_CLERIC) {
-          spellLevel  = (MIN_SPELL_LVL(PREPARATION_QUEUE(ch, slot, classArray(class)), class, GET_1ST_DOMAIN(ch)) + 1) / 2;
-          spellLevel2 = (MIN_SPELL_LVL(PREPARATION_QUEUE(ch, slot, classArray(class)), class, GET_2ND_DOMAIN(ch)) + 1) / 2;
+          spellLevel  = (MIN_SPELL_LVL(PREPARATION_QUEUE(ch, slot, classArray(class)).spell, class, GET_1ST_DOMAIN(ch)) + 1) / 2;
+          spellLevel2 = (MIN_SPELL_LVL(PREPARATION_QUEUE(ch, slot, classArray(class)).spell, class, GET_2ND_DOMAIN(ch)) + 1) / 2;
           spellLevel = MIN(spellLevel, spellLevel2);
         } else
-          spellLevel = spellCircle(class, PREPARATION_QUEUE(ch, slot, classArray(class)), DOMAIN_UNDEFINED);
+          spellLevel = spellCircle(class, PREPARATION_QUEUE(ch, slot, classArray(class)).spell, DOMAIN_UNDEFINED);
         send_to_char(ch, "  %s [%d%s] with %d seconds remaining.\r\n",
-                     spell_info[PREPARATION_QUEUE(ch, slot, classArray(class))].name,
+                     spell_info[PREPARATION_QUEUE(ch, slot, classArray(class)).spell].name,
                      spellLevel, spellLevel == 1 ? "st" : spellLevel == 2 ?
                      "nd" : spellLevel == 3 ? "rd" : "th",
                      PREP_TIME(ch, slot, classArray(class)));
@@ -2003,9 +1954,9 @@ ACMD(do_gen_forget) {
   }
 
   if (!strcmp(arg, "all")) {
-    if (PREPARATION_QUEUE(ch, 0, classArray(class))) {
+    if (PREPARATION_QUEUE(ch, 0, classArray(class)).spell) {
       for (slot = 0; slot < (MAX_MEM); slot++) {
-        PREPARATION_QUEUE(ch, slot, classArray(class)) = 0;
+        PREPARATION_QUEUE(ch, slot, classArray(class)).spell = 0;
       }
       switch (class) {
         case CLASS_DRUID:
@@ -2031,9 +1982,9 @@ ACMD(do_gen_forget) {
       }
       IS_PREPARING(ch, classArray(class)) = FALSE;
       return;
-    } else if (PREPARED_SPELLS(ch, 0, classArray(class))) {
+    } else if (PREPARED_SPELLS(ch, 0, classArray(class)).spell) {
       for (slot = 0; slot < (MAX_MEM); slot++) {
-        PREPARED_SPELLS(ch, slot, classArray(class)) = 0;
+        PREPARED_SPELLS(ch, slot, classArray(class)).spell = 0;
       }
       switch (class) {
         case CLASS_DRUID:
@@ -2085,7 +2036,7 @@ ACMD(do_gen_forget) {
 
   // are we memorizing it?
   for (slot = 0; slot < (MAX_MEM); slot++) {
-    if (PREPARATION_QUEUE(ch, slot, classArray(class)) == spellnum) {
+    if (PREPARATION_QUEUE(ch, slot, classArray(class)).spell == spellnum) {
       removeSpellMemming(ch, spellnum, class);
       switch (class) {
         case CLASS_DRUID:
@@ -2110,7 +2061,7 @@ ACMD(do_gen_forget) {
 
   // is it memmed?
   for (slot = 0; slot < (MAX_MEM); slot++) {
-    if (PREPARED_SPELLS(ch, slot, classArray(class)) == spellnum) {
+    if (PREPARED_SPELLS(ch, slot, classArray(class)).spell == spellnum) {
       forgetSpell(ch, spellnum, class);
       switch (class) {
         case CLASS_DRUID:
@@ -2193,7 +2144,7 @@ ACMD(do_gen_memorize) {
   if (class == CLASS_SORCERER || class == CLASS_BARD || !*argument) {
     printMemory(ch, class);
     if (GET_POS(ch) == POS_RESTING && !FIGHTING(ch)) {
-      if (!isOccupied(ch) && PREPARATION_QUEUE(ch, 0, classArray(class)) != 0) {
+      if (!isOccupied(ch) && PREPARATION_QUEUE(ch, 0, classArray(class)).spell != 0) {
         switch (class) {
           case CLASS_DRUID:
             send_to_char(ch, "You continue your communion.\r\n");
