@@ -1216,7 +1216,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
 
     /* sorcerer's call is made already in forgetSpell() */
     if (class != CLASS_SORCERER && class != CLASS_BARD)
-      addSpellMemming(ch, spellnum, spell_info[spellnum].memtime, class);
+      addSpellMemming(ch, spellnum, 0, spell_info[spellnum].memtime, class);
   }
 
   /* level to cast this particular spell as */
