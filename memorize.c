@@ -1091,7 +1091,7 @@ void removeSpellMemming(struct char_data *ch, int spellnum, int class) {
       } else {
         // must be the spell found was last in list
         PREPARATION_QUEUE(ch, slot, classArray(class)).spell = TERMINATE;
-        PREPARATION_QUEUE(ch, nextSlot, classArray(class)).metamagic = 0;
+        PREPARATION_QUEUE(ch, slot, classArray(class)).metamagic = 0;
         PREP_TIME(ch, slot, classArray(class)) = TERMINATE;
       }
       return;
