@@ -1390,7 +1390,7 @@ ACMD(do_respec) {
       send_to_char(ch, "Sorry staff can't respec...\r\n");
       return;
     }
-    if (locked_classes[class]) {
+    if (CLSLIST_LOCK(class)) {
       send_to_char(ch, "You cannot respec into a prestige class, you must respec "
               "to a base class and meet all the prestige-class requirements to "
               "advance in it.\r\n");

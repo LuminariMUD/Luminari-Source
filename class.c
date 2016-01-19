@@ -11,11 +11,6 @@
 /** Help buffer the global variable definitions */
 #define __CLASS_C__
 
-/* This file attempts to concentrate most of the code which must be changed
- * in order for new classes to be added.  If you're adding a new class, you
- * should go through this entire file from beginning to end and add the
- * appropriate new special cases for your new class. */
-
 #include "conf.h"
 #include "sysdep.h"
 #include "structs.h"
@@ -70,7 +65,6 @@
 /* absolute xp cap */
 #define EXP_MAX  2100000000
 
-/* declarations */
 /* here is our class_list declare */
 struct class_table class_list[NUM_CLASSES];
 
@@ -88,10 +82,6 @@ struct class_prerequisite* create_prereq(int prereq_type, int val1,
 
   return prereq;
 }
-/*  The following procedures are used to define class prerequisites.
- *  These prerequisites are automatically checked, if they exist.
- *  Dynamically assigning prerequisites also allows us to create
- *  dynamic 'help' and easier to read presentations of class lists. */
 void class_prereq_attribute(int class_num, int attribute, int value) {
   struct class_prerequisite *prereq = NULL;
   char buf[80];
@@ -245,7 +235,7 @@ void class_prereq_weapon_proficiency(int class_num) {
 void classo(int class_num, char *name, char *abbrev, char *colored_abbrev,
         char *menu_name, int max_level, bool locked_class, int prestige_class,
         int base_attack_bonus, int hit_dice, int mana_gain, int move_gain,
-        int trains_gain, bool in_game) {
+        int trains_gain, bool in_game, int unlock_cost) {
   class_list[class_num].name = name;
   class_list[class_num].abbrev = abbrev;
   class_list[class_num].colored_abbrev = colored_abbrev;
@@ -259,6 +249,7 @@ void classo(int class_num, char *name, char *abbrev, char *colored_abbrev,
   class_list[class_num].move_gain = move_gain;
   class_list[class_num].trains_gain = trains_gain;
   class_list[class_num].in_game = in_game;
+  class_list[class_num].unlock_cost = unlock_cost;
   /* list of prereqs */
   class_list[class_num].prereq_list = NULL;  
 }
@@ -325,6 +316,7 @@ void init_class_list(int class_num) {
   class_list[class_num].move_gain = 0;
   class_list[class_num].trains_gain = 2;  
   class_list[class_num].in_game = N;
+  class_list[class_num].unlock_cost = 0;
   
   int i = 0;
   for (i = 0; i < 5; i++)
@@ -351,8 +343,8 @@ void load_class_list(void) {
   /****************************************************************************/
   /*     class-number  name      abrv   clr-abrv     menu-name*/
   classo(CLASS_WIZARD, "wizard", "Wiz", "\tmWiz\tn", "m) \tmWizard\tn\r\n",
-      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? */
-        -1,       N,    N,        L,  4, 0,   1,   2,     Y);
+      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlock-cost */
+        -1,       N,    N,        L,  4, 0,   1,   2,     Y,       0);
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_WIZARD, B,    B,      G,    B,      B);
   assign_class_abils(CLASS_WIZARD, /* class number */
@@ -371,8 +363,8 @@ void load_class_list(void) {
   /****************************************************************************/
   /*     class-number  name      abrv   clr-abrv     menu-name*/
   classo(CLASS_CLERIC, "cleric", "Cle", "\tBCle\tn", "c) \tBCleric\tn\r\n",
-      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? */
-        -1,       N,    N,        M,  8, 0,   1,   2,     Y);
+      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlock-cost */
+        -1,       N,    N,        M,  8, 0,   1,   2,     Y,       0);
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_CLERIC, G,    B,      G,    B,      B);
   assign_class_abils(CLASS_CLERIC, /* class number */
@@ -390,8 +382,8 @@ void load_class_list(void) {
   /****************************************************************************/
   /*     class-number  name     abrv   clr-abrv     menu-name*/
   classo(CLASS_ROGUE, "rogue", "Rog", "\twRog\tn", "t) \tWRogue\tn\r\n",
-      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? */
-        -1,       N,    N,        M,  6, 0,   2,   8,     Y);
+      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlock-cost*/
+        -1,       N,    N,        M,  6, 0,   2,   8,     Y,       0);
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_ROGUE, B,    G,      B,    B,      B);
   assign_class_abils(CLASS_ROGUE, /* class number */
@@ -409,8 +401,8 @@ void load_class_list(void) {
   /****************************************************************************/
   /*     class-number  name        abrv   clr-abrv       menu-name*/
   classo(CLASS_WARRIOR, "warrior", "War", "\tRWar\tn", "w) \tRWarrior\tn\r\n",
-      /* max-lvl  lock? prestige? BAB HD  mana move trains in-game? */
-        -1,       N,    N,        H,  10, 0,   1,   2,     Y);
+      /* max-lvl  lock? prestige? BAB HD  mana move trains in-game? unlock-cost */
+        -1,       N,    N,        H,  10, 0,   1,   2,     Y,       0);
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_WARRIOR, G,    B,      B,    B,      B);
   assign_class_abils(CLASS_WARRIOR, /* class number */
@@ -428,8 +420,8 @@ void load_class_list(void) {
   /****************************************************************************/
   /*     class-number  name    abrv   clr-abrv     menu-name*/
   classo(CLASS_MONK, "monk", "Mon", "\tgMon\tn", "o) \tgMonk\tn\r\n",
-      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? */
-        -1,       N,    N,        M,  8, 0,   2,   4,     Y);
+      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlock-cost */
+        -1,       N,    N,        M,  8, 0,   2,   4,     Y,       0);
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_MONK,   G,    G,      G,    B,      B);
   assign_class_abils(CLASS_MONK, /* class number */
@@ -447,8 +439,8 @@ void load_class_list(void) {
   /****************************************************************************/
   /*     class-number  name      abrv   clr-abrv          menu-name*/
   classo(CLASS_DRUID, "druid", "Dru", "\tGD\tgr\tGu\tn", "d) \tGD\tgr\tGu\tgi\tGd\tn\r\n",
-      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? */
-        -1,       N,    N,        M,  8, 0,   3,   4,     Y);
+      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlock-cost*/
+        -1,       N,    N,        M,  8, 0,   3,   4,     Y,       0);
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_DRUID,  G,    B,      G,    B,      B);
   assign_class_abils(CLASS_DRUID, /* class number */
@@ -466,8 +458,8 @@ void load_class_list(void) {
   /****************************************************************************/
   /*     class-number        name      abrv   clr-abrv           menu-name*/
   classo(CLASS_BERSERKER, "berserker", "Bes", "\trB\tRe\trs\tn", "b) \trBer\tRser\trker\tn\r\n",
-      /* max-lvl  lock? prestige? BAB HD  mana move trains in-game? */
-        -1,       N,    N,        H,  12, 0,   2,   4,     Y);
+      /* max-lvl  lock? prestige? BAB HD  mana move trains in-game? unlock-cost */
+        -1,       N,    N,        H,  12, 0,   2,   4,     Y,       0);
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_BERSERKER, G,    B,      B,    B,      B);
   assign_class_abils(CLASS_BERSERKER, /* class number */
@@ -485,8 +477,8 @@ void load_class_list(void) {
   /****************************************************************************/
   /*     class-number     name      abrv   clr-abrv     menu-name*/
   classo(CLASS_SORCERER, "sorcerer", "Sor", "\tMSor\tn", "s) \tMSorcerer\tn\r\n",
-      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? */
-        -1,       N,    N,        L,  4, 0,   1,   2,     Y);
+      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlock-cost*/
+        -1,       N,    N,        L,  4, 0,   1,   2,     Y,       0);
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_SORCERER, B,    B,      G,    B,      B);
   assign_class_abils(CLASS_SORCERER, /* class number */
@@ -504,8 +496,8 @@ void load_class_list(void) {
   /****************************************************************************/
   /*     class-number   name      abrv   clr-abrv     menu-name*/
   classo(CLASS_PALADIN, "paladin", "Pal", "\tWPal\tn", "p) \tWPaladin\tn\r\n",
-      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? */
-        -1,       N,    N,        H,  10, 0,   1,   2,     Y);
+      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlock-cost*/
+        -1,       N,    N,        H,  10, 0,   1,   2,     Y,      0);
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_PALADIN, B,    B,      G,    B,      B);
   assign_class_abils(CLASS_PALADIN, /* class number */
@@ -523,8 +515,8 @@ void load_class_list(void) {
   /****************************************************************************/
   /*     class-number  name      abrv   clr-abrv     menu-name*/
   classo(CLASS_RANGER, "ranger", "Ran", "\tYRan\tn", "r) \tYRanger\tn\r\n",
-      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? */
-        -1,       N,    N,        H,  10, 0,   3,   4,     Y);
+      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlock-cost */
+        -1,       N,    N,        H,  10, 0,   3,   4,     Y,      0);
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_RANGER, G,    B,      B,    B,      B);
   assign_class_abils(CLASS_RANGER, /* class number */
@@ -542,8 +534,8 @@ void load_class_list(void) {
   /****************************************************************************/
   /*     class-number  name   abrv   clr-abrv     menu-name*/
   classo(CLASS_BARD, "bard", "Bar", "\tCBar\tn", "a) \tCBard\tn\r\n",
-      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? */
-        -1,       N,    N,        M,  6, 0,   2,   6,     Y);
+      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlock-cost */
+        -1,       N,    N,        M,  6, 0,   2,   6,     Y,       0);
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_BARD,   B,    G,      G,    B,      B);
   assign_class_abils(CLASS_BARD, /* class number */
@@ -561,8 +553,8 @@ void load_class_list(void) {
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
   classo(CLASS_WEAPON_MASTER, "weaponmaster", "WpM", "\tcWpM\tn", "e) \tcWeaponMaster\tn\r\n",
-      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? */
-        10,       Y,    Y,        H,  10, 0,   1,   2,     Y);
+      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlock-cost*/
+        10,       Y,    Y,        H,  10, 0,   1,   2,     Y,      5000);
   /* class-number then saves:        fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_WEAPON_MASTER, B,    G,      B,    B,      B);
   assign_class_abils(CLASS_WEAPON_MASTER, /* class number */
