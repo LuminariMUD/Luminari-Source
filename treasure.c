@@ -899,7 +899,9 @@ void award_expendable_item(struct char_data *ch, int grade, int type) {
 
 /* this is a very simplified version of this function, the original version was
  incomplete and creating some very strange gear with some crazy stats.  The
- original version is right below this */
+ original version is right below this.  the bonus_value is measure in enchantment
+ bonus as the currency, so we have to make decisions on the value of receiving
+ other stats such as strength, hps, etc */
 void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
         int rare_grade, int level, int cp_type) {
   int bonus_value = 0, bonus_location = APPLY_NONE;

@@ -955,40 +955,94 @@ int compute_gear_shield_type(struct char_data *ch) {
 /* enhancement bonus + material bonus */
 int compute_gear_enhancement_bonus(struct char_data *ch) {
   struct obj_data *obj = NULL;
-  int enhancement_bonus = 0, material_bonus = 0, i, count = 0, mat_count = 0;
+  int enhancement_bonus = 0;  
+  float counter = 0.0;
+  float num_pieces = 0.0;
 
-  for (i = 0; i < NUM_WEARS; i++) {
-    /* exit slots */
-    switch (i) {
-      default:
+  /* we're going to check slot-by-slot */
+  
+  /* shield - gets full enchantment bonus, so _do not_ increment num_pieces */
+  obj = GET_EQ(ch, WEAR_SHIELD);
+  if (obj && GET_OBJ_TYPE(obj) == ITEM_ARMOR) {
+    switch (GET_OBJ_MATERIAL(obj)) {
+      case MATERIAL_ADAMANTINE:
+      case MATERIAL_MITHRIL:
+      case MATERIAL_DRAGONHIDE:
+      case MATERIAL_DIAMOND:
+      case MATERIAL_DARKWOOD:
+        counter += 1.1;
         break;
     }
-    obj = GET_EQ(ch, i);
-    if (obj && GET_OBJ_TYPE(obj) == ITEM_ARMOR &&
-        (i == WEAR_BODY || i == WEAR_HEAD || i == WEAR_LEGS || i == WEAR_ARMS ||
-         i == WEAR_SHIELD) ) {
-      count++;
-      mat_count++;
-      /* ok we have an armor piece... */
-      enhancement_bonus += GET_OBJ_VAL(obj, 4);
-      switch (GET_OBJ_MATERIAL(obj)) {
-        case MATERIAL_ADAMANTINE:
-        case MATERIAL_MITHRIL:
-        case MATERIAL_DRAGONHIDE:
-        case MATERIAL_DIAMOND:
-        case MATERIAL_DARKWOOD:
-          material_bonus++;
-          break;
-        default:
-          break;
-      }
-    }
+    counter += (float)GET_OBJ_VAL(obj, 4) * 1.01;
+    /* DON'T increment num_pieces, should get full bang for buck on shields */
   }
 
-  if (count) {/* divide by zero! :p */
-    enhancement_bonus = enhancement_bonus / count;
-    enhancement_bonus += MAX(0, material_bonus / mat_count);
+  /* body */
+  obj = GET_EQ(ch, WEAR_BODY);
+  num_pieces += 0.99;
+  if (obj && GET_OBJ_TYPE(obj) == ITEM_ARMOR) {
+    switch (GET_OBJ_MATERIAL(obj)) {
+      case MATERIAL_ADAMANTINE:
+      case MATERIAL_MITHRIL:
+      case MATERIAL_DRAGONHIDE:
+      case MATERIAL_DIAMOND:
+      case MATERIAL_DARKWOOD:
+        counter += 1.1;
+        break;
+    }
+    counter += (float)GET_OBJ_VAL(obj, 4) * 1.01;
   }
+
+  /* head */
+  obj = GET_EQ(ch, WEAR_HEAD);
+  num_pieces += 0.99;
+  if (obj && GET_OBJ_TYPE(obj) == ITEM_ARMOR) {
+    switch (GET_OBJ_MATERIAL(obj)) {
+      case MATERIAL_ADAMANTINE:
+      case MATERIAL_MITHRIL:
+      case MATERIAL_DRAGONHIDE:
+      case MATERIAL_DIAMOND:
+      case MATERIAL_DARKWOOD:
+        counter += 1.1;
+        break;
+    }
+    counter += (float)GET_OBJ_VAL(obj, 4) * 1.01;
+  }
+
+  /* legs */
+  obj = GET_EQ(ch, WEAR_LEGS);
+  num_pieces += 0.99;
+  if (obj && GET_OBJ_TYPE(obj) == ITEM_ARMOR) {
+    switch (GET_OBJ_MATERIAL(obj)) {
+      case MATERIAL_ADAMANTINE:
+      case MATERIAL_MITHRIL:
+      case MATERIAL_DRAGONHIDE:
+      case MATERIAL_DIAMOND:
+      case MATERIAL_DARKWOOD:
+        counter += 1.1;
+        break;
+    }
+    counter += (float)GET_OBJ_VAL(obj, 4) * 1.01;
+  }
+
+  /* arms */
+  obj = GET_EQ(ch, WEAR_ARMS);
+  num_pieces += 0.99;
+  if (obj && GET_OBJ_TYPE(obj) == ITEM_ARMOR) {
+    switch (GET_OBJ_MATERIAL(obj)) {
+      case MATERIAL_ADAMANTINE:
+      case MATERIAL_MITHRIL:
+      case MATERIAL_DRAGONHIDE:
+      case MATERIAL_DIAMOND:
+      case MATERIAL_DARKWOOD:
+        counter += 1.1;
+        break;
+    }
+    counter += (float)GET_OBJ_VAL(obj, 4) * 1.01;
+  }
+  
+  if (num_pieces)
+    enhancement_bonus = MAX(0, (int)( counter/num_pieces ));
 
   return enhancement_bonus;
 }
