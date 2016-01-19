@@ -67,6 +67,7 @@ static void load_class_level(FILE *fl, struct char_data *ch);
 static void load_coord_location(FILE *fl, struct char_data *ch);
 static void load_praying(FILE *fl, struct char_data *ch);
 static void load_prayed(FILE *fl, struct char_data *ch);
+static void load_prayed_metamagic(FILE *fl, struct char_data *ch);
 static void load_praytimes(FILE *fl, struct char_data *ch);
 static void load_quests(FILE *fl, struct char_data *ch);
 static void load_HMVS(struct char_data *ch, const char *line, int mode);
@@ -566,6 +567,7 @@ int load_char(const char *name, struct char_data *ch) {
           else if (!strcmp(tag, "Plyd")) ch->player.time.played = atoi(line);
           else if (!strcmp(tag, "Pryg")) load_praying(fl, ch);
           else if (!strcmp(tag, "Pryd")) load_prayed(fl, ch);
+          else if (!strcmp(tag, "Prym")) load_prayed_metamagic(fl, ch);
           else if (!strcmp(tag, "Pryt")) load_praytimes(fl, ch);
           else if (!strcmp(tag, "PfIn")) POOFIN(ch) = strdup(line);
           else if (!strcmp(tag, "PfOt")) POOFOUT(ch) = strdup(line);
@@ -1054,8 +1056,8 @@ void save_char(struct char_data * ch, int mode) {
   for (i = 0; i < MAX_MEM; i++) {
     fprintf(fl, "%d ", i);
     for (j = 0; j < NUM_CASTERS; j++) {
-      if (PREPARATION_QUEUE(ch, i, j) < MAX_SPELLS)
-        fprintf(fl, "%d ", PREPARATION_QUEUE(ch, i, j));
+      if (PREPARATION_QUEUE(ch, i, j).spell < MAX_SPELLS)
+        fprintf(fl, "%d ", PREPARATION_QUEUE(ch, i, j).spell);
       else
         fprintf(fl, "0 ");
     }
@@ -1066,11 +1068,13 @@ void save_char(struct char_data * ch, int mode) {
   for (i = 0; i < MAX_MEM; i++) {
     fprintf(fl, "%d ", i);
     for (j = 0; j < NUM_CASTERS; j++) {
-      fprintf(fl, "%d ", PREPARED_SPELLS(ch, i, j));
+      /* Note: added metamagic to pfile.  19.01.2015 Ornir */
+      fprintf(fl, "%d ", PREPARED_SPELLS(ch, i, j).spell);
     }
     fprintf(fl, "\n");
   }
   fprintf(fl, "-1 -1\n");
+
   fprintf(fl, "Pryt:\n");
   for (i = 0; i < MAX_MEM; i++) {
     fprintf(fl, "%d ", i);
@@ -1081,7 +1085,16 @@ void save_char(struct char_data * ch, int mode) {
   }
   fprintf(fl, "-1 -1\n");
 
-
+  fprintf(fl, "Prym:\n");
+  for (i = 0; i < MAX_MEM; i++) {
+    fprintf(fl, "%d ", i);
+    for (j = 0; j < NUM_CASTERS; j++) {
+      fprintf(fl, "%d ", PREPARED_SPELLS(ch, i, j).metamagic);
+    }
+    fprintf(fl, "\n");
+  }
+  fprintf(fl, "-1 -1\n");
+  
   //class levels
   fprintf(fl, "CLvl:\n");
   for (i = 0; i < MAX_CLASSES; i++) {
@@ -1505,6 +1518,36 @@ static void load_praytimes(FILE *fl, struct char_data *ch) {
 
 /* prayed loading isn't a loop, so has to be manually changed if you
    change NUM_CASTERS! */
+static void load_prayed_metamagic(FILE *fl, struct char_data *ch) {
+  int num = 0, num2 = 0, num3 = 0, num4 = 0, num5 = 0, num6 = 0,
+          num7 = 0, num8 = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do {
+    num2 = 0;
+    num3 = 0;
+    num4 = 0;
+    num5 = 0;
+    num6 = 0;
+    num7 = 0;
+    num8 = 0;
+    get_line(fl, line);
+    sscanf(line, "%d %d %d %d %d %d %d %d", &num, &num2, &num3, &num4, &num5,
+            &num6, &num7, &num8);
+    if (num != -1) {
+      PREPARED_SPELLS(ch, num, 0).metamagic = num2;
+      PREPARED_SPELLS(ch, num, 1).metamagic = num3;
+      PREPARED_SPELLS(ch, num, 2).metamagic = num4;
+      PREPARED_SPELLS(ch, num, 3).metamagic = num5;
+      PREPARED_SPELLS(ch, num, 4).metamagic = num6;
+      PREPARED_SPELLS(ch, num, 5).metamagic = num7;
+      PREPARED_SPELLS(ch, num, 6).metamagic = num8;
+    }
+  } while (num != -1);
+}
+
+/* prayed loading isn't a loop, so has to be manually changed if you
+   change NUM_CASTERS! */
 static void load_prayed(FILE *fl, struct char_data *ch) {
   int num = 0, num2 = 0, num3 = 0, num4 = 0, num5 = 0, num6 = 0,
           num7 = 0, num8 = 0;
@@ -1522,13 +1565,13 @@ static void load_prayed(FILE *fl, struct char_data *ch) {
     sscanf(line, "%d %d %d %d %d %d %d %d", &num, &num2, &num3, &num4, &num5,
             &num6, &num7, &num8);
     if (num != -1) {
-      PREPARED_SPELLS(ch, num, 0) = num2;
-      PREPARED_SPELLS(ch, num, 1) = num3;
-      PREPARED_SPELLS(ch, num, 2) = num4;
-      PREPARED_SPELLS(ch, num, 3) = num5;
-      PREPARED_SPELLS(ch, num, 4) = num6;
-      PREPARED_SPELLS(ch, num, 5) = num7;
-      PREPARED_SPELLS(ch, num, 6) = num8;
+      PREPARED_SPELLS(ch, num, 0).spell = num2;
+      PREPARED_SPELLS(ch, num, 1).spell = num3;
+      PREPARED_SPELLS(ch, num, 2).spell = num4;
+      PREPARED_SPELLS(ch, num, 3).spell = num5;
+      PREPARED_SPELLS(ch, num, 4).spell = num6;
+      PREPARED_SPELLS(ch, num, 5).spell = num7;
+      PREPARED_SPELLS(ch, num, 6).spell = num8;
     }
   } while (num != -1);
 }
