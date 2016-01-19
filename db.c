@@ -4316,7 +4316,7 @@ void reset_char(struct char_data *ch) {
   ch->char_specials.riding = NULL;
   ch->char_specials.ridden_by = NULL;
   for (i = 0; i < NUM_CASTERS; i++)
-    ch->char_specials.prayin[i] = 0;
+    ch->char_specials.is_preparing[i] = 0;
   ch->char_specials.crafting_type = 0;
   ch->char_specials.crafting_ticks = 0;
   ch->char_specials.crafting_object = NULL;
