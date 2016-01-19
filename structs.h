@@ -3087,6 +3087,8 @@ struct char_special_data {
   struct char_data *grapple_attacker; /**< Who is grappling me?; else NULL */
 };
 
+extern struct prepared_spell_data;
+
 /** Data only needed by PCs, and needs to be saved to disk. */
 struct player_special_data_saved {
 
@@ -3108,8 +3110,6 @@ struct player_special_data_saved {
   ubyte boosts; //stat boosts left
   ubyte spec_abil[MAX_CLASSES]; //spec abilities (ex. lay on hands)
   ubyte favored_enemy[MAX_ENEMIES]; //list of ranger favored enemies
-
-  extern struct prepared_spell_data;
   
   struct prepared_spell_data preparing[MAX_MEM][NUM_CASTERS]; //memorization
   struct prepared_spell_data prepared[MAX_MEM][NUM_CASTERS]; //memorization
