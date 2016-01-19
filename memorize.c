@@ -950,7 +950,7 @@ int comp_slots(struct char_data *ch, int circle, int class) {
 #define CLERIC_TIME_FACTOR  4
 #define SORC_TIME_FACTOR  5
 #define BARD_TIME_FACTOR  6
-void addSpellMemming(struct char_data *ch, int spellnum, int time, int class) {
+void addSpellMemming(struct char_data *ch, int spellnum, int metamagic, int time, int class) {
   int slot;
 
   /* modifier to our 'normal' memorizers */
@@ -991,6 +991,7 @@ void addSpellMemming(struct char_data *ch, int spellnum, int time, int class) {
   for (slot = 0; slot < MAX_MEM; slot++) {
     if (PREPARATION_QUEUE(ch, slot, classArray(class)).spell == TERMINATE) {
       PREPARATION_QUEUE(ch, slot, classArray(class)).spell = spellnum;
+      PREPARATION_QUEUE(ch, slot, classArray(class)).metamagic = metamagic;
       PREP_TIME(ch, slot, classArray(class)) = time;
       break;
     }
@@ -1023,12 +1024,13 @@ void resetMemtimes(struct char_data *ch, int class) {
 
 /* adds <spellnum> to the next available slot in the characters
    preparation list */
-void addSpellMemmed(struct char_data *ch, int spellnum, int class) {
+void addSpellMemmed(struct char_data *ch, int spellnum, int metamagic, int class) {
   int slot;
 
   for (slot = 0; slot < MAX_MEM; slot++) {
     if (PREPARED_SPELLS(ch, slot, classArray(class)).spell == 0) {
       PREPARED_SPELLS(ch, slot, classArray(class)).spell = spellnum;
+      PREPARED_SPELLS(ch, slot, classArray(class)).metamagic = metamagic;
       return;
     }
   }
@@ -1084,10 +1086,12 @@ void removeSpellMemming(struct char_data *ch, int spellnum, int class) {
         }
         // tag end of list with 'terminate'
         PREPARATION_QUEUE(ch, nextSlot, classArray(class)).spell = TERMINATE;
+        PREPARATION_QUEUE(ch, nextSlot, classArray(class)).metamagic = 0;
         PREP_TIME(ch, nextSlot, classArray(class)) = TERMINATE;
       } else {
         // must be the spell found was last in list
         PREPARATION_QUEUE(ch, slot, classArray(class)).spell = TERMINATE;
+        PREPARATION_QUEUE(ch, nextSlot, classArray(class)).metamagic = 0;
         PREP_TIME(ch, slot, classArray(class)) = TERMINATE;
       }
       return;
@@ -1116,8 +1120,10 @@ int forgetSpell(struct char_data *ch, int spellnum, int class) {
                       PREPARED_SPELLS(ch, nextSlot + 1, classArray(class)).spell;
             }
             PREPARED_SPELLS(ch, nextSlot, classArray(class)).spell = 0;
+            PREPARED_SPELLS(ch, nextSlot, classArray(class)).metamagic = 0;
           } else {
             PREPARED_SPELLS(ch, slot, classArray(class)).spell = 0;
+            PREPARED_SPELLS(ch, slot, classArray(class)).metamagic = 0;
           }
           return class;
         }
@@ -1142,8 +1148,10 @@ int forgetSpell(struct char_data *ch, int spellnum, int class) {
                         PREPARED_SPELLS(ch, nextSlot + 1, classArray(x)).spell;
               }
               PREPARED_SPELLS(ch, nextSlot, classArray(x)).spell = 0;
+              PREPARED_SPELLS(ch, nextSlot, classArray(x)).metamagic = 0;
             } else {
               PREPARED_SPELLS(ch, slot, classArray(x)).spell = 0;
+              PREPARED_SPELLS(ch, slot, classArray(x)).metamagic = 0;
             }
             return x;
           }
@@ -1155,14 +1163,14 @@ int forgetSpell(struct char_data *ch, int spellnum, int class) {
     if (CLASS_LEVEL(ch, CLASS_SORCERER)) {
       /* got a free slot? */
       if (hasSpell(ch, spellnum) == CLASS_SORCERER) {
-        addSpellMemming(ch, spellnum, 0, CLASS_SORCERER);
+        addSpellMemming(ch, spellnum, 0, 0, CLASS_SORCERER);
         return CLASS_SORCERER;
       }
     }
     if (CLASS_LEVEL(ch, CLASS_BARD)) {
       /* got a free slot? */
       if (hasSpell(ch, spellnum) == CLASS_BARD) {
-        addSpellMemming(ch, spellnum, 0, CLASS_BARD);
+        addSpellMemming(ch, spellnum, 0, 0, CLASS_BARD);
         return CLASS_BARD;
       }
     }
@@ -1518,22 +1526,22 @@ void updateMemming(struct char_data *ch, int class) {
       case CLASS_CLERIC:
         sprintf(buf, "You finish praying for %s.\r\n",
                 spell_info[PREPARATION_QUEUE(ch, 0, classArray(class)).spell].name);
-        addSpellMemmed(ch, PREPARATION_QUEUE(ch, 0, classArray(class)).spell, class);
+        addSpellMemmed(ch, PREPARATION_QUEUE(ch, 0, classArray(class)).spell, PREPARATION_QUEUE(ch, 0, classArray(class)).metamagic, class);
         break;
       case CLASS_RANGER:
         sprintf(buf, "You finish adjuring for %s.\r\n",
                 spell_info[PREPARATION_QUEUE(ch, 0, classArray(class)).spell].name);
-        addSpellMemmed(ch, PREPARATION_QUEUE(ch, 0, classArray(class)).spell, class);
+        addSpellMemmed(ch, PREPARATION_QUEUE(ch, 0, classArray(class)).spell, PREPARATION_QUEUE(ch, 0, classArray(class)).metamagic, class);
         break;
       case CLASS_PALADIN:
         sprintf(buf, "You finish chanting for %s.\r\n",
                 spell_info[PREPARATION_QUEUE(ch, 0, classArray(class)).spell].name);
-        addSpellMemmed(ch, PREPARATION_QUEUE(ch, 0, classArray(class)).spell, class);
+        addSpellMemmed(ch, PREPARATION_QUEUE(ch, 0, classArray(class)).spell, PREPARATION_QUEUE(ch, 0, classArray(class)).metamagic, class);
         break;
       case CLASS_DRUID:
         sprintf(buf, "You finish communing for %s.\r\n",
                 spell_info[PREPARATION_QUEUE(ch, 0, classArray(class)).spell].name);
-        addSpellMemmed(ch, PREPARATION_QUEUE(ch, 0, classArray(class)).spell, class);
+        addSpellMemmed(ch, PREPARATION_QUEUE(ch, 0, classArray(class)).spell, PREPARATION_QUEUE(ch, 0, classArray(class)).metamagic, class);
         break;
       case CLASS_SORCERER:
         sprintf(buf, "You have recovered a spell slot: %d.\r\n",
@@ -1546,7 +1554,7 @@ void updateMemming(struct char_data *ch, int class) {
       default: // wizard
         sprintf(buf, "You finish memorizing %s.\r\n",
                 spell_info[PREPARATION_QUEUE(ch, 0, classArray(class)).spell].name);
-        addSpellMemmed(ch, PREPARATION_QUEUE(ch, 0, classArray(class)).spell, class);
+        addSpellMemmed(ch, PREPARATION_QUEUE(ch, 0, classArray(class)).spell, PREPARATION_QUEUE(ch, 0, classArray(class)).metamagic, class);
         break;
     }
     send_to_char(ch, buf);
@@ -2115,8 +2123,9 @@ ACMD(do_gen_forget) {
 
 /* memorize command for players */
 ACMD(do_gen_memorize) {
-  int spellnum, class = -1, num_spells;
-
+  int spellnum, class = -1, num_spells, metamagic = 0;
+  char *s = NULL, *m = NULL;
+  
   if (subcmd == SCMD_PRAY)
     class = CLASS_CLERIC;
   else if (subcmd == SCMD_MEMORIZE)
@@ -2181,15 +2190,56 @@ ACMD(do_gen_memorize) {
     }
     return;
   } else {
+    /* Here I needed to change a bit to grab the metamagic keywords.  
+     * Valid keywords are:
+     *
+     *   quickened - Speed up casting
+     *   maximized - All variable aspects of spell (dam dice, etc) are maximum.
+     *
+     */
+    /* Trim the argument */
     skip_spaces(&argument);
-    spellnum = find_skill_num(argument);
-  }
+    /* s is a pointer into the argument string.  First lets find the spell - 
+     * it should be at the end of the string. */
+    s = strtok(argument, "'");
+    
+    if (s == NULL) {
+      send_to_char(ch, "Prepare which spell?\r\n");
+      return;
+    }
+    
+    s = strtok(NULL, "'");
+    if (s == NULL) {
+      send_to_char(ch, "The name of the spell to prepare must be enclosed within ' and '.\r\n");
+      return;
+    }
+     
+    spellnum = find_skill_num(s);
 
-  if (spellnum < 1 || spellnum > MAX_SPELLS) {
-    send_to_char(ch, "Memorize what?\r\n");
-    return;
-  }
+    if (spellnum < 1 || spellnum > MAX_SPELLS) {
+      send_to_char(ch, "Prepare which spell?\r\n");
+      return;
+    }
 
+    /* Now we have the spell.  Back up a little and check for metamagic. */
+    s = strtok(argument, "'");
+    
+    /* s is at the position of the spell name.  Check the rest of the string. */    
+    for (m = strtok(argument, " "), m && m != s; m = strtok(NULL, " ")) {
+      switch (m) {
+        case is_abbr(m, "quickened"):
+          SET_BIT(metamagic, METAMAGIC_QUICKENED);
+          break;
+        case is_abbr(m, "maximized"):
+          SET_BIT(metamagic, METAMAGIC_MAXIMIZED);
+          break;
+        default:
+          send_to_char(ch, "Use what metamagic?\r\n");
+          return;
+      }
+      
+    }
+    
   if (GET_POS(ch) != POS_RESTING) {
     send_to_char(ch, "You are not relaxed enough, you must be resting.\r\n");
     return;
@@ -2238,7 +2288,7 @@ ACMD(do_gen_memorize) {
           send_to_char(ch, "You start to memorize %s.\r\n", spell_info[spellnum].name);
           break;
       }
-      addSpellMemming(ch, spellnum, spell_info[spellnum].memtime, class);
+      addSpellMemming(ch, spellnum, metamagic, spell_info[spellnum].memtime, class);
       if (!isOccupied(ch)) {
         IS_PREPARING(ch, classArray(class)) = TRUE;
         NEW_EVENT(eMEMORIZING, ch, NULL, 1 * PASSES_PER_SEC);
