@@ -566,7 +566,7 @@ int load_char(const char *name, struct char_data *ch) {
           else if (!strcmp(tag, "Pass")) strcpy(GET_PASSWD(ch), line);
           else if (!strcmp(tag, "Plyd")) ch->player.time.played = atoi(line);
           else if (!strcmp(tag, "Pryg")) load_praying(fl, ch);
-          else if (!strcmp(tag, "Prgm")) load_prayed_metamagic(fl, ch);
+          else if (!strcmp(tag, "Prgm")) load_praying_metamagic(fl, ch);
           else if (!strcmp(tag, "Pryd")) load_prayed(fl, ch);
           else if (!strcmp(tag, "Prdm")) load_prayed_metamagic(fl, ch);
           else if (!strcmp(tag, "Pryt")) load_praytimes(fl, ch);
