@@ -566,8 +566,9 @@ int load_char(const char *name, struct char_data *ch) {
           else if (!strcmp(tag, "Pass")) strcpy(GET_PASSWD(ch), line);
           else if (!strcmp(tag, "Plyd")) ch->player.time.played = atoi(line);
           else if (!strcmp(tag, "Pryg")) load_praying(fl, ch);
+          else if (!strcmp(tag, "Prgm")) load_prayed_metamagic(fl, ch);
           else if (!strcmp(tag, "Pryd")) load_prayed(fl, ch);
-          else if (!strcmp(tag, "Prym")) load_prayed_metamagic(fl, ch);
+          else if (!strcmp(tag, "Prdm")) load_prayed_metamagic(fl, ch);
           else if (!strcmp(tag, "Pryt")) load_praytimes(fl, ch);
           else if (!strcmp(tag, "PfIn")) POOFIN(ch) = strdup(line);
           else if (!strcmp(tag, "PfOt")) POOFOUT(ch) = strdup(line);
@@ -1052,6 +1053,7 @@ void save_char(struct char_data * ch, int mode) {
   fprintf(fl, "0 0\n");
 
   // Save memorizing list of prayers, prayed list and times
+  /* Note: added metamagic to pfile.  19.01.2015 Ornir */
   fprintf(fl, "Pryg:\n");
   for (i = 0; i < MAX_MEM; i++) {
     fprintf(fl, "%d ", i);
@@ -1063,12 +1065,22 @@ void save_char(struct char_data * ch, int mode) {
     }
     fprintf(fl, "\n");
   }
+  fprintf(fl, "Prgm:\n");
+  for (i = 0; i < MAX_MEM; i++) {
+    fprintf(fl, "%d ", i);
+    for (j = 0; j < NUM_CASTERS; j++) {
+      if (PREPARATION_QUEUE(ch, i, j).spell < MAX_SPELLS)
+        fprintf(fl, "%d ", PREPARATION_QUEUE(ch, i, j).metamagic);
+      else
+        fprintf(fl, "0 ");
+    }
+    fprintf(fl, "\n");
+  }
   fprintf(fl, "-1 -1\n");
   fprintf(fl, "Pryd:\n");
   for (i = 0; i < MAX_MEM; i++) {
     fprintf(fl, "%d ", i);
-    for (j = 0; j < NUM_CASTERS; j++) {
-      /* Note: added metamagic to pfile.  19.01.2015 Ornir */
+    for (j = 0; j < NUM_CASTERS; j++) {      
       fprintf(fl, "%d ", PREPARED_SPELLS(ch, i, j).spell);
     }
     fprintf(fl, "\n");
@@ -1085,7 +1097,7 @@ void save_char(struct char_data * ch, int mode) {
   }
   fprintf(fl, "-1 -1\n");
 
-  fprintf(fl, "Prym:\n");
+  fprintf(fl, "Prdm:\n");
   for (i = 0; i < MAX_MEM; i++) {
     fprintf(fl, "%d ", i);
     for (j = 0; j < NUM_CASTERS; j++) {
@@ -1596,23 +1608,58 @@ static void load_praying(FILE *fl, struct char_data *ch) {
             &num6, &num7, &num8);
     if (num != -1) {
       if (num2 < MAX_SPELLS)
-        PREPARATION_QUEUE(ch, num, 0) = num2;
+        PREPARATION_QUEUE(ch, num, 0).spell = num2;
       if (num2 < MAX_SPELLS)
-        PREPARATION_QUEUE(ch, num, 1) = num3;
+        PREPARATION_QUEUE(ch, num, 1).spell = num3;
       if (num2 < MAX_SPELLS)
-        PREPARATION_QUEUE(ch, num, 2) = num4;
+        PREPARATION_QUEUE(ch, num, 2).spell = num4;
       if (num2 < MAX_SPELLS)
-        PREPARATION_QUEUE(ch, num, 3) = num5;
+        PREPARATION_QUEUE(ch, num, 3).spell = num5;
       if (num2 < MAX_SPELLS)
-        PREPARATION_QUEUE(ch, num, 4) = num6;
+        PREPARATION_QUEUE(ch, num, 4).spell = num6;
       if (num2 < MAX_SPELLS)
-        PREPARATION_QUEUE(ch, num, 5) = num7;
+        PREPARATION_QUEUE(ch, num, 5).spell = num7;
       if (num2 < MAX_SPELLS)
-        PREPARATION_QUEUE(ch, num, 6) = num8;
+        PREPARATION_QUEUE(ch, num, 6).spell = num8;
     }
   } while (num != -1);
 }
+/* praying loading isn't a loop, so has to be manually changed if you
+   change NUM_CASTERS! */
+static void load_praying_metamagic(FILE *fl, struct char_data *ch) {
+  int num = 0, num2 = 0, num3 = 0, num4 = 0, num5 = 0, num6 = 0,
+          num7 = 0, num8 = 0;
+  char line[MAX_INPUT_LENGTH + 1];
 
+  do {
+    num2 = 0;
+    num3 = 0;
+    num4 = 0;
+    num5 = 0;
+    num6 = 0;
+    num7 = 0;
+    num8 = 0;
+    get_line(fl, line);
+    sscanf(line, "%d %d %d %d %d %d %d %d", &num, &num2, &num3, &num4, &num5,
+            &num6, &num7, &num8);
+    if (num != -1) {
+      if (num2 < MAX_SPELLS)
+        PREPARATION_QUEUE(ch, num, 0).metamagic = num2;
+      if (num2 < MAX_SPELLS)
+        PREPARATION_QUEUE(ch, num, 1).metamagic = num3;
+      if (num2 < MAX_SPELLS)
+        PREPARATION_QUEUE(ch, num, 2).metamagic = num4;
+      if (num2 < MAX_SPELLS)
+        PREPARATION_QUEUE(ch, num, 3).metamagic = num5;
+      if (num2 < MAX_SPELLS)
+        PREPARATION_QUEUE(ch, num, 4).metamagic = num6;
+      if (num2 < MAX_SPELLS)
+        PREPARATION_QUEUE(ch, num, 5).metamagic = num7;
+      if (num2 < MAX_SPELLS)
+        PREPARATION_QUEUE(ch, num, 6).metamagic = num8;
+    }
+  } while (num != -1);
+}
 static void load_class_level(FILE *fl, struct char_data *ch) {
   int num = 0, num2 = 0;
   char line[MAX_INPUT_LENGTH + 1];
