@@ -3087,7 +3087,11 @@ struct char_special_data {
   struct char_data *grapple_attacker; /**< Who is grappling me?; else NULL */
 };
 
-extern struct prepared_spell_data;
+struct prepared_spell_data {
+  int spell;     /* Spell Number */
+  int prep_time; /* Remaining time for preparing this spell. */
+  int metamagic; /* Bitvector of metamagic affecting this spell. */
+};
 
 /** Data only needed by PCs, and needs to be saved to disk. */
 struct player_special_data_saved {
