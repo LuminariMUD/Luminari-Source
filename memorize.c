@@ -2284,7 +2284,7 @@ ACMD(do_gen_memorize) {
           }
           send_to_char(ch, "You start to memorize %s%s%s.\r\n", 
                        (IS_SET(metamagic, METAMAGIC_QUICKEN) ? "quickened ": ""),
-                       (IS_SET(metamagic, METAMAGIC_MAXIMIZED) ? "maximized ": ""),
+                       (IS_SET(metamagic, METAMAGIC_MAXIMIZE) ? "maximized ": ""),
                        spell_info[spellnum].name);
           break;
       }
