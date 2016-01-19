@@ -888,14 +888,14 @@ do                                                              \
 
 // memorization
 /* this refers to items in the list of spells the ch is trying to prepare */
-#define PREPARATION_QUEUE(ch, slot, cc)	(ch->player_specials->saved.praying[slot][cc])
+#define PREPARATION_QUEUE(ch, slot, cc)	(ch->player_specials->saved.preparing[slot][cc])
 /* this refers to preparation-time in a list that parallels the preparation_queue */
-#define PREP_TIME(ch, slot, cc)	(ch->player_specials->saved.praytimes[slot][cc])
+#define PREP_TIME(ch, slot, cc)	(ch->player_specials->saved.preparing[slot][cc].prep_time)
 /* this refers to items in the list of spells the ch already has prepared */
-#define PREPARED_SPELLS(ch, slot, cc)	(ch->player_specials->saved.prayed[slot][cc])
+#define PREPARED_SPELLS(ch, slot, cc)	(ch->player_specials->saved.prepared[slot][cc])
 
 /* boolean indicating whether someone is in the process of preparation of a spell or not */
-#define IS_PREPARING(ch, cc)		((ch)->char_specials.prayin[cc])
+#define IS_PREPARING(ch, cc)		((ch)->char_specials.is_preparing[cc])
 
 // how many bursts of cloudkill left
 #define CLOUDKILL(ch)    ((ch)->char_specials.cloudkill)
