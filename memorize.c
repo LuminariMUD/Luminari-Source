@@ -1564,8 +1564,10 @@ void updateMemming(struct char_data *ch, int class) {
                 PREPARATION_QUEUE(ch, 0, classArray(class)).spell);
         break;
       default: // wizard
-        sprintf(buf, "You finish memorizing %s.\r\n",
-                spell_info[PREPARATION_QUEUE(ch, 0, classArray(class)).spell].name);
+        send_to_char(ch, "You finish memorizing %s.\r\n", 
+                       (IS_SET(PREPARATION_QUEUE(ch, 0, classArray(class)).metamagic, METAMAGIC_QUICKEN) ? "quickened ": ""),
+                       (IS_SET(PREPARATION_QUEUE(ch, 0, classArray(class)).metamagic, METAMAGIC_MAXIMIZE) ? "maximized ": ""),
+                       spell_info[PREPARATION_QUEUE(ch, 0, classArray(class)).spell].name);
         addSpellMemmed(ch, PREPARATION_QUEUE(ch, 0, classArray(class)).spell, PREPARATION_QUEUE(ch, 0, classArray(class)).metamagic, class);
         break;
     }
