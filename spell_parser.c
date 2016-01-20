@@ -1300,6 +1300,7 @@ ACMD(do_cast) {
    */        
   
   /* Check for metamagic. */   
+  log("DEBUG: Argument = %s", argument);
   for (m = strtok(argument, " "); m && m[0] != '\''; m = strtok(NULL, " ")) {
     if (is_abbrev(m, "quickened")) {
       SET_BIT(metamagic, METAMAGIC_QUICKEN);
@@ -1312,7 +1313,7 @@ ACMD(do_cast) {
       return;
     }      
   }
-  
+  log("DEBUG: Argument = %s", argument);
   /* get: blank, spell name, target name */
   s = strtok(argument, "'");
   log("DEBUG s = %s", s);
