@@ -1122,7 +1122,8 @@ int forgetSpell(struct char_data *ch, int spellnum, int metamagic, int class) {
   if (class != -1) {
     if (PREPARED_SPELLS(ch, 0, classArray(class)).spell) {
       for (slot = 0; slot < (MAX_MEM); slot++) {
-        if (PREPARED_SPELLS(ch, slot, classArray(class)).spell == spellnum) {
+        if (PREPARED_SPELLS(ch, slot, classArray(class)).spell == spellnum && 
+            PREPARED_SPELLS(ch, slot, classArray(class)).metamagic == metamagic) {
           if (PREPARED_SPELLS(ch, slot + 1, classArray(class)).spell != 0) {
             for (nextSlot = slot; nextSlot < (MAX_MEM) - 1; nextSlot++) {
               PREPARED_SPELLS(ch, nextSlot, classArray(class)).spell =
@@ -1150,7 +1151,8 @@ int forgetSpell(struct char_data *ch, int spellnum, int metamagic, int class) {
         continue;
       if (PREPARED_SPELLS(ch, 0, classArray(x)).spell) {
         for (slot = 0; slot < (MAX_MEM); slot++) {
-          if (PREPARED_SPELLS(ch, slot, classArray(x)).spell == spellnum) {
+          if (PREPARED_SPELLS(ch, slot, classArray(x)).spell == spellnum  && 
+              PREPARED_SPELLS(ch, slot, classArray(x)).metamagic == metamagic) {
             if (PREPARED_SPELLS(ch, slot + 1, classArray(x)).spell != 0) {
               for (nextSlot = slot; nextSlot < (MAX_MEM) - 1; nextSlot++) {
                 PREPARED_SPELLS(ch, nextSlot, classArray(x)).spell =
@@ -1942,6 +1944,7 @@ void printMemory(struct char_data *ch, int class) {
 ACMD(do_gen_forget) {
   int spellnum, slot, class = -1;
   char arg[MAX_INPUT_LENGTH];
+  char *m;
 
   if (subcmd == SCMD_BLANK)
     class = CLASS_CLERIC;
@@ -1958,8 +1961,34 @@ ACMD(do_gen_forget) {
     return;
   }
 
-  skip_spaces(&argument);
-  spellnum = find_skill_num(argument);
+  s = strtok(argument, "'");
+    if (s == NULL) {
+      send_to_char(ch, "Forget which spell?\r\n");
+      return;
+    }
+    
+    s = strtok(NULL, "'");
+    if (s == NULL) {
+      send_to_char(ch, "The name of the spell to forget must be enclosed within ' and '.\r\n");
+      return;
+    }
+     
+    spellnum = find_skill_num(s);
+
+    /* Now we have the spell.  Back up a little and check for metamagic. */   
+    for (m = strtok(argument, " "); m && m[0] != '\''; m = strtok(NULL, " ")) {
+      if (is_abbrev(m, "quickened")) {
+        SET_BIT(metamagic, METAMAGIC_QUICKEN);
+        //log("DEBUG: Quickened metamagic used.");
+      } else if (is_abbrev(m, "maximized")) {
+        SET_BIT(metamagic, METAMAGIC_MAXIMIZE);
+        //log("DEBUG: Maximized metamagic used.");
+      } else {
+        send_to_char(ch, "Using what metamagic?\r\n");
+        return;
+      }      
+    }
+    
   one_argument(argument, arg);
 
   if (!*arg) {
@@ -1975,6 +2004,7 @@ ACMD(do_gen_forget) {
     if (PREPARATION_QUEUE(ch, 0, classArray(class)).spell) {
       for (slot = 0; slot < (MAX_MEM); slot++) {
         PREPARATION_QUEUE(ch, slot, classArray(class)).spell = 0;
+        PREPARATION_QUEUE(ch, slot, classArray(class)).metamagic = 0;
       }
       switch (class) {
         case CLASS_DRUID:
@@ -2003,6 +2033,7 @@ ACMD(do_gen_forget) {
     } else if (PREPARED_SPELLS(ch, 0, classArray(class)).spell) {
       for (slot = 0; slot < (MAX_MEM); slot++) {
         PREPARED_SPELLS(ch, slot, classArray(class)).spell = 0;
+        PREPARED_SPELLS(ch, slot, classArray(class)).metamagic = 0;
       }
       switch (class) {
         case CLASS_DRUID:
@@ -2054,7 +2085,8 @@ ACMD(do_gen_forget) {
 
   // are we memorizing it?
   for (slot = 0; slot < (MAX_MEM); slot++) {
-    if (PREPARATION_QUEUE(ch, slot, classArray(class)).spell == spellnum) {
+    if (PREPARATION_QUEUE(ch, slot, classArray(class)).spell == spellnum && 
+        PREPARATION_QUEUE(ch, slot, classArray(class)).metamagic == metamagic) {
       removeSpellMemming(ch, spellnum, class);
       switch (class) {
         case CLASS_DRUID:
@@ -2079,7 +2111,8 @@ ACMD(do_gen_forget) {
 
   // is it memmed?
   for (slot = 0; slot < (MAX_MEM); slot++) {
-    if (PREPARED_SPELLS(ch, slot, classArray(class)).spell == spellnum) {
+    if (PREPARED_SPELLS(ch, slot, classArray(class)).spell == spellnum &&
+        PREPARED_SPELLS(ch, slot, classArray(class)).metamagic == metamagic) {
       forgetSpell(ch, spellnum, class);
       switch (class) {
         case CLASS_DRUID:
