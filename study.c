@@ -590,7 +590,7 @@ void sorc_study_menu(struct descriptor_data *d, int circle) {
   clear_screen(d);
 
   for (counter = 1; counter < NUM_SPELLS; counter++) {
-    if (spellCircle(CLASS_SORCERER, counter, DOMAIN_UNDEFINED) == circle) {
+    if (spellCircle(CLASS_SORCERER, counter, 0, DOMAIN_UNDEFINED) == circle) {
       if (sorcKnown(d->character, counter, CLASS_SORCERER))
         write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, mgn,
               spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
@@ -658,7 +658,7 @@ void bard_study_menu(struct descriptor_data *d, int circle) {
   clear_screen(d);
 
   for (counter = 1; counter < NUM_SPELLS; counter++) {
-    if (spellCircle(CLASS_BARD, counter, DOMAIN_UNDEFINED) == circle) {
+    if (spellCircle(CLASS_BARD, counter, 0, DOMAIN_UNDEFINED) == circle) {
       if (sorcKnown(d->character, counter, CLASS_BARD))
         write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, mgn,
 spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
@@ -1678,7 +1678,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
 
           for (counter = 1; counter < NUM_SPELLS; counter++) {
             if (counter == number) {
-              if (spellCircle(CLASS_SORCERER, counter, DOMAIN_UNDEFINED) == LEVELUP(d->character)->spell_circle) {
+              if (spellCircle(CLASS_SORCERER, counter, 0, DOMAIN_UNDEFINED) == LEVELUP(d->character)->spell_circle) {
                 if (sorcKnown(d->character, counter, CLASS_SORCERER))
                   sorc_extract_known(d->character, counter, CLASS_SORCERER);
                 else if (!sorc_add_known(d->character, counter, CLASS_SORCERER))
@@ -1730,7 +1730,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
 
           for (counter = 1; counter < NUM_SPELLS; counter++) {
             if (counter == number) {
-              if (spellCircle(CLASS_BARD, counter, DOMAIN_UNDEFINED) == LEVELUP(d->character)->spell_circle) {
+              if (spellCircle(CLASS_BARD, counter, 0, DOMAIN_UNDEFINED) == LEVELUP(d->character)->spell_circle) {
                 if (sorcKnown(d->character, counter, CLASS_BARD))
                   sorc_extract_known(d->character, counter, CLASS_BARD);
                 else if (!sorc_add_known(d->character, counter, CLASS_BARD))
