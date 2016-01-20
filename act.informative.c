@@ -1747,7 +1747,7 @@ void list_scanned_chars(struct char_data * list, struct char_data * ch, int
 /****  Commands ACMD ******/
 
 ACMD(do_classfeats) {
-  int class = CLASS_UNDEFINED, i = 0, j = 0, feat = 0;
+  int class = CLASS_UNDEFINED, i = 0, feat = 0;
 
   skip_spaces(&argument);
   if (!argument || !*argument) {
@@ -1764,12 +1764,6 @@ ACMD(do_classfeats) {
   if (class == CLASS_WARRIOR) {
     send_to_char(ch, "The warrior class gets a bonus class feat every two "
             "levels.\r\n");
-  }
-
-  /* starting feats */
-  for (i = 0; (j = free_start_feats[class][i]); i++) {
-    send_to_char(ch, "Starting Feat: %s\r\n",
-                   feat_list[j].name);
   }
 
   /* level feats */
