@@ -322,7 +322,7 @@ ACMD(do_scribe) {
       return;
     }
 
-    if (hasSpell(ch, spellnum) != CLASS_WIZARD) {
+    if (hasSpell(ch, spellnum, 0) != CLASS_WIZARD) {
       send_to_char(ch, "You must have the spell committed to memory before "
               "you can scribe it!\r\n");
       return;
@@ -1115,7 +1115,7 @@ void removeSpellMemming(struct char_data *ch, int spellnum, int class) {
    class characters?  for now, will extract a wizard spell first
    if you can't find it there, go down the list until it is found;
    sorc-type system must go last */
-int forgetSpell(struct char_data *ch, int spellnum, int class) {
+int forgetSpell(struct char_data *ch, int spellnum, int metamagic, int class) {
   int slot, nextSlot, x = 0;
 
   /* we know the class */
@@ -1171,14 +1171,14 @@ int forgetSpell(struct char_data *ch, int spellnum, int class) {
     /* check sorc-type arrays */
     if (CLASS_LEVEL(ch, CLASS_SORCERER)) {
       /* got a free slot? */
-      if (hasSpell(ch, spellnum) == CLASS_SORCERER) {
+      if (hasSpell(ch, spellnum, 0) == CLASS_SORCERER) {
         addSpellMemming(ch, spellnum, 0, 0, CLASS_SORCERER);
         return CLASS_SORCERER;
       }
     }
     if (CLASS_LEVEL(ch, CLASS_BARD)) {
       /* got a free slot? */
-      if (hasSpell(ch, spellnum) == CLASS_BARD) {
+      if (hasSpell(ch, spellnum, 0) == CLASS_BARD) {
         addSpellMemming(ch, spellnum, 0, 0, CLASS_BARD);
         return CLASS_BARD;
       }
@@ -1338,7 +1338,7 @@ int sorc_add_known(struct char_data *ch, int spellnum, int class) {
    for WIZARD types:  returns <class> if the character has the spell memorized
    returns FALSE if the character doesn't
    -1 will be returned if its not found at all */
-int hasSpell(struct char_data *ch, int spellnum) {
+int hasSpell(struct char_data *ch, int spellnum, int metamagic) {
   int slot, x;
 
   /* could check to see what classes ch has to speed up this search */
@@ -1350,7 +1350,8 @@ int hasSpell(struct char_data *ch, int spellnum) {
     if (x == CLASS_BARD)
       continue;
     for (slot = 0; slot < MAX_MEM; slot++) {
-      if (PREPARED_SPELLS(ch, slot, classArray(x)).spell == spellnum)
+      if ((PREPARED_SPELLS(ch, slot, classArray(x)).spell == spellnum) &&
+          (PREPARED_SPELLS(ch, slot, classArray(x)).metamagic == metamagic))
         return x;
     }
   }
