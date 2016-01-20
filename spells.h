@@ -1188,7 +1188,7 @@ void removeSpellMemming(struct char_data *ch, int spellnum, int class);
 int forgetSpell(struct char_data *ch, int spellnum, int mode);
 int numSpells(struct char_data *ch, int circle, int class);
 bool sorcKnown(struct char_data *ch, int spellnum, int class);
-int hasSpell(struct char_data *ch, int spellnum);
+int hasSpell(struct char_data *ch, int spellnum, int metamagic);
 int getCircle(struct char_data *ch, int class);
 int sorcererKnown[LVL_IMPL + 1][10];
 int bardKnown[LVL_IMPL + 1][10];
