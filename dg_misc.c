@@ -138,11 +138,11 @@ void do_dg_cast(void *go, struct script_data *sc, trig_data *trig, int type, cha
     caster->next_in_room = caster_room->people;
     caster_room->people = caster;
     caster->in_room = real_room(caster_room->number);
-    call_magic(caster, tch, tobj, spellnum, DG_SPELL_LEVEL, CAST_SPELL);
+    call_magic(caster, tch, tobj, spellnum, 0, DG_SPELL_LEVEL, CAST_SPELL);
     extract_char(caster);
   } else
     //cast_spell(caster, tch, tobj, spellnum);
-    call_magic(caster, tch, tobj, spellnum, GET_LEVEL(caster), CAST_SPELL);
+    call_magic(caster, tch, tobj, spellnum, 0, GET_LEVEL(caster), CAST_SPELL);
 }
 
 /* Modify an affection on the target. affections can be of the AFF_x variety
