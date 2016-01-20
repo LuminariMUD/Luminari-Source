@@ -1423,6 +1423,8 @@ ACMD(do_cast) {
     return;
   }
 
+  log("DEBUG: spellnum: %d metamagic: %d hasSpell: %d", spellnum, metamagic, hasSpell(ch, spellnum, metamagic));
+  
   /* check for spell preparation (memorization, spell-slots, etc) */
   if (hasSpell(ch, spellnum, metamagic) == -1 && !isEpicSpell(spellnum)) {
     send_to_char(ch, "You aren't ready to cast that spell... (help preparation)\r\n");
