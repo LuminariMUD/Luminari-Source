@@ -453,7 +453,7 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim,
 
         /* took out casting time for this */
       case QUEST_COMMAND_CAST_SPELL:
-        call_magic(victim, ch, 0, qcom->value, GET_LEVEL(victim), CAST_SPELL);
+        call_magic(victim, ch, 0, qcom->value, 0, GET_LEVEL(victim), CAST_SPELL);
         break;
     }
   }
