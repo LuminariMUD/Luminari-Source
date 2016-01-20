@@ -1371,7 +1371,7 @@ SPECIAL(shadowdragon) {
     GET_MOVE(vict) -= (10 + dice(5, 4));
   }
 
-  call_magic(ch, FIGHTING(ch), 0, SPELL_DARKNESS, GET_LEVEL(ch), CAST_SPELL);
+  call_magic(ch, FIGHTING(ch), 0, SPELL_DARKNESS, 0, GET_LEVEL(ch), CAST_SPELL);
 
   return 1;
 }
@@ -1389,7 +1389,7 @@ SPECIAL(imix) {
   }
 
   if (!rand_number(0, 3) && FIGHTING(ch)) {
-    call_magic(ch, FIGHTING(ch), 0, SPELL_FIRE_BREATHE, GET_LEVEL(ch), CAST_SPELL);
+    call_magic(ch, FIGHTING(ch), 0, SPELL_FIRE_BREATHE, 0, GET_LEVEL(ch), CAST_SPELL);
     return TRUE;
   }
 
@@ -2266,7 +2266,7 @@ SPECIAL(snake) {
 
   act("$n bites $N!", 1, ch, 0, FIGHTING(ch), TO_NOTVICT);
   act("$n bites you!", 1, ch, 0, FIGHTING(ch), TO_VICT);
-  call_magic(ch, FIGHTING(ch), 0, SPELL_POISON, GET_LEVEL(ch), CAST_SPELL);
+  call_magic(ch, FIGHTING(ch), 0, SPELL_POISON, 0, GET_LEVEL(ch), CAST_SPELL);
   return (TRUE);
 }
 
@@ -3199,13 +3199,13 @@ SPECIAL(planewalker) {
             "would fizzle. He reaches down into his pockets and pulls out an ancient\r\n"
             "rod. He taps the rod and suddenly disappears!", FALSE
             , ch, 0, 0, TO_ROOM);
-    call_magic(ch, 0, 0, SPELL_TELEPORT, 30, CAST_WAND);
+    call_magic(ch, 0, 0, SPELL_TELEPORT, 0, 30, CAST_WAND);
     return 1;
   }
   if (!FIGHTING(ch) && GET_HIT(ch) < GET_MAX_HIT(ch)) {
     act("$n checks on his wounds, and grabs a potion from his pockets."
             , FALSE, ch, 0, 0, TO_ROOM);
-    call_magic(ch, ch, 0, SPELL_HEAL, 30, CAST_POTION);
+    call_magic(ch, ch, 0, SPELL_HEAL, 0, 30, CAST_POTION);
     return 1;
   }
   return 0;
@@ -3609,7 +3609,7 @@ SPECIAL(fp_invoker) {
     victim = ch;
     ch = (struct char_data*) me;
     act("$n screams in rage, 'How DARE you cast a spell in my tower'", FALSE, ch, 0, 0, TO_ROOM);
-    call_magic(ch, victim, 0, SPELL_MISSILE_STORM, 30, CAST_SPELL);
+    call_magic(ch, victim, 0, SPELL_MISSILE_STORM, 0, 30, CAST_SPELL);
     return 0;
   }
   return 0;
@@ -3632,7 +3632,7 @@ SPECIAL(gromph) {
     ch = (struct char_data*) me;
     act("$n sighs at YOU and mutters, 'You insolent worm!'", FALSE, ch, 0, victim, TO_VICT);
     act("$n sighs at $N, 'You insolent worm!'", FALSE, ch, 0, victim, TO_NOTVICT);
-    call_magic(ch, victim, 0, SPELL_MISSILE_STORM, 30, CAST_SPELL);
+    call_magic(ch, victim, 0, SPELL_MISSILE_STORM, 0, 30, CAST_SPELL);
     return 1;
   }
 
@@ -3930,7 +3930,7 @@ void weapons_spells(char *to_ch, char *to_vict, char *to_room,
   act(to_ch, FALSE, ch, obj, vict, TO_CHAR);
   act(to_vict, FALSE, ch, obj, vict, TO_VICT);
   act(to_room, FALSE, ch, obj, vict, TO_NOTVICT);
-  call_magic(ch, vict, 0, spl, level, CAST_WAND);
+  call_magic(ch, vict, 0, spl, 0, level, CAST_WAND);
 }
 
 /* very simple ship code system */
@@ -4090,7 +4090,7 @@ SPECIAL(spikeshield) {
             "\tLfrom you and transfers it back to $m.\tn",
             FALSE, ch, (struct obj_data *) me, vict, TO_VICT);
     damage(ch, vict, 5, -1, DAM_ENERGY, FALSE);  // type -1 = no dam message
-    call_magic(ch, ch, 0, SPELL_CURE_LIGHT, 1, CAST_SPELL);
+    call_magic(ch, ch, 0, SPELL_CURE_LIGHT, 0, 1, CAST_SPELL);
     return 1;
   }
 
@@ -4218,7 +4218,7 @@ SPECIAL(ches) {
       act("\tC$n whispers to $s $p",
               FALSE, ch, (struct obj_data *) me, 0, TO_ROOM);
 
-      call_magic(ch, ch, 0, SPELL_HASTE, 30, CAST_POTION);
+      call_magic(ch, ch, 0, SPELL_HASTE, 0, 30, CAST_POTION);
       GET_OBJ_SPECTIMER((struct obj_data *) me, 0) = 12;
       return 1;
     }
@@ -4251,8 +4251,8 @@ SPECIAL(courage) {
       act("$n \tLinvokes $s \tygolden mace\tn.", FALSE, ch, 0, 0, TO_ROOM);
       act("\tLYou invoke your \tygolden mace\tn.", FALSE, ch, 0, 0, TO_CHAR);
 
-      call_magic(ch, ch, 0, SPELL_PRAYER, GET_LEVEL(ch), CAST_POTION);
-      call_magic(ch, ch, 0, SPELL_MASS_ENHANCE, GET_LEVEL(ch), CAST_POTION);
+      call_magic(ch, ch, 0, SPELL_PRAYER, 0, GET_LEVEL(ch), CAST_POTION);
+      call_magic(ch, ch, 0, SPELL_MASS_ENHANCE, 0, GET_LEVEL(ch), CAST_POTION);
 
       GET_OBJ_SPECTIMER((struct obj_data *) me, 0) = 12 * 5;
       return 1;
@@ -4321,7 +4321,7 @@ SPECIAL(helmblade) {
               "\tWThe \tYHOLY\tW power of \tYHelm\tW flows through $n's\tW body, cleaning $m of \tLevil\tW and nourishing $m.\tn",
               "\tWThe \tWHOLY\tW power of \tYHelm\tW flows through $n's\tW body, cleaning $m of \tLevil\tW and nourishing $m.\tn",
               ch, vict, (struct obj_data *) me, 0);
-      call_magic(ch, ch, 0, SPELL_CURE_SERIOUS, GET_LEVEL(ch), CAST_POTION);
+      call_magic(ch, ch, 0, SPELL_CURE_SERIOUS, 0, GET_LEVEL(ch), CAST_POTION);
       return 1;
     case 1:
       weapons_spells(
@@ -4519,7 +4519,7 @@ SPECIAL(haste_bracers) {
               "\tW$n's $p \tcglow with a blue aura.\tn\r\n"
               "\tW$n moves with \tCl\tci\tCg\tch\tCt\tW speed.\tn\r\n",
               FALSE, ch, (struct obj_data *) me, 0, TO_ROOM);
-      call_magic(ch, ch, 0, SPELL_HASTE, 30, CAST_SPELL);
+      call_magic(ch, ch, 0, SPELL_HASTE, 0, 30, CAST_SPELL);
       GET_OBJ_SPECTIMER((struct obj_data *) me, 0) = 84;
       return 1;
     }
@@ -4940,7 +4940,7 @@ SPECIAL(purity) {
             "The \tWlightbeam \twburns a hole right through $N who falls lifeless to the ground.\tn"
             , FALSE, ch, (struct obj_data *) me, vict, TO_NOTVICT);
 
-    call_magic(ch, vict, 0, SPELL_BLINDNESS, GET_LEVEL(ch), CAST_SPELL);
+    call_magic(ch, vict, 0, SPELL_BLINDNESS, 0, GET_LEVEL(ch), CAST_SPELL);
   }
   damage(ch, vict, dam, -1, DAM_HOLY, FALSE);  // type -1 = no dam message
   return 1;
@@ -5098,9 +5098,9 @@ SPECIAL(tyrantseye) {
               "words to his \tgscepter\tL. $N \tLis blinded by a brilliant \tWFLASH\tn "
               "\tLas a \tpbolt\tL of crackling \tGgreen energy\tL is hurled toward $M!\tn",
               ch, vict, (struct obj_data *) me, 0);
-      call_magic(ch, vict, 0, SPELL_MISSILE_STORM, 30, CAST_SPELL);
-      call_magic(ch, vict, 0, SPELL_BLINDNESS, 30, CAST_SPELL);
-      call_magic(ch, vict, 0, SPELL_SLOW, 30, CAST_SPELL);
+      call_magic(ch, vict, 0, SPELL_MISSILE_STORM, 0, 30, CAST_SPELL);
+      call_magic(ch, vict, 0, SPELL_BLINDNESS, 0, 30, CAST_SPELL);
+      call_magic(ch, vict, 0, SPELL_SLOW, 0, 30, CAST_SPELL);
       return 1;
     case 10:
       weapons_spells(
@@ -5116,8 +5116,8 @@ SPECIAL(tyrantseye) {
       for (i = character_list; i; i = in) {
         in = i->next;
         if (!IS_NPC(i) || IS_PET(i)) {
-          call_magic(ch, i, 0, SPELL_CURSE, 30, CAST_SPELL);
-          call_magic(ch, i, 0, SPELL_POISON, 30, CAST_SPELL);
+          call_magic(ch, i, 0, SPELL_CURSE, 0, 30, CAST_SPELL);
+          call_magic(ch, i, 0, SPELL_POISON, 0, 30, CAST_SPELL);
         }
         return 1;
       }
@@ -5168,8 +5168,8 @@ SPECIAL(spiderdagger) {
       send_to_char(ch, "\tLYou invoke \tmLloth\tw.\tn\r\n");
       act("\tw$n raises $s $p \tw high and calls on \tmLloth.\tn",
               FALSE, ch, (struct obj_data *) me, 0, TO_ROOM);
-      call_magic(ch, ch, 0, SPELL_NON_DETECTION, 30, CAST_POTION);
-      call_magic(ch, ch, 0, SPELL_CIRCLE_A_GOOD, 30, CAST_POTION);
+      call_magic(ch, ch, 0, SPELL_NON_DETECTION, 0, 30, CAST_POTION);
+      call_magic(ch, ch, 0, SPELL_CIRCLE_A_GOOD, 0, 30, CAST_POTION);
 
       GET_OBJ_SPECTIMER((struct obj_data *) me, 0) = 24;
       return 1;
@@ -5358,9 +5358,9 @@ SPECIAL(whisperwind) {
                 "angrily at you as it tries to smite you mightily!\tn",
                 1, ch, 0, FIGHTING(ch), TO_VICT);
 
-        call_magic(ch, FIGHTING(ch), 0, SPELL_HARM, 30, CAST_SPELL);
+        call_magic(ch, FIGHTING(ch), 0, SPELL_HARM, 0, 30, CAST_SPELL);
         for (i = 0; i < 3; i++) {
-          call_magic(ch, FIGHTING(ch), 0, SPELL_DISPEL_EVIL, 30, CAST_SPELL);
+          call_magic(ch, FIGHTING(ch), 0, SPELL_DISPEL_EVIL, 0, 30, CAST_SPELL);
           if (GET_POS(victim) == POS_DEAD) break;
         }
       }
@@ -5445,7 +5445,7 @@ SPECIAL(vengeance) {
             "\tWYour sword begins to \tphum \tWloudly and then \tCglows\tW as it pours its healing powers into you.\tn",
             "$n's \tWsword begings to \tphum \tWloudly and then \tCglow\tW as it pours its healing powers into $m\tW.\tn",
             ch, vict, (struct obj_data *) me, 0);
-    call_magic(ch, 0, 0, SPELL_MASS_CURE_LIGHT, GET_LEVEL(ch), CAST_WAND);
+    call_magic(ch, 0, 0, SPELL_MASS_CURE_LIGHT, 0, GET_LEVEL(ch), CAST_WAND);
     return 1;
   }
   weapons_spells(
@@ -5846,7 +5846,7 @@ SPECIAL(tormblade) {
   if (!rand_number(0, 30)) {
     act("$n's $p hums loudly.", FALSE, ch, (struct obj_data *) me, 0, TO_ROOM);
     act("Your $p hums loudly.", FALSE, ch, (struct obj_data *) me, 0, TO_CHAR);
-    call_magic(ch, vict, 0, SPELL_DISPEL_MAGIC, GET_LEVEL(ch), CAST_WAND);
+    call_magic(ch, vict, 0, SPELL_DISPEL_MAGIC, 0, GET_LEVEL(ch), CAST_WAND);
     return 1;
   }
 
@@ -5949,7 +5949,7 @@ SPECIAL(air_sphere) {
       SET_BIT_AR(af.bitvector, AFF_HASTE);
       affect_join(ch, &af, 1, FALSE, FALSE, FALSE);
 
-      call_magic(ch, 0, 0, SPELL_CHAIN_LIGHTNING, 20, CAST_POTION);
+      call_magic(ch, 0, 0, SPELL_CHAIN_LIGHTNING, 0, 20, CAST_POTION);
 
       GET_OBJ_SPECTIMER((struct obj_data *) me, 0) = 24;
       return 1;
@@ -6338,8 +6338,8 @@ SPECIAL(hellfire) {
             "\tLThe flames rise and protects $m!\tn\r\n",
             FALSE, ch, (struct obj_data *) me, 0, TO_ROOM);
 
-    call_magic(ch, ch, 0, SPELL_FIRE_SHIELD, 26, CAST_POTION);
-    call_magic(ch, ch, 0, SPELL_HASTE, 26, CAST_POTION);
+    call_magic(ch, ch, 0, SPELL_FIRE_SHIELD, 0, 26, CAST_POTION);
+    call_magic(ch, ch, 0, SPELL_HASTE, 0, 26, CAST_POTION);
 
     GET_OBJ_SPECTIMER((struct obj_data *) me, 0) = 12;
     return 1;
@@ -6381,7 +6381,7 @@ SPECIAL(angel_leggings) {
             "\tw$s feet slowly raise of the ground!\tn\r\n",
             FALSE, ch, (struct obj_data *) me, 0, TO_ROOM);
 
-    call_magic(ch, ch, 0, SPELL_FLY, 30, CAST_POTION);
+    call_magic(ch, ch, 0, SPELL_FLY, 0, 30, CAST_POTION);
     GET_OBJ_SPECTIMER((struct obj_data *) me, 0) = 168;
     return 1;
   }
@@ -6513,7 +6513,7 @@ SPECIAL(clang_bracer) {
       send_to_group(NULL, group, "The memories of ancient battles fills your mind, each "
           "blow clear as if it were yesterday.  You feel your muscles tighten "
           "then relax as the skill of ancient warriors is merged with your own.\r\n");      
-      call_magic(ch, ch, 0, SPELL_MASS_ENHANCE, 30, CAST_POTION);
+      call_magic(ch, ch, 0, SPELL_MASS_ENHANCE, 0, 30, CAST_POTION);
       GET_OBJ_SPECTIMER((struct obj_data *) me, 0) = 24;
       return 1;
     }
