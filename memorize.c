@@ -2198,17 +2198,18 @@ ACMD(do_gen_memorize) {
      *
      */
     /* Trim the argument */
-    skip_spaces(&argument);
+    //skip_spaces(&argument);
     /* s is a pointer into the argument string.  First lets find the spell - 
      * it should be at the end of the string. */
     s = strtok(argument, "'");
-    
+    log("DEBUG: s = %s", s);
     if (s == NULL) {
       send_to_char(ch, "Prepare which spell?\r\n");
       return;
     }
     
     s = strtok(NULL, "'");
+    log("DEBUG: s = %s", s);
     if (s == NULL) {
       send_to_char(ch, "The name of the spell to prepare must be enclosed within ' and '.\r\n");
       return;
