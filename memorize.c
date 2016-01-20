@@ -2197,19 +2197,16 @@ ACMD(do_gen_memorize) {
      *   maximized - All variable aspects of spell (dam dice, etc) are maximum.
      *
      */
-    /* Trim the argument */
-    //skip_spaces(&argument);
+
     /* s is a pointer into the argument string.  First lets find the spell - 
      * it should be at the end of the string. */
     s = strtok(argument, "'");
-    log("DEBUG: s = %s", s);
     if (s == NULL) {
       send_to_char(ch, "Prepare which spell?\r\n");
       return;
     }
     
     s = strtok(NULL, "'");
-    log("DEBUG: s = %s", s);
     if (s == NULL) {
       send_to_char(ch, "The name of the spell to prepare must be enclosed within ' and '.\r\n");
       return;
@@ -2224,13 +2221,12 @@ ACMD(do_gen_memorize) {
 
     /* Now we have the spell.  Back up a little and check for metamagic. */   
     for (m = strtok(argument, " "); m && m[0] != '\''; m = strtok(NULL, " ")) {
-      log("DEBUG: m = %s", m);
       if (is_abbrev(m, "quickened")) {
         SET_BIT(metamagic, METAMAGIC_QUICKEN);
-        log("DEBUG: Quickened metamagic used.");
+        //log("DEBUG: Quickened metamagic used.");
       } else if (is_abbrev(m, "maximized")) {
         SET_BIT(metamagic, METAMAGIC_MAXIMIZE);
-        log("DEBUG: Maximized metamagic used.");
+        //log("DEBUG: Maximized metamagic used.");
       } else {
         send_to_char(ch, "Use what metamagic?\r\n");
         return;
@@ -2260,6 +2256,15 @@ ACMD(do_gen_memorize) {
 
   minLevel = spellCircle(class, spellnum, GET_1ST_DOMAIN(ch));
   minLevel = MIN(minLevel, spellCircle(class, spellnum, GET_2ND_DOMAIN(ch)));
+  
+  /* Here we add the 'level' changes resulting from metamagic use: */
+  if (IS_SET(metamagic, METAMAGIC_QUICKEN)) {
+    minLevel += 4;
+  }
+  if (IS_SET(metamagic, METAMAGIC_MAXIMIZE)) {
+    minLevel += 3;
+  }
+  
   compSlots = comp_slots(ch, minLevel, class);
   num_spells = numSpells(ch, minLevel, class);
 
