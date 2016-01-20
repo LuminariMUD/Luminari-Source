@@ -881,7 +881,7 @@ void npc_spellup(struct char_data *ch) {
       if (level >= spell_info[SPELL_GREATER_ANIMATION].min_level[GET_CLASS(ch)]) {
         if (!GROUP(ch))
           create_group(ch);
-        cast_spell(ch, NULL, obj, SPELL_GREATER_ANIMATION);
+        cast_spell(ch, NULL, obj, SPELL_GREATER_ANIMATION, 0);
         return;
       }
     }
@@ -894,17 +894,17 @@ void npc_spellup(struct char_data *ch) {
     if (level >= spell_info[SPELL_SUMMON_CREATURE_9].min_level[GET_CLASS(ch)]) {
       if (!GROUP(ch))
         create_group(ch);
-      cast_spell(ch, NULL, NULL, SPELL_SUMMON_CREATURE_9);
+      cast_spell(ch, NULL, NULL, SPELL_SUMMON_CREATURE_9, 0);
       return;
     } else if (level >= spell_info[SPELL_SUMMON_CREATURE_8].min_level[GET_CLASS(ch)]) {
       if (!GROUP(ch))
         create_group(ch);
-      cast_spell(ch, NULL, NULL, SPELL_SUMMON_CREATURE_8);
+      cast_spell(ch, NULL, NULL, SPELL_SUMMON_CREATURE_8, 0);
       return;
     } else if (level >= spell_info[SPELL_SUMMON_CREATURE_7].min_level[GET_CLASS(ch)]) {
       if (!GROUP(ch))
         create_group(ch);
-      cast_spell(ch, NULL, NULL, SPELL_SUMMON_CREATURE_7);
+      cast_spell(ch, NULL, NULL, SPELL_SUMMON_CREATURE_7, 0);
       return;
     }
   }
@@ -919,10 +919,10 @@ void npc_spellup(struct char_data *ch) {
   /* try healing */
   if (GET_HIT(victim) && (GET_MAX_HIT(victim) / GET_HIT(victim)) >= 2) {
     if (level >= spell_info[SPELL_HEAL].min_level[GET_CLASS(ch)]) {
-      cast_spell(ch, victim, NULL, SPELL_HEAL);
+      cast_spell(ch, victim, NULL, SPELL_HEAL, 0);
       return;
     } else if (level >= spell_info[SPELL_CURE_CRITIC].min_level[GET_CLASS(ch)]) {
-      cast_spell(ch, victim, NULL, SPELL_CURE_CRITIC);
+      cast_spell(ch, victim, NULL, SPELL_CURE_CRITIC, 0);
       return;
     }
   }
@@ -978,7 +978,7 @@ void npc_spellup(struct char_data *ch) {
   
   if (loop_counter < (MAX_LOOPS))
     // found a spell, cast it
-    cast_spell(ch, victim, NULL, spellnum);
+    cast_spell(ch, victim, NULL, spellnum, 0);
 
   return;
 }
@@ -1050,7 +1050,7 @@ void npc_offensive_spells(struct char_data *ch) {
 
     if (loop_counter < (MAX_LOOPS / 2) && spellnum != -1) {
       // found a spell, cast it
-      cast_spell(ch, tch, NULL, spellnum);
+      cast_spell(ch, tch, NULL, spellnum, 0);
       return;
     }
   }
@@ -1069,7 +1069,7 @@ void npc_offensive_spells(struct char_data *ch) {
 
   if (loop_counter < (MAX_LOOPS / 2) && spellnum != -1)
     // found a spell, cast it
-    cast_spell(ch, tch, NULL, spellnum);
+    cast_spell(ch, tch, NULL, spellnum, 0);
 
   return;
 }
