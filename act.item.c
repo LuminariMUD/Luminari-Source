@@ -1766,7 +1766,7 @@ ACMD(do_drink) {
   if (GET_OBJ_VAL(temp, 1) != 0) {
     // this drink has a spell attached to it
     // call the spell, ch as target
-    call_magic(ch, ch, NULL, GET_OBJ_VAL(temp, 3), GET_LEVEL(ch), CAST_SPELL);
+    call_magic(ch, ch, NULL, GET_OBJ_VAL(temp, 3), 0, GET_LEVEL(ch), CAST_SPELL);
     /* attach event to character to prevent over-eating magical food/drink */
     if (GET_LEVEL(ch) < LVL_IMMORT || !PRF_FLAGGED(ch, PRF_NOHASSLE))
       attach_mud_event(new_mud_event(eMAGIC_FOOD, ch, NULL), 3000);
@@ -1857,7 +1857,7 @@ ACMD(do_eat) {
   if (GET_OBJ_TYPE(food) == ITEM_FOOD && GET_OBJ_VAL(food, 1) != 0) {
     // this food has a spell attached to it
     // call the spell, ch as target
-    call_magic(ch, ch, NULL, GET_OBJ_VAL(food, 1), GET_LEVEL(ch), CAST_SPELL);
+    call_magic(ch, ch, NULL, GET_OBJ_VAL(food, 1), 0, GET_LEVEL(ch), CAST_SPELL);
     /* attach event to character to prevent over-eating magical food/drink */
     if (GET_LEVEL(ch) < LVL_IMMORT || !PRF_FLAGGED(ch, PRF_NOHASSLE))
       attach_mud_event(new_mud_event(eMAGIC_FOOD, ch, NULL), 3000);
