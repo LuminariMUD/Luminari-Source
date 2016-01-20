@@ -1284,7 +1284,7 @@ ACMD(do_abort) {
 ACMD(do_cast) {
   struct char_data *tch = NULL;
   struct obj_data *tobj = NULL;
-  char *s = NULL, *t = NULL;
+  char *s = NULL, *t = NULL, *m = NULL;
   int number = 0, spellnum = 0, i = 0, target = 0, metamagic = 0;
   // int mana;
 
