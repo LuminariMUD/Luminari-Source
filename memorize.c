@@ -1962,39 +1962,43 @@ ACMD(do_gen_forget) {
   }
 
   s = strtok(argument, "'");
-    if (s == NULL) {
-      send_to_char(ch, "Forget which spell?\r\n");
-      return;
-    }
+  log("DEBUG s = %s", s);
+  if (s == NULL) {
+    send_to_char(ch, "Forget which spell?\r\n");
+    return;
+  }
     
-    s = strtok(NULL, "'");
-    if (s == NULL) {
-      send_to_char(ch, "The name of the spell to forget must be enclosed within ' and '.\r\n");
-      return;
-    }
+  s = strtok(NULL, "'");
+  log("DEBUG s = %s", s);
+  if (s == NULL) {
+    send_to_char(ch, "The name of the spell to forget must be enclosed within ' and '.\r\n");
+    return;
+  }
      
-    spellnum = find_skill_num(s);
+  spellnum = find_skill_num(s);
 
-    /* Now we have the spell.  Back up a little and check for metamagic. */   
-    for (m = strtok(argument, " "); m && m[0] != '\''; m = strtok(NULL, " ")) {
-      if (is_abbrev(m, "quickened")) {
-        SET_BIT(metamagic, METAMAGIC_QUICKEN);
-        //log("DEBUG: Quickened metamagic used.");
-      } else if (is_abbrev(m, "maximized")) {
-        SET_BIT(metamagic, METAMAGIC_MAXIMIZE);
-        //log("DEBUG: Maximized metamagic used.");
-      } else {
-        send_to_char(ch, "Using what metamagic?\r\n");
-        return;
-      }      
-    }
+  /* Now we have the spell.  Back up a little and check for metamagic. */   
+  for (m = strtok(argument, " "); m && m[0] != '\''; m = strtok(NULL, " ")) {
+    if (is_abbrev(m, "quickened")) {
+      SET_BIT(metamagic, METAMAGIC_QUICKEN);
+      //log("DEBUG: Quickened metamagic used.");
+    } else if (is_abbrev(m, "maximized")) {
+      SET_BIT(metamagic, METAMAGIC_MAXIMIZE);
+      //log("DEBUG: Maximized metamagic used.");
+    } else {
+      send_to_char(ch, "Using what metamagic?\r\n");
+      return;
+    }      
+  }
     
   one_argument(argument, arg);
-
+  log("DEBUG: arg = %s", arg);
+  
   if (!*arg) {
     send_to_char(ch, "What would you like to forget? (or all for everything)\r\n");
     return;
   }
+  
   if (getCircle(ch, class) == -1) {
     send_to_char(ch, "Huh?\r\n");
     return;
