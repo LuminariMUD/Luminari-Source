@@ -510,7 +510,7 @@ EVENTFUNC(event_ice_storm) {
   if (ch == NULL)
     return 0;
 
-  call_magic(ch, NULL, NULL, SPELL_ICE_STORM, CASTER_LEVEL(ch), CAST_SPELL);
+  call_magic(ch, NULL, NULL, SPELL_ICE_STORM, 0, CASTER_LEVEL(ch), CAST_SPELL);
   return 0;
 }
 
@@ -527,7 +527,7 @@ EVENTFUNC(event_chain_lightning) {
   if (ch == NULL)
     return 0;
 
-  call_magic(ch, NULL, NULL, SPELL_CHAIN_LIGHTNING, CASTER_LEVEL(ch), CAST_SPELL);
+  call_magic(ch, NULL, NULL, SPELL_CHAIN_LIGHTNING, 0, CASTER_LEVEL(ch), CAST_SPELL);
   return 0;
 
 }
