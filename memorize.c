@@ -1994,12 +1994,7 @@ ACMD(do_gen_forget) {
   }
      
   spellnum = find_skill_num(s);  
-  
-  if (!*arg) {
-    send_to_char(ch, "What would you like to forget? (or all for everything)\r\n");
-    return;
-  }
-  
+    
   if (getCircle(ch, class) == -1) {
     send_to_char(ch, "Huh?\r\n");
     return;
