@@ -1387,7 +1387,7 @@ int create(char *argument, struct obj_data *kit,
   if (mode == 2) { /* checkcraft */
     send_to_char(ch, "This crafting session will create the following "
             "item:\r\n\r\n");
-    call_magic(ch, ch, mold, SPELL_IDENTIFY, LVL_IMMORT, CAST_SPELL);
+    call_magic(ch, ch, mold, SPELL_IDENTIFY, 0, LVL_IMMORT, CAST_SPELL);
     if (crystal) {
       send_to_char(ch, "You will be enhancing this value: %s.\r\n",
               apply_types[crystal_value]);
