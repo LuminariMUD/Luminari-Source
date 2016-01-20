@@ -348,7 +348,7 @@ ACMD(do_scribe) {
     send_to_char(ch, "The magical energy committed for the spell '%s' has been "
             "expended.\r\n", spell_info[spellnum].name);
     sprintf(buf, "%d", spellnum);
-    forgetSpell(ch, spellnum, -1);
+    forgetSpell(ch, spellnum, -1, -1);
   }
 
 
@@ -1123,7 +1123,7 @@ int forgetSpell(struct char_data *ch, int spellnum, int metamagic, int class) {
     if (PREPARED_SPELLS(ch, 0, classArray(class)).spell) {
       for (slot = 0; slot < (MAX_MEM); slot++) {
         if (PREPARED_SPELLS(ch, slot, classArray(class)).spell == spellnum && 
-            PREPARED_SPELLS(ch, slot, classArray(class)).metamagic == metamagic) {
+            (metamagic != -1 ? PREPARED_SPELLS(ch, slot, classArray(class)).metamagic == metamagic : TRUE) {
           if (PREPARED_SPELLS(ch, slot + 1, classArray(class)).spell != 0) {
             for (nextSlot = slot; nextSlot < (MAX_MEM) - 1; nextSlot++) {
               PREPARED_SPELLS(ch, nextSlot, classArray(class)).spell =
@@ -1152,7 +1152,7 @@ int forgetSpell(struct char_data *ch, int spellnum, int metamagic, int class) {
       if (PREPARED_SPELLS(ch, 0, classArray(x)).spell) {
         for (slot = 0; slot < (MAX_MEM); slot++) {
           if (PREPARED_SPELLS(ch, slot, classArray(x)).spell == spellnum  && 
-              PREPARED_SPELLS(ch, slot, classArray(x)).metamagic == metamagic) {
+              (metamagic != -1 ? PREPARED_SPELLS(ch, slot, classArray(x)).metamagic == metamagic : TRUE)) {
             if (PREPARED_SPELLS(ch, slot + 1, classArray(x)).spell != 0) {
               for (nextSlot = slot; nextSlot < (MAX_MEM) - 1; nextSlot++) {
                 PREPARED_SPELLS(ch, nextSlot, classArray(x)).spell =
@@ -2113,7 +2113,7 @@ ACMD(do_gen_forget) {
   for (slot = 0; slot < (MAX_MEM); slot++) {
     if (PREPARED_SPELLS(ch, slot, classArray(class)).spell == spellnum &&
         PREPARED_SPELLS(ch, slot, classArray(class)).metamagic == metamagic) {
-      forgetSpell(ch, spellnum, class);
+      forgetSpell(ch, spellnum, metamagic, class);
       switch (class) {
         case CLASS_DRUID:
           send_to_char(ch, "You purge %s from your communion.\r\n",
