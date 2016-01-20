@@ -362,7 +362,7 @@ int find_ability_num(char *name) {
  * point for non-spoken or unrestricted spells. Spellnum 0 is legal but silently
  * ignored here, to make callers simpler. */
 int call_magic(struct char_data *caster, struct char_data *cvict,
-        struct obj_data *ovict, int spellnum, int level, int casttype) {
+        struct obj_data *ovict, int spellnum, int metamagic, int level, int casttype) {
   int savetype = 0, spell_level = 0;
   struct char_data *tmp = NULL;
 
@@ -821,12 +821,12 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
           for (i = 0, tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
             i++;
           while (i-- > 0)
-            call_magic(ch, NULL, NULL, GET_OBJ_VAL(obj, 3), k, CAST_STAFF);
+            call_magic(ch, NULL, NULL, GET_OBJ_VAL(obj, 3), 0, k, CAST_STAFF);
         } else {
           for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch) {
             next_tch = tch->next_in_room;
             if (ch != tch)
-              call_magic(ch, tch, NULL, GET_OBJ_VAL(obj, 3), k, CAST_STAFF);
+              call_magic(ch, tch, NULL, GET_OBJ_VAL(obj, 3), 0, k, CAST_STAFF);
           }
         }
       }
@@ -868,10 +868,10 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
       USE_STANDARD_ACTION(ch);
 
       if (GET_OBJ_VAL(obj, 0))
-        call_magic(ch, tch, tobj, GET_OBJ_VAL(obj, 3),
+        call_magic(ch, tch, tobj, GET_OBJ_VAL(obj, 3), 0,
               GET_OBJ_VAL(obj, 0), CAST_WAND);
       else
-        call_magic(ch, tch, tobj, GET_OBJ_VAL(obj, 3),
+        call_magic(ch, tch, tobj, GET_OBJ_VAL(obj, 3), 0,
               DEFAULT_WAND_LVL, CAST_WAND);
       break;
     case ITEM_SCROLL:
@@ -897,7 +897,7 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
       USE_STANDARD_ACTION(ch);
 
       for (i = 1; i <= 3; i++)
-        if (call_magic(ch, tch, tobj, GET_OBJ_VAL(obj, i),
+        if (call_magic(ch, tch, tobj, GET_OBJ_VAL(obj, i), 0,
                 GET_OBJ_VAL(obj, 0), CAST_SCROLL) <= 0)
           break;
 
@@ -923,7 +923,7 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
       USE_MOVE_ACTION(ch);
 
       for (i = 1; i <= 3; i++)
-        if (call_magic(ch, ch, NULL, GET_OBJ_VAL(obj, i),
+        if (call_magic(ch, ch, NULL, GET_OBJ_VAL(obj, i), 0,
                 GET_OBJ_VAL(obj, 0), CAST_POTION) <= 0)
           break;
 
@@ -1001,7 +1001,7 @@ int castingCheckOk(struct char_data *ch) {
 void finishCasting(struct char_data *ch) {
   say_spell(ch, CASTING_SPELLNUM(ch), CASTING_TCH(ch), CASTING_TOBJ(ch), FALSE);
   send_to_char(ch, "You complete your spell...");
-  call_magic(ch, CASTING_TCH(ch), CASTING_TOBJ(ch), CASTING_SPELLNUM(ch),
+  call_magic(ch, CASTING_TCH(ch), CASTING_TOBJ(ch), CASTING_SPELLNUM(ch), CASTING_METAMAGIC(ch),
           CASTER_LEVEL(ch), CAST_SPELL);
   resetCastingData(ch);
 }
@@ -1084,9 +1084,10 @@ EVENTFUNC(event_casting) {
  * prints the words, etc. Entry point for NPC casts.  Recommended entry point
  * for spells cast by NPCs via specprocs. */
 int cast_spell(struct char_data *ch, struct char_data *tch,
-        struct obj_data *tobj, int spellnum) {
+        struct obj_data *tobj, int spellnum, int metamagic) {
   int position = GET_POS(ch);
   int class = CLASS_WIZARD, clevel = 0;
+  int casting_time = 0;
 
   if (spellnum < 0 || spellnum > TOP_SPELL_DEFINE) {
     log("SYSERR: cast_spell trying to call spellnum %d/%d.", spellnum,
@@ -1216,7 +1217,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
 
     /* sorcerer's call is made already in forgetSpell() */
     if (class != CLASS_SORCERER && class != CLASS_BARD)
-      addSpellMemming(ch, spellnum, 0, spell_info[spellnum].memtime, class);
+      addSpellMemming(ch, spellnum, metamagic, spell_info[spellnum].memtime, class);
   }
 
   /* level to cast this particular spell as */
@@ -1228,25 +1229,32 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     return 0;
   }
 
+  casting_time = SINFO.time;
+  
+  if (IS_SET(metamagic, METAMAGIC_QUICKEN)) {
+    casting_time /= 2;
+  }
+  
   /* handle spells with no casting time */
-  if (SINFO.time <= 0) {
+  if (casting_time <= 0) {
     send_to_char(ch, "%s", CONFIG_OK);
     say_spell(ch, spellnum, tch, tobj, FALSE);
 
     /* prevents spell spamming */
     USE_MOVE_ACTION(ch);
 
-    return (call_magic(ch, tch, tobj, spellnum, CASTER_LEVEL(ch), CAST_SPELL));
+    return (call_magic(ch, tch, tobj, spellnum, metamagic, CASTER_LEVEL(ch), CAST_SPELL));
   } else {
 
     /* casting time entry point */
     send_to_char(ch, "You begin casting your spell...\r\n");
     say_spell(ch, spellnum, tch, tobj, TRUE);
     IS_CASTING(ch) = TRUE;
-    CASTING_TIME(ch) = SINFO.time;
+    CASTING_TIME(ch) = casting_time;
     CASTING_TCH(ch) = tch;
     CASTING_TOBJ(ch) = tobj;
     CASTING_SPELLNUM(ch) = spellnum;
+    CASTING_METAMAGIC(ch) = metamagic;
     NEW_EVENT(eCASTING, ch, NULL, 1 * PASSES_PER_SEC);
 
     /* mandatory wait-state for any spell */
