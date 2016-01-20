@@ -3093,6 +3093,7 @@ struct prepared_spell_data {
   int metamagic; /* Bitvector of metamagic affecting this spell. */
 };
 
+
 /** Data only needed by PCs, and needs to be saved to disk. */
 struct player_special_data_saved {
 
