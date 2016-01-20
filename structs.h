@@ -3059,6 +3059,7 @@ struct char_special_data {
   bool isCasting; // casting or not
   int castingTime; // casting time
   int castingSpellnum; // spell casting
+  int castingMetamagic; // spell metamagic
   int castingClass; // spell casting class
   struct char_data *castingTCH; // target char of spell
   struct obj_data *castingTOBJ; // target obj of spell

@@ -1130,7 +1130,7 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj,
         int spellnum, int casttype);
 
 int call_magic(struct char_data *caster, struct char_data *cvict,
-        struct obj_data *ovict, int spellnum, int level, int casttype);
+        struct obj_data *ovict, int spellnum, int metamagic, int level, int casttype);
 void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
         char *argument);
 int cast_spell(struct char_data *ch, struct char_data *tch,
@@ -1167,6 +1167,7 @@ int aoeOK(struct char_data *ch, struct char_data *tch, int spellnum);
 #define METAMAGIC_NONE     0
 #define METAMAGIC_QUICKEN  (1 << 0)
 #define METAMAGIC_MAXIMIZE (1 << 1)
+#define METAMAGIC_HEIGHTEN (1 << 2)
 
 /* spellbook functions */
 void display_scroll(struct char_data *ch, struct obj_data *obj);
