@@ -1285,12 +1285,34 @@ ACMD(do_cast) {
   struct char_data *tch = NULL;
   struct obj_data *tobj = NULL;
   char *s = NULL, *t = NULL;
-  int number = 0, spellnum = 0, i = 0, target = 0;
+  int number = 0, spellnum = 0, i = 0, target = 0, metamagic = 0;
   // int mana;
 
   if (IS_NPC(ch))
     return;
 
+  /* Here I needed to change a bit to grab the metamagic keywords.  
+   * Valid keywords are:
+   *
+   *   quickened - Speed up casting
+   *   maximized - All variable aspects of spell (dam dice, etc) are maximum.
+   *
+   */        
+  
+  /* Check for metamagic. */   
+  for (m = strtok(argument, " "); m && m[0] != '\''; m = strtok(NULL, " ")) {
+    if (is_abbrev(m, "quickened")) {
+      SET_BIT(metamagic, METAMAGIC_QUICKEN);
+      //log("DEBUG: Quickened metamagic used.");
+    } else if (is_abbrev(m, "maximized")) {
+      SET_BIT(metamagic, METAMAGIC_MAXIMIZE);
+      //log("DEBUG: Maximized metamagic used.");
+    } else {
+      send_to_char(ch, "Use what metamagic?\r\n");
+      return;
+    }      
+  }
+  
   /* get: blank, spell name, target name */
   s = strtok(argument, "'");
 
@@ -1393,7 +1415,7 @@ ACMD(do_cast) {
   }
 
   /* check for spell preparation (memorization, spell-slots, etc) */
-  if (hasSpell(ch, spellnum) == -1 && !isEpicSpell(spellnum)) {
+  if (hasSpell(ch, spellnum, metamagic) == -1 && !isEpicSpell(spellnum)) {
     send_to_char(ch, "You aren't ready to cast that spell... (help preparation)\r\n");
     return;
   }
@@ -1527,7 +1549,7 @@ ACMD(do_cast) {
     return;
   }
 
-  cast_spell(ch, tch, tobj, spellnum);
+  cast_spell(ch, tch, tobj, spellnum, metamagic);
 }
 
 void spell_level(int spell, int chclass, int level) {
