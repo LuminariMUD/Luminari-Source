@@ -935,9 +935,9 @@ byte saving_throws(struct char_data *ch, int type) {
   for (i = 0; i < MAX_CLASSES; i++) {
     if (CLASS_LEVEL(ch, i)) { // found class and level
       if (CLSLIST_SAVES(i, type))
-        counter += (float)CLASS_LEVEL(ch, i) / 1.9;
+        counter += (float)CLASS_LEVEL(ch, i) / 2.0;
       else
-        counter += (float)CLASS_LEVEL(ch, i) / 3.9;
+        counter += (float)CLASS_LEVEL(ch, i) / 4.0;
     }
   }
   
@@ -949,7 +949,7 @@ byte saving_throws(struct char_data *ch, int type) {
 // base attack bonus, replacement for THAC0 system
 int BAB(struct char_data *ch) {
   int i, bab = 0, level;
-  float counter = 0.1;
+  float counter = 0.0;
 
   /* gnarly huh? */
   if (IS_AFFECTED(ch, AFF_TFORM) || IS_WILDSHAPED(ch))
@@ -969,19 +969,20 @@ int BAB(struct char_data *ch) {
   }
 
   /* pc: loop through all the possible classes the char could be */
+  /* added float for more(?) accuracy */
   for (i = 0; i < MAX_CLASSES; i++) {
     level = CLASS_LEVEL(ch, i);
     if (level) {
       switch (CLSLIST_BAB(i)) {
         case M:
-          counter += (float)level * 3.1 / 3.9;
+          counter += (float)level * 3.0 / 4.0;
           break;
         case H:
-          counter += (float)level + 0.1;
+          counter += (float)level;
           break;
         case L:
         default:
-          counter += (float)level / 1.9;
+          counter += (float)level / 2.0;
           break;
       }
     }
@@ -993,8 +994,8 @@ int BAB(struct char_data *ch) {
     bab += MAX(1, (SPELLBATTLE(ch) * 2 / 3));
   }
 
-  if (!IS_NPC(ch)) /* cap pc bab at 34 */
-    return (MIN(bab, 34));
+  if (!IS_NPC(ch)) /* cap pc bab at 30 */
+    return (MIN(bab, 30));
 
   return bab;
 }
@@ -1072,13 +1073,6 @@ int free_start_feats_rogue[] = {
   0
 };
 int free_start_feats_warrior[] = {
-  FEAT_SIMPLE_WEAPON_PROFICIENCY,
-  FEAT_MARTIAL_WEAPON_PROFICIENCY,
-  FEAT_ARMOR_PROFICIENCY_HEAVY,
-  FEAT_ARMOR_PROFICIENCY_LIGHT,
-  FEAT_ARMOR_PROFICIENCY_MEDIUM,
-  FEAT_ARMOR_PROFICIENCY_SHIELD,
-  FEAT_ARMOR_PROFICIENCY_TOWER_SHIELD,
   0
 };
 int free_start_feats_monk[] = {
@@ -1179,14 +1173,21 @@ int level_feats[][LEVEL_FEATS] = {
 
   /* warrior */
   /* bonus: they select from a master list of combat feats every 2 levels */
-  {CLASS_WARRIOR, RACE_UNDEFINED, TRUE, 3, FEAT_ARMOR_TRAINING},
-  {CLASS_WARRIOR, RACE_UNDEFINED, TRUE, 5, FEAT_WEAPON_TRAINING},
-  {CLASS_WARRIOR, RACE_UNDEFINED, TRUE, 7, FEAT_ARMOR_TRAINING},
-  {CLASS_WARRIOR, RACE_UNDEFINED, TRUE, 9, FEAT_WEAPON_TRAINING},
-  {CLASS_WARRIOR, RACE_UNDEFINED, TRUE, 11, FEAT_ARMOR_TRAINING},
-  {CLASS_WARRIOR, RACE_UNDEFINED, TRUE, 13, FEAT_WEAPON_TRAINING},
-  {CLASS_WARRIOR, RACE_UNDEFINED, TRUE, 15, FEAT_ARMOR_TRAINING},
-  {CLASS_WARRIOR, RACE_UNDEFINED, TRUE, 17, FEAT_WEAPON_TRAINING},
+  {CLASS_WARRIOR, RACE_UNDEFINED, FALSE, 1,  FEAT_MARTIAL_WEAPON_PROFICIENCY},
+  {CLASS_WARRIOR, RACE_UNDEFINED, FALSE, 1,  FEAT_ARMOR_PROFICIENCY_HEAVY},
+  {CLASS_WARRIOR, RACE_UNDEFINED, FALSE, 1,  FEAT_ARMOR_PROFICIENCY_LIGHT},
+  {CLASS_WARRIOR, RACE_UNDEFINED, FALSE, 1,  FEAT_ARMOR_PROFICIENCY_MEDIUM},
+  {CLASS_WARRIOR, RACE_UNDEFINED, FALSE, 1,  FEAT_ARMOR_PROFICIENCY_SHIELD},
+  {CLASS_WARRIOR, RACE_UNDEFINED, FALSE, 1,  FEAT_ARMOR_PROFICIENCY_TOWER_SHIELD},
+  {CLASS_WARRIOR, RACE_UNDEFINED, FALSE, 1,  FEAT_SIMPLE_WEAPON_PROFICIENCY},
+  {CLASS_WARRIOR, RACE_UNDEFINED, TRUE,  3,  FEAT_ARMOR_TRAINING},
+  {CLASS_WARRIOR, RACE_UNDEFINED, TRUE,  5,  FEAT_WEAPON_TRAINING},
+  {CLASS_WARRIOR, RACE_UNDEFINED, TRUE,  7,  FEAT_ARMOR_TRAINING},
+  {CLASS_WARRIOR, RACE_UNDEFINED, TRUE,  9,  FEAT_WEAPON_TRAINING},
+  {CLASS_WARRIOR, RACE_UNDEFINED, TRUE,  11, FEAT_ARMOR_TRAINING},
+  {CLASS_WARRIOR, RACE_UNDEFINED, TRUE,  13, FEAT_WEAPON_TRAINING},
+  {CLASS_WARRIOR, RACE_UNDEFINED, TRUE,  15, FEAT_ARMOR_TRAINING},
+  {CLASS_WARRIOR, RACE_UNDEFINED, TRUE,  17, FEAT_WEAPON_TRAINING},
   {CLASS_WARRIOR, RACE_UNDEFINED, FALSE, 19, FEAT_STALWART_WARRIOR},
   /* epic */
   {CLASS_WARRIOR, RACE_UNDEFINED, FALSE, 20, FEAT_ARMOR_MASTERY},
