@@ -22,7 +22,10 @@
 #define LF_MIN_LVL  3
 #define LF_FEAT     4
 #define LEVEL_FEATS 5
+#define MAX_NUM_TITLES 11
+#define NUM_PREFERRED_SAVES 5
 /* end defines */
+
 
 /* prereq data for class */
 struct class_prerequisite {
@@ -56,8 +59,9 @@ struct class_table {
   int trains_gain; /* how many trains this class gets before int bonus */
   bool in_game; /* class currently in the game? */
   int unlock_cost; /* if locked, cost to unlock in account xp */
-  
-  int preferred_saves[5];  /*high or low saving throw values */
+
+  char *titles[MAX_NUM_TITLES];  /* titles every 5 levels, 3 staff, default */
+  int preferred_saves[NUM_PREFERRED_SAVES];  /*high or low saving throw values */
   int class_abil[NUM_ABILITIES];  /*class ability (not avail, cross-class, class-skill)*/
   
   struct class_prerequisite *prereq_list; /* A list of prerequisite sctructures */
