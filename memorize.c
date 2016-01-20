@@ -1962,26 +1962,11 @@ ACMD(do_gen_forget) {
     send_to_char(ch, "Invalid command!\r\n");
     return;
   }
-
-  s = strtok(argument, "'");
-  log("DEBUG s = %s", s);
-  if (s == NULL) {
-    send_to_char(ch, "Forget which spell?\r\n");
-    return;
-  }
-    
-  s = strtok(NULL, "'");
-  log("DEBUG s = %s", s);
-  if (s == NULL) {
-    send_to_char(ch, "The name of the spell to forget must be enclosed within ' and '.\r\n");
-    return;
-  }
-     
-  spellnum = find_skill_num(s);
-
-  /* Now we have the spell.  Back up a little and check for metamagic. */   
+  
   for (m = strtok(argument, " "); m && m[0] != '\''; m = strtok(NULL, " ")) {
-    if (is_abbrev(m, "quickened")) {
+    if (is_abbrev(m, "all")) {
+      forget_all = TRUE;
+    } else if (is_abbrev(m, "quickened")) {
       SET_BIT(metamagic, METAMAGIC_QUICKEN);
       //log("DEBUG: Quickened metamagic used.");
     } else if (is_abbrev(m, "maximized")) {
@@ -1993,8 +1978,21 @@ ACMD(do_gen_forget) {
     }      
   }
     
-  one_argument(argument, arg);
-  log("DEBUG: arg = %s", arg);
+  s = strtok(argument, "'");
+  log("DEBUG s = %s", s);
+  if (!forget_all && s == NULL) {
+    send_to_char(ch, "Forget which spell?\r\n");
+    return;
+  }
+    
+  s = strtok(NULL, "'");
+  log("DEBUG s = %s", s);
+  if (s == NULL) {
+    send_to_char(ch, "The name of the spell to forget must be enclosed within ' and '.\r\n");
+    return;
+  }
+     
+  spellnum = find_skill_num(s);  
   
   if (!*arg) {
     send_to_char(ch, "What would you like to forget? (or all for everything)\r\n");
@@ -2006,7 +2004,7 @@ ACMD(do_gen_forget) {
     return;
   }
 
-  if (!strcmp(arg, "all")) {
+  if (forget_all) {
     if (PREPARATION_QUEUE(ch, 0, classArray(class)).spell) {
       for (slot = 0; slot < (MAX_MEM); slot++) {
         PREPARATION_QUEUE(ch, slot, classArray(class)).spell = 0;
