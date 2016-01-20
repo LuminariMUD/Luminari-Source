@@ -1303,10 +1303,10 @@ ACMD(do_cast) {
   for (m = strtok(argument, " "); m && m[0] != '\''; m = strtok(NULL, " ")) {
     if (is_abbrev(m, "quickened")) {
       SET_BIT(metamagic, METAMAGIC_QUICKEN);
-      //log("DEBUG: Quickened metamagic used.");
+      log("DEBUG: Quickened metamagic used.");
     } else if (is_abbrev(m, "maximized")) {
       SET_BIT(metamagic, METAMAGIC_MAXIMIZE);
-      //log("DEBUG: Maximized metamagic used.");
+      log("DEBUG: Maximized metamagic used.");
     } else {
       send_to_char(ch, "Use what metamagic?\r\n");
       return;
@@ -1325,9 +1325,12 @@ ACMD(do_cast) {
     send_to_char(ch, "Spell names must be enclosed in the Holy Magic Symbols: '\r\n");
     return;
   }
+  
   t = strtok(NULL, "\0");
 
-  skip_spaces(&s);
+  log("DEBUG: target t = %s", t);
+  
+  //skip_spaces(&s);
 
   /* spellnum = search_block(s, spells, 0); */
   spellnum = find_skill_num(s);
