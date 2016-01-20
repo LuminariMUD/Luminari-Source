@@ -750,16 +750,18 @@ ACMD(do_classlist) {
   char buf[MAX_STRING_LENGTH];
   size_t len = 0;
 
-  send_to_char(ch, "# Name Abrv ClrAbrv Menu MaxLvl Lock Prestige BAB HPs Mvs Train InGame");
+  send_to_char(ch, "# Name Abrv ClrAbrv | Menu | MaxLvl Lock Prestige BAB HPs Mvs Train InGame");
   send_to_char(ch, " | Sv-Fort Sv-Refl Sv-Will\r\n");
   send_to_char(ch, "    acrobatics,stealth,perception,heal,intimidate,concentration,spellcraft\r\n");
   send_to_char(ch, "    appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff\r\n");
   send_to_char(ch, "    diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive\r\n");
   send_to_char(ch, "    survival,swim,use_magic_device,perform\r\n");
+  send_to_char(ch, "Class Titles\r\n");
+  send_to_char(ch, "============================================");
   
   for (i = 0; i < NUM_CLASSES; i++) {
     len += snprintf(buf + len, sizeof (buf) - len,
-        "\r\n%d] %s %s %s %s %d %s %s %s %d %d %d %s | %s %s %s\r\n"
+        "\r\n%d] %s %s %s | %s | %d %s %s %s %d %d %d %s | %s %s %s\r\n"
         "     %s %s %s %s %s %s %s\r\n"
         "     %s %s %s %s %s %s %s %s\r\n"
         "     %s %s %s %s %s %s\r\n"
@@ -798,6 +800,7 @@ ACMD(do_classlist) {
     for (j = 0; j < MAX_NUM_TITLES; j++) {
       len += snprintf(buf + len, sizeof (buf) - len, "%s\r\n", CLSLIST_TITLE(i, j));
     }
+    len += snprintf(buf + len, sizeof (buf) - len, "============================================\r\n");
   }
   page_string(ch->desc, buf, 1);
 }
@@ -994,6 +997,44 @@ int BAB(struct char_data *ch) {
     return (MIN(bab, 34));
 
   return bab;
+}
+
+/* Default titles system, simplified from stock -zusuk */
+const char *titles(int chclass, int level) {  
+  if (level <= 0 || level > LVL_IMPL)
+    return "the Being";
+  if (level == LVL_IMPL)
+    return "the Implementor";
+  /* Default title for classes which do not have titles defined */
+  if (chclass < 0 || chclass >= NUM_CLASSES)
+    return "the Classless";
+
+  int title_num = 0;
+
+  if (level <= 4)
+    title_num = 0;
+  else if (level <= 9)
+    title_num = 1;
+  else if (level <= 14)
+    title_num = 2;
+  else if (level <= 19)
+    title_num = 3;
+  else if (level <= 24)
+    title_num = 4;
+  else if (level <= 29)
+    title_num = 5;
+  else if (level <= 30)
+    title_num = 6;
+  else if (level <= LVL_IMMORT)
+    title_num = 7;
+  else if (level <= LVL_STAFF)
+    title_num = 8;
+  else if (level <= LVL_GRSTAFF)
+    title_num = 9;
+  else
+    title_num = 10;
+  
+  return ( CLSLIST_TITLE(chclass, title_num) );
 }
 
 /* use to be old rolling system, now its just used to initialize base stats */
@@ -4141,493 +4182,7 @@ int level_exp(struct char_data *ch, int level) {
   return exp;
 }
 
-/* Default titles system, simplified from stock -zusuk */
-const char *titles(int chclass, int level) {
-  if (level <= 0 || level > LVL_IMPL)
-    return "the Being";
-  if (level == LVL_IMPL)
-    return "the Implementor";
 
-  switch (chclass) {
-
-    case CLASS_WIZARD:
-      switch (level) {
-        case 1:
-        case 2:
-        case 3:
-        case 4: return "";
-        case 5:
-        case 6:
-        case 7:
-        case 8:
-        case 9: return "the Reader of Arcane Texts";
-        case 10:
-        case 11:
-        case 12:
-        case 13:
-        case 14: return "the Ever-Learning";
-        case 15:
-        case 16:
-        case 17:
-        case 18:
-        case 19: return "the Advanced Student";
-        case 20:
-        case 21:
-        case 22:
-        case 23:
-        case 24: return "the Channel of Power";
-        case 25:
-        case 26:
-        case 27:
-        case 28:
-        case 29: return "the Delver of Mysteries";
-        case 30: return "the Knower of Hidden Things";
-        case LVL_IMMORT: return "the Immortal Warlock";
-        case LVL_STAFF: return "the Avatar of Magic";
-        case LVL_GRSTAFF: return "the God of Magic";
-        default: return "the Wizard";
-      }
-      break;
-
-
-    case CLASS_RANGER:
-      switch (level) {
-        case 1:
-        case 2:
-        case 3:
-        case 4: return "";
-        case 5:
-        case 6:
-        case 7:
-        case 8:
-        case 9: return "the Dirt-watcher";
-        case 10:
-        case 11:
-        case 12:
-        case 13:
-        case 14: return "the Hunter";
-        case 15:
-        case 16:
-        case 17:
-        case 18:
-        case 19: return "the Tracker";
-        case 20:
-        case 21:
-        case 22:
-        case 23:
-        case 24: return "the Finder of Prey";
-        case 25:
-        case 26:
-        case 27:
-        case 28:
-        case 29: return "the Hidden Stalker";
-        case 30: return "the Great Seeker";
-        case LVL_IMMORT: return "the Avatar of the Wild";
-        case LVL_STAFF: return "the Wrath of the Wild";
-        case LVL_GRSTAFF: return "the Cyclone of Nature";
-        default: return "the Ranger";
-      }
-      break;
-
-
-    case CLASS_DRUID:
-      switch (level) {
-        case 1:
-        case 2:
-        case 3:
-        case 4: return "";
-        case 5:
-        case 6:
-        case 7:
-        case 8:
-        case 9: return "the Walker on Loam";
-        case 10:
-        case 11:
-        case 12:
-        case 13:
-        case 14: return "the Speaker for Beasts";
-        case 15:
-        case 16:
-        case 17:
-        case 18:
-        case 19: return "the Watcher from Shade";
-        case 20:
-        case 21:
-        case 22:
-        case 23:
-        case 24: return "the Whispering Winds";
-        case 25:
-        case 26:
-        case 27:
-        case 28:
-        case 29: return "the Balancer";
-        case 30: return "the Still Waters";
-        case LVL_IMMORT: return "the Avatar of Nature";
-        case LVL_STAFF: return "the Wrath of Nature";
-        case LVL_GRSTAFF: return "the Storm of Earth's Voice";
-        default: return "the Druid";
-      }
-      break;
-
-
-    case CLASS_SORCERER:
-      switch (level) {
-        case 1:
-        case 2:
-        case 3:
-        case 4: return "";
-        case 5:
-        case 6:
-        case 7:
-        case 8:
-        case 9: return "the Awakened";
-        case 10:
-        case 11:
-        case 12:
-        case 13:
-        case 14: return "the Torch";
-        case 15:
-        case 16:
-        case 17:
-        case 18:
-        case 19: return "the Firebrand";
-        case 20:
-        case 21:
-        case 22:
-        case 23:
-        case 24: return "the Destroyer";
-        case 25:
-        case 26:
-        case 27:
-        case 28:
-        case 29: return "the Crux of Power";
-        case 30: return "the Near-Divine";
-        case LVL_IMMORT: return "the Immortal Magic Weaver";
-        case LVL_STAFF: return "the Avatar of the Flow";
-        case LVL_GRSTAFF: return "the Hand of Mystical Might";
-        default: return "the Sorcerer";
-      }
-      break;
-
-
-    case CLASS_BARD:
-      switch (level) {
-        case 1:
-        case 2:
-        case 3:
-        case 4: return "";
-        case 5:
-        case 6:
-        case 7:
-        case 8:
-        case 9: return "the Melodious";
-        case 10:
-        case 11:
-        case 12:
-        case 13:
-        case 14: return "the Hummer of Harmonies";
-        case 15:
-        case 16:
-        case 17:
-        case 18:
-        case 19: return "Weaver of Song";
-        case 20:
-        case 21:
-        case 22:
-        case 23:
-        case 24: return "Keeper of Chords";
-        case 25:
-        case 26:
-        case 27:
-        case 28:
-        case 29: return "the Composer";
-        case 30: return "the Maestro";
-        case LVL_IMMORT: return "the Immortal Songweaver";
-        case LVL_STAFF: return "the Master of Sound";
-        case LVL_GRSTAFF: return "the Lord of Dance";
-        default: return "the Bard";
-      }
-      break;
-
-
-    case CLASS_CLERIC:
-      switch (level) {
-        case 1:
-        case 2:
-        case 3:
-        case 4: return "";
-        case 5:
-        case 6:
-        case 7:
-        case 8:
-        case 9: return "the Devotee";
-        case 10:
-        case 11:
-        case 12:
-        case 13:
-        case 14: return "the Example";
-        case 15:
-        case 16:
-        case 17:
-        case 18:
-        case 19: return "the Truly Pious";
-        case 20:
-        case 21:
-        case 22:
-        case 23:
-        case 24: return "the Mighty in Faith";
-        case 25:
-        case 26:
-        case 27:
-        case 28:
-        case 29: return "the God-Favored";
-        case 30: return "the One Who Moves Mountains";
-        case LVL_IMMORT: return "the Immortal Cardinal";
-        case LVL_STAFF: return "the Inquisitor";
-        case LVL_GRSTAFF: return "the God of Good and Evil";
-        default: return "the Cleric";
-      }
-      break;
-
-    case CLASS_PALADIN:
-      switch (level) {
-        case 1:
-        case 2:
-        case 3:
-        case 4: return "";
-        case 5:
-        case 6:
-        case 7:
-        case 8:
-        case 9: return "the Initiated";
-        case 10:
-        case 11:
-        case 12:
-        case 13:
-        case 14: return "the Accepted";
-        case 15:
-        case 16:
-        case 17:
-        case 18:
-        case 19: return "the Hand of Mercy";
-        case 20:
-        case 21:
-        case 22:
-        case 23:
-        case 24: return "the Sword of Justice";
-        case 25:
-        case 26:
-        case 27:
-        case 28:
-        case 29: return "who Walks in the Light";
-        case 30: return "the Defender of the Faith";
-        case LVL_IMMORT: return "the Immortal Justicar";
-        case LVL_STAFF: return "the Immortal Sword of Light";
-        case LVL_GRSTAFF: return "the Immortal Hammer of Justic";
-        default: return "the Paladin";
-      }
-      break;
-
-    case CLASS_MONK:
-      switch (level) {
-        case 1:
-        case 2:
-        case 3:
-        case 4: return "";
-        case 5:
-        case 6:
-        case 7:
-        case 8:
-        case 9: return "of the Crushing Fist";
-        case 10:
-        case 11:
-        case 12:
-        case 13:
-        case 14: return "of the Stomping Foot";
-        case 15:
-        case 16:
-        case 17:
-        case 18:
-        case 19: return "of the Directed Motions";
-        case 20:
-        case 21:
-        case 22:
-        case 23:
-        case 24: return "of the Disciplined Body";
-        case 25:
-        case 26:
-        case 27:
-        case 28:
-        case 29: return "of the Disciplined Mind";
-        case 30: return "of the Mastered Self";
-        case LVL_IMMORT: return "the Immortal Monk";
-        case LVL_STAFF: return "the Inquisitor Monk";
-        case LVL_GRSTAFF: return "the God of the Fist";
-        default: return "the Monk";
-      }
-      break;
-
-    case CLASS_ROGUE:
-      switch (level) {
-        case 1:
-        case 2:
-        case 3:
-        case 4: return "";
-        case 5:
-        case 6:
-        case 7:
-        case 8:
-        case 9: return "the Rover";
-        case 10:
-        case 11:
-        case 12:
-        case 13:
-        case 14: return "the Multifarious";
-        case 15:
-        case 16:
-        case 17:
-        case 18:
-        case 19: return "the Illusive";
-        case 20:
-        case 21:
-        case 22:
-        case 23:
-        case 24: return "the Swindler";
-        case 25:
-        case 26:
-        case 27:
-        case 28:
-        case 29: return "the Marauder";
-        case 30: return "the Volatile";
-        case LVL_IMMORT: return "the Immortal Assassin";
-        case LVL_STAFF: return "the Demi God of Thieves";
-        case LVL_GRSTAFF: return "the God of Thieves and Tradesmen";
-        default: return "the Rogue";
-      }
-      break;
-
-    case CLASS_WARRIOR:
-      switch (level) {
-        case 1:
-        case 2:
-        case 3:
-        case 4: return "";
-        case 5:
-        case 6:
-        case 7:
-        case 8:
-        case 9: return "the Mostly Harmless";
-        case 10:
-        case 11:
-        case 12:
-        case 13:
-        case 14: return "the Useful in Bar-Fights";
-        case 15:
-        case 16:
-        case 17:
-        case 18:
-        case 19: return "the Friend to Violence";
-        case 20:
-        case 21:
-        case 22:
-        case 23:
-        case 24: return "the Strong";
-        case 25:
-        case 26:
-        case 27:
-        case 28:
-        case 29: return "the Bane of All Enemies";
-        case 30: return "the Exceptionally Dangerous";
-        case LVL_IMMORT: return "the Immortal Warlord";
-        case LVL_STAFF: return "the Extirpator";
-        case LVL_GRSTAFF: return "the God of War";
-        default: return "the Warrior";
-      }
-      break;
-
-    case CLASS_WEAPON_MASTER:
-      switch (level) {
-        case 1:
-        case 2:
-        case 3:
-        case 4: return "";
-        case 5:
-        case 6:
-        case 7:
-        case 8:
-        case 9: return "the Inexperienced Weapon";
-        case 10:
-        case 11:
-        case 12:
-        case 13:
-        case 14: return "the Weapon";
-        case 15:
-        case 16:
-        case 17:
-        case 18:
-        case 19: return "the Skilled Weapon";
-        case 20:
-        case 21:
-        case 22:
-        case 23:
-        case 24: return "the Master of Weapons";
-        case 25:
-        case 26:
-        case 27:
-        case 28:
-        case 29: return "the Master of All Weapons";
-        case 30: return "the Unmatched Weapon";
-        case LVL_IMMORT: return "the Immortal WeaponMaster";
-        case LVL_STAFF: return "the Relentless Weapon";
-        case LVL_GRSTAFF: return "the God of Weapons";
-        default: return "the WeaponMaster";
-      }
-      break;
-
-    case CLASS_BERSERKER:
-      switch (level) {
-        case 1:
-        case 2:
-        case 3:
-        case 4: return "";
-        case 5:
-        case 6:
-        case 7:
-        case 8:
-        case 9: return "the Ripper of Flesh";
-        case 10:
-        case 11:
-        case 12:
-        case 13:
-        case 14: return "the Shatterer of Bone";
-        case 15:
-        case 16:
-        case 17:
-        case 18:
-        case 19: return "the Cleaver of Organs";
-        case 20:
-        case 21:
-        case 22:
-        case 23:
-        case 24: return "the Wrecker of Hope";
-        case 25:
-        case 26:
-        case 27:
-        case 28:
-        case 29: return "the Effulgence of Rage";
-        case 30: return "the Foe-Hewer";
-        case LVL_IMMORT: return "the Immortal Warlord";
-        case LVL_STAFF: return "the Extirpator";
-        case LVL_GRSTAFF: return "the God of Rage";
-        default: return "the Berserker";
-      }
-      break;
-
-  }
-
-  /* Default title for classes which do not have titles defined */
-  return "the Classless";
-}
 
 /** LOCAL UNDEFINES **/
 // good/bad
