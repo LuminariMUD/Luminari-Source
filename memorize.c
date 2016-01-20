@@ -885,7 +885,7 @@ int spellCircle(int class, int spellnum, int metamagic, int domain) {
         default:
           return 99;
       }
-      return 1;
+      return 1 + metamagic_mod;
     case CLASS_CLERIC:
       return ((int) ((MIN_SPELL_LVL(spellnum, CLASS_CLERIC, domain) + 1) / 2)) + metamagic_mod;
       /* wizard, druid */

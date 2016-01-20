@@ -884,6 +884,7 @@ do                                                              \
 #define CASTING_TCH(ch)		((ch)->char_specials.castingTCH)
 #define CASTING_TOBJ(ch)	((ch)->char_specials.castingTOBJ)
 #define CASTING_SPELLNUM(ch)	((ch)->char_specials.castingSpellnum)
+#define CASTING_METAMAGIC(ch) ((ch)->char_specials.castingMetamagic)
 #define CASTING_CLASS(ch)	((ch)->char_specials.castingClass)
 
 // memorization
