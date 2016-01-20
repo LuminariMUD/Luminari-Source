@@ -2226,11 +2226,13 @@ ACMD(do_gen_memorize) {
     
     /* s is at the position of the spell name.  Check the rest of the string. */    
     for (m = strtok(argument, " "); m && m != s; m = strtok(NULL, " ")) {
-      if (is_abbrev(m, "quickened")) 
+      if (is_abbrev(m, "quickened")) {
         SET_BIT(metamagic, METAMAGIC_QUICKEN);
-      else if (is_abbrev(m, "maximized"))
+        log("DEBUG: Quickened metamagic used.")
+      } else if (is_abbrev(m, "maximized")) {
         SET_BIT(metamagic, METAMAGIC_MAXIMIZE);
-      else {
+        log("DEBUG: Maximized metamagic used.")
+      } else {
         send_to_char(ch, "Use what metamagic?\r\n");
         return;
       }      
