@@ -1673,7 +1673,7 @@ SPECIAL(feybranche) {
             HUNTING(i) = enemy;
             hunt_victim(i);
           } else
-            cast_spell(i, enemy, 0, SPELL_TELEPORT);
+            cast_spell(i, enemy, 0, SPELL_TELEPORT, 0);
         } else
           hit(i, enemy, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
       }
@@ -1757,7 +1757,7 @@ SPECIAL(agrachdyrr) {
             HUNTING(i) = enemy;
             hunt_victim(i);
           } else
-            cast_spell(i, enemy, 0, SPELL_TELEPORT);
+            cast_spell(i, enemy, 0, SPELL_TELEPORT, 0);
         } else
           hit(i, enemy, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
       }
@@ -1798,7 +1798,7 @@ SPECIAL(shobalar) {
             HUNTING(i) = enemy;
             hunt_victim(i);
           } else
-            cast_spell(i, enemy, NULL, SPELL_TELEPORT);
+            cast_spell(i, enemy, NULL, SPELL_TELEPORT, 0);
         } else
           hit(i, enemy, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
       }
@@ -2332,16 +2332,16 @@ SPECIAL(wizard) {
     return (TRUE);
 
   if (GET_LEVEL(ch) > 13 && rand_number(0, 10) == 0)
-    cast_spell(ch, vict, NULL, SPELL_POISON);
+    cast_spell(ch, vict, NULL, SPELL_POISON, 0);
 
   if (GET_LEVEL(ch) > 7 && rand_number(0, 8) == 0)
-    cast_spell(ch, vict, NULL, SPELL_BLINDNESS);
+    cast_spell(ch, vict, NULL, SPELL_BLINDNESS, 0);
 
   if (GET_LEVEL(ch) > 12 && rand_number(0, 12) == 0) {
     if (IS_EVIL(ch))
-      cast_spell(ch, vict, NULL, SPELL_ENERGY_DRAIN);
+      cast_spell(ch, vict, NULL, SPELL_ENERGY_DRAIN, 0);
     else if (IS_GOOD(ch))
-      cast_spell(ch, vict, NULL, SPELL_DISPEL_EVIL);
+      cast_spell(ch, vict, NULL, SPELL_DISPEL_EVIL, 0);
   }
 
   if (rand_number(0, 4))
@@ -2350,32 +2350,32 @@ SPECIAL(wizard) {
   switch (GET_LEVEL(ch)) {
     case 4:
     case 5:
-      cast_spell(ch, vict, NULL, SPELL_MAGIC_MISSILE);
+      cast_spell(ch, vict, NULL, SPELL_MAGIC_MISSILE, 0);
       break;
     case 6:
     case 7:
-      cast_spell(ch, vict, NULL, SPELL_CHILL_TOUCH);
+      cast_spell(ch, vict, NULL, SPELL_CHILL_TOUCH, 0);
       break;
     case 8:
     case 9:
-      cast_spell(ch, vict, NULL, SPELL_BURNING_HANDS);
+      cast_spell(ch, vict, NULL, SPELL_BURNING_HANDS, 0);
       break;
     case 10:
     case 11:
-      cast_spell(ch, vict, NULL, SPELL_SHOCKING_GRASP);
+      cast_spell(ch, vict, NULL, SPELL_SHOCKING_GRASP, 0);
       break;
     case 12:
     case 13:
-      cast_spell(ch, vict, NULL, SPELL_LIGHTNING_BOLT);
+      cast_spell(ch, vict, NULL, SPELL_LIGHTNING_BOLT, 0);
       break;
     case 14:
     case 15:
     case 16:
     case 17:
-      cast_spell(ch, vict, NULL, SPELL_COLOR_SPRAY);
+      cast_spell(ch, vict, NULL, SPELL_COLOR_SPRAY, 0);
       break;
     default:
-      cast_spell(ch, vict, NULL, SPELL_FIREBALL);
+      cast_spell(ch, vict, NULL, SPELL_FIREBALL, 0);
       break;
   }
   return (TRUE);
@@ -2638,7 +2638,7 @@ SPECIAL(clan_cleric) {
             /* Uncomment the next line to make the mob get RICH! */
             /* increase_gold(this_mob, clan_prices[i].price); */
 
-            cast_spell(this_mob, ch, NULL, clan_prices[i].number);
+            cast_spell(this_mob, ch, NULL, clan_prices[i].number, 0);
             return TRUE;
 
           }
@@ -3321,13 +3321,13 @@ SPECIAL(harpell) {
         if (AFF_FLAGGED(FIGHTING(ch), AFF_CHARM) && FIGHTING(ch)->master &&
                 (FIGHTING(ch)->master->in_room != FIGHTING(ch)->in_room)) {
           if (FIGHTING(ch)->master->in_room != i->in_room)
-            cast_spell(i, FIGHTING(ch)->master, NULL, SPELL_TELEPORT);
+            cast_spell(i, FIGHTING(ch)->master, NULL, SPELL_TELEPORT, 0);
           else
             hit(i, FIGHTING(ch)->master, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0,
                     FALSE);
         } else {
           if (FIGHTING(ch)->in_room != i->in_room)
-            cast_spell(i, FIGHTING(ch), NULL, SPELL_TELEPORT);
+            cast_spell(i, FIGHTING(ch), NULL, SPELL_TELEPORT, 0);
           else
             hit(i, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
         }
