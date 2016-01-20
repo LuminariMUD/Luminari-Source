@@ -1947,7 +1947,8 @@ ACMD(do_gen_forget) {
   int spellnum, slot, class = -1, metamagic = 0;
   char arg[MAX_INPUT_LENGTH];
   char *s, *m;
-
+  bool forget_all = FALSE;
+  
   if (subcmd == SCMD_BLANK)
     class = CLASS_CLERIC;
   else if (subcmd == SCMD_FORGET)
