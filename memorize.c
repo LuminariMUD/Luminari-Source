@@ -1942,7 +1942,7 @@ void printMemory(struct char_data *ch, int class) {
 
 /* "forget" command for players */
 ACMD(do_gen_forget) {
-  int spellnum, slot, class = -1;
+  int spellnum, slot, class = -1, metamagic = 0;
   char arg[MAX_INPUT_LENGTH];
   char *s, *m;
 
