@@ -1208,7 +1208,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
    will be using for casting this spell */
   if (!isEpicSpell(spellnum) && !IS_NPC(ch)) {
 
-    class = forgetSpell(ch, spellnum, -1);
+    class = forgetSpell(ch, spellnum, metamagic, -1);
 
     if (class == -1) {
       send_to_char(ch, "ERR:  Report BUG98237 to an IMM!\r\n");
