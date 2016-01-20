@@ -69,7 +69,7 @@ void room_aff_tick(struct raff_node *raff) {
       caster->next_in_room = caster_room->people;
       caster_room->people = caster;
       caster->in_room = real_room(caster_room->number);
-      call_magic(caster, NULL, NULL, SPELL_ACID, DG_SPELL_LEVEL, CAST_SPELL);
+      call_magic(caster, NULL, NULL, SPELL_ACID, 0, DG_SPELL_LEVEL, CAST_SPELL);
       extract_char(caster);
       break;
     case SPELL_BILLOWING_CLOUD:
@@ -96,7 +96,7 @@ void room_aff_tick(struct raff_node *raff) {
       caster->next_in_room = caster_room->people;
       caster_room->people = caster;
       caster->in_room = real_room(caster_room->number);
-      call_magic(caster, NULL, NULL, SPELL_BLADES, DG_SPELL_LEVEL, CAST_SPELL);
+      call_magic(caster, NULL, NULL, SPELL_BLADES, 0, DG_SPELL_LEVEL, CAST_SPELL);
       extract_char(caster);
       break;
     case SPELL_STINKING_CLOUD:
@@ -112,7 +112,7 @@ void room_aff_tick(struct raff_node *raff) {
       caster->next_in_room = caster_room->people;
       caster_room->people = caster;
       caster->in_room = real_room(caster_room->number);
-      call_magic(caster, NULL, NULL, SPELL_STENCH, DG_SPELL_LEVEL, CAST_SPELL);
+      call_magic(caster, NULL, NULL, SPELL_STENCH, 0, DG_SPELL_LEVEL, CAST_SPELL);
       extract_char(caster);
       break;
   }
@@ -123,7 +123,7 @@ void room_aff_tick(struct raff_node *raff) {
 void affliction_tick(struct char_data *ch) {
   /* cloudkill */
   if (CLOUDKILL(ch)) {
-    call_magic(ch, NULL, NULL, SPELL_DEATHCLOUD, MAGIC_LEVEL(ch), CAST_SPELL);
+    call_magic(ch, NULL, NULL, SPELL_DEATHCLOUD, 0, MAGIC_LEVEL(ch), CAST_SPELL);
     CLOUDKILL(ch)--;
     if (CLOUDKILL(ch) <= 0) {
       send_to_char(ch, "Your cloud of death dissipates!\r\n");
@@ -134,7 +134,7 @@ void affliction_tick(struct char_data *ch) {
 
     /* creeping doom */
   else if (DOOM(ch)) {
-    call_magic(ch, NULL, NULL, SPELL_DOOM, DIVINE_LEVEL(ch), CAST_SPELL);
+    call_magic(ch, NULL, NULL, SPELL_DOOM, 0, DIVINE_LEVEL(ch), CAST_SPELL);
     DOOM(ch)--;
     if (DOOM(ch) <= 0) {
       send_to_char(ch, "Your creeping swarm of centipedes dissipates!\r\n");
@@ -145,7 +145,7 @@ void affliction_tick(struct char_data *ch) {
 
     /* incendiary cloud */
   else if (INCENDIARY(ch)) {
-    call_magic(ch, NULL, NULL, SPELL_INCENDIARY, MAGIC_LEVEL(ch), CAST_SPELL);
+    call_magic(ch, NULL, NULL, SPELL_INCENDIARY, 0, MAGIC_LEVEL(ch), CAST_SPELL);
     INCENDIARY(ch)--;
     if (INCENDIARY(ch) <= 0) {
       send_to_char(ch, "Your incendiary cloud dissipates!\r\n");
