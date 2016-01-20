@@ -1299,20 +1299,6 @@ ACMD(do_cast) {
    *
    */        
   
-  /* Check for metamagic. */   
-  log("DEBUG: Argument = %s", argument);
-  for (m = strtok(argument, " "); m && m[0] != '\''; m = strtok(NULL, " ")) {
-    if (is_abbrev(m, "quickened")) {
-      SET_BIT(metamagic, METAMAGIC_QUICKEN);
-      log("DEBUG: Quickened metamagic used.");
-    } else if (is_abbrev(m, "maximized")) {
-      SET_BIT(metamagic, METAMAGIC_MAXIMIZE);
-      log("DEBUG: Maximized metamagic used.");
-    } else {
-      send_to_char(ch, "Use what metamagic?\r\n");
-      return;
-    }      
-  }
   log("DEBUG: Argument = %s", argument);
   /* get: blank, spell name, target name */
   s = strtok(argument, "'");
@@ -1333,6 +1319,22 @@ ACMD(do_cast) {
   t = strtok(NULL, "\0");
 
   log("DEBUG: target t = %s", t);
+  
+  
+  /* Check for metamagic. */   
+  log("DEBUG: Argument = %s", argument);
+  for (m = strtok(argument, " "); m && m[0] != '\''; m = strtok(NULL, " ")) {
+    if (is_abbrev(m, "quickened")) {
+      SET_BIT(metamagic, METAMAGIC_QUICKEN);
+      log("DEBUG: Quickened metamagic used.");
+    } else if (is_abbrev(m, "maximized")) {
+      SET_BIT(metamagic, METAMAGIC_MAXIMIZE);
+      log("DEBUG: Maximized metamagic used.");
+    } else {
+      send_to_char(ch, "Use what metamagic?\r\n");
+      return;
+    }      
+  }
   
   //skip_spaces(&s);
 
