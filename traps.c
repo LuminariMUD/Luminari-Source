@@ -253,7 +253,7 @@ EVENTFUNC(event_trap_triggered) {
         if (effect >= LAST_SPELL_DEFINE) {
           log("SYSERR: perform_trap_effect event called with invalid spell effect!\r\n");
         } else {
-          call_magic(ch, ch, NULL, effect, level, casttype);
+          call_magic(ch, ch, NULL, effect, 0, level, casttype);
         }
 
       } else {
