@@ -1944,7 +1944,7 @@ void printMemory(struct char_data *ch, int class) {
 ACMD(do_gen_forget) {
   int spellnum, slot, class = -1;
   char arg[MAX_INPUT_LENGTH];
-  char *m;
+  char *s, *m;
 
   if (subcmd == SCMD_BLANK)
     class = CLASS_CLERIC;
