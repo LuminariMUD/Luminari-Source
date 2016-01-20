@@ -1396,7 +1396,7 @@ SPECIAL(tiamat) {
       if (world[ch->in_room].zone == world[i->in_room].zone && !IS_NPC(i)) {
         /* Moonblade */
         //if (GET_CLASS(i) == CLASS_BLADESINGER || GET_CLASS(i) == CLASS_RANGER)
-          //ovnum = 32118;
+          //ovnum = 132118;
         /* Malevolence */
         if (GET_CLASS(i) == CLASS_WARRIOR || GET_CLASS(i) == CLASS_BERSERKER) //||
             //GET_CLASS(i) == CLASS_GIANTSLAYER || GET_CLASS(i) == CLASS_BATTLERAGER)
@@ -1406,7 +1406,7 @@ SPECIAL(tiamat) {
           ovnum = 132128;
         /* Rapier */
         //if (GET_CLASS(i) == CLASS_SWASHBUCKLER)
-          //ovnum = 32125;
+          //ovnum = 132125;
         /* Shadow cloak */
           if (GET_CLASS(i) == CLASS_ROGUE)
         //if (GET_CLASS(i) == CLASS_ASSASSIN || GET_CLASS(i) == CLASS_ROGUE ||
@@ -1414,13 +1414,13 @@ SPECIAL(tiamat) {
           ovnum = 132120;
         /* Slaadi Goggles */
         //if (GET_CLASS(i) == CLASS_PSI)
-          //ovnum = 32121;
+          //ovnum = 132121;
         /* Platemail of Life */
         if (GET_CLASS(i) == CLASS_PALADIN)
           ovnum = 132105;
         /* Drow Scimitar */
         //if (GET_CLASS(i) == CLASS_SHADOWSTALKER || GET_CLASS(i) == CLASS_WEAPONMASTER)
-          //ovnum = 32126;
+          //ovnum = 132126;
       }
       /* Move object to room if not already one there */
       for (olist = world[real_room(132100)].contents; olist; olist = olist->next_content)
