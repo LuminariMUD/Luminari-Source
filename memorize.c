@@ -1215,7 +1215,7 @@ int numSpells(struct char_data *ch, int circle, int class) {
       else if (spellCircle(class, PREPARED_SPELLS(ch, slot, classArray(class)).spell, PREPARED_SPELLS(ch, slot, classArray(class)).metamagic, GET_2ND_DOMAIN(ch)) == circle)
         num++;
       if (spellCircle(class, PREPARATION_QUEUE(ch, slot, classArray(class)).spell, PREPARED_SPELLS(ch, slot, classArray(class)).metamagic, GET_1ST_DOMAIN(ch)) == circle)
-        num++;, PREPARED_SPELLS(ch, slot, classArray(class)).metamagic
+        num++;
       else if (spellCircle(class, PREPARATION_QUEUE(ch, slot, classArray(class)).spell, PREPARED_SPELLS(ch, slot, classArray(class)).metamagic, GET_2ND_DOMAIN(ch)) == circle)
         num++;
     }
