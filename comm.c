@@ -3165,7 +3165,7 @@ static void msdp_update(void) {
   struct descriptor_data *d;
   int PlayerCount = 0;
   int door;
-  int damage_bonus = 0;
+  //int damage_bonus = 0;
 
   for (d = descriptor_list; d; d = d->next) {
     char buf[MAX_STRING_LENGTH];
@@ -3194,6 +3194,8 @@ static void msdp_update(void) {
       MSDPSetNumber(d, eMSDP_CON, GET_CON(ch));
       MSDPSetNumber(d, eMSDP_CHA, GET_CHA(ch));
 
+      /* gotta adjust compute_hit_damage() so it doesn't send messages randomly */
+      /*
       if (is_using_ranged_weapon(ch))
         damage_bonus = compute_hit_damage(ch, ch, TYPE_UNDEFINED_WTYPE,
                                           NO_DICEROLL, MODE_NORMAL_HIT, FALSE, ATTACK_TYPE_RANGED);
@@ -3201,6 +3203,7 @@ static void msdp_update(void) {
         damage_bonus = compute_hit_damage(ch, ch, TYPE_UNDEFINED_WTYPE,
                                           NO_DICEROLL, MODE_NORMAL_HIT, FALSE, ATTACK_TYPE_PRIMARY);
       MSDPSetNumber(d, eMSDP_DAMAGE_BONUS, damage_bonus);
+      */
       MSDPSetNumber(d, eMSDP_ATTACK_BONUS, compute_attack_bonus(ch, ch,
                                                                 ATTACK_TYPE_PRIMARY));
 

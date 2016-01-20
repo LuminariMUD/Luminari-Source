@@ -254,6 +254,23 @@ void classo(int class_num, char *name, char *abbrev, char *colored_abbrev,
   class_list[class_num].prereq_list = NULL;  
 }
 
+/* function used for assigning a classes titles */
+void assign_class_titles(int class_num, char *title_4, char *title_9, char *title_14,
+        char *title_19, char *title_24, char *title_29, char *title_30, char *title_imm,
+        char *title_stf, char *title_gstf, char *title_default) {
+  class_list[class_num].titles[0] = title_4;
+  class_list[class_num].titles[1] = title_9;
+  class_list[class_num].titles[2] = title_14;
+  class_list[class_num].titles[3] = title_19;
+  class_list[class_num].titles[4] = title_24;
+  class_list[class_num].titles[5] = title_29;
+  class_list[class_num].titles[6] = title_30;
+  class_list[class_num].titles[7] = title_imm;
+  class_list[class_num].titles[8] = title_stf;
+  class_list[class_num].titles[9] = title_gstf;
+  class_list[class_num].titles[10] = title_default;
+}
+
 /* function used for assigned a classes 'preferred' saves */
 void assign_class_saves(int class_num, int save_fort, int save_refl, int save_will,
         int save_posn, int save_deth) {
@@ -319,10 +336,12 @@ void init_class_list(int class_num) {
   class_list[class_num].unlock_cost = 0;
   
   int i = 0;
-  for (i = 0; i < 5; i++)
+  for (i = 0; i < NUM_PREFERRED_SAVES; i++)
     class_list[class_num].preferred_saves[i] = B;
   for (i = 0; i < NUM_ABILITIES; i++)
     class_list[class_num].class_abil[i] = NA;
+  for (i = 0; i < MAX_NUM_TITLES; i++)
+    class_list[class_num].titles[i] = "";
   
   class_list[class_num].prereq_list = NULL;  
 }
@@ -342,7 +361,7 @@ void load_class_list(void) {
   
   /****************************************************************************/
   /*     class-number  name      abrv   clr-abrv     menu-name*/
-  classo(CLASS_WIZARD, "wizard", "Wiz", "\tmWiz\tn", "m) \tmWizard\tn\r\n",
+  classo(CLASS_WIZARD, "wizard", "Wiz", "\tmWiz\tn", "m) \tmWizard\tn",
       /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlock-cost */
         -1,       N,    N,        L,  4, 0,   1,   2,     Y,       0);
   /* class-number then saves: fortitude, reflex, will, poison, death */
@@ -357,12 +376,24 @@ void load_class_list(void) {
     /*survival,swim,use_magic_device,perform*/
       CC,      CA,  CA,              CC
     );
+  assign_class_titles(CLASS_WIZARD, /* class number */
+    "",                              /* <= 4  */
+    "the Reader of Arcane Texts",    /* <= 9  */
+    "the Ever-Learning",             /* <= 14 */
+    "the Advanced Student",          /* <= 19 */
+    "the Channel of Power",          /* <= 24 */
+    "the Delver of Mysteries",       /* <= 29 */
+    "the Knower of Hidden Things",   /* <= 30 */
+    "the Immortal Warlock",          /* <= LVL_IMMORT */
+    "the Avatar of Magic",           /* <= LVL_STAFF */
+    "the God of Magic",              /* <= LVL_GRSTAFF */
+    "the Wizard"                    /* default */  
+  );
   /****************************************************************************/
           
-  
   /****************************************************************************/
   /*     class-number  name      abrv   clr-abrv     menu-name*/
-  classo(CLASS_CLERIC, "cleric", "Cle", "\tBCle\tn", "c) \tBCleric\tn\r\n",
+  classo(CLASS_CLERIC, "cleric", "Cle", "\tBCle\tn", "c) \tBCleric\tn",
       /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlock-cost */
         -1,       N,    N,        M,  8, 0,   1,   2,     Y,       0);
   /* class-number then saves: fortitude, reflex, will, poison, death */
@@ -377,11 +408,24 @@ void load_class_list(void) {
     /*survival,swim,use_magic_device,perform*/
       CC,      CA,  CC,              CC
     );
+  assign_class_titles(CLASS_CLERIC, /* class number */
+    "",                             /* <= 4  */
+    "the Devotee",                  /* <= 9  */
+    "the Example",                  /* <= 14 */
+    "the Truly Pious",              /* <= 19 */
+    "the Mighty in Faith",          /* <= 24 */
+    "the God-Favored",              /* <= 29 */
+    "the One Who Moves Mountains",  /* <= 30 */
+    "the Immortal Cardinal",        /* <= LVL_IMMORT */
+    "the Inquisitor",               /* <= LVL_STAFF */
+    "the God of Good and Evil",     /* <= LVL_GRSTAFF */
+    "the Cleric"                    /* default */  
+  );
   /****************************************************************************/
   
   /****************************************************************************/
   /*     class-number  name     abrv   clr-abrv     menu-name*/
-  classo(CLASS_ROGUE, "rogue", "Rog", "\twRog\tn", "t) \tWRogue\tn\r\n",
+  classo(CLASS_ROGUE, "rogue", "Rog", "\twRog\tn", "t) \tWRogue\tn",
       /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlock-cost*/
         -1,       N,    N,        M,  6, 0,   2,   8,     Y,       0);
   /* class-number then saves: fortitude, reflex, will, poison, death */
@@ -396,11 +440,24 @@ void load_class_list(void) {
     /*survival,swim,use_magic_device,perform*/
       CC,      CA,  CA,              CC
     );
+  assign_class_titles(CLASS_ROGUE, /* class number */
+    "",                                  /* <= 4  */
+    "the Rover",                         /* <= 9  */
+    "the Multifarious",                  /* <= 14 */
+    "the Illusive",                      /* <= 19 */
+    "the Swindler",                      /* <= 24 */
+    "the Marauder",                      /* <= 29 */
+    "the Volatile",                      /* <= 30 */
+    "the Immortal Assassin",             /* <= LVL_IMMORT */
+    "the Demi God of Thieves",           /* <= LVL_STAFF */
+    "the God of Thieves and Tradesmen",  /* <= LVL_GRSTAFF */
+    "the Rogue"                          /* default */  
+  );
   /****************************************************************************/
   
   /****************************************************************************/
   /*     class-number  name        abrv   clr-abrv       menu-name*/
-  classo(CLASS_WARRIOR, "warrior", "War", "\tRWar\tn", "w) \tRWarrior\tn\r\n",
+  classo(CLASS_WARRIOR, "warrior", "War", "\tRWar\tn", "w) \tRWarrior\tn",
       /* max-lvl  lock? prestige? BAB HD  mana move trains in-game? unlock-cost */
         -1,       N,    N,        H,  10, 0,   1,   2,     Y,       0);
   /* class-number then saves: fortitude, reflex, will, poison, death */
@@ -415,11 +472,24 @@ void load_class_list(void) {
     /*survival,swim,use_magic_device,perform*/
       CC,      CA,  CC,              CC
     );
+  assign_class_titles(CLASS_WARRIOR, /* class number */
+    "",                             /* <= 4  */
+    "the Mostly Harmless",          /* <= 9  */
+    "the Useful in Bar-Fights",     /* <= 14 */
+    "the Friend to Violence",       /* <= 19 */
+    "the Strong",                   /* <= 24 */
+    "the Bane of All Enemies",      /* <= 29 */
+    "the Exceptionally Dangerous",  /* <= 30 */
+    "the Immortal Warlord",         /* <= LVL_IMMORT */
+    "the Extirpator",               /* <= LVL_STAFF */
+    "the God of War",               /* <= LVL_GRSTAFF */
+    "the Warrior"                   /* default */  
+  );
   /****************************************************************************/
   
   /****************************************************************************/
   /*     class-number  name    abrv   clr-abrv     menu-name*/
-  classo(CLASS_MONK, "monk", "Mon", "\tgMon\tn", "o) \tgMonk\tn\r\n",
+  classo(CLASS_MONK, "monk", "Mon", "\tgMon\tn", "o) \tgMonk\tn",
       /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlock-cost */
         -1,       N,    N,        M,  8, 0,   2,   4,     Y,       0);
   /* class-number then saves: fortitude, reflex, will, poison, death */
@@ -434,11 +504,24 @@ void load_class_list(void) {
     /*survival,swim,use_magic_device,perform*/
       CC,      CA,  CC,              CC
     );
+  assign_class_titles(CLASS_MONK, /* class number */
+    "",                         /* <= 4  */
+    "of the Crushing Fist",     /* <= 9  */
+    "of the Stomping Foot",    /* <= 14 */
+    "of the Directed Motions",  /* <= 19 */
+    "of the Disciplined Body",  /* <= 24 */
+    "of the Disciplined Mind",  /* <= 29 */
+    "of the Mastered Self",     /* <= 30 */
+    "the Immortal Monk",        /* <= LVL_IMMORT */
+    "the Inquisitor Monk",      /* <= LVL_STAFF */
+    "the God of the Fist",      /* <= LVL_GRSTAFF */
+    "the Monk"                  /* default */  
+  );
   /****************************************************************************/
   
   /****************************************************************************/
   /*     class-number  name      abrv   clr-abrv          menu-name*/
-  classo(CLASS_DRUID, "druid", "Dru", "\tGD\tgr\tGu\tn", "d) \tGD\tgr\tGu\tgi\tGd\tn\r\n",
+  classo(CLASS_DRUID, "druid", "Dru", "\tGD\tgr\tGu\tn", "d) \tGD\tgr\tGu\tgi\tGd\tn",
       /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlock-cost*/
         -1,       N,    N,        M,  8, 0,   3,   4,     Y,       0);
   /* class-number then saves: fortitude, reflex, will, poison, death */
@@ -453,11 +536,24 @@ void load_class_list(void) {
     /*survival,swim,use_magic_device,perform*/
       CA,      CA,  CC,              CC
     );
+  assign_class_titles(CLASS_DRUID, /* class number */
+    "",                            /* <= 4  */
+    "the Walker on Loam",          /* <= 9  */
+    "the Speaker for Beasts",      /* <= 14 */
+    "the Watcher from Shade",      /* <= 19 */
+    "the Whispering Winds",        /* <= 24 */
+    "the Balancer",                /* <= 29 */
+    "the Still Waters",            /* <= 30 */
+    "the Avatar of Nature",        /* <= LVL_IMMORT */
+    "the Wrath of Nature",         /* <= LVL_STAFF */
+    "the Storm of Earth's Voice",  /* <= LVL_GRSTAFF */
+    "the Druid"                    /* default */  
+  );
   /****************************************************************************/
   
   /****************************************************************************/
   /*     class-number        name      abrv   clr-abrv           menu-name*/
-  classo(CLASS_BERSERKER, "berserker", "Bes", "\trB\tRe\trs\tn", "b) \trBer\tRser\trker\tn\r\n",
+  classo(CLASS_BERSERKER, "berserker", "Bes", "\trB\tRe\trs\tn", "b) \trBer\tRser\trker\tn",
       /* max-lvl  lock? prestige? BAB HD  mana move trains in-game? unlock-cost */
         -1,       N,    N,        H,  12, 0,   2,   4,     Y,       0);
   /* class-number then saves: fortitude, reflex, will, poison, death */
@@ -472,11 +568,24 @@ void load_class_list(void) {
     /*survival,swim,use_magic_device,perform*/
       CC,      CA,  CC,              CC
     );
+  assign_class_titles(CLASS_BERSERKER, /* class number */
+    "",                        /* <= 4  */
+    "the Ripper of Flesh",     /* <= 9  */
+    "the Shatterer of Bone",   /* <= 14 */
+    "the Cleaver of Organs",   /* <= 19 */
+    "the Wrecker of Hope",     /* <= 24 */
+    "the Effulgence of Rage",  /* <= 29 */
+    "the Foe-Hewer",           /* <= 30 */
+    "the Immortal Warlord",    /* <= LVL_IMMORT */
+    "the Extirpator",          /* <= LVL_STAFF */
+    "the God of Rage",         /* <= LVL_GRSTAFF */
+    "the Berserker"            /* default */  
+  );
   /****************************************************************************/
   
   /****************************************************************************/
   /*     class-number     name      abrv   clr-abrv     menu-name*/
-  classo(CLASS_SORCERER, "sorcerer", "Sor", "\tMSor\tn", "s) \tMSorcerer\tn\r\n",
+  classo(CLASS_SORCERER, "sorcerer", "Sor", "\tMSor\tn", "s) \tMSorcerer\tn",
       /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlock-cost*/
         -1,       N,    N,        L,  4, 0,   1,   2,     Y,       0);
   /* class-number then saves: fortitude, reflex, will, poison, death */
@@ -491,11 +600,24 @@ void load_class_list(void) {
     /*survival,swim,use_magic_device,perform*/
       CC,      CA,  CA,              CC
     );
+  assign_class_titles(CLASS_SORCERER, /* class number */
+    "",                            /* <= 4  */
+    "the Awakened",                /* <= 9  */
+    "the Torch",                   /* <= 14 */
+    "the Firebrand",               /* <= 19 */
+    "the Destroyer",               /* <= 24 */
+    "the Crux of Power",           /* <= 29 */
+    "the Near-Divine",             /* <= 30 */
+    "the Immortal Magic Weaver",   /* <= LVL_IMMORT */
+    "the Avatar of the Flow",      /* <= LVL_STAFF */
+    "the Hand of Mystical Might",  /* <= LVL_GRSTAFF */
+    "the Sorcerer"                 /* default */  
+  );
   /****************************************************************************/
   
   /****************************************************************************/
   /*     class-number   name      abrv   clr-abrv     menu-name*/
-  classo(CLASS_PALADIN, "paladin", "Pal", "\tWPal\tn", "p) \tWPaladin\tn\r\n",
+  classo(CLASS_PALADIN, "paladin", "Pal", "\tWPal\tn", "p) \tWPaladin\tn",
       /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlock-cost*/
         -1,       N,    N,        H,  10, 0,   1,   2,     Y,      0);
   /* class-number then saves: fortitude, reflex, will, poison, death */
@@ -510,11 +632,24 @@ void load_class_list(void) {
     /*survival,swim,use_magic_device,perform*/
       CC,      CA,  CC,              CC
     );
+  assign_class_titles(CLASS_PALADIN, /* class number */
+    "",                                /* <= 4  */
+    "the Initiated",                   /* <= 9  */
+    "the Accepted",                    /* <= 14 */
+    "the Hand of Mercy",               /* <= 19 */
+    "the Sword of Justice",            /* <= 24 */
+    "who Walks in the Light",          /* <= 29 */
+    "the Defender of the Faith",       /* <= 30 */
+    "the Immortal Justicar",           /* <= LVL_IMMORT */
+    "the Immortal Sword of Light",     /* <= LVL_STAFF */
+    "the Immortal Hammer of Justice",  /* <= LVL_GRSTAFF */
+    "the Paladin"                      /* default */  
+  );
   /****************************************************************************/
   
   /****************************************************************************/
   /*     class-number  name      abrv   clr-abrv     menu-name*/
-  classo(CLASS_RANGER, "ranger", "Ran", "\tYRan\tn", "r) \tYRanger\tn\r\n",
+  classo(CLASS_RANGER, "ranger", "Ran", "\tYRan\tn", "r) \tYRanger\tn",
       /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlock-cost */
         -1,       N,    N,        H,  10, 0,   3,   4,     Y,      0);
   /* class-number then saves: fortitude, reflex, will, poison, death */
@@ -529,11 +664,24 @@ void load_class_list(void) {
     /*survival,swim,use_magic_device,perform*/
       CA,      CA,  CC,              CC
     );
+  assign_class_titles(CLASS_RANGER, /* class number */
+    "",                                /* <= 4  */
+    "the Dirt-watcher",                   /* <= 9  */
+    "the Hunter",                    /* <= 14 */
+    "the Tracker",               /* <= 19 */
+    "the Finder of Prey",            /* <= 24 */
+    "the Hidden Stalker",          /* <= 29 */
+    "the Great Seeker",       /* <= 30 */
+    "the Avatar of the Wild",           /* <= LVL_IMMORT */
+    "the Wrath of the Wild",     /* <= LVL_STAFF */
+    "the Cyclone of Nature",  /* <= LVL_GRSTAFF */
+    "the Ranger"                      /* default */  
+  );
   /****************************************************************************/
   
   /****************************************************************************/
   /*     class-number  name   abrv   clr-abrv     menu-name*/
-  classo(CLASS_BARD, "bard", "Bar", "\tCBar\tn", "a) \tCBard\tn\r\n",
+  classo(CLASS_BARD, "bard", "Bar", "\tCBar\tn", "a) \tCBard\tn",
       /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlock-cost */
         -1,       N,    N,        M,  6, 0,   2,   6,     Y,       0);
   /* class-number then saves: fortitude, reflex, will, poison, death */
@@ -548,11 +696,24 @@ void load_class_list(void) {
     /*survival,swim,use_magic_device,perform*/
       CC,      CA,  CA,              CA
     );
+  assign_class_titles(CLASS_BARD, /* class number */
+    "",                         /* <= 4  */
+    "the Melodious",            /* <= 9  */
+    "the Hummer of Harmonies",  /* <= 14 */
+    "Weaver of Song",           /* <= 19 */
+    "Keeper of Chords",         /* <= 24 */
+    "the Composer",             /* <= 29 */
+    "the Maestro",              /* <= 30 */
+    "the Immortal Songweaver",  /* <= LVL_IMMORT */
+    "the Master of Sound",      /* <= LVL_STAFF */
+    "the Lord of Dance",        /* <= LVL_GRSTAFF */
+    "the Bard"                  /* default */  
+  );
   /****************************************************************************/
   
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
-  classo(CLASS_WEAPON_MASTER, "weaponmaster", "WpM", "\tcWpM\tn", "e) \tcWeaponMaster\tn\r\n",
+  classo(CLASS_WEAPON_MASTER, "weaponmaster", "WpM", "\tcWpM\tn", "e) \tcWeaponMaster\tn",
       /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlock-cost*/
         10,       Y,    Y,        H,  10, 0,   1,   2,     Y,      5000);
   /* class-number then saves:        fortitude, reflex, will, poison, death */
@@ -567,32 +728,44 @@ void load_class_list(void) {
     /*survival,swim,use_magic_device,perform*/
       CC,      CA,  CC,              CC
     );
+  assign_class_titles(CLASS_WEAPON_MASTER, /* class number */
+    "",                           /* <= 4  */
+    "the Inexperienced Weapon",   /* <= 9  */
+    "the Weapon",                 /* <= 14 */
+    "the Skilled Weapon",         /* <= 19 */
+    "the Master Weapon",          /* <= 24 */
+    "the Master of All Weapons",  /* <= 29 */
+    "the Unmatched Weapon",       /* <= 30 */
+    "the Immortal WeaponMaster",  /* <= LVL_IMMORT */
+    "the Relentless Weapon",      /* <= LVL_STAFF */
+    "the God of Weapons",         /* <= LVL_GRSTAFF */
+    "the WeaponMaster"            /* default */  
+  );
   /****************************************************************************/
 }
 
 /* list all the class defines in-game */
 ACMD(do_classlist) {
-  int i = 0;
+  int i = 0, j = 0;
   char buf[MAX_STRING_LENGTH];
   size_t len = 0;
 
-  send_to_char(ch, "# Name Abrv ClrAbrv MaxLvl Lock Prestige BAB HPs Mvs Train InGame\r\n");
-  send_to_char(ch, "  Sv-Fort Sv-Refl Sv-Will\r\n");
+  send_to_char(ch, "# Name Abrv ClrAbrv Menu MaxLvl Lock Prestige BAB HPs Mvs Train InGame");
+  send_to_char(ch, " | Sv-Fort Sv-Refl Sv-Will\r\n");
   send_to_char(ch, "    acrobatics,stealth,perception,heal,intimidate,concentration,spellcraft\r\n");
   send_to_char(ch, "    appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff\r\n");
   send_to_char(ch, "    diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive\r\n");
-  send_to_char(ch, "    survival,swim,use_magic_device,perform\r\n\r\n");
+  send_to_char(ch, "    survival,swim,use_magic_device,perform\r\n");
   
   for (i = 0; i < NUM_CLASSES; i++) {
     len += snprintf(buf + len, sizeof (buf) - len,
-        "%d] %s %s %s %d %s %s %s %d %d %d %s\r\n"
-        "   %s %s %s\r\n"
+        "\r\n%d] %s %s %s %s %d %s %s %s %d %d %d %s | %s %s %s\r\n"
         "     %s %s %s %s %s %s %s\r\n"
         "     %s %s %s %s %s %s %s %s\r\n"
         "     %s %s %s %s %s %s\r\n"
-        "     %s %s %s %s\r\n\r\n",
-        i, CLSLIST_NAME(i), CLSLIST_ABBRV(i), CLSLIST_CLRABBRV(i), CLSLIST_MAXLVL(i),
-          CLSLIST_LOCK(i) ? "Y" : "N", CLSLIST_PRESTIGE(i) ? "Y" : "N",
+        "     %s %s %s %s\r\n",
+        i, CLSLIST_NAME(i), CLSLIST_ABBRV(i), CLSLIST_CLRABBRV(i), CLSLIST_MENU(i),
+          CLSLIST_MAXLVL(i), CLSLIST_LOCK(i) ? "Y" : "N", CLSLIST_PRESTIGE(i) ? "Y" : "N",
           (CLSLIST_BAB(i) == 2) ? "H" : (CLSLIST_BAB(i) ? "M" : "L"), CLSLIST_HPS(i),
           CLSLIST_MVS(i), CLSLIST_TRAINS(i), CLSLIST_INGAME(i) ? "Y" : "N",
         CLSLIST_SAVES(i, 0) ? "G" : "B", CLSLIST_SAVES(i, 1) ? "G" : "B", CLSLIST_SAVES(i, 2) ? "G" : "B", 
@@ -622,6 +795,9 @@ ACMD(do_classlist) {
           (CLSLIST_ABIL(i, ABILITY_USE_MAGIC_DEVICE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_USE_MAGIC_DEVICE) ? "CC" : "NA"),
           (CLSLIST_ABIL(i, ABILITY_PERFORM) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_PERFORM) ? "CC" : "NA")
                     );
+    for (j = 0; j < MAX_NUM_TITLES; j++) {
+      len += snprintf(buf + len, sizeof (buf) - len, "%s\r\n", CLSLIST_TITLE(i, j));
+    }
   }
   page_string(ch->desc, buf, 1);
 }
