@@ -79,7 +79,7 @@ ACMD(do_eviltouch) {
     act("A \trred\tn aura shoots from your fingertips towards $N!", FALSE, ch, 0, vict, TO_CHAR);
     act("$n shoots a \trred\tn aura towards you!", FALSE, ch, 0, vict, TO_VICT);
     act("$n shoots a \trred\tn aura towards $N!", FALSE, ch, 0, vict, TO_NOTVICT);
-    call_magic(ch, vict, 0, SPELL_EYEBITE, CLASS_LEVEL(ch, CLASS_CLERIC), CAST_INNATE);
+    call_magic(ch, vict, 0, SPELL_EYEBITE, 0, CLASS_LEVEL(ch, CLASS_CLERIC), CAST_INNATE);
   } else {
     /* missed */
     act("A \trred\tn aura shoots from your fingertips towards $N, but fails to land!", FALSE, ch, 0, vict, TO_CHAR);
@@ -143,7 +143,7 @@ ACMD(do_blessedtouch) {
     act("$n shoots a \tWwhite\tn aura towards you!", FALSE, ch, 0, vict, TO_VICT);
     act("$n shoots a \tWwhite\tn aura towards $N!", FALSE, ch, 0, vict, TO_NOTVICT);
   }
-  call_magic(ch, vict, 0, SPELL_AID, CLASS_LEVEL(ch, CLASS_CLERIC), CAST_INNATE);
+  call_magic(ch, vict, 0, SPELL_AID, 0, CLASS_LEVEL(ch, CLASS_CLERIC), CAST_INNATE);
 
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_BLESSED_TOUCH);
@@ -305,7 +305,7 @@ ACMD(do_eyeofknowledge) {
     return;
   }
 
-  call_magic(ch, NULL, 0, SPELL_WIZARD_EYE, CLASS_LEVEL(ch, CLASS_CLERIC), CAST_INNATE);
+  call_magic(ch, NULL, 0, SPELL_WIZARD_EYE, 0, CLASS_LEVEL(ch, CLASS_CLERIC), CAST_INNATE);
 
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_EYE_OF_KNOWLEDGE);
@@ -337,7 +337,7 @@ ACMD(do_copycat) {
     return;
   }
 
-  call_magic(ch, ch, 0, SPELL_MIRROR_IMAGE, CLASS_LEVEL(ch, CLASS_CLERIC), CAST_INNATE);
+  call_magic(ch, ch, 0, SPELL_MIRROR_IMAGE, 0, CLASS_LEVEL(ch, CLASS_CLERIC), CAST_INNATE);
 
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_COPYCAT);
@@ -374,7 +374,7 @@ ACMD(do_massinvis) {
     return;
   }
 
-  call_magic(ch, ch, 0, SPELL_INVISIBILITY_SPHERE, CLASS_LEVEL(ch, CLASS_CLERIC), CAST_INNATE);
+  call_magic(ch, ch, 0, SPELL_INVISIBILITY_SPHERE, 0, CLASS_LEVEL(ch, CLASS_CLERIC), CAST_INNATE);
 
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_MASS_INVIS);
@@ -988,7 +988,7 @@ ACMD(do_cursetouch) {
   act("A \trred\tn aura shoots from your fingertips towards $N!", FALSE, ch, 0, vict, TO_CHAR);
   act("$n shoots a \trred\tn aura towards you!", FALSE, ch, 0, vict, TO_VICT);
   act("$n shoots a \trred\tn aura towards $N!", FALSE, ch, 0, vict, TO_NOTVICT);
-  call_magic(ch, vict, 0, SPELL_CURSE, CLASS_LEVEL(ch, CLASS_CLERIC), CAST_INNATE);
+  call_magic(ch, vict, 0, SPELL_CURSE, 0, CLASS_LEVEL(ch, CLASS_CLERIC), CAST_INNATE);
 
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_CURSE_TOUCH);
