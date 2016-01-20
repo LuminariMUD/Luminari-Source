@@ -322,7 +322,7 @@ ACMD(do_scribe) {
       return;
     }
 
-    if (hasSpell(ch, spellnum, 0) != CLASS_WIZARD) {
+    if (hasSpell(ch, spellnum, -1) != CLASS_WIZARD) {
       send_to_char(ch, "You must have the spell committed to memory before "
               "you can scribe it!\r\n");
       return;
@@ -1171,14 +1171,14 @@ int forgetSpell(struct char_data *ch, int spellnum, int metamagic, int class) {
     /* check sorc-type arrays */
     if (CLASS_LEVEL(ch, CLASS_SORCERER)) {
       /* got a free slot? */
-      if (hasSpell(ch, spellnum, 0) == CLASS_SORCERER) {
+      if (hasSpell(ch, spellnum, -1) == CLASS_SORCERER) {
         addSpellMemming(ch, spellnum, 0, 0, CLASS_SORCERER);
         return CLASS_SORCERER;
       }
     }
     if (CLASS_LEVEL(ch, CLASS_BARD)) {
       /* got a free slot? */
-      if (hasSpell(ch, spellnum, 0) == CLASS_BARD) {
+      if (hasSpell(ch, spellnum, -1) == CLASS_BARD) {
         addSpellMemming(ch, spellnum, 0, 0, CLASS_BARD);
         return CLASS_BARD;
       }
@@ -1351,7 +1351,7 @@ int hasSpell(struct char_data *ch, int spellnum, int metamagic) {
       continue;
     for (slot = 0; slot < MAX_MEM; slot++) {
       if ((PREPARED_SPELLS(ch, slot, classArray(x)).spell == spellnum) &&
-          (PREPARED_SPELLS(ch, slot, classArray(x)).metamagic == metamagic))
+          (metamagic != -1 ? (PREPARED_SPELLS(ch, slot, classArray(x)).metamagic == metamagic) : TRUE))
         return x;
     }
   }
