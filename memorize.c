@@ -784,9 +784,18 @@ void init_spell_slots(struct char_data *ch) {
     IS_PREPARING(ch, x) = FALSE;
 }
 
-/* given class and spellnum, returns spells circle */
-int spellCircle(int class, int spellnum, int domain) {
-
+/* given class, spellnum, metamagic and domain, return spell's circle */
+int spellCircle(int class, int spellnum, int metamagic, int domain) {
+  int metamagic_mod = 0;
+  
+  /* Here we add the circle changes resulting from metamagic use: */
+  if (IS_SET(metamagic, METAMAGIC_QUICKEN)) {
+    metamagic_mod += 4;
+  }
+  if (IS_SET(metamagic, METAMAGIC_MAXIMIZE)) {
+    metamagic_mod += 3;
+  }
+  
   if (spellnum <= SPELL_RESERVED_DBC || spellnum >= NUM_SPELLS)
     return 99;
 
@@ -795,32 +804,32 @@ int spellCircle(int class, int spellnum, int domain) {
       switch (spell_info[spellnum].min_level[class]) {
         case 3:
         case 4:
-          return 1;
+          return 1 + metamagic_mod;
         case 5:
         case 6:
         case 7:
-          return 2;
+          return 2 + metamagic_mod;
         case 8:
         case 9:
         case 10:
-          return 3;
+          return 3 + metamagic_mod;
         case 11:
         case 12:
         case 13:
-          return 4;
+          return 4 + metamagic_mod;
         case 14:
         case 15:
         case 16:
-          return 5;
+          return 5 + metamagic_mod;
         case 17:
         case 18:
         case 19:
-          return 6;
+          return 6 + metamagic_mod;
           // don't use 20, that is reserved for epic!  case 20:
         default:
           return 99;
       }
-      return 1;
+      return 1 + metamagic_mod;
     case CLASS_SORCERER:
       return ((MAX(1, (spell_info[spellnum].min_level[class]) / 2)));
       /* pally can get confusing, just check out class.c to see what level
@@ -831,25 +840,25 @@ int spellCircle(int class, int spellnum, int domain) {
         case 7:
         case 8:
         case 9:
-          return 1;
+          return 1 + metamagic_mod;
         case 10:
         case 11:
-          return 2;
+          return 2 + metamagic_mod;
         case 12:
         case 13:
         case 14:
-          return 3;
+          return 3 + metamagic_mod;
         case 15:
         case 16:
         case 17:
         case 18:
         case 19:
         case 20:
-          return 4;
+          return 4 + metamagic_mod;
         default:
           return 99;
       }
-      return 1;
+      return 1 + metamagic_mod;
       /* rangers can get confusing, just check out class.c to see what level
          they get their circles at in the spell_level function */
     case CLASS_RANGER:
@@ -858,30 +867,30 @@ int spellCircle(int class, int spellnum, int domain) {
         case 7:
         case 8:
         case 9:
-          return 1;
+          return 1 + metamagic_mod;
         case 10:
         case 11:
-          return 2;
+          return 2 + metamagic_mod;
         case 12:
         case 13:
         case 14:
-          return 3;
+          return 3 + metamagic_mod;
         case 15:
         case 16:
         case 17:
         case 18:
         case 19:
         case 20:
-          return 4;
+          return 4 + metamagic_mod;
         default:
           return 99;
       }
       return 1;
     case CLASS_CLERIC:
-      return ((int) ((MIN_SPELL_LVL(spellnum, CLASS_CLERIC, domain) + 1) / 2));
+      return ((int) ((MIN_SPELL_LVL(spellnum, CLASS_CLERIC, domain) + 1) / 2)) + metamagic_mod;
       /* wizard, druid */
     default:
-      return ((int) ((spell_info[spellnum].min_level[class] + 1) / 2));
+      return ((int) ((spell_info[spellnum].min_level[class] + 1) / 2)) + metamagic_mod;
   }
 }
 
@@ -976,13 +985,13 @@ void addSpellMemming(struct char_data *ch, int spellnum, int metamagic, int time
    * are just storing the spellnum's circle */
   if (class == CLASS_SORCERER) {
     /* replace spellnum with its circle */
-    spellnum = spellCircle(class, spellnum, DOMAIN_UNDEFINED);
+    spellnum = spellCircle(class, spellnum, metamagic, DOMAIN_UNDEFINED);
     /* replace time with slot-mem-time */
     time = SORC_TIME_FACTOR * spellnum;
   }
   else if (class == CLASS_BARD) {
     /* replace spellnum with its circle */
-    spellnum = spellCircle(class, spellnum, DOMAIN_UNDEFINED);
+    spellnum = spellCircle(class, spellnum, metamagic, DOMAIN_UNDEFINED);
     /* replace time with slot-mem-time */
     time = BARD_TIME_FACTOR * spellnum;
   }
@@ -1201,21 +1210,21 @@ int numSpells(struct char_data *ch, int circle, int class) {
     }
   } else if (class == CLASS_CLERIC) {
     for (slot = 0; slot < (MAX_MEM); slot++) {
-      if (spellCircle(class, PREPARED_SPELLS(ch, slot, classArray(class)).spell, GET_1ST_DOMAIN(ch)) == circle)
+      if (spellCircle(class, PREPARED_SPELLS(ch, slot, classArray(class)).spell, PREPARED_SPELLS(ch, slot, classArray(class)).metamagic, GET_1ST_DOMAIN(ch)) == circle)
         num++;
-      else if (spellCircle(class, PREPARED_SPELLS(ch, slot, classArray(class)).spell, GET_2ND_DOMAIN(ch)) == circle)
+      else if (spellCircle(class, PREPARED_SPELLS(ch, slot, classArray(class)).spell, PREPARED_SPELLS(ch, slot, classArray(class)).metamagic, GET_2ND_DOMAIN(ch)) == circle)
         num++;
-      if (spellCircle(class, PREPARATION_QUEUE(ch, slot, classArray(class)).spell, GET_1ST_DOMAIN(ch)) == circle)
-        num++;
-      else if (spellCircle(class, PREPARATION_QUEUE(ch, slot, classArray(class)).spell, GET_2ND_DOMAIN(ch)) == circle)
+      if (spellCircle(class, PREPARATION_QUEUE(ch, slot, classArray(class)).spell, PREPARED_SPELLS(ch, slot, classArray(class)).metamagic, GET_1ST_DOMAIN(ch)) == circle)
+        num++;, PREPARED_SPELLS(ch, slot, classArray(class)).metamagic
+      else if (spellCircle(class, PREPARATION_QUEUE(ch, slot, classArray(class)).spell, PREPARED_SPELLS(ch, slot, classArray(class)).metamagic, GET_2ND_DOMAIN(ch)) == circle)
         num++;
     }
   } else {
     /* every other class  */
     for (slot = 0; slot < (MAX_MEM); slot++) {
-      if (spellCircle(class, PREPARED_SPELLS(ch, slot, classArray(class)).spell, DOMAIN_UNDEFINED) == circle)
+      if (spellCircle(class, PREPARED_SPELLS(ch, slot, classArray(class)).spell, PREPARED_SPELLS(ch, slot, classArray(class)).metamagic, DOMAIN_UNDEFINED) == circle)
         num++;
-      if (spellCircle(class, PREPARATION_QUEUE(ch, slot, classArray(class)).spell, DOMAIN_UNDEFINED) == circle)
+      if (spellCircle(class, PREPARATION_QUEUE(ch, slot, classArray(class)).spell, PREPARED_SPELLS(ch, slot, classArray(class)).metamagic, DOMAIN_UNDEFINED) == circle)
         num++;
     }
   }
@@ -1233,11 +1242,11 @@ int count_sorc_known(struct char_data *ch, int circle, int class) {
   for (slot = 0; slot < MAX_MEM; slot++) {
     if (class == CLASS_SORCERER) {
       if (spellCircle(CLASS_SORCERER,
-              PREPARED_SPELLS(ch, slot, classArray(CLASS_SORCERER)).spell, DOMAIN_UNDEFINED) == circle)
+              PREPARED_SPELLS(ch, slot, classArray(CLASS_SORCERER)).spell, PREPARED_SPELLS(ch, slot, classArray(CLASS_SORCERER)).metamagic, DOMAIN_UNDEFINED) == circle)
         num++;
     } else if (class == CLASS_BARD) {
       if (spellCircle(CLASS_BARD,
-              PREPARED_SPELLS(ch, slot, classArray(CLASS_BARD)).spell, DOMAIN_UNDEFINED) == circle)
+              PREPARED_SPELLS(ch, slot, classArray(CLASS_BARD)).spell, PREPARED_SPELLS(ch, slot, classArray(CLASS_BARD)).metamagic, DOMAIN_UNDEFINED) == circle)
         num++;
     }
 
@@ -1297,7 +1306,7 @@ void sorc_extract_known(struct char_data *ch, int spellnum, int class) {
 int sorc_add_known(struct char_data *ch, int spellnum, int class) {
   int slot, circle;
 
-  circle = spellCircle(class, spellnum, DOMAIN_UNDEFINED);
+  circle = spellCircle(class, spellnum, 0, DOMAIN_UNDEFINED);
 
   if (class == CLASS_SORCERER) {
     if ((sorcererKnown[CLASS_LEVEL(ch, class)][circle - 1] -
@@ -1350,7 +1359,7 @@ int hasSpell(struct char_data *ch, int spellnum) {
   if (CLASS_LEVEL(ch, CLASS_SORCERER)) {
     // is this one of the "known" spells?
     if (sorcKnown(ch, spellnum, CLASS_SORCERER)) {
-      int circle = spellCircle(CLASS_SORCERER, spellnum, DOMAIN_UNDEFINED);
+      int circle = spellCircle(CLASS_SORCERER, spellnum, 0, DOMAIN_UNDEFINED);
       // do we have any slots left?
       // take total slots for the correct circle and subtract from used
       if ((comp_slots(ch, circle, CLASS_SORCERER) -
@@ -1362,7 +1371,7 @@ int hasSpell(struct char_data *ch, int spellnum) {
   if (CLASS_LEVEL(ch, CLASS_BARD)) {
     // is this one of the "known" spells?
     if (sorcKnown(ch, spellnum, CLASS_BARD)) {
-      int circle = spellCircle(CLASS_BARD, spellnum, DOMAIN_UNDEFINED);
+      int circle = spellCircle(CLASS_BARD, spellnum, 0, DOMAIN_UNDEFINED);
       // do we have any slots left?
       // take total slots for the correct circle and subtract from used
       if ((comp_slots(ch, circle, CLASS_BARD) -
@@ -1718,8 +1727,8 @@ void display_memmed(struct char_data*ch, int class) {
       printed = FALSE;
       for (memSlot = 0; memSlot < (MAX_MEM); memSlot++) {
         if (PREPARED_SPELLS(ch, memSlot, classArray(class)).spell != 0 &&
-            (spellCircle(class, PREPARED_SPELLS(ch, memSlot, classArray(class)).spell, GET_1ST_DOMAIN(ch)) == slot ||
-             spellCircle(class, PREPARED_SPELLS(ch, memSlot, classArray(class)).spell, GET_2ND_DOMAIN(ch)) == slot)) {
+            (spellCircle(class, PREPARED_SPELLS(ch, memSlot, classArray(class)).spell, PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, GET_1ST_DOMAIN(ch)) == slot ||
+             spellCircle(class, PREPARED_SPELLS(ch, memSlot, classArray(class)).spell, PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, GET_2ND_DOMAIN(ch)) == slot)) {
           if (num[PREPARED_SPELLS(ch, memSlot, classArray(class)).spell] != 0) {
             if (!printed) {
               send_to_char(ch, "[Circle: %d]          %2d - %s\r\n",
@@ -1803,7 +1812,7 @@ void display_memming(struct char_data *ch, int class) {
           spellLevel2 = (MIN_SPELL_LVL(PREPARATION_QUEUE(ch, slot, classArray(class)).spell, class, GET_2ND_DOMAIN(ch)) + 1) / 2;
           spellLevel = MIN(spellLevel, spellLevel2);
         } else
-          spellLevel = spellCircle(class, PREPARATION_QUEUE(ch, slot, classArray(class)).spell, DOMAIN_UNDEFINED);
+          spellLevel = spellCircle(class, PREPARATION_QUEUE(ch, slot, classArray(class)).spell, PREPARATION_QUEUE(ch, slot, classArray(class)).metamagic, DOMAIN_UNDEFINED);                
         send_to_char(ch, "  %s [%d%s] with %d seconds remaining.\r\n",
                      spell_info[PREPARATION_QUEUE(ch, slot, classArray(class)).spell].name,
                      spellLevel, spellLevel == 1 ? "st" : spellLevel == 2 ?
@@ -2254,16 +2263,8 @@ ACMD(do_gen_memorize) {
     return;
   }
 
-  minLevel = spellCircle(class, spellnum, GET_1ST_DOMAIN(ch));
-  minLevel = MIN(minLevel, spellCircle(class, spellnum, GET_2ND_DOMAIN(ch)));
-  
-  /* Here we add the 'level' changes resulting from metamagic use: */
-  if (IS_SET(metamagic, METAMAGIC_QUICKEN)) {
-    minLevel += 4;
-  }
-  if (IS_SET(metamagic, METAMAGIC_MAXIMIZE)) {
-    minLevel += 3;
-  }
+  minLevel = spellCircle(class, spellnum, metamagic, GET_1ST_DOMAIN(ch));
+  minLevel = MIN(minLevel, spellCircle(class, spellnum, metamagic, GET_2ND_DOMAIN(ch)));
   
   compSlots = comp_slots(ch, minLevel, class);
   num_spells = numSpells(ch, minLevel, class);
