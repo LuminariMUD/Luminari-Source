@@ -343,24 +343,24 @@ static void fry_victim(struct char_data *ch)
   case 3:
     send_to_char(ch, "You raise your hand in a dramatical gesture.\r\n");
     act("$n raises $s hand in a dramatical gesture.", 1, ch, 0, 0, TO_ROOM);
-    cast_spell(ch, tch, 0, SPELL_COLOR_SPRAY);
+    cast_spell(ch, tch, 0, SPELL_COLOR_SPRAY, 0);
     break;
   case 4:
   case 5:
     send_to_char(ch, "You concentrate and mumble to yourself.\r\n");
     act("$n concentrates, and mumbles to $mself.", 1, ch, 0, 0, TO_ROOM);
-    cast_spell(ch, tch, 0, SPELL_HARM);
+    cast_spell(ch, tch, 0, SPELL_HARM, 0);
     break;
   case 6:
   case 7:
     act("You look deeply into the eyes of $N.", 1, ch, 0, tch, TO_CHAR);
     act("$n looks deeply into the eyes of $N.", 1, ch, 0, tch, TO_NOTVICT);
     act("You see an ill-boding flame in the eye of $n.", 1, ch, 0, tch, TO_VICT);
-    cast_spell(ch, tch, 0, SPELL_FIREBALL);
+    cast_spell(ch, tch, 0, SPELL_FIREBALL, 0);
     break;
   default:
     if (!rand_number(0, 1))
-      cast_spell(ch, ch, 0, SPELL_HEAL);
+      cast_spell(ch, ch, 0, SPELL_HEAL, 0);
     break;
   }
 
@@ -1072,7 +1072,7 @@ SPECIAL(tia_rapier) {
             "\tLfrom you and transfers it back to $m.\tn",
             FALSE, ch, (struct obj_data *) me, vict, TO_VICT);
     damage(ch, vict, 5, -1, DAM_ENERGY, FALSE);  // type -1 = no dam message
-    call_magic(ch, ch, 0, SPELL_CURE_LIGHT, 1, CAST_SPELL);
+    call_magic(ch, ch, 0, SPELL_CURE_LIGHT, 0, 1, CAST_SPELL);
     return 1;
   }
 
@@ -1364,7 +1364,7 @@ int tiamat_breath(struct char_data *ch) {
   selected = dice(1, breaths) - 1;
   selected = breath[selected];
   // do a breath..  level 40 breath since she breaths every round.
-  call_magic(ch, FIGHTING(ch), 0, selected, 30, CAST_SPELL);
+  call_magic(ch, FIGHTING(ch), 0, selected, 0, 30, CAST_SPELL);
   return 1;
 }
 
@@ -1797,7 +1797,7 @@ SPECIAL(ymir) {
     return 0;
 
   if (FIGHTING(ch) && !rand_number(0, 4)) {
-    call_magic(ch, FIGHTING(ch), 0, SPELL_FROST_BREATHE, GET_LEVEL(ch), CAST_SPELL);
+    call_magic(ch, FIGHTING(ch), 0, SPELL_FROST_BREATHE, 0, GET_LEVEL(ch), CAST_SPELL);
     return 1;
   }
 
@@ -1809,7 +1809,7 @@ SPECIAL(planetar) {
     return 0;
 
   if (FIGHTING(ch) && !rand_number(0, 5)) {
-    call_magic(ch, FIGHTING(ch), 0, SPELL_LIGHTNING_BREATHE, GET_LEVEL(ch), CAST_SPELL);
+    call_magic(ch, FIGHTING(ch), 0, SPELL_LIGHTNING_BREATHE, 0, GET_LEVEL(ch), CAST_SPELL);
     return 1;
   }
 
@@ -1907,7 +1907,7 @@ SPECIAL(mistweave) {
               "\tLenshrouding the eyes of $N.",
               FALSE, ch, obj, vict, TO_ROOM);
 
-      call_magic(ch, FIGHTING(ch), 0, SPELL_BLINDNESS, 30, CAST_SPELL);
+      call_magic(ch, FIGHTING(ch), 0, SPELL_BLINDNESS, 0, 30, CAST_SPELL);
       GET_OBJ_SPECTIMER(obj, 0) = 24;
       return 1;
     } else return 0;
@@ -1954,11 +1954,11 @@ SPECIAL(frostbite) {
 
       pct = rand_number(0, 99);
       if (pct < 55)
-        call_magic(ch, vict, 0, SPELL_CONE_OF_COLD, 20, CAST_SPELL);
+        call_magic(ch, vict, 0, SPELL_CONE_OF_COLD, 0, 20, CAST_SPELL);
       else if (pct < 85)
-        call_magic(ch, vict, 0, SPELL_CONE_OF_COLD, 30, CAST_SPELL);
+        call_magic(ch, vict, 0, SPELL_CONE_OF_COLD, 0, 30, CAST_SPELL);
       else {
-        call_magic(ch, vict, 0, SPELL_CONE_OF_COLD, 30, CAST_SPELL);
+        call_magic(ch, vict, 0, SPELL_CONE_OF_COLD, 0, 30, CAST_SPELL);
         new_affect(&af);
         af.spell = SPELL_HOLD_PERSON;
         SET_BIT_AR(af.bitvector, AFF_PARALYZED);
@@ -2180,7 +2180,7 @@ SPECIAL(valkyrie_sword) {
           "\tYStreaks of flames issue forth from $p\n\r"
           "\tYengulfing $n's \tYfoe.", ch, vict, (struct obj_data *) me, 0);
 
-  call_magic(ch, vict, 0, SPELL_BURNING_HANDS, 30, CAST_SPELL);
+  call_magic(ch, vict, 0, SPELL_BURNING_HANDS, 0, 30, CAST_SPELL);
 
   return 1;
 }
@@ -2205,7 +2205,7 @@ SPECIAL(planetar_sword) {
               0,
               "\tWA nimbus of holy light surrounds $n's\tW sword, bathing $m in its radiance.",
               ch, ch, (struct obj_data *) me, SPELL_CURE_CRITIC);
-      call_magic(ch, ch, 0, SPELL_CURE_CRITIC, GET_LEVEL(ch), CAST_SPELL);
+      call_magic(ch, ch, 0, SPELL_CURE_CRITIC, 0, GET_LEVEL(ch), CAST_SPELL);
       return 1;
     case 2:
       weapons_spells("\tWA glowing nimbus of light emanates forth blasting the foul evil in its presence.\tn",
