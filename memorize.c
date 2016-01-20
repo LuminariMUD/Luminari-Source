@@ -1123,7 +1123,7 @@ int forgetSpell(struct char_data *ch, int spellnum, int metamagic, int class) {
     if (PREPARED_SPELLS(ch, 0, classArray(class)).spell) {
       for (slot = 0; slot < (MAX_MEM); slot++) {
         if (PREPARED_SPELLS(ch, slot, classArray(class)).spell == spellnum && 
-            (metamagic != -1 ? PREPARED_SPELLS(ch, slot, classArray(class)).metamagic == metamagic : TRUE) {
+            (metamagic != -1 ? PREPARED_SPELLS(ch, slot, classArray(class)).metamagic == metamagic : TRUE)) {
           if (PREPARED_SPELLS(ch, slot + 1, classArray(class)).spell != 0) {
             for (nextSlot = slot; nextSlot < (MAX_MEM) - 1; nextSlot++) {
               PREPARED_SPELLS(ch, nextSlot, classArray(class)).spell =
