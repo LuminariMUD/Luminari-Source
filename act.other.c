@@ -3787,21 +3787,21 @@ ACMD(do_use) {
       umd_ability_score = (skill_check(ch, ABILITY_USE_MAGIC_DEVICE, 15));
       bool passed = FALSE;
       if (spell_info[spell].min_level[CLASS_WIZARD] < LVL_STAFF)
-        passed = (((GET_INT(ch) > umd_ability_score) ? GET_INT(ch) : umd_ability_score) > (10 + spellCircle(CLASS_WIZARD, spell, DOMAIN_UNDEFINED)) ? TRUE : passed);
+        passed = (((GET_INT(ch) > umd_ability_score) ? GET_INT(ch) : umd_ability_score) > (10 + spellCircle(CLASS_WIZARD, spell, 0, DOMAIN_UNDEFINED)) ? TRUE : passed);
       if (spell_info[spell].min_level[CLASS_SORCERER] < LVL_STAFF)
-        passed = (((GET_CHA(ch) > umd_ability_score) ? GET_CHA(ch) : umd_ability_score) > (10 + spellCircle(CLASS_SORCERER, spell, DOMAIN_UNDEFINED)) ? TRUE : passed);
+        passed = (((GET_CHA(ch) > umd_ability_score) ? GET_CHA(ch) : umd_ability_score) > (10 + spellCircle(CLASS_SORCERER, spell, 0, DOMAIN_UNDEFINED)) ? TRUE : passed);
       if (spell_info[spell].min_level[CLASS_BARD] < LVL_STAFF)
-        passed = (((GET_CHA(ch) > umd_ability_score) ? GET_CHA(ch) : umd_ability_score) > (10 + spellCircle(CLASS_BARD, spell, DOMAIN_UNDEFINED)) ? TRUE : passed);
+        passed = (((GET_CHA(ch) > umd_ability_score) ? GET_CHA(ch) : umd_ability_score) > (10 + spellCircle(CLASS_BARD, spell, 0, DOMAIN_UNDEFINED)) ? TRUE : passed);
       if (MIN_SPELL_LVL(spell, CLASS_CLERIC, GET_1ST_DOMAIN(ch)) < LVL_STAFF)
-        passed = (((GET_WIS(ch) > umd_ability_score) ? GET_WIS(ch) : umd_ability_score) > (10 + spellCircle(CLASS_CLERIC, spell, GET_1ST_DOMAIN(ch))) ? TRUE : passed);
+        passed = (((GET_WIS(ch) > umd_ability_score) ? GET_WIS(ch) : umd_ability_score) > (10 + spellCircle(CLASS_CLERIC, spell, 0, GET_1ST_DOMAIN(ch))) ? TRUE : passed);
       if (MIN_SPELL_LVL(spell, CLASS_CLERIC, GET_2ND_DOMAIN(ch)) < LVL_STAFF)
-        passed = (((GET_WIS(ch) > umd_ability_score) ? GET_WIS(ch) : umd_ability_score) > (10 + spellCircle(CLASS_CLERIC, spell, GET_2ND_DOMAIN(ch))) ? TRUE : passed);
+        passed = (((GET_WIS(ch) > umd_ability_score) ? GET_WIS(ch) : umd_ability_score) > (10 + spellCircle(CLASS_CLERIC, spell, 0, GET_2ND_DOMAIN(ch))) ? TRUE : passed);
       if (spell_info[spell].min_level[CLASS_DRUID] < LVL_STAFF)
-        passed = (((GET_WIS(ch) > umd_ability_score) ? GET_WIS(ch) : umd_ability_score) > (10 + spellCircle(CLASS_DRUID, spell, DOMAIN_UNDEFINED)) ? TRUE : passed);
+        passed = (((GET_WIS(ch) > umd_ability_score) ? GET_WIS(ch) : umd_ability_score) > (10 + spellCircle(CLASS_DRUID, spell, 0, DOMAIN_UNDEFINED)) ? TRUE : passed);
       if (spell_info[spell].min_level[CLASS_PALADIN] < LVL_STAFF)
-        passed = (((GET_CHA(ch) > umd_ability_score) ? GET_CHA(ch) : umd_ability_score) > (10 + spellCircle(CLASS_PALADIN, spell, DOMAIN_UNDEFINED)) ? TRUE : passed);
+        passed = (((GET_CHA(ch) > umd_ability_score) ? GET_CHA(ch) : umd_ability_score) > (10 + spellCircle(CLASS_PALADIN, spell, 0, DOMAIN_UNDEFINED)) ? TRUE : passed);
       if (spell_info[spell].min_level[CLASS_RANGER] < LVL_STAFF)
-        passed = (((GET_WIS(ch) > umd_ability_score) ? GET_WIS(ch) : umd_ability_score) > (10 + spellCircle(CLASS_RANGER, spell, DOMAIN_UNDEFINED)) ? TRUE : passed);
+        passed = (((GET_WIS(ch) > umd_ability_score) ? GET_WIS(ch) : umd_ability_score) > (10 + spellCircle(CLASS_RANGER, spell, 0, DOMAIN_UNDEFINED)) ? TRUE : passed);
       if (passed == FALSE)
       {
         send_to_char(ch, "You are physically incapable of casting the spell inscribed on the scroll.\r\n");
