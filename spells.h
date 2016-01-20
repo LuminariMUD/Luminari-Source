@@ -1178,7 +1178,7 @@ bool spellbook_ok(struct char_data *ch, int spellnum, int class, bool check_scro
 ACMD(do_scribe);
 /* memorize related functions */
 void init_spell_slots(struct char_data *ch);
-int spellCircle(int class, int spellnum, int domain);
+int spellCircle(int class, int spellnum, int metamagic, int domain);
 int comp_slots(struct char_data *ch, int circle, int class);
 void addSpellMemming(struct char_data *ch, int spellnum, int metamagic, int time, int mode);
 void resetMemtimes(struct char_data *ch, int class);
