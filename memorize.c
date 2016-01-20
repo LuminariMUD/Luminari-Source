@@ -1964,33 +1964,33 @@ ACMD(do_gen_forget) {
     return;
   }
   
-  for (m = strtok(argument, " "); m && m[0] != '\''; m = strtok(NULL, " ")) {
-    if (is_abbrev(m, "all")) {
-      forget_all = TRUE;
-    } else if (is_abbrev(m, "quickened")) {
-      SET_BIT(metamagic, METAMAGIC_QUICKEN);
-      //log("DEBUG: Quickened metamagic used.");
-    } else if (is_abbrev(m, "maximized")) {
-      SET_BIT(metamagic, METAMAGIC_MAXIMIZE);
-      //log("DEBUG: Maximized metamagic used.");
-    } else {
-      send_to_char(ch, "Using what metamagic?\r\n");
-      return;
-    }      
-  }
-    
   s = strtok(argument, "'");
   log("DEBUG s = %s", s);
-  if (!forget_all && s == NULL) {
-    send_to_char(ch, "Forget which spell?\r\n");
+  
+  if (s == NULL) {
+    send_to_char(ch, "Forget which spell, or all for all spells?\r\n");
     return;
   }
-    
   s = strtok(NULL, "'");
-  log("DEBUG s = %s", s);
+   
   if (s == NULL) {
-    send_to_char(ch, "The name of the spell to forget must be enclosed within ' and '.\r\n");
+    send_to_char(ch, "Spell names must be enclosed in the Holy Magic Symbols: '\r\n");
     return;
+  }
+  
+  /* Check for metamagic. */   
+  log("DEBUG: Argument = %s", argument);
+  for (m = strtok(argument, " "); m && m[0] != '\''; m = strtok(NULL, " ")) {
+    if (is_abbrev(m, "quickened")) {
+      SET_BIT(metamagic, METAMAGIC_QUICKEN);
+      log("DEBUG: Quickened metamagic used.");
+    } else if (is_abbrev(m, "maximized")) {
+      SET_BIT(metamagic, METAMAGIC_MAXIMIZE);
+      log("DEBUG: Maximized metamagic used.");
+    } else {
+      send_to_char(ch, "With what metamagic?\r\n");
+      return;
+    }      
   }
      
   spellnum = find_skill_num(s);  
