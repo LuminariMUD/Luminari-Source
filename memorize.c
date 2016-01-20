@@ -2228,10 +2228,10 @@ ACMD(do_gen_memorize) {
     for (m = strtok(argument, " "); m && m != s; m = strtok(NULL, " ")) {
       if (is_abbrev(m, "quickened")) {
         SET_BIT(metamagic, METAMAGIC_QUICKEN);
-        log("DEBUG: Quickened metamagic used.")
+        log("DEBUG: Quickened metamagic used.");
       } else if (is_abbrev(m, "maximized")) {
         SET_BIT(metamagic, METAMAGIC_MAXIMIZE);
-        log("DEBUG: Maximized metamagic used.")
+        log("DEBUG: Maximized metamagic used.");
       } else {
         send_to_char(ch, "Use what metamagic?\r\n");
         return;
