@@ -3728,7 +3728,7 @@ void weapon_poison(struct char_data *ch, struct char_data *victim, struct obj_da
 
   act("The \tGpoison\tn from $p attaches to $n.",
           FALSE, victim, wielded, 0, TO_ROOM);
-  call_magic(ch, victim, wielded, wielded->weapon_poison.poison, wielded->weapon_poison.poison_level,
+  call_magic(ch, victim, wielded, wielded->weapon_poison.poison, 0, wielded->weapon_poison.poison_level,
           CAST_WEAPON_POISON);
 
   wielded->weapon_poison.poison_level -= 2;
@@ -3762,7 +3762,7 @@ void weapon_spells(struct char_data *ch, struct char_data *vict,
                   TRUE, ch, wpn, 0, TO_CHAR);
           act("$p leaps to action with an attack of its own.",
                   TRUE, ch, wpn, 0, TO_ROOM);
-          if (call_magic(ch, vict, wpn, GET_WEAPON_SPELL(wpn, i),
+          if (call_magic(ch, vict, wpn, GET_WEAPON_SPELL(wpn, i), 0,
                   GET_WEAPON_SPELL_LVL(wpn, i), CAST_WEAPON_SPELL) < 0)
             return;
         }
@@ -3792,7 +3792,7 @@ void idle_weapon_spells(struct char_data *ch) {
                   TRUE, ch, wielded, 0, TO_CHAR);
           act("$p leaps to action.",
                   TRUE, ch, wielded, 0, TO_ROOM);
-          call_magic(ch, ch, NULL, GET_WEAPON_SPELL(wielded, j),
+          call_magic(ch, ch, NULL, GET_WEAPON_SPELL(wielded, j), 0,
                   GET_WEAPON_SPELL_LVL(wielded, j), CAST_WEAPON_SPELL);
         }
       }
@@ -3809,7 +3809,7 @@ void idle_weapon_spells(struct char_data *ch) {
                   TRUE, ch, offWield, 0, TO_CHAR);
           act("$p leaps to action.",
                   TRUE, ch, offWield, 0, TO_ROOM);
-          call_magic(ch, ch, NULL, GET_WEAPON_SPELL(offWield, j),
+          call_magic(ch, ch, NULL, GET_WEAPON_SPELL(offWield, j), 0,
                   GET_WEAPON_SPELL_LVL(offWield, j), CAST_WEAPON_SPELL);
         }
       }
@@ -4850,7 +4850,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       (GET_RACE(ch) == RACE_TRELUX || HAS_FEAT(ch, FEAT_POISON_BITE)) ) {
     /* We are just using the poison spell for this...Maybe there would be a better way, some unique poison?
      * Note the CAST_INNATE, this removes armor spell failure from the call. */
-    call_magic(ch, FIGHTING(ch), 0, SPELL_POISON, GET_LEVEL(ch), CAST_INNATE);
+    call_magic(ch, FIGHTING(ch), 0, SPELL_POISON, 0, GET_LEVEL(ch), CAST_INNATE);
   }
 
   /* crippling strike */
