@@ -2221,9 +2221,7 @@ ACMD(do_gen_memorize) {
       return;
     }
 
-    /* Now we have the spell.  Back up a little and check for metamagic. */
-    log("DEBUG: m = %s s = %s", m, s);
-    /* s is at the position of the spell name.  Check the rest of the string. */    
+    /* Now we have the spell.  Back up a little and check for metamagic. */   
     for (m = strtok(argument, " "); m && m[0] != '\''; m = strtok(NULL, " ")) {
       log("DEBUG: m = %s", m);
       if (is_abbrev(m, "quickened")) {
