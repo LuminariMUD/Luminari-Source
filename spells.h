@@ -1115,7 +1115,7 @@ void mag_groups(int level, struct char_data *ch, struct obj_data *obj,
 void mag_masses(int level, struct char_data *ch, struct obj_data *obj,
         int spellnum, int savetype, int casttype);
 void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
-        int spellnum, int savetype, int casttype);
+        int spellnum, int metamagic, int savetype, int casttype);
 void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
         int spellnum, int savetype, int casttype);
 void mag_points(int level, struct char_data *ch, struct char_data *victim,

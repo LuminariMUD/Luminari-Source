@@ -631,7 +631,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
     mag_masses(spell_level, caster, ovict, spellnum, savetype, casttype);
 
   if (IS_SET(SINFO.routines, MAG_AREAS))
-    mag_areas(spell_level, caster, ovict, spellnum, savetype, casttype);
+    mag_areas(spell_level, caster, ovict, spellnum, metamagic, savetype, casttype);
 
   if (IS_SET(SINFO.routines, MAG_SUMMONS))
     mag_summons(spell_level, caster, ovict, spellnum, savetype, casttype);

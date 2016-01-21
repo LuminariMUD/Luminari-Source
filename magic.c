@@ -3649,7 +3649,7 @@ int aoeOK(struct char_data *ch, struct char_data *tch, int spellnum) {
  * All spells listed here must also have a case in mag_damage() in order for
  * them to work. Area spells have limited targets within the room. */
 void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
-        int spellnum, int savetype, int casttype) {
+        int spellnum, int metamagic, int savetype, int casttype) {
   struct char_data *tch, *next_tch;
   const char *to_char = NULL, *to_room = NULL;
   int isEffect = FALSE, is_eff_and_dam = FALSE, is_uneffect = FALSE;
@@ -3790,14 +3790,14 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
 
     if (aoeOK(ch, tch, spellnum)) {
       if (is_eff_and_dam) {
-        mag_damage(level, ch, tch, obj, spellnum, 0, 1, casttype);
+        mag_damage(level, ch, tch, obj, spellnum, metamagic, 1, casttype);
         mag_affects(level, ch, tch, obj, spellnum, savetype, casttype);
       } else if (isEffect)
         mag_affects(level, ch, tch, obj, spellnum, savetype, casttype);
       else if (is_uneffect)
         mag_unaffects(level, ch, tch, obj, spellnum, savetype, casttype);
       else
-        mag_damage(level, ch, tch, obj, spellnum, 0, 1, casttype);
+        mag_damage(level, ch, tch, obj, spellnum, metamagic, 1, casttype);
 
       /* we gotta start combat here */
       if (isEffect && spell_info[spellnum].violent && tch && GET_POS(tch) == POS_STANDING &&
