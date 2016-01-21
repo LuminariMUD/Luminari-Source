@@ -1745,7 +1745,7 @@ void display_memmed(struct char_data*ch, int class) {
               printed = TRUE;
               num[PREPARED_SPELLS(ch, memSlot, classArray(class)).spell] = 0;
             } else {
-              send_to_char(ch, "               %s%s%s\r\n",
+              send_to_char(ch, "              %s%s%s\r\n",
                       (IS_SET(PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, METAMAGIC_QUICKEN) ? "quick " : ""),
                       (IS_SET(PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, METAMAGIC_MAXIMIZE) ? "maximized " : ""),     
                       spell_info[PREPARED_SPELLS(ch, memSlot,
