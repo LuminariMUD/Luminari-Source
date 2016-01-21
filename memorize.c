@@ -2279,11 +2279,20 @@ ACMD(do_gen_memorize) {
     /* Now we have the spell.  Back up a little and check for metamagic. */   
     for (m = strtok(argument, " "); m && m[0] != '\''; m = strtok(NULL, " ")) {
       if (is_abbrev(m, "quickened")) {
-        SET_BIT(metamagic, METAMAGIC_QUICKEN);
+        if HAS_FEAT(ch, FEAT_QUICKEN_SPELL) {
+          SET_BIT(metamagic, METAMAGIC_QUICKEN);
+        } else {
+          send_to_char(ch, "You don't know how to quicken your magic!\r\n");
+          return;
+        }
         //log("DEBUG: Quickened metamagic used.");
       } else if (is_abbrev(m, "maximized")) {
-        SET_BIT(metamagic, METAMAGIC_MAXIMIZE);
-        //log("DEBUG: Maximized metamagic used.");
+        if HAS_FEAT(ch, FEAT_MAXIMIZE_SPELL) {
+          SET_BIT(metamagic, METAMAGIC_MAXIMIZE);
+        } else {
+          send_to_char(ch, "You don't know how to maximize your magic!\r\n");
+          return;
+        }
       } else {
         send_to_char(ch, "Use what metamagic?\r\n");
         return;
