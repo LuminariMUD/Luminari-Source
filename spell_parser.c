@@ -609,7 +609,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
   }
 
   if (IS_SET(SINFO.routines, MAG_DAMAGE))
-    if (mag_damage(spell_level, caster, cvict, ovict, spellnum, savetype, casttype) == -1)
+    if (mag_damage(spell_level, caster, cvict, ovict, spellnum, metamagic, savetype, casttype) == -1)
       return (-1); /* Successful and target died, don't cast again. */
 
   if (IS_SET(SINFO.routines, MAG_AFFECTS))
