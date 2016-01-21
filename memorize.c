@@ -1997,7 +1997,7 @@ ACMD(do_gen_forget) {
       return;
     }
   
-    s = strtok(NULL, "'");
+    //s = strtok(NULL, "'");
    
     if (s == NULL) {
       send_to_char(ch, "Spell names must be enclosed in the Holy Magic Symbols: '\r\n");
