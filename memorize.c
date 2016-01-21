@@ -1736,17 +1736,18 @@ void display_memmed(struct char_data*ch, int class) {
              spellCircle(class, PREPARED_SPELLS(ch, memSlot, classArray(class)).spell, PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, GET_2ND_DOMAIN(ch)) == slot)) {
           //if (num[PREPARED_SPELLS(ch, memSlot, classArray(class)).spell] != 0) {
             if (!printed) {
-              send_to_char(ch, "[Circle: %d]    %5s %9s %s\r\n",
+              send_to_char(ch, "[Circle: %d]   %s%s%s\r\n",
                       slot, 
-                      (IS_SET(PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, METAMAGIC_QUICKEN) ? "quick" : ""),
-                      (IS_SET(PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, METAMAGIC_MAXIMIZE) ? "maximized" : ""),     
+                      (IS_SET(PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, METAMAGIC_QUICKEN) ? "quick " : ""),
+                      (IS_SET(PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, METAMAGIC_MAXIMIZE) ? "maximized " : ""),     
                       spell_info[PREPARED_SPELLS(ch, memSlot,
                       classArray(class)).spell].name);
               printed = TRUE;
               num[PREPARED_SPELLS(ch, memSlot, classArray(class)).spell] = 0;
             } else {
-              send_to_char(ch, "                     %2d - %s\r\n",
-                      num[PREPARED_SPELLS(ch, memSlot, classArray(class)).spell],
+              send_to_char(ch, "               %s%s%s\r\n",
+                      (IS_SET(PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, METAMAGIC_QUICKEN) ? "quick " : ""),
+                      (IS_SET(PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, METAMAGIC_MAXIMIZE) ? "maximized " : ""),     
                       spell_info[PREPARED_SPELLS(ch, memSlot,
                       classArray(class)).spell].name);
               num[PREPARED_SPELLS(ch, memSlot, classArray(class)).spell] = 0;
