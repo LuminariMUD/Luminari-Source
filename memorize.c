@@ -1734,7 +1734,7 @@ void display_memmed(struct char_data*ch, int class) {
         if (PREPARED_SPELLS(ch, memSlot, classArray(class)).spell != 0 &&
             (spellCircle(class, PREPARED_SPELLS(ch, memSlot, classArray(class)).spell, PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, GET_1ST_DOMAIN(ch)) == slot ||
              spellCircle(class, PREPARED_SPELLS(ch, memSlot, classArray(class)).spell, PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, GET_2ND_DOMAIN(ch)) == slot)) {
-          if (num[PREPARED_SPELLS(ch, memSlot, classArray(class)).spell] != 0) {
+          --if (num[PREPARED_SPELLS(ch, memSlot, classArray(class)).spell] != 0) {
             if (!printed) {
               send_to_char(ch, "[Circle: %d]          %2d - %s\r\n",
                       slot, num[PREPARED_SPELLS(ch, memSlot, classArray(class)).spell],
@@ -1749,7 +1749,7 @@ void display_memmed(struct char_data*ch, int class) {
                       classArray(class)).spell].name);
               num[PREPARED_SPELLS(ch, memSlot, classArray(class)).spell] = 0;
             }
-          }
+          --}
         }
       }
     }
@@ -2005,7 +2005,7 @@ ACMD(do_gen_forget) {
       send_to_char(ch, "Huh?\r\n");
       return;
     } 
-  } else {
+  } else { /* Forget all */
     if (PREPARATION_QUEUE(ch, 0, classArray(class)).spell) {
       for (slot = 0; slot < (MAX_MEM); slot++) {
         PREPARATION_QUEUE(ch, slot, classArray(class)).spell = 0;
