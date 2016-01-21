@@ -1157,6 +1157,8 @@ int forgetSpell(struct char_data *ch, int spellnum, int metamagic, int class) {
               for (nextSlot = slot; nextSlot < (MAX_MEM) - 1; nextSlot++) {
                 PREPARED_SPELLS(ch, nextSlot, classArray(x)).spell =
                         PREPARED_SPELLS(ch, nextSlot + 1, classArray(x)).spell;
+                PREPARED_SPELLS(ch, nextSlot, classArray(x)).metamagic =
+                        PREPARED_SPELLS(ch, nextSlot + 1, classArray(x)).metamagic;
               }
               PREPARED_SPELLS(ch, nextSlot, classArray(x)).spell = 0;
               PREPARED_SPELLS(ch, nextSlot, classArray(x)).metamagic = 0;
