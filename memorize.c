@@ -1822,8 +1822,8 @@ void display_memming(struct char_data *ch, int class) {
         } else
           spellLevel = spellCircle(class, PREPARATION_QUEUE(ch, slot, classArray(class)).spell, PREPARATION_QUEUE(ch, slot, classArray(class)).metamagic, DOMAIN_UNDEFINED);                
         send_to_char(ch, "  %s%s%s [%d%s] with %d seconds remaining.\r\n",
-                     (IS_SET(PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, METAMAGIC_QUICKEN) ? "quick " : ""),
-                      (IS_SET(PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, METAMAGIC_MAXIMIZE) ? "maximized " : ""),
+                     (IS_SET(PREPARED_SPELLS(ch, slot, classArray(class)).metamagic, METAMAGIC_QUICKEN) ? "quick " : ""),
+                      (IS_SET(PREPARED_SPELLS(ch, slot, classArray(class)).metamagic, METAMAGIC_MAXIMIZE) ? "maximized " : ""),
                      spell_info[PREPARATION_QUEUE(ch, slot, classArray(class)).spell].name,                     
                      spellLevel, spellLevel == 1 ? "st" : spellLevel == 2 ?
                      "nd" : spellLevel == 3 ? "rd" : "th",
