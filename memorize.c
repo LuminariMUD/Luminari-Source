@@ -1964,24 +1964,13 @@ ACMD(do_gen_forget) {
     return;
   }
   
-  s = strtok(argument, "'");
-  log("DEBUG s = %s", s);
-  
-  if (s == NULL) {
-    send_to_char(ch, "Forget which spell, or all for all spells?\r\n");
-    return;
-  }
-  s = strtok(NULL, "'");
-   
-  if (s == NULL) {
-    send_to_char(ch, "Spell names must be enclosed in the Holy Magic Symbols: '\r\n");
-    return;
-  }
-  
   /* Check for metamagic. */   
   log("DEBUG: Argument = %s", argument);
   for (m = strtok(argument, " "); m && m[0] != '\''; m = strtok(NULL, " ")) {
-    if (is_abbrev(m, "quickened")) {
+    if (strcmp(m, "all") == 0) {
+      forget_all = TRUE;
+      break;
+    } else if (is_abbrev(m, "quickened")) {
       SET_BIT(metamagic, METAMAGIC_QUICKEN);
       log("DEBUG: Quickened metamagic used.");
     } else if (is_abbrev(m, "maximized")) {
@@ -1992,15 +1981,31 @@ ACMD(do_gen_forget) {
       return;
     }      
   }
+  log("DEBUG: Argument = %s", argument);
+  if (!forget_all) {
+          
+    s = strtok(argument, "'");
+    log("DEBUG s = %s", s);
+  
+    if (s == NULL) {
+      send_to_char(ch, "Forget which spell, or all for all spells?\r\n");
+      return;
+    }
+  
+    s = strtok(NULL, "'");
+   
+    if (s == NULL) {
+      send_to_char(ch, "Spell names must be enclosed in the Holy Magic Symbols: '\r\n");
+      return;
+    }
      
-  spellnum = find_skill_num(s);  
+    spellnum = find_skill_num(s);  
     
-  if (getCircle(ch, class) == -1) {
-    send_to_char(ch, "Huh?\r\n");
-    return;
-  }
-
-  if (forget_all) {
+    if (getCircle(ch, class) == -1) {
+      send_to_char(ch, "Huh?\r\n");
+      return;
+    } 
+  } else {
     if (PREPARATION_QUEUE(ch, 0, classArray(class)).spell) {
       for (slot = 0; slot < (MAX_MEM); slot++) {
         PREPARATION_QUEUE(ch, slot, classArray(class)).spell = 0;
