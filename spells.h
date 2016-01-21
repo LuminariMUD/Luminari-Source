@@ -1107,7 +1107,7 @@ int find_skill_num(char *name);
 int find_ability_num(char *name);
 
 int mag_damage(int level, struct char_data *ch, struct char_data *victim,
-        struct obj_data *obj, int spellnum, int savetype, int casttype);
+        struct obj_data *obj, int spellnum, int metamagic, int savetype, int casttype);
 void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         struct obj_data *obj, int spellnum, int savetype, int casttype);
 void mag_groups(int level, struct char_data *ch, struct obj_data *obj,

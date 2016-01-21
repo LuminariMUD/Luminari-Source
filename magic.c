@@ -483,7 +483,7 @@ static int mag_materials(struct char_data *ch, IDXTYPE item0,
 // default    ->  magic resistance
 // returns damage, -1 if dead
 int mag_damage(int level, struct char_data *ch, struct char_data *victim,
-        struct obj_data *wpn, int spellnum, int savetype, int casttype) {
+        struct obj_data *wpn, int spellnum, int metamagic, int savetype, int casttype) {
   int dam = 0, element = 0, num_dice = 0, save = savetype, size_dice = 0,
           bonus = 0, mag_resist = TRUE, spell_school = NOSCHOOL;
 
@@ -3548,7 +3548,7 @@ void mag_masses(int level, struct char_data *ch, struct obj_data *obj,
     if (isEffect)
       mag_affects(level, ch, tch, obj, spellnum, savetype, casttype);
     else
-      mag_damage(level, ch, tch, obj, spellnum, 1, casttype);
+      mag_damage(level, ch, tch, obj, spellnum, 0, 1, casttype);
   }
 }
 
@@ -3790,14 +3790,14 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
 
     if (aoeOK(ch, tch, spellnum)) {
       if (is_eff_and_dam) {
-        mag_damage(level, ch, tch, obj, spellnum, 1, casttype);
+        mag_damage(level, ch, tch, obj, spellnum, 0, 1, casttype);
         mag_affects(level, ch, tch, obj, spellnum, savetype, casttype);
       } else if (isEffect)
         mag_affects(level, ch, tch, obj, spellnum, savetype, casttype);
       else if (is_uneffect)
         mag_unaffects(level, ch, tch, obj, spellnum, savetype, casttype);
       else
-        mag_damage(level, ch, tch, obj, spellnum, 1, casttype);
+        mag_damage(level, ch, tch, obj, spellnum, 0, 1, casttype);
 
       /* we gotta start combat here */
       if (isEffect && spell_info[spellnum].violent && tch && GET_POS(tch) == POS_STANDING &&

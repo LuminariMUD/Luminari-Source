@@ -137,9 +137,9 @@ bool check_wall(struct char_data *victim, int dir) {
         /* we can add mag_effects, whatever we want here */
 
         /* the "creator" or caster of the spell was determined above */
-        if (!found_player && mag_damage(level, victim, victim, NULL, wall_spellnum, SAVING_FORT, casttype) < 0) {
+        if (!found_player && mag_damage(level, victim, victim, NULL, wall_spellnum, 0, SAVING_FORT, casttype) < 0) {
           return TRUE; /* couldn't find the creator, victim died! */
-        } else if (mag_damage(level, ch, victim, NULL, wall_spellnum, SAVING_FORT, casttype) < 0) {
+        } else if (mag_damage(level, ch, victim, NULL, wall_spellnum, 0, SAVING_FORT, casttype) < 0) {
           return TRUE; /* he died! */
         }
       }
