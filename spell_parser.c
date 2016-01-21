@@ -1558,7 +1558,7 @@ ACMD(do_cast) {
     return;
   }
 
-    log("DEBUG: spellnum: %d metamagic: %d hasSpell: %d", spellnum, metamagic, hasSpell(ch, spellnum, metamagic));
+    //log("DEBUG: spellnum: %d metamagic: %d hasSpell: %d", spellnum, metamagic, hasSpell(ch, spellnum, metamagic));
   
   cast_spell(ch, tch, tobj, spellnum, metamagic);
 }
