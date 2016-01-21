@@ -1967,8 +1967,7 @@ ACMD(do_gen_forget) {
     return;
   }
   /* Preserve the argument string*/
-  *arg = *argument;
-  
+    
   /* Check for metamagic. */   
   log("DEBUG: Argument = %s", argument);
   for (m = strtok(argument, " "); m && m[0] != '\''; m = strtok(NULL, " ")) {
@@ -1986,10 +1985,11 @@ ACMD(do_gen_forget) {
       return;
     }      
   }
+  
   log("DEBUG: Argument = %s", argument);
   if (!forget_all) {
           
-    s = strtok(arg, "'");
+    s = strtok(m, "'");
     log("DEBUG s = %s", s);
   
     if (s == NULL) {
