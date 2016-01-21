@@ -1738,18 +1738,18 @@ void display_memmed(struct char_data*ch, int class) {
             if (!printed) {
               send_to_char(ch, "[Circle: %d]   %s%s%s\r\n",
                       slot, 
+                      spell_info[PREPARED_SPELLS(ch, memSlot, classArray(class)).spell].name,
                       (IS_SET(PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, METAMAGIC_QUICKEN) ? "quick " : ""),
-                      (IS_SET(PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, METAMAGIC_MAXIMIZE) ? "maximized " : ""),     
-                      spell_info[PREPARED_SPELLS(ch, memSlot,
-                      classArray(class)).spell].name);
+                      (IS_SET(PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, METAMAGIC_MAXIMIZE) ? "maximized " : "")
+                      );
               printed = TRUE;
               num[PREPARED_SPELLS(ch, memSlot, classArray(class)).spell] = 0;
             } else {
               send_to_char(ch, "              %s%s%s\r\n",
+                      spell_info[PREPARED_SPELLS(ch, memSlot, classArray(class)).spell].name,
                       (IS_SET(PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, METAMAGIC_QUICKEN) ? "quick " : ""),
-                      (IS_SET(PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, METAMAGIC_MAXIMIZE) ? "maximized " : ""),     
-                      spell_info[PREPARED_SPELLS(ch, memSlot,
-                      classArray(class)).spell].name);
+                      (IS_SET(PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, METAMAGIC_MAXIMIZE) ? "maximized " : "")
+                      );
               num[PREPARED_SPELLS(ch, memSlot, classArray(class)).spell] = 0;
             }
           //}
@@ -1966,6 +1966,8 @@ ACMD(do_gen_forget) {
     send_to_char(ch, "Invalid command!\r\n");
     return;
   }
+  /* Preserve the argument string*/
+  *arg = *argument;
   
   /* Check for metamagic. */   
   log("DEBUG: Argument = %s", argument);
@@ -1987,7 +1989,7 @@ ACMD(do_gen_forget) {
   log("DEBUG: Argument = %s", argument);
   if (!forget_all) {
           
-    s = strtok(argument, "'");
+    s = strtok(arg, "'");
     log("DEBUG s = %s", s);
   
     if (s == NULL) {
