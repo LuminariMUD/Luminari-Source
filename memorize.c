@@ -1048,7 +1048,7 @@ void addSpellMemmed(struct char_data *ch, int spellnum, int metamagic, int class
 /* SORCERER types:  just clears top of PREPARATION_QUEUE() list
    WIZARD types:  finds the first instance of <spellnum> in the characters
    preparation list, clears it, then updates the preparation list */
-void removeSpellMemming(struct char_data *ch, int spellnum, int class) {
+void removeSpellMemming(struct char_data *ch, int spellnum, int metamagic, int class) {
   int slot, nextSlot;
 
   if (classArray(class) == -1)
@@ -1083,13 +1083,16 @@ void removeSpellMemming(struct char_data *ch, int spellnum, int class) {
 
   /* wizard-types */
   for (slot = 0; slot < MAX_MEM; slot++) {
-    if (PREPARATION_QUEUE(ch, slot, classArray(class)).spell == spellnum) { //found the spell
+    if (PREPARATION_QUEUE(ch, slot, classArray(class)).spell == spellnum &&
+        (metamagic != -1 ? PREPARATION_QUEUE(ch, slot, classArray(class)).metamagic == metamagic : TRUE)) { //found the spell
       /* is there more in the memming list? */
       if (PREPARATION_QUEUE(ch, slot + 1, classArray(class)).spell != TERMINATE) {
         for (nextSlot = slot; nextSlot < MAX_MEM - 1; nextSlot++) {
           //go through rest of list and shift everything
           PREPARATION_QUEUE(ch, nextSlot, classArray(class)).spell =
                   PREPARATION_QUEUE(ch, nextSlot + 1, classArray(class)).spell;
+          PREPARATION_QUEUE(ch, nextSlot, classArray(class)).metamagic =
+                  PREPARATION_QUEUE(ch, nextSlot + 1, classArray(class)).metamagic;
           PREP_TIME(ch, nextSlot, classArray(class)) =
                   PREP_TIME(ch, nextSlot + 1, classArray(class));
         }
@@ -1128,6 +1131,8 @@ int forgetSpell(struct char_data *ch, int spellnum, int metamagic, int class) {
             for (nextSlot = slot; nextSlot < (MAX_MEM) - 1; nextSlot++) {
               PREPARED_SPELLS(ch, nextSlot, classArray(class)).spell =
                       PREPARED_SPELLS(ch, nextSlot + 1, classArray(class)).spell;
+              PREPARED_SPELLS(ch, nextSlot, classArray(class)).metamagic =
+                      PREPARED_SPELLS(ch, nextSlot + 1, classArray(class)).metamagic;
             }
             PREPARED_SPELLS(ch, nextSlot, classArray(class)).spell = 0;
             PREPARED_SPELLS(ch, nextSlot, classArray(class)).metamagic = 0;
@@ -1574,7 +1579,7 @@ void updateMemming(struct char_data *ch, int class) {
         break;
     }
     send_to_char(ch, buf);
-    removeSpellMemming(ch, PREPARATION_QUEUE(ch, 0, classArray(class)).spell, class);
+    removeSpellMemming(ch, PREPARATION_QUEUE(ch, 0, classArray(class)).spell, PREPARATION_QUEUE(ch, 0, classArray(class)).metamagic, class);
     if (PREPARATION_QUEUE(ch, 0, classArray(class)).spell == TERMINATE) {
       switch (class) {
         case CLASS_SORCERER:
@@ -2101,7 +2106,7 @@ ACMD(do_gen_forget) {
   for (slot = 0; slot < (MAX_MEM); slot++) {
     if (PREPARATION_QUEUE(ch, slot, classArray(class)).spell == spellnum && 
         PREPARATION_QUEUE(ch, slot, classArray(class)).metamagic == metamagic) {
-      removeSpellMemming(ch, spellnum, class);
+      removeSpellMemming(ch, spellnum, metamagic, class);
       switch (class) {
         case CLASS_DRUID:
           send_to_char(ch, "You stop communing for %s.\r\n", spell_info[spellnum].name);
