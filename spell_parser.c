@@ -1208,6 +1208,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
    will be using for casting this spell */
   if (!isEpicSpell(spellnum) && !IS_NPC(ch)) {
 
+    log ("DEBUG: metamagic : %d", metamagic);
     class = forgetSpell(ch, spellnum, metamagic, -1);
 
     if (class == -1) {
@@ -1325,19 +1326,23 @@ ACMD(do_cast) {
   log("DEBUG: Argument = %s", argument);
   for (m = strtok(argument, " "); m && m[0] != '\''; m = strtok(NULL, " ")) {
     if (is_abbrev(m, "quickened")) {
-      SET_BIT(metamagic, METAMAGIC_QUICKEN);
-      log("DEBUG: Quickened metamagic used.");
+      if HAS_FEAT(ch, FEAT_QUICKEN_SPELL) {
+        SET_BIT(metamagic, METAMAGIC_QUICKEN);
+      } else {
+        send_to_char(ch, "You don't know how to quicken your magic!\r\n");
+        return;
+      }
+      //log("DEBUG: Quickened metamagic used.");
     } else if (is_abbrev(m, "maximized")) {
-      SET_BIT(metamagic, METAMAGIC_MAXIMIZE);
-      log("DEBUG: Maximized metamagic used.");
-    } else {
-      send_to_char(ch, "Use what metamagic?\r\n");
-      return;
-    }      
+      if HAS_FEAT(ch, FEAT_MAXIMIZE_SPELL) {
+        SET_BIT(metamagic, METAMAGIC_MAXIMIZE);
+      } else {
+        send_to_char(ch, "You don't know how to maximize your magic!\r\n");
+        return;
+      }
+    }
   }
   
-  //skip_spaces(&s);
-
   /* spellnum = search_block(s, spells, 0); */
   spellnum = find_skill_num(s);
 
