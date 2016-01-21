@@ -1736,7 +1736,7 @@ void display_memmed(struct char_data*ch, int class) {
              spellCircle(class, PREPARED_SPELLS(ch, memSlot, classArray(class)).spell, PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, GET_2ND_DOMAIN(ch)) == slot)) {
           //if (num[PREPARED_SPELLS(ch, memSlot, classArray(class)).spell] != 0) {
             if (!printed) {
-              send_to_char(ch, "[Circle: %d]   %s%s%s\r\n",
+              send_to_char(ch, "[Circle: %d]   %s %s%s\r\n",
                       slot, 
                       spell_info[PREPARED_SPELLS(ch, memSlot, classArray(class)).spell].name,
                       (IS_SET(PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, METAMAGIC_QUICKEN) ? "quick " : ""),
@@ -1745,7 +1745,7 @@ void display_memmed(struct char_data*ch, int class) {
               printed = TRUE;
               num[PREPARED_SPELLS(ch, memSlot, classArray(class)).spell] = 0;
             } else {
-              send_to_char(ch, "              %s%s%s\r\n",
+              send_to_char(ch, "              %s %s%s\r\n",
                       spell_info[PREPARED_SPELLS(ch, memSlot, classArray(class)).spell].name,
                       (IS_SET(PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, METAMAGIC_QUICKEN) ? "quick " : ""),
                       (IS_SET(PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, METAMAGIC_MAXIMIZE) ? "maximized " : "")
@@ -1821,8 +1821,10 @@ void display_memming(struct char_data *ch, int class) {
           spellLevel = MIN(spellLevel, spellLevel2);
         } else
           spellLevel = spellCircle(class, PREPARATION_QUEUE(ch, slot, classArray(class)).spell, PREPARATION_QUEUE(ch, slot, classArray(class)).metamagic, DOMAIN_UNDEFINED);                
-        send_to_char(ch, "  %s [%d%s] with %d seconds remaining.\r\n",
-                     spell_info[PREPARATION_QUEUE(ch, slot, classArray(class)).spell].name,
+        send_to_char(ch, "  %s%s%s [%d%s] with %d seconds remaining.\r\n",
+                     (IS_SET(PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, METAMAGIC_QUICKEN) ? "quick " : ""),
+                      (IS_SET(PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, METAMAGIC_MAXIMIZE) ? "maximized " : ""),
+                     spell_info[PREPARATION_QUEUE(ch, slot, classArray(class)).spell].name,                     
                      spellLevel, spellLevel == 1 ? "st" : spellLevel == 2 ?
                      "nd" : spellLevel == 3 ? "rd" : "th",
                      PREP_TIME(ch, slot, classArray(class)));

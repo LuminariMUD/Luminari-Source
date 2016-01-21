@@ -1272,9 +1272,14 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   // figure saving throw for finger of death here, because it's not half damage
   if (spellnum == SPELL_FINGER_OF_DEATH) {
     if (mag_savingthrow(ch, victim, save, race_bonus, casttype, level, NECROMANCY)) {
-      dam = dice(num_dice, size_dice) + MIN(25, level);
+      if (IS_SET(metamagic, METAMAGIC_MAXIMIZE)) {
+        dam = (num_dice * size_dice) + MIN (25, level);
+      } else {
+        dam = dice(num_dice, size_dice) + MIN(25, level);
+      }
     }
   }
+  
   else if (dam && (save != -1)) {
     //saving throw for half damage if applies
     if (mag_savingthrow(ch, victim, save, race_bonus, casttype, level, spell_school)) {
