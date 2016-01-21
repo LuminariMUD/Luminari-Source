@@ -1184,7 +1184,7 @@ int comp_slots(struct char_data *ch, int circle, int class);
 void addSpellMemming(struct char_data *ch, int spellnum, int metamagic, int time, int mode);
 void resetMemtimes(struct char_data *ch, int class);
 void addSpellMemmed(struct char_data *ch, int spellnum, int metamagic, int class);
-void removeSpellMemming(struct char_data *ch, int spellnum, int class);
+void removeSpellMemming(struct char_data *ch, int spellnum, int metamagic, int class);
 int forgetSpell(struct char_data *ch, int spellnum, int metamagic, int mode);
 int numSpells(struct char_data *ch, int circle, int class);
 bool sorcKnown(struct char_data *ch, int spellnum, int class);
