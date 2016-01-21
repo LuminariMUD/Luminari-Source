@@ -1246,8 +1246,12 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   if (IS_SPECIALTY_SCHOOL(ch, spellnum))
     size_dice++;
 
-  dam = dice(num_dice, size_dice) + bonus;
-
+  if (IS_SET(metamagic, METAMGIC_MAXIMIZE)) {
+    dam = (num_dice * size_dice) + bonus;
+  } else {
+    dam = dice(num_dice, size_dice) + bonus;
+  }
+  
   if (HAS_FEAT(ch, FEAT_ENHANCED_SPELL_DAMAGE))
     dam += num_dice;
 
