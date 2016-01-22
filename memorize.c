@@ -2285,12 +2285,16 @@ ACMD(do_gen_memorize) {
     spellnum = find_skill_num(s);
 
     if (spellnum < 1 || spellnum > MAX_SPELLS) {
-      send_to_char(ch, "Prepare which spell?\r\n");
+      send_to_char(ch, "Prepare which spell?\r\n")
       return;
     }
 
     /* Now we have the spell.  Back up a little and check for metamagic. */   
     for (m = strtok(argument, " "); m && m[0] != '\''; m = strtok(NULL, " ")) {
+      if (class == CLASS_SORCERER || class == CLASS_BARD) {
+        send_to_char(ch, "Spontaneous casters do not prepare spells with metamagic.\r\n");
+        return
+      }
       if (is_abbrev(m, "quickened")) {
         if HAS_FEAT(ch, FEAT_QUICKEN_SPELL) {
           SET_BIT(metamagic, METAMAGIC_QUICKEN);
