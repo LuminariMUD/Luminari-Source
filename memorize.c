@@ -1525,7 +1525,7 @@ void updateMemming(struct char_data *ch, int class) {
   if (class == CLASS_WIZARD &&
           !spellbook_ok(ch, PREPARATION_QUEUE(ch, 0, classArray(class)).spell, CLASS_WIZARD, FALSE)
           ) {
-    send_to_char(ch, "You don't seem to have that spell in your spellbook!\r\n");
+    send_to_char(ch, "You don't seem to have '%' in your spellbook!\r\n", spell_info[PREPARATION_QUEUE(ch, 0, classArray(class)).spell].name);
     resetMemtimes(ch, class);
     IS_PREPARING(ch, classArray(class)) = FALSE;
     return;
@@ -1549,32 +1549,16 @@ void updateMemming(struct char_data *ch, int class) {
   if (PREP_TIME(ch, 0, classArray(class)) <= 0 || GET_LEVEL(ch) >= LVL_IMMORT) {
     switch (class) {
       case CLASS_CLERIC:
-        sprintf(buf, "You finish %%s for %s %s.\r\n", 
+      case CLASS_RANGER:
+      case CLASS_PALADIN:
+      case CLASS_DRUID:
+      case CLASS_WIZARD:
+        sprintf(buf, "You finish %s for %s %s.\r\n", 
+                spell_prep_dict[classArray(class)][1],
                      metamagic_buf,
                      spell_info[PREPARATION_QUEUE(ch, 0, classArray(class)).spell].name);
         addSpellMemmed(ch, PREPARATION_QUEUE(ch, 0, classArray(class)).spell, PREPARATION_QUEUE(ch, 0, classArray(class)).metamagic, class);
-        break;
-      case CLASS_RANGER:
-        sprintf(buf, "You finish adjuring for %s%s%s.\r\n", 
-                       (IS_SET(PREPARATION_QUEUE(ch, 0, classArray(class)).metamagic, METAMAGIC_QUICKEN) ? "quickened ": ""),
-                       (IS_SET(PREPARATION_QUEUE(ch, 0, classArray(class)).metamagic, METAMAGIC_MAXIMIZE) ? "maximized ": ""),
-                       spell_info[PREPARATION_QUEUE(ch, 0, classArray(class)).spell].name);
-        addSpellMemmed(ch, PREPARATION_QUEUE(ch, 0, classArray(class)).spell, PREPARATION_QUEUE(ch, 0, classArray(class)).metamagic, class);
-        break;
-      case CLASS_PALADIN:
-        sprintf(buf, "You finish chanting for %s%s%s.\r\n", 
-                       (IS_SET(PREPARATION_QUEUE(ch, 0, classArray(class)).metamagic, METAMAGIC_QUICKEN) ? "quickened ": ""),
-                       (IS_SET(PREPARATION_QUEUE(ch, 0, classArray(class)).metamagic, METAMAGIC_MAXIMIZE) ? "maximized ": ""),
-                       spell_info[PREPARATION_QUEUE(ch, 0, classArray(class)).spell].name);
-        addSpellMemmed(ch, PREPARATION_QUEUE(ch, 0, classArray(class)).spell, PREPARATION_QUEUE(ch, 0, classArray(class)).metamagic, class);
-        break;
-      case CLASS_DRUID:
-        sprintf(buf, "You finish communing for %s%s%s.\r\n", 
-                       (IS_SET(PREPARATION_QUEUE(ch, 0, classArray(class)).metamagic, METAMAGIC_QUICKEN) ? "quickened ": ""),
-                       (IS_SET(PREPARATION_QUEUE(ch, 0, classArray(class)).metamagic, METAMAGIC_MAXIMIZE) ? "maximized ": ""),
-                       spell_info[PREPARATION_QUEUE(ch, 0, classArray(class)).spell].name);
-        addSpellMemmed(ch, PREPARATION_QUEUE(ch, 0, classArray(class)).spell, PREPARATION_QUEUE(ch, 0, classArray(class)).metamagic, class);
-        break;
+        break;      
       case CLASS_SORCERER:
         sprintf(buf, "You have recovered a spell slot: %d.\r\n",
                 PREPARATION_QUEUE(ch, 0, classArray(class)).spell);
@@ -1583,46 +1567,22 @@ void updateMemming(struct char_data *ch, int class) {
         sprintf(buf, "You have recovered a compose slot: %d.\r\n",
                 PREPARATION_QUEUE(ch, 0, classArray(class)).spell);
         break;
-      default: // wizard
-        send_to_char(ch, "You finish memorizing %s%s%s.\r\n", 
-                       (IS_SET(PREPARATION_QUEUE(ch, 0, classArray(class)).metamagic, METAMAGIC_QUICKEN) ? "quickened ": ""),
-                       (IS_SET(PREPARATION_QUEUE(ch, 0, classArray(class)).metamagic, METAMAGIC_MAXIMIZE) ? "maximized ": ""),
-                       spell_info[PREPARATION_QUEUE(ch, 0, classArray(class)).spell].name);
-        addSpellMemmed(ch, PREPARATION_QUEUE(ch, 0, classArray(class)).spell, PREPARATION_QUEUE(ch, 0, classArray(class)).metamagic, class);
-        break;
     }
     send_to_char(ch, buf);
     removeSpellMemming(ch, PREPARATION_QUEUE(ch, 0, classArray(class)).spell, PREPARATION_QUEUE(ch, 0, classArray(class)).metamagic, class);
     if (PREPARATION_QUEUE(ch, 0, classArray(class)).spell == TERMINATE) {
       switch (class) {
-        case CLASS_SORCERER:
-          send_to_char(ch, "Your meditations are complete.\r\n");
-          act("$n completes $s meditation.", FALSE, ch, 0, 0, TO_ROOM);
-          break;
-        case CLASS_BARD:
-          send_to_char(ch, "Your compositions are complete.\r\n");
-          act("$n completes $s compositions.", FALSE, ch, 0, 0, TO_ROOM);
-          break;
+        case CLASS_WIZARD:
         case CLASS_CLERIC:
-          send_to_char(ch, "Your prayers are complete.\r\n");
-          act("$n completes $s prayers.", FALSE, ch, 0, 0, TO_ROOM);
-          break;
         case CLASS_RANGER:
-          send_to_char(ch, "Your adjuring session is complete.\r\n");
-          act("$n completes $s adjuration.", FALSE, ch, 0, 0, TO_ROOM);
-          break;
-        case CLASS_PALADIN:
-          send_to_char(ch, "Your chanting is complete.\r\n");
-          act("$n completes $s chant.", FALSE, ch, 0, 0, TO_ROOM);
-          break;
-        case CLASS_DRUID:
-          send_to_char(ch, "Your communing is complete.\r\n");
-          act("$n completes $s communing.", FALSE, ch, 0, 0, TO_ROOM);
-          break;
-        default: // wizard
-          send_to_char(ch, "Your studies are complete.\r\n");
-          act("$n completes $s studies.", FALSE, ch, 0, 0, TO_ROOM);
-          break;
+        case CLASS_PALADIN:  
+        case CLASS_DRUID:  
+        case CLASS_SORCERER:
+        case CLASS_BARD:
+          send_to_char(ch, "Your %s are complete.\r\n", spell_prep_dict[classArray(class)][3]);
+          sprintf(act_buf, "$n completes $s %s.", spell_prep_dict[classArray(class)][3]);
+          act(act_buf, FALSE, ch, 0, 0, TO_ROOM);
+          break;       
       }
       IS_PREPARING(ch, classArray(class)) = FALSE;
       return;
