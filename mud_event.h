@@ -111,6 +111,7 @@ typedef enum {
   eBARDIC_PERFORMANCE, // bard performance/song 
   eENCOUNTER_REG_RESET, // Reset event for encounter regions.          
   eSEEKER_ARROW, /*pew pew seeker arrows!*/
+  eIMBUE_ARROW, /*pew pew imbued arrows!*/
 } event_id;
 
 /* probably a smart place to mention to not forget to update:
