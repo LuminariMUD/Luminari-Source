@@ -1688,33 +1688,21 @@ void display_memmed(struct char_data*ch, int class) {
   if (PREPARED_SPELLS(ch, 0, classArray(class)).spell != 0) {
     switch (class) {
       case CLASS_DRUID:
-        send_to_char(ch, "\r\n\tGYou have communed for the following"
-                " spells:\r\n\r\n");
-        break;
       case CLASS_CLERIC:
-        send_to_char(ch, "\r\n\tGYou have prayed for the following"
-                " spells:\r\n\r\n");
-        break;
       case CLASS_PALADIN:
-        send_to_char(ch, "\r\n\tGYou have chanted for the following"
-                " spells:\r\n\r\n");
-        break;
       case CLASS_RANGER:
-        send_to_char(ch, "\r\n\tGYou have adjured for the following"
-                " spells:\r\n\r\n");
-        break;
-      default: /* wizard */
-        send_to_char(ch, "\r\n\tGYou have memorized the following"
-                " spells:\r\n\r\n");
-        break;
+      case CLASS_WIZARD:
+        send_to_char(ch, "\r\n\tGYou have %s for the following"
+                " spells:\r\n\r\n", spell_prep_dict[classArray(class)][2]);
+        break;     
     }
     for (slot = getCircle(ch, class); slot > 0; slot--) {
       printed = FALSE;
       for (memSlot = 0; memSlot < (MAX_MEM); memSlot++) {
         if (PREPARED_SPELLS(ch, memSlot, classArray(class)).spell != 0 &&
             (spellCircle(class, PREPARED_SPELLS(ch, memSlot, classArray(class)).spell, PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, GET_1ST_DOMAIN(ch)) == slot ||
-             spellCircle(class, PREPARED_SPELLS(ch, memSlot, classArray(class)).spell, PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, GET_2ND_DOMAIN(ch)) == slot)) {
-          //if (num[PREPARED_SPELLS(ch, memSlot, classArray(class)).spell] != 0) {
+             spellCircle(class, PREPARED_SPELLS(ch, memSlot, classArray(class)).spell, PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, GET_2ND_DOMAIN(ch)) == slot)) 
+        {         
             if (!printed) {
               send_to_char(ch, "[Circle: %d]   %s %s%s\r\n",
                       slot, 
@@ -1731,8 +1719,7 @@ void display_memmed(struct char_data*ch, int class) {
                       (IS_SET(PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, METAMAGIC_MAXIMIZE) ? "maximized " : "")
                       );
               num[PREPARED_SPELLS(ch, memSlot, classArray(class)).spell] = 0;
-            }
-          //}
+            }         
         }
       }
     }
@@ -1754,43 +1741,23 @@ void display_memming(struct char_data *ch, int class) {
     if (IS_PREPARING(ch, classArray(class))) {
       switch (class) {
         case CLASS_DRUID:
-          send_to_char(ch, "\r\n\tCYou are currently communing for:\r\n");
-          break;
         case CLASS_CLERIC:
-          send_to_char(ch, "\r\n\tCYou are currently praying for:\r\n");
-          break;
-        case CLASS_RANGER:
-          send_to_char(ch, "\r\n\tCYou are currently adjuring for:\r\n");
-          break;
+        case CLASS_RANGER:  
         case CLASS_PALADIN:
-          send_to_char(ch, "\r\n\tCYou are currently chanting for:\r\n");
-          break;
-        default: /* wizard */
-          send_to_char(ch, "\r\n\tCYou are currently memorizing:\r\n");
-          break;
+        case CLASS_WIZARD:  
+          send_to_char(ch, "\r\n\tCYou are currently %s for:\r\n", spell_prep_dict[classArray(class)][1]);
+          break;        
       }
     } else {
       switch (class) {
         case CLASS_DRUID:
-          send_to_char(ch, "\r\n\tCYou are ready to commune for: (type 'rest' "
-                  "then 'commune' to continue)\r\n");
-          break;
         case CLASS_CLERIC:
-          send_to_char(ch, "\r\n\tCYou are ready to pray for: (type 'rest' "
-                  "then 'pray' to continue)\r\n");
-          break;
-        case CLASS_RANGER:
-          send_to_char(ch, "\r\n\tCYou are ready to adjure for: (type 'rest'"
-                  " then 'adjure' to continue)\r\n");
-          break;
+        case CLASS_RANGER:  
         case CLASS_PALADIN:
-          send_to_char(ch, "\r\n\tCYou are ready to chant for: (type 'rest'"
-                  " then 'chant' to continue)\r\n");
-          break;
-        default: /* wizard */
-          send_to_char(ch, "\r\n\tCYou are ready to memorize: (type 'rest' "
-                  "then 'memorize' to continue)\r\n");
-          break;
+        case CLASS_WIZARD:  
+          send_to_char(ch, "\r\n\tCYou are ready to %s for: (type 'rest' "
+                  "then '%s' to continue)\r\n", spell_prep_dict[classArray(class)][0]);
+          break;        
       }
     }
     for (slot = 0; slot < (MAX_MEM); slot++) {
@@ -1841,20 +1808,12 @@ void display_slots(struct char_data *ch, int class) {
   // display info
   switch (class) {
     case CLASS_DRUID:
-      send_to_char(ch, "\r\nYou can commune");
-      break;
     case CLASS_CLERIC:
-      send_to_char(ch, "\r\nYou can pray");
-      break;
-    case CLASS_RANGER:
-      send_to_char(ch, "\r\nYou can adjure");
-      break;
+    case CLASS_RANGER:  
     case CLASS_PALADIN:
-      send_to_char(ch, "\r\nYou can chant");
-      break;
-    default: /* wizard */
-      send_to_char(ch, "\r\nYou can memorize");
-      break;
+    case CLASS_WIZARD:
+      send_to_char(ch, "\r\nYou can %s", spell_prep_dict[classArray(class)][0]);
+      break;    
   }
   for (slot = 0; slot < getCircle(ch, class); slot++) {
     if (empty[slot] > 0) {
@@ -1999,25 +1958,16 @@ ACMD(do_gen_forget) {
       }
       switch (class) {
         case CLASS_DRUID:
-          send_to_char(ch, "You purge everything you were attempting to "
-                  "commune for.\r\n");
-          break;
         case CLASS_CLERIC:
-          send_to_char(ch, "You cancel everything you were attempting to "
-                  "pray for.\r\n");
-          break;
-        case CLASS_RANGER:
+        case CLASS_RANGER:  
+        case CLASS_PALADIN:        
           send_to_char(ch, "You purge everything you were attempting to "
-                  "adjure for.\r\n");
-          break;
-        case CLASS_PALADIN:
-          send_to_char(ch, "You purge everything you were attempting to "
-                  "chant for.\r\n");
-          break;
-        default: /* wizard */
-          send_to_char(ch, "You forget everything you were attempting to "
-                  "memorize.\r\n");
-          break;
+                  "%s for.\r\n", spell_prep_dict[classArray(class)][0]);
+          break;        
+        case CLASS_WIZARD:
+            send_to_char(ch, "You purge everything you were attempting to "
+                  "%s.\r\n", spell_prep_dict[classArray(class)][0]);
+          break;        
       }
       IS_PREPARING(ch, classArray(class)) = FALSE;
       return;
@@ -2028,21 +1978,13 @@ ACMD(do_gen_forget) {
       }
       switch (class) {
         case CLASS_DRUID:
-          send_to_char(ch, "You purge everything you had communed for.\r\n");
-          break;
         case CLASS_CLERIC:
-          send_to_char(ch, "You cancel everything you had prayed for.\r\n");
-          break;
-        case CLASS_RANGER:
-          send_to_char(ch, "You purge everything you had adjured "
-                  "for.\r\n");
-          break;
-        case CLASS_PALADIN:
-          send_to_char(ch, "You purge everything you had chanted "
-                  "for.\r\n");
-          break;
-        default: /* wizard */
-          send_to_char(ch, "You forget everything you had memorized.\r\n");
+        case CLASS_RANGER:  
+        case CLASS_PALADIN:        
+          send_to_char(ch, "You purge everything you had %s for.\r\n", spell_prep_dict[classArray(class)][2]);
+          break;                
+        case CLASS_WIZARD:
+          send_to_char(ch, "You forget everything you had %s.\r\n", spell_prep_dict[classArray(class)][2]);
           break;
       }
       IS_PREPARING(ch, classArray(class)) = FALSE;
