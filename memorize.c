@@ -2285,7 +2285,7 @@ ACMD(do_gen_memorize) {
     spellnum = find_skill_num(s);
 
     if (spellnum < 1 || spellnum > MAX_SPELLS) {
-      send_to_char(ch, "Prepare which spell?\r\n")
+      send_to_char(ch, "Prepare which spell?\r\n");
       return;
     }
 
