@@ -82,6 +82,7 @@ struct class_prerequisite* create_prereq(int prereq_type, int val1,
 
   return prereq;
 }
+
 void class_prereq_attribute(int class_num, int attribute, int value) {
   struct class_prerequisite *prereq = NULL;
   char buf[80];
@@ -106,6 +107,7 @@ void class_prereq_attribute(int class_num, int attribute, int value) {
   prereq->next = class_list[class_num].prereq_list;
   class_list[class_num].prereq_list = prereq;
 }
+
 void class_prereq_class_level(int class_num, int cl, int level) {
   struct class_prerequisite *prereq = NULL;
   char buf[80];
@@ -120,6 +122,7 @@ void class_prereq_class_level(int class_num, int cl, int level) {
   prereq->next = class_list[class_num].prereq_list;
   class_list[class_num].prereq_list = prereq;
 }
+
 void class_prereq_feat(int class_num, int feat, int ranks) {
   struct class_prerequisite *prereq = NULL;
   char buf[80];
@@ -138,6 +141,7 @@ void class_prereq_feat(int class_num, int feat, int ranks) {
   prereq->next = class_list[class_num].prereq_list;
   class_list[class_num].prereq_list = prereq;
 }
+
 void class_prereq_cfeat(int class_num, int feat) {
   struct class_prerequisite *prereq = NULL;
   char buf[80];
@@ -151,6 +155,7 @@ void class_prereq_cfeat(int class_num, int feat) {
   prereq->next = class_list[class_num].prereq_list;
   class_list[class_num].prereq_list = prereq;
 }
+
 void class_prereq_ability(int class_num, int ability, int ranks) {
   struct class_prerequisite *prereq = NULL;
   char buf[80];
@@ -164,6 +169,7 @@ void class_prereq_ability(int class_num, int ability, int ranks) {
   prereq->next = class_list[class_num].prereq_list;
   class_list[class_num].prereq_list = prereq;
 }
+
 void class_prereq_spellcasting(int class_num, int casting_type, int prep_type, int circle) {
   struct class_prerequisite *prereq = NULL;
   char buf[80];
@@ -191,6 +197,7 @@ void class_prereq_spellcasting(int class_num, int casting_type, int prep_type, i
   prereq->next = class_list[class_num].prereq_list;
   class_list[class_num].prereq_list = prereq;
 }
+
 void class_prereq_race(int class_num, int race) {
   struct class_prerequisite *prereq = NULL;
   char buf[80];
@@ -204,6 +211,7 @@ void class_prereq_race(int class_num, int race) {
   prereq->next = class_list[class_num].prereq_list;
   class_list[class_num].prereq_list = prereq;
 }
+
 void class_prereq_bab(int class_num, int bab) {
   struct class_prerequisite *prereq = NULL;
   char buf[80];
@@ -217,6 +225,7 @@ void class_prereq_bab(int class_num, int bab) {
   prereq->next = class_list[class_num].prereq_list;
   class_list[class_num].prereq_list = prereq;
 }
+
 void class_prereq_weapon_proficiency(int class_num) {
   struct class_prerequisite *prereq = NULL;
   char buf[80];
@@ -231,11 +240,33 @@ void class_prereq_weapon_proficiency(int class_num) {
   class_list[class_num].prereq_list = prereq;
 }
 
+/* create/allocate memory for the spellassign struct */
+struct class_spell_assign* create_spell_assign(int spell_num, int circle) {
+  struct class_spell_assign *spell_asign = NULL;
+
+  CREATE(spell_asign, struct class_spell_assign, 1);
+  spell_asign->spell_num = spell_num;
+  spell_asign->circle = circle;
+
+  return spell_asign;
+}
+
+/* actual function called to perform the spell assignment */
+void spell_assignment(int class_num, int spell_num, int circle) {
+  struct class_spell_assign *spell_asign = NULL;
+
+  spell_asign = create_spell_assign(spell_num, circle);
+
+  /*   Link it up. */
+  spell_asign->next = class_list[class_num].spellassign_list;
+  class_list[class_num].spellassign_list = spell_asign;
+}
+
 /* function that will assign a list of values to a given class */
 void classo(int class_num, char *name, char *abbrev, char *colored_abbrev,
         char *menu_name, int max_level, bool locked_class, int prestige_class,
         int base_attack_bonus, int hit_dice, int mana_gain, int move_gain,
-        int trains_gain, bool in_game, int unlock_cost) {
+        int trains_gain, bool in_game, int unlock_cost, int epic_feat_progression) {
   class_list[class_num].name = name;
   class_list[class_num].abbrev = abbrev;
   class_list[class_num].colored_abbrev = colored_abbrev;
@@ -250,8 +281,11 @@ void classo(int class_num, char *name, char *abbrev, char *colored_abbrev,
   class_list[class_num].trains_gain = trains_gain;
   class_list[class_num].in_game = in_game;
   class_list[class_num].unlock_cost = unlock_cost;
+  class_list[class_num].epic_feat_progression = epic_feat_progression;
   /* list of prereqs */
-  class_list[class_num].prereq_list = NULL;  
+  class_list[class_num].prereq_list = NULL;
+  /* list of spell assignments */
+  class_list[class_num].spellassign_list = NULL;
 }
 
 /* function used for assigning a classes titles */
@@ -334,6 +368,7 @@ void init_class_list(int class_num) {
   class_list[class_num].trains_gain = 2;  
   class_list[class_num].in_game = N;
   class_list[class_num].unlock_cost = 0;
+  class_list[class_num].epic_feat_progression = 5;
   
   int i = 0;
   for (i = 0; i < NUM_PREFERRED_SAVES; i++)
@@ -344,6 +379,7 @@ void init_class_list(int class_num) {
     class_list[class_num].titles[i] = "";
   
   class_list[class_num].prereq_list = NULL;  
+  class_list[class_num].spellassign_list = NULL;  
 }
 
 /* papa function loaded on game boot to assign all the class data */
@@ -362,8 +398,8 @@ void load_class_list(void) {
   /****************************************************************************/
   /*     class-number  name      abrv   clr-abrv     menu-name*/
   classo(CLASS_WIZARD, "wizard", "Wiz", "\tmWiz\tn", "m) \tmWizard\tn",
-      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlock-cost */
-        -1,       N,    N,        L,  4, 0,   1,   2,     Y,       0);
+    /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCost efeatp*/
+      -1,       N,    N,        L,  4, 0,   1,   2,     Y,       0,       3);
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_WIZARD, B,    B,      G,    B,      B);
   assign_class_abils(CLASS_WIZARD, /* class number */
@@ -394,8 +430,8 @@ void load_class_list(void) {
   /****************************************************************************/
   /*     class-number  name      abrv   clr-abrv     menu-name*/
   classo(CLASS_CLERIC, "cleric", "Cle", "\tBCle\tn", "c) \tBCleric\tn",
-      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlock-cost */
-        -1,       N,    N,        M,  8, 0,   1,   2,     Y,       0);
+    /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst eFeatp*/
+      -1,       N,    N,        M,  8, 0,   1,   2,     Y,       0,      3);
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_CLERIC, G,    B,      G,    B,      B);
   assign_class_abils(CLASS_CLERIC, /* class number */
@@ -426,8 +462,8 @@ void load_class_list(void) {
   /****************************************************************************/
   /*     class-number  name     abrv   clr-abrv     menu-name*/
   classo(CLASS_ROGUE, "rogue", "Rog", "\twRog\tn", "t) \tWRogue\tn",
-      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlock-cost*/
-        -1,       N,    N,        M,  6, 0,   2,   8,     Y,       0);
+      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst eFeatp*/
+        -1,       N,    N,        M,  6, 0,   2,   8,     Y,       0,      4);
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_ROGUE, B,    G,      B,    B,      B);
   assign_class_abils(CLASS_ROGUE, /* class number */
@@ -458,8 +494,8 @@ void load_class_list(void) {
   /****************************************************************************/
   /*     class-number  name        abrv   clr-abrv       menu-name*/
   classo(CLASS_WARRIOR, "warrior", "War", "\tRWar\tn", "w) \tRWarrior\tn",
-      /* max-lvl  lock? prestige? BAB HD  mana move trains in-game? unlock-cost */
-        -1,       N,    N,        H,  10, 0,   1,   2,     Y,       0);
+      /* max-lvl  lock? prestige? BAB HD  mana move trains in-game? unlkCst, eFeatp */
+        -1,       N,    N,        H,  10, 0,   1,   2,     Y,       0,       2);
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_WARRIOR, G,    B,      B,    B,      B);
   assign_class_abils(CLASS_WARRIOR, /* class number */
@@ -490,8 +526,8 @@ void load_class_list(void) {
   /****************************************************************************/
   /*     class-number  name    abrv   clr-abrv     menu-name*/
   classo(CLASS_MONK, "monk", "Mon", "\tgMon\tn", "o) \tgMonk\tn",
-      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlock-cost */
-        -1,       N,    N,        M,  8, 0,   2,   4,     Y,       0);
+      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst, eFeatp */
+        -1,       N,    N,        M,  8, 0,   2,   4,     Y,       0,       5);
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_MONK,   G,    G,      G,    B,      B);
   assign_class_abils(CLASS_MONK, /* class number */
@@ -522,8 +558,8 @@ void load_class_list(void) {
   /****************************************************************************/
   /*     class-number  name      abrv   clr-abrv          menu-name*/
   classo(CLASS_DRUID, "druid", "Dru", "\tGD\tgr\tGu\tn", "d) \tGD\tgr\tGu\tgi\tGd\tn",
-      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlock-cost*/
-        -1,       N,    N,        M,  8, 0,   3,   4,     Y,       0);
+      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst, eFeatp*/
+        -1,       N,    N,        M,  8, 0,   3,   4,     Y,       0,       4);
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_DRUID,  G,    B,      G,    B,      B);
   assign_class_abils(CLASS_DRUID, /* class number */
@@ -554,8 +590,8 @@ void load_class_list(void) {
   /****************************************************************************/
   /*     class-number        name      abrv   clr-abrv           menu-name*/
   classo(CLASS_BERSERKER, "berserker", "Bes", "\trB\tRe\trs\tn", "b) \trBer\tRser\trker\tn",
-      /* max-lvl  lock? prestige? BAB HD  mana move trains in-game? unlock-cost */
-        -1,       N,    N,        H,  12, 0,   2,   4,     Y,       0);
+      /* max-lvl  lock? prestige? BAB HD  mana move trains in-game? unlkCst, eFeatp */
+        -1,       N,    N,        H,  12, 0,   2,   4,     Y,       0,       4);
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_BERSERKER, G,    B,      B,    B,      B);
   assign_class_abils(CLASS_BERSERKER, /* class number */
@@ -586,8 +622,8 @@ void load_class_list(void) {
   /****************************************************************************/
   /*     class-number     name      abrv   clr-abrv     menu-name*/
   classo(CLASS_SORCERER, "sorcerer", "Sor", "\tMSor\tn", "s) \tMSorcerer\tn",
-      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlock-cost*/
-        -1,       N,    N,        L,  4, 0,   1,   2,     Y,       0);
+      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst, eFeatp*/
+        -1,       N,    N,        L,  4, 0,   1,   2,     Y,       0,       3);
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_SORCERER, B,    B,      G,    B,      B);
   assign_class_abils(CLASS_SORCERER, /* class number */
@@ -618,8 +654,8 @@ void load_class_list(void) {
   /****************************************************************************/
   /*     class-number   name      abrv   clr-abrv     menu-name*/
   classo(CLASS_PALADIN, "paladin", "Pal", "\tWPal\tn", "p) \tWPaladin\tn",
-      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlock-cost*/
-        -1,       N,    N,        H,  10, 0,   1,   2,     Y,      0);
+      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst, eFeatp*/
+        -1,       N,    N,        H,  10, 0,   1,   2,     Y,      0,       3);
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_PALADIN, B,    B,      G,    B,      B);
   assign_class_abils(CLASS_PALADIN, /* class number */
@@ -650,8 +686,8 @@ void load_class_list(void) {
   /****************************************************************************/
   /*     class-number  name      abrv   clr-abrv     menu-name*/
   classo(CLASS_RANGER, "ranger", "Ran", "\tYRan\tn", "r) \tYRanger\tn",
-      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlock-cost */
-        -1,       N,    N,        H,  10, 0,   3,   4,     Y,      0);
+      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst, eFeatp */
+        -1,       N,    N,        H,  10, 0,   3,   4,     Y,      0,       3);
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_RANGER, G,    B,      B,    B,      B);
   assign_class_abils(CLASS_RANGER, /* class number */
@@ -682,8 +718,8 @@ void load_class_list(void) {
   /****************************************************************************/
   /*     class-number  name   abrv   clr-abrv     menu-name*/
   classo(CLASS_BARD, "bard", "Bar", "\tCBar\tn", "a) \tCBard\tn",
-      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlock-cost */
-        -1,       N,    N,        M,  6, 0,   2,   6,     Y,       0);
+      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst, eFeatp */
+        -1,       N,    N,        M,  6, 0,   2,   6,     Y,       0,       3);
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_BARD,   B,    G,      G,    B,      B);
   assign_class_abils(CLASS_BARD, /* class number */
@@ -714,8 +750,8 @@ void load_class_list(void) {
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
   classo(CLASS_WEAPON_MASTER, "weaponmaster", "WpM", "\tcWpM\tn", "e) \tcWeaponMaster\tn",
-      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlock-cost*/
-        10,       Y,    Y,        H,  10, 0,   1,   2,     Y,      5000);
+      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst, eFeatp*/
+        10,       Y,    Y,        H,  10, 0,   1,   2,     Y,      5000,    3);
   /* class-number then saves:        fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_WEAPON_MASTER, B,    G,      B,    B,      B);
   assign_class_abils(CLASS_WEAPON_MASTER, /* class number */
@@ -742,6 +778,38 @@ void load_class_list(void) {
     "the WeaponMaster"            /* default */  
   );
   /****************************************************************************/
+  
+  /****************************************************************************/
+  /*     class-number               name      abrv   clr-abrv     menu-name*/
+  classo(CLASS_ARCANE_ARCHER, "arcanearcher", "ArA", "\tgArA\tn", "f) \tgArcaneArcher\tn",
+      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst, eFeatp*/
+        10,       Y,    Y,        H,  10, 0,   1,   4,     Y,      5000,    4);
+  /* class-number then saves:        fortitude, reflex, will, poison, death */
+  assign_class_saves(CLASS_ARCANE_ARCHER, G,    G,      B,    B,      B);
+  assign_class_abils(CLASS_ARCANE_ARCHER, /* class number */
+    /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+      CC,        CA,     CA,        CA,  CA,        CA,            CA,
+    /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+      CC,      CC,        CC,           CA,  CA,  CC,   CC,             CC,
+    /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+      CC,       CC,            CC,      CC,           CC,           CC,
+    /*survival,swim,use_magic_device,perform*/
+      CC,      CA,  CC,              CC
+    );
+  assign_class_titles(CLASS_ARCANE_ARCHER, /* class number */
+    "",                           /* <= 4  */
+    "the Precise Shot",           /* <= 9  */
+    "the Magical Archer",         /* <= 14 */
+    "the Masterful Archer",       /* <= 19 */
+    "the Mystical Arrow",         /* <= 24 */
+    "the Arrow Wizard",           /* <= 29 */
+    "the Arrow Storm",            /* <= 30 */
+    "the Immortal ArcaneArcher",  /* <= LVL_IMMORT */
+    "the Limitless Archer",       /* <= LVL_STAFF */
+    "the God of Archery",         /* <= LVL_GRSTAFF */
+    "the ArcaneArcher"            /* default */  
+  );
+  /****************************************************************************/
 }
 
 /* list all the class defines in-game */
@@ -750,7 +818,7 @@ ACMD(do_classlist) {
   char buf[MAX_STRING_LENGTH];
   size_t len = 0;
 
-  send_to_char(ch, "# Name Abrv ClrAbrv | Menu | MaxLvl Lock Prestige BAB HPs Mvs Train InGame");
+  send_to_char(ch, "# Name Abrv ClrAbrv | Menu | MaxLvl Lock Prestige BAB HPs Mvs Train InGame UnlockCost EFeatProg");
   send_to_char(ch, " | Sv-Fort Sv-Refl Sv-Will\r\n");
   send_to_char(ch, "    acrobatics,stealth,perception,heal,intimidate,concentration,spellcraft\r\n");
   send_to_char(ch, "    appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff\r\n");
@@ -761,7 +829,7 @@ ACMD(do_classlist) {
   
   for (i = 0; i < NUM_CLASSES; i++) {
     len += snprintf(buf + len, sizeof (buf) - len,
-        "\r\n%d] %s %s %s | %s | %d %s %s %s %d %d %d %s | %s %s %s\r\n"
+        "\r\n%d] %s %s %s | %s | %d %s %s %s %d %d %d %s %d %d | %s %s %s\r\n"
         "     %s %s %s %s %s %s %s\r\n"
         "     %s %s %s %s %s %s %s %s\r\n"
         "     %s %s %s %s %s %s\r\n"
@@ -769,7 +837,7 @@ ACMD(do_classlist) {
         i, CLSLIST_NAME(i), CLSLIST_ABBRV(i), CLSLIST_CLRABBRV(i), CLSLIST_MENU(i),
           CLSLIST_MAXLVL(i), CLSLIST_LOCK(i) ? "Y" : "N", CLSLIST_PRESTIGE(i) ? "Y" : "N",
           (CLSLIST_BAB(i) == 2) ? "H" : (CLSLIST_BAB(i) ? "M" : "L"), CLSLIST_HPS(i),
-          CLSLIST_MVS(i), CLSLIST_TRAINS(i), CLSLIST_INGAME(i) ? "Y" : "N",
+          CLSLIST_MVS(i), CLSLIST_TRAINS(i), CLSLIST_INGAME(i) ? "Y" : "N", CLSLIST_COST(i), CLSLIST_EFEATP(i),
         CLSLIST_SAVES(i, 0) ? "G" : "B", CLSLIST_SAVES(i, 1) ? "G" : "B", CLSLIST_SAVES(i, 2) ? "G" : "B", 
         (CLSLIST_ABIL(i, ABILITY_ACROBATICS) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_ACROBATICS) ? "CC" : "NA"),
           (CLSLIST_ABIL(i, ABILITY_STEALTH) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_STEALTH) ? "CC" : "NA"),
@@ -841,6 +909,7 @@ int parse_class(char arg) {
     case 'r': return CLASS_RANGER;
     case 'a': return CLASS_BARD;
     case 'e': return CLASS_WEAPON_MASTER;
+    case 'f': return CLASS_ARCANE_ARCHER;
     default: return CLASS_UNDEFINED;
   }
 }
@@ -865,6 +934,8 @@ int parse_class_long(char *arg) {
   if (is_abbrev(arg, "bard")) return CLASS_BARD;
   if (is_abbrev(arg, "weaponmaster")) return CLASS_WEAPON_MASTER;
   if (is_abbrev(arg, "weapon-master")) return CLASS_WEAPON_MASTER;
+  if (is_abbrev(arg, "arcanearcher")) return CLASS_ARCANE_ARCHER;
+  if (is_abbrev(arg, "arcane-archer")) return CLASS_ARCANE_ARCHER;
 
   return CLASS_UNDEFINED;
 }
@@ -889,16 +960,17 @@ struct guild_info_type guild_info[] = {
   /* Midgaard */
   { CLASS_WIZARD, 3017, SOUTH},
   { CLASS_CLERIC, 3004, NORTH},
-  { CLASS_DRUID, 3004, NORTH},
-  { CLASS_MONK, 3004, NORTH},
   { CLASS_ROGUE, 3027, EAST},
-  { CLASS_BARD, 3027, EAST},
   { CLASS_WARRIOR, 3021, EAST},
-  { CLASS_WEAPON_MASTER, 3021, EAST},
-  { CLASS_RANGER, 3021, EAST},
-  { CLASS_PALADIN, 3021, EAST},
+  { CLASS_MONK, 3004, NORTH},
+  { CLASS_DRUID, 3004, NORTH},
   { CLASS_BERSERKER, 3021, EAST},
   { CLASS_SORCERER, 3017, SOUTH},
+  { CLASS_PALADIN, 3021, EAST},
+  { CLASS_RANGER, 3021, EAST},
+  { CLASS_BARD, 3027, EAST},
+  { CLASS_WEAPON_MASTER, 3021, EAST},
+  { CLASS_ARCANE_ARCHER, 3021, EAST},
 
   /* Brass Dragon */
   { -999 /* all */, 5065, WEST},
@@ -1437,6 +1509,21 @@ int level_feats[][LEVEL_FEATS] = {
   {CLASS_WEAPON_MASTER, RACE_UNDEFINED, TRUE,  9,  FEAT_UNSTOPPABLE_STRIKE},
   {CLASS_WEAPON_MASTER, RACE_UNDEFINED, FALSE, 10, FEAT_INCREASED_MULTIPLIER},
 
+  /* arcane archer */
+  /* class, race, stacks?, level, feat_ name */
+  {CLASS_ARCANE_ARCHER, RACE_UNDEFINED, TRUE,  1,  FEAT_ENHANCE_ARROW_MAGIC},
+  {CLASS_ARCANE_ARCHER, RACE_UNDEFINED, TRUE,  2,  FEAT_SEEKER_ARROW},
+  {CLASS_ARCANE_ARCHER, RACE_UNDEFINED, TRUE,  3,  FEAT_ENHANCE_ARROW_MAGIC},
+  {CLASS_ARCANE_ARCHER, RACE_UNDEFINED, TRUE,  4,  FEAT_IMBUE_ARROW},
+  {CLASS_ARCANE_ARCHER, RACE_UNDEFINED, TRUE,  5,  FEAT_ENHANCE_ARROW_MAGIC},
+  {CLASS_ARCANE_ARCHER, RACE_UNDEFINED, TRUE,  6,  FEAT_SEEKER_ARROW},
+  {CLASS_ARCANE_ARCHER, RACE_UNDEFINED, TRUE,  6,  FEAT_IMBUE_ARROW},
+  {CLASS_ARCANE_ARCHER, RACE_UNDEFINED, TRUE,  7,  FEAT_ENHANCE_ARROW_MAGIC},
+  {CLASS_ARCANE_ARCHER, RACE_UNDEFINED, TRUE,  8,  FEAT_SEEKER_ARROW},
+  {CLASS_ARCANE_ARCHER, RACE_UNDEFINED, FALSE, 8,  FEAT_SWARM_OF_ARROWS},
+  {CLASS_ARCANE_ARCHER, RACE_UNDEFINED, TRUE,  9,  FEAT_ENHANCE_ARROW_MAGIC},
+  {CLASS_ARCANE_ARCHER, RACE_UNDEFINED, FALSE, 10, FEAT_ARROW_OF_DEATH},
+  
   /****************/
   /* Racial feats */
   /****************/
@@ -1542,24 +1629,6 @@ int level_feats[][LEVEL_FEATS] = {
   /*****************************************/
   {CLASS_UNDEFINED, RACE_UNDEFINED, FALSE, 1, FEAT_UNDEFINED}
 };
-
-/* this is not currently used */
-int epic_level_feats[][7] = {
-
-  { CLASS_ROGUE, 0, 2, 1, TRUE, FEAT_SNEAK_ATTACK, 1},
-  { CLASS_ROGUE, 0, 4, 0, TRUE, FEAT_TRAP_SENSE, 1},
-  { CLASS_BERSERKER, 0, 3, 0, TRUE, FEAT_TRAP_SENSE, 1},
-  { CLASS_BERSERKER, 0, 3, 1, TRUE, FEAT_SHRUG_DAMAGE, 1},
-  { CLASS_BERSERKER, 0, 4, 0, FALSE, FEAT_RAGE, 1},
-  { CLASS_DRUID, -2, 4, 0, TRUE, FEAT_WILD_SHAPE, 1},
-  { CLASS_PALADIN, 0, 5, 0, TRUE, FEAT_SMITE_EVIL, 1},
-  { CLASS_PALADIN, 0, 3, 0, TRUE, FEAT_REMOVE_DISEASE, 1},
-  { CLASS_RANGER, 0, 5, 0, TRUE, FEAT_FAVORED_ENEMY_AVAILABLE, 1},
-
-  // This is always the last one
-  { CLASS_UNDEFINED, 0, 0, 0, TRUE, FEAT_UNDEFINED, 0}
-};
-
 
 /* CLASS FEATS ---------------------------------------------------- */
 const int class_feats_wizard[] = {
@@ -2076,22 +2145,6 @@ void newbieEquipment(struct char_data *ch) {
       break;
   }
 }
-
-/* init spells for a class as they level up
- * i.e free skills  ;  make sure to set in spec_procs too
- * Note:  this is not currently used */
-void berserker_skills(struct char_data *ch, int level) {}
-void bard_skills(struct char_data *ch, int level) {}
-void ranger_skills(struct char_data *ch, int level) {}
-void paladin_skills(struct char_data *ch, int level) {}
-void sorc_skills(struct char_data *ch, int level) {}
-void wizard_skills(struct char_data *ch, int level) {IS_WIZ_LEARNED(ch) = 0;}
-void cleric_skills(struct char_data *ch, int level) {}
-void warrior_skills(struct char_data *ch, int level) {}
-void druid_skills(struct char_data *ch, int level) {IS_DRUID_LEARNED(ch) = 0;}
-void rogue_skills(struct char_data *ch, int level) {}
-void monk_skills(struct char_data *ch, int level) {}
-void weaponmaster_skills(struct char_data *ch, int level) {}
 
 /* this is used to assign all the spells */
 void init_class(struct char_data *ch, int class, int level) {
@@ -3057,100 +3110,18 @@ void advance_level(struct char_data *ch, int class) {
   /* calculate trains gained */
   trains += MAX(1, (CLSLIST_TRAINS(class) + (GET_REAL_INT_BONUS(ch))));
   
-  /* various class bonuses */
-  switch (class) {
-    case CLASS_SORCERER:
-      sorc_skills(ch, CLASS_LEVEL(ch, CLASS_SORCERER));
-      //epic
-      if (!(CLASS_LEVEL(ch, class) % 3) && GET_LEVEL(ch) >= 20) {
-        epic_class_feats++;
-      }
-      break;
-    case CLASS_WIZARD:
-      wizard_skills(ch, CLASS_LEVEL(ch, CLASS_WIZARD));      
-      if (!(CLASS_LEVEL(ch, class) % 5) && GET_LEVEL(ch) < 20) {
-        class_feats++;
-      }
-      //epic
-      if (!(CLASS_LEVEL(ch, class) % 3) && GET_LEVEL(ch) >= 20) {
-        epic_class_feats++;
-      }
-      break;
-    case CLASS_CLERIC:
-      cleric_skills(ch, CLASS_LEVEL(ch, CLASS_CLERIC));
-      //epic
-      if (!(CLASS_LEVEL(ch, class) % 3) && GET_LEVEL(ch) >= 20) {
-        epic_class_feats++;
-      }
-      break;
-    case CLASS_ROGUE:
-      rogue_skills(ch, CLASS_LEVEL(ch, CLASS_ROGUE));
-      //epic
-      if (!(CLASS_LEVEL(ch, class) % 4) && GET_LEVEL(ch) >= 20) {
-        epic_class_feats++;
-      }
-      break;
-    case CLASS_BARD:
-      bard_skills(ch, CLASS_LEVEL(ch, CLASS_BARD));
-      //epic
-      if (!(CLASS_LEVEL(ch, class) % 3) && GET_LEVEL(ch) >= 20) {
-        epic_class_feats++;
-      }
-      break;
-    case CLASS_MONK:
-      monk_skills(ch, CLASS_LEVEL(ch, CLASS_MONK));
-      //epic
-      if (!(CLASS_LEVEL(ch, class) % 5) && GET_LEVEL(ch) >= 20) {
-        epic_class_feats++;
-      }
-      break;
-    case CLASS_BERSERKER:
-      berserker_skills(ch, CLASS_LEVEL(ch, CLASS_BERSERKER));
-      //epic
-      if (!(CLASS_LEVEL(ch, class) % 4) && GET_LEVEL(ch) >= 20) {
-        epic_class_feats++;
-      }
-      break;
-    case CLASS_DRUID:
-      druid_skills(ch, CLASS_LEVEL(ch, CLASS_SORCERER));
-      //epic
-      if (!(CLASS_LEVEL(ch, class) % 4) && GET_LEVEL(ch) >= 20) {
-        epic_class_feats++;
-      }
-      break;
-    case CLASS_RANGER:
-      ranger_skills(ch, CLASS_LEVEL(ch, CLASS_RANGER));
-      //epic
-      if (!(CLASS_LEVEL(ch, class) % 3) && GET_LEVEL(ch) >= 20) {
-        epic_class_feats++;
-      }
-      break;
-    case CLASS_PALADIN:
-      paladin_skills(ch, CLASS_LEVEL(ch, CLASS_PALADIN));
-      trains += MAX(1, (2 + (GET_REAL_INT_BONUS(ch))));
-      //epic
-      if (!(CLASS_LEVEL(ch, class) % 3) && GET_LEVEL(ch) >= 20) {
-        epic_class_feats++;
-      }
-      break;
-    case CLASS_WARRIOR:
-      warrior_skills(ch, CLASS_LEVEL(ch, CLASS_WARRIOR));
-      if (!(CLASS_LEVEL(ch, class) % 2) && !IS_EPIC(ch)) {
-        class_feats++;
-      }
-      if (!(CLASS_LEVEL(ch, class) % 2) && IS_EPIC(ch)) {
-        epic_class_feats++;
-      }
-      break;
-    case CLASS_WEAPON_MASTER:
-      weaponmaster_skills(ch, CLASS_LEVEL(ch, CLASS_WEAPON_MASTER));
-      //epic
-      if (!(CLASS_LEVEL(ch, class) % 3) && GET_LEVEL(ch) >= 20) {
-        epic_class_feats++;
-      }
-      break;      
-    default:break;
-  }
+  /* epic feat progresion */
+  if (!(CLASS_LEVEL(ch, class) % CLSLIST_EFEATP(class)) && IS_EPIC(ch)) {
+    epic_class_feats++;
+   }
+  
+  /* special feat progression */
+    if (!(CLASS_LEVEL(ch, CLASS_WIZARD) % 5) && !IS_EPIC(ch)) {
+      class_feats++; /* wizards get a bonus class feat every 5 levels */
+    }
+    if (!(CLASS_LEVEL(ch, CLASS_WARRIOR) % 2) && !IS_EPIC(ch)) {
+      class_feats++; /* warriors get a bonus class feat every 2 levels */
+    }
 
   /* further movement modifications */
   if (HAS_FEAT(ch, FEAT_ENDURANCE)) {
@@ -3160,7 +3131,7 @@ void advance_level(struct char_data *ch, int class) {
     add_move += rand_number(1, 2);
   }
 
-  /* free class feats gained */
+  /* 'free' class feats gained */
   process_level_feats(ch, class);
 
   //Racial Bonuses
@@ -4086,6 +4057,7 @@ int level_exp(struct char_data *ch, int level) {
     case CLASS_RANGER:
     case CLASS_WARRIOR:
     case CLASS_WEAPON_MASTER:
+    case CLASS_ARCANE_ARCHER:
     case CLASS_ROGUE:
     case CLASS_BARD:
     case CLASS_BERSERKER:

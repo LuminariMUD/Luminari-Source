@@ -406,6 +406,90 @@ ACMD(do_ethshift) {
   USE_FULL_ROUND_ACTION(ch);
 }
 
+/* imbue an arrow with one of your spells */
+ACMD(do_imbuearrow) {
+  char arg1[MAX_INPUT_LENGTH];
+  char arg2[MAX_INPUT_LENGTH];
+  struct obj_data *arrow = NULL;
+  int spell_num = 0, class = -1;
+  int uses_remaining = 0;
+
+  two_arguments(argument, arg1, arg2);
+
+  /* need two arguments */
+  if (!*arg1) {
+    send_to_char(ch, "Apply on which ammo?  Usage: imbuearrow <ammo name> <spell name>\r\n");
+    return;
+  }
+  if (!*arg2) {
+    send_to_char(ch, "Imbue what spell?  Usage: imbuearrow <ammo name> <spell name>\r\n");
+    return;
+  }
+  
+  /* feat related restrictions / daily use */
+  if (!HAS_FEAT(ch, FEAT_IMBUE_ARROW)) {
+    send_to_char(ch, "You do not know how!\r\n");
+    return;
+  }
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_IMBUE_ARROW)) == 0) {
+    send_to_char(ch, "You must recover the arcane energy required to imbue and arrow.\r\n");
+    return;
+  }
+  if (uses_remaining < 0) {
+    send_to_char(ch, "You are not experienced enough.\r\n");
+    return;
+  }
+
+  /* confirm we actually have an arrow targeted */
+  arrow = get_obj_in_list_vis(ch, arg1, NULL, ch->carrying);
+  if (!arrow) {
+    send_to_char(ch, "You do not carry that ammo!\r\n");
+    return;
+  }
+  if (GET_OBJ_TYPE(arrow) != TYPE_MISSILE) {
+    send_to_char(ch, "You can only imbue ammo!\r\n");
+    return;
+  }
+  
+  /* confirm we have a valid spell */
+  spell_num = find_skill_num(arg2);
+  if (spell_num < 1 || spell_num > MAX_SPELLS) {
+    send_to_char(ch, "Imbue with which spell??\r\n");
+    return;
+  }
+  /* make sure arrow isn't already imbued! (obj val 1)*/
+  if (GET_OBJ_VAL(arrow, 1)) {
+    send_to_char(ch, "This arrow is already imbued!\r\n");
+    return;
+  }
+  
+  /* confirm we have a slot (sorc type), or memorized (wizard type) */
+  if (hasSpell(ch, spell_num, 0) == -1) {
+    send_to_char(ch, "You have to have the spell prepared in order to imbue!\r\n");
+    return;    
+  }
+  /* now use that slot */
+  class = forgetSpell(ch, spell_num, 0, -1);
+  if (class == -1) {
+    send_to_char(ch, "ERR:  Report BUG246tf to an IMM!\r\n");
+    return;
+  }
+  /* sorcerer's call is made already in forgetSpell() */
+  if (class != CLASS_SORCERER && class != CLASS_BARD)
+    addSpellMemming(ch, spell_num, 0, spell_info[spell_num].memtime, class);
+  
+  /* SUCCESS! */
+  start_daily_use_cooldown(ch, FEAT_IMBUE_ARROW);
+  
+  /* store the spell in the arrow, object value 1 */
+  GET_OBJ_VAL(arrow, 1) = spell_num;
+  
+  /* start wear-off timer for the spell placed on the arrow */
+  GET_OBJ_TIMER(arrow) = 8;  /* should be 8 hours right? */
+  
+  USE_MOVE_ACTION(ch);
+}
+
 /* apply poison to a weapon */
 ACMD(do_applypoison) {
   char arg1[MAX_INPUT_LENGTH];
@@ -1198,6 +1282,7 @@ int valid_align_by_class(int alignment, int class) {
     case CLASS_ROGUE:
     case CLASS_WARRIOR:
     case CLASS_WEAPON_MASTER:
+    case CLASS_ARCANE_ARCHER:
     case CLASS_SORCERER:
       return 1;
   }
@@ -1206,10 +1291,10 @@ int valid_align_by_class(int alignment, int class) {
   return 1;
 }
 
+/* simple little function to make sure they have an arcane level */
 
 // if you meet the class pre-reqs, return 1, otherwise 0
 // class = class attempting to level in
-
 int meet_class_reqs(struct char_data *ch, int class, int mode) {
   int i;
   bool passed = TRUE;
@@ -1241,12 +1326,66 @@ int meet_class_reqs(struct char_data *ch, int class, int mode) {
 
   /* stat, and other restrictions */
   switch (class) {
-    case CLASS_WEAPON_MASTER:
-      if (!has_unlocked_class(ch, CLASS_WEAPON_MASTER)) {
-        send_to_char(ch, "[LOCKED] WeaponMaster (type 'accexp class weaponmaster' to unlock)\r\n");
+    case CLASS_ARCANE_ARCHER:
+      /********* CHECK ARCANE LEVEL ************/
+      if (!has_unlocked_class(ch, CLASS_ARCANE_ARCHER)) {
+        //send_to_char(ch, "[LOCKED] ArcaneArcher (type 'accexp class arcanearcher' to unlock)\r\n");
         break;
       }
-      send_to_char(ch, "WeaponMaster Missing Requirements:\r\n");
+      if (BAB(ch) < 6) {
+        passed = FALSE;
+        send_to_char(ch, "  -Base attack bonus of +6 required.\r\n");
+      }
+      if (GET_RACE(ch) != RACE_ELF && GET_RACE(ch) != RACE_HALF_ELF) {
+        passed = FALSE;
+        send_to_char(ch, "  -Only Elves and Half-Elves can be Arcane Archers.\r\n");        
+      }
+      if (!HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS),
+              WEAPON_TYPE_LONG_BOW) &&
+          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS),
+              WEAPON_TYPE_SHORT_BOW) &&
+          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS),
+              WEAPON_TYPE_COMPOSITE_LONGBOW) &&
+          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS),
+              WEAPON_TYPE_COMPOSITE_SHORTBOW) &&
+          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS),
+              WEAPON_TYPE_COMPOSITE_LONGBOW_2) &&
+          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS),
+              WEAPON_TYPE_COMPOSITE_LONGBOW_3) &&
+          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS),
+              WEAPON_TYPE_COMPOSITE_LONGBOW_4) &&
+          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS),
+              WEAPON_TYPE_COMPOSITE_LONGBOW_5) &&
+          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS),
+              WEAPON_TYPE_COMPOSITE_SHORTBOW_2) &&
+          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS),
+              WEAPON_TYPE_COMPOSITE_SHORTBOW_3) &&
+          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS),
+              WEAPON_TYPE_COMPOSITE_SHORTBOW_4) &&
+          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS),
+              WEAPON_TYPE_COMPOSITE_SHORTBOW_5)              
+              ) {
+        passed = FALSE;
+        send_to_char(ch, "  -Feat required: Weapon Focus in any Long/Short Bow\r\n");
+      }
+      if (!HAS_FEAT(ch, FEAT_POINT_BLANK_SHOT)) {
+        passed = FALSE;
+        send_to_char(ch, "  -Feat required: Point Blank Shot\r\n");
+      }
+      if (!HAS_FEAT(ch, FEAT_PRECISE_SHOT)) {
+        passed = FALSE;
+        send_to_char(ch, "  -Feat required: Precise Shot\r\n");
+      }
+      if (passed) {
+        send_to_char(ch, "  ArcaneArcher requirements have been met!\r\n");
+        return 1;
+      }
+      break;
+    case CLASS_WEAPON_MASTER:
+      if (!has_unlocked_class(ch, CLASS_WEAPON_MASTER)) {
+        //send_to_char(ch, "[LOCKED] WeaponMaster (type 'accexp class weaponmaster' to unlock)\r\n");
+        break;
+      }
       if (!HAS_FEAT(ch, FEAT_WEAPON_FOCUS)) {
         passed = FALSE;
         send_to_char(ch, "  -Feat required: Weapon Focus\r\n");

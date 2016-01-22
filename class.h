@@ -26,6 +26,12 @@
 #define NUM_PREFERRED_SAVES 5
 /* end defines */
 
+/* spell data for class */
+struct class_spell_assign {
+  int spell_num;
+  int circle;
+  struct class_spell_assign *next;
+};
 
 /* prereq data for class */
 struct class_prerequisite {
@@ -59,11 +65,14 @@ struct class_table {
   int trains_gain; /* how many trains this class gets before int bonus */
   bool in_game; /* class currently in the game? */
   int unlock_cost; /* if locked, cost to unlock in account xp */
-
+  /*!(CLASS_LEVEL(ch, class) % EPIC_FEAT_PROGRESSION) && IS_EPIC(ch)*/
+  int epic_feat_progression;
+  
   char *titles[MAX_NUM_TITLES];  /* titles every 5 levels, 3 staff, default */
   int preferred_saves[NUM_PREFERRED_SAVES];  /*high or low saving throw values */
   int class_abil[NUM_ABILITIES];  /*class ability (not avail, cross-class, class-skill)*/
   
+  struct class_spell_assign *spellassign_list; /* list of spell assigns */
   struct class_prerequisite *prereq_list; /* A list of prerequisite sctructures */
 };
 

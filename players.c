@@ -341,6 +341,8 @@ int load_char(const char *name, struct char_data *ch) {
     GET_TRAINS(ch) = PFDEF_TRAINS;
     GET_BOOSTS(ch) = PFDEF_BOOSTS;
     GET_SPECIALTY_SCHOOL(ch) = PFDEF_SPECIALTY_SCHOOL;
+    GET_PREFERRED_ARCANE(ch) = PFDEF_PREFERRED_ARCANE;
+    GET_PREFERRED_DIVINE(ch) = PFDEF_PREFERRED_DIVINE;
     GET_1ST_RESTRICTED_SCHOOL(ch) = PFDEF_RESTRICTED_SCHOOL_1;
     GET_2ND_RESTRICTED_SCHOOL(ch) = PFDEF_RESTRICTED_SCHOOL_2;
     GET_1ST_DOMAIN(ch) = PFDEF_DOMAIN_1;
@@ -582,6 +584,8 @@ int load_char(const char *name, struct char_data *ch) {
             } else
               PRF_FLAGS(ch)[0] = asciiflag_conv(f1);
           }
+          else if (!strcmp(tag, "PCAr")) GET_PREFERRED_ARCANE(ch) = atoi(line);
+          else if (!strcmp(tag, "PCDi")) GET_PREFERRED_DIVINE(ch) = atoi(line);
           break;
 
         case 'Q':
@@ -922,6 +926,9 @@ void save_char(struct char_data * ch, int mode) {
   if (GET_1ST_RESTRICTED_SCHOOL(ch) != PFDEF_RESTRICTED_SCHOOL_1) fprintf(fl, "RSc1: %d\n", GET_1ST_RESTRICTED_SCHOOL(ch));
   if (GET_2ND_RESTRICTED_SCHOOL(ch) != PFDEF_RESTRICTED_SCHOOL_2) fprintf(fl, "RSc2: %d\n", GET_2ND_RESTRICTED_SCHOOL(ch));
 
+  if (GET_PREFERRED_ARCANE(ch) != PFDEF_PREFERRED_ARCANE) fprintf(fl, "PCAr: %d\n", GET_PREFERRED_ARCANE(ch));
+  if (GET_PREFERRED_DIVINE(ch) != PFDEF_PREFERRED_DIVINE) fprintf(fl, "PCDi: %d\n", GET_PREFERRED_DIVINE(ch));
+  
   if (GET_FEAT_POINTS(ch) != 0) fprintf(fl, "Ftpt: %d\n", GET_FEAT_POINTS(ch));
 
   fprintf(fl, "Cfpt:\n");

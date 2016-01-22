@@ -309,6 +309,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "innates", "innates", POS_DEAD, do_innates, 0, 0, TRUE, ACTION_NONE, {0, 0}},
   { "intimidate", "intimidate", POS_FIGHTING, do_intimidate, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
   { "icicle", "icicle", POS_FIGHTING, do_icicle, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
+  { "imbuearrow", "imbuearrow", POS_FIGHTING, do_imbuearrow, 1, 0, FALSE, ACTION_MOVE, {0, 6}},
 
   { "junk", "j", POS_RECLINING, do_drop, 0, SCMD_JUNK, FALSE, ACTION_NONE, {0, 0}},
 
@@ -489,6 +490,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "springleap", "springleap", POS_SITTING, do_springleap, 1, 0, FALSE, ACTION_MOVE, {0, 6}},
   { "supriseaccuracy", "supriseaccuracy", POS_FIGHTING, do_supriseaccuracy, 1, 0, FALSE, ACTION_NONE, {0, 0}},
   { "struggle", "struggle", POS_RECLINING, do_struggle, 1, 0, FALSE, ACTION_NONE, {0, 0}},
+  { "seekerarrow", "seekerarrow", POS_FIGHTING, do_seekerarrow, 1, 0, FALSE, ACTION_NONE, {0, 0}},
 
   { "tell", "t", POS_DEAD, do_tell, 0, 0, TRUE, ACTION_NONE, {0, 0}},
   { "take", "ta", POS_RECLINING, do_get, 0, 0, FALSE, ACTION_NONE, {0, 0}},
@@ -2289,6 +2291,9 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
           break;
         case CLASS_WEAPON_MASTER:
           perform_help(d, "class-weaponmaster");
+          break;
+        case CLASS_ARCANE_ARCHER:
+          perform_help(d, "class-arcanearcher");
           break;
         case CLASS_PALADIN:
           perform_help(d, "class-paladin");

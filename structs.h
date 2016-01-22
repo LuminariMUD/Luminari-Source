@@ -355,8 +355,11 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define CLASS_RANGER        9
 #define CLASS_BARD          10
 #define CLASS_WEAPON_MASTER 11
+#define CLASS_WEAPONMASTER  CLASS_WEAPON_MASTER
+#define CLASS_ARCANE_ARCHER 12
+#define CLASS_ARCANEARCHER  CLASS_ARCANE_ARCHER
 /** Total number of available PC Classes */
-#define NUM_CLASSES         12
+#define NUM_CLASSES         13
 
 // related to pc (classes, etc)
 /* note that max_classes was established to reign in some of the
@@ -451,17 +454,21 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define RACE_HUMAN           0 /* Race Human */
 #define RACE_ELF             1 /* Race Elf   */
 #define RACE_DWARF           2 /* Race Dwarf */
-#define RACE_HALF_TROLL           3 /* Race Troll (advanced) */
+#define RACE_H_TROLL         3 /* Race Troll (advanced) */
+#define RACE_HALF_TROLL      RACE_H_TROLL
 #define RACE_CRYSTAL_DWARF   4  /* crystal dwarf (epic) */
 #define RACE_HALFLING        5  // halfling
 #define RACE_H_ELF           6  // half elf
+#define RACE_HALF_ELF        RACE_H_ELF
 #define RACE_H_ORC           7  // half orc
+#define RACE_HALF_ORC        RACE_H_ORC
 #define RACE_GNOME           8  // gnome
 #define RACE_TRELUX          9  // trelux (epic)
 #define RACE_ARCANA_GOLEM    10  // arcana golem (advanced)
 #define RACE_DROW            11  // not yet implemented
 #define RACE_DUERGAR         12  // not yet implemented
-#define RACE_OGRE            13  // not yet implemented
+#define RACE_H_OGRE          13  // not yet implemented
+#define RACE_HALF_OGRE       RACE_H_OGRE
 #define RACE_UNDEFINED_1     14  /* for expansion of races */
 #define RACE_UNDEFINED_2     15  /* for expansion of races */
 #define RACE_UNDEFINED_3     16  /* for expansion of races */
@@ -528,7 +535,7 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define RACE_ROCK_GNOME             82 // pc forgotten realms
 #define RACE_DEEP_GNOME             83
 #define RACE_SVIRFNEBLIN            RACE_DEEP_GNOME
-#define RACE_HALF_ORC               84
+//#define RACE_HALF_ORC               84
 #define RACE_AASIMAR                85
 #define RACE_TIEFLING               86
 #define RACE_AIR_GENESI             87
@@ -536,7 +543,7 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define RACE_FIRE_GENESI            89
 #define RACE_WATER_GENESI           90
 //#define RACE_OGRE                   91
-#define RACE_HALF_OGRE              92
+//#define RACE_HALF_OGRE              92
 #define RACE_ORC                    93
 #define RACE_CENTAUR                99
 #define RACE_CONSTRUCT              100
@@ -623,7 +630,7 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define RACE_STIRGE                  176
 #define RACE_SILVANESTI_ELF          177// 1 higher than the last race define
 #define RACE_KAGONESTI_ELF           178
-#define RACE_HALF_ELF                179
+//#define RACE_HALF_ELF                179
 #define RACE_HUMAN_PLAINS_NOMAD      180
 #define RACE_DAEWAR_DWARF            181
 #define RACE_KLAR_DWARF              182
@@ -1222,7 +1229,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 /* Feats defined below up to MAX_FEATS */
 #define FEAT_UNDEFINED                 0
 #define FEAT_ALERTNESS                 1
-#define FEAT_UNUSED_02                 2
+#define FEAT_SEEKER_ARROW               2
 #define FEAT_ARMOR_PROFICIENCY_HEAVY   3
 #define FEAT_ARMOR_PROFICIENCY_LIGHT   4
 #define FEAT_ARMOR_PROFICIENCY_MEDIUM  5
@@ -1425,8 +1432,6 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_WEAPON_PROFICIENCY_ELF   202
 #define FEAT_ARMOR_PROFICIENCY_SHIELD   203
 #define FEAT_SNEAK_ATTACK     204
-/* Evasion and improved evasion are not actually feats, but we treat them like feats
- *  * just to make it easier */
 #define FEAT_EVASION        205
 #define FEAT_IMPROVED_EVASION     206
 #define FEAT_ACROBATIC        207
@@ -1472,38 +1477,38 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_DEFENSIVE_ROLL     247
 #define FEAT_OPPORTUNIST      248
 #define FEAT_WEAKNESS_TO_ACID      249
-#define FEAT_SLIPPERY_MIND      250
+#define FEAT_SLIPPERY_MIND          250
 #define FEAT_NATURAL_ARMOR_INCREASE 251
-#define FEAT_SNATCH_ARROWS      252
-#define FEAT_STRENGTH_BOOST 253
-#define FEAT_CLAWS_AND_BITE 254
-#define FEAT_BREATH_WEAPON 255
-#define FEAT_BLINDSENSE 256
-#define FEAT_CONSTITUTION_BOOST 257
-#define FEAT_INTELLIGENCE_BOOST 258
-#define FEAT_WINGS 259
-#define FEAT_DRAGON_APOTHEOSIS 260
-#define FEAT_CHARISMA_BOOST 261
+#define FEAT_SNATCH_ARROWS          252
+#define FEAT_STRENGTH_BOOST         253
+#define FEAT_CLAWS_AND_BITE         254
+#define FEAT_BREATH_WEAPON          255
+#define FEAT_BLINDSENSE             256
+#define FEAT_CONSTITUTION_BOOST     257
+#define FEAT_INTELLIGENCE_BOOST     258
+#define FEAT_WINGS                  259
+#define FEAT_DRAGON_APOTHEOSIS      260
+#define FEAT_CHARISMA_BOOST         261
 #define FEAT_SLEEP_PARALYSIS_IMMUNITY 262
-#define FEAT_ELEMENTAL_IMMUNITY 263
-#define FEAT_BARDIC_MUSIC 264
-#define FEAT_BARDIC_KNOWLEDGE 265
-#define FEAT_COUNTERSONG 266
-#define FEAT_UNUSED_267   267
-#define FEAT_UNUSED_268   268
-#define FEAT_UNUSED_269   269
-#define FEAT_UNUSED_270   270
-#define FEAT_UNUSED_271   271
-#define FEAT_UNUSED_272   272
-#define FEAT_UNUSED_273   273
-#define FEAT_UNUSED_274   274
-#define FEAT_ULTRAVISION 275
-#define FEAT_LINGERING_SONG 276
-#define FEAT_EXTRA_MUSIC 277
-#define FEAT_EXCEPTIONAL_TURNING 278
-#define FEAT_IMPROVED_POWER_ATTACK 279
-#define FEAT_MONKEY_GRIP 280
-#define FEAT_FAST_CRAFTER 281
+#define FEAT_ELEMENTAL_IMMUNITY     263
+#define FEAT_BARDIC_MUSIC           264
+#define FEAT_BARDIC_KNOWLEDGE       265
+#define FEAT_COUNTERSONG            266
+#define FEAT_IMBUE_ARROW            267
+#define FEAT_ARROW_OF_DEATH         268
+#define FEAT_UNUSED_269             269
+#define FEAT_UNUSED_270             270
+#define FEAT_UNUSED_271             271
+#define FEAT_UNUSED_272             272
+#define FEAT_UNUSED_273             273
+#define FEAT_UNUSED_274             274
+#define FEAT_ULTRAVISION            275
+#define FEAT_LINGERING_SONG         276
+#define FEAT_EXTRA_MUSIC            277
+#define FEAT_EXCEPTIONAL_TURNING    278
+#define FEAT_IMPROVED_POWER_ATTACK  279
+#define FEAT_MONKEY_GRIP            280
+#define FEAT_FAST_CRAFTER           281
 #define FEAT_PROFICIENT_CRAFTER 282
 #define FEAT_PROFICIENT_HARVESTER 283
 #define FEAT_SCAVENGE 284
@@ -3129,6 +3134,10 @@ struct player_special_data_saved {
   byte specialty_school; /* wizard specialty */
   byte restricted_school_1; /* restricted school */
   byte restricted_school_2; /* restricted school */
+  
+  /* preferred caster classs, used for prestige classes such as arcane archer */
+  byte preferred_arcane;
+  byte preferred_divine;
 
   int wimp_level; /**< Below this # of hit points, flee! */
   byte freeze_level; /**< Level of god who froze char, if any */

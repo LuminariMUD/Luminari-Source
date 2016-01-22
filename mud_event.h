@@ -110,6 +110,7 @@ typedef enum {
   eCRYSTALBODY_AFF, //  crystal body affect
   eBARDIC_PERFORMANCE, // bard performance/song 
   eENCOUNTER_REG_RESET, // Reset event for encounter regions.          
+  eSEEKER_ARROW, /*pew pew seeker arrows!*/
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

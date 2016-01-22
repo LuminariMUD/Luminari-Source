@@ -40,6 +40,8 @@
  * are made available with the function definition. */
 #define isspace_ignoretabs(c) ((c)!='\t' && isspace(c))
 
+int compute_bonus_caster_level(struct char_data *ch, int class);
+int compute_arcane_level(struct char_data *ch);
 bool compute_has_combat_feat(struct char_data *ch, int cfeat, int weapon);
 int compute_dexterity_bonus(struct char_data *ch);
 int stats_point_left(struct char_data *ch);
@@ -661,7 +663,7 @@ do                                                              \
 #define GET_LEVEL(ch)   ((ch)->player.level)
 #define CLASS_LEVEL(ch, class)	(ch->player_specials->saved.class_level[class])
 
-#define IS_EPIC_LEVEL(ch)       (GET_LEVEL(ch) >= 20)
+#define IS_EPIC_LEVEL(ch)       (GET_LEVEL(ch) > 20)
 #define IS_EPIC(ch)             (IS_EPIC_LEVEL(ch))
 
 
@@ -673,12 +675,8 @@ do                                                              \
                                   (CLASS_LEVEL(ch, CLASS_RANGER)/2) + \
                                   (compute_arcana_golem_level(ch)) - \
                                   (SPELLBATTLE(ch)/2)) )
-#define MAGIC_LEVEL(ch)		(IS_NPC(ch) ? GET_LEVEL(ch) : \
-                                 (CLASS_LEVEL(ch, CLASS_WIZARD) + \
-                                 CLASS_LEVEL(ch, CLASS_SORCERER)+ \
-                                 CLASS_LEVEL(ch, CLASS_BARD) + \
-                                 (compute_arcana_golem_level(ch)) -\
-                                 (SPELLBATTLE(ch)/2)) )
+#define ARCANE_LEVEL(ch)        (compute_arcane_level(ch))
+#define MAGIC_LEVEL(ch)         ARCANE_LEVEL(ch)
 #define CASTER_LEVEL(ch)	(MIN(IS_NPC(ch) ? GET_LEVEL(ch) : \
                                  DIVINE_LEVEL(ch) + MAGIC_LEVEL(ch) - \
                                  (compute_arcana_golem_level(ch)), LVL_IMMORT-1))
@@ -1138,7 +1136,6 @@ spellnum == SPELL_EPIC_WARDING )
 
 #define CAN_SET_DOMAIN(ch) (CLASS_LEVEL(ch, CLASS_CLERIC) == 1)
 #define CAN_SET_SCHOOL(ch) (CLASS_LEVEL(ch, CLASS_WIZARD) == 1)
-
 #define CAN_STUDY_CLASS_FEATS(ch) (CAN_STUDY_FEATS(ch) || (GET_LEVELUP_CLASS_FEATS(ch) + \
                                                            GET_LEVELUP_EPIC_CLASS_FEATS(ch) > 0 ? 1 : 0))
 
@@ -1148,6 +1145,12 @@ spellnum == SPELL_EPIC_WARDING )
 #define CAN_STUDY_FAMILIAR(ch) (HAS_FEAT(ch, FEAT_SUMMON_FAMILIAR) ? 1 : 0)
 #define CAN_STUDY_COMPANION(ch) (HAS_FEAT(ch, FEAT_ANIMAL_COMPANION) ? 1 : 0)
 #define CAN_STUDY_FAVORED_ENEMY(ch) (HAS_FEAT(ch, FEAT_FAVORED_ENEMY_AVAILABLE) ? 1 : 0)
+/* study - setting preferred caster class, for prestige classes such as arcane archer */
+#define CAN_SET_P_CASTER(ch)  (1)
+//#define CAN_SET_P_DIVINE(ch)  (CLASS_LEVEL(ch, CLASS_CLERIC) || CLASS_LEVEL(ch, CLASS_DRUID))
+#define GET_PREFERRED_ARCANE(ch)	CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.preferred_arcane))
+#define GET_PREFERRED_DIVINE(ch)	CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.preferred_divine))
+#define BONUS_CASTER_LEVEL(ch, class)          (compute_bonus_caster_level(ch, class))
 
 /* Attacks of Opportunity (AOO) */
 #define GET_TOTAL_AOO(ch) (ch->char_specials.attacks_of_opportunity)
@@ -1622,6 +1625,7 @@ spellnum == SPELL_EPIC_WARDING )
 #define CLSLIST_TRAINS(classnum)           (class_list[classnum].trains_gain)
 #define CLSLIST_INGAME(classnum)           (class_list[classnum].in_game)
 #define CLSLIST_COST(classnum)             (class_list[classnum].unlock_cost)
+#define CLSLIST_EFEATP(classnum)           (class_list[classnum].epic_feat_progression)
 #define CLSLIST_SAVES(classnum, savenum)   (class_list[classnum].preferred_saves[savenum])
 #define CLSLIST_ABIL(classnum, abilnum)    (class_list[classnum].class_abil[abilnum])
 #define CLSLIST_TITLE(classnum, titlenum)  (class_list[classnum].titles[titlenum])

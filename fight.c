@@ -2924,9 +2924,11 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     dambonus += GET_ENHANCEMENT_BONUS(wielded);
   /* ranged includes arrow, what a hack */
   if (can_fire_arrow(ch, TRUE) && is_using_ranged_weapon(ch) && GET_EQ(ch, WEAR_AMMO_POUCH)
-          && GET_EQ(ch, WEAR_AMMO_POUCH)->contains)
+          && GET_EQ(ch, WEAR_AMMO_POUCH)->contains) {
     dambonus += GET_ENHANCEMENT_BONUS(GET_EQ(ch, WEAR_AMMO_POUCH)->contains);
-
+    dambonus += HAS_FEAT(ch, FEAT_ENHANCE_ARROW_MAGIC);
+  }
+  
   /* wildshape bonus */
   if (IS_WILDSHAPED(ch))
     dambonus += HAS_FEAT(ch, FEAT_NATURAL_ATTACK);
@@ -4579,6 +4581,31 @@ int determine_weapon_type(struct obj_data *wielded) {
 }
 */
 
+/* arrow imbued with spell will now activate */
+void imbued_arrow(struct char_data *ch, struct char_data *vict, struct obj_data *missile) {
+  /* start with the usual dummy checks */
+  if (!ch || !vict || !missile)
+    return;
+
+  /* imbued? */
+  if (GET_OBJ_TYPE(missile) != ITEM_MISSILE || !GET_OBJ_VAL(missile, 1))
+    return;    
+  
+  /* messages */
+  act("You watch as $p you launched at $N ignites with magical energy!", FALSE, ch, missile, vict, TO_CHAR);
+  act("You watch as $p launched by $n ignites with magical energy!", FALSE, ch, missile, vict, TO_VICT);
+  act("..$p ignites with magical energy as $n launches it at $N!", FALSE, ch, missile, vict, TO_NOTVICT);
+  
+  /* time to call the magic! */
+  call_magic(ch, vict, missile, GET_OBJ_VAL(missile, 1), 0, MAGIC_LEVEL(ch),
+          CAST_SPELL);
+
+  /* clear the imbued spell on the arrow */
+  GET_OBJ_VAL(missile, 1) = 0;
+  
+  return;
+}
+
 /* called from hit() */
 void handle_missed_attack(struct char_data *ch, struct char_data *victim,
            int type, int w_type, int dam_type, int attack_type,
@@ -4613,6 +4640,8 @@ void handle_missed_attack(struct char_data *ch, struct char_data *victim,
 
   /* Ranged miss */
   if (attack_type == ATTACK_TYPE_RANGED) {
+    /* set off imbued arrow! */
+    imbued_arrow(ch, victim, missile);
     /* breakage chance! */
     if (GET_OBJ_VAL(missile, 2) >= dice(1, 100)) { /*broke!*/   
       act("\tnThe $o\tn you fire at $N\tn misses badly and ends up breaking!",
@@ -4783,6 +4812,8 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   
   /* We hit with a ranged weapon, victim gets a new arrow, stuck neatly in his butt. */
   if (attack_type == ATTACK_TYPE_RANGED) {
+    /* set off imbued arrow! */
+    imbued_arrow(ch, victim, missile);
     obj_to_char(missile, victim);
   }
 

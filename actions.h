@@ -20,8 +20,9 @@
 #define AA_DISARM            11
 #define AA_SMITE_GOOD        12
 #define AA_SMITE_DESTRUCTION 13
+#define AA_SEEKER_ARROW      14
 /**/
-#define NUM_ATTACK_ACTIONS   14
+#define NUM_ATTACK_ACTIONS   15
 /**************************/
 
 #define USE_STANDARD_ACTION(ch)   start_action_cooldown(ch, atSTANDARD, 6 RL_SEC)
