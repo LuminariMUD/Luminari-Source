@@ -1890,15 +1890,18 @@ void assign_feats(void) {
   /*lvl 3 enhance arrow*/
   /*lvl 4*/feato(FEAT_IMBUE_ARROW, "imbue arrow", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
     "imbue an arrow with one of your spells",
-    "For a short duration once per day per rank of this feet, ");
+    "You can transfer your magical energy into one of your arrows.  This transfer "
+      "of power is temporary (approximately 8 game hours).  Upon the launching of "
+      "the arrow the magical energy from the arrow will be expended upon the "
+      "target.  This feat stacks.  Usage: imbuearrow <arrow name> <spell name>");
   /*lvl 5 enhance, lvl 6 seeker, lvl 6 imbue, lvl 7 enhance, lvl 8 seeker*/
   /*lvl 8*/feato(FEAT_SWARM_OF_ARROWS, "swarm of arrows", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "short",
-    "long");
+    "unfinished",
+    "unfinished");
   /*lvl 9 enhance*/
   /*lvl 10*/feato(FEAT_ARROW_OF_DEATH, "arrow of death", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "short",
-    "long");
+    "unfinished",
+    "unfinished");
 
   /* class feats that are implemented on classes that are not yet in the game */
 
