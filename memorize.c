@@ -1756,7 +1756,7 @@ void display_memming(struct char_data *ch, int class) {
         case CLASS_PALADIN:
         case CLASS_WIZARD:  
           send_to_char(ch, "\r\n\tCYou are ready to %s for: (type 'rest' "
-                  "then '%s' to continue)\r\n", spell_prep_dict[classArray(class)][0]);
+                  "then '%s' to continue)\r\n", spell_prep_dict[classArray(class)][0], spell_prep_dict[classArray(class)][0]);
           break;        
       }
     }
