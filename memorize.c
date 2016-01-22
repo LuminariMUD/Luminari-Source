@@ -392,6 +392,16 @@ int classArray(int class) {
   return -1;
 }
 
+// words to use for the spell preperation process for different classes.
+char *spell_prep_dict[NUM_CASTERS][4] = {
+  {"pray",     "praying",    "prayed",    "prayers"},      // CLASS_CLERIC
+  {"commune",  "communing",  "communed",  "communion"},    // CLASS_DRUID 
+  {"memorize", "studying",   "memorized", "studies"},      // CLASS_WIZARD
+  {"meditate", "meditating", "meditated", "meditations"},  // CLASS_SORCERER
+  {"chant",    "chanting",   "chanted",   "petitions"},    // CLASS_PALADIN 
+  {"adjure",   "adjuring",   "adjured",   "adjurations"},  // CLASS_RANGER
+  {"compose",  "composing",  "composed",  "compositions"}, // CLASS_BARD 
+};
 
 // the number of spells received per level for caster types
 int wizardSlots[LVL_IMPL + 1][10] = {
@@ -1470,7 +1480,8 @@ int getCircle(struct char_data *ch, int class) {
    memorizes the spell upon completion */
 void updateMemming(struct char_data *ch, int class) {
   int bonus = 1;
-
+  char metamagic_buf[200];
+  
   if (classArray(class) == -1)
     return;
 
@@ -1481,31 +1492,22 @@ void updateMemming(struct char_data *ch, int class) {
   }
 
   /* if you aren't resting, can't mem; same with fighting */
-  if (GET_POS(ch) != POS_RESTING || FIGHTING(ch)) {
+  if (GET_POS(ch) != POS_RESTING || FIGHTING(ch)) {    
     switch (class) {
       case CLASS_SORCERER:
-        send_to_char(ch, "Your meditation is interrupted.\r\n");
-        act("$n aborts $s meditation.", FALSE, ch, 0, 0, TO_ROOM);
-        break;
+      case CLASS_BARD:
+        send_to_char(ch, "Your %s is interrupted.\r\n", spell_prep_dict[class][3]);
+        sprintf(buf, "$n aborts $s %s.", spell_prep_dict[class][3]);
+        act(buf, FALSE, ch, 0, 0, TO_ROOM);
+        break;             
       case CLASS_WIZARD:
-        send_to_char(ch, "You abort your studies.\r\n");
-        act("$n aborts $s studies.", FALSE, ch, 0, 0, TO_ROOM);
-        break;
       case CLASS_CLERIC:
-        send_to_char(ch, "You abort your prayers.\r\n");
-        act("$n aborts $s prayers.", FALSE, ch, 0, 0, TO_ROOM);
-        break;
       case CLASS_PALADIN:
-        send_to_char(ch, "You abort your chant.\r\n");
-        act("$n aborts $s chant.", FALSE, ch, 0, 0, TO_ROOM);
-        break;
-      case CLASS_RANGER:
-        send_to_char(ch, "You abort your adjuration.\r\n");
-        act("$n aborts $s adjuration.", FALSE, ch, 0, 0, TO_ROOM);
-        break;
-      case CLASS_DRUID:
-        send_to_char(ch, "You abort your communing.\r\n");
-        act("$n aborts $s communing.", FALSE, ch, 0, 0, TO_ROOM);
+      case CLASS_RANGER:    
+      case CLASS_DRUID:    
+        send_to_char(ch, "You abort your %s.\r\n", spell_prep_dict[class][3]);
+        sprintf(buf, "$n aborts $s %s.", spell_prep_dict[class][3]);
+        act(buf, FALSE, ch, 0, 0, TO_ROOM);
         break;
     }
     resetMemtimes(ch, class);
@@ -1539,14 +1541,17 @@ void updateMemming(struct char_data *ch, int class) {
     PREP_TIME(ch, 0, classArray(class)) -= bonus;    
   }
   
+  sprintf(metamagic_buf, "%s%s", 
+                         (IS_SET(PREPARATION_QUEUE(ch, 0, classArray(class)).metamagic, METAMAGIC_QUICKEN) ? "quickened ": ""),
+                         (IS_SET(PREPARATION_QUEUE(ch, 0, classArray(class)).metamagic, METAMAGIC_MAXIMIZE) ? "maximized ": ""));
+  
   /* continue memorizing */
   if (PREP_TIME(ch, 0, classArray(class)) <= 0 || GET_LEVEL(ch) >= LVL_IMMORT) {
     switch (class) {
       case CLASS_CLERIC:
-        sprintf(buf, "You finish praying for %s%s%s.\r\n", 
-                       (IS_SET(PREPARATION_QUEUE(ch, 0, classArray(class)).metamagic, METAMAGIC_QUICKEN) ? "quickened ": ""),
-                       (IS_SET(PREPARATION_QUEUE(ch, 0, classArray(class)).metamagic, METAMAGIC_MAXIMIZE) ? "maximized ": ""),
-                       spell_info[PREPARATION_QUEUE(ch, 0, classArray(class)).spell].name);
+        sprintf(buf, "You finish %%s for %s %s.\r\n", 
+                     metamagic_buf,
+                     spell_info[PREPARATION_QUEUE(ch, 0, classArray(class)).spell].name);
         addSpellMemmed(ch, PREPARATION_QUEUE(ch, 0, classArray(class)).spell, PREPARATION_QUEUE(ch, 0, classArray(class)).metamagic, class);
         break;
       case CLASS_RANGER:
