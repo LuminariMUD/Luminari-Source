@@ -1889,7 +1889,7 @@ void printMemory(struct char_data *ch, int class) {
 /* "forget" command for players */
 ACMD(do_gen_forget) {
   int spellnum, slot, class = -1, metamagic = 0;
-  char *s, *m;
+  char *s, *m, arg[MAX_INPUT_LENGTH];
   bool forget_all = FALSE;
   
   if (subcmd == SCMD_BLANK)
@@ -1906,10 +1906,10 @@ ACMD(do_gen_forget) {
     send_to_char(ch, "Invalid command!\r\n");
     return;
   }
-  /* Preserve the argument string*/
-    
+  /* Copy the argument, strtok mangles it. */
+  sprintf(arg, "%s", argument);
+  
   /* Check for metamagic. */   
-  log("DEBUG: Argument = %s", argument);
   for (m = strtok(argument, " "); m && m[0] != '\''; m = strtok(NULL, " ")) {
     if (strcmp(m, "all") == 0) {
       forget_all = TRUE;
@@ -1926,19 +1926,16 @@ ACMD(do_gen_forget) {
     }      
   }
   
-  log("DEBUG: Argument = %s", argument);
+
   if (!forget_all) {
           
-    s = strtok(m, "'");
-    log("DEBUG s = %s", s);
-  
+    s = strtok(arg, "'");
+ 
     if (s == NULL) {
       send_to_char(ch, "Forget which spell, or all for all spells?\r\n");
       return;
     }
   
-    //s = strtok(NULL, "'");
-   
     if (s == NULL) {
       send_to_char(ch, "Spell names must be enclosed in the Holy Magic Symbols: '\r\n");
       return;
