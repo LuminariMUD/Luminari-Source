@@ -446,7 +446,7 @@ ACMD(do_imbuearrow) {
     send_to_char(ch, "You do not carry that ammo!\r\n");
     return;
   }
-  if (GET_OBJ_TYPE(arrow) != TYPE_MISSILE) {
+  if (GET_OBJ_TYPE(arrow) != ITEM_MISSILE) {
     send_to_char(ch, "You can only imbue ammo!\r\n");
     return;
   }
