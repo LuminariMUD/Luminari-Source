@@ -1505,6 +1505,7 @@ void updateMemming(struct char_data *ch, int class) {
       case CLASS_PALADIN:
       case CLASS_RANGER:    
       case CLASS_DRUID:    
+        log("DEBUG: class = %d", class);
         send_to_char(ch, "You abort your %s.\r\n", spell_prep_dict[class][3]);
         sprintf(act_buf, "$n aborts $s %s.", spell_prep_dict[class][3]);
         act(act_buf, FALSE, ch, 0, 0, TO_ROOM);
