@@ -1965,7 +1965,6 @@ void printMemory(struct char_data *ch, int class) {
 /* "forget" command for players */
 ACMD(do_gen_forget) {
   int spellnum, slot, class = -1, metamagic = 0;
-  char arg[MAX_INPUT_LENGTH];
   char *s, *m;
   bool forget_all = FALSE;
   
@@ -2293,7 +2292,7 @@ ACMD(do_gen_memorize) {
     for (m = strtok(argument, " "); m && m[0] != '\''; m = strtok(NULL, " ")) {
       if (class == CLASS_SORCERER || class == CLASS_BARD) {
         send_to_char(ch, "Spontaneous casters do not prepare spells with metamagic.\r\n");
-        return
+        return;
       }
       if (is_abbrev(m, "quickened")) {
         if HAS_FEAT(ch, FEAT_QUICKEN_SPELL) {
