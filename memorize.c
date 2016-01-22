@@ -1543,23 +1543,31 @@ void updateMemming(struct char_data *ch, int class) {
   if (PREP_TIME(ch, 0, classArray(class)) <= 0 || GET_LEVEL(ch) >= LVL_IMMORT) {
     switch (class) {
       case CLASS_CLERIC:
-        sprintf(buf, "You finish praying for %s.\r\n",
-                spell_info[PREPARATION_QUEUE(ch, 0, classArray(class)).spell].name);
+        sprintf(buf, "You finish praying for %s%s%s.\r\n", 
+                       (IS_SET(PREPARATION_QUEUE(ch, 0, classArray(class)).metamagic, METAMAGIC_QUICKEN) ? "quickened ": ""),
+                       (IS_SET(PREPARATION_QUEUE(ch, 0, classArray(class)).metamagic, METAMAGIC_MAXIMIZE) ? "maximized ": ""),
+                       spell_info[PREPARATION_QUEUE(ch, 0, classArray(class)).spell].name);
         addSpellMemmed(ch, PREPARATION_QUEUE(ch, 0, classArray(class)).spell, PREPARATION_QUEUE(ch, 0, classArray(class)).metamagic, class);
         break;
       case CLASS_RANGER:
-        sprintf(buf, "You finish adjuring for %s.\r\n",
-                spell_info[PREPARATION_QUEUE(ch, 0, classArray(class)).spell].name);
+        sprintf(buf, "You finish adjuring for %s%s%s.\r\n", 
+                       (IS_SET(PREPARATION_QUEUE(ch, 0, classArray(class)).metamagic, METAMAGIC_QUICKEN) ? "quickened ": ""),
+                       (IS_SET(PREPARATION_QUEUE(ch, 0, classArray(class)).metamagic, METAMAGIC_MAXIMIZE) ? "maximized ": ""),
+                       spell_info[PREPARATION_QUEUE(ch, 0, classArray(class)).spell].name);
         addSpellMemmed(ch, PREPARATION_QUEUE(ch, 0, classArray(class)).spell, PREPARATION_QUEUE(ch, 0, classArray(class)).metamagic, class);
         break;
       case CLASS_PALADIN:
-        sprintf(buf, "You finish chanting for %s.\r\n",
-                spell_info[PREPARATION_QUEUE(ch, 0, classArray(class)).spell].name);
+        sprintf(buf, "You finish chanting for %s%s%s.\r\n", 
+                       (IS_SET(PREPARATION_QUEUE(ch, 0, classArray(class)).metamagic, METAMAGIC_QUICKEN) ? "quickened ": ""),
+                       (IS_SET(PREPARATION_QUEUE(ch, 0, classArray(class)).metamagic, METAMAGIC_MAXIMIZE) ? "maximized ": ""),
+                       spell_info[PREPARATION_QUEUE(ch, 0, classArray(class)).spell].name);
         addSpellMemmed(ch, PREPARATION_QUEUE(ch, 0, classArray(class)).spell, PREPARATION_QUEUE(ch, 0, classArray(class)).metamagic, class);
         break;
       case CLASS_DRUID:
-        sprintf(buf, "You finish communing for %s.\r\n",
-                spell_info[PREPARATION_QUEUE(ch, 0, classArray(class)).spell].name);
+        sprintf(buf, "You finish communing for %s%s%s.\r\n", 
+                       (IS_SET(PREPARATION_QUEUE(ch, 0, classArray(class)).metamagic, METAMAGIC_QUICKEN) ? "quickened ": ""),
+                       (IS_SET(PREPARATION_QUEUE(ch, 0, classArray(class)).metamagic, METAMAGIC_MAXIMIZE) ? "maximized ": ""),
+                       spell_info[PREPARATION_QUEUE(ch, 0, classArray(class)).spell].name);
         addSpellMemmed(ch, PREPARATION_QUEUE(ch, 0, classArray(class)).spell, PREPARATION_QUEUE(ch, 0, classArray(class)).metamagic, class);
         break;
       case CLASS_SORCERER:
@@ -2335,16 +2343,28 @@ ACMD(do_gen_memorize) {
     if ((compSlots - num_spells) > 0) {
       switch (class) {
         case CLASS_DRUID:
-          send_to_char(ch, "You start to commune for %s.\r\n", spell_info[spellnum].name);
+          send_to_char(ch, "You start to commune for %s%s%s.\r\n", 
+                       (IS_SET(metamagic, METAMAGIC_QUICKEN) ? "quickened ": ""),
+                       (IS_SET(metamagic, METAMAGIC_MAXIMIZE) ? "maximized ": ""),
+                       spell_info[spellnum].name);
           break;
         case CLASS_CLERIC:
-          send_to_char(ch, "You start to pray for %s.\r\n", spell_info[spellnum].name);
+          send_to_char(ch, "You start to pray for %s%s%s.\r\n", 
+                       (IS_SET(metamagic, METAMAGIC_QUICKEN) ? "quickened ": ""),
+                       (IS_SET(metamagic, METAMAGIC_MAXIMIZE) ? "maximized ": ""),
+                       spell_info[spellnum].name);
           break;
         case CLASS_RANGER:
-          send_to_char(ch, "You start to adjure for %s.\r\n", spell_info[spellnum].name);
+          send_to_char(ch, "You start to adjure for %s%s%s.\r\n", 
+                       (IS_SET(metamagic, METAMAGIC_QUICKEN) ? "quickened ": ""),
+                       (IS_SET(metamagic, METAMAGIC_MAXIMIZE) ? "maximized ": ""),
+                       spell_info[spellnum].name);
           break;
         case CLASS_PALADIN:
-          send_to_char(ch, "You start to chant for %s.\r\n", spell_info[spellnum].name);
+          send_to_char(ch, "You start to chant for %s%s%s.\r\n", 
+                       (IS_SET(metamagic, METAMAGIC_QUICKEN) ? "quickened ": ""),
+                       (IS_SET(metamagic, METAMAGIC_MAXIMIZE) ? "maximized ": ""),
+                       spell_info[spellnum].name);
           break;
         case CLASS_WIZARD:
           //spellbooks
