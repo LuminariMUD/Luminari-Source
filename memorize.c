@@ -1525,7 +1525,7 @@ void updateMemming(struct char_data *ch, int class) {
   if (class == CLASS_WIZARD &&
           !spellbook_ok(ch, PREPARATION_QUEUE(ch, 0, classArray(class)).spell, CLASS_WIZARD, FALSE)
           ) {
-    send_to_char(ch, "You don't seem to have '%' in your spellbook!\r\n", spell_info[PREPARATION_QUEUE(ch, 0, classArray(class)).spell].name);
+    send_to_char(ch, "You don't seem to have '%s' in your spellbook!\r\n", spell_info[PREPARATION_QUEUE(ch, 0, classArray(class)).spell].name);
     resetMemtimes(ch, class);
     IS_PREPARING(ch, classArray(class)) = FALSE;
     return;
