@@ -488,6 +488,10 @@ ACMD(do_imbuearrow) {
   GET_OBJ_TIMER(arrow) = 8;  /* should be 8 hours right? */
   
   USE_MOVE_ACTION(ch);
+  
+  /* message */
+  act("$n briefly concentrates and you watch as $p flashes with arcane energy.", FALSE, ch, arrow, 0, TO_ROOM);
+  act("You concentrate arcane energy and focus it into $p.", FALSE, ch, arrow, 0, TO_CHAR);
 }
 
 /* apply poison to a weapon */
