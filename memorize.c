@@ -1666,6 +1666,7 @@ void display_sorc(struct char_data *ch, int class) {
 /* display memmed or prayed list */
 void display_memmed(struct char_data*ch, int class) {
   int slot, memSlot, num[MAX_SPELLS];
+  char metamagic_buf[200];
   bool printed;
 
   if (classArray(class) == -1)
@@ -1702,21 +1703,23 @@ void display_memmed(struct char_data*ch, int class) {
         if (PREPARED_SPELLS(ch, memSlot, classArray(class)).spell != 0 &&
             (spellCircle(class, PREPARED_SPELLS(ch, memSlot, classArray(class)).spell, PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, GET_1ST_DOMAIN(ch)) == slot ||
              spellCircle(class, PREPARED_SPELLS(ch, memSlot, classArray(class)).spell, PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, GET_2ND_DOMAIN(ch)) == slot)) 
-        {         
+        {      
+            sprintf(metamagic_buf, "%s%s", 
+                  (IS_SET(PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, METAMAGIC_QUICKEN) ? "quick ": ""),
+                  (IS_SET(PREPARATION_QUEUE(ch, memSlot, classArray(class)).metamagic, METAMAGIC_MAXIMIZE) ? "maximized ": ""));
+          
             if (!printed) {
-              send_to_char(ch, "[Circle: %d]   %s %s%s\r\n",
+              send_to_char(ch, "[Circle: %d]   %s %s\r\n",
                       slot, 
-                      spell_info[PREPARED_SPELLS(ch, memSlot, classArray(class)).spell].name,
-                      (IS_SET(PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, METAMAGIC_QUICKEN) ? "quick " : ""),
-                      (IS_SET(PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, METAMAGIC_MAXIMIZE) ? "maximized " : "")
+                      metamagic_buf,
+                      spell_info[PREPARED_SPELLS(ch, memSlot, classArray(class)).spell].name
                       );
               printed = TRUE;
               num[PREPARED_SPELLS(ch, memSlot, classArray(class)).spell] = 0;
             } else {
-              send_to_char(ch, "              %s %s%s\r\n",
-                      spell_info[PREPARED_SPELLS(ch, memSlot, classArray(class)).spell].name,
-                      (IS_SET(PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, METAMAGIC_QUICKEN) ? "quick " : ""),
-                      (IS_SET(PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, METAMAGIC_MAXIMIZE) ? "maximized " : "")
+              send_to_char(ch, "              %s %s\r\n",
+                      metamagic_buf,
+                      spell_info[PREPARED_SPELLS(ch, memSlot, classArray(class)).spell].name
                       );
               num[PREPARED_SPELLS(ch, memSlot, classArray(class)).spell] = 0;
             }         
