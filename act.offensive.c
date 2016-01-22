@@ -2966,7 +2966,7 @@ ACMD(do_seekerarrow) {
     if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch))) {
       vict = FIGHTING(ch);
     } else {
-      send_to_char(ch, "Kick who?\r\n");
+      send_to_char(ch, "Launch a seeker arrow at who?\r\n");
       return;
     }
   }
