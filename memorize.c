@@ -392,7 +392,7 @@ int classArray(int class) {
   return -1;
 }
 
-// words to use for the spell preperation process for different classes.
+// words to use for the spell preparation process for different classes.
 char *spell_prep_dict[NUM_CASTERS][4] = {
   {"pray",     "praying",    "prayed",    "prayers"},      // CLASS_CLERIC
   {"commune",  "communing",  "communed",  "communion"},    // CLASS_DRUID 
@@ -1481,7 +1481,7 @@ int getCircle(struct char_data *ch, int class) {
 void updateMemming(struct char_data *ch, int class) {
   int bonus = 1;
   char metamagic_buf[200];
-  
+  char act_buf[MAX_STRING_LENGTH];
   if (classArray(class) == -1)
     return;
 
@@ -1497,8 +1497,8 @@ void updateMemming(struct char_data *ch, int class) {
       case CLASS_SORCERER:
       case CLASS_BARD:
         send_to_char(ch, "Your %s is interrupted.\r\n", spell_prep_dict[class][3]);
-        sprintf(buf, "$n aborts $s %s.", spell_prep_dict[class][3]);
-        act(buf, FALSE, ch, 0, 0, TO_ROOM);
+        sprintf(act_buf, "$n aborts $s %s.", spell_prep_dict[class][3]);
+        act(act_buf, FALSE, ch, 0, 0, TO_ROOM);
         break;             
       case CLASS_WIZARD:
       case CLASS_CLERIC:
@@ -1506,8 +1506,8 @@ void updateMemming(struct char_data *ch, int class) {
       case CLASS_RANGER:    
       case CLASS_DRUID:    
         send_to_char(ch, "You abort your %s.\r\n", spell_prep_dict[class][3]);
-        sprintf(buf, "$n aborts $s %s.", spell_prep_dict[class][3]);
-        act(buf, FALSE, ch, 0, 0, TO_ROOM);
+        sprintf(act_buf, "$n aborts $s %s.", spell_prep_dict[class][3]);
+        act(act_buf, FALSE, ch, 0, 0, TO_ROOM);
         break;
     }
     resetMemtimes(ch, class);
