@@ -1708,7 +1708,7 @@ void display_memmed(struct char_data*ch, int class) {
              spellCircle(class, PREPARED_SPELLS(ch, memSlot, classArray(class)).spell, PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, GET_2ND_DOMAIN(ch)) == slot)) 
         {      
             sprintf(metamagic_buf, "%s%s", 
-                  (IS_SET(PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, METAMAGIC_QUICKEN) ? "quick ": ""),
+                  (IS_SET(PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, METAMAGIC_QUICKEN) ? "quickened ": ""),
                   (IS_SET(PREPARATION_QUEUE(ch, memSlot, classArray(class)).metamagic, METAMAGIC_MAXIMIZE) ? "maximized ": ""));
           
             if (!printed) {
@@ -1775,7 +1775,7 @@ void display_memming(struct char_data *ch, int class) {
         } else
           spellLevel = spellCircle(class, PREPARATION_QUEUE(ch, slot, classArray(class)).spell, PREPARATION_QUEUE(ch, slot, classArray(class)).metamagic, DOMAIN_UNDEFINED);                
         send_to_char(ch, "  %s%s%s [%d%s] with %d seconds remaining.\r\n",
-                     (IS_SET(PREPARATION_QUEUE(ch, slot, classArray(class)).metamagic, METAMAGIC_QUICKEN) ? "quick " : ""),
+                     (IS_SET(PREPARATION_QUEUE(ch, slot, classArray(class)).metamagic, METAMAGIC_QUICKEN) ? "quickened " : ""),
                       (IS_SET(PREPARATION_QUEUE(ch, slot, classArray(class)).metamagic, METAMAGIC_MAXIMIZE) ? "maximized " : ""),
                      spell_info[PREPARATION_QUEUE(ch, slot, classArray(class)).spell].name,                     
                      spellLevel, spellLevel == 1 ? "st" : spellLevel == 2 ?
