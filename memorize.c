@@ -1928,14 +1928,16 @@ ACMD(do_gen_forget) {
   
 
   if (!forget_all) {
-          
+    log("DEBUG: arg = %s", arg);
     s = strtok(arg, "'");
- 
+    log("DEBUG: s = %s", s);
     if (s == NULL) {
       send_to_char(ch, "Forget which spell, or all for all spells?\r\n");
       return;
     }
   
+    s = strtok(arg, "'");
+    log("DEBUG: s = %s", s);
     if (s == NULL) {
       send_to_char(ch, "Spell names must be enclosed in the Holy Magic Symbols: '\r\n");
       return;
