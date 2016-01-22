@@ -1543,7 +1543,7 @@ void updateMemming(struct char_data *ch, int class) {
   if (affected_by_spell(ch, SKILL_SONG_OF_FOCUSED_MIND)) {
     PREP_TIME(ch, 0, classArray(class)) -= bonus;    
   }
-  
+  metamagic_buf[0] = '\0';
   sprintf(metamagic_buf, "%s%s", 
                          (IS_SET(PREPARATION_QUEUE(ch, 0, classArray(class)).metamagic, METAMAGIC_QUICKEN) ? "quickened ": ""),
                          (IS_SET(PREPARATION_QUEUE(ch, 0, classArray(class)).metamagic, METAMAGIC_MAXIMIZE) ? "maximized ": ""));
@@ -1556,7 +1556,7 @@ void updateMemming(struct char_data *ch, int class) {
       case CLASS_PALADIN:
       case CLASS_DRUID:
       case CLASS_WIZARD:
-        sprintf(buf, "You finish %s for %s %s.\r\n", 
+        sprintf(buf, "You finish %s for %s%s.\r\n", 
                 spell_prep_dict[classArray(class)][1],
                      metamagic_buf,
                      spell_info[PREPARATION_QUEUE(ch, 0, classArray(class)).spell].name);
@@ -1706,13 +1706,14 @@ void display_memmed(struct char_data*ch, int class) {
         if (PREPARED_SPELLS(ch, memSlot, classArray(class)).spell != 0 &&
             (spellCircle(class, PREPARED_SPELLS(ch, memSlot, classArray(class)).spell, PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, GET_1ST_DOMAIN(ch)) == slot ||
              spellCircle(class, PREPARED_SPELLS(ch, memSlot, classArray(class)).spell, PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, GET_2ND_DOMAIN(ch)) == slot)) 
-        {      
+        {   
+            metamagic_buf[0] = '\0';
             sprintf(metamagic_buf, "%s%s", 
                   (IS_SET(PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, METAMAGIC_QUICKEN) ? "quickened ": ""),
                   (IS_SET(PREPARATION_QUEUE(ch, memSlot, classArray(class)).metamagic, METAMAGIC_MAXIMIZE) ? "maximized ": ""));
           
             if (!printed) {
-              send_to_char(ch, "[Circle: %d]   %s %s\r\n",
+              send_to_char(ch, "[Circle: %d]   %s%s\r\n",
                       slot, 
                       metamagic_buf,
                       spell_info[PREPARED_SPELLS(ch, memSlot, classArray(class)).spell].name
@@ -1720,7 +1721,7 @@ void display_memmed(struct char_data*ch, int class) {
               printed = TRUE;
               num[PREPARED_SPELLS(ch, memSlot, classArray(class)).spell] = 0;
             } else {
-              send_to_char(ch, "              %s %s\r\n",
+              send_to_char(ch, "              %s%s\r\n",
                       metamagic_buf,
                       spell_info[PREPARED_SPELLS(ch, memSlot, classArray(class)).spell].name
                       );
