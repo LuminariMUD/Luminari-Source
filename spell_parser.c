@@ -1039,10 +1039,7 @@ EVENTFUNC(event_casting) {
 
       if (!concentration_check(ch, spellnum))
         return 0;
-
-                       (IS_SET(CASTING_METAMAGIC(ch), METAMAGIC_QUICKEN) ? "quickened ": ""),
-                       (IS_SET(CASTING_METAMAGIC(ch), METAMAGIC_MAXIMIZE) ? "maximized ": ""),
-                       spell_info[PREPARATION_QUEUE(ch, 0, classArray(class)).spell].name);
+                  
       //display time left to finish spell
       sprintf(buf, "Casting: %s%s%s ",
               (IS_SET(CASTING_METAMAGIC(ch), METAMAGIC_QUICKEN) ? "quickened ": ""),
