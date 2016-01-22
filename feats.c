@@ -3034,7 +3034,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
         return FALSE;
 
       case FEAT_QUICKEN_SPELL:
-        if (CLASS_LEVEL(ch, CLASS_WIZARD))
+        if (IS_SPELLCASTER(ch))
           return TRUE;
         return FALSE;
 
