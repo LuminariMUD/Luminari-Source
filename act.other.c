@@ -1380,6 +1380,11 @@ int meet_class_reqs(struct char_data *ch, int class, int mode) {
         passed = FALSE;
         send_to_char(ch, "  -Feat required: Precise Shot\r\n");
       }
+      if (!CLASS_LEVEL(ch, CLASS_BARD) && !CLASS_LEVEL(ch, CLASS_SORCERER) &&
+              !CLASS_LEVEL(ch, CLASS_WIZARD)) {
+        passed = FALSE;
+        send_to_char(ch, "  -Arcane Level required (bard, sorcerer or wizard)\r\n");
+      }
       if (passed) {
         send_to_char(ch, "  ArcaneArcher requirements have been met!\r\n");
         return 1;
