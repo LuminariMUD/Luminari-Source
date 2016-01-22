@@ -2085,8 +2085,8 @@ void assign_feats(void) {
   feato(FEAT_EMPOWER_SPELL, "empower spell", FALSE, TRUE, FALSE, FEAT_TYPE_METAMAGIC, "all variable numerical effects of a spell are increased by one half ", "all variable numerical effects of a spell are increased by one half ");
   feato(FEAT_EMPOWERED_MAGIC, "empowered magic", FALSE, TRUE, FALSE, FEAT_TYPE_METAMAGIC, "+1 to all spell dcs", "+1 to all spell dcs");
   feato(FEAT_EXTEND_SPELL, "extend spell", FALSE, TRUE, FALSE, FEAT_TYPE_METAMAGIC, "durations of spells are 50 percent longer when enabled ", "durations of spells are 50 percent longer when enabled ");
-  feato(FEAT_MAXIMIZE_SPELL, "maximize spell", FALSE, TRUE, FALSE, FEAT_TYPE_METAMAGIC, "all spells cast while maximised enabled do maximum effect.", "all spells cast while maximised enabled do maximum effect.");
-  feato(FEAT_QUICKEN_SPELL, "quicken spell", FALSE, TRUE, FALSE, FEAT_TYPE_METAMAGIC, "allows you to cast spell as a move action instead of standard action", "allows you to cast spell as a move action instead of standard action");
+  feato(FEAT_MAXIMIZE_SPELL, "maximize spell", TRUE, TRUE, FALSE, FEAT_TYPE_METAMAGIC, "all spells cast while maximised enabled do maximum effect.", "all spells cast while maximised enabled do maximum effect.");
+  feato(FEAT_QUICKEN_SPELL, "quicken spell", TRUE, TRUE, FALSE, FEAT_TYPE_METAMAGIC, "allows you to cast spell as a move action instead of standard action", "allows you to cast spell as a move action instead of standard action");
   /*spellcasting*/
   feato(FEAT_ESCHEW_MATERIALS, "eschew materials", FALSE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING, "ask staff", "ask staff");
   feato(FEAT_IMPROVED_COUNTERSPELL, "improved counterspell", FALSE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING, "ask staff", "ask staff");
