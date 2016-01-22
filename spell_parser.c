@@ -1237,7 +1237,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
       IS_SET(metamagic, METAMAGIC_QUICKEN)) {
     casting_time /= 2;
   }
-  if ((class == CLASS_SORCERER || class = CLASS_BARD) && 
+  if ((class == CLASS_SORCERER || class == CLASS_BARD) && 
       IS_SET(metamagic, METAMAGIC_MAXIMIZE) &&
       !IS_SET(metamagic, METAMAGIC_QUICKEN)) {
     casting_time *= 2;
