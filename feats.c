@@ -2206,6 +2206,7 @@ void assign_feats(void) {
   dailyfeat(FEAT_RAGE, eRAGE);
   dailyfeat(FEAT_VANISH, eVANISHED);
   dailyfeat(FEAT_SMITE_EVIL, eSMITE_EVIL);
+  dailyfeat(FEAT_IMBUE_ARROW, eIMBUE_ARROW);
   dailyfeat(FEAT_SEEKER_ARROW, eSEEKER_ARROW);
   dailyfeat(FEAT_SMITE_GOOD, eSMITE_GOOD);
   dailyfeat(FEAT_DESTRUCTIVE_SMITE, eSMITE_DESTRUCTION);
