@@ -1310,17 +1310,14 @@ ACMD(do_cast) {
    *
    */        
   
-  log("DEBUG: Argument = %s", argument);
   /* get: blank, spell name, target name */
   s = strtok(argument, "'");
-  log("DEBUG s = %s", s);
-  
+ 
   if (s == NULL) {
     send_to_char(ch, "Cast what where?\r\n");
     return;
   }
   s = strtok(NULL, "'");
-  log("DEBUG s = %s", s);
   
   if (s == NULL) {
     send_to_char(ch, "Spell names must be enclosed in the Holy Magic Symbols: '\r\n");
