@@ -1352,6 +1352,8 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k) {
     send_to_char(ch, "Call Familiar Cooldown  - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eC_MOUNT)))
     send_to_char(ch, "Call Mount Cooldown  - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eSEEKER_ARROW)))
+    send_to_char(ch, "Seeker Arrow Cooldown  - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSMITE_EVIL)))
     send_to_char(ch, "Smite Evil Cooldown  - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSMITE_GOOD)))
@@ -2157,13 +2159,6 @@ ACMD(do_innates) {
       send_to_char(ch, "Berserker Innates:\r\n");
       send_to_char(ch, "berserker shrug (level / 4 damage reduction)\r\n");
     }
-    /*
-    if (CLASS_LEVEL(ch, CLASS_WIZARD)) {
-      send_to_char(ch, "Wizard Innates:\r\n");
-      send_to_char(ch, "\tGAcid Splash\tn\r\n");
-      send_to_char(ch, "\tBRay of Frost\tn\r\n");
-    }
-     */
   }
 }
 

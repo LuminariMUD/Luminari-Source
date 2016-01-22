@@ -37,6 +37,42 @@
    Functions directly related to utils.h needs
  */
 
+/* ch, given class we're computing bonus spells for, figure out
+ if one of our other classes (probably just prestige) is adding
+ bonus caster levels */
+int compute_bonus_caster_level(struct char_data *ch, int class) {
+  int bonus_levels = 0;
+  
+  switch (class) {
+    case CLASS_WIZARD:
+    case CLASS_SORCERER:
+    case CLASS_BARD:
+      bonus_levels += CLASS_LEVEL(ch, CLASS_ARCANE_ARCHER) / 2;
+      break;
+    case CLASS_CLERIC:
+    case CLASS_DRUID:
+      break;      
+    default:break;
+  }
+  
+  return bonus_levels;
+}
+
+int compute_arcane_level(struct char_data *ch) {
+  int arcane_level = 0;
+  
+  if (IS_NPC(ch)) /* npc is simple for now */
+    return (GET_LEVEL(ch));
+  
+  arcane_level += CLASS_LEVEL(ch, CLASS_WIZARD);
+  arcane_level += CLASS_LEVEL(ch, CLASS_SORCERER);
+  arcane_level += CLASS_LEVEL(ch, CLASS_BARD);
+  arcane_level += CLASS_LEVEL(ch, CLASS_ARCANE_ARCHER) * 3 / 4;
+  arcane_level += compute_arcana_golem_level(ch) - (SPELLBATTLE(ch)/2);
+  
+  return arcane_level;
+}
+
 /* check to see if CH has a weapon attached to a combat feat
 this use to be a nice(?) compact macro, but circumstances forced expansion */
 bool compute_has_combat_feat(struct char_data *ch, int cfeat, int weapon) {
@@ -3138,6 +3174,7 @@ int get_daily_uses(struct char_data *ch, int featnum){
     case FEAT_LIGHTNING_ARC:
       daily_uses = 3 + GET_WIS_BONUS(ch);
       break;
+    case FEAT_SEEKER_ARROW:
     case FEAT_SMITE_EVIL:
     case FEAT_SMITE_GOOD:
     case FEAT_RAGE:

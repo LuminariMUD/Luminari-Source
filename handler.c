@@ -459,6 +459,13 @@ void compute_char_cap(struct char_data *ch) {
           hit_cap += class_level / 3;
           dam_cap += class_level / 3;
           break;
+        case CLASS_ARCANE_ARCHER:
+          dex_cap += class_level / 4 + 1;
+          int_cap += class_level / 8 + 1;
+          cha_cap += class_level / 8 + 1;
+          hit_cap += class_level / 3;
+          dam_cap += class_level / 3;
+          break;
         case CLASS_WARRIOR:
           str_cap += class_level / 4 + 1;
           con_cap += class_level / 4 + 1;

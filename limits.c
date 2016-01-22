@@ -870,7 +870,7 @@ void check_idling(struct char_data *ch) {
 void point_update(void) {
   struct char_data *i = NULL, *next_char = NULL;
   struct obj_data *j = NULL, *next_thing, *jj = NULL, *next_thing2 = NULL;
-  int valyoo = 0;
+  int counter = 0;
 
   /** general **/
   /* Take 1 from the happy-hour tick counter, and end happy-hour if zero */
@@ -914,10 +914,14 @@ void point_update(void) {
     if (!j)
       continue;
 
-    /* from homeland */
-    for (valyoo = 0; valyoo < SPEC_TIMER_MAX; valyoo++) {
-      if (GET_OBJ_SPECTIMER(j, valyoo) > 0)
-        GET_OBJ_SPECTIMER(j, valyoo)--;
+    /* object spec timers, for old school object procs */
+    for (counter = 0; counter < SPEC_TIMER_MAX; counter++) {
+      if (GET_OBJ_SPECTIMER(j, counter) > 0) {
+        GET_OBJ_SPECTIMER(j, counter)--;
+      }
+      if (GET_OBJ_SPECTIMER(j, counter) == 0) {
+        
+      }
     }
 
     /** portals that fade **/
@@ -960,6 +964,21 @@ void point_update(void) {
 
       } /* end 'general' fade */
 
+      /** Arrow (that is imbued) */
+    } else if (GET_OBJ_TYPE(j) == ITEM_MISSILE && GET_OBJ_VAL(j, 1)) {
+      if (GET_OBJ_TIMER(j) > 0) /* decrement! */
+        GET_OBJ_TIMER(j)--;
+      /* imbued arrow lost its spell! */
+      if (GET_OBJ_TIMER(j) <= 0) {
+        /* simple mechanic is reset obj-val 1 to 0 */
+        GET_OBJ_VAL(j, 1) = 0;
+        /* now send a message if appropriate */
+        if (j->carried_by) /* carried in your inventory */
+          act("$p briefly shudders as the imbued magic fades.", FALSE, j->carried_by, j, 0, TO_CHAR);
+        if (j->in_obj && j->in_obj->carried_by) /* object carrying the missile */
+          act("$p briefly shudders as the imbued magic fades.", FALSE, j->in_obj->carried_by, j, 0, TO_CHAR);
+      }
+      
       /** If this is a corpse **/
     } else if (IS_CORPSE(j)) {
       /* timer count down */

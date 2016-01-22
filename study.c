@@ -1,7 +1,7 @@
 
 /* ***********************************************************************
  *    File:   study.c                                Part of LuminariMUD  *
- * Purpose:   To provide menus for sorc-type casters known spells         *
+ * Purpose:   To provide menus for class/levelup related features         *
  *            Header info in oasis.h                                      *
  *  Author:   Zusuk                                                       *
  ************************************************************************ */
@@ -44,6 +44,12 @@ void finalize_study(struct descriptor_data *d);
 /*-------------------------------------------------------------------*/
 
 #define MENU_OPT(i) ((i) ? grn : "\tD"), ((i) ? nrm : "\tD")
+
+/* feat types */
+#define FEAT_TYPE_NORMAL                1
+#define FEAT_TYPE_NORMAL_CLASS          2
+#define FEAT_TYPE_EPIC                  3
+#define FEAT_TYPE_EPIC_CLASS            4
 
 /* list of possible animal companions, use in-game vnums for this
  * These lists should actually be redesigned to be dynamic, settable
@@ -228,11 +234,6 @@ void init_study(struct descriptor_data *d, int class) {
   LEVELUP(ch)->wis = GET_REAL_WIS(ch);
   LEVELUP(ch)->cha = GET_REAL_CHA(ch);
 
-  //send_to_char(ch, "%d %d %d %d\r\n", LEVELUP(ch)->feat_points,
-  //                                LEVELUP(ch)->class_feat_points,
-  //                                LEVELUP(ch)->epic_feat_points,
-  //                                LEVELUP(ch)->epic_class_feat_points);
-
   /* The following data elements are used to store the player's choices during the
    * study process - Just initialize these values. */
   LEVELUP(ch)->spell_circle = -1;
@@ -256,13 +257,9 @@ void init_study(struct descriptor_data *d, int class) {
       LEVELUP(ch)->skill_focus[i][j] = FALSE;
   for (i = 0; i < NUM_SFEATS; i ++)
     LEVELUP(ch)->school_feats[i] = 0;
-
-  /* Finished with initialization - Now determine what the player can study. */
-
 }
 
 void finalize_study(struct descriptor_data *d) {
-
   struct char_data *ch = d->character;
   int i = 0, j = 0, subfeat = 0;
   struct damage_reduction_type *dr;
@@ -283,11 +280,6 @@ void finalize_study(struct descriptor_data *d) {
   GET_REAL_INT(ch)  = LEVELUP(ch)->inte;
   GET_REAL_WIS(ch)  = LEVELUP(ch)->wis;
   GET_REAL_CHA(ch)  = LEVELUP(ch)->cha;
-
-/*
-  for (i = 0; i < 6; i++)
-    LEVELUP(ch)->boosts[i] = 0;
-*/
 
   for (i = 0; i < NUM_FEATS; i++) {
     if (LEVELUP(ch)->feats[i]) {
@@ -369,7 +361,6 @@ void finalize_study(struct descriptor_data *d) {
             GET_REAL_MAX_HIT(ch) += LEVELUP(ch)->feats[i];
           break;
         case FEAT_DAMAGE_REDUCTION:
-
           /* Create the DR structure and attach it to the player. */
           for (dr = GET_DR(ch); dr != NULL; dr = dr->next) {
             if (dr->feat == FEAT_DAMAGE_REDUCTION) {
@@ -377,21 +368,17 @@ void finalize_study(struct descriptor_data *d) {
               REMOVE_FROM_LIST(dr, GET_DR(ch), next);
             }
           }
-
           CREATE(dr, struct damage_reduction_type, 1);
-
           dr->spell = 0;
           dr->feat = FEAT_DAMAGE_REDUCTION;
           dr->amount = HAS_FEAT(ch, FEAT_DAMAGE_REDUCTION) * 3;
           dr->max_damage = -1;
-
           dr->bypass_cat[0] = DR_BYPASS_CAT_NONE;
           dr->bypass_val[0] = 0;
           dr->bypass_cat[1] = DR_BYPASS_CAT_UNUSED;
           dr->bypass_val[1] = 0; /* Unused. */
           dr->bypass_cat[2] = DR_BYPASS_CAT_UNUSED;
           dr->bypass_val[2] = 0; /* Unused. */
-
           dr->next = GET_DR(ch);
           GET_DR(ch) = dr;
           break;
@@ -408,8 +395,6 @@ void finalize_study(struct descriptor_data *d) {
   /* in case adding or changing clear domains, clean up and re-assign */
   clear_domain_feats(ch);
   add_domain_feats(ch);
-
-  /* Set to learned. */
 }
 
 ACMD(do_study) {
@@ -424,13 +409,7 @@ ACMD(do_study) {
   display_main_menu(d);
 }
 
-#define FEAT_TYPE_NORMAL                1
-#define FEAT_TYPE_NORMAL_CLASS          2
-#define FEAT_TYPE_EPIC                  3
-#define FEAT_TYPE_EPIC_CLASS            4
-
 bool add_levelup_feat(struct descriptor_data *d, int feat) {
-
   struct char_data *ch = d->character;
   int feat_type = 0;
 
@@ -514,10 +493,6 @@ bool add_levelup_feat(struct descriptor_data *d, int feat) {
       }
       break;
   }
-
-  /* zusuk debug */
-  //LEVELUP(ch)->feats[feat] += HAS_FEAT(ch, feat);
-  /* zusuk debug */
 
   LEVELUP(ch)->feats[feat]++;
   return TRUE;
@@ -647,8 +622,6 @@ static void bard_known_spells_disp_menu(struct descriptor_data *d) {
 }
 
 /* the menu for each circle, sorcerer */
-
-
 void bard_study_menu(struct descriptor_data *d, int circle) {
   int counter, columns = 0;
 
@@ -803,7 +776,6 @@ int compute_cha_cost(struct char_data *ch, int number) {
   int base_cha = compute_base_cha(ch), current_cha = LEVELUP(ch)->cha+number;
   return stat_cost_chart[current_cha - base_cha];
 }
-
 int compute_total_stat_points(struct char_data *ch) {
   return (compute_cha_cost(ch,0)+compute_wis_cost(ch,0)+compute_inte_cost(ch,0)+
           compute_str_cost(ch,0)+compute_dex_cost(ch,0)+compute_con_cost(ch,0));
@@ -811,7 +783,6 @@ int compute_total_stat_points(struct char_data *ch) {
 int stat_points_left(struct char_data *ch) {
   return (TOTAL_STAT_POINTS-compute_total_stat_points(ch));
 }
-
 static void set_stats_menu(struct descriptor_data *d) {
   get_char_colors(d->character);
   clear_screen(d);
@@ -895,6 +866,52 @@ static void set_school_menu(struct descriptor_data *d) {
           );
 
   OLC_MODE(d) = STUDY_SET_SCHOOL;
+}
+
+static void set_preferred_arcane(struct descriptor_data *d) {
+  get_char_colors(d->character);
+  clear_screen(d);
+  write_to_output(d, "\r\n");
+  write_to_output(d, "%d) %s\r\n", CLASS_WIZARD, CLSLIST_NAME(CLASS_WIZARD));
+  write_to_output(d, "%d) %s\r\n", CLASS_SORCERER, CLSLIST_NAME(CLASS_SORCERER));
+  write_to_output(d, "%d) %s\r\n", CLASS_BARD, CLSLIST_NAME(CLASS_BARD));
+  write_to_output(d, "\r\n");
+  write_to_output(d, "\r\n%sEnter your preferred arcane class : ", nrm);
+}
+static void set_preferred_divine(struct descriptor_data *d) {
+  get_char_colors(d->character);
+  clear_screen(d);
+  write_to_output(d, "\r\n");
+  write_to_output(d, "%d) %s\r\n", CLASS_CLERIC, CLSLIST_NAME(CLASS_CLERIC));
+  write_to_output(d, "%d) %s\r\n", CLASS_DRUID, CLSLIST_NAME(CLASS_DRUID));
+  write_to_output(d, "\r\n");
+  write_to_output(d, "\r\n%sEnter your preferred divine class : ", nrm);
+}
+
+static void set_preferred_caster(struct descriptor_data *d) {
+  get_char_colors(d->character);
+  clear_screen(d);
+
+  write_to_output(d,
+          "\r\n-- %sSet Preferred Caster Class (for Prestige Classes)%s\r\n"
+          "\r\n"
+          "%s 0%s) Arcane:      %s%s\r\n"
+          "%s 1%s) Divine:      %s%s\r\n"
+          "\r\n"
+          "%s Q%s) Quit\r\n"
+          "\r\n"
+          "Enter Choice : ",
+
+          mgn, nrm,
+          /* empty line */
+          grn, nrm, school_names[GET_PREFERRED_ARCANE(d->character)], nrm,
+          grn, nrm, school_names[GET_PREFERRED_DIVINE(d->character)], nrm,
+          /* empty line */
+          grn, nrm
+          /* empty line */
+          );
+
+  OLC_MODE(d) = STUDY_SET_P_CASTER;
 }
 
 static void set_domain_submenu(struct descriptor_data *d) {
@@ -1235,20 +1252,22 @@ static void generic_main_disp_menu(struct descriptor_data *d) {
           "%s 6%s) Set Stats\r\n"
           "%s 7%s) Cleric Domain Selection\r\n"
           "%s 8%s) Wizard School Selection\r\n"
+          "%s 9%s) Preferred Caster Classes (Prestige)\r\n"
           "\r\n"
           "%s Q%s) Quit\r\n"
           "\r\n"
           "Enter Choice : ",
 
           mgn,
-          MENU_OPT(CAN_STUDY_FEATS(ch)),
-          MENU_OPT(CAN_STUDY_KNOWN_SPELLS(ch)),
-          MENU_OPT(CAN_STUDY_FAMILIAR(ch)),
-          MENU_OPT(CAN_STUDY_COMPANION(ch)),
-          MENU_OPT(CAN_STUDY_FAVORED_ENEMY(ch)),
-          MENU_OPT(CAN_SET_STATS(ch)),
-          MENU_OPT(CAN_SET_DOMAIN(ch)),
-          MENU_OPT(CAN_SET_SCHOOL(ch)),
+          MENU_OPT(CAN_STUDY_FEATS(ch)), //1
+          MENU_OPT(CAN_STUDY_KNOWN_SPELLS(ch)),  //2
+          MENU_OPT(CAN_STUDY_FAMILIAR(ch)), //3
+          MENU_OPT(CAN_STUDY_COMPANION(ch)), //4
+          MENU_OPT(CAN_STUDY_FAVORED_ENEMY(ch)), //5
+          MENU_OPT(CAN_SET_STATS(ch)), //6
+          MENU_OPT(CAN_SET_DOMAIN(ch)), //7
+          MENU_OPT(CAN_SET_SCHOOL(ch)), //8
+          MENU_OPT(CAN_SET_P_CASTER(ch)), //9
           grn, nrm
           );
 
@@ -1453,6 +1472,14 @@ void study_parse(struct descriptor_data *d, char *arg) {
         case '8':
           if (CAN_SET_SCHOOL(ch))
             set_school_menu(d);
+          else {
+            write_to_output(d, "That is an invalid choice!\r\n");
+            generic_main_disp_menu(d);
+          }
+          break;
+        case '9':
+          if (CAN_SET_P_CASTER(ch))
+            set_preferred_caster(d);
           else {
             write_to_output(d, "That is an invalid choice!\r\n");
             generic_main_disp_menu(d);
@@ -1864,6 +1891,61 @@ void study_parse(struct descriptor_data *d, char *arg) {
       }
       break;
 
+      /***/
+    case SET_PREFERRED_ARCANE:
+      number = atoi(arg);
+      if ( number != CLASS_WIZARD &&
+           number != CLASS_SORCERER &&
+           number != CLASS_BARD ) {
+        write_to_output(d, "Invalid value!  Try again.\r\n");
+        OLC_MODE(d) = SET_PREFERRED_ARCANE;
+        set_preferred_arcane(d);
+        return;        
+      }
+      GET_PREFERRED_ARCANE(ch) = number;
+      write_to_output(d, "Choice selected.\r\n");
+      OLC_MODE(d) = STUDY_SET_P_CASTER;
+      set_preferred_caster(d);
+      break;
+    case SET_PREFERRED_DIVINE:
+      number = atoi(arg);
+      if ( number != CLASS_DRUID &&
+           number != CLASS_CLERIC ) {
+        write_to_output(d, "Invalid value!  Try again.\r\n");
+        OLC_MODE(d) = SET_PREFERRED_DIVINE;
+        set_preferred_divine(d);
+        return;        
+      }
+      GET_PREFERRED_DIVINE(ch) = number;
+      write_to_output(d, "Choice selected.\r\n");
+      OLC_MODE(d) = STUDY_SET_P_CASTER;
+      set_preferred_caster(d);
+      break;
+    case STUDY_SET_P_CASTER:
+      switch (*arg) {
+        case 'q':
+        case 'Q':
+          display_main_menu(d);
+          break;
+        default:
+          number = atoi(arg);
+          switch (number) {
+            case 0:
+              set_preferred_arcane(d);
+              OLC_MODE(d) = SET_PREFERRED_ARCANE;
+              return;
+            case 1:
+              set_preferred_divine(d);
+              OLC_MODE(d) = SET_PREFERRED_DIVINE;
+              return;
+            default: break;
+          }
+          OLC_MODE(d) = STUDY_SET_P_CASTER;
+          set_preferred_caster(d);
+          break;
+      } /* end arg switch */
+      break;
+      
       /*****/
 
     case STUDY_SET_STATS:

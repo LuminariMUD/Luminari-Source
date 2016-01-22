@@ -115,6 +115,7 @@ struct feat_prerequisite* create_prerequisite(int prereq_type, int val1, int val
 
   return prereq;
 }
+
 /*  The following procedures are used to define feat prerequisites.
  *  These prerequisites are automatically checked, if they exist.
  *  Dynamically assigning prerequisites also allows us to create
@@ -143,6 +144,7 @@ void feat_prereq_attribute(int featnum, int attribute, int value) {
   prereq->next = feat_list[featnum].prerequisite_list;
   feat_list[featnum].prerequisite_list = prereq;
 }
+
 void feat_prereq_class_level(int featnum, int cl, int level) {
   struct feat_prerequisite *prereq = NULL;
   char buf[80];
@@ -157,6 +159,7 @@ void feat_prereq_class_level(int featnum, int cl, int level) {
   prereq->next = feat_list[featnum].prerequisite_list;
   feat_list[featnum].prerequisite_list = prereq;
 }
+
 void feat_prereq_feat(int featnum, int feat, int ranks) {
   struct feat_prerequisite *prereq = NULL;
   char buf[80];
@@ -175,6 +178,7 @@ void feat_prereq_feat(int featnum, int feat, int ranks) {
   prereq->next = feat_list[featnum].prerequisite_list;
   feat_list[featnum].prerequisite_list = prereq;
 }
+
 void feat_prereq_cfeat(int featnum, int feat) {
   struct feat_prerequisite *prereq = NULL;
   char buf[80];
@@ -188,6 +192,7 @@ void feat_prereq_cfeat(int featnum, int feat) {
   prereq->next = feat_list[featnum].prerequisite_list;
   feat_list[featnum].prerequisite_list = prereq;
 }
+
 void feat_prereq_ability(int featnum, int ability, int ranks) {
   struct feat_prerequisite *prereq = NULL;
   char buf[80];
@@ -201,6 +206,7 @@ void feat_prereq_ability(int featnum, int ability, int ranks) {
   prereq->next = feat_list[featnum].prerequisite_list;
   feat_list[featnum].prerequisite_list = prereq;
 }
+
 void feat_prereq_spellcasting(int featnum, int casting_type, int prep_type, int circle) {
   struct feat_prerequisite *prereq = NULL;
   char buf[80];
@@ -228,6 +234,7 @@ void feat_prereq_spellcasting(int featnum, int casting_type, int prep_type, int 
   prereq->next = feat_list[featnum].prerequisite_list;
   feat_list[featnum].prerequisite_list = prereq;
 }
+
 void feat_prereq_race(int featnum, int race) {
   struct feat_prerequisite *prereq = NULL;
   char buf[80];
@@ -241,6 +248,7 @@ void feat_prereq_race(int featnum, int race) {
   prereq->next = feat_list[featnum].prerequisite_list;
   feat_list[featnum].prerequisite_list = prereq;
 }
+
 void feat_prereq_bab(int featnum, int bab) {
   struct feat_prerequisite *prereq = NULL;
   char buf[80];
@@ -254,6 +262,7 @@ void feat_prereq_bab(int featnum, int bab) {
   prereq->next = feat_list[featnum].prerequisite_list;
   feat_list[featnum].prerequisite_list = prereq;
 }
+
 void feat_prereq_weapon_proficiency(int featnum) {
   struct feat_prerequisite *prereq = NULL;
   char buf[80];
@@ -300,6 +309,7 @@ void feato(int featnum, char *name, int in_game, int can_learn, int can_stack, i
   feat_list[featnum].description = description;
   feat_list[featnum].prerequisite_list = NULL;
 }
+
 void initialize_feat_list(void) {
   int i;
 
@@ -1867,6 +1877,28 @@ void assign_feats(void) {
     "Weapons of choice have +1 to their critical multiplier",
     "Weapons of choice have +1 to their critical multiplier");
 
+  /* arcane archer */
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
+  /*lvl 1*/feato(FEAT_ENHANCE_ARROW_MAGIC, "enhance arrow", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
+    "gain +1 enhancement bonus to arrows",
+    "All arrows fired from the arcane archer will gain a +1 enhancement bonus to"
+      "both attack bonus and damage.  This feat stacks.");
+  /*lvl 2*/feato(FEAT_SEEKER_ARROW, "seeker arrow", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
+    "free action shot that always hits",
+    "As a free action once per day per rank of the seeker arrow feat, the arcane "
+      "archer can fire an arrow that gains +20 to hit.  This feat stacks.  Usage is: seekerarrow <target>");
+  /*lvl 3 enhance arrow*/
+  /*lvl 4*/feato(FEAT_IMBUE_ARROW, "imbue arrow", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
+    "imbue an arrow with one of your spells",
+    "For a short duration once per day per rank of this feet, ");
+  /*lvl 5 enhance, lvl 6 seeker, lvl 6 imbue, lvl 7 enhance, lvl 8 seeker*/
+  /*lvl 8*/feato(FEAT_SWARM_OF_ARROWS, "swarm of arrows", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "short",
+    "long");
+  /*lvl 9 enhance*/
+  /*lvl 10*/feato(FEAT_ARROW_OF_DEATH, "arrow of death", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "short",
+    "long");
 
   /* class feats that are implemented on classes that are not yet in the game */
 
@@ -2068,9 +2100,6 @@ void assign_feats(void) {
   feato(FEAT_ENHANCE_ARROW_DISTANCE, "enhance arrow (distance)", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "doubles range increment on weapon.", "doubles range increment on weapon.");
   feato(FEAT_ENHANCE_ARROW_ELEMENTAL, "enhance arrow (elemental)", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "+1d6 elemental damage with bows", "+1d6 elemental damage with bows");
   feato(FEAT_ENHANCE_ARROW_ELEMENTAL_BURST, "enhance arrow (elemental burst)", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "+2d10 on critical hits with bows", "+2d10 on critical hits with bows");
-  feato(FEAT_ENHANCE_ARROW_MAGIC, "enhance arrow (magic)", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "+1 to hit and damage with bows per rank", "+1 to hit and damage with bows per rank");
-  /* epic */
-  feato(FEAT_SWARM_OF_ARROWS, "swarm of arrows", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "allows you to make a single ranged attack against everyone in range.", "allows you to make a single ranged attack against everyone in range.");
 
   /* wizard / sorc */
   /*craft*/
@@ -2177,6 +2206,7 @@ void assign_feats(void) {
   dailyfeat(FEAT_RAGE, eRAGE);
   dailyfeat(FEAT_VANISH, eVANISHED);
   dailyfeat(FEAT_SMITE_EVIL, eSMITE_EVIL);
+  dailyfeat(FEAT_SEEKER_ARROW, eSEEKER_ARROW);
   dailyfeat(FEAT_SMITE_GOOD, eSMITE_GOOD);
   dailyfeat(FEAT_DESTRUCTIVE_SMITE, eSMITE_DESTRUCTION);
   dailyfeat(FEAT_TURN_UNDEAD, eTURN_UNDEAD);

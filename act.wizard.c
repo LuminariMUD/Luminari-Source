@@ -3068,6 +3068,7 @@ struct set_struct {
   { "epicclassfeats", LVL_STAFF, PC, MISC}, /* 79 */
   { "accexp", LVL_IMPL, PC, NUMBER}, /* 80 */
   { "weaponmaster", LVL_STAFF, PC, NUMBER}, /* 81 */
+  { "arcanearcher", LVL_STAFF, PC, NUMBER}, /* 82 */
 
   { "\n", 0, BOTH, MISC}
 };
@@ -3084,6 +3085,8 @@ CLASS_SORCERER
 CLASS_BARD
 CLASS_PALADIN
 CLASS_RANGER
+CLASS_WEAPON_MASTER
+CLASS_ARCANE_ARCHER
  */
 
 static int perform_set(struct char_data *ch, struct char_data *vict, int mode, char *val_arg) {
@@ -3604,6 +3607,10 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       break;
     case 81: // weapon-master level
       CLASS_LEVEL(vict, CLASS_WEAPON_MASTER) = RANGE(0, LVL_IMMORT - 1);
+      affect_total(vict);
+      break;
+    case 82: // arcane archer level
+      CLASS_LEVEL(vict, CLASS_ARCANE_ARCHER) = RANGE(0, LVL_IMMORT - 1);
       affect_total(vict);
       break;
     default:

@@ -359,9 +359,11 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
       send_to_char(ch,
               "Type:                   %s\r\n"
               "Enhancement:            %d\r\n"
+              "Imbued with spell:      %d\r\n"
+              "Duration left on imbue: %d hours\r\n"
               "Breaking Probability:   %d percent\r\n",
-              ammo_types[GET_OBJ_VAL(item, 0)], GET_OBJ_VAL(item, 4),
-              GET_OBJ_VAL(item, 2));
+              ammo_types[GET_OBJ_VAL(item, 0)], GET_OBJ_VAL(item, 4), GET_OBJ_VAL(item, 1),
+              GET_OBJ_TIMER(item), GET_OBJ_VAL(item, 2));
       if (mode == ITEM_STAT_MODE_IMMORTAL)
         send_to_char(ch, "Missile belongs to: %ld\r\n", MISSILE_ID(item));
       break;

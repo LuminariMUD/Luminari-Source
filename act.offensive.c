@@ -2907,6 +2907,73 @@ void perform_kick(struct char_data *ch, struct char_data *vict) {
     damage(ch, vict, 0, SKILL_KICK, DAM_FORCE, FALSE);
 }
 
+/* kick engine */
+void perform_seekerarrow(struct char_data *ch, struct char_data *vict) {
+
+  if (vict == ch) {
+    send_to_char(ch, "Aren't we funny today...\r\n");
+    return;
+  }
+
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return;
+  }
+
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
+          ch->next_in_room != vict && vict->next_in_room != ch) {
+    send_to_char(ch, "You simply can't reach that far.\r\n");
+    return;
+  }
+
+  start_daily_use_cooldown(ch, FEAT_SEEKER_ARROW);
+  
+  /* As a free action once per day per rank of the seeker arrow feat, the arcane 
+                   archer can fire an arrow that gets +20 to hit */
+  send_to_char(ch, "Taking careful aim you fire:  ");
+  hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 20, ATTACK_TYPE_RANGED);
+}
+
+/* As a free action once per day per rank of the seeker arrow feat, the arcane 
+                   archer can fire an arrow that does not miss. */
+ACMD(do_seekerarrow) {
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  struct char_data *vict = NULL;
+  int uses_remaining = 0;
+
+  if (IS_NPC(ch)) {
+    send_to_char(ch, "You have no idea how.\r\n");
+    return;
+  }
+  if (!HAS_FEAT(ch, FEAT_SEEKER_ARROW)) {
+    send_to_char(ch, "You don't know how to do this!\r\n");
+    return;    
+  }
+  /* ranged attack requirement */
+  if (!can_fire_arrow(ch, TRUE) || !is_using_ranged_weapon(ch) || !GET_EQ(ch, WEAR_AMMO_POUCH)
+          || !GET_EQ(ch, WEAR_AMMO_POUCH)->contains) {
+    send_to_char(ch, "You have to be using a ranged weapon with ammo ready to "
+            "fire in your ammo pouch to do this!\r\n");
+    return;
+  }
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_SEEKER_ARROW)) == 0) {
+    send_to_char(ch, "You must recover the arcane energy required to use another seeker arrow.\r\n");
+    return;
+  }
+
+  one_argument(argument, arg);
+  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
+    if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch))) {
+      vict = FIGHTING(ch);
+    } else {
+      send_to_char(ch, "Kick who?\r\n");
+      return;
+    }
+  }
+
+  perform_seekerarrow(ch, vict);  
+}
+
 ACMD(do_kick) {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;

@@ -277,9 +277,9 @@ void assign_races(void) {
   add_race(RACE_HALF_OGRE, "half ogre", "HlfOgre", "Half Ogre", RACE_TYPE_GIANT, N, Y, Y, 6, 4, -2, 0, 2, 0, 415, 415, 250, 250, 100, 90,
            Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_LARGE, TRUE, CLASS_BERSERKER, SKILL_LANG_GIANT, 2);
 
-  add_race(RACE_OGRE, "ogre", "Ogre", "Ogre", RACE_TYPE_GIANT, N, Y, Y, 10, 4, -4, 0, 0, 2, 615, 615, 300, 300, 100, 90,
-           Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_LARGE, TRUE, CLASS_BERSERKER, SKILL_LANG_GIANT, 3);
-
+  /*add_race(RACE_OGRE, "ogre", "Ogre", "Ogre", RACE_TYPE_GIANT, N, Y, Y, 10, 4, -4, 0, 0, 2, 615, 615, 300, 300, 100, 90,
+           Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_LARGE, TRUE, CLASS_BERSERKER, SKILL_LANG_GIANT, 3);*/
+  
   add_race(RACE_CENTAUR, "centaur", "Centaur", "Centaur", RACE_TYPE_MONSTROUS_HUMANOID, N, Y, Y, 8, 4, -2, 4, 4, 0, 300, 300, 300, 600, 600, 600,
            Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_LARGE, TRUE, CLASS_RANGER, SKILL_LANG_ELVEN, 3);
 

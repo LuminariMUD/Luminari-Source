@@ -109,6 +109,7 @@ struct mud_event_list mud_event_index[] = {
   { "Crystal body", event_countdown, EVENT_CHAR}, //eCRYRSTALBODY_AFF
   { "Bardic Performance", event_bardic_performance, EVENT_CHAR}, /* eBARDIC_PERFORMANCE */
   { "Encounter Region Reset", event_countdown, EVENT_REGION}, // eENCOUNTER_REG_RESET
+  { "Seeker Arrow", event_daily_use_cooldown, EVENT_CHAR}, // eSEEKER_ARROW
 };
 
 /* init_events() is the ideal function for starting global events. This
@@ -224,6 +225,9 @@ EVENTFUNC(event_countdown) {
       break;
     case eRAGE:
       send_to_char(ch, "You are now able to Rage again.\r\n");
+      break;
+    case eSEEKER_ARROW:
+      send_to_char(ch, "You regain a usage of your seeker arrow.\r\n");
       break;
     case eSMITE_EVIL:
       send_to_char(ch, "You are once again prepared to smite your evil foes.\r\n");
@@ -386,6 +390,10 @@ EVENTFUNC(event_daily_use_cooldown) {
     case eVANISHED:
       featnum = FEAT_VANISH;
       send_to_char(ch, "One of your vanish uses has recovered.\r\n");
+      break;
+    case eSEEKER_ARROW:
+      featnum = FEAT_SEEKER_ARROW;
+      send_to_char(ch, "One of your seeker arrow uses has recovered.\r\n");
       break;
     case eSMITE_EVIL:
       featnum = FEAT_SMITE_EVIL;

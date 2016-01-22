@@ -911,41 +911,44 @@ int spellCircle(int class, int spellnum, int metamagic, int domain) {
    of given circle */
 int comp_slots(struct char_data *ch, int circle, int class) {
   int spellSlots = 0;
+  int class_level = CLASS_LEVEL(ch, class);
 
   /* they don't even have access to this circle */
   if (getCircle(ch, class) < circle)
     return 0;
 
   circle--;
+    
+  class_level += BONUS_CASTER_LEVEL(ch, class);
 
   switch (class) {
     case CLASS_RANGER:
       spellSlots += spell_bonus[GET_WIS(ch)][circle];
-      spellSlots += rangerSlots[CLASS_LEVEL(ch, class)][circle];
+      spellSlots += rangerSlots[class_level][circle];
       break;
     case CLASS_PALADIN:
       spellSlots += spell_bonus[GET_WIS(ch)][circle];
-      spellSlots += paladinSlots[CLASS_LEVEL(ch, class)][circle];
+      spellSlots += paladinSlots[class_level][circle];
       break;
     case CLASS_CLERIC:
       spellSlots += spell_bonus[GET_WIS(ch)][circle];
-      spellSlots += clericSlots[CLASS_LEVEL(ch, class)][circle];
+      spellSlots += clericSlots[class_level][circle];
       break;
     case CLASS_DRUID:
       spellSlots += spell_bonus[GET_WIS(ch)][circle];
-      spellSlots += druidSlots[CLASS_LEVEL(ch, class)][circle];
+      spellSlots += druidSlots[class_level][circle];
       break;
     case CLASS_WIZARD:
       spellSlots += spell_bonus[GET_INT(ch)][circle];
-      spellSlots += wizardSlots[CLASS_LEVEL(ch, class)][circle];
+      spellSlots += wizardSlots[class_level][circle];
       break;
     case CLASS_SORCERER:
       spellSlots += spell_bonus[GET_CHA(ch)][circle];
-      spellSlots += sorcererSlots[CLASS_LEVEL(ch, class)][circle];
+      spellSlots += sorcererSlots[class_level][circle];
       break;
     case CLASS_BARD:
       spellSlots += spell_bonus[GET_CHA(ch)][circle];
-      spellSlots += bardSlots[CLASS_LEVEL(ch, class)][circle];
+      spellSlots += bardSlots[class_level][circle];
       break;
     default:
       if (GET_LEVEL(ch) < LVL_IMMORT) {
@@ -1410,64 +1413,64 @@ int getCircle(struct char_data *ch, int class) {
   if (IS_NPC(ch)) {
     return (MAX(1, MIN(9, (GET_LEVEL(ch) + 1) / 2)));
   }
-
   /* if pc has no caster classes, he/she has no business here */
   if (!IS_CASTER(ch)) {
     return (-1);
   }
-
   if (!CLASS_LEVEL(ch, class)) {
     return 0;
   }
 
+  int class_level = CLASS_LEVEL(ch, class) + BONUS_CASTER_LEVEL(ch, class);
+  
   switch (class) {
     case CLASS_PALADIN:
-      if (CLASS_LEVEL(ch, CLASS_PALADIN) < 6)
+      if (class_level < 6)
         return 0;
-      else if (CLASS_LEVEL(ch, CLASS_PALADIN) < 10)
+      else if (class_level < 10)
         return 1;
-      else if (CLASS_LEVEL(ch, CLASS_PALADIN) < 12)
+      else if (class_level < 12)
         return 2;
-      else if (CLASS_LEVEL(ch, CLASS_PALADIN) < 15)
+      else if (class_level < 15)
         return 3;
       else
         return 4;
     case CLASS_RANGER:
-      if (CLASS_LEVEL(ch, CLASS_RANGER) < 6)
+      if (class_level < 6)
         return 0;
-      else if (CLASS_LEVEL(ch, CLASS_RANGER) < 10)
+      else if (class_level < 10)
         return 1;
-      else if (CLASS_LEVEL(ch, CLASS_RANGER) < 12)
+      else if (class_level < 12)
         return 2;
-      else if (CLASS_LEVEL(ch, CLASS_RANGER) < 15)
+      else if (class_level < 15)
         return 3;
       else
         return 4;
     case CLASS_BARD:
-      if (CLASS_LEVEL(ch, CLASS_BARD) < 3)
+      if (class_level < 3)
         return 0;
-      else if (CLASS_LEVEL(ch, CLASS_BARD) < 5)
+      else if (class_level < 5)
         return 1;
-      else if (CLASS_LEVEL(ch, CLASS_BARD) < 8)
+      else if (class_level < 8)
         return 2;
-      else if (CLASS_LEVEL(ch, CLASS_BARD) < 11)
+      else if (class_level < 11)
         return 3;
-      else if (CLASS_LEVEL(ch, CLASS_BARD) < 14)
+      else if (class_level < 14)
         return 4;
-      else if (CLASS_LEVEL(ch, CLASS_BARD) < 17)
+      else if (class_level < 17)
         return 5;
       else
         return 6;
     case CLASS_SORCERER:
-      return (MAX(1, (MIN(9, CLASS_LEVEL(ch, class) / 2))));
+      return (MAX(1, (MIN(9, class_level / 2))));
     case CLASS_WIZARD:
-      return (MAX(1, MIN(9, (CLASS_LEVEL(ch, class) + 1) / 2)));
+      return (MAX(1, MIN(9, (class_level + 1) / 2)));
     case CLASS_DRUID:
-      return (MAX(1, MIN(9, (CLASS_LEVEL(ch, class) + 1) / 2)));
+      return (MAX(1, MIN(9, (class_level + 1) / 2)));
     case CLASS_CLERIC:
-      return (MAX(1, MIN(9, (CLASS_LEVEL(ch, class) + 1) / 2)));
+      return (MAX(1, MIN(9, (class_level + 1) / 2)));
     default:
-      return (MAX(1, MIN(9, (CLASS_LEVEL(ch, class) + 1) / 2)));
+      return (MAX(1, MIN(9, (class_level + 1) / 2)));
   }
 
 }

@@ -2006,6 +2006,11 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned) {
       (mob)->aff_abils.str += bonus;
       (mob)->aff_abils.dex += bonus;
       break;
+    case CLASS_ARCANE_ARCHER:
+      (mob)->aff_abils.int += bonus;
+      (mob)->aff_abils.dex += bonus;
+      (mob)->aff_abils.cha += bonus;
+      break;
     case CLASS_PALADIN:
       (mob)->aff_abils.str += bonus;
       GET_CHA(mob) += bonus;
