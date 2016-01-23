@@ -1387,6 +1387,8 @@ int meet_class_reqs(struct char_data *ch, int class, int mode) {
       if (passed) {
         send_to_char(ch, "  ArcaneArcher requirements have been met!\r\n");
         return 1;
+      } else {
+        send_to_char(ch, "ArcaneArcher requirements have NOT been met!\r\n");        
       }
       break;
     case CLASS_WEAPON_MASTER:
@@ -1429,6 +1431,8 @@ int meet_class_reqs(struct char_data *ch, int class, int mode) {
       if (passed) {
         send_to_char(ch, "  WeaponMaster requirements have been met!\r\n");
         return 1;
+      } else {
+        send_to_char(ch, "WeaponMaster requirements have NOT been met!\r\n");        
       }
       break;
     case CLASS_WIZARD:
