@@ -1331,9 +1331,8 @@ int meet_class_reqs(struct char_data *ch, int class, int mode) {
   /* stat, and other restrictions */
   switch (class) {
     case CLASS_ARCANE_ARCHER:
-      /********* CHECK ARCANE LEVEL ************/
       if (!has_unlocked_class(ch, CLASS_ARCANE_ARCHER)) {
-        //send_to_char(ch, "[LOCKED] ArcaneArcher (type 'accexp class arcanearcher' to unlock)\r\n");
+        send_to_char(ch, "[LOCKED] ArcaneArcher (type 'accexp class arcanearcher' to unlock)\r\n");
         break;
       }
       if (BAB(ch) < 6) {
@@ -1392,7 +1391,7 @@ int meet_class_reqs(struct char_data *ch, int class, int mode) {
       break;
     case CLASS_WEAPON_MASTER:
       if (!has_unlocked_class(ch, CLASS_WEAPON_MASTER)) {
-        //send_to_char(ch, "[LOCKED] WeaponMaster (type 'accexp class weaponmaster' to unlock)\r\n");
+        send_to_char(ch, "[LOCKED] WeaponMaster (type 'accexp class weaponmaster' to unlock)\r\n");
         break;
       }
       if (!HAS_FEAT(ch, FEAT_WEAPON_FOCUS)) {
