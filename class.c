@@ -2017,7 +2017,7 @@ const int *class_bonus_feats[NUM_CLASSES] = {
   /* Paladin      */ class_feats_paladin,
   /* Ranger       */ class_feats_ranger,
   /* Bard         */ class_feats_bard,
-  /* WeaponMaster */ class_feats_weaponmaster
+  /* WeaponMaster */ class_feats_weaponmaster,
   /* ArcaneArcher */ class_feats_arcanearcher
 };
 
