@@ -48,7 +48,7 @@ int compute_bonus_caster_level(struct char_data *ch, int class) {
     case CLASS_SORCERER:
     case CLASS_BARD:
       if (class == GET_PREFERRED_ARCANE(ch))
-        bonus_levels += CLASS_LEVEL(ch, CLASS_ARCANE_ARCHER) / 2;
+        bonus_levels += CLASS_LEVEL(ch, CLASS_ARCANE_ARCHER) * 3 / 4;
       break;
     case CLASS_CLERIC:
     case CLASS_DRUID:
