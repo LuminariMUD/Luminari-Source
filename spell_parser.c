@@ -1422,14 +1422,14 @@ ACMD(do_cast) {
         send_to_char(ch, "You do not have the appropriate feat!!\r\n");
         return;
     }
-  } else if (BONUS_CASTER_LEVEL(ch, class) + CLASS_LEVEL(ch, CLASS_WIZARD) < SINFO.min_level[CLASS_WIZARD] &&
-          BONUS_CASTER_LEVEL(ch, class) + CLASS_LEVEL(ch, CLASS_CLERIC) < MIN_SPELL_LVL(spellnum, CLASS_CLERIC, GET_1ST_DOMAIN(ch)) &&
-          BONUS_CASTER_LEVEL(ch, class) + CLASS_LEVEL(ch, CLASS_CLERIC) < MIN_SPELL_LVL(spellnum, CLASS_CLERIC, GET_2ND_DOMAIN(ch)) &&
-          BONUS_CASTER_LEVEL(ch, class) + CLASS_LEVEL(ch, CLASS_DRUID) < SINFO.min_level[CLASS_DRUID] &&
-          BONUS_CASTER_LEVEL(ch, class) + CLASS_LEVEL(ch, CLASS_RANGER) < SINFO.min_level[CLASS_RANGER] &&
-          BONUS_CASTER_LEVEL(ch, class) + CLASS_LEVEL(ch, CLASS_PALADIN) < SINFO.min_level[CLASS_PALADIN] &&
-          BONUS_CASTER_LEVEL(ch, class) + CLASS_LEVEL(ch, CLASS_BARD) < SINFO.min_level[CLASS_BARD] &&
-          BONUS_CASTER_LEVEL(ch, class) + CLASS_LEVEL(ch, CLASS_SORCERER) < SINFO.min_level[CLASS_SORCERER]
+  } else if (BONUS_CASTER_LEVEL(ch, CLASS_WIZARD) + CLASS_LEVEL(ch, CLASS_WIZARD) < SINFO.min_level[CLASS_WIZARD] &&
+          BONUS_CASTER_LEVEL(ch, CLASS_CLERIC) + CLASS_LEVEL(ch, CLASS_CLERIC) < MIN_SPELL_LVL(spellnum, CLASS_CLERIC, GET_1ST_DOMAIN(ch)) &&
+          BONUS_CASTER_LEVEL(ch, CLASS_CLERIC) + CLASS_LEVEL(ch, CLASS_CLERIC) < MIN_SPELL_LVL(spellnum, CLASS_CLERIC, GET_2ND_DOMAIN(ch)) &&
+          BONUS_CASTER_LEVEL(ch, CLASS_DRUID) + CLASS_LEVEL(ch, CLASS_DRUID) < SINFO.min_level[CLASS_DRUID] &&
+          BONUS_CASTER_LEVEL(ch, CLASS_RANGER) + CLASS_LEVEL(ch, CLASS_RANGER) < SINFO.min_level[CLASS_RANGER] &&
+          BONUS_CASTER_LEVEL(ch, CLASS_PALADIN) + CLASS_LEVEL(ch, CLASS_PALADIN) < SINFO.min_level[CLASS_PALADIN] &&
+          BONUS_CASTER_LEVEL(ch, CLASS_BARD) + CLASS_LEVEL(ch, CLASS_BARD) < SINFO.min_level[CLASS_BARD] &&
+          BONUS_CASTER_LEVEL(ch, CLASS_SORCERER) + CLASS_LEVEL(ch, CLASS_SORCERER) < SINFO.min_level[CLASS_SORCERER]
           ) {
     send_to_char(ch, "You do not know that spell!\r\n");
     return;
