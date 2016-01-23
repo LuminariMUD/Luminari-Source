@@ -2244,7 +2244,8 @@ ACMD(do_gen_memorize) {
       send_to_char(ch, "You have heard of that spell....\r\n");
       return;
     }
-  } else if (CLASS_LEVEL(ch, class) < spell_info[spellnum].min_level[class]) {
+  } else if ((BONUS_CASTER_LEVEL(ch, class) + CLASS_LEVEL(ch, class)) <
+          spell_info[spellnum].min_level[class]) {
     send_to_char(ch, "You have heard of that spell....\r\n");
     return;
   }
