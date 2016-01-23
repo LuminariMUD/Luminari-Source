@@ -8,10 +8,8 @@
 
 #include "conf.h"
 #include "sysdep.h"
-
 #include "structs.h"
 #include "utils.h"
-
 #include "comm.h"
 #include "db.h"
 #include "oasis.h"
@@ -904,8 +902,8 @@ static void set_preferred_caster(struct descriptor_data *d) {
 
           mgn, nrm,
           /* empty line */
-          grn, nrm, school_names[GET_PREFERRED_ARCANE(d->character)], nrm,
-          grn, nrm, school_names[GET_PREFERRED_DIVINE(d->character)], nrm,
+          grn, nrm, CLSLIST_NAME(GET_PREFERRED_ARCANE(d->character)), nrm,
+          grn, nrm, CLSLIST_NAME(GET_PREFERRED_DIVINE(d->character)), nrm,
           /* empty line */
           grn, nrm
           /* empty line */
