@@ -483,7 +483,8 @@ void list_spells(struct char_data *ch, int mode, int class) {
             break;
           len += nlen;
         } else if (class == CLASS_WIZARD && spellbook_ok(ch, i, class, FALSE) &&
-                CLASS_LEVEL(ch, class) >= sinfo && spellCircle(class, i, 0, DOMAIN_UNDEFINED) == slot &&
+                (BONUS_CASTER_LEVEL(ch, class)+CLASS_LEVEL(ch, class)) >= sinfo &&
+                spellCircle(class, i, 0, DOMAIN_UNDEFINED) == slot &&
                 GET_SKILL(ch, i)) {
           nlen = snprintf(buf2 + len, sizeof (buf2) - len,
                   "%-20s %-15s \tRReady\tn\r\n", spell_info[i].name,
@@ -492,7 +493,7 @@ void list_spells(struct char_data *ch, int mode, int class) {
             break;
           len += nlen;
         } else if (class != CLASS_SORCERER && class != CLASS_BARD && class != CLASS_WIZARD &&
-                CLASS_LEVEL(ch, class) >= MIN_SPELL_LVL(i, class, domain_1) && spellCircle(class, i, 0, domain_1) == slot &&
+                (BONUS_CASTER_LEVEL(ch, class)+CLASS_LEVEL(ch, class)) >= MIN_SPELL_LVL(i, class, domain_1) && spellCircle(class, i, 0, domain_1) == slot &&
                 GET_SKILL(ch, i)) {
           nlen = snprintf(buf2 + len, sizeof (buf2) - len,
                   "%-20s \tWMastered\tn\r\n", spell_info[i].name);
@@ -500,7 +501,7 @@ void list_spells(struct char_data *ch, int mode, int class) {
             break;
           len += nlen;
         } else if (class != CLASS_SORCERER && class != CLASS_BARD && class != CLASS_WIZARD &&
-                CLASS_LEVEL(ch, class) >= MIN_SPELL_LVL(i, class, domain_2) && spellCircle(class, i, 0, domain_2) == slot &&
+                (BONUS_CASTER_LEVEL(ch, class)+CLASS_LEVEL(ch, class)) >= MIN_SPELL_LVL(i, class, domain_2) && spellCircle(class, i, 0, domain_2) == slot &&
                 GET_SKILL(ch, i)) {
           nlen = snprintf(buf2 + len, sizeof (buf2) - len,
                   "%-20s \tWMastered\tn\r\n", spell_info[i].name);
