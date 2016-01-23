@@ -1922,6 +1922,42 @@ const int class_feats_ranger[] = {
   /*end*/
   FEAT_UNDEFINED
 };
+const int class_feats_arcanearcher[] = {
+  /* class feats, pre-epic */
+  FEAT_SWARM_OF_ARROWS,
+  FEAT_BLIND_FIGHT,
+  FEAT_COMBAT_REFLEXES,
+  FEAT_DEFLECT_ARROWS,
+  FEAT_DODGE,
+  FEAT_FAR_SHOT,
+  FEAT_GREATER_WEAPON_FOCUS,
+  FEAT_IMPROVED_CRITICAL,
+  FEAT_IMPROVED_INITIATIVE,
+  FEAT_IMPROVED_PRECISE_SHOT,
+  FEAT_MANYSHOT,
+  FEAT_MOBILITY,
+  FEAT_MOUNTED_ARCHERY,
+  FEAT_POINT_BLANK_SHOT,
+  FEAT_PRECISE_SHOT,
+  FEAT_QUICK_DRAW,
+  FEAT_RAPID_RELOAD,
+  FEAT_RAPID_SHOT,
+  FEAT_SHOT_ON_THE_RUN,
+  FEAT_SNATCH_ARROWS,
+  FEAT_SPRING_ATTACK,
+  FEAT_WEAPON_FINESSE,
+  FEAT_WEAPON_FOCUS,
+  FEAT_ARMOR_SPECIALIZATION_LIGHT,
+  
+  /*epic*/
+  FEAT_EPIC_TOUGHNESS,
+  FEAT_GREAT_DEXTERITY,
+  FEAT_GREAT_CHARISMA,
+  FEAT_GREAT_INTELLIGENCE,
+  
+  /*end*/
+  FEAT_UNDEFINED
+};
 const int class_feats_weaponmaster[] = {
   FEAT_BLIND_FIGHT,
   FEAT_CLEAVE,
@@ -1982,6 +2018,7 @@ const int *class_bonus_feats[NUM_CLASSES] = {
   /* Ranger       */ class_feats_ranger,
   /* Bard         */ class_feats_bard,
   /* WeaponMaster */ class_feats_weaponmaster
+  /* ArcaneArcher */ class_feats_arcanearcher
 };
 
 /* start feat releated stuffs tied to class */
