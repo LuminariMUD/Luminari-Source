@@ -2109,6 +2109,67 @@ int perform_intimidate(struct char_data *ch, struct char_data *vict) {
   return success;
 }
 
+
+ACMD(do_arrowswarm) {
+  struct char_data *vict, *next_vict;
+  int uses_remaining = 0;
+
+  if (!HAS_FEAT(ch, FEAT_SWARM_OF_ARROWS)) {
+    send_to_char(ch, "You don't know how to do this!\r\n");
+    return;
+  }
+  
+  /* ranged attack requirement */
+  if (!can_fire_arrow(ch, TRUE) || !is_using_ranged_weapon(ch) || !GET_EQ(ch, WEAR_AMMO_POUCH)
+          || !GET_EQ(ch, WEAR_AMMO_POUCH)->contains) {
+    send_to_char(ch, "You have to be using a ranged weapon with ammo ready to "
+            "fire in your ammo pouch to do this!\r\n");
+    return;
+  }
+  
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return;
+  }
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
+          ch->next_in_room != vict && vict->next_in_room != ch) {
+    send_to_char(ch, "The area is way too cramped to perform this maneuver!\r\n");
+    return FALSE;
+  }
+  
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_SWARM_OF_ARROWS)) == 0) {
+    send_to_char(ch, "You must recover before you can use another death arrow.\r\n");
+    return;
+  }
+
+  if (uses_remaining < 0) {
+    send_to_char(ch, "You are not experienced enough.\r\n");
+    return;
+  }
+
+  send_to_char(ch, "You open up a barrage of fire!\r\n");
+  act("$n opens up a barrage of fire!", FALSE, ch, 0, 0, TO_ROOM);
+
+  for (vict = world[IN_ROOM(ch)].people; vict; vict = next_vict) {
+    next_vict = vict->next_in_room;
+
+    if (aoeOK(ch, vict, -1)) { /* -1 indicates no special handling */
+      /* ammo check! */
+      if (can_fire_arrow(ch, TRUE) && is_using_ranged_weapon(ch) && GET_EQ(ch, WEAR_AMMO_POUCH)
+            && GET_EQ(ch, WEAR_AMMO_POUCH)->contains) {
+        /* FIRE! */
+        hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_RANGED);        
+      }      
+    }
+  }
+  
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_SWARM_OF_ARROWS);
+  
+  USE_STANDARD_ACTION(ch);
+}
+
+
 ACMD(do_intimidate) {
   char arg[MAX_INPUT_LENGTH];
   struct char_data *vict;

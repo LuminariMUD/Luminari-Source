@@ -1886,18 +1886,22 @@ void assign_feats(void) {
   /*lvl 2*/feato(FEAT_SEEKER_ARROW, "seeker arrow", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
     "free action shot that always hits",
     "As a free action once per day per rank of the seeker arrow feat, the arcane "
-      "archer can fire an arrow that gains +20 to hit.  This feat stacks.  Usage is: seekerarrow <target>");
+      "archer can fire an arrow that gains +20 to hit.  This feat stacks, useable "
+                   "twice a day per feat.  Usage is: seekerarrow <target>");
   /*lvl 3 enhance arrow*/
   /*lvl 4*/feato(FEAT_IMBUE_ARROW, "imbue arrow", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
     "imbue an arrow with one of your spells",
     "You can transfer your magical energy into one of your arrows.  This transfer "
       "of power is temporary (approximately 8 game hours).  Upon the launching of "
       "the arrow the magical energy from the arrow will be expended upon the "
-      "target.  This feat stacks.  Usage: imbuearrow <arrow name> <spell name>");
+      "target.  This feat stacks, useable twice a day per feat.  Usage: imbuearrow "
+                   "<arrow name> <spell name>");
   /*lvl 5 enhance, lvl 6 seeker, lvl 6 imbue, lvl 7 enhance, lvl 8 seeker*/
   /*lvl 8*/feato(FEAT_SWARM_OF_ARROWS, "swarm of arrows", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "unfinished",
-    "unfinished");
+    "fire a barrage of arrows",
+    "As a standard action, once per day, you can fire an arrow at full attack bonus "
+                   "at each and every target in the area.  You will need at least a single "
+                   "projectile for each target.  Usage: arrowswarm");
   /*lvl 9 enhance*/
   /*lvl 10*/feato(FEAT_ARROW_OF_DEATH, "arrow of death", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "one shot one kill",
@@ -2217,6 +2221,7 @@ void assign_feats(void) {
   dailyfeat(FEAT_SMITE_EVIL, eSMITE_EVIL);
   dailyfeat(FEAT_IMBUE_ARROW, eIMBUE_ARROW);
   dailyfeat(FEAT_SEEKER_ARROW, eSEEKER_ARROW);
+  dailyfeat(FEAT_SWARM_OF_ARROWS, eARROW_SWARM);
   dailyfeat(FEAT_SMITE_GOOD, eSMITE_GOOD);
   dailyfeat(FEAT_DESTRUCTIVE_SMITE, eSMITE_DESTRUCTION);
   dailyfeat(FEAT_TURN_UNDEAD, eTURN_UNDEAD);
