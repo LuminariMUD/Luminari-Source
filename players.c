@@ -1617,17 +1617,17 @@ static void load_praying(FILE *fl, struct char_data *ch) {
     if (num != -1) {
       if (num2 < MAX_SPELLS)
         PREPARATION_QUEUE(ch, num, 0).spell = num2;
-      if (num2 < MAX_SPELLS)
+      if (num3 < MAX_SPELLS)
         PREPARATION_QUEUE(ch, num, 1).spell = num3;
-      if (num2 < MAX_SPELLS)
+      if (num4 < MAX_SPELLS)
         PREPARATION_QUEUE(ch, num, 2).spell = num4;
-      if (num2 < MAX_SPELLS)
+      if (num5 < MAX_SPELLS)
         PREPARATION_QUEUE(ch, num, 3).spell = num5;
-      if (num2 < MAX_SPELLS)
+      if (num6 < MAX_SPELLS)
         PREPARATION_QUEUE(ch, num, 4).spell = num6;
-      if (num2 < MAX_SPELLS)
+      if (num7 < MAX_SPELLS)
         PREPARATION_QUEUE(ch, num, 5).spell = num7;
-      if (num2 < MAX_SPELLS)
+      if (num8 < MAX_SPELLS)
         PREPARATION_QUEUE(ch, num, 6).spell = num8;
     }
   } while (num != -1);
@@ -1653,17 +1653,17 @@ static void load_praying_metamagic(FILE *fl, struct char_data *ch) {
     if (num != -1) {
       if (num2 < MAX_SPELLS)
         PREPARATION_QUEUE(ch, num, 0).metamagic = num2;
-      if (num2 < MAX_SPELLS)
+      if (num3 < MAX_SPELLS)
         PREPARATION_QUEUE(ch, num, 1).metamagic = num3;
-      if (num2 < MAX_SPELLS)
+      if (num4 < MAX_SPELLS)
         PREPARATION_QUEUE(ch, num, 2).metamagic = num4;
-      if (num2 < MAX_SPELLS)
+      if (num5 < MAX_SPELLS)
         PREPARATION_QUEUE(ch, num, 3).metamagic = num5;
-      if (num2 < MAX_SPELLS)
+      if (num6 < MAX_SPELLS)
         PREPARATION_QUEUE(ch, num, 4).metamagic = num6;
-      if (num2 < MAX_SPELLS)
+      if (num7 < MAX_SPELLS)
         PREPARATION_QUEUE(ch, num, 5).metamagic = num7;
-      if (num2 < MAX_SPELLS)
+      if (num8 < MAX_SPELLS)
         PREPARATION_QUEUE(ch, num, 6).metamagic = num8;
     }
   } while (num != -1);
