@@ -2131,8 +2131,7 @@ ACMD(do_arrowswarm) {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
     return;
   }
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
-          ch->next_in_room != vict && vict->next_in_room != ch) {
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE)) {
     send_to_char(ch, "The area is way too cramped to perform this maneuver!\r\n");
     return;
   }
