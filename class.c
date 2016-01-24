@@ -3090,9 +3090,13 @@ void process_level_feats(struct char_data *ch, int class) {
       }
       */
       if (HAS_FEAT(ch, level_feats[i][LF_FEAT]))
-        sprintf(featbuf, "%s\tMYou have improved your %s class ability!\tn\r\n", featbuf, feat_list[level_feats[i][LF_FEAT]].name);
+        sprintf(featbuf, "%s\tMYou have improved your %s %s!\tn\r\n", featbuf,
+            feat_list[level_feats[i][LF_FEAT]].name,
+            feat_types[feat_list[level_feats[i][LF_FEAT]].feat_type] );
       else
-        sprintf(featbuf, "%s\tMYou have gained the %s class ability!\tn\r\n", featbuf, feat_list[level_feats[i][LF_FEAT]].name);
+        sprintf(featbuf, "%s\tMYou have gained the %s %s!\tn\r\n", featbuf,
+            feat_list[level_feats[i][LF_FEAT]].name,
+            feat_types[feat_list[level_feats[i][LF_FEAT]].feat_type] );
       SET_FEAT(ch, level_feats[i][LF_FEAT], HAS_REAL_FEAT(ch, level_feats[i][LF_FEAT]) + 1);
     }
 
@@ -3103,9 +3107,13 @@ void process_level_feats(struct char_data *ch, int class) {
             level_feats[i][LF_RACE] == GET_RACE(ch) &&
             CLASS_LEVEL(ch, level_feats[i][LF_CLASS]) == level_feats[i][LF_MIN_LVL]) {
       if (HAS_FEAT(ch, level_feats[i][LF_FEAT]))
-        sprintf(featbuf, "%s\tMYou have improved your %s class ability!\tn\r\n", featbuf, feat_list[level_feats[i][LF_FEAT]].name);
+        sprintf(featbuf, "%s\tMYou have improved your %s %s!\tn\r\n", featbuf,
+            feat_list[level_feats[i][LF_FEAT]].name,
+            feat_types[feat_list[level_feats[i][LF_FEAT]].feat_type] );                
       else
-        sprintf(featbuf, "%s\tMYou have gained the %s class ability!\tn\r\n", featbuf, feat_list[level_feats[i][LF_FEAT]].name);
+        sprintf(featbuf, "%s\tMYou have gained the %s %s!\tn\r\n", featbuf,
+            feat_list[level_feats[i][LF_FEAT]].name,
+            feat_types[feat_list[level_feats[i][LF_FEAT]].feat_type] );                
       SET_FEAT(ch, level_feats[i][LF_FEAT], HAS_REAL_FEAT(ch, level_feats[i][LF_FEAT]) + 1);
     }
     i++;
