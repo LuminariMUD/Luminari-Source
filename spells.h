@@ -629,6 +629,7 @@
 #define SKILL_SMITE_DESTRUCTION         535
 #define SKILL_DESTRUCTIVE_AURA          536
 #define SKILL_AURA_OF_PROTECTION        537
+#define SKILL_DEATH_ARROW               538
 
 /* reserving this space for different performances 580 - 599*/
 #define TOP_OF_PERFORMANCES             580

@@ -3177,10 +3177,13 @@ int get_daily_uses(struct char_data *ch, int featnum){
       break;
     case FEAT_SEEKER_ARROW:
     case FEAT_IMBUE_ARROW:
+      daily_uses += HAS_FEAT(ch, featnum) * 2;
+      break;
     case FEAT_SMITE_EVIL:
     case FEAT_SMITE_GOOD:
     case FEAT_RAGE:
     case FEAT_QUIVERING_PALM:
+    case FEAT_ARROW_OF_DEATH:
     case FEAT_WILD_SHAPE:
     case FEAT_ANIMATE_DEAD:
     case FEAT_VANISH:

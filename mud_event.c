@@ -111,6 +111,7 @@ struct mud_event_list mud_event_index[] = {
   { "Encounter Region Reset", event_countdown, EVENT_REGION}, // eENCOUNTER_REG_RESET
   { "Seeker Arrow", event_daily_use_cooldown, EVENT_CHAR}, // eSEEKER_ARROW
   { "Imbue Arrow", event_daily_use_cooldown, EVENT_CHAR}, // eIMBUE_ARROW
+  { "Arrow of Death", event_daily_use_cooldown, EVENT_CHAR}, //eDEATHARROW
 };
 
 /* init_events() is the ideal function for starting global events. This
@@ -263,6 +264,9 @@ EVENTFUNC(event_countdown) {
     case eQUIVERINGPALM:
       send_to_char(ch, "You are now able to strike with your quivering palm again.\r\n");
       break;
+    case eDEATHARROW:
+      send_to_char(ch, "You are now able to imbue an arrow with death.\r\n");
+      break;
     case eVANISH:
       send_to_char(ch, "Your 'vanished' state returns to normal...\r\n");
       break;
@@ -355,6 +359,10 @@ EVENTFUNC(event_daily_use_cooldown) {
   }
 
   switch (pMudEvent->iId) {
+    case eDEATHARROW:
+      featnum = FEAT_ARROW_OF_DEATH;
+      send_to_char(ch, "You are now able to imbue an arrow with death again.\r\n");
+      break;
     case eQUIVERINGPALM:
       featnum = FEAT_QUIVERING_PALM;
       send_to_char(ch, "You are now able to strike with your quivering palm again.\r\n");
