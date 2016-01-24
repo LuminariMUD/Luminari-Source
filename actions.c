@@ -41,6 +41,7 @@ void (*attack_actions[NUM_ATTACK_ACTIONS])(struct char_data *ch,
   do_smitegood,         /* AA_SMITE_GOOD */
   do_destructivesmite,  /* AA_SMITE_DESTRUCTION */
   do_seekerarrow,       /* AA_SEEKER_ARROW */
+  do_deatharrow,       /* AA_DEATH_ARROW */
 };
 
 /* Action Cooldown events are:

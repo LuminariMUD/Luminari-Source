@@ -1674,7 +1674,7 @@ void assign_feats(void) {
     "chance to kill on strike with unarmed attack",
     "You will do your wisdom bonus as bonus damage to your next unarmed strike, "
       "in addition, to opponents that are your level or lower, they have to make "
-      "a fortitude save vs DC: your monk level + your wisdom bonus + 10 in order "
+      "a fortitude save vs DC: your monk level/2 + your wisdom bonus + 10 in order "
       "to survive your quivering palm attack");
   feato(FEAT_WEAPON_PROFICIENCY_MONK, "weapon proficiency - monks", TRUE, FALSE, FALSE, FEAT_TYPE_GENERAL,
     "proficiency in monk weapons",
@@ -1900,8 +1900,13 @@ void assign_feats(void) {
     "unfinished");
   /*lvl 9 enhance*/
   /*lvl 10*/feato(FEAT_ARROW_OF_DEATH, "arrow of death", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "unfinished",
-    "unfinished");
+    "one shot one kill",
+    "You will do your intelligence or charisma (whichever is higher) bonus as bonus "
+                    "damage to your next arrow shot, "
+      "in addition, to opponents that are your level or lower, they have to make "
+      "a fortitude save vs DC: your arcane level + your intelligence or charisma "
+                    "(whichver is higher) bonus + 10 in order "
+      "to survive your arrow of death.  Usage: deatharrow");
 
   /* class feats that are implemented on classes that are not yet in the game */
 
@@ -2199,6 +2204,7 @@ void assign_feats(void) {
   /* Feats with "Daily Use" Mechanic, make sure to add to
    * EVENTFUNC(event_daily_use_cooldown) and mud_event.c */
   dailyfeat(FEAT_QUIVERING_PALM, eQUIVERINGPALM);
+  dailyfeat(FEAT_ARROW_OF_DEATH, eDEATHARROW);
   dailyfeat(FEAT_STUNNING_FIST, eSTUNNINGFIST);
   dailyfeat(FEAT_ANIMATE_DEAD, eANIMATEDEAD);
   dailyfeat(FEAT_WILD_SHAPE, eWILD_SHAPE);

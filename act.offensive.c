@@ -69,6 +69,22 @@ bool has_piercing_weapon(struct char_data *ch, int wield) {
 
 /*  End utility */
 
+/* death arrow engine: The death arrow is reliant on a successful RANGED attack */
+void perform_deatharrow(struct char_data *ch) {
+  
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_ARROW_OF_DEATH);
+
+  send_to_char(ch, "Your body glows with a \tDblack aura\tn as the power of \tDdeath\tn enters your ammo pouch!\r\n");
+  act("$n's body begins to glow with a \tDblack aura\tn!", FALSE, ch, 0, 0, TO_ROOM);
+  
+  /* glowing with powahhh */
+  struct affected_type af;
+  new_affect(&af);
+  af.spell = SKILL_DEATH_ARROW;
+  af.duration = 24;
+  affect_to_char(ch, &af);
+}
 
 /* quivering palm engine: The quivering palm is reliant on a successful UNARMED
  * attack (or an attack with a KI_STRIKE weapon) */
@@ -2665,6 +2681,39 @@ ACMD(do_whirlwind) {
   USE_FULL_ROUND_ACTION(ch);
 }
 
+ACMD(do_deatharrow) {
+  int uses_remaining = 0;
+
+  if (!HAS_FEAT(ch, FEAT_ARROW_OF_DEATH)) {
+    send_to_char(ch, "You don't know how to do this!\r\n");
+    return;    
+  }
+  /* ranged attack requirement */
+  if (!can_fire_arrow(ch, TRUE) || !is_using_ranged_weapon(ch) || !GET_EQ(ch, WEAR_AMMO_POUCH)
+          || !GET_EQ(ch, WEAR_AMMO_POUCH)->contains) {
+    send_to_char(ch, "You have to be using a ranged weapon with ammo ready to "
+            "fire in your ammo pouch to do this!\r\n");
+    return;
+  }
+  
+  if (affected_by_spell(ch, SKILL_DEATH_ARROW)) {
+    send_to_char(ch, "You have already imbued one of your arrows with death!\r\n");
+    return;
+  }
+
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_ARROW_OF_DEATH)) == 0) {
+    send_to_char(ch, "You must recover before you can use another death arrow.\r\n");
+    return;
+  }
+
+  if (uses_remaining < 0) {
+    send_to_char(ch, "You are not experienced enough.\r\n");
+    return;
+  }
+
+  perform_deatharrow(ch);
+}
+
 ACMD(do_quiveringpalm) {
   int uses_remaining = 0;
 
@@ -2907,7 +2956,7 @@ void perform_kick(struct char_data *ch, struct char_data *vict) {
     damage(ch, vict, 0, SKILL_KICK, DAM_FORCE, FALSE);
 }
 
-/* kick engine */
+/* seeker arrow engine */
 void perform_seekerarrow(struct char_data *ch, struct char_data *vict) {
 
   if (vict == ch) {
@@ -2922,7 +2971,7 @@ void perform_seekerarrow(struct char_data *ch, struct char_data *vict) {
 
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
           ch->next_in_room != vict && vict->next_in_room != ch) {
-    send_to_char(ch, "You simply can't reach that far.\r\n");
+    send_to_char(ch, "Too cramped to safely fire an arrow here!\r\n");
     return;
   }
 

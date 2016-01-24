@@ -112,6 +112,7 @@ typedef enum {
   eENCOUNTER_REG_RESET, // Reset event for encounter regions.          
   eSEEKER_ARROW, /*pew pew seeker arrows!*/
   eIMBUE_ARROW, /*pew pew imbued arrows!*/
+  eDEATHARROW, /*pew pew arrow of death!*/
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

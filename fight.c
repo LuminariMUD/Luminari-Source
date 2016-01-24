@@ -1430,9 +1430,7 @@ static char *replace_string(const char *str, const char *weapon_singular,
 /* message for doing damage with a weapon */
 static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
         int w_type, int offhand) {
-  char *buf = NULL;
   int msgnum = -1, hp = 0, pct = 0;
-  bool is_ranged = FALSE;
 
   hp = GET_HIT(victim);
   if (GET_HIT(victim) < 1)
@@ -1448,87 +1446,72 @@ static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
     const char *to_char;
     const char *to_victim;
   } dam_weapons[] = {
-
     /* use #w for singular (i.e. "slash") and #W for plural (i.e. "slashes") */
-
     {
       "\tn$n tries to #w \tn$N, but misses.\tn", /* 0: 0     */
       "You try to #w \tn$N, but miss.\tn",
       "\tn$n tries to #w you, but misses.\tn"
     },
-
     {
       "\tn$n \tYbarely grazes \tn$N \tYas $e #W $M.\tn", /* 1: dam <= 2% */
       "\tMYou barely graze \tn$N \tMas you #w $M.\tn",
       "\tn$n \tRbarely grazes you as $e #W you.\tn"
     },
-
     {
       "\tn$n \tYnicks \tn$N \tYas $e #W $M.", /* 2: dam <= 4% */
       "\tMYou nick \tn$N \tMas you #w $M.",
       "\tn$n \tRnicks you as $e #W you.\tn"
     },
-
     {
       "\tn$n \tYbarely #W \tn$N\tY.\tn", /* 3: dam <= 6%  */
       "\tMYou barely #w \tn$N\tM.\tn",
       "\tn$n \tRbarely #W you.\tn"
     },
-
     {
       "\tn$n \tY#W \tn$N\tY.\tn", /* 4: dam <= 8%  */
       "\tMYou #w \tn$N\tM.\tn",
       "\tn$n \tR#W you.\tn"
     },
-
     {
       "\tn$n \tY#W \tn$N \tYhard.\tn", /* 5: dam <= 11% */
       "\tMYou #w \tn$N \tMhard.\tn",
       "\tn$n \tR#W you hard.\tn"
     },
-
     {
       "\tn$n \tY#W \tn$N \tYvery hard.\tn", /* 6: dam <= 14%  */
       "\tMYou #w \tn$N \tMvery hard.\tn",
       "\tn$n \tR#W you very hard.\tn"
     },
-
     {
       "\tn$n \tY#W \tn$N \tYextremely hard.\tn", /* 7: dam <= 18%  */
       "\tMYou #w \tn$N \tMextremely hard.\tn",
       "\tn$n \tR#W you extremely hard.\tn"
     },
-
     {
       "\tn$n \tYinjures \tn$N \tYwith $s #w.\tn", /* 8: dam <= 22%  */
       "\tMYou injure \tn$N \tMwith your #w.\tn",
       "\tn$n \tRinjures you with $s #w.\tn"
     },
-
     {
       "\tn$n \tYwounds \tn$N \tYwith $s #w.\tn", /* 9: dam <= 27% */
       "\tMYou wound \tn$N \tMwith your #w.\tn",
       "\tn$n \tRwounds you with $s #w.\tn"
     },
-
     {
       "\tn$n \tYinjures \tn$N \tYharshly with $s #w.\tn", /* 10: dam <= 32%  */
       "\tMYou injure \tn$N \tMharshly with your #w.\tn",
       "\tn$n \tRinjures you harshly with $s #w.\tn"
     },
-
     {
       "\tn$n \tYseverely wounds \tn$N \tYwith $s #w.\tn", /* 11: dam <= 40% */
       "\tMYou severely wound \tn$N \tMwith your #w.\tn",
       "\tn$n \tRseverely wounds you with $s #w.\tn"
     },
-
     {
       "\tn$n \tYinflicts grave damage on \tn$N\tY with $s #w.\tn", /* 12: dam <= 50% */
       "\tMYou inflict grave damage on \tn$N \tMwith your #w.\tn",
       "\tn$n \tRinflicts grave damage on you with $s #w.\tn"
     },
-
     {
       "\tn$n \tYnearly kills \tn$N\tY with $s deadly #w!!\tn", /* (13): > 51   */
       "\tMYou nearly kill \tn$N \tMwith your deadly #w!!\tn",
@@ -1536,6 +1519,55 @@ static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
     }
   };
 
+  static struct dam_ranged_weapon_type {
+    const char *to_room;
+    const char *to_char;
+    const char *to_victim;
+  } dam_ranged[] = {
+    {"*WHOOSH* $n fires $p at $N but misses!", /* 0: 0     */
+     "*WHOOSH* you fire $p at $N but miss!",
+     "*WHOOSH* $n fires $p at you but misses!"},
+    {"*THWISH* $n fires $p at $N grazing $M.", /* 1: dam <= 2% */
+     "*THWISH* you fire $p at $N grazing $M.",
+     "*THWISH* $n fires $p at you grazing you."},
+    {"*THWISH* $n fires $p at $N nicking $M.", /* 2: dam <= 4% */
+     "*THWISH* you fire $p at $N nicking $M.",
+     "*THWISH* $n fires $p at you nicking you."},     
+    {"*THWISH* $n fires $p at $N *THUNK* barely damaging $M.", /* 3: dam <= 6%  */
+     "*THWISH* you fire $p at $N *THUNK* barely damaging $M.",
+     "*THWISH* $n fires $p at you *THUNK* barely damaging you."},
+    {"*THWISH* $n fires $p at $N *THUNK* damaging $M.", /* 4: dam <= 8%  */
+     "*THWISH* you fire $p at $N *THUNK* damaging $M.",
+     "*THWISH* $n fires $p at you *THUNK* damaging you."},
+    {"*THWISH* $n fires $p at $N *THUNK* damaging $M moderately!", /* 5: dam <= 11% */
+     "*THWISH* you fire $p at $N *THUNK* damaging $M moderately!",
+     "*THWISH* $n fires $p at you *THUNK* damaging you moderately!"},
+    {"*THWISH* $n fires $p at $N *THUNK* damaging $M badly!", /* 6: dam <= 14%  */
+     "*THWISH* you fire $p at $N *THUNK* damaging $M badly!",
+     "*THWISH* $n fires $p at you *THUNK* damaging you badly!"},
+    {"*THWISH* $n fires $p at $N *THUNK* injuring $M harshly!", /* 7: dam <= 18%  */
+     "*THWISH* you fire $p at $N *THUNK* injuring $M harshly!",
+     "*THWISH* $n fires $p at you *THUNK* injuring you harshly!"},
+    {"*THWISH* $n fires $p at $N *THWAK* severely injuring $M!", /* 8: dam <= 22%  */
+     "*THWISH* you fire $p at $N *THWAK* severely injuring $M!",
+     "*THWISH* $n fires $p at you *THWAK* severely injuring you!"},
+    {"*THWISH* $n fires $p at $N *THWAK* causing serious wounds to $M!", /* 9: dam <= 27% */
+     "*THWISH* you fire $p at $N *THWAK* causing serious wounds to $M!",
+     "*THWISH* $n fires $p at you *THWAK* causing serious wounds to you!"},
+    {"*THFFFT* $n fires $p at $N *THWAK* damaging $M gravely!", /* 10: dam <= 32%  */
+     "*THFFFT* you fire $p at $N *THWAK* damaging $M gravely!",
+     "*THFFFT* $n fires $p at you *THWAK* damaging you gravely!"},
+    {"*THFFFT* $n fires $p at $N *THWAK* severely wounding $M!", /* 11: dam <= 40% */
+     "*THFFFT* you fire $p at $N *THWAK* severely wounding $M!",
+     "*THFFFT* $n fires $p at you *THWAK* severely wounding you!"},
+    {"*THFFFT* $n fires $p at $N *THWAK* lethally wounding $M!", /* 12: dam <= 50% */
+     "*THFFFT* you fire $p at $N *THWAK* lethally wounding $M!",
+     "*THFFFT* $n fires $p at you *THWAK* lethally wounding you!"},
+    {"*THFFFT* $n fires $p at $N *THWAK* nearly killing $M!", /* (13): > 51   */
+     "*THFFFT* you fire $p at $N *THWAK* nearly killing $M!",
+     "*THFFFT* $n fires $p at you *THWAK* nearly killing you!"}
+  };
+  
   w_type -= TYPE_HIT; /* Change to base of table with text */
 
   if (pct == 0) msgnum = 0;
@@ -1553,17 +1585,23 @@ static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
   else if (pct <= 50) msgnum = 12;
   else msgnum = 13;
 
-  if (offhand == 2 && last_missile) { // ranged
-    send_to_char(ch, "WHIZZ, you fire %s:  ", last_missile->short_description);
-    act("WHIZZ, $n fires $p at $N!", FALSE, ch, last_missile, victim, TO_NOTVICT);
-    act("WHIZZ, $n fires $p!", FALSE, ch, last_missile, victim, TO_VICT | TO_SLEEP);
-    is_ranged = TRUE;
-  }
+  if (offhand == 2 && last_missile && GET_POS(victim) > POS_DEAD) {  
+    /* damage message to room */    
+    act(dam_ranged[msgnum].to_room, FALSE, ch, last_missile, victim, TO_NOTVICT);
 
-  /* damage message to onlookers */
-  // note, we may have to add more info if we have some way to attack
-  // someone that isn't in your room - zusuk
-  if (GET_POS(victim) > POS_DEAD) {
+    /* damage message to damager */
+    act(dam_ranged[msgnum].to_char, FALSE, ch, last_missile, victim, TO_CHAR);
+    send_to_char(ch, CCNRM(ch, C_CMP));
+
+    /* damage message to damagee */
+    act(dam_ranged[msgnum].to_victim, FALSE, ch, last_missile, victim, TO_VICT | TO_SLEEP);
+    send_to_char(victim, CCNRM(victim, C_CMP));    
+  }
+  /* non ranged */
+  else if (GET_POS(victim) > POS_DEAD) {
+    char *buf = NULL;
+    
+    /* damage message to observers (to room) */
     buf = replace_string(dam_weapons[msgnum].to_room,
                          attack_hit_text[w_type].singular, attack_hit_text[w_type].plural), dam;
     act(buf, FALSE, ch, NULL, victim, TO_NOTVICT);
@@ -1579,15 +1617,11 @@ static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
                          attack_hit_text[w_type].singular, attack_hit_text[w_type].plural);
     act(buf, FALSE, ch, NULL, victim, TO_VICT | TO_SLEEP);
     send_to_char(victim, CCNRM(victim, C_CMP));
+    
   } else {
     /* debugs */
-    //act("you shouldn't see this (onlooker)",
-        //FALSE, ch, NULL, victim, TO_NOTVICT); /*onlooker*/
-    //act("you shouldn't see this (damager)",
-        //FALSE, ch, NULL, victim, TO_CHAR); /*damager*/
-    //act("you shouldn't see this (damagee)",
-        //FALSE, ch, NULL, victim, TO_VICT | TO_SLEEP); /*damagee*/
   }
+  
 }
 
 
@@ -4617,6 +4651,11 @@ void handle_missed_attack(struct char_data *ch, struct char_data *victim,
     affect_from_char(ch, SKILL_STUNNING_FIST);
   }
 
+  if (affected_by_spell(ch, SKILL_DEATH_ARROW)) {
+    send_to_char(ch, "You fail to land your death arrow attack!  ");
+    affect_from_char(ch, SKILL_DEATH_ARROW);
+  }
+
   if (affected_by_spell(ch, SKILL_QUIVERING_PALM)) {
     send_to_char(ch, "You fail to land your quivering palm attack!  ");
     affect_from_char(ch, SKILL_QUIVERING_PALM);
@@ -4770,7 +4809,37 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       affect_from_char(ch, SKILL_QUIVERING_PALM);
     }
   }
-
+  if (affected_by_spell(ch, SKILL_DEATH_ARROW)) {
+    int deatharrow_dc = 10 + CLASS_LEVEL(ch, CLASS_ARCANE_ARCHER) + 
+                        MAX(GET_CHA_BONUS(ch), GET_INT_BONUS(ch));
+    if (can_fire_arrow(ch, TRUE) && is_using_ranged_weapon(ch) && GET_EQ(ch, WEAR_AMMO_POUCH)
+            && GET_EQ(ch, WEAR_AMMO_POUCH)->contains) {
+      send_to_char(ch, "[ARROW OF DEATH] ");
+      send_to_char(victim, "[\tRARROW OF DEATH\tn] ");
+      act("$n performs an \tDarrow of death\tn attack on $N!",
+                FALSE, ch, wielded, victim, TO_NOTVICT);
+      /* apply death arrow affect, muahahahah */
+      if (GET_LEVEL(ch) >= GET_LEVEL(victim) &&
+              !savingthrow(victim, SAVING_FORT, 0, deatharrow_dc)) {
+        /*GRAND SLAM!*/
+        act("$N \tRstops suddenly, then keels over\tn as soon as $p makes contact!",
+                FALSE, ch, GET_EQ(ch, WEAR_AMMO_POUCH)->contains, victim, TO_CHAR);
+        act("You feel your body \tRshut down as you keel over\tn as $p shot from $n makes contact!",
+                FALSE, ch, GET_EQ(ch, WEAR_AMMO_POUCH)->contains, victim, TO_VICT | TO_SLEEP);
+        act("You watch as $N \tRstops suddenly then keels over\tn as $p shot from $n makes contact!",
+                FALSE, ch, GET_EQ(ch, WEAR_AMMO_POUCH)->contains, victim, TO_NOTVICT);
+        dam_killed_vict(ch, victim);
+        /* ok, now remove death arrow */
+        affect_from_char(ch, SKILL_DEATH_ARROW);
+        return dam;
+      } else { /* death arrow will still do damage */
+        dam += 1 + MAX(GET_CHA_BONUS(ch), GET_INT_BONUS(ch));
+      }
+      /* ok, now remove death arrow */
+      affect_from_char(ch, SKILL_DEATH_ARROW);
+    }
+  }
+  
   /* Calculate sneak attack damage. */
   if (HAS_FEAT(ch, FEAT_SNEAK_ATTACK) &&
       (compute_concealment(victim) == 0) &&
