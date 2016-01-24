@@ -307,6 +307,7 @@ ACMD(do_quiveringpalm);
 ACMD(do_deatharrow);
 ACMD(do_kick);
 ACMD(do_seekerarrow);
+ACMD(do_arrowswarm);
 ACMD(do_smiteevil);
 ACMD(do_smitegood);
 ACMD(do_kill);
