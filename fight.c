@@ -1640,6 +1640,7 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
   struct obj_data *weap = GET_EQ(ch, WEAR_WIELD_1);
   struct obj_data *shield = NULL;
   int (*name)(struct char_data *ch, void *me, int cmd, char *argument);
+  bool is_ranged = FALSE;
 
   /* attacker weapon */
   if (GET_EQ(ch, WEAR_WIELD_2H))
@@ -1648,6 +1649,13 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
     weap = read_object(TRELUX_CLAWS, VIRTUAL);
   else if (dualing)
     weap = GET_EQ(ch, WEAR_WIELD_OFFHAND);
+  
+  /* ranged weapon - general check and we want the missile to serve as our weapon */
+  if (can_fire_arrow(ch, TRUE) && is_using_ranged_weapon(ch) && GET_EQ(ch, WEAR_AMMO_POUCH)
+          && GET_EQ(ch, WEAR_AMMO_POUCH)->contains) {
+    is_ranged = TRUE;
+    weap = GET_EQ(ch, WEAR_AMMO_POUCH)->contains; /* top missile */
+  }
 
   /* defender weapon for parry message */
   if (!opponent_weapon) {
@@ -1686,15 +1694,27 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
         if (GET_POS(vict) == POS_DEAD) { // death messages
           /* Don't send redundant color codes for TYPE_SUFFERING & other types
            * of damage without attacker_msg. */
-          if (msg->die_msg.attacker_msg) {
-            send_to_char(ch, CCYEL(ch, C_CMP));
-            act(msg->die_msg.attacker_msg, FALSE, ch, weap, vict, TO_CHAR);
-            send_to_char(ch, CCNRM(ch, C_CMP));
+          if (is_ranged) { /* ranged attack */
+            /* death message to room */
+            act("*THWISH* $n fires $p at $N *THUNK* $E collapses to the ground!",
+                    FALSE, ch, weap, victim, TO_NOTVICT);
+            /* death message to damager */
+            act("*THWISH * you fire $p at $N *THUNK* $E collapses to the ground!",
+                    FALSE, ch, weap, victim, TO_CHAR);
+            /* death message to damagee */
+            act("*THWISH * $n fires $p at you *THUNK* you collapse to the ground!",
+                    FALSE, ch, weap, victim, TO_VICT | TO_SLEEP);
+          } else { /* NOT ranged */
+            if (msg->die_msg.attacker_msg) {
+              send_to_char(ch, CCYEL(ch, C_CMP));
+              act(msg->die_msg.attacker_msg, FALSE, ch, weap, vict, TO_CHAR);
+              send_to_char(ch, CCNRM(ch, C_CMP));
+            }
+            send_to_char(vict, CCRED(vict, C_CMP));
+            act(msg->die_msg.victim_msg, FALSE, ch, weap, vict, TO_VICT | TO_SLEEP);
+            send_to_char(vict, CCNRM(vict, C_CMP));
+            act(msg->die_msg.room_msg, FALSE, ch, weap, vict, TO_NOTVICT);
           }
-          send_to_char(vict, CCRED(vict, C_CMP));
-          act(msg->die_msg.victim_msg, FALSE, ch, weap, vict, TO_VICT | TO_SLEEP);
-          send_to_char(vict, CCNRM(vict, C_CMP));
-          act(msg->die_msg.room_msg, FALSE, ch, weap, vict, TO_NOTVICT);
         } else { // not dead
           if (msg->hit_msg.attacker_msg) {
             send_to_char(ch, CCYEL(ch, C_CMP));
