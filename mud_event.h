@@ -113,6 +113,7 @@ typedef enum {
   eSEEKER_ARROW, /*pew pew seeker arrows!*/
   eIMBUE_ARROW, /*pew pew imbued arrows!*/
   eDEATHARROW, /*pew pew arrow of death!*/
+  eARROW_SWARM, /*pew (+20 more pews) swarm of arrows!*/
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

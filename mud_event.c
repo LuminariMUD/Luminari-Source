@@ -112,6 +112,7 @@ struct mud_event_list mud_event_index[] = {
   { "Seeker Arrow", event_daily_use_cooldown, EVENT_CHAR}, // eSEEKER_ARROW
   { "Imbue Arrow", event_daily_use_cooldown, EVENT_CHAR}, // eIMBUE_ARROW
   { "Arrow of Death", event_daily_use_cooldown, EVENT_CHAR}, //eDEATHARROW
+  { "Swarm of Arrows", event_daily_use_cooldown, EVENT_CHAR}, //eARROW_SWARM
 };
 
 /* init_events() is the ideal function for starting global events. This
@@ -227,6 +228,9 @@ EVENTFUNC(event_countdown) {
       break;
     case eRAGE:
       send_to_char(ch, "You are now able to Rage again.\r\n");
+      break;
+    case eARROW_SWARM:
+      send_to_char(ch, "You are now able to use your swarm of arrows again.\r\n");
       break;
     case eSEEKER_ARROW:
       send_to_char(ch, "You regain a usage of your seeker arrow.\r\n");
@@ -402,6 +406,10 @@ EVENTFUNC(event_daily_use_cooldown) {
     case eVANISHED:
       featnum = FEAT_VANISH;
       send_to_char(ch, "One of your vanish uses has recovered.\r\n");
+      break;
+    case eARROW_SWARM:
+      featnum = FEAT_SWARM_OF_ARROWS;
+      send_to_char(ch, "One of your swarm of arrows uses has recovered.\r\n");
       break;
     case eSEEKER_ARROW:
       featnum = FEAT_SEEKER_ARROW;
