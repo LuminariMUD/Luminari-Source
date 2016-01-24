@@ -3116,6 +3116,7 @@ void advance_level(struct char_data *ch, int class) {
           add_mana = 0, add_move = 0, k, trains = 0;
   int feats = 0, class_feats = 0, epic_feats = 0, epic_class_feats = 0;
   int i = 0;
+  int class_level = 0;
 
   /**because con items / spells are affecting based on level, we have to
   unaffect before we level up -zusuk */
@@ -3150,15 +3151,15 @@ void advance_level(struct char_data *ch, int class) {
   /* epic feat progresion */
   if (!(CLASS_LEVEL(ch, class) % CLSLIST_EFEATP(class)) && IS_EPIC(ch)) {
     epic_class_feats++;
-   }
+  }
   
-  /* special feat progression */
-    if (!(CLASS_LEVEL(ch, CLASS_WIZARD) % 5) && !IS_EPIC(ch)) {
-      class_feats++; /* wizards get a bonus class feat every 5 levels */
-    }
-    if (!(CLASS_LEVEL(ch, CLASS_WARRIOR) % 2) && !IS_EPIC(ch)) {
-      class_feats++; /* warriors get a bonus class feat every 2 levels */
-    }
+  /* special feat progression */  
+  if (class == CLASS_WIZARD && !(CLASS_LEVEL(ch, CLASS_WIZARD) % 5) && !IS_EPIC(ch)) {
+    class_feats++; /* wizards get a bonus class feat every 5 levels */
+  }
+  if (class == CLASS_WARRIOR && !(CLASS_LEVEL(ch, CLASS_WARRIOR) % 2) && !IS_EPIC(ch)) {
+    class_feats++; /* warriors get a bonus class feat every 2 levels */
+  }
 
   /* further movement modifications */
   if (HAS_FEAT(ch, FEAT_ENDURANCE)) {
