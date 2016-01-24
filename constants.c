@@ -2451,17 +2451,18 @@ const char *ibt_bits[] = {
 
 /* Feat types  */
 const char *feat_types[] = {
-  "RESERVED",
-  "General",
-  "Combat",
-  "Spellcasting",
-  "Metamagic",
-  "Craft",
-  "Wild",
-  "Divine",
-  "Class Ability",
-  "Innate Ability",
-  "Domain Power",
+  "none", //0
+  "general",
+  "combat",
+  "spellcasting",
+  "metamagic",
+  "craft", //5
+  "wild",
+  "divine",
+  "class ability",
+  "innate ability",
+  "domain power", //10
+  "performance", //11
   "\n"
 };
 
