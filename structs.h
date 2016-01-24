@@ -433,7 +433,7 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define MAX_ENEMIES  10
 
 // Memorization
-#define NUM_SLOTS	20  //conersative-value max num slots per circle
+#define NUM_SLOTS	13  //conersative-value max num slots per circle
 #define NUM_CIRCLES	10  //max num circles
 /* how much space to reserve in the mem arrays */
 #define MAX_MEM		NUM_SLOTS * NUM_CIRCLES
