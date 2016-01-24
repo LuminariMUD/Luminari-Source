@@ -2134,7 +2134,7 @@ ACMD(do_arrowswarm) {
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
           ch->next_in_room != vict && vict->next_in_room != ch) {
     send_to_char(ch, "The area is way too cramped to perform this maneuver!\r\n");
-    return FALSE;
+    return;
   }
   
   if ((uses_remaining = daily_uses_remaining(ch, FEAT_SWARM_OF_ARROWS)) == 0) {
