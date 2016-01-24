@@ -2726,21 +2726,27 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
   /**/
 
   if (w_type != -1) { //added for mount, etc
-    if (!IS_WEAPON(w_type)) //non weapons use skill_message
+    if (!IS_WEAPON(w_type))  {//non weapons use skill_message
       skill_message(dam, ch, victim, w_type, offhand);
-    else {
+      send_to_char(ch, "DEBUG 1\r\n");
+    } else {
       //miss and death = skill_message
       if (GET_POS(victim) == POS_DEAD || dam == 0) {
-        if (!dam && is_ranged)  // miss with ranged = dam_message()
+        if (!dam && is_ranged) {  // miss with ranged = dam_message()
           dam_message(dam, ch, victim, w_type, offhand);
-        else if (!skill_message(dam, ch, victim, w_type, offhand))
+          send_to_char(ch, "DEBUG 2\r\n");
+        } else if (!skill_message(dam, ch, victim, w_type, offhand)) {
           //default if no skill_message
           dam_message(dam, ch, victim, w_type, offhand);
+          send_to_char(ch, "DEBUG 3\r\n");
+        }
       } else {
         dam_message(dam, ch, victim, w_type, offhand); //default landed-hit
+        send_to_char(ch, "DEBUG 4\r\n");
       }
     }
   } else {
+    send_to_char(ch, "DEBUG 5\r\n");
     /* w_type is -1, should we handle a message here?*/
   }
 
