@@ -1697,13 +1697,13 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
           if (is_ranged) { /* ranged attack */
             /* death message to room */
             act("*THWISH* $n fires $p at $N *THUNK* $E collapses to the ground!",
-                    FALSE, ch, weap, victim, TO_NOTVICT);
+                    FALSE, ch, weap, vict, TO_NOTVICT);
             /* death message to damager */
             act("*THWISH * you fire $p at $N *THUNK* $E collapses to the ground!",
-                    FALSE, ch, weap, victim, TO_CHAR);
+                    FALSE, ch, weap, vict, TO_CHAR);
             /* death message to damagee */
             act("*THWISH * $n fires $p at you *THUNK* you collapse to the ground!",
-                    FALSE, ch, weap, victim, TO_VICT | TO_SLEEP);
+                    FALSE, ch, weap, vict, TO_VICT | TO_SLEEP);
           } else { /* NOT ranged */
             if (msg->die_msg.attacker_msg) {
               send_to_char(ch, CCYEL(ch, C_CMP));
