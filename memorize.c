@@ -2240,7 +2240,7 @@ ACMD(do_gen_memorize) {
     minLevel =  MIN_SPELL_LVL(spellnum, CLASS_CLERIC, GET_1ST_DOMAIN(ch));
     minLevel2 = MIN_SPELL_LVL(spellnum, CLASS_CLERIC, GET_2ND_DOMAIN(ch));
     minLevel = MIN(minLevel, minLevel2);
-    if (CLASS_LEVEL(ch, CLASS_CLERIC) < minLevel) {
+    if (BONUS_CASTER_LEVEL(ch, class) + CLASS_LEVEL(ch, CLASS_CLERIC) < minLevel) {
       send_to_char(ch, "You have heard of that spell....\r\n");
       return;
     }

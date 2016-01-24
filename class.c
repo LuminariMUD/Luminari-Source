@@ -2872,7 +2872,7 @@ void init_start_char(struct char_data *ch) {
   for (i = 0; i < NUM_SFEATS; i++)
     (ch)->char_specials.saved.school_feats[(i)] = 0;
   for (i = 0; i < MAX_ABILITIES; i++)
-    for (j = 0; j > NUM_SKFEATS; j++)
+    for (j = 0; j < NUM_SKFEATS; j++)
       (ch)->player_specials->saved.skill_focus[(i)][j] = 0;
 
   /* initialize mem data, allow adjustment of spells known */
@@ -3116,7 +3116,6 @@ void advance_level(struct char_data *ch, int class) {
           add_mana = 0, add_move = 0, k, trains = 0;
   int feats = 0, class_feats = 0, epic_feats = 0, epic_class_feats = 0;
   int i = 0;
-  int class_level = 0;
 
   /**because con items / spells are affecting based on level, we have to
   unaffect before we level up -zusuk */
