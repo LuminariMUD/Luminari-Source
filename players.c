@@ -1602,6 +1602,7 @@ static void load_praying(FILE *fl, struct char_data *ch) {
   int num = 0, num2 = 0, num3 = 0, num4 = 0, num5 = 0, num6 = 0,
           num7 = 0, num8 = 0;
   char line[MAX_INPUT_LENGTH + 1];
+  int counter = 0;
 
   do {
     num2 = 0;
@@ -1630,7 +1631,8 @@ static void load_praying(FILE *fl, struct char_data *ch) {
       if (num8 < MAX_SPELLS)
         PREPARATION_QUEUE(ch, num, 6).spell = num8;
     }
-  } while (num != -1);
+    counter++;
+  } while (num != -1 && counter < MAX_MEM);
 }
 /* praying loading isn't a loop, so has to be manually changed if you
    change NUM_CASTERS! */
@@ -1638,6 +1640,7 @@ static void load_praying_metamagic(FILE *fl, struct char_data *ch) {
   int num = 0, num2 = 0, num3 = 0, num4 = 0, num5 = 0, num6 = 0,
           num7 = 0, num8 = 0;
   char line[MAX_INPUT_LENGTH + 1];
+  int counter = 0;
 
   do {
     num2 = 0;
@@ -1666,7 +1669,8 @@ static void load_praying_metamagic(FILE *fl, struct char_data *ch) {
       if (num8 < MAX_SPELLS)
         PREPARATION_QUEUE(ch, num, 6).metamagic = num8;
     }
-  } while (num != -1);
+    counter++;
+  } while (num != -1 && counter < MAX_MEM);
 }
 static void load_class_level(FILE *fl, struct char_data *ch) {
   int num = 0, num2 = 0;

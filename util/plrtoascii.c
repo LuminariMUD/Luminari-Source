@@ -27,7 +27,7 @@
 #define MAX_CLASSES	30
 #define MAX_WARDING	10
 // Memorization
-#define NUM_SLOTS       20  //theoretical max num slots per circle 
+#define NUM_SLOTS       13  //theoretical max num slots per circle 
 #define NUM_CIRCLES     10  //max num circles
 #define MAX_MEM         NUM_SLOTS * NUM_CIRCLES
 
