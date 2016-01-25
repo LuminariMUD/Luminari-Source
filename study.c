@@ -1429,10 +1429,12 @@ void study_parse(struct descriptor_data *d, char *arg) {
         case '2':
           if (CAN_STUDY_KNOWN_SPELLS(ch)) {
             if (LEVELUP(ch)->class == CLASS_SORCERER ||
-                    LEVELUP(ch)->class == CLASS_ARCANE_ARCHER)
+                    (LEVELUP(ch)->class == CLASS_ARCANE_ARCHER &&
+                     GET_PREFERRED_ARCANE(ch) == CLASS_SORCERER) )
               sorc_known_spells_disp_menu(d);
-            if (LEVELUP(ch)->class == CLASS_BARD  ||
-                    LEVELUP(ch)->class == CLASS_ARCANE_ARCHER)
+            else if (LEVELUP(ch)->class == CLASS_BARD  ||
+                    (LEVELUP(ch)->class == CLASS_ARCANE_ARCHER &&
+                     GET_PREFERRED_ARCANE(ch) == CLASS_BARD) )
               bard_known_spells_disp_menu(d);
           }    else {
             write_to_output(d, "That is an invalid choice!\r\n");

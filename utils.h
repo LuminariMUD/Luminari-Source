@@ -40,6 +40,7 @@
  * are made available with the function definition. */
 #define isspace_ignoretabs(c) ((c)!='\t' && isspace(c))
 
+bool can_study_known_spells(struct char_data *ch);
 int compute_bonus_caster_level(struct char_data *ch, int class);
 int compute_arcane_level(struct char_data *ch);
 bool compute_has_combat_feat(struct char_data *ch, int cfeat, int weapon);
@@ -1139,8 +1140,7 @@ spellnum == SPELL_EPIC_WARDING )
 #define CAN_STUDY_CLASS_FEATS(ch) (CAN_STUDY_FEATS(ch) || (GET_LEVELUP_CLASS_FEATS(ch) + \
                                                            GET_LEVELUP_EPIC_CLASS_FEATS(ch) > 0 ? 1 : 0))
 
-#define CAN_STUDY_KNOWN_SPELLS(ch) ((LEVELUP(ch)->class == CLASS_SORCERER) || \
-                           (LEVELUP(ch)->class == CLASS_BARD) ? 1 : 0)
+#define CAN_STUDY_KNOWN_SPELLS(ch)   (can_study_known_spells(ch))
 
 #define CAN_STUDY_FAMILIAR(ch) (HAS_FEAT(ch, FEAT_SUMMON_FAMILIAR) ? 1 : 0)
 #define CAN_STUDY_COMPANION(ch) (HAS_FEAT(ch, FEAT_ANIMAL_COMPANION) ? 1 : 0)

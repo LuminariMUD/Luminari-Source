@@ -37,6 +37,25 @@
    Functions directly related to utils.h needs
  */
 
+/* can this CH select the option to change their 'known' spells
+ in the study system? */
+bool can_study_known_spells(struct char_data *ch) {
+  
+  /* sorcerer*/
+  if (LEVELUP(ch)->class == CLASS_SORCERER ||
+       (LEVELUP(ch)->class == CLASS_ARCANE_ARCHER &&
+        GET_PREFERRED_ARCANE(ch) == CLASS_SORCERER) )
+    return TRUE;
+  
+  /* bard */
+  if (LEVELUP(ch)->class == CLASS_BARD  ||
+       (LEVELUP(ch)->class == CLASS_ARCANE_ARCHER &&
+        GET_PREFERRED_ARCANE(ch) == CLASS_BARD) )
+    return TRUE;
+
+  /* nope! */
+  return FALSE;  
+}
 /* ch, given class we're computing bonus spells for, figure out
  if one of our other classes (probably just prestige) is adding
  bonus caster levels */
