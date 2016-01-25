@@ -425,6 +425,87 @@ void load_class_list(void) {
     "the God of Magic",              /* <= LVL_GRSTAFF */
     "the Wizard"                    /* default */  
   );
+  /*              class num      spell                   level acquired */
+  /* 1st circle */
+  spell_assignment(CLASS_WIZARD, SPELL_HORIZIKAULS_BOOM,    1);
+  spell_assignment(CLASS_WIZARD, SPELL_MAGIC_MISSILE,       1);
+  spell_assignment(CLASS_WIZARD, SPELL_BURNING_HANDS,       1);
+  spell_assignment(CLASS_WIZARD, SPELL_ICE_DAGGER,          1);
+  spell_assignment(CLASS_WIZARD, SPELL_MAGE_ARMOR,          1);
+  spell_assignment(CLASS_WIZARD, SPELL_SUMMON_CREATURE_1,   1);
+  spell_assignment(CLASS_WIZARD, SPELL_CHILL_TOUCH,         1);
+  spell_assignment(CLASS_WIZARD, SPELL_NEGATIVE_ENERGY_RAY, 1);
+  spell_assignment(CLASS_WIZARD, SPELL_RAY_OF_ENFEEBLEMENT, 1);
+  spell_assignment(CLASS_WIZARD, SPELL_CHARM,               1);
+  spell_assignment(CLASS_WIZARD, SPELL_ENCHANT_WEAPON,      1);
+  spell_assignment(CLASS_WIZARD, SPELL_SLEEP,               1);
+  spell_assignment(CLASS_WIZARD, SPELL_COLOR_SPRAY,         1);
+  spell_assignment(CLASS_WIZARD, SPELL_SCARE,               1);
+  spell_assignment(CLASS_WIZARD, SPELL_TRUE_STRIKE,         1);
+  spell_assignment(CLASS_WIZARD, SPELL_IDENTIFY,            1);
+  spell_assignment(CLASS_WIZARD, SPELL_SHELGARNS_BLADE,     1);
+  spell_assignment(CLASS_WIZARD, SPELL_GREASE,              1);
+  spell_assignment(CLASS_WIZARD, SPELL_ENDURE_ELEMENTS,     1);
+  spell_assignment(CLASS_WIZARD, SPELL_PROT_FROM_EVIL,      1);
+  spell_assignment(CLASS_WIZARD, SPELL_PROT_FROM_GOOD,      1);
+  spell_assignment(CLASS_WIZARD, SPELL_EXPEDITIOUS_RETREAT, 1);
+  spell_assignment(CLASS_WIZARD, SPELL_IRON_GUTS,           1);
+  spell_assignment(CLASS_WIZARD, SPELL_SHIELD,              1);
+  /*              class num      spell                   level acquired */
+  /* 2nd circle */
+  spell_assignment(CLASS_WIZARD, SPELL_SHOCKING_GRASP,    3);
+  spell_assignment(CLASS_WIZARD, SPELL_SCORCHING_RAY,     3);
+  spell_assignment(CLASS_WIZARD, SPELL_CONTINUAL_FLAME,   3);
+  spell_assignment(CLASS_WIZARD, SPELL_SUMMON_CREATURE_2, 3);
+  spell_assignment(CLASS_WIZARD, SPELL_WEB,               3);
+  spell_assignment(CLASS_WIZARD, SPELL_ACID_ARROW,        3);
+  spell_assignment(CLASS_WIZARD, SPELL_BLINDNESS,         3);
+  spell_assignment(CLASS_WIZARD, SPELL_DEAFNESS,          3);
+  spell_assignment(CLASS_WIZARD, SPELL_FALSE_LIFE,        3);
+  spell_assignment(CLASS_WIZARD, SPELL_DAZE_MONSTER,      3);
+  spell_assignment(CLASS_WIZARD, SPELL_HIDEOUS_LAUGHTER,  3);
+  spell_assignment(CLASS_WIZARD, SPELL_TOUCH_OF_IDIOCY,   3);
+  spell_assignment(CLASS_WIZARD, SPELL_BLUR,              3);
+  spell_assignment(CLASS_WIZARD, SPELL_MIRROR_IMAGE,      3);
+  spell_assignment(CLASS_WIZARD, SPELL_INVISIBLE,         3);
+  spell_assignment(CLASS_WIZARD, SPELL_DETECT_INVIS,      3);
+  spell_assignment(CLASS_WIZARD, SPELL_DETECT_MAGIC,      3);
+  spell_assignment(CLASS_WIZARD, SPELL_DARKNESS,          3);
+  spell_assignment(CLASS_WIZARD, SPELL_I_DARKNESS,        3);
+  spell_assignment(CLASS_WIZARD, SPELL_RESIST_ENERGY,     3);
+  spell_assignment(CLASS_WIZARD, SPELL_ENERGY_SPHERE,     3);
+  spell_assignment(CLASS_WIZARD, SPELL_ENDURANCE,         3);
+  spell_assignment(CLASS_WIZARD, SPELL_STRENGTH,          3);
+  spell_assignment(CLASS_WIZARD, SPELL_GRACE,             3);
+  /*              class num      spell                   level acquired */
+  /* 3rd circle */
+  spell_assignment(CLASS_WIZARD, SPELL_LIGHTNING_BOLT,      5);
+  spell_assignment(CLASS_WIZARD, SPELL_FIREBALL,            5);
+  spell_assignment(CLASS_WIZARD, SPELL_WATER_BREATHE,       5);
+  spell_assignment(CLASS_WIZARD, SPELL_SUMMON_CREATURE_3,   5);
+  spell_assignment(CLASS_WIZARD, SPELL_PHANTOM_STEED,       5);
+  spell_assignment(CLASS_WIZARD, SPELL_STINKING_CLOUD,      5);
+  spell_assignment(CLASS_WIZARD, SPELL_HALT_UNDEAD,         5);
+  spell_assignment(CLASS_WIZARD, SPELL_VAMPIRIC_TOUCH,      5);
+  spell_assignment(CLASS_WIZARD, SPELL_HEROISM,             5);
+  spell_assignment(CLASS_WIZARD, SPELL_FLY,                 5);
+  spell_assignment(CLASS_WIZARD, SPELL_HOLD_PERSON,         5);
+  spell_assignment(CLASS_WIZARD, SPELL_DEEP_SLUMBER,        5);
+  spell_assignment(CLASS_WIZARD, SPELL_WALL_OF_FOG,         5);
+  spell_assignment(CLASS_WIZARD, SPELL_INVISIBILITY_SPHERE, 5);
+  spell_assignment(CLASS_WIZARD, SPELL_DAYLIGHT,            5);
+  spell_assignment(CLASS_WIZARD, SPELL_CLAIRVOYANCE,        5);
+  spell_assignment(CLASS_WIZARD, SPELL_NON_DETECTION,       5);
+  spell_assignment(CLASS_WIZARD, SPELL_DISPEL_MAGIC,        5);
+  spell_assignment(CLASS_WIZARD, SPELL_HASTE,               5);
+  spell_assignment(CLASS_WIZARD, SPELL_SLOW,                5);
+  spell_assignment(CLASS_WIZARD, SPELL_CIRCLE_A_EVIL,       5);
+  spell_assignment(CLASS_WIZARD, SPELL_CIRCLE_A_GOOD,       5);
+  spell_assignment(CLASS_WIZARD, SPELL_CUNNING,             5);
+  spell_assignment(CLASS_WIZARD, SPELL_WISDOM,              5);
+  spell_assignment(CLASS_WIZARD, SPELL_CHARISMA,            5);
+  /*              class num      spell                   level acquired */
+  /* 3rd circle */  
   /****************************************************************************/
           
   /****************************************************************************/

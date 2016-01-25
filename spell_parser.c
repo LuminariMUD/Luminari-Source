@@ -766,9 +766,11 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
   if (SINFO.violent && cvict && GET_POS(cvict) == POS_STANDING &&
           !FIGHTING(cvict) && spellnum != SPELL_CHARM && spellnum != SPELL_CHARM_ANIMAL &&
           spellnum != SPELL_DOMINATE_PERSON) {
-    if (cvict != caster) { // funny results from potions/scrolls
-      if (IN_ROOM(cvict) == IN_ROOM(caster)) {
-        hit(cvict, caster, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+    if (cvict != caster && IN_ROOM(cvict) == IN_ROOM(caster)) { // funny results from potions/scrolls
+      if (GET_POS(caster) > POS_STUNNED && (FIGHTING(caster) == NULL))
+        set_fighting(caster, cvict);
+      if (GET_POS(cvict) > POS_STUNNED && (FIGHTING(cvict) == NULL)) {
+        set_fighting(cvict, caster);
       }
     }
   }
@@ -1238,7 +1240,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
   if (class != CLASS_SORCERER && 
       class != CLASS_BARD && 
       IS_SET(metamagic, METAMAGIC_QUICKEN)) {
-    casting_time /= 2;
+    casting_time = 0;
   }
   if ((class == CLASS_SORCERER || class == CLASS_BARD) && 
       IS_SET(metamagic, METAMAGIC_MAXIMIZE) &&
