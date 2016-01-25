@@ -509,6 +509,9 @@ static void display_main_menu(struct descriptor_data *d) {
 }
 
 static void sorc_known_spells_disp_menu(struct descriptor_data *d) {
+  int sorc_level = CLASS_LEVEL(d->character, CLASS_SORCERER) +
+                     BONUS_CASTER_LEVEL(d->character, CLASS_SORCERER);
+  
   get_char_colors(d->character);
   clear_screen(d);
 
@@ -530,23 +533,23 @@ static void sorc_known_spells_disp_menu(struct descriptor_data *d) {
                   "Enter Choice : ",
 
                   mgn,
-                  grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][0] -
+                  grn, nrm, yel, sorcererKnown[sorc_level][0] -
                   count_sorc_known(d->character, 1, CLASS_SORCERER),
-                  grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][1] -
+                  grn, nrm, yel, sorcererKnown[sorc_level][1] -
                   count_sorc_known(d->character, 2, CLASS_SORCERER),
-                  grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][2] -
+                  grn, nrm, yel, sorcererKnown[sorc_level][2] -
                   count_sorc_known(d->character, 3, CLASS_SORCERER),
-                  grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][3] -
+                  grn, nrm, yel, sorcererKnown[sorc_level][3] -
                   count_sorc_known(d->character, 4, CLASS_SORCERER),
-                  grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][4] -
+                  grn, nrm, yel, sorcererKnown[sorc_level][4] -
                   count_sorc_known(d->character, 5, CLASS_SORCERER),
-                  grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][5] -
+                  grn, nrm, yel, sorcererKnown[sorc_level][5] -
                   count_sorc_known(d->character, 6, CLASS_SORCERER),
-                  grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][6] -
+                  grn, nrm, yel, sorcererKnown[sorc_level][6] -
                   count_sorc_known(d->character, 7, CLASS_SORCERER),
-                  grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][7] -
+                  grn, nrm, yel, sorcererKnown[sorc_level][7] -
                   count_sorc_known(d->character, 8, CLASS_SORCERER),
-                  grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][8] -
+                  grn, nrm, yel, sorcererKnown[sorc_level][8] -
                   count_sorc_known(d->character, 9, CLASS_SORCERER),
                   grn, nrm
                   );
@@ -556,6 +559,8 @@ static void sorc_known_spells_disp_menu(struct descriptor_data *d) {
 
 void sorc_study_menu(struct descriptor_data *d, int circle) {
   int counter, columns = 0;
+  int class_level = CLASS_LEVEL(d->character, CLASS_SORCERER) +
+                      BONUS_CASTER_LEVEL(d->character, CLASS_SORCERER);
 
   LEVELUP(d->character)->spell_circle = circle;
 
@@ -574,7 +579,7 @@ void sorc_study_menu(struct descriptor_data *d, int circle) {
   }
   write_to_output(d, "\r\n");
   write_to_output(d, "%sNumber of slots availble:%s %d.\r\n", grn, nrm,
-          sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][circle - 1] -
+          sorcererKnown[class_level][circle - 1] -
           count_sorc_known(d->character, circle, CLASS_SORCERER));
   write_to_output(d, "%sEnter spell choice, to add or remove "
           "(Q to exit to main menu) : ", nrm);
@@ -583,6 +588,9 @@ void sorc_study_menu(struct descriptor_data *d, int circle) {
 }
 
 static void bard_known_spells_disp_menu(struct descriptor_data *d) {
+  int class_level = CLASS_LEVEL(d->character, CLASS_BARD) +
+                      BONUS_CASTER_LEVEL(d->character, CLASS_BARD);
+
   get_char_colors(d->character);
   clear_screen(d);
 
@@ -601,17 +609,17 @@ static void bard_known_spells_disp_menu(struct descriptor_data *d) {
           "Enter Choice : ",
 
           mgn,
-          grn, nrm, yel, bardKnown[CLASS_LEVEL(d->character, CLASS_BARD)][0] -
+          grn, nrm, yel, bardKnown[class_level][0] -
           count_sorc_known(d->character, 1, CLASS_BARD),
-          grn, nrm, yel, bardKnown[CLASS_LEVEL(d->character, CLASS_BARD)][1] -
+          grn, nrm, yel, bardKnown[class_level][1] -
           count_sorc_known(d->character, 2, CLASS_BARD),
-          grn, nrm, yel, bardKnown[CLASS_LEVEL(d->character, CLASS_BARD)][2] -
+          grn, nrm, yel, bardKnown[class_level][2] -
           count_sorc_known(d->character, 3, CLASS_BARD),
-          grn, nrm, yel, bardKnown[CLASS_LEVEL(d->character, CLASS_BARD)][3] -
+          grn, nrm, yel, bardKnown[class_level][3] -
           count_sorc_known(d->character, 4, CLASS_BARD),
-          grn, nrm, yel, bardKnown[CLASS_LEVEL(d->character, CLASS_BARD)][4] -
+          grn, nrm, yel, bardKnown[class_level][4] -
           count_sorc_known(d->character, 5, CLASS_BARD),
-          grn, nrm, yel, bardKnown[CLASS_LEVEL(d->character, CLASS_BARD)][5] -
+          grn, nrm, yel, bardKnown[class_level][5] -
           count_sorc_known(d->character, 6, CLASS_BARD),
           grn, nrm
           );
@@ -621,6 +629,8 @@ static void bard_known_spells_disp_menu(struct descriptor_data *d) {
 
 /* the menu for each circle, sorcerer */
 void bard_study_menu(struct descriptor_data *d, int circle) {
+  int class_level = CLASS_LEVEL(d->character, CLASS_BARD) +
+                      BONUS_CASTER_LEVEL(d->character, CLASS_BARD);
   int counter, columns = 0;
 
   LEVELUP(d->character)->spell_circle = circle;
@@ -640,7 +650,7 @@ spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
   }
   write_to_output(d, "\r\n");
   write_to_output(d, "%sNumber of slots availble:%s %d.\r\n", grn, nrm,
-          bardKnown[CLASS_LEVEL(d->character, CLASS_BARD)][circle - 1] -
+          bardKnown[class_level][circle - 1] -
           count_sorc_known(d->character, circle, CLASS_BARD));
   write_to_output(d, "%sEnter spell choice, to add or remove "
           "(Q to exit to main menu) : ", nrm);

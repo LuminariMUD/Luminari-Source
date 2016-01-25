@@ -1327,18 +1327,20 @@ void sorc_extract_known(struct char_data *ch, int spellnum, int class) {
 /* returns 0 failure, returns 1 success */
 int sorc_add_known(struct char_data *ch, int spellnum, int class) {
   int slot, circle;
+  int caster_level = -1;
 
   circle = spellCircle(class, spellnum, 0, DOMAIN_UNDEFINED);
+  caster_level = CLASS_LEVEL(ch, class) + BONUS_CASTER_LEVEL(ch, class);
 
   if (class == CLASS_SORCERER) {
-    if ((sorcererKnown[CLASS_LEVEL(ch, class)][circle - 1] -
+    if ((sorcererKnown[caster_level][circle - 1] -
             count_sorc_known(ch, circle, class)) <= 0) {
       return FALSE;
     }
   }
 
   if (class == CLASS_BARD) {
-    if ((bardKnown[CLASS_LEVEL(ch, class)][circle - 1] -
+    if ((bardKnown[caster_level][circle - 1] -
             count_sorc_known(ch, circle, class)) <= 0) {
       return FALSE;
     }
