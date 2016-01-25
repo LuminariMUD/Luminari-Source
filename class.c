@@ -807,7 +807,7 @@ void load_class_list(void) {
     /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
       CA,        CA,     CA,        CA,  CC,        CA,            CA,
     /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
-      CA,      CC,        CA,           CA,  CA,  CA,   CA,             CC,
+      CA,      CC,        CA,           CA,  CA,  CA,   CA,             CA,
     /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
       CA,       CC,            CA,      CA,           CC,           CC,
     /*survival,swim,use_magic_device,perform*/
@@ -2837,6 +2837,8 @@ void init_class(struct char_data *ch, int class, int level) {
       SET_SKILL(ch, SPELL_CONTAGION, 99);
       SET_SKILL(ch, SPELL_CURE_MODERATE, 99);
       SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_3, 99);
+      SET_SKILL(ch, SPELL_REMOVE_DISEASE, 99);
+      SET_SKILL(ch, SPELL_REMOVE_POISON, 99);
       //4th circle
       SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_6, 99);
       SET_SKILL(ch, SPELL_FREE_MOVEMENT, 99);
@@ -3911,12 +3913,14 @@ void init_spell_levels(void) {
   spell_level(SPELL_GREATER_MAGIC_FANG, CLASS_RANGER, 12);
   spell_level(SPELL_SPIKE_GROWTH, CLASS_RANGER, 12);
   spell_level(SPELL_SUMMON_NATURES_ALLY_3, CLASS_RANGER, 12);
+  spell_level(SPELL_REMOVE_DISEASE, CLASS_RANGER, 12);
+  spell_level(SPELL_REMOVE_POISON, CLASS_RANGER, 12);
 
   //4th circle
   spell_level(SPELL_CURE_SERIOUS, CLASS_RANGER, 15);
   spell_level(SPELL_DISPEL_MAGIC, CLASS_RANGER, 15);
   spell_level(SPELL_FREE_MOVEMENT, CLASS_RANGER, 15);
-  spell_level(SPELL_SUMMON_NATURES_ALLY_4, CLASS_RANGER, 15);
+  spell_level(SPELL_SUMMON_NATURES_ALLY_6, CLASS_RANGER, 15);
 
 
   // clerics
