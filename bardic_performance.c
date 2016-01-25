@@ -664,7 +664,7 @@ EVENTFUNC(event_bardic_performance) {
    * and good at it, then even better.. */
   if (!instrument) {
     effectiveness -= 3;
-    send_to_char(ch, "You sing this verse a-capella...  ");
+    send_to_char(ch, "You perform without an instrument...  ");
   } else {
     /* the effectiveness of our instrument is all handled here */
     difficulty -= GET_OBJ_VAL(instrument, 1);

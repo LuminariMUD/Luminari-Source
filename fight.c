@@ -1698,13 +1698,13 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
            * of damage without attacker_msg. */
           if (is_ranged) { /* ranged attack death blow */
             /* death message to room */
-            act("*THWISH* $n fires $p at $N *THUNK* $E collapses to the ground!",
+            act("* THWISH * $n fires $p at $N * THUNK * $E \tRcollapses\tn to the ground!",
                     FALSE, ch, weap, vict, TO_NOTVICT);
             /* death message to damager */
-            act("*THWISH * you fire $p at $N *THUNK* $E collapses to the ground!",
+            act("* THWISH * you fire $p at $N * THUNK * $E \tRcollapses\tn to the ground!",
                     FALSE, ch, weap, vict, TO_CHAR);
             /* death message to damagee */
-            act("*THWISH * $n fires $p at you *THUNK* you collapse to the ground!",
+            act("* THWISH * $n fires $p at you * THUNK * you \tRcollapse\tn to the ground!",
                     FALSE, ch, weap, vict, TO_VICT | TO_SLEEP);
             return SKILL_MESSAGE_DEATH_BLOW; /* no reason to stay here */
           } else { /* NOT ranged death blow */
