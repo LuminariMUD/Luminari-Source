@@ -1648,12 +1648,12 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
     weap = GET_EQ(ch, WEAR_WIELD_2H);
   else if (GET_RACE(ch) == RACE_TRELUX)
     weap = read_object(TRELUX_CLAWS, VIRTUAL);
-  else if (dualing)
+  else if (dualing == 1)
     weap = GET_EQ(ch, WEAR_WIELD_OFFHAND);
   
   /* ranged weapon - general check and we want the missile to serve as our weapon */
   if (can_fire_arrow(ch, TRUE) && is_using_ranged_weapon(ch) && GET_EQ(ch, WEAR_AMMO_POUCH)
-          && GET_EQ(ch, WEAR_AMMO_POUCH)->contains && (dualing==2)) {
+          && GET_EQ(ch, WEAR_AMMO_POUCH)->contains && (dualing == 2)) {
     is_ranged = TRUE;
     weap = GET_EQ(ch, WEAR_AMMO_POUCH)->contains; /* top missile */
   }
