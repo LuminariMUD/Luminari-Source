@@ -2732,9 +2732,9 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
   */
   int weapon_type = w_type - TOP_WEAPON_TYPES;
   if (weapon_type < 0 || weapon_type >= NUM_ATTACK_TYPES) {
-    send_to_char(ch, "Weapon-type: !!!");
+    send_to_char(ch, "Weapon-type: %d!!", weapon_type);
   } else {  
-    send_to_char(ch, "Weapon-type: %s", attack_hit_types[w_type]);
+    send_to_char(ch, "Weapon-type: %s", attack_hit_types[weapon_type]);
   }
   send_to_char(ch, ", Dam-type: %s, Offhand: %d (2==ranged)\r\n",
       damtypes[dam_type], offhand);
