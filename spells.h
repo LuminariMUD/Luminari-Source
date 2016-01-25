@@ -728,7 +728,7 @@
 
 /* WEAPON ATTACK TYPES */
 #define TYPE_UNDEFINED_WTYPE 0
-
+#define TOP_WEAPON_TYPES  TYPE_HIT
 #define TYPE_HIT          700 /* barehand */
 #define TYPE_STING        701 /* pierce */
 #define TYPE_WHIP         702
@@ -755,6 +755,7 @@
 #define TYPE_GORE         723 /* pierce? */
 /** The total number of attack types */
 #define NUM_ATTACK_TYPES   24
+#define BOT_WEAPON_TYPES  (TYPE_HIT+NUM_ATTACK_TYPES)
 /* (stock)
  * hit - 0      blunt
  * sting - 1      piercing

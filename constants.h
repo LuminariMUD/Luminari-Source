@@ -12,6 +12,7 @@
 #ifndef _CONSTANTS_H_
 #define _CONSTANTS_H_
 
+extern const char *attack_hit_types[];
 extern const char *instrument_names[MAX_INSTRUMENTS + 1];
 extern const char *spec_armor_type[NUM_SPEC_ARMOR_TYPES + 1];
 extern const char *ammo_types[NUM_AMMO_TYPES + 1];
