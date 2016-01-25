@@ -1145,7 +1145,7 @@ static void main_feat_disp_menu(struct descriptor_data *d) {
   for (i = 1; i < NUM_LEARNABLE_FEAT_TYPES; i++) {
     can_study = can_study_feat_type(ch, i);
     write_to_output(d,
-          "%s %d%s) %s Feats\r\n",
+          "%s %d%s) %s\r\n",
           (can_study ? grn : "\tD"), i, (can_study ? nrm : "\tD"), feat_types[i]);
   }
   write_to_output(d,
@@ -1418,9 +1418,11 @@ void study_parse(struct descriptor_data *d, char *arg) {
           break;
         case '2':
           if (CAN_STUDY_KNOWN_SPELLS(ch)) {
-            if (LEVELUP(ch)->class == CLASS_SORCERER)
+            if (LEVELUP(ch)->class == CLASS_SORCERER ||
+                    LEVELUP(ch)->class == CLASS_ARCANE_ARCHER)
               sorc_known_spells_disp_menu(d);
-            if (LEVELUP(ch)->class == CLASS_BARD)
+            if (LEVELUP(ch)->class == CLASS_BARD  ||
+                    LEVELUP(ch)->class == CLASS_ARCANE_ARCHER)
               bard_known_spells_disp_menu(d);
           }    else {
             write_to_output(d, "That is an invalid choice!\r\n");

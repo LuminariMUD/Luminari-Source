@@ -1946,7 +1946,6 @@ ACMD(do_gold) {
   else
     send_to_char(ch, "You have %d gold coins.\r\n", GET_GOLD(ch));
 }
-
 /* Name: do_abilities
  * Author: Jamie Mclaughlin (Ornir)
  * Desc: This procedure displays the abilities of the character, both racial and
@@ -1974,27 +1973,17 @@ ACMD(do_abilities) {
   send_to_char(ch, "\tn");
   for (i = 0; i < NUM_FEATS; i++) {
     if (has_feat(ch, i) && is_daily_feat(i)) {
-      switch (feat_list[i].feat_type) {
-        case FEAT_TYPE_CLASS_ABILITY:
-          sprintf(buf, "Class Ability");
-          break;
-        case FEAT_TYPE_INNATE_ABILITY:
-          sprintf(buf, "Innate Ability");
-          break;
-        default:
-          sprintf(buf, "Feat");
-          break;
-      }
+      sprintf(buf, feat_types[feat_list[i].feat_type]);
       remaining = daily_uses_remaining(ch, i);
       total = get_daily_uses(ch, i);
       send_to_char(ch,
-                   "%-20s \tc%-14s\tn %s%2d\tn/%-2d uses remaining\r\n",
-                   feat_list[i].name,
-                   buf,
-                   (remaining > (total / 2) ? "\tn" :
-                    (remaining <= 1 ? "\tR" : "\tY")),
-                   remaining,
-                   total);
+              "%-20s \tc%-14s\tn %s%2d\tn/%-2d uses remaining\r\n",
+              feat_list[i].name,
+              buf,
+              (remaining > (total / 2) ? "\tn" :
+              (remaining <= 1 ? "\tR" : "\tY")),
+              remaining,
+              total);
     }
     buf[0] = '\0';
   }
@@ -2005,7 +1994,6 @@ ACMD(do_abilities) {
   send_to_char(ch, "\tDType 'cooldowns' to see your cooldowns.\tn\r\n");
   send_to_char(ch, "\tDType 'resistances' to see your resistances and damage reduction.\tn\r\n");
   send_to_char(ch, "\tDType 'affects' to see your affects and conditions.\tn\r\n");
-
 }
 
 ACMD(do_innates) {
