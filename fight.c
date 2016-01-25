@@ -1689,12 +1689,13 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
 
       /* old location of staff-messages */
 
-      /* we did some damage */
+      /* we did some damage or deathblow */
       if (dam != 0) {
+        
         if (GET_POS(vict) == POS_DEAD) { // death messages
           /* Don't send redundant color codes for TYPE_SUFFERING & other types
            * of damage without attacker_msg. */
-          if (is_ranged) { /* ranged attack */
+          if (is_ranged) { /* ranged attack death blow */
             /* death message to room */
             act("*THWISH* $n fires $p at $N *THUNK* $E collapses to the ground!",
                     FALSE, ch, weap, vict, TO_NOTVICT);
@@ -1704,7 +1705,8 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
             /* death message to damagee */
             act("*THWISH * $n fires $p at you *THUNK* you collapse to the ground!",
                     FALSE, ch, weap, vict, TO_VICT | TO_SLEEP);
-          } else { /* NOT ranged */
+            return SKILL_MESSAGE_DEATH_BLOW; /* no reason to stay here */
+          } else { /* NOT ranged death blow */
             if (msg->die_msg.attacker_msg) {
               send_to_char(ch, CCYEL(ch, C_CMP));
               act(msg->die_msg.attacker_msg, FALSE, ch, weap, vict, TO_CHAR);
@@ -1714,6 +1716,7 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
             act(msg->die_msg.victim_msg, FALSE, ch, weap, vict, TO_VICT | TO_SLEEP);
             send_to_char(vict, CCNRM(vict, C_CMP));
             act(msg->die_msg.room_msg, FALSE, ch, weap, vict, TO_NOTVICT);
+            return SKILL_MESSAGE_DEATH_BLOW;
           }
         } else { // not dead
           if (msg->hit_msg.attacker_msg) {
@@ -1725,6 +1728,7 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
           act(msg->hit_msg.victim_msg, FALSE, ch, weap, vict, TO_VICT | TO_SLEEP);
           send_to_char(vict, CCNRM(vict, C_CMP));
           act(msg->hit_msg.room_msg, FALSE, ch, weap, vict, TO_NOTVICT);
+          return SKILL_MESSAGE_GENERIC_HIT;
         }
       }
 
@@ -1807,7 +1811,7 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
     } /* attacktype check */
   } /* for loop for damage messages */
 
-  return (return_value); /* did not find a message to use */
+  return (return_value); /* did not find a message to use? */
 }
 #undef TRELUX_CLAWS
 
@@ -2725,29 +2729,53 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
       //GET_POS(victim), GET_HIT(victim), dam, GET_NAME(ch), GET_NAME(victim));
   /**/
 
-  if (w_type != -1) { //added for mount, etc
-    if (!IS_WEAPON(w_type))  {//non weapons use skill_message
-      skill_message(dam, ch, victim, w_type, offhand);
-      send_to_char(ch, "DEBUG 1\r\n");
+  /** DAMAGE MESSAGES 
+      Two systems:
+        1) skill_message:  these are called from file, if the damage being
+           done is via a SKILL_ or SPELL_ missed attacks or death blows we
+           should be using this function 
+        2) dam_message:  these are our backup messages, this function should
+           be primarily used for weapon attacks (non-miss and non-deathblow)
+   **/
+  /* if our weapon type is -1 that means the damage is not from a weapon OR
+     skill - an example is damage caused by being bucked off a mount */
+  if (w_type != -1) {
+    
+    /* IS_WEAPON is simply defined as a 'normal' weapon-type value */
+    if (!IS_WEAPON(w_type))  {
+      /* OK we now know this is not a weapon type, it should be either a
+       SKILL_ or SPELL_ */
+      if (!skill_message(dam, ch, victim, w_type, offhand)) {
+        /* somehow there is no SKILL_ or SPELL_ message for this damage
+           so we have a fallback message here */
+        act("$n winces in visible pain.",
+                TRUE, victim, 0, 0, TO_ROOM);
+        send_to_char(victim, "You wince in pain!\r\n");
+      }
+      
+    /* we now should be handling damage done via weapons */
     } else {
-      //miss and death = skill_message
+      
+      /* if the damage fails (miss) or the attack finishes the victim... */
       if (GET_POS(victim) == POS_DEAD || dam == 0) {
+        
         if (!dam && is_ranged) {  // miss with ranged = dam_message()
           dam_message(dam, ch, victim, w_type, offhand);
-          send_to_char(ch, "DEBUG 2\r\n");
         } else if (!skill_message(dam, ch, victim, w_type, offhand)) {
-          //default if no skill_message
+          /* no skill_message? try dam_message */
           dam_message(dam, ch, victim, w_type, offhand);
-          send_to_char(ch, "DEBUG 3\r\n");
         }
+
+      /* landed a normal weapon attack hit */        
       } else {
-        dam_message(dam, ch, victim, w_type, offhand); //default landed-hit
-        send_to_char(ch, "DEBUG 4\r\n");
+        dam_message(dam, ch, victim, w_type, offhand);
       }
     }
+    
   } else {
-    send_to_char(ch, "DEBUG 5\r\n");
-    /* w_type is -1, should we handle a message here?*/
+    /* w_type is -1, ideally shouldn't arrive here, but got a fallback msg */
+    act("$n winces in visible pain...", TRUE, victim, 0, 0, TO_ROOM);
+    send_to_char(victim, "You wince in pain!!!\r\n");
   }
 
   switch (GET_POS(victim)) { //act() used in case someone is dead
@@ -2808,7 +2836,7 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
       char_to_room(victim, 0);
     }
   }
-   */
+  */
 
   //too hurt to continue
   if (GET_POS(victim) <= POS_STUNNED && FIGHTING(victim) != NULL)

@@ -23,6 +23,8 @@
 #define SKILL_MESSAGE_MISS_SHIELDBLOCK 2
 #define SKILL_MESSAGE_MISS_PARRY       3
 #define SKILL_MESSAGE_MISS_GLANCE      4
+#define SKILL_MESSAGE_DEATH_BLOW       5
+#define SKILL_MESSAGE_GENERIC_HIT      6
 
 /* Attacktypes with grammar */
 struct attack_hit_type {
