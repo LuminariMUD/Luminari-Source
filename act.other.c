@@ -3391,7 +3391,6 @@ ACMD(do_spells) {
 
   if (!*arg) {
     send_to_char(ch, "The spells command requires a class name as an argument.\r\n");
-    break;
   } else {
     class = get_class_by_name(arg);
     if (class < 0 || class >= NUM_CLASSES) {
