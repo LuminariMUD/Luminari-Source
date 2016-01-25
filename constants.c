@@ -33,6 +33,35 @@ cpp_extern const char *luminari_version = "LuminariMUD 2.267 (tbaMUD 3.64)";
 /* strings corresponding to ordinals/bitvectors in structs.h */
 /* (Note: strings for class definitions in class.c instead of here) */
 
+const char *attack_hit_types[NUM_ATTACK_TYPES + 1] = {
+  "Hit", //0
+  "Sting",
+  "Whip",
+  "Slash",  
+  "Bite",  
+  "Bludgeon", //5
+  "Crush",  
+  "Pound",  
+  "Claw",  
+  "Maul",  
+  "Thrash",  //10
+  "Pierce",  
+  "Blast",  
+  "Punch",  
+  "Stab",  
+  "Slice",  //15
+  "Thrust",  
+  "Hack",  
+  "Rake",  
+  "Peck",  
+  "Smash",  //20
+  "Trample",  
+  "Charge",  
+  "Gore",  //23
+/**/
+  "\n"  
+};
+
 const char *instrument_names[MAX_INSTRUMENTS + 1] = {
   "Lyre",
   "Flute",

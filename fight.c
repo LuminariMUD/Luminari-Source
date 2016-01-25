@@ -47,7 +47,8 @@ struct obj_data *last_missile = NULL;
 /* head of l-list of fighting chars */
 struct char_data *combat_list = NULL;
 
-/* Weapon attack texts */
+/* Weapon attack texts
+ * don't forget to add to constants.c attack_hit_types */
 struct attack_hit_type attack_hit_text[] = {
   {"hit", "hits"}, /* 0 */
   {"sting", "stings"},
@@ -115,7 +116,7 @@ static void solo_gain(struct char_data *ch, struct char_data *victim);
 static char *replace_string(const char *str, const char *weapon_singular,
         const char *weapon_plural);
 
-#define IS_WEAPON(type) (((type) >= TYPE_HIT) && ((type) < TYPE_SUFFERING))
+#define IS_WEAPON(type) (((type) >= TOP_WEAPON_TYPES) && ((type) < BOT_WEAPON_TYPES))
 
 #define MODE_NORMAL_HIT       0 //Normal damage calculating in hit()
 #define MODE_DISPLAY_PRIMARY  2 //Display damage info primary
@@ -2725,9 +2726,18 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
   }
 
   /* more deubgging */
-  //send_to_char(victim, "Position: %d, HP: %d, DAM: %d, Attacker %s, You: %s\r\n",
-      //GET_POS(victim), GET_HIT(victim), dam, GET_NAME(ch), GET_NAME(victim));
-  /**/
+  /*
+  send_to_char(victim, "Position: %d, HP: %d, DAM: %d, Attacker %s, You: %s\r\n",
+      GET_POS(victim), GET_HIT(victim), dam, GET_NAME(ch), GET_NAME(victim));
+  */
+  int weapon_type = w_type - TOP_WEAPON_TYPES;
+  if (weapon_type < 0 || weapon_type >= NUM_ATTACK_TYPES) {
+    send_to_char(ch, "Weapon-type: !!!");
+  } else {  
+    send_to_char(ch, "Weapon-type: %s", attack_hit_types[w_type]);
+  }
+  send_to_char(ch, ", Dam-type: %s, Offhand: %d (2==ranged)\r\n",
+      damtypes[dam_type], offhand);
 
   /** DAMAGE MESSAGES 
       Two systems:
