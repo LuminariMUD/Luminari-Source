@@ -1653,7 +1653,7 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
   
   /* ranged weapon - general check and we want the missile to serve as our weapon */
   if (can_fire_arrow(ch, TRUE) && is_using_ranged_weapon(ch) && GET_EQ(ch, WEAR_AMMO_POUCH)
-          && GET_EQ(ch, WEAR_AMMO_POUCH)->contains) {
+          && GET_EQ(ch, WEAR_AMMO_POUCH)->contains && IS_WEAPON(attacktype)) {
     is_ranged = TRUE;
     weap = GET_EQ(ch, WEAR_AMMO_POUCH)->contains; /* top missile */
   }
