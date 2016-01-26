@@ -475,11 +475,11 @@ ACMD(do_page)
 }
 
 /* Generalized communication function by Fred C. Merkel (Torg). */
-ACMD(do_gen_comm)
-{
+ACMD(do_gen_comm) {
   struct descriptor_data *i;
   char color_on[24];
   char buf1[MAX_INPUT_LENGTH], buf2[MAX_INPUT_LENGTH], *msg = NULL;
+  char buf3[MAX_INPUT_LENGTH];
   bool emoting = FALSE;
 
   /* Array of flags which must _not_ be set in order for comm to be heard. */
@@ -492,7 +492,6 @@ ACMD(do_gen_comm)
     PRF_NOGOSS,
     0
   };
-
   int hist_type[] = {
     HIST_HOLLER,
     HIST_SHOUT,
@@ -500,7 +499,6 @@ ACMD(do_gen_comm)
     HIST_AUCTION,
     HIST_GRATS,
   };
-
   /* com_msgs: [0] Message if you can't perform the action because of noshout
    *           [1] name of the action
    *           [2] message if you're not on the channel
@@ -510,27 +508,22 @@ ACMD(do_gen_comm)
       "holler",
       "",
       KYEL},
-
     {"You cannot shout!!\r\n",
       "shout",
       "Turn off your noshout flag first!\r\n",
       KYEL},
-
     {"You cannot gossip!!\r\n",
       "chat",
       "You aren't even on the channel!\r\n",
       KYEL},
-
     {"You cannot auction!!\r\n",
       "auction",
       "You aren't even on the channel!\r\n",
       KMAG},
-
     {"You cannot congratulate!\r\n",
       "congrat",
       "You aren't even on the channel!\r\n",
       KGRN},
-
     {"You cannot gossip your emotions!\r\n",
       "gossip",
       "You aren't even on the channel!\r\n",
@@ -545,7 +538,6 @@ ACMD(do_gen_comm)
     send_to_char(ch, "The walls seem to absorb your words.\r\n");
     return;
   }
-
 
   if (subcmd == SCMD_GEMOTE) {
     if (!*argument)
@@ -603,14 +595,43 @@ ACMD(do_gen_comm)
     msg = act(buf1, FALSE, ch, 0, 0, TO_CHAR | TO_SLEEP);
     add_history(ch, msg, hist_type[subcmd]);
   }
-  if (!emoting)
+  if (!emoting) {
     snprintf(buf1, sizeof(buf1), "$n %ss, '%s'", com_msgs[subcmd][1], argument);
+    snprintf(buf3, sizeof(buf3), "%s %ss, '%s'", GET_NAME(ch), com_msgs[subcmd][1], argument);
+  }
 
   /* Now send all the strings out. */
   for (i = descriptor_list; i; i = i->next) {
     
-    /* not playing, no descriptor or no character associated with descriptor */
-    if (STATE(i) != CON_PLAYING || i == ch->desc || !i->character )
+    /* completely unacceptable connection states */
+    switch (STATE(i)) {
+      case CON_CLOSE:
+      case CON_GET_NAME:
+      case CON_NAME_CNFRM:
+      case CON_PASSWORD:
+      case CON_NEWPASSWD:
+      case CON_CNFPASSWD:
+      case CON_QSEX:
+      case CON_QCLASS:
+      case CON_RMOTD:
+      case CON_MENU:
+      case CON_PLR_DESC:
+      case CON_CHPWD_GETOLD:
+      case CON_CHPWD_GETNEW:
+      case CON_CHPWD_VRFY:
+      case CON_DELCNF1:
+      case CON_DELCNF2:
+      case CON_DISCONNECT:
+      case CON_GET_PROTOCOL:
+      case CON_QRACE:
+      case CON_QCLASS_HELP:
+      case CON_QALIGN:
+      case CON_QRACE_HELP:
+        continue;
+    }
+    
+    /* no descriptor or no character associated with descriptor */
+    if (i == ch->desc || !i->character )
       continue;
     
     /* have the channel tuned out */
@@ -618,8 +639,31 @@ ACMD(do_gen_comm)
       continue;
     
     /* we want history for the rest of the conditions */
-    add_history(i->character, buf1, hist_type[subcmd]);
+    add_history(i->character, buf3, hist_type[subcmd]);
     
+    /* states we don't want to send message to, but want history to catch */
+    switch (STATE(i)) {
+      case CON_OEDIT:
+      case CON_REDIT:
+      case CON_ZEDIT:
+      case CON_MEDIT:
+      case CON_SEDIT:
+      case CON_TEDIT:
+      case CON_CEDIT:
+      case CON_AEDIT:
+      case CON_TRIGEDIT:
+      case CON_HEDIT:
+      case CON_QEDIT:
+      case CON_PREFEDIT:
+      case CON_IBTEDIT:
+      case CON_CLANEDIT:
+      case CON_MSGEDIT:
+      case CON_STUDY:
+      case CON_HLQEDIT:
+      case CON_QSTATS:
+        continue;
+    }
+            
     /* 'writing' such as study, olc, mud-mail, etc */
     if (!IS_NPC(ch) && PLR_FLAGGED(i->character, PLR_WRITING))
       continue;

@@ -44,7 +44,7 @@ void send_to_range(room_vnum start, room_vnum finish, const char *messg, ...)
 
 /* act functions */
 void perform_act(const char *orig, struct char_data *ch, struct obj_data *obj, void *vict_obj, struct char_data *to);
-char * act(const char *str, int hide_invisible, struct char_data *ch, struct obj_data *obj, void *vict_obj, int type);
+char *act(const char *str, int hide_invisible, struct char_data *ch, struct obj_data *obj, void *vict_obj, int type);
 
 /* I/O functions */
 void	write_to_q(const char *txt, struct txt_q *queue, int aliased);
