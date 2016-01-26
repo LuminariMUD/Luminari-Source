@@ -597,7 +597,7 @@ ACMD(do_gen_comm) {
   }
   if (!emoting) {
     snprintf(buf1, sizeof(buf1), "$n %ss, '%s'", com_msgs[subcmd][1], argument);
-    snprintf(buf3, sizeof(buf3), "%s %ss, '%s'", GET_NAME(ch), com_msgs[subcmd][1], argument);
+    snprintf(buf3, sizeof(buf3), "%s %ss, '%s'\r\n", GET_NAME(ch), com_msgs[subcmd][1], argument);
   }
 
   /* Now send all the strings out. */
