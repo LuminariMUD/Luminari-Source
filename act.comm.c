@@ -630,7 +630,7 @@ ACMD(do_gen_comm) {
         continue;
     }
     
-    /* no descriptor or no character associated with descriptor */
+    /* SELF or no character associated with descriptor */
     if (i == ch->desc || !i->character )
       continue;
     
