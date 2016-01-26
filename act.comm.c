@@ -608,24 +608,37 @@ ACMD(do_gen_comm)
 
   /* Now send all the strings out. */
   for (i = descriptor_list; i; i = i->next) {
+    
+    /* not playing, no descriptor or no character associated with descriptor */
     if (STATE(i) != CON_PLAYING || i == ch->desc || !i->character )
       continue;
-    if (!IS_NPC(ch) && (PRF_FLAGGED(i->character, channels[subcmd]) || PLR_FLAGGED(i->character, PLR_WRITING)))
+    
+    /* have the channel tuned out */
+    if (!IS_NPC(ch) && (PRF_FLAGGED(i->character, channels[subcmd])))
+      continue;
+    
+    /* we want history for the rest of the conditions */
+    add_history(i->character, msg, hist_type[subcmd]);
+    
+    /* 'writing' such as study, olc, mud-mail, etc */
+    if (!IS_NPC(ch) && PLR_FLAGGED(i->character, PLR_WRITING))
       continue;
 
+    /* soundproof room */
     if (ROOM_FLAGGED(IN_ROOM(i->character), ROOM_SOUNDPROOF) && (GET_LEVEL(ch) < LVL_STAFF))
       continue;
 
+    /* shout only works for people that are in the same zone and awake */
     if (subcmd == SCMD_SHOUT && ((world[IN_ROOM(ch)].zone != world[IN_ROOM(i->character)].zone) ||
          !AWAKE(i->character)))
       continue;
 
-    if (AFF_FLAGGED(i->character, AFF_DEAF))
+    /* deaf?  just like soundproof */
+    if (AFF_FLAGGED(i->character, AFF_DEAF) && (GET_LEVEL(ch) < LVL_STAFF))
       continue;
 
     snprintf(buf2, sizeof(buf2), "%s%s%s", (COLOR_LEV(i->character) >= C_NRM) ? color_on : "", buf1, KNRM);
     msg = act(buf2, FALSE, ch, 0, i->character, TO_VICT | TO_SLEEP);
-    add_history(i->character, msg, hist_type[subcmd]);
   }
 }
 
