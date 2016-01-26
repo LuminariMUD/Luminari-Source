@@ -588,11 +588,11 @@ void award_random_crystal(struct char_data *ch, int level) {
   obj->affected[0].bonus_type = adjust_bonus_type(obj->affected[0].location);
 
   /* random color(s) and description */
-  color1 = rand_number(0, NUM_A_COLORS);
-  color2 = rand_number(0, NUM_A_COLORS);
+  color1 = rand_number(0, NUM_A_COLORS - 1);
+  color2 = rand_number(0, NUM_A_COLORS  - 1);
   while (color2 == color1)
-    color2 = rand_number(0, NUM_A_COLORS);
-  desc = rand_number(0, NUM_A_CRYSTAL_DESCS);
+    color2 = rand_number(0, NUM_A_COLORS - 1);
+  desc = rand_number(0, NUM_A_CRYSTAL_DESCS - 1);
 
   roll = dice(1, 100);
 
@@ -718,11 +718,11 @@ void award_expendable_item(struct char_data *ch, int grade, int type) {
           !valid_item_spell(spell_num));
 
   /* first assign two random colors for usage */
-  color1 = rand_number(0, NUM_A_COLORS);
-  color2 = rand_number(0, NUM_A_COLORS);
+  color1 = rand_number(0, NUM_A_COLORS - 1);
+  color2 = rand_number(0, NUM_A_COLORS - 1);
   /* make sure they are not the same colors */
   while (color2 == color1)
-    color2 = rand_number(0, NUM_A_COLORS);
+    color2 = rand_number(0, NUM_A_COLORS - 1);
 
   /* load prototype */
 
@@ -734,7 +734,7 @@ void award_expendable_item(struct char_data *ch, int grade, int type) {
   switch (type) {
     case TYPE_POTION:
       /* assign a description (potions only) */
-      desc = rand_number(0, NUM_A_POTION_DESCS);
+      desc = rand_number(0, NUM_A_POTION_DESCS - 1);
 
       // two colors and descriptor
       if (roll >= 91) {
@@ -1148,17 +1148,17 @@ void award_magic_ammo(struct char_data *ch, int grade, int moblevel) {
   /* BEGIN DESCRIPTION SECTION */  
   
   /* arrow, bolt, dart
-   * a|an [armor_special_descs, ex. dwarven-made] [material] [arrow|bolt|dart]
+   * a|an [ammo_descs, ex. dwarven-made] [material] [arrow|bolt|dart]
    *   with a [piercing_descs, ex. grooved] tip
    * sling bullets
-   * a/an [armor_special_descs] [material] sling-bullet
+   * a/an [ammo_descs] [material] sling-bullet
    */
-  armor_desc_roll = rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS);
+  armor_desc_roll = rand_number(0, NUM_A_AMMO_DESCS - 1);
   
   /* a dwarven-made */
-  sprintf(desc, "%s %s", AN(armor_special_descs[armor_desc_roll]),
-      armor_special_descs[armor_desc_roll]);
-  sprintf(keywords, "%s", armor_special_descs[armor_desc_roll]);
+  sprintf(desc, "%s %s", AN(ammo_descs[armor_desc_roll]),
+      ammo_descs[armor_desc_roll]);
+  sprintf(keywords, "%s", ammo_descs[armor_desc_roll]);
   
   /* mithril sling-bullet */
   sprintf(desc, "%s %s %s", desc, material_name[GET_OBJ_MATERIAL(obj)],
@@ -1171,10 +1171,10 @@ void award_magic_ammo(struct char_data *ch, int grade, int moblevel) {
     ;
   /* with a grooved tip (arrows, bolts, darts) */
   else {
-    armor_desc_roll = rand_number(1, NUM_SPEC_ARMOR_TYPES - 1);
-    sprintf(desc, "%s with a %s tip", desc, armor_special_descs[armor_desc_roll]);
+    armor_desc_roll = rand_number(1, NUM_A_AMMO_HEAD_DESCS - 1);
+    sprintf(desc, "%s with a %s tip", desc, ammo_head_descs[armor_desc_roll]);
     sprintf(keywords, "%s with a %s tip", keywords,
-            armor_special_descs[armor_desc_roll]);
+            ammo_head_descs[armor_desc_roll]);
   }
 
   /* finished descrips, so lets assign them */
@@ -1239,7 +1239,7 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel, int wear_s
     sprintf(desc, "%s%s", desc, "a suit of");    
   } else if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_HEAD) ||
              IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_SHIELD)) {
-    armor_desc_roll = rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS);
+    armor_desc_roll = rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1);
     sprintf(desc, "%s%s", desc,
             AN(armor_special_descs[armor_desc_roll]));    
   } else {
@@ -1268,12 +1268,12 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel, int wear_s
   /* BEGIN DESCRIPTION SECTION */
 
   /* first assign two random colors for usage */
-  color1 = rand_number(0, NUM_A_COLORS);
-  color2 = rand_number(0, NUM_A_COLORS);
+  color1 = rand_number(0, NUM_A_COLORS - 1);
+  color2 = rand_number(0, NUM_A_COLORS - 1);
   /* make sure they are not the same colors */
   while (color2 == color1)
-    color2 = rand_number(0, NUM_A_COLORS);
-  crest_num = rand_number(0, NUM_A_ARMOR_CRESTS);
+    color2 = rand_number(0, NUM_A_COLORS - 1);
+  crest_num = rand_number(0, NUM_A_ARMOR_CRESTS - 1);
 
   /* start with keyword string */
   sprintf(keywords, "%s %s", keywords, armor_list[GET_ARMOR_TYPE(obj)].name);
@@ -1627,24 +1627,24 @@ void award_magic_weapon(struct char_data *ch, int grade, int moblevel) {
 
   // pick a pair of random colors for usage
   /* first assign two random colors for usage */
-  color1 = rand_number(0, NUM_A_COLORS);
-  color2 = rand_number(0, NUM_A_COLORS);
+  color1 = rand_number(0, NUM_A_COLORS - 1);
+  color2 = rand_number(0, NUM_A_COLORS - 1);
   /* make sure they are not the same colors */
   while (color2 == color1)
-    color2 = rand_number(0, NUM_A_COLORS);
+    color2 = rand_number(0, NUM_A_COLORS - 1);
 
   sprintf(head_color, "%s", colors[color1]);
   sprintf(hilt_color, "%s", colors[color2]);
   if (IS_BLADE(obj))
-    sprintf(special, "%s%s", desc, blade_descs[rand_number(0, NUM_A_BLADE_DESCS)]);
+    sprintf(special, "%s%s", desc, blade_descs[rand_number(0, NUM_A_BLADE_DESCS - 1)]);
   else if (IS_PIERCE(obj))
-    sprintf(special, "%s%s", desc, piercing_descs[rand_number(0, NUM_A_PIERCING_DESCS)]);
+    sprintf(special, "%s%s", desc, piercing_descs[rand_number(0, NUM_A_PIERCING_DESCS - 1)]);
   else //blunt
-    sprintf(special, "%s%s", desc, blunt_descs[rand_number(0, NUM_A_BLUNT_DESCS)]);
+    sprintf(special, "%s%s", desc, blunt_descs[rand_number(0, NUM_A_BLUNT_DESCS - 1)]);
 
   roll = dice(1, 100);
-  roll2 = rand_number(0, NUM_A_HEAD_TYPES);
-  roll3 = rand_number(0, NUM_A_HANDLE_TYPES);
+  roll2 = rand_number(0, NUM_A_HEAD_TYPES - 1);
+  roll3 = rand_number(0, NUM_A_HANDLE_TYPES - 1);
 
   // special, head color, hilt color
   if (roll >= 91) {
@@ -1833,54 +1833,54 @@ void award_misc_magic_item(struct char_data *ch, int grade, int moblevel) {
     case 1:
       vnum = RING_MOLD;
       material = MATERIAL_COPPER;
-      sprintf(armor_name, ring_descs[rand_number(0, NUM_A_RING_DESCS)]);
-      sprintf(desc2, gemstones[rand_number(0, NUM_A_GEMSTONES)]);
+      sprintf(armor_name, ring_descs[rand_number(0, NUM_A_RING_DESCS - 1)]);
+      sprintf(desc2, gemstones[rand_number(0, NUM_A_GEMSTONES - 1)]);
       break;
     case 2:
       vnum = NECKLACE_MOLD;
       material = MATERIAL_COPPER;
-      sprintf(armor_name, neck_descs[rand_number(0, NUM_A_NECK_DESCS)]);
-      sprintf(desc2, gemstones[rand_number(0, NUM_A_GEMSTONES)]);
+      sprintf(armor_name, neck_descs[rand_number(0, NUM_A_NECK_DESCS - 1)]);
+      sprintf(desc2, gemstones[rand_number(0, NUM_A_GEMSTONES - 1)]);
       break;
     case 3:
       vnum = BOOTS_MOLD;
       material = MATERIAL_LEATHER;
-      sprintf(armor_name, boot_descs[rand_number(0, NUM_A_BOOT_DESCS)]);
-      sprintf(desc2, armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS)]);
-      sprintf(desc3, colors[rand_number(0, NUM_A_COLORS)]);
+      sprintf(armor_name, boot_descs[rand_number(0, NUM_A_BOOT_DESCS - 1)]);
+      sprintf(desc2, armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
+      sprintf(desc3, colors[rand_number(0, NUM_A_COLORS - 1)]);
       break;
     case 4:
       vnum = GLOVES_MOLD;
       material = MATERIAL_LEATHER;
-      sprintf(armor_name, hands_descs[rand_number(0, NUM_A_HAND_DESCS)]);
-      sprintf(desc2, armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS)]);
-      sprintf(desc3, colors[rand_number(0, NUM_A_COLORS)]);
+      sprintf(armor_name, hands_descs[rand_number(0, NUM_A_HAND_DESCS - 1)]);
+      sprintf(desc2, armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
+      sprintf(desc3, colors[rand_number(0, NUM_A_COLORS - 1)]);
       break;
     case 5:
       vnum = CLOAK_MOLD;
       material = MATERIAL_COTTON;
-      sprintf(armor_name, cloak_descs[rand_number(0, NUM_A_CLOAK_DESCS)]);
-      sprintf(desc2, armor_crests[rand_number(0, NUM_A_ARMOR_CRESTS)]);
-      sprintf(desc3, colors[rand_number(0, NUM_A_COLORS)]);
+      sprintf(armor_name, cloak_descs[rand_number(0, NUM_A_CLOAK_DESCS - 1)]);
+      sprintf(desc2, armor_crests[rand_number(0, NUM_A_ARMOR_CRESTS - 1)]);
+      sprintf(desc3, colors[rand_number(0, NUM_A_COLORS - 1)]);
       break;
     case 6:
       vnum = BELT_MOLD;
       material = MATERIAL_LEATHER;
-      sprintf(armor_name, waist_descs[rand_number(0, NUM_A_WAIST_DESCS)]);
-      sprintf(desc2, armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS)]);
-      sprintf(desc3, colors[rand_number(0, NUM_A_COLORS)]);
+      sprintf(armor_name, waist_descs[rand_number(0, NUM_A_WAIST_DESCS - 1)]);
+      sprintf(desc2, armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
+      sprintf(desc3, colors[rand_number(0, NUM_A_COLORS - 1)]);
       break;
     case 7:
       vnum = WRIST_MOLD;
       material = MATERIAL_COPPER;
-      sprintf(armor_name, wrist_descs[rand_number(0, NUM_A_WRIST_DESCS)]);
-      sprintf(desc2, gemstones[rand_number(0, NUM_A_GEMSTONES)]);
+      sprintf(armor_name, wrist_descs[rand_number(0, NUM_A_WRIST_DESCS - 1)]);
+      sprintf(desc2, gemstones[rand_number(0, NUM_A_GEMSTONES-1)]);
       break;
     case 8:
       vnum = HELD_MOLD;
       material = MATERIAL_ONYX;
-      sprintf(armor_name, crystal_descs[rand_number(0, NUM_A_CRYSTAL_DESCS)]);
-      sprintf(desc2, colors[rand_number(0, NUM_A_COLORS)]);
+      sprintf(armor_name, crystal_descs[rand_number(0, NUM_A_CRYSTAL_DESCS - 1)]);
+      sprintf(desc2, colors[rand_number(0, NUM_A_COLORS - 1)]);
       break;
   }
 

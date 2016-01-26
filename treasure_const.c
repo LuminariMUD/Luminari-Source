@@ -16,7 +16,7 @@
  * SO if you add something here, make sure to modify the 
  * defines in treasure.h */
 
-const char *gemstones[] = {
+const char *gemstones[NUM_A_GEMSTONES + 1] = {
   "onyx",  //0
   "obsidian",
   "amber",
@@ -48,7 +48,7 @@ const char *gemstones[] = {
 };
 //27
 
-const char *ring_descs[] = {
+const char *ring_descs[NUM_A_RING_DESCS + 1] = {
   "ring",  //0
   "ring",
   "band",
@@ -56,7 +56,7 @@ const char *ring_descs[] = {
 };
 //3
 
-const char *wrist_descs[] = {
+const char *wrist_descs[NUM_A_WRIST_DESCS + 1] = {
   "bracer",  //0
   "bracer",
   "bracer",
@@ -71,7 +71,7 @@ const char *wrist_descs[] = {
 };
 //10
 
-const char *neck_descs[] = {
+const char *neck_descs[NUM_A_NECK_DESCS + 1] = {
   "necklace",  //0
   "necklace",
   "necklace",
@@ -90,7 +90,7 @@ const char *neck_descs[] = {
 };
 //14
 
-const char *head_descs[] = {
+const char *head_descs[NUM_A_HEAD_DESCS + 1] = {
   "helmet",  //0
   "helmet",
   "helm",
@@ -112,7 +112,7 @@ const char *head_descs[] = {
 };
 //17
 
-const char *hands_descs[] = {
+const char *hands_descs[NUM_A_HAND_DESCS + 1] = {
   "gauntlets",  //0
   "gloves",
   "gauntlets",
@@ -121,7 +121,7 @@ const char *hands_descs[] = {
 };
 //4
 
-const char *cloak_descs[] = {
+const char *cloak_descs[NUM_A_CLOAK_DESCS + 1] = {
   "cloak",  //0
   "cloak",
   "cloak",
@@ -131,7 +131,7 @@ const char *cloak_descs[] = {
 };
 //5
 
-const char *waist_descs[] = {
+const char *waist_descs[NUM_A_WAIST_DESCS + 1] = {
   "belt",  //0
   "belt",
   "belt",
@@ -140,8 +140,9 @@ const char *waist_descs[] = {
   "sash",  //5
   "\n"     
 };
+//6
 
-const char *boot_descs[] = {
+const char *boot_descs[NUM_A_BOOT_DESCS + 1] = {
   "boots",  //0
   "boots",
   "boots",
@@ -157,7 +158,7 @@ const char *boot_descs[] = {
 };
 //11
 
-const char *blade_descs[] = {
+const char *blade_descs[NUM_A_BLADE_DESCS + 1] = {
   "serrated",  //0
   "barbed",
   "sharp",
@@ -194,7 +195,7 @@ const char *blade_descs[] = {
 };
 //32
 
-const char *piercing_descs[] = {
+const char *piercing_descs[NUM_A_PIERCING_DESCS + 1] = {
   "barbed",  //0
   "sharp",
   "needle-sharp",
@@ -228,7 +229,7 @@ const char *piercing_descs[] = {
 };
 //29
 
-const char *blunt_descs[] = {
+const char *blunt_descs[NUM_A_BLUNT_DESCS + 1] = {
   "gem-encrusted",  //0
   "jewel-encrusted",
   "finely-forged",
@@ -263,7 +264,7 @@ const char *blunt_descs[] = {
 };
 //30
 
-const char *colors[] = {
+const char *colors[NUM_A_COLORS + 1] = {
   "amber",  //0
   "amethyst",
   "azure",
@@ -313,7 +314,7 @@ const char *colors[] = {
 };
 //45
 
-const char *crystal_descs[] = {
+const char *crystal_descs[NUM_A_CRYSTAL_DESCS + 1] = {
   "sparkling",  //0
   "shimmering",
   "iridescent",
@@ -336,7 +337,7 @@ const char *crystal_descs[] = {
 };
 //18
 
-const char *potion_descs[] = {
+const char *potion_descs[NUM_A_POTION_DESCS + 1] = {
   "sparkling",  //0
   "shimmering",
   "iridescent",
@@ -371,7 +372,7 @@ const char *potion_descs[] = {
 };
 //30
 
-const char *armor_special_descs[] = {
+const char *armor_special_descs[NUM_A_ARMOR_SPECIAL_DESCS + 1] = {
   "spiked",  //0
   "engraved",
   "ridged",
@@ -402,7 +403,54 @@ const char *armor_special_descs[] = {
 };
 //26
 
-const char *armor_crests[] = {
+const char *ammo_descs[NUM_A_AMMO_DESCS + 1] = {
+  "spiked",  //0
+  "engraved",
+  "ridged",
+  "charred",
+  "jeweled",
+  "elaborate",  //5
+  "ceremonial",
+  "expensive",
+  "battered",
+  "shadowy",
+  "gleaming",  //10
+  "iridescent",
+  "shining",
+  "ancient",
+  "glowing",
+  "glittering",  //15
+  "exquisite",
+  "magnificent",
+  "dwarven-made",
+  "elven-made",
+  "gnomish-made",  //20
+  "finely-made",
+  "gem-encrusted",
+  "gold-laced",
+  "silver-laced",
+  "platinum-laced",  //25
+  "\n"     
+};
+//26
+
+const char *ammo_head_descs[NUM_A_AMMO_HEAD_DESCS + 1] = {
+  "spiked", //0
+  "sharp",
+  "vicious",
+  "extremely sharp",
+  "jagged",
+  "serrated", //5
+  "barbed",  
+  "jewel-encrusted",
+  "grooved",
+  "thick-pointed",
+  "tri-pointed",  //10
+  "\n"       
+};
+//11
+
+const char *armor_crests[NUM_A_ARMOR_CRESTS + 1] = {
   "falcon",  //0
   "dragon",
   "rose",
@@ -447,7 +495,7 @@ const char *armor_crests[] = {
 //39
 
 
-const char *handle_types[] = {
+const char *handle_types[NUM_A_HANDLE_TYPES + 1] = {
   "handle",  //0
   "shaft",
   "hilt",
@@ -459,7 +507,7 @@ const char *handle_types[] = {
 //6
 
 
-const char *head_types[] = {
+const char *head_types[NUM_A_HEAD_TYPES + 1] = {
   "headed",  //0
   "bladed",
   "headed",

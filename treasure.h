@@ -9,27 +9,6 @@
 #define	TREASURE_H
 
 
-/* treasure_const.c - list of constant arrays */
-extern const char *gemstones[];
-extern const char *ring_descs[];
-extern const char *wrist_descs[];
-extern const char *neck_descs[];
-extern const char *head_descs[];
-extern const char *hands_descs[];
-extern const char *cloak_descs[];
-extern const char *waist_descs[];
-extern const char *boot_descs[];
-extern const char *blade_descs[];
-extern const char *piercing_descs[];
-extern const char *blunt_descs[];
-extern const char *colors[];
-extern const char *crystal_descs[];
-extern const char *potion_descs[];
-extern const char *armor_special_descs[];
-extern const char *armor_crests[];
-extern const char *handle_types[];
-extern const char *head_types[];
-
 /* defines */
 
 /* Ornir CP System Defines, CP = creation points*/
@@ -49,24 +28,29 @@ extern const char *head_types[];
 #define TREASURE_PERCENT 10
 
 /* array sizes for treasure_const.c */
-#define NUM_A_GEMSTONES       26
-#define NUM_A_RING_DESCS      2
-#define NUM_A_WRIST_DESCS     9
-#define NUM_A_NECK_DESCS      13
-#define NUM_A_HAND_DESCS      3
-#define NUM_A_CLOAK_DESCS     4
-#define NUM_A_WAIST_DESCS     5
-#define NUM_A_BOOT_DESCS      10
-#define NUM_A_BLADE_DESCS     31
-#define NUM_A_PIERCING_DESCS  28
-#define NUM_A_BLUNT_DESCS     29
-#define NUM_A_COLORS          44
-#define NUM_A_CRYSTAL_DESCS   17
-#define NUM_A_POTION_DESCS    29
-#define NUM_A_ARMOR_SPECIAL_DESCS    25
-#define NUM_A_ARMOR_CRESTS    38
-#define NUM_A_HANDLE_TYPES    5
-#define NUM_A_HEAD_TYPES      9
+#define NUM_A_GEMSTONES       27
+#define NUM_A_RING_DESCS      3
+#define NUM_A_WRIST_DESCS     10
+#define NUM_A_NECK_DESCS      14
+#define NUM_A_HEAD_DESCS      17
+#define NUM_A_HAND_DESCS      4
+#define NUM_A_HANDS_DESCS     NUM_A_HAND_DESCS
+#define NUM_A_CLOAK_DESCS     5
+#define NUM_A_WAIST_DESCS     6
+#define NUM_A_BOOT_DESCS      11
+#define NUM_A_BOOTS_DESCS     NUM_A_BOOT_DESCS
+#define NUM_A_BLADE_DESCS     32
+#define NUM_A_PIERCING_DESCS  29
+#define NUM_A_BLUNT_DESCS     30
+#define NUM_A_COLORS          45
+#define NUM_A_CRYSTAL_DESCS   18
+#define NUM_A_POTION_DESCS    30
+#define NUM_A_ARMOR_SPECIAL_DESCS    26
+#define NUM_A_AMMO_DESCS      26
+#define NUM_A_AMMO_HEAD_DESCS      11
+#define NUM_A_ARMOR_CRESTS    39
+#define NUM_A_HANDLE_TYPES    6
+#define NUM_A_HEAD_TYPES      10
 
 #define GRADE_MUNDANE 1
 #define GRADE_MINOR   2
@@ -218,6 +202,30 @@ extern const char *head_types[];
 #define ITEM_PROTOTYPE        3210
 /* item prototype for crystals */
 #define CRYSTAL_PROTOTYPE     3211
+
+
+/* treasure_const.c - list of constant arrays */
+extern const char *gemstones[NUM_A_GEMSTONES + 1];
+extern const char *ring_descs[NUM_A_RING_DESCS + 1];
+extern const char *wrist_descs[NUM_A_WRIST_DESCS + 1];
+extern const char *neck_descs[NUM_A_NECK_DESCS + 1];
+extern const char *head_descs[NUM_A_HEAD_DESCS + 1];
+extern const char *hands_descs[NUM_A_HANDS_DESCS + 1];
+extern const char *cloak_descs[NUM_A_CLOAK_DESCS + 1];
+extern const char *waist_descs[NUM_A_WAIST_DESCS + 1];
+extern const char *boot_descs[NUM_A_BOOT_DESCS + 1];
+extern const char *blade_descs[NUM_A_BLADE_DESCS + 1];
+extern const char *piercing_descs[NUM_A_PIERCING_DESCS + 1];
+extern const char *blunt_descs[NUM_A_BLUNT_DESCS + 1];
+extern const char *colors[NUM_A_COLORS + 1];
+extern const char *crystal_descs[NUM_A_CRYSTAL_DESCS+ 1];
+extern const char *potion_descs[NUM_A_POTION_DESCS + 1];
+extern const char *armor_special_descs[NUM_A_ARMOR_SPECIAL_DESCS + 1];
+extern const char *armor_crests[NUM_A_ARMOR_CRESTS + 1];
+extern const char *handle_types[NUM_A_HANDLE_TYPES + 1];
+extern const char *head_types[NUM_A_HEAD_TYPES + 1];
+extern const char *ammo_descs[NUM_A_AMMO_DESCS + 1];
+extern const char *ammo_head_descs[NUM_A_AMMO_HEAD_DESCS + 1];
 
 /* treasure.c functions */
 
