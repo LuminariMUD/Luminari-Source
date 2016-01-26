@@ -479,7 +479,7 @@ ACMD(do_gen_comm)
 {
   struct descriptor_data *i;
   char color_on[24];
-  char buf1[MAX_INPUT_LENGTH], buf2[MAX_INPUT_LENGTH], *msg;
+  char buf1[MAX_INPUT_LENGTH], buf2[MAX_INPUT_LENGTH], *msg = NULL;
   bool emoting = FALSE;
 
   /* Array of flags which must _not_ be set in order for comm to be heard. */
@@ -618,7 +618,7 @@ ACMD(do_gen_comm)
       continue;
     
     /* we want history for the rest of the conditions */
-    add_history(i->character, msg, hist_type[subcmd]);
+    add_history(i->character, buf1, hist_type[subcmd]);
     
     /* 'writing' such as study, olc, mud-mail, etc */
     if (!IS_NPC(ch) && PLR_FLAGGED(i->character, PLR_WRITING))
