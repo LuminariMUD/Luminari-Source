@@ -3424,19 +3424,14 @@ ACMD(do_spelllist) {
   one_argument(argument, arg);
 
   if (!*arg) {
-    send_to_char(ch, "Spelllist also can be utilized - Usage:  spelllist <class name>\r\n");
-    list_spells(ch, 1, class);
+    send_to_char(ch, "Spelllist requires an argument - Usage:  spelllist <class name>\r\n");
   } else {
     class = get_class_by_name(arg);
     if (class < 0 || class >= NUM_CLASSES) {
       send_to_char(ch, "That is not a valid class!\r\n");
       return;
     }
-    if (CLASS_LEVEL(ch, class)) {
-      list_spells(ch, 1, class);
-    } else {
-      send_to_char(ch, "You don't have any levels in that class.\r\n");
-    }
+    list_spells(ch, 1, class);
   }
 
   send_to_char(ch, "\tDType 'feats' to see your feats\tn\r\n");

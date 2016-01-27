@@ -390,10 +390,12 @@ void load_class_list(void) {
     init_class_list(i);
   
   /* here goes assignment, for sanity we arranged it the assignments accordingly:
-   * 1) classo
-   * 2) preferred saves
-   * 3) class abilities
-   * 4) prereqs last  */
+   *  classo
+   *  preferred saves
+   *  class abilities
+   *  class titles
+   *  class spell assignment (if necessary)
+   *  prereqs last  */
   
   /****************************************************************************/
   /*     class-number  name      abrv   clr-abrv     menu-name*/
@@ -505,7 +507,86 @@ void load_class_list(void) {
   spell_assignment(CLASS_WIZARD, SPELL_WISDOM,              5);
   spell_assignment(CLASS_WIZARD, SPELL_CHARISMA,            5);
   /*              class num      spell                   level acquired */
-  /* 3rd circle */  
+  /* 4th circle */  
+  spell_assignment(CLASS_WIZARD, SPELL_FIRE_SHIELD,       7);
+  spell_assignment(CLASS_WIZARD, SPELL_COLD_SHIELD,       7);
+  spell_assignment(CLASS_WIZARD, SPELL_ICE_STORM,         7);
+  spell_assignment(CLASS_WIZARD, SPELL_BILLOWING_CLOUD,   7);
+  spell_assignment(CLASS_WIZARD, SPELL_SUMMON_CREATURE_4, 7);
+  spell_assignment(CLASS_WIZARD, SPELL_ANIMATE_DEAD,      7);
+  spell_assignment(CLASS_WIZARD, SPELL_CURSE,             7);
+  spell_assignment(CLASS_WIZARD, SPELL_INFRAVISION,       7);
+  spell_assignment(CLASS_WIZARD, SPELL_POISON,            7);
+  spell_assignment(CLASS_WIZARD, SPELL_GREATER_INVIS,     7);
+  spell_assignment(CLASS_WIZARD, SPELL_RAINBOW_PATTERN,   7);
+  spell_assignment(CLASS_WIZARD, SPELL_WIZARD_EYE,        7);
+  spell_assignment(CLASS_WIZARD, SPELL_LOCATE_CREATURE,   7);
+  spell_assignment(CLASS_WIZARD, SPELL_MINOR_GLOBE,       7);
+  spell_assignment(CLASS_WIZARD, SPELL_REMOVE_CURSE,      7);
+  spell_assignment(CLASS_WIZARD, SPELL_STONESKIN,         7);
+  spell_assignment(CLASS_WIZARD, SPELL_ENLARGE_PERSON,    7);
+  spell_assignment(CLASS_WIZARD, SPELL_SHRINK_PERSON,     7);
+  /*              class num      spell                   level acquired */
+  /* 5th circle */
+  spell_assignment(CLASS_WIZARD, SPELL_INTERPOSING_HAND,  9);
+  spell_assignment(CLASS_WIZARD, SPELL_WALL_OF_FORCE,     9);
+  spell_assignment(CLASS_WIZARD, SPELL_BALL_OF_LIGHTNING, 9);
+  spell_assignment(CLASS_WIZARD, SPELL_CLOUDKILL,         9);
+  spell_assignment(CLASS_WIZARD, SPELL_SUMMON_CREATURE_5, 9);
+  spell_assignment(CLASS_WIZARD, SPELL_WAVES_OF_FATIGUE,  9);
+  spell_assignment(CLASS_WIZARD, SPELL_SYMBOL_OF_PAIN,    9);
+  spell_assignment(CLASS_WIZARD, SPELL_DOMINATE_PERSON,   9);
+  spell_assignment(CLASS_WIZARD, SPELL_FEEBLEMIND,        9);
+  spell_assignment(CLASS_WIZARD, SPELL_NIGHTMARE,         9);
+  spell_assignment(CLASS_WIZARD, SPELL_MIND_FOG,          9);
+  spell_assignment(CLASS_WIZARD, SPELL_ACID_SHEATH,       9);
+  spell_assignment(CLASS_WIZARD, SPELL_FAITHFUL_HOUND,    9);
+  spell_assignment(CLASS_WIZARD, SPELL_DISMISSAL,         9);
+  spell_assignment(CLASS_WIZARD, SPELL_CONE_OF_COLD,      9);
+  spell_assignment(CLASS_WIZARD, SPELL_TELEKINESIS,       9);
+  spell_assignment(CLASS_WIZARD, SPELL_FIREBRAND,         9);
+  /*              class num      spell                   level acquired */
+  /* 6th circle */
+  spell_assignment(CLASS_WIZARD, SPELL_FREEZING_SPHERE,      11);
+  spell_assignment(CLASS_WIZARD, SPELL_ACID_FOG,             11);
+  spell_assignment(CLASS_WIZARD, SPELL_SUMMON_CREATURE_6,    11);
+  spell_assignment(CLASS_WIZARD, SPELL_TRANSFORMATION,       11);
+  spell_assignment(CLASS_WIZARD, SPELL_EYEBITE,              11);
+  spell_assignment(CLASS_WIZARD, SPELL_MASS_HASTE,           11);
+  spell_assignment(CLASS_WIZARD, SPELL_GREATER_HEROISM,      11);
+  spell_assignment(CLASS_WIZARD, SPELL_ANTI_MAGIC_FIELD,     11);
+  spell_assignment(CLASS_WIZARD, SPELL_GREATER_MIRROR_IMAGE, 11);
+  spell_assignment(CLASS_WIZARD, SPELL_LOCATE_OBJECT,        11);
+  spell_assignment(CLASS_WIZARD, SPELL_TRUE_SEEING,          11);
+  spell_assignment(CLASS_WIZARD, SPELL_GLOBE_OF_INVULN,      11);
+  spell_assignment(CLASS_WIZARD, SPELL_GREATER_DISPELLING,   11);
+  spell_assignment(CLASS_WIZARD, SPELL_CLONE,                11);
+  spell_assignment(CLASS_WIZARD, SPELL_WATERWALK,            11);
+  /*              class num      spell                   level acquired */
+  /* 7th circle */
+  spell_assignment(CLASS_WIZARD, SPELL_MISSILE_STORM,       13);
+  spell_assignment(CLASS_WIZARD, SPELL_GRASPING_HAND,       13);
+  spell_assignment(CLASS_WIZARD, SPELL_SUMMON_CREATURE_7,   13);
+  spell_assignment(CLASS_WIZARD, SPELL_CONTROL_WEATHER,     13);
+  spell_assignment(CLASS_WIZARD, SPELL_POWER_WORD_BLIND,    13);
+  spell_assignment(CLASS_WIZARD, SPELL_WAVES_OF_EXHAUSTION, 13);
+  spell_assignment(CLASS_WIZARD, SPELL_MASS_HOLD_PERSON,    13);
+  spell_assignment(CLASS_WIZARD, SPELL_MASS_FLY,            13);
+  spell_assignment(CLASS_WIZARD, SPELL_DISPLACEMENT,        13);
+  spell_assignment(CLASS_WIZARD, SPELL_PRISMATIC_SPRAY,     13);
+  spell_assignment(CLASS_WIZARD, SPELL_DETECT_POISON,       13);
+  spell_assignment(CLASS_WIZARD, SPELL_POWER_WORD_STUN,     13);
+  spell_assignment(CLASS_WIZARD, SPELL_PROTECT_FROM_SPELLS, 13);
+  spell_assignment(CLASS_WIZARD, SPELL_THUNDERCLAP,         13);
+  spell_assignment(CLASS_WIZARD, SPELL_SPELL_MANTLE,        13);
+  spell_assignment(CLASS_WIZARD, SPELL_TELEPORT,            13);
+  spell_assignment(CLASS_WIZARD, SPELL_MASS_WISDOM,         13);
+  spell_assignment(CLASS_WIZARD, SPELL_MASS_CHARISMA,       13);
+  spell_assignment(CLASS_WIZARD, SPELL_MASS_CUNNING,        13);
+  /*              class num      spell                   level acquired */
+  /* 8th circle */
+  spell_assignment(CLASS_WIZARD, SPELL_MASS_CUNNING,        15);
+  
   /****************************************************************************/
           
   /****************************************************************************/
