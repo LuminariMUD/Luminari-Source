@@ -801,6 +801,10 @@ void command_interpreter(struct char_data *ch, char *argument) {
           !is_abbrev(complete_cmd_info[cmd].command, "help") &&
           !is_abbrev(complete_cmd_info[cmd].command, "feat") &&
           !is_abbrev(complete_cmd_info[cmd].command, "tnl") &&
+          !is_abbrev(complete_cmd_info[cmd].command, "prefedit") &&
+          !is_abbrev(complete_cmd_info[cmd].command, "bug") &&
+          !is_abbrev(complete_cmd_info[cmd].command, "typo") &&
+          !is_abbrev(complete_cmd_info[cmd].command, "idea") &&
           !is_abbrev(complete_cmd_info[cmd].command, "attackqueue")
           ) {
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_HIDE);
@@ -814,10 +818,14 @@ void command_interpreter(struct char_data *ch, char *argument) {
           !is_abbrev(complete_cmd_info[cmd].command, "say") &&
           !is_abbrev(complete_cmd_info[cmd].command, "help") &&
           !is_abbrev(complete_cmd_info[cmd].command, "reply") &&
+          !is_abbrev(complete_cmd_info[cmd].command, "prefedit") &&
+          !is_abbrev(complete_cmd_info[cmd].command, "bug") &&
+          !is_abbrev(complete_cmd_info[cmd].command, "typo") &&
+          !is_abbrev(complete_cmd_info[cmd].command, "idea") &&
           !is_abbrev(complete_cmd_info[cmd].command, "tell")
           )
     send_to_char(ch, "You are too busy crafting. [Available commands: gossip/"
-            "chat/look/score/group/say/tell/reply/help]\r\n");
+            "chat/look/score/group/say/tell/reply/help/prefedit/bug/typo/idea]\r\n");
   else if (GET_POS(ch) < complete_cmd_info[cmd].minimum_position)
     switch (GET_POS(ch)) {
       case POS_DEAD:
