@@ -2031,7 +2031,7 @@ const int class_feats_wizard[] = {
   
   /* epic class */
   FEAT_MUMMY_DUST,
-  FEAT_GREATER_RUIN
+  FEAT_GREATER_RUIN,
   FEAT_DRAGON_KNIGHT,
   FEAT_HELLBALL,
   FEAT_EPIC_MAGE_ARMOR,
