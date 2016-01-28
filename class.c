@@ -829,7 +829,7 @@ void load_class_list(void) {
   /*     class-number  name        abrv   clr-abrv       menu-name*/
   classo(CLASS_WARRIOR, "warrior", "War", "\tRWar\tn", "w) \tRWarrior\tn",
       /* max-lvl  lock? prestige? BAB HD  mana move trains in-game? unlkCst, eFeatp */
-        -1,       N,    N,        H,  10, 0,   1,   2,     Y,       0,       2);
+        -1,       N,    N,        H,  10, 0,   1,   2,     Y,       0,       4);
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_WARRIOR, G,    B,      B,    B,      B);
   assign_class_abils(CLASS_WARRIOR, /* class number */
@@ -3878,11 +3878,17 @@ void advance_level(struct char_data *ch, int class) {
   }
   
   /* special feat progression */  
-  if (class == CLASS_WIZARD && !(CLASS_LEVEL(ch, CLASS_WIZARD) % 5) && !IS_EPIC(ch)) {
-    class_feats++; /* wizards get a bonus class feat every 5 levels */
+  if (class == CLASS_WIZARD && !(CLASS_LEVEL(ch, CLASS_WIZARD) % 5)) {
+    if (!IS_EPIC(ch))
+      class_feats++; /* wizards get a bonus class feat every 5 levels */
+    else if (IS_EPIC(ch))
+      epic_class_feats++;      
   }
-  if (class == CLASS_WARRIOR && !(CLASS_LEVEL(ch, CLASS_WARRIOR) % 2) && !IS_EPIC(ch)) {
-    class_feats++; /* warriors get a bonus class feat every 2 levels */
+  if (class == CLASS_WARRIOR && !(CLASS_LEVEL(ch, CLASS_WARRIOR) % 2)) {
+    if (!IS_EPIC(ch))
+      class_feats++; /* wizards get a bonus class feat every 5 levels */
+    else if (IS_EPIC(ch))
+      epic_class_feats++;      
   }
 
   /* further movement modifications */
