@@ -669,7 +669,7 @@ ACMD(do_gen_comm) {
       continue;
 
     /* soundproof room */
-    if (ROOM_FLAGGED(IN_ROOM(i->character), ROOM_SOUNDPROOF) && (GET_LEVEL(ch) < LVL_STAFF))
+    if (IN_ROOM(i->character) != NOWHERE && ROOM_FLAGGED(IN_ROOM(i->character), ROOM_SOUNDPROOF) && (GET_LEVEL(ch) < LVL_STAFF))
       continue;
 
     /* shout only works for people that are in the same zone and awake */
