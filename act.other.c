@@ -1335,9 +1335,9 @@ int meet_class_reqs(struct char_data *ch, int class, int mode) {
         send_to_char(ch, "[LOCKED] ArcaneArcher (type 'accexp class arcanearcher' to unlock)\r\n");
         break;
       }
-      if (BAB(ch) < 6) {
+      if (BAB(ch) < 5) {
         passed = FALSE;
-        send_to_char(ch, "  -Base attack bonus of +6 required.\r\n");
+        send_to_char(ch, "  -Base attack bonus of +5 required.\r\n");
       }
       if (GET_RACE(ch) != RACE_ELF && GET_RACE(ch) != RACE_HALF_ELF) {
         passed = FALSE;
