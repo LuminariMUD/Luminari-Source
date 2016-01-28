@@ -455,6 +455,10 @@ struct obj_data *is_using_ranged_weapon(struct char_data *ch) {
   if (!wielded) {
     return NULL;
   }
+  
+  if (IS_WILDSHAPED(ch)) {
+    return NULL;
+  }
 
   if (IS_SET(weapon_list[GET_OBJ_VAL(wielded, 0)].weaponFlags, WEAPON_FLAG_RANGED))
     return wielded;
