@@ -1639,6 +1639,7 @@ void extract_char_final(struct char_data *ch) {
   /* stop any fighting */
   if (FIGHTING(ch))
     stop_fighting(ch);
+  FIRING(ch) = 0;
 
   for (k = combat_list; k; k = temp) {
     temp = k->next_fighting;

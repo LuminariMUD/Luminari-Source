@@ -3774,7 +3774,7 @@ ACMD(do_fire) {
   }
 
   /* maybe its your pet?  so assist */
-  if (IS_PET(vict) && vict->master == ch && room == IN_ROOM(ch))
+  if (vict && IS_PET(vict) && vict->master == ch && room == IN_ROOM(ch))
     vict = FIGHTING(vict);
 
   if (can_fire_arrow(ch, FALSE)) {
