@@ -3379,8 +3379,6 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
     diceTwo = GET_OBJ_VAL(wielded, 2);
   } else if (mode == MODE_DISPLAY_RANGED && can_fire_arrow(ch, TRUE)) { //ranged info
     struct obj_data *obj = GET_EQ(ch, WEAR_WIELD_2H);
-    struct obj_data *ammo_pouch = GET_EQ(ch, WEAR_AMMO_POUCH);
-
     if (!obj)
       obj = GET_EQ(ch, WEAR_WIELD_1);
 
