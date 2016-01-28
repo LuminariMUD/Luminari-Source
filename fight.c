@@ -3314,7 +3314,18 @@ int determine_critical_multiplier(struct char_data *ch, struct obj_data *wielded
 int compute_dam_dice(struct char_data *ch, struct char_data *victim,
         struct obj_data *wielded, int mode) {
   int diceOne = 0, diceTwo = 0;
+  bool is_ranged = FALSE;
 
+  /* going to check if we are in a state ready to use ranged weapon
+     before anything else */  
+  if (can_fire_arrow(ch, TRUE) && is_using_ranged_weapon(ch) && GET_EQ(ch, WEAR_AMMO_POUCH)
+          && GET_EQ(ch, WEAR_AMMO_POUCH)->contains) {
+    is_ranged = TRUE;
+    wielded = GET_EQ(ch, WEAR_WIELD_2H);
+    if (!wielded)
+      wielded = GET_EQ(ch, WEAR_WIELD_1);
+  } /* should be ready to check for ranged */
+  
   //just information mode
   if (mode == MODE_DISPLAY_PRIMARY) {
     if (IS_WILDSHAPED(ch)) {
@@ -3337,11 +3348,14 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
       wielded = GET_EQ(ch, WEAR_WIELD_OFFHAND);
       show_obj_to_char(GET_EQ(ch, WEAR_WIELD_OFFHAND), ch, SHOW_OBJ_SHORT, 0);
     }
+  } else if (mode == MODE_DISPLAY_RANGED && is_ranged) { //ranged info
+    show_obj_to_char(wielded, ch, SHOW_OBJ_SHORT, 0);
   }
 
+
   /* real calculations */
-  if (IS_WILDSHAPED(ch)) {
-    diceOne = 1 + HAS_FEAT(ch, FEAT_NATURAL_ATTACK);
+  if (IS_WILDSHAPED(ch)) {    
+    diceOne = 1 + HAS_FEAT(ch, FEAT_NATURAL_ATTACK);    
     switch (GET_SIZE(ch)) {
       case SIZE_FINE:
         diceTwo = 1;
@@ -3374,17 +3388,12 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
         diceTwo = 4;
         break;
     }
-  } else if (wielded && GET_OBJ_TYPE(wielded) == ITEM_WEAPON) { //weapon
+  } else if (!is_ranged && wielded && GET_OBJ_TYPE(wielded) == ITEM_WEAPON) { //weapon
     diceOne = GET_OBJ_VAL(wielded, 1);
     diceTwo = GET_OBJ_VAL(wielded, 2);
-  } else if (mode == MODE_DISPLAY_RANGED && can_fire_arrow(ch, TRUE)) { //ranged info
-    struct obj_data *obj = GET_EQ(ch, WEAR_WIELD_2H);
-    if (!obj)
-      obj = GET_EQ(ch, WEAR_WIELD_1);
-
-    show_obj_to_char(obj, ch, SHOW_OBJ_SHORT, 0);
-    diceOne = GET_OBJ_VAL(obj, 1);
-    diceTwo = GET_OBJ_VAL(obj, 2);
+  } else if (is_ranged) { //ranged weapon
+    diceOne = GET_OBJ_VAL(wielded, 1);
+    diceTwo = GET_OBJ_VAL(wielded, 2);
   } else { //barehand
     compute_barehand_dam_dice(ch, &diceOne, &diceTwo);
   }
@@ -3399,7 +3408,7 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
   }
 
   /* mods */
-  if ((HAS_FEAT(ch, FEAT_UNSTOPPABLE_STRIKE) * 5) <= rand_number(1, 100)) { /* Check the weapon type, make sure it matches. */
+  if ((HAS_FEAT(ch, FEAT_UNSTOPPABLE_STRIKE) * 5) >= rand_number(1, 100)) { /* Check the weapon type, make sure it matches. */
     if(((wielded != NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), GET_WEAPON_TYPE(wielded))) ||
        ((wielded == NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), WEAPON_TYPE_UNARMED)))
       return (diceOne * diceTwo); /* max damage! */
