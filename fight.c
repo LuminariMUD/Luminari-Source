@@ -3340,20 +3340,7 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
   }
 
   /* real calculations */
-  if (wielded && GET_OBJ_TYPE(wielded) == ITEM_WEAPON) { //weapon
-    diceOne = GET_OBJ_VAL(wielded, 1);
-    diceTwo = GET_OBJ_VAL(wielded, 2);
-  } else if (mode == MODE_DISPLAY_RANGED && can_fire_arrow(ch, TRUE)) { //ranged info
-    struct obj_data *obj = GET_EQ(ch, WEAR_WIELD_2H);
-    struct obj_data *ammo_pouch = GET_EQ(ch, WEAR_AMMO_POUCH);
-
-    if (!obj)
-      obj = GET_EQ(ch, WEAR_WIELD_1);
-
-    show_obj_to_char(obj, ch, SHOW_OBJ_SHORT, 0);
-    diceOne = GET_OBJ_VAL(obj, 1);
-    diceTwo = GET_OBJ_VAL(ammo_pouch->contains, 1);
-  } else if (IS_WILDSHAPED(ch)) {
+  if (IS_WILDSHAPED(ch)) {
     diceOne = 1 + HAS_FEAT(ch, FEAT_NATURAL_ATTACK);
     switch (GET_SIZE(ch)) {
       case SIZE_FINE:
@@ -3387,17 +3374,30 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
         diceTwo = 4;
         break;
     }
+  } else if (wielded && GET_OBJ_TYPE(wielded) == ITEM_WEAPON) { //weapon
+    diceOne = GET_OBJ_VAL(wielded, 1);
+    diceTwo = GET_OBJ_VAL(wielded, 2);
+  } else if (mode == MODE_DISPLAY_RANGED && can_fire_arrow(ch, TRUE)) { //ranged info
+    struct obj_data *obj = GET_EQ(ch, WEAR_WIELD_2H);
+    struct obj_data *ammo_pouch = GET_EQ(ch, WEAR_AMMO_POUCH);
+
+    if (!obj)
+      obj = GET_EQ(ch, WEAR_WIELD_1);
+
+    show_obj_to_char(obj, ch, SHOW_OBJ_SHORT, 0);
+    diceOne = GET_OBJ_VAL(obj, 1);
+    diceTwo = GET_OBJ_VAL(obj, 2);
   } else { //barehand
     compute_barehand_dam_dice(ch, &diceOne, &diceTwo);
   }
 
   /* display modes */
-  if (mode == MODE_DISPLAY_PRIMARY ||
-      mode == MODE_DISPLAY_OFFHAND ||
-      mode == MODE_DISPLAY_RANGED) {
+  if ( mode == MODE_DISPLAY_PRIMARY ||
+       mode == MODE_DISPLAY_OFFHAND ||
+       mode == MODE_DISPLAY_RANGED ) {
     send_to_char(ch, "Threat Range: %d, ", determine_threat_range(ch, wielded));
     send_to_char(ch, "Critical Multiplier: %d, ", determine_critical_multiplier(ch, wielded));
-  send_to_char(ch, "Damage Dice: %dD%d, ", diceOne, diceTwo);
+    send_to_char(ch, "Damage Dice: %dD%d, ", diceOne, diceTwo);
   }
 
   /* mods */
