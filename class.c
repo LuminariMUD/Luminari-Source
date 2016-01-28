@@ -2054,6 +2054,8 @@ const int class_feats_sorcerer[] = {
   FEAT_QUICK_CHANT,
   FEAT_AUGMENT_SUMMONING,
   FEAT_ENHANCED_SPELL_DAMAGE,
+  FEAT_MAXIMIZE_SPELL,
+  FEAT_QUICKEN_SPELL,
 
   /* epic class */
   FEAT_DRAGON_KNIGHT,
@@ -2072,6 +2074,8 @@ const int class_feats_cleric[] = {
   FEAT_QUICK_CHANT,
   FEAT_AUGMENT_SUMMONING,
   FEAT_ENHANCED_SPELL_DAMAGE,
+  FEAT_MAXIMIZE_SPELL,
+  FEAT_QUICKEN_SPELL,
 
   /* epic */
   FEAT_GREAT_WISDOM,
@@ -2089,6 +2093,8 @@ const int class_feats_druid[] = {
   FEAT_FAST_HEALING,
   FEAT_AUGMENT_SUMMONING,
   FEAT_ENHANCED_SPELL_DAMAGE,
+  FEAT_MAXIMIZE_SPELL,
+  FEAT_QUICKEN_SPELL,
 
   /* epic */
   FEAT_GREAT_WISDOM,
@@ -2378,6 +2384,8 @@ const int class_feats_weaponmaster[] = {
   FEAT_UNDEFINED
 };
 const int class_feats_bard[] = {
+  FEAT_MAXIMIZE_SPELL,
+  FEAT_QUICKEN_SPELL,
 
   /* epic */
   FEAT_GREAT_CHARISMA,
