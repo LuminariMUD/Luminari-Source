@@ -1443,7 +1443,66 @@ void load_class_list(void) {
   );
   /*              class num      spell                   level acquired */
   /* 1st circle */
-  spell_assignment(CLASS_BARD, SPELL_HORIZIKAULS_BOOM, 3);
+  spell_assignment(CLASS_BARD, SPELL_HORIZIKAULS_BOOM,  3);
+  spell_assignment(CLASS_BARD, SPELL_SHIELD,            3);
+  spell_assignment(CLASS_BARD, SPELL_SUMMON_CREATURE_1, 3);
+  spell_assignment(CLASS_BARD, SPELL_CHARM,             3);
+  spell_assignment(CLASS_BARD, SPELL_ENDURE_ELEMENTS,   3);
+  spell_assignment(CLASS_BARD, SPELL_PROT_FROM_EVIL,    3);
+  spell_assignment(CLASS_BARD, SPELL_PROT_FROM_GOOD,    3);
+  spell_assignment(CLASS_BARD, SPELL_MAGIC_MISSILE,     3);
+  spell_assignment(CLASS_BARD, SPELL_CURE_LIGHT,        3);
+  /*              class num      spell                   level acquired */
+  /* 2nd circle */
+  spell_assignment(CLASS_BARD, SPELL_SUMMON_CREATURE_2, 5);
+  spell_assignment(CLASS_BARD, SPELL_DEAFNESS,          5);
+  spell_assignment(CLASS_BARD, SPELL_HIDEOUS_LAUGHTER,  5);
+  spell_assignment(CLASS_BARD, SPELL_MIRROR_IMAGE,      5);
+  spell_assignment(CLASS_BARD, SPELL_DETECT_INVIS,      5);
+  spell_assignment(CLASS_BARD, SPELL_DETECT_MAGIC,      5);
+  spell_assignment(CLASS_BARD, SPELL_INVISIBLE,         5);
+  spell_assignment(CLASS_BARD, SPELL_ENDURANCE,         5);
+  spell_assignment(CLASS_BARD, SPELL_STRENGTH,          5);
+  spell_assignment(CLASS_BARD, SPELL_GRACE,             5);
+  spell_assignment(CLASS_BARD, SPELL_CURE_MODERATE,     5);
+  /*              class num      spell                   level acquired */
+  /* 3rd circle */
+  spell_assignment(CLASS_BARD, SPELL_SUMMON_CREATURE_3, 8);
+  spell_assignment(CLASS_BARD, SPELL_LIGHTNING_BOLT,    8);
+  spell_assignment(CLASS_BARD, SPELL_DEEP_SLUMBER,      8);
+  spell_assignment(CLASS_BARD, SPELL_HASTE,             8);
+  spell_assignment(CLASS_BARD, SPELL_CIRCLE_A_EVIL,     8);
+  spell_assignment(CLASS_BARD, SPELL_CIRCLE_A_GOOD,     8);
+  spell_assignment(CLASS_BARD, SPELL_CUNNING,           8);
+  spell_assignment(CLASS_BARD, SPELL_WISDOM,            8);
+  spell_assignment(CLASS_BARD, SPELL_CHARISMA,          8);
+  spell_assignment(CLASS_BARD, SPELL_CURE_SERIOUS,      8);
+  /*              class num      spell                   level acquired */
+  /* 4th circle */
+  spell_assignment(CLASS_BARD, SPELL_SUMMON_CREATURE_4, 11);
+  spell_assignment(CLASS_BARD, SPELL_GREATER_INVIS,     11);
+  spell_assignment(CLASS_BARD, SPELL_RAINBOW_PATTERN,   11);
+  spell_assignment(CLASS_BARD, SPELL_REMOVE_CURSE,      11);
+  spell_assignment(CLASS_BARD, SPELL_ICE_STORM,         11);
+  spell_assignment(CLASS_BARD, SPELL_CURE_CRITIC,       11);
+  /*              class num      spell                   level acquired */
+  /* 5th circle */
+  spell_assignment(CLASS_BARD, SPELL_SUMMON_CREATURE_5, 14);
+  spell_assignment(CLASS_BARD, SPELL_ACID_SHEATH,       14);
+  spell_assignment(CLASS_BARD, SPELL_CONE_OF_COLD,      14);
+  spell_assignment(CLASS_BARD, SPELL_NIGHTMARE,         14);
+  spell_assignment(CLASS_BARD, SPELL_MIND_FOG,          14);
+  spell_assignment(CLASS_BARD, SPELL_MASS_CURE_LIGHT,   14);
+  /*              class num      spell                   level acquired */
+  /* 6th circle */
+  spell_assignment(CLASS_BARD, SPELL_SUMMON_CREATURE_7,  17);
+  spell_assignment(CLASS_BARD, SPELL_FREEZING_SPHERE,    17);
+  spell_assignment(CLASS_BARD, SPELL_GREATER_HEROISM,    17);
+  spell_assignment(CLASS_BARD, SPELL_MASS_CURE_MODERATE, 17);
+  spell_assignment(CLASS_BARD, SPELL_STONESKIN,          17);
+  /*epic*/
+  spell_assignment(CLASS_BARD, SPELL_MUMMY_DUST,   21);
+  spell_assignment(CLASS_BARD, SPELL_GREATER_RUIN, 21);
   /****************************************************************************/
   
   /****************************************************************************/
@@ -1653,27 +1712,15 @@ bitvector_t find_class_bitvector(const char *arg) {
 }
 
 /* guild guards: stops classes from going in certain directions, essentially
- currently unused */
+ currently being phased out */
 struct guild_info_type guild_info[] = {
-
   /* Midgaard */
-  { CLASS_WIZARD, 3017, SOUTH},
-  { CLASS_CLERIC, 3004, NORTH},
-  { CLASS_ROGUE, 3027, EAST},
-  { CLASS_WARRIOR, 3021, EAST},
-  { CLASS_MONK, 3004, NORTH},
-  { CLASS_DRUID, 3004, NORTH},
-  { CLASS_BERSERKER, 3021, EAST},
-  { CLASS_SORCERER, 3017, SOUTH},
-  { CLASS_PALADIN, 3021, EAST},
-  { CLASS_RANGER, 3021, EAST},
-  { CLASS_BARD, 3027, EAST},
-  { CLASS_WEAPON_MASTER, 3021, EAST},
-  { CLASS_ARCANE_ARCHER, 3021, EAST},
-
+  { -999 /* all */, 3004, NORTH},
+  { -999 /* all */, 3017, SOUTH},
+  { -999 /* all */, 3021, EAST},
+  { -999 /* all */, 3027, EAST},
   /* Brass Dragon */
   { -999 /* all */, 5065, WEST},
-
   /* this must go last -- add new guards above! */
   { -1, NOWHERE, -1}
 };
@@ -1713,7 +1760,6 @@ byte saving_throws(struct char_data *ch, int type) {
   }
   
   save = (int)counter;
-
   return save;
 }
 
@@ -1766,7 +1812,7 @@ int BAB(struct char_data *ch) {
   }
 
   if (!IS_NPC(ch)) /* cap pc bab at 30 */
-    return (MIN(bab, 30));
+    return (MIN(bab, LVL_IMMORT - 1));
 
   return bab;
 }
@@ -1796,7 +1842,7 @@ const char *titles(int chclass, int level) {
   else if (level <= 29)
     title_num = 5;
   else if (level <= 30)
-    title_num = 6;
+    title_num = 6;  
   else if (level <= LVL_IMMORT)
     title_num = 7;
   else if (level <= LVL_STAFF)
@@ -2896,603 +2942,22 @@ void newbieEquipment(struct char_data *ch) {
 
 /* this is used to assign all the spells */
 void init_class(struct char_data *ch, int class, int level) {
+  struct class_spell_assign *spell_assign = NULL;
+  
+  if (class_list[class].spellassign_list != NULL) {
+    /*  This class has spell assignment! Traverse the list and check. */
+    for (spell_assign = class_list[class].spellassign_list; spell_assign != NULL;
+            spell_assign = spell_assign->next) {
+      SET_SKILL(ch, spell_assign->spell_num, 99);      
+    }
+  }
+
   switch (class) {
-
-    case CLASS_WIZARD:
-      /* SWITCH FALL THROUGH */
-    case CLASS_SORCERER:
-      //spell init
-      //1st circle
-      SET_SKILL(ch, SPELL_HORIZIKAULS_BOOM, 99);
-      SET_SKILL(ch, SPELL_MAGIC_MISSILE, 99);
-      SET_SKILL(ch, SPELL_BURNING_HANDS, 99);
-      SET_SKILL(ch, SPELL_ICE_DAGGER, 99);
-      SET_SKILL(ch, SPELL_MAGE_ARMOR, 99);
-      SET_SKILL(ch, SPELL_SUMMON_CREATURE_1, 99);
-      SET_SKILL(ch, SPELL_CHILL_TOUCH, 99);
-      SET_SKILL(ch, SPELL_NEGATIVE_ENERGY_RAY, 99);
-      SET_SKILL(ch, SPELL_RAY_OF_ENFEEBLEMENT, 99);
-      SET_SKILL(ch, SPELL_CHARM, 99);
-      SET_SKILL(ch, SPELL_ENCHANT_WEAPON, 99);
-      SET_SKILL(ch, SPELL_SLEEP, 99);
-      SET_SKILL(ch, SPELL_COLOR_SPRAY, 99);
-      SET_SKILL(ch, SPELL_SCARE, 99);
-      SET_SKILL(ch, SPELL_TRUE_STRIKE, 99);
-      SET_SKILL(ch, SPELL_IDENTIFY, 99);
-      SET_SKILL(ch, SPELL_SHELGARNS_BLADE, 99);
-      SET_SKILL(ch, SPELL_GREASE, 99);
-      SET_SKILL(ch, SPELL_ENDURE_ELEMENTS, 99);
-      SET_SKILL(ch, SPELL_PROT_FROM_EVIL, 99);
-      SET_SKILL(ch, SPELL_PROT_FROM_GOOD, 99);
-      SET_SKILL(ch, SPELL_EXPEDITIOUS_RETREAT, 99);
-      SET_SKILL(ch, SPELL_IRON_GUTS, 99);
-      SET_SKILL(ch, SPELL_SHIELD, 99);
-
-      //2nd circle
-      SET_SKILL(ch, SPELL_SHOCKING_GRASP, 99);
-      SET_SKILL(ch, SPELL_SCORCHING_RAY, 99);
-      SET_SKILL(ch, SPELL_CONTINUAL_FLAME, 99);
-      SET_SKILL(ch, SPELL_SUMMON_CREATURE_2, 99);
-      SET_SKILL(ch, SPELL_WEB, 99);
-      SET_SKILL(ch, SPELL_ACID_ARROW, 99);
-      SET_SKILL(ch, SPELL_BLINDNESS, 99);
-      SET_SKILL(ch, SPELL_DEAFNESS, 99);
-      SET_SKILL(ch, SPELL_FALSE_LIFE, 99);
-      SET_SKILL(ch, SPELL_DAZE_MONSTER, 99);
-      SET_SKILL(ch, SPELL_HIDEOUS_LAUGHTER, 99);
-      SET_SKILL(ch, SPELL_TOUCH_OF_IDIOCY, 99);
-      SET_SKILL(ch, SPELL_BLUR, 99);
-      SET_SKILL(ch, SPELL_MIRROR_IMAGE, 99);
-      SET_SKILL(ch, SPELL_INVISIBLE, 99);
-      SET_SKILL(ch, SPELL_DETECT_INVIS, 99);
-      SET_SKILL(ch, SPELL_DETECT_MAGIC, 99);
-      SET_SKILL(ch, SPELL_DARKNESS, 99);
-      SET_SKILL(ch, SPELL_I_DARKNESS, 99);
-      SET_SKILL(ch, SPELL_RESIST_ENERGY, 99);
-      SET_SKILL(ch, SPELL_ENERGY_SPHERE, 99);
-      SET_SKILL(ch, SPELL_ENDURANCE, 99);
-      SET_SKILL(ch, SPELL_STRENGTH, 99);
-      SET_SKILL(ch, SPELL_GRACE, 99);
-
-      //3rd circle
-      SET_SKILL(ch, SPELL_LIGHTNING_BOLT, 99);
-      SET_SKILL(ch, SPELL_FIREBALL, 99);
-      SET_SKILL(ch, SPELL_WATER_BREATHE, 99);
-      SET_SKILL(ch, SPELL_SUMMON_CREATURE_3, 99);
-      SET_SKILL(ch, SPELL_PHANTOM_STEED, 99);
-      SET_SKILL(ch, SPELL_STINKING_CLOUD, 99);
-      SET_SKILL(ch, SPELL_HALT_UNDEAD, 99);
-      SET_SKILL(ch, SPELL_VAMPIRIC_TOUCH, 99);
-      SET_SKILL(ch, SPELL_HEROISM, 99);
-      SET_SKILL(ch, SPELL_FLY, 99);
-      SET_SKILL(ch, SPELL_HOLD_PERSON, 99);
-      SET_SKILL(ch, SPELL_DEEP_SLUMBER, 99);
-      SET_SKILL(ch, SPELL_WALL_OF_FOG, 99);
-      SET_SKILL(ch, SPELL_INVISIBILITY_SPHERE, 99);
-      SET_SKILL(ch, SPELL_DAYLIGHT, 99);
-      SET_SKILL(ch, SPELL_CLAIRVOYANCE, 99);
-      SET_SKILL(ch, SPELL_NON_DETECTION, 99);
-      SET_SKILL(ch, SPELL_DISPEL_MAGIC, 99);
-      SET_SKILL(ch, SPELL_HASTE, 99);
-      SET_SKILL(ch, SPELL_SLOW, 99);
-      SET_SKILL(ch, SPELL_CIRCLE_A_EVIL, 99);
-      SET_SKILL(ch, SPELL_CIRCLE_A_GOOD, 99);
-      SET_SKILL(ch, SPELL_CUNNING, 99);
-      SET_SKILL(ch, SPELL_WISDOM, 99);
-      SET_SKILL(ch, SPELL_CHARISMA, 99);
-
-      //4th circle
-      SET_SKILL(ch, SPELL_FIRE_SHIELD, 99);
-      SET_SKILL(ch, SPELL_COLD_SHIELD, 99);
-      SET_SKILL(ch, SPELL_ICE_STORM, 99);
-      SET_SKILL(ch, SPELL_BILLOWING_CLOUD, 99);
-      SET_SKILL(ch, SPELL_SUMMON_CREATURE_4, 99);
-      SET_SKILL(ch, SPELL_ANIMATE_DEAD, 99);
-      SET_SKILL(ch, SPELL_CURSE, 99);
-      SET_SKILL(ch, SPELL_INFRAVISION, 99); //shared
-      SET_SKILL(ch, SPELL_POISON, 99); //shared
-      SET_SKILL(ch, SPELL_GREATER_INVIS, 99);
-      SET_SKILL(ch, SPELL_RAINBOW_PATTERN, 99);
-      SET_SKILL(ch, SPELL_WIZARD_EYE, 99);
-      SET_SKILL(ch, SPELL_LOCATE_CREATURE, 99);
-      SET_SKILL(ch, SPELL_MINOR_GLOBE, 99);
-      SET_SKILL(ch, SPELL_REMOVE_CURSE, 99); //shared
-      SET_SKILL(ch, SPELL_STONESKIN, 99);
-      SET_SKILL(ch, SPELL_ENLARGE_PERSON, 99);
-      SET_SKILL(ch, SPELL_SHRINK_PERSON, 99);
-
-      //5th circle
-      SET_SKILL(ch, SPELL_INTERPOSING_HAND, 99);
-      SET_SKILL(ch, SPELL_WALL_OF_FORCE, 99);
-      SET_SKILL(ch, SPELL_BALL_OF_LIGHTNING, 99);
-      SET_SKILL(ch, SPELL_CLOUDKILL, 99);
-      SET_SKILL(ch, SPELL_SUMMON_CREATURE_5, 99);
-      SET_SKILL(ch, SPELL_WAVES_OF_FATIGUE, 99);
-      SET_SKILL(ch, SPELL_SYMBOL_OF_PAIN, 99);
-      SET_SKILL(ch, SPELL_DOMINATE_PERSON, 99);
-      SET_SKILL(ch, SPELL_FEEBLEMIND, 99);
-      SET_SKILL(ch, SPELL_NIGHTMARE, 99);
-      SET_SKILL(ch, SPELL_MIND_FOG, 99);
-      SET_SKILL(ch, SPELL_ACID_SHEATH, 99);
-      SET_SKILL(ch, SPELL_FAITHFUL_HOUND, 99);
-      SET_SKILL(ch, SPELL_DISMISSAL, 99);
-      SET_SKILL(ch, SPELL_CONE_OF_COLD, 99);
-      SET_SKILL(ch, SPELL_TELEKINESIS, 99);
-      SET_SKILL(ch, SPELL_FIREBRAND, 99);
-
-      //6th circle
-      SET_SKILL(ch, SPELL_FREEZING_SPHERE, 99);
-      SET_SKILL(ch, SPELL_ACID_FOG, 99);
-      SET_SKILL(ch, SPELL_SUMMON_CREATURE_6, 99);
-      SET_SKILL(ch, SPELL_TRANSFORMATION, 99);
-      SET_SKILL(ch, SPELL_EYEBITE, 99);
-      SET_SKILL(ch, SPELL_MASS_HASTE, 99);
-      SET_SKILL(ch, SPELL_GREATER_HEROISM, 99);
-      SET_SKILL(ch, SPELL_ANTI_MAGIC_FIELD, 99);
-      SET_SKILL(ch, SPELL_GREATER_MIRROR_IMAGE, 99);
-      SET_SKILL(ch, SPELL_LOCATE_OBJECT, 99);
-      SET_SKILL(ch, SPELL_TRUE_SEEING, 99);
-      SET_SKILL(ch, SPELL_GLOBE_OF_INVULN, 99);
-      SET_SKILL(ch, SPELL_GREATER_DISPELLING, 99);
-      SET_SKILL(ch, SPELL_CLONE, 99);
-      SET_SKILL(ch, SPELL_WATERWALK, 99);
-
-      //7th circle
-      SET_SKILL(ch, SPELL_MISSILE_STORM, 99);
-      SET_SKILL(ch, SPELL_GRASPING_HAND, 99);
-      SET_SKILL(ch, SPELL_SUMMON_CREATURE_7, 99);
-      SET_SKILL(ch, SPELL_CONTROL_WEATHER, 99);
-      SET_SKILL(ch, SPELL_POWER_WORD_BLIND, 99);
-      SET_SKILL(ch, SPELL_WAVES_OF_EXHAUSTION, 99);
-      SET_SKILL(ch, SPELL_MASS_HOLD_PERSON, 99);
-      SET_SKILL(ch, SPELL_MASS_FLY, 99);
-      SET_SKILL(ch, SPELL_DISPLACEMENT, 99);
-      SET_SKILL(ch, SPELL_PRISMATIC_SPRAY, 99);
-      SET_SKILL(ch, SPELL_DETECT_POISON, 99); //shared
-      SET_SKILL(ch, SPELL_POWER_WORD_STUN, 99);
-      SET_SKILL(ch, SPELL_PROTECT_FROM_SPELLS, 99);
-      SET_SKILL(ch, SPELL_THUNDERCLAP, 99);
-      SET_SKILL(ch, SPELL_SPELL_MANTLE, 99);
-      SET_SKILL(ch, SPELL_TELEPORT, 99);
-      SET_SKILL(ch, SPELL_MASS_WISDOM, 99); //shared
-      SET_SKILL(ch, SPELL_MASS_CHARISMA, 99); //shared
-      SET_SKILL(ch, SPELL_MASS_CUNNING, 99); //shared
-
-      //8th circle
-      SET_SKILL(ch, SPELL_CLENCHED_FIST, 99);
-      SET_SKILL(ch, SPELL_CHAIN_LIGHTNING, 99);
-      SET_SKILL(ch, SPELL_INCENDIARY_CLOUD, 99);
-      SET_SKILL(ch, SPELL_SUMMON_CREATURE_8, 99);
-      SET_SKILL(ch, SPELL_HORRID_WILTING, 99);
-      SET_SKILL(ch, SPELL_GREATER_ANIMATION, 99);
-      SET_SKILL(ch, SPELL_IRRESISTIBLE_DANCE, 99);
-      SET_SKILL(ch, SPELL_MASS_DOMINATION, 99);
-      SET_SKILL(ch, SPELL_SCINT_PATTERN, 99);
-      SET_SKILL(ch, SPELL_REFUGE, 99);
-      SET_SKILL(ch, SPELL_BANISH, 99);
-      SET_SKILL(ch, SPELL_SUNBURST, 99);
-      SET_SKILL(ch, SPELL_SPELL_TURNING, 99);
-      SET_SKILL(ch, SPELL_MIND_BLANK, 99);
-      SET_SKILL(ch, SPELL_IRONSKIN, 99);
-      SET_SKILL(ch, SPELL_PORTAL, 99);
-
-      //9th circle
-      SET_SKILL(ch, SPELL_METEOR_SWARM, 99);
-      SET_SKILL(ch, SPELL_BLADE_OF_DISASTER, 99);
-      SET_SKILL(ch, SPELL_SUMMON_CREATURE_9, 99);
-      SET_SKILL(ch, SPELL_GATE, 99);
-      SET_SKILL(ch, SPELL_ENERGY_DRAIN, 99);
-      SET_SKILL(ch, SPELL_WAIL_OF_THE_BANSHEE, 99);
-      SET_SKILL(ch, SPELL_POWER_WORD_KILL, 99);
-      SET_SKILL(ch, SPELL_ENFEEBLEMENT, 99);
-      SET_SKILL(ch, SPELL_WEIRD, 99);
-      SET_SKILL(ch, SPELL_SHADOW_SHIELD, 99);
-      SET_SKILL(ch, SPELL_PRISMATIC_SPHERE, 99);
-      SET_SKILL(ch, SPELL_IMPLODE, 99);
-      SET_SKILL(ch, SPELL_TIMESTOP, 99);
-      SET_SKILL(ch, SPELL_GREATER_SPELL_MANTLE, 99);
-      SET_SKILL(ch, SPELL_POLYMORPH, 99);
-      SET_SKILL(ch, SPELL_MASS_ENHANCE, 99);
-
-      // wizard/sorc innate cantrips
-      /*
-      SET_SKILL(ch, SPELL_ACID_SPLASH, 99);
-      SET_SKILL(ch, SPELL_RAY_OF_FROST, 99);
-       */
-
-      send_to_char(ch, "Wizard / Sorcerer Done.\tn\r\n");
-      break;
-
-    case CLASS_BARD:
-      //spell init
-      //1st circle
-      SET_SKILL(ch, SPELL_HORIZIKAULS_BOOM, 99);
-      SET_SKILL(ch, SPELL_SHIELD, 99);
-      SET_SKILL(ch, SPELL_SUMMON_CREATURE_1, 99);
-      SET_SKILL(ch, SPELL_CHARM, 99);
-      SET_SKILL(ch, SPELL_ENDURE_ELEMENTS, 99);
-      SET_SKILL(ch, SPELL_PROT_FROM_EVIL, 99);
-      SET_SKILL(ch, SPELL_PROT_FROM_GOOD, 99);
-      SET_SKILL(ch, SPELL_MAGIC_MISSILE, 99);
-      SET_SKILL(ch, SPELL_CURE_LIGHT, 99);
-
-      //2nd circle
-      SET_SKILL(ch, SPELL_SUMMON_CREATURE_2, 99);
-      SET_SKILL(ch, SPELL_DEAFNESS, 99);
-      SET_SKILL(ch, SPELL_HIDEOUS_LAUGHTER, 99);
-      SET_SKILL(ch, SPELL_MIRROR_IMAGE, 99);
-      SET_SKILL(ch, SPELL_DETECT_INVIS, 99);
-      SET_SKILL(ch, SPELL_DETECT_MAGIC, 99);
-      SET_SKILL(ch, SPELL_INVISIBLE, 99);
-      SET_SKILL(ch, SPELL_ENDURANCE, 99);
-      SET_SKILL(ch, SPELL_STRENGTH, 99);
-      SET_SKILL(ch, SPELL_GRACE, 99);
-      SET_SKILL(ch, SPELL_CURE_MODERATE, 99);
-
-      //3rd circle
-      SET_SKILL(ch, SPELL_SUMMON_CREATURE_3, 99);
-      SET_SKILL(ch, SPELL_LIGHTNING_BOLT, 99);
-      SET_SKILL(ch, SPELL_DEEP_SLUMBER, 99);
-      SET_SKILL(ch, SPELL_HASTE, 99);
-      SET_SKILL(ch, SPELL_CIRCLE_A_EVIL, 99);
-      SET_SKILL(ch, SPELL_CIRCLE_A_GOOD, 99);
-      SET_SKILL(ch, SPELL_CUNNING, 99);
-      SET_SKILL(ch, SPELL_WISDOM, 99);
-      SET_SKILL(ch, SPELL_CHARISMA, 99);
-      SET_SKILL(ch, SPELL_CURE_SERIOUS, 99);
-
-      //4th circle
-      SET_SKILL(ch, SPELL_SUMMON_CREATURE_4, 99);
-      SET_SKILL(ch, SPELL_GREATER_INVIS, 99);
-      SET_SKILL(ch, SPELL_RAINBOW_PATTERN, 99);
-      SET_SKILL(ch, SPELL_REMOVE_CURSE, 99); //shared
-      SET_SKILL(ch, SPELL_ICE_STORM, 99);
-      SET_SKILL(ch, SPELL_CURE_CRITIC, 99);
-
-      //5th circle
-      SET_SKILL(ch, SPELL_SUMMON_CREATURE_5, 99);
-      SET_SKILL(ch, SPELL_ACID_SHEATH, 99);
-      SET_SKILL(ch, SPELL_CONE_OF_COLD, 99);
-      SET_SKILL(ch, SPELL_NIGHTMARE, 99);
-      SET_SKILL(ch, SPELL_MIND_FOG, 99);
-      SET_SKILL(ch, SPELL_MASS_CURE_LIGHT, 99);
-
-      //6th circle
-      SET_SKILL(ch, SPELL_SUMMON_CREATURE_7, 99);
-      SET_SKILL(ch, SPELL_FREEZING_SPHERE, 99);
-      SET_SKILL(ch, SPELL_GREATER_HEROISM, 99);
-      SET_SKILL(ch, SPELL_MASS_CURE_MODERATE, 99);
-      SET_SKILL(ch, SPELL_STONESKIN, 99);
-
-      // bard innate cantrips
-      /*
-      SET_SKILL(ch, SPELL_ACID_SPLASH, 99);
-      SET_SKILL(ch, SPELL_RAY_OF_FROST, 99);
-       */
-
-      send_to_char(ch, "Bard Done.\tn\r\n");
-      break;
-
     case CLASS_CLERIC:
       /* we also have to add this to study where we set our domains */
       assign_domain_spells(ch);
-
-      //spell init
-      //1st circle
-      SET_SKILL(ch, SPELL_ARMOR, 99);
-      SET_SKILL(ch, SPELL_CURE_LIGHT, 99);
-      SET_SKILL(ch, SPELL_ENDURANCE, 99);
-      SET_SKILL(ch, SPELL_CAUSE_LIGHT_WOUNDS, 99);
-      SET_SKILL(ch, SPELL_NEGATIVE_ENERGY_RAY, 99);
-      SET_SKILL(ch, SPELL_ENDURE_ELEMENTS, 99);
-      SET_SKILL(ch, SPELL_PROT_FROM_GOOD, 99);
-      SET_SKILL(ch, SPELL_PROT_FROM_EVIL, 99);
-      SET_SKILL(ch, SPELL_SUMMON_CREATURE_1, 99);
-      SET_SKILL(ch, SPELL_STRENGTH, 99);
-      SET_SKILL(ch, SPELL_GRACE, 99);
-      SET_SKILL(ch, SPELL_REMOVE_FEAR, 99);
-      //2nd circle
-      SET_SKILL(ch, SPELL_CREATE_FOOD, 99);
-      SET_SKILL(ch, SPELL_CREATE_WATER, 99);
-      SET_SKILL(ch, SPELL_DETECT_POISON, 99);
-      SET_SKILL(ch, SPELL_CAUSE_MODERATE_WOUNDS, 99);
-      SET_SKILL(ch, SPELL_CURE_MODERATE, 99);
-      SET_SKILL(ch, SPELL_SCARE, 99);
-      SET_SKILL(ch, SPELL_SUMMON_CREATURE_2, 99);
-      SET_SKILL(ch, SPELL_DETECT_MAGIC, 99);
-      SET_SKILL(ch, SPELL_DARKNESS, 99);
-      SET_SKILL(ch, SPELL_RESIST_ENERGY, 99);
-      SET_SKILL(ch, SPELL_WISDOM, 99);
-      SET_SKILL(ch, SPELL_CHARISMA, 99);
-      //3rd circle
-      SET_SKILL(ch, SPELL_BLESS, 99);
-      SET_SKILL(ch, SPELL_CURE_BLIND, 99);
-      SET_SKILL(ch, SPELL_DETECT_ALIGN, 99);
-      SET_SKILL(ch, SPELL_CAUSE_SERIOUS_WOUNDS, 99);
-      SET_SKILL(ch, SPELL_CURE_SERIOUS, 99);
-      SET_SKILL(ch, SPELL_SUMMON_CREATURE_3, 99);
-      SET_SKILL(ch, SPELL_BLINDNESS, 99);
-      SET_SKILL(ch, SPELL_DEAFNESS, 99);
-      SET_SKILL(ch, SPELL_CURE_DEAFNESS, 99);
-      SET_SKILL(ch, SPELL_CUNNING, 99);
-      SET_SKILL(ch, SPELL_DISPEL_MAGIC, 99);
-      SET_SKILL(ch, SPELL_ANIMATE_DEAD, 99);
-      SET_SKILL(ch, SPELL_FAERIE_FOG, 99);
-      //4th circle
-      SET_SKILL(ch, SPELL_CURE_CRITIC, 99);
-      SET_SKILL(ch, SPELL_REMOVE_CURSE, 99);
-      SET_SKILL(ch, SPELL_INFRAVISION, 99);
-      SET_SKILL(ch, SPELL_CAUSE_CRITICAL_WOUNDS, 99);
-      SET_SKILL(ch, SPELL_SUMMON_CREATURE_4, 99);
-      SET_SKILL(ch, SPELL_CIRCLE_A_EVIL, 99);
-      SET_SKILL(ch, SPELL_CIRCLE_A_GOOD, 99);
-      SET_SKILL(ch, SPELL_CURSE, 99);
-      SET_SKILL(ch, SPELL_DAYLIGHT, 99);
-      SET_SKILL(ch, SPELL_MASS_CURE_LIGHT, 99);
-      SET_SKILL(ch, SPELL_AID, 99);
-      SET_SKILL(ch, SPELL_BRAVERY, 99);
-      //5th circle
-      SET_SKILL(ch, SPELL_POISON, 99);
-      SET_SKILL(ch, SPELL_REMOVE_POISON, 99);
-      SET_SKILL(ch, SPELL_PROT_FROM_EVIL, 99);
-      SET_SKILL(ch, SPELL_GROUP_ARMOR, 99);
-      SET_SKILL(ch, SPELL_FLAME_STRIKE, 99);
-      SET_SKILL(ch, SPELL_PROT_FROM_GOOD, 99);
-      SET_SKILL(ch, SPELL_MASS_CURE_MODERATE, 99);
-      SET_SKILL(ch, SPELL_SUMMON_CREATURE_5, 99);
-      SET_SKILL(ch, SPELL_WATER_BREATHE, 99);
-      SET_SKILL(ch, SPELL_WATERWALK, 99);
-      SET_SKILL(ch, SPELL_REGENERATION, 99);
-      SET_SKILL(ch, SPELL_FREE_MOVEMENT, 99);
-      SET_SKILL(ch, SPELL_STRENGTHEN_BONE, 99);
-      //6th circle
-      SET_SKILL(ch, SPELL_DISPEL_EVIL, 99);
-      SET_SKILL(ch, SPELL_HARM, 99);
-      SET_SKILL(ch, SPELL_HEAL, 99);
-      SET_SKILL(ch, SPELL_DISPEL_GOOD, 99);
-      SET_SKILL(ch, SPELL_SUMMON_CREATURE_6, 99);
-      SET_SKILL(ch, SPELL_MASS_CURE_SERIOUS, 99);
-      SET_SKILL(ch, SPELL_EYEBITE, 99);
-      SET_SKILL(ch, SPELL_PRAYER, 99);
-      SET_SKILL(ch, SPELL_MASS_WISDOM, 99);
-      SET_SKILL(ch, SPELL_MASS_CHARISMA, 99);
-      SET_SKILL(ch, SPELL_MASS_CUNNING, 99);
-      SET_SKILL(ch, SPELL_REMOVE_DISEASE, 99);
-      //7th circle
-      SET_SKILL(ch, SPELL_CALL_LIGHTNING, 99);
-      //SET_SKILL(ch, SPELL_CONTROL_WEATHER, 99);
-      SET_SKILL(ch, SPELL_SUMMON, 99);
-      SET_SKILL(ch, SPELL_WORD_OF_RECALL, 99);
-      SET_SKILL(ch, SPELL_SUMMON_CREATURE_7, 99);
-      SET_SKILL(ch, SPELL_MASS_CURE_CRIT, 99);
-      SET_SKILL(ch, SPELL_GREATER_DISPELLING, 99);
-      SET_SKILL(ch, SPELL_MASS_ENHANCE, 99);
-      SET_SKILL(ch, SPELL_BLADE_BARRIER, 99);
-      SET_SKILL(ch, SPELL_BATTLETIDE, 99);
-      SET_SKILL(ch, SPELL_SPELL_RESISTANCE, 99);
-      SET_SKILL(ch, SPELL_SENSE_LIFE, 99);
-      //8th circle
-      //SET_SKILL(ch, SPELL_SANCTUARY, 99);
-      SET_SKILL(ch, SPELL_DESTRUCTION, 99);
-      SET_SKILL(ch, SPELL_SUMMON_CREATURE_8, 99);
-      SET_SKILL(ch, SPELL_SPELL_MANTLE, 99);
-      SET_SKILL(ch, SPELL_TRUE_SEEING, 99);
-      SET_SKILL(ch, SPELL_WORD_OF_FAITH, 99);
-      SET_SKILL(ch, SPELL_GREATER_ANIMATION, 99);
-      SET_SKILL(ch, SPELL_EARTHQUAKE, 99);
-      SET_SKILL(ch, SPELL_ANTI_MAGIC_FIELD, 99);
-      SET_SKILL(ch, SPELL_DIMENSIONAL_LOCK, 99);
-      SET_SKILL(ch, SPELL_SALVATION, 99);
-      SET_SKILL(ch, SPELL_SPRING_OF_LIFE, 99);
-      //9th circle
-      SET_SKILL(ch, SPELL_SUNBURST, 99);
-      SET_SKILL(ch, SPELL_ENERGY_DRAIN, 99);
-      SET_SKILL(ch, SPELL_GROUP_HEAL, 99);
-      SET_SKILL(ch, SPELL_SUMMON_CREATURE_9, 99);
-      SET_SKILL(ch, SPELL_PLANE_SHIFT, 99);
-      SET_SKILL(ch, SPELL_STORM_OF_VENGEANCE, 99);
-      SET_SKILL(ch, SPELL_IMPLODE, 99);
-      //death shield
-      //command
-      //air walker
-      SET_SKILL(ch, SPELL_REFUGE, 99);
-      SET_SKILL(ch, SPELL_GROUP_SUMMON, 99);
-
-
-      send_to_char(ch, "Cleric Done.\tn\r\n");
       break;
-
-
-    case CLASS_DRUID:
-      //spell init
-      //1st circle
-      SET_SKILL(ch, SPELL_CHARM_ANIMAL, 99);
-      SET_SKILL(ch, SPELL_CURE_LIGHT, 99);
-      SET_SKILL(ch, SPELL_FAERIE_FIRE, 99);
-      SET_SKILL(ch, SPELL_GOODBERRY, 99);
-      SET_SKILL(ch, SPELL_JUMP, 99);
-      SET_SKILL(ch, SPELL_MAGIC_FANG, 99);
-      SET_SKILL(ch, SPELL_MAGIC_STONE, 99);
-      SET_SKILL(ch, SPELL_OBSCURING_MIST, 99);
-      SET_SKILL(ch, SPELL_PRODUCE_FLAME, 99);
-      SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_1, 99);
-
-      //2nd circle
-      SET_SKILL(ch, SPELL_BARKSKIN, 99);
-      SET_SKILL(ch, SPELL_ENDURANCE, 99);
-      SET_SKILL(ch, SPELL_STRENGTH, 99);
-      SET_SKILL(ch, SPELL_GRACE, 99);
-      SET_SKILL(ch, SPELL_FLAME_BLADE, 99);
-      SET_SKILL(ch, SPELL_FLAMING_SPHERE, 99);
-      SET_SKILL(ch, SPELL_HOLD_ANIMAL, 99);
-      SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_2, 99);
-      SET_SKILL(ch, SPELL_SUMMON_SWARM, 99);
-      SET_SKILL(ch, SPELL_WISDOM, 99);
-
-      //3rd circle
-      SET_SKILL(ch, SPELL_CALL_LIGHTNING, 99);
-      SET_SKILL(ch, SPELL_CURE_MODERATE, 99);
-      SET_SKILL(ch, SPELL_CONTAGION, 99);
-      SET_SKILL(ch, SPELL_GREATER_MAGIC_FANG, 99);
-      SET_SKILL(ch, SPELL_POISON, 99);
-      SET_SKILL(ch, SPELL_REMOVE_DISEASE, 99);
-      SET_SKILL(ch, SPELL_REMOVE_POISON, 99);
-      SET_SKILL(ch, SPELL_SPIKE_GROWTH, 99);
-      SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_3, 99);
-
-      //4th circle
-      SET_SKILL(ch, SPELL_BLIGHT, 99);
-      SET_SKILL(ch, SPELL_CURE_SERIOUS, 99);
-      SET_SKILL(ch, SPELL_DISPEL_MAGIC, 99);
-      SET_SKILL(ch, SPELL_FLAME_STRIKE, 99);
-      SET_SKILL(ch, SPELL_FREE_MOVEMENT, 99);
-      SET_SKILL(ch, SPELL_ICE_STORM, 99);
-      SET_SKILL(ch, SPELL_LOCATE_CREATURE, 99);
-      // reincarnate? SET_SKILL(ch, SPELL_REINCARNATE, 99);
-      SET_SKILL(ch, SPELL_SPIKE_STONES, 99);
-      SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_4, 99);
-
-      //5th circle
-      // baleful polymorph SET_SKILL(ch, SPELL_BALEFUL_POLYMORPH, 99);
-      SET_SKILL(ch, SPELL_CALL_LIGHTNING_STORM, 99);
-      SET_SKILL(ch, SPELL_CURE_CRITIC, 99);
-      SET_SKILL(ch, SPELL_DEATH_WARD, 99);
-      SET_SKILL(ch, SPELL_HALLOW, 99);
-      SET_SKILL(ch, SPELL_INSECT_PLAGUE, 99);
-      SET_SKILL(ch, SPELL_STONESKIN, 99);
-      SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_5, 99);
-      SET_SKILL(ch, SPELL_UNHALLOW, 99);
-      SET_SKILL(ch, SPELL_WALL_OF_FIRE, 99);
-      SET_SKILL(ch, SPELL_WALL_OF_THORNS, 99);
-
-      //6th circle
-      SET_SKILL(ch, SPELL_FIRE_SEEDS, 99);
-      SET_SKILL(ch, SPELL_GREATER_DISPELLING, 99);
-      SET_SKILL(ch, SPELL_MASS_ENDURANCE, 99);
-      SET_SKILL(ch, SPELL_MASS_STRENGTH, 99);
-      SET_SKILL(ch, SPELL_MASS_GRACE, 99);
-      SET_SKILL(ch, SPELL_MASS_WISDOM, 99);
-      SET_SKILL(ch, SPELL_SPELLSTAFF, 99);
-      SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_6, 99);
-      SET_SKILL(ch, SPELL_TRANSPORT_VIA_PLANTS, 99);
-
-      //7th circle
-      SET_SKILL(ch, SPELL_CONTROL_WEATHER, 99);
-      SET_SKILL(ch, SPELL_CREEPING_DOOM, 99);
-      SET_SKILL(ch, SPELL_FIRE_STORM, 99);
-      // greater scrying SET_SKILL(ch, SPELL_GREATER_SCRYING, 99);
-      SET_SKILL(ch, SPELL_HEAL, 99);
-      SET_SKILL(ch, SPELL_MASS_CURE_MODERATE, 99);
-      SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_7, 99);
-      SET_SKILL(ch, SPELL_SUNBEAM, 99);
-
-      //8th circle
-      SET_SKILL(ch, SPELL_ANIMAL_SHAPES, 99);
-      SET_SKILL(ch, SPELL_CONTROL_PLANTS, 99);
-      SET_SKILL(ch, SPELL_EARTHQUAKE, 99);
-      SET_SKILL(ch, SPELL_FINGER_OF_DEATH, 99);
-      SET_SKILL(ch, SPELL_MASS_CURE_SERIOUS, 99);
-      SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_8, 99);
-      SET_SKILL(ch, SPELL_SUNBURST, 99);
-      SET_SKILL(ch, SPELL_WHIRLWIND, 99);
-      SET_SKILL(ch, SPELL_WORD_OF_RECALL, 99);
-
-      //9th circle
-      SET_SKILL(ch, SPELL_ELEMENTAL_SWARM, 99);
-      SET_SKILL(ch, SPELL_REGENERATION, 99);
-      SET_SKILL(ch, SPELL_MASS_CURE_CRIT, 99);
-      SET_SKILL(ch, SPELL_SHAMBLER, 99);
-      SET_SKILL(ch, SPELL_POLYMORPH, 99); // should be SHAPECHANGE
-      SET_SKILL(ch, SPELL_STORM_OF_VENGEANCE, 99);
-      SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_9, 99);
-
-      send_to_char(ch, "Druid Done.\tn\r\n");
-      break;
-
-    case CLASS_PALADIN:
-      //spell init
-      //1st circle
-      SET_SKILL(ch, SPELL_CURE_LIGHT, 99);
-      SET_SKILL(ch, SPELL_ENDURANCE, 99);
-      SET_SKILL(ch, SPELL_ARMOR, 99);
-      //2nd circle
-      SET_SKILL(ch, SPELL_CREATE_FOOD, 99);
-      SET_SKILL(ch, SPELL_CREATE_WATER, 99);
-      SET_SKILL(ch, SPELL_DETECT_POISON, 99);
-      SET_SKILL(ch, SPELL_CURE_MODERATE, 99);
-      //3rd circle
-      SET_SKILL(ch, SPELL_DETECT_ALIGN, 99);
-      SET_SKILL(ch, SPELL_CURE_BLIND, 99);
-      SET_SKILL(ch, SPELL_BLESS, 99);
-      SET_SKILL(ch, SPELL_CURE_SERIOUS, 99);
-      //4th circle
-      SET_SKILL(ch, SPELL_AID, 99);
-      SET_SKILL(ch, SPELL_INFRAVISION, 99);
-      SET_SKILL(ch, SPELL_REMOVE_CURSE, 99);
-      SET_SKILL(ch, SPELL_REMOVE_POISON, 99);
-      SET_SKILL(ch, SPELL_CURE_CRITIC, 99);
-      SET_SKILL(ch, SPELL_HOLY_SWORD, 99);
-
-      send_to_char(ch, "Paladin Done.\tn\r\n");
-      break;
-
-    case CLASS_ROGUE:
-      send_to_char(ch, "Rogue Done.\tn\r\n");
-      break;
-
-    case CLASS_WARRIOR:
-      send_to_char(ch, "Warrior Done.\tn\r\n");
-      break;
-
-    case CLASS_RANGER:
-      //spell init
-      //1st circle
-      SET_SKILL(ch, SPELL_CURE_LIGHT, 99);
-      SET_SKILL(ch, SPELL_CHARM_ANIMAL, 99);
-      SET_SKILL(ch, SPELL_FAERIE_FIRE, 99);
-      SET_SKILL(ch, SPELL_JUMP, 99);
-      SET_SKILL(ch, SPELL_MAGIC_FANG, 99);
-      SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_1, 99);
-      //2nd circle
-      SET_SKILL(ch, SPELL_ENDURANCE, 99);
-      SET_SKILL(ch, SPELL_BARKSKIN, 99);
-      SET_SKILL(ch, SPELL_GRACE, 99);
-      SET_SKILL(ch, SPELL_HOLD_ANIMAL, 99);
-      SET_SKILL(ch, SPELL_WISDOM, 99);
-      SET_SKILL(ch, SPELL_STRENGTH, 99);
-      SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_2, 99);
-      //3rd circle
-      SET_SKILL(ch, SPELL_SPIKE_GROWTH, 99);
-      SET_SKILL(ch, SPELL_GREATER_MAGIC_FANG, 99);
-      SET_SKILL(ch, SPELL_CONTAGION, 99);
-      SET_SKILL(ch, SPELL_CURE_MODERATE, 99);
-      SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_3, 99);
-      SET_SKILL(ch, SPELL_REMOVE_DISEASE, 99);
-      SET_SKILL(ch, SPELL_REMOVE_POISON, 99);
-      //4th circle
-      SET_SKILL(ch, SPELL_SUMMON_NATURES_ALLY_6, 99);
-      SET_SKILL(ch, SPELL_FREE_MOVEMENT, 99);
-      SET_SKILL(ch, SPELL_DISPEL_MAGIC, 99);
-      SET_SKILL(ch, SPELL_CURE_SERIOUS, 99);
-
-      send_to_char(ch, "Ranger Done.\tn\r\n");
-      break;
-
-    case CLASS_BERSERKER:
-      send_to_char(ch, "Berserker Done.\tn\r\n");
-      break;
-
-    case CLASS_MONK:
-      send_to_char(ch, "Monk Done.\tn\r\n");
-      break;
-
-    case CLASS_WEAPON_MASTER:
-      send_to_char(ch, "WeaponMaster Done.\tn\r\n");
-      break;
-
-    default:
-      send_to_char(ch, "None needed.\tn\r\n");
-      break;
+    default:break;
   }
 }
 
@@ -3953,13 +3418,13 @@ void advance_level(struct char_data *ch, int class) {
   GET_FEAT_POINTS(ch) += feats;
   if (feats)
     send_to_char(ch, "%d \tMFeat points gained.\tn\r\n", feats);
-  GET_CLASS_FEATS(ch, GET_CLASS(ch)) += class_feats;
+  GET_CLASS_FEATS(ch, class) += class_feats;
   if (class_feats)
     send_to_char(ch, "%d \tMClass feat points gained.\tn\r\n", class_feats);
   GET_EPIC_FEAT_POINTS(ch) += epic_feats;
   if (epic_feats)
     send_to_char(ch, "%d \tMEpic feat points gained.\tn\r\n", epic_feats);
-  GET_EPIC_CLASS_FEATS(ch, GET_CLASS(ch)) += epic_class_feats;
+  GET_EPIC_CLASS_FEATS(ch, class) += epic_class_feats;
   if (epic_class_feats)
     send_to_char(ch, "%d \tMEpic class feat points gained.\tn\r\n", epic_class_feats);
   GET_TRAINS(ch) += trains;
