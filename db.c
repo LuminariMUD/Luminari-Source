@@ -864,6 +864,9 @@ void boot_db(void) {
     assign_the_quests();
   }
 
+  /* this MUST come after boot_world because the class_list where we have
+     all the data for assigning min. level for spells needs to be initialized
+     first */
   log("Assigning spell and skill levels.");
   init_spell_levels();
 
