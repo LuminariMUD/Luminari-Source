@@ -3689,6 +3689,7 @@ SPECIAL(wizard_library) {
   bool found = FALSE, full_spellbook = TRUE;
   struct obj_data *obj = NULL;
   int spellnum = SPELL_RESERVED_DBC, spell_level = 0, cost = 100, i = 0;
+  int class_level = 0
 
   if (CMD_IS("research")) {
 
@@ -3712,6 +3713,8 @@ SPECIAL(wizard_library) {
     }
 
     spell_level = spell_info[spellnum].min_level[CLASS_WIZARD];
+    class_level = CLASS_LEVEL(ch, CLASS_WIZARD) +
+            BONUS_CASTER_LEVEL(ch, CLASS_WIZARD);
 
     if (spell_level <= 0 || spell_level >= LVL_IMMORT) {
       send_to_char(ch, "That spell is not available to wizards.\r\n");
@@ -3726,7 +3729,7 @@ SPECIAL(wizard_library) {
       return TRUE;
     }
 
-    if (CLASS_LEVEL(ch, CLASS_WIZARD) >= spell_level && GET_SKILL(ch, spellnum)) {
+    if (class_level >= spell_level && GET_SKILL(ch, spellnum)) {
       /* 1st make sure we have a spellbook handy */
       /* for-loop for inventory */
       for (obj = ch->carrying; obj && !found; obj = obj->next_content) {

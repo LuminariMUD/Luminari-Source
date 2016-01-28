@@ -921,50 +921,50 @@ void load_class_list(void) {
   );
   /*              class num      spell                   level acquired */
   /* 1st circle */
-  spell_assignment(SPELL_CHARM_ANIMAL,          1);
-  spell_assignment(SPELL_CURE_LIGHT,            1);
-  spell_assignment(SPELL_FAERIE_FIRE,           1);
-  spell_assignment(SPELL_GOODBERRY,             1);
-  spell_assignment(SPELL_JUMP,                  1);
-  spell_assignment(SPELL_MAGIC_FANG,            1);
-  spell_assignment(SPELL_MAGIC_STONE,           1);
-  spell_assignment(SPELL_OBSCURING_MIST,        1);
-  spell_assignment(SPELL_PRODUCE_FLAME,         1);
-  spell_assignment(SPELL_SUMMON_NATURES_ALLY_1, 1);
+  spell_assignment(CLASS_DRUID, SPELL_CHARM_ANIMAL,          1);
+  spell_assignment(CLASS_DRUID, SPELL_CURE_LIGHT,            1);
+  spell_assignment(CLASS_DRUID, SPELL_FAERIE_FIRE,           1);
+  spell_assignment(CLASS_DRUID, SPELL_GOODBERRY,             1);
+  spell_assignment(CLASS_DRUID, SPELL_JUMP,                  1);
+  spell_assignment(CLASS_DRUID, SPELL_MAGIC_FANG,            1);
+  spell_assignment(CLASS_DRUID, SPELL_MAGIC_STONE,           1);
+  spell_assignment(CLASS_DRUID, SPELL_OBSCURING_MIST,        1);
+  spell_assignment(CLASS_DRUID, SPELL_PRODUCE_FLAME,         1);
+  spell_assignment(CLASS_DRUID, SPELL_SUMMON_NATURES_ALLY_1, 1);
   /*              class num      spell                   level acquired */
   /* 2nd circle */
-  spell_assignment(SPELL_BARKSKIN,              3);
-  spell_assignment(SPELL_ENDURANCE,             3);
-  spell_assignment(SPELL_STRENGTH,              3);
-  spell_assignment(SPELL_GRACE,                 3);
-  spell_assignment(SPELL_FLAME_BLADE,           3);
-  spell_assignment(SPELL_FLAMING_SPHERE,        3);
-  spell_assignment(SPELL_HOLD_ANIMAL,           3);
-  spell_assignment(SPELL_SUMMON_NATURES_ALLY_2, 3);
-  spell_assignment(SPELL_SUMMON_SWARM,          3);
-  spell_assignment(SPELL_WISDOM,                3);
+  spell_assignment(CLASS_DRUID, SPELL_BARKSKIN,              3);
+  spell_assignment(CLASS_DRUID, SPELL_ENDURANCE,             3);
+  spell_assignment(CLASS_DRUID, SPELL_STRENGTH,              3);
+  spell_assignment(CLASS_DRUID, SPELL_GRACE,                 3);
+  spell_assignment(CLASS_DRUID, SPELL_FLAME_BLADE,           3);
+  spell_assignment(CLASS_DRUID, SPELL_FLAMING_SPHERE,        3);
+  spell_assignment(CLASS_DRUID, SPELL_HOLD_ANIMAL,           3);
+  spell_assignment(CLASS_DRUID, SPELL_SUMMON_NATURES_ALLY_2, 3);
+  spell_assignment(CLASS_DRUID, SPELL_SUMMON_SWARM,          3);
+  spell_assignment(CLASS_DRUID, SPELL_WISDOM,                3);
   /*              class num      spell                   level acquired */
   /* 3rd circle */
-  spell_assignment(SPELL_CALL_LIGHTNING,        5);
-  spell_assignment(SPELL_CURE_MODERATE,         5);
-  spell_assignment(SPELL_CONTAGION,             5);
-  spell_assignment(SPELL_GREATER_MAGIC_FANG,    5);
-  spell_assignment(SPELL_POISON,                5);
-  spell_assignment(SPELL_REMOVE_DISEASE,        5);
-  spell_assignment(SPELL_REMOVE_POISON,         5);
-  spell_assignment(SPELL_SPIKE_GROWTH,          5);
-  spell_assignment(SPELL_SUMMON_NATURES_ALLY_3, 5);
+  spell_assignment(CLASS_DRUID, SPELL_CALL_LIGHTNING,        5);
+  spell_assignment(CLASS_DRUID, SPELL_CURE_MODERATE,         5);
+  spell_assignment(CLASS_DRUID, SPELL_CONTAGION,             5);
+  spell_assignment(CLASS_DRUID, SPELL_GREATER_MAGIC_FANG,    5);
+  spell_assignment(CLASS_DRUID, SPELL_POISON,                5);
+  spell_assignment(CLASS_DRUID, SPELL_REMOVE_DISEASE,        5);
+  spell_assignment(CLASS_DRUID, SPELL_REMOVE_POISON,         5);
+  spell_assignment(CLASS_DRUID, SPELL_SPIKE_GROWTH,          5);
+  spell_assignment(CLASS_DRUID, SPELL_SUMMON_NATURES_ALLY_3, 5);
   /*              class num      spell                   level acquired */
   /* 4th circle */
-  spell_assignment(SPELL_BLIGHT,                7);
-  spell_assignment(SPELL_CURE_SERIOUS,          7);
-  spell_assignment(SPELL_DISPEL_MAGIC,          7);
-  spell_assignment(SPELL_FLAME_STRIKE,          7);
-  spell_assignment(SPELL_FREE_MOVEMENT,         7);
-  spell_assignment(SPELL_ICE_STORM,             7);
-  spell_assignment(SPELL_LOCATE_CREATURE,       7);
-  spell_assignment(SPELL_SPIKE_STONES,          7);
-  spell_assignment(SPELL_SUMMON_NATURES_ALLY_4, 7);
+  spell_assignment(CLASS_DRUID, SPELL_BLIGHT,                7);
+  spell_assignment(CLASS_DRUID, SPELL_CURE_SERIOUS,          7);
+  spell_assignment(CLASS_DRUID, SPELL_DISPEL_MAGIC,          7);
+  spell_assignment(CLASS_DRUID, SPELL_FLAME_STRIKE,          7);
+  spell_assignment(CLASS_DRUID, SPELL_FREE_MOVEMENT,         7);
+  spell_assignment(CLASS_DRUID, SPELL_ICE_STORM,             7);
+  spell_assignment(CLASS_DRUID, SPELL_LOCATE_CREATURE,       7);
+  spell_assignment(CLASS_DRUID, SPELL_SPIKE_STONES,          7);
+  spell_assignment(CLASS_DRUID, SPELL_SUMMON_NATURES_ALLY_4, 7);
   //spell_assignment(SPELL_REINCARNATE, 7);
   /*              class num      spell                   level acquired */
   /* 5th circle */
