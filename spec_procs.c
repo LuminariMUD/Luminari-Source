@@ -3689,7 +3689,7 @@ SPECIAL(wizard_library) {
   bool found = FALSE, full_spellbook = TRUE;
   struct obj_data *obj = NULL;
   int spellnum = SPELL_RESERVED_DBC, spell_level = 0, cost = 100, i = 0;
-  int class_level = 0
+  int class_level = 0;
 
   if (CMD_IS("research")) {
 
