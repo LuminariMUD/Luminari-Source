@@ -16,6 +16,7 @@
 #include "lists.h"
 #include "help.h"
 #include "feats.h"
+#include "class.h"
 
 /* puts -'s instead of spaces */
 void space_to_minus(char *str) {
@@ -234,7 +235,8 @@ ACMD(do_help) {
 
   if ((entries = search_help(argument, GET_LEVEL(ch))) == NULL) {
     /* Check feats for relevant entries! */
-    if (!display_feat_info(ch, raw_argument)) {
+    if (!display_feat_info(ch, raw_argument) &&
+            !display_class_info(ch, raw_argument)) {
     
       send_to_char(ch, "There is no help on that word.\r\n");
       mudlog(NRM, MAX(LVL_IMPL, GET_INVIS_LEV(ch)), TRUE,
