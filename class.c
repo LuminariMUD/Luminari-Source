@@ -240,6 +240,8 @@ void class_prereq_weapon_proficiency(int class_num) {
   class_list[class_num].prereq_list = prereq;
 }
 
+/* our little mini struct series for assigning spells to a class and to assigning
+   minimum-level for those spells */
 /* create/allocate memory for the spellassign struct */
 struct class_spell_assign* create_spell_assign(int spell_num, int circle) {
   struct class_spell_assign *spell_asign = NULL;
@@ -266,7 +268,8 @@ void spell_assignment(int class_num, int spell_num, int circle) {
 void classo(int class_num, char *name, char *abbrev, char *colored_abbrev,
         char *menu_name, int max_level, bool locked_class, int prestige_class,
         int base_attack_bonus, int hit_dice, int mana_gain, int move_gain,
-        int trains_gain, bool in_game, int unlock_cost, int epic_feat_progression) {
+        int trains_gain, bool in_game, int unlock_cost, int epic_feat_progression,
+        char *descrip) {
   class_list[class_num].name = name;
   class_list[class_num].abbrev = abbrev;
   class_list[class_num].colored_abbrev = colored_abbrev;
@@ -282,6 +285,7 @@ void classo(int class_num, char *name, char *abbrev, char *colored_abbrev,
   class_list[class_num].in_game = in_game;
   class_list[class_num].unlock_cost = unlock_cost;
   class_list[class_num].epic_feat_progression = epic_feat_progression;
+  class_list[class_num].descrip = descrip;
   /* list of prereqs */
   class_list[class_num].prereq_list = NULL;
   /* list of spell assignments */
@@ -315,7 +319,7 @@ void assign_class_saves(int class_num, int save_fort, int save_refl, int save_wi
   class_list[class_num].preferred_saves[SAVING_DEATH] = save_deth;  
 }
 
-/* function used for assigning whether a given abiliti is not-available, cross-class
+/* function used for assigning whether a given ability is not-available, cross-class
  or class-skill */
 void assign_class_abils(int class_num,
         int acrobatics, int stealth, int perception, int heal, int intimidate,
@@ -369,6 +373,7 @@ void init_class_list(int class_num) {
   class_list[class_num].in_game = N;
   class_list[class_num].unlock_cost = 0;
   class_list[class_num].epic_feat_progression = 5;
+  class_list[class_num].descrip = "undescribed class";
   
   int i = 0;
   for (i = 0; i < NUM_PREFERRED_SAVES; i++)
@@ -384,7 +389,7 @@ void init_class_list(int class_num) {
 
 /* papa function loaded on game boot to assign all the class data */
 void load_class_list(void) {
-  /* initialize a FULL sized list with some default values for safey */
+  /* initialize a FULL sized list with some default values for safety */
   int i = 0;
   for (i = 0; i < NUM_CLASSES; i++)
     init_class_list(i);
@@ -401,7 +406,19 @@ void load_class_list(void) {
   /*     class-number  name      abrv   clr-abrv     menu-name*/
   classo(CLASS_WIZARD, "wizard", "Wiz", "\tmWiz\tn", "m) \tmWizard\tn",
     /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCost efeatp*/
-      -1,       N,    N,        L,  4, 0,   1,   2,     Y,       0,       3);
+      -1,       N,    N,        L,  4, 0,   1,   2,     Y,       0,       3,
+      /*Descrip*/ "Beyond the veil of the mundane hide the secrets of absolute "
+    "power. The works of beings beyond mortals, the legends of realms where titans "
+    "and spirits tread, the lore of creations both wondrous and terrible—such "
+    "mysteries call to those with the ambition and the intellect to rise above "
+    "the common folk to grasp true might. Such is the path of the wizard. These "
+    "shrewd magic-users seek, collect, and covet esoteric knowledge, drawing on "
+    "cultic arts to work wonders beyond the abilities of mere mortals. While some "
+    "might choose a particular field of magical study and become masters of such "
+    "powers, others embrace versatility, reveling in the unbounded wonders of all "
+    "magic. In either case, wizards prove a cunning and potent lot, capable of "
+    "smiting their foes, empowering their allies, and shaping the world to their "
+    "every desire.");
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_WIZARD, B,    B,      G,    B,      B);
   assign_class_abils(CLASS_WIZARD, /* class number */
@@ -632,7 +649,20 @@ void load_class_list(void) {
   /*     class-number  name      abrv   clr-abrv     menu-name*/
   classo(CLASS_CLERIC, "cleric", "Cle", "\tBCle\tn", "c) \tBCleric\tn",
     /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst eFeatp*/
-      -1,       N,    N,        M,  8, 0,   1,   2,     Y,       0,      3);
+      -1,       N,    N,        M,  8, 0,   1,   2,     Y,       0,      3,
+      /*descrip*/"In faith and the miracles of the divine, many find a greater "
+    "purpose. Called to serve powers beyond most mortal understanding, all priests "
+    "preach wonders and provide for the spiritual needs of their people. Clerics "
+    "are more than mere priests, though; these emissaries of the divine work the "
+    "will of the greater powers through strength of arms and the magic of their "
+    "divine channels. Devoted to the tenets of the religions and philosophies that "
+    "inspire them, these ecclesiastics quest to spread the knowledge and influence "
+    "of their faith. Yet while they might share similar abilities, clerics prove as "
+    "different from one another as the powers they serve, with some offering healing "
+    "and redemption, others judging law and truth, and still others spreading "
+    "conflict and corruption. The ways of the cleric are varied, yet all who tread "
+    "these paths walk with the mightiest of allies and bear the arms of the divine "
+    "themselves.");
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_CLERIC, G,    B,      G,    B,      B);
   assign_class_abils(CLASS_CLERIC, /* class number */
@@ -797,7 +827,21 @@ void load_class_list(void) {
   /*     class-number  name     abrv   clr-abrv     menu-name*/
   classo(CLASS_ROGUE, "rogue", "Rog", "\twRog\tn", "t) \tWRogue\tn",
       /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst eFeatp*/
-        -1,       N,    N,        M,  6, 0,   2,   8,     Y,       0,      4);
+        -1,       N,    N,        M,  6, 0,   2,   8,     Y,       0,      4,
+        /*descrip*/"Life is an endless adventure for those who live by their wits. "
+    "Ever just one step ahead of danger, rogues bank on their cunning, skill, and "
+    "charm to bend fate to their favor. Never knowing what to expect, they prepare "
+    "for everything, becoming masters of a wide variety of skills, training "
+    "themselves to be adept manipulators, agile acrobats, shadowy stalkers, or "
+    "masters of any of dozens of other professions or talents. Thieves and gamblers, "
+    "fast talkers and diplomats, bandits and bounty hunters, and explorers and "
+    "investigators all might be considered rogues, as well as countless other "
+    "professions that rely upon wits, prowess, or luck. Although many rogues favor "
+    "cities and the innumerable opportunities of civilization, some embrace lives "
+    "on the road, journeying far, meeting exotic people, and facing fantastic "
+    "danger in pursuit of equally fantastic riches. In the end, any who desire to "
+    "shape their fates and live life on their own terms might come to be called "
+    "rogues.");
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_ROGUE, B,    G,      B,    B,      B);
   assign_class_abils(CLASS_ROGUE, /* class number */
@@ -829,7 +873,19 @@ void load_class_list(void) {
   /*     class-number  name        abrv   clr-abrv       menu-name*/
   classo(CLASS_WARRIOR, "warrior", "War", "\tRWar\tn", "w) \tRWarrior\tn",
       /* max-lvl  lock? prestige? BAB HD  mana move trains in-game? unlkCst, eFeatp */
-        -1,       N,    N,        H,  10, 0,   1,   2,     Y,       0,       4);
+        -1,       N,    N,        H,  10, 0,   1,   2,     Y,       0,       4,
+        /*descrip*/"Some take up arms for glory, wealth, or revenge. Others do "
+    "battle to prove themselves, to protect others, or because they know nothing "
+    "else. Still others learn the ways of weaponcraft to hone their bodies in "
+    "battle and prove their mettle in the forge of war. Lords of the battlefield, "
+    "warriors are a disparate lot, training with many weapons or just one, perfecting "
+    "the uses of armor, learning the fighting techniques of exotic masters, and "
+    "studying the art of combat, all to shape themselves into living weapons. Far "
+    "more than mere thugs, these skilled combatants reveal the true deadliness of "
+    "their weapons, turning hunks of metal into arms capable of taming kingdoms, "
+    "slaughtering monsters, and rousing the hearts of armies. Soldiers, knights, "
+    "hunters, and artists of war, warriors are unparalleled champions, and woe to "
+    "those who dare stand against them.");
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_WARRIOR, G,    B,      B,    B,      B);
   assign_class_abils(CLASS_WARRIOR, /* class number */
@@ -861,7 +917,16 @@ void load_class_list(void) {
   /*     class-number  name    abrv   clr-abrv     menu-name*/
   classo(CLASS_MONK, "monk", "Mon", "\tgMon\tn", "o) \tgMonk\tn",
       /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst, eFeatp */
-        -1,       N,    N,        M,  8, 0,   2,   4,     Y,       0,       5);
+        -1,       N,    N,        M,  8, 0,   2,   4,     Y,       0,       5,
+        /*descrip*/"For the truly exemplary, martial skill transcends the "
+    "battlefield—it is a lifestyle, a doctrine, a state of mind. These warrior-"
+    "artists search out methods of battle beyond swords and shields, finding "
+    "weapons within themselves just as capable of crippling or killing as any "
+    "blade. These monks (so called since they adhere to ancient philosophies and "
+    "strict martial disciplines) elevate their bodies to become weapons of war, "
+    "from battle-minded ascetics to self-taught brawlers. Monks tread the path of "
+    "discipline, and those with the will to endure that path discover within "
+    "themselves not what they are, but what they are meant to be.");
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_MONK,   G,    G,      G,    B,      B);
   assign_class_abils(CLASS_MONK, /* class number */
@@ -893,7 +958,18 @@ void load_class_list(void) {
   /*     class-number  name      abrv   clr-abrv          menu-name*/
   classo(CLASS_DRUID, "druid", "Dru", "\tGD\tgr\tGu\tn", "d) \tGD\tgr\tGu\tgi\tGd\tn",
       /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst, eFeatp*/
-        -1,       N,    N,        M,  8, 0,   3,   4,     Y,       0,       4);
+        -1,       N,    N,        M,  8, 0,   3,   4,     Y,       0,       4,
+        /*descrip*/"Within the purity of the elements and the order of the wilds "
+    "lingers a power beyond the marvels of civilization. Furtive yet undeniable, "
+    "these primal magics are guarded over by servants of philosophical balance "
+    "known as druids. Allies to beasts and manipulators of nature, these often "
+    "misunderstood protectors of the wild strive to shield their lands from all "
+    "who would threaten them and prove the might of the wilds to those who lock "
+    "themselves behind city walls. Rewarded for their devotion with incredible "
+    "powers, druids gain unparalleled shape-shifting abilities, the companionship "
+    "of mighty beasts, and the power to call upon nature's wrath. The mightiest "
+    "temper powers akin to storms, earthquakes, and volcanoes with primeval wisdom "
+    "long abandoned and forgotten by civilization.");
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_DRUID,  G,    B,      G,    B,      B);
   assign_class_abils(CLASS_DRUID, /* class number */
@@ -1031,7 +1107,20 @@ void load_class_list(void) {
   /*     class-number        name      abrv   clr-abrv           menu-name*/
   classo(CLASS_BERSERKER, "berserker", "Bes", "\trB\tRe\trs\tn", "b) \trBer\tRser\trker\tn",
       /* max-lvl  lock? prestige? BAB HD  mana move trains in-game? unlkCst, eFeatp */
-        -1,       N,    N,        H,  12, 0,   2,   4,     Y,       0,       4);
+        -1,       N,    N,        H,  12, 0,   2,   4,     Y,       0,       4,
+        /*descrip*/"For some, there is only rage. In the ways of their people, in "
+    "the fury of their passion, in the howl of battle, conflict is all these brutal "
+    "souls know. Savages, hired muscle, masters of vicious martial techniques, they "
+    "are not soldiers or professional warriors—they are the battle possessed, "
+    "creatures of slaughter and spirits of war. Known as berserkers, these warmongers "
+    "know little of training, preparation, or the rules of warfare; for them, only "
+    "the moment exists, with the foes that stand before them and the knowledge that "
+    "the next moment might hold their death. They possess a sixth sense in regard to "
+    "danger and the endurance to weather all that might entail. These brutal warriors "
+    "might rise from all walks of life, both civilized and savage, though whole "
+    "societies embracing such philosophies roam the wild places of the world. Within "
+    "berserkers storms the primal spirit of battle, and woe to those who face their "
+    "rage.");
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_BERSERKER, G,    B,      B,    B,      B);
   assign_class_abils(CLASS_BERSERKER, /* class number */
@@ -1063,7 +1152,21 @@ void load_class_list(void) {
   /*     class-number     name      abrv   clr-abrv     menu-name*/
   classo(CLASS_SORCERER, "sorcerer", "Sor", "\tMSor\tn", "s) \tMSorcerer\tn",
       /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst, eFeatp*/
-        -1,       N,    N,        L,  4, 0,   1,   2,     Y,       0,       3);
+        -1,       N,    N,        L,  4, 0,   1,   2,     Y,       0,       3,
+        /*descrip*/"Scions of innately magical bloodlines, the chosen of deities, "
+    "the spawn of monsters, pawns of fate and destiny, or simply flukes of fickle "
+    "magic, sorcerers look within themselves for arcane prowess and draw forth might "
+    "few mortals can imagine. Emboldened by lives ever threatening to be consumed "
+    "by their innate powers, these magic-touched souls endlessly indulge in and "
+    "refine their mysterious abilities, gradually learning how to harness their "
+    "birthright and coax forth ever greater arcane feats. Just as varied as these "
+    "innately powerful spellcasters' abilities and inspirations are the ways in "
+    "which they choose to utilize their gifts. While some seek to control their "
+    "abilities through meditation and discipline, becoming masters of their "
+    "fantastic birthright, others give in to their magic, letting it rule their "
+    "lives with often explosive results. Regardless, sorcerers live and breathe "
+    "that which other spellcasters devote their lives to mastering, and for them "
+    "magic is more than a boon or a field of study; it is life itself.");
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_SORCERER, B,    B,      G,    B,      B);
   assign_class_abils(CLASS_SORCERER, /* class number */
@@ -1294,7 +1397,19 @@ void load_class_list(void) {
   /*     class-number   name      abrv   clr-abrv     menu-name*/
   classo(CLASS_PALADIN, "paladin", "Pal", "\tWPal\tn", "p) \tWPaladin\tn",
       /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst, eFeatp*/
-        -1,       N,    N,        H,  10, 0,   1,   2,     Y,      0,       3);
+        -1,       N,    N,        H,  10, 0,   1,   2,     Y,      0,       3,
+        /*descrip*/"Through a select, worthy few shines the power of the divine. "
+    "Called paladins, these noble souls dedicate their swords and lives to the "
+    "battle against evil. Knights, crusaders, and law-bringers, paladins seek not "
+    "just to spread divine justice but to embody the teachings of the virtuous "
+    "deities they serve. In pursuit of their lofty goals, they adhere to ironclad "
+    "laws of morality and discipline. As reward for their righteousness, these "
+    "holy champions are blessed with boons to aid them in their quests: powers "
+    "to banish evil, heal the innocent, and inspire the faithful. Although their "
+    "convictions might lead them into conflict with the very souls they would "
+    "save, paladins weather endless challenges of faith and dark temptations, "
+    "risking their lives to do right and fighting to bring about a brighter "
+    "future.");
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_PALADIN, B,    B,      G,    B,      B);
   assign_class_abils(CLASS_PALADIN, /* class number */
@@ -1351,7 +1466,16 @@ void load_class_list(void) {
   /*     class-number  name      abrv   clr-abrv     menu-name*/
   classo(CLASS_RANGER, "ranger", "Ran", "\tYRan\tn", "r) \tYRanger\tn",
       /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst, eFeatp */
-        -1,       N,    N,        H,  10, 0,   3,   4,     Y,      0,       3);
+        -1,       N,    N,        H,  10, 0,   3,   4,     Y,      0,       3,
+        /*descrip*/"For those who relish the thrill of the hunt, there are only "
+    "predators and prey. Be they scouts, trackers, or bounty hunters, rangers share "
+    "much in common: unique mastery of specialized weapons, skill at stalking even "
+    "the most elusive game, and the expertise to defeat a wide range of quarries. "
+    "Knowledgeable, patient, and skilled hunters, these rangers hound man, beast, "
+    "and monster alike, gaining insight into the way of the predator, skill in "
+    "varied environments, and ever more lethal martial prowess. While some track "
+    "man-eating creatures to protect the frontier, others pursue more cunning "
+    "game—even fugitives among their own people.");
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_RANGER, G,    B,      B,    B,      B);
   assign_class_abils(CLASS_RANGER, /* class number */
@@ -1415,7 +1539,18 @@ void load_class_list(void) {
   /*     class-number  name   abrv   clr-abrv     menu-name*/
   classo(CLASS_BARD, "bard", "Bar", "\tCBar\tn", "a) \tCBard\tn",
       /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst, eFeatp */
-        -1,       N,    N,        M,  6, 0,   2,   6,     Y,       0,       3);
+        -1,       N,    N,        M,  6, 0,   2,   6,     Y,       0,       3,
+        /*descrip*/"Untold wonders and secrets exist for those skillful enough to "
+    "discover them. Through cleverness, talent, and magic, these cunning few unravel "
+    "the wiles of the world, becoming adept in the arts of persuasion, manipulation, "
+    "and inspiration. Typically masters of one or many forms of artistry, bards "
+    "possess an uncanny ability to know more than they should and use what they "
+    "learn to keep themselves and their allies ever one step ahead of danger. Bards "
+    "are quick-witted and captivating, and their skills might lead them down many "
+    "paths, be they gamblers or jacks-of-all-trades, scholars or performers, leaders "
+    "or scoundrels, or even all of the above. For bards, every day brings its own "
+    "opportunities, adventures, and challenges, and only by bucking the odds, knowing "
+    "the most, and being the best might they claim the treasures of each.");
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_BARD,   B,    G,      G,    B,      B);
   assign_class_abils(CLASS_BARD, /* class number */
@@ -1509,7 +1644,11 @@ void load_class_list(void) {
   /*     class-number               name      abrv   clr-abrv     menu-name*/
   classo(CLASS_WEAPON_MASTER, "weaponmaster", "WpM", "\tcWpM\tn", "e) \tcWeaponMaster\tn",
       /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst, eFeatp*/
-        10,       Y,    Y,        H,  10, 0,   1,   2,     Y,      5000,    3);
+        10,       Y,    Y,        H,  10, 0,   1,   2,     Y,      5000,    3,
+        /*descrip*/"For the weapon master, perfection is found in the mastery of a "
+    "single melee weapon. A weapon master seeks to unite this weapon of choice with "
+    "his body, to make them one, and to use the weapon as naturally and without "
+    "thought as any other limb.");
   /* class-number then saves:        fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_WEAPON_MASTER, B,    G,      B,    B,      B);
   assign_class_abils(CLASS_WEAPON_MASTER, /* class number */
@@ -1541,7 +1680,12 @@ void load_class_list(void) {
   /*     class-number               name      abrv   clr-abrv     menu-name*/
   classo(CLASS_ARCANE_ARCHER, "arcanearcher", "ArA", "\tgArA\tn", "f) \tgArcaneArcher\tn",
       /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst, eFeatp*/
-        10,       Y,    Y,        H,  10, 0,   1,   4,     Y,      5000,    4);
+        10,       Y,    Y,        H,  10, 0,   1,   4,     Y,      5000,    4,
+        /*descrip*/"Many who seek to perfect the use of the bow sometimes pursue "
+    "the path of the arcane archer. Arcane archers are masters of ranged combat, "
+    "as they possess the ability to strike at targets with unerring accuracy and "
+    "can imbue their arrows with powerful spells. Arrows fired by arcane archers "
+    "can fell even the most powerful foes with a single, deadly shot.");
   /* class-number then saves:        fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_ARCANE_ARCHER, G,    G,      B,    B,      B);
   assign_class_abils(CLASS_ARCANE_ARCHER, /* class number */
@@ -1577,7 +1721,8 @@ ACMD(do_classlist) {
   size_t len = 0;
 
   send_to_char(ch, "# Name Abrv ClrAbrv | Menu | MaxLvl Lock Prestige BAB HPs Mvs Train InGame UnlockCost EFeatProg");
-  send_to_char(ch, " | Sv-Fort Sv-Refl Sv-Will\r\n");
+  send_to_char(ch, " DESCRIP\r\n");
+  send_to_char(ch, " Sv-Fort Sv-Refl Sv-Will\r\n");
   send_to_char(ch, "    acrobatics,stealth,perception,heal,intimidate,concentration,spellcraft\r\n");
   send_to_char(ch, "    appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff\r\n");
   send_to_char(ch, "    diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive\r\n");
@@ -1587,7 +1732,8 @@ ACMD(do_classlist) {
   
   for (i = 0; i < NUM_CLASSES; i++) {
     len += snprintf(buf + len, sizeof (buf) - len,
-        "\r\n%d] %s %s %s | %s | %d %s %s %s %d %d %d %s %d %d | %s %s %s\r\n"
+        "\r\n%d] %s %s %s | %s | %d %s %s %s %d %d %d %s %d %d\r\n     %s\r\n"
+        "  %s %s %s\r\n"
         "     %s %s %s %s %s %s %s\r\n"
         "     %s %s %s %s %s %s %s %s\r\n"
         "     %s %s %s %s %s %s\r\n"
@@ -1596,6 +1742,7 @@ ACMD(do_classlist) {
           CLSLIST_MAXLVL(i), CLSLIST_LOCK(i) ? "Y" : "N", CLSLIST_PRESTIGE(i) ? "Y" : "N",
           (CLSLIST_BAB(i) == 2) ? "H" : (CLSLIST_BAB(i) ? "M" : "L"), CLSLIST_HPS(i),
           CLSLIST_MVS(i), CLSLIST_TRAINS(i), CLSLIST_INGAME(i) ? "Y" : "N", CLSLIST_COST(i), CLSLIST_EFEATP(i),
+            CLSLIST_DESCRIP(i),
         CLSLIST_SAVES(i, 0) ? "G" : "B", CLSLIST_SAVES(i, 1) ? "G" : "B", CLSLIST_SAVES(i, 2) ? "G" : "B", 
         (CLSLIST_ABIL(i, ABILITY_ACROBATICS) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_ACROBATICS) ? "CC" : "NA"),
           (CLSLIST_ABIL(i, ABILITY_STEALTH) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_STEALTH) ? "CC" : "NA"),
