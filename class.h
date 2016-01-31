@@ -28,9 +28,9 @@
 
 /* spell data for class */
 struct class_spell_assign {
-  int spell_num;
-  int circle;
-  struct class_spell_assign *next;
+  int spell_num; /*spellnum like SPELL_ARMOR */
+  int circle; /*actually level class receives*/
+  struct class_spell_assign *next; /*linked list*/
 };
 
 /* prereq data for class */
@@ -67,6 +67,7 @@ struct class_table {
   int unlock_cost; /* if locked, cost to unlock in account xp */
   /*!(CLASS_LEVEL(ch, class) % EPIC_FEAT_PROGRESSION) && IS_EPIC(ch)*/
   int epic_feat_progression;
+  char *descrip; /* class description */
   
   char *titles[MAX_NUM_TITLES];  /* titles every 5 levels, 3 staff, default */
   int preferred_saves[NUM_PREFERRED_SAVES];  /*high or low saving throw values */
