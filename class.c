@@ -1716,8 +1716,8 @@ void load_class_list(void) {
 
 bool display_class_info(struct char_data *ch, char *classname) {
   int class = -1, i = 0;
-  char buf[MAX_STRING_LENGTH];
-  /*char buf2[MAX_STRING_LENGTH];*/
+  char buf[MAX_STRING_LENGTH] = { '\0' };  
+  /*char buf2[MAX_STRING_LENGTH] = { '\0' };*/
   static int line_length = 80;
   bool first_skill = TRUE;
 
@@ -1759,18 +1759,21 @@ bool display_class_info(struct char_data *ch, char *classname) {
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
 
-  send_to_char(ch, "\tcClass Skills:\tn");
+  /* This we will need to buffer and wrap so that it will fit in the space provided. */
+  /* first build the list of skills */
   for (i = 0; i < NUM_ABILITIES; i++) {
     if (CLSLIST_ABIL(class, i) == 2) {
       if (first_skill) {
-        send_to_char(ch, "%s", ability_names[i]);
+        sprintf(buf, "%s", ability_names[i]);
         first_skill = FALSE;
       } else
-        send_to_char(ch, ", %s", ability_names[i]);
+        sprintf(buf, "%s, %s", buf, ability_names[i]);
     }
   }
-  send_to_char(ch, "\r\n");
-
+  /* should have the full list now, finish it up and send it */
+  sprintf(buf, "\tcClass Skills:\tn  %s\r\n", buf);
+  send_to_char(ch, strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
+  
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
   
@@ -1805,6 +1808,7 @@ bool display_class_info(struct char_data *ch, char *classname) {
           class_list[class].descrip
           );
   send_to_char(ch, strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
+  
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
   send_to_char(ch, "\tn\r\n");
