@@ -1720,6 +1720,7 @@ bool display_class_info(struct char_data *ch, char *classname) {
   /*char buf2[MAX_STRING_LENGTH] = { '\0' };*/
   static int line_length = 80;
   bool first_skill = TRUE;
+  size_t len = 0;
 
   skip_spaces(&classname);
   class = parse_class_long(classname);
@@ -1764,14 +1765,14 @@ bool display_class_info(struct char_data *ch, char *classname) {
   for (i = 0; i < NUM_ABILITIES; i++) {
     if (CLSLIST_ABIL(class, i) == 2) {
       if (first_skill) {
-        sprintf(buf, "%s", ability_names[i]);
+        len += snprintf(buf + len, sizeof (buf) - len, "\tcClass Skills:\tn  %s",
+                ability_names[i]);
         first_skill = FALSE;
       } else
         sprintf(buf, "%s, %s", buf, ability_names[i]);
+        len += snprintf(buf + len, sizeof (buf) - len, "%s, %s", buf, ability_names[i]);
     }
   }
-  /* should have the full list now, finish it up and send it */
-  sprintf(buf, "\tcClass Skills:\tn  %s\r\n", buf);
   send_to_char(ch, strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
   
   send_to_char(ch, "\tC");
