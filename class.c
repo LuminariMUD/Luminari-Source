@@ -1715,9 +1715,11 @@ void load_class_list(void) {
 }
 
 bool display_class_info(struct char_data *ch, char *classname) {
-  int class = -1;
-  char buf[MAX_STRING_LENGTH], buf2[MAX_STRING_LENGTH];
+  int class = -1, i = 0;
+  char buf[MAX_STRING_LENGTH];
+  /*char buf2[MAX_STRING_LENGTH];*/
   static int line_length = 80;
+  bool first_skill = TRUE;
 
   skip_spaces(&classname);
   class = parse_class_long(classname);
@@ -1728,13 +1730,50 @@ bool display_class_info(struct char_data *ch, char *classname) {
   }
 
   /* We found the class, and the class number is stored in 'class'. */
-  /* Display the feat info, formatted. */
+  /* Display the class info, formatted. */
   send_to_char(ch, "\tC\r\n");
   draw_line(ch, line_length, '-', '-');
-  send_to_char(ch, "\tcClass    : \tn%s\r\n", class_list[class].name);
+  
+  send_to_char(ch, "\tcClass Name     : \tn%s\r\n", CLSLIST_NAME(class));
+  send_to_char(ch, "\tcPrestige Class?: \tn%s\r\n", CLSLIST_PRESTIGE(class) ? "Yes" : "No");
+  send_to_char(ch, "\tcMaximum Levels : \tn%d\r\n", CLSLIST_MAXLVL(class));
+  send_to_char(ch, "\tcUnlock Cost    : \tn%d Account XP\r\n", CLSLIST_COST(class));  
+  send_to_char(ch, "\tcBAB Progression: \tn%s\r\n",
+      (CLSLIST_BAB(i) == 2) ? "High" : (CLSLIST_BAB(class) ? "Medium" : "Low"));
+  send_to_char(ch, "\tcHitpoint Gain  : \tn%d-%d\r\n",
+      CLSLIST_HPS(class)/2, CLSLIST_HPS(class));
+  send_to_char(ch, "\tcMovement Gain  : \tn0-%d\r\n", CLSLIST_MVS(class));
+  send_to_char(ch, "\tcEpic Feat Prog : \tnGain an epic feat every %d levels\r\n",
+      CLSLIST_EFEATP(class));
+  
+  send_to_char(ch, "\tC");
+  draw_line(ch, line_length, '-', '-');
+  
+  send_to_char(ch, "\tcWillpower Save Progression: \tn%s\r\n",
+      CLSLIST_SAVES(class, SAVING_WILL) ? "Good" : "Poor");
+  send_to_char(ch, "\tcFortitude Save Progression: \tn%s\r\n",
+      CLSLIST_SAVES(class, SAVING_FORT) ? "Good" : "Poor");
+  send_to_char(ch, "\tcReflex Save Progression   : \tn%s\r\n",
+      CLSLIST_SAVES(class, SAVING_REFL) ? "Good" : "Poor");
+  
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
 
+  send_to_char(ch, "\tcClass Skills:\tn");
+  for (i = 0; i < NUM_ABILITIES; i++) {
+    if (CLSLIST_ABIL(class, i) == 2) {
+      if (first_skill) {
+        send_to_char(ch, "%s", ability_names[i]);
+        first_skill = FALSE;
+      } else
+        send_to_char(ch, ", %s", ability_names[i]);
+    }
+  }
+  send_to_char(ch, "\r\n");
+
+  send_to_char(ch, "\tC");
+  draw_line(ch, line_length, '-', '-');
+  
   /*  Here display the prerequisites */
   /*
   if (class_list[class].prereq_list == NULL) {
@@ -1755,8 +1794,8 @@ bool display_class_info(struct char_data *ch, char *classname) {
       }
     }
   }
-  */
   send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
+  */
 
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
@@ -1888,6 +1927,7 @@ int parse_class_long(char *arg) {
   if (is_abbrev(arg, "wizard")) return CLASS_WIZARD;
   if (is_abbrev(arg, "cleric")) return CLASS_CLERIC;
   if (is_abbrev(arg, "warrior")) return CLASS_WARRIOR;
+  if (is_abbrev(arg, "fighter")) return CLASS_WARRIOR;
   if (is_abbrev(arg, "rogue")) return CLASS_ROGUE;
   if (is_abbrev(arg, "monk")) return CLASS_MONK;
   if (is_abbrev(arg, "druid")) return CLASS_DRUID;
