@@ -1803,9 +1803,6 @@ bool display_class_info(struct char_data *ch, char *classname) {
   send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
   */
 
-  send_to_char(ch, "\tC");
-  draw_line(ch, line_length, '-', '-');
-
   /* This we will need to buffer and wrap so that it will fit in the space provided. */
   sprintf(buf, "\tcDescription : \tn%s\r\n",
           class_list[class].descrip
