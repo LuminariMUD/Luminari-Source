@@ -1816,7 +1816,7 @@ bool display_class_info(struct char_data *ch, char *classname) {
   draw_line(ch, line_length, '-', '-');
   
   send_to_char(ch, "@YType: @Rclassfeat %s@Y for the class feat info.\r\n",
-    CLSLIST_NAME(class))
+    CLSLIST_NAME(class));
  
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
