@@ -16,6 +16,7 @@
 #include "lists.h"
 #include "help.h"
 #include "feats.h"
+#include "spells.h" /* need this for class.h NUM_ABILITIES */
 #include "class.h"
 
 /* puts -'s instead of spaces */
