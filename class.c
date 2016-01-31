@@ -1744,8 +1744,8 @@ bool display_class_info(struct char_data *ch, char *classname) {
   send_to_char(ch, "\tcHitpoint Gain    : \tn%d-%d\r\n",
       CLSLIST_HPS(class)/2, CLSLIST_HPS(class));
   send_to_char(ch, "\tcMovement Gain    : \tn0-%d\r\n", CLSLIST_MVS(class));
-  send_to_char(ch, "\tcTraining Sessions: \tn%d plus Intelligence Mod (x4 at 1st "
-          "level)\r\n", CLSLIST_TRAINS(class));  
+  send_to_char(ch, "\tcTraining Sessions: \tn%d plus Intelligence Mod (%d at 1st "
+          "level)\r\n", CLSLIST_TRAINS(class), CLSLIST_TRAINS(class)*4);  
   send_to_char(ch, "\tcEpic Feat Prog   : \tnGain an epic feat every %d levels\r\n",
       CLSLIST_EFEATP(class));
   
