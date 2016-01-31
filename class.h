@@ -80,6 +80,7 @@ struct class_table {
 extern struct class_table class_list[];
 
 /* Functions available through class.c */
+bool display_class_info(struct char_data *ch, char *classname);
 int backstab_mult(struct char_data *ch);
 void do_start(struct char_data *ch);
 void newbieEquipment(struct char_data *ch);

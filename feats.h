@@ -48,6 +48,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg);
 int is_class_feat(int featnum, int class);
 int is_daily_feat(int featnum);
 int has_feat(struct char_data *ch, int featnum);
+bool meets_prerequisite(struct char_data *ch, struct feat_prerequisite *prereq, int iarg);
 
 /* For help system integration, */
 bool display_feat_info(struct char_data *ch, char *featname);

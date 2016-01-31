@@ -1714,6 +1714,65 @@ void load_class_list(void) {
   /****************************************************************************/
 }
 
+bool display_class_info(struct char_data *ch, char *classname) {
+  int class = -1;
+  char buf[MAX_STRING_LENGTH], buf2[MAX_STRING_LENGTH];
+  static int line_length = 80;
+
+  skip_spaces(&classname);
+  class = parse_class_long(classname);
+
+  if (class == -1 || class_list[class].in_game == FALSE) {
+    /* Not found - Maybe put in a soundex list here? */
+    return FALSE;
+  }
+
+  /* We found the class, and the class number is stored in 'class'. */
+  /* Display the feat info, formatted. */
+  send_to_char(ch, "\tC\r\n");
+  draw_line(ch, line_length, '-', '-');
+  send_to_char(ch, "\tcClass    : \tn%s\r\n", class_list[class].name);
+  send_to_char(ch, "\tC");
+  draw_line(ch, line_length, '-', '-');
+
+  /*  Here display the prerequisites */
+  /*
+  if (class_list[class].prereq_list == NULL) {
+    sprintf(buf, "\tCPrerequisites : \tnnone\r\n");
+  } else {
+    bool first = TRUE;
+    struct class_prerequisite *prereq;
+
+    for (prereq = class_list[class].prereq_list; prereq != NULL; prereq = prereq->next) {
+      if (first) {
+        first = FALSE;
+        sprintf(buf, "\tcPrerequisites : %s%s%s",
+                (meets_prerequisite(ch, prereq, -1) ? "\tn" : "\tr"), prereq->description, "\tn");
+      } else {
+        sprintf(buf2, ", %s%s%s",
+                (meets_prerequisite(ch, prereq, -1) ? "\tn" : "\tr"), prereq->description, "\tn");
+        strcat(buf, buf2);
+      }
+    }
+  }
+  */
+  send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
+
+  send_to_char(ch, "\tC");
+  draw_line(ch, line_length, '-', '-');
+
+  /* This we will need to buffer and wrap so that it will fit in the space provided. */
+  sprintf(buf, "\tcDescription : \tn%s\r\n",
+          class_list[class].descrip
+          );
+  send_to_char(ch, strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
+  send_to_char(ch, "\tC");
+  draw_line(ch, line_length, '-', '-');
+  send_to_char(ch, "\tn\r\n");
+
+  return TRUE;  
+}
+
 /* list all the class defines in-game */
 ACMD(do_classlist) {
   int i = 0, j = 0;
