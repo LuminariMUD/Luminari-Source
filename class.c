@@ -1741,7 +1741,7 @@ bool display_class_info(struct char_data *ch, char *classname) {
   send_to_char(ch, "\tcUnlock Cost      : \tn%d Account XP\r\n", CLSLIST_COST(class));  
   send_to_char(ch, "\tcBAB Progression  : \tn%s\r\n",
       (CLSLIST_BAB(i) == 2) ? "High" : (CLSLIST_BAB(class) ? "Medium" : "Low"));
-  send_to_char(ch, "\tcHitpoint Gain    : \tn%d-%d\r\n",
+  send_to_char(ch, "\tcHitpoint Gain    : \tn%d-%d plus constitution bonus\r\n",
       CLSLIST_HPS(class)/2, CLSLIST_HPS(class));
   send_to_char(ch, "\tcMovement Gain    : \tn0-%d\r\n", CLSLIST_MVS(class));
   send_to_char(ch, "\tcTraining Sessions: \tn%d plus Intelligence Mod (4x this value at 1st "
