@@ -1735,16 +1735,18 @@ bool display_class_info(struct char_data *ch, char *classname) {
   send_to_char(ch, "\tC\r\n");
   draw_line(ch, line_length, '-', '-');
   
-  send_to_char(ch, "\tcClass Name     : \tn%s\r\n", CLSLIST_NAME(class));
-  send_to_char(ch, "\tcPrestige Class?: \tn%s\r\n", CLSLIST_PRESTIGE(class) ? "Yes" : "No");
-  send_to_char(ch, "\tcMaximum Levels : \tn%d\r\n", CLSLIST_MAXLVL(class));
-  send_to_char(ch, "\tcUnlock Cost    : \tn%d Account XP\r\n", CLSLIST_COST(class));  
-  send_to_char(ch, "\tcBAB Progression: \tn%s\r\n",
+  send_to_char(ch, "\tcClass Name       : \tn%s\r\n", CLSLIST_NAME(class));
+  send_to_char(ch, "\tcPrestige Class?  : \tn%s\r\n", CLSLIST_PRESTIGE(class) ? "Yes" : "No");
+  send_to_char(ch, "\tcMaximum Levels   : \tn%d\r\n", CLSLIST_MAXLVL(class));
+  send_to_char(ch, "\tcUnlock Cost      : \tn%d Account XP\r\n", CLSLIST_COST(class));  
+  send_to_char(ch, "\tcBAB Progression  : \tn%s\r\n",
       (CLSLIST_BAB(i) == 2) ? "High" : (CLSLIST_BAB(class) ? "Medium" : "Low"));
-  send_to_char(ch, "\tcHitpoint Gain  : \tn%d-%d\r\n",
+  send_to_char(ch, "\tcHitpoint Gain    : \tn%d-%d\r\n",
       CLSLIST_HPS(class)/2, CLSLIST_HPS(class));
-  send_to_char(ch, "\tcMovement Gain  : \tn0-%d\r\n", CLSLIST_MVS(class));
-  send_to_char(ch, "\tcEpic Feat Prog : \tnGain an epic feat every %d levels\r\n",
+  send_to_char(ch, "\tcMovement Gain    : \tn0-%d\r\n", CLSLIST_MVS(class));
+  send_to_char(ch, "\tcTraining Sessions: \tn%d plus Intelligence Mod (x4 at 1st "
+          "level)\r\n", CLSLIST_TRAINS(class));  
+  send_to_char(ch, "\tcEpic Feat Prog   : \tnGain an epic feat every %d levels\r\n",
       CLSLIST_EFEATP(class));
   
   send_to_char(ch, "\tC");
@@ -1812,6 +1814,12 @@ bool display_class_info(struct char_data *ch, char *classname) {
   
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
+  
+  send_to_char(ch, "@YType: @Rclassfeat %s@Y for the class feat info.\r\n")
+ 
+  send_to_char(ch, "\tC");
+  draw_line(ch, line_length, '-', '-');
+  
   send_to_char(ch, "\tn\r\n");
 
   return TRUE;  
