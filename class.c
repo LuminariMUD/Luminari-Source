@@ -1768,9 +1768,9 @@ bool display_class_info(struct char_data *ch, char *classname) {
         len += snprintf(buf + len, sizeof (buf) - len, "\tcClass Skills:\tn  %s",
                 ability_names[i]);
         first_skill = FALSE;
-      } else
-        sprintf(buf, "%s, %s", buf, ability_names[i]);
-        len += snprintf(buf + len, sizeof (buf) - len, "%s, %s", buf, ability_names[i]);
+      } else {
+        len += snprintf(buf + len, sizeof (buf) - len, ", %s", ability_names[i]);
+      }
     }
   }
   send_to_char(ch, strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
