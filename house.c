@@ -120,8 +120,6 @@ static int handle_house_obj(struct obj_data *temp, room_vnum vnum,  int locate, 
       }
       cont_row[j] = NULL;
     }
-  } else {
-    obj_to_room(temp, rnum);
   } 
 
   if (locate < 0 && locate >= -MAX_BAG_ROWS) {
