@@ -93,7 +93,6 @@ static int handle_house_obj(struct obj_data *temp, room_vnum vnum,  int locate, 
     if (cont_row[0]) { /* content list existing */
       if (GET_OBJ_TYPE(temp) == ITEM_CONTAINER ||
               GET_OBJ_TYPE(temp) == ITEM_AMMO_POUCH) {
-        /* rem item ; fill ; equip again */
         
         temp->contains = NULL; /* should be empty - but who knows */
         for (; cont_row[0]; cont_row[0] = obj1) {
@@ -111,7 +110,7 @@ static int handle_house_obj(struct obj_data *temp, room_vnum vnum,  int locate, 
     }
   } else { /* locate <= 0 */
     for (j = MAX_BAG_ROWS - 1; j > -locate; j--)
-      if (cont_row[j]) { /* no container -> back to ch's inventory */
+      if (cont_row[j]) { /* no container -> back to room */
         for (; cont_row[j]; cont_row[j] = obj1) {
           obj1 = cont_row[j]->next_content;
           obj_to_room(cont_row[j], rnum);
@@ -123,7 +122,7 @@ static int handle_house_obj(struct obj_data *temp, room_vnum vnum,  int locate, 
       if (GET_OBJ_TYPE(temp) == ITEM_CONTAINER ||
               GET_OBJ_TYPE(temp) == ITEM_AMMO_POUCH) {
         /* take item ; fill ; give to char again */
-        obj_from_room(temp);
+        //obj_from_room(temp);
         temp->contains = NULL;
         for (; cont_row[j]; cont_row[j] = obj1) {
           obj1 = cont_row[j]->next_content;
