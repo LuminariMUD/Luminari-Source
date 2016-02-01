@@ -122,8 +122,10 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
     fprintf(fp, "Loc : %d\n", locate);
 
 #ifdef OBJSAVE_DB
-  sprintf(line_buf, "Loc : %d\n", locate);
-  strcat(ins_buf, line_buf);
+  if (locate) {
+    sprintf(line_buf, "Loc : %d\n", locate);
+    strcat(ins_buf, line_buf);
+  }
 #endif
 
   /**** start checks for modifications to default object! ***/
