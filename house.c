@@ -66,7 +66,7 @@ static int House_load(room_vnum vnum) {
   if (!(fl = fopen(filename, "r"))) /* no file found */
     return (0);
 
-  loaded = objsave_parse_objects(fl);
+  loaded = objsave_parse_objects_db(NULL, vnum);
 
   for (current = loaded; current != NULL; current = current->next)
     obj_to_room(current->obj, rnum);
@@ -172,7 +172,7 @@ static void House_listrent(struct char_data *ch, room_vnum vnum) {
   *buf = '\0';
   len = snprintf(buf, sizeof (buf), "filename: %s\r\n", filename);
 
-  loaded = objsave_parse_objects(fl);
+  loaded = objsave_parse_objects_db(NULL, vnum);
 
   for (current = loaded; current != NULL; current = current->next)
     len += snprintf(buf + len, sizeof (buf) - len, " [%5d] (%5dau) %s\r\n",
