@@ -71,9 +71,9 @@ static int handle_house_obj(struct obj_data *temp, room_vnum vnum,  int locate, 
   
   for (j = MAX_BAG_ROWS - 1; j > 0; j--)
     if (cont_row[j])
-      log("cont_row: %s", GET_OBJ_SHORT(cont_row[j]));
+      log("cont_row[%d]: %s", j, GET_OBJ_SHORT(cont_row[j]));
     else 
-      log ("cont_row null.");
+      log ("cont_row[%d] is null.", j);
   
   /* What to do with a new loaded item:
    * If there's a list with <locate> less than 1 below this
