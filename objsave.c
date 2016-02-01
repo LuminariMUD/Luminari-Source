@@ -1577,7 +1577,7 @@ obj_save_data *objsave_parse_objects(FILE *fl) {
 /* Parses the object records stored in the db, and returns the first object in a
  * linked list, which also handles location if worn. This list can then be
  * handled by house code, listrent code, autoeq code, etc. */
-obj_save_data *objsave_parse_objects_db(char *name) {
+obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum) {
 
   obj_save_data *head, *current, *tempsave;
   char f1[128], f2[128], f3[128], f4[128];
@@ -1593,20 +1593,37 @@ obj_save_data *objsave_parse_objects_db(char *name) {
   char** lines;  /* Storage for tokenized serialization */
   char** line;     /* Token iterator */
   
-  
-  sprintf(buf, "SELECT   serialized_obj "
-               "FROM     player_save_objs "
-               "WHERE    name = '%s' "
-               "ORDER BY creation_date ASC;", name);
+  if (house_vnum == NOWHERE) {
+    sprintf(buf, "SELECT   serialized_obj "
+                 "FROM     player_save_objs "
+                 "WHERE    name = '%s' "
+                 "ORDER BY creation_date ASC;", name);
 
-  if (mysql_query(conn, buf)) {
-    log("SYSERR: Unable to SELECT from player_save_objs: %s", mysql_error(conn));
-    exit(1);
-  } 
+    if (mysql_query(conn, buf)) {
+      log("SYSERR: Unable to SELECT from player_save_objs: %s", mysql_error(conn));
+      exit(1);
+    } 
   
-  if (!(result = mysql_store_result(conn))) {
-    log("SYSERR: Unable to SELECT from player_save_objs: %s", mysql_error(conn));
-    exit(1);
+    if (!(result = mysql_store_result(conn))) {
+      log("SYSERR: Unable to SELECT from player_save_objs: %s", mysql_error(conn));
+      exit(1);
+    }
+  } else {
+    /* house_vnum was given, so load the house data instead. */
+    sprintf(buf, "SELECT   serialized_obj "
+                 "FROM     house_data "
+                 "WHERE    vnum = '%d' "
+                 "ORDER BY creation_date ASC;", house_vnum);
+
+    if (mysql_query(conn, buf)) {
+      log("SYSERR: Unable to SELECT from house_data: %s", mysql_error(conn));
+      exit(1);
+    } 
+  
+    if (!(result = mysql_store_result(conn))) {
+      log("SYSERR: Unable to SELECT from house_data: %s", mysql_error(conn));
+      exit(1);
+    }
   }
   
   head = NULL;
@@ -1960,7 +1977,7 @@ static int Crash_load_objs(struct char_data *ch) {
   }
   /* Load from the db if the header information is found in the player_data table. */
   if (using_db)  {
-    loaded = objsave_parse_objects_db(GET_NAME(ch));
+    loaded = objsave_parse_objects_db(GET_NAME(ch), NOWHERE);
    
     if (loaded == NULL) {
     /* no equipment stored in the database. */
