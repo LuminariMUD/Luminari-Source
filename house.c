@@ -71,7 +71,9 @@ static int handle_house_obj(struct obj_data *temp, room_vnum vnum,  int locate, 
   
   for (j = MAX_BAG_ROWS - 1; j > 0; j--)
     if (cont_row[j])
-      log("cont_row not null, %s", GET_OBJ_SHORT(cont_row[j]));
+      log("cont_row: %s", GET_OBJ_SHORT(cont_row[j]));
+    else 
+      log ("cont_row null.");
   
   /* What to do with a new loaded item:
    * If there's a list with <locate> less than 1 below this
@@ -84,84 +86,52 @@ static int handle_house_obj(struct obj_data *temp, room_vnum vnum,  int locate, 
    * with negative <locate>: If there's already a list of contents with the
    * same <locate> put obj to it if not, start a new list. Since <locate> for
    * contents is < 0 the list indices are switched to non-negative. */
-  if (locate > 0) { 
 
-    for (j = MAX_BAG_ROWS - 1; j > 0; j--)
-      if (cont_row[j]) { /* no container -> back to ch's inventory */
-        for (; cont_row[j]; cont_row[j] = obj1) {
-          obj1 = cont_row[j]->next_content;
-          obj_to_room(cont_row[j], rnum);
-          log ("adding obj to room 1...");
-        }
-        cont_row[j] = NULL;
+  for (j = MAX_BAG_ROWS - 1; j > -locate; j--)
+    if (cont_row[j]) { /* no container -> back to room */
+      for (; cont_row[j]; cont_row[j] = obj1) {
+        obj1 = cont_row[j]->next_content;
+        obj_to_room(cont_row[j], rnum);
+        log ("adding obj to room 3...");
       }
-    if (cont_row[0]) { /* content list existing */
-      if (GET_OBJ_TYPE(temp) == ITEM_CONTAINER ||
-              GET_OBJ_TYPE(temp) == ITEM_AMMO_POUCH) {
-        
-        temp->contains = NULL; /* should be empty - but who knows */
-        for (; cont_row[0]; cont_row[0] = obj1) {
-          obj1 = cont_row[0]->next_content;
-          obj_to_obj(cont_row[0], temp);
-          log ("adding obj to obj 1...");
-        }
-        
-      } else { /* object isn't container -> empty content list */
-        for (; cont_row[0]; cont_row[0] = obj1) {
-          obj1 = cont_row[0]->next_content;
-          obj_to_room(cont_row[0], rnum);
-          log ("adding obj to room 2...");
-        }
-        cont_row[0] = NULL;
-      }
+      cont_row[j] = NULL;
     }
-  } else { /* locate <= 0 */
-    for (j = MAX_BAG_ROWS - 1; j > -locate; j--)
-      if (cont_row[j]) { /* no container -> back to room */
-        for (; cont_row[j]; cont_row[j] = obj1) {
-          obj1 = cont_row[j]->next_content;
-          obj_to_room(cont_row[j], rnum);
-          log ("adding obj to room 3...");
-        }
-        cont_row[j] = NULL;
-      }
 
-    if (j == -locate) { // && cont_row[j]) { /* content list existing */
-      if (GET_OBJ_TYPE(temp) == ITEM_CONTAINER ||
-              GET_OBJ_TYPE(temp) == ITEM_AMMO_POUCH) {
-        /* take item ; fill ; give to char again */
-        //obj_from_room(temp);
-        temp->contains = NULL;
-        for (; cont_row[j]; cont_row[j] = obj1) {
-          obj1 = cont_row[j]->next_content;
-          obj_to_obj(cont_row[j], temp);
-          log ("adding obj to obj 2...");
-        }
-        obj_to_room(temp, rnum); /* add to room first ... */
-        log ("adding obj to room 4...");
-      } else { /* object isn't container -> empty content list */
-        for (; cont_row[j]; cont_row[j] = obj1) {
-          obj1 = cont_row[j]->next_content;
-          obj_to_room(cont_row[j], rnum);
-          log ("adding obj to room 5...");
-        }
-        cont_row[j] = NULL;
-      }
-    } 
-
-    if (locate < 0 && locate >= -MAX_BAG_ROWS) {
-      /* let obj be part of content list
-         but put it at the list's end thus having the items
-         in the same order as before renting */
+  if (j == -locate && cont_row[j]) { /* content list existing */
+    if (GET_OBJ_TYPE(temp) == ITEM_CONTAINER ||
+        GET_OBJ_TYPE(temp) == ITEM_AMMO_POUCH) {
+      /* take item ; fill ; give to char again */
       //obj_from_room(temp);
-      if ((obj1 = cont_row[-locate - 1])) {
-        while (obj1->next_content)
-          obj1 = obj1->next_content;
-        obj1->next_content = temp;
-      } else
-        cont_row[-locate - 1] = temp;
+      temp->contains = NULL;
+      for (; cont_row[j]; cont_row[j] = obj1) {
+        obj1 = cont_row[j]->next_content;
+        obj_to_obj(cont_row[j], temp);
+        log ("adding obj to obj 2...");
+      }
+      obj_to_room(temp, rnum); /* add to room first ... */
+      log ("adding obj to room 4...");
+    } else { /* object isn't container -> empty content list */
+      for (; cont_row[j]; cont_row[j] = obj1) {
+        obj1 = cont_row[j]->next_content;
+        obj_to_room(cont_row[j], rnum);
+        log ("adding obj to room 5...");
+      }
+      cont_row[j] = NULL;
     }
-  } /* locate less than zero */
+  } 
+
+  if (locate < 0 && locate >= -MAX_BAG_ROWS) {
+    /* let obj be part of content list
+       but put it at the list's end thus having the items
+       in the same order as before renting */
+    //obj_from_room(temp);
+    if ((obj1 = cont_row[-locate - 1])) {
+      while (obj1->next_content)
+        obj1 = obj1->next_content;
+      obj1->next_content = temp;
+    } else
+      cont_row[-locate - 1] = temp;
+  }
 
   return TRUE;
 }
