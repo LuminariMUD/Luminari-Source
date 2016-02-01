@@ -21,6 +21,8 @@
 #include "modify.h"
 #include "mysql.h"
 
+#define MAX_BAG_ROWS   5
+
 /* local (file scope only) globals */
 static struct house_control_rec house_control[MAX_HOUSES];
 static int num_of_houses = 0;
