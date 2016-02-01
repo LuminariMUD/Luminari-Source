@@ -69,6 +69,10 @@ static int handle_house_obj(struct obj_data *temp, room_vnum vnum,  int locate, 
   
   log("object: %s at location: %d", GET_OBJ_SHORT(temp), locate);
   
+  for (j = MAX_BAG_ROWS - 1; j > 0; j--)
+    if (cont_row[j])
+      log("cont_row not null, %s", GET_OBJ_SHORT(cont_row[j]));
+  
   /* What to do with a new loaded item:
    * If there's a list with <locate> less than 1 below this
    * then its container has disappeared from the file   
@@ -215,11 +219,12 @@ int House_save(struct obj_data *obj, room_vnum vnum, FILE *fp, int location) {
     
     /* save a single item to file */
     result = objsave_save_obj_record_db(obj, NULL, vnum, fp, location);
-    if (!result)
-      return (0);
 
     for (tmp = obj->in_obj; tmp; tmp = tmp->in_obj)
       GET_OBJ_WEIGHT(tmp) -= GET_OBJ_WEIGHT(obj);
+    
+    if (!result)
+      return (0);
   }
   return (1);
 }
