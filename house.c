@@ -95,7 +95,7 @@ int House_save(struct obj_data *obj, room_vnum vnum, FILE *fp) {
     House_save(obj->contains, vnum, fp);
     House_save(obj->next_content, vnum, fp);
     /* save a single item to file */
-    result = objsave_save_obj_record(obj, NULL, fp, 0);
+    result = objsave_save_obj_record_db(obj, NULL, vnum, fp, 0);
     if (!result)
       return (0);
 
@@ -678,7 +678,7 @@ static int ascii_convert_house(struct char_data *ch, obj_vnum vnum) {
     }
     if (!feof(in)) {
       tmp = Obj_from_store(object, &i);
-      if (!objsave_save_obj_record(tmp, NULL, out, i)) { /* save a single item to file */
+      if (!objsave_save_obj_record_db(tmp, NULL, vnum, out, i)) { /* save a single item to file */
         send_to_char(ch, "...write error in house rent file.\r\n");
         free(outfile);
         fclose(in);
