@@ -53,12 +53,115 @@ static int House_get_filename(room_vnum vnum, char *filename, size_t maxlen) {
   return (1);
 }
 
+/* Handle objects (containers) when loading to a house */
+static int handle_house_obj(struct obj_data *temp, room_vnum vnum,  int locate, struct obj_data **cont_row) {
+  int j;
+  struct obj_data *obj1;
+  room_rnum rnum;
+  
+  if (!temp) /* this should never happen, but.... */
+    return FALSE;
+
+  if ((rnum = real_room(vnum)) == NOWHERE)
+    return (0);
+  
+  /* What to do with a new loaded item:
+   * If there's a list with <locate> less than 1 below this
+   * then its container has disappeared from the file   
+   * *gasp* -> put all the list back to the room if
+   * there's a list of contents with <locate> 1 below this: check if it's a
+   * container - if so: get it from ch, fill it, and give it back to ch (this
+   * way the container has its correct weight before modifying ch) - if not:
+   * the container is missing -> put all the list to ch's inventory. For items
+   * with negative <locate>: If there's already a list of contents with the
+   * same <locate> put obj to it if not, start a new list. Since <locate> for
+   * contents is < 0 the list indices are switched to non-negative. */
+  if (locate > 0) { 
+
+    for (j = MAX_BAG_ROWS - 1; j > 0; j--)
+      if (cont_row[j]) { /* no container -> back to ch's inventory */
+        for (; cont_row[j]; cont_row[j] = obj1) {
+          obj1 = cont_row[j]->next_content;
+          obj_to_room(cont_row[j], rnum);
+        }
+        cont_row[j] = NULL;
+      }
+    if (cont_row[0]) { /* content list existing */
+      if (GET_OBJ_TYPE(temp) == ITEM_CONTAINER ||
+              GET_OBJ_TYPE(temp) == ITEM_AMMO_POUCH) {
+        /* rem item ; fill ; equip again */
+        
+        temp->contains = NULL; /* should be empty - but who knows */
+        for (; cont_row[0]; cont_row[0] = obj1) {
+          obj1 = cont_row[0]->next_content;
+          obj_to_obj(cont_row[0], temp);
+        }
+        
+      } else { /* object isn't container -> empty content list */
+        for (; cont_row[0]; cont_row[0] = obj1) {
+          obj1 = cont_row[0]->next_content;
+          obj_to_room(cont_row[0], rnum);
+        }
+        cont_row[0] = NULL;
+      }
+    }
+  } else { /* locate <= 0 */
+    for (j = MAX_BAG_ROWS - 1; j > -locate; j--)
+      if (cont_row[j]) { /* no container -> back to ch's inventory */
+        for (; cont_row[j]; cont_row[j] = obj1) {
+          obj1 = cont_row[j]->next_content;
+          obj_to_room(cont_row[j], rnum);
+        }
+        cont_row[j] = NULL;
+      }
+
+    if (j == -locate && cont_row[j]) { /* content list existing */
+      if (GET_OBJ_TYPE(temp) == ITEM_CONTAINER ||
+              GET_OBJ_TYPE(temp) == ITEM_AMMO_POUCH) {
+        /* take item ; fill ; give to char again */
+        obj_from_room(temp);
+        temp->contains = NULL;
+        for (; cont_row[j]; cont_row[j] = obj1) {
+          obj1 = cont_row[j]->next_content;
+          obj_to_obj(cont_row[j], temp);
+        }
+        obj_to_char(temp, ch); /* add to inv first ... */
+      } else { /* object isn't container -> empty content list */
+        for (; cont_row[j]; cont_row[j] = obj1) {
+          obj1 = cont_row[j]->next_content;
+          obj_to_room(cont_row[j], rnum);
+        }
+        cont_row[j] = NULL;
+      }
+    }
+
+    if (locate < 0 && locate >= -MAX_BAG_ROWS) {
+      /* let obj be part of content list
+         but put it at the list's end thus having the items
+         in the same order as before renting */
+      obj_from_room(temp);
+      if ((obj1 = cont_row[-locate - 1])) {
+        while (obj1->next_content)
+          obj1 = obj1->next_content;
+        obj1->next_content = temp;
+      } else
+        cont_row[-locate - 1] = temp;
+    }
+  } /* locate less than zero */
+
+  return TRUE;
+}
+
 /* Load all objects for a house */
 static int House_load(room_vnum vnum) {
   FILE *fl;
   char filename[MAX_STRING_LENGTH];
   obj_save_data *loaded, *current;
   room_rnum rnum;
+  struct obj_data * cont_row[MAX_BAG_ROWS];
+  
+  for (i = 0; i < MAX_BAG_ROWS; i++)
+    cont_row[i] = NULL;
 
   if ((rnum = real_room(vnum)) == NOWHERE)
     return (0);
@@ -69,9 +172,12 @@ static int House_load(room_vnum vnum) {
 
   loaded = objsave_parse_objects_db(NULL, vnum);
 
-  for (current = loaded; current != NULL; current = current->next)
+  /*for (current = loaded; current != NULL; current = current->next)
     obj_to_room(current->obj, rnum);
-
+*/
+   for (current = loaded; current != NULL; current = current->next)
+    num_objs += handle_house_obj(current->obj, ch, current->locate, cont_row);
+  
   /* now it's safe to free the obj_save_data list - all members of it
    * have been put in the correct lists by obj_to_room()
    */
