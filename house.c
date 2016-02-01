@@ -126,7 +126,7 @@ static int handle_house_obj(struct obj_data *temp, room_vnum vnum,  int locate, 
         cont_row[j] = NULL;
       }
 
-    if (j == -locate && cont_row[j]) { /* content list existing */
+    if (j == -locate) { // && cont_row[j]) { /* content list existing */
       if (GET_OBJ_TYPE(temp) == ITEM_CONTAINER ||
               GET_OBJ_TYPE(temp) == ITEM_AMMO_POUCH) {
         /* take item ; fill ; give to char again */
@@ -147,7 +147,7 @@ static int handle_house_obj(struct obj_data *temp, room_vnum vnum,  int locate, 
         }
         cont_row[j] = NULL;
       }
-    }
+    } 
 
     if (locate < 0 && locate >= -MAX_BAG_ROWS) {
       /* let obj be part of content list
