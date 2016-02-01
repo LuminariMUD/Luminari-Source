@@ -157,6 +157,7 @@ static int handle_house_obj(struct obj_data *temp, room_vnum vnum,  int locate, 
 /* Load all objects for a house */
 static int House_load(room_vnum vnum) {
   FILE *fl;
+  int i;
   char filename[MAX_STRING_LENGTH];
   obj_save_data *loaded, *current;
   room_rnum rnum;
