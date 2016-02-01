@@ -134,6 +134,7 @@ static int handle_house_obj(struct obj_data *temp, room_vnum vnum,  int locate, 
           log ("adding obj to obj...");
         }
         obj_to_room(temp, rnum); /* add to room first ... */
+        log ("adding obj to room...");
       } else { /* object isn't container -> empty content list */
         for (; cont_row[j]; cont_row[j] = obj1) {
           obj1 = cont_row[j]->next_content;
