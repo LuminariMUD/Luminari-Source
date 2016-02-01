@@ -91,7 +91,7 @@ static int handle_house_obj(struct obj_data *temp, room_vnum vnum,  int locate, 
         for (; cont_row[j]; cont_row[j] = obj1) {
           obj1 = cont_row[j]->next_content;
           obj_to_room(cont_row[j], rnum);
-          log ("adding obj to room...");
+          log ("adding obj to room 1...");
         }
         cont_row[j] = NULL;
       }
@@ -103,14 +103,14 @@ static int handle_house_obj(struct obj_data *temp, room_vnum vnum,  int locate, 
         for (; cont_row[0]; cont_row[0] = obj1) {
           obj1 = cont_row[0]->next_content;
           obj_to_obj(cont_row[0], temp);
-          log ("adding obj to obj...");
+          log ("adding obj to obj 1...");
         }
         
       } else { /* object isn't container -> empty content list */
         for (; cont_row[0]; cont_row[0] = obj1) {
           obj1 = cont_row[0]->next_content;
           obj_to_room(cont_row[0], rnum);
-          log ("adding obj to room...");
+          log ("adding obj to room 2...");
         }
         cont_row[0] = NULL;
       }
@@ -121,7 +121,7 @@ static int handle_house_obj(struct obj_data *temp, room_vnum vnum,  int locate, 
         for (; cont_row[j]; cont_row[j] = obj1) {
           obj1 = cont_row[j]->next_content;
           obj_to_room(cont_row[j], rnum);
-          log ("adding obj to room...");
+          log ("adding obj to room 3...");
         }
         cont_row[j] = NULL;
       }
@@ -135,15 +135,15 @@ static int handle_house_obj(struct obj_data *temp, room_vnum vnum,  int locate, 
         for (; cont_row[j]; cont_row[j] = obj1) {
           obj1 = cont_row[j]->next_content;
           obj_to_obj(cont_row[j], temp);
-          log ("adding obj to obj...");
+          log ("adding obj to obj 2...");
         }
         obj_to_room(temp, rnum); /* add to room first ... */
-        log ("adding obj to room...");
+        log ("adding obj to room 4...");
       } else { /* object isn't container -> empty content list */
         for (; cont_row[j]; cont_row[j] = obj1) {
           obj1 = cont_row[j]->next_content;
           obj_to_room(cont_row[j], rnum);
-          log ("adding obj to room...");
+          log ("adding obj to room 5...");
         }
         cont_row[j] = NULL;
       }
