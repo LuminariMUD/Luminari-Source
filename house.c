@@ -204,8 +204,8 @@ int House_save(struct obj_data *obj, room_vnum vnum, FILE *fp, int location) {
   int result;
   
   if (obj) {
-    House_save(obj->contains, vnum, fp, location);
-    House_save(obj->next_content, vnum, fp, MIN(0,location) - 1);
+    House_save(obj->next_content, vnum, fp, location);
+    House_save(obj->contains, vnum, fp, MIN(0,location) - 1);
     
     /* save a single item to file */
     result = objsave_save_obj_record_db(obj, NULL, vnum, fp, location);
