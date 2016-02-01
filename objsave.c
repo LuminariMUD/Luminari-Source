@@ -59,7 +59,7 @@ static int Crash_load_objs(struct char_data *ch);
 static int handle_obj(struct obj_data *obj, struct char_data *ch, int locate, struct obj_data **cont_rows);
 static int objsave_write_rentcode(FILE *fl, int rentcode, int cost_per_day, struct char_data *ch);
 
-int objsave_save_obj_record(struct obj_data *obj, struct char_data *ch, FILE *fp, int locate) ) {
+int objsave_save_obj_record(struct obj_data *obj, struct char_data *ch, FILE *fp, int locate) {
   return objsave_save_obj_record_db(obj, ch, NOWHERE, fp, locate);
 }
 
