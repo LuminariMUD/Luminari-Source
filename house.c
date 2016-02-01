@@ -142,7 +142,7 @@ static int handle_house_obj(struct obj_data *temp, room_vnum vnum,  int locate, 
       /* let obj be part of content list
          but put it at the list's end thus having the items
          in the same order as before renting */
-      obj_from_room(temp);
+      //obj_from_room(temp);
       if ((obj1 = cont_row[-locate - 1])) {
         while (obj1->next_content)
           obj1 = obj1->next_content;
