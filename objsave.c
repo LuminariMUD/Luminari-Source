@@ -59,16 +59,24 @@ static int Crash_load_objs(struct char_data *ch);
 static int handle_obj(struct obj_data *obj, struct char_data *ch, int locate, struct obj_data **cont_rows);
 static int objsave_write_rentcode(FILE *fl, int rentcode, int cost_per_day, struct char_data *ch);
 
+int objsave_save_obj_record(struct obj_data *obj, struct char_data *ch, FILE *fp, int locate) ) {
+  return objsave_save_obj_record(obj, ch, NOWHERE, fp, locate);
+}
+
 /* Writes one object record to FILE.  Old name: Obj_to_store() */
 /* this function will basically check if an individual object has been modified
  from its default state, if so we write those modifications to file, otherwise
  the vnum is adequate
  *note: this always will return 1 
+ * 
+ * If the char_data struct is NULL, this function uses the house_vnum instead.
+ * This is mostly for inserting into the database and is a terribly hacky way 
+ * to make this work. - Ornir
  
  * NB: Database saving is partially implemented. *
  
  */
-int objsave_save_obj_record(struct obj_data *obj, struct char_data *ch, FILE *fp, int locate) {
+int objsave_save_obj_record(struct obj_data *obj, struct char_data *ch, room_vnum house_vnum, FILE *fp, int locate) {
 
 #ifdef OBJSAVE_DB
   char ins_buf[36767];  /* For MySQL insert. */
@@ -98,6 +106,8 @@ int objsave_save_obj_record(struct obj_data *obj, struct char_data *ch, FILE *fp
 #ifdef OBJSAVE_DB
   if (ch != NULL) /* GHETTTTTOOOOOOOOO */
     sprintf(ins_buf, "insert into player_save_objs (name, serialized_obj) values ('%s', '", GET_NAME(ch) );
+  else 
+    sprintf(ins_buf, "insert into house_data (vnum, serialized_obj) values ('%s', '", house_vnum);
 #endif  
   
   fprintf(fp, "#%d\n", GET_OBJ_VNUM(obj));
@@ -361,10 +371,14 @@ int objsave_save_obj_record(struct obj_data *obj, struct char_data *ch, FILE *fp
 #ifdef OBJSAVE_DB
   sprintf(line_buf, "');");
   strcat(ins_buf, line_buf);
-  if (ch != NULL) { /* GHETTTTTTTOOOOOOOOO */
-    
+  if (ch != NULL) { /* GHETTTTTTTOOOOOOOOO */    
     if (mysql_query(conn, ins_buf)) {
       log("SYSERR: Unable to INSERT into player_save_objs: %s", mysql_error(conn));
+      return 1;
+    }
+  } else {
+    if (mysql_query(conn, ins_buf)) {
+      log("SYSERR: Unable to INSERT into house_data: %s", mysql_error(conn));
       return 1;
     }
   }
