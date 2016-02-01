@@ -199,15 +199,16 @@ static int House_load(room_vnum vnum) {
 
 /* Save all objects for a house (recursive; initial call must be followed by a 
  * call to House_restore_weight)  Assumes file is open already. */
-int House_save(struct obj_data *obj, room_vnum vnum, FILE *fp) {
+int House_save(struct obj_data *obj, room_vnum vnum, FILE *fp, int location) {
   struct obj_data *tmp;
   int result;
   
   if (obj) {
-    House_save(obj->contains, vnum, fp);
-    House_save(obj->next_content, vnum, fp);
+    House_save(obj->contains, vnum, fp, location);
+    House_save(obj->next_content, vnum, fp, MIN(0,location) - 1);
+    
     /* save a single item to file */
-    result = objsave_save_obj_record_db(obj, NULL, vnum, fp, 0);
+    result = objsave_save_obj_record_db(obj, NULL, vnum, fp, location);
     if (!result)
       return (0);
 
@@ -256,7 +257,7 @@ void House_crashsave(room_vnum vnum) {
     perror("SYSERR: Error saving house file");
     return;
   }
-  if (!House_save(world[rnum].contents, vnum, fp)) {
+  if (!House_save(world[rnum].contents, vnum, fp, 0)) {
     fclose(fp);
     return;
   }
