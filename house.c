@@ -112,7 +112,6 @@ static int handle_house_obj(struct obj_data *temp, room_vnum vnum,  int locate, 
       log ("adding obj to room 4...");
     } else { /* object isn't container -> empty content list */
       
-      obj_to_room(temp, rnum);
       
       for (; cont_row[j]; cont_row[j] = obj1) {
         obj1 = cont_row[j]->next_content;
@@ -121,6 +120,8 @@ static int handle_house_obj(struct obj_data *temp, room_vnum vnum,  int locate, 
       }
       cont_row[j] = NULL;
     }
+  } else {
+    obj_to_room(temp, rnum);
   } 
 
   if (locate < 0 && locate >= -MAX_BAG_ROWS) {
