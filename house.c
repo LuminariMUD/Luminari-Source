@@ -67,6 +67,8 @@ static int handle_house_obj(struct obj_data *temp, room_vnum vnum,  int locate, 
   if ((rnum = real_room(vnum)) == NOWHERE)
     return (0);
   
+  log("object: %s at location: %d", GET_OBJ_SHORT(temp), locate);
+  
   /* What to do with a new loaded item:
    * If there's a list with <locate> less than 1 below this
    * then its container has disappeared from the file   
