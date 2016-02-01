@@ -90,7 +90,7 @@ static int House_load(room_vnum vnum) {
 int House_save(struct obj_data *obj, room_vnum vnum, FILE *fp) {
   struct obj_data *tmp;
   int result;
-
+  
   if (obj) {
     House_save(obj->contains, vnum, fp);
     House_save(obj->next_content, vnum, fp);
@@ -120,7 +120,22 @@ void House_crashsave(room_vnum vnum) {
   int rnum;
   char buf[MAX_STRING_LENGTH];
   FILE *fp;
-
+  char del_buf[2048];
+  
+  if (mysql_query(conn, "start transaction;")) {
+    log("SYSERR: Unable to start transaction for saving of house data: %s",
+            mysql_error(conn));    
+    return ;
+  }  
+  /* Delete existing save data.  In the future may just flag these for deletion. */
+  sprintf(del_buf, "delete from house_data where vnum = '%d';",
+          vnum);
+  if (mysql_query(conn, del_buf)) {
+    log("SYSERR: Unable to delete house data: %s",
+            mysql_error(conn));    
+    return ;
+  }      
+  
   if ((rnum = real_room(vnum)) == NOWHERE)
     return;
   if (!House_get_filename(vnum, buf, sizeof (buf)))
@@ -134,7 +149,15 @@ void House_crashsave(room_vnum vnum) {
     return;
   }
   fclose(fp);
+  
   House_restore_weight(world[rnum].contents);
+
+  if (mysql_query(conn, "commit;")) {
+    log("SYSERR: Unable to commit transaction for saving of house data: %s",
+            mysql_error(conn));    
+    return ;
+  }  
+  
   REMOVE_BIT_AR(ROOM_FLAGS(rnum), ROOM_HOUSE_CRASH);
 }
 
