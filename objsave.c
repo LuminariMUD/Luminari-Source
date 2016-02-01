@@ -107,7 +107,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
   if (ch != NULL) /* GHETTTTTOOOOOOOOO */
     sprintf(ins_buf, "insert into player_save_objs (name, serialized_obj) values ('%s', '", GET_NAME(ch) );
   else 
-    sprintf(ins_buf, "insert into house_data (vnum, serialized_obj) values ('%s', '", house_vnum);
+    sprintf(ins_buf, "insert into house_data (vnum, serialized_obj) values ('%d', '", house_vnum);
 #endif  
   
   fprintf(fp, "#%d\n", GET_OBJ_VNUM(obj));
