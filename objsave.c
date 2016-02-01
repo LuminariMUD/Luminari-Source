@@ -60,7 +60,7 @@ static int handle_obj(struct obj_data *obj, struct char_data *ch, int locate, st
 static int objsave_write_rentcode(FILE *fl, int rentcode, int cost_per_day, struct char_data *ch);
 
 int objsave_save_obj_record(struct obj_data *obj, struct char_data *ch, FILE *fp, int locate) ) {
-  return objsave_save_obj_record(obj, ch, NOWHERE, fp, locate);
+  return objsave_save_obj_record_db(obj, ch, NOWHERE, fp, locate);
 }
 
 /* Writes one object record to FILE.  Old name: Obj_to_store() */
@@ -76,7 +76,7 @@ int objsave_save_obj_record(struct obj_data *obj, struct char_data *ch, FILE *fp
  * NB: Database saving is partially implemented. *
  
  */
-int objsave_save_obj_record(struct obj_data *obj, struct char_data *ch, room_vnum house_vnum, FILE *fp, int locate) {
+int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_vnum house_vnum, FILE *fp, int locate) {
 
 #ifdef OBJSAVE_DB
   char ins_buf[36767];  /* For MySQL insert. */
