@@ -114,6 +114,7 @@ static int handle_house_obj(struct obj_data *temp, room_vnum vnum,  int locate, 
         for (; cont_row[j]; cont_row[j] = obj1) {
           obj1 = cont_row[j]->next_content;
           obj_to_room(cont_row[j], rnum);
+          log ("adding obj to room...");
         }
         cont_row[j] = NULL;
       }
@@ -127,12 +128,14 @@ static int handle_house_obj(struct obj_data *temp, room_vnum vnum,  int locate, 
         for (; cont_row[j]; cont_row[j] = obj1) {
           obj1 = cont_row[j]->next_content;
           obj_to_obj(cont_row[j], temp);
+          log ("adding obj to obj...");
         }
         obj_to_room(temp, rnum); /* add to room first ... */
       } else { /* object isn't container -> empty content list */
         for (; cont_row[j]; cont_row[j] = obj1) {
           obj1 = cont_row[j]->next_content;
           obj_to_room(cont_row[j], rnum);
+          log ("adding obj to room...");
         }
         cont_row[j] = NULL;
       }
