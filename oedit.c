@@ -1827,8 +1827,8 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
           max_val = 400000000;
           break;
         default:
-          min_val = -65000;
-          max_val = 65000;
+          min_val = -200000000;
+          max_val = 200000000;
       }
       GET_OBJ_VAL(OLC_OBJ(d), 2) = LIMIT(number, min_val, max_val);
       oedit_disp_val4_menu(d);

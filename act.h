@@ -248,6 +248,7 @@ extern const char *cmd_door[];
  ****************************************************************************/
 /* functions */
 void clear_rage(struct char_data *ch);
+void clear_defensive_stance(struct char_data *ch);
 void perform_stunningfist(struct char_data *ch);
 void perform_quiveringpalm(struct char_data *ch);
 void perform_deatharrow(struct char_data *ch);

@@ -369,6 +369,9 @@ int performance_effects(struct char_data *ch, struct char_data *tch, struct affe
       if (!IS_NPC(tch) && HAS_FEAT(tch, FEAT_RP_FEARLESS_RAGE) &&
           affected_by_spell(tch, SKILL_RAGE))
         break;
+      if (!IS_NPC(tch) && HAS_FEAT(tch, FEAT_FEARLESS_DEFENSE) &&
+          affected_by_spell(tch, SKILL_DEFENSIVE_STANCE))
+        break;
       if (AFF_FLAGGED(tch, AFF_MIND_BLANK))
         break;
       if (rand_number(0, 100) < effectiveness) {

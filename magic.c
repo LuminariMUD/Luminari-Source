@@ -290,6 +290,9 @@ void alt_wear_off_msg(struct char_data *ch, int skillnum) {
     case SKILL_COME_AND_GET_ME:
       send_to_char(ch, "You no longer SMASH!\r\n");
       break;
+    case SKILL_DEFENSIVE_STANCE:
+      clear_defensive_stance(ch);
+      break;
     case SKILL_RAGE:
       clear_rage(ch);
       break;
@@ -2843,6 +2846,12 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         send_to_char(victim, "Your fearless rage protects you!\r\n");
         return;
       }
+      if (!IS_NPC(victim) && HAS_FEAT(victim, FEAT_FEARLESS_DEFENSE) &&
+          affected_by_spell(victim, SKILL_DEFENSIVE_STANCE)) {
+        send_to_char(ch, "%s appears to be fearless!\r\n", GET_NAME(victim));
+        send_to_char(victim, "Your fearless defense protects you!\r\n");
+        return;
+      }
       if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
         send_to_char(ch, "Mind blank protects %s!", GET_NAME(victim));
         send_to_char(victim, "Mind blank protects you from %s!",
@@ -3238,6 +3247,12 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
           affected_by_spell(victim, SKILL_RAGE)) {
         send_to_char(ch, "%s appears to be fearless!\r\n", GET_NAME(victim));
         send_to_char(victim, "Your fearless rage protects you!\r\n");
+        return;
+      }
+      if (!IS_NPC(victim) && HAS_FEAT(victim, FEAT_FEARLESS_DEFENSE) &&
+          affected_by_spell(victim, SKILL_DEFENSIVE_STANCE)) {
+        send_to_char(ch, "%s appears to be fearless!\r\n", GET_NAME(victim));
+        send_to_char(victim, "Your fearless defense protects you!\r\n");
         return;
       }
 

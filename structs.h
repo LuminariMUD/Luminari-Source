@@ -358,8 +358,11 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define CLASS_WEAPONMASTER  CLASS_WEAPON_MASTER
 #define CLASS_ARCANE_ARCHER 12
 #define CLASS_ARCANEARCHER  CLASS_ARCANE_ARCHER
+#define CLASS_STALWART_DEFENDER 13
+#define CLASS_STALWARTDEFENDER CLASS_STALWART_DEFENDER
+#define CLASS_SHIFTER           14
 /** Total number of available PC Classes */
-#define NUM_CLASSES         13
+#define NUM_CLASSES             15
 
 // related to pc (classes, etc)
 /* note that max_classes was established to reign in some of the
@@ -1496,12 +1499,12 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_COUNTERSONG            266
 #define FEAT_IMBUE_ARROW            267
 #define FEAT_ARROW_OF_DEATH         268
-#define FEAT_UNUSED_269             269
-#define FEAT_UNUSED_270             270
-#define FEAT_UNUSED_271             271
-#define FEAT_UNUSED_272             272
-#define FEAT_UNUSED_273             273
-#define FEAT_UNUSED_274             274
+#define FEAT_AC_BONUS               269
+#define FEAT_FEARLESS_DEFENSE       270
+#define FEAT_IMMOBILE_DEFENSE       271
+#define FEAT_DR_DEFENSE             272
+#define FEAT_RENEWED_DEFENSE        273
+#define FEAT_SMASH_DEFENSE          274
 #define FEAT_ULTRAVISION            275
 #define FEAT_LINGERING_SONG         276
 #define FEAT_EXTRA_MUSIC            277
@@ -1688,7 +1691,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_VITAL                          456
 #define FEAT_HARDY                          457
 #define FEAT_CRYSTAL_SKIN                   458
-#define FEAT_UNUSED_2                       459
+#define FEAT_LAST_WORD                      459
 #define FEAT_UNUSED_3                       460
 #define FEAT_CRYSTAL_DWARF_RACIAL_ADJUSTMENT 461
 #define FEAT_VULNERABLE_TO_COLD             462

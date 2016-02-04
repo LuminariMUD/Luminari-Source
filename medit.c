@@ -1981,6 +1981,7 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned) {
       armor_class -= 10;
       break;
     case CLASS_DRUID:
+    case CLASS_SHIFTER:
       GET_WIS(mob) += bonus;
       (mob)->aff_abils.dex += bonus;
       GET_SDD(mob) = GET_SDD(mob) * 4 / 5;
@@ -1988,6 +1989,7 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned) {
       armor_class -= 50;
       break;
     case CLASS_BERSERKER:
+    case CLASS_STALWART_DEFENDER:
       (mob)->aff_abils.str += bonus;
       (mob)->aff_abils.con += bonus;
       MOBS_HPS = MOBS_HPS * 6 / 5;

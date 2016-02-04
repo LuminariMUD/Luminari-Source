@@ -3069,6 +3069,8 @@ struct set_struct {
   { "accexp", LVL_IMPL, PC, NUMBER}, /* 80 */
   { "weaponmaster", LVL_STAFF, PC, NUMBER}, /* 81 */
   { "arcanearcher", LVL_STAFF, PC, NUMBER}, /* 82 */
+  { "stalwartdefender", LVL_STAFF, PC, NUMBER}, /* 83 */
+  { "shifter", LVL_STAFF, PC, NUMBER}, /* 84 */
 
   { "\n", 0, BOTH, MISC}
 };
@@ -3087,6 +3089,8 @@ CLASS_PALADIN
 CLASS_RANGER
 CLASS_WEAPON_MASTER
 CLASS_ARCANE_ARCHER
+ * CLASS_STALWART_DEFENDER
+ * CLASS_SHIFTER
  */
 
 static int perform_set(struct char_data *ch, struct char_data *vict, int mode, char *val_arg) {
@@ -3611,6 +3615,14 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       break;
     case 82: // arcane archer level
       CLASS_LEVEL(vict, CLASS_ARCANE_ARCHER) = RANGE(0, LVL_IMMORT - 1);
+      affect_total(vict);
+      break;
+    case 83: // stalwart defender level
+      CLASS_LEVEL(vict, CLASS_STALWART_DEFENDER) = RANGE(0, LVL_IMMORT - 1);
+      affect_total(vict);
+      break;
+    case 84: // shifter level
+      CLASS_LEVEL(vict, CLASS_SHIFTER) = RANGE(0, LVL_IMMORT - 1);
       affect_total(vict);
       break;
     default:

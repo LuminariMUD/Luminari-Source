@@ -2303,6 +2303,12 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
         case CLASS_WEAPON_MASTER:
           perform_help(d, "class-weaponmaster");
           break;
+        case CLASS_SHIFTER:
+          perform_help(d, "class-shifter");
+          break;
+        case CLASS_STALWART_DEFENDER:
+          perform_help(d, "class-stalwartdefender");
+          break;
         case CLASS_ARCANE_ARCHER:
           perform_help(d, "class-arcanearcher");
           break;

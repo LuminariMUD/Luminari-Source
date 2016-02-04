@@ -113,6 +113,7 @@ struct mud_event_list mud_event_index[] = {
   { "Imbue Arrow", event_daily_use_cooldown, EVENT_CHAR}, // eIMBUE_ARROW
   { "Arrow of Death", event_daily_use_cooldown, EVENT_CHAR}, //eDEATHARROW
   { "Swarm of Arrows", event_daily_use_cooldown, EVENT_CHAR}, //eARROW_SWARM
+  { "Renewed Defense", event_countdown, EVENT_CHAR}, // eRENEWEDDEFENSE
 };
 
 /* init_events() is the ideal function for starting global events. This
@@ -294,6 +295,9 @@ EVENTFUNC(event_countdown) {
       break;
    case eRENEWEDVIGOR:
       send_to_char(ch, "You are now able to use Renewed Vigor again.\r\n");
+      break;
+   case eRENEWEDDEFENSE:
+      send_to_char(ch, "You are now able to use Renewed Defense again.\r\n");
       break;
     case eTREATINJURY:
       send_to_char(ch, "You are now able to treat injuries again.\r\n");

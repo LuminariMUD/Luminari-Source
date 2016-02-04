@@ -1287,6 +1287,8 @@ int valid_align_by_class(int alignment, int class) {
     case CLASS_WARRIOR:
     case CLASS_WEAPON_MASTER:
     case CLASS_ARCANE_ARCHER:
+    case CLASS_STALWART_DEFENDER:
+    case CLASS_SHIFTER:
     case CLASS_SORCERER:
       return 1;
   }
@@ -1330,6 +1332,65 @@ int meet_class_reqs(struct char_data *ch, int class, int mode) {
 
   /* stat, and other restrictions */
   switch (class) {
+    
+    case CLASS_STALWART_DEFENDER:
+      if (!has_unlocked_class(ch, CLASS_STALWART_DEFENDER)) {
+        send_to_char(ch, "[LOCKED] Stalwart Defender (type 'accexp class stalwartdefender' to unlock)\r\n");
+        break;
+      }
+      
+      if (BAB(ch) < 7) {
+        passed = FALSE;
+        send_to_char(ch, "  -Base attack bonus of +7 required.\r\n");
+      }
+      if (!HAS_FEAT(ch, FEAT_DODGE)) {
+        passed = FALSE;
+        send_to_char(ch, "  -Feat required: Dodge\r\n");
+      }
+      if (!HAS_FEAT(ch, FEAT_ENDURANCE)) {
+        passed = FALSE;
+        send_to_char(ch, "  -Feat required: Endurance\r\n");
+      }
+      if (!HAS_FEAT(ch, FEAT_TOUGHNESS)) {
+        passed = FALSE;
+        send_to_char(ch, "  -Feat required: Toughness\r\n");
+      }      
+      if (!HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_MEDIUM)) {
+        passed = FALSE;
+        send_to_char(ch, "  -Feat required: Medium Armor Proficiency\r\n");
+      }      
+      if (!HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_LIGHT)) {
+        passed = FALSE;
+        send_to_char(ch, "  -Feat required: Light Armor Proficiency\r\n");
+      }      
+      
+      if (passed) {
+        send_to_char(ch, "  Stalwart Defender requirements have been met!\r\n");
+        return 1;
+      } else {
+        send_to_char(ch, "Stalwart Defender requirements have NOT been met!\r\n");        
+      }
+      break;
+      
+    case CLASS_SHIFTER:
+      if (!has_unlocked_class(ch, CLASS_SHIFTER)) {
+        send_to_char(ch, "[LOCKED] Shifter (type 'accexp class shifter' to unlock)\r\n");
+        break;
+      }
+      
+      if (CLASS_LEVEL(ch, CLASS_DRUID) < 6) {
+        passed = FALSE;
+        send_to_char(ch, "  - 6 levels in Druid class required.\r\n");
+      }      
+      
+      if (passed) {
+        send_to_char(ch, "  Shifter requirements have been met!\r\n");
+        return 1;
+      } else {
+        send_to_char(ch, "Shifter requirements have NOT been met!\r\n");        
+      }
+      break;
+      
     case CLASS_ARCANE_ARCHER:
       if (!has_unlocked_class(ch, CLASS_ARCANE_ARCHER)) {
         send_to_char(ch, "[LOCKED] ArcaneArcher (type 'accexp class arcanearcher' to unlock)\r\n");

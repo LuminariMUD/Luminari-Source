@@ -1924,6 +1924,56 @@ void assign_feats(void) {
 
   /* class feats that are implemented on classes that are not yet in the game */
 
+  /* stalwart defender */
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
+  /*1*/feato(FEAT_AC_BONUS, "AC bonus", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
+    "+1 dodge AC bonus",
+    "A stalwart defender receives a dodge bonus to AC that starts at +1 and improves "
+      "as the defender gains levels, until it reaches +4 at 10th level.  This"
+      " feat stacks.");
+  /*1*/feato(FEAT_DEFENSIVE_STANCE, "defensive stance", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
+    "a position of readiness and trance-like determination",
+    "At 1st level, a stalwart defender can enter a defensive stance, a position of readiness and trance-like determination."
+      "  A stalwart defender can maintain this stance for a number of rounds per day equal to 6 + his Constitution modifier."
+      "  Also he can maintain the stance for 2 additional rounds per day * their class level.  The stalwart defender can enter "
+      "and end a defensive stance as a free action.  While in a defensive stance, the stalwart defender gains a +2 dodge bonus to AC, "
+      "a +4 morale bonus to his Strength and Constitution, as well as a +2 morale bonus on Will saves. The increase to "
+      "Constitution grants the stalwart defender 2 hit points per Hit Die.  While in a defensive stance, a stalwart defender "
+      "cannot move from his current position through any means.  After ending the stance, he is fatigued for 10 rounds "
+      "A stalwart defender cannot enter a new defensive stance while fatigued or exhausted but can otherwise enter a stance multiple "
+      "times during a single encounter or combat.  A defensive stance requires a level of emotional calm, and it may not be maintained "
+      "by a character in a rage (such as from the rage class feature).  This feat stacks indicating additional daily usages.");
+  /*2*/feato(FEAT_FEARLESS_DEFENSE, "fearless defense", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "immune to fear effects while in defensive stance",
+    "While in a defensive stance, the stalwart defender is immune to fear and fear-like effects.");
+  /*3*/ /* uncanny dodge */
+  /*4*/ /* AC bonus */
+  /*4*/feato(FEAT_IMMOBILE_DEFENSE, "immobile defense", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "bonus to CMD while in defensive stance",
+    "While in a defensive stance, the stalwart defender adds his class-level / 2 to his Combat Maneuver Defense.");
+  /*5*/ /* damage reduction 1 */
+  /*6*/feato(FEAT_DR_DEFENSE, "damage reduction defense", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "DR 1/- while in defensive stance",
+    "While in a defensive stance, you are able to shrug off 1/- damage via damage reduction.");
+  /*7*/ /* AC bonus */ /* damage reduction 3 */ /* improved uncanny dodge */
+  /*8*/feato(FEAT_RENEWED_DEFENSE, "renewed defense", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "can heal self while in defensive stance",
+    "As a swift action, the stalwart defender heals 1d8 points of damage + his "
+               "Constitution modifier + 10. For every two levels the stalwart defender "
+               "has attained above 2nd, this healing increases by 1d8.  This power "
+               "can be used only once per day and only while in a defensive stance.");
+  /*9*/feato(FEAT_MOBILE_DEFENSE, "mobile defense", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Allows one to move while in defensive stance",
+    "A stalwart defender can adjust his position while maintaining a defensive "
+      "stance without losing the benefit of the stance.");
+  /*10*/ /* AC bonus */ /* damage reduction 5 */
+  /*10*/feato(FEAT_SMASH_DEFENSE, "smash defense", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "free knockdown attack while in defensive stance",
+    "");
+  /*10*/feato(FEAT_LAST_WORD, "last word", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "",
+    "");
+            
   /* Duelist */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_ENHANCED_MOBILITY, "enhanced mobility", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
@@ -2089,10 +2139,6 @@ void assign_feats(void) {
   feato(FEAT_POISON_SAVE_BONUS, "poison save bonus", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Assassin level 2", "Bonus to all saves against poison.");
   feato(FEAT_POISON_USE, "poison use", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Trained use in poisons without risk of poisoning self.", "Trained use in poisons without risk of poisoning self.");
 
-  /* dwarven defender */
-  feato(FEAT_DEFENSIVE_STANCE, "defensive stance", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Allows you to fight defensively with bonuses to ac and stats.", "Allows you to fight defensively with bonuses to ac and stats.");
-  feato(FEAT_MOBILE_DEFENSE, "mobile defense", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Allows one to move while in defensive stance", "Allows one to move while in defensive stance");
-
   /* favored soul */
   feato(FEAT_DEITY_WEAPON_PROFICIENCY, "deity's weapon proficiency", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows you to use the weapon of your deity", "allows you to use the weapon of your deity");
   feato(FEAT_HASTE, "haste", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "can cast haste 3x per day", "can cast haste 3x per day");
@@ -2122,7 +2168,7 @@ void assign_feats(void) {
   feato(FEAT_ENHANCE_ARROW_DISTANCE, "enhance arrow (distance)", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "doubles range increment on weapon.", "doubles range increment on weapon.");
   feato(FEAT_ENHANCE_ARROW_ELEMENTAL, "enhance arrow (elemental)", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "+1d6 elemental damage with bows", "+1d6 elemental damage with bows");
   feato(FEAT_ENHANCE_ARROW_ELEMENTAL_BURST, "enhance arrow (elemental burst)", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "+2d10 on critical hits with bows", "+2d10 on critical hits with bows");
-
+  
   /* wizard / sorc */
   /*craft*/
   feato(FEAT_BREW_POTION, "brew potion", FALSE, FALSE, FALSE, FEAT_TYPE_CRAFT, "can create magical potions ", "can create magical potions ");
