@@ -3164,7 +3164,7 @@ struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */ {
     GET_OBJ_VAL(obj, 2) = MIN(MAX_WEAPON_SDICE, GET_OBJ_VAL(obj, 2));
   }
   /* item cost cap */
-  GET_OBJ_COST(obj) = MIN(MAX(GET_OBJ_LEVEL(obj), 1) * 100, GET_OBJ_COST(obj));
+  //GET_OBJ_COST(obj) = MIN(MAX(GET_OBJ_LEVEL(obj), 1) * 100, GET_OBJ_COST(obj));
 
   copy_proto_script(&obj_proto[i], obj, OBJ_TRIGGER);
   assign_triggers(obj, OBJ_TRIGGER);
