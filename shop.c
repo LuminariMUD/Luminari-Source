@@ -343,18 +343,26 @@ static int same_obj(struct obj_data *obj1, struct obj_data *obj2)
 
   if (!obj1 || !obj2)
     return (obj1 == obj2);
-
+  /*DEBUG: Ornir*/
+  log("Obj1: %d Obj2: %d", GET_OBJ_RNUM(obj1), GET_OBJ_RNUM(obj2));
+  
   if (GET_OBJ_RNUM(obj1) != GET_OBJ_RNUM(obj2))
     return (FALSE);
 
+  log("Obj1 cost: %d Obj2 cost: %d", GET_OBJ_COST(obj1), GET_OBJ_COST(obj2));
+  
   if (GET_OBJ_COST(obj1) != GET_OBJ_COST(obj2))
     return (FALSE);
 
-  for (aindex = 0; aindex < MAX_OBJ_AFFECT; aindex++)
+  for (aindex = 0; aindex < MAX_OBJ_AFFECT; aindex++) {
+    log("obj1 affected[%d] location: %d obj2 affected[%d] location: %d", aindex, obj1->affected[aindex].location,
+                                                                         aindex, obj2->affected[aindex].location);
+    log("obj1 affected[%d] modifier: %d obj2 affected[%d] modifier: %d", aindex, obj1->affected[aindex].modifier,
+                                                                         aindex, obj2->affected[aindex].modifier);
     if ((obj1->affected[aindex].location != obj2->affected[aindex].location) ||
 	(obj1->affected[aindex].modifier != obj2->affected[aindex].modifier))
       return (FALSE);
-
+  }
   return (TRUE);
 }
 
