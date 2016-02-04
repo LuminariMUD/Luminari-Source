@@ -114,7 +114,7 @@ static int cmd_say;
 static int cmd_tell;
 static int cmd_emote;
 static int cmd_slap;
-static int cmd_puke;
+static int cmd_shake;
 
 /* config arrays */
 static const char *operator_str[] = {
@@ -638,7 +638,7 @@ static void shopping_buy(char *arg, struct char_data *ch, struct char_data *keep
 
     switch (SHOP_BROKE_TEMPER(shop_nr)) {
     case 0:
-      do_action(keeper, strcpy(actbuf, GET_NAME(ch)), cmd_puke, 0);	/* strcpy: OK (MAX_NAME_LENGTH < MAX_INPUT_LENGTH) */
+      do_action(keeper, strcpy(actbuf, GET_NAME(ch)), cmd_shake, 0);	/* strcpy: OK (MAX_NAME_LENGTH < MAX_INPUT_LENGTH) */
       return;
     case 1:
       do_echo(keeper, strcpy(actbuf, "smokes on his joint."), cmd_emote, SCMD_EMOTE);	/* strcpy: OK */
@@ -1371,7 +1371,7 @@ void assign_the_shopkeepers(void)
   cmd_tell = find_command("tell");
   cmd_emote = find_command("emote");
   cmd_slap = find_command("slap");
-  cmd_puke = find_command("puke");
+  cmd_shake = find_command("shake");
 
   for (cindex = 0; cindex <= top_shop; cindex++) {
     if (SHOP_KEEPER(cindex) == NOBODY)
