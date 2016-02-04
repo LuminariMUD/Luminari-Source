@@ -3443,10 +3443,12 @@ SPECIAL(mercenary) {
       case CLASS_BERSERKER:
       case CLASS_WARRIOR:
       case CLASS_WEAPON_MASTER:
+      case CLASS_STALWART_DEFENDER:
         base = 8;
         break;
       case CLASS_ROGUE:
       case CLASS_MONK:
+      case CLASS_SHIFTER:
         base = 5;
         break;
 

@@ -1712,6 +1712,80 @@ void load_class_list(void) {
     "the ArcaneArcher"            /* default */  
   );
   /****************************************************************************/
+  
+  /****************************************************************************/
+  /*     class-number               name      abrv   clr-abrv     menu-name*/
+  classo(CLASS_STALWART_DEFENDER, "arcanearcher", "ArA", "\tgArA\tn", "f) \tgArcaneArcher\tn",
+      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst, eFeatp*/
+        10,       Y,    Y,        H,  10, 0,   1,   4,     Y,      5000,    4,
+        /*descrip*/"Many who seek to perfect the use of the bow sometimes pursue "
+    "the path of the arcane archer. Arcane archers are masters of ranged combat, "
+    "as they possess the ability to strike at targets with unerring accuracy and "
+    "can imbue their arrows with powerful spells. Arrows fired by arcane archers "
+    "can fell even the most powerful foes with a single, deadly shot.");
+  /* class-number then saves:        fortitude, reflex, will, poison, death */
+  assign_class_saves(CLASS_STALWART_DEFENDER, G,    G,      B,    B,      B);
+  assign_class_abils(CLASS_STALWART_DEFENDER, /* class number */
+    /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+      CC,        CA,     CA,        CA,  CA,        CA,            CA,
+    /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+      CC,      CC,        CC,           CA,  CA,  CC,   CC,             CC,
+    /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+      CC,       CC,            CC,      CC,           CC,           CC,
+    /*survival,swim,use_magic_device,perform*/
+      CC,      CA,  CC,              CC
+    );
+  assign_class_titles(CLASS_STALWART_DEFENDER, /* class number */
+    "",                           /* <= 4  */
+    "the Precise Shot",           /* <= 9  */
+    "the Magical Archer",         /* <= 14 */
+    "the Masterful Archer",       /* <= 19 */
+    "the Mystical Arrow",         /* <= 24 */
+    "the Arrow Wizard",           /* <= 29 */
+    "the Arrow Storm",            /* <= 30 */
+    "the Immortal ArcaneArcher",  /* <= LVL_IMMORT */
+    "the Limitless Archer",       /* <= LVL_STAFF */
+    "the God of Archery",         /* <= LVL_GRSTAFF */
+    "the ArcaneArcher"            /* default */  
+  );
+  /****************************************************************************/
+
+  /****************************************************************************/
+  /*     class-number               name      abrv   clr-abrv     menu-name*/
+  classo(CLASS_SHIFTER, "arcanearcher", "ArA", "\tgArA\tn", "f) \tgArcaneArcher\tn",
+      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst, eFeatp*/
+        10,       Y,    Y,        H,  10, 0,   1,   4,     Y,      5000,    4,
+        /*descrip*/"Many who seek to perfect the use of the bow sometimes pursue "
+    "the path of the arcane archer. Arcane archers are masters of ranged combat, "
+    "as they possess the ability to strike at targets with unerring accuracy and "
+    "can imbue their arrows with powerful spells. Arrows fired by arcane archers "
+    "can fell even the most powerful foes with a single, deadly shot.");
+  /* class-number then saves:        fortitude, reflex, will, poison, death */
+  assign_class_saves(CLASS_SHIFTER, G,    G,      B,    B,      B);
+  assign_class_abils(CLASS_SHIFTER, /* class number */
+    /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+      CC,        CA,     CA,        CA,  CA,        CA,            CA,
+    /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+      CC,      CC,        CC,           CA,  CA,  CC,   CC,             CC,
+    /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+      CC,       CC,            CC,      CC,           CC,           CC,
+    /*survival,swim,use_magic_device,perform*/
+      CC,      CA,  CC,              CC
+    );
+  assign_class_titles(CLASS_SHIFTER, /* class number */
+    "",                           /* <= 4  */
+    "the Precise Shot",           /* <= 9  */
+    "the Magical Archer",         /* <= 14 */
+    "the Masterful Archer",       /* <= 19 */
+    "the Mystical Arrow",         /* <= 24 */
+    "the Arrow Wizard",           /* <= 29 */
+    "the Arrow Storm",            /* <= 30 */
+    "the Immortal ArcaneArcher",  /* <= LVL_IMMORT */
+    "the Limitless Archer",       /* <= LVL_STAFF */
+    "the God of Archery",         /* <= LVL_GRSTAFF */
+    "the ArcaneArcher"            /* default */  
+  );
+  /****************************************************************************/
 }
 
 bool display_class_info(struct char_data *ch, char *classname) {
@@ -1909,19 +1983,27 @@ int parse_class(char arg) {
   arg = LOWER(arg);
 
   switch (arg) {
-    case 'm': return CLASS_WIZARD;
-    case 'c': return CLASS_CLERIC;
-    case 'w': return CLASS_WARRIOR;
-    case 't': return CLASS_ROGUE;
-    case 'o': return CLASS_MONK;
-    case 'd': return CLASS_DRUID;
-    case 'b': return CLASS_BERSERKER;
-    case 's': return CLASS_SORCERER;
-    case 'p': return CLASS_PALADIN;
-    case 'r': return CLASS_RANGER;
     case 'a': return CLASS_BARD;
+    case 'b': return CLASS_BERSERKER;
+    case 'c': return CLASS_CLERIC;
+    case 'd': return CLASS_DRUID;
     case 'e': return CLASS_WEAPON_MASTER;
     case 'f': return CLASS_ARCANE_ARCHER;
+    case 'g': return CLASS_STALWART_DEFENDER;
+    case 'h': return CLASS_SHIFTER;
+    /* empty letters */
+    case 'm': return CLASS_WIZARD;
+    /* empty letters */
+    case 'o': return CLASS_MONK;
+    case 'p': return CLASS_PALADIN;
+    /* empty letters */
+    case 'r': return CLASS_RANGER;
+    case 's': return CLASS_SORCERER;
+    case 't': return CLASS_ROGUE;
+    /* empty letters */
+    case 'w': return CLASS_WARRIOR;
+    /* empty letters */
+    
     default: return CLASS_UNDEFINED;
   }
 }
@@ -1949,6 +2031,9 @@ int parse_class_long(char *arg) {
   if (is_abbrev(arg, "weapon-master")) return CLASS_WEAPON_MASTER;
   if (is_abbrev(arg, "arcanearcher")) return CLASS_ARCANE_ARCHER;
   if (is_abbrev(arg, "arcane-archer")) return CLASS_ARCANE_ARCHER;
+  if (is_abbrev(arg, "stalwartdefender")) return CLASS_STALWART_DEFENDER;
+  if (is_abbrev(arg, "stalwart-defender")) return CLASS_STALWART_DEFENDER;
+  if (is_abbrev(arg, "shifter")) return CLASS_SHIFTER;
 
   return CLASS_UNDEFINED;
 }
@@ -2394,7 +2479,6 @@ int level_feats[][LEVEL_FEATS] = {
   {CLASS_BERSERKER, RACE_UNDEFINED, TRUE, 29, FEAT_RAGE},
   /* rage power lvl 30*/
   {CLASS_BERSERKER, RACE_UNDEFINED, FALSE, 30, FEAT_DEATHLESS_FRENZY},
-
   
   /* ranger */ /* CM = combat matery substitute */
   /* class, race, stacks?, level, feat_ name */
@@ -2496,6 +2580,8 @@ int level_feats[][LEVEL_FEATS] = {
   {CLASS_BARD, RACE_UNDEFINED, FALSE, 21, FEAT_SONG_OF_DRAGONS},
   {CLASS_BARD, RACE_UNDEFINED, FALSE, 25, FEAT_SONG_OF_THE_MAGI},
 
+  /****** PRESTIGE CLASSES *******/
+  
   /* weapon master */
   /* class, race, stacks?, level, feat_ name */
   {CLASS_WEAPON_MASTER, RACE_UNDEFINED, FALSE, 1,  FEAT_WEAPON_OF_CHOICE},
@@ -2523,6 +2609,34 @@ int level_feats[][LEVEL_FEATS] = {
   {CLASS_ARCANE_ARCHER, RACE_UNDEFINED, FALSE, 8,  FEAT_SWARM_OF_ARROWS},
   {CLASS_ARCANE_ARCHER, RACE_UNDEFINED, TRUE,  9,  FEAT_ENHANCE_ARROW_MAGIC},
   {CLASS_ARCANE_ARCHER, RACE_UNDEFINED, FALSE, 10, FEAT_ARROW_OF_DEATH},
+  
+  /* stalwart defender */
+  /* class, race, stacks?, level, feat_ name */
+  {CLASS_STALWART_DEFENDER, RACE_UNDEFINED, TRUE,  1,  FEAT_AC_BONUS},
+  {CLASS_STALWART_DEFENDER, RACE_UNDEFINED, TRUE,  1,  FEAT_DEFENSIVE_STANCE},
+  {CLASS_STALWART_DEFENDER, RACE_UNDEFINED, FALSE, 2,  FEAT_FEARLESS_DEFENSE},
+  {CLASS_STALWART_DEFENDER, RACE_UNDEFINED, FALSE, 3,  FEAT_UNCANNY_DODGE},
+  {CLASS_STALWART_DEFENDER, RACE_UNDEFINED, TRUE,  3,  FEAT_DEFENSIVE_STANCE},
+  {CLASS_STALWART_DEFENDER, RACE_UNDEFINED, TRUE,  4,  FEAT_AC_BONUS},
+  {CLASS_STALWART_DEFENDER, RACE_UNDEFINED, FALSE, 4,  FEAT_IMMOBILE_DEFENSE},
+  {CLASS_STALWART_DEFENDER, RACE_UNDEFINED, TRUE,  5,  FEAT_SHRUG_DAMAGE},
+  {CLASS_STALWART_DEFENDER, RACE_UNDEFINED, TRUE,  5,  FEAT_DEFENSIVE_STANCE},
+  {CLASS_STALWART_DEFENDER, RACE_UNDEFINED, TRUE,  7,  FEAT_AC_BONUS},
+  {CLASS_STALWART_DEFENDER, RACE_UNDEFINED, TRUE,  7,  FEAT_SHRUG_DAMAGE},
+  {CLASS_STALWART_DEFENDER, RACE_UNDEFINED, TRUE,  7,  FEAT_SHRUG_DAMAGE},
+  {CLASS_STALWART_DEFENDER, RACE_UNDEFINED, FALSE, 7,  FEAT_IMPROVED_UNCANNY_DODGE},
+  {CLASS_STALWART_DEFENDER, RACE_UNDEFINED, TRUE,  7,  FEAT_DEFENSIVE_STANCE},
+  {CLASS_STALWART_DEFENDER, RACE_UNDEFINED, FALSE, 8,  FEAT_RENEWED_DEFENSE},
+  {CLASS_STALWART_DEFENDER, RACE_UNDEFINED, FALSE, 9,  FEAT_MOBILE_DEFENSE},
+  {CLASS_STALWART_DEFENDER, RACE_UNDEFINED, TRUE,  9,  FEAT_DEFENSIVE_STANCE},
+  {CLASS_STALWART_DEFENDER, RACE_UNDEFINED, FALSE, 10, FEAT_LAST_WORD},
+  {CLASS_STALWART_DEFENDER, RACE_UNDEFINED, TRUE,  10, FEAT_AC_BONUS},
+  {CLASS_STALWART_DEFENDER, RACE_UNDEFINED, TRUE,  10, FEAT_SHRUG_DAMAGE},
+  {CLASS_STALWART_DEFENDER, RACE_UNDEFINED, TRUE,  10, FEAT_SHRUG_DAMAGE},
+  {CLASS_STALWART_DEFENDER, RACE_UNDEFINED, FALSE, 10, FEAT_SMASH_DEFENSE},
+  
+  /* shifter */
+  /* class, race, stacks?, level, feat_ name */
   
   /****************/
   /* Racial feats */
@@ -3775,6 +3889,8 @@ int level_exp(struct char_data *ch, int level) {
     case CLASS_RANGER:
     case CLASS_WARRIOR:
     case CLASS_WEAPON_MASTER:
+    case CLASS_STALWART_DEFENDER:
+    case CLASS_SHIFTER:
     case CLASS_ARCANE_ARCHER:
     case CLASS_ROGUE:
     case CLASS_BARD:

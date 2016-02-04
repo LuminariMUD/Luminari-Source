@@ -484,21 +484,39 @@ void compute_char_cap(struct char_data *ch) {
           hit_cap += class_level / 3;
           dam_cap += class_level / 3;
           break;
+        case CLASS_SHIFTER:
+          str_cap += class_level / 4 + 1;
+          dex_cap += class_level / 4 + 1;
+          wis_cap += class_level / 4 + 1;
+          break;
         case CLASS_DRUID:
           str_cap += class_level / 4 + 1;
           dex_cap += class_level / 4 + 1;
           wis_cap += class_level / 4 + 1;
           break;
         case CLASS_BERSERKER: /*rage*/
-          if (class_level < 11) /*normal*/
-            rage_bonus = 4;
-          else if (class_level < 20) /*greater*/
-            rage_bonus = 6;
-          else if (class_level < 27) /*mighty*/
-            rage_bonus = 9;
-          else if (class_level >= 27) /*indomitable*/
-            rage_bonus = 12;
-
+          if (affected_by_spell(ch, SKILL_RAGE)) {
+            if (class_level < 11) /*normal*/
+              rage_bonus = 4;
+            else if (class_level < 20) /*greater*/
+              rage_bonus = 6;
+            else if (class_level < 27) /*mighty*/
+              rage_bonus = 9;
+            else if (class_level >= 27) /*indomitable*/
+              rage_bonus = 12;
+          }
+          
+          str_cap += class_level / 4 + 1 + rage_bonus;
+          con_cap += class_level / 4 + 1 + rage_bonus;
+          hit_cap += class_level / 3;
+          dam_cap += class_level / 3;
+          break;
+        case CLASS_STALWART_DEFENDER: /*defensive stance*/
+          if (affected_by_spell(ch, SKILL_DEFENSIVE_STANCE)) {
+            if (class_level > 0) /*normal*/
+              rage_bonus = 4;
+          }
+          
           str_cap += class_level / 4 + 1 + rage_bonus;
           con_cap += class_level / 4 + 1 + rage_bonus;
           hit_cap += class_level / 3;

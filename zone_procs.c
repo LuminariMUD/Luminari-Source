@@ -2011,8 +2011,8 @@ SPECIAL(vaprak_claws) {
       return 1;
     }
 
-    if (affected_by_spell(ch, SKILL_RAGE)) {
-      send_to_char(ch, "You are already raging!\r\n");
+    if (affected_by_spell(ch, SKILL_RAGE) || affected_by_spell(ch, SKILL_DEFENSIVE_STANCE)) {
+      send_to_char(ch, "You are already raging or in a defensive stance!\r\n");
       return 1;
     }
 

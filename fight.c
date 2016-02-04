@@ -565,6 +565,10 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
       bonuses[BONUS_TYPE_DODGE] += 1;
     }
 
+    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_AC_BONUS)) {
+      bonuses[BONUS_TYPE_DODGE] += HAS_FEAT(ch, FEAT_AC_BONUS);
+    }
+
     /* acrobatics offers no benefit if you are wearing heavier than light-armor */
     if (!IS_NPC(ch) && GET_ABILITY(ch, ABILITY_ACROBATICS) &&
           compute_gear_armor_type(ch) <= ARMOR_TYPE_LIGHT) { //caps at 5
@@ -2299,6 +2303,8 @@ int compute_damage_reduction(struct char_data *ch, int dam_type) {
     damage_reduction += 3;
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_RP_HEAVY_SHRUG) && affected_by_spell(ch, SKILL_RAGE))
     damage_reduction += 3;
+  if (HAS_FEAT(ch, FEAT_IMMOBILE_DEFENSE) && affected_by_spell(ch, SKILL_DEFENSIVE_STANCE))
+    damage_reduction += 1;
   if (HAS_FEAT(ch, FEAT_ARMOR_MASTERY) && (GET_EQ(ch, WEAR_BODY) || GET_EQ(ch, WEAR_SHIELD)))
     damage_reduction += 5;
   /* armor specialization, doesn't stack */
@@ -4311,10 +4317,6 @@ int compute_cmd(struct char_data *vict,            /* Defender */
         cm_defense += 2;
       break;
     case COMBAT_MANEUVER_TYPE_REVERSAL:
-      /* for grapple reversals, the person attempting the reversal can use their
-       escape artist instead of their cmb */
-      if (compute_ability(vict, ABILITY_ESCAPE_ARTIST) > cm_defense)
-        cm_defense = compute_ability(vict, ABILITY_ESCAPE_ARTIST);
       if (HAS_FEAT(vict, FEAT_IMPROVED_GRAPPLE))
         cm_defense += 2;
       break;
@@ -4338,6 +4340,18 @@ int compute_cmd(struct char_data *vict,            /* Defender */
     cm_defense -= 2;
 
   /* misc here */
+  
+  /* for grapple reversals, the person attempting the reversal can use their
+     escape artist instead of their cmb */
+  if (combat_maneuver_type == COMBAT_MANEUVER_TYPE_REVERSAL &&
+          compute_ability(vict, ABILITY_ESCAPE_ARTIST) > cm_defense)
+    cm_defense = compute_ability(vict, ABILITY_ESCAPE_ARTIST);  
+  
+  /* immobile defense! */
+  if (HAS_FEAT(vict, FEAT_IMMOBILE_DEFENSE) &&
+          affected_by_spell(vict, SKILL_DEFENSIVE_STANCE))
+    cm_defense += CLASS_LEVEL(vict, CLASS_STALWART_DEFENDER) / 2;
+  
   /* should include: A creature can also add any circumstance,
    * deflection, dodge, insight, luck, morale, profane, and sacred bonuses to
    * AC to its CMD. Any penalties to a creature's AC also apply to its CMD. */
@@ -6144,6 +6158,16 @@ void perform_violence(struct char_data *ch, int phase) {
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FEAR);
     send_to_char(ch, "Your fearless rage overcomes the fear!\r\n");
     act("$n \tWis bolstered by $s fearless rage and overcomes $s \tDfear!\tn\tn",
+            TRUE, ch, 0, 0, TO_ROOM);
+    return;
+  }
+
+  if (AFF_FLAGGED(ch, AFF_FEAR) && !IS_NPC(ch) &&
+          HAS_FEAT(ch, FEAT_FEARLESS_DEFENSE) &&
+          affected_by_spell(ch, SKILL_DEFENSIVE_STANCE)) {
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FEAR);
+    send_to_char(ch, "Your fearless defense overcomes the fear!\r\n");
+    act("$n \tWis bolstered by $s fearless defense and overcomes $s \tDfear!\tn\tn",
             TRUE, ch, 0, 0, TO_ROOM);
     return;
   }

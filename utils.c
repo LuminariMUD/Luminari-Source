@@ -1099,6 +1099,12 @@ void increase_skill(struct char_data *ch, int skillnum) {
         GET_SKILL(ch, skillnum)++;
       }
       break;
+    case SKILL_DEFENSIVE_STANCE:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
     case SKILL_PROF_MINIMAL:
       if (!pass) {
         notched = TRUE;

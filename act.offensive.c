@@ -31,9 +31,11 @@
 #include "assign_wpn_armor.h"
 #include "feats.h"
 
+/* defines */
+#define RAGE_AFFECTS 4
+#define D_STANCE_AFFECTS 4
+
 /**** Utility functions *******/
-
-
 
 /* simple function to check whether ch has a piercing weapon, has 3 modes:
    wield == 1  --  primary one hand weapon
@@ -173,7 +175,6 @@ void perform_powerfulblow(struct char_data *ch) {
   act("$n's focuses $s rage, preparing a powerful blow!", FALSE, ch, 0, 0, TO_ROOM);
 }
 
-#define RAGE_AFFECTS 4
 /* rage (berserk) engine */
 void perform_rage(struct char_data *ch) {
   struct affected_type af[RAGE_AFFECTS];
@@ -1549,24 +1550,129 @@ void clear_rage(struct char_data *ch) {
   }
 
 }
+/* a function to clear defensive stance and do other dirty work associated with that */
+void clear_defensive_stance(struct char_data *ch) {
+  
+  send_to_char(ch, "You feel your tension release as you relax your defensive stance...\r\n");
+
+  if (!IS_NPC(ch) && !AFF_FLAGGED(ch, AFF_FATIGUED)) {
+    struct affected_type fatigued_af;
+
+    send_to_char(ch, "You are left fatigued from the efforts exerted during your defensive stance!\r\n");
+    new_affect(&fatigued_af);
+    fatigued_af.spell = SKILL_RAGE_FATIGUE;
+    fatigued_af.duration = 10;
+    SET_BIT_AR(fatigued_af.bitvector, AFF_FATIGUED);
+    affect_join(ch, &fatigued_af, 1, FALSE, FALSE, FALSE);
+  }
+
+  /* clearing some defensive stance powers */
+
+}
+
+/* defensive stance skill stalwart defender primarily */
+ACMD(do_defensive_stance) {
+  struct affected_type af, aftwo, afthree, affour;
+  int bonus = 0, duration = 0, uses_remaining = 0;
+
+  if (affected_by_spell(ch, SKILL_DEFENSIVE_STANCE)) {
+    clear_defensive_stance(ch);
+    affect_from_char(ch, SKILL_DEFENSIVE_STANCE);
+    return;
+  }
+
+  if (AFF_FLAGGED(ch, AFF_FATIGUED)) {
+    send_to_char(ch, "You are are too fatigued to use defensive stance!\r\n");
+    return;
+  }
+
+  if (affected_by_spell(ch, SKILL_RAGE)) {
+    send_to_char(ch, "You can't enter a defensive stance while raging!\r\n");
+    return;
+  }
+
+  if (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_DEFENSIVE_STANCE)) {
+      send_to_char(ch, "You don't know how to use a defensive stance.\r\n");
+      return;
+  }
+
+  if (!IS_NPC(ch) && ((uses_remaining = daily_uses_remaining(ch, FEAT_DEFENSIVE_STANCE)) == 0)) {
+    send_to_char(ch, "You must recover before you can use a defensive stance again.\r\n");
+    return;
+  }
+
+  /* bonus */
+  bonus = 4;
+
+  /* duration */
+  duration = (6 + GET_CON_BONUS(ch)) +
+          (CLASS_LEVEL(ch, CLASS_STALWART_DEFENDER) * 2);
+
+  send_to_char(ch, "You go into a \tRR\trA\tRG\trE\tn!.\r\n");
+  act("$n goes into a \tRR\trA\tRG\trE\tn!", FALSE, ch, 0, 0, TO_ROOM);
+
+  new_affect(&af);
+  new_affect(&aftwo);
+  new_affect(&afthree);
+  new_affect(&affour);
+
+  af.spell = SKILL_DEFENSIVE_STANCE;
+  af.duration = duration;
+  af.location = APPLY_STR;
+  af.modifier = bonus;
+
+  aftwo.spell = SKILL_DEFENSIVE_STANCE;
+  aftwo.duration = duration;
+  aftwo.location = APPLY_CON;
+  aftwo.modifier = bonus;
+
+  afthree.spell = SKILL_DEFENSIVE_STANCE;
+  afthree.duration = duration;
+  afthree.location = APPLY_SAVING_WILL;
+  afthree.modifier = 2;
+
+  affour.spell = SKILL_DEFENSIVE_STANCE;
+  affour.duration = duration;
+  affour.location = APPLY_AC_NEW;
+  affour.modifier = 2;
+
+  affect_to_char(ch, &af);
+  affect_to_char(ch, &aftwo);
+  affect_to_char(ch, &afthree);
+  affect_to_char(ch, &affour);
+
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_DEFENSIVE_STANCE);
+
+  if (!IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_STALWART_DEFENDER) < 1) {
+    USE_STANDARD_ACTION(ch);
+  }
+
+  /* causing issues with balance? */
+  GET_HIT(ch) += (bonus/2) * GET_LEVEL(ch) + GET_CON_BONUS(ch);
+}
 
 /* rage skill (berserk) primarily for berserkers character class */
 ACMD(do_rage) {
   struct affected_type af, aftwo, afthree, affour;
   int bonus = 0, duration = 0, uses_remaining = 0;
 
+  if (affected_by_spell(ch, SKILL_RAGE)) {
+    clear_rage(ch);
+    affect_from_char(ch, SKILL_RAGE);
+    return;
+  }
+
+  if (affected_by_spell(ch, SKILL_DEFENSIVE_STANCE)) {
+    send_to_char(ch, "You can't rage while using a defensive stance!\r\n");
+    return;
+  }
+  
   if (AFF_FLAGGED(ch, AFF_FATIGUED)) {
     send_to_char(ch, "You are are too fatigued to rage!\r\n");
     return;
   }
-
-  if (affected_by_spell(ch, SKILL_RAGE)) {
-    clear_rage(ch);
-    affect_from_char(ch, SKILL_RAGE);
-
-    return;
-  }
-
+    
   if (!IS_ANIMAL(ch)) {
     if (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_RAGE)) {
       send_to_char(ch, "You don't know how to rage.\r\n");
@@ -1638,17 +1744,9 @@ ACMD(do_rage) {
     USE_STANDARD_ACTION(ch);
   }
 
-  /* causing issues with balance */
-  /*
-  if (GET_HIT(ch) < GET_MAX_HIT(ch)) {
-    //little boost in current hps
-    GET_HIT(ch) += MIN(GET_MAX_HIT(ch) + 170 - GET_HIT(ch),
-          CLASS_LEVEL(ch, CLASS_BERSERKER) * bonus / 2);
-  }
-  */
-
+  /* causing issues with balance? */
+  GET_HIT(ch) += (bonus/2) * GET_LEVEL(ch) + GET_CON_BONUS(ch);
 }
-#undef RAGE_AFFECTS
 
 ACMD(do_assist) {
   char arg[MAX_INPUT_LENGTH];
@@ -2500,6 +2598,47 @@ ACMD(do_crystalbody) {
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_CRYSTAL_BODY);
 
+}
+
+ACMD(do_reneweddefense) {
+
+  if (IS_NPC(ch)) {
+    send_to_char(ch, "You have no idea how to do that.\r\n");
+    return;
+  }
+
+  if (!HAS_FEAT(ch, FEAT_RENEWED_DEFENSE)) {
+    send_to_char(ch, "You have no idea how to do that!\r\n");
+    return;
+  }
+
+  if (char_has_mud_event(ch, eRENEWEDDEFENSE)) {
+    send_to_char(ch, "You must wait longer before you can use this "
+            "ability again.\r\n");
+    return;
+  }
+
+  if (FIGHTING(ch) && GET_POS(ch) < POS_FIGHTING) {
+    send_to_char(ch, "You need to be in a better position in combat in order"
+            " to use this ability!\r\n");
+    return;
+  }
+
+  if (!affected_by_spell(ch, SKILL_DEFENSIVE_STANCE)) {
+    send_to_char(ch, "You need to be in a defensive stance to do that!\r\n");
+    return;
+  }
+
+  send_to_char(ch, "Your body glows \tRred\tn as your wounds heal...\r\n");
+  act("$n's body glows \tRred\tn as some wounds heal!", FALSE, ch, 0, NULL, TO_NOTVICT);
+  attach_mud_event(new_mud_event(eRENEWEDDEFENSE, ch, NULL),
+          (2 * SECS_PER_MUD_DAY));
+  GET_HIT(ch) += MIN((GET_MAX_HIT(ch) - GET_HIT(ch)),
+          (dice(CLASS_LEVEL(ch, CLASS_STALWART_DEFENDER) / 2 + 1, 8) + 10 + GET_CON_BONUS(ch)));
+  update_pos(ch);
+
+  /* Actions */
+  USE_SWIFT_ACTION(ch);
 }
 
 ACMD(do_renewedvigor) {
@@ -4233,5 +4372,8 @@ ACMD(do_process_attack) {
   }
 }
 
+/* cleanup! */
+#undef RAGE_AFFECTS
+#undef D_STANCE_AFFECTS
 
-
+/*EOF*/

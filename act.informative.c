@@ -1311,6 +1311,8 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k) {
     send_to_char(ch, "Wholeness of Body Cooldown - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eRENEWEDVIGOR)))
     send_to_char(ch, "Renewed Vigor Cooldown - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eRENEWEDDEFENSE)))
+    send_to_char(ch, "Renewed Defense Cooldown - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
   if (AFF_FLAGGED(ch, AFF_GRAPPLED)) /*no need for message if not grappling*/
     if ((pMudEvent = char_has_mud_event(k, eSTRUGGLE)))
       send_to_char(ch, "Struggle Cooldown - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
