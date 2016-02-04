@@ -344,7 +344,6 @@ static int same_obj(struct obj_data *obj1, struct obj_data *obj2)
   if (!obj1 || !obj2)
     return (obj1 == obj2);
   /*DEBUG: Ornir*/
-  log("Obj1: %d Obj2: %d", GET_OBJ_RNUM(obj1), GET_OBJ_RNUM(obj2));
   
   if (GET_OBJ_RNUM(obj1) != GET_OBJ_RNUM(obj2))
     return (FALSE);
