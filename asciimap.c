@@ -603,7 +603,7 @@ void str_and_map(char *str, struct char_data *ch, room_vnum target_room) {
   int size, centre, x, y, min, max, char_size;
   int ew_size = 0, ns_size = 0;
   bool worldmap;
-  char *mapbuf := NULL;
+  char *mapbuf = NULL;
 
   /* Check MUDs map config options - if disabled, just show room decsription */
   if (!can_see_map(ch)) {
