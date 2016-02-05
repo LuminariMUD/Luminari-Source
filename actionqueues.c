@@ -69,6 +69,7 @@ void clear_action_queue(struct queue_type * queue)
 		}
 	}
   /* Send a custom MSDP event so clients can manage queue displays. */
+     
 };
 
 void clear_attack_queue(struct queue_type * queue)

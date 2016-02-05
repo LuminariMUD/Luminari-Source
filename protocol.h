@@ -181,6 +181,7 @@ typedef enum
    eMSDP_ROOM_NAME,
    eMSDP_ROOM_VNUM,
    eMSDP_WORLD_TIME,
+   eMSDP_MINIMAP,
 
    /* Configuration */
    eMSDP_CLIENT_ID,
