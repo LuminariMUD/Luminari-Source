@@ -634,14 +634,18 @@ void str_and_map(char *str, struct char_data *ch, room_vnum target_room) {
   else
     char_size = 3 * (size + 1) + (size) + 4;
 
-  if (worldmap)
+  if (worldmap) {
     send_to_char(ch, "%s", WorldMap(centre, size, MAP_CIRCLE, MAP_COMPACT));
     //    send_to_char(ch, "%s", strpaste(strfrmt(str, GET_SCREEN_WIDTH(ch) - char_size, size*2 + 1,
     //	FALSE, TRUE, TRUE), WorldMap(centre, size, MAP_CIRCLE, MAP_COMPACT), " \tn"));
-  else
+    /* Send the map to MSDP */
+    MSDPSetString(d, eMSDP_MINIMAP, WorldMap(centre, size, MAP_CIRCLE, MAP_COMPACT));
+  } else {
     send_to_char(ch, "%s", strpaste(strfrmt(str, GET_SCREEN_WIDTH(ch) - char_size,
           size * 2 + 1, FALSE, TRUE, TRUE), CompactStringMap(centre, size), " \tn"));
-
+    /* Send the map to MSDP */
+    MSDPSetString(d, eMSDP_MINIMAP, CompactStringMap(centre, size));
+  }
 }
 
 bool show_worldmap(struct char_data *ch) {
