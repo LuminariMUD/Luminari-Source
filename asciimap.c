@@ -603,6 +603,7 @@ void str_and_map(char *str, struct char_data *ch, room_vnum target_room) {
   int size, centre, x, y, min, max, char_size;
   int ew_size = 0, ns_size = 0;
   bool worldmap;
+  char *mapbuf := NULL;
 
   /* Check MUDs map config options - if disabled, just show room decsription */
   if (!can_see_map(ch)) {
@@ -641,15 +642,17 @@ void str_and_map(char *str, struct char_data *ch, room_vnum target_room) {
     //    send_to_char(ch, "%s", strpaste(strfrmt(str, GET_SCREEN_WIDTH(ch) - char_size, size*2 + 1,
     //	FALSE, TRUE, TRUE), WorldMap(centre, size, MAP_CIRCLE, MAP_COMPACT), " \tn"));
  
-    /* Send the map to MSDP */
-    MSDPSetString(ch->desc, eMSDP_MINIMAP, WorldMap(centre, size, MAP_CIRCLE, MAP_COMPACT));
+    mapbuf = WorldMap(centre, size, MAP_CIRCLE, MAP_COMPACT);
+    
   } else {
     send_to_char(ch, "%s", strpaste(strfrmt(str, GET_SCREEN_WIDTH(ch) - char_size,
           size * 2 + 1, FALSE, TRUE, TRUE), CompactStringMap(centre, size), " \tn"));
-    /* Send the map to MSDP */
-    MSDPSetString(ch->desc, eMSDP_MINIMAP, strip_colors(CompactStringMap(centre, size)));
+    mapbuf = CompactStringMap(centre, size));
+    
   }
-  
+  /* Send the map to MSDP */
+  strip_colors(mapbuf);
+  MSDPSetString(ch->desc, eMSDP_MINIMAP, mapbuf);  
   MSDPFlush(ch->desc, eMSDP_MINIMAP);
   
 }
