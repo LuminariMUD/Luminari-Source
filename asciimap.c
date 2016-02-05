@@ -24,6 +24,7 @@
 #include "asciimap.h"
 #include "wilderness.h"
 #include "protocol.h"
+#include "modify.h" /* strip_colors */
 
 /******************************************************************************
  * Begin Local (File Scope) Defines and Global Variables
