@@ -647,7 +647,7 @@ void str_and_map(char *str, struct char_data *ch, room_vnum target_room) {
   } else {
     send_to_char(ch, "%s", strpaste(strfrmt(str, GET_SCREEN_WIDTH(ch) - char_size,
           size * 2 + 1, FALSE, TRUE, TRUE), CompactStringMap(centre, size), " \tn"));
-    mapbuf = CompactStringMap(centre, size));
+    mapbuf = CompactStringMap(centre, size);
     
   }
   /* Send the map to MSDP */
