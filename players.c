@@ -1214,6 +1214,8 @@ void save_char(struct char_data * ch, int mode) {
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eD_ROLL)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+    if ((pMudEvent = char_has_mud_event(ch, eLAST_WORD)))
+      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, ePURIFY)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eC_ANIMAL)))

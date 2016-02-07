@@ -1969,10 +1969,18 @@ void assign_feats(void) {
   /*10*/ /* AC bonus */ /* damage reduction 5 */
   /*10*/feato(FEAT_SMASH_DEFENSE, "smash defense", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "free knockdown attack while in defensive stance",
-    "");
+    "While in defensive stance, once per round (every 6 seconds), the Stalwart "
+      "Defender gets a free knock-down attempt against the opponent he is "
+      "directly engaged with.");
   /*10*/feato(FEAT_LAST_WORD, "last word", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "",
-    "");
+    "two extra attacks before suffering death blow in defensive stance",
+    "Once per day, while in a defensive stance, a stalwart defender can make two "
+      "melee attacks against an opponent within reach in response to an attack that would "
+      "reduce him to negative hit points, knock him unconscious, or kill him. For example, "
+      "a stalwart defender has 1 hit point left when a red dragon bites him; the defender may "
+      "use this ability even if the dragon’s bite would otherwise kill him instantly. Once the "
+      "defender’s attacks are resolved, he suffers the normal effect of the attack that provoked "
+      "this ability.");
             
   /* Duelist */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */

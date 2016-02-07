@@ -2696,6 +2696,23 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
   if (dam == -1) // make sure message handling has been done!
     return 0;
 
+  /* last word!  gonna die to this blow, SMACK the fool hard! */
+  if (!IS_NPC(victim) && ((GET_HIT(victim) - dam) <= 0) &&
+          HAS_FEAT(victim, FEAT_LAST_WORD) && affected_by_spell(victim, SKILL_DEFENSIVE_STANCE) &&
+          !char_has_mud_event(victim, eLAST_WORD) && ch != victim) {
+    act("\tWSensing the death blow targeting you, you unleash an attack of your own against"
+            " \tn$N\tW!\tn", FALSE, victim, NULL, ch, TO_CHAR);
+    act("$n \tRsensing death, unleashes a last attack!\tn",
+            FALSE, victim, NULL, ch, TO_VICT | TO_SLEEP);
+    act("$n sensing a \tWdeath blow\tn from $N, unleashes a final attack!\tn", FALSE, victim, NULL, ch, TO_NOTVICT);
+    attach_mud_event(new_mud_event(eLAST_WORD, victim, NULL),
+            (2 * SECS_PER_MUD_DAY));
+    if (ch && IN_ROOM(ch) == IN_ROOM(victim) && GET_POS(victim) > POS_DEAD)
+      hit(victim, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+    if (ch && IN_ROOM(ch) == IN_ROOM(victim) && GET_POS(victim) > POS_DEAD)
+      hit(victim, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+  }  
+  
   /* defensive roll, avoids a lethal blow once every X minutes
    * X = about 7 minutes with current settings
    */
@@ -6133,6 +6150,40 @@ void handle_cleave(struct char_data *ch) {
                 0, ATTACK_TYPE_PRIMARY); /* whack with mainhand */
 }
 
+void handle_smash_defense(struct char_data *ch) {
+  struct char_data *vict = FIGHTING(ch);
+
+  /* general dummy checks */  
+  if (IN_ROOM(ch) == NOWHERE || !vict ||
+          IN_ROOM(vict) != IN_ROOM(ch))
+    return;
+
+  /* some automatic disqualifiers, we will silently return from these */
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
+          ch->next_in_room != vict && vict->next_in_room != ch)
+    return;
+  if (MOB_FLAGGED(vict, MOB_NOKILL))
+    return;
+  if ((GET_SIZE(ch) - GET_SIZE(vict)) >= 2)
+    return;
+  if ((GET_SIZE(vict) - GET_SIZE(ch)) >= 2)
+    return;
+  if (GET_POS(vict) == POS_SITTING)
+    return;
+  if (IS_INCORPOREAL(vict))
+    return;
+  if (MOB_FLAGGED(vict, MOB_NOBASH))
+    return;
+  
+  /* OK should be ok now! */
+  perform_knockdown(ch, vict, SKILL_BASH);
+  
+  /* tag with event to make sure this only happens once per round! */
+  attach_mud_event(new_mud_event(eSMASH_DEFENSE, ch, NULL), 6 * PASSES_PER_SEC);
+  
+  return;
+}
+
 /* control the fights going on.
  * Called from combat round event. */
 void perform_violence(struct char_data *ch, int phase) {
@@ -6189,6 +6240,15 @@ void perform_violence(struct char_data *ch, int phase) {
       MOUNTED_BLOCKS_LEFT(ch) = 1;
     if (RIDING(ch) && HAS_FEAT(ch, FEAT_LEGENDARY_RIDER))
       MOUNTED_BLOCKS_LEFT(ch) += 1;
+    
+    /* once per round, while in defensive stance, we must remove this event
+       to ensure that the stalwart defender only gets ONE free knockdown
+       attempt (note: just made this time out) */
+    /*
+    if (char_has_mud_event(ch, eSMASH_DEFENSE)) {
+      event_cancel_specific(ch, eSMASH_DEFENSE);
+    }
+    */
   }
 
   if (AFF_FLAGGED(ch, AFF_PARALYZED)) {
@@ -6381,18 +6441,29 @@ void perform_violence(struct char_data *ch, int phase) {
     ;
   else if (AFF_FLAGGED(ch, AFF_TOTAL_DEFENSE))
     send_to_char(ch, "You continue the battle in defensive positioning!\r\n");
+  
   else if (AFF_FLAGGED(ch, AFF_GRAPPLED) &&
             ( !is_using_light_weapon(ch, GET_EQ(ch, WEAR_WIELD_1)) ||
               !is_using_light_weapon(ch, GET_EQ(ch, WEAR_WIELD_OFFHAND)) ||
               GET_EQ(ch, WEAR_WIELD_2H)) )
     send_to_char(ch, "You need to fight unarmed or with light weapons (both hands) while grappling or being grappled!\r\n");
+  
   else {
+    
+    /* handle smash defense */
+    if (phase == 1 && HAS_FEAT(ch, FEAT_SMASH_DEFENSE) &&
+            affected_by_spell(ch, SKILL_DEFENSIVE_STANCE) &&
+            !char_has_mud_event(ch, eSMASH_DEFENSE))
+      handle_smash_defense(ch);
+    
 #define NORMAL_ATTACK_ROUTINE 0
     perform_attacks(ch, NORMAL_ATTACK_ROUTINE, phase);
 #undef NORMAL_ATTACK_ROUTINE
+    
     /* handle cleave */
     if (phase == 1 && HAS_FEAT(ch, FEAT_CLEAVE) && !is_using_ranged_weapon(ch))
       handle_cleave(ch);
+    
   }
   /**/
 

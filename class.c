@@ -825,7 +825,7 @@ void load_class_list(void) {
   
   /****************************************************************************/
   /*     class-number  name     abrv   clr-abrv     menu-name*/
-  classo(CLASS_ROGUE, "rogue", "Rog", "\twRog\tn", "t) \tWRogue\tn",
+  classo(CLASS_ROGUE, "rogue", "Rog", "\twRog\tn", "t) \twRogue\tn",
       /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst eFeatp*/
         -1,       N,    N,        M,  6, 0,   2,   8,     Y,       0,      4,
         /*descrip*/"Life is an endless adventure for those who live by their wits. "
@@ -1678,7 +1678,7 @@ void load_class_list(void) {
   
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
-  classo(CLASS_ARCANE_ARCHER, "arcanearcher", "ArA", "\tgArA\tn", "f) \tgArcaneArcher\tn",
+  classo(CLASS_ARCANE_ARCHER, "arcanearcher", "ArA", "\tGArA\tn", "f) \tGArcaneArcher\tn",
       /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst, eFeatp*/
         10,       Y,    Y,        H,  10, 0,   1,   4,     Y,      5000,    4,
         /*descrip*/"Many who seek to perfect the use of the bow sometimes pursue "
@@ -1715,75 +1715,72 @@ void load_class_list(void) {
   
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
-  classo(CLASS_STALWART_DEFENDER, "arcanearcher", "ArA", "\tgArA\tn", "f) \tgArcaneArcher\tn",
+  classo(CLASS_STALWART_DEFENDER, "stalwartdefender", "SDe", "\tWS\tcDe\tn", "g) \tWStalwart \tcDefender\tn",
       /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst, eFeatp*/
-        10,       Y,    Y,        H,  10, 0,   1,   4,     Y,      5000,    4,
-        /*descrip*/"Many who seek to perfect the use of the bow sometimes pursue "
-    "the path of the arcane archer. Arcane archers are masters of ranged combat, "
-    "as they possess the ability to strike at targets with unerring accuracy and "
-    "can imbue their arrows with powerful spells. Arrows fired by arcane archers "
-    "can fell even the most powerful foes with a single, deadly shot.");
+        10,       Y,    Y,        H,  12, 0,   1,   2,     Y,      5000,    4,
+        /*descrip*/"Drawn from the ranks of guards, knights, mercenaries, and "
+    "thugs alike, stalwart defenders are masters of claiming an area and refusing "
+    "to relinquish it. This behavior is more than a tactical decision for stalwart "
+    "defenders; it’s an obsessive, stubborn expression of the need to be undefeated. "
+    "When stalwart defenders set themselves in a defensive stance, they place their "
+    "whole effort into weathering whatever foe, conflict, or threat comes their way.");
   /* class-number then saves:        fortitude, reflex, will, poison, death */
-  assign_class_saves(CLASS_STALWART_DEFENDER, G,    G,      B,    B,      B);
+  assign_class_saves(CLASS_STALWART_DEFENDER, G,    B,      G,    B,      B);
   assign_class_abils(CLASS_STALWART_DEFENDER, /* class number */
     /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
-      CC,        CA,     CA,        CA,  CA,        CA,            CA,
+      CC,        CC,     CA,        CA,  CA,        CC,            CC,
     /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
-      CC,      CC,        CC,           CA,  CA,  CC,   CC,             CC,
+      CC,      CC,        CC,           CA,  CA,  CA,   CC,             CC,
     /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
-      CC,       CC,            CC,      CC,           CC,           CC,
+      CC,       CC,            CC,      CC,           CC,           CA,
     /*survival,swim,use_magic_device,perform*/
       CC,      CA,  CC,              CC
     );
   assign_class_titles(CLASS_STALWART_DEFENDER, /* class number */
-    "",                           /* <= 4  */
-    "the Precise Shot",           /* <= 9  */
-    "the Magical Archer",         /* <= 14 */
-    "the Masterful Archer",       /* <= 19 */
-    "the Mystical Arrow",         /* <= 24 */
-    "the Arrow Wizard",           /* <= 29 */
-    "the Arrow Storm",            /* <= 30 */
-    "the Immortal ArcaneArcher",  /* <= LVL_IMMORT */
-    "the Limitless Archer",       /* <= LVL_STAFF */
-    "the God of Archery",         /* <= LVL_GRSTAFF */
-    "the ArcaneArcher"            /* default */  
+    "",                        /* <= 4  */
+    "the Defender",            /* <= 9  */
+    "the Immovable",           /* <= 14 */
+    "the Wall",                /* <= 19 */
+    "the Stalwart Wall",       /* <= 24 */
+    "the Wall of Iron",        /* <= 29 */
+    "the Wall of Steel",       /* <= 30 */
+    "the Immortal Defender",   /* <= LVL_IMMORT */
+    "the Indestructible Wall", /* <= LVL_STAFF */
+    "the God of Defense",      /* <= LVL_GRSTAFF */
+    "the Stalwart Defender"    /* default */  
   );
   /****************************************************************************/
 
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
-  classo(CLASS_SHIFTER, "arcanearcher", "ArA", "\tgArA\tn", "f) \tgArcaneArcher\tn",
+  classo(CLASS_SHIFTER, "shifter", "Shf", "\twS\tWh\twf\tn", "f) \twSh\tWift\twer\tn",
       /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst, eFeatp*/
-        10,       Y,    Y,        H,  10, 0,   1,   4,     Y,      5000,    4,
-        /*descrip*/"Many who seek to perfect the use of the bow sometimes pursue "
-    "the path of the arcane archer. Arcane archers are masters of ranged combat, "
-    "as they possess the ability to strike at targets with unerring accuracy and "
-    "can imbue their arrows with powerful spells. Arrows fired by arcane archers "
-    "can fell even the most powerful foes with a single, deadly shot.");
+        10,       Y,    Y,        M,  8, 0,   1,   4,     N,       5000,    4,
+        /*descrip*/"INCOMPLETE (under construction).");
   /* class-number then saves:        fortitude, reflex, will, poison, death */
-  assign_class_saves(CLASS_SHIFTER, G,    G,      B,    B,      B);
+  assign_class_saves(CLASS_SHIFTER, G,    G,      B,    G,      B);
   assign_class_abils(CLASS_SHIFTER, /* class number */
     /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
-      CC,        CA,     CA,        CA,  CA,        CA,            CA,
+      CC,        CC,     CA,        CA,  CC,        CA,            CA,
     /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
       CC,      CC,        CC,           CA,  CA,  CC,   CC,             CC,
     /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
-      CC,       CC,            CC,      CC,           CC,           CC,
+      CA,       CC,            CA,      CC,           CA,           CC,
     /*survival,swim,use_magic_device,perform*/
       CC,      CA,  CC,              CC
     );
   assign_class_titles(CLASS_SHIFTER, /* class number */
-    "",                           /* <= 4  */
-    "the Precise Shot",           /* <= 9  */
-    "the Magical Archer",         /* <= 14 */
-    "the Masterful Archer",       /* <= 19 */
-    "the Mystical Arrow",         /* <= 24 */
-    "the Arrow Wizard",           /* <= 29 */
-    "the Arrow Storm",            /* <= 30 */
-    "the Immortal ArcaneArcher",  /* <= LVL_IMMORT */
-    "the Limitless Archer",       /* <= LVL_STAFF */
-    "the God of Archery",         /* <= LVL_GRSTAFF */
-    "the ArcaneArcher"            /* default */  
+    "",                         /* <= 4  */
+    "the Shape Changer",        /* <= 9  */
+    "the Changeling",           /* <= 14 */
+    "the Formless",             /* <= 19 */
+    "the Shape Shifter",        /* <= 24 */
+    "the Form Changer",         /* <= 29 */
+    "the Perpetually Changing", /* <= 30 */
+    "the Immortal Shifter",     /* <= LVL_IMMORT */
+    "the Limitless Changeling", /* <= LVL_STAFF */
+    "the God of Shifting",      /* <= LVL_GRSTAFF */
+    "the Shifter"               /* default */  
   );
   /****************************************************************************/
 }

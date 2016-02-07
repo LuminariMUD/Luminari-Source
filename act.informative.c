@@ -1348,6 +1348,8 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k) {
     send_to_char(ch, "Quivering Palm Cooldown  - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eD_ROLL)))
     send_to_char(ch, "Defensive Roll Cooldown  - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eLAST_WORD)))
+    send_to_char(ch, "Last Word Cooldown  - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, ePURIFY)))
     send_to_char(ch, "Purify Cooldown  - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eC_ANIMAL)))
