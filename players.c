@@ -1170,6 +1170,8 @@ void save_char(struct char_data * ch, int mode) {
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eRAGE)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+    if ((pMudEvent = char_has_mud_event(ch, eDEFENSIVE_STANCE)))
+      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eCRYSTALFIST)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eCRYSTALBODY)))

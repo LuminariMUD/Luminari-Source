@@ -115,6 +115,7 @@ struct mud_event_list mud_event_index[] = {
   { "Swarm of Arrows", event_daily_use_cooldown, EVENT_CHAR}, //eARROW_SWARM
   { "Renewed Defense", event_countdown, EVENT_CHAR}, // eRENEWEDDEFENSE
   { "Last Word", event_countdown, EVENT_CHAR}, // eLAST_WORD
+  { "Defensive Stance", event_daily_use_cooldown, EVENT_CHAR}, //eDEFENSIVE_STANCE
 };
 
 /* init_events() is the ideal function for starting global events. This
@@ -233,6 +234,9 @@ EVENTFUNC(event_countdown) {
       break;
     case eRAGE:
       send_to_char(ch, "You are now able to Rage again.\r\n");
+      break;
+    case eDEFENSIVE_STANCE:
+      send_to_char(ch, "You are now able to use your Defensive Stance again.\r\n");
       break;
     case eARROW_SWARM:
       send_to_char(ch, "You are now able to use your swarm of arrows again.\r\n");
@@ -410,6 +414,10 @@ EVENTFUNC(event_daily_use_cooldown) {
     case eRAGE:
       featnum = FEAT_RAGE;
       send_to_char(ch, "One of your rage uses has recovered.\r\n");
+      break;
+    case eDEFENSIVE_STANCE:
+      featnum = FEAT_DEFENSIVE_STANCE;
+      send_to_char(ch, "One of your defensive stance uses has recovered.\r\n");
       break;
     case eVANISHED:
       featnum = FEAT_VANISH;

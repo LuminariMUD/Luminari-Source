@@ -117,6 +117,7 @@ typedef enum {
   eRENEWEDDEFENSE, /* Renewed Defense, Stalwart Defender Healing Feat */
   eLAST_WORD, //  stalwart defender's 'last word' cooldown
   eSMASH_DEFENSE, //  stalwart defender's 'last word' cooldown          
+  eDEFENSIVE_STANCE, //  defensive stance skill cooldown
 } event_id;
 
 /* probably a smart place to mention to not forget to update:
