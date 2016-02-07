@@ -2279,6 +2279,7 @@ void assign_feats(void) {
   dailyfeat(FEAT_LAYHANDS, eLAYONHANDS);
   dailyfeat(FEAT_REMOVE_DISEASE, ePURIFY);
   dailyfeat(FEAT_RAGE, eRAGE);
+  dailyfeat(FEAT_DEFENSIVE_STANCE, eDEFENSIVE_STANCE);
   dailyfeat(FEAT_VANISH, eVANISHED);
   dailyfeat(FEAT_SMITE_EVIL, eSMITE_EVIL);
   dailyfeat(FEAT_IMBUE_ARROW, eIMBUE_ARROW);
