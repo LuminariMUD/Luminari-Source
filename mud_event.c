@@ -114,6 +114,7 @@ struct mud_event_list mud_event_index[] = {
   { "Arrow of Death", event_daily_use_cooldown, EVENT_CHAR}, //eDEATHARROW
   { "Swarm of Arrows", event_daily_use_cooldown, EVENT_CHAR}, //eARROW_SWARM
   { "Renewed Defense", event_countdown, EVENT_CHAR}, // eRENEWEDDEFENSE
+  { "Last Word", event_countdown, EVENT_CHAR}, // eLAST_WORD
 };
 
 /* init_events() is the ideal function for starting global events. This
@@ -184,6 +185,9 @@ EVENTFUNC(event_countdown) {
       break;
     case eD_ROLL:
       send_to_char(ch, "You are now able to 'defensive roll' again.\r\n");
+      break;
+    case eLAST_WORD:
+      send_to_char(ch, "You are now able to get the 'last word' in again.\r\n");
       break;
     case eDRAGONKNIGHT:
       send_to_char(ch, "You are now able to cast Dragon Knight again.\r\n");

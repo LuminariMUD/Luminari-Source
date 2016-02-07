@@ -293,6 +293,7 @@ ACMD(do_dirtkick);
 ACMD(do_sap);
 ACMD(do_assist);
 ACMD(do_rage);
+ACMD(do_defensive_stance);
 ACMD(do_turnundead);
 ACMD(do_bash);
 ACMD(do_call);
