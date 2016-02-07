@@ -2812,6 +2812,25 @@ const int class_feats_cleric[] = {
   /*end*/
   FEAT_UNDEFINED
 };
+const int class_feats_shifter[] = {
+  FEAT_SPELL_PENETRATION,
+  FEAT_GREATER_SPELL_PENETRATION,
+  FEAT_FASTER_MEMORIZATION,
+  FEAT_QUICK_CHANT,
+  FEAT_FAST_HEALING,
+  FEAT_AUGMENT_SUMMONING,
+  FEAT_ENHANCED_SPELL_DAMAGE,
+  FEAT_MAXIMIZE_SPELL,
+  FEAT_QUICKEN_SPELL,
+
+  /* epic */
+  FEAT_GREAT_WISDOM,
+  FEAT_MUMMY_DUST,
+  FEAT_GREATER_RUIN,
+
+  /*end*/
+  FEAT_UNDEFINED
+};
 const int class_feats_druid[] = {
   FEAT_SPELL_PENETRATION,
   FEAT_GREATER_SPELL_PENETRATION,
@@ -3110,6 +3129,38 @@ const int class_feats_weaponmaster[] = {
   /*end*/
   FEAT_UNDEFINED
 };
+const int class_feats_stalwartdefender[] = {
+  FEAT_BLIND_FIGHT,
+  FEAT_CLEAVE,
+  FEAT_COMBAT_EXPERTISE,
+  FEAT_COMBAT_REFLEXES,
+  FEAT_DEFLECT_ARROWS,
+  FEAT_EXOTIC_WEAPON_PROFICIENCY,
+  FEAT_GREAT_CLEAVE,
+  FEAT_GREATER_TWO_WEAPON_FIGHTING,
+  FEAT_IMPROVED_CRITICAL,
+  FEAT_IMPROVED_SUNDER,
+  FEAT_IMPROVED_TWO_WEAPON_FIGHTING,
+  FEAT_IMPROVED_UNARMED_STRIKE,
+  FEAT_POWER_ATTACK,
+  FEAT_RAPID_RELOAD,
+  FEAT_RAPID_SHOT,
+  FEAT_SHOT_ON_THE_RUN,
+  FEAT_TWO_WEAPON_DEFENSE,
+  FEAT_TWO_WEAPON_FIGHTING,
+  FEAT_WEAPON_FINESSE,
+  FEAT_WEAPON_FOCUS,
+
+  /* epic */
+  FEAT_EPIC_PROWESS,
+  FEAT_EPIC_TOUGHNESS,
+  FEAT_GREAT_STRENGTH,
+  FEAT_GREAT_DEXTERITY,
+  FEAT_GREAT_CONSTITUTION,
+
+  /*end*/
+  FEAT_UNDEFINED
+};
 const int class_feats_bard[] = {
   FEAT_MAXIMIZE_SPELL,
   FEAT_QUICKEN_SPELL,
@@ -3129,19 +3180,21 @@ const int no_class_feats[] = {
  * and is used during level gain to show the allowed feats.
  * SEE NOTE FOR ROGUE FEATS */
 const int *class_bonus_feats[NUM_CLASSES] = {
-  /* Wizard       */ class_feats_wizard,
-  /* Cleric       */ class_feats_cleric,
-  /* Rogue        */ class_feats_rogue,
-  /* Warrior      */ class_feats_fighter,
-  /* Monk         */ class_feats_monk,
-  /* Druid        */ class_feats_druid,
-  /* Berserker    */ class_feats_berserker,
-  /* Sorcerer     */ class_feats_sorcerer,
-  /* Paladin      */ class_feats_paladin,
-  /* Ranger       */ class_feats_ranger,
-  /* Bard         */ class_feats_bard,
-  /* WeaponMaster */ class_feats_weaponmaster,
-  /* ArcaneArcher */ class_feats_arcanearcher
+  /* Wizard           */ class_feats_wizard,
+  /* Cleric           */ class_feats_cleric,
+  /* Rogue            */ class_feats_rogue,
+  /* Warrior          */ class_feats_fighter,
+  /* Monk             */ class_feats_monk,
+  /* Druid            */ class_feats_druid,
+  /* Berserker        */ class_feats_berserker,
+  /* Sorcerer         */ class_feats_sorcerer,
+  /* Paladin          */ class_feats_paladin,
+  /* Ranger           */ class_feats_ranger,
+  /* Bard             */ class_feats_bard,
+  /* WeaponMaster     */ class_feats_weaponmaster,
+  /* ArcaneArcher     */ class_feats_arcanearcher,
+  /* StalwartDefender */ class_feats_stalwartdefender,
+  /* Shifter          */ class_feats_shifter
 };
 
 /* start feat releated stuffs tied to class */
