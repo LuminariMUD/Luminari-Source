@@ -1715,7 +1715,7 @@ void load_class_list(void) {
   
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
-  classo(CLASS_STALWART_DEFENDER, "stalwartdefender", "SDe", "\tWS\tcDe\tn", "g) \tWStalwart \tcDefender\tn",
+  classo(CLASS_STALWART_DEFENDER, "stalwart defender", "SDe", "\tWS\tcDe\tn", "g) \tWStalwart \tcDefender\tn",
       /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst, eFeatp*/
         10,       Y,    Y,        H,  12, 0,   1,   2,     Y,      5000,    4,
         /*descrip*/"Drawn from the ranks of guards, knights, mercenaries, and "
