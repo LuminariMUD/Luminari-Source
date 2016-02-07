@@ -1608,8 +1608,8 @@ ACMD(do_defensive_stance) {
   duration = (6 + GET_CON_BONUS(ch)) +
           (CLASS_LEVEL(ch, CLASS_STALWART_DEFENDER) * 2);
 
-  send_to_char(ch, "You go into a \tRR\trA\tRG\trE\tn!.\r\n");
-  act("$n goes into a \tRR\trA\tRG\trE\tn!", FALSE, ch, 0, 0, TO_ROOM);
+  send_to_char(ch, "\tcYou take on a \tWdefensive stance\tc!\tn\r\n");
+  act("$n \tctakes on a \tWdefensive stance\tc!\tn", FALSE, ch, 0, 0, TO_ROOM);
 
   new_affect(&af);
   new_affect(&aftwo);
