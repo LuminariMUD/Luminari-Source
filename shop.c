@@ -1685,7 +1685,7 @@ void destroy_shops(void)
 bool shopping_identify(char *arg, struct char_data *ch, struct char_data *keeper, int shop_nr) {
   char buf[MAX_STRING_LENGTH];
   struct obj_data *obj;
-  int i, found;
+  //int i, found;
 
   if (!is_ok(keeper, ch, shop_nr))
     return FALSE;
