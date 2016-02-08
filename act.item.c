@@ -2111,8 +2111,15 @@ static void wear_message(struct char_data *ch, struct obj_data *obj, int where) 
 
   };
 
-  act(wear_messages[where][0], TRUE, ch, obj, 0, TO_ROOM);
-  act(wear_messages[where][1], FALSE, ch, obj, 0, TO_CHAR);
+  /* extinguished light! */
+  if (where == WEAR_LIGHT && GET_OBJ_TYPE(obj) == ITEM_LIGHT &&
+        GET_OBJ_VAL(obj, 2) == 0) {
+    act("$n holds $p.", TRUE, ch, obj, 0, TO_ROOM);
+    act("You hold $p.", FALSE, ch, obj, 0, TO_CHAR);    
+  } else {  
+    act(wear_messages[where][0], TRUE, ch, obj, 0, TO_ROOM);
+    act(wear_messages[where][1], FALSE, ch, obj, 0, TO_CHAR);
+  }
 }
 
 static int hands_used(struct char_data *ch) {
