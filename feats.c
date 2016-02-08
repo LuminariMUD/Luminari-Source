@@ -643,9 +643,9 @@ void assign_feats(void) {
     feat_prereq_feat(FEAT_SPRING_ATTACK, FEAT_MOBILITY, 1);
   feato(FEAT_WHIRLWIND_ATTACK, "whirlwind attack", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
     "lashes out at multiple enemies in one movement",
-    "As a full round action, you can lash out and strike a number of foes based"
-          "on the number of attacks you have +1.  All these attacks are made"
-          "at your full attack bonus.");
+    "As a full round action, you can lash out and strike a number of foes based "
+      "on the number of attacks you have +1.  All these attacks are made "
+      "at your full attack bonus.");
     feat_prereq_attribute(FEAT_WHIRLWIND_ATTACK, AB_DEX, 13);
     feat_prereq_attribute(FEAT_WHIRLWIND_ATTACK, AB_INT, 13);
     feat_prereq_feat(FEAT_WHIRLWIND_ATTACK, FEAT_COMBAT_EXPERTISE, 1);
