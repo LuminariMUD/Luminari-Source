@@ -1389,6 +1389,8 @@ void study_parse(struct descriptor_data *d, char *arg) {
            * character, print a message, free the structures and exit. */
           write_to_output(d, "Your choices have been finalized!\r\n\r\n");
           finalize_study(d);
+          if (GET_LEVEL(ch) == 1) /* in case they modify their intelligence */            
+            reset_training_points(ch);
           save_char(d->character, 0);
           cleanup_olc(d, CLEANUP_ALL);
           free(LEVELUP(d->character));
@@ -1416,7 +1418,6 @@ void study_parse(struct descriptor_data *d, char *arg) {
             write_to_output(d, "Your training points will be reset upon exit to "
                 "account for any changes made to stats. (This will only occur at "
                 "level 1)\r\n");
-            reset_training_points(ch);
           }
           write_to_output(d, "You can currently study as much as you want per level.\r\n");
           /* in the future we will probably change study to be limited to 1/ level ?*/
