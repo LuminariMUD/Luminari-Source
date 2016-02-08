@@ -3272,6 +3272,9 @@ ACMD(do_kick) {
 }
 
 ACMD(do_hitall) {
+  /* not used right now, whirlwind attack essentially replaces this */
+  return;
+  
   int lag = 1;
   int count = 0;
   struct char_data *vict, *next_vict;
