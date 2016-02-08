@@ -2840,11 +2840,10 @@ ACMD(do_rescue) {
   perform_rescue(ch, vict);
 }
 
-/* built initially by vatiken as an illustration of event/lists systems
- * of TBA, adapted to Luminari mechanics */
-
-/*TODO:  definitely needs more balance tweaking and dummy checks for usage */
+/* whirlwind attack! */
 ACMD(do_whirlwind) {
+  struct char_data *vict, *next_vict;
+  int num_attacks = 1;
 
   if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_WHIRLWIND_ATTACK)) {
     send_to_char(ch, "You have no idea how.\r\n");
@@ -2859,12 +2858,40 @@ ACMD(do_whirlwind) {
     send_to_char(ch, "It is too narrow to try that here.\r\n");
     return;
   }
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return;
+  }
 
+#define RETURN_NUM_ATTACKS 1  
+  num_attacks += perform_attacks(ch, RETURN_NUM_ATTACKS, 0);
+#undef RETURN_NUM_ATTACKS
+        
+  send_to_char(ch, "In a whirlwind of motion you strike out at your foes!\r\n");
+  act("$n in a whirlwind of motions lashes out at $s foes!", FALSE, ch, 0, 0, TO_ROOM);  
+  
+  for (vict = world[IN_ROOM(ch)].people; vict; vict = next_vict) {
+    next_vict = vict->next_in_room;
+
+    if (aoeOK(ch, vict, -1)) { /* -1 indicates no special handling */
+      hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_PRIMARY);
+      num_attacks--;
+    }
+    
+    if (num_attacks <= 0)
+      break;
+  }
+    
+  USE_FULL_ROUND_ACTION(ch);
+  return;
+
+  /* OLD VERSION */
   /* First thing we do is check to make sure the character is not in the middle
    * of a whirl wind attack.
    *
    * "char_had_mud_event() will sift through the character's event list to see if
    * an event of type "eWHIRLWIND" currently exists. */
+  /*
   if (char_has_mud_event(ch, eWHIRLWIND)) {
     send_to_char(ch, "You are already attempting that!\r\n");
     return;
@@ -2872,12 +2899,12 @@ ACMD(do_whirlwind) {
 
   send_to_char(ch, "You begin to spin rapidly in circles.\r\n");
   act("$n begins to rapidly spin in a circle!", FALSE, ch, 0, 0, TO_ROOM);
-
+  */
+  
   /* NEW_EVENT() will add a new mud event to the event list of the character.
    * This function below adds a new event of "eWHIRLWIND", to "ch", and passes "NULL" as
    * additional data. The event will be called in "3 * PASSES_PER_SEC" or 3 seconds */
-  NEW_EVENT(eWHIRLWIND, ch, NULL, 3 * PASSES_PER_SEC);
-  USE_FULL_ROUND_ACTION(ch);
+  //NEW_EVENT(eWHIRLWIND, ch, NULL, 3 * PASSES_PER_SEC);
 }
 
 ACMD(do_deatharrow) {
