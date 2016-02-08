@@ -1756,7 +1756,13 @@ void load_class_list(void) {
   classo(CLASS_SHIFTER, "shifter", "Shf", "\twS\tWh\twf\tn", "f) \twSh\tWift\twer\tn",
       /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst, eFeatp*/
         10,       Y,    Y,        M,  8, 0,   1,   4,     N,       5000,    4,
-        /*descrip*/"INCOMPLETE (under construction).");
+        /*descrip*/"A shifter has no form they call their own. Instead, they clothe "
+    "themselves in whatever shape is most expedient at the time. While others base "
+    "their identities largely on their external forms, the shifter actually comes "
+    "closer to their true self through all of their transformations. Of necessity, "
+    "their sense of self is based not on their outward form, but on their soul, which "
+    "is truly the only constant about them. It is the inner strength of that soul "
+    "that enables them to take on any shape and remain themselves within.");
   /* class-number then saves:        fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_SHIFTER, G,    G,      B,    G,      B);
   assign_class_abils(CLASS_SHIFTER, /* class number */

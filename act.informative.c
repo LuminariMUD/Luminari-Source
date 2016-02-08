@@ -336,6 +336,9 @@ static void show_obj_modifiers(struct obj_data *obj, struct char_data *ch) {
 
   if (OBJ_FLAGGED(obj, ITEM_HUM))
     send_to_char(ch, " \tn..It emits a faint \tChumming\tn sound!");
+  
+  if (GET_OBJ_TYPE(obj) == ITEM_LIGHT && GET_OBJ_VAL(obj, 2) == 0)
+    send_to_char(ch, " \tD(burned out)\tn");
 }
 
 static void list_obj_to_char(struct obj_data *list, struct char_data *ch,
