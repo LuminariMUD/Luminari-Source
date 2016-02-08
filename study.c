@@ -1388,9 +1388,9 @@ void study_parse(struct descriptor_data *d, char *arg) {
           /* Save the temporary values in LEVELUP(d->character) to the
            * character, print a message, free the structures and exit. */
           write_to_output(d, "Your choices have been finalized!\r\n\r\n");
-          finalize_study(d);
           if (GET_LEVEL(ch) == 1) /* in case they modify their intelligence */            
             reset_training_points(ch);
+          finalize_study(d);
           save_char(d->character, 0);
           cleanup_olc(d, CLEANUP_ALL);
           free(LEVELUP(d->character));
