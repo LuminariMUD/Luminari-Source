@@ -338,6 +338,7 @@ ACMD(do_comeandgetme);
  * Begin Functions and defines for act.other.c
  ****************************************************************************/
 /* Functions with subcommands */
+bool is_prompt_empty(struct char_data *ch);
 void set_bonus_attributes(struct char_data *ch, int str, int con, int dex, int ac);
 void list_forms(struct char_data *ch);
 void perform_shapechange(struct char_data *ch, char *arg, int mode);

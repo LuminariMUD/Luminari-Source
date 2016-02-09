@@ -1150,16 +1150,20 @@ static char *make_prompt(struct descriptor_data *d) {
   int count = 0, prompt_size = 0;
   size_t len = 0;
 
+  /* Note, prompt is truncated at MAX_PROMPT_LENGTH chars (structs.h) */
+  
   ch = d->character;
 
-  // Note, prompt is truncated at MAX_PROMPT_LENGTH chars (structs.h)
-  if (d->showstr_count)
+  if (d->showstr_count) /* # of pages to page through */
     snprintf(prompt, sizeof (prompt),
           "\tn[ Return to continue, (q)uit, (r)efresh, (b)ack, or page number (%d/%d) ]\tn",
           d->showstr_page, d->showstr_count);
-  else if (d->str)
+  else if (d->str) /* for the modify-str system */
     strcpy(prompt, "] "); // strcpy: OK (for 'MAX_PROMPT_LENGTH >= 3')
-  else if (STATE(d) == CON_PLAYING && !IS_NPC(d->character)) {
+  
+  /* start building a prompt */
+  
+  else if (STATE(d) == CON_PLAYING && !IS_NPC(d->character)) { /*PC only*/
 
     /* show invis level if applicable */
     if (GET_INVIS_LEV(d->character) && len < sizeof (prompt)) {
@@ -1169,7 +1173,7 @@ static char *make_prompt(struct descriptor_data *d) {
         len += count;
     }
 
-    // show only when below 25% (autoprompt)
+    /* show only when below 25% (autoprompt) */
     if (PRF_FLAGGED(d->character, PRF_DISPAUTO) && len < sizeof (prompt)) {
       struct char_data *ch = d->character;
       if (GET_HIT(ch) << 2 < GET_MAX_HIT(ch)) {
@@ -1193,8 +1197,9 @@ static char *make_prompt(struct descriptor_data *d) {
         if (count >= 0)
           len += count;
       }
+      
+    /* autoprompt is OFF - normal prompt processing */  
     } else {
-      // not auto prompt
 
       /* display hit points */
       float hit_percent = (float) GET_HIT(d->character) /
@@ -1233,7 +1238,7 @@ static char *make_prompt(struct descriptor_data *d) {
           len += count;
       }
 
-      // autoprompt display exp to next level
+      /* display exp to next level */
       if (PRF_FLAGGED(d->character, PRF_DISPEXP) && len < sizeof (prompt)) {
         count = snprintf(prompt + len, sizeof (prompt) - len, "%sXP:%s%d ",
                 CCYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
@@ -1243,7 +1248,7 @@ static char *make_prompt(struct descriptor_data *d) {
           len += count;
       }
 
-      // autoprompt display rooms
+      /* display rooms */
       if (PRF_FLAGGED(d->character, PRF_DISPROOM) && len < sizeof (prompt)) {
         count = snprintf(prompt + len, sizeof (prompt) - len, "%s%s ",
                 world[IN_ROOM(ch)].name,
@@ -1258,7 +1263,7 @@ static char *make_prompt(struct descriptor_data *d) {
         }
       }
 
-      // autoprompt display memtime
+      /* display memtime */
       if (PRF_FLAGGED(d->character, PRF_DISPMEMTIME) && len < sizeof (prompt)) {
         count = snprintf(prompt + len, sizeof (prompt) - len, "MEM: %d/%d/%d/%d ",
                 PREP_TIME(ch, 0, 0), PREP_TIME(ch, 0, 1),
@@ -1267,7 +1272,7 @@ static char *make_prompt(struct descriptor_data *d) {
           len += count;
       }
 
-      // autoprompt display available actions.
+      /* display available actions. */
       if (PRF_FLAGGED(d->character, PRF_DISPACTIONS) && len < sizeof (prompt)) {
         count = snprintf(prompt + len, sizeof (prompt) - len, "[%s%s%s] ",
                 (is_action_available(d->character, atSTANDARD, FALSE) ? "s" : "-"),
@@ -1277,7 +1282,7 @@ static char *make_prompt(struct descriptor_data *d) {
           len += count;
       }
 
-      // autoprompt display exits
+      /* display exits */
       if (PRF_FLAGGED(d->character, PRF_DISPEXITS) && len < sizeof (prompt)) {
         count = snprintf(prompt + len, sizeof (prompt) - len, "%sEX:",
                 CCYEL(d->character, C_NRM));
@@ -1478,8 +1483,16 @@ static char *make_prompt(struct descriptor_data *d) {
           len += count;
       }
     }
-
-    /* here we have our NPC prompt */
+    
+    /* if someone wants a "none" prompt we have to make sure we are clear here */
+    if (is_prompt_empty(d->character)) {
+      len = 0;
+      *prompt = '\0';
+    }
+      
+    /* END of PC prompt */
+    
+  /* here we have our NPC prompt (switched mob, some spells, etc) */
   } else if (STATE(d) == CON_PLAYING && IS_NPC(d->character)) {
     count = snprintf(prompt + len, sizeof (prompt) - len, "%sEX:",
             CCYEL(d->character, C_NRM));
@@ -1519,18 +1532,17 @@ static char *make_prompt(struct descriptor_data *d) {
     if (count >= 0)
       len += count;
 
-    /* how did we get here again? */
+  /* how did we get here again? */
   } else {
     *prompt = '\0';
+    len = 0;
   }
 
   prompt_size = (int) len;
 
-  /* handy debug for prompt size
-     our prompt has potential for some large numbers, with a little
-     experimentation I was able to approach 350 - 02/02/2013
-   */
-  //send_to_char(d->character, "%d", prompt_size);
+  /* handy debug for prompt size our prompt has potential for some large numbers,
+   * with a little experimentation I was able to approach 350 - 02/02/2013 */
+  /* send_to_char(d->character, "%d", prompt_size); */
 
   return ((char *) ProtocolOutput(d, prompt, &prompt_size));
 }
