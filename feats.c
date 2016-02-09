@@ -353,8 +353,6 @@ void assign_feats(void) {
   /* NPC Racial Feats Shared Elsewhere */
 
 
-
-
   /******/
   /* Racial ability feats */
 
@@ -1202,9 +1200,9 @@ void assign_feats(void) {
   feato(FEAT_ELVEN_CRAFTING, "elven crafting", TRUE, FALSE, FALSE, FEAT_TYPE_CRAFT,
     "All equipment made is 50 percent weight and uses 50 percent materials",
     "All equipment made is 50 percent weight and uses 50 percent materials");
-  /*feato(FEAT_FAST_CRAFTER, "fast crafter", TRUE, FALSE, FALSE, FEAT_TYPE_CRAFT,
+  /* NOT IN GAME */feato(FEAT_FAST_CRAFTER, "fast crafter", FALSE, FALSE, FALSE, FEAT_TYPE_CRAFT,
     "Reduces crafting time",
-    "Reduces crafting time");*/
+    "Reduces crafting time");
 
   /* Cleric Domain (ability) Feats */
   feato(FEAT_LIGHTNING_ARC, "lightning arc", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
@@ -1983,6 +1981,26 @@ void assign_feats(void) {
       "use this ability even if the dragon’s bite would otherwise kill him instantly. Once the "
       "defender’s attacks are resolved, he suffers the normal effect of the attack that provoked "
       "this ability.");
+        
+  /* Shifter */
+  /*1*/feato(FEAT_LIMITLESS_SHAPES, "limitless shapes", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "no limit to number of times a shifter changes shapes",
+    "no limit to number of times a shifter changes shapes");
+  /*2*/feato(FEAT_SHIFTER_SHAPES_1, "shifter shapes i", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "magical beast shape",
+    "magical beast shape");
+  /*4*/feato(FEAT_SHIFTER_SHAPES_2, "shifter shapes ii", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "fey shape",
+    "fey shape");
+  /*6*/feato(FEAT_SHIFTER_SHAPES_3, "shifter shapes iii", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "construct shape",
+    "construct shape");
+  /*8*/feato(FEAT_SHIFTER_SHAPES_4, "shifter shapes iv", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "outsider shape",
+    "outsider shape");
+  /*10*/feato(FEAT_SHIFTER_SHAPES_5, "shifter shapes v", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "dragon shape",
+    "dragon shape");
             
   /* Duelist */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */

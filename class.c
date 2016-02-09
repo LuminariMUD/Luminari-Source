@@ -2108,12 +2108,16 @@ byte saving_throws(struct char_data *ch, int type) {
 
 // base attack bonus, replacement for THAC0 system
 int BAB(struct char_data *ch) {
-  int i, bab = 0, level;
+  int i, bab = 0, level, wildshape_level = 0;
   float counter = 0.0;
 
   /* gnarly huh? */
-  if (IS_AFFECTED(ch, AFF_TFORM) || IS_WILDSHAPED(ch))
+  if (IS_AFFECTED(ch, AFF_TFORM))
     return (GET_LEVEL(ch));
+  
+  /* wildshape */
+  if (IS_WILDSHAPED(ch))
+    wildshape_level = CLASS_LEVEL(ch, CLASS_DRUID) + CLASS_LEVEL(ch, CLASS_SHIFTER);
 
   /* npc is simple */
   if (IS_NPC(ch)) {
@@ -2153,6 +2157,9 @@ int BAB(struct char_data *ch) {
   if (char_has_mud_event(ch, eSPELLBATTLE) && SPELLBATTLE(ch) > 0) {
     bab += MAX(1, (SPELLBATTLE(ch) * 2 / 3));
   }
+  
+  if (wildshape_level > bab)
+    bab = wildshape_level;
 
   if (!IS_NPC(ch)) /* cap pc bab at 30 */
     return (MIN(bab, LVL_IMMORT - 1));

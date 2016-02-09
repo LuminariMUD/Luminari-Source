@@ -549,15 +549,15 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 //#define RACE_HALF_OGRE              92
 #define RACE_ORC                    93
 #define RACE_CENTAUR                99
-#define RACE_CONSTRUCT              100
-#define RACE_DRAGON                 101
+#define RACE_IRON_GOLEM             100
+#define RACE_DRAGON_CLOUD           101
 #define RACE_IRDA                   102
 #define RACE_BAAZ_DRACONIAN         103
 #define RACE_KAPAK_DRACONIAN        104
 #define RACE_HALF_DRAGON            105
 //#define RACE_HALF_TROLL                  106
 #define RACE_DINOSAUR               107
-#define RACE_FEY                    108
+#define RACE_PIXIE                  108
 #define RACE_MEDIUM_FIRE_ELEMENTAL  109
 #define RACE_MEDIUM_EARTH_ELEMENTAL 110
 #define RACE_MEDIUM_AIR_ELEMENTAL   111
@@ -628,7 +628,7 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define RACE_PLANT                   171
 #define RACE_OOZE                    172
 #define RACE_ELEMENTAL               173
-#define RACE_OUTSIDER                174
+#define RACE_AEON_THELETOS           174
 #define RACE_MAGICAL_BEAST           175
 #define RACE_STIRGE                  176
 #define RACE_SILVANESTI_ELF          177// 1 higher than the last race define
@@ -1692,7 +1692,7 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_HARDY                          457
 #define FEAT_CRYSTAL_SKIN                   458
 #define FEAT_LAST_WORD                      459
-#define FEAT_UNUSED_3                       460
+#define FEAT_LIMITLESS_SHAPES               460
 #define FEAT_CRYSTAL_DWARF_RACIAL_ADJUSTMENT 461
 #define FEAT_VULNERABLE_TO_COLD             462
 #define FEAT_TRELUX_EXOSKELETON             463
@@ -1701,12 +1701,17 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_TRELUX_PINCERS                 466
 #define FEAT_TRELUX_RACIAL_ADJUSTMENT       467
 #define FEAT_NATURAL_ATTACK                 468
+#define FEAT_SHIFTER_SHAPES_1               469
+#define FEAT_SHIFTER_SHAPES_2               470
+#define FEAT_SHIFTER_SHAPES_3               471
+#define FEAT_SHIFTER_SHAPES_4               472
+#define FEAT_SHIFTER_SHAPES_5               473
 /* end bardic performances */
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT                      469
-/** feat_last_feat + 1 ***/
-#define NUM_FEATS                           470
-/*****/
+#define FEAT_LAST_FEAT                      474
+/** FEAT_LAST_FEAT + 1 ***/
+#define NUM_FEATS                           475
+/** absolute cap **/
 #define MAX_FEATS                           750
 /*****/
 
