@@ -4128,6 +4128,33 @@ ACMD(do_utter) {
 
 }
 
+/* in order to handle issues with the prompt this became a necessary function */
+bool is_prompt_empty(struct char_data *ch) {
+  bool prompt_is_empty = TRUE;
+  
+  if (IS_SET_AR(PRF_FLAGS(ch), PRF_DISPAUTO))
+    prompt_is_empty = FALSE;
+  if (IS_SET_AR(PRF_FLAGS(ch), PRF_DISPHP))
+    prompt_is_empty = FALSE;
+  if (IS_SET_AR(PRF_FLAGS(ch), PRF_DISPMANA))
+    prompt_is_empty = FALSE;
+  if (IS_SET_AR(PRF_FLAGS(ch), PRF_DISPMOVE))
+    prompt_is_empty = FALSE;
+  if (IS_SET_AR(PRF_FLAGS(ch), PRF_DISPEXP))
+    prompt_is_empty = FALSE;
+  if (IS_SET_AR(PRF_FLAGS(ch), PRF_DISPEXITS))
+    prompt_is_empty = FALSE;
+  if (IS_SET_AR(PRF_FLAGS(ch), PRF_DISPROOM))
+    prompt_is_empty = FALSE;
+  if (IS_SET_AR(PRF_FLAGS(ch), PRF_DISPMEMTIME))
+    prompt_is_empty = FALSE;
+  if (IS_SET_AR(PRF_FLAGS(ch), PRF_DISPACTIONS))
+    prompt_is_empty = FALSE;
+  
+  return prompt_is_empty;
+}
+
+
 ACMD(do_display) {
   size_t i;
 
@@ -4138,7 +4165,7 @@ ACMD(do_display) {
   skip_spaces(&argument);
 
   if (!*argument) {
-    send_to_char(ch, "Usage: prompt { { H | M | V | X | T | R | E } | all |"
+    send_to_char(ch, "Usage: prompt { { H | M | V | X | T | R | E | A } | all |"
             " auto | none }\r\n");
     send_to_char(ch, "Notice this command is deprecated, we recommend using "
             " PREFEDIT instead.\r\n");
@@ -4161,6 +4188,7 @@ ACMD(do_display) {
     SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPEXITS);
     SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPROOM);
     SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPMEMTIME);
+    SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPACTIONS);
   } else if (!str_cmp(argument, "off") || !str_cmp(argument, "none")) {
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPAUTO);
 
@@ -4171,6 +4199,7 @@ ACMD(do_display) {
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPEXITS);
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPROOM);
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPMEMTIME);
+    REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPACTIONS);
   } else {
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPAUTO);
 
@@ -4181,6 +4210,7 @@ ACMD(do_display) {
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPEXITS);
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPROOM);
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPMEMTIME);
+    REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPACTIONS);
 
     for (i = 0; i < strlen(argument); i++) {
       switch (LOWER(argument[i])) {
@@ -4205,8 +4235,11 @@ ACMD(do_display) {
         case 'e':
           SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPMEMTIME);
           break;
+        case 'a':
+          SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPACTIONS);
+          break;
         default:
-          send_to_char(ch, "Usage: prompt { { H | M | V | X | T | R | E } | all"
+          send_to_char(ch, "Usage: prompt { { H | M | V | X | T | R | E | A } | all"
                   " | auto | none }\r\n");
           return;
       }
