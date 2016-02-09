@@ -1468,8 +1468,8 @@ static char *make_prompt(struct descriptor_data *d) {
     } // end fighting
     /*********************************/
 
-    /* position of enemey and closing ">", also option carrier-return */
-    if (FIGHTING(d->character)) {
+    /* position of enemey and closing ">", also optional carrier-return */
+    if (char_fighting) {
       if ((len < sizeof (prompt)) && !IS_NPC(d->character) &&
               !PRF_FLAGGED(d->character, PRF_COMPACT)) {
         count = sprintf(prompt + strlen(prompt), " (%s)> \r\n",
