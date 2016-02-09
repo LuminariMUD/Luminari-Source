@@ -1648,7 +1648,7 @@ ACMD(do_weaponlist) {
     sprintbit(weapon_list[type].damageTypes, weapon_damage_types, buf3, sizeof (buf3));
 
     len += snprintf(buf + len, sizeof (buf) - len,
-                   "%s, Dam: %dd%d, Threat: %d, Crit-Multi: %d, Flags: %s, Cost: %d, "
+                   "\tW%s\tn, Dam: %dd%d, Threat: %d, Crit-Multi: %d, Flags: %s, Cost: %d, "
             "Dam-Types: %s, Weight: %d, Range: %d, Family: %s, Size: %s, Material: %s, "
             "Handle: %s, Head: %s.\r\n",
                    weapon_list[type].name, weapon_list[type].numDice, weapon_list[type].diceSize,
@@ -1671,7 +1671,7 @@ ACMD(do_armorlist) {
   size_t len = 0;
 
   for (i = 1; i < NUM_SPEC_ARMOR_TYPES; i++) {
-    len += snprintf(buf + len, sizeof (buf) - len, "%s, Type: %s, Cost: %d, "
+    len += snprintf(buf + len, sizeof (buf) - len, "\tW%s\tn, Type: %s, Cost: %d, "
             "AC: %.1f, Max Dex: %d, Armor Penalty: %d, Spell Fail: %d, Weight: %d, "
             "Material: %s\r\n",
             armor_list[i].name, armor_type[armor_list[i].armorType],

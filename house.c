@@ -56,25 +56,25 @@ static int House_get_filename(room_vnum vnum, char *filename, size_t maxlen) {
 }
 
 /* Handle objects (containers) when loading to a house */
-static int handle_house_obj(struct obj_data *temp, room_vnum vnum,  int locate, struct obj_data **cont_row) {
+static int handle_house_obj(struct obj_data *temp, room_vnum vnum, int locate, struct obj_data **cont_row) {
   int j;
   struct obj_data *obj1;
   room_rnum rnum;
-  
+
   if (!temp) /* this should never happen, but.... */
     return FALSE;
 
   if ((rnum = real_room(vnum)) == NOWHERE)
     return (0);
-  
+
   log("object: %s at location: %d", GET_OBJ_SHORT(temp), locate);
-  
+
   for (j = MAX_BAG_ROWS - 1; j > 0; j--)
     if (cont_row[j])
       log("cont_row[%d]: %s", j, GET_OBJ_SHORT(cont_row[j]));
-    else 
-      log ("cont_row[%d] is null.", j);
-  
+    else
+      log("cont_row[%d] is null.", j);
+
   /* What to do with a new loaded item:
    * If there's a list with <locate> less than 1 below this
    * then its container has disappeared from the file   
@@ -92,34 +92,34 @@ static int handle_house_obj(struct obj_data *temp, room_vnum vnum,  int locate, 
       for (; cont_row[j]; cont_row[j] = obj1) {
         obj1 = cont_row[j]->next_content;
         obj_to_room(cont_row[j], rnum);
-        log ("adding obj to room 3...");
+        log("adding obj to room 3...");
       }
       cont_row[j] = NULL;
     }
 
   if (j == -locate && cont_row[j]) { /* content list existing */
     if (GET_OBJ_TYPE(temp) == ITEM_CONTAINER ||
-        GET_OBJ_TYPE(temp) == ITEM_AMMO_POUCH) {
+            GET_OBJ_TYPE(temp) == ITEM_AMMO_POUCH) {
       /* take item ; fill ; give to char again */
       //obj_from_room(temp);
       temp->contains = NULL;
       for (; cont_row[j]; cont_row[j] = obj1) {
         obj1 = cont_row[j]->next_content;
         obj_to_obj(cont_row[j], temp);
-        log ("adding obj to obj 2...");
+        log("adding obj to obj 2...");
       }
       obj_to_room(temp, rnum); /* add to room first ... */
-      log ("adding obj to room 4...");
+      log("adding obj to room 4...");
     } else { /* object isn't container -> empty content list */
-            
+
       for (; cont_row[j]; cont_row[j] = obj1) {
         obj1 = cont_row[j]->next_content;
         obj_to_room(cont_row[j], rnum);
-        log ("adding obj to room 5...");
+        log("adding obj to room 5...");
       }
       cont_row[j] = NULL;
     }
-  } 
+  }
 
   if (locate < 0 && locate >= -MAX_BAG_ROWS) {
     /* let obj be part of content list
@@ -132,7 +132,7 @@ static int handle_house_obj(struct obj_data *temp, room_vnum vnum,  int locate, 
       obj1->next_content = temp;
     } else
       cont_row[-locate - 1] = temp;
-  }    
+  }
 
   return TRUE;
 }
@@ -140,12 +140,13 @@ static int handle_house_obj(struct obj_data *temp, room_vnum vnum,  int locate, 
 /* Load all objects for a house */
 static int House_load(room_vnum vnum) {
   FILE *fl;
-  int i = 0, num_objs = 0;
+  int i = 0;
+  //int num_objs = 0;
   char filename[MAX_STRING_LENGTH];
   obj_save_data *loaded, *current;
   struct obj_data * cont_row[MAX_BAG_ROWS];
   room_rnum rnum;
-  
+
   for (i = 0; i < MAX_BAG_ROWS; i++)
     cont_row[i] = NULL;
 
@@ -163,7 +164,7 @@ static int House_load(room_vnum vnum) {
 
   /* for (current = loaded; current != NULL; current = current->next)
     num_objs += handle_house_obj(current->obj, vnum, current->locate, cont_row);
-  */  
+   */
   /* now it's safe to free the obj_save_data list - all members of it
    * have been put in the correct lists by obj_to_room()
    */
@@ -183,17 +184,17 @@ static int House_load(room_vnum vnum) {
 int House_save(struct obj_data *obj, room_vnum vnum, FILE *fp, int location) {
   struct obj_data *tmp;
   int result;
-  
+
   if (obj) {
     House_save(obj->next_content, vnum, fp, location);
-    House_save(obj->contains, vnum, fp, MIN(0,location) - 1);
-    
+    House_save(obj->contains, vnum, fp, MIN(0, location) - 1);
+
     /* save a single item to file */
     result = objsave_save_obj_record_db(obj, NULL, vnum, fp, location);
 
     for (tmp = obj->in_obj; tmp; tmp = tmp->in_obj)
       GET_OBJ_WEIGHT(tmp) -= GET_OBJ_WEIGHT(obj);
-    
+
     if (!result)
       return (0);
   }
@@ -216,21 +217,21 @@ void House_crashsave(room_vnum vnum) {
   char buf[MAX_STRING_LENGTH];
   FILE *fp;
   char del_buf[2048];
-  
+
   if (mysql_query(conn, "start transaction;")) {
     log("SYSERR: Unable to start transaction for saving of house data: %s",
-            mysql_error(conn));    
-    return ;
-  }  
+            mysql_error(conn));
+    return;
+  }
   /* Delete existing save data.  In the future may just flag these for deletion. */
   sprintf(del_buf, "delete from house_data where vnum = '%d';",
           vnum);
   if (mysql_query(conn, del_buf)) {
     log("SYSERR: Unable to delete house data: %s",
-            mysql_error(conn));    
-    return ;
-  }      
-  
+            mysql_error(conn));
+    return;
+  }
+
   if ((rnum = real_room(vnum)) == NOWHERE)
     return;
   if (!House_get_filename(vnum, buf, sizeof (buf)))
@@ -244,15 +245,15 @@ void House_crashsave(room_vnum vnum) {
     return;
   }
   fclose(fp);
-  
+
   House_restore_weight(world[rnum].contents);
 
   if (mysql_query(conn, "commit;")) {
     log("SYSERR: Unable to commit transaction for saving of house data: %s",
-            mysql_error(conn));    
-    return ;
-  }  
-  
+            mysql_error(conn));
+    return;
+  }
+
   REMOVE_BIT_AR(ROOM_FLAGS(rnum), ROOM_HOUSE_CRASH);
 }
 

@@ -47,6 +47,22 @@
 #include "domains_schools.h"
 #include "spells.h"
 
+#define SHAPE_AFFECTS         3
+#define MOB_ZOMBIE            11   /* animate dead levels 1-7 */
+#define MOB_GHOUL             35   // " " level 11+
+#define MOB_GIANT_SKELETON    36   // " " level 21+
+#define MOB_MUMMY             37   // " " level 30
+#define BARD_AFFECTS          7
+#define MOB_PALADIN_MOUNT 70
+#define MOB_EPIC_PALADIN_MOUNT 79
+/* some defines for gain/respec */
+#define MODE_NORMAL 0
+#define MODE_RESPEC 1
+#define MULTICAP	3
+#define WILDSHAPE_AFFECTS 4
+#define TOG_OFF 0
+#define TOG_ON  1
+
 /* Local defined utility functions */
 /* do_group utility functions */
 static void print_group(struct char_data *ch);
@@ -121,10 +137,6 @@ ACMD(do_handleanimal) {
 }
 
 /* innate animate dead ability */
-#define MOB_ZOMBIE            11   /* animate dead levels 1-7 */
-#define MOB_GHOUL             35   // " " level 11+
-#define MOB_GIANT_SKELETON    36   // " " level 21+
-#define MOB_MUMMY             37   // " " level 30
 ACMD(do_animatedead) {
   int uses_remaining = 0;
   struct char_data *mob = NULL;
@@ -564,7 +576,6 @@ ACMD(do_applypoison) {
 }
 
 
-#define BARD_AFFECTS 7
 /* bardic performance moved to: bardic_performance.c */
 /* this is still being used by NPCs */
 void perform_perform(struct char_data *ch) {
@@ -659,11 +670,6 @@ ACMD(do_perform) {
   perform_perform(ch);
 }
 */
-#undef BARD_AFFECTS
-
-
-#define MOB_PALADIN_MOUNT 70
-#define MOB_EPIC_PALADIN_MOUNT 79
 
 void perform_call(struct char_data *ch, int call_type, int level) {
   int i = 0;
@@ -912,7 +918,6 @@ ACMD(do_call) {
 
   perform_call(ch, call_type, level);
 }
-#undef MOB_PALADIN_MOUNT
 
 ACMD(do_purify) {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
@@ -1225,9 +1230,6 @@ ACMD(do_tame) {
   act("$n tames $N.", FALSE, ch, 0, vict, TO_NOTVICT);
 }
 
-/* some defines for gain/respec */
-#define MODE_NORMAL 0
-#define MODE_RESPEC 1
 /* does the ch have a valid alignment for proposed class? */
 /* returns 1 for valid alignment */
 /* returns 0 for problem with alignment */
@@ -1627,10 +1629,7 @@ ACMD(do_respec) {
   }
 }
 
-
 /* level advancement, with multi-class support */
-#define MULTICAP	3
-
 ACMD(do_gain) {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   int is_altered = FALSE, num_levels = 0;
@@ -1758,28 +1757,23 @@ ACMD(do_gain) {
     }
   }
 }
-#undef MULTICAP
-#undef MODE_NORMAL
-#undef MODE_RESPEC
 
 /*************************/
 /* shapechange functions */
-
 /*************************/
-void set_bonus_attributes(struct char_data *ch, int str, int con, int dex, int ac) {
-  GET_DISGUISE_STR(ch) = str;
-  GET_DISGUISE_CON(ch) = con;
-  GET_DISGUISE_DEX(ch) = dex;
-  GET_DISGUISE_AC(ch) = ac;
-}
-
-
 struct wild_shape_mods {
   byte strength;
   byte constitution;
   byte dexterity;
   byte natural_armor;
 };
+
+void set_bonus_attributes(struct char_data *ch, int str, int con, int dex, int ac) {
+  GET_DISGUISE_STR(ch) = str;
+  GET_DISGUISE_CON(ch) = con;
+  GET_DISGUISE_DEX(ch) = dex;
+  GET_DISGUISE_AC(ch) = ac;
+}
 
 void init_wild_shape_mods(struct wild_shape_mods *abil_mods) {
   abil_mods->strength = 0;
@@ -1795,6 +1789,7 @@ struct wild_shape_mods *set_wild_shape_mods(int race) {
   CREATE(abil_mods, struct wild_shape_mods, 1);
   init_wild_shape_mods(abil_mods);
 
+  /* racial-SIZE and default */
   switch (race_list[race].family) {
     case RACE_TYPE_ANIMAL:
       switch (race_list[race].size) {
@@ -1848,6 +1843,112 @@ struct wild_shape_mods *set_wild_shape_mods(int race) {
           abil_mods->strength = 6;
           abil_mods->constitution = 2;
           abil_mods->natural_armor = 6;
+          break;
+      }
+      break;
+    case RACE_TYPE_FEY:
+      switch (race_list[race].size) {
+        case SIZE_DIMINUTIVE:
+          abil_mods->dexterity = 12;
+          abil_mods->strength = -4;
+          abil_mods->natural_armor = 4;
+          break;
+        case SIZE_TINY:
+          abil_mods->dexterity = 8;
+          abil_mods->strength = -2;
+          abil_mods->natural_armor = 3;
+          break;
+        case SIZE_SMALL:
+          abil_mods->dexterity = 4;
+          abil_mods->natural_armor = 2;
+          break;
+      }
+      break;
+    case RACE_TYPE_CONSTRUCT:
+      switch (race_list[race].size) {
+        case SIZE_MEDIUM:
+          abil_mods->strength = 4;
+          abil_mods->natural_armor = 4;
+          break;
+        case SIZE_LARGE:
+          abil_mods->dexterity = -2;
+          abil_mods->strength = 6;
+          abil_mods->constitution = 2;
+          abil_mods->natural_armor = 6;
+          break;
+        case SIZE_HUGE:
+          abil_mods->dexterity = -4;
+          abil_mods->strength = 10;
+          abil_mods->constitution = 4;
+          abil_mods->natural_armor = 7;
+          break;
+        case SIZE_GARGANTUAN:
+          abil_mods->dexterity = -8;
+          abil_mods->strength = 16;
+          abil_mods->constitution = 8;
+          abil_mods->natural_armor = 8;
+          break;
+      }
+      break;
+    case RACE_TYPE_OUTSIDER:
+      switch (race_list[race].size) {
+        case SIZE_DIMINUTIVE:
+          abil_mods->dexterity = 10;
+          abil_mods->strength = -4;
+          abil_mods->natural_armor = 4;
+          break;
+        case SIZE_TINY:
+          abil_mods->dexterity = 8;
+          abil_mods->strength = -2;
+          abil_mods->natural_armor = 3;
+          break;
+        case SIZE_SMALL:
+          abil_mods->dexterity = 4;
+          abil_mods->natural_armor = 2;
+          break;
+        case SIZE_MEDIUM:
+          abil_mods->strength = 4;
+          abil_mods->natural_armor = 4;
+          break;
+        case SIZE_LARGE:
+          abil_mods->dexterity = -2;
+          abil_mods->strength = 6;
+          abil_mods->constitution = 2;
+          abil_mods->natural_armor = 6;
+          break;
+        case SIZE_HUGE:
+          abil_mods->dexterity = -4;
+          abil_mods->strength = 8;
+          abil_mods->constitution = 4;
+          abil_mods->natural_armor = 6;
+          break;
+        case SIZE_GARGANTUAN:
+          abil_mods->dexterity = -8;
+          abil_mods->strength = 10;
+          abil_mods->constitution = 6;
+          abil_mods->natural_armor = 7;
+          break;          
+      }
+      break;
+    case RACE_TYPE_DRAGON:
+      switch (race_list[race].size) {
+        case SIZE_LARGE:
+          abil_mods->dexterity = -2;
+          abil_mods->strength = 7;
+          abil_mods->constitution = 3;
+          abil_mods->natural_armor = 4;
+          break;
+        case SIZE_HUGE:
+          abil_mods->dexterity = -4;
+          abil_mods->strength = 11;
+          abil_mods->constitution = 6;
+          abil_mods->natural_armor = 5;
+          break;
+        case SIZE_GARGANTUAN:
+          abil_mods->dexterity = -6;
+          abil_mods->strength = 16;
+          abil_mods->constitution = 9;
+          abil_mods->natural_armor = 8;
           break;
       }
       break;
@@ -1989,8 +2090,8 @@ struct wild_shape_mods *set_wild_shape_mods(int race) {
       break;
     case RACE_WOLF:
     case RACE_HYENA:
-
       break;
+      
     default:break;
   }
 
@@ -2029,7 +2130,8 @@ int display_eligible_wildshape_races(struct char_data *ch, char *argument, int s
   for (i = 0; i < NUM_EXTENDED_RACES; i++) {
 
     switch (race_list[i].family) {
-      case RACE_TYPE_ANIMAL:
+      
+      case RACE_TYPE_ANIMAL: /* animals! */
         switch (race_list[i].size) {
           /* fall through all the way down */
           case SIZE_SMALL:
@@ -2058,7 +2160,8 @@ int display_eligible_wildshape_races(struct char_data *ch, char *argument, int s
             continue;
         }
         break;
-      case RACE_TYPE_PLANT:
+        
+      case RACE_TYPE_PLANT: /* plants! */
         switch (race_list[i].size) {
           /* fall through all the way down */
           case SIZE_SMALL:
@@ -2083,7 +2186,8 @@ int display_eligible_wildshape_races(struct char_data *ch, char *argument, int s
             continue;
         }
         break;
-      case RACE_TYPE_ELEMENTAL:
+        
+      case RACE_TYPE_ELEMENTAL: /* elementals! */
         switch (race_list[i].size) {
           /* fall through all the way down */
           case SIZE_SMALL:
@@ -2108,8 +2212,32 @@ int display_eligible_wildshape_races(struct char_data *ch, char *argument, int s
             continue;
         }
         break;
-      /* i don't see anything in the srd about magical beasts */
+        
       case RACE_TYPE_MAGICAL_BEAST:
+        if (HAS_FEAT(ch, FEAT_SHIFTER_SHAPES_1))
+          break;
+        continue;
+        
+      case RACE_TYPE_FEY:
+        if (HAS_FEAT(ch, FEAT_SHIFTER_SHAPES_2))
+          break;
+        continue;
+        
+      case RACE_TYPE_CONSTRUCT:
+        if (HAS_FEAT(ch, FEAT_SHIFTER_SHAPES_3))
+          break;
+        continue;
+        
+      case RACE_TYPE_OUTSIDER:
+        if (HAS_FEAT(ch, FEAT_SHIFTER_SHAPES_4))
+          break;
+        continue;
+        
+      case RACE_TYPE_DRAGON:
+        if (HAS_FEAT(ch, FEAT_SHIFTER_SHAPES_5))
+          break;
+        continue;
+        
       default:
         continue;
     }
@@ -2133,7 +2261,6 @@ int display_eligible_wildshape_races(struct char_data *ch, char *argument, int s
     return i;
 }
 
-#define WILDSHAPE_AFFECTS 4
 void set_bonus_stats(struct char_data *ch, int str, int con, int dex, int ac) {
   struct affected_type af[WILDSHAPE_AFFECTS];
   int i = 0;
@@ -2162,7 +2289,6 @@ void set_bonus_stats(struct char_data *ch, int str, int con, int dex, int ac) {
 
   return;
 }
-#undef WILDSHAPE_AFFECTS
 
 /* also clean up anything else assigned such as affections */
 void cleanup_wildshape_feats(struct char_data *ch) {
@@ -2221,7 +2347,7 @@ void cleanup_wildshape_feats(struct char_data *ch) {
 /* we also set other special abilities here */
 void assign_wildshape_feats(struct char_data *ch) {
   int counter = 0;
-  int shifter_level = CLASS_LEVEL(ch, CLASS_DRUID);
+  int shifter_level = CLASS_LEVEL(ch, CLASS_DRUID) + CLASS_LEVEL(ch, CLASS_SHIFTER);
   int shifted_race = GET_DISGUISE_RACE(ch);
 
   if (shifter_level > 30)
@@ -2391,7 +2517,6 @@ ACMD(do_wildshape) {
     GET_DISGUISE_RACE(ch) = 0;
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_WILD_SHAPE);
 
-
     FIRING(ch) = FALSE; /*just in case*/
 
     /* a little bit of healing */
@@ -2418,7 +2543,6 @@ ACMD(do_wildshape) {
     send_to_char(ch, "You do not have the ability to shapechange using wild shape.\r\n");
     return;
   }
-
   if (AFF_FLAGGED(ch, AFF_WILD_SHAPE)) {
     send_to_char(ch, "You must return to your normal shape before assuming a new form.\r\n");
     return;
@@ -2426,8 +2550,7 @@ ACMD(do_wildshape) {
   if (GET_DISGUISE_RACE(ch)) {
     send_to_char(ch, "You must remove your disguise before using wildshape.\r\n");
     return;
-  }
-  
+  }  
   if (IS_MORPHED(ch)) {
     send_to_char(ch, "You can't wildshape while shape-changed!\r\n");
     return;    
@@ -2442,7 +2565,9 @@ ACMD(do_wildshape) {
     return;
   }
 
-  if (((uses_remaining = daily_uses_remaining(ch, FEAT_WILD_SHAPE)) == 0) && *argument) {
+  if (HAS_FEAT(ch, FEAT_LIMITLESS_SHAPES))
+    ;
+  else if (((uses_remaining = daily_uses_remaining(ch, FEAT_WILD_SHAPE)) == 0) && *argument) {
     send_to_char(ch, "You must recover the energy required to take a wild shape.\r\n");
     return;
   }
@@ -2529,8 +2654,6 @@ void perform_shapechange(struct char_data *ch, char *arg, int mode) {
    turned this into a sub-function in case we want
    to use the engine for spells (like 'animal shapes')
  */
-#define SHAPE_AFFECTS   3
-
 void perform_wildshape(struct char_data *ch, int form_num, int spellnum) {
   struct affected_type af[SHAPE_AFFECTS];
   int i = 0;
@@ -2680,7 +2803,6 @@ ACMD(do_shapechange) {
 
   perform_wildshape(ch, form_num, SKILL_WILDSHAPE);
 }
-#undef SHAPE_AFFECTS
 
 /*****************************/
 /* end shapechange functions */
@@ -4249,9 +4371,6 @@ ACMD(do_display) {
   send_to_char(ch, "%s", CONFIG_OK);
 }
 
-#define TOG_OFF 0
-#define TOG_ON  1
-
 ACMD(do_gen_tog) {
   long result;
   int i;
@@ -4615,3 +4734,21 @@ ACMD(do_happyhour) {
             (3600 / SECS_PER_MUD_HOUR));
   }
 }
+
+/* some cleanup */
+#undef SHAPE_AFFECTS
+#undef MOB_ZOMBIE
+#undef MOB_GHOUL
+#undef MOB_GIANT_SKELETON
+#undef MOB_MUMMY
+#undef BARD_AFFECTS
+#undef MOB_PALADIN_MOUNT
+#undef MOB_EPIC_PALADIN_MOUNT
+#undef MODE_NORMAL
+#undef MODE_RESPEC
+#undef MULTICAP
+#undef WILDSHAPE_AFFECTS
+#undef TOG_OFF
+#undef TOG_ON
+
+/*EOF*/
