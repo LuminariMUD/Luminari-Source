@@ -87,6 +87,11 @@ static int handle_house_obj(struct obj_data *temp, room_vnum vnum,  int locate, 
    * same <locate> put obj to it if not, start a new list. Since <locate> for
    * contents is < 0 the list indices are switched to non-negative. */
 
+  if (locate == 0) {
+    obj_to_room(temp, rnum);
+    return TRUE;
+  }
+  
   for (j = MAX_BAG_ROWS - 1; j > -locate; j--)
     if (cont_row[j]) { /* no container -> back to room */
       for (; cont_row[j]; cont_row[j] = obj1) {
@@ -133,8 +138,7 @@ static int handle_house_obj(struct obj_data *temp, room_vnum vnum,  int locate, 
       obj1->next_content = temp;
     } else
       cont_row[-locate - 1] = temp;
-  } 
-    
+  }    
 
   return TRUE;
 }
