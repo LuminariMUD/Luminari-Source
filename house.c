@@ -158,12 +158,12 @@ static int House_load(room_vnum vnum) {
 
   loaded = objsave_parse_objects_db(NULL, vnum);
 
-  /*for (current = loaded; current != NULL; current = current->next)
+  for (current = loaded; current != NULL; current = current->next)
     obj_to_room(current->obj, rnum);
-*/
-   for (current = loaded; current != NULL; current = current->next)
+
+  /* for (current = loaded; current != NULL; current = current->next)
     num_objs += handle_house_obj(current->obj, vnum, current->locate, cont_row);
-  
+  */  
   /* now it's safe to free the obj_save_data list - all members of it
    * have been put in the correct lists by obj_to_room()
    */
