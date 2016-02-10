@@ -819,7 +819,8 @@ void assign_rooms(void)
   ASSIGNROOM(3031, pet_shops);
 
   ASSIGNROOM(5905, wizard_library); /* wizard training mansion */
-
+  ASSIGNROOM(103047, wizard_library); /* Ashenport Mage's Guild */
+  
   ASSIGNROOM(10738, pet_shops);
   ASSIGNROOM(23281, pet_shops);
   ASSIGNROOM(25722, pet_shops);
