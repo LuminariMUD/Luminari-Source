@@ -1925,10 +1925,8 @@ ACMD(do_gen_forget) {
       break;
     } else if (is_abbrev(m, "quickened")) {
       SET_BIT(metamagic, METAMAGIC_QUICKEN);
-      log("DEBUG: Quickened metamagic used.");
     } else if (is_abbrev(m, "maximized")) {
       SET_BIT(metamagic, METAMAGIC_MAXIMIZE);
-      log("DEBUG: Maximized metamagic used.");
     } else {
       send_to_char(ch, "With what metamagic?\r\n");
       return;
@@ -1937,16 +1935,13 @@ ACMD(do_gen_forget) {
   
 
   if (!forget_all) {
-    log("DEBUG: arg = %s", arg);
     s = strtok(arg, "'");
-    log("DEBUG: s = %s", s);
     if (s == NULL) {
       send_to_char(ch, "Forget which spell, or all for all spells?\r\n");
       return;
     }
   
     s = strtok(NULL, "'");
-    log("DEBUG: s = %s", s);
     if (s == NULL) {
       send_to_char(ch, "Spell names must be enclosed in the Holy Magic Symbols: '\r\n");
       return;
