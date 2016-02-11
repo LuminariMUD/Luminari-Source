@@ -2424,26 +2424,23 @@ void assign_wildshape_feats(struct char_data *ch) {
 
   /* all fall through */
   switch (shifter_level) {
-    case 31:case 32:case 33:case 34:case 35:case 36:
-    case 30:case 29:case 28:
+    case 40:case 39:case 38:case 37:
+    case 36:case 35:case 34:case 33:
+    case 32:case 31:case 30:case 29:
       MOB_SET_FEAT(ch, FEAT_NATURAL_ATTACK, MOB_HAS_FEAT(ch, FEAT_NATURAL_ATTACK) + 1);
-    case 27:case 26:case 25:
+    case 28:case 27:case 26:case 25:
       MOB_SET_FEAT(ch, FEAT_NATURAL_ATTACK, MOB_HAS_FEAT(ch, FEAT_NATURAL_ATTACK) + 1);
-    case 24:case 23:case 22:
+    case 24:case 23:case 22:case 21:
       MOB_SET_FEAT(ch, FEAT_NATURAL_ATTACK, MOB_HAS_FEAT(ch, FEAT_NATURAL_ATTACK) + 1);
-    case 21:case 20:case 19:
+    case 20:case 19:case 18:case 17:
       MOB_SET_FEAT(ch, FEAT_NATURAL_ATTACK, MOB_HAS_FEAT(ch, FEAT_NATURAL_ATTACK) + 1);
-    case 18:case 17:case 16:
+    case 16:case 15:case 14:case 13:
       MOB_SET_FEAT(ch, FEAT_NATURAL_ATTACK, MOB_HAS_FEAT(ch, FEAT_NATURAL_ATTACK) + 1);
-    case 15:case 14:case 13:
+    case 12:case 11:case 10:case 9:
       MOB_SET_FEAT(ch, FEAT_NATURAL_ATTACK, MOB_HAS_FEAT(ch, FEAT_NATURAL_ATTACK) + 1);
-    case 12:case 11:case 10:
+    case 8:case 7:case 6:case 5:
       MOB_SET_FEAT(ch, FEAT_NATURAL_ATTACK, MOB_HAS_FEAT(ch, FEAT_NATURAL_ATTACK) + 1);
-    case 9:case 8:case 7:
-      MOB_SET_FEAT(ch, FEAT_NATURAL_ATTACK, MOB_HAS_FEAT(ch, FEAT_NATURAL_ATTACK) + 1);
-    case 6:case 5:case 4:
-      MOB_SET_FEAT(ch, FEAT_NATURAL_ATTACK, MOB_HAS_FEAT(ch, FEAT_NATURAL_ATTACK) + 1);
-    case 3:case 2:case 1:
+    case 4:case 3:case 2:case 1:
       MOB_SET_FEAT(ch, FEAT_NATURAL_ATTACK, MOB_HAS_FEAT(ch, FEAT_NATURAL_ATTACK) + 1);
     default:
       break;
