@@ -440,9 +440,13 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill) 
     send_to_char(ch, "You can't knock down something that is already down!\r\n");
     return FALSE;
   }
-  if (IS_INCORPOREAL(vict)) {
-    act("You sprawl completely through $N as you try to attack $M, slamming into the ground!", FALSE, ch, 0, vict, TO_CHAR);
-    act("$n sprawls completely through $N as $e tries to attack $M, slamming into the ground!", FALSE, ch, 0, vict, TO_ROOM);
+  if (IS_INCORPOREAL(vict)) {   
+   act("$n sprawls completely through $N as $e tries to attack $M, slamming into the ground!",
+       FALSE, ch, NULL, vict, TO_NOTVICT);
+   act("You sprawl completely through $N as you try to attack $M, slamming into the ground!",
+       FALSE, ch, NULL, vict, TO_CHAR);
+   act("$n sprawls completely through you as $e tries to attack you, slamming into the ground!",
+       FALSE, ch, NULL, vict, TO_VICT);
     GET_POS(ch) = POS_SITTING;
     return FALSE;
   }
@@ -816,19 +820,23 @@ bool perform_shieldslam(struct char_data *ch, struct char_data *vict) {
   if (attack_roll(ch, vict, ATTACK_TYPE_OFFHAND, FALSE, 1) <= 0) {
     damage(ch, vict, 0, SKILL_SHIELD_SLAM, DAM_FORCE, FALSE);
   } else {
-    damage(ch, vict, dice(1, 6), SKILL_SHIELD_SLAM, DAM_FORCE, FALSE);
+    damage(ch, vict, dice(1, 6) + (GET_STR_BONUS(ch)/2), SKILL_SHIELD_SLAM, DAM_FORCE, FALSE);
     name = obj_index[GET_OBJ_RNUM(shield)].func;
     if (name)
       (name)(ch, shield, 0, "shieldslam");
 
-    if (savingthrow(vict, SAVING_FORT, 0, (10 + (GET_LEVEL(ch) / 2) + GET_STR_BONUS(ch)))) {
+    if (!savingthrow(vict, SAVING_FORT, 0, (10 + (GET_LEVEL(ch) / 2) + GET_STR_BONUS(ch)))) {
       new_affect(&af);
       af.spell = SKILL_SHIELD_SLAM;
       SET_BIT_AR(af.bitvector, AFF_DAZED);
       af.duration = 1; /* One round */
       affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
-      act("$N appears to be dazed by your blow!", FALSE, ch, shield, vict, TO_CHAR);
-      act("$N appears to be dazed by the blow!", FALSE, ch, shield, vict, TO_ROOM);
+      act("$N appears to be dazed by $n's blow!",
+          FALSE, ch, NULL, vict, TO_NOTVICT);
+      act("$N appears to be dazed by your blow!",
+          FALSE, ch, NULL, vict, TO_CHAR);
+      act("You are dazed by $n's blow!",
+          FALSE, ch, NULL, vict, TO_VICT | TO_SLEEP);
     }
 
     /* fire-shield, etc check */
@@ -868,8 +876,12 @@ void perform_headbutt(struct char_data *ch, struct char_data *vict) {
   }
 
   if (IS_INCORPOREAL(vict)) {
-    act("You sprawl completely through $N as you try to attack them!", FALSE, ch, 0, vict, TO_CHAR);
-    act("$n sprawls completely through $N as $e tries to attack $M.", FALSE, ch, 0, vict, TO_ROOM);
+    act("$n sprawls completely through $N as $e tries to attack $M!",
+        FALSE, ch, NULL, vict, TO_NOTVICT);
+    act("You sprawl completely through $N as you try to attack $N!",
+        FALSE, ch, NULL, vict, TO_CHAR);
+    act("$n sprawls completely through you as $e tries to attack!",
+        FALSE, ch, NULL, vict, TO_VICT);
     GET_POS(ch) = POS_SITTING;
     return;
   }
@@ -883,8 +895,12 @@ void perform_headbutt(struct char_data *ch, struct char_data *vict) {
       SET_BIT_AR(af.bitvector, AFF_PARALYZED);
       af.duration = 1;
       affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
-      act("You slam your head into $N with \tRVICIOUS\tn force!", FALSE, ch, 0, vict, TO_CHAR);
-      act("$n slams $s head into $N with \tRVICIOUS\tn force!", FALSE, ch, 0, vict, TO_ROOM);
+      act("$n slams $s head into $N with \tRVICIOUS\tn force!",
+          FALSE, ch, NULL, vict, TO_NOTVICT);
+      act("You slam your head into $N with \tRVICIOUS\tn force!",
+          FALSE, ch, NULL, vict, TO_CHAR);
+      act("$n slams $s head into you with \tRVICIOUS\tn force!",
+          FALSE, ch, NULL, vict, TO_VICT | TO_SLEEP);
     }
 
     /* fire-shield, etc check */
@@ -1039,8 +1055,12 @@ void perform_sap(struct char_data *ch, struct char_data *vict) {
       SET_BIT_AR(af.bitvector, AFF_PARALYZED);
       af.duration = 1;
       affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
-      act("You \tYsavagely\tn beat $N with $p!", FALSE, ch, wielded, vict, TO_CHAR);
-      act("$n \tYsavagely\tn beats $N with $p!!", FALSE, ch, wielded, vict, TO_ROOM);
+      act("$n \tYsavagely\tn beats $N with $p!!",
+          FALSE, ch, wielded, vict, TO_NOTVICT);
+      act("You \tYsavagely\tn beat $N with $p!",
+          FALSE, ch, wielded, vict, TO_CHAR);
+      act("$n \tYsavagely\tn beats you with $p!!",
+          FALSE, ch, wielded, vict, TO_VICT | TO_SLEEP);
     }
 
     /* fire-shield, etc check */
@@ -1095,16 +1115,24 @@ bool perform_dirtkick(struct char_data *ch, struct char_data *vict) {
   }
 
   if (attack_roll(ch, vict, ATTACK_TYPE_UNARMED, FALSE, 1) > 0) {
-    dam = 2 + dice(1, GET_LEVEL(ch));
+    dam = dice(1, GET_LEVEL(ch));
     damage(ch, vict, dam, SKILL_DIRT_KICK, 0, FALSE);
 
-    new_affect(&af);
-    af.spell = SKILL_DIRT_KICK;
-    SET_BIT_AR(af.bitvector, AFF_BLIND);
-    af.modifier = -4;
-    af.duration = dice(1, GET_LEVEL(ch) / 5);
-    af.location = APPLY_HITROLL;
-    affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
+    if (!savingthrow(vict, SAVING_REFL, 0, (10 + (GET_LEVEL(ch) / 2) + GET_DEX_BONUS(ch)))) {
+      new_affect(&af);
+      af.spell = SKILL_DIRT_KICK;
+      SET_BIT_AR(af.bitvector, AFF_BLIND);
+      af.modifier = -4;
+      af.duration = dice(1, GET_LEVEL(ch) / 5);
+      af.location = APPLY_HITROLL;
+      affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
+      act("$n blinds $N with the debris!!",
+          FALSE, ch, NULL, vict, TO_NOTVICT);
+      act("You blind $N with debris!",
+          FALSE, ch, NULL, vict, TO_CHAR);
+      act("$n blinds you with debris!!",
+          FALSE, ch, NULL, vict, TO_VICT | TO_SLEEP);
+    }
   } else
     damage(ch, vict, 0, SKILL_DIRT_KICK, 0, FALSE);
 
@@ -1173,8 +1201,12 @@ void perform_springleap(struct char_data *ch, struct char_data *vict) {
   }
 
   if (IS_INCORPOREAL(vict)) {
-    act("You sprawl completely through $N as you try to springleap them!", FALSE, ch, 0, vict, TO_CHAR);
-    act("$n sprawls completely through $N as $e tries to springleap $M.", FALSE, ch, 0, vict, TO_ROOM);
+    act("$n sprawls completely through $N as $e tries to springleap $M!",
+        FALSE, ch, NULL, vict, TO_NOTVICT);
+    act("You sprawl completely through $N as you try a springleap attack!",
+        FALSE, ch, NULL, vict, TO_CHAR);
+    act("$n sprawls completely through you as $e attempts a springleap attack!",
+        FALSE, ch, NULL, vict, TO_VICT);
     return;
   }
 
@@ -3142,10 +3174,14 @@ void perform_kick(struct char_data *ch, struct char_data *vict) {
     return;
   }
 
+  /* Change this so GHOST_TOUCH boots will kick incorporeal creatures. */
   if (IS_INCORPOREAL(vict)) {
-    /* Change this so GHOST_TOUCH boots will kick incorporeal creatures. */
-    act("You sprawl completely through $N as you try to attack them!", FALSE, ch, 0, vict, TO_CHAR);
-    act("$n sprawls completely through $N as $e tries to attack $M.", FALSE, ch, 0, vict, TO_ROOM);
+    act("$n sprawls completely through $N as $e tries to attack $M.",
+        FALSE, ch, NULL, vict, TO_NOTVICT);
+    act("You sprawl completely through $N as you try to attack!",
+        FALSE, ch, NULL, vict, TO_CHAR);
+    act("$n sprawls completely through you as $e tries to attack!",
+        FALSE, ch, NULL, vict, TO_VICT);
     GET_POS(ch) = POS_SITTING;
     return;
   }
@@ -4278,8 +4314,12 @@ int perform_disarm(struct char_data *ch, struct char_data *vict, int mod) {
 
   int result = combat_maneuver_check(ch, vict, COMBAT_MANEUVER_TYPE_DISARM, mod);
   if (result > 0 && !HAS_FEAT(vict, FEAT_WEAPON_MASTERY)) { /* success! */
-    act("$n disarms $N of $S $p.", FALSE, ch, wielded, vict,TO_ROOM );
-    act("You manage to knock $p out of $N's hands.", FALSE, ch, wielded, vict,TO_CHAR );
+    act("$n disarms $N of $S $p.",
+        FALSE, ch, wielded, vict, TO_NOTVICT);
+    act("You manage to knock $p out of $N's hands.",
+        FALSE, ch, wielded, vict, TO_CHAR);
+    act("$n disarms you, $p goes flying!",
+        FALSE, ch, wielded, vict, TO_VICT | TO_SLEEP);
     if (HAS_FEAT(ch, FEAT_GREATER_DISARM))
       obj_to_room(unequip_char(vict, pos), vict->in_room);
     else
@@ -4303,16 +4343,28 @@ int perform_disarm(struct char_data *ch, struct char_data *vict, int mod) {
       pos = WEAR_WIELD_OFFHAND;
     }
     if (!wielded) { /* not wielding */
-      act("$n attempt to disarm $N fails terribly.", FALSE, ch, wielded, vict, TO_ROOM);
-      act("You fail terribly in your attempt to disarm $N.", FALSE, ch, wielded, vict, TO_CHAR);
+      act("$n attempt to disarm $N, but fails terribly.",
+          FALSE, ch, NULL, vict, TO_NOTVICT);
+      act("You fail terribly in your attempt to disarm $N.",
+          FALSE, ch, NULL, vict, TO_CHAR);
+      act("$n attempt to disarm you, but fails terribly.",
+          FALSE, ch, NULL, vict, TO_VICT | TO_SLEEP);
     } else {
-      act("$n fails the disarm maneuver on $N, stumbles and drops $s $p.", FALSE, ch, wielded, vict, TO_ROOM);
-      act("You drop $p in your attempt to disarm $N!", FALSE, ch, wielded, vict, TO_CHAR);
+      act("$n fails the disarm maneuver on $N, stumbles and drops $s $p.",
+          FALSE, ch, wielded, vict, TO_NOTVICT);
+      act("You drop $p in your attempt to disarm $N!",
+          FALSE, ch, wielded, vict, TO_CHAR);
+      act("$n fails the disarm maneuver on you, stumbles and drops $s $p.",
+          FALSE, ch, wielded, vict, TO_VICT);
       obj_to_room(unequip_char(ch, pos), ch->in_room);
     }
   } else { /* failure */
-    act("$n fails to disarm $N of $S $p.", FALSE, ch, wielded, vict,TO_ROOM );
-    act("You fail to disarm $p out of $N's hands.", FALSE, ch, wielded, vict,TO_CHAR );
+    act("$n fails to disarm $N of $S $p.",
+        FALSE, ch, wielded, vict, TO_NOTVICT);
+    act("You fail to disarm $p out of $N's hands.",
+        FALSE, ch, wielded, vict, TO_CHAR);
+    act("$n fails to disarm you of your $p.",
+        FALSE, ch, wielded, vict, TO_VICT);
   }
 
   return 0;

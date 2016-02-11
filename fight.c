@@ -2707,9 +2707,9 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
     act("$n sensing a \tWdeath blow\tn from $N, unleashes a final attack!\tn", FALSE, victim, NULL, ch, TO_NOTVICT);
     attach_mud_event(new_mud_event(eLAST_WORD, victim, NULL),
             (2 * SECS_PER_MUD_DAY));
-    if (ch && IN_ROOM(ch) == IN_ROOM(victim) && GET_POS(victim) > POS_DEAD)
+    if (ch && victim && IN_ROOM(ch) == IN_ROOM(victim) && GET_POS(ch) > POS_DEAD)
       hit(victim, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
-    if (ch && IN_ROOM(ch) == IN_ROOM(victim) && GET_POS(victim) > POS_DEAD)
+    if (ch && victim && IN_ROOM(ch) == IN_ROOM(victim) && GET_POS(ch) > POS_DEAD)
       hit(victim, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
   }  
   
@@ -6169,6 +6169,8 @@ void handle_smash_defense(struct char_data *ch) {
   if ((GET_SIZE(vict) - GET_SIZE(ch)) >= 2)
     return;
   if (GET_POS(vict) == POS_SITTING)
+    return;
+  if (GET_POS(vict) == POS_DEAD)
     return;
   if (IS_INCORPOREAL(vict))
     return;

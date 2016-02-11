@@ -31,92 +31,92 @@ typedef enum {
   eWHIRLWIND, /* The Whirlwind Attack */
   eCASTING, //  casting time
   eLAYONHANDS, //  lay on hands
-  eTREATINJURY, //  treat injury
+  /*5*/eTREATINJURY, //  treat injury
   eTAUNT, //  taunt
   eTAUNTED, //  taunted
   eMUMMYDUST, //  mummy dust
   eDRAGONKNIGHT, //  dragon knight
-  eGREATERRUIN, //  greater ruin
+  /*10*/eGREATERRUIN, //  greater ruin
   eHELLBALL, //  hellball
   eEPICMAGEARMOR, //  epic mage armor
   eEPICWARDING, //  epic warding
   eMEMORIZING, //  memorization
-  eSTUNNED, //  stunning fist stun
+  /*15*/eSTUNNED, //  stunning fist stun
   eSTUNNINGFIST, //  stunner's cooldown for stunning fist
   eCRAFTING, //  crafting event
   eCRYSTALFIST, //  crystal fist cooldown
   eCRYSTALBODY, //  crystal body cooldown
-  eRAGE, //  rage skill cooldown
+  /*20*/eRAGE, //  rage skill cooldown
   eACIDARROW, //  acid arrow damage event
   eD_ROLL, //  rogue's defensive roll cooldown
   ePURIFY, //  paladin's disease removal skill cooldown
   eC_ANIMAL, //  animal companion cooldown
-  eC_FAMILIAR, //  familiar cooldown
+  /*25*/eC_FAMILIAR, //  familiar cooldown
   eC_MOUNT, //  paladin's called mount cooldown
   eIMPLODE, //  implode damage event
   eSMITE_EVIL, //  smite eeeevil cooldown
   ePERFORM, //  Bard performance
-  ePURGEMOB, //  mob purge
+  /*30*/ePURGEMOB, //  mob purge
   eICE_STORM, //  storm of vengeance - ice storm
   eCHAIN_LIGHTNING, //  storm of vengeance - chain lightning
   eDARKNESS, //  darkness room event
   eMAGIC_FOOD, // magic food/drink cooldown
-  eFISTED, // being fisted
+  /*35*/eFISTED, // being fisted
   eWAIT, // replace WAIT_STATE with wait event
   eTURN_UNDEAD, // turn undead
   eSPELLBATTLE, // spellbattle
   eFALLING, // char falling
-  eCHECK_OCCUPIED, // Event to check that a room is occupied (for wilderness)
+  /*40*/eCHECK_OCCUPIED, // Event to check that a room is occupied (for wilderness)
   eTRACKS, // Tracks in the room, decay on event processing.
   eWILD_SHAPE, // Wild shape event
   eSHIELD_RECOVERY, // Recovery from shield punch
   eCOMBAT_ROUND, // Combat round
-  eSTANDARDACTION, // Standard action cooldown
+  /*45*/eSTANDARDACTION, // Standard action cooldown
   eMOVEACTION, // Move action cooldown
   eWHOLENESSOFBODY, /* Wholeness of Body, Monk Healing Feat */
   eEMPTYBODY, /* Empty Body, Monk Concealment Feat */
   eQUIVERINGPALM, /* cooldown for quivering palm */
-  eSWIFTACTION, /* Swift action cooldown */
+  /*50*/eSWIFTACTION, /* Swift action cooldown */
   eTRAPTRIGGERED, /* Trap Triggered */
   eSUPRISE_ACCURACY, /* rage power suprise accuracy */
   ePOWERFUL_BLOW, /* rage power powerful blow */
   eRENEWEDVIGOR, /* Renewed Vigor, Berserker Healing Feat */
-  eCOME_AND_GET_ME, /* rage power 'come and get me' */
+  /*55*/eCOME_AND_GET_ME, /* rage power 'come and get me' */
   eANIMATEDEAD, /* cool down for animate dead feat */
   eVANISH, /* vanish concealment */
   eVANISHED, /* vanish daily cooldown */
   eINTIMIDATED, /* intimidated victim! */
-  eINTIMIDATE_COOLDOWN, /* cooldown to reuse intimidate */
+  /*60*/eINTIMIDATE_COOLDOWN, /* cooldown to reuse intimidate */
   eLIGHTNING_ARC, /* cooldown to reuse lightning arc */
   eACID_DART, /* cooldown to reuse acid dart */
   eFIRE_BOLT, /* cooldown to reuse fire bolt */
   eICICLE, /* cooldown to reuse icicle */
-  eSTRUGGLE, /* struggle cooldown (escape from grapple) */
+  /*65*/eSTRUGGLE, /* struggle cooldown (escape from grapple) */
   eCURSE_TOUCH, /* cooldown to reuse curse touch */
   eSMITE_GOOD, //  smite goooodies cooldown
   eSMITE_DESTRUCTION, //  destructive smite cooldown
   eDESTRUCTIVE_AURA, //  destructive aura cooldown
-  eEVIL_TOUCH, /*more domain powers*/
+  /*70*/eEVIL_TOUCH, /*more domain powers*/
   eGOOD_TOUCH, /*more domain powers*/
   eHEALING_TOUCH, /*more domain powers*/
   eEYE_OF_KNOWLEDGE, /*more domain powers*/
   eBLESSED_TOUCH, /*more domain powers*/
-  eLAWFUL_WEAPON, /*more domain powers*/
+  /*75*/eLAWFUL_WEAPON, /*more domain powers*/
   eCOPYCAT, /*more domain powers*/
   eMASS_INVIS, /*more domain powers*/
   eAURA_OF_PROTECTION, /*more domain powers*/
   eBATTLE_RAGE, /*more domain powers*/
-  eCRYSTALFIST_AFF, //  crystal fist affect
+  /*80*/eCRYSTALFIST_AFF, //  crystal fist affect
   eCRYSTALBODY_AFF, //  crystal body affect
   eBARDIC_PERFORMANCE, // bard performance/song 
   eENCOUNTER_REG_RESET, // Reset event for encounter regions.          
   eSEEKER_ARROW, /*pew pew seeker arrows!*/
-  eIMBUE_ARROW, /*pew pew imbued arrows!*/
+  /*85*/eIMBUE_ARROW, /*pew pew imbued arrows!*/
   eDEATHARROW, /*pew pew arrow of death!*/
   eARROW_SWARM, /*pew (+20 more pews) swarm of arrows!*/
   eRENEWEDDEFENSE, /* Renewed Defense, Stalwart Defender Healing Feat */
   eLAST_WORD, //  stalwart defender's 'last word' cooldown
-  eSMASH_DEFENSE, //  stalwart defender's 'last word' cooldown          
+  /*90*/eSMASH_DEFENSE, //  stalwart defender's 'last word' cooldown          
   eDEFENSIVE_STANCE, //  defensive stance skill cooldown
 } event_id;
 
