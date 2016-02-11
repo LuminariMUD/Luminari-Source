@@ -1717,7 +1717,7 @@ void display_memmed(struct char_data*ch, int class) {
           
             log("DEBUG: Metamagic is: %s", metamagic_buf);
             log("DEBUG: Quickened: %s Maximized: %s", (IS_SET(PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, METAMAGIC_QUICKEN) ? "TRUE": "FALSE")
-                                                    , (IS_SET(PREPARATION_QUEUE(ch, memSlot, classArray(class)).metamagic, METAMAGIC_MAXIMIZE) ? "TRUE": "FALSE"))
+                                                    , (IS_SET(PREPARATION_QUEUE(ch, memSlot, classArray(class)).metamagic, METAMAGIC_MAXIMIZE) ? "TRUE": "FALSE"));
             
             if (!printed) {
               send_to_char(ch, "[Circle: %d]   %s%s\r\n",
