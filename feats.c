@@ -341,7 +341,12 @@ void assign_feats(void) {
   feato(FEAT_NATURAL_ATTACK, "natural attack", TRUE, FALSE, TRUE, FEAT_TYPE_INNATE_ABILITY,
     "proficiency with your natural attack",
     "Depending on the level and size of the shifter, the natural attack of the "
-          "shifted form will get more powerful and accurate.");
+          "shifted form will get more powerful and accurate.  The number of dice "
+          "rolled for natural attack is determined by the number of ranks the wildshaper "
+          "has in this feat.  The size of dice is determined by the size of the race the "
+          "wildshaper turns into.  The wildshaper gets an additional natural-attack-ranks/2 "
+          "bonus to their accuracy in the form of enhancement bonus OR whatever enhancement "
+          "bonus the weapon they were wielding when they shapechanged - whichever is higher.");
   feato(FEAT_NATURAL_TRACKER, "natural tracker", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
     "naturally able to track",
     "Without this feat (or similar) you are unable to track opponents.");
@@ -3395,6 +3400,17 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         } else {
           sprintf(buf3, "%s (+%d ac)", feat_list[i].name, has_feat(ch, FEAT_ARMOR_SKIN));
+          sprintf(buf, "%-40s ", buf3);
+        }
+        strcat(buf2, buf);
+        none_shown = FALSE;
+        
+      } else if (i == FEAT_NATURAL_ATTACK) {
+        if (mode == 1) {
+          sprintf(buf3, "%s (+%d attack dice rolls)", feat_list[i].name, has_feat(ch, FEAT_NATURAL_ATTACK));
+          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+        } else {
+          sprintf(buf3, "%s (+%d attack dice rolls)", feat_list[i].name, has_feat(ch, FEAT_NATURAL_ATTACK));
           sprintf(buf, "%-40s ", buf3);
         }
         strcat(buf2, buf);

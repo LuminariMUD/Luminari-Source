@@ -3378,19 +3378,19 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
 
   /* real calculations */
   if (IS_WILDSHAPED(ch)) {    
-    diceOne = 1 + HAS_FEAT(ch, FEAT_NATURAL_ATTACK);    
+    diceOne = MAX( 1,  HAS_FEAT(ch, FEAT_NATURAL_ATTACK) );    
     switch (GET_SIZE(ch)) {
       case SIZE_FINE:
         diceTwo = 1;
         break;
       case SIZE_DIMINUTIVE:
-        diceTwo = 2;
+        diceTwo = 1;
         break;
       case SIZE_TINY:
-        diceTwo = 3;
+        diceTwo = 2;
         break;
       case SIZE_SMALL:
-        diceTwo = 4;
+        diceTwo = 3;
         break;
       case SIZE_MEDIUM:
         diceTwo = 4;
@@ -3402,13 +3402,13 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
         diceTwo = 5;
         break;
       case SIZE_GARGANTUAN:
-        diceTwo = 6;
+        diceTwo = 5;
         break;
       case SIZE_COLOSSAL:
-        diceTwo = 7;
+        diceTwo = 6;
         break;
       default:
-        diceTwo = 4;
+        diceTwo = 1;
         break;
     }
   } else if (!is_ranged && wielded && GET_OBJ_TYPE(wielded) == ITEM_WEAPON) { //weapon
@@ -4091,7 +4091,7 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
           && GET_EQ(ch, WEAR_AMMO_POUCH)->contains)
     bonuses[BONUS_TYPE_ENHANCEMENT] += GET_ENHANCEMENT_BONUS(GET_EQ(ch, WEAR_AMMO_POUCH)->contains);
   if (IS_WILDSHAPED(ch))
-    bonuses[BONUS_TYPE_ENHANCEMENT] = MAX(bonuses[BONUS_TYPE_ENHANCEMENT], HAS_FEAT(ch, FEAT_NATURAL_ATTACK));
+    bonuses[BONUS_TYPE_ENHANCEMENT] = MAX(bonuses[BONUS_TYPE_ENHANCEMENT], HAS_FEAT(ch, FEAT_NATURAL_ATTACK)/2);
   /* need to add missile enhancement bonus as well */
   /**/
 
