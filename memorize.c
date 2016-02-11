@@ -1565,6 +1565,9 @@ void updateMemming(struct char_data *ch, int class) {
                 spell_prep_dict[classArray(class)][1],
                      metamagic_buf,
                      spell_info[PREPARATION_QUEUE(ch, 0, classArray(class)).spell].name);
+        log("DEBUG: Adding prepared spell: %d %d %d", PREPARATION_QUEUE(ch, 0, classArray(class)).spell
+                                                    , PREPARATION_QUEUE(ch, 0, classArray(class)).metamagic
+                                                    , class);
         addSpellMemmed(ch, PREPARATION_QUEUE(ch, 0, classArray(class)).spell, PREPARATION_QUEUE(ch, 0, classArray(class)).metamagic, class);
         break;      
       case CLASS_SORCERER:
