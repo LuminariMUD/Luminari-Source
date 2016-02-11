@@ -1692,6 +1692,7 @@ void display_memmed(struct char_data*ch, int class) {
 
   /***  display memorized spells ***/
   if (PREPARED_SPELLS(ch, 0, classArray(class)).spell != 0) {
+    log("DEBUG: Class is: %d", class);
     switch (class) {
       case CLASS_DRUID:
       case CLASS_CLERIC:
@@ -1714,6 +1715,10 @@ void display_memmed(struct char_data*ch, int class) {
                   (IS_SET(PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, METAMAGIC_QUICKEN) ? "quickened ": ""),
                   (IS_SET(PREPARATION_QUEUE(ch, memSlot, classArray(class)).metamagic, METAMAGIC_MAXIMIZE) ? "maximized ": ""));
           
+            log("DEBUG: Metamagic is: %s", metamagic_buf);
+            log("DEBUG: Quickened: %s Maximized: %s", (IS_SET(PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, METAMAGIC_QUICKEN) ? "TRUE": "FALSE")
+                                                    , (IS_SET(PREPARATION_QUEUE(ch, memSlot, classArray(class)).metamagic, METAMAGIC_MAXIMIZE) ? "TRUE": "FALSE"))
+            
             if (!printed) {
               send_to_char(ch, "[Circle: %d]   %s%s\r\n",
                       slot, 
