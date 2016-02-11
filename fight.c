@@ -2331,18 +2331,15 @@ int compute_concealment(struct char_data *ch) {
   int concealment = 0;
   int concealment_cap = 0; /* vanish can push you over */
 
-  //if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_SELF_CONCEAL_1))
-    //concealment += 10;
-  //if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_SELF_CONCEAL_2))
-    //concealment += 10;
-  //if (!IS_NPC(ch) && GET_SKILL(ch, SKILL_SELF_CONCEAL_3))
-    //concealment += 10;
   if (AFF_FLAGGED(ch, AFF_BLUR))
     concealment += 20;
+  else if (AFF_FLAGGED(ch, AFF_BLINKING))
+    concealment += 20;
+  else if (AFF_FLAGGED(ch, AFF_DISPLACE))
+    concealment += 50;
+  
   if (ROOM_AFFECTED(IN_ROOM(ch), RAFF_OBSCURING_MIST))
     concealment += 20;
-  if (AFF_FLAGGED(ch, AFF_DISPLACE))
-    concealment += 50;
   if (HAS_FEAT(ch, FEAT_OUTSIDER))
     concealment += 15;
   if (HAS_FEAT(ch, FEAT_SELF_CONCEALMENT))
@@ -2401,15 +2398,24 @@ bool ok_damage_handling(int attacktype) {
    skill or spell, etc */
 int damage_handling(struct char_data *ch, struct char_data *victim,
         int dam, int attacktype, int dam_type) {
-
+  bool is_spell = FALSE;
+  
+  /* lets figure out if this attacktype is magical or not */
+  if (attacktype > SPELL_RESERVED_DBC && attacktype < NUM_SPELLS)
+    is_spell = TRUE;
+  
+  /* checking for actual damage, acceptable attacktypes and other dummy checks */
   if (dam > 0 && ok_damage_handling(attacktype) && victim != ch) {
+    
+    /* handle concealment */
     int concealment = compute_concealment(victim);
-    if (dice(1, 100) <= compute_concealment(victim)) {
+    if (dice(1, 100) <= compute_concealment(victim) && !is_spell) {
       send_to_char(victim, "\tW<conceal:%d>\tn", concealment);
       send_to_char(ch, "\tR<oconceal:%d>\tn", concealment);
       return 0;
     }
 
+    /* trelux racial dodge */
     if (GET_RACE(victim) == RACE_TRELUX && !rand_number(0, 4)) {
       send_to_char(victim, "\tWYou leap away avoiding the attack!\tn\r\n");
       send_to_char(ch, "\tRYou fail to cause %s any harm as he leaps away!\tn\r\n",
@@ -2449,6 +2455,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
       }
     }
 
+    /* energy absorption system */
     int damage_reduction = compute_energy_absorb(ch, dam_type);
     dam -= compute_energy_absorb(ch, dam_type);
     if (dam <= 0 && (ch != victim)) {
@@ -2463,6 +2470,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
       send_to_char(ch, "\tR<oEA:%d>\tn", damage_reduction);
     }
 
+    /* damage type PERCENTAGE reduction */
     float damtype_reduction = (float) compute_damtype_reduction(victim, dam_type);
     damtype_reduction = (((float) (damtype_reduction / 100)) * dam);
     dam -= damtype_reduction;
@@ -2481,19 +2489,21 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
       send_to_char(ch, "\tR<oTR:%d>\tn", (int) damtype_reduction);
     }
 
-    damage_reduction = compute_damage_reduction(victim, dam_type);
-
-    dam -= MIN(dam, damage_reduction);
-    if (!dam && (ch != victim)) {
-      send_to_char(victim, "\tWYou absorb all the damage!\tn\r\n");
-      send_to_char(ch, "\tRYou fail to cause %s any harm!\tn\r\n",
-              GET_NAME(victim));
-      act("$n fails to do any harm to $N!", FALSE, ch, 0, victim,
-              TO_NOTVICT);
-      return -1;
-    } else if (damage_reduction) {
-      send_to_char(victim, "\tW<DR:%d>\tn", damage_reduction);
-      send_to_char(ch, "\tR<oDR:%d>\tn", damage_reduction);
+    /* damage reduction system (old version) */
+    if (!is_spell) {
+      damage_reduction = compute_damage_reduction(victim, dam_type);
+      dam -= MIN(dam, damage_reduction);
+      if (!dam && (ch != victim)) {
+        send_to_char(victim, "\tWYou absorb all the damage!\tn\r\n");
+        send_to_char(ch, "\tRYou fail to cause %s any harm!\tn\r\n",
+                GET_NAME(victim));
+        act("$n fails to do any harm to $N!", FALSE, ch, 0, victim,
+                TO_NOTVICT);
+        return -1;
+      } else if (damage_reduction) {
+        send_to_char(victim, "\tW<DR:%d>\tn", damage_reduction);
+        send_to_char(ch, "\tR<oDR:%d>\tn", damage_reduction);
+      }
     }
 
     /* inertial barrier - damage absorption using mana */
@@ -2509,23 +2519,9 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
       }
       dam = 0;
     }
+    
+  } /* end big dummy check if() */
 
-    /* Cut damage in half if victim has sanct, to a minimum 1 */
-    /* Zusuk - Too imbalancing for clerics, also definitely not according to SRD */
-    /*
-    if (AFF_FLAGGED(victim, AFF_SANCTUARY) && dam >= 2) {
-      dam /= 2;
-      send_to_char(victim, "\tW<sanc:%d>\tn", dam);
-      send_to_char(ch, "\tR<oSanc:%d>\tn", dam);
-    }
-    */
-  }
-
-  /* this spell is also supposed to injure victims who fail reflex save
-  if (attacktype == SPELL_SPIKE_GROWTH) {
-
-  }
-   */
   return dam;
 }
 

@@ -5875,15 +5875,16 @@ int get_eq_score(obj_rnum a) {
         case AFF_INVISIBLE:
         case AFF_HASTE:
         case AFF_FREE_MOVEMENT:
+        case AFF_BLINKING:          
           score += 350;
           break;
         case AFF_VAMPIRIC_TOUCH:
         case AFF_SNEAK:
         case AFF_HIDE:
-        case AFF_BLUR:
+        case AFF_DISPLACE:
           score += 300;
           break;
-        case AFF_DISPLACE:
+        case AFF_BLUR:
         case AFF_SPELL_MANTLE:
         case AFF_TRUE_SIGHT:
         case AFF_FLYING:

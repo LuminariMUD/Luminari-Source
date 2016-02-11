@@ -953,40 +953,40 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define AFF_PARALYZED        32  // paralyzed
 #define AFF_ULTRAVISION      33  /**< Char can see in dark */
 #define AFF_GRAPPLED         34  // grappled (combat maneuver)
-#define AFF_TAMED            35  // tamed
+#define AFF_TAMED            35  // tamed therefore mountable
 #define AFF_CLIMB            36  // affect that allows you to climb
-#define AFF_NAUSEATED        37  // nauseated
-#define AFF_NON_DETECTION    38
-#define AFF_SLOW             39
-#define AFF_FSHIELD          40  // fire shield
-#define AFF_CSHIELD          41  // cold shield
-#define AFF_MINOR_GLOBE      42  // minor globe of invulernability
-#define AFF_ASHIELD          43  // acid shield
-#define AFF_SIZECHANGED      44
-#define AFF_TRUE_SIGHT       45
-#define AFF_SPOT             46
-#define AFF_FATIGUED         47
-#define AFF_REGEN            48
-#define AFF_DISEASE          49
-#define AFF_TFORM            50  // tenser's transformation
-#define AFF_GLOBE_OF_INVULN  51
-#define AFF_LISTEN           52
-#define AFF_DISPLACE         53
-#define AFF_SPELL_MANTLE     54
-#define AFF_CONFUSED         55
-#define AFF_REFUGE           56
-#define AFF_SPELL_TURNING    57
-#define AFF_MIND_BLANK       58
-#define AFF_SHADOW_SHIELD    59
-#define AFF_TIME_STOPPED     60
-#define AFF_BRAVERY          61
-#define AFF_FREE_MOVEMENT    62
-#define AFF_FAERIE_FIRE      63
-#define AFF_BATTLETIDE       64
-#define AFF_SPELL_RESISTANT  65
+#define AFF_NAUSEATED        37  // nauseated - physical abilities reduced
+#define AFF_NON_DETECTION    38  /* can't be scryed */
+#define AFF_SLOW             39  /* supernaturally slowed - less attacks */
+#define AFF_FSHIELD          40  // fire shield - reflect damage
+#define AFF_CSHIELD          41  // cold shield - reflect damage
+#define AFF_MINOR_GLOBE      42  // invulnerable to lower level spells
+#define AFF_ASHIELD          43  // acid shield - reflect damage
+#define AFF_SIZECHANGED      44  /* size is unusual, bigger or smaller class */
+#define AFF_TRUE_SIGHT       45  /* highest level of enhanced magical vision */
+#define AFF_SPOT             46  /* spot mode - better chance at seeing 'hide' */
+#define AFF_FATIGUED         47  /* exhausted, less physically effective */
+#define AFF_REGEN            48  /* regenerating health at accelerated rate */
+#define AFF_DISEASE          49  /* affected by a disease */
+#define AFF_TFORM            50  // tenser's transformation - powerful physical transofmration
+#define AFF_GLOBE_OF_INVULN  51  /* invulernability to certain spells */
+#define AFF_LISTEN           52  /* in listen mode - better chance at hearing 'sneak' */
+#define AFF_DISPLACE         53  /* displacement - 50% concealment */
+#define AFF_SPELL_MANTLE     54  /* spell absorbtion defense */
+#define AFF_CONFUSED         55  /* confused, taking random actions */
+#define AFF_REFUGE           56  /* refuge from danger - effectively stealthed */
+#define AFF_SPELL_TURNING    57  /* able to deflect an opponents offensive spell! */
+#define AFF_MIND_BLANK       58  /* mind blanked from harsh enchantments */
+#define AFF_SHADOW_SHIELD    59  /* surrounded by powerful defensive shadow magic */
+#define AFF_TIME_STOPPED     60  /* all non-offensive spells are free actions! */
+#define AFF_BRAVERY          61  /* immune to fear */
+#define AFF_FREE_MOVEMENT    62  /* able to resist movement impending effects */
+#define AFF_FAERIE_FIRE      63  /* surrounded by purple flame */
+#define AFF_BATTLETIDE       64  /* powerful physical presence */
+#define AFF_SPELL_RESISTANT  65  /* bonus to resisting spells */
 #define AFF_DIM_LOCK         66 //locked to current plane (can't teleport)
-#define AFF_DEATH_WARD       67
-#define AFF_SPELLBATTLE      68
+#define AFF_DEATH_WARD       67  /* warded from death effects */
+#define AFF_SPELLBATTLE      68  /* arcana golem spellbattle mode */
 #define AFF_VAMPIRIC_TOUCH   69  // will make next attack vampiric
 #define AFF_BLACKMANTLE      70  // stop normal regen, reduce healing
 #define AFF_DANGERSENSE      71  // sense aggro in surround rooms
@@ -1019,23 +1019,20 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define AFF_WILD_SHAPE       93 /* wildshape, shapechange */
 #define AFF_FEINTED          94 /* flat-footed */
 #define AFF_PINNED           95 /* pinned to the ground (grapple) */
-#define AFF_MIRROR_IMAGED    96 /* pinned to the ground (grapple) */
+#define AFF_MIRROR_IMAGED    96 /* duplicate illusions of self! */
 #define AFF_WARDED           97 /* warded (damage protection) */
 #define AFF_ENTANGLED        98 /* entangled (can't move) */
 #define AFF_ACROBATIC        99 /* acrobatic!  currently used for druid jump 
                                    spell, possible expansion to follow */
+#define AFF_BLINKING        100 /* in a state of blinking between prime/eth */
 /*---*/
-#define NUM_AFF_FLAGS        100
+#define NUM_AFF_FLAGS       101
 /********************************/
 /* add aff_ flag?  don't forget to add to:
    1)  places in code the affect will directly modify values
-   2)  get_eq_score() in act.wizard.c, so we know the value of this affect-flag
-        on objects
-   3)  constants.c
- *     const char *affected_bits
- *     const char *affected_bit_descs
- *     
- */
+   2)  get_eq_score() in act.wizard.c - value of this affection on an object
+   3)  constants.c:  const char *affected_bits
+                     const char *affected_bit_descs */
 
 /* Bonus types */
 #define BONUS_TYPE_UNDEFINED     0 /* Undefined bonus type (stacks) */

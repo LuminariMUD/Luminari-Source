@@ -1258,7 +1258,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   if (HAS_FEAT(ch, FEAT_ENHANCED_SPELL_DAMAGE))
     dam += num_dice;
 
-  //resistances to magic
+  //resistances to magic, message in mag_resistance
   if (dam && mag_resist)
     if (mag_resistance(ch, victim, 0))
       return 0;
@@ -1294,6 +1294,18 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     } else if ((!IS_NPC(victim)) && save == SAVING_REFL && // evasion
             (HAS_FEAT(victim, FEAT_IMPROVED_EVASION)))
       dam /= 2;
+  }
+  
+  /* blinking between prime and ethereal planes - 20% dodge AoE spells */
+  if (IS_SET(spell_info[spellnum].routines, MAG_AREAS) &&
+          AFF_FLAGGED(victim, AFF_BLINKING) && rand_number(1, 100) <= 20) {
+    act("$n watches as $N blinks out of existence to avoid the spell!",
+        FALSE, ch, NULL, victim, TO_NOTVICT);
+    act("You watch as $N briefly blinks out of existence to avoid your spell!",
+        FALSE, ch, NULL, victim, TO_CHAR);
+    act("You quickly blink out of existence avoiding the harmful spell from $n!",
+        FALSE, ch, NULL, victim, TO_VICT);
+    return 0;
   }
 
   if (!element) //want to make sure all spells have some sort of damage cat
