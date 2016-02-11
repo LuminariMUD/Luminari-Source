@@ -1051,10 +1051,10 @@ void resetMemtimes(struct char_data *ch, int class) {
    preparation list */
 void addSpellMemmed(struct char_data *ch, int spellnum, int metamagic, int class) {
   int slot;
-  log("DEBUG: Adding memmed spell (in func): %d %d %d", spellnum, metamagic, class);
-  log("DEBUG: Slot: %d Quickened: %s Maximized: %s", slot, (IS_SET(metamagic, METAMAGIC_QUICKEN) ? "TRUE": "FALSE")
-                                          , (IS_SET(metamagic, METAMAGIC_MAXIMIZE) ? "TRUE": "FALSE"));
   for (slot = 0; slot < MAX_MEM; slot++) {
+    log("DEBUG: Adding memmed spell (in func): %d %d %d", spellnum, metamagic, class);
+    log("DEBUG: Slot: %d Quickened: %s Maximized: %s", slot, (IS_SET(metamagic, METAMAGIC_QUICKEN) ? "TRUE": "FALSE")
+                                          , (IS_SET(metamagic, METAMAGIC_MAXIMIZE) ? "TRUE": "FALSE"));
     if (PREPARED_SPELLS(ch, slot, classArray(class)).spell == 0) {
       PREPARED_SPELLS(ch, slot, classArray(class)).spell = spellnum;
       PREPARED_SPELLS(ch, slot, classArray(class)).metamagic = metamagic;
