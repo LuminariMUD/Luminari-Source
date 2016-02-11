@@ -25,27 +25,27 @@ struct list_data * world_events = NULL;
 /* The mud_event_index[] is merely a tool for organizing events, and giving
  * them a "const char *" name to help in potential debugging */
 struct mud_event_list mud_event_index[] = {
-  { "Null", NULL, -1}, /* eNULL */
+  /*0*/{ "Null", NULL, -1}, /* eNULL */
   { "Protocol", get_protocols, EVENT_DESC}, /* ePROTOCOLS */
   { "Whirlwind", event_whirlwind, EVENT_CHAR}, /* eWHIRLWIND */
   { "Casting", event_casting, EVENT_CHAR}, /* eCASTING */
   { "Lay on hands", event_daily_use_cooldown, EVENT_CHAR}, // eLAYONHANDS
-  { "Treat injury", event_countdown, EVENT_CHAR}, // eTREATINJURY
+  /*5*/{ "Treat injury", event_countdown, EVENT_CHAR}, // eTREATINJURY
   { "Taunt Cool Down", event_countdown, EVENT_CHAR}, // eTAUNT
   { "Taunted", event_countdown, EVENT_CHAR}, // eTAUNTED
   { "Mummy dust", event_countdown, EVENT_CHAR}, // eMUMMYDUST
   { "Dragon knight", event_countdown, EVENT_CHAR}, //  eDRAGONKNIGHT
-  { "Greater ruin", event_countdown, EVENT_CHAR}, // eGREATERRUIN
+  /*10*/{ "Greater ruin", event_countdown, EVENT_CHAR}, // eGREATERRUIN
   { "Hellball", event_countdown, EVENT_CHAR}, // eHELLBALL
   { "Epic mage armor", event_countdown, EVENT_CHAR}, // eEPICMAGEARMOR
   { "Epic warding", event_countdown, EVENT_CHAR}, // eEPICWARDING
   { "Memorizing", event_memorizing, EVENT_CHAR}, //eMEMORIZING
-  { "Stunned", event_countdown, EVENT_CHAR}, //eSTUNNED
+  /*15*/{ "Stunned", event_countdown, EVENT_CHAR}, //eSTUNNED
   { "Stunning fist", event_daily_use_cooldown, EVENT_CHAR}, //eSTUNNINGFIST
   { "Crafting", event_crafting, EVENT_CHAR}, //eCRAFTING
   { "Crystal fist", event_daily_use_cooldown, EVENT_CHAR}, //eCRYSTALFIST
   { "Crystal body", event_daily_use_cooldown, EVENT_CHAR}, //eCRYRSTALBODY
-  { "Rage", event_daily_use_cooldown, EVENT_CHAR}, //eRAGE
+  /*20*/{ "Rage", event_daily_use_cooldown, EVENT_CHAR}, //eRAGE
   { "Acid arrow", event_acid_arrow, EVENT_CHAR}, //eACIDARROW
   { "Defensive Roll", event_countdown, EVENT_CHAR}, // eD_ROLL
   { "Purify", event_countdown, EVENT_CHAR}, // ePURIFY
@@ -55,7 +55,7 @@ struct mud_event_list mud_event_index[] = {
   { "Implode", event_implode, EVENT_CHAR}, //eIMPLODE
   { "Smite Evil", event_daily_use_cooldown, EVENT_CHAR}, // eSMITE_EVIL
   { "Perform", event_countdown, EVENT_CHAR}, // ePERFORM
-  { "Mob Purge", event_countdown, EVENT_CHAR}, // ePURGEMOB
+  /*30*/{ "Mob Purge", event_countdown, EVENT_CHAR}, // ePURGEMOB
   { "SoV Ice Storm", event_ice_storm, EVENT_CHAR}, // eICE_STORM
   { "SoV Chain Lightning", event_chain_lightning, EVENT_CHAR}, // eCHAIN_LIGHTNING
   { "Darkness", event_countdown, EVENT_ROOM}, /* eDARKNESS */
@@ -65,7 +65,7 @@ struct mud_event_list mud_event_index[] = {
   { "Turn Undead", event_countdown, EVENT_CHAR}, /* eTURN_UNDEAD */
   { "SpellBattle", event_countdown, EVENT_CHAR}, /* eSPELLBATTLE */
   { "Falling", event_falling, EVENT_CHAR}, /* eFALLING */
-  { "Check Occupied", event_check_occupied, EVENT_ROOM}, /* eCHECK_OCCUPIED */
+  /*40*/{ "Check Occupied", event_check_occupied, EVENT_ROOM}, /* eCHECK_OCCUPIED */
   { "Tracks", event_tracks, EVENT_ROOM}, /* eTRACKS */
   { "Wild Shape", event_daily_use_cooldown, EVENT_CHAR}, /* eWILD_SHAPE */
   { "Shield Recovery", event_countdown, EVENT_CHAR}, /* eSHIELD_RECOVERY */
@@ -75,7 +75,7 @@ struct mud_event_list mud_event_index[] = {
   { "Wholeness of Body", event_countdown, EVENT_CHAR}, // eWHOLENESSOFBODY
   { "Empty Body", event_countdown, EVENT_CHAR}, // eEMPTYBODY
   { "Quivering Palm", event_daily_use_cooldown, EVENT_CHAR}, //eQUIVERINGPALM
-  { "Swift Action Cooldown", event_action_cooldown, EVENT_CHAR}, // eSWIFTACTION
+  /*50*/{ "Swift Action Cooldown", event_action_cooldown, EVENT_CHAR}, // eSWIFTACTION
   { "Trap Triggered", event_trap_triggered, EVENT_CHAR}, // eTRAPTRIGGERED */
   { "Suprise Accuracy", event_countdown, EVENT_CHAR}, //eSUPRISE_ACCURACY
   { "Powerful Blow", event_countdown, EVENT_CHAR}, //ePOWERFUL_BLOW
@@ -85,7 +85,7 @@ struct mud_event_list mud_event_index[] = {
   { "Vanish", event_countdown, EVENT_CHAR}, //eVANISH
   { "Vanish Cool Down", event_daily_use_cooldown, EVENT_CHAR}, //eVANISHED
   { "Intimidated", event_countdown, EVENT_CHAR}, //eINTIMIDATED
-  { "Intimidated Cool Down", event_countdown, EVENT_CHAR}, //eINTIMIDATE_COOLDOWN
+  /*60*/{ "Intimidated Cool Down", event_countdown, EVENT_CHAR}, //eINTIMIDATE_COOLDOWN
   { "Lightning Arc Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eLIGHTNING_ARC
   { "Acid Dart Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eACID_DART
   { "Fire Bolt Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eFIRE_BOLT
@@ -95,7 +95,7 @@ struct mud_event_list mud_event_index[] = {
   { "Smite Good", event_daily_use_cooldown, EVENT_CHAR}, // eSMITE_GOOD
   { "Destructive Smite", event_daily_use_cooldown, EVENT_CHAR}, // eSMITE_DESTRUCTION
   { "Destructive Aura", event_daily_use_cooldown, EVENT_CHAR}, // eDESTRUCTIVE_AURA
-  { "Evil Touch", event_daily_use_cooldown, EVENT_CHAR}, // eEVIL_TOUCH
+  /*70*/{ "Evil Touch", event_daily_use_cooldown, EVENT_CHAR}, // eEVIL_TOUCH
   { "Good Touch", event_daily_use_cooldown, EVENT_CHAR}, // eGOOD_TOUCH
   { "Healing Touch", event_daily_use_cooldown, EVENT_CHAR}, // eHEALING_TOUCH
   { "Eye of Knowledge", event_daily_use_cooldown, EVENT_CHAR}, // eEYE_OF_KNOWLEDGE
@@ -105,7 +105,7 @@ struct mud_event_list mud_event_index[] = {
   { "Mass Invis", event_daily_use_cooldown, EVENT_CHAR}, // eMASS_INVIS
   { "Aura of Protection", event_daily_use_cooldown, EVENT_CHAR}, // eAURA_OF_PROTECTION
   { "Battle Rage", event_daily_use_cooldown, EVENT_CHAR}, // eBATTLE_RAGE
-  { "Crystal fist", event_countdown, EVENT_CHAR}, //eCRYSTALFIST_AFF
+  /*80*/{ "Crystal fist", event_countdown, EVENT_CHAR}, //eCRYSTALFIST_AFF
   { "Crystal body", event_countdown, EVENT_CHAR}, //eCRYRSTALBODY_AFF
   { "Bardic Performance", event_bardic_performance, EVENT_CHAR}, /* eBARDIC_PERFORMANCE */
   { "Encounter Region Reset", event_countdown, EVENT_REGION}, // eENCOUNTER_REG_RESET
@@ -115,6 +115,7 @@ struct mud_event_list mud_event_index[] = {
   { "Swarm of Arrows", event_daily_use_cooldown, EVENT_CHAR}, //eARROW_SWARM
   { "Renewed Defense", event_countdown, EVENT_CHAR}, // eRENEWEDDEFENSE
   { "Last Word", event_countdown, EVENT_CHAR}, // eLAST_WORD
+  /*90*/{ "Smash Defense", event_countdown, EVENT_CHAR}, // eSMASH_DEFENSE
   { "Defensive Stance", event_daily_use_cooldown, EVENT_CHAR}, //eDEFENSIVE_STANCE
 };
 

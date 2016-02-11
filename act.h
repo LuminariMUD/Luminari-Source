@@ -332,6 +332,7 @@ ACMD(do_crystalbody);
 ACMD(do_supriseaccuracy);
 ACMD(do_powerfulblow);
 ACMD(do_renewedvigor);
+ACMD(do_reneweddefense);
 ACMD(do_comeandgetme);
 
 /*****************************************************************************

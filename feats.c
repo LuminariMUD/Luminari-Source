@@ -740,8 +740,11 @@ void assign_feats(void) {
     feat_prereq_bab(FEAT_SHIELD_CHARGE, 3);
     feat_prereq_feat(FEAT_SHIELD_CHARGE, FEAT_IMPROVED_SHIELD_PUNCH, 1);
   feato(FEAT_SHIELD_SLAM, "shield slam", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "Daze an opponent of any size by slamming them with your shield.",
-    "Daze an opponent of any size by slamming them with your shield.");
+    "daze an opponent of any size by slamming them with your shield",
+    "You make an offhand attackroll against your opponent, if you land the attack "
+      "with your shield, you will do 1d6 + strength-bonus/2 damage.  In addition if "
+      "your opponent fails a fortitude save versus 10 + your-level/2 + your strength "
+      "bonus, they will be dazed for a full combat round and unable to attack you.");
     feat_prereq_bab(FEAT_SHIELD_SLAM, 6);
     feat_prereq_feat(FEAT_SHIELD_SLAM, FEAT_SHIELD_CHARGE, 1);
     feat_prereq_feat(FEAT_SHIELD_SLAM, FEAT_IMPROVED_SHIELD_PUNCH, 1);
@@ -1502,8 +1505,11 @@ void assign_feats(void) {
     "can apply poison to weapons",
     "can apply poison to weapons (applypoison)");
   /*talent*/feato(FEAT_DIRT_KICK, "dirt kick", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "can kick dirt into opponents face",
-    "can kick dirt into opponents face, causing blindness (dirtkick)");
+    "can kick dirt into opponents face (blindness)",
+    "Upon a successful unarmed attack roll you will kick dirt into your opponents "
+      "eyes causing minor damage.  In addition if your opponent fails his/her reflex "
+      "saving throw versus 10 + your-level/2 + dex-bonus, they will be blinded for 1 "
+      "to level/5 rounds.  To use this skill type: dirtkick <opponent>.");
   feato(FEAT_SNEAK_ATTACK, "sneak attack", TRUE, FALSE, TRUE, FEAT_TYPE_COMBAT,
     "+1d6 to damage when flanking",
     "+1d6/rank to damage when flanking, opponent is flat-footed, or opponent is without dexterity bonus");
