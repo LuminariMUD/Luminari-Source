@@ -1012,6 +1012,9 @@ void addSpellMemming(struct char_data *ch, int spellnum, int metamagic, int time
   /* if you are not a "sorc type" spellnum will carry through to here */
   for (slot = 0; slot < MAX_MEM; slot++) {
     if (PREPARATION_QUEUE(ch, slot, classArray(class)).spell == TERMINATE) {
+      
+      log("DEBUG: Adding spell to preparation queue: %d %d", spellnum, metamagic);
+      
       PREPARATION_QUEUE(ch, slot, classArray(class)).spell = spellnum;
       PREPARATION_QUEUE(ch, slot, classArray(class)).metamagic = metamagic;
       PREP_TIME(ch, slot, classArray(class)) = time;
