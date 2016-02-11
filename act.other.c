@@ -2513,6 +2513,12 @@ ACMD(do_wildshape) {
      * because we need to know what race we are cleaning up */
     cleanup_wildshape_feats(ch);
 
+    /* messages */
+    sprintf(buf, "You change shape into a %s.", pc_race_types[GET_REAL_RACE(ch)]);
+    act(buf, true, ch, 0, 0, TO_CHAR);
+    sprintf(buf, "$n changes shape into a %s.", pc_race_types[GET_REAL_RACE(ch)]);
+    act(buf, true, ch, 0, 0, TO_ROOM);
+    
     /* stat modifications are cleaned up in affect_total() */
     GET_DISGUISE_RACE(ch) = 0;
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_WILD_SHAPE);
@@ -2527,12 +2533,6 @@ ACMD(do_wildshape) {
     affect_total(ch);
     save_char(ch, 0);
     Crash_crashsave(ch);
-
-    /* messages */
-    sprintf(buf, "You change shape into a %s.", pc_race_types[GET_RACE(ch)]);
-    act(buf, true, ch, 0, 0, TO_CHAR);
-    sprintf(buf, "$n changes shape into a %s.", pc_race_types[GET_RACE(ch)]);
-    act(buf, true, ch, 0, 0, TO_ROOM);
 
     USE_STANDARD_ACTION(ch);
 
@@ -2571,6 +2571,11 @@ ACMD(do_wildshape) {
     send_to_char(ch, "You must recover the energy required to take a wild shape.\r\n");
     return;
   }
+  
+  sprintf(buf, "You change shape into a %s.", race_list[i].name);
+  act(buf, true, ch, 0, 0, TO_CHAR);
+  sprintf(buf, "$n changes shape into a %s.", race_list[i].name);
+  act(buf, true, ch, 0, 0, TO_ROOM);
 
   /* we're in the clear, set the wildshape race! */
   SET_BIT_AR(AFF_FLAGS(ch), AFF_WILD_SHAPE);
@@ -2594,11 +2599,6 @@ ACMD(do_wildshape) {
   affect_total(ch);
   save_char(ch, 0);
   Crash_crashsave(ch);
-
-  sprintf(buf, "You change shape into a %s.", race_list[GET_DISGUISE_RACE(ch)].name);
-  act(buf, true, ch, 0, 0, TO_CHAR);
-  sprintf(buf, "$n changes shape into a %s.", race_list[GET_DISGUISE_RACE(ch)].name);
-  act(buf, true, ch, 0, 0, TO_ROOM);
 
   USE_STANDARD_ACTION(ch);
 
