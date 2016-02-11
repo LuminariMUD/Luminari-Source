@@ -1051,7 +1051,7 @@ void resetMemtimes(struct char_data *ch, int class) {
    preparation list */
 void addSpellMemmed(struct char_data *ch, int spellnum, int metamagic, int class) {
   int slot;
-  log("DEBUG: Adding memmed spell (in func): %s %s %s", spellnum, metamagic, class);
+  log("DEBUG: Adding memmed spell (in func): %d %d %d", spellnum, metamagic, class);
   
   for (slot = 0; slot < MAX_MEM; slot++) {
     if (PREPARED_SPELLS(ch, slot, classArray(class)).spell == 0) {
