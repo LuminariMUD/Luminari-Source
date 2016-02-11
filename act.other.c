@@ -2298,49 +2298,43 @@ void cleanup_wildshape_feats(struct char_data *ch) {
   for (counter = 0; counter < NUM_FEATS; counter++)
     MOB_SET_FEAT((ch), counter, 0);
 
+  /* racial family cleanup here */
   switch (race_list[race].family) {
-    case RACE_TYPE_ANIMAL:
-      break;
-    case RACE_TYPE_MAGICAL_BEAST:
-      /* can't currently shift to magical beasts */
-      break;
-    case RACE_TYPE_PLANT:
-      break;
-    case RACE_TYPE_ELEMENTAL:
-      switch (GET_DISGUISE_RACE(ch)) {
-        case RACE_SMALL_FIRE_ELEMENTAL:case RACE_MEDIUM_FIRE_ELEMENTAL:
-        case RACE_LARGE_FIRE_ELEMENTAL:case RACE_HUGE_FIRE_ELEMENTAL:
-          REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FSHIELD);
-          break;
-        case RACE_SMALL_EARTH_ELEMENTAL:case RACE_MEDIUM_EARTH_ELEMENTAL:
-        case RACE_LARGE_EARTH_ELEMENTAL:case RACE_HUGE_EARTH_ELEMENTAL:
-          REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_ASHIELD);
-          break;
-        case RACE_SMALL_AIR_ELEMENTAL:case RACE_MEDIUM_AIR_ELEMENTAL:
-        case RACE_LARGE_AIR_ELEMENTAL:case RACE_HUGE_AIR_ELEMENTAL:
-          REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_CSHIELD);
-          REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLYING);
-          break;
-        case RACE_SMALL_WATER_ELEMENTAL:case RACE_MEDIUM_WATER_ELEMENTAL:
-        case RACE_LARGE_WATER_ELEMENTAL:case RACE_HUGE_WATER_ELEMENTAL:
-          REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_SCUBA);
-          REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_WATER_BREATH);
-          REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_MINOR_GLOBE);
-          break;
-      }
-      break;
     default:break;
   }
 
+  /* race specific cleanup here */
   switch (race) {
+    case RACE_BLINK_DOG:
+      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_BLINKING);
+      break;
     case RACE_CROCODILE:
+    case RACE_GIANT_CROCODILE:
       REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_SCUBA);
       REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_WATER_BREATH);
       break;
     case RACE_EAGLE:
       REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLYING);
       break;
-    default:break;
+    case RACE_SMALL_FIRE_ELEMENTAL:case RACE_MEDIUM_FIRE_ELEMENTAL:
+    case RACE_LARGE_FIRE_ELEMENTAL:case RACE_HUGE_FIRE_ELEMENTAL:
+      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FSHIELD);
+      break;
+    case RACE_SMALL_EARTH_ELEMENTAL:case RACE_MEDIUM_EARTH_ELEMENTAL:
+    case RACE_LARGE_EARTH_ELEMENTAL:case RACE_HUGE_EARTH_ELEMENTAL:
+      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_ASHIELD);
+      break;
+    case RACE_SMALL_AIR_ELEMENTAL:case RACE_MEDIUM_AIR_ELEMENTAL:
+    case RACE_LARGE_AIR_ELEMENTAL:case RACE_HUGE_AIR_ELEMENTAL:
+      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_CSHIELD);
+      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLYING);
+      break;
+    case RACE_SMALL_WATER_ELEMENTAL:case RACE_MEDIUM_WATER_ELEMENTAL:
+    case RACE_LARGE_WATER_ELEMENTAL:case RACE_HUGE_WATER_ELEMENTAL:
+      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_SCUBA);
+      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_WATER_BREATH);
+      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_MINOR_GLOBE);
+      break;
   }
 }
 
@@ -2359,66 +2353,33 @@ void assign_wildshape_feats(struct char_data *ch) {
   for (counter = 0; counter < NUM_FEATS; counter++)
     MOB_SET_FEAT((ch), counter, 0);
   
-  /* make sure these feats transfer over! -zusuk */
+  /* make sure -=these=- feats transfer over! -zusuk */
   if (HAS_REAL_FEAT(ch, FEAT_NATURAL_SPELL))
     MOB_SET_FEAT(ch, FEAT_NATURAL_SPELL, 1);
-  /** end transferrable feats ***/
+  /** end transferable feats ***/
 
-  switch (race_list[GET_DISGUISE_RACE(ch)].family) {
+  /* trying to keep general racial type assignments here */
+  switch (race_list[GET_DISGUISE_RACE(ch)].family) {    
     case RACE_TYPE_ANIMAL:
       MOB_SET_FEAT(ch, FEAT_RAGE, shifter_level/5 + 1);
-      break;
-    case RACE_TYPE_MAGICAL_BEAST:
-      /* can't currently shift to magical beasts */
       break;
     case RACE_TYPE_PLANT:
       MOB_SET_FEAT(ch, FEAT_ARMOR_SKIN, shifter_level/5 + 1);
       break;
-    case RACE_TYPE_ELEMENTAL:
-      switch (GET_DISGUISE_RACE(ch)) {
-        case RACE_SMALL_FIRE_ELEMENTAL:case RACE_MEDIUM_FIRE_ELEMENTAL:
-        case RACE_LARGE_FIRE_ELEMENTAL:case RACE_HUGE_FIRE_ELEMENTAL:
-          SET_BIT_AR(AFF_FLAGS(ch), AFF_FSHIELD);
-          break;
-        case RACE_SMALL_EARTH_ELEMENTAL:case RACE_MEDIUM_EARTH_ELEMENTAL:
-        case RACE_LARGE_EARTH_ELEMENTAL:case RACE_HUGE_EARTH_ELEMENTAL:
-          SET_BIT_AR(AFF_FLAGS(ch), AFF_ASHIELD);
-          break;
-        case RACE_SMALL_AIR_ELEMENTAL:case RACE_MEDIUM_AIR_ELEMENTAL:
-        case RACE_LARGE_AIR_ELEMENTAL:case RACE_HUGE_AIR_ELEMENTAL:
-          SET_BIT_AR(AFF_FLAGS(ch), AFF_CSHIELD);
-          SET_BIT_AR(AFF_FLAGS(ch), AFF_FLYING);
-          break;
-        case RACE_SMALL_WATER_ELEMENTAL:case RACE_MEDIUM_WATER_ELEMENTAL:
-        case RACE_LARGE_WATER_ELEMENTAL:case RACE_HUGE_WATER_ELEMENTAL:
-          SET_BIT_AR(AFF_FLAGS(ch), AFF_SCUBA);
-          SET_BIT_AR(AFF_FLAGS(ch), AFF_WATER_BREATH);
-          SET_BIT_AR(AFF_FLAGS(ch), AFF_MINOR_GLOBE);
-          break;
-      }
-      break;
     default:break;
   }
 
+  /* want to make general assignments due to size? */
   switch (GET_SIZE(ch)) {
     case SIZE_FINE:
-      break;
     case SIZE_DIMINUTIVE:
-      break;
     case SIZE_TINY:
-      break;
     case SIZE_SMALL:
-      break;
     case SIZE_MEDIUM:
-      break;
     case SIZE_LARGE:
-      break;
     case SIZE_HUGE:
-      break;
     case SIZE_GARGANTUAN:
-      break;
     case SIZE_COLOSSAL:
-      break;
     default:break;
   }
 
@@ -2446,7 +2407,11 @@ void assign_wildshape_feats(struct char_data *ch) {
       break;
   }
 
+  /* individual race specific assignments, feats, affections, etc */
   switch (shifted_race) {
+    case RACE_BLINK_DOG:
+      SET_BIT_AR(AFF_FLAGS(ch), AFF_BLINKING);
+      break;
     case RACE_CHEETAH:
       MOB_SET_FEAT(ch, FEAT_DODGE, 1);
       break;
@@ -2472,7 +2437,25 @@ void assign_wildshape_feats(struct char_data *ch) {
     case RACE_EAGLE:
       MOB_SET_FEAT(ch, FEAT_WINGS, 1);
       break;
-
+    case RACE_SMALL_FIRE_ELEMENTAL:case RACE_MEDIUM_FIRE_ELEMENTAL:
+    case RACE_LARGE_FIRE_ELEMENTAL:case RACE_HUGE_FIRE_ELEMENTAL:
+      SET_BIT_AR(AFF_FLAGS(ch), AFF_FSHIELD);
+      break;
+    case RACE_SMALL_EARTH_ELEMENTAL:case RACE_MEDIUM_EARTH_ELEMENTAL:
+    case RACE_LARGE_EARTH_ELEMENTAL:case RACE_HUGE_EARTH_ELEMENTAL:
+      SET_BIT_AR(AFF_FLAGS(ch), AFF_ASHIELD);
+      break;
+    case RACE_SMALL_AIR_ELEMENTAL:case RACE_MEDIUM_AIR_ELEMENTAL:
+    case RACE_LARGE_AIR_ELEMENTAL:case RACE_HUGE_AIR_ELEMENTAL:
+      SET_BIT_AR(AFF_FLAGS(ch), AFF_CSHIELD);
+      SET_BIT_AR(AFF_FLAGS(ch), AFF_FLYING);
+      break;
+    case RACE_SMALL_WATER_ELEMENTAL:case RACE_MEDIUM_WATER_ELEMENTAL:
+    case RACE_LARGE_WATER_ELEMENTAL:case RACE_HUGE_WATER_ELEMENTAL:
+      SET_BIT_AR(AFF_FLAGS(ch), AFF_SCUBA);
+      SET_BIT_AR(AFF_FLAGS(ch), AFF_WATER_BREATH);
+      SET_BIT_AR(AFF_FLAGS(ch), AFF_MINOR_GLOBE);
+      break;
   }
 
 }

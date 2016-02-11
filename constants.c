@@ -956,7 +956,7 @@ const char *affected_bits[NUM_AFF_FLAGS + 1] =
   "Dual-wield",
   "Flurry-of-Blows",
   "Counterspell",
-  "Defensive-Casting",
+  "Defensive-Casting", //90
   "Whirlwind-Attack",
   "Charging!",
   "WildShape",
@@ -966,6 +966,7 @@ const char *affected_bits[NUM_AFF_FLAGS + 1] =
   "Warded",
   "Entangled",
   "Acrobatic",
+  "Blinking",
   "\n"
 };
 
@@ -1077,6 +1078,7 @@ const char *affected_bit_descs[NUM_AFF_FLAGS + 1] =
   "You have a powerful ward on you (melee damage absorb).",
   "You are entangled (can't move).",
   "You feel more acrobatic!",
+  "You are blinking between prime and ethereal planes!", //100
   "\n"
 };
 
