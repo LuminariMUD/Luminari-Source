@@ -1723,8 +1723,8 @@ void display_memmed(struct char_data*ch, int class) {
                   (IS_SET(PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, METAMAGIC_QUICKEN) ? "quickened ": ""),
                   (IS_SET(PREPARATION_QUEUE(ch, memSlot, classArray(class)).metamagic, METAMAGIC_MAXIMIZE) ? "maximized ": ""));
           
-            log("DEBUG: Metamagic is: %s", metamagic_buf);
-            log("DEBUG: Quickened: %s Maximized: %s", (IS_SET(PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, METAMAGIC_QUICKEN) ? "TRUE": "FALSE")
+            log("DEBUG: Metamagic is: %d - %s", PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, metamagic_buf);
+            log("DEBUG: Slot: %d Quickened: %s Maximized: %s", memSlot, (IS_SET(PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, METAMAGIC_QUICKEN) ? "TRUE": "FALSE")
                                                     , (IS_SET(PREPARATION_QUEUE(ch, memSlot, classArray(class)).metamagic, METAMAGIC_MAXIMIZE) ? "TRUE": "FALSE"));
             
             if (!printed) {
