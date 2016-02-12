@@ -1012,9 +1012,7 @@ void addSpellMemming(struct char_data *ch, int spellnum, int metamagic, int time
   /* if you are not a "sorc type" spellnum will carry through to here */
   for (slot = 0; slot < MAX_MEM; slot++) {
     if (PREPARATION_QUEUE(ch, slot, classArray(class)).spell == TERMINATE) {
-      
-      log("DEBUG: Adding spell to preparation queue: %d %d", spellnum, metamagic);
-      
+         
       PREPARATION_QUEUE(ch, slot, classArray(class)).spell = spellnum;
       PREPARATION_QUEUE(ch, slot, classArray(class)).metamagic = metamagic;
       PREP_TIME(ch, slot, classArray(class)) = time;
@@ -1052,9 +1050,7 @@ void resetMemtimes(struct char_data *ch, int class) {
 void addSpellMemmed(struct char_data *ch, int spellnum, int metamagic, int class) {
   int slot;
   for (slot = 0; slot < MAX_MEM; slot++) {
-    log("DEBUG: Adding memmed spell (in func): %d %d %d", spellnum, metamagic, class);
-    log("DEBUG: Slot: %d Quickened: %s Maximized: %s", slot, (IS_SET(metamagic, METAMAGIC_QUICKEN) ? "TRUE": "FALSE")
-                                          , (IS_SET(metamagic, METAMAGIC_MAXIMIZE) ? "TRUE": "FALSE"));
+
     if (PREPARED_SPELLS(ch, slot, classArray(class)).spell == 0) {
       PREPARED_SPELLS(ch, slot, classArray(class)).spell = spellnum;
       PREPARED_SPELLS(ch, slot, classArray(class)).metamagic = metamagic;
@@ -1255,9 +1251,6 @@ int numSpells(struct char_data *ch, int circle, int class) {
         num++;
     }
   }
-
-  /*debug*/
-  //send_to_char(ch, "Circle:%d,Num:%d\r\n", circle, num);
 
   return (num);
 }
@@ -1567,9 +1560,6 @@ void updateMemming(struct char_data *ch, int class) {
                 spell_prep_dict[classArray(class)][1],
                      metamagic_buf,
                      spell_info[PREPARATION_QUEUE(ch, 0, classArray(class)).spell].name);
-        log("DEBUG: Adding prepared spell: %d %d %d", PREPARATION_QUEUE(ch, 0, classArray(class)).spell
-                                                    , PREPARATION_QUEUE(ch, 0, classArray(class)).metamagic
-                                                    , class);
         addSpellMemmed(ch, PREPARATION_QUEUE(ch, 0, classArray(class)).spell, PREPARATION_QUEUE(ch, 0, classArray(class)).metamagic, class);
         break;      
       case CLASS_SORCERER:
@@ -1700,7 +1690,6 @@ void display_memmed(struct char_data*ch, int class) {
 
   /***  display memorized spells ***/
   if (PREPARED_SPELLS(ch, 0, classArray(class)).spell != 0) {
-    log("DEBUG: Class is: %d", class);
     switch (class) {
       case CLASS_DRUID:
       case CLASS_CLERIC:
@@ -1722,11 +1711,7 @@ void display_memmed(struct char_data*ch, int class) {
             sprintf(metamagic_buf, "%s%s", 
                   (IS_SET(PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, METAMAGIC_QUICKEN) ? "quickened ": ""),
                   (IS_SET(PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, METAMAGIC_MAXIMIZE) ? "maximized ": ""));
-          
-            log("DEBUG: Metamagic is: %d - %s", PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, metamagic_buf);
-            log("DEBUG: Slot: %d Quickened: %s Maximized: %s", memSlot, (IS_SET(PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, METAMAGIC_QUICKEN) ? "TRUE": "FALSE")
-                                                    , (IS_SET(PREPARED_SPELLS(ch, memSlot, classArray(class)).metamagic, METAMAGIC_MAXIMIZE) ? "TRUE": "FALSE"));
-            
+                     
             if (!printed) {
               send_to_char(ch, "[Circle: %d]   %s%s\r\n",
                       slot, 
@@ -2224,7 +2209,7 @@ ACMD(do_gen_memorize) {
           send_to_char(ch, "You don't know how to quicken your magic!\r\n");
           return;
         }
-        //log("DEBUG: Quickened metamagic used.");
+     
       } else if (is_abbrev(m, "maximized")) {
         if HAS_FEAT(ch, FEAT_MAXIMIZE_SPELL) {
           SET_BIT(metamagic, METAMAGIC_MAXIMIZE);
