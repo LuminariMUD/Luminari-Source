@@ -97,7 +97,7 @@ void class_prereq_attribute(int class_num, int attribute, int value) {
     "Cha"
   };
 
-  prereq = create_prereq(FEAT_PREREQ_ATTRIBUTE, attribute, value, 0);
+  prereq = create_prereq(CLASS_PREREQ_ATTRIBUTE, attribute, value, 0);
 
   /* Generate the description. */
   sprintf(buf, "%s : %d", attribute_abbr[attribute], value);
@@ -112,7 +112,7 @@ void class_prereq_class_level(int class_num, int cl, int level) {
   struct class_prerequisite *prereq = NULL;
   char buf[80];
 
-  prereq = create_prereq(FEAT_PREREQ_CLASS_LEVEL, cl, level, 0);
+  prereq = create_prereq(CLASS_PREREQ_CLASS_LEVEL, cl, level, 0);
 
   /* Generate the description */
   sprintf(buf, "%s level %d", CLSLIST_NAME(cl), level);
@@ -127,7 +127,7 @@ void class_prereq_feat(int class_num, int feat, int ranks) {
   struct class_prerequisite *prereq = NULL;
   char buf[80];
 
-  prereq = create_prereq(FEAT_PREREQ_FEAT, feat, ranks, 0);
+  prereq = create_prereq(CLASS_PREREQ_FEAT, feat, ranks, 0);
 
   /* Generate the description. */
   if (ranks > 1)
@@ -146,7 +146,7 @@ void class_prereq_cfeat(int class_num, int feat) {
   struct class_prerequisite *prereq = NULL;
   char buf[80];
 
-  prereq = create_prereq(FEAT_PREREQ_CFEAT, feat, 0, 0);
+  prereq = create_prereq(CLASS_PREREQ_CFEAT, feat, 0, 0);
 
   sprintf(buf, "%s (in same weapon)", class_list[feat].name);
   prereq->description = strdup(buf);
@@ -160,7 +160,7 @@ void class_prereq_ability(int class_num, int ability, int ranks) {
   struct class_prerequisite *prereq = NULL;
   char buf[80];
 
-  prereq = create_prereq(FEAT_PREREQ_ABILITY, ability, ranks, 0);
+  prereq = create_prereq(CLASS_PREREQ_ABILITY, ability, ranks, 0);
 
   sprintf(buf, "%d ranks in %s", ranks, ability_names[ability]);
   prereq->description = strdup(buf);
@@ -188,7 +188,7 @@ void class_prereq_spellcasting(int class_num, int casting_type, int prep_type, i
     "Any"
   };
 
-  prereq = create_prereq(FEAT_PREREQ_SPELLCASTING, casting_type, prep_type, circle);
+  prereq = create_prereq(CLASS_PREREQ_SPELLCASTING, casting_type, prep_type, circle);
 
   sprintf(buf, "Ability to cast %s %s spells", casting_types[casting_type], spell_preparation_types[prep_type]);
   prereq->description = strdup(buf);
@@ -202,7 +202,7 @@ void class_prereq_race(int class_num, int race) {
   struct class_prerequisite *prereq = NULL;
   char buf[80];
 
-  prereq = create_prereq(FEAT_PREREQ_RACE, race, 0, 0);
+  prereq = create_prereq(CLASS_PREREQ_RACE, race, 0, 0);
 
   sprintf(buf, "Race : %s", pc_race_types[race]);
   prereq->description = strdup(buf);
@@ -216,7 +216,7 @@ void class_prereq_bab(int class_num, int bab) {
   struct class_prerequisite *prereq = NULL;
   char buf[80];
 
-  prereq = create_prereq(FEAT_PREREQ_BAB, bab, 0, 0);
+  prereq = create_prereq(CLASS_PREREQ_BAB, bab, 0, 0);
 
   sprintf(buf, "BAB +%d", bab);
   prereq->description = strdup(buf);
@@ -230,7 +230,7 @@ void class_prereq_weapon_proficiency(int class_num) {
   struct class_prerequisite *prereq = NULL;
   char buf[80];
 
-  prereq = create_prereq(FEAT_PREREQ_WEAPON_PROFICIENCY, 0, 0, 0);
+  prereq = create_prereq(CLASS_PREREQ_WEAPON_PROFICIENCY, 0, 0, 0);
 
   sprintf(buf, "Proficiency in same weapon");
   prereq->description = strdup(buf);
@@ -1791,10 +1791,198 @@ void load_class_list(void) {
   /****************************************************************************/
 }
 
+/* determines if ch qualifies for a class */
+bool class_is_available(struct char_data *ch, int classnum, int iarg, char *sarg) {
+  struct class_prerequisite *prereq = NULL;
+  int max_class_level = CLSLIST_MAXLVL(classnum);
+  
+  /* dumb-dumb check */
+  if (classnum < 0 || classnum >= NUM_CLASSES)
+    return FALSE;
+
+  /* cap for class ranks */
+  if (max_class_level == -1) /* no limit */
+    max_class_level = LVL_IMMORT - 1;
+  if (CLASS_LEVEL(ch, classnum) >= max_class_level) {
+    return FALSE;
+  }
+
+  if (!has_unlocked_class(ch, classnum))
+    return FALSE;
+        
+  /* class prerequisites list */  
+  if (class_list[classnum].prereq_list != NULL) {
+    /*  This class has prerequisites. Traverse the list and check. */
+    for (prereq = class_list[classnum].prereq_list; prereq != NULL; prereq = prereq->next) {
+      if (meets_class_prerequisite(ch, prereq, iarg) == FALSE)
+        return FALSE;
+    }
+  }
+  
+  return TRUE;
+}
+
+/* Check to see if ch meets the provided class prerequisite.
+   iarg is for external comparison */
+bool meets_class_prerequisite(struct char_data *ch, struct class_prerequisite *prereq, int iarg) {
+
+  switch (prereq->prerequisite_type) {
+    
+    case CLASS_PREREQ_NONE:
+      /* This is a NON-prereq. */
+      break;
+      
+    case CLASS_PREREQ_ATTRIBUTE:
+      switch (prereq->values[0]) {
+        case AB_STR:
+          if (GET_REAL_STR(ch) < prereq->values[1])
+            return FALSE;
+          break;
+        case AB_DEX:
+          if (GET_REAL_DEX(ch) < prereq->values[1])
+            return FALSE;
+          break;
+        case AB_CON:
+          if (GET_REAL_CON(ch) < prereq->values[1])
+            return FALSE;
+          break;
+        case AB_WIS:
+          if (GET_REAL_WIS(ch) < prereq->values[1])
+            return FALSE;
+          break;
+        case AB_INT:
+          if (GET_REAL_INT(ch) < prereq->values[1])
+            return FALSE;
+          break;
+        case AB_CHA:
+          if (GET_REAL_CHA(ch) < prereq->values[1])
+            return FALSE;
+          break;
+        default:
+          log("SYSERR: meets_class_prerequisite() - Bad Attribute prerequisite %d", prereq->values[0]);
+          return FALSE;
+      }
+      break;
+      
+    case CLASS_PREREQ_CLASS_LEVEL:
+      if (CLASS_LEVEL(ch, prereq->values[0]) < prereq->values[1])
+        return FALSE;
+      break;
+      
+    case CLASS_PREREQ_FEAT:
+      if (has_feat(ch, prereq->values[0]) < prereq->values[1])
+        return FALSE;
+      break;
+      
+    case CLASS_PREREQ_ABILITY:
+      if (GET_ABILITY(ch, prereq->values[0]) < prereq->values[1])
+        return FALSE;
+      break;
+      
+    case CLASS_PREREQ_SPELLCASTING:
+      switch (prereq->values[0]) {
+        case CASTING_TYPE_NONE:
+          if (IS_SPELLCASTER(ch))
+            return FALSE;
+          break;
+        case CASTING_TYPE_ARCANE:
+          if (!(IS_WIZARD(ch) ||
+                  IS_SORCERER(ch) ||
+                  IS_BARD(ch)))
+            return FALSE;
+          /* This stuff is all messed up - fix. */
+          if (prereq->values[2] > 0) {
+            if (!(comp_slots(ch, CLASS_WIZARD, prereq->values[2]) == 0 ||
+                    comp_slots(ch, CLASS_SORCERER, prereq->values[2]) == 0 ||
+                    comp_slots(ch, CLASS_BARD, prereq->values[2]) == 0))
+              return FALSE;
+          }
+          break;
+        case CASTING_TYPE_DIVINE:
+          if (!(IS_CLERIC(ch) ||
+                  IS_DRUID(ch) ||
+                  IS_PALADIN(ch) ||
+                  IS_RANGER(ch)))
+            return FALSE;
+          if (prereq->values[2] > 0) {
+            if (!(comp_slots(ch, CLASS_CLERIC, prereq->values[2]) == 0 ||
+                    comp_slots(ch, CLASS_PALADIN, prereq->values[2]) == 0 ||
+                    comp_slots(ch, CLASS_DRUID, prereq->values[2]) == 0 ||
+                    comp_slots(ch, CLASS_RANGER, prereq->values[2]) == 0))
+              return FALSE;
+          }
+          break;
+        case CASTING_TYPE_ANY:
+          if (!IS_SPELLCASTER(ch))
+            return FALSE;
+          if (prereq->values[2] > 0) {
+            if (!(comp_slots(ch, CLASS_WIZARD, prereq->values[2]) == 0 ||
+                    comp_slots(ch, CLASS_SORCERER, prereq->values[2]) == 0 ||
+                    comp_slots(ch, CLASS_BARD, prereq->values[2]) == 0 ||
+                    comp_slots(ch, CLASS_CLERIC, prereq->values[2]) == 0 ||
+                    comp_slots(ch, CLASS_PALADIN, prereq->values[2]) == 0 ||
+                    comp_slots(ch, CLASS_DRUID, prereq->values[2]) == 0 ||
+                    comp_slots(ch, CLASS_RANGER, prereq->values[2]) == 0))
+              return FALSE;
+          }
+          break;
+        default:
+          log("SYSERR: meets_class_prerequisite() - Bad Casting Type prerequisite %d", prereq->values[0]);
+          return FALSE;
+      }
+
+      switch (prereq->values[1]) {
+        case PREP_TYPE_NONE:
+          return FALSE;
+        case PREP_TYPE_PREPARED:
+          if (!IS_MEM_BASED_CASTER(ch))
+            return FALSE;
+          break;
+        case PREP_TYPE_SPONTANEOUS:
+          if (IS_MEM_BASED_CASTER(ch))
+            return FALSE;
+          break;
+        case PREP_TYPE_ANY:
+          break;
+        default:
+          log("SYSERR: meets_class_prerequisite() - Bad Preparation type prerequisite %d", prereq->values[1]);
+          return FALSE;
+      }
+      break;
+      
+    case CLASS_PREREQ_RACE:
+      if (!IS_NPC(ch) && GET_RACE(ch) != prereq->values[0])
+        return FALSE;
+      break;
+      
+    case CLASS_PREREQ_BAB:
+      if (BAB(ch) < prereq->values[0])
+        return FALSE;
+      break;
+      
+    case CLASS_PREREQ_CFEAT:
+      /*  SPECIAL CASE - You must have a feat, and it must be the cfeat for the chosen weapon. */
+      if (iarg && !has_combat_feat(ch, feat_to_cfeat(prereq->values[0]), iarg))
+        return FALSE;
+      break;
+      
+    case CLASS_PREREQ_WEAPON_PROFICIENCY:
+      if (iarg && !is_proficient_with_weapon(ch, iarg))
+        return FALSE;
+      break;
+      
+    default:
+      log("SYSERR: meets_class_prerequisite() - Bad prerequisite type %d", prereq->prerequisite_type);
+      return FALSE;
+  }
+
+  return TRUE;
+}
+
 bool display_class_info(struct char_data *ch, char *classname) {
   int class = -1, i = 0;
   char buf[MAX_STRING_LENGTH] = { '\0' };  
-  /*char buf2[MAX_STRING_LENGTH] = { '\0' };*/
+  char buf2[MAX_STRING_LENGTH] = { '\0' };
   static int line_length = 80;
   bool first_skill = TRUE;
   size_t len = 0;
@@ -1858,7 +2046,6 @@ bool display_class_info(struct char_data *ch, char *classname) {
   draw_line(ch, line_length, '-', '-');
   
   /*  Here display the prerequisites */
-  /*
   if (class_list[class].prereq_list == NULL) {
     sprintf(buf, "\tCPrerequisites : \tnnone\r\n");
   } else {
@@ -1869,16 +2056,15 @@ bool display_class_info(struct char_data *ch, char *classname) {
       if (first) {
         first = FALSE;
         sprintf(buf, "\tcPrerequisites : %s%s%s",
-                (meets_prerequisite(ch, prereq, -1) ? "\tn" : "\tr"), prereq->description, "\tn");
+                (meets_class_prerequisite(ch, prereq, -1) ? "\tn" : "\tr"), prereq->description, "\tn");
       } else {
         sprintf(buf2, ", %s%s%s",
-                (meets_prerequisite(ch, prereq, -1) ? "\tn" : "\tr"), prereq->description, "\tn");
+                (meets_class_prerequisite(ch, prereq, -1) ? "\tn" : "\tr"), prereq->description, "\tn");
         strcat(buf, buf2);
       }
     }
   }
   send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
-  */
 
   /* This we will need to buffer and wrap so that it will fit in the space provided. */
   sprintf(buf, "\tcDescription : \tn%s\r\n", class_list[class].descrip);

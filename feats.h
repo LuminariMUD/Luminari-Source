@@ -49,6 +49,7 @@ int is_class_feat(int featnum, int class);
 int is_daily_feat(int featnum);
 int has_feat(struct char_data *ch, int featnum);
 bool meets_prerequisite(struct char_data *ch, struct feat_prerequisite *prereq, int iarg);
+bool has_combat_feat(struct char_data *ch, int cfeat, int compare);
 
 /* For help system integration, */
 bool display_feat_info(struct char_data *ch, char *featname);
@@ -95,16 +96,26 @@ ACMD(do_featlisting);
 #define LIST_FEATS_ALL           2
 
 /* Defines for prerequisites */
-#define FEAT_PREREQ_NONE        0
-#define FEAT_PREREQ_ATTRIBUTE    1
-#define FEAT_PREREQ_CLASS_LEVEL  2
-#define FEAT_PREREQ_FEAT         3
-#define FEAT_PREREQ_ABILITY      4
-#define FEAT_PREREQ_SPELLCASTING 5
-#define FEAT_PREREQ_RACE         6
-#define FEAT_PREREQ_BAB          7
-#define FEAT_PREREQ_CFEAT        8
-#define FEAT_PREREQ_WEAPON_PROFICIENCY 9
+#define FEAT_PREREQ_NONE                 0
+#define CLASS_PREREQ_NONE                0
+#define FEAT_PREREQ_ATTRIBUTE            1
+#define CLASS_PREREQ_ATTRIBUTE           1
+#define FEAT_PREREQ_CLASS_LEVEL          2
+#define CLASS_PREREQ_CLASS_LEVEL         2
+#define FEAT_PREREQ_FEAT                 3
+#define CLASS_PREREQ_FEAT                3
+#define FEAT_PREREQ_ABILITY              4
+#define CLASS_PREREQ_ABILITY             4
+#define FEAT_PREREQ_SPELLCASTING         5
+#define CLASS_PREREQ_SPELLCASTING        5
+#define FEAT_PREREQ_RACE                 6
+#define CLASS_PREREQ_RACE                6
+#define FEAT_PREREQ_BAB                  7
+#define CLASS_PREREQ_BAB                 7
+#define FEAT_PREREQ_CFEAT                8
+#define CLASS_PREREQ_CFEAT               8
+#define FEAT_PREREQ_WEAPON_PROFICIENCY   9
+#define CLASS_PREREQ_WEAPON_PROFICIENCY  9
 
 #define AB_NONE 0
 #define AB_STR  1

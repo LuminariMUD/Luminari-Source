@@ -80,6 +80,7 @@ struct class_table {
 extern struct class_table class_list[];
 
 /* Functions available through class.c */
+bool meets_class_prerequisite(struct char_data *ch, struct class_prerequisite *prereq, int iarg);
 bool display_class_info(struct char_data *ch, char *classname);
 int backstab_mult(struct char_data *ch);
 void do_start(struct char_data *ch);
