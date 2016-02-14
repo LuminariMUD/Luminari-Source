@@ -135,9 +135,9 @@ void class_prereq_feat(int class_num, int feat, int ranks) {
 
   /* Generate the description. */
   if (ranks > 1)
-    sprintf(buf, "%s (%d ranks)", class_list[feat].name, ranks);
+    sprintf(buf, "%s (%d ranks)", feat_list[feat].name, ranks);
   else
-    sprintf(buf, "%s", class_list[feat].name);
+    sprintf(buf, "%s", feat_list[feat].name);
 
   prereq->description = strdup(buf);
 
