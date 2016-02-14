@@ -100,7 +100,7 @@ void class_prereq_attribute(int class_num, int attribute, int value) {
   prereq = create_prereq(CLASS_PREREQ_ATTRIBUTE, attribute, value, 0);
 
   /* Generate the description. */
-  sprintf(buf, "%s : %d", attribute_abbr[attribute], value);
+  sprintf(buf, "%s: %d", attribute_abbr[attribute], value);
   prereq->description = strdup(buf);
 
   /*  Link it up. */
@@ -204,7 +204,7 @@ void class_prereq_race(int class_num, int race) {
 
   prereq = create_prereq(CLASS_PREREQ_RACE, race, 0, 0);
 
-  sprintf(buf, "Race : %s", pc_race_types[race]);
+  sprintf(buf, "Race: %s", pc_race_types[race]);
   prereq->description = strdup(buf);
 
   /*   Link it up. */
@@ -218,7 +218,7 @@ void class_prereq_bab(int class_num, int bab) {
 
   prereq = create_prereq(CLASS_PREREQ_BAB, bab, 0, 0);
 
-  sprintf(buf, "BAB +%d", bab);
+  sprintf(buf, "Min. BAB +%d", bab);
   prereq->description = strdup(buf);
 
   /* Link it up */
@@ -243,7 +243,7 @@ void class_prereq_restricted_align(int class_num, int alignment) {
      #define NEUTRAL_EVIL        7
      #define CHAOTIC_EVIL        8 */
   
-  sprintf(buf, "Alignment: %s", alignment_names[alignment]);
+  sprintf(buf, "\tRRestricted\tn Align: %s", alignment_names_nocolor[alignment]);
   prereq->description = strdup(buf);
 
   /* Link it up */
