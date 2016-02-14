@@ -1661,7 +1661,7 @@ ACMD(do_gain) {
     class = get_class_by_name(arg);
     if (class == -1) {
       send_to_char(ch, "Invalid class.\r\n");
-      list_valid_classes(ch, MODE_NORMAL);
+      display_in_game_classes(ch);
       return;
     }
 

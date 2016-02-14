@@ -226,6 +226,31 @@ void class_prereq_bab(int class_num, int bab) {
   class_list[class_num].prereq_list = prereq;
 }
 
+/* alignment is a list of RESTRICTED alignments */
+void class_prereq_restricted_align(int class_num, int alignment) {
+  struct class_prerequisite *prereq = NULL;
+  char buf[80];
+
+  prereq = create_prereq(CLASS_PREREQ_ALIGN, alignment, 0, 0);
+
+  /* #define LAWFUL_GOOD         0
+     #define NEUTRAL_GOOD        1
+     #define CHAOTIC_GOOD        2
+     #define LAWFUL_NEUTRAL      3
+     #define TRUE_NEUTRAL        4
+     #define CHAOTIC_NEUTRAL     5
+     #define LAWFUL_EVIL         6
+     #define NEUTRAL_EVIL        7
+     #define CHAOTIC_EVIL        8 */
+  
+  sprintf(buf, "Alignment: %s", alignment_names[alignment]);
+  prereq->description = strdup(buf);
+
+  /* Link it up */
+  prereq->next = class_list[class_num].prereq_list;
+  class_list[class_num].prereq_list = prereq;
+}
+
 void class_prereq_weapon_proficiency(int class_num) {
   struct class_prerequisite *prereq = NULL;
   char buf[80];
@@ -952,6 +977,13 @@ void load_class_list(void) {
     "the God of the Fist",      /* <= LVL_GRSTAFF */
     "the Monk"                  /* default */  
   );
+  /* prereqs */
+  class_prereq_restricted_align(CLASS_MONK, NEUTRAL_GOOD);
+  class_prereq_restricted_align(CLASS_MONK, CHAOTIC_GOOD);
+  class_prereq_restricted_align(CLASS_MONK, TRUE_NEUTRAL);
+  class_prereq_restricted_align(CLASS_MONK, CHAOTIC_NEUTRAL);
+  class_prereq_restricted_align(CLASS_MONK, NEUTRAL_EVIL);
+  class_prereq_restricted_align(CLASS_MONK, CHAOTIC_EVIL);
   /****************************************************************************/
   
   /****************************************************************************/
@@ -1849,6 +1881,12 @@ bool meets_class_prerequisite(struct char_data *ch, struct class_prerequisite *p
       /* This is a NON-prereq. */
       break;
       
+      /* RESTRICTED alignments */
+    case CLASS_PREREQ_ALIGN:
+      if (prereq->values[0] == convert_alignment(GET_ALIGNMENT(ch)))
+        return FALSE;
+      break;
+      
     case CLASS_PREREQ_ATTRIBUTE:
       switch (prereq->values[0]) {
         case AB_STR:
@@ -2083,6 +2121,9 @@ bool display_class_info(struct char_data *ch, char *classname) {
   }
   send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
 
+  send_to_char(ch, "\tC");
+  draw_line(ch, line_length, '-', '-');
+  
   /* This we will need to buffer and wrap so that it will fit in the space provided. */
   sprintf(buf, "\tcDescription : \tn%s\r\n", class_list[class].descrip);
   send_to_char(ch, strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
@@ -2090,7 +2131,7 @@ bool display_class_info(struct char_data *ch, char *classname) {
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
   
-  send_to_char(ch, "\tYType: \tRclassfeat %s\tY for this class's feat info.\tn\r\n",
+  send_to_char(ch, "\tYType: \tRclass feats %s\tY for this class's feat info.\tn\r\n",
     CLSLIST_NAME(class));
  
   send_to_char(ch, "\tC");
