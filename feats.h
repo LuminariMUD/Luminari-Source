@@ -116,6 +116,7 @@ ACMD(do_featlisting);
 #define CLASS_PREREQ_CFEAT               8
 #define FEAT_PREREQ_WEAPON_PROFICIENCY   9
 #define CLASS_PREREQ_WEAPON_PROFICIENCY  9
+#define CLASS_PREREQ_ALIGN               10
 
 #define AB_NONE 0
 #define AB_STR  1
