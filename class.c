@@ -1916,9 +1916,9 @@ bool display_class_prereqs(struct char_data *ch, char *classname) {
   }
   
   /* close our display */
-  send_to_char(ch, "\tC\r\n");
+  send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
-  
+  send_to_char(ch, "\tn");
   
   return TRUE;
 }
