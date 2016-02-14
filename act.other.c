@@ -1593,7 +1593,7 @@ ACMD(do_gain) {
 
     if (class < 0 || class >= NUM_CLASSES || !meet_class_reqs(ch, class, MODE_NORMAL)) {
       send_to_char(ch, "That is not a valid class!  These are valid choices:\r\n");
-      list_valid_classes(ch, MODE_NORMAL);
+      display_in_game_classes(ch);
       return;
     }
 
