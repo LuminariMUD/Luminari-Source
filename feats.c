@@ -241,7 +241,7 @@ void feat_prereq_race(int featnum, int race) {
 
   prereq = create_prerequisite(FEAT_PREREQ_RACE, race, 0, 0);
 
-  sprintf(buf, "Race : %s", pc_race_types[race]);
+  sprintf(buf, "Race: %s", pc_race_types[race]);
   prereq->description = strdup(buf);
 
   /*   Link it up. */
