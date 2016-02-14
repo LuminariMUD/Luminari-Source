@@ -1910,7 +1910,7 @@ bool display_class_prereqs(struct char_data *ch, char *classname) {
   struct class_prerequisite *prereq = NULL;
   static int line_length = 80;
   char buf[MAX_STRING_LENGTH] = { '\0' };  
-  bool meets_prereqs = FALSE;
+  bool meets_prereqs = FALSE, found = FALSE;
   
   skip_spaces(&classname);
   class = parse_class_long(classname);
@@ -1941,7 +1941,11 @@ bool display_class_prereqs(struct char_data *ch, char *classname) {
               (meets_prereqs ? "\tn" : "\tr"), prereq->description, "\tn",
               (meets_prereqs ? "\tWFulfilled!\tn" : "\trMissing\tn"));
     send_to_char(ch, buf);
+    found = TRUE;
   }
+  
+  if (!found)
+    send_to_char(ch, "None!\r\n");
   
   /* close prereq display */
   send_to_char(ch, "\tC");
