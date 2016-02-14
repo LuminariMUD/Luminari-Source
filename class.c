@@ -1876,6 +1876,54 @@ void load_class_list(void) {
   /****************************************************************************/
 }
 
+/* a display specific for identify prereqs for a given class */
+bool display_class_prereqs(struct char_data *ch, char *classname) {
+  int class = CLASS_UNDEFINED;
+  struct class_prerequisite *prereq = NULL;
+  static int line_length = 80;
+  char buf[MAX_STRING_LENGTH] = { '\0' };  
+  bool meets_prereqs = FALSE;
+  
+  skip_spaces(&classname);
+  class = parse_class_long(classname);
+
+  if (class == CLASS_UNDEFINED) {
+    return FALSE;
+  }
+
+  /* display top */  
+  send_to_char(ch, "\tC\r\n");
+  draw_line(ch, line_length, '-', '-');
+  
+  /* basic info */
+  send_to_char(ch, "\tcClass Name       : \tn%s\r\n", CLSLIST_NAME(class));
+  if (CLSLIST_LOCK(class)) {
+    send_to_char(ch, "\tcLock! Unlock Cost: \tn%d Account XP\r\n", CLSLIST_COST(class));      
+  }
+  
+  /* prereqs, start with text line */
+  send_to_char(ch, text_line_string("\tYAll Feats\tC", line_length, '-', '-'));
+
+  for (prereq = class_list[class].prereq_list; prereq != NULL; prereq = prereq->next) {
+    meets_prereqs = FALSE;
+    if (meets_class_prerequisite(ch, prereq, -1))
+      meets_prereqs = TRUE;
+    sprintf(buf, "\tn%s%s%s %s\r\n",
+              (meets_prereqs ? "\tn" : "\tr"), prereq->description, "\tn",
+              (meets_prereqs ? "\tWFulfilled!\tn" : "\trMissing\tn"));
+    send_to_char(ch, buf);
+  }
+  
+  /* close our display */
+  send_to_char(ch, "\tC\r\n");
+  draw_line(ch, line_length, '-', '-');
+  
+  
+  return TRUE;
+}
+
+/* this will be a general list of all classes in game and indication whether
+ selectable by CH based on prereqs */
 void display_in_game_classes(struct char_data *ch) {
   struct descriptor_data *d = ch->desc;
   int counter, columns = 0;
@@ -2401,12 +2449,19 @@ ACMD(do_class) {
     display_imm_classlist(ch);
     
   /* class listing just to view pre-requisites for a given class */  
-  } else if (is_abbrev(arg, "prerequisites")) {
+  } else if (is_abbrev(arg, "prereqs")) {
+    
+    if (!strcmp(classname, "")) {
+      send_to_char(ch, "You must provide the name of a class.\r\n");
+    } else if(!display_class_prereqs(ch, classname)) {
+      send_to_char(ch, "Could not find that class.\r\n");
+    }
+    
     /* unfinished */
     send_to_char(ch, "Not imlemented yet!\r\n");
   }
   
-  send_to_char(ch, "\tDUsage: class <list|info|feats|staff|prerequisites> <class name>\tn\r\n");
+  send_to_char(ch, "\tDUsage: class <list|info|feats|staff|prereqs> <class name>\tn\r\n");
 }
 
 /* TODO: phase this out using classo prereqs */

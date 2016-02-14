@@ -3047,7 +3047,7 @@ struct set_struct {
   { "questpoints", LVL_STAFF, PC, NUMBER},
   { "questhistory", LVL_STAFF, PC, NUMBER},
   { "trains", LVL_STAFF, PC, NUMBER}, /* 60 */
-  { "race", LVL_STAFF, PC, NUMBER},
+  { "race", LVL_STAFF, BOTH, MISC},
   { "spellres", LVL_STAFF, PC, NUMBER}, /* 62 */
   { "size", LVL_STAFF, PC, NUMBER}, /* 63 */
   { "wizard", LVL_STAFF, PC, NUMBER}, /* 64 */
