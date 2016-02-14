@@ -1898,17 +1898,18 @@ bool display_class_prereqs(struct char_data *ch, char *classname) {
   /* basic info */
   send_to_char(ch, "\tcClass Name       : \tn%s\r\n", CLSLIST_NAME(class));
   if (CLSLIST_LOCK(class)) {
-    send_to_char(ch, "\tcLock! Unlock Cost: \tn%d Account XP\r\n", CLSLIST_COST(class));      
+    send_to_char(ch, "\tcUnlock Cost: \tn%d Account XP - %s\r\n", CLSLIST_COST(class),
+            has_unlocked_class(ch, class) ? "\tWUnlocked!\tn" : "\trLocked!\tn");      
   }
   
   /* prereqs, start with text line */
-  send_to_char(ch, text_line_string("\tYAll Feats\tC", line_length, '-', '-'));
+  send_to_char(ch, text_line_string("\tYRequirements\tC", line_length, '-', '-'));
 
   for (prereq = class_list[class].prereq_list; prereq != NULL; prereq = prereq->next) {
     meets_prereqs = FALSE;
     if (meets_class_prerequisite(ch, prereq, -1))
       meets_prereqs = TRUE;
-    sprintf(buf, "\tn%s%s%s %s\r\n",
+    sprintf(buf, "\tn%s%s%s - %s\r\n",
               (meets_prereqs ? "\tn" : "\tr"), prereq->description, "\tn",
               (meets_prereqs ? "\tWFulfilled!\tn" : "\trMissing\tn"));
     send_to_char(ch, buf);
@@ -2457,8 +2458,6 @@ ACMD(do_class) {
       send_to_char(ch, "Could not find that class.\r\n");
     }
     
-    /* unfinished */
-    send_to_char(ch, "Not imlemented yet!\r\n");
   }
   
   send_to_char(ch, "\tDUsage: class <list|info|feats|staff|prereqs> <class name>\tn\r\n");
