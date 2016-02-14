@@ -101,7 +101,7 @@ void init_class(struct char_data *ch, int class, int level);
 void load_class_list(void);
 
 /* ACMD */
-ACMD(do_classlist);
+ACMD(do_class);
 
 /* Global variables */
 

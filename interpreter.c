@@ -197,7 +197,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "classfeats", "classfeats", POS_DEAD, do_classfeats, 0, 0, TRUE, ACTION_NONE, {0, 0}},
   { "cursetouch", "cursetouch", POS_FIGHTING, do_cursetouch, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
   { "copycat", "copycat", POS_FIGHTING, do_copycat, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
-  { "classlist", "classlist", POS_DEAD, do_classlist, 0, 0, TRUE, ACTION_NONE, {0, 0}},
+  { "class", "class", POS_DEAD, do_class, 0, 0, TRUE, ACTION_NONE, {0, 0}},
 
   { "date", "da", POS_DEAD, do_date, 1, SCMD_DATE, TRUE, ACTION_NONE, {0, 0}},
   { "dc", "dc", POS_DEAD, do_dc, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}},

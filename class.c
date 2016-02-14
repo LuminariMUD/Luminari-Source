@@ -1796,14 +1796,16 @@ void display_in_game_classes(struct char_data *ch) {
   int counter, columns = 0;
 
   write_to_output(d, "\r\n");
+  
   for (counter = 0; counter < NUM_CLASSES; counter++) {
     write_to_output(d, "%s%-20.20s %s", class_is_available(ch, counter, 0, NULL) ? " " : "*",
             CLSLIST_NAME(counter), 
             !(++columns % 3) ? "\r\n" : "");
   }
+  
+  write_to_output(d, "\r\n");
   write_to_output(d, "* - indicates you do not qualify for this class.\r\n");
   write_to_output(d, "\r\n");
-
 }
 
 /* determines if ch qualifies for a class */
@@ -2099,8 +2101,9 @@ bool display_class_info(struct char_data *ch, char *classname) {
   return TRUE;  
 }
 
-/* list all the class defines in-game */
-ACMD(do_classlist) {
+/* this was created for debugging the class command and new classes added to the
+ class list */
+void display_imm_classlist(struct char_data *ch) {
   int i = 0, j = 0;
   char buf[MAX_STRING_LENGTH];
   size_t len = 0;
@@ -2160,7 +2163,43 @@ ACMD(do_classlist) {
     }
     len += snprintf(buf + len, sizeof (buf) - len, "============================================\r\n");
   }
-  page_string(ch->desc, buf, 1);
+  page_string(ch->desc, buf, 1);  
+}
+
+/* entry point for class command - getting class info */
+ACMD(do_class) {
+  char arg[80];
+  char arg2[80];
+  char *classname;
+
+  /*  Have to process arguments like this
+   *  because of the syntax - class info <classname> */
+  classname = one_argument(argument, arg);
+  one_argument(classname, arg2);
+
+  /* no argument, or general list of classes */
+  if (is_abbrev(arg, "list") || !*arg) {
+    display_in_game_classes(ch);
+    
+  /* class info - specific info on given class */    
+  } else if (is_abbrev(arg, "info")) {
+
+    if (!strcmp(classname, "")) {
+      send_to_char(ch, "You must provide the name of a class.\r\n");
+    } else if(!display_class_info(ch, classname)) {
+      send_to_char(ch, "Could not find that class.\r\n");
+    }
+    
+  /* cryptic class listing for staff :) */
+  } else if (is_abbrev(arg, "staff")) {
+    display_imm_classlist(ch);
+    
+  /* class listing just to view pre-requisites for a given class */  
+  } else if (is_abbrev(arg, "prerequisites")) {
+    /* unfinished */
+  }
+  
+  send_to_char(ch, "\tDUsage: class <list|info|staff|prerequisites> <class name>\tn\r\n");
 }
 
 /* homeland-port currently unused */
