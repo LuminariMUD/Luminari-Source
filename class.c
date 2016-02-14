@@ -1898,7 +1898,7 @@ bool display_class_prereqs(struct char_data *ch, char *classname) {
   /* basic info */
   send_to_char(ch, "\tcClass Name       : \tn%s\r\n", CLSLIST_NAME(class));
   if (CLSLIST_LOCK(class)) {
-    send_to_char(ch, "\tcUnlock Cost: \tn%d Account XP - %s\r\n", CLSLIST_COST(class),
+    send_to_char(ch, "\tcUnlock Cost      : \tn%d Account XP - %s\r\n", CLSLIST_COST(class),
             has_unlocked_class(ch, class) ? "\tWUnlocked!\tn" : "\trLocked!\tn");      
   }
   
@@ -1915,7 +1915,18 @@ bool display_class_prereqs(struct char_data *ch, char *classname) {
     send_to_char(ch, buf);
   }
   
-  /* close our display */
+  /* close prereq display */
+  send_to_char(ch, "\tC");
+  draw_line(ch, line_length, '-', '-');
+  send_to_char(ch, "\tn");
+  
+  if (class_is_available(ch, class, 0, NULL)) {
+    send_to_char(ch, "\tWClass IS AVAILABLE!\tn\r\n");
+  } else {
+    send_to_char(ch, "\trClass is not available!\tn\r\n");    
+  }
+  
+  /* close display */
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
   send_to_char(ch, "\tn");
