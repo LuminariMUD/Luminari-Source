@@ -2166,6 +2166,42 @@ void display_imm_classlist(struct char_data *ch) {
   page_string(ch->desc, buf, 1);  
 }
 
+bool view_class_feats(struct char_data *ch, char *classname) {
+  int class = CLASS_UNDEFINED, i = 0, feat = 0;
+  
+  skip_spaces(&classname);
+  class = parse_class_long(classname);
+
+  if (class == CLASS_UNDEFINED) {
+    return FALSE;
+  }
+
+  if (class == CLASS_WARRIOR) {
+    send_to_char(ch, "The warrior class gets a bonus class feat every two "
+            "levels.\r\n");
+  }
+  if (class == CLASS_WIZARD) {
+    send_to_char(ch, "The wizard class gets a bonus class feat every five "
+            "levels.\r\n");
+  }
+
+  /* level feats */
+  i = 0;
+  while (level_feats[i][LF_FEAT] != FEAT_UNDEFINED) {
+    feat = level_feats[i][LF_FEAT];
+    if (level_feats[i][LF_CLASS] == class) {
+      /* found a class feat! */
+      send_to_char(ch, "Level: %-2d, Feat: %s\r\n",
+                   level_feats[i][LF_MIN_LVL],
+                   feat_list[feat].name);
+    }
+    i++;
+  }
+  send_to_char(ch, "\r\n");
+  
+  return TRUE;
+}
+
 /* entry point for class command - getting class info */
 ACMD(do_class) {
   char arg[80];
@@ -2190,6 +2226,15 @@ ACMD(do_class) {
       send_to_char(ch, "Could not find that class.\r\n");
     }
     
+  /* class feat - list of free feats for given class */    
+  } else if (is_abbrev(arg, "feats")) {
+
+    if (!strcmp(classname, "")) {
+      send_to_char(ch, "You must provide the name of a class.\r\n");
+    } else if(!view_class_feats(ch, classname)) {
+      send_to_char(ch, "Could not find that class.\r\n");
+    }
+            
   /* cryptic class listing for staff :) */
   } else if (is_abbrev(arg, "staff")) {
     display_imm_classlist(ch);
@@ -2197,9 +2242,10 @@ ACMD(do_class) {
   /* class listing just to view pre-requisites for a given class */  
   } else if (is_abbrev(arg, "prerequisites")) {
     /* unfinished */
+    send_to_char(ch, "Not imlemented yet!\r\n");
   }
   
-  send_to_char(ch, "\tDUsage: class <list|info|staff|prerequisites> <class name>\tn\r\n");
+  send_to_char(ch, "\tDUsage: class <list|info|feats|staff|prerequisites> <class name>\tn\r\n");
 }
 
 /* homeland-port currently unused */
@@ -2463,7 +2509,7 @@ void roll_real_abils(struct char_data *ch) {
    4) level received
    5) feat name
    This function also assigns all our (starting) racial feats */
-int level_feats[][LEVEL_FEATS] = {
+static int level_feats[][LEVEL_FEATS] = {
   /* class, race, stacks?, level, feat_ name */
   /* wizard */
   {CLASS_WIZARD, RACE_UNDEFINED, FALSE, 1, FEAT_WEAPON_PROFICIENCY_WIZARD},
