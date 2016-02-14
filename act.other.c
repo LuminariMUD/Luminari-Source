@@ -56,8 +56,8 @@
 #define MOB_PALADIN_MOUNT 70
 #define MOB_EPIC_PALADIN_MOUNT 79
 /* some defines for gain/respec */
-#define MODE_NORMAL 0
-#define MODE_RESPEC 1
+#define MODE_CLASSLIST_NORMAL 0
+#define MODE_CLASSLIST_RESPEC 1
 #define MULTICAP	3
 #define WILDSHAPE_AFFECTS 4
 #define TOG_OFF 0
@@ -1472,29 +1472,6 @@ int meet_class_reqs(struct char_data *ch, int class, int mode) {
   return 0;
 }
 
-/* simple function to list classes with a "valid" check */
-void list_valid_classes(struct char_data *ch, int mode) {
-  int i, max_levels = 30;
-
-  for (i = 0; i < NUM_CLASSES; i++) {
-    max_levels = CLSLIST_MAXLVL(i);
-    if (max_levels == -1)
-      max_levels = LVL_IMMORT - 1;
-    switch (i) {
-      //case CLASS_x:
-      default:
-        if (meet_class_reqs(ch, i, mode) && has_unlocked_class(ch, i) &&
-            CLASS_LEVEL(ch, i) < max_levels) {
-          send_to_char(ch, "%s\r\n", CLSLIST_NAME(i));
-        }
-
-        break;
-    }
-  }
-
-  send_to_char(ch, "\r\n");
-}
-
 /* reset character to level 1, but preserve xp */
 ACMD(do_respec) {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
@@ -1508,18 +1485,19 @@ ACMD(do_respec) {
   if (!*arg) {
     send_to_char(ch, "You need to select a starting class to respec to,"
             " here are your options:\r\n");
-    list_valid_classes(ch, MODE_RESPEC);
+    display_in_game_classes(ch);
     return;
   } else {
     class = get_class_by_name(arg);
     if (class == -1) {
       send_to_char(ch, "Invalid class.\r\n");
-      list_valid_classes(ch, MODE_RESPEC);
+      display_in_game_classes(ch);
       return;
     }
-    if (class >= NUM_CLASSES || !meet_class_reqs(ch, class, MODE_RESPEC)) {
-      send_to_char(ch, "That is not a valid class!  These are valid choices:\r\n");
-      list_valid_classes(ch, MODE_RESPEC);
+    if (class >= NUM_CLASSES ||
+            !class_is_available(ch, class, MODE_CLASSLIST_RESPEC, NULL)) {
+      send_to_char(ch, "That is not a valid class!\r\n");
+      display_in_game_classes(ch);
       return;
     }
     if (GET_LEVEL(ch) < 2) {
@@ -1590,9 +1568,10 @@ ACMD(do_gain) {
       display_in_game_classes(ch);
       return;
     }
-
-    if (class < 0 || class >= NUM_CLASSES || !meet_class_reqs(ch, class, MODE_NORMAL)) {
-      send_to_char(ch, "That is not a valid class!  These are valid choices:\r\n");
+   
+    if (class < 0 || class >= NUM_CLASSES ||
+            !class_is_available(ch, class, MODE_CLASSLIST_NORMAL, NULL)) {
+      send_to_char(ch, "That is not a valid class!\r\n");
       display_in_game_classes(ch);
       return;
     }
@@ -4650,8 +4629,8 @@ ACMD(do_happyhour) {
 #undef BARD_AFFECTS
 #undef MOB_PALADIN_MOUNT
 #undef MOB_EPIC_PALADIN_MOUNT
-#undef MODE_NORMAL
-#undef MODE_RESPEC
+#undef MODE_CLASSLIST_NORMAL
+#undef MODE_CLASSLIST_RESPEC
 #undef MULTICAP
 #undef WILDSHAPE_AFFECTS
 #undef TOG_OFF
