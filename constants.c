@@ -263,6 +263,18 @@ const char *alignment_names[NUM_ALIGNMENTS + 1] = {
   "\tRChaotic \tDEvil\tn",
   "\n"
 };
+const char *alignment_names_nocolor[NUM_ALIGNMENTS + 1] = {
+  "Lawful Good",
+  "Neutral Good",
+  "Chaotic Good",
+  "Lawful Neutral",
+  "True Neutral",
+  "Chaotic Neutral",
+  "Lawful Evil",
+  "Neutral Evil",
+  "Chaotic Evil",
+  "\n"
+};
 
 /* structure for immortal prefix */
 const char *admin_level_names[LVL_IMPL - LVL_IMMORT + 2] = {
