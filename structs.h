@@ -361,6 +361,8 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define CLASS_STALWART_DEFENDER 13
 #define CLASS_STALWARTDEFENDER CLASS_STALWART_DEFENDER
 #define CLASS_SHIFTER           14
+/* !!!---- CRITICAL ----!!! make sure to add class names to constants.c's
+   class_names[] - we are dependent on that for loading the feat-list */
 /** Total number of available PC Classes */
 #define NUM_CLASSES             15
 

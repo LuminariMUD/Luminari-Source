@@ -31,7 +31,25 @@
 cpp_extern const char *luminari_version = "LuminariMUD 2.267 (tbaMUD 3.64)";
 
 /* strings corresponding to ordinals/bitvectors in structs.h */
-/* (Note: strings for class definitions in class.c instead of here) */
+
+const char *class_names[NUM_CLASSES + 1] = {
+  "Wizard", //0
+  "Cleric",
+  "Rogue",
+  "Warrior",
+  "Monk",
+  "Druid", //5
+  "Berserker",
+  "Sorcerer",
+  "Paladin",
+  "Ranger",
+  "Bard", //10
+  "Weapon Master",
+  "Arcane Archer",
+  "Stalwart Defender",
+  "Shifter",
+  "\n"  
+};
 
 const char *attack_hit_types[NUM_ATTACK_TYPES + 1] = {
   "Hit", //0

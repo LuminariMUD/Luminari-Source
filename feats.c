@@ -152,7 +152,7 @@ void feat_prereq_class_level(int featnum, int cl, int level) {
   prereq = create_prerequisite(FEAT_PREREQ_CLASS_LEVEL, cl, level, 0);
 
   /* Generate the description. */
-  sprintf(buf, "%s level %d", CLSLIST_NAME(cl), level);
+  sprintf(buf, "%s level %d", class_names[cl], level);
   prereq->description = strdup(buf);
 
   /*   Link it up. */
@@ -225,9 +225,11 @@ void feat_prereq_spellcasting(int featnum, int casting_type, int prep_type, int 
     "Any"
   };
 
-  prereq = create_prerequisite(FEAT_PREREQ_SPELLCASTING, casting_type, prep_type, circle);
+  prereq = create_prerequisite(FEAT_PREREQ_SPELLCASTING, casting_type, prep_type,
+                               circle);
 
-  sprintf(buf, "Ability to cast %s %s spells", casting_types[casting_type], spell_preparation_types[prep_type]);
+  sprintf(buf, "Ability to cast %s %s spells", casting_types[casting_type],
+                spell_preparation_types[prep_type]);
   prereq->description = strdup(buf);
 
   /*   Link it up. */
