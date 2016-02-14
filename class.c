@@ -1978,7 +1978,7 @@ void display_in_game_classes(struct char_data *ch) {
   }
   
   write_to_output(d, "\r\n");
-  write_to_output(d, "* - indicates you do not qualify for this class.\r\n");
+  write_to_output(d, "* - not qualified 'class prereqs <class name>' for details\r\n");
   write_to_output(d, "\r\n");
 }
 
