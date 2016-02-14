@@ -80,6 +80,8 @@ struct class_table {
 extern struct class_table class_list[];
 
 /* Functions available through class.c */
+void display_in_game_classes(struct char_data *ch);
+bool class_is_available(struct char_data *ch, int classnum, int iarg, char *sarg);
 bool meets_class_prerequisite(struct char_data *ch, struct class_prerequisite *prereq, int iarg);
 bool display_class_info(struct char_data *ch, char *classname);
 int backstab_mult(struct char_data *ch);
@@ -98,6 +100,7 @@ int modify_class_ability(struct char_data *ch, int ability, int class);
 void init_class(struct char_data *ch, int class, int level);
 void load_class_list(void);
 
+/* ACMD */
 ACMD(do_classlist);
 
 /* Global variables */
