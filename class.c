@@ -1797,9 +1797,11 @@ void display_in_game_classes(struct char_data *ch) {
 
   write_to_output(d, "\r\n");
   for (counter = 0; counter < NUM_CLASSES; counter++) {
-    write_to_output(d, "%2d) %-20.20s %s", counter,
-              CLSLIST_NAME(counter), !(++columns % 3) ? "\r\n" : "");
+    write_to_output(d, "%-20.20s%s%s", CLSLIST_NAME(counter), 
+            class_is_available(ch, counter, 0, NULL) ? " " : "*",
+            !(++columns % 3) ? "\r\n" : "");
   }
+  write_to_output(d, "* - indicates you do not qualify for this class.\r\n");
   write_to_output(d, "\r\n");
 
 }
