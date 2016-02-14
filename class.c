@@ -1781,12 +1781,40 @@ void load_class_list(void) {
   /* elf, half-elf only */
   class_prereq_race(CLASS_ARCANE_ARCHER, RACE_ELF);
   class_prereq_race(CLASS_ARCANE_ARCHER, RACE_HALF_ELF);
-  /* weapon focus in any bow */
-  // eeeeek missing!
   class_prereq_feat(CLASS_ARCANE_ARCHER, FEAT_POINT_BLANK_SHOT, 1);
   class_prereq_feat(CLASS_ARCANE_ARCHER, FEAT_PRECISE_SHOT, 1);
   class_prereq_spellcasting(CLASS_ARCANE_ARCHER, CASTING_TYPE_ARCANE,
       PREP_TYPE_ANY, 1 /*circle*/);
+  /* weapon focus in any bow */
+  /*  if (!HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS),
+              WEAPON_TYPE_LONG_BOW) &&
+          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS),
+              WEAPON_TYPE_SHORT_BOW) &&
+          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS),
+              WEAPON_TYPE_COMPOSITE_LONGBOW) &&
+          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS),
+              WEAPON_TYPE_COMPOSITE_SHORTBOW) &&
+          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS),
+              WEAPON_TYPE_COMPOSITE_LONGBOW_2) &&
+          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS),
+              WEAPON_TYPE_COMPOSITE_LONGBOW_3) &&
+          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS),
+              WEAPON_TYPE_COMPOSITE_LONGBOW_4) &&
+          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS),
+              WEAPON_TYPE_COMPOSITE_LONGBOW_5) &&
+          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS),
+              WEAPON_TYPE_COMPOSITE_SHORTBOW_2) &&
+          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS),
+              WEAPON_TYPE_COMPOSITE_SHORTBOW_3) &&
+          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS),
+              WEAPON_TYPE_COMPOSITE_SHORTBOW_4) &&
+          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS),
+              WEAPON_TYPE_COMPOSITE_SHORTBOW_5)              
+              ) {
+        passed = FALSE;
+        send_to_char(ch, "  -Feat required: Weapon Focus in any Long/Short Bow\r\n");
+      }
+  */  
   /****************************************************************************/
   
   /****************************************************************************/
