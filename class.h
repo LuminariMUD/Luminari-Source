@@ -99,6 +99,7 @@ const char *titles(int chclass, int level);
 int modify_class_ability(struct char_data *ch, int ability, int class);
 void init_class(struct char_data *ch, int class, int level);
 void load_class_list(void);
+static int level_feats[][LEVEL_FEATS];
 
 /* ACMD */
 ACMD(do_class);
@@ -110,7 +111,6 @@ ACMD(do_class);
 extern const char *church_types[];
 extern int prac_params[][NUM_CLASSES];
 extern struct guild_info_type guild_info[];
-extern int level_feats[][LEVEL_FEATS];
 extern const int *class_bonus_feats[NUM_CLASSES];
 
 #endif /* __CLASS_C__ */

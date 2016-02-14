@@ -1763,41 +1763,6 @@ void list_scanned_chars(struct char_data * list, struct char_data * ch, int
 
 /****  Commands ACMD ******/
 
-ACMD(do_classfeats) {
-  int class = CLASS_UNDEFINED, i = 0, feat = 0;
-
-  skip_spaces(&argument);
-  if (!argument || !*argument) {
-    send_to_char(ch, "Please type in the class you wish to view, example: class wizard \r\n");
-    return;
-  }
-
-  class = parse_class_long(argument);
-  if (class == CLASS_UNDEFINED) {
-    send_to_char(ch, "Invalid class!\r\n");
-    return;
-  }
-
-  if (class == CLASS_WARRIOR) {
-    send_to_char(ch, "The warrior class gets a bonus class feat every two "
-            "levels.\r\n");
-  }
-
-  /* level feats */
-  i = 0;
-  while (level_feats[i][LF_FEAT] != FEAT_UNDEFINED) {
-    feat = level_feats[i][LF_FEAT];
-    if (level_feats[i][LF_CLASS] == class) {
-      /* found a class feat! */
-      send_to_char(ch, "Level: %-2d, Feat: %s\r\n",
-                   level_feats[i][LF_MIN_LVL],
-                   feat_list[feat].name);
-    }
-    i++;
-  }
-  send_to_char(ch, "\r\n");
-}
-
 
 ACMD(do_masterlist) {
   size_t len = 0, nlen = 0;
