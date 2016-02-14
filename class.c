@@ -1791,6 +1791,19 @@ void load_class_list(void) {
   /****************************************************************************/
 }
 
+void display_in_game_classes(struct char_data *ch) {
+  struct descriptor_data *d = ch->desc;
+  int counter, columns = 0;
+
+  write_to_output(d, "\r\n");
+  for (counter = 0; counter < NUM_CLASSES; counter++) {
+    write_to_output(d, "%2d) %-20.20s %s", counter,
+              CLSLIST_NAME(counter), !(++columns % 3) ? "\r\n" : "");
+  }
+  write_to_output(d, "\r\n");
+
+}
+
 /* determines if ch qualifies for a class */
 bool class_is_available(struct char_data *ch, int classnum, int iarg, char *sarg) {
   struct class_prerequisite *prereq = NULL;
@@ -2166,8 +2179,7 @@ const char *church_types[] = {
   "\n"
 };  // 14
 
-/* The code to interpret a class letter -- used in interpreter.c when a new
- * character is selecting a class and by 'set class' in act.wizard.c. */
+/* The code to interpret a class letter -- just used in who list */
 int parse_class(char arg) {
   arg = LOWER(arg);
 
@@ -2240,7 +2252,7 @@ bitvector_t find_class_bitvector(const char *arg) {
   return (ret);
 }
 
-/* guild guards: stops classes from going in certain directions, essentially
+/* guild guards: stops classes from going in certain directions,
  currently being phased out */
 struct guild_info_type guild_info[] = {
   /* Midgaard */
@@ -2266,17 +2278,17 @@ int modify_class_ability(struct char_data *ch, int ability, int class) {
   return ability_value;
 }
 
-/* given ch, and save we need computed, do so here */
+/* given ch, and saving throw we need computed - do so here */
 byte saving_throws(struct char_data *ch, int type) {
-  int i, save = 0;
-  float counter = 1.1;
-
   if (IS_NPC(ch)) {
     if (CLSLIST_SAVES(GET_CLASS(ch), type))
       return (GET_LEVEL(ch) / 2 + 1);
     else
       return (GET_LEVEL(ch) / 4 + 1);
   }
+  
+  int i, save = 0;
+  float counter = 1.1;
 
   /* actual pc calculation, added float for more(?) accuracy */
   for (i = 0; i < MAX_CLASSES; i++) {
@@ -2294,17 +2306,11 @@ byte saving_throws(struct char_data *ch, int type) {
 
 // base attack bonus, replacement for THAC0 system
 int BAB(struct char_data *ch) {
-  int i, bab = 0, level, wildshape_level = 0;
-  float counter = 0.0;
-
+  
   /* gnarly huh? */
   if (IS_AFFECTED(ch, AFF_TFORM))
     return (GET_LEVEL(ch));
   
-  /* wildshape */
-  if (IS_WILDSHAPED(ch))
-    wildshape_level = CLASS_LEVEL(ch, CLASS_DRUID) + CLASS_LEVEL(ch, CLASS_SHIFTER);
-
   /* npc is simple */
   if (IS_NPC(ch)) {
     switch (CLSLIST_BAB(GET_CLASS(ch))) {
@@ -2317,6 +2323,13 @@ int BAB(struct char_data *ch) {
         return ( (int) (GET_LEVEL(ch) / 2));
     }
   }
+  
+  int i, bab = 0, level, wildshape_level = 0;
+  float counter = 0.0;
+  
+  /* wildshape */
+  if (IS_WILDSHAPED(ch))
+    wildshape_level = CLASS_LEVEL(ch, CLASS_DRUID) + CLASS_LEVEL(ch, CLASS_SHIFTER);
 
   /* pc: loop through all the possible classes the char could be */
   /* added float for more(?) accuracy */

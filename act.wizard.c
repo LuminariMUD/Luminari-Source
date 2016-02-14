@@ -3194,7 +3194,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       GET_CLANRANK(vict) = RANGE(0, clan_list[i].ranks);
       break;
     case 9: /* class */
-      if ((i = parse_class(*val_arg)) == CLASS_UNDEFINED) {
+      if ((i = parse_class_long(val_arg)) == CLASS_UNDEFINED) {
         send_to_char(ch, "That is not a class.\r\n");
         return (0);
       }

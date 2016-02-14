@@ -1654,7 +1654,7 @@ ACMD(do_gain) {
 
   if (!*arg) {
     send_to_char(ch, "You may gain a level in one of the following classes:\r\n\r\n");
-    list_valid_classes(ch, MODE_NORMAL);
+    display_in_game_classes(ch);
     send_to_char(ch, "Type 'gain <classname>' to gain a level in the chosen class.\r\n");
     return;
   } else {
