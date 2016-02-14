@@ -3517,7 +3517,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       GET_TRAINS(vict) = RANGE(0, 250);
       break;
     case 61: /* race */
-      if ((i = parse_race(*val_arg)) == RACE_UNDEFINED) {
+      if ((i = parse_race_long(val_arg)) == RACE_UNDEFINED) {
         send_to_char(ch, "That is not a race.\r\n");
         return (0);
       }
