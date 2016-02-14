@@ -64,6 +64,10 @@
 #define NOOB_WIZ_NOTE      850
 /* absolute xp cap */
 #define EXP_MAX  2100000000
+/* modes for dealing with class listing / restrictions */
+#define MODE_CLASSLIST_NORMAL 0
+#define MODE_CLASSLIST_RESPEC 1
+
 
 /* here is our class_list declare */
 struct class_table class_list[NUM_CLASSES];
@@ -190,7 +194,8 @@ void class_prereq_spellcasting(int class_num, int casting_type, int prep_type, i
 
   prereq = create_prereq(CLASS_PREREQ_SPELLCASTING, casting_type, prep_type, circle);
 
-  sprintf(buf, "Ability to cast %s %s spells", casting_types[casting_type], spell_preparation_types[prep_type]);
+  sprintf(buf, "Has %s %s (circle) %d spells", casting_types[casting_type],
+      spell_preparation_types[prep_type], circle);
   prereq->description = strdup(buf);
 
   /*   Link it up. */
@@ -227,7 +232,7 @@ void class_prereq_bab(int class_num, int bab) {
 }
 
 /* alignment is a list of RESTRICTED alignments */
-void class_prereq_restricted_align(int class_num, int alignment) {
+void class_prereq_align(int class_num, int alignment) {
   struct class_prerequisite *prereq = NULL;
   char buf[80];
 
@@ -243,7 +248,7 @@ void class_prereq_restricted_align(int class_num, int alignment) {
      #define NEUTRAL_EVIL        7
      #define CHAOTIC_EVIL        8 */
   
-  sprintf(buf, "\tRRestricted\tn Align: %s", alignment_names_nocolor[alignment]);
+  sprintf(buf, "Align: %s", alignment_names_nocolor[alignment]);
   prereq->description = strdup(buf);
 
   /* Link it up */
@@ -978,12 +983,9 @@ void load_class_list(void) {
     "the Monk"                  /* default */  
   );
   /* prereqs */
-  class_prereq_restricted_align(CLASS_MONK, NEUTRAL_GOOD);
-  class_prereq_restricted_align(CLASS_MONK, CHAOTIC_GOOD);
-  class_prereq_restricted_align(CLASS_MONK, TRUE_NEUTRAL);
-  class_prereq_restricted_align(CLASS_MONK, CHAOTIC_NEUTRAL);
-  class_prereq_restricted_align(CLASS_MONK, NEUTRAL_EVIL);
-  class_prereq_restricted_align(CLASS_MONK, CHAOTIC_EVIL);
+  class_prereq_align(CLASS_MONK, LAWFUL_GOOD);
+  class_prereq_align(CLASS_MONK, LAWFUL_NEUTRAL);
+  class_prereq_align(CLASS_MONK, LAWFUL_EVIL);
   /****************************************************************************/
   
   /****************************************************************************/
@@ -1133,6 +1135,12 @@ void load_class_list(void) {
   spell_assignment(CLASS_DRUID, SPELL_DRAGON_KNIGHT, 21);
   spell_assignment(CLASS_DRUID, SPELL_GREATER_RUIN,  21);
   spell_assignment(CLASS_DRUID, SPELL_HELLBALL,      21);
+  /* class prerequisites */
+  class_prereq_align(CLASS_DRUID, NEUTRAL_GOOD);
+  class_prereq_align(CLASS_DRUID, LAWFUL_NEUTRAL);
+  class_prereq_align(CLASS_DRUID, TRUE_NEUTRAL);
+  class_prereq_align(CLASS_DRUID, CHAOTIC_NEUTRAL);
+  class_prereq_align(CLASS_DRUID, NEUTRAL_EVIL);
   /****************************************************************************/
   
   /****************************************************************************/
@@ -1178,6 +1186,13 @@ void load_class_list(void) {
     "the God of Rage",         /* <= LVL_GRSTAFF */
     "the Berserker"            /* default */  
   );
+  /* class prerequisites */
+  class_prereq_align(CLASS_BERSERKER, NEUTRAL_GOOD);
+  class_prereq_align(CLASS_BERSERKER, TRUE_NEUTRAL);
+  class_prereq_align(CLASS_BERSERKER, NEUTRAL_EVIL);  
+  class_prereq_align(CLASS_BERSERKER, CHAOTIC_EVIL);
+  class_prereq_align(CLASS_BERSERKER, CHAOTIC_GOOD);
+  class_prereq_align(CLASS_BERSERKER, CHAOTIC_NEUTRAL);
   /****************************************************************************/
   
   /****************************************************************************/
@@ -1492,6 +1507,8 @@ void load_class_list(void) {
   spell_assignment(CLASS_PALADIN, SPELL_REMOVE_POISON, 15);
   spell_assignment(CLASS_PALADIN, SPELL_CURE_CRITIC,   15);
   spell_assignment(CLASS_PALADIN, SPELL_HOLY_SWORD,    15);
+  /* class prerequisites */
+  class_prereq_align(CLASS_PALADIN, LAWFUL_GOOD);
   /****************************************************************************/
   
   /****************************************************************************/
@@ -1670,6 +1687,13 @@ void load_class_list(void) {
   /*epic*/
   spell_assignment(CLASS_BARD, SPELL_MUMMY_DUST,   21);
   spell_assignment(CLASS_BARD, SPELL_GREATER_RUIN, 21);
+  /* class prerequisites */
+  class_prereq_align(CLASS_BARD, NEUTRAL_GOOD);
+  class_prereq_align(CLASS_BARD, TRUE_NEUTRAL);
+  class_prereq_align(CLASS_BARD, NEUTRAL_EVIL);  
+  class_prereq_align(CLASS_BARD, CHAOTIC_EVIL);
+  class_prereq_align(CLASS_BARD, CHAOTIC_GOOD);
+  class_prereq_align(CLASS_BARD, CHAOTIC_NEUTRAL);
   /****************************************************************************/
   
   /****************************************************************************/
@@ -1706,6 +1730,15 @@ void load_class_list(void) {
     "the God of Weapons",         /* <= LVL_GRSTAFF */
     "the WeaponMaster"            /* default */  
   );
+  /* class prereqs */
+  class_prereq_feat(CLASS_WEAPON_MASTER, FEAT_WEAPON_FOCUS, 1);
+  class_prereq_feat(CLASS_WEAPON_MASTER, FEAT_COMBAT_EXPERTISE, 1);
+  class_prereq_feat(CLASS_WEAPON_MASTER, FEAT_DODGE, 1);
+  class_prereq_feat(CLASS_WEAPON_MASTER, FEAT_MOBILITY, 1);
+  class_prereq_feat(CLASS_WEAPON_MASTER, FEAT_SPRING_ATTACK, 1);
+  class_prereq_feat(CLASS_WEAPON_MASTER, FEAT_WHIRLWIND_ATTACK, 1);
+  class_prereq_bab(CLASS_WEAPON_MASTER, 5);
+  class_prereq_ability(CLASS_WEAPON_MASTER, ABILITY_INTIMIDATE, 4);
   /****************************************************************************/
   
   /****************************************************************************/
@@ -1743,6 +1776,17 @@ void load_class_list(void) {
     "the God of Archery",         /* <= LVL_GRSTAFF */
     "the ArcaneArcher"            /* default */  
   );
+  /* class prereqs */
+  class_prereq_bab(CLASS_ARCANE_ARCHER, 5);
+  /* elf, half-elf only */
+  class_prereq_race(CLASS_ARCANE_ARCHER, RACE_ELF);
+  class_prereq_race(CLASS_ARCANE_ARCHER, RACE_HALF_ELF);
+  /* weapon focus in any bow */
+  // eeeeek missing!
+  class_prereq_feat(CLASS_ARCANE_ARCHER, FEAT_POINT_BLANK_SHOT, 1);
+  class_prereq_feat(CLASS_ARCANE_ARCHER, FEAT_PRECISE_SHOT, 1);
+  class_prereq_spellcasting(CLASS_ARCANE_ARCHER, CASTING_TYPE_ARCANE,
+      PREP_TYPE_ANY, 1 /*circle*/);
   /****************************************************************************/
   
   /****************************************************************************/
@@ -1781,6 +1825,13 @@ void load_class_list(void) {
     "the God of Defense",      /* <= LVL_GRSTAFF */
     "the Stalwart Defender"    /* default */  
   );
+  /* class prereqs */
+  class_prereq_bab(CLASS_STALWART_DEFENDER, 7);
+  class_prereq_feat(CLASS_STALWART_DEFENDER, FEAT_DODGE, 1);
+  class_prereq_feat(CLASS_STALWART_DEFENDER, FEAT_ENDURANCE, 1);
+  class_prereq_feat(CLASS_STALWART_DEFENDER, FEAT_TOUGHNESS, 1);
+  class_prereq_feat(CLASS_STALWART_DEFENDER, FEAT_ARMOR_PROFICIENCY_MEDIUM, 1);
+  class_prereq_feat(CLASS_STALWART_DEFENDER, FEAT_ARMOR_PROFICIENCY_LIGHT, 1);
   /****************************************************************************/
 
   /****************************************************************************/
@@ -1820,6 +1871,8 @@ void load_class_list(void) {
     "the God of Shifting",      /* <= LVL_GRSTAFF */
     "the Shifter"               /* default */  
   );
+  /* class prereqs */
+  class_prereq_class_level(CLASS_SHIFTER, CLASS_DRUID, 6);
   /****************************************************************************/
 }
 
@@ -1830,7 +1883,8 @@ void display_in_game_classes(struct char_data *ch) {
   write_to_output(d, "\r\n");
   
   for (counter = 0; counter < NUM_CLASSES; counter++) {
-    write_to_output(d, "%s%-20.20s %s", class_is_available(ch, counter, 0, NULL) ? " " : "*",
+    write_to_output(d, "%s%-20.20s %s",
+            class_is_available(ch, counter, MODE_CLASSLIST_NORMAL, NULL) ? " " : "*",
             CLSLIST_NAME(counter), 
             !(++columns % 3) ? "\r\n" : "");
   }
@@ -1844,6 +1898,11 @@ void display_in_game_classes(struct char_data *ch) {
 bool class_is_available(struct char_data *ch, int classnum, int iarg, char *sarg) {
   struct class_prerequisite *prereq = NULL;
   int max_class_level = CLSLIST_MAXLVL(classnum);
+  int i = 0;
+  bool has_alignment_restrictions = FALSE;
+  bool has_race_restrictions = FALSE;
+  bool has_valid_alignment = FALSE;
+  bool has_valid_race = FALSE;
   
   /* dumb-dumb check */
   if (classnum < 0 || classnum >= NUM_CLASSES)
@@ -1856,18 +1915,70 @@ bool class_is_available(struct char_data *ch, int classnum, int iarg, char *sarg
     return FALSE;
   }
 
+  /* prevent epic race from currently multi-classing */
+  if (iarg == MODE_CLASSLIST_NORMAL) {
+    for (i = 0; i < NUM_CLASSES; i++)
+      if (CLASS_LEVEL(ch, i)) /* found char current class */
+        break;
+    switch (GET_RACE(ch)) {
+      case RACE_CRYSTAL_DWARF:
+        if (classnum == i) /* char class selection and current class match? */
+          ;
+        else
+          return FALSE;
+      case RACE_TRELUX:
+        if (classnum == i) /* char class selection and current class match? */
+          ;
+        else
+          return FALSE;
+      default: break;
+    }
+  }
+  
+  /* locked class that has been unlocked yet? */
   if (!has_unlocked_class(ch, classnum))
     return FALSE;
         
   /* class prerequisites list */  
   if (class_list[classnum].prereq_list != NULL) {
+    
     /*  This class has prerequisites. Traverse the list and check. */
     for (prereq = class_list[classnum].prereq_list; prereq != NULL; prereq = prereq->next) {
-      if (meets_class_prerequisite(ch, prereq, iarg) == FALSE)
-        return FALSE;
-    }
+      
+      /* we have to check for valid lists, like a list of valid alignments or races */
+      switch (prereq->prerequisite_type) {
+        
+        /* has align restriction?  well any qualification will work */
+        case CLASS_PREREQ_ALIGN:
+        has_alignment_restrictions = TRUE;
+        if (meets_class_prerequisite(ch, prereq, iarg) == TRUE)
+            has_valid_alignment = TRUE;
+          break;
+          
+        /* has race restriction?  well any qualification will work */
+        case CLASS_PREREQ_RACE:
+        has_race_restrictions = TRUE;
+        if (meets_class_prerequisite(ch, prereq, iarg) == TRUE)
+            has_valid_race = TRUE;
+          break;
+          
+        /* our default normal case, instant disqualification */  
+        default:
+          if (meets_class_prerequisite(ch, prereq, iarg) == FALSE)
+            return FALSE; /* these are instant disqualifications */
+          break;
+      }
+    } /* finished transversing list */
+    
+    /* final check for 'valid lists' such as alignment / race list */
+    if (has_alignment_restrictions && !has_valid_alignment)
+      return FALSE; /* doesn't mean alignment reqs */
+    if (has_race_restrictions && !has_valid_race)
+      return FALSE; /* doesn't mean race reqs */
+    
   }
   
+  /* made it! */
   return TRUE;
 }
 
@@ -1881,12 +1992,13 @@ bool meets_class_prerequisite(struct char_data *ch, struct class_prerequisite *p
       /* This is a NON-prereq. */
       break;
       
-      /* RESTRICTED alignments */
+      /* valid alignments - special handling since list of valids */
     case CLASS_PREREQ_ALIGN:
-      if (prereq->values[0] == convert_alignment(GET_ALIGNMENT(ch)))
+      if (prereq->values[0] != convert_alignment(GET_ALIGNMENT(ch)))
         return FALSE;
       break;
       
+      /* minimum stats */
     case CLASS_PREREQ_ATTRIBUTE:
       switch (prereq->values[0]) {
         case AB_STR:
@@ -1919,21 +2031,25 @@ bool meets_class_prerequisite(struct char_data *ch, struct class_prerequisite *p
       }
       break;
       
+      /* min. class level */
     case CLASS_PREREQ_CLASS_LEVEL:
       if (CLASS_LEVEL(ch, prereq->values[0]) < prereq->values[1])
         return FALSE;
       break;
       
+      /* feat requirement */
     case CLASS_PREREQ_FEAT:
       if (has_feat(ch, prereq->values[0]) < prereq->values[1])
         return FALSE;
       break;
       
+      /* required ability */
     case CLASS_PREREQ_ABILITY:
       if (GET_ABILITY(ch, prereq->values[0]) < prereq->values[1])
         return FALSE;
       break;
       
+      /* spellcasting type and preparation type */
     case CLASS_PREREQ_SPELLCASTING:
       switch (prereq->values[0]) {
         case CASTING_TYPE_NONE:
@@ -2005,22 +2121,26 @@ bool meets_class_prerequisite(struct char_data *ch, struct class_prerequisite *p
       }
       break;
       
+      /* valid races - special handling since list of valids */
     case CLASS_PREREQ_RACE:
       if (!IS_NPC(ch) && GET_RACE(ch) != prereq->values[0])
         return FALSE;
       break;
       
+      /* minimum BAB requirement */
     case CLASS_PREREQ_BAB:
       if (BAB(ch) < prereq->values[0])
         return FALSE;
       break;
       
+      /* combat feat */
     case CLASS_PREREQ_CFEAT:
       /*  SPECIAL CASE - You must have a feat, and it must be the cfeat for the chosen weapon. */
       if (iarg && !has_combat_feat(ch, feat_to_cfeat(prereq->values[0]), iarg))
         return FALSE;
       break;
       
+      /* weapon proficiency requirement */
     case CLASS_PREREQ_WEAPON_PROFICIENCY:
       if (iarg && !is_proficient_with_weapon(ch, iarg))
         return FALSE;
@@ -2287,6 +2407,76 @@ ACMD(do_class) {
   }
   
   send_to_char(ch, "\tDUsage: class <list|info|feats|staff|prerequisites> <class name>\tn\r\n");
+}
+
+/* TODO: phase this out using classo prereqs */
+/* does the ch have a valid alignment for proposed class?  currently only used
+ in interpreter.c for starting chars */
+/* returns 1 for valid alignment, returns 0 for problem with alignment */
+int valid_align_by_class(int alignment, int class) {
+
+  switch (class) {
+
+      /* any lawful alignment */
+    case CLASS_MONK:
+      switch (alignment) {
+        case LAWFUL_GOOD:
+        case LAWFUL_NEUTRAL:
+        case LAWFUL_EVIL:
+          return 1;
+        default:
+          return 0;
+      }
+
+      /* any 'neutral' alignment */
+    case CLASS_DRUID:
+      switch (alignment) {
+        case NEUTRAL_GOOD:
+        case LAWFUL_NEUTRAL:
+        case TRUE_NEUTRAL:
+        case CHAOTIC_NEUTRAL:
+        case NEUTRAL_EVIL:
+          return 1;
+        default:
+          return 0;
+      }
+
+      /* any 'non-lawful' alignment */
+    case CLASS_BERSERKER:
+    case CLASS_BARD:
+      switch (alignment) {
+          /* we are checking for invalids */
+        case LAWFUL_GOOD:
+        case LAWFUL_NEUTRAL:
+        case LAWFUL_EVIL:
+          return 0;
+        default:
+          return 1;
+      }
+
+      /* only lawful good */
+    case CLASS_PALADIN:
+      if (alignment == LAWFUL_GOOD)
+        return 1;
+      else
+        return 0;
+
+      /* default, no alignment restrictions */
+    case CLASS_WIZARD:
+    case CLASS_CLERIC:
+    case CLASS_RANGER:
+    case CLASS_ROGUE:
+    case CLASS_WARRIOR:
+    case CLASS_WEAPON_MASTER:
+    case CLASS_ARCANE_ARCHER:
+    case CLASS_STALWART_DEFENDER:
+    case CLASS_SHIFTER:
+    case CLASS_SORCERER:
+      return 1;
+  }
+
+  /* shouldn't get here if we got all classes listed above */
+  return 1;
 }
 
 /* homeland-port currently unused */
@@ -4356,5 +4546,7 @@ int level_exp(struct char_data *ch, int level) {
 #undef NUM_NOOB_ARROWS
 #undef NOOB_WIZ_NOTE
 #undef EXP_MAX
+#undef MODE_CLASSLIST_NORMAL
+#undef MODE_CLASSLIST_RESPEC
 
 /* EOF */

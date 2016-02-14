@@ -1230,86 +1230,12 @@ ACMD(do_tame) {
   act("$n tames $N.", FALSE, ch, 0, vict, TO_NOTVICT);
 }
 
-/* does the ch have a valid alignment for proposed class? */
-/* returns 1 for valid alignment */
-/* returns 0 for problem with alignment */
-int valid_align_by_class(int alignment, int class) {
-
-  switch (class) {
-
-      /* any lawful alignment */
-    case CLASS_MONK:
-      switch (alignment) {
-        case LAWFUL_GOOD:
-        case LAWFUL_NEUTRAL:
-        case LAWFUL_EVIL:
-          return 1;
-        default:
-          return 0;
-      }
-
-      /* any 'neutral' alignment */
-    case CLASS_DRUID:
-      switch (alignment) {
-        case NEUTRAL_GOOD:
-        case LAWFUL_NEUTRAL:
-        case TRUE_NEUTRAL:
-        case CHAOTIC_NEUTRAL:
-        case NEUTRAL_EVIL:
-          return 1;
-        default:
-          return 0;
-      }
-
-      /* any 'non-lawful' alignment */
-    case CLASS_BERSERKER:
-    case CLASS_BARD:
-      switch (alignment) {
-          /* we are checking for invalids */
-        case LAWFUL_GOOD:
-        case LAWFUL_NEUTRAL:
-        case LAWFUL_EVIL:
-          return 0;
-        default:
-          return 1;
-      }
-
-      /* only lawful good */
-    case CLASS_PALADIN:
-      if (alignment == LAWFUL_GOOD)
-        return 1;
-      else
-        return 0;
-
-      /* default, no alignment restrictions */
-    case CLASS_WIZARD:
-    case CLASS_CLERIC:
-    case CLASS_RANGER:
-    case CLASS_ROGUE:
-    case CLASS_WARRIOR:
-    case CLASS_WEAPON_MASTER:
-    case CLASS_ARCANE_ARCHER:
-    case CLASS_STALWART_DEFENDER:
-    case CLASS_SHIFTER:
-    case CLASS_SORCERER:
-      return 1;
-  }
-
-  /* shouldn't get here if we got all classes listed above */
-  return 1;
-}
-
-/* simple little function to make sure they have an arcane level */
-
 // if you meet the class pre-reqs, return 1, otherwise 0
 // class = class attempting to level in
 int meet_class_reqs(struct char_data *ch, int class, int mode) {
   int i;
   bool passed = TRUE;
 
-  /* alignment restrictions */
-  if (!valid_align_by_class(convert_alignment(GET_ALIGNMENT(ch)), class))
-    return 0;
 
   if (mode == MODE_NORMAL) {
     // this is to make sure an epic race doesn't multiclass
