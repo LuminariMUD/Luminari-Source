@@ -12,6 +12,7 @@
 #ifndef _CONSTANTS_H_
 #define _CONSTANTS_H_
 
+extern const char *class_names[NUM_CLASSES + 1];
 extern const char *alignment_names_nocolor[NUM_ALIGNMENTS + 1];
 extern const char *attack_hit_types[];
 extern const char *instrument_names[MAX_INSTRUMENTS + 1];

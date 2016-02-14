@@ -580,12 +580,17 @@ void boot_world(void) {
   log("Loading Extended Races");
   assign_races();
 
-  log("Loading Class List");
-  load_class_list();
-
+  /* this use to be partially dependent on classo() we had
+     to modify it so there is no dependence due to inability to
+     load two things at the same time :p */
   log("Loading feats.");
   assign_feats();
   sort_feats();
+
+  /* this HAS to come after loading feats, we need feat info
+     in order to handle the class list (prereqs) */
+  log("Loading Class List");
+  load_class_list();
 
   log("Initializing perlin noise generator.");
   init_perlin(NOISE_MATERIAL_PLANE_ELEV, NOISE_MATERIAL_PLANE_ELEV_SEED);
