@@ -2256,7 +2256,7 @@ void list_forms(struct char_data *ch) {
   send_to_char(ch, "%s\r\n", npc_race_menu);
 }
 
-/*    FIRST version of shapechange/wildshape
+/*    FIRST version of shapechange/wildshape; TODO: phase out completely
  *  shapechange function
  * mode = 1 = druid
  * mode = 2 = polymorph spell
