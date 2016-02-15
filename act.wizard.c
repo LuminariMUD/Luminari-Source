@@ -5870,6 +5870,9 @@ int get_eq_score(obj_rnum a) {
   for (i = 0; i < NUM_AFF_FLAGS; i++) {
     if (OBJAFF_FLAGGED(obj, i)) {
       switch (i) {
+        case AFF_AWARE:
+          score += 400;
+          break;
         case AFF_REGEN:
         case AFF_NOTRACK:
         case AFF_INVISIBLE:

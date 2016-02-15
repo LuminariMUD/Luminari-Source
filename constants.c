@@ -997,6 +997,7 @@ const char *affected_bits[NUM_AFF_FLAGS + 1] =
   "Entangled",
   "Acrobatic",
   "Blinking",
+  "Aware",
   "\n"
 };
 
@@ -1109,6 +1110,7 @@ const char *affected_bit_descs[NUM_AFF_FLAGS + 1] =
   "You are entangled (can't move).",
   "You feel more acrobatic!",
   "You are blinking between prime and ethereal planes!", //100
+  "You are aware of backstab attempts now!",
   "\n"
 };
 

@@ -1027,8 +1027,9 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define AFF_ACROBATIC        99 /* acrobatic!  currently used for druid jump 
                                    spell, possible expansion to follow */
 #define AFF_BLINKING        100 /* in a state of blinking between prime/eth */
+#define AFF_AWARE           101 /* aware - too aware to backstab */
 /*---*/
-#define NUM_AFF_FLAGS       101
+#define NUM_AFF_FLAGS       102
 /********************************/
 /* add aff_ flag?  don't forget to add to:
    1)  places in code the affect will directly modify values
@@ -2683,26 +2684,6 @@ struct extra_descr_data {
 
 /* maximum amount of timrs on a single object, imported from homeland */
 #define SPEC_TIMER_MAX 4
-
-/* race data for extension of races */
-struct race_data {
-  char *name;
-  char *abbrev;
-  char *type;
-  ubyte family;
-  sbyte genders[NUM_SEX];
-  char *menu_display;
-  byte ability_mods[6];
-  ush_int height[NUM_SEX];
-  ush_int weight[NUM_SEX];
-  byte size;
-  int body_parts[NUM_WEARS];
-  sbyte alignments[9];
-  sbyte is_pc;
-  byte favored_class[NUM_SEX];
-  ush_int language;
-  ubyte level_adjustment;
-};
 
 /** object flags used in obj_data. These represent the instance values for
  * a real object, values that can change during gameplay. */

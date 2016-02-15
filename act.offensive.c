@@ -1271,6 +1271,7 @@ void perform_smite(struct char_data *ch, int smite_type) {
 bool perform_backstab(struct char_data *ch, struct char_data *vict) {
   int blow_landed = 0, prob = 0, successful = 0, has_piercing = 0;
   struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_1);
+  bool make_aware = FALSE;
 
   if (AFF_FLAGGED(ch, AFF_HIDE))
     prob += 1; //minor bonus for being hidden
@@ -1297,6 +1298,7 @@ bool perform_backstab(struct char_data *ch, struct char_data *vict) {
       damage(ch, vict, 0, SKILL_BACKSTAB, DAM_PUNCTURE, FALSE);
     } else {
       hit(ch, vict, SKILL_BACKSTAB, DAM_PUNCTURE, 0, FALSE);
+      make_aware = TRUE;
     }
     successful++;
   }
@@ -1315,6 +1317,7 @@ bool perform_backstab(struct char_data *ch, struct char_data *vict) {
       damage(ch, vict, 0, SKILL_BACKSTAB, DAM_PUNCTURE, TRUE);
     } else {
       hit(ch, vict, SKILL_BACKSTAB, DAM_PUNCTURE, 0, TRUE);
+      make_aware = TRUE;
     }
     successful++;
   }
@@ -1333,15 +1336,27 @@ bool perform_backstab(struct char_data *ch, struct char_data *vict) {
       damage(ch, vict, 0, SKILL_BACKSTAB, DAM_PUNCTURE, TRUE);
     } else {
       hit(ch, vict, SKILL_BACKSTAB, DAM_PUNCTURE, 0, TRUE);
+      make_aware = TRUE;
     }
     successful++;
   }
 
   if (successful) {
+    if (make_aware && !AFF_FLAGGED(vict, AFF_AWARE)) {
+      struct affected_type aware_affect;
+
+      new_affect(&aware_affect);
+      aware_affect.spell = SKILL_BACKSTAB;
+      aware_affect.duration = 20;
+      SET_BIT_AR(aware_affect.bitvector, AFF_AWARE);
+      affect_join(vict, &aware_affect, 1, FALSE, FALSE, FALSE);      
+    }
+    
     if (HAS_FEAT(ch, FEAT_BACKSTAB))
       USE_MOVE_ACTION(ch);
     else
       USE_FULL_ROUND_ACTION(ch);
+    
     return TRUE;
   } else
     send_to_char(ch, "You have no piercing weapon equipped.\r\n");
@@ -1946,9 +1961,9 @@ ACMD(do_backstab) {
   char buf[MAX_INPUT_LENGTH];
   struct char_data *vict;
 
-  if (IS_NPC(ch) || (CLASS_LEVEL(ch, CLASS_ROGUE) < 1)) {
-    send_to_char(ch, "You have no idea how to do that (you need at least 1 level "
-            "in the rogue class to perform a backstab).\r\n");
+  if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_SNEAK_ATTACK)) {
+    send_to_char(ch, "You have no idea how to do that (you need at least 1 rank "
+            "of the sneak attack feat to perform a backstab).\r\n");
     return;
   }
 
@@ -1983,8 +1998,15 @@ ACMD(do_backstab) {
     send_to_char(ch, "You can't backstab a fighting person -- they're too alert!\r\n");
     return;
   }
-
+  
   if (MOB_FLAGGED(vict, MOB_AWARE) && AWAKE(vict)) {
+    act("You notice $N lunging at you!", FALSE, vict, 0, ch, TO_CHAR);
+    act("$e notices you lunging at $m!", FALSE, vict, 0, ch, TO_VICT);
+    act("$n notices $N lunging at $m!", FALSE, vict, 0, ch, TO_NOTVICT);
+    hit(vict, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+    return;
+  }
+  if (AFF_FLAGGED(vict, AFF_AWARE) && AWAKE(vict)) {
     act("You notice $N lunging at you!", FALSE, vict, 0, ch, TO_CHAR);
     act("$e notices you lunging at $m!", FALSE, vict, 0, ch, TO_VICT);
     act("$n notices $N lunging at $m!", FALSE, vict, 0, ch, TO_NOTVICT);
@@ -3360,17 +3382,14 @@ ACMD(do_hitall) {
   USE_FULL_ROUND_ACTION(ch);
 }
 
-/*
- * Original by Vhaerun, a neat skill for rogues to get an additional attack
- * while not tanking.
- */
+/* the ability to backstab a fighting opponent when not tanking  */
 ACMD(do_circle) {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
 
-  if (IS_NPC(ch) || (CLASS_LEVEL(ch, CLASS_ROGUE) < 1)) {
+  if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_SNEAK_ATTACK)) {
     send_to_char(ch, "You have no idea how to do that (circle requires at least "
-            "1 level in the rogue class).\r\n");
+            "1 rank in sneak attack).\r\n");
     return;
   }
 
@@ -3403,6 +3422,11 @@ ACMD(do_circle) {
     send_to_char(ch, "Do not be ridiculous!\r\n");
     return;
   }
+  
+  if (!FIGHTING(vict)) {
+    send_to_char(ch, "You can only circle an opponent whom is in combat.\r\n");
+    return;
+  }  
 
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
           ch->next_in_room != vict && vict->next_in_room != ch) {
@@ -3410,6 +3434,19 @@ ACMD(do_circle) {
     return;
   }
 
+  if (MOB_FLAGGED(vict, MOB_AWARE) && AWAKE(vict)) {
+    act("You notice $N lunging at you!", FALSE, vict, 0, ch, TO_CHAR);
+    act("$e notices you lunging at $m!", FALSE, vict, 0, ch, TO_VICT);
+    act("$n notices $N lunging at $m!", FALSE, vict, 0, ch, TO_NOTVICT);
+    return;
+  }
+  if (AFF_FLAGGED(vict, AFF_AWARE) && AWAKE(vict)) {
+    act("You notice $N lunging at you!", FALSE, vict, 0, ch, TO_CHAR);
+    act("$e notices you lunging at $m!", FALSE, vict, 0, ch, TO_VICT);
+    act("$n notices $N lunging at $m!", FALSE, vict, 0, ch, TO_NOTVICT);
+    return;
+  }
+  
   perform_backstab(ch, vict);
 }
 
