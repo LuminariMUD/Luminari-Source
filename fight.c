@@ -5012,6 +5012,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   switch (type) {
     /* More SKILL_ garbage - This needs a better mechanic.  */
     case SKILL_BACKSTAB:
+      dam += 4; /* base backstab bonus to damage */
       if (damage(ch, victim, (dam * backstab_mult(ch)), SKILL_BACKSTAB, dam_type, attack_type) < 0)
         victim_is_dead = TRUE;
 

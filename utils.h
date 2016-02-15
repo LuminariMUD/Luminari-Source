@@ -150,9 +150,6 @@ int get_feat_value(struct char_data *ch, int featnum);
 /* Public functions made available form weather.c */
 void weather_and_time(int mode);
 
-/* extended races (races_ext.c) */
-extern struct race_data race_list[NUM_EXTENDED_RACES];
-
 /** Creates a core dump for diagnostic purposes, but will keep (if it can)
  * the mud running after the core has been dumped. Call this in the place
  * of calling core_dump_real. */
