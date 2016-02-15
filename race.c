@@ -545,44 +545,6 @@ void set_height_and_weight_by_race(struct char_data *ch) {
 
 }
 
-/*
-int invalid_race(struct char_data *ch, struct obj_data *obj)
-{
-  if (GET_ADMLEVEL(ch) >= ADMLVL_IMMORT)
-    return false;
-
-  if (OBJ_FLAGGED(obj, ITEM_ANTI_HUMAN) && IS_HUMAN(ch))
-    return (true);
-
-  if (OBJ_FLAGGED(obj, ITEM_ANTI_ELF) && IS_ELF(ch))
-    return (true);
-
-  if (OBJ_FLAGGED(obj, ITEM_ANTI_DWARF) && IS_DWARF(ch))
-    return (true);
-
-  if (OBJ_FLAGGED(obj, ITEM_ANTI_GNOME) && IS_GNOME(ch))
-    return (true);
-
-  return (false);
-}
- */
-
-/*
-int get_size(struct char_data *ch) {
-  int racenum;
-
-  if (ch == NULL)
-    return SIZE_MEDIUM;
-
-  racenum = GET_RACE(ch);
-
-  if (racenum < 0 || racenum >= NUM_EXTENDED_RACES)
-    return SIZE_MEDIUM;
-
-  return (GET_SIZE(ch) = ((affected_by_spell(ch, SPELL_ENLARGE_PERSON) ? 1 : 0) + race_list[racenum].size));
-}
- */
-
 const int size_bonus_table[NUM_SIZES] = {
   /* XTINY */ 8,
   /* TINY */ 4,
@@ -600,50 +562,6 @@ int get_size_bonus(int sz) {
     sz = SIZE_MEDIUM;
   return size_bonus_table[sz];
 }
-
-/*
-int wield_type(int chsize, const struct obj_data *weap)
-{
-  if (GET_OBJ_TYPE(weap) != ITEM_WEAPON) {
-    return OBJ_FLAGGED(weap, ITEM_2H) ? WIELD_TWOHAND : WIELD_ONEHAND;
-  } else if (chsize > GET_OBJ_SIZE(weap)) {
-    return WIELD_LIGHT;
-  } else if (chsize == GET_OBJ_SIZE(weap)) {
-    return WIELD_ONEHAND;
-  } else if (chsize == GET_OBJ_SIZE(weap) - 1) {
-    return WIELD_TWOHAND;
-  } else if (chsize < GET_OBJ_SIZE(weap) - 1) {
-    return WIELD_NONE; // It's just too big for you!
-  } else {
-    log("unknown size vector in wield_type: chsize=%d, weapsize=%d", chsize, GET_OBJ_SIZE(weap));
-    return WIELD_NONE;
-  }
-}
- */
-
-/*
-int parse_race(struct char_data *ch, char *arg) {
-
-  if (!*arg)
-    return RACE_UNDEFINED;
-
-  int i = atoi(arg);
-
-  i--;
-
-  if (i > NUM_EXTENDED_RACES || i < RACE_HUMAN)
-    return RACE_UNDEFINED;
-
-  if (race_list[i].is_pc == FALSE)
-    return RACE_UNDEFINED;
-
-  if (race_list[i].level_adjustment > 0)
-    return RACE_UNDEFINED;
-
-  return i;
-
-}
- */
 
 // npc races
 const char *npc_race_types[] = {
@@ -664,7 +582,6 @@ const char *npc_race_types[] = {
    "Plant",
    "Vermin"
 };
-
 
 // npc races, short form
 const char *npc_race_short[] = {
@@ -706,26 +623,6 @@ const char *npc_race_abbrevs[] = {
    "\tGPlnt\tn",
    "\tyVrmn\tn"
 };
-/*
-const char *npc_race_abbrevs[] = {
-   "Unknown",
-   "\tWHumanoid\tn",
-   "\tDUndead\tn",
-   "\tgAnimal\tn",
-   "\trDragon\tn",
-   "\tYGiant\tn",
-   "\tRAberration\tn",
-   "\tcConstruct\tn",
-   "\tRElemental\tn",
-   "\tCFey\tn",
-   "\tmMagical \tgBeast\tn",
-   "\tBMonstrous \tWHumanoid\tn",
-   "\tMOoze\tn",
-   "\tDOut\twsider\tn",
-   "\tGPlant\tn",
-   "\tyVermin\tn"
-};
-*/
 
 // npc subrace
 const char *npc_subrace_types[] = {
@@ -1040,7 +937,6 @@ int parse_race_long(char *arg) {
   return RACE_UNDEFINED;
 }
 
-
 // returns the proper integer for the race, given a character
 bitvector_t find_race_bitvector(const char *arg)
 {
@@ -1069,6 +965,85 @@ int invalid_race(struct char_data *ch, struct obj_data *obj) {
   else
         return 0;
 }
+
+/*
+int invalid_race(struct char_data *ch, struct obj_data *obj)
+{
+  if (GET_ADMLEVEL(ch) >= ADMLVL_IMMORT)
+    return false;
+
+  if (OBJ_FLAGGED(obj, ITEM_ANTI_HUMAN) && IS_HUMAN(ch))
+    return (true);
+
+  if (OBJ_FLAGGED(obj, ITEM_ANTI_ELF) && IS_ELF(ch))
+    return (true);
+
+  if (OBJ_FLAGGED(obj, ITEM_ANTI_DWARF) && IS_DWARF(ch))
+    return (true);
+
+  if (OBJ_FLAGGED(obj, ITEM_ANTI_GNOME) && IS_GNOME(ch))
+    return (true);
+
+  return (false);
+}
+ */
+/*
+int get_size(struct char_data *ch) {
+  int racenum;
+
+  if (ch == NULL)
+    return SIZE_MEDIUM;
+
+  racenum = GET_RACE(ch);
+
+  if (racenum < 0 || racenum >= NUM_EXTENDED_RACES)
+    return SIZE_MEDIUM;
+
+  return (GET_SIZE(ch) = ((affected_by_spell(ch, SPELL_ENLARGE_PERSON) ? 1 : 0) + race_list[racenum].size));
+}
+ */
+/*
+int wield_type(int chsize, const struct obj_data *weap)
+{
+  if (GET_OBJ_TYPE(weap) != ITEM_WEAPON) {
+    return OBJ_FLAGGED(weap, ITEM_2H) ? WIELD_TWOHAND : WIELD_ONEHAND;
+  } else if (chsize > GET_OBJ_SIZE(weap)) {
+    return WIELD_LIGHT;
+  } else if (chsize == GET_OBJ_SIZE(weap)) {
+    return WIELD_ONEHAND;
+  } else if (chsize == GET_OBJ_SIZE(weap) - 1) {
+    return WIELD_TWOHAND;
+  } else if (chsize < GET_OBJ_SIZE(weap) - 1) {
+    return WIELD_NONE; // It's just too big for you!
+  } else {
+    log("unknown size vector in wield_type: chsize=%d, weapsize=%d", chsize, GET_OBJ_SIZE(weap));
+    return WIELD_NONE;
+  }
+}
+ */
+/*
+int parse_race(struct char_data *ch, char *arg) {
+
+  if (!*arg)
+    return RACE_UNDEFINED;
+
+  int i = atoi(arg);
+
+  i--;
+
+  if (i > NUM_EXTENDED_RACES || i < RACE_HUMAN)
+    return RACE_UNDEFINED;
+
+  if (race_list[i].is_pc == FALSE)
+    return RACE_UNDEFINED;
+
+  if (race_list[i].level_adjustment > 0)
+    return RACE_UNDEFINED;
+
+  return i;
+
+}
+ */
 
 /* clear up local defines */
 #undef Y

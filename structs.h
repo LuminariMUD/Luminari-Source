@@ -1706,11 +1706,31 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_SHIFTER_SHAPES_3               471
 #define FEAT_SHIFTER_SHAPES_4               472
 #define FEAT_SHIFTER_SHAPES_5               473
+#define FEAT_DIVINE_1ST_CIRCLE              474
+#define FEAT_DIVINE_2ND_CIRCLE              475
+#define FEAT_DIVINE_3RD_CIRCLE              476
+#define FEAT_DIVINE_4TH_CIRCLE              477
+#define FEAT_DIVINE_5TH_CIRCLE              478
+#define FEAT_DIVINE_6TH_CIRCLE              479
+#define FEAT_DIVINE_7TH_CIRCLE              480
+#define FEAT_DIVINE_8TH_CIRCLE              481
+#define FEAT_DIVINE_9TH_CIRCLE              482
+#define FEAT_DIVINE_EPIC_SPELL              483
+#define FEAT_ARCANE_1ST_CIRCLE              484
+#define FEAT_ARCANE_2ND_CIRCLE              485
+#define FEAT_ARCANE_3RD_CIRCLE              486
+#define FEAT_ARCANE_4TH_CIRCLE              487
+#define FEAT_ARCANE_5TH_CIRCLE              488
+#define FEAT_ARCANE_6TH_CIRCLE              489
+#define FEAT_ARCANE_7TH_CIRCLE              490
+#define FEAT_ARCANE_8TH_CIRCLE              491
+#define FEAT_ARCANE_9TH_CIRCLE              492
+#define FEAT_ARCANE_EPIC_SPELL              493
 /* end bardic performances */
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT                      474
+#define FEAT_LAST_FEAT                      494
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS                           475
+#define NUM_FEATS                           495
 /** absolute cap **/
 #define MAX_FEATS                           750
 /*****/
