@@ -491,7 +491,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
 
   /* bonus type armor (equipment) */
   /* we assume any ac above 10 will be equipment */
-  if (!IS_WILDSHAPED(ch))
+  if (!IS_WILDSHAPED(ch) || IS_MORPHED(ch))
     bonuses[BONUS_TYPE_ARMOR] += eq_armoring;
   /* ...Trelux carapace is not effective vs touch attacks! */
   if (GET_RACE(ch) == RACE_TRELUX) {
@@ -2904,7 +2904,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
 
   /* redundancy necessary due to sometimes arriving here without going through
    * compute_hit_damage()*/
-  if (attack_type == ATTACK_TYPE_UNARMED || IS_WILDSHAPED(ch))
+  if (attack_type == ATTACK_TYPE_UNARMED || IS_WILDSHAPED(ch) || IS_MORPHED(ch))
     wielded = NULL;
   else
     wielded = get_wielded(ch, attack_type);
@@ -3047,7 +3047,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   }
   
   /* wildshape bonus */
-  if (IS_WILDSHAPED(ch))
+  if (IS_WILDSHAPED(ch) || IS_MORPHED(ch))
     dambonus += HAS_FEAT(ch, FEAT_NATURAL_ATTACK);
 
   /*
@@ -3347,7 +3347,7 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
   
   //just information mode
   if (mode == MODE_DISPLAY_PRIMARY) {
-    if (IS_WILDSHAPED(ch)) {
+    if (IS_WILDSHAPED(ch) || IS_MORPHED(ch)) {
       send_to_char(ch, "Claws, Teeth and Smash!\r\n");
     } else if (!GET_EQ(ch, WEAR_WIELD_1) && !GET_EQ(ch, WEAR_WIELD_2H)) {
       send_to_char(ch, "Bare-hands\r\n");
@@ -3407,6 +3407,9 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
         diceTwo = 1;
         break;
     }
+  } else if (IS_MORPHED(ch)) {
+    diceOne = 2;
+    diceTwo = 6;    
   } else if (!is_ranged && wielded && GET_OBJ_TYPE(wielded) == ITEM_WEAPON) { //weapon
     diceOne = GET_OBJ_VAL(wielded, 1);
     diceTwo = GET_OBJ_VAL(wielded, 2);
@@ -3483,7 +3486,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
 
   /* redundancy necessary due to sometimes arriving here without going through
    * hit()*/
-  if (attack_type == ATTACK_TYPE_UNARMED || IS_WILDSHAPED(ch))
+  if (attack_type == ATTACK_TYPE_UNARMED || IS_WILDSHAPED(ch) || IS_MORPHED(ch))
     wielded = NULL;
   else
     wielded = get_wielded(ch, attack_type);
@@ -4086,7 +4089,7 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
   if (can_fire_arrow(ch, TRUE) && is_using_ranged_weapon(ch) && GET_EQ(ch, WEAR_AMMO_POUCH)
           && GET_EQ(ch, WEAR_AMMO_POUCH)->contains)
     bonuses[BONUS_TYPE_ENHANCEMENT] += GET_ENHANCEMENT_BONUS(GET_EQ(ch, WEAR_AMMO_POUCH)->contains);
-  if (IS_WILDSHAPED(ch))
+  if (IS_WILDSHAPED(ch) || IS_MORPHED(ch))
     bonuses[BONUS_TYPE_ENHANCEMENT] = MAX(bonuses[BONUS_TYPE_ENHANCEMENT], HAS_FEAT(ch, FEAT_NATURAL_ATTACK)/2);
   /* need to add missile enhancement bonus as well */
   /**/
@@ -4510,7 +4513,7 @@ int wildshape_weapon_type(struct char_data *ch) {
 
   if (!ch)
     return TYPE_HIT;
-  if (!IS_WILDSHAPED(ch))
+  if (!IS_WILDSHAPED(ch) && !IS_MORPHED(ch))
     return TYPE_HIT;
 
   int w_type_array[NUM_ATTACK_TYPES];
@@ -5214,7 +5217,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
   struct obj_data *wielded = get_wielded(ch, attack_type); /* Wielded weapon for this hand (uses offhand) */
   /*if (GET_EQ(ch, WEAR_WIELD_2H) && attack_type != ATTACK_TYPE_RANGED)
     attack_type = ATTACK_TYPE_TWOHAND;*/
-  if (IS_WILDSHAPED(ch))
+  if (IS_WILDSHAPED(ch) || IS_MORPHED(ch))
     wielded = NULL;
 
   /* First - check the attack queue.  If we have a queued attack, dispatch!
@@ -5479,7 +5482,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
 /* ch dual wielding or is trelux */
 int is_dual_wielding(struct char_data *ch) {
 
-  if (IS_WILDSHAPED(ch))
+  if (IS_WILDSHAPED(ch) || IS_MORPHED(ch))
     return FALSE;
 
   if (GET_EQ(ch, WEAR_WIELD_OFFHAND) || GET_RACE(ch) == RACE_TRELUX)
