@@ -3997,8 +3997,8 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
   strcat(buf2, "\tC");
   strcat(buf2, line_string(line_length, '-', '-'));
   strcat(buf2, "\tDSyntax: feats < known|available|all  <description> >\tn\r\n");
-  strcat(buf2, "\tDType feat info <name of feat> to get specific information about a particular feat.\tn\r\n");
-  strcat(buf2, "\tDType classfeats <name of class> to get a list of free feats that class gets.\tn\r\n");
+  strcat(buf2, "\tDType 'feat info <name of feat>' to get specific information about a particular feat.\tn\r\n");
+  strcat(buf2, "\tDType 'class feats <name of class>' to get a list of free feats that class gets.\tn\r\n");
 
   if (!viewer)
     viewer = ch;
