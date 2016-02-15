@@ -2408,8 +2408,8 @@ ACMD(do_wear) {
   struct obj_data *obj = NULL, *next_obj = NULL;
   int where = 0, dotmode = 0, items_worn = 0;
 
-  if (IS_WILDSHAPED(ch)) {
-    send_to_char(ch, "Why would you want to wear something? (wildshape)\r\n");
+  if (IS_WILDSHAPED(ch) || IS_MORPHED(ch)) {
+    send_to_char(ch, "Why would you want to wear something? (wildshape/polymorph)\r\n");
     return;
   }
 
@@ -2512,8 +2512,8 @@ ACMD(do_wield) {
   char arg[MAX_INPUT_LENGTH];
   struct obj_data *obj;
 
-  if (IS_WILDSHAPED(ch)) {
-    send_to_char(ch, "Why would you want to wield something? (wildshape)\r\n");
+  if (IS_WILDSHAPED(ch) || IS_MORPHED(ch)) {
+    send_to_char(ch, "Why would you want to wield something? (wildshape/polymorph)\r\n");
     return;
   }
 
@@ -2532,8 +2532,8 @@ ACMD(do_grab) {
   char arg[MAX_INPUT_LENGTH];
   struct obj_data *obj;
 
-  if (IS_WILDSHAPED(ch)) {
-    send_to_char(ch, "Why would you want to grab something? (wildshape)\r\n");
+  if (IS_WILDSHAPED(ch) || IS_MORPHED(ch)) {
+    send_to_char(ch, "Why would you want to grab something? (wildshape/polymorphed)\r\n");
     return;
   }
 
@@ -2589,8 +2589,8 @@ ACMD(do_remove) {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   int i = 0, dotmode = 0, found = 0;
 
-  if (IS_WILDSHAPED(ch)) {
-    send_to_char(ch, "Why would you want to remove something? (wildshape)\r\n");
+  if (IS_WILDSHAPED(ch) || IS_MORPHED(ch)) {
+    send_to_char(ch, "Why would you want to remove something? (wildshape/polymorphed)\r\n");
     return;
   }
 

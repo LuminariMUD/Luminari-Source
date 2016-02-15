@@ -2743,7 +2743,7 @@ int BAB(struct char_data *ch) {
   float counter = 0.0;
   
   /* wildshape */
-  if (IS_WILDSHAPED(ch))
+  if (IS_WILDSHAPED(ch) || IS_MORPHED(ch))
     wildshape_level = CLASS_LEVEL(ch, CLASS_DRUID) + CLASS_LEVEL(ch, CLASS_SHIFTER);
 
   /* pc: loop through all the possible classes the char could be */

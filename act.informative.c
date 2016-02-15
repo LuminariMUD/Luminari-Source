@@ -2404,7 +2404,7 @@ ACMD(do_equipment) {
   char dex_max[10] = "No-Max";
   int j = compute_gear_max_dex(ch);
 
-  if (IS_WILDSHAPED(ch)) {
+  if (IS_WILDSHAPED(ch) || IS_MORPHED(ch)) {
     send_to_char(ch, "Nekked!\r\n");
     return;
   }

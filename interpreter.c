@@ -762,7 +762,7 @@ void command_interpreter(struct char_data *ch, char *argument) {
     send_to_char(ch, "Sorry, that command hasn't been implemented yet.\r\n");
   else if (IS_NPC(ch) && complete_cmd_info[cmd].minimum_level >= LVL_IMMORT)
     send_to_char(ch, "You can't use immortal commands while switched.\r\n");
-  else if (IS_CASTING(ch) && !is_abbrev(complete_cmd_info[cmd].command, "abort"))
+  else if (IS_CASTING(ch) && !is_abbrev(complete_cmd_info[cmd].command, "abort") && !IS_NPC(ch))
     send_to_char(ch, "You are too busy casting [you can 'abort' the spell]...\r\n");
   else if (AFF_FLAGGED(ch, AFF_HIDE) && !AFF_FLAGGED(ch, AFF_SNEAK)) {
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_HIDE);

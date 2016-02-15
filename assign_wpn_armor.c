@@ -447,7 +447,7 @@ struct obj_data *is_using_ranged_weapon(struct char_data *ch) {
     return NULL;
   }
   
-  if (IS_WILDSHAPED(ch)) {
+  if (IS_WILDSHAPED(ch) || IS_MORPHED(ch)) {
     return NULL;
   }
 
@@ -1106,7 +1106,7 @@ int compute_gear_max_dex(struct char_data *ch) {
   int dexterity_cap = 0;
   int armor_max_dexterity = 0, i, count = 0;
 
-  if (IS_WILDSHAPED(ch))/* not wearing armor, no limit to dexterity */
+  if (IS_WILDSHAPED(ch) || IS_MORPHED(ch))/* not wearing armor, no limit to dexterity */
     return 99;
   
   struct obj_data *obj = NULL;
