@@ -389,7 +389,10 @@ int classArray(int class) {
     case CLASS_BARD:
       return 6;
   }
-  return -1;
+
+  /* we should NOT get here, so gotta at least log an error */
+  log("int classArray(int class) - received invalid class!");
+  return 0;
 }
 
 // words to use for the spell preparation process for different classes.
