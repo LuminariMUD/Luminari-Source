@@ -4507,82 +4507,119 @@ void attacks_of_opportunity(struct char_data *victim, int penalty) {
 }
 
 int wildshape_weapon_type(struct char_data *ch) {
-  if (!ch) return TYPE_HIT;
-  if (!IS_WILDSHAPED(ch)) return TYPE_HIT;
+
+  if (!ch)
+    return TYPE_HIT;
+  if (!IS_WILDSHAPED(ch))
+    return TYPE_HIT;
 
   int w_type_array[NUM_ATTACK_TYPES];
   int weapon_type = TYPE_HIT;
   int count = 0;
-  int race = GET_DISGUISE_RACE(ch);
+  int race = 0;
 
-  switch (race) {
-    
-    /* birdies */
-    case RACE_EAGLE:
-      w_type_array[count]   = TYPE_RAKE;
-      w_type_array[++count] = TYPE_PECK;
-      break;
+      if (!IS_MORPHED(ch)) {
+        race = GET_DISGUISE_RACE(ch);
+        switch (race) {
 
-    /* BIG */
-    case RACE_ELEPHANT:
-    case RACE_DINOSAUR:
-      w_type_array[count]   = TYPE_CRUSH;
-      w_type_array[++count] = TYPE_SMASH;
-      w_type_array[++count] = TYPE_TRAMPLE;
-      break;
+            /* birdies */
+          case RACE_EAGLE:
+            w_type_array[count] = TYPE_RAKE;
+            w_type_array[++count] = TYPE_PECK;
+            break;
 
-    /* great cats */
-    case RACE_GREAT_CAT:
-    case RACE_TIGER:
-    case RACE_LION:
-    case RACE_LEOPARD:
-    case RACE_CHEETAH:
-      
-    /* bears (oh my!) */
-    case RACE_BLACK_BEAR:
-    case RACE_BROWN_BEAR:
-    case RACE_POLAR_BEAR:
-      w_type_array[count]   = TYPE_BITE;
-      w_type_array[++count] = TYPE_CLAW;
-      w_type_array[++count] = TYPE_MAUL;
-      break;
+            /* BIG */
+          case RACE_ELEPHANT:
+          case RACE_DINOSAUR:
+            w_type_array[count] = TYPE_CRUSH;
+            w_type_array[++count] = TYPE_SMASH;
+            w_type_array[++count] = TYPE_TRAMPLE;
+            break;
 
-    /* charging animals */
-    case RACE_BOAR:
-    case RACE_RHINOCEROS:
-      w_type_array[count]   = TYPE_CHARGE;
-      w_type_array[++count] = TYPE_GORE;
-      break;
-      
-    /* primates! */
-    case RACE_APE:
-      w_type_array[count]   = TYPE_HIT;
-      w_type_array[++count] = TYPE_PUNCH;
-      w_type_array[++count] = TYPE_SMASH;
-      break;
-      
-    /* doggies */
-    case RACE_HYENA:
-    case RACE_WOLF:
-    case RACE_BLINK_DOG:
-    /* various */
-    case RACE_WOLVERINE:
-    case RACE_HORSE:
-    case RACE_RAT:
-    /* snakes */
-    case RACE_CONSTRICTOR_SNAKE:
-    case RACE_GIANT_CONSTRICTOR_SNAKE:
-    case RACE_MEDIUM_VIPER:
-    case RACE_LARGE_VIPER:
-    case RACE_HUGE_VIPER:
-    /* crocs! */
-    case RACE_CROCODILE:
-    case RACE_GIANT_CROCODILE:
-    /* DEFAULT */
-    default:
-      w_type_array[count]   = TYPE_BITE;
-      break;
-  }
+            /* great cats */
+          case RACE_GREAT_CAT:
+          case RACE_TIGER:
+          case RACE_LION:
+          case RACE_LEOPARD:
+          case RACE_CHEETAH:
+
+            /* bears (oh my!) */
+          case RACE_BLACK_BEAR:
+          case RACE_BROWN_BEAR:
+          case RACE_POLAR_BEAR:
+            w_type_array[count] = TYPE_BITE;
+            w_type_array[++count] = TYPE_CLAW;
+            w_type_array[++count] = TYPE_MAUL;
+            break;
+
+            /* charging animals */
+          case RACE_BOAR:
+          case RACE_RHINOCEROS:
+            w_type_array[count] = TYPE_CHARGE;
+            w_type_array[++count] = TYPE_GORE;
+            break;
+
+            /* primates! */
+          case RACE_APE:
+            w_type_array[count] = TYPE_HIT;
+            w_type_array[++count] = TYPE_PUNCH;
+            w_type_array[++count] = TYPE_SMASH;
+            break;
+
+            /* doggies */
+          case RACE_HYENA:
+          case RACE_WOLF:
+          case RACE_BLINK_DOG:
+            /* various */
+          case RACE_WOLVERINE:
+          case RACE_HORSE:
+          case RACE_RAT:
+            /* snakes */
+          case RACE_CONSTRICTOR_SNAKE:
+          case RACE_GIANT_CONSTRICTOR_SNAKE:
+          case RACE_MEDIUM_VIPER:
+          case RACE_LARGE_VIPER:
+          case RACE_HUGE_VIPER:
+            /* crocs! */
+          case RACE_CROCODILE:
+          case RACE_GIANT_CROCODILE:
+            /* DEFAULT */
+          default:
+            w_type_array[count] = TYPE_BITE;
+            break;
+        }
+        /* handle old shapechange system */
+      } else {
+        race = IS_MORPHED(ch);
+        switch (race) {
+          case NPCRACE_HUMAN:
+          case NPCRACE_UNDEAD:
+          case NPCRACE_GIANT:
+          case NPCRACE_CONSTRUCT:
+          case NPCRACE_ELEMENTAL:
+          case NPCRACE_FEY:
+          case NPCRACE_MONSTER_HMN:
+          case NPCRACE_OUTSIDER:
+          case NPCRACE_PLANT:
+            w_type_array[count] = TYPE_HIT;
+            w_type_array[++count] = TYPE_PUNCH;
+            w_type_array[++count] = TYPE_SMASH;
+            break;
+            
+          case NPCRACE_ANIMAL:
+          case NPCRACE_DRAGON:
+          case NPCRACE_ABERRATION:
+          case NPCRACE_MAG_BEAST:
+          case NPCRACE_OOZE:
+          case NPCRACE_VERMIN:            
+          default:
+            w_type_array[count] = TYPE_BITE;
+            w_type_array[++count] = TYPE_CLAW;
+            w_type_array[++count] = TYPE_MAUL;
+            break;          
+        }
+        
+      }
 
   /* pick random */
   weapon_type = w_type_array[rand_number(0, count)];
@@ -4661,7 +4698,7 @@ int determine_weapon_type(struct char_data *ch, struct char_data *victim,
     else
       w_type = GET_OBJ_VAL(wielded, 3) + TYPE_HIT;
 
-  } else if (IS_WILDSHAPED(ch)) {
+  } else if (IS_WILDSHAPED(ch) || IS_MORPHED(ch)) {
 
     w_type = wildshape_weapon_type(ch);
 
