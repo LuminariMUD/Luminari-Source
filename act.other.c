@@ -2016,10 +2016,12 @@ void assign_wildshape_feats(struct char_data *ch) {
   for (counter = 0; counter < NUM_FEATS; counter++)
     MOB_SET_FEAT((ch), counter, 0);
   
+  /***************************************************/
   /* make sure -=these=- feats transfer over! -zusuk */
   if (HAS_REAL_FEAT(ch, FEAT_NATURAL_SPELL))
     MOB_SET_FEAT(ch, FEAT_NATURAL_SPELL, 1);
   /** end transferable feats ***/
+  /***************************************************/
 
   /* trying to keep general racial type assignments here */
   switch (race_list[GET_DISGUISE_RACE(ch)].family) {    
