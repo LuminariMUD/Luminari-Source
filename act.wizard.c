@@ -6202,7 +6202,6 @@ ACMD(do_eqrating) {
 
   struct obj_data *obj = NULL;
 
-
   two_arguments(argument, arg1, arg2);
 
   if (!*arg1) {
