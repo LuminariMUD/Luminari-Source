@@ -271,7 +271,9 @@ int get_temperature(int map, int x, int y) {
   return temp;
 }
 
-/* Generate a height map centered on center_x and center_y. */
+/* 
+ * Generate a height map centered on center_x and center_y. 
+ */
 void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_tile **map) {
 
   int x, y;
@@ -330,7 +332,7 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
           case REGION_ENCOUNTER:
           default:
             break;
-        }
+        }               
       }
 
       /* Override default values with path-based values. */
@@ -643,13 +645,15 @@ void line_vis(struct wild_map_tile **map, int x, int y, int x2, int y2) {
   }
 }
 
-static char* wilderness_map_to_string(struct wild_map_tile ** map, int size, int shape) {
+static char* wilderness_map_to_string(struct wild_map_tile ** map, int size, int shape, int map_type) {
   static char strmap[32768];
   char* mp = strmap;
   int x, y, i;
   bool region_colored = FALSE;
   int centerx = ((size - 1) / 2);
   int centery = ((size - 1) / 2);
+  
+  int weather_value = 0;
 
   
   for (y = size - 1; y >= 0; y--) {
@@ -662,7 +666,7 @@ static char* wilderness_map_to_string(struct wild_map_tile ** map, int size, int
           strcpy(mp, "\tM*\tn");
           mp += strlen("\tM*\tn");
         }
-        else {
+        else {          
           /* Here we have to check the flag on the player, if they are viewing regions (only for STAFF) then the regions will show up
            * in different colors on the map using background colors. */
           for (i = 0; i < map[x][y].num_regions; i++) {
@@ -674,7 +678,7 @@ static char* wilderness_map_to_string(struct wild_map_tile ** map, int size, int
               region_colored = TRUE;
               break;
             }
-          }          
+          }                       
           strcpy(mp, (map[x][y].vis == 0 ? " " : (map[x][y].glyph == NULL ? wild_map_info[map[x][y].sector_type].disp : map[x][y].glyph)));
           mp += strlen((map[x][y].vis == 0 ? " " : (map[x][y].glyph == NULL ? wild_map_info[map[x][y].sector_type].disp : map[x][y].glyph)));
           if (region_colored == TRUE) {
@@ -683,6 +687,20 @@ static char* wilderness_map_to_string(struct wild_map_tile ** map, int size, int
             mp += strlen("\033[1;40m");
             region_colored = FALSE;
           } 
+          /* Check the map_type - if this is a weather map then overlay weather glyphs on the map */
+          if (map_type = MAP_TYPE_WEATHER) {
+            weather_value = get_weather(x, y);
+            if (weather_value >= 225) { /* Weather is affecting us */
+              strcpy(mp, "\tYL\tn");
+              mp += strlen("\tYL\tn");
+            } else if (weather_value >= 200) {
+              strcpy(mp, "\tBR\tn");
+              mp += strlen("\tBR\tn");
+            } else if (weather_value >= 178) {
+              strcpy(mp, "\tbR\tn");
+              mp += strlen("\tbR\tn");
+            }                        
+          }
         }
       } else {
         strcpy(mp, " ");
