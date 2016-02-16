@@ -43,7 +43,7 @@
 #define NOISE_MATERIAL_PLANE_ELEV_DIST  1
 #define NOISE_MATERIAL_PLANE_MOISTURE   2
 
-#define NUM_NOISE                       3 /* Always < MAX_GENERATED_NOISE (24) in perlin.h */
+#define NUM_NOISE                       4 /* Always < MAX_GENERATED_NOISE (24) in perlin.h */
 
 #define NOISE_MATERIAL_PLANE_ELEV_SEED         822344//113//3193//300 //242423 //Yang //3743
 #define NOISE_MATERIAL_PLANE_MOISTURE_SEED     834//133//3//6737
