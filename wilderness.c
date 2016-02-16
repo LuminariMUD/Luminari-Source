@@ -753,7 +753,7 @@ void show_wilderness_map(struct char_data* ch, int size, int x, int y) {
       generated_desc = gen_room_description(ch, IN_ROOM(ch));
       send_to_char(ch,
                    "%s",
-                   strpaste(wilderness_map_to_string(map, size, WILD_MAP_SHAPE_CIRCLE),
+                   strpaste(wilderness_map_to_string(map, size, WILD_MAP_SHAPE_CIRCLE, MAP_TYPE_NORMAL),
                             strfrmt(generated_desc,
                                     GET_SCREEN_WIDTH(ch) - size,
                                     size,
@@ -766,7 +766,7 @@ void show_wilderness_map(struct char_data* ch, int size, int x, int y) {
     } else {
       send_to_char(ch,
                    "%s",
-                   strpaste(wilderness_map_to_string(map, size, WILD_MAP_SHAPE_CIRCLE),
+                   strpaste(wilderness_map_to_string(map, size, WILD_MAP_SHAPE_CIRCLE, MAP_TYPE_NORMAL),
                             strfrmt(world[IN_ROOM(ch)].description,
                                     GET_SCREEN_WIDTH(ch) - size,
                                     size,
@@ -779,7 +779,7 @@ void show_wilderness_map(struct char_data* ch, int size, int x, int y) {
   else
     send_to_char(ch,
                "%s",
-               strpaste(wilderness_map_to_string(map, size, WILD_MAP_SHAPE_CIRCLE),
+               strpaste(wilderness_map_to_string(map, size, WILD_MAP_SHAPE_CIRCLE, MAP_TYPE_NORMAL),
                         strfrmt(world[IN_ROOM(ch)].description,
                                 80 - size,
                                 size,
@@ -881,7 +881,7 @@ char * gen_ascii_wilderness_map(int size, int x, int y) {
       map[i][j].vis = 10;
 
 
-  mapstring = wilderness_map_to_string(map, size, WILD_MAP_SHAPE_RECT);
+  mapstring = wilderness_map_to_string(map, size, WILD_MAP_SHAPE_RECT, MAP_TYPE_NORMAL);
 
   if (map[0]) free(map[0]);
   free(map);
