@@ -1918,13 +1918,21 @@ bool display_class_prereqs(struct char_data *ch, char *classname) {
   if (class == CLASS_UNDEFINED) {
     return FALSE;
   }
-
+  
+  /* do some math to check if we have max levels in a given class */
+  int max_class_level = CLSLIST_MAXLVL(class);  
+  if (max_class_level == -1) /* no limit */
+    max_class_level = LVL_IMMORT - 1;
+  
   /* display top */  
   send_to_char(ch, "\tC\r\n");
   draw_line(ch, line_length, '-', '-');
   
   /* basic info */
   send_to_char(ch, "\tcClass Name       : \tn%s\r\n", CLSLIST_NAME(class));
+  send_to_char(ch, "\tcMax Lvl in Class : \tn%d - %s\r\n", max_class_level,
+      (CLASS_LEVEL(ch, class) >= max_class_level) ?
+          "\trCap reached!\tn" : "\tWLevel cap not reached!\tn" );
   if (CLSLIST_LOCK(class)) {
     send_to_char(ch, "\tcUnlock Cost      : \tn%d Account XP - %s\r\n", CLSLIST_COST(class),
             has_unlocked_class(ch, class) ? "\tWUnlocked!\tn" : "\trLocked!\tn");      
@@ -1932,7 +1940,11 @@ bool display_class_prereqs(struct char_data *ch, char *classname) {
   
   /* prereqs, start with text line */
   send_to_char(ch, text_line_string("\tYRequirements\tC", line_length, '-', '-'));
+  send_to_char(ch, "You only need to meet one requirement for race and alignment.\r\n");
+  send_to_char(ch, "\tC");
+  draw_line(ch, line_length, '-', '-');
 
+  /* here we process our prereq linked list for each class */
   for (prereq = class_list[class].prereq_list; prereq != NULL; prereq = prereq->next) {
     meets_prereqs = FALSE;
     if (meets_class_prerequisite(ch, prereq, -1))
@@ -1951,7 +1963,8 @@ bool display_class_prereqs(struct char_data *ch, char *classname) {
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
   send_to_char(ch, "\tn");
-  
+
+  send_to_char(ch, "Note: Epic races can not multi-class currently.\r\n");  
   if (class_is_available(ch, class, 0, NULL)) {
     send_to_char(ch, "\tWClass IS AVAILABLE!\tn\r\n");
   } else {
@@ -2474,7 +2487,7 @@ ACMD(do_class) {
   } else if (is_abbrev(arg, "info")) {
 
     if (!strcmp(classname, "")) {
-      send_to_char(ch, "You must provide the name of a class.\r\n");
+      send_to_char(ch, "\r\nYou must provide the name of a class.\r\n");
     } else if(!display_class_info(ch, classname)) {
       send_to_char(ch, "Could not find that class.\r\n");
     }
@@ -2483,7 +2496,7 @@ ACMD(do_class) {
   } else if (is_abbrev(arg, "feats")) {
 
     if (!strcmp(classname, "")) {
-      send_to_char(ch, "You must provide the name of a class.\r\n");
+      send_to_char(ch, "\r\nYou must provide the name of a class.\r\n");
     } else if(!view_class_feats(ch, classname)) {
       send_to_char(ch, "Could not find that class.\r\n");
     }
@@ -2496,7 +2509,7 @@ ACMD(do_class) {
   } else if (is_abbrev(arg, "prereqs")) {
     
     if (!strcmp(classname, "")) {
-      send_to_char(ch, "You must provide the name of a class.\r\n");
+      send_to_char(ch, "\r\nYou must provide the name of a class.\r\n");
     } else if(!display_class_prereqs(ch, classname)) {
       send_to_char(ch, "Could not find that class.\r\n");
     }
@@ -2511,9 +2524,7 @@ ACMD(do_class) {
  in interpreter.c for starting chars */
 /* returns 1 for valid alignment, returns 0 for problem with alignment */
 int valid_align_by_class(int alignment, int class) {
-
   switch (class) {
-
       /* any lawful alignment */
     case CLASS_MONK:
       switch (alignment) {
@@ -2524,7 +2535,6 @@ int valid_align_by_class(int alignment, int class) {
         default:
           return 0;
       }
-
       /* any 'neutral' alignment */
     case CLASS_DRUID:
       switch (alignment) {
@@ -2537,7 +2547,6 @@ int valid_align_by_class(int alignment, int class) {
         default:
           return 0;
       }
-
       /* any 'non-lawful' alignment */
     case CLASS_BERSERKER:
     case CLASS_BARD:
@@ -2550,14 +2559,12 @@ int valid_align_by_class(int alignment, int class) {
         default:
           return 1;
       }
-
       /* only lawful good */
     case CLASS_PALADIN:
       if (alignment == LAWFUL_GOOD)
         return 1;
       else
         return 0;
-
       /* default, no alignment restrictions */
     case CLASS_WIZARD:
     case CLASS_CLERIC:
@@ -2571,7 +2578,6 @@ int valid_align_by_class(int alignment, int class) {
     case CLASS_SORCERER:
       return 1;
   }
-
   /* shouldn't get here if we got all classes listed above */
   return 1;
 }

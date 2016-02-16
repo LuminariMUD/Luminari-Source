@@ -1701,10 +1701,12 @@ spellnum == SPELL_EPIC_WARDING )
 #define IS_ELEMENTAL(ch)	( (IS_NPC(ch) && GET_RACE(ch) == NPCRACE_ELEMENTAL) || \
 				(!IS_NPC(ch) && IS_MORPHED(ch) == NPCRACE_ELEMENTAL) )
 #define IS_PLANT(ch)    ( (IS_NPC(ch) && GET_RACE(ch) == NPCRACE_PLANT) || \
-                                (!IS_NPC(ch) && IS_MORPHED(ch) == NPCRACE_UNDEAD) )
+                                (!IS_NPC(ch) && IS_MORPHED(ch) == NPCRACE_PLANT) )
 
 /* IS_ for other special situations */
 #define IS_INCORPOREAL(ch)   (AFF_FLAGGED(ch, AFF_IMMATERIAL) || HAS_SUBRACE(ch, SUBRACE_INCORPOREAL))
+
+#define IS_IMMUNE_CRITS(ch)  (IS_UNDEAD(ch))
 
 /** Defines if ch is outdoors or not. */
 #define OUTDOORS(ch)         (is_outdoors(ch))

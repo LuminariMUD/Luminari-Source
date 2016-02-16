@@ -40,7 +40,6 @@ int farming_nodes = 0;
 int hunting_nodes = 0;
 int foresting_nodes = 0;
 
-
 /***********************************/
 /* crafting local utility functions*/
 /***********************************/
@@ -573,17 +572,11 @@ void reset_harvesting_rooms(void) {
   }
 }
 
-
-
-
 /*************************/
 /* start primary engines */
 /*************************/
 
-
-
 // combine crystals to make them stronger
-
 int augment(struct obj_data *kit, struct char_data *ch) {
   struct obj_data *obj = NULL, *crystal_one = NULL, *crystal_two = NULL;
   int num_objs = 0, cost = 0, bonus = 0, bonus2 = 0;
@@ -702,10 +695,8 @@ int augment(struct obj_data *kit, struct char_data *ch) {
   return 1;
 }
 
-
 // convert one material into another
 // requires multiples of exactly 10 of same mat to do the converstion
-
 /*  !! still under construction - zusuk !! */
 int convert(struct obj_data *kit, struct char_data *ch) {
   int cost = 500; /* flat cost */
@@ -1749,30 +1740,30 @@ EVENTFUNC(event_crafting) {
         break;
       case SCMD_MINE:
         skill = SKILL_MINING;
-        sprintf(buf, "You mine $p.  Success!!!");
+        sprintf(buf, "You mine and process resulting in: $p.  Success!!!");
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
-        sprintf(buf, "$n mines $p.");
+        sprintf(buf, "$n mines and processes creating: $p.");
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
         break;
       case SCMD_HUNT:
         skill = SKILL_FORESTING;
-        sprintf(buf, "You find $p from your hunting.  Success!!!");
+        sprintf(buf, "Your hunt and labor result in: $p .  Success!!!");
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
-        sprintf(buf, "$n finds $p from $s hunting.");
+        sprintf(buf, "$n's hunt and labor result in: $p.");
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
         break;
       case SCMD_KNIT:
         skill = SKILL_KNITTING;
-        sprintf(buf, "You tailor $p.  Success!!!");
+        sprintf(buf, "You turn the raw material into: $p.  Success!!!");
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
-        sprintf(buf, "$n tailors $p.");
+        sprintf(buf, "$n turns the raw material into: $p.");
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
         break;
       case SCMD_FOREST:
         skill = SKILL_FORESTING;
-        sprintf(buf, "You forest $p.  Success!!!");
+        sprintf(buf, "Your foresting and labor result in: $p.  Success!!!");
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
-        sprintf(buf, "$n forests $p.");
+        sprintf(buf, "$n forests and labors resulting in: $p.");
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
         break;
       case SCMD_DISENCHANT:
