@@ -1904,194 +1904,6 @@ void load_class_list(void) {
   /****************************************************************************/
 }
 
-/* a display specific for identify prereqs for a given class */
-bool display_class_prereqs(struct char_data *ch, char *classname) {
-  int class = CLASS_UNDEFINED;
-  struct class_prerequisite *prereq = NULL;
-  static int line_length = 80;
-  char buf[MAX_STRING_LENGTH] = { '\0' };  
-  bool meets_prereqs = FALSE, found = FALSE;
-  
-  skip_spaces(&classname);
-  class = parse_class_long(classname);
-
-  if (class == CLASS_UNDEFINED) {
-    return FALSE;
-  }
-  
-  /* do some math to check if we have max levels in a given class */
-  int max_class_level = CLSLIST_MAXLVL(class);  
-  if (max_class_level == -1) /* no limit */
-    max_class_level = LVL_IMMORT - 1;
-  
-  /* display top */  
-  send_to_char(ch, "\tC\r\n");
-  draw_line(ch, line_length, '-', '-');
-  
-  /* basic info */
-  send_to_char(ch, "\tcClass Name        : \tn%s\r\n", CLSLIST_NAME(class));
-  send_to_char(ch, "\tcMax Level in Class: \tn%d - %s\r\n", max_class_level,
-      (CLASS_LEVEL(ch, class) >= max_class_level) ?
-          "\trCap reached!\tn" : "\tWLevel cap not reached!\tn" );
-  send_to_char(ch, "\tcUnlock Cost       : \tn%d Account XP - %s\r\n", CLSLIST_COST(class),
-          has_unlocked_class(ch, class) ? "\tWUnlocked!\tn" : "\trLocked!\tn");      
-  send_to_char(ch, "\tcClass in the Game?: \tn%s\r\n", CLSLIST_INGAME(class) ?
-                   "\tYes\tn" : "\trNo\tn");
-  
-  /* prereqs, start with text line */
-  send_to_char(ch, "\tC");
-  send_to_char(ch, text_line_string("\tcRequirements\tC", line_length, '-', '-'));
-  send_to_char(ch, "\tn");
-  send_to_char(ch, "\tcNote: you only need to meet one prereq for race and align:\tn\r\n");
-
-  /* here we process our prereq linked list for each class */
-  for (prereq = class_list[class].prereq_list; prereq != NULL; prereq = prereq->next) {
-    meets_prereqs = FALSE;
-    if (meets_class_prerequisite(ch, prereq, -1))
-      meets_prereqs = TRUE;
-    sprintf(buf, "\tn%s%s%s - %s\r\n",
-              (meets_prereqs ? "\tn" : "\tr"), prereq->description, "\tn",
-              (meets_prereqs ? "\tWFulfilled!\tn" : "\trMissing\tn"));
-    send_to_char(ch, buf);
-    found = TRUE;
-  }
-  
-  if (!found)
-    send_to_char(ch, "\tWNo requirements!\tn\r\n");
-  
-  /* close prereq display */
-  send_to_char(ch, "\tC");
-  draw_line(ch, line_length, '-', '-');
-  send_to_char(ch, "\tn");
-
-  if (class_is_available(ch, class, 0, NULL)) {
-    send_to_char(ch, "\tWClass IS AVAILABLE!\tn\r\n");
-  } else {
-    send_to_char(ch, "\trClass is not available!\tn\r\n");    
-  }
-  
-  /* close display */
-  send_to_char(ch, "\tC");
-  draw_line(ch, line_length, '-', '-');
-  send_to_char(ch, "\tn");
-  send_to_char(ch, "\tcNote: Epic races currently can not multi-class\tn\r\n");
-  
-  return TRUE;
-}
-
-/* this will be a general list of all classes in game and indication whether
- selectable by CH based on prereqs */
-void display_in_game_classes(struct char_data *ch) {
-  struct descriptor_data *d = ch->desc;
-  int counter, columns = 0;
-
-  write_to_output(d, "\r\n");
-  
-  for (counter = 0; counter < NUM_CLASSES; counter++) {
-    
-    write_to_output(d, "%s%-20.20s %s",
-            class_is_available(ch, counter, MODE_CLASSLIST_NORMAL, NULL) ? " " : "*",
-            CLSLIST_NAME(counter), 
-            !(++columns % 3) ? "\r\n" : "");
-  }
-  
-  write_to_output(d, "\r\n");
-  write_to_output(d, "* - not qualified 'class prereqs <class name>' for details\r\n");
-  write_to_output(d, "\r\n");
-}
-
-/* determines if ch qualifies for a class */
-bool class_is_available(struct char_data *ch, int classnum, int iarg, char *sarg) {
-  struct class_prerequisite *prereq = NULL;
-  int max_class_level = CLSLIST_MAXLVL(classnum);
-  int i = 0;
-  bool has_alignment_restrictions = FALSE;
-  bool has_race_restrictions = FALSE;
-  bool has_valid_alignment = FALSE;
-  bool has_valid_race = FALSE;
-  
-  /* dumb-dumb check */
-  if (classnum < 0 || classnum >= NUM_CLASSES)
-    return FALSE;
-
-  /* is this class even in the game? */
-  if (!CLSLIST_INGAME(classnum))
-    return FALSE;
-  
-  /* cap for class ranks */
-  if (max_class_level == -1) /* no limit */
-    max_class_level = LVL_IMMORT - 1;
-  if (CLASS_LEVEL(ch, classnum) >= max_class_level) {
-    return FALSE;
-  }
-  
-  /* prevent epic race from currently multi-classing */
-  if (iarg == MODE_CLASSLIST_NORMAL) {
-    for (i = 0; i < NUM_CLASSES; i++)
-      if (CLASS_LEVEL(ch, i)) /* found char current class */
-        break;
-    switch (GET_RACE(ch)) {
-      case RACE_CRYSTAL_DWARF:
-        if (classnum == i) /* char class selection and current class match? */
-          ;
-        else
-          return FALSE;
-      case RACE_TRELUX:
-        if (classnum == i) /* char class selection and current class match? */
-          ;
-        else
-          return FALSE;
-      default: break;
-    }
-  }
-  
-  /* locked class that has been unlocked yet? */
-  if (!has_unlocked_class(ch, classnum))
-    return FALSE;
-        
-  /* class prerequisites list */  
-  if (class_list[classnum].prereq_list != NULL) {
-    
-    /*  This class has prerequisites. Traverse the list and check. */
-    for (prereq = class_list[classnum].prereq_list; prereq != NULL; prereq = prereq->next) {
-      
-      /* we have to check for valid lists, like a list of valid alignments or races */
-      switch (prereq->prerequisite_type) {
-        
-        /* has align restriction?  well any qualification will work */
-        case CLASS_PREREQ_ALIGN:
-        has_alignment_restrictions = TRUE;
-        if (meets_class_prerequisite(ch, prereq, iarg) == TRUE)
-            has_valid_alignment = TRUE;
-          break;
-          
-        /* has race restriction?  well any qualification will work */
-        case CLASS_PREREQ_RACE:
-        has_race_restrictions = TRUE;
-        if (meets_class_prerequisite(ch, prereq, iarg) == TRUE)
-            has_valid_race = TRUE;
-          break;
-          
-        /* our default normal case, instant disqualification */  
-        default:
-          if (meets_class_prerequisite(ch, prereq, iarg) == FALSE)
-            return FALSE; /* these are instant disqualifications */
-          break;
-      }
-    } /* finished transversing list */
-    
-    /* final check for 'valid lists' such as alignment / race list */
-    if (has_alignment_restrictions && !has_valid_alignment)
-      return FALSE; /* doesn't mean alignment reqs */
-    if (has_race_restrictions && !has_valid_race)
-      return FALSE; /* doesn't mean race reqs */
-    
-  }
-  
-  /* made it! */
-  return TRUE;
-}
-
 /* Check to see if ch meets the provided class prerequisite.
    iarg is for external comparison */
 bool meets_class_prerequisite(struct char_data *ch, struct class_prerequisite *prereq, int iarg) {
@@ -2264,6 +2076,191 @@ bool meets_class_prerequisite(struct char_data *ch, struct class_prerequisite *p
   return TRUE;
 }
 
+/* a display specific to identify prereqs for a given class */
+bool display_class_prereqs(struct char_data *ch, char *classname) {
+  int class = CLASS_UNDEFINED;
+  struct class_prerequisite *prereq = NULL;
+  static int line_length = 80;
+  char buf[MAX_STRING_LENGTH] = { '\0' };  
+  bool meets_prereqs = FALSE, found = FALSE;
+  
+  skip_spaces(&classname);
+  class = parse_class_long(classname);
+
+  if (class == CLASS_UNDEFINED) {
+    return FALSE;
+  }
+  
+  /* do some math to check if we have max levels in a given class */
+  int max_class_level = CLSLIST_MAXLVL(class);  
+  if (max_class_level == -1) /* no limit */
+    max_class_level = LVL_IMMORT - 1;
+  
+  /* display top */  
+  send_to_char(ch, "\tC\r\n");
+  draw_line(ch, line_length, '-', '-');
+  
+  /* basic info */
+  send_to_char(ch, "\tcClass Name        : \tn%s\r\n", CLSLIST_NAME(class));
+  send_to_char(ch, "\tcMax Level in Class: \tn%d - %s\r\n", max_class_level,
+      (CLASS_LEVEL(ch, class) >= max_class_level) ?
+          "\trCap reached!\tn" : "\tWLevel cap not reached!\tn" );
+  send_to_char(ch, "\tcUnlock Cost       : \tn%d Account XP - %s\r\n", CLSLIST_COST(class),
+          has_unlocked_class(ch, class) ? "\tWUnlocked!\tn" : "\trLocked!\tn");      
+  send_to_char(ch, "\tcClass in the Game?: \tn%s\r\n", CLSLIST_INGAME(class) ?
+                   "\tYes\tn" : "\trNo\tn");
+  
+  /* prereqs, start with text line */
+  send_to_char(ch, "\tC");
+  send_to_char(ch, text_line_string("\tcRequirements\tC", line_length, '-', '-'));
+  send_to_char(ch, "\tn");
+  send_to_char(ch, "\tcNote: you only need to meet one prereq for race and align:\tn\r\n\r\n");
+
+  /* here we process our prereq linked list for each class */
+  for (prereq = class_list[class].prereq_list; prereq != NULL; prereq = prereq->next) {
+    meets_prereqs = FALSE;
+    if (meets_class_prerequisite(ch, prereq, -1))
+      meets_prereqs = TRUE;
+    sprintf(buf, "\tn%s%s%s - %s\r\n",
+              (meets_prereqs ? "\tn" : "\tr"), prereq->description, "\tn",
+              (meets_prereqs ? "\tWFulfilled!\tn" : "\trMissing\tn"));
+    send_to_char(ch, buf);
+    found = TRUE;
+  }
+  
+  if (!found)
+    send_to_char(ch, "\tWNo requirements!\tn\r\n");
+  
+  /* close prereq display */
+  send_to_char(ch, "\tC");
+  draw_line(ch, line_length, '-', '-');
+  send_to_char(ch, "\tn");
+
+  if (class_is_available(ch, class, 0, NULL)) {
+    send_to_char(ch, "\tWClass IS AVAILABLE!\tn\r\n");
+  } else {
+    send_to_char(ch, "\trClass is not available!\tn\r\n");    
+  }
+  
+  /* close display */
+  send_to_char(ch, "\tC");
+  draw_line(ch, line_length, '-', '-');
+  send_to_char(ch, "\tn");
+  send_to_char(ch, "\tcNote: Epic races currently can not multi-class\tn\r\n\r\n");
+  
+  return TRUE;
+}
+
+/* this will be a general list of all classes and indication whether
+ selectable by CH based on prereqs */
+void display_all_classes(struct char_data *ch) {
+  struct descriptor_data *d = ch->desc;
+  int counter, columns = 0;
+
+  write_to_output(d, "\r\n");
+  
+  for (counter = 0; counter < NUM_CLASSES; counter++) {    
+    write_to_output(d, "%s%-20.20s %s",
+            class_is_available(ch, counter, MODE_CLASSLIST_NORMAL, NULL) ? " " : "*",
+            CLSLIST_NAME(counter), 
+            !(++columns % 3) ? "\r\n" : "");
+  }
+  
+  write_to_output(d, "\r\n");
+  write_to_output(d, "* - not qualified 'class prereqs <class name>' for details\r\n");
+  write_to_output(d, "\r\n");
+}
+
+/* determines if ch qualifies for a class */
+bool class_is_available(struct char_data *ch, int classnum, int iarg, char *sarg) {
+  struct class_prerequisite *prereq = NULL;
+  int i = 0, max_class_level = CLSLIST_MAXLVL(classnum);
+  bool has_alignment_restrictions = FALSE, has_valid_alignment = FALSE;
+  bool has_race_restrictions = FALSE, has_valid_race = FALSE;
+  
+  /* dumb-dumb check */
+  if (classnum < 0 || classnum >= NUM_CLASSES)
+    return FALSE;
+
+  /* is this class even in the game? */
+  if (!CLSLIST_INGAME(classnum))
+    return FALSE;
+  
+  /* cap for class ranks */
+  if (max_class_level == -1) /* no limit */
+    max_class_level = LVL_IMMORT - 1;
+  if (CLASS_LEVEL(ch, classnum) >= max_class_level) {
+    return FALSE;
+  }
+  
+  /* prevent epic race from currently multi-classing */
+  if (iarg == MODE_CLASSLIST_NORMAL) {
+    for (i = 0; i < NUM_CLASSES; i++)
+      if (CLASS_LEVEL(ch, i)) /* found char current class */
+        break;
+    switch (GET_RACE(ch)) {
+      case RACE_CRYSTAL_DWARF:
+        if (classnum == i) /* char class selection and current class match? */
+          ;
+        else
+          return FALSE;
+      case RACE_TRELUX:
+        if (classnum == i) /* char class selection and current class match? */
+          ;
+        else
+          return FALSE;
+      default: break;
+    }
+  }
+  
+  /* locked class that has been unlocked yet? */
+  if (!has_unlocked_class(ch, classnum))
+    return FALSE;
+        
+  /* class prerequisites list */  
+  if (class_list[classnum].prereq_list != NULL) {
+    
+    /*  This class has prerequisites. Traverse the list and check. */
+    for (prereq = class_list[classnum].prereq_list; prereq != NULL; prereq = prereq->next) {
+      
+      /* we have to check for valid lists, like a list of valid alignments or races */
+      switch (prereq->prerequisite_type) {
+        
+        /* has align restriction?  well any qualification will work */
+        case CLASS_PREREQ_ALIGN:
+        has_alignment_restrictions = TRUE;
+        if (meets_class_prerequisite(ch, prereq, iarg) == TRUE)
+            has_valid_alignment = TRUE;
+          break;
+          
+        /* has race restriction?  well any qualification will work */
+        case CLASS_PREREQ_RACE:
+        has_race_restrictions = TRUE;
+        if (meets_class_prerequisite(ch, prereq, iarg) == TRUE)
+            has_valid_race = TRUE;
+          break;
+          
+        /* our default normal case, instant disqualification */  
+        default:
+          if (meets_class_prerequisite(ch, prereq, iarg) == FALSE)
+            return FALSE; /* these are instant disqualifications */
+          break;
+      }
+    } /* finished transversing list */
+    
+    /* final check for 'valid lists' such as alignment / race list */
+    if (has_alignment_restrictions && !has_valid_alignment)
+      return FALSE; /* doesn't mean alignment reqs */
+    if (has_race_restrictions && !has_valid_race)
+      return FALSE; /* doesn't mean race reqs */
+    
+  }
+  
+  /* made it! */
+  return TRUE;
+}
+
+/* display a specific classes details */
 bool display_class_info(struct char_data *ch, char *classname) {
   int class = -1, i = 0;
   char buf[MAX_STRING_LENGTH] = { '\0' };  
@@ -2275,7 +2272,7 @@ bool display_class_info(struct char_data *ch, char *classname) {
   skip_spaces(&classname);
   class = parse_class_long(classname);
 
-  if (class == -1 || class_list[class].in_game == FALSE) {
+  if (class == -1 || class >= NUM_CLASSES) {
     /* Not found - Maybe put in a soundex list here? */
     return FALSE;
   }
@@ -2298,6 +2295,8 @@ bool display_class_info(struct char_data *ch, char *classname) {
           "level)\r\n", CLSLIST_TRAINS(class));  
   send_to_char(ch, "\tcEpic Feat Prog   : \tnGain an epic feat every %d levels\r\n",
       CLSLIST_EFEATP(class));
+  send_to_char(ch, "\tcClass in Game?   : \tn%s\r\n", CLSLIST_INGAME(class) ?
+                   "\tnYes\tn" : "\trNo, ask staff\tn");
   
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
@@ -2486,7 +2485,7 @@ ACMD(do_class) {
 
   /* no argument, or general list of classes */
   if (is_abbrev(arg, "list") || !*arg) {
-    display_in_game_classes(ch);
+    display_all_classes(ch);
     
   /* class info - specific info on given class */    
   } else if (is_abbrev(arg, "info")) {

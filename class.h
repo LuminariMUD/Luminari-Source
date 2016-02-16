@@ -81,7 +81,7 @@ extern struct class_table class_list[];
 
 /* Functions available through class.c */
 int valid_align_by_class(int alignment, int class);
-void display_in_game_classes(struct char_data *ch);
+void display_all_classes(struct char_data *ch);
 bool class_is_available(struct char_data *ch, int classnum, int iarg, char *sarg);
 bool meets_class_prerequisite(struct char_data *ch, struct class_prerequisite *prereq, int iarg);
 bool display_class_info(struct char_data *ch, char *classname);
