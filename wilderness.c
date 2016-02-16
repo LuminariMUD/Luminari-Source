@@ -223,9 +223,6 @@ int get_weather(int x, int y) {
   
   result = (result + 1) / 2.0;
   
-  if (result < 0.7) 
-    result = 0.0;
-  
   return 255 *result;
 }
 
