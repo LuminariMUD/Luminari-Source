@@ -214,16 +214,16 @@ int get_weather(int x, int y) {
   int    time_base;
   time_t now;
 
-  time_base = now % 100000;
-  
+    
   now = time(NULL);
-  
+  time_base = now % 100000;
+ 
   trans_x = x / (double) (WILD_X_SIZE / 2.0);
   trans_y = y / (double) (WILD_Y_SIZE / 2.0);
 
-  result = PerlinNoise3D(NOISE_WEATHER, trans_x, trans_y, now, 1.5, 2.0, 8);
+  result = PerlinNoise3D(NOISE_WEATHER, trans_x, trans_y, time_base, 1.5, 2.0, 8);
   
-  log("DEBUG: Weather - %f %f %ld %f", trans_x, trans_y, now, result);
+  log("DEBUG: Weather - %f %f %d %f", trans_x, trans_y, time_base, result);
   
   result = (result + 1) / 2.0;
   
