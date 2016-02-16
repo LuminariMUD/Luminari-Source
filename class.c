@@ -149,10 +149,15 @@ void class_prereq_feat(int class_num, int feat, int ranks) {
 void class_prereq_cfeat(int class_num, int feat, int special) {
   struct class_prerequisite *prereq = NULL;
   char buf[80];
-
+  
+  const char *cfeat_special[NUM_CFEAT_SPECIAL] = {
+    "no special circumstance",
+    "in any bow",
+  };
+  
   prereq = create_prereq(CLASS_PREREQ_CFEAT, feat, special, 0);
 
-  sprintf(buf, "%s (in same weapon)", feat_list[feat].name);
+  sprintf(buf, "%s (%s)", feat_list[feat].name, cfeat_special[special]);
   prereq->description = strdup(buf);
 
   /*   Link it up. */
