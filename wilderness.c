@@ -854,7 +854,7 @@ EVENTFUNC(event_check_occupied) {
   return 0;
 }
 
-char * gen_ascii_wilderness_map(int size, int x, int y) {
+char * gen_ascii_wilderness_map(int size, int x, int y, int map_type) {
   struct wild_map_tile **map;
   int i;
   int j;
@@ -881,7 +881,7 @@ char * gen_ascii_wilderness_map(int size, int x, int y) {
       map[i][j].vis = 10;
 
 
-  mapstring = wilderness_map_to_string(map, size, WILD_MAP_SHAPE_RECT, MAP_TYPE_NORMAL);
+  mapstring = wilderness_map_to_string(map, size, WILD_MAP_SHAPE_RECT, map_type);
 
   if (map[0]) free(map[0]);
   free(map);
