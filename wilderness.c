@@ -211,7 +211,7 @@ int get_weather(int x, int y) {
   double trans_x;
   double trans_y;
   double result;
-  int    time_base;
+  double time_base;
   time_t now;
 
     
