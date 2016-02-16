@@ -1243,19 +1243,19 @@ ACMD(do_respec) {
   if (!*arg) {
     send_to_char(ch, "You need to select a starting class to respec to,"
             " here are your options:\r\n");
-    display_in_game_classes(ch);
+    display_all_classes(ch);
     return;
   } else {
     class = get_class_by_name(arg);
     if (class == -1) {
       send_to_char(ch, "Invalid class.\r\n");
-      display_in_game_classes(ch);
+      display_all_classes(ch);
       return;
     }
     if (class >= NUM_CLASSES ||
             !class_is_available(ch, class, MODE_CLASSLIST_RESPEC, NULL)) {
       send_to_char(ch, "That is not a valid class!\r\n");
-      display_in_game_classes(ch);
+      display_all_classes(ch);
       return;
     }
     if (GET_LEVEL(ch) < 2) {
@@ -1316,21 +1316,21 @@ ACMD(do_gain) {
 
   if (!*arg) {
     send_to_char(ch, "You may gain a level in one of the following classes:\r\n\r\n");
-    display_in_game_classes(ch);
+    display_all_classes(ch);
     send_to_char(ch, "Type 'gain <classname>' to gain a level in the chosen class.\r\n");
     return;
   } else {
     class = get_class_by_name(arg);
     if (class == -1) {
       send_to_char(ch, "Invalid class.\r\n");
-      display_in_game_classes(ch);
+      display_all_classes(ch);
       return;
     }
    
     if (class < 0 || class >= NUM_CLASSES ||
             !class_is_available(ch, class, MODE_CLASSLIST_NORMAL, NULL)) {
       send_to_char(ch, "That is not a valid class!\r\n");
-      display_in_game_classes(ch);
+      display_all_classes(ch);
       return;
     }
 
