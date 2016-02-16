@@ -596,6 +596,7 @@ void boot_world(void) {
   init_perlin(NOISE_MATERIAL_PLANE_ELEV, NOISE_MATERIAL_PLANE_ELEV_SEED);
   init_perlin(NOISE_MATERIAL_PLANE_MOISTURE, NOISE_MATERIAL_PLANE_MOISTURE_SEED);
   init_perlin(NOISE_MATERIAL_PLANE_ELEV_DIST, NOISE_MATERIAL_PLANE_ELEV_DIST_SEED);
+  init_perlin(NOISE_WEATHER, NOISE_WEATHER_SEED);
 
   log("Indexing wilderness rooms.");
   initialize_wilderness_lists();
