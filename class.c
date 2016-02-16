@@ -1933,7 +1933,7 @@ bool display_class_prereqs(struct char_data *ch, char *classname) {
   send_to_char(ch, "\tcMax Level in Class: \tn%d - %s\r\n", max_class_level,
       (CLASS_LEVEL(ch, class) >= max_class_level) ?
           "\trCap reached!\tn" : "\tWLevel cap not reached!\tn" );
-  send_to_char(ch, "\tcUnlock Cost      : \tn%d Account XP - %s\r\n", CLSLIST_COST(class),
+  send_to_char(ch, "\tcUnlock Cost       : \tn%d Account XP - %s\r\n", CLSLIST_COST(class),
           has_unlocked_class(ch, class) ? "\tWUnlocked!\tn" : "\trLocked!\tn");      
   
   /* prereqs, start with text line */
@@ -1962,7 +1962,6 @@ bool display_class_prereqs(struct char_data *ch, char *classname) {
   draw_line(ch, line_length, '-', '-');
   send_to_char(ch, "\tn");
 
-  send_to_char(ch, "\tcNote: Epic races currently can not multi-class\tn\r\n");  
   if (class_is_available(ch, class, 0, NULL)) {
     send_to_char(ch, "\tWClass IS AVAILABLE!\tn\r\n");
   } else {
@@ -1973,6 +1972,7 @@ bool display_class_prereqs(struct char_data *ch, char *classname) {
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
   send_to_char(ch, "\tn");
+  send_to_char(ch, "\tcNote: Epic races currently can not multi-class\tn\r\n");
   
   return TRUE;
 }
