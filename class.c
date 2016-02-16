@@ -2108,7 +2108,7 @@ bool display_class_prereqs(struct char_data *ch, char *classname) {
   send_to_char(ch, "\tcUnlock Cost       : \tn%d Account XP - %s\r\n", CLSLIST_COST(class),
           has_unlocked_class(ch, class) ? "\tWUnlocked!\tn" : "\trLocked!\tn");      
   send_to_char(ch, "\tcClass in the Game?: \tn%s\r\n", CLSLIST_INGAME(class) ?
-                   "\tYes\tn" : "\trNo\tn");
+                   "\tWYes\tn" : "\trNo\tn");
   
   /* prereqs, start with text line */
   send_to_char(ch, "\tC");
