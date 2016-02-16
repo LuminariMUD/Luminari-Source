@@ -22,6 +22,10 @@
 #define IS_DYNAMIC(rnum) ((world[rnum].number >= WILD_DYNAMIC_ROOM_VNUM_START) && \
                           (world[rnum].number <= WILD_DYNAMIC_ROOM_VNUM_END))
 
+/* Map Types */
+#define MAP_TYPE_NORMAL  0
+#define MAP_TYPE_WEATHER 1
+
 #define WATERLINE               138
 #define SHALLOW_WATER_THRESHOLD  20
 #define COASTLINE_THRESHOLD      5 // 10
