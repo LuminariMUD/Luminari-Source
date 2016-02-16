@@ -688,7 +688,7 @@ static char* wilderness_map_to_string(struct wild_map_tile ** map, int size, int
             region_colored = FALSE;
           } 
           /* Check the map_type - if this is a weather map then overlay weather glyphs on the map */
-          if (map_type = MAP_TYPE_WEATHER) {
+          if (map_type == MAP_TYPE_WEATHER) {
             weather_value = get_weather(x, y);
             if (weather_value >= 225) { /* Weather is affecting us */
               strcpy(mp, "\tYL\tn");
