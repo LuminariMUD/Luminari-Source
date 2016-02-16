@@ -2467,7 +2467,8 @@ ACMD(do_equipment) {
                dex_max,
                compute_gear_spell_failure(ch) );
 
-  if (ch->desc->pProtocol->pVariables[eMSDP_MXP]->ValueInt)
+  if (ch && ch->desc && ch->desc->pProtocol && ch->desc->pProtocol->pVariables[eMSDP_MXP] &&
+          ch->desc->pProtocol->pVariables[eMSDP_MXP]->ValueInt)
     send_to_char(ch, "\r\n\t<send href='inventory'>View inventory\t</send>\r\n");
 }
 
