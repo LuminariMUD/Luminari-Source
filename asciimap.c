@@ -492,6 +492,8 @@ void perform_map(struct char_data *ch, char *argument, bool worldmap) {
   int count = 0;
   int ew_size = 0, ns_size = 0;
   int mapshape = MAP_CIRCLE;
+  
+
 
   two_arguments(argument, arg1, arg2);
   if (*arg1) {
