@@ -1885,11 +1885,7 @@ bool has_special_cfeat(struct char_data *ch, int featnum, int mode) {
       if (!HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
               WEAPON_TYPE_LONG_BOW) &&
           !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
-              WEAPON_TYPE_SHORT_BOW) &&
-          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
               WEAPON_TYPE_COMPOSITE_LONGBOW) &&
-          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
-              WEAPON_TYPE_COMPOSITE_SHORTBOW) &&
           !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
               WEAPON_TYPE_COMPOSITE_LONGBOW_2) &&
           !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
@@ -1898,6 +1894,11 @@ bool has_special_cfeat(struct char_data *ch, int featnum, int mode) {
               WEAPON_TYPE_COMPOSITE_LONGBOW_4) &&
           !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
               WEAPON_TYPE_COMPOSITE_LONGBOW_5) &&
+              
+          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
+              WEAPON_TYPE_SHORT_BOW) &&
+          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
+              WEAPON_TYPE_COMPOSITE_SHORTBOW) &&
           !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
               WEAPON_TYPE_COMPOSITE_SHORTBOW_2) &&
           !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
@@ -2142,7 +2143,7 @@ bool display_class_prereqs(struct char_data *ch, char *classname) {
   /* here we process our prereq linked list for each class */
   for (prereq = class_list[class].prereq_list; prereq != NULL; prereq = prereq->next) {
     meets_prereqs = FALSE;
-    if (meets_class_prerequisite(ch, prereq, -1))
+    if (meets_class_prerequisite(ch, prereq, NO_IARG))
       meets_prereqs = TRUE;
     sprintf(buf, "\tn%s%s%s - %s\r\n",
               (meets_prereqs ? "\tn" : "\tr"), prereq->description, "\tn",
@@ -2363,10 +2364,10 @@ bool display_class_info(struct char_data *ch, char *classname) {
       if (first) {
         first = FALSE;
         sprintf(buf, "\tcPrerequisites : %s%s%s",
-                (meets_class_prerequisite(ch, prereq, -1) ? "\tn" : "\tr"), prereq->description, "\tn");
+                (meets_class_prerequisite(ch, prereq, NO_IARG) ? "\tn" : "\tr"), prereq->description, "\tn");
       } else {
         sprintf(buf2, ", %s%s%s",
-                (meets_class_prerequisite(ch, prereq, -1) ? "\tn" : "\tr"), prereq->description, "\tn");
+                (meets_class_prerequisite(ch, prereq, NO_IARG) ? "\tn" : "\tr"), prereq->description, "\tn");
         strcat(buf, buf2);
       }
     }
