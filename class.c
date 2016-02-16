@@ -146,13 +146,13 @@ void class_prereq_feat(int class_num, int feat, int ranks) {
   class_list[class_num].prereq_list = prereq;
 }
 
-void class_prereq_cfeat(int class_num, int feat) {
+void class_prereq_cfeat(int class_num, int feat, int special) {
   struct class_prerequisite *prereq = NULL;
   char buf[80];
 
-  prereq = create_prereq(CLASS_PREREQ_CFEAT, feat, 0, 0);
+  prereq = create_prereq(CLASS_PREREQ_CFEAT, feat, special, 0);
 
-  sprintf(buf, "%s (in same weapon)", class_list[feat].name);
+  sprintf(buf, "%s (in same weapon)", feat_list[feat].name);
   prereq->description = strdup(buf);
 
   /*   Link it up. */
@@ -1785,36 +1785,7 @@ void load_class_list(void) {
   class_prereq_feat(CLASS_ARCANE_ARCHER, FEAT_PRECISE_SHOT, 1);
   class_prereq_spellcasting(CLASS_ARCANE_ARCHER, CASTING_TYPE_ARCANE,
       PREP_TYPE_ANY, 1 /*circle*/);
-  /* weapon focus in any bow */
-  /*  if (!HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS),
-              WEAPON_TYPE_LONG_BOW) &&
-          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS),
-              WEAPON_TYPE_SHORT_BOW) &&
-          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS),
-              WEAPON_TYPE_COMPOSITE_LONGBOW) &&
-          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS),
-              WEAPON_TYPE_COMPOSITE_SHORTBOW) &&
-          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS),
-              WEAPON_TYPE_COMPOSITE_LONGBOW_2) &&
-          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS),
-              WEAPON_TYPE_COMPOSITE_LONGBOW_3) &&
-          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS),
-              WEAPON_TYPE_COMPOSITE_LONGBOW_4) &&
-          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS),
-              WEAPON_TYPE_COMPOSITE_LONGBOW_5) &&
-          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS),
-              WEAPON_TYPE_COMPOSITE_SHORTBOW_2) &&
-          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS),
-              WEAPON_TYPE_COMPOSITE_SHORTBOW_3) &&
-          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS),
-              WEAPON_TYPE_COMPOSITE_SHORTBOW_4) &&
-          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS),
-              WEAPON_TYPE_COMPOSITE_SHORTBOW_5)              
-              ) {
-        passed = FALSE;
-        send_to_char(ch, "  -Feat required: Weapon Focus in any Long/Short Bow\r\n");
-      }
-  */  
+  class_prereq_cfeat(CLASS_ARCANE_ARCHER, FEAT_WEAPON_FOCUS, CFEAT_SPECIAL_BOW);
   /****************************************************************************/
   
   /****************************************************************************/
@@ -1902,6 +1873,54 @@ void load_class_list(void) {
   /* class prereqs */
   class_prereq_class_level(CLASS_SHIFTER, CLASS_DRUID, 6);
   /****************************************************************************/
+}
+
+/* this was created to handle special scenarios for combat feat requirements
+   for classes */
+bool has_special_cfeat(struct char_data *ch, int featnum, int mode) {
+  switch (mode) {
+    
+    /* featnum in any bow */    
+    case CFEAT_SPECIAL_BOW:
+      if (!HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
+              WEAPON_TYPE_LONG_BOW) &&
+          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
+              WEAPON_TYPE_SHORT_BOW) &&
+          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
+              WEAPON_TYPE_COMPOSITE_LONGBOW) &&
+          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
+              WEAPON_TYPE_COMPOSITE_SHORTBOW) &&
+          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
+              WEAPON_TYPE_COMPOSITE_LONGBOW_2) &&
+          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
+              WEAPON_TYPE_COMPOSITE_LONGBOW_3) &&
+          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
+              WEAPON_TYPE_COMPOSITE_LONGBOW_4) &&
+          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
+              WEAPON_TYPE_COMPOSITE_LONGBOW_5) &&
+          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
+              WEAPON_TYPE_COMPOSITE_SHORTBOW_2) &&
+          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
+              WEAPON_TYPE_COMPOSITE_SHORTBOW_3) &&
+          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
+              WEAPON_TYPE_COMPOSITE_SHORTBOW_4) &&
+          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
+              WEAPON_TYPE_COMPOSITE_SHORTBOW_5)              
+              ) {
+        return FALSE;
+      }
+      break;
+      
+      /* auto pass by default */
+    case CFEAT_SPECIAL_NONE:      
+      break;
+      
+    default:
+      return FALSE;
+  }
+
+  /* success! */
+  return TRUE;
 }
 
 /* Check to see if ch meets the provided class prerequisite.
@@ -2059,6 +2078,10 @@ bool meets_class_prerequisite(struct char_data *ch, struct class_prerequisite *p
     case CLASS_PREREQ_CFEAT:
       /*  SPECIAL CASE - You must have a feat, and it must be the cfeat for the chosen weapon. */
       if (iarg && !has_combat_feat(ch, feat_to_cfeat(prereq->values[0]), iarg))
+        return FALSE;
+      /* when not using iarg, we use the 'special' value - CFEAT_SPECIAL_ and
+         use has_special_cfeat() for processing */
+      if (!iarg && !has_special_cfeat(ch, prereq->values[0], prereq->values[1]))
         return FALSE;
       break;
       
