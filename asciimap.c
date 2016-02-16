@@ -675,7 +675,7 @@ ACMD(do_map) {
     return;
   }
   if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
-    send_to_char(ch, "%s\r\n", gen_ascii_wilderness_map(30, X_LOC(ch), Y_LOC(ch)));
+    send_to_char(ch, "%s\r\n", gen_ascii_wilderness_map(30, X_LOC(ch), Y_LOC(ch), MAP_TYPE_WEATHER));
   else
     perform_map(ch, argument, show_worldmap(ch));
 }
