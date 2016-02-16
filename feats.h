@@ -139,5 +139,7 @@ ACMD(do_featlisting);
 #define CFEAT_SPECIAL_NONE  0
 #define CFEAT_SPECIAL_BOW   1
 
+/* just for more clarity in the code */
+#define NO_IARG             0
 
 #endif
