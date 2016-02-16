@@ -211,10 +211,12 @@ int get_weather(int x, int y) {
   double trans_x;
   double trans_y;
   double result;
-  
+  int    time_base;
   time_t now;
 
-  now = time(NULL) % 100000;
+  time_base = now % 100000;
+  
+  now = time(NULL);
   
   trans_x = x / (double) (WILD_X_SIZE / 2.0);
   trans_y = y / (double) (WILD_Y_SIZE / 2.0);
