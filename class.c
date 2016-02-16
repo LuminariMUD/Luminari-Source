@@ -1929,20 +1929,18 @@ bool display_class_prereqs(struct char_data *ch, char *classname) {
   draw_line(ch, line_length, '-', '-');
   
   /* basic info */
-  send_to_char(ch, "\tcClass Name       : \tn%s\r\n", CLSLIST_NAME(class));
-  send_to_char(ch, "\tcMax Lvl in Class : \tn%d - %s\r\n", max_class_level,
+  send_to_char(ch, "\tcClass Name        : \tn%s\r\n", CLSLIST_NAME(class));
+  send_to_char(ch, "\tcMax Level in Class: \tn%d - %s\r\n", max_class_level,
       (CLASS_LEVEL(ch, class) >= max_class_level) ?
           "\trCap reached!\tn" : "\tWLevel cap not reached!\tn" );
-  if (CLSLIST_LOCK(class)) {
-    send_to_char(ch, "\tcUnlock Cost      : \tn%d Account XP - %s\r\n", CLSLIST_COST(class),
-            has_unlocked_class(ch, class) ? "\tWUnlocked!\tn" : "\trLocked!\tn");      
-  }
+  send_to_char(ch, "\tcUnlock Cost      : \tn%d Account XP - %s\r\n", CLSLIST_COST(class),
+          has_unlocked_class(ch, class) ? "\tWUnlocked!\tn" : "\trLocked!\tn");      
   
   /* prereqs, start with text line */
-  send_to_char(ch, text_line_string("\tYRequirements\tC", line_length, '-', '-'));
-  send_to_char(ch, "You only need to meet one requirement for race and alignment.\r\n");
   send_to_char(ch, "\tC");
-  draw_line(ch, line_length, '-', '-');
+  send_to_char(ch, text_line_string("\tcRequirements\tC", line_length, '-', '-'));
+  send_to_char(ch, "\tn");
+  send_to_char(ch, "\tcNote: you only need to meet one prereq for race and align:\tn\r\n");
 
   /* here we process our prereq linked list for each class */
   for (prereq = class_list[class].prereq_list; prereq != NULL; prereq = prereq->next) {
@@ -1957,14 +1955,14 @@ bool display_class_prereqs(struct char_data *ch, char *classname) {
   }
   
   if (!found)
-    send_to_char(ch, "None!\r\n");
+    send_to_char(ch, "\tWNo requirements!\tn\r\n");
   
   /* close prereq display */
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
   send_to_char(ch, "\tn");
 
-  send_to_char(ch, "Note: Epic races can not multi-class currently.\r\n");  
+  send_to_char(ch, "\tcNote: Epic races currently can not multi-class\tn\r\n");  
   if (class_is_available(ch, class, 0, NULL)) {
     send_to_char(ch, "\tWClass IS AVAILABLE!\tn\r\n");
   } else {
