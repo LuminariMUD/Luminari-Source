@@ -1180,7 +1180,6 @@ void perform_assist(struct char_data *ch, struct char_data *helpee) {
 
 /* the primary engine for springleap */
 void perform_springleap(struct char_data *ch, struct char_data *vict) {
-  //struct affected_type af;
   int dam = 0;
 
   if (vict == ch) {
@@ -1215,8 +1214,8 @@ void perform_springleap(struct char_data *ch, struct char_data *vict) {
     damage(ch, vict, dam, SKILL_SPRINGLEAP, DAM_FORCE, FALSE);
 
     /* ornir decided to disable this, so i changed the skill from full around action
-     * to a move action
-     *
+     * to a move action -zusuk
+        struct affected_type af;
         new_affect(&af);
         af.spell = SKILL_SPRINGLEAP;
         if (!rand_number(0, 5))
@@ -1224,8 +1223,8 @@ void perform_springleap(struct char_data *ch, struct char_data *vict) {
         else
           SET_BIT_AR(af.bitvector, AFF_STUN);
         af.duration = dice(1, 2);
-        affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
-     */
+        affect_join(vict, &af, 1, FALSE, FALSE, FALSE); */
+         
     /* fire-shield, etc check */
     damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE);
 

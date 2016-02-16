@@ -1935,6 +1935,8 @@ bool display_class_prereqs(struct char_data *ch, char *classname) {
           "\trCap reached!\tn" : "\tWLevel cap not reached!\tn" );
   send_to_char(ch, "\tcUnlock Cost       : \tn%d Account XP - %s\r\n", CLSLIST_COST(class),
           has_unlocked_class(ch, class) ? "\tWUnlocked!\tn" : "\trLocked!\tn");      
+  send_to_char(ch, "\tcClass in the Game?: \tn%s\r\n", CLSLIST_INGAME(class) ?
+                   "\tYes\tn" : "\trNo\tn");
   
   /* prereqs, start with text line */
   send_to_char(ch, "\tC");
@@ -1986,6 +1988,7 @@ void display_in_game_classes(struct char_data *ch) {
   write_to_output(d, "\r\n");
   
   for (counter = 0; counter < NUM_CLASSES; counter++) {
+    
     write_to_output(d, "%s%-20.20s %s",
             class_is_available(ch, counter, MODE_CLASSLIST_NORMAL, NULL) ? " " : "*",
             CLSLIST_NAME(counter), 
@@ -2011,13 +2014,17 @@ bool class_is_available(struct char_data *ch, int classnum, int iarg, char *sarg
   if (classnum < 0 || classnum >= NUM_CLASSES)
     return FALSE;
 
+  /* is this class even in the game? */
+  if (!CLSLIST_INGAME(classnum))
+    return FALSE;
+  
   /* cap for class ranks */
   if (max_class_level == -1) /* no limit */
     max_class_level = LVL_IMMORT - 1;
   if (CLASS_LEVEL(ch, classnum) >= max_class_level) {
     return FALSE;
   }
-
+  
   /* prevent epic race from currently multi-classing */
   if (iarg == MODE_CLASSLIST_NORMAL) {
     for (i = 0; i < NUM_CLASSES; i++)
