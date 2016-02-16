@@ -207,6 +207,28 @@ int get_elevation(int map, int x, int y) {
   return 255 * result;
 }
 
+int get_weather(int x, int y) {
+  double trans_x;
+  double trans_y;
+  double result;
+  
+  time_t now;
+
+  now = (time(NULL)/10000);
+  
+  trans_x = x / (double) (WILD_X_SIZE / 8.0);
+  trans_y = y / (double) (WILD_Y_SIZE / 8.0);
+
+  result = PerlinNoise3D(NOISE_WEATHER_SEED, trans_x, trans_y, now, 1.5, 2.0, 8);
+  
+  result = (result + 1) / 2.0;
+  
+  if (result < 0.7) 
+    result = 0.0;
+  
+  return 255 *result;
+}
+
 int get_moisture(int map, int x, int y) {
   double trans_x;
   double trans_y;
@@ -748,13 +770,14 @@ void show_wilderness_map(struct char_data* ch, int size, int x, int y) {
                         " \tn")
                );
 
-  send_to_char(ch, " Current Location  : (\tC%d\tn, \tC%d\tn)\r\n",
+  send_to_char(ch, " Current Location  : (\tC%d\tn, \tC%d\tn)\r\n"
+                   " Weather           : %d\r\n",
                /*                   " Current Elevation : %.3d   "
                    " Current Moisture  : %d\r\n"
                    " Gradient          : %f   "
                    " Current Temp.     : %d\r\n"
                    " Current Sector    : %s\r\n",  */
-               x, y);
+               x, y, get_weather(x, y));
   /*                   get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y),
                      get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x, y),
                      get_radial_gradient(x, y),
