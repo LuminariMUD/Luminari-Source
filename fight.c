@@ -3531,8 +3531,11 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
     damage_holder = dam; /* store so we don't multiply a multiply */
 
     /* handle critical hit damage here */
-    if (is_critical && !(IS_NPC(victim) && GET_RACE(victim) == NPCRACE_UNDEAD)) { /* critical bonus */
+    if (is_critical && !IS_IMMUNE_CRITS(victim)) {
+      /* critical bonus */
       dam *= determine_critical_multiplier(ch, wielded);
+      
+      /* raging critical feat */
       if (HAS_FEAT(ch, FEAT_RAGING_CRITICAL) && affected_by_spell(ch, SKILL_RAGE)) {
         if ((GET_SIZE(ch) - GET_SIZE(victim)) >= 2) ;
         else if ((GET_SIZE(victim) - GET_SIZE(ch)) >= 2) ;
@@ -3546,6 +3549,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
           act("\ty$n knocks $N to the ground with $s powerful blow!\tn", FALSE, ch, NULL, victim, TO_NOTVICT);
         }
       }
+      
     }
 
     /* mounted charging character using charging weapons, whether this goes up
@@ -3962,7 +3966,6 @@ int weapon_special(struct obj_data *wpn, struct char_data *ch, char *hit_msg) {
 
   return (name) (ch, wpn, 0, hit_msg);
 }
-
 
 /* Return the wielded weapon based on the attack type.
  * Valid attack_type(s) are:
