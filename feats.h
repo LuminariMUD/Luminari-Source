@@ -10,7 +10,6 @@
 #define _FEATS_H_
 
 /* Below is the structure for a feat */
-
 struct feat_info {
   char *name;              /* The name of the feat to be displayed to players */
   sbyte in_game;           /* TRUE or FALSE, is the feat in the game yet? */
@@ -26,6 +25,7 @@ struct feat_info {
   struct feat_prerequisite *prerequisite_list; /* A list of prerequisite sctructures */
 };
 
+/* structure for feat prereq system */
 struct feat_prerequisite {
   /* FEAT_PREREQ_* values determine the type */
   int  prerequisite_type;
@@ -40,6 +40,7 @@ struct feat_prerequisite {
   struct feat_prerequisite *next;
 };
 
+/* functions */
 void load_weapons(void);
 void load_armor(void);
 void assign_feats(void);
@@ -50,25 +51,19 @@ int is_daily_feat(int featnum);
 int has_feat(struct char_data *ch, int featnum);
 bool meets_prerequisite(struct char_data *ch, struct feat_prerequisite *prereq, int iarg);
 bool has_combat_feat(struct char_data *ch, int cfeat, int compare);
-
 /* For help system integration, */
 bool display_feat_info(struct char_data *ch, char *featname);
-
 /*int find_feat_num(char *name);*/
 int feat_to_cfeat(int feat);
 int feat_to_sfeat(int feat);
 int feat_to_skfeat(int feat);
-
 void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data *viewer);
 extern struct feat_info feat_list[];
 extern int feat_sort_info[MAX_FEATS];
 
-/*****/
-
+/**ACMD***/
 ACMD(do_feats);
 ACMD(do_featlisting);
-
-/* FEAT defines moved to structs.h */
 
 /* Feat types, don't forget to update in constants.c feat_types[] */
 #define FEAT_TYPE_NONE           0
@@ -118,6 +113,7 @@ ACMD(do_featlisting);
 #define CLASS_PREREQ_WEAPON_PROFICIENCY  9
 #define CLASS_PREREQ_ALIGN               10
 
+/* prereq system, ability scores */
 #define AB_NONE 0
 #define AB_STR  1
 #define AB_DEX  2
@@ -126,14 +122,22 @@ ACMD(do_featlisting);
 #define AB_CON  5
 #define AB_CHA  6
 
+/* prereq spell casting types */
 #define CASTING_TYPE_NONE   0
 #define CASTING_TYPE_ARCANE 1
 #define CASTING_TYPE_DIVINE 2
 #define CASTING_TYPE_ANY    3
 
+/* prereq spell preparation types */
 #define PREP_TYPE_NONE        0
 #define PREP_TYPE_PREPARED    1
 #define PREP_TYPE_SPONTANEOUS 2
 #define PREP_TYPE_ANY         3
+
+/* this was created to handle special scenarios for combat feat requirements
+   for classes */
+#define CFEAT_SPECIAL_NONE  0
+#define CFEAT_SPECIAL_BOW   1
+
 
 #endif
