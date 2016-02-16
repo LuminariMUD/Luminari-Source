@@ -219,7 +219,7 @@ int get_weather(int x, int y) {
   trans_x = x / (double) (WILD_X_SIZE / 8.0);
   trans_y = y / (double) (WILD_Y_SIZE / 8.0);
 
-  result = PerlinNoise3D(NOISE_WEATHER_SEED, trans_x, trans_y, now, 1.5, 2.0, 8);
+  result = PerlinNoise3D(NOISE_WEATHER, trans_x, trans_y, now, 1.5, 2.0, 8);
   
   result = (result + 1) / 2.0;
   
