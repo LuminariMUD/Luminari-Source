@@ -221,9 +221,9 @@ int get_weather(int x, int y) {
   trans_x = x / (double) (WILD_X_SIZE / 2.0);
   trans_y = y / (double) (WILD_Y_SIZE / 2.0);
 
-  result = PerlinNoise3D(NOISE_WEATHER, trans_x, trans_y, time_base, 2, 2.0, 1);
+  result = PerlinNoise3D(NOISE_WEATHER, trans_x, trans_y, time_base, 2.0, 2.0, 8);
   
-  log("DEBUG: Weather - %f %f %d %f", trans_x, trans_y, time_base, result);
+  //log("DEBUG: Weather - %f %f %d %f", trans_x, trans_y, time_base, result);
   
   result = (result + 1) / 2.0;
   
