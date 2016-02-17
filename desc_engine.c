@@ -164,7 +164,7 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
       sprintf(weather_buf, "The first rays of dawn are breaking over the eastern horizon, "
                            "casting the world around you in a warm glow and banishing the shadows of the night.  ");
     } else if (time_info.hours == 6) {  
-      sprintf(weather_buf, "The sun rises over the eastern horizing, heralding the start of a new day.  ");
+      sprintf(weather_buf, "The sun rises over the eastern horizon, heralding the start of a new day.  ");
     } else if (time_info.hours > 6 && time_info.hours < 17) {
       sprintf(weather_buf, "The sun shines brightly in the clear sky. ");
     } else if (time_info.hours == 17) {
