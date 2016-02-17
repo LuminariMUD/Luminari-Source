@@ -154,43 +154,6 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
     }
   }  
   
-  /* Time of day based messages. */
-  switch (time_info.hours) {
-    case 1:
-    case 2:
-    case 3:
-    case 4: /* Nighttime */
-      break;      
-    case 5: /* Dawn begins */
-      break;
-    case 6: /* Day begins */
-      break;
-    case 7:
-    case 8:
-    case 9:
-    case 10:
-    case 11: /* Morning */      
-      break;
-    case 12: /* Noon */        
-      break;
-    case 13:
-    case 14:
-    case 15:
-    case 16:
-    case 17: /* Sunset */
-      break;
-    case 18: /* Night begins */
-      break;
-    case 19:
-    case 20:
-    case 21:
-    case 22:
-    case 23:      
-    case 24: /* Midnight */        
-      break;
-    default:
-      break;
-    }
   
   /* Weather description string */
   if (weather = get_weather(world[room].coords[0], world[room].coords[1]) < 178) {
