@@ -377,9 +377,7 @@ void send_weather(int weather_change) {
     return;
 
   for (i = descriptor_list; i; i = i->next) {
-    if(IN_ROOM(i->character) != NOWHERE && (ZONE_FLAGGED(world[IN_ROOM(i->character)].zone, ZONE_WILDERNESS)))
-      continue; /* Wilderness weather is handled elsewhere */
-    
+   
     if (STATE(i) != CON_PLAYING || i->character == NULL)
       continue;
 
@@ -388,7 +386,10 @@ void send_weather(int weather_change) {
 
     if (sect_no_weather(i->character))
       continue;
-
+    
+    if(IN_ROOM(i->character) != NOWHERE && (ZONE_FLAGGED(world[IN_ROOM(i->character)].zone, ZONE_WILDERNESS)))
+      continue; /* Wilderness weather is handled elsewhere */
+    
     for (j = 0; weather_messages[j].sector_type != SECT_INSIDE; j++) {
       if (weather_messages[j].sector_type ==
               world[IN_ROOM(i->character)].sector_type) {
