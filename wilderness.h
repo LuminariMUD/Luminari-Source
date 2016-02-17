@@ -186,6 +186,7 @@ struct wild_map_tile {
   char *glyph;
   region_rnum regions[24];
   int num_regions;
+  int weather;
 };
 
 void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_tile **map);
