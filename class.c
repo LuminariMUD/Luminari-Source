@@ -278,26 +278,55 @@ void class_prereq_weapon_proficiency(int class_num) {
 /* our little mini struct series for assigning spells to a class and to assigning
    minimum-level for those spells */
 /* create/allocate memory for the spellassign struct */
-struct class_spell_assign* create_spell_assign(int spell_num, int circle) {
+struct class_spell_assign* create_spell_assign(int spell_num, int level) {
   struct class_spell_assign *spell_asign = NULL;
 
   CREATE(spell_asign, struct class_spell_assign, 1);
   spell_asign->spell_num = spell_num;
-  spell_asign->circle = circle;
+  spell_asign->level = level;
 
   return spell_asign;
 }
-
 /* actual function called to perform the spell assignment */
-void spell_assignment(int class_num, int spell_num, int circle) {
+void spell_assignment(int class_num, int spell_num, int level) {
   struct class_spell_assign *spell_asign = NULL;
 
-  spell_asign = create_spell_assign(spell_num, circle);
+  spell_asign = create_spell_assign(spell_num, level);
 
   /*   Link it up. */
   spell_asign->next = class_list[class_num].spellassign_list;
   class_list[class_num].spellassign_list = spell_asign;
 }
+
+/* our little mini struct series for assigning feats to a class and to assigning
+   class-feats to a class */
+/* create/allocate memory for the spellassign struct */
+struct class_feat_assign* create_feat_assign(int feat_num, bool is_classfeat,
+        int level_received, bool stacks) {
+  struct class_feat_assign *feat_assign = NULL;
+
+  CREATE(feat_assign, struct class_feat_assign, 1);
+  feat_assign->feat_num = feat_num;
+  feat_assign->is_classfeat = is_classfeat;
+  feat_assign->level_received = level_received;
+  feat_assign->stacks = stacks;
+
+  return feat_assign;
+}
+/* actual function called to perform the feat assignment */
+/* when assigning class feats use this format:
+   feat_assignment(CLASS_blah, FEAT_blah_blah, Y, NOASSIGN_FEAT, N); */
+void feat_assignment(int class_num, int feat_num, bool is_classfeat,
+        int level_received, bool stacks) {
+  struct class_feat_assign *feat_assign = NULL;
+
+  feat_assign = create_feat_assign(feat_num, is_classfeat, level_received, stacks);
+
+  /*   Link it up. */
+  feat_assign->next = class_list[class_num].featassign_list;
+  class_list[class_num].featassign_list = feat_assign;
+}
+
 
 /* function that will assign a list of values to a given class */
 void classo(int class_num, char *name, char *abbrev, char *colored_abbrev,
@@ -325,6 +354,8 @@ void classo(int class_num, char *name, char *abbrev, char *colored_abbrev,
   class_list[class_num].prereq_list = NULL;
   /* list of spell assignments */
   class_list[class_num].spellassign_list = NULL;
+  /* list of feat assignments */
+  class_list[class_num].featassign_list = NULL;
 }
 
 /* function used for assigning a classes titles */
@@ -420,6 +451,7 @@ void init_class_list(int class_num) {
   
   class_list[class_num].prereq_list = NULL;  
   class_list[class_num].spellassign_list = NULL;  
+  class_list[class_num].featassign_list = NULL;  
 }
 
 /* papa function loaded on game boot to assign all the class data */
@@ -434,6 +466,8 @@ void load_class_list(void) {
    *  preferred saves
    *  class abilities
    *  class titles
+   *  free feat assignment
+   *  classfeat assignment
    *  class spell assignment (if necessary)
    *  prereqs last  */
   
@@ -479,6 +513,44 @@ void load_class_list(void) {
     "the God of Magic",              /* <= LVL_GRSTAFF */
     "the Wizard"                    /* default */  
   );
+  /* feat assignment */
+  /*              class num     feat                            cfeat lvl stack */
+  feat_assignment(CLASS_WIZARD, FEAT_WEAPON_PROFICIENCY_WIZARD, Y,    1,  N);
+  feat_assignment(CLASS_WIZARD, FEAT_SCRIBE_SCROLL,             Y,    1,  N);
+  feat_assignment(CLASS_WIZARD, FEAT_SUMMON_FAMILIAR,           Y,    1,  N);
+  feat_assignment(CLASS_WIZARD, FEAT_ARCANE_1ST_CIRCLE,         Y,    1,  N);
+  feat_assignment(CLASS_WIZARD, FEAT_ARCANE_2ND_CIRCLE,         Y,    3,  N);
+  feat_assignment(CLASS_WIZARD, FEAT_ARCANE_3RD_CIRCLE,         Y,    5,  N);
+  feat_assignment(CLASS_WIZARD, FEAT_ARCANE_4TH_CIRCLE,         Y,    7,  N);
+  feat_assignment(CLASS_WIZARD, FEAT_ARCANE_5TH_CIRCLE,         Y,    9,  N);
+  feat_assignment(CLASS_WIZARD, FEAT_ARCANE_6TH_CIRCLE,         Y,   11,  N);
+  feat_assignment(CLASS_WIZARD, FEAT_ARCANE_7TH_CIRCLE,         Y,   13,  N);
+  feat_assignment(CLASS_WIZARD, FEAT_ARCANE_8TH_CIRCLE,         Y,   15,  N);
+  feat_assignment(CLASS_WIZARD, FEAT_ARCANE_9TH_CIRCLE,         Y,   17,  N);
+  /*epic*/
+  feat_assignment(CLASS_WIZARD, FEAT_ARCANE_EPIC_SPELL,         Y,   21,  N);
+  /* list of class feats */
+  feat_assignment(CLASS_WIZARD, FEAT_SPELL_PENETRATION,         Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WIZARD, FEAT_GREATER_SPELL_PENETRATION, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WIZARD, FEAT_ARMORED_SPELLCASTING,      Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WIZARD, FEAT_FASTER_MEMORIZATION,       Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WIZARD, FEAT_SPELL_FOCUS,               Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WIZARD, FEAT_GREATER_SPELL_FOCUS,       Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WIZARD, FEAT_IMPROVED_FAMILIAR,         Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WIZARD, FEAT_QUICK_CHANT,               Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WIZARD, FEAT_AUGMENT_SUMMONING,         Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WIZARD, FEAT_ENHANCED_SPELL_DAMAGE,     Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WIZARD, FEAT_MAXIMIZE_SPELL,            Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WIZARD, FEAT_QUICKEN_SPELL,             Y, NOASSIGN_FEAT, N);
+  /* epic class */
+  feat_assignment(CLASS_WIZARD, FEAT_MUMMY_DUST,                Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WIZARD, FEAT_GREATER_RUIN,              Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WIZARD, FEAT_DRAGON_KNIGHT,             Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WIZARD, FEAT_HELLBALL,                  Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WIZARD, FEAT_EPIC_MAGE_ARMOR,           Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WIZARD, FEAT_EPIC_WARDING,              Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WIZARD, FEAT_GREAT_INTELLIGENCE,        Y, NOASSIGN_FEAT, N);
+  /**** spell assign ****/
   /*              class num      spell                   level acquired */
   /* 1st circle */
   spell_assignment(CLASS_WIZARD, SPELL_HORIZIKAULS_BOOM,    1);
@@ -677,7 +749,8 @@ void load_class_list(void) {
   spell_assignment(CLASS_WIZARD, SPELL_GREATER_RUIN,    21);  
   spell_assignment(CLASS_WIZARD, SPELL_HELLBALL,        21);  
   spell_assignment(CLASS_WIZARD, SPELL_EPIC_MAGE_ARMOR, 21);  
-  spell_assignment(CLASS_WIZARD, SPELL_EPIC_WARDING,    21);  
+  spell_assignment(CLASS_WIZARD, SPELL_EPIC_WARDING,    21);
+  /* no prereqs!  woo! */
   /****************************************************************************/
           
   /****************************************************************************/
@@ -723,6 +796,39 @@ void load_class_list(void) {
     "the God of Good and Evil",     /* <= LVL_GRSTAFF */
     "the Cleric"                    /* default */  
   );
+  /* feat assignment */
+  /*              class num     feat                            cfeat lvl stack */
+  feat_assignment(CLASS_CLERIC, FEAT_SIMPLE_WEAPON_PROFICIENCY, Y,    1,  N);
+  feat_assignment(CLASS_CLERIC, FEAT_ARMOR_PROFICIENCY_HEAVY,   Y,    1,  N);
+  feat_assignment(CLASS_CLERIC, FEAT_ARMOR_PROFICIENCY_LIGHT,   Y,    1,  N);
+  feat_assignment(CLASS_CLERIC, FEAT_ARMOR_PROFICIENCY_MEDIUM,  Y,    1,  N);
+  feat_assignment(CLASS_CLERIC, FEAT_ARMOR_PROFICIENCY_SHIELD,  Y,    1,  N);
+  feat_assignment(CLASS_CLERIC, FEAT_TURN_UNDEAD,               Y,    1,  N);
+  feat_assignment(CLASS_CLERIC, FEAT_DIVINE_1ST_CIRCLE,         Y,    1,  N);
+  feat_assignment(CLASS_CLERIC, FEAT_DIVINE_2ND_CIRCLE,         Y,    3,  N);
+  feat_assignment(CLASS_CLERIC, FEAT_DIVINE_3RD_CIRCLE,         Y,    5,  N);
+  feat_assignment(CLASS_CLERIC, FEAT_DIVINE_4TH_CIRCLE,         Y,    7,  N);
+  feat_assignment(CLASS_CLERIC, FEAT_DIVINE_5TH_CIRCLE,         Y,    9,  N);
+  feat_assignment(CLASS_CLERIC, FEAT_DIVINE_6TH_CIRCLE,         Y,   11,  N);
+  feat_assignment(CLASS_CLERIC, FEAT_DIVINE_7TH_CIRCLE,         Y,   13,  N);
+  feat_assignment(CLASS_CLERIC, FEAT_DIVINE_8TH_CIRCLE,         Y,   15,  N);
+  feat_assignment(CLASS_CLERIC, FEAT_DIVINE_9TH_CIRCLE,         Y,   17,  N);
+  /*epic*/
+  feat_assignment(CLASS_CLERIC, FEAT_DIVINE_EPIC_SPELL,         Y,   21,  N);
+  /* list of class feats */
+  feat_assignment(CLASS_CLERIC, FEAT_SPELL_PENETRATION,         Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_CLERIC, FEAT_GREATER_SPELL_PENETRATION, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_CLERIC, FEAT_FASTER_MEMORIZATION,       Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_CLERIC, FEAT_QUICK_CHANT,               Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_CLERIC, FEAT_AUGMENT_SUMMONING,         Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_CLERIC, FEAT_ENHANCED_SPELL_DAMAGE,     Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_CLERIC, FEAT_MAXIMIZE_SPELL,            Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_CLERIC, FEAT_QUICKEN_SPELL,             Y, NOASSIGN_FEAT, N);
+  /* epic class */
+  feat_assignment(CLASS_CLERIC, FEAT_GREAT_WISDOM,              Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_CLERIC, FEAT_MUMMY_DUST,                Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_CLERIC, FEAT_GREATER_RUIN,              Y, NOASSIGN_FEAT, N);  
+  /**** spell assign ****/ 
   /*              class num      spell                   level acquired */
   /* 1st circle */
   spell_assignment(CLASS_CLERIC, SPELL_ARMOR,               1);
@@ -946,6 +1052,105 @@ void load_class_list(void) {
     "the God of War",               /* <= LVL_GRSTAFF */
     "the Warrior"                   /* default */  
   );
+  /* feat assignment */
+  /* bonus: they select from a master list of combat feats every 2 levels */
+  /*              class num     feat                            cfeat lvl stack */
+  feat_assignment(CLASS_WARRIOR, FEAT_MARTIAL_WEAPON_PROFICIENCY,     Y,    1,  N);
+  feat_assignment(CLASS_WARRIOR, FEAT_ARMOR_PROFICIENCY_HEAVY,        Y,    1,  N);
+  feat_assignment(CLASS_WARRIOR, FEAT_ARMOR_PROFICIENCY_LIGHT,        Y,    1,  N);
+  feat_assignment(CLASS_WARRIOR, FEAT_ARMOR_PROFICIENCY_MEDIUM,       Y,    1,  N);
+  feat_assignment(CLASS_WARRIOR, FEAT_ARMOR_PROFICIENCY_SHIELD,       Y,    1,  N);
+  feat_assignment(CLASS_WARRIOR, FEAT_ARMOR_PROFICIENCY_TOWER_SHIELD, Y,    1,  N);
+  feat_assignment(CLASS_WARRIOR, FEAT_SIMPLE_WEAPON_PROFICIENCY,      Y,    1,  N);
+  feat_assignment(CLASS_WARRIOR, FEAT_ARMOR_TRAINING,                 Y,    3,  Y);
+  feat_assignment(CLASS_WARRIOR, FEAT_WEAPON_TRAINING,                Y,    5,  Y);
+  feat_assignment(CLASS_WARRIOR, FEAT_ARMOR_TRAINING,                 Y,    7,  Y);
+  feat_assignment(CLASS_WARRIOR, FEAT_WEAPON_TRAINING,                Y,    9,  Y);
+  feat_assignment(CLASS_WARRIOR, FEAT_ARMOR_TRAINING,                 Y,   11,  Y);
+  feat_assignment(CLASS_WARRIOR, FEAT_WEAPON_TRAINING,                Y,   13,  Y);
+  feat_assignment(CLASS_WARRIOR, FEAT_ARMOR_TRAINING,                 Y,   15,  Y);
+  feat_assignment(CLASS_WARRIOR, FEAT_WEAPON_TRAINING,                Y,   17,  Y);
+  feat_assignment(CLASS_WARRIOR, FEAT_STALWART_WARRIOR,               Y,   19,  N);
+  /*epic*/
+  feat_assignment(CLASS_WARRIOR, FEAT_ARMOR_MASTERY,            Y,   21,  N);
+  feat_assignment(CLASS_WARRIOR, FEAT_WEAPON_MASTERY,           Y,   24,  N);
+  feat_assignment(CLASS_WARRIOR, FEAT_ARMOR_MASTERY_2,          Y,   27,  N);
+  feat_assignment(CLASS_WARRIOR, FEAT_WEAPON_MASTERY_2,         Y,   30,  N);
+  /* list of class feats */
+  feat_assignment(CLASS_WARRIOR, FEAT_BLIND_FIGHT,             Y, NOASSIGN_FEAT, N);
+ /*
+  FEAT_SWARM_OF_ARROWS,  ,
+  FEAT_CLEAVE,
+  FEAT_COMBAT_EXPERTISE,
+  FEAT_COMBAT_REFLEXES,
+  FEAT_DEFLECT_ARROWS,
+  FEAT_DODGE,
+  FEAT_EXOTIC_WEAPON_PROFICIENCY,
+  FEAT_FAR_SHOT,
+  FEAT_GREAT_CLEAVE,
+  FEAT_GREATER_TWO_WEAPON_FIGHTING,
+  FEAT_GREATER_WEAPON_FOCUS,
+  FEAT_GREATER_WEAPON_SPECIALIZATION,
+  FEAT_IMPROVED_BULL_RUSH,
+  FEAT_IMPROVED_CRITICAL,
+  FEAT_IMPROVED_DISARM,
+  FEAT_IMPROVED_FEINT,
+  FEAT_IMPROVED_GRAPPLE,
+  FEAT_IMPROVED_INITIATIVE,
+  FEAT_IMPROVED_OVERRUN,
+  FEAT_IMPROVED_PRECISE_SHOT,
+  FEAT_IMPROVED_SHIELD_PUNCH,
+  FEAT_SHIELD_CHARGE,
+  FEAT_SHIELD_SLAM,
+  FEAT_IMPROVED_SUNDER,
+  FEAT_IMPROVED_TRIP,
+  FEAT_IMPROVED_TWO_WEAPON_FIGHTING,
+  FEAT_IMPROVED_UNARMED_STRIKE,
+  FEAT_MANYSHOT,
+  FEAT_MOBILITY,
+  FEAT_MOUNTED_ARCHERY,
+  FEAT_MOUNTED_COMBAT,
+  FEAT_POINT_BLANK_SHOT,
+  FEAT_POWER_ATTACK,
+  FEAT_PRECISE_SHOT,
+  FEAT_QUICK_DRAW,
+  FEAT_RAPID_RELOAD,
+  FEAT_RAPID_SHOT,
+  FEAT_RIDE_BY_ATTACK,
+  FEAT_SHOT_ON_THE_RUN,
+  FEAT_SNATCH_ARROWS,
+  FEAT_SPIRITED_CHARGE,
+  FEAT_SPRING_ATTACK,
+  FEAT_STUNNING_FIST,
+  FEAT_TRAMPLE,
+  FEAT_TWO_WEAPON_DEFENSE,
+  FEAT_TWO_WEAPON_FIGHTING,
+  FEAT_WEAPON_FINESSE,
+  FEAT_WEAPON_FOCUS,
+  FEAT_WEAPON_SPECIALIZATION,
+  FEAT_WHIRLWIND_ATTACK,
+  FEAT_DAMAGE_REDUCTION,
+  FEAT_FAST_HEALING,
+  FEAT_ARMOR_SKIN,
+  FEAT_ARMOR_SPECIALIZATION_LIGHT,
+  FEAT_ARMOR_SPECIALIZATION_MEDIUM,
+  FEAT_ARMOR_SPECIALIZATION_HEAVY,
+  FEAT_WEAPON_MASTERY,
+  FEAT_WEAPON_FLURRY,
+  FEAT_WEAPON_SUPREMACY,
+  FEAT_ROBILARS_GAMBIT,
+  FEAT_KNOCKDOWN,*/
+  /* epic class */
+  //feat_assignment(CLASS_WARRIOR, FEAT_blah,                Y, NOASSIGN_FEAT, N);
+  /* epic */
+/*  FEAT_EPIC_PROWESS,
+  FEAT_GREAT_STRENGTH,
+  FEAT_GREAT_DEXTERITY,
+  FEAT_GREAT_CONSTITUTION,
+  FEAT_EPIC_TOUGHNESS,
+  FEAT_EPIC_WEAPON_SPECIALIZATION,    */
+  /* no spell assign */
+  /* no prereqs! */
   /****************************************************************************/
   
   /****************************************************************************/
@@ -1244,6 +1449,44 @@ void load_class_list(void) {
     "the Hand of Mystical Might",  /* <= LVL_GRSTAFF */
     "the Sorcerer"                 /* default */  
   );
+  /* feat assignment */
+  /*              class num     feat                            cfeat lvl stack */
+  feat_assignment(CLASS_SORCERER, FEAT_WEAPON_PROFICIENCY_WIZARD, Y,    1,  N);
+  feat_assignment(CLASS_SORCERER, FEAT_SIMPLE_WEAPON_PROFICIENCY, Y,    1,  N);
+  feat_assignment(CLASS_SORCERER, FEAT_SUMMON_FAMILIAR,           Y,    1,  N);
+  feat_assignment(CLASS_SORCERER, FEAT_ARCANE_1ST_CIRCLE,         Y,    1,  N);
+  feat_assignment(CLASS_SORCERER, FEAT_ARCANE_2ND_CIRCLE,         Y,    4,  N);
+  feat_assignment(CLASS_SORCERER, FEAT_ARCANE_3RD_CIRCLE,         Y,    6,  N);
+  feat_assignment(CLASS_SORCERER, FEAT_ARCANE_4TH_CIRCLE,         Y,    8,  N);
+  feat_assignment(CLASS_SORCERER, FEAT_ARCANE_5TH_CIRCLE,         Y,   10,  N);
+  feat_assignment(CLASS_SORCERER, FEAT_ARCANE_6TH_CIRCLE,         Y,   12,  N);
+  feat_assignment(CLASS_SORCERER, FEAT_ARCANE_7TH_CIRCLE,         Y,   14,  N);
+  feat_assignment(CLASS_SORCERER, FEAT_ARCANE_8TH_CIRCLE,         Y,   16,  N);
+  feat_assignment(CLASS_SORCERER, FEAT_ARCANE_9TH_CIRCLE,         Y,   18,  N);
+  /*epic*/
+  feat_assignment(CLASS_SORCERER, FEAT_ARCANE_EPIC_SPELL,         Y,   21,  N);
+  /* list of class feats */
+  feat_assignment(CLASS_SORCERER, FEAT_SPELL_PENETRATION,         Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SORCERER, FEAT_GREATER_SPELL_PENETRATION, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SORCERER, FEAT_ARMORED_SPELLCASTING,      Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SORCERER, FEAT_FASTER_MEMORIZATION,       Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SORCERER, FEAT_SPELL_FOCUS,               Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SORCERER, FEAT_GREATER_SPELL_FOCUS,       Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SORCERER, FEAT_IMPROVED_FAMILIAR,         Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SORCERER, FEAT_QUICK_CHANT,               Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SORCERER, FEAT_AUGMENT_SUMMONING,         Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SORCERER, FEAT_ENHANCED_SPELL_DAMAGE,     Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SORCERER, FEAT_MAXIMIZE_SPELL,            Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SORCERER, FEAT_QUICKEN_SPELL,             Y, NOASSIGN_FEAT, N);
+  /* epic class */
+  feat_assignment(CLASS_SORCERER, FEAT_MUMMY_DUST,                Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SORCERER, FEAT_GREATER_RUIN,              Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SORCERER, FEAT_DRAGON_KNIGHT,             Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SORCERER, FEAT_HELLBALL,                  Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SORCERER, FEAT_EPIC_MAGE_ARMOR,           Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SORCERER, FEAT_EPIC_WARDING,              Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SORCERER, FEAT_GREAT_INTELLIGENCE,        Y, NOASSIGN_FEAT, N);
+  /**** spell assign ****/
   /*              class num      spell                   level acquired */
   /* 1st circle */
   spell_assignment(CLASS_SORCERER, SPELL_HORIZIKAULS_BOOM,    1);
@@ -4639,7 +4882,7 @@ void init_spell_levels(void) {
       /*  This class has spell assignment! Traverse the list and check. */
       for (spell_assign = class_list[class].spellassign_list; spell_assign != NULL;
               spell_assign = spell_assign->next) {
-        spell_level(spell_assign->spell_num, class, spell_assign->circle);
+        spell_level(spell_assign->spell_num, class, spell_assign->level);
       }
     }
   }

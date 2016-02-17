@@ -1868,23 +1868,23 @@ void printMemory(struct char_data *ch, int class) {
               "\tDRest, then type '\tYcompose\tD' to recover spell slots.\tn\r\n");
       break;
     case CLASS_DRUID:
-      send_to_char(ch, "\tDCommands: commune <spellname>, uncommune <spellname>, "
+      send_to_char(ch, "\tDCommands: commune '<spellname>', uncommune '<spellname>', "
               "spells druid\tn\r\n");
       break;
     case CLASS_CLERIC:
-      send_to_char(ch, "\tDCommands: prayer <spellname>, blank <spellname>, "
+      send_to_char(ch, "\tDCommands: prayer '<spellname>', blank '<spellname>', "
               "spells cleric\tn\r\n");
       break;
     case CLASS_RANGER:
-      send_to_char(ch, "\tDCommands: adjure <spellname>, unadjure "
-              "<spellname>, spells ranger\tn\r\n");
+      send_to_char(ch, "\tDCommands: adjure '<spellname>', unadjure "
+              "'<spellname>', spells ranger\tn\r\n");
       break;
     case CLASS_PALADIN:
-      send_to_char(ch, "\tDCommands: chant <spellname>, omit "
-              "<spellname>, spells paladin\tn\r\n");
+      send_to_char(ch, "\tDCommands: chant '<spellname>', omit "
+              "'<spellname>', spells paladin\tn\r\n");
       break;
     case CLASS_WIZARD:
-      send_to_char(ch, "\tDCommands: memorize <spellname>, forget <spellname>, "
+      send_to_char(ch, "\tDCommands: memorize '<spellname>', forget '<spellname>', "
               "spells wizard\tn\r\n");
       break;
     default:

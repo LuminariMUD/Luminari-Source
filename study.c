@@ -570,7 +570,7 @@ void sorc_study_menu(struct descriptor_data *d, int circle) {
   for (counter = 1; counter < NUM_SPELLS; counter++) {
     if (spellCircle(CLASS_SORCERER, counter, 0, DOMAIN_UNDEFINED) == circle) {
       if (sorcKnown(d->character, counter, CLASS_SORCERER))
-        write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, mgn,
+        write_to_output(d, "%s%2d%s) %s*%-20.20s %s", grn, counter, nrm, mgn,
               spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
       else
         write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel,
@@ -578,9 +578,10 @@ void sorc_study_menu(struct descriptor_data *d, int circle) {
     }
   }
   write_to_output(d, "\r\n");
-  write_to_output(d, "%sNumber of slots availble:%s %d.\r\n", grn, nrm,
+  write_to_output(d, "%sNumber of slots available:%s %d.\r\n", grn, nrm,
           sorcererKnown[class_level][circle - 1] -
           count_sorc_known(d->character, circle, CLASS_SORCERER));
+  write_to_output(d, "%s* - An asterisk marks your current selection(s).\r\n", nrm);
   write_to_output(d, "%sEnter spell choice, to add or remove "
           "(Q to exit to main menu) : ", nrm);
 
@@ -641,19 +642,21 @@ void bard_study_menu(struct descriptor_data *d, int circle) {
   for (counter = 1; counter < NUM_SPELLS; counter++) {
     if (spellCircle(CLASS_BARD, counter, 0, DOMAIN_UNDEFINED) == circle) {
       if (sorcKnown(d->character, counter, CLASS_BARD))
-        write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, mgn,
-spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
+        write_to_output(d, "%s%2d%s) %s*%-20.20s %s", grn, counter, nrm, mgn,
+            spell_info[counter].name,
+            !(++columns % 3) ? "\r\n" : "");
       else
         write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel,
-              spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
+              spell_info[counter].name,
+              !(++columns % 3) ? "\r\n" : "");
     }
   }
   write_to_output(d, "\r\n");
-  write_to_output(d, "%sNumber of slots availble:%s %d.\r\n", grn, nrm,
+  write_to_output(d, "%sNumber of slots available:%s %d.\r\n", grn, nrm,
           bardKnown[class_level][circle - 1] -
           count_sorc_known(d->character, circle, CLASS_BARD));
-  write_to_output(d, "%sEnter spell choice, to add or remove "
-          "(Q to exit to main menu) : ", nrm);
+  write_to_output(d, "%s* - An asterisk marks your current selection(s).\r\n"
+          "Enter spell choice, to add or remove (Q to exit to main menu) : ", nrm);
 
   OLC_MODE(d) = BARD_STUDY_SPELLS;
 }
@@ -1155,13 +1158,15 @@ static void main_feat_disp_menu(struct descriptor_data *d) {
   for (i = 1; i < NUM_LEARNABLE_FEAT_TYPES; i++) {
     can_study = can_study_feat_type(ch, i);
     write_to_output(d,
-          "%s %d%s) %s\r\n",
-          (can_study ? grn : "\tD"), i, (can_study ? nrm : "\tD"), feat_types[i]);
+          "%s %d%s) %s%s\r\n",
+          (can_study ? grn : "\tD"), i, (can_study ? nrm : "\tD"), feat_types[i],
+            (can_study ? "" : "*"));
   }
   write_to_output(d,
           "\r\n"
           "%s Q%s) Quit\r\n"
           "\r\n"
+          "* - An asterisk indicates you don't have access to this option.\r\n"
           "Enter Choice : ",
           grn, nrm
           );
@@ -1217,7 +1222,8 @@ static void display_study_feats(struct descriptor_data *d) {
   write_to_output(d, "\r\n");
 
   write_to_output(d,
-                  "To select a feat, type the number beside it.  Class feats are in \tCcyan\tn and marked with a (C).\r\n"
+                  "To view more info about a feat, just select the number beside it.\r\n  "
+                  "Class feats are in \tCcyan\tn and marked with a (C).\r\n"
                   "Epic feats, both class and regular, are in \tMMagenta\tn and are marked with (EC) or (E).\r\n");
   write_to_output(d, "Feat Points: General (%s%d%s) Class (%s%d%s) Epic (%s%d%s) Epic Class (%s%d%s)\r\n",
                         (LEVELUP(ch)->feat_points > 0 ? grn : red), LEVELUP(ch)->feat_points, nrm,
@@ -1252,30 +1258,31 @@ static void generic_main_disp_menu(struct descriptor_data *d) {
   write_to_output(d,
           "\r\n-- %sStudy Menu\r\n"
           "\r\n"
-          "%s 1%s) Feats\r\n"
-          "%s 2%s) Known Spells\r\n"
-          "%s 3%s) Choose Familiar\r\n"
-          "%s 4%s) Animal Companion\r\n"
-          "%s 5%s) Ranger Favored Enemy\r\n"
-          "%s 6%s) Set Stats\r\n"
-          "%s 7%s) Cleric Domain Selection\r\n"
-          "%s 8%s) Wizard School Selection\r\n"
-          "%s 9%s) Preferred Caster Classes (Prestige)\r\n"
+          "%s 1%s) Feats%s\r\n"
+          "%s 2%s) Known Spells%s\r\n"
+          "%s 3%s) Choose Familiar%s\r\n"
+          "%s 4%s) Animal Companion%s\r\n"
+          "%s 5%s) Ranger Favored Enemy%s\r\n"
+          "%s 6%s) Set Stats%s\r\n"
+          "%s 7%s) Cleric Domain Selection%s\r\n"
+          "%s 8%s) Wizard School Selection%s\r\n"
+          "%s 9%s) Preferred Caster Classes (Prestige)%s\r\n"
           "\r\n"
+          "* - An asterisk indicates you don't have access to this option.\r\n"
           "%s Q%s) Quit\r\n"
           "\r\n"
           "Enter Choice : ",
 
           mgn,
-          MENU_OPT(CAN_STUDY_FEATS(ch)), //1
-          MENU_OPT(CAN_STUDY_KNOWN_SPELLS(ch)),  //2
-          MENU_OPT(CAN_STUDY_FAMILIAR(ch)), //3
-          MENU_OPT(CAN_STUDY_COMPANION(ch)), //4
-          MENU_OPT(CAN_STUDY_FAVORED_ENEMY(ch)), //5
-          MENU_OPT(CAN_SET_STATS(ch)), //6
-          MENU_OPT(CAN_SET_DOMAIN(ch)), //7
-          MENU_OPT(CAN_SET_SCHOOL(ch)), //8
-          MENU_OPT(CAN_SET_P_CASTER(ch)), //9
+          MENU_OPT(CAN_STUDY_FEATS(ch)), CAN_STUDY_FEATS(ch) ? "" : "*", //1
+          MENU_OPT(CAN_STUDY_KNOWN_SPELLS(ch)), CAN_STUDY_KNOWN_SPELLS(ch) ? "" : "*", //2
+          MENU_OPT(CAN_STUDY_FAMILIAR(ch)), CAN_STUDY_FAMILIAR(ch) ? "" : "*", //3
+          MENU_OPT(CAN_STUDY_COMPANION(ch)), CAN_STUDY_COMPANION(ch) ? "" : "*", //4
+          MENU_OPT(CAN_STUDY_FAVORED_ENEMY(ch)), CAN_STUDY_FAVORED_ENEMY(ch) ? "" : "*", //5
+          MENU_OPT(CAN_SET_STATS(ch)), CAN_SET_STATS(ch) ? "" : "*", //6
+          MENU_OPT(CAN_SET_DOMAIN(ch)), CAN_SET_DOMAIN(ch) ? "" : "*", //7
+          MENU_OPT(CAN_SET_SCHOOL(ch)), CAN_SET_SCHOOL(ch) ? "" : "*", //8
+          MENU_OPT(CAN_SET_P_CASTER(ch)), CAN_SET_P_CASTER(ch) ? "" : "*", //9
           grn, nrm
           );
 
