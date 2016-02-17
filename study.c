@@ -570,7 +570,7 @@ void sorc_study_menu(struct descriptor_data *d, int circle) {
   for (counter = 1; counter < NUM_SPELLS; counter++) {
     if (spellCircle(CLASS_SORCERER, counter, 0, DOMAIN_UNDEFINED) == circle) {
       if (sorcKnown(d->character, counter, CLASS_SORCERER))
-        write_to_output(d, "%s%2d%s) %s*%-20.20s %s", grn, counter, nrm, mgn,
+        write_to_output(d, "%s%2d%s)%s*%-20.20s %s", grn, counter, nrm, mgn,
               spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
       else
         write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel,
