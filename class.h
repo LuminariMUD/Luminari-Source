@@ -24,12 +24,24 @@
 #define LEVEL_FEATS 5
 #define MAX_NUM_TITLES 11
 #define NUM_PREFERRED_SAVES 5
+#define NOASSIGN_FEAT  -1
 /* end defines */
+
+/* feat assignment / class-feat data for classes */
+struct class_feat_assign {
+  int feat_num;       /* feat number like FEAT_WEAPON_FOCUS */
+  bool is_classfeat;  /* assign this feat as a class feat */
+  int level_received; /* level char get this feat */
+                      /* -1 - not assigned, used for class feat assignment */
+                      /* #define NOASSIGN_FEAT  -1 */
+  bool stacks;        /* does this feat stack? */
+  struct class_feat_assign *next; /*linked list*/
+};
 
 /* spell data for class */
 struct class_spell_assign {
   int spell_num; /*spellnum like SPELL_ARMOR */
-  int circle; /*actually level class receives*/
+  int level; /*actual level class receives*/
   struct class_spell_assign *next; /*linked list*/
 };
 
@@ -65,7 +77,7 @@ struct class_table {
   int trains_gain; /* how many trains this class gets before int bonus */
   bool in_game; /* class currently in the game? */
   int unlock_cost; /* if locked, cost to unlock in account xp */
-  /*!(CLASS_LEVEL(ch, class) % EPIC_FEAT_PROGRESSION) && IS_EPIC(ch)*/
+  /*note: !(CLASS_LEVEL(ch, class) % EPIC_FEAT_PROGRESSION) && IS_EPIC(ch)*/
   int epic_feat_progression;
   char *descrip; /* class description */
   
@@ -74,6 +86,7 @@ struct class_table {
   int class_abil[NUM_ABILITIES];  /*class ability (not avail, cross-class, class-skill)*/
   
   struct class_spell_assign *spellassign_list; /* list of spell assigns */
+  struct class_feat_assign *featassign_list; /* list of feat assigns */
   struct class_prerequisite *prereq_list; /* A list of prerequisite sctructures */
 };
 
