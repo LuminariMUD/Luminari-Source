@@ -688,7 +688,7 @@ static char* wilderness_map_to_string(struct wild_map_tile ** map, int size, int
     
           /* Check the map_type - if this is a weather map then overlay weather glyphs on the map */
           if (map_type == MAP_TYPE_WEATHER) {
-            weather_value = map[x][y].weather);
+            weather_value = map[x][y].weather;
             if (weather_value >= 225) { 
               strcpy(mp, "\tYL\tn");
               mp += strlen("\tYL\tn");
