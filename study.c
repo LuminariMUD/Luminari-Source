@@ -570,7 +570,7 @@ void sorc_study_menu(struct descriptor_data *d, int circle) {
   for (counter = 1; counter < NUM_SPELLS; counter++) {
     if (spellCircle(CLASS_SORCERER, counter, 0, DOMAIN_UNDEFINED) == circle) {
       if (sorcKnown(d->character, counter, CLASS_SORCERER))
-        write_to_output(d, "%s%2d%s)%s*%-20.20s %s", grn, counter, nrm, mgn,
+        write_to_output(d, "%s%2d%s)%s+%-20.20s %s", grn, counter, nrm, mgn,
               spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
       else
         write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel,
@@ -581,7 +581,7 @@ void sorc_study_menu(struct descriptor_data *d, int circle) {
   write_to_output(d, "%sNumber of slots available:%s %d.\r\n", grn, nrm,
           sorcererKnown[class_level][circle - 1] -
           count_sorc_known(d->character, circle, CLASS_SORCERER));
-  write_to_output(d, "%s* - An asterisk marks your current selection(s).\r\n", nrm);
+  write_to_output(d, "%s+ A plus sign marks your current selection(s).\r\n", nrm);
   write_to_output(d, "%sEnter spell choice, to add or remove "
           "(Q to exit to main menu) : ", nrm);
 
@@ -642,7 +642,7 @@ void bard_study_menu(struct descriptor_data *d, int circle) {
   for (counter = 1; counter < NUM_SPELLS; counter++) {
     if (spellCircle(CLASS_BARD, counter, 0, DOMAIN_UNDEFINED) == circle) {
       if (sorcKnown(d->character, counter, CLASS_BARD))
-        write_to_output(d, "%s%2d%s) %s*%-20.20s %s", grn, counter, nrm, mgn,
+        write_to_output(d, "%s%2d%s) %s+%-20.20s %s", grn, counter, nrm, mgn,
             spell_info[counter].name,
             !(++columns % 3) ? "\r\n" : "");
       else
@@ -655,7 +655,7 @@ void bard_study_menu(struct descriptor_data *d, int circle) {
   write_to_output(d, "%sNumber of slots available:%s %d.\r\n", grn, nrm,
           bardKnown[class_level][circle - 1] -
           count_sorc_known(d->character, circle, CLASS_BARD));
-  write_to_output(d, "%s* - An asterisk marks your current selection(s).\r\n"
+  write_to_output(d, "%s+ A plus sign marks your current selection(s).\r\n"
           "Enter spell choice, to add or remove (Q to exit to main menu) : ", nrm);
 
   OLC_MODE(d) = BARD_STUDY_SPELLS;
