@@ -196,7 +196,7 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
       sprintf(weather_buf, "Dawn breaks, a sickly light shining through the dark clouds swollen with rain.  Heavy rain falls from the sky in sheets.  ");
     } else if (time_info.hours == 6) {  
       sprintf(weather_buf, "The sun rises fully over the eastern horizon, visible as a muted disc through the rain clouds.  Rain falls heavily from the sky, blowing in the wind.  ");
-    } else if (time_info.hours > 6 && time_info.hours < 17)
+    } else if (time_info.hours > 6 && time_info.hours < 17) {
       sprintf(weather_buf, "Dark, swollen clouds cruise through the sky, rain falling heavily all around.  ");
     } else if (time_info.hours == 17) {
       sprintf(weather_buf, "The sun dips below the western horizon, barely visible through the thick, dark rainclouds.  Rain falls heavily all around.  ");
@@ -209,7 +209,7 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
       sprintf(weather_buf, "Dawn breaks, a sickly light shining through the clouds.  Rain falls from the sky, pattering on the ground.  ");
     } else if (time_info.hours == 6) {  
       sprintf(weather_buf, "The sun rises fully over the eastern horizon, visible as a muted disc through the rain clouds.  Rain falls gently from the sky.  ");
-    } else if (time_info.hours > 6 && time_info.hours < 17)
+    } else if (time_info.hours > 6 && time_info.hours < 17) {
       sprintf(weather_buf, "Dark clouds cruise lazily through the sky and rain falls gently throughout the area.  ");
     } else if (time_info.hours == 17) {
       sprintf(weather_buf, "The sun dips below the western horizon, the colors of sunset filtered by the dark clouds.  Rain falls steadily all around.  ");
