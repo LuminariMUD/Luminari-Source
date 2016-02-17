@@ -297,7 +297,8 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
                                               get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x + x_offset, y + y_offset));
       map[x][y].glyph = NULL;
       map[x][y].num_regions = 0;
-
+      map[x][y].weather = get_weather(x + xoffset, y + yoffset);
+      
       /* Map should reflect changes from regions */
       struct region_list *regions = NULL;
       struct region_list *curr_region = NULL;
@@ -680,15 +681,15 @@ static char* wilderness_map_to_string(struct wild_map_tile ** map, int size, int
             }
           }                       
           if ((map_type == MAP_TYPE_NORMAL) || 
-              (map_type == MAP_TYPE_WEATHER && get_weather(x, y) < 178)) {
+              (map_type == MAP_TYPE_WEATHER && map[x][y].weather < 178)) {
             strcpy(mp, (map[x][y].vis == 0 ? " " : (map[x][y].glyph == NULL ? wild_map_info[map[x][y].sector_type].disp : map[x][y].glyph)));
             mp += strlen((map[x][y].vis == 0 ? " " : (map[x][y].glyph == NULL ? wild_map_info[map[x][y].sector_type].disp : map[x][y].glyph)));
           }
     
           /* Check the map_type - if this is a weather map then overlay weather glyphs on the map */
           if (map_type == MAP_TYPE_WEATHER) {
-            weather_value = get_weather(x, y);
-            if (weather_value >= 225) { /* Weather is affecting us */
+            weather_value = map[x][y].weather);
+            if (weather_value >= 225) { 
               strcpy(mp, "\tYL\tn");
               mp += strlen("\tYL\tn");
             } else if (weather_value >= 200) {
