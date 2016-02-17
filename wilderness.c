@@ -297,7 +297,7 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
                                               get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x + x_offset, y + y_offset));
       map[x][y].glyph = NULL;
       map[x][y].num_regions = 0;
-      map[x][y].weather = get_weather(x + xoffset, y + yoffset);
+      map[x][y].weather = get_weather(x + x_offset, y + y_offset);
       
       /* Map should reflect changes from regions */
       struct region_list *regions = NULL;
