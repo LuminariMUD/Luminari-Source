@@ -372,11 +372,14 @@ void send_weather(int weather_change) {
   bool found = FALSE;
   struct descriptor_data *i;
   int j;
-
+  
   if ((weather_change < 1) || (weather_change > 6))
     return;
 
   for (i = descriptor_list; i; i = i->next) {
+    if(IN_ROOM(i->character) != NOWHERE && (ZONE_FLAGGED(world[IN_ROOM(i->character)].zone, ZONE_WILDERNESS)))
+      continue; /* Wilderness weather is handled elsewhere */
+    
     if (STATE(i) != CON_PLAYING || i->character == NULL)
       continue;
 
