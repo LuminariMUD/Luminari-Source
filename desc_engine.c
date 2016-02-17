@@ -156,7 +156,7 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
   
   
   /* Weather description string */
-  if (weather = get_weather(world[room].coords[0], world[room].coords[1]) < 178) {
+  if ((weather = get_weather(world[room].coords[0], world[room].coords[1])) < 178) {
     /* Sun/Star/Moonshine */
     if (time_info.hours < 5 || time_info.hours > 17) {        
       sprintf(weather_buf, "The stars shine in the night sky.");
@@ -169,7 +169,7 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
       sprintf(weather_buf, "The sun shines brightly in the clear sky. ");
     } else if (time_info.hours == 17) {
       sprintf(weather_buf, "The sun dips below the western horizon, the rich colors "
-                           "of the sunset signaling the end of the day and the onset of the deep shadows of night.  ")
+                           "of the sunset signaling the end of the day and the onset of the deep shadows of night.  ");
     }
   } else if (weather > 225) {
     /* Lightning! */
@@ -186,7 +186,7 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
       sprintf(weather_buf, "Dark, ominous clouds race through the skies with crashes of thunder and flashes of lightning.  Rain pours down in sheets and whips about in the howling winds. ");
     } else if (time_info.hours == 17) {
       sprintf(weather_buf, "The sun dips below the western horizon, the rich colors "
-                           "of the sunset signaling the end of the day and the onset of the deep shadows of night.  ")
+                           "of the sunset signaling the end of the day and the onset of the deep shadows of night.  ");
     }
   } else if (weather > 200) {
     /* Heavy rain! */
@@ -199,7 +199,7 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
     } else if (time_info.hours > 6 && time_info.hours < 17)
       sprintf(weather_buf, "Dark, swollen clouds cruise through the sky, rain falling heavily all around.  ");
     } else if (time_info.hours == 17) {
-      sprintf(weather_buf, "The sun dips below the western horizon, barely visible through the thick, dark rainclouds.  Rain falls heavily all around.  ")
+      sprintf(weather_buf, "The sun dips below the western horizon, barely visible through the thick, dark rainclouds.  Rain falls heavily all around.  ");
     }
   } else if (weather >= 178) {
     /* Rain! */
@@ -212,7 +212,7 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
     } else if (time_info.hours > 6 && time_info.hours < 17)
       sprintf(weather_buf, "Dark clouds cruise lazily through the sky and rain falls gently throughout the area.  ");
     } else if (time_info.hours == 17) {
-      sprintf(weather_buf, "The sun dips below the western horizon, the colors of sunset filtered by the dark clouds.  Rain falls steadily all around.  ")
+      sprintf(weather_buf, "The sun dips below the western horizon, the colors of sunset filtered by the dark clouds.  Rain falls steadily all around.  ");
     }
   }
     
