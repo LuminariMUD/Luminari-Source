@@ -1268,9 +1268,9 @@ static void generic_main_disp_menu(struct descriptor_data *d) {
           "%s 8%s) Wizard School Selection%s\r\n"
           "%s 9%s) Preferred Caster Classes (Prestige)%s\r\n"
           "\r\n"
-          "* - An asterisk indicates you don't have access to this option.\r\n"
           "%s Q%s) Quit\r\n"
           "\r\n"
+          "* - An asterisk indicates you don't have access to this option.\r\n"
           "Enter Choice : ",
 
           mgn,
