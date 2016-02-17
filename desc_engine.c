@@ -191,7 +191,7 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
   } else if (weather > 200) {
     /* Heavy rain! */
     if (time_info.hours < 5 || time_info.hours > 17) {        
-      sprintf(weather_buf, "Heavy rain pours from the night sky, the clouds blocking all light from the starry sky.  ");
+      sprintf(weather_buf, "Heavy rain pours down, the clouds blocking all light from the starry sky.  ");
     } else if (time_info.hours == 5) {
       sprintf(weather_buf, "Dawn breaks, a sickly light shining through the dark clouds swollen with rain.  Heavy rain falls from the sky in sheets.  ");
     } else if (time_info.hours == 6) {  
@@ -204,7 +204,7 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
   } else if (weather >= 178) {
     /* Rain! */
     if (time_info.hours < 5 || time_info.hours > 17) {        
-      sprintf(weather_buf, "Rain falls steadily from the sky, the clouds blocking parts of the starry sky.  ");
+      sprintf(weather_buf, "Rain falls steadily, the clouds blocking parts of the starry sky.  ");
     } else if (time_info.hours == 5) {
       sprintf(weather_buf, "Dawn breaks, a sickly light shining through the clouds.  Rain falls from the sky, pattering on the ground.  ");
     } else if (time_info.hours == 6) {  
