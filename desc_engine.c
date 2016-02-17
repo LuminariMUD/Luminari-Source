@@ -47,7 +47,10 @@
 char * gen_room_description(struct char_data *ch, room_rnum room) {  
   /* Buffers to hold the description*/
   char buf[MAX_STRING_LENGTH];
+  char weather_buf[MAX_STRING_LENGTH];
   char rdesc[MAX_STRING_LENGTH];
+  
+  int weather;
   
   //static char *wilderness_desc = "The wilderness extends in all directions.";
   
@@ -131,7 +134,6 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
   regions = get_enclosing_regions(GET_ROOM_ZONE(room), world[room].coords[0], world[room].coords[1]);
   
   for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next) {
-    log("-> Processing REGION_TYPE : %d", region_table[curr_region->rnum].region_type); 
     switch (region_table[curr_region->rnum].region_type) {
       case REGION_GEOGRAPHIC:
         switch(curr_region->pos) {
@@ -152,6 +154,105 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
     }
   }  
   
+  /* Time of day based messages. */
+  switch (time_info.hours) {
+    case 1:
+    case 2:
+    case 3:
+    case 4: /* Nighttime */
+      break;      
+    case 5: /* Dawn begins */
+      break;
+    case 6: /* Day begins */
+      break;
+    case 7:
+    case 8:
+    case 9:
+    case 10:
+    case 11: /* Morning */      
+      break;
+    case 12: /* Noon */        
+      break;
+    case 13:
+    case 14:
+    case 15:
+    case 16:
+    case 17: /* Sunset */
+      break;
+    case 18: /* Night begins */
+      break;
+    case 19:
+    case 20:
+    case 21:
+    case 22:
+    case 23:      
+    case 24: /* Midnight */        
+      break;
+    default:
+      break;
+    }
+  
+  /* Weather description string */
+  if (weather = get_weather(world[room].coords[0], world[room].coords[1]) < 178) {
+    /* Sun/Star/Moonshine */
+    if (time_info.hours < 5 || time_info.hours > 17) {        
+      sprintf(weather_buf, "The stars shine in the night sky.");
+    } else if (time_info.hours == 5) {
+      sprintf(weather_buf, "The first rays of dawn are breaking over the eastern horizon, "
+                           "casting the world around you in a warm glow and banishing the shadows of the night.  ");
+    } else if (time_info.hours == 6) {  
+      sprintf(weather_buf, "The sun rises over the eastern horizing, heralding the start of a new day.  ");
+    } else if (time_info.hours > 6 && time_info.hours < 17) {
+      sprintf(weather_buf, "The sun shines brightly in the clear sky. ");
+    } else if (time_info.hours == 17) {
+      sprintf(weather_buf, "The sun dips below the western horizon, the rich colors "
+                           "of the sunset signaling the end of the day and the onset of the deep shadows of night.  ")
+    }
+  } else if (weather > 225) {
+    /* Lightning! */
+    if (time_info.hours < 5 || time_info.hours > 17) {        
+      sprintf(weather_buf, "Bright flashes of lightning and crashing thunder illuminate the night sky as a thunderstorm sweeps across the area.  " 
+                           "Rain pours down in sheets and whips about in the howling winds. ");
+    } else if (time_info.hours == 5) {
+      sprintf(weather_buf, "The weak light of the dawn struggles to break through the violent thunderclouds, overcome by crashing thunder and violent strokes of lightning.  "
+                           "Rain pours down in sheets and whips about in the howling winds. ");
+    } else if (time_info.hours == 6) {  
+      sprintf(weather_buf, "The sun barely illuminates the landscape as it weakly rises over the eastern horizon.  "
+                           "Crashes of thunder and violent lightning overshadow any signs of the new day.  Rain pours down in sheets, blowing sideways in the howling winds.  ");
+    } else if (time_info.hours > 6 && time_info.hours < 17) {
+      sprintf(weather_buf, "Dark, ominous clouds race through the skies with crashes of thunder and flashes of lightning.  Rain pours down in sheets and whips about in the howling winds. ");
+    } else if (time_info.hours == 17) {
+      sprintf(weather_buf, "The sun dips below the western horizon, the rich colors "
+                           "of the sunset signaling the end of the day and the onset of the deep shadows of night.  ")
+    }
+  } else if (weather > 200) {
+    /* Heavy rain! */
+    if (time_info.hours < 5 || time_info.hours > 17) {        
+      sprintf(weather_buf, "Heavy rain pours from the night sky, the clouds blocking all light from the starry sky.  ");
+    } else if (time_info.hours == 5) {
+      sprintf(weather_buf, "Dawn breaks, a sickly light shining through the dark clouds swollen with rain.  Heavy rain falls from the sky in sheets.  ");
+    } else if (time_info.hours == 6) {  
+      sprintf(weather_buf, "The sun rises fully over the eastern horizon, visible as a muted disc through the rain clouds.  Rain falls heavily from the sky, blowing in the wind.  ");
+    } else if (time_info.hours > 6 && time_info.hours < 17)
+      sprintf(weather_buf, "Dark, swollen clouds cruise through the sky, rain falling heavily all around.  ");
+    } else if (time_info.hours == 17) {
+      sprintf(weather_buf, "The sun dips below the western horizon, barely visible through the thick, dark rainclouds.  Rain falls heavily all around.  ")
+    }
+  } else if (weather >= 178) {
+    /* Rain! */
+    if (time_info.hours < 5 || time_info.hours > 17) {        
+      sprintf(weather_buf, "Rain falls steadily from the sky, the clouds blocking parts of the starry sky.  ");
+    } else if (time_info.hours == 5) {
+      sprintf(weather_buf, "Dawn breaks, a sickly light shining through the clouds.  Rain falls from the sky, pattering on the ground.  ");
+    } else if (time_info.hours == 6) {  
+      sprintf(weather_buf, "The sun rises fully over the eastern horizon, visible as a muted disc through the rain clouds.  Rain falls gently from the sky.  ");
+    } else if (time_info.hours > 6 && time_info.hours < 17)
+      sprintf(weather_buf, "Dark clouds cruise lazily through the sky and rain falls gently throughout the area.  ");
+    } else if (time_info.hours == 17) {
+      sprintf(weather_buf, "The sun dips below the western horizon, the colors of sunset filtered by the dark clouds.  Rain falls steadily all around.  ")
+    }
+  }
+    
   /* Retrieve and process nearby regions ---------------------------------------
    * For the dynamic description engine it is necessary to gather as much 
    * information about the game world as we need to build a coherent description
@@ -213,18 +314,21 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
                         ""))))), direction_strings[region_dir]);
       }
     }
+    strcat(buf, weather_buf);
     strcat(rdesc, buf);
+    weather_buf[0] = '\0';
     buf[0] = '\0';  
     
-    log("max_area : %f region_dir : %s", max_area, direction_strings[region_dir]);
     first_region = FALSE;
   }  
   
   if (rdesc[0] == '\0') {
     /* No regions nearby...*/
     sprintf(buf, "You are %s.\r\n", sector_types_readable[world[room].sector_type]);
+    strcat(buf, weather_buf);
     strcat(rdesc, buf);
-    buf[0] = '\0';  
+    weather_buf[0] = '\0';
+    buf[0] = '\0';
   }
   
   return strdup(rdesc);
