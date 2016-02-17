@@ -680,7 +680,7 @@ static char* wilderness_map_to_string(struct wild_map_tile ** map, int size, int
             }
           }                       
           if ((map_type == MAP_TYPE_NORMAL) || 
-              (map_type == MAP_TYPE_WEAHER && get_weather(x, y) < 178)) {
+              (map_type == MAP_TYPE_WEATHER && get_weather(x, y) < 178)) {
             strcpy(mp, (map[x][y].vis == 0 ? " " : (map[x][y].glyph == NULL ? wild_map_info[map[x][y].sector_type].disp : map[x][y].glyph)));
             mp += strlen((map[x][y].vis == 0 ? " " : (map[x][y].glyph == NULL ? wild_map_info[map[x][y].sector_type].disp : map[x][y].glyph)));
           }
