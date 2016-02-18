@@ -225,7 +225,7 @@ int get_weather(int x, int y) {
   result = PerlinNoise3D(NOISE_WEATHER, x, y, time_base, 2.0, 2.0, 60.0, 8);
     
   result = (result + 1) / 2.0;
-  log("DEBUG: Weather - %f %f %f %f", x, y, time_base, result);
+  log("DEBUG: Weather - %d %d %f %f", x, y, time_base, result);
   
   return 255 *result;
 }
