@@ -210,7 +210,7 @@ double PerlinNoise1D(int idx, double x,double alpha,double beta,int n)
 
 /* scale = frequency, alpha = lacunarity, beta = gain */
 
-double PerlinNoise2D(int idx, double x, double y, double alpha, double beta, double scale, int n)
+double PerlinNoise2D(int idx, double x, double y, double alpha, double beta, int scale, int n)
 {
    int i;
    double val,sum = 0;
@@ -231,7 +231,7 @@ double PerlinNoise2D(int idx, double x, double y, double alpha, double beta, dou
    return(sum);
 }
 
-double PerlinNoise3D(int idx, double x, double y, double z, double alpha, double beta, double scale, int n)
+double PerlinNoise3D(int idx, double x, double y, double z, double alpha, double beta, int scale, int n)
 {
    int i;
    double val,sum = 0;
