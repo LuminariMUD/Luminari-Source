@@ -1068,7 +1068,7 @@ void save_noise_to_file(int idx, const char* fn, int xsize, int ysize, int zoom)
       trans_y = y / (double) ((ysize / 4.0) * (zoom == 0 ? 1 : 0.5 * zoom));
 
 
-      pixel = PerlinNoise2D(idx, trans_x, trans_y, 2.0, 2.0, 16);
+      pixel = PerlinNoise2D(idx, trans_x, trans_y, 2.0, 2.0, 1, 16);
 
       pixel = (pixel + 1) / 2.0;
       //      pixel =1.0 -  (pixel < 0 ? -pixel : pixel);
