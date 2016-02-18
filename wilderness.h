@@ -47,12 +47,14 @@
 #define NOISE_MATERIAL_PLANE_ELEV_DIST  1
 #define NOISE_MATERIAL_PLANE_MOISTURE   2
 #define NOISE_WEATHER                   3
-#define NUM_NOISE                       4 /* Always < MAX_GENERATED_NOISE (24) in perlin.h */
+#define NOISE_TERRAIN_DIVERSITY         4
+#define NUM_NOISE                       5 /* Always < MAX_GENERATED_NOISE (24) in perlin.h */
 
 #define NOISE_MATERIAL_PLANE_ELEV_SEED         822344//113//3193//300 //242423 //Yang //3743
 #define NOISE_MATERIAL_PLANE_MOISTURE_SEED     834//133//3//6737
 #define NOISE_MATERIAL_PLANE_ELEV_DIST_SEED    74233//8301
 #define NOISE_WEATHER_SEED                     43425
+#define NOISE_TERRAIN_DIVERSITY_SEED           19578
 
 /* Regions*/
 #define REGION_GEOGRAPHIC 1
