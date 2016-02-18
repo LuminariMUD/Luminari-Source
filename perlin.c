@@ -210,39 +210,38 @@ double PerlinNoise1D(int idx, double x,double alpha,double beta,int n)
 
 /* scale = frequency, alpha = lacunarity, beta = gain */
 
-double PerlinNoise2D(int idx, double x, double y, double alpha, double beta, double scale, int n)
+double PerlinNoise2D(int idx, double x,double y,double alpha,double beta,int n)
 {
    int i;
    double val,sum = 0;
-   double p[2], noise_scale = 1;
-   
-   p[0] = x/scale;
-   p[1] = y/scale;
+   double p[2],scale = 1;
+
+   p[0] = x;
+   p[1] = y;
    for (i=0;i<n;i++) {
       val = noise2(idx, p);
 //      val = ( val < 0 ? -val : val);
-      sum += val / noise_scale;     
-      noise_scale *= alpha;
+      sum += val / scale;     
+      scale *= alpha;
       p[0] *= beta;
       p[1] *= beta;
    }
    return(sum);
 }
 
-double PerlinNoise3D(int idx, double x, double y, double z, double alpha, double beta, double scale, int n)
+double PerlinNoise3D(int idx, double x,double y,double z,double alpha,double beta,int n)
 {
    int i;
    double val,sum = 0;
-   double p[3], noise_scale = 1;
-     
-   p[0] = x/scale;
-   p[1] = y/scale;
-   p[2] = z/scale;
-   
+   double p[3],scale = 1;
+
+   p[0] = x;
+   p[1] = y;
+   p[2] = z;
    for (i=0;i<n;i++) {
       val = noise3(idx, p);
-      sum += val / noise_scale;
-      noise_scale *= alpha;
+      sum += val / scale;
+      scale *= alpha;
       p[0] *= beta;
       p[1] *= beta;
       p[2] *= beta;
