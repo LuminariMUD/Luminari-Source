@@ -8,7 +8,7 @@
 #include "perlin.h"
 
 
-static int     p[MAX_GENERATED_NOISE][B + B + 2];
+static double     p[MAX_GENERATED_NOISE][B + B + 2];
 static double g3[MAX_GENERATED_NOISE][B + B + 2][3];
 static double g2[MAX_GENERATED_NOISE][B + B + 2][2];
 static double g1[MAX_GENERATED_NOISE][B + B + 2];
@@ -210,7 +210,7 @@ double PerlinNoise1D(int idx, double x,double alpha,double beta,int n)
 
 /* scale = frequency, alpha = lacunarity, beta = gain */
 
-double PerlinNoise2D(int idx, double x, double y, double alpha, double beta, int scale, int n)
+double PerlinNoise2D(int idx, double x, double y, double alpha, double beta, double scale, int n)
 {
    int i;
    double val,sum = 0;
@@ -218,6 +218,7 @@ double PerlinNoise2D(int idx, double x, double y, double alpha, double beta, int
 
    if (scale == 0) 
      scale = 1.0;
+   
    p[0] = x/scale;
    p[1] = y/scale;
    for (i=0;i<n;i++) {
@@ -231,7 +232,7 @@ double PerlinNoise2D(int idx, double x, double y, double alpha, double beta, int
    return(sum);
 }
 
-double PerlinNoise3D(int idx, double x, double y, double z, double alpha, double beta, int scale, int n)
+double PerlinNoise3D(int idx, double x, double y, double z, double alpha, double beta, double scale, int n)
 {
    int i;
    double val,sum = 0;
