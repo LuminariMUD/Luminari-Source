@@ -201,6 +201,7 @@ int get_elevation(int map, int x, int y) {
   result = ((result + dist) + 1) / 3.0;
 
   /* Apply Terrain Diversity */
+  /*
   diversity = (diversity + 1) / 2;
   
   if (diversity > 0.75) {
@@ -208,7 +209,7 @@ int get_elevation(int map, int x, int y) {
     if (result > 1.0) 
       result = 1.0;
   }
-  
+  */
   /* Apply the radial gradient. */
   result *= get_radial_gradient(x, y);
 
@@ -401,9 +402,6 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
  *   elevation - given by the heightmap
  *   temperature - given by the temperature gradient
  *   moisture - given by the moisture map
- * 
- * 18.02.2016 - Added Terrain Diversity layer 
- * 
  */
 int get_sector_type(int elevation, int temperature, int moisture) {
 
