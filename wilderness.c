@@ -218,7 +218,7 @@ int get_weather(int x, int y) {
   now = time(NULL);
   time_base = now % 100000;
   
-  //time_base = time_base / (double) (100000.0); 
+  time_base = time_base / (double) (10000.0); 
   trans_x = x / (double) (WILD_X_SIZE / 2.0);
   trans_y = y / (double) (WILD_Y_SIZE / 2.0);
 
