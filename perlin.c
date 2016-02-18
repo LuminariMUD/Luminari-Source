@@ -8,7 +8,7 @@
 #include "perlin.h"
 
 
-static double     p[MAX_GENERATED_NOISE][B + B + 2];
+static int     p[MAX_GENERATED_NOISE][B + B + 2];
 static double g3[MAX_GENERATED_NOISE][B + B + 2][3];
 static double g2[MAX_GENERATED_NOISE][B + B + 2][2];
 static double g1[MAX_GENERATED_NOISE][B + B + 2];
@@ -219,8 +219,8 @@ double PerlinNoise2D(int idx, double x, double y, double alpha, double beta, dou
    if (scale == 0) 
      scale = 1.0;
    
-   p[0] = x/scale;
-   p[1] = y/scale;
+   p[0] = x;
+   p[1] = y;
    for (i=0;i<n;i++) {
       val = noise2(idx, p);
 //      val = ( val < 0 ? -val : val);
@@ -241,9 +241,9 @@ double PerlinNoise3D(int idx, double x, double y, double z, double alpha, double
    if (scale == 0) 
      scale = 1.0;
    
-   p[0] = x/scale;
-   p[1] = y/scale;
-   p[2] = z/scale;
+   p[0] = x;
+   p[1] = y;
+   p[2] = z;
    for (i=0;i<n;i++) {
       val = noise3(idx, p);
       sum += val / noise_scale;
