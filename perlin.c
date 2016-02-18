@@ -214,8 +214,10 @@ double PerlinNoise2D(int idx, double x, double y, double alpha, double beta, dou
 {
    int i;
    double val,sum = 0;
-   double p[2],scale = 1;
+   double p[2];
 
+   if (scale == 0) 
+     scale = 1.0;
    p[0] = x;
    p[1] = y;
    for (i=0;i<n;i++) {
