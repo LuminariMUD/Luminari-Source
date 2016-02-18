@@ -174,7 +174,7 @@ int get_elevation(int map, int x, int y) {
   trans_y = y / (double) (WILD_Y_SIZE / 2.0);
 
 
-  result = PerlinNoise2D(map, trans_x, trans_y, 2.0, 2.0, 1, 16);
+  result = PerlinNoise2D(map, trans_x, trans_y, 2.0, 2.0, 16);
 
   /* Compress the data a little, makes better mountains. */
   result = (result > .8 ? .8 : result);
@@ -196,7 +196,7 @@ int get_elevation(int map, int x, int y) {
 
 
   /* get the distortion */
-  dist = PerlinNoise2D(NOISE_MATERIAL_PLANE_ELEV_DIST, trans_x, trans_y, 1.5, 2.0, 1, 16);
+  dist = PerlinNoise2D(NOISE_MATERIAL_PLANE_ELEV_DIST, trans_x, trans_y, 1.5, 2.0, 16);
 
   /* Take a weighted average, normalize over [0..1] */
   result = ((result + dist) + 1) / 3.0;
@@ -222,7 +222,7 @@ int get_weather(int x, int y) {
   trans_x = x / (double) (WILD_X_SIZE / 2.0);
   trans_y = y / (double) (WILD_Y_SIZE / 2.0);
 
-  result = PerlinNoise3D(NOISE_WEATHER, trans_x * 100, trans_y * 100, time_base * 100, 2.0, 2.0, 1, 8);
+  result = PerlinNoise3D(NOISE_WEATHER, trans_x * 100, trans_y * 100, time_base * 100, 2.0, 2.0, 8);
     
   result = (result + 1) / 2.0;
   //log("DEBUG: Weather - %f %f %f %f", trans_x, trans_y, time_base, result);
@@ -238,7 +238,7 @@ int get_moisture(int map, int x, int y) {
   trans_x = x / (double) (WILD_X_SIZE / 8.0);
   trans_y = y / (double) (WILD_Y_SIZE / 8.0);
 
-  result = PerlinNoise2D(map, trans_x, trans_y, 1.5, 2.0, 1, 8);
+  result = PerlinNoise2D(map, trans_x, trans_y, 1.5, 2.0, 8);
 
   /* Normalize over 0..1 */
   result = (result + 1) / 2.0;
@@ -1068,7 +1068,7 @@ void save_noise_to_file(int idx, const char* fn, int xsize, int ysize, int zoom)
       trans_y = y / (double) ((ysize / 4.0) * (zoom == 0 ? 1 : 0.5 * zoom));
 
 
-      pixel = PerlinNoise2D(idx, trans_x, trans_y, 2.0, 2.0, 1, 16);
+      pixel = PerlinNoise2D(idx, trans_x, trans_y, 2.0, 2.0, 16);
 
       pixel = (pixel + 1) / 2.0;
       //      pixel =1.0 -  (pixel < 0 ? -pixel : pixel);
