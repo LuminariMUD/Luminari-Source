@@ -169,13 +169,16 @@ int get_elevation(int map, int x, int y) {
   double trans_y;
   double result;
   double dist;
+  double diversity;
 
   trans_x = x / (double) (WILD_X_SIZE / 2.0);
   trans_y = y / (double) (WILD_Y_SIZE / 2.0);
 
 
-  result = PerlinNoise2D(map, trans_x, trans_y, 2.0, 2.0, 1.0, 16);
-
+  result    = PerlinNoise2D(map, trans_x, trans_y, 2.0, 2.0, 1.0, 16);
+  dist = PerlinNoise2D(NOISE_MATERIAL_PLANE_ELEV_DIST, trans_x, trans_y, 1.5, 2.0, 1.0, 16);
+  diversity = PerlinNoise2D(NOISE_TERRAIN_DIVERSITY, trans_x, trans_y, 2.0, 2.0, 1.0, 8);
+  
   /* Compress the data a little, makes better mountains. */
   result = (result > .8 ? .8 : result);
   result = (result < -.8 ? -.8 : result);
@@ -194,13 +197,16 @@ int get_elevation(int map, int x, int y) {
   trans_x = x / (double) (WILD_X_SIZE / 8.0);
   trans_y = y / (double) (WILD_Y_SIZE / 8.0);
 
-
-  /* get the distortion */
-  dist = PerlinNoise2D(NOISE_MATERIAL_PLANE_ELEV_DIST, trans_x, trans_y, 1.5, 2.0, 1.0, 16);
-
   /* Take a weighted average, normalize over [0..1] */
   result = ((result + dist) + 1) / 3.0;
 
+  /* Apply Terrain Diversity */
+  diversity = (diversity + 1) / 2;
+  
+  if (diversity > 0.7) {
+    result += FLOOR((result + (1.0 - diversity), 1));
+  }
+  
   /* Apply the radial gradient. */
   result *= get_radial_gradient(x, y);
 
@@ -393,6 +399,9 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
  *   elevation - given by the heightmap
  *   temperature - given by the temperature gradient
  *   moisture - given by the moisture map
+ * 
+ * 18.02.2016 - Added Terrain Diversity layer 
+ * 
  */
 int get_sector_type(int elevation, int temperature, int moisture) {
 
@@ -440,8 +449,7 @@ int get_sector_type(int elevation, int temperature, int moisture) {
       else
         return SECT_FOREST;
     }
-  }
-
+  }  
 }
 
 room_rnum find_static_room_by_coordinates(int x, int y) {
