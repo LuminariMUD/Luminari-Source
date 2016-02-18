@@ -169,7 +169,7 @@ int get_elevation(int map, int x, int y) {
   double trans_y;
   double result;
   double dist;
-  double diversity;
+
 
   trans_x = x / (double) (WILD_X_SIZE / 2.0);
   trans_y = y / (double) (WILD_Y_SIZE / 2.0);
@@ -177,8 +177,7 @@ int get_elevation(int map, int x, int y) {
 
   result    = PerlinNoise2D(map, trans_x, trans_y, 2.0, 2.0, 1.0, 16);
   dist = PerlinNoise2D(NOISE_MATERIAL_PLANE_ELEV_DIST, trans_x, trans_y, 1.5, 2.0, 1.0, 16);
-  diversity = PerlinNoise2D(NOISE_TERRAIN_DIVERSITY, trans_x, trans_y, 2.0, 2.0, 1.0, 8);
-  
+   
   /* Compress the data a little, makes better mountains. */
   result = (result > .8 ? .8 : result);
   result = (result < -.8 ? -.8 : result);
@@ -200,16 +199,6 @@ int get_elevation(int map, int x, int y) {
   /* Take a weighted average, normalize over [0..1] */
   result = ((result + dist) + 1) / 3.0;
 
-  /* Apply Terrain Diversity */
-  /*
-  diversity = (diversity + 1) / 2;
-  
-  if (diversity > 0.75) {
-    result += ((result + (1.0 - diversity), 1));
-    if (result > 1.0) 
-      result = 1.0;
-  }
-  */
   /* Apply the radial gradient. */
   result *= get_radial_gradient(x, y);
 
@@ -288,7 +277,7 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
   int x, y;
   int x_offset, y_offset;
   int trans_x, trans_y;
-
+  
   /* Below is for looking up static rooms. */
   room_rnum* room;
   double loc[2], pos[2];
@@ -307,6 +296,8 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
       map[x][y].glyph = NULL;
       map[x][y].num_regions = 0;
       map[x][y].weather = get_weather(x + x_offset, y + y_offset);
+      
+      
       
       /* Map should reflect changes from regions */
       struct region_list *regions = NULL;
