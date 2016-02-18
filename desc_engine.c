@@ -159,7 +159,7 @@ char * gen_room_description(struct char_data *ch, room_rnum room) {
   if ((weather = get_weather(world[room].coords[0], world[room].coords[1])) < 178) {
     /* Sun/Star/Moonshine */
     if (time_info.hours < 5 || time_info.hours > 17) {        
-      sprintf(weather_buf, "The stars shine in the night sky.");
+      sprintf(weather_buf, "The stars shine in the night sky.  ");
     } else if (time_info.hours == 5) {
       sprintf(weather_buf, "The first rays of dawn are breaking over the eastern horizon, "
                            "casting the world around you in a warm glow and banishing the shadows of the night.  ");
