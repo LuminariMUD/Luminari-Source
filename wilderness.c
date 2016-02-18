@@ -219,8 +219,8 @@ int get_weather(int x, int y) {
   time_base = now % 100000;
   
   time_base = time_base / (double) (100000.0); 
-  trans_x = x / (double) (WILD_X_SIZE / 8.0);
-  trans_y = y / (double) (WILD_Y_SIZE / 8.0);
+  trans_x = x / (double) (WILD_X_SIZE / 1.0);
+  trans_y = y / (double) (WILD_Y_SIZE / 1.0);
 
   result = PerlinNoise3D(NOISE_WEATHER, trans_x * 50.0, trans_y * 50.0, time_base * 100, 2.0, 2.0, 8);
     
