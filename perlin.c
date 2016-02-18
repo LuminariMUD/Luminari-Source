@@ -239,8 +239,6 @@ double PerlinNoise3D(int idx, double x, double y, double z, double alpha, double
    p[1] = y/scale;
    p[2] = z/scale;
    
-   log("DEBUG: 0:%f 1:%f 2:%f", p[0], p[1], p[2]);
-   
    for (i=0;i<n;i++) {
       val = noise3(idx, p);
       sum += val / noise_scale;
