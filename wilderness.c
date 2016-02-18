@@ -203,7 +203,7 @@ int get_elevation(int map, int x, int y) {
   /* Apply Terrain Diversity */
   diversity = (diversity + 1) / 2;
   
-  if (diversity > 0.85) {
+  if (diversity > 0.75) {
     result += ((result + (1.0 - diversity), 1));
     if (result > 1.0) 
       result = 1.0;
