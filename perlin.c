@@ -214,16 +214,16 @@ double PerlinNoise2D(int idx, double x, double y, double alpha, double beta, dou
 {
    int i;
    double val,sum = 0;
-   double p[2];
+   double p[2], noise_scale = 1;
 
    if (scale == 0) 
      scale = 1.0;
-   p[0] = x;
-   p[1] = y;
+   p[0] = x/scale;
+   p[1] = y/scale;
    for (i=0;i<n;i++) {
       val = noise2(idx, p);
 //      val = ( val < 0 ? -val : val);
-      sum += val / scale;     
+      sum += val / noise_scale;     
       scale *= alpha;
       p[0] *= beta;
       p[1] *= beta;
@@ -235,17 +235,17 @@ double PerlinNoise3D(int idx, double x, double y, double z, double alpha, double
 {
    int i;
    double val,sum = 0;
-   double p[3];
+   double p[3], noise_scale = 1;
    
    if (scale == 0) 
      scale = 1.0;
    
-   p[0] = x;
-   p[1] = y;
-   p[2] = z;
+   p[0] = x/scale;
+   p[1] = y/scale;
+   p[2] = z/scale;
    for (i=0;i<n;i++) {
       val = noise3(idx, p);
-      sum += val / scale;
+      sum += val / noise_scale;
       scale *= alpha;
       p[0] *= beta;
       p[1] *= beta;
