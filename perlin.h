@@ -28,8 +28,8 @@ void normalize3(double *);
 void normalize2(double *);
 
 double PerlinNoise1D(int idx, double,double,double,int);
-double PerlinNoise2D(int idx, double,double,double,double,double,int);
-double PerlinNoise3D(int idx, double,double,double,double,double,double,int);
+double PerlinNoise2D(int idx, double,double,double,double,int,int);
+double PerlinNoise3D(int idx, double,double,double,double,double,int,int);
 double RidgedMultifractal2D( int idx, double x, double y, double H, double lacunarity,
                              double octaves, double offset, double gain );
 
