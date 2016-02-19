@@ -815,19 +815,6 @@ void load_class_list(void) {
   feat_assignment(CLASS_CLERIC, FEAT_DIVINE_9TH_CIRCLE,         Y,   17,  N);
   /*epic*/
   feat_assignment(CLASS_CLERIC, FEAT_DIVINE_EPIC_SPELL,         Y,   21,  N);
-  /* list of class feats */
-  feat_assignment(CLASS_CLERIC, FEAT_SPELL_PENETRATION,         Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_CLERIC, FEAT_GREATER_SPELL_PENETRATION, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_CLERIC, FEAT_FASTER_MEMORIZATION,       Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_CLERIC, FEAT_QUICK_CHANT,               Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_CLERIC, FEAT_AUGMENT_SUMMONING,         Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_CLERIC, FEAT_ENHANCED_SPELL_DAMAGE,     Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_CLERIC, FEAT_MAXIMIZE_SPELL,            Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_CLERIC, FEAT_QUICKEN_SPELL,             Y, NOASSIGN_FEAT, N);
-  /* epic class */
-  feat_assignment(CLASS_CLERIC, FEAT_GREAT_WISDOM,              Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_CLERIC, FEAT_MUMMY_DUST,                Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_CLERIC, FEAT_GREATER_RUIN,              Y, NOASSIGN_FEAT, N);  
   /**** spell assign ****/ 
   /*              class num      spell                   level acquired */
   /* 1st circle */
@@ -1340,6 +1327,55 @@ void load_class_list(void) {
     "the Storm of Earth's Voice",  /* <= LVL_GRSTAFF */
     "the Druid"                    /* default */  
   );
+  /* feat assignment */
+  /*              class num     feat                          cfeat lvl stack */
+  feat_assignment(CLASS_DRUID, FEAT_WEAPON_PROFICIENCY_DRUID, Y,    1,  N);
+  feat_assignment(CLASS_DRUID, FEAT_ARMOR_PROFICIENCY_LIGHT,  Y,    1,  N);
+  feat_assignment(CLASS_DRUID, FEAT_ARMOR_PROFICIENCY_MEDIUM, Y,    1,  N);
+  feat_assignment(CLASS_DRUID, FEAT_ARMOR_PROFICIENCY_SHIELD, Y,    1,  N);
+  feat_assignment(CLASS_DRUID, FEAT_ANIMAL_COMPANION,         Y,    1,  N);
+  feat_assignment(CLASS_DRUID, FEAT_NATURE_SENSE,             Y,    1,  N);
+  feat_assignment(CLASS_DRUID, FEAT_WILD_EMPATHY,             Y,    2,  N);
+  feat_assignment(CLASS_DRUID, FEAT_WOODLAND_STRIDE,          Y,    2,  N);
+  feat_assignment(CLASS_DRUID, FEAT_TRACKLESS_STEP,           Y,    3,  N);
+  feat_assignment(CLASS_DRUID, FEAT_RESIST_NATURES_LURE,      Y,    4,  N);
+  /* FEAT_WILD_SHAPE is the first level of wildshape forms AND cooldown */
+  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE,               Y,    4,  Y);
+  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE,               Y,    6,  Y);
+  /* FEAT_WILD_SHAPE_x is the xth level of wildshape forms, does not affect cooldown */
+  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE_2,             Y,    6,  N);
+  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE,               Y,    8,  Y);
+  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE_3,             Y,    8,  N);
+  feat_assignment(CLASS_DRUID, FEAT_VENOM_IMMUNITY,           Y,    9,  N);
+  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE,               Y,    10, Y);
+  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE_4,             Y,    10, N);
+  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE,               Y,    12, Y);
+  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE_5,             Y,    12, N);
+  feat_assignment(CLASS_DRUID, FEAT_THOUSAND_FACES,           Y,    13, N);
+  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE,               Y,    14, Y);
+  feat_assignment(CLASS_DRUID, FEAT_TIMELESS_BODY,            Y,    15, N);
+  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE,               Y,    16, Y);
+  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE,               Y,    18, Y);
+  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE,               Y,    20, Y);
+  /* spell circles */
+  feat_assignment(CLASS_DRUID, FEAT_DIVINE_1ST_CIRCLE,        Y,    1,  N);
+  feat_assignment(CLASS_DRUID, FEAT_DIVINE_2ND_CIRCLE,        Y,    3,  N);
+  feat_assignment(CLASS_DRUID, FEAT_DIVINE_3RD_CIRCLE,        Y,    5,  N);
+  feat_assignment(CLASS_DRUID, FEAT_DIVINE_4TH_CIRCLE,        Y,    7,  N);
+  feat_assignment(CLASS_DRUID, FEAT_DIVINE_5TH_CIRCLE,        Y,    9,  N);
+  feat_assignment(CLASS_DRUID, FEAT_DIVINE_6TH_CIRCLE,        Y,    11, N);
+  feat_assignment(CLASS_DRUID, FEAT_DIVINE_7TH_CIRCLE,        Y,    13, N);
+  feat_assignment(CLASS_DRUID, FEAT_DIVINE_8TH_CIRCLE,        Y,    15, N);
+  feat_assignment(CLASS_DRUID, FEAT_DIVINE_9TH_CIRCLE,        Y,    17, N);
+  /*epic*/
+  feat_assignment(CLASS_DRUID, FEAT_DIVINE_EPIC_SPELL,        Y,    21, N);
+  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE,               Y,    22, Y);
+  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE,               Y,    24, Y);
+  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE,               Y,    26, Y);
+  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE,               Y,    28, Y);
+  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE,               Y,    30, Y); 
+  /* no class feats */
+  /**** spell assign ****/
   /*              class num      spell                   level acquired */
   /* 1st circle */
   spell_assignment(CLASS_DRUID, SPELL_CHARM_ANIMAL,          1);
@@ -2122,6 +2158,39 @@ void load_class_list(void) {
     "the Lord of Dance",        /* <= LVL_GRSTAFF */
     "the Bard"                  /* default */  
   );
+  /* feat assignment */
+  /*              class num     feat                          cfeat lvl stack */
+  feat_assignment(CLASS_BARD, FEAT_SIMPLE_WEAPON_PROFICIENCY, Y,    1,  N);
+  feat_assignment(CLASS_BARD, FEAT_WEAPON_PROFICIENCY_BARD,   Y,    1,  N);
+  feat_assignment(CLASS_BARD, FEAT_WEAPON_PROFICIENCY_ROGUE,  Y,    1,  N);
+  feat_assignment(CLASS_BARD, FEAT_ARMOR_PROFICIENCY_LIGHT,   Y,    1,  N);
+  feat_assignment(CLASS_BARD, FEAT_ARMOR_PROFICIENCY_SHIELD,  Y,    1,  N);
+  feat_assignment(CLASS_BARD, FEAT_BARDIC_MUSIC,              Y,    1,  N);
+  feat_assignment(CLASS_BARD, FEAT_BARDIC_KNOWLEDGE,          Y,    1,  N);
+  feat_assignment(CLASS_BARD, FEAT_COUNTERSONG,               Y,    1,  N);
+  feat_assignment(CLASS_BARD, FEAT_SONG_OF_HEALING,           Y,    1,  N);
+  feat_assignment(CLASS_BARD, FEAT_DANCE_OF_PROTECTION,       Y,    2,  N);
+  feat_assignment(CLASS_BARD, FEAT_SONG_OF_FOCUSED_MIND,      Y,    3,  N);
+  feat_assignment(CLASS_BARD, FEAT_SONG_OF_HEROISM,           Y,    5,  N);
+  feat_assignment(CLASS_BARD, FEAT_ORATORY_OF_REJUVENATION,   Y,    7,  N);
+  feat_assignment(CLASS_BARD, FEAT_SONG_OF_FLIGHT,            Y,    9,  N);
+  feat_assignment(CLASS_BARD, FEAT_SONG_OF_REVELATION,        Y,    11, N);
+  feat_assignment(CLASS_BARD, FEAT_SONG_OF_FEAR,              Y,    13, N);
+  feat_assignment(CLASS_BARD, FEAT_ACT_OF_FORGETFULNESS,      Y,    15, N);
+  feat_assignment(CLASS_BARD, FEAT_SONG_OF_ROOTING,           Y,    17, N);
+  /* spell circles */
+  feat_assignment(CLASS_BARD, FEAT_ARCANE_1ST_CIRCLE,         Y,    3,  N);
+  feat_assignment(CLASS_BARD, FEAT_ARCANE_2ND_CIRCLE,         Y,    5,  N);
+  feat_assignment(CLASS_BARD, FEAT_ARCANE_3RD_CIRCLE,         Y,    8,  N);
+  feat_assignment(CLASS_BARD, FEAT_ARCANE_4TH_CIRCLE,         Y,    11, N);
+  feat_assignment(CLASS_BARD, FEAT_ARCANE_5TH_CIRCLE,         Y,    14, N);
+  feat_assignment(CLASS_BARD, FEAT_ARCANE_6TH_CIRCLE,         Y,    17, N);
+  /*epic*/
+  feat_assignment(CLASS_BARD, FEAT_ARCANE_EPIC_SPELL,         Y,   21,  N);
+  feat_assignment(CLASS_BARD, FEAT_SONG_OF_DRAGONS,           Y,   22,  N);
+  feat_assignment(CLASS_BARD, FEAT_SONG_OF_THE_MAGI,          Y,   26,  N);
+  /* no class feat assignments */
+  /**** spell assign ****/  
   /*              class num      spell                   level acquired */
   /* 1st circle */
   spell_assignment(CLASS_BARD, SPELL_HORIZIKAULS_BOOM,  3);
@@ -3754,8 +3823,8 @@ static int level_feats[][LEVEL_FEATS] = {
   {CLASS_DRUID, RACE_UNDEFINED, FALSE, 15, FEAT_TIMELESS_BODY},
   {CLASS_DRUID, RACE_UNDEFINED, TRUE, 16, FEAT_WILD_SHAPE},
   {CLASS_DRUID, RACE_UNDEFINED, TRUE, 18, FEAT_WILD_SHAPE},
-  /*epic*/
   {CLASS_DRUID, RACE_UNDEFINED, TRUE, 20, FEAT_WILD_SHAPE},
+  /*epic*/
   {CLASS_DRUID, RACE_UNDEFINED, TRUE, 22, FEAT_WILD_SHAPE},
   {CLASS_DRUID, RACE_UNDEFINED, TRUE, 24, FEAT_WILD_SHAPE},
   {CLASS_DRUID, RACE_UNDEFINED, TRUE, 26, FEAT_WILD_SHAPE},
@@ -3795,6 +3864,7 @@ static int level_feats[][LEVEL_FEATS] = {
   {CLASS_BARD, RACE_UNDEFINED, FALSE, 15, FEAT_ACT_OF_FORGETFULNESS},
   {CLASS_BARD, RACE_UNDEFINED, FALSE, 17, FEAT_SONG_OF_ROOTING},
   /*epic*/
+  {CLASS_BARD, RACE_UNDEFINED, FALSE, 21, FEAT_ARCANE_EPIC_SPELL},
   {CLASS_BARD, RACE_UNDEFINED, FALSE, 21, FEAT_SONG_OF_DRAGONS},
   {CLASS_BARD, RACE_UNDEFINED, FALSE, 25, FEAT_SONG_OF_THE_MAGI},
   /* spell circles */
@@ -3804,8 +3874,6 @@ static int level_feats[][LEVEL_FEATS] = {
   {CLASS_BARD, RACE_UNDEFINED, FALSE, 11, FEAT_ARCANE_4TH_CIRCLE},
   {CLASS_BARD, RACE_UNDEFINED, FALSE, 14, FEAT_ARCANE_5TH_CIRCLE},
   {CLASS_BARD, RACE_UNDEFINED, FALSE, 17, FEAT_ARCANE_6TH_CIRCLE},
-  /*epic*/
-  {CLASS_BARD, RACE_UNDEFINED, FALSE, 21, FEAT_ARCANE_EPIC_SPELL},
 
   /****** PRESTIGE CLASSES *******/
   
