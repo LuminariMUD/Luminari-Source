@@ -2373,7 +2373,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       af[0].duration = 600;
       to_room = "$n's skin takes on the texture of iron!";
       to_vict = "Your skin takes on the texture of iron!";
-      GET_STONESKIN(victim) = MIN(450, CASTER_LEVEL(ch) * 35);
+      int caster_level = MAX(10, CASTER_LEVEL(ch));
+      GET_STONESKIN(victim) = MIN(450, caster_level * 35);
       break;
 
     case SPELL_IRRESISTIBLE_DANCE: //enchantment

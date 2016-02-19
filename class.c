@@ -1008,6 +1008,63 @@ void load_class_list(void) {
     "the God of Thieves and Tradesmen",  /* <= LVL_GRSTAFF */
     "the Rogue"                          /* default */  
   );
+  /* feat assignment */
+  /*              class num     feat                           cfeat lvl stack */
+  feat_assignment(CLASS_ROGUE, FEAT_SIMPLE_WEAPON_PROFICIENCY, Y,    1,  N);
+  feat_assignment(CLASS_ROGUE, FEAT_WEAPON_PROFICIENCY_ROGUE,  Y,    1,  N);
+  feat_assignment(CLASS_ROGUE, FEAT_ARMOR_PROFICIENCY_LIGHT,   Y,    1,  N);
+  feat_assignment(CLASS_ROGUE, FEAT_WEAPON_FINESSE,            Y,    1,  N);
+  feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK,              Y,    1,  Y);
+  feat_assignment(CLASS_ROGUE, FEAT_TRAPFINDING,               Y,    1,  N);
+  feat_assignment(CLASS_ROGUE, FEAT_EVASION,                   Y,    2,  N);
+  feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK,              Y,    3,  Y);
+  feat_assignment(CLASS_ROGUE, FEAT_TRAP_SENSE,                Y,    3,  Y);
+  /* talent lvl 3, slippery mind*/
+  feat_assignment(CLASS_ROGUE, FEAT_SLIPPERY_MIND,             Y,    3,  N);
+  feat_assignment(CLASS_ROGUE, FEAT_UNCANNY_DODGE,             Y,    4,  N);
+  feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK,              Y,    5,  Y);
+  feat_assignment(CLASS_ROGUE, FEAT_TRAP_SENSE,                Y,    6,  Y);
+  /* talent lvl 6, crippling strike*/
+  feat_assignment(CLASS_ROGUE, FEAT_CRIPPLING_STRIKE,          Y,    6,  N);
+  feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK,              Y,    7,  Y);
+  feat_assignment(CLASS_ROGUE, FEAT_IMPROVED_UNCANNY_DODGE,    Y,    8,  N);
+  feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK,              Y,    9,  Y);
+  feat_assignment(CLASS_ROGUE, FEAT_TRAP_SENSE,                Y,    9,  Y);
+  /* talent lvl 9, improved evasion*/
+  feat_assignment(CLASS_ROGUE, FEAT_IMPROVED_EVASION,          Y,    9,  N);
+  feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK,              Y,   11,  Y);
+  feat_assignment(CLASS_ROGUE, FEAT_TRAP_SENSE,                Y,   12,  Y);
+  /* talent lvl 12, apply poison */
+  feat_assignment(CLASS_ROGUE, FEAT_APPLY_POISON,              Y,   12,  N);
+  feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK,              Y,   13,  Y);
+  feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK,              Y,   15,  Y);
+  feat_assignment(CLASS_ROGUE, FEAT_TRAP_SENSE,                Y,   15,  Y);
+  /* advanced talent lvl 15, defensive roll */
+  feat_assignment(CLASS_ROGUE, FEAT_DEFENSIVE_ROLL,            Y,   15,  N);
+  feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK,              Y,   17,  Y);
+  feat_assignment(CLASS_ROGUE, FEAT_TRAP_SENSE,                Y,   18,  Y);
+  /* talent lvl 18, dirtkick */
+  feat_assignment(CLASS_ROGUE, FEAT_DIRT_KICK,                 Y,   18,  N);
+  feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK,              Y,   19,  Y);
+  /*epic*/
+  feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK,              Y,   21,  Y);
+  /* talent lvl 21, backstab */
+  feat_assignment(CLASS_ROGUE, FEAT_BACKSTAB,                  Y,   21,  N);
+  feat_assignment(CLASS_ROGUE, FEAT_TRAP_SENSE,                Y,   22,  Y);
+  feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK,              Y,   23,  Y);
+  /* talent lvl 24, sap */
+  feat_assignment(CLASS_ROGUE, FEAT_SAP,                       Y,   24,  N);
+  feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK,              Y,   25,  Y);
+  feat_assignment(CLASS_ROGUE, FEAT_TRAP_SENSE,                Y,   26,  Y);
+  feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK,              Y,   27,  Y);
+  /* talent lvl 27, vanish */
+  feat_assignment(CLASS_ROGUE, FEAT_VANISH,                    Y,   27,  N);
+  feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK,              Y,   29,  Y);
+  feat_assignment(CLASS_ROGUE, FEAT_TRAP_SENSE,                Y,   30,  Y);
+  /* talent lvl 30, improved vanish */
+  feat_assignment(CLASS_ROGUE, FEAT_IMPROVED_VANISH,           Y,   30,  N);
+  /* rogues don't currently have any class feats */
+  /* no prereqs! */
   /****************************************************************************/
   
   /****************************************************************************/
@@ -1077,78 +1134,75 @@ void load_class_list(void) {
   feat_assignment(CLASS_WARRIOR, FEAT_ARMOR_MASTERY_2,          Y,   27,  N);
   feat_assignment(CLASS_WARRIOR, FEAT_WEAPON_MASTERY_2,         Y,   30,  N);
   /* list of class feats */
-  feat_assignment(CLASS_WARRIOR, FEAT_BLIND_FIGHT,             Y, NOASSIGN_FEAT, N);
- /*
-  FEAT_SWARM_OF_ARROWS,  ,
-  FEAT_CLEAVE,
-  FEAT_COMBAT_EXPERTISE,
-  FEAT_COMBAT_REFLEXES,
-  FEAT_DEFLECT_ARROWS,
-  FEAT_DODGE,
-  FEAT_EXOTIC_WEAPON_PROFICIENCY,
-  FEAT_FAR_SHOT,
-  FEAT_GREAT_CLEAVE,
-  FEAT_GREATER_TWO_WEAPON_FIGHTING,
-  FEAT_GREATER_WEAPON_FOCUS,
-  FEAT_GREATER_WEAPON_SPECIALIZATION,
-  FEAT_IMPROVED_BULL_RUSH,
-  FEAT_IMPROVED_CRITICAL,
-  FEAT_IMPROVED_DISARM,
-  FEAT_IMPROVED_FEINT,
-  FEAT_IMPROVED_GRAPPLE,
-  FEAT_IMPROVED_INITIATIVE,
-  FEAT_IMPROVED_OVERRUN,
-  FEAT_IMPROVED_PRECISE_SHOT,
-  FEAT_IMPROVED_SHIELD_PUNCH,
-  FEAT_SHIELD_CHARGE,
-  FEAT_SHIELD_SLAM,
-  FEAT_IMPROVED_SUNDER,
-  FEAT_IMPROVED_TRIP,
-  FEAT_IMPROVED_TWO_WEAPON_FIGHTING,
-  FEAT_IMPROVED_UNARMED_STRIKE,
-  FEAT_MANYSHOT,
-  FEAT_MOBILITY,
-  FEAT_MOUNTED_ARCHERY,
-  FEAT_MOUNTED_COMBAT,
-  FEAT_POINT_BLANK_SHOT,
-  FEAT_POWER_ATTACK,
-  FEAT_PRECISE_SHOT,
-  FEAT_QUICK_DRAW,
-  FEAT_RAPID_RELOAD,
-  FEAT_RAPID_SHOT,
-  FEAT_RIDE_BY_ATTACK,
-  FEAT_SHOT_ON_THE_RUN,
-  FEAT_SNATCH_ARROWS,
-  FEAT_SPIRITED_CHARGE,
-  FEAT_SPRING_ATTACK,
-  FEAT_STUNNING_FIST,
-  FEAT_TRAMPLE,
-  FEAT_TWO_WEAPON_DEFENSE,
-  FEAT_TWO_WEAPON_FIGHTING,
-  FEAT_WEAPON_FINESSE,
-  FEAT_WEAPON_FOCUS,
-  FEAT_WEAPON_SPECIALIZATION,
-  FEAT_WHIRLWIND_ATTACK,
-  FEAT_DAMAGE_REDUCTION,
-  FEAT_FAST_HEALING,
-  FEAT_ARMOR_SKIN,
-  FEAT_ARMOR_SPECIALIZATION_LIGHT,
-  FEAT_ARMOR_SPECIALIZATION_MEDIUM,
-  FEAT_ARMOR_SPECIALIZATION_HEAVY,
-  FEAT_WEAPON_MASTERY,
-  FEAT_WEAPON_FLURRY,
-  FEAT_WEAPON_SUPREMACY,
-  FEAT_ROBILARS_GAMBIT,
-  FEAT_KNOCKDOWN,*/
+  feat_assignment(CLASS_WARRIOR, FEAT_ARMOR_SKIN,                    Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_ARMOR_SPECIALIZATION_LIGHT,    Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_ARMOR_SPECIALIZATION_MEDIUM,   Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_ARMOR_SPECIALIZATION_HEAVY,    Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_BLIND_FIGHT,                   Y, NOASSIGN_FEAT, N);  
+  feat_assignment(CLASS_WARRIOR, FEAT_CLEAVE,                        Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_COMBAT_EXPERTISE,              Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_COMBAT_REFLEXES,               Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_DEFLECT_ARROWS,                Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_DAMAGE_REDUCTION,              Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_DODGE,                         Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_EXOTIC_WEAPON_PROFICIENCY,     Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_FAR_SHOT,                      Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_GREAT_CLEAVE,                  Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_GREATER_TWO_WEAPON_FIGHTING,   Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_GREATER_WEAPON_FOCUS,          Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_GREATER_WEAPON_SPECIALIZATION, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_IMPROVED_BULL_RUSH,            Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_IMPROVED_CRITICAL,             Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_IMPROVED_DISARM,               Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_IMPROVED_FEINT,                Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_IMPROVED_GRAPPLE,              Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_IMPROVED_INITIATIVE,           Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_IMPROVED_OVERRUN,              Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_IMPROVED_PRECISE_SHOT,         Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_IMPROVED_SHIELD_PUNCH,         Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_KNOCKDOWN,                     Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_SHIELD_CHARGE,                 Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_SHIELD_SLAM,                   Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_IMPROVED_SUNDER,               Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_IMPROVED_TRIP,                 Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_IMPROVED_TWO_WEAPON_FIGHTING,  Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_IMPROVED_UNARMED_STRIKE,       Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_MANYSHOT,                      Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_MOBILITY,                      Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_MOUNTED_ARCHERY,               Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_MOUNTED_COMBAT,                Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_POINT_BLANK_SHOT,              Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_POWER_ATTACK,                  Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_PRECISE_SHOT,                  Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_QUICK_DRAW,                    Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_RAPID_RELOAD,                  Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_RAPID_SHOT,                    Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_RIDE_BY_ATTACK,                Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_ROBILARS_GAMBIT,               Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_SHOT_ON_THE_RUN,               Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_SNATCH_ARROWS,                 Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_SPIRITED_CHARGE,               Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_SPRING_ATTACK,                 Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_STUNNING_FIST,                 Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_SWARM_OF_ARROWS,               Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_TRAMPLE,                       Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_TWO_WEAPON_DEFENSE,            Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_TWO_WEAPON_FIGHTING,           Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_WEAPON_FINESSE,                Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_WEAPON_FOCUS,                  Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_WEAPON_SPECIALIZATION,         Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_WHIRLWIND_ATTACK,              Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_FAST_HEALING,                  Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_WEAPON_MASTERY,                Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_WEAPON_FLURRY,                 Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_WEAPON_SUPREMACY,              Y, NOASSIGN_FEAT, N);
   /* epic class */
-  //feat_assignment(CLASS_WARRIOR, FEAT_blah,                Y, NOASSIGN_FEAT, N);
-  /* epic */
-/*  FEAT_EPIC_PROWESS,
-  FEAT_GREAT_STRENGTH,
-  FEAT_GREAT_DEXTERITY,
-  FEAT_GREAT_CONSTITUTION,
-  FEAT_EPIC_TOUGHNESS,
-  FEAT_EPIC_WEAPON_SPECIALIZATION,    */
+  feat_assignment(CLASS_WARRIOR, FEAT_EPIC_PROWESS,                  Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_GREAT_STRENGTH,                Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_GREAT_DEXTERITY,               Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_GREAT_CONSTITUTION,            Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_EPIC_TOUGHNESS,                Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_EPIC_WEAPON_SPECIALIZATION,    Y, NOASSIGN_FEAT, N);
   /* no spell assign */
   /* no prereqs! */
   /****************************************************************************/
@@ -1192,6 +1246,53 @@ void load_class_list(void) {
     "the God of the Fist",      /* <= LVL_GRSTAFF */
     "the Monk"                  /* default */  
   );
+  /* feat assignment */
+  /*              class num     feat                           cfeat lvl stack */
+  feat_assignment(CLASS_MONK, FEAT_WEAPON_PROFICIENCY_MONK,    Y,    1,  N);
+  feat_assignment(CLASS_MONK, FEAT_UNARMED_STRIKE,             Y,    1,  N);
+  feat_assignment(CLASS_MONK, FEAT_IMPROVED_UNARMED_STRIKE,    Y,    1,  N);
+  feat_assignment(CLASS_MONK, FEAT_FLURRY_OF_BLOWS,            Y,    1,  N);
+  feat_assignment(CLASS_MONK, FEAT_STUNNING_FIST,              Y,    1,  N);
+  feat_assignment(CLASS_MONK, FEAT_EVASION,                    Y,    2,  N);
+  feat_assignment(CLASS_MONK, FEAT_STILL_MIND,                 Y,    3,  N);
+  feat_assignment(CLASS_MONK, FEAT_KI_STRIKE,                  Y,    4,  Y);
+  feat_assignment(CLASS_MONK, FEAT_SLOW_FALL,                  Y,    4,  Y);
+  feat_assignment(CLASS_MONK, FEAT_SLOW_FALL,                  Y,    5,  Y);
+  feat_assignment(CLASS_MONK, FEAT_PURITY_OF_BODY,             Y,    5,  N);
+  feat_assignment(CLASS_MONK, FEAT_SLOW_FALL,                  Y,    6,  Y);
+  feat_assignment(CLASS_MONK, FEAT_WHOLENESS_OF_BODY,          Y,    7,  N);
+  feat_assignment(CLASS_MONK, FEAT_SLOW_FALL,                  Y,    8,  Y);
+  feat_assignment(CLASS_MONK, FEAT_IMPROVED_EVASION,           Y,    9,  N);
+  feat_assignment(CLASS_MONK, FEAT_KI_STRIKE,                  Y,    10,  Y);
+  feat_assignment(CLASS_MONK, FEAT_SLOW_FALL,                  Y,    10,  Y);
+  feat_assignment(CLASS_MONK, FEAT_DIAMOND_BODY,               Y,    11,  N);
+  feat_assignment(CLASS_MONK, FEAT_GREATER_FLURRY,             Y,    11,  N);
+  feat_assignment(CLASS_MONK, FEAT_ABUNDANT_STEP,              Y,    12,  N);
+  feat_assignment(CLASS_MONK, FEAT_SLOW_FALL,                  Y,    12,  Y);
+  feat_assignment(CLASS_MONK, FEAT_DIAMOND_SOUL,               Y,    13,  N);
+  feat_assignment(CLASS_MONK, FEAT_SLOW_FALL,                  Y,    14,  Y);
+  feat_assignment(CLASS_MONK, FEAT_QUIVERING_PALM,             Y,    15,  N);
+  feat_assignment(CLASS_MONK, FEAT_KI_STRIKE,                  Y,    15,  Y);
+  feat_assignment(CLASS_MONK, FEAT_TIMELESS_BODY,              Y,    16,  N);
+  /* note this feat does nothing currently */
+  feat_assignment(CLASS_MONK, FEAT_TONGUE_OF_THE_SUN_AND_MOON, Y,    17,  N);
+  feat_assignment(CLASS_MONK, FEAT_SLOW_FALL,                  Y,    18,  Y);
+  feat_assignment(CLASS_MONK, FEAT_EMPTY_BODY,                 Y,    19,  N);
+  feat_assignment(CLASS_MONK, FEAT_PERFECT_SELF,               Y,    20,  N);
+  feat_assignment(CLASS_MONK, FEAT_SLOW_FALL,                  Y,    20,  Y);
+  /*epic*/
+  feat_assignment(CLASS_MONK, FEAT_SLOW_FALL,                  Y,   21,  Y);  
+  /* 23 bonus free epic feat */
+  feat_assignment(CLASS_MONK, FEAT_KEEN_STRIKE,                Y,   23,  N);  
+  feat_assignment(CLASS_MONK, FEAT_SLOW_FALL,                  Y,   24,  Y);  
+  feat_assignment(CLASS_MONK, FEAT_SLOW_FALL,                  Y,   26,  Y);  
+  /* 26 bonus free epic feat */
+  feat_assignment(CLASS_MONK, FEAT_BLINDING_SPEED,             Y,   26,  N);  
+  feat_assignment(CLASS_MONK, FEAT_SLOW_FALL,                  Y,   28,  Y);  
+  /* 29 bonus free epic feat */
+  feat_assignment(CLASS_MONK, FEAT_OUTSIDER,                   Y,   29,  N);  
+  feat_assignment(CLASS_MONK, FEAT_SLOW_FALL,                  Y,   30,  Y);  
+  /* monks get no class feats */
   /* prereqs */
   class_prereq_align(CLASS_MONK, LAWFUL_GOOD);
   class_prereq_align(CLASS_MONK, LAWFUL_NEUTRAL);
@@ -1396,6 +1497,66 @@ void load_class_list(void) {
     "the God of Rage",         /* <= LVL_GRSTAFF */
     "the Berserker"            /* default */  
   );
+  /* feat assignment */
+  /*              class num     feat                               cfeat lvl stack */
+  feat_assignment(CLASS_BERSERKER, FEAT_SIMPLE_WEAPON_PROFICIENCY,  Y,    1,  N);
+  feat_assignment(CLASS_BERSERKER, FEAT_ARMOR_PROFICIENCY_LIGHT,    Y,    1,  N);
+  feat_assignment(CLASS_BERSERKER, FEAT_ARMOR_PROFICIENCY_MEDIUM,   Y,    1,  N);
+  feat_assignment(CLASS_BERSERKER, FEAT_ARMOR_PROFICIENCY_SHIELD,   Y,    1,  N);
+  feat_assignment(CLASS_BERSERKER, FEAT_MARTIAL_WEAPON_PROFICIENCY, Y,    1,  N);
+  feat_assignment(CLASS_BERSERKER, FEAT_FAST_MOVEMENT,              Y,    1,  N);
+  feat_assignment(CLASS_BERSERKER, FEAT_RAGE,                       Y,    1,  Y);
+  feat_assignment(CLASS_BERSERKER, FEAT_UNCANNY_DODGE,              Y,    2,  N);
+  feat_assignment(CLASS_BERSERKER, FEAT_TRAP_SENSE,                 Y,    3,  Y);
+  /* rage power (level 3) */
+  feat_assignment(CLASS_BERSERKER, FEAT_RP_SUPRISE_ACCURACY,        Y,    3,  N);
+  feat_assignment(CLASS_BERSERKER, FEAT_RAGE,                       Y,    4,  Y);
+  feat_assignment(CLASS_BERSERKER, FEAT_SHRUG_DAMAGE,               Y,    4,  Y);
+  feat_assignment(CLASS_BERSERKER, FEAT_IMPROVED_UNCANNY_DODGE,     Y,    5,  N);
+  feat_assignment(CLASS_BERSERKER, FEAT_TRAP_SENSE,                 Y,    6,  Y);
+  /* rage power (level 6) */
+  feat_assignment(CLASS_BERSERKER, FEAT_RP_POWERFUL_BLOW,           Y,    6,  N);
+  feat_assignment(CLASS_BERSERKER, FEAT_SHRUG_DAMAGE,               Y,    7,  Y);
+  feat_assignment(CLASS_BERSERKER, FEAT_RAGE,                       Y,    8,  Y);
+  feat_assignment(CLASS_BERSERKER, FEAT_TRAP_SENSE,                 Y,    9,  Y);
+  /* rage power (level 9) */
+  feat_assignment(CLASS_BERSERKER, FEAT_RP_RENEWED_VIGOR,           Y,    9,  N);
+  feat_assignment(CLASS_BERSERKER, FEAT_SHRUG_DAMAGE,               Y,   10,  Y);
+  feat_assignment(CLASS_BERSERKER, FEAT_GREATER_RAGE,               Y,   11,  N);
+  feat_assignment(CLASS_BERSERKER, FEAT_RAGE,                       Y,   11,  Y);
+  feat_assignment(CLASS_BERSERKER, FEAT_TRAP_SENSE,                 Y,   12,  Y);
+  /* rage power (level 12) */
+  feat_assignment(CLASS_BERSERKER, FEAT_RP_HEAVY_SHRUG,             Y,   12,  N);
+  feat_assignment(CLASS_BERSERKER, FEAT_SHRUG_DAMAGE,               Y,   13,  Y);
+  feat_assignment(CLASS_BERSERKER, FEAT_INDOMITABLE_WILL,           Y,   14,  N);
+  feat_assignment(CLASS_BERSERKER, FEAT_TRAP_SENSE,                 Y,   15,  Y);
+  feat_assignment(CLASS_BERSERKER, FEAT_RAGE,                       Y,   15,  Y);
+  /* rage power (level 15) */
+  feat_assignment(CLASS_BERSERKER, FEAT_RP_FEARLESS_RAGE,           Y,   15,  N);
+  feat_assignment(CLASS_BERSERKER, FEAT_SHRUG_DAMAGE,               Y,   16,  Y);
+  feat_assignment(CLASS_BERSERKER, FEAT_TIRELESS_RAGE,              Y,   17,  N);
+  feat_assignment(CLASS_BERSERKER, FEAT_TRAP_SENSE,                 Y,   18,  Y);
+  /* rage power (level 18) */
+  feat_assignment(CLASS_BERSERKER, FEAT_RP_COME_AND_GET_ME,         Y,   18,  N);
+  feat_assignment(CLASS_BERSERKER, FEAT_SHRUG_DAMAGE,               Y,   19,  Y);
+  feat_assignment(CLASS_BERSERKER, FEAT_RAGE,                       Y,   20,  Y);
+  feat_assignment(CLASS_BERSERKER, FEAT_MIGHTY_RAGE,                Y,   20,  N);
+  /*epic*/
+  /* this ended up being wayyyyy too powerful */
+  //feat_assignment(CLASS_BERSERKER, FEAT_RAGING_CRITICAL, Y, 21, N);  
+  /* rage power lvl 22*/
+  feat_assignment(CLASS_BERSERKER, FEAT_EATER_OF_MAGIC,             Y,   22,  N);  
+  feat_assignment(CLASS_BERSERKER, FEAT_SHRUG_DAMAGE,               Y,   22,  Y);  
+  feat_assignment(CLASS_BERSERKER, FEAT_RAGE,                       Y,   24,  Y); 
+  feat_assignment(CLASS_BERSERKER, FEAT_SHRUG_DAMAGE,               Y,   25,  Y);  
+  /* rage power lvl 26*/
+  feat_assignment(CLASS_BERSERKER, FEAT_RAGE_RESISTANCE,            Y,   26,  N);  
+  feat_assignment(CLASS_BERSERKER, FEAT_INDOMITABLE_RAGE,           Y,   27,  N);  
+  feat_assignment(CLASS_BERSERKER, FEAT_SHRUG_DAMAGE,               Y,   28,  Y);  
+  feat_assignment(CLASS_BERSERKER, FEAT_RAGE,                       Y,   29,  Y);  
+  /* rage power lvl 30*/
+  feat_assignment(CLASS_BERSERKER, FEAT_DEATHLESS_FRENZY,           Y,   30,  N);  
+  /* no spell assignment */
   /* class prerequisites */
   class_prereq_align(CLASS_BERSERKER, NEUTRAL_GOOD);
   class_prereq_align(CLASS_BERSERKER, TRUE_NEUTRAL);
@@ -1465,27 +1626,7 @@ void load_class_list(void) {
   feat_assignment(CLASS_SORCERER, FEAT_ARCANE_9TH_CIRCLE,         Y,   18,  N);
   /*epic*/
   feat_assignment(CLASS_SORCERER, FEAT_ARCANE_EPIC_SPELL,         Y,   21,  N);
-  /* list of class feats */
-  feat_assignment(CLASS_SORCERER, FEAT_SPELL_PENETRATION,         Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_SORCERER, FEAT_GREATER_SPELL_PENETRATION, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_SORCERER, FEAT_ARMORED_SPELLCASTING,      Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_SORCERER, FEAT_FASTER_MEMORIZATION,       Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_SORCERER, FEAT_SPELL_FOCUS,               Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_SORCERER, FEAT_GREATER_SPELL_FOCUS,       Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_SORCERER, FEAT_IMPROVED_FAMILIAR,         Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_SORCERER, FEAT_QUICK_CHANT,               Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_SORCERER, FEAT_AUGMENT_SUMMONING,         Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_SORCERER, FEAT_ENHANCED_SPELL_DAMAGE,     Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_SORCERER, FEAT_MAXIMIZE_SPELL,            Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_SORCERER, FEAT_QUICKEN_SPELL,             Y, NOASSIGN_FEAT, N);
-  /* epic class */
-  feat_assignment(CLASS_SORCERER, FEAT_MUMMY_DUST,                Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_SORCERER, FEAT_GREATER_RUIN,              Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_SORCERER, FEAT_DRAGON_KNIGHT,             Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_SORCERER, FEAT_HELLBALL,                  Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_SORCERER, FEAT_EPIC_MAGE_ARMOR,           Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_SORCERER, FEAT_EPIC_WARDING,              Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_SORCERER, FEAT_GREAT_INTELLIGENCE,        Y, NOASSIGN_FEAT, N);
+  /* sorcerer do not get class feats */
   /**** spell assign ****/
   /*              class num      spell                   level acquired */
   /* 1st circle */
@@ -1730,6 +1871,60 @@ void load_class_list(void) {
     "the Immortal Hammer of Justice",  /* <= LVL_GRSTAFF */
     "the Paladin"                      /* default */  
   );
+  /* feat assignment */
+  /*              class num     feat                            cfeat lvl stack */
+  feat_assignment(CLASS_PALADIN, FEAT_SIMPLE_WEAPON_PROFICIENCY,  Y,    1,  N);
+  feat_assignment(CLASS_PALADIN, FEAT_ARMOR_PROFICIENCY_HEAVY,    Y,    1,  N);
+  feat_assignment(CLASS_PALADIN, FEAT_ARMOR_PROFICIENCY_LIGHT,    Y,    1,  N);
+  feat_assignment(CLASS_PALADIN, FEAT_ARMOR_PROFICIENCY_MEDIUM,   Y,    1,  N);
+  feat_assignment(CLASS_PALADIN, FEAT_ARMOR_PROFICIENCY_SHIELD,   Y,    1,  N);
+  feat_assignment(CLASS_PALADIN, FEAT_MARTIAL_WEAPON_PROFICIENCY, Y,    1,  N);
+  feat_assignment(CLASS_PALADIN, FEAT_AURA_OF_GOOD,               Y,    1,  N);
+  feat_assignment(CLASS_PALADIN, FEAT_DETECT_EVIL,                Y,    1,  N);
+  feat_assignment(CLASS_PALADIN, FEAT_SMITE_EVIL,                 Y,    1,  Y);
+  feat_assignment(CLASS_PALADIN, FEAT_DIVINE_GRACE,               Y,    2,  N);
+  feat_assignment(CLASS_PALADIN, FEAT_LAYHANDS,                   Y,    3,  N);
+  feat_assignment(CLASS_PALADIN, FEAT_TURN_UNDEAD,                Y,    3,  N);
+  feat_assignment(CLASS_PALADIN, FEAT_AURA_OF_COURAGE,            Y,    4,  N);
+  feat_assignment(CLASS_PALADIN, FEAT_DIVINE_HEALTH,              Y,    5,  N);
+  /* bonus feat - mounted combat 5 */
+  feat_assignment(CLASS_PALADIN, FEAT_MOUNTED_COMBAT,             Y,    5,  N);
+  feat_assignment(CLASS_PALADIN, FEAT_SMITE_EVIL,                 Y,    5,  Y);
+  /* bonus feat - ride by attack 6 */
+  feat_assignment(CLASS_PALADIN, FEAT_RIDE_BY_ATTACK,             Y,    6,  N);
+  feat_assignment(CLASS_PALADIN, FEAT_REMOVE_DISEASE,             Y,    6,  Y);
+  feat_assignment(CLASS_PALADIN, FEAT_CALL_MOUNT,                 Y,    7,  N);
+  feat_assignment(CLASS_PALADIN, FEAT_DIVINE_BOND,                Y,    8,  N);
+  /* bonus feat - spirited charge 9 */
+  feat_assignment(CLASS_PALADIN, FEAT_SPIRITED_CHARGE,            Y,    9,  N);
+  feat_assignment(CLASS_PALADIN, FEAT_REMOVE_DISEASE,             Y,    9,  Y);
+  feat_assignment(CLASS_PALADIN, FEAT_SMITE_EVIL,                 Y,   10,  Y);
+  feat_assignment(CLASS_PALADIN, FEAT_REMOVE_DISEASE,             Y,   12,  Y);
+  /* bonus feat - mounted archery 13 */
+  feat_assignment(CLASS_PALADIN, FEAT_MOUNTED_ARCHERY,            Y,   13,  N);
+  feat_assignment(CLASS_PALADIN, FEAT_REMOVE_DISEASE,             Y,   14,  Y);
+  feat_assignment(CLASS_PALADIN, FEAT_SMITE_EVIL,                 Y,   15,  Y);
+  feat_assignment(CLASS_PALADIN, FEAT_REMOVE_DISEASE,             Y,   18,  Y);
+  /* bonus feat - glorious rider 19 */
+  feat_assignment(CLASS_PALADIN, FEAT_GLORIOUS_RIDER,             Y,   19,  N);
+  feat_assignment(CLASS_PALADIN, FEAT_SMITE_EVIL,                 Y,   19,  Y);
+  /* spell circles */
+  feat_assignment(CLASS_PALADIN, FEAT_DIVINE_1ST_CIRCLE,          Y,    6,  N);
+  feat_assignment(CLASS_PALADIN, FEAT_DIVINE_2ND_CIRCLE,          Y,   10,  N);
+  feat_assignment(CLASS_PALADIN, FEAT_DIVINE_3RD_CIRCLE,          Y,   12,  N);
+  feat_assignment(CLASS_PALADIN, FEAT_DIVINE_4TH_CIRCLE,          Y,   15,  N);
+  /*epic*/
+  /* bonus epic feat - legendary rider 21 */
+  feat_assignment(CLASS_PALADIN, FEAT_LEGENDARY_RIDER,            Y,   21,  N);
+  feat_assignment(CLASS_PALADIN, FEAT_REMOVE_DISEASE,             Y,   22,  Y);
+  feat_assignment(CLASS_PALADIN, FEAT_SMITE_EVIL,                 Y,   25,  Y);
+  feat_assignment(CLASS_PALADIN, FEAT_REMOVE_DISEASE,             Y,   26,  Y);
+  /* bonus epic feat - epic mount 27 */
+  feat_assignment(CLASS_PALADIN, FEAT_EPIC_MOUNT,                 Y,   27,  N);
+  feat_assignment(CLASS_PALADIN, FEAT_REMOVE_DISEASE,             Y,   30,  Y);
+  feat_assignment(CLASS_PALADIN, FEAT_SMITE_EVIL,                 Y,   30,  Y);
+  /* paladin has no class feats */
+  /**** spell assign ****/
   /*              class num      spell                   level acquired */
   /* 1st circle */
   spell_assignment(CLASS_PALADIN, SPELL_CURE_LIGHT, 6);
@@ -1798,6 +1993,59 @@ void load_class_list(void) {
     "the Cyclone of Nature",  /* <= LVL_GRSTAFF */
     "the Ranger"                      /* default */  
   );
+  /* feat assignment */
+  /*              class num     feat                               cfeat lvl stack */
+  feat_assignment(CLASS_RANGER, FEAT_SIMPLE_WEAPON_PROFICIENCY,     Y,    1,  N);
+  feat_assignment(CLASS_RANGER, FEAT_ARMOR_PROFICIENCY_LIGHT,       Y,    1,  N);
+  feat_assignment(CLASS_RANGER, FEAT_ARMOR_PROFICIENCY_MEDIUM,      Y,    1,  N);
+  feat_assignment(CLASS_RANGER, FEAT_ARMOR_PROFICIENCY_SHIELD,      Y,    1,  N);
+  feat_assignment(CLASS_RANGER, FEAT_MARTIAL_WEAPON_PROFICIENCY,    Y,    1,  N);
+  feat_assignment(CLASS_RANGER, FEAT_FAVORED_ENEMY_AVAILABLE,       Y,    1,  Y);
+  feat_assignment(CLASS_RANGER, FEAT_WILD_EMPATHY,                  Y,    2,  N);
+  /*CM*/
+  feat_assignment(CLASS_RANGER, FEAT_DUAL_WEAPON_FIGHTING,          Y,    3,  N);
+  /*CM*/
+  feat_assignment(CLASS_RANGER, FEAT_POINT_BLANK_SHOT,              Y,    4,  N);
+  feat_assignment(CLASS_RANGER, FEAT_ENDURANCE,                     Y,    4,  N);
+  feat_assignment(CLASS_RANGER, FEAT_ANIMAL_COMPANION,              Y,    4,  N);
+  feat_assignment(CLASS_RANGER, FEAT_FAVORED_ENEMY_AVAILABLE,       Y,    5,  Y);
+  /*CM*/
+  feat_assignment(CLASS_RANGER, FEAT_IMPROVED_DUAL_WEAPON_FIGHTING, Y,    6,  N);
+  /*CM*/
+  feat_assignment(CLASS_RANGER, FEAT_RAPID_SHOT,                    Y,    7,  N);
+  feat_assignment(CLASS_RANGER, FEAT_WOODLAND_STRIDE,               Y,    8,  N);
+  feat_assignment(CLASS_RANGER, FEAT_SWIFT_TRACKER,                 Y,    9,  N);
+  feat_assignment(CLASS_RANGER, FEAT_EVASION,                       Y,   10,  N);
+  feat_assignment(CLASS_RANGER, FEAT_FAVORED_ENEMY_AVAILABLE,       Y,   10,  Y);
+  /*CM*/
+  feat_assignment(CLASS_RANGER, FEAT_GREATER_DUAL_WEAPON_FIGHTING,  Y,   11,  N);
+  /*CM*/
+  feat_assignment(CLASS_RANGER, FEAT_MANYSHOT,                      Y,   12,  N);
+  feat_assignment(CLASS_RANGER, FEAT_CAMOUFLAGE,                    Y,   13,  N);
+  feat_assignment(CLASS_RANGER, FEAT_TRACK,                         Y,   14,  N);
+  feat_assignment(CLASS_RANGER, FEAT_FAVORED_ENEMY_AVAILABLE,       Y,   15,  Y);
+  feat_assignment(CLASS_RANGER, FEAT_HIDE_IN_PLAIN_SIGHT,           Y,   17,  N);
+  feat_assignment(CLASS_RANGER, FEAT_FAVORED_ENEMY_AVAILABLE,       Y,   20,  Y);
+  /* spell circles */
+  feat_assignment(CLASS_RANGER, FEAT_DIVINE_1ST_CIRCLE,             Y,   6,   N);
+  feat_assignment(CLASS_RANGER, FEAT_DIVINE_2ND_CIRCLE,             Y,   10,  N);
+  feat_assignment(CLASS_RANGER, FEAT_DIVINE_3RD_CIRCLE,             Y,   12,  N);
+  feat_assignment(CLASS_RANGER, FEAT_DIVINE_4TH_CIRCLE,             Y,   15,  N);
+  /* epic */
+  /*CM*/
+  feat_assignment(CLASS_RANGER, FEAT_PERFECT_DUAL_WEAPON_FIGHTING,  Y,   21,  N);  
+  /*CM*/
+  feat_assignment(CLASS_RANGER, FEAT_EPIC_MANYSHOT,                 Y,   22,  N);  
+  /* bonus feat - improved evasion 23 */
+  feat_assignment(CLASS_RANGER, FEAT_IMPROVED_EVASION,              Y,   23,  N);  
+  feat_assignment(CLASS_RANGER, FEAT_FAVORED_ENEMY_AVAILABLE,       Y,   25,  Y);  
+  /* bonus feat - bane of enemies 26 */
+  feat_assignment(CLASS_RANGER, FEAT_BANE_OF_ENEMIES,               Y,   26,  N);  
+  /* bonus feat - epic favored enemy 29 */
+  feat_assignment(CLASS_RANGER, FEAT_EPIC_FAVORED_ENEMY,            Y,   29,  N);  
+  feat_assignment(CLASS_RANGER, FEAT_FAVORED_ENEMY_AVAILABLE,       Y,   30,  Y);  
+  /* no classfeats */
+  /**** spell assignment *****/
   /*              class num      spell                   level acquired */
   /* 1st circle */
   spell_assignment(CLASS_RANGER, SPELL_CURE_LIGHT,            6);
@@ -1830,6 +2078,7 @@ void load_class_list(void) {
   spell_assignment(CLASS_RANGER, SPELL_FREE_MOVEMENT,         15);
   spell_assignment(CLASS_RANGER, SPELL_DISPEL_MAGIC,          15);
   spell_assignment(CLASS_RANGER, SPELL_CURE_SERIOUS,          15);
+  /* no prereqs! */
   /****************************************************************************/
   
   /****************************************************************************/
@@ -3433,27 +3682,35 @@ static int level_feats[][LEVEL_FEATS] = {
   {CLASS_RANGER, RACE_UNDEFINED, FALSE,  1,  FEAT_MARTIAL_WEAPON_PROFICIENCY},
   {CLASS_RANGER, RACE_UNDEFINED, TRUE,   1,  FEAT_FAVORED_ENEMY_AVAILABLE},
   {CLASS_RANGER, RACE_UNDEFINED, FALSE,  2,  FEAT_WILD_EMPATHY},
-  {CLASS_RANGER, RACE_UNDEFINED, FALSE,  3,  FEAT_DUAL_WEAPON_FIGHTING},/*CM*/
-  {CLASS_RANGER, RACE_UNDEFINED, FALSE,  4,  FEAT_POINT_BLANK_SHOT},/*CM*/
+  /*CM*/
+  {CLASS_RANGER, RACE_UNDEFINED, FALSE,  3,  FEAT_DUAL_WEAPON_FIGHTING},
+  /*CM*/
+  {CLASS_RANGER, RACE_UNDEFINED, FALSE,  4,  FEAT_POINT_BLANK_SHOT},
   {CLASS_RANGER, RACE_UNDEFINED, FALSE,  4,  FEAT_ENDURANCE},
   {CLASS_RANGER, RACE_UNDEFINED, FALSE,  4,  FEAT_ANIMAL_COMPANION},
   {CLASS_RANGER, RACE_UNDEFINED, TRUE,   5,  FEAT_FAVORED_ENEMY_AVAILABLE},
-  {CLASS_RANGER, RACE_UNDEFINED, FALSE,  6,  FEAT_IMPROVED_DUAL_WEAPON_FIGHTING},/*CM*/
-  {CLASS_RANGER, RACE_UNDEFINED, FALSE,  7,  FEAT_RAPID_SHOT},/*CM*/
+  /*CM*/
+  {CLASS_RANGER, RACE_UNDEFINED, FALSE,  6,  FEAT_IMPROVED_DUAL_WEAPON_FIGHTING},
+  /*CM*/
+  {CLASS_RANGER, RACE_UNDEFINED, FALSE,  7,  FEAT_RAPID_SHOT},
   {CLASS_RANGER, RACE_UNDEFINED, FALSE,  8,  FEAT_WOODLAND_STRIDE},
   {CLASS_RANGER, RACE_UNDEFINED, FALSE,  9,  FEAT_SWIFT_TRACKER},
   {CLASS_RANGER, RACE_UNDEFINED, FALSE,  10, FEAT_EVASION},
   {CLASS_RANGER, RACE_UNDEFINED, TRUE,   10, FEAT_FAVORED_ENEMY_AVAILABLE},
-  {CLASS_RANGER, RACE_UNDEFINED, FALSE,  11, FEAT_GREATER_DUAL_WEAPON_FIGHTING},/*CM*/
-  {CLASS_RANGER, RACE_UNDEFINED, FALSE,  12, FEAT_MANYSHOT},/*CM*/
+  /*CM*/
+  {CLASS_RANGER, RACE_UNDEFINED, FALSE,  11, FEAT_GREATER_DUAL_WEAPON_FIGHTING},
+  /*CM*/
+  {CLASS_RANGER, RACE_UNDEFINED, FALSE,  12, FEAT_MANYSHOT},
   {CLASS_RANGER, RACE_UNDEFINED, FALSE,  13, FEAT_CAMOUFLAGE},
   {CLASS_RANGER, RACE_UNDEFINED, FALSE,  14, FEAT_TRACK},
   {CLASS_RANGER, RACE_UNDEFINED, TRUE,   15, FEAT_FAVORED_ENEMY_AVAILABLE},
   {CLASS_RANGER, RACE_UNDEFINED, FALSE,  17, FEAT_HIDE_IN_PLAIN_SIGHT},
+  {CLASS_RANGER, RACE_UNDEFINED, TRUE,   20, FEAT_FAVORED_ENEMY_AVAILABLE},
   /* Epic */
-  {CLASS_RANGER, RACE_UNDEFINED, TRUE,  20, FEAT_FAVORED_ENEMY_AVAILABLE},
-  {CLASS_RANGER, RACE_UNDEFINED, FALSE, 21, FEAT_PERFECT_DUAL_WEAPON_FIGHTING},/*CM*/
-  {CLASS_RANGER, RACE_UNDEFINED, FALSE, 22, FEAT_EPIC_MANYSHOT},/*CM*/
+  /*CM*/
+  {CLASS_RANGER, RACE_UNDEFINED, FALSE, 21, FEAT_PERFECT_DUAL_WEAPON_FIGHTING},
+  /*CM*/
+  {CLASS_RANGER, RACE_UNDEFINED, FALSE, 22, FEAT_EPIC_MANYSHOT},
   /* bonus feat - improved evasion 23 */
   {CLASS_RANGER, RACE_UNDEFINED, FALSE, 23, FEAT_IMPROVED_EVASION},
   {CLASS_RANGER, RACE_UNDEFINED, TRUE,  25, FEAT_FAVORED_ENEMY_AVAILABLE},
