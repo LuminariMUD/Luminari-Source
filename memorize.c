@@ -976,7 +976,7 @@ int comp_slots(struct char_data *ch, int circle, int class) {
 #define SORC_TIME_FACTOR  5
 #define BARD_TIME_FACTOR  6
 void addSpellMemming(struct char_data *ch, int spellnum, int metamagic, int time, int class) {
-  int slot;
+  int slot, bonus = 1;
 
   /* modifier to our 'normal' memorizers */
   switch (class) {
@@ -1012,6 +1012,21 @@ void addSpellMemming(struct char_data *ch, int spellnum, int metamagic, int time
     time = BARD_TIME_FACTOR * spellnum;
   }
 
+   /* calaculate memtime bonus based on concentration */
+  if (!IS_NPC(ch) && GET_ABILITY(ch, ABILITY_CONCENTRATION)) {
+    if((10 + GET_LEVEL(ch)) <= compute_ability(ch, ABILITY_CONCENTRATION))
+      bonus++;
+  }
+  
+  time -= bonus;
+  /* bonus feat */
+  if (HAS_FEAT(ch, FEAT_FASTER_MEMORIZATION)) {
+    time -= bonus;
+  }
+  if (affected_by_spell(ch, SKILL_SONG_OF_FOCUSED_MIND)) {
+    time -= bonus;    
+  }
+  
   /* if you are not a "sorc type" spellnum will carry through to here */
   for (slot = 0; slot < MAX_MEM; slot++) {
     if (PREPARATION_QUEUE(ch, slot, classArray(class)).spell == TERMINATE) {
