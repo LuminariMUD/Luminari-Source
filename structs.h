@@ -3088,9 +3088,11 @@ struct char_special_data {
   byte mob_feats[MAX_FEATS];  /* Feats (booleans and counters)  */
 
   /* miscellaneous */
-  int is_preparing[NUM_CASTERS]; //memorization
+  int is_preparing[NUM_CASTERS]; //memorization 
   byte position; /**< Standing, fighting, sleeping, etc. */
   int timer; /**< Timer for update */
+  
+  int weather;  /**< The current weather this player is affected by. */
 
   struct queue_type *action_queue; /**< Action command queue */
   struct queue_type *attack_queue; /**< Attack action queue */

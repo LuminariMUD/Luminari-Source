@@ -1476,13 +1476,13 @@ ACMD(do_turnundead) {
     return;
   }
 
-  if (char_has_mud_event(ch, eTURN_UNDEAD)) {
-    send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
-    return;
-  }
+  //if (char_has_mud_event(ch, eTURN_UNDEAD)) {
+  //  send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
+  //  return;
+  //}
 
   /* add cooldown, increase skill */
-  attach_mud_event(new_mud_event(eTURN_UNDEAD, ch, NULL), 120 * PASSES_PER_SEC);
+  //attach_mud_event(new_mud_event(eTURN_UNDEAD, ch, NULL), 120 * PASSES_PER_SEC);
 
   /* too powerful */
   if (GET_LEVEL(vict) >= LVL_IMMORT) {
@@ -1565,6 +1565,7 @@ ACMD(do_turnundead) {
 
   /* Actions */
   USE_STANDARD_ACTION(ch);
+  start_daily_use_cooldown(ch, FEAT_TURN_UNDEAD);
 }
 
 /* a function to clear rage and do other dirty work associated with that */
