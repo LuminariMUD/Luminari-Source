@@ -700,8 +700,9 @@ void quest_show(struct char_data *ch, mob_vnum qm) {
 void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH]) {
   qst_rnum rnum;
   mob_rnum qmrnum;
-  char buf[MAX_STRING_LENGTH];
-  char targetname[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
+  char targetname[MAX_STRING_LENGTH] = {'\0'};
+  char rewardname[MAX_STRING_LENGTH] = {'\0'};
 
   if (GET_LEVEL(ch) < LVL_IMMORT)
     send_to_char(ch, "Huh!?!\r\n");
@@ -709,6 +710,8 @@ void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH]) {
     send_to_char(ch, "%s\r\n", quest_imm_usage);
   else if ((rnum = real_quest(atoi(argument))) == NOTHING)
     send_to_char(ch, "That quest does not exist.\r\n");
+  
+  
   else {
     sprintbit(QST_FLAGS(rnum), aq_flags, buf, sizeof (buf));
     switch (QST_TYPE(rnum)) {
@@ -738,6 +741,13 @@ void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH]) {
         snprintf(targetname, sizeof (targetname), "Unknown");
         break;
     }
+    
+    /* determine quest object reward name */
+    snprintf(rewardname, sizeof (rewardname), "%s",
+            real_object(QST_OBJ(rnum)) == NOTHING ?
+            "An unknown object" :
+            obj_proto[real_object(QST_OBJ(rnum))].short_description);
+    
     qmrnum = real_mobile(QST_MASTER(rnum));
     send_to_char(ch,
             "VNum  : [\ty%5d\tn], RNum: [\ty%5d\tn] -- Questmaster: [\ty%5d\tn] \ty%s\tn\r\n"
@@ -749,7 +759,10 @@ void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH]) {
             "Type  : \ty%s\tn\r\n"
             "Target: \ty%d\tn \ty%s\tn, Quantity: \ty%d\tn\r\n"
             "Value : \ty%d\tn, Penalty: \ty%d\tn, Min Level: \ty%2d\tn, Max Level: \ty%2d\tn\r\n"
-            "Flags : \tc%s\tn\r\n",
+            "Gold Reward: \ty%d\tn, Exp Reward: \ty%d\tn, Obj Reward: \ty(%d)\tn %s"
+            "Flags : \tc%s\tn\r\n"            
+            ,
+            
             QST_NUM(rnum), rnum,
             QST_MASTER(rnum) == NOBODY ? -1 : QST_MASTER(rnum),
             (qmrnum == NOBODY) ? "(Invalid vnum)" : GET_NAME(&mob_proto[(qmrnum)]),
@@ -762,8 +775,11 @@ void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH]) {
             QST_TARGET(rnum) == NOBODY ? -1 : QST_TARGET(rnum),
             targetname,
             QST_QUANTITY(rnum),
-            QST_POINTS(rnum), QST_PENALTY(rnum), QST_MINLEVEL(rnum),
-            QST_MAXLEVEL(rnum), buf);
+            QST_POINTS(rnum) /*val0*/, QST_PENALTY(rnum) /*val1*/, QST_MINLEVEL(rnum) /*val2*/,
+            QST_MAXLEVEL(rnum) /*val3*/,
+            QST_GOLD(rnum), QST_EXP(rnum), QST_OBJ(rnum), rewardname,
+            buf);
+    
     if (QST_PREREQ(rnum) != NOTHING)
       send_to_char(ch, "Preq  : [\ty%5d\tn] \ty%s\tn\r\n",
             QST_PREREQ(rnum) == NOTHING ? -1 : QST_PREREQ(rnum),
