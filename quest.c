@@ -759,7 +759,7 @@ void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH]) {
             "Type  : \ty%s\tn\r\n"
             "Target: \ty%d\tn \ty%s\tn, Quantity: \ty%d\tn\r\n"
             "Value : \ty%d\tn, Penalty: \ty%d\tn, Min Level: \ty%2d\tn, Max Level: \ty%2d\tn\r\n"
-            "Gold Reward: \ty%d\tn, Exp Reward: \ty%d\tn, Obj Reward: \ty(%d)\tn %s"
+            "Gold Reward: \ty%d\tn, Exp Reward: \ty%d\tn, Obj Reward: \ty(%d)\tn %s\r\n"
             "Flags : \tc%s\tn\r\n"            
             ,
             
