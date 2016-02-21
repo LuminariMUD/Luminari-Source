@@ -3116,7 +3116,8 @@ bool view_class_feats(struct char_data *ch, char *classname) {
     /*  This class has feat assignment! Traverse the list and list. */
     for (feat_assign = class_list[class].featassign_list; feat_assign != NULL;
             feat_assign = feat_assign->next) {
-      send_to_char(ch, "Level: %-2d, Stacks: %-3s, Feat: %s\r\n",
+      if (feat_assign->level_received > 0) /* -1 is just class feat assign */
+        send_to_char(ch, "Level: %-2d, Stacks: %-3s, Feat: %s\r\n",
                    feat_assign->level_received,
                    feat_assign->stacks ? "Yes" : "No",
                    feat_list[feat_assign->feat_num].name);
