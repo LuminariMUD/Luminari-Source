@@ -4959,103 +4959,124 @@ void do_start(struct char_data *ch) {
     SET_BIT_AR(PLR_FLAGS(ch), PLR_SITEOK);
 }
 
-/* at each level we run this function to assign free class related feats */
+/* at each level we run this function to assign free CLASS feats */
+void process_class_level_feats(struct char_data *ch, int class) {
+  char featbuf[MAX_STRING_LENGTH];
+  struct class_feat_assign *feat_assign = NULL;
+  int class_level = -1;
+  struct damage_reduction_type *dr = NULL, *temp = NULL, *ptr = NULL;
+
+  /* deal with some instant disqualification */
+  if (class < 0 || class >= NUM_CLASSES)
+    return;
+  class_level = CLASS_LEVEL(ch, class); 
+  if (class_level <= 0)
+    return;
+  if (class_list[class].featassign_list == NULL)
+    return;
+  
+  sprintf(featbuf, "\tM");
+  
+  /*  This class has potential feat assignment! Traverse the list and assign. */
+  for (feat_assign = class_list[class].featassign_list; feat_assign != NULL;
+            feat_assign = feat_assign->next) {
+    
+    /* appropriate level to receive this feat? */
+    if (feat_assign->level_received == class_level) {
+      
+      /* any special handling for this feat? */
+      switch (feat_assign->feat_num) {
+        
+        case FEAT_SNEAK_ATTACK:
+          sprintf(featbuf, "%s\tMYour sneak attack has increased to +%dd6!\tn\r\n", featbuf, HAS_FEAT(ch, FEAT_SNEAK_ATTACK) + 1);
+          break;
+          
+        case FEAT_SHRUG_DAMAGE:
+          for (dr = GET_DR(ch); dr != NULL; dr = dr->next) {
+            if (dr->feat == FEAT_SHRUG_DAMAGE) {
+              REMOVE_FROM_LIST(dr, GET_DR(ch), next);
+            }
+          }
+
+          CREATE(ptr, struct damage_reduction_type, 1);
+
+          ptr->spell = 0;
+          ptr->feat = FEAT_SHRUG_DAMAGE;
+          ptr->amount = HAS_FEAT(ch, FEAT_SHRUG_DAMAGE) + 1;
+          ptr->max_damage = -1;
+
+          ptr->bypass_cat[0] = DR_BYPASS_CAT_NONE;
+          ptr->bypass_val[0] = 0;
+          ptr->bypass_cat[1] = DR_BYPASS_CAT_UNUSED;
+          ptr->bypass_val[1] = 0; /* Unused. */
+          ptr->bypass_cat[2] = DR_BYPASS_CAT_UNUSED;
+          ptr->bypass_val[2] = 0; /* Unused. */
+
+          ptr->next = GET_DR(ch);
+          GET_DR(ch) = ptr;
+
+          sprintf(featbuf, "%s\tMYou can now shrug off %d damage!\tn\r\n", featbuf, HAS_FEAT(ch, FEAT_SHRUG_DAMAGE) + 1);
+          break;
+          
+        case FEAT_STRENGTH_BOOST:
+          ch->real_abils.str += 2;
+          sprintf(featbuf, "%s\tMYour natural strength has increased by +2!\r\n", featbuf);
+          break;
+          
+        case FEAT_CHARISMA_BOOST:
+          ch->real_abils.cha += 2;
+          sprintf(featbuf, "%s\tMYour natural charisma has increased by +2!\r\n", featbuf);
+          break;
+          
+        case FEAT_CONSTITUTION_BOOST:
+          ch->real_abils.con += 2;
+          sprintf(featbuf, "%s\tMYour natural constitution has increased by +2!\r\n", featbuf);
+          break;
+          
+        case FEAT_INTELLIGENCE_BOOST:
+          ch->real_abils.intel += 2;
+          sprintf(featbuf, "%s\tMYour natural intelligence has increased by +2!\r\n", featbuf);
+          break;
+          
+        /* no special handling */
+        default:
+          if (HAS_FEAT(ch, feat_assign->feat_num))
+            sprintf(featbuf, "%s\tMYou have improved your %s %s!\tn\r\n", featbuf,
+                  feat_list[feat_assign->feat_num].name,
+                  feat_types[feat_list[feat_assign->feat_num].feat_type]);
+          else
+            sprintf(featbuf, "%s\tMYou have gained the %s %s!\tn\r\n", featbuf,
+                  feat_list[feat_assign->feat_num].name,
+                  feat_types[feat_list[feat_assign->feat_num].feat_type]);
+          break;
+      }
+      
+      /* now actually adjust the feat */
+      SET_FEAT(ch, feat_assign->feat_num, HAS_REAL_FEAT(ch, feat_assign->feat_num) + 1);
+      
+    }
+  }
+  
+  /* send our feat buffer to char */
+  send_to_char(ch, "%s", featbuf);
+}
+
+/* TODO: rewrite this! */
+/* at each level we run this function to assign free RACE feats */
 void process_level_feats(struct char_data *ch, int class) {
   char featbuf[MAX_STRING_LENGTH];
   int i = 0;
-  //int j = 0;
 
   sprintf(featbuf, "\tM");
 
   /* increment through the list, FEAT_UNDEFINED is our terminator */
   while (level_feats[i][LF_FEAT] != FEAT_UNDEFINED) {
 
-    /* feat i matches our class, and we meet the min-level */
-    if (level_feats[i][LF_CLASS] == class &&
-            level_feats[i][LF_RACE] == RACE_UNDEFINED &&
-            CLASS_LEVEL(ch, level_feats[i][LF_CLASS]) >= level_feats[i][LF_MIN_LVL]) {
-
-      /* skip this feat, we have it already? */
-      if (!(
-              (!HAS_REAL_FEAT(ch, level_feats[i][LF_FEAT]) &&
-              CLASS_LEVEL(ch, level_feats[i][LF_CLASS]) > level_feats[i][LF_MIN_LVL] &&
-              CLASS_LEVEL(ch, level_feats[i][LF_CLASS]) > 0) ||
-              CLASS_LEVEL(ch, level_feats[i][LF_CLASS]) == level_feats[i][LF_MIN_LVL]
-              )
-              ) {
-        i++;
-        continue;
-      }
-
-      if (level_feats[i][LF_FEAT] == FEAT_SNEAK_ATTACK)
-        sprintf(featbuf, "%s\tMYour sneak attack has increased to +%dd6!\tn\r\n", featbuf, HAS_FEAT(ch, FEAT_SNEAK_ATTACK) + 1);
-
-      if (level_feats[i][LF_FEAT] == FEAT_SHRUG_DAMAGE) {
-        struct damage_reduction_type *dr, *temp, *ptr;
-
-        for (dr = GET_DR(ch); dr != NULL; dr = dr->next) {
-          if (dr->feat == FEAT_SHRUG_DAMAGE) {
-            REMOVE_FROM_LIST(dr, GET_DR(ch), next);
-          }
-        }
-
-        CREATE(ptr, struct damage_reduction_type, 1);
-
-        ptr->spell = 0;
-        ptr->feat = FEAT_SHRUG_DAMAGE;
-        ptr->amount = HAS_FEAT(ch, FEAT_SHRUG_DAMAGE) + 1;
-        ptr->max_damage = -1;
-
-        ptr->bypass_cat[0] = DR_BYPASS_CAT_NONE;
-        ptr->bypass_val[0] = 0;
-        ptr->bypass_cat[1] = DR_BYPASS_CAT_UNUSED;
-        ptr->bypass_val[1] = 0; /* Unused. */
-        ptr->bypass_cat[2] = DR_BYPASS_CAT_UNUSED;
-        ptr->bypass_val[2] = 0; /* Unused. */
-
-        ptr->next = GET_DR(ch);
-        GET_DR(ch) = ptr;
-
-        sprintf(featbuf, "%s\tMYou can now shrug off %d damage!\tn\r\n", featbuf, HAS_FEAT(ch, FEAT_SHRUG_DAMAGE) + 1);
-      }
-
-      if (level_feats[i][LF_FEAT] == FEAT_STRENGTH_BOOST) {
-        ch->real_abils.str += 2;
-        sprintf(featbuf, "%s\tMYour natural strength has increased by +2!\r\n", featbuf);
-      } else if (level_feats[i][LF_FEAT] == FEAT_CHARISMA_BOOST) {
-        ch->real_abils.cha += 2;
-        sprintf(featbuf, "%s\tMYour natural charisma has increased by +2!\r\n", featbuf);
-      } else if (level_feats[i][LF_FEAT] == FEAT_CONSTITUTION_BOOST) {
-        ch->real_abils.con += 2;
-        sprintf(featbuf, "%s\tMYour natural constitution has increased by +2!\r\n", featbuf);
-      } else if (level_feats[i][LF_FEAT] == FEAT_INTELLIGENCE_BOOST) {
-        ch->real_abils.intel += 2;
-        sprintf(featbuf, "%s\tMYour natural intelligence has increased by +2!\r\n", featbuf);
-      } else {
-        if (HAS_FEAT(ch, level_feats[i][LF_FEAT]))
-          sprintf(featbuf, "%s\tMYou have improved your %s %s!\tn\r\n", featbuf,
-              feat_list[level_feats[i][LF_FEAT]].name,
-              feat_types[feat_list[level_feats[i][LF_FEAT]].feat_type] );
-        else
-          sprintf(featbuf, "%s\tMYou have gained the %s %s!\tn\r\n", featbuf,
-              feat_list[level_feats[i][LF_FEAT]].name,
-              feat_types[feat_list[level_feats[i][LF_FEAT]].feat_type] );
-      }
-      SET_FEAT(ch, level_feats[i][LF_FEAT], HAS_REAL_FEAT(ch, level_feats[i][LF_FEAT]) + 1);
-    }
-
     /* feat i doesnt matches our class or we don't meet the min-level (from if above) */
     /* non-class, racial feat and don't have it yet */
-    else if (level_feats[i][LF_CLASS] == CLASS_UNDEFINED &&
+    if (level_feats[i][LF_CLASS] == CLASS_UNDEFINED &&
             level_feats[i][LF_RACE] == GET_RACE(ch) &&
             !HAS_FEAT(ch, level_feats[i][LF_FEAT])) {
-      /*
-      if (level_feats[i][LF_STACK] == TRUE) {
-        if (i == FEAT_TWO_WEAPON_FIGHTING && GET_CLASS(ch) == CLASS_RANGER)
-          //if (!HAS_FEAT(ch, FEAT_RANGER_TWO_WEAPON_STYLE))
-          continue;
-      }
-      */
       if (HAS_FEAT(ch, level_feats[i][LF_FEAT]))
         sprintf(featbuf, "%s\tMYou have improved your %s %s!\tn\r\n", featbuf,
             feat_list[level_feats[i][LF_FEAT]].name,
@@ -5066,23 +5087,8 @@ void process_level_feats(struct char_data *ch, int class) {
             feat_types[feat_list[level_feats[i][LF_FEAT]].feat_type] );
       SET_FEAT(ch, level_feats[i][LF_FEAT], HAS_REAL_FEAT(ch, level_feats[i][LF_FEAT]) + 1);
     }
-
-    /* feat doesn't match our class or we don't meet the min-level (from if above) */
-    /* matches class or doesn't match race or has feat (from if above) */
-    /* class matches and race matches and meet min level */
-    else if (GET_CLASS(ch) == level_feats[i][LF_CLASS] &&
-            level_feats[i][LF_RACE] == GET_RACE(ch) &&
-            CLASS_LEVEL(ch, level_feats[i][LF_CLASS]) == level_feats[i][LF_MIN_LVL]) {
-      if (HAS_FEAT(ch, level_feats[i][LF_FEAT]))
-        sprintf(featbuf, "%s\tMYou have improved your %s %s!\tn\r\n", featbuf,
-            feat_list[level_feats[i][LF_FEAT]].name,
-            feat_types[feat_list[level_feats[i][LF_FEAT]].feat_type] );                
-      else
-        sprintf(featbuf, "%s\tMYou have gained the %s %s!\tn\r\n", featbuf,
-            feat_list[level_feats[i][LF_FEAT]].name,
-            feat_types[feat_list[level_feats[i][LF_FEAT]].feat_type] );                
-      SET_FEAT(ch, level_feats[i][LF_FEAT], HAS_REAL_FEAT(ch, level_feats[i][LF_FEAT]) + 1);
-    }
+    
+    /* counter */
     i++;
   }
 
