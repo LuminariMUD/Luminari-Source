@@ -1520,10 +1520,7 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
   send_to_char(ch, "\tC");
   text_line(ch, "\tYAffected By\tC", 80, '-', '-');
   send_to_char(ch, "\tn");
-  /* Showing the bitvector */
-  //sprintbitarray(AFF_FLAGS(k), affected_bits, AF_ARRAY_MAX, buf);
-  //send_to_char(ch, "%s%s%s\r\n", CCNRM(ch, C_NRM),
-  //             buf, CCNRM(ch, C_NRM));
+  
   for (i = 0; i < NUM_AFF_FLAGS; i++) {
     if (IS_SET_AR(AFF_FLAGS(k), i)) {
       send_to_char(ch, "%s%-20s%s - %s%s%s\r\n",
@@ -1531,6 +1528,7 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
                    CCNRM(ch, C_NRM), affected_bit_descs[i], CCNRM(ch, C_NRM));
     }
   }
+  
   send_to_char(ch, "\tC");
   text_line(ch, "\tYSpell-like Affects\tC", 80, '-', '-');
   send_to_char(ch, "\tn");
@@ -1567,42 +1565,25 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
 
       if (aff->duration + 1 >= 900) { // how many rounds in an hour?
         sprintf(buf, "[%2d hour%s   ] ", (int) ((aff->duration + 1) / 900), ((int) ((aff->duration + 1) / 900) > 1 ? "s" : " "));
-        //send_to_char(ch, "[%2d hour(s)  ] ", (int) ((aff->duration + 1) / 900));
       } else if (aff->duration + 1 >= 15) { // how many rounds in a minute?
         sprintf(buf, "[%2d minute%s ] ", (int) ((aff->duration + 1) / 15), ((int) ((aff->duration + 1) / 15) > 1 ? "s" : " "));
-        //send_to_char(ch, "[%2d minute(s)] ", (int) ((aff->duration + 1) / 15));
       } else { // rounds
         sprintf(buf, "[%2d round%s  ] ", (aff->duration + 1), ((aff->duration + 1) > 1 ? "s" : " "));
-        //send_to_char(ch, "[%2d round(s) ] ", (aff->duration + 1));
       }
-      sprintf(buf2, "%s%-19s%s ",
+      sprintf(buf2, "%s%-25s%s ",
               CCCYN(ch, C_NRM), skill_name(aff->spell), CCNRM(ch, C_NRM));
       strcat(buf, buf2);
 
       buf2[0] = '\0';
 
-      //send_to_char(ch, "%s%-19s%s ",
-      //             CCCYN(ch, C_NRM), skill_name(aff->spell), CCNRM(ch, C_NRM));
       if (aff->location == APPLY_DR) { /* Handle DR a bit differently */
         sprintf(buf3, "%s", "(see DR)");
-        //send_to_char(ch, "%-25s", "(see DR)");
       } else if (aff->modifier) {
         sprintf(buf3, "%+d to %s", aff->modifier, apply_types[(int) aff->location]);
-        //send_to_char(ch, "%+d to %s", aff->modifier, apply_types[(int) aff->location]);
       }
 
       if (aff->bitvector[0] || aff->bitvector[1] ||
           aff->bitvector[2] || aff->bitvector[3]) {
-        //if (aff->modifier)
-        //  send_to_char(ch, ", ");
-        //   int flagset = FALSE;
-        //   for (i = 0; i < NUM_AFF_FLAGS; i++) {
-        //     if (IS_SET_AR(aff->bitvector, i)) {
-        //       sprintf(buf2, "%ssets %s", ((flagset == TRUE || aff->modifier) ? ", " : ""), affected_bits[i]);
-        //send_to_char(ch, "%ssets %s", ((flagset == TRUE || aff->modifier) ? ", " : ""), affected_bits[i]);
-        //       flagset = TRUE;
-        //     }
-        //   }
         sprintf(buf2, "%s(see affected by)", ((aff->modifier) ? ", " : ""));
         strcat(buf3, buf2);
       }
@@ -1612,7 +1593,6 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
       buf3[0] = '\0';
       /* Add the Bonus type. */
       send_to_char(ch, "%s %s \tc(%s)\tn\r\n", buf, buf2, bonus_types[aff->bonus_type]);
-      //send_to_char(ch, "\r\n");
     }
   }
 
