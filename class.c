@@ -2296,6 +2296,20 @@ void load_class_list(void) {
     "the God of Weapons",         /* <= LVL_GRSTAFF */
     "the WeaponMaster"            /* default */  
   );
+  /* feat assignment */
+  /*              class num     feat                              cfeat lvl stack */
+  feat_assignment(CLASS_WEAPON_MASTER, FEAT_WEAPON_OF_CHOICE,      Y,    1,  N);
+  feat_assignment(CLASS_WEAPON_MASTER, FEAT_SUPERIOR_WEAPON_FOCUS, Y,    2,  N);
+  feat_assignment(CLASS_WEAPON_MASTER, FEAT_UNSTOPPABLE_STRIKE,    Y,    3,  Y);
+  feat_assignment(CLASS_WEAPON_MASTER, FEAT_CRITICAL_SPECIALIST,   Y,    4,  Y);
+  feat_assignment(CLASS_WEAPON_MASTER, FEAT_UNSTOPPABLE_STRIKE,    Y,    5,  Y);
+  feat_assignment(CLASS_WEAPON_MASTER, FEAT_UNSTOPPABLE_STRIKE,    Y,    6,  Y);
+  feat_assignment(CLASS_WEAPON_MASTER, FEAT_UNSTOPPABLE_STRIKE,    Y,    7,  Y);
+  feat_assignment(CLASS_WEAPON_MASTER, FEAT_CRITICAL_SPECIALIST,   Y,    8,  Y);
+  feat_assignment(CLASS_WEAPON_MASTER, FEAT_UNSTOPPABLE_STRIKE,    Y,    9,  Y);
+  feat_assignment(CLASS_WEAPON_MASTER, FEAT_INCREASED_MULTIPLIER,  Y,   10,  N);
+  /* no class feats */
+  /* no spell assignment */
   /* class prereqs */
   class_prereq_feat(CLASS_WEAPON_MASTER, FEAT_WEAPON_FOCUS, 1);
   class_prereq_feat(CLASS_WEAPON_MASTER, FEAT_COMBAT_EXPERTISE, 1);
@@ -2342,6 +2356,21 @@ void load_class_list(void) {
     "the God of Archery",         /* <= LVL_GRSTAFF */
     "the ArcaneArcher"            /* default */  
   );
+  /* feat assignment */
+  /*              class num     feat                             cfeat lvl stack */
+  feat_assignment(CLASS_ARCANE_ARCHER, FEAT_ENHANCE_ARROW_MAGIC, Y,    1,  Y);
+  feat_assignment(CLASS_ARCANE_ARCHER, FEAT_SEEKER_ARROW,        Y,    2,  Y);
+  feat_assignment(CLASS_ARCANE_ARCHER, FEAT_ENHANCE_ARROW_MAGIC, Y,    3,  Y);
+  feat_assignment(CLASS_ARCANE_ARCHER, FEAT_IMBUE_ARROW,         Y,    4,  Y);
+  feat_assignment(CLASS_ARCANE_ARCHER, FEAT_ENHANCE_ARROW_MAGIC, Y,    5,  Y);
+  feat_assignment(CLASS_ARCANE_ARCHER, FEAT_SEEKER_ARROW,        Y,    6,  Y);
+  feat_assignment(CLASS_ARCANE_ARCHER, FEAT_IMBUE_ARROW,         Y,    6,  Y);
+  feat_assignment(CLASS_ARCANE_ARCHER, FEAT_ENHANCE_ARROW_MAGIC, Y,    7,  Y);
+  feat_assignment(CLASS_ARCANE_ARCHER, FEAT_SEEKER_ARROW,        Y,    8,  Y);
+  feat_assignment(CLASS_ARCANE_ARCHER, FEAT_SWARM_OF_ARROWS,     Y,    8,  N);
+  feat_assignment(CLASS_ARCANE_ARCHER, FEAT_ENHANCE_ARROW_MAGIC, Y,    9,  Y);
+  feat_assignment(CLASS_ARCANE_ARCHER, FEAT_ARROW_OF_DEATH,      Y,   10,  N);
+  /* no spell assignment */
   /* class prereqs */
   class_prereq_bab(CLASS_ARCANE_ARCHER, 5);
   /* elf, half-elf only */
@@ -2390,6 +2419,32 @@ void load_class_list(void) {
     "the God of Defense",      /* <= LVL_GRSTAFF */
     "the Stalwart Defender"    /* default */  
   );
+  /* feat assignment */
+  /*              class num     feat                                   cfeat lvl stack */
+  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_AC_BONUS,               Y,    1,  Y);
+  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_DEFENSIVE_STANCE,       Y,    1,  Y);
+  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_FEARLESS_DEFENSE,       Y,    2,  N);
+  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_UNCANNY_DODGE,          Y,    3,  N);
+  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_DEFENSIVE_STANCE,       Y,    3,  Y);
+  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_AC_BONUS,               Y,    4,  Y);
+  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_IMMOBILE_DEFENSE,       Y,    4,  N);
+  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_SHRUG_DAMAGE,           Y,    5,  Y);  
+  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_DEFENSIVE_STANCE,       Y,    5,  Y);
+  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_AC_BONUS,               Y,    7,  Y);
+  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_SHRUG_DAMAGE,           Y,    7,  Y);
+  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_SHRUG_DAMAGE,           Y,    7,  Y);
+  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_IMPROVED_UNCANNY_DODGE, Y,    7,  N);
+  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_DEFENSIVE_STANCE,       Y,    7,  Y);
+  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_RENEWED_DEFENSE,        Y,    8,  N);
+  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_MOBILE_DEFENSE,         Y,    9,  N);
+  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_DEFENSIVE_STANCE,       Y,    9,  Y);
+  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_LAST_WORD,              Y,   10,  N);
+  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_AC_BONUS,               Y,   10,  Y);
+  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_SHRUG_DAMAGE,           Y,   10,  Y);
+  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_SHRUG_DAMAGE,           Y,   10,  Y);
+  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_SMASH_DEFENSE,          Y,   10,  N);
+  /* no class feats */
+  /* no spell assignment */
   /* class prereqs */
   class_prereq_bab(CLASS_STALWART_DEFENDER, 7);
   class_prereq_feat(CLASS_STALWART_DEFENDER, FEAT_DODGE, 1);
@@ -2436,6 +2491,16 @@ void load_class_list(void) {
     "the God of Shifting",      /* <= LVL_GRSTAFF */
     "the Shifter"               /* default */  
   );
+  /* feat assignment */
+  /*              class num     feat                                 cfeat lvl stack */
+  feat_assignment(CLASS_SHIFTER, FEAT_LIMITLESS_SHAPES,               Y,    1,  N);
+  feat_assignment(CLASS_SHIFTER, FEAT_SHIFTER_SHAPES_1,               Y,    2,  N);
+  feat_assignment(CLASS_SHIFTER, FEAT_SHIFTER_SHAPES_2,               Y,    4,  N);
+  feat_assignment(CLASS_SHIFTER, FEAT_SHIFTER_SHAPES_3,               Y,    6,  N);
+  feat_assignment(CLASS_SHIFTER, FEAT_SHIFTER_SHAPES_4,               Y,    8,  N);
+  feat_assignment(CLASS_SHIFTER, FEAT_SHIFTER_SHAPES_5,               Y,   10,  N);
+  /* no class feats */
+  /* no spell assignment */
   /* class prereqs */
   class_prereq_class_level(CLASS_SHIFTER, CLASS_DRUID, 6);
   /****************************************************************************/
@@ -2818,15 +2883,15 @@ bool class_is_available(struct char_data *ch, int classnum, int iarg, char *sarg
         
         /* has align restriction?  well any qualification will work */
         case CLASS_PREREQ_ALIGN:
-        has_alignment_restrictions = TRUE;
-        if (meets_class_prerequisite(ch, prereq, iarg) == TRUE)
+          has_alignment_restrictions = TRUE;
+          if (meets_class_prerequisite(ch, prereq, iarg) == TRUE)
             has_valid_alignment = TRUE;
           break;
           
         /* has race restriction?  well any qualification will work */
         case CLASS_PREREQ_RACE:
-        has_race_restrictions = TRUE;
-        if (meets_class_prerequisite(ch, prereq, iarg) == TRUE)
+          has_race_restrictions = TRUE;
+          if (meets_class_prerequisite(ch, prereq, iarg) == TRUE)
             has_valid_race = TRUE;
           break;
           
@@ -3027,7 +3092,8 @@ void display_imm_classlist(struct char_data *ch) {
 }
 
 bool view_class_feats(struct char_data *ch, char *classname) {
-  int class = CLASS_UNDEFINED, i = 0, feat = 0;
+  int class = CLASS_UNDEFINED;
+  struct class_feat_assign *feat_assign = NULL;
   
   skip_spaces(&classname);
   class = parse_class_long(classname);
@@ -3046,16 +3112,15 @@ bool view_class_feats(struct char_data *ch, char *classname) {
   }
 
   /* level feats */
-  i = 0;
-  while (level_feats[i][LF_FEAT] != FEAT_UNDEFINED) {
-    feat = level_feats[i][LF_FEAT];
-    if (level_feats[i][LF_CLASS] == class) {
-      /* found a class feat! */
-      send_to_char(ch, "Level: %-2d, Feat: %s\r\n",
-                   level_feats[i][LF_MIN_LVL],
-                   feat_list[feat].name);
+  if (class_list[class].featassign_list != NULL) {
+    /*  This class has feat assignment! Traverse the list and list. */
+    for (feat_assign = class_list[class].featassign_list; feat_assign != NULL;
+            feat_assign = feat_assign->next) {
+      send_to_char(ch, "Level: %-2d, Stacks: %-3s, Feat: %s\r\n",
+                   feat_assign->level_received,
+                   feat_assign->stacks ? "Yes" : "No",
+                   feat_list[feat_assign->feat_num].name);
     }
-    i++;
   }
   send_to_char(ch, "\r\n");
   
