@@ -4007,13 +4007,15 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
 }
 
 int is_class_feat(int featnum, int class) {
-  int i = 0;
-  int marker = class_bonus_feats[class][i];
+  struct class_feat_assign *feat_assign = NULL;
 
-  while (marker != FEAT_UNDEFINED) {
-    if (marker == featnum)
-      return TRUE;
-    marker = class_bonus_feats[class][++i];
+  /* we now traverse the class's list of class-feats to see if 'featnum' matches */
+  for (feat_assign = class_list[class].featassign_list; feat_assign != NULL;
+          feat_assign = feat_assign->next) {
+    /* is this a class feat?  and is this feat a match for 'featnum'? */
+    if (feat_assign->is_classfeat && feat_assign->feat_num == featnum) {
+      return TRUE; /* yep this is a class feat! */
+    }
   }
 
   return FALSE;
