@@ -530,6 +530,7 @@ void load_class_list(void) {
   /*epic*/
   feat_assignment(CLASS_WIZARD, FEAT_ARCANE_EPIC_SPELL,         Y,   21,  N);
   /* list of class feats */
+  feat_assignment(CLASS_WIZARD, FEAT_COMBAT_CASTING   ,         Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_WIZARD, FEAT_SPELL_PENETRATION,         Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_WIZARD, FEAT_GREATER_SPELL_PENETRATION, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_WIZARD, FEAT_ARMORED_SPELLCASTING,      Y, NOASSIGN_FEAT, N);
