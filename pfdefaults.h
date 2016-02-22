@@ -68,7 +68,7 @@
 #define PFDEF_THIRST		0
 #define PFDEF_DRUNK		0
 #define PFDEF_OLC               NOWHERE
-#define PFDEF_PAGELENGTH        22
+#define PFDEF_PAGELENGTH        25
 #define PFDEF_SCREENWIDTH       80
 #define PFDEF_QUESTPOINTS       0
 #define PFDEF_QUESTCOUNT        0
