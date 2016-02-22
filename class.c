@@ -454,6 +454,1901 @@ void init_class_list(int class_num) {
   class_list[class_num].featassign_list = NULL;  
 }
 
+/* this was created to handle special scenarios for combat feat requirements
+   for classes */
+bool has_special_cfeat(struct char_data *ch, int featnum, int mode) {
+  switch (mode) {
+    
+    /* featnum in any bow */    
+    case CFEAT_SPECIAL_BOW:
+      if (!HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
+              WEAPON_TYPE_LONG_BOW) &&
+          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
+              WEAPON_TYPE_COMPOSITE_LONGBOW) &&
+          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
+              WEAPON_TYPE_COMPOSITE_LONGBOW_2) &&
+          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
+              WEAPON_TYPE_COMPOSITE_LONGBOW_3) &&
+          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
+              WEAPON_TYPE_COMPOSITE_LONGBOW_4) &&
+          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
+              WEAPON_TYPE_COMPOSITE_LONGBOW_5) &&
+              
+          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
+              WEAPON_TYPE_SHORT_BOW) &&
+          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
+              WEAPON_TYPE_COMPOSITE_SHORTBOW) &&
+          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
+              WEAPON_TYPE_COMPOSITE_SHORTBOW_2) &&
+          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
+              WEAPON_TYPE_COMPOSITE_SHORTBOW_3) &&
+          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
+              WEAPON_TYPE_COMPOSITE_SHORTBOW_4) &&
+          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
+              WEAPON_TYPE_COMPOSITE_SHORTBOW_5)              
+              ) {
+        return FALSE;
+      }
+      break;
+      
+      /* auto pass by default */
+    case CFEAT_SPECIAL_NONE:      
+      break;
+      
+    default:
+      return FALSE;
+  }
+
+  /* success! */
+  return TRUE;
+}
+
+/* Check to see if ch meets the provided class prerequisite.
+   iarg is for external comparison */
+bool meets_class_prerequisite(struct char_data *ch, struct class_prerequisite *prereq, int iarg) {
+
+  switch (prereq->prerequisite_type) {
+    
+    case CLASS_PREREQ_NONE:
+      /* This is a NON-prereq. */
+      break;
+      
+      /* valid alignments - special handling since list of valids */
+    case CLASS_PREREQ_ALIGN:
+      if (prereq->values[0] != convert_alignment(GET_ALIGNMENT(ch)))
+        return FALSE;
+      break;
+      
+      /* minimum stats */
+    case CLASS_PREREQ_ATTRIBUTE:
+      switch (prereq->values[0]) {
+        case AB_STR:
+          if (GET_REAL_STR(ch) < prereq->values[1])
+            return FALSE;
+          break;
+        case AB_DEX:
+          if (GET_REAL_DEX(ch) < prereq->values[1])
+            return FALSE;
+          break;
+        case AB_CON:
+          if (GET_REAL_CON(ch) < prereq->values[1])
+            return FALSE;
+          break;
+        case AB_WIS:
+          if (GET_REAL_WIS(ch) < prereq->values[1])
+            return FALSE;
+          break;
+        case AB_INT:
+          if (GET_REAL_INT(ch) < prereq->values[1])
+            return FALSE;
+          break;
+        case AB_CHA:
+          if (GET_REAL_CHA(ch) < prereq->values[1])
+            return FALSE;
+          break;
+        default:
+          log("SYSERR: meets_class_prerequisite() - Bad Attribute prerequisite %d", prereq->values[0]);
+          return FALSE;
+      }
+      break;
+      
+      /* min. class level */
+    case CLASS_PREREQ_CLASS_LEVEL:
+      if (CLASS_LEVEL(ch, prereq->values[0]) < prereq->values[1])
+        return FALSE;
+      break;
+      
+      /* feat requirement */
+    case CLASS_PREREQ_FEAT:
+      if (has_feat(ch, prereq->values[0]) < prereq->values[1])
+        return FALSE;
+      break;
+      
+      /* required ability */
+    case CLASS_PREREQ_ABILITY:
+      if (GET_ABILITY(ch, prereq->values[0]) < prereq->values[1])
+        return FALSE;
+      break;
+      
+      /* spellcasting type and preparation type */
+    case CLASS_PREREQ_SPELLCASTING:
+      switch (prereq->values[0]) {
+        case CASTING_TYPE_NONE:
+          if (IS_SPELLCASTER(ch))
+            return FALSE;
+          break;
+        case CASTING_TYPE_ARCANE:
+          if (!(IS_WIZARD(ch) ||
+                  IS_SORCERER(ch) ||
+                  IS_BARD(ch)))
+            return FALSE;
+          /* This stuff is all messed up - fix. */
+          if (prereq->values[2] > 0) {
+            if (!(comp_slots(ch, CLASS_WIZARD, prereq->values[2]) == 0 ||
+                    comp_slots(ch, CLASS_SORCERER, prereq->values[2]) == 0 ||
+                    comp_slots(ch, CLASS_BARD, prereq->values[2]) == 0))
+              return FALSE;
+          }
+          break;
+        case CASTING_TYPE_DIVINE:
+          if (!(IS_CLERIC(ch) ||
+                  IS_DRUID(ch) ||
+                  IS_PALADIN(ch) ||
+                  IS_RANGER(ch)))
+            return FALSE;
+          if (prereq->values[2] > 0) {
+            if (!(comp_slots(ch, CLASS_CLERIC, prereq->values[2]) == 0 ||
+                    comp_slots(ch, CLASS_PALADIN, prereq->values[2]) == 0 ||
+                    comp_slots(ch, CLASS_DRUID, prereq->values[2]) == 0 ||
+                    comp_slots(ch, CLASS_RANGER, prereq->values[2]) == 0))
+              return FALSE;
+          }
+          break;
+        case CASTING_TYPE_ANY:
+          if (!IS_SPELLCASTER(ch))
+            return FALSE;
+          if (prereq->values[2] > 0) {
+            if (!(comp_slots(ch, CLASS_WIZARD, prereq->values[2]) == 0 ||
+                    comp_slots(ch, CLASS_SORCERER, prereq->values[2]) == 0 ||
+                    comp_slots(ch, CLASS_BARD, prereq->values[2]) == 0 ||
+                    comp_slots(ch, CLASS_CLERIC, prereq->values[2]) == 0 ||
+                    comp_slots(ch, CLASS_PALADIN, prereq->values[2]) == 0 ||
+                    comp_slots(ch, CLASS_DRUID, prereq->values[2]) == 0 ||
+                    comp_slots(ch, CLASS_RANGER, prereq->values[2]) == 0))
+              return FALSE;
+          }
+          break;
+        default:
+          log("SYSERR: meets_class_prerequisite() - Bad Casting Type prerequisite %d", prereq->values[0]);
+          return FALSE;
+      }
+
+      switch (prereq->values[1]) {
+        case PREP_TYPE_NONE:
+          return FALSE;
+        case PREP_TYPE_PREPARED:
+          if (!IS_MEM_BASED_CASTER(ch))
+            return FALSE;
+          break;
+        case PREP_TYPE_SPONTANEOUS:
+          if (IS_MEM_BASED_CASTER(ch))
+            return FALSE;
+          break;
+        case PREP_TYPE_ANY:
+          break;
+        default:
+          log("SYSERR: meets_class_prerequisite() - Bad Preparation type prerequisite %d", prereq->values[1]);
+          return FALSE;
+      }
+      break;
+      
+      /* valid races - special handling since list of valids */
+    case CLASS_PREREQ_RACE:
+      if (!IS_NPC(ch) && GET_RACE(ch) != prereq->values[0])
+        return FALSE;
+      break;
+      
+      /* minimum BAB requirement */
+    case CLASS_PREREQ_BAB:
+      if (BAB(ch) < prereq->values[0])
+        return FALSE;
+      break;
+      
+      /* combat feat */
+    case CLASS_PREREQ_CFEAT:
+      /*  SPECIAL CASE - You must have a feat, and it must be the cfeat for the chosen weapon. */
+      if (iarg && !has_combat_feat(ch, feat_to_cfeat(prereq->values[0]), iarg))
+        return FALSE;
+      /* when not using iarg, we use the 'special' value - CFEAT_SPECIAL_ and
+         use has_special_cfeat() for processing */
+      if (!iarg && !has_special_cfeat(ch, prereq->values[0], prereq->values[1]))
+        return FALSE;
+      break;
+      
+      /* weapon proficiency requirement */
+    case CLASS_PREREQ_WEAPON_PROFICIENCY:
+      if (iarg && !is_proficient_with_weapon(ch, iarg))
+        return FALSE;
+      break;
+      
+    default:
+      log("SYSERR: meets_class_prerequisite() - Bad prerequisite type %d", prereq->prerequisite_type);
+      return FALSE;
+  }
+
+  return TRUE;
+}
+
+/* a display specific to identify prereqs for a given class */
+bool display_class_prereqs(struct char_data *ch, char *classname) {
+  int class = CLASS_UNDEFINED;
+  struct class_prerequisite *prereq = NULL;
+  static int line_length = 80;
+  char buf[MAX_STRING_LENGTH] = { '\0' };  
+  bool meets_prereqs = FALSE, found = FALSE;
+  
+  skip_spaces(&classname);
+  class = parse_class_long(classname);
+
+  if (class == CLASS_UNDEFINED) {
+    return FALSE;
+  }
+  
+  /* do some math to check if we have max levels in a given class */
+  int max_class_level = CLSLIST_MAXLVL(class);  
+  if (max_class_level == -1) /* no limit */
+    max_class_level = LVL_IMMORT - 1;
+  
+  /* display top */  
+  send_to_char(ch, "\tC\r\n");
+  draw_line(ch, line_length, '-', '-');
+  
+  /* basic info */
+  send_to_char(ch, "\tcClass Name        : \tn%s\r\n", CLSLIST_NAME(class));
+  send_to_char(ch, "\tcMax Level in Class: \tn%d - %s\r\n", max_class_level,
+      (CLASS_LEVEL(ch, class) >= max_class_level) ?
+          "\trCap reached!\tn" : "\tWLevel cap not reached!\tn" );
+  send_to_char(ch, "\tcUnlock Cost       : \tn%d Account XP - %s\r\n", CLSLIST_COST(class),
+          has_unlocked_class(ch, class) ? "\tWUnlocked!\tn" : "\trLocked!\tn");      
+  send_to_char(ch, "\tcClass in the Game?: \tn%s\r\n", CLSLIST_INGAME(class) ?
+                   "\tWYes\tn" : "\trNo\tn");
+  
+  /* prereqs, start with text line */
+  send_to_char(ch, "\tC");
+  send_to_char(ch, text_line_string("\tcRequirements\tC", line_length, '-', '-'));
+  send_to_char(ch, "\tn");
+  send_to_char(ch, "\tcNote: you only need to meet one prereq for race and align:\tn\r\n\r\n");
+
+  /* here we process our prereq linked list for each class */
+  for (prereq = class_list[class].prereq_list; prereq != NULL; prereq = prereq->next) {
+    meets_prereqs = FALSE;
+    if (meets_class_prerequisite(ch, prereq, NO_IARG))
+      meets_prereqs = TRUE;
+    sprintf(buf, "\tn%s%s%s - %s\r\n",
+              (meets_prereqs ? "\tn" : "\tr"), prereq->description, "\tn",
+              (meets_prereqs ? "\tWFulfilled!\tn" : "\trMissing\tn"));
+    send_to_char(ch, buf);
+    found = TRUE;
+  }
+  
+  if (!found)
+    send_to_char(ch, "\tWNo requirements!\tn\r\n");
+  
+  /* close prereq display */
+  send_to_char(ch, "\tC");
+  draw_line(ch, line_length, '-', '-');
+  send_to_char(ch, "\tn");
+
+  if (class_is_available(ch, class, 0, NULL)) {
+    send_to_char(ch, "\tWClass IS AVAILABLE!\tn\r\n");
+  } else {
+    send_to_char(ch, "\trClass is not available!\tn\r\n");    
+  }
+  
+  /* close display */
+  send_to_char(ch, "\tC");
+  draw_line(ch, line_length, '-', '-');
+  send_to_char(ch, "\tn");
+  send_to_char(ch, "\tcNote: Epic races currently can not multi-class\tn\r\n\r\n");
+  
+  return TRUE;
+}
+
+/* this will be a general list of all classes and indication whether
+ selectable by CH based on prereqs */
+void display_all_classes(struct char_data *ch) {
+  struct descriptor_data *d = ch->desc;
+  int counter, columns = 0;
+
+  write_to_output(d, "\r\n");
+  
+  for (counter = 0; counter < NUM_CLASSES; counter++) {    
+    write_to_output(d, "%s%-20.20s %s",
+            class_is_available(ch, counter, MODE_CLASSLIST_NORMAL, NULL) ? " " : "*",
+            CLSLIST_NAME(counter), 
+            !(++columns % 3) ? "\r\n" : "");
+  }
+  
+  write_to_output(d, "\r\n");
+  write_to_output(d, "* - not qualified 'class prereqs <class name>' for details\r\n");
+  write_to_output(d, "\r\n");
+}
+
+/* determines if ch qualifies for a class */
+bool class_is_available(struct char_data *ch, int classnum, int iarg, char *sarg) {
+  struct class_prerequisite *prereq = NULL;
+  int i = 0, max_class_level = CLSLIST_MAXLVL(classnum);
+  bool has_alignment_restrictions = FALSE, has_valid_alignment = FALSE;
+  bool has_race_restrictions = FALSE, has_valid_race = FALSE;
+  
+  /* dumb-dumb check */
+  if (classnum < 0 || classnum >= NUM_CLASSES)
+    return FALSE;
+
+  /* is this class even in the game? */
+  if (!CLSLIST_INGAME(classnum))
+    return FALSE;
+  
+  /* cap for class ranks */
+  if (max_class_level == -1) /* no limit */
+    max_class_level = LVL_IMMORT - 1;
+  if (CLASS_LEVEL(ch, classnum) >= max_class_level) {
+    return FALSE;
+  }
+  
+  /* prevent epic race from currently multi-classing */
+  if (iarg == MODE_CLASSLIST_NORMAL) {
+    for (i = 0; i < NUM_CLASSES; i++)
+      if (CLASS_LEVEL(ch, i)) /* found char current class */
+        break;
+    switch (GET_RACE(ch)) {
+      case RACE_CRYSTAL_DWARF:
+        if (classnum == i) /* char class selection and current class match? */
+          ;
+        else
+          return FALSE;
+      case RACE_TRELUX:
+        if (classnum == i) /* char class selection and current class match? */
+          ;
+        else
+          return FALSE;
+      default: break;
+    }
+  }
+  
+  /* locked class that has been unlocked yet? */
+  if (!has_unlocked_class(ch, classnum))
+    return FALSE;
+        
+  /* class prerequisites list */  
+  if (class_list[classnum].prereq_list != NULL) {
+    
+    /*  This class has prerequisites. Traverse the list and check. */
+    for (prereq = class_list[classnum].prereq_list; prereq != NULL; prereq = prereq->next) {
+      
+      /* we have to check for valid lists, like a list of valid alignments or races */
+      switch (prereq->prerequisite_type) {
+        
+        /* has align restriction?  well any qualification will work */
+        case CLASS_PREREQ_ALIGN:
+          has_alignment_restrictions = TRUE;
+          if (meets_class_prerequisite(ch, prereq, iarg) == TRUE)
+            has_valid_alignment = TRUE;
+          break;
+          
+        /* has race restriction?  well any qualification will work */
+        case CLASS_PREREQ_RACE:
+          has_race_restrictions = TRUE;
+          if (meets_class_prerequisite(ch, prereq, iarg) == TRUE)
+            has_valid_race = TRUE;
+          break;
+          
+        /* our default normal case, instant disqualification */  
+        default:
+          if (meets_class_prerequisite(ch, prereq, iarg) == FALSE)
+            return FALSE; /* these are instant disqualifications */
+          break;
+      }
+    } /* finished transversing list */
+    
+    /* final check for 'valid lists' such as alignment / race list */
+    if (has_alignment_restrictions && !has_valid_alignment)
+      return FALSE; /* doesn't mean alignment reqs */
+    if (has_race_restrictions && !has_valid_race)
+      return FALSE; /* doesn't mean race reqs */
+    
+  }
+  
+  /* made it! */
+  return TRUE;
+}
+
+/* display a specific classes details */
+bool display_class_info(struct char_data *ch, char *classname) {
+  int class = -1, i = 0;
+  char buf[MAX_STRING_LENGTH] = { '\0' };  
+  char buf2[MAX_STRING_LENGTH] = { '\0' };
+  static int line_length = 80;
+  bool first_skill = TRUE;
+  size_t len = 0;
+
+  skip_spaces(&classname);
+  class = parse_class_long(classname);
+
+  if (class == -1 || class >= NUM_CLASSES) {
+    /* Not found - Maybe put in a soundex list here? */
+    return FALSE;
+  }
+
+  /* We found the class, and the class number is stored in 'class'. */
+  /* Display the class info, formatted. */
+  send_to_char(ch, "\tC\r\n");
+  draw_line(ch, line_length, '-', '-');
+  
+  send_to_char(ch, "\tcClass Name       : \tn%s\r\n", CLSLIST_NAME(class));
+  send_to_char(ch, "\tcPrestige Class?  : \tn%s\r\n", CLSLIST_PRESTIGE(class) ? "Yes" : "No");
+  send_to_char(ch, "\tcMaximum Levels   : \tn%d\r\n", CLSLIST_MAXLVL(class));
+  send_to_char(ch, "\tcUnlock Cost      : \tn%d Account XP\r\n", CLSLIST_COST(class));  
+  send_to_char(ch, "\tcBAB Progression  : \tn%s\r\n",
+      (CLSLIST_BAB(i) == 2) ? "High" : (CLSLIST_BAB(class) ? "Medium" : "Low"));
+  send_to_char(ch, "\tcHitpoint Gain    : \tn%d-%d plus constitution bonus\r\n",
+      CLSLIST_HPS(class)/2, CLSLIST_HPS(class));
+  send_to_char(ch, "\tcMovement Gain    : \tn0-%d\r\n", CLSLIST_MVS(class));
+  send_to_char(ch, "\tcTraining Sessions: \tn%d plus Intelligence Mod (4x this value at 1st "
+          "level)\r\n", CLSLIST_TRAINS(class));  
+  send_to_char(ch, "\tcEpic Feat Prog   : \tnGain an epic feat every %d levels\r\n",
+      CLSLIST_EFEATP(class));
+  send_to_char(ch, "\tcClass in Game?   : \tn%s\r\n", CLSLIST_INGAME(class) ?
+                   "\tnYes\tn" : "\trNo, ask staff\tn");
+  
+  send_to_char(ch, "\tC");
+  draw_line(ch, line_length, '-', '-');
+  
+  send_to_char(ch, "\tcWillpower Save Progression: \tn%s\r\n",
+      CLSLIST_SAVES(class, SAVING_WILL) ? "Good" : "Poor");
+  send_to_char(ch, "\tcFortitude Save Progression: \tn%s\r\n",
+      CLSLIST_SAVES(class, SAVING_FORT) ? "Good" : "Poor");
+  send_to_char(ch, "\tcReflex Save Progression   : \tn%s\r\n",
+      CLSLIST_SAVES(class, SAVING_REFL) ? "Good" : "Poor");
+  
+  send_to_char(ch, "\tC");
+  draw_line(ch, line_length, '-', '-');
+
+  /* This we will need to buffer and wrap so that it will fit in the space provided. */
+  /* first build the list of skills */
+  for (i = 0; i < NUM_ABILITIES; i++) {
+    if (CLSLIST_ABIL(class, i) == 2) {
+      if (first_skill) {
+        len += snprintf(buf + len, sizeof (buf) - len, "\tcClass Skills:\tn  %s",
+                ability_names[i]);
+        first_skill = FALSE;
+      } else {
+        len += snprintf(buf + len, sizeof (buf) - len, ", %s", ability_names[i]);
+      }
+    }
+  }
+  send_to_char(ch, strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
+  
+  send_to_char(ch, "\tC");
+  draw_line(ch, line_length, '-', '-');
+  
+  /*  Here display the prerequisites */
+  if (class_list[class].prereq_list == NULL) {
+    sprintf(buf, "\tCPrerequisites : \tnnone\r\n");
+  } else {
+    bool first = TRUE;
+    struct class_prerequisite *prereq;
+
+    for (prereq = class_list[class].prereq_list; prereq != NULL; prereq = prereq->next) {
+      if (first) {
+        first = FALSE;
+        sprintf(buf, "\tcPrerequisites : %s%s%s",
+                (meets_class_prerequisite(ch, prereq, NO_IARG) ? "\tn" : "\tr"), prereq->description, "\tn");
+      } else {
+        sprintf(buf2, ", %s%s%s",
+                (meets_class_prerequisite(ch, prereq, NO_IARG) ? "\tn" : "\tr"), prereq->description, "\tn");
+        strcat(buf, buf2);
+      }
+    }
+  }
+  send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
+
+  send_to_char(ch, "\tC");
+  draw_line(ch, line_length, '-', '-');
+  
+  /* This we will need to buffer and wrap so that it will fit in the space provided. */
+  sprintf(buf, "\tcDescription : \tn%s\r\n", class_list[class].descrip);
+  send_to_char(ch, strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
+  
+  send_to_char(ch, "\tC");
+  draw_line(ch, line_length, '-', '-');
+  
+  send_to_char(ch, "\tYType: \tRclass feats %s\tY for this class's feat info.\tn\r\n",
+    CLSLIST_NAME(class));
+ 
+  send_to_char(ch, "\tC");
+  draw_line(ch, line_length, '-', '-');
+  
+  send_to_char(ch, "\tn\r\n");
+
+  return TRUE;  
+}
+
+/* this was created for debugging the class command and new classes added to the
+ class list */
+void display_imm_classlist(struct char_data *ch) {
+  int i = 0, j = 0;
+  char buf[MAX_STRING_LENGTH];
+  size_t len = 0;
+
+  send_to_char(ch, "# Name Abrv ClrAbrv | Menu | MaxLvl Lock Prestige BAB HPs Mvs Train InGame UnlockCost EFeatProg");
+  send_to_char(ch, " DESCRIP\r\n");
+  send_to_char(ch, " Sv-Fort Sv-Refl Sv-Will\r\n");
+  send_to_char(ch, "    acrobatics,stealth,perception,heal,intimidate,concentration,spellcraft\r\n");
+  send_to_char(ch, "    appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff\r\n");
+  send_to_char(ch, "    diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive\r\n");
+  send_to_char(ch, "    survival,swim,use_magic_device,perform\r\n");
+  send_to_char(ch, "Class Titles\r\n");
+  send_to_char(ch, "============================================");
+  
+  for (i = 0; i < NUM_CLASSES; i++) {
+    len += snprintf(buf + len, sizeof (buf) - len,
+        "\r\n%d] %s %s %s | %s | %d %s %s %s %d %d %d %s %d %d\r\n     %s\r\n"
+        "  %s %s %s\r\n"
+        "     %s %s %s %s %s %s %s\r\n"
+        "     %s %s %s %s %s %s %s %s\r\n"
+        "     %s %s %s %s %s %s\r\n"
+        "     %s %s %s %s\r\n",
+        i, CLSLIST_NAME(i), CLSLIST_ABBRV(i), CLSLIST_CLRABBRV(i), CLSLIST_MENU(i),
+          CLSLIST_MAXLVL(i), CLSLIST_LOCK(i) ? "Y" : "N", CLSLIST_PRESTIGE(i) ? "Y" : "N",
+          (CLSLIST_BAB(i) == 2) ? "H" : (CLSLIST_BAB(i) ? "M" : "L"), CLSLIST_HPS(i),
+          CLSLIST_MVS(i), CLSLIST_TRAINS(i), CLSLIST_INGAME(i) ? "Y" : "N", CLSLIST_COST(i), CLSLIST_EFEATP(i),
+            CLSLIST_DESCRIP(i),
+        CLSLIST_SAVES(i, 0) ? "G" : "B", CLSLIST_SAVES(i, 1) ? "G" : "B", CLSLIST_SAVES(i, 2) ? "G" : "B", 
+        (CLSLIST_ABIL(i, ABILITY_ACROBATICS) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_ACROBATICS) ? "CC" : "NA"),
+          (CLSLIST_ABIL(i, ABILITY_STEALTH) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_STEALTH) ? "CC" : "NA"),
+          (CLSLIST_ABIL(i, ABILITY_PERCEPTION) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_PERCEPTION) ? "CC" : "NA"),
+          (CLSLIST_ABIL(i, ABILITY_HEAL) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_HEAL) ? "CC" : "NA"),            
+          (CLSLIST_ABIL(i, ABILITY_INTIMIDATE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_INTIMIDATE) ? "CC" : "NA"),
+          (CLSLIST_ABIL(i, ABILITY_CONCENTRATION) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_CONCENTRATION) ? "CC" : "NA"),
+          (CLSLIST_ABIL(i, ABILITY_SPELLCRAFT) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_SPELLCRAFT) ? "CC" : "NA"),
+        (CLSLIST_ABIL(i, ABILITY_APPRAISE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_APPRAISE) ? "CC" : "NA"),
+          (CLSLIST_ABIL(i, ABILITY_DISCIPLINE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_DISCIPLINE) ? "CC" : "NA"),
+          (CLSLIST_ABIL(i, ABILITY_TOTAL_DEFENSE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_TOTAL_DEFENSE) ? "CC" : "NA"),
+          (CLSLIST_ABIL(i, ABILITY_LORE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_LORE) ? "CC" : "NA"),
+          (CLSLIST_ABIL(i, ABILITY_RIDE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_RIDE) ? "CC" : "NA"),
+          (CLSLIST_ABIL(i, ABILITY_CLIMB) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_CLIMB) ? "CC" : "NA"),
+          (CLSLIST_ABIL(i, ABILITY_SLEIGHT_OF_HAND) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_SLEIGHT_OF_HAND) ? "CC" : "NA"),
+          (CLSLIST_ABIL(i, ABILITY_BLUFF) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_BLUFF) ? "CC" : "NA"),
+        (CLSLIST_ABIL(i, ABILITY_DIPLOMACY) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_DIPLOMACY) ? "CC" : "NA"),
+          (CLSLIST_ABIL(i, ABILITY_DISABLE_DEVICE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_DISABLE_DEVICE) ? "CC" : "NA"),
+          (CLSLIST_ABIL(i, ABILITY_DISGUISE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_DISGUISE) ? "CC" : "NA"),
+          (CLSLIST_ABIL(i, ABILITY_ESCAPE_ARTIST) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_ESCAPE_ARTIST) ? "CC" : "NA"),
+          (CLSLIST_ABIL(i, ABILITY_HANDLE_ANIMAL) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_HANDLE_ANIMAL) ? "CC" : "NA"),
+          (CLSLIST_ABIL(i, ABILITY_SENSE_MOTIVE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_SENSE_MOTIVE) ? "CC" : "NA"),
+        (CLSLIST_ABIL(i, ABILITY_SURVIVAL) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_SURVIVAL) ? "CC" : "NA"),
+          (CLSLIST_ABIL(i, ABILITY_SWIM) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_SWIM) ? "CC" : "NA"),
+          (CLSLIST_ABIL(i, ABILITY_USE_MAGIC_DEVICE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_USE_MAGIC_DEVICE) ? "CC" : "NA"),
+          (CLSLIST_ABIL(i, ABILITY_PERFORM) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_PERFORM) ? "CC" : "NA")
+                    );
+    for (j = 0; j < MAX_NUM_TITLES; j++) {
+      len += snprintf(buf + len, sizeof (buf) - len, "%s\r\n", CLSLIST_TITLE(i, j));
+    }
+    len += snprintf(buf + len, sizeof (buf) - len, "============================================\r\n");
+  }
+  page_string(ch->desc, buf, 1);  
+}
+
+bool view_class_feats(struct char_data *ch, char *classname) {
+  int class = CLASS_UNDEFINED;
+  struct class_feat_assign *feat_assign = NULL;
+  
+  skip_spaces(&classname);
+  class = parse_class_long(classname);
+
+  if (class == CLASS_UNDEFINED) {
+    return FALSE;
+  }
+
+  if (class == CLASS_WARRIOR) {
+    send_to_char(ch, "The warrior class gets a bonus class feat every two "
+            "levels.\r\n");
+  }
+  if (class == CLASS_WIZARD) {
+    send_to_char(ch, "The wizard class gets a bonus class feat every five "
+            "levels.\r\n");
+  }
+
+  /* level feats */
+  if (class_list[class].featassign_list != NULL) {
+    /*  This class has feat assignment! Traverse the list and list. */
+    for (feat_assign = class_list[class].featassign_list; feat_assign != NULL;
+            feat_assign = feat_assign->next) {
+      if (feat_assign->level_received > 0) /* -1 is just class feat assign */
+        send_to_char(ch, "Level: %-2d, Stacks: %-3s, Feat: %s\r\n",
+                   feat_assign->level_received,
+                   feat_assign->stacks ? "Yes" : "No",
+                   feat_list[feat_assign->feat_num].name);
+    }
+  }
+  send_to_char(ch, "\r\n");
+  
+  return TRUE;
+}
+
+/* entry point for class command - getting class info */
+ACMD(do_class) {
+  char arg[80];
+  char arg2[80];
+  char *classname;
+
+  /*  Have to process arguments like this
+   *  because of the syntax - class info <classname> */
+  classname = one_argument(argument, arg);
+  one_argument(classname, arg2);
+
+  /* no argument, or general list of classes */
+  if (is_abbrev(arg, "list") || !*arg) {
+    display_all_classes(ch);
+    
+  /* class info - specific info on given class */    
+  } else if (is_abbrev(arg, "info")) {
+
+    if (!strcmp(classname, "")) {
+      send_to_char(ch, "\r\nYou must provide the name of a class.\r\n");
+    } else if(!display_class_info(ch, classname)) {
+      send_to_char(ch, "Could not find that class.\r\n");
+    }
+    
+  /* class feat - list of free feats for given class */    
+  } else if (is_abbrev(arg, "feats")) {
+
+    if (!strcmp(classname, "")) {
+      send_to_char(ch, "\r\nYou must provide the name of a class.\r\n");
+    } else if(!view_class_feats(ch, classname)) {
+      send_to_char(ch, "Could not find that class.\r\n");
+    }
+            
+  /* cryptic class listing for staff :) */
+  } else if (is_abbrev(arg, "staff")) {
+    display_imm_classlist(ch);
+    
+  /* class listing just to view pre-requisites for a given class */  
+  } else if (is_abbrev(arg, "prereqs")) {
+    
+    if (!strcmp(classname, "")) {
+      send_to_char(ch, "\r\nYou must provide the name of a class.\r\n");
+    } else if(!display_class_prereqs(ch, classname)) {
+      send_to_char(ch, "Could not find that class.\r\n");
+    }
+    
+  }
+  
+  send_to_char(ch, "\tDUsage: class <list|info|feats|staff|prereqs> <class name>\tn\r\n");
+}
+
+/* TODO: phase this out using classo prereqs */
+/* does the ch have a valid alignment for proposed class?  currently only used
+ in interpreter.c for starting chars */
+/* returns 1 for valid alignment, returns 0 for problem with alignment */
+int valid_align_by_class(int alignment, int class) {
+  switch (class) {
+      /* any lawful alignment */
+    case CLASS_MONK:
+      switch (alignment) {
+        case LAWFUL_GOOD:
+        case LAWFUL_NEUTRAL:
+        case LAWFUL_EVIL:
+          return 1;
+        default:
+          return 0;
+      }
+      /* any 'neutral' alignment */
+    case CLASS_DRUID:
+      switch (alignment) {
+        case NEUTRAL_GOOD:
+        case LAWFUL_NEUTRAL:
+        case TRUE_NEUTRAL:
+        case CHAOTIC_NEUTRAL:
+        case NEUTRAL_EVIL:
+          return 1;
+        default:
+          return 0;
+      }
+      /* any 'non-lawful' alignment */
+    case CLASS_BERSERKER:
+    case CLASS_BARD:
+      switch (alignment) {
+          /* we are checking for invalids */
+        case LAWFUL_GOOD:
+        case LAWFUL_NEUTRAL:
+        case LAWFUL_EVIL:
+          return 0;
+        default:
+          return 1;
+      }
+      /* only lawful good */
+    case CLASS_PALADIN:
+      if (alignment == LAWFUL_GOOD)
+        return 1;
+      else
+        return 0;
+      /* default, no alignment restrictions */
+    case CLASS_WIZARD:
+    case CLASS_CLERIC:
+    case CLASS_RANGER:
+    case CLASS_ROGUE:
+    case CLASS_WARRIOR:
+    case CLASS_WEAPON_MASTER:
+    case CLASS_ARCANE_ARCHER:
+    case CLASS_STALWART_DEFENDER:
+    case CLASS_SHIFTER:
+    case CLASS_SORCERER:
+      return 1;
+  }
+  /* shouldn't get here if we got all classes listed above */
+  return 1;
+}
+
+/* homeland-port currently unused */
+const char *church_types[] = {
+  "Ao",
+  "Akadi",
+  "Chauntea",
+  "Cyric",
+  "Grumbar",
+  "Istishia", //5
+  "Kelemvor",
+  "Kossuth",
+  "Lathander",
+  "Mystra",
+  "Oghma", //10
+  "Shar",
+  "Silvanus",
+  "\n"
+};  // 14
+
+/* The code to interpret a class letter -- just used in who list */
+int parse_class(char arg) {
+  arg = LOWER(arg);
+
+  switch (arg) {
+    case 'a': return CLASS_BARD;
+    case 'b': return CLASS_BERSERKER;
+    case 'c': return CLASS_CLERIC;
+    case 'd': return CLASS_DRUID;
+    case 'e': return CLASS_WEAPON_MASTER;
+    case 'f': return CLASS_ARCANE_ARCHER;
+    case 'g': return CLASS_STALWART_DEFENDER;
+    case 'h': return CLASS_SHIFTER;
+    /* empty letters */
+    case 'm': return CLASS_WIZARD;
+    /* empty letters */
+    case 'o': return CLASS_MONK;
+    case 'p': return CLASS_PALADIN;
+    /* empty letters */
+    case 'r': return CLASS_RANGER;
+    case 's': return CLASS_SORCERER;
+    case 't': return CLASS_ROGUE;
+    /* empty letters */
+    case 'w': return CLASS_WARRIOR;
+    /* empty letters */
+    
+    default: return CLASS_UNDEFINED;
+  }
+}
+
+/* accept short descrip, return class */
+int parse_class_long(char *arg) {
+  int l = 0; /* string length */
+
+  for (l = 0; *(arg + l); l++) /* convert to lower case */
+    *(arg + l) = LOWER(*(arg + l));
+
+  if (is_abbrev(arg, "wizard")) return CLASS_WIZARD;
+  if (is_abbrev(arg, "cleric")) return CLASS_CLERIC;
+  if (is_abbrev(arg, "warrior")) return CLASS_WARRIOR;
+  if (is_abbrev(arg, "fighter")) return CLASS_WARRIOR;
+  if (is_abbrev(arg, "rogue")) return CLASS_ROGUE;
+  if (is_abbrev(arg, "monk")) return CLASS_MONK;
+  if (is_abbrev(arg, "druid")) return CLASS_DRUID;
+  if (is_abbrev(arg, "berserker")) return CLASS_BERSERKER;
+  if (is_abbrev(arg, "sorcerer")) return CLASS_SORCERER;
+  if (is_abbrev(arg, "paladin")) return CLASS_PALADIN;
+  if (is_abbrev(arg, "ranger")) return CLASS_RANGER;
+  if (is_abbrev(arg, "bard")) return CLASS_BARD;
+  if (is_abbrev(arg, "weaponmaster")) return CLASS_WEAPON_MASTER;
+  if (is_abbrev(arg, "weapon-master")) return CLASS_WEAPON_MASTER;
+  if (is_abbrev(arg, "arcanearcher")) return CLASS_ARCANE_ARCHER;
+  if (is_abbrev(arg, "arcane-archer")) return CLASS_ARCANE_ARCHER;
+  if (is_abbrev(arg, "stalwartdefender")) return CLASS_STALWART_DEFENDER;
+  if (is_abbrev(arg, "stalwart-defender")) return CLASS_STALWART_DEFENDER;
+  if (is_abbrev(arg, "shifter")) return CLASS_SHIFTER;
+
+  return CLASS_UNDEFINED;
+}
+
+/* bitvectors (i.e., powers of two) for each class, mainly for use in do_who
+ * and do_users.  Add new classes at the end so that all classes use sequential
+ * powers of two (1 << 0, 1 << 1, 1 << 2, 1 << 3, 1 << 4, 1 << 5, etc.) up to
+ * the limit of your bitvector_t, typically 0-31. */
+bitvector_t find_class_bitvector(const char *arg) {
+  size_t rpos, ret = 0;
+
+  for (rpos = 0; rpos < strlen(arg); rpos++)
+    ret |= (1 << parse_class(arg[rpos]));
+
+  return (ret);
+}
+
+/* guild guards: stops classes from going in certain directions,
+ currently being phased out */
+struct guild_info_type guild_info[] = {
+  /* Midgaard */
+  { -999 /* all */, 3004, NORTH},
+  { -999 /* all */, 3017, SOUTH},
+  { -999 /* all */, 3021, EAST},
+  { -999 /* all */, 3027, EAST},
+  /* Brass Dragon */
+  { -999 /* all */, 5065, WEST},
+  /* this must go last -- add new guards above! */
+  { -1, NOWHERE, -1}
+};
+
+/* certain feats/etc can affect what is an actual class/cross-class ability */
+int modify_class_ability(struct char_data *ch, int ability, int class) {
+  int ability_value = CLSLIST_ABIL(class, ability);
+
+  if (HAS_FEAT(ch, FEAT_DECEPTION)) {
+    if (ability == ABILITY_DISGUISE || ability == ABILITY_STEALTH)
+      ability_value = CA;
+  }
+
+  return ability_value;
+}
+
+/* given ch, and saving throw we need computed - do so here */
+byte saving_throws(struct char_data *ch, int type) {
+  if (IS_NPC(ch)) {
+    if (CLSLIST_SAVES(GET_CLASS(ch), type))
+      return (GET_LEVEL(ch) / 2 + 1);
+    else
+      return (GET_LEVEL(ch) / 4 + 1);
+  }
+  
+  int i, save = 0;
+  float counter = 1.1;
+
+  /* actual pc calculation, added float for more(?) accuracy */
+  for (i = 0; i < MAX_CLASSES; i++) {
+    if (CLASS_LEVEL(ch, i)) { // found class and level
+      if (CLSLIST_SAVES(i, type))
+        counter += (float)CLASS_LEVEL(ch, i) / 2.0;
+      else
+        counter += (float)CLASS_LEVEL(ch, i) / 4.0;
+    }
+  }
+  
+  save = (int)counter;
+  return save;
+}
+
+// base attack bonus, replacement for THAC0 system
+int BAB(struct char_data *ch) {
+  
+  /* gnarly huh? */
+  if (IS_AFFECTED(ch, AFF_TFORM))
+    return (GET_LEVEL(ch));
+  
+  /* npc is simple */
+  if (IS_NPC(ch)) {
+    switch (CLSLIST_BAB(GET_CLASS(ch))) {
+      case H:
+        return ( (int) (GET_LEVEL(ch)));
+      case M:
+        return ( (int) (GET_LEVEL(ch) * 3 / 4));
+      case L:
+      default:
+        return ( (int) (GET_LEVEL(ch) / 2));
+    }
+  }
+  
+  int i, bab = 0, level, wildshape_level = 0;
+  float counter = 0.0;
+  
+  /* wildshape */
+  if (IS_WILDSHAPED(ch) || IS_MORPHED(ch))
+    wildshape_level = CLASS_LEVEL(ch, CLASS_DRUID) + CLASS_LEVEL(ch, CLASS_SHIFTER);
+
+  /* pc: loop through all the possible classes the char could be */
+  /* added float for more(?) accuracy */
+  for (i = 0; i < MAX_CLASSES; i++) {
+    level = CLASS_LEVEL(ch, i);
+    if (level) {
+      switch (CLSLIST_BAB(i)) {
+        case M:
+          counter += (float)level * 3.0 / 4.0;
+          break;
+        case H:
+          counter += (float)level;
+          break;
+        case L:
+        default:
+          counter += (float)level / 2.0;
+          break;
+      }
+    }
+  }
+
+  bab = (int)counter;
+  
+  if (char_has_mud_event(ch, eSPELLBATTLE) && SPELLBATTLE(ch) > 0) {
+    bab += MAX(1, (SPELLBATTLE(ch) * 2 / 3));
+  }
+  
+  if (wildshape_level > bab)
+    bab = wildshape_level;
+
+  if (!IS_NPC(ch)) /* cap pc bab at 30 */
+    return (MIN(bab, LVL_IMMORT - 1));
+
+  return bab;
+}
+
+/* Default titles system, simplified from stock -zusuk */
+const char *titles(int chclass, int level) {  
+  if (level <= 0 || level > LVL_IMPL)
+    return "the Being";
+  if (level == LVL_IMPL)
+    return "the Implementor";
+  /* Default title for classes which do not have titles defined */
+  if (chclass < 0 || chclass >= NUM_CLASSES)
+    return "the Classless";
+
+  int title_num = 0;
+
+  if (level <= 4)
+    title_num = 0;
+  else if (level <= 9)
+    title_num = 1;
+  else if (level <= 14)
+    title_num = 2;
+  else if (level <= 19)
+    title_num = 3;
+  else if (level <= 24)
+    title_num = 4;
+  else if (level <= 29)
+    title_num = 5;
+  else if (level <= 30)
+    title_num = 6;  
+  else if (level <= LVL_IMMORT)
+    title_num = 7;
+  else if (level <= LVL_STAFF)
+    title_num = 8;
+  else if (level <= LVL_GRSTAFF)
+    title_num = 9;
+  else
+    title_num = 10;
+  
+  return ( CLSLIST_TITLE(chclass, title_num) );
+}
+
+/* use to be old rolling system, now its just used to initialize base stats */
+void roll_real_abils(struct char_data *ch) {
+  GET_REAL_INT(ch) = 8;
+  GET_REAL_WIS(ch) = 8;
+  GET_REAL_CHA(ch) = 8;
+  GET_REAL_STR(ch) = 8;
+  GET_REAL_DEX(ch) = 8;
+  GET_REAL_CON(ch) = 8;
+  ch->aff_abils = ch->real_abils;
+}
+
+/* Information required for character leveling in regards to free feats
+   1) required class
+   2) required race
+   3) stacks?
+   4) level received
+   5) feat name
+   This function also assigns all our (starting) racial feats */
+static int level_feats[][LEVEL_FEATS] = {
+
+  /****************/
+  /* Racial feats */
+  /****************/
+
+  /* class, race, stacks?, level, feat_ name */
+        /* Human */
+  {CLASS_UNDEFINED, RACE_HUMAN, FALSE, 1, FEAT_QUICK_TO_MASTER},
+  {CLASS_UNDEFINED, RACE_HUMAN, FALSE, 1, FEAT_SKILLED},
+
+  /* class, race, stacks?, level, feat_ name */
+        /* Dwarf */
+  {CLASS_UNDEFINED, RACE_DWARF, FALSE, 1, FEAT_INFRAVISION},
+  {CLASS_UNDEFINED, RACE_DWARF, FALSE, 1, FEAT_POISON_RESIST},
+  {CLASS_UNDEFINED, RACE_DWARF, FALSE, 1, FEAT_STABILITY},
+  {CLASS_UNDEFINED, RACE_DWARF, FALSE, 1, FEAT_SPELL_HARDINESS},
+  {CLASS_UNDEFINED, RACE_DWARF, FALSE, 1, FEAT_COMBAT_TRAINING_VS_GIANTS},
+  {CLASS_UNDEFINED, RACE_DWARF, FALSE, 1, FEAT_DWARF_RACIAL_ADJUSTMENT},
+
+  /* class, race, stacks?, level, feat_ name */
+        /* Half-Troll */
+  {CLASS_UNDEFINED, RACE_HALF_TROLL, FALSE, 1, FEAT_ULTRAVISION},
+  {CLASS_UNDEFINED, RACE_HALF_TROLL, FALSE, 1, FEAT_TROLL_REGENERATION},
+  {CLASS_UNDEFINED, RACE_HALF_TROLL, FALSE, 1, FEAT_WEAKNESS_TO_FIRE},
+  {CLASS_UNDEFINED, RACE_HALF_TROLL, FALSE, 1, FEAT_WEAKNESS_TO_ACID},
+  {CLASS_UNDEFINED, RACE_HALF_TROLL, FALSE, 1, FEAT_STRONG_AGAINST_POISON},
+  {CLASS_UNDEFINED, RACE_HALF_TROLL, FALSE, 1, FEAT_STRONG_AGAINST_DISEASE},
+  {CLASS_UNDEFINED, RACE_HALF_TROLL, FALSE, 1, FEAT_HALF_TROLL_RACIAL_ADJUSTMENT},
+
+  /* class, race, stacks?, level, feat_ name */
+        /* Halfling */
+  {CLASS_UNDEFINED, RACE_HALFLING, FALSE, 1, FEAT_INFRAVISION},
+  {CLASS_UNDEFINED, RACE_HALFLING, FALSE, 1, FEAT_SHADOW_HOPPER},
+  {CLASS_UNDEFINED, RACE_HALFLING, FALSE, 1, FEAT_LUCKY},
+  {CLASS_UNDEFINED, RACE_HALFLING, FALSE, 1, FEAT_COMBAT_TRAINING_VS_GIANTS},
+  {CLASS_UNDEFINED, RACE_HALFLING, FALSE, 1, FEAT_HALFLING_RACIAL_ADJUSTMENT},
+
+  /* class, race, stacks?, level, feat_ name */
+        /* Half-Elf */
+  {CLASS_UNDEFINED, RACE_HALF_ELF, FALSE, 1, FEAT_INFRAVISION},
+  {CLASS_UNDEFINED, RACE_HALF_ELF, FALSE, 1, FEAT_WEAPON_PROFICIENCY_ELF},
+  {CLASS_UNDEFINED, RACE_HALF_ELF, FALSE, 1, FEAT_RESISTANCE_TO_ENCHANTMENTS},
+  {CLASS_UNDEFINED, RACE_HALF_ELF, FALSE, 1, FEAT_HALF_BLOOD},
+  {CLASS_UNDEFINED, RACE_HALF_ELF, FALSE, 1, FEAT_KEEN_SENSES},
+
+  /* class, race, stacks?, level, feat_ name */
+        /* Half-Orc */
+  {CLASS_UNDEFINED, RACE_HALF_ORC, FALSE, 1, FEAT_ULTRAVISION},
+  {CLASS_UNDEFINED, RACE_HALF_ORC, FALSE, 1, FEAT_HALF_ORC_RACIAL_ADJUSTMENT},
+
+  /* class, race, stacks?, level, feat_ name */
+        /* Gnome */
+  {CLASS_UNDEFINED, RACE_GNOME, FALSE, 1, FEAT_INFRAVISION},
+  {CLASS_UNDEFINED, RACE_GNOME, FALSE, 1, FEAT_COMBAT_TRAINING_VS_GIANTS},
+  {CLASS_UNDEFINED, RACE_GNOME, FALSE, 1, FEAT_RESISTANCE_TO_ILLUSIONS},
+  {CLASS_UNDEFINED, RACE_GNOME, FALSE, 1, FEAT_ILLUSION_AFFINITY},
+  {CLASS_UNDEFINED, RACE_GNOME, FALSE, 1, FEAT_TINKER_FOCUS},
+  {CLASS_UNDEFINED, RACE_GNOME, FALSE, 1, FEAT_GNOME_RACIAL_ADJUSTMENT},
+
+  /* class, race, stacks?, level, feat_ name */
+        /* Trelux */
+  {CLASS_UNDEFINED, RACE_TRELUX, FALSE, 1, FEAT_ULTRAVISION},
+  {CLASS_UNDEFINED, RACE_TRELUX, FALSE, 1, FEAT_VITAL},
+  {CLASS_UNDEFINED, RACE_TRELUX, FALSE, 1, FEAT_HARDY},
+  {CLASS_UNDEFINED, RACE_TRELUX, FALSE, 1, FEAT_VULNERABLE_TO_COLD},
+  {CLASS_UNDEFINED, RACE_TRELUX, FALSE, 1, FEAT_TRELUX_EXOSKELETON},
+  {CLASS_UNDEFINED, RACE_TRELUX, FALSE, 1, FEAT_LEAP},
+  {CLASS_UNDEFINED, RACE_TRELUX, FALSE, 1, FEAT_WINGS},
+  {CLASS_UNDEFINED, RACE_TRELUX, FALSE, 1, FEAT_TRELUX_EQ},
+  {CLASS_UNDEFINED, RACE_TRELUX, FALSE, 1, FEAT_TRELUX_PINCERS},
+
+  /* class, race, stacks?, level, feat_ name */
+        /* elf */
+  {CLASS_UNDEFINED, RACE_ELF, FALSE, 1, FEAT_INFRAVISION},
+  {CLASS_UNDEFINED, RACE_ELF, FALSE, 1, FEAT_WEAPON_PROFICIENCY_ELF},
+  {CLASS_UNDEFINED, RACE_ELF, FALSE, 1, FEAT_SLEEP_ENCHANTMENT_IMMUNITY},
+  {CLASS_UNDEFINED, RACE_ELF, FALSE, 1, FEAT_KEEN_SENSES},
+  {CLASS_UNDEFINED, RACE_ELF, FALSE, 1, FEAT_RESISTANCE_TO_ENCHANTMENTS},
+  {CLASS_UNDEFINED, RACE_ELF, FALSE, 1, FEAT_ELF_RACIAL_ADJUSTMENT},
+
+  /* class, race, stacks?, level, feat_ name */
+        /* crystal dwarf */
+  {CLASS_UNDEFINED, RACE_CRYSTAL_DWARF, FALSE, 1, FEAT_INFRAVISION},
+  {CLASS_UNDEFINED, RACE_CRYSTAL_DWARF, FALSE, 1, FEAT_CRYSTAL_BODY},
+  {CLASS_UNDEFINED, RACE_CRYSTAL_DWARF, FALSE, 1, FEAT_CRYSTAL_FIST},
+  {CLASS_UNDEFINED, RACE_CRYSTAL_DWARF, FALSE, 1, FEAT_VITAL},
+  {CLASS_UNDEFINED, RACE_CRYSTAL_DWARF, FALSE, 1, FEAT_HARDY},
+  {CLASS_UNDEFINED, RACE_CRYSTAL_DWARF, FALSE, 1, FEAT_CRYSTAL_SKIN},
+  {CLASS_UNDEFINED, RACE_CRYSTAL_DWARF, FALSE, 1, FEAT_POISON_RESIST},
+  {CLASS_UNDEFINED, RACE_CRYSTAL_DWARF, FALSE, 1, FEAT_COMBAT_TRAINING_VS_GIANTS},
+  {CLASS_UNDEFINED, RACE_CRYSTAL_DWARF, FALSE, 1, FEAT_CRYSTAL_DWARF_RACIAL_ADJUSTMENT},
+
+  /* class, race, stacks?, level, feat_ name */
+        /* Arcana Golem */
+  {CLASS_UNDEFINED, RACE_ARCANA_GOLEM, FALSE, 1, FEAT_SPELLBATTLE},
+  {CLASS_UNDEFINED, RACE_ARCANA_GOLEM, FALSE, 1, FEAT_SPELL_VULNERABILITY},
+  {CLASS_UNDEFINED, RACE_ARCANA_GOLEM, FALSE, 1, FEAT_ENCHANTMENT_VULNERABILITY},
+  {CLASS_UNDEFINED, RACE_ARCANA_GOLEM, FALSE, 1, FEAT_PHYSICAL_VULNERABILITY},
+  {CLASS_UNDEFINED, RACE_ARCANA_GOLEM, FALSE, 1, FEAT_MAGICAL_HERITAGE},
+  {CLASS_UNDEFINED, RACE_ARCANA_GOLEM, FALSE, 1, FEAT_ARCANA_GOLEM_RACIAL_ADJUSTMENT},
+
+  /*****************************************/
+  /* This is always the last array element */
+  /*****************************************/
+  {CLASS_UNDEFINED, RACE_UNDEFINED, FALSE, 1, FEAT_UNDEFINED}
+};
+
+
+/* function that gives chars starting gear */
+void newbieEquipment(struct char_data *ch) {
+  int objNums[] = {
+    NOOB_TELEPORTER,
+    NOOB_TORCH,
+    NOOB_TORCH,
+    NOOB_RATIONS,
+    NOOB_RATIONS,
+    NOOB_RATIONS,
+    NOOB_RATIONS,
+    NOOB_WATERSKIN,
+    NOOB_BP,
+    NOOB_CRAFTING_KIT,
+    NOOB_BOW,
+    -1 //had to end with -1
+  };
+  int x;
+  struct obj_data *obj = NULL, *quiver = NULL;
+
+  send_to_char(ch, "\tMYou are given a set of starting equipment...\tn\r\n");
+
+  // give everyone torch, rations, skin, backpack, bow, etc
+  for (x = 0; objNums[x] != -1; x++) {
+    obj = read_object(objNums[x], VIRTUAL);
+    if (obj) {
+      if (objNums[x] == NOOB_BP)
+        GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch);
+    }
+  }
+
+  quiver = read_object(NOOB_QUIVER, VIRTUAL);
+  if (quiver)
+    obj_to_char(quiver, ch);
+
+  for (x = 0; x < NUM_NOOB_ARROWS; x++) {
+    obj = read_object(NOOB_ARROW, VIRTUAL);
+    if (quiver && obj)
+      obj_to_obj(obj, quiver);
+  }
+
+
+  switch (GET_CLASS(ch)) {
+    case CLASS_PALADIN:
+    case CLASS_CLERIC:
+    case CLASS_DRUID:
+      // holy symbol
+
+      obj = read_object(854, VIRTUAL);
+      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch); // leather sleeves
+
+      obj = read_object(855, VIRTUAL);
+      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch); // leather leggings
+
+      obj = read_object(861, VIRTUAL);
+      //GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch); // slender iron mace
+
+      obj = read_object(863, VIRTUAL);
+      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch); // shield
+
+      obj = read_object(807, VIRTUAL);
+      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch); // scale mail
+
+      break;
+
+    case CLASS_BERSERKER:
+    case CLASS_WARRIOR:
+    case CLASS_RANGER:
+
+      obj = read_object(854, VIRTUAL);
+      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch); // leather sleeves
+
+      obj = read_object(855, VIRTUAL);
+      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch); // leather pants
+
+      if (GET_RACE(ch) == RACE_DWARF) {
+        obj = read_object(806, VIRTUAL);
+        //GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+        obj_to_char(obj, ch); // dwarven waraxe
+      } else {
+        obj = read_object(808, VIRTUAL);
+        //GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+        obj_to_char(obj, ch); // bastard sword
+      }
+      obj = read_object(863, VIRTUAL);
+      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch); // shield
+
+      obj = read_object(807, VIRTUAL);
+      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch); // scale mail
+
+      break;
+
+    case CLASS_MONK:
+      obj = read_object(809, VIRTUAL);
+      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch); // cloth robes
+
+      break;
+
+    case CLASS_BARD:
+    case CLASS_ROGUE:
+      obj = read_object(854, VIRTUAL);
+      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch); // leather sleeves
+
+      obj = read_object(855, VIRTUAL);
+      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch); // leather pants
+
+      obj = read_object(851, VIRTUAL);
+      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch); // studded leather
+
+      obj = read_object(852, VIRTUAL);
+      //GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch); // dagger
+
+      obj = read_object(852, VIRTUAL);
+      //GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch); // dagger
+
+      break;
+
+    case CLASS_WIZARD:
+      obj_to_char(read_object(NOOB_WIZ_NOTE, VIRTUAL), ch); //wizard note
+      obj_to_char(read_object(812, VIRTUAL), ch); //spellbook
+      /* switch fallthrough */
+    case CLASS_SORCERER:
+      obj = read_object(854, VIRTUAL);
+      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch); // leather sleeves
+
+      obj = read_object(855, VIRTUAL);
+      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch); // leather pants
+
+      obj = read_object(852, VIRTUAL);
+      //GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch); // dagger
+
+      obj = read_object(809, VIRTUAL);
+      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch); // cloth robes
+
+      break;
+    default:
+      log("Invalid class sent to newbieEquipment!");
+      break;
+  }
+}
+
+/* this is used to assign all the spells */
+void init_class(struct char_data *ch, int class, int level) {
+  struct class_spell_assign *spell_assign = NULL;
+  
+  if (class_list[class].spellassign_list != NULL) {
+    /*  This class has spell assignment! Traverse the list and check. */
+    for (spell_assign = class_list[class].spellassign_list; spell_assign != NULL;
+            spell_assign = spell_assign->next) {
+      SET_SKILL(ch, spell_assign->spell_num, 99);      
+    }
+  }
+
+  switch (class) {
+    case CLASS_CLERIC:
+      /* we also have to add this to study where we set our domains */
+      assign_domain_spells(ch);
+      break;
+    default:break;
+  }
+}
+
+/* not to be confused with init_char, this is exclusive right now for do_start */
+void init_start_char(struct char_data *ch) {
+  int trains = 0, i = 0, j = 0;
+
+  /* clear polymorph, affections cleared below */
+  SUBRACE(ch) = 0;
+  IS_MORPHED(ch) = 0;
+  GET_DISGUISE_RACE(ch) = 0;
+  cleanup_disguise(ch);
+
+  /* clear immortal flags */
+  if (PRF_FLAGGED(ch, PRF_HOLYLIGHT))
+    i = PRF_TOG_CHK(ch, PRF_HOLYLIGHT);
+  if (PRF_FLAGGED(ch, PRF_NOHASSLE))
+    i = PRF_TOG_CHK(ch, PRF_NOHASSLE);
+  if (PRF_FLAGGED(ch, PRF_SHOWVNUMS))
+    i = PRF_TOG_CHK(ch, PRF_SHOWVNUMS);
+  if (PRF_FLAGGED(ch, PRF_BUILDWALK))
+    i = PRF_TOG_CHK(ch, PRF_BUILDWALK);
+
+  /* clear gear for clean start */
+  for (i = 0; i < NUM_WEARS; i++)
+    if (GET_EQ(ch, i))
+      perform_remove(ch, i, TRUE);
+
+  /* clear affects for clean start */
+  if (ch->affected || AFF_FLAGS(ch)) {
+    while (ch->affected)
+      affect_remove(ch, ch->affected);
+    for (i = 0; i < AF_ARRAY_MAX; i++)
+      AFF_FLAGS(ch)[i] = 0;
+  }
+
+  /* initialize all levels and spec_abil array */
+  for (i = 0; i < MAX_CLASSES; i++) {
+    CLASS_LEVEL(ch, i) = 0;
+    GET_SPEC_ABIL(ch, i) = 0;
+  }
+  for (i = 0; i < MAX_ENEMIES; i++)
+    GET_FAVORED_ENEMY(ch, i) = 0;
+
+  /* a bit silly, but go ahead make sure no stone-skin like spells */
+  for (i = 0; i < MAX_WARDING; i++)
+    GET_WARDING(ch, i) = 0;
+
+  /* start at level 1 */
+  GET_LEVEL(ch) = 1;
+  CLASS_LEVEL(ch, GET_CLASS(ch)) = 1;
+  GET_EXP(ch) = 1;
+
+  /* reset title */
+  set_title(ch, NULL);
+
+  /* reset stats */
+  roll_real_abils(ch);
+  GET_REAL_AC(ch) = 100; /* base AC of 10 */
+  GET_REAL_HITROLL(ch) = 0;
+  GET_REAL_DAMROLL(ch) = 0;
+  GET_REAL_MAX_HIT(ch) = 20;
+  GET_REAL_MAX_MANA(ch) = 100;
+  GET_REAL_MAX_MOVE(ch) = 82;
+  GET_PRACTICES(ch) = 0;
+  GET_TRAINS(ch) = 0;
+  GET_BOOSTS(ch) = 0;
+  GET_FEAT_POINTS(ch) = 0;
+  GET_EPIC_FEAT_POINTS(ch) = 0;
+
+  for (i = 0; i < NUM_CLASSES; i++) {
+    GET_CLASS_FEATS(ch, i) = 0;
+    GET_EPIC_CLASS_FEATS(ch, i) = 0;
+  }
+
+  GET_REAL_SPELL_RES(ch) = 0;
+
+  /* reset skills/abilities */
+  /* we don't want players to lose their hard-earned crafting skills */
+  for (i = 1; i <= NUM_SKILLS; i++)
+    if (spell_info[i].schoolOfMagic != CRAFTING_SKILL)
+      SET_SKILL(ch, i, 0);
+  for (i = 1; i <= NUM_ABILITIES; i++)
+    SET_ABILITY(ch, i, 0);
+  for (i = 1; i < NUM_FEATS; i++)
+    SET_FEAT(ch, i, 0);
+  for (i = 0; i < NUM_CFEATS; i++)
+    for (j = 0; j < FT_ARRAY_MAX; j++)
+      (ch)->char_specials.saved.combat_feats[(i)][j] = 0;
+  for (i = 0; i < NUM_SFEATS; i++)
+    (ch)->char_specials.saved.school_feats[(i)] = 0;
+  for (i = 0; i < MAX_ABILITIES; i++)
+    for (j = 0; j < NUM_SKFEATS; j++)
+      (ch)->player_specials->saved.skill_focus[(i)][j] = 0;
+
+  /* initialize mem data, allow adjustment of spells known */
+  init_spell_slots(ch);
+  IS_SORC_LEARNED(ch) = 0;
+  IS_BARD_LEARNED(ch) = 0;
+  IS_RANG_LEARNED(ch) = 0;
+  IS_WIZ_LEARNED(ch) = 0;
+  IS_DRUID_LEARNED(ch) = 0;
+
+  /* hunger and thirst are off */
+  GET_COND(ch, HUNGER) = -1;
+  GET_COND(ch, THIRST) = -1;
+
+  /* universal skills */
+  switch (GET_RACE(ch)) {
+    case RACE_HUMAN:
+      GET_REAL_SIZE(ch) = SIZE_MEDIUM;
+      GET_FEAT_POINTS(ch)++;
+      trains += 3;
+      break;
+    case RACE_ELF:
+      GET_REAL_SIZE(ch) = SIZE_MEDIUM;
+      GET_REAL_DEX(ch) += 2;
+      GET_REAL_CON(ch) -= 2;
+      break;
+    case RACE_DWARF:
+      GET_REAL_SIZE(ch) = SIZE_MEDIUM;
+      GET_REAL_CON(ch) += 2;
+      GET_REAL_CHA(ch) -= 2;
+      break;
+    case RACE_HALFLING:
+      GET_REAL_SIZE(ch) = SIZE_SMALL;
+      GET_REAL_STR(ch) -= 2;
+      GET_REAL_DEX(ch) += 2;
+      break;
+    case RACE_H_ELF:
+      GET_REAL_SIZE(ch) = SIZE_MEDIUM;
+      break;
+    case RACE_H_ORC:
+      GET_REAL_SIZE(ch) = SIZE_MEDIUM;
+      GET_REAL_INT(ch) -= 2;
+      GET_REAL_CHA(ch) -= 2;
+      GET_REAL_STR(ch) += 2;
+      break;
+    case RACE_GNOME:
+      GET_REAL_SIZE(ch) = SIZE_SMALL;
+      GET_REAL_CON(ch) += 2;
+      GET_REAL_STR(ch) -= 2;
+      break;
+    case RACE_HALF_TROLL:
+      GET_REAL_SIZE(ch) = SIZE_LARGE;
+      GET_REAL_CON(ch) += 2;
+      GET_REAL_STR(ch) += 2;
+      GET_REAL_DEX(ch) += 2;
+      GET_REAL_INT(ch) -= 4;
+      GET_REAL_WIS(ch) -= 4;
+      GET_REAL_CHA(ch) -= 4;
+      break;
+    case RACE_CRYSTAL_DWARF:
+      GET_REAL_SIZE(ch) = SIZE_MEDIUM;
+      GET_REAL_CON(ch) += 8;
+      GET_REAL_STR(ch) += 2;
+      GET_REAL_CHA(ch) += 2;
+      GET_REAL_WIS(ch) += 2;
+      GET_MAX_HIT(ch) += 10;
+      break;
+    case RACE_TRELUX:
+      GET_REAL_SIZE(ch) = SIZE_SMALL;
+      GET_REAL_STR(ch) += 2;
+      GET_REAL_DEX(ch) += 8;
+      GET_REAL_CON(ch) += 4;
+      GET_MAX_HIT(ch) += 10;
+      break;
+    case RACE_ARCANA_GOLEM:
+      GET_REAL_SIZE(ch) = SIZE_MEDIUM;
+      GET_REAL_CON(ch) -= 2;
+      GET_REAL_STR(ch) -= 2;
+      GET_REAL_INT(ch) += 2;
+      GET_REAL_WIS(ch) += 2;
+      GET_REAL_CHA(ch) += 2;
+      break;
+    default:
+      GET_REAL_SIZE(ch) = SIZE_MEDIUM;
+      break;
+  }
+
+  /* warrior bonus */
+  if (GET_CLASS(ch) == CLASS_WARRIOR)
+    GET_CLASS_FEATS(ch, CLASS_WARRIOR)++; /* Bonus Feat */
+  
+  /* when you study it reinitializes your trains now */  
+  int int_bonus = GET_INT_BONUS(ch); /* this is the way it should be */
+
+  /* assign trains, this gets over-written anyhow during study session at lvl 1 */
+  trains += MAX(1, (CLSLIST_TRAINS(GET_CLASS(ch)) + (int) (int_bonus)) * 3);
+
+  /* finalize */
+  GET_FEAT_POINTS(ch)++; /* 1st level feat. */
+  send_to_char(ch, "%d \tMFeat points gained.\tn\r\n", GET_FEAT_POINTS(ch));
+  send_to_char(ch, "%d \tMClass Feat points gained.\tn\r\n", GET_CLASS_FEATS(ch, GET_CLASS(ch)));
+  GET_TRAINS(ch) += trains;
+  send_to_char(ch, "%d \tMTraining sessions gained.\tn\r\n", trains);
+}
+
+/* Some initializations for characters, including initial skills */
+void do_start(struct char_data *ch) {
+  init_start_char(ch);
+
+  //from level 0 -> level 1
+  advance_level(ch, GET_CLASS(ch));
+  GET_HIT(ch) = GET_MAX_HIT(ch);
+  GET_MANA(ch) = GET_MAX_MANA(ch);
+  GET_MOVE(ch) = GET_MAX_MOVE(ch);
+  GET_COND(ch, DRUNK) = 0;
+  if (CONFIG_SITEOK_ALL)
+    SET_BIT_AR(PLR_FLAGS(ch), PLR_SITEOK);
+}
+
+/* at each level we run this function to assign free CLASS feats */
+void process_class_level_feats(struct char_data *ch, int class) {
+  char featbuf[MAX_STRING_LENGTH];
+  struct class_feat_assign *feat_assign = NULL;
+  int class_level = -1;
+  struct damage_reduction_type *dr = NULL, *temp = NULL, *ptr = NULL;
+
+  /* deal with some instant disqualification */
+  if (class < 0 || class >= NUM_CLASSES)
+    return;
+  class_level = CLASS_LEVEL(ch, class); 
+  if (class_level <= 0)
+    return;
+  if (class_list[class].featassign_list == NULL)
+    return;
+  
+  sprintf(featbuf, "\tM");
+  
+  /*  This class has potential feat assignment! Traverse the list and assign. */
+  for (feat_assign = class_list[class].featassign_list; feat_assign != NULL;
+            feat_assign = feat_assign->next) {
+    
+    /* appropriate level to receive this feat? */
+    if (feat_assign->level_received == class_level) {
+      
+      /* any special handling for this feat? */
+      switch (feat_assign->feat_num) {
+        
+        case FEAT_SNEAK_ATTACK:
+          sprintf(featbuf, "%s\tMYour sneak attack has increased to +%dd6!\tn\r\n", featbuf, HAS_FEAT(ch, FEAT_SNEAK_ATTACK) + 1);
+          break;
+          
+        case FEAT_SHRUG_DAMAGE:
+          for (dr = GET_DR(ch); dr != NULL; dr = dr->next) {
+            if (dr->feat == FEAT_SHRUG_DAMAGE) {
+              REMOVE_FROM_LIST(dr, GET_DR(ch), next);
+            }
+          }
+
+          CREATE(ptr, struct damage_reduction_type, 1);
+
+          ptr->spell = 0;
+          ptr->feat = FEAT_SHRUG_DAMAGE;
+          ptr->amount = HAS_FEAT(ch, FEAT_SHRUG_DAMAGE) + 1;
+          ptr->max_damage = -1;
+
+          ptr->bypass_cat[0] = DR_BYPASS_CAT_NONE;
+          ptr->bypass_val[0] = 0;
+          ptr->bypass_cat[1] = DR_BYPASS_CAT_UNUSED;
+          ptr->bypass_val[1] = 0; /* Unused. */
+          ptr->bypass_cat[2] = DR_BYPASS_CAT_UNUSED;
+          ptr->bypass_val[2] = 0; /* Unused. */
+
+          ptr->next = GET_DR(ch);
+          GET_DR(ch) = ptr;
+
+          sprintf(featbuf, "%s\tMYou can now shrug off %d damage!\tn\r\n", featbuf, HAS_FEAT(ch, FEAT_SHRUG_DAMAGE) + 1);
+          break;
+          
+        case FEAT_STRENGTH_BOOST:
+          ch->real_abils.str += 2;
+          sprintf(featbuf, "%s\tMYour natural strength has increased by +2!\r\n", featbuf);
+          break;
+          
+        case FEAT_CHARISMA_BOOST:
+          ch->real_abils.cha += 2;
+          sprintf(featbuf, "%s\tMYour natural charisma has increased by +2!\r\n", featbuf);
+          break;
+          
+        case FEAT_CONSTITUTION_BOOST:
+          ch->real_abils.con += 2;
+          sprintf(featbuf, "%s\tMYour natural constitution has increased by +2!\r\n", featbuf);
+          break;
+          
+        case FEAT_INTELLIGENCE_BOOST:
+          ch->real_abils.intel += 2;
+          sprintf(featbuf, "%s\tMYour natural intelligence has increased by +2!\r\n", featbuf);
+          break;
+          
+        /* no special handling */
+        default:
+          if (HAS_FEAT(ch, feat_assign->feat_num))
+            sprintf(featbuf, "%s\tMYou have improved your %s %s!\tn\r\n", featbuf,
+                  feat_list[feat_assign->feat_num].name,
+                  feat_types[feat_list[feat_assign->feat_num].feat_type]);
+          else
+            sprintf(featbuf, "%s\tMYou have gained the %s %s!\tn\r\n", featbuf,
+                  feat_list[feat_assign->feat_num].name,
+                  feat_types[feat_list[feat_assign->feat_num].feat_type]);
+          break;
+      }
+      
+      /* now actually adjust the feat */
+      SET_FEAT(ch, feat_assign->feat_num, HAS_REAL_FEAT(ch, feat_assign->feat_num) + 1);
+      
+    }
+  }
+  
+  /* send our feat buffer to char */
+  send_to_char(ch, "%s", featbuf);
+}
+
+/* TODO: rewrite this! */
+/* at each level we run this function to assign free RACE feats */
+void process_level_feats(struct char_data *ch, int class) {
+  char featbuf[MAX_STRING_LENGTH];
+  int i = 0;
+
+  sprintf(featbuf, "\tM");
+
+  /* increment through the list, FEAT_UNDEFINED is our terminator */
+  while (level_feats[i][LF_FEAT] != FEAT_UNDEFINED) {
+
+    /* feat i doesnt matches our class or we don't meet the min-level (from if above) */
+    /* non-class, racial feat and don't have it yet */
+    if (level_feats[i][LF_CLASS] == CLASS_UNDEFINED &&
+            level_feats[i][LF_RACE] == GET_RACE(ch) &&
+            !HAS_FEAT(ch, level_feats[i][LF_FEAT])) {
+      if (HAS_FEAT(ch, level_feats[i][LF_FEAT]))
+        sprintf(featbuf, "%s\tMYou have improved your %s %s!\tn\r\n", featbuf,
+            feat_list[level_feats[i][LF_FEAT]].name,
+            feat_types[feat_list[level_feats[i][LF_FEAT]].feat_type] );
+      else
+        sprintf(featbuf, "%s\tMYou have gained the %s %s!\tn\r\n", featbuf,
+            feat_list[level_feats[i][LF_FEAT]].name,
+            feat_types[feat_list[level_feats[i][LF_FEAT]].feat_type] );
+      SET_FEAT(ch, level_feats[i][LF_FEAT], HAS_REAL_FEAT(ch, level_feats[i][LF_FEAT]) + 1);
+    }
+    
+    /* counter */
+    i++;
+  }
+
+  send_to_char(ch, "%s", featbuf);
+}
+
+/* our function for leveling up */
+void advance_level(struct char_data *ch, int class) {
+  int add_hp = 0, at_armor = 100,
+          add_mana = 0, add_move = 0, k, trains = 0;
+  int feats = 0, class_feats = 0, epic_feats = 0, epic_class_feats = 0;
+  int i = 0;
+
+  /**because con items / spells are affecting based on level, we have to
+  unaffect before we level up -zusuk */
+  at_armor = affect_total_sub(ch); /* at_armor stores ac */
+  /* done unaffecting */
+
+  add_hp = GET_CON_BONUS(ch);
+
+  /* first level in a class?  might have some inits to do! */
+  if (CLASS_LEVEL(ch, class) == 1) {
+    send_to_char(ch, "\tMInitializing class:  \r\n");
+    init_class(ch, class, CLASS_LEVEL(ch, class));
+    send_to_char(ch, "\r\n");
+  }
+
+  /* start our primary advancement block */
+  send_to_char(ch, "\tMGAINS:\tn\r\n");
+
+  /* calculate hps gain */
+  add_hp += rand_number(CLSLIST_HPS(class)/2, CLSLIST_HPS(class));
+  
+  /* calculate moves gain */
+  add_move += rand_number(1, CLSLIST_MVS(class));
+  
+  /* calculate mana gain */
+  //add_mana += rand_number(CLSLIST_MANA(class)/2, CLSLIST_MANA(class));
+  add_mana = 0;
+  
+  /* calculate trains gained */
+  trains += MAX(1, (CLSLIST_TRAINS(class) + (GET_REAL_INT_BONUS(ch))));
+  
+  /* epic feat progresion */
+  if (!(CLASS_LEVEL(ch, class) % CLSLIST_EFEATP(class)) && IS_EPIC(ch)) {
+    epic_class_feats++;
+  }
+  
+  /* special feat progression */  
+  if (class == CLASS_WIZARD && !(CLASS_LEVEL(ch, CLASS_WIZARD) % 5)) {
+    if (!IS_EPIC(ch))
+      class_feats++; /* wizards get a bonus class feat every 5 levels */
+    else if (IS_EPIC(ch))
+      epic_class_feats++;      
+  }
+  if (class == CLASS_WARRIOR && !(CLASS_LEVEL(ch, CLASS_WARRIOR) % 2)) {
+    if (!IS_EPIC(ch))
+      class_feats++; /* wizards get a bonus class feat every 5 levels */
+    else if (IS_EPIC(ch))
+      epic_class_feats++;      
+  }
+
+  /* further movement modifications */
+  if (HAS_FEAT(ch, FEAT_ENDURANCE)) {
+    add_move += rand_number(1, 2);
+  }
+  if (HAS_FEAT(ch, FEAT_FAST_MOVEMENT)) {
+    add_move += rand_number(1, 2);
+  }
+
+  /* 'free' race feats gained (old system) */
+  process_level_feats(ch, class);
+  /* 'free' class feats gained (new system) */
+  process_class_level_feats(ch, class);
+          
+  //Racial Bonuses
+  switch (GET_RACE(ch)) {
+    case RACE_HUMAN:
+      trains++;
+      break;
+    case RACE_CRYSTAL_DWARF:
+      add_hp += 4;
+      break;
+    case RACE_TRELUX:
+      add_hp += 4;
+      break;
+    default:
+      break;
+  }
+
+  //base practice / boost improvement
+  if (!(GET_LEVEL(ch) % 3) && !IS_EPIC(ch)) {
+    feats++;
+  }
+  if (!(GET_LEVEL(ch) % 3) && IS_EPIC(ch)) {
+    epic_feats++;
+  }
+  if (!(GET_LEVEL(ch) % 4)) {
+    GET_BOOSTS(ch)++;
+    send_to_char(ch, "\tMYou gain a boost (to stats) point!\tn\r\n");
+  }
+
+  /* miscellaneous level-based bonuses */
+  if (HAS_FEAT(ch, FEAT_TOUGHNESS)) {
+    /* SRD has this as +3 hp.  More fun as +1 per level. */
+    for (i = HAS_FEAT(ch, FEAT_TOUGHNESS); i > 0; i--)
+      add_hp++;
+  }
+  if (HAS_FEAT(ch, FEAT_EPIC_TOUGHNESS)) {
+    /* SRD has this listed as +30 hp.  More fun to do it by level perhaps. */
+    for (i = HAS_FEAT(ch, FEAT_EPIC_TOUGHNESS); i > 0; i--)
+      add_hp++;
+  }
+
+  /* adjust final and report changes! */
+  GET_REAL_MAX_HIT(ch) += MAX(1, add_hp);
+  send_to_char(ch, "\tMTotal HP:\tn %d\r\n", MAX(1, add_hp));
+  GET_REAL_MAX_MOVE(ch) += MAX(1, add_move);
+  send_to_char(ch, "\tMTotal Move:\tn %d\r\n", MAX(1, add_move));
+  if (GET_LEVEL(ch) > 1) {
+    GET_REAL_MAX_MANA(ch) += add_mana;
+    send_to_char(ch, "\tMTotal Mana:\tn %d\r\n", add_mana);
+  }
+  GET_FEAT_POINTS(ch) += feats;
+  if (feats)
+    send_to_char(ch, "%d \tMFeat points gained.\tn\r\n", feats);
+  GET_CLASS_FEATS(ch, class) += class_feats;
+  if (class_feats)
+    send_to_char(ch, "%d \tMClass feat points gained.\tn\r\n", class_feats);
+  GET_EPIC_FEAT_POINTS(ch) += epic_feats;
+  if (epic_feats)
+    send_to_char(ch, "%d \tMEpic feat points gained.\tn\r\n", epic_feats);
+  GET_EPIC_CLASS_FEATS(ch, class) += epic_class_feats;
+  if (epic_class_feats)
+    send_to_char(ch, "%d \tMEpic class feat points gained.\tn\r\n", epic_class_feats);
+  GET_TRAINS(ch) += trains;
+  send_to_char(ch, "%d \tMTraining sessions gained.\tn\r\n", trains);
+  /*******/
+  /* end advancement block */
+  /*******/
+
+  /**** reaffect ****/
+  affect_total_plus(ch, at_armor);
+  /* end reaffecting */
+
+  /* give immorts some goodies */
+  if (GET_LEVEL(ch) >= LVL_IMMORT) {
+    for (k = 0; k < 3; k++)
+      GET_COND(ch, k) = (char) - 1;
+    SET_BIT_AR(PRF_FLAGS(ch), PRF_HOLYLIGHT);
+    send_to_char(ch, "Setting \tRHOLYLIGHT\tn on.\r\n");
+    SET_BIT_AR(PRF_FLAGS(ch), PRF_NOHASSLE);
+    send_to_char(ch, "Setting \tRNOHASSLE\tn on.\r\n");
+    SET_BIT_AR(PRF_FLAGS(ch), PRF_SHOWVNUMS);
+    send_to_char(ch, "Setting \tRSHOWVNUMS\tn on.\r\n");
+  }
+
+  /* make sure you aren't snooping someone you shouldn't with new level */
+  snoop_check(ch);
+  save_char(ch, 0);
+}
+
+/* if you get multiplier for backstab, calculated here */
+int backstab_mult(struct char_data *ch) {
+  if (HAS_FEAT(ch, FEAT_BACKSTAB))
+    return 2;
+
+  return 1;
+}
+
+// used by handler.c, completely depreacted function right now
+int invalid_class(struct char_data *ch, struct obj_data *obj) {
+  return FALSE;
+}
+
+// vital min level info!
+void init_spell_levels(void) {
+  int i = 0, j = 0, class = 0;
+  struct class_spell_assign *spell_assign = NULL;
+
+  // simple loop to init min-level 1 for all the SKILL_x to all classes
+  for (i = (MAX_SPELLS + 1); i < NUM_SKILLS; i++) {
+    for (j = 0; j < NUM_CLASSES; j++) {
+      spell_level(i, j, 1);
+    }
+  }
+
+  for (class = CLASS_WIZARD; class < NUM_CLASSES; class++) {
+    if (class_list[class].spellassign_list != NULL) {
+      /*  This class has spell assignment! Traverse the list and check. */
+      for (spell_assign = class_list[class].spellassign_list; spell_assign != NULL;
+              spell_assign = spell_assign->next) {
+        spell_level(spell_assign->spell_num, class, spell_assign->level);
+      }
+    }
+  }
+ 
+}
+
+// level_exp ran with level+1 will give xp to next level
+// level_exp+1 - level_exp = exp to next level
+int level_exp(struct char_data *ch, int level) {
+  int chclass = GET_CLASS(ch);
+  int exp = 0, factor = 0;
+
+  if (level > (LVL_IMPL + 1) || level < 0) {
+    log("SYSERR: Requesting exp for invalid level %d!", level);
+    return 0;
+  }
+
+  /* Gods have exp close to EXP_MAX.  This statement should never have to
+   * changed, regardless of how many mortal or immortal levels exist. */
+  if (level > LVL_IMMORT) {
+    return EXP_MAX - ((LVL_IMPL - level) * 1000);
+  }
+
+  factor = 2000 + (level - 2) * 750;
+
+  /* Exp required for normal mortals is below */
+  switch (chclass) {
+    case CLASS_WIZARD:
+    case CLASS_SORCERER:
+    case CLASS_PALADIN:
+    case CLASS_MONK:
+    case CLASS_DRUID:
+    case CLASS_RANGER:
+    case CLASS_WARRIOR:
+    case CLASS_WEAPON_MASTER:
+    case CLASS_STALWART_DEFENDER:
+    case CLASS_SHIFTER:
+    case CLASS_ARCANE_ARCHER:
+    case CLASS_ROGUE:
+    case CLASS_BARD:
+    case CLASS_BERSERKER:
+    case CLASS_CLERIC:
+      level--;
+      if (level < 0)
+        level = 0;
+      exp += (level * level * factor);
+      break;
+
+    default:
+      log("SYSERR: Reached invalid class in class.c level()!");
+      return 123456;
+  }
+
+  //can add other exp penalty/bonuses here
+  switch (GET_REAL_RACE(ch)) { /* funny bug: use to use disguised/wildshape race */
+      //advanced races
+    case RACE_HALF_TROLL:
+      exp *= 2;
+      break;
+    case RACE_ARCANA_GOLEM:
+      exp *= 2;
+      break;
+      //epic races
+    case RACE_CRYSTAL_DWARF:
+      exp *= 15;
+      break;
+    case RACE_TRELUX:
+      exp *= 15;
+      break;
+    default:
+      break;
+  }
+
+  return exp;
+}
+
 /* papa function loaded on game boot to assign all the class data */
 void load_class_list(void) {
   /* initialize a FULL sized list with some default values for safety */
@@ -469,7 +2364,7 @@ void load_class_list(void) {
    *  free feat assignment
    *  classfeat assignment
    *  class spell assignment (if necessary)
-   *  prereqs last  */
+   *  prereqs   */
   
   /****************************************************************************/
   /*     class-number  name      abrv   clr-abrv     menu-name*/
@@ -2506,1903 +4401,6 @@ void load_class_list(void) {
   class_prereq_class_level(CLASS_SHIFTER, CLASS_DRUID, 6);
   /****************************************************************************/
 }
-
-/* this was created to handle special scenarios for combat feat requirements
-   for classes */
-bool has_special_cfeat(struct char_data *ch, int featnum, int mode) {
-  switch (mode) {
-    
-    /* featnum in any bow */    
-    case CFEAT_SPECIAL_BOW:
-      if (!HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
-              WEAPON_TYPE_LONG_BOW) &&
-          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
-              WEAPON_TYPE_COMPOSITE_LONGBOW) &&
-          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
-              WEAPON_TYPE_COMPOSITE_LONGBOW_2) &&
-          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
-              WEAPON_TYPE_COMPOSITE_LONGBOW_3) &&
-          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
-              WEAPON_TYPE_COMPOSITE_LONGBOW_4) &&
-          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
-              WEAPON_TYPE_COMPOSITE_LONGBOW_5) &&
-              
-          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
-              WEAPON_TYPE_SHORT_BOW) &&
-          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
-              WEAPON_TYPE_COMPOSITE_SHORTBOW) &&
-          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
-              WEAPON_TYPE_COMPOSITE_SHORTBOW_2) &&
-          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
-              WEAPON_TYPE_COMPOSITE_SHORTBOW_3) &&
-          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
-              WEAPON_TYPE_COMPOSITE_SHORTBOW_4) &&
-          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
-              WEAPON_TYPE_COMPOSITE_SHORTBOW_5)              
-              ) {
-        return FALSE;
-      }
-      break;
-      
-      /* auto pass by default */
-    case CFEAT_SPECIAL_NONE:      
-      break;
-      
-    default:
-      return FALSE;
-  }
-
-  /* success! */
-  return TRUE;
-}
-
-/* Check to see if ch meets the provided class prerequisite.
-   iarg is for external comparison */
-bool meets_class_prerequisite(struct char_data *ch, struct class_prerequisite *prereq, int iarg) {
-
-  switch (prereq->prerequisite_type) {
-    
-    case CLASS_PREREQ_NONE:
-      /* This is a NON-prereq. */
-      break;
-      
-      /* valid alignments - special handling since list of valids */
-    case CLASS_PREREQ_ALIGN:
-      if (prereq->values[0] != convert_alignment(GET_ALIGNMENT(ch)))
-        return FALSE;
-      break;
-      
-      /* minimum stats */
-    case CLASS_PREREQ_ATTRIBUTE:
-      switch (prereq->values[0]) {
-        case AB_STR:
-          if (GET_REAL_STR(ch) < prereq->values[1])
-            return FALSE;
-          break;
-        case AB_DEX:
-          if (GET_REAL_DEX(ch) < prereq->values[1])
-            return FALSE;
-          break;
-        case AB_CON:
-          if (GET_REAL_CON(ch) < prereq->values[1])
-            return FALSE;
-          break;
-        case AB_WIS:
-          if (GET_REAL_WIS(ch) < prereq->values[1])
-            return FALSE;
-          break;
-        case AB_INT:
-          if (GET_REAL_INT(ch) < prereq->values[1])
-            return FALSE;
-          break;
-        case AB_CHA:
-          if (GET_REAL_CHA(ch) < prereq->values[1])
-            return FALSE;
-          break;
-        default:
-          log("SYSERR: meets_class_prerequisite() - Bad Attribute prerequisite %d", prereq->values[0]);
-          return FALSE;
-      }
-      break;
-      
-      /* min. class level */
-    case CLASS_PREREQ_CLASS_LEVEL:
-      if (CLASS_LEVEL(ch, prereq->values[0]) < prereq->values[1])
-        return FALSE;
-      break;
-      
-      /* feat requirement */
-    case CLASS_PREREQ_FEAT:
-      if (has_feat(ch, prereq->values[0]) < prereq->values[1])
-        return FALSE;
-      break;
-      
-      /* required ability */
-    case CLASS_PREREQ_ABILITY:
-      if (GET_ABILITY(ch, prereq->values[0]) < prereq->values[1])
-        return FALSE;
-      break;
-      
-      /* spellcasting type and preparation type */
-    case CLASS_PREREQ_SPELLCASTING:
-      switch (prereq->values[0]) {
-        case CASTING_TYPE_NONE:
-          if (IS_SPELLCASTER(ch))
-            return FALSE;
-          break;
-        case CASTING_TYPE_ARCANE:
-          if (!(IS_WIZARD(ch) ||
-                  IS_SORCERER(ch) ||
-                  IS_BARD(ch)))
-            return FALSE;
-          /* This stuff is all messed up - fix. */
-          if (prereq->values[2] > 0) {
-            if (!(comp_slots(ch, CLASS_WIZARD, prereq->values[2]) == 0 ||
-                    comp_slots(ch, CLASS_SORCERER, prereq->values[2]) == 0 ||
-                    comp_slots(ch, CLASS_BARD, prereq->values[2]) == 0))
-              return FALSE;
-          }
-          break;
-        case CASTING_TYPE_DIVINE:
-          if (!(IS_CLERIC(ch) ||
-                  IS_DRUID(ch) ||
-                  IS_PALADIN(ch) ||
-                  IS_RANGER(ch)))
-            return FALSE;
-          if (prereq->values[2] > 0) {
-            if (!(comp_slots(ch, CLASS_CLERIC, prereq->values[2]) == 0 ||
-                    comp_slots(ch, CLASS_PALADIN, prereq->values[2]) == 0 ||
-                    comp_slots(ch, CLASS_DRUID, prereq->values[2]) == 0 ||
-                    comp_slots(ch, CLASS_RANGER, prereq->values[2]) == 0))
-              return FALSE;
-          }
-          break;
-        case CASTING_TYPE_ANY:
-          if (!IS_SPELLCASTER(ch))
-            return FALSE;
-          if (prereq->values[2] > 0) {
-            if (!(comp_slots(ch, CLASS_WIZARD, prereq->values[2]) == 0 ||
-                    comp_slots(ch, CLASS_SORCERER, prereq->values[2]) == 0 ||
-                    comp_slots(ch, CLASS_BARD, prereq->values[2]) == 0 ||
-                    comp_slots(ch, CLASS_CLERIC, prereq->values[2]) == 0 ||
-                    comp_slots(ch, CLASS_PALADIN, prereq->values[2]) == 0 ||
-                    comp_slots(ch, CLASS_DRUID, prereq->values[2]) == 0 ||
-                    comp_slots(ch, CLASS_RANGER, prereq->values[2]) == 0))
-              return FALSE;
-          }
-          break;
-        default:
-          log("SYSERR: meets_class_prerequisite() - Bad Casting Type prerequisite %d", prereq->values[0]);
-          return FALSE;
-      }
-
-      switch (prereq->values[1]) {
-        case PREP_TYPE_NONE:
-          return FALSE;
-        case PREP_TYPE_PREPARED:
-          if (!IS_MEM_BASED_CASTER(ch))
-            return FALSE;
-          break;
-        case PREP_TYPE_SPONTANEOUS:
-          if (IS_MEM_BASED_CASTER(ch))
-            return FALSE;
-          break;
-        case PREP_TYPE_ANY:
-          break;
-        default:
-          log("SYSERR: meets_class_prerequisite() - Bad Preparation type prerequisite %d", prereq->values[1]);
-          return FALSE;
-      }
-      break;
-      
-      /* valid races - special handling since list of valids */
-    case CLASS_PREREQ_RACE:
-      if (!IS_NPC(ch) && GET_RACE(ch) != prereq->values[0])
-        return FALSE;
-      break;
-      
-      /* minimum BAB requirement */
-    case CLASS_PREREQ_BAB:
-      if (BAB(ch) < prereq->values[0])
-        return FALSE;
-      break;
-      
-      /* combat feat */
-    case CLASS_PREREQ_CFEAT:
-      /*  SPECIAL CASE - You must have a feat, and it must be the cfeat for the chosen weapon. */
-      if (iarg && !has_combat_feat(ch, feat_to_cfeat(prereq->values[0]), iarg))
-        return FALSE;
-      /* when not using iarg, we use the 'special' value - CFEAT_SPECIAL_ and
-         use has_special_cfeat() for processing */
-      if (!iarg && !has_special_cfeat(ch, prereq->values[0], prereq->values[1]))
-        return FALSE;
-      break;
-      
-      /* weapon proficiency requirement */
-    case CLASS_PREREQ_WEAPON_PROFICIENCY:
-      if (iarg && !is_proficient_with_weapon(ch, iarg))
-        return FALSE;
-      break;
-      
-    default:
-      log("SYSERR: meets_class_prerequisite() - Bad prerequisite type %d", prereq->prerequisite_type);
-      return FALSE;
-  }
-
-  return TRUE;
-}
-
-/* a display specific to identify prereqs for a given class */
-bool display_class_prereqs(struct char_data *ch, char *classname) {
-  int class = CLASS_UNDEFINED;
-  struct class_prerequisite *prereq = NULL;
-  static int line_length = 80;
-  char buf[MAX_STRING_LENGTH] = { '\0' };  
-  bool meets_prereqs = FALSE, found = FALSE;
-  
-  skip_spaces(&classname);
-  class = parse_class_long(classname);
-
-  if (class == CLASS_UNDEFINED) {
-    return FALSE;
-  }
-  
-  /* do some math to check if we have max levels in a given class */
-  int max_class_level = CLSLIST_MAXLVL(class);  
-  if (max_class_level == -1) /* no limit */
-    max_class_level = LVL_IMMORT - 1;
-  
-  /* display top */  
-  send_to_char(ch, "\tC\r\n");
-  draw_line(ch, line_length, '-', '-');
-  
-  /* basic info */
-  send_to_char(ch, "\tcClass Name        : \tn%s\r\n", CLSLIST_NAME(class));
-  send_to_char(ch, "\tcMax Level in Class: \tn%d - %s\r\n", max_class_level,
-      (CLASS_LEVEL(ch, class) >= max_class_level) ?
-          "\trCap reached!\tn" : "\tWLevel cap not reached!\tn" );
-  send_to_char(ch, "\tcUnlock Cost       : \tn%d Account XP - %s\r\n", CLSLIST_COST(class),
-          has_unlocked_class(ch, class) ? "\tWUnlocked!\tn" : "\trLocked!\tn");      
-  send_to_char(ch, "\tcClass in the Game?: \tn%s\r\n", CLSLIST_INGAME(class) ?
-                   "\tWYes\tn" : "\trNo\tn");
-  
-  /* prereqs, start with text line */
-  send_to_char(ch, "\tC");
-  send_to_char(ch, text_line_string("\tcRequirements\tC", line_length, '-', '-'));
-  send_to_char(ch, "\tn");
-  send_to_char(ch, "\tcNote: you only need to meet one prereq for race and align:\tn\r\n\r\n");
-
-  /* here we process our prereq linked list for each class */
-  for (prereq = class_list[class].prereq_list; prereq != NULL; prereq = prereq->next) {
-    meets_prereqs = FALSE;
-    if (meets_class_prerequisite(ch, prereq, NO_IARG))
-      meets_prereqs = TRUE;
-    sprintf(buf, "\tn%s%s%s - %s\r\n",
-              (meets_prereqs ? "\tn" : "\tr"), prereq->description, "\tn",
-              (meets_prereqs ? "\tWFulfilled!\tn" : "\trMissing\tn"));
-    send_to_char(ch, buf);
-    found = TRUE;
-  }
-  
-  if (!found)
-    send_to_char(ch, "\tWNo requirements!\tn\r\n");
-  
-  /* close prereq display */
-  send_to_char(ch, "\tC");
-  draw_line(ch, line_length, '-', '-');
-  send_to_char(ch, "\tn");
-
-  if (class_is_available(ch, class, 0, NULL)) {
-    send_to_char(ch, "\tWClass IS AVAILABLE!\tn\r\n");
-  } else {
-    send_to_char(ch, "\trClass is not available!\tn\r\n");    
-  }
-  
-  /* close display */
-  send_to_char(ch, "\tC");
-  draw_line(ch, line_length, '-', '-');
-  send_to_char(ch, "\tn");
-  send_to_char(ch, "\tcNote: Epic races currently can not multi-class\tn\r\n\r\n");
-  
-  return TRUE;
-}
-
-/* this will be a general list of all classes and indication whether
- selectable by CH based on prereqs */
-void display_all_classes(struct char_data *ch) {
-  struct descriptor_data *d = ch->desc;
-  int counter, columns = 0;
-
-  write_to_output(d, "\r\n");
-  
-  for (counter = 0; counter < NUM_CLASSES; counter++) {    
-    write_to_output(d, "%s%-20.20s %s",
-            class_is_available(ch, counter, MODE_CLASSLIST_NORMAL, NULL) ? " " : "*",
-            CLSLIST_NAME(counter), 
-            !(++columns % 3) ? "\r\n" : "");
-  }
-  
-  write_to_output(d, "\r\n");
-  write_to_output(d, "* - not qualified 'class prereqs <class name>' for details\r\n");
-  write_to_output(d, "\r\n");
-}
-
-/* determines if ch qualifies for a class */
-bool class_is_available(struct char_data *ch, int classnum, int iarg, char *sarg) {
-  struct class_prerequisite *prereq = NULL;
-  int i = 0, max_class_level = CLSLIST_MAXLVL(classnum);
-  bool has_alignment_restrictions = FALSE, has_valid_alignment = FALSE;
-  bool has_race_restrictions = FALSE, has_valid_race = FALSE;
-  
-  /* dumb-dumb check */
-  if (classnum < 0 || classnum >= NUM_CLASSES)
-    return FALSE;
-
-  /* is this class even in the game? */
-  if (!CLSLIST_INGAME(classnum))
-    return FALSE;
-  
-  /* cap for class ranks */
-  if (max_class_level == -1) /* no limit */
-    max_class_level = LVL_IMMORT - 1;
-  if (CLASS_LEVEL(ch, classnum) >= max_class_level) {
-    return FALSE;
-  }
-  
-  /* prevent epic race from currently multi-classing */
-  if (iarg == MODE_CLASSLIST_NORMAL) {
-    for (i = 0; i < NUM_CLASSES; i++)
-      if (CLASS_LEVEL(ch, i)) /* found char current class */
-        break;
-    switch (GET_RACE(ch)) {
-      case RACE_CRYSTAL_DWARF:
-        if (classnum == i) /* char class selection and current class match? */
-          ;
-        else
-          return FALSE;
-      case RACE_TRELUX:
-        if (classnum == i) /* char class selection and current class match? */
-          ;
-        else
-          return FALSE;
-      default: break;
-    }
-  }
-  
-  /* locked class that has been unlocked yet? */
-  if (!has_unlocked_class(ch, classnum))
-    return FALSE;
-        
-  /* class prerequisites list */  
-  if (class_list[classnum].prereq_list != NULL) {
-    
-    /*  This class has prerequisites. Traverse the list and check. */
-    for (prereq = class_list[classnum].prereq_list; prereq != NULL; prereq = prereq->next) {
-      
-      /* we have to check for valid lists, like a list of valid alignments or races */
-      switch (prereq->prerequisite_type) {
-        
-        /* has align restriction?  well any qualification will work */
-        case CLASS_PREREQ_ALIGN:
-          has_alignment_restrictions = TRUE;
-          if (meets_class_prerequisite(ch, prereq, iarg) == TRUE)
-            has_valid_alignment = TRUE;
-          break;
-          
-        /* has race restriction?  well any qualification will work */
-        case CLASS_PREREQ_RACE:
-          has_race_restrictions = TRUE;
-          if (meets_class_prerequisite(ch, prereq, iarg) == TRUE)
-            has_valid_race = TRUE;
-          break;
-          
-        /* our default normal case, instant disqualification */  
-        default:
-          if (meets_class_prerequisite(ch, prereq, iarg) == FALSE)
-            return FALSE; /* these are instant disqualifications */
-          break;
-      }
-    } /* finished transversing list */
-    
-    /* final check for 'valid lists' such as alignment / race list */
-    if (has_alignment_restrictions && !has_valid_alignment)
-      return FALSE; /* doesn't mean alignment reqs */
-    if (has_race_restrictions && !has_valid_race)
-      return FALSE; /* doesn't mean race reqs */
-    
-  }
-  
-  /* made it! */
-  return TRUE;
-}
-
-/* display a specific classes details */
-bool display_class_info(struct char_data *ch, char *classname) {
-  int class = -1, i = 0;
-  char buf[MAX_STRING_LENGTH] = { '\0' };  
-  char buf2[MAX_STRING_LENGTH] = { '\0' };
-  static int line_length = 80;
-  bool first_skill = TRUE;
-  size_t len = 0;
-
-  skip_spaces(&classname);
-  class = parse_class_long(classname);
-
-  if (class == -1 || class >= NUM_CLASSES) {
-    /* Not found - Maybe put in a soundex list here? */
-    return FALSE;
-  }
-
-  /* We found the class, and the class number is stored in 'class'. */
-  /* Display the class info, formatted. */
-  send_to_char(ch, "\tC\r\n");
-  draw_line(ch, line_length, '-', '-');
-  
-  send_to_char(ch, "\tcClass Name       : \tn%s\r\n", CLSLIST_NAME(class));
-  send_to_char(ch, "\tcPrestige Class?  : \tn%s\r\n", CLSLIST_PRESTIGE(class) ? "Yes" : "No");
-  send_to_char(ch, "\tcMaximum Levels   : \tn%d\r\n", CLSLIST_MAXLVL(class));
-  send_to_char(ch, "\tcUnlock Cost      : \tn%d Account XP\r\n", CLSLIST_COST(class));  
-  send_to_char(ch, "\tcBAB Progression  : \tn%s\r\n",
-      (CLSLIST_BAB(i) == 2) ? "High" : (CLSLIST_BAB(class) ? "Medium" : "Low"));
-  send_to_char(ch, "\tcHitpoint Gain    : \tn%d-%d plus constitution bonus\r\n",
-      CLSLIST_HPS(class)/2, CLSLIST_HPS(class));
-  send_to_char(ch, "\tcMovement Gain    : \tn0-%d\r\n", CLSLIST_MVS(class));
-  send_to_char(ch, "\tcTraining Sessions: \tn%d plus Intelligence Mod (4x this value at 1st "
-          "level)\r\n", CLSLIST_TRAINS(class));  
-  send_to_char(ch, "\tcEpic Feat Prog   : \tnGain an epic feat every %d levels\r\n",
-      CLSLIST_EFEATP(class));
-  send_to_char(ch, "\tcClass in Game?   : \tn%s\r\n", CLSLIST_INGAME(class) ?
-                   "\tnYes\tn" : "\trNo, ask staff\tn");
-  
-  send_to_char(ch, "\tC");
-  draw_line(ch, line_length, '-', '-');
-  
-  send_to_char(ch, "\tcWillpower Save Progression: \tn%s\r\n",
-      CLSLIST_SAVES(class, SAVING_WILL) ? "Good" : "Poor");
-  send_to_char(ch, "\tcFortitude Save Progression: \tn%s\r\n",
-      CLSLIST_SAVES(class, SAVING_FORT) ? "Good" : "Poor");
-  send_to_char(ch, "\tcReflex Save Progression   : \tn%s\r\n",
-      CLSLIST_SAVES(class, SAVING_REFL) ? "Good" : "Poor");
-  
-  send_to_char(ch, "\tC");
-  draw_line(ch, line_length, '-', '-');
-
-  /* This we will need to buffer and wrap so that it will fit in the space provided. */
-  /* first build the list of skills */
-  for (i = 0; i < NUM_ABILITIES; i++) {
-    if (CLSLIST_ABIL(class, i) == 2) {
-      if (first_skill) {
-        len += snprintf(buf + len, sizeof (buf) - len, "\tcClass Skills:\tn  %s",
-                ability_names[i]);
-        first_skill = FALSE;
-      } else {
-        len += snprintf(buf + len, sizeof (buf) - len, ", %s", ability_names[i]);
-      }
-    }
-  }
-  send_to_char(ch, strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
-  
-  send_to_char(ch, "\tC");
-  draw_line(ch, line_length, '-', '-');
-  
-  /*  Here display the prerequisites */
-  if (class_list[class].prereq_list == NULL) {
-    sprintf(buf, "\tCPrerequisites : \tnnone\r\n");
-  } else {
-    bool first = TRUE;
-    struct class_prerequisite *prereq;
-
-    for (prereq = class_list[class].prereq_list; prereq != NULL; prereq = prereq->next) {
-      if (first) {
-        first = FALSE;
-        sprintf(buf, "\tcPrerequisites : %s%s%s",
-                (meets_class_prerequisite(ch, prereq, NO_IARG) ? "\tn" : "\tr"), prereq->description, "\tn");
-      } else {
-        sprintf(buf2, ", %s%s%s",
-                (meets_class_prerequisite(ch, prereq, NO_IARG) ? "\tn" : "\tr"), prereq->description, "\tn");
-        strcat(buf, buf2);
-      }
-    }
-  }
-  send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
-
-  send_to_char(ch, "\tC");
-  draw_line(ch, line_length, '-', '-');
-  
-  /* This we will need to buffer and wrap so that it will fit in the space provided. */
-  sprintf(buf, "\tcDescription : \tn%s\r\n", class_list[class].descrip);
-  send_to_char(ch, strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
-  
-  send_to_char(ch, "\tC");
-  draw_line(ch, line_length, '-', '-');
-  
-  send_to_char(ch, "\tYType: \tRclass feats %s\tY for this class's feat info.\tn\r\n",
-    CLSLIST_NAME(class));
- 
-  send_to_char(ch, "\tC");
-  draw_line(ch, line_length, '-', '-');
-  
-  send_to_char(ch, "\tn\r\n");
-
-  return TRUE;  
-}
-
-/* this was created for debugging the class command and new classes added to the
- class list */
-void display_imm_classlist(struct char_data *ch) {
-  int i = 0, j = 0;
-  char buf[MAX_STRING_LENGTH];
-  size_t len = 0;
-
-  send_to_char(ch, "# Name Abrv ClrAbrv | Menu | MaxLvl Lock Prestige BAB HPs Mvs Train InGame UnlockCost EFeatProg");
-  send_to_char(ch, " DESCRIP\r\n");
-  send_to_char(ch, " Sv-Fort Sv-Refl Sv-Will\r\n");
-  send_to_char(ch, "    acrobatics,stealth,perception,heal,intimidate,concentration,spellcraft\r\n");
-  send_to_char(ch, "    appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff\r\n");
-  send_to_char(ch, "    diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive\r\n");
-  send_to_char(ch, "    survival,swim,use_magic_device,perform\r\n");
-  send_to_char(ch, "Class Titles\r\n");
-  send_to_char(ch, "============================================");
-  
-  for (i = 0; i < NUM_CLASSES; i++) {
-    len += snprintf(buf + len, sizeof (buf) - len,
-        "\r\n%d] %s %s %s | %s | %d %s %s %s %d %d %d %s %d %d\r\n     %s\r\n"
-        "  %s %s %s\r\n"
-        "     %s %s %s %s %s %s %s\r\n"
-        "     %s %s %s %s %s %s %s %s\r\n"
-        "     %s %s %s %s %s %s\r\n"
-        "     %s %s %s %s\r\n",
-        i, CLSLIST_NAME(i), CLSLIST_ABBRV(i), CLSLIST_CLRABBRV(i), CLSLIST_MENU(i),
-          CLSLIST_MAXLVL(i), CLSLIST_LOCK(i) ? "Y" : "N", CLSLIST_PRESTIGE(i) ? "Y" : "N",
-          (CLSLIST_BAB(i) == 2) ? "H" : (CLSLIST_BAB(i) ? "M" : "L"), CLSLIST_HPS(i),
-          CLSLIST_MVS(i), CLSLIST_TRAINS(i), CLSLIST_INGAME(i) ? "Y" : "N", CLSLIST_COST(i), CLSLIST_EFEATP(i),
-            CLSLIST_DESCRIP(i),
-        CLSLIST_SAVES(i, 0) ? "G" : "B", CLSLIST_SAVES(i, 1) ? "G" : "B", CLSLIST_SAVES(i, 2) ? "G" : "B", 
-        (CLSLIST_ABIL(i, ABILITY_ACROBATICS) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_ACROBATICS) ? "CC" : "NA"),
-          (CLSLIST_ABIL(i, ABILITY_STEALTH) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_STEALTH) ? "CC" : "NA"),
-          (CLSLIST_ABIL(i, ABILITY_PERCEPTION) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_PERCEPTION) ? "CC" : "NA"),
-          (CLSLIST_ABIL(i, ABILITY_HEAL) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_HEAL) ? "CC" : "NA"),            
-          (CLSLIST_ABIL(i, ABILITY_INTIMIDATE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_INTIMIDATE) ? "CC" : "NA"),
-          (CLSLIST_ABIL(i, ABILITY_CONCENTRATION) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_CONCENTRATION) ? "CC" : "NA"),
-          (CLSLIST_ABIL(i, ABILITY_SPELLCRAFT) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_SPELLCRAFT) ? "CC" : "NA"),
-        (CLSLIST_ABIL(i, ABILITY_APPRAISE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_APPRAISE) ? "CC" : "NA"),
-          (CLSLIST_ABIL(i, ABILITY_DISCIPLINE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_DISCIPLINE) ? "CC" : "NA"),
-          (CLSLIST_ABIL(i, ABILITY_TOTAL_DEFENSE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_TOTAL_DEFENSE) ? "CC" : "NA"),
-          (CLSLIST_ABIL(i, ABILITY_LORE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_LORE) ? "CC" : "NA"),
-          (CLSLIST_ABIL(i, ABILITY_RIDE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_RIDE) ? "CC" : "NA"),
-          (CLSLIST_ABIL(i, ABILITY_CLIMB) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_CLIMB) ? "CC" : "NA"),
-          (CLSLIST_ABIL(i, ABILITY_SLEIGHT_OF_HAND) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_SLEIGHT_OF_HAND) ? "CC" : "NA"),
-          (CLSLIST_ABIL(i, ABILITY_BLUFF) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_BLUFF) ? "CC" : "NA"),
-        (CLSLIST_ABIL(i, ABILITY_DIPLOMACY) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_DIPLOMACY) ? "CC" : "NA"),
-          (CLSLIST_ABIL(i, ABILITY_DISABLE_DEVICE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_DISABLE_DEVICE) ? "CC" : "NA"),
-          (CLSLIST_ABIL(i, ABILITY_DISGUISE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_DISGUISE) ? "CC" : "NA"),
-          (CLSLIST_ABIL(i, ABILITY_ESCAPE_ARTIST) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_ESCAPE_ARTIST) ? "CC" : "NA"),
-          (CLSLIST_ABIL(i, ABILITY_HANDLE_ANIMAL) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_HANDLE_ANIMAL) ? "CC" : "NA"),
-          (CLSLIST_ABIL(i, ABILITY_SENSE_MOTIVE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_SENSE_MOTIVE) ? "CC" : "NA"),
-        (CLSLIST_ABIL(i, ABILITY_SURVIVAL) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_SURVIVAL) ? "CC" : "NA"),
-          (CLSLIST_ABIL(i, ABILITY_SWIM) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_SWIM) ? "CC" : "NA"),
-          (CLSLIST_ABIL(i, ABILITY_USE_MAGIC_DEVICE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_USE_MAGIC_DEVICE) ? "CC" : "NA"),
-          (CLSLIST_ABIL(i, ABILITY_PERFORM) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_PERFORM) ? "CC" : "NA")
-                    );
-    for (j = 0; j < MAX_NUM_TITLES; j++) {
-      len += snprintf(buf + len, sizeof (buf) - len, "%s\r\n", CLSLIST_TITLE(i, j));
-    }
-    len += snprintf(buf + len, sizeof (buf) - len, "============================================\r\n");
-  }
-  page_string(ch->desc, buf, 1);  
-}
-
-bool view_class_feats(struct char_data *ch, char *classname) {
-  int class = CLASS_UNDEFINED;
-  struct class_feat_assign *feat_assign = NULL;
-  
-  skip_spaces(&classname);
-  class = parse_class_long(classname);
-
-  if (class == CLASS_UNDEFINED) {
-    return FALSE;
-  }
-
-  if (class == CLASS_WARRIOR) {
-    send_to_char(ch, "The warrior class gets a bonus class feat every two "
-            "levels.\r\n");
-  }
-  if (class == CLASS_WIZARD) {
-    send_to_char(ch, "The wizard class gets a bonus class feat every five "
-            "levels.\r\n");
-  }
-
-  /* level feats */
-  if (class_list[class].featassign_list != NULL) {
-    /*  This class has feat assignment! Traverse the list and list. */
-    for (feat_assign = class_list[class].featassign_list; feat_assign != NULL;
-            feat_assign = feat_assign->next) {
-      if (feat_assign->level_received > 0) /* -1 is just class feat assign */
-        send_to_char(ch, "Level: %-2d, Stacks: %-3s, Feat: %s\r\n",
-                   feat_assign->level_received,
-                   feat_assign->stacks ? "Yes" : "No",
-                   feat_list[feat_assign->feat_num].name);
-    }
-  }
-  send_to_char(ch, "\r\n");
-  
-  return TRUE;
-}
-
-/* entry point for class command - getting class info */
-ACMD(do_class) {
-  char arg[80];
-  char arg2[80];
-  char *classname;
-
-  /*  Have to process arguments like this
-   *  because of the syntax - class info <classname> */
-  classname = one_argument(argument, arg);
-  one_argument(classname, arg2);
-
-  /* no argument, or general list of classes */
-  if (is_abbrev(arg, "list") || !*arg) {
-    display_all_classes(ch);
-    
-  /* class info - specific info on given class */    
-  } else if (is_abbrev(arg, "info")) {
-
-    if (!strcmp(classname, "")) {
-      send_to_char(ch, "\r\nYou must provide the name of a class.\r\n");
-    } else if(!display_class_info(ch, classname)) {
-      send_to_char(ch, "Could not find that class.\r\n");
-    }
-    
-  /* class feat - list of free feats for given class */    
-  } else if (is_abbrev(arg, "feats")) {
-
-    if (!strcmp(classname, "")) {
-      send_to_char(ch, "\r\nYou must provide the name of a class.\r\n");
-    } else if(!view_class_feats(ch, classname)) {
-      send_to_char(ch, "Could not find that class.\r\n");
-    }
-            
-  /* cryptic class listing for staff :) */
-  } else if (is_abbrev(arg, "staff")) {
-    display_imm_classlist(ch);
-    
-  /* class listing just to view pre-requisites for a given class */  
-  } else if (is_abbrev(arg, "prereqs")) {
-    
-    if (!strcmp(classname, "")) {
-      send_to_char(ch, "\r\nYou must provide the name of a class.\r\n");
-    } else if(!display_class_prereqs(ch, classname)) {
-      send_to_char(ch, "Could not find that class.\r\n");
-    }
-    
-  }
-  
-  send_to_char(ch, "\tDUsage: class <list|info|feats|staff|prereqs> <class name>\tn\r\n");
-}
-
-/* TODO: phase this out using classo prereqs */
-/* does the ch have a valid alignment for proposed class?  currently only used
- in interpreter.c for starting chars */
-/* returns 1 for valid alignment, returns 0 for problem with alignment */
-int valid_align_by_class(int alignment, int class) {
-  switch (class) {
-      /* any lawful alignment */
-    case CLASS_MONK:
-      switch (alignment) {
-        case LAWFUL_GOOD:
-        case LAWFUL_NEUTRAL:
-        case LAWFUL_EVIL:
-          return 1;
-        default:
-          return 0;
-      }
-      /* any 'neutral' alignment */
-    case CLASS_DRUID:
-      switch (alignment) {
-        case NEUTRAL_GOOD:
-        case LAWFUL_NEUTRAL:
-        case TRUE_NEUTRAL:
-        case CHAOTIC_NEUTRAL:
-        case NEUTRAL_EVIL:
-          return 1;
-        default:
-          return 0;
-      }
-      /* any 'non-lawful' alignment */
-    case CLASS_BERSERKER:
-    case CLASS_BARD:
-      switch (alignment) {
-          /* we are checking for invalids */
-        case LAWFUL_GOOD:
-        case LAWFUL_NEUTRAL:
-        case LAWFUL_EVIL:
-          return 0;
-        default:
-          return 1;
-      }
-      /* only lawful good */
-    case CLASS_PALADIN:
-      if (alignment == LAWFUL_GOOD)
-        return 1;
-      else
-        return 0;
-      /* default, no alignment restrictions */
-    case CLASS_WIZARD:
-    case CLASS_CLERIC:
-    case CLASS_RANGER:
-    case CLASS_ROGUE:
-    case CLASS_WARRIOR:
-    case CLASS_WEAPON_MASTER:
-    case CLASS_ARCANE_ARCHER:
-    case CLASS_STALWART_DEFENDER:
-    case CLASS_SHIFTER:
-    case CLASS_SORCERER:
-      return 1;
-  }
-  /* shouldn't get here if we got all classes listed above */
-  return 1;
-}
-
-/* homeland-port currently unused */
-const char *church_types[] = {
-  "Ao",
-  "Akadi",
-  "Chauntea",
-  "Cyric",
-  "Grumbar",
-  "Istishia", //5
-  "Kelemvor",
-  "Kossuth",
-  "Lathander",
-  "Mystra",
-  "Oghma", //10
-  "Shar",
-  "Silvanus",
-  "\n"
-};  // 14
-
-/* The code to interpret a class letter -- just used in who list */
-int parse_class(char arg) {
-  arg = LOWER(arg);
-
-  switch (arg) {
-    case 'a': return CLASS_BARD;
-    case 'b': return CLASS_BERSERKER;
-    case 'c': return CLASS_CLERIC;
-    case 'd': return CLASS_DRUID;
-    case 'e': return CLASS_WEAPON_MASTER;
-    case 'f': return CLASS_ARCANE_ARCHER;
-    case 'g': return CLASS_STALWART_DEFENDER;
-    case 'h': return CLASS_SHIFTER;
-    /* empty letters */
-    case 'm': return CLASS_WIZARD;
-    /* empty letters */
-    case 'o': return CLASS_MONK;
-    case 'p': return CLASS_PALADIN;
-    /* empty letters */
-    case 'r': return CLASS_RANGER;
-    case 's': return CLASS_SORCERER;
-    case 't': return CLASS_ROGUE;
-    /* empty letters */
-    case 'w': return CLASS_WARRIOR;
-    /* empty letters */
-    
-    default: return CLASS_UNDEFINED;
-  }
-}
-
-/* accept short descrip, return class */
-int parse_class_long(char *arg) {
-  int l = 0; /* string length */
-
-  for (l = 0; *(arg + l); l++) /* convert to lower case */
-    *(arg + l) = LOWER(*(arg + l));
-
-  if (is_abbrev(arg, "wizard")) return CLASS_WIZARD;
-  if (is_abbrev(arg, "cleric")) return CLASS_CLERIC;
-  if (is_abbrev(arg, "warrior")) return CLASS_WARRIOR;
-  if (is_abbrev(arg, "fighter")) return CLASS_WARRIOR;
-  if (is_abbrev(arg, "rogue")) return CLASS_ROGUE;
-  if (is_abbrev(arg, "monk")) return CLASS_MONK;
-  if (is_abbrev(arg, "druid")) return CLASS_DRUID;
-  if (is_abbrev(arg, "berserker")) return CLASS_BERSERKER;
-  if (is_abbrev(arg, "sorcerer")) return CLASS_SORCERER;
-  if (is_abbrev(arg, "paladin")) return CLASS_PALADIN;
-  if (is_abbrev(arg, "ranger")) return CLASS_RANGER;
-  if (is_abbrev(arg, "bard")) return CLASS_BARD;
-  if (is_abbrev(arg, "weaponmaster")) return CLASS_WEAPON_MASTER;
-  if (is_abbrev(arg, "weapon-master")) return CLASS_WEAPON_MASTER;
-  if (is_abbrev(arg, "arcanearcher")) return CLASS_ARCANE_ARCHER;
-  if (is_abbrev(arg, "arcane-archer")) return CLASS_ARCANE_ARCHER;
-  if (is_abbrev(arg, "stalwartdefender")) return CLASS_STALWART_DEFENDER;
-  if (is_abbrev(arg, "stalwart-defender")) return CLASS_STALWART_DEFENDER;
-  if (is_abbrev(arg, "shifter")) return CLASS_SHIFTER;
-
-  return CLASS_UNDEFINED;
-}
-
-/* bitvectors (i.e., powers of two) for each class, mainly for use in do_who
- * and do_users.  Add new classes at the end so that all classes use sequential
- * powers of two (1 << 0, 1 << 1, 1 << 2, 1 << 3, 1 << 4, 1 << 5, etc.) up to
- * the limit of your bitvector_t, typically 0-31. */
-bitvector_t find_class_bitvector(const char *arg) {
-  size_t rpos, ret = 0;
-
-  for (rpos = 0; rpos < strlen(arg); rpos++)
-    ret |= (1 << parse_class(arg[rpos]));
-
-  return (ret);
-}
-
-/* guild guards: stops classes from going in certain directions,
- currently being phased out */
-struct guild_info_type guild_info[] = {
-  /* Midgaard */
-  { -999 /* all */, 3004, NORTH},
-  { -999 /* all */, 3017, SOUTH},
-  { -999 /* all */, 3021, EAST},
-  { -999 /* all */, 3027, EAST},
-  /* Brass Dragon */
-  { -999 /* all */, 5065, WEST},
-  /* this must go last -- add new guards above! */
-  { -1, NOWHERE, -1}
-};
-
-/* certain feats/etc can affect what is an actual class/cross-class ability */
-int modify_class_ability(struct char_data *ch, int ability, int class) {
-  int ability_value = CLSLIST_ABIL(class, ability);
-
-  if (HAS_FEAT(ch, FEAT_DECEPTION)) {
-    if (ability == ABILITY_DISGUISE || ability == ABILITY_STEALTH)
-      ability_value = CA;
-  }
-
-  return ability_value;
-}
-
-/* given ch, and saving throw we need computed - do so here */
-byte saving_throws(struct char_data *ch, int type) {
-  if (IS_NPC(ch)) {
-    if (CLSLIST_SAVES(GET_CLASS(ch), type))
-      return (GET_LEVEL(ch) / 2 + 1);
-    else
-      return (GET_LEVEL(ch) / 4 + 1);
-  }
-  
-  int i, save = 0;
-  float counter = 1.1;
-
-  /* actual pc calculation, added float for more(?) accuracy */
-  for (i = 0; i < MAX_CLASSES; i++) {
-    if (CLASS_LEVEL(ch, i)) { // found class and level
-      if (CLSLIST_SAVES(i, type))
-        counter += (float)CLASS_LEVEL(ch, i) / 2.0;
-      else
-        counter += (float)CLASS_LEVEL(ch, i) / 4.0;
-    }
-  }
-  
-  save = (int)counter;
-  return save;
-}
-
-// base attack bonus, replacement for THAC0 system
-int BAB(struct char_data *ch) {
-  
-  /* gnarly huh? */
-  if (IS_AFFECTED(ch, AFF_TFORM))
-    return (GET_LEVEL(ch));
-  
-  /* npc is simple */
-  if (IS_NPC(ch)) {
-    switch (CLSLIST_BAB(GET_CLASS(ch))) {
-      case H:
-        return ( (int) (GET_LEVEL(ch)));
-      case M:
-        return ( (int) (GET_LEVEL(ch) * 3 / 4));
-      case L:
-      default:
-        return ( (int) (GET_LEVEL(ch) / 2));
-    }
-  }
-  
-  int i, bab = 0, level, wildshape_level = 0;
-  float counter = 0.0;
-  
-  /* wildshape */
-  if (IS_WILDSHAPED(ch) || IS_MORPHED(ch))
-    wildshape_level = CLASS_LEVEL(ch, CLASS_DRUID) + CLASS_LEVEL(ch, CLASS_SHIFTER);
-
-  /* pc: loop through all the possible classes the char could be */
-  /* added float for more(?) accuracy */
-  for (i = 0; i < MAX_CLASSES; i++) {
-    level = CLASS_LEVEL(ch, i);
-    if (level) {
-      switch (CLSLIST_BAB(i)) {
-        case M:
-          counter += (float)level * 3.0 / 4.0;
-          break;
-        case H:
-          counter += (float)level;
-          break;
-        case L:
-        default:
-          counter += (float)level / 2.0;
-          break;
-      }
-    }
-  }
-
-  bab = (int)counter;
-  
-  if (char_has_mud_event(ch, eSPELLBATTLE) && SPELLBATTLE(ch) > 0) {
-    bab += MAX(1, (SPELLBATTLE(ch) * 2 / 3));
-  }
-  
-  if (wildshape_level > bab)
-    bab = wildshape_level;
-
-  if (!IS_NPC(ch)) /* cap pc bab at 30 */
-    return (MIN(bab, LVL_IMMORT - 1));
-
-  return bab;
-}
-
-/* Default titles system, simplified from stock -zusuk */
-const char *titles(int chclass, int level) {  
-  if (level <= 0 || level > LVL_IMPL)
-    return "the Being";
-  if (level == LVL_IMPL)
-    return "the Implementor";
-  /* Default title for classes which do not have titles defined */
-  if (chclass < 0 || chclass >= NUM_CLASSES)
-    return "the Classless";
-
-  int title_num = 0;
-
-  if (level <= 4)
-    title_num = 0;
-  else if (level <= 9)
-    title_num = 1;
-  else if (level <= 14)
-    title_num = 2;
-  else if (level <= 19)
-    title_num = 3;
-  else if (level <= 24)
-    title_num = 4;
-  else if (level <= 29)
-    title_num = 5;
-  else if (level <= 30)
-    title_num = 6;  
-  else if (level <= LVL_IMMORT)
-    title_num = 7;
-  else if (level <= LVL_STAFF)
-    title_num = 8;
-  else if (level <= LVL_GRSTAFF)
-    title_num = 9;
-  else
-    title_num = 10;
-  
-  return ( CLSLIST_TITLE(chclass, title_num) );
-}
-
-/* use to be old rolling system, now its just used to initialize base stats */
-void roll_real_abils(struct char_data *ch) {
-  GET_REAL_INT(ch) = 8;
-  GET_REAL_WIS(ch) = 8;
-  GET_REAL_CHA(ch) = 8;
-  GET_REAL_STR(ch) = 8;
-  GET_REAL_DEX(ch) = 8;
-  GET_REAL_CON(ch) = 8;
-  ch->aff_abils = ch->real_abils;
-}
-
-/* Information required for character leveling in regards to free feats
-   1) required class
-   2) required race
-   3) stacks?
-   4) level received
-   5) feat name
-   This function also assigns all our (starting) racial feats */
-static int level_feats[][LEVEL_FEATS] = {
-
-  /****************/
-  /* Racial feats */
-  /****************/
-
-  /* class, race, stacks?, level, feat_ name */
-        /* Human */
-  {CLASS_UNDEFINED, RACE_HUMAN, FALSE, 1, FEAT_QUICK_TO_MASTER},
-  {CLASS_UNDEFINED, RACE_HUMAN, FALSE, 1, FEAT_SKILLED},
-
-  /* class, race, stacks?, level, feat_ name */
-        /* Dwarf */
-  {CLASS_UNDEFINED, RACE_DWARF, FALSE, 1, FEAT_INFRAVISION},
-  {CLASS_UNDEFINED, RACE_DWARF, FALSE, 1, FEAT_POISON_RESIST},
-  {CLASS_UNDEFINED, RACE_DWARF, FALSE, 1, FEAT_STABILITY},
-  {CLASS_UNDEFINED, RACE_DWARF, FALSE, 1, FEAT_SPELL_HARDINESS},
-  {CLASS_UNDEFINED, RACE_DWARF, FALSE, 1, FEAT_COMBAT_TRAINING_VS_GIANTS},
-  {CLASS_UNDEFINED, RACE_DWARF, FALSE, 1, FEAT_DWARF_RACIAL_ADJUSTMENT},
-
-  /* class, race, stacks?, level, feat_ name */
-        /* Half-Troll */
-  {CLASS_UNDEFINED, RACE_HALF_TROLL, FALSE, 1, FEAT_ULTRAVISION},
-  {CLASS_UNDEFINED, RACE_HALF_TROLL, FALSE, 1, FEAT_TROLL_REGENERATION},
-  {CLASS_UNDEFINED, RACE_HALF_TROLL, FALSE, 1, FEAT_WEAKNESS_TO_FIRE},
-  {CLASS_UNDEFINED, RACE_HALF_TROLL, FALSE, 1, FEAT_WEAKNESS_TO_ACID},
-  {CLASS_UNDEFINED, RACE_HALF_TROLL, FALSE, 1, FEAT_STRONG_AGAINST_POISON},
-  {CLASS_UNDEFINED, RACE_HALF_TROLL, FALSE, 1, FEAT_STRONG_AGAINST_DISEASE},
-  {CLASS_UNDEFINED, RACE_HALF_TROLL, FALSE, 1, FEAT_HALF_TROLL_RACIAL_ADJUSTMENT},
-
-  /* class, race, stacks?, level, feat_ name */
-        /* Halfling */
-  {CLASS_UNDEFINED, RACE_HALFLING, FALSE, 1, FEAT_INFRAVISION},
-  {CLASS_UNDEFINED, RACE_HALFLING, FALSE, 1, FEAT_SHADOW_HOPPER},
-  {CLASS_UNDEFINED, RACE_HALFLING, FALSE, 1, FEAT_LUCKY},
-  {CLASS_UNDEFINED, RACE_HALFLING, FALSE, 1, FEAT_COMBAT_TRAINING_VS_GIANTS},
-  {CLASS_UNDEFINED, RACE_HALFLING, FALSE, 1, FEAT_HALFLING_RACIAL_ADJUSTMENT},
-
-  /* class, race, stacks?, level, feat_ name */
-        /* Half-Elf */
-  {CLASS_UNDEFINED, RACE_HALF_ELF, FALSE, 1, FEAT_INFRAVISION},
-  {CLASS_UNDEFINED, RACE_HALF_ELF, FALSE, 1, FEAT_WEAPON_PROFICIENCY_ELF},
-  {CLASS_UNDEFINED, RACE_HALF_ELF, FALSE, 1, FEAT_RESISTANCE_TO_ENCHANTMENTS},
-  {CLASS_UNDEFINED, RACE_HALF_ELF, FALSE, 1, FEAT_HALF_BLOOD},
-  {CLASS_UNDEFINED, RACE_HALF_ELF, FALSE, 1, FEAT_KEEN_SENSES},
-
-  /* class, race, stacks?, level, feat_ name */
-        /* Half-Orc */
-  {CLASS_UNDEFINED, RACE_HALF_ORC, FALSE, 1, FEAT_ULTRAVISION},
-  {CLASS_UNDEFINED, RACE_HALF_ORC, FALSE, 1, FEAT_HALF_ORC_RACIAL_ADJUSTMENT},
-
-  /* class, race, stacks?, level, feat_ name */
-        /* Gnome */
-  {CLASS_UNDEFINED, RACE_GNOME, FALSE, 1, FEAT_INFRAVISION},
-  {CLASS_UNDEFINED, RACE_GNOME, FALSE, 1, FEAT_COMBAT_TRAINING_VS_GIANTS},
-  {CLASS_UNDEFINED, RACE_GNOME, FALSE, 1, FEAT_RESISTANCE_TO_ILLUSIONS},
-  {CLASS_UNDEFINED, RACE_GNOME, FALSE, 1, FEAT_ILLUSION_AFFINITY},
-  {CLASS_UNDEFINED, RACE_GNOME, FALSE, 1, FEAT_TINKER_FOCUS},
-  {CLASS_UNDEFINED, RACE_GNOME, FALSE, 1, FEAT_GNOME_RACIAL_ADJUSTMENT},
-
-  /* class, race, stacks?, level, feat_ name */
-        /* Trelux */
-  {CLASS_UNDEFINED, RACE_TRELUX, FALSE, 1, FEAT_ULTRAVISION},
-  {CLASS_UNDEFINED, RACE_TRELUX, FALSE, 1, FEAT_VITAL},
-  {CLASS_UNDEFINED, RACE_TRELUX, FALSE, 1, FEAT_HARDY},
-  {CLASS_UNDEFINED, RACE_TRELUX, FALSE, 1, FEAT_VULNERABLE_TO_COLD},
-  {CLASS_UNDEFINED, RACE_TRELUX, FALSE, 1, FEAT_TRELUX_EXOSKELETON},
-  {CLASS_UNDEFINED, RACE_TRELUX, FALSE, 1, FEAT_LEAP},
-  {CLASS_UNDEFINED, RACE_TRELUX, FALSE, 1, FEAT_WINGS},
-  {CLASS_UNDEFINED, RACE_TRELUX, FALSE, 1, FEAT_TRELUX_EQ},
-  {CLASS_UNDEFINED, RACE_TRELUX, FALSE, 1, FEAT_TRELUX_PINCERS},
-
-  /* class, race, stacks?, level, feat_ name */
-        /* elf */
-  {CLASS_UNDEFINED, RACE_ELF, FALSE, 1, FEAT_INFRAVISION},
-  {CLASS_UNDEFINED, RACE_ELF, FALSE, 1, FEAT_WEAPON_PROFICIENCY_ELF},
-  {CLASS_UNDEFINED, RACE_ELF, FALSE, 1, FEAT_SLEEP_ENCHANTMENT_IMMUNITY},
-  {CLASS_UNDEFINED, RACE_ELF, FALSE, 1, FEAT_KEEN_SENSES},
-  {CLASS_UNDEFINED, RACE_ELF, FALSE, 1, FEAT_RESISTANCE_TO_ENCHANTMENTS},
-  {CLASS_UNDEFINED, RACE_ELF, FALSE, 1, FEAT_ELF_RACIAL_ADJUSTMENT},
-
-  /* class, race, stacks?, level, feat_ name */
-        /* crystal dwarf */
-  {CLASS_UNDEFINED, RACE_CRYSTAL_DWARF, FALSE, 1, FEAT_INFRAVISION},
-  {CLASS_UNDEFINED, RACE_CRYSTAL_DWARF, FALSE, 1, FEAT_CRYSTAL_BODY},
-  {CLASS_UNDEFINED, RACE_CRYSTAL_DWARF, FALSE, 1, FEAT_CRYSTAL_FIST},
-  {CLASS_UNDEFINED, RACE_CRYSTAL_DWARF, FALSE, 1, FEAT_VITAL},
-  {CLASS_UNDEFINED, RACE_CRYSTAL_DWARF, FALSE, 1, FEAT_HARDY},
-  {CLASS_UNDEFINED, RACE_CRYSTAL_DWARF, FALSE, 1, FEAT_CRYSTAL_SKIN},
-  {CLASS_UNDEFINED, RACE_CRYSTAL_DWARF, FALSE, 1, FEAT_POISON_RESIST},
-  {CLASS_UNDEFINED, RACE_CRYSTAL_DWARF, FALSE, 1, FEAT_COMBAT_TRAINING_VS_GIANTS},
-  {CLASS_UNDEFINED, RACE_CRYSTAL_DWARF, FALSE, 1, FEAT_CRYSTAL_DWARF_RACIAL_ADJUSTMENT},
-
-  /* class, race, stacks?, level, feat_ name */
-        /* Arcana Golem */
-  {CLASS_UNDEFINED, RACE_ARCANA_GOLEM, FALSE, 1, FEAT_SPELLBATTLE},
-  {CLASS_UNDEFINED, RACE_ARCANA_GOLEM, FALSE, 1, FEAT_SPELL_VULNERABILITY},
-  {CLASS_UNDEFINED, RACE_ARCANA_GOLEM, FALSE, 1, FEAT_ENCHANTMENT_VULNERABILITY},
-  {CLASS_UNDEFINED, RACE_ARCANA_GOLEM, FALSE, 1, FEAT_PHYSICAL_VULNERABILITY},
-  {CLASS_UNDEFINED, RACE_ARCANA_GOLEM, FALSE, 1, FEAT_MAGICAL_HERITAGE},
-  {CLASS_UNDEFINED, RACE_ARCANA_GOLEM, FALSE, 1, FEAT_ARCANA_GOLEM_RACIAL_ADJUSTMENT},
-
-  /*****************************************/
-  /* This is always the last array element */
-  /*****************************************/
-  {CLASS_UNDEFINED, RACE_UNDEFINED, FALSE, 1, FEAT_UNDEFINED}
-};
-
-
-/* function that gives chars starting gear */
-void newbieEquipment(struct char_data *ch) {
-  int objNums[] = {
-    NOOB_TELEPORTER,
-    NOOB_TORCH,
-    NOOB_TORCH,
-    NOOB_RATIONS,
-    NOOB_RATIONS,
-    NOOB_RATIONS,
-    NOOB_RATIONS,
-    NOOB_WATERSKIN,
-    NOOB_BP,
-    NOOB_CRAFTING_KIT,
-    NOOB_BOW,
-    -1 //had to end with -1
-  };
-  int x;
-  struct obj_data *obj = NULL, *quiver = NULL;
-
-  send_to_char(ch, "\tMYou are given a set of starting equipment...\tn\r\n");
-
-  // give everyone torch, rations, skin, backpack, bow, etc
-  for (x = 0; objNums[x] != -1; x++) {
-    obj = read_object(objNums[x], VIRTUAL);
-    if (obj) {
-      if (objNums[x] == NOOB_BP)
-        GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-      obj_to_char(obj, ch);
-    }
-  }
-
-  quiver = read_object(NOOB_QUIVER, VIRTUAL);
-  if (quiver)
-    obj_to_char(quiver, ch);
-
-  for (x = 0; x < NUM_NOOB_ARROWS; x++) {
-    obj = read_object(NOOB_ARROW, VIRTUAL);
-    if (quiver && obj)
-      obj_to_obj(obj, quiver);
-  }
-
-
-  switch (GET_CLASS(ch)) {
-    case CLASS_PALADIN:
-    case CLASS_CLERIC:
-    case CLASS_DRUID:
-      // holy symbol
-
-      obj = read_object(854, VIRTUAL);
-      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-      obj_to_char(obj, ch); // leather sleeves
-
-      obj = read_object(855, VIRTUAL);
-      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-      obj_to_char(obj, ch); // leather leggings
-
-      obj = read_object(861, VIRTUAL);
-      //GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-      obj_to_char(obj, ch); // slender iron mace
-
-      obj = read_object(863, VIRTUAL);
-      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-      obj_to_char(obj, ch); // shield
-
-      obj = read_object(807, VIRTUAL);
-      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-      obj_to_char(obj, ch); // scale mail
-
-      break;
-
-    case CLASS_BERSERKER:
-    case CLASS_WARRIOR:
-    case CLASS_RANGER:
-
-      obj = read_object(854, VIRTUAL);
-      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-      obj_to_char(obj, ch); // leather sleeves
-
-      obj = read_object(855, VIRTUAL);
-      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-      obj_to_char(obj, ch); // leather pants
-
-      if (GET_RACE(ch) == RACE_DWARF) {
-        obj = read_object(806, VIRTUAL);
-        //GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-        obj_to_char(obj, ch); // dwarven waraxe
-      } else {
-        obj = read_object(808, VIRTUAL);
-        //GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-        obj_to_char(obj, ch); // bastard sword
-      }
-      obj = read_object(863, VIRTUAL);
-      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-      obj_to_char(obj, ch); // shield
-
-      obj = read_object(807, VIRTUAL);
-      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-      obj_to_char(obj, ch); // scale mail
-
-      break;
-
-    case CLASS_MONK:
-      obj = read_object(809, VIRTUAL);
-      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-      obj_to_char(obj, ch); // cloth robes
-
-      break;
-
-    case CLASS_BARD:
-    case CLASS_ROGUE:
-      obj = read_object(854, VIRTUAL);
-      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-      obj_to_char(obj, ch); // leather sleeves
-
-      obj = read_object(855, VIRTUAL);
-      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-      obj_to_char(obj, ch); // leather pants
-
-      obj = read_object(851, VIRTUAL);
-      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-      obj_to_char(obj, ch); // studded leather
-
-      obj = read_object(852, VIRTUAL);
-      //GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-      obj_to_char(obj, ch); // dagger
-
-      obj = read_object(852, VIRTUAL);
-      //GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-      obj_to_char(obj, ch); // dagger
-
-      break;
-
-    case CLASS_WIZARD:
-      obj_to_char(read_object(NOOB_WIZ_NOTE, VIRTUAL), ch); //wizard note
-      obj_to_char(read_object(812, VIRTUAL), ch); //spellbook
-      /* switch fallthrough */
-    case CLASS_SORCERER:
-      obj = read_object(854, VIRTUAL);
-      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-      obj_to_char(obj, ch); // leather sleeves
-
-      obj = read_object(855, VIRTUAL);
-      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-      obj_to_char(obj, ch); // leather pants
-
-      obj = read_object(852, VIRTUAL);
-      //GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-      obj_to_char(obj, ch); // dagger
-
-      obj = read_object(809, VIRTUAL);
-      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-      obj_to_char(obj, ch); // cloth robes
-
-      break;
-    default:
-      log("Invalid class sent to newbieEquipment!");
-      break;
-  }
-}
-
-/* this is used to assign all the spells */
-void init_class(struct char_data *ch, int class, int level) {
-  struct class_spell_assign *spell_assign = NULL;
-  
-  if (class_list[class].spellassign_list != NULL) {
-    /*  This class has spell assignment! Traverse the list and check. */
-    for (spell_assign = class_list[class].spellassign_list; spell_assign != NULL;
-            spell_assign = spell_assign->next) {
-      SET_SKILL(ch, spell_assign->spell_num, 99);      
-    }
-  }
-
-  switch (class) {
-    case CLASS_CLERIC:
-      /* we also have to add this to study where we set our domains */
-      assign_domain_spells(ch);
-      break;
-    default:break;
-  }
-}
-
-/* not to be confused with init_char, this is exclusive right now for do_start */
-void init_start_char(struct char_data *ch) {
-  int trains = 0, i = 0, j = 0;
-
-  /* clear polymorph, affections cleared below */
-  SUBRACE(ch) = 0;
-  IS_MORPHED(ch) = 0;
-  GET_DISGUISE_RACE(ch) = 0;
-  cleanup_disguise(ch);
-
-  /* clear immortal flags */
-  if (PRF_FLAGGED(ch, PRF_HOLYLIGHT))
-    i = PRF_TOG_CHK(ch, PRF_HOLYLIGHT);
-  if (PRF_FLAGGED(ch, PRF_NOHASSLE))
-    i = PRF_TOG_CHK(ch, PRF_NOHASSLE);
-  if (PRF_FLAGGED(ch, PRF_SHOWVNUMS))
-    i = PRF_TOG_CHK(ch, PRF_SHOWVNUMS);
-  if (PRF_FLAGGED(ch, PRF_BUILDWALK))
-    i = PRF_TOG_CHK(ch, PRF_BUILDWALK);
-
-  /* clear gear for clean start */
-  for (i = 0; i < NUM_WEARS; i++)
-    if (GET_EQ(ch, i))
-      perform_remove(ch, i, TRUE);
-
-  /* clear affects for clean start */
-  if (ch->affected || AFF_FLAGS(ch)) {
-    while (ch->affected)
-      affect_remove(ch, ch->affected);
-    for (i = 0; i < AF_ARRAY_MAX; i++)
-      AFF_FLAGS(ch)[i] = 0;
-  }
-
-  /* initialize all levels and spec_abil array */
-  for (i = 0; i < MAX_CLASSES; i++) {
-    CLASS_LEVEL(ch, i) = 0;
-    GET_SPEC_ABIL(ch, i) = 0;
-  }
-  for (i = 0; i < MAX_ENEMIES; i++)
-    GET_FAVORED_ENEMY(ch, i) = 0;
-
-  /* a bit silly, but go ahead make sure no stone-skin like spells */
-  for (i = 0; i < MAX_WARDING; i++)
-    GET_WARDING(ch, i) = 0;
-
-  /* start at level 1 */
-  GET_LEVEL(ch) = 1;
-  CLASS_LEVEL(ch, GET_CLASS(ch)) = 1;
-  GET_EXP(ch) = 1;
-
-  /* reset title */
-  set_title(ch, NULL);
-
-  /* reset stats */
-  roll_real_abils(ch);
-  GET_REAL_AC(ch) = 100; /* base AC of 10 */
-  GET_REAL_HITROLL(ch) = 0;
-  GET_REAL_DAMROLL(ch) = 0;
-  GET_REAL_MAX_HIT(ch) = 20;
-  GET_REAL_MAX_MANA(ch) = 100;
-  GET_REAL_MAX_MOVE(ch) = 82;
-  GET_PRACTICES(ch) = 0;
-  GET_TRAINS(ch) = 0;
-  GET_BOOSTS(ch) = 0;
-  GET_FEAT_POINTS(ch) = 0;
-  GET_EPIC_FEAT_POINTS(ch) = 0;
-
-  for (i = 0; i < NUM_CLASSES; i++) {
-    GET_CLASS_FEATS(ch, i) = 0;
-    GET_EPIC_CLASS_FEATS(ch, i) = 0;
-  }
-
-  GET_REAL_SPELL_RES(ch) = 0;
-
-  /* reset skills/abilities */
-  /* we don't want players to lose their hard-earned crafting skills */
-  for (i = 1; i <= NUM_SKILLS; i++)
-    if (spell_info[i].schoolOfMagic != CRAFTING_SKILL)
-      SET_SKILL(ch, i, 0);
-  for (i = 1; i <= NUM_ABILITIES; i++)
-    SET_ABILITY(ch, i, 0);
-  for (i = 1; i < NUM_FEATS; i++)
-    SET_FEAT(ch, i, 0);
-  for (i = 0; i < NUM_CFEATS; i++)
-    for (j = 0; j < FT_ARRAY_MAX; j++)
-      (ch)->char_specials.saved.combat_feats[(i)][j] = 0;
-  for (i = 0; i < NUM_SFEATS; i++)
-    (ch)->char_specials.saved.school_feats[(i)] = 0;
-  for (i = 0; i < MAX_ABILITIES; i++)
-    for (j = 0; j < NUM_SKFEATS; j++)
-      (ch)->player_specials->saved.skill_focus[(i)][j] = 0;
-
-  /* initialize mem data, allow adjustment of spells known */
-  init_spell_slots(ch);
-  IS_SORC_LEARNED(ch) = 0;
-  IS_BARD_LEARNED(ch) = 0;
-  IS_RANG_LEARNED(ch) = 0;
-  IS_WIZ_LEARNED(ch) = 0;
-  IS_DRUID_LEARNED(ch) = 0;
-
-  /* hunger and thirst are off */
-  GET_COND(ch, HUNGER) = -1;
-  GET_COND(ch, THIRST) = -1;
-
-  /* universal skills */
-  switch (GET_RACE(ch)) {
-    case RACE_HUMAN:
-      GET_REAL_SIZE(ch) = SIZE_MEDIUM;
-      GET_FEAT_POINTS(ch)++;
-      trains += 3;
-      break;
-    case RACE_ELF:
-      GET_REAL_SIZE(ch) = SIZE_MEDIUM;
-      GET_REAL_DEX(ch) += 2;
-      GET_REAL_CON(ch) -= 2;
-      break;
-    case RACE_DWARF:
-      GET_REAL_SIZE(ch) = SIZE_MEDIUM;
-      GET_REAL_CON(ch) += 2;
-      GET_REAL_CHA(ch) -= 2;
-      break;
-    case RACE_HALFLING:
-      GET_REAL_SIZE(ch) = SIZE_SMALL;
-      GET_REAL_STR(ch) -= 2;
-      GET_REAL_DEX(ch) += 2;
-      break;
-    case RACE_H_ELF:
-      GET_REAL_SIZE(ch) = SIZE_MEDIUM;
-      break;
-    case RACE_H_ORC:
-      GET_REAL_SIZE(ch) = SIZE_MEDIUM;
-      GET_REAL_INT(ch) -= 2;
-      GET_REAL_CHA(ch) -= 2;
-      GET_REAL_STR(ch) += 2;
-      break;
-    case RACE_GNOME:
-      GET_REAL_SIZE(ch) = SIZE_SMALL;
-      GET_REAL_CON(ch) += 2;
-      GET_REAL_STR(ch) -= 2;
-      break;
-    case RACE_HALF_TROLL:
-      GET_REAL_SIZE(ch) = SIZE_LARGE;
-      GET_REAL_CON(ch) += 2;
-      GET_REAL_STR(ch) += 2;
-      GET_REAL_DEX(ch) += 2;
-      GET_REAL_INT(ch) -= 4;
-      GET_REAL_WIS(ch) -= 4;
-      GET_REAL_CHA(ch) -= 4;
-      break;
-    case RACE_CRYSTAL_DWARF:
-      GET_REAL_SIZE(ch) = SIZE_MEDIUM;
-      GET_REAL_CON(ch) += 8;
-      GET_REAL_STR(ch) += 2;
-      GET_REAL_CHA(ch) += 2;
-      GET_REAL_WIS(ch) += 2;
-      GET_MAX_HIT(ch) += 10;
-      break;
-    case RACE_TRELUX:
-      GET_REAL_SIZE(ch) = SIZE_SMALL;
-      GET_REAL_STR(ch) += 2;
-      GET_REAL_DEX(ch) += 8;
-      GET_REAL_CON(ch) += 4;
-      GET_MAX_HIT(ch) += 10;
-      break;
-    case RACE_ARCANA_GOLEM:
-      GET_REAL_SIZE(ch) = SIZE_MEDIUM;
-      GET_REAL_CON(ch) -= 2;
-      GET_REAL_STR(ch) -= 2;
-      GET_REAL_INT(ch) += 2;
-      GET_REAL_WIS(ch) += 2;
-      GET_REAL_CHA(ch) += 2;
-      break;
-    default:
-      GET_REAL_SIZE(ch) = SIZE_MEDIUM;
-      break;
-  }
-
-  /* warrior bonus */
-  if (GET_CLASS(ch) == CLASS_WARRIOR)
-    GET_CLASS_FEATS(ch, CLASS_WARRIOR)++; /* Bonus Feat */
-  
-  /* when you study it reinitializes your trains now */  
-  int int_bonus = GET_INT_BONUS(ch); /* this is the way it should be */
-
-  /* assign trains, this gets over-written anyhow during study session at lvl 1 */
-  trains += MAX(1, (CLSLIST_TRAINS(GET_CLASS(ch)) + (int) (int_bonus)) * 3);
-
-  /* finalize */
-  GET_FEAT_POINTS(ch)++; /* 1st level feat. */
-  send_to_char(ch, "%d \tMFeat points gained.\tn\r\n", GET_FEAT_POINTS(ch));
-  send_to_char(ch, "%d \tMClass Feat points gained.\tn\r\n", GET_CLASS_FEATS(ch, GET_CLASS(ch)));
-  GET_TRAINS(ch) += trains;
-  send_to_char(ch, "%d \tMTraining sessions gained.\tn\r\n", trains);
-}
-
-/* Some initializations for characters, including initial skills */
-void do_start(struct char_data *ch) {
-  init_start_char(ch);
-
-  //from level 0 -> level 1
-  advance_level(ch, GET_CLASS(ch));
-  GET_HIT(ch) = GET_MAX_HIT(ch);
-  GET_MANA(ch) = GET_MAX_MANA(ch);
-  GET_MOVE(ch) = GET_MAX_MOVE(ch);
-  GET_COND(ch, DRUNK) = 0;
-  if (CONFIG_SITEOK_ALL)
-    SET_BIT_AR(PLR_FLAGS(ch), PLR_SITEOK);
-}
-
-/* at each level we run this function to assign free CLASS feats */
-void process_class_level_feats(struct char_data *ch, int class) {
-  char featbuf[MAX_STRING_LENGTH];
-  struct class_feat_assign *feat_assign = NULL;
-  int class_level = -1;
-  struct damage_reduction_type *dr = NULL, *temp = NULL, *ptr = NULL;
-
-  /* deal with some instant disqualification */
-  if (class < 0 || class >= NUM_CLASSES)
-    return;
-  class_level = CLASS_LEVEL(ch, class); 
-  if (class_level <= 0)
-    return;
-  if (class_list[class].featassign_list == NULL)
-    return;
-  
-  sprintf(featbuf, "\tM");
-  
-  /*  This class has potential feat assignment! Traverse the list and assign. */
-  for (feat_assign = class_list[class].featassign_list; feat_assign != NULL;
-            feat_assign = feat_assign->next) {
-    
-    /* appropriate level to receive this feat? */
-    if (feat_assign->level_received == class_level) {
-      
-      /* any special handling for this feat? */
-      switch (feat_assign->feat_num) {
-        
-        case FEAT_SNEAK_ATTACK:
-          sprintf(featbuf, "%s\tMYour sneak attack has increased to +%dd6!\tn\r\n", featbuf, HAS_FEAT(ch, FEAT_SNEAK_ATTACK) + 1);
-          break;
-          
-        case FEAT_SHRUG_DAMAGE:
-          for (dr = GET_DR(ch); dr != NULL; dr = dr->next) {
-            if (dr->feat == FEAT_SHRUG_DAMAGE) {
-              REMOVE_FROM_LIST(dr, GET_DR(ch), next);
-            }
-          }
-
-          CREATE(ptr, struct damage_reduction_type, 1);
-
-          ptr->spell = 0;
-          ptr->feat = FEAT_SHRUG_DAMAGE;
-          ptr->amount = HAS_FEAT(ch, FEAT_SHRUG_DAMAGE) + 1;
-          ptr->max_damage = -1;
-
-          ptr->bypass_cat[0] = DR_BYPASS_CAT_NONE;
-          ptr->bypass_val[0] = 0;
-          ptr->bypass_cat[1] = DR_BYPASS_CAT_UNUSED;
-          ptr->bypass_val[1] = 0; /* Unused. */
-          ptr->bypass_cat[2] = DR_BYPASS_CAT_UNUSED;
-          ptr->bypass_val[2] = 0; /* Unused. */
-
-          ptr->next = GET_DR(ch);
-          GET_DR(ch) = ptr;
-
-          sprintf(featbuf, "%s\tMYou can now shrug off %d damage!\tn\r\n", featbuf, HAS_FEAT(ch, FEAT_SHRUG_DAMAGE) + 1);
-          break;
-          
-        case FEAT_STRENGTH_BOOST:
-          ch->real_abils.str += 2;
-          sprintf(featbuf, "%s\tMYour natural strength has increased by +2!\r\n", featbuf);
-          break;
-          
-        case FEAT_CHARISMA_BOOST:
-          ch->real_abils.cha += 2;
-          sprintf(featbuf, "%s\tMYour natural charisma has increased by +2!\r\n", featbuf);
-          break;
-          
-        case FEAT_CONSTITUTION_BOOST:
-          ch->real_abils.con += 2;
-          sprintf(featbuf, "%s\tMYour natural constitution has increased by +2!\r\n", featbuf);
-          break;
-          
-        case FEAT_INTELLIGENCE_BOOST:
-          ch->real_abils.intel += 2;
-          sprintf(featbuf, "%s\tMYour natural intelligence has increased by +2!\r\n", featbuf);
-          break;
-          
-        /* no special handling */
-        default:
-          if (HAS_FEAT(ch, feat_assign->feat_num))
-            sprintf(featbuf, "%s\tMYou have improved your %s %s!\tn\r\n", featbuf,
-                  feat_list[feat_assign->feat_num].name,
-                  feat_types[feat_list[feat_assign->feat_num].feat_type]);
-          else
-            sprintf(featbuf, "%s\tMYou have gained the %s %s!\tn\r\n", featbuf,
-                  feat_list[feat_assign->feat_num].name,
-                  feat_types[feat_list[feat_assign->feat_num].feat_type]);
-          break;
-      }
-      
-      /* now actually adjust the feat */
-      SET_FEAT(ch, feat_assign->feat_num, HAS_REAL_FEAT(ch, feat_assign->feat_num) + 1);
-      
-    }
-  }
-  
-  /* send our feat buffer to char */
-  send_to_char(ch, "%s", featbuf);
-}
-
-/* TODO: rewrite this! */
-/* at each level we run this function to assign free RACE feats */
-void process_level_feats(struct char_data *ch, int class) {
-  char featbuf[MAX_STRING_LENGTH];
-  int i = 0;
-
-  sprintf(featbuf, "\tM");
-
-  /* increment through the list, FEAT_UNDEFINED is our terminator */
-  while (level_feats[i][LF_FEAT] != FEAT_UNDEFINED) {
-
-    /* feat i doesnt matches our class or we don't meet the min-level (from if above) */
-    /* non-class, racial feat and don't have it yet */
-    if (level_feats[i][LF_CLASS] == CLASS_UNDEFINED &&
-            level_feats[i][LF_RACE] == GET_RACE(ch) &&
-            !HAS_FEAT(ch, level_feats[i][LF_FEAT])) {
-      if (HAS_FEAT(ch, level_feats[i][LF_FEAT]))
-        sprintf(featbuf, "%s\tMYou have improved your %s %s!\tn\r\n", featbuf,
-            feat_list[level_feats[i][LF_FEAT]].name,
-            feat_types[feat_list[level_feats[i][LF_FEAT]].feat_type] );
-      else
-        sprintf(featbuf, "%s\tMYou have gained the %s %s!\tn\r\n", featbuf,
-            feat_list[level_feats[i][LF_FEAT]].name,
-            feat_types[feat_list[level_feats[i][LF_FEAT]].feat_type] );
-      SET_FEAT(ch, level_feats[i][LF_FEAT], HAS_REAL_FEAT(ch, level_feats[i][LF_FEAT]) + 1);
-    }
-    
-    /* counter */
-    i++;
-  }
-
-  send_to_char(ch, "%s", featbuf);
-}
-
-/* our function for leveling up */
-void advance_level(struct char_data *ch, int class) {
-  int add_hp = 0, at_armor = 100,
-          add_mana = 0, add_move = 0, k, trains = 0;
-  int feats = 0, class_feats = 0, epic_feats = 0, epic_class_feats = 0;
-  int i = 0;
-
-  /**because con items / spells are affecting based on level, we have to
-  unaffect before we level up -zusuk */
-  at_armor = affect_total_sub(ch); /* at_armor stores ac */
-  /* done unaffecting */
-
-  add_hp = GET_CON_BONUS(ch);
-
-  /* first level in a class?  might have some inits to do! */
-  if (CLASS_LEVEL(ch, class) == 1) {
-    send_to_char(ch, "\tMInitializing class:  \r\n");
-    init_class(ch, class, CLASS_LEVEL(ch, class));
-    send_to_char(ch, "\r\n");
-  }
-
-  /* start our primary advancement block */
-  send_to_char(ch, "\tMGAINS:\tn\r\n");
-
-  /* calculate hps gain */
-  add_hp += rand_number(CLSLIST_HPS(class)/2, CLSLIST_HPS(class));
-  
-  /* calculate moves gain */
-  add_move += rand_number(1, CLSLIST_MVS(class));
-  
-  /* calculate mana gain */
-  //add_mana += rand_number(CLSLIST_MANA(class)/2, CLSLIST_MANA(class));
-  add_mana = 0;
-  
-  /* calculate trains gained */
-  trains += MAX(1, (CLSLIST_TRAINS(class) + (GET_REAL_INT_BONUS(ch))));
-  
-  /* epic feat progresion */
-  if (!(CLASS_LEVEL(ch, class) % CLSLIST_EFEATP(class)) && IS_EPIC(ch)) {
-    epic_class_feats++;
-  }
-  
-  /* special feat progression */  
-  if (class == CLASS_WIZARD && !(CLASS_LEVEL(ch, CLASS_WIZARD) % 5)) {
-    if (!IS_EPIC(ch))
-      class_feats++; /* wizards get a bonus class feat every 5 levels */
-    else if (IS_EPIC(ch))
-      epic_class_feats++;      
-  }
-  if (class == CLASS_WARRIOR && !(CLASS_LEVEL(ch, CLASS_WARRIOR) % 2)) {
-    if (!IS_EPIC(ch))
-      class_feats++; /* wizards get a bonus class feat every 5 levels */
-    else if (IS_EPIC(ch))
-      epic_class_feats++;      
-  }
-
-  /* further movement modifications */
-  if (HAS_FEAT(ch, FEAT_ENDURANCE)) {
-    add_move += rand_number(1, 2);
-  }
-  if (HAS_FEAT(ch, FEAT_FAST_MOVEMENT)) {
-    add_move += rand_number(1, 2);
-  }
-
-  /* 'free' race feats gained (old system) */
-  process_level_feats(ch, class);
-  /* 'free' class feats gained (new system) */
-  process_class_level_feats(ch, class);
-          
-  //Racial Bonuses
-  switch (GET_RACE(ch)) {
-    case RACE_HUMAN:
-      trains++;
-      break;
-    case RACE_CRYSTAL_DWARF:
-      add_hp += 4;
-      break;
-    case RACE_TRELUX:
-      add_hp += 4;
-      break;
-    default:
-      break;
-  }
-
-  //base practice / boost improvement
-  if (!(GET_LEVEL(ch) % 3) && !IS_EPIC(ch)) {
-    feats++;
-  }
-  if (!(GET_LEVEL(ch) % 3) && IS_EPIC(ch)) {
-    epic_feats++;
-  }
-  if (!(GET_LEVEL(ch) % 4)) {
-    GET_BOOSTS(ch)++;
-    send_to_char(ch, "\tMYou gain a boost (to stats) point!\tn\r\n");
-  }
-
-  /* miscellaneous level-based bonuses */
-  if (HAS_FEAT(ch, FEAT_TOUGHNESS)) {
-    /* SRD has this as +3 hp.  More fun as +1 per level. */
-    for (i = HAS_FEAT(ch, FEAT_TOUGHNESS); i > 0; i--)
-      add_hp++;
-  }
-  if (HAS_FEAT(ch, FEAT_EPIC_TOUGHNESS)) {
-    /* SRD has this listed as +30 hp.  More fun to do it by level perhaps. */
-    for (i = HAS_FEAT(ch, FEAT_EPIC_TOUGHNESS); i > 0; i--)
-      add_hp++;
-  }
-
-  /* adjust final and report changes! */
-  GET_REAL_MAX_HIT(ch) += MAX(1, add_hp);
-  send_to_char(ch, "\tMTotal HP:\tn %d\r\n", MAX(1, add_hp));
-  GET_REAL_MAX_MOVE(ch) += MAX(1, add_move);
-  send_to_char(ch, "\tMTotal Move:\tn %d\r\n", MAX(1, add_move));
-  if (GET_LEVEL(ch) > 1) {
-    GET_REAL_MAX_MANA(ch) += add_mana;
-    send_to_char(ch, "\tMTotal Mana:\tn %d\r\n", add_mana);
-  }
-  GET_FEAT_POINTS(ch) += feats;
-  if (feats)
-    send_to_char(ch, "%d \tMFeat points gained.\tn\r\n", feats);
-  GET_CLASS_FEATS(ch, class) += class_feats;
-  if (class_feats)
-    send_to_char(ch, "%d \tMClass feat points gained.\tn\r\n", class_feats);
-  GET_EPIC_FEAT_POINTS(ch) += epic_feats;
-  if (epic_feats)
-    send_to_char(ch, "%d \tMEpic feat points gained.\tn\r\n", epic_feats);
-  GET_EPIC_CLASS_FEATS(ch, class) += epic_class_feats;
-  if (epic_class_feats)
-    send_to_char(ch, "%d \tMEpic class feat points gained.\tn\r\n", epic_class_feats);
-  GET_TRAINS(ch) += trains;
-  send_to_char(ch, "%d \tMTraining sessions gained.\tn\r\n", trains);
-  /*******/
-  /* end advancement block */
-  /*******/
-
-  /**** reaffect ****/
-  affect_total_plus(ch, at_armor);
-  /* end reaffecting */
-
-  /* give immorts some goodies */
-  if (GET_LEVEL(ch) >= LVL_IMMORT) {
-    for (k = 0; k < 3; k++)
-      GET_COND(ch, k) = (char) - 1;
-    SET_BIT_AR(PRF_FLAGS(ch), PRF_HOLYLIGHT);
-    send_to_char(ch, "Setting \tRHOLYLIGHT\tn on.\r\n");
-    SET_BIT_AR(PRF_FLAGS(ch), PRF_NOHASSLE);
-    send_to_char(ch, "Setting \tRNOHASSLE\tn on.\r\n");
-    SET_BIT_AR(PRF_FLAGS(ch), PRF_SHOWVNUMS);
-    send_to_char(ch, "Setting \tRSHOWVNUMS\tn on.\r\n");
-  }
-
-  /* make sure you aren't snooping someone you shouldn't with new level */
-  snoop_check(ch);
-  save_char(ch, 0);
-}
-
-/* if you get multiplier for backstab, calculated here */
-int backstab_mult(struct char_data *ch) {
-  if (HAS_FEAT(ch, FEAT_BACKSTAB))
-    return 2;
-
-  return 1;
-}
-
-// used by handler.c, completely depreacted function right now
-int invalid_class(struct char_data *ch, struct obj_data *obj) {
-  return FALSE;
-}
-
-// vital min level info!
-void init_spell_levels(void) {
-  int i = 0, j = 0, class = 0;
-  struct class_spell_assign *spell_assign = NULL;
-
-  // simple loop to init min-level 1 for all the SKILL_x to all classes
-  for (i = (MAX_SPELLS + 1); i < NUM_SKILLS; i++) {
-    for (j = 0; j < NUM_CLASSES; j++) {
-      spell_level(i, j, 1);
-    }
-  }
-
-  for (class = CLASS_WIZARD; class < NUM_CLASSES; class++) {
-    if (class_list[class].spellassign_list != NULL) {
-      /*  This class has spell assignment! Traverse the list and check. */
-      for (spell_assign = class_list[class].spellassign_list; spell_assign != NULL;
-              spell_assign = spell_assign->next) {
-        spell_level(spell_assign->spell_num, class, spell_assign->level);
-      }
-    }
-  }
- 
-}
-
-// level_exp ran with level+1 will give xp to next level
-// level_exp+1 - level_exp = exp to next level
-int level_exp(struct char_data *ch, int level) {
-  int chclass = GET_CLASS(ch);
-  int exp = 0, factor = 0;
-
-  if (level > (LVL_IMPL + 1) || level < 0) {
-    log("SYSERR: Requesting exp for invalid level %d!", level);
-    return 0;
-  }
-
-  /* Gods have exp close to EXP_MAX.  This statement should never have to
-   * changed, regardless of how many mortal or immortal levels exist. */
-  if (level > LVL_IMMORT) {
-    return EXP_MAX - ((LVL_IMPL - level) * 1000);
-  }
-
-  factor = 2000 + (level - 2) * 750;
-
-  /* Exp required for normal mortals is below */
-  switch (chclass) {
-    case CLASS_WIZARD:
-    case CLASS_SORCERER:
-    case CLASS_PALADIN:
-    case CLASS_MONK:
-    case CLASS_DRUID:
-    case CLASS_RANGER:
-    case CLASS_WARRIOR:
-    case CLASS_WEAPON_MASTER:
-    case CLASS_STALWART_DEFENDER:
-    case CLASS_SHIFTER:
-    case CLASS_ARCANE_ARCHER:
-    case CLASS_ROGUE:
-    case CLASS_BARD:
-    case CLASS_BERSERKER:
-    case CLASS_CLERIC:
-      level--;
-      if (level < 0)
-        level = 0;
-      exp += (level * level * factor);
-      break;
-
-    default:
-      log("SYSERR: Reached invalid class in class.c level()!");
-      return 123456;
-  }
-
-  //can add other exp penalty/bonuses here
-  switch (GET_REAL_RACE(ch)) { /* funny bug: use to use disguised/wildshape race */
-      //advanced races
-    case RACE_HALF_TROLL:
-      exp *= 2;
-      break;
-    case RACE_ARCANA_GOLEM:
-      exp *= 2;
-      break;
-      //epic races
-    case RACE_CRYSTAL_DWARF:
-      exp *= 15;
-      break;
-    case RACE_TRELUX:
-      exp *= 15;
-      break;
-    default:
-      break;
-  }
-
-  return exp;
-}
-
-
 
 /** LOCAL UNDEFINES **/
 // good/bad

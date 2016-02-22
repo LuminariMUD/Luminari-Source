@@ -497,6 +497,7 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 /* let's keep shared races (pc/npc) up to (29)*/
 
 /* extended races */
+#define TOP_EXTENDED_RACES          30
 #define RACE_MINOTAUR               30
 #define RACE_HUMAN_ERGOTH           31
 #define RACE_HUMAN_ISTAR            32

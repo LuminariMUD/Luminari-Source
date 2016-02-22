@@ -65,7 +65,6 @@ extern const char *npc_subrace_types[];
 extern const char *npc_race_menu;
 extern const char *pc_race_types[];
 extern const char *npc_race_types[];
-extern const char *race_menu;
 
 #endif /* __RACE_C__ */
 
