@@ -1176,25 +1176,39 @@ static void main_feat_disp_menu(struct descriptor_data *d) {
 }
 
 static void display_study_feats(struct descriptor_data *d) {
-
   struct char_data *ch = d->character;
   int i = 0, j = 0, feat_marker = 0, feat_counter = 0, sortpos = 0;
   int count = 0;
   bool class_feat = FALSE;
+  struct class_feat_assign *feat_assign = NULL;
+  int class = LEVELUP(ch)->class;
 
+  /* we're traversing the list of feats in alphabetical order */
   for (sortpos = 1; sortpos < NUM_FEATS; sortpos++) {
-
+    /* i = the feat we are now handling */
     i = feat_sort_info[sortpos];
-    feat_marker = 1;
-    feat_counter = 0;
-    class_feat = FALSE;
+    feat_marker = 1; /* using this to mark the class feat list */
+    feat_counter = 0; /* counter used for transvering class-feats list */
+    class_feat = FALSE; /* is this a class feat? */
 
+    /* we now traverse the class's list of class-feats to see if 'i' matches */
+    /*
     while (feat_marker != 0) {
-      feat_marker = class_bonus_feats[LEVELUP(ch)->class][feat_counter];
+      feat_marker = class_bonus_feats[class][feat_counter];
       if (feat_marker == i) {
-        class_feat = TRUE;
+        class_feat = TRUE; // yep this is a class feat!
       }
       feat_counter++;
+    }
+    */
+
+    /* we now traverse the class's list of class-feats to see if 'i' matches */
+    for (feat_assign = class_list[class].featassign_list; feat_assign != NULL;
+            feat_assign = feat_assign->next) {
+      /* is this a class feat?  and is this feat a match for 'i'? */
+      if (feat_assign->is_classfeat && feat_assign->feat_num == i) {
+        class_feat = TRUE; /* yep this is a class feat! */        
+      }
     }
 
     j = 0;
