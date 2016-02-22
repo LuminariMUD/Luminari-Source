@@ -1188,19 +1188,8 @@ static void display_study_feats(struct descriptor_data *d) {
     /* i = the feat we are now handling */
     i = feat_sort_info[sortpos];
     feat_marker = 1; /* using this to mark the class feat list */
-    feat_counter = 0; /* counter used for transvering class-feats list */
+    feat_counter = 0; /* counter used for traversing class-feats list */
     class_feat = FALSE; /* is this a class feat? */
-
-    /* we now traverse the class's list of class-feats to see if 'i' matches */
-    /*
-    while (feat_marker != 0) {
-      feat_marker = class_bonus_feats[class][feat_counter];
-      if (feat_marker == i) {
-        class_feat = TRUE; // yep this is a class feat!
-      }
-      feat_counter++;
-    }
-    */
 
     /* we now traverse the class's list of class-feats to see if 'i' matches */
     for (feat_assign = class_list[class].featassign_list; feat_assign != NULL;

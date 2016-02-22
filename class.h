@@ -125,7 +125,6 @@ ACMD(do_class);
 extern const char *church_types[];
 extern int prac_params[][NUM_CLASSES];
 extern struct guild_info_type guild_info[];
-extern const int *class_bonus_feats[NUM_CLASSES];
 
 #endif /* __CLASS_C__ */
 
