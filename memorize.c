@@ -1255,9 +1255,9 @@ int numSpells(struct char_data *ch, int circle, int class) {
         num++;
       else if (spellCircle(class, PREPARED_SPELLS(ch, slot, classArray(class)).spell, PREPARED_SPELLS(ch, slot, classArray(class)).metamagic, GET_2ND_DOMAIN(ch)) == circle)
         num++;
-      if (spellCircle(class, PREPARATION_QUEUE(ch, slot, classArray(class)).spell, PREPARED_SPELLS(ch, slot, classArray(class)).metamagic, GET_1ST_DOMAIN(ch)) == circle)
+      if (spellCircle(class, PREPARATION_QUEUE(ch, slot, classArray(class)).spell, PREPARATION_QUEUE(ch, slot, classArray(class)).metamagic, GET_1ST_DOMAIN(ch)) == circle)
         num++;
-      else if (spellCircle(class, PREPARATION_QUEUE(ch, slot, classArray(class)).spell, PREPARED_SPELLS(ch, slot, classArray(class)).metamagic, GET_2ND_DOMAIN(ch)) == circle)
+      else if (spellCircle(class, PREPARATION_QUEUE(ch, slot, classArray(class)).spell, PREPARATION_QUEUE(ch, slot, classArray(class)).metamagic, GET_2ND_DOMAIN(ch)) == circle)
         num++;
     }
   } else {
@@ -1265,7 +1265,7 @@ int numSpells(struct char_data *ch, int circle, int class) {
     for (slot = 0; slot < (MAX_MEM); slot++) {
       if (spellCircle(class, PREPARED_SPELLS(ch, slot, classArray(class)).spell, PREPARED_SPELLS(ch, slot, classArray(class)).metamagic, DOMAIN_UNDEFINED) == circle)
         num++;
-      if (spellCircle(class, PREPARATION_QUEUE(ch, slot, classArray(class)).spell, PREPARED_SPELLS(ch, slot, classArray(class)).metamagic, DOMAIN_UNDEFINED) == circle)
+      if (spellCircle(class, PREPARATION_QUEUE(ch, slot, classArray(class)).spell, PREPARATION_QUEUE(ch, slot, classArray(class)).metamagic, DOMAIN_UNDEFINED) == circle)
         num++;
     }
   }
