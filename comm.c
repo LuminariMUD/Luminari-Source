@@ -3269,7 +3269,7 @@ static void msdp_update(void) {
                 MsdpVar, MsdpVal,
                 world[IN_ROOM(ch)].name,
                 MsdpVar, MsdpVal,
-                strip_colors(zone_table[GET_ROOM_ZONE(IN_ROOM(ch))].name),
+                zone_table[GET_ROOM_ZONE(IN_ROOM(ch))].name,
                 MsdpVar, MsdpVal,
                 MSDP_TABLE_OPEN,
                 MsdpVar, MsdpVal,
