@@ -3194,7 +3194,7 @@ static void msdp_update(void) {
       MSDPSetNumber(d, eMSDP_ALIGNMENT, GET_ALIGNMENT(ch));
       MSDPSetNumber(d, eMSDP_EXPERIENCE, GET_EXP(ch));
       MSDPSetNumber(d, eMSDP_EXPERIENCE_TNL, level_exp(ch, GET_LEVEL(ch) + 1) - GET_EXP(ch));
-      MSDPSetNumber(d, eMSDP_EXPERIENCE_MAX, level_exp(ch, GET_LEVEL(ch) + 1) - MIN(GET_EXP(ch), level_exp(ch, GET_LEVEL(ch))));
+      MSDPSetNumber(d, eMSDP_EXPERIENCE_MAX, level_exp(ch, GET_LEVEL(ch) + 1) - level_exp(ch, GET_LEVEL(ch)));
 
       MSDPSetNumber(d, eMSDP_HEALTH, GET_HIT(ch));
       MSDPSetNumber(d, eMSDP_HEALTH_MAX, GET_MAX_HIT(ch));
