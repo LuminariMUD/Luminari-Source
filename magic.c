@@ -1355,7 +1355,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   }
 
   /* various bonus/penalty; added IS_NPC check to prevent NPCs from getting incorrect bonuses,
-   * since NPCRACE_HUMAN = RACE_ELF, etc. -Nashak */
+   * since RACE_TYPE_HUMAN = RACE_ELF, etc. -Nashak */
   if (!IS_NPC(ch)) {
     if (HAS_FEAT(victim, FEAT_STILL_MIND))
       enchantment_bonus += 2;
@@ -2135,7 +2135,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case SPELL_GREATER_MAGIC_FANG:
-      if (!IS_NPC(victim) || GET_RACE(victim) != NPCRACE_ANIMAL) {
+      if (!IS_NPC(victim) || GET_RACE(victim) != RACE_TYPE_ANIMAL) {
         send_to_char(ch, "Magic fang can only be cast upon animals.\r\n");
         return;
       }
@@ -2270,7 +2270,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case SPELL_HOLD_ANIMAL: // enchantment
-      if (!IS_NPC(victim) || GET_RACE(victim) != NPCRACE_ANIMAL) {
+      if (!IS_NPC(victim) || GET_RACE(victim) != RACE_TYPE_ANIMAL) {
         send_to_char(ch, "This spell is only effective on animals.\r\n");
         return;
       }
@@ -2414,7 +2414,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case SPELL_MAGIC_FANG:
-      if (!IS_NPC(victim) || GET_RACE(victim) != NPCRACE_ANIMAL) {
+      if (!IS_NPC(victim) || GET_RACE(victim) != RACE_TYPE_ANIMAL) {
         send_to_char(ch, "Magic fang can only be cast upon animals.\r\n");
         return;
       }

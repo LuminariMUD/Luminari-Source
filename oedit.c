@@ -566,7 +566,7 @@ void oedit_disp_specab_bane_race(struct descriptor_data *d) {
   get_char_colors(d->character);
   clear_screen(d);
 
-  for (counter = 0; counter < NUM_NPC_RACES; counter++) {
+  for (counter = 0; counter < NUM_RACE_TYPES; counter++) {
     write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel,
             npc_race_types[counter], !(++columns % 3) ? "\r\n" : "");
   }
@@ -2340,7 +2340,7 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
       switch(OLC_SPECAB(d)->ability) {
         case WEAPON_SPECAB_BANE: /* Val 1: NPC RACE */
           number = atoi(arg);
-          if((number < 0) || (number >= NUM_NPC_RACES)) {
+          if((number < 0) || (number >= NUM_RACE_TYPES)) {
             /* Value out of range. */
             write_to_output(d, "Invalid choice, try again : ");
             return;

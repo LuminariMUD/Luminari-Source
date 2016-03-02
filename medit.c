@@ -327,7 +327,7 @@ void medit_disp_race(struct descriptor_data *d) {
   get_char_colors(d->character);
   clear_screen(d);
 
-  for (counter = 0; counter < NUM_NPC_RACES; counter++) {
+  for (counter = 0; counter < NUM_RACE_TYPES; counter++) {
     write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel,
             npc_race_types[counter], !(++columns % 3) ? "\r\n" : "");
   }
@@ -1772,9 +1772,9 @@ void medit_parse(struct descriptor_data *d, char *arg) {
 
     case MEDIT_RACE:
       if (i == 99)
-        GET_REAL_RACE(OLC_MOB(d)) = rand_number(1, NUM_NPC_RACES - 1);
+        GET_REAL_RACE(OLC_MOB(d)) = rand_number(1, NUM_RACE_TYPES - 1);
       else
-        GET_REAL_RACE(OLC_MOB(d)) = LIMIT(i, 0, NUM_NPC_RACES - 1);
+        GET_REAL_RACE(OLC_MOB(d)) = LIMIT(i, 0, NUM_RACE_TYPES - 1);
       break;
 
     case MEDIT_SUB_RACE_1:
@@ -2023,11 +2023,11 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned) {
 
   /* racial mods */
   switch (GET_RACE(mob)) {
-    case NPCRACE_HUMAN:
+    case RACE_TYPE_HUMANOID:
       break;
-    case NPCRACE_UNDEAD:
+    case RACE_TYPE_UNDEAD:
       break;
-    case NPCRACE_ANIMAL:
+    case RACE_TYPE_ANIMAL:
       GET_INT(mob) -= 7;
       GET_WIS(mob) -= 7;
       GET_CHA(mob) -= 7;
@@ -2035,7 +2035,7 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned) {
       GET_SAVE(mob, SAVING_REFL) += 4;
       GET_GOLD(mob) = 0;
       break;
-    case NPCRACE_DRAGON:
+    case RACE_TYPE_DRAGON:
       (mob)->aff_abils.dex += 6;
       (mob)->aff_abils.str += 6;
       (mob)->aff_abils.con += 6;
@@ -2047,46 +2047,46 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned) {
       GET_SAVE(mob, SAVING_WILL) += 4;
       GET_SPELL_RES(mob) = 10 + level;
       break;
-    case NPCRACE_GIANT:
+    case RACE_TYPE_GIANT:
       (mob)->aff_abils.str += 4;
       (mob)->aff_abils.con += 4;
       (mob)->aff_abils.dex -= 7;
       if (GET_SIZE(mob) < SIZE_LARGE)
         GET_REAL_SIZE(mob) = SIZE_LARGE;
       break;
-    case NPCRACE_ABERRATION:
+    case RACE_TYPE_ABERRATION:
       GET_SAVE(mob, SAVING_WILL) += 4;
       break;
-    case NPCRACE_CONSTRUCT:
+    case RACE_TYPE_CONSTRUCT:
       (mob)->aff_abils.str += 4;
       (mob)->aff_abils.con += 4;
       GET_SAVE(mob, SAVING_WILL) -= 4;
       GET_SAVE(mob, SAVING_FORT) -= 4;
       GET_SAVE(mob, SAVING_REFL) -= 4;
       break;
-    case NPCRACE_ELEMENTAL:
+    case RACE_TYPE_ELEMENTAL:
       break;
-    case NPCRACE_FEY:
+    case RACE_TYPE_FEY:
       GET_SAVE(mob, SAVING_REFL) += 4;
       GET_SAVE(mob, SAVING_WILL) += 4;
       break;
-    case NPCRACE_MAG_BEAST:
+    case RACE_TYPE_MAGICAL_BEAST:
       GET_SAVE(mob, SAVING_FORT) += 4;
       GET_SAVE(mob, SAVING_REFL) += 4;
       break;
-    case NPCRACE_MONSTER_HMN:
+    case RACE_TYPE_MONSTROUS_HUMANOID:
       break;
-    case NPCRACE_OOZE:
+    case RACE_TYPE_OOZE:
       GET_SAVE(mob, SAVING_WILL) -= 4;
       GET_SAVE(mob, SAVING_FORT) -= 4;
       GET_SAVE(mob, SAVING_REFL) -= 4;
       break;
-    case NPCRACE_OUTSIDER:
+    case RACE_TYPE_OUTSIDER:
       break;
-    case NPCRACE_PLANT:
+    case RACE_TYPE_PLANT:
       GET_GOLD(mob) = 0;
       break;
-    case NPCRACE_VERMIN:
+    case RACE_TYPE_VERMIN:
       GET_GOLD(mob) = 0;
       break;
     default:

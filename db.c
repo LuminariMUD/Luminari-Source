@@ -1961,7 +1961,7 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
   /* end damtype resisatnces */
 
   CASE("Race") {
-    RANGE(0, NUM_NPC_RACES);
+    RANGE(0, NUM_RACE_TYPES);
     GET_REAL_RACE(mob_proto + i) = num_arg;
   }
 
@@ -3072,7 +3072,7 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */ {
   copy_proto_script(&mob_proto[i], mob, MOB_TRIGGER);
   assign_triggers(mob, MOB_TRIGGER);
 
-  if (GET_RACE(mob) < 0 || GET_RACE(mob) >= NUM_NPC_RACES)
+  if (GET_RACE(mob) < 0 || GET_RACE(mob) >= NUM_RACE_TYPES)
     GET_REAL_RACE(mob) = 0;
 
   if (GET_CLASS(mob) < 0 || GET_CLASS(mob) >= NUM_CLASSES)

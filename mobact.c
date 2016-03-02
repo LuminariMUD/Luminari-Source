@@ -563,7 +563,7 @@ void npc_racial_behave(struct char_data *ch) {
 
   //first figure out which race we are dealing with
   switch (GET_RACE(ch)) {
-    case NPCRACE_ANIMAL:
+    case RACE_TYPE_ANIMAL:
       switch (rand_number(1, 2)) {
         case 1:
           do_rage(ch, 0, 0, 0);
@@ -571,7 +571,7 @@ void npc_racial_behave(struct char_data *ch) {
           break;
       }
       break;
-    case NPCRACE_DRAGON:
+    case RACE_TYPE_DRAGON:
 
       switch (rand_number(1, 4)) {
         case 1:

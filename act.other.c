@@ -2276,7 +2276,7 @@ void perform_shapechange(struct char_data *ch, char *arg, int mode) {
       list_forms(ch);
   } else {
     form = atoi(arg);
-    if (form < 1 || form > NUM_NPC_RACES - 1) {
+    if (form < 1 || form > NUM_RACE_TYPES - 1) {
       send_to_char(ch, "That is not a valid race!\r\n");
       list_forms(ch);
       return;
@@ -2353,7 +2353,7 @@ void perform_wildshape(struct char_data *ch, int form_num, int spellnum) {
   for (i = 0; i < SHAPE_AFFECTS; i++)
     affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);
 
-  IS_MORPHED(ch) = NPCRACE_ANIMAL;
+  IS_MORPHED(ch) = RACE_TYPE_ANIMAL;
 
   act(shape_to_char[SUBRACE(ch)], TRUE, ch, 0, 0, TO_CHAR);
   act(shape_to_room[SUBRACE(ch)], TRUE, ch, 0, 0, TO_ROOM);
@@ -2459,12 +2459,7 @@ int display_eligible_disguise_races(struct char_data *ch, char *argument, int si
 
   for (i = 0; i < NUM_EXTENDED_RACES; i++) {
     switch (race_list[i].family) {
-      case RACE_TYPE_HUMAN:
-      case RACE_TYPE_ELF:
-      case RACE_TYPE_DWARF:
-      case RACE_TYPE_HALFLING:
-      case RACE_TYPE_GNOME:
-      case RACE_TYPE_HALF_ELF:
+      case RACE_TYPE_HUMANOID:
         if (race_list[i].size == GET_SIZE(ch)) {
           break;
         }
