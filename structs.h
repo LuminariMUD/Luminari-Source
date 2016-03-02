@@ -38,8 +38,6 @@
 #define CIRCLE_UNSIGNED_INDEX	1
 
 #if CIRCLE_UNSIGNED_INDEX
-//#define IDXTYPE	  ush_int          /**< Index types are unsigned short ints */
-//#define IDXTYPE_MAX   USHRT_MAX      /**< Used for compatibility checks. */
 #define IDXTYPE       unsigned int   /** Index types are unsigned ints */
 #define IDXTYPE_MAX   UINT_MAX       /** Used for compatibility checks. */
 #define IDXTYPE_MIN   0              /**< Used for compatibility checks. */
@@ -48,9 +46,6 @@
 #define NOBODY		  ((IDXTYPE)~0)  /**< Sets to unsigned_int_MAX, or -1 */
 #define NOFLAG        ((IDXTYPE)~0)  /**< Sets to unsigned_int_MAX, or -1 */
 #else
-//#define IDXTYPE	  sh_int           /**< Index types are unsigned short ints */
-//#define IDXTYPE_MAX   SHRT_MAX       /**< Used for compatibility checks. */
-//#define IDXTYPE_MIN   SHRT_MIN       /**< Used for compatibility checks. */
 #define IDXTYPE       signed int     /** Index types are unsigned short ints */
 #define IDXTYPE_MAX   INT_MAX        /** Used for compatibility checks. */
 #define IDXTYPE_MIN   INT_MIN        /** Used for compatibility checks. */
@@ -167,17 +162,6 @@
 /** The total number of Room Flags */
 #define NUM_ROOM_FLAGS     35
 
-/* homeland-port reference */
-/*
-ROOM FLAGS
------------
-JAIL (18)        ROOM_INDOORS   (3)
-HASTRAP (20)     ROOM_DEATH     (1)
-DOCKABLE (21)    ROOM_NOSUMMON  (24)
-HEAL (25)        ROOM_REGEN     (17)
-NOPRIME (27)     ROOM_NORECALL  (27)
-*/
-
 /* Room affects */
 /* Old room-affection system, could be replaced by room-events
    theoritically, but for the time being its still in usage */
@@ -237,9 +221,9 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define SECT_MOUNTAIN        5  /**< On a mountain		*/
 #define SECT_WATER_SWIM      6  /**< Swimmable water		*/
 #define SECT_WATER_NOSWIM    7  /**< Water - need a boat	*/
-#define SECT_FLYING	         8  /**< Flying			*/
-#define SECT_UNDERWATER	    9  /**< Underwater		*/
-#define SECT_ZONE_START	    10  // zone start (for asciimap)
+#define SECT_FLYING          8  /**< Flying			*/
+#define SECT_UNDERWATER	     9  /**< Underwater		*/
+#define SECT_ZONE_START      10  // zone start (for asciimap)
 #define SECT_ROAD_NS         11  // road runing north-south
 #define SECT_ROAD_EW         12  // road running east-north
 #define SECT_ROAD_INT        13  // road intersection
@@ -249,44 +233,24 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define SECT_HIGH_MOUNTAIN   17  // mountains (climb only)
 #define SECT_PLANES          18  // non-prime (no effect yet)
 #define SECT_UD_WILD         19  // the outdoors of the underdark
-#define SECT_UD_CITY	    20  // city in the underdark
-#define SECT_UD_INSIDE 	    21  // inside in the underdark
-#define SECT_UD_WATER	    22  // water in the underdark
-#define SECT_UD_NOSWIM	    23  // water, boat needed, in the underdark
+#define SECT_UD_CITY         20  // city in the underdark
+#define SECT_UD_INSIDE       21  // inside in the underdark
+#define SECT_UD_WATER        22  // water in the underdark
+#define SECT_UD_NOSWIM       23  // water, boat needed, in the underdark
 #define SECT_UD_NOGROUND     24  // chasm in the underdark (Flying)
-#define SECT_LAVA	         25  // lava (damaging)
-#define SECT_D_ROAD_NS	    26  // dirt road
-#define SECT_D_ROAD_EW	    27  // dirt road
-#define SECT_D_ROAD_INT	    28  // dirt road
-#define SECT_CAVE	         29  // cave
-
+#define SECT_LAVA            25  // lava (damaging)
+#define SECT_D_ROAD_NS       26  // dirt road
+#define SECT_D_ROAD_EW       27  // dirt road
+#define SECT_D_ROAD_INT	     28  // dirt road
+#define SECT_CAVE            29  // cave
 /* The following were added with the wilderness system - Ornir */
-#define SECT_JUNGLE         30  // jungle, wet, mid elevations, hot.
-#define SECT_TUNDRA         31  // tundra, dry, high elevations, extreme cold.
-#define SECT_TAIGA          32  // boreal forest, higher elevations, cold.
-#define SECT_BEACH          33  // beach, borders low areas and water.
-
+#define SECT_JUNGLE          30  // jungle, wet, mid elevations, hot.
+#define SECT_TUNDRA          31  // tundra, dry, high elevations, extreme cold.
+#define SECT_TAIGA           32  // boreal forest, higher elevations, cold.
+#define SECT_BEACH           33  // beach, borders low areas and water.
 /* End wilderness sectors. These can (and should!) be used in zones too! */
-
 /** The total number of room Sector Types */
 #define NUM_ROOM_SECTORS     34
-
-
-/* homeland conversion reference */
-/*
-#define SECT_AIR_PLANE	    SECT_PLANES   (18)
-#define SECT_ASTRAL_PLANE    SECT_PLANES   (18)
-#define SECT_EARTH_PLANE     SECT_PLANES   (18)
-#define SECT_ETHEREAL	    SECT_PLANES   (18)
-#define SECT_ICE_PLANE	    SECT_PLANES   (18)
-#define SECT_LONG_ROAD	    SECT_ROAD_INT (13)
-#define SECT_SHIPREQUIRED    SECT_OCEAN    (15)
-#define SECT_WATER_PLANE     SECT_PLANES   (18)
-#define SECT_CLOUDS          SECT_PLANES   (18)
-#define SECT_SHADOWPLANE     SECT_PLANES   (18)
-#define SECT_LIGHTNING       SECT_PLANES   (18)
-#define SECT_PASSION         SECT_INSIDE   (0)
-*/
 
 /* char and mob-related defines */
 
@@ -402,7 +366,6 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 /****************/
 #define NUM_DOMAINS            16
 
-
 // warding spells that need to be saved
 #define MIRROR			0
 #define STONESKIN		1
@@ -454,7 +417,7 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define MAX_INSTRUMENTS       6
 /***************/
 
-// Races
+// Races - specific, race type defines are below
 #define RACE_UNDEFINED       (-1) /*Race Undefined*/
 #define RACE_HUMAN           0 /* Race Human */
 #define RACE_ELF             1 /* Race Elf   */
@@ -470,224 +433,101 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define RACE_GNOME           8  // gnome
 #define RACE_TRELUX          9  // trelux (epic)
 #define RACE_ARCANA_GOLEM    10  // arcana golem (advanced)
+/**/
 #define RACE_DROW            11  // not yet implemented
+#define RACE_DROW_ELF        RACE_DROW
 #define RACE_DUERGAR         12  // not yet implemented
+#define RACE_GRAY_DWARF      RACE_DUERGAR
 #define RACE_H_OGRE          13  // not yet implemented
 #define RACE_HALF_OGRE       RACE_H_OGRE
-#define RACE_UNDEFINED_1     14  /* for expansion of races */
-#define RACE_UNDEFINED_2     15  /* for expansion of races */
-#define RACE_UNDEFINED_3     16  /* for expansion of races */
-#define RACE_UNDEFINED_4     17  /* for expansion of races */
-#define RACE_UNDEFINED_5     18  /* for expansion of races */
-#define RACE_UNDEFINED_6     19  /* for expansion of races */
-#define RACE_UNDEFINED_7     20  /* for expansion of races */
-#define RACE_UNDEFINED_8     21  /* for expansion of races */
-#define RACE_UNDEFINED_9     22  /* for expansion of races */
-#define RACE_UNDEFINED_10    23  /* for expansion of races */
-#define RACE_UNDEFINED_11    24  /* for expansion of races */
-#define RACE_UNDEFINED_12    25  /* for expansion of races */
-#define RACE_UNDEFINED_13    26  /* for expansion of races */
-#define RACE_UNDEFINED_14    27  /* for expansion of races */
-#define RACE_UNDEFINED_15    28  /* for expansion of races */
-#define RACE_UNDEFINED_16    29  /* for expansion of races */
-
-/* Total Number of available (in-game) PC Races*/
-#define NUM_RACES            11
-
-/* let's keep shared races (pc/npc) up to (29)*/
-
-/* extended races */
-#define TOP_EXTENDED_RACES          30
-#define RACE_MINOTAUR               30
-#define RACE_HUMAN_ERGOTH           31
-#define RACE_HUMAN_ISTAR            32
-#define RACE_HUMAN_BALIFOR          33
-#define RACE_HUMAN_KHAROLIS         34
-#define RACE_HUMAN_NORDMAAR         35
-#define RACE_HUMAN_ICE_FOLK         36
-#define RACE_HUMAN_MOUNTAIN_NOMAD   37
-#define RACE_HUMAN_DESERT_NOMAD     38
-#define RACE_RAT                    39
-#define RACE_HORSE                  40
-#define RACE_HUMAN_SOLAMNIA         41 // pc dragonlance
-#define RACE_HUMAN_NORTHERNER       42 // pc forgotten realms
-#define RACE_HUMAN_ICE_BARBARIAN    43 // pc forgotten realms
-#define RACE_HUMAN_CORMYR           44 // pc forgotten realms
-#define RACE_HUMAN_AMN              45
-#define RACE_HUMAN_ANAUROCH         46
-#define RACE_HUMAN_CHULT            47
-#define RACE_HUMAN_DALELANDS        48
-#define RACE_HUMAN_HORDELANDS       49
-#define RACE_HUMAN_LANTAN           50
-#define RACE_HUMAN_MULHORAND        51
-#define RACE_HUMAN_RASHEMAN         52
-#define RACE_HUMAN_SEMBIA           53
-#define RACE_HUMAN_TETHYR           54
-#define RACE_HUMAN_THAY             55
-#define RACE_HUMAN_WATERDEEP        56
-#define RACE_MOON_ELF               57 // pc forgotten realms
-#define RACE_DROW_ELF               58
-#define RACE_SUN_ELF                59
-#define RACE_WILD_ELF               60
-#define RACE_WOOD_ELF               61
-#define RACE_HALF_DROW              62
-#define RACE_SHIELD_DWARF           67 // pc forgotten realms
-#define RACE_GOLD_DWARF             68
-#define RACE_GRAY_DWARF             RACE_DUERGAR
-#define RACE_GOBLIN                 70
-#define RACE_LIGHTFOOT_HALFLING     77 // pc forgotten realms
-#define RACE_GHOSTWISE_HALFLING     78 // pc forgotten realms
-#define RACE_STRONGHEART_HALFLING   79 // pc forgotten realms
-#define RACE_ROCK_GNOME             82 // pc forgotten realms
-#define RACE_DEEP_GNOME             83
+#define RACE_RAT                    14
+#define RACE_HORSE                  15
+#define RACE_HALF_DROW              16
+#define RACE_ROCK_GNOME             17
+#define RACE_DEEP_GNOME             18
 #define RACE_SVIRFNEBLIN            RACE_DEEP_GNOME
-//#define RACE_HALF_ORC               84
-#define RACE_AASIMAR                85
-#define RACE_TIEFLING               86
-#define RACE_AIR_GENESI             87
-#define RACE_EARTH_GENESI           88
-#define RACE_FIRE_GENESI            89
-#define RACE_WATER_GENESI           90
-//#define RACE_OGRE                   91
-//#define RACE_HALF_OGRE              92
-#define RACE_ORC                    93
-#define RACE_CENTAUR                99
-#define RACE_IRON_GOLEM             100
-#define RACE_DRAGON_CLOUD           101
-#define RACE_IRDA                   102
-#define RACE_BAAZ_DRACONIAN         103
-#define RACE_KAPAK_DRACONIAN        104
-#define RACE_HALF_DRAGON            105
-//#define RACE_HALF_TROLL                  106
-#define RACE_DINOSAUR               107
-#define RACE_PIXIE                  108
-#define RACE_MEDIUM_FIRE_ELEMENTAL  109
-#define RACE_MEDIUM_EARTH_ELEMENTAL 110
-#define RACE_MEDIUM_AIR_ELEMENTAL   111
-#define RACE_MEDIUM_WATER_ELEMENTAL 112
-#define RACE_FIRE_ELEMENTAL         109
-#define RACE_EARTH_ELEMENTAL        110
-#define RACE_AIR_ELEMENTAL          111
-#define RACE_WATER_ELEMENTAL        112
-#define RACE_HUGE_FIRE_ELEMENTAL    113
-#define RACE_HUGE_EARTH_ELEMENTAL   114
-#define RACE_HUGE_AIR_ELEMENTAL     115
-#define RACE_HUGE_WATER_ELEMENTAL   116
-#define RACE_APE                    117
-#define RACE_BOAR                   118
-#define RACE_CHEETAH                119
-#define RACE_CROCODILE              120
-#define RACE_GIANT_CROCODILE        121
-#define RACE_HYENA                  122
-#define RACE_LEOPARD                123
-#define RACE_RHINOCEROS             124
-#define RACE_WOLVERINE              125
-#define RACE_MEDIUM_VIPER           126
-#define RACE_LARGE_VIPER            127
-#define RACE_HUGE_VIPER             128
-#define RACE_CONSTRICTOR_SNAKE      129
-#define RACE_GIANT_CONSTRICTOR_SNAKE 130
-#define RACE_TIGER                  131
-#define RACE_BLACK_BEAR             132
-#define RACE_BROWN_BEAR             133
-#define RACE_POLAR_BEAR             134
-#define RACE_LION                   135
-#define RACE_ELEPHANT               136
-#define RACE_EAGLE                  137
-#define RACE_GHOUL                  138
-#define RACE_GHAST                  139
-#define RACE_MUMMY                  140
-#define RACE_MOHRG                  141
-#define RACE_SMALL_FIRE_ELEMENTAL    142
-#define RACE_SMALL_EARTH_ELEMENTAL   143
-#define RACE_SMALL_AIR_ELEMENTAL     144
-#define RACE_SMALL_WATER_ELEMENTAL   145
-#define RACE_LARGE_FIRE_ELEMENTAL    146
-#define RACE_LARGE_EARTH_ELEMENTAL   147
-#define RACE_LARGE_AIR_ELEMENTAL     148
-#define RACE_LARGE_WATER_ELEMENTAL   149
-#define RACE_BLINK_DOG               150
-#define RACE_SHOCKER_LIZARD          151
-#define RACE_OWLBEAR                 152
-#define RACE_SHAMBLING_MOUND         153
-#define RACE_TREANT                  154
-#define RACE_MYCANOID                155
-#define RACE_MIRALUKA                156
-#define RACE_RATTATAKI               157
-#define RACE_QUALINESTI_ELF          158 // pc dragonlance
-#define RACE_HYLAR_DWARF             159 // pc dragonlance
-#define RACE_NEIDAR_DWARF            160 // pc dragonlance
-#define RACE_KENDER                  161 // pc dragonlance
-//#define RACE_GNOME                  5 // pc
-#define RACE_UNDEAD                  162
-#define RACE_SKELETON                163
-#define RACE_ZOMBIE                  164
-#define RACE_ANIMAL                  165
-#define RACE_WOLF                    166
-#define RACE_GREAT_CAT               167
-#define RACE_MONSTROUS_HUMANOID      168
-#define RACE_GIANT                   169
-#define RACE_MANDRAGORA              170
-#define RACE_PLANT                   171
-#define RACE_OOZE                    172
-#define RACE_ELEMENTAL               173
-#define RACE_AEON_THELETOS           174
-#define RACE_MAGICAL_BEAST           175
-#define RACE_STIRGE                  176
-#define RACE_SILVANESTI_ELF          177// 1 higher than the last race define
-#define RACE_KAGONESTI_ELF           178
-//#define RACE_HALF_ELF                179
-#define RACE_HUMAN_PLAINS_NOMAD      180
-#define RACE_DAEWAR_DWARF            181
-#define RACE_KLAR_DWARF              182
-#define RACE_DAERGAR_DWARF           183
-#define RACE_THEIWAR_DWARF           184
-#define RACE_DEWAR_DWARF             185
-#define RACE_AGHAR_DWARF             186
-#define RACE_ZHAKAR_DWARF            187
+#define RACE_ORC                    19
+#define RACE_IRON_GOLEM             20
+#define RACE_DRAGON_CLOUD           21
+#define RACE_DINOSAUR               22
+#define RACE_PIXIE                  23
+#define RACE_MEDIUM_FIRE_ELEMENTAL  24
+#define RACE_MEDIUM_EARTH_ELEMENTAL 25
+#define RACE_MEDIUM_AIR_ELEMENTAL   26
+#define RACE_MEDIUM_WATER_ELEMENTAL 27
+#define RACE_FIRE_ELEMENTAL         28
+#define RACE_EARTH_ELEMENTAL        29
+#define RACE_AIR_ELEMENTAL          30
+#define RACE_WATER_ELEMENTAL        31
+#define RACE_HUGE_FIRE_ELEMENTAL    32
+#define RACE_HUGE_EARTH_ELEMENTAL   33
+#define RACE_HUGE_AIR_ELEMENTAL     34
+#define RACE_HUGE_WATER_ELEMENTAL   35
+#define RACE_APE                    36
+#define RACE_BOAR                   37
+#define RACE_CHEETAH                38
+#define RACE_CROCODILE              39
+#define RACE_GIANT_CROCODILE        40
+#define RACE_HYENA                  41
+#define RACE_LEOPARD                42
+#define RACE_RHINOCEROS             43
+#define RACE_WOLVERINE              44
+#define RACE_MEDIUM_VIPER           45
+#define RACE_LARGE_VIPER            46
+#define RACE_HUGE_VIPER             47
+#define RACE_CONSTRICTOR_SNAKE      48
+#define RACE_GIANT_CONSTRICTOR_SNAKE 49
+#define RACE_TIGER                  50
+#define RACE_BLACK_BEAR             51
+#define RACE_BROWN_BEAR             52
+#define RACE_POLAR_BEAR             53
+#define RACE_LION                   54
+#define RACE_ELEPHANT               55
+#define RACE_EAGLE                  56
+#define RACE_GHOUL                  57
+#define RACE_GHAST                  58
+#define RACE_MUMMY                  59
+#define RACE_MOHRG                  60
+#define RACE_SMALL_FIRE_ELEMENTAL    61
+#define RACE_SMALL_EARTH_ELEMENTAL   62
+#define RACE_SMALL_AIR_ELEMENTAL     63
+#define RACE_SMALL_WATER_ELEMENTAL   64
+#define RACE_LARGE_FIRE_ELEMENTAL    65
+#define RACE_LARGE_EARTH_ELEMENTAL   66
+#define RACE_LARGE_AIR_ELEMENTAL     67
+#define RACE_LARGE_WATER_ELEMENTAL   68
+#define RACE_BLINK_DOG               69
+#define RACE_OWLBEAR                 70
+#define RACE_SHAMBLING_MOUND         71
+#define RACE_TREANT                  72
+#define RACE_MYCANOID                73
+#define RACE_SKELETON                74
+#define RACE_ZOMBIE                  75
+#define RACE_WOLF                    76
+#define RACE_GREAT_CAT               77
+#define RACE_MANDRAGORA              78
+#define RACE_AEON_THELETOS           79
+#define RACE_STIRGE                  80
 /**/
-#define NUM_EXTENDED_RACES           188
+/* Total Number of available (in-game) PC Races*/
+#define NUM_RACES                    11
+#define NUM_EXTENDED_RACES           81
 /*****/
 
-// NPC races
-#define NPCRACE_UNDEFINED	(-1)	/*Race Undefined*/
-#define NPCRACE_UNKNOWN       0
-#define NPCRACE_HUMAN         1
-#define NPCRACE_UNDEAD        2
-#define NPCRACE_ANIMAL        3
-#define NPCRACE_DRAGON		4
-#define NPCRACE_GIANT	     5
-#define NPCRACE_ABERRATION    6
-#define NPCRACE_CONSTRUCT     7
-#define NPCRACE_ELEMENTAL     8
-#define NPCRACE_FEY           9
-#define NPCRACE_MAG_BEAST     10 // magical beast
-#define NPCRACE_MONSTER_HMN	11 // monsterous humanoid
-#define NPCRACE_OOZE          12
-#define NPCRACE_OUTSIDER      13
-#define NPCRACE_PLANT         14
-#define NPCRACE_VERMIN        15
-//total
-#define NUM_NPC_RACES		16
-/* how many subrace-types can a mobile have? */
-/* note, if this is changed, a lot of other places have
- * to be changed as well -zusuk */
-#define MAX_SUBRACES          3
-
-// npc sub-race types
+// npc sub-race types, currently our NPC's get 3 of these
 #define SUBRACE_UNDEFINED	   (-1)	/*Race Undefined*/
 #define SUBRACE_UNKNOWN          0
 #define SUBRACE_AIR              1
 #define SUBRACE_ANGEL            2
 #define SUBRACE_AQUATIC          3
-#define SUBRACE_ARCHON		   4
-#define SUBRACE_AUGMENTED	   5
+#define SUBRACE_ARCHON		 4
+#define SUBRACE_AUGMENTED	 5
 #define SUBRACE_CHAOTIC          6
 #define SUBRACE_COLD             7
 #define SUBRACE_EARTH            8
 #define SUBRACE_EVIL             9
 #define SUBRACE_EXTRAPLANAR      10
-#define SUBRACE_FIRE	        11
+#define SUBRACE_FIRE	         11
 #define SUBRACE_GOBLINOID        12
 #define SUBRACE_GOOD             13
 #define SUBRACE_INCORPOREAL      14
@@ -699,8 +539,12 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define SUBRACE_WATER            20
 //total
 #define NUM_SUB_RACES		   21
+/* how many subrace-types can a mobile have? */
+/* note, if this is changed, a lot of other places have
+ * to be changed as well -zusuk */
+#define MAX_SUBRACES          3
 
-// pc sub-race types, so far used for druid shapechange
+// pc sub-race types, so far used for animal shapes spell
 #define PC_SUBRACE_UNDEFINED        (-1)	/*Race Undefined*/
 #define PC_SUBRACE_UNKNOWN          0
 #define PC_SUBRACE_BADGER           1
@@ -710,39 +554,27 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 //total
 #define MAX_PC_SUBRACES	           5
 
-/**/
-#define RACE_TYPE_UNDEFINED          0
+/* here we have our race types, like family category of races
+   used for both pc and npc's currently */
+#define RACE_TYPE_UNDEFINED          (-1)
+#define RACE_TYPE_UNKNOWN            0
 #define RACE_TYPE_HUMANOID           1
-#define RACE_TYPE_DROID              2
-#define RACE_TYPE_BEAST              3
-/**/
-#define RACE_TYPE_HUMAN              1
-#define RACE_TYPE_ELF                2
-#define RACE_TYPE_DWARF              3
-#define RACE_TYPE_HALFLING           4
-#define RACE_TYPE_KENDER             5
-#define RACE_TYPE_GNOME              6
-#define RACE_TYPE_ANIMAL             7
-#define RACE_TYPE_UNDEAD             8
-#define RACE_TYPE_MONSTROUS_HUMANOID 9
-#define RACE_TYPE_GIANT              10
-#define RACE_TYPE_PLANT              11
+#define RACE_TYPE_UNDEAD             2
+#define RACE_TYPE_ANIMAL             3
+#define RACE_TYPE_DRAGON             4
+#define RACE_TYPE_GIANT              5
+#define RACE_TYPE_ABERRATION         6
+#define RACE_TYPE_CONSTRUCT          7
+#define RACE_TYPE_ELEMENTAL          8
+#define RACE_TYPE_FEY                9
+#define RACE_TYPE_MAGICAL_BEAST      10
+#define RACE_TYPE_MONSTROUS_HUMANOID 11
 #define RACE_TYPE_OOZE               12
-#define RACE_TYPE_ELEMENTAL          13
-#define RACE_TYPE_OUTSIDER           14
-#define RACE_TYPE_MAGICAL_BEAST      15
-#define RACE_TYPE_MINOTAUR           16
-#define RACE_TYPE_DRAGON             17
-#define RACE_TYPE_CONSTRUCT          18
-#define RACE_TYPE_HALF_ELF           19
-#define RACE_TYPE_ORC                20
-#define RACE_TYPE_DRACONIAN          21
-#define RACE_TYPE_GOBLINOID          22
-#define RACE_TYPE_VERMIN             23
-#define RACE_TYPE_CENTAUR            24
-#define RACE_TYPE_FEY                25
+#define RACE_TYPE_OUTSIDER           13
+#define RACE_TYPE_PLANT              14
+#define RACE_TYPE_VERMIN             15
 /**/
-#define NUM_RACE_TYPES               26
+#define NUM_RACE_TYPES               16
 /**/
 
 /* Sex */
@@ -832,6 +664,7 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define MOB_PLANAR_ALLY    36  /* is a planar ally (currently unused) */
 #define MOB_NOSTEAL        37  /* Can't steal from mob*/
 #define MOB_INFO_KILL      38 /* mob, when killed, sends a message in game to everyone */
+/* we added a bunch of filler flags due to incompatible zone files */
 #define MOB_UNUSED_2       39
 #define MOB_UNUSED_3       40
 #define MOB_UNUSED_4       41
@@ -860,17 +693,6 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 
 /**********************/
 #define NUM_MOB_FLAGS      64
-
-/* keeping this temporarily for homeland-port reference */
-/*
-#define MOB_AGGR_EVILRACE    MOB_AGGR_EVIL     (8)
-#define MOB_AGGR_GOODRACE    MOB_AGGR_GOOD     (9)
-#define MOB_MENTAL	     MOB_ELEMENTAL     (29)
-#define MOB_FAMILIAR	     MOB_C_FAMILIAR    (27)
-#define MOB_NORMAL_PET       MOB_C_ANIMAL      (26)
-#define MOB_CLASS_MOUNT      MOB_C_MOUNT       (28)
-#define MOB_AGGR_NEUTRACE    MOB_AGGR_NEUTRAL  (10)
-*/
 
 /* Preference flags: used by char_data.player_specials.pref */
 #define PRF_BRIEF         0   /**< Room descs won't normally be shown */
@@ -1028,7 +850,7 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define AFF_ACROBATIC        99 /* acrobatic!  currently used for druid jump 
                                    spell, possible expansion to follow */
 #define AFF_BLINKING        100 /* in a state of blinking between prime/eth */
-#define AFF_AWARE           101 /* aware - too aware to backstab */
+#define AFF_AWARE           101 /* aware - too aware to be backstabed */
 /*---*/
 #define NUM_AFF_FLAGS       102
 /********************************/
@@ -1059,61 +881,9 @@ NOPRIME (27)     ROOM_NORECALL  (27)
 #define BONUS_TYPE_SHIELD       17 /* Shield bonus */
 #define BONUS_TYPE_SIZE         18 /* Size bonus */
 #define BONUS_TYPE_TRAIT        19 /* Character Trait bonus */
-
+/**/
 #define NUM_BONUS_TYPES         20
-
-/* homeland-port reference */
-/*
-AFF FLAGS
-----------
-PROTECT GAS (15)      AFF_ELEMENT_PROT    (28)
-FARSEE (16)           AFF_FARSEE          (82)
-STONESKIN (20)        AFF_DETECT_MAGIC    (5)
-BARKSKIN (22)         AFF_DETECT_MAGIC    (5)
-FLYING (24)           AFF_FLYING          (17)
-
-AFF2 FLAGS
------------
-WATER BREATH (0)      (we have this flag) (17)
-RAY ENFEEBLE (4)      AFF_DETECT_MAGIC    (5)
-FEEBLEMIND (5)        AFF_DETECT_MAGIC    (5)
-SLOWNESS (6)          AFF_SLOW            (39)
-FEAR (7)              (we have this flag) (30)
-METALSKIN (9)         AFF_DETECT_MAGIC    (5)
-BLUR (10)             (we have this flag) (23)
-DRAGONSCALES (11)     AFF_DETECT_MAGIC    (5)
-EPURATION (12)        AFF_DETECT_MAGIC    (5)
-PROTECT UNDEAD (13)   AFF_DETECT_MAGIC    (5)
-BERSERK RAGE (14)     AFF_DETECT_MAGIC    (5)
-WITHER (15)           AFF_DETECT_MAGIC    (5)
-HEROISM (16)          AFF_BRAVERY         (61)
-DARKVISION (18)       AFF_DARKVISION      (80)
-LEVITATE (19)         AFF_FLYING          (17)
-ENTANGLED (20)        AFF_GRAPPLED        (34)
-BEAR SKIN (21)        AFF_DETECT_MAGIC    (5)
-CROCODILE HIDE (22)   AFF_DETECT_MAGIC    (5)
-CAGE (23)             (added this flag)   (78)
-FALSE VISION (24)     AFF_NON_DETECTION   (38)
-DEATH SHROUD (28)     AFF_ASHIELD         (43)
-MIRROR IMAGE (29)     AFF_DETECT_MAGIC    (5)
-MISLEAD (30)          AFF_NON_DETECTION   (38)
-
-AFF3 FLAGS
------------
-DANGER SENSE (2)      (added this flag)   (71)
-BODY WEAPONRY (3)     (added this flag)   (81)
-BIOFEEDBACK (5)       AFF_DETECT_MAGIC    (5)
-CRISIS OF BREATH (7)  AFF_DETECT_MAGIC    (5)
-AWARE (9)             AFF_DETECT_MAGIC    (5)
-MAGE FLAME (12)	  AFF_MAGE_FLAME      (79)
-THORN SHIELD (13)     AFF_DETECT_MAGIC    (5)
-PROTECTION FROM ANIMALS (14)            AFF_DETECT_MAGIC    (5)
-LIGHTNING WEB (15)    AFF_ASHIELD         (43)
-NOTRACK (16)          AFF_NON_DETECTION   (38)
-PROTECTION FROM POSITIVE ENERGY (17)    AFF_ELEMENT_PROT    (28)
-PROTECTION FROM NEGATIVE ENERGY (18)    AFF_ELEMENT_PROT    (28)
-MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
-*/
+/****/
 
 /* Modes of connectedness: used by descriptor_data.state 		*/
 #define CON_PLAYING       0 /**< Playing - Nominal state 		*/
@@ -1199,24 +969,14 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define WEAR_HOLD_2H   21  // two-hand held
 #define WEAR_FACE      22  // equipment location face
 #define WEAR_AMMO_POUCH 23      // ammo pouch (for ranged weapons)
-/* unfinished */
-#define WEAR_EAR_R      24
-#define WEAR_EAR_L      25
-#define WEAR_EYES       26
-#define WEAR_BADGE      27
-/**/
+/* unfinished (might not implement) */
+#define WEAR_EAR_R      24 /* worn on/in right ear */
+#define WEAR_EAR_L      25 /* worn on/in left ear */
+#define WEAR_EYES       26 /* worn in/over eye(s) */
+#define WEAR_BADGE      27 /* attached to your body armor as a badge */
 /** Total number of available equipment lcoations */
 #define NUM_WEARS      28
-
-/* homeland port */
-/*
-#define WEAR_BADGE      1
-#define WEAR_EYES       3
-#define WEAR_EAR_R      4
-#define WEAR_EAR_L      5
-#define WEAR_AMMO_POUCH    26
-#define WEAR_TAIL      27
-*/
+/**/
 
 /* ranged combat */
 #define RANGED_BOW           0
@@ -1230,10 +990,11 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 /**/
 #define NUM_RANGED_MISSILES   2
 
+/***************************************/
 /* Feats defined below up to MAX_FEATS */
 #define FEAT_UNDEFINED                 0
 #define FEAT_ALERTNESS                 1
-#define FEAT_SEEKER_ARROW               2
+#define FEAT_SEEKER_ARROW              2
 #define FEAT_ARMOR_PROFICIENCY_HEAVY   3
 #define FEAT_ARMOR_PROFICIENCY_LIGHT   4
 #define FEAT_ARMOR_PROFICIENCY_MEDIUM  5
@@ -1253,56 +1014,56 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_ENDURANCE                 19
 #define FEAT_ENLARGE_SPELL             20
 #define FEAT_QUICK_TO_MASTER           21
-#define FEAT_NATURAL_TRACKER        22
-#define FEAT_EXTEND_SPELL     23
-#define FEAT_EXTRA_TURNING      24
-#define FEAT_FAR_SHOT       25
-#define FEAT_FORGE_RING       26
-#define FEAT_GREAT_CLEAVE     27
-#define FEAT_GREAT_FORTITUDE      28
-#define FEAT_HEIGHTEN_SPELL     29
-#define FEAT_IMPROVED_BULL_RUSH     30
-#define FEAT_IMPROVED_CRITICAL      31
-#define FEAT_RAGE                       32
-#define FEAT_FAST_MOVEMENT              33
-#define FEAT_LAYHANDS       34
-#define FEAT_AURA_OF_GOOD     35
-#define FEAT_AURA_OF_COURAGE      36
-#define FEAT_DIVINE_GRACE     37
-#define FEAT_SMITE_EVIL       38
-#define FEAT_REMOVE_DISEASE     39
-#define FEAT_DIVINE_HEALTH      40
-#define FEAT_TURN_UNDEAD      41
-#define FEAT_DETECT_EVIL      42
-#define FEAT_SKILLED          43
-#define FEAT_IMPROVED_REACTION 44
-#define FEAT_ENHANCED_MOBILITY 45
-#define FEAT_GRACE               46
-#define FEAT_PRECISE_STRIKE                     47
-#define FEAT_ACROBATIC_CHARGE   48
-#define FEAT_ELABORATE_PARRY    49
-#define FEAT_DAMAGE_REDUCTION   50
-#define FEAT_GREATER_RAGE                               51
-#define FEAT_MIGHTY_RAGE                                52
-#define FEAT_TIRELESS_RAGE                      53
-#define FEAT_ARMORED_MOBILITY   54
-#define FEAT_SLEEP_ENCHANTMENT_IMMUNITY         55
-#define FEAT_KEEN_SENSES          56
-#define FEAT_RESISTANCE_TO_ENCHANTMENTS          57
-#define FEAT_RALLYING_CRY      58
-#define FEAT_POISON_BITE            59
-#define FEAT_POISON_RESIST          60
-#define FEAT_IMPROVED_DISARM      61
-#define FEAT_IMPROVED_INITIATIVE    62
-#define FEAT_IMPROVED_TRIP      63
+#define FEAT_NATURAL_TRACKER           22
+#define FEAT_EXTEND_SPELL              23
+#define FEAT_EXTRA_TURNING             24
+#define FEAT_FAR_SHOT                  25
+#define FEAT_FORGE_RING                26
+#define FEAT_GREAT_CLEAVE              27
+#define FEAT_GREAT_FORTITUDE           28
+#define FEAT_HEIGHTEN_SPELL            29
+#define FEAT_IMPROVED_BULL_RUSH        30
+#define FEAT_IMPROVED_CRITICAL         31
+#define FEAT_RAGE                      32
+#define FEAT_FAST_MOVEMENT             33
+#define FEAT_LAYHANDS                  34
+#define FEAT_AURA_OF_GOOD              35
+#define FEAT_AURA_OF_COURAGE           36
+#define FEAT_DIVINE_GRACE              37
+#define FEAT_SMITE_EVIL                38
+#define FEAT_REMOVE_DISEASE            39
+#define FEAT_DIVINE_HEALTH             40
+#define FEAT_TURN_UNDEAD               41
+#define FEAT_DETECT_EVIL               42
+#define FEAT_SKILLED                   43
+#define FEAT_IMPROVED_REACTION         44
+#define FEAT_ENHANCED_MOBILITY         45
+#define FEAT_GRACE                     46
+#define FEAT_PRECISE_STRIKE            47
+#define FEAT_ACROBATIC_CHARGE          48
+#define FEAT_ELABORATE_PARRY           49
+#define FEAT_DAMAGE_REDUCTION          50
+#define FEAT_GREATER_RAGE              51
+#define FEAT_MIGHTY_RAGE               52
+#define FEAT_TIRELESS_RAGE             53
+#define FEAT_ARMORED_MOBILITY          54
+#define FEAT_SLEEP_ENCHANTMENT_IMMUNITY 55
+#define FEAT_KEEN_SENSES               56
+#define FEAT_RESISTANCE_TO_ENCHANTMENTS 57
+#define FEAT_RALLYING_CRY              58
+#define FEAT_POISON_BITE               59
+#define FEAT_POISON_RESIST             60
+#define FEAT_IMPROVED_DISARM           61
+#define FEAT_IMPROVED_INITIATIVE       62
+#define FEAT_IMPROVED_TRIP             63
 #define FEAT_IMPROVED_TWO_WEAPON_FIGHTING 64
-#define FEAT_IMPROVED_UNARMED_STRIKE    65
-#define FEAT_IRON_WILL        66
-#define FEAT_ELF_RACIAL_ADJUSTMENT       67
-#define FEAT_LIGHTNING_REFLEXES     68
-#define FEAT_MARTIAL_WEAPON_PROFICIENCY   69
-#define FEAT_MAXIMIZE_SPELL         70
-#define FEAT_MOBILITY               71
+#define FEAT_IMPROVED_UNARMED_STRIKE   65
+#define FEAT_IRON_WILL                 66
+#define FEAT_ELF_RACIAL_ADJUSTMENT     67
+#define FEAT_LIGHTNING_REFLEXES        68
+#define FEAT_MARTIAL_WEAPON_PROFICIENCY 69
+#define FEAT_MAXIMIZE_SPELL            70
+#define FEAT_MOBILITY                  71
 #define FEAT_MOUNTED_ARCHERY        72
 #define FEAT_MOUNTED_COMBAT         73
 #define FEAT_POINT_BLANK_SHOT       74
@@ -1404,45 +1165,45 @@ MAX DAMAGE (21)       AFF_MAX_DAMAGE      (28)
 #define FEAT_CAMOUFLAGE              170
 #define FEAT_HIDE_IN_PLAIN_SIGHT     171
 #define FEAT_NATURE_SENSE            172
-#define FEAT_TRACKLESS_STEP 173
-#define FEAT_RESIST_NATURES_LURE 174
-#define FEAT_WILD_SHAPE 175 // level 4
-#define FEAT_WILD_SHAPE_2 176 // level 6
-#define FEAT_VENOM_IMMUNITY 177
-#define FEAT_WILD_SHAPE_3 178 // level 8
-#define FEAT_WILD_SHAPE_4 179 // level 10
-#define FEAT_THOUSAND_FACES 180
-#define FEAT_WILD_SHAPE_5 181 // level 12
-#define FEAT_SAP 182
-#define FEAT_GREATER_DISARM 183
+#define FEAT_TRACKLESS_STEP          173
+#define FEAT_RESIST_NATURES_LURE     174
+#define FEAT_WILD_SHAPE              175 // level 4
+#define FEAT_WILD_SHAPE_2            176 // level 6
+#define FEAT_VENOM_IMMUNITY          177
+#define FEAT_WILD_SHAPE_3            178 // level 8
+#define FEAT_WILD_SHAPE_4            179 // level 10
+#define FEAT_THOUSAND_FACES          180
+#define FEAT_WILD_SHAPE_5            181 // level 12
+#define FEAT_SAP                     182
+#define FEAT_GREATER_DISARM          183
 #define FEAT_FAVORED_ENEMY_AVAILABLE 184
-#define FEAT_CALL_MOUNT 185
-#define FEAT_ABLE_LEARNER 186
-#define FEAT_EXTEND_RAGE 187
-#define FEAT_EXTRA_RAGE 188
-#define FEAT_FAST_HEALER 189
-#define FEAT_DEFENSIVE_STANCE 190
-#define FEAT_MOBILE_DEFENSE 191
-#define FEAT_WEAPON_OF_CHOICE 192
-#define FEAT_UNSTOPPABLE_STRIKE 193
-#define FEAT_INCREASED_MULTIPLIER 194
-#define FEAT_CRITICAL_SPECIALIST 195
-#define FEAT_SUPERIOR_WEAPON_FOCUS 196
-#define FEAT_WHIRLWIND_ATTACK     197
-#define FEAT_WEAPON_PROFICIENCY_DRUID   198
-#define FEAT_WEAPON_PROFICIENCY_ROGUE   199
-#define FEAT_WEAPON_PROFICIENCY_MONK    200
-#define FEAT_WEAPON_PROFICIENCY_WIZARD    201
-#define FEAT_WEAPON_PROFICIENCY_ELF   202
-#define FEAT_ARMOR_PROFICIENCY_SHIELD   203
-#define FEAT_SNEAK_ATTACK     204
-#define FEAT_EVASION        205
-#define FEAT_IMPROVED_EVASION     206
-#define FEAT_ACROBATIC        207
-#define FEAT_AGILE        208
-#define FEAT_ANIMAL_AFFINITY      209
-#define FEAT_ATHLETIC       210
-#define FEAT_AUGMENT_SUMMONING      211
+#define FEAT_CALL_MOUNT              185
+#define FEAT_ABLE_LEARNER            186
+#define FEAT_EXTEND_RAGE             187
+#define FEAT_EXTRA_RAGE              188
+#define FEAT_FAST_HEALER             189
+#define FEAT_DEFENSIVE_STANCE        190
+#define FEAT_MOBILE_DEFENSE          191
+#define FEAT_WEAPON_OF_CHOICE        192
+#define FEAT_UNSTOPPABLE_STRIKE      193
+#define FEAT_INCREASED_MULTIPLIER    194
+#define FEAT_CRITICAL_SPECIALIST     195
+#define FEAT_SUPERIOR_WEAPON_FOCUS   196
+#define FEAT_WHIRLWIND_ATTACK        197
+#define FEAT_WEAPON_PROFICIENCY_DRUID 198
+#define FEAT_WEAPON_PROFICIENCY_ROGUE 199
+#define FEAT_WEAPON_PROFICIENCY_MONK  200
+#define FEAT_WEAPON_PROFICIENCY_WIZARD 201
+#define FEAT_WEAPON_PROFICIENCY_ELF  202
+#define FEAT_ARMOR_PROFICIENCY_SHIELD 203
+#define FEAT_SNEAK_ATTACK            204
+#define FEAT_EVASION                 205
+#define FEAT_IMPROVED_EVASION        206
+#define FEAT_ACROBATIC               207
+#define FEAT_AGILE                   208
+#define FEAT_ANIMAL_AFFINITY         209
+#define FEAT_ATHLETIC                210
+#define FEAT_AUGMENT_SUMMONING       211
 #define FEAT_COMBAT_EXPERTISE     212
 #define FEAT_DECEITFUL        213
 #define FEAT_DEFT_HANDS       214

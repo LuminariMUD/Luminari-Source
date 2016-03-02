@@ -428,7 +428,7 @@ static void diag_char_to_char(struct char_data *i, struct char_data *ch) {
   } else if (!IS_NPC(i))
     send_to_char(ch, "%s \tn[%s %s\tn] %s\r\n", CAP(pers), size_names[GET_SIZE(i)],
                  RACE_ABBR(i), diagnosis[ar_index].text);
-  else if (IS_NPC(i) && GET_RACE(i) <= NPCRACE_UNKNOWN)
+  else if (IS_NPC(i) && GET_RACE(i) <= RACE_TYPE_UNKNOWN)
     send_to_char(ch, "%s %s\r\n", CAP(pers),
                  diagnosis[ar_index].text);
   else if (IS_NPC(i) && GET_SUBRACE(i, 0) <= SUBRACE_UNKNOWN
@@ -1961,12 +1961,12 @@ ACMD(do_innates) {
     else
       race = GET_RACE(ch);
     switch (race) {
-      case NPCRACE_DRAGON:
+      case RACE_TYPE_DRAGON:
         send_to_char(ch, "tailsweep\r\n");
         send_to_char(ch, "breathe\r\n");
         send_to_char(ch, "frightful\r\n");
         break;
-      case NPCRACE_ANIMAL:
+      case RACE_TYPE_ANIMAL:
         send_to_char(ch, "rage\r\n");
         break;
       default:

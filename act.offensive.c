@@ -4195,7 +4195,7 @@ int perform_feint(struct char_data *ch, struct char_data *vict) {
 
   /* calculate our final bluff skill check (feint attempt) */
   bluff_skill_check = dice(1, 20) + compute_ability(ch, ABILITY_BLUFF);
-  if (IS_NPC(vict) && GET_NPC_RACE(vict) != NPCRACE_HUMAN)
+  if (IS_NPC(vict) && GET_NPC_RACE(vict) != RACE_TYPE_HUMANOID)
     bluff_skill_check -= 4;
   if (GET_INT(vict) <= 2)
     bluff_skill_check -= 8;

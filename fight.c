@@ -648,7 +648,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
   /* favored enemy */
   if (attacker && attacker != ch && !IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_RANGER)) {
     // checking if we have humanoid favored enemies for PC victims
-    if (!IS_NPC(attacker) && IS_FAV_ENEMY_OF(ch, NPCRACE_HUMAN)) {
+    if (!IS_NPC(attacker) && IS_FAV_ENEMY_OF(ch, RACE_TYPE_HUMANOID)) {
       bonuses[BONUS_TYPE_UNDEFINED] += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
     } else if (IS_NPC(attacker) && IS_FAV_ENEMY_OF(ch, GET_RACE(attacker))) {
       bonuses[BONUS_TYPE_UNDEFINED] += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
@@ -1925,7 +1925,7 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type) {
         damtype_reduction += 10;
 
       /* npc vulnerabilities/strengths */
-      if (GET_NPC_RACE(ch) == NPCRACE_ELEMENTAL &&
+      if (GET_NPC_RACE(ch) == RACE_TYPE_ELEMENTAL &&
               HAS_SUBRACE(ch, SUBRACE_FIRE))
         damtype_reduction += 100;
       if (IS_NPC(ch)) {
@@ -1954,7 +1954,7 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type) {
         damtype_reduction += 10;
 
       /* npc vulnerabilities/strengths */
-      if (GET_NPC_RACE(ch) == NPCRACE_ELEMENTAL &&
+      if (GET_NPC_RACE(ch) == RACE_TYPE_ELEMENTAL &&
               HAS_SUBRACE(ch, SUBRACE_FIRE))
         damtype_reduction -= 100;
       if (IS_NPC(ch)) {
@@ -1973,7 +1973,7 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type) {
         damtype_reduction += 10;
 
       /* npc vulnerabilities/strengths */
-      if (GET_NPC_RACE(ch) == NPCRACE_ELEMENTAL &&
+      if (GET_NPC_RACE(ch) == RACE_TYPE_ELEMENTAL &&
               HAS_SUBRACE(ch, SUBRACE_AIR))
         damtype_reduction += 100;
       if (IS_NPC(ch)) {
@@ -1992,7 +1992,7 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type) {
         damtype_reduction += 50;
 
       /* npc vulnerabilities/strengths */
-      if (GET_NPC_RACE(ch) == NPCRACE_ELEMENTAL &&
+      if (GET_NPC_RACE(ch) == RACE_TYPE_ELEMENTAL &&
               HAS_SUBRACE(ch, SUBRACE_EARTH))
         damtype_reduction += 100;
       if (IS_NPC(ch)) {
@@ -2020,7 +2020,7 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type) {
         damtype_reduction += 10;
 
       /* npc vulnerabilities/strengths */
-      if (GET_NPC_RACE(ch) == NPCRACE_ELEMENTAL &&
+      if (GET_NPC_RACE(ch) == RACE_TYPE_ELEMENTAL &&
               HAS_SUBRACE(ch, SUBRACE_EARTH))
         damtype_reduction += 50;
       if (IS_NPC(ch)) {
@@ -2036,7 +2036,7 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type) {
 
       /* npc vulnerabilities/strengths */
       if (IS_NPC(ch)) {
-        if (GET_NPC_RACE(ch) == NPCRACE_UNDEAD)
+        if (GET_NPC_RACE(ch) == RACE_TYPE_UNDEAD)
           damtype_reduction -= 50;
         if (HAS_SUBRACE(ch, SUBRACE_ANGEL))
           damtype_reduction += 50;
@@ -2064,7 +2064,7 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type) {
         damtype_reduction += 10;
 
       /* npc vulnerabilities/strengths */
-      if (GET_NPC_RACE(ch) == NPCRACE_ELEMENTAL &&
+      if (GET_NPC_RACE(ch) == RACE_TYPE_ELEMENTAL &&
               HAS_SUBRACE(ch, SUBRACE_WATER))
         damtype_reduction -= 100;
       if (IS_NPC(ch)) {
@@ -2080,7 +2080,7 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type) {
 
       /* npc vulnerabilities/strengths */
       if (IS_NPC(ch)) {
-        if (GET_NPC_RACE(ch) == NPCRACE_UNDEAD)
+        if (GET_NPC_RACE(ch) == RACE_TYPE_UNDEAD)
           damtype_reduction += 75;
         if (HAS_SUBRACE(ch, SUBRACE_ANGEL))
           damtype_reduction -= 50;
@@ -2135,7 +2135,7 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type) {
 
       /* npc vulnerabilities/strengths */
       if (IS_NPC(ch)) {
-        if (GET_NPC_RACE(ch) == NPCRACE_OOZE)
+        if (GET_NPC_RACE(ch) == RACE_TYPE_OOZE)
           damtype_reduction += 50;
 
       }
@@ -2152,11 +2152,11 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type) {
 
       /* npc vulnerabilities/strengths */
       if (IS_NPC(ch)) {
-        if (GET_NPC_RACE(ch) == NPCRACE_CONSTRUCT)
+        if (GET_NPC_RACE(ch) == RACE_TYPE_CONSTRUCT)
           damtype_reduction += 50;
-        if (GET_NPC_RACE(ch) == NPCRACE_PLANT)
+        if (GET_NPC_RACE(ch) == RACE_TYPE_PLANT)
           damtype_reduction += 50;
-        if (GET_NPC_RACE(ch) == NPCRACE_UNDEAD)
+        if (GET_NPC_RACE(ch) == RACE_TYPE_UNDEAD)
           damtype_reduction += 75;
       }
 
@@ -2172,9 +2172,9 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type) {
 
       /* npc vulnerabilities/strengths */
       if (IS_NPC(ch)) {
-        if (GET_NPC_RACE(ch) == NPCRACE_CONSTRUCT)
+        if (GET_NPC_RACE(ch) == RACE_TYPE_CONSTRUCT)
           damtype_reduction += 50;
-        if (GET_NPC_RACE(ch) == NPCRACE_UNDEAD)
+        if (GET_NPC_RACE(ch) == RACE_TYPE_UNDEAD)
           damtype_reduction += 50;
       }
 
@@ -2190,9 +2190,9 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type) {
 
       /* npc vulnerabilities/strengths */
       if (IS_NPC(ch)) {
-        if (GET_NPC_RACE(ch) == NPCRACE_CONSTRUCT)
+        if (GET_NPC_RACE(ch) == RACE_TYPE_CONSTRUCT)
           damtype_reduction += 50;
-        if (GET_NPC_RACE(ch) == NPCRACE_UNDEAD)
+        if (GET_NPC_RACE(ch) == RACE_TYPE_UNDEAD)
           damtype_reduction += 75;
         if (HAS_SUBRACE(ch, SUBRACE_ANGEL))
           damtype_reduction -= 25;
@@ -2208,13 +2208,13 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type) {
 
       /* npc vulnerabilities/strengths */
       if (IS_NPC(ch)) {
-        if (GET_NPC_RACE(ch) == NPCRACE_CONSTRUCT)
+        if (GET_NPC_RACE(ch) == RACE_TYPE_CONSTRUCT)
           damtype_reduction += 50;
-        if (GET_NPC_RACE(ch) == NPCRACE_OOZE)
+        if (GET_NPC_RACE(ch) == RACE_TYPE_OOZE)
           damtype_reduction += 50;
-        if (GET_NPC_RACE(ch) == NPCRACE_PLANT)
+        if (GET_NPC_RACE(ch) == RACE_TYPE_PLANT)
           damtype_reduction += 50;
-        if (GET_NPC_RACE(ch) == NPCRACE_UNDEAD)
+        if (GET_NPC_RACE(ch) == RACE_TYPE_UNDEAD)
           damtype_reduction += 50;
       }
 
@@ -2226,9 +2226,9 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type) {
 
       /* npc vulnerabilities/strengths */
       if (IS_NPC(ch)) {
-        if (GET_NPC_RACE(ch) == NPCRACE_CONSTRUCT)
+        if (GET_NPC_RACE(ch) == RACE_TYPE_CONSTRUCT)
           damtype_reduction += 50;
-        if (GET_NPC_RACE(ch) == NPCRACE_UNDEAD)
+        if (GET_NPC_RACE(ch) == RACE_TYPE_UNDEAD)
           damtype_reduction += 50;
       }
 
@@ -2240,7 +2240,7 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type) {
 
       /* npc vulnerabilities/strengths */
       if (IS_NPC(ch)) {
-        if (GET_NPC_RACE(ch) == NPCRACE_UNDEAD)
+        if (GET_NPC_RACE(ch) == RACE_TYPE_UNDEAD)
           damtype_reduction -= 25;
       }
 
@@ -2266,7 +2266,7 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type) {
         damtype_reduction += 10;
 
       /* npc vulnerabilities/strengths */
-      if (GET_NPC_RACE(ch) == NPCRACE_ELEMENTAL &&
+      if (GET_NPC_RACE(ch) == RACE_TYPE_ELEMENTAL &&
               HAS_SUBRACE(ch, SUBRACE_WATER))
         damtype_reduction += 100;
       if (IS_NPC(ch)) {
@@ -3090,7 +3090,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   /* favored enemy */
   if (vict && vict != ch && !IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_RANGER)) {
     // checking if we have humanoid favored enemies for PC victims
-    if (!IS_NPC(vict) && IS_FAV_ENEMY_OF(ch, NPCRACE_HUMAN)) {
+    if (!IS_NPC(vict) && IS_FAV_ENEMY_OF(ch, RACE_TYPE_HUMANOID)) {
       dambonus += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
       if (HAS_FEAT(ch, FEAT_EPIC_FAVORED_ENEMY)) {
         dambonus += 4;
@@ -3572,7 +3572,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
     if (wielded && FIGHTING(ch)) {
 
       /* process weapon abilities - critical */
-      if (is_critical && !(IS_NPC(victim) && GET_RACE(victim) == NPCRACE_UNDEAD))
+      if (is_critical && !(IS_NPC(victim) && GET_RACE(victim) == RACE_TYPE_UNDEAD))
         process_weapon_abilities(wielded, ch, victim, ACTMTD_ON_CRIT, NULL);
       /*chaotic weapon*/
       if((obj_has_special_ability(wielded, WEAPON_SPECAB_ANARCHIC) ||
@@ -3628,7 +3628,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
       }
       /*bane weapon*/
       if (victim != ch && HAS_FEAT(ch, FEAT_BANE_OF_ENEMIES) && HAS_FEAT(ch, FEAT_FAVORED_ENEMY)) {
-        if (!IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, NPCRACE_HUMAN)) {
+        if (!IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, RACE_TYPE_HUMANOID)) {
           send_to_char(ch, "Your weapon hums in delight as it strikes!b\r\n");
           dam += dice(2, 6);
         } else if (IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, GET_RACE(victim))) {
@@ -4203,7 +4203,7 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
   /* favored enemy - Needs work */
   if (victim && victim != ch && !IS_NPC(ch) && HAS_FEAT(ch, FEAT_FAVORED_ENEMY)) {
     // checking if we have humanoid favored enemies for PC victims
-    if (!IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, NPCRACE_HUMAN)) {
+    if (!IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, RACE_TYPE_HUMANOID)) {
       bonuses[BONUS_TYPE_UNDEFINED] += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
       if (HAS_FEAT(ch, FEAT_EPIC_FAVORED_ENEMY)) {
         bonuses[BONUS_TYPE_UNDEFINED] += 4;
@@ -4598,26 +4598,26 @@ int wildshape_weapon_type(struct char_data *ch) {
       } else {
         race = IS_MORPHED(ch);
         switch (race) {
-          case NPCRACE_HUMAN:
-          case NPCRACE_UNDEAD:
-          case NPCRACE_GIANT:
-          case NPCRACE_CONSTRUCT:
-          case NPCRACE_ELEMENTAL:
-          case NPCRACE_FEY:
-          case NPCRACE_MONSTER_HMN:
-          case NPCRACE_OUTSIDER:
-          case NPCRACE_PLANT:
+          case RACE_TYPE_HUMANOID:
+          case RACE_TYPE_UNDEAD:
+          case RACE_TYPE_GIANT:
+          case RACE_TYPE_CONSTRUCT:
+          case RACE_TYPE_ELEMENTAL:
+          case RACE_TYPE_FEY:
+          case RACE_TYPE_MONSTROUS_HUMANOID:
+          case RACE_TYPE_OUTSIDER:
+          case RACE_TYPE_PLANT:
             w_type_array[count] = TYPE_HIT;
             w_type_array[++count] = TYPE_PUNCH;
             w_type_array[++count] = TYPE_SMASH;
             break;
             
-          case NPCRACE_ANIMAL:
-          case NPCRACE_DRAGON:
-          case NPCRACE_ABERRATION:
-          case NPCRACE_MAG_BEAST:
-          case NPCRACE_OOZE:
-          case NPCRACE_VERMIN:            
+          case RACE_TYPE_ANIMAL:
+          case RACE_TYPE_DRAGON:
+          case RACE_TYPE_ABERRATION:
+          case RACE_TYPE_MAGICAL_BEAST:
+          case RACE_TYPE_OOZE:
+          case RACE_TYPE_VERMIN:            
           default:
             w_type_array[count] = TYPE_BITE;
             w_type_array[++count] = TYPE_CLAW;

@@ -1864,6 +1864,7 @@ ACMD(do_gen_door) {
       send_to_char(ch, "Oh.. it wasn't locked, after all..\r\n");
     else if (!(DOOR_IS_UNLOCKED(ch, obj, door)) && IS_SET(flags_door[subcmd], NEED_UNLOCKED) && ((!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOKEY))) && (has_key(ch, keynum))) {
       send_to_char(ch, "It is locked, but you have the key.\r\n");
+      do_doorcmd(ch, obj, door, SCMD_UNLOCK);
       send_to_char(ch, "*Click*\r\n");
       do_doorcmd(ch, obj, door, subcmd);
     } else if (!(DOOR_IS_UNLOCKED(ch, obj, door)) && IS_SET(flags_door[subcmd], NEED_UNLOCKED) && ((!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOKEY))) && (!has_key(ch, keynum))) {

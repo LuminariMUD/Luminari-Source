@@ -1692,16 +1692,16 @@ spellnum == SPELL_EPIC_WARDING )
 
 
 // IS_race for various morph/shapechange equivalent of npc races
-#define IS_DRAGON(ch)	( (IS_NPC(ch) && GET_RACE(ch) == NPCRACE_DRAGON) || \
-				(!IS_NPC(ch) && IS_MORPHED(ch) == NPCRACE_DRAGON) )
-#define IS_ANIMAL(ch)	( (IS_NPC(ch) && GET_RACE(ch) == NPCRACE_ANIMAL) || \
-				(!IS_NPC(ch) && IS_MORPHED(ch) == NPCRACE_ANIMAL) )
-#define IS_UNDEAD(ch)	( (IS_NPC(ch) && GET_RACE(ch) == NPCRACE_UNDEAD) || \
-				(!IS_NPC(ch) && IS_MORPHED(ch) == NPCRACE_UNDEAD) )
-#define IS_ELEMENTAL(ch)	( (IS_NPC(ch) && GET_RACE(ch) == NPCRACE_ELEMENTAL) || \
-				(!IS_NPC(ch) && IS_MORPHED(ch) == NPCRACE_ELEMENTAL) )
-#define IS_PLANT(ch)    ( (IS_NPC(ch) && GET_RACE(ch) == NPCRACE_PLANT) || \
-                                (!IS_NPC(ch) && IS_MORPHED(ch) == NPCRACE_PLANT) )
+#define IS_DRAGON(ch)	( (IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_DRAGON) || \
+				(!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_DRAGON) )
+#define IS_ANIMAL(ch)	( (IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_ANIMAL) || \
+				(!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_ANIMAL) )
+#define IS_UNDEAD(ch)	( (IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_UNDEAD) || \
+				(!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_UNDEAD) )
+#define IS_ELEMENTAL(ch)	( (IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_ELEMENTAL) || \
+				(!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_ELEMENTAL) )
+#define IS_PLANT(ch)    ( (IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_PLANT) || \
+                                (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_PLANT) )
 
 /* IS_ for other special situations */
 #define IS_INCORPOREAL(ch)   (AFF_FLAGGED(ch, AFF_IMMATERIAL) || HAS_SUBRACE(ch, SUBRACE_INCORPOREAL))
@@ -1744,15 +1744,12 @@ spellnum == SPELL_EPIC_WARDING )
 #define IS_HAPPYGOLD (happy_data.gold_rate > 0)
 #define IS_HAPPYTREASURE (happy_data.treasure_rate > 0)
 
-
 #define HAPPY_EXP    happy_data.exp_rate
 #define HAPPY_GOLD   happy_data.gold_rate
 #define HAPPY_QP     happy_data.qp_rate
 #define HAPPY_TREASURE     happy_data.treasure_rate
 
-
 #define HAPPY_TIME   happy_data.ticks_left
-
 
 #define IS_HAPPYHOUR ((IS_HAPPYEXP || IS_HAPPYGOLD || IS_HAPPYQP || \
                        IS_HAPPYTREASURE) && (HAPPY_TIME > 0))

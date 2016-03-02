@@ -1013,10 +1013,13 @@ int enter_wtrigger(struct room_data *room, char_data *actor, int dir) {
 }
 
 int command_wtrigger(char_data *actor, char *cmd, char *argument) {
-  struct room_data *room;
-  trig_data *t;
-  char buf[MAX_INPUT_LENGTH];
+  struct room_data *room = NULL;
+  trig_data *t = NULL;
+  char buf[MAX_INPUT_LENGTH] = { '\0' };
 
+  if (IN_ROOM(actor) == NOWHERE)
+    return 0;
+  
   if (!actor || !SCRIPT_CHECK(&world[IN_ROOM(actor)], WTRIG_COMMAND))
     return 0;
 

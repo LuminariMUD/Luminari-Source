@@ -306,7 +306,7 @@ void effect_charm(struct char_data *ch, struct char_data *victim,
 
   /* resistance bonuses, etc */
   if (!IS_NPC(victim) && (GET_RACE(victim) == RACE_ELF || //elven enchantment resistance
-          GET_RACE(victim) == RACE_H_ELF)) // added check for IS_NPC because NPCRACE_HUMAN == RACE_ELF and NPCRACE_ABERRATION == RACE_H_ELF
+          GET_RACE(victim) == RACE_H_ELF)) // added check for IS_NPC because RACE_TYPE_HUMAN == RACE_ELF and RACE_TYPE_ABERRATION == RACE_H_ELF
     bonus += 2;
   if (!IS_NPC(victim) && HAS_FEAT(victim, FEAT_STILL_MIND))
     bonus += 2;
@@ -695,7 +695,7 @@ ASPELL(spell_charm_animal) // enchantment
   if (victim == NULL || ch == NULL)
     return;
 
-  if (IS_NPC(victim) && GET_RACE(victim) == NPCRACE_ANIMAL) {
+  if (IS_NPC(victim) && GET_RACE(victim) == RACE_TYPE_ANIMAL) {
     effect_charm(ch, victim, SPELL_CHARM_ANIMAL, casttype, level);
   } else {
     send_to_char(ch, "This spell can only be used on animals.");
@@ -748,7 +748,7 @@ ASPELL(spell_control_plants) {
   if (victim == NULL || ch == NULL)
     return;
 
-  if (IS_NPC(victim) && GET_RACE(victim) == NPCRACE_PLANT) {
+  if (IS_NPC(victim) && GET_RACE(victim) == RACE_TYPE_PLANT) {
     effect_charm(ch, victim, SPELL_CONTROL_PLANTS, casttype, level);
   } else {
     send_to_char(ch, "This spell can only be used on plants.");

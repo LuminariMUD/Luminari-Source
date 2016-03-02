@@ -15,6 +15,17 @@
  * should go through this entire file from beginning to end and add the
  * appropriate new special cases for your new race. */
 
+/* Zusuk, 02/2016:  Start notes here!
+ * RACE_ these are specific race defines, eventually should be a massive list
+ *       of every race in our world
+ * SUBRACE_ these are subraces for NPC's, currently set to maximum 3, some
+ *          mechanics such as resistances are built into these
+ * PC_SUBRACE_ these are subraces for PC's, only used for animal shapes spell
+ *             currently, use to be part of the wildshape system
+ * RACE_TYPE_ this is like the family the race belongs to, like an iron golem
+ *            would be RACE_TYPE_CONSTRUCT
+ */
+
 #include "conf.h"
 #include "sysdep.h"
 #include "structs.h"
@@ -118,178 +129,48 @@ void assign_races(void) {
 
   /* begin listing */
 
-  /* human */
+  /* humanoid */
   /* race-num, abbrev, cap-name, family, neuter,male,female, str-mod,con-mod,int-mod,wis-mod,dex-mod,cha-mod,
    * lg,ln,le,ng,tn,ne,cg,cn,ce, size, is-pc, fav-class, lang, lvl-adjust*/
-  add_race(RACE_HUMAN_NORTHERNER, "northerner", "Northrn", "Northerner", RACE_TYPE_HUMAN, N, Y, Y, 0, 0, 0, 0, 0, 0, 
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_UNDEFINED, SKILL_LANG_CHONDATHAN, 0);
-  add_race(RACE_HUMAN_CORMYR, "cormyrian", "Cormyr", "Cormyrian", RACE_TYPE_HUMAN, N, Y, Y, 0, -1, 0, 0, 0, 1, 
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_UNDEFINED, SKILL_LANG_CHONDATHAN, 0);
-  add_race(RACE_HUMAN_ICE_BARBARIAN, "ice barbarian", "IceBarb", "Ice Barbarian", RACE_TYPE_HUMAN, N, Y, Y, 1, 0, 0, 0, 0, -1, 
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_UNDEFINED, SKILL_LANG_ICE_BARBARIAN, 0);
-  add_race(RACE_HUMAN_AMN, "amnite", "Amnite", "Amnite", RACE_TYPE_HUMAN, N, Y, Y, 0, 0, 0, 0, 1, -1,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_UNDEFINED, SKILL_LANG_CHONDATHAN, 0);
-  add_race(RACE_HUMAN_ANAUROCH, "desert folk", "Desert", "Desert Folk", RACE_TYPE_HUMAN, N, Y, Y, 0, 1, 0, 0, 0, -1, 
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_UNDEFINED, SKILL_LANG_MIDANI, 0);
-  add_race(RACE_HUMAN_CHULT, "chultian", "Chult", "Chultian", RACE_TYPE_HUMAN, N, Y, Y, 1, 0, -1, 0, 0, 0, 
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_UNDEFINED, SKILL_LANG_CHULTAN, 0);
-  add_race(RACE_HUMAN_DALELANDS, "daleman", "Daleman", "Daleman", RACE_TYPE_HUMAN, N, Y, Y, 0, 0, 0, 0, 0, 0, 
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_UNDEFINED, SKILL_LANG_CHONDATHAN, 0);
-  add_race(RACE_HUMAN_HORDELANDS, "hordeman", "Horde", "Hordeman", RACE_TYPE_HUMAN, N, Y, Y, 0, 1, 0, 0, 0, -1, 
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_UNDEFINED, SKILL_LANG_TUIGAN, 0);
-  add_race(RACE_HUMAN_LANTAN, "lantanite", "Lantan", "Lantanite", RACE_TYPE_HUMAN, N, Y, Y, 0, -1, 1, 0, 0, 0, 
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_UNDEFINED, SKILL_LANG_LANTANESE, 0);
-  add_race(RACE_HUMAN_MULHORAND, "mulhordanian", "Mulhrnd", "Mulhorandian", RACE_TYPE_HUMAN, N, Y, Y, -1, 0, 1, 0, 0, 0,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_UNDEFINED, SKILL_LANG_MULHORANDI, 0);
-  add_race(RACE_HUMAN_RASHEMAN, "rasheman", "Rashemn", "Rasheman", RACE_TYPE_HUMAN, N, Y, Y, 0, 1, 0, 0, -1, 0,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_UNDEFINED, SKILL_LANG_RASHEMI, 0);
-  add_race(RACE_HUMAN_SEMBIA, "sembian", "Sembian", "Sembian", RACE_TYPE_HUMAN, N, Y, Y, -1, -1, 0, 1, 0, 1, 
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_UNDEFINED, SKILL_LANG_CHONDATHAN, 0);
-  add_race(RACE_HUMAN_TETHYR, "thethyrian", "Tethyr", "Tethyrian", RACE_TYPE_HUMAN, N, Y, Y, 0, 1, 0, -1, 1, -1,
+  add_race(RACE_HUMAN, "human", "Human", "Human", RACE_TYPE_HUMANOID, N, Y, Y, 0, 0, 0, 0, 0, 0,
           Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_UNDEFINED, SKILL_LANG_COMMON, 0);
-  add_race(RACE_HUMAN_THAY, "thayvian", "Thay", "Thayvian", RACE_TYPE_HUMAN, N, Y, Y, 0, -1, 1, 1, 0, -1, 
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_UNDEFINED, SKILL_LANG_MULHORANDI, 0);
-  add_race(RACE_HUMAN_WATERDEEP, "waterdhavian", "Waterdp", "Waterdhavian", RACE_TYPE_HUMAN, N, Y, Y, 0, -1, 1, 0, -1, 1,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_UNDEFINED, SKILL_LANG_CHONDATHAN, 0);
-  add_race(RACE_HUMAN_SOLAMNIA, "solamnic", "Solmnia", "Solamnic", RACE_TYPE_HUMAN, N, Y, Y, 1, 0, 0, 0, 0, 1,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_UNDEFINED, SKILL_LANG_SOLAMNIC, 0);
-  add_race(RACE_HUMAN_ERGOTH, "ergothian", "Ergoth", "Ergothian", RACE_TYPE_HUMAN, N, Y, Y, 0, 0, 1, 0, 0, 1, 
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_UNDEFINED, SKILL_LANG_ERGOT, 0);
-  add_race(RACE_HUMAN_ISTAR, "abanasinian", "Abnasin", "Abanasinian", RACE_TYPE_HUMAN, N, Y, Y, 0, 0, 0, 1, 0, 1,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_UNDEFINED, SKILL_LANG_ISTARIAN, 0);
-  add_race(RACE_HUMAN_BALIFOR, "baliforite", "Balifor", "Baliforite", RACE_TYPE_HUMAN, N, Y, Y, 0, 0, 0, 0, 2, 0, 
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_UNDEFINED, SKILL_LANG_BALIFORIAN, 0);
-  add_race(RACE_HUMAN_KHAROLIS, "kharolisian", "Khrolis", "Kharolisian", RACE_TYPE_HUMAN, N, Y, Y, 1, 0, 0, 0, 1, 0,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_UNDEFINED, SKILL_LANG_KHAROLISIAN, 0);
-  add_race(RACE_HUMAN_NORDMAAR, "nordmaarian", "Nordmar", "Nordmaarian", RACE_TYPE_HUMAN, N, Y, Y, 1, 0, 0, 1, 0, 0, 
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_UNDEFINED, SKILL_LANG_NORDMAARIAN, 0);
-  add_race(RACE_HUMAN_ICE_FOLK, "ice folk", "IceFolk", "Ice Folk", RACE_TYPE_HUMAN, N, Y, Y, 1, 1, 0, 0, 0, 0, 
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_UNDEFINED, SKILL_LANG_ICESPEAK, 0);
-  add_race(RACE_HUMAN_PLAINS_NOMAD, "plains barbarian", "PlnBarb", "Plains Barbarian", RACE_TYPE_HUMAN, N, Y, Y, 0, 0, 0, 1, 1, 0, 
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_UNDEFINED, SKILL_LANG_BARBARIAN, 0);
-  add_race(RACE_HUMAN_MOUNTAIN_NOMAD, "mountain barbarian", "MtnBarb", "Mountain Barbarian", RACE_TYPE_HUMAN, N, Y, Y, 2, 0, 0, 0, 0, 0,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_UNDEFINED, SKILL_LANG_BARBARIAN, 0);
-  add_race(RACE_HUMAN_DESERT_NOMAD, "desert barbarian", "DstBarb", "Desert Barbarian", RACE_TYPE_HUMAN, N, Y, Y, 0, 2, 0, 0, 0, 0, 
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_UNDEFINED, SKILL_LANG_BARBARIAN, 0);
-
-  /* elf */
-  /* race-num, abbrev, cap-name, family, neuter,male,female, str-mod,con-mod,int-mod,wis-mod,dex-mod,cha-mod,
-   * lg,ln,le,ng,tn,ne,cg,cn,ce, size, is-pc, fav-class, lang, lvl-adjust*/
-  add_race(RACE_MOON_ELF, "moon elf", "MoonElf", "Moon Elf", RACE_TYPE_ELF, N, Y, Y, 0, -2, 0, 0, 2, 0,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_WIZARD, SKILL_LANG_ELVEN, 0);
-  add_race(RACE_SUN_ELF, "sun elf", "SunElf", "Sun Elf", RACE_TYPE_ELF, N, Y, Y, 0, -2, 2, 0, 0, 0, 
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_WIZARD, SKILL_LANG_ELVEN, 0);
-  add_race(RACE_WILD_ELF, "wild elf", "WildElf", "Wild Elf", RACE_TYPE_ELF, N, Y, Y, 0, 0, -2, 0, 2, 0,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_SORCERER, SKILL_LANG_ELVEN, 0);
-  add_race(RACE_WOOD_ELF, "wood elf", "WoodElf", "Wood Elf", RACE_TYPE_ELF, N, Y, Y, 2, -2, -2, 0, 2, -2,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_RANGER, SKILL_LANG_ELVEN, 0);
-  add_race(RACE_DROW_ELF, "drow elf", "DrowElf", "Drow Elf", RACE_TYPE_ELF, N, Y, Y, 0, -2, 2, 0, 2, 2,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_WIZARD, SKILL_LANG_UNDERCOMMON, 2);
+  add_race(RACE_DROW_ELF, "drow elf", "DrowElf", "Drow Elf", RACE_TYPE_HUMANOID, N, Y, Y, 0, -2, 2, 0, 2, 2,
+          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, FALSE, CLASS_WIZARD, SKILL_LANG_UNDERCOMMON, 2);
   favored_class_female(RACE_DROW_ELF, CLASS_CLERIC);
-  add_race(RACE_HALF_ELF, "half elf", "HalfElf", "Half Elf", RACE_TYPE_ELF, N, Y, Y, 0, 0, 0, 0, 0, 0,
+  add_race(RACE_HALF_ELF, "half elf", "HalfElf", "Half Elf", RACE_TYPE_HUMANOID, N, Y, Y, 0, 0, 0, 0, 0, 0,
           Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_WIZARD, SKILL_LANG_ELVEN, 0);
-  add_race(RACE_HALF_DROW, "half drow", "HlfDrow", "Half Drow", RACE_TYPE_ELF, N, Y, Y, 0, 0, 0, 0, 0, 0,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_WIZARD, SKILL_LANG_UNDERCOMMON, 0);
-  add_race(RACE_QUALINESTI_ELF, "qualinesti elf", "QualElf", "Qualinesti Elf", RACE_TYPE_ELF, N, Y, Y, 0, -2, 2, 0, 2, 0,
+  add_race(RACE_ELF, "elf", "Elf", "Elf", RACE_TYPE_HUMANOID, N, Y, Y, 0, 0, 0, 0, 0, 0,
           Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_WIZARD, SKILL_LANG_ELVEN, 0);
-  add_race(RACE_SILVANESTI_ELF, "silvanesti elf", "SilvElf", "Silvanesti Elf", RACE_TYPE_ELF, N, Y, Y, 0, -2, 2, 2, 2, -2,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_WIZARD, SKILL_LANG_ELVEN, 0);
-  add_race(RACE_KAGONESTI_ELF, "kagonesti elf", "KagoElf", "Kagonesti Elf", RACE_TYPE_ELF, N, Y, Y, 0, 0, 0, 2, 2, -2, 
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_RANGER, SKILL_LANG_ELVEN, 0);
-
-  /* dwarf */
-  /* race-num, abbrev, cap-name, family, neuter,male,female, str-mod,con-mod,int-mod,wis-mod,dex-mod,cha-mod,
-   * lg,ln,le,ng,tn,ne,cg,cn,ce, size, is-pc, fav-class, lang, lvl-adjust*/
-  add_race(RACE_SHIELD_DWARF, "shield dwarf", "ShldDwf", "Shield Dwarf", RACE_TYPE_DWARF, N, Y, Y, 0, 2, 0, 0, 0, -2, 
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_WARRIOR, SKILL_LANG_DWARVEN, 0);
-  add_race(RACE_GOLD_DWARF, "gold dwarf", "GoldDwf", "Gold Dwarf", RACE_TYPE_DWARF, N, Y, Y, 0, 2, 0, 0, -2, 0,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_WARRIOR, SKILL_LANG_DWARVEN, 0);
-  add_race(RACE_GRAY_DWARF, "duergar", "Duergar", "Duergar", RACE_TYPE_DWARF, N, Y, Y, 0, 2, 0, 0, 0, -4,
+  add_race(RACE_CRYSTAL_DWARF, "crystal dwarf", "CrystalDwarf", "Crystal Dwarf", RACE_TYPE_HUMANOID, N, Y, Y, 0, 2, 0, 0, 0, -4,
           Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_WARRIOR, SKILL_LANG_UNDERCOMMON, 1);
-  add_race(RACE_HYLAR_DWARF, "hylar dwarf", "HylrDwf", "Hylar Dwarf", RACE_TYPE_DWARF, N, Y, Y, 0, 2, 0, 0, 2, -2,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_WARRIOR, SKILL_LANG_DWARVEN, 0);
-  add_race(RACE_NEIDAR_DWARF, "neidar dwarf", "NidrDwf", "Neidar Dwarf", RACE_TYPE_DWARF, N, Y, Y, 0, 2, 0, 2, 0, -2,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_WARRIOR, SKILL_LANG_DWARVEN, 0);
-  add_race(RACE_DAEWAR_DWARF, "daewar dwarf", "DawrDwf", "Daewar Dwarf", RACE_TYPE_DWARF, N, Y, Y, 0, 2, 0, 2, 0, -2,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_WARRIOR, SKILL_LANG_DWARVEN, 0);
-  add_race(RACE_KLAR_DWARF, "klar dwarf", "KlarDwf", "Klar Dwarf", RACE_TYPE_DWARF, N, Y, Y, 0, 2, 0, 2, 0, -2,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_WARRIOR, SKILL_LANG_DWARVEN, 0);
-  add_race(RACE_DAERGAR_DWARF, "daergar dwarf", "DrgrDwf", "Daergar Dwarf", RACE_TYPE_DWARF, N, Y, Y, 0, 2, 0, 2, 0, -2,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_WARRIOR, SKILL_LANG_DWARVEN, 0);
-  add_race(RACE_THEIWAR_DWARF, "theiwar dwarf", "ThwrDwf", "Theiwar Dwarf", RACE_TYPE_DWARF, N, Y, Y, 0, 2, 2, 0, 0, -2,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_WARRIOR, SKILL_LANG_DWARVEN, 0);
-  add_race(RACE_DEWAR_DWARF, "dewar dwarf", "DewrDwf", "Dewar Dwarf", RACE_TYPE_DWARF, N, Y, Y, 0, 2, 0, 0, 2, -0,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_WARRIOR, SKILL_LANG_DWARVEN, 0);
-  add_race(RACE_AGHAR_DWARF, "gully dwarf", "GulyDwf", "Gully Dwarf", RACE_TYPE_DWARF, N, Y, Y, 0, 4, -4, 2, 4, -2,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_WARRIOR, SKILL_LANG_GULLYTALK, 0);
-  add_race(RACE_ZHAKAR_DWARF, "zhakar dwarf", "ZhkrDwf", "Zhakar Dwarf", RACE_TYPE_DWARF, N, Y, Y, 0, 2, 0, 2, 0, -2,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_WARRIOR, SKILL_LANG_DWARVEN, 0);
-
-  /* halfling */
-  /* race-num, abbrev, cap-name, family, neuter,male,female, str-mod,con-mod,int-mod,wis-mod,dex-mod,cha-mod,
-   * lg,ln,le,ng,tn,ne,cg,cn,ce, size, is-pc, fav-class, lang, lvl-adjust*/
-  add_race(RACE_LIGHTFOOT_HALFLING, "lightfoot halfling", "LtftHlf", "Lightfoot Halfling", RACE_TYPE_HALFLING, N, Y, Y, -2, 0, 0, 0, 2, 0,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_SMALL, TRUE, CLASS_ROGUE, SKILL_LANG_COMMON, 0);
-  add_race(RACE_GHOSTWISE_HALFLING, "ghostwise halfling", "GhstHlf", "Ghostwise Halfling", RACE_TYPE_HALFLING, N, Y, Y, -2, 0, 0, 0, 2, 0,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_SMALL, TRUE, CLASS_BERSERKER, SKILL_LANG_COMMON, 0);
-  add_race(RACE_STRONGHEART_HALFLING, "strongheart halfling", "SthtHlf", "Strongheart Halfling", RACE_TYPE_HALFLING, N, Y, Y, -2, 0, 0, 0, 2, 0,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_SMALL, TRUE, CLASS_ROGUE, SKILL_LANG_COMMON, 0);
-
-  /* gnome */
-  /* race-num, abbrev, cap-name, family, neuter,male,female, str-mod,con-mod,int-mod,wis-mod,dex-mod,cha-mod,
-   * lg,ln,le,ng,tn,ne,cg,cn,ce, size, is-pc, fav-class, lang, lvl-adjust*/
-  add_race(RACE_ROCK_GNOME, "rock gnome", "RkGnome", "Rock Gnome", RACE_TYPE_GNOME, N, Y, Y, -2, 0, 2, 0, 0, 0,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_SMALL, TRUE, CLASS_WIZARD, SKILL_LANG_GNOME, 0);
-  add_race(RACE_DEEP_GNOME, "svirfneblin", "Svfnbln", "Svirfneblin", RACE_TYPE_GNOME, N, Y, Y, -2, 0, 0, 2, 2, -4,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_SMALL, TRUE, CLASS_ROGUE, SKILL_LANG_GNOME, 3);
-  add_race(RACE_GNOME, "gnome", "Gnome", "Gnome", RACE_TYPE_GNOME, N, Y, Y, 0, 0, 2, -2, 2, 0,
+  add_race(RACE_DWARF, "dwarf", "Dwarf", "Dwarf", RACE_TYPE_HUMANOID, N, Y, Y, 0, 2, 0, 0, 0, -4,
+          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_WARRIOR, SKILL_LANG_DWARVEN, 1);
+  add_race(RACE_HALFLING, "halfling", "Halfling", "Halfling", RACE_TYPE_HUMANOID, N, Y, Y, 0, 0, 0, 0, 0, 0,
+          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_SMALL, TRUE, CLASS_UNDEFINED, SKILL_LANG_COMMON, 0);
+  add_race(RACE_ROCK_GNOME, "rock gnome", "RkGnome", "Rock Gnome", RACE_TYPE_HUMANOID, N, Y, Y, -2, 0, 2, 0, 0, 0,
+          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_SMALL, FALSE, CLASS_WIZARD, SKILL_LANG_GNOME, 0);
+  add_race(RACE_DEEP_GNOME, "svirfneblin", "Svfnbln", "Svirfneblin", RACE_TYPE_HUMANOID, N, Y, Y, -2, 0, 0, 2, 2, -4,
+          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_SMALL, FALSE, CLASS_ROGUE, SKILL_LANG_GNOME, 3);
+  add_race(RACE_GNOME, "gnome", "Gnome", "Gnome", RACE_TYPE_HUMANOID, N, Y, Y, 0, 0, 2, -2, 2, 0,
           Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_SMALL, TRUE, CLASS_UNDEFINED, SKILL_LANG_GNOME, 0);
-
-  /* orc */
-  /* race-num, abbrev, cap-name, family, neuter,male,female, str-mod,con-mod,int-mod,wis-mod,dex-mod,cha-mod,
-   * lg,ln,le,ng,tn,ne,cg,cn,ce, size, is-pc, fav-class, lang, lvl-adjust*/
-  add_race(RACE_HALF_ORC, "half orc", "HalfOrc", "Half Orc", RACE_TYPE_ORC, N, Y, Y, 2, 0, -2, 0, 0, -2,
+  add_race(RACE_HALF_ORC, "half orc", "HalfOrc", "Half Orc", RACE_TYPE_HUMANOID, N, Y, Y, 2, 0, -2, 0, 0, -2,
           Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_BERSERKER, SKILL_LANG_ORCISH, 0);
-  add_race(RACE_ORC, "orc", "Orc", "Orc", RACE_TYPE_ORC, N, Y, Y, 2, 2, -2, -2, 0, -2,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_BERSERKER, SKILL_LANG_ORCISH, 0);
+  add_race(RACE_ORC, "orc", "Orc", "Orc", RACE_TYPE_HUMANOID, N, Y, Y, 2, 2, -2, -2, 0, -2,
+          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, FALSE, CLASS_BERSERKER, SKILL_LANG_ORCISH, 0);
 
   /* monstrous humanoid */
   /* race-num, abbrev, cap-name, family, neuter,male,female, str-mod,con-mod,int-mod,wis-mod,dex-mod,cha-mod,
    * lg,ln,le,ng,tn,ne,cg,cn,ce, size, is-pc, fav-class, lang, lvl-adjust*/
-  add_race(RACE_CENTAUR, "centaur", "Centaur", "Centaur", RACE_TYPE_MONSTROUS_HUMANOID, N, Y, Y, 8, 4, -2, 2, 4, 0,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_LARGE, TRUE, CLASS_RANGER, SKILL_LANG_ELVEN, 3);
-  add_race(RACE_IRDA, "irda", "Irda", "Irda", RACE_TYPE_MONSTROUS_HUMANOID, N, Y, Y, 0, 0, 4, 2, 0, 2,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_WIZARD, SKILL_LANG_CELESTIAL, 1);
-  add_race(RACE_MONSTROUS_HUMANOID, "monstrous humanoid", "MnsHmnd", "Monstrous Humanoid", RACE_TYPE_MONSTROUS_HUMANOID, N, Y, Y, 0, 0, 0, 0, 0, 0,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-  add_race(RACE_GOBLIN, "goblin", "Goblin", "Goblin", RACE_TYPE_GOBLINOID, N, Y, Y, -2, 2, 0, 0, 2, -2,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_SMALL, FALSE, CLASS_WARRIOR, SKILL_LANG_GOBLIN, 0);
-  add_race(RACE_HALF_TROLL, "troll", "Troll", "Troll", RACE_TYPE_GIANT, N, Y, Y, 2, 4, 0, 0, 0, -2,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_LARGE, FALSE, CLASS_WARRIOR, SKILL_LANG_GOBLIN, 0);
-
-  /* kender */
-  /* race-num, abbrev, cap-name, family, neuter,male,female, str-mod,con-mod,int-mod,wis-mod,dex-mod,cha-mod,
-   * lg,ln,le,ng,tn,ne,cg,cn,ce, size, is-pc, fav-class, lang, lvl-adjust*/
-  add_race(RACE_KENDER, "kender", "Kender", "Kender", RACE_TYPE_KENDER, N, Y, Y, -2, 0, 0, 0, 4, 0,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_SMALL, TRUE, CLASS_ROGUE, SKILL_LANG_KENDERSPEAK, 0);
-
-  /* minotaur */
-  /* race-num, abbrev, cap-name, family, neuter,male,female, str-mod,con-mod,int-mod,wis-mod,dex-mod,cha-mod,
-   * lg,ln,le,ng,tn,ne,cg,cn,ce, size, is-pc, fav-class, lang, lvl-adjust*/
-  add_race(RACE_MINOTAUR, "minotaur", "Minotar", "Minotaur", RACE_TYPE_MINOTAUR, N, Y, Y, 4, 0, 0, 0, 0, -2,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_WARRIOR, SKILL_LANG_KOTHIAN, 0);
+  add_race(RACE_HALF_TROLL, "half troll", "HalfTroll", "Half Troll", RACE_TYPE_MONSTROUS_HUMANOID, N, Y, Y, 2, 4, 0, 0, 0, -2,
+          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_LARGE, TRUE, CLASS_WARRIOR, SKILL_LANG_GOBLIN, 0);
 
   /* giant */
   add_race(RACE_HALF_OGRE, "half ogre", "HlfOgre", "Half Ogre", RACE_TYPE_GIANT, N, Y, Y, 6, 4, -2, 0, 2, 0,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_LARGE, TRUE, CLASS_BERSERKER, SKILL_LANG_GIANT, 2);
-  add_race(RACE_GIANT, "giant", "Giant", "Giant", RACE_TYPE_GIANT, N, Y, Y, 14, 6, -4, -4, 0, -4,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_HUGE, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 4);
+          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_LARGE, FALSE, CLASS_BERSERKER, SKILL_LANG_GIANT, 2);
 
   /* undead */
   /* race-num, abbrev, cap-name, family, neuter,male,female, str-mod,con-mod,int-mod,wis-mod,dex-mod,cha-mod,
    * lg,ln,le,ng,tn,ne,cg,cn,ce, size, is-pc, fav-class, lang, lvl-adjust*/
-  add_race(RACE_UNDEAD, "undead", "Undead", "Undead", RACE_TYPE_UNDEAD, Y, N, N, 0, 0, 0, 0, 0, 0,
-          N, N, N, N, Y, N, Y, Y, Y, SIZE_MEDIUM, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
   add_race(RACE_SKELETON, "skeleton", "Skeletn", "Skeleton", RACE_TYPE_UNDEAD, Y, N, N, 0, 0, 0, 0, 0, 0,
           N, N, N, N, Y, N, N, N, N, SIZE_MEDIUM, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
   add_race(RACE_ZOMBIE, "zombie", "Zombie", "Zombie", RACE_TYPE_UNDEAD, N, Y, Y, 0, 0, 0, 0, 0, 0,
@@ -374,8 +255,6 @@ void assign_races(void) {
   /* ooze */
   /* race-num, abbrev, cap-name, family, neuter,male,female, str-mod,con-mod,int-mod,wis-mod,dex-mod,cha-mod,
    * lg,ln,le,ng,tn,ne,cg,cn,ce, size, is-pc, fav-class, lang, lvl-adjust*/
-  add_race(RACE_OOZE, "ooze", "Ooze", "Ooze", RACE_TYPE_OOZE, Y, N, N, 0, 0, 0, 0, 0, 0,
-          N, N, N, N, Y, N, N, N, N, SIZE_MEDIUM, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
 
   /* elemental */
   /* race-num, abbrev, cap-name, family, neuter,male,female, str-mod,con-mod,int-mod,wis-mod,dex-mod,cha-mod,
@@ -419,14 +298,6 @@ void assign_races(void) {
   /* magical beast */
   /* race-num, abbrev, cap-name, family, neuter,male,female, str-mod,con-mod,int-mod,wis-mod,dex-mod,cha-mod,
    * lg,ln,le,ng,tn,ne,cg,cn,ce, size, is-pc, fav-class, lang, lvl-adjust*/
-  /*
-  add_race(RACE_STIRGE, "stirge", "Stirge", "Stirge", RACE_TYPE_MAGICAL_BEAST, N, Y, Y, 0, 0, 0, 0, 0, 0, 100, 100, 100, 55, 55, 55,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-  add_race(RACE_SHOCKER_LIZARD, "shocker lizard", "ShckLiz", "Shocker Lizard", RACE_TYPE_MAGICAL_BEAST, N, Y, Y, 0, 0, 0, 0, 0, 0, 100, 100, 100, 55, 55, 55,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-  add_race(RACE_OWLBEAR, "owlbear", "Owlbear", "Owlbear", RACE_TYPE_MAGICAL_BEAST, N, Y, Y, 0, 0, 0, 0, 0, 0, 100, 100, 100, 55, 55, 55,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_LARGE, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-  */
   add_race(RACE_BLINK_DOG, "blink dog", "BlnkDog", "Blink Dog", RACE_TYPE_MAGICAL_BEAST, N, Y, Y, 0, 0, 0, 0, 0, 0,
           Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
 
@@ -439,42 +310,26 @@ void assign_races(void) {
   /* construct */
   /* race-num, abbrev, cap-name, family, neuter,male,female, str-mod,con-mod,int-mod,wis-mod,dex-mod,cha-mod,
    * lg,ln,le,ng,tn,ne,cg,cn,ce, size, is-pc, fav-class, lang, lvl-adjust*/
-  add_race(RACE_IRON_GOLEM, "construct", "Consrct", "Construct", RACE_TYPE_CONSTRUCT, Y, N, N, 0, 0, 0, 0, 0, 0,
-          N, N, N, N, Y, N, Y, Y, Y, SIZE_MEDIUM, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
+  add_race(RACE_IRON_GOLEM, "iron golem", "IronGolem", "Iron Golem", RACE_TYPE_CONSTRUCT, Y, N, N, 0, 0, 0, 0, 0, 0,
+          N, N, N, N, Y, N, Y, Y, Y, SIZE_LARGE, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
+  add_race(RACE_ARCANA_GOLEM, "arcana golem", "ArcanaGolem", "Arcana Golem", RACE_TYPE_CONSTRUCT, Y, N, N, 0, 0, 0, 0, 0, 0,
+          N, N, N, N, Y, N, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_WIZARD, SKILL_LANG_COMMON, 0);
 
   /* outsiders */
   /* race-num, abbrev, cap-name, family, neuter,male,female, str-mod,con-mod,int-mod,wis-mod,dex-mod,cha-mod,
    * lg,ln,le,ng,tn,ne,cg,cn,ce, size, is-pc, fav-class, lang, lvl-adjust*/
-  /*
-  add_race(RACE_AIR_GENESI, "air genesi", "AirGnsi", "Air Genesi", RACE_TYPE_OUTSIDER, N, Y, Y, 0, 0, 2, -2, 2, -2, 185, 185, 175, 80, 80, 75,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_WARRIOR, SKILL_LANG_CELESTIAL, 1);
-  add_race(RACE_FIRE_GENESI, "fire genesi", "FirGnsi", "Fire Genesi", RACE_TYPE_OUTSIDER, N, Y, Y, 0, 0, 2, 0, 0, -2, 185, 185, 175, 80, 80, 75,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_WARRIOR, SKILL_LANG_ABYSSAL, 1);
-  add_race(RACE_WATER_GENESI, "water genesi", "WatGnsi", "Water Genesi", RACE_TYPE_OUTSIDER, N, Y, Y, 0, 2, 0, 0, 0, -2, 185, 185, 175, 80, 80, 75,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_WARRIOR, SKILL_LANG_CELESTIAL, 1);
-  add_race(RACE_EARTH_GENESI, "earth genesi", "ErtGnsi", "Earth Genesi", RACE_TYPE_OUTSIDER, N, Y, Y, 2, 2, 0, -2, 0, -2, 185, 185, 175, 80, 80, 75,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_WARRIOR, SKILL_LANG_ABYSSAL, 1);
-  add_race(RACE_AASIMAR, "aasimar", "Aasimar", "Aasimar", RACE_TYPE_OUTSIDER, N, Y, Y, 0, 0, 0, 2, 0, 2, 185, 185, 175, 80, 80, 75,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_WARRIOR, SKILL_LANG_CELESTIAL, 1);
-  add_race(RACE_TIEFLING, "tiefling", "Tieflng", "Tiefling", RACE_TYPE_OUTSIDER, N, Y, Y, 0, 0, 2, 0, 2, -2, 185, 185, 175, 80, 80, 75,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_WARRIOR, SKILL_LANG_ABYSSAL, 1);
-  */
   add_race(RACE_AEON_THELETOS, "aeon theletos", "AeonThel", "Theletos Aeon", RACE_TYPE_OUTSIDER, N, Y, Y, 0, 0, 0, 0, 0, 0,
           Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
 
   /* dragon */
   /* race-num, abbrev, cap-name, family, neuter,male,female, str-mod,con-mod,int-mod,wis-mod,dex-mod,cha-mod,
    * lg,ln,le,ng,tn,ne,cg,cn,ce, size, is-pc, fav-class, lang, lvl-adjust*/
-  /*
-  add_race(RACE_HALF_DRAGON, "half dragon", "HlfDrgn", "Half Dragon", RACE_TYPE_DRAGON, N, Y, Y, 0, 0, 0, 0, 0, 0, 180, 180, 180, 150, 150, 130,
-          N, N, N, N, Y, N, Y, Y, Y, SIZE_MEDIUM, FALSE, CLASS_WARRIOR, SKILL_LANG_DRACONIC, 0);
-  add_race(RACE_BAAZ_DRACONIAN, "baaz draconian", "Baaz", "Baaz Draconian", RACE_TYPE_DRAGON, N, Y, Y, 4, 4, 0, 0, 0, 0, 215, 215, 150, 150, 100, 90,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_WARRIOR, SKILL_LANG_DRACONIC, 1);
-  add_race(RACE_KAPAK_DRACONIAN, "kapak draconian", "Kapak", "Kapak Draconian", RACE_TYPE_DRAGON, N, Y, Y, 0, 2, 2, 0, 4, 0, 215, 215, 150, 150, 100, 90,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_ROGUE, SKILL_LANG_DRACONIC, 2);
-  */
   add_race(RACE_DRAGON_CLOUD, "dragon cloud", "DrgCloud", "Cloud Dragon", RACE_TYPE_DRAGON, N, Y, Y, 0, 0, 0, 0, 0, 0,
           N, N, N, N, Y, N, Y, Y, Y, SIZE_HUGE, FALSE, CLASS_WARRIOR, SKILL_LANG_DRACONIC, 0);
+  
+  /* aberration */
+  add_race(RACE_TRELUX, "trelux", "Trelux", "Trelux", RACE_TYPE_ABERRATION, N, Y, Y, 0, 0, 0, 0, 0, 0,
+          N, N, N, N, Y, N, Y, Y, Y, SIZE_SMALL, TRUE, CLASS_WARRIOR, SKILL_LANG_ABERRATION, 0);
   
   /* end listing */
 }
@@ -497,22 +352,31 @@ void racial_ability_modifiers(struct char_data *ch) {
 
 // npc races
 const char *npc_race_types[] = {
-   "Unknown",
+   "Unknown", //0
    "Humanoid",
    "Undead",
    "Animal",
    "Dragon",
-   "Giant",
+   "Giant",  //5
    "Aberration",
    "Construct",
    "Elemental",
    "Fey",
-   "Magical Beast",
+   "Magical Beast",  //10
    "Monstrous Humanoid",
    "Ooze",
    "Outsider",
    "Plant",
-   "Vermin"
+   "Vermin",  //15
+   "Elf",
+   "Dwarf",
+   "Halfling",
+   "Centaur",
+   "Gnome",  //20
+   "Minotaur",
+   "Half Elf",
+   "Orc",
+   "Goblinoid",  //24
 };
 
 // npc races, short form

@@ -2337,7 +2337,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
         default:
           number = atoi(arg);
 
-          if (number < 0 || number >= NUM_NPC_RACES)
+          if (number < 0 || number >= NUM_RACE_TYPES)
             write_to_output(d, "Invalid race!\r\n");
           else {
             GET_FAVORED_ENEMY(d->character, LEVELUP(d->character)->favored_slot) =
