@@ -167,7 +167,8 @@ typedef enum
    eMSDP_DEX_PERM,
    eMSDP_CON_PERM,
    eMSDP_CHA_PERM,
-
+   eMSDP_ACTIONS,
+   
    /* Combat */
    eMSDP_OPPONENT_HEALTH,
    eMSDP_OPPONENT_HEALTH_MAX,
@@ -181,6 +182,7 @@ typedef enum
    eMSDP_ROOM_NAME,
    eMSDP_ROOM_VNUM,
    eMSDP_WORLD_TIME,
+   eMSDP_SECTORS,
    eMSDP_MINIMAP,
 
    /* Configuration */
@@ -204,7 +206,7 @@ typedef enum
    eMSDP_GAUGE_3,
    eMSDP_GAUGE_4,
    eMSDP_GAUGE_5,
-
+         
    eMSDP_MAX                   /* This must always be last */
 } variable_t;
 

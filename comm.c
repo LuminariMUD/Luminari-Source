@@ -3177,12 +3177,15 @@ static void msdp_update(void) {
 
   struct descriptor_data *d;
   int PlayerCount = 0;
-  int door;
+  int door, sector;
   //int damage_bonus = 0;
 
   for (d = descriptor_list; d; d = d->next) {
     char buf[MAX_STRING_LENGTH];
     char buf2[MAX_STRING_LENGTH];
+    char sectors[MAX_STRING_LENGTH];
+    char sector_buf[80];
+    
     char room_exits[MAX_STRING_LENGTH];
 
     struct char_data *ch = d->character;
@@ -3285,9 +3288,23 @@ static void msdp_update(void) {
                 MSDP_TABLE_OPEN,
                 room_exits,
                 MSDP_TABLE_CLOSE);
-
+       
         strip_colors(buf2);
-
+        
+        // Sectors
+        sprintf(sector_buf, "%c", MSDP_TABLE_OPEN); 
+        strcat(sectors, sector_buf);
+        for (sector = 0;sector < NUM_ROOM_SECTORS; sector++) {
+          sector_buf[0] = '\0';
+          sprintf(sector_buf, "%c%c%s%c%d%c%c", MsdpVar, sector_types[sector], MsdpVal, sector);
+          strcat(sectors, sector_buf);
+        }
+        sprintf(sector_buf, "%c", MSDP_TABLE_CLOSE); 
+        strcat(sectors, sector_buf);
+        
+        MSDPSetTable(d, eMSDP_SECTORS, sectors);        
+        // End Sectors
+        
         //        send_to_char(ch, "DEBUG: %s\r\n", buf2);
 
         MSDPSetString(d, eMSDP_AREA_NAME, zone_table[GET_ROOM_ZONE(IN_ROOM(ch))].name);

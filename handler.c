@@ -700,7 +700,9 @@ void cleanup_disguise(struct char_data *ch) {
  * restoring original abilities, and then affecting all again. */
 void affect_total(struct char_data *ch) {
   int at_armor = 100;
-
+  char msdp_buffer[MAX_STRING_LENGTH];
+  struct affected_type *af, *next;
+  
   /* cleanup for disguise system */
   cleanup_disguise(ch);
 
@@ -710,6 +712,18 @@ void affect_total(struct char_data *ch) {
 
   /* this will re-add all affects, cap the char, and modify any dynamics */
   affect_total_plus(ch, at_armor);
+  
+  /* MSDP */
+  
+  /* Example:
+   * sprintf( Buffer, "%c%s%c%s", (char)MSDP_VAR, Name, (char)MSDP_VAL, Value );
+   *  MSDPSetTable( d, eMSDP_TEST, Buffer ); 
+   */
+  //for (af = ch->affected; af; af = next) {
+  //  next = af->next;
+  //}
+  //sprintf(msdp_buffer, "%c%s%c%s", (char)MSDP_VAR, "", (char)MSDP_VAL, "");
+  //MSDPSetTable(ch->d, eMSDP_AFFECTS, msdp_buffer);
 }
 
 /* Insert an affect_type in a char_data structure. Automatically sets
@@ -740,6 +754,7 @@ void affect_to_char(struct char_data *ch, struct affected_type *af) {
   }
 
   affect_total(ch);
+  
 }
 
 /* Remove an affected_type structure from a char (called when duration reaches
