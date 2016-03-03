@@ -3292,15 +3292,15 @@ static void msdp_update(void) {
         strip_colors(buf2);
         
         // Sectors
-        sprintf(sector_buf, "%c", MSDP_TABLE_OPEN); 
-        strcat(sectors, sector_buf);
+        //ector_buf, "%c", MSDP_TABLE_OPEN); 
+        //strcat(sectors, sector_buf);
         for (sector = 0;sector < NUM_ROOM_SECTORS; sector++) {
           sector_buf[0] = '\0';
           sprintf(sector_buf, "%c%s%c%d", MsdpVar, sector_types[sector], MsdpVal, sector);
           strcat(sectors, sector_buf);
         }
-        sprintf(sector_buf, "%c", MSDP_TABLE_CLOSE); 
-        strcat(sectors, sector_buf);
+        //sprintf(sector_buf, "%c", MSDP_TABLE_CLOSE); 
+        //strcat(sectors, sector_buf);
         
         MSDPSetTable(d, eMSDP_SECTORS, sectors);        
         // End Sectors
