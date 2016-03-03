@@ -492,7 +492,7 @@ void show_account_menu(struct descriptor_data *d) {
                 return;
               }
 
-              write_to_output(d, " %3d \tC|\tn %4s \tC|\tn", GET_LEVEL(tch), RACE_ABBR(tch));
+              write_to_output(d, " %3d \tC|\tn %4s \tC|\tn", GET_LEVEL(tch), race_abbrevs[GET_REAL_RACE(tch)]);
 
               if (GET_LEVEL(tch) >= LVL_IMMORT) {
                 /* Staff */
