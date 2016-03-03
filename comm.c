@@ -3296,7 +3296,7 @@ static void msdp_update(void) {
         strcat(sectors, sector_buf);
         for (sector = 0;sector < NUM_ROOM_SECTORS; sector++) {
           sector_buf[0] = '\0';
-          sprintf(sector_buf, "%c%s%c%d%c", MsdpVar, sector_types[sector], MsdpVal, sector);
+          sprintf(sector_buf, "%c%s%c%d", MsdpVar, sector_types[sector], MsdpVal, sector);
           strcat(sectors, sector_buf);
         }
         sprintf(sector_buf, "%c", MSDP_TABLE_CLOSE); 
