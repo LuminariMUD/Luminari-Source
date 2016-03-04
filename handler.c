@@ -714,16 +714,29 @@ void affect_total(struct char_data *ch) {
   affect_total_plus(ch, at_armor);
   
   /* MSDP */
-  
-  /* Example:
-   * sprintf( Buffer, "%c%s%c%s", (char)MSDP_VAR, Name, (char)MSDP_VAL, Value );
-   *  MSDPSetTable( d, eMSDP_TEST, Buffer ); 
-   */
-  //for (af = ch->affected; af; af = next) {
-  //  next = af->next;
-  //}
-  //sprintf(msdp_buffer, "%c%s%c%s", (char)MSDP_VAR, "", (char)MSDP_VAL, "");
-  //MSDPSetTable(ch->d, eMSDP_AFFECTS, msdp_buffer);
+  msdp_buffer[0] = '\0';
+  for (af = ch->affected; af; af = next) {
+    char buf[2048]; // Buffer for building the affect table for MSDP
+   
+    next = af->next;
+    sprintf(buf, "%c%c"
+                         "%c%s%c%s"
+                         "%c%s%c%s"
+                         "%c%s%c%d"
+                         "%c%s%c%s"
+                         "%c%s%c%d"
+                         "%c",
+            (char)MSDP_VAL, (char)MSDP_TABLE_OPEN,
+            (char)MSDP_VAR, "NAME", (char)MSDP_VAL, skill_name(aff->spell),
+            (char)MSDP_VAR, "LOCATION", (char)MSDP_VAL, apply_types[(int) aff->location],
+            (char)MSDP_VAR, "MODIFIER", (char)MSDP_VAL, aff->modifier,
+            (char)MSDP_VAR, "TYPE",     (char)MSDP_VAL, bonus_types[aff->bonus_type], 
+            (char)MSDP_VAR, "DURATION", (char)MSDP_VAL, aff->duration,
+            (char)MSDP_TABLE_CLOSE);
+    strcat(msdp_buffer, buf);
+  }
+
+  MSDPSetArray(ch->d, eMSDP_AFFECTS, msdp_buffer);
 }
 
 /* Insert an affect_type in a char_data structure. Automatically sets
