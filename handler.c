@@ -704,6 +704,7 @@ void affect_total(struct char_data *ch) {
   int at_armor = 100;
   char msdp_buffer[MAX_STRING_LENGTH];
   struct affected_type *af, *next;
+  bool first = TRUE;
   
   /* cleanup for disguise system */
   cleanup_disguise(ch);
@@ -723,13 +724,14 @@ void affect_total(struct char_data *ch) {
       char buf[2048]; // Buffer for building the affect table for MSDP
    
       next = af->next;
-      sprintf(buf, "%c%c"
+      sprintf(buf, "%s%c%c"
                    "%c%s%c%s"
                    "%c%s%c%s"
                    "%c%s%c%d"
                    "%c%s%c%s"
                    "%c%s%c%d"
                          "%c",
+            (first == TRUE ? "" : ","),
             (char)MSDP_VAL, (char)MSDP_TABLE_OPEN,
             (char)MSDP_VAR, "NAME", (char)MSDP_VAL, skill_name(af->spell),
             (char)MSDP_VAR, "LOCATION", (char)MSDP_VAL, apply_types[(int) af->location],
