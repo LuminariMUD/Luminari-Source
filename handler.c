@@ -727,11 +727,11 @@ void affect_total(struct char_data *ch) {
                          "%c%s%c%d"
                          "%c",
             (char)MSDP_VAL, (char)MSDP_TABLE_OPEN,
-            (char)MSDP_VAR, "NAME", (char)MSDP_VAL, skill_name(aff->spell),
-            (char)MSDP_VAR, "LOCATION", (char)MSDP_VAL, apply_types[(int) aff->location],
-            (char)MSDP_VAR, "MODIFIER", (char)MSDP_VAL, aff->modifier,
-            (char)MSDP_VAR, "TYPE",     (char)MSDP_VAL, bonus_types[aff->bonus_type], 
-            (char)MSDP_VAR, "DURATION", (char)MSDP_VAL, aff->duration,
+            (char)MSDP_VAR, "NAME", (char)MSDP_VAL, skill_name(af->spell),
+            (char)MSDP_VAR, "LOCATION", (char)MSDP_VAL, apply_types[(int) af->location],
+            (char)MSDP_VAR, "MODIFIER", (char)MSDP_VAL, af->modifier,
+            (char)MSDP_VAR, "TYPE",     (char)MSDP_VAL, bonus_types[af->bonus_type], 
+            (char)MSDP_VAR, "DURATION", (char)MSDP_VAL, af->duration,
             (char)MSDP_TABLE_CLOSE);
     strcat(msdp_buffer, buf);
   }
