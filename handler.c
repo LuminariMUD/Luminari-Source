@@ -740,6 +740,7 @@ void affect_total(struct char_data *ch) {
             (char)MSDP_VAR, "DURATION", (char)MSDP_VAL, af->duration,
             (char)MSDP_TABLE_CLOSE);
       strcat(msdp_buffer, buf);
+      first = FALSE;
     }
     log(msdp_buffer);
     MSDPSetArray(ch->desc, eMSDP_AFFECTS, msdp_buffer);
