@@ -739,6 +739,7 @@ void affect_total(struct char_data *ch) {
             (char)MSDP_TABLE_CLOSE);
       strcat(msdp_buffer, buf);
     }
+    log(msdp_buffer);
     MSDPSetArray(ch->desc, eMSDP_AFFECTS, msdp_buffer);
     MSDPFlush(ch->desc, eMSDP_AFFECTS);
   }
