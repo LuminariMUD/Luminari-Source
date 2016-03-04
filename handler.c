@@ -26,6 +26,8 @@
 #include "mud_event.h"
 #include "wilderness.h"
 #include "actionqueues.h"
+#include "constants.h"
+
 
 /* local file scope variables */
 static int extractions_pending = 0;
