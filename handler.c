@@ -739,10 +739,9 @@ void affect_total(struct char_data *ch) {
             (char)MSDP_TABLE_CLOSE);
       strcat(msdp_buffer, buf);
     }
+    MSDPSetArray(ch->desc, eMSDP_AFFECTS, msdp_buffer);
+    MSDPFlush(ch->desc, eMSDP_AFFECTS);
   }
-  
-  MSDPSetArray(ch->desc, eMSDP_AFFECTS, msdp_buffer);
-  MSDPUpdate(ch->desc);
 }
 
 /* Insert an affect_type in a char_data structure. Automatically sets
