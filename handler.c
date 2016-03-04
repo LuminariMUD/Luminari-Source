@@ -717,16 +717,18 @@ void affect_total(struct char_data *ch) {
   
   /* MSDP */
   msdp_buffer[0] = '\0';
-  for (af = ch->affected; af; af = next) {
-    char buf[2048]; // Buffer for building the affect table for MSDP
+  
+  if (ch->desc) {
+    for (af = ch->affected; af; af = next) {
+      char buf[2048]; // Buffer for building the affect table for MSDP
    
-    next = af->next;
-    sprintf(buf, "%c%c"
-                         "%c%s%c%s"
-                         "%c%s%c%s"
-                         "%c%s%c%d"
-                         "%c%s%c%s"
-                         "%c%s%c%d"
+      next = af->next;
+      sprintf(buf, "%c%c"
+                   "%c%s%c%s"
+                   "%c%s%c%s"
+                   "%c%s%c%d"
+                   "%c%s%c%s"
+                   "%c%s%c%d"
                          "%c",
             (char)MSDP_VAL, (char)MSDP_TABLE_OPEN,
             (char)MSDP_VAR, "NAME", (char)MSDP_VAL, skill_name(af->spell),
@@ -735,9 +737,10 @@ void affect_total(struct char_data *ch) {
             (char)MSDP_VAR, "TYPE",     (char)MSDP_VAL, bonus_types[af->bonus_type], 
             (char)MSDP_VAR, "DURATION", (char)MSDP_VAL, af->duration,
             (char)MSDP_TABLE_CLOSE);
-    strcat(msdp_buffer, buf);
+      strcat(msdp_buffer, buf);
+    }
   }
-
+  
   MSDPSetArray(ch->desc, eMSDP_AFFECTS, msdp_buffer);
   MSDPFlush(ch->desc, eMSDP_AFFECTS);
 }
