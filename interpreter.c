@@ -320,7 +320,7 @@ cpp_extern const struct command_info cmd_info[] = {
 
   { "look", "l", POS_RECLINING, do_look, 0, SCMD_LOOK, TRUE, ACTION_NONE, {0, 0}},
   { "layonhands", "layonhands", POS_FIGHTING, do_layonhands, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
-  { "last", "last", POS_DEAD, do_last, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}},
+  { "last", "last", POS_DEAD, do_last, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}},
   { "leave", "lea", POS_STANDING, do_leave, 0, 0, FALSE, ACTION_NONE, {0, 0}},
   { "levels", "lev", POS_DEAD, do_levels, 0, 0, TRUE, ACTION_NONE, {0, 0}},
   { "list", "lis", POS_STANDING, do_not_here, 0, 0, FALSE, ACTION_NONE, {0, 0}},
