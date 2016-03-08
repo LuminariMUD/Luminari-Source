@@ -698,23 +698,10 @@ void cleanup_disguise(struct char_data *ch) {
   //}
 }
 
-/* This updates a character by subtracting everything he is affected by
- * restoring original abilities, and then affecting all again. */
-void affect_total(struct char_data *ch) {
-  int at_armor = 100;
+void update_msdp_affects(struct char_data *ch) {
   char msdp_buffer[MAX_STRING_LENGTH];
   struct affected_type *af, *next;
   bool first = TRUE;
-  
-  /* cleanup for disguise system */
-  cleanup_disguise(ch);
-
-  /* this will subtract all affects and reset stats
-     at_armor stores character's AC after being unaffected (like armor-apply) */
-  at_armor = affect_total_sub(ch);
-
-  /* this will re-add all affects, cap the char, and modify any dynamics */
-  affect_total_plus(ch, at_armor);
   
   /* MSDP */
   msdp_buffer[0] = '\0';
@@ -747,6 +734,26 @@ void affect_total(struct char_data *ch) {
     MSDPSetArray(ch->desc, eMSDP_AFFECTS, msdp_buffer);
     MSDPFlush(ch->desc, eMSDP_AFFECTS);
   }
+}
+
+/* This updates a character by subtracting everything he is affected by
+ * restoring original abilities, and then affecting all again. */
+void affect_total(struct char_data *ch) {
+  int at_armor = 100;
+  struct affected_type *af, *next;
+  
+  /* cleanup for disguise system */
+  cleanup_disguise(ch);
+
+  /* this will subtract all affects and reset stats
+     at_armor stores character's AC after being unaffected (like armor-apply) */
+  at_armor = affect_total_sub(ch);
+
+  /* this will re-add all affects, cap the char, and modify any dynamics */
+  affect_total_plus(ch, at_armor);
+  
+  /* MSDP */
+  update_msdp_affects(ch);
 }
 
 /* Insert an affect_type in a char_data structure. Automatically sets
