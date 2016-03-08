@@ -697,7 +697,6 @@ void cleanup_disguise(struct char_data *ch) {
   //  set_bonus_attributes(ch, 0, 0, 0, 0);
   //}
 }
-
 void update_msdp_affects(struct char_data *ch) {
   char msdp_buffer[MAX_STRING_LENGTH];
   struct affected_type *af, *next;
