@@ -718,7 +718,7 @@ void update_msdp_affects(struct char_data *ch) {
                    "%c%s%c%d"
                          "%c",
             (first == TRUE ? "" : ","),
-            (char)MSDP_VAL, 
+            (char)MSDP_VAR, 
               (char)MSDP_TABLE_OPEN,
                 (char)MSDP_VAR, "NAME", (char)MSDP_VAL, skill_name(af->spell),
                 (char)MSDP_VAR, "LOCATION", (char)MSDP_VAL, apply_types[(int) af->location],
