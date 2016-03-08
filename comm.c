@@ -12,7 +12,6 @@
 
 #include "conf.h"
 #include "sysdep.h"
-#include "handler.h"
 
 /* Begin conf.h dependent includes */
 
