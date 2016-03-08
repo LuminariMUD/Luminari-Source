@@ -739,8 +739,7 @@ void update_msdp_affects(struct char_data *ch) {
  * restoring original abilities, and then affecting all again. */
 void affect_total(struct char_data *ch) {
   int at_armor = 100;
-  struct affected_type *af, *next;
-  
+ 
   /* cleanup for disguise system */
   cleanup_disguise(ch);
 
