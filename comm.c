@@ -175,6 +175,7 @@ static RETSIGTYPE websterlink(int sig);
 static void handle_webster_file();
 
 static void msdp_update(void); /* KaVir plugin*/
+void update_msdp_affects(struct char_data *ch); 
 
 /* externally defined functions, used locally */
 #ifdef __CXREF__
