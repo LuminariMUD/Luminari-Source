@@ -729,7 +729,7 @@ void update_msdp_affects(struct char_data *ch) {
       strcat(msdp_buffer, buf);
       first = FALSE;
     }
-  
+    log (msdp_buffer) ;
     MSDPSetArray(ch->desc, eMSDP_AFFECTS, msdp_buffer);
     MSDPFlush(ch->desc, eMSDP_AFFECTS);
   }
