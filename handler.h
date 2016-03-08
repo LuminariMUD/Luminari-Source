@@ -29,6 +29,8 @@ void	affect_modify_ar(struct char_data * ch, byte loc, sbyte mod, int bitv[],
         bool add);
 void reset_char_points(struct char_data *ch);
 
+/* MSDP */
+void update_msdp_affects(struct char_data *ch);
 
 // riding
 void dismount_char(struct char_data *ch);
