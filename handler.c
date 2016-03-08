@@ -705,7 +705,7 @@ void update_msdp_affects(struct char_data *ch) {
   /* MSDP */
   msdp_buffer[0] = '\0';
   
-  if (ch->desc) {
+  if (ch && ch->desc) {
     for (af = ch->affected; af; af = next) {
       char buf[4000]; // Buffer for building the affect table for MSDP
    
