@@ -703,12 +703,14 @@ void update_msdp_affects(struct char_data *ch) {
   bool first = TRUE;
   
   /* MSDP */
-  msdp_buffer[0] = '\0';
+  
   
   if (ch && ch->desc) {
+    const char MsdpArrayStart[] = {(char) MSDP_ARRAY_OPEN, '\0'};
+    const char MsdpArrayStop[] = {(char) MSDP_ARRAY_CLOSE, '\0'};
     for (af = ch->affected; af; af = next) {
       char buf[4000]; // Buffer for building the affect table for MSDP
-   
+            
       next = af->next;
       sprintf(buf, "%s%c%c"
                    "%c%s%c%s"
@@ -717,7 +719,7 @@ void update_msdp_affects(struct char_data *ch) {
                    "%c%s%c%s"
                    "%c%s%c%d"
                          "%c",
-            (first == TRUE ? "" : ","),
+            (first == TRUE ? MsdpArrayStart : ","),
             (char)MSDP_VAR, 
               (char)MSDP_TABLE_OPEN,
                 (char)MSDP_VAR, "NAME", (char)MSDP_VAL, skill_name(af->spell),
@@ -729,8 +731,8 @@ void update_msdp_affects(struct char_data *ch) {
       strcat(msdp_buffer, buf);
       first = FALSE;
     }
-    log (msdp_buffer) ;
-    MSDPSetArray(ch->desc, eMSDP_AFFECTS, msdp_buffer);
+    strcat(msdp_buffer, MsdpArrayStop);
+    MSDPSetString(ch->desc, eMSDP_AFFECTS, msdp_buffer);
     MSDPFlush(ch->desc, eMSDP_AFFECTS);
   }
 }
