@@ -12,6 +12,7 @@
 
 #include "conf.h"
 #include "sysdep.h"
+#include "handler.h"
 
 /* Begin conf.h dependent includes */
 
@@ -3210,6 +3211,9 @@ static void msdp_update(void) {
       MSDPSetNumber(d, eMSDP_CON, GET_CON(ch));
       MSDPSetNumber(d, eMSDP_CHA, GET_CHA(ch));
 
+      /* Affects */
+      update_msdp_affects(ch);
+      
       /* gotta adjust compute_hit_damage() so it doesn't send messages randomly */
       /*
       if (is_using_ranged_weapon(ch))
