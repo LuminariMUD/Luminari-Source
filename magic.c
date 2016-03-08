@@ -373,6 +373,7 @@ void affect_update(void) {
         affect_remove(i, af);
       }
     }
+    update_msdp_affects(ch);
   }
   
   /* update the room affections */
