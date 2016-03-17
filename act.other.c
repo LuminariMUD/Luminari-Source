@@ -3204,13 +3204,13 @@ ACMD(do_steal) {
 /* this only lists spells castable for a given class */
 /* Ornir:  17.03.16 - Add 'circle' parameter to the command */
 ACMD(do_spells) {
-  char arg[MAX_INPUT_LENGTH], circle[MAX_INPUT_LENGTH];
-  int class = -1;
+  char arg[MAX_INPUT_LENGTH], arg1[MAX_INPUT_LENGTH];
+  int class = -1, circle = -1;
 
   if (IS_NPC(ch))
     return;
 
-  two_arguments(argument, arg, circle);
+  two_arguments(argument, arg, arg1);
 
   if (!*arg) {
     send_to_char(ch, "The spells command requires a class name as an argument.\r\n\r\n");
@@ -3220,6 +3220,9 @@ ACMD(do_spells) {
       send_to_char(ch, "That is not a valid class!\r\n");
       return;
     }
+    if (*arg1) {
+      circle = atoi(arg1);
+    }       
     if (CLASS_LEVEL(ch, class)) {
       list_spells(ch, 0, class, circle);
     } else {
@@ -3239,13 +3242,13 @@ ACMD(do_spells) {
 /* this lists all spells attainable for given class */
 /* Ornir:  17.03.16 - Add 'circle' parameter to the command */
 ACMD(do_spelllist) {
-  char arg[MAX_INPUT_LENGTH], circle[MAX_INPUT_LENGTH];
-  int class = -1;
+  char arg[MAX_INPUT_LENGTH], arg1[MAX_INPUT_LENGTH];
+  int class = -1, circle = -1;
 
   if (IS_NPC(ch))
     return;
   
-  two_arguments(argument, arg, circle);
+  two_arguments(argument, arg, arg1);
 
   if (!*arg) {
     send_to_char(ch, "Spelllist requires an argument - Usage:  spelllist <class name>\r\n");
@@ -3255,6 +3258,9 @@ ACMD(do_spelllist) {
       send_to_char(ch, "That is not a valid class!\r\n");
       return;
     }    
+    if (*arg1) {
+      circle = atoi(arg1);
+    }      
     list_spells(ch, 1, class, circle);
   }
 
