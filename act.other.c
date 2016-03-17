@@ -3202,14 +3202,15 @@ ACMD(do_steal) {
 /* entry point for listing spells, the rest of the code is in spec_procs.c */
 
 /* this only lists spells castable for a given class */
+/* Ornir:  17.03.16 - Add 'circle' parameter to the command */
 ACMD(do_spells) {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH], circle[MAX_INPUT_LENGTH];
   int class = -1;
 
   if (IS_NPC(ch))
     return;
 
-  one_argument(argument, arg);
+  two_arguments(argument, arg, circle);
 
   if (!*arg) {
     send_to_char(ch, "The spells command requires a class name as an argument.\r\n\r\n");
@@ -3220,7 +3221,7 @@ ACMD(do_spells) {
       return;
     }
     if (CLASS_LEVEL(ch, class)) {
-      list_spells(ch, 0, class);
+      list_spells(ch, 0, class, circle);
     } else {
       send_to_char(ch, "You don't have any levels in that class.\r\n");
     }
@@ -3236,14 +3237,15 @@ ACMD(do_spells) {
 /* entry point for listing spells, the rest of the code is in spec_procs.c */
 
 /* this lists all spells attainable for given class */
+/* Ornir:  17.03.16 - Add 'circle' parameter to the command */
 ACMD(do_spelllist) {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH], circle[MAX_INPUT_LENGTH];
   int class = -1;
 
   if (IS_NPC(ch))
     return;
-
-  one_argument(argument, arg);
+  
+  two_arguments(argument, arg, circle);
 
   if (!*arg) {
     send_to_char(ch, "Spelllist requires an argument - Usage:  spelllist <class name>\r\n");
@@ -3252,8 +3254,8 @@ ACMD(do_spelllist) {
     if (class < 0 || class >= NUM_CLASSES) {
       send_to_char(ch, "That is not a valid class!\r\n");
       return;
-    }
-    list_spells(ch, 1, class);
+    }    
+    list_spells(ch, 1, class, circle);
   }
 
   send_to_char(ch, "\tDType 'feats' to see your feats\tn\r\n");
