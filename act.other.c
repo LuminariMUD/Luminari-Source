@@ -3213,7 +3213,7 @@ ACMD(do_spells) {
   two_arguments(argument, arg, arg1);
 
   if (!*arg) {
-    send_to_char(ch, "The spells command requires a class name as an argument.\r\n\r\n");
+    send_to_char(ch, "The spells command requires at least one argument - Usage:  spells <class name> <circle>\r\n");
   } else {
     class = get_class_by_name(arg);
     if (class < 0 || class >= NUM_CLASSES) {
@@ -3222,6 +3222,10 @@ ACMD(do_spells) {
     }
     if (*arg1) {
       circle = atoi(arg1);
+      if (circle < 1 || circle > 9){
+        send_to_char(ch, "That is an invalid spell circle!\r\n");
+        return;
+      }       
     }       
     if (CLASS_LEVEL(ch, class)) {
       list_spells(ch, 0, class, circle);
@@ -3251,7 +3255,7 @@ ACMD(do_spelllist) {
   two_arguments(argument, arg, arg1);
 
   if (!*arg) {
-    send_to_char(ch, "Spelllist requires an argument - Usage:  spelllist <class name>\r\n");
+    send_to_char(ch, "Spelllist requires at least one argument - Usage:  spelllist <class name> <circle>\r\n");
   } else {
     class = get_class_by_name(arg);
     if (class < 0 || class >= NUM_CLASSES) {
@@ -3260,7 +3264,13 @@ ACMD(do_spelllist) {
     }    
     if (*arg1) {
       circle = atoi(arg1);
+      if (circle < 1 || circle > 9){
+        send_to_char(ch, "That is an invalid spell circle!\r\n");
+        return;
+      }        
     }      
+   
+    
     list_spells(ch, 1, class, circle);
   }
 
