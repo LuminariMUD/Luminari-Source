@@ -437,8 +437,9 @@ int meet_skill_reqs(struct char_data *ch, int skillnum) {
    class - you can send -1 for a 'default' class
    mode = 0:  known spells
    mode = anything else: full spelllist for given class
+   circle = What spell circle to list, -1 for all. 
  */
-void list_spells(struct char_data *ch, int mode, int class) {
+void list_spells(struct char_data *ch, int mode, int class, int circle) {
   int i = 0, slot = 0, sinfo = 0;
   size_t len = 0, nlen = 0;
   char buf2[MAX_STRING_LENGTH] = {'\0'};
@@ -459,6 +460,8 @@ void list_spells(struct char_data *ch, int mode, int class) {
     len = snprintf(buf2, sizeof (buf2), "\tCKnown Spell List\tn\r\n");
 
     for (slot = getCircle(ch, class); slot > 0; slot--) {
+      if ((circle != -1) && circle != slot)
+        continue;
       nlen = snprintf(buf2 + len, sizeof (buf2) - len,
               "\r\n\tCSpell Circle Level %d\tn\r\n", slot);
       if (len + nlen >= sizeof (buf2) || nlen < 0)
@@ -520,7 +523,9 @@ void list_spells(struct char_data *ch, int mode, int class) {
     else
       slot = 9;
 
-    for (; slot > 0; slot--) {
+    for (; slot > 0; slot--) {      
+      if ((circle != -1) && circle != slot)
+        continue;
       nlen = snprintf(buf2 + len, sizeof (buf2) - len,
               "\r\n\tCSpell Circle Level %d\tn\r\n", slot);
       if (len + nlen >= sizeof (buf2) || nlen < 0)
