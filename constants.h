@@ -12,6 +12,21 @@
 #ifndef _CONSTANTS_H_
 #define _CONSTANTS_H_
 
+/* under construction -zusuk
+extern const char *npc_race_short[];
+extern const char *race_family_abbrevs[];
+ */
+extern const char *shape_types[MAX_PC_SUBRACES + 1];
+extern const char *morph_to_char[NUM_RACE_TYPES + 1];
+extern const char *morph_to_room[NUM_RACE_TYPES + 1];
+extern const char *shape_to_room[MAX_PC_SUBRACES + 1];
+extern const char *shape_to_char[MAX_PC_SUBRACES + 1];
+extern const char *npc_race_menu;
+extern const char *npc_subrace_types[NUM_SUB_RACES + 1];
+extern const char *npc_subrace_abbrevs[NUM_SUB_RACES + 1];
+extern const char *race_family_abbrevs[NUM_RACE_TYPES + 1];
+extern const char *race_family_short[NUM_RACE_TYPES + 1];
+extern const char *race_family_types[NUM_RACE_TYPES + 1];
 extern const char *class_names[NUM_CLASSES + 1];
 extern const char *alignment_names_nocolor[NUM_ALIGNMENTS + 1];
 extern const char *attack_hit_types[];

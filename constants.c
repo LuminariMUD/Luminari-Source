@@ -32,6 +32,287 @@ cpp_extern const char *luminari_version = "LuminariMUD 2.267 (tbaMUD 3.64)";
 
 /* strings corresponding to ordinals/bitvectors in structs.h */
 
+
+// npc subrace
+const char *npc_subrace_types[NUM_SUB_RACES + 1] = {
+   "Unknown",/**/
+   "Air",/**/
+   "Angelic",/**/
+   "Aquatic",/**/
+   "Archon",/**/
+   "Augmented",/**/
+   "Chaotic",/**/
+   "Cold",/**/
+   "Earth",/**/
+   "Evil",/**/
+   "Extraplanar",/**/
+   "Fire",/**/
+   "Goblinoid",/**/
+   "Good",/**/
+   "Incorporeal",/**/
+   "Lawful",/**/
+   "Native",/**/
+   "Reptilian",/**/
+   "Shapechanger",/**/
+   "Swarm",/**/
+   "Water",/**/
+   "\n"  
+};
+
+
+// colored npc subrace abbreviations
+// for now full name for effect
+const char *npc_subrace_abbrevs[NUM_SUB_RACES + 1] = {
+   "Unknown",
+   "\tCAir\tn",
+   "\tWAngelic\tn",
+   "\tBAquatic\tn",
+   "\trArch\tRon\tn",
+   "\tYAugmented\tn",
+   "\tDChaotic\tn",
+   "\tbCold\tn",
+   "\tGEarth\tn",
+   "\trEvil\tn",
+   "\tmExtraplanar\tn",
+   "\tRFire\tn",
+   "\tgGoblinoid\tn",
+   "\tWGood\tn",
+   "\tGIncorporeal\tn",
+   "\twLawful\tn",
+   "\tyNative\tn",
+   "\tyReptilian\tn",
+   "\tMShapechanger\tn",
+   "\tySwarm\tn",
+   "\tBWater\tn",
+   "\n"  
+};
+
+
+// made this for shapechange, a tad tacky -zusuk
+const char *npc_race_menu =
+"\r\n"
+"  \tbRea\tclms \tWof Lu\tcmin\tbari\tn | npc race selection\r\n"
+"---------------------+\r\n"
+   "1)  \tWHumanoid\tn\r\n"
+   "2)  \tDUndead\tn\r\n"
+   "3)  \tgAnimal\tn\r\n"
+   "4)  \trDragon\tn\r\n"
+   "5)  \tYGiant\tn\r\n"
+   "6)  \tRAberration\tn\r\n"
+   "7)  \tcConstruct\tn\r\n"
+   "8)  \tRElemental\tn\r\n"
+   "9)  \tCFey\tn\r\n"
+   "10) \tmMagical \tgBeast\tn\r\n"
+   "11) \tBMonstrous \tWHumanoid\tn\r\n"
+   "12) \tMOoze\tn\r\n"
+   "13) \tDOut\twsider\tn\r\n"
+   "14) \tGPlant\tn\r\n"
+   "15) \tyVermin\tn\r\n";
+
+// shapechange morph messages to_room, original system
+const char *morph_to_room[NUM_RACE_TYPES + 1] = {
+  /* unknown */
+" ",
+  /* Humanoid */
+" ",
+  /* Undead */
+"$n's flesh decays visibly, $s features becoming shallow and sunken as $e"
+        "turns to the \tDundead\tn.",
+  /* Animal */
+" ",
+  /* Dragon */
+"$n's features lengthen, $s skin peeling back to reveal a thick, "
+"scaly hide.  Leathery wings sprout from $s shoulders and $s "
+"fingers become long, razor-sharp talons.",
+  /* Giant */
+" ",
+  /* Aberration */
+" ",
+  /* Construct */
+" ",
+  /* Elemental */
+"$n bursts into elemental energy, then becomes that element as $s form shifts to that of a "
+"\tRelemental\tn.",
+  /* Fey */
+" ",
+  /* Magical Beast */
+" ",
+  /* Monstrous Humanoid */
+" ",
+  /* Ooze */
+"$n's bones dissolve and $s flesh becomes translucent as $e changes form "
+"into an ooze!",
+  /* Outsider */
+" ",
+  /* Plant */
+"Thin vines and shoots curl away from $n's body as $s skin changes to a "
+"\tGmottled green plant\tn.",
+  /* Vermin */
+" ",
+           /*END*/"\n"
+};
+
+// shapechange morph messages to_char
+const char *morph_to_char[NUM_RACE_TYPES + 1] = {
+  /* unknown */
+" ",
+  /* Humanoid */
+" ",
+  /* Undead */
+"Your flesh decays visibly, and your features becoming shallow and sunken as"
+" you turn to the \tDundead\tn.",
+  /* Animal */
+" ",
+  /* Dragon */
+"Your features lengthen, your skin peeling back to reveal a thick, "
+"scaly hide.  Leathery wings sprout from your shoulders and your "
+"fingers become long, razor sharp talons.",
+  /* Giant */
+" ",
+  /* Aberration */
+" ",
+  /* Construct */
+" ",
+  /* Elemental */
+"You burst into fire, then become living flame as your form shifts to that "
+"of a \tRfire elemental\tn.",
+  /* Fey */
+" ",
+  /* Magical Beast */
+" ",
+  /* Monstrous Humanoid */
+" ",
+  /* Ooze */
+"Your bones dissolve and your flesh becomes translucent as you change form "
+"into an \tGooze\tn!",
+  /* Outsider */
+" ",
+  /* Plant */
+"Thin vines and shoots curl away from your body as your skin changes to a "
+"\tGmottled green plant\tn.",
+  /* Vermin */
+" ",
+           /*END*/"\n"
+};
+
+/* druid shape change race options */
+const char *shape_types[MAX_PC_SUBRACES + 1] = {
+   "Unknown",
+   "badger",
+   "panther",
+   "bear",
+   "crocodile",
+   "\n"  
+};
+//5 (number of types)
+
+/* druid shape change messages, to room */
+const char *shape_to_room[MAX_PC_SUBRACES + 1] = {
+   "Unknown",
+   /* badger */
+   "$n shrinks and suddenly grows spiky brown fur all over $s body, $s nose lengthens"
+     " into a dirty snout as $s face contorts into an expression of primal"
+     " rage.",
+   /* panther */
+   "$n's back arches into a feline form and $s teeth grow long and sharp.  "
+     "Knifelike claws extend from $s newly formed paws and $s body becomes "
+     "covered in sleek, dark fur.",
+   /* bear */
+   "$n's form swells with muscle as $s shoulders expand into a great girth.  "
+     "Suddenly $s nose transforms "
+     "into a short perceptive snout and $s ears become larger and rounder on the "
+     "top of $s head.  Then $s teeth become sharper as claws extend from $s meaty paws.",
+   /* crocodile, giant */
+   "$n involuntarily drops to the ground on all fours as $s legs shorten to "
+     "small stumps and a large tail extends from $s body.  Hard dark scales cover "
+     "$s whole body as $s nose and mouth extend into a large tooth-filled maw.",
+           /*END*/"\n"
+};
+
+/* druid shape change messages, to char */
+const char *shape_to_char[MAX_PC_SUBRACES + 1] = {
+   "Unknown",
+   /* badger */
+   "You shrink and suddenly grows spiky brown fur all over your body, your nose lengthens"
+     " into a dirty snout as his face contorts into an expression of primal"
+     " rage.",
+   /* panther */
+   "Your back arches into a feline form and your teeth grow long and sharp.  "
+     "Knifelike claws extend from your newly formed paws and your body becomes "
+     "covered in sleek, dark fur.",
+   /* bear */
+   "Your form swells with muscle as your shoulders expand into a great girth.  "
+     "Suddenly you seem more aware of scents in the air as your nose transforms "
+     "into a short perceptive snout.  Your ears become larger and rounder on the "
+     "top of your head and your teeth become sharper as claws extend from your meaty paws.",
+   /* crocodile, giant */
+   "You involuntarily drop to the ground on all fours as your legs shorten to "
+     "small stumps and a large tail extends from your body.  Hard dark scales cover "
+     "your whole body as your nose and mouth extend into a large tooth-filled maw.",
+           /*END*/"\n"
+};
+
+
+// colored npc race abbreviations
+// for now full name for effect
+const char *race_family_abbrevs[NUM_RACE_TYPES + 1] = {
+   "Unknown",
+   "\tWHmnd\tn",
+   "\tDUndd\tn",
+   "\tgAnml\tn",
+   "\trDrgn\tn",
+   "\tYGnt\tn",
+   "\tRAbrt\tn",
+   "\tcCnst\tn",
+   "\tRElem\tn",
+   "\tCFey\tn",
+   "\tmM\tgBst\tn",
+   "\tBM\tWHmn\tn",
+   "\tMOoze\tn",
+   "\tDOut\tws\tn",
+   "\tGPlnt\tn",
+   "\tyVrmn\tn",
+   "\n"  
+};
+const char *race_family_short[NUM_RACE_TYPES + 1] = {
+   "???",
+   "Hmn",
+   "Und",
+   "Anm",
+   "Drg",
+   "Gnt",
+   "Abr",
+   "Con",
+   "Ele",
+   "Fey",
+   "Bst",
+   "MoH",
+   "Oze",
+   "Out",
+   "Plt",
+   "Ver",
+   "\n"  
+};
+const char *race_family_types[NUM_RACE_TYPES + 1] = {
+   "Unknown", //0
+   "Humanoid",
+   "Undead",
+   "Animal",
+   "Dragon",
+   "Giant",  //5
+   "Aberration",
+   "Construct",
+   "Elemental",
+   "Fey",
+   "Magical Beast",  //10
+   "Monstrous Humanoid",
+   "Ooze",
+   "Outsider",
+   "Plant",
+   "Vermin",  //15
+   "\n"  
+};
+
 const char *class_names[NUM_CLASSES + 1] = {
   "Wizard", //0
   "Cleric",

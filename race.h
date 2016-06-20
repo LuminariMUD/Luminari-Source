@@ -17,24 +17,59 @@
 // this is for shapechange/wildshape, define for array max
 #define NUM_SHAPE_TYPES  5
 
+/* feat assignment / race-feat data for races */
+struct race_feat_assign {
+  int feat_num;       /* feat number like FEAT_WEAPON_FOCUS */
+  int level_received; /* level race get this feat */
+  bool stacks;        /* does this feat stack? */
+  struct race_feat_assign *next; /*linked list*/
+};
+
+/* feat assignment / race-feat data for races */
+struct affect_assign {
+  int affect_num;       /* aff number like AFF_HIDE */
+  int level_received;   /* level race get this affect */
+  struct affect_assign *next; /*linked list*/
+};
+
 /* structs - race data for extension of races */
 struct race_data {
-  char *name;
-  char *abbrev;
-  char *type;
-  ubyte family;
-  sbyte genders[NUM_SEX];
-  char *menu_display;
-  byte ability_mods[6];
-  ush_int height[NUM_SEX];
-  ush_int weight[NUM_SEX];
-  byte size;
-  int body_parts[NUM_WEARS];
-  sbyte alignments[9];
-  sbyte is_pc;
-  byte favored_class[NUM_SEX];
-  ush_int language;
-  ubyte level_adjustment;
+    
+  /* displaying the race */
+  char *name; /* lower case no-spaces (for like accessing help file) */
+  char *type; /* full capitalized and spaced version */  
+  char *type_color; /* full colored, capitalized and spaced version */
+  char *abbrev; /* 4 letter abbreviation */
+  char *abbrev_color; /* 4 letter abbreviation colored */
+  
+  char *descrip; /* race description */
+  
+  char *morph_to_char; /* wildshape message to ch */
+  char *morph_to_room; /* wildshape message to room */
+  
+  /* race assigned values! */
+  ubyte family; /* race's family type (iron golem would be a CONSTRUCT) */
+  byte size; /* default size class for this race */
+  bool is_pc; /* can a PC select this race to play? */
+  ubyte level_adjustment; /* for pc-races: penalty to xp for race due to power */
+  int unlock_cost; /* if locked, cost to unlock in account xp */
+  byte epic_adv; /* normal, advance or epic race (pc)? */
+  
+  /* array assigned values! */
+  sbyte genders[NUM_SEX]; /* this race can be this sex? */
+  byte ability_mods[NUM_ABILITY_MODS]; /* modifications to base stats based on race */
+  sbyte alignments[NUM_ALIGNMENTS]; /* acceptable alignments for this race */
+  byte attack_types[NUM_ATTACK_TYPES]; /* race have this attack type? (when not wielding) */
+  
+  /* linked lists */
+  struct race_feat_assign *featassign_list; /* list of feat assigns */
+  struct affect_assign *affassign_list; /* list of affect assigns */
+  
+  /* these are only ideas for now */
+  
+  /*int body_parts[NUM_WEARS];*/ /* for expansion - to add customized wear slots */
+  /*byte favored_class[NUM_SEX];*/ /* favored class system, not yet implemented */
+  /*ush_int language;*/ /* default language - not used yet */
 };
 
 extern struct race_data race_list[];
@@ -52,19 +87,6 @@ void assign_races(void);
 
 #ifndef __RACE_C__
 
-extern const char *shape_types[];
-extern const char *shape_to_room[];
-extern const char *shape_to_char[];
-extern const char *npc_race_short[];
-extern const char *morph_to_char[];
-extern const char *morph_to_room[];
-extern const char *npc_race_abbrevs[];
-extern const char *race_abbrevs[];
-extern const char *npc_subrace_abbrevs[];
-extern const char *npc_subrace_types[];
-extern const char *npc_race_menu;
-extern const char *pc_race_types[];
-extern const char *npc_race_types[];
 
 #endif /* __RACE_C__ */
 

@@ -849,10 +849,10 @@
 #define AFF_ENTANGLED        98 /* entangled (can't move) */
 #define AFF_ACROBATIC        99 /* acrobatic!  currently used for druid jump 
                                    spell, possible expansion to follow */
-#define AFF_BLINKING        100 /* in a state of blinking between prime/eth */
-#define AFF_AWARE           101 /* aware - too aware to be backstabed */
+#define AFF_BLINKING         100 /* in a state of blinking between prime/eth */
+#define AFF_AWARE            101 /* aware - too aware to be backstabed */
 /*---*/
-#define NUM_AFF_FLAGS       102
+#define NUM_AFF_FLAGS        102
 /********************************/
 /* add aff_ flag?  don't forget to add to:
    1)  places in code the affect will directly modify values
@@ -2214,12 +2214,48 @@
 
 #define NUM_WEAPON_DAMAGE_TYPES               4
 
-/* attack types */
+/* attack types - indicates mode of combat */
 #define ATTACK_TYPE_PRIMARY   0
 #define ATTACK_TYPE_OFFHAND   1
 #define ATTACK_TYPE_RANGED    2
 #define ATTACK_TYPE_UNARMED   3
 #define ATTACK_TYPE_TWOHAND   4 /* doesn't really serve any purpose */
+
+/* WEAPON ATTACK TYPES - indicates type of attack both
+   armed and unarmed attacks are, example: You BITE Bob.
+   This use to be located in spells.h but was moved here
+   since it is more globally accessed */
+#define TYPE_HIT          700 /* barehand */
+#define TYPE_STING        701 /* pierce */
+#define TYPE_WHIP         702
+#define TYPE_SLASH        703 /* slash */
+#define TYPE_BITE         704
+#define TYPE_BLUDGEON     705 /* bludgeon */
+#define TYPE_CRUSH        706 /* bludgeon */
+#define TYPE_POUND        707 /* bludgeon */
+#define TYPE_CLAW         708
+#define TYPE_MAUL         709
+#define TYPE_THRASH       710
+#define TYPE_PIERCE       711 /* pierce */
+#define TYPE_BLAST        712
+#define TYPE_PUNCH        713 /* barehand */
+#define TYPE_STAB         714 /* pierce */
+#define TYPE_SLICE        715 /* slash */
+#define TYPE_THRUST       716 /* pierce */
+#define TYPE_HACK         717 /* slash */
+#define TYPE_RAKE         718 /* slash? */
+#define TYPE_PECK         719 /* pierce? */
+#define TYPE_SMASH        720 /* bludgeon? */
+#define TYPE_TRAMPLE      721 /* bludgeon? */
+#define TYPE_CHARGE       722 /* pierce? */
+#define TYPE_GORE         723 /* pierce? */
+/* don't forget to add to race_list() and all the other places if changed */
+/** The total number of attack types */
+#define NUM_ATTACK_TYPES   24
+#define BOT_WEAPON_TYPES  (TYPE_HIT+NUM_ATTACK_TYPES)
+#define TOP_ATTACK_TYPES  TYPE_HIT
+#define TYPE_UNDEFINED_WTYPE 0
+/* not hard coded, but up to 750 */
 
 /* combat maneuver types*/
 #define COMBAT_MANEUVER_TYPE_UNDEFINED    0
@@ -2730,14 +2766,16 @@ struct char_player_data {
  * both inherent and current ability scores (like when poison affects the
  * player strength). */
 struct char_ability_data {
-  sbyte str; /**< Strength.  */
-  sbyte str_add; /**< Strength multiplier if str = 18. Usually from 0 to 100 */
+  sbyte str;   /**< Strength.  */
   sbyte intel; /**< Intelligence */
-  sbyte wis; /**< Wisdom */
-  sbyte dex; /**< Dexterity */
-  sbyte con; /**< Constitution */
-  sbyte cha; /**< Charisma */
+  sbyte wis;   /**< Wisdom */
+  sbyte dex;   /**< Dexterity */
+  sbyte con;   /**< Constitution */
+  sbyte cha;   /**< Charisma */
+  
+  /*unused*/sbyte str_add; /**< Strength multiplier if str = 18. Usually from 0 to 100 */  
 };
+#define NUM_ABILITY_MODS 6
 
 /* make sure this matches spells.h define */
 #define NUM_DAM_TYPES  21

@@ -2159,9 +2159,9 @@ ACMD(do_wildshape) {
     cleanup_wildshape_feats(ch);
 
     /* messages */
-    sprintf(buf, "You change shape into a %s.", pc_race_types[GET_REAL_RACE(ch)]);
+    sprintf(buf, "You change shape into a %s.", race_list[GET_REAL_RACE(ch)].type);
     act(buf, true, ch, 0, 0, TO_CHAR);
-    sprintf(buf, "$n changes shape into a %s.", pc_race_types[GET_REAL_RACE(ch)]);
+    sprintf(buf, "$n changes shape into a %s.", race_list[GET_REAL_RACE(ch)].type);
     act(buf, true, ch, 0, 0, TO_ROOM);
     
     /* stat modifications are cleaned up in affect_total() */
@@ -2513,9 +2513,9 @@ ACMD(do_disguise) {
     save_char(ch, 0);
     Crash_crashsave(ch);
 
-    sprintf(buf, "You remove your disguise and now again appear like a: %s.", pc_race_types[GET_RACE(ch)]);
+    sprintf(buf, "You remove your disguise and now again appear like a: %s.", race_list[GET_RACE(ch)].type);
     act(buf, true, ch, 0, 0, TO_CHAR);
-    sprintf(buf, "$n removes $s disguise, revealing $s race: %s.", pc_race_types[GET_RACE(ch)]);
+    sprintf(buf, "$n removes $s disguise, revealing $s race: %s.", race_list[GET_RACE(ch)].type);
     act(buf, true, ch, 0, 0, TO_ROOM);
 
     USE_STANDARD_ACTION(ch);

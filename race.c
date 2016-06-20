@@ -17,11 +17,11 @@
 
 /* Zusuk, 02/2016:  Start notes here!
  * RACE_ these are specific race defines, eventually should be a massive list
- *       of every race in our world
+ *       of every race in our world (ex: iron golem)
  * SUBRACE_ these are subraces for NPC's, currently set to maximum 3, some
- *          mechanics such as resistances are built into these
+ *          mechanics such as resistances are built into these (ex: fire, goblinoid)
  * PC_SUBRACE_ these are subraces for PC's, only used for animal shapes spell
- *             currently, use to be part of the wildshape system
+ *             currently, use to be part of the wildshape system (need to phase this out)
  * RACE_TYPE_ this is like the family the race belongs to, like an iron golem
  *            would be RACE_TYPE_CONSTRUCT
  */
@@ -38,21 +38,32 @@
 #include "comm.h"
 #include "race.h"
 #include "handler.h"
+#include "feats.h"
 
 /* defines */
 #define Y   TRUE
 #define N   FALSE
+/* racial classification for PC races */
+#define IS_NORMAL  0
+#define IS_ADVANCE 1
+#define IS_EPIC_R  2
 
+/* some pre setup here */
 struct race_data race_list[NUM_EXTENDED_RACES];
-char *race_names[NUM_EXTENDED_RACES];
 
+/* start race code! */
+
+/* this will set the appropriate races for a given race */
 void set_race_genders(int race, int neuter, int male, int female) {
   race_list[race].genders[0] = neuter;
   race_list[race].genders[1] = male;
   race_list[race].genders[2] = female;
 }
 
-void set_race_abilities(int race, int str_mod, int con_mod, int int_mod, int wis_mod, int dex_mod, int cha_mod) {
+/* this will set the ability modifiers of the given race to whatever base
+   stats are */
+void set_race_abilities(int race, int str_mod, int con_mod, int int_mod,
+        int wis_mod, int dex_mod, int cha_mod) {
   race_list[race].ability_mods[0] = str_mod;
   race_list[race].ability_mods[1] = con_mod;
   race_list[race].ability_mods[2] = int_mod;
@@ -61,7 +72,9 @@ void set_race_abilities(int race, int str_mod, int con_mod, int int_mod, int wis
   race_list[race].ability_mods[5] = cha_mod;
 }
 
-void set_race_alignments(int race, int lg, int ng, int cg, int ln, int tn, int cn, int le, int ne, int ce) {
+/* appropriate alignments for given race */
+void set_race_alignments(int race, int lg, int ng, int cg, int ln, int tn, int cn,
+        int le, int ne, int ce) {
   race_list[race].alignments[0] = lg;
   race_list[race].alignments[1] = ng;
   race_list[race].alignments[2] = cg;
@@ -73,70 +86,325 @@ void set_race_alignments(int race, int lg, int ng, int cg, int ln, int tn, int c
   race_list[race].alignments[8] = ce;
 }
 
+void set_morph_msg(int race, char *morph_to_char, char *morph_to_room) {
+  race_list[race].morph_to_char = morph_to_char;
+  race_list[race].morph_to_room = morph_to_room;
+}
+
+/* set the attack types this race will use when not wielding */
+void set_race_attack_types(int race, int hit, int sting, int whip, int slash,
+        int bite, int bludgeon, int crush, int pound, int claw, int maul,
+        int thrash, int pierce, int blast, int punch, int stab, int slice,
+        int thrust, int hack, int rake, int peck, int smash, int trample,
+        int charge, int gore) {
+  race_list[race].attack_types[hit] = hit;
+  race_list[race].attack_types[sting] = sting;
+  race_list[race].attack_types[whip] = whip;
+  race_list[race].attack_types[slash] = slash;
+  race_list[race].attack_types[bite] = bite;
+  race_list[race].attack_types[bludgeon] = bludgeon;
+  race_list[race].attack_types[crush] = crush;
+  race_list[race].attack_types[pound] = pound;
+  race_list[race].attack_types[claw] = claw;
+  race_list[race].attack_types[maul] = maul;
+  race_list[race].attack_types[thrash] = thrash;
+  race_list[race].attack_types[pierce] = pierce;
+  race_list[race].attack_types[blast] = blast;
+  race_list[race].attack_types[punch] = punch;
+  race_list[race].attack_types[stab] = stab;
+  race_list[race].attack_types[slice] = slice;
+  race_list[race].attack_types[thrust] = thrust;
+  race_list[race].attack_types[hack] = hack;
+  race_list[race].attack_types[rake] = rake;
+  race_list[race].attack_types[peck] = peck;
+  race_list[race].attack_types[smash] = smash;
+  race_list[race].attack_types[trample] = trample;
+  race_list[race].attack_types[charge] = charge;
+  race_list[race].attack_types[gore] = gore;
+}
+
+/* function to initialize the whole race list to empty values */
 void initialize_races(void) {
   int i = 0;
 
   for (i = 0; i < NUM_EXTENDED_RACES; i++) {
+    /* displaying the race */
     race_list[i].name = NULL;
-    race_names[i] = NULL;
-    race_list[i].abbrev = NULL;
     race_list[i].type = NULL;
+    race_list[i].type_color = NULL;
+    race_list[i].abbrev = NULL;
+    race_list[i].abbrev_color = NULL;
+    
+    /* the rest of the values */
     race_list[i].family = RACE_TYPE_UNDEFINED;
-    race_list[i].menu_display = NULL;
     race_list[i].size = SIZE_MEDIUM;
     race_list[i].is_pc = FALSE;
-    race_list[i].favored_class[0] = CLASS_UNDEFINED;
-    race_list[i].favored_class[1] = CLASS_UNDEFINED;
-    race_list[i].favored_class[2] = CLASS_UNDEFINED;
-    race_list[i].language = 0;
     race_list[i].level_adjustment = 0;
-    
+    race_list[i].unlock_cost = 99999;
+    race_list[i].epic_adv = IS_NORMAL;
+        
+    /* handle outside add_race() */
     set_race_genders(i, N, N, N);
     set_race_abilities(i, 0, 0, 0, 0, 0, 0);
     set_race_alignments(i, N, N, N, N, N, N, N, N, N);
+    set_race_attack_types(i, Y, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N,
+                             N, N, N, N, N, N, N);
+    
+    /* any linked lists to initailze? */
   }
 }
 
-/* race-num, abbrev, cap-name, family, neuter,male,female, str-mod,con-mod,int-mod,wis-mod,dex-mod,cha-mod,
- * height-n,height-m,height-f,weight-n,weight-m,weight-f, lg,ln,le,ng,tn,ne,cg,cn,ce, size, is-pic, fav-class, lang, lvl-adjust*/
-void add_race(int race, char *name, char *abbrev, char *capName, int family, int neuter, int male, int female,
-        int str_mod, int con_mod, int int_mod, int wis_mod, int dex_mod, int cha_mod, int lg, int ln, int le,
-        int ng, int tn, int ne, int cg, int cn, int ce, int size, int is_pc, int favored_class, int language, int level_adjustment) {
-  race_list[race].name = strdup(name);
-  race_names[race] = strdup(name);
-  race_list[race].abbrev = strdup(abbrev);
-  race_list[race].type = strdup(capName);
+/* papa assign-function for adding races to the race list */
+void add_race(int race,
+        char *name, char *type, char *type_color, char *abbrev, char *abbrev_color,
+        ubyte family, byte size, sbyte is_pc, ubyte level_adjustment, int unlock_cost,
+        byte epic_adv) {
+  
+  /* displaying the race */
+  race_list[race].name = strdup(name); /* lower case no-space */
+  race_list[race].type = strdup(type); /* capitalized space, no color */
+  race_list[race].type_color = strdup(type_color); /* capitalized space, color */
+  race_list[race].abbrev = strdup(abbrev); /* 4 letter abbrev, no color */
+  race_list[race].abbrev_color = strdup(abbrev_color); /* 4 letter abbrev, color */
+  
+  /* assigning values */
   race_list[race].family = family;
-  set_race_genders(race, neuter, male, female);
-  set_race_abilities(race, str_mod, con_mod, int_mod, wis_mod, dex_mod, cha_mod);
   race_list[race].size = size;
-  set_race_alignments(race, lg, ng, cg, ln, tn, cn, le, ne, ce);
   race_list[race].is_pc = is_pc;
-  race_list[race].favored_class[0] = favored_class;
-  race_list[race].favored_class[1] = favored_class;
-  race_list[race].favored_class[2] = favored_class;
-  race_list[race].language = language;
   race_list[race].level_adjustment = level_adjustment;
+  race_list[race].unlock_cost = unlock_cost;
+  race_list[race].epic_adv = epic_adv;
+  
 }
 
+/*
 void favored_class_female(int race, int favored_class) {
   race_list[race].favored_class[2] = favored_class;
 }
+*/
 
+/* our little mini struct series for assigning feats to a race  */
+/* create/allocate memory for the racefeatassign struct */
+struct race_feat_assign* create_feat_assign(int feat_num, int level_received,
+        bool stacks) {
+  struct race_feat_assign *feat_assign = NULL;
+
+  CREATE(feat_assign, struct race_feat_assign, 1);
+  feat_assign->feat_num = feat_num;
+  feat_assign->level_received = level_received;
+  feat_assign->stacks = stacks;
+
+  return feat_assign;
+}
+/* actual function called to perform the feat assignment */
+void feat_race_assignment(int race_num, int feat_num, int level_received,
+        bool stacks) {
+  struct race_feat_assign *feat_assign = NULL;
+
+  feat_assign = create_feat_assign(feat_num, level_received, stacks);
+
+  /*   Link it up. */
+  feat_assign->next = race_list[race_num].featassign_list;
+  race_list[race_num].featassign_list = feat_assign;
+}
+
+/* our little mini struct series for assigning affects to a race  */
+/* create/allocate memory for the struct */
+struct affect_assign* create_affect_assign(int affect_num, int level_received) {
+  struct affect_assign *aff_assign = NULL;
+
+  CREATE(aff_assign, struct affect_assign, 1);
+  aff_assign->affect_num = affect_num;
+  aff_assign->level_received = level_received;
+
+  return aff_assign;
+}
+/* actual function called to perform the affect assignment */
+void affect_assignment(int race_num, int affect_num, int level_received) {
+  struct affect_assign *aff_assign = NULL;
+
+  aff_assign = create_affect_assign(affect_num, level_received);
+
+  /*   Link it up. */
+  aff_assign->next = race_list[race_num].affassign_list;
+  race_list[race_num].affassign_list = aff_assign;
+}
+
+/* determines if ch qualifies for a race */
+bool race_is_available(struct char_data *ch, int race_num) {
+  return FALSE;
+}
+
+/* this will be a general list of all pc races */
+void display_all_races(struct char_data *ch) {
+  struct descriptor_data *d = ch->desc;
+  int counter, columns = 0;
+
+  write_to_output(d, "\r\n");
+  
+  for (counter = 0; counter < NUM_EXTENDED_RACES; counter++) {    
+    write_to_output(d, "%s%-20.20s %s",
+            race_is_available(ch, counter) ? " " : "*",
+            race_list[counter].type, 
+            !(++columns % 3) ? "\r\n" : "");
+  }
+  
+  write_to_output(d, "\r\n");
+  write_to_output(d, "* - not qualified 'race prereqs <race name>' for details\r\n");
+  write_to_output(d, "\r\n");
+}
+
+/* display a specific races details */
+bool display_race_info(struct char_data *ch, char *racename) {
+  int race = -1;
+  char buf[MAX_STRING_LENGTH] = { '\0' };  
+  static int line_length = 80;
+
+  skip_spaces(&racename);
+  race = parse_race_long(racename);
+
+  if (race == -1 || race >= NUM_EXTENDED_RACES) {
+    /* Not found - Maybe put in a soundex list here? */
+    return FALSE;
+  }
+
+  /* We found the race, and the race number is stored in 'race'. */
+  /* Display the race info, formatted. */
+  send_to_char(ch, "\tC\r\n");
+  draw_line(ch, line_length, '-', '-');
+  
+  send_to_char(ch, "\tcRace Name       : \tn%s\r\n", race_list[race].type_color);
+  send_to_char(ch, "\tcNormal/Adv/Epic?: \tn%s\r\n", (race_list[race].epic_adv == IS_EPIC_R) ?
+    "Epic Race" : (race_list[race].epic_adv == IS_ADVANCE) ? "Advance Race" : "Normal Race");
+  send_to_char(ch, "\tcUnlock Cost     : \tn%d Account XP\r\n", race_list[race].unlock_cost);  
+  send_to_char(ch, "\tcPlayable Race?  : \tn%s\r\n", race_list[race].is_pc ?
+                   "\tnYes\tn" : "\trNo, ask staff\tn");
+  
+  send_to_char(ch, "\tC");
+  draw_line(ch, line_length, '-', '-');
+      
+  /* This we will need to buffer and wrap so that it will fit in the space provided. */
+  sprintf(buf, "\tcDescription : \tn%s\r\n", race_list[race].descrip);
+  send_to_char(ch, strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
+  
+  send_to_char(ch, "\tC");
+  draw_line(ch, line_length, '-', '-');
+    
+  send_to_char(ch, "\tn\r\n");
+
+  return TRUE;  
+}
+
+bool view_race_feats(struct char_data *ch, char *racename) {
+  int race = RACE_UNDEFINED;
+  struct race_feat_assign *feat_assign = NULL;
+  
+  skip_spaces(&racename);
+  race = parse_race_long(racename);
+
+  if (race == RACE_UNDEFINED) {
+    return FALSE;
+  }
+
+  /* level feats */
+  if (race_list[race].featassign_list != NULL) {
+    /*  This race has feat assignment! Traverse the list and list. */
+    for (feat_assign = race_list[race].featassign_list; feat_assign != NULL;
+            feat_assign = feat_assign->next) {
+      if (feat_assign->level_received > 0) /* -1 is just race feat assign */
+        send_to_char(ch, "Level: %-2d, Stacks: %-3s, Feat: %s\r\n",
+                   feat_assign->level_received,
+                   feat_assign->stacks ? "Yes" : "No",
+                   feat_list[feat_assign->feat_num].name);
+    }
+  }
+  send_to_char(ch, "\r\n");
+  
+  return TRUE;
+}
+
+/* entry point for race command - getting race info */
+ACMD(do_race) {
+  char arg[80];
+  char arg2[80];
+  char *racename;
+
+  /*  Have to process arguments like this
+   *  because of the syntax - race info <racename> */
+  racename = one_argument(argument, arg);
+  one_argument(racename, arg2);
+
+  /* no argument, or general list of classes */
+  if (is_abbrev(arg, "list") || !*arg) {
+    display_all_races(ch);
+    
+  /* race info - specific info on given race */    
+  } else if (is_abbrev(arg, "info")) {
+
+    if (!strcmp(racename, "")) {
+      send_to_char(ch, "\r\nYou must provide the name of a race.\r\n");
+    } else if(!display_race_info(ch, racename)) {
+      send_to_char(ch, "Could not find that race.\r\n");
+    }
+    
+  /* race feat - list of free feats for given race */    
+  } else if (is_abbrev(arg, "feats")) {
+
+    if (!strcmp(racename, "")) {
+      send_to_char(ch, "\r\nYou must provide the name of a race.\r\n");
+    } else if(!view_race_feats(ch, racename)) {
+      send_to_char(ch, "Could not find that race.\r\n");
+    }
+
+  }
+  
+  send_to_char(ch, "\tDUsage: race <list|info|feats> <race name>\tn\r\n");
+}
+
+/* here is the actual race list */
 void assign_races(void) {
   /* initialization */
   initialize_races();
 
   /* begin listing */
 
-  /* humanoid */
-  /* race-num, abbrev, cap-name, family, neuter,male,female, str-mod,con-mod,int-mod,wis-mod,dex-mod,cha-mod,
-   * lg,ln,le,ng,tn,ne,cg,cn,ce, size, is-pc, fav-class, lang, lvl-adjust*/
-  add_race(RACE_HUMAN, "human", "Human", "Human", RACE_TYPE_HUMANOID, N, Y, Y, 0, 0, 0, 0, 0, 0,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_UNDEFINED, SKILL_LANG_COMMON, 0);
-  add_race(RACE_DROW_ELF, "drow elf", "DrowElf", "Drow Elf", RACE_TYPE_HUMANOID, N, Y, Y, 0, -2, 2, 0, 2, 2,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, FALSE, CLASS_WIZARD, SKILL_LANG_UNDERCOMMON, 2);
-  favored_class_female(RACE_DROW_ELF, CLASS_CLERIC);
+  /************/
+  /* Humanoid */
+  /************/
+  
+  /******/
+  /* PC */
+  /******/
+  
+  /****************************************************************************/
+  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(RACE_HUMAN, "human", "Human", "\tBHuman\tn", "Humn", "\tBHumn\tn",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_HUMANOID, SIZE_MEDIUM, TRUE, 0,    0,      IS_NORMAL);
+    set_race_genders(RACE_HUMAN, N, Y, Y); /* n m f */
+    set_race_abilities(RACE_HUMAN, 0, 0, 0, 0, 0, 0); /* str con int wis dex cha */
+    set_race_alignments(RACE_HUMAN, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */  
+    set_race_attack_types(RACE_HUMAN,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        Y,  N,    N,   N,    N,   N,       N,    N,    N,   N,   N,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    Y,    N,   N,    N,     N,   N,   N,   N,    N,      N,     N);
+    set_morph_msg(RACE_HUMAN, /* to-char / to-room morph messages */
+      "You morph into a human.",
+      "$n morphs into a human." );
+    /* feat assignment */
+    /*                   race-num    feat                  lvl stack */
+    feat_race_assignment(RACE_HUMAN, FEAT_QUICK_TO_MASTER, 1,  N);
+    feat_race_assignment(RACE_HUMAN, FEAT_SKILLED,         1,  N);
+    /* affect assignment */
+    /*                  race-num  affect            lvl */
+    /**TEST**/affect_assignment(RACE_HUMAN, AFF_DETECT_ALIGN, 1);
+  /****************************************************************************/
+            
+     /*
+  add_race(RACE_DROW_ELF, "drow", "Drow", "\tmDrow\tn", "Drow", "\tmDrow\tn",
+           RACE_TYPE_HUMANOID, SIZE_MEDIUM, FALSE, 2);
+    //favored_class_female(RACE_DROW_ELF, CLASS_CLERIC);
   add_race(RACE_HALF_ELF, "half elf", "HalfElf", "Half Elf", RACE_TYPE_HUMANOID, N, Y, Y, 0, 0, 0, 0, 0, 0,
           Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_WIZARD, SKILL_LANG_ELVEN, 0);
   add_race(RACE_ELF, "elf", "Elf", "Elf", RACE_TYPE_HUMANOID, N, Y, Y, 0, 0, 0, 0, 0, 0,
@@ -157,20 +425,553 @@ void assign_races(void) {
           Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_BERSERKER, SKILL_LANG_ORCISH, 0);
   add_race(RACE_ORC, "orc", "Orc", "Orc", RACE_TYPE_HUMANOID, N, Y, Y, 2, 2, -2, -2, 0, -2,
           Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, FALSE, CLASS_BERSERKER, SKILL_LANG_ORCISH, 0);
+  */
+    
+    
+  /**********/
+  /* Animal */
+  /**********/
+              
+  /****************************************************************************/
+  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(RACE_EAGLE, "eagle", "Eagle", "Eagle", "Eagl", "Eagl",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ANIMAL, SIZE_SMALL, FALSE, 0,      0,      IS_NORMAL);
+    set_race_attack_types(RACE_EAGLE,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        N,  N,    N,   N,    N,   N,       N,    N,    N,   N,   N,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    N,    N,   N,    N,     N,   Y,   Y,   N,    N,      N,     N);
+  /****************************************************************************/
+    
+  /****************************************************************************/
+  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(RACE_DINOSAUR, "dinosaur", "Dinosaur", "Dinosaur", "Dino", "Dino",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ANIMAL, SIZE_HUGE, FALSE, 0,       0,      IS_NORMAL);
+    set_race_attack_types(RACE_DINOSAUR,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        N,  N,    N,   N,    N,   N,       Y,    N,    N,   N,   N,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    N,    N,   N,    N,     N,   N,   N,   Y,    Y,      N,     N);
+  /****************************************************************************/
+
+  /****************************************************************************/
+  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(RACE_ELEPHANT, "elephant", "Elephant", "Elephant", "Elep", "Elep",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ANIMAL, SIZE_HUGE, FALSE, 0,       0,      IS_NORMAL);
+    set_race_attack_types(RACE_ELEPHANT,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        N,  N,    N,   N,    N,   N,       Y,    N,    N,   N,   N,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    N,    N,   N,    N,     N,   N,   N,   Y,    Y,      N,     N);
+  /****************************************************************************/
+    
+  /****************************************************************************/
+  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(RACE_LEOPARD, "leopard", "Leopard", "Leopard", "Leop", "Leop",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ANIMAL, SIZE_MEDIUM, FALSE, 0,       0,      IS_NORMAL);
+    set_race_attack_types(RACE_LEOPARD,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        N,  N,    N,   N,    Y,   N,       N,    N,    Y,   Y,   N,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    N,    N,   N,    N,     N,   N,   N,   N,    N,      N,     N);
+  /****************************************************************************/
+  
+  /****************************************************************************/
+  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(RACE_LION, "lion", "Lion",       "Lion",     "Lion", "Lion",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ANIMAL, SIZE_LARGE, FALSE, 0,       0,      IS_NORMAL);
+    set_race_attack_types(RACE_LION,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        N,  N,    N,   N,    Y,   N,       N,    N,    Y,   Y,   N,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    N,    N,   N,    N,     N,   N,   N,   N,    N,      N,     N);
+  /****************************************************************************/
+  
+  /****************************************************************************/
+  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(RACE_TIGER, "tiger", "Tiger",   "Tiger",     "Tigr", "Tigr",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ANIMAL, SIZE_LARGE, FALSE, 0,       0,      IS_NORMAL);
+    set_race_attack_types(RACE_TIGER,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        N,  N,    N,   N,    Y,   N,       N,    N,    Y,   Y,   N,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    N,    N,   N,    N,     N,   N,   N,   N,    N,      N,     N);
+  /****************************************************************************/
+  
+  /****************************************************************************/
+  /*                        simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(RACE_BLACK_BEAR, "black bear", "Black Bear", "Black Bear", "BlBr", "BlBr",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ANIMAL, SIZE_MEDIUM, FALSE, 0,       0,      IS_NORMAL);
+    set_race_attack_types(RACE_BLACK_BEAR,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        N,  N,    N,   N,    Y,   N,       N,    N,    Y,   Y,   N,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    N,    N,   N,    N,     N,   N,   N,   N,    N,      N,     N);
+  /****************************************************************************/
+  
+  /****************************************************************************/
+  /*                        simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(RACE_BROWN_BEAR, "brown bear", "Brown Bear", "Brown Bear", "BrBr", "BrBr",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ANIMAL, SIZE_LARGE, FALSE, 0,       0,      IS_NORMAL);
+    set_race_attack_types(RACE_BROWN_BEAR,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        N,  N,    N,   N,    Y,   N,       N,    N,    Y,   Y,   N,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    N,    N,   N,    N,     N,   N,   N,   N,    N,      N,     N);
+  /****************************************************************************/
+  
+  /****************************************************************************/
+  /*                        simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(RACE_POLAR_BEAR, "polar bear", "Polar Bear", "Polar Bear", "PlBr", "PlBr",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ANIMAL, SIZE_LARGE, FALSE, 0,       0,      IS_NORMAL);
+    set_race_attack_types(RACE_POLAR_BEAR,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        N,  N,    N,   N,    Y,   N,       N,    N,    Y,   Y,   N,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    N,    N,   N,    N,     N,   N,   N,   N,    N,      N,     N);
+  /****************************************************************************/
+
+  /****************************************************************************/
+  /*                        simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(RACE_RHINOCEROS, "rhinoceros", "Rhinoceros", "Rhinoceros", "Rino", "Rino",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ANIMAL, SIZE_LARGE, FALSE, 0,       0,      IS_NORMAL);
+    set_race_attack_types(RACE_RHINOCEROS,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        N,  N,    N,   N,    N,   N,       N,    N,    N,   N,   N,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    N,    N,   N,    N,     N,   N,   N,   N,    N,      Y,     Y);
+  /****************************************************************************/
+  
+  /****************************************************************************/
+  /*                        simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(RACE_BOAR, "boar", "Boar", "Boar", "Boar", "Boar",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ANIMAL, SIZE_MEDIUM, FALSE, 0,       0,      IS_NORMAL);
+    set_race_attack_types(RACE_BOAR,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        N,  N,    N,   N,    Y,   N,       N,    N,    N,   N,   Y,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    N,    N,   N,    N,     N,   N,   N,   N,    N,      Y,     Y);
+  /****************************************************************************/
+        
+  /****************************************************************************/
+  /*                        simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(RACE_APE, "ape", "Ape", "Ape", "Ape", "Ape",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ANIMAL, SIZE_LARGE, FALSE, 0,       0,      IS_NORMAL);
+    set_race_attack_types(RACE_APE,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        Y,  N,    N,   N,    N,   Y,       Y,    Y,    N,   N,   N,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    Y,    N,   N,    N,     N,   N,   N,   Y,    N,      N,     N);
+  /****************************************************************************/
+  
+  /****************************************************************************/
+  /*                        simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(RACE_RAT, "rat", "Rat", "Rat", "Rat", "Rat",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ANIMAL, SIZE_TINY, FALSE, 0,       0,      IS_NORMAL);
+    set_race_attack_types(RACE_RAT,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        N,  N,    N,   N,    Y,   N,       N,    N,    N,   N,   N,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    N,    N,   N,    N,     N,   N,   N,   N,    N,      N,     N);
+  /****************************************************************************/
+    
+  /****************************************************************************/
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_WOLF, "wolf", "Wolf", "Wolf", "Wolf", "Wolf",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ANIMAL, SIZE_MEDIUM, FALSE, 0,       0,      IS_NORMAL);
+    set_race_attack_types(RACE_WOLF,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        N,  N,    N,   N,    Y,   N,       N,    N,    Y,   N,   N,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    N,    N,   N,    N,     N,   N,   N,   N,    N,      N,     N);
+  /****************************************************************************/
+
+    /****************************************************************************/
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_HORSE, "horse", "Horse", "Horse", "Hors", "Hors",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ANIMAL, SIZE_LARGE, FALSE, 0,       0,      IS_NORMAL);
+    set_race_attack_types(RACE_HORSE,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        N,  N,    N,   N,    Y,   N,       N,    N,    N,   N,   Y,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    N,    N,   N,    N,     N,   N,   N,   N,    Y,      N,     N);
+  /****************************************************************************/
+    
+  /****************************************************************************/
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_CONSTRICTOR_SNAKE, "constrictor snake", "Constrictor Snake", "Constrictor Snake", "CSnk", "CSnk",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ANIMAL, SIZE_MEDIUM, FALSE, 0,       0,      IS_NORMAL);
+    set_race_attack_types(RACE_CONSTRICTOR_SNAKE,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        N,  N,    N,   N,    Y,   N,       Y,    N,    N,   N,   N,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    N,    N,   N,    N,     N,   N,   N,   N,    N,      N,     N);
+  /****************************************************************************/
+    
+  /****************************************************************************/
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_GIANT_CONSTRICTOR_SNAKE, "giant constrictor snake", "Giant Constrictor Snake",
+    "Giant Constrictor Snake", "GCSk", "GCSk",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ANIMAL, SIZE_HUGE, FALSE, 0,       0,      IS_NORMAL);
+    set_race_attack_types(RACE_GIANT_CONSTRICTOR_SNAKE,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        N,  N,    N,   N,    Y,   N,       Y,    N,    N,   N,   N,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    N,    N,   N,    N,     N,   N,   N,   N,    N,      N,     N);
+  /****************************************************************************/
+    
+  /****************************************************************************/
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_MEDIUM_VIPER, "medium viper", "Medium Viper", "Medium Viper", "MVip", "MVip",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ANIMAL, SIZE_MEDIUM, FALSE, 0,       0,      IS_NORMAL);
+    set_race_attack_types(RACE_MEDIUM_VIPER,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        N,  N,    N,   N,    Y,   N,       Y,    N,    N,   N,   N,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    N,    N,   N,    N,     N,   N,   N,   N,    N,      N,     N);
+  /****************************************************************************/
+    
+  /****************************************************************************/
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_LARGE_VIPER, "large viper", "Large Viper", "Large Viper", "LVip", "LVip",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ANIMAL, SIZE_LARGE, FALSE, 0,       0,      IS_NORMAL);
+    set_race_attack_types(RACE_LARGE_VIPER,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        N,  N,    N,   N,    Y,   N,       Y,    N,    N,   N,   N,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    N,    N,   N,    N,     N,   N,   N,   N,    N,      N,     N);
+  /****************************************************************************/
+    
+  /****************************************************************************/
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_HUGE_VIPER, "huge viper", "Huge Viper", "Huge Viper", "HVip", "HVip",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ANIMAL, SIZE_HUGE, FALSE, 0,       0,      IS_NORMAL);
+    set_race_attack_types(RACE_HUGE_VIPER,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        N,  N,    N,   N,    Y,   N,       Y,    N,    N,   N,   N,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    N,    N,   N,    N,     N,   N,   N,   N,    N,      N,     N);
+  /****************************************************************************/
+    
+  /****************************************************************************/
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_WOLVERINE, "wolverine", "Wolverine", "Wolverine", "Wlvr", "Wlvr",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ANIMAL, SIZE_MEDIUM, FALSE, 0,       0,      IS_NORMAL);
+    set_race_attack_types(RACE_WOLVERINE,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        N,  N,    N,   N,    Y,   N,       N,    N,    Y,   N,   Y,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    N,    N,   N,    N,     N,   N,   N,   N,    N,      N,     N);
+  /****************************************************************************/
+    
+  /****************************************************************************/
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_CROCODILE, "crocodile", "Crocodile", "Crocodile", "Croc", "Croc",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ANIMAL, SIZE_MEDIUM, FALSE, 0,       0,      IS_NORMAL);
+    set_race_attack_types(RACE_CROCODILE,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        N,  N,    N,   N,    Y,   N,       N,    N,    N,   N,   N,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    N,    N,   N,    N,     N,   N,   N,   N,    N,      N,     N);
+  /****************************************************************************/
+    
+  /****************************************************************************/
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_GIANT_CROCODILE, "giant crocodile", "Giant Crocodile", "Giant Crocodile", "GCrc", "GCrc",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ANIMAL, SIZE_HUGE, FALSE, 0,       0,      IS_NORMAL);
+    set_race_attack_types(RACE_GIANT_CROCODILE,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        N,  N,    N,   N,    Y,   N,       N,    N,    N,   N,   N,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    N,    N,   N,    N,     N,   N,   N,   N,    N,      N,     N);
+  /****************************************************************************/
+    
+  /****************************************************************************/
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_CHEETAH, "cheetah", "Cheetah", "Cheetah", "Chet", "Chet",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ANIMAL, SIZE_MEDIUM, FALSE, 0,       0,      IS_NORMAL);
+    set_race_attack_types(RACE_CHEETAH,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        N,  N,    N,   N,    Y,   N,       N,    N,    Y,   N,   N,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    N,    N,   N,    N,     N,   N,   N,   N,    N,      N,     N);
+  /****************************************************************************/
+
+  /*********/
+  /* Plant */
+  /*********/
+    
+  /****************************************************************************/
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_MANDRAGORA, "mandragora", "Mandragora", "Mandragora", "Mand", "Mand",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_PLANT, SIZE_SMALL, FALSE, 0,       0,      IS_NORMAL);
+    set_race_attack_types(RACE_MANDRAGORA,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        N,  N,    N,   N,    N,   Y,       Y,    Y,    N,   N,   N,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    N,    N,   N,    N,     N,   N,   N,   Y,    N,      N,     N);
+  /****************************************************************************/
+    
+  /****************************************************************************/
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_MYCANOID, "mycanoid", "Mycanoid", "Mycanoid", "Mycd", "Mycd",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_PLANT, SIZE_MEDIUM, FALSE, 0,       0,      IS_NORMAL);
+    set_race_attack_types(RACE_MYCANOID,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        N,  N,    N,   N,    N,   Y,       Y,    Y,    N,   N,   N,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    N,    N,   N,    N,     N,   N,   N,   Y,    N,      N,     N);
+  /****************************************************************************/
+    
+  /****************************************************************************/
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_SHAMBLING_MOUND, "shambling mound", "Shambling Mound", "Shambling Mound", "Shmb", "Shmb",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_PLANT, SIZE_LARGE, FALSE, 0,       0,      IS_NORMAL);
+    set_race_attack_types(RACE_SHAMBLING_MOUND,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        N,  N,    N,   N,    N,   Y,       Y,    Y,    N,   N,   N,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    N,    N,   N,    N,     N,   N,   N,   Y,    N,      N,     N);
+  /****************************************************************************/
+    
+  /****************************************************************************/
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_TREANT, "treant", "Treant", "Treant", "Trnt", "Trnt",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_PLANT, SIZE_HUGE, FALSE, 0,       0,      IS_NORMAL);
+    set_race_attack_types(RACE_TREANT,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        N,  N,    N,   N,    N,   Y,       Y,    Y,    N,   N,   N,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    N,    N,   N,    N,     N,   N,   N,   Y,    N,      N,     N);
+  /****************************************************************************/
+
+  /*************/
+  /* Elemental */
+  /*************/
+    
+    /* FIRE */
+  /****************************************************************************/
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_SMALL_FIRE_ELEMENTAL, "small fire elemental", "Small Fire Elemental", "Small Fire Elemental", "SFEl", "SFEl",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ELEMENTAL, SIZE_SMALL, FALSE, 0,       0,      IS_NORMAL);
+    set_race_attack_types(RACE_SMALL_FIRE_ELEMENTAL,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        N,  N,    Y,   N,    N,   N,       N,    N,    N,   N,   Y,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    N,    N,   N,    N,     Y,   N,   N,   N,    N,      N,     N);
+  /****************************************************************************/
+  /****************************************************************************/
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_MEDIUM_FIRE_ELEMENTAL, "medium fire elemental", "Medium Fire Elemental", "Medium Fire Elemental", "MFEl", "MFEl",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ELEMENTAL, SIZE_MEDIUM, FALSE, 0,       0,      IS_NORMAL);
+    set_race_attack_types(RACE_MEDIUM_FIRE_ELEMENTAL,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        N,  N,    Y,   N,    N,   N,       N,    N,    N,   N,   Y,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    N,    N,   N,    N,     Y,   N,   N,   N,    N,      N,     N);
+  /****************************************************************************/
+  /****************************************************************************/
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_LARGE_FIRE_ELEMENTAL, "large fire elemental", "Large Fire Elemental", "Large Fire Elemental", "LFEl", "LFEl",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ELEMENTAL, SIZE_LARGE, FALSE, 0,       0,      IS_NORMAL);
+    set_race_attack_types(RACE_LARGE_FIRE_ELEMENTAL,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        N,  N,    Y,   N,    N,   N,       N,    N,    N,   N,   Y,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    N,    N,   N,    N,     Y,   N,   N,   N,    N,      N,     N);
+  /****************************************************************************/
+  /****************************************************************************/
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_HUGE_FIRE_ELEMENTAL, "huge fire elemental", "Huge Fire Elemental", "Huge Fire Elemental", "HFEl", "HFEl",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ELEMENTAL, SIZE_HUGE, FALSE, 0,       0,      IS_NORMAL);
+    set_race_attack_types(RACE_HUGE_FIRE_ELEMENTAL,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        N,  N,    Y,   N,    N,   N,       N,    N,    N,   N,   Y,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    N,    N,   N,    N,     Y,   N,   N,   N,    N,      N,     N);
+  /****************************************************************************/
+    /* Earth */
+  /****************************************************************************/
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_SMALL_EARTH_ELEMENTAL, "small earth elemental", "Small Earth Elemental", "Small Earth Elemental", "SEEl", "SEEl",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ELEMENTAL, SIZE_SMALL, FALSE, 0,       0,      IS_NORMAL);
+    set_race_attack_types(RACE_SMALL_EARTH_ELEMENTAL,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        N,  N,    N,   N,    N,   Y,       Y,    Y,    N,   N,   N,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    N,    N,   N,    N,     N,   N,   N,   Y,    N,      N,     N);
+  /****************************************************************************/
+  /****************************************************************************/
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_MEDIUM_EARTH_ELEMENTAL, "medium earth elemental", "Medium Earth Elemental", "Medium Earth Elemental", "MEEl", "MEEl",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ELEMENTAL, SIZE_MEDIUM, FALSE, 0,       0,      IS_NORMAL);
+    set_race_attack_types(RACE_MEDIUM_EARTH_ELEMENTAL,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        N,  N,    N,   N,    N,   Y,       Y,    Y,    N,   N,   N,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    N,    N,   N,    N,     N,   N,   N,   Y,    N,      N,     N);
+  /****************************************************************************/
+  /****************************************************************************/
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_LARGE_EARTH_ELEMENTAL, "large earth elemental", "Large Earth Elemental", "Large Earth Elemental", "LEEl", "LEEl",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ELEMENTAL, SIZE_LARGE, FALSE, 0,       0,      IS_NORMAL);
+    set_race_attack_types(RACE_LARGE_EARTH_ELEMENTAL,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        N,  N,    N,   N,    N,   Y,       Y,    Y,    N,   N,   N,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    N,    N,   N,    N,     N,   N,   N,   Y,    N,      N,     N);
+  /****************************************************************************/
+  /****************************************************************************/
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_HUGE_EARTH_ELEMENTAL, "huge earth elemental", "Huge Earth Elemental", "Huge Earth Elemental", "HEEl", "HEEl",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ELEMENTAL, SIZE_HUGE, FALSE, 0,       0,      IS_NORMAL);
+    set_race_attack_types(RACE_HUGE_EARTH_ELEMENTAL,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        N,  N,    N,   N,    N,   Y,       Y,    Y,    N,   N,   N,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    N,    N,   N,    N,     N,   N,   N,   Y,    N,      N,     N);
+  /****************************************************************************/
+    /* Air */
+  /****************************************************************************/
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_SMALL_AIR_ELEMENTAL, "small air elemental", "Small Air Elemental", "Small Air Elemental", "SAEl", "SAEl",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ELEMENTAL, SIZE_SMALL, FALSE, 0,       0,      IS_NORMAL);
+    set_race_attack_types(RACE_SMALL_AIR_ELEMENTAL,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        N,  N,    Y,   N,    N,   N,       N,    N,    N,   N,   Y,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        Y,    N,    N,   N,    N,     N,   N,   N,   N,    N,      N,     N);
+  /****************************************************************************/
+  /****************************************************************************/
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_MEDIUM_AIR_ELEMENTAL, "medium air elemental", "Medium Air Elemental", "Medium Air Elemental", "MAEl", "MAEl",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ELEMENTAL, SIZE_MEDIUM, FALSE, 0,       0,      IS_NORMAL);
+    set_race_attack_types(RACE_MEDIUM_AIR_ELEMENTAL,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        N,  N,    Y,   N,    N,   N,       N,    N,    N,   N,   Y,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        Y,    N,    N,   N,    N,     N,   N,   N,   N,    N,      N,     N);
+  /****************************************************************************/
+  /****************************************************************************/
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_LARGE_AIR_ELEMENTAL, "large air elemental", "Large Air Elemental", "Large Air Elemental", "LAEl", "LAEl",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ELEMENTAL, SIZE_LARGE, FALSE, 0,       0,      IS_NORMAL);
+    set_race_attack_types(RACE_LARGE_AIR_ELEMENTAL,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        N,  N,    Y,   N,    N,   N,       N,    N,    N,   N,   Y,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        Y,    N,    N,   N,    N,     N,   N,   N,   N,    N,      N,     N);
+  /****************************************************************************/
+  /****************************************************************************/
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_HUGE_AIR_ELEMENTAL, "huge air elemental", "Huge Air Elemental", "Huge Air Elemental", "HAEl", "HAEl",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ELEMENTAL, SIZE_HUGE, FALSE, 0,       0,      IS_NORMAL);
+    set_race_attack_types(RACE_HUGE_AIR_ELEMENTAL,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        N,  N,    Y,   N,    N,   N,       N,    N,    N,   N,   Y,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        Y,    N,    N,   N,    N,     N,   N,   N,   N,    N,      N,     N);
+  /****************************************************************************/
+    /* Water */
+  /****************************************************************************/
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_SMALL_WATER_ELEMENTAL, "small water elemental", "Small Water Elemental", "Small Water Elemental", "SWEl", "SWEl",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ELEMENTAL, SIZE_SMALL, FALSE, 0,       0,      IS_NORMAL);
+    set_race_attack_types(RACE_SMALL_WATER_ELEMENTAL,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        N,  Y,    N,   N,    N,   N,       N,    N,    N,   Y,   N,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    N,    N,   N,    Y,     N,   N,   N,   N,    N,      N,     N);
+  /****************************************************************************/
+  /****************************************************************************/
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_MEDIUM_WATER_ELEMENTAL, "medium water elemental", "Medium Water Elemental", "Medium Water Elemental", "MWEl", "MWEl",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ELEMENTAL, SIZE_MEDIUM, FALSE, 0,       0,      IS_NORMAL);
+    set_race_attack_types(RACE_MEDIUM_WATER_ELEMENTAL,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        N,  Y,    N,   N,    N,   N,       N,    N,    N,   Y,   N,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    N,    N,   N,    Y,     N,   N,   N,   N,    N,      N,     N);
+  /****************************************************************************/
+  /****************************************************************************/
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_LARGE_WATER_ELEMENTAL, "large water elemental", "Large Water Elemental", "Large Water Elemental", "LWEl", "LWEl",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ELEMENTAL, SIZE_LARGE, FALSE, 0,       0,      IS_NORMAL);
+    set_race_attack_types(RACE_LARGE_WATER_ELEMENTAL,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        N,  Y,    N,   N,    N,   N,       N,    N,    N,   Y,   N,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    N,    N,   N,    Y,     N,   N,   N,   N,    N,      N,     N);
+  /****************************************************************************/
+  /****************************************************************************/
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_HUGE_WATER_ELEMENTAL, "huge water elemental", "Huge Water Elemental", "Huge Water Elemental", "HWEl", "HWEl",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ELEMENTAL, SIZE_HUGE, FALSE, 0,       0,      IS_NORMAL);
+    set_race_attack_types(RACE_HUGE_WATER_ELEMENTAL,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        N,  Y,    N,   N,    N,   N,       N,    N,    N,   Y,   N,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    N,    N,   N,    Y,     N,   N,   N,   N,    N,      N,     N);
+  /****************************************************************************/
 
   /* monstrous humanoid */
-  /* race-num, abbrev, cap-name, family, neuter,male,female, str-mod,con-mod,int-mod,wis-mod,dex-mod,cha-mod,
-   * lg,ln,le,ng,tn,ne,cg,cn,ce, size, is-pc, fav-class, lang, lvl-adjust*/
+    /*
   add_race(RACE_HALF_TROLL, "half troll", "HalfTroll", "Half Troll", RACE_TYPE_MONSTROUS_HUMANOID, N, Y, Y, 2, 4, 0, 0, 0, -2,
           Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_LARGE, TRUE, CLASS_WARRIOR, SKILL_LANG_GOBLIN, 0);
-
+  */
+    
   /* giant */
+    /*
   add_race(RACE_HALF_OGRE, "half ogre", "HlfOgre", "Half Ogre", RACE_TYPE_GIANT, N, Y, Y, 6, 4, -2, 0, 2, 0,
           Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_LARGE, FALSE, CLASS_BERSERKER, SKILL_LANG_GIANT, 2);
+    */ 
 
   /* undead */
-  /* race-num, abbrev, cap-name, family, neuter,male,female, str-mod,con-mod,int-mod,wis-mod,dex-mod,cha-mod,
-   * lg,ln,le,ng,tn,ne,cg,cn,ce, size, is-pc, fav-class, lang, lvl-adjust*/
+    /*
   add_race(RACE_SKELETON, "skeleton", "Skeletn", "Skeleton", RACE_TYPE_UNDEAD, Y, N, N, 0, 0, 0, 0, 0, 0,
           N, N, N, N, Y, N, N, N, N, SIZE_MEDIUM, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
   add_race(RACE_ZOMBIE, "zombie", "Zombie", "Zombie", RACE_TYPE_UNDEAD, N, Y, Y, 0, 0, 0, 0, 0, 0,
@@ -183,489 +984,50 @@ void assign_races(void) {
           N, N, N, N, Y, N, N, N, N, SIZE_MEDIUM, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
   add_race(RACE_MOHRG, "mohrg", "Mohrg", "Mohrg", RACE_TYPE_UNDEAD, N, Y, Y, 11, 0, 0, 0, 9, 0,
           N, N, N, N, Y, N, N, N, N, SIZE_MEDIUM, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-
-  /* animal */
-  /* race-num, abbrev, cap-name, family, neuter,male,female, str-mod,con-mod,int-mod,wis-mod,dex-mod,cha-mod,
-   * lg,ln,le,ng,tn,ne,cg,cn,ce, size, is-pc, fav-class, lang, lvl-adjust*/
-  add_race(RACE_EAGLE, "eagle", "Eagle", "Eagle", RACE_TYPE_ANIMAL, N, Y, Y, 0, 2, 0, 0, 5, 0,
-          N, N, N, N, Y, N, N, N, N, SIZE_SMALL, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-  add_race(RACE_RAT, "rat", "Rat", "Rat", RACE_TYPE_ANIMAL, N, Y, Y, -8, 0, -2, 0, 4, -2,
-          N, N, N, N, Y, N, N, N, N, SIZE_TINY, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-  add_race(RACE_WOLF, "wolf", "Wolf", "Wolf", RACE_TYPE_ANIMAL, N, Y, Y, 2, 4, 0, 0, 4, 0,
-          N, N, N, N, Y, N, N, N, N, SIZE_MEDIUM, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-  add_race(RACE_GREAT_CAT, "great cat", "Grt Cat", "Great Cat", RACE_TYPE_ANIMAL, N, Y, Y, 4, 2, 0, 0, 2, 0,
-          N, N, N, N, Y, N, N, N, N, SIZE_LARGE, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-  add_race(RACE_HORSE, "horse", "Horse", "Horse", RACE_TYPE_ANIMAL, N, Y, Y, 6, 4, 0, 0, 2, 0,
-          N, N, N, N, Y, N, N, N, N, SIZE_LARGE, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-  add_race(RACE_DINOSAUR, "dinosaur", "Dino", "Dinosaur", RACE_TYPE_ANIMAL, N, Y, Y, 10, 0, 0, 0, 0, 0,
-          N, N, N, N, Y, N, N, N, N, SIZE_HUGE, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-  add_race(RACE_LION, "lion", "Lion", "Lion", RACE_TYPE_ANIMAL, N, Y, Y, 10, 4, 0, 0, 6, 0,
-          N, N, N, N, Y, N, N, N, N, SIZE_LARGE, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-  add_race(RACE_BLACK_BEAR, "black bear", "BlkBear", "Black Bear", RACE_TYPE_ANIMAL, N, Y, Y, 8, 4, 0, 0, 2, 0,
-          N, N, N, N, Y, N, N, N, N, SIZE_MEDIUM, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-  add_race(RACE_BROWN_BEAR, "brown bear", "BrnBear", "Brown Bear", RACE_TYPE_ANIMAL, N, Y, Y, 16, 8, 0, 0, 2, 0,
-          N, N, N, N, Y, N, N, N, N, SIZE_LARGE, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-  add_race(RACE_POLAR_BEAR, "polar bear", "PlrBear", "Polar Bear", RACE_TYPE_ANIMAL, N, Y, Y, 16, 8, 0, 0, 2, 0,
-          N, N, N, N, Y, N, N, N, N, SIZE_LARGE, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-  add_race(RACE_TIGER, "tiger", "Tiger", "Tiger", RACE_TYPE_ANIMAL, N, Y, Y, 12, 6, 0, 0, 4, 0,
-          N, N, N, N, Y, N, N, N, N, SIZE_LARGE, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-  add_race(RACE_CONSTRICTOR_SNAKE, "constrictor snake", "CnsSnak", "Constrictor Snake", RACE_TYPE_ANIMAL, N, Y, Y, 6, 2, 0, 0, 6, 0,
-          N, N, N, N, Y, N, N, N, N, SIZE_MEDIUM, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-  add_race(RACE_GIANT_CONSTRICTOR_SNAKE, "giant constrictor snake", "GCnSnak", "Giant Constrictor Snake", RACE_TYPE_ANIMAL, N, Y, Y, 14, 2, 0, 0, 6, 0,
-          N, N, N, N, Y, N, N, N, N, SIZE_HUGE, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-  add_race(RACE_MEDIUM_VIPER, "medium viper", "MdViper", "Medium Viper", RACE_TYPE_ANIMAL, N, Y, Y, -2, 0, 0, 0, 6, 0,
-          N, N, N, N, Y, N, N, N, N, SIZE_MEDIUM, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-  add_race(RACE_LARGE_VIPER, "large viper", "LgViper", "Large Viper", RACE_TYPE_ANIMAL, N, Y, Y, 0, 0, 0, 0, 6, 0,
-          N, N, N, N, Y, N, N, N, N, SIZE_LARGE, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-  add_race(RACE_HUGE_VIPER, "huge viper", "HgViper", "Huge Viper", RACE_TYPE_ANIMAL, N, Y, Y, 6, 2, 0, 0, 4, 0,
-          N, N, N, N, Y, N, N, N, N, SIZE_HUGE, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-  add_race(RACE_WOLVERINE, "wolverine", "Wlvrine", "Wolverine", RACE_TYPE_ANIMAL, N, Y, Y, 4, 8, 0, 0, 4, 0,
-          N, N, N, N, Y, N, N, N, N, SIZE_MEDIUM, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-  add_race(RACE_RHINOCEROS, "rhinoceros", "Rhino", "Rhinoceros", RACE_TYPE_ANIMAL, N, Y, Y, 16, 10, 0, 0, 0, 0,
-          N, N, N, N, Y, N, N, N, N, SIZE_LARGE, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-  add_race(RACE_LEOPARD, "leopard", "Leopard", "Leopard", RACE_TYPE_ANIMAL, N, Y, Y, 6, 4, 0, 0, 8, 0,
-          N, N, N, N, Y, N, N, N, N, SIZE_MEDIUM, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-  add_race(RACE_HYENA, "hyena", "Hyena", "Hyena", RACE_TYPE_ANIMAL, N, Y, Y, 4, 4, 0, 0, 4, 0,
-          N, N, N, N, Y, N, N, N, N, SIZE_MEDIUM, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-  add_race(RACE_CROCODILE, "crocodile", "Crocodl", "Crocodile", RACE_TYPE_ANIMAL, N, Y, Y, 8, 6, 0, 0, 2, 0,
-          N, N, N, N, Y, N, N, N, N, SIZE_MEDIUM, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-  add_race(RACE_GIANT_CROCODILE, "giant crocodile", "GCrocdl", "Giant Crocodile", RACE_TYPE_ANIMAL, N, Y, Y, 16, 8, 0, 0, 2, 0,
-          N, N, N, N, Y, N, N, N, N, SIZE_HUGE, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-  add_race(RACE_CHEETAH, "cheetah", "Cheetah", "Cheetah", RACE_TYPE_ANIMAL, N, Y, Y, 6, 4, 0, 0, 8, 0,
-          N, N, N, N, Y, N, N, N, N, SIZE_MEDIUM, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-  add_race(RACE_BOAR, "boar", "Boar", "Boar", RACE_TYPE_ANIMAL, N, Y, Y, 4, 10, 0, 0, 0, 0,
-          N, N, N, N, Y, N, N, N, N, SIZE_MEDIUM, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-  add_race(RACE_APE, "ape", "Ape", "Ape", RACE_TYPE_ANIMAL, N, Y, Y, 10, 6, 0, 0, 6, 0,
-          N, N, N, N, Y, N, N, N, N, SIZE_LARGE, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-  add_race(RACE_ELEPHANT, "elephant", "Elephnt", "Elephant", RACE_TYPE_ANIMAL, N, Y, Y, 20, 10, 0, 0, 0, 0,
-          N, N, N, N, Y, N, N, N, N, SIZE_HUGE, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-
-  /* plant */
-  /* race-num, abbrev, cap-name, family, neuter,male,female, str-mod,con-mod,int-mod,wis-mod,dex-mod,cha-mod,
-   * lg,ln,le,ng,tn,ne,cg,cn,ce, size, is-pc, fav-class, lang, lvl-adjust*/
-  add_race(RACE_MANDRAGORA, "mandragora", "Mndrgra", "Mandragora", RACE_TYPE_PLANT, Y, Y, Y, 0, 0, 0, 0, 0, 0,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_SMALL, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-  add_race(RACE_MYCANOID, "mycanoid", "Mycanid", "Mycanoid", RACE_TYPE_PLANT, Y, Y, Y, 0, 0, 0, 0, 0, 0,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-  add_race(RACE_SHAMBLING_MOUND, "shambling mound", "Shmbler", "Shambling Mound", RACE_TYPE_PLANT, Y, Y, Y, 0, 0, 0, 0, 0, 0,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_LARGE, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-  add_race(RACE_TREANT, "treant", "Treant", "Treant", RACE_TYPE_PLANT, Y, Y, Y, 0, 0, 0, 0, 0, 0,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_HUGE, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-
+    */
+    
   /* ooze */
-  /* race-num, abbrev, cap-name, family, neuter,male,female, str-mod,con-mod,int-mod,wis-mod,dex-mod,cha-mod,
-   * lg,ln,le,ng,tn,ne,cg,cn,ce, size, is-pc, fav-class, lang, lvl-adjust*/
-
-  /* elemental */
-  /* race-num, abbrev, cap-name, family, neuter,male,female, str-mod,con-mod,int-mod,wis-mod,dex-mod,cha-mod,
-   * lg,ln,le,ng,tn,ne,cg,cn,ce, size, is-pc, fav-class, lang, lvl-adjust*/
-  add_race(RACE_SMALL_FIRE_ELEMENTAL, "small fire elemental", "SFirElm", "Small Fire Elemental", RACE_TYPE_ELEMENTAL, N, Y, Y, 4, 6, 0, 0, 10, 0,
-          N, N, N, N, Y, N, N, N, N, SIZE_SMALL, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-  add_race(RACE_MEDIUM_FIRE_ELEMENTAL, "medium fire elemental", "MFirElm", "Medium Fire Elemental", RACE_TYPE_ELEMENTAL, N, Y, Y, 4, 6, 0, 0, 10, 0,
-          N, N, N, N, Y, N, N, N, N, SIZE_MEDIUM, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-  add_race(RACE_LARGE_FIRE_ELEMENTAL, "large fire elemental", "LFirElm", "Large Fire Elemental", RACE_TYPE_ELEMENTAL, N, Y, Y, 4, 6, 0, 0, 10, 0,
-          N, N, N, N, Y, N, N, N, N, SIZE_LARGE, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-  add_race(RACE_HUGE_FIRE_ELEMENTAL, "huge fire elemental", "HFirElm", "Huge Fire Elemental", RACE_TYPE_ELEMENTAL, N, Y, Y, 8, 8, 0, 0, 14, 0,
-          N, N, N, N, Y, N, N, N, N, SIZE_HUGE, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-
-  add_race(RACE_SMALL_EARTH_ELEMENTAL, "small earth elemental", "SErtElm", "Small Earth Elemental", RACE_TYPE_ELEMENTAL, N, Y, Y, 14, 8, 0, 0, -2, 0,
-          N, N, N, N, Y, N, N, N, N, SIZE_SMALL, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-  add_race(RACE_MEDIUM_EARTH_ELEMENTAL, "medium earth elemental", "MErtElm", "Medium Earth Elemental", RACE_TYPE_ELEMENTAL, N, Y, Y, 14, 8, 0, 0, -2, 0,
-          N, N, N, N, Y, N, N, N, N, SIZE_MEDIUM, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-  add_race(RACE_LARGE_EARTH_ELEMENTAL, "large earth elemental", "LErtElm", "Large Earth Elemental", RACE_TYPE_ELEMENTAL, N, Y, Y, 14, 8, 0, 0, -2, 0,
-          N, N, N, N, Y, N, N, N, N, SIZE_LARGE, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-  add_race(RACE_HUGE_EARTH_ELEMENTAL, "huge earth elemental", "HErtElm", "Huge Earth Elemental", RACE_TYPE_ELEMENTAL, N, Y, Y, 18, 10, 0, 0, -2, 0,
-          N, N, N, N, Y, N, N, N, N, SIZE_HUGE, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-
-  add_race(RACE_SMALL_AIR_ELEMENTAL, "small air elemental", "SAirElm", "Small Air Elemental", RACE_TYPE_ELEMENTAL, N, Y, Y, 4, 6, 0, 0, 14, 0,
-          N, N, N, N, Y, N, N, N, N, SIZE_SMALL, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-  add_race(RACE_MEDIUM_AIR_ELEMENTAL, "medium air elemental", "MAirElm", "Medium Air Elemental", RACE_TYPE_ELEMENTAL, N, Y, Y, 4, 6, 0, 0, 14, 0,
-          N, N, N, N, Y, N, N, N, N, SIZE_MEDIUM, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-  add_race(RACE_LARGE_AIR_ELEMENTAL, "large air elemental", "LAirElm", "Large Air Elemental", RACE_TYPE_ELEMENTAL, N, Y, Y, 4, 6, 0, 0, 14, 0,
-          N, N, N, N, Y, N, N, N, N, SIZE_LARGE, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-  add_race(RACE_HUGE_AIR_ELEMENTAL, "huge air elemental", "HAirElm", "Huge Air Elemental", RACE_TYPE_ELEMENTAL, N, Y, Y, 8, 8, 0, 0, 18, 0,
-          N, N, N, N, Y, N, N, N, N, SIZE_HUGE, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-
-  add_race(RACE_SMALL_WATER_ELEMENTAL, "small water elemental", "SWatElm", "Small Water Elemental", RACE_TYPE_ELEMENTAL, N, Y, Y, 10, 8, 0, 0, 4, 0,
-          N, N, N, N, Y, N, N, N, N, SIZE_SMALL, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-  add_race(RACE_MEDIUM_WATER_ELEMENTAL, "medium water elemental", "MWatElm", "Medium Water Elemental", RACE_TYPE_ELEMENTAL, N, Y, Y, 10, 8, 0, 0, 4, 0,
-          N, N, N, N, Y, N, N, N, N, SIZE_MEDIUM, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-  add_race(RACE_LARGE_WATER_ELEMENTAL, "large water elemental", "LWatElm", "Large Water Elemental", RACE_TYPE_ELEMENTAL, N, Y, Y, 10, 8, 0, 0, 4, 0,
-          N, N, N, N, Y, N, N, N, N, SIZE_LARGE, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-  add_race(RACE_HUGE_WATER_ELEMENTAL, "huge water elemental", "HWatElm", "Huge Water Elemental", RACE_TYPE_ELEMENTAL, N, Y, Y, 14, 10, 0, 0, 8, 0,
-          N, N, N, N, Y, N, N, N, N, SIZE_HUGE, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
 
   /* magical beast */
-  /* race-num, abbrev, cap-name, family, neuter,male,female, str-mod,con-mod,int-mod,wis-mod,dex-mod,cha-mod,
-   * lg,ln,le,ng,tn,ne,cg,cn,ce, size, is-pc, fav-class, lang, lvl-adjust*/
+    /*
   add_race(RACE_BLINK_DOG, "blink dog", "BlnkDog", "Blink Dog", RACE_TYPE_MAGICAL_BEAST, N, Y, Y, 0, 0, 0, 0, 0, 0,
           Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-
+    */
+    
   /* fey */
-  /* race-num, abbrev, cap-name, family, neuter,male,female, str-mod,con-mod,int-mod,wis-mod,dex-mod,cha-mod,
-   * lg,ln,le,ng,tn,ne,cg,cn,ce, size, is-pc, fav-class, lang, lvl-adjust*/
+    /*
   add_race(RACE_PIXIE, "pixie", "Pixie", "Pixie", RACE_TYPE_FEY, N, Y, Y, -4, 0, 4, 0, 4, 4,
           Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_TINY, FALSE, CLASS_DRUID, SKILL_LANG_ELVEN, 3);
-  
+    */
+    
   /* construct */
-  /* race-num, abbrev, cap-name, family, neuter,male,female, str-mod,con-mod,int-mod,wis-mod,dex-mod,cha-mod,
-   * lg,ln,le,ng,tn,ne,cg,cn,ce, size, is-pc, fav-class, lang, lvl-adjust*/
+    /*
   add_race(RACE_IRON_GOLEM, "iron golem", "IronGolem", "Iron Golem", RACE_TYPE_CONSTRUCT, Y, N, N, 0, 0, 0, 0, 0, 0,
           N, N, N, N, Y, N, Y, Y, Y, SIZE_LARGE, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
   add_race(RACE_ARCANA_GOLEM, "arcana golem", "ArcanaGolem", "Arcana Golem", RACE_TYPE_CONSTRUCT, Y, N, N, 0, 0, 0, 0, 0, 0,
           N, N, N, N, Y, N, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_WIZARD, SKILL_LANG_COMMON, 0);
-
+    */
+    
   /* outsiders */
-  /* race-num, abbrev, cap-name, family, neuter,male,female, str-mod,con-mod,int-mod,wis-mod,dex-mod,cha-mod,
-   * lg,ln,le,ng,tn,ne,cg,cn,ce, size, is-pc, fav-class, lang, lvl-adjust*/
+    /*
   add_race(RACE_AEON_THELETOS, "aeon theletos", "AeonThel", "Theletos Aeon", RACE_TYPE_OUTSIDER, N, Y, Y, 0, 0, 0, 0, 0, 0,
           Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-
+    */
+    
   /* dragon */
-  /* race-num, abbrev, cap-name, family, neuter,male,female, str-mod,con-mod,int-mod,wis-mod,dex-mod,cha-mod,
-   * lg,ln,le,ng,tn,ne,cg,cn,ce, size, is-pc, fav-class, lang, lvl-adjust*/
+    /*
   add_race(RACE_DRAGON_CLOUD, "dragon cloud", "DrgCloud", "Cloud Dragon", RACE_TYPE_DRAGON, N, Y, Y, 0, 0, 0, 0, 0, 0,
           N, N, N, N, Y, N, Y, Y, Y, SIZE_HUGE, FALSE, CLASS_WARRIOR, SKILL_LANG_DRACONIC, 0);
-  
+    */
+    
   /* aberration */
+    /*
   add_race(RACE_TRELUX, "trelux", "Trelux", "Trelux", RACE_TYPE_ABERRATION, N, Y, Y, 0, 0, 0, 0, 0, 0,
           N, N, N, N, Y, N, Y, Y, Y, SIZE_SMALL, TRUE, CLASS_WARRIOR, SKILL_LANG_ABERRATION, 0);
-  
+    */
+    
   /* end listing */
 }
-
-void racial_ability_modifiers(struct char_data *ch) {
-  int chrace = 0;
-  if (GET_RACE(ch) >= NUM_EXTENDED_RACES || GET_RACE(ch) < 0) {
-    log("SYSERR: Unknown race %d in racial_ability_modifiers", GET_RACE(ch));
-  } else {
-    chrace = GET_RACE(ch);
-  }
-
-  ch->real_abils.str += race_list[chrace].ability_mods[0];
-  ch->real_abils.con += race_list[chrace].ability_mods[1];
-  ch->real_abils.intel += race_list[chrace].ability_mods[2];
-  ch->real_abils.wis += race_list[chrace].ability_mods[3];
-  ch->real_abils.dex += race_list[chrace].ability_mods[4];
-  ch->real_abils.cha += race_list[chrace].ability_mods[5];
-}
-
-// npc races
-const char *npc_race_types[] = {
-   "Unknown", //0
-   "Humanoid",
-   "Undead",
-   "Animal",
-   "Dragon",
-   "Giant",  //5
-   "Aberration",
-   "Construct",
-   "Elemental",
-   "Fey",
-   "Magical Beast",  //10
-   "Monstrous Humanoid",
-   "Ooze",
-   "Outsider",
-   "Plant",
-   "Vermin",  //15
-   "Elf",
-   "Dwarf",
-   "Halfling",
-   "Centaur",
-   "Gnome",  //20
-   "Minotaur",
-   "Half Elf",
-   "Orc",
-   "Goblinoid",  //24
-};
-
-// npc races, short form
-const char *npc_race_short[] = {
-   "???",
-   "Hmn",
-   "Und",
-   "Anm",
-   "Drg",
-   "Gnt",
-   "Abr",
-   "Con",
-   "Ele",
-   "Fey",
-   "Bst",
-   "MoH",
-   "Oze",
-   "Out",
-   "Plt",
-   "Ver"
-};
-
-// colored npc race abbreviations
-// for now full name for effect
-const char *npc_race_abbrevs[] = {
-   "Unknown",
-   "\tWHmnd\tn",
-   "\tDUndd\tn",
-   "\tgAnml\tn",
-   "\trDrgn\tn",
-   "\tYGnt\tn",
-   "\tRAbrt\tn",
-   "\tcCnst\tn",
-   "\tRElem\tn",
-   "\tCFey\tn",
-   "\tmM\tgBst\tn",
-   "\tBM\tWHmn\tn",
-   "\tMOoze\tn",
-   "\tDOut\tws\tn",
-   "\tGPlnt\tn",
-   "\tyVrmn\tn"
-};
-
-// npc subrace
-const char *npc_subrace_types[] = {
-   "Unknown",/**/
-   "Air",/**/
-   "Angelic",/**/
-   "Aquatic",/**/
-   "Archon",/**/
-   "Augmented",/**/
-   "Chaotic",/**/
-   "Cold",/**/
-   "Earth",/**/
-   "Evil",/**/
-   "Extraplanar",/**/
-   "Fire",/**/
-   "Goblinoid",/**/
-   "Good",/**/
-   "Incorporeal",/**/
-   "Lawful",/**/
-   "Native",/**/
-   "Reptilian",/**/
-   "Shapechanger",/**/
-   "Swarm",/**/
-   "Water"/**/
-};
-
-
-// colored npc subrace abbreviations
-// for now full name for effect
-const char *npc_subrace_abbrevs[] = {
-   "Unknown",
-   "\tCAir\tn",
-   "\tWAngelic\tn",
-   "\tBAquatic\tn",
-   "\trArch\tRon\tn",
-   "\tYAugmented\tn",
-   "\tDChaotic\tn",
-   "\tbCold\tn",
-   "\tGEarth\tn",
-   "\trEvil\tn",
-   "\tmExtraplanar\tn",
-   "\tRFire\tn",
-   "\tgGoblinoid\tn",
-   "\tWGood\tn",
-   "\tGIncorporeal\tn",
-   "\twLawful\tn",
-   "\tyNative\tn",
-   "\tyReptilian\tn",
-   "\tMShapechanger\tn",
-   "\tySwarm\tn",
-   "\tBWater\tn"
-};
-
-
-// made this for shapechange, a tad tacky -zusuk
-const char *npc_race_menu =
-"\r\n"
-"  \tbRea\tclms \tWof Lu\tcmin\tbari\tn | npc race selection\r\n"
-"---------------------+\r\n"
-   "1)  \tWHumanoid\tn\r\n"
-   "2)  \tDUndead\tn\r\n"
-   "3)  \tgAnimal\tn\r\n"
-   "4)  \trDragon\tn\r\n"
-   "5)  \tYGiant\tn\r\n"
-   "6)  \tRAberration\tn\r\n"
-   "7)  \tcConstruct\tn\r\n"
-   "8)  \tRElemental\tn\r\n"
-   "9)  \tCFey\tn\r\n"
-   "10) \tmMagical \tgBeast\tn\r\n"
-   "11) \tBMonstrous \tWHumanoid\tn\r\n"
-   "12) \tMOoze\tn\r\n"
-   "13) \tDOut\twsider\tn\r\n"
-   "14) \tGPlant\tn\r\n"
-   "15) \tyVermin\tn\r\n";
-
-
-/* druid shape change race options */
-const char *shape_types[] = {
-   "Unknown",
-   "badger",
-   "panther",
-   "bear",
-   "crocodile"
-};
-//5 (number of types)
-
-
-/* druid shape change messages, to room */
-const char *shape_to_room[] = {
-   "Unknown",
-   /* badger */
-   "$n shrinks and suddenly grows spiky brown fur all over $s body, $s nose lengthens"
-     " into a dirty snout as $s face contorts into an expression of primal"
-     " rage.",
-   /* panther */
-   "$n's back arches into a feline form and $s teeth grow long and sharp.  "
-     "Knifelike claws extend from $s newly formed paws and $s body becomes "
-     "covered in sleek, dark fur.",
-   /* bear */
-   "$n's form swells with muscle as $s shoulders expand into a great girth.  "
-     "Suddenly $s nose transforms "
-     "into a short perceptive snout and $s ears become larger and rounder on the "
-     "top of $s head.  Then $s teeth become sharper as claws extend from $s meaty paws.",
-   /* crocodile, giant */
-   "$n involuntarily drops to the ground on all fours as $s legs shorten to "
-     "small stumps and a large tail extends from $s body.  Hard dark scales cover "
-     "$s whole body as $s nose and mouth extend into a large tooth-filled maw."
-};
-
-/* druid shape change messages, to char */
-const char *shape_to_char[] = {
-   "Unknown",
-   /* badger */
-   "You shrink and suddenly grows spiky brown fur all over your body, your nose lengthens"
-     " into a dirty snout as his face contorts into an expression of primal"
-     " rage.",
-   /* panther */
-   "Your back arches into a feline form and your teeth grow long and sharp.  "
-     "Knifelike claws extend from your newly formed paws and your body becomes "
-     "covered in sleek, dark fur.",
-   /* bear */
-   "Your form swells with muscle as your shoulders expand into a great girth.  "
-     "Suddenly you seem more aware of scents in the air as your nose transforms "
-     "into a short perceptive snout.  Your ears become larger and rounder on the "
-     "top of your head and your teeth become sharper as claws extend from your meaty paws.",
-   /* crocodile, giant */
-   "You involuntarily drop to the ground on all fours as your legs shorten to "
-     "small stumps and a large tail extends from your body.  Hard dark scales cover "
-     "your whole body as your nose and mouth extend into a large tooth-filled maw."
-};
-
-// shapechange morph messages to_room, original system
-const char *morph_to_room[] = {
-  /* unknown */
-" ",
-  /* Humanoid */
-" ",
-  /* Undead */
-"$n's flesh decays visibly, $s features becoming shallow and sunken as $e"
-        "turns to the \tDundead\tn.",
-  /* Animal */
-" ",
-  /* Dragon */
-"$n's features lengthen, $s skin peeling back to reveal a thick, "
-"scaly hide.  Leathery wings sprout from $s shoulders and $s "
-"fingers become long, razor-sharp talons.",
-  /* Giant */
-" ",
-  /* Aberration */
-" ",
-  /* Construct */
-" ",
-  /* Elemental */
-"$n bursts into elemental energy, then becomes that element as $s form shifts to that of a "
-"\tRelemental\tn.",
-  /* Fey */
-" ",
-  /* Magical Beast */
-" ",
-  /* Monstrous Humanoid */
-" ",
-  /* Ooze */
-"$n's bones dissolve and $s flesh becomes translucent as $e changes form "
-"into an ooze!",
-  /* Outsider */
-" ",
-  /* Plant */
-"Thin vines and shoots curl away from $n's body as $s skin changes to a "
-"\tGmottled green plant\tn.",
-  /* Vermin */
-" "
-};
-
-// shapechange morph messages to_char
-const char *morph_to_char[] = {
-  /* unknown */
-" ",
-  /* Humanoid */
-" ",
-  /* Undead */
-"Your flesh decays visibly, and your features becoming shallow and sunken as"
-" you turn to the \tDundead\tn.",
-  /* Animal */
-" ",
-  /* Dragon */
-"Your features lengthen, your skin peeling back to reveal a thick, "
-"scaly hide.  Leathery wings sprout from your shoulders and your "
-"fingers become long, razor sharp talons.",
-  /* Giant */
-" ",
-  /* Aberration */
-" ",
-  /* Construct */
-" ",
-  /* Elemental */
-"You burst into fire, then become living flame as your form shifts to that "
-"of a \tRfire elemental\tn.",
-  /* Fey */
-" ",
-  /* Magical Beast */
-" ",
-  /* Monstrous Humanoid */
-" ",
-  /* Ooze */
-"Your bones dissolve and your flesh becomes translucent as you change form "
-"into an \tGooze\tn!",
-  /* Outsider */
-" ",
-  /* Plant */
-"Thin vines and shoots curl away from your body as your skin changes to a "
-"\tGmottled green plant\tn.",
-  /* Vermin */
-" "
-};
-
-// pc race abbreviations, with color
-const char *race_abbrevs[] = {
-        "\tBHumn\tn",
-        "\tYElf \tn",
-        "\tgDwrf\tn",
-        "\trHTrl\tn",
-        "\tCC\tgDwf\tn",
-        "\tcHflg\tn",
-        "\twH\tYElf\tn",
-        "\twH\tROrc\tn",
-        "\tmGnme\tn",
-        "\tGTr\tYlx\tn",
-        "\tRAr\tcGo\tn",
-        "\n"
-};
-
-
-// pc race types, full name no color
-const char *pc_race_types[] = {
-        "Human",
-        "Elf",
-        "Dwarf",
-        "Half-Troll",
-        "Crystal-Dwarf",
-        "Halfling",
-        "Half-Elf",
-        "Half-Orc",
-        "Gnome",
-        "Trelux",
-        "Arcana-Golem",
-        "\n"
-};
 
 // interpret race for interpreter.c and act.wizard.c etc
 // notice, epic races are not manually or in-game settable at this stage
@@ -763,5 +1125,8 @@ int get_size(struct char_data *ch) {
 /* clear up local defines */
 #undef Y
 #undef N
+#undef IS_NORMAL
+#undef IS_ADVANCE
+#undef IS_EPIC_R
 
 /*EOF*/

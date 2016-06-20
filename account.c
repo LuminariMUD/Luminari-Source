@@ -112,12 +112,12 @@ ACMD(do_accexp) {
         if (!locked_races[i] || has_unlocked_race(ch, i))
           continue;
         cost = locked_races_cost[i];
-        send_to_char(ch, "%s (%d account experience)\r\n", pc_race_types[i], cost);
+        send_to_char(ch, "%s (%d account experience)\r\n", race_list[i].type, cost);
       }
       return;
     }
     for (i = 0; i < NUM_RACES; i++) {
-      if (is_abbrev(arg2, pc_race_types[i]) && locked_races[i] &&
+      if (is_abbrev(arg2, race_list[i].type) && locked_races[i] &&
           !has_unlocked_race(ch, i)) {
         cost = locked_races_cost[i];
         break;
@@ -143,7 +143,7 @@ ACMD(do_accexp) {
         ch->desc->account->races[j] = i;
         save_account(ch->desc->account);
         send_to_char(ch, "You have unlocked the advanced race '%s' for all character "
-                "and future characters on your account!.\r\n", pc_race_types[i]);
+                "and future characters on your account!.\r\n", race_list[i].type);
         return;
       } else {
         send_to_char(ch, "You need %d account experience to purchase that advanced "
@@ -492,7 +492,7 @@ void show_account_menu(struct descriptor_data *d) {
                 return;
               }
 
-              write_to_output(d, " %3d \tC|\tn %4s \tC|\tn", GET_LEVEL(tch), race_abbrevs[GET_REAL_RACE(tch)]);
+              write_to_output(d, " %3d \tC|\tn %4s \tC|\tn", GET_LEVEL(tch), race_list[GET_REAL_RACE(tch)].abbrev_color);
 
               if (GET_LEVEL(tch) >= LVL_IMMORT) {
                 /* Staff */
@@ -590,7 +590,7 @@ ACMD(do_account) {
   send_to_char(ch, "Unlocked Races:\r\n");
   for (i = 0; i < MAX_UNLOCKED_RACES; i++) {
     if (acc->races[i] != 0) {
-      send_to_char(ch, "  %s\r\n", pc_race_types[acc->races[i]]);
+      send_to_char(ch, "  %s\r\n", race_list[acc->races[i]].type);
       found = TRUE;
     }
   }

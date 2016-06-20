@@ -3800,13 +3800,13 @@ ACMD(do_whois) {
 
   if (IS_MORPHED(victim))
     send_to_char(ch, "Race : %s\r\n",
-                 npc_race_types[IS_MORPHED(victim)]);
+                 race_family_types[IS_MORPHED(victim)]);
   else if (GET_DISGUISE_RACE(victim))
     send_to_char(ch, "Race : %s\r\n",
                  race_list[GET_DISGUISE_RACE(ch)].name);
   else
     send_to_char(ch, "Race : %s\r\n",
-                 pc_race_types[GET_RACE(victim)]);
+                 race_list[GET_RACE(victim)].type_color);
 
   send_to_char(ch, "Level: %d\r\n", GET_LEVEL(victim));
 

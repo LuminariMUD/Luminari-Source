@@ -189,7 +189,7 @@ grapple.o: grapple.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
 handler.o: handler.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h db.h handler.h screen.h interpreter.h spells.h \
  dg_scripts.h act.h class.h fight.h quest.h mud_event.h dg_event.h \
- wilderness.h actionqueues.h
+ wilderness.h actionqueues.h constants.h
 hedit.o: hedit.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h interpreter.h db.h boards.h oasis.h help.h genolc.h \
  genzon.h handler.h improved-edit.h act.h hedit.h modify.h mysql.h
@@ -298,7 +298,8 @@ quest.o: quest.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h interpreter.h handler.h db.h comm.h screen.h quest.h act.h \
  mudlim.h
 race.o: race.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
- race.h db.h spells.h interpreter.h constants.h act.h comm.h handler.h
+ race.h db.h spells.h interpreter.h constants.h act.h comm.h handler.h \
+ feats.h
 random.o: random.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h
 redit.o: redit.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
@@ -350,7 +351,7 @@ treasure_const.o: treasure_const.c conf.h sysdep.h structs.h protocol.h \
 utils.o: utils.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h db.h comm.h modify.h screen.h spells.h handler.h interpreter.h \
  class.h spec_procs.h mud_event.h dg_event.h feats.h spec_abilities.h \
- assign_wpn_armor.h wilderness.h domains_schools.h
+ assign_wpn_armor.h wilderness.h domains_schools.h constants.h
 weather.o: weather.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  race.h comm.h db.h
 wilderness.o: wilderness.c perlin.h conf.h sysdep.h structs.h protocol.h \

@@ -568,7 +568,7 @@ void oedit_disp_specab_bane_race(struct descriptor_data *d) {
 
   for (counter = 0; counter < NUM_RACE_TYPES; counter++) {
     write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel,
-            npc_race_types[counter], !(++columns % 3) ? "\r\n" : "");
+            race_family_types[counter], !(++columns % 3) ? "\r\n" : "");
   }
   write_to_output(d, "\r\n%sEnter race number : ", nrm);
 }
