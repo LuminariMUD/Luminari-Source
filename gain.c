@@ -530,7 +530,7 @@ static void favored_enemy_submenu(struct descriptor_data *d, int favored) {
           /* empty line */
           npc_race_menu,
           /* empty line */
-          npc_race_abbrevs[GET_FAVORED_ENEMY(d->character, favored)],
+          race_family_abbrevs[GET_FAVORED_ENEMY(d->character, favored)],
           grn, nrm
           /* empty line */
           );
@@ -564,16 +564,16 @@ static void favored_enemy_menu(struct descriptor_data *d) {
 
           mgn, nrm,
           /* empty line */
-          grn, nrm, npc_race_abbrevs[GET_FAVORED_ENEMY(d->character, 0)], nrm,
-          grn, nrm, npc_race_abbrevs[GET_FAVORED_ENEMY(d->character, 1)], nrm,
-          grn, nrm, npc_race_abbrevs[GET_FAVORED_ENEMY(d->character, 2)], nrm,
-          grn, nrm, npc_race_abbrevs[GET_FAVORED_ENEMY(d->character, 3)], nrm,
-          grn, nrm, npc_race_abbrevs[GET_FAVORED_ENEMY(d->character, 4)], nrm,
-          grn, nrm, npc_race_abbrevs[GET_FAVORED_ENEMY(d->character, 5)], nrm,
-          grn, nrm, npc_race_abbrevs[GET_FAVORED_ENEMY(d->character, 6)], nrm,
-          grn, nrm, npc_race_abbrevs[GET_FAVORED_ENEMY(d->character, 7)], nrm,
-          grn, nrm, npc_race_abbrevs[GET_FAVORED_ENEMY(d->character, 8)], nrm,
-          grn, nrm, npc_race_abbrevs[GET_FAVORED_ENEMY(d->character, 9)], nrm,
+          grn, nrm, race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 0)], nrm,
+          grn, nrm, race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 1)], nrm,
+          grn, nrm, race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 2)], nrm,
+          grn, nrm, race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 3)], nrm,
+          grn, nrm, race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 4)], nrm,
+          grn, nrm, race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 5)], nrm,
+          grn, nrm, race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 6)], nrm,
+          grn, nrm, race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 7)], nrm,
+          grn, nrm, race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 8)], nrm,
+          grn, nrm, race_family_abbrevs[GET_FAVORED_ENEMY(d->character, 9)], nrm,
           /* empty line */
           grn, nrm
           /* empty line */

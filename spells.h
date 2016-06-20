@@ -717,55 +717,10 @@
 #define TOP_SPELL_DEFINE	            699
 /* NEW NPC/OBJECT SPELLS can be inserted here up to 699 */
 
-/* WEAPON ATTACK TYPES */
-#define TYPE_UNDEFINED_WTYPE 0
-#define TOP_WEAPON_TYPES  TYPE_HIT
-#define TYPE_HIT          700 /* barehand */
-#define TYPE_STING        701 /* pierce */
-#define TYPE_WHIP         702
-#define TYPE_SLASH        703 /* slash */
-#define TYPE_BITE         704
-#define TYPE_BLUDGEON     705 /* bludgeon */
-#define TYPE_CRUSH        706 /* bludgeon */
-#define TYPE_POUND        707 /* bludgeon */
-#define TYPE_CLAW         708
-#define TYPE_MAUL         709
-#define TYPE_THRASH       710
-#define TYPE_PIERCE       711 /* pierce */
-#define TYPE_BLAST        712
-#define TYPE_PUNCH        713 /* barehand */
-#define TYPE_STAB         714 /* pierce */
-#define TYPE_SLICE        715 /* slash */
-#define TYPE_THRUST       716 /* pierce */
-#define TYPE_HACK         717 /* slash */
-#define TYPE_RAKE         718 /* slash? */
-#define TYPE_PECK         719 /* pierce? */
-#define TYPE_SMASH        720 /* bludgeon? */
-#define TYPE_TRAMPLE      721 /* bludgeon? */
-#define TYPE_CHARGE       722 /* pierce? */
-#define TYPE_GORE         723 /* pierce? */
-/** The total number of attack types */
-#define NUM_ATTACK_TYPES   24
-#define BOT_WEAPON_TYPES  (TYPE_HIT+NUM_ATTACK_TYPES)
-/* (stock)
- * hit - 0      blunt
- * sting - 1      piercing
- * whip - 2      blades (slashing)
- * slash - 3      blades (slashing)
- * bite - 4      piercing
- * bludgeon - 5      blunt
- * crush - 6      blunt
- * pound - 7      blunt
- * claw - 8      blades (slashing)
- * maul - 9      blades (slashing)
- * thrash - 10      blades (slashing)
- * pierce - 11      piercing
- * blast - 12      piercing
- * punch - 13      blunt
- * stab - 14      piercing
+/*** Due to wanting the values to be more global, I moved
+     all the WEAPON ATTACK TYPES to structs.h
+ Reserving values: 700 - 750 for this purpose
  */
-
-/* not hard coded, but up to 750 */
 
 /* RANGED WEAPON ATTACK TYPES */
 #define TYPE_MISSILE         751
@@ -843,7 +798,7 @@
 #define ABILITY_USE_MAGIC_DEVICE        31 /* use magic device, matches pfsrd */
 #define ABILITY_UNUSED_8                32 /* UNUSED - use to be use rope */
 #define ABILITY_PERFORM                 33 /* perform, matches pfsrd */
-
+/**/
 #define END_GENERAL_ABILITIES           33
 
 /* Start Crafting Abilities */

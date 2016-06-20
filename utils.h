@@ -714,10 +714,10 @@ do                                                              \
 
 #define GET_RACE(ch) ((GET_DISGUISE_RACE(ch)) ? \
                       GET_DISGUISE_RACE(ch) : GET_REAL_RACE(ch))
-#define RACE_ABBR(ch)  (IS_NPC(ch) ? npc_race_abbrevs[GET_RACE(ch)] : IS_MORPHED(ch) ? \
-  npc_race_abbrevs[IS_MORPHED(ch)] : (GET_DISGUISE_RACE(ch)) ? \
-  race_list[GET_DISGUISE_RACE(ch)].abbrev : race_abbrevs[GET_RACE(ch)])
-#define RACE_ABBR_REAL(ch)  (race_abbrevs[GET_REAL_RACE(ch)])
+#define RACE_ABBR(ch)  (IS_NPC(ch) ? race_family_abbrevs[GET_RACE(ch)] : IS_MORPHED(ch) ? \
+  race_family_abbrevs[IS_MORPHED(ch)] : (GET_DISGUISE_RACE(ch)) ? \
+  race_list[GET_DISGUISE_RACE(ch)].abbrev : race_list[GET_RACE(ch)].abbrev)
+#define RACE_ABBR_REAL(ch)  (race_list[GET_REAL_RACE(ch)].abbrev)
 
 /* wildshape */
 #define IS_WILDSHAPED(ch) (AFF_FLAGGED(ch, AFF_WILD_SHAPE) && GET_DISGUISE_RACE(ch))

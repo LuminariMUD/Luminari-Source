@@ -1043,7 +1043,7 @@ static void list_mobiles(struct char_data *ch, zone_rnum rnum, mob_vnum vmin, mo
               QYEL, mob_proto[i].player.level, QNRM,
               mob_proto[i].proto_script ? "\tRY\tn" : "N",
               get_align_by_num_cnd(mob_proto[i].char_specials.saved.alignment),
-              npc_race_short[mob_proto[i].player.race],
+              race_family_short[mob_proto[i].player.race],
               IS_SET_AR(mob_proto[i].char_specials.saved.act, MOB_NOCLASS) ? "---" : CLSLIST_ABBRV(mob_proto[i].player.chclass),
               mob_proto[i].mob_specials.echo_count > 0 ? "\tRY\tn" : "N",
               QCYN, count_color_chars(mob_proto[i].player.short_descr) + 44,

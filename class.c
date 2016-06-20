@@ -214,7 +214,7 @@ void class_prereq_race(int class_num, int race) {
 
   prereq = create_prereq(CLASS_PREREQ_RACE, race, 0, 0);
 
-  sprintf(buf, "Race: %s", pc_race_types[race]);
+  sprintf(buf, "Race: %s", race_list[race].type);
   prereq->description = strdup(buf);
 
   /*   Link it up. */

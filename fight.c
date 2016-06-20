@@ -116,7 +116,7 @@ static void solo_gain(struct char_data *ch, struct char_data *victim);
 static char *replace_string(const char *str, const char *weapon_singular,
         const char *weapon_plural);
 
-#define IS_WEAPON(type) (((type) >= TOP_WEAPON_TYPES) && ((type) < BOT_WEAPON_TYPES))
+#define IS_WEAPON(type) (((type) >= TOP_ATTACK_TYPES) && ((type) < BOT_WEAPON_TYPES))
 
 #define MODE_NORMAL_HIT       0 //Normal damage calculating in hit()
 #define MODE_DISPLAY_PRIMARY  2 //Display damage info primary
@@ -4513,122 +4513,67 @@ void attacks_of_opportunity(struct char_data *victim, int penalty) {
 }
 
 int wildshape_weapon_type(struct char_data *ch) {
-
-  if (!ch)
-    return TYPE_HIT;
-  if (!IS_WILDSHAPED(ch) && !IS_MORPHED(ch))
-    return TYPE_HIT;
-
   int w_type_array[NUM_ATTACK_TYPES];
   int weapon_type = TYPE_HIT;
   int count = 0;
   int race = 0;
 
-      if (!IS_MORPHED(ch)) {
-        race = GET_DISGUISE_RACE(ch);
-        switch (race) {
-
-            /* birdies */
-          case RACE_EAGLE:
-            w_type_array[count] = TYPE_RAKE;
-            w_type_array[++count] = TYPE_PECK;
-            break;
-
-            /* BIG */
-          case RACE_ELEPHANT:
-          case RACE_DINOSAUR:
-            w_type_array[count] = TYPE_CRUSH;
-            w_type_array[++count] = TYPE_SMASH;
-            w_type_array[++count] = TYPE_TRAMPLE;
-            break;
-
-            /* great cats */
-          case RACE_GREAT_CAT:
-          case RACE_TIGER:
-          case RACE_LION:
-          case RACE_LEOPARD:
-          case RACE_CHEETAH:
-
-            /* bears (oh my!) */
-          case RACE_BLACK_BEAR:
-          case RACE_BROWN_BEAR:
-          case RACE_POLAR_BEAR:
-            w_type_array[count] = TYPE_BITE;
-            w_type_array[++count] = TYPE_CLAW;
-            w_type_array[++count] = TYPE_MAUL;
-            break;
-
-            /* charging animals */
-          case RACE_BOAR:
-          case RACE_RHINOCEROS:
-            w_type_array[count] = TYPE_CHARGE;
-            w_type_array[++count] = TYPE_GORE;
-            break;
-
-            /* primates! */
-          case RACE_APE:
-            w_type_array[count] = TYPE_HIT;
-            w_type_array[++count] = TYPE_PUNCH;
-            w_type_array[++count] = TYPE_SMASH;
-            break;
-
-            /* doggies */
-          case RACE_HYENA:
-          case RACE_WOLF:
-          case RACE_BLINK_DOG:
-            /* various */
-          case RACE_WOLVERINE:
-          case RACE_HORSE:
-          case RACE_RAT:
-            /* snakes */
-          case RACE_CONSTRICTOR_SNAKE:
-          case RACE_GIANT_CONSTRICTOR_SNAKE:
-          case RACE_MEDIUM_VIPER:
-          case RACE_LARGE_VIPER:
-          case RACE_HUGE_VIPER:
-            /* crocs! */
-          case RACE_CROCODILE:
-          case RACE_GIANT_CROCODILE:
-            /* DEFAULT */
-          default:
-            w_type_array[count] = TYPE_BITE;
-            break;
-        }
-        /* handle old shapechange system */
-      } else {
-        race = IS_MORPHED(ch);
-        switch (race) {
-          case RACE_TYPE_HUMANOID:
-          case RACE_TYPE_UNDEAD:
-          case RACE_TYPE_GIANT:
-          case RACE_TYPE_CONSTRUCT:
-          case RACE_TYPE_ELEMENTAL:
-          case RACE_TYPE_FEY:
-          case RACE_TYPE_MONSTROUS_HUMANOID:
-          case RACE_TYPE_OUTSIDER:
-          case RACE_TYPE_PLANT:
-            w_type_array[count] = TYPE_HIT;
-            w_type_array[++count] = TYPE_PUNCH;
-            w_type_array[++count] = TYPE_SMASH;
-            break;
-            
-          case RACE_TYPE_ANIMAL:
-          case RACE_TYPE_DRAGON:
-          case RACE_TYPE_ABERRATION:
-          case RACE_TYPE_MAGICAL_BEAST:
-          case RACE_TYPE_OOZE:
-          case RACE_TYPE_VERMIN:            
-          default:
-            w_type_array[count] = TYPE_BITE;
-            w_type_array[++count] = TYPE_CLAW;
-            w_type_array[++count] = TYPE_MAUL;
-            break;          
-        }
-        
+  /* clear some quick outs */
+  if (!ch)
+    return TYPE_HIT;
+  if (!IS_WILDSHAPED(ch) && !IS_MORPHED(ch))
+    return TYPE_HIT;
+  
+  if (!IS_MORPHED(ch)) { /* disguise or wildshape */
+    int i;
+    race = GET_DISGUISE_RACE(ch);
+    
+    /* loop through the race attack type list to add valid types to our array */
+    for (i = 0; i < NUM_ATTACK_TYPES; i++) {
+      if (race_list[race].attack_types[i]) {
+        w_type_array[count++] = i + TYPE_HIT;
       }
+    }
+    
+    /* list built, pick random */
+    if (count <= 0) /* dummy check */
+      weapon_type = TYPE_HIT;
+    else
+      weapon_type = w_type_array[rand_number(0, count-1)];
+  } /* handle old shapechange system */
+    else {
+    count = 0;
+    race = IS_MORPHED(ch);
+    switch (race) {
+      case RACE_TYPE_HUMANOID:
+      case RACE_TYPE_UNDEAD:
+      case RACE_TYPE_GIANT:
+      case RACE_TYPE_CONSTRUCT:
+      case RACE_TYPE_ELEMENTAL:
+      case RACE_TYPE_FEY:
+      case RACE_TYPE_MONSTROUS_HUMANOID:
+      case RACE_TYPE_OUTSIDER:
+      case RACE_TYPE_PLANT:
+        w_type_array[count] = TYPE_HIT;
+        w_type_array[++count] = TYPE_PUNCH;
+        w_type_array[++count] = TYPE_SMASH;
+        break;
 
-  /* pick random */
-  weapon_type = w_type_array[rand_number(0, count)];
+      case RACE_TYPE_ANIMAL:
+      case RACE_TYPE_DRAGON:
+      case RACE_TYPE_ABERRATION:
+      case RACE_TYPE_MAGICAL_BEAST:
+      case RACE_TYPE_OOZE:
+      case RACE_TYPE_VERMIN:
+      default:
+        w_type_array[count] = TYPE_BITE;
+        w_type_array[++count] = TYPE_CLAW;
+        w_type_array[++count] = TYPE_MAUL;
+        break;
+    }
+    /* pick random */
+    weapon_type = w_type_array[rand_number(0, count)];    
+  }
 
   return weapon_type;
 }

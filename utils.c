@@ -30,6 +30,7 @@
 #include "assign_wpn_armor.h"
 #include "wilderness.h"
 #include "domains_schools.h"
+#include "constants.h"
 
 /* kavir's protocol (isspace_ignoretabes() was moved to utils.h */
 
@@ -2938,7 +2939,7 @@ int get_race_by_name(char *racename) {
   int i;
 
   for (i = 0; i < NUM_RACES; i++)
-    if (is_abbrev(racename, pc_race_types[i]))
+    if (is_abbrev(racename, race_list[i].type))
       return (i);
 
   return (-1);

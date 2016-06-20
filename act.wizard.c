@@ -698,11 +698,11 @@ static void do_stat_character(struct char_data *ch, struct char_data *k) {
 
   if (IS_NPC(k)) {
     if (GET_RACE(k) >= 0)
-      send_to_char(ch, "\tCMobile Race:\tn %s  ", npc_race_types[GET_RACE(k)]);
+      send_to_char(ch, "\tCMobile Race:\tn %s  ", race_family_types[GET_RACE(k)]);
     else
       send_to_char(ch, "\tCRace Undefined\tn  ");
   } else if (IS_MORPHED(k)) {
-    send_to_char(ch, "\tCMorphRace:\tn %s  ", npc_race_types[IS_MORPHED(k)]);
+    send_to_char(ch, "\tCMorphRace:\tn %s  ", race_family_types[IS_MORPHED(k)]);
   } else {
     send_to_char(ch, "\tCRace:\tn %s  ", RACE_ABBR(k));
   }
@@ -2167,7 +2167,7 @@ ACMD(do_last) {
 
     send_to_char(ch, "[%5ld] [%2d %s %s] %-12s : %-18s : %-20s\r\n",
             GET_IDNUM(vict), (int) GET_LEVEL(vict),
-            CLSLIST_ABBRV(GET_CLASS(vict)), race_abbrevs[(int) GET_RACE(vict)], GET_NAME(vict),
+            CLSLIST_ABBRV(GET_CLASS(vict)), race_list[(int) GET_RACE(vict)].abbrev_color, GET_NAME(vict),
             GET_HOST(vict) && *GET_HOST(vict) ? GET_HOST(vict) : "(NOHOST)",
             ctime(&vict->player.time.logon));
     free_char(vict);
@@ -2727,7 +2727,7 @@ ACMD(do_show) {
         return;
       }
       send_to_char(ch, "Player: %-12s (%s) [%2d %s %s]\r\n", GET_NAME(vict),
-              genders[(int) GET_SEX(vict)], GET_LEVEL(vict), CLSLIST_ABBRV(GET_CLASS(vict)), race_abbrevs[(int) GET_RACE(vict)]);
+              genders[(int) GET_SEX(vict)], GET_LEVEL(vict), CLSLIST_ABBRV(GET_CLASS(vict)), race_list[(int) GET_RACE(vict)].abbrev_color);
       send_to_char(ch, "Au: %-8d  Bal: %-8d  Exp: %-8d  Align: %-5d  Lessons: %-3d\r\n",
               GET_GOLD(vict), GET_BANK_GOLD(vict), GET_EXP(vict),
               GET_ALIGNMENT(vict), GET_PRACTICES(vict));

@@ -329,7 +329,7 @@ void medit_disp_race(struct descriptor_data *d) {
 
   for (counter = 0; counter < NUM_RACE_TYPES; counter++) {
     write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel,
-            npc_race_types[counter], !(++columns % 3) ? "\r\n" : "");
+            race_family_types[counter], !(++columns % 3) ? "\r\n" : "");
   }
   write_to_output(d, "\r\n%s(You can choose 99 for random)", nrm);
   write_to_output(d, "\r\n%sEnter race number : ", nrm);
@@ -590,7 +590,7 @@ static void medit_disp_menu(struct descriptor_data *d) {
           grn, nrm, yel, attack_hit_text[(int) GET_ATTACK(mob)].singular,
           grn, nrm,
           grn, nrm,
-          grn, nrm, yel, npc_race_types[GET_RACE(mob)],
+          grn, nrm, yel, race_family_types[GET_RACE(mob)],
           grn, nrm, yel, npc_subrace_types[GET_SUBRACE(mob, 0)],
           grn, nrm, yel, npc_subrace_types[GET_SUBRACE(mob, 1)],
           grn, nrm, yel, npc_subrace_types[GET_SUBRACE(mob, 2)],

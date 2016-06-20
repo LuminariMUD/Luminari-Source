@@ -2181,7 +2181,7 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
       write_to_output(d, "Races of Luminari\r\n\r\n");
       for (i = 0; i < NUM_RACES; i++) {
         if (!locked_races[i] || has_unlocked_race(d->character, i))
-          write_to_output(d, "%s\r\n", pc_race_types[i]);
+          write_to_output(d, "%s\r\n", race_list[i].type);
       }
       write_to_output(d, "\r\nRace Selection (type 'human' if you do not know "
               "what to pick): ");
@@ -2256,7 +2256,7 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
         write_to_output(d, "Races of Luminari\r\n\r\n");
         for (i = 0; i < NUM_RACES; i++) {
           if (!locked_races[i] || has_unlocked_race(d->character, i))
-            write_to_output(d, "%s\r\n", pc_race_types[i]);
+            write_to_output(d, "%s\r\n", race_list[i].type);
         }
         write_to_output(d, "\r\nRace Selection (type 'human' if you do not know "
                 "what to pick): ");
