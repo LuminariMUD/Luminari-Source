@@ -185,7 +185,7 @@ void favored_class_female(int race, int favored_class) {
 
 /* our little mini struct series for assigning feats to a race  */
 /* create/allocate memory for the racefeatassign struct */
-struct race_feat_assign* create_feat_assign(int feat_num, int level_received,
+struct race_feat_assign* create_feat_assign_races(int feat_num, int level_received,
         bool stacks) {
   struct race_feat_assign *feat_assign = NULL;
 
@@ -201,7 +201,7 @@ void feat_race_assignment(int race_num, int feat_num, int level_received,
         bool stacks) {
   struct race_feat_assign *feat_assign = NULL;
 
-  feat_assign = create_feat_assign(feat_num, level_received, stacks);
+  feat_assign = create_feat_assign_races(feat_num, level_received, stacks);
 
   /*   Link it up. */
   feat_assign->next = race_list[race_num].featassign_list;
