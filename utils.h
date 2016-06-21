@@ -714,9 +714,12 @@ do                                                              \
 
 #define GET_RACE(ch) ((GET_DISGUISE_RACE(ch)) ? \
                       GET_DISGUISE_RACE(ch) : GET_REAL_RACE(ch))
-#define RACE_ABBR(ch)  (IS_NPC(ch) ? race_family_abbrevs[GET_RACE(ch)] : IS_MORPHED(ch) ? \
+#define RACE_ABBR(ch) (IS_MORPHED(ch) ? race_list[IS_MORPHED(ch)].abbrev_color : \
+  (GET_DISGUISE_RACE(ch) ? race_list[GET_DISGUISE_RACE(ch)].abbrev_color : \
+  race_list[GET_RACE(ch)].abbrev_color) )
+/*#define RACE_ABBR(ch)  (IS_NPC(ch) ? race_family_abbrevs[GET_RACE(ch)] : IS_MORPHED(ch) ? \
   race_family_abbrevs[IS_MORPHED(ch)] : (GET_DISGUISE_RACE(ch)) ? \
-  race_list[GET_DISGUISE_RACE(ch)].abbrev : race_list[GET_RACE(ch)].abbrev)
+  race_list[GET_DISGUISE_RACE(ch)].abbrev : race_list[GET_RACE(ch)].abbrev)*/
 #define RACE_ABBR_REAL(ch)  (race_list[GET_REAL_RACE(ch)].abbrev)
 
 /* wildshape */

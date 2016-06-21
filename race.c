@@ -236,7 +236,7 @@ bool race_is_available(struct char_data *ch, int race_num) {
 }
 
 /* this will be a general list of all pc races */
-void display_all_races(struct char_data *ch) {
+void display_pc_races(struct char_data *ch) {
   struct descriptor_data *d = ch->desc;
   int counter, columns = 0;
 
@@ -245,7 +245,7 @@ void display_all_races(struct char_data *ch) {
   for (counter = 0; counter < NUM_EXTENDED_RACES; counter++) {    
     write_to_output(d, "%s%-20.20s %s",
             race_is_available(ch, counter) ? " " : "*",
-            race_list[counter].type, 
+            race_list[counter].type_color, 
             !(++columns % 3) ? "\r\n" : "");
   }
   
@@ -336,7 +336,7 @@ ACMD(do_race) {
 
   /* no argument, or general list of classes */
   if (is_abbrev(arg, "list") || !*arg) {
-    display_all_races(ch);
+    display_pc_races(ch);
     
   /* race info - specific info on given race */    
   } else if (is_abbrev(arg, "info")) {
