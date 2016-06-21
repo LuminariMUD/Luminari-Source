@@ -242,11 +242,13 @@ void display_pc_races(struct char_data *ch) {
 
   write_to_output(d, "\r\n");
   
-  for (counter = 0; counter < NUM_EXTENDED_RACES; counter++) {    
-    write_to_output(d, "%s%-20.20s %s",
+  for (counter = 0; counter < NUM_EXTENDED_RACES; counter++) {
+    if (race_list[counter].is_pc) {    
+      write_to_output(d, "%s%-20.20s %s",
             race_is_available(ch, counter) ? " " : "*",
-            race_list[counter].type_color, 
+            race_list[counter].type, 
             !(++columns % 3) ? "\r\n" : "");
+    }
   }
   
   write_to_output(d, "\r\n");
