@@ -280,6 +280,7 @@ bool display_race_info(struct char_data *ch, char *racename) {
   char buf[MAX_STRING_LENGTH] = { '\0' };  
   static int line_length = 80, i = 0;
   size_t len = 0;
+  bool found = FALSE;
 
   skip_spaces(&racename);
   race = parse_race_long(racename);
@@ -308,6 +309,7 @@ bool display_race_info(struct char_data *ch, char *racename) {
   for (i = 0; i < NUM_ABILITY_MODS; i++) {
     stat_mod = race_list[race].ability_mods[i];
     if (stat_mod) {
+      found = TRUE;
       len += snprintf(buf + len, sizeof (buf) - len,
           "%s %s%d | ",
           abil_mod_names[i], (stat_mod > 0) ? "+" : "", stat_mod);
@@ -316,7 +318,7 @@ bool display_race_info(struct char_data *ch, char *racename) {
   }
   
   send_to_char(ch, "\tcRace Size       : \tn%s\r\n", sizes[race_list[race].size]);
-  send_to_char(ch, "\tcAbility Modifier: \tn%s\r\n", buf);  
+  send_to_char(ch, "\tcAbility Modifier: \tn%s\r\n", found ? buf : "None");  
       
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
