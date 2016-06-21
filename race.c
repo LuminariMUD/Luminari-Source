@@ -3,8 +3,6 @@
 *  Usage: Source file for race-specific code.                             *
 *                                                                         *
 *  All rights reserved.  See license for complete information.            *
-*  Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University *
-*  CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.               *
 **************************************************************************/
 
 /** Help buffer the global variable definitions */
@@ -35,11 +33,6 @@
 /* some pre setup here */
 struct race_data race_list[NUM_EXTENDED_RACES];
 
-/* This file attempts to concentrate most of the code which must be changed
- * in order for new race to be added.  If you're adding a new race, you
- * should go through this entire file from beginning to end and add the
- * appropriate new special cases for your new race. */
-
 /* Zusuk, 02/2016:  Start notes here!
  * RACE_ these are specific race defines, eventually should be a massive list
  *       of every race in our world (ex: iron golem)
@@ -53,7 +46,7 @@ struct race_data race_list[NUM_EXTENDED_RACES];
 
 /* start race code! */
 
-/* this will set the appropriate races for a given race */
+/* this will set the appropriate gender for a given race */
 void set_race_genders(int race, int neuter, int male, int female) {
   race_list[race].genders[0] = neuter;
   race_list[race].genders[1] = male;
@@ -61,7 +54,18 @@ void set_race_genders(int race, int neuter, int male, int female) {
 }
 
 /* this will set the ability modifiers of the given race to whatever base
-   stats are */
+   stats are, to be used for both PC and wildshape forms */
+const char *abil_mod_names[NUM_ABILITY_MODS + 1] = {
+  /* an unfortunate necessity to make this constant array - we didn't make
+     the modifiers same order as the structs.h version */
+  "Strength",
+  "Constitution",
+  "Intelligence",
+  "Wisdom",
+  "Dexterity",
+  "Charisma",
+  "\n"
+};
 void set_race_abilities(int race, int str_mod, int con_mod, int int_mod,
         int wis_mod, int dex_mod, int cha_mod) {
   race_list[race].ability_mods[0] = str_mod;
@@ -84,11 +88,6 @@ void set_race_alignments(int race, int lg, int ng, int cg, int ln, int tn, int c
   race_list[race].alignments[6] = le;
   race_list[race].alignments[7] = ne;
   race_list[race].alignments[8] = ce;
-}
-
-void set_morph_msg(int race, char *morph_to_char, char *morph_to_room) {
-  race_list[race].morph_to_char = morph_to_char;
-  race_list[race].morph_to_room = morph_to_room;
 }
 
 /* set the attack types this race will use when not wielding */
@@ -135,6 +134,11 @@ void initialize_races(void) {
     race_list[i].abbrev = NULL;
     race_list[i].abbrev_color = NULL;
     
+    /* displaying more race details (extension) */
+    race_list[i].descrip = NULL;
+    race_list[i].morph_to_char = NULL;
+    race_list[i].morph_to_room = NULL;
+    
     /* the rest of the values */
     race_list[i].family = RACE_TYPE_UNDEFINED;
     race_list[i].size = SIZE_MEDIUM;
@@ -173,11 +177,21 @@ void add_race(int race,
   race_list[race].is_pc = is_pc;
   race_list[race].level_adjustment = level_adjustment;
   race_list[race].unlock_cost = unlock_cost;
-  race_list[race].epic_adv = epic_adv;
+  race_list[race].epic_adv = epic_adv;  
+}
+
+/* extension of details added to race */
+void set_race_details(int race,
+        char *descrip, char *morph_to_char, char *morph_to_room) {
   
+  race_list[race].descrip = strdup(descrip); /* Description of race */  
+  /* message to send to room if transforming to this particular race */
+  race_list[race].morph_to_char = strdup(morph_to_char);
+  race_list[race].morph_to_room = strdup(morph_to_room);
 }
 
 /*
+// fun idea based on favored class system, not currently utilized in our game
 void favored_class_female(int race, int favored_class) {
   race_list[race].favored_class[2] = favored_class;
 }
@@ -232,8 +246,12 @@ void affect_assignment(int race_num, int affect_num, int level_received) {
 
 /* determines if ch qualifies for a race */
 bool race_is_available(struct char_data *ch, int race_num) {
+  /* unfinished ! */
   return FALSE;
 }
+
+/*****************************/
+/*****************************/
 
 /* this will be a general list of all pc races */
 void display_pc_races(struct char_data *ch) {
@@ -252,15 +270,16 @@ void display_pc_races(struct char_data *ch) {
   }
   
   write_to_output(d, "\r\n");
-  write_to_output(d, "* - not qualified 'race prereqs <race name>' for details\r\n");
+  write_to_output(d, "* - not unlocked 'race prereqs <race name>' for details\r\n");
   write_to_output(d, "\r\n");
 }
 
 /* display a specific races details */
 bool display_race_info(struct char_data *ch, char *racename) {
-  int race = -1;
+  int race = -1, stat_mod = 0;
   char buf[MAX_STRING_LENGTH] = { '\0' };  
-  static int line_length = 80;
+  static int line_length = 80, i = 0;
+  size_t len = 0;
 
   skip_spaces(&racename);
   race = parse_race_long(racename);
@@ -284,7 +303,24 @@ bool display_race_info(struct char_data *ch, char *racename) {
   
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
+  
+  /* build buffer for ability modifiers */
+  for (i = 0; i < NUM_ABILITY_MODS; i++) {
+    stat_mod = race_list[race].ability_mods[i];
+    if (stat_mod) {
+      len += snprintf(buf + len, sizeof (buf) - len,
+          "%s %s%d | ",
+          abil_mod_names[i], (stat_mod > 0) ? "+" : "", stat_mod);
       
+    }
+  }
+  
+  send_to_char(ch, "\tcRace Size       : \tn%s\r\n", sizes[race_list[race].size]);
+  send_to_char(ch, "\tcAbility Modifier: \tn%s\r\n", buf);  
+      
+  send_to_char(ch, "\tC");
+  draw_line(ch, line_length, '-', '-');
+  
   /* This we will need to buffer and wrap so that it will fit in the space provided. */
   sprintf(buf, "\tcDescription : \tn%s\r\n", race_list[race].descrip);
   send_to_char(ch, strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
@@ -297,6 +333,7 @@ bool display_race_info(struct char_data *ch, char *racename) {
   return TRUE;  
 }
 
+/* function to view a list of feats race is granted */
 bool view_race_feats(struct char_data *ch, char *racename) {
   int race = RACE_UNDEFINED;
   struct race_feat_assign *feat_assign = NULL;
@@ -324,6 +361,8 @@ bool view_race_feats(struct char_data *ch, char *racename) {
   
   return TRUE;
 }
+
+/**************************************/
 
 /* entry point for race command - getting race info */
 ACMD(do_race) {
@@ -363,6 +402,9 @@ ACMD(do_race) {
   send_to_char(ch, "\tDUsage: race <list|info|feats> <race name>\tn\r\n");
 }
 
+/*****************************/
+/*****************************/
+
 /* here is the actual race list */
 void assign_races(void) {
   /* initialization */
@@ -383,6 +425,20 @@ void assign_races(void) {
   add_race(RACE_HUMAN, "human", "Human", "\tBHuman\tn", "Humn", "\tBHumn\tn",
            /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
            RACE_TYPE_HUMANOID, SIZE_MEDIUM, TRUE, 0,    0,      IS_NORMAL);
+    set_race_details(RACE_HUMAN,
+      /*descrip*/"Humans possess exceptional drive and a great capacity to endure "
+      "and expand, and as such are currently the dominant race in the world. Their "
+      "empires and nations are vast, sprawling things, and the citizens of these "
+      "societies carve names for themselves with the strength of their sword arms "
+      "and the power of their spells. Humanity is best characterized by its "
+      "tumultuousness and diversity, and human cultures run the gamut from savage "
+      "but honorable tribes to decadent, devil-worshiping noble families in the most "
+      "cosmopolitan cities. Humans' curiosity and ambition often triumph over their "
+      "predilection for a sedentary lifestyle, and many leave their homes to explore "
+      "the innumerable forgotten corners of the world or lead mighty armies to conquer "
+      "their neighbors, simply because they can.",
+      /*morph to-char*/"Your body twists and contorts painfully until your form becomes Human.",
+      /*morph to-room*/"$n's body twists and contorts painfully until $s form becomes Human.");
     set_race_genders(RACE_HUMAN, N, Y, Y); /* n m f */
     set_race_abilities(RACE_HUMAN, 0, 0, 0, 0, 0, 0); /* str con int wis dex cha */
     set_race_alignments(RACE_HUMAN, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */  
@@ -391,9 +447,6 @@ void assign_races(void) {
         Y,  N,    N,   N,    N,   N,       N,    N,    N,   N,   N,     N,
      /* blast punch stab slice thrust hack rake peck smash trample charge gore */
         N,    Y,    N,   N,    N,     N,   N,   N,   N,    N,      N,     N);
-    set_morph_msg(RACE_HUMAN, /* to-char / to-room morph messages */
-      "You morph into a human.",
-      "$n morphs into a human." );
     /* feat assignment */
     /*                   race-num    feat                  lvl stack */
     feat_race_assignment(RACE_HUMAN, FEAT_QUICK_TO_MASTER, 1,  N);

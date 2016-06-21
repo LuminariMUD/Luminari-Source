@@ -3588,8 +3588,8 @@ struct race_data {
   char *abbrev; /* 4 letter abbreviation */
   char *abbrev_color; /* 4 letter abbreviation colored */
   
-  char *descrip; /* race description */
-  
+  /* extended race details */
+  char *descrip; /* race description */  
   char *morph_to_char; /* wildshape message to ch */
   char *morph_to_room; /* wildshape message to room */
   
