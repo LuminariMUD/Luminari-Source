@@ -308,7 +308,7 @@ bool display_race_info(struct char_data *ch, char *racename) {
   /* build buffer for ability modifiers */
   for (i = 0; i < NUM_ABILITY_MODS; i++) {
     stat_mod = race_list[race].ability_mods[i];
-    if (stat_mod) {
+    if (stat_mod != 0) {
       found = TRUE;
       len += snprintf(buf + len, sizeof (buf) - len,
           "%s %s%d | ",
@@ -427,6 +427,19 @@ void assign_races(void) {
   /* PC */
   /******/
   
+  /* zusuk notes for race coloring 
+        "\tBHumn\tn",
+        "\tYElf \tn",
+        "\tgDwrf\tn",
+        "\trHTrl\tn",
+        "\tCC\tgDwf\tn",
+        "\tcHflg\tn",
+        "\twH\tYElf\tn",
+        "\twH\tROrc\tn",
+        "\tmGnme\tn",
+        "\tGTr\tYlx\tn",
+        "\tRAr\tcGo\tn"   */
+  
   /****************************************************************************/
   /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
   add_race(RACE_HUMAN, "human", "Human", "\tBHuman\tn", "Humn", "\tBHumn\tn",
@@ -462,14 +475,56 @@ void assign_races(void) {
     /*                  race-num  affect            lvl */
     /**TEST**/affect_assignment(RACE_HUMAN, AFF_DETECT_ALIGN, 1);
   /****************************************************************************/
+  /****************************************************************************/
+  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(RACE_ELF, "elf", "\tYElf\tn", "\tYElf\tn", "Elf ", "\tYElf \tn",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_HUMANOID, SIZE_MEDIUM, TRUE, 0,    0,      IS_NORMAL);
+    set_race_details(RACE_ELF,
+      /*descrip*/"The long-lived elves are children of the natural world, similar "
+      "in many superficial ways to fey creatures, though with key differences. "
+      "While fey are truly linked to the flora and fauna of their homes, existing "
+      "as the nearly immortal voices and guardians of the wilderness, elves are "
+      "instead mortals who are in tune with the natural world around them. Elves "
+      "seek to live in balance with the wild and understand it better than most "
+      "other mortals. Some of this understanding is mystical, but an equal part "
+      "comes from the elves' long lifespans, which in turn gives them long-ranging "
+      "outlooks. Elves can expect to remain active in the same locale for centuries. "
+      "By necessity, they must learn to maintain sustainable lifestyles, and this "
+      "is most easily done when they work with nature, rather than attempting to "
+      "bend it to their will. However, their links to nature are not entirely driven "
+      "by pragmatism. Elves' bodies slowly change over time, taking on a physical "
+      "representation of their mental and spiritual states, and those who dwell in "
+      "a region for a long period of time find themselves physically adapting to "
+      "match their surroundings, most noticeably taking on coloration that reflects "
+      "the local environment.",
+      /*morph to-char*/"Your body twists and contorts painfully until your form becomes Elven.",
+      /*morph to-room*/"$n's body twists and contorts painfully until $s form becomes Elven.");
+    set_race_genders(RACE_ELF, N, Y, Y); /* n m f */
+    set_race_abilities(RACE_ELF, 0, -2, 0, 0, 2, 0); /* str con int wis dex cha */
+    set_race_alignments(RACE_ELF, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */  
+    set_race_attack_types(RACE_ELF,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        Y,  N,    N,   N,    N,   N,       N,    N,    N,   N,   N,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    Y,    N,   N,    N,     N,   N,   N,   N,    N,      N,     N);
+    /* feat assignment */
+    /*                   race-num    feat                  lvl stack */
+    feat_race_assignment(RACE_ELF, FEAT_INFRAVISION,                1,  N);
+    feat_race_assignment(RACE_ELF, FEAT_WEAPON_PROFICIENCY_ELF,     1,  N);
+    feat_race_assignment(RACE_ELF, FEAT_SLEEP_ENCHANTMENT_IMMUNITY, 1,  N);
+    feat_race_assignment(RACE_ELF, FEAT_KEEN_SENSES,                1,  N);
+    feat_race_assignment(RACE_ELF, FEAT_RESISTANCE_TO_ENCHANTMENTS, 1,  N);
+    feat_race_assignment(RACE_ELF, FEAT_ELF_RACIAL_ADJUSTMENT,      1,  N);
+    /* affect assignment */
+    /*                  race-num  affect            lvl */
+  /****************************************************************************/
             
      /*
   add_race(RACE_DROW_ELF, "drow", "Drow", "\tmDrow\tn", "Drow", "\tmDrow\tn",
            RACE_TYPE_HUMANOID, SIZE_MEDIUM, FALSE, 2);
     //favored_class_female(RACE_DROW_ELF, CLASS_CLERIC);
   add_race(RACE_HALF_ELF, "half elf", "HalfElf", "Half Elf", RACE_TYPE_HUMANOID, N, Y, Y, 0, 0, 0, 0, 0, 0,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_WIZARD, SKILL_LANG_ELVEN, 0);
-  add_race(RACE_ELF, "elf", "Elf", "Elf", RACE_TYPE_HUMANOID, N, Y, Y, 0, 0, 0, 0, 0, 0,
           Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_WIZARD, SKILL_LANG_ELVEN, 0);
   add_race(RACE_CRYSTAL_DWARF, "crystal dwarf", "CrystalDwarf", "Crystal Dwarf", RACE_TYPE_HUMANOID, N, Y, Y, 0, 2, 0, 0, 0, -4,
           Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_WARRIOR, SKILL_LANG_UNDERCOMMON, 1);
