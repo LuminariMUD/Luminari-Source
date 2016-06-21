@@ -10,6 +10,31 @@
 /** Help buffer the global variable definitions */
 #define __RACE_C__
 
+#include "conf.h"
+#include "sysdep.h"
+#include "structs.h"
+#include "utils.h"
+#include "db.h"
+#include "spells.h"
+#include "interpreter.h"
+#include "constants.h"
+#include "act.h"
+#include "handler.h"
+#include "comm.h"
+#include "race.h"
+#include "feats.h"
+
+/* defines */
+#define Y   TRUE
+#define N   FALSE
+/* racial classification for PC races */
+#define IS_NORMAL  0
+#define IS_ADVANCE 1
+#define IS_EPIC_R  2
+
+/* some pre setup here */
+struct race_data race_list[NUM_EXTENDED_RACES];
+
 /* This file attempts to concentrate most of the code which must be changed
  * in order for new race to be added.  If you're adding a new race, you
  * should go through this entire file from beginning to end and add the
@@ -25,31 +50,6 @@
  * RACE_TYPE_ this is like the family the race belongs to, like an iron golem
  *            would be RACE_TYPE_CONSTRUCT
  */
-
-#include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
-#include "db.h"
-#include "spells.h"
-#include "interpreter.h"
-#include "constants.h"
-#include "act.h"
-#include "comm.h"
-#include "race.h"
-#include "handler.h"
-#include "feats.h"
-
-/* defines */
-#define Y   TRUE
-#define N   FALSE
-/* racial classification for PC races */
-#define IS_NORMAL  0
-#define IS_ADVANCE 1
-#define IS_EPIC_R  2
-
-/* some pre setup here */
-struct race_data race_list[NUM_EXTENDED_RACES];
 
 /* start race code! */
 

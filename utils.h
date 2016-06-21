@@ -15,7 +15,7 @@
  * functions, move functions, char_from_furniture) out of utils and declare /
  * define elsewhere.
  */
-#include "race.h"
+//#include "race.h"
 
 #ifndef _UTILS_H_ /* Begin header file protection */
 #define _UTILS_H_

@@ -53,6 +53,7 @@
 #include "actionqueues.h"
 #include "domains_schools.h"
 #include "grapple.h"
+#include "race.h"
 
 #include <sys/stat.h>
 /*  declarations of most of the 'global' variables */

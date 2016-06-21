@@ -24,6 +24,7 @@
 #include "mail.h"         /**< For the has_mail function */
 #include "act.h"
 #include "class.h"
+#include "race.h"
 #include "fight.h"
 #include "modify.h"
 #include "asciimap.h"
