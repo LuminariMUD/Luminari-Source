@@ -433,7 +433,7 @@
 #define RACE_GNOME           8  // gnome
 #define RACE_TRELUX          9  // trelux (epic)
 #define RACE_ARCANA_GOLEM    10  // arcana golem (advanced)
-/**/
+/* coming soon!*/
 #define RACE_DROW            11  // not yet implemented
 #define RACE_DROW_ELF        RACE_DROW
 #define RACE_DUERGAR         12  // not yet implemented
