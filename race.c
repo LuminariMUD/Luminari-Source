@@ -330,7 +330,12 @@ bool display_race_info(struct char_data *ch, char *racename) {
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
     
-  send_to_char(ch, "\tn\r\n");
+  send_to_char(ch, "\tYType: \tRrace feats %s\tY for this race's feat info.\tn\r\n",
+    race_list[race].type_color);
+  
+  send_to_char(ch, "\tC");
+  draw_line(ch, line_length, '-', '-');
+  send_to_char(ch, "\tn");
 
   return TRUE;  
 }
