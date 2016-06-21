@@ -22,7 +22,6 @@
 #include "act.h"
 #include "handler.h"
 #include "comm.h"
-#include "spells.h"
 #include "mud_event.h"
 #include "mudlim.h"
 #include "feats.h"

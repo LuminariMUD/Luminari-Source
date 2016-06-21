@@ -29,6 +29,7 @@
 #include "assign_wpn_armor.h"
 #include "domains_schools.h"
 #include "feats.h"
+#include "race.h"
 
 //external
 extern struct raff_node *raff_list;
