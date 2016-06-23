@@ -427,18 +427,6 @@ void assign_races(void) {
   /* PC */
   /******/
   
-  /* zusuk notes for race coloring 
-        "\tBHumn\tn",
-        "\tYElf \tn",
-        "\tgDwrf\tn",
-        "\trHTrl\tn",
-        "\tCC\tgDwf\tn",
-        "\tcHflg\tn",
-        "\twH\tYElf\tn",
-        "\twH\tROrc\tn",
-        "\tmGnme\tn",
-        "\tGTr\tYlx\tn",
-        "\tRAr\tcGo\tn"   */
   
   /****************************************************************************/
   /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
@@ -477,7 +465,7 @@ void assign_races(void) {
   /****************************************************************************/
   /****************************************************************************/
   /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
-  add_race(RACE_ELF, "elf", "\tYElf\tn", "\tYElf\tn", "Elf ", "\tYElf \tn",
+  add_race(RACE_ELF, "elf", "Elf", "\tYElf\tn", "Elf ", "\tYElf \tn",
            /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
            RACE_TYPE_HUMANOID, SIZE_MEDIUM, TRUE, 0,    0,      IS_NORMAL);
     set_race_details(RACE_ELF,
@@ -519,27 +507,205 @@ void assign_races(void) {
     /* affect assignment */
     /*                  race-num  affect            lvl */
   /****************************************************************************/
-            
-     /*
-  add_race(RACE_DROW_ELF, "drow", "Drow", "\tmDrow\tn", "Drow", "\tmDrow\tn",
+  /****************************************************************************/
+  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(RACE_HALF_ELF, "halfelf", "Half Elf", "\twHalf \tYElf\tn", "HElf", "\twH\tYElf\tn",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_HUMANOID, SIZE_MEDIUM, TRUE, 0,    0,      IS_NORMAL);
+    set_race_details(RACE_HALF_ELF,
+      /*descrip*/"Elves have long drawn the covetous gazes of other races. Their "
+        "generous lifespans, magical affinity, and inherent grace each contribute "
+        "to the admiration or bitter envy of their neighbors. Of all their traits, "
+        "however, none so entrance their human associates as their beauty. Since "
+        "the two races first came into contact with each other, humans have held "
+        "up elves as models of physical perfection, seeing in these fair folk idealized "
+        "versions of themselves. For their part, many elves find humans attractive "
+        "despite their comparatively barbaric ways, and are drawn to the passion "
+        "and impetuosity with which members of the younger race play out their brief "
+        "lives. Sometimes this mutual infatuation leads to romantic relationships. "
+        "Though usually short-lived, even by human standards, such trysts may lead "
+        "to the birth of half-elves, a race descended from two cultures yet inheritor "
+        "of neither. Half-elves can breed with one another, but even these “pureblood” "
+        "half-elves tend to be viewed as bastards by humans and elves alike. Caught "
+        "between destiny and derision, half-elves often view themselves as the middle "
+        "children of the world.",
+      /*morph to-char*/"Your body twists and contorts painfully until your form becomes Half-Elven.",
+      /*morph to-room*/"$n's body twists and contorts painfully until $s form becomes Half-Elven.");
+    set_race_genders(RACE_HALF_ELF, N, Y, Y); /* n m f */
+    set_race_abilities(RACE_HALF_ELF, 0, 0, 0, 0, 0, 0); /* str con int wis dex cha */
+    set_race_alignments(RACE_HALF_ELF, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */  
+    set_race_attack_types(RACE_HALF_ELF,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        Y,  N,    N,   N,    N,   N,       N,    N,    N,   N,   N,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    Y,    N,   N,    N,     N,   N,   N,   N,    N,      N,     N);
+    /* feat assignment */
+    /*                   race-num    feat                  lvl stack */
+    feat_race_assignment(RACE_HALF_ELF, FEAT_INFRAVISION,                1,  N);
+    feat_race_assignment(RACE_HALF_ELF, FEAT_WEAPON_PROFICIENCY_ELF,     1,  N);
+    feat_race_assignment(RACE_HALF_ELF, FEAT_HALF_BLOOD,                 1,  N);
+    feat_race_assignment(RACE_HALF_ELF, FEAT_KEEN_SENSES,                1,  N);
+    feat_race_assignment(RACE_HALF_ELF, FEAT_RESISTANCE_TO_ENCHANTMENTS, 1,  N);
+    /* affect assignment */
+    /*                  race-num  affect            lvl */
+  /****************************************************************************/
+  /****************************************************************************/
+  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(RACE_DWARF, "dwarf", "Dwarf", "\tgDwarf\tn", "Dwrf", "\tgDwrf\tn",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_HUMANOID, SIZE_MEDIUM, TRUE, 0,    0,      IS_NORMAL);
+    set_race_details(RACE_DWARF,
+      /*descrip*/"Dwarves are a stoic but stern race, ensconced in cities carved "
+        "from the hearts of mountains and fiercely determined to repel the depredations "
+        "of savage races like orcs and goblins. More than any other race, dwarves "
+        "have acquired a reputation as dour and humorless artisans of the earth. "
+        "It could be said that their history shapes the dark disposition of many "
+        "dwarves, for they reside in high mountains and dangerous realms below the "
+        "earth, constantly at war with giants, goblins, and other such horrors.",
+      /*morph to-char*/"Your body twists and contorts painfully until your form becomes Dwarven.",
+      /*morph to-room*/"$n's body twists and contorts painfully until $s form becomes Dwarven.");
+    set_race_genders(RACE_DWARF, N, Y, Y); /* n m f */
+    set_race_abilities(RACE_DWARF, 0, 2, 0, 0, 0, -2); /* str con int wis dex cha */
+    set_race_alignments(RACE_DWARF, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */  
+    set_race_attack_types(RACE_DWARF,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        Y,  N,    N,   N,    N,   N,       N,    N,    N,   N,   N,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    Y,    N,   N,    N,     N,   N,   N,   N,    N,      N,     N);
+    /* feat assignment */
+    /*                   race-num    feat                  lvl stack */
+    feat_race_assignment(RACE_DWARF, FEAT_INFRAVISION,               1,  N);
+    feat_race_assignment(RACE_DWARF, FEAT_POISON_RESIST,             1,  N);
+    feat_race_assignment(RACE_DWARF, FEAT_STABILITY,                 1,  N);
+    feat_race_assignment(RACE_DWARF, FEAT_SPELL_HARDINESS,           1,  N);
+    feat_race_assignment(RACE_DWARF, FEAT_COMBAT_TRAINING_VS_GIANTS, 1,  N);
+    feat_race_assignment(RACE_DWARF, FEAT_DWARF_RACIAL_ADJUSTMENT,   1,  N);
+    /* affect assignment */
+    /*                  race-num  affect            lvl */
+  /****************************************************************************/
+  /****************************************************************************/
+  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(RACE_HALFLING, "halfling", "Halfling", "\tcHalfling\tn", "Hflg", "\tcHflg\tn",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_HUMANOID, SIZE_SMALL, TRUE, 0,    0,      IS_NORMAL);
+    set_race_details(RACE_HALFLING,
+      /*descrip*/"Optimistic and cheerful by nature, blessed with uncanny luck, "
+        "and driven by a powerful wanderlust, halflings make up for their short "
+        "stature with an abundance of bravado and curiosity. At once excitable and "
+        "easy-going, halflings like to keep an even temper and a steady eye on opportunity, "
+        "and are not as prone to violent or emotional outbursts as some of the more "
+        "volatile races. Even in the jaws of catastrophe, halflings almost never "
+        "lose their sense of humor. Their ability to find humor in the absurd, no "
+        "matter how dire the situation, often allows halflings to distance themselves "
+        "ever so slightly from the dangers that surround them. This sense of detachment "
+        "can also help shield them from terrors that might immobilize their allies.",
+      /*morph to-char*/"Your body twists and contorts painfully until your form becomes Halfling.",
+      /*morph to-room*/"$n's body twists and contorts painfully until $s form becomes Halfling.");
+    set_race_genders(RACE_HALFLING, N, Y, Y); /* n m f */
+    set_race_abilities(RACE_HALFLING, -2, 0, 0, 0, 2, 0); /* str con int wis dex cha */
+    set_race_alignments(RACE_HALFLING, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */  
+    set_race_attack_types(RACE_HALFLING,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        Y,  N,    N,   N,    N,   N,       N,    N,    N,   N,   N,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    Y,    N,   N,    N,     N,   N,   N,   N,    N,      N,     N);
+    /* feat assignment */
+    /*                   race-num    feat                  lvl stack */
+    feat_race_assignment(RACE_HALFLING, FEAT_INFRAVISION,                1,  N);
+    feat_race_assignment(RACE_HALFLING, FEAT_SHADOW_HOPPER,              1,  N);
+    feat_race_assignment(RACE_HALFLING, FEAT_LUCKY,                      1,  N);
+    feat_race_assignment(RACE_HALFLING, FEAT_COMBAT_TRAINING_VS_GIANTS,  1,  N);
+    feat_race_assignment(RACE_HALFLING, FEAT_HALFLING_RACIAL_ADJUSTMENT, 1,  N);
+    /* affect assignment */
+    /*                  race-num  affect            lvl */
+  /****************************************************************************/
+  /****************************************************************************/
+  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(RACE_GNOME, "gnome", "Gnome", "\tmGnome\tn", "Gnme", "\tmGnme\tn",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_HUMANOID, SIZE_SMALL, TRUE, 0,    0,      IS_NORMAL);
+    set_race_details(RACE_GNOME,
+      /*descrip*/"Gnomes are distant relatives of the fey, and their history tells "
+        "of a time when they lived in the fey's mysterious realm, a place where colors "
+        "are brighter, the wildlands wilder, and emotions more primal. Unknown forces "
+        "drove the ancient gnomes from that realm long ago, forcing them to seek "
+        "refuge in this world; despite this, the gnomes have never completely abandoned "
+        "their fey roots or adapted to mortal culture. Though gnomes are no longer "
+        "truly fey, their fey heritage can be seen in their innate magic powers, "
+        "their oft-capricious natures, and their outlooks on life and the world.",
+      /*morph to-char*/"Your body twists and contorts painfully until your form becomes Gnomish.",
+      /*morph to-room*/"$n's body twists and contorts painfully until $s form becomes Gnomish.");
+    set_race_genders(RACE_GNOME, N, Y, Y); /* n m f */
+    set_race_abilities(RACE_GNOME, -2, 2, 0, 0, 0, 0); /* str con int wis dex cha */
+    set_race_alignments(RACE_GNOME, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */  
+    set_race_attack_types(RACE_GNOME,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        Y,  N,    N,   N,    N,   N,       N,    N,    N,   N,   N,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    Y,    N,   N,    N,     N,   N,   N,   N,    N,      N,     N);
+    /* feat assignment */
+    /*                   race-num    feat                  lvl stack */
+    feat_race_assignment(RACE_GNOME, FEAT_INFRAVISION,               1,  N);
+    feat_race_assignment(RACE_GNOME, FEAT_COMBAT_TRAINING_VS_GIANTS, 1,  N);
+    feat_race_assignment(RACE_GNOME, FEAT_RESISTANCE_TO_ILLUSIONS,   1,  N);
+    feat_race_assignment(RACE_GNOME, FEAT_ILLUSION_AFFINITY,         1,  N);
+    feat_race_assignment(RACE_GNOME, FEAT_TINKER_FOCUS,              1,  N);
+    feat_race_assignment(RACE_GNOME, FEAT_GNOME_RACIAL_ADJUSTMENT,   1,  N);
+    /* affect assignment */
+    /*                  race-num  affect            lvl */
+  /****************************************************************************/
+  /****************************************************************************/
+  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(RACE_HALF_ORC, "halforc", "Half Orc", "\twHalf \tROrc\tn", "HOrc", "\twH\tROrc\tn",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_HUMANOID, SIZE_MEDIUM, TRUE, 0,    0,      IS_NORMAL);
+    set_race_details(RACE_HALF_ORC,
+      /*descrip*/"As seen by civilized races, half-orcs are monstrosities, the result "
+        "of perversion and violence—whether or not this is actually true. Half-orcs "
+        "are rarely the result of loving unions, and as such are usually forced to "
+        "grow up hard and fast, constantly fighting for protection or to make names "
+        "for themselves. Half-orcs as a whole resent this treatment, and rather than "
+        "play the part of the victim, they tend to lash out, unknowingly confirming "
+        "the biases of those around them. A few feared, distrusted, and spat-upon "
+        "half-orcs manage to surprise their detractors with great deeds and unexpected "
+        "wisdom—though sometimes it's easier just to crack a few skulls. Some half-orcs "
+        "spend their entire lives proving to full-blooded orcs that they are just as "
+        "fierce. Others opt for trying to blend into human society, constantly demonstrating "
+        "that they aren't monsters. Their need to always prove themselves worthy "
+        "encourages half-orcs to strive for power and greatness within the society "
+        "around them.",
+      /*morph to-char*/"Your body twists and contorts painfully until your form becomes Half-Orcish.",
+      /*morph to-room*/"$n's body twists and contorts painfully until $s form becomes Half-Orcish.");
+    set_race_genders(RACE_HALF_ORC, N, Y, Y); /* n m f */
+    set_race_abilities(RACE_HALF_ORC, 2, 0, -2, 0, 0, -2); /* str con int wis dex cha */
+    set_race_alignments(RACE_HALF_ORC, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */  
+    set_race_attack_types(RACE_HALF_ORC,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        Y,  N,    N,   N,    N,   N,       N,    N,    N,   N,   N,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    Y,    N,   N,    N,     N,   N,   N,   N,    N,      N,     N);
+    /* feat assignment */
+    /*                   race-num    feat                  lvl stack */
+    feat_race_assignment(RACE_HALF_ORC, FEAT_ULTRAVISION,                1,  N);
+    feat_race_assignment(RACE_HALF_ORC, FEAT_HALF_ORC_RACIAL_ADJUSTMENT, 1,  N);
+    /* affect assignment */
+    /*                  race-num  affect            lvl */
+  /****************************************************************************/
+  /* zusuk notes for race coloring
+        "\trHTrl\tn",
+        "\tCC\tgDwf\tn",
+        "\tGTr\tYlx\tn",
+        "\tRAr\tcGo\tn"   */
+  /*
+    add_race(RACE_DROW_ELF, "drow", "Drow", "\tmDrow\tn", "Drow", "\tmDrow\tn",
            RACE_TYPE_HUMANOID, SIZE_MEDIUM, FALSE, 2);
     //favored_class_female(RACE_DROW_ELF, CLASS_CLERIC);
-  add_race(RACE_HALF_ELF, "half elf", "HalfElf", "Half Elf", RACE_TYPE_HUMANOID, N, Y, Y, 0, 0, 0, 0, 0, 0,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_WIZARD, SKILL_LANG_ELVEN, 0);
   add_race(RACE_CRYSTAL_DWARF, "crystal dwarf", "CrystalDwarf", "Crystal Dwarf", RACE_TYPE_HUMANOID, N, Y, Y, 0, 2, 0, 0, 0, -4,
           Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_WARRIOR, SKILL_LANG_UNDERCOMMON, 1);
-  add_race(RACE_DWARF, "dwarf", "Dwarf", "Dwarf", RACE_TYPE_HUMANOID, N, Y, Y, 0, 2, 0, 0, 0, -4,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_WARRIOR, SKILL_LANG_DWARVEN, 1);
-  add_race(RACE_HALFLING, "halfling", "Halfling", "Halfling", RACE_TYPE_HUMANOID, N, Y, Y, 0, 0, 0, 0, 0, 0,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_SMALL, TRUE, CLASS_UNDEFINED, SKILL_LANG_COMMON, 0);
   add_race(RACE_ROCK_GNOME, "rock gnome", "RkGnome", "Rock Gnome", RACE_TYPE_HUMANOID, N, Y, Y, -2, 0, 2, 0, 0, 0,
           Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_SMALL, FALSE, CLASS_WIZARD, SKILL_LANG_GNOME, 0);
   add_race(RACE_DEEP_GNOME, "svirfneblin", "Svfnbln", "Svirfneblin", RACE_TYPE_HUMANOID, N, Y, Y, -2, 0, 0, 2, 2, -4,
           Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_SMALL, FALSE, CLASS_ROGUE, SKILL_LANG_GNOME, 3);
-  add_race(RACE_GNOME, "gnome", "Gnome", "Gnome", RACE_TYPE_HUMANOID, N, Y, Y, 0, 0, 2, -2, 2, 0,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_SMALL, TRUE, CLASS_UNDEFINED, SKILL_LANG_GNOME, 0);
-  add_race(RACE_HALF_ORC, "half orc", "HalfOrc", "Half Orc", RACE_TYPE_HUMANOID, N, Y, Y, 2, 0, -2, 0, 0, -2,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_BERSERKER, SKILL_LANG_ORCISH, 0);
   add_race(RACE_ORC, "orc", "Orc", "Orc", RACE_TYPE_HUMANOID, N, Y, Y, 2, 2, -2, -2, 0, -2,
           Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, FALSE, CLASS_BERSERKER, SKILL_LANG_ORCISH, 0);
   */
