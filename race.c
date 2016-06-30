@@ -509,7 +509,7 @@ void assign_races(void) {
   /****************************************************************************/
   /****************************************************************************/
   /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
-  add_race(RACE_HALF_ELF, "halfelf", "Half Elf", "\twHalf \tYElf\tn", "HElf", "\twH\tYElf\tn",
+  add_race(RACE_HALF_ELF, "halfelf", "HalfElf", "\twHalf \tYElf\tn", "HElf", "\twH\tYElf\tn",
            /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
            RACE_TYPE_HUMANOID, SIZE_MEDIUM, TRUE, 0,    0,      IS_NORMAL);
     set_race_details(RACE_HALF_ELF,
@@ -656,7 +656,7 @@ void assign_races(void) {
   /****************************************************************************/
   /****************************************************************************/
   /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
-  add_race(RACE_HALF_ORC, "halforc", "Half Orc", "\twHalf \tROrc\tn", "HOrc", "\twH\tROrc\tn",
+  add_race(RACE_HALF_ORC, "halforc", "HalfOrc", "\twHalf \tROrc\tn", "HOrc", "\twH\tROrc\tn",
            /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
            RACE_TYPE_HUMANOID, SIZE_MEDIUM, TRUE, 0,    0,      IS_NORMAL);
     set_race_details(RACE_HALF_ORC,
@@ -691,17 +691,184 @@ void assign_races(void) {
     /* affect assignment */
     /*                  race-num  affect            lvl */
   /****************************************************************************/
-  /* zusuk notes for race coloring
-        "\trHTrl\tn",
-        "\tCC\tgDwf\tn",
-        "\tGTr\tYlx\tn",
-        "\tRAr\tcGo\tn"   */
+  /**********/
+  /*Advanced*/
+  /**********/
+  /****************************************************************************/
+  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(RACE_HALF_TROLL, "halftroll", "HalfTroll", "\trHalf Troll\tn", "HTrl", "\trHTrl\tn",
+           /* race-family,     size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_HUMANOID, SIZE_LARGE, TRUE,   2,       1000,   IS_ADVANCE);
+    set_race_details(RACE_HALF_TROLL,
+      /*descrip*/"Half-Trolls are large, green, lanky, powerful, agile and hardy.  They tend "
+        "to have warty thick skin, black eyes and mottled black or brown hair "
+        "on their head.  Half-Trolls are extremely destructive in nature, often "
+        "searching or planning to do acts of destruction against weaker races. "
+        "Half-Trolls tend to inhabit swamps and lakes, and tend to band together in "
+        "war clans.",
+      /*morph to-char*/"Your body twists and contorts painfully until your form becomes Half-Troll.",
+      /*morph to-room*/"$n's body twists and contorts painfully until $s form becomes Half-Troll.");
+    set_race_genders(RACE_HALF_TROLL, N, Y, Y); /* n m f */
+    set_race_abilities(RACE_HALF_TROLL, 2, 2, -4, -4, 2, -4); /* str con int wis dex cha */
+    set_race_alignments(RACE_HALF_TROLL, N, N, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */  
+    set_race_attack_types(RACE_HALF_TROLL,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        Y,  N,    N,   N,    N,   N,       N,    N,    N,   N,   N,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    Y,    N,   N,    N,     N,   N,   N,   N,    N,      N,     N);
+    /* feat assignment */
+    /*                   race-num    feat                  lvl stack */
+    feat_race_assignment(RACE_HALF_TROLL, FEAT_ULTRAVISION,                  1,  N);
+    feat_race_assignment(RACE_HALF_TROLL, FEAT_TROLL_REGENERATION,           1,  N);
+    feat_race_assignment(RACE_HALF_TROLL, FEAT_WEAKNESS_TO_FIRE,             1,  N);
+    feat_race_assignment(RACE_HALF_TROLL, FEAT_WEAKNESS_TO_ACID,             1,  N);
+    feat_race_assignment(RACE_HALF_TROLL, FEAT_STRONG_AGAINST_POISON,        1,  N);
+    feat_race_assignment(RACE_HALF_TROLL, FEAT_STRONG_AGAINST_DISEASE,       1,  N);
+    feat_race_assignment(RACE_HALF_TROLL, FEAT_HALF_TROLL_RACIAL_ADJUSTMENT, 1,  N);
+    /* affect assignment */
+    /*                  race-num  affect            lvl */
+  /****************************************************************************/
+  /****************************************************************************/
+  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(RACE_ARCANA_GOLEM, "arcanagolem", "ArcanaGolem", "\tRArcana \tcGolem\tn", "ArGo", "\tRAr\tcGo\tn",
+           /* race-family,     size-class,  Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_HUMANOID, SIZE_MEDIUM, TRUE,   2,       1000,   IS_ADVANCE);
+    set_race_details(RACE_ARCANA_GOLEM,
+      /*descrip*/"Arcana Golems are mortal spellcasters (typically, but not always human) "
+        "whose devotion to the magical arts has allowed them to fuse with a "
+        "golem -- but rather than being the mindless, magically incompetent beings "
+        "golems are, the process inverts the golem's intelligence and magical "
+        "aptitude. This rebirth leaves them indistinguishable on the outside from "
+        "humans except for a vastly improved magical aptitude. "
+        "\r\n"
+        "On the inside, Arcana Golems resemble the outside of Crystal Dwarves; "
+        "their organs have been replaced with metallic and/or crystal elements "
+        "that function as well as humanoid organs save for being a little frailer. "
+        "While Arcana Golems do not need to consume outside materials -- the ambient "
+        "magical energy in the air is more than enough fuel -- many like to "
+        "do so anyway. Arcana Golems do need to sleep a lot even for a mortal race; "
+        "they need an average of 12 hours of quality sleep per 24 hours to function "
+        "at full cylinders and like to sleep for several days at a time. Arcana "
+        "Golems reproduce as humans regardless of their original race. This can "
+        "cause animosity from the community of the rare dwarven or elven Arcana Golem."
+        "\r\n"
+        "The signature abilities of the Arcana Golem, aside from a natural talent "
+        "for spellcasting and crafting, is their Spell Battle. Spell Battle "
+        "allows the Arcana Golem to convert magical energy and accuracy into combat "
+        "prowess.",
+      /*morph to-char*/"Your body twists and contorts painfully until your form becomes Arcana Golem.",
+      /*morph to-room*/"$n's body twists and contorts painfully until $s form becomes Arcana Golem.");
+    set_race_genders(RACE_ARCANA_GOLEM, N, Y, Y); /* n m f */
+    set_race_abilities(RACE_ARCANA_GOLEM, -2, -2, 2, 2, 0, 2); /* str con int wis dex cha */
+    set_race_alignments(RACE_ARCANA_GOLEM, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */  
+    set_race_attack_types(RACE_ARCANA_GOLEM,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        Y,  N,    N,   N,    N,   N,       N,    N,    N,   N,   N,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    Y,    N,   N,    N,     N,   N,   N,   N,    N,      N,     N);
+    /* feat assignment */
+    /*                   race-num    feat                  lvl stack */
+    feat_race_assignment(RACE_ARCANA_GOLEM, FEAT_SPELLBATTLE,                    1,  N);
+    feat_race_assignment(RACE_ARCANA_GOLEM, FEAT_SPELL_VULNERABILITY,            1,  N);
+    feat_race_assignment(RACE_ARCANA_GOLEM, FEAT_ENCHANTMENT_VULNERABILITY,      1,  N);
+    feat_race_assignment(RACE_ARCANA_GOLEM, FEAT_PHYSICAL_VULNERABILITY,         1,  N);
+    feat_race_assignment(RACE_ARCANA_GOLEM, FEAT_MAGICAL_HERITAGE,               1,  N);
+    feat_race_assignment(RACE_ARCANA_GOLEM, FEAT_ARCANA_GOLEM_RACIAL_ADJUSTMENT, 1,  N);
+    /* affect assignment */
+    /*                  race-num  affect            lvl */
+  /****************************************************************************/
+  /******/
+  /*Epic*/
+  /******/
+  /****************************************************************************/
+  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(RACE_CRYSTAL_DWARF, "crystaldwarf", "CrystalDwarf", "\tCCrystal \tgDwarf\tn", "CDwf", "\tCC\tgDwf\tn",
+           /* race-family,     size-class,  Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_HUMANOID, SIZE_MEDIUM, TRUE,   10,      30000,  IS_EPIC_R);
+    set_race_details(RACE_CRYSTAL_DWARF,
+      /*descrip*/"Crystal Dwarves are dwarves whose committment to earth have way "
+        "exceeded even the norms of dwarves.  A cross of divine power and "
+        "magic enhance these dwarves connection to the earth to levels that "
+        "are near earth elementals.  Their bodies take crystal-like texture "
+        "and their skin takes on the sharp angles of crystals as well.  Often "
+        "their pupils become diamond shaped and share the reflective property "
+        "of diamonds as well.  In addition Crystal Dwarves have the ability "
+        "to transform parts of their body to fully crystal-like weight and "
+        "texture - which can be extremely effective in offensive and defensive "
+        "maneuvers in combat.",
+      /*morph to-char*/"Your body twists and contorts painfully until your form becomes Crystal-Dwarf.",
+      /*morph to-room*/"$n's body twists and contorts painfully until $s form becomes Crystal-Dwarf.");
+    set_race_genders(RACE_CRYSTAL_DWARF, N, Y, Y); /* n m f */
+    set_race_abilities(RACE_CRYSTAL_DWARF, 2, 8, 0, 2, 0, 2); /* str con int wis dex cha */
+    set_race_alignments(RACE_CRYSTAL_DWARF, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */  
+    set_race_attack_types(RACE_CRYSTAL_DWARF,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        Y,  N,    N,   N,    N,   N,       N,    N,    N,   N,   N,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    Y,    N,   N,    N,     N,   N,   N,   N,    N,      N,     N);
+    /* feat assignment */
+    /*                   race-num    feat                  lvl stack */
+    feat_race_assignment(RACE_CRYSTAL_DWARF, FEAT_INFRAVISION,                     1,  N);
+    feat_race_assignment(RACE_CRYSTAL_DWARF, FEAT_CRYSTAL_BODY,                    1,  N);
+    feat_race_assignment(RACE_CRYSTAL_DWARF, FEAT_CRYSTAL_FIST,                    1,  N);
+    feat_race_assignment(RACE_CRYSTAL_DWARF, FEAT_VITAL,                           1,  N);
+    feat_race_assignment(RACE_CRYSTAL_DWARF, FEAT_HARDY,                           1,  N);
+    feat_race_assignment(RACE_CRYSTAL_DWARF, FEAT_CRYSTAL_SKIN,                    1,  N);
+    feat_race_assignment(RACE_CRYSTAL_DWARF, FEAT_POISON_RESIST,                   1,  N);
+    feat_race_assignment(RACE_CRYSTAL_DWARF, FEAT_COMBAT_TRAINING_VS_GIANTS,       1,  N);
+    feat_race_assignment(RACE_CRYSTAL_DWARF, FEAT_CRYSTAL_DWARF_RACIAL_ADJUSTMENT, 1,  N);
+    /* affect assignment */
+    /*                  race-num  affect            lvl */
+  /****************************************************************************/
+  /****************************************************************************/
+  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(RACE_TRELUX, "trelux", "Trelux", "\tGTre\tYlux\tn", "Trlx", "\tGTr\tYlx\tn",
+           /* race-family,     size-class,  Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_HUMANOID, SIZE_SMALL,  TRUE,   10,      30000,  IS_EPIC_R);
+    set_race_details(RACE_TRELUX,
+      /*descrip*/"Trelux have a small head with a fused thorax and abdomen. Trelux also have eight "
+        "powerful yet rough and jagged legs for leaping and stamina. Their bodies are beetle- "
+        "like with a hard shell protecting them. This exoskeleton covers their entire body  "
+        "providing ample protection. Their bodies shell contains wings underneath it which  "
+        "can be spread whenever flight is needed. Trelux also have two powerful claws in  "
+        "front of them to cut victims. Both pincers are equipped with a poisonous spur. "
+        "\r\n"
+        "Facts:  \r\n"
+        "*Trelux do NOT like having their antenna touched.  \r\n"
+        "*All Trelux usually have a black thorax/abdomen but a multitude of colors when it "
+        "comes to other parts of their body. \r\n"
+        "*Trelux also can have stripes, spots, or blotches on their body. \r\n"
+        "*Female Trelux usually have brighter colors than males. \r\n"
+        "*Trelux almost always have black eyes but rarely have yellow eyes.",
+      /*morph to-char*/"Your body twists and contorts painfully until your form becomes Trelux.",
+      /*morph to-room*/"$n's body twists and contorts painfully until $s form becomes Trelux.");
+    set_race_genders(RACE_TRELUX, N, Y, Y); /* n m f */
+    set_race_abilities(RACE_TRELUX, 2, 8, 0, 2, 0, 2); /* str con int wis dex cha */
+    set_race_alignments(RACE_TRELUX, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */  
+    set_race_attack_types(RACE_TRELUX,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        N,  N,    N,   N,    Y,   N,       N,    N,    Y,   N,   N,     Y,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    N,    Y,   N,    N,     N,   N,   N,   N,    N,      N,     N);
+    /* feat assignment */
+    /*                   race-num    feat                  lvl stack */
+    feat_race_assignment(RACE_TRELUX, FEAT_ULTRAVISION,        1,  N);
+    feat_race_assignment(RACE_TRELUX, FEAT_VITAL,              1,  N);
+    feat_race_assignment(RACE_TRELUX, FEAT_HARDY,              1,  N);
+    feat_race_assignment(RACE_TRELUX, FEAT_VULNERABLE_TO_COLD, 1,  N);
+    feat_race_assignment(RACE_TRELUX, FEAT_TRELUX_EXOSKELETON, 1,  N);
+    feat_race_assignment(RACE_TRELUX, FEAT_LEAP,               1,  N);
+    feat_race_assignment(RACE_TRELUX, FEAT_WINGS,              1,  N);
+    feat_race_assignment(RACE_TRELUX, FEAT_TRELUX_EQ,          1,  N);
+    feat_race_assignment(RACE_TRELUX, FEAT_TRELUX_PINCERS,     1,  N);
+    /* affect assignment */
+    /*                  race-num  affect            lvl */
+  /****************************************************************************/
+    
   /*
-    add_race(RACE_DROW_ELF, "drow", "Drow", "\tmDrow\tn", "Drow", "\tmDrow\tn",
+  add_race(RACE_DROW_ELF, "drow", "Drow", "\tmDrow\tn", "Drow", "\tmDrow\tn",
            RACE_TYPE_HUMANOID, SIZE_MEDIUM, FALSE, 2);
     //favored_class_female(RACE_DROW_ELF, CLASS_CLERIC);
-  add_race(RACE_CRYSTAL_DWARF, "crystal dwarf", "CrystalDwarf", "Crystal Dwarf", RACE_TYPE_HUMANOID, N, Y, Y, 0, 2, 0, 0, 0, -4,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_WARRIOR, SKILL_LANG_UNDERCOMMON, 1);
   add_race(RACE_ROCK_GNOME, "rock gnome", "RkGnome", "Rock Gnome", RACE_TYPE_HUMANOID, N, Y, Y, -2, 0, 2, 0, 0, 0,
           Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_SMALL, FALSE, CLASS_WIZARD, SKILL_LANG_GNOME, 0);
   add_race(RACE_DEEP_GNOME, "svirfneblin", "Svfnbln", "Svirfneblin", RACE_TYPE_HUMANOID, N, Y, Y, -2, 0, 0, 2, 2, -4,
