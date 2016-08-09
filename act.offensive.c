@@ -1409,7 +1409,6 @@ EVENTFUNC(event_whirlwind) {
 
   if (GET_HIT(ch) < 1) {
     return 0;
-
   }
 
   /* We spit out some ugly colour, making use of the new colour options,
