@@ -366,6 +366,8 @@ bool view_race_feats(struct char_data *ch, char *racename) {
   }
   send_to_char(ch, "\r\n");
   
+  send_to_char(ch, "\tYType: \tRfeat info <feat name>\tY for detailed info about a feat.\r\n");
+  
   return TRUE;
 }
 
