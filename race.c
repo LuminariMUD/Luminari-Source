@@ -58,12 +58,12 @@ void set_race_genders(int race, int neuter, int male, int female) {
 const char *abil_mod_names[NUM_ABILITY_MODS + 1] = {
   /* an unfortunate necessity to make this constant array - we didn't make
      the modifiers same order as the structs.h version */
-  "Strength",
-  "Constitution",
-  "Intelligence",
-  "Wisdom",
-  "Dexterity",
-  "Charisma",
+  "Str",
+  "Con",
+  "Int",
+  "Wis",
+  "Dex",
+  "Cha",
   "\n"
 };
 void set_race_abilities(int race, int str_mod, int con_mod, int int_mod,
@@ -311,7 +311,7 @@ bool display_race_info(struct char_data *ch, char *racename) {
     if (stat_mod != 0) {
       found = TRUE;
       len += snprintf(buf + len, sizeof (buf) - len,
-          "%s %s%d | ",
+          "%s %s%d ",
           abil_mod_names[i], (stat_mod > 0) ? "+" : "", stat_mod);
       
     }
@@ -331,7 +331,7 @@ bool display_race_info(struct char_data *ch, char *racename) {
   draw_line(ch, line_length, '-', '-');
     
   send_to_char(ch, "\tYType: \tRrace feats %s\tY for this race's feat info.\tn\r\n",
-    race_list[race].type_color);
+    race_list[race].type);
   
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
