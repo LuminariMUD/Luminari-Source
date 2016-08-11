@@ -283,7 +283,7 @@ void display_pc_races(struct char_data *ch) {
   }
   
   write_to_output(d, "\r\n\r\n");
-  write_to_output(d, "* - not unlocked 'race prereqs <race name>' for details\r\n");
+  write_to_output(d, "* - not unlocked 'accexp' for details\r\n");
   write_to_output(d, "\r\n");
 }
 
