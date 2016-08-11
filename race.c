@@ -246,8 +246,21 @@ void affect_assignment(int race_num, int affect_num, int level_received) {
 
 /* determines if ch qualifies for a race */
 bool race_is_available(struct char_data *ch, int race_num) {
-  /* unfinished ! */
-  return FALSE;
+  
+  // dumb-dumb check
+  if (race_num < 0 || race_num >= NUM_EXTENDED_RACES)
+    return FALSE;
+
+  // is this race pc (playable) race?
+  if (!race_list[race_num].is_pc)
+    return FALSE;
+    
+  // locked class that has been unlocked yet? 
+  if (!has_unlocked_race(ch, race_num))
+    return FALSE;
+              
+  // made it!
+  return TRUE;
 }
 
 /*****************************/
@@ -269,7 +282,7 @@ void display_pc_races(struct char_data *ch) {
     }
   }
   
-  write_to_output(d, "\r\n");
+  write_to_output(d, "\r\n\r\n");
   write_to_output(d, "* - not unlocked 'race prereqs <race name>' for details\r\n");
   write_to_output(d, "\r\n");
 }
@@ -384,7 +397,7 @@ ACMD(do_race) {
   racename = one_argument(argument, arg);
   one_argument(racename, arg2);
 
-  /* no argument, or general list of classes */
+  /* no argument, or general list of races */
   if (is_abbrev(arg, "list") || !*arg) {
     display_pc_races(ch);
     
