@@ -63,6 +63,7 @@ int compute_gear_armor_type(struct char_data *ch);
 int compute_gear_shield_type(struct char_data *ch);
 
 struct obj_data *is_using_ranged_weapon(struct char_data *ch);
+//bool *is_ranged_weapon(struct obj_data *obj);
 bool is_using_double_weapon(struct char_data *ch);
 bool is_using_light_weapon(struct char_data *ch, struct obj_data *wielded);
 
