@@ -2265,10 +2265,10 @@ ACMD(do_wildshape) {
   USE_STANDARD_ACTION(ch);
 
   /* DEBUG */
-  for (i = 0; i < NUM_ATTACK_TYPES; i++) {
-    send_to_char(ch, "%d ", race_list[GET_DISGUISE_RACE(ch)].attack_types[i]);
-  }  
-  send_to_char(ch, "\r\n");
+  //for (i = 0; i < NUM_ATTACK_TYPES; i++) {
+  //  send_to_char(ch, "%d ", race_list[GET_DISGUISE_RACE(ch)].attack_types[i]);
+  //}  
+  //send_to_char(ch, "\r\n");
   /* END DEBUG */
 
   return;
