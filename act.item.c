@@ -2526,6 +2526,10 @@ ACMD(do_wield) {
   /* need test to make sure we don't wield a 2nd missile weapon */
   else if (is_using_ranged_weapon(ch)) {
     send_to_char(ch, "You are already using a ranged weapon!\r\n");
+  /* wielding a weapon, now trying to dual wield a ranged weapon */
+  } else if ( obj && (GET_EQ(ch, WEAR_WIELD_1) || GET_EQ(ch, WEAR_WIELD_OFFHAND)) &&
+              IS_SET(weapon_list[GET_OBJ_VAL(obj, 0)].weaponFlags, WEAPON_FLAG_RANGED)) {
+    send_to_char(ch, "You can't equip a ranged weapon while already wielding another weapon!\r\n");    
   } else {
     perform_wield(ch, obj, TRUE);
   }
