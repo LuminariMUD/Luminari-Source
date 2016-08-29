@@ -2195,7 +2195,10 @@ ACMD(do_wildshape) {
 
     return;
   }
-
+  /* END wildshape-return */
+  
+  /* BEGIN wildshape! */
+  
   if (!HAS_FEAT(ch, FEAT_WILD_SHAPE) && !HAS_REAL_FEAT(ch, FEAT_WILD_SHAPE)) {
     send_to_char(ch, "You do not have the ability to shapechange using wild shape.\r\n");
     return;
