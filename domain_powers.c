@@ -430,7 +430,7 @@ void perform_auraofprotection(struct char_data *ch) {
   }
 
   if (!IS_NPC(ch))
-    start_daily_use_cooldown(ch, FEAT_DESTRUCTIVE_AURA);
+    start_daily_use_cooldown(ch, FEAT_AURA_OF_PROTECTION);
 }
 
 ACMD(do_auraofprotection) {
