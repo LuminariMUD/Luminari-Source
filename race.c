@@ -96,30 +96,30 @@ void set_race_attack_types(int race, int hit, int sting, int whip, int slash,
         int thrash, int pierce, int blast, int punch, int stab, int slice,
         int thrust, int hack, int rake, int peck, int smash, int trample,
         int charge, int gore) {
-  race_list[race].attack_types[hit] = hit;
-  race_list[race].attack_types[sting] = sting;
-  race_list[race].attack_types[whip] = whip;
-  race_list[race].attack_types[slash] = slash;
-  race_list[race].attack_types[bite] = bite;
-  race_list[race].attack_types[bludgeon] = bludgeon;
-  race_list[race].attack_types[crush] = crush;
-  race_list[race].attack_types[pound] = pound;
-  race_list[race].attack_types[claw] = claw;
-  race_list[race].attack_types[maul] = maul;
-  race_list[race].attack_types[thrash] = thrash;
-  race_list[race].attack_types[pierce] = pierce;
-  race_list[race].attack_types[blast] = blast;
-  race_list[race].attack_types[punch] = punch;
-  race_list[race].attack_types[stab] = stab;
-  race_list[race].attack_types[slice] = slice;
-  race_list[race].attack_types[thrust] = thrust;
-  race_list[race].attack_types[hack] = hack;
-  race_list[race].attack_types[rake] = rake;
-  race_list[race].attack_types[peck] = peck;
-  race_list[race].attack_types[smash] = smash;
-  race_list[race].attack_types[trample] = trample;
-  race_list[race].attack_types[charge] = charge;
-  race_list[race].attack_types[gore] = gore;
+  race_list[race].attack_types[0]  = hit;
+  race_list[race].attack_types[1]  = sting;
+  race_list[race].attack_types[2]  = whip;
+  race_list[race].attack_types[3]  = slash;
+  race_list[race].attack_types[4]  = bite;
+  race_list[race].attack_types[5]  = bludgeon;
+  race_list[race].attack_types[6]  = crush;
+  race_list[race].attack_types[7]  = pound;
+  race_list[race].attack_types[8]  = claw;
+  race_list[race].attack_types[9]  = maul;
+  race_list[race].attack_types[10] = thrash;
+  race_list[race].attack_types[11] = pierce;
+  race_list[race].attack_types[12] = blast;
+  race_list[race].attack_types[13] = punch;
+  race_list[race].attack_types[14] = stab;
+  race_list[race].attack_types[15] = slice;
+  race_list[race].attack_types[16] = thrust;
+  race_list[race].attack_types[17] = hack;
+  race_list[race].attack_types[18] = rake;
+  race_list[race].attack_types[19] = peck;
+  race_list[race].attack_types[20] = smash;
+  race_list[race].attack_types[21] = trample;
+  race_list[race].attack_types[22] = charge;
+  race_list[race].attack_types[23] = gore;
 }
 
 /* function to initialize the whole race list to empty values */
