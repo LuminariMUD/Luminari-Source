@@ -4536,6 +4536,14 @@ int wildshape_weapon_type(struct char_data *ch) {
       }
     }
     
+    /*DEBUG*/
+    send_to_char(ch, "Count: %d | ", count);
+    for (i = 0; i < count; i++) {
+      send_to_char(ch, "%d ", w_type_array[i]);
+    }
+    send_to_char(ch, "\r\n");
+    /*END DEBUG*/
+    
     /* list built, pick random */
     if (count <= 0) /* dummy check */
       weapon_type = TYPE_HIT;
