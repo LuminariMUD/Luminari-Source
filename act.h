@@ -342,6 +342,7 @@ bool is_prompt_empty(struct char_data *ch);
 void set_bonus_attributes(struct char_data *ch, int str, int con, int dex, int ac);
 void list_forms(struct char_data *ch);
 void perform_shapechange(struct char_data *ch, char *arg, int mode);
+void wildshape_return(struct char_data *ch);
 void perform_wildshape(struct char_data *ch, int form_num, int spellnum);
 void perform_perform(struct char_data *ch);
 void perform_call(struct char_data *ch, int call_type, int level);

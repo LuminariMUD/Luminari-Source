@@ -1254,6 +1254,7 @@ void die(struct char_data *ch, struct char_data *killer) {
     if (AFF_FLAGGED(ch, AFF_SPELLBATTLE))
       REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_SPELLBATTLE);
     SPELLBATTLE(ch) = 0;
+    wildshape_return(ch);
   }
 
   /* clear guard */

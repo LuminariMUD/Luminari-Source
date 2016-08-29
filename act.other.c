@@ -2125,6 +2125,33 @@ void assign_wildshape_feats(struct char_data *ch) {
 
 }
 
+/* function for clearing wildshape */
+void wildshape_return(struct char_data *ch) {
+
+  if (!AFF_FLAGGED(ch, AFF_WILD_SHAPE) && !GET_DISGUISE_RACE(ch))
+    return;
+
+  /* cleanup bonuses */
+  affect_from_char(ch, SKILL_WILDSHAPE);
+
+  /* clear mobile feats, this needs to come before resetting disguise-race
+   * because we need to know what race we are cleaning up */
+  cleanup_wildshape_feats(ch);
+
+  /* stat modifications are cleaned up in affect_total() */
+  GET_DISGUISE_RACE(ch) = 0;
+  REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_WILD_SHAPE);
+
+  FIRING(ch) = FALSE; /*just in case*/
+
+  /* affect total, and save */
+  affect_total(ch);
+  save_char(ch, 0);
+  Crash_crashsave(ch);
+
+  return;  
+}
+
 /* wildshape!  druids cup o' tea */
 ACMD(do_wildshape) {
   int i = 0;
@@ -2151,12 +2178,8 @@ ACMD(do_wildshape) {
       return;
     }
 
-    /* cleanup bonuses */
-    affect_from_char(ch, SKILL_WILDSHAPE);
-
-    /* clear mobile feats, this needs to come before resetting disguise-race
-     * because we need to know what race we are cleaning up */
-    cleanup_wildshape_feats(ch);
+    /* do most of the clearing in this function */
+    wildshape_return(ch);
 
     /* messages */
     sprintf(buf, "You change shape into a %s.", race_list[GET_REAL_RACE(ch)].type);
@@ -2164,20 +2187,9 @@ ACMD(do_wildshape) {
     sprintf(buf, "$n changes shape into a %s.", race_list[GET_REAL_RACE(ch)].type);
     act(buf, true, ch, 0, 0, TO_ROOM);
     
-    /* stat modifications are cleaned up in affect_total() */
-    GET_DISGUISE_RACE(ch) = 0;
-    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_WILD_SHAPE);
-
-    FIRING(ch) = FALSE; /*just in case*/
-
     /* a little bit of healing */
     GET_HIT(ch) += GET_LEVEL(ch);
     GET_HIT(ch) = MIN(GET_HIT(ch), GET_MAX_HIT(ch));
-
-    /* affect total, and save */
-    affect_total(ch);
-    save_char(ch, 0);
-    Crash_crashsave(ch);
 
     USE_STANDARD_ACTION(ch);
 
@@ -2221,6 +2233,8 @@ ACMD(do_wildshape) {
   act(buf, true, ch, 0, 0, TO_CHAR);
   sprintf(buf, "$n changes shape into a %s.", race_list[i].name);
   act(buf, true, ch, 0, 0, TO_ROOM);
+    /* */
+  send_to_char(ch, "Type 'wildshape return' to shift back to your normal form.\r\n");
 
   /* we're in the clear, set the wildshape race! */
   SET_BIT_AR(AFF_FLAGS(ch), AFF_WILD_SHAPE);
