@@ -2523,7 +2523,10 @@ ACMD(do_wield) {
     send_to_char(ch, "Wield what?\r\n");
   else if (!(obj = get_obj_in_list_vis(ch, arg, NULL, ch->carrying)))
     send_to_char(ch, "You don't seem to have %s %s.\r\n", AN(arg), arg);
-  else {
+  /* need test to make sure we don't wield a 2nd missile weapon */
+  else if (is_using_ranged_weapon(ch)) {
+    send_to_char(ch, "You are already using a ranged weapon!\r\n");
+  } else {
     perform_wield(ch, obj, TRUE);
   }
 }
