@@ -3645,10 +3645,16 @@ ACMD(do_springleap) {
 
   one_argument(argument, arg);
 
-  if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_SPRING_ATTACK)) {
+  if (IS_NPC(ch)) {
+    send_to_char(ch, "You have no idea how.\r\n");
+    return;    
+  }
+  
+  if (!HAS_FEAT(ch, FEAT_SPRING_ATTACK) && CLASS_LEVEL(ch, CLASS_MONK) < 5) {
     send_to_char(ch, "You have no idea how.\r\n");
     return;
   }
+  
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
     return;
