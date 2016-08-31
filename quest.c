@@ -513,6 +513,20 @@ void quest_hist(struct char_data *ch, char argument[MAX_STRING_LENGTH]) {
   num_arg = atoi(argument);
   num_arg--;
   
+  /* this is a safeguard check */
+  if (num_arg >= MAX_COMPLETED_QUESTS) {
+    send_to_char(ch, "You have exceeded the maximum amount of completed quests.\r\n");
+    log("ERROR: num_arg [%d] in quest_hist() is over MAX_COMPLETED_QUESTS [%d]",
+            num_arg, MAX_COMPLETED_QUESTS);
+    return;
+  }
+  /* this is a safeguard check */
+  if (num_arg < 0) {
+    send_to_char(ch, "Invalid argument!\r\n");
+    log("ERROR: num_arg [%d] in quest_hist() is less than zero", num_arg);
+    return;   
+  }
+  
   /* argument equal to number in history */
   if ((rnum = real_quest(ch->player_specials->saved.completed_quests[num_arg])) != NOTHING) {
 
