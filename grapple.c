@@ -381,9 +381,9 @@ ACMD(do_pin) {
     set_pin(ch, vict);
   } else {
     /* failure! */
-    act("\tyYou fail to pin $N!\tn", FALSE, ch, NULL, vict, TO_CHAR);
+    act("\tyYou fail to pin $N!\tn",                    FALSE, ch, NULL, vict, TO_CHAR);
     act("\tyYou deftly avoid a pin attempt from $n\tn", FALSE, ch, NULL, vict, TO_VICT);
-    act("\ty$n fails to pin $N!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);
+    act("\ty$n fails to pin $N!\tn",                    FALSE, ch, NULL, vict, TO_NOTVICT);
   }
   USE_STANDARD_ACTION(ch);
 

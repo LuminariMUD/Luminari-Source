@@ -1694,7 +1694,7 @@ const char *item_types[NUM_ITEM_TYPES + 1] = {
   "Boat",
   "Fountain",
   "Clan-Armor",
-  "Crystal",  //25
+  "Crafting Crystal",  //25
   "Essence",
   "Crafting Material",
   "Spellbook",
