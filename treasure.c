@@ -25,6 +25,15 @@
 
 /***  utility functions ***/
 
+/* this function is used to inform ch and surrounding of a treasure drop */
+void say_treasure(struct char_data *ch, struct obj_data *obj) {
+  char buf[MAX_STRING_LENGTH] = {'\0'};
+
+  send_to_char(ch, "\tYYou have found %s in a nearby lair (random treasure drop)!\tn\r\n", obj->short_description);
+  sprintf(buf, "$n \tYhas found %s in a nearby lair (random treasure drop)!\tn", obj->short_description);
+  act(buf, FALSE, ch, 0, ch, TO_NOTVICT);  
+}
+
 /* some spells are not appropriate for expendable items, this simple
  function returns TRUE if the spell is OK, FALSE if not */
 bool valid_item_spell(int spellnum) {
@@ -892,9 +901,8 @@ void award_expendable_item(struct char_data *ch, int grade, int type) {
 
   obj_to_char(obj, ch);
 
-  send_to_char(ch, "\tYYou have found %s in a nearby lair!\tn\r\n", obj->short_description);
-  sprintf(buf, "$n \tYhas found %s in a nearby lair!\tn", obj->short_description);
-  act(buf, FALSE, ch, 0, ch, TO_NOTVICT);
+  /* inform ch and surrounding that they received this item */
+  say_treasure(ch, obj);
 }
 
 /* this is a very simplified version of this function, the original version was
@@ -906,7 +914,6 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
         int rare_grade, int level, int cp_type) {
   int bonus_value = 0, bonus_location = APPLY_NONE;
   bool has_enhancement = FALSE;
-  char buf[MAX_STRING_LENGTH] = {'\0'};
 
   level = (rand_number(level/2, level)); /* this is as random as it gets right now */
   bonus_value = level / 5; if (bonus_value <= 0) bonus_value = 1;
@@ -968,10 +975,10 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
 
   obj_to_char(obj, ch); // deliver object
 
-  send_to_char(ch, "\tYYou have found %s in a nearby lair!\tn\r\n", obj->short_description);
-  sprintf(buf, "$n \tYhas found %s in a nearby lair!\tn", obj->short_description);
-  act(buf, FALSE, ch, 0, ch, TO_NOTVICT);
+  /* inform ch and surrounding that they received this item */
+  say_treasure(ch, obj);
 }
+
 /* this is ornir's original version, taken out until he has time to finish it */
 /* Here is where the significant changes start (cp = Creation Points) - Ornir */
 /*void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
@@ -1099,9 +1106,8 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
 
   obj_to_char(obj, ch); // deliver object
 
-  send_to_char(ch, "\tYYou have found %s in a nearby lair!\tn\r\n", obj->short_description);
-  sprintf(buf, "$n \tYhas found %s in a nearby lair!\tn", obj->short_description);
-  act(buf, FALSE, ch, 0, ch, TO_NOTVICT);
+  //inform ch and surrounding that they received this item
+  say_treasure(ch, obj);
 }
 */
 
