@@ -6420,7 +6420,7 @@ SPECIAL(bought_pet) {
     char_to_room(pet, obj->carried_by->in_room);
     add_follower(pet, obj->carried_by);
     SET_BIT_AR(AFF_FLAGS(pet), AFF_CHARM);
-    GET_MAX_MOVE(pet) = 150 + dice(GET_LEVEL(pet), 5);
+    GET_MAX_MOVE(pet) = 250 + dice(GET_LEVEL(pet), 10);
     GET_MOVE(pet) = GET_MAX_MOVE(pet);
 
     extract_obj(obj);
