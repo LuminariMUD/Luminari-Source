@@ -6399,7 +6399,8 @@ SPECIAL(angel_leggings) {
   return 0;
 }
 
-/* from homeland */
+/* from homeland, converts an object type PET into an actual
+ * pet mobile follower */
 SPECIAL(bought_pet) {
   struct char_data *pet;
 
