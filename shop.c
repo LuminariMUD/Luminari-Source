@@ -32,9 +32,6 @@
 #include "mudlim.h"
 #include "item.h"
 
-/* spec proc for buying pets (object converts to mobile) */
-SPECIAL(bought_pet);
-
 /* Global variables definitions used externally */
 /* Constant list for printing out who we sell to */
 const char *trade_letters[] = {
@@ -594,8 +591,7 @@ static int sell_price(struct obj_data *obj, int shop_nr, struct char_data *keepe
   return sellPrice;
 }
 
-static void shopping_buy(char *arg, struct char_data *ch, struct char_data *keeper, int shop_nr)
-{
+static void shopping_buy(char *arg, struct char_data *ch, struct char_data *keeper, int shop_nr) {
   char tempstr[MAX_INPUT_LENGTH], tempbuf[MAX_INPUT_LENGTH];
   struct obj_data *obj, *last_obj = NULL;
   int goldamt = 0, buynum, bought = 0;
@@ -609,15 +605,15 @@ static void shopping_buy(char *arg, struct char_data *ch, struct char_data *keep
   if ((buynum = transaction_amt(arg)) < 0) {
     char buf[MAX_INPUT_LENGTH];
 
-    snprintf(buf, sizeof(buf), "%s A negative amount?  Try selling me something.",
-	    GET_NAME(ch));
+    snprintf(buf, sizeof (buf), "%s A negative amount?  Try selling me something.",
+            GET_NAME(ch));
     do_tell(keeper, buf, cmd_tell, 0);
     return;
   }
   if (!*arg || !buynum) {
     char buf[MAX_INPUT_LENGTH];
 
-    snprintf(buf, sizeof(buf), "%s What do you want to buy??", GET_NAME(ch));
+    snprintf(buf, sizeof (buf), "%s What do you want to buy??", GET_NAME(ch));
     do_tell(keeper, buf, cmd_tell, 0);
     return;
   }
@@ -627,49 +623,49 @@ static void shopping_buy(char *arg, struct char_data *ch, struct char_data *keep
   if (OBJ_FLAGGED(obj, ITEM_QUEST)) {
     if (GET_OBJ_COST(obj) > GET_QUESTPOINTS(ch) && !IS_STAFF(ch)) {
       char actbuf[MAX_INPUT_LENGTH];
-      snprintf(actbuf, sizeof(actbuf),
-        "%s You haven't earned enough quest points for such an item.",
-        GET_NAME(ch));
+      snprintf(actbuf, sizeof (actbuf),
+              "%s You haven't earned enough quest points for such an item.",
+              GET_NAME(ch));
       do_tell(keeper, actbuf, cmd_tell, 0);
       return;
     }
   } else { /*has the player got enough gold? */
-  if (buy_price(obj, shop_nr, keeper, ch) > GET_GOLD(ch) && !IS_STAFF(ch)) {
-    char actbuf[MAX_INPUT_LENGTH];
+    if (buy_price(obj, shop_nr, keeper, ch) > GET_GOLD(ch) && !IS_STAFF(ch)) {
+      char actbuf[MAX_INPUT_LENGTH];
 
-    snprintf(actbuf, sizeof(actbuf), shop_index[shop_nr].missing_cash2, GET_NAME(ch));
-    do_tell(keeper, actbuf, cmd_tell, 0);
+      snprintf(actbuf, sizeof (actbuf), shop_index[shop_nr].missing_cash2, GET_NAME(ch));
+      do_tell(keeper, actbuf, cmd_tell, 0);
 
-    switch (SHOP_BROKE_TEMPER(shop_nr)) {
-    case 0:
-      do_action(keeper, strcpy(actbuf, GET_NAME(ch)), cmd_shake, 0);	/* strcpy: OK (MAX_NAME_LENGTH < MAX_INPUT_LENGTH) */
-      return;
-    case 1:
-      do_echo(keeper, strcpy(actbuf, "smokes on his joint."), cmd_emote, SCMD_EMOTE);	/* strcpy: OK */
-      return;
-    default:
-      return;
+      switch (SHOP_BROKE_TEMPER(shop_nr)) {
+        case 0:
+          do_action(keeper, strcpy(actbuf, GET_NAME(ch)), cmd_shake, 0); /* strcpy: OK (MAX_NAME_LENGTH < MAX_INPUT_LENGTH) */
+          return;
+        case 1:
+          do_echo(keeper, strcpy(actbuf, "smokes on his joint."), cmd_emote, SCMD_EMOTE); /* strcpy: OK */
+          return;
+        default:
+          return;
+      }
     }
-  }
   }
 
   if (IS_NPC(ch) || (!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_NOHASSLE))) {
-	if (IS_CARRYING_N(ch) + 1 > CAN_CARRY_N(ch)) {
+    if (IS_CARRYING_N(ch) + 1 > CAN_CARRY_N(ch)) {
       send_to_char(ch, "%s: You can't carry any more items.\r\n", fname(obj->name));
-	  return;
+      return;
     }
     if (IS_CARRYING_W(ch) + GET_OBJ_WEIGHT(obj) > CAN_CARRY_W(ch)) {
-	  send_to_char(ch, "%s: You can't carry that much weight.\r\n", fname(obj->name));
+      send_to_char(ch, "%s: You can't carry that much weight.\r\n", fname(obj->name));
       return;
-	}
+    }
   }
 
   if (OBJ_FLAGGED(obj, ITEM_QUEST)) {
     while (obj &&
-           (GET_QUESTPOINTS(ch) >= GET_OBJ_COST(obj) || IS_STAFF(ch))
-    && IS_CARRYING_N(ch) < CAN_CARRY_N(ch)
-    && bought < buynum
-    && IS_CARRYING_W(ch) + GET_OBJ_WEIGHT(obj) <= CAN_CARRY_W(ch)) {
+            (GET_QUESTPOINTS(ch) >= GET_OBJ_COST(obj) || IS_STAFF(ch))
+            && IS_CARRYING_N(ch) < CAN_CARRY_N(ch)
+            && bought < buynum
+            && IS_CARRYING_W(ch) + GET_OBJ_WEIGHT(obj) <= CAN_CARRY_W(ch)) {
       bought++;
       /* Test if producing shop ! */
       if (shop_producing(obj, shop_nr)) {
@@ -683,12 +679,12 @@ static void shopping_buy(char *arg, struct char_data *ch, struct char_data *keep
       goldamt += GET_OBJ_COST(obj);
       if (!IS_STAFF(ch))
         GET_QUESTPOINTS(ch) -= GET_OBJ_COST(obj);
-      
+
       /* this is the homeland pet code, it basically converts
          an object to a living mobile upon purchase */
-      if (GET_OBJ_TYPE(obj) == ITEM_PET) { 
+      if (GET_OBJ_TYPE(obj) == ITEM_PET) {
         bought_pet(ch, obj, 0, "");
-	   return;
+        return;
       }
 
       last_obj = obj;
@@ -697,50 +693,57 @@ static void shopping_buy(char *arg, struct char_data *ch, struct char_data *keep
         break;
     }
   } else {
-  while (obj && (GET_GOLD(ch) >= buy_price(obj, shop_nr, keeper, ch) || IS_STAFF(ch))
-	 && IS_CARRYING_N(ch) < CAN_CARRY_N(ch) && bought < buynum
-	 && IS_CARRYING_W(ch) + GET_OBJ_WEIGHT(obj) <= CAN_CARRY_W(ch)) {
-    int charged;
+    while (obj && (GET_GOLD(ch) >= buy_price(obj, shop_nr, keeper, ch) || IS_STAFF(ch))
+            && IS_CARRYING_N(ch) < CAN_CARRY_N(ch) && bought < buynum
+            && IS_CARRYING_W(ch) + GET_OBJ_WEIGHT(obj) <= CAN_CARRY_W(ch)) {
+      int charged;
 
-    bought++;
-    /* Test if producing shop ! */
-    if (shop_producing(obj, shop_nr))
-      obj = read_object(GET_OBJ_RNUM(obj), REAL);
-    else {
-      obj_from_char(obj);
-      SHOP_SORT(shop_nr)--;
+      bought++;
+      /* Test if producing shop ! */
+      if (shop_producing(obj, shop_nr))
+        obj = read_object(GET_OBJ_RNUM(obj), REAL);
+      else {
+        obj_from_char(obj);
+        SHOP_SORT(shop_nr)--;
+      }
+      obj_to_char(obj, ch);
+
+      charged = buy_price(obj, shop_nr, keeper, ch);
+      goldamt += charged;
+      if (!IS_STAFF(ch))
+        decrease_gold(ch, charged);
+
+      /* this is the homeland pet code, it basically converts
+         an object to a living mobile upon purchase */
+      if (GET_OBJ_TYPE(obj) == ITEM_PET) {
+        bought_pet(ch, obj, 0, "");
+        return;
+      }      
+      
+      last_obj = obj;
+      obj = get_purchase_obj(ch, arg, keeper, shop_nr, FALSE);
+      if (!same_obj(obj, last_obj))
+        break;
     }
-    obj_to_char(obj, ch);
-
-    charged = buy_price(obj, shop_nr, keeper, ch);
-    goldamt += charged;
-    if (!IS_STAFF(ch))
-      decrease_gold(ch, charged);
-
-    last_obj = obj;
-    obj = get_purchase_obj(ch, arg, keeper, shop_nr, FALSE);
-    if (!same_obj(obj, last_obj))
-      break;
-  }
   }
   if (bought < buynum) {
     char buf[MAX_INPUT_LENGTH];
 
     if (!obj || !same_obj(last_obj, obj))
-      snprintf(buf, sizeof(buf), "%s I only have %d to sell you.", GET_NAME(ch), bought);
+      snprintf(buf, sizeof (buf), "%s I only have %d to sell you.", GET_NAME(ch), bought);
     else if (!OBJ_FLAGGED(obj, ITEM_QUEST) &&
-      GET_GOLD(ch) < buy_price(obj, shop_nr, keeper, ch))
-      snprintf(buf, sizeof(buf), "%s You can only afford %d.", GET_NAME(ch), bought);
+            GET_GOLD(ch) < buy_price(obj, shop_nr, keeper, ch))
+      snprintf(buf, sizeof (buf), "%s You can only afford %d.", GET_NAME(ch), bought);
     else if (OBJ_FLAGGED(obj, ITEM_QUEST) &&
-      GET_QUESTPOINTS(ch) < GET_OBJ_COST(obj))
-      snprintf(buf, sizeof(buf), "%s You only had sufficient quest points for %d.",
-        GET_NAME(ch), bought);
+            GET_QUESTPOINTS(ch) < GET_OBJ_COST(obj))
+      snprintf(buf, sizeof (buf), "%s You only had sufficient quest points for %d.",
+            GET_NAME(ch), bought);
     else if (IS_CARRYING_N(ch) >= CAN_CARRY_N(ch))
-      snprintf(buf, sizeof(buf), "%s You can only hold %d.", GET_NAME(ch), bought);
+      snprintf(buf, sizeof (buf), "%s You can only hold %d.", GET_NAME(ch), bought);
     else if (IS_CARRYING_W(ch) + GET_OBJ_WEIGHT(obj) > CAN_CARRY_W(ch))
-      snprintf(buf, sizeof(buf), "%s You can only carry %d.", GET_NAME(ch), bought);
+      snprintf(buf, sizeof (buf), "%s You can only carry %d.", GET_NAME(ch), bought);
     else
-      snprintf(buf, sizeof(buf), "%s Something screwy only gave you %d.", GET_NAME(ch), bought);
+      snprintf(buf, sizeof (buf), "%s Something screwy only gave you %d.", GET_NAME(ch), bought);
     do_tell(keeper, buf, cmd_tell, 0);
   }
   if (!IS_STAFF(ch) && obj && !OBJ_FLAGGED(obj, ITEM_QUEST)) {
@@ -751,15 +754,15 @@ static void shopping_buy(char *arg, struct char_data *ch, struct char_data *keep
         GET_GOLD(keeper) = MAX_OUTSIDE_BANK;
       }
   }
-  strlcpy(tempstr, times_message(ch->carrying, 0, bought), sizeof(tempstr));
+  strlcpy(tempstr, times_message(ch->carrying, 0, bought), sizeof (tempstr));
 
-  snprintf(tempbuf, sizeof(tempbuf), "$n buys %s.", tempstr);
+  snprintf(tempbuf, sizeof (tempbuf), "$n buys %s.", tempstr);
   act(tempbuf, FALSE, ch, obj, 0, TO_ROOM);
 
   if (obj && OBJ_FLAGGED(obj, ITEM_QUEST))
-    snprintf(tempbuf, sizeof(tempbuf), "%s That has cost you %d quest points.", GET_NAME(ch), goldamt);
+    snprintf(tempbuf, sizeof (tempbuf), "%s That has cost you %d quest points.", GET_NAME(ch), goldamt);
   else
-    snprintf(tempbuf, sizeof(tempbuf), shop_index[shop_nr].message_buy, GET_NAME(ch), goldamt);
+    snprintf(tempbuf, sizeof (tempbuf), shop_index[shop_nr].message_buy, GET_NAME(ch), goldamt);
 
   do_tell(keeper, tempbuf, cmd_tell, 0);
 
