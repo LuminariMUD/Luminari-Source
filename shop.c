@@ -32,6 +32,9 @@
 #include "mudlim.h"
 #include "item.h"
 
+/* spec proc for buying pets (object converts to mobile) */
+SPECIAL(bought_pet);
+
 /* Global variables definitions used externally */
 /* Constant list for printing out who we sell to */
 const char *trade_letters[] = {
@@ -680,6 +683,13 @@ static void shopping_buy(char *arg, struct char_data *ch, struct char_data *keep
       goldamt += GET_OBJ_COST(obj);
       if (!IS_STAFF(ch))
         GET_QUESTPOINTS(ch) -= GET_OBJ_COST(obj);
+      
+      /* this is the homeland pet code, it basically converts
+         an object to a living mobile upon purchase */
+      if (GET_OBJ_TYPE(obj) == ITEM_PET) { 
+        bought_pet(ch, obj, 0, "");
+	   return;
+      }
 
       last_obj = obj;
       obj = get_purchase_obj(ch, arg, keeper, shop_nr, FALSE);

@@ -1932,8 +1932,8 @@ void assign_feats(void) {
   feato(FEAT_SHRUG_DAMAGE, "shrug damage", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
     "Shrug off damage, grants damage reduction",
     "Your extensive training and violent lifestyle allow you to shrug off a "
-      "portion of incoming damage.  This ability grants you DR 1/- for every 3"
-      "berserker levels, starting at level 4.");
+      "portion of incoming damage.  This ability grants you DR 1/- for every point"
+      "invested in this feat.");
   feato(FEAT_RAGE, "rage", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
     "+4 bonus to con, str, and will for several rounds",
     "+4 bonus to constitution, strength and will-saves, but 2 penalty to AC, for "

@@ -1579,9 +1579,10 @@
 #define ITEM_BLOCKER     43  // stops movement in direction X
 #define ITEM_WAGON       44  // used for carrying resources for trade
 #define ITEM_RESOURCE    45  // used for trade with wagon
+#define ITEM_PET         46  /* object will convert into a mobile follower upon purchase */
 /**/
 /** Total number of item types.*/
-#define NUM_ITEM_TYPES   46
+#define NUM_ITEM_TYPES   47
 
 /* homeland-port */
 /*  note:  swapped free1 (7) with fireweapon

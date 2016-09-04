@@ -1875,11 +1875,11 @@ void printMemory(struct char_data *ch, int class) {
 
   switch (class) {
     case CLASS_SORCERER:
-      send_to_char(ch, "\tDCommands: '\tYstudy sorcerer\tD' to adjust known spells.\tn\r\n"
+      send_to_char(ch, "\tDCommands: '\tYstudy sorcerer\tD' to adjust known spells.  '\tYspells sorcerer\tD' to see your known spells list.\tn\r\n"
               "\tDRest, then type '\tYmeditate\tD' to recover spell slots.\tn\r\n");
       break;
     case CLASS_BARD:
-      send_to_char(ch, "\tDCommands: '\tYstudy bard\tD' to adjust known spells.\tn\r\n"
+      send_to_char(ch, "\tDCommands: '\tYstudy bard\tD' to adjust known spells.  '\tYspells bard\tD' to see your known spells list.\tn\r\n"
               "\tDRest, then type '\tYcompose\tD' to recover spell slots.\tn\r\n");
       break;
     case CLASS_DRUID:

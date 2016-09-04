@@ -1716,6 +1716,7 @@ const char *item_types[NUM_ITEM_TYPES + 1] = {
   "Blocker",
   "Wagon",
   "Resources",  //45
+  "Pet",  //46
   "\n"
 };
 
