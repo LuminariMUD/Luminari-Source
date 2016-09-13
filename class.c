@@ -4424,7 +4424,7 @@ void load_class_list(void) {
     /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
       CA,        CC,     CA,        CA,  CC,        CC,            CC,
     /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
-      CC,      CC,        CC,           CA,  CA,  CC,   CC,             CA,
+      CC,      CC,        CA,           CA,  CA,  CC,   CC,             CA,
     /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
       CC,       CC,            CC,      CA,           CC,           CA,
     /*survival,swim,use_magic_device,perform*/

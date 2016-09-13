@@ -2199,11 +2199,11 @@ void assign_feats(void) {
   /*9*/feato(FEAT_NO_RETREAT, "no retreat", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "allows you to gain an AoO against retreating opponents",
     "allows you to gain an attack of opportunity against retreating opponents");
-  /*10*/feato(FEAT_CRIPPLING_CRITICAL, "crippling critical", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+  /*10*/feato(FEAT_CRIPPLING_CRITICAL, "crippling critical", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "allows your criticals to have progressive effects",
-    "allows your criticals to have random additional effects");
-      /* crippling critical: light armor and free hand: 1d4 str/dex damage,
-       * 4 penalty to saves, 4 penalty to AC, 2d6 bleed damage, drain moves */
+    "Your criticals will stack progressive negative effects on your opponent: 1d4"
+                " strength damage, 1d4 dexterity damage, -4 penalty to each save, "
+                "-4 penalty to AC, then finally doing 2d4 bleed and movement damage.");
         
   /* Blackguard */   /* knight of the skull (dragonlance) */
   feato(FEAT_SMITE_GOOD, "smite good", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
