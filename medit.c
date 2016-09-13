@@ -1996,6 +1996,7 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned) {
       armor_class -= 40;
       break;
     case CLASS_RANGER:
+    case CLASS_DUELIST:
       (mob)->aff_abils.str += bonus;
       (mob)->aff_abils.dex += bonus;
       armor_class -= 50;

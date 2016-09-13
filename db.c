@@ -4323,6 +4323,7 @@ void reset_char(struct char_data *ch) {
   ch->char_specials.carry_items = 0;
   ch->char_specials.totalDefense = 0;
   ch->char_specials.mounted_blocks_left = 0;
+  ch->char_specials.deflect_arrows_left = 0;
   ch->char_specials.riding = NULL;
   ch->char_specials.ridden_by = NULL;
   for (i = 0; i < NUM_CASTERS; i++)
@@ -4532,6 +4533,7 @@ void init_char(struct char_data *ch) {
   TIMER(ch) = 0;
   TOTAL_DEFENSE(ch) = 0;
   MOUNTED_BLOCKS_LEFT(ch) = 0;
+  DEFLECT_ARROWS_LEFT(ch) = 0;
   GET_WIMP_LEV(ch) = 0;
   GET_FREEZE_LEV(ch) = 0;
   GET_INVIS_LEV(ch) = 0;

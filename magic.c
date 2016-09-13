@@ -314,6 +314,9 @@ void alt_wear_off_msg(struct char_data *ch, int skillnum) {
     case SKILL_CRIP_STRIKE:
       send_to_char(ch, "You have recovered from the crippling strike...\r\n");
       break;
+    case SKILL_CRIPPLING_CRITICAL:
+      send_to_char(ch, "You have recovered from the crippling critical...\r\n");
+      break;
     case SKILL_WILDSHAPE:
       send_to_char(ch, "You are unable to maintain your wildshape and "
               "transform back to your normal form...\r\n");

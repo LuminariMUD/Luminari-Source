@@ -1301,6 +1301,8 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k) {
     send_to_char(ch, "Vanish Cooldown - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eRAGE)))
     send_to_char(ch, "Rage Cooldown - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eCRIPPLING_CRITICAL)))
+    send_to_char(ch, "Crippling Critical Cooldown - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eDEFENSIVE_STANCE)))
     send_to_char(ch, "Defensive Stance Cooldown - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eCRYSTALFIST)))

@@ -329,6 +329,7 @@ const char *class_names[NUM_CLASSES + 1] = {
   "Arcane Archer",
   "Stalwart Defender",
   "Shifter",
+  "Duelist",
   "\n"  
 };
 
@@ -1279,6 +1280,7 @@ const char *affected_bits[NUM_AFF_FLAGS + 1] =
   "Acrobatic",
   "Blinking",
   "Aware",
+  "Crippled by Critical",
   "\n"
 };
 
@@ -1392,6 +1394,7 @@ const char *affected_bit_descs[NUM_AFF_FLAGS + 1] =
   "You feel more acrobatic!",
   "You are blinking between prime and ethereal planes!", //100
   "You are aware of backstab attempts now!",
+  "You have been crippled by a nasty critical attack!",
   "\n"
 };
 

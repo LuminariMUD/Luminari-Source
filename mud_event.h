@@ -118,6 +118,7 @@ typedef enum {
   eLAST_WORD, //  stalwart defender's 'last word' cooldown
   /*90*/eSMASH_DEFENSE, //  stalwart defender's 'last word' cooldown          
   eDEFENSIVE_STANCE, //  defensive stance skill cooldown
+  eCRIPPLING_CRITICAL, /* duelist cirppling critical */
 } event_id;
 
 /* probably a smart place to mention to not forget to update:
@@ -154,6 +155,7 @@ void clear_char_event_list(struct char_data *ch);
 void clear_room_event_list(struct room_data *rm);
 void clear_region_event_list(struct region_data *reg);
 void change_event_duration(struct char_data *ch, event_id iId, long time);
+void change_event_svariables(struct char_data * ch, event_id iId, char *sVariables);
 void event_cancel_specific(struct char_data *ch, event_id iId);
 
 #define HAS_WAIT(ch)            char_has_mud_event(ch, eWAIT)

@@ -117,6 +117,7 @@ struct mud_event_list mud_event_index[] = {
   { "Last Word", event_countdown, EVENT_CHAR}, // eLAST_WORD
   /*90*/{ "Smash Defense", event_countdown, EVENT_CHAR}, // eSMASH_DEFENSE
   { "Defensive Stance", event_daily_use_cooldown, EVENT_CHAR}, //eDEFENSIVE_STANCE
+  { "Crippled by Critical", event_countdown, EVENT_CHAR}, //eCRIPPLING_CRITICAL
 };
 
 /* init_events() is the ideal function for starting global events. This
@@ -289,6 +290,9 @@ EVENTFUNC(event_countdown) {
       break;
     case eTAUNTED:
       send_to_char(ch, "You feel the effects of the taunt wear off.\r\n");
+      break;
+    case eCRIPPLING_CRITICAL:
+      send_to_char(ch, "You feel the effects of the crippling critical wear off.\r\n");
       break;
     case eINTIMIDATED:
       send_to_char(ch, "You feel the effects of the intimidation wear off.\r\n");
@@ -965,3 +969,39 @@ void change_event_duration(struct char_data * ch, event_id iId, long time) {
   }
 
 }
+
+/* zusuk: change an event's svariables value */
+void change_event_svariables(struct char_data * ch, event_id iId, char *sVariables) {
+  struct event *pEvent = NULL;
+  struct mud_event_data *pMudEvent = NULL;
+  bool found = FALSE;
+  long time = 0;
+
+  if (ch->events->iSize == 0)
+    return;
+
+  simple_list(NULL);
+  while ((pEvent = (struct event *) simple_list(ch->events)) != NULL) {
+
+    if (!pEvent->isMudEvent)
+      continue;
+
+    pMudEvent = (struct mud_event_data *) pEvent->event_obj;
+
+    if (pMudEvent->iId == iId) {
+      time = event_time(pMudEvent->pEvent);
+      found = TRUE;
+      break;
+    }
+  }
+  simple_list(NULL);
+
+  if (found) {
+    /* So we found the offending event, now build a new one, with the new time */
+    attach_mud_event(new_mud_event(iId, pMudEvent->pStruct, sVariables), time);
+    if (event_is_queued(pEvent))
+      event_cancel(pEvent);
+  }
+
+}
+

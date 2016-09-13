@@ -1094,6 +1094,12 @@ void increase_skill(struct char_data *ch, int skillnum) {
         GET_SKILL(ch, skillnum)++;
       }
       break;
+    case SKILL_CRIPPLING_CRITICAL:
+      if (!use) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
     case SKILL_RAGE:
       if (!use) {
         notched = TRUE;
