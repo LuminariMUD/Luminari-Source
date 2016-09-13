@@ -2965,6 +2965,7 @@ void mag_assign_spells(void) {
   skillo(SKILL_AURA_OF_PROTECTION, "protection aura", ACTIVE_SKILL); //537
   skillo(SKILL_DEATH_ARROW, "arrow of death", ACTIVE_SKILL); //538
   skillo(SKILL_DEFENSIVE_STANCE, "defensive stance", ACTIVE_SKILL); //539
+  skillo(SKILL_CRIPPLING_CRITICAL, "crippling critical", PASSIVE_SKILL); //540
   /* songs */
   skillo(SKILL_SONG_OF_FOCUSED_MIND, "song of focused mind", ACTIVE_SKILL); //588
   skillo(SKILL_SONG_OF_FEAR, "song of fear", ACTIVE_SKILL); //589

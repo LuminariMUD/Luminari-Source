@@ -3071,6 +3071,7 @@ struct set_struct {
   { "arcanearcher", LVL_STAFF, PC, NUMBER}, /* 82 */
   { "stalwartdefender", LVL_STAFF, PC, NUMBER}, /* 83 */
   { "shifter", LVL_STAFF, PC, NUMBER}, /* 84 */
+  { "duelist", LVL_STAFF, PC, NUMBER}, /* 85 */
 
   { "\n", 0, BOTH, MISC}
 };
@@ -3091,6 +3092,7 @@ CLASS_WEAPON_MASTER
 CLASS_ARCANE_ARCHER
  * CLASS_STALWART_DEFENDER
  * CLASS_SHIFTER
+ * CLASS_DUELIST
  */
 
 static int perform_set(struct char_data *ch, struct char_data *vict, int mode, char *val_arg) {
@@ -3623,6 +3625,10 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       break;
     case 84: // shifter level
       CLASS_LEVEL(vict, CLASS_SHIFTER) = RANGE(0, LVL_IMMORT - 1);
+      affect_total(vict);
+      break;
+    case 85: // duelist
+      CLASS_LEVEL(vict, CLASS_DUELIST) = RANGE(0, LVL_IMMORT - 1);
       affect_total(vict);
       break;
     default:
@@ -5975,6 +5981,7 @@ int get_eq_score(obj_rnum a) {
         case AFF_SLEEP:
         case AFF_DAZED:
         case AFF_FLAT_FOOTED:
+        case AFF_CRIPPLING_CRITICAL:
           score -= 150;
           break;
 

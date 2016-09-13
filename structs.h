@@ -325,10 +325,11 @@
 #define CLASS_STALWART_DEFENDER 13
 #define CLASS_STALWARTDEFENDER CLASS_STALWART_DEFENDER
 #define CLASS_SHIFTER           14
+#define CLASS_DUELIST           15
 /* !!!---- CRITICAL ----!!! make sure to add class names to constants.c's
    class_names[] - we are dependent on that for loading the feat-list */
 /** Total number of available PC Classes */
-#define NUM_CLASSES             15
+#define NUM_CLASSES             16
 
 // related to pc (classes, etc)
 /* note that max_classes was established to reign in some of the
@@ -852,8 +853,9 @@
                                    spell, possible expansion to follow */
 #define AFF_BLINKING         100 /* in a state of blinking between prime/eth */
 #define AFF_AWARE            101 /* aware - too aware to be backstabed */
+#define AFF_CRIPPLING_CRITICAL 102 /* duelist crippling critical affection */
 /*---*/
-#define NUM_AFF_FLAGS        102
+#define NUM_AFF_FLAGS        103
 /********************************/
 /* add aff_ flag?  don't forget to add to:
    1)  places in code the affect will directly modify values
@@ -2849,6 +2851,7 @@ struct char_special_data {
   struct char_data *guarding;  //target for 'guard' ability
   bool firing;  //is char firing missile weapon?
   int mounted_blocks_left; // how many mounted combat blocks left in the round
+  int deflect_arrows_left; // 
 
   /* Mode Data */
   int mode_value; /* Bonus/penalty for power attack and combat expertise. */

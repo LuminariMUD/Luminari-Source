@@ -909,6 +909,7 @@ do                                                              \
 #define GET_STONESKIN(ch)	((ch)->char_specials.saved.warding[STONESKIN])
 #define TOTAL_DEFENSE(ch)		((ch)->char_specials.totalDefense)
 #define MOUNTED_BLOCKS_LEFT(ch)		((ch)->char_specials.mounted_blocks_left)
+#define DEFLECT_ARROWS_LEFT(ch)		((ch)->char_specials.deflect_arrows_left)
 #define GET_SALVATION_NAME(ch)  CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->salvation_name))
 #define GET_SALVATION_ROOM(ch)  CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->salvation_room))
 
@@ -1161,6 +1162,9 @@ spellnum == SPELL_EPIC_WARDING )
 
 /** Get obj worn in position i on ch. */
 #define GET_EQ(ch, i)		((ch)->equipment[i])
+
+/* Free hand, means you can't have a shield, 2h weapon or dual wielding */
+#define HAS_FREE_HAND(ch)  (!GET_EQ(ch, WEAR_SHIELD) && !GET_EQ(ch, WEAR_WIELD_2H) && !GET_EQ(ch, WEAR_WIELD_OFFHAND))
 
 /* ranged-combat:  missiles */
 #define MISSILE_ID(obj)          ((obj)->missile_id)
@@ -1651,6 +1655,7 @@ spellnum == SPELL_EPIC_WARDING )
 #define IS_WARRIOR(ch)		(CLASS_LEVEL(ch, CLASS_WARRIOR))
 #define IS_WEAPONMASTER(ch)		(CLASS_LEVEL(ch, CLASS_WEAPON_MASTER))
 #define IS_STALWARTDEFENDER(ch)		(CLASS_LEVEL(ch, CLASS_STALWART_DEFENDER))
+#define IS_DUELIST(ch)		(CLASS_LEVEL(ch, CLASS_DUELIST))
 #define IS_SHIFTER(ch)		(CLASS_LEVEL(ch, CLASS_SHIFTER))
 #define IS_MONK(ch)	          (CLASS_LEVEL(ch, CLASS_MONK))
 #define IS_BERSERKER(ch)		(CLASS_LEVEL(ch, CLASS_BERSERKER))

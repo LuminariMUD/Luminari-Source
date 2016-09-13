@@ -1181,6 +1181,7 @@ int valid_align_by_class(int alignment, int class) {
     case CLASS_WEAPON_MASTER:
     case CLASS_ARCANE_ARCHER:
     case CLASS_STALWART_DEFENDER:
+    case CLASS_DUELIST:
     case CLASS_SHIFTER:
     case CLASS_SORCERER:
       return 1;
@@ -1220,6 +1221,7 @@ int parse_class(char arg) {
     case 'f': return CLASS_ARCANE_ARCHER;
     case 'g': return CLASS_STALWART_DEFENDER;
     case 'h': return CLASS_SHIFTER;
+    case 'i': return CLASS_DUELIST;
     /* empty letters */
     case 'm': return CLASS_WIZARD;
     /* empty letters */
@@ -1263,6 +1265,7 @@ int parse_class_long(char *arg) {
   if (is_abbrev(arg, "stalwartdefender")) return CLASS_STALWART_DEFENDER;
   if (is_abbrev(arg, "stalwart-defender")) return CLASS_STALWART_DEFENDER;
   if (is_abbrev(arg, "shifter")) return CLASS_SHIFTER;
+  if (is_abbrev(arg, "duelist")) return CLASS_DUELIST;
 
   return CLASS_UNDEFINED;
 }
@@ -2309,6 +2312,7 @@ int level_exp(struct char_data *ch, int level) {
     case CLASS_WEAPON_MASTER:
     case CLASS_STALWART_DEFENDER:
     case CLASS_SHIFTER:
+    case CLASS_DUELIST:
     case CLASS_ARCANE_ARCHER:
     case CLASS_ROGUE:
     case CLASS_BARD:
@@ -4399,6 +4403,72 @@ void load_class_list(void) {
   /* class prereqs */
   class_prereq_class_level(CLASS_SHIFTER, CLASS_DRUID, 6);
   /****************************************************************************/
+  
+  /****************************************************************************/
+  /*     class-number               name      abrv   clr-abrv     menu-name*/
+  classo(CLASS_DUELIST, "duelist", "Due", "\tcDue\tn", "i) \tcDuelist\tn",
+      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst, eFeatp*/
+        10,       Y,    Y,        H,  10, 0,   1,   4,     Y,      5000,    3,
+        /*descrip*/"Duelists represent the pinnacle of elegant swordplay. They "
+    "move with a grace unmatched by most foes, parrying blows and countering attacks "
+    "with swift thrusts of their blades. They may wear armor, but generally eschew "
+    "such bulky protection as their grace allows them to dodge their opponents with "
+    "ease. While others flounder on treacherous terrain, duelists charge nimbly "
+    "across the battlefield, leaping and tumbling into the fray. They thrive in "
+    "melee, where their skill with the blade allows them to make sudden attacks "
+    "against clumsy foes and to cripple opponents with particularly well-placed "
+    "thrusts of the blade.");
+  /* class-number then saves:  fortitude, reflex, will, poison, death */
+  assign_class_saves(CLASS_DUELIST, B,    G,      B,    B,      B);
+  assign_class_abils(CLASS_DUELIST, /* class number */
+    /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+      CA,        CC,     CA,        CA,  CC,        CC,            CC,
+    /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+      CC,      CC,        CC,           CA,  CA,  CC,   CC,             CA,
+    /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+      CC,       CC,            CC,      CA,           CC,           CA,
+    /*survival,swim,use_magic_device,perform*/
+      CC,      CA,  CC,              CA
+    );
+  assign_class_titles(CLASS_DUELIST, /* class number */
+    "",                        /* <= 4  */
+    "the Acrobatic",            /* <= 9  */
+    "the Nimble Maneuver",           /* <= 14 */
+    "the Agile Duelist",                /* <= 19 */
+    "the Crossed Blade",       /* <= 24 */
+    "the Graceful Weapon",        /* <= 29 */
+    "the Elaborate Parry",       /* <= 30 */
+    "the Immortal Duelist",   /* <= LVL_IMMORT */
+    "the Untouchable Duelist", /* <= LVL_STAFF */
+    "the God of Duelist",      /* <= LVL_GRSTAFF */
+    "the Duelist"    /* default */  
+  );
+  /* feat assignment */
+  /*              class num      feat                      cfeat lvl stack */
+  feat_assignment(CLASS_DUELIST, FEAT_CANNY_DEFENSE,       Y,    1,  N);
+  feat_assignment(CLASS_DUELIST, FEAT_PRECISE_STRIKE,      Y,    1,  N);
+  feat_assignment(CLASS_DUELIST, FEAT_IMPROVED_REACTION,   Y,    2,  Y);
+  feat_assignment(CLASS_DUELIST, FEAT_PARRY,               Y,    2,  N);
+  feat_assignment(CLASS_DUELIST, FEAT_ENHANCED_MOBILITY,   Y,    3,  N);
+  feat_assignment(CLASS_DUELIST, FEAT_GRACE,               Y,    4,  N);
+  feat_assignment(CLASS_DUELIST, FEAT_COMBAT_REFLEXES,     Y,    4,  N);
+  feat_assignment(CLASS_DUELIST, FEAT_RIPOSTE,             Y,    5,  N);
+  feat_assignment(CLASS_DUELIST, FEAT_ACROBATIC_CHARGE,    Y,    6,  N);
+  feat_assignment(CLASS_DUELIST, FEAT_ELABORATE_PARRY,     Y,    7,  N);
+  feat_assignment(CLASS_DUELIST, FEAT_IMPROVED_REACTION,   Y,    8,  Y);
+  feat_assignment(CLASS_DUELIST, FEAT_DEFLECT_ARROWS,      Y,    9,  Y);
+  feat_assignment(CLASS_DUELIST, FEAT_NO_RETREAT,          Y,    9,  N);
+  feat_assignment(CLASS_DUELIST, FEAT_CRIPPLING_CRITICAL,  Y,   10,  N);
+  /* no spell assignment */
+  /* class prereqs */
+  class_prereq_bab(CLASS_DUELIST, 6);
+  class_prereq_ability(CLASS_DUELIST, ABILITY_ACROBATICS, 2);
+  class_prereq_ability(CLASS_DUELIST, ABILITY_PERFORM, 2);
+  class_prereq_feat(CLASS_DUELIST, FEAT_DODGE, 1);
+  class_prereq_feat(CLASS_DUELIST, FEAT_MOBILITY, 1);
+  class_prereq_feat(CLASS_DUELIST, FEAT_WEAPON_FINESSE, 1);
+  /****************************************************************************/
+  
 }
 
 /** LOCAL UNDEFINES **/

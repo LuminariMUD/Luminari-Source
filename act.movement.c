@@ -866,6 +866,21 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
   }
 
   *****************************/
+  
+  /* fleeing: no retreat feat offers free AOO */
+  if (need_specials_check == 3 && GET_POS(ch) > POS_DEAD) {
+
+    /* loop room */
+    struct char_data *tch, *next_tch;
+    for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch) {
+      next_tch = tch->next_in_room; /* next value in linked list */
+      
+      if (FIGHTING(tch) && FIGHTING(tch) == ch && HAS_FEAT(tch, FEAT_NO_RETREAT)) {
+        attack_of_opportunity(tch, ch, 4);        
+      }
+    }
+  }
+  
 
   /* All checks passed, nothing will prevent movement now other than lack of
    * move points. */

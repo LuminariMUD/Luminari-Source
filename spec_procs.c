@@ -816,6 +816,8 @@ int compute_ability(struct char_data *ch, int abilityNum) {
     case ABILITY_TOTAL_DEFENSE: /* not srd */
       value += GET_CON_BONUS(ch);
       value += compute_gear_armor_penalty(ch);
+      if (HAS_FEAT(ch, FEAT_PARRY))
+        value += 4;
       return value;
     case ABILITY_LORE: /* NOT SRD! */
       if (HAS_FEAT(ch, FEAT_INVESTIGATOR))
@@ -3449,6 +3451,7 @@ SPECIAL(mercenary) {
       case CLASS_WARRIOR:
       case CLASS_WEAPON_MASTER:
       case CLASS_STALWART_DEFENDER:
+      case CLASS_DUELIST:
         base = 8;
         break;
       case CLASS_ROGUE:
@@ -6400,9 +6403,9 @@ SPECIAL(angel_leggings) {
 }
 
 /* from homeland, converts an object type PET into an actual
- * pet mobile follower */
+ * pet mobile follower, object vnum must match mobile vnum */
 SPECIAL(bought_pet) {
-  struct char_data *pet;
+  struct char_data *pet = NULL;
 
   if (cmd)
     return 0;
@@ -6416,16 +6419,26 @@ SPECIAL(bought_pet) {
     return 0;
 
   pet = read_mobile(GET_OBJ_VNUM(obj), VIRTUAL);
+  
+  /* found matching vnum for obejct, loaded pet succesfully */
   if (pet) {
+    
+    /* load and set pet as following, customize moves a bit here */
     char_to_room(pet, obj->carried_by->in_room);
     add_follower(pet, obj->carried_by);
     SET_BIT_AR(AFF_FLAGS(pet), AFF_CHARM);
     GET_MAX_MOVE(pet) = 250 + dice(GET_LEVEL(pet), 10);
     GET_MOVE(pet) = GET_MAX_MOVE(pet);
 
+    /* success message */
+    send_to_char(obj->carried_by, "You have acquired a companion.\r\n");
+    
+    /* get rid of the purchased object */
     extract_obj(obj);
     return 1;
   }
+  
+  /* failed to load pet */
   return 0;
 }
 

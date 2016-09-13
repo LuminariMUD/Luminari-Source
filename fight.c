@@ -430,7 +430,7 @@ int roll_initiative(struct char_data *ch) {
   int initiative = 0;
 
   initiative = dice(1, 20) + GET_DEX_BONUS(ch) + 4 * HAS_FEAT(ch, FEAT_IMPROVED_INITIATIVE);
-  //initiative += 2 * HAS_FEAT(ch, FEAT_IMPROVED_REACTION);
+  initiative += 2 * HAS_FEAT(ch, FEAT_IMPROVED_REACTION);
   //initiative += HAS_FEAT(ch, FEAT_HEROIC_INITIATIVE);
 
   return initiative;
@@ -540,6 +540,10 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
     bonuses[BONUS_TYPE_DEFLECTION] += 2;
   }
 
+  if (AFF_FLAGGED(ch, AFF_TOTAL_DEFENSE) && HAS_FEAT(ch, FEAT_ELABORATE_PARRY)) {
+    bonuses[BONUS_TYPE_DEFLECTION] += CLASS_LEVEL(ch, CLASS_DUELIST) / 2;
+  }
+  
   if (attacker) {
     if (AFF_FLAGGED(ch, AFF_PROTECT_GOOD) && IS_GOOD(attacker)) {
       bonuses[BONUS_TYPE_DEFLECTION] += 2;
@@ -576,7 +580,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
     }
 
     /* this feat requires light armor and no shield */
-    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_CANNY_DEFENSE) && !GET_EQ(ch, WEAR_SHIELD) &&
+    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_CANNY_DEFENSE) && HAS_FREE_HAND(ch) &&
           compute_gear_armor_type(ch) <= ARMOR_TYPE_LIGHT) {
        bonuses[BONUS_TYPE_DODGE] += MAX(0, GET_INT_BONUS(ch));
     }
@@ -3124,6 +3128,13 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   /* temporary filler for ki-strike until we get it working right */
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_KI_STRIKE))
     dambonus += HAS_FEAT(ch, FEAT_KI_STRIKE);
+  
+  /* precise strike mechanic for duelist */
+  if (vict && !IS_IMMUNE_CRITS(vict) && !IS_NPC(ch) &&
+       HAS_FEAT(ch, FEAT_PRECISE_STRIKE) && HAS_FREE_HAND(ch) &&
+       compute_gear_armor_type(ch) <= ARMOR_TYPE_LIGHT) {
+     dambonus += MAX(0, CLASS_LEVEL(ch, CLASS_DUELIST));
+  }
 
   /****************************************/
   /**** display, keep mods above this *****/
@@ -3535,7 +3546,105 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
     if (is_critical && !IS_IMMUNE_CRITS(victim)) {
       /* critical bonus */
       dam *= determine_critical_multiplier(ch, wielded);
-      
+
+      /* duelist crippling critical: light armor and free hand: 1d4 str dam, 1d4 dex dam,
+       * 4 penalty to saves, 4 penalty to AC, 2d4 bleed damage and 2d4 drain moves */
+      if (HAS_FEAT(ch, FEAT_CRIPPLING_CRITICAL) && HAS_FREE_HAND(ch) &&
+          compute_gear_armor_type(ch) <= ARMOR_TYPE_LIGHT) {
+        struct mud_event_data *pMudEvent = NULL;
+        struct affected_type af;
+        
+        /* has event?  then we increment the events svariable */
+        if ((pMudEvent = char_has_mud_event(victim, eCRIPPLING_CRITICAL))) {
+          int crippling_critical_var = 0;
+          char buf[10] = {'\0'};
+          
+          crippling_critical_var = atoi((char *) pMudEvent->sVariables);
+          crippling_critical_var++;
+          sprintf(buf, "%d", crippling_critical_var);
+          if (pMudEvent->sVariables) /* need to free memory if we changing it */
+            free(pMudEvent->sVariables);
+          pMudEvent->sVariables = strdup(buf);
+          
+        } else { /* no event, so make one */
+          pMudEvent = new_mud_event(eCRIPPLING_CRITICAL, victim, strdup("1"));
+          /* create and attach new event, apply the first effect */
+          attach_mud_event(pMudEvent, 45 * PASSES_PER_SEC);
+        }
+        
+        /* dummy check */
+        if (!pMudEvent)
+          ;
+        else { /* decide on the effect to drop */
+          act("\tRYou strike $N with a crippling critical!\tn", FALSE, ch, NULL, victim, TO_CHAR);
+          act("\tr$n strikes you with a crippling critical!\tn", FALSE, ch, NULL, victim, TO_VICT);
+          act("\tr$n strikes $N with a crippling critical!\tn", FALSE, ch, NULL, victim, TO_NOTVICT);
+          switch (atoi((char *) pMudEvent->sVariables)) {
+            case 1: /* 1d4 strength damage */
+              new_affect(&af);
+              af.spell = SKILL_CRIPPLING_CRITICAL;
+              af.location = APPLY_STR;
+              af.modifier = -dice(1, 4);
+              af.duration = MAX(1, (int) (event_time(pMudEvent->pEvent) / 60));
+              SET_BIT_AR(af.bitvector, AFF_CRIPPLING_CRITICAL);
+              affect_join(victim, &af, 1, FALSE, FALSE, FALSE);
+              break;
+            case 2: /* 1d4 dexterity damage */
+              new_affect(&af);
+              af.spell = SKILL_CRIPPLING_CRITICAL;
+              af.location = APPLY_DEX;
+              af.modifier = -dice(1, 4);
+              af.duration = MAX(1, (int) (event_time(pMudEvent->pEvent) / 60));
+              SET_BIT_AR(af.bitvector, AFF_CRIPPLING_CRITICAL);
+              affect_join(victim, &af, 1, FALSE, FALSE, FALSE);
+              break;
+            case 3: /* -4 penalty to fortitude saves */
+              new_affect(&af);
+              af.spell = SKILL_CRIPPLING_CRITICAL;
+              af.location = APPLY_SAVING_FORT;
+              af.modifier = -4;
+              af.duration = MAX(1, (int) (event_time(pMudEvent->pEvent) / 60));
+              SET_BIT_AR(af.bitvector, AFF_CRIPPLING_CRITICAL);
+              affect_join(victim, &af, 1, FALSE, FALSE, FALSE);
+              break;
+            case 4: /* -4 penalty to reflex saves */
+              new_affect(&af);
+              af.spell = SKILL_CRIPPLING_CRITICAL;
+              af.location = APPLY_SAVING_REFL;
+              af.modifier = -4;
+              af.duration = MAX(1, (int) (event_time(pMudEvent->pEvent) / 60));
+              SET_BIT_AR(af.bitvector, AFF_CRIPPLING_CRITICAL);
+              affect_join(victim, &af, 1, FALSE, FALSE, FALSE);
+              break;
+            case 5: /* -4 penalty to will saves */
+              new_affect(&af);
+              af.spell = SKILL_CRIPPLING_CRITICAL;
+              af.location = APPLY_SAVING_WILL;
+              af.modifier = -4;
+              af.duration = MAX(1, (int) (event_time(pMudEvent->pEvent) / 60));
+              SET_BIT_AR(af.bitvector, AFF_CRIPPLING_CRITICAL);
+              affect_join(victim, &af, 1, FALSE, FALSE, FALSE);
+              break;
+            case 6: /* -4 penalty to AC */
+              new_affect(&af);
+              af.spell = SKILL_CRIPPLING_CRITICAL;
+              af.location = APPLY_AC_NEW;
+              af.modifier = -4;
+              af.duration = MAX(1, (int) (event_time(pMudEvent->pEvent) / 60));
+              SET_BIT_AR(af.bitvector, AFF_CRIPPLING_CRITICAL);
+              affect_join(victim, &af, 1, FALSE, FALSE, FALSE);
+              break;
+            default: /* 2d4 bleed damage and 2d4 moves drain */
+              GET_MOVE(victim) -= dice(2, 4);
+              dam += dice(2, 4);
+              //if (damage(ch, victim, dice(2, 4), TYPE_SUFFERING, DAM_RESERVED_DBC, FALSE) < 0) {
+                /* death, no special handling yet */
+              //}
+              break;
+          }          
+        }        
+      } /* end crippling critical */
+            
       /* raging critical feat */
       if (HAS_FEAT(ch, FEAT_RAGING_CRITICAL) && affected_by_spell(ch, SKILL_RAGE)) {
         if ((GET_SIZE(ch) - GET_SIZE(victim)) >= 2) ;
@@ -3567,6 +3676,11 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
         /*debug*//*send_to_char(ch, "DEBUG: Weapon Charge Flag Working on Lance!\r\n");*/
         dam += damage_holder; /* x2 */
       }
+      
+      /* handle acrobatic charge */
+    } else if (AFF_FLAGGED(ch, AFF_CHARGING) && !RIDING(ch) &&
+            HAS_FEAT(ch, FEAT_ACROBATIC_CHARGE)) {
+      dam += 4;
     }
 
     /* Add additional damage dice from weapon special abilities. - Ornir */
@@ -4983,10 +5097,11 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   dam += sneakdam;
   
   /* We hit with a ranged weapon, victim gets a new arrow, stuck neatly in his butt. */
-  if (attack_type == ATTACK_TYPE_RANGED) {
+  if (attack_type == ATTACK_TYPE_RANGED) {    
     /* set off imbued arrow! */
     imbued_arrow(ch, victim, missile);
-    obj_to_char(missile, victim);
+    /* the victim gets to inherit the bullet, right in the bum! */
+    obj_to_char(missile, victim); /* note bullet will be in inventory, not in the bum eq-slot */
   }
 
   /* Melee warding modifies damage. */
@@ -5378,7 +5493,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
     if (!(total_defense_attempt = skill_check(victim, ABILITY_TOTAL_DEFENSE, total_defense_DC))) {
       send_to_char(victim, "You failed to \tcdefend\tn yourself from the attack from %s!  ",
               GET_NAME(ch));
-    } else if (total_defense_attempt >= 10) {
+    } else if ((total_defense_attempt + (2*HAS_FEAT(ch, FEAT_RIPOSTE))) >= 10) {
       /* We can riposte, as the 'skill check' was 10 or more higher than the DC. */
       send_to_char(victim, "You deftly \tcriposte the attack\tn from %s!\r\n",
               GET_NAME(ch));
@@ -5420,6 +5535,37 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
     }
   } /* end mounted combat check */
 
+    /* You must have at least one hand free to use this feat.
+     * Once per round when you would normally be hit with an attack from a ranged
+     * weapon, you may deflect it so that you take no damage from it. You must be
+     * aware of the attack and not flat-footed. Attempting to deflect a ranged
+     * attack doesn't count as an action. Unusually massive ranged weapons (such
+     * as boulders or ballista bolts) and ranged attacks generated by natural
+     * attacks or spell effects can't be deflected. */    
+  if (attack_type == ATTACK_TYPE_RANGED && HAS_FEAT(victim, FEAT_DEFLECT_ARROWS) &&
+          DEFLECT_ARROWS_LEFT(victim) > 0 && has_dex_bonus_to_ac(ch, victim) &&
+          HAS_FREE_HAND(victim)) {
+    if (HAS_FEAT(victim, FEAT_SNATCH_ARROWS)) {
+      act("\tnWith inhuman dexterity you quickly snatch out of the air $o\tn that was fired at you!",
+            FALSE, victim, missile, ch, TO_CHAR);
+      act("\tnWith inhuman dexterity $n snatches out of the air $o\tn that you fired!",
+            FALSE, victim, missile, ch, TO_VICT | TO_SLEEP);
+      act("\tnWith inhuman dexterity $n snatches out of the air $o that $N fired!",
+            FALSE, victim, missile, ch, TO_NOTVICT);      
+      obj_to_char(missile, victim);
+    } else {
+      act("\tnYou deftly deflect $o out of the air, fired by $N!",
+            FALSE, victim, missile, ch, TO_CHAR);
+      act("\tn$n deftly deflects $o out of the air, that you fired!",
+            FALSE, victim, missile, ch, TO_VICT | TO_SLEEP);
+      act("\tn$n deftly deflects $o out of the air, that was fired by $N!",
+            FALSE, victim, missile, ch, TO_NOTVICT);      
+      obj_to_room(missile, IN_ROOM(victim));
+    }
+    DEFLECT_ARROWS_LEFT(victim)--;
+    return (HIT_MISS);
+  }
+  
   if (!dam) {
     /* So if we have actually hit, then dam > 0. This is how we process a miss. */
     handle_missed_attack(ch, victim, type, w_type, dam_type, attack_type, missile);
@@ -6244,6 +6390,17 @@ void perform_violence(struct char_data *ch, int phase) {
       MOUNTED_BLOCKS_LEFT(ch) = 1;
     if (RIDING(ch) && HAS_FEAT(ch, FEAT_LEGENDARY_RIDER))
       MOUNTED_BLOCKS_LEFT(ch) += 1;
+    
+    /* You must have at least one hand free to use this feat.
+     * Once per round when you would normally be hit with an attack from a ranged
+     * weapon, you may deflect it so that you take no damage from it. You must be
+     * aware of the attack and not flat-footed. Attempting to deflect a ranged
+     * attack doesn't count as an action. Unusually massive ranged weapons (such
+     * as boulders or ballista bolts) and ranged attacks generated by natural
+     * attacks or spell effects can't be deflected. */    
+    if (HAS_FREE_HAND(ch) && HAS_FEAT(ch, FEAT_DEFLECT_ARROWS) &&
+            has_dex_bonus_to_ac(NULL, ch))
+      DEFLECT_ARROWS_LEFT(ch) = 1;
     
     /* once per round, while in defensive stance, we must remove this event
        to ensure that the stalwart defender only gets ONE free knockdown
