@@ -3569,7 +3569,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
         } else { /* no event, so make one */
           pMudEvent = new_mud_event(eCRIPPLING_CRITICAL, victim, strdup("1"));
           /* create and attach new event, apply the first effect */
-          attach_mud_event(pMudEvent, 45 * PASSES_PER_SEC);
+          attach_mud_event(pMudEvent, 60 * PASSES_PER_SEC);
         }
         
         /* dummy check */
@@ -3744,7 +3744,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
       /*bane weapon*/
       if (victim != ch && HAS_FEAT(ch, FEAT_BANE_OF_ENEMIES) && HAS_FEAT(ch, FEAT_FAVORED_ENEMY)) {
         if (!IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, RACE_TYPE_HUMANOID)) {
-          send_to_char(ch, "Your weapon hums in delight as it strikes!b\r\n");
+          send_to_char(ch, "Your weapon hums in delight as it strikes!\r\n");
           dam += dice(2, 6);
         } else if (IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, GET_RACE(victim))) {
           send_to_char(ch, "Your weapon hums in delight as it strikes!\r\n");
