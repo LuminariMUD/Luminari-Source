@@ -99,7 +99,7 @@ ACMD(do_say) {
   }
 
   /* DEBUG */
-  send_to_char(ch, "ARG2: %s\r\n", arg2);
+  send_to_char(ch, "ARG2|%s|\r\n", arg2);
   /* end DEBUG */
   
   /* Trigger check. */
