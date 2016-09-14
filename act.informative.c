@@ -412,44 +412,53 @@ static void diag_char_to_char(struct char_data *i, struct char_data *ch) {
   char *pers = strdup(PERS(i, ch));
   int is_disguised = GET_DISGUISE_RACE(i);
 
-
-
   if (GET_MAX_HIT(i) > 0)
     percent = (100 * GET_HIT(i)) / GET_MAX_HIT(i);
   else
     percent = -1; /* How could MAX_HIT be < 1?? */
 
+  /* nab diagnosis message */
   for (ar_index = 0; diagnosis[ar_index].percent >= 0; ar_index++)
     if (percent >= diagnosis[ar_index].percent)
       break;
 
+  /* time to display! */
+  /* show disguise race info */
   if (is_disguised) {
     send_to_char(ch, "%s \tn[%s %s\tn] %s\r\n", race_list[is_disguised].type,
                  size_names[GET_SIZE(i)], RACE_ABBR(i), diagnosis[ar_index].text);
-  } else if (!IS_NPC(i))
+  /* PC race info */
+  } else if (!IS_NPC(i)) {
     send_to_char(ch, "%s \tn[%s %s\tn] %s\r\n", CAP(pers), size_names[GET_SIZE(i)],
                  RACE_ABBR(i), diagnosis[ar_index].text);
-  else if (IS_NPC(i) && GET_RACE(i) <= RACE_TYPE_UNKNOWN)
+  /* NPC with no race info */
+  } else if (IS_NPC(i) && GET_RACE(i) <= RACE_TYPE_UNKNOWN) {
     send_to_char(ch, "%s %s\r\n", CAP(pers),
                  diagnosis[ar_index].text);
-  else if (IS_NPC(i) && GET_SUBRACE(i, 0) <= SUBRACE_UNKNOWN
+  /* NPC with no sub-race info */
+  } else if (IS_NPC(i) && GET_SUBRACE(i, 0) <= SUBRACE_UNKNOWN
            && GET_SUBRACE(i, 1) <= SUBRACE_UNKNOWN
-           && GET_SUBRACE(i, 2) <= SUBRACE_UNKNOWN)
+           && GET_SUBRACE(i, 2) <= SUBRACE_UNKNOWN) {
     send_to_char(ch, "%s \tn[%s %s\tn] %s\r\n", CAP(pers),
                  size_names[GET_SIZE(i)], RACE_ABBR(i), diagnosis[ar_index].text);
-  else
+  /* NPC */
+  } else {
     send_to_char(ch, "%s \tn[%s %s/%s/%s %s\tn] %s\r\n", CAP(pers),
                  size_names[GET_SIZE(i)], npc_subrace_abbrevs[GET_SUBRACE(i, 0)],
                  npc_subrace_abbrevs[GET_SUBRACE(i, 1)],
                  npc_subrace_abbrevs[GET_SUBRACE(i, 2)],
                  RACE_ABBR(i), diagnosis[ar_index].text);
+  }
 
+  /* some spell and spell-like affects that we want to show up */
   if (affected_by_spell(i, SPELL_BARKSKIN))
     act("$s skin appears to be made of bark.", FALSE, i, 0, ch, TO_VICT);
   if (affected_by_spell(i, SPELL_STONESKIN))
     act("$s skin appears to be made of stone.", FALSE, i, 0, ch, TO_VICT);
   if (affected_by_spell(i, SPELL_IRONSKIN))
     act("$s skin appears to be made of iron.", FALSE, i, 0, ch, TO_VICT);
+  
+  /* clean up */
   free(pers);
   pers = NULL;
 }
