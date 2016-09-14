@@ -3376,7 +3376,7 @@ ACMD(do_train) {
     /* Display craft abilities. */
     list_abilities(ch, ABILITY_TYPE_CRAFT);
   } else if (*arg)
-    send_to_char(ch, "You can only train abilities in your guild.\r\n");
+    send_to_char(ch, "You can only train abilities with a trainer.\r\n");
   else
     list_abilities(ch, ABILITY_TYPE_GENERAL);
 
