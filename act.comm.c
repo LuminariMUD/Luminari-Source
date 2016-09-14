@@ -98,6 +98,10 @@ ACMD(do_say) {
     }
   }
 
+  /* DEBUG */
+  send_to_char(ch, "ARG2: %s\r\n", arg2);
+  /* end DEBUG */
+  
   /* Trigger check. */
   speech_mtrigger(ch, arg2);
   speech_wtrigger(ch, arg2);
