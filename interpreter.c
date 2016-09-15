@@ -703,24 +703,38 @@ void command_interpreter(struct char_data *ch, char *argument) {
   /* Since all command triggers check for valid_dg_target before acting, the levelcheck
    * here has been removed. Otherwise, find the command. */
   {
+    int cont; /* continue the command checks */
+    char saystring[3] = "say"; /* replacement string */
+    
     /* DEBUG */
     send_to_char(ch, "ARG|%s|\r\n", arg);
     /* end DEBUG */
+    
     /* if we are using the arglist in scripts, we have an issue with intercepting
        commands that have more than one access point, example:  "say" and "'" both
        will call the same command in the code, but are sending a different ARG to
        the command trigger checks...  resolution for now is to just replace the
        "'" with "say" when we find it here. -Zusuk */
-    if (arg[0] == '\'') {
-      char saystring[3] = "say";
-      *arg = *saystring;
-    }
     
-    int cont; /* continue the command checks */
-    cont = command_wtrigger(ch, arg, line); /* any world triggers ? */
-    if (!cont) cont = command_mtrigger(ch, arg, line); /* any mobile triggers ? */
-    if (!cont) cont = command_otrigger(ch, arg, line); /* any object triggers ? */
-    if (cont) return; /* yes, command trigger took over */
+    if (arg[0] == '\'')
+      cont = command_wtrigger(ch, saystring, line); /* any world triggers ? */
+    else
+      cont = command_wtrigger(ch, arg, line); /* any world triggers ? */
+    if (!cont) {
+      if (arg[0] == '\'')
+        cont = command_mtrigger(ch, saystring, line); /* any mobile triggers ? */
+      else
+        cont = command_mtrigger(ch, arg, line); /* any mobile triggers ? */
+    }
+    if (!cont) {
+      if (arg[0] == '\'')
+        cont = command_otrigger(ch, saystring, line); /* any object triggers ? */
+      else
+        cont = command_otrigger(ch, arg, line); /* any object triggers ? */
+    }
+    if (cont) {
+      return; /* yes, command trigger took over */      
+    }
   }
 
   /* Allow IMPLs to switch into mobs to test the commands. */
