@@ -717,18 +717,18 @@ void command_interpreter(struct char_data *ch, char *argument) {
        the command trigger checks...  resolution for now is to just replace the
        "'" with "say" when we find it here. -Zusuk */
     
-    if (arg[0] == '\'')
+    if (is_abbrev(arg, "'"))
       cont = command_wtrigger(ch, saystring, line); /* any world triggers ? */
     else
       cont = command_wtrigger(ch, arg, line); /* any world triggers ? */
     if (!cont) {
-      if (arg[0] == '\'')
+      if (is_abbrev(arg, "'"))
         cont = command_mtrigger(ch, saystring, line); /* any mobile triggers ? */
       else
         cont = command_mtrigger(ch, arg, line); /* any mobile triggers ? */
     }
     if (!cont) {
-      if (arg[0] == '\'')
+      if (is_abbrev(arg, "'"))
         cont = command_otrigger(ch, saystring, line); /* any object triggers ? */
       else
         cont = command_otrigger(ch, arg, line); /* any object triggers ? */
