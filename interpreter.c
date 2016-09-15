@@ -708,6 +708,7 @@ void command_interpreter(struct char_data *ch, char *argument) {
     
     /* DEBUG */
     send_to_char(ch, "ARG|%s|\r\n", arg);
+    send_to_char(ch, "LINE|%s|\r\n", line);
     /* end DEBUG */
     
     /* if we are using the arglist in scripts, we have an issue with intercepting
