@@ -388,8 +388,7 @@ void trigedit_parse(struct descriptor_data *d, char *arg)
 }
 
 /* save the zone's triggers to internal memory and to disk */
-void trigedit_save(struct descriptor_data *d)
-{
+void trigedit_save(struct descriptor_data *d) {
   int i;
   trig_rnum rnum;
   int found = 0;
@@ -444,8 +443,7 @@ void trigedit_save(struct descriptor_data *d)
 
     /* go through the mud and replace existing triggers         */
     live_trig = trigger_list;
-    while (live_trig)
-    {
+    while (live_trig) {
       if (GET_TRIG_RNUM(live_trig) == rnum) {
         if (live_trig->arglist) {
           free(live_trig->arglist);
@@ -464,11 +462,11 @@ void trigedit_save(struct descriptor_data *d)
         /* anything could have happened so we don't want to keep these */
         if (GET_TRIG_WAIT(live_trig)) {
           event_cancel(GET_TRIG_WAIT(live_trig));
-          GET_TRIG_WAIT(live_trig)=NULL;
+          GET_TRIG_WAIT(live_trig) = NULL;
         }
         if (live_trig->var_list) {
           free_varlist(live_trig->var_list);
-          live_trig->var_list=NULL;
+          live_trig->var_list = NULL;
         }
 
         live_trig->cmdlist = proto->cmdlist;
@@ -528,9 +526,9 @@ void trigedit_save(struct descriptor_data *d)
           new_index[i] = trig_index[i];
         }
       } else {
-         new_index[i + 1] = trig_index[i];
-         proto = trig_index[i]->proto;
-         proto->nr = i + 1;
+        new_index[i + 1] = trig_index[i];
+        proto = trig_index[i]->proto;
+        proto->nr = i + 1;
       }
     }
 
@@ -557,10 +555,10 @@ void trigedit_save(struct descriptor_data *d)
       GET_TRIG_RNUM(live_trig) += (GET_TRIG_RNUM(live_trig) != NOTHING && GET_TRIG_RNUM(live_trig) > rnum);
 
     /* Update other trigs being edited. */
-     for (dsc = descriptor_list; dsc; dsc = dsc->next)
-       if (STATE(dsc) == CON_TRIGEDIT)
-         if (GET_TRIG_RNUM(OLC_TRIG(dsc)) >= rnum)
-           GET_TRIG_RNUM(OLC_TRIG(dsc))++;
+    for (dsc = descriptor_list; dsc; dsc = dsc->next)
+      if (STATE(dsc) == CON_TRIGEDIT)
+        if (GET_TRIG_RNUM(OLC_TRIG(dsc)) >= rnum)
+          GET_TRIG_RNUM(OLC_TRIG(dsc))++;
 
   }
 
@@ -573,14 +571,14 @@ void trigedit_save(struct descriptor_data *d)
   top = zone_table[OLC_ZNUM(d)].top;
 
 #ifdef CIRCLE_MAC
-  snprintf(fname, sizeof(fname), "%s:%i.new", TRG_PREFIX, zone);
+  snprintf(fname, sizeof (fname), "%s:%i.new", TRG_PREFIX, zone);
 #else
-  snprintf(fname, sizeof(fname), "%s/%i.new", TRG_PREFIX, zone);
+  snprintf(fname, sizeof (fname), "%s/%i.new", TRG_PREFIX, zone);
 #endif
 
   if (!(trig_file = fopen(fname, "w"))) {
     mudlog(BRF, MAX(LVL_STAFF, GET_INVIS_LEV(d->character)), TRUE,
-           "SYSERR: OLC: Can't open trig file \"%s\"", fname);
+            "SYSERR: OLC: Can't open trig file \"%s\"", fname);
     return;
   }
 
@@ -590,21 +588,21 @@ void trigedit_save(struct descriptor_data *d)
 
       if (fprintf(trig_file, "#%d\n", i) < 0) {
         mudlog(BRF, MAX(LVL_STAFF, GET_INVIS_LEV(d->character)), TRUE,
-               "SYSERR: OLC: Can't write trig file!");
+                "SYSERR: OLC: Can't write trig file!");
         fclose(trig_file);
         return;
       }
       sprintascii(bitBuf, GET_TRIG_TYPE(trig));
-      fprintf(trig_file,      "%s%c\n"
-                              "%d %s %d\n"
-                              "%s%c\n",
-           (GET_TRIG_NAME(trig)) ? (GET_TRIG_NAME(trig)) : "unknown trigger", STRING_TERMINATOR,
-           trig->attach_type,
-           *bitBuf ? bitBuf : "0", GET_TRIG_NARG(trig),
-           GET_TRIG_ARG(trig) ? GET_TRIG_ARG(trig) : "", STRING_TERMINATOR);
+      fprintf(trig_file, "%s%c\n"
+              "%d %s %d\n"
+              "%s%c\n",
+              (GET_TRIG_NAME(trig)) ? (GET_TRIG_NAME(trig)) : "unknown trigger", STRING_TERMINATOR,
+              trig->attach_type,
+              *bitBuf ? bitBuf : "0", GET_TRIG_NARG(trig),
+              GET_TRIG_ARG(trig) ? GET_TRIG_ARG(trig) : "", STRING_TERMINATOR);
 
       /* Build the text for the script */
-      strcpy(buf,""); /* strcpy OK for MAX_CMD_LENGTH > 0*/
+      strcpy(buf, ""); /* strcpy OK for MAX_CMD_LENGTH > 0*/
       for (cmd = trig->cmdlist; cmd; cmd = cmd->next) {
         strcat(buf, cmd->cmd);
         strcat(buf, "\n");
@@ -622,9 +620,9 @@ void trigedit_save(struct descriptor_data *d)
   fclose(trig_file);
 
 #ifdef CIRCLE_MAC
-  snprintf(buf, sizeof(buf), "%s:%d.trg", TRG_PREFIX, zone);
+  snprintf(buf, sizeof (buf), "%s:%d.trg", TRG_PREFIX, zone);
 #else
-  snprintf(buf, sizeof(buf), "%s/%d.trg", TRG_PREFIX, zone);
+  snprintf(buf, sizeof (buf), "%s/%d.trg", TRG_PREFIX, zone);
 #endif
 
   remove(buf);
