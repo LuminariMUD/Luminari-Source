@@ -1325,10 +1325,11 @@ static void perform_group_gain(struct char_data *ch, int base,
 
 /* called for splitting xp in a group (prelim) */
 static void group_gain(struct char_data *ch, struct char_data *victim) {
-  int tot_members = 0, base, tot_gain;
+  int tot_members = 0, base = 0, tot_gain = 0;
   struct char_data *k;
   int party_level = 0;
   
+  /* count total members in group and total party level */
   while ((k = (struct char_data *) simple_list(GROUP(ch)->members)) != NULL) {
     if (IS_PET(k))
       continue;
@@ -1337,10 +1338,11 @@ static void group_gain(struct char_data *ch, struct char_data *victim) {
       party_level += GET_LEVEL(k); 
   }
   
+  /* what is our average party level? */
   if (tot_members)
     party_level /= tot_members;
   
-  /* round up to the nearest tot_members */
+  /* total XP received, round up to the nearest tot_members */
   tot_gain = (GET_EXP(victim) / 3) + tot_members - 1;
 
   /* Calculate level-difference bonus */
@@ -1354,11 +1356,16 @@ static void group_gain(struct char_data *ch, struct char_data *victim) {
   /* prevent illegal xp creation when killing players */
   if (!IS_NPC(victim))
     tot_gain = MIN(CONFIG_MAX_EXP_LOSS * 2 / 3, tot_gain);
-
+  
+  /* base: split the xp between the individuals in the party */
   if (tot_members >= 1)
     base = MAX(1, tot_gain / tot_members);
   else
     base = 0;
+  
+  /* if mob isn't within 3 levels, don't give xp -zusuk */
+  if ((GET_LEVEL(victim) + 3) < party_level)
+    base = 1;  
 
   while ((k = (struct char_data *) simple_list(GROUP(ch)->members)) != NULL) {
     if (IS_PET(k))
@@ -1370,8 +1377,9 @@ static void group_gain(struct char_data *ch, struct char_data *victim) {
 
 /* called for splitting xp if NOT in a group (engine) */
 static void solo_gain(struct char_data *ch, struct char_data *victim) {
-  int exp, happy_exp;
+  int exp = 0, happy_exp = 0;
 
+  /* the base exp is the totally victim's exp divided by 3, limited by config */
   exp = MIN(CONFIG_MAX_EXP_GAIN, GET_EXP(victim) / 3);
 
   /* Calculate level-difference bonus */
@@ -1382,6 +1390,7 @@ static void solo_gain(struct char_data *ch, struct char_data *victim) {
       exp += MAX(0, (exp * MIN(8, (GET_LEVEL(victim) - GET_LEVEL(ch)))) / 8);
   }
 
+  /* minimum of 1 xp point */
   exp = MAX(exp, 1);
 
   /* if mob isn't within 3 levels, don't give xp -zusuk */
@@ -1392,6 +1401,7 @@ static void solo_gain(struct char_data *ch, struct char_data *victim) {
   if (!IS_NPC(victim))
     exp = MIN(CONFIG_MAX_EXP_LOSS * 2 / 3, exp);
 
+  /* happyhour bonus XP */
   if (IS_HAPPYHOUR && IS_HAPPYEXP) {
     happy_exp = exp + (int) ((float) exp * ((float) HAPPY_EXP / (float) (100)));
     exp = MAX(happy_exp, 1);
@@ -1405,7 +1415,6 @@ static void solo_gain(struct char_data *ch, struct char_data *victim) {
   }
 
   change_alignment(ch, victim);
-
 }
 
 /* this function replaces the #w or #W with an appropriate weapon
