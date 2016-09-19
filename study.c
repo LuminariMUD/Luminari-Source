@@ -1292,7 +1292,7 @@ static void generic_main_disp_menu(struct descriptor_data *d) {
   OLC_MODE(d) = STUDY_GEN_MAIN_MENU;
 }
 
-/*  This does not work for all cfeats -exotc weapon proficiency is a special
+/*  This does not work for all cfeats -exotic weapon proficiency is a special
  *  case and needs special handling. */
 static void cfeat_disp_menu(struct descriptor_data *d) {
   const char *feat_weapons[NUM_WEAPON_TYPES - 1];
@@ -1426,7 +1426,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
         case 'Q':
           if (GET_LEVEL(ch) == 1) {            
             write_to_output(d, "Your training points will be reset upon exit to "
-                "account for any changes made to stats. (This will only occur at "
+                "account for any changes made to your intelligence stat. (This will only occur at "
                 "level 1)\r\n");
           }
           write_to_output(d, "You can currently study as much as you want per level.\r\n");

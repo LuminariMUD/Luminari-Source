@@ -719,12 +719,12 @@ int gain_exp(struct char_data *ch, int gain) {
     if (GET_LEVEL(ch) <= NEWBIE_LEVEL)
       gain += (int) ((float) gain * ((float) NEWBIE_EXP / (float) (100)));
 
-    /* flat rate for now! */
+    /* flat rate for now! (halfed the rate for testing purposes) */
     if (ch && ch->desc && ch->desc->account) {
-      if (gain >= 5000 && ch->desc->account->experience < 33999) {
-        if (gain/2500 >= 5) /*reduce spam*/
-          send_to_char(ch, "You gain %d account experience points!\r\n", gain/2500);
-        ch->desc->account->experience += gain / 2500;
+      if (gain >= 2500 && ch->desc->account->experience < 33999) {
+        if (gain/1250 >= 7) /*reduce spam*/
+          send_to_char(ch, "You gain %d account experience points!\r\n", gain/1250);
+        ch->desc->account->experience += gain / 1250;
       }
     }
 
