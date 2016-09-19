@@ -705,12 +705,7 @@ void command_interpreter(struct char_data *ch, char *argument) {
   {
     int cont; /* continue the command checks */
     char saystring[] = "say"; /* replacement string */
-    
-    /* DEBUG */
-    send_to_char(ch, "ARG|%s|\r\n", arg);
-    send_to_char(ch, "LINE|%s|\r\n", line);
-    /* end DEBUG */
-    
+        
     /* if we are using the arglist in scripts, we have an issue with intercepting
        commands that have more than one access point, example:  "say" and "'" both
        will call the same command in the code, but are sending a different ARG to
@@ -718,21 +713,18 @@ void command_interpreter(struct char_data *ch, char *argument) {
        "'" with "say" when we find it here. -Zusuk */
     
     if (is_abbrev(arg, "'")) {
-      send_to_char(ch, "SAYSTRING|%s|\r\n", saystring);
       cont = command_wtrigger(ch, saystring, line); /* any world triggers ? */
     } else
       cont = command_wtrigger(ch, arg, line); /* any world triggers ? */
     
     if (!cont) {
       if (is_abbrev(arg, "'")) {
-        send_to_char(ch, "SAYSTRING|%s|\r\n", saystring);
         cont = command_mtrigger(ch, saystring, line); /* any mobile triggers ? */
       } else
         cont = command_mtrigger(ch, arg, line); /* any mobile triggers ? */
     }
     if (!cont) {
       if (is_abbrev(arg, "'")) {
-        send_to_char(ch, "SAYSTRING|%s|\r\n", saystring);
         cont = command_otrigger(ch, saystring, line); /* any object triggers ? */
       } else
         cont = command_otrigger(ch, arg, line); /* any object triggers ? */
