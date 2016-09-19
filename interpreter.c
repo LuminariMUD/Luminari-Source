@@ -704,7 +704,7 @@ void command_interpreter(struct char_data *ch, char *argument) {
    * here has been removed. Otherwise, find the command. */
   {
     int cont; /* continue the command checks */
-    char saystring[3] = "say"; /* replacement string */
+    char saystring[] = "say"; /* replacement string */
     
     /* DEBUG */
     send_to_char(ch, "ARG|%s|\r\n", arg);
