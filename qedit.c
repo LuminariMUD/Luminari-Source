@@ -704,7 +704,7 @@ void qedit_parse(struct descriptor_data *d, char *arg) {
       OLC_QUEST(d)->gold_reward = LIMIT(number, 0, 99999);
       break;
     case QEDIT_EXP:
-      OLC_QUEST(d)->exp_reward = LIMIT(number, 0, 99999);
+      OLC_QUEST(d)->exp_reward = LIMIT(number, 0, 999999);
       break;
     case QEDIT_OBJ:
       if ((number = atoi(arg)) != -1)
