@@ -568,11 +568,15 @@ void assign_feats(void) {
   /* combat modes */
   feato(FEAT_POWER_ATTACK, "power attack", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
     "subtract a number from hit and add to dam.  If 2H weapon add 2x dam instead",
-    "subtract a number from hit and add to dam.  If 2H weapon add 2x dam instead");
+    "When active, take a value specified as penalty to attack roll and gain that "
+          "value as damage bonus.  Usage: powerattack VALUE, to turn off, "
+          "just type powerattack with no argument.  VALUE must be between 1-5.");
     feat_prereq_attribute(FEAT_POWER_ATTACK, AB_STR, 13);
   feato(FEAT_COMBAT_EXPERTISE, "combat expertise", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "When active, take -5 penalty to attack roll and gain a +5 dodge bonus to your AC",
-    "When active, take -5 penalty to attack roll and gain a +5 dodge bonus to your AC");
+    "subtract a number from attack roll and add it to AC",
+    "When active, take a value specified as penalty to attack roll and gain that "
+          "value as dodge bonus to your AC.  Usage: expert VALUE, to turn off, "
+          "just type expert with no argument.  VALUE must be between 1-5.");
     feat_prereq_attribute(FEAT_COMBAT_EXPERTISE, AB_INT, 13);
     /* required for whirlwind */
 
