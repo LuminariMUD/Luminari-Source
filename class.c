@@ -2656,7 +2656,7 @@ void load_class_list(void) {
   /*     class-number  name      abrv   clr-abrv     menu-name*/
   classo(CLASS_CLERIC, "cleric", "Cle", "\tBCle\tn", "c) \tBCleric\tn",
     /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst eFeatp*/
-      -1,       N,    N,        M,  8, 0,   1,   2,     Y,       0,      3,
+      -1,       N,    N,        M,  8, 0,   1,   2,     Y,       0,      0,
       /*descrip*/"In faith and the miracles of the divine, many find a greater "
     "purpose. Called to serve powers beyond most mortal understanding, all priests "
     "preach wonders and provide for the spiritual needs of their people. Clerics "

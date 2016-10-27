@@ -3651,9 +3651,6 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
             default: /* 2d4 bleed damage and 2d4 moves drain */
               GET_MOVE(victim) -= dice(2, 4);
               dam += dice(2, 4);
-              //if (damage(ch, victim, dice(2, 4), TYPE_SUFFERING, DAM_RESERVED_DBC, FALSE) < 0) {
-                /* death, no special handling yet */
-              //}
               break;
           }          
         }        
@@ -3661,12 +3658,12 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
             
       /* raging critical feat */
       if (HAS_FEAT(ch, FEAT_RAGING_CRITICAL) && affected_by_spell(ch, SKILL_RAGE)) {
-        if ((GET_SIZE(ch) - GET_SIZE(victim)) >= 2) ;
-        else if ((GET_SIZE(victim) - GET_SIZE(ch)) >= 2) ;
-        else if (GET_POS(victim) <= POS_SITTING) ;
-        else if (IS_INCORPOREAL(victim)) ;
-        else if (MOB_FLAGGED(victim, MOB_NOBASH)) ;
-        else {
+        /*fail*/if ((GET_SIZE(ch) - GET_SIZE(victim)) >= 2) ;
+        /*fail*/else if ((GET_SIZE(victim) - GET_SIZE(ch)) >= 2) ;
+        /*fail*/else if (GET_POS(victim) <= POS_SITTING) ;
+        /*fail*/else if (IS_INCORPOREAL(victim)) ;
+        /*fail*/else if (MOB_FLAGGED(victim, MOB_NOBASH)) ;
+        else { /*success!*/
           GET_POS(victim) = POS_SITTING;
           act("\tyYou knock $N to the ground with your powerful blow!\tn", FALSE, ch, NULL, victim, TO_CHAR);
           act("\ty$n knocks you to the ground with $s powerful blow!\tn", FALSE, ch, NULL, victim, TO_VICT);
