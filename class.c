@@ -2126,7 +2126,7 @@ void advance_level(struct char_data *ch, int class) {
   trains += MAX(1, (CLSLIST_TRAINS(class) + (GET_REAL_INT_BONUS(ch))));
   
   /* epic feat progresion */
-  if (!(CLASS_LEVEL(ch, class) % CLSLIST_EFEATP(class)) && IS_EPIC(ch)) {
+  if (CLSLIST_EFEATP(class) && !(CLASS_LEVEL(ch, class) % CLSLIST_EFEATP(class)) && IS_EPIC(ch)) {
     epic_class_feats++;
   }
   
