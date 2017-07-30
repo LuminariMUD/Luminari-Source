@@ -2124,26 +2124,26 @@ void advance_level(struct char_data *ch, int class) {
   
   /* calculate trains gained */
   trains += MAX(1, (CLSLIST_TRAINS(class) + (GET_REAL_INT_BONUS(ch))));
-  
-  /* epic feat progresion */
+    
+  /* pre epic special class feat progression */  
+  if (class == CLASS_WIZARD && !(CLASS_LEVEL(ch, CLASS_WIZARD) % 5)) {
+    if (!IS_EPIC(ch))
+      class_feats++; // wizards get a bonus class feat every 5 levels
+    //else if (IS_EPIC(ch))
+      //epic_class_feats++;      
+  }
+  if (class == CLASS_WARRIOR && !(CLASS_LEVEL(ch, CLASS_WARRIOR) % 2)) {
+    if (!IS_EPIC(ch))
+      class_feats++; // warriors get a bonus class feat every 2 levels
+    //else if (IS_EPIC(ch))
+      //epic_class_feats++;      
+  }
+
+  /* epic class feat progresion */
   if (CLSLIST_EFEATP(class) && !(CLASS_LEVEL(ch, class) % CLSLIST_EFEATP(class)) && IS_EPIC(ch)) {
     epic_class_feats++;
   }
   
-  /* special feat progression */  
-  if (class == CLASS_WIZARD && !(CLASS_LEVEL(ch, CLASS_WIZARD) % 5)) {
-    if (!IS_EPIC(ch))
-      class_feats++; /* wizards get a bonus class feat every 5 levels */
-    else if (IS_EPIC(ch))
-      epic_class_feats++;      
-  }
-  if (class == CLASS_WARRIOR && !(CLASS_LEVEL(ch, CLASS_WARRIOR) % 2)) {
-    if (!IS_EPIC(ch))
-      class_feats++; /* wizards get a bonus class feat every 5 levels */
-    else if (IS_EPIC(ch))
-      epic_class_feats++;      
-  }
-
   /* further movement modifications */
   if (HAS_FEAT(ch, FEAT_ENDURANCE)) {
     add_move += rand_number(1, 2);
@@ -2373,7 +2373,7 @@ void load_class_list(void) {
   /*     class-number  name      abrv   clr-abrv     menu-name*/
   classo(CLASS_WIZARD, "wizard", "Wiz", "\tmWiz\tn", "m) \tmWizard\tn",
     /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCost efeatp*/
-      -1,       N,    N,        L,  4, 0,   1,   2,     Y,       0,       3,
+      -1,       N,    N,        L,  4, 0,   1,   2,     Y,       0,       5,
       /*Descrip*/ "Beyond the veil of the mundane hide the secrets of absolute "
     "power. The works of beings beyond mortals, the legends of realms where titans "
     "and spirits tread, the lore of creations both wondrous and terrible—such "
@@ -2854,7 +2854,7 @@ void load_class_list(void) {
   /*     class-number  name     abrv   clr-abrv     menu-name*/
   classo(CLASS_ROGUE, "rogue", "Rog", "\twRog\tn", "t) \twRogue\tn",
       /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst eFeatp*/
-        -1,       N,    N,        M,  6, 0,   2,   8,     Y,       0,      4,
+        -1,       N,    N,        M,  6, 0,   2,   8,     Y,       0,      0,
         /*descrip*/"Life is an endless adventure for those who live by their wits. "
     "Ever just one step ahead of danger, rogues bank on their cunning, skill, and "
     "charm to bend fate to their favor. Never knowing what to expect, they prepare "
@@ -2957,7 +2957,7 @@ void load_class_list(void) {
   /*     class-number  name        abrv   clr-abrv       menu-name*/
   classo(CLASS_WARRIOR, "warrior", "War", "\tRWar\tn", "w) \tRWarrior\tn",
       /* max-lvl  lock? prestige? BAB HD  mana move trains in-game? unlkCst, eFeatp */
-        -1,       N,    N,        H,  10, 0,   1,   2,     Y,       0,       4,
+        -1,       N,    N,        H,  10, 0,   1,   2,     Y,       0,       2,
         /*descrip*/"Some take up arms for glory, wealth, or revenge. Others do "
     "battle to prove themselves, to protect others, or because they know nothing "
     "else. Still others learn the ways of weaponcraft to hone their bodies in "
@@ -3097,7 +3097,7 @@ void load_class_list(void) {
   /*     class-number  name    abrv   clr-abrv     menu-name*/
   classo(CLASS_MONK, "monk", "Mon", "\tgMon\tn", "o) \tgMonk\tn",
       /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst, eFeatp */
-        -1,       N,    N,        M,  8, 0,   2,   4,     Y,       0,       5,
+        -1,       N,    N,        M,  8, 0,   2,   4,     Y,       0,       0,
         /*descrip*/"For the truly exemplary, martial skill transcends the "
     "battlefield—it is a lifestyle, a doctrine, a state of mind. These warrior-"
     "artists search out methods of battle beyond swords and shields, finding "
@@ -3189,7 +3189,7 @@ void load_class_list(void) {
   /*     class-number  name      abrv   clr-abrv          menu-name*/
   classo(CLASS_DRUID, "druid", "Dru", "\tGD\tgr\tGu\tn", "d) \tGD\tgr\tGu\tgi\tGd\tn",
       /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst, eFeatp*/
-        -1,       N,    N,        M,  8, 0,   3,   4,     Y,       0,       4,
+        -1,       N,    N,        M,  8, 0,   3,   4,     Y,       0,       0,
         /*descrip*/"Within the purity of the elements and the order of the wilds "
     "lingers a power beyond the marvels of civilization. Furtive yet undeniable, "
     "these primal magics are guarded over by servants of philosophical balance "
@@ -3393,7 +3393,7 @@ void load_class_list(void) {
   /*     class-number        name      abrv   clr-abrv           menu-name*/
   classo(CLASS_BERSERKER, "berserker", "Bes", "\trB\tRe\trs\tn", "b) \trBer\tRser\trker\tn",
       /* max-lvl  lock? prestige? BAB HD  mana move trains in-game? unlkCst, eFeatp */
-        -1,       N,    N,        H,  12, 0,   2,   4,     Y,       0,       4,
+        -1,       N,    N,        H,  12, 0,   2,   4,     Y,       0,       0,
         /*descrip*/"For some, there is only rage. In the ways of their people, in "
     "the fury of their passion, in the howl of battle, conflict is all these brutal "
     "souls know. Savages, hired muscle, masters of vicious martial techniques, they "
@@ -3505,7 +3505,7 @@ void load_class_list(void) {
   /*     class-number     name      abrv   clr-abrv     menu-name*/
   classo(CLASS_SORCERER, "sorcerer", "Sor", "\tMSor\tn", "s) \tMSorcerer\tn",
       /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst, eFeatp*/
-        -1,       N,    N,        L,  4, 0,   1,   2,     Y,       0,       3,
+        -1,       N,    N,        L,  4, 0,   1,   2,     Y,       0,       0,
         /*descrip*/"Scions of innately magical bloodlines, the chosen of deities, "
     "the spawn of monsters, pawns of fate and destiny, or simply flukes of fickle "
     "magic, sorcerers look within themselves for arcane prowess and draw forth might "
@@ -3768,7 +3768,7 @@ void load_class_list(void) {
   /*     class-number   name      abrv   clr-abrv     menu-name*/
   classo(CLASS_PALADIN, "paladin", "Pal", "\tWPal\tn", "p) \tWPaladin\tn",
       /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst, eFeatp*/
-        -1,       N,    N,        H,  10, 0,   1,   2,     Y,      0,       3,
+        -1,       N,    N,        H,  10, 0,   1,   2,     Y,      0,       0,
         /*descrip*/"Through a select, worthy few shines the power of the divine. "
     "Called paladins, these noble souls dedicate their swords and lives to the "
     "battle against evil. Knights, crusaders, and law-bringers, paladins seek not "
@@ -3893,7 +3893,7 @@ void load_class_list(void) {
   /*     class-number  name      abrv   clr-abrv     menu-name*/
   classo(CLASS_RANGER, "ranger", "Ran", "\tYRan\tn", "r) \tYRanger\tn",
       /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst, eFeatp */
-        -1,       N,    N,        H,  10, 0,   3,   4,     Y,      0,       3,
+        -1,       N,    N,        H,  10, 0,   3,   4,     Y,      0,       0,
         /*descrip*/"For those who relish the thrill of the hunt, there are only "
     "predators and prey. Be they scouts, trackers, or bounty hunters, rangers share "
     "much in common: unique mastery of specialized weapons, skill at stalking even "
@@ -4020,7 +4020,7 @@ void load_class_list(void) {
   /*     class-number  name   abrv   clr-abrv     menu-name*/
   classo(CLASS_BARD, "bard", "Bar", "\tCBar\tn", "a) \tCBard\tn",
       /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst, eFeatp */
-        -1,       N,    N,        M,  6, 0,   2,   6,     Y,       0,       3,
+        -1,       N,    N,        M,  6, 0,   2,   6,     Y,       0,       0,
         /*descrip*/"Untold wonders and secrets exist for those skillful enough to "
     "discover them. Through cleverness, talent, and magic, these cunning few unravel "
     "the wiles of the world, becoming adept in the arts of persuasion, manipulation, "
@@ -4165,7 +4165,7 @@ void load_class_list(void) {
   /*     class-number               name      abrv   clr-abrv     menu-name*/
   classo(CLASS_WEAPON_MASTER, "weaponmaster", "WpM", "\tcWpM\tn", "e) \tcWeaponMaster\tn",
       /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst, eFeatp*/
-        10,       Y,    Y,        H,  10, 0,   1,   2,     Y,      5000,    3,
+        10,       Y,    Y,        H,  10, 0,   1,   2,     Y,      5000,    0,
         /*descrip*/"For the weapon master, perfection is found in the mastery of a "
     "single melee weapon. A weapon master seeks to unite this weapon of choice with "
     "his body, to make them one, and to use the weapon as naturally and without "
@@ -4224,7 +4224,7 @@ void load_class_list(void) {
   /*     class-number               name      abrv   clr-abrv     menu-name*/
   classo(CLASS_ARCANE_ARCHER, "arcanearcher", "ArA", "\tGArA\tn", "f) \tGArcaneArcher\tn",
       /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst, eFeatp*/
-        10,       Y,    Y,        H,  10, 0,   1,   4,     Y,      5000,    4,
+        10,       Y,    Y,        H,  10, 0,   1,   4,     Y,      5000,    0,
         /*descrip*/"Many who seek to perfect the use of the bow sometimes pursue "
     "the path of the arcane archer. Arcane archers are masters of ranged combat, "
     "as they possess the ability to strike at targets with unerring accuracy and "
@@ -4286,7 +4286,7 @@ void load_class_list(void) {
   /*     class-number               name      abrv   clr-abrv     menu-name*/
   classo(CLASS_STALWART_DEFENDER, "stalwartdefender", "SDe", "\tWS\tcDe\tn", "g) \tWStalwart \tcDefender\tn",
       /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst, eFeatp*/
-        10,       Y,    Y,        H,  12, 0,   1,   2,     Y,      5000,    4,
+        10,       Y,    Y,        H,  12, 0,   1,   2,     Y,      5000,    0,
         /*descrip*/"Drawn from the ranks of guards, knights, mercenaries, and "
     "thugs alike, stalwart defenders are masters of claiming an area and refusing "
     "to relinquish it. This behavior is more than a tactical decision for stalwart "
@@ -4357,7 +4357,7 @@ void load_class_list(void) {
   /*     class-number               name      abrv   clr-abrv     menu-name*/
   classo(CLASS_SHIFTER, "shifter", "Shf", "\twS\tWh\twf\tn", "f) \twSh\tWift\twer\tn",
       /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst, eFeatp*/
-        10,       Y,    Y,        M,  8, 0,   1,   4,     N,       5000,    4,
+        10,       Y,    Y,        M,  8, 0,   1,   4,     N,       5000,    0,
         /*descrip*/"A shifter has no form they call their own. Instead, they clothe "
     "themselves in whatever shape is most expedient at the time. While others base "
     "their identities largely on their external forms, the shifter actually comes "
@@ -4408,7 +4408,7 @@ void load_class_list(void) {
   /*     class-number               name      abrv   clr-abrv     menu-name*/
   classo(CLASS_DUELIST, "duelist", "Due", "\tcDue\tn", "i) \tcDuelist\tn",
       /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst, eFeatp*/
-        10,       Y,    Y,        H,  10, 0,   1,   4,     Y,      5000,    3,
+        10,       Y,    Y,        H,  10, 0,   1,   4,     Y,      5000,    0,
         /*descrip*/"Duelists represent the pinnacle of elegant swordplay. They "
     "move with a grace unmatched by most foes, parrying blows and countering attacks "
     "with swift thrusts of their blades. They may wear armor, but generally eschew "
