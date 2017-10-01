@@ -40,10 +40,6 @@ static void castle_mob_spec(mob_vnum mobnum, SPECIAL(*specproc));
 
 /* end head of file */
 
-
-
-
-
 /******************************************************************/
 /*  KINGS CASTLE */
 /******************************************************************/
@@ -2294,7 +2290,6 @@ SPECIAL(giantslayer) {
 
 /*****************/
 /* Mad Drow */
-
 /*****************/
 
 bool open_msg = FALSE;
