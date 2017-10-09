@@ -6207,9 +6207,9 @@ SPECIAL(bank) {
 
   if (CMD_IS("balance")) {
     if (GET_BANK_GOLD(ch) > 0)
-      send_to_char(ch, "@wYour current balance is @W%d @Ycoins@w.@n\r\n", GET_BANK_GOLD(ch));
+      send_to_char(ch, "\twYour current balance is \tW%d \tYcoins\tw.\tn\r\n", GET_BANK_GOLD(ch));
     else
-      send_to_char(ch, "@wYou currently have @Wno@w money deposited.@n\r\n");
+      send_to_char(ch, "\twYou currently have \tWno\tw money deposited.\tn\r\n");
     return (TRUE);
   } else if (CMD_IS("deposit")) {
     
@@ -6217,7 +6217,7 @@ SPECIAL(bank) {
     skip_spaces(&argument);
     if (is_abbrev(argument, "all")) {
       amount = GET_GOLD(ch);
-      send_to_char(ch, "@wYou deposit all (@W%d@w) your @Ycoins@w.@n\r\n", amount);
+      send_to_char(ch, "\twYou deposit all (\tW%d\tw) your \tYcoins\tw.\tn\r\n", amount);
       act("$n makes a bank transaction.", TRUE, ch, 0, FALSE, TO_ROOM);
       decrease_gold(ch, amount);
       increase_bank(ch, amount);
@@ -6234,7 +6234,7 @@ SPECIAL(bank) {
     }
     decrease_gold(ch, amount);
     increase_bank(ch, amount);
-    send_to_char(ch, "@wYou deposit @W%d@Y coins@w.@n\r\n", amount);
+    send_to_char(ch, "\twYou deposit \tW%d\tY coins\tw.\tn\r\n", amount);
     act("$n makes a bank transaction.", TRUE, ch, 0, FALSE, TO_ROOM);
     return (TRUE);
   } else if (CMD_IS("withdraw")) {
@@ -6243,7 +6243,7 @@ SPECIAL(bank) {
     skip_spaces(&argument);
     if (is_abbrev(argument, "all")) {
       amount = GET_BANK_GOLD(ch);
-      send_to_char(ch, "@wYou withdraw all (@W%d@w) your @Ycoins@w.@n\r\n", amount);
+      send_to_char(ch, "\twYou withdraw all (\tW%d\tw) your \tYcoins\tw.\tn\r\n", amount);
       act("$n makes a bank transaction.", TRUE, ch, 0, FALSE, TO_ROOM);
       increase_gold(ch, amount);
       decrease_bank(ch, amount);
@@ -6260,7 +6260,7 @@ SPECIAL(bank) {
     }
     increase_gold(ch, amount);
     decrease_bank(ch, amount);
-    send_to_char(ch, "@wYou withdraw @W%d @Ycoins@w.@n\r\n", amount);
+    send_to_char(ch, "\twYou withdraw @W%d \tYcoins\tw.\tn\r\n", amount);
     act("$n makes a bank transaction.", TRUE, ch, 0, FALSE, TO_ROOM);
     return (TRUE);
   } else
