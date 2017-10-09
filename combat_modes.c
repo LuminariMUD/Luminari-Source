@@ -57,25 +57,25 @@
 struct combat_mode_data combat_mode_info[] = {
   {"!UNDEFINED!", 0, 0, FALSE, MODE_GROUP_NONE},
   /* Group 1 */
-  {"power attack"    , AFF_POWER_ATTACK, FEAT_POWER_ATTACK    , TRUE , MODE_GROUP_1},
-  {"combat expertise", AFF_EXPERTISE   , FEAT_COMBAT_EXPERTISE, TRUE , MODE_GROUP_1},
-  {"spellbattle"     , AFF_SPELLBATTLE , FEAT_SPELLBATTLE     , TRUE , MODE_GROUP_1},
-  {"total defense"           , AFF_TOTAL_DEFENSE       , FEAT_UNDEFINED       , FALSE, MODE_GROUP_1},
+  {"power attack", AFF_POWER_ATTACK, FEAT_POWER_ATTACK, TRUE, MODE_GROUP_1},
+  {"combat expertise", AFF_EXPERTISE, FEAT_COMBAT_EXPERTISE, TRUE, MODE_GROUP_1},
+  {"spellbattle", AFF_SPELLBATTLE, FEAT_SPELLBATTLE, TRUE, MODE_GROUP_1},
+  {"total defense", AFF_TOTAL_DEFENSE, FEAT_UNDEFINED, FALSE, MODE_GROUP_1},
   /* Group 2 */
-  {"dual wield"         , AFF_DUAL_WIELD         , FEAT_UNDEFINED      , FALSE, MODE_GROUP_2},
-  {"flurry of blows"    , AFF_FLURRY_OF_BLOWS    , FEAT_FLURRY_OF_BLOWS, FALSE, MODE_GROUP_2},
-  {"rapid shot"         , AFF_RAPID_SHOT         , FEAT_RAPID_SHOT     , FALSE, MODE_GROUP_2},
+  {"dual wield", AFF_DUAL_WIELD, FEAT_UNDEFINED, FALSE, MODE_GROUP_2},
+  {"flurry of blows", AFF_FLURRY_OF_BLOWS, FEAT_FLURRY_OF_BLOWS, FALSE, MODE_GROUP_2},
+  {"rapid shot", AFF_RAPID_SHOT, FEAT_RAPID_SHOT, FALSE, MODE_GROUP_2},
   /* Group 3 */
   /* none currently */
   /* No Group */
-  {"counterspell"     , AFF_COUNTERSPELL     , FEAT_UNDEFINED, FALSE, MODE_GROUP_NONE},
+  {"counterspell", AFF_COUNTERSPELL, FEAT_UNDEFINED, FALSE, MODE_GROUP_NONE},
   {"defensive casting", AFF_DEFENSIVE_CASTING, FEAT_UNDEFINED, FALSE, MODE_GROUP_NONE},
-  {"whirlwind attack" , AFF_WHIRLWIND_ATTACK, FEAT_WHIRLWIND_ATTACK, MODE_GROUP_NONE}
+  {"whirlwind attack", AFF_WHIRLWIND_ATTACK, FEAT_WHIRLWIND_ATTACK, MODE_GROUP_NONE}
 };
 
 /* Unified combat mode management */
 bool is_mode_enabled(const struct char_data *ch, const int mode) {
-  if ( AFF_FLAGGED(ch, combat_mode_info[mode].affect_flag) ) {
+  if (AFF_FLAGGED(ch, combat_mode_info[mode].affect_flag)) {
     return TRUE;
   } else {
     return FALSE;
@@ -85,16 +85,16 @@ bool is_mode_enabled(const struct char_data *ch, const int mode) {
 int is_mode_blocked(const struct char_data *ch, const int mode) {
   int i = 0;
 
-  if ( mode < 0 || mode >= MAX_MODES ) {
+  if (mode < 0 || mode >= MAX_MODES) {
     log("SYSERR: Invalid mode '%d' passed to is_mode_blocked()", mode);
     return MODE_NONE;
   }
 
   /* Check the modes groups.  Modes set to MODE_GROUP_NONE do not ever block. */
   for (i = 1; i < MAX_MODES; i++) {
-    if ( (i != MODE_GROUP_NONE) &&
-         (combat_mode_info[mode].group == combat_mode_info[i].group) &&
-         is_mode_enabled(ch, i) ) {
+    if ((i != MODE_GROUP_NONE) &&
+            (combat_mode_info[mode].group == combat_mode_info[i].group) &&
+            is_mode_enabled(ch, i)) {
       return i;
     }
   }
@@ -102,8 +102,8 @@ int is_mode_blocked(const struct char_data *ch, const int mode) {
 }
 
 bool can_enable_mode(struct char_data *ch, const int mode) {
-  if ( (is_mode_blocked(ch, mode))  ||
-       (!HAS_FEAT(ch, combat_mode_info[mode].required_feat)) ) {
+  if ((is_mode_blocked(ch, mode)) ||
+          (!HAS_FEAT(ch, combat_mode_info[mode].required_feat))) {
     return FALSE;
   } else {
     return TRUE;
@@ -111,18 +111,17 @@ bool can_enable_mode(struct char_data *ch, const int mode) {
 }
 
 void enable_combat_mode(struct char_data *ch, const int mode, const int value) {
-//  if ( can_enable_mode(ch, mode) ) {
-    SET_BIT_AR(AFF_FLAGS(ch), combat_mode_info[mode].affect_flag);
-    if ( combat_mode_info[mode].has_value ) {
-      COMBAT_MODE_VALUE(ch) = value;
-    }
-//  }
+  //  if ( can_enable_mode(ch, mode) ) {
+  SET_BIT_AR(AFF_FLAGS(ch), combat_mode_info[mode].affect_flag);
+  if (combat_mode_info[mode].has_value) {
+    COMBAT_MODE_VALUE(ch) = value;
+  }
+  //  }
 }
 
 void disable_combat_mode(struct char_data *ch, int mode) {
   REMOVE_BIT_AR(AFF_FLAGS(ch), combat_mode_info[mode].affect_flag);
 }
-
 
 /* Generic mode manager */
 ACMD(do_mode) {
@@ -135,43 +134,45 @@ ACMD(do_mode) {
   if (argument) {
     one_argument(argument, arg);
   }
-  if ( is_mode_enabled(ch, mode) &&
-       ((combat_mode_info[mode].has_value == FALSE) ||
-        ((combat_mode_info[mode].has_value == TRUE) &&
-         (!*arg))) ) {
+  if (is_mode_enabled(ch, mode) &&
+          ((combat_mode_info[mode].has_value == FALSE) ||
+          ((combat_mode_info[mode].has_value == TRUE) &&
+          (!*arg)))) {
     send_to_char(ch, "You leave %s mode.\r\n", combat_mode_info[mode].name);
     disable_combat_mode(ch, mode);
-    if ( combat_mode_info[mode].has_value ) {
+    if (combat_mode_info[mode].has_value) {
       COMBAT_MODE_VALUE(ch) = -1;
     }
     return;
   }
-  if ( (combat_mode_info[mode].required_feat != FEAT_UNDEFINED) &&
-       (!HAS_FEAT(ch, combat_mode_info[mode].required_feat)) ) {
+  if ((combat_mode_info[mode].required_feat != FEAT_UNDEFINED) &&
+          (!HAS_FEAT(ch, combat_mode_info[mode].required_feat))) {
     send_to_char(ch, "You have no idea how to do that.\r\n");
     return;
   }
-  if ( ((blocking_mode = is_mode_blocked(ch, mode)) != MODE_NONE) &&
-       (blocking_mode != mode) ) {
+  if (((blocking_mode = is_mode_blocked(ch, mode)) != MODE_NONE) &&
+          (blocking_mode != mode)) {
     /* There is a blocking mode */
     send_to_char(ch, "You can't combine %s and %s modes!\r\n", combat_mode_info[mode].name, combat_mode_info[blocking_mode].name);
     return;
   }
-  if ( combat_mode_info[mode].has_value ) {
+  if (combat_mode_info[mode].has_value) {
     /* No argument */
-    if ( !*arg ) {
+    if (!*arg) {
       send_to_char(ch, "You must specify an argument when entering %s mode.\r\n", combat_mode_info[mode].name);
       return;
     }
-    if ( IS_NPC(ch) ) {
+    if (IS_NPC(ch)) {
       number = 5;
-    } else if ( is_number(arg) )
+    } else if (is_number(arg))
       number = atoi(arg);
     else {
       send_to_char(ch, "The argument must be a number!\r\n");
       return;
     }
-    if ( !IS_NPC(ch) && number > BAB(ch) ) {
+    if (number == 1)
+      ;
+    else if (!IS_NPC(ch) && number > BAB(ch)) {
       send_to_char(ch, "The maximum value you can specify for %s is %d.\r\n", combat_mode_info[mode].name, BAB(ch));
       return;
     }
@@ -179,7 +180,7 @@ ACMD(do_mode) {
       send_to_char(ch, "The minimum value you can sepcify for %s is 1.\r\n", combat_mode_info[mode].name);
       return;
     }
-    if ( !IS_NPC(ch) && number > MODE_CAP ) {
+    if (!IS_NPC(ch) && number > MODE_CAP) {
       send_to_char(ch, "The maximum value you can specify for %s is %d (upper limit).\r\n", combat_mode_info[mode].name, MODE_CAP);
       return;
     }
