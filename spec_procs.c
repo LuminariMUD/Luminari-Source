@@ -6260,7 +6260,7 @@ SPECIAL(bank) {
     }
     increase_gold(ch, amount);
     decrease_bank(ch, amount);
-    send_to_char(ch, "\twYou withdraw @W%d \tYcoins\tw.\tn\r\n", amount);
+    send_to_char(ch, "\twYou withdraw \tW%d \tYcoins\tw.\tn\r\n", amount);
     act("$n makes a bank transaction.", TRUE, ch, 0, FALSE, TO_ROOM);
     return (TRUE);
   } else
