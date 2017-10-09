@@ -1443,6 +1443,11 @@ ACMD(do_turnundead) {
   int turn_level = 0;
   int turn_difference = 0, turn_result = 0, turn_roll = 0;
   char buf[MAX_STRING_LENGTH] = {'\0'};
+  
+  if (!MOB_CAN_FIGHT(ch)) {
+    send_to_char(ch, "But you can't fight!\r\n");
+    return;
+  }  
 
   if (!HAS_FEAT(ch, FEAT_TURN_UNDEAD)) {
     send_to_char(ch, "You do not possess divine favor!\r\n");
@@ -1620,6 +1625,11 @@ void clear_defensive_stance(struct char_data *ch) {
 ACMD(do_defensive_stance) {
   struct affected_type af, aftwo, afthree, affour;
   int bonus = 0, duration = 0, uses_remaining = 0;
+  
+  if (!MOB_CAN_FIGHT(ch)) {
+    send_to_char(ch, "But you can't fight!\r\n");
+    return;
+  }
 
   if (affected_by_spell(ch, SKILL_DEFENSIVE_STANCE)) {
     clear_defensive_stance(ch);
@@ -1637,12 +1647,12 @@ ACMD(do_defensive_stance) {
     return;
   }
 
-  if (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_DEFENSIVE_STANCE)) {
+  if (!HAS_FEAT(ch, FEAT_DEFENSIVE_STANCE)) {
       send_to_char(ch, "You don't know how to use a defensive stance.\r\n");
       return;
   }
 
-  if (!IS_NPC(ch) && ((uses_remaining = daily_uses_remaining(ch, FEAT_DEFENSIVE_STANCE)) == 0)) {
+  if (((uses_remaining = daily_uses_remaining(ch, FEAT_DEFENSIVE_STANCE)) == 0)) {
     send_to_char(ch, "You must recover before you can use a defensive stance again.\r\n");
     return;
   }
@@ -1702,6 +1712,11 @@ ACMD(do_defensive_stance) {
 ACMD(do_rage) {
   struct affected_type af, aftwo, afthree, affour;
   int bonus = 0, duration = 0, uses_remaining = 0;
+  
+  if (!MOB_CAN_FIGHT(ch)) {
+    send_to_char(ch, "But you can't fight!\r\n");
+    return;
+  }  
 
   if (affected_by_spell(ch, SKILL_RAGE)) {
     clear_rage(ch);
@@ -1719,11 +1734,11 @@ ACMD(do_rage) {
     return;
   }
     
-  if (!IS_ANIMAL(ch)) {
-    if (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_RAGE)) {
-      send_to_char(ch, "You don't know how to rage.\r\n");
-      return;
-    }
+  if (IS_ANIMAL(ch))
+    ;
+  else if (!HAS_FEAT(ch, FEAT_RAGE)) {
+    send_to_char(ch, "You don't know how to rage.\r\n");
+    return;
   }
 
   if (!IS_NPC(ch) && ((uses_remaining = daily_uses_remaining(ch, FEAT_RAGE)) == 0)) {
@@ -1797,7 +1812,12 @@ ACMD(do_rage) {
 ACMD(do_assist) {
   char arg[MAX_INPUT_LENGTH];
   struct char_data *helpee = NULL;
-
+  
+  if (!MOB_CAN_FIGHT(ch)) {
+    send_to_char(ch, "But you can't fight!\r\n");
+    return;
+  }
+  
   if (FIGHTING(ch)) {
     send_to_char(ch, "You're already fighting!  How can you assist someone else?\r\n");
     return;
@@ -1920,7 +1940,12 @@ ACMD(do_hit) {
 ACMD(do_kill) {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
-
+  
+  if (!MOB_CAN_FIGHT(ch)) {
+    send_to_char(ch, "But you can't fight!\r\n");
+    return;
+  }
+  
   if (GET_LEVEL(ch) < LVL_IMMORT || IS_NPC(ch) ||
           !PRF_FLAGGED(ch, PRF_NOHASSLE)) {
     do_hit(ch, argument, cmd, subcmd);
@@ -1959,8 +1984,13 @@ ACMD(do_kill) {
 ACMD(do_backstab) {
   char buf[MAX_INPUT_LENGTH];
   struct char_data *vict;
+  
+  if (!MOB_CAN_FIGHT(ch)) {
+    send_to_char(ch, "But you can't fight!\r\n");
+    return;
+  }  
 
-  if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_SNEAK_ATTACK)) {
+  if (!HAS_FEAT(ch, FEAT_SNEAK_ATTACK)) {
     send_to_char(ch, "You have no idea how to do that (you need at least 1 rank "
             "of the sneak attack feat to perform a backstab).\r\n");
     return;
@@ -2193,6 +2223,11 @@ int perform_taunt(struct char_data *ch, struct char_data *vict) {
 ACMD(do_taunt) {
   char arg[MAX_INPUT_LENGTH];
   struct char_data *vict;
+  
+  if (!MOB_CAN_FIGHT(ch)) {
+    send_to_char(ch, "But you can't fight!\r\n");
+    return;
+  }  
 
   one_argument(argument, arg);
 
@@ -2270,6 +2305,11 @@ int perform_intimidate(struct char_data *ch, struct char_data *vict) {
 ACMD(do_arrowswarm) {
   struct char_data *vict, *next_vict;
   int uses_remaining = 0;
+  
+  if (!MOB_CAN_FIGHT(ch)) {
+    send_to_char(ch, "But you can't fight!\r\n");
+    return;
+  }  
 
   if (!HAS_FEAT(ch, FEAT_SWARM_OF_ARROWS)) {
     send_to_char(ch, "You don't know how to do this!\r\n");
@@ -2329,6 +2369,11 @@ ACMD(do_arrowswarm) {
 ACMD(do_intimidate) {
   char arg[MAX_INPUT_LENGTH];
   struct char_data *vict;
+  
+  if (!MOB_CAN_FIGHT(ch)) {
+    send_to_char(ch, "But you can't fight!\r\n");
+    return;
+  }  
 
   one_argument(argument, arg);
 
@@ -2432,6 +2477,11 @@ ACMD(do_frightful) {
 
 ACMD(do_breathe) {
   struct char_data *vict, *next_vict;
+  
+  if (!MOB_CAN_FIGHT(ch)) {
+    send_to_char(ch, "But you can't fight!\r\n");
+    return;
+  }  
 
   if (!IS_DRAGON(ch)) {
     send_to_char(ch, "You have no idea how.\r\n");
@@ -2463,6 +2513,11 @@ ACMD(do_breathe) {
 ACMD(do_tailsweep) {
   struct char_data *vict, *next_vict;
   int percent = 0, prob = 0;
+  
+  if (!MOB_CAN_FIGHT(ch)) {
+    send_to_char(ch, "But you can't fight!\r\n");
+    return;
+  }  
 
   if (!IS_DRAGON(ch)) {
     send_to_char(ch, "You have no idea how.\r\n");
@@ -2528,6 +2583,16 @@ ACMD(do_tailsweep) {
 ACMD(do_bash) {
   char arg[MAX_INPUT_LENGTH];
   struct char_data *vict;
+  
+  if (IS_NPC(ch) && GET_CLASS(ch) != CLASS_WARRIOR) {
+    send_to_char(ch, "But you don't know how!\r\n");
+    return;    
+  }
+  
+  if (!MOB_CAN_FIGHT(ch)) {
+    send_to_char(ch, "But you can't fight!\r\n");
+    return;
+  }  
 
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
@@ -2553,6 +2618,16 @@ ACMD(do_bash) {
 ACMD(do_trip) {
   char arg[MAX_INPUT_LENGTH];
   struct char_data *vict;
+  
+  if (IS_NPC(ch) && GET_CLASS(ch) != CLASS_ROGUE) {
+    send_to_char(ch, "But you don't know how!\r\n");
+    return;    
+  }  
+  
+  if (!MOB_CAN_FIGHT(ch)) {
+    send_to_char(ch, "But you can't fight!\r\n");
+    return;
+  }  
 
   one_argument(argument, arg);
 
@@ -2583,7 +2658,7 @@ ACMD(do_layonhands) {
   struct char_data *vict = NULL;
   int uses_remaining = 0;
 
-  if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_LAYHANDS)) {
+  if (!HAS_FEAT(ch, FEAT_LAYHANDS)) {
     send_to_char(ch, "You have no idea how.\r\n");
     return;
   }
@@ -2888,6 +2963,16 @@ ACMD(do_treatinjury) {
 ACMD(do_rescue) {
   char arg[MAX_INPUT_LENGTH];
   struct char_data *vict;
+  
+  if (IS_NPC(ch) && !IS_FIGHTER(ch)) {
+    send_to_char(ch, "You have no idea how to do that.\r\n");
+    return;
+  }  
+  
+  if (!MOB_CAN_FIGHT(ch)) {
+    send_to_char(ch, "But you can't fight!\r\n");
+    return;
+  }  
 
   one_argument(argument, arg);
 
@@ -2903,8 +2988,13 @@ ACMD(do_rescue) {
 ACMD(do_whirlwind) {
   struct char_data *vict, *next_vict;
   int num_attacks = 1;
+  
+  if (!MOB_CAN_FIGHT(ch)) {
+    send_to_char(ch, "But you can't fight!\r\n");
+    return;
+  }  
 
-  if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_WHIRLWIND_ATTACK)) {
+  if (!HAS_FEAT(ch, FEAT_WHIRLWIND_ATTACK)) {
     send_to_char(ch, "You have no idea how.\r\n");
     return;
   }
@@ -2968,6 +3058,11 @@ ACMD(do_whirlwind) {
 
 ACMD(do_deatharrow) {
   int uses_remaining = 0;
+  
+  if (!MOB_CAN_FIGHT(ch)) {
+    send_to_char(ch, "But you can't fight!\r\n");
+    return;
+  }  
 
   if (!HAS_FEAT(ch, FEAT_ARROW_OF_DEATH)) {
     send_to_char(ch, "You don't know how to do this!\r\n");
@@ -3001,8 +3096,13 @@ ACMD(do_deatharrow) {
 
 ACMD(do_quiveringpalm) {
   int uses_remaining = 0;
+  
+  if (!MOB_CAN_FIGHT(ch)) {
+    send_to_char(ch, "But you can't fight!\r\n");
+    return;
+  }  
 
-  if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_QUIVERING_PALM)) {
+  if (!HAS_FEAT(ch, FEAT_QUIVERING_PALM)) {
     send_to_char(ch, "You have no idea how.\r\n");
     return;
   }
@@ -3027,8 +3127,13 @@ ACMD(do_quiveringpalm) {
 
 ACMD(do_stunningfist) {
   int uses_remaining = 0;
+  
+  if (!MOB_CAN_FIGHT(ch)) {
+    send_to_char(ch, "But you can't fight!\r\n");
+    return;
+  }  
 
-  if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_STUNNING_FIST)) {
+  if (!HAS_FEAT(ch, FEAT_STUNNING_FIST)) {
     send_to_char(ch, "You have no idea how.\r\n");
     return;
   }
@@ -3278,6 +3383,11 @@ ACMD(do_seekerarrow) {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
   int uses_remaining = 0;
+  
+  if (!MOB_CAN_FIGHT(ch)) {
+    send_to_char(ch, "But you can't fight!\r\n");
+    return;
+  }  
 
   if (IS_NPC(ch)) {
     send_to_char(ch, "You have no idea how.\r\n");
@@ -3315,6 +3425,11 @@ ACMD(do_seekerarrow) {
 ACMD(do_kick) {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
+  
+  if (!MOB_CAN_FIGHT(ch)) {
+    send_to_char(ch, "But you can't fight!\r\n");
+    return;
+  }  
 
   if (IS_NPC(ch)) {
     send_to_char(ch, "You have no idea how.\r\n");
@@ -3391,6 +3506,11 @@ ACMD(do_hitall) {
 ACMD(do_circle) {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
+  
+  if (!MOB_CAN_FIGHT(ch)) {
+    send_to_char(ch, "But you can't fight!\r\n");
+    return;
+  }  
 
   if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_SNEAK_ATTACK)) {
     send_to_char(ch, "You have no idea how to do that (circle requires at least "
@@ -3462,6 +3582,11 @@ Vhaerun:
 ACMD(do_bodyslam) {
   struct char_data *vict;
   char buf[MAX_INPUT_LENGTH] = {'\0'};
+  
+  if (!MOB_CAN_FIGHT(ch)) {
+    send_to_char(ch, "But you can't fight!\r\n");
+    return;
+  }  
 
   one_argument(argument, buf);
 
@@ -3503,16 +3628,20 @@ ACMD(do_bodyslam) {
 }
 
 ACMD(do_headbutt) {
-  struct char_data *vict = 0;
+  struct char_data *vict = NULL;
   char arg[MAX_INPUT_LENGTH] = {'\0'};
+  
+  if (!MOB_CAN_FIGHT(ch)) {
+    send_to_char(ch, "But you can't fight!\r\n");
+    return;
+  }  
 
   one_argument(argument, arg);
 
-  if (!IS_NPC(ch))
-    if (!(HAS_FEAT(ch, FEAT_IMPROVED_UNARMED_STRIKE))) {
-      send_to_char(ch, "You have no idea how.\r\n");
-      return;
-    }
+  if (!HAS_FEAT(ch, FEAT_IMPROVED_UNARMED_STRIKE)) {
+    send_to_char(ch, "You have no idea how.\r\n");
+    return;
+  }
 
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
@@ -3535,6 +3664,11 @@ ACMD(do_headbutt) {
 ACMD(do_sap) {
   struct char_data *vict = NULL;
   char buf[MAX_INPUT_LENGTH] = {'\0'};
+  
+  if (!MOB_CAN_FIGHT(ch)) {
+    send_to_char(ch, "But you can't fight!\r\n");
+    return;
+  }  
 
   one_argument(argument, buf);
 
@@ -3606,10 +3740,15 @@ ACMD(do_guard) {
 ACMD(do_dirtkick) {
   struct char_data *vict = NULL;
   char arg[MAX_INPUT_LENGTH] = {'\0'};
+  
+  if (!MOB_CAN_FIGHT(ch)) {
+    send_to_char(ch, "But you can't fight!\r\n");
+    return;
+  }  
 
   one_argument(argument, arg);
 
-  if (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_DIRT_KICK)) {
+  if (!HAS_FEAT(ch, FEAT_DIRT_KICK)) {
     send_to_char(ch, "You have no idea how.\r\n");
     return;
   }
@@ -3648,6 +3787,11 @@ ACMD(do_dirtkick) {
 ACMD(do_springleap) {
   struct char_data *vict = NULL;
   char arg[MAX_INPUT_LENGTH] = {'\0'};
+  
+  if (!MOB_CAN_FIGHT(ch)) {
+    send_to_char(ch, "But you can't fight!\r\n");
+    return;
+  }  
 
   one_argument(argument, arg);
 
@@ -3692,9 +3836,17 @@ ACMD(do_springleap) {
 ACMD(do_shieldpunch) {
   struct char_data *vict = NULL;
   char arg[MAX_INPUT_LENGTH] = {'\0'};
-
+  
+  if (!MOB_CAN_FIGHT(ch)) {
+    send_to_char(ch, "But you can't fight!\r\n");
+    return;
+  }  
+  if (IS_NPC(ch)) {
+    send_to_char(ch, "You have no idea how.\r\n");
+    return;    
+  }
+  
   one_argument(argument, arg);
-
 
   if (GET_POS(ch) <= POS_SITTING) {
     send_to_char(ch, "You need to get on your feet to shieldpunch.\r\n");
@@ -3731,9 +3883,17 @@ ACMD(do_shieldpunch) {
 ACMD(do_shieldcharge) {
   struct char_data *vict = NULL;
   char arg[MAX_INPUT_LENGTH] = {'\0'};
-
+  
+  if (!MOB_CAN_FIGHT(ch)) {
+    send_to_char(ch, "But you can't fight!\r\n");
+    return;
+  }  
+  if (IS_NPC(ch)) {
+    send_to_char(ch, "You have no idea how.\r\n");
+    return;    
+  }
+  
   one_argument(argument, arg);
-
 
   if (GET_POS(ch) <= POS_SITTING) {
     send_to_char(ch, "You need to get on your feet to shieldcharge.\r\n");
@@ -3773,8 +3933,16 @@ ACMD(do_shieldslam) {
   struct char_data *vict = NULL;
   char arg[MAX_INPUT_LENGTH] = {'\0'};
 
+  if (!MOB_CAN_FIGHT(ch)) {
+    send_to_char(ch, "But you can't fight!\r\n");
+    return;
+  }
+  if (IS_NPC(ch)) {
+    send_to_char(ch, "You have no idea how.\r\n");
+    return;    
+  }
+  
   one_argument(argument, arg);
-
 
   if (GET_POS(ch) <= POS_SITTING) {
     send_to_char(ch, "You need to get on your feet to shieldslam.\r\n");
@@ -3804,6 +3972,11 @@ ACMD(do_shieldslam) {
 ACMD(do_charge) {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
+  
+  if (!MOB_CAN_FIGHT(ch)) {
+    send_to_char(ch, "But you can't fight!\r\n");
+    return;
+  }  
 
   one_argument(argument, arg);
 
@@ -4056,6 +4229,11 @@ ACMD(do_fire) {
 ACMD(do_autofire) {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL, *tch = NULL;
+  
+  if (!MOB_CAN_FIGHT(ch)) {
+    send_to_char(ch, "But you can't fight!\r\n");
+    return;
+  }  
 
   one_argument(argument, arg);
 
