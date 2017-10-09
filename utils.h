@@ -1667,7 +1667,7 @@ spellnum == SPELL_EPIC_WARDING )
                          IS_RANGER(ch) || IS_BARD(ch))
 #define IS_FIGHTER(ch) ( CLASS_LEVEL(ch, CLASS_WARRIOR) || CLASS_LEVEL(ch, CLASS_WEAPON_MASTER) || \
                          CLASS_LEVEL(ch, CLASS_STALWART_DEFENDER) || CLASS_LEVEL(ch, CLASS_DUELIST) || \
-                         CLASS_LEVEL(ch, CLASS_BERSERKER) || CLASS_LEVEL(ch, CLASS_PALADIN) || \ 
+                         CLASS_LEVEL(ch, CLASS_BERSERKER) || CLASS_LEVEL(ch, CLASS_PALADIN) || \
                          CLASS_LEVEL(ch, CLASS_RANGER) )
 
 #define IS_NPC_CASTER(ch)  (GET_CLASS(ch) == CLASS_CLERIC || \
