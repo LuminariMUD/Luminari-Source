@@ -1,12 +1,15 @@
-/**************************************************************************
-*  File: act.comm.c                                        Part of tbaMUD *
-*  Usage: Player-level communication commands.                            *
-*                                                                         *
-*  All rights reserved.  See license for complete information.            *
-*                                                                         *
-*  Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University *
-*  CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.               *
-**************************************************************************/
+/* \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \
+\  Part of LuminariMUD
+/                                                            
+\  @File:     act.comm.c 
+/  @Header:   act.h                                                         
+\  @Created:  Unknown
+/  @Usage:    Player-level communication commands.                                                          
+\  @Author:   CircleMUD                                                           
+/  @Credits:  All rights reserved.  See license for complete information.                                                           
+\  Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University                                                           
+/  CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.                                                                                                                                                                                     
+\ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ */
 
 #include "conf.h"
 #include "sysdep.h"

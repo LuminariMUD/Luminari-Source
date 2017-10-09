@@ -1,6 +1,12 @@
-/* Luminari Account System, Inspired by D20mud's Account System
-   Created By: Ornir */
-/* using act.h as the header file currently */
+/*/ \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \
+\                                                             
+/  Luminari Account System, Inspired by D20mud's Account System                                                           
+/  Created By: Ornir                                                           
+\                                                             
+/  using act.h as the header file currently                                                           
+\                                                             
+/                                                                                                                                                                                       
+\ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ /*/
 
 #include "conf.h"
 #include "sysdep.h"

@@ -214,13 +214,15 @@ void create_wall(struct char_data *ch, int room, int dir, int type, int level) {
    FALSE - mortals shouldn't be able to teleport to this destination
    TRUE - mortals CAN teleport to this destination
  * accepts NULL ch data
+ * dim_lock means this test is checking for the dimensional lock affection
  */
 int valid_mortal_tele_dest(struct char_data *ch, room_rnum dest, bool dim_lock) {
 
   if (dest == NOWHERE)
     return FALSE;
 
-  if (IS_AFFECTED(ch, AFF_DIM_LOCK) && dim_lock)
+  /* if dim_lock is TRUE, we are checking for dim_lock, requires ch data */
+  if (ch && IS_AFFECTED(ch, AFF_DIM_LOCK) && dim_lock)
     return FALSE;
 
   /* this function needs a vnum, not rnum */

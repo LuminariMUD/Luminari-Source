@@ -2049,7 +2049,12 @@ ACMD(do_order) {
         send_to_char(ch, "%s", CONFIG_OK);
         command_interpreter(vict, message);
       }
-    } else { /* This is order "followers" */
+      
+      /* use a move action here -zusuk */
+      USE_MOVE_ACTION(ch);
+      
+    /* This is order "followers" */
+    } else { 
       char buf[MAX_STRING_LENGTH];
 
       snprintf(buf, sizeof (buf), "$n issues the order '%s'.", message);
@@ -2063,9 +2068,10 @@ ACMD(do_order) {
           }
       }
 
-      if (found)
+      if (found) {
+        USE_FULL_ROUND_ACTION(ch);
         send_to_char(ch, "%s", CONFIG_OK);
-      else
+      } else
         send_to_char(ch, "Nobody here is a loyal subject of yours!\r\n");
     }
   }
@@ -2191,7 +2197,7 @@ ACMD(do_taunt) {
   one_argument(argument, arg);
 
   if (IS_NPC(ch) || !GET_ABILITY(ch, ABILITY_DIPLOMACY)) {
-    send_to_char(ch, "You have no idea how.\r\n");
+    send_to_char(ch, "You have no idea how (requires diplomacy).\r\n");
     return;
   }
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
