@@ -6214,6 +6214,7 @@ SPECIAL(bank) {
   } else if (CMD_IS("deposit")) {
     
     /* code to accomdate "all" */
+    skip_spaces(&argument);
     if (is_abbrev(argument, "all")) {
       amount = GET_GOLD(ch);
       send_to_char(ch, "You deposit all (%d) your coins.\r\n", amount);
@@ -6239,6 +6240,7 @@ SPECIAL(bank) {
   } else if (CMD_IS("withdraw")) {
     
     /* code to accomdate "all" */
+    skip_spaces(&argument);
     if (is_abbrev(argument, "all")) {
       amount = GET_BANK_GOLD(ch);
       send_to_char(ch, "You withdraw all (%d) your coins.\r\n", amount);
