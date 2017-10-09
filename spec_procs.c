@@ -6212,6 +6212,17 @@ SPECIAL(bank) {
       send_to_char(ch, "You currently have no money deposited.\r\n");
     return (TRUE);
   } else if (CMD_IS("deposit")) {
+    
+    /* code to accomdate "all" */
+    if (is_abbrev(argument, "all")) {
+      amount = GET_GOLD(ch);
+      send_to_char(ch, "You deposit all (%d) your coins.\r\n", amount);
+      act("$n makes a bank transaction.", TRUE, ch, 0, FALSE, TO_ROOM);
+      decrease_gold(ch, amount);
+      increase_bank(ch, amount);
+      return (TRUE);      
+    }
+    
     if ((amount = atoi(argument)) <= 0) {
       send_to_char(ch, "How much do you want to deposit?\r\n");
       return (TRUE);
@@ -6226,6 +6237,17 @@ SPECIAL(bank) {
     act("$n makes a bank transaction.", TRUE, ch, 0, FALSE, TO_ROOM);
     return (TRUE);
   } else if (CMD_IS("withdraw")) {
+    
+    /* code to accomdate "all" */
+    if (is_abbrev(argument, "all")) {
+      amount = GET_BANK_GOLD(ch);
+      send_to_char(ch, "You withdraw all (%d) your coins.\r\n", amount);
+      act("$n makes a bank transaction.", TRUE, ch, 0, FALSE, TO_ROOM);
+      increase_gold(ch, amount);
+      decrease_bank(ch, amount);
+      return (TRUE);      
+    }
+    
     if ((amount = atoi(argument)) <= 0) {
       send_to_char(ch, "How much do you want to withdraw?\r\n");
       return (TRUE);
