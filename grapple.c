@@ -195,13 +195,10 @@ ACMD(do_grapple) {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
 
-  /*
-  //this isn't necessary
   if (IS_NPC(ch)) {
     send_to_char(ch, "You have no idea how.\r\n");
     return;
   }
-  */
 
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
@@ -349,6 +346,11 @@ ACMD(do_free_grapple) {
 
 /* as a standard action, try to pin grappled opponent */
 ACMD(do_pin) {
+  if (IS_NPC(ch)) {
+    send_to_char(ch, "You have no idea how.\r\n");
+    return;
+  }
+  
   if (GRAPPLE_ATTACKER(ch)) {
     send_to_char(ch, "You have to be in the dominant position of a grapple to attempt a pin!\r\n");
     return;
@@ -400,6 +402,10 @@ ACMD(do_pin) {
 
 /* as a standard action, try to bind pinned opponent */
 ACMD(do_bind) {
+  if (IS_NPC(ch)) {
+    send_to_char(ch, "You have no idea how.\r\n");
+    return;
+  }  
   send_to_char(ch, "Under construction.\r\n");
   return;
 }
