@@ -38,6 +38,7 @@
 #include "actionqueues.h"
 #include "craft.h"
 #include "assign_wpn_armor.h"
+#include "grapple.h"
 
 /* local global */
 struct obj_data *last_missile = NULL;
@@ -1259,6 +1260,16 @@ void die(struct char_data *ch, struct char_data *killer) {
       REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_SPELLBATTLE);
     SPELLBATTLE(ch) = 0;
     wildshape_return(ch);
+  }
+  
+  /* clear grapple */
+  if (GRAPPLE_TARGET(ch)) {
+    GRAPPLE_TARGET(ch) = NULL;
+  }
+  for (temp = character_list; temp; temp = temp->next) {
+    if (GRAPPLE_TARGET(temp) == ch) {
+      clear_grapple(temp, ch);
+    }
   }
 
   /* clear guard */
