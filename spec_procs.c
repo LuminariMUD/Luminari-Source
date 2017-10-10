@@ -3876,6 +3876,7 @@ SPECIAL(pet_shops) {
 
     two_arguments(argument, buf, pet_name);
 
+    /* disqualifiers */
     if (!(pet = get_char_room(buf, NULL, pet_room)) || !IS_NPC(pet)) {
       send_to_char(ch, "There is no such pet!\r\n");
       return (TRUE);
@@ -3884,6 +3885,12 @@ SPECIAL(pet_shops) {
       send_to_char(ch, "You don't have enough gold!\r\n");
       return (TRUE);
     }
+    if (has_pet_follower(ch)) {
+      send_to_char(ch, "You can't have any more pets!\r\n");
+      return (TRUE);
+    }
+    
+    /* success! */
     decrease_gold(ch, PET_PRICE(pet));
 
     pet = read_mobile(GET_MOB_RNUM(pet), REAL);

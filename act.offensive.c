@@ -2581,10 +2581,10 @@ ACMD(do_tailsweep) {
 }
 
 ACMD(do_bash) {
-  char arg[MAX_INPUT_LENGTH];
-  struct char_data *vict;
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  struct char_data *vict = NULL;
   
-  if (IS_NPC(ch) && GET_CLASS(ch) != CLASS_WARRIOR) {
+  if (IS_NPC(ch)) {
     send_to_char(ch, "But you don't know how!\r\n");
     return;    
   }
@@ -2600,24 +2600,28 @@ ACMD(do_bash) {
   }
 
   one_argument(argument, arg);
-  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
-    if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch))) {
-      vict = FIGHTING(ch);
-    } else {
-      send_to_char(ch, "Bash who?\r\n");
-      return;
-    }
+  
+  /* find the victim */
+  vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM);
+  
+  /* we have a disqualifier here due to action system */
+  if (!FIGHTING(ch) && !vict) {
+    send_to_char(ch, "Who do you want to bash?\r\n");
+    return;    
   }
   if (vict == ch) {
-    send_to_char(ch, "Aren't we funny today...\r\n");
-    return;
+    send_to_char(ch, "You bash yourself.\r\n");
+    return;       
   }
-  perform_knockdown(ch, vict, SKILL_BASH);
+  if (FIGHTING(ch) && !vict && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
+    vict = FIGHTING(ch);
+
+  perform_knockdown(ch, vict, SKILL_BASH);  
 }
 
 ACMD(do_trip) {
-  char arg[MAX_INPUT_LENGTH];
-  struct char_data *vict;
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  struct char_data *vict = NULL;
   
   if (IS_NPC(ch) && GET_CLASS(ch) != CLASS_ROGUE) {
     send_to_char(ch, "But you don't know how!\r\n");
@@ -2628,27 +2632,24 @@ ACMD(do_trip) {
     send_to_char(ch, "But you can't fight!\r\n");
     return;
   }  
-
-  one_argument(argument, arg);
-
-  //  if (IS_NPC(ch) || !GET_SKILL(ch, SKILL_TRIP)) {
-  //    send_to_char(ch, "You have no idea how.\r\n");
-  //    return;
-  //  }
-
+  
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
     return;
   }
-
-  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
-    if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch))) {
-      vict = FIGHTING(ch);
-    } else {
-      send_to_char(ch, "Trip who?\r\n");
-      return;
-    }
+  
+  one_argument(argument, arg);
+  
+  /* find the victim */
+  vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM);
+  
+  /* we have a disqualifier here due to action system */
+  if (!FIGHTING(ch) && !vict) {
+    send_to_char(ch, "Who do you want to trip?\r\n");
+    return;    
   }
+  if (FIGHTING(ch) && !vict && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
+    vict = FIGHTING(ch);
 
   perform_knockdown(ch, vict, SKILL_TRIP);
 }
@@ -3437,14 +3438,21 @@ ACMD(do_kick) {
   }
 
   one_argument(argument, arg);
-  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
-    if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch))) {
-      vict = FIGHTING(ch);
-    } else {
-      send_to_char(ch, "Kick who?\r\n");
-      return;
-    }
+  
+  /* find the victim */
+  vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM);
+  
+  /* we have a disqualifier here due to action system */
+  if (!FIGHTING(ch) && !vict) {
+    send_to_char(ch, "Who do you want to kick?\r\n");
+    return;    
   }
+  if (vict == ch) {
+    send_to_char(ch, "You kick yourself.\r\n");
+    return;       
+  }
+  if (FIGHTING(ch) && !vict && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
+    vict = FIGHTING(ch);
 
   perform_kick(ch, vict);
 }

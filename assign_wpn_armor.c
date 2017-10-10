@@ -44,18 +44,22 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon) {
           weapon_list[weapon].weaponFamily == WEAPON_FAMILY_MONK)
     return TRUE;
 
+  /* updated by zusuk: Druids are proficient with the following weapons: club, 
+   * dagger, dart, quarterstaff, scimitar, scythe, sickle, shortspear, sling, 
+   * and spear. They are also proficient with all natural attacks (claw, bite, 
+   * and so forth) of any form they assume with wild shape.*/
   if (has_feat(ch, FEAT_WEAPON_PROFICIENCY_DRUID) ||
       CLASS_LEVEL(ch, CLASS_DRUID) > 0) {
     switch (weapon) {
       case WEAPON_TYPE_CLUB:
       case WEAPON_TYPE_DAGGER:
       case WEAPON_TYPE_QUARTERSTAFF:
-      case WEAPON_TYPE_DART:
-      case WEAPON_TYPE_SICKLE:
       case WEAPON_TYPE_SCIMITAR:
+      case WEAPON_TYPE_SCYTHE:
+      case WEAPON_TYPE_SICKLE:
       case WEAPON_TYPE_SHORTSPEAR:
-      case WEAPON_TYPE_SPEAR:
       case WEAPON_TYPE_SLING:
+      case WEAPON_TYPE_SPEAR:
         return TRUE;
     }
   }
@@ -852,10 +856,10 @@ void load_weapons(void) {
           WEAPON_FLAG_EXOTIC, 3000, DAMAGE_TYPE_SLASHING, 8, 0, WEAPON_FAMILY_AXE, SIZE_MEDIUM,
           MATERIAL_STEEL, HANDLE_TYPE_HANDLE, HEAD_TYPE_BLADE);
   setweapon(WEAPON_TYPE_WHIP, "whip", 1, 3, 0, 2, WEAPON_FLAG_EXOTIC | WEAPON_FLAG_REACH
-          | WEAPON_FLAG_DISARM | WEAPON_FLAG_TRIP, 100, DAMAGE_TYPE_SLASHING, 2, 0, WEAPON_FAMILY_WHIP,
+          | WEAPON_FLAG_DISARM | WEAPON_FLAG_TRIP | WEAPON_FLAG_BALANCED, 100, DAMAGE_TYPE_SLASHING, 2, 0, WEAPON_FAMILY_WHIP,
           SIZE_MEDIUM, MATERIAL_LEATHER, HANDLE_TYPE_HANDLE, HEAD_TYPE_CORD);
   setweapon(WEAPON_TYPE_SPIKED_CHAIN, "spiked chain", 2, 4, 0, 2, WEAPON_FLAG_EXOTIC |
-          WEAPON_FLAG_REACH | WEAPON_FLAG_DISARM | WEAPON_FLAG_TRIP, 2500, DAMAGE_TYPE_PIERCING, 10, 0,
+          WEAPON_FLAG_REACH | WEAPON_FLAG_DISARM | WEAPON_FLAG_TRIP | WEAPON_FLAG_BALANCED, 2500, DAMAGE_TYPE_PIERCING, 10, 0,
           WEAPON_FAMILY_WHIP, SIZE_LARGE, MATERIAL_STEEL, HANDLE_TYPE_GRIP, HEAD_TYPE_CHAIN);
   setweapon(WEAPON_TYPE_DOUBLE_AXE, "double-headed axe", 1, 8, 0, 3, WEAPON_FLAG_EXOTIC |
           WEAPON_FLAG_DOUBLE, 6500, DAMAGE_TYPE_SLASHING, 15, 0, WEAPON_FAMILY_DOUBLE, SIZE_LARGE,

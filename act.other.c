@@ -2227,7 +2227,7 @@ ACMD(do_wildshape) {
 
   if (HAS_FEAT(ch, FEAT_LIMITLESS_SHAPES))
     ;
-  else if (((uses_remaining = daily_uses_remaining(ch, FEAT_WILD_SHAPE)) == 0) && *argument) {
+  else if (((uses_remaining = daily_uses_remaining(ch, FEAT_WILD_SHAPE)) == 0)) {
     send_to_char(ch, "You must recover the energy required to take a wild shape.\r\n");
     return;
   }
@@ -3130,12 +3130,12 @@ ACMD(do_steal) {
 
   /* No stealing if not allowed. If it is no stealing from Imm's or Shopkeepers. */
   if (GET_LEVEL(vict) >= LVL_IMMORT || pcsteal || GET_MOB_SPEC(vict) == shop_keeper)
-    percent = 99; /* Failure */
+    percent = 100; /* Failure */
 
   if (IS_NPC(vict) && MOB_FLAGGED(vict, MOB_NOSTEAL)) {
     send_to_char(ch, "Something about this victim makes it clear this will "
             "not work...\r\n");
-    percent = 99;
+    percent = 100;
   }
 
   if (str_cmp(obj_name, "coins") && str_cmp(obj_name, "gold")) {
