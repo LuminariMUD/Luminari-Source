@@ -2227,7 +2227,7 @@ ACMD(do_wildshape) {
 
   if (HAS_FEAT(ch, FEAT_LIMITLESS_SHAPES))
     ;
-  else if (((uses_remaining = daily_uses_remaining(ch, FEAT_WILD_SHAPE)) == 0)) {
+  else if ((uses_remaining = daily_uses_remaining(ch, FEAT_WILD_SHAPE)) == 0) {
     send_to_char(ch, "You must recover the energy required to take a wild shape.\r\n");
     return;
   }
