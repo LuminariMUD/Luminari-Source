@@ -81,6 +81,7 @@ extern "C" {
 
 /* functions */
 void grapple_cleanup(struct char_data *ch);
+void clear_grapple(struct char_data *ch, struct char_data *vict);
 
 /* Functions with subcommands */
 
