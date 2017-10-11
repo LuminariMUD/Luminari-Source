@@ -1705,7 +1705,7 @@ EVENTFUNC(event_crafting) {
     if (GET_CRAFTING_TYPE(ch) == SCMD_DISENCHANT) {
        send_to_char(ch, "You continue to %s.\r\n",
               craft_type[GET_CRAFTING_TYPE(ch)]);
-      exp = GET_OBJ_LEVEL(GET_CRAFTING_OBJ(ch)) * GET_LEVEL(ch) + GET_LEVEL(ch);     
+      exp = 10 * GET_LEVEL(ch) + GET_LEVEL(ch);     
     // the crafting tick is still going!
     } else if (GET_CRAFTING_OBJ(ch)) {
       send_to_char(ch, "You continue to %s %s.\r\n",
