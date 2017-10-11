@@ -1084,7 +1084,7 @@ int disenchant(struct obj_data *kit, struct char_data *ch) {
   }
 
   if (obj && GET_OBJ_LEVEL(obj) >= chem_check) {
-    send_to_char(ch, "Your alchemy skill isn't high enough to disenchant that item (need over %d).\r\n", chem_check);
+    send_to_char(ch, "Your chemistry skill isn't high enough to disenchant that item (need over %d).\r\n", chem_check);
     return 1;
   }
 
