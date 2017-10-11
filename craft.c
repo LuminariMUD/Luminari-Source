@@ -637,7 +637,7 @@ int augment(struct obj_data *kit, struct char_data *ch) {
     return 1;
   }
 
-  if (bonus > GET_SKILL(ch, skill_type)) { // high enough skill?
+  if (bonus > GET_SKILL(ch, skill_type) / 3) { // high enough skill?
     send_to_char(ch, "The crystal level is %d but your %s skill is "
             "only capable of creating level %d crystals.\r\n",
             bonus, skill_name(skill_type),
