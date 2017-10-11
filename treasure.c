@@ -1194,6 +1194,7 @@ void award_magic_ammo(struct char_data *ch, int grade, int moblevel) {
   /* END DESCRIPTION SECTION */
 
   /* BONUS SECTION */
+  SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC);  
   cp_modify_object_applies(ch, obj, rare_grade, level, CP_TYPE_AMMO);
   /* END BONUS SECTION */
 }
