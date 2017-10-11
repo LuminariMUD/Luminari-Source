@@ -1078,6 +1078,11 @@ int disenchant(struct obj_data *kit, struct char_data *ch) {
   for (obj = kit->contains; obj != NULL; obj = obj->next_content) {
     break; //this should be the object
   }
+  
+  if (!obj) {
+    send_to_char(ch, "You do not seem to have a magical item in the kit.\r\n");
+    return 1;    
+  }
 
   if (!IS_SET_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC)) {
     send_to_char(ch, "Only magical items can be disenchanted.\r\n");
@@ -1085,7 +1090,7 @@ int disenchant(struct obj_data *kit, struct char_data *ch) {
   }
   
   /* You can disenchant object level equal to your: chemistry-skill / 3 + 1 */
-  if (obj && GET_OBJ_LEVEL(obj) > chem_check) {
+  if (GET_OBJ_LEVEL(obj) > chem_check) {
     send_to_char(ch, "Your chemistry skill isn't high enough to disenchant that item!"
             "  You can disenchant objects up to level %d.\r\n",
             chem_check);
@@ -1099,7 +1104,8 @@ int disenchant(struct obj_data *kit, struct char_data *ch) {
     increase_skill(ch, SKILL_CHEMISTRY);
 
   GET_CRAFTING_TYPE(ch) = SCMD_DISENCHANT;
-  GET_CRAFTING_TICKS(ch) = MAX(2, 11 - fast_craft_bonus);
+  GET_CRAFTING_TICKS(ch) = 4;
+  //GET_CRAFTING_TICKS(ch) = MAX(2, 11 - fast_craft_bonus);
   GET_CRAFTING_OBJ(ch) = NULL;  
   
   send_to_char(ch, "You begin to disenchant %s.\r\n", obj->short_description);
@@ -1678,7 +1684,9 @@ EVENTFUNC(event_crafting) {
   if (!IS_NPC(ch) && !IS_PLAYING(ch->desc))  return 0;
 
   // something is off, so ensure reset
-  if (!GET_AUTOCQUEST_VNUM(ch) && GET_CRAFTING_OBJ(ch) == NULL) {
+  if (GET_CRAFTING_TYPE(ch) == SCMD_DISENCHANT) {
+      ; /* disenchant is unique - we do not bring an object along */
+  } else if (!GET_AUTOCQUEST_VNUM(ch) && GET_CRAFTING_OBJ(ch) == NULL) {
     log("SYSERR: crafting - null object");
     return 0;
   }
