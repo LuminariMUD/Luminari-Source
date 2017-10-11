@@ -1100,7 +1100,7 @@ int disenchant(struct obj_data *kit, struct char_data *ch) {
 
   GET_CRAFTING_TYPE(ch) = SCMD_DISENCHANT;
   GET_CRAFTING_TICKS(ch) = MAX(2, 11 - fast_craft_bonus);
-  GET_CRAFTING_OBJ(ch) = obj;  
+  GET_CRAFTING_OBJ(ch) = NULL;  
   
   send_to_char(ch, "You begin to disenchant %s.\r\n", obj->short_description);
   act("$n begins to disenchant $p.", FALSE, ch, obj, 0, TO_ROOM);
@@ -1693,8 +1693,13 @@ EVENTFUNC(event_crafting) {
   }
 
   if (GET_CRAFTING_TICKS(ch)) {
+    // the crafting tick is still going!  disenchant has no OBJ so we handle separate
+    if (GET_CRAFTING_TYPE(ch) == SCMD_DISENCHANT) {
+       send_to_char(ch, "You continue to %s.\r\n",
+              craft_type[GET_CRAFTING_TYPE(ch)]);
+      exp = GET_OBJ_LEVEL(GET_CRAFTING_OBJ(ch)) * GET_LEVEL(ch) + GET_LEVEL(ch);     
     // the crafting tick is still going!
-    if (GET_CRAFTING_OBJ(ch)) {
+    } else if (GET_CRAFTING_OBJ(ch)) {
       send_to_char(ch, "You continue to %s %s.\r\n",
               craft_type[GET_CRAFTING_TYPE(ch)],
               GET_CRAFTING_OBJ(ch)->short_description);
