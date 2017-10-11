@@ -1065,15 +1065,18 @@ int disenchant(struct obj_data *kit, struct char_data *ch) {
   /* disenchant requires just one item be inside the kit */
   for (obj = kit->contains; obj != NULL; obj = obj->next_content) {
     num_objs++;
-    break;
   }
   if (num_objs > 1) {
     send_to_char(ch, "Only one item should be inside the kit.\r\n");
     return 1;
   }
+  
   if (IS_CARRYING_N(ch) >= CAN_CARRY_N(ch)) {
     send_to_char(ch, "You must drop something before you can disenchant anything.\r\n");
     return 1;
+  }
+  for (obj = kit->contains; obj != NULL; obj = obj->next_content) {
+    break; //this should be the object
   }
 
   if (!IS_SET_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC)) {
@@ -1096,7 +1099,7 @@ int disenchant(struct obj_data *kit, struct char_data *ch) {
     increase_skill(ch, SKILL_CHEMISTRY);
 
   GET_CRAFTING_TYPE(ch) = SCMD_DISENCHANT;
-  GET_CRAFTING_TICKS(ch) = MIN(1, 11 - fast_craft_bonus);
+  GET_CRAFTING_TICKS(ch) = MAX(1, 11 - fast_craft_bonus);
 
   send_to_char(ch, "You begin to disenchant %s.\r\n", obj->short_description);
   act("$n begins to disenchant $p.", FALSE, ch, obj, 0, TO_ROOM);
