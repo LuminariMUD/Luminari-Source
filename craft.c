@@ -580,7 +580,7 @@ void reset_harvesting_rooms(void) {
 int augment(struct obj_data *kit, struct char_data *ch) {
   struct obj_data *obj = NULL, *crystal_one = NULL, *crystal_two = NULL;
   int num_objs = 0, cost = 0, bonus = 0, bonus2 = 0;
-  int skill_type = ABILITY_CRAFT_CHEMISTRY; // change this to change the skill used
+  int skill_type = SKILL_CHEMISTRY; // change this to change the skill used
   char buf[MAX_INPUT_LENGTH];
   int fast_craft_bonus = GET_SKILL(ch, SKILL_FAST_CRAFTER) / 33;
 
@@ -637,11 +637,11 @@ int augment(struct obj_data *kit, struct char_data *ch) {
     return 1;
   }
 
-  if (bonus > compute_ability(ch, skill_type)) { // high enough skill?
+  if (bonus > GET_SKILL(ch, skill_type)) { // high enough skill?
     send_to_char(ch, "The crystal level is %d but your %s skill is "
             "only capable of creating level %d crystals.\r\n",
-            bonus, ability_names[skill_type],
-            (compute_ability(ch, skill_type) / 3));
+            bonus, skill_name(skill_type),
+            (GET_SKILL(ch, skill_type) / 3));
     return 1;
   }
 
@@ -1059,6 +1059,7 @@ int disenchant(struct obj_data *kit, struct char_data *ch) {
   struct obj_data *obj = NULL;
   int num_objs = 0;
   int fast_craft_bonus = GET_SKILL(ch, SKILL_FAST_CRAFTER) / 33;
+  int chem_check = GET_SKILL(ch, SKILL_CHEMISTRY) / 3 + 1;
 
   /* Cycle through contents */
   /* disenchant requires just one item be inside the kit */
@@ -1082,8 +1083,8 @@ int disenchant(struct obj_data *kit, struct char_data *ch) {
     return 1;
   }
 
-  if (obj && GET_OBJ_LEVEL(obj) > (compute_ability(ch, ABILITY_CRAFT_CHEMISTRY))) {
-    send_to_char(ch, "Your chemistry skill isn't high enough to disenchant that item.\r\n");
+  if (obj && GET_OBJ_LEVEL(obj) >= chem_check) {
+    send_to_char(ch, "Your alchemy skill isn't high enough to disenchant that item (need over %d).\r\n", chem_check);
     return 1;
   }
 
