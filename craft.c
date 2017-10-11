@@ -1067,12 +1067,10 @@ int disenchant(struct obj_data *kit, struct char_data *ch) {
     num_objs++;
     break;
   }
-
   if (num_objs > 1) {
     send_to_char(ch, "Only one item should be inside the kit.\r\n");
     return 1;
   }
-
   if (IS_CARRYING_N(ch) >= CAN_CARRY_N(ch)) {
     send_to_char(ch, "You must drop something before you can disenchant anything.\r\n");
     return 1;
@@ -1082,9 +1080,12 @@ int disenchant(struct obj_data *kit, struct char_data *ch) {
     send_to_char(ch, "Only magical items can be disenchanted.\r\n");
     return 1;
   }
-
-  if (obj && GET_OBJ_LEVEL(obj) >= chem_check) {
-    send_to_char(ch, "Your chemistry skill isn't high enough to disenchant that item (need over %d).\r\n", chem_check);
+  
+  /* You can disenchant object level equal to your: chemistry-skill / 3 + 1 */
+  if (obj && GET_OBJ_LEVEL(obj) > chem_check) {
+    send_to_char(ch, "Your chemistry skill isn't high enough to disenchant that item!"
+            "  You can disenchant objects up to level %d.\r\n",
+            chem_check);
     return 1;
   }
 
