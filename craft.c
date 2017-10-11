@@ -1104,8 +1104,8 @@ int disenchant(struct obj_data *kit, struct char_data *ch) {
     increase_skill(ch, SKILL_CHEMISTRY);
 
   GET_CRAFTING_TYPE(ch) = SCMD_DISENCHANT;
-  GET_CRAFTING_TICKS(ch) = 4;
-  //GET_CRAFTING_TICKS(ch) = MAX(2, 11 - fast_craft_bonus);
+  //GET_CRAFTING_TICKS(ch) = 4;
+  GET_CRAFTING_TICKS(ch) = MAX(2, 11 - fast_craft_bonus);
   GET_CRAFTING_OBJ(ch) = NULL;  
   
   send_to_char(ch, "You begin to disenchant %s.\r\n", obj->short_description);
