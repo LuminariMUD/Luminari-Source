@@ -299,11 +299,11 @@ void remove_completed_quest(struct char_data *ch, qst_vnum vnum) {
   ch->player_specials->saved.completed_quests = temp;
 }
 
-void generic_complete_quest(struct char_data *ch) {
-  qst_rnum rnum;
+void complete_quest(struct char_data *ch) {
+  qst_rnum rnum = -1;
   qst_vnum vnum = GET_QUEST(ch);
-  struct obj_data *new_obj;
-  int happy_qp, happy_gold, happy_exp;
+  struct obj_data *new_obj = NULL;
+  int happy_qp = 0, happy_gold = 0, happy_exp = 0;
 
   rnum = real_quest(vnum);
   if (--GET_QUEST_COUNTER(ch) <= 0) {
@@ -374,7 +374,25 @@ void generic_complete_quest(struct char_data *ch) {
     send_to_char(ch, "You still have to achieve \tm%d\tn out of \tM%d\tn goals for the quest.\r\n\r\n",
             GET_QUEST_COUNTER(ch), QST_QUANTITY(rnum));
     save_char(ch, 0);
-  }
+  }  
+}
+
+/* this function is called upon completion of a quest
+ * NOTE: We added the actual completion to an event that
+ * will call: void complete_quest() above */
+void generic_complete_quest(struct char_data *ch) {
+  
+  /* this function use to contain the whole functional "complete a quest"
+     code...  but we found that completing a quest without a delay for
+     displaying the text would be problematic (example enter a room
+     that completes the quest and the quest-complete text is lost in
+     spam of the new room's description, etc) */
+  
+  /* create the quest complete event and throw it on the character..
+     notes:  1) this needs to save in case the instant it is called
+                the MUD crashes
+             2) the actual delay can be nominal */
+  attach_mud_event(new_mud_event(eQUEST_COMPLETE, ch, NULL), 1);
 }
 
 void autoquest_trigger_check(struct char_data *ch, struct char_data *vict,
