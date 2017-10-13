@@ -572,51 +572,51 @@ void quest_join(struct char_data *ch, struct char_data *qm, char argument[MAX_IN
 
   if (!*argument)
     snprintf(buf, sizeof (buf),
-          "%s What quest did you wish to join?", GET_NAME(ch));
+          "\r\n%s, what quest did you wish to join?\r\n", GET_NAME(ch));
   else if (GET_QUEST(ch) != NOTHING)
     snprintf(buf, sizeof (buf),
-          "%s But you are already part of a quest!", GET_NAME(ch));
+          "\r\n%s, but you are already part of a quest!\r\n", GET_NAME(ch));
   else if ((vnum = find_quest_by_qmnum(ch, GET_MOB_VNUM(qm), atoi(argument))) == NOTHING)
     snprintf(buf, sizeof (buf),
-          "%s I don't know of such a quest!", GET_NAME(ch));
+          "\r\n%s, I don't know of such a quest!\r\n", GET_NAME(ch));
   else if ((rnum = real_quest(vnum)) == NOTHING)
     snprintf(buf, sizeof (buf),
-          "%s I don't know of such a quest!", GET_NAME(ch));
+          "\r\n%s, I don't know of such a quest!\r\n", GET_NAME(ch));
   else if (GET_LEVEL(ch) < QST_MINLEVEL(rnum))
     snprintf(buf, sizeof (buf),
-          "%s You are not experienced enough for that quest!", GET_NAME(ch));
+          "\r\n%s, you are not experienced enough for that quest!\r\n", GET_NAME(ch));
   else if (GET_LEVEL(ch) > QST_MAXLEVEL(rnum))
     snprintf(buf, sizeof (buf),
-          "%s You are too experienced for that quest!", GET_NAME(ch));
+          "\r\n%s, you are too experienced for that quest!\r\n", GET_NAME(ch));
   else if (is_complete(ch, vnum))
     snprintf(buf, sizeof (buf),
-          "%s You have already completed that quest!", GET_NAME(ch));
+          "\r\n%s, you have already completed that quest!\r\n", GET_NAME(ch));
   else if ((QST_PREV(rnum) != NOTHING) && !is_complete(ch, QST_PREV(rnum)))
     snprintf(buf, sizeof (buf),
-          "%s That quest is not available to you yet!", GET_NAME(ch));
+          "\r\n%s, that quest is not available to you yet!\r\n", GET_NAME(ch));
   else if ((QST_PREREQ(rnum) != NOTHING) &&
           (real_object(QST_PREREQ(rnum)) != NOTHING) &&
           (get_obj_in_list_num(real_object(QST_PREREQ(rnum)),
           ch->carrying) == NULL))
     snprintf(buf, sizeof (buf),
-          "%s You need to have %s first!", GET_NAME(ch),
+          "\r\n%s, you need to have %s first!\r\n", GET_NAME(ch),
           obj_proto[real_object(QST_PREREQ(rnum))].short_description);
   else {
     act("You join the quest.", TRUE, ch, NULL, NULL, TO_CHAR);
     act("$n has joined a quest.", TRUE, ch, NULL, NULL, TO_ROOM);
     snprintf(buf, sizeof (buf),
-            "\tW%s \tWListen carefully to the instructions.\tn", GET_NAME(ch));
+            "\tW%s \tWListen carefully to the instructions.\tn\r\n\r\n", GET_NAME(ch));
     //do_tell(qm, buf, cmd_tell, 0);
     send_to_char(ch, "%s", buf);
     set_quest(ch, rnum);
     send_to_char(ch, "%s", QST_INFO(rnum));
     if (QST_TIME(rnum) != -1)
       snprintf(buf, sizeof (buf),
-            "\tW%s \tWYou have a time limit of %d turn%s to complete the quest.\tn",
+            "\r\n\tW%s, \tWyou have a time limit of %d turn%s to complete the quest.\tn\r\n\r\n",
             GET_NAME(ch), QST_TIME(rnum), QST_TIME(rnum) == 1 ? "" : "s");
     else
       snprintf(buf, sizeof (buf),
-            "\tW%s \tWYou can take however long you want to complete the quest.\tn",
+            "\r\n\tW%s, \tWyou can take however long you want to complete the quest.\tn\r\n",
             GET_NAME(ch));
   }
   //do_tell(qm, buf, cmd_tell, 0);
