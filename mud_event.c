@@ -17,6 +17,7 @@
 #include "mud_event.h"
 #include "handler.h"
 #include "wilderness.h"
+#include "quest.h"
 
 
 /* Global List */
