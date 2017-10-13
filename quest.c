@@ -605,20 +605,22 @@ void quest_join(struct char_data *ch, struct char_data *qm, char argument[MAX_IN
     act("You join the quest.", TRUE, ch, NULL, NULL, TO_CHAR);
     act("$n has joined a quest.", TRUE, ch, NULL, NULL, TO_ROOM);
     snprintf(buf, sizeof (buf),
-            "%s Listen carefully to the instructions.", GET_NAME(ch));
-    do_tell(qm, buf, cmd_tell, 0);
+            "\tW%s \tWListen carefully to the instructions.\tn", GET_NAME(ch));
+    //do_tell(qm, buf, cmd_tell, 0);
+    send_to_char(ch, "%s", buf);
     set_quest(ch, rnum);
     send_to_char(ch, "%s", QST_INFO(rnum));
     if (QST_TIME(rnum) != -1)
       snprintf(buf, sizeof (buf),
-            "%s You have a time limit of %d turn%s to complete the quest.",
+            "\tW%s \tWYou have a time limit of %d turn%s to complete the quest.\tn",
             GET_NAME(ch), QST_TIME(rnum), QST_TIME(rnum) == 1 ? "" : "s");
     else
       snprintf(buf, sizeof (buf),
-            "%s You can take however long you want to complete the quest.",
+            "\tW%s \tWYou can take however long you want to complete the quest.\tn",
             GET_NAME(ch));
   }
-  do_tell(qm, buf, cmd_tell, 0);
+  //do_tell(qm, buf, cmd_tell, 0);
+  send_to_char(ch, "%s", buf);
   save_char(ch, 0);
 }
 
