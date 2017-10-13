@@ -119,6 +119,7 @@ typedef enum {
   /*90*/eSMASH_DEFENSE, //  stalwart defender's 'last word' cooldown          
   eDEFENSIVE_STANCE, //  defensive stance skill cooldown
   eCRIPPLING_CRITICAL, /* duelist cirppling critical */
+  eQUEST_COMPLETE, /* char completed a quest */
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

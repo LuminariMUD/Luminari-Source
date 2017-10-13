@@ -118,6 +118,7 @@ struct mud_event_list mud_event_index[] = {
   /*90*/{ "Smash Defense", event_countdown, EVENT_CHAR}, // eSMASH_DEFENSE
   { "Defensive Stance", event_daily_use_cooldown, EVENT_CHAR}, //eDEFENSIVE_STANCE
   { "Crippled by Critical", event_countdown, EVENT_CHAR}, //eCRIPPLING_CRITICAL
+  { "Quest Completed!", event_countdown, EVENT_CHAR}, //eQUEST_COMPLETE
 };
 
 /* init_events() is the ideal function for starting global events. This
@@ -324,6 +325,9 @@ EVENTFUNC(event_countdown) {
       break;
     case eTURN_UNDEAD:
       send_to_char(ch, "You are able to turn undead again.\r\n");
+      break;
+    case eQUEST_COMPLETE:
+      complete_quest(ch);
       break;
     case eSPELLBATTLE:
       send_to_char(ch, "You are able to use spellbattle again.\r\n");

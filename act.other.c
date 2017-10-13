@@ -3332,6 +3332,7 @@ ACMD(do_boosts) {
   send_to_char(ch, "\tDType 'feats' to see your feats\tn\r\n");
   send_to_char(ch, "\tDType 'train' to see your abilities\tn\r\n");
   send_to_char(ch, "\tDType 'boost' to adjust your stats\tn\r\n");
+  send_to_char(ch, "\tDType 'craft' to see your crafting proficiency\tn\r\n");
   send_to_char(ch, "\tDType 'spells <classname>' to see your currently known spells\tn\r\n");
 }
 
