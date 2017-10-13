@@ -95,6 +95,7 @@ int count_quests(qst_vnum low, qst_vnum high);
 void list_quests(struct char_data *ch, zone_rnum zone, qst_vnum vmin, qst_vnum vmax);
 void set_quest(struct char_data *ch, qst_rnum rnum);
 void clear_quest(struct char_data *ch);
+void complete_quest(struct char_data *ch);
 void generic_complete_quest(struct char_data *ch);
 void autoquest_trigger_check(struct char_data *ch, struct char_data *vict, struct obj_data *object, int type);
 qst_rnum real_quest(qst_vnum vnum);
