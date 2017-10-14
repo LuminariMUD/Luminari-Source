@@ -3459,6 +3459,7 @@ ACMD(do_kick) {
 
 ACMD(do_hitall) {
   /* not used right now, whirlwind attack essentially replaces this */
+  send_to_char(ch, "This skill has been removed, the whirlwind feat is meant to replace it.\r\n");  
   return;
   
   int lag = 1;
