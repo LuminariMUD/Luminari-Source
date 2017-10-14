@@ -368,7 +368,7 @@ void complete_quest(struct char_data *ch) {
       rnum = real_quest(QST_NEXT(rnum));
       set_quest(ch, rnum);
       send_to_char(ch,
-              "\tMThe next stage of your quest awaits:\tn\r\n\r\n%s\r\n",
+              "\tW***The next stage of your quest awaits:\tn\r\n\r\n%s\r\n",
               QST_INFO(rnum));
     }
   } else {
@@ -605,7 +605,7 @@ void quest_join(struct char_data *ch, struct char_data *qm, char argument[MAX_IN
     act("You join the quest.", TRUE, ch, NULL, NULL, TO_CHAR);
     act("$n has joined a quest.", TRUE, ch, NULL, NULL, TO_ROOM);
     snprintf(buf, sizeof (buf),
-            "\tW%s \tWListen carefully to the instructions.\tn\r\n\r\n", GET_NAME(ch));
+            "\tW%s \tWlisten carefully to the instructions.\tn\r\n\r\n", GET_NAME(ch));
     //do_tell(qm, buf, cmd_tell, 0);
     send_to_char(ch, "%s", buf);
     set_quest(ch, rnum);

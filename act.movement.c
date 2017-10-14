@@ -1787,6 +1787,27 @@ int ok_pick(struct char_data *ch, obj_vnum keynum, int pickproof, int scmd, int 
     return (1);
 
   skill_lvl = compute_ability(ch, ABILITY_SLEIGHT_OF_HAND);
+  
+  /* this is a hack of sorts, we have some abuse of charmies being used to pick
+     locks, so we add some penalties and restirctions here */
+  if (IS_NPC(ch)) {
+    skill_lvl -= 4; /* wheeeeeee */
+    switch(GET_RACE(ch)) {
+      case RACE_TYPE_UNDEAD:
+      case RACE_TYPE_ANIMAL:
+      case RACE_TYPE_DRAGON:
+      case RACE_TYPE_MAGICAL_BEAST:
+      case RACE_TYPE_OOZE:
+      case RACE_TYPE_PLANT:
+      case RACE_TYPE_VERMIN:        
+        send_to_char(ch, "What makes you think you know how to do this?!\r\n");
+        return (0);
+      default:
+        /* we will let them pick */
+        break;
+    }
+  }
+  /* end npc hack */
 
   if (skill_lvl <= 0) { /* not an untrained skill */
     send_to_char(ch, "You have no idea how (train sleight of hand)!\r\n");
@@ -1797,6 +1818,7 @@ int ok_pick(struct char_data *ch, obj_vnum keynum, int pickproof, int scmd, int 
     skill_lvl += dice(1, 20);
   else
     skill_lvl += 20; // take 20
+  
   /* thief tools */
   /*
   if ((tools = get_obj_in_list_vis(ch, "thieves,tools", NULL, ch->carrying))) {

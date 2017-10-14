@@ -396,6 +396,16 @@ void finalize_study(struct descriptor_data *d) {
 }
 
 ACMD(do_study) {
+  /* gonna have some restrictions here */
+  if (IS_WILDSHAPED(ch) || IS_MORPHED(ch)) {  
+    send_to_char(ch, "You can not study while polymorphed, shape-changed or wildshaped.\r\n");
+    return;    
+  }
+  if (FIGHTING(ch)) {  
+    send_to_char(ch, "Finish your battle first!\r\n");
+    return;    
+  }
+  
   struct descriptor_data *d = ch->desc;
 
   init_study(d, GET_CLASS(ch));

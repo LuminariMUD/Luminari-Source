@@ -2975,7 +2975,7 @@ void mag_assign_spells(void) {
   skillo(SKILL_DANCE_OF_PROTECTION, "dance of protection", ACTIVE_SKILL); //593
   skillo(SKILL_SONG_OF_FLIGHT, "song of flight", ACTIVE_SKILL); //594
   skillo(SKILL_SONG_OF_HEROISM, "song of heroism", ACTIVE_SKILL); //595
-  skillo(SKILL_ORATORY_OF_REJUVENATION, "oratory of rejuvation", ACTIVE_SKILL); //596
+  skillo(SKILL_ORATORY_OF_REJUVENATION, "oratory of rejuvenation", ACTIVE_SKILL); //596
   skillo(SKILL_ACT_OF_FORGETFULNESS, "skit of forgetfulness", ACTIVE_SKILL); //597
   skillo(SKILL_SONG_OF_REVELATION, "song of revelation", ACTIVE_SKILL); //598
   skillo(SKILL_SONG_OF_DRAGONS, "song of dragons", ACTIVE_SKILL); //599

@@ -185,7 +185,7 @@ void feat_prereq_cfeat(int featnum, int feat) {
 
   prereq = create_prerequisite(FEAT_PREREQ_CFEAT, feat, 0, 0);
 
-  sprintf(buf, "%s (in same weapon)", feat_list[feat].name);
+  sprintf(buf, "%s (may require same weapon)", feat_list[feat].name);
   prereq->description = strdup(buf);
 
   /*   Link it up. */
