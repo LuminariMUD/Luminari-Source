@@ -307,7 +307,7 @@ void complete_quest(struct char_data *ch) {
   int happy_qp = 0, happy_gold = 0, happy_exp = 0;
 
   rnum = real_quest(vnum);
-  if (--GET_QUEST_COUNTER(ch) <= 0) {
+  if (GET_QUEST_COUNTER(ch) <= 0) { /* we decrement the counter in generic() */
     if (IS_HAPPYHOUR && IS_HAPPYQP) {
       happy_qp = (int) (QST_POINTS(rnum) * (((float) (100 + HAPPY_QP)) / (float) 100));
       happy_qp = MAX(happy_qp, 0);
@@ -403,7 +403,7 @@ void generic_complete_quest(struct char_data *ch) {
   if (--GET_QUEST_COUNTER(ch) > 0) {
     send_to_char(ch, "You still have to achieve \tm%d\tn out of \tM%d\tn goals for the quest.\r\n\r\n",
             GET_QUEST_COUNTER(ch), QST_QUANTITY(rnum));
-    save_char(ch, 0);    
+    //save_char(ch, 0);    
   } else {  
     attach_mud_event(new_mud_event(eQUEST_COMPLETE, ch, NULL), 1);
   }
