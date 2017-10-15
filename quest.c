@@ -383,6 +383,10 @@ void complete_quest(struct char_data *ch) {
  * NOTE: We added the actual completion to an event that
  * will call: void complete_quest() above */
 void generic_complete_quest(struct char_data *ch) {
+  qst_rnum rnum = -1;
+  qst_vnum vnum = GET_QUEST(ch);
+  
+  rnum = real_quest(vnum);
   
   /* this function use to contain the whole functional "complete a quest"
      code...  but we found that completing a quest without a delay for
