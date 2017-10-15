@@ -317,6 +317,10 @@ void complete_quest(struct char_data *ch) {
   
   /* we decrement the counter in generic(), technically another dummy check */  
   if (GET_QUEST_COUNTER(ch) <= 0) {
+    
+    /* START HANDLING REWARDS */
+    
+    /* any quest point reward for this quest? */
     if (IS_HAPPYHOUR && IS_HAPPYQP) {
       happy_qp = (int) (QST_POINTS(rnum) * (((float) (100 + HAPPY_QP)) / (float) 100));
       happy_qp = MAX(happy_qp, 0);
@@ -324,12 +328,14 @@ void complete_quest(struct char_data *ch) {
       send_to_char(ch,
               "%s\r\nYou have been awarded %d \tCquest points\tn for your service.\r\n\r\n",
               QST_DONE(rnum), happy_qp);
-    } else {
+    } else { /* no happy hour bonus :( */
       GET_QUESTPOINTS(ch) += QST_POINTS(rnum);
       send_to_char(ch,
               "%s\r\nYou have been awarded %d \tCquest points\tn for your service.\r\n\r\n",
               QST_DONE(rnum), QST_POINTS(rnum));
     }
+    
+    /* any gold reward in this quest? */
     if (QST_GOLD(rnum)) {
       if ((IS_HAPPYHOUR) && (IS_HAPPYGOLD)) {
         happy_gold = (int) (QST_GOLD(rnum) * (((float) (100 + HAPPY_GOLD)) / (float) 100));
@@ -345,6 +351,8 @@ void complete_quest(struct char_data *ch) {
                 QST_GOLD(rnum));
       }
     }
+    
+    /* any xp points reward in this quest? */
     if (QST_EXP(rnum)) {
       gain_exp(ch, QST_EXP(rnum));
       if ((IS_HAPPYHOUR) && (IS_HAPPYEXP)) {
@@ -359,6 +367,8 @@ void complete_quest(struct char_data *ch) {
                 QST_EXP(rnum));
       }
     }
+    
+    /* any object reward from this quest? */    
     if (QST_OBJ(rnum) && QST_OBJ(rnum) != NOTHING) {
       if (real_object(QST_OBJ(rnum)) != NOTHING) {
         if ((new_obj = read_object((QST_OBJ(rnum)), VIRTUAL)) != NULL) {
@@ -368,9 +378,16 @@ void complete_quest(struct char_data *ch) {
         }
       }
     }
+    /* end rewards */
+    
+    /* handle throwing quest in history and repeatable quests */
     if (!IS_SET(QST_FLAGS(rnum), AQ_REPEATABLE))
       add_completed_quest(ch, vnum);
+    
+    /* clear the quest data from ch, clean slate */
     clear_quest(ch);
+    
+    /* does this quest have a next step built in? */
     if ((real_quest(QST_NEXT(rnum)) != NOTHING) &&
             (QST_NEXT(rnum) != vnum) &&
             !is_complete(ch, QST_NEXT(rnum))) {
@@ -380,13 +397,16 @@ void complete_quest(struct char_data *ch) {
               "\tW***The next stage of your quest awaits:\tn\r\n\r\n%s\r\n",
               QST_INFO(rnum));
     }
-  } else {
-    /* we should not be getting here */
+ 
+    /*end*/
+
+  } else { /* we should not be getting here! */
     send_to_char(ch, "You still have to achieve \tm%d\tn out of \tM%d\tn goals for the quest.\r\n\r\n",
-            GET_QUEST_COUNTER(ch), QST_QUANTITY(rnum));
+            --GET_QUEST_COUNTER(ch), QST_QUANTITY(rnum));
     save_char(ch, 0);
     log("UH OH: complete_quest() quest-counter is greater than zero!");
-  }  
+  }
+  
 }
 
 /* this function is called upon completion of a quest
@@ -410,7 +430,7 @@ void generic_complete_quest(struct char_data *ch) {
    *            two quests aren't over-lapping while we have an event
    *            in the ether  */
   
-  /* more work to do on this quest! */
+  /* more work to do on this quest! make sure to decrement counter  */
   if (GET_QUEST(ch) != NOTHING && --GET_QUEST_COUNTER(ch) > 0) {
     qst_rnum rnum = -1;
     qst_vnum vnum = GET_QUEST(ch);
@@ -439,8 +459,8 @@ void generic_complete_quest(struct char_data *ch) {
       }
     }
     
-    sprintf(buf, "%d", GET_QUEST(ch)); /* sending vnum to event of quest */
-    
+    /* we should be in the clear to tag this player with a completed quest */
+    sprintf(buf, "%d", GET_QUEST(ch)); /* sending vnum to event of quest */    
     attach_mud_event(new_mud_event(eQUEST_COMPLETE, ch, buf), 1);
   }
 }
