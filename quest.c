@@ -300,14 +300,23 @@ void remove_completed_quest(struct char_data *ch, qst_vnum vnum) {
   ch->player_specials->saved.completed_quests = temp;
 }
 
+/* called when a quest is completed! */
 void complete_quest(struct char_data *ch) {
   qst_rnum rnum = -1;
   qst_vnum vnum = GET_QUEST(ch);
   struct obj_data *new_obj = NULL;
-  int happy_qp = 0, happy_gold = 0, happy_exp = 0;
+  int happy_qp = 0, happy_gold = 0, happy_exp = 0;    
+  
+  /* dummy check */
+  if (GET_QUEST(ch) == NOTHING) {
+    log("UH OH: complete_quest() called without a quest VNUM!");
+    return;
+  }
 
   rnum = real_quest(vnum);
-  if (GET_QUEST_COUNTER(ch) <= 0) { /* we decrement the counter in generic() */
+  
+  /* we decrement the counter in generic(), technically another dummy check */  
+  if (GET_QUEST_COUNTER(ch) <= 0) {
     if (IS_HAPPYHOUR && IS_HAPPYQP) {
       happy_qp = (int) (QST_POINTS(rnum) * (((float) (100 + HAPPY_QP)) / (float) 100));
       happy_qp = MAX(happy_qp, 0);
@@ -375,7 +384,8 @@ void complete_quest(struct char_data *ch) {
     /* we should not be getting here */
     send_to_char(ch, "You still have to achieve \tm%d\tn out of \tM%d\tn goals for the quest.\r\n\r\n",
             GET_QUEST_COUNTER(ch), QST_QUANTITY(rnum));
-    //save_char(ch, 0);
+    save_char(ch, 0);
+    log("UH OH: complete_quest() quest-counter is greater than zero!");
   }  
 }
 
