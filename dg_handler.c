@@ -109,8 +109,7 @@ void extract_trigger(struct trig_data *trig)
 }
 
 /* remove all triggers from a mob/obj/room */
-void extract_script(void *thing, int type)
-{
+void extract_script(void *thing, int type) {
   struct script_data *sc = NULL;
   struct trig_data *trig = NULL, *next_trig = NULL;
   char_data *mob = NULL;
@@ -135,7 +134,8 @@ void extract_script(void *thing, int type)
       break;
   }
 
-#if 1 /* debugging */
+  /* zusuk disabled this debug 10/15/2017 */
+#if 0 /* debugging */
   {
     struct char_data *i = character_list;
     struct obj_data *j = object_list;
@@ -152,6 +152,7 @@ void extract_script(void *thing, int type)
     }
   }
 #endif
+  
   for (trig = TRIGGERS(sc); trig; trig = next_trig) {
     next_trig = trig->next;
     extract_trigger(trig);
@@ -176,12 +177,11 @@ void extract_script_mem(struct script_memory *sc)
   }
 }
 
-void free_proto_script(void *thing, int type)
-{
-  struct trig_proto_list *proto = NULL, *fproto;
-  char_data *mob;
-  obj_data *obj;
-  room_data *room;
+void free_proto_script(void *thing, int type) {
+  struct trig_proto_list *proto = NULL, *fproto = NULL;
+  char_data *mob = NULL;
+  obj_data *obj = NULL;
+  room_data *room = NULL;
 
   switch (type) {
     case MOB_TRIGGER:
@@ -200,7 +200,9 @@ void free_proto_script(void *thing, int type)
       room->proto_script = NULL;
       break;
   }
-#if 1 /* debugging */
+  
+/* zusuk disabled this debug 10/15/2017 */  
+#if 0 /* debugging */
   {
     struct char_data *i = character_list;
     struct obj_data *j = object_list;
@@ -217,6 +219,7 @@ void free_proto_script(void *thing, int type)
     }
   }
 #endif
+  
   while (proto) {
     fproto = proto;
     proto = proto->next;
