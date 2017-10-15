@@ -383,10 +383,6 @@ void complete_quest(struct char_data *ch) {
  * NOTE: We added the actual completion to an event that
  * will call: void complete_quest() above */
 void generic_complete_quest(struct char_data *ch) {
-  qst_rnum rnum = -1;
-  qst_vnum vnum = GET_QUEST(ch);
-  
-  rnum = real_quest(vnum);
   
   /* this function use to contain the whole functional "complete a quest"
      code...  but we found that completing a quest without a delay for
@@ -395,17 +391,47 @@ void generic_complete_quest(struct char_data *ch) {
      spam of the new room's description, etc) */
   
   /* create the quest complete event and throw it on the character..
-     notes:  1) this needs to save in case the instant it is called
+     notes:  1) this needs to save to pfile in case the instant it is called
                 the MUD crashes
-             2) the actual delay can be nominal */
+             2) the actual 'delay' can be nominal
+             3) we are forced to keep track of which quest we have on the
+   *            event for the case of repeated tasks in a single quest
+   *         4) we are forced to do a lot of dummy checking to make sure
+   *            two quests aren't over-lapping while we have an event
+   *            in the ether  */
   
   /* more work to do on this quest! */
-  if (--GET_QUEST_COUNTER(ch) > 0) {
+  if (GET_QUEST(ch) != NOTHING && --GET_QUEST_COUNTER(ch) > 0) {
+    qst_rnum rnum = -1;
+    qst_vnum vnum = GET_QUEST(ch);
+
+    rnum = real_quest(vnum);
+    
     send_to_char(ch, "You still have to achieve \tm%d\tn out of \tM%d\tn goals for the quest.\r\n\r\n",
             GET_QUEST_COUNTER(ch), QST_QUANTITY(rnum));
-    //save_char(ch, 0);    
-  } else {  
-    attach_mud_event(new_mud_event(eQUEST_COMPLETE, ch, NULL), 1);
+    save_char(ch, 0);    
+    
+  /* the quest is truly complete? lots of dummy checking */  
+  } else if (GET_QUEST(ch) != NOTHING) {
+    struct mud_event_data *pMudEvent = NULL;    
+    char buf[128] = { '\0' };
+    qst_vnum event_quest_num = NOTHING;
+    
+    if ((pMudEvent = char_has_mud_event(ch, eQUEST_COMPLETE))) {
+      /* grab vnum of quest that is in event */
+      event_quest_num = atoi((char *) pMudEvent->sVariables);
+            
+      /* make sure we do not already have an event for this quest! */
+      if (event_quest_num == GET_QUEST(ch)) {
+        /* get out of here, we are already processing this particular
+           quest completion */
+        return;
+      }
+    }
+    
+    sprintf(buf, "%d", GET_QUEST(ch)); /* sending vnum to event of quest */
+    
+    attach_mud_event(new_mud_event(eQUEST_COMPLETE, ch, buf), 1);
   }
 }
 
