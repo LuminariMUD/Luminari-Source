@@ -372,9 +372,10 @@ void complete_quest(struct char_data *ch) {
               QST_INFO(rnum));
     }
   } else {
+    /* we should not be getting here */
     send_to_char(ch, "You still have to achieve \tm%d\tn out of \tM%d\tn goals for the quest.\r\n\r\n",
             GET_QUEST_COUNTER(ch), QST_QUANTITY(rnum));
-    save_char(ch, 0);
+    //save_char(ch, 0);
   }  
 }
 
@@ -393,7 +394,15 @@ void generic_complete_quest(struct char_data *ch) {
      notes:  1) this needs to save in case the instant it is called
                 the MUD crashes
              2) the actual delay can be nominal */
-  attach_mud_event(new_mud_event(eQUEST_COMPLETE, ch, NULL), 1);
+  
+  /* more work to do on this quest! */
+  if (--GET_QUEST_COUNTER(ch) > 0) {
+    send_to_char(ch, "You still have to achieve \tm%d\tn out of \tM%d\tn goals for the quest.\r\n\r\n",
+            GET_QUEST_COUNTER(ch), QST_QUANTITY(rnum));
+    save_char(ch, 0);    
+  } else {  
+    attach_mud_event(new_mud_event(eQUEST_COMPLETE, ch, NULL), 1);
+  }
 }
 
 void autoquest_trigger_check(struct char_data *ch, struct char_data *vict,
