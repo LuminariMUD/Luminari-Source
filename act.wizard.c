@@ -1010,16 +1010,18 @@ static void do_stat_character(struct char_data *ch, struct char_data *k) {
 }
 
 ACMD(do_stat) {
-  char buf1[MAX_INPUT_LENGTH], buf2[MAX_INPUT_LENGTH];
-  struct char_data *victim;
-  struct obj_data *object;
-  struct room_data *room;
+  char buf1[MAX_INPUT_LENGTH] = { '\0' }, buf2[MAX_INPUT_LENGTH]= { '\0' };
+  struct char_data *victim = NULL;
+  struct obj_data *object = NULL;
+  struct room_data *room = NULL;
 
   half_chop(argument, buf1, buf2);
 
   if (!*buf1) {
     send_to_char(ch, "Stats on who or what or where?\r\n");
     return;
+    
+  /* stat room */
   } else if (is_abbrev(buf1, "room")) {
     if (!*buf2)
       room = &world[IN_ROOM(ch)];
@@ -1032,6 +1034,8 @@ ACMD(do_stat) {
       room = &world[rnum];
     }
     do_stat_room(ch, room);
+    
+  /* stat mobile */
   } else if (is_abbrev(buf1, "mob")) {
     if (!*buf2)
       send_to_char(ch, "Stats on which mobile?\r\n");
@@ -1041,6 +1045,8 @@ ACMD(do_stat) {
       else
         send_to_char(ch, "No such mobile around.\r\n");
     }
+    
+  /* stat player */    
   } else if (is_abbrev(buf1, "player")) {
     if (!*buf2) {
       send_to_char(ch, "Stats on which player?\r\n");
@@ -1050,6 +1056,8 @@ ACMD(do_stat) {
       else
         send_to_char(ch, "No such player around.\r\n");
     }
+    
+  /* stat feat */        
   } else if (is_abbrev(buf1, "feat")) {
     if (!*buf2) {
       send_to_char(ch, "Feats on which player/mobile?\r\n");
@@ -1059,6 +1067,8 @@ ACMD(do_stat) {
       else
         send_to_char(ch, "No such player around.\r\n");
     }
+    
+  /* stat affects */        
   } else if (is_abbrev(buf1, "affect")) {
     if (!*buf2) {
       send_to_char(ch, "Affects on which player/mobile?\r\n");
@@ -1068,6 +1078,8 @@ ACMD(do_stat) {
       else
         send_to_char(ch, "No such player around.\r\n");
     }
+    
+  /* stat (player rent) file */            
   } else if (is_abbrev(buf1, "file")) {
     if (!*buf2)
       send_to_char(ch, "Stats on which player?\r\n");
@@ -1092,6 +1104,8 @@ ACMD(do_stat) {
         free_char(victim);
       }
     }
+    
+  /* stat object */                
   } else if (is_abbrev(buf1, "object")) {
     if (!*buf2)
       send_to_char(ch, "Stats on which object?\r\n");
@@ -1101,6 +1115,8 @@ ACMD(do_stat) {
       else
         send_to_char(ch, "No such object around.\r\n");
     }
+    
+  /* stat zone */                
   } else if (is_abbrev(buf1, "zone")) {
     if (!*buf2) {
       print_zone(ch, zone_table[world[IN_ROOM(ch)].zone].number);
@@ -1109,6 +1125,8 @@ ACMD(do_stat) {
       print_zone(ch, atoi(buf2));
       return;
     }
+    
+  /* generic search, object or characters */                    
   } else {
     char *name = buf1;
     int number = get_number(&name);
@@ -1140,28 +1158,29 @@ ACMD(do_shutdown) {
   one_argument(argument, arg);
 
   if (!*arg) {
-    log("(GC) Shutdown by %s.", GET_NAME(ch));
-    send_to_all("Shutting down.\r\n");
+    log("(GC) Shutdown by %s (SLOWBOOT).", GET_NAME(ch));
+    send_to_all("Shutting dowscript will rebootn, script will reboot Luminari unless stated"
+            " otherwise by %s.\r\n", GET_NAME(ch));
     circle_shutdown = 1;
   } else if (!str_cmp(arg, "reboot")) {
-    log("(GC) Reboot by %s.", GET_NAME(ch));
-    send_to_all("Rebooting.. come back in a few minutes.\r\n");
+    log("(GC) Reboot by %s (FASTBOOT, OLC NOT SAVED).", GET_NAME(ch));
+    send_to_all("Fastboot by %s.. come back in a few minutes.\r\n", GET_NAME(ch));
     touch(FASTBOOT_FILE);
     circle_shutdown = 1;
     circle_reboot = 2; /* do not autosave olc */
   } else if (!str_cmp(arg, "die")) {
-    log("(GC) Shutdown by %s.", GET_NAME(ch));
-    send_to_all("Shutting down for maintenance.\r\n");
+    log("(GC) Shutdown by %s (KILLSCRIPT).", GET_NAME(ch));
+    send_to_all("Shutting down for maintenance, please check back in 15 minutes.\r\n");
     touch(KILLSCRIPT_FILE);
     circle_shutdown = 1;
   } else if (!str_cmp(arg, "now")) {
-    log("(GC) Shutdown NOW by %s.", GET_NAME(ch));
+    log("(GC) Shutdown NOW (OLC NOT SAVED) by %s.", GET_NAME(ch));
     send_to_all("Rebooting.. come back in a minute or two.\r\n");
     circle_shutdown = 1;
     circle_reboot = 2; /* do not autosave olc */
   } else if (!str_cmp(arg, "pause")) {
-    log("(GC) Shutdown by %s.", GET_NAME(ch));
-    send_to_all("Shutting down for maintenance.\r\n");
+    log("(GC) Shutdown PAUSE by %s.", GET_NAME(ch));
+    send_to_all("Shutting down for maintenance, please check back in 10 minutes.\r\n");
     touch(PAUSE_FILE);
     circle_shutdown = 1;
   } else

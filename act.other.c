@@ -1295,7 +1295,7 @@ ACMD(do_respec) {
 ACMD(do_gain) {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   int is_altered = FALSE, num_levels = 0;
-  int class = -1, i, classCount = 0;
+  int class = -1, i = 0, classCount = 0;
 
   if (IS_NPC(ch) || !ch->desc)
     return;
@@ -1306,13 +1306,18 @@ ACMD(do_gain) {
     return;    
   }
   
-  one_argument(argument, arg);
-
+  if (GET_LEVEL(ch) >= LVL_IMMORT - 1) {
+    send_to_char(ch, "You have reached the level limit! You can not go above level %d!\r\n", LVL_IMMORT - 1);
+    return;    
+  }
+  
   if (!(GET_LEVEL(ch) < LVL_IMMORT - CONFIG_NO_MORT_TO_IMMORT &&
           GET_EXP(ch) >= level_exp(ch, GET_LEVEL(ch) + 1))) {
     send_to_char(ch, "You are not experienced enough to gain a level.\r\n");
     return;
   }
+
+  one_argument(argument, arg);
 
   if (!*arg) {
     send_to_char(ch, "You may gain a level in one of the following classes:\r\n\r\n");
