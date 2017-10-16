@@ -1578,11 +1578,10 @@ ASPELL(spell_teleport) {
   greet_memory_mtrigger(ch);
 }
 
-
 ASPELL(spell_transport_via_plants) {
   obj_vnum obj_num = NOTHING;
   room_rnum to_room = NOWHERE;
-  struct obj_data *dest_obj = NULL, *tmp_obj;
+  struct obj_data *dest_obj = NULL, *tmp_obj = NULL;
 
   if (ch == NULL)
     return;
@@ -1626,19 +1625,19 @@ ASPELL(spell_transport_via_plants) {
     act("$n comes tumbling out from inside of $p.", FALSE, ch, obj, 0, TO_ROOM);
     return;
   } else {
-  if (!valid_mortal_tele_dest(ch, to_room, TRUE)) {
-    send_to_char(ch, "A bright flash prevents your spell from working!\r\n");
-    act("$n comes tumbling out from inside of $p.", FALSE, ch, obj, 0, TO_ROOM);
-    return;
-  }
+    if (!valid_mortal_tele_dest(ch, to_room, TRUE)) {
+      send_to_char(ch, "A bright flash prevents your spell from working!\r\n");
+      act("$n comes tumbling out from inside of $p.", FALSE, ch, obj, 0, TO_ROOM);
+      return;
+    }
 
-  // transport player to new location
-  char_from_room(ch);
-  char_to_room(ch, to_room);
-  look_at_room(ch, 0);
-  act("You find your destination, and step out through $p.", FALSE, ch, dest_obj, 0, TO_CHAR);
-  act("$n steps out from inside of $p!", FALSE, ch, dest_obj, 0, TO_ROOM);
-  // TODO: make this an event, so player enters into the plant, and sees a couple messages, then comes out the other side
+    // transport player to new location
+    char_from_room(ch);
+    char_to_room(ch, to_room);
+    look_at_room(ch, 0);
+    act("You find your destination, and step out through $p.", FALSE, ch, dest_obj, 0, TO_CHAR);
+    act("$n steps out from inside of $p!", FALSE, ch, dest_obj, 0, TO_ROOM);
+    // TODO: make this an event, so player enters into the plant, and sees a couple messages, then comes out the other side
   }
 }
 

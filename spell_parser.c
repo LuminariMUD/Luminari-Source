@@ -2633,18 +2633,14 @@ void mag_assign_spells(void) {
   spello(SPELL_REMOVE_POISON, "remove poison", 65, 50, 1, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_OBJ_INV | TAR_OBJ_ROOM, FALSE, MAG_UNAFFECTS | MAG_ALTER_OBJS,
           NULL, 7, 16, NOSCHOOL, FALSE);
-  spello(SPELL_PROT_FROM_EVIL, "protection from evil", 58, 43, 1, POS_FIGHTING,
-          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "You feel less protected from evil.", 5, 16, NOSCHOOL, FALSE);
+  /* protection from evil (declared above) */
   spello(SPELL_GROUP_ARMOR, "group armor", 58, 43, 1, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_GROUPS,
           NULL, 5, 16, NOSCHOOL, FALSE);
   spello(SPELL_FLAME_STRIKE, "flame strike", 58, 43, 1, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
           NULL, 6, 16, NOSCHOOL, FALSE);
-  spello(SPELL_PROT_FROM_GOOD, "protection from good", 58, 43, 1, POS_FIGHTING,
-          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "You feel less protected from good.", 5, 16, NOSCHOOL, FALSE);
+  /* protection from good (delcared above) */
   spello(SPELL_MASS_CURE_MODERATE, "mass cure moderate", 85, 70, 1, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_GROUPS,
           NULL, 6, 16, NOSCHOOL, FALSE);

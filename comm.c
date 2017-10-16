@@ -1383,8 +1383,8 @@ static char *make_prompt(struct descriptor_data *d) {
 
     /* the prompt elements only active while fighting */
     char_fighting = FIGHTING(d->character);
-    if (char_fighting && (d->character->in_room == char_fighting->in_room)
-            && len < sizeof (prompt)) {
+    if (char_fighting && (d->character->in_room == char_fighting->in_room) &&
+        GET_HIT(char_fighting) > -10 && len < sizeof (prompt)) {
       count = sprintf(prompt + strlen(prompt), ">\tn\r\n<");
       if (count >= 0)
         len += count;
