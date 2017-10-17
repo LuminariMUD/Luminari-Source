@@ -508,9 +508,9 @@ ACMD(do_imbuearrow) {
 
 /* apply poison to a weapon */
 ACMD(do_applypoison) {
-  char arg1[MAX_INPUT_LENGTH];
-  char arg2[MAX_INPUT_LENGTH];
-  struct obj_data *poison, *weapon;
+  char arg1[MAX_INPUT_LENGTH] = { '\0' };
+  char arg2[MAX_INPUT_LENGTH] = { '\0' };
+  struct obj_data *poison = NULL, *weapon = NULL;
   int amount = 1;
 
   two_arguments(argument, arg1, arg2);
@@ -521,11 +521,11 @@ ACMD(do_applypoison) {
   }
 
   if (!*arg1) {
-    send_to_char(ch, "Apply what poison?\r\n");
+    send_to_char(ch, "Apply what poison? [applypoison <poison name> <weapon-name|primary|offhand>]\r\n");
     return;
   }
   if (!*arg2) {
-    send_to_char(ch, "Apply on which weapon?\r\n");
+    send_to_char(ch, "Apply on which weapon?  [applypoison <poison name> <weapon-name|primary|offhand>]\r\n");
     return;
   }
 
@@ -535,18 +535,30 @@ ACMD(do_applypoison) {
     return;
   }
 
-  weapon = get_obj_in_list_vis(ch, arg2, NULL, ch->carrying);
+  /* checking for equipped weapons */
+  if (is_abbrev(arg, "primary")) {
+    if (GET_EQ(ch, WEAR_WIELD_2H))
+      weapon = GET_EQ(ch, WEAR_WIELD_2H);
+    else if (GET_EQ(ch, WEAR_WIELD_1))
+      weapon = GET_EQ(ch, WEAR_WIELD_1);      
+  } else if (is_abbrev(arg, "offhand")) {
+    if (GET_EQ(ch, WEAR_WIELD_OFFHAND))
+      weapon = GET_EQ(ch, WEAR_WIELD_OFFHAND);    
+  } else {
+    weapon = get_obj_in_list_vis(ch, arg2, NULL, ch->carrying);    
+  }
+  
   if (!weapon) {
-    send_to_char(ch, "You do not carry that weapon!\r\n");
+    send_to_char(ch, "You do not carry that weapon! [applypoison <poison name> <weapon-name|primary|offhand>]\r\n");
     return;
   }
 
   if (GET_OBJ_TYPE(poison) != ITEM_POISON) {
-    send_to_char(ch, "But that is not a poison!\r\n");
+    send_to_char(ch, "But that is not a poison! [applypoison <poison name> <weapon-name|primary|offhand>]\r\n");
     return;
   }
   if (GET_OBJ_TYPE(weapon) != ITEM_WEAPON) {
-    send_to_char(ch, "But that is not a weapon!\r\n");
+    send_to_char(ch, "But that is not a weapon! [applypoison <poison name> <weapon-name|primary|offhand>]\r\n");
     return;
   }
   if (GET_OBJ_VAL(poison, 2) <= 0) {
@@ -558,16 +570,25 @@ ACMD(do_applypoison) {
     return;
   }
 
-  /* high chance of success, just random for now */
-  if (rand_number(0, 5)) {
+  /* 5% of failure */
+  if (rand_number(0, 19)) {
+    char buf1[MEDIUM_STRING] = {'\0'};
+    char buf2[MEDIUM_STRING] = {'\0'};
+    
     weapon->weapon_poison.poison_hits = GET_OBJ_VAL(poison, 3);
     weapon->weapon_poison.poison = GET_OBJ_VAL(poison, 0);
     weapon->weapon_poison.poison_level = GET_OBJ_VAL(poison, 1);
-    act("$n applies some \tGpoison\tn onto $p.", FALSE, ch, weapon, 0, TO_ROOM);
-    act("You apply some \tGpoison\tn onto $p.", FALSE, ch, weapon, 0, TO_CHAR);
-    USE_STANDARD_ACTION(ch);
-    USE_MOVE_ACTION(ch);
+
+    sprintf(buf1, "\tnYou carefully apply the contents of %s \tnonto $p\tn...",
+            poison->short_description);
+    sprintf(buf2, "$n \tncarefully applies the contents of %s \tnonto $p\tn...",
+            poison->short_description);
+    act(buf1, FALSE, ch, weapon, 0, TO_ROOM);
+    act(buf2, FALSE, ch, weapon, 0, TO_CHAR);
+    
+    USE_FULL_ROUND_ACTION(ch);
   } else {
+    /* fail! suppose to be a chance to poison yourself, might change in the future */
     act("$n fails to apply the \tGpoison\tn onto $p.", FALSE, ch, weapon, 0, TO_ROOM);
     act("You fail to \tGpoison\tn your $p.", FALSE, ch, weapon, 0, TO_CHAR);
   }
