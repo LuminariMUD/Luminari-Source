@@ -79,14 +79,18 @@ int mag_resistance(struct char_data *ch, struct char_data *vict, int modifier) {
     challenge += 2;
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_GREATER_SPELL_PENETRATION))
     challenge += 2;
-/*  if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_EPIC_SPELL_PENETRATION))
-    challenge += 2;
-*/
+  /* not implemented yet */
+  //if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_EPIC_SPELL_PENETRATION))
+    //challenge += 2;
+
   //success?
   if (resist > challenge) {
-    send_to_char(vict, "\tW*(Resist:%d>Challenge:%d) You Resist!*\tn", resist, challenge);
-    if (ch)
-      send_to_char(ch, "\tR*(Challenge:%d<Resist:%d) Resisted!*\tn", challenge, resist);
+    if (PRF_FLAGGED(vict, PRF_COMBATROLL))
+      send_to_char(vict, "\tW*(Resist:%d>Challenge:%d) You Resist!*\tn", resist, challenge);
+    if (ch) {
+      if (PRF_FLAGGED(ch, PRF_COMBATROLL))
+        send_to_char(ch, "\tR*(Challenge:%d<Resist:%d) Resisted!*\tn", challenge, resist);
+    }
     return TRUE;
   }
   //failed to resist the spell
@@ -217,15 +221,21 @@ int mag_savingthrow(struct char_data *ch, struct char_data *vict,
 
   if (diceroll != 1 && (savethrow > challenge || diceroll == 20)) {
     if (diceroll == 20) {
-      send_to_char(vict, "\tW*Save Roll Twenty!\tn ");
-      if (ch && vict && vict != ch)
-        send_to_char(ch, "\tR*Save Roll Twenty!\tn ");
+      if (PRF_FLAGGED(vict, PRF_COMBATROLL))
+        send_to_char(vict, "\tW*Save Roll Twenty!\tn ");
+      if (ch && vict && vict != ch) {
+        if (PRF_FLAGGED(ch, PRF_COMBATROLL))
+          send_to_char(ch, "\tR*Save Roll Twenty!\tn ");
+      }
     } else {
-      send_to_char(vict, "\tW*(%s:%d>Challenge:%d) Saved!*\tn ", save_names[type],
+      if (PRF_FLAGGED(vict, PRF_COMBATROLL))
+        send_to_char(vict, "\tW*(%s:%d>Challenge:%d) Saved!*\tn ", save_names[type],
                    savethrow, challenge);
-      if (ch && vict && vict != ch)
-        send_to_char(ch, "\tR*(Challenge:%d<%s:%d) Opponent Saved!*\tn ",
+      if (ch && vict && vict != ch) {
+        if (PRF_FLAGGED(ch, PRF_COMBATROLL))
+          send_to_char(ch, "\tR*(Challenge:%d<%s:%d) Opponent Saved!*\tn ",
                      challenge, save_names[type], savethrow);
+      }
     }
 
     if (HAS_FEAT(vict, FEAT_EATER_OF_MAGIC) && affected_by_spell(vict, SKILL_RAGE)) {
@@ -238,15 +248,21 @@ int mag_savingthrow(struct char_data *ch, struct char_data *vict,
 
   /* failed! */
   if (diceroll == 1) {
-    send_to_char(vict, "\tR*Save Roll One!\tn ");
-    if (ch && vict && vict != ch)
-      send_to_char(ch, "\tW*Save Roll One!\tn ");
+    if (PRF_FLAGGED(vict, PRF_COMBATROLL))
+      send_to_char(vict, "\tR*Save Roll One!\tn ");
+    if (ch && vict && vict != ch) {
+      if (PRF_FLAGGED(ch, PRF_COMBATROLL))
+        send_to_char(ch, "\tW*Save Roll One!\tn ");
+    }
   } else {
-    send_to_char(vict, "\tR*(%s:%d<Challenge:%d) Failed Save!*\tn ", save_names[type],
+    if (PRF_FLAGGED(vict, PRF_COMBATROLL))
+      send_to_char(vict, "\tR*(%s:%d<Challenge:%d) Failed Save!*\tn ", save_names[type],
                  savethrow, challenge);
-    if (ch && vict && vict != ch)
-      send_to_char(ch, "\tW*(Challenge:%d>%s:%d) Opponent Failed Save!*\tn ",
+    if (ch && vict && vict != ch) {
+      if (PRF_FLAGGED(ch, PRF_COMBATROLL))
+        send_to_char(ch, "\tW*(Challenge:%d>%s:%d) Opponent Failed Save!*\tn ",
                    challenge, save_names[type], savethrow);
+    }
   }
   return (FALSE);
 }

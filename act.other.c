@@ -4172,7 +4172,10 @@ ACMD(do_gen_tog) {
       "Autoscan enabled.\r\n"},
     /*35*/
     {"Autoreload disabled.\r\n",
-      "Autoreload enabled.\r\n"}
+      "Autoreload enabled.\r\n"},
+    /*36*/
+    {"CombatRoll disabled.\r\n",
+      "CombatRoll enabled, you now will see details behind the combat rolls during combat.\r\n"},
   };
 
   if (IS_NPC(ch))
@@ -4264,6 +4267,9 @@ ACMD(do_gen_tog) {
       break;
     case SCMD_AUTORELOAD:
       result = PRF_TOG_CHK(ch, PRF_AUTORELOAD);
+      break;
+    case SCMD_COMBATROLL:
+      result = PRF_TOG_CHK(ch, PRF_COMBATROLL);
       break;
     case SCMD_AUTOGOLD:
       result = PRF_TOG_CHK(ch, PRF_AUTOGOLD);
