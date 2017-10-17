@@ -1572,7 +1572,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       if (mag_resistance(ch, victim, 0))
         return;
       if (mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, NECROMANCY)) {
-        send_to_char(ch, "You fail.\r\n");
+        send_to_char(ch, "The blindness is resisted!\r\n");
         return;
       }
 

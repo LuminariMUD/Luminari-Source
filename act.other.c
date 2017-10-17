@@ -583,8 +583,8 @@ ACMD(do_applypoison) {
             poison->short_description);
     sprintf(buf2, "$n \tncarefully applies the contents of %s \tnonto $p\tn...",
             poison->short_description);
-    act(buf1, FALSE, ch, weapon, 0, TO_ROOM);
-    act(buf2, FALSE, ch, weapon, 0, TO_CHAR);
+    act(buf1, FALSE, ch, weapon, 0, TO_CHAR);
+    act(buf2, FALSE, ch, weapon, 0, TO_ROOM);
     
     USE_FULL_ROUND_ACTION(ch);
   } else {
