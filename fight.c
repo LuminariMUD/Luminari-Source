@@ -4303,6 +4303,9 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
   /* Profane bonus */
 
   /* Racial bonus */
+  if (GET_RACE(ch) == RACE_TRELUX) {
+    bonuses[BONUS_TYPE_RACIAL] += 4;    
+  }
 
   /* Sacred bonus */
 
