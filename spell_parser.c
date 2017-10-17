@@ -614,20 +614,15 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
   switch (spellnum) {
     case SPELL_POISON:
       if (caster && cvict && affected_by_spell(cvict, SPELL_POISON)) {
-        if (mag_damage(spell_level, caster, cvict, ovict, spellnum, metamagic, savetype, casttype) == -1) {
-          return (-1); /* Successful and target died, don't cast again. */
-        } else { /* target did not die, engage */
-          if (GET_POS(cvict) == POS_STANDING && !FIGHTING(cvict)) {
-            if (cvict != caster && IN_ROOM(cvict) == IN_ROOM(caster)) {
-              if (GET_POS(caster) > POS_STUNNED && (FIGHTING(caster) == NULL))
-                set_fighting(caster, cvict);
-              if (GET_POS(cvict) > POS_STUNNED && (FIGHTING(cvict) == NULL)) {
-                set_fighting(cvict, caster);
-              }
-            }
-          }
-          return 1;
-        }
+        damage(caster, cvict, dice(2, 4), SPELL_POISON, DAM_POISON, FALSE);
+        /* we have custom damage message here for this */
+        act("$N suffers further from more poison!",
+                FALSE, tch, NULL, ch, TO_CHAR);
+        act("You suffer further from more poison!",
+                FALSE, tch, NULL, ch, TO_VICT | TO_SLEEP);
+        act("$N suffers further from more poison!",
+                  FALSE, tch, NULL, ch, TO_NOTVICT);
+        return 1;
       }
       break;
     default:
