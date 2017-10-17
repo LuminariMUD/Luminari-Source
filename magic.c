@@ -1346,7 +1346,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   struct affected_type af[MAX_SPELL_AFFECTS];
   bool accum_affect = FALSE, accum_duration = FALSE;
   const char *to_vict = NULL, *to_room = NULL;
-  int i, j, spell_school = NOSCHOOL;
+  int i, j, spell_school = NOSCHOOL, caster_level = 0;
   int enchantment_bonus = 0, illusion_bonus = 0, success = 0;
   bool is_mind_affect = FALSE;
   struct damage_reduction_type *new_dr = NULL;
@@ -1359,6 +1359,13 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[i].spell = spellnum;
   }
 
+  /* caster level is used for calculating bonuses - be aware that certain
+     cast types coming in here are not even related to magic (hack) */
+  if (casttype == CAST_INNATE)
+    caster_level = GET_LEVEL(ch);
+  else
+    caster_level = CASTER_LEVEL(ch);
+  
   /* various bonus/penalty; added IS_NPC check to prevent NPCs from getting incorrect bonuses,
    * since RACE_TYPE_HUMAN = RACE_ELF, etc. -Nashak */
   if (!IS_NPC(ch)) {
@@ -1578,7 +1585,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         return;
       }
       af[0].location = APPLY_CHA;
-      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
+      af[0].duration = (caster_level * 12) + 100;
       af[0].modifier = 4;
       accum_duration = FALSE;
       to_vict = "You feel more charismatic!";
@@ -1691,7 +1698,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         return;
       }
       af[0].location = APPLY_INT;
-      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
+      af[0].duration = (caster_level * 12) + 100;
       af[0].modifier = 4;
       af[0].bonus_type = BONUS_TYPE_ENHANCEMENT;
       accum_duration = TRUE;
@@ -1708,17 +1715,17 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       }
 
       af[0].location = APPLY_HITROLL;
-      af[0].duration = 25 + (CASTER_LEVEL(ch) * 12);
+      af[0].duration = 25 + (caster_level * 12);
       af[0].modifier = -2;
       SET_BIT_AR(af[0].bitvector, AFF_CURSE);
 
       af[1].location = APPLY_DAMROLL;
-      af[1].duration = 25 + (CASTER_LEVEL(ch) * 12);
+      af[1].duration = 25 + (caster_level * 12);
       af[1].modifier = -2;
       SET_BIT_AR(af[1].bitvector, AFF_CURSE);
 
       af[2].location = APPLY_SAVING_WILL;
-      af[2].duration = 25 + (CASTER_LEVEL(ch) * 12);
+      af[2].duration = 25 + (caster_level * 12);
       af[2].modifier = -2;
       SET_BIT_AR(af[2].bitvector, AFF_CURSE);
 
@@ -1815,7 +1822,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case SPELL_DETECT_ALIGN:
-      af[0].duration = 300 + CASTER_LEVEL(ch) * 25;
+      af[0].duration = 300 + caster_level * 25;
       SET_BIT_AR(af[0].bitvector, AFF_DETECT_ALIGN);
       accum_duration = TRUE;
       to_room = "$n's eyes become sensitive to motives!";
@@ -1831,7 +1838,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case SPELL_DETECT_MAGIC: //divination
-      af[0].duration = 300 + CASTER_LEVEL(ch) * 25;
+      af[0].duration = 300 + caster_level * 25;
       SET_BIT_AR(af[0].bitvector, AFF_DETECT_MAGIC);
       accum_duration = TRUE;
       to_room = "$n's eyes become sensitive to magic!";
@@ -1864,8 +1871,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
     case SPELL_ENDURANCE: //transmutation
       af[0].location = APPLY_CON;
-      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
-      af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
+      af[0].duration = (caster_level * 12) + 100;
+      af[0].modifier = 2 + (caster_level / 5);
       af[0].bonus_type = BONUS_TYPE_ENHANCEMENT;
       accum_duration = TRUE;
       to_vict = "You feel more hardy!";
@@ -1889,16 +1896,16 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       }
 
       af[0].location = APPLY_STR;
-      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
-      af[0].modifier = -(2 + (CASTER_LEVEL(ch) / 5));
+      af[0].duration = (caster_level * 12) + 100;
+      af[0].modifier = -(2 + (caster_level / 5));
 
       af[1].location = APPLY_DEX;
-      af[1].duration = (CASTER_LEVEL(ch) * 12) + 100;
-      af[1].modifier = -(2 + (CASTER_LEVEL(ch) / 5));
+      af[1].duration = (caster_level * 12) + 100;
+      af[1].modifier = -(2 + (caster_level / 5));
 
       af[2].location = APPLY_CON;
-      af[2].duration = (CASTER_LEVEL(ch) * 12) + 100;
-      af[2].modifier = -(2 + (CASTER_LEVEL(ch) / 5));
+      af[2].duration = (caster_level * 12) + 100;
+      af[2].modifier = -(2 + (caster_level / 5));
 
       accum_duration = FALSE;
       accum_affect = FALSE;
@@ -1908,7 +1915,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
     case SPELL_ENLARGE_PERSON: //transmutation
       af[0].location = APPLY_SIZE;
-      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
+      af[0].duration = (caster_level * 12) + 100;
       af[0].modifier = 1;
       af[0].bonus_type = BONUS_TYPE_SIZE;
       to_vict = "You feel yourself growing!";
@@ -1939,7 +1946,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       af[0].duration = 600;
       to_room = "$n becomes surrounded by a powerful magical ward!";
       to_vict = "You become surrounded by a powerful magical ward!";
-      GET_STONESKIN(victim) = MIN(700, CASTER_LEVEL(ch) * 60);
+      GET_STONESKIN(victim) = MIN(700, caster_level * 60);
       break;
 
     case SPELL_EXPEDITIOUS_RETREAT: //transmutation
@@ -1959,7 +1966,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         return;
       }
 
-      af[0].duration = CASTER_LEVEL(ch) * 1000;
+      af[0].duration = caster_level * 1000;
       SET_BIT_AR(af[0].bitvector, AFF_DISEASE);
       to_vict = "You feel a powerful necromantic disease overcome you.";
       to_room =
@@ -2066,8 +2073,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
     case SPELL_GRACE: //transmutation
       af[0].location = APPLY_DEX;
-      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
-      af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
+      af[0].duration = (caster_level * 12) + 100;
+      af[0].modifier = 2 + (caster_level / 5);
       accum_duration = TRUE;
       to_vict = "You feel more dextrous!";
       to_room = "$n's appears to be more dextrous!";
@@ -2326,7 +2333,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case SPELL_INFRAVISION: //divination, shared
-      af[0].duration = 300 + CASTER_LEVEL(ch) * 25;
+      af[0].duration = 300 + caster_level * 25;
       SET_BIT_AR(af[0].bitvector, AFF_INFRAVISION);
       accum_duration = TRUE;
       to_vict = "Your eyes glow red.";
@@ -2378,7 +2385,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       af[0].duration = 600;
       to_room = "$n's skin takes on the texture of iron!";
       to_vict = "Your skin takes on the texture of iron!";
-      int caster_level = MAX(10, CASTER_LEVEL(ch));
+      caster_level = MAX(10, caster_level);
       GET_STONESKIN(victim) = MIN(450, caster_level * 35);
       break;
 
@@ -2438,8 +2445,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         return;
       }
       af[0].location = APPLY_CHA;
-      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
-      af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
+      af[0].duration = (caster_level * 12) + 100;
+      af[0].modifier = 2 + (caster_level / 5);
       accum_duration = TRUE;
       to_vict = "You feel more charismatic!";
       to_room = "$n's charisma increases!";
@@ -2452,8 +2459,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       }
 
       af[0].location = APPLY_INT;
-      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
-      af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
+      af[0].duration = (caster_level * 12) + 100;
+      af[0].modifier = 2 + (caster_level / 5);
 
       accum_duration = TRUE;
       to_vict = "You feel more intelligent!";
@@ -2462,8 +2469,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
     case SPELL_MASS_ENDURANCE: //transmutation
       af[0].location = APPLY_CON;
-      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
-      af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
+      af[0].duration = (caster_level * 12) + 100;
+      af[0].modifier = 2 + (caster_level / 5);
       accum_duration = TRUE;
       to_vict = "You feel more hardy!";
       to_room = "$n's begins to feel more hardy!";
@@ -2479,18 +2486,18 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       }
 
       af[0].location = APPLY_STR;
-      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
-      af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
+      af[0].duration = (caster_level * 12) + 100;
+      af[0].modifier = 2 + (caster_level / 5);
       af[0].bonus_type = BONUS_TYPE_ENHANCEMENT;
 
       af[1].location = APPLY_DEX;
-      af[1].duration = (CASTER_LEVEL(ch) * 12) + 100;
-      af[1].modifier = 2 + (CASTER_LEVEL(ch) / 5);
+      af[1].duration = (caster_level * 12) + 100;
+      af[1].modifier = 2 + (caster_level / 5);
       af[1].bonus_type = BONUS_TYPE_ENHANCEMENT;
 
       af[2].location = APPLY_CON;
-      af[2].duration = (CASTER_LEVEL(ch) * 12) + 100;
-      af[2].modifier = 2 + (CASTER_LEVEL(ch) / 5);
+      af[2].duration = (caster_level * 12) + 100;
+      af[2].modifier = 2 + (caster_level / 5);
       af[2].bonus_type = BONUS_TYPE_ENHANCEMENT;
 
       accum_duration = TRUE;
@@ -2500,8 +2507,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
     case SPELL_MASS_GRACE: //transmutation
       af[0].location = APPLY_DEX;
-      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
-      af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
+      af[0].duration = (caster_level * 12) + 100;
+      af[0].modifier = 2 + (caster_level / 5);
       accum_duration = TRUE;
       to_vict = "You feel more dextrous!";
       to_room = "$n's appears to be more dextrous!";
@@ -2522,8 +2529,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
     case SPELL_MASS_STRENGTH: //transmutation
       af[0].location = APPLY_STR;
-      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
-      af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
+      af[0].duration = (caster_level * 12) + 100;
+      af[0].modifier = 2 + (caster_level / 5);
       accum_duration = TRUE;
       to_vict = "You feel stronger!";
       to_room = "$n's muscles begin to bulge!";
@@ -2531,8 +2538,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
     case SPELL_MASS_WISDOM: //transmutation
       af[0].location = APPLY_WIS;
-      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
-      af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
+      af[0].duration = (caster_level * 12) + 100;
+      af[0].modifier = 2 + (caster_level / 5);
       accum_duration = TRUE;
       to_vict = "You feel more wise!";
       to_room = "$n's wisdom increases!";
@@ -2626,7 +2633,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
 
     case SPELL_POISON: //enchantment, shared
-      if (mag_resistance(ch, victim, 0))
+      if (casttype != CAST_INNATE && mag_resistance(ch, victim, 0))
         return;
       int bonus = 0;
       if (GET_RACE(ch) == RACE_DWARF || //dwarf dwarven poison resist
@@ -2638,7 +2645,10 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       }
 
       af[0].location = APPLY_STR;
-      af[0].duration = CASTER_LEVEL(ch) * 25;
+      if (casttype == CAST_INNATE) /* trelux for example */
+        af[0].duration = GET_LEVEL(ch) * 10;
+      else
+        af[0].duration = caster_level * 25;
       af[0].modifier = -2;
       SET_BIT_AR(af[0].bitvector, AFF_POISON);
       to_vict = "You feel very sick.";
@@ -2968,7 +2978,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
     case SPELL_SHRINK_PERSON: //transmutation
       af[0].location = APPLY_SIZE;
-      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
+      af[0].duration = (caster_level * 12) + 100;
       af[0].modifier = -1;
       to_vict = "You feel yourself shrinking!";
       to_room = "$n's begins to shrink to being much smaller!";
@@ -3105,8 +3115,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
     case SPELL_STRENGTH: //transmutation
       af[0].location = APPLY_STR;
-      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
-      af[0].modifier = 2 + (CASTER_LEVEL(ch) / 5);
+      af[0].duration = (caster_level * 12) + 100;
+      af[0].modifier = 2 + (caster_level / 5);
       af[0].bonus_type = BONUS_TYPE_ENHANCEMENT;
       accum_duration = FALSE;
       to_vict = "You feel stronger!";
@@ -3370,7 +3380,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
     case SPELL_WISDOM: //transmutation
       af[0].location = APPLY_WIS;
-      af[0].duration = (CASTER_LEVEL(ch) * 12) + 100;
+      af[0].duration = (caster_level * 12) + 100;
       af[0].modifier = 4;
       accum_duration = TRUE;
       to_vict = "You feel more wise!";
