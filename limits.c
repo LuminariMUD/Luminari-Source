@@ -398,6 +398,13 @@ void regen_update(struct char_data *ch) {
       for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room) {
         if (!IS_NPC(tch) && FIGHTING(tch) == ch) {
           damage(tch, ch, dice(1, 4), SPELL_POISON, DAM_POISON, FALSE);
+          /* we have custom damage message here for this */
+          act("$N looks really \tgsick\tn and shivers uncomfortably.",
+                  FALSE, tch, NULL, ch, TO_CHAR);
+          act("You feel burning \tgpoison\tn in your blood, and suffer.",
+                  FALSE, tch, NULL, ch, TO_VICT | TO_SLEEP);
+          act("$N looks really \tgsick\tn and shivers uncomfortably.",
+                  FALSE, tch, NULL, ch, TO_NOTVICT);
           found = 1;
           break;
         }
