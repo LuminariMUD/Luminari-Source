@@ -3216,8 +3216,10 @@ void compute_barehand_dam_dice(struct char_data *ch, int *diceOne, int *diceTwo)
         *diceOne = 4;
         *diceTwo = 6;
       }
-      if (GET_RACE(ch) == RACE_TRELUX)
+      if (GET_RACE(ch) == RACE_TRELUX) {
         *diceOne = *diceOne + 1;
+        *diceTwo = *diceTwo + 1;
+      }
     } else { // non-monk bare-hand damage
       if (GET_RACE(ch) == RACE_TRELUX) {
         *diceOne = 2;
