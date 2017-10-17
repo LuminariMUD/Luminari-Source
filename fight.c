@@ -2438,8 +2438,10 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
     /* handle concealment */
     int concealment = compute_concealment(victim);
     if (dice(1, 100) <= compute_concealment(victim) && !is_spell) {
-      send_to_char(victim, "\tW<conceal:%d>\tn", concealment);
-      send_to_char(ch, "\tR<oconceal:%d>\tn", concealment);
+      if (PRF_FLAGGED(victim, PRF_COMBATROLL))
+        send_to_char(victim, "\tW<conceal:%d>\tn", concealment);
+      if (PRF_FLAGGED(ch, PRF_COMBATROLL))
+        send_to_char(ch, "\tR<oconceal:%d>\tn", concealment);
       return 0;
     }
 
@@ -2494,8 +2496,10 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
               TO_NOTVICT);
       return -1;
     } else if (damage_reduction) {
-      send_to_char(victim, "\tW<EA:%d>\tn", damage_reduction);
-      send_to_char(ch, "\tR<oEA:%d>\tn", damage_reduction);
+      if (PRF_FLAGGED(victim, PRF_COMBATROLL))
+        send_to_char(victim, "\tW<EA:%d>\tn", damage_reduction);
+      if (PRF_FLAGGED(ch, PRF_COMBATROLL))
+        send_to_char(ch, "\tR<oEA:%d>\tn", damage_reduction);
     }
 
     /* damage type PERCENTAGE reduction */
@@ -2510,11 +2514,15 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
               TO_NOTVICT);
       return -1;
     } else if (damtype_reduction < 0) { // no reduction, vulnerability
-      send_to_char(victim, "\tR<TR:%d>\tn", (int) damtype_reduction);
-      send_to_char(ch, "\tW<oTR:%d>\tn", (int) damtype_reduction);
+      if (PRF_FLAGGED(victim, PRF_COMBATROLL))
+        send_to_char(victim, "\tR<TR:%d>\tn", (int) damtype_reduction);
+      if (PRF_FLAGGED(ch, PRF_COMBATROLL))
+        send_to_char(ch, "\tW<oTR:%d>\tn", (int) damtype_reduction);
     } else if (damtype_reduction > 0) {
-      send_to_char(victim, "\tW<TR:%d>\tn", (int) damtype_reduction);
-      send_to_char(ch, "\tR<oTR:%d>\tn", (int) damtype_reduction);
+      if (PRF_FLAGGED(victim, PRF_COMBATROLL))
+        send_to_char(victim, "\tW<TR:%d>\tn", (int) damtype_reduction);
+      if (PRF_FLAGGED(ch, PRF_COMBATROLL))
+        send_to_char(ch, "\tR<oTR:%d>\tn", (int) damtype_reduction);
     }
 
     /* damage reduction system (old version) */
@@ -2529,8 +2537,10 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
                 TO_NOTVICT);
         return -1;
       } else if (damage_reduction) {
-        send_to_char(victim, "\tW<DR:%d>\tn", damage_reduction);
-        send_to_char(ch, "\tR<oDR:%d>\tn", damage_reduction);
+        if (PRF_FLAGGED(victim, PRF_COMBATROLL))
+          send_to_char(victim, "\tW<DR:%d>\tn", damage_reduction);
+        if (PRF_FLAGGED(ch, PRF_COMBATROLL))
+          send_to_char(ch, "\tR<oDR:%d>\tn", damage_reduction);
       }
     }
 
@@ -2624,6 +2634,7 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim) {
     do_get(ch, "all corpse", 0, 0);
     //do_get(ch, "all.coin", 0, 0);  //added for incorporeal - no corpse
   }
+  
   if (IS_NPC(victim) && !IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOSAC))
     do_sac(ch, "corpse", 0, 0);
 
