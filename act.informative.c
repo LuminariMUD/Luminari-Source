@@ -3430,7 +3430,7 @@ ACMD(do_toggle) {
                  "Memtime Display: %-3s    "
                  "Actions Display: %-3s\r\n"
 
-                 "     AutoReload: %-3s\r\n",
+                 "     AutoReload: %-3s\r\n"
                  "     CombatRoll: %-3s\r\n",
 
                  ONOFF(PRF_FLAGGED(ch, PRF_DISPHP)),
