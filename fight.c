@@ -1675,10 +1675,12 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
   /* attacker weapon */
   if (GET_EQ(ch, WEAR_WIELD_2H))
     weap = GET_EQ(ch, WEAR_WIELD_2H);
-  else if (GET_RACE(ch) == RACE_TRELUX)
-    weap = read_object(TRELUX_CLAWS, VIRTUAL);
   else if (dualing == 1)
     weap = GET_EQ(ch, WEAR_WIELD_OFFHAND);
+  if (GET_RACE(ch) == RACE_TRELUX) {
+    weap = read_object(TRELUX_CLAWS, VIRTUAL);
+    attacktype = TYPE_CLAW;
+  }
   
   /* ranged weapon - general check and we want the missile to serve as our weapon */
   if (can_fire_arrow(ch, TRUE) && is_using_ranged_weapon(ch) && GET_EQ(ch, WEAR_AMMO_POUCH)
@@ -1686,7 +1688,7 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
     is_ranged = TRUE;
     weap = GET_EQ(ch, WEAR_AMMO_POUCH)->contains; /* top missile */
   }
-
+  
   /* defender weapon for parry message */
   if (!opponent_weapon) {
     opponent_weapon = GET_EQ(vict, WEAR_WIELD_2H);
