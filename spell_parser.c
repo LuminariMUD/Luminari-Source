@@ -617,11 +617,11 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
         damage(caster, cvict, dice(2, 4), SPELL_POISON, DAM_POISON, FALSE);
         /* we have custom damage message here for this */
         act("$N suffers further from more poison!",
-                FALSE, tch, NULL, ch, TO_CHAR);
+                FALSE, caster, NULL, cvict, TO_CHAR);
         act("You suffer further from more poison!",
-                FALSE, tch, NULL, ch, TO_VICT | TO_SLEEP);
+                FALSE, caster, NULL, cvict, TO_VICT | TO_SLEEP);
         act("$N suffers further from more poison!",
-                  FALSE, tch, NULL, ch, TO_NOTVICT);
+                  FALSE, caster, NULL, cvict, TO_NOTVICT);
         return 1;
       }
       break;
