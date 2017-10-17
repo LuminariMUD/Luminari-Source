@@ -3701,7 +3701,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
     }
 
     /* mounted charging character using charging weapons, whether this goes up
-     * top or bottom of dam calculation can have a dramtic effect on this number */
+     * top or bottom of dam calculation can have a dramatic effect on this number */
     if (AFF_FLAGGED(ch, AFF_CHARGING) && RIDING(ch)) {
       if (HAS_FEAT(ch, FEAT_SPIRITED_CHARGE)) { /* mounted, charging with spirited charge feat */
         if (wielded && HAS_WEAPON_FLAG(wielded, WEAPON_FLAG_CHARGE)) { /* with lance too */
@@ -3734,7 +3734,10 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
              (IS_LN(victim)) ||
              (IS_LE(victim)) ||
              (IS_NPC(victim) && HAS_SUBRACE(victim, SUBRACE_LAWFUL)))) {
-        send_to_char(ch, "Your weapon hums chaotically as it strikes!\r\n");
+        if (PRF_FLAGGED(ch, PRF_COMBATROLL))
+          send_to_char(ch, "\tW[CHAOS]\tn ");
+        if (PRF_FLAGGED(victim, PRF_COMBATROLL))
+          send_to_char(victim, "\tR[CHAOS]\tn ");
         dam += dice(2, 6);
       }
       /*lawful weapon*/
@@ -3744,8 +3747,10 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
              (IS_CN(victim)) ||
              (IS_CE(victim)) ||
              (IS_NPC(victim) && HAS_SUBRACE(victim, SUBRACE_CHAOTIC)))) {
-        /* Do 2d6 more damage. */
-        send_to_char(ch, "Your weapon hums lawfully as it strikes!\r\n");
+        if (PRF_FLAGGED(ch, PRF_COMBATROLL))
+          send_to_char(ch, "\tW[LAW]\tn ");
+        if (PRF_FLAGGED(victim, PRF_COMBATROLL))
+          send_to_char(victim, "\tR[LAW]\tn ");
         dam += dice(2, 6);
       }
       /*evil weapon*/
@@ -3755,8 +3760,10 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
              (IS_NG(victim)) ||
              (IS_LG(victim)) ||
              (IS_NPC(victim) && HAS_SUBRACE(victim, SUBRACE_GOOD)))) {
-        /* Do 2d6 more damage. */
-        send_to_char(ch, "Your weapon hums evilly as it strikes!\r\n");
+        if (PRF_FLAGGED(ch, PRF_COMBATROLL))
+          send_to_char(ch, "\tW[EVIL]\tn ");
+        if (PRF_FLAGGED(victim, PRF_COMBATROLL))
+          send_to_char(victim, "\tR[EVIL]\tn ");
         dam += dice(2, 6);
       }
       /*good weapon*/
@@ -3766,8 +3773,10 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
              (IS_NE(victim)) ||
              (IS_LE(victim)) ||
              (IS_NPC(victim) && HAS_SUBRACE(victim, SUBRACE_EVIL)))) {
-        /* Do 2d6 more damage. */
-        send_to_char(ch, "Your weapon hums with goodness as it strikes!\r\n");
+        if (PRF_FLAGGED(ch, PRF_COMBATROLL))
+          send_to_char(ch, "\tW[GOOD]\tn ");
+        if (PRF_FLAGGED(victim, PRF_COMBATROLL))
+          send_to_char(victim, "\tR[GOOD]\tn ");
         dam += dice(2, 6);
       }
       /*bane weapon*/
@@ -3775,17 +3784,26 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
         /* Check the values in the special ability record for the NPCRACE and SUBRACE. */
         int *value = get_obj_special_ability(wielded, WEAPON_SPECAB_BANE)->value;
         if((GET_RACE(victim) == value[0]) && (HAS_SUBRACE(victim, value[1]))) {
-          send_to_char(ch, "Your weapon hums in delight as it strikes!\r\n");
+          if (PRF_FLAGGED(ch, PRF_COMBATROLL))
+            send_to_char(ch, "\tW[BANE]\tn ");
+          if (PRF_FLAGGED(victim, PRF_COMBATROLL))
+            send_to_char(victim, "\tR[BANE]\tn ");
           dam += dice(2, 6);
         }
       }
       /*bane weapon*/
       if (victim != ch && HAS_FEAT(ch, FEAT_BANE_OF_ENEMIES) && HAS_FEAT(ch, FEAT_FAVORED_ENEMY)) {
         if (!IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, RACE_TYPE_HUMANOID)) {
-          send_to_char(ch, "Your weapon hums in delight as it strikes!\r\n");
+          if (PRF_FLAGGED(ch, PRF_COMBATROLL))
+            send_to_char(ch, "\tW[BANE]\tn ");
+          if (PRF_FLAGGED(victim, PRF_COMBATROLL))
+            send_to_char(victim, "\tR[BANE]\tn ");
           dam += dice(2, 6);
         } else if (IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, GET_RACE(victim))) {
-          send_to_char(ch, "Your weapon hums in delight as it strikes!\r\n");
+          if (PRF_FLAGGED(ch, PRF_COMBATROLL))
+            send_to_char(ch, "\tW[BANE]\tn ");
+          if (PRF_FLAGGED(victim, PRF_COMBATROLL))
+            send_to_char(victim, "\tR[BANE]\tn ");
           dam += dice(2, 6);
         }
       }
