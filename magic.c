@@ -610,7 +610,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
 
       // 33% chance of causing a wait-state to victim
       if (!rand_number(0, 2))
-        attach_mud_event(new_mud_event(eFISTED, ch, NULL), 1000);
+        attach_mud_event(new_mud_event(eFISTED, victim, NULL), 1000);
 
       break;
 
