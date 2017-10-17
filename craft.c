@@ -1708,7 +1708,7 @@ EVENTFUNC(event_crafting) {
       exp = 10 * GET_LEVEL(ch) + GET_LEVEL(ch);     
     // the crafting tick is still going!
     } else if (GET_CRAFTING_OBJ(ch)) {
-      send_to_char(ch, "You continue to %s %s.\r\n",
+      send_to_char(ch, "You continue to %s and work to create %s.\r\n",
               craft_type[GET_CRAFTING_TYPE(ch)],
               GET_CRAFTING_OBJ(ch)->short_description);
       exp = GET_OBJ_LEVEL(GET_CRAFTING_OBJ(ch)) * GET_LEVEL(ch) + GET_LEVEL(ch);
