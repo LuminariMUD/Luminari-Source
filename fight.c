@@ -4115,7 +4115,8 @@ void idle_weapon_spells(struct char_data *ch) {
       if (!GET_WEAPON_SPELL_AGG(wielded, j) &&
               GET_WEAPON_SPELL(wielded, j)) {
         random = rand_number(1, 100);
-        if (GET_WEAPON_SPELL_PCT(wielded, j) >= random) {
+        if (!affected_by_spell(ch, GET_WEAPON_SPELL(wielded, j)) &&
+                GET_WEAPON_SPELL_PCT(wielded, j) >= random) {
           act(buf, TRUE, ch, wielded, 0, TO_CHAR);
           act(buf, TRUE, ch, wielded, 0, TO_ROOM);
           call_magic(ch, ch, NULL, GET_WEAPON_SPELL(wielded, j), 0,
@@ -4130,7 +4131,8 @@ void idle_weapon_spells(struct char_data *ch) {
       if (!GET_WEAPON_SPELL_AGG(offWield, j) &&
               GET_WEAPON_SPELL(offWield, j)) {
         random = rand_number(1, 100);
-        if (GET_WEAPON_SPELL_PCT(offWield, j) >= random) {
+        if (!affected_by_spell(ch, GET_WEAPON_SPELL(wielded, j)) &&
+                GET_WEAPON_SPELL_PCT(offWield, j) >= random) {
           act(buf, TRUE, ch, offWield, 0, TO_CHAR);
           act(buf, TRUE, ch, offWield, 0, TO_ROOM);
           call_magic(ch, ch, NULL, GET_WEAPON_SPELL(offWield, j), 0,
