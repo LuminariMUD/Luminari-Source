@@ -4028,6 +4028,10 @@ void weapon_poison(struct char_data *ch, struct char_data *victim, struct obj_da
 
   if (!wielded->weapon_poison.poison) /* this weapon is not poisoned */
     return;
+  
+  /* for now we will not let you apply a spell that is already affecting vict */
+  if (affected_by_spell(victim, wielded->weapon_poison.poison))
+    return;
 
   /* 20% chance to fire currently */
   if (rand_number(0, 5))
