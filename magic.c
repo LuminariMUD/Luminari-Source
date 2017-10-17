@@ -2670,7 +2670,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
               GET_RACE(ch) == RACE_CRYSTAL_DWARF)
         bonus += 2;
       if (mag_savingthrow(ch, victim, SAVING_FORT, bonus, casttype, level, ENCHANTMENT)) {
-        send_to_char(ch, "%s", CONFIG_NOEFFECT);
+        send_to_char(ch, "Your victim seems to resist the poison!", CONFIG_NOEFFECT);
         return;
       }
 
@@ -3444,7 +3444,10 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   /* If the victim is already affected by this spell, and the spell does not
    * have an accumulative effect, then fail the spell. */
   if (affected_by_spell(victim, spellnum) && !(accum_duration || accum_affect)) {
-    send_to_char(ch, "%s", CONFIG_NOEFFECT);
+    if (casttype == CAST_WEAPON_POISON)
+      ; /* nicer with no message here */
+    else
+      send_to_char(ch, "%s", CONFIG_NOEFFECT);
     return;
   }
 
