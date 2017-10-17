@@ -400,7 +400,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
     return (0);
   }
 
-  if (caster && caster->in_room && caster->in_room != NOWHERE &&  caster->in_room < top_of_world && ROOM_FLAGGED(IN_ROOM(caster), ROOM_PEACEFUL) &&
+  if ((casttype != CAST_WEAPON_POISON) && caster && caster->in_room && caster->in_room != NOWHERE &&  caster->in_room < top_of_world && ROOM_FLAGGED(IN_ROOM(caster), ROOM_PEACEFUL) &&
           (SINFO.violent || IS_SET(SINFO.routines, MAG_DAMAGE))) {
     send_to_char(caster, "A flash of white light fills the room, dispelling your violent magic!\r\n");
     act("White light from no particular source suddenly fills the room, then vanishes.", FALSE, caster, 0, 0, TO_ROOM);
@@ -536,7 +536,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
       spell_level = level;
       break;
     case CAST_WEAPON_POISON:
-      savetype = SAVING_WILL;
+      savetype = SAVING_FORT;
       spell_level = level;
       break;
     case CAST_WEAPON_SPELL:
