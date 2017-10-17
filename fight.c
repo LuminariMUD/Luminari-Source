@@ -4095,13 +4095,13 @@ void idle_weapon_spells(struct char_data *ch) {
   /* give some random messages */
   switch(dice(1, 4)) {
     case 1:
-      *buf = "$p hums with power!";
+      buf = "$p hums with power!";
       break;
     case 2:
-      *buf = "$p flashes with energy!";
+      buf = "$p flashes with energy!";
       break;
     case 3:
-      *buf = "$p glows and lets off a deep sound!";
+      buf = "$p glows and lets off a deep sound!";
       break;
     default: /* default "leap" */
       break;
