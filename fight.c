@@ -1677,6 +1677,7 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
     weap = GET_EQ(ch, WEAR_WIELD_2H);
   else if (dualing == 1)
     weap = GET_EQ(ch, WEAR_WIELD_OFFHAND);
+  /* special handling for Trelux */
   if (GET_RACE(ch) == RACE_TRELUX) {
     weap = read_object(TRELUX_CLAWS, VIRTUAL);
     attacktype = TYPE_CLAW;
@@ -5189,11 +5190,17 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   /* 20% chance to poison as a trelux. This could be made part of the general poison code, once that is
    * implemented, also, shouldn't they be able to control if they poison or not?  Why not make them envenom
    * their claws before an attack? */
-  if (!victim_is_dead && !IS_AFFECTED(victim, AFF_POISON) && !rand_number(0, 5) &&
+  if (!victim_is_dead && dam && !rand_number(0, 5) &&
       (GET_RACE(ch) == RACE_TRELUX || HAS_FEAT(ch, FEAT_POISON_BITE)) ) {
     /* We are just using the poison spell for this...Maybe there would be a better way, some unique poison?
      * Note the CAST_INNATE, this removes armor spell failure from the call. */
-    call_magic(ch, FIGHTING(ch), 0, SPELL_POISON, 0, GET_LEVEL(ch), CAST_INNATE);
+    act("\tgVenom\tn from your claws enter $N's wound!",
+                FALSE, ch, wielded, victim, TO_CHAR);
+    act("\tgVenom\tn from $n's claws enters your wounds!",
+                FALSE, ch, wielded, victim, TO_VICT | TO_SLEEP);
+    act("\tgVenom\tn from $n's claws enters $N's wounds!",
+                FALSE, ch, wielded, victim, TO_NOTVICT);
+    call_magic(ch, victim, 0, SPELL_POISON, 0, GET_LEVEL(ch), CAST_INNATE);
   }
 
   /* crippling strike */
