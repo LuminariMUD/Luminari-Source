@@ -27,11 +27,14 @@
 
 /* this function is used to inform ch and surrounding of a treasure drop */
 void say_treasure(struct char_data *ch, struct obj_data *obj) {
-  char buf[MAX_STRING_LENGTH] = {'\0'};
+  if (ch && obj && obj->short_description) {
+    char buf[MAX_STRING_LENGTH] = {'\0'};
 
-  send_to_char(ch, "\tYYou have found %s in a nearby lair (random treasure drop)!\tn\r\n", obj->short_description);
-  sprintf(buf, "$n \tYhas found %s in a nearby lair (random treasure drop)!\tn", obj->short_description);
-  act(buf, FALSE, ch, 0, ch, TO_NOTVICT);  
+    send_to_char(ch, "\tYYou have found %s in a nearby lair (random treasure drop)!\tn\r\n", obj->short_description);
+    
+    sprintf(buf, "$n \tYhas found %s in a nearby lair (random treasure drop)!\tn", obj->short_description);
+    act(buf, FALSE, ch, 0, ch, TO_NOTVICT);  
+  }
 }
 
 /* some spells are not appropriate for expendable items, this simple
@@ -1179,12 +1182,15 @@ void award_magic_ammo(struct char_data *ch, int grade, int moblevel) {
   else {
     armor_desc_roll = rand_number(1, NUM_A_AMMO_HEAD_DESCS - 1);
     sprintf(desc, "%s with a %s tip", desc, ammo_head_descs[armor_desc_roll]);
-    sprintf(keywords, "%s with a %s tip", keywords,
+    sprintf(keywords, "%s %s tip", keywords,
             ammo_head_descs[armor_desc_roll]);
   }
+  
+  /* we are adding "ammo" as a keyword here for ease of handling for players */
+  sprintf(keywords, "%s ammo", keywords);
 
   /* finished descrips, so lets assign them */
-  obj->name = strdup(keywords);
+  obj->name = strdup(keywords); /* key words */
   // Set descriptions
   obj->short_description = strdup(desc);
   desc[0] = toupper(desc[0]);
