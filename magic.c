@@ -510,6 +510,20 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   switch (spellnum) {
 
       /*******************************************\
+      || ------------ SPECIAL SPELLS ----------- ||
+      \*******************************************/
+    
+    case SPELL_POISON:
+      save = SAVING_FORT;
+      if (casttype != CAST_INNATE)
+        mag_resist = TRUE;
+      element = DAM_POISON;
+      num_dice = 1;
+      size_dice = 8;
+      bonus = 0;
+      break;
+    
+      /*******************************************\
       || ------------- MAGIC SPELLS ------------ ||
       \*******************************************/
 

@@ -608,6 +608,23 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
     }
   }
 
+  /* now we actually process the spell based on the appropate routine */
+  
+  /* special routine handling! */
+  switch (spellnum) {
+    case SPELL_POISON:
+      if (caster && cvict && affected_by_spell(cvict, SPELL_POISON)) {
+        if (mag_damage(spell_level, caster, cvict, ovict, spellnum, metamagic, savetype, casttype) == -1) {
+          return (-1); /* Successful and target died, don't cast again. */        
+        }
+      }
+      break;
+    default:
+      break;
+  }
+  
+  /* the rest of the handling follows: */
+  
   if (IS_SET(SINFO.routines, MAG_DAMAGE))
     if (mag_damage(spell_level, caster, cvict, ovict, spellnum, metamagic, savetype, casttype) == -1)
       return (-1); /* Successful and target died, don't cast again. */
