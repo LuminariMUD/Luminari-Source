@@ -521,7 +521,8 @@ void assign_feats(void) {
     "Trelux don't have hands, they have insect-like pincers.  These pincers can "
           "be used as dangerous weapons.  Trelux Monks gain an extra dice of damage "
           "due to these pincers.  Also, Trelux pincers have a chance of poisoning "
-          "their victim.");
+          "their victim - note Trelux naturally are 'dual wielding' and will have"
+          "a partial but reduced penalty to hit with their 'off' pincer.");
   feato(FEAT_TRELUX_RACIAL_ADJUSTMENT, "trelux racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
     "+4 dex, +2 str, +4 con",
     "As racial modifiers, Trelux gain 4 dexterity, 2 strength and 4 constitution as a natural starting bonus.");
