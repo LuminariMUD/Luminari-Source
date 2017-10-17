@@ -3477,7 +3477,7 @@ ACMD(do_toggle) {
                  ONOFF(PRF_FLAGGED(ch, PRF_DISPMEMTIME)),
                  ONOFF(PRF_FLAGGED(ch, PRF_DISPACTIONS)),
                  ONOFF(PRF_FLAGGED(ch, PRF_AUTORELOAD)),
-                 ONOFF(PRF_FLAGGED(ch, PRF_COMBATROLL)),
+                 ONOFF(PRF_FLAGGED(ch, PRF_COMBATROLL))
                  /*end*/);
     return;
   }
