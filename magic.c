@@ -2675,7 +2675,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       }
 
       af[0].location = APPLY_STR;
-      if (casttype == CAST_INNATE) /* trelux for example */
+      if (casttype == CAST_INNATE || casttype == CAST_WEAPON_POISON) /* trelux for example */
         af[0].duration = GET_LEVEL(ch) * 10;
       else
         af[0].duration = caster_level * 25;
