@@ -854,7 +854,8 @@ void set_fighting(struct char_data *ch, struct char_data *vict) {
 
   /*  The char is flat footed until they take an action,
    *  but only if they are not currently fighting.  */
-  if (!FIGHTING(ch)) SET_BIT_AR(AFF_FLAGS(ch), AFF_FLAT_FOOTED);
+  if (!FIGHTING(ch))
+    SET_BIT_AR(AFF_FLAGS(ch), AFF_FLAT_FOOTED);
   FIGHTING(ch) = vict;
 
   if (!CONFIG_PK_ALLOWED)
@@ -4079,10 +4080,33 @@ void weapon_spells(struct char_data *ch, struct char_data *vict,
    considered non-offensive, the weapon will target (ch)
    with this spell - does not require to be in combat */
 void idle_weapon_spells(struct char_data *ch) {
+  
+  /* if this is a no-magic room, we aren't going to continue */
+  if ( ch->in_room && ch->in_room != NOWHERE && ch->in_room < top_of_world &&
+          (ROOM_FLAGGED(IN_ROOM(ch), ROOM_NOMAGIC) ||
+           ROOM_AFFECTED(ch->in_room, RAFF_ANTI_MAGIC)) )
+    return;
+  
   int random = 0, j = 0;
   struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_1);
   struct obj_data *offWield = GET_EQ(ch, WEAR_WIELD_OFFHAND);
+  char *buf = "$p leaps to action!";
 
+  /* give some random messages */
+  switch(dice(1, 4)) {
+    case 1:
+      *buf = "$p hums with power!";
+      break;
+    case 2:
+      *buf = "$p flashes with energy!";
+      break;
+    case 3:
+      *buf = "$p glows and lets off a deep sound!";
+      break;
+    default: /* default "leap" */
+      break;
+  }
+  
   if (GET_EQ(ch, WEAR_WIELD_2H))
     wielded = GET_EQ(ch, WEAR_WIELD_2H);
 
@@ -4092,10 +4116,8 @@ void idle_weapon_spells(struct char_data *ch) {
               GET_WEAPON_SPELL(wielded, j)) {
         random = rand_number(1, 100);
         if (GET_WEAPON_SPELL_PCT(wielded, j) >= random) {
-          act("$p leaps to action.",
-                  TRUE, ch, wielded, 0, TO_CHAR);
-          act("$p leaps to action.",
-                  TRUE, ch, wielded, 0, TO_ROOM);
+          act(buf, TRUE, ch, wielded, 0, TO_CHAR);
+          act(buf, TRUE, ch, wielded, 0, TO_ROOM);
           call_magic(ch, ch, NULL, GET_WEAPON_SPELL(wielded, j), 0,
                   GET_WEAPON_SPELL_LVL(wielded, j), CAST_WEAPON_SPELL);
         }
@@ -4109,16 +4131,15 @@ void idle_weapon_spells(struct char_data *ch) {
               GET_WEAPON_SPELL(offWield, j)) {
         random = rand_number(1, 100);
         if (GET_WEAPON_SPELL_PCT(offWield, j) >= random) {
-          act("$p leaps to action.",
-                  TRUE, ch, offWield, 0, TO_CHAR);
-          act("$p leaps to action.",
-                  TRUE, ch, offWield, 0, TO_ROOM);
+          act(buf, TRUE, ch, offWield, 0, TO_CHAR);
+          act(buf, TRUE, ch, offWield, 0, TO_ROOM);
           call_magic(ch, ch, NULL, GET_WEAPON_SPELL(offWield, j), 0,
                   GET_WEAPON_SPELL_LVL(offWield, j), CAST_WEAPON_SPELL);
         }
       }
     }
   }
+  
 }
 
 /* weapon spell function for random weapon procs,
