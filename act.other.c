@@ -536,12 +536,12 @@ ACMD(do_applypoison) {
   }
 
   /* checking for equipped weapons */
-  if (is_abbrev(arg, "primary")) {
+  if (is_abbrev(arg2, "primary")) {
     if (GET_EQ(ch, WEAR_WIELD_2H))
       weapon = GET_EQ(ch, WEAR_WIELD_2H);
     else if (GET_EQ(ch, WEAR_WIELD_1))
       weapon = GET_EQ(ch, WEAR_WIELD_1);      
-  } else if (is_abbrev(arg, "offhand")) {
+  } else if (is_abbrev(arg2, "offhand")) {
     if (GET_EQ(ch, WEAR_WIELD_OFFHAND))
       weapon = GET_EQ(ch, WEAR_WIELD_OFFHAND);    
   } else {
