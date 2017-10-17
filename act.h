@@ -384,6 +384,7 @@ ACMD(do_gen_tog);
 #define SCMD_SCREENWIDTH 33
 #define SCMD_AUTOSCAN    34
 #define SCMD_AUTORELOAD  35
+#define SCMD_COMBATROLL  36
 
 /* do_quit */
 ACMD(do_quit);

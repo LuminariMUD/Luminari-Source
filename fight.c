@@ -2768,8 +2768,10 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
   if (dam) { //display damage done
     sprintf(buf1, "[%d]", dam);
     sprintf(buf, "%5s", buf1);
-    send_to_char(ch, "\tW%s\tn ", buf);
-    send_to_char(victim, "\tR%s\tn ", buf);
+    if (PRF_FLAGGED(ch, PRF_COMBATROLL))
+      send_to_char(ch, "\tW%s\tn ", buf);
+    if (PRF_FLAGGED(victim, PRF_COMBATROLL))
+      send_to_char(victim, "\tR%s\tn ", buf);
   }
 
   /* more deubgging */
@@ -5091,19 +5093,32 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
      )) {
 
     /* Display why we are sneak attacking */
-    send_to_char(ch, "[");
-    if (AFF_FLAGGED(victim, AFF_FLAT_FOOTED))
-      send_to_char(ch, "FF");
-    if (!has_dex_bonus_to_ac(ch, victim))
-      send_to_char(ch,"Dx");
-    if (is_flanked(ch, victim))
-      send_to_char(ch, "Fk");
-    send_to_char(ch, "]");
+    if (PRF_FLAGGED(ch, PRF_COMBATROLL)) {
+      send_to_char(ch, "\tW[");
+      if (AFF_FLAGGED(victim, AFF_FLAT_FOOTED))
+        send_to_char(ch, "FF");
+      if (!has_dex_bonus_to_ac(ch, victim))
+        send_to_char(ch,"Dx");
+      if (is_flanked(ch, victim))
+        send_to_char(ch, "Fk");
+      send_to_char(ch, "]\tn");
+    }
+    if (PRF_FLAGGED(victim, PRF_COMBATROLL)) {
+      send_to_char(victim, "\tR[");
+      if (AFF_FLAGGED(victim, AFF_FLAT_FOOTED))
+        send_to_char(victim, "FF");
+      if (!has_dex_bonus_to_ac(ch, victim))
+        send_to_char(victim,"Dx");
+      if (is_flanked(ch, victim))
+        send_to_char(victim, "Fk");
+      send_to_char(victim, "]\tn");
+    }
 
     sneakdam = dice(HAS_FEAT(ch, FEAT_SNEAK_ATTACK), 6);
 
     if (sneakdam) {
       send_to_char(ch, "[\tDSNEAK\tn] ");
+      send_to_char(victim, "[\tRSNEAK\tn] ");
     }
   }
   /* ok we checked has_dex_bonus_to_ac(), if the victim was feinted, then
@@ -5463,8 +5478,10 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
       victim_ac += 4;
     if (HAS_FEAT(victim, FEAT_ENHANCED_MOBILITY) && has_dex_bonus_to_ac(ch, victim))
       victim_ac += 4;
-    send_to_char(ch, "\tW[\tRAOO\tW]\tn");
-    send_to_char(victim, "\tW[\tRAOO\tW]\tn");
+    if (PRF_FLAGGED(ch, PRF_COMBATROLL))
+      send_to_char(ch, "\tW[\tRAOO\tW]\tn");
+    if (PRF_FLAGGED(victim, PRF_COMBATROLL))
+      send_to_char(victim, "\tW[\tRAOO\tW]\tn");
   }
 
   if (HAS_FEAT(ch, FEAT_WEAPON_TRAINING))
@@ -5478,21 +5495,31 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
   } else if (diceroll == 20) { /*auto hit, not critical though*/
     dam = TRUE;
   } else if (!AWAKE(victim)) {
-    send_to_char(ch, "\tW[down!]\tn");
-    send_to_char(victim, "\tR[down!]\tn");
+    if (PRF_FLAGGED(ch, PRF_COMBATROLL))
+      send_to_char(ch, "\tW[down!]\tn");
+    if (PRF_FLAGGED(victim, PRF_COMBATROLL))
+      send_to_char(victim, "\tR[down!]\tn");
     dam = TRUE;
   } else if (diceroll == 1) {
-    send_to_char(ch, "[stum!]");
-    send_to_char(victim, "[stum!]");
+    if (PRF_FLAGGED(ch, PRF_COMBATROLL))
+      send_to_char(ch, "[stum!]");
+    if (PRF_FLAGGED(victim, PRF_COMBATROLL))
+      send_to_char(victim, "[stum!]");
     dam = FALSE;
   } else {
     dam = (calc_bab + diceroll >= victim_ac);
   }
-  sprintf(buf1, "\tW[R:%2d]\tn", diceroll);
-  sprintf(buf, "%7s", buf1);
-  send_to_char(ch, buf);
-  sprintf(buf1, "\tR[R:%2d]\tn", diceroll);
-  sprintf(buf, "%7s", buf1);
+  if (PRF_FLAGGED(ch, PRF_COMBATROLL)) {
+    sprintf(buf1, "\tW[R:%2d]\tn", diceroll);
+    sprintf(buf, "%7s", buf1);
+    send_to_char(ch, buf);
+  }
+  if (PRF_FLAGGED(victim, PRF_COMBATROLL)) {
+    sprintf(buf1, "\tR[R:%2d]\tn", diceroll);
+    sprintf(buf, "%7s", buf1);
+    send_to_char(victim, buf);
+  }
+  
   /*  leaving this around for debugging
   send_to_char(ch, "\tc{T:%d+", calc_bab);
   send_to_char(ch, "D:%d>=", diceroll);

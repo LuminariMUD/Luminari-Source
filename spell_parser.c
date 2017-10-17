@@ -629,7 +629,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
       break;
   }
   
-  /* the rest of the handling follows: */
+  /* the rest of the routine handling follows: */
   
   if (IS_SET(SINFO.routines, MAG_DAMAGE))
     if (mag_damage(spell_level, caster, cvict, ovict, spellnum, metamagic, savetype, casttype) == -1)
@@ -783,6 +783,8 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
         MANUAL_SPELL(spell_recall);
         break;
     } /* end manual spells */
+    
+  /* finished routine handling, now we have some code to engage */
 
   /* NOTE:  this requires a victim, so AoE effects have another
      similar method added -zusuk */

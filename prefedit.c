@@ -211,6 +211,7 @@ static void prefedit_disp_toggles_menu(struct descriptor_data *d)
                              "%s3%s) Autogold     %s[%s%3s%s]      %sC%s) Tell     %s[%s%3s%s]\r\n"
                              "%s4%s) Autosac      %s[%s%3s%s]      %sD%s) Auction  %s[%s%3s%s]\r\n"
                              "%s5%s) Autoassist   %s[%s%3s%s]      %sE%s) Gratz    %s[%s%3s%s]\r\n"
+                             "                             - More Toggles -                   \r\n"          
                              "%s6%s) Autosplit    %s[%s%3s%s]      %sS%s) AutoScan %s[%s%3s%s]\r\n",
 /* Line 1 - autoexits and gossip */
              CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), PREFEDIT_FLAGGED(PRF_AUTOEXIT) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
@@ -252,16 +253,18 @@ static void prefedit_disp_toggles_menu(struct descriptor_data *d)
              );
 
   send_to_char(d->character, "%s7%s) Automap      %s[%s%3s%s]      %sT%s) AutoReload %s[%s%3s%s]\r\n"
-                             "%s8%s) Autokey      %s[%s%3s%s]\r\n"
+                             "%s8%s) Autokey      %s[%s%3s%s]      %sU%s) CombatRoll %s[%s%3s%s]\r\n"
                              "%s9%s) Autodoor     %s[%s%3s%s]\r\n",
 /* Line 7 - automap & autoreload */
              CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), PREFEDIT_FLAGGED(PRF_AUTOMAP) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
              ONOFF(PREFEDIT_FLAGGED(PRF_AUTOMAP)), CCCYN(d->character, C_NRM),
              CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), PREFEDIT_FLAGGED(PRF_AUTORELOAD) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
              ONOFF(PREFEDIT_FLAGGED(PRF_AUTORELOAD)), CCCYN(d->character, C_NRM),
-/* Line 8 - autokey */
+/* Line 8 - autokey & combatroll */
              CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), PREFEDIT_FLAGGED(PRF_AUTOKEY) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
              ONOFF(PREFEDIT_FLAGGED(PRF_AUTOKEY)), CCCYN(d->character, C_NRM),
+             CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), PREFEDIT_FLAGGED(PRF_COMBATROLL) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+             ONOFF(PREFEDIT_FLAGGED(PRF_COMBATROLL)), CCCYN(d->character, C_NRM),
 /* Line 9 - autodoor */
              CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), PREFEDIT_FLAGGED(PRF_AUTODOOR) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
              ONOFF(PREFEDIT_FLAGGED(PRF_AUTODOOR)), CCCYN(d->character, C_NRM)
@@ -687,11 +690,6 @@ void prefedit_parse(struct descriptor_data * d, char *arg)
         TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_COMPACT);
         break;
 
-      case 's':
-      case 'S':
-        TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_AUTOSCAN);
-        break;
-
       case 'j':
       case 'J':
         TOGGLE_VAR(d->pProtocol->pVariables[eMSDP_XTERM_256_COLORS]->ValueInt);
@@ -727,15 +725,29 @@ void prefedit_parse(struct descriptor_data * d, char *arg)
         TOGGLE_VAR(d->pProtocol->pVariables[eMSDP_UTF_8]->ValueInt);
         break;
 
+      /* don't use Q - reserved for quit */
+        
       case 'r':
       case 'R':
         TOGGLE_VAR(d->pProtocol->bMSP);
+        break;
+        
+      case 's':
+      case 'S':
+        TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_AUTOSCAN);
         break;
 
       case 't':
       case 'T':
         TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_AUTORELOAD);
         break;
+        
+      case 'u':
+      case 'U':
+        TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_COMBATROLL);
+        break;
+        
+      /* do not use X - reserved for exiting this menu */
 
 
       default  : send_to_char(d->character, "Invalid Choice, try again (Q to Quit to main menu): ");
@@ -973,6 +985,10 @@ void prefedit_Restore_Defaults(struct descriptor_data *d)
   /* PRF_AUTORELOAD   - On */
   if (!PREFEDIT_FLAGGED(PRF_AUTORELOAD))
      SET_BIT_AR(PREFEDIT_GET_FLAGS, PRF_AUTORELOAD);
+
+  /* PRF_COMBATROLL   - On */
+  if (!PREFEDIT_FLAGGED(PRF_COMBATROLL))
+     SET_BIT_AR(PREFEDIT_GET_FLAGS, PRF_COMBATROLL);
 
   /* PRF_AUTOGOLD   - On */
   if (!PREFEDIT_FLAGGED(PRF_AUTOGOLD))
