@@ -1144,6 +1144,7 @@ const char *preference_bits[NUM_PRF_FLAGS + 1] = {
   "Display-Memtime",
   "Display-Actions",
   "Auto-Reload",
+  "Combat-Rolls",
   "\n"
 };
 

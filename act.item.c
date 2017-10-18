@@ -356,6 +356,13 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
       send_to_char(ch, "\r\n");
       break;
     case ITEM_MISSILE:
+      /* weapon poison */
+      if (item->weapon_poison.poison) {
+        send_to_char(ch, "Weapon Poisoned: %s, Level of Poison: %d, Applications Left: %d\r\n",
+                     spell_info[item->weapon_poison.poison].name,
+                     item->weapon_poison.poison_level,
+                     item->weapon_poison.poison_hits );
+      }
       send_to_char(ch,
               "Type:                   %s\r\n"
               "Enhancement:            %d\r\n"

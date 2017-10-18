@@ -4016,7 +4016,8 @@ int apply_damage_reduction(struct char_data *ch, struct char_data *victim, struc
    if the weapon has that given spell-num applied to it as a poison
    i have ambitious plans in the future to completely re-work poison in our
    system, and at that time i will re-work this -z */
-void weapon_poison(struct char_data *ch, struct char_data *victim, struct obj_data *wielded) {
+void weapon_poison(struct char_data *ch, struct char_data *victim,
+        struct obj_data *wielded, struct obj_data *missile) {
 
   /* start with the usual dummy checks */
   if (!ch)
@@ -4024,17 +4025,28 @@ void weapon_poison(struct char_data *ch, struct char_data *victim, struct obj_da
   if (!victim)
     return;
   if (!wielded)
+    wielded = missile;
+  if (!wielded)
     return;
 
   if (!wielded->weapon_poison.poison) /* this weapon is not poisoned */
     return;
   
+  /* decrement strength and hits on weapon */
+  wielded->weapon_poison.poison_level -= 2;
+  if (wielded->weapon_poison.poison_level <= 0)
+    wielded->weapon_poison.poison_level = 1;
+
+  wielded->weapon_poison.poison_hits--;
+  if (wielded->weapon_poison.poison_hits < 0)
+    wielded->weapon_poison.poison = 0;  
+  
   /* for now we will not let you apply a spell that is already affecting vict */
   if (affected_by_spell(victim, wielded->weapon_poison.poison))
     return;
 
-  /* 20% chance to fire currently */
-  if (rand_number(0, 5))
+  /* 20% chance to fire currently on melee weapons */
+  if (!missile && rand_number(0, 5))
     return;
 
   act("The \tGpoison\tn from $p attaches to $n.",
@@ -4042,13 +4054,6 @@ void weapon_poison(struct char_data *ch, struct char_data *victim, struct obj_da
   call_magic(ch, victim, wielded, wielded->weapon_poison.poison, 0, wielded->weapon_poison.poison_level,
           CAST_WEAPON_POISON);
 
-  wielded->weapon_poison.poison_level -= 2;
-  if (wielded->weapon_poison.poison_level <= 0)
-    wielded->weapon_poison.poison_level = 1;
-
-  wielded->weapon_poison.poison_hits--;
-  if (wielded->weapon_poison.poison_hits < 0)
-    wielded->weapon_poison.poison = 0;
 }
 
 /* this function will call the spell-casting ability of the
@@ -4056,6 +4061,17 @@ void weapon_poison(struct char_data *ch, struct char_data *victim, struct obj_da
    these are always 'violent' spells */
 void weapon_spells(struct char_data *ch, struct char_data *vict,
         struct obj_data *wpn) {
+  
+  /* if this is a no-magic room, we aren't going to continue */
+  if ( ch->in_room && ch->in_room != NOWHERE && ch->in_room < top_of_world &&
+          (ROOM_FLAGGED(IN_ROOM(ch), ROOM_NOMAGIC) ||
+           ROOM_AFFECTED(ch->in_room, RAFF_ANTI_MAGIC)) )
+    return;
+  if (vict && vict->in_room && vict->in_room != NOWHERE && vict->in_room < top_of_world &&
+          (ROOM_FLAGGED(IN_ROOM(vict), ROOM_NOMAGIC) ||
+           ROOM_AFFECTED(vict->in_room, RAFF_ANTI_MAGIC)) )
+    return;
+
   int i = 0, random;
 
   if (wpn && HAS_SPELLS(wpn)) {
