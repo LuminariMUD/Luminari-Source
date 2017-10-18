@@ -569,7 +569,11 @@ ACMD(do_applypoison) {
     send_to_char(ch, "That weapon/ammo is already poisoned!\r\n");
     return;
   }
-
+  if (IS_SET(weapon_list[GET_OBJ_VAL(weapon, 0)].weaponFlags, WEAPON_FLAG_RANGED)) {
+    send_to_char(ch, "You can't apply poison to that, try applying directly to the ammo.\r\n");
+    return;    
+  }
+  
   /* 5% of failure */
   if (rand_number(0, 19)) {
     char buf1[MEDIUM_STRING] = {'\0'};
