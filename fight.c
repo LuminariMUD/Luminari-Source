@@ -5326,8 +5326,8 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     process_weapon_abilities(wielded, ch, victim, ACTMTD_ON_HIT, NULL);
 
   /* our primitive weapon-poison system, needs some love */
-  if (ch && victim && wielded && !victim_is_dead)
-    weapon_poison(ch, victim, wielded);
+  if (ch && victim && (wielded||missile) && !victim_is_dead)
+    weapon_poison(ch, victim, wielded, missile);
 
   /* special weapon (or gloves for monk) procedures.  Need to implement something similar for the new system. */
   if (ch && victim && wielded && !victim_is_dead)
