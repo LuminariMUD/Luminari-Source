@@ -312,124 +312,106 @@ void complete_quest(struct char_data *ch) {
     log("UH OH: complete_quest() called without a quest VNUM!");
     return;
   }
-
-  rnum = real_quest(vnum);
   
-  /* we decrement the counter in generic(), technically another dummy check */  
-  if (GET_QUEST_COUNTER(ch) <= 0) {
-    
-    /* START HANDLING REWARDS */
-    
-    /* any quest point reward for this quest? */
-    if (IS_HAPPYHOUR && IS_HAPPYQP) {
-      happy_qp = (int) (QST_POINTS(rnum) * (((float) (100 + HAPPY_QP)) / (float) 100));
-      happy_qp = MAX(happy_qp, 0);
-      GET_QUESTPOINTS(ch) += happy_qp;
-      send_to_char(ch,
-              "%s\r\nYou have been awarded %d \tCquest points\tn for your service.\r\n\r\n",
-              QST_DONE(rnum), happy_qp);
-    } else { /* no happy hour bonus :( */
-      GET_QUESTPOINTS(ch) += QST_POINTS(rnum);
-      send_to_char(ch,
-              "%s\r\nYou have been awarded %d \tCquest points\tn for your service.\r\n\r\n",
-              QST_DONE(rnum), QST_POINTS(rnum));
-    }
-    
-    /* any gold reward in this quest? */
-    if (QST_GOLD(rnum)) {
-      if ((IS_HAPPYHOUR) && (IS_HAPPYGOLD)) {
-        happy_gold = (int) (QST_GOLD(rnum) * (((float) (100 + HAPPY_GOLD)) / (float) 100));
-        happy_gold = MAX(happy_gold, 0);
-        increase_gold(ch, happy_gold);
-        send_to_char(ch,
-                "You have been awarded %d \tYgold coins\tn for your service.\r\n\r\n",
-                happy_gold);
-      } else {
-        increase_gold(ch, QST_GOLD(rnum));
-        send_to_char(ch,
-                "You have been awarded %d \tYgold coins\tn for your service.\r\n\r\n",
-                QST_GOLD(rnum));
-      }
-    }
-    
-    /* any xp points reward in this quest? */
-    if (QST_EXP(rnum)) {
-      gain_exp(ch, QST_EXP(rnum));
-      if ((IS_HAPPYHOUR) && (IS_HAPPYEXP)) {
-        happy_exp = (int) (QST_EXP(rnum) * (((float) (100 + HAPPY_EXP)) / (float) 100));
-        happy_exp = MAX(happy_exp, 0);
-        send_to_char(ch,
-                "You have been awarded %d \tBexperience\tn for your service.\r\n\r\n",
-                happy_exp);
-      } else {
-        send_to_char(ch,
-                "You have been awarded %d \tBexperience\tn points for your service.\r\n\r\n",
-                QST_EXP(rnum));
-      }
-    }
-    
-    /* any object reward from this quest? */    
-    if (QST_OBJ(rnum) && QST_OBJ(rnum) != NOTHING) {
-      if (real_object(QST_OBJ(rnum)) != NOTHING) {
-        if ((new_obj = read_object((QST_OBJ(rnum)), VIRTUAL)) != NULL) {
-          obj_to_char(new_obj, ch);
-          send_to_char(ch, "You have been presented with %s%s for your service.\r\n\r\n",
-                  GET_OBJ_SHORT(new_obj), CCNRM(ch, C_NRM));
-        }
-      }
-    }
-    /* end rewards */
-    
-    /* handle throwing quest in history and repeatable quests */
-    if (!IS_SET(QST_FLAGS(rnum), AQ_REPEATABLE))
-      add_completed_quest(ch, vnum);
-    
-    /* clear the quest data from ch, clean slate */
-    clear_quest(ch);
-    
-    /* does this quest have a next step built in? */
-    if ((real_quest(QST_NEXT(rnum)) != NOTHING) &&
-            (QST_NEXT(rnum) != vnum) &&
-            !is_complete(ch, QST_NEXT(rnum))) {
-      rnum = real_quest(QST_NEXT(rnum));
-      set_quest(ch, rnum);
-      send_to_char(ch,
-              "\tW***The next stage of your quest awaits:\tn\r\n\r\n%s\r\n",
-              QST_INFO(rnum));
-    }
- 
-    /*end*/
-
-  } else { /* we should not be getting here! */
+  /* we should NOT be getting this */
+  if (GET_QUEST_COUNTER(ch) > 0) {
     send_to_char(ch, "You still have to achieve \tm%d\tn out of \tM%d\tn goals for the quest.\r\n\r\n",
             --GET_QUEST_COUNTER(ch), QST_QUANTITY(rnum));
     save_char(ch, 0);
     log("UH OH: complete_quest() quest-counter is greater than zero!");
+    return;    
+  }
+
+  rnum = real_quest(vnum);
+
+  /* Quest complete! */
+
+  /* any quest point reward for this quest? */
+  if (IS_HAPPYHOUR && IS_HAPPYQP) {
+    happy_qp = (int) (QST_POINTS(rnum) * (((float) (100 + HAPPY_QP)) / (float) 100));
+    happy_qp = MAX(happy_qp, 0);
+    GET_QUESTPOINTS(ch) += happy_qp;
+    send_to_char(ch,
+            "%s\r\nYou have been awarded %d \tCquest points\tn for your service.\r\n\r\n",
+            QST_DONE(rnum), happy_qp);
+  } else { /* no happy hour bonus :( */
+    GET_QUESTPOINTS(ch) += QST_POINTS(rnum);
+    send_to_char(ch,
+            "%s\r\nYou have been awarded %d \tCquest points\tn for your service.\r\n\r\n",
+            QST_DONE(rnum), QST_POINTS(rnum));
+  }
+
+  /* any gold reward in this quest? */
+  if (QST_GOLD(rnum)) {
+    if ((IS_HAPPYHOUR) && (IS_HAPPYGOLD)) {
+      happy_gold = (int) (QST_GOLD(rnum) * (((float) (100 + HAPPY_GOLD)) / (float) 100));
+      happy_gold = MAX(happy_gold, 0);
+      increase_gold(ch, happy_gold);
+      send_to_char(ch,
+              "You have been awarded %d \tYgold coins\tn for your service.\r\n\r\n",
+              happy_gold);
+    } else {
+      increase_gold(ch, QST_GOLD(rnum));
+      send_to_char(ch,
+              "You have been awarded %d \tYgold coins\tn for your service.\r\n\r\n",
+              QST_GOLD(rnum));
+    }
+  }
+
+  /* any xp points reward in this quest? */
+  if (QST_EXP(rnum)) {
+    gain_exp(ch, QST_EXP(rnum));
+    if ((IS_HAPPYHOUR) && (IS_HAPPYEXP)) {
+      happy_exp = (int) (QST_EXP(rnum) * (((float) (100 + HAPPY_EXP)) / (float) 100));
+      happy_exp = MAX(happy_exp, 0);
+      send_to_char(ch,
+              "You have been awarded %d \tBexperience\tn for your service.\r\n\r\n",
+              happy_exp);
+    } else {
+      send_to_char(ch,
+              "You have been awarded %d \tBexperience\tn points for your service.\r\n\r\n",
+              QST_EXP(rnum));
+    }
+  }
+
+  /* any object reward from this quest? */
+  if (QST_OBJ(rnum) && QST_OBJ(rnum) != NOTHING) {
+    if (real_object(QST_OBJ(rnum)) != NOTHING) {
+      if ((new_obj = read_object((QST_OBJ(rnum)), VIRTUAL)) != NULL) {
+        obj_to_char(new_obj, ch);
+        send_to_char(ch, "You have been presented with %s%s for your service.\r\n\r\n",
+                GET_OBJ_SHORT(new_obj), CCNRM(ch, C_NRM));
+      }
+    }
+  }
+  /* end rewards */
+
+  /* handle throwing quest in history and repeatable quests */
+  if (!IS_SET(QST_FLAGS(rnum), AQ_REPEATABLE))
+    add_completed_quest(ch, vnum);
+
+  /* clear the quest data from ch, clean slate */
+  clear_quest(ch);
+
+  /* does this quest have a next step built in? */
+  if ((real_quest(QST_NEXT(rnum)) != NOTHING) &&
+          (QST_NEXT(rnum) != vnum) &&
+          !is_complete(ch, QST_NEXT(rnum))) {
+    rnum = real_quest(QST_NEXT(rnum));
+    set_quest(ch, rnum);
+    send_to_char(ch,
+            "\tW***The next stage of your quest awaits:\tn\r\n\r\n%s\r\n",
+            QST_INFO(rnum));
   }
   
 }
 
 /* this function is called upon completion of a quest
+ * or completion of a quest-step
  * NOTE: We added the actual completion to an event that
  * will call: void complete_quest() above */
 void generic_complete_quest(struct char_data *ch) {
-  
-  /* this function use to contain the whole functional "complete a quest"
-     code...  but we found that completing a quest without a delay for
-     displaying the text would be problematic (example enter a room
-     that completes the quest and the quest-complete text is lost in
-     spam of the new room's description, etc) */
-  
-  /* create the quest complete event and throw it on the character..
-     notes:  1) this needs to save to pfile in case the instant it is called
-                the MUD crashes
-             2) the actual 'delay' can be nominal
-             3) we are forced to keep track of which quest we have on the
-   *            event for the case of repeated tasks in a single quest
-   *         4) we are forced to do a lot of dummy checking to make sure
-   *            two quests aren't over-lapping while we have an event
-   *            in the ether  */
-  
+    
   /* more work to do on this quest! make sure to decrement counter  */
   if (GET_QUEST(ch) != NOTHING && --GET_QUEST_COUNTER(ch) > 0) {
     qst_rnum rnum = -1;
@@ -441,7 +423,7 @@ void generic_complete_quest(struct char_data *ch) {
             GET_QUEST_COUNTER(ch), QST_QUANTITY(rnum));
     save_char(ch, 0);    
     
-  /* the quest is truly complete? lots of dummy checking */  
+  /* the quest is truly complete? */  
   } else if (GET_QUEST(ch) != NOTHING) {
     struct mud_event_data *pMudEvent = NULL;    
     char buf[128] = { '\0' };
