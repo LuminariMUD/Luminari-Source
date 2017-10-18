@@ -590,7 +590,8 @@ ACMD(do_applypoison) {
     act(buf1, FALSE, ch, weapon, 0, TO_CHAR);
     act(buf2, FALSE, ch, weapon, 0, TO_ROOM);
     
-    USE_FULL_ROUND_ACTION(ch);
+    if (GET_LEVEL(ch) < LVL_IMMORT)
+      USE_FULL_ROUND_ACTION(ch);
   } else {
     /* fail! suppose to be a chance to poison yourself, might change in the future */
     act("$n fails to apply the \tGpoison\tn onto $p.", FALSE, ch, weapon, 0, TO_ROOM);

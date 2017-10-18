@@ -343,12 +343,10 @@ static void show_obj_modifiers(struct obj_data *obj, struct char_data *ch) {
 }
 
 static void list_obj_to_char(struct obj_data *list, struct char_data *ch,
-                             int mode, int show, int mxp_type) {
-  struct obj_data *i, *j, *display;
-  bool found;
-  int num;
-
-  found = FALSE;
+        int mode, int show, int mxp_type) {
+  struct obj_data *i = NULL, *j = NULL, *display = NULL;
+  bool found = FALSE;
+  int num = -1;
 
   /* Loop through the list of objects */
   for (i = list; i; i = i->next_content) {
@@ -356,8 +354,10 @@ static void list_obj_to_char(struct obj_data *list, struct char_data *ch,
 
     /* Check the list to see if we've already counted this object */
     for (j = list; j != i; j = j->next_content)
-      if ((j->short_description == i->short_description && j->name == i->name) ||
-          (!strcmp(j->short_description, i->short_description) && !strcmp(j->name, i->name)))
+      if (
+              (j->short_description == i->short_description && j->name == i->name) ||
+              (!strcmp(j->short_description, i->short_description) && !strcmp(j->name, i->name))
+              )
         break; /* found a matching object */
     if (j != i)
       continue; /* we counted object i earlier in the list */
@@ -366,8 +366,8 @@ static void list_obj_to_char(struct obj_data *list, struct char_data *ch,
     for (display = j = i; j; j = j->next_content)
       /* This if-clause should be exactly the same as the one in the loop above */
       if ((j->short_description == i->short_description && j->name == i->name) ||
-          (!strcmp(j->short_description, i->short_description) &&
-           !strcmp(j->name, i->name)))
+              (!strcmp(j->short_description, i->short_description) &&
+              !strcmp(j->name, i->name)))
         if (CAN_SEE_OBJ(ch, j) /*|| (!AFF_FLAGGED(ch, AFF_BLIND) && OBJ_FLAGGED(j, ITEM_GLOW))*/) {
           /* added the ability for players to see glowing items in their inventory in the dark
            * as long as they are not blind! maybe add this to CAN_SEE_OBJ macro? */
@@ -379,7 +379,7 @@ static void list_obj_to_char(struct obj_data *list, struct char_data *ch,
 
     /* When looking in room, hide objects starting with '.', except for holylight */
     if (num > 0 && (mode != SHOW_OBJ_LONG || *display->description != '.' ||
-                    (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_HOLYLIGHT)))) {
+            (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_HOLYLIGHT)))) {
       if (mode == SHOW_OBJ_LONG)
         send_to_char(ch, "%s", CCGRN(ch, C_NRM));
       if (num != 1)
@@ -388,7 +388,8 @@ static void list_obj_to_char(struct obj_data *list, struct char_data *ch,
       send_to_char(ch, "%s", CCNRM(ch, C_NRM));
       found = TRUE;
     }
-  }
+  } /* end loop */
+  
   if (!found && show)
     send_to_char(ch, "  Nothing.\r\n");
 }
