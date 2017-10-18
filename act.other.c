@@ -521,11 +521,11 @@ ACMD(do_applypoison) {
   }
 
   if (!*arg1) {
-    send_to_char(ch, "Apply what poison? [applypoison <poison name> <weapon-name|primary|offhand>]\r\n");
+    send_to_char(ch, "Apply what poison? [applypoison <poison name> <weapon-name|ammo-name|primary|offhand>]\r\n");
     return;
   }
   if (!*arg2) {
-    send_to_char(ch, "Apply on which weapon?  [applypoison <poison name> <weapon-name|primary|offhand>]\r\n");
+    send_to_char(ch, "Apply on which weapon/ammo?  [applypoison <poison name> <weapon-name|ammo-name|primary|offhand>]\r\n");
     return;
   }
 
@@ -549,16 +549,16 @@ ACMD(do_applypoison) {
   }
   
   if (!weapon) {
-    send_to_char(ch, "You do not carry that weapon! [applypoison <poison name> <weapon-name|primary|offhand>]\r\n");
+    send_to_char(ch, "You do not carry that weapon! [applypoison <poison name> <weapon-name|ammo-name|primary|offhand>]\r\n");
     return;
   }
 
   if (GET_OBJ_TYPE(poison) != ITEM_POISON) {
-    send_to_char(ch, "But that is not a poison! [applypoison <poison name> <weapon-name|primary|offhand>]\r\n");
+    send_to_char(ch, "But that is not a poison! [applypoison <poison name> <weapon-name|ammo-name|primary|offhand>]\r\n");
     return;
   }
-  if (GET_OBJ_TYPE(weapon) != ITEM_WEAPON) {
-    send_to_char(ch, "But that is not a weapon! [applypoison <poison name> <weapon-name|primary|offhand>]\r\n");
+  if (GET_OBJ_TYPE(weapon) != ITEM_WEAPON && GET_OBJ_TYPE(weapon) != ITEM_MISSILE) {
+    send_to_char(ch, "But that is not a weapon/ammo! [applypoison <poison name> <weapon-name|ammo-name|primary|offhand>]\r\n");
     return;
   }
   if (GET_OBJ_VAL(poison, 2) <= 0) {
@@ -566,7 +566,7 @@ ACMD(do_applypoison) {
     return;
   }
   if (weapon->weapon_poison.poison) {
-    send_to_char(ch, "That weapon is already poisoned!\r\n");
+    send_to_char(ch, "That weapon/ammo is already poisoned!\r\n");
     return;
   }
 

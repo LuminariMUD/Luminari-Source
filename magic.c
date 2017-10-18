@@ -2670,7 +2670,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
               GET_RACE(ch) == RACE_CRYSTAL_DWARF)
         bonus += 2;
       if (mag_savingthrow(ch, victim, SAVING_FORT, bonus, casttype, level, ENCHANTMENT)) {
-        send_to_char(ch, "Your victim seems to resist the poison!");
+        send_to_char(ch, "Your victim seems to resist the poison!\r\n");
         return;
       }
 
