@@ -1015,7 +1015,10 @@ void list_abilities(struct char_data *ch, int ability_type) {
     //return;
 
   send_to_char(ch, "\tCYou have %d training session%s remaining.\r\n"
-          "You know of the following abilities:\tn\r\n", GET_TRAINS(ch),
+          "Name of skill, invest points and total points with all active bonuses.\tn\r\n"
+          "Skill              Inve Tota\r\n"
+          ,
+          GET_TRAINS(ch),
           GET_TRAINS(ch) == 1 ? "" : "s");
 
   for (i = start_ability; i < end_ability; i++) {
@@ -1034,7 +1037,7 @@ void list_abilities(struct char_data *ch, int ability_type) {
       default:
         break;
     }
-    send_to_char(ch, "%-28s [%d] \tC[%d]\tn %s\r\n",
+    send_to_char(ch, "%-18s [%2d] \tC[%2d]\tn %s\r\n",
             ability_names[i], GET_ABILITY(ch, i), compute_ability(ch, i),
             cross_names[modify_class_ability(ch, i, GET_CLASS(ch))]);
 
