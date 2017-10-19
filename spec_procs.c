@@ -1015,7 +1015,7 @@ void list_abilities(struct char_data *ch, int ability_type) {
     //return;
 
   send_to_char(ch, "*Name of skill, invested points, total points with all active bonuses\tn\r\n"
-                   "\tcSkill              Inve Tota Class/Cross/Unavailable  Unspent trains: %d\tn\r\n",
+                   "\tcSkill              Inve Tota Class/Cross/Unavailable  \tMUnspent trains: \tm%d\tn\r\n",
           GET_TRAINS(ch));
 
   for (i = start_ability; i < end_ability; i++) {
@@ -1038,12 +1038,7 @@ void list_abilities(struct char_data *ch, int ability_type) {
             ability_names[i], GET_ABILITY(ch, i), compute_ability(ch, i),
             cross_names[modify_class_ability(ch, i, GET_CLASS(ch))]);
 
-  }
-  
-  /* additional info for the player */
-  send_to_char(ch, "\tDType 'feats' to see your feats\tn\r\n");
-  send_to_char(ch, "\tDType 'craft' to see your crafting proficiency\tn\r\n");
-  send_to_char(ch, "\tDType 'boost' to adjust your stats\tn\r\n");
+  }  
 }
 
 //further expansion -zusuk
