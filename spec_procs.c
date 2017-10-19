@@ -572,11 +572,6 @@ void list_crafting_skills(struct char_data *ch) {
     }
   }
   send_to_char(ch, "\r\n");
-  /* additional info for the player */
-  send_to_char(ch, "\tDType 'feats' to see your feats\tn\r\n");
-  send_to_char(ch, "\tDType 'train' to see your abilities\tn\r\n");
-  send_to_char(ch, "\tDType 'boost' to adjust your stats\tn\r\n");
-  send_to_char(ch, "\r\n");
 }
 
 void list_skills(struct char_data *ch) {
