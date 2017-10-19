@@ -1014,12 +1014,9 @@ void list_abilities(struct char_data *ch, int ability_type) {
   //if (IS_NPC(ch))
     //return;
 
-  send_to_char(ch, "\tCYou have %d training session%s remaining.\r\n"
-          "Name of skill, invest points and total points with all active bonuses.\tn\r\n"
-          "Skill              Inve Tota\r\n"
-          ,
-          GET_TRAINS(ch),
-          GET_TRAINS(ch) == 1 ? "" : "s");
+  send_to_char(ch, "*Name of skill, invested points, total points with all active bonuses\tn\r\n"
+                   "\tcSkill              Inve Tota Class/Cross/Unavailable  Unspent trains: %d\tn\r\n",
+          GET_TRAINS(ch));
 
   for (i = start_ability; i < end_ability; i++) {
     /* we have some unused defines right now, we are going to skip over
