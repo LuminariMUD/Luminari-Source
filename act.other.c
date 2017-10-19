@@ -3346,7 +3346,7 @@ ACMD(do_boosts) {
   one_argument(argument, arg);
 
   if (*arg)
-    send_to_char(ch, "You can only boost stats in your guild.\r\n");
+    send_to_char(ch, "You can only boost stats with a trainer.\r\n");
   else
     send_to_char(ch, "\tCStat boost sessions remaining: %d\tn\r\n"
           "\tcStats:\tn\r\n"
@@ -3356,7 +3356,7 @@ ACMD(do_boosts) {
           "Intelligence\r\n"
           "Wisdom\r\n"
           "Charisma\r\n"
-          "\tC*Reminder that you can only boost your stats in your guild.\tn\r\n"
+          "\tC*Reminder that you can only boost your stats with a trainer.\tn\r\n"
           "\r\n",
           GET_BOOSTS(ch));
 
