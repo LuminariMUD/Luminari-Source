@@ -4025,7 +4025,7 @@ void weapon_poison(struct char_data *ch, struct char_data *victim,
   if (!victim)
     return;
   if (!wielded)
-    wielded = missile;
+    *wielded = *missile;
   if (!wielded)
     return;
 
