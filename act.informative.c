@@ -458,6 +458,8 @@ static void diag_char_to_char(struct char_data *i, struct char_data *ch) {
     act("$s skin appears to be made of stone.", FALSE, i, 0, ch, TO_VICT);
   if (affected_by_spell(i, SPELL_IRONSKIN))
     act("$s skin appears to be made of iron.", FALSE, i, 0, ch, TO_VICT);
+  if (TRLX_PSN_VAL(i) > 0 && TRLX_PSN_VAL(i) < NUM_SPELLS)
+    act("$s claws are dripping with \tgpoison\tn.", FALSE, i, 0, ch, TO_VICT);
   
   /* clean up */
   free(pers);

@@ -878,9 +878,13 @@ static void do_stat_character(struct char_data *ch, struct char_data *k) {
     send_to_char(ch, "\tCHunger: \tn%d\tC, Thirst: \tn%d\tC, Drunk: \tn%d\tC.\tn", GET_COND(k, HUNGER),
           GET_COND(k, THIRST), GET_COND(k, DRUNK));
 
-  send_to_char(ch, "  \tCDR:\tn %d\tC, CM%%:\tn %d\tC.\tn\r\n",
+  send_to_char(ch, "  \tCDR:\tn %d\tC, CM%%:\tn %d\tC | Trlx WpnPsn: %d/%d/%d.\tn\r\n",
           compute_damage_reduction(k, -1),
-          compute_concealment(k));
+          compute_concealment(k),
+          TRLX_PSN_VAL(k),
+          TRLX_PSN_LVL(k),
+          TRLX_PSN_HIT(k),
+          );
 
   send_to_char(ch, "\tCStoneskin: \tn%d\tC, Mirror Images: \tn%d\tC, Cloudkill/Inc/Doom:"
           " \tn%d/%d/%d\tC, Spell Resist: \tn%d\r\n",

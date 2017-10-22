@@ -932,6 +932,10 @@ do                                                              \
 #define SONG_AFF_VAL(ch)  (ch->player_specials->saved.spec_abil[SONG_AFF])
 #define GET_SHAPECHANGES(ch)  (ch->player_specials->saved.spec_abil[SHAPECHANGES])
 #define DOOM(ch)        (ch->player_specials->saved.spec_abil[C_DOOM])
+/*trelux applypoison variables*/
+#define TRLX_PSN_VAL(ch)        (ch->player_specials->saved.spec_abil[TRLX_PSN_SPELL_VAL])
+#define TRLX_PSN_LVL(ch)        (ch->player_specials->saved.spec_abil[TRLX_PSN_SPELL_LVL])
+#define TRLX_PSN_HIT(ch)        (ch->player_specials->saved.spec_abil[TRLX_PSN_SPELL_HIT])
 /* moved SPELLBATTLE up near caster_level */
 
 /** Return condition i (DRUNK, HUNGER, THIRST) of ch. */
