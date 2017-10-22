@@ -883,7 +883,7 @@ static void do_stat_character(struct char_data *ch, struct char_data *k) {
           compute_concealment(k),
           TRLX_PSN_VAL(k),
           TRLX_PSN_LVL(k),
-          TRLX_PSN_HIT(k),
+          TRLX_PSN_HIT(k)
           );
 
   send_to_char(ch, "\tCStoneskin: \tn%d\tC, Mirror Images: \tn%d\tC, Cloudkill/Inc/Doom:"
