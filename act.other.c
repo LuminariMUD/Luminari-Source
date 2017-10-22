@@ -575,7 +575,7 @@ ACMD(do_applypoison) {
     send_to_char(ch, "But that is not a weapon/ammo! [applypoison <poison name> <weapon-name|ammo-name|primary|offhand|claws>]\r\n");
     return;
   }
-  if (is_trelux && TRLX_PSN_VAL(i) > 0 && TRLX_PSN_VAL(i) < NUM_SPELLS) {
+  if (is_trelux && TRLX_PSN_VAL(ch) > 0 && TRLX_PSN_VAL(ch) < NUM_SPELLS) {
     send_to_char(ch, "Your claws are already poisoned!\r\n");
     return;
   } else if (weapon->weapon_poison.poison) {
