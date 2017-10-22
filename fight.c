@@ -4024,35 +4024,60 @@ void weapon_poison(struct char_data *ch, struct char_data *victim,
     return;
   if (!victim)
     return;
-  if (!wielded)
+  
+  bool is_trelux = FALSE;
+  
+  if (GET_RACE(ch) == RACE_TRELUX)
+    is_trelux = TRUE;
+  if (!wielded && !is_trelux)
     *wielded = *missile;
-  if (!wielded)
+  if (!wielded && !is_trelux)
     return;
 
-  if (!wielded->weapon_poison.poison) /* this weapon is not poisoned */
+  if (!wielded->weapon_poison.poison && TRLX_PSN_VAL(ch) <= 0 &&
+          TRLX_PSN_VAL(ch) >= NUM_SPELLS) /* this weapon is not poisoned */
     return;
   
   /* decrement strength and hits on weapon */
-  wielded->weapon_poison.poison_level -= 2;
-  if (wielded->weapon_poison.poison_level <= 0)
-    wielded->weapon_poison.poison_level = 1;
+  if (is_trelux) {
+    TRLX_PSN_LVL(ch) -= 2;
+    if (TRLX_PSN_LVL(ch) <= 0)
+      TRLX_PSN_LVL(ch) = 1;
+      
+    TRLX_PSN_HIT(ch)--;
+    if (TRLX_PSN_HIT(ch) < 0)
+      TRLX_PSN_HIT(ch) = 0;
+  } else {
+    wielded->weapon_poison.poison_level -= 2;
+    if (wielded->weapon_poison.poison_level <= 0)
+      wielded->weapon_poison.poison_level = 1;
 
-  wielded->weapon_poison.poison_hits--;
-  if (wielded->weapon_poison.poison_hits < 0)
-    wielded->weapon_poison.poison = 0;  
+    wielded->weapon_poison.poison_hits--;
+    if (wielded->weapon_poison.poison_hits < 0)
+      wielded->weapon_poison.poison = 0;
+  }  
   
   /* for now we will not let you apply a spell that is already affecting vict */
-  if (affected_by_spell(victim, wielded->weapon_poison.poison))
+  if (!is_trelux && affected_by_spell(victim, wielded->weapon_poison.poison))
+    return;
+  if (is_trelux && affected_by_spell(victim, TRLX_PSN_VAL(ch)))
     return;
 
   /* 20% chance to fire currently on melee weapons */
   if (!missile && rand_number(0, 5))
     return;
 
-  act("The \tGpoison\tn from $p attaches to $n.",
+  if (is_trelux) {
+    act("The claw's \tGpoison\tn attaches to $n.",
+          FALSE, victim, NULL, 0, TO_ROOM);
+    call_magic(ch, victim, NULL, TRLX_PSN_VAL(ch), 0, TRLX_PSN_LVL(ch),
+          CAST_WEAPON_POISON);    
+  } else {
+    act("The \tGpoison\tn from $p attaches to $n.",
           FALSE, victim, wielded, 0, TO_ROOM);
-  call_magic(ch, victim, wielded, wielded->weapon_poison.poison, 0, wielded->weapon_poison.poison_level,
+    call_magic(ch, victim, wielded, wielded->weapon_poison.poison, 0, wielded->weapon_poison.poison_level,
           CAST_WEAPON_POISON);
+  }
 
 }
 

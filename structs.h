@@ -393,10 +393,15 @@
 #define C_DOOM                 11 // creeping doom
 #define DRUID_KNOWN            12 // true/false if can 'study'
 #define AG_SPELLBATTLE         13 // arg for spellbattle racial
+/* trelux weapon poison, applypoison skill */
+#define TRLX_PSN_SPELL_VAL     14 // arg for spellbattle racial
+#define TRLX_PSN_SPELL_LVL     15 // arg for spellbattle racial
+#define TRLX_PSN_SPELL_HIT     16 // arg for spellbattle racial
+/* -- */
 /*---------------*/
-#define NUM_SPEC_ABIL		 14
+#define NUM_SPEC_ABIL		 17
 #define MAX_SPEC_ABIL          MAX_CLASSES
-/* max = MAX_CLASSES right now */
+/* max = MAX_CLASSES right now, which was 30 last time i checked  */
 
 /* max enemies, reserved space for array of ranger's favored enemies */
 #define MAX_ENEMIES  10

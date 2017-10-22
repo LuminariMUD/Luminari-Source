@@ -512,6 +512,7 @@ ACMD(do_applypoison) {
   char arg2[MAX_INPUT_LENGTH] = { '\0' };
   struct obj_data *poison = NULL, *weapon = NULL;
   int amount = 1;
+  bool is_trelux = FALSE;
 
   two_arguments(argument, arg1, arg2);
 
@@ -521,11 +522,11 @@ ACMD(do_applypoison) {
   }
 
   if (!*arg1) {
-    send_to_char(ch, "Apply what poison? [applypoison <poison name> <weapon-name|ammo-name|primary|offhand>]\r\n");
+    send_to_char(ch, "Apply what poison? [applypoison <poison name> <weapon-name|ammo-name|primary|offhand|claws>]\r\n");
     return;
   }
   if (!*arg2) {
-    send_to_char(ch, "Apply on which weapon/ammo?  [applypoison <poison name> <weapon-name|ammo-name|primary|offhand>]\r\n");
+    send_to_char(ch, "Apply on which weapon/ammo?  [applypoison <poison name> <weapon-name|ammo-name|primary|offhand|claws>]\r\n");
     return;
   }
 
@@ -534,9 +535,15 @@ ACMD(do_applypoison) {
     send_to_char(ch, "You do not carry that poison!\r\n");
     return;
   }
+  
+  if (GET_RACE(ch) == RACE_TRELUX) {
+    is_trelux = TRUE;
+  }
 
   /* checking for equipped weapons */
-  if (is_abbrev(arg2, "primary")) {
+  if (is_abbrev(arg2, "claws") && is_trelux) {
+    ;
+  } else if (is_abbrev(arg2, "primary")) {
     if (GET_EQ(ch, WEAR_WIELD_2H))
       weapon = GET_EQ(ch, WEAR_WIELD_2H);
     else if (GET_EQ(ch, WEAR_WIELD_1))
@@ -548,28 +555,34 @@ ACMD(do_applypoison) {
     weapon = get_obj_in_list_vis(ch, arg2, NULL, ch->carrying);    
   }
   
-  if (!weapon) {
-    send_to_char(ch, "You do not carry that weapon! [applypoison <poison name> <weapon-name|ammo-name|primary|offhand>]\r\n");
+  if (!weapon && !is_trelux) {
+    send_to_char(ch, "You do not carry that weapon! [applypoison <poison name> <weapon-name|ammo-name|primary|offhand|claws>]\r\n");
     return;
   }
 
   if (GET_OBJ_TYPE(poison) != ITEM_POISON) {
-    send_to_char(ch, "But that is not a poison! [applypoison <poison name> <weapon-name|ammo-name|primary|offhand>]\r\n");
-    return;
-  }
-  if (GET_OBJ_TYPE(weapon) != ITEM_WEAPON && GET_OBJ_TYPE(weapon) != ITEM_MISSILE) {
-    send_to_char(ch, "But that is not a weapon/ammo! [applypoison <poison name> <weapon-name|ammo-name|primary|offhand>]\r\n");
+    send_to_char(ch, "But that is not a poison! [applypoison <poison name> <weapon-name|ammo-name|primary|offhand|claws>]\r\n");
     return;
   }
   if (GET_OBJ_VAL(poison, 2) <= 0) {
     send_to_char(ch, "That vial is empty!\r\n");
     return;
   }
-  if (weapon->weapon_poison.poison) {
+  
+  if (is_trelux) {
+    ;
+  } else if (GET_OBJ_TYPE(weapon) != ITEM_WEAPON && GET_OBJ_TYPE(weapon) != ITEM_MISSILE) {
+    send_to_char(ch, "But that is not a weapon/ammo! [applypoison <poison name> <weapon-name|ammo-name|primary|offhand|claws>]\r\n");
+    return;
+  }
+  if (is_trelux && TRLX_PSN_VAL(i) > 0 && TRLX_PSN_VAL(i) < NUM_SPELLS) {
+    send_to_char(ch, "Your claws are already poisoned!\r\n");
+    return;
+  } else if (weapon->weapon_poison.poison) {
     send_to_char(ch, "That weapon/ammo is already poisoned!\r\n");
     return;
   }
-  if (IS_SET(weapon_list[GET_OBJ_VAL(weapon, 0)].weaponFlags, WEAPON_FLAG_RANGED)) {
+  if (!is_trelux && IS_SET(weapon_list[GET_OBJ_VAL(weapon, 0)].weaponFlags, WEAPON_FLAG_RANGED)) {
     send_to_char(ch, "You can't apply poison to that, try applying directly to the ammo.\r\n");
     return;    
   }
@@ -579,14 +592,24 @@ ACMD(do_applypoison) {
     char buf1[MEDIUM_STRING] = {'\0'};
     char buf2[MEDIUM_STRING] = {'\0'};
     
-    weapon->weapon_poison.poison_hits = GET_OBJ_VAL(poison, 3);
-    weapon->weapon_poison.poison = GET_OBJ_VAL(poison, 0);
-    weapon->weapon_poison.poison_level = GET_OBJ_VAL(poison, 1);
+    if (is_trelux) {
+      TRLX_PSN_VAL(ch) = GET_OBJ_VAL(poison, 0);
+      TRLX_PSN_LVL(ch) = GET_OBJ_VAL(poison, 1);
+      TRLX_PSN_HIT(ch) = GET_OBJ_VAL(poison, 3);
+      sprintf(buf1, "\tnYou carefully apply the contents of %s \tnonto your clawstn...",
+            poison->short_description);
+      sprintf(buf2, "$n \tncarefully applies the contents of %s \tnonto $s claws\tn...",
+            poison->short_description);
+    } else {
+      weapon->weapon_poison.poison_hits = GET_OBJ_VAL(poison, 3);
+      weapon->weapon_poison.poison = GET_OBJ_VAL(poison, 0);
+      weapon->weapon_poison.poison_level = GET_OBJ_VAL(poison, 1);      
+      sprintf(buf1, "\tnYou carefully apply the contents of %s \tnonto $p\tn...",
+            poison->short_description);
+      sprintf(buf2, "$n \tncarefully applies the contents of %s \tnonto $p\tn...",
+            poison->short_description);
+    }
 
-    sprintf(buf1, "\tnYou carefully apply the contents of %s \tnonto $p\tn...",
-            poison->short_description);
-    sprintf(buf2, "$n \tncarefully applies the contents of %s \tnonto $p\tn...",
-            poison->short_description);
     act(buf1, FALSE, ch, weapon, 0, TO_CHAR);
     act(buf2, FALSE, ch, weapon, 0, TO_ROOM);
     
@@ -594,8 +617,13 @@ ACMD(do_applypoison) {
       USE_FULL_ROUND_ACTION(ch);
   } else {
     /* fail! suppose to be a chance to poison yourself, might change in the future */
-    act("$n fails to apply the \tGpoison\tn onto $p.", FALSE, ch, weapon, 0, TO_ROOM);
-    act("You fail to \tGpoison\tn your $p.", FALSE, ch, weapon, 0, TO_CHAR);
+    if (is_trelux) {
+      act("$n fails to apply the \tGpoison\tn onto $s claws.", FALSE, ch, NULL, 0, TO_ROOM);
+      act("You fail to \tGpoison\tn your claws.", FALSE, ch, NULL, 0, TO_CHAR);
+    } else {
+      act("$n fails to apply the \tGpoison\tn onto $p.", FALSE, ch, weapon, 0, TO_ROOM);
+      act("You fail to \tGpoison\tn your $p.", FALSE, ch, weapon, 0, TO_CHAR);      
+    }
   }
 
   GET_OBJ_VAL(poison, 2) -= amount;
