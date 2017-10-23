@@ -531,6 +531,7 @@ ACMD(do_applypoison) {
   }
 
   poison = get_obj_in_list_vis(ch, arg1, NULL, ch->carrying);
+  
   if (!poison) {
     send_to_char(ch, "You do not carry that poison!\r\n");
     return;
@@ -539,8 +540,12 @@ ACMD(do_applypoison) {
   if (GET_RACE(ch) == RACE_TRELUX) {
     is_trelux = TRUE;
   }
+  
   if (is_abbrev(arg2, "claws") && !is_trelux) {
     send_to_char(ch, "Only trelux can do that!!\r\n");
+    return;    
+  } else if (!is_abbrev(arg2, "claws") && is_trelux) {
+    send_to_char(ch, "Trelux must apply poison only to their claws!!\r\n");
     return;    
   }
 

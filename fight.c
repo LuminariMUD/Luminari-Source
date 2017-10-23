@@ -4063,7 +4063,8 @@ void weapon_poison(struct char_data *ch, struct char_data *victim,
       send_to_char(ch, "The final bits of applied \tgpoison\tn wear off your claws!\r\n");
       TRLX_PSN_HIT(ch) = 0;
       TRLX_PSN_LVL(ch) = 0;     
-      TRLX_PSN_VAL(ch) = 0;     
+      TRLX_PSN_VAL(ch) = 0;
+      return;
     }
   } else {
     if (wielded->weapon_poison.poison_level > MAX_PSN_LVL)
@@ -4084,7 +4085,8 @@ void weapon_poison(struct char_data *ch, struct char_data *victim,
               wielded->short_description);
       wielded->weapon_poison.poison_hits = 0;
       wielded->weapon_poison.poison = 0;
-      wielded->weapon_poison.poison_level = 0;            
+      wielded->weapon_poison.poison_level = 0;
+      return;
     }
   }  
   
@@ -4095,10 +4097,11 @@ void weapon_poison(struct char_data *ch, struct char_data *victim,
     return;
 
   /* 20% chance to fire currently on melee weapons, %100 missiles/claws */
-  if (missile || is_trelux)
-    ;
-  else if (rand_number(0, 5))
-    return;
+  /* disabled */
+  //if (missile || is_trelux)
+  //  ;
+  //else if (rand_number(0, 5))
+  //  return;
 
   if (is_trelux) {
     act("The claw's \tGpoison\tn attaches to $n.",
