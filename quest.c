@@ -795,7 +795,7 @@ void quest_assign(struct char_data *ch, char argument[MAX_STRING_LENGTH]) {
   char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
   struct char_data *victim = NULL;
   qst_rnum rnum = NOTHING;
-  qst_vnum vnum = NOTHING;
+  //qst_vnum vnum = NOTHING;
 
   two_arguments(argument, arg1, arg2);
   
