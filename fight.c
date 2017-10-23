@@ -4075,12 +4075,12 @@ void weapon_poison(struct char_data *ch, struct char_data *victim,
       wielded->weapon_poison.poison_hits = MAX_PSN_HIT;
     
     /* message for poison wearing off of your weapon */
-    if (wielded->weapon_poison.poison_hits(ch) <= 0) {
+    if (wielded->weapon_poison.poison_hits <= 0) {
       send_to_char(ch, "The final bits of applied \tgpoison\tn wear off %s!\r\n",
               wielded->short_description);
-      weapon->weapon_poison.poison_hits = 0;
-      weapon->weapon_poison.poison = 0;
-      weapon->weapon_poison.poison_level = 0;            
+      wielded->weapon_poison.poison_hits = 0;
+      wielded->weapon_poison.poison = 0;
+      wielded->weapon_poison.poison_level = 0;            
     }
   }  
   
