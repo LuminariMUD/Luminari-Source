@@ -850,6 +850,8 @@ void command_interpreter(struct char_data *ch, char *argument) {
           !is_abbrev(complete_cmd_info[cmd].command, "bug") &&
           !is_abbrev(complete_cmd_info[cmd].command, "typo") &&
           !is_abbrev(complete_cmd_info[cmd].command, "idea") &&
+          !is_abbrev(complete_cmd_info[cmd].command, "detecttrap") &&
+          !is_abbrev(complete_cmd_info[cmd].command, "disabletrap") &&          
           !is_abbrev(complete_cmd_info[cmd].command, "tell")
           )
     send_to_char(ch, "You are too busy crafting. [Available commands: gossip/"
