@@ -32,6 +32,7 @@
 #define SCMD_QUEST_LEAVE    3   /* Leave a quest                        */
 #define SCMD_QUEST_PROGRESS 4   /* Show progress of current quest       */
 #define SCMD_QUEST_STATUS   5   /* Show complete details of a quest     */
+#define SCMD_QUEST_ASSIGN   6   /* Staff complete quest for target      */
 
 /* AQ Flags (much room for expansion) ********************************* */
 #define AQ_REPEATABLE (1 << 0)  /* Quest can be repeated                */
