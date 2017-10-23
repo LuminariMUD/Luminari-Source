@@ -4016,6 +4016,8 @@ int apply_damage_reduction(struct char_data *ch, struct char_data *victim, struc
    if the weapon has that given spell-num applied to it as a poison
    i have ambitious plans in the future to completely re-work poison in our
    system, and at that time i will re-work this -z */
+#define MAX_PSN_LVL   LVL_IMPL /* maximum level a poison can be */
+#define MAX_PSN_HIT   15       /* maximum times a poison can hit before wearing off */
 void weapon_poison(struct char_data *ch, struct char_data *victim,
         struct obj_data *wielded, struct obj_data *missile) {
 
@@ -4040,6 +4042,8 @@ void weapon_poison(struct char_data *ch, struct char_data *victim,
   
   /* decrement strength and hits on weapon */
   if (is_trelux) {
+    if (TRLX_PSN_LVL(ch) > MAX_PSN_LVL)
+      TRLX_PSN_LVL(ch) = MAX_PSN_LVL;
     TRLX_PSN_LVL(ch) -= 2;
     if (TRLX_PSN_LVL(ch) <= 0)
       TRLX_PSN_LVL(ch) = 1;
@@ -4047,7 +4051,19 @@ void weapon_poison(struct char_data *ch, struct char_data *victim,
     TRLX_PSN_HIT(ch)--;
     if (TRLX_PSN_HIT(ch) < 0)
       TRLX_PSN_HIT(ch) = 0;
+    if (TRLX_PSN_HIT(ch) > MAX_PSN_HIT)
+      TRLX_PSN_HIT(ch) = MAX_PSN_HIT;
+    
+    /* message/effect for poison wearing off of claws */
+    if (TRLX_PSN_HIT(ch) <= 0) {
+      send_to_char(ch, "The final bits of applied \tgpoison\tn wear off your claws!\r\n");
+      TRLX_PSN_HIT(ch) = 0;
+      TRLX_PSN_LVL(ch) = 0;     
+      TRLX_PSN_VAL(ch) = 0;     
+    }
   } else {
+    if (wielded->weapon_poison.poison_level > MAX_PSN_LVL)
+      wielded->weapon_poison.poison_level = MAX_PSN_LVL;
     wielded->weapon_poison.poison_level -= 2;
     if (wielded->weapon_poison.poison_level <= 0)
       wielded->weapon_poison.poison_level = 1;
@@ -4055,6 +4071,17 @@ void weapon_poison(struct char_data *ch, struct char_data *victim,
     wielded->weapon_poison.poison_hits--;
     if (wielded->weapon_poison.poison_hits < 0)
       wielded->weapon_poison.poison = 0;
+    if (wielded->weapon_poison.poison_hits > MAX_PSN_HIT)
+      wielded->weapon_poison.poison_hits = MAX_PSN_HIT;
+    
+    /* message for poison wearing off of your weapon */
+    if (wielded->weapon_poison.poison_hits(ch) <= 0) {
+      send_to_char(ch, "The final bits of applied \tgpoison\tn wear off %s!\r\n",
+              wielded->short_description);
+      weapon->weapon_poison.poison_hits = 0;
+      weapon->weapon_poison.poison = 0;
+      weapon->weapon_poison.poison_level = 0;            
+    }
   }  
   
   /* for now we will not let you apply a spell that is already affecting vict */
