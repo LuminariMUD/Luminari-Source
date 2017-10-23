@@ -793,7 +793,7 @@ void quest_show(struct char_data *ch, mob_vnum qm) {
 /* allows staff to assign a quest as completed to given target */
 void quest_assign(struct char_data *ch, char argument[MAX_STRING_LENGTH]) {
   char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
-  struct char_data *victim = NULL
+  struct char_data *victim = NULL;
   qst_rnum rnum = NOTHING;
   qst_vnum vnum = NOTHING;
 
