@@ -582,7 +582,7 @@ ACMD(do_applypoison) {
   if (is_trelux && TRLX_PSN_VAL(ch) > 0 && TRLX_PSN_VAL(ch) < NUM_SPELLS) {
     send_to_char(ch, "Your claws are already poisoned!\r\n");
     return;
-  } else if (weapon->weapon_poison.poison) {
+  } else if (!is_trelux && weapon->weapon_poison.poison) {
     send_to_char(ch, "That weapon/ammo is already poisoned!\r\n");
     return;
   }
