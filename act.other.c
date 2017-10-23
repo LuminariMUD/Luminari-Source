@@ -539,6 +539,10 @@ ACMD(do_applypoison) {
   if (GET_RACE(ch) == RACE_TRELUX) {
     is_trelux = TRUE;
   }
+  if (is_abbrev(arg2, "claws") && !is_trelux) {
+    send_to_char(ch, "Only trelux can do that!!\r\n");
+    return;    
+  }
 
   /* checking for equipped weapons */
   if (is_abbrev(arg2, "claws") && is_trelux) {
@@ -596,7 +600,7 @@ ACMD(do_applypoison) {
       TRLX_PSN_VAL(ch) = GET_OBJ_VAL(poison, 0);
       TRLX_PSN_LVL(ch) = GET_OBJ_VAL(poison, 1);
       TRLX_PSN_HIT(ch) = GET_OBJ_VAL(poison, 3);
-      sprintf(buf1, "\tnYou carefully apply the contents of %s \tnonto your clawstn...",
+      sprintf(buf1, "\tnYou carefully apply the contents of %s \tnonto your claws\tn...",
             poison->short_description);
       sprintf(buf2, "$n \tncarefully applies the contents of %s \tnonto $s claws\tn...",
             poison->short_description);
