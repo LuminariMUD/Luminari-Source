@@ -4094,10 +4094,10 @@ void weapon_poison(struct char_data *ch, struct char_data *victim,
   if (is_trelux && affected_by_spell(victim, TRLX_PSN_VAL(ch)))
     return;
 
-  /* 50% chance to fire currently on melee weapons/claws, %100 missiles */
-  if (missile)
+  /* 20% chance to fire currently on melee weapons, %100 missiles/claws */
+  if (missile || is_trelux)
     ;
-  else if (rand_number(0, 1))
+  else if (rand_number(0, 5))
     return;
 
   if (is_trelux) {
