@@ -51,14 +51,22 @@ const char *aq_flags[] = {
 static int cmd_tell;
 
 static const char *quest_cmd[] = {
-  "list", "history", "join", "leave", "progress", "status", "view", "\n"
+  "list",
+  "history",
+  "join",
+  "leave",
+  "progress",
+  "status",
+  "view",
+  "assign",
+  "\n"
 };
 
 static const char *quest_mort_usage =
         "Usage: quest  list | history <optional nn> | progress | join <nn> | leave";
 
 static const char *quest_imm_usage =
-        "Usage: quest  list | history <optional nn> | progress | join <nn> | leave | status <vnum>";
+        "Usage: quest  list | history <optional nn> | progress | join <nn> | leave | status <vnum> | assign <target> <vnum>";
 
 /*--------------------------------------------------------------------------*/
 /* Utility Functions                                                        */
@@ -782,6 +790,34 @@ void quest_show(struct char_data *ch, mob_vnum qm) {
     send_to_char(ch, "There are no quests available here at the moment.\r\n");
 }
 
+/* allows staff to assign a quest as completed to given target */
+void quest_assign(struct char_data *ch, char argument[MAX_STRING_LENGTH]) {
+  char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
+  struct char_data *victim = NULL
+  qst_rnum rnum = NOTHING;
+  qst_vnum vnum = NOTHING;
+
+  two_arguments(argument, arg1, arg2);
+  
+  if (GET_LEVEL(ch) < LVL_IMMORT)
+    send_to_char(ch, "Huh!?!\r\n");
+  else if (!*arg1)
+    send_to_char(ch, "Usage: quest assign <target> <quest vnum>\r\n");
+  else if (!*arg2)
+    send_to_char(ch, "Usage: quest assign <target> <quest vnum>\r\n");
+  else if ((victim = get_player_vis(ch, arg1, NULL, FIND_CHAR_WORLD)) == NULL)
+    send_to_char(ch, "Can not find that target!\r\n");
+  else if ((rnum = real_quest(atoi(arg2))) == NOTHING)
+    send_to_char(ch, "That quest does not exist.\r\n");
+  else if (is_complete(ch, atoi(arg2)))
+    send_to_char(ch, "That character already completed that quest.\r\n");
+  else if (GET_QUEST(ch))
+    send_to_char(ch, "That character is in the middle of a quest right now.\r\n");
+    
+  GET_QUEST(ch) = atoi(arg2);
+  complete_quest(ch);
+}
+
 /* allows staff to view detailed info about any quest in game */
 void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH]) {
   qst_rnum rnum;
@@ -934,6 +970,9 @@ ACMD(do_quest) {
           send_to_char(ch, "%s\r\n", quest_mort_usage);
         else
           quest_stat(ch, arg2);
+        break;
+      case SCMD_QUEST_ASSIGN:
+        quest_assign(ch, arg2);
         break;
       default: /* Whe should never get here, but... */
         send_to_char(ch, "%s\r\n", GET_LEVEL(ch) < LVL_IMMORT ?
