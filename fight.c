@@ -4031,13 +4031,17 @@ void weapon_poison(struct char_data *ch, struct char_data *victim,
   
   if (GET_RACE(ch) == RACE_TRELUX)
     is_trelux = TRUE;
-  if (!wielded && !is_trelux)
+  else if (!wielded)
     *wielded = *missile;
+  
   if (!wielded && !is_trelux)
     return;
 
-  if (!wielded->weapon_poison.poison && TRLX_PSN_VAL(ch) <= 0 &&
-          TRLX_PSN_VAL(ch) >= NUM_SPELLS) /* this weapon is not poisoned */
+  /* weapon or claws not poisoned */
+  if (is_trelux && (TRLX_PSN_VAL(ch) <= 0 || TRLX_PSN_VAL(ch) >= NUM_SPELLS) )
+    return;
+  else if (!is_trelux && (wielded->weapon_poison.poison <= 0 ||
+          wielded->weapon_poison.poison >= NUM_SPELLS) ) /* this weapon is not poisoned */
     return;
   
   /* decrement strength and hits on weapon */
@@ -4090,8 +4094,10 @@ void weapon_poison(struct char_data *ch, struct char_data *victim,
   if (is_trelux && affected_by_spell(victim, TRLX_PSN_VAL(ch)))
     return;
 
-  /* 20% chance to fire currently on melee weapons */
-  if (!missile && rand_number(0, 5))
+  /* 20% chance to fire currently on melee weapons/claws, %100 weapons */
+  if (missile)
+    ;
+  else if (rand_number(0, 5))
     return;
 
   if (is_trelux) {
