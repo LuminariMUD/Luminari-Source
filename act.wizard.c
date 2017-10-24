@@ -735,7 +735,8 @@ static void do_stat_character(struct char_data *ch, struct char_data *k) {
         counter++;
       }
     }
-    send_to_char(ch, "\r\n");
+    send_to_char(ch, "Pracs(U): %d, Trains: %d\r\n", GET_PRACTICES(k),
+            GET_TRAINS(k) );
   }
 
   send_to_char(ch, "\tCCharacter size: \tn%s  ", size_names[GET_SIZE(k)]);
@@ -756,14 +757,6 @@ static void do_stat_character(struct char_data *ch, struct char_data *k) {
             "\tCCreated: [\tn%s\tC], Last Logon: [\tn%s\tC], Played [\tn%d\tCh \tn%d\tCm], Age [\tn%d\tC]\tn\r\n",
             buf1, buf2, k->player.time.played / 3600,
             ((k->player.time.played % 3600) / 60), age(k)->year);
-
-    send_to_char(ch, "\tCSTL[\tn%d\tC]/per[\tn%d\tC]/NSTL[\tn%d\tC]\tn",
-            GET_PRACTICES(k), GET_INT_BONUS(k),
-            GET_WIS_BONUS(k));
-
-    send_to_char(ch, "  \tCTRN[\tn%d\tC]/per[\tn%d\tC]/NSTL[\tn%d\tC]\tn",
-            GET_TRAINS(k), GET_INT_BONUS(k),
-            GET_WIS_BONUS(k));
 
     /* Display OLC zone for immorts. */
     if (GET_LEVEL(k) >= LVL_BUILDER) {
