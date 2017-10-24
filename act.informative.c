@@ -120,16 +120,32 @@ void check_dangersense(struct char_data *ch, room_rnum room) {
 }
 
 void show_obj_info(struct obj_data *obj, struct char_data *ch) {
+  int size = GET_OBJ_SIZE(obj);
+  int material = GET_OBJ_MATERIAL(obj);
+  int type = GET_OBJ_TYPE(obj);
+  int weapon_type = GET_WEAPON_TYPE(obj);
   int armor_val = GET_OBJ_VAL(obj, 1);
-
+  
+  /* dummy checks due to old stock items */
+  if (size < 0 || size >= NUM_SIZES)
+    size = 0;
+  if (material < 0 || material >= NUM_MATERIALS)
+    material = 0;
+  if (type < 0 || type >= NUM_ITEM_TYPES)
+    type = 0;
+  if (weapon_type < 0 || weapon_type >= NUM_WEAPON_TYPES)
+    weapon_type = 0;
+  if (armor_val < 0 || armor_val >= NUM_SPEC_ARMOR_TYPES)
+    armor_val = 0;
+  
   /* show object size and material */
-  send_to_char(ch, "[Size: %s, Material: %s] ", GET_OBJ_SIZE(obj)? sizes[GET_OBJ_SIZE(obj)] : "???",
-               GET_OBJ_MATERIAL(obj) ? material_name[GET_OBJ_MATERIAL(obj)] : "???");
+  send_to_char(ch, "[Size: %s, Material: %s] ", size ? sizes[size] : "???",
+               material ? material_name[material] : "???");
 
-  switch (GET_OBJ_TYPE(obj)) {
+  switch (type) {
     case ITEM_WEAPON:
-      send_to_char(ch, "Weapon: %s ", GET_WEAPON_TYPE(obj) ?
-                   weapon_list[GET_WEAPON_TYPE(obj)].name : "???");
+      send_to_char(ch, "Weapon: %s ", weapon_type ?
+                   weapon_list[weapon_type].name : "???");
       break;
     case ITEM_ARMOR:
       send_to_char(ch, "Armor: %s ", armor_val ?
