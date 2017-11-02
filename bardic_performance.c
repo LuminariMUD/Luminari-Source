@@ -699,13 +699,6 @@ EVENTFUNC(event_bardic_performance) {
 
   spellnum = performance_info[performance_num][PERFORMANCE_SKILLNUM];
 
-  /* check for stutter. if stutter, stop performance  */
-  if (rand_number(1, 100) < difficulty) {
-    send_to_char(ch, "Uh oh.. how did the performance go, anyway?\r\n");
-    act("$n stutters in the performance!", FALSE, ch, 0, 0, TO_ROOM);
-    return 0;
-  }
-
   /* performance check! */
   if (compute_ability(ch, ABILITY_PERFORM) + dice(1,20) >=
           performance_info[performance_num][PERFORMANCE_DIFF] + 10) {
@@ -727,6 +720,13 @@ EVENTFUNC(event_bardic_performance) {
     return 0; /* process performance failed somehow */
   }
 
+  /* check for stutter. if stutter, stop performance  */
+  if (rand_number(1, 100) < difficulty) {
+    send_to_char(ch, "Uh oh.. how did the performance go, anyway?\r\n");
+    act("$n stutters in the performance!", FALSE, ch, 0, 0, TO_ROOM);
+    return 0;
+  }  
+  
   /* success, we're coming back in VERSE_INTERVAL */
   return VERSE_INTERVAL;
 }
