@@ -1561,6 +1561,13 @@ static int level_feats[][LEVEL_FEATS] = {
   {CLASS_UNDEFINED, RACE_UNDEFINED, FALSE, 1, FEAT_UNDEFINED}
 };
 
+/* bard instrument vnums */
+#define LYRE      825
+#define FLUTE     826
+#define DRUM      827
+#define HORN      828
+#define HARP      829
+#define MANDOLIN  830
 
 /* function that gives chars starting gear */
 void newbieEquipment(struct char_data *ch) {
@@ -1671,6 +1678,21 @@ void newbieEquipment(struct char_data *ch) {
       break;
 
     case CLASS_BARD:
+      /* instruments */
+      obj = read_object(LYRE, VIRTUAL);
+      obj_to_char(obj, ch);
+      obj = read_object(FLUTE, VIRTUAL);
+      obj_to_char(obj, ch);
+      obj = read_object(DRUM, VIRTUAL);
+      obj_to_char(obj, ch);
+      obj = read_object(HORN, VIRTUAL);
+      obj_to_char(obj, ch);
+      obj = read_object(HARP, VIRTUAL);
+      obj_to_char(obj, ch);
+      obj = read_object(MANDOLIN, VIRTUAL);
+      obj_to_char(obj, ch);
+      
+      /*FALL THROUGH*/
     case CLASS_ROGUE:
       obj = read_object(854, VIRTUAL);
       GET_OBJ_SIZE(obj) = GET_SIZE(ch);
@@ -1721,6 +1743,13 @@ void newbieEquipment(struct char_data *ch) {
       break;
   }
 }
+#undef LYRE      
+#undef FLUTE     
+#undef DRUM      
+#undef HORN      
+#undef HARP      
+#undef MANDOLIN  
+
 
 /* this is used to assign all the spells */
 void init_class(struct char_data *ch, int class, int level) {

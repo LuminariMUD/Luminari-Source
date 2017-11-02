@@ -4564,7 +4564,7 @@ void init_char(struct char_data *ch) {
    */
   /* start crafting skills at 4 */
   if (GET_LEVEL(ch) < LVL_STAFF) {
-    for (i = 471; i <= 485; i++) {
+    for (i = TOP_CRAFT_SKILL; i < BOTTOM_CRAFT_SKILL; i++) {
         SET_SKILL(ch, i, 4);
     }
   }

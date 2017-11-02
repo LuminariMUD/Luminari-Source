@@ -562,6 +562,8 @@
 #define SKILL_LOBBY                     469
 #define SKILL_STUNNING_FIST             470  //implemented
 /* initial crafting skills */
+#define TOP_CRAFT_SKILL                 471
+/**/
 #define SKILL_MINING                    471  //implemented
 #define SKILL_HUNTING                   472  //implemented
 #define SKILL_FORESTING                 473  //implemented
@@ -577,6 +579,8 @@
 #define SKILL_MASTERWORK_CRAFTING       483
 #define SKILL_DRACONIC_CRAFTING         484
 #define SKILL_DWARVEN_CRAFTING          485
+/* */
+#define BOTTOM_CRAFT_SKILL              486
 /* finish batch crafting skills */
 #define SKILL_LIGHTNING_REFLEXES        486  //implemented
 #define SKILL_GREAT_FORTITUDE           487  //implemented

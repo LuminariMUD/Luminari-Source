@@ -1100,8 +1100,12 @@ int disenchant(struct obj_data *kit, struct char_data *ch) {
   /* award crystal for item */
   award_random_crystal(ch, GET_OBJ_LEVEL(obj));
 
-  if (!IS_NPC(ch))
+  /* getting complaints it is too slow to notch - zusuk */
+  if (!IS_NPC(ch)) {
     increase_skill(ch, SKILL_CHEMISTRY);
+    increase_skill(ch, SKILL_CHEMISTRY);
+    increase_skill(ch, SKILL_CHEMISTRY);
+  }
 
   GET_CRAFTING_TYPE(ch) = SCMD_DISENCHANT;
   //GET_CRAFTING_TICKS(ch) = 4;
