@@ -649,7 +649,7 @@ EVENTFUNC(event_bardic_performance) {
   /* base effectiveness of performance */
   effectiveness = rand_number(1, 9);
   /* base difficulty */
-  difficulty = 45 - GET_CHA_BONUS(ch);
+  difficulty = 30 - GET_CHA_BONUS(ch);
 
   /* find an instrument */
   instrument = GET_EQ(ch, WEAR_HOLD_1);
@@ -721,7 +721,7 @@ EVENTFUNC(event_bardic_performance) {
   }
 
   /* check for stutter. if stutter, stop performance  */
-  if (rand_number(1, 100) < difficulty) {
+  if (rand_number(1, 101) < difficulty) {
     send_to_char(ch, "Uh oh.. how did the performance go, anyway?\r\n");
     act("$n stutters in the performance!", FALSE, ch, 0, 0, TO_ROOM);
     return 0;
