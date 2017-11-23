@@ -50,6 +50,7 @@ void gui_combat_wrap_notvict_open(struct char_data *ch, struct char_data *vict_o
   if (IN_ROOM(ch) == NOWHERE)
     return;
   
+  int to_sleeping = 0;
   struct char_data *to = world[IN_ROOM(ch)].people;
   
   for (; to; to = to->next_in_room) {
@@ -73,6 +74,7 @@ void gui_combat_wrap_notvict_close(struct char_data *ch, struct char_data *vict_
   if (IN_ROOM(ch) == NOWHERE)
     return;
   
+  int to_sleeping = 0;
   struct char_data *to = world[IN_ROOM(ch)].people;
   
   for (; to; to = to->next_in_room) {
