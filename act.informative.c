@@ -3378,9 +3378,9 @@ ACMD(do_toggle) {
       sprintf(buf2, "%-3.3d", GET_WIMP_LEV(ch)); /* sprintf: OK */
 
     if (GET_LEVEL(ch) == LVL_IMPL) {
+      send_to_char(ch, "Forger Toggles:\r\n");
       send_to_char(ch,
-                   " SlowNameserver: %-3s   "
-                   "                        "
+                   " SlowNameserver:  %-3s   "
                    " Trackthru Doors: %-3s\r\n",
 
                    ONOFF(CONFIG_NS_IS_SLOW),
@@ -3388,6 +3388,7 @@ ACMD(do_toggle) {
     }
 
     if (GET_LEVEL(ch) >= LVL_IMMORT) {
+      send_to_char(ch, "Staff Toggles:\r\n");
       send_to_char(ch,
                    "      Buildwalk: %-3s    "
                    "          NoWiz: %-3s    "
@@ -3395,7 +3396,7 @@ ACMD(do_toggle) {
                    "       NoHassle: %-3s    "
                    "      Holylight: %-3s    "
                    "      ShowVnums: %-3s\r\n"
-                   "     NoClanTalk: %-3s\r\n"
+                   "     NoClanTalk: %-3s    "
                    "         Syslog: %-3s\r\n",
 
                    ONOFF(PRF_FLAGGED(ch, PRF_BUILDWALK)),
@@ -3455,7 +3456,9 @@ ACMD(do_toggle) {
 
                  "     AutoReload: %-3s    "
                  "     CombatRoll: %-3s    "
-                 "       GUI Mode: %-3s\r\n",
+                 "       GUI Mode: %-3s\r\n"
+            
+                 "*NOTE: The PREFEDIT command is preferred method of optimizing your toggle switches.\r\n",
 
                  ONOFF(PRF_FLAGGED(ch, PRF_DISPHP)),
                  ONOFF(PRF_FLAGGED(ch, PRF_BRIEF)),

@@ -4239,6 +4239,9 @@ ACMD(do_gen_tog) {
     /*36*/
     {"CombatRoll disabled.\r\n",
       "CombatRoll enabled, you now will see details behind the combat rolls during combat.\r\n"},
+    /*37*/
+    {"GUI Mode disabled.\r\n",
+      "GUI Mode enabled, make sure you have MSDP enabled in your client.\r\n"},
   };
 
   if (IS_NPC(ch))

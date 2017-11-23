@@ -1616,6 +1616,7 @@ static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
   else if (pct <= 50) msgnum = 12;
   else msgnum = 13;
 
+  /* ranged */
   if (offhand == 2 && last_missile && GET_POS(victim) > POS_DEAD) {  
     /* damage message to room */    
     act(dam_ranged[msgnum].to_room, FALSE, ch, last_missile, victim, TO_NOTVICT);
@@ -1635,19 +1636,25 @@ static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
     /* damage message to observers (to room) */
     buf = replace_string(dam_weapons[msgnum].to_room,
                          attack_hit_text[w_type].singular, attack_hit_text[w_type].plural), dam;
+    GUI_CMBT_NOTVICT_OPEN(ch, victim)
     act(buf, FALSE, ch, NULL, victim, TO_NOTVICT);
+    GUI_CMBT_NOTVICT_CLOSE(ch, victim)
 
-    /* damage message to damager */
+    /* damage message to damager (to_ch) */
     buf = replace_string(dam_weapons[msgnum].to_char,
                          attack_hit_text[w_type].singular, attack_hit_text[w_type].plural);
+    GUI_CMBT_OPEN(ch);
     act(buf, FALSE, ch, NULL, victim, TO_CHAR);
     send_to_char(ch, CCNRM(ch, C_CMP));
+    GUI_CMBT_CLOSE(ch);
 
-    /* damage message to damagee */
+    /* damage message to damagee (to_vict) */
     buf = replace_string(dam_weapons[msgnum].to_victim,
                          attack_hit_text[w_type].singular, attack_hit_text[w_type].plural);
+    GUI_CMBT_OPEN(ch);
     act(buf, FALSE, ch, NULL, victim, TO_VICT | TO_SLEEP);
     send_to_char(victim, CCNRM(victim, C_CMP));
+    GUI_CMBT_CLOSE(ch);
     
   } else {
     /* debugs */

@@ -37,6 +37,63 @@
 /* Functions of a general utility nature
    Functions directly related to utils.h needs
  */
+/* MSDP GUI Wrappers */
+void gui_combat_wrap_open(struct char_data *ch) {
+  if (PRF_FLAGGED(ch, PRF_GUI_MODE)) { /* GUI Mode wrap open: combat */
+    send_to_char(ch, "<combat_message>");
+  }
+}
+void gui_combat_wrap_notvict_open(struct char_data *ch, struct char_data *vict_obj) {
+  if (!ch)
+    return;
+  if (IN_ROOM(ch) == NOWHERE)
+    return;
+  
+  struct char_data *to = world[IN_ROOM(ch)].people;
+  
+  for (; to; to = to->next_in_room) {
+    if (!SENDOK(to) || (to == ch))
+      continue;
+    if (to == vict_obj) /* ch == victim? */
+      continue;
+    if (!PRF_FLAGGED(to, PRF_GUI_MODE))
+      continue;
+    perform_act("<combat_message>", ch, NULL, vict_obj, to, FALSE);
+  }
+}
+void gui_combat_wrap_close(struct char_data *ch) {
+  if (PRF_FLAGGED(ch, PRF_GUI_MODE)) { /* GUI Mode wrap close: combat */
+    send_to_char(ch, "</combat_message>");
+  }
+}
+void gui_combat_wrap_notvict_close(struct char_data *ch, struct char_data *vict_obj) {
+  if (!ch)
+    return;
+  if (IN_ROOM(ch) == NOWHERE)
+    return;
+  
+  struct char_data *to = world[IN_ROOM(ch)].people;
+  
+  for (; to; to = to->next_in_room) {
+    if (!SENDOK(to) || (to == ch))
+      continue;
+    if (to == vict_obj) /* ch == victim? */
+      continue;
+    if (!PRF_FLAGGED(to, PRF_GUI_MODE))
+      continue;
+    perform_act("</combat_message>", ch, NULL, vict_obj, to, FALSE);
+  }
+}
+void gui_room_desc_wrap_open(struct char_data *ch) {
+  if (PRF_FLAGGED(ch, PRF_GUI_MODE)) { /* GUI Mode wrap open: room description */
+    send_to_char(ch, "<room_desc>");
+  }
+}
+void gui_room_desc_wrap_close(struct char_data *ch) {
+  if (PRF_FLAGGED(ch, PRF_GUI_MODE)) { /* GUI Mode wrap close: room description */
+    send_to_char(ch, "</room_desc>");
+  }
+}
 
 /* can this CH select the option to change their 'known' spells
  in the study system? */
