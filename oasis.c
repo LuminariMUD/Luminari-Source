@@ -358,7 +358,7 @@ void send_cannot_edit(struct char_data *ch, zone_vnum zone)
   char buf[MAX_STRING_LENGTH];
 
   if (GET_OLC_ZONE(ch) != NOWHERE) {
-    send_to_char(ch, "You do not have permission to edit zone %d.  Try zone %d.\r\n", zone, GET_OLC_ZONE(ch));
+    send_to_char(ch, "You do not have permission to edit zone %d.  Try zone %d or ZUNLOCK.\r\n", zone, GET_OLC_ZONE(ch));
     sprintf(buf, "OLC: %s tried to edit zone %d (allowed zone %d).", GET_NAME(ch), zone, GET_OLC_ZONE(ch));
   } else {
     send_to_char(ch, "You do not have permission to edit zone %d.\r\n", zone);

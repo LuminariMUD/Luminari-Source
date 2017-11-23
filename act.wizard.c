@@ -3088,6 +3088,7 @@ struct set_struct {
   { "stalwartdefender", LVL_STAFF, PC, NUMBER}, /* 83 */
   { "shifter", LVL_STAFF, PC, NUMBER}, /* 84 */
   { "duelist", LVL_STAFF, PC, NUMBER}, /* 85 */
+  { "guimode", LVL_BUILDER, PC, BINARY}, /* 86 */
 
   { "\n", 0, BOTH, MISC}
 };
@@ -3646,6 +3647,10 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
     case 85: // duelist
       CLASS_LEVEL(vict, CLASS_DUELIST) = RANGE(0, LVL_IMMORT - 1);
       affect_total(vict);
+      break;
+    case 86: /* GUI Mode */
+      SET_OR_REMOVE(PRF_FLAGS(vict), PRF_GUI_MODE);
+      send_to_char(ch, "GUI Mode %s for %s.\r\n", ONOFF(!on), GET_NAME(vict));
       break;
     default:
       send_to_char(ch, "Can't set that!\r\n");

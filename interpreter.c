@@ -278,6 +278,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "grapple", "grapple", POS_RECLINING, do_grapple, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
   { "goodlance", "goodlance", POS_STANDING, do_goodlance, 0, 0, FALSE, ACTION_STANDARD, {6, 0}},
   { "goodtouch", "goodtouch", POS_STANDING, do_goodtouch, 0, 0, FALSE, ACTION_STANDARD, {6, 0}},
+  { "guimode", "guimode", POS_DEAD, do_gen_tog, 1, SCMD_GUI_MODE, TRUE, ACTION_NONE, {0, 0}},
 
   { "help", "h", POS_DEAD, do_help, 0, 0, TRUE, ACTION_NONE, {0, 0}},
   { "happyhour", "ha", POS_DEAD, do_happyhour, 0, 0, TRUE, ACTION_NONE, {0, 0}},

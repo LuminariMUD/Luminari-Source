@@ -745,8 +745,9 @@
 #define PRF_DISPACTIONS  40
 #define PRF_AUTORELOAD   41   /**< Attempt to automatically reload weapon (xbow/slings) */
 #define PRF_COMBATROLL   42   /**< extra info during combat */
+#define PRF_GUI_MODE     43   /**< add special tags to code for MSDP GUI */
 /** Total number of available PRF flags */
-#define NUM_PRF_FLAGS    43
+#define NUM_PRF_FLAGS    44
 
 /* Affect bits: used in char_data.char_specials.saved.affected_by */
 /* WARNING: In the world files, NEVER set the bits marked "R" ("Reserved") */
