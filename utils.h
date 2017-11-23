@@ -40,6 +40,12 @@
  * are made available with the function definition. */
 #define isspace_ignoretabs(c) ((c)!='\t' && isspace(c))
 
+void gui_combat_wrap_open(struct char_data *ch);
+void gui_combat_wrap_notvict_open(struct char_data *ch, struct char_data *vict_obj);
+void gui_combat_wrap_close(struct char_data *ch);
+void gui_combat_wrap_notvict_close(struct char_data *ch, struct char_data *vict_obj);
+void gui_room_desc_wrap_open(struct char_data *ch);
+void gui_room_desc_wrap_close(struct char_data *ch);
 bool can_study_known_spells(struct char_data *ch);
 int compute_bonus_caster_level(struct char_data *ch, int class);
 int compute_arcane_level(struct char_data *ch);
@@ -1961,5 +1967,13 @@ spellnum == SPELL_EPIC_WARDING )
 
 /* Bonus Types */
 #define BONUS_TYPE_STACKS(bonus_type) ((bonus_type == BONUS_TYPE_DODGE) || (bonus_type == BONUS_TYPE_CIRCUMSTANCE) || (bonus_type == BONUS_TYPE_UNDEFINED))
+
+/* GUI MSDP Related Defines */
+#define GUI_CMBT_OPEN(ch)                (gui_combat_wrap_open(ch))
+#define GUI_CMBT_NOTVICT_OPEN(ch, vict)  (gui_combat_wrap_notvict_open(ch, vict))
+#define GUI_CMBT_CLOSE(ch)               (gui_combat_wrap_close(ch))
+#define GUI_CMBT_NOTVICT_CLOSE(ch, vict) (gui_combat_wrap_notvict_close(ch, vict))
+#define GUI_RDSC_OPEN(ch)                (gui_room_desc_wrap_open(ch))
+#define GUI_RDSC_CLOSE(ch)               (gui_room_desc_wrap_close(ch))
 
 #endif /* _UTILS_H_ */

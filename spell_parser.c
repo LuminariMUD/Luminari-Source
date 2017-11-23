@@ -247,9 +247,9 @@ static void say_spell(struct char_data *ch, int spellnum, struct char_data *tch,
       attempt = 10 + dice(1, 20);
 
     if (attempt > dc_of_id)
-      perform_act(buf1, ch, tobj, tch, i);
+      perform_act(buf1, ch, tobj, tch, i, TRUE);
     else
-      perform_act(buf2, ch, tobj, tch, i);
+      perform_act(buf2, ch, tobj, tch, i, TRUE);
   }
 
   if (tch != NULL && !IS_NPC(tch))
