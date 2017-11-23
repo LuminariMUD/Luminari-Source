@@ -31,6 +31,7 @@
 #include "wilderness.h"
 #include "domains_schools.h"
 #include "constants.h"
+#include "dg_scripts.h"
 
 /* kavir's protocol (isspace_ignoretabes() was moved to utils.h */
 
