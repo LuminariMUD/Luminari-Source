@@ -1636,9 +1636,9 @@ static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
     /* damage message to observers (to room) */
     buf = replace_string(dam_weapons[msgnum].to_room,
                          attack_hit_text[w_type].singular, attack_hit_text[w_type].plural), dam;
-    GUI_CMBT_NOTVICT_OPEN(ch, victim)
+    GUI_CMBT_NOTVICT_OPEN(ch, victim);
     act(buf, FALSE, ch, NULL, victim, TO_NOTVICT);
-    GUI_CMBT_NOTVICT_CLOSE(ch, victim)
+    GUI_CMBT_NOTVICT_CLOSE(ch, victim);
 
     /* damage message to damager (to_ch) */
     buf = replace_string(dam_weapons[msgnum].to_char,
