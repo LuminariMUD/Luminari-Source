@@ -212,7 +212,7 @@ static void prefedit_disp_toggles_menu(struct descriptor_data *d)
                              "%s4%s) Autosac      %s[%s%3s%s]      %sD%s) Auction  %s[%s%3s%s]\r\n"
                              "%s5%s) Autoassist   %s[%s%3s%s]      %sE%s) Gratz    %s[%s%3s%s]\r\n"
                              "                             - More Toggles -                   \r\n"          
-                             "%s6%s) Autosplit    %s[%s%3s%s]      %sS%s) AutoScan %s[%s%3s%s]\r\n",
+                             "%s6%s) Autosplit    %s[%s%3s%s]      %sS%s) AutoScan  %s[%s%3s%s]\r\n",
 /* Line 1 - autoexits and gossip */
              CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), PREFEDIT_FLAGGED(PRF_AUTOEXIT) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
              ONOFF(PREFEDIT_FLAGGED(PRF_AUTOEXIT)), CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
@@ -254,7 +254,7 @@ static void prefedit_disp_toggles_menu(struct descriptor_data *d)
 
   send_to_char(d->character, "%s7%s) Automap      %s[%s%3s%s]      %sT%s) AutoReload %s[%s%3s%s]\r\n"
                              "%s8%s) Autokey      %s[%s%3s%s]      %sU%s) CombatRoll %s[%s%3s%s]\r\n"
-                             "%s9%s) Autodoor     %s[%s%3s%s]\r\n",
+                             "%s9%s) Autodoor     %s[%s%3s%s]      %sU%s) CombatRoll %s[%s%3s%s]\r\n",
 /* Line 7 - automap & autoreload */
              CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), PREFEDIT_FLAGGED(PRF_AUTOMAP) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
              ONOFF(PREFEDIT_FLAGGED(PRF_AUTOMAP)), CCCYN(d->character, C_NRM),
@@ -265,9 +265,11 @@ static void prefedit_disp_toggles_menu(struct descriptor_data *d)
              ONOFF(PREFEDIT_FLAGGED(PRF_AUTOKEY)), CCCYN(d->character, C_NRM),
              CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), PREFEDIT_FLAGGED(PRF_COMBATROLL) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
              ONOFF(PREFEDIT_FLAGGED(PRF_COMBATROLL)), CCCYN(d->character, C_NRM),
-/* Line 9 - autodoor */
+/* Line 9 - autodoor & guimode */
              CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), PREFEDIT_FLAGGED(PRF_AUTODOOR) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
-             ONOFF(PREFEDIT_FLAGGED(PRF_AUTODOOR)), CCCYN(d->character, C_NRM)
+             ONOFF(PREFEDIT_FLAGGED(PRF_AUTODOOR)), CCCYN(d->character, C_NRM),
+             CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), PREFEDIT_FLAGGED(PRF_GUI_MODE) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+             ONOFF(PREFEDIT_FLAGGED(PRF_GUI_MODE)), CCCYN(d->character, C_NRM)
              );
 
   /* The bottom section of the toggles menu */
@@ -747,7 +749,12 @@ void prefedit_parse(struct descriptor_data * d, char *arg)
         TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_COMBATROLL);
         break;
         
-      /* do not use X - reserved for exiting this menu */
+      case 'v':
+      case 'V':
+        TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_GUI_MODE);
+        break;
+
+        /* do not use X - reserved for exiting this menu */
 
 
       default  : send_to_char(d->character, "Invalid Choice, try again (Q to Quit to main menu): ");
@@ -989,6 +996,10 @@ void prefedit_Restore_Defaults(struct descriptor_data *d)
   /* PRF_COMBATROLL   - On */
   if (!PREFEDIT_FLAGGED(PRF_COMBATROLL))
      SET_BIT_AR(PREFEDIT_GET_FLAGS, PRF_COMBATROLL);
+
+  /* PRF_GUI_MODE   - Off */
+  if (PREFEDIT_FLAGGED(PRF_GUI_MODE))
+     REMOVE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_GUI_MODE);
 
   /* PRF_AUTOGOLD   - On */
   if (!PREFEDIT_FLAGGED(PRF_AUTOGOLD))

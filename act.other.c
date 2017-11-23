@@ -4248,6 +4248,9 @@ ACMD(do_gen_tog) {
     case SCMD_NOSUMMON:
       result = PRF_TOG_CHK(ch, PRF_SUMMONABLE);
       break;
+    case SCMD_GUI_MODE:
+      result = PRF_TOG_CHK(ch, PRF_GUI_MODE);
+      break;
     case SCMD_NOHASSLE:
       result = PRF_TOG_CHK(ch, PRF_NOHASSLE);
       break;

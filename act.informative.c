@@ -3357,6 +3357,10 @@ ACMD(do_toggle) {
     {"combatroll", PRF_COMBATROLL, 0,
      "CombatRoll disabled.\r\n",
      "CombatRoll enabled, you will see behind the scene rolls behind combat.\r\n"},
+                      /*37*/
+    {"guimode", PRF_GUI_MODE, 0,
+     "GUI Mode disabled.\r\n",
+     "GUI Mode enabled, make sure you have MSDP enabled in your client.\r\n"},
                       /*LAST*/
     {"\n", 0, -1, "\n", "\n"} /* must be last */
   };
@@ -3449,8 +3453,9 @@ ACMD(do_toggle) {
                  "Memtime Display: %-3s    "
                  "Actions Display: %-3s\r\n"
 
-                 "     AutoReload: %-3s\r\n"
-                 "     CombatRoll: %-3s\r\n",
+                 "     AutoReload: %-3s    "
+                 "     CombatRoll: %-3s    "
+                 "       GUI Mode: %-3s\r\n",
 
                  ONOFF(PRF_FLAGGED(ch, PRF_DISPHP)),
                  ONOFF(PRF_FLAGGED(ch, PRF_BRIEF)),
@@ -3495,8 +3500,10 @@ ACMD(do_toggle) {
                  ONOFF(PRF_FLAGGED(ch, PRF_DISPROOM)),
                  ONOFF(PRF_FLAGGED(ch, PRF_DISPMEMTIME)),
                  ONOFF(PRF_FLAGGED(ch, PRF_DISPACTIONS)),
+            
                  ONOFF(PRF_FLAGGED(ch, PRF_AUTORELOAD)),
-                 ONOFF(PRF_FLAGGED(ch, PRF_COMBATROLL))
+                 ONOFF(PRF_FLAGGED(ch, PRF_COMBATROLL)),
+                 ONOFF(PRF_FLAGGED(ch, PRF_GUI_MODE))
                  /*end*/);
     return;
   }

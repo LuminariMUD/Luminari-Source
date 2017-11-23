@@ -47,6 +47,42 @@ static void list_zones(struct char_data *ch, zone_rnum rnum, zone_vnum vmin, zon
 static void list_regions(struct char_data *ch);
 static void list_paths(struct char_data *ch);
 
+/* unfinished, wanted to build a mobile name lookup (prototypes) */
+void perform_mob_name_list(struct char_data * ch, char *arg) {
+  int num = 0, mob_flag = -1, found = 0, len = 0;
+  struct char_data *mob = NULL;
+  char buf[MAX_STRING_LENGTH] = {'\0'};
+
+  mob_flag = atoi(arg);
+
+  if (mob_flag < 0 || mob_flag > NUM_MOB_FLAGS) {
+    send_to_char(ch, "Invalid flag number!\r\n");
+    return;
+  }
+
+  len = snprintf(buf, sizeof (buf), "Listing mobiles with %s%s%s flag set.\r\n", QYEL, action_bits[mob_flag], QNRM);
+
+  for (num = 0; num <= top_of_mobt; num++) {
+    if (IS_SET_AR((mob_proto[num].char_specials.saved.act), mob_flag)) {
+
+      if ((mob = read_mobile(num, REAL)) != NULL) {
+        char_to_room(mob, 0);
+        len += snprintf(buf + len, sizeof (buf) - len, "%s%3d. %s[%s%5d%s]%s Level %s%-3d%s %s%s\r\n", CCNRM(ch, C_NRM), ++found,
+                CCCYN(ch, C_NRM), CCYEL(ch, C_NRM), GET_MOB_VNUM(mob), CCCYN(ch, C_NRM), CCNRM(ch, C_NRM),
+                CCYEL(ch, C_NRM), GET_LEVEL(mob), CCNRM(ch, C_NRM), GET_NAME(mob), CCNRM(ch, C_NRM));
+        extract_char(mob); /* Finished with the mob - remove it from the MUD */
+        if (len > sizeof (buf))
+          break;
+      }
+    }
+  }
+  if (!found)
+    send_to_char(ch, "None Found!\r\n");
+  else
+    page_string(ch->desc, buf, TRUE);
+  return;
+}
+
 void perform_mob_flag_list(struct char_data * ch, char *arg) {
   int num, mob_flag, found = 0, len;
   struct char_data *mob;
