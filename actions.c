@@ -192,9 +192,9 @@ void update_msdp_actions(struct char_data * ch) {
                        "%c",          
           (char)MSDP_VAL, 
             (char)MSDP_TABLE_OPEN,
-              (char)MSDP_VAR, "STANDARD_ACTION", (char)MSDP_VAL, is_action_available(ch, atSTANDARD),
-              (char)MSDP_VAR, "MOVE_ACTION", (char)MSDP_VAL, is_action_available(ch, atMOVE),
-              (char)MSDP_VAR, "SWIFT_ACTION", (char)MSDP_VAL, is_action_available(ch, atSWIFT),              
+              (char)MSDP_VAR, "STANDARD_ACTION", (char)MSDP_VAL, is_action_available(ch, atSTANDARD, FALSE),
+              (char)MSDP_VAR, "MOVE_ACTION", (char)MSDP_VAL, is_action_available(ch, atMOVE, FALSE),
+              (char)MSDP_VAR, "SWIFT_ACTION", (char)MSDP_VAL, is_action_available(ch, atSWIFT, FALSE),              
             (char)MSDP_TABLE_CLOSE);
     strcat(msdp_buffer, buf);
     first = FALSE;
