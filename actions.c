@@ -186,9 +186,9 @@ void update_msdp_actions(struct char_data * ch) {
             
     next = af->next;
     sprintf(buf, "%c%c"
-                 "%c%s%c%s"
-                 "%c%s%c%s"
-                 "%c%s%c%s"                 
+                 "%c%s%c%d"
+                 "%c%s%c%d"
+                 "%c%s%c%d"                 
                        "%c",          
           (char)MSDP_VAL, 
             (char)MSDP_TABLE_OPEN,
