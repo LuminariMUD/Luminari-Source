@@ -1651,10 +1651,10 @@ static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
     /* damage message to damagee (to_vict) */
     buf = replace_string(dam_weapons[msgnum].to_victim,
                          attack_hit_text[w_type].singular, attack_hit_text[w_type].plural);
-    GUI_CMBT_OPEN(ch);
+    GUI_CMBT_OPEN(victim);
     act(buf, FALSE, ch, NULL, victim, TO_VICT | TO_SLEEP);
     send_to_char(victim, CCNRM(victim, C_CMP));
-    GUI_CMBT_CLOSE(ch);
+    GUI_CMBT_CLOSE(victim);
     
   } else {
     /* debugs */
