@@ -48,6 +48,7 @@ void (*attack_actions[NUM_ATTACK_ACTIONS])(struct char_data *ch,
 /* Action Cooldown events are:
  *   eSTANDARDACTION
  *   eMOVEACTION
+ *   eSWIFTACTION
  *
  * If a player has one of these events, that signifies that they do NOT have
  * that action available. */
@@ -76,14 +77,18 @@ EVENTFUNC(event_action_cooldown) {
     case eSTANDARDACTION:
       if (!char_has_mud_event(ch, eSTANDARDACTION))
         send_to_char(ch, "You may perform another standard action.%s\r\n", buf);
+        // Update MSDP
+        update_msdp_actions(ch);
       break;
     case eMOVEACTION:
       if (!char_has_mud_event(ch, eMOVEACTION))
         send_to_char(ch, "You may perform another move action.%s\r\n", buf);
+        update_msdp_actions(ch);
       break;
     case eSWIFTACTION:
       if (!char_has_mud_event(ch, eSWIFTACTION))
         send_to_char(ch, "You may perform another swift action.%s\r\n", buf);
+        update_msdp_actions(ch);        
     default:
       break;
   }
@@ -164,3 +169,38 @@ void start_action_cooldown(struct char_data * ch, action_type act_type, int dura
   else if (act_type == atSWIFT)
     attach_mud_event(new_mud_event(eSWIFTACTION, ch, svar), duration);
 };
+
+void update_msdp_actions(struct char_data * ch) {
+  char msdp_buffer[MAX_STRING_LENGTH];
+  struct affected_type *af, *next;
+  bool first = TRUE;
+  
+  /* MSDP */
+  
+  msdp_buffer[0] = '\0';
+  if (ch && ch->desc) {
+    //const char MsdpArrayStart[] = {(char) MSDP_ARRAY_OPEN, '\0'};
+    //const char MsdpArrayStop[] = {(char) MSDP_ARRAY_CLOSE, '\0'};
+    
+    char buf[4000]; // Buffer for building the actions table for MSDP
+            
+    next = af->next;
+    sprintf(buf, "%c%c"
+                 "%c%s%c%s"
+                 "%c%s%c%s"
+                 "%c%s%c%s"                 
+                       "%c",          
+          (char)MSDP_VAL, 
+            (char)MSDP_TABLE_OPEN,
+              (char)MSDP_VAR, "STANDARD_ACTION", (char)MSDP_VAL, is_action_available(ch, atSTANDARD),
+              (char)MSDP_VAR, "MOVE_ACTION", (char)MSDP_VAL, is_action_available(ch, atMOVE),
+              (char)MSDP_VAR, "SWIFT_ACTION", (char)MSDP_VAL, is_action_available(ch, atSWIFT),              
+            (char)MSDP_TABLE_CLOSE);
+    strcat(msdp_buffer, buf);
+    first = FALSE;
+  }
+    
+    MSDPSetArray(ch->desc, eMSDP_ACTIONS, msdp_buffer);
+    MSDPFlush(ch->desc, eMSDP_ACTIONS);
+  }
+}
