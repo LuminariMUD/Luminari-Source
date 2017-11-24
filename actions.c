@@ -202,5 +202,5 @@ void update_msdp_actions(struct char_data * ch) {
     
     MSDPSetArray(ch->desc, eMSDP_ACTIONS, msdp_buffer);
     MSDPFlush(ch->desc, eMSDP_ACTIONS);
-  }
+  
 }
