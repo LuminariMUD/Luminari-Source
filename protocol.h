@@ -168,6 +168,9 @@ typedef enum
    eMSDP_CON_PERM,
    eMSDP_CHA_PERM,
    eMSDP_ACTIONS,
+   eMSDP_STANDARD_ACTION,
+   eMSDP_MOVE_ACTION,
+   eMSDP_SWIFT_ACTION,
    
    /* Combat */
    eMSDP_OPPONENT_HEALTH,

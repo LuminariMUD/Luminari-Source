@@ -45,4 +45,6 @@ void start_cmd_cooldown(struct char_data *ch, int cmd);
 //void start_skill_cooldown(struct char_data *ch, int skill, int weapon);
 void start_action_cooldown(struct char_data * ch, action_type act_type, int duration);
 
+// Send action data to MSDP.
+void update_msdp_actions(struct char_data * ch); 
 #endif /* _ACTIONS_H_ */
