@@ -12,6 +12,7 @@
 
 #include "conf.h"
 #include "sysdep.h"
+#include "actions.h"
 
 /* Begin conf.h dependent includes */
 
@@ -3217,6 +3218,9 @@ static void msdp_update(void) {
 
       /* Affects */
       update_msdp_affects(ch);
+
+      /* Actions */
+      update_msdp_actions(ch);
       
       /* gotta adjust compute_hit_damage() so it doesn't send messages randomly */
       /*
