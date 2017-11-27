@@ -60,21 +60,18 @@ void update_msdp_actions(struct char_data * ch) {
     char buf[4000]; // Buffer for building the actions table for MSDP
             
     next = af->next;
-    sprintf(buf, "%c"
+    sprintf(buf, "%c%s%c%d"
                  "%c%s%c%d"
-                 "%c%s%c%d"
-                 "%c%s%c%d"                 
-                       "",          
-          (char)MSDP_VAL, 
-            
-              (char)MSDP_VAR, "STANDARD_ACTION", (char)MSDP_VAL, is_action_available(ch, atSTANDARD, FALSE),
-              (char)MSDP_VAR, "MOVE_ACTION", (char)MSDP_VAL, is_action_available(ch, atMOVE, FALSE),
-              (char)MSDP_VAR, "SWIFT_ACTION", (char)MSDP_VAL, is_action_available(ch, atSWIFT, FALSE));
-            
+                 "%c%s%c%d",                                                               
+      (char)MSDP_VAR, "STANDARD_ACTION", (char)MSDP_VAL, is_action_available(ch, atSTANDARD, FALSE),
+      (char)MSDP_VAR, "MOVE_ACTION", (char)MSDP_VAL, is_action_available(ch, atMOVE, FALSE),
+      (char)MSDP_VAR, "SWIFT_ACTION", (char)MSDP_VAL, is_action_available(ch, atSWIFT, FALSE)
+    );
+        
     strcat(msdp_buffer, buf);
     first = FALSE;
   
-    MSDPSetArray(ch->desc, eMSDP_ACTIONS, msdp_buffer);
+    MSDPSetTable(ch->desc, eMSDP_ACTIONS, msdp_buffer);
     MSDPFlush(ch->desc, eMSDP_ACTIONS);
   }
 }
