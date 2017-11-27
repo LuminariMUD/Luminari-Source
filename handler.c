@@ -712,14 +712,13 @@ void update_msdp_affects(struct char_data *ch) {
       char buf[4000]; // Buffer for building the affect table for MSDP
             
       next = af->next;
-      sprintf(buf, "%s%c%c"
+      sprintf(buf, "%c%c"
                    "%c%s%c%s"
                    "%c%s%c%s"
                    "%c%s%c%d"
                    "%c%s%c%s"
                    "%c%s%c%d"
                          "%c",
-            (first == TRUE ? "" : ","),
             (char)MSDP_VAL, 
               (char)MSDP_TABLE_OPEN,
                 (char)MSDP_VAR, "NAME", (char)MSDP_VAL, skill_name(af->spell),
