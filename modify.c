@@ -109,8 +109,8 @@ void strip_colors(char *str)
 }
 void strip_const_colors(const char *str)
 {
-  char *p = str;
-  char *n = str;
+  const char *p = str;
+  const char *n = str;
 
   while (p && *p) {
 
