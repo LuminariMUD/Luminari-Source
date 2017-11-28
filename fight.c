@@ -2503,9 +2503,9 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
     /* handle concealment */
     int concealment = compute_concealment(victim);
     if (dice(1, 100) <= compute_concealment(victim) && !is_spell) {
-      if (PRF_FLAGGED(victim, PRF_COMBATROLL))
+      if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_COMBATROLL))
         send_to_char(victim, "\tW<conceal:%d>\tn", concealment);
-      if (PRF_FLAGGED(ch, PRF_COMBATROLL))
+      if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
         send_to_char(ch, "\tR<oconceal:%d>\tn", concealment);
       return 0;
     }
@@ -2561,9 +2561,9 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
               TO_NOTVICT);
       return -1;
     } else if (damage_reduction) {
-      if (PRF_FLAGGED(victim, PRF_COMBATROLL))
+      if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_COMBATROLL))
         send_to_char(victim, "\tW<EA:%d>\tn", damage_reduction);
-      if (PRF_FLAGGED(ch, PRF_COMBATROLL))
+      if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
         send_to_char(ch, "\tR<oEA:%d>\tn", damage_reduction);
     }
 
@@ -2579,14 +2579,14 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
               TO_NOTVICT);
       return -1;
     } else if (damtype_reduction < 0) { // no reduction, vulnerability
-      if (PRF_FLAGGED(victim, PRF_COMBATROLL))
+      if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_COMBATROLL))
         send_to_char(victim, "\tR<TR:%d>\tn", (int) damtype_reduction);
-      if (PRF_FLAGGED(ch, PRF_COMBATROLL))
+      if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
         send_to_char(ch, "\tW<oTR:%d>\tn", (int) damtype_reduction);
     } else if (damtype_reduction > 0) {
-      if (PRF_FLAGGED(victim, PRF_COMBATROLL))
+      if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_COMBATROLL))
         send_to_char(victim, "\tW<TR:%d>\tn", (int) damtype_reduction);
-      if (PRF_FLAGGED(ch, PRF_COMBATROLL))
+      if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
         send_to_char(ch, "\tR<oTR:%d>\tn", (int) damtype_reduction);
     }
 
@@ -2602,9 +2602,9 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
                 TO_NOTVICT);
         return -1;
       } else if (damage_reduction) {
-        if (PRF_FLAGGED(victim, PRF_COMBATROLL))
+        if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_COMBATROLL))
           send_to_char(victim, "\tW<DR:%d>\tn", damage_reduction);
-        if (PRF_FLAGGED(ch, PRF_COMBATROLL))
+        if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
           send_to_char(ch, "\tR<oDR:%d>\tn", damage_reduction);
       }
     }
@@ -3801,9 +3801,9 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
              (IS_LN(victim)) ||
              (IS_LE(victim)) ||
              (IS_NPC(victim) && HAS_SUBRACE(victim, SUBRACE_LAWFUL)))) {
-        if (PRF_FLAGGED(ch, PRF_COMBATROLL))
+        if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
           send_to_char(ch, "\tW[CHAOS]\tn ");
-        if (PRF_FLAGGED(victim, PRF_COMBATROLL))
+        if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_COMBATROLL))
           send_to_char(victim, "\tR[CHAOS]\tn ");
         dam += dice(2, 6);
       }
@@ -3814,9 +3814,9 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
              (IS_CN(victim)) ||
              (IS_CE(victim)) ||
              (IS_NPC(victim) && HAS_SUBRACE(victim, SUBRACE_CHAOTIC)))) {
-        if (PRF_FLAGGED(ch, PRF_COMBATROLL))
+        if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
           send_to_char(ch, "\tW[LAW]\tn ");
-        if (PRF_FLAGGED(victim, PRF_COMBATROLL))
+        if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_COMBATROLL))
           send_to_char(victim, "\tR[LAW]\tn ");
         dam += dice(2, 6);
       }
@@ -3827,9 +3827,9 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
              (IS_NG(victim)) ||
              (IS_LG(victim)) ||
              (IS_NPC(victim) && HAS_SUBRACE(victim, SUBRACE_GOOD)))) {
-        if (PRF_FLAGGED(ch, PRF_COMBATROLL))
+        if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
           send_to_char(ch, "\tW[EVIL]\tn ");
-        if (PRF_FLAGGED(victim, PRF_COMBATROLL))
+        if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_COMBATROLL))
           send_to_char(victim, "\tR[EVIL]\tn ");
         dam += dice(2, 6);
       }
@@ -3840,9 +3840,9 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
              (IS_NE(victim)) ||
              (IS_LE(victim)) ||
              (IS_NPC(victim) && HAS_SUBRACE(victim, SUBRACE_EVIL)))) {
-        if (PRF_FLAGGED(ch, PRF_COMBATROLL))
+        if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
           send_to_char(ch, "\tW[GOOD]\tn ");
-        if (PRF_FLAGGED(victim, PRF_COMBATROLL))
+        if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_COMBATROLL))
           send_to_char(victim, "\tR[GOOD]\tn ");
         dam += dice(2, 6);
       }
@@ -3851,9 +3851,9 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
         /* Check the values in the special ability record for the NPCRACE and SUBRACE. */
         int *value = get_obj_special_ability(wielded, WEAPON_SPECAB_BANE)->value;
         if((GET_RACE(victim) == value[0]) && (HAS_SUBRACE(victim, value[1]))) {
-          if (PRF_FLAGGED(ch, PRF_COMBATROLL))
+          if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
             send_to_char(ch, "\tW[BANE]\tn ");
-          if (PRF_FLAGGED(victim, PRF_COMBATROLL))
+          if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_COMBATROLL))
             send_to_char(victim, "\tR[BANE]\tn ");
           dam += dice(2, 6);
         }
@@ -3861,15 +3861,15 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
       /*bane weapon*/
       if (victim != ch && HAS_FEAT(ch, FEAT_BANE_OF_ENEMIES) && HAS_FEAT(ch, FEAT_FAVORED_ENEMY)) {
         if (!IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, RACE_TYPE_HUMANOID)) {
-          if (PRF_FLAGGED(ch, PRF_COMBATROLL))
+          if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
             send_to_char(ch, "\tW[BANE]\tn ");
-          if (PRF_FLAGGED(victim, PRF_COMBATROLL))
+          if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_COMBATROLL))
             send_to_char(victim, "\tR[BANE]\tn ");
           dam += dice(2, 6);
         } else if (IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, GET_RACE(victim))) {
-          if (PRF_FLAGGED(ch, PRF_COMBATROLL))
+          if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
             send_to_char(ch, "\tW[BANE]\tn ");
-          if (PRF_FLAGGED(victim, PRF_COMBATROLL))
+          if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_COMBATROLL))
             send_to_char(victim, "\tR[BANE]\tn ");
           dam += dice(2, 6);
         }
@@ -5295,7 +5295,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
      )) {
 
     /* Display why we are sneak attacking */
-    if (PRF_FLAGGED(ch, PRF_COMBATROLL)) {
+    if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL)) {
       send_to_char(ch, "\tW[");
       if (AFF_FLAGGED(victim, AFF_FLAT_FOOTED))
         send_to_char(ch, "FF");
@@ -5305,7 +5305,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
         send_to_char(ch, "Fk");
       send_to_char(ch, "]\tn");
     }
-    if (PRF_FLAGGED(victim, PRF_COMBATROLL)) {
+    if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_COMBATROLL)) {
       send_to_char(victim, "\tR[");
       if (AFF_FLAGGED(victim, AFF_FLAT_FOOTED))
         send_to_char(victim, "FF");
@@ -5680,9 +5680,9 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
       victim_ac += 4;
     if (HAS_FEAT(victim, FEAT_ENHANCED_MOBILITY) && has_dex_bonus_to_ac(ch, victim))
       victim_ac += 4;
-    if (PRF_FLAGGED(ch, PRF_COMBATROLL))
+    if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
       send_to_char(ch, "\tW[\tRAOO\tW]\tn");
-    if (PRF_FLAGGED(victim, PRF_COMBATROLL))
+    if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_COMBATROLL))
       send_to_char(victim, "\tW[\tRAOO\tW]\tn");
   }
 
@@ -5697,26 +5697,26 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
   } else if (diceroll == 20) { /*auto hit, not critical though*/
     dam = TRUE;
   } else if (!AWAKE(victim)) {
-    if (PRF_FLAGGED(ch, PRF_COMBATROLL))
+    if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
       send_to_char(ch, "\tW[down!]\tn");
-    if (PRF_FLAGGED(victim, PRF_COMBATROLL))
+    if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_COMBATROLL))
       send_to_char(victim, "\tR[down!]\tn");
     dam = TRUE;
   } else if (diceroll == 1) {
-    if (PRF_FLAGGED(ch, PRF_COMBATROLL))
+    if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
       send_to_char(ch, "[stum!]");
-    if (PRF_FLAGGED(victim, PRF_COMBATROLL))
+    if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_COMBATROLL))
       send_to_char(victim, "[stum!]");
     dam = FALSE;
   } else {
     dam = (calc_bab + diceroll >= victim_ac);
   }
-  if (PRF_FLAGGED(ch, PRF_COMBATROLL)) {
+  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL)) {
     sprintf(buf1, "\tW[R:%2d]\tn", diceroll);
     sprintf(buf, "%7s", buf1);
     send_to_char(ch, buf);
   }
-  if (PRF_FLAGGED(victim, PRF_COMBATROLL)) {
+  if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_COMBATROLL)) {
     sprintf(buf1, "\tR[R:%2d]\tn", diceroll);
     sprintf(buf, "%7s", buf1);
     send_to_char(victim, buf);
