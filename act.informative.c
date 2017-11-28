@@ -4085,11 +4085,12 @@ ACMD(do_scan) {
    */
 
   for (door = 0; door < DIR_COUNT; door++) {
-    send_to_char(ch, "\tCScanning %s:\tn\r\n", dirs[door]);
 
     if (world[scanned_room].dir_option[door] &&
-        !IS_SET(world[scanned_room].dir_option[door]->exit_info, EX_HIDDEN))
+        !IS_SET(world[scanned_room].dir_option[door]->exit_info, EX_HIDDEN)) {
+      send_to_char(ch, "\tCScanning %s:\tn\r\n", dirs[door]);
       look_in_direction(ch, door);
+    }
 
     for (range = 1; range <= maxrange; range++) {
       if (world[scanned_room].dir_option[door] &&
