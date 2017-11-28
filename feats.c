@@ -3480,7 +3480,11 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
               sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
             } else {
               sprintf(buf3, "%s (%s)", feat_list[i].name, spell_schools[j]);
-              sprintf(buf, "%-40s ", buf3);
+              count++;
+              if (count % 2 == 0)
+                sprintf(buf, "%-40s\r\n", buf3);
+              else
+                sprintf(buf, "%-40s ", buf3);
             }
             strcat(buf2, buf);
             none_shown = FALSE;
@@ -3509,7 +3513,11 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
               sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
             } else {
               sprintf(buf3, "%s (%s)", feat_list[i].name, weapon_list[j].name);
-              sprintf(buf, "%-40s ", buf3);
+              count++;
+              if (count % 2 == 0)
+                sprintf(buf, "%-40s\r\n", buf3);
+              else
+                sprintf(buf, "%-40s ", buf3);
             }
             strcat(buf2, buf);
             none_shown = FALSE;
@@ -3525,12 +3533,18 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
               sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
             } else {
               sprintf(buf3, "%s (%s) ", feat_list[i].name, ability_names[j]);
-              sprintf(buf, "%-40s ", buf3);
+              count++;
+              if (count % 2 == 0)
+                sprintf(buf, "%-40s\r\n", buf3);
+              else
+                sprintf(buf, "%-40s ", buf3);
             }
             strcat(buf2, buf);
             none_shown = FALSE;
           }
         }
+        
+      /* begin non special formats */
 
       } else if (i == FEAT_FAST_HEALING) {
         if (mode == 1) {
