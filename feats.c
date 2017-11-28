@@ -4025,7 +4025,8 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       }
 
       /*  If we are not in description mode, split the output up in columns. */
-      if (!mode && !custom_output) {
+      //if (!mode && !custom_output) {
+      if (!mode) {
         count++;
         if (count % 2 == 0)
           strcat(buf2, "\r\n");
