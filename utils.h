@@ -1970,8 +1970,8 @@ spellnum == SPELL_EPIC_WARDING )
 
 /* GUI MSDP Related Defines */
 #define GUI_CMBT_OPEN(ch)                (gui_combat_wrap_open(ch))
-#define GUI_CMBT_NOTVICT_OPEN(ch, vict)  (gui_combat_wrap_notvict_open(ch, vict))
 #define GUI_CMBT_CLOSE(ch)               (gui_combat_wrap_close(ch))
+#define GUI_CMBT_NOTVICT_OPEN(ch, vict)  (gui_combat_wrap_notvict_open(ch, vict))
 #define GUI_CMBT_NOTVICT_CLOSE(ch, vict) (gui_combat_wrap_notvict_close(ch, vict))
 #define GUI_RDSC_OPEN(ch)                (gui_room_desc_wrap_open(ch))
 #define GUI_RDSC_CLOSE(ch)               (gui_room_desc_wrap_close(ch))

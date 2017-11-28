@@ -166,16 +166,31 @@ void guard_check(struct char_data *ch, struct char_data *vict) {
     if (!is_action_available(tch, atSTANDARD, FALSE) ||
         !is_action_available(tch, atMOVE, FALSE))
       continue;
+    
+    /* vict = guarded individual, tch = guard */
     if (GUARDING(tch) == vict) {
       /* This MUST be changed.  Skills are obsolete.
          Set to a flat 70% chance for now. */
       if (rand_number(1, 100) > 70) {
+        GUI_CMBT_OPEN(vict);
         act("$N fails to guard you.", FALSE, vict, 0, tch, TO_CHAR);
+        GUI_CMBT_CLOSE(vict);
+
+        GUI_CMBT_OPEN(tch);
         act("You fail to guard $n.", FALSE, vict, 0, tch, TO_VICT);
+        GUI_CMBT_CLOSE(tch);
       } else {
+        GUI_CMBT_OPEN(vict);
         act("$N protects you from attack!", FALSE, vict, 0, tch, TO_CHAR);
+        GUI_CMBT_CLOSE(vict);
+        
+        GUI_CMBT_NOTVICT_OPEN(vict, tch);
         act("$N guards $n succesfully.", FALSE, vict, 0, tch, TO_NOTVICT);
+        GUI_CMBT_NOTVICT_CLOSE(vict, tch);
+
+        GUI_CMBT_OPEN(tch);
         act("You guard $n succesfully.", FALSE, vict, 0, tch, TO_VICT);
+        GUI_CMBT_CLOSE(tch);
 
         perform_rescue(tch, vict);
         return;
@@ -193,16 +208,24 @@ void perform_flee(struct char_data *ch) {
   /* disqualifications? */
   if (AFF_FLAGGED(ch, AFF_STUN) || AFF_FLAGGED(ch, AFF_DAZED) ||
           AFF_FLAGGED(ch, AFF_PARALYZED) || char_has_mud_event(ch, eSTUNNED)) {
+    GUI_CMBT_OPEN(ch);
     send_to_char(ch, "You try to flee, but you are unable to move!\r\n");
+    GUI_CMBT_CLOSE(ch);
+    
+    GUI_CMBT_NOTVICT_OPEN(ch, NULL);
     act("$n attemps to flee, but is unable to move!", TRUE, ch, 0, 0, TO_ROOM);
+    GUI_CMBT_NOTVICT_CLOSE(ch, NULL);
     return;
   }
   /* got to be in a position to flee */
   if (GET_POS(ch) <= POS_SITTING) {
+    GUI_CMBT_OPEN(ch);
     send_to_char(ch, "You need to be standing to flee!\r\n");
+    GUI_CMBT_CLOSE(ch);
     return;
   }
 
+  /* cost */
   USE_MOVE_ACTION(ch);
 
   //first find which directions are fleeable
@@ -215,7 +238,9 @@ void perform_flee(struct char_data *ch) {
 
   //no actual fleeable directions
   if (!found) {
+    GUI_CMBT_OPEN(ch);
     send_to_char(ch, "You have no route of escape!\r\n");
+    GUI_CMBT_CLOSE(ch);
     return;
   }
 
@@ -229,16 +254,26 @@ void perform_flee(struct char_data *ch) {
 
   } else {
 
+    GUI_CMBT_OPEN(ch);
     send_to_char(ch, "You attempt to flee:  ");
+    GUI_CMBT_CLOSE(ch);
+    
+    GUI_CMBT_NOTVICT_OPEN(ch, NULL);
     act("$n attemps to flee...", TRUE, ch, 0, 0, TO_ROOM);
+    GUI_CMBT_NOTVICT_CLOSE(ch, NULL);
 
     //ok beat all odds, fleeing
     was_fighting = FIGHTING(ch);
 
     //pick a random direction
     if (do_simple_move(ch, fleeOptions[rand_number(0, found - 1)], 3)) {
+      GUI_CMBT_OPEN(ch);
       send_to_char(ch, "You quickly flee from combat...\r\n");
+      GUI_CMBT_CLOSE(ch);
+    
+      GUI_CMBT_NOTVICT_OPEN(ch, NULL);
       act("$n quickly flees the battle!", TRUE, ch, 0, 0, TO_ROOM);
+      GUI_CMBT_NOTVICT_CLOSE(ch, NULL);
       
       /* lets stop combat here, further consideration might be to continue
          ranged combat -zusuk */
@@ -253,8 +288,13 @@ void perform_flee(struct char_data *ch) {
       }
       
     } else { //failure
+      GUI_CMBT_OPEN(ch);
       send_to_char(ch, "You failed to flee the battle...\r\n");
+      GUI_CMBT_CLOSE(ch);
+      
+      GUI_CMBT_NOTVICT_OPEN(ch, NULL);
       act("$n failed to flee the battle!", TRUE, ch, 0, 0, TO_ROOM);
+      GUI_CMBT_NOTVICT_CLOSE(ch, NULL);
     }
   }
 }
@@ -739,11 +779,16 @@ void update_pos_dam(struct char_data *victim) {
 
   else { // hp > 0
     if (GET_POS(victim) < POS_RESTING) {
-      if (!AWAKE(victim))
+      if (!AWAKE(victim)) {
+        GUI_CMBT_OPEN(ch);
         send_to_char(victim, "\tRYour sleep is disturbed!!\tn  ");
+        GUI_CMBT_CLOSE(ch);
+      }
       GET_POS(victim) = POS_SITTING;
+      GUI_CMBT_OPEN(ch);
       send_to_char(victim,
               "You instinctively shift from dangerous positioning to sitting...\r\n");
+      GUI_CMBT_CLOSE(ch);
     }
   }
 }
@@ -913,9 +958,15 @@ static void make_corpse(struct char_data *ch) {
     if (IS_UNDEAD(ch) ||
         IS_ELEMENTAL(ch) ||
         IS_INCORPOREAL(ch)) {
+      GUI_CMBT_OPEN(ch);
       send_to_char(ch, "You feel your body crumble to dust!\r\n");
+      GUI_CMBT_CLOSE(ch);
+      
+      GUI_CMBT_NOTVICT_OPEN(ch, NULL);
       act("With a final moan $n crumbles to dust!",
               FALSE, ch, NULL, NULL, TO_ROOM);
+      GUI_CMBT_NOTVICT_CLOSE(ch, NULL);
+
       /* transfer gold */
       if (GET_GOLD(ch) > 0) {
         /* duplication loophole */
@@ -1022,17 +1073,21 @@ static void change_alignment(struct char_data *ch, struct char_data *victim) {
 void death_cry(struct char_data *ch) {
   int door;
 
+  GUI_CMBT_NOTVICT_OPEN(ch, NULL);
   act("Your blood freezes as you hear $n's death cry.",
           FALSE, ch, 0, 0, TO_ROOM);
+  GUI_CMBT_NOTVICT_CLOSE(ch, NULL);
 
   for (door = 0; door < DIR_COUNT; door++)
-    if (CAN_GO(ch, door))
+    if (CAN_GO(ch, door)) {
       send_to_room(world[IN_ROOM(ch)].dir_option[door]->to_room,
             "Your blood freezes as you hear someone's death cry.\r\n");
+    }
 }
 
 /* this message is a replacement in our new (temporary?) death system */
 void death_message(struct char_data *ch) {
+  GUI_CMBT_OPEN(ch);
   send_to_char(ch, "\r\n");
   send_to_char(ch, "\r\n");
   send_to_char(ch, "\r\n");
@@ -1059,6 +1114,7 @@ void death_message(struct char_data *ch) {
   send_to_char(ch, "You awaken... you realize someone has resurrected you...\r\n");
   send_to_char(ch, "\r\n");
   send_to_char(ch, "\r\n");
+  GUI_CMBT_CLOSE(ch);
 }
 
 /* Added quest completion for all group members if they are in the room.
@@ -1617,7 +1673,8 @@ static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
   else msgnum = 13;
 
   /* ranged */
-  if (offhand == 2 && last_missile && GET_POS(victim) > POS_DEAD) {  
+  if (offhand == 2 && last_missile && GET_POS(victim) > POS_DEAD) {
+    
     /* damage message to room */    
     act(dam_ranged[msgnum].to_room, FALSE, ch, last_missile, victim, TO_NOTVICT);
 
