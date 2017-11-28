@@ -40,7 +40,7 @@
  */
 /* MSDP GUI Wrappers */
 void gui_combat_wrap_open(struct char_data *ch) {
-  if (PRF_FLAGGED(ch, PRF_GUI_MODE)) { /* GUI Mode wrap open: combat */
+  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_GUI_MODE)) { /* GUI Mode wrap open: combat */
     send_to_char(ch, "<combat_message>");
   }
 }
@@ -48,6 +48,8 @@ void gui_combat_wrap_notvict_open(struct char_data *ch, struct char_data *vict_o
   if (!ch)
     return;
   if (IN_ROOM(ch) == NOWHERE)
+    return;
+  if (IS_NPC(ch))
     return;
   
   /* we accept NULL victim */
@@ -66,7 +68,7 @@ void gui_combat_wrap_notvict_open(struct char_data *ch, struct char_data *vict_o
   }
 }
 void gui_combat_wrap_close(struct char_data *ch) {
-  if (PRF_FLAGGED(ch, PRF_GUI_MODE)) { /* GUI Mode wrap close: combat */
+  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_GUI_MODE)) { /* GUI Mode wrap close: combat */
     send_to_char(ch, "</combat_message>");
   }
 }
@@ -74,6 +76,8 @@ void gui_combat_wrap_notvict_close(struct char_data *ch, struct char_data *vict_
   if (!ch)
     return;
   if (IN_ROOM(ch) == NOWHERE)
+    return;
+  if (IS_NPC(ch))
     return;
   
   /* we accept NULL victim */
@@ -94,12 +98,12 @@ void gui_combat_wrap_notvict_close(struct char_data *ch, struct char_data *vict_
   }
 }
 void gui_room_desc_wrap_open(struct char_data *ch) {
-  if (PRF_FLAGGED(ch, PRF_GUI_MODE)) { /* GUI Mode wrap open: room description */
+  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_GUI_MODE)) { /* GUI Mode wrap open: room description */
     send_to_char(ch, "<room_desc>");
   }
 }
 void gui_room_desc_wrap_close(struct char_data *ch) {
-  if (PRF_FLAGGED(ch, PRF_GUI_MODE)) { /* GUI Mode wrap close: room description */
+  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_GUI_MODE)) { /* GUI Mode wrap close: room description */
     send_to_char(ch, "</room_desc>");
   }
 }

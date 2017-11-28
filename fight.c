@@ -2844,9 +2844,9 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
   if (dam) { //display damage done
     sprintf(buf1, "[%d]", dam);
     sprintf(buf, "%5s", buf1);
-    if (PRF_FLAGGED(ch, PRF_COMBATROLL))
+    if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
       send_to_char(ch, "\tW%s\tn ", buf);
-    if (PRF_FLAGGED(victim, PRF_COMBATROLL))
+    if (!IS_NPC(ch) && PRF_FLAGGED(victim, PRF_COMBATROLL))
       send_to_char(victim, "\tR%s\tn ", buf);
   }
 
