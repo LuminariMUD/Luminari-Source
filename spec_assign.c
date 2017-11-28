@@ -170,7 +170,7 @@ void assign_mobiles(void)
   */
   ASSIGNMOB(155699, cube_slider);
 
-  ASSIGNMOB(126907, receptionist);
+  //ASSIGNMOB(126907, receptionist);
 
   /* Immortal Zone */
   ASSIGNMOB(101200, receptionist);
@@ -178,7 +178,7 @@ void assign_mobiles(void)
   ASSIGNMOB(101202, janitor);
 
   /* Nice dogs. */
-  ASSIGNMOB(100028, dog);
+  //ASSIGNMOB(100028, dog);
   ASSIGNMOB(100103, dog);
   ASSIGNMOB(102102, dog);
   ASSIGNMOB(103030, dog);
@@ -338,8 +338,8 @@ void assign_mobiles(void)
   /*Illithid Enclave*/
   ASSIGNMOB(126928, illithid_gguard);
   ASSIGNMOB(126904, guild);
-  ASSIGNMOB(126906, bank);
-  ASSIGNMOB(129607, receptionist);
+  //ASSIGNMOB(126906, bank);
+  //ASSIGNMOB(129607, receptionist);
 
   /*Secomber*/
   ASSIGNMOB(125064, secomber_guard);
@@ -358,7 +358,7 @@ void assign_mobiles(void)
   ASSIGNMOB(102505, receptionist);
   ASSIGNMOB(102536, bank);
   ASSIGNMOB(102547, postmaster);
-  ASSIGNMOB(102643, guild);
+  //ASSIGNMOB(102643, guild);
   ASSIGNMOB(102546, guild);
   ASSIGNMOB(102522, guild);
   ASSIGNMOB(102521, guild);
@@ -554,7 +554,7 @@ void assign_mobiles(void)
   ASSIGNMOB(100506, vampire);
   ASSIGNMOB(100507, bonedancer);
   ASSIGNMOB(100501, skeleton_zombie);
-  ASSIGNMOB(100011, skeleton_zombie);
+  //ASSIGNMOB(100011, skeleton_zombie);
 
   ASSIGNMOB(101400, totemanimal);
   ASSIGNMOB(101401, totemanimal);
@@ -612,7 +612,7 @@ void assign_mobiles(void)
 
   ASSIGNMOB(106230, banshee);
   ASSIGNMOB(136300, olhydra);
-  ASSIGNMOB(136100, yan);
+  //ASSIGNMOB(136100, yan);
   ASSIGNMOB(136105, chan);
 
   ASSIGNMOB(100581, fzoul);
@@ -706,13 +706,13 @@ void assign_objects(void)
   ASSIGNOBJ(139200, floating_teleport);
   ASSIGNOBJ(139201, floating_teleport);
   ASSIGNOBJ(139202, floating_teleport);
-  ASSIGNOBJ(139203, floating_teleport);
+  //ASSIGNOBJ(139203, floating_teleport);
 
   ASSIGNOBJ(129500, floating_teleport);
   ASSIGNOBJ(104072, chionthar_ferry);
   ASSIGNOBJ(126429, alandor_ferry);
 
-  ASSIGNOBJ(120010, md_carpet);
+  //ASSIGNOBJ(120010, md_carpet);
 
   ASSIGNOBJ(136400, floating_teleport);
 
@@ -751,13 +751,13 @@ void assign_objects(void)
   ASSIGNOBJ(135534, snakewhip);
   ASSIGNOBJ(135199, acidsword);
   ASSIGNOBJ(100510, halberd);
-  ASSIGNOBJ(100513, halberd);
+  //ASSIGNOBJ(100513, halberd);
 
   ASSIGNOBJ(114838, rughnark);
   ASSIGNOBJ(139900, magma);
   ASSIGNOBJ(136100, air_sphere);
   ASSIGNOBJ(110601, bolthammer);
-  ASSIGNOBJ(111507, prismorb);
+  //ASSIGNOBJ(111507, prismorb);
   ASSIGNOBJ(129602, flamingwhip);
   ASSIGNOBJ(126315, dorfaxe);
   ASSIGNOBJ(121207, helmblade);
@@ -789,7 +789,7 @@ void assign_objects(void)
   ASSIGNOBJ(128150, spikeshield);
   ASSIGNOBJ(128106, ches);
   ASSIGNOBJ(100596, tormblade);
-  ASSIGNOBJ(100599, tormblade);
+  //ASSIGNOBJ(100599, tormblade);
 
   /* not yet defined
   ASSIGNOBJ(132115, warbow);
