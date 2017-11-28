@@ -3444,7 +3444,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
   int count = 0;
   int subfeat;
   int line_length = 80; /* Width of the display. */
-  bool custom_output = FALSE;
+  //bool custom_output = FALSE;
 
   if (*arg && is_abbrev(arg, "descriptions")) {
     mode = 1;
@@ -3486,7 +3486,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
                 sprintf(buf, "%-40s\r\n", buf3);
               else
                 sprintf(buf, "%-40s ", buf3);
-              custom_output = TRUE;
+              //custom_output = TRUE;
             }
             strcat(buf2, buf);
             none_shown = FALSE;
@@ -3520,7 +3520,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
                 sprintf(buf, "%-40s\r\n", buf3);
               else
                 sprintf(buf, "%-40s ", buf3);
-              custom_output = TRUE;
+              //custom_output = TRUE;
             }
             strcat(buf2, buf);
             none_shown = FALSE;
@@ -3541,7 +3541,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
                 sprintf(buf, "%-40s\r\n", buf3);
               else
                 sprintf(buf, "%-40s ", buf3);
-              custom_output = TRUE;
+              //custom_output = TRUE;
             }
             strcat(buf2, buf);
             none_shown = FALSE;
