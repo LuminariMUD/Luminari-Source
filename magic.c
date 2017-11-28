@@ -85,10 +85,10 @@ int mag_resistance(struct char_data *ch, struct char_data *vict, int modifier) {
 
   //success?
   if (resist > challenge) {
-    if (PRF_FLAGGED(vict, PRF_COMBATROLL))
+    if (!IS_NPC(vict) && PRF_FLAGGED(vict, PRF_COMBATROLL))
       send_to_char(vict, "\tW*(Resist:%d>Challenge:%d) You Resist!*\tn", resist, challenge);
     if (ch) {
-      if (PRF_FLAGGED(ch, PRF_COMBATROLL))
+      if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
         send_to_char(ch, "\tR*(Challenge:%d<Resist:%d) Resisted!*\tn", challenge, resist);
     }
     return TRUE;
@@ -221,18 +221,18 @@ int mag_savingthrow(struct char_data *ch, struct char_data *vict,
 
   if (diceroll != 1 && (savethrow > challenge || diceroll == 20)) {
     if (diceroll == 20) {
-      if (PRF_FLAGGED(vict, PRF_COMBATROLL))
+      if (!IS_NPC(vict) && PRF_FLAGGED(vict, PRF_COMBATROLL))
         send_to_char(vict, "\tW*Save Roll Twenty!\tn ");
       if (ch && vict && vict != ch) {
-        if (PRF_FLAGGED(ch, PRF_COMBATROLL))
+        if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
           send_to_char(ch, "\tR*Save Roll Twenty!\tn ");
       }
     } else {
-      if (PRF_FLAGGED(vict, PRF_COMBATROLL))
+      if (!IS_NPC(vict) && PRF_FLAGGED(vict, PRF_COMBATROLL))
         send_to_char(vict, "\tW*(%s:%d>Challenge:%d) Saved!*\tn ", save_names[type],
                    savethrow, challenge);
       if (ch && vict && vict != ch) {
-        if (PRF_FLAGGED(ch, PRF_COMBATROLL))
+        if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
           send_to_char(ch, "\tR*(Challenge:%d<%s:%d) Opponent Saved!*\tn ",
                      challenge, save_names[type], savethrow);
       }
@@ -248,18 +248,18 @@ int mag_savingthrow(struct char_data *ch, struct char_data *vict,
 
   /* failed! */
   if (diceroll == 1) {
-    if (PRF_FLAGGED(vict, PRF_COMBATROLL))
+    if (!IS_NPC(vict) && PRF_FLAGGED(vict, PRF_COMBATROLL))
       send_to_char(vict, "\tR*Save Roll One!\tn ");
     if (ch && vict && vict != ch) {
-      if (PRF_FLAGGED(ch, PRF_COMBATROLL))
+      if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
         send_to_char(ch, "\tW*Save Roll One!\tn ");
     }
   } else {
-    if (PRF_FLAGGED(vict, PRF_COMBATROLL))
+    if (!IS_NPC(vict) && PRF_FLAGGED(vict, PRF_COMBATROLL))
       send_to_char(vict, "\tR*(%s:%d<Challenge:%d) Failed Save!*\tn ", save_names[type],
                  savethrow, challenge);
     if (ch && vict && vict != ch) {
-      if (PRF_FLAGGED(ch, PRF_COMBATROLL))
+      if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
         send_to_char(ch, "\tW*(Challenge:%d>%s:%d) Opponent Failed Save!*\tn ",
                    challenge, save_names[type], savethrow);
     }
