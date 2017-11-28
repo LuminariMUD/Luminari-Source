@@ -1675,170 +1675,167 @@ void nanny(struct descriptor_data *d, char *arg) {
       return;
       break;
 
-  case CON_ACCOUNT_NAME:
-    /* Initialize account data for this descriptor. */
-    if (d->account == NULL) {
-      CREATE(d->account, struct account_data, 1);
-      d->account->name = NULL;
-      for (i = 0; i < MAX_CHARS_PER_ACCOUNT; i++)
-        d->account->character_names[i] = NULL;
-    }
-    d->character = NULL;
-    if (!*arg)
-      STATE(d) = CON_CLOSE;
-    else {
-      char buf[MAX_INPUT_LENGTH], tmp_name[MAX_INPUT_LENGTH];
-
-      if ((_parse_name(arg, tmp_name)) || strlen(tmp_name) < 2 ||
-          strlen(tmp_name) > MAX_NAME_LENGTH || !valid_name(tmp_name) ||
-          fill_word(strcpy(buf, tmp_name)) || reserved_word(buf)) {     /* strcpy: OK (mutual MAX_INPUT_LENGTH) */
-        write_to_output(d, "Invalid account name, please try another.\r\nName: ");
-        return;
+    case CON_ACCOUNT_NAME:
+      /* Initialize account data for this descriptor. */
+      if (d->account == NULL) {
+        CREATE(d->account, struct account_data, 1);
+        d->account->name = NULL;
+        for (i = 0; i < MAX_CHARS_PER_ACCOUNT; i++)
+          d->account->character_names[i] = NULL;
       }
-
-      if ((load_account(tmp_name, d->account)) > -1) {
-        if (!valid_name(tmp_name)) {
-          write_to_output(d, "Invalid account name, please try another.\r\nName: ");
-          return;
-        }
-        write_to_output(d, "Password: ");
-        d->idle_tics = 0;
-        STATE(d) = CON_PASSWORD;
-        ProtocolNoEcho(d, true);
-      }
+      d->character = NULL;
+      if (!*arg)
+        STATE(d) = CON_CLOSE;
       else {
-        if (!valid_name(tmp_name)) {
+        char buf[MAX_INPUT_LENGTH], tmp_name[MAX_INPUT_LENGTH];
+
+        if ((_parse_name(arg, tmp_name)) || strlen(tmp_name) < 2 ||
+                strlen(tmp_name) > MAX_NAME_LENGTH || !valid_name(tmp_name) ||
+                fill_word(strcpy(buf, tmp_name)) || reserved_word(buf)) { /* strcpy: OK (mutual MAX_INPUT_LENGTH) */
           write_to_output(d, "Invalid account name, please try another.\r\nName: ");
           return;
         }
-        CREATE(d->account->name, char, strlen(tmp_name) + 1);
-        strcpy(d->account->name, CAP(tmp_name));        /* strcpy: OK (size checked above) */
 
-        write_to_output(d, "Did I get that right, %s (Y/N)?", tmp_name);
-        STATE(d) = CON_ACCOUNT_NAME_CONFIRM;
-      }
-    }
-    break;
-case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
-    if (UPPER(*arg) == 'Y') {
-      if (isbanned(d->host) >= BAN_NEW) {
-        mudlog(NRM, LVL_STAFF, true, "Request for new account %s denied from [%s] (siteban)", d->account->name, d->host);
-        write_to_output(d, "Your site (domain/IP address) has been denied access from making new characters.\r\nPlease contact"
-                           "ornir@luminarimud.com if you feel this should not apply to you.\r\n");
-        STATE(d) = CON_CLOSE;
-        return;
-      }
-      if (circle_restrict) {
-        write_to_output(d, "The game is currently closed to making new account.  Please check our website at "
-                           "http://www.luminarimud.com/\r\nfor more information.\r\n");
-        mudlog(NRM, LVL_STAFF, true, "Request for new account %s denied from [%s] (wizlock)", d->account->name, d->host);
-        STATE(d) = CON_CLOSE;
-        return;
-      }
-      write_to_output(d, "New Account.\r\nGive me a Password: ");
-      STATE(d) = CON_NEWPASSWD;
-    } else if (*arg == 'n' || *arg == 'N') {
-      write_to_output(d, "Okay, what IS it, then? ");
-      free(d->account->name);
-      d->account->name = NULL;
-      STATE(d) = CON_ACCOUNT_NAME;
-    } else
-      write_to_output(d, "Please type Yes or No: ");
-    break;
-
-  case CON_ACCOUNT_MENU:
-    ProtocolNoEcho(d, false); /* turn echo back on */
-    if(d->character)
-      free_char(d->character);
-    d->character = NULL;
-
-    if (d->character == NULL) {
-      CREATE(d->character, struct char_data, 1);
-      clear_char(d->character);
-      CREATE(d->character->player_specials, struct player_special_data, 1);
-
-      new_mobile_data(d->character);
-      GET_HOST(d->character) = strdup(d->host);
-      d->character->desc = d;
-    }
-    switch (*arg) {
-      case 'C':
-      case 'c':
-        /* Create a new character */
-        write_to_output(d, "What will your new character be called? : ");
-        STATE(d) = CON_GET_NAME;
-        return;
-      case 'A':
-      case 'a':
-        /* Add an existing character to this account. */
-        write_to_output(d, "Which character you wish to add to this account? : ");
-        STATE(d) = CON_ACCOUNT_ADD;
-        return;
-      case 'q':
-      case 'Q':
-        write_to_output(d, "Quitting.\r\n");
-        STATE(d) = CON_CLOSE;
-        return;
-      default:
-        if (atoi(arg) < 1 || atoi(arg) > (MAX_CHARS_PER_ACCOUNT)) {
-          write_to_output(d, "The number must be between 1 and %d.\r\n", MAX_CHARS_PER_ACCOUNT);
-          return;
-        }
-        else if (d->account->character_names[atoi(arg) - 1] == NULL) {
-          write_to_output(d, "That character doesn't exist.  Please choose another.  Your Choice: ");
-          return;
-        }
-        else if ((player_i = load_char(d->account->character_names[atoi(arg) - 1], d->character)) > -1) {
-          GET_PFILEPOS(d->character) = player_i;
-          if (PLR_FLAGGED(d->character, PLR_DELETED)) {
-            show_account_menu(d);
-            write_to_output(d, "This character has been deleted.  Please speak to an immortal about having the deleted flag removed.\r\n");
+        if ((load_account(tmp_name, d->account)) > -1) {
+          if (!valid_name(tmp_name)) {
+            write_to_output(d, "Invalid account name, please try another.\r\nName: ");
             return;
-          } else {
-            GET_PFILEPOS(d->character) = player_i;
-            if (GET_LEVEL(d->character) < circle_restrict) {
-              write_to_output(d, "The game is temporarily open for staff members only.  Please refer to the website for more "
-                                 "intormation.\r\nhttp://www.luminarimud.com/\r\n");
-              STATE(d) = CON_CLOSE;
-              mudlog(NRM, LVL_STAFF, true, "Request for login denied for %s [%s] (wizlock)", GET_NAME(d->character), d->host);
-              return;
-            }
-
-            if (AddRecentPlayer(GET_NAME(d->character), d->host, FALSE, FALSE) == FALSE) {
-              mudlog(BRF, MAX(LVL_IMMORT, GET_INVIS_LEV(d->character)), TRUE, "Failure to AddRecentPlayer (returned FALSE).");
-            }
-
-            /* undo it just in case they are set */
-            REMOVE_BIT_AR(PLR_FLAGS(d->character), PLR_WRITING);
-            REMOVE_BIT_AR(PLR_FLAGS(d->character), PLR_MAILING);
-            REMOVE_BIT_AR(PLR_FLAGS(d->character), PLR_CRYO);
-            d->idle_tics = 0;
-            write_to_output(d, "Character loaded.  Press enter to continue.\r\n");
-
-            /* check and make sure no other copies of this player are logged in */
-            if (perform_dupe_check(d))
-              return;
-
-            if (IS_IMMORTAL(d->character))
-              write_to_output(d, "%s\r\n *** PRESS RETURN ***", imotd);
-            else
-              write_to_output(d, "%s\r\n *** PRESS RETURN ***", motd);
-
-            if (GET_INVIS_LEV(d->character))
-              mudlog(BRF, MAX(LVL_IMMORT, GET_INVIS_LEV(d->character)), true,
-              "%s [%s] has connected. (invis %d)", GET_NAME(d->character), d->host,
-              GET_INVIS_LEV(d->character));
-            else {
-          //    if (!PRF_FLAGGED(d->character, PRF_ANONYMOUS))
-          //      mudlog(BRF, LVL_STAFF, true, "%s has connected.", GET_NAME(d->character));
-                mudlog(BRF, LVL_IMMORT, true, "%s [%s] has connected.", GET_NAME(d->character), d->host);
-            }
-            STATE(d) = CON_RMOTD;
           }
+          write_to_output(d, "Password: ");
+          d->idle_tics = 0;
+          STATE(d) = CON_PASSWORD;
+          ProtocolNoEcho(d, true);
+        } else {
+          if (!valid_name(tmp_name)) {
+            write_to_output(d, "Invalid account name, please try another.\r\nName: ");
+            return;
+          }
+          CREATE(d->account->name, char, strlen(tmp_name) + 1);
+          strcpy(d->account->name, CAP(tmp_name)); /* strcpy: OK (size checked above) */
+
+          write_to_output(d, "Did I get that right, %s (Y/N)?", tmp_name);
+          STATE(d) = CON_ACCOUNT_NAME_CONFIRM;
         }
       }
+      break;
+    case CON_ACCOUNT_NAME_CONFIRM: /* wait for conf. of new name    */
+      if (UPPER(*arg) == 'Y') {
+        if (isbanned(d->host) >= BAN_NEW) {
+          mudlog(NRM, LVL_STAFF, true, "Request for new account %s denied from [%s] (siteban)", d->account->name, d->host);
+          write_to_output(d, "Your site (domain/IP address) has been denied access from making new characters.\r\nPlease contact"
+                  "ornir@luminarimud.com if you feel this should not apply to you.\r\n");
+          STATE(d) = CON_CLOSE;
+          return;
+        }
+        if (circle_restrict) {
+          write_to_output(d, "The game is currently closed to making new account.  Please check our website at "
+                  "http://www.luminarimud.com/\r\nfor more information.\r\n");
+          mudlog(NRM, LVL_STAFF, true, "Request for new account %s denied from [%s] (wizlock)", d->account->name, d->host);
+          STATE(d) = CON_CLOSE;
+          return;
+        }
+        write_to_output(d, "New Account.\r\nGive me a Password: ");
+        STATE(d) = CON_NEWPASSWD;
+      } else if (*arg == 'n' || *arg == 'N') {
+        write_to_output(d, "Okay, what IS it, then? ");
+        free(d->account->name);
+        d->account->name = NULL;
+        STATE(d) = CON_ACCOUNT_NAME;
+      } else
+        write_to_output(d, "Please type Yes or No: ");
+      break;
 
-    break;
+    case CON_ACCOUNT_MENU:
+      ProtocolNoEcho(d, false); /* turn echo back on */
+      if (d->character)
+        free_char(d->character);
+      d->character = NULL;
+
+      if (d->character == NULL) {
+        CREATE(d->character, struct char_data, 1);
+        clear_char(d->character);
+        CREATE(d->character->player_specials, struct player_special_data, 1);
+
+        new_mobile_data(d->character);
+        GET_HOST(d->character) = strdup(d->host);
+        d->character->desc = d;
+      }
+      switch (*arg) {
+        case 'C':
+        case 'c':
+          /* Create a new character */
+          write_to_output(d, "What will your new character be called? : ");
+          STATE(d) = CON_GET_NAME;
+          return;
+        case 'A':
+        case 'a':
+          /* Add an existing character to this account. */
+          write_to_output(d, "Which character you wish to add to this account? : ");
+          STATE(d) = CON_ACCOUNT_ADD;
+          return;
+        case 'q':
+        case 'Q':
+          write_to_output(d, "Quitting.\r\n");
+          STATE(d) = CON_CLOSE;
+          return;
+        default:
+          if (atoi(arg) < 1 || atoi(arg) > (MAX_CHARS_PER_ACCOUNT)) {
+            write_to_output(d, "The number must be between 1 and %d.\r\n", MAX_CHARS_PER_ACCOUNT);
+            return;
+          } else if (d->account->character_names[atoi(arg) - 1] == NULL) {
+            write_to_output(d, "That character doesn't exist.  Please choose another.  Your Choice: ");
+            return;
+          } else if ((player_i = load_char(d->account->character_names[atoi(arg) - 1], d->character)) > -1) {
+            GET_PFILEPOS(d->character) = player_i;
+            if (PLR_FLAGGED(d->character, PLR_DELETED)) {
+              show_account_menu(d);
+              write_to_output(d, "This character has been deleted.  Please speak to an immortal about having the deleted flag removed.\r\n");
+              return;
+            } else {
+              GET_PFILEPOS(d->character) = player_i;
+              if (GET_LEVEL(d->character) < circle_restrict) {
+                write_to_output(d, "The game is temporarily open for staff members only.  Please refer to the website for more "
+                        "intormation.\r\nhttp://www.luminarimud.com/\r\n");
+                STATE(d) = CON_CLOSE;
+                mudlog(NRM, LVL_STAFF, true, "Request for login denied for %s [%s] (wizlock)", GET_NAME(d->character), d->host);
+                return;
+              }
+
+              if (AddRecentPlayer(GET_NAME(d->character), d->host, FALSE, FALSE) == FALSE) {
+                mudlog(BRF, MAX(LVL_IMMORT, GET_INVIS_LEV(d->character)), TRUE, "Failure to AddRecentPlayer (returned FALSE).");
+              }
+
+              /* undo it just in case they are set */
+              REMOVE_BIT_AR(PLR_FLAGS(d->character), PLR_WRITING);
+              REMOVE_BIT_AR(PLR_FLAGS(d->character), PLR_MAILING);
+              REMOVE_BIT_AR(PLR_FLAGS(d->character), PLR_CRYO);
+              d->idle_tics = 0;
+              write_to_output(d, "Character loaded.  Press enter to continue.\r\n");
+
+              /* check and make sure no other copies of this player are logged in */
+              if (perform_dupe_check(d))
+                return;
+
+              if (IS_IMMORTAL(d->character))
+                write_to_output(d, "%s\r\n *** PRESS RETURN ***", imotd);
+              else
+                write_to_output(d, "%s\r\n *** PRESS RETURN ***", motd);
+
+              if (GET_INVIS_LEV(d->character))
+                mudlog(BRF, MAX(LVL_IMMORT, GET_INVIS_LEV(d->character)), true,
+                      "%s [%s] has connected. (invis %d)", GET_NAME(d->character), d->host,
+                      GET_INVIS_LEV(d->character));
+              else {
+                //    if (!PRF_FLAGGED(d->character, PRF_ANONYMOUS))
+                //      mudlog(BRF, LVL_STAFF, true, "%s has connected.", GET_NAME(d->character));
+                mudlog(BRF, LVL_IMMORT, true, "%s [%s] has connected.", GET_NAME(d->character), d->host);
+              }
+              STATE(d) = CON_RMOTD;
+            }
+          }
+      }
+
+      break;
     case CON_ACCOUNT_ADD: /* wait for input of char name to add to account */
       if (d->character == NULL) {
         CREATE(d->character, struct char_data, 1);
@@ -1866,28 +1863,28 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
         }
         if ((player_i = load_char(tmp_name, d->character)) > -1) {
           /* Player found! */
-         char * acct_name = get_char_account_name(GET_NAME(d->character));
-         if (acct_name != NULL) {
-           if (!strcmp(acct_name, d->account->name))
-             write_to_output(d, "That character is already linked to your account!\r\n");
-           else
-             write_to_output(d, "That character is linked to another account.\r\n");
-           free(acct_name);
-           STATE(d) = CON_ACCOUNT_MENU;
-           show_account_menu(d);
-           return;
-         }
-         if (PLR_FLAGGED(d->character, PLR_DELETED)) {
-           write_to_output(d, "That character has been deleted.\r\n");
-           STATE(d) = CON_ACCOUNT_MENU;
-           show_account_menu(d);
-           return;
-         }
-         /* Now challenge with the password. */
-         write_to_output(d, "Please enter the character password for %s : ", GET_NAME(d->character));
-         STATE(d) = CON_ACCOUNT_ADD_PWD;
-         ProtocolNoEcho(d, true);
-         return;
+          char * acct_name = get_char_account_name(GET_NAME(d->character));
+          if (acct_name != NULL) {
+            if (!strcmp(acct_name, d->account->name))
+              write_to_output(d, "That character is already linked to your account!\r\n");
+            else
+              write_to_output(d, "That character is linked to another account.\r\n");
+            free(acct_name);
+            STATE(d) = CON_ACCOUNT_MENU;
+            show_account_menu(d);
+            return;
+          }
+          if (PLR_FLAGGED(d->character, PLR_DELETED)) {
+            write_to_output(d, "That character has been deleted.\r\n");
+            STATE(d) = CON_ACCOUNT_MENU;
+            show_account_menu(d);
+            return;
+          }
+          /* Now challenge with the password. */
+          write_to_output(d, "Please enter the character password for %s : ", GET_NAME(d->character));
+          STATE(d) = CON_ACCOUNT_ADD_PWD;
+          ProtocolNoEcho(d, true);
+          return;
         } else {
           write_to_output(d, "That character does not exist, please create a new character.\r\n");
           STATE(d) = CON_ACCOUNT_MENU;
@@ -2039,12 +2036,11 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
         /* Success! */
         //save_char(d->character, 0);
 
-        for (i = 0; (i < MAX_CHARS_PER_ACCOUNT) && (d->account->character_names[i] != NULL);i++);
+        for (i = 0; (i < MAX_CHARS_PER_ACCOUNT) && (d->account->character_names[i] != NULL); i++);
         if (i == MAX_CHARS_PER_ACCOUNT) {
           write_to_output(d, "You have reached the maximum number of characters on this account.\r\n"
-                             "Remove a character before adding a new one.\r\n");
-        }
-        else {
+                  "Remove a character before adding a new one.\r\n");
+        } else {
           d->account->character_names[i] = strdup(GET_NAME(d->character));
           save_account(d->account);
         }
@@ -2086,8 +2082,8 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
           return;
         }
 
-	/* Password was correct. */
-	load_result = d->account->bad_password_count;
+        /* Password was correct. */
+        load_result = d->account->bad_password_count;
         d->bad_pws = 0;
 
         if (isbanned(d->host) == BAN_SELECT &&
@@ -2102,42 +2098,42 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
           write_to_output(d, "\r\n\r\n\007\007\007"
                   "\tR%d LOGIN FAILURE%s SINCE LAST SUCCESSFUL LOGIN.\tn\r\n",
                   load_result,
-		  (load_result > 1) ? "S" : "");
-	  d->account->bad_password_count = 0;
+                  (load_result > 1) ? "S" : "");
+          d->account->bad_password_count = 0;
         }
 
         show_account_menu(d);
         STATE(d) = CON_ACCOUNT_MENU;
         break;
-/*
-        if (perform_dupe_check(d))
-          return;
+        /*
+                if (perform_dupe_check(d))
+                  return;
 
-        if (GET_LEVEL(d->character) >= LVL_IMMORT)
-          write_to_output(d, "%s", imotd);
-        else
-          write_to_output(d, "%s", motd);
+                if (GET_LEVEL(d->character) >= LVL_IMMORT)
+                  write_to_output(d, "%s", imotd);
+                else
+                  write_to_output(d, "%s", motd);
 
-        if (GET_INVIS_LEV(d->character))
-          mudlog(BRF, MAX(LVL_IMMORT, GET_INVIS_LEV(d->character)), TRUE, "%s has connected. (invis %d)", GET_NAME(d->character), GET_INVIS_LEV(d->character));
-        else
-          mudlog(BRF, LVL_IMMORT, TRUE, "%s has connected.", GET_NAME(d->character));
-*/
+                if (GET_INVIS_LEV(d->character))
+                  mudlog(BRF, MAX(LVL_IMMORT, GET_INVIS_LEV(d->character)), TRUE, "%s has connected. (invis %d)", GET_NAME(d->character), GET_INVIS_LEV(d->character));
+                else
+                  mudlog(BRF, LVL_IMMORT, TRUE, "%s has connected.", GET_NAME(d->character));
+         */
         /* Add to the list of 'recent' players (since last reboot) */
-/*          if (AddRecentPlayer(GET_NAME(d->character), d->host, FALSE, FALSE) == FALSE) {
-          mudlog(BRF, MAX(LVL_IMMORT, GET_INVIS_LEV(d->character)), TRUE, "Failure to AddRecentPlayer (returned FALSE).");
-        }
+        /*          if (AddRecentPlayer(GET_NAME(d->character), d->host, FALSE, FALSE) == FALSE) {
+                  mudlog(BRF, MAX(LVL_IMMORT, GET_INVIS_LEV(d->character)), TRUE, "Failure to AddRecentPlayer (returned FALSE).");
+                }
 
-        if (load_result) {
-          write_to_output(d, "\r\n\r\n\007\007\007"
-                  "%s%d LOGIN FAILURE%s SINCE LAST SUCCESSFUL LOGIN.%s\r\n",
-                  CCRED(d->character, C_SPR), load_result,
-                  (load_result > 1) ? "S" : "", CCNRM(d->character, C_SPR));
-          GET_BAD_PWS(d->character) = 0;
-        }
-        write_to_output(d, "\r\n*** PRESS RETURN: ");
-        STATE(d) = CON_RMOTD;
-*/
+                if (load_result) {
+                  write_to_output(d, "\r\n\r\n\007\007\007"
+                          "%s%d LOGIN FAILURE%s SINCE LAST SUCCESSFUL LOGIN.%s\r\n",
+                          CCRED(d->character, C_SPR), load_result,
+                          (load_result > 1) ? "S" : "", CCNRM(d->character, C_SPR));
+                  GET_BAD_PWS(d->character) = 0;
+                }
+                write_to_output(d, "\r\n*** PRESS RETURN: ");
+                STATE(d) = CON_RMOTD;
+         */
       }
       break;
 
@@ -2181,17 +2177,17 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
         STATE(d) = CON_MENU;
       }
       break;
-/*
-      if (STATE(d) == CON_CNFPASSWD) {
-        write_to_output(d, "\r\nWhat is your sex (\t(M\t)/\t(F\t))? ");
-        STATE(d) = CON_QSEX;
-      } else {
-        save_char(d->character, 0);
-        write_to_output(d, "\r\nDone.\r\n%s", CONFIG_MENU);
-        STATE(d) = CON_MENU;
-      }
-      break;
-*/
+      /*
+            if (STATE(d) == CON_CNFPASSWD) {
+              write_to_output(d, "\r\nWhat is your sex (\t(M\t)/\t(F\t))? ");
+              STATE(d) = CON_QSEX;
+            } else {
+              save_char(d->character, 0);
+              write_to_output(d, "\r\nDone.\r\n%s", CONFIG_MENU);
+              STATE(d) = CON_MENU;
+            }
+            break;
+       */
     case CON_QSEX: /* query sex of new user         */
       switch (*arg) {
         case 'm':
@@ -2404,14 +2400,14 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
       /* Next step: Assign base ability scores */
       write_to_output(d, "\r\n");
       write_to_output(d, "Please select your base ability scores :\r\n"
-                         "Str: %d%s Dex: %d%s Con: %d%s Int: %d%s Wis: %d%s Cha: %d%s\r\n",
-                         GET_STR(d->character), "",
-                         GET_DEX(d->character), "",
-                         GET_CON(d->character), "",
-                         GET_INT(d->character), "",
-                         GET_WIS(d->character), "",
-                         GET_CHA(d->character), ""
-                         );
+              "Str: %d%s Dex: %d%s Con: %d%s Int: %d%s Wis: %d%s Cha: %d%s\r\n",
+              GET_STR(d->character), "",
+              GET_DEX(d->character), "",
+              GET_CON(d->character), "",
+              GET_INT(d->character), "",
+              GET_WIS(d->character), "",
+              GET_CHA(d->character), ""
+              );
       write_to_output(d, "[%d points left] Enter ability score, Q (done) or ? for help : ", stat_points);
 
 
@@ -2457,14 +2453,14 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
 #endif
       /* start initial alignment selection code */
       write_to_output(d, "\r\nSelect Alignment\r\n"
-        "Note: you may be restricted by your class\r\n"
-        "Note: If you don't know which to select, select 'true neutral'\r\n"
-        "\r\nGood characters and creatures protect innocent life. Evil characters "
-        "and creatures debase or destroy innocent life, whether for fun or profit.\r\n"
-        "\r\nLawful characters tell the truth, keep their word, respect authority, "
-        "honor tradition, and judge those who fall short of their duties. Chaotic "
-        "characters follow their consciences, resent being told what to do, favor "
-        "new ideas over tradition, and do what they promise if they feel like it.\r\n\r\n");
+              "Note: you may be restricted by your class\r\n"
+              "Note: If you don't know which to select, select 'true neutral'\r\n"
+              "\r\nGood characters and creatures protect innocent life. Evil characters "
+              "and creatures debase or destroy innocent life, whether for fun or profit.\r\n"
+              "\r\nLawful characters tell the truth, keep their word, respect authority, "
+              "honor tradition, and judge those who fall short of their duties. Chaotic "
+              "characters follow their consciences, resent being told what to do, favor "
+              "new ideas over tradition, and do what they promise if they feel like it.\r\n\r\n");
       for (i = 0; i < NUM_ALIGNMENTS; i++) {
         if (valid_align_by_class(i, GET_CLASS(d->character)))
           write_to_output(d, "%d) %s\r\n", i, alignment_names[i]);
@@ -2552,9 +2548,9 @@ case CON_ACCOUNT_NAME_CONFIRM:          /* wait for conf. of new name    */
 
       switch (*arg) {
         case '0':
-//          write_to_output(d, "Goodbye.\r\n");
+          //          write_to_output(d, "Goodbye.\r\n");
           add_llog_entry(d->character, LAST_QUIT);
-//          STATE(d) = CON_CLOSE;
+          //          STATE(d) = CON_CLOSE;
           STATE(d) = CON_ACCOUNT_MENU;
           show_account_menu(d);
           save_char(d->character, 0);

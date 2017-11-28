@@ -401,7 +401,10 @@ void mobile_echos(struct char_data *ch) {
 
   if (rand_number(1, 75) > (ECHO_FREQ(ch) / 4))
     return;
-
+  
+  if (CURRENT_ECHO(ch) > ECHO_COUNT(ch)) /* dummy check */
+    CURRENT_ECHO(ch) = 0;
+  
   if (ECHO_SEQUENTIAL(ch)) {
     echo = ECHO_ENTRIES(ch)[CURRENT_ECHO(ch)++];
     if (CURRENT_ECHO(ch) >= ECHO_COUNT(ch))

@@ -188,8 +188,8 @@ void remove_player_from_index(int pos) {
 
 /* This function necessary to save a seperate ASCII player index */
 void save_player_index(void) {
-  int i;
-  char index_name[50], bits[64];
+  int i = 0;
+  char index_name[50] = {'\0'}, bits[64] = {'\0'};
   FILE *index_file;
 
   sprintf(index_name, "%s%s", LIB_PLRFILES, INDEX_FILE);
@@ -1283,9 +1283,29 @@ void save_char(struct char_data * ch, int mode) {
 
   write_aliases_ascii(fl, ch);
   save_char_vars_ascii(fl, ch);
+  
+  /* Save account data
+     Trying this before file gets closed, before use to be
+     at very end of this function 11/28/2017 -Zusuk*/
+  if (ch->desc && ch->desc->account) {
+    for (i = 0; i < MAX_CHARS_PER_ACCOUNT; i++) {
+      if (ch->desc->account->character_names[i] != NULL &&
+          !strcmp(ch->desc->account->character_names[i], GET_NAME(ch)))
+        break;
+      if (ch->desc->account->character_names[i] == NULL)
+        break;
+    }
 
+    if (i != MAX_CHARS_PER_ACCOUNT && !IS_SET_AR(PLR_FLAGS(ch), PLR_DELETED))
+      ch->desc->account->character_names[i] = strdup(GET_NAME(ch));
+    save_account(ch->desc->account);
+  }
+
+  /* FILE CLOSED!!! */
   fclose(fl);
 
+  /* add affects, dr, etc back in */
+  
   /* More char_to_store code to add spell and eq affections back in. */
   for (i = 0; i < MAX_AFFECT; i++) {
     if (tmp_aff[i].spell)
@@ -1309,8 +1329,6 @@ void save_char(struct char_data * ch, int mode) {
         obj_to_char(char_eq[i], ch);
 #endif
   }
-
-  /* add affects back in */
 
   /* end char_to_store code */
 
@@ -1344,20 +1362,6 @@ void save_char(struct char_data * ch, int mode) {
   if (player_table[id].flags != i || save_index)
     save_player_index();
 
-  /* Save account data */
-  if (ch->desc && ch->desc->account) {
-    for (i = 0; i < MAX_CHARS_PER_ACCOUNT; i++) {
-      if (ch->desc->account->character_names[i] != NULL &&
-          !strcmp(ch->desc->account->character_names[i], GET_NAME(ch)))
-        break;
-      if (ch->desc->account->character_names[i] == NULL)
-        break;
-    }
-
-    if (i != MAX_CHARS_PER_ACCOUNT && !IS_SET_AR(PLR_FLAGS(ch), PLR_DELETED))
-      ch->desc->account->character_names[i] = strdup(GET_NAME(ch));
-    save_account(ch->desc->account);
-  }
 }
 
 /* Separate a 4-character id tag from the data it precedes */

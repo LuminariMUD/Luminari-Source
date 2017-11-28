@@ -3210,7 +3210,7 @@ ACMD(do_diagnose) {
 ACMD(do_toggle) {
   char buf2[4], arg[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
   int toggle, tp, wimp_lev, result = 0, len = 0, i;
-  const char *types[] = {"off", "brief", "normal", "on", "\n"};
+  const char *types[] = {"OFF", "Brief", "Normal", "ON", "\n"};
 
   const struct {
     char *command;
