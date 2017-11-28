@@ -3157,8 +3157,7 @@ char *get_align_by_num(int align) {
 }
 
 /* Feats */
-int get_feat_value(struct char_data *ch, int featnum)
-{
+int get_feat_value(struct char_data *ch, int featnum) {
   if ((featnum <= FEAT_UNDEFINED) || (featnum >= FEAT_LAST_FEAT)) {
     log("SYSERR: get_feat_value called with invalid featnum: %d", featnum);
     return 0;
