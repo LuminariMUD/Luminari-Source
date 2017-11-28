@@ -780,15 +780,15 @@ void update_pos_dam(struct char_data *victim) {
   else { // hp > 0
     if (GET_POS(victim) < POS_RESTING) {
       if (!AWAKE(victim)) {
-        GUI_CMBT_OPEN(ch);
+        GUI_CMBT_OPEN(victim);
         send_to_char(victim, "\tRYour sleep is disturbed!!\tn  ");
-        GUI_CMBT_CLOSE(ch);
+        GUI_CMBT_CLOSE(victim);
       }
       GET_POS(victim) = POS_SITTING;
-      GUI_CMBT_OPEN(ch);
+      GUI_CMBT_OPEN(victim);
       send_to_char(victim,
               "You instinctively shift from dangerous positioning to sitting...\r\n");
-      GUI_CMBT_CLOSE(ch);
+      GUI_CMBT_CLOSE(victim);
     }
   }
 }
