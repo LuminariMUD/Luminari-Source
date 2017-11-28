@@ -107,6 +107,33 @@ void strip_colors(char *str)
   }  
   *n = '\0'; 
 }
+void strip_const_colors(const char *str)
+{
+  char *p = str;
+  char *n = str;
+
+  while (p && *p) {
+
+    if (*p == '@') {
+      if (*(p+1) != '@') {
+        p += 2;
+      } else {
+        p++;
+        *n++ = *p++;
+      }
+    } else if (*p == '\t') {
+      if (*(p+1) != '\t') {
+        p += 2;
+      } else {
+        p++;
+        *n++ = *p++;
+      }
+    } else {
+      *n++ = *p++;
+    }
+  }  
+  *n = '\0'; 
+}
 
 
 /* Parse out the @ character and replace it with the '\t' to work with
