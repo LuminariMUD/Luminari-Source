@@ -1655,6 +1655,7 @@ void basic_mud_vlog(const char *format, va_list args) {
   time_s[strlen(time_s) - 1] = '\0';
 
   fprintf(logfile, "%-15.15s :: ", time_s + 4);
+  strip_colors(format);
   vfprintf(logfile, format, args);
   fputc('\n', logfile);
   fflush(logfile);
