@@ -1215,7 +1215,7 @@ int invalid_prof(struct char_data *ch, struct obj_data *obj) {
 void equip_char(struct char_data *ch, struct obj_data *obj, int pos) {
   int i, j;
   int empty_bits[AF_ARRAY_MAX];
-  room_vnum r_vnum = NOWHERE;
+  room_rnum r_rnum = NOWHERE;
 
   for(i = 0; i > AF_ARRAY_MAX; i++)
     empty_bits[i] = 0;
@@ -1226,9 +1226,9 @@ void equip_char(struct char_data *ch, struct obj_data *obj, int pos) {
   }
 
   if (GET_EQ(ch, pos)) {
-    r_vnum = IN_ROOM(ch);
+    r_rnum = IN_ROOM(ch);
       
-    log("SYSERR: Char/Loc [%d][%d] is already equipped: %s, %s", GET_MOB_VNUM(ch), r_vnum, GET_NAME(ch),
+    log("SYSERR: Char/Loc [%d][%d] is already equipped: %s, %s", GET_MOB_VNUM(ch), GET_ROOM_VNUM(r_rnum), GET_NAME(ch),
             obj->short_description);
     return;
   }
