@@ -429,11 +429,11 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill) 
     return FALSE;
   }
   if ((GET_SIZE(ch) - GET_SIZE(vict)) >= 2) {
-    send_to_char(ch, "Your target is too small!\r\n");
+    send_to_char(ch, "Your knockdown attempt is unsuccessful due to the target being too small!\r\n");
     return FALSE;
   }
   if ((GET_SIZE(vict) - GET_SIZE(ch)) >= 2) {
-    send_to_char(ch, "Your target is too big!\r\n");
+    send_to_char(ch, "Your knockdown attempt is unsuccessful due to the target being too big!\r\n");
     return FALSE;
   }
   if (GET_POS(vict) == POS_SITTING) {
