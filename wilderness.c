@@ -757,19 +757,43 @@ void show_wilderness_map(struct char_data* ch, int size, int x, int y) {
   if (!IS_NPC(ch))
     if (IS_SET_AR(ROOM_FLAGS(IN_ROOM(ch)), ROOM_GENDESC) || IS_DYNAMIC(IN_ROOM(ch))) {
       generated_desc = gen_room_description(ch, IN_ROOM(ch));
-      send_to_char(ch,
-                   "%s",
-                   strpaste(wilderness_map_to_string(map, size, WILD_MAP_SHAPE_CIRCLE, MAP_TYPE_NORMAL),
-                            strfrmt(generated_desc,
-                                    GET_SCREEN_WIDTH(ch) - size,
-                                    size,
-                                    FALSE,
-                                    TRUE,
-                                    TRUE),
-                            " \tn")
-                   );
+      if (PRF_FLAGGED(ch, PRF_GUI_MODE)) {
+        // Display the map inline, with tags.
+        send_to_char(ch,
+                     "<WILDERNESS_MAP>\n"
+                     "%s"
+                     "</WILDERNESS_MAP>\n"
+                     "\tn%s\tn",
+                     wilderness_map_to_string(map, size, WILD_MAP_SHAPE_CIRCLE, MAP_TYPE_NORMAL),
+                     generated_desc
+                     );
+      } else {
+        send_to_char(ch,
+                    "%s",
+                    strpaste(wilderness_map_to_string(map, size, WILD_MAP_SHAPE_CIRCLE, MAP_TYPE_NORMAL),
+                              strfrmt(generated_desc,
+                                      GET_SCREEN_WIDTH(ch) - size,
+                                      size,
+                                      FALSE,
+                                      TRUE,
+                                      TRUE
+                              ),
+                              " \tn")
+                    );
+      }
       free(generated_desc);
     } else {
+      if (PRF_FLAGGED(ch, PRF_GUI_MODE)) {
+        // Display the map inline, with tags.
+        send_to_char(ch,
+                     "<WILDERNESS_MAP>\n"
+                     "%s"
+                     "</WILDERNESS_MAP>\n"
+                     "\tn%s\tn",
+                     wilderness_map_to_string(map, size, WILD_MAP_SHAPE_CIRCLE, MAP_TYPE_NORMAL),
+                     world[IN_ROOM(ch)].description
+                     );
+      } else {
       send_to_char(ch,
                    "%s",
                    strpaste(wilderness_map_to_string(map, size, WILD_MAP_SHAPE_CIRCLE, MAP_TYPE_NORMAL),
@@ -780,7 +804,8 @@ void show_wilderness_map(struct char_data* ch, int size, int x, int y) {
                                     TRUE,
                                     TRUE),
                             " \tn")
-                   );
+                          );
+      }
     }
   else
     send_to_char(ch,
