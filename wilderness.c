@@ -763,7 +763,7 @@ void show_wilderness_map(struct char_data* ch, int size, int x, int y) {
                      "<WILDERNESS_MAP>\n"
                      "%s"
                      "</WILDERNESS_MAP>\n"
-                     "\tn%s\tn",
+                     "\tn%s\tn\n",
                      wilderness_map_to_string(map, size, WILD_MAP_SHAPE_CIRCLE, MAP_TYPE_NORMAL),
                      generated_desc
                      );
@@ -789,7 +789,7 @@ void show_wilderness_map(struct char_data* ch, int size, int x, int y) {
                      "<WILDERNESS_MAP>\n"
                      "%s"
                      "</WILDERNESS_MAP>\n"
-                     "\tn%s\tn",
+                     "\tn%s\tn\n",
                      wilderness_map_to_string(map, size, WILD_MAP_SHAPE_CIRCLE, MAP_TYPE_NORMAL),
                      world[IN_ROOM(ch)].description
                      );
