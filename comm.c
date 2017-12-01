@@ -3277,7 +3277,7 @@ static void msdp_update(void) {
         //        send_to_char(ch, "DEBUG: %s\r\n", room_exits);
 
         /* Build the ROOM table.  */
-        sprintf(buf2, "%cVNUM%c%d%cNAME%c%s%cAREA%c%s%cCOORDS%c%c%cX%c%d%cY%c%d%cZ%c%d%c%cTERRAIN%c%s%cEXITS%c%c%s%c",
+        sprintf(buf2, "%cVNUM%c%d%cNAME%c%s%cAREA%c%s%cENVIRONMENT%c%s%cCOORDS%c%c%cX%c%d%cY%c%d%cZ%c%d%c%cTERRAIN%c%s%cEXITS%c%c%s%c",
                 MsdpVar, MsdpVal,
                 GET_ROOM_VNUM(IN_ROOM(ch)),
                 MsdpVar, MsdpVal,
@@ -3285,6 +3285,8 @@ static void msdp_update(void) {
                 MsdpVar, MsdpVal,
                 zone_table[GET_ROOM_ZONE(IN_ROOM(ch))].name,
                 MsdpVar, MsdpVal,
+                (IS_WILDERNESS_VNUM(GET_ROOM_VNUM(IN_ROOM(ch))) ? "WILDERNESS" : "ROOM"),
+                MsdpVar, MsdpVal,                
                 MSDP_TABLE_OPEN,
                 MsdpVar, MsdpVal,
                 0,
