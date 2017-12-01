@@ -3286,7 +3286,7 @@ static void msdp_update(void) {
                 MsdpVar, MsdpVal,
                 zone_table[GET_ROOM_ZONE(IN_ROOM(ch))].name,
                 MsdpVar, MsdpVal,
-                (IS_WILDERNESS_VNUM(GET_ROOM_VNUM(IN_ROOM(ch))) ? "WILDERNESS" : "ROOM"),
+                (IS_WILDERNESS_VNUM(GET_ROOM_VNUM(IN_ROOM(ch))) ? "Wilderness" : "Room"),
                 MsdpVar, MsdpVal,                
                 MSDP_TABLE_OPEN,
                 MsdpVar, MsdpVal,
