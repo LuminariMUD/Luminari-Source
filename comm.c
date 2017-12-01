@@ -91,6 +91,7 @@
 #include "actions.h"
 #include "actionqueues.h"
 #include "assign_wpn_armor.h"
+#include "wilderness.h"
 
 #ifndef INVALID_SOCKET
 #define INVALID_SOCKET (-1)
