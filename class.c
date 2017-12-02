@@ -1651,9 +1651,9 @@ void newbieEquipment(struct char_data *ch) {
       GET_OBJ_SIZE(obj) = GET_SIZE(ch);
       obj_to_char(obj, ch); // steel scimitar
 
-      obj = read_object(863, VIRTUAL);
+      obj = read_object(864, VIRTUAL);
       GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-      obj_to_char(obj, ch); // shield
+      obj_to_char(obj, ch); // shield (wooden))
 
       obj = read_object(851, VIRTUAL);
       GET_OBJ_SIZE(obj) = GET_SIZE(ch);
