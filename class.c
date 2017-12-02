@@ -1613,10 +1613,9 @@ void newbieEquipment(struct char_data *ch) {
 
   switch (GET_CLASS(ch)) {
     case CLASS_PALADIN:
+      /*fallthrough*/
     case CLASS_CLERIC:
-    case CLASS_DRUID:
       // holy symbol
-
       obj = read_object(854, VIRTUAL);
       GET_OBJ_SIZE(obj) = GET_SIZE(ch);
       obj_to_char(obj, ch); // leather sleeves
@@ -1636,6 +1635,29 @@ void newbieEquipment(struct char_data *ch) {
       obj = read_object(807, VIRTUAL);
       GET_OBJ_SIZE(obj) = GET_SIZE(ch);
       obj_to_char(obj, ch); // scale mail
+      break;
+      
+    case CLASS_DRUID:
+
+      obj = read_object(854, VIRTUAL);
+      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch); // leather sleeves
+
+      obj = read_object(855, VIRTUAL);
+      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch); // leather leggings
+
+      obj = read_object(862, VIRTUAL);
+      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch); // steel scimitar
+
+      obj = read_object(863, VIRTUAL);
+      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch); // shield
+
+      obj = read_object(851, VIRTUAL);
+      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch); // studded leather
 
       break;
 
