@@ -3733,7 +3733,10 @@ SPECIAL(wizard_library) {
       return TRUE;
     }
 
-    cost = (spell_level * 500) * (spell_level);
+    if (spell_level < 7) {
+      cost = (spell_level * 50) * (spell_level);
+    } else
+      cost = (spell_level * 300) * (spell_level);
 
     if (GET_GOLD(ch) < cost) {
       send_to_char(ch, "You do not have enough coins to research this spell, you "
