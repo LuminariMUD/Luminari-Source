@@ -716,7 +716,7 @@ int command_otrigger(char_data *actor, char *cmd, char *argument) {
     return 0;
 
   for (i = 0; i < NUM_WEARS; i++)
-    if (GET_EQ(actor, i))
+    if (actor && GET_EQ(actor, i))
       if (cmd_otrig(GET_EQ(actor, i), actor, cmd, argument, OCMD_EQUIP))
         return 1;
 
