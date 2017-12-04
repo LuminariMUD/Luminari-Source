@@ -2280,7 +2280,8 @@ void leave_group(struct char_data *ch) {
     free_group(group);
 
   update_msdp_group(ch);
-  MSDPFlush(ch->desc, eMSDP_GROUP);
+  if (ch->desc)
+    MSDPFlush(ch->desc, eMSDP_GROUP);
 }
 
 void join_group(struct char_data *ch, struct group_data *group) {
@@ -2300,7 +2301,8 @@ void join_group(struct char_data *ch, struct group_data *group) {
     send_to_group(NULL, group, "%s joins the group.\r\n", GET_NAME(ch));
 
   update_msdp_group(ch);
-  MSDPFlush(ch->desc, eMSDP_GROUP);
+  if (ch->desc)
+    MSDPFlush(ch->desc, eMSDP_GROUP);
 }
 
 /* mount related stuff */
