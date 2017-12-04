@@ -3686,7 +3686,8 @@ ACMD(do_group) {
   }
 
   update_msdp_group(ch);
-  MSDPFlush(ch->desc, eMSDP_GROUP);
+  if (ch->desc)
+    MSDPFlush(ch->desc, eMSDP_GROUP);
 }
 
 /* the actual group report command */
