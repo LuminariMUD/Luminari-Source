@@ -3499,11 +3499,12 @@ static void print_group(struct char_data *ch) {
   send_to_char(ch, "Your group consists of:\r\n");
 
   while ((k = (struct char_data *) simple_list(ch->group->members)) != NULL)
-    send_to_char(ch, "%-*s: %s[%4d/%-4d]H [%4d/%-4d]M [%4d/%-4d]V%s\r\n",
+    //send_to_char(ch, "%-*s: %s[%4d/%-4d]H [%4d/%-4d]M [%4d/%-4d]V%s\r\n",
+    send_to_char(ch, "%-*s: %s[%4d/%-4d]H [%4d/%-4d]V%s\r\n",
           count_color_chars(GET_NAME(k)) + 22, GET_NAME(k),
           GROUP_LEADER(GROUP(ch)) == k ? CBGRN(ch, C_NRM) : CCGRN(ch, C_NRM),
           GET_HIT(k), GET_MAX_HIT(k),
-          GET_MANA(k), GET_MAX_MANA(k),
+          //GET_MANA(k), GET_MAX_MANA(k),
           GET_MOVE(k), GET_MAX_MOVE(k),
           CCNRM(ch, C_NRM));
 }
@@ -3654,9 +3655,10 @@ ACMD(do_greport) {
     return;
   }
 
-  send_to_group(NULL, group, "%s reports: %d/%dH, %d/%dM, %d/%dV\r\n",
+  //send_to_group(NULL, group, "%s reports: %d/%dH, %d/%dM, %d/%dV\r\n",
+  send_to_group(NULL, group, "%s reports: %d/%dH, %d/%dV\r\n",
           GET_NAME(ch), GET_HIT(ch), GET_MAX_HIT(ch),
-          GET_MANA(ch), GET_MAX_MANA(ch),
+          //GET_MANA(ch), GET_MAX_MANA(ch),
           GET_MOVE(ch), GET_MAX_MOVE(ch));
 }
 
@@ -3664,9 +3666,10 @@ ACMD(do_greport) {
 ACMD(do_report) {
 
   /* generalized output due to send_to_room */
-  send_to_room(IN_ROOM(ch), "%s status: %d/%dH, %d/%dM, %d/%dV\r\n",
+  //send_to_room(IN_ROOM(ch), "%s status: %d/%dH, %d/%dM, %d/%dV\r\n",
+  send_to_room(IN_ROOM(ch), "%s status: %d/%dH, %%d/%dV\r\n",
           GET_NAME(ch), GET_HIT(ch), GET_MAX_HIT(ch),
-          GET_MANA(ch), GET_MAX_MANA(ch),
+          //GET_MANA(ch), GET_MAX_MANA(ch),
           GET_MOVE(ch), GET_MAX_MOVE(ch));
 }
 
