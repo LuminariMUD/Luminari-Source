@@ -102,6 +102,18 @@ void build_player_index(void) {
   }
 
   CREATE(player_table, struct player_index_element, rec_count);
+  
+  /* zusuk was here - trying to init the player index */
+  for (i = 0; i < rec_count; i++) {
+    player_table[i].name = "NoName";
+    player_table[i].id = 0;
+    player_table[i].level = 1;
+    player_table[i].flags = 0;
+    player_table[i].last = 0;
+    player_table[i].clan = NO_CLAN;    
+  }
+  /**/
+  
   for (i = 0; i < rec_count; i++) {
     get_line(plr_index, line);
     if ((nr = sscanf(line, "%ld %s %d %s %ld %d", &player_table[i].id, arg2,
