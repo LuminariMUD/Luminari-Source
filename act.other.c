@@ -3667,7 +3667,7 @@ ACMD(do_report) {
 
   /* generalized output due to send_to_room */
   //send_to_room(IN_ROOM(ch), "%s status: %d/%dH, %d/%dM, %d/%dV\r\n",
-  send_to_room(IN_ROOM(ch), "%s status: %d/%dH, %%d/%dV\r\n",
+  send_to_room(IN_ROOM(ch), "%s status: %d/%dH, %d/%dV\r\n",
           GET_NAME(ch), GET_HIT(ch), GET_MAX_HIT(ch),
           //GET_MANA(ch), GET_MAX_MANA(ch),
           GET_MOVE(ch), GET_MAX_MOVE(ch));
