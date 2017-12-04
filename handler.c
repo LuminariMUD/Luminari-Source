@@ -706,11 +706,19 @@ void update_msdp_affects(struct char_data *ch) {
   
   msdp_buffer[0] = '\0';
   if (ch && ch->desc) {
-    //const char MsdpArrayStart[] = {(char) MSDP_ARRAY_OPEN, '\0'};
-    //const char MsdpArrayStop[] = {(char) MSDP_ARRAY_CLOSE, '\0'};
+    // Here we need to collect all of the 'apply_flags', they should really go in the same 
+      // place as the spell-like affects.
+      /*
+      for (i = 0; i < NUM_AFF_FLAGS; i++) {
+        if (IS_SET_AR(AFF_FLAGS(ch), i)) {
+          send_to_char(ch, "",
+                       CCNRM(ch, C_NRM), affected_bits[i], CCNRM(ch, C_NRM),
+                       CCNRM(ch, C_NRM), affected_bit_descs[i], CCNRM(ch, C_NRM));
+        }
+      }
+    */
     for (af = ch->affected; af; af = next) {
-      char buf[4000]; // Buffer for building the affect table for MSDP
-            
+      char buf[4000]; // Buffer for building the affect table for MSDP    
       next = af->next;
       sprintf(buf, "%c%c"
                    "%c%s%c%s"
