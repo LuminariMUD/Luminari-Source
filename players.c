@@ -104,6 +104,7 @@ void build_player_index(void) {
   CREATE(player_table, struct player_index_element, rec_count);
   
   /* zusuk was here - trying to init the player index */
+  /*
   for (i = 0; i < rec_count; i++) {
     player_table[i].name = "NoName";
     player_table[i].id = 0;
@@ -112,6 +113,7 @@ void build_player_index(void) {
     player_table[i].last = 0;
     player_table[i].clan = NO_CLAN;    
   }
+  */
   /**/
   
   for (i = 0; i < rec_count; i++) {
@@ -198,7 +200,7 @@ void remove_player_from_index(int pos) {
   }
 }
 
-/* This function necessary to save a seperate ASCII player index */
+/* This function necessary to save a separate ASCII player index */
 void save_player_index(void) {
   int i = 0;
   char index_name[50] = {'\0'}, bits[64] = {'\0'};
