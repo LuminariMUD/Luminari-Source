@@ -346,6 +346,8 @@ void wildshape_return(struct char_data *ch);
 void perform_wildshape(struct char_data *ch, int form_num, int spellnum);
 void perform_perform(struct char_data *ch);
 void perform_call(struct char_data *ch, int call_type, int level);
+void update_msdp_group(struct char_data *ch);
+
 /* do_gen_tog */
 ACMD(do_gen_tog);
 #define SCMD_NOSUMMON    0
