@@ -1743,13 +1743,13 @@ void newbieEquipment(struct char_data *ch) {
       obj_to_char(read_object(812, VIRTUAL), ch); //spellbook
       /* switch fallthrough */
     case CLASS_SORCERER:
-      obj = read_object(854, VIRTUAL);
+      obj = read_object(865, VIRTUAL);
       GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-      obj_to_char(obj, ch); // leather sleeves
+      obj_to_char(obj, ch); // cloth sleeves
 
-      obj = read_object(855, VIRTUAL);
+      obj = read_object(866, VIRTUAL);
       GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-      obj_to_char(obj, ch); // leather pants
+      obj_to_char(obj, ch); // cloth pants
 
       obj = read_object(852, VIRTUAL);
       //GET_OBJ_SIZE(obj) = GET_SIZE(ch);
