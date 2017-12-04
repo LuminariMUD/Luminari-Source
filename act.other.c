@@ -3509,6 +3509,47 @@ static void print_group(struct char_data *ch) {
           CCNRM(ch, C_NRM));
 }
 
+/* Putting this here - no better place to put it really. */    
+void update_msdp_group(struct char_data *ch) {
+  char msdp_buffer[MAX_STRING_LENGTH];
+  struct affected_type *af, *next;
+  struct char_data *k;
+  bool first = TRUE;
+  
+  /* MSDP */
+  
+  msdp_buffer[0] = '\0';
+  if (ch && ch->desc) {
+    while ((k = (struct char_data *) simple_list(ch->group->members)) != NULL)    
+      char buf[4000]; // Buffer for building the group table for MSDP    
+      next = af->next;
+      sprintf(buf, "%c%c"
+                   "%c%s%c%s"
+                   "%c%s%c%d"
+                   "%c%s%c%d"
+                   "%c%s%c%d"
+                   "%c%s%c%d"
+                   "%c%s%c%d"
+                   "%c%s%c%d"
+                         "%c",
+            (char)MSDP_VAL, 
+              (char)MSDP_TABLE_OPEN,
+                (char)MSDP_VAR, "NAME",         (char)MSDP_VAL, GET_NAME(k),
+                (char)MSDP_VAR, "LEVEL",        (char)MSDP_VAL, GET_LEVEL(k),
+                (char)MSDP_VAR, "IS_LEADER",    (char)MSDP_VAL, GROUP_LEADER(GROUP(ch)),
+                (char)MSDP_VAR, "HEALTH",       (char)MSDP_VAL, GET_HIT(k),
+                (char)MSDP_VAR, "HEALTH_MAX",   (char)MSDP_VAL, GET_MAX_HIT(k),
+                (char)MSDP_VAR, "MOVEMENT",     (char)MSDP_VAL, GET_MOVE(k),
+                (char)MSDP_VAR, "MOVEMENT_MAX", (char)MSDP_VAL, GET_MAX_MOVE(k),
+              (char)MSDP_TABLE_CLOSE);
+      strcat(msdp_buffer, buf);
+      first = FALSE;
+    }
+    
+    MSDPSetArray(ch->desc, eMSDP_GROUP, msdp_buffer);    
+  }
+}
+
 static void display_group_list(struct char_data * ch) {
   struct group_data * group;
   int count = 0;
@@ -3644,6 +3685,8 @@ ACMD(do_group) {
     send_to_char(ch, "You must specify a group option, or type HELP GROUP for more info.\r\n");
   }
 
+  update_msdp_group(ch);
+  MSDPFlush(ch->desc, eMSDP_GROUP);
 }
 
 /* the actual group report command */

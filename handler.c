@@ -2223,6 +2223,9 @@ struct group_data * create_group(struct char_data * leader) {
   join_group(leader, new_group);
 
   return (new_group);
+
+  update_msdp_group(leader);
+  MSDPFlush(leader->desc, eMSDP_GROUP);
 }
 
 void free_group(struct group_data * group) {
@@ -2275,6 +2278,9 @@ void leave_group(struct char_data *ch) {
     send_to_group(NULL, group, "%s has assumed leadership of the group.\r\n", GET_NAME(GROUP_LEADER(group)));
   } else if (group->members->iSize == 0)
     free_group(group);
+
+  update_msdp_group(ch);
+  MSDPFlush(ch->desc, eMSDP_GROUP);
 }
 
 void join_group(struct char_data *ch, struct group_data *group) {
@@ -2292,6 +2298,9 @@ void join_group(struct char_data *ch, struct group_data *group) {
     send_to_group(NULL, group, "%s becomes leader of the group.\r\n", GET_NAME(ch));
   else
     send_to_group(NULL, group, "%s joins the group.\r\n", GET_NAME(ch));
+
+  update_msdp_group(ch);
+  MSDPFlush(ch->desc, eMSDP_GROUP);
 }
 
 /* mount related stuff */
