@@ -755,7 +755,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
         armorclass += bonuses[i];
       }
       
-      send_to_char(ch, "TOTAL: %d\r\n", armorclass);
+      send_to_char(ch, "%-16s: %d\r\n", "TOTAL", armorclass);
       break;
     case MODE_ARMOR_CLASS_COMBAT_MANEUVER_DEFENSE:
     case MODE_ARMOR_CLASS_NORMAL:
