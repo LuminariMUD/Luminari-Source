@@ -2163,6 +2163,21 @@ ACMD(do_attacks) {
 #undef DISPLAY_ROUTINE_POTENTIAL
 }
 
+ACMD(do_defenses) {
+  struct char_data *attacker = FIGHTING(ch);
+  int line_length = 80;
+  
+  send_to_char(ch, "\tC");
+  text_line(ch, "\tYScore Information\tC", line_length, '-', '-');
+  send_to_char(ch, "\tn");
+  
+  compute_armor_class(attacker, ch, FALSE, MODE_ARMOR_CLASS_DISPLAY);
+  
+  send_to_char(ch, "\tC");
+  draw_line(ch, line_length, '-', '-');  
+  send_to_char(ch, "\tn");
+}
+
 /*
 -------------------------------Score Information--------------------------------
 Name      : Leonidas             Title   : the distracted do-gooder
@@ -2379,7 +2394,7 @@ ACMD(do_score) {
     draw_line(ch, line_length, '-', '-');
   }
 
-  send_to_char(ch, "\tDType 'attacks' to see your attack rotation\tn\r\n");
+  send_to_char(ch, "\tDType 'attacks' or 'defenses' to see your melee offense and defense\tn\r\n");
   send_to_char(ch, "\tDType 'affects' to see what you are affected by\tn\r\n");
   if (CLASS_LEVEL(ch, CLASS_WIZARD))
     send_to_char(ch, "\tDType 'memorize' to see your Wizard spell interface\tn\r\n");

@@ -17,6 +17,7 @@
 #define MODE_ARMOR_CLASS_NORMAL                   0
 #define MODE_ARMOR_CLASS_COMBAT_MANEUVER_DEFENSE  1
 #define MODE_ARMOR_CLASS_PENALTIES                2
+#define MODE_ARMOR_CLASS_DISPLAY                  3
 
 #define SKILL_MESSAGE_MISS_FAIL        0
 #define SKILL_MESSAGE_MISS_GENERIC     1
