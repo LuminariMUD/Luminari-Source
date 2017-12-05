@@ -741,12 +741,12 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
     }
   }
 
+  int display_bonus = 0;
   switch (mode) {
     case MODE_ARMOR_CLASS_PENALTIES:
       return ac_penalty;
       break;
     case MODE_ARMOR_CLASS_DISPLAY:
-      int display_bonus = 0;
       
       send_to_char(ch, "BASE ARMOR CLASS: 10\r\n");
       
