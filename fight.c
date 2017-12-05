@@ -741,22 +741,19 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
     }
   }
 
-  int display_bonus = 0;
   switch (mode) {
     case MODE_ARMOR_CLASS_PENALTIES:
       return ac_penalty;
       break;
     case MODE_ARMOR_CLASS_DISPLAY:
       
-      send_to_char(ch, "BASE ARMOR CLASS: 10\r\n");
+      send_to_char(ch, "Base Armor Class: 10\r\n");
       
       for (i = 0; i < NUM_BONUS_TYPES; i++) {
-        display_bonus = bonuses[i];
-        if (i == BONUS_TYPE_ARMOR)
-          display_bonus -= 10; //this is base armor class
-        send_to_char(ch, "%-16s: %d\r\n", bonus_types[i], display_bonus);
+        send_to_char(ch, "%-16s: %d\r\n", bonus_types[i], bonuses[i]);
         armorclass += bonuses[i];
       }
+      
       send_to_char(ch, "TOTAL: %d\r\n", armorclass);
       break;
     case MODE_ARMOR_CLASS_COMBAT_MANEUVER_DEFENSE:
