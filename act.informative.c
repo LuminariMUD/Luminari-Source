@@ -2168,7 +2168,7 @@ ACMD(do_defenses) {
   int line_length = 80;
   
   send_to_char(ch, "\tC");
-  text_line(ch, "\tYScore Information\tC", line_length, '-', '-');
+  text_line(ch, "\tYDefenses\tC", line_length, '-', '-');
   send_to_char(ch, "\tn");
   
   compute_armor_class(attacker, ch, FALSE, MODE_ARMOR_CLASS_DISPLAY);
