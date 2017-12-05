@@ -745,12 +745,17 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
     case MODE_ARMOR_CLASS_PENALTIES:
       return ac_penalty;
       break;
+    case MODE_ARMOR_CLASS_DISPLAY:
+      for (i = 0; i < NUM_BONUS_TYPES; i++) {
+        send_to_char(ch, "%s: %d AC\r\n", bonus_types[i], bonuses[i]);
+        armorclass += bonuses[i];
+      }
+      send_to_char(ch, "TOTAL: %d", armorclass);
+      break;
     case MODE_ARMOR_CLASS_COMBAT_MANEUVER_DEFENSE:
     case MODE_ARMOR_CLASS_NORMAL:
     default:
       if (!is_touch)
-        for (i = 0; i < NUM_BONUS_TYPES; i++)
-          armorclass += bonuses[i];
       break;
   }
 
