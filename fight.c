@@ -750,7 +750,8 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
       send_to_char(ch, "Base Armor Class: 10\r\n");
       
       for (i = 0; i < NUM_BONUS_TYPES; i++) {
-        send_to_char(ch, "%-16s: %d\r\n", bonus_types[i], bonuses[i]);
+        if (bonuses[i])
+          send_to_char(ch, "%-16s: %d\r\n", bonus_types[i], bonuses[i]);
         armorclass += bonuses[i];
       }
       
