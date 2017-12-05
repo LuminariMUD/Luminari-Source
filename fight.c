@@ -754,7 +754,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
         display_bonus = bonuses[i];
         if (i == BONUS_TYPE_ARMOR)
           display_bonus -= 10; //this is base armor class
-        send_to_char(ch, "%-14s: %d\r\n", bonus_types[i], display_bonus);
+        send_to_char(ch, "%-16s: %d\r\n", bonus_types[i], display_bonus);
         armorclass += bonuses[i];
       }
       send_to_char(ch, "TOTAL: %d\r\n", armorclass);
