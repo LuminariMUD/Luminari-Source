@@ -763,6 +763,8 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
     case MODE_ARMOR_CLASS_NORMAL:
     default:
       if (!is_touch)
+        for (i = 0; i < NUM_BONUS_TYPES; i++)
+          armorclass += bonuses[i];
       break;
   }
 
