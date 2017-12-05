@@ -2225,7 +2225,8 @@ struct group_data * create_group(struct char_data * leader) {
   return (new_group);
 
   update_msdp_group(leader);
-  MSDPFlush(leader->desc, eMSDP_GROUP);
+  if (leader->desc) 
+    MSDPFlush(leader->desc, eMSDP_GROUP);
 }
 
 void free_group(struct group_data * group) {
@@ -2278,7 +2279,7 @@ void leave_group(struct char_data *ch) {
     send_to_group(NULL, group, "%s has assumed leadership of the group.\r\n", GET_NAME(GROUP_LEADER(group)));
   } else if (group->members->iSize == 0)
     free_group(group);
-
+ 
   update_msdp_group(ch);
   if (ch->desc)
     MSDPFlush(ch->desc, eMSDP_GROUP);
