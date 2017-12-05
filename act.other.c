@@ -3512,17 +3512,14 @@ static void print_group(struct char_data *ch) {
 /* Putting this here - no better place to put it really. */    
 void update_msdp_group(struct char_data *ch) {
   char msdp_buffer[MAX_STRING_LENGTH];
-  struct affected_type *af, *next;
   struct char_data *k;
-  bool first = TRUE;
-  
+   
   /* MSDP */
   
   msdp_buffer[0] = '\0';
-  if (ch && ch->group) {
+  if (ch && ch->group && ch->desc) {
     while ((k = (struct char_data *) simple_list(ch->group->members)) != NULL) {   
       char buf[4000]; // Buffer for building the group table for MSDP    
-      next = af->next;
       sprintf(buf, "%c%c"
                    "%c%s%c%s"
                    "%c%s%c%d"
@@ -3543,10 +3540,8 @@ void update_msdp_group(struct char_data *ch) {
                 (char)MSDP_VAR, "MOVEMENT_MAX", (char)MSDP_VAL, GET_MAX_MOVE(k),
               (char)MSDP_TABLE_CLOSE);
       strcat(msdp_buffer, buf);
-      first = FALSE;
-    }
-    if (ch->desc)
-      MSDPSetArray(ch->desc, eMSDP_GROUP, msdp_buffer);    
+    }    
+    MSDPSetArray(ch->desc, eMSDP_GROUP, msdp_buffer);    
   }
 }
 
