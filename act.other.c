@@ -3520,7 +3520,7 @@ void update_msdp_group(struct char_data *ch) {
   if (ch && ch->group && ch->desc) {
     while ((k = (struct char_data *) simple_list(ch->group->members)) != NULL) {   
       char buf[4000]; // Buffer for building the group table for MSDP 
-      send_to_char(ch, "DEBUG: group memeber: %s", GET_NAME(k));
+      //send_to_char(ch, "DEBUG: group member: %s", GET_NAME(k));
       sprintf(buf, "%c%c"
                    "%c%s%c%s"
                    "%c%s%c%d"
@@ -3542,6 +3542,7 @@ void update_msdp_group(struct char_data *ch) {
               (char)MSDP_TABLE_CLOSE);
       strcat(msdp_buffer, buf);
     }    
+    send_to_char(ch,"%s", msdp_buffer);
     MSDPSetArray(ch->desc, eMSDP_GROUP, msdp_buffer);    
   }
 }
