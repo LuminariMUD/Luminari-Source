@@ -3548,6 +3548,29 @@ void update_msdp_group(struct char_data *ch) {
   }
 }
 
+void update_msdp_inventory(struct char_data *ch) {
+  char msdp_buffer[MAX_STRING_LENGTH];
+  obj_data *obj;
+
+  /* Inventory */
+  msdp_buffer[0] = '\0';
+  if (ch && ch->group && ch->desc) {
+   for (obj = ch->carrying; obj; obj = obj->next_content) {
+      char buf[4000]; // Buffer for building the inventory table for MSDP             
+      sprintf(buf, "%c%c"                   
+                   "%c%s%c%s"                   
+                   "%c",
+            (char)MSDP_VAL, 
+              (char)MSDP_TABLE_OPEN,               
+                (char)MSDP_VAR, "SHORT_DESCRIPTION",        (char)MSDP_VAL, obj->short_description,                
+              (char)MSDP_TABLE_CLOSE);
+      strcat(msdp_buffer, buf);
+    }    
+    strip_colors(msdp_buffer);    
+    MSDPSetArray(ch->desc, eMSDP_INVENTORY, msdp_buffer);    
+  }
+}
+
 static void display_group_list(struct char_data * ch) {
   struct group_data * group;
   int count = 0;
