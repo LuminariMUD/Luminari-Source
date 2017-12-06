@@ -136,7 +136,8 @@ typedef enum
 
    /* Character */
    eMSDP_AFFECTS,
-   eMSDP_ALIGNMENT,
+   eMSDP_INVENTORY,
+   eMSDP_ALIGNMENT,   
    eMSDP_EXPERIENCE,
    eMSDP_EXPERIENCE_MAX,
    eMSDP_EXPERIENCE_TNL,
@@ -172,7 +173,7 @@ typedef enum
    eMSDP_MOVE_ACTION,
    eMSDP_SWIFT_ACTION,
    eMSDP_GROUP,
-   
+      
    /* Combat */
    eMSDP_OPPONENT_HEALTH,
    eMSDP_OPPONENT_HEALTH_MAX,

@@ -3225,6 +3225,9 @@ static void msdp_update(void) {
       /* Group */
       update_msdp_group(ch);      
 
+      /* Inventory */
+      update_msdp_inventory(ch);
+      
       /* gotta adjust compute_hit_damage() so it doesn't send messages randomly */
       /*
       if (is_using_ranged_weapon(ch))
