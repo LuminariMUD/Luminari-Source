@@ -1116,7 +1116,10 @@ void obj_to_char(struct obj_data *object, struct char_data *ch) {
 /* take an object from a char */
 void obj_from_char(struct obj_data *object) {
   struct obj_data *temp;
+  struct char_data *ch;
 
+  ch = object->carried_by;
+  
   if (object == NULL) {
     log("SYSERR: NULL object passed to obj_from_char.");
     return;
