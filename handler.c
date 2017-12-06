@@ -1104,6 +1104,11 @@ void obj_to_char(struct obj_data *object, struct char_data *ch) {
     /* set flag for crash-save system, but not on mobs! */
     if (!IS_NPC(ch))
       SET_BIT_AR(PLR_FLAGS(ch), PLR_CRASH);
+    
+    if (ch->desc) {
+      update_msdp_inventory(ch);
+      MSDPFlush(ch->desc, eMSDP_INVENTORY);
+    }
   } else
     log("SYSERR: NULL obj (%p) or char (%p) passed to obj_to_char.", object, ch);
 }
@@ -1126,6 +1131,11 @@ void obj_from_char(struct obj_data *object) {
   IS_CARRYING_N(object->carried_by)--;
   object->carried_by = NULL;
   object->next_content = NULL;
+
+  if (ch->desc) {
+    update_msdp_inventory(ch);
+    MSDPFlush(ch->desc, eMSDP_INVENTORY);
+  }
 }
 
 /* Return the effect of a piece of armor in position eq_pos */
