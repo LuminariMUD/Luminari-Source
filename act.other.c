@@ -2812,6 +2812,7 @@ ACMD(do_land) {
 
 /* levitate ability (drow) */
 ACMD(do_levitate) {
+  int uses_remaining = 0;
   
   if (!HAS_FEAT(ch, FEAT_SLA_LEVITATE)) {
     send_to_char(ch, "You don't have this ability.\r\n");
@@ -2839,6 +2840,7 @@ ACMD(do_levitate) {
 
 /* darkness ability (drow) */
 ACMD(do_darkness) {
+  int uses_remaining = 0;
   
   if (!HAS_FEAT(ch, FEAT_SLA_DARKNESS)) {
     send_to_char(ch, "You don't have this ability.\r\n");
