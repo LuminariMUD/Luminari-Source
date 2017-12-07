@@ -3566,8 +3566,7 @@ void update_msdp_inventory(struct char_data *ch) {
               (char)MSDP_TABLE_CLOSE);
       strcat(msdp_buffer, buf);
     }    
-    strip_colors(msdp_buffer); 
-    send_to_char(ch, msdp_buffer);   
+    strip_colors(msdp_buffer);     
     MSDPSetArray(ch->desc, eMSDP_INVENTORY, msdp_buffer);    
   }
 }
