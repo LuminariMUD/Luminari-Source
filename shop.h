@@ -98,8 +98,9 @@ struct shop_data {
 #define TRADE_NOH_ORC        (1 << 21)
 #define TRADE_NOGNOME        (1 << 22)
 #define TRADE_NOARCANAGOLEM  (1 << 23)
+#define TRADE_NODROW         (1 << 24)
 /** Total number of trade types */
-#define NUM_TRADERS     24
+#define NUM_TRADERS     25
 
 struct stack_data {
    int data[100];
@@ -160,6 +161,7 @@ struct stack_data {
 #define NOTRADE_H_ORC(i)        (IS_SET(SHOP_TRADE_WITH((i)), TRADE_NOH_ORC))
 #define NOTRADE_GNOME(i)        (IS_SET(SHOP_TRADE_WITH((i)), TRADE_NOGNOME))
 #define NOTRADE_ARCANAGOLEM(i)  (IS_SET(SHOP_TRADE_WITH((i)), TRADE_NOARCANAGOLEM))
+#define NOTRADE_DROW(i)         (IS_SET(SHOP_TRADE_WITH((i)), TRADE_NODROW))
 
 /* Shop flags */
 #define WILL_START_FIGHT    (1 << 0)
