@@ -3551,12 +3551,13 @@ void update_msdp_group(struct char_data *ch) {
 void update_msdp_inventory(struct char_data *ch) {
   char msdp_buffer[MAX_STRING_LENGTH];
   obj_data *obj;
+  int i = 0;
 
   /* Inventory */
   msdp_buffer[0] = '\0';
   if (ch && ch->desc) {
     /* Equipment! */
-    for (int i = 0; i < NUM_WEARS; i++) {
+    for (i = 0; i < NUM_WEARS; i++) {
       if (GET_EQ(ch, i)) {        
         if (CAN_SEE_OBJ(ch, GET_EQ(ch, i))) {
           char buf[4000]; // Buffer for building the inventory table for MSDP             
