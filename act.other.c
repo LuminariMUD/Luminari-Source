@@ -3554,7 +3554,7 @@ void update_msdp_inventory(struct char_data *ch) {
 
   /* Inventory */
   msdp_buffer[0] = '\0';
-  if (ch && ch->group && ch->desc) {
+  if (ch && ch->desc) {
    for (obj = ch->carrying; obj; obj = obj->next_content) {
       char buf[4000]; // Buffer for building the inventory table for MSDP             
       sprintf(buf, "%c%c"                   
