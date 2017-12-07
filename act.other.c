@@ -2835,7 +2835,9 @@ ACMD(do_levitate) {
   send_to_char(ch, "You slow rise above the ground and begin to levitate!\r\n");
   */
   
-  call_magic(ch, ch, NULL, SPELL_WATERWALK, GET_LEVEL(ch), CAST_SPELL);
+  //int call_magic(struct char_data *caster, struct char_data *cvict,
+        //struct obj_data *ovict, int spellnum, int metamagic, int level, int casttype);
+  call_magic(ch, ch, NULL, SPELL_WATERWALK, 0, GET_LEVEL(ch), CAST_SPELL);
 }
 
 /* darkness ability (drow) */
@@ -2857,7 +2859,9 @@ ACMD(do_darkness) {
     return;
   }
     
-  call_magic(ch, ch, NULL, SPELL_DARKNESS, GET_LEVEL(ch), CAST_SPELL);
+  //int call_magic(struct char_data *caster, struct char_data *cvict,
+        //struct obj_data *ovict, int spellnum, int metamagic, int level, int casttype);
+  call_magic(ch, ch, NULL, SPELL_DARKNESS, 0, GET_LEVEL(ch), CAST_SPELL);
 }
 
 /* race trelux innate ability */
