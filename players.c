@@ -1192,6 +1192,12 @@ void save_char(struct char_data * ch, int mode) {
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eCRYSTALBODY)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+    if ((pMudEvent = char_has_mud_event(ch, eSLA_LEVITATE)))
+      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+    if ((pMudEvent = char_has_mud_event(ch, eSLA_DARKNESS)))
+      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+    if ((pMudEvent = char_has_mud_event(ch, eSLA_FAERIE_FIRE)))
+      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eLAYONHANDS)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eEMPTYBODY)))

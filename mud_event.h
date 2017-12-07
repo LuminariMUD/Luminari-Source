@@ -120,6 +120,9 @@ typedef enum {
   eDEFENSIVE_STANCE, //  defensive stance skill cooldown
   eCRIPPLING_CRITICAL, /* duelist cirppling critical */
   eQUEST_COMPLETE, /* char completed a quest */
+  eSLA_LEVITATE, /* innate levitate */
+  eSLA_DARKNESS, /* innate darkness */
+  eSLA_FAERIE_FIRE, /* innate faerie fire */
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

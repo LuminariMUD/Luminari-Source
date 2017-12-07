@@ -120,6 +120,9 @@ struct mud_event_list mud_event_index[] = {
   { "Defensive Stance", event_daily_use_cooldown, EVENT_CHAR}, //eDEFENSIVE_STANCE
   { "Crippled by Critical", event_countdown, EVENT_CHAR}, //eCRIPPLING_CRITICAL
   { "Quest Completed!", event_countdown, EVENT_CHAR}, //eQUEST_COMPLETE
+  { "Levitate", event_daily_use_cooldown, EVENT_CHAR}, //eSLA_LEVITATE
+  { "Darkness", event_daily_use_cooldown, EVENT_CHAR}, //eSLA_DARKNESS
+  { "Faerie Fire", event_daily_use_cooldown, EVENT_CHAR}, //eSLA_FAERIE_FIRE
 };
 
 /* init_events() is the ideal function for starting global events. This
@@ -412,6 +415,18 @@ EVENTFUNC(event_daily_use_cooldown) {
     case eCRYSTALFIST:
       featnum = FEAT_CRYSTAL_FIST;
       send_to_char(ch, "You may enhance your unarmed attacks again.\r\n");
+      break;
+    case eSLA_LEVITATE:
+      featnum = FEAT_SLA_LEVITATE;
+      send_to_char(ch, "One of your levitate uses has recovered.\r\n");
+      break;
+    case eSLA_DARKNESS:
+      featnum = FEAT_SLA_DARKNESS;
+      send_to_char(ch, "One of your darkness uses has recovered.\r\n");
+      break;
+    case eSLA_FAERIE_FIRE:
+      featnum = FEAT_SLA_FAERIE_FIRE;
+      send_to_char(ch, "One of your faerie fire uses has recovered.\r\n");
       break;
     case eLAYONHANDS:
       featnum = FEAT_LAYHANDS;

@@ -2511,6 +2511,9 @@ void assign_feats(void) {
   dailyfeat(FEAT_WILD_SHAPE, eWILD_SHAPE);
   dailyfeat(FEAT_CRYSTAL_BODY, eCRYSTALBODY);
   dailyfeat(FEAT_CRYSTAL_FIST, eCRYSTALFIST);
+  dailyfeat(FEAT_SLA_LEVITATE, eSLA_LEVITATE);
+  dailyfeat(FEAT_SLA_DARKNESS, eSLA_DARKNESS);
+  dailyfeat(FEAT_SLA_FAERIE_FIRE, eSLA_FAERIE_FIRE);
   dailyfeat(FEAT_LAYHANDS, eLAYONHANDS);
   dailyfeat(FEAT_REMOVE_DISEASE, ePURIFY);
   dailyfeat(FEAT_RAGE, eRAGE);
