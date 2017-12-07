@@ -1554,6 +1554,7 @@ int parse_race(char arg)
   case 'h': return RACE_H_ORC;
   case 'i': return RACE_GNOME;
   case 'j': return RACE_ARCANA_GOLEM;
+  case 'k': return RACE_DROW;
   default:  return RACE_UNDEFINED;
   }
 }
@@ -1567,6 +1568,9 @@ int parse_race_long(char *arg) {
 
   if (is_abbrev(arg, "human")) return RACE_HUMAN;
   if (is_abbrev(arg, "elf")) return RACE_ELF;
+  if (is_abbrev(arg, "darkelf")) return RACE_DROW;
+  if (is_abbrev(arg, "dark-elf")) return RACE_DROW;
+  if (is_abbrev(arg, "drow")) return RACE_DROW;
   if (is_abbrev(arg, "dwarf")) return RACE_DWARF;
   if (is_abbrev(arg, "half-troll")) return RACE_HALF_TROLL;
   if (is_abbrev(arg, "halftroll")) return RACE_HALF_TROLL;

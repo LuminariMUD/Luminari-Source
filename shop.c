@@ -59,6 +59,7 @@ const char *trade_letters[] = {
         "Half Orc",
         "Gnome",
         "Arcana Golem",
+        "Drow",
         "\n"
 };
 
@@ -172,6 +173,7 @@ static int is_ok_char(struct char_data *keeper, struct char_data *ch, int shop_n
        (IS_H_ORC(ch) && NOTRADE_H_ORC(shop_nr)) ||
        (IS_GNOME(ch) && NOTRADE_GNOME(shop_nr)) ||
        (IS_ARCANA_GOLEM(ch) && NOTRADE_ARCANAGOLEM(shop_nr)) ||
+       (IS_DROW(ch) && NOTRADE_DROW(shop_nr)) ||
        (IS_DWARF(ch) && NOTRADE_DWARF(shop_nr))) {
     snprintf(buf, sizeof(buf), "%s %s", GET_NAME(ch), MSG_NO_SELL_RACE);
     do_tell(keeper, buf, cmd_tell, 0);
