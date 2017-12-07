@@ -3556,7 +3556,7 @@ void update_msdp_inventory(struct char_data *ch) {
   msdp_buffer[0] = '\0';
   if (ch && ch->desc) {
     /* Equipment! */
-    for (i = 0; i < NUM_WEARS; i++) {
+    for (int i = 0; i < NUM_WEARS; i++) {
       if (GET_EQ(ch, i)) {        
         if (CAN_SEE_OBJ(ch, GET_EQ(ch, i))) {
           char buf[4000]; // Buffer for building the inventory table for MSDP             
