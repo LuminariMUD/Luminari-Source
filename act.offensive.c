@@ -3287,6 +3287,29 @@ ACMD(do_smiteevil) {
   perform_smite(ch, SMITE_TYPE_EVIL);
 }
 
+/* drow faerie fire engine */
+void perform_faerie_fire(struct char_data *ch, struct char_data *vict) {
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return;
+  }
+
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
+          ch->next_in_room != vict && vict->next_in_room != ch) {
+    send_to_char(ch, "You simply can't reach that far.\r\n");
+    return;
+  }
+  
+  act("You briefly focus your innate magic and point at $N...",
+        FALSE, ch, NULL, vict, TO_CHAR);
+  act("$n focuses briefly then points at you...",
+        FALSE, ch, NULL, vict, TO_VICT);
+  act("$n focuses briefly then points at $N...",
+        FALSE, ch, NULL, vict, TO_NOTVICT);
+
+  call_magic(ch, vict, NULL, SPELL_FAERIE_FIRE, 0, GET_LEVEL(ch), CAST_SPELL);  
+}
+
 /* kick engine */
 void perform_kick(struct char_data *ch, struct char_data *vict) {
   int discipline_bonus = 0, dc = 0, diceOne = 0, diceTwo = 0;
@@ -3422,6 +3445,50 @@ ACMD(do_seekerarrow) {
 
   perform_seekerarrow(ch, vict);  
 }
+
+ACMD(do_faeriefire) {
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  struct char_data *vict = NULL;
+  
+  if (!MOB_CAN_FIGHT(ch)) {
+    send_to_char(ch, "But you can't fight!\r\n");
+    return;
+  }  
+
+  if (IS_NPC(ch)) {
+    send_to_char(ch, "You have no idea how.\r\n");
+    return;
+  }
+  
+  if (!HAS_FEAT(ch, FEAT_SLA_FAERIE_FIRE)) {
+    send_to_char(ch, "You don't know how to do this!\r\n");
+    return;    
+  }  
+  
+  if (!IS_NPC(ch) && ((uses_remaining = daily_uses_remaining(ch, FEAT_SLA_FAERIE_FIRE)) == 0)) {
+    send_to_char(ch, "You must recover before you can use faerie fire again.\r\n");
+    return;
+  }
+
+  one_argument(argument, arg);
+  
+  /* find the victim */
+  vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM);
+  
+  /* we have a disqualifier here due to action system */
+  if (!FIGHTING(ch) && !vict) {
+    send_to_char(ch, "Who do you want to faerie fire?\r\n");
+    return;    
+  }
+  if (vict == ch) {
+    /* we allow this */
+  }
+  if (FIGHTING(ch) && !vict && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
+    vict = FIGHTING(ch);
+  
+  perform_faerie_fire(ch, vict);
+}
+
 
 ACMD(do_kick) {
   char arg[MAX_INPUT_LENGTH] = {'\0'};

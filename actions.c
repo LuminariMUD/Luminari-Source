@@ -43,6 +43,7 @@ void (*attack_actions[NUM_ATTACK_ACTIONS])(struct char_data *ch,
   do_seekerarrow,       /* AA_SEEKER_ARROW */
   do_deatharrow,       /* AA_DEATH_ARROW */
   do_arrowswarm,       /* AA_ARROW_SWARM */
+  do_faeriefire,       /* AA_FAERIE_FIRE */
 };
 
 void update_msdp_actions(struct char_data * ch) {

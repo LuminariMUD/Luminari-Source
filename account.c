@@ -49,6 +49,7 @@ int locked_races_cost[NUM_RACES] = {
       0, /*gnome*/
   30000, /*trelux (epic)*/
    1000, /*arcana golem (advanced)*/
+   1000, /*drow (advanced)*/
 };
 
 bool locked_races[NUM_RACES] = {
@@ -63,6 +64,7 @@ bool locked_races[NUM_RACES] = {
   N, /*gnome*/
   Y, /*trelux (epic)*/
   Y, /*arcana golem (advanced)*/
+  Y, /*drow (advanced)*/
 };
 
 int has_unlocked_race(struct char_data *ch, int race) {

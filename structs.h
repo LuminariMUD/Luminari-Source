@@ -440,9 +440,10 @@
 #define RACE_TRELUX          9  // trelux (epic)
 #define RACE_ARCANA_GOLEM    10  // arcana golem (advanced)
 #define RACE_ARCANE_GOLEM    RACE_ARCANA_GOLEM
-/* coming soon!*/
 #define RACE_DROW            11  // not yet implemented
 #define RACE_DROW_ELF        RACE_DROW
+#define RACE_DARK_ELF        RACE_DROW
+/* coming soon!*/
 #define RACE_DUERGAR         12  // not yet implemented
 #define RACE_GRAY_DWARF      RACE_DUERGAR
 #define RACE_H_OGRE          13  // not yet implemented
@@ -1004,7 +1005,7 @@
 /* Feats defined below up to MAX_FEATS */
 #define FEAT_UNDEFINED                 0
 #define FEAT_ALERTNESS                 1
-#define FEAT_SEEKER_ARROW              2
+#define FEAT_SEEKER_ARROW              2  //arcane archer
 #define FEAT_ARMOR_PROFICIENCY_HEAVY   3
 #define FEAT_ARMOR_PROFICIENCY_LIGHT   4
 #define FEAT_ARMOR_PROFICIENCY_MEDIUM  5
@@ -1018,7 +1019,7 @@
 #define FEAT_CRAFT_STAFF               13
 #define FEAT_CRAFT_WAND                14
 #define FEAT_CRAFT_WONDEROUS_ITEM      15
-#define FEAT_DEFLECT_ARROWS            16
+#define FEAT_DEFLECT_ARROWS            16  //monk, etc
 #define FEAT_DODGE                     17
 #define FEAT_EMPOWER_SPELL             18
 #define FEAT_ENDURANCE                 19
@@ -1036,10 +1037,10 @@
 #define FEAT_IMPROVED_CRITICAL         31
 #define FEAT_RAGE                      32
 #define FEAT_FAST_MOVEMENT             33
-#define FEAT_LAYHANDS                  34
+#define FEAT_LAYHANDS                  34  //paladin
 #define FEAT_AURA_OF_GOOD              35
 #define FEAT_AURA_OF_COURAGE           36
-#define FEAT_DIVINE_GRACE              37
+#define FEAT_DIVINE_GRACE              37  //paladin
 #define FEAT_SMITE_EVIL                38
 #define FEAT_REMOVE_DISEASE            39
 #define FEAT_DIVINE_HEALTH             40
@@ -1050,8 +1051,8 @@
 #define FEAT_ENHANCED_MOBILITY         45
 #define FEAT_GRACE                     46
 #define FEAT_PRECISE_STRIKE            47
-#define FEAT_ACROBATIC_CHARGE          48
-#define FEAT_ELABORATE_PARRY           49
+#define FEAT_ACROBATIC_CHARGE          48  //duelist
+#define FEAT_ELABORATE_PARRY           49  //duelist
 #define FEAT_DAMAGE_REDUCTION          50
 #define FEAT_GREATER_RAGE              51
 #define FEAT_MIGHTY_RAGE               52
@@ -1069,7 +1070,7 @@
 #define FEAT_IMPROVED_TWO_WEAPON_FIGHTING 64
 #define FEAT_IMPROVED_UNARMED_STRIKE   65
 #define FEAT_IRON_WILL                 66
-#define FEAT_ELF_RACIAL_ADJUSTMENT     67
+#define FEAT_ELF_RACIAL_ADJUSTMENT     67  //elf
 #define FEAT_LIGHTNING_REFLEXES        68
 #define FEAT_MARTIAL_WEAPON_PROFICIENCY 69
 #define FEAT_MAXIMIZE_SPELL            70
@@ -1083,27 +1084,27 @@
 #define FEAT_QUICKEN_SPELL          78
 #define FEAT_RAPID_SHOT             79
 #define FEAT_RIDE_BY_ATTACK         80
-#define FEAT_STABILITY              81
+#define FEAT_STABILITY              81  //dwarf?
 #define FEAT_SCRIBE_SCROLL          82
-#define FEAT_SONG_OF_FOCUSED_MIND   83
+#define FEAT_SONG_OF_FOCUSED_MIND   83  //bard
 #define FEAT_SHOT_ON_THE_RUN        84
 #define FEAT_SILENT_SPELL           85
 #define FEAT_SIMPLE_WEAPON_PROFICIENCY  86
 #define FEAT_SKILL_FOCUS            87
 #define FEAT_SPELL_FOCUS            88
-#define FEAT_SONG_OF_FEAR           89
-#define FEAT_SONG_OF_ROOTING        90
-#define FEAT_SONG_OF_THE_MAGI       91
-#define FEAT_SONG_OF_HEALING        92
-#define FEAT_DANCE_OF_PROTECTION    93
-#define FEAT_SONG_OF_FLIGHT         94
-#define FEAT_SONG_OF_HEROISM        95
+#define FEAT_SONG_OF_FEAR           89  //bard
+#define FEAT_SONG_OF_ROOTING        90  //bard
+#define FEAT_SONG_OF_THE_MAGI       91  //bard
+#define FEAT_SONG_OF_HEALING        92  //bard
+#define FEAT_DANCE_OF_PROTECTION    93  //bard
+#define FEAT_SONG_OF_FLIGHT         94  //bard
+#define FEAT_SONG_OF_HEROISM        95  //bard
 #define FEAT_SPELL_MASTERY          96
 #define FEAT_SPELL_PENETRATION      97
 #define FEAT_SPIRITED_CHARGE        98
 #define FEAT_SPRING_ATTACK          99
 #define FEAT_STILL_SPELL            100
-#define FEAT_STUNNING_FIST          101
+#define FEAT_STUNNING_FIST          101  //monk
 #define FEAT_SUNDER                 102
 #define FEAT_TOUGHNESS              103
 #define FEAT_TRACK                  104
@@ -1115,28 +1116,28 @@
 #define FEAT_CANNY_DEFENSE          110
 #define FEAT_DWARF_RACIAL_ADJUSTMENT  111
 #define FEAT_ORATORY_OF_REJUVENATION  112
-#define FEAT_SHADOW_HOPPER            113
-#define FEAT_LUCKY                    114
-#define FEAT_HALFLING_RACIAL_ADJUSTMENT 115
+#define FEAT_SHADOW_HOPPER            113  //halfling
+#define FEAT_LUCKY                    114  //halfling
+#define FEAT_HALFLING_RACIAL_ADJUSTMENT 115  //halfling
 #define FEAT_INDOMITABLE_WILL           116
 #define FEAT_UNCANNY_DODGE              117
 #define FEAT_IMPROVED_UNCANNY_DODGE     118
 #define FEAT_TRAP_SENSE              119
 #define FEAT_UNARMED_STRIKE          120
 #define FEAT_STILL_MIND              121
-#define FEAT_KI_STRIKE               122
-#define FEAT_SLOW_FALL               123
-#define FEAT_PURITY_OF_BODY          124
-#define FEAT_WHOLENESS_OF_BODY       125
-#define FEAT_DIAMOND_BODY            126
-#define FEAT_GREATER_FLURRY          127
-#define FEAT_ABUNDANT_STEP           128
-#define FEAT_DIAMOND_SOUL            129
-#define FEAT_QUIVERING_PALM          130
-#define FEAT_TIMELESS_BODY           131
-#define FEAT_TONGUE_OF_THE_SUN_AND_MOON 132
-#define FEAT_EMPTY_BODY              133
-#define FEAT_PERFECT_SELF            134
+#define FEAT_KI_STRIKE               122  //monk
+#define FEAT_SLOW_FALL               123  //monk
+#define FEAT_PURITY_OF_BODY          124  //monk
+#define FEAT_WHOLENESS_OF_BODY       125  //monk
+#define FEAT_DIAMOND_BODY            126  //monk
+#define FEAT_GREATER_FLURRY          127  //monk
+#define FEAT_ABUNDANT_STEP           128  //monk
+#define FEAT_DIAMOND_SOUL            129  //monk
+#define FEAT_QUIVERING_PALM          130  //monk
+#define FEAT_TIMELESS_BODY           131  //monk
+#define FEAT_TONGUE_OF_THE_SUN_AND_MOON 132  //monk
+#define FEAT_EMPTY_BODY              133  //monk
+#define FEAT_PERFECT_SELF            134  //monk
 #define FEAT_SUMMON_FAMILIAR         135
 #define FEAT_TRAPFINDING             136
 #define FEAT_WEAPON_FOCUS            137
@@ -1152,7 +1153,7 @@
 #define FEAT_AURA_OF_EVIL            147
 #define FEAT_DARK_BLESSING           148
 #define FEAT_SONG_OF_REVELATION      149
-#define FEAT_HALF_ORC_RACIAL_ADJUSTMENT 150
+#define FEAT_HALF_ORC_RACIAL_ADJUSTMENT 150  //half orc
 #define FEAT_RESISTANCE_TO_ILLUSIONS 151
 #define FEAT_ILLUSION_AFFINITY       152
 #define FEAT_ARMORED_SPELLCASTING    153
@@ -1294,7 +1295,7 @@
 #define FEAT_DRACONIC_CRAFTING 289
 #define FEAT_LEARNED_CRAFTER 290
 #define FEAT_POISON_USE 291
-#define FEAT_DEATH_ATTACK 292
+#define FEAT_DEATH_ATTACK 292 //assassin
 #define FEAT_POISON_SAVE_BONUS 293
 #define FEAT_GREAT_STRENGTH 294
 #define FEAT_GREAT_DEXTERITY 295
@@ -1335,7 +1336,7 @@
 #define FEAT_IMPROVED_COMBAT_CHALLENGE 330
 #define FEAT_GREATER_COMBAT_CHALLENGE 331
 #define FEAT_EPIC_COMBAT_CHALLENGE 332
-#define FEAT_BLEEDING_ATTACK 333
+#define FEAT_BLEEDING_ATTACK 333 //assassin ?
 #define FEAT_POWERFUL_SNEAK 334
 #define FEAT_ARMOR_SPECIALIZATION_LIGHT 335
 #define FEAT_ARMOR_SPECIALIZATION_MEDIUM 336
@@ -1498,11 +1499,18 @@
 #define FEAT_ARCANE_8TH_CIRCLE              491
 #define FEAT_ARCANE_9TH_CIRCLE              492
 #define FEAT_ARCANE_EPIC_SPELL              493
-/* end bardic performances */
+#define FEAT_WEAPON_PROFICIENCY_DROW        494 //drow
+#define FEAT_DROW_RACIAL_ADJUSTMENT         495 //drow
+#define FEAT_DROW_SPELL_RESISTANCE          496 //drow
+#define FEAT_SLA_FAERIE_FIRE                497 //drow, spell-like ability
+#define FEAT_SLA_LEVITATE                   498 //drow, spell-like ability
+#define FEAT_SLA_DARKNESS                   499 //drow, spell-like ability
+#define FEAT_LIGHT_BLINDNESS                500 //underdark/underworld racial disadvantage
+
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT                      494
+#define FEAT_LAST_FEAT                      501
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS                           495
+#define NUM_FEATS                           502
 /** absolute cap **/
 #define MAX_FEATS                           750
 /*****/
@@ -1779,8 +1787,10 @@
 #define ITEM_KI_FOCUS             47
 #define ITEM_ANTI_WEAPONMASTER    48
 /**/
+/*more item flags!*/
+#define ITEM_ANTI_DROW            49
 /** Total number of item flags */
-#define NUM_ITEM_FLAGS            49
+#define NUM_ITEM_FLAGS            50
 
 /* homeland-port */
 /*

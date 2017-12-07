@@ -6077,6 +6077,7 @@ int get_eq_score(obj_rnum a) {
         case ITEM_ANTI_RANGER:
         case ITEM_ANTI_BARD:
         case ITEM_ANTI_ARCANA_GOLEM:
+        case ITEM_ANTI_DROW:
           score -= 15;
           break;
         case ITEM_ANTI_GOOD:

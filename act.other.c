@@ -2810,6 +2810,54 @@ ACMD(do_land) {
   }
 }
 
+/* levitate ability (drow) */
+ACMD(do_levitate) {
+  
+  if (!HAS_FEAT(ch, FEAT_SLA_LEVITATE)) {
+    send_to_char(ch, "You don't have this ability.\r\n");
+    return;
+  }
+  
+  if (AFF_FLAGGED(ch, AFF_WATERWALK)) {
+    send_to_char(ch, "You are already levitating!\r\n");
+    return;
+  }
+  
+  if (!IS_NPC(ch) && ((uses_remaining = daily_uses_remaining(ch, FEAT_SLA_LEVITATE)) == 0)) {
+    send_to_char(ch, "You must recover before you can use this ability again.\r\n");
+    return;
+  }
+  
+  /*
+  SET_BIT_AR(AFF_FLAGS(ch), AFF_FLOAT);
+  act("$n begins to levitate above the ground!", TRUE, ch, 0, 0, TO_ROOM);
+  send_to_char(ch, "You slow rise above the ground and begin to levitate!\r\n");
+  */
+  
+  call_magic(ch, ch, NULL, SPELL_WATERWALK, GET_LEVEL(ch), CAST_SPELL);
+}
+
+/* darkness ability (drow) */
+ACMD(do_darkness) {
+  
+  if (!HAS_FEAT(ch, FEAT_SLA_DARKNESS)) {
+    send_to_char(ch, "You don't have this ability.\r\n");
+    return;
+  }
+  
+  if (ROOM_AFFECTED(IN_ROOM(ch), RAFF_DARKNESS)) {
+    send_to_char(ch, "The area is already dark!\r\n");
+    return;    
+  }
+  
+  if (!IS_NPC(ch) && ((uses_remaining = daily_uses_remaining(ch, FEAT_SLA_DARKNESS)) == 0)) {
+    send_to_char(ch, "You must recover before you can use this ability again.\r\n");
+    return;
+  }
+    
+  call_magic(ch, ch, NULL, SPELL_DARKNESS, GET_LEVEL(ch), CAST_SPELL);
+}
+
 /* race trelux innate ability */
 ACMD(do_fly) {
   if (!HAS_FEAT(ch, FEAT_WINGS)) {

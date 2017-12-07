@@ -225,6 +225,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "deatharrow", "deatharrow", POS_FIGHTING, do_deatharrow, 1, 0, FALSE, ACTION_NONE, {0, 0}},
   { "defensivestance", "defensivestance", POS_FIGHTING, do_defensive_stance, 1, 0, FALSE, ACTION_NONE, {0, 0}},
   { "defenses", "defenses", POS_DEAD, do_defenses, 0, 0, TRUE, ACTION_NONE, {0, 0}},
+  { "darkness", "darkness", POS_FIGHTING, do_darkness, 1, 0, FALSE, ACTION_MOVE, {0, 0}},
 
   { "eat", "ea", POS_RECLINING, do_eat, 0, SCMD_EAT, FALSE, ACTION_MOVE, {0, 6}},
   { "echo", "ec", POS_SLEEPING, do_echo, LVL_IMMORT, SCMD_ECHO, TRUE, ACTION_NONE, {0, 0}},
@@ -259,6 +260,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "feint", "feint", POS_FIGHTING, do_feint, 1, 0, FALSE, ACTION_NONE, {0, 0}},
   { "firebolt", "firebolt", POS_FIGHTING, do_firebolt, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
   { "freegrapple", "freegrapple", POS_RECLINING, do_free_grapple, 1, 0, FALSE, ACTION_NONE, {0, 0}},
+  { "faeriefire", "faeriefire", POS_FIGHTING, do_process_attack, 1, AA_FAERIE_FIRE, FALSE, ACTION_NONE, {0, 0}},
 
   { "get", "g", POS_RECLINING, do_get, 0, 0, FALSE, ACTION_NONE, {0, 0}},
   { "gecho", "gecho", POS_DEAD, do_gecho, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}},
@@ -336,6 +338,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "loadmagic", "loadmagic", POS_DEAD, do_loadmagic, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}},
   { "loadmagicspecific", "loadmagicspecific", POS_DEAD, do_loadmagicspecific, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}},
   { "lightningarc", "lightningarc", POS_FIGHTING, do_lightningarc, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
+  { "levitate", "levitate", POS_FIGHTING, do_levitate, 1, 0, FALSE, ACTION_MOVE, {0, 0}},
 
   { "memorize", "memorize", POS_RESTING, do_gen_memorize, 0, SCMD_MEMORIZE, FALSE, ACTION_NONE, {0, 0}},
   { "mail", "mail", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}},
@@ -2254,6 +2257,9 @@ void nanny(struct descriptor_data *d, char *arg) {
           break;
         case RACE_ARCANA_GOLEM:
           perform_help(d, "race-arcana-golem");
+          break;
+        case RACE_DROW:
+          perform_help(d, "race-drow");
           break;
         case RACE_CRYSTAL_DWARF:
           perform_help(d, "race-crystal-dwarf");

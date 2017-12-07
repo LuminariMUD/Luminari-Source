@@ -700,7 +700,7 @@ int compute_ability(struct char_data *ch, int abilityNum) {
   if (GET_HIT(ch) <= 0 || GET_POS(ch) <= POS_STUNNED)
     return -1;
 
-  //universal bonuses
+  //universal bonuses/penalties
   if (affected_by_spell(ch, SPELL_HEROISM))
     value += 2;
   else if (affected_by_spell(ch, SPELL_GREATER_HEROISM))
@@ -713,6 +713,8 @@ int compute_ability(struct char_data *ch, int abilityNum) {
     value += 3;
   if (HAS_SKILL_FEAT(ch, abilityNum, feat_to_skfeat(FEAT_EPIC_SKILL_FOCUS)))
     value += 6;
+  if (!IS_NPC(vict) && IS_DAYLIT(IN_ROOM(vict)) && HAS_FEAT(vict, FEAT_LIGHT_BLINDNESS))
+    value -= 1;
   // try to avoid sending NPC's here, but just in case:
   /* Note on this:  More and more it seems necessary to have some
    * sort of NPC skill system in place, either an actual set
@@ -758,8 +760,11 @@ int compute_ability(struct char_data *ch, int abilityNum) {
       
     case ABILITY_PERCEPTION:
       value += GET_WIS_BONUS(ch);
-      if (GET_RACE(ch) == RACE_ELF)
+      
+      if (HAS_FEAT(ch, FEAT_KEEN_SENSES)) {
+        /* Unnamed bonus, elves */
         value += 2;
+      }
       if (HAS_FEAT(ch, FEAT_ALERTNESS)) {
         /* Unnamed bonus */
         value += 2;
@@ -902,6 +907,10 @@ int compute_ability(struct char_data *ch, int abilityNum) {
       value += GET_WIS_BONUS(ch);
       if (HAS_FEAT(ch, FEAT_NEGOTIATOR)) {
         /* Unnamed bonus */
+        value += 2;
+      }
+      if (HAS_FEAT(ch, FEAT_KEEN_SENSES)) {
+        /* Unnamed bonu, elves */
         value += 2;
       }
       if (HAS_FEAT(ch, FEAT_ALERTNESS)) {

@@ -1555,6 +1555,21 @@ static int level_feats[][LEVEL_FEATS] = {
   {CLASS_UNDEFINED, RACE_ARCANA_GOLEM, FALSE, 1, FEAT_MAGICAL_HERITAGE},
   {CLASS_UNDEFINED, RACE_ARCANA_GOLEM, FALSE, 1, FEAT_ARCANA_GOLEM_RACIAL_ADJUSTMENT},
 
+  /* class, race, stacks?, level, feat_ name */
+        /* Drow */
+  {CLASS_UNDEFINED, RACE_DROW, FALSE, 1, FEAT_ULTRAVISION},
+  {CLASS_UNDEFINED, RACE_DROW, FALSE, 1, FEAT_SLEEP_ENCHANTMENT_IMMUNITY},
+  {CLASS_UNDEFINED, RACE_DROW, FALSE, 1, FEAT_KEEN_SENSES},
+  {CLASS_UNDEFINED, RACE_DROW, FALSE, 1, FEAT_RESISTANCE_TO_ENCHANTMENTS},
+  {CLASS_UNDEFINED, RACE_DROW, FALSE, 1, FEAT_WEAPON_PROFICIENCY_DROW},
+  {CLASS_UNDEFINED, RACE_DROW, FALSE, 1, FEAT_DROW_RACIAL_ADJUSTMENT},
+  {CLASS_UNDEFINED, RACE_DROW, FALSE, 1, FEAT_DROW_SPELL_RESISTANCE},
+  {CLASS_UNDEFINED, RACE_DROW, FALSE, 1, FEAT_SLA_FAERIE_FIRE},
+  {CLASS_UNDEFINED, RACE_DROW, FALSE, 1, FEAT_SLA_LEVITATE},
+  {CLASS_UNDEFINED, RACE_DROW, FALSE, 1, FEAT_SLA_FAERIE_FIRE},
+  //disadvantage  
+  {CLASS_UNDEFINED, RACE_DROW, FALSE, 1, FEAT_LIGHT_BLINDNESS},
+
   /*****************************************/
   /* This is always the last array element */
   /*****************************************/
@@ -1962,6 +1977,14 @@ void init_start_char(struct char_data *ch) {
       GET_REAL_SIZE(ch) = SIZE_MEDIUM;
       GET_REAL_CON(ch) -= 2;
       GET_REAL_STR(ch) -= 2;
+      GET_REAL_INT(ch) += 2;
+      GET_REAL_WIS(ch) += 2;
+      GET_REAL_CHA(ch) += 2;
+      break;
+    case RACE_DROW:
+      GET_REAL_SIZE(ch) = SIZE_MEDIUM;
+      GET_REAL_CON(ch) -= 2;
+      GET_REAL_DEX(ch) += 2;
       GET_REAL_INT(ch) += 2;
       GET_REAL_WIS(ch) += 2;
       GET_REAL_CHA(ch) += 2;
@@ -2387,6 +2410,9 @@ int level_exp(struct char_data *ch, int level) {
       exp *= 2;
       break;
     case RACE_ARCANA_GOLEM:
+      exp *= 2;
+      break;
+    case RACE_DROW:
       exp *= 2;
       break;
       //epic races

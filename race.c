@@ -636,7 +636,7 @@ void assign_races(void) {
   /****************************************************************************/
   /****************************************************************************/
   /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
-  add_race(RACE_GNOME, "gnome", "Gnome", "\tmGnome\tn", "Gnme", "\tmGnme\tn",
+  add_race(RACE_GNOME, "gnome", "Gnome", "\tMGnome\tn", "Gnme", "\tMGnme\tn",
            /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
            RACE_TYPE_HUMANOID, SIZE_SMALL, TRUE, 0,    0,      IS_NORMAL);
     set_race_details(RACE_GNOME,
@@ -792,9 +792,56 @@ void assign_races(void) {
     /* affect assignment */
     /*                  race-num  affect            lvl */
   /****************************************************************************/
+  /****************************************************************************/
+  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(RACE_DROW, "drow", "Drow", "\tmDrow\tn", "Drow", "\tmDrow\tn",
+           /* race-family,     size-class,  Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_HUMANOID, SIZE_MEDIUM, TRUE,   2,       1000,   IS_ADVANCE);
+    set_race_details(RACE_DROW,
+      /*descrip*/"Cruel and cunning, Drow, also known as dark elves, were cursed into their present appearance "
+            "by the Arcanite and Prisoner's magic, were led down the path to evil and corruption. "
+            "The drow have black skin that resembles polished obsidian and stark white or "
+            "pale yellow hair. They commonly have red eyes. Drow are the same size as elves but a "
+            "bit thinner."
+            "\r\n"
+            "Descending into the Underworld, they formed cities shaped from the rock of cyclopean caverns. "
+            "They developed a theocratic and matriarchal society based on power and deceit. "
+            "Females generally hold all positions of power and responsibility in the government, the military, and the home. "
+            "In such a society males are often trained as warriors to become soldiers, guards, and "
+            "servants of females. Those males showing aptitude with magic are trained as Wizards "
+            "instead. While they are not born evil, malignancy is deep-rooted in their culture and "
+            "society, and nonconformists rarely survive for long.",
+      /*morph to-char*/"Your body twists and contorts painfully until your form becomes Drow.",
+      /*morph to-room*/"$n's body twists and contorts painfully until $s form becomes Drow.");
+    set_race_genders(RACE_DROW, N, Y, Y); /* n m f */
+    set_race_abilities(RACE_DROW, 0, -2, 2, 2, 2, 2); /* str con int wis dex cha */
+    set_race_alignments(RACE_DROW, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */  
+    set_race_attack_types(RACE_DROW,
+     /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+        Y,  N,    N,   N,    N,   N,       N,    N,    N,   N,   N,     N,
+     /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+        N,    Y,    N,   N,    N,     N,   N,   N,   N,    N,      N,     N);
+    /* feat assignment */
+    /*                   race-num    feat                  lvl stack */
+    feat_race_assignment(RACE_DROW, FEAT_ULTRAVISION,                    1,  N);
+    feat_race_assignment(RACE_DROW, FEAT_SLEEP_ENCHANTMENT_IMMUNITY,            1,  N);
+    feat_race_assignment(RACE_DROW, FEAT_KEEN_SENSES,      1,  N);
+    feat_race_assignment(RACE_DROW, FEAT_RESISTANCE_TO_ENCHANTMENTS,         1,  N);
+    feat_race_assignment(RACE_DROW, FEAT_WEAPON_PROFICIENCY_DROW,               1,  N);
+    feat_race_assignment(RACE_DROW, FEAT_DROW_RACIAL_ADJUSTMENT, 1,  N);
+    feat_race_assignment(RACE_DROW, FEAT_DROW_SPELL_RESISTANCE, 1,  N);
+    feat_race_assignment(RACE_DROW, FEAT_SLA_FAERIE_FIRE, 1,  N);
+    feat_race_assignment(RACE_DROW, FEAT_SLA_LEVITATE, 1,  N);
+    feat_race_assignment(RACE_DROW, FEAT_SLA_DARKNESS, 1,  N);
+    feat_race_assignment(RACE_DROW, FEAT_LIGHT_BLINDNESS, 1,  N);
+    /* affect assignment */
+    /*                  race-num  affect            lvl */
+  /****************************************************************************/
+
   /******/
   /*Epic*/
   /******/
+    
   /****************************************************************************/
   /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
   add_race(RACE_CRYSTAL_DWARF, "crystaldwarf", "CrystalDwarf", "\tCCrystal \tgDwarf\tn", "CDwf", "\tCC\tgDwf\tn",
@@ -881,9 +928,6 @@ void assign_races(void) {
   /****************************************************************************/
     
   /*
-  add_race(RACE_DROW_ELF, "drow", "Drow", "\tmDrow\tn", "Drow", "\tmDrow\tn",
-           RACE_TYPE_HUMANOID, SIZE_MEDIUM, FALSE, 2);
-    //favored_class_female(RACE_DROW_ELF, CLASS_CLERIC);
   add_race(RACE_ROCK_GNOME, "rock gnome", "RkGnome", "Rock Gnome", RACE_TYPE_HUMANOID, N, Y, Y, -2, 0, 2, 0, 0, 0,
           Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_SMALL, FALSE, CLASS_WIZARD, SKILL_LANG_GNOME, 0);
   add_race(RACE_DEEP_GNOME, "svirfneblin", "Svfnbln", "Svirfneblin", RACE_TYPE_HUMANOID, N, Y, Y, -2, 0, 0, 2, 2, -4,
@@ -1564,6 +1608,7 @@ int invalid_race(struct char_data *ch, struct obj_data *obj) {
       (OBJ_FLAGGED(obj, ITEM_ANTI_CRYSTAL_DWARF)   && IS_CRYSTAL_DWARF(ch)) ||
       (OBJ_FLAGGED(obj, ITEM_ANTI_TRELUX)   && IS_TRELUX(ch)) ||
       (OBJ_FLAGGED(obj, ITEM_ANTI_ARCANA_GOLEM)   && IS_ARCANA_GOLEM(ch)) ||
+      (OBJ_FLAGGED(obj, ITEM_ANTI_DROW)   && IS_DROW(ch)) ||
       (OBJ_FLAGGED(obj, ITEM_ANTI_DWARF) && IS_DWARF(ch)))
         return 1;
   else

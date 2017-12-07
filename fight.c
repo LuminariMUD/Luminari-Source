@@ -3248,7 +3248,11 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
        compute_gear_armor_type(ch) <= ARMOR_TYPE_LIGHT) {
      dambonus += MAX(0, CLASS_LEVEL(ch, CLASS_DUELIST));
   }
-
+  
+  /* light blindness - dayblind, underdark/underworld penalties */
+  if (!IS_NPC(ch) && IS_DAYLIT(IN_ROOM(ch)) && HAS_FEAT(ch, FEAT_LIGHT_BLINDNESS))
+    dambonus -= 1;
+  
   /****************************************/
   /**** display, keep mods above this *****/
   /****************************************/
@@ -4465,6 +4469,9 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
   if (GET_RACE(ch) == RACE_TRELUX) {
     bonuses[BONUS_TYPE_RACIAL] += 4;    
   }
+        /* light blindness - dayblind, underdark/underworld penalties */
+  if (!IS_NPC(ch) && IS_DAYLIT(IN_ROOM(ch)) && HAS_FEAT(ch, FEAT_LIGHT_BLINDNESS))
+    bonuses[BONUS_TYPE_RACIAL] -= 1;
 
   /* Sacred bonus */
 
