@@ -713,7 +713,7 @@ int compute_ability(struct char_data *ch, int abilityNum) {
     value += 3;
   if (HAS_SKILL_FEAT(ch, abilityNum, feat_to_skfeat(FEAT_EPIC_SKILL_FOCUS)))
     value += 6;
-  if (!IS_NPC(vict) && IS_DAYLIT(IN_ROOM(vict)) && HAS_FEAT(vict, FEAT_LIGHT_BLINDNESS))
+  if (!IS_NPC(ch) && IS_DAYLIT(IN_ROOM(ch)) && HAS_FEAT(ch, FEAT_LIGHT_BLINDNESS))
     value -= 1;
   // try to avoid sending NPC's here, but just in case:
   /* Note on this:  More and more it seems necessary to have some
