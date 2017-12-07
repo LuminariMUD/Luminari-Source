@@ -98,6 +98,7 @@ int count_color_chars(char *string);
 bool char_has_infra(struct char_data *ch);
 bool char_has_ultra(struct char_data *ch);
 bool room_is_dark(room_rnum room);
+bool room_is_daylit(room_rnum room);
 int levenshtein_distance(const char *s1, const char *s2);
 struct time_info_data *real_time_passed(time_t t2, time_t t1);
 struct time_info_data *mud_time_passed(time_t t2, time_t t1);
