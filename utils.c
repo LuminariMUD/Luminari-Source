@@ -256,10 +256,11 @@ int stats_cost_chart[11] = { /* cost for total points */
 int comp_base_dex(struct char_data *ch) {
   int base_dex = BASE_STAT;
   switch (GET_RACE(ch)) {
-    case RACE_ELF:      base_dex += 2; break;
-    case RACE_HALFLING: base_dex += 2; break;
-    case RACE_HALF_TROLL:    base_dex += 2; break;
-    case RACE_TRELUX:   base_dex += 8; break;
+    case RACE_ELF:         base_dex += 2; break;
+    case RACE_DROW:        base_dex += 2; break;
+    case RACE_HALFLING:    base_dex += 2; break;
+    case RACE_HALF_TROLL:  base_dex += 2; break;
+    case RACE_TRELUX:      base_dex += 8; break;
   }
   return base_dex;
 }
@@ -272,7 +273,7 @@ int comp_base_str(struct char_data *ch) {
   switch (GET_RACE(ch)) {
     case RACE_HALFLING:        base_str -= 2; break;
     case RACE_GNOME:           base_str -= 2; break;
-    case RACE_HALF_TROLL:           base_str += 2; break;
+    case RACE_HALF_TROLL:      base_str += 2; break;
     case RACE_CRYSTAL_DWARF:   base_str += 2; break;
     case RACE_TRELUX:          base_str += 2; break;
     case RACE_ARCANA_GOLEM:    base_str -= 2; break;
@@ -287,10 +288,11 @@ int comp_str_cost(struct char_data *ch, int number) {
 int comp_base_con(struct char_data *ch) {
   int base_con = BASE_STAT;
   switch (GET_RACE(ch)) {
+    case RACE_DROW:            base_con -= 2; break;
     case RACE_ELF:             base_con -= 2; break;
     case RACE_DWARF:           base_con += 2; break;
     case RACE_GNOME:           base_con += 2; break;
-    case RACE_HALF_TROLL:           base_con += 2; break;
+    case RACE_HALF_TROLL:      base_con += 2; break;
     case RACE_CRYSTAL_DWARF:   base_con += 8; break;
     case RACE_TRELUX:          base_con += 4; break;
     case RACE_ARCANA_GOLEM:    base_con -= 2; break;
@@ -304,8 +306,9 @@ int comp_con_cost(struct char_data *ch, int number) {
 int comp_base_inte(struct char_data *ch) {
   int base_inte = BASE_STAT;
   switch (GET_RACE(ch)) {
-    case RACE_HALF_TROLL:          base_inte -= 4; break;
+    case RACE_HALF_TROLL:     base_inte -= 4; break;
     case RACE_ARCANA_GOLEM:   base_inte += 2; break;
+    case RACE_DROW:           base_inte += 2; break;
   }
   return base_inte;
 }
@@ -316,9 +319,10 @@ int comp_inte_cost(struct char_data *ch, int number) {
 int comp_base_wis(struct char_data *ch) {
   int base_wis = BASE_STAT;
   switch (GET_RACE(ch)) {
-    case RACE_HALF_TROLL:           base_wis -= 4; break;
+    case RACE_HALF_TROLL:      base_wis -= 4; break;
     case RACE_CRYSTAL_DWARF:   base_wis += 2; break;
     case RACE_ARCANA_GOLEM:    base_wis += 2; break;
+    case RACE_DROW:            base_wis += 2; break;
   }
   return base_wis;
 }
@@ -330,7 +334,8 @@ int comp_base_cha(struct char_data *ch) {
   int base_cha = BASE_STAT;
   switch (GET_RACE(ch)) {
     case RACE_DWARF:            base_cha -= 2; break;
-    case RACE_HALF_TROLL:            base_cha -= 4; break;
+    case RACE_DROW:             base_cha += 2; break;
+    case RACE_HALF_TROLL:       base_cha -= 4; break;
     case RACE_CRYSTAL_DWARF:    base_cha += 2; break;
     case RACE_ARCANA_GOLEM:     base_cha += 2; break;
   }
@@ -2313,10 +2318,59 @@ bool char_has_ultra(struct char_data *ch) {
     return TRUE;
   if (GET_RACE(ch) == RACE_H_ORC)
     return TRUE;
+  if (GET_RACE(ch) == RACE_DROW)
+    return TRUE;
   if (GET_RACE(ch) == RACE_TRELUX)
     return TRUE;
 
   return FALSE;
+}
+
+/* test to see if a given room is "daylit", useful for dayblind races, etc
+ rules detailed in code comments -zusuk */
+bool room_is_daylit(room_rnum room) {
+  if (!VALID_ROOM_RNUM(room)) {
+    log("room_is_daylit: Invalid room rnum %d. (0-%d)", room, top_of_world);
+    return (FALSE);
+  }
+  
+  /* disqualifiers */
+  /* sectors */
+  if (SECT(room) == SECT_INSIDE)
+    return (FALSE);
+  if (SECT(room) == SECT_UNDERWATER)
+    return (FALSE);
+  if (SECT(room) == SECT_PLANES)
+    return (FALSE);
+  if (SECT(room) == SECT_UD_WILD)
+    return (FALSE);
+  if (SECT(room) == SECT_UD_CITY)
+    return (FALSE);
+  if (SECT(room) == SECT_UD_INSIDE)
+    return (FALSE);
+  if (SECT(room) == SECT_UD_WATER)
+    return (FALSE);
+  if (SECT(room) == SECT_UD_NOSWIM)
+    return (FALSE);
+  if (SECT(room) == SECT_UD_NOGROUND)
+    return (FALSE);
+  if (SECT(room) == SECT_CAVE)
+    return (FALSE);
+  /* room flags */
+  if (ROOM_FLAGGED(room, ROOM_DARK))
+    return (FALSE);
+  if (ROOM_FLAGGED(room, ROOM_MAGICDARK))
+    return (FALSE);
+  /* room affections */
+  if (ROOM_AFFECTED(room, RAFF_DARKNESS))
+    return (FALSE);
+  /* time/weather system */
+  if (weather_info.sunlight == SUN_SET || weather_info.sunlight == SUN_DARK)
+    return (FALSE);
+   
+  /* room is not indoors, room is not 'dark', room is not affected by darkness
+     it is NOT sun-set and NOT sun-dark */
+  return (TRUE);  
 }
 
 /** Tests to see if a room is dark. Rules (unless overridden by ROOM_DARK):
@@ -2354,6 +2408,25 @@ bool room_is_dark(room_rnum room) {
   if (ROOM_AFFECTED(room, RAFF_DARKNESS))
     return (TRUE);
 
+  /* sectors dark by nature */  
+  if (SECT(room) == SECT_UNDERWATER)
+    return (TRUE);
+  if (SECT(room) == SECT_UD_WILD)
+    return (TRUE);
+  if (SECT(room) == SECT_UD_CITY)
+    return (TRUE);
+  if (SECT(room) == SECT_UD_INSIDE)
+    return (TRUE);
+  if (SECT(room) == SECT_UD_WATER)
+    return (TRUE);
+  if (SECT(room) == SECT_UD_NOSWIM)
+    return (TRUE);
+  if (SECT(room) == SECT_UD_NOGROUND)
+    return (TRUE);
+  if (SECT(room) == SECT_CAVE)
+    return (TRUE);
+  /* end sectors */
+  
   return (FALSE);
 }
 
@@ -3254,6 +3327,9 @@ int get_daily_uses(struct char_data *ch, int featnum){
       break;
     case FEAT_CRYSTAL_FIST:
     case FEAT_CRYSTAL_BODY:
+    case FEAT_SLA_FAERIE_FIRE:
+    case FEAT_SLA_LEVITATE:
+    case FEAT_SLA_DARKNESS:
       daily_uses = 3;
       break;
     case FEAT_BATTLE_RAGE:/*fallthrough*/

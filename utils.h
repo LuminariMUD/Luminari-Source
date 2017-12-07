@@ -618,6 +618,8 @@ do                                                              \
 /** TRUE if the room has light, FALSE if not. */
 #define IS_LIGHT(room)  (!IS_DARK(room))
 
+/** TRUE if the room is day-lit, FALSE if not. */
+#define IS_DAYLIT(room)	room_is_daylit((room))
 
 /** 1 if this is a valid room number, 0 if not. */
 #define VALID_ROOM_RNUM(rnum)	((rnum) != NOWHERE && (rnum) <= top_of_world)
@@ -1712,6 +1714,14 @@ spellnum == SPELL_EPIC_WARDING )
         (GET_RACE(ch) == RACE_GNOME))
 #define IS_ARCANA_GOLEM(ch)            (!IS_NPC(ch) && \
         (GET_RACE(ch) == RACE_ARCANA_GOLEM))
+#define IS_ARCANE_GOLEM(ch)            (!IS_NPC(ch) && \
+        (GET_RACE(ch) == RACE_ARCANA_GOLEM))
+#define IS_DROW(ch)            (!IS_NPC(ch) && \
+        (GET_RACE(ch) == RACE_DROW))
+#define IS_DROW_ELF(ch)            (!IS_NPC(ch) && \
+        (GET_RACE(ch) == RACE_DROW))
+#define IS_DARK_ELF(ch)            (!IS_NPC(ch) && \
+        (GET_RACE(ch) == RACE_DROW))
 
 
 // IS_race for various morph/shapechange equivalent of npc races

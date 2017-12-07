@@ -51,7 +51,8 @@ int compute_spell_res(struct char_data *ch, struct char_data *vict, int modifier
   //additional adjustmenets
   if (HAS_FEAT(vict, FEAT_DIAMOND_SOUL))
     resist += 10 + CLASS_LEVEL(vict, CLASS_MONK);
-
+  if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_DROW_SPELL_RESISTANCE))
+    resist += 10 + GET_LEVEL(vict);
   if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_IMPROVED_SPELL_RESISTANCE))
     resist += 2 * HAS_FEAT(vict, FEAT_IMPROVED_SPELL_RESISTANCE);
   if (affected_by_spell(vict, SPELL_PROTECT_FROM_SPELLS))
@@ -61,7 +62,7 @@ int compute_spell_res(struct char_data *ch, struct char_data *vict, int modifier
   if (!IS_NPC(vict) && GET_EQ(vict, WEAR_SHIELD) &&
           HAS_FEAT(vict, FEAT_ARMOR_MASTERY_2))
     resist += 25;
-
+          
   return MIN(99, MAX(0, resist));
 }
 
@@ -143,6 +144,8 @@ int compute_mag_saves(struct char_data *vict,
     saves += SPELLBATTLE(vict);
   if (HAS_FEAT(vict, FEAT_SAVES))
     saves += CLASS_LEVEL(vict, CLASS_CLERIC) / 6;
+  if (!IS_NPC(vict) && IS_DAYLIT(IN_ROOM(vict)) && HAS_FEAT(vict, FEAT_LIGHT_BLINDNESS))
+    saves -= 1;
 
   /* determine base, add/minus bonus/penalty and return */
   if (IS_NPC(vict))
@@ -1380,9 +1383,15 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   int enchantment_bonus = 0, illusion_bonus = 0, success = 0;
   bool is_mind_affect = FALSE;
   struct damage_reduction_type *new_dr = NULL;
+  bool is_immune_sleep = FALSE;
 
   if (victim == NULL || ch == NULL)
     return;
+
+  /* elven drow resistance to certain enchantments such as sleep */
+  if (HAS_FEAT(victim, FEAT_SLEEP_ENCHANTMENT_IMMUNITY)) {
+    is_immune_sleep = TRUE;
+  }  
 
   for (i = 0; i < MAX_SPELL_AFFECTS; i++) { //init affect array
     new_affect(&(af[i]));
@@ -1399,12 +1408,9 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   /* various bonus/penalty; added IS_NPC check to prevent NPCs from getting incorrect bonuses,
    * since RACE_TYPE_HUMAN = RACE_ELF, etc. -Nashak */
   if (!IS_NPC(ch)) {
-    if (HAS_FEAT(victim, FEAT_STILL_MIND))
-      enchantment_bonus += 2;
 
     switch (GET_RACE(ch)) { /* caster */
       case RACE_GNOME: // illusions
-        illusion_bonus -= 2; /* opponent has penalty to check */
         break;
       default:
         break;
@@ -1412,19 +1418,38 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     /* racial victim resistance */
     switch (GET_RACE(victim)) { /* target */
       case RACE_H_ELF:
+      case RACE_DROW:
       case RACE_ELF: //enchantments
-        enchantment_bonus += 2;
         break;
       case RACE_ARCANA_GOLEM: //enchantments, penalty
-        enchantment_bonus -= 2;
         break;
       case RACE_GNOME: // illusions
-        illusion_bonus += 2;
         break;
       default:
         break;
     }
   }
+  
+  /* we are putting some feats here that affect either bonus/penalties to checks */
+  /* caster / ch */
+  if (HAS_FEAT(ch, FEAT_ILLUSION_AFFINITY)) {
+    illusion_bonus -= 2; /* gnome */
+  }
+  /* target / victim */
+  if (HAS_FEAT(victim, FEAT_STILL_MIND)) {
+    enchantment_bonus += 2;
+  }
+  if (HAS_FEAT(victim, FEAT_RESISTANCE_TO_ENCHANTMENTS)) {
+    enchantment_bonus += 2; /* elf, drow, etc */
+  }
+  if (HAS_FEAT(victim, FEAT_ENCHANTMENT_VULNERABILITY)) {
+    enchantment_bonus -= 2; /* arcana golem */
+  }
+  if (HAS_FEAT(victim, FEAT_RESISTANCE_TO_ILLUSIONS)) {
+    illusion_bonus += 2; /* gnome */
+  }
+  /****/
+  
 
   /* note, hopefully we have calculated the proper level for this spell
      in call_magic() */
@@ -1819,9 +1844,9 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       to_vict = "You are warded against death magic!";
       break;
 
-    case SPELL_DEEP_SLUMBER: //enchantment
-      if (GET_LEVEL(victim) >= 15 ||
-              (!IS_NPC(victim) && GET_RACE(victim) == RACE_ELF)) {
+    case SPELL_DEEP_SLUMBER: //enchantment      
+      
+      if (GET_LEVEL(victim) >= 15 || is_immune_sleep) {
         send_to_char(ch, "The target is too powerful for this enchantment!\r\n");
         return;
       }
@@ -3015,7 +3040,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case SPELL_SLEEP: //enchantment
-      if (GET_LEVEL(victim) >= 7 || (!IS_NPC(victim) && GET_RACE(victim) == RACE_ELF)) {
+      if (GET_LEVEL(victim) >= 7 || is_immune_sleep) {
         send_to_char(ch, "The target is too powerful for this enchantment!\r\n");
         return;
       }

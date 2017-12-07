@@ -101,6 +101,16 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon) {
     }
   }
 
+  if (has_feat(ch, FEAT_WEAPON_PROFICIENCY_DROW) ||
+      IS_DROW(ch)) {
+    switch (weapon) {
+      case WEAPON_TYPE_HAND_CROSSBOW:
+      case WEAPON_TYPE_RAPIER:
+      case WEAPON_TYPE_SHORT_SWORD:
+        return TRUE;
+    }
+  }
+        
   if (has_feat(ch, FEAT_WEAPON_PROFICIENCY_ELF) ||
       IS_ELF(ch)) {
     switch (weapon) {

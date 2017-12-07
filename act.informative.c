@@ -2127,8 +2127,26 @@ ACMD(do_innates) {
                      "caster-level, concentration and spellcraft\r\n");
         send_to_char(ch, "spellbattle (help SPELLBATTLE)\r\n");
         break;
+      case RACE_DROW:
+        send_to_char(ch, "sleep enchantment immunity\r\n");
+        send_to_char(ch, "darkvision\r\n");
+        send_to_char(ch, "keen senses (+2 listen/spot ability)\r\n");
+        send_to_char(ch, "resistance to enchantments (+2 save bonus)\r\n");
+        send_to_char(ch, "spell resistance (10 + level)\r\n");
+        send_to_char(ch, "light blindness - -1 to hitroll, damroll, saves and "
+                "skill checks when outdoors during the day, darkness spells and "
+                "effects negate this penalty\r\n");        
+        send_to_char(ch, "drow weapon proficiency - hand-crossbow, rapier, and short-swords\r\n");
+        send_to_char(ch, "drow spell-like ability 3/day: faerie fire\r\n");
+        send_to_char(ch, "drow spell-like ability 3/day: levitate\r\n");
+        send_to_char(ch, "drow spell-like ability 3/day: darkness\r\n");
+        send_to_char(ch, "drow intelligence (+2 int)\r\n");
+        send_to_char(ch, "drow wisdom (+2 wis)\r\n");
+        send_to_char(ch, "drow charisma (+2 cha)\r\n");
+        send_to_char(ch, "drow weak constitution (-2 con)\r\n");
+        break;
       default:
-        send_to_char(ch, "No Racial (yet)\r\n");
+        send_to_char(ch, "No Racials (yet)\r\n");
         break;
     }
 

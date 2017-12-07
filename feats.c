@@ -495,6 +495,35 @@ void assign_feats(void) {
     "+4 con, +2 str, +2 wis, +2 cha",
     "As a natural racial bonus, crystal-dwarves start with +4 constituion, +2 to strength, wisdom and charisma.");
 
+  /* Drow */
+  //sleep enchantment immunity - shared
+  //ultravision / darkvision - shared
+  //keen senses - shared
+  //resistance to enchantments - shared
+  //light blindness - shared
+  feato(FEAT_SLA_LEVITATE, "drow levitate", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "sla - levitate 3/day",
+    "Drow have a spell-like ability to use 'levitate' on themselves three times per day");
+  feato(FEAT_SLA_DARKNESS, "drow darkness", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "sla - darkness 3/day",
+    "Drow have a spell-like ability to use 'darkness' on the current room three times per day");
+  feato(FEAT_SLA_FAERIE_FIRE, "drow faerie fire", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "sla - faerie fire 3/day",
+    "Drow have a spell-like ability to use 'faerie fire' on opponents three times per day");
+  feato(FEAT_DROW_SPELL_RESISTANCE, "drow spell resist", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "10 + level spell resist",
+    "Due to their magical nature and society, Drow have a strong natural resistance "
+          "to magic.  A Drow's spell resistance is equal to 10 + their level.");
+  feato(FEAT_DROW_RACIAL_ADJUSTMENT, "drow racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "+2 dex +2 wis +2 int +2 cha -2 con",
+    "Drow racial adjustment to stats are: +2 dexterity, +2 charisma, +2 wisdom, "
+          "+2 intelligence and -2 constitution.");
+  feato(FEAT_WEAPON_PROFICIENCY_DROW, "weapon proficiency - drow", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "gain bonus weapon proficiency",
+    "As part of your drow upbringing, you were trained in the usage of "
+          "hand-crossbows, rapiers and short-swords.");
+  
+  
   /* Trelux */
   feato(FEAT_VULNERABLE_TO_COLD, "vulnerable to cold", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
     "20 percent weakness to cold attacks",
@@ -528,6 +557,10 @@ void assign_feats(void) {
     "As racial modifiers, Trelux gain 4 dexterity, 2 strength and 4 constitution as a natural starting bonus.");
 
   /* Shared - Various */
+  feato(FEAT_LIGHT_BLINDNESS, "light blindness", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "penalties in daylight",
+    "You receive penalties of -1 to hitroll, damroll, saves and skill checks when "
+          "outdoors during the day.  Darkness spells and effects negate this penalty");
   feato(FEAT_KEEN_SENSES, "keen senses", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
     "+2 perception and sense motive",
     "+2 perception and sense motive");
