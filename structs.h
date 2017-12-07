@@ -443,7 +443,7 @@
 #define RACE_DROW            11  // not yet implemented
 #define RACE_DROW_ELF        RACE_DROW
 #define RACE_DARK_ELF        RACE_DROW
-//NUM_RACES = last playable race, set below
+//NUM_RACES = last playable race +1, set below [12]
 /* coming soon!*/
 #define RACE_DUERGAR         12  // not yet implemented
 #define RACE_GRAY_DWARF      RACE_DUERGAR
