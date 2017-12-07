@@ -2838,6 +2838,9 @@ ACMD(do_levitate) {
   //int call_magic(struct char_data *caster, struct char_data *cvict,
         //struct obj_data *ovict, int spellnum, int metamagic, int level, int casttype);
   call_magic(ch, ch, NULL, SPELL_WATERWALK, 0, GET_LEVEL(ch), CAST_SPELL);
+  
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_SLA_LEVITATE);  
 }
 
 /* darkness ability (drow) */
@@ -2862,6 +2865,9 @@ ACMD(do_darkness) {
   //int call_magic(struct char_data *caster, struct char_data *cvict,
         //struct obj_data *ovict, int spellnum, int metamagic, int level, int casttype);
   call_magic(ch, ch, NULL, SPELL_DARKNESS, 0, GET_LEVEL(ch), CAST_SPELL);
+
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_SLA_DARKNESS);  
 }
 
 /* race trelux innate ability */

@@ -3309,7 +3309,10 @@ void perform_faerie_fire(struct char_data *ch, struct char_data *vict) {
 
   //int call_magic(struct char_data *caster, struct char_data *cvict,
         //struct obj_data *ovict, int spellnum, int metamagic, int level, int casttype);
-  call_magic(ch, vict, NULL, SPELL_FAERIE_FIRE, 0, GET_LEVEL(ch), CAST_SPELL);  
+  call_magic(ch, vict, NULL, SPELL_FAERIE_FIRE, 0, GET_LEVEL(ch), CAST_SPELL);
+  
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_SLA_FAERIE_FIRE);  
 }
 
 /* kick engine */
