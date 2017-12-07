@@ -3307,6 +3307,8 @@ void perform_faerie_fire(struct char_data *ch, struct char_data *vict) {
   act("$n focuses briefly then points at $N...",
         FALSE, ch, NULL, vict, TO_NOTVICT);
 
+  //int call_magic(struct char_data *caster, struct char_data *cvict,
+        //struct obj_data *ovict, int spellnum, int metamagic, int level, int casttype);
   call_magic(ch, vict, NULL, SPELL_FAERIE_FIRE, 0, GET_LEVEL(ch), CAST_SPELL);  
 }
 
