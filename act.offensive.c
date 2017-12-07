@@ -3449,6 +3449,7 @@ ACMD(do_seekerarrow) {
 ACMD(do_faeriefire) {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
+  int uses_remaining = 0;
   
   if (!MOB_CAN_FIGHT(ch)) {
     send_to_char(ch, "But you can't fight!\r\n");
