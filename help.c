@@ -234,7 +234,7 @@ ACMD(do_help) {
   raw_argument = strdup(argument);
   space_to_minus(argument);
 
-  if (!display_class_info(ch, raw_argument) && (entries = search_help(argument, GET_LEVEL(ch))) == NULL) {
+  if (!display_class_info(ch, raw_argument) && !display_race_info(ch, raw_argument) && (entries = search_help(argument, GET_LEVEL(ch))) == NULL) {
     /* Check feats for relevant entries! */
     if (!display_feat_info(ch, raw_argument)) {
     
