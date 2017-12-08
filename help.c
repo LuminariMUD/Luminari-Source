@@ -234,10 +234,9 @@ ACMD(do_help) {
   raw_argument = strdup(argument);
   space_to_minus(argument);
 
-  if ((entries = search_help(argument, GET_LEVEL(ch))) == NULL) {
+  if (!display_class_info(ch, raw_argument) && (entries = search_help(argument, GET_LEVEL(ch))) == NULL) {
     /* Check feats for relevant entries! */
-    if (!display_feat_info(ch, raw_argument) &&
-            !display_class_info(ch, raw_argument)) {
+    if (!display_feat_info(ch, raw_argument)) {
     
       send_to_char(ch, "There is no help on that word.\r\n");
       mudlog(NRM, MAX(LVL_IMPL, GET_INVIS_LEV(ch)), TRUE,
