@@ -2654,7 +2654,7 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim) {
   if (ch != victim && (IS_NPC(victim) || victim->desc)) { //xp gain
     /* pets give xp to their master */
     if (IS_PET(ch) && ch->master && IN_ROOM(ch) == IN_ROOM(ch->master)) {
-      if (GROUP(ch))
+      if (GROUP(ch->master))
         group_gain(ch->master, victim);
       else
         solo_gain(ch->master, victim);
