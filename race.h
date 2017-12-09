@@ -41,6 +41,7 @@ bitvector_t find_race_bitvector(const char *arg);
 int invalid_race(struct char_data *ch, struct obj_data *obj);
 int parse_race_long(char *arg);
 void assign_races(void);
+bool display_race_info(struct char_data *ch, char *racename);
 
 /* ACMD */
 ACMD(do_race);
