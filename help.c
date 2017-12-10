@@ -18,6 +18,7 @@
 #include "feats.h"
 #include "spells.h" /* need this for class.h NUM_ABILITIES */
 #include "class.h"
+#include "race.h"
 
 /* puts -'s instead of spaces */
 void space_to_minus(char *str) {
