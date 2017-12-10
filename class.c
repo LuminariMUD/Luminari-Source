@@ -49,18 +49,6 @@
 #define  NA  0	 //not available
 #define  CC  1	 //cross class
 #define  CA  2	 //class ability
-//   give newbie's some eq to start with
-#define NOOB_TELEPORTER    82
-#define NOOB_TORCH         858
-#define NOOB_RATIONS       804
-#define NOOB_WATERSKIN     803
-#define NOOB_BP            857
-#define NOOB_CRAFTING_KIT  3118
-#define NOOB_BOW           814
-#define NOOB_QUIVER        816
-#define NOOB_ARROW         815
-#define NUM_NOOB_ARROWS    40
-#define NOOB_WIZ_NOTE      850
 /* absolute xp cap */
 #define EXP_MAX  2100000000
 /* modes for dealing with class listing / restrictions */
@@ -1576,6 +1564,22 @@ static int level_feats[][LEVEL_FEATS] = {
   {CLASS_UNDEFINED, RACE_UNDEFINED, FALSE, 1, FEAT_UNDEFINED}
 };
 
+//   give newbie's some eq to start with
+#define NUM_NOOB_ARROWS    40
+#define NUM_NOOB_DROW_BOLTS 30
+#define NOOB_TELEPORTER    82
+#define NOOB_TORCH         858
+#define NOOB_RATIONS       804
+#define NOOB_WATERSKIN     803
+#define NOOB_BP            857
+#define NOOB_CRAFTING_KIT  3118
+#define NOOB_BOW           814
+#define NOOB_QUIVER        816
+#define NOOB_ARROW         815
+#define NOOB_WIZ_NOTE      850
+#define NOOB_DROW_XBOW     832
+#define NOOB_DROW_BOLT     831
+#define NOOB_DROW_POUCH    833
 /* bard instrument vnums */
 #define LYRE      825
 #define FLUTE     826
@@ -1601,7 +1605,7 @@ void newbieEquipment(struct char_data *ch) {
     -1 //had to end with -1
   };
   int x;
-  struct obj_data *obj = NULL, *quiver = NULL;
+  struct obj_data *obj = NULL, *quiver = NULL, *pouch = NULL;
 
   send_to_char(ch, "\tMYou are given a set of starting equipment...\tn\r\n");
 
@@ -1624,8 +1628,37 @@ void newbieEquipment(struct char_data *ch) {
     if (quiver && obj)
       obj_to_obj(obj, quiver);
   }
+  /* end items everyone gets */
 
+  /* race specific goodies */
+  switch (GET_RACE(ch)) {
+    case RACE_DWARF:
+      obj = read_object(806, VIRTUAL);
+      //GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch); // dwarven waraxe
+      break;
+    case RACE_DROW:
+      obj = read_object(NOOB_DROW_XBOW, VIRTUAL);
+      //GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch); // drow hand xbow
+      
+      /* pouch and bolts for xbow */
+      pouch = read_object(NOOB_DROW_POUCH, VIRTUAL);
+      if (pouch)
+        obj_to_char(pouch, ch);
 
+      for (x = 0; x < NUM_NOOB_DROW_BOLTS; x++) {
+        obj = read_object(NOOB_DROW_BOLT, VIRTUAL);
+        if (pouch && obj)
+          obj_to_obj(obj, pouch);
+      }
+      break;
+    default:
+      break;
+  } /*  end of race specific gear */
+
+  
+  /* class specific gear */
   switch (GET_CLASS(ch)) {
     case CLASS_PALADIN:
       /*fallthrough*/
@@ -1678,8 +1711,16 @@ void newbieEquipment(struct char_data *ch) {
 
     case CLASS_BERSERKER:
     case CLASS_WARRIOR:
+      obj = read_object(807, VIRTUAL);
+      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch); // scale mail
+      /*fallthrough!*/
     case CLASS_RANGER:
 
+      obj = read_object(851, VIRTUAL);
+      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch); // studded leather
+      
       obj = read_object(854, VIRTUAL);
       GET_OBJ_SIZE(obj) = GET_SIZE(ch);
       obj_to_char(obj, ch); // leather sleeves
@@ -1688,22 +1729,13 @@ void newbieEquipment(struct char_data *ch) {
       GET_OBJ_SIZE(obj) = GET_SIZE(ch);
       obj_to_char(obj, ch); // leather pants
 
-      if (GET_RACE(ch) == RACE_DWARF) {
-        obj = read_object(806, VIRTUAL);
-        //GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-        obj_to_char(obj, ch); // dwarven waraxe
-      } else {
-        obj = read_object(808, VIRTUAL);
-        //GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-        obj_to_char(obj, ch); // bastard sword
-      }
+      obj = read_object(808, VIRTUAL);
+      //GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch); // bastard sword
+        
       obj = read_object(863, VIRTUAL);
       GET_OBJ_SIZE(obj) = GET_SIZE(ch);
       obj_to_char(obj, ch); // shield
-
-      obj = read_object(807, VIRTUAL);
-      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-      obj_to_char(obj, ch); // scale mail
 
       break;
 
@@ -1776,9 +1808,9 @@ void newbieEquipment(struct char_data *ch) {
 
       break;
     default:
-      log("Invalid class sent to newbieEquipment!");
+      log("Invalid class sent to newbieEquipment class!");
       break;
-  }
+  } /*  end of class specific gear */
 }
 #undef LYRE      
 #undef FLUTE     
