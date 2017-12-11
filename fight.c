@@ -5982,6 +5982,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
   /* so if ranged is not performed and we fall through to melee, we need to make
    * sure our attacks with max. BAB are maintained */
   int drop_an_attack_at_max_bab = 0;
+  struct obj_data *wielded = NULL;
 
   /* Check position..  we don't check < POS_STUNNED anymore? */
   if (GET_POS(ch) == POS_DEAD)
@@ -6033,7 +6034,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
    and then exit.  Otherwise you will fall through and perform a melee attack
    (unless you have a ranged weapon equipped, in which case exit) */
 
-/* -- Process ranged attacks, determine base number of attacks irregardless of
+  /* -- Process ranged attacks, determine base number of attacks irregardless of
    * whether ch is in combat or not ------ */
   if (can_fire_ammo(ch, TRUE)) {
 
@@ -6193,7 +6194,8 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
   
   /* we are going to exit melee combat if we are somehow wielding a ranged
      weapon here */
-  if (is_using_ranged_weapon(ch, TRUE)) {
+  wielded = is_using_ranged_weapon(ch, TRUE);
+  if (wielded) {
     send_to_char(ch, "You can not use a ranged weapon in melee combat: ");
     can_fire_ammo(ch, FALSE); /* we are using the function to report why! */
     
