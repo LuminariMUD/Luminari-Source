@@ -4091,7 +4091,7 @@ ACMD(do_reload) {
     return;
   }
 
-  if (!this_weapon_needs_reloading(ch, wielded)) {
+  if (!is_reloading_weapon(ch, wielded)) {
     send_to_char(ch, "This weapon does not need reloading (free action).\r\n");
     return;
   }

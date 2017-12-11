@@ -168,49 +168,57 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon) {
   return FALSE;
 }
 
-/* ranged-weapons, reload mechanic for slings, crossbows */
-/* TODO:  improve this cheese :P  also combine do_reload mechanic with this */
-bool auto_reload_weapon(struct char_data *ch) {
-  struct obj_data *wielded = is_using_ranged_weapon(ch);
-
-  if (!wielded) {
+/* is weapon out of ammo? */
+bool weapon_needs_reload(struct char_data *ch, struct obj_data *weapon, bool silent_mode) {
+  /* object value 5 is for loaded status */
+  if (GET_OBJ_VAL(weapon, 5) > 0) {
+    if (!silent_mode)
+      send_to_char(ch, "Your weapon is not empty yet!\r\n");
     return FALSE;
-  }
+  }  
+  return TRUE;
+}
 
-  if (!this_weapon_needs_reloading(ch, wielded)) {
-    return FALSE;
-  }
-
-  if (!has_missile_in_ammo_pouch(ch, wielded, TRUE)) {
-    return FALSE;
-  }
-
+bool ready_to_reload(struct char_data *ch, struct obj_data *wielded, bool silent_mode) {
   switch (GET_OBJ_VAL(wielded, 0)) {
     case WEAPON_TYPE_HEAVY_REP_XBOW:
     case WEAPON_TYPE_LIGHT_REP_XBOW:
     case WEAPON_TYPE_HEAVY_CROSSBOW:
+      
+      /* RAPID RELOAD! */
       if (has_feat(ch, FEAT_RAPID_RELOAD)) {
         if (is_action_available(ch, atMOVE, FALSE)) {
           if (reload_weapon(ch, wielded)) {
             USE_MOVE_ACTION(ch); /* success! */
           } else {
             /* failed reload */
+            if (!silent_mode)
+              send_to_char(ch, "You need a move action to reload!\r\n");
             return FALSE;
           }
         } else {
           /* reloading requires a move action */
+          if (!silent_mode)
+            send_to_char(ch, "You need a move action to reload!\r\n");
           return FALSE;
         }
+        
+      /* no rapid reload */
       } else if (is_action_available(ch, atSTANDARD, FALSE) &&
           is_action_available(ch, atMOVE, FALSE)) {
         if (reload_weapon(ch, wielded)) {
           USE_FULL_ROUND_ACTION(ch); /* success! */
         } else {
+          if (!silent_mode)
+            send_to_char(ch, "You need a full round action to reload!\r\n");
           /* failed reload */
           return FALSE;
         }
+        
       } else {
         /* reloading requires a full round action */
+        if (!silent_mode)
+          send_to_char(ch, "You need a full round action to reload!\r\n");
         return FALSE;
       }
 
@@ -218,35 +226,102 @@ bool auto_reload_weapon(struct char_data *ch) {
     case WEAPON_TYPE_HAND_CROSSBOW:
     case WEAPON_TYPE_LIGHT_CROSSBOW:
     case WEAPON_TYPE_SLING:
+      
+      /* RAPID RELOAD! */
       if (has_feat(ch, FEAT_RAPID_RELOAD))
         reload_weapon(ch, wielded);
+      
       else if (is_action_available(ch, atMOVE, FALSE)) {
         if (reload_weapon(ch, wielded)) {
           USE_MOVE_ACTION(ch); /* success! */
         } else {
           /* failed reload */
+          if (!silent_mode)
+            send_to_char(ch, "You need a move action to reload!\r\n");
           return FALSE;
         }
       } else {
         /* reloading requires a move action */
+        if (!silent_mode)
+          send_to_char(ch, "You need a move action to reload!\r\n");
         return FALSE;
       }
 
       break;
     default:
-      /* the cucumber you are wielding is fully loaded */
+      /* shouldn't get here */
+      if (!silent_mode)
+        send_to_char(ch, "The cucumber you are wielding is fully loaded! (error)\r\n");
       return FALSE;
-  }
+  }  
+}
 
-  send_to_char(ch, "You reload %s.\r\n", wielded->short_description);
+/* trying to put shared proces between auto_reload_weapon
+   and do_reload:
+   disqualifiers such as position
+   appropriate weapon?  (ranged + xbow type)
+   does this actually need reloading (still has ammo)
+   can reload (appropriate action available)
+   then run reload_weapon() for actual reloading
+   finally burn up appropriate action
+ * @returns:  true if success */
+bool process_load_weapon(struct char_data *ch, struct obj_data *weapon,
+        bool silent_mode) {
+  
+  /* position check */
+  if (GET_POS(ch) <= POS_STUNNED) {
+    if (!silent_mode)
+      send_to_char(ch, "You are in no position to do this!\r\n");
+    return FALSE;
+  }
+  
+  /* can't do this if stunned */
+  if (AFF_FLAGGED(ch, AFF_STUN) || char_has_mud_event(ch, eSTUNNED)) {
+    if (!silent_mode)
+      send_to_char(ch, "You can not reload a weapon while stunned!\r\n");
+    return FALSE;    
+  }
+  
+  /* ranged weapon? */
+  if (!is_using_ranged_weapon(ch, silent_mode)) {
+    return FALSE;
+  }
+  
+  /* weapon that needs reloading? */
+  if (!is_reloading_weapon(ch, weapon, silent_mode)) {
+    return FALSE;
+  }
+  
+  /* emptied out yet? */
+  if (!weapon_needs_reload(ch, weapon, silent_mode)) {
+    return FALSE;    
+  }
+  
+  /* check for actions, if available, reload */
+  if (!ready_to_reload(ch, weapon, silent_mode)) {
+    return FALSE;
+  }
+  
+  /* success! */
+  send_to_char(ch, "You reload %s.\r\n", weapon->short_description);
   if (FIGHTING(ch))
     FIRING(ch) = TRUE;
   return TRUE;
 }
 
+/* ranged-weapons, reload mechanic for slings, crossbows */
+bool auto_reload_weapon(struct char_data *ch, bool silent_mode) {
+  struct obj_data *wielded = is_using_ranged_weapon(ch);
+
+  if (!process_load_weapon(ch, wielded, silent_mode))
+    return FALSE;
+  
+  return TRUE;
+}
+
 
 #define MAX_AMMO_INSIDE_WEAPON 5 //unused
-bool reload_weapon(struct char_data *ch, struct obj_data *wielded) {
+bool reload_weapon(struct char_data *ch, struct obj_data *wielded, bool silent_mode) {
   int load_amount = 0;
 
   switch (GET_OBJ_VAL(wielded, 0)) {
@@ -264,12 +339,6 @@ bool reload_weapon(struct char_data *ch, struct obj_data *wielded) {
       break;
     default:
       return FALSE;
-  }
-
-  /* object value 5 is for loaded status */
-  if (GET_OBJ_VAL(wielded, 5) >= load_amount) {
-    send_to_char(ch, "Your weapon does not need reloading.\r\n");
-    return FALSE;
   }
 
   /* load her up! Object Value 5 is "loaded status" */
@@ -291,7 +360,7 @@ bool weapon_is_loaded(struct char_data *ch, struct obj_data *wielded, bool silen
   return TRUE;
 }
 /* this function will check to make sure ammo is ready for firing */
-bool has_missile_in_ammo_pouch(struct char_data *ch, struct obj_data *wielded,
+bool has_ammo_in_pouch(struct char_data *ch, struct obj_data *wielded,
                                bool silent) {
   struct obj_data *ammo_pouch = GET_EQ(ch, WEAR_AMMO_POUCH);
 
@@ -401,38 +470,36 @@ bool has_missile_in_ammo_pouch(struct char_data *ch, struct obj_data *wielded,
 }
 /* ranged combat (archery, etc)
  * this function will check for a ranged weapon, ammo and does
- * a check of loaded-status (like x-bow) and "has_missile_in_ammo_pouch" */
+ * a check of loaded-status (like x-bow) and "has_ammo_in_pouch" */
 bool can_fire_ammo(struct char_data *ch, bool silent) {
   struct obj_data *wielded = NULL;
 
-  if (!(wielded = is_using_ranged_weapon(ch))) {
-    if (!silent)
-      send_to_char(ch, "But you are not using a ranged weapon!\r\n");
+  if (!(wielded = is_using_ranged_weapon(ch, silent))) {
     FIRING(ch) = FALSE;
     return FALSE;
   }
 
-  if (!has_missile_in_ammo_pouch(ch, wielded, silent)) {
-    if (!silent)
-      send_to_char(ch, "You have no ammo!\r\n");
+  if (!has_ammo_in_pouch(ch, wielded, silent)) {
     FIRING(ch) = FALSE;
     return FALSE;
   }
 
   /* ranged weapons that need reloading such as crossbows */
-  if (this_weapon_needs_reloading(ch, wielded)) {
+  /* this is handled elsewhere *
+  if (is_reloading_weapon(ch, wielded)) {
     if (!weapon_is_loaded(ch, wielded, silent)) {
-      /* a message is sent in weapon_is_loaded() */
+      //a message is sent in weapon_is_loaded()
       FIRING(ch) = FALSE;
       return FALSE;
     }
   }
-
+  **/
+          
   /* ok! */
   return TRUE;
 }
 /*check all wielded slots looking for ranged weapon*/
-struct obj_data *is_using_ranged_weapon(struct char_data *ch) {
+struct obj_data *is_using_ranged_weapon(struct char_data *ch, bool silent_mode) {
   struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_2H);
 
   if (!wielded)
@@ -441,19 +508,27 @@ struct obj_data *is_using_ranged_weapon(struct char_data *ch) {
     wielded = GET_EQ(ch, WEAR_WIELD_OFFHAND);
 
   if (!wielded) {
+    if (!silent_mode)
+      send_to_char(ch, "You are not wielding a ranged weapon!\r\n");
     return NULL;
   }
   
   if (IS_WILDSHAPED(ch) || IS_MORPHED(ch)) {
+    if (!silent_mode)
+      send_to_char(ch, "What?!!?\r\n");
     return NULL;
   }
 
   if (IS_SET(weapon_list[GET_OBJ_VAL(wielded, 0)].weaponFlags, WEAPON_FLAG_RANGED))
     return wielded;
 
+  if (!silent_mode)
+    send_to_char(ch, "You are not wielding a ranged weapon!\r\n");
   return NULL;
 }
-bool this_weapon_needs_reloading(struct char_data *ch, struct obj_data *wielded) {
+
+/* is this ranged weapon the type that needs reloading? */
+bool is_reloading_weapon(struct char_data *ch, struct obj_data *wielded, bool silent_mode) {
   /* value 0 = weapon define value */
   switch (GET_OBJ_VAL(wielded, 0)) {
     case WEAPON_TYPE_HEAVY_CROSSBOW:
@@ -464,6 +539,8 @@ bool this_weapon_needs_reloading(struct char_data *ch, struct obj_data *wielded)
     case WEAPON_TYPE_HAND_CROSSBOW:
       return TRUE;
   }
+  if (!silent_mode)
+    send_to_char(ch, "This is not a ranged weapon that needs reloading!\r\n");
   return FALSE;
 }
 
