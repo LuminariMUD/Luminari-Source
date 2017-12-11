@@ -3230,7 +3230,7 @@ static void msdp_update(void) {
       
       /* gotta adjust compute_hit_damage() so it doesn't send messages randomly */
       /*
-      if (is_using_ranged_weapon(ch))
+      if (is_using_ranged_weapon(ch, TRUE))
         damage_bonus = compute_hit_damage(ch, ch, TYPE_UNDEFINED_WTYPE,
                                           NO_DICEROLL, MODE_NORMAL_HIT, FALSE, ATTACK_TYPE_RANGED);
       else

@@ -2531,7 +2531,7 @@ ACMD(do_wield) {
   else if (!(obj = get_obj_in_list_vis(ch, arg, NULL, ch->carrying)))
     send_to_char(ch, "You don't seem to have %s %s.\r\n", AN(arg), arg);
   /* need test to make sure we don't wield a 2nd missile weapon */
-  else if (is_using_ranged_weapon(ch)) {
+  else if (is_using_ranged_weapon(ch, TRUE)) {
     send_to_char(ch, "You are already using a ranged weapon!\r\n");
   /* wielding a weapon, now trying to dual wield a ranged weapon */
   } else if ( obj && (GET_EQ(ch, WEAR_WIELD_1) || GET_EQ(ch, WEAR_WIELD_OFFHAND)) &&
