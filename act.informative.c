@@ -149,7 +149,7 @@ void show_obj_info(struct obj_data *obj, struct char_data *ch) {
       
       /* check load-status of a reloadable weapon (such as crossbow) */
       if (is_reloading_weapon(ch, obj, TRUE)) {
-        send_to_char(ch, "Loaded ammo: %d ", GET_OBJ_VAL(obj, 5));
+        send_to_char(ch, "| Loaded ammo: %d ", GET_OBJ_VAL(obj, 5));
       }
         
       break;
