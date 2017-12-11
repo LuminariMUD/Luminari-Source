@@ -62,7 +62,7 @@ int compute_gear_armor_penalty(struct char_data *ch);
 int compute_gear_armor_type(struct char_data *ch);
 int compute_gear_shield_type(struct char_data *ch);
 
-struct obj_data *is_using_ranged_weapon(struct char_data *ch);
+struct obj_data *is_using_ranged_weapon(struct char_data *ch, bool silent_mode);
 //bool *is_ranged_weapon(struct obj_data *obj);
 bool is_using_double_weapon(struct char_data *ch);
 bool is_using_light_weapon(struct char_data *ch, struct obj_data *wielded);
@@ -75,12 +75,12 @@ int is_proficient_with_helm(struct char_data *ch);
 int is_proficient_with_sleeves(struct char_data *ch);
 int is_proficient_with_leggings(struct char_data *ch);
 
-bool is_reloading_weapon(struct char_data *ch, struct obj_data *wielded);
+bool is_reloading_weapon(struct char_data *ch, struct obj_data *wielded, bool silent);
 bool can_fire_ammo(struct char_data *ch, bool silent);
 bool has_missile_in_ammo_pouch(struct char_data *ch, struct obj_data *wielded,
                                bool silent);
-bool reload_weapon(struct char_data *ch, struct obj_data *wielded);
-bool auto_reload_weapon(struct char_data *ch);
+bool reload_weapon(struct char_data *ch, struct obj_data *wielded, bool silent);
+bool auto_reload_weapon(struct char_data *ch, bool silent_mode);
 
 bool monk_gear_ok(struct char_data *ch);
 /**/
