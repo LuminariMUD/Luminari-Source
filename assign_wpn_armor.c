@@ -255,7 +255,8 @@ bool ready_to_reload(struct char_data *ch, struct obj_data *wielded, bool silent
       return FALSE;
   }
   
-  return FALSE;
+  /* we made it! */
+  return TRUE;
 }
 
 /* trying to put shared proces between auto_reload_weapon
