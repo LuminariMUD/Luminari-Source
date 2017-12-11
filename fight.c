@@ -6202,6 +6202,9 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
     /* check for message on reloading weapons such as xbow */
     if (is_reloading_weapon(ch, wielded, TRUE)) {
       if (!weapon_is_loaded(ch, wielded, FALSE)) {
+        if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTORELOAD)) {
+          auto_reload_weapon(ch, TRUE);
+        }
       }
     }
     
