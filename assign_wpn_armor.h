@@ -81,7 +81,8 @@ bool has_ammo_in_pouch(struct char_data *ch, struct obj_data *wielded,
                                bool silent);
 bool reload_weapon(struct char_data *ch, struct obj_data *wielded, bool silent);
 bool auto_reload_weapon(struct char_data *ch, bool silent_mode);
-
+bool weapon_is_loaded(struct char_data *ch, struct obj_data *wielded, bool silent);
+        
 bool monk_gear_ok(struct char_data *ch);
 /**/
 
