@@ -279,21 +279,7 @@ bool reload_weapon(struct char_data *ch, struct obj_data *wielded) {
 }
 
 /* this function checks if weapon is loaded (like crossbows) */
-bool weapon_is_loaded(struct char_data *ch, bool silent) {
-  struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_2H);
-
-  if (!wielded)
-    wielded = GET_EQ(ch, WEAR_WIELD_1);
-  if (!wielded)
-    wielded = GET_EQ(ch, WEAR_WIELD_OFFHAND);
-
-  if (!wielded) {
-    return FALSE;
-  }
-
-  if (!this_weapon_needs_reloading(ch, wielded)) { /* doesn't require */
-    return FALSE;
-  }
+bool weapon_is_loaded(struct char_data *ch, struct obj_data *wielded, bool silent) {
 
   if (GET_OBJ_VAL(wielded, 5) <= 0) { /* object value 5 is for loaded status */
     if (!silent)
@@ -419,13 +405,6 @@ bool has_missile_in_ammo_pouch(struct char_data *ch, struct obj_data *wielded,
 bool can_fire_ammo(struct char_data *ch, bool silent) {
   struct obj_data *wielded = NULL;
 
-  if (!GET_EQ(ch, WEAR_AMMO_POUCH)) {
-    if (!silent)
-      send_to_char(ch, "But you do not wear an ammo pouch.\r\n");
-    FIRING(ch) = FALSE;
-    return FALSE;
-  }
-
   if (!(wielded = is_using_ranged_weapon(ch))) {
     if (!silent)
       send_to_char(ch, "But you are not using a ranged weapon!\r\n");
@@ -440,10 +419,13 @@ bool can_fire_ammo(struct char_data *ch, bool silent) {
     return FALSE;
   }
 
-  if (this_weapon_needs_reloading(ch, wielded) && !weapon_is_loaded(ch, silent)) {
-    /* a message is sent in weapon_is_loaded() */
-    FIRING(ch) = FALSE;
-    return FALSE;
+  /* ranged weapons that need reloading such as crossbows */
+  if (this_weapon_needs_reloading(ch, wielded)) {
+    if (!weapon_is_loaded(ch, wielded, silent)) {
+      /* a message is sent in weapon_is_loaded() */
+      FIRING(ch) = FALSE;
+      return FALSE;
+    }
   }
 
   /* ok! */
@@ -477,12 +459,9 @@ bool this_weapon_needs_reloading(struct char_data *ch, struct obj_data *wielded)
     case WEAPON_TYPE_HEAVY_CROSSBOW:
     case WEAPON_TYPE_HEAVY_REP_XBOW:
     case WEAPON_TYPE_LIGHT_REP_XBOW:
-      return TRUE;
     case WEAPON_TYPE_LIGHT_CROSSBOW:
     case WEAPON_TYPE_SLING:
     case WEAPON_TYPE_HAND_CROSSBOW:
-      if (has_feat(ch, FEAT_RAPID_RELOAD)) /* free action! */
-        return FALSE;
       return TRUE;
   }
   return FALSE;
