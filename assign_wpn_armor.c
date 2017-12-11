@@ -311,7 +311,7 @@ bool process_load_weapon(struct char_data *ch, struct obj_data *weapon,
 
 /* ranged-weapons, reload mechanic for slings, crossbows */
 bool auto_reload_weapon(struct char_data *ch, bool silent_mode) {
-  struct obj_data *wielded = is_using_ranged_weapon(ch);
+  struct obj_data *wielded = is_using_ranged_weapon(ch, silent_mode);
 
   if (!process_load_weapon(ch, wielded, silent_mode))
     return FALSE;

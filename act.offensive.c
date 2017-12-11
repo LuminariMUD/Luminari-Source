@@ -1845,7 +1845,7 @@ ACMD(do_hit) {
   }
 
   /* temporary solution */
-  if (is_using_ranged_weapon(ch)) {
+  if (is_using_ranged_weapon(ch, TRUE)) {
     send_to_char(ch, "You can't use a ranged weapon in melee combat, use 'fire' "
             "instead..\r\n");
     return;
@@ -4080,31 +4080,22 @@ ACMD(do_charge) {
 /* ranged-weapons, reload mechanic for slings, crossbows */
 /* TODO:  improve this cheese :P  also combine autoreload mechanic with this */
 ACMD(do_reload) {
-  struct obj_data *wielded = is_using_ranged_weapon(ch);
-  //action_type act_type;
-  /* atSTANDARD,
-     atMOVE,
-     atSWIFT */
+  struct obj_data *wielded = is_using_ranged_weapon(ch, FALSE);
 
   if (!wielded) {
-    send_to_char(ch, "You are not wielding a ranged weapon.\r\n");
     return;
   }
 
-  if (!is_reloading_weapon(ch, wielded)) {
-    send_to_char(ch, "This weapon does not need reloading (free action).\r\n");
+  if (!is_reloading_weapon(ch, wielded, FALSE)) {
     return;
   }
 
-  if (!has_missile_in_ammo_pouch(ch, wielded, TRUE)) {
-    send_to_char(ch, "To reload your weapon, you need to make sure you have an "
-            "ammo pouch with the correct ammo in it.\r\n");
+  if (!has_missile_in_ammo_pouch(ch, wielded, FALSE)) {
     return;
   }
 
   /* passed all dummy checks, let's see if we have the action available we
    need to reload this weapon */
-  //  bool is_action_available(struct char_data * ch, action_type act_type, bool msg_to_char)
 
   switch (GET_OBJ_VAL(wielded, 0)) {
     case WEAPON_TYPE_HEAVY_REP_XBOW:
@@ -4112,7 +4103,7 @@ ACMD(do_reload) {
     case WEAPON_TYPE_HEAVY_CROSSBOW:
       if (has_feat(ch, FEAT_RAPID_RELOAD)) {
         if (is_action_available(ch, atMOVE, TRUE)) {
-          if (reload_weapon(ch, wielded)) {
+          if (reload_weapon(ch, wielded, FALSE)) {
             USE_MOVE_ACTION(ch); /* success! */
           } else {
             return;
@@ -4124,7 +4115,7 @@ ACMD(do_reload) {
         }
       } else if (is_action_available(ch, atSTANDARD, TRUE) &&
           is_action_available(ch, atMOVE, TRUE)) {
-        if (reload_weapon(ch, wielded)) {
+        if (reload_weapon(ch, wielded, FALSE)) {
           USE_FULL_ROUND_ACTION(ch); /* success! */
         } else {
           return;
@@ -4140,9 +4131,9 @@ ACMD(do_reload) {
     case WEAPON_TYPE_LIGHT_CROSSBOW:
     case WEAPON_TYPE_SLING:
       if (has_feat(ch, FEAT_RAPID_RELOAD))
-        reload_weapon(ch, wielded);
+        reload_weapon(ch, wielded, FALSE);
       else if (is_action_available(ch, atMOVE, TRUE)) {
-        if (reload_weapon(ch, wielded)) {
+        if (reload_weapon(ch, wielded, FALSE)) {
           USE_MOVE_ACTION(ch); /* success! */
         } else {
           return;

@@ -3470,7 +3470,7 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
   if (can_fire_ammo(ch, TRUE)) {
     is_ranged = TRUE;
     /* this -has- to be a weapon, can_fire_ammo() already verified this */
-    wielded = is_using_ranged_weapon(ch); 
+    wielded = is_using_ranged_weapon(ch, TRUE); 
   } /* should be ready to check for ranged */
   
   //just information mode
@@ -6121,7 +6121,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
 
           /* here is our auto-reload system for xbows, etc */
           if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTORELOAD)) {
-            auto_reload_weapon(ch);
+            auto_reload_weapon(ch, TRUE);
           }
           
         } else {
@@ -6151,11 +6151,11 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
     return 0;
 
   /* Display Modes, not actually firing, how many attacks? */
-  } else if (mode == RETURN_NUM_ATTACKS && can_fire_ammo(ch, TRUE)) { //is_using_ranged_weapon(ch)
+  } else if (mode == RETURN_NUM_ATTACKS && can_fire_ammo(ch, TRUE)) { //is_using_ranged_weapon(ch, TRUE)
     return ranged_attacks;
     
   /* Display Modes, not actually firing, show our routines full POWAH! */
-  } else if (mode == DISPLAY_ROUTINE_POTENTIAL && can_fire_ammo(ch, TRUE)) { //is_using_ranged_weapon(ch)
+  } else if (mode == DISPLAY_ROUTINE_POTENTIAL && can_fire_ammo(ch, TRUE)) { //is_using_ranged_weapon(ch, TRUE)
     while (ranged_attacks > 0) {
       /* display hitroll bonus */
       send_to_char(ch, "Ranged Attack Bonus:  %d; ",
@@ -6185,8 +6185,8 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
   
   /* we are going to exit melee combat if we are somehow wielding a ranged
      weapon here */
-  if (is_using_ranged_weapon(ch)) {
-    send_to_char(ch, "You can not use a ranged weapon in melee combat!\r\n");
+  if (is_using_ranged_weapon(ch, TRUE)) {
+    send_to_char(ch, "You can not use a ranged weapon in melee combat: ");
     can_fire_ammo(ch, FALSE); /* we are using the function to report why! */
     return 0;
   }
@@ -6598,7 +6598,7 @@ void handle_cleave(struct char_data *ch) {
   hit(ch, tch, TYPE_UNDEFINED, DAM_RESERVED_DBC,
                 -4, ATTACK_TYPE_PRIMARY); /* whack with mainhand */
 
-  if (HAS_FEAT(ch, FEAT_GREAT_CLEAVE) && !is_using_ranged_weapon(ch))
+  if (HAS_FEAT(ch, FEAT_GREAT_CLEAVE) && !is_using_ranged_weapon(ch, TRUE))
     hit(ch, tch, TYPE_UNDEFINED, DAM_RESERVED_DBC,
                 0, ATTACK_TYPE_PRIMARY); /* whack with mainhand */
 }
@@ -6927,7 +6927,7 @@ void perform_violence(struct char_data *ch, int phase) {
 #undef NORMAL_ATTACK_ROUTINE
     
     /* handle cleave */
-    if (phase == 1 && HAS_FEAT(ch, FEAT_CLEAVE) && !is_using_ranged_weapon(ch))
+    if (phase == 1 && HAS_FEAT(ch, FEAT_CLEAVE) && !is_using_ranged_weapon(ch, TRUE))
       handle_cleave(ch);
     
   }
