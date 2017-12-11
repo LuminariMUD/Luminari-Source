@@ -345,6 +345,10 @@ bool reload_weapon(struct char_data *ch, struct obj_data *wielded, bool silent_m
 
   /* load her up! Object Value 5 is "loaded status" */
   GET_OBJ_VAL(wielded, 5) = load_amount;
+  
+  /* if we are in combat, let's make sure we start firing! */
+  if (FIGHTING(ch))
+    FIRING(ch) = TRUE:
 
   return TRUE;
 }
