@@ -6180,6 +6180,13 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
   /* Process Melee Attacks -------------------------------------------------- */
   //melee: now lets determine base attack(s) and resulting possible penalty
   dual = is_dual_wielding(ch); // trelux or has off-hander equipped
+  
+  /* we are going to exit melee combat if we are somehow wielding a ranged
+     weapon here */
+  if (is_using_ranged_weapon(ch)) {
+    send_to_char(ch, "You can not use a ranged weapon in melee combat!\r\n");
+    return 0;
+  }
 
   if (dual) { /*default of one offhand attack for everyone*/
     numAttacks += 2; /* mainhand + offhand */
