@@ -416,7 +416,7 @@ bool has_missile_in_ammo_pouch(struct char_data *ch, struct obj_data *wielded,
 /* ranged combat (archery, etc)
  * this function will check for a ranged weapon, ammo and does
  * a check of loaded-status (like x-bow) and "has_missile_in_ammo_pouch" */
-bool can_fire_arrow(struct char_data *ch, bool silent) {
+bool can_fire_ammo(struct char_data *ch, bool silent) {
   struct obj_data *wielded = NULL;
 
   if (!GET_EQ(ch, WEAR_AMMO_POUCH)) {
@@ -449,6 +449,7 @@ bool can_fire_arrow(struct char_data *ch, bool silent) {
   /* ok! */
   return TRUE;
 }
+/*check all wielded slots looking for ranged weapon*/
 struct obj_data *is_using_ranged_weapon(struct char_data *ch) {
   struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_2H);
 

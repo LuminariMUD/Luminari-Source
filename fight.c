@@ -926,7 +926,7 @@ void set_fighting(struct char_data *ch, struct char_data *vict) {
   //  send_to_char(ch, "DEBUG: SETTING FIGHT EVENT!\r\n");
   
   /* make sure firing if appropriate */
-  if (can_fire_arrow(ch, TRUE) && is_using_ranged_weapon(ch))
+  if (can_fire_ammo(ch, TRUE))
     FIRING(ch) = TRUE;
   
   //if (!char_has_mud_event(ch, eCOMBAT_ROUND))
@@ -1761,8 +1761,7 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
   }
   
   /* ranged weapon - general check and we want the missile to serve as our weapon */
-  if (can_fire_arrow(ch, TRUE) && is_using_ranged_weapon(ch) && GET_EQ(ch, WEAR_AMMO_POUCH)
-          && GET_EQ(ch, WEAR_AMMO_POUCH)->contains && (dualing == 2)) {
+  if (can_fire_ammo(ch, TRUE) && (dualing == 2)) {
     is_ranged = TRUE;
     weap = GET_EQ(ch, WEAR_AMMO_POUCH)->contains; /* top missile */
   }
@@ -3157,9 +3156,9 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   /* weapon enhancement bonus */
   if (wielded)
     dambonus += GET_ENHANCEMENT_BONUS(wielded);
+  
   /* ranged includes arrow, what a hack */
-  if (can_fire_arrow(ch, TRUE) && is_using_ranged_weapon(ch) && GET_EQ(ch, WEAR_AMMO_POUCH)
-          && GET_EQ(ch, WEAR_AMMO_POUCH)->contains) {
+  if (can_fire_ammo(ch, TRUE)) {
     dambonus += GET_ENHANCEMENT_BONUS(GET_EQ(ch, WEAR_AMMO_POUCH)->contains);
     dambonus += HAS_FEAT(ch, FEAT_ENHANCE_ARROW_MAGIC);
   }
@@ -3468,12 +3467,10 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
 
   /* going to check if we are in a state ready to use ranged weapon
      before anything else */  
-  if (can_fire_arrow(ch, TRUE) && is_using_ranged_weapon(ch) && GET_EQ(ch, WEAR_AMMO_POUCH)
-          && GET_EQ(ch, WEAR_AMMO_POUCH)->contains) {
+  if (can_fire_ammo(ch, TRUE)) {
     is_ranged = TRUE;
-    wielded = GET_EQ(ch, WEAR_WIELD_2H);
-    if (!wielded)
-      wielded = GET_EQ(ch, WEAR_WIELD_1);
+    /* this -has- to be a weapon, can_fire_ammo() already verified this */
+    wielded = is_using_ranged_weapon(ch); 
   } /* should be ready to check for ranged */
   
   //just information mode
@@ -4446,8 +4443,7 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
   if (wielded)
     bonuses[BONUS_TYPE_ENHANCEMENT] = MAX(bonuses[BONUS_TYPE_ENHANCEMENT], GET_ENHANCEMENT_BONUS(wielded));
   /* ranged includes arrow, what a hack */
-  if (can_fire_arrow(ch, TRUE) && is_using_ranged_weapon(ch) && GET_EQ(ch, WEAR_AMMO_POUCH)
-          && GET_EQ(ch, WEAR_AMMO_POUCH)->contains)
+  if (can_fire_ammo(ch, TRUE))
     bonuses[BONUS_TYPE_ENHANCEMENT] += GET_ENHANCEMENT_BONUS(GET_EQ(ch, WEAR_AMMO_POUCH)->contains);
   if (IS_WILDSHAPED(ch) || IS_MORPHED(ch))
     bonuses[BONUS_TYPE_ENHANCEMENT] = MAX(bonuses[BONUS_TYPE_ENHANCEMENT], HAS_FEAT(ch, FEAT_NATURAL_ATTACK)/2);
@@ -5277,8 +5273,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   if (affected_by_spell(ch, SKILL_DEATH_ARROW)) {
     int deatharrow_dc = 10 + CLASS_LEVEL(ch, CLASS_ARCANE_ARCHER) + 
                         MAX(GET_CHA_BONUS(ch), GET_INT_BONUS(ch));
-    if (can_fire_arrow(ch, TRUE) && is_using_ranged_weapon(ch) && GET_EQ(ch, WEAR_AMMO_POUCH)
-            && GET_EQ(ch, WEAR_AMMO_POUCH)->contains) {
+    if (can_fire_ammo(ch, TRUE)) {
       send_to_char(ch, "[ARROW OF DEATH] ");
       send_to_char(victim, "[\tRARROW OF DEATH\tn] ");
       act("$n performs an \tDarrow of death\tn attack on $N!",
@@ -5976,6 +5971,9 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
   int ranged_attacks = 1; /* ranged combat gets 2 bonus attacks currently */
   bool dual = FALSE;
   bool perform_attack = FALSE;
+  /* so if ranged is not performed and we fall through to melee, we need to make
+   * sure our attacks with max. BAB are maintained */
+  int drop_an_attack_at_max_bab = 0;
 
   /* Check position..  we don't check < POS_STUNNED anymore? */
   if (GET_POS(ch) == POS_DEAD)
@@ -5991,6 +5989,8 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
 
   guard_check(ch, FIGHTING(ch)); /* this is the guard skill check */
 
+  /** BEGIN PROCESS OF COUNTING ATTACKS AND PENALTIES FOR SUCCESSIVE ATTACKS  **/
+  
   /* level based bonus attacks, which is BAB / 5 up to the ATTACK_CAP
    * [note might need to add armor restrictions here?] */
   bonus_mainhand_attacks = MIN((BAB(ch) - 1) / 5, ATTACK_CAP);
@@ -6025,31 +6025,50 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
    and then exit.  Otherwise you will fall through and perform a melee attack
    (unless you have a ranged weapon equipped, in which case exit) */
 
-  /* Process ranged attacks ------------------------------------------------- */
-  /* so if ranged is not performed and we fall through to melee, we need to make
-   * sure our attacks with max. BAB are maintained */
-  int drop_an_attack_at_max_bab = 0;
-  ranged_attacks += bonus_mainhand_attacks; /* bonus above here apply to both ranged/melee */
-  /* Rapidshot mode gives an extra attack, but with a penalty to all attacks. */
-  if (AFF_FLAGGED(ch, AFF_RAPID_SHOT)) {
-    penalty -= 2;
-    ranged_attacks++;
-    attacks_at_max_bab++; /* we have to drop this if this isn't a ranged attack! */
-    drop_an_attack_at_max_bab++;
+/* -- Process ranged attacks, determine base number of attacks irregardless of
+   * whether ch is in combat or not ------ */
+  if (can_fire_ammo(ch, TRUE) {
 
-    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_MANYSHOT)) {
-      ranged_attacks++;
-      attacks_at_max_bab++; /* we have to drop this if this isn't a ranged attack! */
-      drop_an_attack_at_max_bab++;
+    /* Early Exits from ranged combat? */
+    
+    /* if we don't have point blank shot, unceremoniously dump out of function */
+    if (is_tanking(ch) && !IS_NPC(ch) && !HAS_FEAT(ch, FEAT_POINT_BLANK_SHOT)) {
+      send_to_char(ch, "You are too close to use your ranged weapon.\r\n");
+      stop_fighting(ch);
+      FIRING(ch) = FALSE;
+      return 0;
     }
-    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_EPIC_MANYSHOT)) {
+    
+    /* END Early exits from ranged combat! */
+
+    ranged_attacks += bonus_mainhand_attacks;
+    
+    /* Rapidshot mode gives an extra attack, but with a penalty to all attacks. */
+    if (AFF_FLAGGED(ch, AFF_RAPID_SHOT)) {
+      penalty -= 2;
       ranged_attacks++;
       attacks_at_max_bab++; /* we have to drop this if this isn't a ranged attack! */
       drop_an_attack_at_max_bab++;
+
+      if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_MANYSHOT)) {
+        ranged_attacks++;
+        attacks_at_max_bab++; /* we have to drop this if this isn't a ranged attack! */
+        drop_an_attack_at_max_bab++;
+      }
+      
+      if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_EPIC_MANYSHOT)) {
+        ranged_attacks++;
+        attacks_at_max_bab++; /* we have to drop this if this isn't a ranged attack! */
+        drop_an_attack_at_max_bab++;
+      }
     }
   }
+  /* -- finished processing base number of attacks and BAB for ranged -- */
 
-  if (FIRING(ch) && mode == NORMAL_ATTACK_ROUTINE) { /* firing mode and not display */
+  /* Ranged attacker, lets process some penalties, etc. then start *processing*
+   * Note:  This is not a display-info mode, so unique modifications to actual
+   * combat are included here as opposed to above calculations */
+  if (can_fire_ammo(ch, TRUE) && FIRING(ch) && mode == NORMAL_ATTACK_ROUTINE) { 
     if (is_tanking(ch)) {
       if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_IMPROVED_PRECISE_SHOT))
         penalty += 4;
@@ -6057,13 +6076,6 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
         ; /* no penalty/bonus */
       else /* not skilled with close combat archery */
         penalty -= 4;
-
-      if (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_POINT_BLANK_SHOT)) {
-        send_to_char(ch, "You are too close to use your ranged weapon.\r\n");
-        stop_fighting(ch);
-        FIRING(ch) = FALSE;
-        return 0;
-      }
     }
 
     /* mounted archery requires a feat or you receive 4 penalty to attack rolls */
@@ -6072,6 +6084,8 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
         penalty -= 4;
     }
 
+    /** BEGIN RANGED COMBAT EXECUTION ROUTINE **/
+    
     for (i = 0; i <= ranged_attacks; i++) {/* check phase for corresponding attack */
       /* phase 1: 1 4 7 10 13
        * phase 2: 2 5 8 11 14
@@ -6095,36 +6109,51 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
           break;
       }
       if (perform_attack) { /* correct phase for this attack? */
-        if (can_fire_arrow(ch, FALSE) && FIGHTING(ch)) {
-          hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, /* FIRE! */
-                penalty, ATTACK_TYPE_RANGED);
+        if (can_fire_ammo(ch, FALSE) && FIGHTING(ch)) {
+          /* FIRE! PEW-PEW!! */
+          hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty,
+                  ATTACK_TYPE_RANGED);
           if (attacks_at_max_bab > 0)
             attacks_at_max_bab--;
           else
             penalty -= 5; /* cummulative penalty */
-        } else if (FIGHTING(ch)) {
-          send_to_char(ch, "\tWYou are out of ammunition and forced to disengage!\tn\r\n");
-          stop_fighting(ch);
-          return 0;
         } else {
-          send_to_char(ch, "\tWType 'fire <target>' to engage!\tn\r\n");
+          /* we can't fire an arrow, we are NOT in silent-mode so the
+           reason we are exiting ranged combat should be announced via
+           can_fire_ammo() */
           stop_fighting(ch);
+          FIRING(ch) = FALSE;
           return 0;
         }
       }
-    } /*end FIRE!*/
+    } 
+    
+    /** COMPLETED RANGED COMBAT EXECUTION ROUTINE **/
+    
+    /* cleanup and/or related processes ranged-related */
 
-    /* is this the best place to put this? for x-bow/sling */
+    /* here is our auto-reload system for xbows, etc */
     if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTORELOAD)) {
       auto_reload_weapon(ch);
     }
-
+    
+    /* in case your very last ranged attack above leaves you not able to
+       fire, we will send one more message here using can_fire_ammo
+       with silent-mode off */
+    if (!can_fire_ammo(ch, FALSE)) {
+      stop_fighting(ch);
+      FIRING(ch) = FALSE;
+    }
+    
+    /* that is it, all done with ranged combat! */
     return 0;
 
-    /* Display Modes, not actually firing */
-  } else if (mode == RETURN_NUM_ATTACKS && is_using_ranged_weapon(ch)) {// && can_fire_arrow(ch, TRUE)) {
+  /* Display Modes, not actually firing, how many attacks? */
+  } else if (mode == RETURN_NUM_ATTACKS && can_fire_ammo(ch, TRUE)) { //is_using_ranged_weapon(ch)
     return ranged_attacks;
-  } else if (mode == DISPLAY_ROUTINE_POTENTIAL && is_using_ranged_weapon(ch)) {// && can_fire_arrow(ch, TRUE)) {
+    
+  /* Display Modes, not actually firing, show our routines full POWAH! */
+  } else if (mode == DISPLAY_ROUTINE_POTENTIAL && can_fire_ammo(ch, TRUE)) { //is_using_ranged_weapon(ch)
     while (ranged_attacks > 0) {
       /* display hitroll bonus */
       send_to_char(ch, "Ranged Attack Bonus:  %d; ",
@@ -6141,25 +6170,13 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
     }
     return 0;
   }
+  /***/
   if (drop_an_attack_at_max_bab) /*cleanup for ranged*/
     attacks_at_max_bab -= drop_an_attack_at_max_bab;
-
-  /* this probably needs to be redone */
-  if (!can_fire_arrow(ch, TRUE)) {
-    if (is_using_ranged_weapon(ch)) {
-      send_to_char(ch, "You can't use a ranged weapon in melee combat!\r\n");
-      FIRING(ch) = FALSE;
-      return 0;
-    }
-  } else if (can_fire_arrow(ch, FALSE)) {
-    if (is_using_ranged_weapon(ch)) {
-      send_to_char(ch, "You prepare your ranged weapon!\r\n");
-      FIRING(ch) = TRUE;
-      return 0;
-    }
-  }
+  /***/
   /*  End ranged attacks ---------------------------------------------------- */
 
+  /************************/
   /* Process Melee Attacks -------------------------------------------------- */
   //melee: now lets determine base attack(s) and resulting possible penalty
   dual = is_dual_wielding(ch); // trelux or has off-hander equipped

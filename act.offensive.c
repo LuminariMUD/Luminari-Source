@@ -2317,8 +2317,7 @@ ACMD(do_arrowswarm) {
   }
   
   /* ranged attack requirement */
-  if (!can_fire_arrow(ch, TRUE) || !is_using_ranged_weapon(ch) || !GET_EQ(ch, WEAR_AMMO_POUCH)
-          || !GET_EQ(ch, WEAR_AMMO_POUCH)->contains) {
+  if (!can_fire_ammo(ch, TRUE)) {
     send_to_char(ch, "You have to be using a ranged weapon with ammo ready to "
             "fire in your ammo pouch to do this!\r\n");
     return;
@@ -2351,8 +2350,7 @@ ACMD(do_arrowswarm) {
 
     if (aoeOK(ch, vict, -1)) { /* -1 indicates no special handling */
       /* ammo check! */
-      if (can_fire_arrow(ch, TRUE) && is_using_ranged_weapon(ch) && GET_EQ(ch, WEAR_AMMO_POUCH)
-            && GET_EQ(ch, WEAR_AMMO_POUCH)->contains) {
+      if (can_fire_ammo(ch, TRUE)) {
         /* FIRE! */
         hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_RANGED);        
       }      
@@ -3070,8 +3068,7 @@ ACMD(do_deatharrow) {
     return;    
   }
   /* ranged attack requirement */
-  if (!can_fire_arrow(ch, TRUE) || !is_using_ranged_weapon(ch) || !GET_EQ(ch, WEAR_AMMO_POUCH)
-          || !GET_EQ(ch, WEAR_AMMO_POUCH)->contains) {
+  if (!can_fire_ammo(ch, TRUE)) {
     send_to_char(ch, "You have to be using a ranged weapon with ammo ready to "
             "fire in your ammo pouch to do this!\r\n");
     return;
@@ -3427,8 +3424,7 @@ ACMD(do_seekerarrow) {
     return;    
   }
   /* ranged attack requirement */
-  if (!can_fire_arrow(ch, TRUE) || !is_using_ranged_weapon(ch) || !GET_EQ(ch, WEAR_AMMO_POUCH)
-          || !GET_EQ(ch, WEAR_AMMO_POUCH)->contains) {
+  if (!can_fire_ammo(ch, TRUE)) {
     send_to_char(ch, "You have to be using a ranged weapon with ammo ready to "
             "fire in your ammo pouch to do this!\r\n");
     return;
@@ -4171,7 +4167,7 @@ ACMD(do_reload) {
 }
 
 /* ranged-weapons combat, archery
- * fire command, fires single arrow - checks can_fire_arrow()
+ * fire command, fires single arrow - checks can_fire_ammo()
  */
 ACMD(do_fire) {
   struct char_data *vict = NULL, *tch = NULL;
@@ -4285,7 +4281,7 @@ ACMD(do_fire) {
   if (vict && IS_PET(vict) && vict->master == ch && room == IN_ROOM(ch))
     vict = FIGHTING(vict);
 
-  if (can_fire_arrow(ch, FALSE)) {
+  if (can_fire_ammo(ch, FALSE)) {
 
     if (ch && vict && IN_ROOM(ch) != IN_ROOM(vict)) {
       hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, 2); // 2 in last arg indicates ranged
@@ -4302,11 +4298,13 @@ ACMD(do_fire) {
       hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, 2); // 2 in last arg indicates ranged
       FIRING(ch) = TRUE;
     }
+  } else {
+    /* arrived here?  can't fire, silent-mode from can-fire sent a message why */
   }
 }
 
 /* ranged-weapons combat, archery, a sort of ranged combat assist command
- * autofire command, fires single arrow - checks can_fire_arrow()
+ * autofire command, fires single arrow - checks can_fire_ammo()
  * sets FIRING() */
 ACMD(do_autofire) {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
@@ -4361,10 +4359,12 @@ ACMD(do_autofire) {
     return;
   }
 
-  if (can_fire_arrow(ch, FALSE)) {
+  if (can_fire_ammo(ch, FALSE)) {
     hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, 2); // 2 in last arg indicates ranged
     FIRING(ch) = TRUE;
     USE_MOVE_ACTION(ch);
+  } else {
+    /* arrived here?  can't fire, message why was sent via silent-mode */
   }
 }
 
