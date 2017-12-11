@@ -253,7 +253,9 @@ bool ready_to_reload(struct char_data *ch, struct obj_data *wielded, bool silent
       if (!silent_mode)
         send_to_char(ch, "The cucumber you are wielding is fully loaded! (error)\r\n");
       return FALSE;
-  }  
+  }
+  
+  return FALSE;
 }
 
 /* trying to put shared proces between auto_reload_weapon
