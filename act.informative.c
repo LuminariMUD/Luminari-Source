@@ -146,6 +146,12 @@ void show_obj_info(struct obj_data *obj, struct char_data *ch) {
     case ITEM_WEAPON:
       send_to_char(ch, "Weapon: %s ", weapon_type ?
                    weapon_list[weapon_type].name : "???");
+      
+      /* check load-status of a reloadable weapon (such as crossbow) */
+      if (is_reloading_weapon(ch, obj, TRUE)) {
+        send_to_char(ch, "Loaded ammo: %d ", GET_OBJ_VAL(obj, 5));
+      }
+        
       break;
     case ITEM_ARMOR:
       send_to_char(ch, "Armor: %s ", armor_val ?
