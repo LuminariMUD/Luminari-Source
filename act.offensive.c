@@ -4090,7 +4090,7 @@ ACMD(do_reload) {
     return;
   }
 
-  if (!has_missile_in_ammo_pouch(ch, wielded, FALSE)) {
+  if (!has_ammo_in_pouch(ch, wielded, FALSE)) {
     return;
   }
 
