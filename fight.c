@@ -5583,6 +5583,15 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
       send_to_char(ch, "You have no ammo!\r\n");
       return (HIT_MISS);
     }
+
+    /* reloading type of weapons, such as crossbows */
+    if (is_reloading_weapon(ch, wielded, TRUE)) {
+      if (!weapon_is_loaded(ch, wielded, FALSE)) {
+        //a message is sent in weapon_is_loaded()
+        FIRING(ch) = FALSE;
+        return FALSE;
+      }
+    }
   }
 
   /* Activate any scripts on this mob OR PLAYER. */
