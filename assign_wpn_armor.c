@@ -188,7 +188,7 @@ bool ready_to_reload(struct char_data *ch, struct obj_data *wielded, bool silent
       /* RAPID RELOAD! */
       if (has_feat(ch, FEAT_RAPID_RELOAD)) {
         if (is_action_available(ch, atMOVE, FALSE)) {
-          if (reload_weapon(ch, wielded)) {
+          if (reload_weapon(ch, wielded, silent_mode)) {
             USE_MOVE_ACTION(ch); /* success! */
           } else {
             /* failed reload */
@@ -206,7 +206,7 @@ bool ready_to_reload(struct char_data *ch, struct obj_data *wielded, bool silent
       /* no rapid reload */
       } else if (is_action_available(ch, atSTANDARD, FALSE) &&
           is_action_available(ch, atMOVE, FALSE)) {
-        if (reload_weapon(ch, wielded)) {
+        if (reload_weapon(ch, wielded, silent_mode)) {
           USE_FULL_ROUND_ACTION(ch); /* success! */
         } else {
           if (!silent_mode)
@@ -229,10 +229,10 @@ bool ready_to_reload(struct char_data *ch, struct obj_data *wielded, bool silent
       
       /* RAPID RELOAD! */
       if (has_feat(ch, FEAT_RAPID_RELOAD))
-        reload_weapon(ch, wielded);
+        reload_weapon(ch, wielded, silent_mode);
       
       else if (is_action_available(ch, atMOVE, FALSE)) {
-        if (reload_weapon(ch, wielded)) {
+        if (reload_weapon(ch, wielded, silent_mode)) {
           USE_MOVE_ACTION(ch); /* success! */
         } else {
           /* failed reload */
