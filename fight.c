@@ -40,10 +40,13 @@
 #include "assign_wpn_armor.h"
 #include "grapple.h"
 
+/* return results from hit() */
+#define HIT_MISS           0
+#define HIT_RESULT_ACTION -1
+#define HIT_NEED_RELOAD   -2
+
 /* local global */
 struct obj_data *last_missile = NULL;
-
-#define HIT_MISS 0
 
 /* head of l-list of fighting chars */
 struct char_data *combat_list = NULL;
@@ -5568,7 +5571,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
     ((*attack_actions[attack->attack_type]) (ch, attack->argument, -1, -1));
     /* Currently no way to get a result from these kinds of actions, so return something bogus.
       Needs improvement. */
-    return -1;
+    return (HIT_RESULT_ACTION);
   }
 
   /* if we come into the hit() function anticipating a ranged attack, we are
@@ -5588,7 +5591,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
     if (is_reloading_weapon(ch, wielded, TRUE)) {
       if (!weapon_is_loaded(ch, wielded, FALSE)) {
         FIRING(ch) = FALSE;
-        return FALSE;
+        return (HIT_NEED_RELOAD);
       }
     }
   }
@@ -5861,7 +5864,6 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
 
   return dam;
 }
-#undef HIT_MISS
 
 /* ch dual wielding or is trelux */
 int is_dual_wielding(struct char_data *ch) {
@@ -5983,6 +5985,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
    * sure our attacks with max. BAB are maintained */
   int drop_an_attack_at_max_bab = 0;
   struct obj_data *wielded = NULL;
+  int wpn_reload_status = 0;
 
   /* Check position..  we don't check < POS_STUNNED anymore? */
   if (GET_POS(ch) == POS_DEAD)
@@ -6119,8 +6122,9 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
       }
       if (perform_attack) { /* correct phase for this attack? */
         if (can_fire_ammo(ch, FALSE) && FIGHTING(ch)) {
+          
           /* FIRE! PEW-PEW!! */
-          hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty,
+          wpn_reload_status = hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty,
                   ATTACK_TYPE_RANGED);
           
           if (attacks_at_max_bab > 0)
@@ -6132,6 +6136,10 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
           if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTORELOAD)) {
             auto_reload_weapon(ch, TRUE);
           }
+          
+          /* bail if our hit() caused a need-reload return value */
+          if (wpn_reload_status == HIT_NEED_RELOAD)
+            return 0;
           
         } else {
           /* we can't fire an arrow, we are NOT in silent-mode so the
@@ -6969,6 +6977,9 @@ void perform_violence(struct char_data *ch, int phase) {
 
 }
 
+#undef HIT_MISS
+#undef HIT_RESULT_ACTION
+#undef HIT_NEED_RELOAD
 
 #undef MODE_NORMAL_HIT      //Normal damage calculating in hit()
 #undef MODE_DISPLAY_PRIMARY //Display damage info primary
