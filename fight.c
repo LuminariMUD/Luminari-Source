@@ -6185,6 +6185,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
      weapon here */
   if (is_using_ranged_weapon(ch)) {
     send_to_char(ch, "You can not use a ranged weapon in melee combat!\r\n");
+    can_fire_ammo(ch, FALSE); /* we are using the function to report why! */
     return 0;
   }
 
