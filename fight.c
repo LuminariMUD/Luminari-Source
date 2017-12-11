@@ -5587,7 +5587,6 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
     /* reloading type of weapons, such as crossbows */
     if (is_reloading_weapon(ch, wielded, TRUE)) {
       if (!weapon_is_loaded(ch, wielded, FALSE)) {
-        //a message is sent in weapon_is_loaded()
         FIRING(ch) = FALSE;
         return FALSE;
       }
@@ -6197,6 +6196,13 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
   if (is_using_ranged_weapon(ch, TRUE)) {
     send_to_char(ch, "You can not use a ranged weapon in melee combat: ");
     can_fire_ammo(ch, FALSE); /* we are using the function to report why! */
+    
+    /* check for message on reloading weapons such as xbow */
+    if (is_reloading_weapon(ch, wielded, TRUE)) {
+      if (!weapon_is_loaded(ch, wielded, FALSE)) {
+      }
+    }
+    
     return 0;
   }
 
