@@ -348,7 +348,7 @@ bool reload_weapon(struct char_data *ch, struct obj_data *wielded, bool silent_m
   
   /* if we are in combat, let's make sure we start firing! */
   if (FIGHTING(ch))
-    FIRING(ch) = TRUE:
+    FIRING(ch) = TRUE;
 
   return TRUE;
 }
