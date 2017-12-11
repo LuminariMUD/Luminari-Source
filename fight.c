@@ -6027,7 +6027,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
 
 /* -- Process ranged attacks, determine base number of attacks irregardless of
    * whether ch is in combat or not ------ */
-  if (can_fire_ammo(ch, TRUE) {
+  if (can_fire_ammo(ch, TRUE)) {
 
     /* Early Exits from ranged combat? */
     
