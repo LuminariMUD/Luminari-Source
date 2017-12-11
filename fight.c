@@ -6113,10 +6113,17 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
           /* FIRE! PEW-PEW!! */
           hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty,
                   ATTACK_TYPE_RANGED);
+          
           if (attacks_at_max_bab > 0)
             attacks_at_max_bab--;
           else
             penalty -= 5; /* cummulative penalty */
+
+          /* here is our auto-reload system for xbows, etc */
+          if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTORELOAD)) {
+            auto_reload_weapon(ch);
+          }
+          
         } else {
           /* we can't fire an arrow, we are NOT in silent-mode so the
            reason we are exiting ranged combat should be announced via
@@ -6131,11 +6138,6 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
     /** COMPLETED RANGED COMBAT EXECUTION ROUTINE **/
     
     /* cleanup and/or related processes ranged-related */
-
-    /* here is our auto-reload system for xbows, etc */
-    if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTORELOAD)) {
-      auto_reload_weapon(ch);
-    }
     
     /* in case your very last ranged attack above leaves you not able to
        fire, we will send one more message here using can_fire_ammo
