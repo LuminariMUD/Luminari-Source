@@ -487,7 +487,7 @@ bool can_fire_ammo(struct char_data *ch, bool silent) {
   }
 
   /* ranged weapons that need reloading such as crossbows */
-  /* this is handled elsewhere *
+  /* this is handled in hit() now*
   if (is_reloading_weapon(ch, wielded)) {
     if (!weapon_is_loaded(ch, wielded, silent)) {
       //a message is sent in weapon_is_loaded()
