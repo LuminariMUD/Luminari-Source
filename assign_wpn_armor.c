@@ -357,7 +357,7 @@ bool reload_weapon(struct char_data *ch, struct obj_data *wielded, bool silent_m
 /* this function checks if weapon is loaded (like crossbows) */
 bool weapon_is_loaded(struct char_data *ch, struct obj_data *wielded, bool silent) {
   
-  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTORELOAD))
+  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTORELOAD) && FIGHTING(ch))
     silent = TRUE; /* ornir suggested this */
 
   if (GET_OBJ_VAL(wielded, 5) <= 0) { /* object value 5 is for loaded status */
