@@ -1698,7 +1698,7 @@ static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
     send_to_char(ch, CCNRM(ch, C_CMP));
 
     /* damage message to damagee */
-    send_to_char(victim, CCRED(vict, C_CMP));
+    send_to_char(victim, CCRED(victim, C_CMP));
     act(dam_ranged[msgnum].to_victim, FALSE, ch, last_missile, victim, TO_VICT | TO_SLEEP);
     send_to_char(victim, CCNRM(victim, C_CMP));    
   }
