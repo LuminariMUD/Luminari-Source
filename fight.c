@@ -1626,47 +1626,47 @@ static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
     const char *to_char;
     const char *to_victim;
   } dam_ranged[] = {
-    {"*WHOOSH* \tn$n\tn fires \tn$p\tn at \tn$N\tn but misses!", /* 0: 0     */
-     "\t[f500]*WHOOSH* you fire $p at $N but miss!",
+    {"*WHOOSH* $n fires $p at $N but misses!", /* 0: 0     */
+     "\t[f500]*WHOOSH*\t[f030] you fire \tn$p\t[f030] at \tn$N \t[f030]but miss!\tn",
      "*WHOOSH* $n fires $p at you but misses!"},
     {"*THWISH* $n fires $p at $N grazing $M.", /* 1: dam <= 2% */
-     "\t[f500]*THWISH* you fire $p at $N grazing $M.",
+     "\t[f500]*THWISH*\tn you fire \tn$p\tn \t[f030]at \tn$N\tn \t[f030]grazing $M.\tn",
      "]*THWISH* $n fires $p at you grazing you."},
     {"*THWISH* $n fires $p at $N nicking $M.", /* 2: dam <= 4% */
-     "\t[f500]*THWISH* you fire $p at $N nicking $M.",
+     "\t[f500]*THWISH*\tn you fire \tn$p\tn \t[f030]at \tn$N\tn \t[f030]nicking $M.\tn",
      "*THWISH* $n fires $p at you nicking you."},     
-    {"\t[f500]*THWISH* $n fires $p at $N *THUNK* barely damaging $M.", /* 3: dam <= 6%  */
-     "\t[f500]*THWISH* you fire $p at $N *THUNK* barely damaging $M.",
-     "\t[f500]*THWISH* $n fires $p at you *THUNK* barely damaging you."},
-    {"\t[f500]*THWISH* $n fires $p at $N *THUNK* damaging $M.", /* 4: dam <= 8%  */
-     "\t[f500]*THWISH* you fire $p at $N *THUNK* damaging $M.",
-     "\t[f500]*THWISH* $n fires $p at you *THUNK* damaging you."},
-    {"\t[f500]*THWISH* $n fires $p at $N *THUNK* damaging $M moderately!", /* 5: dam <= 11% */
-     "\t[f500]*THWISH* you fire $p at $N *THUNK* damaging $M moderately!",
-     "\t[f500]*THWISH* $n fires $p at you *THUNK* damaging you moderately!"},
-    {"\t[f500]*THWISH* $n fires $p at $N *THUNK* damaging $M badly!", /* 6: dam <= 14%  */
-     "\t[f500]*THWISH* you fire $p at $N *THUNK* damaging $M badly!",
-     "\t[f500]*THWISH* $n fires $p at you *THUNK* damaging you badly!"},
-    {"\t[f500]*THWISH* $n fires $p at $N *THUNK* injuring $M harshly!", /* 7: dam <= 18%  */
-     "\t[f500]*THWISH* you fire $p at $N *THUNK* injuring $M harshly!",
-     "\t[f500]*THWISH* $n fires $p at you *THUNK* injuring you harshly!"},
-    {"\t[f500]*THWISH* $n fires $p at $N *THWAK* severely injuring $M!", /* 8: dam <= 22%  */
-     "\t[f500]*THWISH* you fire $p at $N *THWAK* severely injuring $M!",
-     "\t[f500]*THWISH* $n fires $p at you *THWAK* severely injuring you!"},
-    {"\t[f500]*THWISH* $n fires $p at $N *THWAK* causing serious wounds to $M!", /* 9: dam <= 27% */
-     "\t[f500]*THWISH* you fire $p at $N *THWAK* causing serious wounds to $M!",
-     "\t[f500]*THWISH* $n fires $p at you *THWAK* causing serious wounds to you!"},
-    {"\t[f500]*THFFFT* $n fires $p at $N *THWAK* damaging $M gravely!", /* 10: dam <= 32%  */
-     "\t[f500]*THFFFT* you fire $p at $N *THWAK* damaging $M gravely!",
-     "\t[f500]*THFFFT* $n fires $p at you *THWAK* damaging you gravely!"},
-    {"\t[f500]*THFFFT* $n fires $p at $N *THWAK* severely wounding $M!", /* 11: dam <= 40% */
-     "\t[f500]*THFFFT* you fire $p at $N *THWAK* severely wounding $M!",
-     "\t[f500]*THFFFT* $n fires $p at you *THWAK* severely wounding you!"},
+    {"*THWISH* $n fires $p at $N *THUNK* barely damaging $M.", /* 3: dam <= 6%  */
+     "\t[f500]*THWISH*\tn you fire \tn$p\tn \t[f030]at \tn$N\tn \t[f030]*THUNK* barely damaging $M.\tn",
+     "*THWISH* $n fires $p at you *THUNK* barely damaging you."},
+    {"*THWISH* $n fires $p at $N *THUNK* damaging $M.", /* 4: dam <= 8%  */
+     "\t[f500]*THWISH*\tn you fire \tn$p\tn \t[f030]at \tn$N\tn \t[f030]*THUNK* damaging $M.",
+     "*THWISH* $n fires $p at you *THUNK* damaging you."},
+    {"*THWISH* $n fires $p at $N *THUNK* damaging $M moderately!", /* 5: dam <= 11% */
+     "\t[f500]*THWISH*\tn you fire \tn$p\tn \t[f030]at \tn$N\tn \t[f030]*THUNK* damaging $M moderately!\tn",
+     "*THWISH* $n fires $p at you *THUNK* damaging you moderately!"},
+    {"*THWISH* $n fires $p at $N *THUNK* damaging $M badly!", /* 6: dam <= 14%  */
+     "\t[f500]*THWISH*\tn you fire \tn$p\tn \t[f030]at \tn$N\tn \t[f030]*THUNK* damaging $M badly!\tn",
+     "*THWISH* $n fires $p at you *THUNK* damaging you badly!"},
+    {"*THWISH* $n fires $p at $N *THUNK* injuring $M harshly!", /* 7: dam <= 18%  */
+     "\t[f500]*THWISH*\tn you fire \tn$p\tn \t[f030]at \tn$N\tn \t[f030]*THUNK* injuring $M harshly!\tn",
+     "*THWISH* $n fires $p at you *THUNK* injuring you harshly!"},
+    {"*THWISH* $n fires $p at $N *THWAK* severely injuring $M!", /* 8: dam <= 22%  */
+     "\t[f500]*THWISH*\tn you fire \tn$p\tn \t[f030]at \tn$N\tn \t[f030]*THWAK* severely injuring $M!\tn",
+     "*THWISH* $n fires $p at you *THWAK* severely injuring you!"},
+    {"*THWISH* $n fires $p at $N *THWAK* causing serious wounds to $M!", /* 9: dam <= 27% */
+     "\t[f500]*THWISH*\tn you fire \tn$p\tn \t[f030]at \tn$N\tn \t[f030]*THWAK* causing serious wounds to $M!\tn",
+     "*THWISH* $n fires $p at you *THWAK* causing serious wounds to you!"},
+    {"*THFFFT* $n fires $p at $N *THWAK* damaging $M gravely!", /* 10: dam <= 32%  */
+     "\t[f500]*THFFFT*\tn you fire \tn$p\tn \t[f030]at \tn$N\tn \t[f030]*THWAK* damaging $M gravely!\tn",
+     "*THFFFT* $n fires $p at you *THWAK* damaging you gravely!"},
+    {"*THFFFT* $n fires $p at $N *THWAK* severely wounding $M!", /* 11: dam <= 40% */
+     "\t[f500]*THFFFT*\tn you fire \tn$p\tn \t[f030]at \tn$N\tn \t[f030]*THWAK* severely wounding $M!\tn",
+     "*THFFFT* $n fires $p at you *THWAK* severely wounding you!"},
     {"*THFFFT* $n fires $p at $N *THWAK* lethally wounding $M!", /* 12: dam <= 50% */
-     "*THFFFT* you fire $p at $N *THWAK* lethally wounding $M!",
+     "\t[f500]*THFFFT*\tn you fire \tn$p\tn \t[f030]at \tn$N\tn \t[f030]*THWAK* lethally wounding $M!\tn",
      "*THFFFT* $n fires $p at you *THWAK* lethally wounding you!"},
     {"*THFFFT* $n fires $p at $N *THWAK* nearly killing $M!", /* (13): > 51   */
-     "*THFFFT* you fire $p at $N *THWAK* nearly killing $M!",
+     "\t[f500]*THFFFT*\tn you fire \tn$p\tn \t[f030]at \tn$N\tn \t[f030]*THWAK* nearly killing $M!\tn",
      "*THFFFT* $n fires $p at you *THWAK* nearly killing you!"}
   };
   
