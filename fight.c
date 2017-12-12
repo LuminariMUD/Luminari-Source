@@ -1626,42 +1626,42 @@ static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
     const char *to_char;
     const char *to_victim;
   } dam_ranged[] = {
-    {"*WHOOSH* $n fires $p at $N but misses!", /* 0: 0     */
-     "*WHOOSH* you fire $p at $N but miss!",
+    {"*WHOOSH* \tn$n\tn fires \tn$p\tn at \tn$N\tn but misses!", /* 0: 0     */
+     "\t[f500]*WHOOSH* you fire $p at $N but miss!",
      "*WHOOSH* $n fires $p at you but misses!"},
     {"*THWISH* $n fires $p at $N grazing $M.", /* 1: dam <= 2% */
-     "*THWISH* you fire $p at $N grazing $M.",
-     "*THWISH* $n fires $p at you grazing you."},
+     "\t[f500]*THWISH* you fire $p at $N grazing $M.",
+     "]*THWISH* $n fires $p at you grazing you."},
     {"*THWISH* $n fires $p at $N nicking $M.", /* 2: dam <= 4% */
-     "*THWISH* you fire $p at $N nicking $M.",
+     "\t[f500]*THWISH* you fire $p at $N nicking $M.",
      "*THWISH* $n fires $p at you nicking you."},     
-    {"*THWISH* $n fires $p at $N *THUNK* barely damaging $M.", /* 3: dam <= 6%  */
-     "*THWISH* you fire $p at $N *THUNK* barely damaging $M.",
-     "*THWISH* $n fires $p at you *THUNK* barely damaging you."},
-    {"*THWISH* $n fires $p at $N *THUNK* damaging $M.", /* 4: dam <= 8%  */
-     "*THWISH* you fire $p at $N *THUNK* damaging $M.",
-     "*THWISH* $n fires $p at you *THUNK* damaging you."},
-    {"*THWISH* $n fires $p at $N *THUNK* damaging $M moderately!", /* 5: dam <= 11% */
-     "*THWISH* you fire $p at $N *THUNK* damaging $M moderately!",
-     "*THWISH* $n fires $p at you *THUNK* damaging you moderately!"},
-    {"*THWISH* $n fires $p at $N *THUNK* damaging $M badly!", /* 6: dam <= 14%  */
-     "*THWISH* you fire $p at $N *THUNK* damaging $M badly!",
-     "*THWISH* $n fires $p at you *THUNK* damaging you badly!"},
-    {"*THWISH* $n fires $p at $N *THUNK* injuring $M harshly!", /* 7: dam <= 18%  */
-     "*THWISH* you fire $p at $N *THUNK* injuring $M harshly!",
-     "*THWISH* $n fires $p at you *THUNK* injuring you harshly!"},
-    {"*THWISH* $n fires $p at $N *THWAK* severely injuring $M!", /* 8: dam <= 22%  */
-     "*THWISH* you fire $p at $N *THWAK* severely injuring $M!",
-     "*THWISH* $n fires $p at you *THWAK* severely injuring you!"},
-    {"*THWISH* $n fires $p at $N *THWAK* causing serious wounds to $M!", /* 9: dam <= 27% */
-     "*THWISH* you fire $p at $N *THWAK* causing serious wounds to $M!",
-     "*THWISH* $n fires $p at you *THWAK* causing serious wounds to you!"},
-    {"*THFFFT* $n fires $p at $N *THWAK* damaging $M gravely!", /* 10: dam <= 32%  */
-     "*THFFFT* you fire $p at $N *THWAK* damaging $M gravely!",
-     "*THFFFT* $n fires $p at you *THWAK* damaging you gravely!"},
-    {"*THFFFT* $n fires $p at $N *THWAK* severely wounding $M!", /* 11: dam <= 40% */
-     "*THFFFT* you fire $p at $N *THWAK* severely wounding $M!",
-     "*THFFFT* $n fires $p at you *THWAK* severely wounding you!"},
+    {"\t[f500]*THWISH* $n fires $p at $N *THUNK* barely damaging $M.", /* 3: dam <= 6%  */
+     "\t[f500]*THWISH* you fire $p at $N *THUNK* barely damaging $M.",
+     "\t[f500]*THWISH* $n fires $p at you *THUNK* barely damaging you."},
+    {"\t[f500]*THWISH* $n fires $p at $N *THUNK* damaging $M.", /* 4: dam <= 8%  */
+     "\t[f500]*THWISH* you fire $p at $N *THUNK* damaging $M.",
+     "\t[f500]*THWISH* $n fires $p at you *THUNK* damaging you."},
+    {"\t[f500]*THWISH* $n fires $p at $N *THUNK* damaging $M moderately!", /* 5: dam <= 11% */
+     "\t[f500]*THWISH* you fire $p at $N *THUNK* damaging $M moderately!",
+     "\t[f500]*THWISH* $n fires $p at you *THUNK* damaging you moderately!"},
+    {"\t[f500]*THWISH* $n fires $p at $N *THUNK* damaging $M badly!", /* 6: dam <= 14%  */
+     "\t[f500]*THWISH* you fire $p at $N *THUNK* damaging $M badly!",
+     "\t[f500]*THWISH* $n fires $p at you *THUNK* damaging you badly!"},
+    {"\t[f500]*THWISH* $n fires $p at $N *THUNK* injuring $M harshly!", /* 7: dam <= 18%  */
+     "\t[f500]*THWISH* you fire $p at $N *THUNK* injuring $M harshly!",
+     "\t[f500]*THWISH* $n fires $p at you *THUNK* injuring you harshly!"},
+    {"\t[f500]*THWISH* $n fires $p at $N *THWAK* severely injuring $M!", /* 8: dam <= 22%  */
+     "\t[f500]*THWISH* you fire $p at $N *THWAK* severely injuring $M!",
+     "\t[f500]*THWISH* $n fires $p at you *THWAK* severely injuring you!"},
+    {"\t[f500]*THWISH* $n fires $p at $N *THWAK* causing serious wounds to $M!", /* 9: dam <= 27% */
+     "\t[f500]*THWISH* you fire $p at $N *THWAK* causing serious wounds to $M!",
+     "\t[f500]*THWISH* $n fires $p at you *THWAK* causing serious wounds to you!"},
+    {"\t[f500]*THFFFT* $n fires $p at $N *THWAK* damaging $M gravely!", /* 10: dam <= 32%  */
+     "\t[f500]*THFFFT* you fire $p at $N *THWAK* damaging $M gravely!",
+     "\t[f500]*THFFFT* $n fires $p at you *THWAK* damaging you gravely!"},
+    {"\t[f500]*THFFFT* $n fires $p at $N *THWAK* severely wounding $M!", /* 11: dam <= 40% */
+     "\t[f500]*THFFFT* you fire $p at $N *THWAK* severely wounding $M!",
+     "\t[f500]*THFFFT* $n fires $p at you *THWAK* severely wounding you!"},
     {"*THFFFT* $n fires $p at $N *THWAK* lethally wounding $M!", /* 12: dam <= 50% */
      "*THFFFT* you fire $p at $N *THWAK* lethally wounding $M!",
      "*THFFFT* $n fires $p at you *THWAK* lethally wounding you!"},
@@ -1698,6 +1698,7 @@ static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
     send_to_char(ch, CCNRM(ch, C_CMP));
 
     /* damage message to damagee */
+    send_to_char(victim, CCRED(vict, C_CMP));
     act(dam_ranged[msgnum].to_victim, FALSE, ch, last_missile, victim, TO_VICT | TO_SLEEP);
     send_to_char(victim, CCNRM(victim, C_CMP));    
   }
@@ -1817,16 +1818,20 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
             /* death message to damagee */
             act("* THWISH * $n fires $p at you * THUNK * you \tRcollapse\tn to the ground!",
                     FALSE, ch, weap, vict, TO_VICT | TO_SLEEP);
+            
             return SKILL_MESSAGE_DEATH_BLOW; /* no reason to stay here */
+            
           } else { /* NOT ranged death blow */
             if (msg->die_msg.attacker_msg) {
               send_to_char(ch, CCYEL(ch, C_CMP));
               act(msg->die_msg.attacker_msg, FALSE, ch, weap, vict, TO_CHAR);
               send_to_char(ch, CCNRM(ch, C_CMP));
             }
+            
             send_to_char(vict, CCRED(vict, C_CMP));
             act(msg->die_msg.victim_msg, FALSE, ch, weap, vict, TO_VICT | TO_SLEEP);
             send_to_char(vict, CCNRM(vict, C_CMP));
+            
             act(msg->die_msg.room_msg, FALSE, ch, weap, vict, TO_NOTVICT);
             return SKILL_MESSAGE_DEATH_BLOW;
           }
@@ -1836,10 +1841,13 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
             act(msg->hit_msg.attacker_msg, FALSE, ch, weap, vict, TO_CHAR);
             send_to_char(ch, CCNRM(ch, C_CMP));
           }
+          
           send_to_char(vict, CCRED(vict, C_CMP));
           act(msg->hit_msg.victim_msg, FALSE, ch, weap, vict, TO_VICT | TO_SLEEP);
           send_to_char(vict, CCNRM(vict, C_CMP));
+          
           act(msg->hit_msg.room_msg, FALSE, ch, weap, vict, TO_NOTVICT);
+          
           return SKILL_MESSAGE_GENERIC_HIT;
         }
       }
