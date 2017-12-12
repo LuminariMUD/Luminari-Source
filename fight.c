@@ -1702,6 +1702,7 @@ static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
     act(dam_ranged[msgnum].to_victim, FALSE, ch, last_missile, victim, TO_VICT | TO_SLEEP);
     send_to_char(victim, CCNRM(victim, C_CMP));    
   }
+  
   /* non ranged */
   else if (GET_POS(victim) > POS_DEAD) {
     char *buf = NULL;
@@ -5431,18 +5432,19 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
 
   /* 20% chance to poison as a trelux. This could be made part of the general poison code, once that is
    * implemented, also, shouldn't they be able to control if they poison or not?  Why not make them envenom
-   * their claws before an attack? */
-  if (!victim_is_dead && dam && !rand_number(0, 5) &&
-      (GET_RACE(ch) == RACE_TRELUX || HAS_FEAT(ch, FEAT_POISON_BITE)) ) {
-    /* We are just using the poison spell for this...Maybe there would be a better way, some unique poison?
-     * Note the CAST_INNATE, this removes armor spell failure from the call. */
-    act("\tgVenom\tn from your claws enter $N's wound!",
+   * their claws before an attack? NOTE: poison bite feat is here as well, generalized damage message */
+  if (!victim_is_dead && dam && !rand_number(0, 5)) {
+    if ( (GET_RACE(ch) == RACE_TRELUX && is_bare_handed(ch)) || HAS_FEAT(ch, FEAT_POISON_BITE)) {
+      /* We are just using the poison spell for this...Maybe there would be a better way, some unique poison?
+       * Note the CAST_INNATE, this removes armor spell failure from the call. */
+      act("You inject \tgVenom\tn into $N's wound!",
                 FALSE, ch, wielded, victim, TO_CHAR);
-    act("\tgVenom\tn from $n's claws enters your wounds!",
+      act("\tgVenom\tn from $n is injected into your wounds!",
                 FALSE, ch, wielded, victim, TO_VICT | TO_SLEEP);
-    act("\tgVenom\tn from $n's claws enters $N's wounds!",
+      act("\tgVenom\tn from $n is injected into $N's wounds!",
                 FALSE, ch, wielded, victim, TO_NOTVICT);
-    call_magic(ch, victim, 0, SPELL_POISON, 0, GET_LEVEL(ch), CAST_INNATE);
+      call_magic(ch, victim, 0, SPELL_POISON, 0, GET_LEVEL(ch), CAST_INNATE);
+    }
   }
 
   /* crippling strike */
@@ -6176,11 +6178,11 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
     return 0;
 
   /* Display Modes, not actually firing, how many attacks? */
-  } else if (mode == RETURN_NUM_ATTACKS && can_fire_ammo(ch, TRUE)) { //is_using_ranged_weapon(ch, TRUE)
+  } else if (mode == RETURN_NUM_ATTACKS && is_using_ranged_weapon(ch, TRUE)) {
     return ranged_attacks;
     
   /* Display Modes, not actually firing, show our routines full POWAH! */
-  } else if (mode == DISPLAY_ROUTINE_POTENTIAL && can_fire_ammo(ch, TRUE)) { //is_using_ranged_weapon(ch, TRUE)
+  } else if (mode == DISPLAY_ROUTINE_POTENTIAL && is_using_ranged_weapon(ch, TRUE)) {
     while (ranged_attacks > 0) {
       /* display hitroll bonus */
       send_to_char(ch, "Ranged Attack Bonus:  %d; ",
@@ -6195,6 +6197,12 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
 
       ranged_attacks--;
     }
+    
+    if (!can_fire_ammo(ch, TRUE)) {
+      send_to_char(ch, "You are not prepared to fire your weapon:  ");
+      can_fire_ammo(ch, FALSE); /* sends message why */
+    }
+    
     return 0;
   }
   /***/

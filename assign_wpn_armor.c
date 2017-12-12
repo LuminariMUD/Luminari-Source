@@ -274,7 +274,7 @@ bool process_load_weapon(struct char_data *ch, struct obj_data *weapon,
   /* position check */
   if (GET_POS(ch) <= POS_STUNNED) {
     if (!silent_mode)
-      send_to_char(ch, "You are in no position to do this!\r\n");
+      send_to_char(ch, "You are in no position to do this!\r \n");
     return FALSE;
   }
   
@@ -1632,6 +1632,10 @@ void load_armor(void) {
 }
 
 /******* special mixed checks (such as monk) */
+
+bool is_bare_handed(struct char_data *ch) {
+  
+}
 
 /* our simple little function to make sure our monk
    is following his martial-arts requirements for gear */
