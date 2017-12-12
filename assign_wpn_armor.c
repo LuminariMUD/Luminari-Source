@@ -1634,7 +1634,20 @@ void load_armor(void) {
 /******* special mixed checks (such as monk) */
 
 bool is_bare_handed(struct char_data *ch) {
-  
+  if (GET_EQ(ch, WEAR_HOLD_1))
+    return FALSE;
+  if (GET_EQ(ch, WEAR_HOLD_2))
+    return FALSE;
+  if (GET_EQ(ch, WEAR_SHIELD))
+    return FALSE;
+  if (GET_EQ(ch, WEAR_WIELD_1))
+    return FALSE;
+  if (GET_EQ(ch, WEAR_WIELD_OFFHAND))
+    return FALSE;
+  if (GET_EQ(ch, WEAR_WIELD_2H))
+    return FALSE;
+  /* made it */
+  return TRUE;
 }
 
 /* our simple little function to make sure our monk
