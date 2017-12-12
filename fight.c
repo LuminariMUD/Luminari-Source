@@ -1627,7 +1627,7 @@ static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
     const char *to_victim;
   } dam_ranged[] = {
     {"*WHOOSH* $n fires $p at $N but misses!", /* 0: 0     */
-     "\t[f500]*WHOOSH*\t[f030] you fire \tn$p\t[f030] at \tn$N \t[f030]but miss!\tn",
+     "\ty*WHOOSH*\ty you fire \tn$p\ty at \tn$N \tybut \tYmiss!\tn",
      "*WHOOSH* $n fires $p at you but misses!"},
     {"*THWISH* $n fires $p at $N grazing $M.", /* 1: dam <= 2% */
      "\t[f500]*THWISH*\tn \t[f030]you fire \tn$p\tn \t[f030]at \tn$N\tn \t[f030]grazing $M.\tn",
