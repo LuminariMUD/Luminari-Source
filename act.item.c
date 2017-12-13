@@ -2199,40 +2199,8 @@ int is_wielding_type(struct char_data *ch) {
 
 /* the guts of the 'wear' mechanic for equipping gear */
 void perform_wear(struct char_data *ch, struct obj_data *obj, int where) {
-
-  /* we are looking for some quick exits */
-  if (IS_ANIMAL(ch)) {
-    send_to_char(ch, "You are animal, how you going to wear that?\r\n");
-    return;
-  }
-
-  /* see hands_needed() for notes */
-  int handsNeeded = hands_needed(ch, obj);  
-  if (handsNeeded == -1) {
-    send_to_char(ch, "There is no way this item will fit you!\r\n");
-    return;
-  }
-
-  if (OBJ_FLAGGED(obj, ITEM_MOLD)) {
-    send_to_char(ch, "You can't wear an object mold!\r\n");
-    return;
-  }
-
-  /* check to make sure you don't mix melee/ranged */
-  if (where == WEAR_WIELD_1 && is_wielding_type(ch) != -1) {
-    if (GET_OBJ_TYPE(obj) == ITEM_WEAPON &&
-            is_wielding_type(ch) != ITEM_WEAPON) {
-      send_to_char(ch, "You can't mix-and-match ranged/melee weapons.\r\n");
-      return;
-    }
-    if (GET_OBJ_TYPE(obj) == ITEM_FIREWEAPON &&
-            is_wielding_type(ch) != ITEM_FIREWEAPON) {
-      send_to_char(ch, "You can't mix-and-match ranged/melee weapons.\r\n");
-      return;
-    }
-  }
-
-  // TAKE is used for objects that don't require special bits, ex. HOLD
+  
+  /* TAKE is used for objects that don't require special bits, ex. HOLD */
   int wear_bitvectors[] = {
     ITEM_WEAR_TAKE, ITEM_WEAR_FINGER, ITEM_WEAR_FINGER, ITEM_WEAR_NECK,
     ITEM_WEAR_NECK, ITEM_WEAR_BODY, ITEM_WEAR_HEAD, ITEM_WEAR_LEGS,
@@ -2273,6 +2241,40 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where) {
     "You are already wearing something on your eyes.\r\n",
     "You are already wearing a badge.\r\n",
   };
+  
+  /* we are looking for some quick exits */
+  if (IS_ANIMAL(ch)) {
+    send_to_char(ch, "You are animal, how you going to wear that?\r\n");
+    return;
+  }
+
+  /* see hands_needed() for notes */
+  int handsNeeded = hands_needed(ch, obj);  
+  if (handsNeeded == -1) {
+    send_to_char(ch, "There is no way this item will fit you!\r\n");
+    return;
+  }
+
+  if (OBJ_FLAGGED(obj, ITEM_MOLD)) {
+    send_to_char(ch, "You can't wear an object mold!\r\n");
+    return;
+  }
+
+  /* check to make sure you don't mix melee/ranged */
+  if (where == WEAR_WIELD_1 && is_wielding_type(ch) != -1) {
+    if (GET_OBJ_TYPE(obj) == ITEM_WEAPON &&
+            is_wielding_type(ch) != ITEM_WEAPON) {
+      send_to_char(ch, "You can't mix-and-match ranged/melee weapons.\r\n");
+      return;
+    }
+    if (GET_OBJ_TYPE(obj) == ITEM_FIREWEAPON &&
+            is_wielding_type(ch) != ITEM_FIREWEAPON) {
+      send_to_char(ch, "You can't mix-and-match ranged/melee weapons.\r\n");
+      return;
+    }
+  }
+
+
 
   /* first, make sure that the wear position is valid. */
   if (!CAN_WEAR(obj, wear_bitvectors[where])) {
@@ -2359,13 +2361,17 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where) {
   equip_char(ch, obj, where);
 }
 
+/* given character and object:
+   if argument is empty, check where this object is "wear"able
+   if argument, match argument with keyword list to determine "wear" spot
+   returns:  where (which position), 0-value means can't find where  */
 int find_eq_pos(struct char_data *ch, struct obj_data *obj, char *arg) {
   int where = -1;
 
   /* this is lined up with equipment_types, it SHOULD be lined
-   up with wear_bits probably, but not changing the status quo */
+   up with wear_bits (constants.c) probably, but not changing the status quo */
   const char *keywords[NUM_WEARS + 1] = {
-    "!RESERVED!",  //0 (light)
+    "!RESERVED!",  //0 (takeable)
     "finger",
     "!RESERVED!",  // (2nd finger)
     "neck",
@@ -2437,41 +2443,53 @@ ACMD(do_wear) {
     send_to_char(ch, "Wear what?\r\n");
     return;
   }
+  
   dotmode = find_all_dots(arg1);
 
   if (*arg2 && (dotmode != FIND_INDIV)) {
     send_to_char(ch, "You can't specify the same body location for more than one item!\r\n");
     return;
   }
+  
+  /* wear all */
   if (dotmode == FIND_ALL) {
+    
+    /* go through all carried objects */
     for (obj = ch->carrying; obj; obj = next_obj) {
       next_obj = obj->next_content;
+      
+      /* where does this gear fit? */
       if (CAN_SEE_OBJ(ch, obj) && (where = find_eq_pos(ch, obj, 0)) >= 0) {
         if (GET_LEVEL(ch) < GET_OBJ_LEVEL(obj))
-          send_to_char(ch, "You are not experienced enough to use that.\r\n");
+          send_to_char(ch, "You are not experienced enough to use %s.\r\n", GET_OBJ_SHORT(obj));
         else if (GET_OBJ_TYPE(obj) == ITEM_CLANARMOR && (GET_CLAN(ch) == NO_CLAN || (GET_OBJ_VAL(obj, 2) + 1) != GET_CLAN(ch)))
           send_to_char(ch, "You are in clan %d, This belongs to clan %d.\r\n", GET_CLAN(ch), GET_OBJ_VAL(obj, 2));
         else {
-          items_worn++;
+          items_worn++; /* counting how many items we equipped */
           perform_wear(ch, obj, where);
         }
       }
     }
     if (!items_worn)
       send_to_char(ch, "You don't seem to have anything wearable.\r\n");
-  } else if (dotmode == FIND_ALLDOT) {
+  }
+  
+  /* wear all.X */
+  else if (dotmode == FIND_ALLDOT) {
+    
     if (!*arg1) {
       send_to_char(ch, "Wear all of what?\r\n");
       return;
     }
+    
     if (!(obj = get_obj_in_list_vis(ch, arg1, NULL, ch->carrying)))
       send_to_char(ch, "You don't seem to have any %ss.\r\n", arg1);
     else if (GET_LEVEL(ch) < GET_OBJ_LEVEL(obj))
-      send_to_char(ch, "You are not experienced enough to use that.\r\n");
+      send_to_char(ch, "You are not experienced enough to use %s.\r\n", GET_OBJ_SHORT(obj));
     else if (GET_OBJ_TYPE(obj) == ITEM_CLANARMOR &&
             (GET_CLAN(ch) == NO_CLAN || (GET_OBJ_VAL(obj, 2) + 1) != GET_CLAN(ch)))
       send_to_char(ch, "You are in clan %d, That belongs to clan %d.\r\n", GET_CLAN(ch), GET_OBJ_VAL(obj, 2));
-    else
+    else { /* engine! */
       while (obj) {
         next_obj = get_obj_in_list_vis(ch, arg1, NULL, obj->next_content);
         if ((where = find_eq_pos(ch, obj, 0)) >= 0)
@@ -2480,11 +2498,15 @@ ACMD(do_wear) {
           act("You can't wear $p.", FALSE, ch, obj, 0, TO_CHAR);
         obj = next_obj;
       }
-  } else {
+    }
+  }
+  
+  /* not wear all, or wear all.X */
+  else {
     if (!(obj = get_obj_in_list_vis(ch, arg1, NULL, ch->carrying)))
       send_to_char(ch, "You don't seem to have %s %s.\r\n", AN(arg1), arg1);
     else if (GET_LEVEL(ch) < GET_OBJ_LEVEL(obj))
-      send_to_char(ch, "You are not experienced enough to use that.\r\n");
+      send_to_char(ch, "You are not experienced enough to use %s.\r\n", GET_OBJ_SHORT(obj));
     else if (GET_OBJ_TYPE(obj) == ITEM_CLANARMOR &&
             (GET_CLAN(ch) == NO_CLAN || (GET_OBJ_VAL(obj, 2) + 1) != GET_CLAN(ch)))
       send_to_char(ch, "You are in clan %d, That belongs to clan %d.\r\n", GET_CLAN(ch), GET_OBJ_VAL(obj, 2));
@@ -2495,6 +2517,8 @@ ACMD(do_wear) {
         act("You can't wear $p.", FALSE, ch, obj, 0, TO_CHAR);
     }
   }
+  
+  /* end */
 }
 
 /* the actual engine for wielding an object

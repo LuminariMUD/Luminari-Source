@@ -416,7 +416,7 @@ EVENTFUNC(event_trap_triggered) {
         if (effect == TRAP_EFFECT_DISPEL_MAGIC) /* special handling */
           spell_dispel_magic(LVL_IMPL, ch, ch, NULL, casttype);
         if (af.spell != TYPE_UNDEFINED) /* has an affection to add? */
-          affect_join(ch, &af, 1, FALSE, FALSE, FALSE);
+          affect_join(ch, &af, TRUE, FALSE, FALSE, FALSE);
         if (dam) /* has damage to process? */
           damage(ch, ch, dam, -1 /*attacktype*/, dam_type, -1 /*offhand*/);
       }

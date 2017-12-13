@@ -875,14 +875,19 @@ bool affected_by_spell(struct char_data *ch, int type) {
   return (FALSE);
 }
 
+/* primary entry point to adding an affection to a player
+   @in: character, affection structure, (on same affects:)
+        Add duration? Avg duration? Add mod? Avg mod?*/
 void affect_join(struct char_data *ch, struct affected_type *af,
         bool add_dur, bool avg_dur, bool add_mod, bool avg_mod) {
-  struct affected_type *hjp, *next;
+  struct affected_type *hjp = NULL, *next = NULL;
   bool found = FALSE;
 
+  /* increment through all the affections on the character, check for matches */
   for (hjp = ch->affected; !found && hjp; hjp = next) {
     next = hjp->next;
 
+    /* matching spell-number AND affection location matches? */
     if ((hjp->spell == af->spell) && (hjp->location == af->location)) {
       if (add_dur)
         af->duration += hjp->duration;
@@ -893,11 +898,14 @@ void affect_join(struct char_data *ch, struct affected_type *af,
       else if (avg_mod)
         af->modifier = (af->modifier + hjp->modifier) / 2;
 
+      /* replace! */
       affect_remove(ch, hjp);
       affect_to_char(ch, af);
       found = TRUE;
     }
   }
+  
+  /* no matches in our current affection list, so throw the affection on */
   if (!found)
     affect_to_char(ch, af);
 }

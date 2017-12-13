@@ -1290,7 +1290,7 @@ void yan_windgust(struct char_data *ch) {
         af.spell = SKILL_CHARGE;
         SET_BIT_AR(af.bitvector, AFF_STUN);
         af.duration = dice(2, 4) + 1;
-        affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
+        affect_join(vict, &af, TRUE, FALSE, FALSE, FALSE);
       }
     }
   }
@@ -1520,7 +1520,7 @@ SPECIAL(quicksand) {
   af.spell = SPELL_HOLD_PERSON;
   SET_BIT_AR(af.bitvector, AFF_PARALYZED);
   af.duration = 5;
-  affect_join(ch, &af, 1, FALSE, FALSE, FALSE);
+  affect_join(ch, &af, TRUE, FALSE, FALSE, FALSE);
 
   return 1;
 }
@@ -1559,7 +1559,7 @@ SPECIAL(kt_kenjin) {
     af.spell = SPELL_HOLD_PERSON;
     SET_BIT_AR(af.bitvector, AFF_PARALYZED);
     af.duration = rand_number(2, 3);
-    affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
+    affect_join(vict, &af, TRUE, FALSE, FALSE, FALSE);
     return 1;
   }
 
@@ -5070,7 +5070,7 @@ SPECIAL(fog_dagger) {
         af.spell = SPELL_BLINDNESS;
         SET_BIT_AR(af.bitvector, AFF_BLIND);
         af.duration = dice(1, 3);
-        affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
+        affect_join(vict, &af, TRUE, FALSE, FALSE, FALSE);
       }
       for (i = world[vict->in_room].people; i; i = i->next_in_room) {
         if (FIGHTING(i) == vict) {
@@ -5097,7 +5097,7 @@ SPECIAL(fog_dagger) {
         af2.spell = SPELL_HOLD_PERSON;
         SET_BIT_AR(af2.bitvector, AFF_PARALYZED);
         af2.duration = dice(1, 2);
-        affect_join(vict, &af2, 1, FALSE, FALSE, FALSE);
+        affect_join(vict, &af2, TRUE, FALSE, FALSE, FALSE);
       }
     }
     return 1;
@@ -5874,7 +5874,7 @@ SPECIAL(tormblade) {
       af.modifier = 2;
       af.location = APPLY_AC_NEW;
       af.duration = dice(1, 4);
-      affect_join(ch, &af, 1, FALSE, FALSE, FALSE);
+      affect_join(ch, &af, TRUE, FALSE, FALSE, FALSE);
       return 1;
     }
   }
@@ -5982,7 +5982,7 @@ SPECIAL(air_sphere) {
       af.spell = SPELL_HASTE;
       af.duration = 100;
       SET_BIT_AR(af.bitvector, AFF_HASTE);
-      affect_join(ch, &af, 1, FALSE, FALSE, FALSE);
+      affect_join(ch, &af, TRUE, FALSE, FALSE, FALSE);
 
       call_magic(ch, 0, 0, SPELL_CHAIN_LIGHTNING, 0, 20, CAST_POTION);
 
@@ -6177,7 +6177,7 @@ SPECIAL(halberd) {
       af.spell = SKILL_CHARGE;
       SET_BIT_AR(af.bitvector, AFF_STUN);
       af.duration = dice(1, 4);
-      affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
+      affect_join(vict, &af, TRUE, FALSE, FALSE, FALSE);
       return 1;
       break;
 

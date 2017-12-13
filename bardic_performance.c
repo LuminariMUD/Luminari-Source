@@ -341,7 +341,7 @@ int performance_effects(struct char_data *ch, struct char_data *tch, struct affe
       if (!AFF_FLAGGED(tch, AFF_FLYING)) {
         af.duration = 30;
         SET_BIT_AR(af.bitvector, AFF_FLYING);
-        affect_join(tch, &af, FALSE, 1, FALSE, FALSE);
+        affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
         act("You fly through the air, free as a bird!", FALSE, tch, 0, 0, TO_CHAR);
         act("$n fly through the air, free as a bird!", FALSE, tch, 0, 0, TO_ROOM);
       }

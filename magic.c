@@ -2024,8 +2024,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       af[0].duration = caster_level * 1000;
       SET_BIT_AR(af[0].bitvector, AFF_DISEASE);
       to_vict = "You feel a powerful necromantic disease overcome you.";
-      to_room =
-              "$n suffers visibly as a powerful necromantic disease strikes $m!";
+      to_room = "$n suffers visibly as a powerful necromantic disease strikes $m!";
       break;
 
     case SPELL_FAERIE_FIRE: // evocation
@@ -2035,6 +2034,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       // need to make this show an outline around concealed, blue, displaced, invisible people
       SET_BIT_AR(af[0].bitvector, AFF_FAERIE_FIRE);
       af[0].duration = level;
+      af[0].location = APPLY_AC_NEW;
+      af[0].modifier = -2;
       accum_duration = FALSE;
       accum_affect = FALSE;
       to_room = "A pale blue light begins to glow around $n.";

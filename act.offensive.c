@@ -830,7 +830,7 @@ bool perform_shieldslam(struct char_data *ch, struct char_data *vict) {
       af.spell = SKILL_SHIELD_SLAM;
       SET_BIT_AR(af.bitvector, AFF_DAZED);
       af.duration = 1; /* One round */
-      affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
+      affect_join(vict, &af, TRUE, FALSE, FALSE, FALSE);
       act("$N appears to be dazed by $n's blow!",
           FALSE, ch, NULL, vict, TO_NOTVICT);
       act("$N appears to be dazed by your blow!",
@@ -894,7 +894,7 @@ void perform_headbutt(struct char_data *ch, struct char_data *vict) {
       af.spell = SKILL_HEADBUTT;
       SET_BIT_AR(af.bitvector, AFF_PARALYZED);
       af.duration = 1;
-      affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
+      affect_join(vict, &af, TRUE, FALSE, FALSE, FALSE);
       act("$n slams $s head into $N with \tRVICIOUS\tn force!",
           FALSE, ch, NULL, vict, TO_NOTVICT);
       act("You slam your head into $N with \tRVICIOUS\tn force!",
@@ -1054,7 +1054,7 @@ void perform_sap(struct char_data *ch, struct char_data *vict) {
       af.spell = SKILL_SAP;
       SET_BIT_AR(af.bitvector, AFF_PARALYZED);
       af.duration = 1;
-      affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
+      affect_join(vict, &af, TRUE, FALSE, FALSE, FALSE);
       act("$n \tYsavagely\tn beats $N with $p!!",
           FALSE, ch, wielded, vict, TO_NOTVICT);
       act("You \tYsavagely\tn beat $N with $p!",
@@ -1125,7 +1125,7 @@ bool perform_dirtkick(struct char_data *ch, struct char_data *vict) {
       af.modifier = -4;
       af.duration = dice(1, GET_LEVEL(ch) / 5);
       af.location = APPLY_HITROLL;
-      affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
+      affect_join(vict, &af, TRUE, FALSE, FALSE, FALSE);
       act("$n blinds $N with the debris!!",
           FALSE, ch, NULL, vict, TO_NOTVICT);
       act("You blind $N with debris!",
@@ -1223,7 +1223,7 @@ void perform_springleap(struct char_data *ch, struct char_data *vict) {
         else
           SET_BIT_AR(af.bitvector, AFF_STUN);
         af.duration = dice(1, 2);
-        affect_join(vict, &af, 1, FALSE, FALSE, FALSE); */
+        affect_join(vict, &af, TRUE, FALSE, FALSE, FALSE); */
          
     /* fire-shield, etc check */
     damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE);
@@ -1348,7 +1348,7 @@ bool perform_backstab(struct char_data *ch, struct char_data *vict) {
       aware_affect.spell = SKILL_BACKSTAB;
       aware_affect.duration = 20;
       SET_BIT_AR(aware_affect.bitvector, AFF_AWARE);
-      affect_join(vict, &aware_affect, 1, FALSE, FALSE, FALSE);      
+      affect_join(vict, &aware_affect, TRUE, FALSE, FALSE, FALSE);      
     }
     
     if (HAS_FEAT(ch, FEAT_BACKSTAB))
@@ -1586,7 +1586,7 @@ void clear_rage(struct char_data *ch) {
     fatigued_af.spell = SKILL_RAGE_FATIGUE;
     fatigued_af.duration = 10;
     SET_BIT_AR(fatigued_af.bitvector, AFF_FATIGUED);
-    affect_join(ch, &fatigued_af, 1, FALSE, FALSE, FALSE);
+    affect_join(ch, &fatigued_af, TRUE, FALSE, FALSE, FALSE);
   }
 
   /* clearing some rage powers */
@@ -1614,7 +1614,7 @@ void clear_defensive_stance(struct char_data *ch) {
     fatigued_af.spell = SKILL_RAGE_FATIGUE;
     fatigued_af.duration = 10;
     SET_BIT_AR(fatigued_af.bitvector, AFF_FATIGUED);
-    affect_join(ch, &fatigued_af, 1, FALSE, FALSE, FALSE);
+    affect_join(ch, &fatigued_af, TRUE, FALSE, FALSE, FALSE);
   }
 
   /* clearing some defensive stance powers */

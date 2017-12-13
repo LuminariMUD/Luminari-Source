@@ -1718,22 +1718,13 @@
 #define ITEM_WEAR_FACE      15  // item can be worn on face
 #define ITEM_WEAR_AMMO_POUCH    16 // item can be used as an ammo pouch
 /* unfinished */
-#define ITEM_WEAR_EAR           17 // item can be worn on ears (UNUSED HOMELAND)
-#define ITEM_WEAR_EYES          18 // item can be worn on eyes (UNUSED HOMELAND)
-#define ITEM_WEAR_BADGE         19 // item can be worn as badge (UNUSED HOMELAND))
+#define ITEM_WEAR_EAR           17 // item can be worn on ears
+#define ITEM_WEAR_EYES          18 // item can be worn on eyes
+#define ITEM_WEAR_BADGE         19 // item can be worn as badge
 
 /** Total number of item wears */
 #define NUM_ITEM_WEARS      20
 
-/* homeland-port */
-/*
-#define ITEM_WEAR_EAR		(1 << 15)  // Can be worn in ear
-#define ITEM_WEAR_EYES		(1 << 17)  // Can be worn on eyes
-#define ITEM_WEAR_BADGE		(1 << 18)  // Can be worn as badge
-#define ITEM_WEAR_WIELD_2H    (1 << 19)  // Item can be wielded 2h -> ITEM_WEAR_WIELD (13)
-#define ITEM_WEAR_AMMO_POUCH      (1 << 20)  // Item can be worn as ammo pouch
-#define ITEM_WEAR_TAIL        (1 << 21)  // Can be worn on tail
-*/
 
 /* Extra object flags: used by obj_data.obj_flags.extra_flags */
 #define ITEM_GLOW                 0   /**< Item is glowing */
