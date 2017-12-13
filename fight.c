@@ -491,17 +491,28 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
    * Changed this to use the AC as-is.  AC has been modified on gear. */
   int armorclass = 0, eq_armoring = 0, ac_penalty = 0; /* we keep track of all AC penalties */
   int i, bonuses[NUM_BONUS_TYPES];
+  
+  /* Initialize bonuse-types to 0 */
+  for (i = 0; i < NUM_BONUS_TYPES; i++)
+    bonuses[i] = 0;
+  
+  /* base AC */  
+  armorclass = 10;  
+  
+  /* philosophical question, what is GET_AC()?
+     So unless I am missing something, GET_AC() will include ALL your worn
+     gear and all the bonuses you have via spells.
+   
+     So we have to extract these values separately and make sure they are applying
+     respective bonuses to the right bonus-types 
+     *note:  base armor class of stock code system is a system of 100 vs 10 of pathfinder
+     */
 
   /* base armor class of stock code = 100 */
   /* equipment is still using a 10 factor, example plate armor in d20 = 8,
    therefore in the code it would be 80 - this has to be consistent otherwise
    the calculation below will get skewed */
   eq_armoring = ((GET_AC(ch) - 100) / 10);
-  armorclass = 10; /* base AC */
-
-  /* Initialize bonuses to 0 */
-  for (i = 0; i < NUM_BONUS_TYPES; i++)
-    bonuses[i] = 0;
 
   if (char_has_mud_event(ch, eSHIELD_RECOVERY)) {
     if (GET_EQ(ch, WEAR_SHIELD))
@@ -534,9 +545,11 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
   /**/
 
   /* bonus type armor (equipment) */
-  /* we assume any ac above 10 will be equipment */
+  
+  /* This is our equipped gear */
   if (!IS_WILDSHAPED(ch) || IS_MORPHED(ch))
     bonuses[BONUS_TYPE_ARMOR] += eq_armoring;
+  
   /* ...Trelux carapace is not effective vs touch attacks! */
   if (GET_RACE(ch) == RACE_TRELUX) {
     if (GET_LEVEL(ch) >= 5) {
@@ -3720,7 +3733,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
               af.modifier = -dice(1, 4);
               af.duration = MAX(1, (int) (event_time(pMudEvent->pEvent) / 60));
               SET_BIT_AR(af.bitvector, AFF_CRIPPLING_CRITICAL);
-              affect_join(victim, &af, 1, FALSE, FALSE, FALSE);
+              affect_join(victim, &af, TRUE, FALSE, FALSE, FALSE);
               break;
             case 2: /* 1d4 dexterity damage */
               new_affect(&af);
@@ -3729,7 +3742,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
               af.modifier = -dice(1, 4);
               af.duration = MAX(1, (int) (event_time(pMudEvent->pEvent) / 60));
               SET_BIT_AR(af.bitvector, AFF_CRIPPLING_CRITICAL);
-              affect_join(victim, &af, 1, FALSE, FALSE, FALSE);
+              affect_join(victim, &af, TRUE, FALSE, FALSE, FALSE);
               break;
             case 3: /* -4 penalty to fortitude saves */
               new_affect(&af);
@@ -3738,7 +3751,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
               af.modifier = -4;
               af.duration = MAX(1, (int) (event_time(pMudEvent->pEvent) / 60));
               SET_BIT_AR(af.bitvector, AFF_CRIPPLING_CRITICAL);
-              affect_join(victim, &af, 1, FALSE, FALSE, FALSE);
+              affect_join(victim, &af, TRUE, FALSE, FALSE, FALSE);
               break;
             case 4: /* -4 penalty to reflex saves */
               new_affect(&af);
@@ -3747,7 +3760,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
               af.modifier = -4;
               af.duration = MAX(1, (int) (event_time(pMudEvent->pEvent) / 60));
               SET_BIT_AR(af.bitvector, AFF_CRIPPLING_CRITICAL);
-              affect_join(victim, &af, 1, FALSE, FALSE, FALSE);
+              affect_join(victim, &af, TRUE, FALSE, FALSE, FALSE);
               break;
             case 5: /* -4 penalty to will saves */
               new_affect(&af);
@@ -3756,7 +3769,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
               af.modifier = -4;
               af.duration = MAX(1, (int) (event_time(pMudEvent->pEvent) / 60));
               SET_BIT_AR(af.bitvector, AFF_CRIPPLING_CRITICAL);
-              affect_join(victim, &af, 1, FALSE, FALSE, FALSE);
+              affect_join(victim, &af, TRUE, FALSE, FALSE, FALSE);
               break;
             case 6: /* -4 penalty to AC */
               new_affect(&af);
@@ -3765,7 +3778,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
               af.modifier = -4;
               af.duration = MAX(1, (int) (event_time(pMudEvent->pEvent) / 60));
               SET_BIT_AR(af.bitvector, AFF_CRIPPLING_CRITICAL);
-              affect_join(victim, &af, 1, FALSE, FALSE, FALSE);
+              affect_join(victim, &af, TRUE, FALSE, FALSE, FALSE);
               break;
             default: /* 2d4 bleed damage and 2d4 moves drain */
               GET_MOVE(victim) -= dice(2, 4);

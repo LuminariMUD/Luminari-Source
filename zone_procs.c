@@ -1783,7 +1783,7 @@ SPECIAL(thrym) {
   af.spell = SPELL_HOLD_PERSON;
   SET_BIT_AR(af.bitvector, AFF_PARALYZED);
   af.duration = 8;
-  affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
+  affect_join(vict, &af, TRUE, FALSE, FALSE, FALSE);
 
   return 1;
 }
@@ -1959,7 +1959,7 @@ SPECIAL(frostbite) {
         af.spell = SPELL_HOLD_PERSON;
         SET_BIT_AR(af.bitvector, AFF_PARALYZED);
         af.duration = dice(2, 4);
-        affect_join(vict, &af, 1, FALSE, FALSE, FALSE);
+        affect_join(vict, &af, TRUE, FALSE, FALSE, FALSE);
       }
 
       GET_OBJ_SPECTIMER(obj, 0) = 24;
