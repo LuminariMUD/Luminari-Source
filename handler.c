@@ -764,7 +764,7 @@ void affect_total(struct char_data *ch) {
 }
 
 /* Insert an affect_type in a char_data structure. Automatically sets
- * apropriate bits and apply's */
+ * appropriate bits and apply's */
 void affect_to_char(struct char_data *ch, struct affected_type *af) {
   int i;
   struct affected_type *affected_alloc;
@@ -779,14 +779,17 @@ void affect_to_char(struct char_data *ch, struct affected_type *af) {
   affected_alloc->next = ch->affected;
   ch->affected = affected_alloc;
 
-  //affect_modify_ar(ch, af->location, af->modifier, af->bitvector, TRUE);
+  /*affect_modify_ar(ch, af->location, af->modifier, af->bitvector, TRUE);*/
   affect_modify_ar(ch, af->location, 0, af->bitvector, TRUE);
 
   if (BONUS_TYPE_STACKS(af->bonus_type)) {
     affect_modify_ar(ch, af->location, af->modifier, af->bitvector, TRUE);
-  } else if (af->modifier > calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell)) {
-    aff_apply_modify(ch, af->location, -calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell), "affect_to_char");
-    //affect_modify_ar(ch, af->location, calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell), empty_bits, FALSE);
+  } else if (af->modifier >
+          calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell)) {
+    aff_apply_modify(ch, af->location, -calculate_best_mod(ch, af->location,
+            af->bonus_type, -1, af->spell), "affect_to_char");
+    /*affect_modify_ar(ch, af->location, calculate_best_mod(ch, af->location,
+             af->bonus_type, -1, af->spell), empty_bits, FALSE);*/
     affect_modify_ar(ch, af->location, af->modifier, af->bitvector, TRUE);
   }
 

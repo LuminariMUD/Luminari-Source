@@ -489,9 +489,11 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
   /* hack to translate old D&D to 3.5 Edition
    * Modified 09/09/2014 : Ornir
    * Changed this to use the AC as-is.  AC has been modified on gear. */
-  int armorclass = 0, eq_armoring = 0, ac_penalty = 0; /* we keep track of all AC penalties */
-  int i, bonuses[NUM_BONUS_TYPES];
-  
+  int armorclass = 0, eq_armoring = 0, temp = GET_AC(ch), 
+          ac_penalty = 0; /* we keep track of all AC penalties */
+  int i = 0, bonuses[NUM_BONUS_TYPES];
+  struct affected_type *affections = NULL, *next = NULL;
+
   /* Initialize bonuse-types to 0 */
   for (i = 0; i < NUM_BONUS_TYPES; i++)
     bonuses[i] = 0;
@@ -501,18 +503,32 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
   
   /* philosophical question, what is GET_AC()?
      So unless I am missing something, GET_AC() will include ALL your worn
-     gear and all the bonuses you have via spells.
+     gear and all the bonuses you have via spells (affections structures).
    
-     So we have to extract these values separately and make sure they are applying
-     respective bonuses to the right bonus-types 
+     So we have to extract these aff values separately and make sure they are applying
+     respective bonuses to the right bonus-types
      *note:  base armor class of stock code system is a system of 100 vs 10 of pathfinder
-     */
+   */
+  /* increment through all the affections on the character, check for matches */
+  for (affections = ch->affected; affections; affections = next) {
+    next = affections->next;
+    
+    if (affections->location == APPLY_AC_NEW) {
+      bonuses[affections->bonus_type] += affections->modifier;
+      /* temp is just our GET_AC(), so remember 10 factor */
+      temp -= (affections->modifier * 10);
+    }
+    /* divide by 10 since old AC system */
+    if (affections->location == APPLY_AC) {
+      bonuses[affections->bonus_type] += (affections->modifier / 10);
+      temp -= affections->modifier;
+    }    
+  }
 
-  /* base armor class of stock code = 100 */
-  /* equipment is still using a 10 factor, example plate armor in d20 = 8,
-   therefore in the code it would be 80 - this has to be consistent otherwise
-   the calculation below will get skewed */
-  eq_armoring = ((GET_AC(ch) - 100) / 10);
+  /* stock base armor class = 100, pathfinder = 10
+     we already set up our base pathfinder armor-class above, so we remove
+     the 100 AC, anything left over will be our equipment (hopefully) */
+  eq_armoring = ((temp - 100) / 10);
 
   if (char_has_mud_event(ch, eSHIELD_RECOVERY)) {
     if (GET_EQ(ch, WEAR_SHIELD))
