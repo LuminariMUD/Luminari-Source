@@ -2161,18 +2161,26 @@ static int hands_available(struct char_data *ch) {
   }
   return (hands_have(ch) - hands_used(ch));
 }
-//  should only return 1 or 2, -1 if problematic
 
+/* when handling wielding, holding, wearing of shields, we have to know
+   how may hands you have available to equipping these items.  Also some
+   held and wielded items will take two hands based on their size.  */
+//  should only return 1 or 2, -1 if problematic
 static int hands_needed(struct char_data *ch, struct obj_data *obj) {
+  /* example:  huge sword,   medium human, size =  2
+   *           large sword,  medium human, size =  1
+   *           medium sword, medium human, size =  0
+   *           small sword,  medium human, size = -1
+   *           tiny dagger,  medium human, size = -2 */
   int size = GET_OBJ_SIZE(obj) - GET_SIZE(ch);
 
   //size check
   if (size == 1) // two handed
     return 2;
-  if (size >= 2)
+  if (size >= 2) /* not enough hands!! */
     return -1;
 
-  return 1;
+  return 1; /* items is equal or smaller than char size, easily used with 1 hand */
 }
 
 int is_wielding_type(struct char_data *ch) {
@@ -2189,14 +2197,17 @@ int is_wielding_type(struct char_data *ch) {
   return -1;
 }
 
+/* the guts of the 'wear' mechanic for equipping gear */
 void perform_wear(struct char_data *ch, struct obj_data *obj, int where) {
-  int handsNeeded = hands_needed(ch, obj);
 
+  /* we are looking for some quick exits */
   if (IS_ANIMAL(ch)) {
     send_to_char(ch, "You are animal, how you going to wear that?\r\n");
     return;
   }
 
+  /* see hands_needed() for notes */
+  int handsNeeded = hands_needed(ch, obj);  
   if (handsNeeded == -1) {
     send_to_char(ch, "There is no way this item will fit you!\r\n");
     return;
@@ -2255,12 +2266,12 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where) {
     "Your hands are full.\r\n", //19
     "Your hands are full.\r\n", //20
     "Your hands are full.\r\n", //21
-    "You are already wearing something on your face.\r\n"
-    "You are already wearing an ammo pouch.\r\n"
+    "You are already wearing something on your face.\r\n",
+    "You are already wearing an ammo pouch.\r\n",
     "YOU SHOULD NEVER SEE THIS MESSAGE.  PLEASE REPORT.\r\n",
-    "You are already wearing an item on each ear.\r\n"  //25
-    "You are already wearing something on your eyes.\r\n"
-    "You are already wearing a badge.\r\n"
+    "You are already wearing an item on each ear.\r\n", //25
+    "You are already wearing something on your eyes.\r\n",
+    "You are already wearing a badge.\r\n",
   };
 
   /* first, make sure that the wear position is valid. */
