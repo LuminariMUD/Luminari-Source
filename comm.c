@@ -3189,7 +3189,7 @@ void update_msdp_room(struct char_data *ch) {
   /* MSDP */
   
   buf2[0] = '\0';
-  if (ch && && ch->desc) {
+  if (ch && ch->desc) {
     /* Location information */
     /*  Only update room stuff if they've changed room */
     if (IN_ROOM(ch) != NOWHERE &&
