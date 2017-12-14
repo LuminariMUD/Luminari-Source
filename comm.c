@@ -3272,7 +3272,7 @@ void update_msdp_room(struct char_data *ch) {
               MSDP_TABLE_CLOSE);
       
       strip_colors(buf2);
-      MSDPSetTable(d, eMSDP_ROOM, buf2);
+      MSDPSetTable(char->desc, eMSDP_ROOM, buf2);
     }
   }
 }
