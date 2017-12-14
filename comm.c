@@ -3193,7 +3193,7 @@ void update_msdp_room(struct char_data *ch) {
     /* Location information */
     /*  Only update room stuff if they've changed room */
     if (IN_ROOM(ch) != NOWHERE &&
-            GET_ROOM_VNUM(IN_ROOM(ch)) != ch->d->pProtocol->pVariables[eMSDP_ROOM_VNUM]->ValueInt) {
+            GET_ROOM_VNUM(IN_ROOM(ch)) != ch->desc->pProtocol->pVariables[eMSDP_ROOM_VNUM]->ValueInt) {
 
       /* Format for the room data is:
         * ROOM
