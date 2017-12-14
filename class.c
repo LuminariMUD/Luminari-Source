@@ -1576,7 +1576,26 @@ static int level_feats[][LEVEL_FEATS] = {
 #define NOOB_BOW           814
 #define NOOB_QUIVER        816
 #define NOOB_ARROW         815
+/* various general items (not gear) */
 #define NOOB_WIZ_NOTE      850
+#define NOOB_WIZ_SPELLBOOK      812
+/* various general gear */
+#define NOOB_LEATHER_SLEEVES 854
+#define NOOB_LEATHER_LEGGINGS 855
+#define NOOB_IRON_MACE 861
+#define NOOB_IRON_SHIELD 863
+#define NOOB_SCALE_MAIL 807
+#define NOOB_STEEL_SCIMITAR 862
+#define NOOB_WOOD_SHIELD 864
+#define NOOB_STUD_LEATHER 851
+#define NOOB_LONG_SWORD 808
+#define NOOB_CLOTH_ROBES 809
+#define NOOB_DAGGER 852
+#define NOOB_CLOTH_SLEEVES 865
+#define NOOB_CLOTH_PANTS 866
+/* dwarf racial */
+#define NOOB_DWARF_WARAXE 806
+/* drow racial */
 #define NOOB_DROW_XBOW     832
 #define NOOB_DROW_BOLT     831
 #define NOOB_DROW_POUCH    833
@@ -1633,13 +1652,11 @@ void newbieEquipment(struct char_data *ch) {
   /* race specific goodies */
   switch (GET_RACE(ch)) {
     case RACE_DWARF:
-      obj = read_object(806, VIRTUAL);
-      //GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj = read_object(NOOB_DWARF_WARAXE, VIRTUAL);
       obj_to_char(obj, ch); // dwarven waraxe
       break;
     case RACE_DROW:
       obj = read_object(NOOB_DROW_XBOW, VIRTUAL);
-      //GET_OBJ_SIZE(obj) = GET_SIZE(ch);
       obj_to_char(obj, ch); // drow hand xbow
       
       /* pouch and bolts for xbow */
@@ -1656,54 +1673,54 @@ void newbieEquipment(struct char_data *ch) {
     default:
       break;
   } /*  end of race specific gear */
-
   
   /* class specific gear */
   switch (GET_CLASS(ch)) {
     case CLASS_PALADIN:
       /*fallthrough*/
     case CLASS_CLERIC:
-      // holy symbol
-      obj = read_object(854, VIRTUAL);
+      // holy symbol, not implemented so took out
+      
+      obj = read_object(NOOB_LEATHER_SLEEVES, VIRTUAL);
       GET_OBJ_SIZE(obj) = GET_SIZE(ch);
       obj_to_char(obj, ch); // leather sleeves
 
-      obj = read_object(855, VIRTUAL);
+      obj = read_object(NOOB_LEATHER_LEGGINGS, VIRTUAL);
       GET_OBJ_SIZE(obj) = GET_SIZE(ch);
       obj_to_char(obj, ch); // leather leggings
 
-      obj = read_object(861, VIRTUAL);
-      //GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj = read_object(NOOB_IRON_MACE, VIRTUAL);
       obj_to_char(obj, ch); // slender iron mace
 
-      obj = read_object(863, VIRTUAL);
+      obj = read_object(NOOB_IRON_SHIELD, VIRTUAL);
       GET_OBJ_SIZE(obj) = GET_SIZE(ch);
       obj_to_char(obj, ch); // shield
 
-      obj = read_object(807, VIRTUAL);
+      obj = read_object(NOOB_SCALE_MAIL, VIRTUAL);
       GET_OBJ_SIZE(obj) = GET_SIZE(ch);
       obj_to_char(obj, ch); // scale mail
+      
       break;
       
     case CLASS_DRUID:
 
-      obj = read_object(854, VIRTUAL);
+      obj = read_object(NOOB_LEATHER_SLEEVES, VIRTUAL);
       GET_OBJ_SIZE(obj) = GET_SIZE(ch);
       obj_to_char(obj, ch); // leather sleeves
 
-      obj = read_object(855, VIRTUAL);
+      obj = read_object(NOOB_LEATHER_LEGGINGS, VIRTUAL);
       GET_OBJ_SIZE(obj) = GET_SIZE(ch);
       obj_to_char(obj, ch); // leather leggings
 
-      obj = read_object(862, VIRTUAL);
+      obj = read_object(NOOB_STEEL_SCIMITAR, VIRTUAL);
       GET_OBJ_SIZE(obj) = GET_SIZE(ch);
       obj_to_char(obj, ch); // steel scimitar
 
-      obj = read_object(864, VIRTUAL);
+      obj = read_object(NOOB_WOOD_SHIELD, VIRTUAL);
       GET_OBJ_SIZE(obj) = GET_SIZE(ch);
       obj_to_char(obj, ch); // shield (wooden))
 
-      obj = read_object(851, VIRTUAL);
+      obj = read_object(NOOB_STUD_LEATHER, VIRTUAL);
       GET_OBJ_SIZE(obj) = GET_SIZE(ch);
       obj_to_char(obj, ch); // studded leather
 
@@ -1711,36 +1728,35 @@ void newbieEquipment(struct char_data *ch) {
 
     case CLASS_BERSERKER:
     case CLASS_WARRIOR:
-      obj = read_object(807, VIRTUAL);
+      obj = read_object(NOOB_SCALE_MAIL, VIRTUAL);
       GET_OBJ_SIZE(obj) = GET_SIZE(ch);
       obj_to_char(obj, ch); // scale mail
       /*fallthrough!*/
     case CLASS_RANGER:
 
-      obj = read_object(851, VIRTUAL);
+      obj = read_object(NOOB_STUD_LEATHER, VIRTUAL);
       GET_OBJ_SIZE(obj) = GET_SIZE(ch);
       obj_to_char(obj, ch); // studded leather
       
-      obj = read_object(854, VIRTUAL);
+      obj = read_object(NOOB_LEATHER_SLEEVES, VIRTUAL);
       GET_OBJ_SIZE(obj) = GET_SIZE(ch);
       obj_to_char(obj, ch); // leather sleeves
 
-      obj = read_object(855, VIRTUAL);
+      obj = read_object(NOOB_LEATHER_LEGGINGS, VIRTUAL);
       GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-      obj_to_char(obj, ch); // leather pants
+      obj_to_char(obj, ch); // leather leggings
 
-      obj = read_object(808, VIRTUAL);
-      //GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-      obj_to_char(obj, ch); // bastard sword
+      obj = read_object(NOOB_LONG_SWORD, VIRTUAL);
+      obj_to_char(obj, ch); // long sword
         
-      obj = read_object(863, VIRTUAL);
+      obj = read_object(NOOB_IRON_SHIELD, VIRTUAL);
       GET_OBJ_SIZE(obj) = GET_SIZE(ch);
       obj_to_char(obj, ch); // shield
 
       break;
 
     case CLASS_MONK:
-      obj = read_object(809, VIRTUAL);
+      obj = read_object(NOOB_CLOTH_ROBES, VIRTUAL);
       GET_OBJ_SIZE(obj) = GET_SIZE(ch);
       obj_to_char(obj, ch); // cloth robes
 
@@ -1763,46 +1779,44 @@ void newbieEquipment(struct char_data *ch) {
       
       /*FALL THROUGH*/
     case CLASS_ROGUE:
-      obj = read_object(854, VIRTUAL);
+      obj = read_object(NOOB_LEATHER_SLEEVES, VIRTUAL);
       GET_OBJ_SIZE(obj) = GET_SIZE(ch);
       obj_to_char(obj, ch); // leather sleeves
 
-      obj = read_object(855, VIRTUAL);
+      obj = read_object(NOOB_LEATHER_LEGGINGS, VIRTUAL);
       GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-      obj_to_char(obj, ch); // leather pants
+      obj_to_char(obj, ch); // leather leggings
 
-      obj = read_object(851, VIRTUAL);
+      obj = read_object(NOOB_STUD_LEATHER, VIRTUAL);
       GET_OBJ_SIZE(obj) = GET_SIZE(ch);
       obj_to_char(obj, ch); // studded leather
 
-      obj = read_object(852, VIRTUAL);
-      //GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj = read_object(NOOB_DAGGER, VIRTUAL);
       obj_to_char(obj, ch); // dagger
 
-      obj = read_object(852, VIRTUAL);
-      //GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj = read_object(NOOB_DAGGER, VIRTUAL);
       obj_to_char(obj, ch); // dagger
 
       break;
 
     case CLASS_WIZARD:
       obj_to_char(read_object(NOOB_WIZ_NOTE, VIRTUAL), ch); //wizard note
-      obj_to_char(read_object(812, VIRTUAL), ch); //spellbook
+      obj_to_char(read_object(NOOB_WIZ_SPELLBOOK, VIRTUAL), ch); //spellbook
       /* switch fallthrough */
     case CLASS_SORCERER:
-      obj = read_object(865, VIRTUAL);
+      obj = read_object(NOOB_CLOTH_SLEEVES, VIRTUAL);
       GET_OBJ_SIZE(obj) = GET_SIZE(ch);
       obj_to_char(obj, ch); // cloth sleeves
 
-      obj = read_object(866, VIRTUAL);
+      obj = read_object(NOOB_CLOTH_PANTS, VIRTUAL);
       GET_OBJ_SIZE(obj) = GET_SIZE(ch);
       obj_to_char(obj, ch); // cloth pants
 
-      obj = read_object(852, VIRTUAL);
+      obj = read_object(NOOB_DAGGER, VIRTUAL);
       //GET_OBJ_SIZE(obj) = GET_SIZE(ch);
       obj_to_char(obj, ch); // dagger
 
-      obj = read_object(809, VIRTUAL);
+      obj = read_object(NOOB_CLOTH_ROBES, VIRTUAL);
       GET_OBJ_SIZE(obj) = GET_SIZE(ch);
       obj_to_char(obj, ch); // cloth robes
 
@@ -1817,8 +1831,42 @@ void newbieEquipment(struct char_data *ch) {
 #undef DRUM      
 #undef HORN      
 #undef HARP      
-#undef MANDOLIN  
-
+#undef MANDOLIN
+/**/
+#undef NUM_NOOB_ARROWS    
+#undef NUM_NOOB_DROW_BOLTS 
+#undef NOOB_TELEPORTER    
+#undef NOOB_TORCH         
+#undef NOOB_RATIONS       
+#undef NOOB_WATERSKIN     
+#undef NOOB_BP            
+#undef NOOB_CRAFTING_KIT  
+#undef NOOB_BOW           
+#undef NOOB_QUIVER        
+#undef NOOB_ARROW         
+/**/
+#undef NOOB_WIZ_NOTE      
+#undef NOOB_WIZ_SPELLBOOK      
+/**/
+#undef NOOB_LEATHER_SLEEVES 
+#undef NOOB_LEATHER_LEGGINGS 
+#undef NOOB_IRON_MACE 
+#undef NOOB_IRON_SHIELD 
+#undef NOOB_SCALE_MAIL 
+#undef NOOB_STEEL_SCIMITAR 
+#undef NOOB_WOOD_SHIELD 
+#undef NOOB_STUD_LEATHER 
+#undef NOOB_LONG_SWORD 
+#undef NOOB_CLOTH_ROBES 
+#undef NOOB_DAGGER 
+#undef NOOB_CLOTH_SLEEVES 
+#undef NOOB_CLOTH_PANTS 
+/**/
+#undef NOOB_DWARF_WARAXE 
+/**/
+#undef NOOB_DROW_XBOW     
+#undef NOOB_DROW_BOLT     
+#undef NOOB_DROW_POUCH    
 
 /* this is used to assign all the spells */
 void init_class(struct char_data *ch, int class, int level) {
