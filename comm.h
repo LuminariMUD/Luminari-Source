@@ -31,6 +31,7 @@ void send_to_group(struct char_data *ch, struct group_data *group, const char * 
     (printf, 3, 4)));
 void send_to_range(room_vnum start, room_vnum finish, const char *messg, ...)
     __attribute__ ((format (printf, 3, 4)));
+void update_msdp_room(struct char_data *ch);
 
 /* Act type settings and flags */
 #define TO_ROOM     1   /**< act() type: to everyone in room, except ch. */
