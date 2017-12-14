@@ -1540,7 +1540,8 @@ void assign_feats(void) {
     "bonus to hitroll/damage",
     "You add your cleric level / 4 to both your hitroll and damroll for "
           "5 rounds.  You can use this ability a number of times per day equal "
-          "to your Wisdom modifier.");
+          "to your Wisdom modifier.  Note: You need at least 4 levels in cleric "
+          "class to use this ability.");
   feato(FEAT_WEAPON_EXPERT, "weapon expert", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
     "+1 to attack rolls, can use all martial weapons",
     "This feat behaves like the martial weapon proficiency, granting you proficiency "
