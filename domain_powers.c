@@ -500,7 +500,7 @@ ACMD(do_battlerage) {
   /* bonus */
   bonus = CLASS_LEVEL(ch, CLASS_CLERIC) / 4;
   if (bonus <= 0) {
-    send_to_char(ch, "You are not powerful enough to battle rage!\r\n");
+    send_to_char(ch, "You are not powerful enough to battle rage! (minimum 4 levels in clerci class to use)\r\n");
     return;
   }
 
