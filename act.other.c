@@ -3616,7 +3616,7 @@ void update_msdp_inventory(struct char_data *ch) {
   /* Inventory */
   msdp_buffer[0] = '\0';
   if (ch && ch->desc) {
-    /* Equipment! */
+    /* --------- Comment out the following if you don't want to mix eq and worn ---------- */
     for (i = 0; i < NUM_WEARS; i++) {
       if (GET_EQ(ch, i)) {        
         if (CAN_SEE_OBJ(ch, GET_EQ(ch, i))) {
@@ -3628,26 +3628,29 @@ void update_msdp_inventory(struct char_data *ch) {
                        "%c",
                 (char)MSDP_VAL, 
                   (char)MSDP_TABLE_OPEN,               
-                  (char)MSDP_VAR, "LOCATION",           (char)MSDP_VAL, equipment_types[i],                  
-                  (char)MSDP_VAR, "SHORT_DESCRIPTION",  (char)MSDP_VAL, obj->short_description,                
+                  (char)MSDP_VAR, "LOCATION", (char)MSDP_VAL, equipment_types[i],                  
+                  (char)MSDP_VAR, "NAME",  (char)MSDP_VAL, obj->short_description,                
                  (char)MSDP_TABLE_CLOSE);
       strcat(msdp_buffer, buf);        
         }
       }
     }
+    /* ---------- End Worn Equipment ----------*/
 
     for (obj = ch->carrying; obj; obj = obj->next_content) {
-      char buf[4000]; // Buffer for building the inventory table for MSDP             
-      sprintf(buf, "%c%c"                   
-                   "%c%s%c%s"
-                   "%c%s%c%s"                   
-                   "%c",
-            (char)MSDP_VAL, 
-              (char)MSDP_TABLE_OPEN, 
-                (char)MSDP_VAR, "LOCATION",           (char)MSDP_VAL, "Inventory",                  
-                (char)MSDP_VAR, "SHORT_DESCRIPTION",  (char)MSDP_VAL, obj->short_description,                
-              (char)MSDP_TABLE_CLOSE);
-      strcat(msdp_buffer, buf);
+      if (CAN_SEE_OBJ(ch, obj)) {
+        char buf[4000]; // Buffer for building the inventory table for MSDP             
+        sprintf(buf, "%c%c"                   
+                    "%c%s%c%s"
+                    "%c%s%c%s"                   
+                    "%c",
+              (char)MSDP_VAL, 
+                (char)MSDP_TABLE_OPEN, 
+                  (char)MSDP_VAR, "LOCATION", (char)MSDP_VAL, "Inventory",                  
+                  (char)MSDP_VAR, "NAME", (char)MSDP_VAL, obj->short_description,                
+                (char)MSDP_TABLE_CLOSE);
+        strcat(msdp_buffer, buf);
+      }
     }    
     strip_colors(msdp_buffer);     
     MSDPSetArray(ch->desc, eMSDP_INVENTORY, msdp_buffer);    

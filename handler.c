@@ -1096,7 +1096,10 @@ void char_to_room(struct char_data *ch, room_rnum room) {
       act("$n has just realized $e has no visible means of support!",
               FALSE, ch, 0, 0, TO_ROOM);
     }
-
+  // Send new MSDP data.
+  update_msdp_room(ch);
+  f (ch->desc)
+    MSDPFlush(ch->desc, eMSDP_ROOM);
   }
 }
 

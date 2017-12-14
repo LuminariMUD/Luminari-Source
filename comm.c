@@ -3174,6 +3174,109 @@ static void handle_webster_file(void) {
 #define MODE_DISPLAY_RANGED   4 //Display damage info ranged
 
 /* KaVir's plugin*/
+void update_msdp_room(struct char_data *ch) {    
+  const char MsdpVar = (char) MSDP_VAR;
+  const char MsdpVal = (char) MSDP_VAL;
+
+  extern const char *dirs[];
+  extern const char *sector_types[];
+
+  int door;
+
+  char buf2[MAX_STRING_LENGTH];    
+  char room_exits[MAX_STRING_LENGTH];
+
+  /* MSDP */
+  
+  buf[0] = '\0';
+  if (ch && && ch->desc) {
+    /* Location information */
+    /*  Only update room stuff if they've changed room */
+    if (IN_ROOM(ch) != NOWHERE &&
+            GET_ROOM_VNUM(IN_ROOM(ch)) != d->pProtocol->pVariables[eMSDP_ROOM_VNUM]->ValueInt) {
+
+      /* Format for the room data is:
+        * ROOM
+        *   VNUM
+        *   NAME
+        *   AREA
+        *   COORDS
+        *     X
+        *     Y
+        *     Z
+        *   TERRAIN
+        *   EXITS
+        *     'n'
+        *       vnum for room to the north
+        *     's'
+        *       vnum for room to the south
+        *     etc.
+        **/
+      room_exits[0] = '\0';
+      for (door = 0; door < DIR_COUNT; door++) {
+        char buf3[MAX_STRING_LENGTH];
+
+        if (!EXIT(ch, door) || EXIT(ch, door)->to_room == NOWHERE)
+          continue;
+
+        sprintf(buf3, "%c%s%c%d%c", MsdpVar, dirs[door], MsdpVal, GET_ROOM_VNUM(EXIT(ch, door)->to_room), '\0');
+        //          send_to_char(ch, "DEBUG: %s\r\n", buf3);
+        strcat(room_exits, buf3);
+      }
+
+      //        send_to_char(ch, "DEBUG: %s\r\n", room_exits);
+
+      /* Build the ROOM table.  */
+      sprintf(buf2, "%cVNUM"
+                      "%c%d"
+                    "%cNAME"
+                      "%c%s"
+                    "%cAREA"
+                      "%c%s"
+                    "%cENVIRONMENT"
+                      "%c%s"
+                    "%cCOORDS"
+                      "%c%c"
+                        "%cX"
+                        "%c%d"
+                        "%cY"
+                        "%c%d"
+                        "%cZ"
+                        "%c%d%c"
+                    "%cTERRAIN"
+                    "%c%s"
+                    "%cEXITS"
+                    "%c%c%s%c",
+              MsdpVar, MsdpVal,
+              GET_ROOM_VNUM(IN_ROOM(ch)),
+              MsdpVar, MsdpVal,
+              world[IN_ROOM(ch)].name,
+              MsdpVar, MsdpVal,
+              zone_table[GET_ROOM_ZONE(IN_ROOM(ch))].name,
+              MsdpVar, MsdpVal,
+              (IS_WILDERNESS_VNUM(GET_ROOM_VNUM(IN_ROOM(ch))) ? "Wilderness" : "Room"),
+              MsdpVar, MsdpVal,                
+              MSDP_TABLE_OPEN,
+              MsdpVar, MsdpVal,
+              0,
+              MsdpVar, MsdpVal,
+              0,
+              MsdpVar, MsdpVal,
+              0,
+              MSDP_TABLE_CLOSE,
+              MsdpVar, MsdpVal,
+              sector_types[world[IN_ROOM(ch)].sector_type],
+              MsdpVar, MsdpVal,
+              MSDP_TABLE_OPEN,
+              room_exits,
+              MSDP_TABLE_CLOSE);
+      
+      strip_colors(buf2);
+      MSDPSetTable(d, eMSDP_ROOM, buf2);
+    }
+  }
+}
+
 static void msdp_update(void) {
   const char MsdpVar = (char) MSDP_VAR;
   const char MsdpVal = (char) MSDP_VAL;
@@ -3227,6 +3330,9 @@ static void msdp_update(void) {
 
       /* Inventory */
       update_msdp_inventory(ch);
+
+      /* Room */
+      update_msdp_room(ch);
       
       /* gotta adjust compute_hit_damage() so it doesn't send messages randomly */
       /*
@@ -3281,36 +3387,6 @@ static void msdp_update(void) {
           strcat(room_exits, buf3);
         }
 
-        //        send_to_char(ch, "DEBUG: %s\r\n", room_exits);
-
-        /* Build the ROOM table.  */
-        sprintf(buf2, "%cVNUM%c%d%cNAME%c%s%cAREA%c%s%cENVIRONMENT%c%s%cCOORDS%c%c%cX%c%d%cY%c%d%cZ%c%d%c%cTERRAIN%c%s%cEXITS%c%c%s%c",
-                MsdpVar, MsdpVal,
-                GET_ROOM_VNUM(IN_ROOM(ch)),
-                MsdpVar, MsdpVal,
-                world[IN_ROOM(ch)].name,
-                MsdpVar, MsdpVal,
-                zone_table[GET_ROOM_ZONE(IN_ROOM(ch))].name,
-                MsdpVar, MsdpVal,
-                (IS_WILDERNESS_VNUM(GET_ROOM_VNUM(IN_ROOM(ch))) ? "Wilderness" : "Room"),
-                MsdpVar, MsdpVal,                
-                MSDP_TABLE_OPEN,
-                MsdpVar, MsdpVal,
-                0,
-                MsdpVar, MsdpVal,
-                0,
-                MsdpVar, MsdpVal,
-                0,
-                MSDP_TABLE_CLOSE,
-                MsdpVar, MsdpVal,
-                sector_types[world[IN_ROOM(ch)].sector_type],
-                MsdpVar, MsdpVal,
-                MSDP_TABLE_OPEN,
-                room_exits,
-                MSDP_TABLE_CLOSE);
-       
-        strip_colors(buf2);
-        
         // Sectors
         //ector_buf, "%c", MSDP_TABLE_OPEN); 
         //strcat(sectors, sector_buf);
@@ -3331,8 +3407,7 @@ static void msdp_update(void) {
 
         MSDPSetString(d, eMSDP_ROOM_NAME, world[IN_ROOM(ch)].name);
         MSDPSetTable(d, eMSDP_ROOM_EXITS, room_exits);
-        MSDPSetNumber(d, eMSDP_ROOM_VNUM, GET_ROOM_VNUM(IN_ROOM(ch)));
-        MSDPSetTable(d, eMSDP_ROOM, buf2);
+        MSDPSetNumber(d, eMSDP_ROOM_VNUM, GET_ROOM_VNUM(IN_ROOM(ch)));        
       } /*end location info*/
 
       MSDPSetNumber(d, eMSDP_MANA, GET_MANA(ch));
