@@ -1098,7 +1098,7 @@ void char_to_room(struct char_data *ch, room_rnum room) {
     }
   // Send new MSDP data.
   update_msdp_room(ch);
-  f (ch->desc)
+  if (ch->desc)
     MSDPFlush(ch->desc, eMSDP_ROOM);
   }
 }
