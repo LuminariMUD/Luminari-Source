@@ -1463,15 +1463,18 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k) {
   send_to_char(ch, "\tC");
   draw_line(ch, 80, '-', '-');
   send_to_char(ch, "\tn");
-  send_to_char(ch, "\tDType 'affects' to see your affects and conditions.\tn\r\n");
-  send_to_char(ch, "\tDType 'resistances' to see your resistances and damage reduction.\tn\r\n");
-  send_to_char(ch, "\tDType 'abilities' to see your class and innate abilities.\tn\r\n");
+  
+  /* leads to other related commands */
+  if (ch == k) {
+    send_to_char(ch, "\tDType 'affects' to see your affects and conditions.\tn\r\n");
+    send_to_char(ch, "\tDType 'resistances' to see your resistances and damage reduction.\tn\r\n");
+    send_to_char(ch, "\tDType 'abilities' to see your class and innate abilities.\tn\r\n");
+  }
 }
 
 void perform_resistances(struct char_data *ch, struct char_data *k) {
   int i = 0;
   //char buf[MAX_STRING_LENGTH] = {'\0'};
-
 
   send_to_char(ch, "\tC");
   text_line(ch, "\tYDamage Type Resistance / Vulnerability\tC", 80, '-', '-');
@@ -1546,9 +1549,13 @@ void perform_resistances(struct char_data *ch, struct char_data *k) {
   send_to_char(ch, "\tC");
   draw_line(ch, 80, '-', '-');
   send_to_char(ch, "\tn");
-  send_to_char(ch, "\tDType 'affects' to see your affects and conditions.\tn\r\n");
-  send_to_char(ch, "\tDType 'cooldowns' to see your cooldowns.\tn\r\n");
-  send_to_char(ch, "\tDType 'abilities' to see your class and innate abilities.\tn\r\n");
+  
+  /* leads to other related commands */
+  if (ch == k) {
+    send_to_char(ch, "\tDType 'affects' to see your affects and conditions.\tn\r\n");
+    send_to_char(ch, "\tDType 'cooldowns' to see your cooldowns.\tn\r\n");
+    send_to_char(ch, "\tDType 'abilities' to see your class and innate abilities.\tn\r\n");
+  }
 }
 
 void perform_affects(struct char_data *ch, struct char_data *k) {
@@ -1671,9 +1678,13 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
   send_to_char(ch, "\tC");
   draw_line(ch, 80, '-', '-');
   send_to_char(ch, "\tn");
-  send_to_char(ch, "\tDType 'cooldowns' to see your cooldowns.\tn\r\n");
-  send_to_char(ch, "\tDType 'resistances' to see your resistances and damage reduction.\tn\r\n");
-  send_to_char(ch, "\tDType 'abilities' to see your class and innate abilities.\tn\r\n");
+  
+  /* leads to other commands */
+  if (ch == k) {
+    send_to_char(ch, "\tDType 'cooldowns' to see your cooldowns.\tn\r\n");
+    send_to_char(ch, "\tDType 'resistances' to see your resistances and damage reduction.\tn\r\n");
+    send_to_char(ch, "\tDType 'abilities' to see your class and innate abilities.\tn\r\n");
+  }
 }
 
 void free_history(struct char_data *ch, int type) {
@@ -1943,6 +1954,7 @@ ACMD(do_gold) {
   else
     send_to_char(ch, "You have %d gold coins.\r\n", GET_GOLD(ch));
 }
+
 /* Name: do_abilities
  * Author: Jamie Mclaughlin (Ornir)
  * Desc: This procedure displays the abilities of the character, both racial and
@@ -1959,7 +1971,7 @@ ACMD(do_gold) {
  *       Ability name  (Ability Type)(description of static bonus)
  *       -----------------------------------------------------------------------
  */
-ACMD(do_abilities) {
+void perform_abilities(struct char_data *ch, struct char_data *k) {
   char buf[MAX_STRING_LENGTH];
   int line_length = 80;
   int i = 0, remaining = 0, total = 0;
@@ -1968,11 +1980,12 @@ ACMD(do_abilities) {
   send_to_char(ch, "\tC");
   text_line(ch, "\tYAbilities\tC", line_length, '-', '-');
   send_to_char(ch, "\tn");
+  
   for (i = 0; i < NUM_FEATS; i++) {
-    if (has_feat(ch, i) && is_daily_feat(i)) {
+    if (has_feat(k, i) && is_daily_feat(i)) {
       sprintf(buf, feat_types[feat_list[i].feat_type]);
-      remaining = daily_uses_remaining(ch, i);
-      total = get_daily_uses(ch, i);
+      remaining = daily_uses_remaining(k, i);
+      total = get_daily_uses(k, i);
       send_to_char(ch,
               "%-20s \tc%-14s\tn %s%2d\tn/%-2d uses remaining\r\n",
               feat_list[i].name,
@@ -1984,13 +1997,22 @@ ACMD(do_abilities) {
     }
     buf[0] = '\0';
   }
+  
   /* Close the output, reset the colors to prevent bleed. */
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
   send_to_char(ch, "\tn");
-  send_to_char(ch, "\tDType 'cooldowns' to see your cooldowns.\tn\r\n");
-  send_to_char(ch, "\tDType 'resistances' to see your resistances and damage reduction.\tn\r\n");
-  send_to_char(ch, "\tDType 'affects' to see your affects and conditions.\tn\r\n");
+  
+  /* leads to related commands */
+  if (ch == k) {
+    send_to_char(ch, "\tDType 'cooldowns' to see your cooldowns.\tn\r\n");
+    send_to_char(ch, "\tDType 'resistances' to see your resistances and damage reduction.\tn\r\n");
+    send_to_char(ch, "\tDType 'affects' to see your affects and conditions.\tn\r\n");
+  }
+}
+ACMD(do_abilities) {
+  /* moved this into a function so we can share it with do_stat() */
+  perform_abilities(ch, ch);
 }
 
 ACMD(do_innates) {

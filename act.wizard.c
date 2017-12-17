@@ -655,6 +655,9 @@ static void do_featstat_character(struct char_data *ch, struct char_data *k) {
 
 static void do_affstat_character(struct char_data *ch, struct char_data *k) {
   perform_affects(ch, k);
+  perform_cooldowns(ch, k);
+  perform_resistances(ch, k);
+  perform_abilities(ch, k);
 }
 
 static void do_stat_scriptvar(struct char_data *ch, struct char_data *k) {
@@ -723,11 +726,10 @@ static void do_stat_character(struct char_data *ch, struct char_data *k) {
 
   sprinttype(GET_SEX(k), genders, buf, sizeof (buf));
   send_to_char(ch,
-          "\tC%s %s '\tn%s\tC'  IDNum: [\tn%5ld\tC], In room [\tn%5d\tC], Loadroom : [\tn%5d\tC]\tn\r\n",
+          "\tC%s %s '\tn%s\tC'  IDNum: [\tn%5ld\tC], Loc [\tn%5d\tC/W(\tn%d\tC, \tn%d\tC)], Loadroom : [\tn%5d\tC]\tn\r\n",
           buf, (!IS_NPC(k) ? "PC" : (!IS_MOB(k) ? "NPC" : "MOB")),
           GET_NAME(k), IS_NPC(k) ? GET_ID(k) : GET_IDNUM(k),
-          GET_ROOM_VNUM(IN_ROOM(k)), IS_NPC(k) ? NOWHERE : GET_LOADROOM(k));
-  send_to_char(ch, "\tCCoordinate Location (Wilderness only): (\tn%d\tC, \tn%d\tC)\r\n", k->coords[0], k->coords[1]);
+          GET_ROOM_VNUM(IN_ROOM(k)), k->coords[0], k->coords[1], IS_NPC(k) ? NOWHERE : GET_LOADROOM(k));
   if (IS_MOB(k)) {
     send_to_char(ch, "\tCKeyword:\tn %s\tC, VNum: [\tn%5d\tC], RNum: [\tn%5d\tC]\r\n",
             k->player.name, GET_MOB_VNUM(k), GET_MOB_RNUM(k));
@@ -770,16 +772,16 @@ static void do_stat_character(struct char_data *ch, struct char_data *k) {
           get_align_by_num(GET_ALIGNMENT(k)), GET_ALIGNMENT(k));
 
   if (!IS_NPC(k)) {
-    send_to_char(ch, "\tCClass Array:\tn  ");
+    send_to_char(ch, "\tCClass Array:\tn ");
     for (i = 0; i < MAX_CLASSES; i++) {
       if (CLASS_LEVEL(k, i)) {
         if (counter)
           send_to_char(ch, " / ");
-        send_to_char(ch, "%d %s", CLASS_LEVEL(k, i), CLSLIST_ABBRV(i));
+        send_to_char(ch, "%d%s", CLASS_LEVEL(k, i), CLSLIST_ABBRV(i));
         counter++;
       }
     }
-    send_to_char(ch, "Pracs(U): %d, Trains: %d\r\n", GET_PRACTICES(k),
+    send_to_char(ch, " Pracs(U): %d, Trains: %d\r\n", GET_PRACTICES(k),
             GET_TRAINS(k) );
   }
 
