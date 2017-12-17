@@ -838,8 +838,8 @@ static void script_stat(char_data *ch, struct script_data *sc)
   char namebuf[512];
   char buf1[MAX_STRING_LENGTH];
 
-  send_to_char(ch, "\tCGlobal Variables:\tn %s\r\n", sc->global_vars ? "" : "None");
-  send_to_char(ch, "\tCGlobal context:\tn %ld\r\n", sc->context);
+  send_to_char(ch, "\tCScript-Stat Global Variables:\tn %s\r\n", sc->global_vars ? "" : "None");
+  send_to_char(ch, "\tCScript-Stat Global context:\tn %ld\r\n", sc->context);
 
   for (tv = sc->global_vars; tv; tv = tv->next) {
     snprintf(namebuf, sizeof(namebuf), "%s:%ld", tv->name, tv->context);
