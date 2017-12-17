@@ -46,6 +46,7 @@
 #include "assign_wpn_armor.h"
 #include "item.h"
 #include "feats.h"
+#include "domain_schools.h"
 
 /* local utility functions with file scope */
 static int perform_set(struct char_data *ch, struct char_data *vict, int mode, char *val_arg);
@@ -710,6 +711,7 @@ static void do_stat_character(struct char_data *ch, struct char_data *k) {
   struct follow_type *fol;
   clan_rnum c_n;
   int c_r;
+  int line_length = 80;
 
   // get some initial info beforehand
   if (wielded && GET_OBJ_TYPE(wielded) == ITEM_WEAPON)
