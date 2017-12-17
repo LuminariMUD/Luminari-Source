@@ -676,14 +676,16 @@ static void do_stat_scriptvar(struct char_data *ch, struct char_data *k) {
       }
       mem = mem->next;
     }
+    send_to_char(ch, "\r\n");
   }
+  
   if (!(IS_NPC(k))) {
     /* this is a PC, display their global variables */
     if (k->script && k->script->global_vars) {
       struct trig_var_data *tv;
       char uname[MAX_INPUT_LENGTH];
 
-      send_to_char(ch, "\tCGlobal Variables:\tn\r\n");
+      send_to_char(ch, "\tCPC Global Variables:\tn\r\n");
 
       /* currently, variable context for players is always 0, so it is not
        * displayed here. in the future, this might change */
