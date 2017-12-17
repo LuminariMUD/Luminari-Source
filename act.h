@@ -61,7 +61,10 @@ ACMD(do_write);
 
 // char creation help files
 void perform_help(struct descriptor_data *d, char *argument);
+
+/* character info */
 void perform_affects(struct char_data *ch, struct char_data *k);
+void perform_abilities(struct char_data *ch, struct char_data *k);
 
 // displaying more info -zusuk
 void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int mxp_type);
