@@ -46,7 +46,7 @@
 #include "assign_wpn_armor.h"
 #include "item.h"
 #include "feats.h"
-#include "domain_schools.h"
+#include "domains_schools.h"
 
 /* local utility functions with file scope */
 static int perform_set(struct char_data *ch, struct char_data *vict, int mode, char *val_arg);
