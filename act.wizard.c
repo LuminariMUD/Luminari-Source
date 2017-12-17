@@ -849,6 +849,20 @@ static void do_stat_character(struct char_data *ch, struct char_data *k) {
 
   send_to_char(ch,
           "\tC=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\tn\r\n");
+  
+  if (CLASS_LEVEL(k, CLASS_CLERIC)) {
+    send_to_char(ch, "\tc1st Domain: \tn%s\tc, 2nd Domain: \tn%s\tc.\r\n",
+                 domain_list[GET_1ST_DOMAIN(k)].name,
+                 domain_list[GET_2ND_DOMAIN(k)].name);
+    draw_line(ch, line_length, '-', '-');
+  }
+
+  if (CLASS_LEVEL(k, CLASS_WIZARD)) {
+    send_to_char(ch, "\tcSpecialty School: \tn%s\tc, Restricted: \tn%s\tc.\r\n",
+                 school_names[GET_SPECIALTY_SCHOOL(k)],
+                 school_names[restricted_school_reference[GET_SPECIALTY_SCHOOL(k)]]);
+    draw_line(ch, line_length, '-', '-');
+  }
 
   sprinttype(GET_POS(k), position_types, buf, sizeof (buf));
   send_to_char(ch,
