@@ -52,6 +52,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
 static void perform_immort_invis(struct char_data *ch, int level);
 static void list_zone_commands_room(struct char_data *ch, room_vnum rvnum);
 static void do_stat_room(struct char_data *ch, struct room_data *rm);
+static void do_stat_scriptvar(struct char_data *ch, struct char_data *k);
 static void do_stat_character(struct char_data *ch, struct char_data *k);
 static void stop_snooping(struct char_data *ch);
 static size_t print_zone_to_buf(char *bufptr, size_t left, zone_rnum zone, int listall);
@@ -1050,6 +1051,17 @@ ACMD(do_stat) {
     } else {
       if ((victim = get_player_vis(ch, buf2, NULL, FIND_CHAR_WORLD)) != NULL)
         do_stat_character(ch, victim);
+      else
+        send_to_char(ch, "No such player around.\r\n");
+    }
+    
+  /* stat scripts / variables */    
+  } else if (is_abbrev(buf1, "scriptvar")) {
+    if (!*buf2) {
+      send_to_char(ch, "Scripts / Variables on which mobile / player?\r\n");
+    } else {
+      if ((victim = get_char_vis(ch, buf2, NULL, FIND_CHAR_WORLD)) != NULL)
+        do_stat_scriptvar(ch, victim);
       else
         send_to_char(ch, "No such player around.\r\n");
     }
