@@ -1490,23 +1490,23 @@ void perform_resistances(struct char_data *ch, struct char_data *k) {
   send_to_char(ch, "\tC");
   text_line(ch, "\tYSpell Resistance\tC", 80, '-', '-');
   send_to_char(ch, "\tn");
-  send_to_char(ch, "Spell Resist: %d\r\n", compute_spell_res(NULL, ch, 0));
+  send_to_char(ch, "Spell Resist: %d\r\n", compute_spell_res(NULL, k, 0));
 
   send_to_char(ch, "\tC");
   text_line(ch, "\tYConcealment\tC", 80, '-', '-');
   send_to_char(ch, "\tn");
-  send_to_char(ch, "Conceal Percent: %d\r\n", compute_concealment(ch));
+  send_to_char(ch, "Conceal Percent: %d\r\n", compute_concealment(k));
 
   send_to_char(ch, "\tC");
   text_line(ch, "\tYDamage Reduction\tC", 80, '-', '-');
   send_to_char(ch, "\tn");
 
   /* old damage reduction is still used */
-  send_to_char(ch, "General damage reduction: %d\r\n", compute_damage_reduction(ch, 0));
+  send_to_char(ch, "General damage reduction: %d\r\n", compute_damage_reduction(k, 0));
 
   /* new DR */
   struct damage_reduction_type *dr;
-  dr = GET_DR(ch);
+  dr = GET_DR(k);
   while (dr != NULL) {
     if (dr->spell != SPELL_RESERVED_DBC) {
       /* This is from a spell */
