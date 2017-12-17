@@ -501,6 +501,9 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
   /* base AC */  
   armorclass = 10;  
   
+  /* REMINDER:  We are still working with a 100 AC stock system with this
+   beginning chunk of code */
+  
   /* philosophical question, what is GET_AC()?
      So unless I am missing something, GET_AC() will include ALL your worn
      gear and all the bonuses you have via spells (affections structures).
@@ -524,16 +527,26 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
       temp -= affections->modifier;
     }    
   }
+  
+  /* now that affections have been extracted from AC, all that is left is
+     armoring (helm, body, leggings, sleeves) and shield */
+  
+  /* under certain circumstances, like using your shield to attack, you will
+     lose your AC bonus from your shield while recovering from that attack */  
+  if (GET_EQ(ch, WEAR_SHIELD)) {
+    temp -= apply_ac(ch, WEAR_SHIELD); /*factor 10*/
+    /* recovering from shield use in attack, don't add shield bonus! */
+    if (char_has_mud_event(ch, eSHIELD_RECOVERY)) {      
+    } else { /* okay to add shield bonus to shield, remember factor 10 */
+      bonuses[BONUS_TYPE_SHIELD] += (apply_ac(ch, WEAR_SHIELD) / 10);    
+    }
+  }
 
-  /* stock base armor class = 100, pathfinder = 10
-     we already set up our base pathfinder armor-class above, so we remove
-     the 100 AC, anything left over will be our equipment (hopefully) */
+  /* that should be it, just base armoring should be left, assign away! */
   eq_armoring = ((temp - 100) / 10);
 
-  if (char_has_mud_event(ch, eSHIELD_RECOVERY)) {
-    if (GET_EQ(ch, WEAR_SHIELD))
-      eq_armoring -= (apply_ac(ch, WEAR_SHIELD) / 10);
-  }
+  /* END REMINDER: From now on, we should be finished working with the stock
+     100 AC system of stock code */
 
   /* here is our TODO list:
      1)  handling armor-affecting spells?
@@ -560,8 +573,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
   }
   /**/
 
-  /* bonus type armor (equipment) */
-  
+  /* bonus type armor */  
   /* This is our equipped gear */
   if (!IS_WILDSHAPED(ch) || IS_MORPHED(ch))
     bonuses[BONUS_TYPE_ARMOR] += eq_armoring;
