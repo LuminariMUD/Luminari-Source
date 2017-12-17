@@ -656,6 +656,47 @@ static void do_affstat_character(struct char_data *ch, struct char_data *k) {
   perform_affects(ch, k);
 }
 
+static void do_stat_scriptvar(struct char_data *ch, struct char_data *k) {
+  
+  /* check mobiles for a script */
+  do_sstat_character(ch, k);
+  if (SCRIPT_MEM(k)) {
+    struct script_memory *mem = SCRIPT_MEM(k);
+    send_to_char(ch, "\tCScript memory:\r\n  Remember             Command\r\n\tn");
+    while (mem) {
+      struct char_data *mc = find_char(mem->id);
+      if (!mc)
+        send_to_char(ch, "  \tC** Corrupted!\tn\r\n");
+      else {
+        if (mem->cmd)
+          send_to_char(ch, "  %-20.20s%s\r\n", GET_NAME(mc), mem->cmd);
+        else
+          send_to_char(ch, "  %-20.20s <default>\r\n", GET_NAME(mc));
+      }
+      mem = mem->next;
+    }
+  }
+  if (!(IS_NPC(k))) {
+    /* this is a PC, display their global variables */
+    if (k->script && k->script->global_vars) {
+      struct trig_var_data *tv;
+      char uname[MAX_INPUT_LENGTH];
+
+      send_to_char(ch, "\tCGlobal Variables:\tn\r\n");
+
+      /* currently, variable context for players is always 0, so it is not
+       * displayed here. in the future, this might change */
+      for (tv = k->script->global_vars; tv; tv = tv->next) {
+        if (*(tv->value) == UID_CHAR) {
+          find_uid_name(tv->value, uname, sizeof (uname));
+          send_to_char(ch, "    %10s:  \tC[UID]:\tn %s\r\n", tv->name, uname);
+        } else
+          send_to_char(ch, "    %10s:  %s\r\n", tv->name, tv->value);
+      }
+    }
+  }  
+}
+
 static void do_stat_character(struct char_data *ch, struct char_data *k) {
   char buf[MAX_STRING_LENGTH];
   int i, i2, column, found = FALSE, w_type, counter = 0;
@@ -1001,9 +1042,6 @@ static void do_stat_character(struct char_data *ch, struct char_data *k) {
     }
   }
 
-  send_to_char(ch,
-          "\tC=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\tn\r\n");
-
 }
 
 ACMD(do_stat) {
@@ -1055,7 +1093,7 @@ ACMD(do_stat) {
     }
     
   /* stat feat */        
-  } else if (is_abbrev(buf1, "feat")) {
+  } else if (is_abbrev(buf1, "feats")) {
     if (!*buf2) {
       send_to_char(ch, "Feats on which player/mobile?\r\n");
     } else {
