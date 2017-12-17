@@ -778,7 +778,7 @@ static void do_stat_character(struct char_data *ch, struct char_data *k) {
     for (i = 0; i < MAX_CLASSES; i++) {
       if (CLASS_LEVEL(k, i)) {
         if (counter)
-          send_to_char(ch, " / ");
+          send_to_char(ch, "/");
         send_to_char(ch, "%d%s", CLASS_LEVEL(k, i), CLSLIST_ABBRV(i));
         counter++;
       }
