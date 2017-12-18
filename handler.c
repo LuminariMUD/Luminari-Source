@@ -710,8 +710,8 @@ void update_msdp_affects(struct char_data *ch) {
     char buf2[4000];
     sprintf(buf2, "%c"
                   "%c%s%c"
-                   "%c",
-              (char)MSDP_TABLE_OPEN
+                  "%c",
+              (char)MSDP_TABLE_OPEN,
               (char)MSDP_VAR, "AFFECTED_BY", (char)MSDP_VAL, 
               (char)MSDP_ARRAY_OPEN);
         strcat(msdp_buffer, buf2);   
@@ -733,7 +733,7 @@ void update_msdp_affects(struct char_data *ch) {
     sprintf(buf2, "%c"
                   "%c%s%c"
                    "%c",
-              (char)MSDP_ARRAY_CLOSE
+              (char)MSDP_ARRAY_CLOSE,
               (char)MSDP_VAR, "SPELL-LIKE_AFFECTS", (char)MSDP_VAL, 
               (char)MSDP_ARRAY_OPEN);
     strcat(msdp_buffer, buf2);   
@@ -760,7 +760,7 @@ void update_msdp_affects(struct char_data *ch) {
     }
     sprintf(buf2, "%c"
                   "%c",
-              (char)MSDP_ARRAY_CLOSE
+              (char)MSDP_ARRAY_CLOSE,
               (char)MSDP_TABLE_CLOSE);
     strcat(msdp_buffer, buf2);
 
