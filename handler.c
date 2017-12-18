@@ -707,7 +707,7 @@ void update_msdp_affects(struct char_data *ch) {
   msdp_buffer[0] = '\0';
   if (ch && ch->desc) { 
     /* Open up the AFFECTS table */
-    char buf2[4000]
+    char buf2[4000];
     sprintf(buf2, "%c"
                   "%c%s%c"
                    "%c",
