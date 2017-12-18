@@ -705,18 +705,38 @@ void update_msdp_affects(struct char_data *ch) {
   /* MSDP */
   
   msdp_buffer[0] = '\0';
-  if (ch && ch->desc) {
-    // Here we need to collect all of the 'apply_flags', they should really go in the same 
-      // place as the spell-like affects.
-      /*
-      for (i = 0; i < NUM_AFF_FLAGS; i++) {
-        if (IS_SET_AR(AFF_FLAGS(ch), i)) {
-          send_to_char(ch, "",
-                       CCNRM(ch, C_NRM), affected_bits[i], CCNRM(ch, C_NRM),
-                       CCNRM(ch, C_NRM), affected_bit_descs[i], CCNRM(ch, C_NRM));
-        }
+  if (ch && ch->desc) { 
+    /* Open up the AFFECTS table */
+    char buf2[4000]
+    sprintf(buf2, "%c"
+                  "%c%s%c"
+                   "%c",
+              (char)MSDP_TABLE_OPEN
+              (char)MSDP_VAR, "AFFECTED_BY", (char)MSDP_VAL, 
+              (char)MSDP_ARRAY_OPEN);
+        strcat(msdp_buffer, buf2);   
+    for (i = 0; i < NUM_AFF_FLAGS; i++) {
+      if (IS_SET_AR(AFF_FLAGS(ch), i)) {
+        char buf[4000];
+        sprintf(buf, "%c%c"
+                   "%c%s%c%s"
+                   "%c%s%c%s"                   
+                         "%c",
+            (char)MSDP_VAL, 
+              (char)MSDP_TABLE_OPEN,
+                (char)MSDP_VAR, "NAME", (char)MSDP_VAL, affected_bits[i],
+                (char)MSDP_VAR, "DESC", (char)MSDP_VAL,affected_bit_descs[i],                
+              (char)MSDP_TABLE_CLOSE);
+        strcat(msdp_buffer, buf);      
       }
-    */
+    }
+    sprintf(buf2, "%c"
+                  "%c%s%c"
+                   "%c",
+              (char)MSDP_ARRAY_CLOSE
+              (char)MSDP_VAR, "SPELL-LIKE_AFFECTS", (char)MSDP_VAL, 
+              (char)MSDP_ARRAY_OPEN);
+    strcat(msdp_buffer, buf2);   
     for (af = ch->affected; af; af = next) {
       char buf[4000]; // Buffer for building the affect table for MSDP    
       next = af->next;
@@ -738,8 +758,13 @@ void update_msdp_affects(struct char_data *ch) {
       strcat(msdp_buffer, buf);
       first = FALSE;
     }
-    
-    MSDPSetArray(ch->desc, eMSDP_AFFECTS, msdp_buffer);
+    sprintf(buf2, "%c"
+                  "%c",
+              (char)MSDP_ARRAY_CLOSE
+              (char)MSDP_TABLE_CLOSE);
+    strcat(msdp_buffer, buf2);
+
+    MSDPSetString(ch->desc, eMSDP_AFFECTS, msdp_buffer);
     MSDPFlush(ch->desc, eMSDP_AFFECTS);
   }
 }
