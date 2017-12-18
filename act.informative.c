@@ -474,6 +474,9 @@ static void diag_char_to_char(struct char_data *i, struct char_data *ch) {
   }
 
   /* some spell and spell-like affects that we want to show up */
+  /* Some sort of automated system is needed here, as part of the affect system
+     to facilitate these kinds of messages so that we don't have to edit so many 
+     things when we add an affect. - JTM 15/12/17 */ 
   if (affected_by_spell(i, SPELL_BARKSKIN))
     act("$s skin appears to be made of bark.", FALSE, i, 0, ch, TO_VICT);
   if (affected_by_spell(i, SPELL_STONESKIN))

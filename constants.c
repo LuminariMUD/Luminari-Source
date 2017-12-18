@@ -1271,7 +1271,7 @@ const char *affected_bits[NUM_AFF_FLAGS + 1] =
   "Counterspell",
   "Defensive-Casting", //90
   "Whirlwind-Attack",
-  "Charging!",
+  "Charging",
   "WildShape",
   "Feinted",
   "Pinned",
@@ -1281,7 +1281,7 @@ const char *affected_bits[NUM_AFF_FLAGS + 1] =
   "Acrobatic",
   "Blinking",
   "Aware",
-  "Crippled by Critical",
+  "Crippled-by-Critical",
   "\n"
 };
 
