@@ -702,7 +702,7 @@ void update_msdp_affects(struct char_data *ch) {
   struct affected_type *af, *next;
   bool first = TRUE;
   int i = 0;
-  
+
   /* MSDP */
   
   msdp_buffer[0] = '\0';
@@ -735,7 +735,7 @@ void update_msdp_affects(struct char_data *ch) {
                   "%c%s%c"
                    "%c",
               (char)MSDP_ARRAY_CLOSE,
-              (char)MSDP_VAR, "SPELL-LIKE_AFFECTS", (char)MSDP_VAL, 
+              (char)MSDP_VAR, "SPELL_LIKE_AFFECTS", (char)MSDP_VAL, 
               (char)MSDP_ARRAY_OPEN);
     strcat(msdp_buffer, buf2);   
     for (af = ch->affected; af; af = next) {
