@@ -3291,7 +3291,6 @@ static void msdp_update(void) {
 
   for (d = descriptor_list; d; d = d->next) {
     char buf[MAX_STRING_LENGTH];
-    //char buf2[MAX_STRING_LENGTH];
     char sectors[MAX_STRING_LENGTH];
     char sector_buf[80];
     
