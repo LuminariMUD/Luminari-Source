@@ -1943,12 +1943,12 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
                    !rand_number(0, 2)) {
           return_value = SKILL_MESSAGE_MISS_GLANCE;
           send_to_char(ch, CCYEL(ch, C_CMP));
-          act("Your attack glances off $N's $p!", FALSE, ch, armor, vict, TO_CHAR);
+          act("Your attack glances off $p, protecting $N!", FALSE, ch, armor, vict, TO_CHAR);
           send_to_char(ch, CCNRM(ch, C_CMP));
           send_to_char(vict, CCRED(vict, C_CMP));
-          act("$n's attack glances off your $p!", FALSE, ch, armor, vict, TO_VICT | TO_SLEEP);
+          act("$n's attack glances off $p!", FALSE, ch, armor, vict, TO_VICT | TO_SLEEP);
           send_to_char(vict, CCNRM(vict, C_CMP));
-          act("$n's attack glances off $N's $p!", FALSE, ch, armor, vict, TO_NOTVICT);
+          act("$n's attack glances off $p, protecting $N!", FALSE, ch, armor, vict, TO_NOTVICT);
 
           /* fire any glance specs we might have */
           name = obj_index[GET_OBJ_RNUM(armor)].func;
