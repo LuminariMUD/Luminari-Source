@@ -1275,7 +1275,7 @@ const char *affected_bits[NUM_AFF_FLAGS + 1] =
   "WildShape",
   "Feinted",
   "Pinned",
-  "Mirror Imaged",
+  "Mirror-Imaged",
   "Warded",
   "Entangled",
   "Acrobatic",
