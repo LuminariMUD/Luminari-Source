@@ -287,6 +287,11 @@ int command_mtrigger(char_data *actor, char *cmd, char *argument) {
   if (!valid_dg_target(actor, 0))
     return 0;
 
+  /* not can't be possible!  I think :P  */  
+  if (IN_ROOM(actor) == NOWHERE) {
+    return 0;
+  }
+
   for (ch = world[IN_ROOM(actor)].people; ch; ch = ch_next) {
     ch_next = ch->next_in_room;
 
