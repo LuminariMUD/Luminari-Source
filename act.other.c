@@ -815,9 +815,9 @@ void perform_call(struct char_data *ch, int call_type, int level) {
           GET_MOUNT(ch) = MOB_EPIC_PALADIN_MOUNT;
       } else {
         if (GET_SIZE(ch) < SIZE_MEDIUM)
-          GET_MOUNT(ch) = MOB_EPIC_PALADIN_MOUNT_SMALL;
+          GET_MOUNT(ch) = MOB_PALADIN_MOUNT_SMALL;
         else
-          GET_MOUNT(ch) = MOB_EPIC_PALADIN_MOUNT;
+          GET_MOUNT(ch) = MOB_PALADIN_MOUNT;
       }
 
       /* do they even have a valid selection yet? */
