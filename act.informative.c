@@ -1567,6 +1567,7 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
   char buf2[MAX_STRING_LENGTH] = {'\0'};
   char buf3[MAX_STRING_LENGTH] = {'\0'};
 
+  struct char_data *tch = NULL;
   struct affected_type *aff = NULL;
   struct mud_event_data *pMudEvent = NULL;
 
@@ -1585,7 +1586,7 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
   send_to_char(ch, "\tC");
   text_line(ch, "\tYSpell-like Affects\tC", 80, '-', '-');
   send_to_char(ch, "\tn");
-
+  
   buf[0] = '\0'; // Reset the string buffer for later use.
 
   /* Bonus Type has been implemented for affects.  This has the following
@@ -1653,6 +1654,24 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
   text_line(ch, "\tYOther Affects\tC", 80, '-', '-');
   send_to_char(ch, "\tn");
 
+  /* Check to see if the victim is affected by an AURA OF COURAGE */
+  bool has_aura_of_courage = FALSE;
+  if (GROUP(k) != NULL) {
+    while ((tch = (struct char_data *) simple_list(GROUP(k)->members)) != NULL) {
+      if (IN_ROOM(tch) != IN_ROOM(k))
+        continue;
+      if (HAS_FEAT(tch, FEAT_AURA_OF_COURAGE)) {
+        has_aura_of_courage = TRUE;
+        /* Can only have one morale bonus. */
+        break;
+      }
+    }
+    if (has_aura_of_courage) {
+      send_to_char(ch, "Aura of Courage (bonus resistance against fear-affects)\r\n");      
+    }
+  }  
+
+  /* salvation */
   if (CLASS_LEVEL(ch, CLASS_CLERIC) >= 14) {
     if (PLR_FLAGGED(ch, PLR_SALVATION)) {
       if (GET_SALVATION_NAME(ch) != NULL) {
