@@ -54,7 +54,10 @@
 #define MOB_MUMMY             37   // " " level 30
 #define BARD_AFFECTS          7
 #define MOB_PALADIN_MOUNT 70
+#define MOB_PALADIN_MOUNT_SMALL 91
 #define MOB_EPIC_PALADIN_MOUNT 79
+#define MOB_EPIC_PALADIN_MOUNT_SMALL 92
+
 /* some defines for gain/respec */
 #define MODE_CLASSLIST_NORMAL 0
 #define MODE_CLASSLIST_RESPEC 1
@@ -805,10 +808,17 @@ void perform_call(struct char_data *ch, int call_type, int level) {
       break;
     case MOB_C_MOUNT:
       /* for now just one selection for paladins, soon to be changed */
-      if (HAS_FEAT(ch, FEAT_EPIC_MOUNT))
-        GET_MOUNT(ch) = MOB_EPIC_PALADIN_MOUNT;
-      else
-        GET_MOUNT(ch) = MOB_PALADIN_MOUNT;
+      if (HAS_FEAT(ch, FEAT_EPIC_MOUNT)) {
+        if (GET_SIZE(ch) < SIZE_MEDIUM)
+          GET_MOUNT(ch) = MOB_EPIC_PALADIN_MOUNT_SMALL;
+        else
+          GET_MOUNT(ch) = MOB_EPIC_PALADIN_MOUNT;
+      } else {
+        if (GET_SIZE(ch) < SIZE_MEDIUM)
+          GET_MOUNT(ch) = MOB_EPIC_PALADIN_MOUNT_SMALL;
+        else
+          GET_MOUNT(ch) = MOB_EPIC_PALADIN_MOUNT;
+      }
 
       /* do they even have a valid selection yet? */
       if (GET_MOUNT(ch) <= 0) {
