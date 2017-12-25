@@ -3719,21 +3719,26 @@ SPECIAL(emporium) {
   one_argument(one_argument(one_argument(one_argument(argument, arg), arg2), arg3), arg4);
 
   if (!*arg) {
-    send_to_char(ch, "The syntax for this command is: 'item buy <vnum> <bonustype> <bonus>' or 'item list <weapons|armor|other> <bonustype> <bonus>'.\r\n");
-    send_to_char(ch, "\tYPlease note that bonuses of the same type \tRDO NOT\tY stack in d20 rules.\tn\r\n");
+    send_to_char(ch, "The syntax for this command is: 'item buy <vnum> <bonustype> "
+            "<bonus>' or 'item list <weapons|armor|other> <bonustype> <bonus>'.\r\n");
+    send_to_char(ch, "\tYPlease note that bonuses of the same type \tRDO NOT\tY "
+            "stack in d20 rules.\tn\r\n");
     return TRUE;
   }
 
   if (is_abbrev(arg, "buy")) {
     if (!*arg2) {
-      send_to_char(ch, "Please specify the vnum of the item you wish to buy.  You may obtain the vnum from the 'item list' command.\r\n");
-      send_to_char(ch, "\tYPlease note that bonuses of the same type \tRDO NOT\tY stack in d20 rules.\tn\r\n");
+      send_to_char(ch, "Please specify the vnum of the item you wish to buy.  "
+              "You may obtain the vnum from the 'item list' command.\r\n");
+      send_to_char(ch, "\tYPlease note that bonuses of the same type \tRDO NOT\tY "
+              "stack in d20 rules.\tn\r\n");
       return TRUE;
     }
 
     int vnum = atoi(arg2);
 
-    if (!((vnum >= 30000 && vnum <= 30083) || (vnum >= 30085 && vnum <= 30092) || vnum == 30095 || (vnum >= 30100 && vnum <= 30105))) {
+    if (!((vnum >= 30000 && vnum <= 30083) || (vnum >= 30085 && vnum <= 30092) || 
+            vnum == 30095 || (vnum >= 30100 && vnum <= 30105))) {
       send_to_char(ch, "That is not a valid vnum.  Please select again.\r\n");
       return TRUE;
     }
@@ -3741,69 +3746,81 @@ SPECIAL(emporium) {
     struct obj_data *obj = read_object(vnum, VIRTUAL);
 
     if (!obj) {
-      send_to_char(ch, "There was an error buying your item.  Please inform a staff member with error code ITM_BUY_001.\r\n");
+      send_to_char(ch, "There was an error buying your item.  Please inform a staff "
+              "member with error code ITM_BUY_001.\r\n");
       return TRUE;
     }
 
-    if (GET_OBJ_TYPE(obj) != ITEM_WEAPON && GET_OBJ_TYPE(obj) != ITEM_ARMOR && GET_OBJ_TYPE(obj) != ITEM_WORN) {
+    if (GET_OBJ_TYPE(obj) != ITEM_WEAPON && GET_OBJ_TYPE(obj) != ITEM_ARMOR && 
+            GET_OBJ_TYPE(obj) != ITEM_WORN) {
       send_to_char(ch, "That is not a valid vnum.  Please select again.\r\n");
-      send_to_char(ch, "@YPlease note that bonuses of the same type @RDO NOT@Y stack in d20 rules.\r\n");
+      send_to_char(ch, "\tYPlease note that bonuses of the same type \tRDO NOT\tY stack "
+              "in d20 rules.\tn\r\n");
       return TRUE;
     }
 
     if (!*arg3) {
       send_to_char(ch, list_bonus_types());
-      send_to_char(ch, "@YPlease note that bonuses of the same type @RDO NOT@Y stack in d20 rules.\r\n");
+      send_to_char(ch, "\tYPlease note that bonuses of the same type \tRDO NOT\tY "
+              "stack in d20 rules.\tn\r\n");
       return TRUE;
     }
 
     if ((bt = get_bonus_type_int(arg3)) == 0) {
       send_to_char(ch, "That's an invalid bonus type.\r\n\r\n");
       send_to_char(ch, list_bonus_types());
-      send_to_char(ch, "@YPlease note that bonuses of the same type @RDO NOT@Y stack in d20 rules.\r\n");
+      send_to_char(ch, "\tYPlease note that bonuses of the same type \tRDO NOT\tY "
+              "stack in d20 rules.\tn\r\n");
       return TRUE;
     }
 
     if (bt == APPLY_ACCURACY && GET_OBJ_TYPE(obj) != ITEM_WEAPON) {
       send_to_char(ch, "Only weapons can be given that bonus.\r\n");
-      send_to_char(ch, "@YPlease note that bonuses of the same type @RDO NOT@Y stack in d20 rules.\r\n");
+      send_to_char(ch, "\tYPlease note that bonuses of the same type \tRDO NOT\tY "
+              "stack in d20 rules.\tn\r\n");
       return TRUE;
     }
 
     if (bt == APPLY_AC_ARMOR && !CAN_WEAR(obj, ITEM_WEAR_BODY)) {
       send_to_char(ch, "Only body armor can be given that bonus.\r\n");
-      send_to_char(ch, "@YPlease note that bonuses of the same type @RDO NOT@Y stack in d20 rules.\r\n");
+      send_to_char(ch, "\tYPlease note that bonuses of the same type \tRDO NOT\tY "
+              "stack in d20 rules.\tn\r\n");
       return TRUE;
     }
 
     if (bt == APPLY_AC_SHIELD && !CAN_WEAR(obj, ITEM_WEAR_SHIELD)) {
       send_to_char(ch, "Only shields can be given that bonus.\r\n");
-      send_to_char(ch, "@YPlease note that bonuses of the same type @RDO NOT@Y stack in d20 rules.\r\n");
+      send_to_char(ch, "\tYPlease note that bonuses of the same type \tRDO NOT\tY "
+              "stack in d20 rules.\tn\r\n");
       return TRUE;
     }
 
     if (!*arg4) {
       send_to_char(ch, "How much would you like the bonus to be?\r\n");
-      send_to_char(ch, "@YPlease note that bonuses of the same type @RDO NOT@Y stack in d20 rules.\r\n");
+      send_to_char(ch, "\tYPlease note that bonuses of the same type \tRDO NOT\tY "
+              "stack in d20 rules.\tn\r\n");
       return TRUE;
     }
 
     if ((bonus = atoi(arg4)) <= 0) {
       send_to_char(ch, "The bonus must be greater than 0.\r\n");
-      send_to_char(ch, "@YPlease note that bonuses of the same type @RDO NOT@Y stack in d20 rules.\r\n");
+      send_to_char(ch, "\tYPlease note that bonuses of the same type \tRDO NOT\tY "
+              "stack in d20 rules.\tn\r\n");
       return TRUE;
     }
 
     if ((bonus = atoi(arg4)) > 100) {
       send_to_char(ch, "The bonus must be less than 100.\r\n");
-      send_to_char(ch, "@YPlease note that bonuses of the same type @RDO NOT@Y stack in d20 rules.\r\n");
+      send_to_char(ch, "\tYPlease note that bonuses of the same type \tRDO NOT\tY "
+              "stack in d20 rules.\tn\r\n");
       return TRUE;
     }
 
     obj->affected[0].location = bt;
     obj->affected[0].modifier = atoi(arg4);
 
-    if ((bt == APPLY_AC_SHIELD || bt == APPLY_AC_DEFLECTION || bt == APPLY_AC_NATURAL || bt == APPLY_AC_ARMOR))
+    if ((bt == APPLY_AC_SHIELD || bt == APPLY_AC_DEFLECTION || bt == APPLY_AC_NATURAL || 
+            bt == APPLY_AC_ARMOR))
       obj->affected[0].modifier *= 10;
 
     if (bt == APPLY_ACCURACY) {
@@ -3812,7 +3829,8 @@ SPECIAL(emporium) {
     }
 
     GET_OBJ_LEVEL(obj) = set_object_level(obj);
-    GET_OBJ_COST(obj) = MAX(10, 100 + GET_OBJ_LEVEL(obj) * 50 * MAX(1, GET_OBJ_LEVEL(obj) - 1) + GET_OBJ_COST(obj));
+    GET_OBJ_COST(obj) = MAX(10, 100 + GET_OBJ_LEVEL(obj) * 50 * 
+            MAX(1, GET_OBJ_LEVEL(obj) - 1) + GET_OBJ_COST(obj));
 
     int cost = MAX(10, GET_OBJ_LEVEL(obj) * (GET_OBJ_LEVEL(obj) / 2) * 3);
 
@@ -3820,13 +3838,16 @@ SPECIAL(emporium) {
 
     if (GET_OBJ_LEVEL(obj) > GET_CLASS_LEVEL(ch)) {
       send_to_char(ch, "You cannot buy an item whose level is greater than yours.\r\n");
-      send_to_char(ch, "@YPlease note that bonuses of the same type @RDO NOT@Y stack in d20 rules.\r\n");
+      send_to_char(ch, "\tYPlease note that bonuses of the same type \tRDO NOT\tY stack "
+              "in d20 rules.\tn\r\n");
       return TRUE;
     }
 
     if (GET_QUESTPOINTS(ch) < cost) {
-      send_to_char(ch, "That item costs %d reputation points and you only have %d.\r\n", cost, GET_QUESTPOINTS(ch));
-      send_to_char(ch, "@YPlease note that bonuses of the same type @RDO NOT@Y stack in d20 rules.\r\n");
+      send_to_char(ch, "That item costs %d reputation points and you only have "
+              "%d.\r\n", cost, GET_QUESTPOINTS(ch));
+      send_to_char(ch, "\tYPlease note that bonuses of the same type \tRDO NOT\tY "
+              "stack in d20 rules.\tn\r\n");
       return TRUE;
     }
 
@@ -3837,18 +3858,21 @@ SPECIAL(emporium) {
     sprintf(buf, "%s +%d %s", obj->short_description, bonus, get_bonus_type(arg3));
     obj->short_description = strdup(buf);
     obj->name = strdup(buf);
-    sprintf(buf, "%s +%d %s lies here.", CAP(obj->short_description), bonus, get_bonus_type(arg3));
+    sprintf(buf, "%s +%d %s lies here.", CAP(obj->short_description), bonus, 
+            get_bonus_type(arg3));
     obj->description = strdup(buf);
 
     obj_to_char(obj, ch);
 
-    send_to_char(ch, "You purchase %s for %d reputation points.\r\n", obj->short_description, cost);
+    send_to_char(ch, "You purchase %s for %d reputation points.\r\n", 
+            obj->short_description, cost);
     return TRUE;
   } else if (is_abbrev(arg, "list")) {
 
     if (!*arg2) {
       send_to_char(ch, "Please specify either armor, weapon or other.\r\n");
-      send_to_char(ch, "@YPlease note that bonuses of the same type @RDO NOT@Y stack in d20 rules.\r\n");
+      send_to_char(ch, "\tYPlease note that bonuses of the same type \tRDO NOT\tY "
+              "stack in d20 rules.\tn\r\n");
       return TRUE;
     }
 
@@ -3862,32 +3886,37 @@ SPECIAL(emporium) {
       type = ITEM_WORN;
     else {
       send_to_char(ch, "Please specify either armor, weapon or other.\r\n");
-      send_to_char(ch, "@YPlease note that bonuses of the same type @RDO NOT@Y stack in d20 rules.\r\n");
+      send_to_char(ch, "\tYPlease note that bonuses of the same type \tRDO NOT\tY "
+              "stack in d20 rules.\tn\r\n");
       return TRUE;
     }
 
     if (!*arg3) {
       send_to_char(ch, list_bonus_types());
-      send_to_char(ch, "@YPlease note that bonuses of the same type @RDO NOT@Y stack in d20 rules.\r\n");
+      send_to_char(ch, "\tYPlease note that bonuses of the same type \tRDO NOT\tY "
+              "stack in d20 rules.\tn\r\n");
       return TRUE;
     }
 
     if ((bt = get_bonus_type_int(arg3)) == 0) {
       send_to_char(ch, "That's an invalid bonus type.\r\n\r\n");
       send_to_char(ch, list_bonus_types());
-      send_to_char(ch, "@YPlease note that bonuses of the same type @RDO NOT@Y stack in d20 rules.\r\n");
+      send_to_char(ch, "\tYPlease note that bonuses of the same type \tRDO NOT\tY "
+              "stack in d20 rules.\tn\r\n");
       return TRUE;
     }
 
     if (!*arg4) {
       send_to_char(ch, "How much would you like the bonus to be?\r\n");
-      send_to_char(ch, "@YPlease note that bonuses of the same type @RDO NOT@Y stack in d20 rules.\r\n");
+      send_to_char(ch, "\tYPlease note that bonuses of the same type \tRDO NOT\tY "
+              "stack in d20 rules.\tn\r\n");
       return TRUE;
     }
 
     if ((bonus = atoi(arg4)) <= 0) {
       send_to_char(ch, "The bonus must be greater than 0.\r\n");
-      send_to_char(ch, "@YPlease note that bonuses of the same type @RDO NOT@Y stack in d20 rules.\r\n");
+      send_to_char(ch, "\tYPlease note that bonuses of the same type \tRDO NOT\tY "
+              "stack in d20 rules.\tn\r\n");
       return TRUE;
     }
 
@@ -3898,11 +3927,13 @@ SPECIAL(emporium) {
     int i = 0;
     int vnum = 0;
 
-    send_to_char(ch, "%-5s %-6s %-7s %-35s\r\n----- ------ -------------------------\r\n", "VNUM", "COST", "MIN-LVL", "ITEM");
+    send_to_char(ch, "%-5s %-6s %-7s %-35s\r\n----- ------ -------------------------\r\n", 
+            "VNUM", "COST", "MIN-LVL", "ITEM");
 
     for (i = 30000; i < 30299; i++) {
       vnum = i;
-      if (!((vnum >= 30000 && vnum <= 30083) || (vnum >= 30085 && vnum <= 30092) || vnum == 30095 || (vnum >= 30100 && vnum <= 30105))) {
+      if (!((vnum >= 30000 && vnum <= 30083) || (vnum >= 30085 && vnum <= 30092) || 
+              vnum == 30095 || (vnum >= 30100 && vnum <= 30105))) {
         continue;
       }
       if (obj)
@@ -3915,7 +3946,8 @@ SPECIAL(emporium) {
       obj->affected[0].location = bt;
       obj->affected[0].modifier = atoi(arg4);
 
-      if ((bt == APPLY_AC_SHIELD || bt == APPLY_AC_DEFLECTION || bt == APPLY_AC_NATURAL || bt == APPLY_AC_ARMOR))
+      if ((bt == APPLY_AC_SHIELD || bt == APPLY_AC_DEFLECTION || 
+              bt == APPLY_AC_NATURAL || bt == APPLY_AC_ARMOR))
         obj->affected[0].modifier *= 10;
 
       if (bt == APPLY_ACCURACY) {
@@ -3924,7 +3956,8 @@ SPECIAL(emporium) {
       }
 
       GET_OBJ_LEVEL(obj) = set_object_level(obj);
-      GET_OBJ_COST(obj) = MAX(10, 100 + GET_OBJ_LEVEL(obj) * 50 * MAX(1, GET_OBJ_LEVEL(obj) - 1) + GET_OBJ_COST(obj));
+      GET_OBJ_COST(obj) = MAX(10, 100 + GET_OBJ_LEVEL(obj) * 50 * 
+              MAX(1, GET_OBJ_LEVEL(obj) - 1) + GET_OBJ_COST(obj));
 
       cost = MAX(10, GET_OBJ_LEVEL(obj) * (GET_OBJ_LEVEL(obj) / 2) * 3);
 
@@ -3932,11 +3965,14 @@ SPECIAL(emporium) {
       send_to_char(ch, "%-5d %-6d %d %-35s\r\n", i, cost, GET_OBJ_LEVEL(obj), buf);
     }
     send_to_char(ch, "\r\n");
-    send_to_char(ch, "@YPlease note that bonuses of the same type @RDO NOT@Y stack in d20 rules.\r\n");
+    send_to_char(ch, "\tYPlease note that bonuses of the same type \tRDO NOT\tY stack "
+            "in d20 rules.\tn\r\n");
     return TRUE;
   } else {
-    send_to_char(ch, "The syntax for this command is: 'item buy <vnum>' or 'item list <weapons|armor|other>'.\r\n");
-    send_to_char(ch, "@YPlease note that bonuses of the same type @RDO NOT@Y stack in d20 rules.\r\n");
+    send_to_char(ch, "The syntax for this command is: 'item buy <vnum>' or 'item "
+            "list <weapons|armor|other>'.\r\n");
+    send_to_char(ch, "\tYPlease note that bonuses of the same type \tRDO NOT\tY "
+            "stack in d20 rules.\tn\r\n");
     return TRUE;
   }
 
