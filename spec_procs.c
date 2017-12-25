@@ -54,10 +54,10 @@ static int compare_spells(const void *x, const void *y) {
           b = *(const int *) y;
 
   if (a <= 1 || b <= 1)
-    return 0;
+    return FALSE;
 
   if (a > MAX_SKILLS || b > MAX_SKILLS)
-    return 0;
+    return FALSE;
 
   return strcmp(spell_info[a].name, spell_info[b].name);
 }
@@ -1366,13 +1366,13 @@ SPECIAL(shadowdragon) {
   struct char_data *next_vict;
 
   if (cmd)
-    return 0;
+    return FALSE;
 
   if (!FIGHTING(ch))
-    return 0;
+    return FALSE;
 
   if (rand_number(0, 4))
-    return 0;
+    return FALSE;
 
   act("$n \tLopens her mouth and let stream forth a black breath of de\tws\tWp\twa\tLir.\tn",
           FALSE, ch, 0, 0, TO_ROOM);
@@ -1391,13 +1391,13 @@ SPECIAL(shadowdragon) {
 
   call_magic(ch, FIGHTING(ch), 0, SPELL_DARKNESS, 0, GET_LEVEL(ch), CAST_SPELL);
 
-  return 1;
+  return TRUE;
 }
 
 /* from homeland */
 SPECIAL(imix) {
   if (cmd || GET_POS(ch) == POS_DEAD)
-    return 0;
+    return FALSE;
 
   if (!FIGHTING(ch))
     PROC_FIRED(ch) = FALSE;
@@ -1411,7 +1411,7 @@ SPECIAL(imix) {
     return TRUE;
   }
 
-  return 0;
+  return FALSE;
 }
 
 /* from homeland */
@@ -1420,7 +1420,7 @@ SPECIAL(olhydra) {
   struct char_data *next_vict;
 
   if (cmd || GET_POS(ch) == POS_DEAD)
-    return 0;
+    return FALSE;
 
   if (!FIGHTING(ch))
     PROC_FIRED(ch) = FALSE;
@@ -1455,9 +1455,9 @@ SPECIAL(olhydra) {
         USE_FULL_ROUND_ACTION(ch);
       }
     }
-    return 1;
+    return TRUE;
   }
-  return 0;
+  return FALSE;
 }
 
 /* from homeland */
@@ -1465,7 +1465,7 @@ SPECIAL(banshee) {
   struct char_data *vict;
 
   if (cmd || GET_POS(ch) == POS_DEAD)
-    return 0;
+    return FALSE;
 
   if (!FIGHTING(ch)) // heheh  && GET_HIT(ch) == GET_MAX_HIT(ch))
     PROC_FIRED(ch) = FALSE;
@@ -1482,9 +1482,9 @@ SPECIAL(banshee) {
       }
 
     PROC_FIRED(ch) = TRUE;
-    return 1;
+    return TRUE;
   }
-  return 0;
+  return FALSE;
 }
 
 /* from homeland */
@@ -1492,22 +1492,22 @@ SPECIAL(quicksand) {
   struct affected_type af;
 
   if (cmd)
-    return 0;
+    return FALSE;
 
   if (IS_NPC(ch) && !IS_PET(ch))
-    return 0;
+    return FALSE;
 
   if (AFF_FLAGGED(ch, AFF_FLYING))
-    return 0;
+    return FALSE;
   if (GET_LEVEL(ch) > LVL_IMMORT)
-    return 0;
+    return FALSE;
 
   if (GET_DEX(ch) > dice(1, 20) + 12) {
     act("\tyYou avoid getting stuck in the quicksand.\tn",
             FALSE, ch, 0, 0, TO_CHAR);
     act("\tn$n\ty avoids getting stuck in the quicksand.\tn",
             FALSE, ch, 0, 0, TO_ROOM);
-    return 0;
+    return FALSE;
   }
 
   act("\tyThe marsh \tgla\tynd of the \twm\tye\tgr\tye opens up suddenly revealing quicksand!\tn\r\n"
@@ -1522,7 +1522,7 @@ SPECIAL(quicksand) {
   af.duration = 5;
   affect_join(ch, &af, TRUE, FALSE, FALSE, FALSE);
 
-  return 1;
+  return TRUE;
 }
 
 /* from homeland */
@@ -1533,12 +1533,12 @@ SPECIAL(kt_kenjin) {
   int val = 0;
 
   if (cmd)
-    return 0;
+    return FALSE;
   if (!FIGHTING(ch))
-    return 0;
+    return FALSE;
 
   if (GET_POS(ch) < POS_FIGHTING)
-    return 0;
+    return FALSE;
 
   for (tch = world[ch->in_room].people; tch; tch = tch->next_in_room) {
     if (!IS_NPC(tch) || IS_PET(tch)) {
@@ -1560,7 +1560,7 @@ SPECIAL(kt_kenjin) {
     SET_BIT_AR(af.bitvector, AFF_PARALYZED);
     af.duration = rand_number(2, 3);
     affect_join(vict, &af, TRUE, FALSE, FALSE, FALSE);
-    return 1;
+    return TRUE;
   }
 
   //teleports you to the bottom of the shaft.
@@ -1571,7 +1571,7 @@ SPECIAL(kt_kenjin) {
     char_from_room(vict);
     char_to_room(vict, real_room(132908));
     look_at_room(vict, 0);
-    return 1;
+    return TRUE;
   }
 
   //loads a new mob in 132919 :)
@@ -1581,12 +1581,12 @@ SPECIAL(kt_kenjin) {
             ch, 0, vict, TO_ROOM);
     tch = read_mobile(132902, VIRTUAL);
     if (!tch)
-      return 0;
+      return FALSE;
     char_to_room(tch, real_room(132919));
-    return 1;
+    return TRUE;
   }
 
-  return 0;
+  return FALSE;
 }
 
 /* from homeland */
@@ -1597,10 +1597,10 @@ SPECIAL(kt_twister) {
   int temp;
 
   if (cmd)
-    return 0;
+    return FALSE;
 
   if (IS_NPC(ch) && !IS_PET(ch))
-    return 0;
+    return FALSE;
 
   temp = world[real_room(132901)].dir_option[0]->to_room;
   world[real_room(32901)].dir_option[0]->to_room =
@@ -1619,7 +1619,7 @@ SPECIAL(kt_twister) {
   mob = read_mobile(132901, VIRTUAL);
 
   if (!mob)
-    return 0;
+    return FALSE;
 
   char_to_room(mob, real_room(132906));
 
@@ -1636,15 +1636,15 @@ SPECIAL(kt_twister) {
   GET_CLASS(mob) = GET_CLASS(ch);
 
   send_to_char(ch, "You somehow feel \tWsplit\tn in half.\r\n");
-  return 1;
+  return TRUE;
 }
 
 /* from homeland */
 SPECIAL(hive_death) {
   if (cmd)
-    return 0;
+    return FALSE;
   if (!ch)
-    return 0;
+    return FALSE;
 
   send_to_char(ch,
           "\trAs you enter through the curtain, your body is ripped into two pieces, as your link\tn\r\n"
@@ -1660,7 +1660,7 @@ SPECIAL(hive_death) {
   char_to_room(ch, real_room(139328));
   look_at_room(ch, 0);
 
-  return 1;
+  return TRUE;
 }
 
 /* from homeland */
@@ -1669,7 +1669,7 @@ SPECIAL(feybranche) {
   char buf[MAX_INPUT_LENGTH];
 
   if (cmd || GET_POS(ch) == POS_DEAD)
-    return 0;
+    return FALSE;
 
   struct char_data *enemy = FIGHTING(ch);
 
@@ -1700,9 +1700,9 @@ SPECIAL(feybranche) {
         send_to_char(i, buf);
     }
     PROC_FIRED(ch) = TRUE;
-    return 1;
+    return TRUE;
   }
-  return 0;
+  return FALSE;
 }
 
 /* from homeland */
@@ -1710,10 +1710,10 @@ SPECIAL(abyssal_vortex) {
   int temp;
 
   if (cmd)
-    return 0;
+    return FALSE;
 
   if (IS_NPC(ch) && !IS_PET(ch))
-    return 0;
+    return FALSE;
 
   if (!rand_number(0, 7)) {
     temp = world[ch->in_room].dir_option[0]->to_room;
@@ -1726,9 +1726,9 @@ SPECIAL(abyssal_vortex) {
 
     send_to_room(ch->in_room, "\tLThe reality seems to \tCshift\tL as madness descends in the \tcvortex\tn\r\n");
 
-    return 1;
+    return TRUE;
   }
-  return 0;
+  return FALSE;
 }
 
 /* from homeland */
@@ -1737,7 +1737,7 @@ SPECIAL(agrachdyrr) {
   char buf[MAX_INPUT_LENGTH];
 
   if (cmd || GET_POS(ch) == POS_DEAD)
-    return 0;
+    return FALSE;
 
   struct char_data *enemy = FIGHTING(ch);
 
@@ -1754,10 +1754,10 @@ SPECIAL(agrachdyrr) {
 
       struct char_data *mob = read_mobile(135523, VIRTUAL);
       if (!mob)
-        return 0;
+        return FALSE;
       char_to_room(mob, ch->in_room);
       add_follower(mob, ch);
-      return 1;
+      return TRUE;
     }
 
     if (enemy->master && enemy->master->in_room == enemy->in_room)
@@ -1784,9 +1784,9 @@ SPECIAL(agrachdyrr) {
         send_to_char(i, buf);
     }
     PROC_FIRED(ch) = TRUE;
-    return 1;
+    return TRUE;
   } // for loop
-  return 0;
+  return FALSE;
 }
 
 /* from homeland */
@@ -1795,7 +1795,7 @@ SPECIAL(shobalar) {
   char buf[MAX_INPUT_LENGTH];
 
   if (cmd || GET_POS(ch) == POS_DEAD)
-    return 0;
+    return FALSE;
 
   struct char_data *enemy = FIGHTING(ch);
 
@@ -1825,10 +1825,10 @@ SPECIAL(shobalar) {
         send_to_char(i, buf);
     }
     PROC_FIRED(ch) = TRUE;
-    return 1;
+    return TRUE;
   } // for loop
 
-  return 0;
+  return FALSE;
 }
 
 /* from homeland */
@@ -1842,14 +1842,14 @@ SPECIAL(ogremoch) {
   room_rnum end = 0;
 
   if (cmd || GET_POS(ch) == POS_DEAD)
-    return 0;
+    return FALSE;
 
   if (!FIGHTING(ch))
     PROC_FIRED(ch) = FALSE;
 
   vict = FIGHTING(ch);
   if (!vict)
-    return 0;
+    return FALSE;
 
   // show yell message.
   if (PROC_FIRED(ch) == false) {
@@ -1899,49 +1899,49 @@ SPECIAL(ogremoch) {
   }
   PROC_FIRED(ch) = TRUE;
 
-  return 1;
+  return TRUE;
 }
 
 /* from homeland */
 SPECIAL(yan) {
   if (cmd || GET_POS(ch) == POS_DEAD)
-    return 0;
+    return FALSE;
 
   if (!FIGHTING(ch))
     PROC_FIRED(ch) = FALSE;
 
   if (FIGHTING(ch)) {
     if (yan_yell(ch))
-      return 1;
+      return TRUE;
     if (!rand_number(0, 50)) {
       yan_maelstrom(ch);
-      return 1;
+      return TRUE;
     }
     if (!rand_number(0, 3)) {
       yan_windgust(ch);
-      return 1;
+      return TRUE;
     }
   }
-  return 0;
+  return FALSE;
 }
 
 /* from homeland */
 SPECIAL(chan) {
   if (cmd || GET_POS(ch) == POS_DEAD)
-    return 0;
+    return FALSE;
 
   if (!FIGHTING(ch))
     PROC_FIRED(ch) = FALSE;
 
   if (FIGHTING(ch)) {
     if (chan_yell(ch))
-      return 1;
+      return TRUE;
     if (!rand_number(0, 3)) {
       yan_windgust(ch);
-      return 1;
+      return TRUE;
     }
   }
-  return 0;
+  return FALSE;
 }
 
 SPECIAL(guild) {
@@ -2522,14 +2522,14 @@ SPECIAL(janitor) {
 /* from homeland */
 SPECIAL(fzoul) {
   if (!ch && !cmd)
-    return 0;
+    return FALSE;
 
 
   if (cmd && CMD_IS("kneel")) {
     send_to_char(ch, "\tLFzoul tells you, '\tgSee how easy it is to kneel before the beauty of our god.\tL'\tn\r\n");
-    return 1;
+    return TRUE;
   }
-  return 0;
+  return FALSE;
 }
 
 SPECIAL(cityguard) {
@@ -2727,10 +2727,10 @@ SPECIAL(shar_heart) {
   int dam = 0;
 
   if (!ch || cmd || !vict)
-    return 0;
+    return FALSE;
 
   if (rand_number(0, 15))
-    return 0;
+    return FALSE;
 
   act("\tmThe \tMHeart of Shar \tn\tmpulses erratically in\r\n"
           "your hand before striking $N \tmwith a beam of\r\n"
@@ -2758,7 +2758,7 @@ SPECIAL(shar_heart) {
 
   dam = dice(6, 3) + 4;
   GET_HIT(vict) -= dam;
-  return 1;
+  return TRUE;
 }
 
 /* from homeland */
@@ -2802,14 +2802,14 @@ SPECIAL(dog) {
   struct char_data *pet = (struct char_data *) me;
 
   if (!argument)
-    return 0;
+    return FALSE;
   if (!cmd)
-    return 0;
+    return FALSE;
 
   skip_spaces(&argument);
 
   if (!isname(argument, GET_NAME(pet)))
-    return 0;
+    return FALSE;
 
   if (CMD_IS("pet") || CMD_IS("pat")) {
     random = dice(1, 3);
@@ -2838,9 +2838,9 @@ SPECIAL(dog) {
       SET_BIT_AR(af.bitvector, AFF_CHARM);
       affect_to_char(pet, &af);
     }
-    return 1;
+    return TRUE;
   }
-  return 0;
+  return FALSE;
 }
 
 /* from homeland */
@@ -2997,7 +2997,7 @@ SPECIAL(practice_dummy) {
   char buf[MAX_INPUT_LENGTH];
 
   if (cmd)
-    return 0;
+    return FALSE;
 
   if (!FIGHTING(ch)) {
     GET_MAX_HIT(ch) = 20000;
@@ -3013,49 +3013,49 @@ SPECIAL(practice_dummy) {
             rounddam, max_hit, round_count);
     send_to_room(ch->in_room, buf);
     GET_HIT(ch) = GET_MAX_HIT(ch);
-    return 1;
+    return TRUE;
   }
-  return 0;
+  return FALSE;
 }
 
 /* from Homeland */
 SPECIAL(wraith) {
   if (cmd)
-    return 0;
+    return FALSE;
 
   if (GET_POS(ch) == POS_DEAD || !ch->master) {
     act("With a loud shriek, $n crumbles into dust.", FALSE, ch, NULL, 0, TO_ROOM);
     extract_char(ch);
-    return 1;
+    return TRUE;
   }
 
   if (ch->master && ch->in_room == ch->master->in_room)
     if (FIGHTING(ch->master) && rand_number(0, 1)) {
       perform_assist(ch, ch->master);
-      return 1;
+      return TRUE;
     }
 
-  return 0;
+  return FALSE;
 }
 
 /* from Homeland */
 SPECIAL(skeleton_zombie) {
   if (cmd)
-    return 0;
+    return FALSE;
 
   if (GET_POS(ch) == POS_DEAD || !ch->master) {
     act("With a loud shriek, $n crumbles into dust.", FALSE, ch, NULL, 0, TO_ROOM);
     extract_char(ch);
-    return 1;
+    return TRUE;
   }
 
   if (ch->master && ch->in_room == ch->master->in_room)
     if (FIGHTING(ch->master) && !rand_number(0, 2)) {
       perform_assist(ch, ch->master);
-      return 1;
+      return TRUE;
     }
 
-  return 0;
+  return FALSE;
 }
 
 /* from Homeland */
@@ -3063,43 +3063,43 @@ SPECIAL(vampire) {
   struct char_data *vict;
 
   if (cmd)
-    return 0;
+    return FALSE;
 
   if (GET_POS(ch) == POS_DEAD || !ch->master) {
     act("With a loud shriek, $n crumbles into dust.", FALSE, ch, NULL, 0, TO_ROOM);
     extract_char(ch);
-    return 1;
+    return TRUE;
   }
 
   if (ch->master && ch->in_room == ch->master->in_room) {
     for (vict = world[ch->in_room].people; vict; vict = vict->next_in_room) {
       if (FIGHTING(vict) == ch->master && !rand_number(0, 1)) {
         perform_rescue(ch, ch->master);
-        return 1;
+        return TRUE;
       }
     }
   }
 
-  return 0;
+  return FALSE;
 }
 
 /* from Homeland */
 SPECIAL(totemanimal) {
   if (cmd)
-    return 0;
+    return FALSE;
   if (!ch->master)
-    return 0;
+    return FALSE;
 
   if (ch->master && ch->in_room == ch->master->in_room)
     if (FIGHTING(ch->master))
       perform_assist(ch, ch->master);
-  return 0;
+  return FALSE;
 }
 
 /* from Homeland */
 SPECIAL(shades) {
   if (cmd)
-    return 0;
+    return FALSE;
 
   if (GET_MAX_HIT(ch) > 1 && GET_HIT(ch) > 1) {
     GET_MAX_HIT(ch) = 1;
@@ -3107,19 +3107,19 @@ SPECIAL(shades) {
   }
 
   if (GET_POS(ch) == POS_DEAD)
-    return 0;
+    return FALSE;
   if (GET_HIT(ch) < GET_MAX_HIT(ch) || !ch->master) {
     act("A shade evaporates into thin air.", FALSE, ch, NULL, 0, TO_ROOM);
     extract_char(ch);
-    return 1;
+    return TRUE;
   }
 
   if (ch->in_room != ch->master->in_room) {
     HUNTING(ch) = ch->master;
     hunt_victim(ch);
-    return 1;
+    return TRUE;
   }
-  return 0;
+  return FALSE;
 }
 
 /* from Homeland */
@@ -3127,12 +3127,12 @@ SPECIAL(solid_elemental) {
   struct char_data *vict;
 
   if (cmd)
-    return 0;
+    return FALSE;
 
   if (GET_POS(ch) == POS_DEAD || (!ch->master && !MOB_FLAGGED(ch, MOB_MEMORY))) {
     act("With a loud shriek, $n returns to $s home plane.", FALSE, ch, NULL, 0, TO_ROOM);
     extract_char(ch);
-    return 1;
+    return TRUE;
   }
 
   if (GET_HIT(ch) > 0) {
@@ -3140,14 +3140,14 @@ SPECIAL(solid_elemental) {
       for (vict = world[ch->in_room].people; vict; vict = vict->next_in_room) {
         if (FIGHTING(vict) == ch->master) {
           perform_rescue(ch, ch->master);
-          return 1;
+          return TRUE;
         }
       }
     }
 
     if (!FIGHTING(ch) && ch->master && FIGHTING(ch->master) && ch->in_room == ch->master->in_room) {
       perform_assist(ch, ch->master);
-      return 1;
+      return TRUE;
     }
   }
 
@@ -3155,14 +3155,14 @@ SPECIAL(solid_elemental) {
   if (GET_POS(ch) < POS_FIGHTING && GET_POS(ch) >= POS_STUNNED) {
     GET_POS(ch) = POS_STANDING;
     act("$n clambers to $s feet.\r\n", FALSE, ch, 0, 0, TO_ROOM);
-    return 1;
+    return TRUE;
   }
 
   // we're fighting something we dont want to fight...
   if (!ch->master && FIGHTING(ch) && IS_NPC(FIGHTING(ch)) && !IS_PET(FIGHTING(ch)))
     do_flee(ch, 0, 0, 0);
 
-  return 0;
+  return FALSE;
 }
 
 /* from Homeland */
@@ -3170,12 +3170,12 @@ SPECIAL(wraith_elemental) {
   struct char_data *vict;
 
   if (cmd)
-    return 0;
+    return FALSE;
 
   if (GET_POS(ch) == POS_DEAD || (!ch->master && !MOB_FLAGGED(ch, MOB_MEMORY))) {
     act("With a loud shriek, $n returns to $s home plane.", FALSE, ch, NULL, 0, TO_ROOM);
     extract_char(ch);
-    return 1;
+    return TRUE;
   }
 
   if (GET_HIT(ch) > 0) {
@@ -3183,14 +3183,14 @@ SPECIAL(wraith_elemental) {
       for (vict = world[ch->in_room].people; vict; vict = vict->next_in_room) {
         if (FIGHTING(vict) == ch->master) {
           perform_rescue(ch, ch->master);
-          return 1;
+          return TRUE;
         }
       }
     }
 
     if (!FIGHTING(ch) && ch->master && FIGHTING(ch->master) && ch->in_room == ch->master->in_room) {
       perform_assist(ch, ch->master);
-      return 1;
+      return TRUE;
     }
   }
 
@@ -3198,20 +3198,20 @@ SPECIAL(wraith_elemental) {
   if (GET_POS(ch) < POS_FIGHTING && GET_POS(ch) >= POS_STUNNED) {
     GET_POS(ch) = POS_STANDING;
     act("$n clambers to $s feet.\r\n", FALSE, ch, 0, 0, TO_ROOM);
-    return 1;
+    return TRUE;
   }
 
   // we're fighting something we dont want to fight...
   if (!ch->master && FIGHTING(ch) && IS_NPC(FIGHTING(ch)) && !IS_PET(FIGHTING(ch)))
     do_flee(ch, 0, 0, 0);
 
-  return 0;
+  return FALSE;
 }
 
 /* from homeland */
 SPECIAL(planewalker) {
   if (cmd)
-    return 0;
+    return FALSE;
 
   if (ROOM_FLAGGED(ch->in_room, ROOM_SOUNDPROOF)) {
     act("$n looks around in panic when he realizes that his spells\r\n"
@@ -3219,15 +3219,15 @@ SPECIAL(planewalker) {
             "rod. He taps the rod and suddenly disappears!", FALSE
             , ch, 0, 0, TO_ROOM);
     call_magic(ch, 0, 0, SPELL_TELEPORT, 0, 30, CAST_WAND);
-    return 1;
+    return TRUE;
   }
   if (!FIGHTING(ch) && GET_HIT(ch) < GET_MAX_HIT(ch)) {
     act("$n checks on his wounds, and grabs a potion from his pockets."
             , FALSE, ch, 0, 0, TO_ROOM);
     call_magic(ch, ch, 0, SPELL_HEAL, 0, 30, CAST_POTION);
-    return 1;
+    return TRUE;
   }
-  return 0;
+  return FALSE;
 }
 
 /* from homeland */
@@ -3237,12 +3237,12 @@ SPECIAL(phantom) {
   int prob, percent;
 
   if (cmd)
-    return 0;
+    return FALSE;
 
   if (!FIGHTING(ch))
-    return 0;
+    return FALSE;
   if (rand_number(0, 4))
-    return 0;
+    return FALSE;
 
   act("$n \tLlets out a \trfrightening\tL wail\tn",
           FALSE, ch, 0, 0, TO_ROOM);
@@ -3265,7 +3265,7 @@ SPECIAL(phantom) {
     if (percent > prob)
       do_flee(vict, NULL, 0, 0);
   }
-  return 1;
+  return TRUE;
 }
 
 /* from homeland */
@@ -3275,14 +3275,14 @@ SPECIAL(lichdrain) {
   int dam = 0;
 
   if (cmd || GET_POS(ch) == POS_DEAD)
-    return 0;
+    return FALSE;
   if (rand_number(0, 3))
-    return 0;
+    return FALSE;
   if (!FIGHTING(ch))
-    return 0;
+    return FALSE;
 
   if (AFF_FLAGGED(ch, AFF_PARALYZED))
-    return 0;
+    return FALSE;
 
   for (tch = world[ch->in_room].people; tch; tch = tch->next_in_room) {
     if (!IS_NPC(tch) || IS_PET(tch)) {
@@ -3293,7 +3293,7 @@ SPECIAL(lichdrain) {
   }
 
   if (!vict)
-    return 0;
+    return FALSE;
 
   act("\tn$n\tL looks deep into your soul with $s horrid gaze.\tn\r\n"
           "\tLand $e simply leeches your \tWlifeforce\tL out of you.\r\n",
@@ -3310,7 +3310,7 @@ SPECIAL(lichdrain) {
     GET_HIT(ch) += dam;
   GET_HIT(vict) -= dam;
   USE_FULL_ROUND_ACTION(vict);
-  return 1;
+  return TRUE;
 }
 
 /* from homeland */
@@ -3319,7 +3319,7 @@ SPECIAL(harpell) {
   char buf[MAX_INPUT_LENGTH];
 
   if (cmd || GET_POS(ch) == POS_DEAD)
-    return 0;
+    return FALSE;
 
   if (!FIGHTING(ch))
     PROC_FIRED(ch) = FALSE;
@@ -3356,10 +3356,10 @@ SPECIAL(harpell) {
         send_to_char(i, buf);
     }
     PROC_FIRED(ch) = TRUE;
-    return 1;
+    return TRUE;
   } // for loop
 
-  return 0;
+  return FALSE;
 }
 
 /* from homeland */
@@ -3368,12 +3368,12 @@ SPECIAL(bonedancer) {
   struct char_data *next_vict;
 
   if (cmd)
-    return 0;
+    return FALSE;
   if (GET_POS(ch) == POS_DEAD || !ch->master) {
     act("With a loud shriek, $n crumbles into dust.", FALSE, ch, NULL, 0,
             TO_ROOM);
     extract_char(ch);
-    return 1;
+    return TRUE;
   }
 
   if (!FIGHTING(ch) && GET_HIT(ch) > 0) {
@@ -3381,24 +3381,24 @@ SPECIAL(bonedancer) {
       next_vict = vict->next_in_room;
       if (vict != ch && CAN_SEE(ch, vict)) {
         hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
-        return 1;
+        return TRUE;
       }
     }
   }
 
-  return 0;
+  return FALSE;
 }
 
 /* from homeland */
 SPECIAL(wallach) {
 
   if (cmd || GET_POS(ch) == POS_DEAD)
-    return 0;
+    return FALSE;
 
   if (GET_ROOM_VNUM(GET_MOB_LOADROOM(ch)) != 112638)
     GET_MOB_LOADROOM(ch) = real_room(112638);
 
-  return 0;
+  return FALSE;
 }
 
 /* from homeland */
@@ -3406,7 +3406,7 @@ SPECIAL(beltush) {
   struct char_data *i;
 
   if (cmd || GET_POS(ch) == POS_DEAD || GET_ROOM_VNUM(ch->in_room) != 112648)
-    return 0;
+    return FALSE;
 
 
   for (i = character_list; i; i = i->next)
@@ -3414,16 +3414,16 @@ SPECIAL(beltush) {
       do_enter(ch, "mirror", 0, 0);
       act("Beltush says, 'FOOLS!! How dare you attempt to enter the flaming "
               "tower!!", FALSE, ch, 0, 0, TO_ROOM);
-      return 1;
+      return TRUE;
     }
 
-  return 0;
+  return FALSE;
 }
 
 /* from homeland */
 SPECIAL(mereshaman) {
   if (cmd)
-    return 0;
+    return FALSE;
 
   if (FIGHTING(ch) && !PROC_FIRED(ch)) {
     PROC_FIRED(ch) = TRUE;
@@ -3438,9 +3438,9 @@ SPECIAL(mereshaman) {
     char_to_room(read_mobile(126725, VIRTUAL), ch->in_room);
     char_to_room(read_mobile(126725, VIRTUAL), ch->in_room);
     char_to_room(read_mobile(126725, VIRTUAL), ch->in_room);
-    return 1;
+    return TRUE;
   }
-  return 0;
+  return FALSE;
 }
 
 /* from homeland */
@@ -3449,9 +3449,9 @@ SPECIAL(mercenary) {
   int base = 1;
 
   if (!ch)
-    return 0;
+    return FALSE;
   if (cmd)
-    return 0;
+    return FALSE;
 
   // a recruited merc should get reasonable amounts of hp.
   if (PROC_FIRED(ch) == FALSE && IS_PET(ch)) {
@@ -3481,9 +3481,9 @@ SPECIAL(mercenary) {
     if (GET_HIT(ch) > hit)
       GET_HIT(ch) = hit;
     PROC_FIRED(ch) = TRUE;
-    return 1;
+    return TRUE;
   }
-  return 0;
+  return FALSE;
 }
 
 /* from homeland */
@@ -3510,10 +3510,10 @@ SPECIAL(willowisp) {
   room_rnum room = real_room(126899);
 
   if (cmd)
-    return 0;
+    return FALSE;
 
   if (FIGHTING(ch))
-    return 0;
+    return FALSE;
 
   if (ch->in_room != room && weather_info.sunlight == SUN_LIGHT) {
     act("$n fades away in the sunlight!", FALSE, ch, 0, 0, TO_ROOM);
@@ -3521,24 +3521,24 @@ SPECIAL(willowisp) {
     char_from_room(ch);
     char_to_room(ch, room);
 
-    return 1;
+    return TRUE;
   }
 
   if (ch->in_room == room && weather_info.sunlight != SUN_LIGHT) {
     char_from_room(ch);
     char_to_room(ch, ch->mob_specials.temp_room_data);
     act("$n appears with the dark of the night!", FALSE, ch, 0, 0, TO_ROOM);
-    return 1;
+    return TRUE;
   }
 
-  return 0;
+  return FALSE;
 }
 
 
 /* from homeland */
 SPECIAL(naga_golem) {
   if (cmd || GET_POS(ch) == POS_DEAD)
-    return 0;
+    return FALSE;
 
   if (!FIGHTING(ch))
     PROC_FIRED(ch) = FALSE;
@@ -3547,10 +3547,10 @@ SPECIAL(naga_golem) {
     zone_yell(ch,
             "\r\n\tLThe golem rings an alarm bell, which echoes through "
             "the pit.\tn\r\n");
-    return 1;
+    return TRUE;
   }
 
-  return 0;
+  return FALSE;
 }
 
 /* from homeland */
@@ -3560,11 +3560,11 @@ SPECIAL(naga) {
   int dam = 0;
 
   if (cmd || GET_POS(ch) == POS_DEAD)
-    return 0;
+    return FALSE;
   if (rand_number(0, 3))
-    return 0;
+    return FALSE;
   if (!FIGHTING(ch))
-    return 0;
+    return FALSE;
 
   for (tch = world[ch->in_room].people; tch; tch = tch->next_in_room) {
     if ((!IS_NPC(tch) || IS_PET(tch)) && !MOB_FLAGGED(tch, MOB_NOSLEEP)) {
@@ -3574,10 +3574,10 @@ SPECIAL(naga) {
     }
   }
   if (!vict)
-    return 0;
+    return FALSE;
 
   if (MOB_FLAGGED(vict, MOB_NOSLEEP))
-    return 0;
+    return FALSE;
 
   act(    "$n\tL thrusts its powerful barbed tail-stinger into your flesh causing\tn\r\n"
           "\tLyou to scream in agony.  As it snaps back its tail, poison oozes into the large\tn\r\n"
@@ -3601,22 +3601,22 @@ SPECIAL(naga) {
   GET_POS(vict) = POS_SLEEPING;
   /* Would be best to make this an affect that affects your ability to wake up, lasting a couple rounds. */
   USE_FULL_ROUND_ACTION(vict);
-  return 1;
+  return TRUE;
 }
 
 /* from homeland */
 SPECIAL(ethereal_pet) {
 
   if (cmd || GET_POS(ch) == POS_DEAD)
-    return 0;
+    return FALSE;
   if (FIGHTING(ch))
-    return 0;
+    return FALSE;
 
   if (ch->desc == 0) {
     extract_char(ch);
-    return 1;
+    return TRUE;
   }
-  return 0;
+  return FALSE;
 }
 
 /* from homeland */
@@ -3624,17 +3624,17 @@ SPECIAL(fp_invoker) {
   struct char_data *victim;
 
   if (!ch)
-    return 0;
+    return FALSE;
   if (FIGHTING(ch))
-    return 0;
+    return FALSE;
   if (!IS_NPC(ch) && cmd && CMD_IS("cast") && GET_POS(ch) >= POS_FIGHTING) {
     victim = ch;
     ch = (struct char_data*) me;
     act("$n screams in rage, 'How DARE you cast a spell in my tower'", FALSE, ch, 0, 0, TO_ROOM);
     call_magic(ch, victim, 0, SPELL_MISSILE_STORM, 0, 30, CAST_SPELL);
-    return 0;
+    return FALSE;
   }
-  return 0;
+  return FALSE;
 
 }
 
@@ -3645,9 +3645,9 @@ SPECIAL(gromph) {
   int dir = -1;
 
   if (!ch)
-    return 0;
+    return FALSE;
   if (FIGHTING(ch))
-    return 0;
+    return FALSE;
 
   if (!IS_NPC(ch) && cmd && CMD_IS("cast")) {
     victim = ch;
@@ -3655,7 +3655,7 @@ SPECIAL(gromph) {
     act("$n sighs at YOU and mutters, 'You insolent worm!'", FALSE, ch, 0, victim, TO_VICT);
     act("$n sighs at $N, 'You insolent worm!'", FALSE, ch, 0, victim, TO_NOTVICT);
     call_magic(ch, victim, 0, SPELL_MISSILE_STORM, 0, 30, CAST_SPELL);
-    return 1;
+    return TRUE;
   }
 
   if (PATH_DELAY(ch) > 0)
@@ -3663,7 +3663,7 @@ SPECIAL(gromph) {
   PATH_DELAY(ch) = 4;
 
   if (cmd)
-    return 0;
+    return FALSE;
 
   {
     switch (PROC_FIRED(ch)) {
@@ -3692,10 +3692,10 @@ SPECIAL(gromph) {
     }
     if (dir >= 0)
       perform_move(ch, dir, 1);
-    return 1;
+    return TRUE;
 
   }
-  return 0;
+  return FALSE;
 }
 
 /*************************/
@@ -3704,8 +3704,249 @@ SPECIAL(gromph) {
 
 /********************************************************************/
 /******************** Room Procs      *******************************/
+
 /********************************************************************/
 
+/*
+SPECIAL(emporium) {
+
+  if (!CMD_IS("emporium"))
+    return FALSE;
+
+  char arg[200] = {'\0'}, arg2[200] = {'\0'}, arg3[200] = {'\0'}, arg4[200] = {'\0'};
+  int bt = 0, bonus = 0;
+
+  one_argument(one_argument(one_argument(one_argument(argument, arg), arg2), arg3), arg4);
+
+  if (!*arg) {
+    send_to_char(ch, "The syntax for this command is: 'item buy <vnum> <bonustype> <bonus>' or 'item list <weapons|armor|other> <bonustype> <bonus>'.\r\n");
+    send_to_char(ch, "\tYPlease note that bonuses of the same type \tRDO NOT\tY stack in d20 rules.\tn\r\n");
+    return TRUE;
+  }
+
+  if (is_abbrev(arg, "buy")) {
+    if (!*arg2) {
+      send_to_char(ch, "Please specify the vnum of the item you wish to buy.  You may obtain the vnum from the 'item list' command.\r\n");
+      send_to_char(ch, "\tYPlease note that bonuses of the same type \tRDO NOT\tY stack in d20 rules.\tn\r\n");
+      return TRUE;
+    }
+
+    int vnum = atoi(arg2);
+
+    if (!((vnum >= 30000 && vnum <= 30083) || (vnum >= 30085 && vnum <= 30092) || vnum == 30095 || (vnum >= 30100 && vnum <= 30105))) {
+      send_to_char(ch, "That is not a valid vnum.  Please select again.\r\n");
+      return TRUE;
+    }
+
+    struct obj_data *obj = read_object(vnum, VIRTUAL);
+
+    if (!obj) {
+      send_to_char(ch, "There was an error buying your item.  Please inform a staff member with error code ITM_BUY_001.\r\n");
+      return TRUE;
+    }
+
+    if (GET_OBJ_TYPE(obj) != ITEM_WEAPON && GET_OBJ_TYPE(obj) != ITEM_ARMOR && GET_OBJ_TYPE(obj) != ITEM_WORN) {
+      send_to_char(ch, "That is not a valid vnum.  Please select again.\r\n");
+      send_to_char(ch, "@YPlease note that bonuses of the same type @RDO NOT@Y stack in d20 rules.\r\n");
+      return TRUE;
+    }
+
+    if (!*arg3) {
+      send_to_char(ch, list_bonus_types());
+      send_to_char(ch, "@YPlease note that bonuses of the same type @RDO NOT@Y stack in d20 rules.\r\n");
+      return TRUE;
+    }
+
+    if ((bt = get_bonus_type_int(arg3)) == 0) {
+      send_to_char(ch, "That's an invalid bonus type.\r\n\r\n");
+      send_to_char(ch, list_bonus_types());
+      send_to_char(ch, "@YPlease note that bonuses of the same type @RDO NOT@Y stack in d20 rules.\r\n");
+      return TRUE;
+    }
+
+    if (bt == APPLY_ACCURACY && GET_OBJ_TYPE(obj) != ITEM_WEAPON) {
+      send_to_char(ch, "Only weapons can be given that bonus.\r\n");
+      send_to_char(ch, "@YPlease note that bonuses of the same type @RDO NOT@Y stack in d20 rules.\r\n");
+      return TRUE;
+    }
+
+    if (bt == APPLY_AC_ARMOR && !CAN_WEAR(obj, ITEM_WEAR_BODY)) {
+      send_to_char(ch, "Only body armor can be given that bonus.\r\n");
+      send_to_char(ch, "@YPlease note that bonuses of the same type @RDO NOT@Y stack in d20 rules.\r\n");
+      return TRUE;
+    }
+
+    if (bt == APPLY_AC_SHIELD && !CAN_WEAR(obj, ITEM_WEAR_SHIELD)) {
+      send_to_char(ch, "Only shields can be given that bonus.\r\n");
+      send_to_char(ch, "@YPlease note that bonuses of the same type @RDO NOT@Y stack in d20 rules.\r\n");
+      return TRUE;
+    }
+
+    if (!*arg4) {
+      send_to_char(ch, "How much would you like the bonus to be?\r\n");
+      send_to_char(ch, "@YPlease note that bonuses of the same type @RDO NOT@Y stack in d20 rules.\r\n");
+      return TRUE;
+    }
+
+    if ((bonus = atoi(arg4)) <= 0) {
+      send_to_char(ch, "The bonus must be greater than 0.\r\n");
+      send_to_char(ch, "@YPlease note that bonuses of the same type @RDO NOT@Y stack in d20 rules.\r\n");
+      return TRUE;
+    }
+
+    if ((bonus = atoi(arg4)) > 100) {
+      send_to_char(ch, "The bonus must be less than 100.\r\n");
+      send_to_char(ch, "@YPlease note that bonuses of the same type @RDO NOT@Y stack in d20 rules.\r\n");
+      return TRUE;
+    }
+
+    obj->affected[0].location = bt;
+    obj->affected[0].modifier = atoi(arg4);
+
+    if ((bt == APPLY_AC_SHIELD || bt == APPLY_AC_DEFLECTION || bt == APPLY_AC_NATURAL || bt == APPLY_AC_ARMOR))
+      obj->affected[0].modifier *= 10;
+
+    if (bt == APPLY_ACCURACY) {
+      obj->affected[1].location = APPLY_DAMAGE;
+      obj->affected[1].modifier = atoi(arg4);
+    }
+
+    GET_OBJ_LEVEL(obj) = set_object_level(obj);
+    GET_OBJ_COST(obj) = MAX(10, 100 + GET_OBJ_LEVEL(obj) * 50 * MAX(1, GET_OBJ_LEVEL(obj) - 1) + GET_OBJ_COST(obj));
+
+    int cost = MAX(10, GET_OBJ_LEVEL(obj) * (GET_OBJ_LEVEL(obj) / 2) * 3);
+
+    spell_identify(20, ch, ch, obj, NULL);
+
+    if (GET_OBJ_LEVEL(obj) > GET_CLASS_LEVEL(ch)) {
+      send_to_char(ch, "You cannot buy an item whose level is greater than yours.\r\n");
+      send_to_char(ch, "@YPlease note that bonuses of the same type @RDO NOT@Y stack in d20 rules.\r\n");
+      return TRUE;
+    }
+
+    if (GET_QUESTPOINTS(ch) < cost) {
+      send_to_char(ch, "That item costs %d reputation points and you only have %d.\r\n", cost, GET_QUESTPOINTS(ch));
+      send_to_char(ch, "@YPlease note that bonuses of the same type @RDO NOT@Y stack in d20 rules.\r\n");
+      return TRUE;
+    }
+
+    GET_QUESTPOINTS(ch) -= cost;
+
+    SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_UNIQUE_SAVE);
+    char buf[200] = {'\0'};
+    sprintf(buf, "%s +%d %s", obj->short_description, bonus, get_bonus_type(arg3));
+    obj->short_description = strdup(buf);
+    obj->name = strdup(buf);
+    sprintf(buf, "%s +%d %s lies here.", CAP(obj->short_description), bonus, get_bonus_type(arg3));
+    obj->description = strdup(buf);
+
+    obj_to_char(obj, ch);
+
+    send_to_char(ch, "You purchase %s for %d reputation points.\r\n", obj->short_description, cost);
+    return TRUE;
+  } else if (is_abbrev(arg, "list")) {
+
+    if (!*arg2) {
+      send_to_char(ch, "Please specify either armor, weapon or other.\r\n");
+      send_to_char(ch, "@YPlease note that bonuses of the same type @RDO NOT@Y stack in d20 rules.\r\n");
+      return TRUE;
+    }
+
+    int type = ITEM_OTHER;
+
+    if (is_abbrev(arg2, "armor"))
+      type = ITEM_ARMOR;
+    else if (is_abbrev(arg2, "weapon"))
+      type = ITEM_WEAPON;
+    else if (is_abbrev(arg2, "other"))
+      type = ITEM_WORN;
+    else {
+      send_to_char(ch, "Please specify either armor, weapon or other.\r\n");
+      send_to_char(ch, "@YPlease note that bonuses of the same type @RDO NOT@Y stack in d20 rules.\r\n");
+      return TRUE;
+    }
+
+    if (!*arg3) {
+      send_to_char(ch, list_bonus_types());
+      send_to_char(ch, "@YPlease note that bonuses of the same type @RDO NOT@Y stack in d20 rules.\r\n");
+      return TRUE;
+    }
+
+    if ((bt = get_bonus_type_int(arg3)) == 0) {
+      send_to_char(ch, "That's an invalid bonus type.\r\n\r\n");
+      send_to_char(ch, list_bonus_types());
+      send_to_char(ch, "@YPlease note that bonuses of the same type @RDO NOT@Y stack in d20 rules.\r\n");
+      return TRUE;
+    }
+
+    if (!*arg4) {
+      send_to_char(ch, "How much would you like the bonus to be?\r\n");
+      send_to_char(ch, "@YPlease note that bonuses of the same type @RDO NOT@Y stack in d20 rules.\r\n");
+      return TRUE;
+    }
+
+    if ((bonus = atoi(arg4)) <= 0) {
+      send_to_char(ch, "The bonus must be greater than 0.\r\n");
+      send_to_char(ch, "@YPlease note that bonuses of the same type @RDO NOT@Y stack in d20 rules.\r\n");
+      return TRUE;
+    }
+
+    char buf[100] = {'\0'};
+    int cost = 0;
+
+    struct obj_data *obj = NULL;
+    int i = 0;
+    int vnum = 0;
+
+    send_to_char(ch, "%-5s %-6s %-7s %-35s\r\n----- ------ -------------------------\r\n", "VNUM", "COST", "MIN-LVL", "ITEM");
+
+    for (i = 30000; i < 30299; i++) {
+      vnum = i;
+      if (!((vnum >= 30000 && vnum <= 30083) || (vnum >= 30085 && vnum <= 30092) || vnum == 30095 || (vnum >= 30100 && vnum <= 30105))) {
+        continue;
+      }
+      if (obj)
+        extract_obj(obj);
+      obj = read_object(i, VIRTUAL);
+      if (!obj)
+        continue;
+      if (GET_OBJ_TYPE(obj) != type)
+        continue;
+      obj->affected[0].location = bt;
+      obj->affected[0].modifier = atoi(arg4);
+
+      if ((bt == APPLY_AC_SHIELD || bt == APPLY_AC_DEFLECTION || bt == APPLY_AC_NATURAL || bt == APPLY_AC_ARMOR))
+        obj->affected[0].modifier *= 10;
+
+      if (bt == APPLY_ACCURACY) {
+        obj->affected[1].location = APPLY_DAMAGE;
+        obj->affected[1].modifier = atoi(arg4);
+      }
+
+      GET_OBJ_LEVEL(obj) = set_object_level(obj);
+      GET_OBJ_COST(obj) = MAX(10, 100 + GET_OBJ_LEVEL(obj) * 50 * MAX(1, GET_OBJ_LEVEL(obj) - 1) + GET_OBJ_COST(obj));
+
+      cost = MAX(10, GET_OBJ_LEVEL(obj) * (GET_OBJ_LEVEL(obj) / 2) * 3);
+
+      sprintf(buf, "%s +%d %s", obj->short_description, bonus, get_bonus_type(arg3));
+      send_to_char(ch, "%-5d %-6d %d %-35s\r\n", i, cost, GET_OBJ_LEVEL(obj), buf);
+    }
+    send_to_char(ch, "\r\n");
+    send_to_char(ch, "@YPlease note that bonuses of the same type @RDO NOT@Y stack in d20 rules.\r\n");
+    return TRUE;
+  } else {
+    send_to_char(ch, "The syntax for this command is: 'item buy <vnum>' or 'item list <weapons|armor|other>'.\r\n");
+    send_to_char(ch, "@YPlease note that bonuses of the same type @RDO NOT@Y stack in d20 rules.\r\n");
+    return TRUE;
+  }
+
+  return TRUE;
+}
+*/
+
+/* research spells for wizard - this is meant to fill the gap in the game we
+   have for lack of scroll placement, special thanks to Stephen Squires for
+   parts of the code */
 SPECIAL(wizard_library) {
   bool found = FALSE, full_spellbook = TRUE;
   struct obj_data *obj = NULL;
@@ -3995,10 +4236,10 @@ struct obj_data *find_ship(int room) {
             return obj;
         }
       }
-      return 0;
+      return FALSE;
     }
   }
-  return 0;
+  return FALSE;
 }
 
 void move_ship(struct obj_data *ship, int dir) {
@@ -4100,18 +4341,18 @@ ACMD(do_disembark) {
 /* from homeland */
 SPECIAL(spikeshield) {
   if (!ch)
-    return 0;
+    return FALSE;
 
   struct char_data *vict = FIGHTING(ch);
 
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "On shieldpunch, procs 'spikes', on shieldblock procs "
             "'life steal.'\r\n");
-    return 1;
+    return TRUE;
   }
 
   if (!argument || cmd || !vict)
-    return 0;
+    return FALSE;
 
   //blocking
   if (!strcmp(argument, "shieldblock") && !rand_number(0, 6)) {
@@ -4126,7 +4367,7 @@ SPECIAL(spikeshield) {
             FALSE, ch, (struct obj_data *) me, vict, TO_VICT);
     damage(ch, vict, 5, -1, DAM_ENERGY, FALSE);  // type -1 = no dam message
     call_magic(ch, ch, 0, SPELL_CURE_LIGHT, 0, 1, CAST_SPELL);
-    return 1;
+    return TRUE;
   }
 
   if (!strcmp(argument, "shieldpunch")) {
@@ -4141,10 +4382,10 @@ SPECIAL(spikeshield) {
             FALSE, ch, (struct obj_data *) me, vict, TO_VICT);
     damage(ch, vict, (dice(3, 8) + 4), -1, DAM_PUNCTURE,
             FALSE);  // type -1 = no dam message
-    return 1;
+    return TRUE;
   }
 
-  return 0;
+  return FALSE;
 }
 
 /* from homeland */
@@ -4153,22 +4394,22 @@ SPECIAL(viperdagger) {
   int spellnum = SPELL_SLOW;
 
   if (!ch)
-    return 0;
+    return FALSE;
 
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Proc: Slowness or Harm.\r\n");
-    return 1;
+    return TRUE;
   }
 
   victim = FIGHTING(ch);
   if (!victim || cmd)
-    return 0;
+    return FALSE;
 
   if (AFF_FLAGGED(victim, AFF_SLOW))
     spellnum = SPELL_HARM;
 
   if (rand_number(0, 23))
-    return 0;
+    return FALSE;
 
   weapons_spells(
           "\tLThe jeweled eyes on your dagger glow \tRred \tLas it comes alive, writhes and\tn\r\n"
@@ -4186,7 +4427,7 @@ SPECIAL(viperdagger) {
           "\tLas \tWhuge fangs \tLthrust out.  It strikes out violently and bites into \tn$N\tn\r\n"
           "\tLinjecting $M with venom then recoils and transforms back into a dagger.\tn",
           ch, victim, (struct obj_data *) me, spellnum);
-  return 1;
+  return TRUE;
 }
 
 /* from homeland */
@@ -4194,12 +4435,12 @@ SPECIAL(ches) {
   struct char_data *vict;
 
   if (!ch)
-    return 0;
+    return FALSE;
 
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Invoke haste by keyword 'ches' once per day.  Procs shock "
             "on critical.\r\n");
-    return 1;
+    return TRUE;
   }
 
   vict = FIGHTING(ch);
@@ -4229,19 +4470,19 @@ SPECIAL(ches) {
               "\tLcausing $S hair to stand on end.\tn\tn\r\n",
               FALSE, ch, (struct obj_data *) me, vict, TO_NOTVICT);
       damage(ch, vict, 20 + dice(2, 8), -1, DAM_ELECTRIC, FALSE);  // type -1 = no dam message
-      return 1;
+      return TRUE;
     }
   }
 
   // haste once a day on command
   if (cmd && argument && cmd_info[cmd].command_pointer == do_say) {
     if (!is_wearing(ch, 128106))
-      return 0;
+      return FALSE;
     skip_spaces(&argument);
     if (!strcmp(argument, "ches")) {
       if (GET_OBJ_SPECTIMER((struct obj_data *) me, 0) > 0) {
         send_to_char(ch, "Nothing happens.\r\n");
-        return 1;
+        return TRUE;
       }
       act(    "\tcAs you quietly speak the word of power to your stiletto\tn\r\n"
               "\tcthe aquamarine on the hilt begins to fizzle and pop. The\tn\r\n"
@@ -4255,32 +4496,32 @@ SPECIAL(ches) {
 
       call_magic(ch, ch, 0, SPELL_HASTE, 0, 30, CAST_POTION);
       GET_OBJ_SPECTIMER((struct obj_data *) me, 0) = 12;
-      return 1;
+      return TRUE;
     }
   }
-  return 0;
+  return FALSE;
 }
 
 /* from homeland */
 SPECIAL(courage) {
   if (!ch)
-    return 0;
+    return FALSE;
 
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Invoke by 'courage' once a week.\r\n");
-    return 1;
+    return TRUE;
   }
 
   if (cmd && argument && cmd_info[cmd].command_pointer == do_say) {
     if (!is_wearing(ch, 139251) && !is_wearing(ch, 139250))
-      return 0;
+      return FALSE;
 
     skip_spaces(&argument);
     if (!strcmp(argument, "courage")) {
 
       if (GET_OBJ_SPECTIMER((struct obj_data *) me, 0) > 0) {
         send_to_char(ch, "Nothing happens.\r\n");
-        return 1;
+        return TRUE;
       }
 
       act("$n \tLinvokes $s \tygolden mace\tn.", FALSE, ch, 0, 0, TO_ROOM);
@@ -4290,17 +4531,17 @@ SPECIAL(courage) {
       call_magic(ch, ch, 0, SPELL_MASS_ENHANCE, 0, GET_LEVEL(ch), CAST_POTION);
 
       GET_OBJ_SPECTIMER((struct obj_data *) me, 0) = 12 * 5;
-      return 1;
+      return TRUE;
     }
-    return 0;
+    return FALSE;
   }
   if (cmd)
-    return 0;
+    return FALSE;
 
   struct char_data *vict = FIGHTING(ch);
 
   if (!vict)
-    return 0;
+    return FALSE;
 
   int power = 25;
   if (GET_OBJ_VNUM(((struct obj_data *) me)) == 139250)
@@ -4308,7 +4549,7 @@ SPECIAL(courage) {
   if (rand_number(0, power)) {
     //TODO, cool damage proc here..
   }
-  return 1;
+  return TRUE;
 }
 
 /* from homeland */
@@ -4317,11 +4558,11 @@ SPECIAL(flamingwhip) {
 
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Proc: Fire Damage.\r\n");
-    return 1;
+    return TRUE;
   }
 
   if (!ch || cmd || !vict || rand_number(0, 16))
-    return 0;
+    return FALSE;
 
   weapons_spells(
           "\trYour $p \trlashes out with infernal \tRfire\tr, burning $N\tr badly!\tn",
@@ -4330,7 +4571,7 @@ SPECIAL(flamingwhip) {
           ch, vict, (struct obj_data *) me, 0);
   damage(ch, vict, dice(6, 4), -1, DAM_FIRE, FALSE);  // type -1 = no dam message
 
-  return 1;
+  return TRUE;
 }
 
 /* Helmblade vnum 121207
@@ -4341,13 +4582,13 @@ SPECIAL(helmblade) {
 
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Proc vs Evil: Cure Serious or Dispel Evil.\r\n");
-    return 1;
+    return TRUE;
   }
 
   if (!ch || cmd || !vict)
-    return 0;
+    return FALSE;
   if (!IS_EVIL(vict))
-    return 0;
+    return FALSE;
 
   switch (rand_number(0, 40)) {
     case 0:
@@ -4357,16 +4598,16 @@ SPECIAL(helmblade) {
               "\tWThe \tWHOLY\tW power of \tYHelm\tW flows through $n's\tW body, cleaning $m of \tLevil\tW and nourishing $m.\tn",
               ch, vict, (struct obj_data *) me, 0);
       call_magic(ch, ch, 0, SPELL_CURE_SERIOUS, 0, GET_LEVEL(ch), CAST_POTION);
-      return 1;
+      return TRUE;
     case 1:
       weapons_spells(
               "\tWThe power of \tYHelm\tW guides and strengthens thy hand, dispelling the \tLevil\tW of the world from $N.\tn",
               "\tWThe power of \tYHelm\tW guides and strengthen the hand of $n, dispelling the \tLevil\tW of the world from YOU!.\tn",
               "\tWThe power of \tYHelm\tW guides and strengthen the hand of $n, dispelling the \tLevil\tW of the world from $N.\tn",
               ch, vict, (struct obj_data *) me, SPELL_DISPEL_EVIL);
-      return 1;
+      return TRUE;
     default:
-      return 0;
+      return FALSE;
   }
 }
 
@@ -4377,15 +4618,15 @@ SPECIAL(flaming_scimitar) {
   struct obj_data *weepan = (struct obj_data *) me;
 
   if (!ch)
-    return 0;
+    return FALSE;
 
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "???");
-    return 1;
+    return TRUE;
   }
 
   if (cmd || !vict || GET_POS(ch) == POS_DEAD)
-    return 0;
+    return FALSE;
 
   if (GET_CLASS(ch) != CLASS_RANGER) {
     act("\tWA \trsearing hot\tW pain travels up your arm as $p \tWrips itself from your unworthy grasp!\tn", FALSE, ch,
@@ -4394,7 +4635,7 @@ SPECIAL(flaming_scimitar) {
             NULL, TO_ROOM);
     obj_to_room(unequip_char(ch, weepan->worn_on), ch->in_room);
     GET_HIT(ch) = 0;
-    return 1;
+    return TRUE;
   }
 
   if (!rand_number(0, 22)) {
@@ -4409,7 +4650,7 @@ SPECIAL(flaming_scimitar) {
               "\tr$n's \trlongsword begins to \tLvibrate violently\tr in $s hands as it "
               "forces $s arm skyward and flashes with intense magical energy.\tn",
               ch, vict, (struct obj_data *) me, SPELL_FLAME_STRIKE);
-      return 1;
+      return TRUE;
     } else {
       weapons_spells("\tLIn a \trflurry \tLof movement, your swords cross over one another, "
               "resulting in a \tCbrilliant \tWflash \tLof \tbmagical energy \tLas their "
@@ -4423,10 +4664,10 @@ SPECIAL(flaming_scimitar) {
               "resulting in a \tCbrilliant \tWflash \tLof \tbmagical energy \tLas their "
               "powers combine, bringing down a violent storm of \trFIRE\tL upon all.\tn"
               , ch, vict, (struct obj_data *) me, SPELL_FIRE_STORM);
-      return 1;
+      return TRUE;
     }
   }
-  return 0;
+  return FALSE;
 }
 
 /* from homeland */
@@ -4435,13 +4676,13 @@ SPECIAL(frosty_scimitar) {
   struct char_data *vict = FIGHTING(ch);
   struct obj_data *weepan = (struct obj_data *) me;
 
-  if (!ch) return 0;
+  if (!ch) return FALSE;
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "???");
-    return 1;
+    return TRUE;
   }
   if (cmd || !vict || GET_POS(ch) == POS_DEAD)
-    return 0;
+    return FALSE;
 
   if (GET_CLASS(ch) != CLASS_RANGER) {
     act("\tWA \trsearing hot\tW pain travels up your arm as $p \tWrips itself from your unworthy grasp!\tn", FALSE, ch,
@@ -4450,7 +4691,7 @@ SPECIAL(frosty_scimitar) {
             NULL, TO_ROOM);
     obj_to_room(unequip_char(ch, weepan->worn_on), ch->in_room);
     GET_HIT(ch) = 0;
-    return 1;
+    return TRUE;
   }
 
   if (!rand_number(0, 18)) {
@@ -4463,7 +4704,7 @@ SPECIAL(frosty_scimitar) {
               "\tc$n's \tcscimitar begins to \tWvibrate violently\tc in $s hands as it "
               "forces $s arm skyward and flashes with intense magical energy.\tn",
               ch, vict, (struct obj_data *) me, SPELL_CONE_OF_COLD);
-      return 1;
+      return TRUE;
     } else {
       weapons_spells(
               "\tLIn a \trflurry \tLof movement, your swords cross over one another, "
@@ -4478,10 +4719,10 @@ SPECIAL(frosty_scimitar) {
               "resulting in a \tCbrilliant \tWflash \tLof \tbmagical energy \tLas their "
               "powers combine, bringing down a violent storm of \tCICE\tL upon all.\tn",
               ch, vict, (struct obj_data *) me, SPELL_ICE_STORM);
-      return 1;
+      return TRUE;
     }
   }
-  return 0;
+  return FALSE;
 }
 /* from homeland */
 SPECIAL(disruption_mace) {
@@ -4489,18 +4730,18 @@ SPECIAL(disruption_mace) {
 
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Proc: Flame Strike.\r\n");
-    return 1;
+    return TRUE;
   }
 
   if (!ch || cmd || !vict || rand_number(0, 20))
-    return 0;
+    return FALSE;
 
   weapons_spells(
           "\trYour\tn $p \tris engulfed in flames!\tn",
           "$n's $p \tris engulfed in flames!\tn",
           "$n's $p \tris engulfed in flames!\tn",
           ch, vict, (struct obj_data *) me, SPELL_FLAME_STRIKE);
-  return 1;
+  return TRUE;
 }
 
 /*
@@ -4508,17 +4749,17 @@ SPECIAL(disruption_mace) {
 SPECIAL(forest_idol)
 {
   if( cmd )
-    return 0;
+    return FALSE;
   if( !ch )
-    return 0;
+    return FALSE;
 
   struct obj_data *obj = (struct obj_data *)me;
 
   if( obj->carried_by != ch )
-    return 0;
+    return FALSE;
 
   if( GET_CLASS(ch) == CLASS_ANTIPALADIN )
-    return 0;
+    return FALSE;
 
   send_to_char("\tgYour idol melts in your hands.\tn\r\n", ch );
   obj_from_char(obj);
@@ -4529,22 +4770,22 @@ SPECIAL(forest_idol)
 /* from homeland */
 SPECIAL(haste_bracers) {
   if (!ch)
-    return 0;
+    return FALSE;
 
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Proc: Haste once per week on keyword 'quicksilver.'\r\n");
-    return 1;
+    return TRUE;
   }
 
   if ((cmd && argument && CMD_IS("say")) || (cmd && argument && CMD_IS("'"))) {
     if (!is_wearing(ch, 138415))
-      return 0;
+      return FALSE;
 
     skip_spaces(&argument);
     if (!strcmp(argument, "quicksilver")) {
       if (GET_OBJ_SPECTIMER((struct obj_data *) me, 0) > 0) {
         send_to_char(ch, "\tWYour \tcbracers\tW have not regained their \tcessence\tW.\tn\r\n");
-        return 1;
+        return TRUE;
       }
       act("\tWYou whisper softly to your bracers.\tn\r\n"
               "\tWYour $p \tcglow with a blue aura.\tn\r\n"
@@ -4556,10 +4797,10 @@ SPECIAL(haste_bracers) {
               FALSE, ch, (struct obj_data *) me, 0, TO_ROOM);
       call_magic(ch, ch, 0, SPELL_HASTE, 0, 30, CAST_SPELL);
       GET_OBJ_SPECTIMER((struct obj_data *) me, 0) = 84;
-      return 1;
+      return TRUE;
     }
   }
-  return 0;
+  return FALSE;
 }
 
 /* from homeland */
@@ -4568,11 +4809,11 @@ SPECIAL(xvim_normal) {
   int dam, i, num = dice(1, 4);
 
   if (!ch)
-    return 0;
+    return FALSE;
 
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "???");
-    return 1;
+    return TRUE;
   }
 
   if (!cmd && vict)
@@ -4596,7 +4837,7 @@ SPECIAL(xvim_normal) {
         for (i = 0; i < num; i++)
           if (vict)
             hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
-        return 1;
+        return TRUE;
       case 2:
         if (!rand_number(0, 100)) {
           weapons_spells(
@@ -4629,9 +4870,9 @@ SPECIAL(xvim_normal) {
           }
           for (tch = world[ch->in_room].people; tch; tch = tch->next_in_room)
             USE_MOVE_ACTION(tch);
-          return 1;
+          return TRUE;
         }
-        return 0;
+        return FALSE;
       case 3:
       case 4:
       case 5:
@@ -4644,14 +4885,14 @@ SPECIAL(xvim_normal) {
                   "\tLinto $s wounds, \tWhealing\tL them by the unholy power of \tGXvim\tL.\tn"
                   , FALSE, ch, 0, 0, TO_ROOM);
           GET_HIT(ch) = MIN(GET_MAX_HIT(ch), GET_HIT(ch) + dice(10, 10));
-          return 1;
+          return TRUE;
         }
-        return 0;
+        return FALSE;
         break;
       default:
-        return 0;
+        return FALSE;
     }
-  return 0;
+  return FALSE;
 }
 
 /* from homeland */
@@ -4660,11 +4901,11 @@ SPECIAL(xvim_artifact) {
   int num = (dice(1, 4) + 2), dam, i = 0;
 
   if (!ch)
-    return 0;
+    return FALSE;
 
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "???");
-    return 1;
+    return TRUE;
   }
 
   if (!cmd && vict) {
@@ -4688,7 +4929,7 @@ SPECIAL(xvim_artifact) {
         for (i = 0; i < num; i++)
           if (vict)
             hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
-        return 1;
+        return TRUE;
       case 2:
         if (!rand_number(0, 100)) {
           weapons_spells(
@@ -4721,9 +4962,9 @@ SPECIAL(xvim_artifact) {
           }
           for (tch = world[ch->in_room].people; tch; tch = tch->next_in_room)
             USE_MOVE_ACTION(tch);
-          return 1;
+          return TRUE;
         }
-        return 0;
+        return FALSE;
       case 3:
       case 4:
       case 5:
@@ -4735,19 +4976,19 @@ SPECIAL(xvim_artifact) {
                   "\tLinto $s wounds, \tWhealing\tL them by the unholy power of \tGXvim\tL.\tn"
                   , FALSE, ch, 0, 0, TO_ROOM);
           GET_HIT(ch) = MIN(GET_MAX_HIT(ch), GET_HIT(ch) + dice(11, 10));
-          return 1;
+          return TRUE;
         }
-        return 0;
+        return FALSE;
         break;
       default:
-        return 0;
+        return FALSE;
     }
   }
 
   skip_spaces(&argument);
 
   if (!is_wearing(ch, 100501))
-    return 0;
+    return FALSE;
 
   if (!strcmp(argument, "nightmare") && CMD_IS("whisper")) {
     if (mob_index[real_mobile(100505)].number < 1) {
@@ -4764,13 +5005,13 @@ SPECIAL(xvim_artifact) {
       add_follower(pet, ch);
       GET_MAX_HIT(pet) = GET_HIT(ch) = GET_LEVEL(ch) * 10 + dice(GET_LEVEL(ch), 6);
       SET_BIT_AR(AFF_FLAGS(pet), AFF_CHARM);
-      return 1;
+      return TRUE;
     } else {
       send_to_char(ch, "\tLAs you whisper '\tmnightmare\tL' to your \trsword\tL, nothing seems to happen.\tn\r\n");
-      return 1;
+      return TRUE;
     }
   }
-  return 0;
+  return FALSE;
 }
 
 /* from homeland */
@@ -4779,18 +5020,18 @@ SPECIAL(dragonbone_hammer) {
 
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Proc: Ice Dagger.\r\n");
-    return 1;
+    return TRUE;
   }
 
   if (!ch || cmd || !vict || rand_number(0, 10))
-    return 0;
+    return FALSE;
 
   weapons_spells(
           "Your $p \tCvibrates violently!\tn",
           "$n's $p \tCvibrates violently!\tn",
           "$n's $p \tCvibrates violently!\tn",
           ch, vict, (struct obj_data *) me, SPELL_ICE_DAGGER);
-  return 1;
+  return TRUE;
 }
 
 /* from homeland */
@@ -4799,11 +5040,11 @@ SPECIAL(prismorb) {
 
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Proc: Prismatic Spray.\r\n");
-    return 1;
+    return TRUE;
   }
 
   if (!ch || cmd || !vict || rand_number(0, 25))
-    return 0;
+    return FALSE;
 
   weapons_spells(
           "\tWYour \tn$p \tWpulsates violently.\tn",
@@ -4811,7 +5052,7 @@ SPECIAL(prismorb) {
           "\tW$n\tW's \tn$p \tWpulsates violently.\tn",
           ch, vict, (struct obj_data *) me, SPELL_PRISMATIC_SPRAY);
 
-  return 1;
+  return TRUE;
 }
 
 /* from homeland */
@@ -4822,21 +5063,21 @@ SPECIAL(dorfaxe) {
 
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Proc vs Evil: Clangeddins Wrath.\r\n");
-    return 1;
+    return TRUE;
   }
 
   if (!ch || cmd || !vict)
-    return 0;
+    return FALSE;
 
   if (GET_RACE(ch) == RACE_DWARF)
     num = 12;
 
   if (!IS_GOOD(ch))
-    return 0;
+    return FALSE;
   if (!IS_EVIL(vict))
-    return 0;
+    return FALSE;
   if (rand_number(0, num))
-    return 0;
+    return FALSE;
 
   dam = rand_number(6, 12);
 
@@ -4858,7 +5099,7 @@ SPECIAL(dorfaxe) {
           ch, vict, (struct obj_data *) me, 0);
 
   damage(ch, vict, dam, -1, DAM_HOLY, FALSE);  // type -1 = no dam message
-  return 1;
+  return TRUE;
 }
 
 /* from homeland */
@@ -4867,19 +5108,19 @@ SPECIAL(acidstaff) {
 
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Proc: Acid Arrow.\r\n");
-    return 1;
+    return TRUE;
   }
 
   if (!ch)
-    return 0;
+    return FALSE;
 
   victim = FIGHTING(ch);
 
   if (!victim || cmd)
-    return 0;
+    return FALSE;
 
   if (rand_number(0, 15))
-    return 0;
+    return FALSE;
 
   weapons_spells(
           "\tLYour staff vibrates and hums then glows \tGbright green\tL.\tn\r\n"
@@ -4896,7 +5137,7 @@ SPECIAL(acidstaff) {
           "\tLThe tiny black dragons on $s staff come alive and roar loudly\tn\r\n"
           "\tLthen spew forth vile \tgacid\tL at \tn$N.\tn"
           , ch, victim, (struct obj_data *) me, SPELL_ACID_ARROW);
-  return 1;
+  return TRUE;
 }
 
 /* from homeland */
@@ -4906,19 +5147,19 @@ SPECIAL(sarn) {
 
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Proc: Harm, more effective for Duergar.\r\n");
-    return 1;
+    return TRUE;
   }
 
   if (!ch || cmd || !vict)
-    return 0;
+    return FALSE;
 
   if (GET_RACE(ch) == RACE_DUERGAR)
     num = 12;
 
   if (!IS_EVIL(ch))
-    return 0;
+    return FALSE;
   if (rand_number(0, num))
-    return 0;
+    return FALSE;
 
   weapons_spells(
           "\tLThe power of \twLad\tWu\twgu\tWe\twr\tL guides thine hand and \trstr\tRe\trngth\tRe\trns\tL it.\tn\r\n"
@@ -4931,7 +5172,7 @@ SPECIAL(sarn) {
           "\tLAs the \traxe\tL impacts with \tn$N\tL, \twd\tWi\twv\tWi\twne\tL power is unleashed.\tn",
           ch, vict, (struct obj_data *) me, SPELL_HARM);
 
-  return 1;
+  return TRUE;
 }
 
 /* from homeland */
@@ -4941,11 +5182,11 @@ SPECIAL(purity) {
 
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Proc:  Holy Light.\r\n");
-    return 1;
+    return TRUE;
   }
 
   if (!ch || cmd || !vict || rand_number(0, 20))
-    return 0;
+    return FALSE;
 
   dam = dice(2, 24);
   if (dam < GET_HIT(vict) + 10) {
@@ -4978,7 +5219,7 @@ SPECIAL(purity) {
     call_magic(ch, vict, 0, SPELL_BLINDNESS, 0, GET_LEVEL(ch), CAST_SPELL);
   }
   damage(ch, vict, dam, -1, DAM_HOLY, FALSE);  // type -1 = no dam message
-  return 1;
+  return TRUE;
 }
 
 /* from homeland */
@@ -4987,11 +5228,11 @@ SPECIAL(etherealness) {
 
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Proc:  Slow.\r\n");
-    return 1;
+    return TRUE;
   }
 
   if (!ch || cmd || !vict || rand_number(0, 15))
-    return 0;
+    return FALSE;
 
   weapons_spells(
           "\twWaves of \tWghostly \twenergy starts to flow from your $p.",
@@ -4999,7 +5240,7 @@ SPECIAL(etherealness) {
           "\twWaves of \tWghostly \twenergy starts to flow from $n's $p.",
           ch, vict, (struct obj_data *) me, SPELL_SLOW);
 
-  return 1;
+  return TRUE;
 }
 
 /* from homeland */
@@ -5008,11 +5249,11 @@ SPECIAL(greatsword) {
 
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Proc:  Silver Flames.\r\n");
-    return 1;
+    return TRUE;
   }
 
   if (!ch || cmd || !vict || rand_number(0, 20))
-    return 0;
+    return FALSE;
 
   int dam = 30 + dice(5, 5);
 
@@ -5020,7 +5261,7 @@ SPECIAL(greatsword) {
     dam = GET_HIT(vict);
 
   if (dam < 21)
-    return 0;
+    return FALSE;
 
   weapons_spells(
           "\tCSilvery flames shoots from your $p\tC towards $N\tC.\r\nThe flames sear and burn $N\tC who screams in pain.\tn",
@@ -5028,7 +5269,7 @@ SPECIAL(greatsword) {
           "\tCSilvery flames shoot from $n's $p\tC towards $N\tC.\r\nThe flames sear and burn $N\tC who screams in pain.\tn",
           ch, vict, (struct obj_data *) me, 0);
   damage(ch, vict, dam, -1, DAM_ENERGY, FALSE);  // type -1 = no dam message
-  return 1;
+  return TRUE;
 }
 
 /* from homeland */
@@ -5040,14 +5281,14 @@ SPECIAL(fog_dagger) {
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Procs paralysis on backstab, whisper 'haze' for foggy"
             " cloud.\r\n");
-    return 1;
+    return TRUE;
   }
 
   if (!is_wearing(ch, 115003))
-    return 0;
+    return FALSE;
 
   if (!ch || !cmd)
-    return 0;
+    return FALSE;
 
   skip_spaces(&argument);
 
@@ -5056,7 +5297,7 @@ SPECIAL(fog_dagger) {
     if ((GET_OBJ_SPECTIMER((struct obj_data *) me, 0) > 0)) {
       act("\tLYou whisper a word to your\tn $p,\tL and nothing happens.\tn", FALSE, ch,
               (struct obj_data *) me, 0, TO_CHAR);
-      return 1;
+      return TRUE;
     } else {
       weapons_spells(
               "\tLA hazy cloud is emitted from your\tn $p\tL, and enshrouds \tn$N \tLin a dark mist!\tn",
@@ -5084,7 +5325,7 @@ SPECIAL(fog_dagger) {
       clearMemory(vict);
 
       GET_OBJ_SPECTIMER((struct obj_data *) me, 0) = 24;
-      return 1;
+      return TRUE;
     }
     // Now check if they are trying to backstab
   } else if (CMD_IS("backstab") &&
@@ -5100,10 +5341,10 @@ SPECIAL(fog_dagger) {
         affect_join(vict, &af2, TRUE, FALSE, FALSE, FALSE);
       }
     }
-    return 1;
+    return TRUE;
   }
 
-  return 0;
+  return FALSE;
 }
 
 /* from homeland */
@@ -5111,7 +5352,7 @@ SPECIAL(tyrantseye) {
   struct char_data *vict = FIGHTING(ch), *i = NULL, *in = NULL;
 
   if (!ch || cmd || !vict)
-    return 0;
+    return FALSE;
 
   if (!IS_NPC(ch)) {
     act("\tLA \tWbolt \tLof \tGgreen \tLLighting slams into $n from above!\tn",
@@ -5136,7 +5377,7 @@ SPECIAL(tyrantseye) {
       call_magic(ch, vict, 0, SPELL_MISSILE_STORM, 0, 30, CAST_SPELL);
       call_magic(ch, vict, 0, SPELL_BLINDNESS, 0, 30, CAST_SPELL);
       call_magic(ch, vict, 0, SPELL_SLOW, 0, 30, CAST_SPELL);
-      return 1;
+      return TRUE;
     case 10:
       weapons_spells(
               "\tGIF YOU SEE THIS TALK TO A GOD",
@@ -5154,22 +5395,22 @@ SPECIAL(tyrantseye) {
           call_magic(ch, i, 0, SPELL_CURSE, 0, 30, CAST_SPELL);
           call_magic(ch, i, 0, SPELL_POISON, 0, 30, CAST_SPELL);
         }
-        return 1;
+        return TRUE;
       }
     default:
-      return 0;
+      return FALSE;
   }
-  return 0;
+  return FALSE;
 }
 
 /* from homeland */
 SPECIAL(spiderdagger) {
   if (!ch)
-    return 0;
+    return FALSE;
 
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Procs darkfire in combat and by Invoking Lloth she protects any drow.\r\n");
-    return 1;
+    return TRUE;
   }
 
   struct char_data *vict;
@@ -5183,22 +5424,22 @@ SPECIAL(spiderdagger) {
             "$n\tL's $p\tL starts to \tcglow\tL as it pierces YOU!",
             "$n\tL's $p\tL starts to \tcglow\tL as it pierces \tn$N!",
             ch, vict, (struct obj_data *) me, SPELL_NEGATIVE_ENERGY_RAY);
-    return 1;
+    return TRUE;
   }
   // cloak of dark power once day on command
   if (cmd && argument && cmd_info[cmd].command_pointer == do_say) {
     if (!is_wearing(ch, 135535))
-      return 0;
+      return FALSE;
 
     skip_spaces(&argument);
     if (!strcmp(argument, "lloth")) {
       if (GET_OBJ_SPECTIMER((struct obj_data *) me, 0) > 0) {
         send_to_char(ch, "Nothing happens.\r\n");
-        return 1;
+        return TRUE;
       }
       if (GET_RACE(ch) != RACE_DROW) {
         send_to_char(ch, "Nothing happens.\r\n");
-        return 1;
+        return TRUE;
       }
       send_to_char(ch, "\tLYou invoke \tmLloth\tw.\tn\r\n");
       act("\tw$n raises $s $p \tw high and calls on \tmLloth.\tn",
@@ -5207,11 +5448,11 @@ SPECIAL(spiderdagger) {
       call_magic(ch, ch, 0, SPELL_CIRCLE_A_GOOD, 0, 30, CAST_POTION);
 
       GET_OBJ_SPECTIMER((struct obj_data *) me, 0) = 24;
-      return 1;
+      return TRUE;
     }
   }
 
-  return 0;
+  return FALSE;
 }
 
 /* from homeland */
@@ -5219,15 +5460,15 @@ SPECIAL(sparksword) {
   struct char_data *vict = FIGHTING(ch);
 
   if (!ch)
-    return 0;
+    return FALSE;
 
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Proc: Shock damage.\r\n");
-    return 1;
+    return TRUE;
   }
 
   if (cmd || !vict || rand_number(0, 20))
-    return 0;
+    return FALSE;
 
   weapons_spells(
           "\twYour $p\tw's blade \tWsparks\tw as you hit $N "
@@ -5239,7 +5480,7 @@ SPECIAL(sparksword) {
           ch, vict, (struct obj_data *) me, 0);
   damage(ch, vict, dice(9, 3), -1, DAM_ELECTRIC, FALSE);
 
-  return 1;
+  return TRUE;
 }
 
 /* from homeland */
@@ -5247,15 +5488,15 @@ SPECIAL(nutty_bracer) {
   struct char_data *vict = NULL, *victim = NULL;
 
   if (!ch)
-    return 0;
+    return FALSE;
 
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Randomly lash out...\r\n");
-    return 1;
+    return TRUE;
   }
 
   if (cmd)
-    return 0;
+    return FALSE;
 
   for (vict = world[ch->in_room].people; vict; vict = vict->next_in_room)
     if (IS_NPC(vict) && !IS_PET(vict) && (!victim || GET_LEVEL(vict) > GET_LEVEL(victim)))
@@ -5269,9 +5510,9 @@ SPECIAL(nutty_bracer) {
             "from his gut. You watch as $e lunges toward $N\tL with \tpi\tPn\tps\tpa\tPn\tpi\tPt\tpy\tL!!\tn",
             FALSE, ch, 0, victim, TO_ROOM);
     hit(ch, victim, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
-    return 1;
+    return TRUE;
   }
-  return 0;
+  return FALSE;
 }
 
 /* from homeland */
@@ -5282,13 +5523,13 @@ SPECIAL(whisperwind) {
   struct char_data *pet;
 
   if (!ch)
-    return 0;
+    return FALSE;
 
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Procs cyclone, whisper 'blur' for attack blur, whisper"
             " 'wind' to summon weapon spirit, whisper 'smite' for harm and "
             "dispel evil.\r\n");
-    return 1;
+    return TRUE;
   }
 
   /* random cyclone proc */
@@ -5303,17 +5544,17 @@ SPECIAL(whisperwind) {
             "$m to almost fumble.  As soon as $e regains control, the area is "
             "suddenly overwhelmed with vicious northern \tWgales\tc!\tn",
             ch, vict, (struct obj_data *) me, SPELL_WHIRLWIND);
-    return 1;
+    return TRUE;
   }
 
   skip_spaces(&argument);
-  if (!is_wearing(ch, 109802)) return 0;
+  if (!is_wearing(ch, 109802)) return FALSE;
   victim = ch->char_specials.fighting;
   if (!strcmp(argument, "blur") && CMD_IS("whisper")) {
     if (FIGHTING(ch) && (FIGHTING(ch)->in_room == ch->in_room)) {
       if (GET_OBJ_SPECTIMER((struct obj_data *) me, 0) > 0) {
         send_to_char(ch, "\tcAs you whisper '\tCblur\tc' to your \tWmoon\tCblade\tc, nothing happens.\tn\r\n");
-        return 1;
+        return TRUE;
       }
       act("\tcAs you whisper '\tCblur\tc' to your "
               "\tWmoon\tCblade\tc, it calls upon the northern \tWgale\r\n"
@@ -5335,9 +5576,9 @@ SPECIAL(whisperwind) {
         if (GET_POS(victim) == POS_DEAD) break;
       }
       GET_OBJ_SPECTIMER((struct obj_data *) me, 0) = 1;
-      return 1; /* end for */
+      return TRUE; /* end for */
     }/* end if-fighting */
-    else return 0;
+    else return FALSE;
   }/* end if-strcmp */
 
   else if (!strcmp(argument, "wind") && CMD_IS("whisper")) {
@@ -5361,13 +5602,13 @@ SPECIAL(whisperwind) {
       GET_LEVEL(pet) = GET_LEVEL(ch);
       GET_MAX_HIT(pet) = GET_MAX_HIT(ch);
       GET_HIT(pet) = GET_MAX_HIT(pet);
-      return 1;
+      return TRUE;
     } else {
       act("\tcAs you whisper '\tCwind\tc' to your \tWmoon\tCblade\tc, "
               "nothing seems to happen.\r\n"
               "The spirit of the blade is still somewhere in the realms!",
               1, ch, 0, FIGHTING(ch), TO_CHAR);
-      return 1;
+      return TRUE;
     }
   } else if (!strcmp(argument, "smite") && CMD_IS("whisper")) {
     if (FIGHTING(ch) && (FIGHTING(ch)->in_room == ch->in_room)) {
@@ -5399,37 +5640,37 @@ SPECIAL(whisperwind) {
           if (GET_POS(victim) == POS_DEAD) break;
         }
       }
-      return 1;
+      return TRUE;
     }
-  } else return 0;
-  return 0;
+  } else return FALSE;
+  return FALSE;
 }
 
 /* from homeland */
 SPECIAL(chionthar_ferry) {
   if (cmd)
-    return 0;
+    return FALSE;
 
   update_ship((struct obj_data *) me, 104262, 104266, 1, 4);
-  return 1;
+  return TRUE;
 }
 
 /* from homeland */
 SPECIAL(alandor_ferry) {
   if (cmd)
-    return 0;
+    return FALSE;
 
   update_ship((struct obj_data *) me, 126423, 126428, 1, 4);
-  return 1;
+  return TRUE;
 }
 
 /* from homeland */
 SPECIAL(md_carpet) {
   if (cmd)
-    return 0;
+    return FALSE;
 
   update_ship((struct obj_data *) me, 120036, 120040, 3, 10);
-  return 1;
+  return TRUE;
 }
 
 /* from homeland */
@@ -5439,7 +5680,7 @@ SPECIAL(floating_teleport) {
   room_rnum roomnum;
 
   if (cmd)
-    return 0;
+    return FALSE;
 
   if (((door = rand_number(0, 30)) < NUM_OF_DIRS) && CAN_GO(obj, door) &&
           (world[EXIT(obj, door)->to_room].zone == world[obj->in_room].zone)) {
@@ -5448,9 +5689,9 @@ SPECIAL(floating_teleport) {
     obj_from_room(obj);
     obj_to_room(obj, roomnum);
     act("$p floats in.", FALSE, 0, obj, 0, TO_ROOM);
-    return 1;
+    return TRUE;
   }
-  return 0;
+  return FALSE;
 }
 
 /* from homeland */
@@ -5458,21 +5699,21 @@ SPECIAL(vengeance) {
   struct char_data *vict = FIGHTING(ch);
 
   if (!ch)
-    return 0;
+    return FALSE;
 
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Procs mass cure light and word of faith.\r\n");
-    return 1;
+    return TRUE;
   }
 
   if (cmd || !vict)
-    return 0;
+    return FALSE;
 
   int power = 10;
   if (GET_OBJ_VNUM(((struct obj_data *) me)) == 101199)
     power = 5;
   if (rand_number(0, power))
-    return 0;
+    return FALSE;
 
   if (GET_HIT(ch) < GET_MAX_HIT(ch) && rand_number(0, 4)) {
     weapons_spells(
@@ -5481,7 +5722,7 @@ SPECIAL(vengeance) {
             "$n's \tWsword begings to \tphum \tWloudly and then \tCglow\tW as it pours its healing powers into $m\tW.\tn",
             ch, vict, (struct obj_data *) me, 0);
     call_magic(ch, 0, 0, SPELL_MASS_CURE_LIGHT, 0, GET_LEVEL(ch), CAST_WAND);
-    return 1;
+    return TRUE;
   }
   weapons_spells(
           "\tWYour blade starts to shake violently, nearly tearing itself from your grip,\tn\r\n"
@@ -5496,7 +5737,7 @@ SPECIAL(vengeance) {
           "\tWas it begins to \tCglow\tW with a \tcholy light\tW.  Suddenly a \tYblinding \tfflash\tn\tW of pure\tn\r\n"
           "\tWgoodness is released from the sword striking down any \trevil\tW in the area.\tn",
           ch, vict, (struct obj_data *) me, SPELL_WORD_OF_FAITH);
-  return 1;
+  return TRUE;
 }
 
 /* from homeland */
@@ -5507,7 +5748,7 @@ SPECIAL(neverwinter_button_control) {
   bool change = FALSE;
 
   if (cmd)
-    return 0;
+    return FALSE;
 
   if (!CAN_GO(obj, EAST) && !CAN_GO(obj, SOUTH) && !CAN_GO(obj, WEST)) {
     if (IS_CLOSED(real_room(123637), DOWN)) {
@@ -5524,7 +5765,7 @@ SPECIAL(neverwinter_button_control) {
     GET_OBJ_SPECTIMER(obj, 0) = 9999;
   }
 
-  return 0;
+  return FALSE;
 }
 
 /* from homeland */
@@ -5540,7 +5781,7 @@ SPECIAL(neverwinter_valve_control) {
   bool avalve = FALSE, bvalve = FALSE, cvalve = FALSE, dvalve = FALSE, change = FALSE;
 
   if (cmd)
-    return 0;
+    return FALSE;
 
   if (!CAN_GO(obj, NORTH))
     avalve = TRUE;
@@ -5621,7 +5862,7 @@ SPECIAL(neverwinter_valve_control) {
       if (world[obj->in_room].zone == world[i->in_room].zone)
         send_to_char(i, "\tgYou hear the flow of rushing sewage somewhere.\tn\r\n");
 
-  return 0;
+  return FALSE;
 }
 
 /* from homeland */
@@ -5630,15 +5871,15 @@ SPECIAL(bloodaxe) {
   struct char_data *vict = FIGHTING(ch);
 
   if (!ch)
-    return 0;
+    return FALSE;
 
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Proc:  Bite.\r\n");
-    return 1;
+    return TRUE;
   }
 
   if (cmd || !vict || rand_number(0, 16))
-    return 0;
+    return FALSE;
 
   dam = rand_number(8, 8);
 
@@ -5676,7 +5917,7 @@ SPECIAL(bloodaxe) {
             "the maw reverts back to an axehead.\tn", ch, vict, (struct obj_data *) me, 0);
     GET_HIT(vict) = -100;
   }
-  return 1;
+  return TRUE;
 }
 
 /* from homeland */
@@ -5684,11 +5925,11 @@ SPECIAL(skullsmasher) {
   struct char_data *vict = FIGHTING(ch);
 
   if (!ch || cmd || !vict)
-    return 0;
+    return FALSE;
 
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Proc:  Knockdown.\r\n");
-    return 1;
+    return TRUE;
   }
 
   int power = 25;
@@ -5696,11 +5937,11 @@ SPECIAL(skullsmasher) {
   if (GET_OBJ_VNUM(((struct obj_data *) me)) == 101850)
     power = 15;
   if (rand_number(0, power))
-    return 0;
+    return FALSE;
   if (MOB_FLAGGED(vict, MOB_NOBASH))
-    return 0;
+    return FALSE;
   if (AFF_FLAGGED(vict, AFF_IMMATERIAL))
-    return 0;
+    return FALSE;
 
   weapons_spells(
           "\tLAs you swing your maul at $N \tLit connects with $S head\tn\r\n"
@@ -5717,7 +5958,7 @@ SPECIAL(skullsmasher) {
           ch, vict, (struct obj_data *) me, 0);
   GET_POS(vict) = POS_SITTING;
   USE_FULL_ROUND_ACTION(vict);
-  return 1;
+  return TRUE;
 }
 
 /* from homeland */
@@ -5726,15 +5967,15 @@ SPECIAL(acidsword) {
   struct char_data *vict = FIGHTING(ch);
 
   if (!ch)
-    return 0;
+    return FALSE;
 
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Proc:  Acid corrosion.\r\n");
-    return 1;
+    return TRUE;
   }
 
   if (cmd || !vict || rand_number(0, 16))
-    return 0;
+    return FALSE;
 
   dam = dice(4, 3);
 
@@ -5769,7 +6010,7 @@ SPECIAL(acidsword) {
             "you, hissing as it melts you to o\twoz\tLing pulp.\tn", ch, vict, (struct obj_data *) me, 0);
     GET_HIT(vict) = -50;
   }
-  return 1;
+  return TRUE;
 }
 
 /* from homeland */
@@ -5780,15 +6021,15 @@ SPECIAL(snakewhip) {
   int dam;
 
   if (!ch)
-    return 0;
+    return FALSE;
 
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Proc:  Drow-only, Snake-Bite.\r\n");
-    return 1;
+    return TRUE;
   }
 
   if (cmd || !vict || GET_POS(ch) == POS_DEAD)
-    return 0;
+    return FALSE;
 
   if ((GET_RACE(ch) != RACE_DROW || GET_SEX(ch) != SEX_FEMALE) && is_wearing(ch, 135500)) {
     if (GET_HIT(ch) > 0) {
@@ -5806,10 +6047,10 @@ SPECIAL(snakewhip) {
       GET_HIT(ch) = -5;
       GET_POS(ch) = POS_INCAP;
     }
-    return 1;
+    return TRUE;
   }
   if (rand_number(0, 15))
-    return 0;
+    return FALSE;
 
   dam = dice(GET_LEVEL(ch), 3);
 
@@ -5837,31 +6078,31 @@ SPECIAL(snakewhip) {
             "falls over dead.\tn", ch, vict, (struct obj_data *) me, 0);
     GET_HIT(vict) = -50;
   }
-  return 1;
+  return TRUE;
 }
 
 /* from homeland */
 SPECIAL(tormblade) {
   if (!ch)
-    return 0;
+    return FALSE;
 
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Proc only vs Evil:  Dispel Magic randomly on hit.\r\n"
             "                    Torms Protection of Evil on critical hits.\r\n");
-    return 1;
+    return TRUE;
   }
 
   struct char_data *vict;
   struct affected_type af;
 
   if (cmd)
-    return 0;
+    return FALSE;
 
   vict = FIGHTING(ch);
   if (!vict)
-    return 0;
+    return FALSE;
   if (!IS_EVIL(vict))
-    return 0;
+    return FALSE;
 
   if (argument) {
     skip_spaces(&argument);
@@ -5875,40 +6116,40 @@ SPECIAL(tormblade) {
       af.location = APPLY_AC_NEW;
       af.duration = dice(1, 4);
       affect_join(ch, &af, TRUE, FALSE, FALSE, FALSE);
-      return 1;
+      return TRUE;
     }
   }
   if (!rand_number(0, 30)) {
     act("$n's $p hums loudly.", FALSE, ch, (struct obj_data *) me, 0, TO_ROOM);
     act("Your $p hums loudly.", FALSE, ch, (struct obj_data *) me, 0, TO_CHAR);
     call_magic(ch, vict, 0, SPELL_DISPEL_MAGIC, 0, GET_LEVEL(ch), CAST_WAND);
-    return 1;
+    return TRUE;
   }
 
-  return 0;
+  return FALSE;
 }
 
 /* from homeland */
 SPECIAL(witherdirk) {
   if (!ch)
-    return 0;
+    return FALSE;
 
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Proc: Contagion\r\n");
-    return 1;
+    return TRUE;
   }
 
   struct char_data *vict;
 
   if (cmd)
-    return 0;
+    return FALSE;
 
   vict = FIGHTING(ch);
   if (!vict)
-    return 0;
+    return FALSE;
 
   if (rand_number(0, 30))
-    return 0;
+    return FALSE;
 
   weapons_spells(
           "\tLThe dirk \trwrithes\tL and \twtwists\tL as it bites deep into $N\tL's skin,\tn\r\n"
@@ -5919,7 +6160,7 @@ SPECIAL(witherdirk) {
           "\tgputrid\tr blo\tro\trd\tL wells up in $S eyes, causing great pain and discomfort.\tn",
           ch, vict, (struct obj_data *) me, SPELL_CONTAGION);
 
-  return 1;
+  return TRUE;
 }
 
 /* from homeland */
@@ -5929,12 +6170,12 @@ SPECIAL(air_sphere) {
   struct affected_type af;
 
   if (!ch)
-    return 0;
+    return FALSE;
 
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Proc: Electric Shock, on saying 'storm', haste and "
             "chain lightning.\r\n");
-    return 1;
+    return TRUE;
   }
 
   if (!cmd && FIGHTING(ch) && !rand_number(0, 25)) {
@@ -5951,19 +6192,19 @@ SPECIAL(air_sphere) {
             "\tbshoots forth from the sphere band strikes $N \tbdead on!\tn",
             FALSE, ch, 0, vict, TO_ROOM);
     damage(ch, vict, dam, -1, DAM_ELECTRIC, FALSE); //type -1 = no message
-    return 1;
+    return TRUE;
   }
 
   // haste/chain once a day on command
   if (cmd && argument && CMD_IS("say")) {
     if (!is_wearing(ch, 136100))
-      return 0;
+      return FALSE;
 
     skip_spaces(&argument);
     if (!strcmp(argument, "storm")) {
       if (GET_OBJ_SPECTIMER((struct obj_data *) me, 0) > 0) {
         send_to_char(ch, "Nothing happens.\r\n");
-        return 1;
+        return TRUE;
       }
 
       act("\tcAs you speak to your \tbsphere of lightning\tc, it begins to \tWglow\tc and fill with violent\tn\r\n"
@@ -5987,10 +6228,10 @@ SPECIAL(air_sphere) {
       call_magic(ch, 0, 0, SPELL_CHAIN_LIGHTNING, 0, 20, CAST_POTION);
 
       GET_OBJ_SPECTIMER((struct obj_data *) me, 0) = 24;
-      return 1;
+      return TRUE;
     }
   }
-  return 0;
+  return FALSE;
 }
 
 /* from homeland */
@@ -5999,15 +6240,15 @@ SPECIAL(bolthammer) {
   struct char_data *vict = FIGHTING(ch);
 
   if (!ch)
-    return 0;
+    return FALSE;
 
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Proc:  Lightning bolt.\r\n");
-    return 1;
+    return TRUE;
   }
 
   if (cmd || !vict || rand_number(0, 18))
-    return 0;
+    return FALSE;
 
   dam = 25 + dice(1, 30);
 
@@ -6045,43 +6286,43 @@ SPECIAL(bolthammer) {
   }
 
   damage(ch, vict, dam, -1, DAM_ELECTRIC, FALSE); //type -1 = no message
-  return 1;
+  return TRUE;
 }
 
 /* from homeland */
 SPECIAL(rughnark) {
   if (!ch)
-    return 0;
+    return FALSE;
 
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Proc: magical damage 25+10d4 for monk.\r\n");
-    return 1;
+    return TRUE;
   }
 
   int dam = 0;
   struct char_data *vict = 0;
 
   if (cmd)
-    return 0;
+    return FALSE;
 
   if (!FIGHTING(ch))
-    return 0;
+    return FALSE;
 
   if (dice(1, 40) < 39)
-    return 0;
+    return FALSE;
 
   if (IS_GOOD(ch) && dice(1, 10) > 5)
-    return 0;
+    return FALSE;
 
   if (CLASS_LEVEL(ch, CLASS_MONK) < 20 && !IS_NPC(ch))
-    return 0;
+    return FALSE;
 
   vict = FIGHTING(ch);
   dam = 25 + dice(10, 4);
   if (dam > GET_HIT(vict))
     dam = GET_HIT(vict);
   if (dam < 50)
-    return 0;
+    return FALSE;
 
   weapons_spells(
           "\tLAs you make contact with your opponent, the twin \tWmithril\tL blades rip apart\tn\r\n"
@@ -6097,40 +6338,40 @@ SPECIAL(rughnark) {
           "\tLopponent as $E screams in agony and pain.\tn",
           ch, vict, (struct obj_data *) me, 0);
   damage(ch, vict, dam, -1, DAM_SLICE, FALSE); //type -1 = no message
-  return 1;
+  return TRUE;
 }
 
 /* from homeland */
 SPECIAL(magma) {
   if (!ch)
-    return 0;
+    return FALSE;
 
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Proc: magmaburst (fire damage for monk.)\r\n");
-    return 1;
+    return TRUE;
   }
 
   int dam = 0;
   struct char_data *vict = 0;
 
   if (cmd)
-    return 0;
+    return FALSE;
 
   if (!FIGHTING(ch))
-    return 0;
+    return FALSE;
 
   if (dice(1, 40) < 39)
-    return 0;
+    return FALSE;
 
   if (CLASS_LEVEL(ch, CLASS_MONK) < 20 && !IS_NPC(ch))
-    return 0;
+    return FALSE;
 
   vict = FIGHTING(ch);
   dam = 50 + dice(30, 5);
   if (dam > GET_HIT(vict))
     dam = GET_HIT(vict);
   if (dam < 50)
-    return 0;
+    return FALSE;
   weapons_spells(
           "\tLAs your hands \twimpact\tL with your opponent, the \trflowing m\tRagm\tra\tn\r\n"
           "\trignites\tL and emits a \twburst\tL of \tRf\tYi\tRr\tre\tL and \tyr\tLo\tyck\tL.\tn",
@@ -6140,7 +6381,7 @@ SPECIAL(magma) {
           "\trignites\tL and emits a \twburst\tL of \tRf\tYi\tRr\tre\tL and \tyr\tLo\tyck\tL.\tn",
           ch, vict, (struct obj_data *) me, 0);
   damage(ch, vict, dam, -1, DAM_FIRE, FALSE); //type -1 = no message
-  return 1;
+  return TRUE;
 }
 
 /* from homeland */
@@ -6149,15 +6390,15 @@ SPECIAL(halberd) {
   struct affected_type af;
 
   if (!ch)
-    return 0;
+    return FALSE;
 
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Proc:  blur, stun, slow.\r\n");
-    return 1;
+    return TRUE;
   }
 
   if (cmd || !vict)
-    return 0;
+    return FALSE;
 
   switch (rand_number(0, 30)) {
     case 27:
@@ -6178,7 +6419,7 @@ SPECIAL(halberd) {
       SET_BIT_AR(af.bitvector, AFF_STUN);
       af.duration = dice(1, 4);
       affect_join(vict, &af, TRUE, FALSE, FALSE, FALSE);
-      return 1;
+      return TRUE;
       break;
 
     case 21:
@@ -6199,7 +6440,7 @@ SPECIAL(halberd) {
               "\tctrance as $m body melds with $s\tn $p.  \r\n\tc$e begins to \tCmove \tn"
               "\tCat a \tcrapid\tCly in\tccreas\tCing sp\tceed then $e \tCblurs out of focus.\tn",
               ch, vict, (struct obj_data *) me, 0);
-      return 1;
+      return TRUE;
       break;
 
     case 17:
@@ -6214,13 +6455,13 @@ SPECIAL(halberd) {
               "\tcinflicting life-threatening wounds causing $M to convulse and \tRbleed profusely.\tn",
               ch, vict, (struct obj_data *) me, SPELL_SLOW);
       damage(ch, vict, 10 + dice(2, 4), -1, DAM_POISON, FALSE); //type -1 = no message
-      return 1;
+      return TRUE;
       break;
 
     default:
-      return 0;
+      return FALSE;
   }
-  return 0;
+  return FALSE;
 }
 
 SPECIAL(bank) {
@@ -6367,27 +6608,27 @@ SPECIAL(clanportal) {
 /* from homeland */
 SPECIAL(hellfire) {
   if (!ch)
-    return 0;
+    return FALSE;
 
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Invoke haste and fireshield on armor by saying 'Hellfire'.\r\n");
-    return 1;
+    return TRUE;
   }
 
   if (!cmd)
-    return 0;
+    return FALSE;
   if (!argument)
-    return 0;
+    return FALSE;
 
   skip_spaces(&argument);
 
   if (!is_wearing(ch, 132102))
-    return 0;
+    return FALSE;
 
   if (!strcmp(argument, "hellfire") && cmd_info[cmd].command_pointer == do_say) {
     if (GET_OBJ_SPECTIMER((struct obj_data *) me, 0) > 0) {
       send_to_char(ch, "Nothing happens.\r\n");
-      return 1;
+      return TRUE;
     }
 
     act("\tLThe pure flames of your $p\tL is invoked.\tn\r\n"
@@ -6401,36 +6642,36 @@ SPECIAL(hellfire) {
     call_magic(ch, ch, 0, SPELL_HASTE, 0, 26, CAST_POTION);
 
     GET_OBJ_SPECTIMER((struct obj_data *) me, 0) = 12;
-    return 1;
+    return TRUE;
   }
-  return 0;
+  return FALSE;
 }
 
 /* from homeland */
 SPECIAL(angel_leggings) {
   if (!ch)
-    return 0;
+    return FALSE;
 
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Invoke fly by keyword 'Elysium'.\r\n");
-    return 1;
+    return TRUE;
   }
 
   if (!cmd)
-    return 0;
+    return FALSE;
   if (!argument)
-    return 0;
+    return FALSE;
 
   skip_spaces(&argument);
 
   if (!is_wearing(ch, 106021))
-    return 0;
+    return FALSE;
 
   if (!strcmp(argument, "elysium") && cmd_info[cmd].command_pointer ==
           do_say) {
     if (GET_OBJ_SPECTIMER((struct obj_data *) me, 0) > 0) {
       send_to_char(ch, "Nothing happens.\r\n");
-      return 1;
+      return TRUE;
     }
 
     act("\tWThe power of $p\tW is invoked.\tn\r\n"
@@ -6442,9 +6683,9 @@ SPECIAL(angel_leggings) {
 
     call_magic(ch, ch, 0, SPELL_FLY, 0, 30, CAST_POTION);
     GET_OBJ_SPECTIMER((struct obj_data *) me, 0) = 168;
-    return 1;
+    return TRUE;
   }
-  return 0;
+  return FALSE;
 }
 
 /* from homeland, converts an object type PET into an actual
@@ -6453,15 +6694,15 @@ SPECIAL(bought_pet) {
   struct char_data *pet = NULL;
 
   if (cmd)
-    return 0;
+    return FALSE;
 
   struct obj_data *obj = (struct obj_data*) me;
 
   if (obj->carried_by == 0)
-    return 0;
+    return FALSE;
 
   if (IS_NPC(obj->carried_by))
-    return 0;
+    return FALSE;
 
   pet = read_mobile(GET_OBJ_VNUM(obj), VIRTUAL);
   
@@ -6480,28 +6721,28 @@ SPECIAL(bought_pet) {
     
     /* get rid of the purchased object */
     extract_obj(obj);
-    return 1;
+    return TRUE;
   }
   
   /* failed to load pet */
-  return 0;
+  return FALSE;
 }
 
 /* from homeland, i doubt we are going to port this, houses replace these */
 /*
 SPECIAL(storage_chest) {
   if (cmd)
-    return 0;
+    return FALSE;
   struct obj_data *chest = (struct obj_data*) me;
   if (GET_OBJ_VAL(chest, 3) != 0)
-    return 0;
+    return FALSE;
   ch = chest->carried_by;
   if (!ch) {
     REMOVE_BIT(GET_OBJ_EXTRA(chest), ITEM_INVISIBLE);
-    return 0;
+    return FALSE;
   }
   if (IS_NPC(ch) || IS_PET(ch))
-    return 0;
+    return FALSE;
 
   sprintf(buf2, "chest storage %s", GET_NAME(ch));
   chest->name = str_dup(buf2);
@@ -6530,7 +6771,7 @@ SPECIAL(storage_chest) {
   SET_BIT(GET_OBJ_SAVED(chest), SAVE_OBJ_WEIGHT);
   SET_BIT(GET_OBJ_SAVED(chest), SAVE_OBJ_COST);
   save_chests();
-  return 1;
+  return TRUE;
 }
  */
 
@@ -6538,7 +6779,7 @@ SPECIAL(storage_chest) {
 SPECIAL(clang_bracer) {
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Dwarf and Group Only.  Invoke battle prowess by saying 'argenoth'.\r\n");
-    return 1;
+    return TRUE;
   }
 
   if (ch && is_wearing(ch, 121456)) {
@@ -6554,29 +6795,29 @@ SPECIAL(clang_bracer) {
         obj_to_char(unequip_char(ch, WEAR_WRIST_R), ch);
       else if (GET_EQ(ch, WEAR_WRIST_L) == (obj_data*) me)
         obj_to_char(unequip_char(ch, WEAR_WRIST_L), ch);
-      return 1;
+      return TRUE;
     }
 
     // invoke it!
     if (!cmd)
-      return 0;
+      return FALSE;
     if (!argument)
-      return 0;
+      return FALSE;
     if (!CMD_IS("say"))
-      return 0;
+      return FALSE;
     skip_spaces(&argument);
 
     if (!strcmp(argument, "argenoth")) {
       if (GET_OBJ_SPECTIMER((struct obj_data *) me, 0) > 0) {
         send_to_char(ch, "You attempt to invoke your bracer, but nothing happens.\r\n");
-        return 1;
+        return TRUE;
       }
       
       struct group_data *group;
 
       if ((group = GROUP(ch)) == NULL) {
         send_to_char(ch, "You recall from lore this item will not work unless in a group.\r\n");
-        return 0;
+        return FALSE;
       }
 
       /* success! */
@@ -6585,11 +6826,11 @@ SPECIAL(clang_bracer) {
           "then relax as the skill of ancient warriors is merged with your own.\r\n");      
       call_magic(ch, ch, 0, SPELL_MASS_ENHANCE, 0, 30, CAST_POTION);
       GET_OBJ_SPECTIMER((struct obj_data *) me, 0) = 24;
-      return 1;
+      return TRUE;
     }
 
   }
-  return 0;
+  return FALSE;
 }
 
 /* from homeland */
@@ -6598,11 +6839,11 @@ SPECIAL(menzo_chokers) {
   struct affected_type af;
 
   if (!ch)
-    return 0;
+    return FALSE;
 
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "For Drow, finding pair will give +1 to hitroll.\r\n");
-    return 1;
+    return TRUE;
   }
 
   for (af2 = ch->affected; af2; af2 = af2->next) {
@@ -6612,7 +6853,7 @@ SPECIAL(menzo_chokers) {
                 " touch.\tn\r\n");
         affect_from_char(ch, AFF_MENZOCHOKER);
       }
-      return 0;
+      return FALSE;
     }
   }
 
@@ -6625,10 +6866,10 @@ SPECIAL(menzo_chokers) {
       af.modifier = 1;
       SET_BIT_AR(af.bitvector, AFF_MENZOCHOKER);
       affect_join(ch, &af, FALSE, FALSE, TRUE, FALSE);
-      return 0;
+      return FALSE;
     }
   }
-  return 0;
+  return FALSE;
 }
 
 /*************************/
