@@ -964,7 +964,7 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
           cp_type == CP_TYPE_AMMO
       ) {
     /* object value 4 for these particular objects are their enchantment bonus */
-    GET_OBJ_VAL(obj, 4) = enchantment
+    GET_OBJ_VAL(obj, 4) = enchantment;
     has_enhancement = TRUE;
   }
   else if (CAN_WEAR(obj, ITEM_WEAR_FINGER)) {
