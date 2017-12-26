@@ -601,7 +601,7 @@ void award_random_crystal(struct char_data *ch, int level) {
   GET_OBJ_TYPE(obj) = ITEM_CRYSTAL;
   GET_OBJ_LEVEL(obj) = rand_number(6, level);
   level = GET_OBJ_LEVEL(obj); /* for determining bonus */
-  GET_OBJ_COST(obj) = GET_OBJ_LEVEL(obj) * 100;
+  GET_OBJ_COST(obj) = (1+GET_OBJ_LEVEL(obj)) * 100;
   GET_OBJ_MATERIAL(obj) = MATERIAL_CRYSTAL;
 
   /* set a random apply value */
@@ -1005,8 +1005,8 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
   GET_OBJ_LEVEL(obj) = level;
   if (cp_type == CP_TYPE_AMMO)
     ;
-  else
-    GET_OBJ_COST(obj) = GET_OBJ_LEVEL(obj) * 100;  // set value
+  else  // set value
+    GET_OBJ_COST(obj) = (1+GET_OBJ_LEVEL(obj)) * 100 + (enchantment*5);  
   
   REMOVE_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MOLD);  // make sure not mold
   
@@ -1142,7 +1142,7 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
   } // end while
 
   GET_OBJ_LEVEL(obj) = level;
-  GET_OBJ_COST(obj) = GET_OBJ_LEVEL(obj) * 100;  // set value
+  GET_OBJ_COST(obj) = (1+GET_OBJ_LEVEL(obj)) * 100;  // set value
   REMOVE_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MOLD);  // make sure not mold
   if (level >= 5)
     SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC);  // add magic tag
@@ -1563,7 +1563,7 @@ void set_armor_object(struct obj_data *obj, int type) {
 
   /* for convenience we are going to go ahead and set some other values */
   GET_OBJ_COST(obj) =
-          armor_list[GET_OBJ_VAL(obj, 1)].cost;
+          armor_list[GET_OBJ_VAL(obj, 1)].cost + 1;
   GET_OBJ_WEIGHT(obj) =
           armor_list[GET_OBJ_VAL(obj, 1)].weight;
   GET_OBJ_MATERIAL(obj) =
@@ -1602,7 +1602,7 @@ void set_weapon_object(struct obj_data *obj, int type) {
   GET_OBJ_VAL(obj, 1) = weapon_list[GET_OBJ_VAL(obj, 0)].numDice;
   GET_OBJ_VAL(obj, 2) = weapon_list[GET_OBJ_VAL(obj, 0)].diceSize;
   /* cost */
-  GET_OBJ_COST(obj) = weapon_list[GET_OBJ_VAL(obj, 0)].cost;
+  GET_OBJ_COST(obj) = weapon_list[GET_OBJ_VAL(obj, 0)].cost + 1;
   /* weight */
   GET_OBJ_WEIGHT(obj) = weapon_list[GET_OBJ_VAL(obj, 0)].weight;
   /* material */
@@ -2835,6 +2835,7 @@ ACMD(do_bazaar) {
   int enchant = 0;
   int selection = 0;
   int type = 0;
+  int cost = 0;
 
   three_arguments(argument, arg1, arg2, arg3);
 
@@ -2942,8 +2943,19 @@ ACMD(do_bazaar) {
     return;    
   }
   
+  /* quest point cost */
+  cost = 1 + (enchantment*enchantment) * (10+enchantment);
+  if (cost > GET_QUESTPOINTS(ch)) {
+    send_to_char(ch, "You do not have enough questpoints, %d required.\r\n", cost);
+    return;
+  } else {
+    GET_QUESTPOINTS(ch) -= cost;
+    send_to_char(ch, "You pay %d quest points.  You have %d left.\r\n",
+            cost, GET_QUESTPOINTS(ch));
+    
+  }
+  
   /* we should be ready to go! */
-
   switch (type) {
     case 1: /* armor */
       give_magic_armor(ch, selection, enchant, TRUE);
