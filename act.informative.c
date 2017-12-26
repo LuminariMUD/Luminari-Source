@@ -2032,11 +2032,31 @@ void perform_abilities(struct char_data *ch, struct char_data *k) {
     send_to_char(ch, "\tDType 'affects' to see your affects and conditions.\tn\r\n");
   }
 }
+
+/* see your abilities */
 ACMD(do_abilities) {
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  struct char_data *vict = NULL;
+
+  one_argument(argument, arg);
+
+  /* find the victim */
+  vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM);
+  
+  /* needs to be a group member or it won't work */
+  if (!vict) {
+    vict = ch;
+  } else if (!GROUP(ch) || !GROUP(vict)) {
+    vict = ch;
+  } else if (GROUP(ch) != GROUP(vict)) {
+    vict = ch;
+  }
+
   /* moved this into a function so we can share it with do_stat() */
-  perform_abilities(ch, ch);
+  perform_abilities(ch, vict);
 }
 
+/* this is really deprecated */
 ACMD(do_innates) {
   int race = -1;
 
@@ -2226,9 +2246,10 @@ ACMD(do_affects) {
   /* find the victim */
   vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM);
   
+  /* needs to be a group member or it won't work */
   if (!vict) {
     vict = ch;
-  } if (!GROUP(ch) || !GROUP(vict)) {
+  } else if (!GROUP(ch) || !GROUP(vict)) {
     vict = ch;
   } else if (GROUP(ch) != GROUP(vict)) {
     vict = ch;
