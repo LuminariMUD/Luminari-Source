@@ -2944,7 +2944,7 @@ ACMD(do_bazaar) {
   }
   
   /* quest point cost */
-  cost = 1 + (enchantment*enchantment) * (10+enchantment);
+  cost = 1 + (enchant*enchant) * (10+enchant);
   if (cost > GET_QUESTPOINTS(ch)) {
     send_to_char(ch, "You do not have enough questpoints, %d required.\r\n", cost);
     return;
