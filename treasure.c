@@ -22,6 +22,7 @@
 #include "treasure.h"
 #include "craft.h"
 #include "assign_wpn_armor.h"
+#include "oasis.h"
 
 /***  utility functions ***/
 
