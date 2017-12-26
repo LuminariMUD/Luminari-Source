@@ -1679,7 +1679,7 @@ int possible_material_upgrade(int base_mat, int grade) {
           else
             material = MATERIAL_ALCHEMAL_SILVER;
           break;
-        case GRADE_MEDIUM:
+        case GRADE_MAJOR:
           if (roll <= 50)
             material = MATERIAL_COLD_IRON;
           else if (roll <= 80)
@@ -2844,7 +2844,6 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment, b
 
 /* Load treasure on a mob. -Ornir */
 void load_treasure(char_data *mob) {
-  int roll = dice(1, 100);
   int level = 0;
   int grade = GRADE_MUNDANE, max_grade = GRADE_MUNDANE;
 
