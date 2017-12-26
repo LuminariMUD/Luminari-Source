@@ -2386,10 +2386,7 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment, b
   cp_modify_object_applies(ch, obj, enchantment, level, CP_TYPE_MISC, silent_mode);
   send_to_char(ch, "Here is your item!\r\n");
   do_stat_object(ch, obj, ITEM_STAT_MODE_IDENTIFY_SPELL);
-  
-  char buf[MAX_STRING_LENGTH] = {'\0'};
-  sprintf(buf, "$n \tYhas acquired %s\tn\tY from the bazaar.\tn", obj->short_description);
-  act(buf, FALSE, ch, 0, ch, TO_NOTVICT);  
+  act("$n \tYhas acquired %s\tn\tY from the bazaar.\tn", FALSE, ch, obj, ch, TO_NOTVICT);  
 }
 #undef SHORT_STRING
 
