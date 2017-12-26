@@ -2228,7 +2228,9 @@ ACMD(do_affects) {
   
   if (!vict) {
     vict = ch;
-  } if (GROUP(ch) != GROUP(vict)) {
+  } if (!GROUP(ch) || !GROUP(vict)) {
+    vict = ch;
+  } else if (GROUP(ch) != GROUP(vict)) {
     vict = ch;
   }
   
