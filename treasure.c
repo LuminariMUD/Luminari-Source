@@ -2471,11 +2471,11 @@ ACMD(do_bazaar) {
   three_arguments(argument, arg1, arg2, arg3);
 
   if (!*arg1) {
-    send_to_char(ch, "Syntax: bazaar <item category> <selection number> <enchantment level>\r\n");
-    send_to_char(ch, "Item Categories: armor, weapon or misc.\r\n");
-    send_to_char(ch, "If you type: bazaar <item category> with no extra arguments, "
+    send_to_char(ch, "\tcSyntax:\tn bazaar <item category> <selection number> <enchantment level>\r\n");
+    send_to_char(ch, "\tcItem Categories:\tn armor, weapon or misc.\r\n");
+    send_to_char(ch, "\tcIf you type:\tn bazaar <item category> with no extra arguments, "
             "it will display the 'selection number' choices\r\n");
-    send_to_char(ch, "Enchantment Level: 0-6\r\n");
+    send_to_char(ch, "\tcEnchantment Level:\tn 0-6\r\n");
     return;
   }
   
