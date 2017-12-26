@@ -1247,6 +1247,135 @@ void award_magic_ammo(struct char_data *ch, int grade, int moblevel) {
 
 /* Give away random magic armor
  * (includes:  body/head/legs/arms/shield)
+ * 1)  determine material
+ * 2)  determine level
+ * 3)  determine Creation Points
+ * 4)  determine AC bonus (Always first stat...)
+ * 5)  craft description based on object and bonuses */
+void give_magic_armor(struct char_data *ch, int selection, int enchantment, bool silent_mode) {
+  struct obj_data *obj = NULL;
+  int roll = 0, armor_desc_roll = 0, crest_num = 0;
+  int rare_grade = 0, color1 = 0, color2 = 0, level = 0;
+  char desc[MEDIUM_STRING] = {'\0'};
+  char keywords[MEDIUM_STRING] = {'\0'};
+
+  /* ok load blank object */
+  if ((obj = read_object(ARMOR_PROTO, VIRTUAL)) == NULL) {
+    log("SYSERR: award_magic_armor created NULL object");
+    return;
+  }  
+
+  /* now set up this new object */
+  set_armor_object(obj, selection);
+  /* we should have a completely usable armor now, just missing descrip/stats */
+  
+  /* a suit of (body), or a pair of (arm/leg), or AN() (helm) */
+  if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_BODY)) {
+    sprintf(desc, "%s%s", desc, "a suit of");    
+  } else if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_HEAD) ||
+             IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_SHIELD)) {
+    armor_desc_roll = rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1);
+    sprintf(desc, "%s%s", desc,
+            AN(armor_special_descs[armor_desc_roll]));    
+  } else {
+    sprintf(desc, "%s%s", desc, "a pair of");        
+  }
+  
+  /* set the object material, check for upgrade */
+  GET_OBJ_MATERIAL(obj) = possible_material_upgrade(GET_OBJ_MATERIAL(obj), enchantment);
+
+  /* determine level */
+  switch (enchantment) {
+    case 0:
+    case 1:
+      level = 0;
+      break;
+    case 2:
+      level = 5;
+      break;
+    case 3:
+      level = 10;
+      break;
+    case 4:
+      level = 15;
+      break;
+    case 5:
+      level = 20;
+      break;
+    default: /*6*/
+      level = 25;
+      break;
+  }
+
+  /* BEGIN DESCRIPTION SECTION */
+
+  /* first assign two random colors for usage */
+  color1 = rand_number(0, NUM_A_COLORS - 1);
+  color2 = rand_number(0, NUM_A_COLORS - 1);
+  /* make sure they are not the same colors */
+  while (color2 == color1)
+    color2 = rand_number(0, NUM_A_COLORS - 1);
+  crest_num = rand_number(0, NUM_A_ARMOR_CRESTS - 1);
+
+  /* start with keyword string */
+  sprintf(keywords, "%s %s", keywords, armor_list[GET_ARMOR_TYPE(obj)].name);
+  sprintf(keywords, "%s %s", keywords, material_name[GET_OBJ_MATERIAL(obj)]);
+
+  roll = dice(1, 3);
+  if (roll == 3) { // armor spec adjective in desc?
+    sprintf(desc, "%s %s", desc,
+            armor_special_descs[armor_desc_roll]);
+    sprintf(keywords, "%s %s", keywords,
+            armor_special_descs[armor_desc_roll]);
+  }
+
+  roll = dice(1, 5);
+  if (roll >= 4) { // color describe #1?
+    sprintf(desc, "%s %s", desc, colors[color1]);
+    sprintf(keywords, "%s %s", keywords, colors[color1]);
+  } else if (roll == 3) { // two colors
+    sprintf(desc, "%s %s and %s", desc, colors[color1], colors[color2]);
+    sprintf(keywords, "%s %s and %s", keywords, colors[color1], colors[color2]);
+  }
+
+  // Insert the material type, then armor type
+  sprintf(desc, "%s %s", desc, material_name[GET_OBJ_MATERIAL(obj)]);
+  sprintf(desc, "%s %s", desc, armor_list[GET_ARMOR_TYPE(obj)].name);
+
+  roll = dice(1, 8);
+  if (roll >= 7) { // crest?
+    sprintf(desc, "%s with %s %s crest", desc,
+            AN(armor_crests[crest_num]),
+            armor_crests[crest_num]);
+    sprintf(keywords, "%s with %s %s crest", keywords,
+            AN(armor_crests[crest_num]),
+            armor_crests[crest_num]);
+  } else if (roll >= 5) { // or symbol?
+    sprintf(desc, "%s covered in symbols of %s %s", desc,
+            AN(armor_crests[crest_num]),
+            armor_crests[crest_num]);
+    sprintf(keywords, "%s covered in symbols of %s %s", keywords,
+            AN(armor_crests[crest_num]),
+            armor_crests[crest_num]);
+  }
+
+  // keywords
+  obj->name = strdup(keywords);
+  // Set descriptions
+  obj->short_description = strdup(desc);
+  desc[0] = toupper(desc[0]);
+  sprintf(desc, "%s is lying here.", desc);
+  obj->description = strdup(desc);
+
+  /* END DESCRIPTION SECTION */
+
+  /* BONUS SECTION */
+  cp_modify_object_applies(ch, obj, enchantment, level, CP_TYPE_ARMOR, silent_mode);
+  /* END BONUS SECTION */
+}
+
+/* Give away random magic armor
+ * (includes:  body/head/legs/arms/shield)
  * 1)  determine armor type
  * 2)  determine material
  * 3)  determine rarity
@@ -2817,7 +2946,7 @@ ACMD(do_bazaar) {
 
   switch (type) {
     case 1: /* armor */
-      oedit_disp_armor_type_menu(ch->desc);
+      give_magic_armor(ch, selection, enchant, TRUE);
       break;
     case 2: /* weapon */
       give_magic_weapon(ch, selection, enchant, TRUE);
