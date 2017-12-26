@@ -580,6 +580,8 @@ void oedit_setup_existing(struct descriptor_data *d, int rnum);
 void oedit_save_internally(struct descriptor_data *d);
 void oedit_parse(struct descriptor_data *d, char *arg);
 void oedit_string_cleanup(struct descriptor_data *d, int terminator);
+void oedit_disp_armor_type_menu(struct descriptor_data *d);
+void oedit_disp_weapon_type_menu(struct descriptor_data *d);
 ACMD(do_oasis_oedit);
 
 /* public functions from redit.c */

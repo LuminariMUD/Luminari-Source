@@ -908,20 +908,42 @@ void award_expendable_item(struct char_data *ch, int grade, int type) {
   say_treasure(ch, obj);
 }
 
+/* utility function that converts a grade rating to an enchantment rating */
+int cp_convert_grade_enchantment(int grade) {
+  int enchantment = 0;
+  
+  switch (grade) {
+    case GRADE_MUNDANE:
+      enchantment = 1;
+      break;
+    case GRADE_MINOR:
+      enchantment = 2;
+      break;
+    case GRADE_MEDIUM:
+      if (rand_number(0, 2))
+        enchantment = 3;
+      else
+        enchantment = 4;
+      break;
+    default: /* GRADE_MAJOR */
+      if (rand_number(0, 3))
+        enchantment = 5;
+      else
+        enchantment = 6;
+      break;
+  }
+  
+  return enchantment;
+}
 /* this is a very simplified version of this function, the original version was
  incomplete and creating some very strange gear with some crazy stats.  The
  original version is right below this.  the bonus_value is measure in enchantment
  bonus as the currency, so we have to make decisions on the value of receiving
  other stats such as strength, hps, etc */
 void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
-        int rare_grade, int level, int cp_type) {
-  int bonus_value = 0, bonus_location = APPLY_NONE;
+        int enchantment, int level, int cp_type, int silent_mode) {
+  int bonus_value = enchantment, bonus_location = APPLY_NONE;
   bool has_enhancement = FALSE;
-
-  level = (rand_number(level/2, level)); /* this is as random as it gets right now */
-  bonus_value = level / 5; if (bonus_value <= 0) bonus_value = 1;
-  
-  bonus_value += rare_grade;
 
   /* items that will only get an enhancement bonus */
   if (CAN_WEAR(obj, ITEM_WEAR_WIELD) || CAN_WEAR(obj, ITEM_WEAR_SHIELD) ||
@@ -965,21 +987,24 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
 
   /* lets modify this ammo's breakability (base 30%) */
   if (cp_type == CP_TYPE_AMMO)
-    GET_OBJ_VAL(obj, 2) -= (level / 2 + rare_grade * 10 / 2);
+    GET_OBJ_VAL(obj, 2) -= (level / 2 + enchantment * 10 / 2);
   
   GET_OBJ_LEVEL(obj) = level;
   if (cp_type == CP_TYPE_AMMO)
     ;
   else
     GET_OBJ_COST(obj) = GET_OBJ_LEVEL(obj) * 100;  // set value
+  
   REMOVE_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MOLD);  // make sure not mold
+  
   if (level >= 5)
     SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC);  // add magic tag
 
   obj_to_char(obj, ch); // deliver object
 
   /* inform ch and surrounding that they received this item */
-  say_treasure(ch, obj);
+  if (!silent_mode)
+    say_treasure(ch, obj);
 }
 
 /* this is ornir's original version, taken out until he has time to finish it */
@@ -1201,7 +1226,7 @@ void award_magic_ammo(struct char_data *ch, int grade, int moblevel) {
 
   /* BONUS SECTION */
   SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC);  
-  cp_modify_object_applies(ch, obj, rare_grade, level, CP_TYPE_AMMO);
+  cp_modify_object_applies(ch, obj, cp_convert_grade_enchantment(rare_grade), level, CP_TYPE_AMMO, FALSE);
   /* END BONUS SECTION */
 }
 
@@ -1341,7 +1366,7 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel, int wear_s
   /* END DESCRIPTION SECTION */
 
   /* BONUS SECTION */
-  cp_modify_object_applies(ch, obj, rare_grade, level, CP_TYPE_ARMOR);
+  cp_modify_object_applies(ch, obj, cp_convert_grade_enchantment(rare_grade), level, CP_TYPE_ARMOR, FALSE);
   /* END BONUS SECTION */
 }
 
@@ -1803,7 +1828,7 @@ void award_magic_weapon(struct char_data *ch, int grade, int moblevel) {
 
   /* object is fully described
    base object is taken care of including material, now set random stats, etc */
-  cp_modify_object_applies(ch, obj, rare_grade, level, CP_TYPE_WEAPON);
+  cp_modify_object_applies(ch, obj, cp_convert_grade_enchantment(rare_grade), level, CP_TYPE_WEAPON, FALSE);
 }
 #undef SHORT_STRING
 
@@ -2097,7 +2122,266 @@ void award_misc_magic_item(struct char_data *ch, int grade, int moblevel) {
   }
 
   /* level, bonus and cost */
-  cp_modify_object_applies(ch, obj, rare_grade, level, CP_TYPE_MISC);
+  cp_modify_object_applies(ch, obj, cp_convert_grade_enchantment(rare_grade), level, CP_TYPE_MISC, FALSE);
+}
+#undef SHORT_STRING
+
+/* give away specific misc item
+ * 1) finger, 2) neck, 3) feet, 4) hands, 5) about, 6) waist, 7) wrist, 8) held
+ * method:
+ * 1)  determine item
+ * 2)  determine material
+ * 3)  assign description
+ * 4)  determine modifier (if applicable)
+ * 5)  determine amount (if applicable)
+ */
+#define SHORT_STRING    80
+void give_misc_magic_item(struct char_data *ch, int category, int enchantment) {
+  struct obj_data *obj = NULL;
+  int vnum = -1, material = MATERIAL_BRONZE, roll = 0;
+  int level = 0;
+  char desc[MEDIUM_STRING] = {'\0'}, armor_name[MEDIUM_STRING] = {'\0'};
+  char keywords[MEDIUM_STRING] = {'\0'};
+  char desc2[SHORT_STRING] = {'\0'}, desc3[SHORT_STRING] = {'\0'};
+
+  /* assign base material
+   * and last but not least, give appropriate start of description
+   *  */
+  switch (category) {
+    case 1: /*finger*/
+      vnum = RING_MOLD;
+      material = MATERIAL_COPPER;
+      sprintf(armor_name, ring_descs[rand_number(0, NUM_A_RING_DESCS - 1)]);
+      sprintf(desc2, gemstones[rand_number(0, NUM_A_GEMSTONES - 1)]);
+      break;
+    case 2: /*neck*/
+      vnum = NECKLACE_MOLD;
+      material = MATERIAL_COPPER;
+      sprintf(armor_name, neck_descs[rand_number(0, NUM_A_NECK_DESCS - 1)]);
+      sprintf(desc2, gemstones[rand_number(0, NUM_A_GEMSTONES - 1)]);
+      break;
+    case 3: /*feet*/
+      vnum = BOOTS_MOLD;
+      material = MATERIAL_LEATHER;
+      sprintf(armor_name, boot_descs[rand_number(0, NUM_A_BOOT_DESCS - 1)]);
+      sprintf(desc2, armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
+      sprintf(desc3, colors[rand_number(0, NUM_A_COLORS - 1)]);
+      break;
+    case 4: /*hands*/
+      vnum = GLOVES_MOLD;
+      material = MATERIAL_LEATHER;
+      sprintf(armor_name, hands_descs[rand_number(0, NUM_A_HAND_DESCS - 1)]);
+      sprintf(desc2, armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
+      sprintf(desc3, colors[rand_number(0, NUM_A_COLORS - 1)]);
+      break;
+    case 5: /*about*/
+      vnum = CLOAK_MOLD;
+      material = MATERIAL_COTTON;
+      sprintf(armor_name, cloak_descs[rand_number(0, NUM_A_CLOAK_DESCS - 1)]);
+      sprintf(desc2, armor_crests[rand_number(0, NUM_A_ARMOR_CRESTS - 1)]);
+      sprintf(desc3, colors[rand_number(0, NUM_A_COLORS - 1)]);
+      break;
+    case 6: /*waist*/
+      vnum = BELT_MOLD;
+      material = MATERIAL_LEATHER;
+      sprintf(armor_name, waist_descs[rand_number(0, NUM_A_WAIST_DESCS - 1)]);
+      sprintf(desc2, armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
+      sprintf(desc3, colors[rand_number(0, NUM_A_COLORS - 1)]);
+      break;
+    case 7: /*wrist*/
+      vnum = WRIST_MOLD;
+      material = MATERIAL_COPPER;
+      sprintf(armor_name, wrist_descs[rand_number(0, NUM_A_WRIST_DESCS - 1)]);
+      sprintf(desc2, gemstones[rand_number(0, NUM_A_GEMSTONES-1)]);
+      break;
+    case 8: /*held*/
+      vnum = HELD_MOLD;
+      material = MATERIAL_ONYX;
+      sprintf(armor_name, crystal_descs[rand_number(0, NUM_A_CRYSTAL_DESCS - 1)]);
+      sprintf(desc2, colors[rand_number(0, NUM_A_COLORS - 1)]);
+      break;
+  }
+
+  /* we already determined 'base' material, now
+   determine whether an upgrade was achieved by enchantment */
+  switch (material) {
+    
+    case MATERIAL_COPPER:
+      switch (enchantment) {
+        case 0:
+        case 1:
+          material = MATERIAL_COPPER;
+          break;
+        case 2:
+          material = MATERIAL_BRASS;
+          break;
+        case 3:
+          material = MATERIAL_SILVER;
+          break;
+        case 4:
+          material = MATERIAL_GOLD;
+          break;
+        default: /* 5 or 6 */
+          material = MATERIAL_PLATINUM;
+          break;
+      }
+      break; /*end copper*/
+      
+    case MATERIAL_LEATHER:
+      switch (enchantment) {
+        case 0:
+        case 1:
+        case 2:
+        case 3:
+        case 4:
+          material = MATERIAL_LEATHER;
+          break;
+        default: /* 5 or 6 */
+          material = MATERIAL_DRAGONHIDE;
+          break;
+      }
+      break; /*end leather*/
+      
+    case MATERIAL_COTTON:
+      switch (enchantment) {
+        case 0:
+          material = MATERIAL_HEMP;
+          break;
+        case 1:
+          material = MATERIAL_COTTON;
+          break;
+        case 2:
+          material = MATERIAL_WOOL;
+          break;
+        case 3:
+          material = MATERIAL_VELVET;
+          break;
+        case 4:
+        case 5:
+          material = MATERIAL_SATIN;
+          break;
+        default: /* 6 */
+          material = MATERIAL_SILK;
+          break;
+      }
+      break; /*end cotton*/
+      
+      /* options:  crystal, obsidian, onyx, ivory, pewter; just random */
+    case MATERIAL_ONYX:
+      switch (dice(1, 5)) {
+        case 1:
+          material = MATERIAL_ONYX;
+          break;
+        case 2:
+          material = MATERIAL_PEWTER;
+          break;
+        case 3:
+          material = MATERIAL_IVORY;
+          break;
+        case 4:
+          material = MATERIAL_OBSIDIAN;
+          break;
+        default: /* 5 */
+          material = MATERIAL_CRYSTAL;
+          break;
+      }
+      break; /*end onyx*/
+
+  }
+
+  /* determine level */
+  switch (enchantment) {
+    case 0:
+    case 1:
+      level = 0;
+      break;
+    case 2:
+      level = 5;
+      break;
+    case 3:
+      level = 10;
+      break;
+    case 4:
+      level = 15;
+      break;
+    case 5:
+      level = 20;
+      break;
+    default: /*6*/
+      level = 25;
+      break;
+  }
+
+  /* ok load object, set material */
+  if ((obj = read_object(vnum, VIRTUAL)) == NULL) {
+    log("SYSERR: award_misc_magic_item created NULL object");
+    return;
+  }
+  GET_OBJ_MATERIAL(obj) = material;
+
+  /* put together a descrip */
+  switch (vnum) {
+    case RING_MOLD:
+    case NECKLACE_MOLD:
+    case WRIST_MOLD:
+      sprintf(keywords, "%s %s set with %s gemstone",
+              armor_name, material_name[material], desc2);
+      obj->name = strdup(keywords);
+      sprintf(desc, "%s%s %s %s set with %s %s gemstone", desc,
+              AN(material_name[material]), material_name[material],
+              armor_name, AN(desc2), desc2);
+      obj->short_description = strdup(desc);
+      sprintf(desc, "%s %s %s set with %s %s gemstone lies here.",
+              AN(material_name[material]), material_name[material],
+              armor_name, AN(desc2), desc2);
+      obj->description = strdup(CAP(desc));
+      break;
+    case BOOTS_MOLD:
+    case GLOVES_MOLD:
+      sprintf(keywords, "%s pair %s %s leather", armor_name, desc2, desc3);
+      obj->name = strdup(keywords);
+      sprintf(desc, "%sa pair of %s %s leather %s", desc, desc2, desc3,
+              armor_name);
+      obj->short_description = strdup(desc);
+      sprintf(desc, "A pair of %s %s leather %s lie here.", desc2, desc3,
+              armor_name);
+      obj->description = strdup(desc);
+      break;
+    case CLOAK_MOLD:
+      sprintf(keywords, "%s %s %s %s bearing crest", armor_name, desc2,
+              material_name[material], desc3);
+      obj->name = strdup(keywords);
+      sprintf(desc, "%s%s %s %s %s bearing the crest of %s %s", desc, AN(desc3), desc3,
+              material_name[material], armor_name, AN(desc2),
+              desc2);
+      obj->short_description = strdup(desc);
+      sprintf(desc, "%s %s %s %s bearing the crest of %s %s is lying here.", AN(desc3), desc3,
+              material_name[material], armor_name, AN(desc2),
+              desc2);
+      obj->description = strdup(CAP(desc));
+      break;
+    case BELT_MOLD:
+      sprintf(keywords, "%s %s leather %s", armor_name, desc2, desc3);
+      obj->name = strdup(keywords);
+      sprintf(desc, "%s%s %s %s leather %s", desc, AN(desc2), desc2, desc3,
+              armor_name);
+      obj->short_description = strdup(desc);
+      sprintf(desc, "%s %s %s leather %s lie here.", AN(desc2), desc2, desc3,
+              armor_name);
+      obj->description = strdup(desc);
+      break;
+    case HELD_MOLD:
+      sprintf(keywords, "%s %s orb", armor_name, desc2);
+      obj->name = strdup(keywords);
+      sprintf(desc, "%sa %s %s orb", desc, desc2, armor_name);
+      obj->short_description = strdup(desc);
+      sprintf(desc, "A %s %s orb is lying here.", desc2, armor_name);
+      obj->description = strdup(desc);
+      break;
+  }
+
+  /* level, bonus and cost */
+  cp_modify_object_applies(ch, obj, enchantment, level, CP_TYPE_MISC, FALSE);
 }
 #undef SHORT_STRING
 
@@ -2151,6 +2435,153 @@ void load_treasure(char_data *mob) {
 
   /* Give the mob one magic item. */
   award_magic_item(1, mob, level, grade);
+}
+
+/* utility function for bazaar below - misc armoring such
+   as rings, necklaces, bracelets, etc */
+void disp_misc_type_menu(struct char_data *ch) {
+  
+  send_to_char(ch,
+          "1) finger\r\n"
+          "2) neck\r\n"
+          "3) feet\r\n"
+          "4) hands\r\n"
+          "5) about\r\n"
+          "6) waist\r\n"
+          "7) wrist\r\n"
+          "8) hold\r\n"
+          );
+  
+}
+
+/* command to load specific treasure */
+/* bazaar <item category> <selection from category> <enchantment level> */
+ACMD(do_bazaar) {
+  char arg1[MAX_STRING_LENGTH] = {'\0'};
+  char arg2[MAX_STRING_LENGTH] = {'\0'};
+  char arg3[MAX_STRING_LENGTH] = {'\0'};
+  int enchant = 0;
+  int selection = 0;
+  int type = 0;
+
+  three_arguments(argument, arg1, arg2, arg3);
+
+  if (!*arg1) {
+    send_to_char(ch, "Syntax: bazaar <item category> <selection number> <enchantment level>\r\n");
+    send_to_char(ch, "Item Categories: armor, weapon or misc.\r\n");
+    send_to_char(ch, "If you type: bazaar <item category> with no extra arguments, "
+            "it will display the 'selection number' choices\r\n");
+    send_to_char(ch, "Enchantment Level: 0-6\r\n");
+    return;
+  }
+  
+  /* set our category */
+  if (*arg1) {
+    if (is_abbrev(arg1, "armor"))
+      type = 1;
+    else if (is_abbrev(arg1, "weapon"))
+      type = 2;
+    else if (is_abbrev(arg1, "misc"))
+      type = 3;
+    else {
+      send_to_char(ch, "The first argument must be an Item Category: armor, weapon or misc.\r\n");
+      return;
+    }    
+  }
+  
+  /* list our possible selections, then EXIT */
+  if (*arg1 && !*arg2) {
+    switch (type) {
+      case 1: /* armor */
+        oedit_disp_armor_type_menu(ch->desc);
+        break;
+      case 2: /* weapon */
+        oedit_disp_weapon_type_menu(ch->desc);
+        break;
+      case 3: /* misc */
+        disp_misc_type_menu(ch);
+        break;
+      default:
+        break;
+    }
+    return;
+  }
+
+  /* selection number! */
+  if (!*arg2) {
+    send_to_char(ch, "Second argument required, the second argument must be a 'selection number'\r\n");
+    send_to_char(ch, "If you type: bazaar <item category> with no extra arguments, "
+            "it will display the 'selection number' choices\r\n");
+    return;
+  } else if (*arg2 && !isdigit(arg2[0])) {
+    send_to_char(ch, "The second argument must be an integer.\r\n");
+    return;
+  }
+  
+  /* missing or invalid enchantment level */
+  if (!*arg3) {
+    send_to_char(ch, "You need to select an enchantment level as the third argument (0-6).\r\n");
+    return;
+  } else if (*arg3 && !isdigit(arg3[0])) {
+    send_to_char(ch, "The third argument must be an integer.\r\n");
+    return;
+  }
+
+  /* more checks of validity of 2nd argument (selection number) */
+  if (*arg2) {
+    selection = atoi(arg2);
+    
+    switch (type) {
+      case 1: /* armor */
+        if (selection <= 0 || selection >= NUM_SPEC_ARMOR_TYPES) {
+          send_to_char(ch, "Invalid value for 'selection number'!\r\n");
+          oedit_disp_armor_type_menu(ch->desc);
+          return;          
+        }
+        break;
+      case 2: /* weapon */
+        if (selection <= 0 || selection >= NUM_WEAPON_TYPES) {
+          send_to_char(ch, "Invalid value for 'selection number'!\r\n");
+          oedit_disp_weapon_type_menu(ch->desc);
+          return;          
+        }
+        break;
+      case 3: /* misc */
+        if (selection <= 0 || selection >= 9) {
+          send_to_char(ch, "Invalid value for 'selection number'!\r\n");
+          disp_misc_type_menu(ch);
+          return;          
+        }
+        break;
+      default:
+        send_to_char(ch, "Invalid value for 'selection number'!\r\n");
+        return;
+    }      
+  } /* should be valid! */  
+  
+  /* more checks of validity of 3rd argument (enchantment level) */
+  if (*arg3)
+    enchant = atoi(arg3);
+  if (enchant < 0 || enchant > 6) {
+    send_to_char(ch, "Invalid!  Enchantment Levels: 0-6 only\r\n");
+    return;    
+  }
+  
+  /* we should be ready to go! */
+
+  switch (type) {
+    case 1: /* armor */
+      oedit_disp_armor_type_menu(ch->desc);
+      break;
+    case 2: /* weapon */
+      oedit_disp_weapon_type_menu(ch->desc);
+      break;
+    case 3: /* misc */
+      give_misc_magic_item(ch, selection, enchantment);
+      break;
+    default:
+      break;
+  }
 }
 
 /* staff tool to load random items */

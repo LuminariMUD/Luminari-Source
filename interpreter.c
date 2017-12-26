@@ -1236,6 +1236,12 @@ char *any_one_arg(char *argument, char *first_arg) {
   return (argument);
 }
 
+/* Same as one_argument except that it takes three args and returns the rest;
+ * ignores fill words */
+char *three_arguments(char *argument, char *first_arg, char *second_arg, char *third_arg) {
+  return (one_argument(one_argument(one_argument(argument, first_arg), second_arg), third_arg)); /* :-) */
+}
+
 /* Same as one_argument except that it takes two args and returns the rest;
  * ignores fill words */
 char *two_arguments(char *argument, char *first_arg, char *second_arg) {
