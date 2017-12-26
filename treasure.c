@@ -1862,7 +1862,7 @@ void award_magic_weapon(struct char_data *ch, int grade, int moblevel) {
 void give_magic_weapon(struct char_data *ch, int selection, int enchantment, bool silent_mode) {
   struct obj_data *obj = NULL;
   int roll = 0;
-  int rare_grade = 0, color1 = 0, color2 = 0, level = 0, roll2 = 0, roll3 = 0;
+  int color1 = 0, color2 = 0, level = 0, roll2 = 0, roll3 = 0;
   char desc[MEDIUM_STRING] = {'\0'};
   char hilt_color[SHORT_STRING] = {'\0'}, head_color[SHORT_STRING] = {'\0'};
   char special[SHORT_STRING] = {'\0'};
