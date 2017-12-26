@@ -1255,7 +1255,7 @@ void award_magic_ammo(struct char_data *ch, int grade, int moblevel) {
 void give_magic_armor(struct char_data *ch, int selection, int enchantment, bool silent_mode) {
   struct obj_data *obj = NULL;
   int roll = 0, armor_desc_roll = 0, crest_num = 0;
-  int rare_grade = 0, color1 = 0, color2 = 0, level = 0;
+  int color1 = 0, color2 = 0, level = 0;
   char desc[MEDIUM_STRING] = {'\0'};
   char keywords[MEDIUM_STRING] = {'\0'};
 
