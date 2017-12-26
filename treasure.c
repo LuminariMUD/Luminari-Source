@@ -369,7 +369,6 @@ struct char_data *find_treasure_recipient(struct char_data *ch) {
 /* this function determines whether the character will get treasure or not
  *   for example, called before make_corpse() when killing a mobile */
 void determine_treasure(struct char_data *ch, struct char_data *mob) {
-  int roll = dice(1, 100);
   int gold = 0;
   int level = 0;
   char buf[MEDIUM_STRING] = {'\0'};
