@@ -54,10 +54,10 @@
 
 #define GRADE_MUNDANE  1 // 0-5
 #define GRADE_MINOR    2 // 5-10
-#define GRADE_TYPICAL  2 // 10-15
-#define GRADE_MEDIUM   3 // 15-20
-#define GRADE_MAJOR    4 // 20-25
-#define GRADE_SUPERIOR 5 // 25-30
+#define GRADE_TYPICAL  3 // 10-15
+#define GRADE_MEDIUM   4 // 15-20
+#define GRADE_MAJOR    5 // 20-25
+#define GRADE_SUPERIOR 6 // 25-30
 
 #define TYPE_POTION 1
 #define TYPE_SCROLL 2
