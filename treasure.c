@@ -27,6 +27,16 @@
 
 /***  utility functions ***/
 
+  /* this function is used to inform ch and surrounding of a bazaar purchase */
+void say_bazaar(struct char_data *ch, struct obj_data *obj) {
+  if (ch && obj) {
+    /* message */
+    send_to_char(ch, "Here is your item!\r\n");
+    do_stat_object(ch, obj, ITEM_STAT_MODE_IDENTIFY_SPELL);
+    act("$n \tYhas acquired\tn $p\tn\tY from the bazaar.\tn", FALSE, ch, obj, ch, TO_NOTVICT);
+  }
+}
+
 /* this function is used to inform ch and surrounding of a treasure drop */
 void say_treasure(struct char_data *ch, struct obj_data *obj) {
   if (ch && obj && obj->short_description) {
@@ -1007,6 +1017,8 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
   /* inform ch and surrounding that they received this item */
   if (!silent_mode)
     say_treasure(ch, obj);
+  else
+    say_bazaar(ch, obj);
 }
 
 /* this is ornir's original version, taken out until he has time to finish it */
@@ -1488,6 +1500,13 @@ int possible_material_upgrade(int base_mat, int grade) {
   int material = base_mat;
   int roll = dice(1, 100); /* randomness */
   
+  /* sometimes we carry enchantment value into here, which would be
+     from 0-6, this will fix that */
+  if (grade < GRADE_MUNDANE)
+    grade = GRADE_MUNDANE;
+  if (grade > GRADE_MAJOR)
+    grade = GRADE_MAJOR;
+  
   switch (material) {
     case MATERIAL_BRONZE:
       switch (grade) {
@@ -1831,6 +1850,227 @@ void award_magic_weapon(struct char_data *ch, int grade, int moblevel) {
   /* object is fully described
    base object is taken care of including material, now set random stats, etc */
   cp_modify_object_applies(ch, obj, cp_convert_grade_enchantment(rare_grade), level, CP_TYPE_WEAPON, FALSE);
+}
+#undef SHORT_STRING
+
+/* give away magic weapon, method:
+ * 1)  determine material
+ * 2)  assign description
+ * 3)  determine modifier (if applicable)
+ */
+#define SHORT_STRING 80
+void give_magic_weapon(struct char_data *ch, int selection, int enchantment, bool silent_mode) {
+  struct obj_data *obj = NULL;
+  int roll = 0;
+  int rare_grade = 0, color1 = 0, color2 = 0, level = 0, roll2 = 0, roll3 = 0;
+  char desc[MEDIUM_STRING] = {'\0'};
+  char hilt_color[SHORT_STRING] = {'\0'}, head_color[SHORT_STRING] = {'\0'};
+  char special[SHORT_STRING] = {'\0'};
+  char buf[MAX_STRING_LENGTH] = {'\0'};
+
+  /* ok load blank object */
+  if ((obj = read_object(WEAPON_PROTO, VIRTUAL)) == NULL) {
+    log("SYSERR: give_magic_weapon created NULL object");
+    return;
+  }  
+  
+  /* now set up this new object */
+  set_weapon_object(obj, selection);
+  /* we should have a completely usable weapon now, just missing descripts/stats */
+  
+  /* ok assigning final material here, check for upgrade */
+  GET_OBJ_MATERIAL(obj) =
+          possible_material_upgrade(GET_OBJ_MATERIAL(obj), enchantment);
+
+  /* determine level */
+  switch (enchantment) {
+    case 0:
+    case 1:
+      level = 0;
+      break;
+    case 2:
+      level = 5;
+      break;
+    case 3:
+      level = 10;
+      break;
+    case 4:
+      level = 15;
+      break;
+    case 5:
+      level = 20;
+      break;
+    default: /*6*/
+      level = 25;
+      break;
+  }
+
+  // pick a pair of random colors for usage
+  /* first assign two random colors for usage */
+  color1 = rand_number(0, NUM_A_COLORS - 1);
+  color2 = rand_number(0, NUM_A_COLORS - 1);
+  /* make sure they are not the same colors */
+  while (color2 == color1)
+    color2 = rand_number(0, NUM_A_COLORS - 1);
+
+  sprintf(head_color, "%s", colors[color1]);
+  sprintf(hilt_color, "%s", colors[color2]);
+  if (IS_BLADE(obj))
+    sprintf(special, "%s%s", desc, blade_descs[rand_number(0, NUM_A_BLADE_DESCS - 1)]);
+  else if (IS_PIERCE(obj))
+    sprintf(special, "%s%s", desc, piercing_descs[rand_number(0, NUM_A_PIERCING_DESCS - 1)]);
+  else //blunt
+    sprintf(special, "%s%s", desc, blunt_descs[rand_number(0, NUM_A_BLUNT_DESCS - 1)]);
+
+  roll = dice(1, 100);
+  roll2 = rand_number(0, NUM_A_HEAD_TYPES - 1);
+  roll3 = rand_number(0, NUM_A_HANDLE_TYPES - 1);
+
+  // special, head color, hilt color
+  if (roll >= 91) {
+    sprintf(buf, "%s %s-%s %s %s %s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
+            head_color, head_types[roll2],
+            material_name[GET_OBJ_MATERIAL(obj)], special,
+            hilt_color,
+            handle_types[roll3]);
+    obj->name = strdup(buf);
+    sprintf(buf, "%s %s, %s-%s %s %s with %s %s %s", a_or_an(special), special,
+            head_color, head_types[roll2],
+            material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
+            a_or_an(hilt_color), hilt_color,
+            handle_types[roll3]);
+    obj->short_description = strdup(buf);
+    sprintf(buf, "%s %s, %s-%s %s %s with %s %s %s lies here.", a_or_an(special),
+            special, head_color, head_types[roll2],
+            material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
+            a_or_an(hilt_color), hilt_color,
+            handle_types[roll3]);
+    *buf = UPPER(*buf);
+    obj->description = strdup(buf);
+
+    // special, head color
+  } else if (roll >= 81) {
+    sprintf(buf, "%s %s-%s %s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
+            head_color, head_types[roll2],
+            material_name[GET_OBJ_MATERIAL(obj)], special);
+    obj->name = strdup(buf);
+    sprintf(buf, "%s %s, %s-%s %s %s", a_or_an(special), special,
+            head_color, head_types[roll2],
+            material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
+    obj->short_description = strdup(buf);
+    sprintf(buf, "%s %s, %s-%s %s %s lies here.", a_or_an(special),
+            special, head_color, head_types[roll2],
+            material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
+    *buf = UPPER(*buf);
+    obj->description = strdup(buf);
+
+    // special, hilt color
+  } else if (roll >= 71) {
+    sprintf(buf, "%s %s %s %s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
+            material_name[GET_OBJ_MATERIAL(obj)], special, hilt_color,
+            handle_types[roll3]);
+    obj->name = strdup(buf);
+    sprintf(buf, "%s %s %s %s with %s %s %s", a_or_an(special), special,
+            material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
+            a_or_an(hilt_color), hilt_color,
+            handle_types[roll3]);
+    obj->short_description = strdup(buf);
+    sprintf(buf, "%s %s %s %s with %s %s %s lies here.", a_or_an(special),
+            special, material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
+            a_or_an(hilt_color), hilt_color,
+            handle_types[roll3]);
+    *buf = UPPER(*buf);
+    obj->description = strdup(buf);
+
+    // head color, hilt color
+  } else if (roll >= 41) {
+    sprintf(buf, "%s %s-%s %s %s %s",
+            weapon_list[GET_WEAPON_TYPE(obj)].name, head_color, head_types[roll2],
+            material_name[GET_OBJ_MATERIAL(obj)],
+            hilt_color,
+            handle_types[roll3]);
+    obj->name = strdup(buf);
+    sprintf(buf, "%s %s-%s %s %s with %s %s %s", a_or_an(head_color),
+            head_color, head_types[roll2],
+            material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
+            a_or_an(hilt_color), hilt_color,
+            handle_types[roll3]);
+    obj->short_description = strdup(buf);
+    sprintf(buf, "%s %s-%s %s %s with %s %s %s lies here.", a_or_an(head_color),
+            head_color, head_types[roll2],
+            material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
+            a_or_an(hilt_color), hilt_color,
+            handle_types[roll3]);
+    *buf = UPPER(*buf);
+    obj->description = strdup(buf);
+
+    // head color
+  } else if (roll >= 31) {
+    sprintf(buf, "%s %s-%s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
+            head_color, head_types[roll2],
+            material_name[GET_OBJ_MATERIAL(obj)]);
+    obj->name = strdup(buf);
+    sprintf(buf, "%s %s-%s %s %s", a_or_an(head_color),
+            head_color, head_types[roll2],
+            material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
+    obj->short_description = strdup(buf);
+    sprintf(buf, "%s %s-%s %s %s lies here.", a_or_an(head_color),
+            head_color, head_types[roll2],
+            material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
+    *buf = UPPER(*buf);
+    obj->description = strdup(buf);
+
+    // hilt color
+  } else if (roll >= 21) {
+    sprintf(buf, "%s %s %s %s",
+            weapon_list[GET_WEAPON_TYPE(obj)].name, material_name[GET_OBJ_MATERIAL(obj)],
+            hilt_color,
+            handle_types[roll3]);
+    obj->name = strdup(buf);
+    sprintf(buf, "%s %s %s with %s %s %s", a_or_an((char *) material_name[GET_OBJ_MATERIAL(obj)]),
+            material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
+            a_or_an(hilt_color), hilt_color,
+            handle_types[roll3]);
+    obj->short_description = strdup(buf);
+    sprintf(buf, "%s %s %s with %s %s %s lies here.",
+            a_or_an((char *) material_name[GET_OBJ_MATERIAL(obj)]),
+            material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
+            a_or_an(hilt_color), hilt_color,
+            handle_types[roll3]);
+    *buf = UPPER(*buf);
+    obj->description = strdup(buf);
+
+    // special
+  } else if (roll >= 11) {
+    sprintf(buf, "%s %s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
+            material_name[GET_OBJ_MATERIAL(obj)], special);
+    obj->name = strdup(buf);
+    sprintf(buf, "%s %s %s %s", a_or_an(special), special,
+            material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
+    obj->short_description = strdup(buf);
+    sprintf(buf, "%s %s %s %s lies here.", a_or_an(special), special,
+            material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
+    *buf = UPPER(*buf);
+    obj->description = strdup(buf);
+
+    // none
+  } else {
+    sprintf(buf, "%s %s",
+            weapon_list[GET_WEAPON_TYPE(obj)].name, material_name[GET_OBJ_MATERIAL(obj)]);
+    obj->name = strdup(buf);
+    sprintf(buf, "%s %s %s", a_or_an((char *) material_name[GET_OBJ_MATERIAL(obj)]),
+            material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
+    obj->short_description = strdup(buf);
+    sprintf(buf, "%s %s %s lies here.",
+            a_or_an((char *) material_name[GET_OBJ_MATERIAL(obj)]),
+            material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
+    *buf = UPPER(*buf);
+    obj->description = strdup(buf);
+  }
+
+  /* object is fully described
+   base object is taken care of including material, now set random stats, etc */
+  cp_modify_object_applies(ch, obj, enchantment, level, CP_TYPE_WEAPON, silent_mode);
 }
 #undef SHORT_STRING
 
@@ -2384,9 +2624,6 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment, b
 
   /* level, bonus and cost */
   cp_modify_object_applies(ch, obj, enchantment, level, CP_TYPE_MISC, silent_mode);
-  send_to_char(ch, "Here is your item!\r\n");
-  do_stat_object(ch, obj, ITEM_STAT_MODE_IDENTIFY_SPELL);
-  act("$n \tYhas acquired\tn $p\tn\tY from the bazaar.\tn", FALSE, ch, obj, ch, TO_NOTVICT);  
 }
 #undef SHORT_STRING
 
@@ -2580,7 +2817,7 @@ ACMD(do_bazaar) {
       oedit_disp_armor_type_menu(ch->desc);
       break;
     case 2: /* weapon */
-      oedit_disp_weapon_type_menu(ch->desc);
+      give_magic_weapon(ch, selection, enchant, TRUE);
       break;
     case 3: /* misc */
       give_misc_magic_item(ch, selection, enchant, TRUE);
