@@ -2218,12 +2218,26 @@ ACMD(do_innates) {
 /* compartmentalized affects, so wizard command (stat affect)
  *  and this can share */
 ACMD(do_affects) {
-  if (subcmd == SCMD_AFFECTS)
-    perform_affects(ch, ch);
-  else if (subcmd == SCMD_COOLDOWNS)
-    perform_cooldowns(ch, ch);
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  struct char_data *vict = NULL;
+
+  one_argument(argument, arg);
+
+  /* find the victim */
+  vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM);
+  
+  if (!vict) {
+    vict = ch;
+  } if (GROUP(ch) != GROUP(vict)) {
+    vict = ch;
+  }
+  
+  if (subcmd == SCMD_AFFECTS) {
+    perform_affects(ch, vict);
+  } else if (subcmd == SCMD_COOLDOWNS)
+    perform_cooldowns(ch, vict);
   else if (subcmd == SCMD_RESISTANCES)
-    perform_resistances(ch, ch);
+    perform_resistances(ch, vict);
   else
     mudlog(BRF, LVL_IMMORT, TRUE, "SYSERR: Invalid subcmd sent to do_affects: %d", subcmd);
 }
