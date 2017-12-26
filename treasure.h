@@ -279,6 +279,9 @@ ACMD(do_loadmagic);
 ACMD(do_loadmagicspecific);
 ACMD(do_bazaar);
 
+/* special procedures */
+SPECIAL(bazaar);
+
 
 #endif	/* TREASURE_H */
 
