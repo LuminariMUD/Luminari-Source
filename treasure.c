@@ -373,7 +373,7 @@ void determine_treasure(struct char_data *ch, struct char_data *mob) {
   int gold = 0;
   int level = 0;
   char buf[MEDIUM_STRING] = {'\0'};
-  int grade = GRADE_MUNDANE;
+  int grade = GRADE_MUNDANE, max_grade = GRADE_MUNDANE;
 
   if (IS_NPC(ch))
     return;
@@ -383,42 +383,23 @@ void determine_treasure(struct char_data *ch, struct char_data *mob) {
   gold = dice(1, GET_LEVEL(mob)) * 10;
   level = GET_LEVEL(mob);
 
-  if (level >= 20) {
-    grade = GRADE_MAJOR;
-  } else if (level >= 16) {
-    if (roll >= 61)
-      grade = GRADE_MAJOR;
-    else
-      grade = GRADE_MEDIUM;
-  } else if (level >= 12) {
-    if (roll >= 81)
-      grade = GRADE_MAJOR;
-    else if (roll >= 11)
-      grade = GRADE_MEDIUM;
-    else
-      grade = GRADE_MINOR;
-  } else if (level >= 8) {
-    if (roll >= 96)
-      grade = GRADE_MAJOR;
-    else if (roll >= 31)
-      grade = GRADE_MEDIUM;
-    else
-      grade = GRADE_MINOR;
-  } else if (level >= 4) {
-    if (roll >= 76)
-      grade = GRADE_MEDIUM;
-    else if (roll >= 16)
-      grade = GRADE_MINOR;
-    else
-      grade = GRADE_MUNDANE;
+  /* determine maximum grade of treasure */
+  if (level >= 25) {
+    max_grade = GRADE_SUPERIOR;
+  } else if (level >= 20) {
+    max_grade = GRADE_MAJOR;
+  } else if (level >= 15) {
+    max_grade = GRADE_MEDIUM;
+  } else if (level >= 10) {
+    max_grade = GRADE_TYPICAL;
+  } else if (level >= 5) {
+    max_grade = GRADE_MINOR;
   } else {
-    if (roll >= 96)
-      grade = GRADE_MEDIUM;
-    else if (roll >= 41)
-      grade = GRADE_MINOR;
-    else
-      grade = GRADE_MUNDANE;
+    max_grade = GRADE_MUNDANE;    
   }
+  
+  /* okay now determine grade */
+  grade = dice(1, max_grade);
 
   if (dice(1, 100) <= MAX(TREASURE_PERCENT, HAPPY_TREASURE)) {
     award_magic_item(dice(1, 2), ch, level, grade);
@@ -622,49 +603,49 @@ void award_random_crystal(struct char_data *ch, int level) {
 
   // two colors and descriptor
   if (roll >= 91) {
-    sprintf(buf, "crystal %s %s %s", colors[color1], colors[color2],
+    sprintf(buf, "arcanite crystal %s %s %s", colors[color1], colors[color2],
             crystal_descs[desc]);
     obj->name = strdup(buf);
-    sprintf(buf, "a %s, %s and %s crystal", crystal_descs[desc],
+    sprintf(buf, "a %s, %s and %s arcanite crystal", crystal_descs[desc],
             colors[color1], colors[color2]);
     obj->short_description = strdup(buf);
-    sprintf(buf, "A %s, %s and %s crystal lies here.", crystal_descs[desc],
+    sprintf(buf, "A %s, %s and %s arcanite crystal lies here.", crystal_descs[desc],
             colors[color1], colors[color2]);
     obj->description = strdup(buf);
 
     // one color and descriptor
   } else if (roll >= 66) {
-    sprintf(buf, "crystal %s %s", colors[color1], crystal_descs[desc]);
+    sprintf(buf, "arcanite crystal %s %s", colors[color1], crystal_descs[desc]);
     obj->name = strdup(buf);
-    sprintf(buf, "a %s %s crystal", crystal_descs[desc], colors[color1]);
+    sprintf(buf, "a %s %s arcanite crystal", crystal_descs[desc], colors[color1]);
     obj->short_description = strdup(buf);
-    sprintf(buf, "A %s %s crystal lies here.", crystal_descs[desc],
+    sprintf(buf, "A %s %s arcanite crystal lies here.", crystal_descs[desc],
             colors[color1]);
     obj->description = strdup(buf);
 
     // two colors no descriptor
   } else if (roll >= 41) {
-    sprintf(buf, "crystal %s %s", colors[color1], colors[color2]);
+    sprintf(buf, "arcanite crystal %s %s", colors[color1], colors[color2]);
     obj->name = strdup(buf);
-    sprintf(buf, "a %s and %s crystal", colors[color1], colors[color2]);
+    sprintf(buf, "a %s and %s arcanite crystal", colors[color1], colors[color2]);
     obj->short_description = strdup(buf);
-    sprintf(buf, "A %s and %s crystal lies here.", colors[color1], colors[color2]);
+    sprintf(buf, "A %s and %s arcanite crystal lies here.", colors[color1], colors[color2]);
     obj->description = strdup(buf);
   } else if (roll >= 21) {// one color no descriptor
-    sprintf(buf, "crystal %s", colors[color1]);
+    sprintf(buf, "arcanite crystal %s", colors[color1]);
     obj->name = strdup(buf);
-    sprintf(buf, "a %s crystal", colors[color1]);
+    sprintf(buf, "a %s arcanite crystal", colors[color1]);
     obj->short_description = strdup(buf);
-    sprintf(buf, "A %s crystal lies here.", colors[color1]);
+    sprintf(buf, "A %s arcanite crystal lies here.", colors[color1]);
     obj->description = strdup(buf);
 
     // descriptor only
   } else {
-    sprintf(buf, "crystal %s", crystal_descs[desc]);
+    sprintf(buf, "arcanite crystal %s", crystal_descs[desc]);
     obj->name = strdup(buf);
-    sprintf(buf, "a %s crystal", crystal_descs[desc]);
+    sprintf(buf, "a %s arcanite crystal", crystal_descs[desc]);
     obj->short_description = strdup(buf);
-    sprintf(buf, "A %s crystal lies here.", crystal_descs[desc]);
+    sprintf(buf, "A %s arcanite crystal lies here.", crystal_descs[desc]);
     obj->description = strdup(buf);
   }
 
@@ -716,13 +697,19 @@ void award_expendable_item(struct char_data *ch, int grade, int type) {
       spell_level = rand_number(1, 5);
       break;
     case GRADE_MINOR:
-      spell_level = rand_number(6, 10);
+      spell_level = rand_number(2, 10);
+      break;
+    case GRADE_TYPICAL:
+      spell_level = rand_number(3, 15);
       break;
     case GRADE_MEDIUM:
-      spell_level = rand_number(11, 14);
+      spell_level = rand_number(5, 20);
+      break;
+    case GRADE_MAJOR:
+      spell_level = rand_number(7, 25);
       break;
     default:
-      spell_level = rand_number(15, 20);
+      spell_level = rand_number(10, 30);
       break;
   }
 
@@ -926,18 +913,36 @@ int cp_convert_grade_enchantment(int grade) {
   
   switch (grade) {
     case GRADE_MUNDANE:
-      enchantment = 1;
+      if (rand_number(0, 1))
+        enchantment = 1;
+      else
+        enchantment = 0;
       break;
     case GRADE_MINOR:
-      enchantment = 2;
+      if (rand_number(0, 1))
+        enchantment = 2;
+      else
+        enchantment = 1;
       break;
+    case GRADE_TYPICAL:
+      if (rand_number(0, 1))
+        enchantment = 3;
+      else
+        enchantment = 2;
+      break;            
     case GRADE_MEDIUM:
       if (rand_number(0, 2))
         enchantment = 3;
       else
         enchantment = 4;
       break;
-    default: /* GRADE_MAJOR */
+    case GRADE_MAJOR:
+      if (rand_number(0, 2))
+        enchantment = 4;
+      else
+        enchantment = 5;
+      break;
+    default: /* GRADE_SUPERIOR */
       if (rand_number(0, 3))
         enchantment = 5;
       else
@@ -1181,16 +1186,22 @@ void award_magic_ammo(struct char_data *ch, int grade, int moblevel) {
   /* determine level */
   switch (grade) {
     case GRADE_MUNDANE:
-      level = rand_number(1, 8);
+      level = rand_number(1, 5);
       break;
     case GRADE_MINOR:
-      level = rand_number(9, 16);
+      level = rand_number(2, 10);
+      break;
+    case GRADE_TYPICAL:
+      level = rand_number(3, 15);
       break;
     case GRADE_MEDIUM:
-      level = rand_number(17, 24);
+      level = rand_number(5, 20);
       break;
-    default: // major grade
-      level = rand_number(25, 30);
+    case GRADE_MAJOR:
+      level = rand_number(8, 25);
+      break;
+    default: // superior grade
+      level = rand_number(12, 30);
       break;
   }
 
@@ -1434,16 +1445,22 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel, int wear_s
   /* determine level */
   switch (grade) {
     case GRADE_MUNDANE:
-      level = rand_number(1, 8);
+      level = rand_number(1, 5);
       break;
     case GRADE_MINOR:
-      level = rand_number(9, 16);
+      level = rand_number(2, 10);
+      break;
+    case GRADE_TYPICAL:
+      level = rand_number(3, 15);
       break;
     case GRADE_MEDIUM:
-      level = rand_number(17, 24);
+      level = rand_number(5, 20);
       break;
-    default: // major grade
-      level = rand_number(25, 30);
+    case GRADE_MAJOR:
+      level = rand_number(8, 25);
+      break;
+    default: // superior grade
+      level = rand_number(12, 30);
       break;
   }
 
@@ -1634,8 +1651,8 @@ int possible_material_upgrade(int base_mat, int grade) {
      from 0-6, this will fix that */
   if (grade < GRADE_MUNDANE)
     grade = GRADE_MUNDANE;
-  if (grade > GRADE_MAJOR)
-    grade = GRADE_MAJOR;
+  if (grade > GRADE_SUPERIOR)
+    grade = GRADE_SUPERIOR;
   
   switch (material) {
     case MATERIAL_BRONZE:
@@ -1647,6 +1664,7 @@ int possible_material_upgrade(int base_mat, int grade) {
             material = MATERIAL_IRON;
           break;
         case GRADE_MINOR:
+        case GRADE_TYPICAL:
           if (roll <= 75)
             material = MATERIAL_IRON;
           else
@@ -1662,12 +1680,20 @@ int possible_material_upgrade(int base_mat, int grade) {
           else
             material = MATERIAL_ALCHEMAL_SILVER;
           break;
-        default: // major grade
+        case GRADE_MEDIUM:
           if (roll <= 50)
             material = MATERIAL_COLD_IRON;
           else if (roll <= 80)
             material = MATERIAL_ALCHEMAL_SILVER;
-          else if (roll <= 95)
+          else
+            material = MATERIAL_ADAMANTINE;
+          break;
+        default: // superior grade
+          if (roll <= 45)
+            material = MATERIAL_COLD_IRON;
+          else if (roll <= 70)
+            material = MATERIAL_ALCHEMAL_SILVER;
+          else if (roll <= 85)
             material = MATERIAL_MITHRIL;
           else
             material = MATERIAL_ADAMANTINE;
@@ -1685,8 +1711,14 @@ int possible_material_upgrade(int base_mat, int grade) {
         case GRADE_MEDIUM:
           material = MATERIAL_LEATHER;
           break;
-        default: // major grade
+        case GRADE_MAJOR:
           if (roll <= 90)
+            material = MATERIAL_LEATHER;
+          else
+            material = MATERIAL_DRAGONHIDE;
+          break;
+        default: // superior grade
+          if (roll <= 70)
             material = MATERIAL_LEATHER;
           else
             material = MATERIAL_DRAGONHIDE;
@@ -1702,6 +1734,7 @@ int possible_material_upgrade(int base_mat, int grade) {
             material = MATERIAL_COTTON;
           break;
         case GRADE_MINOR:
+        case GRADE_TYPICAL:
           if (roll <= 50)
             material = MATERIAL_HEMP;
           else if (roll <= 80)
@@ -1719,12 +1752,20 @@ int possible_material_upgrade(int base_mat, int grade) {
           else
             material = MATERIAL_SATIN;
           break;
-        default: // major grade
+        case GRADE_MAJOR:
           if (roll <= 50)
             material = MATERIAL_WOOL;
           else if (roll <= 80)
             material = MATERIAL_VELVET;
-          else if (roll <= 95)
+          else
+            material = MATERIAL_SATIN;
+          break;
+        default: // major grade
+          if (roll <= 30)
+            material = MATERIAL_WOOL;
+          else if (roll <= 60)
+            material = MATERIAL_VELVET;
+          else if (roll <= 75)
             material = MATERIAL_SATIN;
           else
             material = MATERIAL_SILK;
@@ -1735,11 +1776,18 @@ int possible_material_upgrade(int base_mat, int grade) {
       switch (grade) {
         case GRADE_MUNDANE:
         case GRADE_MINOR:
+        case GRADE_TYPICAL:
         case GRADE_MEDIUM:
           material = MATERIAL_WOOD;
           break;
-        default: // major grade
-          if (roll <= 80)
+        case GRADE_MAJOR:
+          if (roll <= 75)
+            material = MATERIAL_WOOD;
+          else
+            material = MATERIAL_DARKWOOD;
+          break;
+        default: // superior grade
+          if (roll <= 60)
             material = MATERIAL_WOOD;
           else
             material = MATERIAL_DARKWOOD;
@@ -1801,16 +1849,22 @@ void award_magic_weapon(struct char_data *ch, int grade, int moblevel) {
   /* determine level */
   switch (grade) {
     case GRADE_MUNDANE:
-      level = rand_number(1, 8);
+      level = rand_number(1, 5);
       break;
     case GRADE_MINOR:
-      level = rand_number(9, 16);
+      level = rand_number(2, 10);
+      break;
+    case GRADE_TYPICAL:
+      level = rand_number(3, 15);
       break;
     case GRADE_MEDIUM:
-      level = rand_number(17, 24);
+      level = rand_number(5, 20);
       break;
-    default: // major grade
-      level = rand_number(25, 30);
+    case GRADE_MAJOR:
+      level = rand_number(8, 25);
+      break;
+    default: // superior grade
+      level = rand_number(12, 30);
       break;
   }
 
@@ -2307,6 +2361,7 @@ void award_misc_magic_item(struct char_data *ch, int grade, int moblevel) {
             material = MATERIAL_BRASS;
           break;
         case GRADE_MINOR:
+        case GRADE_TYPICAL:
           if (roll <= 75)
             material = MATERIAL_BRASS;
           else
@@ -2320,10 +2375,18 @@ void award_misc_magic_item(struct char_data *ch, int grade, int moblevel) {
           else
             material = MATERIAL_GOLD;
           break;
-        default: // major grade
+        case GRADE_MAJOR:
           if (roll <= 50)
             material = MATERIAL_SILVER;
           else if (roll <= 80)
+            material = MATERIAL_GOLD;
+          else
+            material = MATERIAL_PLATINUM;
+          break;
+        default: // superior grade
+          if (roll <= 30)
+            material = MATERIAL_SILVER;
+          else if (roll <= 50)
             material = MATERIAL_GOLD;
           else
             material = MATERIAL_PLATINUM;
@@ -2336,13 +2399,20 @@ void award_misc_magic_item(struct char_data *ch, int grade, int moblevel) {
           material = MATERIAL_LEATHER;
           break;
         case GRADE_MINOR:
+        case GRADE_TYPICAL:
           material = MATERIAL_LEATHER;
           break;
         case GRADE_MEDIUM:
           material = MATERIAL_LEATHER;
           break;
-        default: // major grade
+        case GRADE_MAJOR:
           if (roll <= 90)
+            material = MATERIAL_LEATHER;
+          else
+            material = MATERIAL_DRAGONHIDE;
+          break;
+        default: // major grade
+          if (roll <= 70)
             material = MATERIAL_LEATHER;
           else
             material = MATERIAL_DRAGONHIDE;
@@ -2358,6 +2428,7 @@ void award_misc_magic_item(struct char_data *ch, int grade, int moblevel) {
             material = MATERIAL_COTTON;
           break;
         case GRADE_MINOR:
+        case GRADE_TYPICAL:
           if (roll <= 50)
             material = MATERIAL_HEMP;
           else if (roll <= 80)
@@ -2375,12 +2446,20 @@ void award_misc_magic_item(struct char_data *ch, int grade, int moblevel) {
           else
             material = MATERIAL_SATIN;
           break;
-        default: // major grade
+        case GRADE_MAJOR:
           if (roll <= 50)
             material = MATERIAL_WOOL;
           else if (roll <= 80)
             material = MATERIAL_VELVET;
           else if (roll <= 95)
+            material = MATERIAL_SATIN;
+          else
+            material = MATERIAL_SILK;
+          break;
+        default: // superior grade
+          if (roll <= 50)
+            material = MATERIAL_VELVET;
+          else if (roll <= 80)
             material = MATERIAL_SATIN;
           else
             material = MATERIAL_SILK;
@@ -2412,24 +2491,31 @@ void award_misc_magic_item(struct char_data *ch, int grade, int moblevel) {
   /* determine level */
   switch (grade) {
     case GRADE_MUNDANE:
-      level = rand_number(1, 8);
+      level = rand_number(1, 5);
       break;
     case GRADE_MINOR:
-      level = rand_number(9, 16);
+      level = rand_number(2, 10);
+      break;
+    case GRADE_TYPICAL:
+      level = rand_number(3, 15);
       break;
     case GRADE_MEDIUM:
-      level = rand_number(17, 24);
+      level = rand_number(5, 20);
       break;
-    default: // major grade
-      level = rand_number(25, 30);
+    case GRADE_MAJOR:
+      level = rand_number(8, 25);
+      break;
+    default: // superior grade
+      level = rand_number(12, 30);
       break;
   }
-
+  
   /* ok load object, set material */
   if ((obj = read_object(vnum, VIRTUAL)) == NULL) {
     log("SYSERR: award_misc_magic_item created NULL object");
     return;
   }
+  
   GET_OBJ_MATERIAL(obj) = material;
 
   /* put together a descrip */
@@ -2761,50 +2847,31 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment, b
 void load_treasure(char_data *mob) {
   int roll = dice(1, 100);
   int level = 0;
-  int grade = GRADE_MUNDANE;
+  int grade = GRADE_MUNDANE, max_grade = GRADE_MUNDANE;
 
   if (!IS_NPC(mob))
     return;
 
   level = GET_LEVEL(mob);
-
-  if (level >= 20) {
-    grade = GRADE_MAJOR;
-  } else if (level >= 16) {
-    if (roll >= 61)
-      grade = GRADE_MAJOR;
-    else
-      grade = GRADE_MEDIUM;
-  } else if (level >= 12) {
-    if (roll >= 81)
-      grade = GRADE_MAJOR;
-    else if (roll >= 11)
-      grade = GRADE_MEDIUM;
-    else
-      grade = GRADE_MINOR;
-  } else if (level >= 8) {
-    if (roll >= 96)
-      grade = GRADE_MAJOR;
-    else if (roll >= 31)
-      grade = GRADE_MEDIUM;
-    else
-      grade = GRADE_MINOR;
-  } else if (level >= 4) {
-    if (roll >= 76)
-      grade = GRADE_MEDIUM;
-    else if (roll >= 16)
-      grade = GRADE_MINOR;
-    else
-      grade = GRADE_MUNDANE;
+  
+  /* determine maximum grade of treasure */
+  if (level >= 25) {
+    max_grade = GRADE_SUPERIOR;
+  } else if (level >= 20) {
+    max_grade = GRADE_MAJOR;
+  } else if (level >= 15) {
+    max_grade = GRADE_MEDIUM;
+  } else if (level >= 10) {
+    max_grade = GRADE_TYPICAL;
+  } else if (level >= 5) {
+    max_grade = GRADE_MINOR;
   } else {
-    if (roll >= 96)
-      grade = GRADE_MEDIUM;
-    else if (roll >= 41)
-      grade = GRADE_MINOR;
-    else
-      grade = GRADE_MUNDANE;
+    max_grade = GRADE_MUNDANE;    
   }
-
+  
+  /* okay now determine grade */
+  grade = dice(1, max_grade);
+  
   /* Give the mob one magic item. */
   award_magic_item(1, mob, level, grade);
 }
@@ -2989,7 +3056,7 @@ ACMD(do_loadmagicspecific) {
   two_arguments(argument, arg1, arg2);
 
   if (!*arg1) {
-    send_to_char(ch, "Syntax: loadmagicspecific [mundane | minor | medium | major] "
+    send_to_char(ch, "Syntax: loadmagicspecific [mundane | minor | typical | medium | major | superior] "
             "[weapon | shield | body | legs | arms | head | misc]\r\n");
     return;
   }
@@ -3003,12 +3070,16 @@ ACMD(do_loadmagicspecific) {
     grade = GRADE_MUNDANE;
   else if (is_abbrev(arg1, "minor"))
     grade = GRADE_MINOR;
+  else if (is_abbrev(arg1, "typical"))
+    grade = GRADE_TYPICAL;
   else if (is_abbrev(arg1, "medium"))
     grade = GRADE_MEDIUM;
   else if (is_abbrev(arg1, "major"))
     grade = GRADE_MAJOR;
+  else if (is_abbrev(arg1, "superior"))
+    grade = GRADE_SUPERIOR;
   else {
-    send_to_char(ch, "Syntax: loadmagicspecific [mundane | minor | medium | major] "
+    send_to_char(ch, "Syntax: loadmagicspecific [mundane | minor | typical | medium | major | superior] "
             "[weapon | shield | body | legs | arms | head | misc]\r\n");
     return;
   }
@@ -3055,7 +3126,7 @@ ACMD(do_loadmagicspecific) {
       award_magic_armor(ch, grade, GET_LEVEL(ch), ITEM_WEAR_SHIELD);
       break;
     default:
-      send_to_char(ch, "Syntax: loadmagicspecific [mundane | minor | medium | major] "
+      send_to_char(ch, "Syntax: loadmagicspecific [mundane | minor | typical | medium | major | superior] "
               "[weapon | body | legs | arms | head | misc]\r\n");
       break;
   }
@@ -3071,7 +3142,7 @@ ACMD(do_loadmagic) {
   two_arguments(argument, arg1, arg2);
 
   if (!*arg1) {
-    send_to_char(ch, "Syntax: loadmagic [mundane | minor | medium | major] [# of items]\r\n");
+    send_to_char(ch, "Syntax: loadmagic [mundane | minor | typical | medium | major | superior] [# of items]\r\n");
     send_to_char(ch, "See also: loadmagicspecific\r\n");
     return;
   }
@@ -3085,12 +3156,16 @@ ACMD(do_loadmagic) {
     grade = GRADE_MUNDANE;
   else if (is_abbrev(arg1, "minor"))
     grade = GRADE_MINOR;
+  else if (is_abbrev(arg1, "typical"))
+    grade = GRADE_TYPICAL;
   else if (is_abbrev(arg1, "medium"))
     grade = GRADE_MEDIUM;
   else if (is_abbrev(arg1, "major"))
     grade = GRADE_MAJOR;
+  else if (is_abbrev(arg1, "superior"))
+    grade = GRADE_SUPERIOR;
   else {
-    send_to_char(ch, "Syntax: loadmagic [mundane | minor | medium | major] [# of items]\r\n");
+    send_to_char(ch, "Syntax: loadmagic [mundane | minor | typical | medium | major | superior] [# of items]\r\n");
     return;
   }
 
