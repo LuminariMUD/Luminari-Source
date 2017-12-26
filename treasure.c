@@ -963,7 +963,8 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
       CAN_WEAR(obj, ITEM_WEAR_LEGS) || CAN_WEAR(obj, ITEM_WEAR_ARMS) ||
           cp_type == CP_TYPE_AMMO
       ) {
-    GET_OBJ_VAL(obj, 4) = level / 5;
+    /* object value 4 for these particular objects are their enchantment bonus */
+    GET_OBJ_VAL(obj, 4) = enchantment
     has_enhancement = TRUE;
   }
   else if (CAN_WEAR(obj, ITEM_WEAR_FINGER)) {
@@ -2783,9 +2784,11 @@ ACMD(do_bazaar) {
         }
         break;
       case 2: /* weapon */
-        if (selection <= 0 || selection >= NUM_WEAPON_TYPES) {
+        if (selection <= 1 || selection >= NUM_WEAPON_TYPES) {
           send_to_char(ch, "Invalid value for 'selection number'!\r\n");
           oedit_disp_weapon_type_menu(ch->desc);
+          if (selection == 1)
+            send_to_char(ch, "\tRPlease do not select UNARMED.\t\n\r\n");
           return;          
         }
         break;
