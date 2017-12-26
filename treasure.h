@@ -52,10 +52,12 @@
 #define NUM_A_HANDLE_TYPES    6
 #define NUM_A_HEAD_TYPES      10
 
-#define GRADE_MUNDANE 1
-#define GRADE_MINOR   2
-#define GRADE_MEDIUM  3
-#define GRADE_MAJOR   4
+#define GRADE_MUNDANE  1 // 0-5
+#define GRADE_MINOR    2 // 5-10
+#define GRADE_TYPICAL  2 // 10-15
+#define GRADE_MEDIUM   3 // 15-20
+#define GRADE_MAJOR    4 // 20-25
+#define GRADE_SUPERIOR 5 // 25-30
 
 #define TYPE_POTION 1
 #define TYPE_SCROLL 2
