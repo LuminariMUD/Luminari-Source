@@ -18,6 +18,7 @@
 #include "ban.h" /* for SPECIAL(gen_board) */
 #include "boards.h"
 #include "mail.h"
+#include "treasure.h"
 
 SPECIAL(questmaster);
 SPECIAL(shop_keeper);
@@ -814,23 +815,28 @@ void assign_rooms(void)
 {
   room_rnum i;
 
+  /* bazaar - spend quest points on magic gear */
+  ASSIGNROOM(103006, bazaar);
+
+  /* crafting quest (autocraft) */          
   ASSIGNROOM(370, crafting_quest);
 
-  ASSIGNROOM(3031, pet_shops);
-
+  /* wizard library - research wizard spells for spellbook */
   ASSIGNROOM(5905, wizard_library); /* wizard training mansion */
   ASSIGNROOM(103047, wizard_library); /* Ashenport Mage's Guild */
   
+  /* buy pets */
+  ASSIGNROOM(3031, pet_shops);
   ASSIGNROOM(10738, pet_shops);
   ASSIGNROOM(23281, pet_shops);
   ASSIGNROOM(25722, pet_shops);
   ASSIGNROOM(27155, pet_shops);
   ASSIGNROOM(27616, pet_shops);
   ASSIGNROOM(31523, pet_shops);
-
+  ASSIGNROOM(103031, pet_shops);
   ASSIGNROOM(145287, pet_shops); /* mosswood petshop */
 
-  /* unsorted Homeland assigns */
+  /* abyssal vortex */
   ASSIGNROOM(139200, abyssal_vortex);
   ASSIGNROOM(139201, abyssal_vortex);
   ASSIGNROOM(139202, abyssal_vortex);
@@ -883,13 +889,19 @@ void assign_rooms(void)
   ASSIGNROOM(139249, abyssal_vortex);
   ASSIGNROOM(139250, abyssal_vortex);
 
+  /* hive death */
   ASSIGNROOM(139300, hive_death);
 
+  /* kt twister */
   ASSIGNROOM(132902, kt_twister);
   ASSIGNROOM(132903, kt_twister);
   ASSIGNROOM(132904, kt_twister);
   ASSIGNROOM(132905, kt_twister);
+  
+  /* kt shadowmaker */
   //ASSIGNROOM( 32921, kt_shadowmaker);
+  
+  /* quicksand */
   ASSIGNROOM(126771, quicksand);
   ASSIGNROOM(126776, quicksand);
   ASSIGNROOM(126752, quicksand);
@@ -906,8 +918,7 @@ void assign_rooms(void)
   ASSIGNROOM(126793, quicksand);
   ASSIGNROOM(126800, quicksand);
 
-  ASSIGNROOM(103031, pet_shops);
-
+  /* death traps are dumps, i.e. will destroy all gear that hits the ground */
   if (CONFIG_DTS_ARE_DUMPS)
     for (i = 0; i <= top_of_world; i++)
       if (ROOM_FLAGGED(i, ROOM_DEATH))
