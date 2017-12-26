@@ -2972,9 +2972,11 @@ SPECIAL(bazaar) {
         break;
     }
     
+    return TRUE; /*end*/
+    
   }
   
-  return TRUE;
+  return FALSE;
 }
 
 /* staff tool to load random items */
