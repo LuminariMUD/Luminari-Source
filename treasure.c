@@ -2139,7 +2139,7 @@ void award_misc_magic_item(struct char_data *ch, int grade, int moblevel) {
 #define SHORT_STRING    80
 void give_misc_magic_item(struct char_data *ch, int category, int enchantment) {
   struct obj_data *obj = NULL;
-  int vnum = -1, material = MATERIAL_BRONZE, roll = 0;
+  int vnum = -1, material = MATERIAL_BRONZE;
   int level = 0;
   char desc[MEDIUM_STRING] = {'\0'}, armor_name[MEDIUM_STRING] = {'\0'};
   char keywords[MEDIUM_STRING] = {'\0'};
@@ -2578,7 +2578,7 @@ ACMD(do_bazaar) {
       oedit_disp_weapon_type_menu(ch->desc);
       break;
     case 3: /* misc */
-      give_misc_magic_item(ch, selection, enchantment);
+      give_misc_magic_item(ch, selection, enchant);
       break;
     default:
       break;
