@@ -158,7 +158,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "bind", "bind", POS_FIGHTING, do_bind, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
   { "blessedtouch", "blessedtouch", POS_STANDING, do_blessedtouch, 0, 0, FALSE, ACTION_STANDARD, {6, 0}},
   { "battlerage", "battlerage", POS_STANDING, do_battlerage, 0, 0, FALSE, ACTION_STANDARD, {6, 0}},
-  { "bazaar", "bazaar", POS_DEAD, do_bazaar, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}},
+  { "bazaar", "bazaar", POS_STANDING, do_not_here, 0, 0, FALSE, ACTION_NONE, {0, 0}},
 
   { "cast", "c", POS_SITTING, do_cast, 1, 0, FALSE, ACTION_MOVE, {0, 6}},
   { "cedit", "cedit", POS_DEAD, do_oasis_cedit, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}},
