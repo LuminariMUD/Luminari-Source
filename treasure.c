@@ -32,9 +32,9 @@ void say_treasure(struct char_data *ch, struct obj_data *obj) {
   if (ch && obj && obj->short_description) {
     char buf[MAX_STRING_LENGTH] = {'\0'};
 
-    send_to_char(ch, "\tYYou have found %s in a nearby lair (random treasure drop)!\tn\r\n", obj->short_description);
+    send_to_char(ch, "\tYYou have found %s\tn\tY in a nearby lair (random treasure drop)!\tn\r\n", obj->short_description);
     
-    sprintf(buf, "$n \tYhas found %s in a nearby lair (random treasure drop)!\tn", obj->short_description);
+    sprintf(buf, "$n \tYhas found %s\tn\tY in a nearby lair (random treasure drop)!\tn", obj->short_description);
     act(buf, FALSE, ch, 0, ch, TO_NOTVICT);  
   }
 }
@@ -2386,6 +2386,10 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment, b
   cp_modify_object_applies(ch, obj, enchantment, level, CP_TYPE_MISC, silent_mode);
   send_to_char(ch, "Here is your item!\r\n");
   do_stat_object(ch, obj, ITEM_STAT_MODE_IDENTIFY_SPELL);
+  
+  char buf[MAX_STRING_LENGTH] = {'\0'};
+  sprintf(buf, "$n \tYhas acquired %s\tn\tY from the bazaar.\tn", obj->short_description);
+  act(buf, FALSE, ch, 0, ch, TO_NOTVICT);  
 }
 #undef SHORT_STRING
 
