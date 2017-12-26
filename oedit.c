@@ -725,7 +725,7 @@ static void oedit_disp_trap_direction(struct descriptor_data *d) {
   write_to_output(d, "\r\n%sEnter direction # : ", nrm);
 }
 
-static void oedit_disp_armor_type_menu(struct descriptor_data *d) {
+void oedit_disp_armor_type_menu(struct descriptor_data *d) {
   const char *armor_types[NUM_SPEC_ARMOR_TYPES - 1];
   int i = 0;
 
@@ -738,7 +738,7 @@ static void oedit_disp_armor_type_menu(struct descriptor_data *d) {
   column_list(d->character, 3, armor_types, NUM_SPEC_ARMOR_TYPES - 1, TRUE);
 }
 
-static void oedit_disp_weapon_type_menu(struct descriptor_data *d) {
+void oedit_disp_weapon_type_menu(struct descriptor_data *d) {
   const char *weapon_types[NUM_WEAPON_TYPES - 1];
   int i = 0;
 
