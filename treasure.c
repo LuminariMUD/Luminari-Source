@@ -2972,9 +2972,6 @@ SPECIAL(bazaar) {
         break;
     }
     
-  } else { /*command is not bazaar*/
-    send_to_char(ch, "To use the bazaar, you have to type 'bazaar' here.\r\n");
-    return TRUE;
   }
   
   return TRUE;
