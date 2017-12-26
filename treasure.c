@@ -2827,8 +2827,9 @@ void disp_misc_type_menu(struct char_data *ch) {
 }
 
 /* command to load specific treasure */
+
 /* bazaar <item category> <selection from category> <enchantment level> */
-ACMD(do_bazaar) {
+SPECIAL(bazaar) {
   char arg1[MAX_STRING_LENGTH] = {'\0'};
   char arg2[MAX_STRING_LENGTH] = {'\0'};
   char arg3[MAX_STRING_LENGTH] = {'\0'};
@@ -2837,138 +2838,146 @@ ACMD(do_bazaar) {
   int type = 0;
   int cost = 0;
 
-  three_arguments(argument, arg1, arg2, arg3);
+  if (CMD_IS("bazaar")) {
 
-  if (!*arg1) {
-    send_to_char(ch, "\tcSyntax:\tn bazaar <item category> <selection number> <enchantment level>\r\n");
-    send_to_char(ch, "\tcItem Categories:\tn armor, weapon or misc.\r\n");
-    send_to_char(ch, "\tcIf you type:\tn bazaar <item category> with no extra arguments, "
-            "it will display the 'selection number' choices\r\n");
-    send_to_char(ch, "\tcEnchantment Level:\tn 0-6\r\n");
-    return;
-  }
-  
-  /* set our category */
-  if (*arg1) {
-    if (is_abbrev(arg1, "armor"))
-      type = 1;
-    else if (is_abbrev(arg1, "weapon"))
-      type = 2;
-    else if (is_abbrev(arg1, "misc"))
-      type = 3;
-    else {
-      send_to_char(ch, "The first argument must be an Item Category: armor, weapon or misc.\r\n");
-      return;
-    }    
-  }
-  
-  /* list our possible selections, then EXIT */
-  if (*arg1 && !*arg2) {
-    send_to_char(ch, "Please refer to selection number below for the 2nd argument:\r\n");
+    three_arguments(argument, arg1, arg2, arg3);
+
+    if (!*arg1) {
+      send_to_char(ch, "\tcSyntax:\tn bazaar <item category> <selection number> <enchantment level>\r\n");
+      send_to_char(ch, "\tcItem Categories:\tn armor, weapon or misc.\r\n");
+      send_to_char(ch, "\tcIf you type:\tn bazaar <item category> with no extra arguments, "
+              "it will display the 'selection number' choices\r\n");
+      send_to_char(ch, "\tcEnchantment Level:\tn 0-6\r\n");
+      return TRUE;
+    }
+
+    /* set our category */
+    if (*arg1) {
+      if (is_abbrev(arg1, "armor"))
+        type = 1;
+      else if (is_abbrev(arg1, "weapon"))
+        type = 2;
+      else if (is_abbrev(arg1, "misc"))
+        type = 3;
+      else {
+        send_to_char(ch, "The first argument must be an Item Category: armor, weapon or misc.\r\n");
+        return TRUE;
+      }
+    }
+
+    /* list our possible selections, then EXIT */
+    if (*arg1 && !*arg2) {
+      send_to_char(ch, "Please refer to selection number below for the 2nd argument:\r\n");
+      switch (type) {
+        case 1: /* armor */
+          oedit_disp_armor_type_menu(ch->desc);
+          break;
+        case 2: /* weapon */
+          oedit_disp_weapon_type_menu(ch->desc);
+          break;
+        case 3: /* misc */
+          disp_misc_type_menu(ch);
+          break;
+        default:
+          break;
+      }
+      return TRUE;
+    }
+
+    /* selection number! */
+    if (!*arg2) {
+      send_to_char(ch, "Second argument required, the second argument must be a 'selection number'\r\n");
+      send_to_char(ch, "If you type: bazaar <item category> with no extra arguments, "
+              "it will display the 'selection number' choices\r\n");
+      return TRUE;
+    } else if (*arg2 && !isdigit(arg2[0])) {
+      send_to_char(ch, "The second argument must be an integer.\r\n");
+      return TRUE;
+    }
+
+    /* missing or invalid enchantment level */
+    if (!*arg3) {
+      send_to_char(ch, "You need to select an enchantment level as the third argument (0-6).\r\n");
+      return TRUE;
+    } else if (*arg3 && !isdigit(arg3[0])) {
+      send_to_char(ch, "The third argument must be an integer.\r\n");
+      return TRUE;
+    }
+
+    /* more checks of validity of 2nd argument (selection number) */
+    if (*arg2) {
+      selection = atoi(arg2);
+
+      switch (type) {
+        case 1: /* armor */
+          if (selection <= 0 || selection >= NUM_SPEC_ARMOR_TYPES) {
+            send_to_char(ch, "Invalid value for 'selection number'!\r\n");
+            oedit_disp_armor_type_menu(ch->desc);
+            return TRUE;
+          }
+          break;
+        case 2: /* weapon */
+          if (selection <= 1 || selection >= NUM_WEAPON_TYPES) {
+            send_to_char(ch, "Invalid value for 'selection number'!\r\n");
+            oedit_disp_weapon_type_menu(ch->desc);
+            if (selection == 1)
+              send_to_char(ch, "\tRPlease do not select UNARMED.\t\n\r\n");
+            return TRUE;
+          }
+          break;
+        case 3: /* misc */
+          if (selection <= 0 || selection >= 9) {
+            send_to_char(ch, "Invalid value for 'selection number'!\r\n");
+            disp_misc_type_menu(ch);
+            return TRUE;
+          }
+          break;
+        default:
+          send_to_char(ch, "Invalid value for 'selection number'!\r\n");
+          return TRUE;
+      }
+    } /* should be valid! */
+
+    /* more checks of validity of 3rd argument (enchantment level) */
+    if (*arg3)
+      enchant = atoi(arg3);
+    if (enchant < 0 || enchant > 6) {
+      send_to_char(ch, "Invalid!  Enchantment Levels: 0-6 only\r\n");
+      return TRUE;
+    }
+
+    /* quest point cost */
+    cost = 1 + (enchant * enchant) + (50 * enchant);
+    if (cost > GET_QUESTPOINTS(ch)) {
+      send_to_char(ch, "You do not have enough questpoints, %d required.\r\n", cost);
+      return TRUE;
+    } else {
+      GET_QUESTPOINTS(ch) -= cost;
+      send_to_char(ch, "You pay %d quest points.  You have %d left.\r\n",
+              cost, GET_QUESTPOINTS(ch));
+    }
+
+    /* we should be ready to go! */
     switch (type) {
       case 1: /* armor */
-        oedit_disp_armor_type_menu(ch->desc);
+        give_magic_armor(ch, selection, enchant, TRUE);
         break;
       case 2: /* weapon */
-        oedit_disp_weapon_type_menu(ch->desc);
+        give_magic_weapon(ch, selection, enchant, TRUE);
         break;
       case 3: /* misc */
-        disp_misc_type_menu(ch);
+        give_misc_magic_item(ch, selection, enchant, TRUE);
         break;
       default:
         break;
     }
-    return;
-  }
-
-  /* selection number! */
-  if (!*arg2) {
-    send_to_char(ch, "Second argument required, the second argument must be a 'selection number'\r\n");
-    send_to_char(ch, "If you type: bazaar <item category> with no extra arguments, "
-            "it will display the 'selection number' choices\r\n");
-    return;
-  } else if (*arg2 && !isdigit(arg2[0])) {
-    send_to_char(ch, "The second argument must be an integer.\r\n");
-    return;
-  }
-  
-  /* missing or invalid enchantment level */
-  if (!*arg3) {
-    send_to_char(ch, "You need to select an enchantment level as the third argument (0-6).\r\n");
-    return;
-  } else if (*arg3 && !isdigit(arg3[0])) {
-    send_to_char(ch, "The third argument must be an integer.\r\n");
-    return;
-  }
-
-  /* more checks of validity of 2nd argument (selection number) */
-  if (*arg2) {
-    selection = atoi(arg2);
     
-    switch (type) {
-      case 1: /* armor */
-        if (selection <= 0 || selection >= NUM_SPEC_ARMOR_TYPES) {
-          send_to_char(ch, "Invalid value for 'selection number'!\r\n");
-          oedit_disp_armor_type_menu(ch->desc);
-          return;          
-        }
-        break;
-      case 2: /* weapon */
-        if (selection <= 1 || selection >= NUM_WEAPON_TYPES) {
-          send_to_char(ch, "Invalid value for 'selection number'!\r\n");
-          oedit_disp_weapon_type_menu(ch->desc);
-          if (selection == 1)
-            send_to_char(ch, "\tRPlease do not select UNARMED.\t\n\r\n");
-          return;          
-        }
-        break;
-      case 3: /* misc */
-        if (selection <= 0 || selection >= 9) {
-          send_to_char(ch, "Invalid value for 'selection number'!\r\n");
-          disp_misc_type_menu(ch);
-          return;          
-        }
-        break;
-      default:
-        send_to_char(ch, "Invalid value for 'selection number'!\r\n");
-        return;
-    }      
-  } /* should be valid! */  
-  
-  /* more checks of validity of 3rd argument (enchantment level) */
-  if (*arg3)
-    enchant = atoi(arg3);
-  if (enchant < 0 || enchant > 6) {
-    send_to_char(ch, "Invalid!  Enchantment Levels: 0-6 only\r\n");
-    return;    
+  } else { /*command is not bazaar*/
+    send_to_char(ch, "To use the bazaar, you have to type 'bazaar' here.\r\n");
+    return TRUE;
   }
   
-  /* quest point cost */
-  cost = 1 + (enchant*enchant) + (50*enchant);
-  if (cost > GET_QUESTPOINTS(ch)) {
-    send_to_char(ch, "You do not have enough questpoints, %d required.\r\n", cost);
-    return;
-  } else {
-    GET_QUESTPOINTS(ch) -= cost;
-    send_to_char(ch, "You pay %d quest points.  You have %d left.\r\n",
-            cost, GET_QUESTPOINTS(ch));
-    
-  }
-  
-  /* we should be ready to go! */
-  switch (type) {
-    case 1: /* armor */
-      give_magic_armor(ch, selection, enchant, TRUE);
-      break;
-    case 2: /* weapon */
-      give_magic_weapon(ch, selection, enchant, TRUE);
-      break;
-    case 3: /* misc */
-      give_misc_magic_item(ch, selection, enchant, TRUE);
-      break;
-    default:
-      break;
-  }
+  return TRUE;
 }
 
 /* staff tool to load random items */
