@@ -2137,7 +2137,7 @@ void award_misc_magic_item(struct char_data *ch, int grade, int moblevel) {
  * 5)  determine amount (if applicable)
  */
 #define SHORT_STRING    80
-void give_misc_magic_item(struct char_data *ch, int category, int enchantment) {
+void give_misc_magic_item(struct char_data *ch, int category, int enchantment, bool silent_mode) {
   struct obj_data *obj = NULL;
   int vnum = -1, material = MATERIAL_BRONZE;
   int level = 0;
@@ -2382,7 +2382,9 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment) {
   }
 
   /* level, bonus and cost */
-  cp_modify_object_applies(ch, obj, enchantment, level, CP_TYPE_MISC, FALSE);
+  cp_modify_object_applies(ch, obj, enchantment, level, CP_TYPE_MISC, silent_mode);
+  send_to_char(ch, "Here is your item!\r\n");
+  do_stat_object(ch, obj, ITEM_STAT_MODE_IDENTIFY_SPELL);
 }
 #undef SHORT_STRING
 
@@ -2492,6 +2494,7 @@ ACMD(do_bazaar) {
   
   /* list our possible selections, then EXIT */
   if (*arg1 && !*arg2) {
+    send_to_char(ch, "Please refer to selection number below for the 2nd argument:\r\n");
     switch (type) {
       case 1: /* armor */
         oedit_disp_armor_type_menu(ch->desc);
@@ -2578,7 +2581,7 @@ ACMD(do_bazaar) {
       oedit_disp_weapon_type_menu(ch->desc);
       break;
     case 3: /* misc */
-      give_misc_magic_item(ch, selection, enchant);
+      give_misc_magic_item(ch, selection, enchant, TRUE);
       break;
     default:
       break;
