@@ -178,7 +178,7 @@ bool obj_should_fall(struct obj_data *obj) {
 }
 
 /* this function will check whether a char should fall or not based on
-   circumstances and whether the ch is flying */
+   circumstances and whether the ch is flying / levitate */
 bool char_should_fall(struct char_data *ch, bool silent) {
   int falling = FALSE;
 
@@ -197,6 +197,12 @@ bool char_should_fall(struct char_data *ch, bool silent) {
   if (AFF_FLAGGED(ch, AFF_FLYING)) {
     if (!silent)
       send_to_char(ch, "You fly gracefully through the air...\r\n");
+    return FALSE;
+  }
+  
+  if (AFF_FLAGGED(ch, AFF_LEVITATE)) {
+    if (!silent)
+      send_to_char(ch, "You levitate above the ground...\r\n");
     return FALSE;
   }
 
@@ -243,7 +249,7 @@ EVENTFUNC(event_falling)
       send_to_char(ch, "Moments before slamming into the ground, a 'safefall'"
               " enchantment stops you!\r\n");
       act("Moments before $n slams into the ground, some sort of magical force"
-              " force stops $s from the impact.", FALSE, ch, 0, 0, TO_ROOM);
+              " stops $s from the impact.", FALSE, ch, 0, 0, TO_ROOM);
       REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_SAFEFALL);
       return 0;
     }
@@ -322,7 +328,8 @@ int has_boat(struct char_data *ch, room_rnum going_to) {
   if (GET_LEVEL(ch) >= LVL_IMMORT)
     return (1);
 
-  if (AFF_FLAGGED(ch, AFF_WATERWALK) || AFF_FLAGGED(ch, AFF_FLYING))
+  if (AFF_FLAGGED(ch, AFF_WATERWALK) || AFF_FLAGGED(ch, AFF_FLYING) ||
+          AFF_FLAGGED(ch, AFF_LEVITATE))
     return (1);
 
   /* non-wearable boats in inventory will do it */

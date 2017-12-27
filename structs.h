@@ -863,8 +863,9 @@
 #define AFF_BLINKING         100 /* in a state of blinking between prime/eth */
 #define AFF_AWARE            101 /* aware - too aware to be backstabed */
 #define AFF_CRIPPLING_CRITICAL 102 /* duelist crippling critical affection */
+#define AFF_LEVITATE         103   /**< Char can float above the ground */
 /*---*/
-#define NUM_AFF_FLAGS        103
+#define NUM_AFF_FLAGS        104
 /********************************/
 /* add aff_ flag?  don't forget to add to:
    1)  places in code the affect will directly modify values

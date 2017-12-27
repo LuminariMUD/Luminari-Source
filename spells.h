@@ -398,9 +398,10 @@
 #define SPELL_I_DARKNESS                306  // room event test spell
 #define SPELL_DOOM                      307  // creeping doom damage proc
 #define SPELL_WHIRLWIND                 308
+#define SPELL_LEVITATE                  309 /* levitation spell - very similar to waterwalk */
 
 /** Total Number of defined spells  */
-#define NUM_SPELLS                      309
+#define NUM_SPELLS                      310
 
 /* unfinished spell list (homeland-port) */
 #define SPELL_VIGORIZE_LIGHT            309

@@ -1450,7 +1450,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   }
   /****/
   
-
   /* note, hopefully we have calculated the proper level for this spell
      in call_magic() */
 
@@ -3367,6 +3366,14 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       to_room = "$n's neck grows gills!";
       break;
 
+    case SPELL_LEVITATE: //transmutation
+      af[0].duration = 600;
+      SET_BIT_AR(af[0].bitvector, AFF_LEVITATE);
+      accum_duration = TRUE;
+      to_vict = "As you raise your arms, you begin to float in the air.";
+      to_room = "$n begins to slowly levitate above the ground!";
+      break;
+      
     case SPELL_WATERWALK: //transmutation
       af[0].duration = 600;
       SET_BIT_AR(af[0].bitvector, AFF_WATERWALK);

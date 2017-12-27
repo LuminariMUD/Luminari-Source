@@ -93,7 +93,8 @@ int valid_spellup_spell[SPELLUP_SPELLS] = {
   SPELL_REGENERATION, //50
   SPELL_DEATH_SHIELD,
   SPELL_BARKSKIN,
-  SPELL_SPELL_RESISTANCE
+  SPELL_SPELL_RESISTANCE,
+  SPELL_WATERWALK
 };
 
 /* list of spells mobiles will use for offense (aoe) */
