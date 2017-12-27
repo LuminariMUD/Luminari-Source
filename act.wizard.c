@@ -5992,6 +5992,7 @@ int get_eq_score(obj_rnum a) {
         case AFF_DETECT_ALIGN:
         case AFF_DETECT_MAGIC:
         case AFF_WATERWALK:
+        case AFF_LEVITATE:
         case AFF_SANCTUARY:
         case AFF_INFRAVISION:
         case AFF_PROTECT_EVIL:

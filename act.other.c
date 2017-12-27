@@ -2798,12 +2798,17 @@ ACMD(do_lore) {
   }
 }
 
-/* a generic command to get rid of a fly flag */
+/* a generic command to get rid of a fly / levitate flag */
 ACMD(do_land) {
   bool msg = FALSE;
 
   if (affected_by_spell(ch, SPELL_FLY)) {
     affect_from_char(ch, SPELL_FLY);
+    msg = TRUE;
+  }
+  
+  if (affected_by_spell(ch, SPELL_LEVITATE)) {
+    affect_from_char(ch, SPELL_LEVITATE);
     msg = TRUE;
   }
 
@@ -2812,11 +2817,16 @@ ACMD(do_land) {
     msg = TRUE;
   }
 
+  if AFF_FLAGGED(ch, AFF_LEVITATE) {
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_LEVITATE);
+    msg = TRUE;
+  }
+
   if (msg) {
     send_to_char(ch, "You land on the ground.\r\n");
     act("$n lands on the ground.", TRUE, ch, 0, 0, TO_ROOM);
   } else {
-    send_to_char(ch, "You are not flying.\r\n");
+    send_to_char(ch, "You are not flying or levitating.\r\n");
   }
 }
 
@@ -2829,7 +2839,7 @@ ACMD(do_levitate) {
     return;
   }
   
-  if (AFF_FLAGGED(ch, AFF_WATERWALK)) {
+  if (AFF_FLAGGED(ch, AFF_LEVITATE)) {
     send_to_char(ch, "You are already levitating!\r\n");
     return;
   }
@@ -2847,7 +2857,7 @@ ACMD(do_levitate) {
   
   //int call_magic(struct char_data *caster, struct char_data *cvict,
         //struct obj_data *ovict, int spellnum, int metamagic, int level, int casttype);
-  call_magic(ch, ch, NULL, SPELL_WATERWALK, 0, GET_LEVEL(ch), CAST_SPELL);
+  call_magic(ch, ch, NULL, SPELL_LEVITATE, 0, GET_LEVEL(ch), CAST_INNATE);
   
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_SLA_LEVITATE);  

@@ -2360,6 +2360,9 @@ void mag_assign_spells(void) {
   spello(SPELL_WATERWALK, "waterwalk", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
           "Your feet seem less buoyant.", 7, 17, TRANSMUTATION, FALSE);
+  spello(SPELL_LEVITATE, "levitate", 0, 0, 0, POS_FIGHTING,
+          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+          "As the levitation expires, you begin to float downward.", 7, 17, TRANSMUTATION, FALSE);
 
 
   // 7th circle
@@ -2682,6 +2685,7 @@ void mag_assign_spells(void) {
   //summon creature 5 - shared
   //waterbreath - shared
   //waterwalk - shared
+  //levitate - shared
 
   // 6th circle
   spello(SPELL_DISPEL_EVIL, "dispel evil", 65, 50, 1, POS_FIGHTING,

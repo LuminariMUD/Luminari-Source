@@ -2742,6 +2742,7 @@ void load_class_list(void) {
   spell_assignment(CLASS_WIZARD, SPELL_GREATER_DISPELLING,   11);
   spell_assignment(CLASS_WIZARD, SPELL_CLONE,                11);
   spell_assignment(CLASS_WIZARD, SPELL_WATERWALK,            11);
+  spell_assignment(CLASS_WIZARD, SPELL_LEVITATE,             11);
   /*              class num      spell                   level acquired */
   /* 7th circle */
   spell_assignment(CLASS_WIZARD, SPELL_MISSILE_STORM,       13);
@@ -2958,6 +2959,7 @@ void load_class_list(void) {
   spell_assignment(CLASS_CLERIC, SPELL_MASS_CHARISMA,     11);
   spell_assignment(CLASS_CLERIC, SPELL_MASS_CUNNING,      11);
   spell_assignment(CLASS_CLERIC, SPELL_REMOVE_DISEASE,    11);
+  spell_assignment(CLASS_CLERIC, SPELL_LEVITATE,          11);
   /*              class num      spell                   level acquired */
   /* 7th circle */
   spell_assignment(CLASS_CLERIC, SPELL_CALL_LIGHTNING,     13);
@@ -3855,6 +3857,7 @@ void load_class_list(void) {
   spell_assignment(CLASS_SORCERER, SPELL_GREATER_DISPELLING,   12);
   spell_assignment(CLASS_SORCERER, SPELL_CLONE,                12);
   spell_assignment(CLASS_SORCERER, SPELL_WATERWALK,            12);
+  spell_assignment(CLASS_SORCERER, SPELL_LEVITATE,             12);
   /*              class num      spell                   level acquired */
   /* 7th circle */
   spell_assignment(CLASS_SORCERER, SPELL_MISSILE_STORM,       14);

@@ -743,8 +743,8 @@ bool perform_shieldcharge(struct char_data *ch, struct char_data *vict) {
     }
   }
 
-  if (!HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_SHIELD)) {
-    send_to_char(ch, "You are not proficient enough in the use of your shield to shieldpunch.\r\n");
+  if (!HAS_FEAT(ch, FEAT_SHIELD_CHARGE)) {
+    send_to_char(ch, "You are not proficient enough in the use of your shield to shieldcharge.\r\n");
     return FALSE;
   }
 

@@ -6870,7 +6870,7 @@ void perform_violence(struct char_data *ch, int phase) {
         GET_POS(ch) = POS_FIGHTING;
         attacks_of_opportunity(ch, 0);
         send_to_char(ch, "You scramble to your feet!\r\n");
-        if (AFF_FLAGGED(ch, AFF_FLYING))
+        if (AFF_FLAGGED(ch, AFF_FLYING) || AFF_FLAGGED(ch, AFF_LEVITATE))
           act("$n scrambles to $s feet then launches back into the air!", TRUE, ch, 0, 0, TO_ROOM);
         else
           act("$n scrambles to $s feet!", TRUE, ch, 0, 0, TO_ROOM);

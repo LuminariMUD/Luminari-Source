@@ -1282,6 +1282,7 @@ const char *affected_bits[NUM_AFF_FLAGS + 1] =
   "Blinking",
   "Aware",
   "Crippled-by-Critical",
+  "Levitating",
   "\n"
 };
 
@@ -1396,6 +1397,7 @@ const char *affected_bit_descs[NUM_AFF_FLAGS + 1] =
   "You are blinking between prime and ethereal planes!", //100
   "You are aware of backstab attempts now!",
   "You have been crippled by a nasty critical attack!",
+  "You are levitating above the ground!",
   "\n"
 };
 
