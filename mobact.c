@@ -34,7 +34,7 @@
 
 /* local file scope only function prototypes, defines, externs, etc */
 #define SINFO spell_info[spellnum]
-#define SPELLUP_SPELLS 54
+#define SPELLUP_SPELLS 55
 #define OFFENSIVE_SPELLS 58
 #define OFFENSIVE_AOE_SPELLS 16
 
