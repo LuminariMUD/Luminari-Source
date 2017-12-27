@@ -2501,6 +2501,8 @@ ACMD(do_score) {
       send_to_char(ch, "You are summonable by other players.\r\n");
     else
       send_to_char(ch, "You are NOT summonable by other players.\r\n");
+    if (CLASS_LEVEL(ch, CLASS_MONK) && !monk_gear_ok(ch))
+      send_to_char(ch, "Your worn gear is interfering with your ki.\r\n");      
     send_to_char(ch, "\tC");
     draw_line(ch, line_length, '-', '-');
   }
