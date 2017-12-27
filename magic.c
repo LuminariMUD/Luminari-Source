@@ -2228,7 +2228,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     case SPELL_GREATER_MIRROR_IMAGE: //illusion
       if (affected_by_spell(victim, SPELL_MIRROR_IMAGE) ||
               affected_by_spell(victim, SPELL_GREATER_MIRROR_IMAGE)) {
-        send_to_char(ch, "You already have mirror images!\r\n");
+        send_to_char(ch, "Your target already has mirror images!\r\n");
         return;
       }
       af[0].duration = 300;
@@ -2649,7 +2649,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     case SPELL_MIRROR_IMAGE: //illusion
       if (affected_by_spell(victim, SPELL_MIRROR_IMAGE) ||
               affected_by_spell(victim, SPELL_GREATER_MIRROR_IMAGE)) {
-        send_to_char(ch, "You already have mirror images!\r\n");
+        send_to_char(ch, "Your target already has mirror images!\r\n");
         return;
       }
       af[0].duration = 300;
