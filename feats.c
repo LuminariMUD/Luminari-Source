@@ -796,8 +796,11 @@ void assign_feats(void) {
     "retain your shield's AC bonus when you shield punch");
     feat_prereq_feat(FEAT_IMPROVED_SHIELD_PUNCH, FEAT_ARMOR_PROFICIENCY_SHIELD, 1);
   feato(FEAT_SHIELD_CHARGE, "shield charge", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "make a knockdown attack when you bash with your shield",
-    "make a knockdown attack when you bash with your shield");
+    "charge with shield for damage and knockdown attempt (shieldcharge)",
+    "Making an off-hand attack with your shield with a +2 bonus doing 1d6 + strength-bonus "
+          "damage, you attempt to slam your shield and bodyweight "
+          "into your opponent.  A successful hit will result in a knockdown attempt. "
+          "To use this skill, just type: shieldcharge <opponent>");
     feat_prereq_bab(FEAT_SHIELD_CHARGE, 3);
     feat_prereq_feat(FEAT_SHIELD_CHARGE, FEAT_IMPROVED_SHIELD_PUNCH, 1);
   feato(FEAT_SHIELD_SLAM, "shield slam", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
