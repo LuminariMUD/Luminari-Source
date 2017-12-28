@@ -3209,8 +3209,12 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   /* weapon enhancement bonus */
   if (wielded)
     dambonus += GET_ENHANCEMENT_BONUS(wielded);
+  /* monk glove enhancement bonus */
+  if (CLASS_LEVEL(ch, CLASS_MONK) && is_bare_handed(ch) && monk_gear_ok(ch) &&
+          GET_EQ(ch, WEAR_HANDS) && GET_OBJ_VAL(GET_EQ(ch, WEAR_HANDS), 0))
+    dambonus += GET_OBJ_VAL(GET_EQ(ch, WEAR_HANDS), 0);
   
-  /* ranged includes arrow, what a hack */
+  /* ranged includes arrow, what a hack */ /* why is that a hack? */
   if (can_fire_ammo(ch, TRUE)) {
     dambonus += GET_ENHANCEMENT_BONUS(GET_EQ(ch, WEAR_AMMO_POUCH)->contains);
     dambonus += HAS_FEAT(ch, FEAT_ENHANCE_ARROW_MAGIC);
@@ -4495,7 +4499,7 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
   /* Enhancement bonus */
   if (wielded)
     bonuses[BONUS_TYPE_ENHANCEMENT] = MAX(bonuses[BONUS_TYPE_ENHANCEMENT], GET_ENHANCEMENT_BONUS(wielded));
-  /* ranged includes arrow, what a hack */
+  /* ranged includes arrow, what a hack */ /* why is that a hack again? */
   if (can_fire_ammo(ch, TRUE))
     bonuses[BONUS_TYPE_ENHANCEMENT] += GET_ENHANCEMENT_BONUS(GET_EQ(ch, WEAR_AMMO_POUCH)->contains);
   if (IS_WILDSHAPED(ch) || IS_MORPHED(ch))
