@@ -30,6 +30,52 @@
 
 /***  utility functions ***/
 
+/* utility function that converts a grade rating to an enchantment rating */
+int cp_convert_grade_enchantment(int grade) {
+  int enchantment = 0;
+  
+  switch (grade) {
+    case GRADE_MUNDANE:
+      if (rand_number(0, 1))
+        enchantment = 1;
+      else
+        enchantment = 0;
+      break;
+    case GRADE_MINOR:
+      if (rand_number(0, 1))
+        enchantment = 2;
+      else
+        enchantment = 1;
+      break;
+    case GRADE_TYPICAL:
+      if (rand_number(0, 1))
+        enchantment = 3;
+      else
+        enchantment = 2;
+      break;            
+    case GRADE_MEDIUM:
+      if (rand_number(0, 2))
+        enchantment = 3;
+      else
+        enchantment = 4;
+      break;
+    case GRADE_MAJOR:
+      if (rand_number(0, 2))
+        enchantment = 4;
+      else
+        enchantment = 5;
+      break;
+    default: /* GRADE_SUPERIOR */
+      if (rand_number(0, 3))
+        enchantment = 5;
+      else
+        enchantment = 6;
+      break;
+  }
+  
+  return enchantment;
+}
+
 /* determine a random category for misc treasure */
 int determine_rnd_misc_cat() {
   return dice(1, NUM_MISC_CATEGORIES);
@@ -915,51 +961,6 @@ void award_expendable_item(struct char_data *ch, int grade, int type) {
   say_treasure(ch, obj);
 }
 
-/* utility function that converts a grade rating to an enchantment rating */
-int cp_convert_grade_enchantment(int grade) {
-  int enchantment = 0;
-  
-  switch (grade) {
-    case GRADE_MUNDANE:
-      if (rand_number(0, 1))
-        enchantment = 1;
-      else
-        enchantment = 0;
-      break;
-    case GRADE_MINOR:
-      if (rand_number(0, 1))
-        enchantment = 2;
-      else
-        enchantment = 1;
-      break;
-    case GRADE_TYPICAL:
-      if (rand_number(0, 1))
-        enchantment = 3;
-      else
-        enchantment = 2;
-      break;            
-    case GRADE_MEDIUM:
-      if (rand_number(0, 2))
-        enchantment = 3;
-      else
-        enchantment = 4;
-      break;
-    case GRADE_MAJOR:
-      if (rand_number(0, 2))
-        enchantment = 4;
-      else
-        enchantment = 5;
-      break;
-    default: /* GRADE_SUPERIOR */
-      if (rand_number(0, 3))
-        enchantment = 5;
-      else
-        enchantment = 6;
-      break;
-  }
-  
-  return enchantment;
-}
 /* this is a very simplified version of this function, the original version was
  incomplete and creating some very strange gear with some crazy stats.  The
  original version is right below this.  the bonus_value is measure in enchantment
