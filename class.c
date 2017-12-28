@@ -1568,7 +1568,7 @@ static int level_feats[][LEVEL_FEATS] = {
 #define NUM_NOOB_ARROWS    40
 #define NUM_NOOB_DROW_BOLTS 30
 #define NOOB_TELEPORTER    82
-#define NOOB_TORCH         858
+#define NOOB_TORCH         867
 #define NOOB_RATIONS       804
 #define NOOB_WATERSKIN     803
 #define NOOB_BP            857
@@ -1611,7 +1611,6 @@ static int level_feats[][LEVEL_FEATS] = {
 void newbieEquipment(struct char_data *ch) {
   int objNums[] = {
     NOOB_TELEPORTER,
-    NOOB_TORCH,
     NOOB_TORCH,
     NOOB_RATIONS,
     NOOB_RATIONS,
