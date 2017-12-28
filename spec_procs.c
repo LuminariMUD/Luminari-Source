@@ -4376,10 +4376,10 @@ ACMD(do_disembark) {
 
 /* testing glove procs for monks, obj vnum 224 */
 SPECIAL(monk_glove) {
-  struct char_data *vict = FIGHTING(ch);
-
   if (!ch)
     return FALSE;
+  
+  struct char_data *vict = FIGHTING(ch);
 
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Proc: Shock damage.\r\n");
@@ -5518,10 +5518,10 @@ SPECIAL(spiderdagger) {
 
 /* from homeland */
 SPECIAL(sparksword) {
-  struct char_data *vict = FIGHTING(ch);
-
   if (!ch)
     return FALSE;
+  
+  struct char_data *vict = FIGHTING(ch);
 
   if (!cmd && !strcmp(argument, "identify")) {
     send_to_char(ch, "Proc: Shock damage.\r\n");
