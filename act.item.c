@@ -384,7 +384,13 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
       send_to_char(ch, "Hits/App:     %d\r\n", GET_OBJ_VAL(item, 3));
       break;
     case ITEM_WORN:
-      send_to_char(ch, "Wearable item.\r\n");
+      /* monk glove */
+      if (CAN_WEAR(item, ITEM_WEAR_HANDS) && GET_OBJ_VAL(item, 0))
+        send_to_char(ch, "Monk Glove Enchantment: %d\r\n", GET_OBJ_VAL(item, 0));
+      /* default */
+      else {
+        send_to_char(ch, "Wearable item.\r\n");        
+      }
       break;
     default:
       send_to_char(ch, "Report this item to a coder to add the ITEM_type\r\n");
