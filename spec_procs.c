@@ -4390,9 +4390,9 @@ SPECIAL(monk_glove) {
     return FALSE;
 
   weapons_spells(
-          "\twYour $p\tw's \tWsparks\tw as you hit $N causing $M to shudder violently from the \tYshock\tw!\tn",
-          "$n\tw's $p\tw's \tWsparks\tw as $e hits you causing you to shudder violently from the \tYshock\tw!\tn",
-          "$n\tw's $p\tw's \tWsparks\tw as $e hits $N causing $M to shudder violently from the \tYshock\tw!\tn",
+          "\twYour $p\tw \tWsparks\tw as you hit $N causing $M to shudder violently from the \tYshock\tw!\tn",
+          "$n\tw's $p\tw \tWsparks\tw as $e hits you causing you to shudder violently from the \tYshock\tw!\tn",
+          "$n\tw's $p\tw \tWsparks\tw as $e hits $N causing $M to shudder violently from the \tYshock\tw!\tn",
           ch, vict, (struct obj_data *) me, 0);
   damage(ch, vict, dice(2, 8), -1, DAM_ELECTRIC, FALSE);
 
