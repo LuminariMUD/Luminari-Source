@@ -848,6 +848,9 @@ static void oedit_disp_val1_menu(struct descriptor_data *d) {
     case ITEM_INSTRUMENT:
       oedit_disp_instrument_menu(d);
       break;
+    case ITEM_WORN:
+      write_to_output(d, "Special value for worn gear (example gloves for monk-gloves enhancement: ");      
+      break;
     case ITEM_BOAT: // these object types have no 'values' so go back to menu
     case ITEM_KEY:
     case ITEM_NOTE:
@@ -856,7 +859,6 @@ static void oedit_disp_val1_menu(struct descriptor_data *d) {
     case ITEM_PEN:
     case ITEM_TRASH:
     case ITEM_TREASURE:
-    case ITEM_WORN:
       oedit_disp_menu(d);
       break;
     default:
@@ -1479,6 +1481,18 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
           GET_OBJ_VAL(OLC_OBJ(d), 1) = 0;
           GET_OBJ_VAL(OLC_OBJ(d), 2) = 0;
           GET_OBJ_VAL(OLC_OBJ(d), 3) = 0;
+          GET_OBJ_VAL(OLC_OBJ(d), 4) = 0;
+          GET_OBJ_VAL(OLC_OBJ(d), 5) = 0;
+          GET_OBJ_VAL(OLC_OBJ(d), 6) = 0;
+          GET_OBJ_VAL(OLC_OBJ(d), 7) = 0;
+          GET_OBJ_VAL(OLC_OBJ(d), 8) = 0;
+          GET_OBJ_VAL(OLC_OBJ(d), 9) = 0;
+          GET_OBJ_VAL(OLC_OBJ(d), 10) = 0;
+          GET_OBJ_VAL(OLC_OBJ(d), 11) = 0;
+          GET_OBJ_VAL(OLC_OBJ(d), 12) = 0;
+          GET_OBJ_VAL(OLC_OBJ(d), 13) = 0;
+          GET_OBJ_VAL(OLC_OBJ(d), 14) = 0;
+          GET_OBJ_VAL(OLC_OBJ(d), 15) = 0;
           OLC_VAL(d) = 1;
           oedit_disp_val1_menu(d);
           break;
@@ -1680,6 +1694,9 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
           }
           break;
           
+          /* val[0] is AC from old system setup */
+          /* ITEM_ARMOR */
+          
         case ITEM_WEAPON:
           /* function from treasure.c */
           set_weapon_object(OLC_OBJ(d),
@@ -1702,6 +1719,12 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
         case ITEM_CONTAINER:
         case ITEM_AMMO_POUCH:
           GET_OBJ_VAL(OLC_OBJ(d), 0) = LIMIT(atoi(arg), -1, MAX_CONTAINER_SIZE);
+          break;
+          
+          /* special values for worn gear, example monk-gloves will apply
+             an enhancement bonus to damage */
+        case ITEM_WORN:
+          GET_OBJ_VAL(OLC_OBJ(d), 0) = LIMIT(atoi(arg), 1, 10);
           break;
           
         default:
@@ -1744,7 +1767,7 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
           GET_OBJ_VAL(OLC_OBJ(d), 1) = LIMIT(number, 1, MAX_WEAPON_NDICE);
           oedit_disp_val3_menu(d);
           break;
-        case ITEM_ARMOR:
+        case ITEM_ARMOR: /* val[0] is AC from old system setup */
           /* from treasure.c - auto set some values of this item now! */
           set_armor_object(OLC_OBJ(d),
                   MIN(MAX(atoi(arg), 0), NUM_SPEC_ARMOR_TYPES - 1));
@@ -1880,6 +1903,7 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
       oedit_disp_val5_menu(d);
       return;
 
+      /*this is enhancement bonus so far*/
     case OEDIT_VALUE_5:
       number = atoi(arg);
       switch (GET_OBJ_TYPE(OLC_OBJ(d))) {

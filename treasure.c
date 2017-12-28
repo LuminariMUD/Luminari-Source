@@ -25,7 +25,15 @@
 #include "oasis.h"
 #include "item.h"
 
+/* for random miscellaneous items, this is the number of categories */
+#define NUM_MISC_CATEGORIES 9
+
 /***  utility functions ***/
+
+/* determine a random category for misc treasure */
+int determine_rnd_misc_cat() {
+  return dice(1, NUM_MISC_CATEGORIES);
+}
 
   /* this function is used to inform ch and surrounding of a bazaar purchase */
 void say_bazaar(struct char_data *ch, struct obj_data *obj) {
@@ -452,10 +460,11 @@ void award_magic_item(int number, struct char_data *ch, int level, int grade) {
           award_magic_ammo(ch, grade, level);
           break;
       }
-    } else if (roll <= 75)         /* 56 - 75   20% */
-        award_misc_magic_item(ch, grade, level);
-      else                         /* 76 - 100  25% */
-        award_magic_armor(ch, grade, level, -1);
+    } else if (roll <= 75) {       /* 56 - 75   20% */
+      give_misc_magic_item(ch, determine_rnd_misc_cat(), cp_convert_grade_enchantment(grade), FALSE);
+    } else  {                      /* 76 - 100  25% */
+      award_magic_armor(ch, grade, level, -1);
+    }
   }
 }
 
@@ -2657,6 +2666,13 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment, b
       sprintf(armor_name, crystal_descs[rand_number(0, NUM_A_CRYSTAL_DESCS - 1)]);
       sprintf(desc2, colors[rand_number(0, NUM_A_COLORS - 1)]);
       break;
+    case 9: /*monk gloves*/
+      vnum = GLOVES_MOLD;
+      material = MATERIAL_LEATHER;
+      sprintf(armor_name, monk_glove_descs[rand_number(0, NUM_A_MONK_GLOVE_DESCS - 1)]);
+      sprintf(desc2, armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
+      sprintf(desc3, colors[rand_number(0, NUM_A_COLORS - 1)]);
+      break;
   }
 
   /* we already determined 'base' material, now
@@ -2769,11 +2785,21 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment, b
       break;
   }
 
-  /* ok load object, set material */
+  /* ok load object */
   if ((obj = read_object(vnum, VIRTUAL)) == NULL) {
-    log("SYSERR: award_misc_magic_item created NULL object");
+    log("SYSERR: give_misc_magic_item created NULL object");
     return;
   }
+  
+  /* special handling for monk gloves, etc */
+  switch (category) {
+    case 9:
+      GET_OBJ_VAL(obj, 0) = enchantment;
+      break;
+    default:break;
+  }
+  
+  /* set material */
   GET_OBJ_MATERIAL(obj) = material;
 
   /* put together a descrip */
@@ -2795,12 +2821,12 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment, b
       break;
     case BOOTS_MOLD:
     case GLOVES_MOLD:
-      sprintf(keywords, "%s pair %s %s leather", armor_name, desc2, desc3);
+      sprintf(keywords, "%s pair %s %s", armor_name, desc2, desc3);
       obj->name = strdup(keywords);
-      sprintf(desc, "%sa pair of %s %s leather %s", desc, desc2, desc3,
+      sprintf(desc, "%sa pair of %s %s %s", desc, desc2, desc3,
               armor_name);
       obj->short_description = strdup(desc);
-      sprintf(desc, "A pair of %s %s leather %s lie here.", desc2, desc3,
+      sprintf(desc, "A pair of %s %s %s lie here.", desc2, desc3,
               armor_name);
       obj->description = strdup(desc);
       break;
@@ -2818,12 +2844,12 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment, b
       obj->description = strdup(CAP(desc));
       break;
     case BELT_MOLD:
-      sprintf(keywords, "%s %s leather %s", armor_name, desc2, desc3);
+      sprintf(keywords, "%s %s %s", armor_name, desc2, desc3);
       obj->name = strdup(keywords);
-      sprintf(desc, "%s%s %s %s leather %s", desc, AN(desc2), desc2, desc3,
+      sprintf(desc, "%s%s %s %s %s", desc, AN(desc2), desc2, desc3,
               armor_name);
       obj->short_description = strdup(desc);
-      sprintf(desc, "%s %s %s leather %s lie here.", AN(desc2), desc2, desc3,
+      sprintf(desc, "%s %s %s %s lie here.", AN(desc2), desc2, desc3,
               armor_name);
       obj->description = strdup(desc);
       break;
@@ -2887,6 +2913,7 @@ void disp_misc_type_menu(struct char_data *ch) {
           "6) waist\r\n"
           "7) wrist\r\n"
           "8) hold\r\n"
+          "9) monk-gloves\r\n"
           );
   
 }
@@ -2991,7 +3018,7 @@ SPECIAL(bazaar) {
           }
           break;
         case 3: /* misc */
-          if (selection <= 0 || selection >= 9) {
+          if (selection <= 0 || selection > NUM_MISC_CATEGORIES) {
             send_to_char(ch, "Invalid value for 'selection number'!\r\n");
             disp_misc_type_menu(ch);
             return TRUE;
@@ -3118,7 +3145,7 @@ ACMD(do_loadmagicspecific) {
       award_magic_armor(ch, grade, GET_LEVEL(ch), ITEM_WEAR_HEAD);
       break;
     case 6: /* misc */
-      award_misc_magic_item(ch, grade, GET_LEVEL(ch));
+      give_misc_magic_item(ch, determine_rnd_misc_cat(), cp_convert_grade_enchantment(grade), FALSE);      
       break;
     case 7: /* shield */
       award_magic_armor(ch, grade, GET_LEVEL(ch), ITEM_WEAR_SHIELD);
