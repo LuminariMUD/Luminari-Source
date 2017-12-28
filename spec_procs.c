@@ -4386,7 +4386,7 @@ SPECIAL(monk_glove) {
     return TRUE;
   }
 
-  if (cmd || !vict || rand_number(0, 20))
+  if (cmd || !vict || rand_number(0, 15))
     return FALSE;
 
   weapons_spells(
@@ -4394,7 +4394,7 @@ SPECIAL(monk_glove) {
           "$n\tw's $p\tw's \tWsparks\tw as $e hits you causing you to shudder violently from the \tYshock\tw!\tn",
           "$n\tw's $p\tw's \tWsparks\tw as $e hits $N causing $M to shudder violently from the \tYshock\tw!\tn",
           ch, vict, (struct obj_data *) me, 0);
-  damage(ch, vict, dice(3, 8), -1, DAM_ELECTRIC, FALSE);
+  damage(ch, vict, dice(2, 8), -1, DAM_ELECTRIC, FALSE);
 
   return TRUE;
 }
