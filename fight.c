@@ -4500,7 +4500,10 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
     bonuses[BONUS_TYPE_ENHANCEMENT] += GET_ENHANCEMENT_BONUS(GET_EQ(ch, WEAR_AMMO_POUCH)->contains);
   if (IS_WILDSHAPED(ch) || IS_MORPHED(ch))
     bonuses[BONUS_TYPE_ENHANCEMENT] = MAX(bonuses[BONUS_TYPE_ENHANCEMENT], HAS_FEAT(ch, FEAT_NATURAL_ATTACK)/2);
-  /* need to add missile enhancement bonus as well */
+  /* monk glove */
+  if (CLASS_LEVEL(ch, CLASS_MONK) && is_bare_handed(ch) && monk_gear_ok(ch) &&
+          GET_EQ(ch, WEAR_HANDS) && GET_OBJ_VAL(GET_EQ(ch, WEAR_HANDS), 0))
+    bonuses[BONUS_TYPE_ENHANCEMENT] = GET_OBJ_VAL(GET_EQ(ch, WEAR_HANDS), 0);
   /**/
 
   /* Insight bonus  */
@@ -5525,7 +5528,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   /* special weapon (or gloves for monk) procedures.  Need to implement something similar for the new system. */
   if (ch && victim && wielded && !victim_is_dead)
     weapon_special(wielded, ch, hit_msg);
-  else if (ch && victim && GET_EQ(ch, WEAR_HANDS) && !victim_is_dead)
+  else if (ch && victim && GET_EQ(ch, WEAR_HANDS) && !victim_is_dead && is_bare_handed(ch))
     weapon_special(GET_EQ(ch, WEAR_HANDS), ch, hit_msg);
 
   /* vampiric curse will do some minor healing to attacker */
