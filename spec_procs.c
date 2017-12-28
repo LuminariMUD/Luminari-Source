@@ -4374,6 +4374,31 @@ ACMD(do_disembark) {
 /*** end object procs general functions ***/
 /******************************************/
 
+/* testing glove procs for monks, obj vnum 224 */
+SPECIAL(monk_glove) {
+  struct char_data *vict = FIGHTING(ch);
+
+  if (!ch)
+    return FALSE;
+
+  if (!cmd && !strcmp(argument, "identify")) {
+    send_to_char(ch, "Proc: Shock damage.\r\n");
+    return TRUE;
+  }
+
+  if (cmd || !vict || rand_number(0, 20))
+    return FALSE;
+
+  weapons_spells(
+          "\twYour $p\tw's \tWsparks\tw as you hit $N causing $M to shudder violently from the \tYshock\tw!\tn",
+          "$n\tw's $p\tw's \tWsparks\tw as $e hits you causing you to shudder violently from the \tYshock\tw!\tn",
+          "$n\tw's $p\tw's \tWsparks\tw as $e hits $N causing $M to shudder violently from the \tYshock\tw!\tn",
+          ch, vict, (struct obj_data *) me, 0);
+  damage(ch, vict, dice(3, 8), -1, DAM_ELECTRIC, FALSE);
+
+  return TRUE;
+}
+
 /* from homeland */
 SPECIAL(spikeshield) {
   if (!ch)
