@@ -121,6 +121,15 @@ const char *hands_descs[NUM_A_HAND_DESCS + 1] = {
 };
 //4
 
+const char *monk_glove_descs[NUM_A_MONK_GLOVE_DESCS + 1] = {
+  "fingerless gloves",  //0
+  "monk gloves",
+  "sparring gloves",
+  "martial artist handwraps",
+  "\n"     
+};
+//4
+
 const char *cloak_descs[NUM_A_CLOAK_DESCS + 1] = {
   "cloak",  //0
   "cloak",
@@ -505,7 +514,6 @@ const char *handle_types[NUM_A_HANDLE_TYPES + 1] = {
   "\n"
 };
 //6
-
 
 const char *head_types[NUM_A_HEAD_TYPES + 1] = {
   "headed",  //0

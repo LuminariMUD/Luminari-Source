@@ -35,6 +35,7 @@
 #define NUM_A_HEAD_DESCS      17
 #define NUM_A_HAND_DESCS      4
 #define NUM_A_HANDS_DESCS     NUM_A_HAND_DESCS
+#define NUM_A_MONK_GLOVE_DESCS 4
 #define NUM_A_CLOAK_DESCS     5
 #define NUM_A_WAIST_DESCS     6
 #define NUM_A_BOOT_DESCS      11
@@ -213,6 +214,7 @@ extern const char *wrist_descs[NUM_A_WRIST_DESCS + 1];
 extern const char *neck_descs[NUM_A_NECK_DESCS + 1];
 extern const char *head_descs[NUM_A_HEAD_DESCS + 1];
 extern const char *hands_descs[NUM_A_HANDS_DESCS + 1];
+extern const char *monk_glove_descs[NUM_A_MONK_GLOVE_DESCS + 1];
 extern const char *cloak_descs[NUM_A_CLOAK_DESCS + 1];
 extern const char *waist_descs[NUM_A_WAIST_DESCS + 1];
 extern const char *boot_descs[NUM_A_BOOT_DESCS + 1];
