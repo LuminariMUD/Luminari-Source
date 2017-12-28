@@ -678,6 +678,8 @@ void assign_objects(void)
 
   ASSIGNOBJ(128150, spikeshield);  //shield
 
+  ASSIGNOBJ(224, monk_glove);
+  
   /* tiamat */
   ASSIGNOBJ(132125, tia_rapier);
 
