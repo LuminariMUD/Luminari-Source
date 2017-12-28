@@ -242,5 +242,7 @@ SPECIAL(planetar_sword);
 SPECIAL(haste_bracers);
 SPECIAL(disruption_mace);
 SPECIAL(angel_leggings); /* 4-9-04 by tempus */
+SPECIAL(monk_glove);
+
 
 #endif /* _SPEC_PROCS_H_ */
