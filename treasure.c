@@ -25,8 +25,18 @@
 #include "oasis.h"
 #include "item.h"
 
+/* misc-slots for random/determined magic items */
+#define TRS_SLOT_FINGER     1
+#define TRS_SLOT_NECK       2
+#define TRS_SLOT_FEET       3
+#define TRS_SLOT_HANDS      4
+#define TRS_SLOT_ABOUT      5
+#define TRS_SLOT_WAIST      6
+#define TRS_SLOT_WRIST      7
+#define TRS_SLOT_HELD       8
+#define TRS_SLOT_MONK_GLOVE 9
 /* for random miscellaneous items, this is the number of categories */
-#define NUM_MISC_CATEGORIES 9
+#define NUM_MISC_CATEGORIES 9 /* match last value above */
 
 /***  utility functions ***/
 
@@ -78,7 +88,43 @@ int cp_convert_grade_enchantment(int grade) {
 
 /* determine a random category for misc treasure */
 int determine_rnd_misc_cat() {
-  return dice(1, NUM_MISC_CATEGORIES);
+  int diceroll = dice(1, 11);
+  int category = 0;
+
+  switch(diceroll) {
+    case 1: /*ring*/
+    case 2:
+      category = TRS_SLOT_FINGER;
+      break;
+    case 3: /*neck*/
+    case 4:
+      category = TRS_SLOT_NECK;
+      break;
+    case 5: /*wrist*/
+    case 6:
+      category = TRS_SLOT_WRIST;
+      break;
+    case 7: /*feet*/
+      category = TRS_SLOT_FEET;
+      break;
+    case 8: /*hands*/
+      if (dice(1,10) == 10) /* monk gloves */
+        category = TRS_SLOT_MONK_GLOVE;
+      else
+        category = TRS_SLOT_HANDS;
+      break;
+    case 9: /*about*/
+      category = TRS_SLOT_ABOUT;
+      break;
+    case 10: /*waist*/
+      category = TRS_SLOT_WAIST;
+      break;
+    case 11: /*held*/
+      category = TRS_SLOT_HELD;
+      break;
+  }
+    
+  return category;
 }
 
   /* this function is used to inform ch and surrounding of a bazaar purchase */
