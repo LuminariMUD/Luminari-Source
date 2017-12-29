@@ -911,9 +911,8 @@ void game_loop(socket_t local_mother_desc) {
     }
 
     /* Print prompts for other descriptors who had no other output */
-    // Added check for WriteOOB to try to squash extra newlines in output when using MSDP JTM 29/12/17
     for (d = descriptor_list; d; d = d->next) {
-      if (!d->has_prompt && !d->pProtocol->WriteOOB) {
+      if (!d->has_prompt) {
         write_to_descriptor(d->descriptor, make_prompt(d));
         d->has_prompt = TRUE;
       }
