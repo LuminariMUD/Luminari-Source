@@ -912,7 +912,7 @@ void game_loop(socket_t local_mother_desc) {
 
     /* Print prompts for other descriptors who had no other output */
     for (d = descriptor_list; d; d = d->next) {
-      if (!d->has_prompt) {
+      if (!d->has_prompt && !d->pProtocol->WriteOOB) {
         write_to_descriptor(d->descriptor, make_prompt(d));
         d->has_prompt = TRUE;
       }
@@ -1909,7 +1909,7 @@ static int process_output(struct descriptor_data *t) {
   }
 
   if (!t->pProtocol->WriteOOB) /* add a prompt */
-    strcat(i, (t)); /* strcpy: OK (i:MAX_SOCK_BUF reserves space) */
+    strcat(i, make_prompt(t)); /* strcpy: OK (i:MAX_SOCK_BUF reserves space) */
 
   /* now, send the output.  If this is an 'interruption', use the prepended
    * CRLF, otherwise send the straight output sans CRLF. */
