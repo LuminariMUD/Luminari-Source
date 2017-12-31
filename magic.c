@@ -2497,6 +2497,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     case SPELL_MASS_CHARISMA: //transmutation
       if (affected_by_spell(victim, SPELL_CHARISMA)) {
         send_to_char(ch, "Your target already has a charisma spell in effect.\r\n");
+        send_to_char(victim, "You already has a charisma spell in effect (mass charisma failed).\r\n");
         return;
       }
       af[0].location = APPLY_CHA;
@@ -2510,6 +2511,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     case SPELL_MASS_CUNNING: //transmutation
       if (affected_by_spell(victim, SPELL_CUNNING)) {
         send_to_char(ch, "Your target already has a cunning spell in effect.\r\n");
+        send_to_char(victim, "You already has a cunning spell in effect (mass cunning failed).\r\n");
         return;
       }
 
@@ -2523,6 +2525,14 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case SPELL_MASS_ENDURANCE: //transmutation
+      if (
+          affected_by_spell(victim, SPELL_ENDURANCE) ||
+          affected_by_spell(victim, SPELL_MASS_ENHANCE)
+              ) {
+        send_to_char(ch, "Your target already has a physical enhancement spell in effect.\r\n");
+        send_to_char(victim, "You already have a physical enhancement spell in effect! (mass endurance failed)\r\n");
+        return;
+      }
       af[0].location = APPLY_CON;
       af[0].duration = (caster_level * 12) + 100;
       af[0].modifier = 2 + (caster_level / 5);
@@ -2533,10 +2543,14 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
     case SPELL_MASS_ENHANCE: //transmutation
       if (affected_by_spell(victim, SPELL_GRACE) ||
+          affected_by_spell(victim, SPELL_MASS_GRACE) ||
           affected_by_spell(victim, SPELL_ENDURANCE) ||
+          affected_by_spell(victim, SPELL_MASS_ENDURANCE) ||
+          affected_by_spell(victim, SPELL_MASS_STRENGTH) ||
           affected_by_spell(victim, SPELL_STRENGTH)
               ) {
         send_to_char(ch, "Your target already has a physical enhancement spell in effect.\r\n");
+        send_to_char(victim, "You already have a physical enhancement spell in effect! (mass enhance failed)\r\n");
         return;
       }
 
@@ -2556,11 +2570,19 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       af[2].bonus_type = BONUS_TYPE_ENHANCEMENT;
 
       accum_duration = TRUE;
-      to_vict = "You feel your physical atributes enhanced!";
+      to_vict = "You feel your physical attributes enhanced!";
       to_room = "$n's physical attributes are enhanced!";
       break;
 
     case SPELL_MASS_GRACE: //transmutation
+      if (
+          affected_by_spell(victim, SPELL_GRACE) ||
+          affected_by_spell(victim, SPELL_MASS_ENHANCE)
+              ) {
+        send_to_char(ch, "Your target already has a physical enhancement spell in effect.\r\n");
+        send_to_char(victim, "You already have a physical enhancement spell in effect! (mass grace failed)\r\n");
+        return;
+      }
       af[0].location = APPLY_DEX;
       af[0].duration = (caster_level * 12) + 100;
       af[0].modifier = 2 + (caster_level / 5);
@@ -2583,6 +2605,14 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case SPELL_MASS_STRENGTH: //transmutation
+      if (
+          affected_by_spell(victim, SPELL_STRENGTH) ||
+          affected_by_spell(victim, SPELL_MASS_ENHANCE)
+              ) {
+        send_to_char(ch, "Your target already has a physical enhancement spell in effect.\r\n");
+        send_to_char(victim, "You already have a physical enhancement spell in effect! (mass strength failed)\r\n");
+        return;
+      }
       af[0].location = APPLY_STR;
       af[0].duration = (caster_level * 12) + 100;
       af[0].modifier = 2 + (caster_level / 5);
@@ -2592,6 +2622,13 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case SPELL_MASS_WISDOM: //transmutation
+      if (
+          affected_by_spell(victim, SPELL_WISDOM)
+              ) {
+        send_to_char(ch, "Your target already has awisdom spell in effect.\r\n");
+        send_to_char(victim, "You already have a wisdom spell in effect! (mass wisdom failed)\r\n");
+        return;
+      }
       af[0].location = APPLY_WIS;
       af[0].duration = (caster_level * 12) + 100;
       af[0].modifier = 2 + (caster_level / 5);
