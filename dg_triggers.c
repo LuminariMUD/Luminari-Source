@@ -713,8 +713,12 @@ int cmd_otrig(obj_data *obj, char_data *actor, char *cmd,
 }
 
 int command_otrigger(char_data *actor, char *cmd, char *argument) {
-  obj_data *obj;
-  int i;
+  obj_data *obj = NULL;
+  int i = 0;
+  
+  /* dummy checks */
+  if (!actor)
+    return 0;
 
   /* prevent people we like from becoming trapped :P */
   if (!valid_dg_target(actor, 0))
@@ -728,6 +732,10 @@ int command_otrigger(char_data *actor, char *cmd, char *argument) {
   for (obj = actor->carrying; obj; obj = obj->next_content)
     if (cmd_otrig(obj, actor, cmd, argument, OCMD_INVEN))
       return 1;
+  
+  /* dummy check */
+  if (IN_ROOM(actor) == NOWHERE)
+    return 0;
 
   for (obj = world[IN_ROOM(actor)].contents; obj; obj = obj->next_content)
     if (cmd_otrig(obj, actor, cmd, argument, OCMD_ROOM))
