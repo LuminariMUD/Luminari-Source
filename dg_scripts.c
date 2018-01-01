@@ -765,54 +765,52 @@ static EVENTFUNC(trig_wait_event)
   return 0;
 }
 
-static void do_stat_trigger(struct char_data *ch, trig_data *trig)
-{
-    struct cmdlist_element *cmd_list;
-    char sb[MAX_STRING_LENGTH], buf[MAX_STRING_LENGTH];
-    int len = 0;
+static void do_stat_trigger(struct char_data *ch, trig_data *trig) {
+  struct cmdlist_element *cmd_list;
+  char sb[MAX_STRING_LENGTH], buf[MAX_STRING_LENGTH];
+  int len = 0;
 
-    if (!trig)
-    {
-        log("SYSERR: NULL trigger passed to do_stat_trigger.");
-        return;
+  if (!trig) {
+    log("SYSERR: NULL trigger passed to do_stat_trigger.");
+    return;
+  }
+
+  len += snprintf(sb, sizeof (sb), "Name: '%s%s%s',  VNum: [%s%5d%s], RNum: [%5d]\r\n",
+          CCYEL(ch, C_NRM), GET_TRIG_NAME(trig), CCNRM(ch, C_NRM),
+          CCGRN(ch, C_NRM), GET_TRIG_VNUM(trig), CCNRM(ch, C_NRM),
+          GET_TRIG_RNUM(trig));
+
+  if (trig->attach_type == OBJ_TRIGGER) {
+    len += snprintf(sb + len, sizeof (sb) - len, "Trigger Intended Assignment: Objects\r\n");
+    sprintbit(GET_TRIG_TYPE(trig), otrig_types, buf, sizeof (buf));
+  } else if (trig->attach_type == WLD_TRIGGER) {
+    len += snprintf(sb + len, sizeof (sb) - len, "Trigger Intended Assignment: Rooms\r\n");
+    sprintbit(GET_TRIG_TYPE(trig), wtrig_types, buf, sizeof (buf));
+  } else {
+    len += snprintf(sb + len, sizeof (sb) - len, "Trigger Intended Assignment: Mobiles\r\n");
+    sprintbit(GET_TRIG_TYPE(trig), trig_types, buf, sizeof (buf));
+  }
+
+  len += snprintf(sb + len, sizeof (sb) - len, "Trigger Type: %s, Numeric Arg: %d, Arg list: %s\r\n",
+          buf, GET_TRIG_NARG(trig),
+          ((GET_TRIG_ARG(trig) && *GET_TRIG_ARG(trig))
+          ? GET_TRIG_ARG(trig) : "None"));
+
+  len += snprintf(sb + len, sizeof (sb) - len, "Commands:\r\n");
+
+  cmd_list = trig->cmdlist;
+  while (cmd_list) {
+    if (cmd_list->cmd)
+      len += snprintf(sb + len, sizeof (sb) - len, "%s\r\n", cmd_list->cmd);
+
+    if (len > MAX_STRING_LENGTH - 80) {
+      len += snprintf(sb + len, sizeof (sb) - len, "*** Overflow - script too long! ***\r\n");
+      break;
     }
+    cmd_list = cmd_list->next;
+  }
 
-    len += snprintf(sb, sizeof(sb), "Name: '%s%s%s',  VNum: [%s%5d%s], RNum: [%5d]\r\n",
-              CCYEL(ch, C_NRM), GET_TRIG_NAME(trig), CCNRM(ch, C_NRM),
-              CCGRN(ch, C_NRM), GET_TRIG_VNUM(trig), CCNRM(ch, C_NRM),
-              GET_TRIG_RNUM(trig));
-
-    if (trig->attach_type==OBJ_TRIGGER) {
-      len += snprintf(sb + len, sizeof(sb)-len, "Trigger Intended Assignment: Objects\r\n");
-      sprintbit(GET_TRIG_TYPE(trig), otrig_types, buf, sizeof(buf));
-    } else if (trig->attach_type==WLD_TRIGGER) {
-      len += snprintf(sb + len, sizeof(sb)-len, "Trigger Intended Assignment: Rooms\r\n");
-      sprintbit(GET_TRIG_TYPE(trig), wtrig_types, buf, sizeof(buf));
-    } else {
-      len += snprintf(sb + len, sizeof(sb)-len, "Trigger Intended Assignment: Mobiles\r\n");
-      sprintbit(GET_TRIG_TYPE(trig), trig_types, buf, sizeof(buf));
-    }
-
-    len += snprintf(sb + len, sizeof(sb)-len, "Trigger Type: %s, Numeric Arg: %d, Arg list: %s\r\n",
-                     buf, GET_TRIG_NARG(trig),
-                    ((GET_TRIG_ARG(trig) && *GET_TRIG_ARG(trig))
-                     ? GET_TRIG_ARG(trig) : "None"));
-
-    len += snprintf(sb + len, sizeof(sb)-len, "Commands:\r\n");
-
-    cmd_list = trig->cmdlist;
-    while (cmd_list) {
-      if (cmd_list->cmd)
-        len += snprintf(sb + len, sizeof(sb)-len, "%s\r\n", cmd_list->cmd);
-
-        if (len>MAX_STRING_LENGTH-80) {
-          len += snprintf(sb + len, sizeof(sb)-len, "*** Overflow - script too long! ***\r\n");
-          break;
-        }
-      cmd_list = cmd_list->next;
-    }
-
-    page_string(ch->desc, sb, 1);
+  page_string(ch->desc, sb, 1);
 }
 
 /* find the name of what the uid points to */

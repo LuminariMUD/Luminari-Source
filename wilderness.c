@@ -972,7 +972,7 @@ void save_map_to_file(const char* fn, int xsize, int ysize) {
   color_by_sector[SECT_ZONE_START] = gdImageColorAllocate(im, 128, 0, 0);
   color_by_sector[SECT_MARSHLAND] = gdImageColorAllocate(im, 33, 146, 75);
 
-  for (i = 0; i <= 255; i++) {
+  for (i = 0; i < 255; i++) {
     gray[i] = gdImageColorAllocate(im, i, i, i);
   }
 
@@ -1082,7 +1082,7 @@ void save_noise_to_file(int idx, const char* fn, int xsize, int ysize, int zoom)
 
 
 
-  for (i = 0; i <= 255; i++) {
+  for (i = 0; i < 255; i++) {
     gray[i] = gdImageColorAllocate(im, i, i, i);
   }
 

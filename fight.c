@@ -1455,11 +1455,14 @@ static void group_gain(struct char_data *ch, struct char_data *victim) {
   
   /* count total members in group and total party level */
   while ((k = (struct char_data *) simple_list(GROUP(ch)->members)) != NULL) {
-    if (IS_PET(k))
+    if (IS_PET(k)) {
       continue;
-    if (IN_ROOM(ch) == IN_ROOM(k))
+    }
+    
+    if (IN_ROOM(ch) == IN_ROOM(k)) {
       tot_members++;
       party_level += GET_LEVEL(k); 
+    }
   }
   
   /* what is our average party level? */
@@ -4102,7 +4105,7 @@ bool weapon_bypasses_dr(struct obj_data *weapon, struct damage_reduction_type *d
           else if ((dr->bypass_val[i] == DR_DAMTYPE_PIERCING) &&
                    (HAS_DAMAGE_TYPE(weapon, DAMAGE_TYPE_PIERCING))
                    passed = TRUE;
-                   break;
+          break;
       }
     }
   }

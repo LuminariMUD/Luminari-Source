@@ -29,11 +29,8 @@ static void aedit_setup_new(struct descriptor_data *d);
 static void aedit_setup_existing(struct descriptor_data *d, int real_num);
 static void aedit_save_internally(struct descriptor_data *d);
 
-
-
 /* Utils and exported functions. */
-ACMD(do_oasis_aedit)
-{
+ACMD(do_oasis_aedit) {
   char arg[MAX_INPUT_LENGTH];
   struct descriptor_data *d;
   int i;
@@ -41,8 +38,8 @@ ACMD(do_oasis_aedit)
   /* No building as a mob or while being forced. */
   if (IS_NPC(ch) || !ch->desc || STATE(ch->desc) != CON_PLAYING)
     return;
-    
-    if (CONFIG_NEW_SOCIALS == 0) {
+
+  if (CONFIG_NEW_SOCIALS == 0) {
     send_to_char(ch, "Socials cannot be edited at the moment.\r\n");
     return;
   }
@@ -89,8 +86,8 @@ ACMD(do_oasis_aedit)
     if (is_abbrev(OLC_STORAGE(d), soc_mess_list[OLC_ZNUM(d)].command))
       break;
 
-  if (OLC_ZNUM(d) > top_of_socialt)  {
-    if ((i = aedit_find_command(OLC_STORAGE(d))) != -1)  {
+  if (OLC_ZNUM(d) > top_of_socialt) {
+    if ((i = aedit_find_command(OLC_STORAGE(d))) != -1) {
       send_to_char(ch, "The '%s' command already exists (%s).\r\n", OLC_STORAGE(d), complete_cmd_info[i].command);
       cleanup_olc(d, CLEANUP_ALL);
       return;
