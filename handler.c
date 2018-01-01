@@ -640,7 +640,7 @@ void affect_total_plus(struct char_data *ch, int at_armor) {
   int empty_bits[AF_ARRAY_MAX];
   int modifier = 0;
 
-  for(i = 0; i > AF_ARRAY_MAX; i++)
+  for (i = 0; i > AF_ARRAY_MAX; i++)
     empty_bits[i] = 0;
 
   /* restore stored stats */
@@ -648,17 +648,19 @@ void affect_total_plus(struct char_data *ch, int at_armor) {
 
   /* add gear back on */
   for (i = 0; i < NUM_WEARS; i++) {
-    if (GET_EQ(ch, i))
-      for (j = 0; j < MAX_OBJ_AFFECT; j++)
+    if (GET_EQ(ch, i)) {
+      for (j = 0; j < MAX_OBJ_AFFECT; j++) {
         if (BONUS_TYPE_STACKS(GET_EQ(ch, i)->affected[j].bonus_type)) {
           affect_modify_ar(ch, GET_EQ(ch, i)->affected[j].location,
-              GET_EQ(ch, i)->affected[j].modifier,
-              GET_OBJ_AFFECT(GET_EQ(ch, i)), TRUE);
+                  GET_EQ(ch, i)->affected[j].modifier,
+                  GET_OBJ_AFFECT(GET_EQ(ch, i)), TRUE);
         } else {
           affect_modify_ar(ch, GET_EQ(ch, i)->affected[j].location,
-              0,//GET_EQ(ch, i)->affected[j].modifier,
-              GET_OBJ_AFFECT(GET_EQ(ch, i)), TRUE);
+                  0, //GET_EQ(ch, i)->affected[j].modifier,
+                  GET_OBJ_AFFECT(GET_EQ(ch, i)), TRUE);
         }
+      }
+    }
   }
 
   /* re-apply affects based on 'regeared' char */
@@ -670,12 +672,12 @@ void affect_total_plus(struct char_data *ch, int at_armor) {
       affect_modify_ar(ch, af->location, 0, af->bitvector, TRUE);
   }
 
-    /* Adjust the modifiers to APPLY_ fields. */
+  /* Adjust the modifiers to APPLY_ fields. */
   for (i = 0; i < NUM_APPLIES; i++) {
     modifier = 0;
     for (j = 0; j < NUM_BONUS_TYPES; j++)
       modifier += calculate_best_mod(ch, i, j, -1, -1);
-      aff_apply_modify(ch, i, modifier, "affect_total_plus");
+    aff_apply_modify(ch, i, modifier, "affect_total_plus");
     //affect_modify_ar(ch, i, modifier, empty_bits, TRUE);
   }
 

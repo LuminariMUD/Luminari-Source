@@ -624,12 +624,12 @@ static char *next_page(char *str, struct char_data *ch)
 }
 
 /* Function that returns the number of pages in the string. */
-static int count_pages(char *str, struct char_data *ch)
-{
+static int count_pages(char *str, struct char_data *ch) {
   int pages;
 
   for (pages = 1; (str = next_page(str, ch)); pages++);
-    return (pages);
+  
+  return (pages);
 }
 
 /* This function assigns all the pointers for showstr_vector for the

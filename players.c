@@ -1068,7 +1068,7 @@ void save_char(struct char_data * ch, int mode) {
 
   /* Save feats */
   fprintf(fl, "Feat:\n");
-  for (i = 1; i <= NUM_FEATS; i++) {
+  for (i = 1; i < NUM_FEATS; i++) {
     if (HAS_REAL_FEAT(ch, i))
       fprintf(fl, "%d %d\n", i, HAS_REAL_FEAT(ch, i));
   }

@@ -1420,7 +1420,7 @@ void initialize_armor(int type) {
 void load_armor(void) {
   int i = 0;
 
-  for (i = 0; i <= NUM_SPEC_ARMOR_TYPES; i++)
+  for (i = 0; i < NUM_SPEC_ARMOR_TYPES; i++)
     initialize_armor(i);
 
   /* (armor, name, type,

@@ -255,75 +255,74 @@ static void trigedit_disp_types(struct descriptor_data *d)
 
 }
 
-void trigedit_parse(struct descriptor_data *d, char *arg)
-{
+void trigedit_parse(struct descriptor_data *d, char *arg) {
   int i = 0;
 
   switch (OLC_MODE(d)) {
     case TRIGEDIT_MAIN_MENU:
-     switch (tolower(*arg)) {
-       case 'q':
-         if (OLC_VAL(d)) { /* Anything been changed? */
-           if (!GET_TRIG_TYPE(OLC_TRIG(d))) {
-             write_to_output(d, "Invalid Trigger Type! Answer a to abort quit!\r\n");
-           }
-           write_to_output(d, "Do you wish to save your changes? : ");
-           OLC_MODE(d) = TRIGEDIT_CONFIRM_SAVESTRING;
-         } else
-           cleanup_olc(d, CLEANUP_ALL);
-           return;
-         case '1':
-           OLC_MODE(d) = TRIGEDIT_NAME;
-           write_to_output(d, "Name: ");
-           break;
-         case '2':
-           OLC_MODE(d) = TRIGEDIT_INTENDED;
-           write_to_output(d, "0: Mobiles, 1: Objects, 2: Rooms: ");
-           break;
-         case '3':
-           OLC_MODE(d) = TRIGEDIT_TYPES;
-           trigedit_disp_types(d);
-           break;
-         case '4':
-           OLC_MODE(d) = TRIGEDIT_NARG;
-           write_to_output(d, "Numeric argument: ");
-           break;
-         case '5':
-           OLC_MODE(d) = TRIGEDIT_ARGUMENT;
-           write_to_output(d, "Argument: ");
-           break;
-         case '6':
-           OLC_MODE(d) = TRIGEDIT_COMMANDS;
-           write_to_output(d, "Enter trigger commands: (/s saves /h for help)\r\n\r\n");
-           d->backstr = NULL;
-           if (OLC_STORAGE(d)) {
-             write_to_output(d, "%s", OLC_STORAGE(d));
-             d->backstr = strdup(OLC_STORAGE(d));
-           }
-           d->str = &OLC_STORAGE(d);
-           d->max_str = MAX_CMD_LENGTH;
-           d->mail_to = 0;
-           OLC_VAL(d) = 1;
+      switch (tolower(*arg)) {
+        case 'q':
+          if (OLC_VAL(d)) { /* Anything been changed? */
+            if (!GET_TRIG_TYPE(OLC_TRIG(d))) {
+              write_to_output(d, "Invalid Trigger Type! Answer a to abort quit!\r\n");
+            }
+            write_to_output(d, "Do you wish to save your changes? : ");
+            OLC_MODE(d) = TRIGEDIT_CONFIRM_SAVESTRING;
+          } else
+            cleanup_olc(d, CLEANUP_ALL);
+          return;
+        case '1':
+          OLC_MODE(d) = TRIGEDIT_NAME;
+          write_to_output(d, "Name: ");
+          break;
+        case '2':
+          OLC_MODE(d) = TRIGEDIT_INTENDED;
+          write_to_output(d, "0: Mobiles, 1: Objects, 2: Rooms: ");
+          break;
+        case '3':
+          OLC_MODE(d) = TRIGEDIT_TYPES;
+          trigedit_disp_types(d);
+          break;
+        case '4':
+          OLC_MODE(d) = TRIGEDIT_NARG;
+          write_to_output(d, "Numeric argument: ");
+          break;
+        case '5':
+          OLC_MODE(d) = TRIGEDIT_ARGUMENT;
+          write_to_output(d, "Argument: ");
+          break;
+        case '6':
+          OLC_MODE(d) = TRIGEDIT_COMMANDS;
+          write_to_output(d, "Enter trigger commands: (/s saves /h for help)\r\n\r\n");
+          d->backstr = NULL;
+          if (OLC_STORAGE(d)) {
+            write_to_output(d, "%s", OLC_STORAGE(d));
+            d->backstr = strdup(OLC_STORAGE(d));
+          }
+          d->str = &OLC_STORAGE(d);
+          d->max_str = MAX_CMD_LENGTH;
+          d->mail_to = 0;
+          OLC_VAL(d) = 1;
 
-           break;
-         case 'w':
-         case 'W':
-           write_to_output(d, "Copy what trigger? ");
-           OLC_MODE(d) = TRIGEDIT_COPY;
-           break;
-         default:
-           trigedit_disp_menu(d);
-           return;
-     }
-     return;
+          break;
+        case 'w':
+        case 'W':
+          write_to_output(d, "Copy what trigger? ");
+          OLC_MODE(d) = TRIGEDIT_COPY;
+          break;
+        default:
+          trigedit_disp_menu(d);
+          return;
+      }
+      return;
 
     case TRIGEDIT_CONFIRM_SAVESTRING:
-      switch(tolower(*arg)) {
+      switch (tolower(*arg)) {
         case 'y':
           trigedit_save(d);
           mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(d->character)), TRUE,
-                 "OLC: %s edits trigger %d", GET_NAME(d->character),
-                 OLC_NUM(d));
+                  "OLC: %s edits trigger %d", GET_NAME(d->character),
+                  OLC_NUM(d));
           /* fall through */
         case 'n':
           cleanup_olc(d, CLEANUP_ALL);
@@ -346,7 +345,7 @@ void trigedit_parse(struct descriptor_data *d, char *arg)
       break;
 
     case TRIGEDIT_INTENDED:
-      if ((atoi(arg)>=MOB_TRIGGER) || (atoi(arg)<=WLD_TRIGGER))
+      if ((atoi(arg) >= MOB_TRIGGER) || (atoi(arg) <= WLD_TRIGGER))
         OLC_TRIG(d)->attach_type = atoi(arg);
       OLC_VAL(d)++;
       break;
@@ -358,7 +357,7 @@ void trigedit_parse(struct descriptor_data *d, char *arg)
 
     case TRIGEDIT_ARGUMENT:
       smash_tilde(arg);
-      OLC_TRIG(d)->arglist = (*arg?strdup(arg):NULL);
+      OLC_TRIG(d)->arglist = (*arg ? strdup(arg) : NULL);
       OLC_VAL(d)++;
       break;
 

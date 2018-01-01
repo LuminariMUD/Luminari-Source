@@ -239,19 +239,16 @@ int pending_attacks(struct char_data * ch)
   return GET_ATTACK_QUEUE(ch)->size;
 };
 
-
 /* The action queue, being an integral part of gameplay,
  * requires some management by the players from time to
  * time, especially during combat when strategies may
  * need to change moment by moment.
  * Using this command, the player may manipulate their
  * action queue in various ways. */
-ACMD(do_queue)
-{
+ACMD(do_queue) {
   char arg[MAX_INPUT_LENGTH];
   struct queue_type * queue;
   struct queue_element_type * el;
-
 
   int i = 1;
 
@@ -260,24 +257,28 @@ ACMD(do_queue)
   else
     queue = GET_ATTACK_QUEUE(ch);
 
-  if(!*argument) {
+  if (!*argument) {
     /* No arguments - List the currently queued actions. */
     send_to_char(ch, "%s:\r\n", (subcmd == SCMD_ACTION_QUEUE ? "Action Queue" : "Attack Queue"));
 
-  if (queue != NULL)
-    for (el = queue->first; el != NULL ; el = el->next)
-      if (subcmd == SCMD_ACTION_QUEUE)
-        send_to_char(ch, " %i) %s\r\n", i++, ((struct action_data *)el->data)->argument);
-      else
-        send_to_char(ch, " %i) %s%s\r\n", i++,
-                                          complete_cmd_info[((struct attack_action_data *)el->data)->command].command,
-                                          ((struct attack_action_data *)el->data)->argument);
+    if (queue != NULL) {
+      for (el = queue->first; el != NULL; el = el->next) {
+        if (subcmd == SCMD_ACTION_QUEUE) {
+          send_to_char(ch, " %i) %s\r\n", i++, ((struct action_data *) el->data)->argument);
+        } else {
+          send_to_char(ch, " %i) %s%s\r\n", i++,
+                complete_cmd_info[((struct attack_action_data *) el->data)->command].command,
+                ((struct attack_action_data *) el->data)->argument);
+        }
+      }
+    }
+    
     return;
   }
 
   one_argument(argument, arg);
 
-  if(is_abbrev(arg, "clear")) {
+  if (is_abbrev(arg, "clear")) {
 
     /* Argument: clear - Clear the queue. */
     if (subcmd == SCMD_ACTION_QUEUE)
@@ -286,8 +287,7 @@ ACMD(do_queue)
       clear_attack_queue(GET_ATTACK_QUEUE(ch));
 
     send_to_char(ch, "%s queue cleared.\r\n", (subcmd == SCMD_ACTION_QUEUE ? "Action" : "Attack"));
-  }
-  else {
+  } else {
     send_to_char(ch, "What do you want to do to your queue? ('queue clear' to clear your queue)\r\n");
   }
 }
