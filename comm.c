@@ -3421,11 +3421,14 @@ static void msdp_update(void) {
 
       /* This would be better moved elsewhere? */
       if (pOpponent != NULL) {
+        char buf[255];
         int hit_points = (GET_HIT(pOpponent) * 100) / GET_MAX_HIT(pOpponent);
         MSDPSetNumber(d, eMSDP_OPPONENT_HEALTH, hit_points);
         MSDPSetNumber(d, eMSDP_OPPONENT_HEALTH_MAX, 100);
         MSDPSetNumber(d, eMSDP_OPPONENT_LEVEL, GET_LEVEL(pOpponent));
-        MSDPSetString(d, eMSDP_OPPONENT_NAME, PERS(pOpponent, ch));
+        sprintf(buf, "%s", PERS(pOpponent, ch));
+        strip_colors(buf);
+        MSDPSetString(d, eMSDP_OPPONENT_NAME, buf);
       } else /* Clear the values */ {
         MSDPSetNumber(d, eMSDP_OPPONENT_HEALTH, 0);
         MSDPSetNumber(d, eMSDP_OPPONENT_LEVEL, 0);
