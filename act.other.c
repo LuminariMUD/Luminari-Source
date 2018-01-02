@@ -3597,31 +3597,33 @@ void update_msdp_group(struct char_data *ch) {
   /* MSDP */
   
   msdp_buffer[0] = '\0';
-  if (ch && ch->group && ch->desc) {
-    while ((k = (struct char_data *) simple_list(ch->group->members)) != NULL) {   
-      char buf[4000]; // Buffer for building the group table for MSDP 
-      //send_to_char(ch, "DEBUG: group member: %s", GET_NAME(k));
-      sprintf(buf, "%c%c"
-                   "%c%s%c%s"
-                   "%c%s%c%d"
-                   "%c%s%c%d"
-                   "%c%s%c%d"
-                   "%c%s%c%d"
-                   "%c%s%c%d"
-                   "%c%s%c%d"
-                         "%c",
-            (char)MSDP_VAL, 
-              (char)MSDP_TABLE_OPEN,
-                (char)MSDP_VAR, "NAME",         (char)MSDP_VAL, GET_NAME(k),
-                (char)MSDP_VAR, "LEVEL",        (char)MSDP_VAL, GET_LEVEL(k),
-                (char)MSDP_VAR, "IS_LEADER",    (char)MSDP_VAL, (GROUP_LEADER(GROUP(k)) == k ? 1 : 0),
-                (char)MSDP_VAR, "HEALTH",       (char)MSDP_VAL, GET_HIT(k),
-                (char)MSDP_VAR, "HEALTH_MAX",   (char)MSDP_VAL, GET_MAX_HIT(k),
-                (char)MSDP_VAR, "MOVEMENT",     (char)MSDP_VAL, GET_MOVE(k),
-                (char)MSDP_VAR, "MOVEMENT_MAX", (char)MSDP_VAL, GET_MAX_MOVE(k),
-              (char)MSDP_TABLE_CLOSE);
-      strcat(msdp_buffer, buf);
-    }    
+  if (ch && ch->desc) {
+    if (ch->group) { 
+      while ((k = (struct char_data *) simple_list(ch->group->members)) != NULL) {   
+        char buf[4000]; // Buffer for building the group table for MSDP 
+        //send_to_char(ch, "DEBUG: group member: %s", GET_NAME(k));
+        sprintf(buf, "%c%c"
+                    "%c%s%c%s"
+                    "%c%s%c%d"
+                    "%c%s%c%d"
+                    "%c%s%c%d"
+                    "%c%s%c%d"
+                    "%c%s%c%d"
+                    "%c%s%c%d"
+                          "%c",
+              (char)MSDP_VAL, 
+                (char)MSDP_TABLE_OPEN,
+                  (char)MSDP_VAR, "NAME",         (char)MSDP_VAL, GET_NAME(k),
+                  (char)MSDP_VAR, "LEVEL",        (char)MSDP_VAL, GET_LEVEL(k),
+                  (char)MSDP_VAR, "IS_LEADER",    (char)MSDP_VAL, (GROUP_LEADER(GROUP(k)) == k ? 1 : 0),
+                  (char)MSDP_VAR, "HEALTH",       (char)MSDP_VAL, GET_HIT(k),
+                  (char)MSDP_VAR, "HEALTH_MAX",   (char)MSDP_VAL, GET_MAX_HIT(k),
+                  (char)MSDP_VAR, "MOVEMENT",     (char)MSDP_VAL, GET_MOVE(k),
+                  (char)MSDP_VAR, "MOVEMENT_MAX", (char)MSDP_VAL, GET_MAX_MOVE(k),
+                (char)MSDP_TABLE_CLOSE);
+        strcat(msdp_buffer, buf);
+      }    
+    } 
     //send_to_char(ch,"%s", msdp_buffer);
     strip_colors(msdp_buffer);
     MSDPSetArray(ch->desc, eMSDP_GROUP, msdp_buffer);    
