@@ -263,6 +263,10 @@ void clear_simple_list(void) {
  * while ((var = (struct XXX_data *) simple_list(XXX_list))) {
  *   blah blah....
  * }
+ * 
+ * DO NOT EVER NEST THIS FUNCTION - i.e. use the function in a for loop and then
+ * use simple_list within the loop.  it is NOT REENTRANT and contains STATE.
+ * 
  * @return Will return the next list content until it hits the end, in which
  * will detach itself from the list.
  * */

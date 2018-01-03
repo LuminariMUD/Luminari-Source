@@ -82,6 +82,7 @@
 #define GLYPH_TYPE_PATH_EW    1
 #define GLYPH_TYPE_PATH_INT   2
 
+/* Variant glyphs - Different colored/shaped grass, trees, etc. */
 #define NUM_VARIANT_GLYPHS 4
 
 /* Map shapes */
