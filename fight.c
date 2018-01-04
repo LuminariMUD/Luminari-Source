@@ -2701,7 +2701,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
 int dam_killed_vict(struct char_data *ch, struct char_data *victim) {
   char local_buf[MEDIUM_STRING] = {'\0'};
   long local_gold = 0, happy_gold = 0;
-  struct char_data *tmp_char;
+  struct char_data *tmp_char = NULL, *tch = NULL;
   struct obj_data *corpse_obj;
 
   GET_POS(victim) = POS_DEAD;
@@ -2744,10 +2744,18 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim) {
     local_gold = GET_GOLD(victim);
     sprintf(local_buf, "%ld", (long) local_gold);
   }
+  
+  /* we make everyone in the room with auto-collect search for ammo here before
+   any of the autolooting, etc, before die() too in case in-room victim changes */
+  for (tch = world[IN_ROOM(victim)].people; tch; tch = tch->next_in_room) {
+    if (tch && !IS_NPC(tch) && (PRF_FLAGGED(tch, PRF_AUTOCOLLECT))) {
+      perform_collect(tch);
+    }
+  }
 
   /* corpse should be made here */
   die(victim, ch);
-
+  
   /* todo: maybe make die() return a value to let us know if there really is a corpse */
 
   //handle dead mob and PRF_

@@ -404,6 +404,8 @@ EVENTFUNC(event_trap_triggered) {
               if (mob) {
                 char_to_room(mob, ch->in_room);
                 remember(mob, ch);
+                /* popular demand asks that we add this -zusuk */
+                attach_mud_event(new_mud_event(ePURGEMOB, mob, NULL), (180 * PASSES_PER_SEC));
               } else {
                 log("SYSERR: perform_trap_effect event called with invalid spider mobile!\r\n");
               }
