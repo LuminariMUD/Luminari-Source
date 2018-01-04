@@ -2748,9 +2748,19 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim) {
   /* we make everyone in the room with auto-collect search for ammo here before
    any of the autolooting, etc, before die() too in case in-room victim changes */
   for (tch = world[IN_ROOM(victim)].people; tch; tch = tch->next_in_room) {
-    if (tch && !IS_NPC(tch) && (PRF_FLAGGED(tch, PRF_AUTOCOLLECT))) {
+    /*debug*/
+    send_to_char(tch, "%d", IN_ROOM(victim));
+    /*end debug*/
+    if (!tch)
+      continue;
+    if (IS_NPC(tch))
+      continue;
+    if (tch == victim)
+      continue;
+    if (IN_ROOM(tch) != IN_ROOM(victim))
+      continue;
+    if (PRF_FLAGGED(tch, PRF_AUTOCOLLECT))
       perform_collect(tch);
-    }
   }
 
   /* corpse should be made here */
