@@ -1324,6 +1324,7 @@ static void oedit_disp_menu(struct descriptor_data *d) {
           "%sP%s) Perm Affects           : %s%s\r\n"
           "%sS%s) Script                 : %s%s\r\n"
           "%sT%s) Spellbook menu\r\n"
+          "%sEQ Rating (in development): %d\r\n"
           "%sW%s) Copy object\r\n"
           "%sX%s) Delete object\r\n"
           "%sQ%s) Quit\r\n"
@@ -1346,11 +1347,12 @@ static void oedit_disp_menu(struct descriptor_data *d) {
           grn, nrm, cyn, HAS_SPECIAL_ABILITIES(obj) ? "Set." : "Not Set.",
           grn, nrm, cyn, GET_OBJ_LEVEL(obj),
           grn, nrm, cyn, buf2,
-          grn, nrm, cyn, OLC_SCRIPT(d) ? "Set." : "Not Set.",
-          grn, nrm,
-          grn, nrm,
-          grn, nrm,
-          grn, nrm
+          grn, nrm, cyn, OLC_SCRIPT(d) ? "Set." : "Not Set.", 
+          grn, nrm, /* spellbook */
+          grn, get_eq_score(GET_OBJ_RNUM(obj)),/* eq rating */
+          grn, nrm, /* copy object */
+          grn, nrm, /* delete object */
+          grn, nrm /* quite */
           );
   OLC_MODE(d) = OEDIT_MAIN_MENU;
 }
