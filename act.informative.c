@@ -3495,8 +3495,8 @@ ACMD(do_toggle) {
      "You will no longer see in-game hints.\r\n"},
                       /*39*/
     {"autocollect", PRF_AUTOCOLLECT, 0,
-     "You will now automatically collect your ammo after combat.\r\n",
-     "You will no longer automatically collect your ammo after combat.\r\n"},
+     "You will no longer automatically collect your ammo after combat.\r\n",
+     "You will now automatically collect your ammo after combat.\r\n"},
                       /*LAST*/
     {"\n", 0, -1, "\n", "\n"} /* must be last */
   };
