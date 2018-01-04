@@ -4418,6 +4418,12 @@ ACMD(do_gen_tog) {
     /*37*/
     {"GUI Mode disabled.\r\n",
       "GUI Mode enabled, make sure you have MSDP enabled in your client.\r\n"},
+    /*38*/
+    {"You will now see approximately every 5 minutes a in-game hint.\r\n",
+      "You will no longer see in-game hints.\r\n"},
+    /*39*/
+    {"You will now automatically collect your ammo after combat.\r\n",
+      "You will no longer automatically collect your ammo after combat.\r\n"},
   };
 
   if (IS_NPC(ch))
