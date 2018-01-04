@@ -1274,7 +1274,7 @@ static void oedit_disp_menu(struct descriptor_data *d) {
   char buf2[MAX_STRING_LENGTH] = {'\0'};
   char buf3[MAX_STRING_LENGTH] = {'\0'};
   struct obj_data *obj = OLC_OBJ(d);
-  int i = 0;
+  //int i = 0;
   size_t len = 0;
 
   get_char_colors(d->character);
@@ -1315,71 +1315,64 @@ static void oedit_disp_menu(struct descriptor_data *d) {
   sprintbitarray(GET_OBJ_PERM(OLC_OBJ(d)), affected_bits, EF_ARRAY_MAX, buf2);
   
   /* build a buffer for displaying suggested worn eq stats -zusuk */
-  for (i = 0; i < TW_ARRAY_MAX; i++) {
-    /*debug*/
-      write_to_output(d, "%d | ", GET_OBJ_WEAR(obj)[i]);
-    /*end debug*/
-    /* we have to fix this so treasure / here are synced! */
-    if (GET_OBJ_WEAR(obj)[i] == ITEM_WEAR_TAKE)
-      ;
-    if (GET_OBJ_WEAR(obj)[i] == ITEM_WEAR_FINGER)
-      len += snprintf(buf3 + len, sizeof (buf3) - len,
-             "[wear-finger:wis,will,hp,res-fire,res-punc,res-illus,res-energy] ");
-    if (GET_OBJ_WEAR(obj)[i] == ITEM_WEAR_NECK)
-      len += snprintf(buf3 + len, sizeof (buf3) - len,
-             "[wear-neck:int,save-ref,res-cold,res-air,res-force,res-mental,res-water] ");
-    if (GET_OBJ_WEAR(obj)[i] == ITEM_WEAR_BODY)
-      len += snprintf(buf3 + len, sizeof (buf3) - len,
-             "[wear-body:NONE] ");
-    if (GET_OBJ_WEAR(obj)[i] == ITEM_WEAR_HEAD)
-      len += snprintf(buf3 + len, sizeof (buf3) - len,
-             "[wear-head:NONE] ");
-    if (GET_OBJ_WEAR(obj)[i] == ITEM_WEAR_LEGS)
-      len += snprintf(buf3 + len, sizeof (buf3) - len,
-             "[wear-legs:NONE] ");
-    if (GET_OBJ_WEAR(obj)[i] == ITEM_WEAR_FEET)
-      len += snprintf(buf3 + len, sizeof (buf3) - len,
-             "[wear-feet:res-poison,dex,moves] ");
-    if (GET_OBJ_WEAR(obj)[i] == ITEM_WEAR_HANDS)
-      len += snprintf(buf3 + len, sizeof (buf3) - len,
-             "[wear-hands:res-disease,res-slice,str] ");
-    if (GET_OBJ_WEAR(obj)[i] == ITEM_WEAR_ARMS)
-      len += snprintf(buf3 + len, sizeof (buf3) - len,
-             "[wear-arms:NONE] ");
-    if (GET_OBJ_WEAR(obj)[i] == ITEM_WEAR_SHIELD)
-      len += snprintf(buf3 + len, sizeof (buf3) - len,
-             "[wear-shield:NONE] ");
-    if (GET_OBJ_WEAR(obj)[i] == ITEM_WEAR_ABOUT)
-      len += snprintf(buf3 + len, sizeof (buf3) - len,
-             "[wear-about:res-acid,cha,res-negative] ");
-    if (GET_OBJ_WEAR(obj)[i] == ITEM_WEAR_WAIST)
-      len += snprintf(buf3 + len, sizeof (buf3) - len,
-             "[wear-waist:res-holy,con,res-earth] ");
-    if (GET_OBJ_WEAR(obj)[i] == ITEM_WEAR_WRIST)
-      len += snprintf(buf3 + len, sizeof (buf3) - len,
-             "[wear-wrist:save-fort,psp,res-elec,res-unholy,res-sound,res-light] ");
-    if (GET_OBJ_WEAR(obj)[i] == ITEM_WEAR_WIELD)
-      len += snprintf(buf3 + len, sizeof (buf3) - len,
-             "[wear-wield:NONE] ");
-    if (GET_OBJ_WEAR(obj)[i] == ITEM_WEAR_HOLD)
-      len += snprintf(buf3 + len, sizeof (buf3) - len,
-             "[wear-hold:int,cha,hps] ");
-    if (GET_OBJ_WEAR(obj)[i] == ITEM_WEAR_FACE)
-      len += snprintf(buf3 + len, sizeof (buf3) - len,
-             "[wear-face:NONE] ");
-    if (GET_OBJ_WEAR(obj)[i] == ITEM_WEAR_AMMO_POUCH)
-      len += snprintf(buf3 + len, sizeof (buf3) - len,
-             "[wear-ammopouch:NONE] ");
-    if (GET_OBJ_WEAR(obj)[i] == ITEM_WEAR_EAR)
-      len += snprintf(buf3 + len, sizeof (buf3) - len,
-             "[wear-ear:NONE] ");
-    if (GET_OBJ_WEAR(obj)[i] == ITEM_WEAR_EYES)
-      len += snprintf(buf3 + len, sizeof (buf3) - len,
-             "[wear-eyes:NONE] ");
-    if (GET_OBJ_WEAR(obj)[i] == ITEM_WEAR_BADGE)
-      len += snprintf(buf3 + len, sizeof (buf3) - len,
-             "[wear-badge:NONE] ");
-  }
+  /* we have to fix this so treasure / here are synced! */
+  if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_FINGER))
+    len += snprintf(buf3 + len, sizeof (buf3) - len,
+          "[wear-finger:wis,will,hp,res-fire,res-punc,res-illus,res-energy] ");
+  if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_NECK))
+    len += snprintf(buf3 + len, sizeof (buf3) - len,
+          "[wear-neck:int,save-ref,res-cold,res-air,res-force,res-mental,res-water] ");
+  if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_BODY))
+    len += snprintf(buf3 + len, sizeof (buf3) - len,
+          "[wear-body:NONE] ");
+  if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_HEAD))
+    len += snprintf(buf3 + len, sizeof (buf3) - len,
+          "[wear-head:NONE] ");
+  if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_LEGS))
+    len += snprintf(buf3 + len, sizeof (buf3) - len,
+          "[wear-legs:NONE] ");
+  if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_FEET))
+    len += snprintf(buf3 + len, sizeof (buf3) - len,
+          "[wear-feet:res-poison,dex,moves] ");
+  if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_HANDS))
+    len += snprintf(buf3 + len, sizeof (buf3) - len,
+          "[wear-hands:res-disease,res-slice,str] ");
+  if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_ARMS))
+    len += snprintf(buf3 + len, sizeof (buf3) - len,
+          "[wear-arms:NONE] ");
+  if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_SHIELD))
+    len += snprintf(buf3 + len, sizeof (buf3) - len,
+          "[wear-shield:NONE] ");
+  if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_ABOUT))
+    len += snprintf(buf3 + len, sizeof (buf3) - len,
+          "[wear-about:res-acid,cha,res-negative] ");
+  if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_WAIST))
+    len += snprintf(buf3 + len, sizeof (buf3) - len,
+          "[wear-waist:res-holy,con,res-earth] ");
+  if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_WRIST))
+    len += snprintf(buf3 + len, sizeof (buf3) - len,
+          "[wear-wrist:save-fort,psp,res-elec,res-unholy,res-sound,res-light] ");
+  if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_WIELD))
+    len += snprintf(buf3 + len, sizeof (buf3) - len,
+          "[wear-wield:NONE] ");
+  if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_HOLD))
+    len += snprintf(buf3 + len, sizeof (buf3) - len,
+          "[wear-hold:int,cha,hps] ");
+  if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_FACE))
+    len += snprintf(buf3 + len, sizeof (buf3) - len,
+          "[wear-face:NONE] ");
+  if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_AMMO_POUCH))
+    len += snprintf(buf3 + len, sizeof (buf3) - len,
+          "[wear-ammopouch:NONE] ");
+  if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_EAR))
+    len += snprintf(buf3 + len, sizeof (buf3) - len,
+          "[wear-ear:NONE] ");
+  if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_EYES))
+    len += snprintf(buf3 + len, sizeof (buf3) - len,
+          "[wear-eyes:NONE] ");
+  if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_BADGE))
+    len += snprintf(buf3 + len, sizeof (buf3) - len,
+          "[wear-badge:NONE] ");
   /* end eq-wear suggestions */
 
   write_to_output(d,
