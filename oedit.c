@@ -1316,6 +1316,9 @@ static void oedit_disp_menu(struct descriptor_data *d) {
   
   /* build a buffer for displaying suggested worn eq stats -zusuk */
   for (i = 0; i < TW_ARRAY_MAX; i++) {
+    /*debug*/
+      write_to_output(d, "%d | ", GET_OBJ_WEAR(obj)[i]);
+    /*end debug*/
     /* we have to fix this so treasure / here are synced! */
     if (GET_OBJ_WEAR(obj)[i] == ITEM_WEAR_TAKE)
       ;
