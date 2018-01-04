@@ -4422,8 +4422,8 @@ ACMD(do_gen_tog) {
     {"You will now see approximately every 5 minutes a in-game hint.\r\n",
       "You will no longer see in-game hints.\r\n"},
     /*39*/
-    {"You will now automatically collect your ammo after combat.\r\n",
-      "You will no longer automatically collect your ammo after combat.\r\n"},
+    {"You will no longer automatically collect your ammo after combat.\r\n",
+      "You will now automatically collect your ammo after combat.\r\n"},
   };
 
   if (IS_NPC(ch))
