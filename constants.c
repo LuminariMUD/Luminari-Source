@@ -507,7 +507,7 @@ const char *trap_type[MAX_TRAP_TYPES + 1] = {
   "Open Container",
   "Unlock Container",
   "Get Object",
-  "Enter Room",
+  "Enter Room (sets off without check opportunity at least once)",
   "\n"
 };
 
@@ -1141,6 +1141,7 @@ const char *preference_bits[NUM_PRF_FLAGS + 1] = {
   "Display-Actions",
   "Auto-Reload",
   "Combat-Rolls",
+  "GUI-Mode",
   "Hint-Display",
   "\n"
 };

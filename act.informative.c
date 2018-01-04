@@ -3493,6 +3493,10 @@ ACMD(do_toggle) {
     {"nohint", PRF_NOHINT, 0,
      "You will now see approximately every 5 minutes a in-game hint.\r\n",
      "You will no longer see in-game hints.\r\n"},
+                      /*39*/
+    {"autocollect", PRF_AUTOCOLLECT, 0,
+     "You will now automatically collect your ammo after combat.\r\n",
+     "You will no longer automatically collect your ammo after combat.\r\n"},
                       /*LAST*/
     {"\n", 0, -1, "\n", "\n"} /* must be last */
   };
@@ -3590,7 +3594,8 @@ ACMD(do_toggle) {
                  "     CombatRoll: %-3s    "
                  "       GUI Mode: %-3s\r\n"
 
-                 "   Hint Display: %-3s\r\n"
+                 "   Hint Display: %-3s    "
+                 "   Auto Collect: %-3s\r\n"
             
                  "*NOTE: The PREFEDIT command is preferred method of optimizing your toggle switches.\r\n",
 
@@ -3641,7 +3646,8 @@ ACMD(do_toggle) {
                  ONOFF(PRF_FLAGGED(ch, PRF_AUTORELOAD)),
                  ONOFF(PRF_FLAGGED(ch, PRF_COMBATROLL)),
                  ONOFF(PRF_FLAGGED(ch, PRF_GUI_MODE)),
-                 ONOFF(PRF_FLAGGED(ch, PRF_NOHINT))
+                 ONOFF(PRF_FLAGGED(ch, PRF_NOHINT)),
+                 ONOFF(PRF_FLAGGED(ch, PRF_AUTOCOLLECT))
                  /*end*/);
     return;
   }

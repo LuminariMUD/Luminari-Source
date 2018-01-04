@@ -4454,6 +4454,9 @@ ACMD(do_gen_tog) {
     case SCMD_NOHINT:
       result = PRF_TOG_CHK(ch, PRF_NOHINT);
       break;
+    case SCMD_AUTOCOLLECT:
+      result = PRF_TOG_CHK(ch, PRF_AUTOCOLLECT);
+      break;
     case SCMD_NOGRATZ:
       result = PRF_TOG_CHK(ch, PRF_NOGRATZ);
       break;

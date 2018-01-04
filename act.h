@@ -271,6 +271,7 @@ bool perform_dirtkick(struct char_data *ch, struct char_data *vict);
 void perform_assist(struct char_data *ch, struct char_data *helpee);
 void perform_springleap(struct char_data *ch, struct char_data *vict);
 bool perform_backstab(struct char_data *ch, struct char_data *vict);
+int perform_collect(struct char_data *ch);
 /* Functions with subcommands */
 /* do_hit */
 ACMD(do_hit);
@@ -400,6 +401,7 @@ ACMD(do_gen_tog);
 #define SCMD_COMBATROLL  36
 #define SCMD_GUI_MODE    37
 #define SCMD_NOHINT      38
+#define SCMD_AUTOCOLLECT 39
 
 /* do_quit */
 ACMD(do_quit);
@@ -458,7 +460,7 @@ ACMD(do_vanish);
 ACMD(do_disguise);
 ACMD(do_ethshift);
 ACMD(do_handleanimal);
-ACMD(do_nohints);
+//ACMD(do_nohints);
 
 /*****************************************************************************
  * Begin Functions and defines for act.social.c

@@ -749,8 +749,9 @@
 #define PRF_COMBATROLL   42   /**< extra info during combat */
 #define PRF_GUI_MODE     43   /**< add special tags to code for MSDP GUI */
 #define PRF_NOHINT       44   /**< show in-game hints to newer players */
+#define PRF_AUTOCOLLECT  45   /**< collect ammo after combat automatically */
 /** Total number of available PRF flags */
-#define NUM_PRF_FLAGS    45
+#define NUM_PRF_FLAGS    46
 
 /* Affect bits: used in char_data.char_specials.saved.affected_by */
 /* WARNING: In the world files, NEVER set the bits marked "R" ("Reserved") */

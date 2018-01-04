@@ -4360,7 +4360,7 @@ ACMD(do_autofire) {
 }
 
 /* function used to gather up all the ammo in the room/corpses-in-room */
-ACMD(do_collect) {
+int perform_collect(struct char_data *ch) {
   struct obj_data *ammo_pouch = GET_EQ(ch, WEAR_AMMO_POUCH);
   struct obj_data *obj = NULL;
   struct obj_data *nobj = NULL;
@@ -4370,9 +4370,8 @@ ACMD(do_collect) {
   bool fit = TRUE;
   char buf[MAX_INPUT_LENGTH] = {'\0'};
 
-  if (!ammo_pouch) {
-    send_to_char(ch, "But you don't have an ammo pouch to collect to.\r\n");
-    return;
+  if (!ammo_pouch) {    
+    return 0;
   }
 
   for (obj = world[ch->in_room].contents; obj; obj = nobj) {
@@ -4411,13 +4410,29 @@ ACMD(do_collect) {
     }
   }
 
-  sprintf(buf, "You collected ammo:  %d.\r\n", ammo);
-  send_to_char(ch, buf);
+  if (ammo) {
+    sprintf(buf, "You collected ammo:  %d.\r\n", ammo);
+    send_to_char(ch, buf);
+    act("$n gathers $s ammunition.", FALSE, ch, 0, 0, TO_ROOM);  
+  }
+  
   if (!fit)
     send_to_char(ch, "There are still some of your ammunition laying around that does not\r\nfit into your currently"
           " equipped ammo pouch.\r\n");
+  
+  return ammo;
+}
 
-  act("$n gathers $s ammunition.", FALSE, ch, 0, 0, TO_ROOM);
+/* function used to gather up all the ammo in the room/corpses-in-room */
+ACMD(do_collect) {
+  struct obj_data *ammo_pouch = GET_EQ(ch, WEAR_AMMO_POUCH);
+  
+  if (!ammo_pouch) {
+    send_to_char(ch, "But you don't have an ammo pouch to collect to.\r\n");
+    return;
+  }
+
+  perform_collect(ch);
 }
 
 /*

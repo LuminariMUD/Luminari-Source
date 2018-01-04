@@ -2130,6 +2130,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       af[0].location = APPLY_DEX;
       af[0].duration = (caster_level * 12) + 100;
       af[0].modifier = 2 + (caster_level / 5);
+      af[0].bonus_type = BONUS_TYPE_ENHANCEMENT;
       accum_duration = TRUE;
       to_vict = "You feel more dextrous!";
       to_room = "$n's appears to be more dextrous!";

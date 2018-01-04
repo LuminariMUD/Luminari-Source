@@ -898,8 +898,7 @@ void point_update(void) {
   /* Take 1 from the happy-hour tick counter, and end happy-hour if zero */
   if (HAPPY_TIME > 1)
     HAPPY_TIME--;
-
-    /* Last tick - set everything back to zero */
+  /* Last tick - set everything back to zero */
   else if (HAPPY_TIME == 1) {
     HAPPY_QP = 0;
     HAPPY_EXP = 0;
@@ -907,7 +906,6 @@ void point_update(void) {
     HAPPY_TIME = 0;
     game_info("Happy hour has ended!");
   }
-
 
   /** characters **/
   for (i = character_list; i; i = next_char) {
@@ -927,7 +925,6 @@ void point_update(void) {
     }
   }
 
-
   /** objects **/
   /* Make sure there is only one way to decrement each object timer */
   for (j = object_list; j; j = next_thing) {
@@ -941,17 +938,43 @@ void point_update(void) {
       if (GET_OBJ_SPECTIMER(j, counter) > 0) {
         GET_OBJ_SPECTIMER(j, counter)--;
       }
-      if (GET_OBJ_SPECTIMER(j, counter) == 0) {
-        
+      if (GET_OBJ_SPECTIMER(j, counter) <= 0) {
+        /*wear out messages*/
       }
     }
 
+    /* decrement timer */
+    if (GET_OBJ_TIMER(j) > 0)
+      GET_OBJ_TIMER(j)--;
+    
+    /* timer counting down that doesn't result in extraction */
+        
+    /** Arrow (that is imbued) */
+    if (GET_OBJ_TYPE(j) == ITEM_MISSILE && GET_OBJ_VAL(j, 1)) {
+      /* imbued arrow lost its spell! */
+      if (GET_OBJ_TIMER(j) <= 0) {
+        /* simple mechanic is reset obj-val 1 to 0 */
+        GET_OBJ_VAL(j, 1) = 0;
+        /* now send a message if appropriate */
+        if (j->carried_by) /* carried in your inventory */
+          act("$p briefly shudders as the imbued magic fades.", FALSE, j->carried_by, j, 0, TO_CHAR);
+        if (j->in_obj && j->in_obj->carried_by) /* object carrying the missile */
+          act("$p briefly shudders as the imbued magic fades.", FALSE, j->in_obj->carried_by, j, 0, TO_CHAR);
+      }
+    }
+    
+    /** for timed object triggers, make sure this is LAST before countdowns
+     * that cause extraction!! **/
+    if (GET_OBJ_TIMER(j) <= 0) {
+      timer_otrigger(j);
+    }
+
+    /* END timer counting down that doesn't result in extraction */
+  
+    /* start timer counting down that results in extraction */
+    
     /** portals that fade **/
     if (IS_DECAYING_PORTAL(j)) {
-      /* timer count down */
-      if (GET_OBJ_TIMER(j) > 0)
-        GET_OBJ_TIMER(j)--;
-
       /* the portal fades */
       if (GET_OBJ_TIMER(j) <= 0) {
         /* send message if it makes sense */
@@ -964,15 +987,12 @@ void point_update(void) {
                   j, 0, TO_CHAR);
         }
         extract_obj(j);
-
-      } /* end portal fade */
-
+        continue; /* object is gone */
+      } 
+    } /* end portal fade */
+    
       /** general item that fade **/
-    } else if (OBJ_FLAGGED(j, ITEM_DECAY)) {
-      /* timer count down */
-      if (GET_OBJ_TIMER(j) > 0)
-        GET_OBJ_TIMER(j)--;
-
+    if (OBJ_FLAGGED(j, ITEM_DECAY)) {
       /* the object fades */
       if (GET_OBJ_TIMER(j) <= 0) {
         /* send message if it makes sense */
@@ -983,30 +1003,12 @@ void point_update(void) {
                   j, 0, TO_CHAR);
         }
         extract_obj(j);
-
-      } /* end 'general' fade */
-
-      /** Arrow (that is imbued) */
-    } else if (GET_OBJ_TYPE(j) == ITEM_MISSILE && GET_OBJ_VAL(j, 1)) {
-      if (GET_OBJ_TIMER(j) > 0) /* decrement! */
-        GET_OBJ_TIMER(j)--;
-      /* imbued arrow lost its spell! */
-      if (GET_OBJ_TIMER(j) <= 0) {
-        /* simple mechanic is reset obj-val 1 to 0 */
-        GET_OBJ_VAL(j, 1) = 0;
-        /* now send a message if appropriate */
-        if (j->carried_by) /* carried in your inventory */
-          act("$p briefly shudders as the imbued magic fades.", FALSE, j->carried_by, j, 0, TO_CHAR);
-        if (j->in_obj && j->in_obj->carried_by) /* object carrying the missile */
-          act("$p briefly shudders as the imbued magic fades.", FALSE, j->in_obj->carried_by, j, 0, TO_CHAR);
-      }
-      
-      /** If this is a corpse **/
-    } else if (IS_CORPSE(j)) {
-      /* timer count down */
-      if (GET_OBJ_TIMER(j) > 0)
-        GET_OBJ_TIMER(j)--;
-
+        continue; /* object is gone */
+      }  
+    } /* end 'general' fade */ 
+        
+    /** If this is a corpse **/
+    if (IS_CORPSE(j)) {
       /* corpse decayed */
       if (GET_OBJ_TIMER(j) <= 0) {
         if (j->carried_by)
@@ -1032,16 +1034,11 @@ void point_update(void) {
             core_dump();
         }
         extract_obj(j);
-      }
-      /** for timed object triggers **/
-    } else if (GET_OBJ_TIMER(j) > 0) {
-      /* If the timer is set, count it down and at 0, try the trigger
-       * this should be last in point-update() */
-      GET_OBJ_TIMER(j)--;
-      if (GET_OBJ_TIMER(j) <= 0)
-        timer_otrigger(j);
-    }
-  }
+        continue;
+      }      
+    } 
+    
+  } /* end object loop */
 
 }
 
