@@ -1,11 +1,11 @@
 /**************************************************************************
- *  File: comm.c                                            Part of tbaMUD *
+ *  File: comm.c                                       Part of LuminariMUD *
  *  Usage: Communication, socket handling, main(), central game loop.      *
  *                                                                         *
  *  All rights reserved.  See license for complete information.            *
  *                                                                         *
  *  Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University *
- *  CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.               *
+ *  Circle/tbaMUD is based on DikuMUD, Copyright (C) 1990, 1991.               *
  **************************************************************************/
 
 #define __COMM_C__
@@ -175,7 +175,7 @@ static RETSIGTYPE websterlink(int sig);
 static void handle_webster_file();
 
 static void msdp_update(void); /* KaVir plugin*/
-void update_msdp_affects(struct char_data *ch); 
+void update_msdp_affects(struct char_data *ch);
 
 /* externally defined functions, used locally */
 #ifdef __CXREF__
@@ -1008,11 +1008,13 @@ void heartbeat(int heart_pulse) {
   if (!(heart_pulse % PULSE_IDLEPWD)) /* 15 seconds */
     check_idle_passwords();
 
+  /* this controls the rate mobiles "act" */
   if (!(heart_pulse % PULSE_MOBILE)) {
     mobile_activity();
     proc_update();
   }
 
+  /* this is the rate of a combat round before event-driven combat */
   if (!(heart_pulse % PULSE_VIOLENCE)) {
     /* Next line removed as part of conversion from pulse to event-based combat */
     //    perform_violence();
@@ -1025,10 +1027,16 @@ void heartbeat(int heart_pulse) {
    *  a full grasp on the event system, otherwise it would have
    *  been implemented differently.  -Zusuk
    */
-  if (!(pulse % PULSE_LUMINARI)) {
+  if (!(pulse % PULSE_LUMINARI)) { /* 5 sec */
     pulse_luminari(); // limits.c
   }
 
+  /* every 300 sec show a random hint if they have it toggled */
+  if (!(pulse % PULSE_LUMINARI)) {
+    show_hints();
+  }
+
+  /* the old skool tick system! */
   if (!(heart_pulse % (SECS_PER_MUD_HOUR * PASSES_PER_SEC))) { /* Tick ! */
     next_tick = SECS_PER_MUD_HOUR; /* Reset tick coundown */
     weather_and_time(1);
@@ -1153,7 +1161,7 @@ static char *make_prompt(struct descriptor_data *d) {
   size_t len = 0;
 
   /* Note, prompt is truncated at MAX_PROMPT_LENGTH chars (structs.h) */
-  
+
   ch = d->character;
 
   if (d->showstr_count) /* # of pages to page through */
@@ -1162,9 +1170,9 @@ static char *make_prompt(struct descriptor_data *d) {
           d->showstr_page, d->showstr_count);
   else if (d->str) /* for the modify-str system */
     strcpy(prompt, "] "); // strcpy: OK (for 'MAX_PROMPT_LENGTH >= 3')
-  
-  /* start building a prompt */
-  
+
+    /* start building a prompt */
+
   else if (STATE(d) == CON_PLAYING && !IS_NPC(d->character)) { /*PC only*/
 
     /* show invis level if applicable */
@@ -1199,8 +1207,8 @@ static char *make_prompt(struct descriptor_data *d) {
         if (count >= 0)
           len += count;
       }
-      
-    /* autoprompt is OFF - normal prompt processing */  
+
+      /* autoprompt is OFF - normal prompt processing */
     } else {
 
       /* display hit points */
@@ -1385,7 +1393,7 @@ static char *make_prompt(struct descriptor_data *d) {
     /* the prompt elements only active while fighting */
     char_fighting = FIGHTING(d->character);
     if (char_fighting && (d->character->in_room == char_fighting->in_room) &&
-        GET_HIT(char_fighting) > -10 && len < sizeof (prompt)) {
+            GET_HIT(char_fighting) > -10 && len < sizeof (prompt)) {
       count = sprintf(prompt + strlen(prompt), ">\tn\r\n<");
       if (count >= 0)
         len += count;
@@ -1485,16 +1493,16 @@ static char *make_prompt(struct descriptor_data *d) {
           len += count;
       }
     }
-    
+
     /* if someone wants a "none" prompt we have to make sure we are clear here */
     if (is_prompt_empty(d->character)) {
       len = 0;
-      *prompt = '\0';      
+      *prompt = '\0';
     }
-      
+
     /* END of PC prompt */
-    
-  /* here we have our NPC prompt (switched mob, some spells, etc) */
+
+    /* here we have our NPC prompt (switched mob, some spells, etc) */
   } else if (STATE(d) == CON_PLAYING && IS_NPC(d->character)) {
     count = snprintf(prompt + len, sizeof (prompt) - len, "%sEX:",
             CCYEL(d->character, C_NRM));
@@ -1534,7 +1542,7 @@ static char *make_prompt(struct descriptor_data *d) {
     if (count >= 0)
       len += count;
 
-  /* how did we get here again? */
+    /* how did we get here again? */
   } else {
     *prompt = '\0';
     len = 0;
@@ -3174,7 +3182,7 @@ static void handle_webster_file(void) {
 #define MODE_DISPLAY_RANGED   4 //Display damage info ranged
 
 /* KaVir's plugin*/
-void update_msdp_room(struct char_data *ch) {    
+void update_msdp_room(struct char_data *ch) {
   const char MsdpVar = (char) MSDP_VAR;
   const char MsdpVal = (char) MSDP_VAL;
 
@@ -3183,11 +3191,11 @@ void update_msdp_room(struct char_data *ch) {
 
   int door;
 
-  char buf2[MAX_STRING_LENGTH];    
+  char buf2[MAX_STRING_LENGTH];
   char room_exits[MAX_STRING_LENGTH];
 
   /* MSDP */
-  
+
   buf2[0] = '\0';
   if (ch && ch->desc) {
     /* Location information */
@@ -3196,22 +3204,22 @@ void update_msdp_room(struct char_data *ch) {
             GET_ROOM_VNUM(IN_ROOM(ch)) != ch->desc->pProtocol->pVariables[eMSDP_ROOM_VNUM]->ValueInt) {
 
       /* Format for the room data is:
-        * ROOM
-        *   VNUM
-        *   NAME
-        *   AREA
-        *   COORDS
-        *     X
-        *     Y
-        *     Z
-        *   TERRAIN
-        *   EXITS
-        *     'n'
-        *       vnum for room to the north
-        *     's'
-        *       vnum for room to the south
-        *     etc.
-        **/
+       * ROOM
+       *   VNUM
+       *   NAME
+       *   AREA
+       *   COORDS
+       *     X
+       *     Y
+       *     Z
+       *   TERRAIN
+       *   EXITS
+       *     'n'
+       *       vnum for room to the north
+       *     's'
+       *       vnum for room to the south
+       *     etc.
+       **/
       room_exits[0] = '\0';
       for (door = 0; door < DIR_COUNT; door++) {
         char buf3[MAX_STRING_LENGTH];
@@ -3228,25 +3236,25 @@ void update_msdp_room(struct char_data *ch) {
 
       /* Build the ROOM table.  */
       sprintf(buf2, "%cVNUM"
-                      "%c%d"
-                    "%cNAME"
-                      "%c%s"
-                    "%cAREA"
-                      "%c%s"
-                    "%cENVIRONMENT"
-                      "%c%s"
-                    "%cCOORDS"
-                      "%c%c"
-                        "%cX"
-                        "%c%d"
-                        "%cY"
-                        "%c%d"
-                        "%cZ"
-                        "%c%d%c"
-                    "%cTERRAIN"
-                    "%c%s"
-                    "%cEXITS"
-                    "%c%c%s%c",
+              "%c%d"
+              "%cNAME"
+              "%c%s"
+              "%cAREA"
+              "%c%s"
+              "%cENVIRONMENT"
+              "%c%s"
+              "%cCOORDS"
+              "%c%c"
+              "%cX"
+              "%c%d"
+              "%cY"
+              "%c%d"
+              "%cZ"
+              "%c%d%c"
+              "%cTERRAIN"
+              "%c%s"
+              "%cEXITS"
+              "%c%c%s%c",
               MsdpVar, MsdpVal,
               GET_ROOM_VNUM(IN_ROOM(ch)),
               MsdpVar, MsdpVal,
@@ -3255,7 +3263,7 @@ void update_msdp_room(struct char_data *ch) {
               zone_table[GET_ROOM_ZONE(IN_ROOM(ch))].name,
               MsdpVar, MsdpVal,
               (IS_WILDERNESS_VNUM(GET_ROOM_VNUM(IN_ROOM(ch))) ? "Wilderness" : "Room"),
-              MsdpVar, MsdpVal,                
+              MsdpVar, MsdpVal,
               MSDP_TABLE_OPEN,
               MsdpVar, MsdpVal,
               0,
@@ -3270,7 +3278,7 @@ void update_msdp_room(struct char_data *ch) {
               MSDP_TABLE_OPEN,
               room_exits,
               MSDP_TABLE_CLOSE);
-      
+
       strip_colors(buf2);
       MSDPSetTable(ch->desc, eMSDP_ROOM, buf2);
     }
@@ -3293,7 +3301,7 @@ static void msdp_update(void) {
     char buf[MAX_STRING_LENGTH];
     char sectors[MAX_STRING_LENGTH];
     char sector_buf[80];
-    
+
     char room_exits[MAX_STRING_LENGTH];
 
     struct char_data *ch = d->character;
@@ -3323,16 +3331,16 @@ static void msdp_update(void) {
 
       /* Actions */
       update_msdp_actions(ch);
-      
+
       /* Group */
-      update_msdp_group(ch);      
+      update_msdp_group(ch);
 
       /* Inventory */
       update_msdp_inventory(ch);
 
       /* Room */
       update_msdp_room(ch);
-      
+
       /* gotta adjust compute_hit_damage() so it doesn't send messages randomly */
       /*
       if (is_using_ranged_weapon(ch, TRUE))
@@ -3389,24 +3397,24 @@ static void msdp_update(void) {
         // Sectors
         //ector_buf, "%c", MSDP_TABLE_OPEN); 
         //strcat(sectors, sector_buf);
-        for (sector = 0;sector < NUM_ROOM_SECTORS; sector++) {
+        for (sector = 0; sector < NUM_ROOM_SECTORS; sector++) {
           sector_buf[0] = '\0';
           sprintf(sector_buf, "%c%s%c%d", MsdpVar, sector_types[sector], MsdpVal, sector);
           strcat(sectors, sector_buf);
         }
         //sprintf(sector_buf, "%c", MSDP_TABLE_CLOSE); 
         //strcat(sectors, sector_buf);
-        
-        MSDPSetTable(d, eMSDP_SECTORS, sectors);        
+
+        MSDPSetTable(d, eMSDP_SECTORS, sectors);
         // End Sectors
-        
+
         //        send_to_char(ch, "DEBUG: %s\r\n", buf2);
 
         MSDPSetString(d, eMSDP_AREA_NAME, zone_table[GET_ROOM_ZONE(IN_ROOM(ch))].name);
 
         MSDPSetString(d, eMSDP_ROOM_NAME, world[IN_ROOM(ch)].name);
         MSDPSetTable(d, eMSDP_ROOM_EXITS, room_exits);
-        MSDPSetNumber(d, eMSDP_ROOM_VNUM, GET_ROOM_VNUM(IN_ROOM(ch)));        
+        MSDPSetNumber(d, eMSDP_ROOM_VNUM, GET_ROOM_VNUM(IN_ROOM(ch)));
       } /*end location info*/
 
       MSDPSetNumber(d, eMSDP_MANA, GET_MANA(ch));
@@ -3416,8 +3424,8 @@ static void msdp_update(void) {
       MSDPSetNumber(d, eMSDP_MOVEMENT, GET_MOVE(ch));
       MSDPSetNumber(d, eMSDP_MOVEMENT_MAX, GET_MAX_MOVE(ch));
       MSDPSetNumber(d, eMSDP_AC, compute_armor_class(NULL, ch, FALSE, MODE_ARMOR_CLASS_NORMAL));
-      
-      
+
+
 
       /* This would be better moved elsewhere? */
       if (pOpponent != NULL) {

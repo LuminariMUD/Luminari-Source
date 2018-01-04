@@ -1313,7 +1313,8 @@ void assign_feats(void) {
 
   feato(FEAT_FASTER_MEMORIZATION, "faster memorization", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
     "decreases spell memorization time",
-    "decreases spell memorization time");
+    "Chance to decrease total memorization time and each memorization pulse to "
+          "further reduce memorization time.");
 
   feato(FEAT_SPELL_FOCUS, "spell focus", TRUE, TRUE, TRUE, FEAT_TYPE_SPELLCASTING,
     "+1 to all spell dcs for all spells in school/domain",

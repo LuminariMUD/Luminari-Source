@@ -357,6 +357,7 @@ void perform_perform(struct char_data *ch);
 void perform_call(struct char_data *ch, int call_type, int level);
 void update_msdp_group(struct char_data *ch);
 void update_msdp_inventory(struct char_data *ch);
+void show_hints(void);
 
 /* do_gen_tog */
 ACMD(do_gen_tog);
@@ -398,6 +399,7 @@ ACMD(do_gen_tog);
 #define SCMD_AUTORELOAD  35
 #define SCMD_COMBATROLL  36
 #define SCMD_GUI_MODE    37
+#define SCMD_NOHINT      38
 
 /* do_quit */
 ACMD(do_quit);
@@ -456,6 +458,7 @@ ACMD(do_vanish);
 ACMD(do_disguise);
 ACMD(do_ethshift);
 ACMD(do_handleanimal);
+ACMD(do_nohints);
 
 /*****************************************************************************
  * Begin Functions and defines for act.social.c
@@ -507,6 +510,7 @@ void perform_immort_vis(struct char_data *ch);
 void snoop_check(struct char_data *ch);
 bool change_player_name(struct char_data *ch, struct char_data *vict, char *new_name);
 bool AddRecentPlayer(char *chname, char *chhost, bool newplr, bool cpyplr);
+int get_eq_score(obj_rnum a);
 /* Functions with subcommands */
 /* do_date */
 ACMD(do_date);

@@ -3489,6 +3489,10 @@ ACMD(do_toggle) {
     {"guimode", PRF_GUI_MODE, 0,
      "GUI Mode disabled.\r\n",
      "GUI Mode enabled, make sure you have MSDP enabled in your client.\r\n"},
+                      /*38*/
+    {"nohint", PRF_NOHINT, 0,
+     "You will now see approximately every 5 minutes a in-game hint.\r\n",
+     "You will no longer see in-game hints.\r\n"},
                       /*LAST*/
     {"\n", 0, -1, "\n", "\n"} /* must be last */
   };
@@ -3585,6 +3589,8 @@ ACMD(do_toggle) {
                  "     AutoReload: %-3s    "
                  "     CombatRoll: %-3s    "
                  "       GUI Mode: %-3s\r\n"
+
+                 "   Hint Display: %-3s\r\n"
             
                  "*NOTE: The PREFEDIT command is preferred method of optimizing your toggle switches.\r\n",
 
@@ -3634,7 +3640,8 @@ ACMD(do_toggle) {
             
                  ONOFF(PRF_FLAGGED(ch, PRF_AUTORELOAD)),
                  ONOFF(PRF_FLAGGED(ch, PRF_COMBATROLL)),
-                 ONOFF(PRF_FLAGGED(ch, PRF_GUI_MODE))
+                 ONOFF(PRF_FLAGGED(ch, PRF_GUI_MODE)),
+                 ONOFF(PRF_FLAGGED(ch, PRF_NOHINT))
                  /*end*/);
     return;
   }

@@ -1,12 +1,12 @@
 /**************************************************************************
-*  File: modify.c                                          Part of tbaMUD *
-*  Usage: Run-time modification of game variables.                        *
-*                                                                         *
-*  All rights reserved.  See license for complete information.            *
-*                                                                         *
-*  Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University *
-*  CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.               *
-**************************************************************************/
+ *  File: modify.c                                          Part of tbaMUD *
+ *  Usage: Run-time modification of game variables.                        *
+ *                                                                         *
+ *  All rights reserved.  See license for complete information.            *
+ *                                                                         *
+ *  Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University *
+ *  CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.               *
+ **************************************************************************/
 
 #include "conf.h"
 #include "sysdep.h"
@@ -47,7 +47,7 @@ static const char *string_fields[] =
   "delete-description",
   "\n"
 };
-*/
+ */
 
 /** maximum length for text field x+1
  *  @deprecated length appears to no longer be used. Left in but commented out.
@@ -59,43 +59,41 @@ static int length[] =
   240,
   60
 };
-*/
+ */
 
 /* modification of malloc'ed strings */
+
 /* Put '#if 1' here to erase ~, or roll your own method.  A common idea is
  * smash/show tilde to convert the tilde to another innocuous character to
  * save and then back to display it. Whatever you do, at least keep the
  * function around because other MUD packages use it, like mudFTP. -gg */
-void smash_tilde(char *str)
-{
+void smash_tilde(char *str) {
   /* Erase any _line ending_ tildes inserted in the editor. The load mechanism
    * can't handle those, yet. - Welcor */
   char *p = str;
   for (; *p; p++)
-    if (*p == '~' && (*(p+1)=='\r' || *(p+1)=='\n' || *(p+1)=='\0'))
-      *p=' ';
+    if (*p == '~' && (*(p + 1) == '\r' || *(p + 1) == '\n' || *(p + 1) == '\0'))
+      *p = ' ';
 }
-
 
 /* so it turns out that write_to_descriptor can't handle protocol info
  * so i made this simple function to strip color codes -zusuk
  */
-void strip_colors(char *str)
-{
+void strip_colors(char *str) {
   char *p = str;
   char *n = str;
 
   while (p && *p) {
 
     if (*p == '@') {
-      if (*(p+1) != '@') {
+      if (*(p + 1) != '@') {
         p += 2;
       } else {
         p++;
         *n++ = *p++;
       }
     } else if (*p == '\t') {
-      if (*(p+1) != '\t') {
+      if (*(p + 1) != '\t') {
         p += 2;
       } else {
         p++;
@@ -104,61 +102,57 @@ void strip_colors(char *str)
     } else {
       *n++ = *p++;
     }
-  }  
-  *n = '\0'; 
+  }
+  *n = '\0';
 }
-
 
 /* Parse out the @ character and replace it with the '\t' to work with
  * KaVir's protocol snippet */
-void parse_at(char *str)
-{
+void parse_at(char *str) {
   char *p = str;
-   for (; *p; p++)
-     if (*p == '@') {
-       if (*(p+1) != '@')
-         *p = '\t';
-       else
-         p++;
-	 }
+  for (; *p; p++)
+    if (*p == '@') {
+      if (*(p + 1) != '@')
+        *p = '\t';
+      else
+        p++;
+    }
 }
 
-void parse_tab(char *str)
-{
+void parse_tab(char *str) {
   char *p = str;
-   for (; *p; p++)
-     if (*p == '\t') {
-       if (*(p+1) != '\t')
-         *p = '@';
-       else
-         p++;
-	 }
+  for (; *p; p++)
+    if (*p == '\t') {
+      if (*(p + 1) != '\t')
+        *p = '@';
+      else
+        p++;
+    }
 }
 
-void sentence_case(char *str)
-{
+void sentence_case(char *str) {
   char *p = str;
   bool cap_next = TRUE;
   int len;
-  
+
   // remove leading spaces  
   while (*p == ' ' || *p == '\t' || *p == '\n')
     p++;
 
   len = strlen(p);
-  
+
   // remove trailing spaces
   while (len >= 0 && (p[len - 1] == ' ' || p[len - 1] == '\t' || *p == '\n')) {
     *(p + len - 1) = '\0';
     len--;
   }
-  
-  for (; *p; p++) {   
+
+  for (; *p; p++) {
     while (strchr(".!?", *p) && *(p + 1) == ' ') {
       cap_next = TRUE;
       p++;
     }
-    
+
     if (cap_next && *p != ' ' && *p != '\t') {
       *p = UPPER(*p);
       cap_next = FALSE;
@@ -170,13 +164,12 @@ void sentence_case(char *str)
  * can use it to pass whatever else you may want through it.  The improved
  * editor patch when updated could use it to pass the old text buffer, for
  * instance. */
-void string_write(struct descriptor_data *d, char **writeto, size_t len, long mailto, void *data)
-{
+void string_write(struct descriptor_data *d, char **writeto, size_t len, long mailto, void *data) {
   if (d->character && !IS_NPC(d->character))
     SET_BIT_AR(PLR_FLAGS(d->character), PLR_WRITING);
 
   if (using_improved_editor)
-    d->backstr = (char *)data;
+    d->backstr = (char *) data;
   else if (data)
     free(data);
 
@@ -187,8 +180,7 @@ void string_write(struct descriptor_data *d, char **writeto, size_t len, long ma
 
 /* Add user input to the 'current' string (as defined by d->str). This is still
  * overly complex. */
-void string_add(struct descriptor_data *d, char *str)
-{
+void string_add(struct descriptor_data *d, char *str) {
   int action;
 
   /* Determine if this is the terminal string, and truncate if so. Changed to
@@ -203,21 +195,21 @@ void string_add(struct descriptor_data *d, char *str)
     *str = '\0';
   else
     if ((action = improved_editor_execute(d, str)) == STRINGADD_ACTION)
-      return;
+    return;
 
   if (action != STRINGADD_OK)
-    /* Do nothing. */ ;
+    /* Do nothing. */;
   else if (!(*d->str)) {
     if (strlen(str) + 3 > d->max_str) { /* \r\n\0 */
       send_to_char(d->character, "String too long - Truncated.\r\n");
-      strcpy(&str[d->max_str - 3], "\r\n");	/* strcpy: OK (size checked) */
+      strcpy(&str[d->max_str - 3], "\r\n"); /* strcpy: OK (size checked) */
       CREATE(*d->str, char, d->max_str);
-      strcpy(*d->str, str);	/* strcpy: OK (size checked) */
+      strcpy(*d->str, str); /* strcpy: OK (size checked) */
       if (!using_improved_editor)
         action = STRINGADD_SAVE;
     } else {
       CREATE(*d->str, char, strlen(str) + 3);
-      strcpy(*d->str, str);	/* strcpy: OK (size checked) */
+      strcpy(*d->str, str); /* strcpy: OK (size checked) */
     }
   } else {
     if (strlen(str) + strlen(*d->str) + 3 > d->max_str) { /* \r\n\0 */
@@ -225,10 +217,10 @@ void string_add(struct descriptor_data *d, char *str)
       if (!using_improved_editor)
         action = STRINGADD_SAVE;
       else if (action == STRINGADD_OK)
-        action = STRINGADD_ACTION;    /* No appending \r\n\0, but still let them save. */
+        action = STRINGADD_ACTION; /* No appending \r\n\0, but still let them save. */
     } else {
       RECREATE(*d->str, char, strlen(*d->str) + strlen(str) + 3); /* \r\n\0 */
-      strcat(*d->str, str);	/* strcat: OK (size precalculated) */
+      strcat(*d->str, str); /* strcat: OK (size precalculated) */
     }
   }
 
@@ -248,10 +240,10 @@ void string_add(struct descriptor_data *d, char *str)
         case CON_HLQEDIT:
         case CON_STUDY:
         case CON_IBTEDIT:
-	     free(*d->str);
-          *d->str    = d->backstr;
+          free(*d->str);
+          *d->str = d->backstr;
           d->backstr = NULL;
-          d->str     = NULL;
+          d->str = NULL;
           break;
         default:
           log("SYSERR: string_add: Aborting write from unknown origin.");
@@ -274,23 +266,24 @@ void string_add(struct descriptor_data *d, char *str)
   /* Ok, now final cleanup. */
   if (action == STRINGADD_SAVE || action == STRINGADD_ABORT) {
     int i;
+
     struct {
       int mode;
       void (*func)(struct descriptor_data *d, int action);
     } cleanup_modes[] = {
-      { CON_CEDIT  , cedit_string_cleanup },
-      { CON_MEDIT  , medit_string_cleanup },
-      { CON_OEDIT  , oedit_string_cleanup },
-      { CON_REDIT  , redit_string_cleanup },
-      { CON_TEDIT  , tedit_string_cleanup },
-      { CON_TRIGEDIT, trigedit_string_cleanup },
-      { CON_PLR_DESC , exdesc_string_cleanup },
-      { CON_PLAYING, playing_string_cleanup },
-      { CON_HEDIT, hedit_string_cleanup },
-      { CON_QEDIT  , qedit_string_cleanup },
-//      { CON_HLQEDIT  , hlqedit_string_cleanup },
-      { CON_IBTEDIT, ibtedit_string_cleanup },
-      { -1, NULL }
+      { CON_CEDIT, cedit_string_cleanup},
+      { CON_MEDIT, medit_string_cleanup},
+      { CON_OEDIT, oedit_string_cleanup},
+      { CON_REDIT, redit_string_cleanup},
+      { CON_TEDIT, tedit_string_cleanup},
+      { CON_TRIGEDIT, trigedit_string_cleanup},
+      { CON_PLR_DESC, exdesc_string_cleanup},
+      { CON_PLAYING, playing_string_cleanup},
+      { CON_HEDIT, hedit_string_cleanup},
+      { CON_QEDIT, qedit_string_cleanup},
+      //      { CON_HLQEDIT  , hlqedit_string_cleanup },
+      { CON_IBTEDIT, ibtedit_string_cleanup},
+      { -1, NULL}
     };
 
     for (i = 0; cleanup_modes[i].func; i++)
@@ -309,11 +302,10 @@ void string_add(struct descriptor_data *d, char *str)
       REMOVE_BIT_AR(PLR_FLAGS(d->character), PLR_WRITING);
     }
   } else if (action != STRINGADD_ACTION && strlen(*d->str) + 3 <= d->max_str) /* 3 = \r\n\0 */
-     strcat(*d->str, "\r\n");
+    strcat(*d->str, "\r\n");
 }
 
-static void playing_string_cleanup(struct descriptor_data *d, int action)
-{
+static void playing_string_cleanup(struct descriptor_data *d, int action) {
   if (PLR_FLAGGED(d->character, PLR_MAILING)) {
     if (action == STRINGADD_SAVE && *d->str) {
       store_mail(d->mail_to, GET_IDNUM(d->character), *d->str);
@@ -321,7 +313,7 @@ static void playing_string_cleanup(struct descriptor_data *d, int action)
       notify_if_playing(d->character, d->mail_to);
     } else
       write_to_output(d, "Mail aborted.\r\n");
-    
+
     act("$n stops writing mail.", TRUE, d->character, NULL, NULL, TO_ROOM);
     free(*d->str);
     free(d->str);
@@ -337,9 +329,9 @@ static void playing_string_cleanup(struct descriptor_data *d, int action)
       write_to_output(d, "Post not aborted, use REMOVE <post #>.\r\n");
     }
   }
-  
+
   if (PLR_FLAGGED(d->character, PLR_IDEA)) {
-    if (action == STRINGADD_SAVE && *d->str){
+    if (action == STRINGADD_SAVE && *d->str) {
       write_to_output(d, "Idea saved!  Changes are implemented in this order:"
               "  1) bug fixes, 2) ideas parallel to short term development"
               " goals, 3) simple to implement ideas, 4) hard to implement"
@@ -349,7 +341,7 @@ static void playing_string_cleanup(struct descriptor_data *d, int action)
       mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s stops editing an idea.",
               GET_NAME(d->character));
       save_ibt_file(SCMD_IDEA);
-      
+
     } else {
       act("$n finishes giving an idea.", TRUE, d->character, NULL, NULL, TO_ROOM);
       mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s stops editing an idea.",
@@ -357,9 +349,9 @@ static void playing_string_cleanup(struct descriptor_data *d, int action)
       write_to_output(d, "Idea aborted!\r\n");
     }
   }
-  
+
   if (PLR_FLAGGED(d->character, PLR_BUG)) {
-    if (action == STRINGADD_SAVE && *d->str){
+    if (action == STRINGADD_SAVE && *d->str) {
       write_to_output(d, "Bug saved!  Changes are implemented in this order:"
               "  1) bug fixes, 2) ideas parallel to short term development"
               " goals, 3) simple to implement ideas, 4) hard to implement"
@@ -376,9 +368,9 @@ static void playing_string_cleanup(struct descriptor_data *d, int action)
       write_to_output(d, "Bug aborted!\r\n");
     }
   }
-  
+
   if (PLR_FLAGGED(d->character, PLR_TYPO)) {
-    if (action == STRINGADD_SAVE && *d->str){
+    if (action == STRINGADD_SAVE && *d->str) {
       write_to_output(d, "Typo saved!\r\n");
       act("$n finishes submitting a typo.", TRUE, d->character, NULL, NULL, TO_ROOM);
       mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s stops editing a typo.",
@@ -393,8 +385,7 @@ static void playing_string_cleanup(struct descriptor_data *d, int action)
   }
 }
 
-static void exdesc_string_cleanup(struct descriptor_data *d, int action)
-{
+static void exdesc_string_cleanup(struct descriptor_data *d, int action) {
   if (action == STRINGADD_ABORT)
     write_to_output(d, "Description aborted.\r\n");
 
@@ -403,8 +394,7 @@ static void exdesc_string_cleanup(struct descriptor_data *d, int action)
 }
 
 /* Modification of character skills. */
-ACMD(do_skillset)
-{
+ACMD(do_skillset) {
   struct char_data *vict;
   char name[MAX_INPUT_LENGTH];
   char buf[MAX_INPUT_LENGTH], helpbuf[MAX_STRING_LENGTH];
@@ -412,15 +402,15 @@ ACMD(do_skillset)
 
   argument = one_argument(argument, name);
 
-  if (!*name) {			/* no arguments. print an informative text */
+  if (!*name) { /* no arguments. print an informative text */
     send_to_char(ch, "Syntax: skillset <name> '<skill>' <value>\r\n"
-		"Skill being one of the following:\r\n");
+            "Skill being one of the following:\r\n");
     for (qend = 0, i = 0; i <= TOP_SPELL_DEFINE; i++) {
-      if (spell_info[i].name == unused_spellname)	/* This is valid. */
-	continue;
+      if (spell_info[i].name == unused_spellname) /* This is valid. */
+        continue;
       send_to_char(ch, "%18s", spell_info[i].name);
       if (qend++ % 4 == 3)
-	send_to_char(ch, "\r\n");
+        send_to_char(ch, "\r\n");
     }
     if (qend % 4 != 0)
       send_to_char(ch, "\r\n");
@@ -453,13 +443,13 @@ ACMD(do_skillset)
     send_to_char(ch, "Skill must be enclosed in: ''\r\n");
     return;
   }
-  strcpy(helpbuf, (argument + 1));	/* strcpy: OK (MAX_INPUT_LENGTH <= MAX_STRING_LENGTH) */
+  strcpy(helpbuf, (argument + 1)); /* strcpy: OK (MAX_INPUT_LENGTH <= MAX_STRING_LENGTH) */
   helpbuf[qend - 1] = '\0';
   if ((skill = find_skill_num(helpbuf)) <= 0) {
     send_to_char(ch, "Unrecognized skill.\r\n");
     return;
   }
-  argument += qend + 1;		/* skip to next parameter */
+  argument += qend + 1; /* skip to next parameter */
   argument = one_argument(argument, buf);
 
   if (!*buf) {
@@ -495,8 +485,7 @@ ACMD(do_skillset)
 }
 
 /* Modification of character abilities. */
-ACMD(do_abilityset)
-{
+ACMD(do_abilityset) {
   struct char_data *vict;
   char name[MAX_INPUT_LENGTH];
   char buf[MAX_INPUT_LENGTH], helpbuf[MAX_STRING_LENGTH];
@@ -504,13 +493,13 @@ ACMD(do_abilityset)
 
   argument = one_argument(argument, name);
 
-  if (!*name) {			/* no arguments. print an informative text */
+  if (!*name) { /* no arguments. print an informative text */
     send_to_char(ch, "Syntax: abilityset <name> '<ability>' <value>\r\n"
-		"Abilities being one of the following:\r\n");
+            "Abilities being one of the following:\r\n");
     for (qend = 0, i = 1; i < NUM_ABILITIES; i++) {
       send_to_char(ch, "%18s", ability_names[i]);
       if (qend++ % 4 == 3)
-	send_to_char(ch, "\r\n");
+        send_to_char(ch, "\r\n");
     }
     if (qend % 4 != 0)
       send_to_char(ch, "\r\n");
@@ -543,13 +532,13 @@ ACMD(do_abilityset)
     send_to_char(ch, "Ability must be enclosed in: ''\r\n");
     return;
   }
-  strcpy(helpbuf, (argument + 1));	/* strcpy: OK (MAX_INPUT_LENGTH <= MAX_STRING_LENGTH) */
+  strcpy(helpbuf, (argument + 1)); /* strcpy: OK (MAX_INPUT_LENGTH <= MAX_STRING_LENGTH) */
   helpbuf[qend - 1] = '\0';
   if ((skill = find_ability_num(helpbuf)) <= 0) {
     send_to_char(ch, "Unrecognized skill.\r\n");
     return;
   }
-  argument += qend + 1;		/* skip to next parameter */
+  argument += qend + 1; /* skip to next parameter */
   argument = one_argument(argument, buf);
 
   if (!*buf) {
@@ -579,8 +568,7 @@ ACMD(do_abilityset)
 
 /* By Michael Buselli. Traverse down the string until the begining of the next
  * page has been reached.  Return NULL if this is the last page of the string. */
-static char *next_page(char *str, struct char_data *ch)
-{
+static char *next_page(char *str, struct char_data *ch) {
   int col = 1, line = 1, count, pw;
 
   pw = (GET_SCREEN_WIDTH(ch) >= 40 && GET_SCREEN_WIDTH(ch) <= 250) ? GET_SCREEN_WIDTH(ch) : PAGE_WIDTH;
@@ -590,31 +578,30 @@ static char *next_page(char *str, struct char_data *ch)
     if (*str == '\0')
       return (NULL);
 
-    /* If we're at the start of the next page, return this fact. */
+      /* If we're at the start of the next page, return this fact. */
     else if (line > (GET_PAGE_LENGTH(ch) - (PRF_FLAGGED(ch, PRF_COMPACT) ? 1 : 2)))
       return (str);
 
-    /* Check for the beginning of an ANSI color code block. */
-    else if (*str == '\x1B')  /* Jump to the end of the ANSI code, or max 9 chars */
-      for (count=0; *str != 'm' && count < 9; count++)
+      /* Check for the beginning of an ANSI color code block. */
+    else if (*str == '\x1B') /* Jump to the end of the ANSI code, or max 9 chars */
+      for (count = 0; *str != 'm' && count < 9; count++)
         str++;
 
     else if (*str == '\t') {
       if (*(str + 1) != '\t')
         str++;
     }
-
-    /* Check for everything else. */
+      /* Check for everything else. */
     else {
       /* Carriage return puts us in column one. */
       if (*str == '\r')
         col = 1;
-      /* Newline puts us on the next line. */
+        /* Newline puts us on the next line. */
       else if (*str == '\n')
         line++;
 
-      /* We need to check here and see if we are over the page width, and if
-       * so, compensate by going to the begining of the next line. */
+        /* We need to check here and see if we are over the page width, and if
+         * so, compensate by going to the begining of the next line. */
       else if (col++ > pw) {
         col = 1;
         line++;
@@ -628,15 +615,14 @@ static int count_pages(char *str, struct char_data *ch) {
   int pages;
 
   for (pages = 1; (str = next_page(str, ch)); pages++);
-  
+
   return (pages);
 }
 
 /* This function assigns all the pointers for showstr_vector for the
  * page_string function, after showstr_vector has been allocated and
  * showstr_count set. */
-void paginate_string(char *str, struct descriptor_data *d)
-{
+void paginate_string(char *str, struct descriptor_data *d) {
   int i;
 
   if (d->showstr_count)
@@ -673,8 +659,7 @@ void page_string(struct descriptor_data *d, char *str, int keep_internal) {
 }
 
 /* The call that displays the next page. */
-void show_string(struct descriptor_data *d, char *input)
-{
+void show_string(struct descriptor_data *d, char *input) {
   char buffer[MAX_STRING_LENGTH], buf[MAX_INPUT_LENGTH];
   int diff;
 
@@ -690,16 +675,15 @@ void show_string(struct descriptor_data *d, char *input)
       d->showstr_head = NULL;
     }
     return;
-  }
-  /* Back up one page internally so we can display it again. */
+  }    /* Back up one page internally so we can display it again. */
   else if (LOWER(*buf) == 'r')
     d->showstr_page = MAX(0, d->showstr_page - 1);
 
-  /* Back up two pages internally so we can display the correct page here. */
+    /* Back up two pages internally so we can display the correct page here. */
   else if (LOWER(*buf) == 'b')
     d->showstr_page = MAX(0, d->showstr_page - 2);
 
-  /* Type the number of the page and you are there! */
+    /* Type the number of the page and you are there! */
   else if (isdigit(*buf))
     d->showstr_page = MAX(0, MIN(atoi(buf) - 1, d->showstr_count - 1));
 
@@ -719,25 +703,24 @@ void show_string(struct descriptor_data *d, char *input)
       free(d->showstr_head);
       d->showstr_head = NULL;
     }
-  }
-  /* Or if we have more to show.... */
+  }    /* Or if we have more to show.... */
   else {
     diff = d->showstr_vector[d->showstr_page + 1] - d->showstr_vector[d->showstr_page];
     if (diff > MAX_STRING_LENGTH - 3) /* 3=\r\n\0 */
       diff = MAX_STRING_LENGTH - 3;
-    strncpy(buffer, d->showstr_vector[d->showstr_page], diff);	/* strncpy: OK (size truncated above) */
+    strncpy(buffer, d->showstr_vector[d->showstr_page], diff); /* strncpy: OK (size truncated above) */
     /* Fix for prompt overwriting last line in compact mode by Peter Ajamian */
-    if (buffer[diff - 2] == '\r' && buffer[diff - 1]=='\n')
+    if (buffer[diff - 2] == '\r' && buffer[diff - 1] == '\n')
       buffer[diff] = '\0';
     else if (buffer[diff - 2] == '\n' && buffer[diff - 1] == '\r')
       /* This is backwards.  Fix it. */
-      strcpy(buffer + diff - 2, "\r\n");	/* strcpy: OK (size checked) */
+      strcpy(buffer + diff - 2, "\r\n"); /* strcpy: OK (size checked) */
     else if (buffer[diff - 1] == '\r' || buffer[diff - 1] == '\n')
       /* Just one of \r\n.  Overwrite it. */
-      strcpy(buffer + diff - 1, "\r\n");	/* strcpy: OK (size checked) */
+      strcpy(buffer + diff - 1, "\r\n"); /* strcpy: OK (size checked) */
     else
       /* Tack \r\n onto the end to fix bug with prompt overwriting last line. */
-      strcpy(buffer + diff, "\r\n");	/* strcpy: OK (size checked) */
+      strcpy(buffer + diff, "\r\n"); /* strcpy: OK (size checked) */
     send_to_char(d->character, "%s", buffer);
     d->showstr_page++;
   }
