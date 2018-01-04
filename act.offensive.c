@@ -4417,7 +4417,7 @@ int perform_collect(struct char_data *ch) {
   }
   
   if (!fit)
-    send_to_char(ch, "There are still some of your ammunition laying around that does not\r\nfit into your currently"
+    send_to_char(ch, "There are still some of your ammunition laying around that does not fit into your currently"
           " equipped ammo pouch.\r\n");
   
   return ammo;
