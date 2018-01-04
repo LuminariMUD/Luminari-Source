@@ -4730,7 +4730,7 @@ char *hints[NUM_HINTS] = {
                 "Worried about missing messages while in a menu system such "
                 "as STUDY?  Do not fret, we have a HISTORY command so you can view "
                 "what was said on all the channels while you were away!  You can "
-                "type HISTORY ALL to view everything!"
+                "type HISTORY ALL to view everything!  "
                 "[use nohint or prefedit to deactivate this]\tn\r\n",
   /* 7*/"\tR[HINT]:\tn \ty"
                 "QUEST PROGRESS and QUEST HISTORY are your best friends when "
