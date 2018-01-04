@@ -1553,13 +1553,13 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       af[1].duration = 50;
       SET_BIT_AR(af[1].bitvector, AFF_HASTE);
 
-      af[2].location = APPLY_HITROLL;
-      af[2].modifier = 3;
-      af[2].duration = 50;
+      af[0].location = APPLY_HITROLL;
+      af[0].modifier = 3;
+      af[0].duration = 50;
 
-      af[3].location = APPLY_DAMROLL;
-      af[3].modifier = 3;
-      af[3].duration = 50;
+      af[1].location = APPLY_DAMROLL;
+      af[1].modifier = 3;
+      af[1].duration = 50;
 
       accum_duration = FALSE;
       to_vict = "You feel the tide of battle turn in your favor!";
