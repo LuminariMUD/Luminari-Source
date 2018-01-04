@@ -4678,7 +4678,7 @@ ACMD(do_happyhour) {
 }
 
 /****  little hint system *******/
-#define NUM_HINTS   19
+#define NUM_HINTS   20
 
 /* i am surrounding hints with this:
    \tR[HINT]:\tn \ty
@@ -4812,6 +4812,17 @@ char *hints[NUM_HINTS] = {
                 "that will help you trip, spikes on a shield when shield-punching, or even "
                 "armor / shields that will cast a heal spell on you when they deflect a blow."
                 "  [use nohint or prefedit to deactivate this]\tn\r\n",
+  /*20*/"\tR[HINT]:\tn \ty"
+                "LuminariMUD's crafting system allows you to CREATE, RESTRING (rename), "
+                "RESIZE gear.  You will need a crafting kit and respective molds.  If you "
+                "travel to Sanctus, there is a work area for buying molds.  If you add a "
+                "crafting crystal while creating a new item, you will enchant it.  You "
+                "can acquire crystals from treasure, DISENCHANTing magic items and you can "
+                "even use AUGMENT to combine crystals to make them more powerful.  In addition "
+                "you can do SUPPLYORDERs (basic crafting quests) in Sanctus for rewards "
+                "including quest points. "
+                "  [use nohint or prefedit to deactivate this]\tn\r\n",
+        
 };
 
 void show_hints(void) {
