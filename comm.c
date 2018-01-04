@@ -1032,7 +1032,7 @@ void heartbeat(int heart_pulse) {
   }
 
   /* every 300 sec show a random hint if they have it toggled */
-  if (!(pulse % PULSE_LUMINARI)) {
+  if (!(pulse % PULSE_HINTS)) {
     show_hints();
   }
 
