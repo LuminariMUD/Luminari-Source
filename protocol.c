@@ -212,10 +212,10 @@ static void SendNegotiationSequence(descriptor_t *apDescriptor, char aCmd, char 
 static bool_t ConfirmNegotiation(descriptor_t *apDescriptor, negotiated_t aProtocol, bool_t abWillDo, bool_t abSendReply);
 static void ParseMSDP(descriptor_t *apDescriptor, const char *apData);
 static void ExecuteMSDPPair(descriptor_t *apDescriptor, const char *apVariable, const char *apValue);
-static void ParseATCP(descriptor_t *apDescriptor, const char *apData);
+static void ParseGMCP(descriptor_t *apDescriptor, const char *apData);
 
 #ifdef MUDLET_PACKAGE
-static void SendATCP(descriptor_t *apDescriptor, const char *apVariable, const char *apValue);
+static void SendGMCP(descriptor_t *apDescriptor, const char *apVariable, const char *apValue);
 #endif /* MUDLET_PACKAGE */
 
 static void SendMSSP(descriptor_t *apDescriptor);
@@ -299,7 +299,7 @@ protocol_t *ProtocolCreate(void) {
   pProtocol->bCHARSET = false;
   pProtocol->bMSDP = false;
   pProtocol->bMSSP = false;
-  pProtocol->bATCP = false;
+  pProtocol->bGMCP = false;
   pProtocol->bMSP = false;
   pProtocol->bMXP = false;
   pProtocol->bMCCP = false;
@@ -999,8 +999,8 @@ const char *CopyoverGet(descriptor_t *apDescriptor) {
       *pBuffer++ = 'N';
     if (pProtocol->bMSDP)
       *pBuffer++ = 'M';
-    if (pProtocol->bATCP)
-      *pBuffer++ = 'A';
+    if (pProtocol->bGMCP)
+      *pBuffer++ = 'G';
     if (pProtocol->bMSP)
       *pBuffer++ = 'S';
     if (pProtocol->pVariables[eMSDP_MXP]->ValueInt)
@@ -1042,8 +1042,8 @@ void CopyoverSet(descriptor_t *apDescriptor, const char *apData) {
         case 'M':
           pProtocol->bMSDP = true;
           break;
-        case 'A':
-          pProtocol->bATCP = true;
+        case 'G':
+          pProtocol->bGMCP = true;
           break;
         case 'S':
           pProtocol->bMSP = true;
@@ -1085,10 +1085,10 @@ void CopyoverSet(descriptor_t *apDescriptor, const char *apData) {
     pProtocol->ScreenWidth = Width;
     pProtocol->ScreenHeight = Height;
 
-    /* If we're using MSDP or ATCP, we need to renegotiate it so that the
+    /* If we're using MSDP or GMCP, we need to renegotiate it so that the
      * client can resend the list of variables it wants us to REPORT.
      *
-     * Note that we only use ATCP if MSDP is not supported.
+     * Note that we only use GMCP if MSDP is not supported.
      */
     if (pProtocol->bMSDP) {
       ConfirmNegotiation(apDescriptor, eNEGOTIATED_MSDP, true, true);
@@ -1096,11 +1096,11 @@ void CopyoverSet(descriptor_t *apDescriptor, const char *apData) {
                char WillMSDP [] = { (char)IAC, (char)WILL, TELOPT_MSDP, '\0' };
                Write(apDescriptor, WillMSDP);
        */
-    } else if (pProtocol->bATCP) {
-      ConfirmNegotiation(apDescriptor, eNEGOTIATED_ATCP, true, true);
+    } else if (pProtocol->bGMCP) {
+      ConfirmNegotiation(apDescriptor, eNEGOTIATED_GMCP, true, true);
       /*
-               char DoATCP [] = { (char)IAC, (char)DO, (char)TELOPT_ATCP, '\0' };
-               Write(apDescriptor, DoATCP);
+               char DoGMCP [] = { (char)IAC, (char)DO, (char)TELOPT_GMCP, '\0' };
+               Write(apDescriptor, DoGMCP);
        */
     }
 
@@ -1165,9 +1165,9 @@ void MSDPSend(descriptor_t *apDescriptor, variable_t aMSDP) {
                 IAC, SB, TELOPT_MSDP, MSDP_VAR,
                 VariableNameTable[aMSDP].pName, MSDP_VAL,
                 pProtocol->pVariables[aMSDP]->pValueString, IAC, SE);
-      } else if (pProtocol->bATCP) {
+      } else if (pProtocol->bGMCP) {
         sprintf(MSDPBuffer, "%c%c%cMSDP.%s %s%c%c",
-                IAC, SB, TELOPT_ATCP,
+                IAC, SB, TELOPT_GMCP,
                 VariableNameTable[aMSDP].pName,
                 pProtocol->pVariables[aMSDP]->pValueString, IAC, SE);
       }
@@ -1177,15 +1177,15 @@ void MSDPSend(descriptor_t *apDescriptor, variable_t aMSDP) {
                 IAC, SB, TELOPT_MSDP, MSDP_VAR,
                 VariableNameTable[aMSDP].pName, MSDP_VAL,
                 pProtocol->pVariables[aMSDP]->ValueInt, IAC, SE);
-      } else if (pProtocol->bATCP) {
+      } else if (pProtocol->bGMCP) {
         sprintf(MSDPBuffer, "%c%c%cMSDP.%s %d%c%c",
-                IAC, SB, TELOPT_ATCP,
+                IAC, SB, TELOPT_GMCP,
                 VariableNameTable[aMSDP].pName,
                 pProtocol->pVariables[aMSDP]->ValueInt, IAC, SE);
       }
     }
 
-    /* Just in case someone calls this function without checking MSDP/ATCP */
+    /* Just in case someone calls this function without checking MSDP/GMCP */
     if (MSDPBuffer[0] != '\0')
       Write(apDescriptor, MSDPBuffer);
   }
@@ -1217,12 +1217,12 @@ void MSDPSendPair(descriptor_t *apDescriptor, const char *apVariable, const char
       sprintf(MSDPBuffer, "%c%c%c%c%s%c%s%c%c",
               IAC, SB, TELOPT_MSDP, MSDP_VAR, apVariable, MSDP_VAL,
               apValue, IAC, SE);
-    } else if (pProtocol->bATCP) {
+    } else if (pProtocol->bGMCP) {
       sprintf(MSDPBuffer, "%c%c%cMSDP.%s %s%c%c",
-              IAC, SB, TELOPT_ATCP, apVariable, apValue, IAC, SE);
+              IAC, SB, TELOPT_GMCP, apVariable, apValue, IAC, SE);
     }
 
-    /* Just in case someone calls this function without checking MSDP/ATCP */
+    /* Just in case someone calls this function without checking MSDP/GMCP */
     if (MSDPBuffer[0] != '\0')
       Write(apDescriptor, MSDPBuffer);
   }
@@ -1261,12 +1261,12 @@ void MSDPSendList(descriptor_t *apDescriptor, const char *apVariable, const char
         if (MSDPBuffer[i] == ' ')
           MSDPBuffer[i] = MSDP_VAL;
       }
-    } else if (pProtocol->bATCP) {
+    } else if (pProtocol->bGMCP) {
       sprintf(MSDPBuffer, "%c%c%cMSDP.%s %s%c%c",
-              IAC, SB, TELOPT_ATCP, apVariable, apValue, IAC, SE);
+              IAC, SB, TELOPT_GMCP, apVariable, apValue, IAC, SE);
     }
 
-    /* Just in case someone calls this function without checking MSDP/ATCP */
+    /* Just in case someone calls this function without checking MSDP/GMCP */
     if (MSDPBuffer[0] != '\0')
       Write(apDescriptor, MSDPBuffer);
   }
@@ -1437,8 +1437,8 @@ void SoundSend(descriptor_t *apDescriptor, const char *apTrigger) {
     protocol_t *pProtocol = apDescriptor ? apDescriptor->pProtocol : NULL;
 
     if (pProtocol != NULL && pProtocol->pVariables[eMSDP_SOUND]->ValueInt) {
-      if (pProtocol->bMSDP || pProtocol->bATCP) {
-        /* Send the sound trigger through MSDP or ATCP */
+      if (pProtocol->bMSDP || pProtocol->bGMCP) {
+        /* Send the sound trigger through MSDP or GMCP */
         MSDPSendPair(apDescriptor, "PLAY_SOUND", apTrigger);
       } else if (strlen(apTrigger) <= MaxTriggerLength) {
         /* Use an old MSP-style trigger */
@@ -1569,7 +1569,7 @@ static void Negotiate(descriptor_t *apDescriptor) {
     ConfirmNegotiation(apDescriptor, eNEGOTIATED_CHARSET, true, true);
     ConfirmNegotiation(apDescriptor, eNEGOTIATED_MSDP, true, true);
     ConfirmNegotiation(apDescriptor, eNEGOTIATED_MSSP, true, true);
-    ConfirmNegotiation(apDescriptor, eNEGOTIATED_ATCP, true, true);
+    ConfirmNegotiation(apDescriptor, eNEGOTIATED_GMCP, true, true);
     ConfirmNegotiation(apDescriptor, eNEGOTIATED_MSP, true, true);
     ConfirmNegotiation(apDescriptor, eNEGOTIATED_MXP, true, true);
     ConfirmNegotiation(apDescriptor, eNEGOTIATED_MCCP, true, true);
@@ -1598,7 +1598,7 @@ static void Negotiate( descriptor_t *apDescriptor )
       const char DoCHARSET      [] = { (char)IAC, (char)DO,   TELOPT_CHARSET,   '\0' };
       const char WillMSDP       [] = { (char)IAC, (char)WILL, TELOPT_MSDP,      '\0' };
       const char WillMSSP       [] = { (char)IAC, (char)WILL, TELOPT_MSSP,      '\0' };
-      const char DoATCP         [] = { (char)IAC, (char)DO,   (char)TELOPT_ATCP,'\0' };
+      const char DoGMCP         [] = { (char)IAC, (char)DO,   (char)TELOPT_GMCP,'\0' };
       const char WillMSP        [] = { (char)IAC, (char)WILL, TELOPT_MSP,       '\0' };
       const char DoMXP          [] = { (char)IAC, (char)DO,   TELOPT_MXP,       '\0' };
 
@@ -1615,7 +1615,7 @@ static void Negotiate( descriptor_t *apDescriptor )
       Write(apDescriptor, DoCHARSET);
       Write(apDescriptor, WillMSDP);
       Write(apDescriptor, WillMSSP);
-      Write(apDescriptor, DoATCP);
+      Write(apDescriptor, DoGMCP);
       Write(apDescriptor, WillMSP);
       Write(apDescriptor, DoMXP);
 
@@ -1824,19 +1824,19 @@ static void PerformHandshake(descriptor_t *apDescriptor, char aCmd, char aProtoc
       }
       break;
 
-    case (char) TELOPT_ATCP:
+    case (char) TELOPT_GMCP:
       if (aCmd == (char) WILL) {
-        ConfirmNegotiation(apDescriptor, eNEGOTIATED_ATCP, true, true);
+        ConfirmNegotiation(apDescriptor, eNEGOTIATED_GMCP, true, true);
 
-        /* If we don't support MSDP, fake it with ATCP */
-        if (!pProtocol->bMSDP && !pProtocol->bATCP) {
-          pProtocol->bATCP = true;
+        /* If we don't support MSDP, fake it with GMCP */
+        if (!pProtocol->bMSDP && !pProtocol->bGMCP) {
+          pProtocol->bGMCP = true;
 
 #ifdef MUDLET_PACKAGE
           /* Send the Mudlet GUI package to the user. */
           if (MatchString("Mudlet",
                   pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString)) {
-            SendATCP(apDescriptor, "Client.GUI", MUDLET_PACKAGE);
+            SendGMCP(apDescriptor, "Client.GUI", MUDLET_PACKAGE);
           }
 #endif /* MUDLET_PACKAGE */
 
@@ -1844,8 +1844,8 @@ static void PerformHandshake(descriptor_t *apDescriptor, char aCmd, char aProtoc
           MSDPSendPair(apDescriptor, "SERVER_ID", MUD_NAME);
         }
       } else if (aCmd == (char) WONT) {
-        ConfirmNegotiation(apDescriptor, eNEGOTIATED_ATCP, false, pProtocol->bATCP);
-        pProtocol->bATCP = false;
+        ConfirmNegotiation(apDescriptor, eNEGOTIATED_GMCP, false, pProtocol->bGMCP);
+        pProtocol->bGMCP = false;
       } else if (aCmd == (char) DO) {
         /* Invalid negotiation, send a rejection */
         SendNegotiationSequence(apDescriptor, (char) WONT, (char) aProtocol);
@@ -2005,20 +2005,20 @@ static void PerformHandshake( descriptor_t *apDescriptor, char aCmd, char aProto
             bResult = false;
          break;
 
-      case (char)TELOPT_ATCP:
+      case (char)TELOPT_GMCP:
          if ( aCmd == (char)WILL )
          {
-            // If we don't support MSDP, fake it with ATCP
+            // If we don't support MSDP, fake it with GMCP
             if ( !pProtocol->bMSDP )
             {
-               pProtocol->bATCP = true;
+               pProtocol->bGMCP = true;
 
 #ifdef MUDLET_PACKAGE
                // Send the Mudlet GUI package to the user.
                if ( MatchString( "Mudlet",
                   pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString ) )
                {
-                  SendATCP( apDescriptor, "Client.GUI", MUDLET_PACKAGE );
+                  SendGMCP( apDescriptor, "Client.GUI", MUDLET_PACKAGE );
                }
 #endif // MUDLET_PACKAGE
 
@@ -2027,7 +2027,7 @@ static void PerformHandshake( descriptor_t *apDescriptor, char aCmd, char aProto
             }
          }
          else if ( aCmd == (char)WONT )
-            pProtocol->bATCP = false;
+            pProtocol->bGMCP = false;
          else // Anything else is invalid.
             bResult = false;
          break;
@@ -2197,9 +2197,9 @@ static void PerformSubnegotiation(descriptor_t *apDescriptor, char aCmd, char *a
       }
       break;
 
-    case (char) TELOPT_ATCP:
-      if (pProtocol->bATCP) {
-        ParseATCP(apDescriptor, apData);
+    case (char) TELOPT_GMCP:
+      if (pProtocol->bGMCP) {
+        ParseGMCP(apDescriptor, apData);
       }
       break;
 
@@ -2250,8 +2250,8 @@ static bool_t ConfirmNegotiation(descriptor_t *apDescriptor, negotiated_t aProto
           case eNEGOTIATED_MSSP:
             SendNegotiationSequence(apDescriptor, abWillDo ? WILL : WONT, TELOPT_MSSP);
             break;
-          case eNEGOTIATED_ATCP:
-            SendNegotiationSequence(apDescriptor, abWillDo ? DO : DONT, (char) TELOPT_ATCP);
+          case eNEGOTIATED_GMCP:
+            SendNegotiationSequence(apDescriptor, abWillDo ? DO : DONT, (char) TELOPT_GMCP);
             break;
           case eNEGOTIATED_MSP:
             SendNegotiationSequence(apDescriptor, abWillDo ? WILL : WONT, TELOPT_MSP);
@@ -2476,10 +2476,10 @@ static void ExecuteMSDPPair(descriptor_t *apDescriptor, const char *apVariable, 
 }
 
 /******************************************************************************
- Local ATCP functions.
+ Local GMCP functions.
  ******************************************************************************/
 
-static void ParseATCP(descriptor_t *apDescriptor, const char *apData) {
+static void ParseGMCP(descriptor_t *apDescriptor, const char *apData) {
   char Variable[MSDP_VAL][MAX_MSDP_SIZE + 1] = {
     {'\0'},
     {'\0'}
@@ -2513,8 +2513,8 @@ static void ParseATCP(descriptor_t *apDescriptor, const char *apData) {
 
 #ifdef MUDLET_PACKAGE
 
-static void SendATCP(descriptor_t *apDescriptor, const char *apVariable, const char *apValue) {
-  char ATCPBuffer[MAX_VARIABLE_LENGTH + 1] = {'\0'};
+static void SendGMCP(descriptor_t *apDescriptor, const char *apVariable, const char *apValue) {
+  char GMCPBuffer[MAX_VARIABLE_LENGTH + 1] = {'\0'};
 
   if (apVariable != NULL && apValue != NULL) {
     protocol_t *pProtocol = apDescriptor ? apDescriptor->pProtocol : NULL;
@@ -2524,25 +2524,25 @@ static void SendATCP(descriptor_t *apDescriptor, const char *apVariable, const c
 
     if (RequiredBuffer >= MAX_VARIABLE_LENGTH) {
       if (RequiredBuffer - strlen(apValue) < MAX_VARIABLE_LENGTH) {
-        sprintf(ATCPBuffer,
-                "SendATCP: %s %d bytes (exceeds MAX_VARIABLE_LENGTH of %d).\n",
+        sprintf(GMCPBuffer,
+                "SendGMCP: %s %d bytes (exceeds MAX_VARIABLE_LENGTH of %d).\n",
                 apVariable, RequiredBuffer, MAX_VARIABLE_LENGTH);
       } else /* The variable name itself is too long */ {
-        sprintf(ATCPBuffer,
-                "SendATCP: Variable name has a length of %d bytes (exceeds MAX_VARIABLE_LENGTH of %d).\n",
+        sprintf(GMCPBuffer,
+                "SendGMCP: Variable name has a length of %d bytes (exceeds MAX_VARIABLE_LENGTH of %d).\n",
                 RequiredBuffer, MAX_VARIABLE_LENGTH);
       }
 
-      ReportBug(ATCPBuffer);
-      ATCPBuffer[0] = '\0';
-    } else if (pProtocol->bATCP) {
-      sprintf(ATCPBuffer, "%c%c%c%s %s%c%c",
-              IAC, SB, TELOPT_ATCP, apVariable, apValue, IAC, SE);
+      ReportBug(GMCPBuffer);
+      GMCPBuffer[0] = '\0';
+    } else if (pProtocol->bGMCP) {
+      sprintf(GMCPBuffer, "%c%c%c%s %s%c%c",
+              IAC, SB, TELOPT_GMCP, apVariable, apValue, IAC, SE);
     }
 
-    /* Just in case someone calls this function without checking ATCP */
-    if (ATCPBuffer[0] != '\0')
-      Write(apDescriptor, ATCPBuffer);
+    /* Just in case someone calls this function without checking GMCP */
+    if (GMCPBuffer[0] != '\0')
+      Write(apDescriptor, GMCPBuffer);
   }
 }
 #endif /* MUDLET_PACKAGE */
@@ -2674,7 +2674,7 @@ static void SendMSSP(descriptor_t *apDescriptor) {
      */
     /* Protocols */
     /*
-          { "ATCP",               "1" },
+          { "GMCP",               "1" },
           { "SSL",                "0" },
           { "ZMP",                "0" },
      */

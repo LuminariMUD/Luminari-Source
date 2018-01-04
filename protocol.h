@@ -47,9 +47,9 @@ typedef struct descriptor_data descriptor_t;
  If your offer a Mudlet GUI for autoinstallation, put the path/filename here.
  ******************************************************************************/
 
-/*
-#define MUDLET_PACKAGE "1\nhttp://blah.org/download/MY_GUI.mpackage"
-*/
+
+#define MUDLET_PACKAGE "Client.GUI 1\nhttp://luminarimud.com/download/LuminariGUI.mpackage"
+
 
 /******************************************************************************
  Symbolic constants.
@@ -72,7 +72,7 @@ typedef struct descriptor_data descriptor_t;
 #define TELOPT_MCCP                    86 /* This is MCCP version 2 */
 #define TELOPT_MSP                     90
 #define TELOPT_MXP                     91
-#define TELOPT_ATCP                    200
+#define TELOPT_GMCP                    201
 
 #define MSDP_VAR                       1
 #define MSDP_VAL                       2
@@ -107,7 +107,7 @@ typedef enum
    eNEGOTIATED_CHARSET,
    eNEGOTIATED_MSDP,
    eNEGOTIATED_MSSP,
-   eNEGOTIATED_ATCP,
+   eNEGOTIATED_GMCP,
    eNEGOTIATED_MSP,
    eNEGOTIATED_MXP,
    eNEGOTIATED_MXP2,
@@ -259,7 +259,7 @@ typedef struct
    bool_t    bCHARSET;         /* The client supports CHARSET */
    bool_t    bMSDP;            /* The client supports MSDP */
    bool_t    bMSSP;            /* The client supports MSSP */
-   bool_t    bATCP;            /* The client supports ATCP */
+   bool_t    bGMCP;            /* The client supports GMCP */
    bool_t    bMSP;             /* The client supports MSP */
    bool_t    bMXP;             /* The client supports MXP */
    bool_t    bMCCP;            /* The client supports MCCP */
@@ -411,11 +411,11 @@ const char *CopyoverGet( descriptor_t *apDescriptor );
  *
  * Call this function for each player after a copyover, passing in the string
  * you added to the temporary text file.  This will restore their protocol
- * settings, and automatically renegotiate MSDP/ATCP.
+ * settings, and automatically renegotiate MSDP/GMCP.
  *
  * Note that the client doesn't recognise a copyover, and therefore refuses to
  * renegotiate certain telnet options (to avoid loops), so they really need to
- * be saved.  However MSDP/ATCP is handled through scripts, and we don't want
+ * be saved.  However MSDP/GMCP is handled through scripts, and we don't want
  * to have to save all of the REPORT variables, so it's easier to renegotiate.
  *
  * Client name and version are not saved.  It is recommended you save these in
@@ -431,7 +431,7 @@ void CopyoverSet( descriptor_t *apDescriptor, const char *apData );
  *
  * Call this regularly (I'd suggest at least once per second) to flush every
  * dirty MSDP variable that has been requested by the client via REPORT.  This
- * will automatically use ATCP instead if MSDP is not supported by the client.
+ * will automatically use GMCP instead if MSDP is not supported by the client.
  */
 void MSDPUpdate( descriptor_t *apDescriptor );
 
@@ -449,14 +449,14 @@ void MSDPFlush( descriptor_t *apDescriptor, variable_t aMSDP );
  *
  * Send the specified MSDP variable to the player.  You shouldn't ever really
  * need to do this manually, except perhaps when debugging something.  This
- * will automatically use ATCP instead if MSDP is not supported by the client.
+ * will automatically use GMCP instead if MSDP is not supported by the client.
  */
 void MSDPSend( descriptor_t *apDescriptor, variable_t aMSDP );
 
 /* Function: MSDPSendPair
  *
  * Send the specified strings to the user as an MSDP variable/value pair.  This
- * will automatically use ATCP instead if MSDP is not supported by the client.
+ * will automatically use GMCP instead if MSDP is not supported by the client.
  */
 void MSDPSendPair( descriptor_t *apDescriptor, const char *apVariable, const char *apValue );
 
@@ -548,7 +548,7 @@ void MXPSendTag( descriptor_t *apDescriptor, const char *apTag );
 
 /* Function: SoundSend
  *
- * Sends the specified sound trigger to the player, using MSDP or ATCP if
+ * Sends the specified sound trigger to the player, using MSDP or GMCP if
  * supported, MSP if not.  The trigger string itself is a relative path and
  * filename, eg: SoundSend( pDesc, "monster/growl.wav" );
  */

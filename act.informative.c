@@ -4035,7 +4035,7 @@ ACMD(do_whois) {
     send_to_char(ch, "MXP:     %s\r\n", prot->bMXP ? "Yes" : "No");
     send_to_char(ch, "Charset: %s\r\n", prot->bCHARSET ? "Yes" : "No");
     send_to_char(ch, "MSP:     %s\r\n", prot->bMSP ? "Yes" : "No");
-    send_to_char(ch, "ATCP:    %s\r\n", prot->bATCP ? "Yes" : "No");
+    send_to_char(ch, "GMCP:    %s\r\n", prot->bGMCP ? "Yes" : "No");
     send_to_char(ch, "MSDP:    %s\r\n", prot->bMSDP ? "Yes" : "No");
   }
 

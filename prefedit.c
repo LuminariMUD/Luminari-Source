@@ -297,7 +297,7 @@ static void prefedit_disp_toggles_menu(struct descriptor_data *d)
                              "%sProtocol Settings:\r\n"
                              "%sJ%s) Xterm 256    %s[%s%3s%s]      %sM%s) MXP      %s[%s%3s%s]\r\n"
                              "%sK%s) ANSI         %s[%s%3s%s]      %sN%s) MSDP     %s[%s%3s%s]\r\n"
-                             "%sL%s) Charset      %s[%s%3s%s]      %sO%s) ATCP     %s[%s%3s%s]\r\n"
+                             "%sL%s) Charset      %s[%s%3s%s]      %sO%s) GMCP     %s[%s%3s%s]\r\n"
                              "%sP%s) UTF-8        %s[%s%3s%s]      %sR%s) MSP      %s[%s%3s%s]\r\n"
                              "\r\n",
              CBWHT(d->character, C_NRM),
@@ -309,10 +309,10 @@ static void prefedit_disp_toggles_menu(struct descriptor_data *d)
              CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM),
              ONOFF(d->pProtocol->pVariables[eMSDP_ANSI_COLORS]->ValueInt), CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
              CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM), ONOFF(d->pProtocol->bMSDP), CCCYN(d->character, C_NRM),
-/* Line 14 - charset and atcp */
+/* Line 14 - charset and GMCP */
              CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM),
              ONOFF(d->pProtocol->bCHARSET), CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
-             CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM), ONOFF(d->pProtocol->bATCP), CCCYN(d->character, C_NRM),
+             CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM), ONOFF(d->pProtocol->bGMCP), CCCYN(d->character, C_NRM),
 /* Line 15 - utf-8 and msp */
              CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM),
              ONOFF(d->pProtocol->pVariables[eMSDP_UTF_8]->ValueInt), CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
@@ -723,7 +723,7 @@ void prefedit_parse(struct descriptor_data * d, char *arg)
 
       case 'o':
       case 'O':
-        TOGGLE_VAR(d->pProtocol->bATCP);
+        TOGGLE_VAR(d->pProtocol->bGMCP);
         break;
 
       case 'p':
