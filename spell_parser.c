@@ -1386,7 +1386,8 @@ ACMD(do_cast) {
   }
 
   if (IS_AFFECTED(ch, AFF_TFORM) ||
-          IS_AFFECTED(ch, AFF_BATTLETIDE)) {
+          IS_AFFECTED(ch, AFF_BATTLETIDE) ||
+          affected_by_spell(ch, SPELL_BATTLETIDE)) {
     send_to_char(ch, "Cast?  Why do that when you can SMASH!!\r\n");
     return;
   }
