@@ -767,7 +767,7 @@ void update_msdp_affects(struct char_data *ch) {
               (char)MSDP_TABLE_CLOSE);
     strcat(msdp_buffer, buf2);
 
-    //send_to_char(ch, "%s", msdp_buffer);
+    //send_to_char(ch, "%s", msdp_buffer); 
     
     MSDPSetString(ch->desc, eMSDP_AFFECTS, msdp_buffer);
     MSDPFlush(ch->desc, eMSDP_AFFECTS);
