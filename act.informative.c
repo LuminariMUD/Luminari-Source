@@ -3594,7 +3594,7 @@ ACMD(do_toggle) {
                  "     CombatRoll: %-3s    "
                  "       GUI Mode: %-3s\r\n"
 
-                 "   Hint Display: %-3s    "
+                 "        NoHints: %-3s    "
                  "   Auto Collect: %-3s\r\n"
             
                  "*NOTE: The PREFEDIT command is preferred method of optimizing your toggle switches.\r\n",
