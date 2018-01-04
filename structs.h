@@ -744,12 +744,13 @@
 #define PRF_DISPEXITS    37  // autoprompt exits display
 #define PRF_DISPROOM     38  // display room name and/or #
 #define PRF_DISPMEMTIME  39  // display memtimes
-#define PRF_DISPACTIONS  40
+#define PRF_DISPACTIONS  40   /**< action system display on prompt */
 #define PRF_AUTORELOAD   41   /**< Attempt to automatically reload weapon (xbow/slings) */
 #define PRF_COMBATROLL   42   /**< extra info during combat */
 #define PRF_GUI_MODE     43   /**< add special tags to code for MSDP GUI */
+#define PRF_NOHINT       44   /**< show in-game hints to newer players */
 /** Total number of available PRF flags */
-#define NUM_PRF_FLAGS    44
+#define NUM_PRF_FLAGS    45
 
 /* Affect bits: used in char_data.char_specials.saved.affected_by */
 /* WARNING: In the world files, NEVER set the bits marked "R" ("Reserved") */
@@ -2381,14 +2382,17 @@
 #define PULSE_VIOLENCE  (6 RL_SEC)
 
 // controls some new luminari calls from comm.c
-#define PULSE_LUMINARI  ( 5 RL_SEC)
+#define PULSE_LUMINARI  (5 RL_SEC)
+
+/* controls rate hints are called */
+#define PULSE_HINTS     (300 RL_SEC)
 
 /** Controls when characters and houses (if implemented) will be autosaved.
  * @see CONFIG_AUTO_SAVE
  */
 #define PULSE_AUTOSAVE  (60 RL_SEC)
 /** Controls when checks are made for idle name and password CON_ states */
-#define PULSE_IDLEPWD   (15 RL_SEC)
+#define PULSE_IDLEPWD   (30 RL_SEC)
 /** Currently unused. */
 #define PULSE_SANITY    (30 RL_SEC)
 /** How often to log # connected sockets and # active players.

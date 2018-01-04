@@ -4451,6 +4451,9 @@ ACMD(do_gen_tog) {
     case SCMD_NOGOSSIP:
       result = PRF_TOG_CHK(ch, PRF_NOGOSS);
       break;
+    case SCMD_NOHINT:
+      result = PRF_TOG_CHK(ch, PRF_NOHINT);
+      break;
     case SCMD_NOGRATZ:
       result = PRF_TOG_CHK(ch, PRF_NOGRATZ);
       break;
@@ -4674,7 +4677,177 @@ ACMD(do_happyhour) {
   }
 }
 
+/****  little hint system *******/
+#define NUM_HINTS   19
+
+/* i am surrounding hints with this:
+   \tR[HINT]:\tn \ty
+   [use nohint or prefedit to deactivate this]\tn\r\n
+ */
+char *hints[NUM_HINTS] = {
+  /* 1*/"\tR[HINT]:\tn \ty"
+                "Different spell casting classes use different commands "
+                "to cast their spells.  Typing score will show you the appropriate "
+                "commands.  For helpful information see: HELP CAST and HELP MEMORIZE.  "
+                "[use nohint or prefedit to deactivate this]\tn\r\n",
+  /* 2*/"\tR[HINT]:\tn \ty"
+                "You will gain more experience from grouping.  Monster "
+                "experience is increased for groups, with larger groups receiving "
+                "more total experience.  This total experience is divided amongst "
+                "all members based on their level.  "
+                "[use nohint or prefedit to deactivate this]\tn\r\n",
+  /* 3*/"\tR[HINT]:\tn \ty"
+                "To view vital information about your character, type SCORE.  "
+                "Additional helpful information commands include: ATTACKS, DEFENSES, "
+                "AFF, COOLDOWN, ABILITIES and RESISTANCE.  "
+                "[use nohint or prefedit to deactivate this]\tn\r\n",
+  /* 4*/"\tR[HINT]:\tn \ty"
+                "Once you have enough experience to advance, you can type GAIN "
+                "<class choice> to level up, you can gain in any class you qualify for, up "
+                "to 3 total classes.  Leveling up will result in an increase in "
+                "training points for skills, more hit points, and possible more feat points, "
+                "movement points, boosts, PSP points.  To spend your feat points, you will "
+                "use the STUDY menu.  To spend boosts and skill points, you will use a trainer.  "
+                "If you make a mistake in choices when you advance, you can always RESPEC.  "
+                "[use nohint or prefedit to deactivate this]\tn\r\n",
+  /* 5*/"\tR[HINT]:\tn \ty"
+                "The combination of races, classes (MULTICLASS), stat boosts "
+                "and feat selection make for nearly limitless choices.  Do not be afraid "
+                "to experiment!  Have fun reading up on feats using commands.  FEATS with no "
+                "argument will show your current feats and show you a bunch of other command "
+                "options on the bottom section.  "
+                "[use nohint or prefedit to deactivate this]\tn\r\n",
+  /* 6*/"\tR[HINT]:\tn \ty"
+                "Worried about missing messages while in a menu system such "
+                "as STUDY?  Do not fret, we have a HISTORY command so you can view "
+                "what was said on all the channels while you were away!  You can "
+                "type HISTORY ALL to view everything!"
+                "[use nohint or prefedit to deactivate this]\tn\r\n",
+  /* 7*/"\tR[HINT]:\tn \ty"
+                "QUEST PROGRESS and QUEST HISTORY are your best friends when "
+                "working on a quest, they can help remind you exactly what you have done "
+                "and what you need to do.  You can also view details of each individual quest "
+                "you have completed by typing QUEST HISTORY <number>.  Some quests are "
+                "initiated with the ASK command, commonly ASK HI will initiate conversation.  "
+                "[use nohint or prefedit to deactivate this]\tn\r\n",
+  /* 8*/"\tR[HINT]:\tn \ty"
+                "If you have an idea for a hint, please email your ideas to one of "
+                "our programmers: Ornir@@LuminariMUD.com or Zusuk@@LuminariMUD.com.  "
+                "[use nohint or prefedit to deactivate this]\tn\r\n",
+  /* 9*/"\tR[HINT]:\tn \ty"
+                "LuminariMUD is considered a 'younger' MUD and is under heavy "
+                "and constant development.  If you run into a bug, our policy is to simply "
+                "report the bug using the BUG command.  Example, BUG SUBMIT <header>, then "
+                "use the in-game text editor that pops up to write details about the bug, then "
+                "you can type /s to save the submission. "
+                "[use nohint or prefedit to deactivate this]\tn\r\n",
+  /*10*/"\tR[HINT]:\tn \tyThe beginning of your adventure will be focused in on the Ashenport "
+                "Region of the world.  The region is relatively fairly small, maybe 1/10th of the "
+                "surface space of Lumia, yet expands thousands of rooms in our WILDERNESS.  At the "
+                "current time you are able to get between zones quickly using a TELEPORTER.  To use "
+                "the teleporter, just type: TELEPORT <target>.  To get a list of target zones, you can "
+                "type: HELP ZONES.  "
+                "[use nohint or prefedit to deactivate this]\tn\r\n",
+  /*11*/"\tR[HINT]:\tn \tyYou can find a lot of gear in various shops throughout the "
+                "world.  Some shops even include special powerful magic items that can "
+                "be purchased with quest points.  In addition to finding normal loot "
+                "that are on your foes, you may also find 'random treasure' on them "
+                "as well with every victory, there is a slight chance you will find "
+                "this bonus loot.  Also, there is a special BAZAAR in Ashenport where "
+                "you can purchase magic items to fill your missing equipment slots.  "
+                "[use nohint or prefedit to deactivate this]\tn\r\n",
+  /*12*/"\tR[HINT]:\tn \tyIf you find items of value that you do not want to deal with, "
+                "you can always DONATE them.  This will cause them to appear in a "
+                "donation pit throughout the realm.  Alternatively if you find an item"
+                "that is of no value, you can JUNK it to permanently get rid of it.  "
+                "Although not necessary since corpses decompose after a short time, you"
+                "can SACrifice corpses to get rid of them.  "
+                "[use nohint or prefedit to deactivate this]\tn\r\n",
+  /*13*/"\tR[HINT]:\tn \tyBe aware during combat!  Enemies can do various things "
+                "to try and disable you, including knocking you down! You can check AFF "
+                "to see affections both negative and positive that are affecting you.  "
+                "[use nohint or prefedit to deactivate this]\tn\r\n",
+  /*14*/"\tR[HINT]:\tn \tyLuminariMUD has a 'main' quest line for the Ashenport Region "
+                "that starts with the Mosswood Elder, in Mossswood.  The quest line is "
+                "important for telling fun and informative details about the lore of the "
+                "Realm, and leading the adventurers to various zones throughout the region. "
+                "In addition some of the rewards of the various quests in the chain have "
+                "very powerful items.  "
+                "[use nohint or prefedit to deactivate this]\tn\r\n",
+  /*15*/"\tR[HINT]:\tn \ty"
+                "Have a great idea for features or changes to LuminariMUD?  Please "
+                "use the IDEA command, IDEA SUBMIT <title of submission>, you will then "
+                "enter our text editor, type out the details of the idea, and then "
+                "type /s to save the submission.  "
+                "[use nohint or prefedit to deactivate this]\tn\r\n",
+  /*16*/"\tR[HINT]:\tn \ty"
+                "We have a lot of end-game content, including building a player treasure "
+                "horde (HELP HOUSE), which allows you to create a corner of the world "
+                "to call home and store your treasure.  You can add 'guests' to your home "
+                "to allow your friends or other characters to enter.  "
+                "[use nohint or prefedit to deactivate this]\tn\r\n",
+  /*17*/"\tR[HINT]:\tn \ty"
+                "Reached level 30?  There are a lot of exciting end-game content here "
+                "at LuminariMUD.  We have multiple planes of existence that can be accessed "
+                "through various portals throughout the wilderness and magic.  Epic zones "
+                "with extremely challenging group content with powerful magical items.  "
+                "Hard to find epic quests litter the Realm as well, so explore!  "
+                "[use nohint or prefedit to deactivate this]\tn\r\n",
+  /*18*/"\tR[HINT]:\tn \ty"
+                "LuminariMUD has an account system.  Through the account system you "
+                "can manage multiple characters.  In addition you share 'account exp' "
+                "between your characters, which can be spent on various account-wide "
+                "benefits, such as unlocking advanced or epic races, and prestige classes. "
+                "Type ACCOUNT to view your account details and ACCEXP to unlock various "
+                "benefits spending account experience."
+                "  [use nohint or prefedit to deactivate this]\tn\r\n",
+  /*19*/"\tR[HINT]:\tn \ty"
+                "Did you know that some weapons and armor have very special enchantments "
+                "on them that can offer a variety of benefits?  Some of the more powerful "
+                "gear in the Realm can cast their own spells, and act on their own.  "
+                "Some will benefit your feats, stats, imbue you with affections while "
+                "equipped.  Some gear responds to special command words that can be "
+                "discovered either by examining the gear, through quest lines or other "
+                "interesting ways.  Some gear respond to combat maneuvers, such as weapons "
+                "that will help you trip, spikes on a shield when shield-punching, or even "
+                "armor / shields that will cast a heal spell on you when they deflect a blow."
+                "  [use nohint or prefedit to deactivate this]\tn\r\n",
+};
+
+void show_hints(void) {
+  int roll = dice(1, NUM_HINTS) - 1;
+  struct char_data *ch = NULL, *next_char = NULL;
+
+  for (ch = character_list; ch; ch = next_char) {
+    next_char = ch->next;
+
+    if (IS_NPC(ch) || !ch->desc)
+      continue;
+
+    if (PRF_FLAGGED(ch, PRF_NOHINT))
+      continue;
+
+    send_to_char(ch, hints[roll]);
+  }
+}
+
+/* moved to do_gen_tog */
+/*
+ACMD(do_nohints) {
+  if (!PRF_FLAGGED(ch, PRF_NOHINTS)) {
+    SET_BIT_AR(PRF_FLAGS(ch), PRF_NOHINTS);
+    send_to_char(ch, "You will no longer see game hints.\r\n");
+  } else {
+    send_to_char(ch, "You will now see game hints every so often.\r\n");
+    REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_NOHINTS);
+  }
+}
+*/
+
+/********** end hint system ********/
+
 /* some cleanup */
+#undef NUM_HINTS
 #undef SHAPE_AFFECTS
 #undef MOB_ZOMBIE
 #undef MOB_GHOUL

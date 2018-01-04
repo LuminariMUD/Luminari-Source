@@ -102,7 +102,6 @@ bool check_trap(struct char_data *ch, int trap_type, int room, struct obj_data *
   return FALSE;
 }
 
-
 ACMD(do_disabletrap) {
   struct obj_data *trap = NULL;
   int result = 0, exp = 1, dc = 0;
@@ -137,6 +136,7 @@ ACMD(do_disabletrap) {
 }
 
 /* engine for detecting traps, extracted it for trap-sense feat */
+
 /* included a "silent" mode for the trap-sense feat */
 int perform_detecttrap(struct char_data *ch, bool silent) {
   struct obj_data *trap = NULL;
@@ -183,10 +183,10 @@ ACMD(do_detecttrap) {
 /* a reminder: int call_magic(struct char_data *caster, struct char_data *cvict,
         struct obj_data *ovict, int spellnum, int level, int casttype);
  another reminder: int damage(struct char_data *ch, struct char_data *victim,
-	int dam, int attacktype, int dam_type, int dualwield);
+     int dam, int attacktype, int dam_type, int dualwield);
  another reminder: #define ASPELL(spellname) \
 void	spellname(int level, struct char_data *ch, \
-		  struct char_data *victim, struct obj_data *obj)
+            struct char_data *victim, struct obj_data *obj)
  *  */
 EVENTFUNC(event_trap_triggered) {
   struct mud_event_data *pMudEvent = NULL;
@@ -237,8 +237,8 @@ EVENTFUNC(event_trap_triggered) {
   }
 
   switch (pMudEvent->iId) {
+    
     case eTRAPTRIGGERED:
-
       /* init the af-struct */
       af.spell = TYPE_UNDEFINED;
       af.duration = 0;
@@ -248,7 +248,7 @@ EVENTFUNC(event_trap_triggered) {
 
       for (i = 0; i < AF_ARRAY_MAX; i++) af.bitvector[i] = AFF_DONTUSE;
 
-      /* check for valid effect */
+      /* check for valid effect, spellnum?  then call spell... */
       if (effect < TRAP_EFFECT_FIRST_VALUE) {
         if (effect >= LAST_SPELL_DEFINE) {
           log("SYSERR: perform_trap_effect event called with invalid spell effect!\r\n");
@@ -276,7 +276,7 @@ EVENTFUNC(event_trap_triggered) {
 
           case TRAP_EFFECT_IMPALING_SPIKE:
             af.spell = effect;
-            SET_BIT_AR(af.bitvector, AFF_PARALYZED);;
+            SET_BIT_AR(af.bitvector, AFF_PARALYZED);
             af.duration = 5;
             to_char = "\tLA large \tWspike\tL shoots up from the floor, and \trimpales\tL you upon it.\tn";
             to_room = "\tLSuddenly, a large \tWspike\tL impales \tn$n\tL as it shoots up from the floor.\tn";
@@ -310,11 +310,18 @@ EVENTFUNC(event_trap_triggered) {
             break;
 
           case TRAP_EFFECT_POISON_GAS:
+            af.duration = 10;
+            to_char = "\tgPoisonous gas seeps out entering your lungs!  You feel ill!\tn";
+            to_room = "\tgPoisonous gas seeps out into the area!!!\tn";
             af.spell = SPELL_POISON;
             SET_BIT_AR(af.bitvector, AFF_POISON);
+            break;
+            
           case TRAP_EFFECT_DISPEL_MAGIC:
+            /* special handling, done below */
             to_char = "\tCThere is a blinding flash of light which moves to surround you.  You feel all of your enchantments fade away.\tn";
             to_room = "\tCThere is a blinding flash of light which moves to surround \tn$n\tC.  It disappears as quickly as it came.\tn";
+            
             break;
 
           case TRAP_EFFECT_DARK_WARRIOR_AMBUSH:

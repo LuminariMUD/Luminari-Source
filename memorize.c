@@ -1557,6 +1557,8 @@ void updateMemming(struct char_data *ch, int class) {
   /* bonus feat */
   if (HAS_FEAT(ch, FEAT_FASTER_MEMORIZATION)) {
     PREP_TIME(ch, 0, classArray(class)) -= bonus;
+    if (!rand_number(0, 2))
+      send_to_char(ch, "Your keen abilities allow you study even faster!\r\n");
   }
   if (affected_by_spell(ch, SKILL_SONG_OF_FOCUSED_MIND)) {
     PREP_TIME(ch, 0, classArray(class)) -= bonus;    

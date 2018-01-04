@@ -212,7 +212,8 @@ static void prefedit_disp_toggles_menu(struct descriptor_data *d)
                              "%s4%s) Autosac      %s[%s%3s%s]      %sD%s) Auction  %s[%s%3s%s]\r\n"
                              "%s5%s) Autoassist   %s[%s%3s%s]      %sE%s) Gratz    %s[%s%3s%s]\r\n"
                              "                             - More Toggles -                   \r\n"          
-                             "%s6%s) Autosplit    %s[%s%3s%s]      %sS%s) AutoScan   %s[%s%3s%s]\r\n",
+                             "%s6%s) Autosplit    %s[%s%3s%s]      %sS%s) AutoScan %s[%s%3s%s]\r\n"
+                             "%s0%s) Hint Display %s[%s%3s%s]\r\n",
 /* Line 1 - autoexits and gossip */
              CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), PREFEDIT_FLAGGED(PRF_AUTOEXIT) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
              ONOFF(PREFEDIT_FLAGGED(PRF_AUTOEXIT)), CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
@@ -240,17 +241,20 @@ static void prefedit_disp_toggles_menu(struct descriptor_data *d)
              ONOFF(PREFEDIT_FLAGGED(PRF_AUTOASSIST)), CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
              PREFEDIT_FLAGGED(PRF_NOGRATZ) ? CBRED(d->character, C_NRM) : CBGRN(d->character, C_NRM), ONOFF(!PREFEDIT_FLAGGED(PRF_NOGRATZ)), CCCYN(d->character, C_NRM),
 /* Line 6 - autosplit and autoscan */
-             CBYEL(d->character, C_NRM),
-             CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
-             PREFEDIT_FLAGGED(PRF_AUTOSPLIT) ?
-               CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
-             ONOFF(PREFEDIT_FLAGGED(PRF_AUTOSPLIT)),
-             CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM),
-             CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
-             PREFEDIT_FLAGGED(PRF_AUTOSCAN) ?
-               CBRED(d->character, C_NRM) : CBGRN(d->character, C_NRM),
-             ONOFF(!PREFEDIT_FLAGGED(PRF_AUTOSCAN)), CCCYN(d->character, C_NRM)
-             );
+             CBYEL(d->character, C_NRM),CCNRM(d->character, C_NRM),CCCYN(d->character, C_NRM),
+               PREFEDIT_FLAGGED(PRF_AUTOSPLIT) ?
+                 CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+                   ONOFF(PREFEDIT_FLAGGED(PRF_AUTOSPLIT)),CCCYN(d->character, C_NRM),
+             CBYEL(d->character, C_NRM),CCNRM(d->character, C_NRM),CCCYN(d->character, C_NRM),
+               PREFEDIT_FLAGGED(PRF_AUTOSCAN) ?
+                 CBRED(d->character, C_NRM) : CBGRN(d->character, C_NRM),
+                   ONOFF(!PREFEDIT_FLAGGED(PRF_AUTOSCAN)),CCCYN(d->character, C_NRM),
+/* Line 7 - nohint */
+             CBYEL(d->character, C_NRM),CCNRM(d->character, C_NRM),CCCYN(d->character, C_NRM),
+               PREFEDIT_FLAGGED(PRF_NOHINT) ?
+                 CBRED(d->character, C_NRM) : CBGRN(d->character, C_NRM),
+                   ONOFF(!PREFEDIT_FLAGGED(PRF_NOHINT)),CCCYN(d->character, C_NRM)
+             /*end*/);
 
   send_to_char(d->character, "%s7%s) Automap      %s[%s%3s%s]      %sT%s) AutoReload %s[%s%3s%s]\r\n"
                              "%s8%s) Autokey      %s[%s%3s%s]      %sU%s) CombatRoll %s[%s%3s%s]\r\n"
@@ -753,9 +757,17 @@ void prefedit_parse(struct descriptor_data * d, char *arg)
       case 'V':
         TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_GUI_MODE);
         break;
+        
+      case '0':
+        TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_NOHINT);
+        break;        
+        
+        /*w*/
 
         /* do not use X - reserved for exiting this menu */
 
+        /*y*/
+        /*z*/
 
       default  : send_to_char(d->character, "Invalid Choice, try again (Q to Quit to main menu): ");
                  return;
@@ -962,6 +974,10 @@ void prefedit_Restore_Defaults(struct descriptor_data *d)
   /* PRF_NOGOSS     - Off */
   if (PREFEDIT_FLAGGED(PRF_NOGOSS))
      REMOVE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_NOGOSS);
+
+  /* PRF_NOHINT     - On */
+  if (PREFEDIT_FLAGGED(PRF_NOHINT))
+     REMOVE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_NOHINT);
 
   /* PRF_NOGRATZ    - Off */
   if (PREFEDIT_FLAGGED(PRF_NOGRATZ))

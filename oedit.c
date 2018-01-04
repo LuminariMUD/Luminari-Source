@@ -31,6 +31,7 @@
 #include "assign_wpn_armor.h"
 #include "domains_schools.h"
 #include "treasure.h" /* set_weapon_object */
+#include "act.h" /* get_eq_score() */
 
 /* local functions */
 static void oedit_disp_size_menu(struct descriptor_data *d);
@@ -1269,17 +1270,20 @@ struct obj_special_ability* get_specab_by_position(struct obj_data *obj, int pos
 
 /* Display main menu. */
 static void oedit_disp_menu(struct descriptor_data *d) {
-  char buf1[MAX_STRING_LENGTH];
-  char buf2[MAX_STRING_LENGTH];
-  struct obj_data *obj;
+  char buf1[MAX_STRING_LENGTH] = {'\0'};
+  char buf2[MAX_STRING_LENGTH] = {'\0'};
+  char buf3[MAX_STRING_LENGTH] = {'\0'};
+  struct obj_data *obj = OLC_OBJ(d);
+  int i = 0;
+  size_t len = 0;
 
-  obj = OLC_OBJ(d);
   get_char_colors(d->character);
   clear_screen(d);
-
-  /* Build buffers for first part of menu. */
+  
+  /* Build buffers for object type */
   sprinttype(GET_OBJ_TYPE(obj), item_types, buf1, sizeof (buf1));
 
+  /* build buffer for obj extras */
   sprintbitarray(GET_OBJ_EXTRA(obj), extra_bits, EF_ARRAY_MAX, buf2);
 
   /* Build first half of menu. */
@@ -1302,9 +1306,101 @@ static void oedit_disp_menu(struct descriptor_data *d) {
           //grn, nrm, cyn, item_profs[GET_OBJ_PROF(obj)],
           grn, nrm, cyn, buf2
           );
+  
   /* Send first half then build second half of menu. */
+  
+  /* wear slots of gear */
   sprintbitarray(GET_OBJ_WEAR(OLC_OBJ(d)), wear_bits, EF_ARRAY_MAX, buf1);
+  /* permanent affections of gear */
   sprintbitarray(GET_OBJ_PERM(OLC_OBJ(d)), affected_bits, EF_ARRAY_MAX, buf2);
+  
+  /* build a buffer for displaying suggested worn eq stats -zusuk */
+  for (i = 0; i < TW_ARRAY_MAX; i++) {
+    /* we have to fix this so treasure / here are synced! */
+    switch (GET_OBJ_WEAR(obj)[i]) {
+      case ITEM_WEAR_TAKE:
+        break;
+      case ITEM_WEAR_FINGER:
+        len += snprintf(buf3 + len, sizeof (buf3) - len,
+                "[wear-finger:wis,will,hp,res-fire,res-punc,res-illus,res-energy] ");
+        break;
+      case ITEM_WEAR_NECK:
+        len += snprintf(buf3 + len, sizeof (buf3) - len,
+                "[wear-neck:int,save-ref,res-cold,res-air,res-force,res-mental,res-water] ");
+        break;
+      case ITEM_WEAR_BODY:
+        len += snprintf(buf3 + len, sizeof (buf3) - len,
+                "[wear-body:NONE] ");
+        break;
+      case ITEM_WEAR_HEAD:
+        len += snprintf(buf3 + len, sizeof (buf3) - len,
+                "[wear-head:NONE] ");
+        break;
+      case ITEM_WEAR_LEGS:
+        len += snprintf(buf3 + len, sizeof (buf3) - len,
+                "[wear-legs:NONE] ");
+        break;
+      case ITEM_WEAR_FEET:
+        len += snprintf(buf3 + len, sizeof (buf3) - len,
+                "[wear-feet:res-poison,dex,moves] ");
+        break;
+      case ITEM_WEAR_HANDS:
+        len += snprintf(buf3 + len, sizeof (buf3) - len,
+                "[wear-hands:res-disease,res-slice,str] ");
+        break;
+      case ITEM_WEAR_ARMS:
+        len += snprintf(buf3 + len, sizeof (buf3) - len,
+                "[wear-arms:NONE] ");
+        break;
+      case ITEM_WEAR_SHIELD:
+        len += snprintf(buf3 + len, sizeof (buf3) - len,
+                "[wear-shield:NONE] ");
+        break;
+      case ITEM_WEAR_ABOUT:
+        len += snprintf(buf3 + len, sizeof (buf3) - len,
+                "[wear-about:res-acid,cha,res-negative] ");
+        break;
+      case ITEM_WEAR_WAIST:
+        len += snprintf(buf3 + len, sizeof (buf3) - len,
+                "[wear-waist:res-holy,con,res-earth] ");
+        break;
+      case ITEM_WEAR_WRIST:
+        len += snprintf(buf3 + len, sizeof (buf3) - len,
+                "[wear-wrist:save-fort,psp,res-elec,res-unholy,res-sound,res-light] ");
+        break;
+      case ITEM_WEAR_WIELD:
+        len += snprintf(buf3 + len, sizeof (buf3) - len,
+                "[wear-wield:NONE] ");
+        break;
+      case ITEM_WEAR_HOLD:
+        len += snprintf(buf3 + len, sizeof (buf3) - len,
+                "[wear-hold:int,cha,hps] ");
+        break;
+      case ITEM_WEAR_FACE:
+        len += snprintf(buf3 + len, sizeof (buf3) - len,
+                "[wear-face:NONE] ");
+        break;
+      case ITEM_WEAR_AMMO_POUCH:
+        len += snprintf(buf3 + len, sizeof (buf3) - len,
+                "[wear-ammopouch:NONE] ");
+        break;
+      case ITEM_WEAR_EAR:
+        len += snprintf(buf3 + len, sizeof (buf3) - len,
+                "[wear-ear:NONE] ");
+        break;
+      case ITEM_WEAR_EYES:
+        len += snprintf(buf3 + len, sizeof (buf3) - len,
+                "[wear-eyes:NONE] ");
+        break;
+      case ITEM_WEAR_BADGE:
+        len += snprintf(buf3 + len, sizeof (buf3) - len,
+                "[wear-badge:NONE] ");
+        break;
+      default:
+        break;
+    }
+  }
+  /* end eq-wear suggestions */
 
   write_to_output(d,
           "%s7%s) Wear flags  : %s%s\r\n"
@@ -1325,6 +1421,7 @@ static void oedit_disp_menu(struct descriptor_data *d) {
           "%sS%s) Script                 : %s%s\r\n"
           "%sT%s) Spellbook menu\r\n"
           "%sEQ Rating (in development): %d\r\n"
+          "%sSuggested affections based on wear-position: %s\r\n"
           "%sW%s) Copy object\r\n"
           "%sX%s) Delete object\r\n"
           "%sQ%s) Quit\r\n"
@@ -1350,6 +1447,7 @@ static void oedit_disp_menu(struct descriptor_data *d) {
           grn, nrm, cyn, OLC_SCRIPT(d) ? "Set." : "Not Set.", 
           grn, nrm, /* spellbook */
           grn, get_eq_score(GET_OBJ_RNUM(obj)),/* eq rating */
+          grn, buf3,
           grn, nrm, /* copy object */
           grn, nrm, /* delete object */
           grn, nrm /* quite */
