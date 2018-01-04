@@ -841,6 +841,9 @@ void command_interpreter(struct char_data *ch, char *argument) {
           !is_abbrev(complete_cmd_info[cmd].command, "typo") &&
           !is_abbrev(complete_cmd_info[cmd].command, "idea") &&
           !is_abbrev(complete_cmd_info[cmd].command, "applypoison") &&
+          !is_abbrev(complete_cmd_info[cmd].command, "fire") &&
+          !is_abbrev(complete_cmd_info[cmd].command, "disabletrap") &&
+          !is_abbrev(complete_cmd_info[cmd].command, "detecttrap") &&
           !is_abbrev(complete_cmd_info[cmd].command, "attackqueue")
           ) {
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_HIDE);
