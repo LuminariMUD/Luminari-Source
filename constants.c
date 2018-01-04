@@ -1143,6 +1143,7 @@ const char *preference_bits[NUM_PRF_FLAGS + 1] = {
   "Combat-Rolls",
   "GUI-Mode",
   "Hint-Display",
+  "Auto-Collect",
   "\n"
 };
 
