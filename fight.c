@@ -2703,6 +2703,7 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim) {
   long local_gold = 0, happy_gold = 0;
   struct char_data *tmp_char = NULL, *tch = NULL;
   struct obj_data *corpse_obj;
+  room_rnum rnum = NOWHERE;
 
   GET_POS(victim) = POS_DEAD;
 
@@ -2744,25 +2745,10 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim) {
     local_gold = GET_GOLD(victim);
     sprintf(local_buf, "%ld", (long) local_gold);
   }
-  
-  /* we make everyone in the room with auto-collect search for ammo here before
-   any of the autolooting, etc, before die() too in case in-room victim changes */
-  for (tch = world[IN_ROOM(victim)].people; tch; tch = tch->next_in_room) {
-    /*debug*/
-    send_to_char(tch, "%d", IN_ROOM(victim));
-    /*end debug*/
-    if (!tch)
-      continue;
-    if (IS_NPC(tch))
-      continue;
-    if (tch == victim)
-      continue;
-    if (IN_ROOM(tch) != IN_ROOM(victim))
-      continue;
-    if (PRF_FLAGGED(tch, PRF_AUTOCOLLECT))
-      perform_collect(tch);
-  }
 
+  /* grab room number of victim before we extract him for corpse making */
+  rnum = IN_ROOM(victim);
+          
   /* corpse should be made here */
   die(victim, ch);
   
@@ -2779,7 +2765,25 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim) {
     do_get(ch, "all.coin corpse", 0, 0);
     //do_get(ch, "all.coin", 0, 0);  //added for incorporeal - no corpse
   }
-
+  
+  /* we make everyone in the room with auto-collect search for ammo here before
+   any of the autolooting, etc */
+  for (tch = world[rnum].people; tch; tch = tch->next_in_room) {
+    /*debug*/
+    //send_to_char(tch, "%d", IN_ROOM(victim));
+    /*end debug*/
+    if (!tch)
+      continue;
+    if (IS_NPC(tch))
+      continue;
+    if (tch == victim)
+      continue;
+    if (IN_ROOM(tch) != rnum)
+      continue;
+    if (PRF_FLAGGED(tch, PRF_AUTOCOLLECT))
+      perform_collect(tch);
+  }
+  
   if (!IS_NPC(ch) && (ch != victim) && PRF_FLAGGED(ch, PRF_AUTOLOOT)) {
     do_get(ch, "all corpse", 0, 0);
     //do_get(ch, "all.coin", 0, 0);  //added for incorporeal - no corpse
