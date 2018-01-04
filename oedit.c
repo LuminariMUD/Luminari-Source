@@ -1394,7 +1394,7 @@ static void oedit_disp_menu(struct descriptor_data *d) {
           "%sS%s) Script                 : %s%s\r\n"
           "%sT%s) Spellbook menu\r\n"
           "%sEQ Rating (in development): %d\r\n"
-          "%sSuggested affections based on wear-position: %s\r\n"
+          "%sSuggested affections based on wear-position: %s%s\r\n"
           "%sW%s) Copy object\r\n"
           "%sX%s) Delete object\r\n"
           "%sQ%s) Quit\r\n"
@@ -1419,8 +1419,8 @@ static void oedit_disp_menu(struct descriptor_data *d) {
           grn, nrm, cyn, buf2,
           grn, nrm, cyn, OLC_SCRIPT(d) ? "Set." : "Not Set.", 
           grn, nrm, /* spellbook */
-          grn, get_eq_score(GET_OBJ_RNUM(obj)),/* eq rating */
-          grn, buf3,
+          nrm, get_eq_score(GET_OBJ_RNUM(obj)),/* eq rating */
+          nrm, cyn, buf3, /* suggestions */
           grn, nrm, /* copy object */
           grn, nrm, /* delete object */
           grn, nrm /* quite */
