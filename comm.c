@@ -1896,8 +1896,6 @@ static int process_output(struct descriptor_data *t) {
   char i[MAX_SOCK_BUF], *osb = i + 2;
   int result;
   
-  write_to_descriptor(t->descriptor, "begin process output");
-
   /* we may need this \r\n for later -- see below */
   strcpy(i, "\r\n"); /* strcpy: OK (for 'MAX_SOCK_BUF >= 3') */
 
@@ -1977,7 +1975,6 @@ static int process_output(struct descriptor_data *t) {
     t->bufptr -= result;
     t->bufspace += result;
   }
-  write_to_descriptor(t->descriptor, "end process output");
   return (result);
 }
 
