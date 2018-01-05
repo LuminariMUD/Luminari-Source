@@ -4687,7 +4687,7 @@ ACMD(do_happyhour) {
 }
 
 /****  little hint system *******/
-#define NUM_HINTS   20
+#define NUM_HINTS   28
 
 /* i am surrounding hints with this:
    \tR[HINT]:\tn \ty
@@ -4831,7 +4831,51 @@ char *hints[NUM_HINTS] = {
                 "you can do SUPPLYORDERs (basic crafting quests) in Sanctus for rewards "
                 "including quest points. "
                 "  [use nohint or prefedit to deactivate this]\tn\r\n",
-        
+  /*21*/"\tR[HINT]:\tn \ty"
+                "Reached the end-game?  Forming a CLAN can help you co-ordinate "
+                "team efforts for some serious carnage.  Having a well co-ordinated "
+                "team will allow you to take on the epic foes that require large teams "
+                "to defeat.  In addition, clans can capture 'zones' to charge taxes on "
+                "people that hunt in the zone.  The dynamic can result in clan-wars!  "
+                "  [use nohint or prefedit to deactivate this]\tn\r\n",
+  /*22*/"\tR[HINT]:\tn \ty"
+                "Overwhelmed by all the class and feat choices?  We started a community "
+                "built thread on the FORUM.  We then transfer those submissions to "
+                "help files under the heading HELP CLASS-BUILD.  The forum link is "
+                ""
+                "  [use nohint or prefedit to deactivate this]\tn\r\n",
+  /*23*/"\tR[HINT]:\tn \ty"
+                "Help files are critical!  We try our best to anticipate all the subjects "
+                "that are needed, but we rely heavily on contributions from players - "
+                "with emphasis on new ones.  Please take the time to post it on the forum at "
+                "https://www.luminarimud.com/forums/topic/hint-submissions/ you can also "
+                "post it as an IDEA in-game."
+                "  [use nohint or prefedit to deactivate this]\tn\r\n",
+  /*24*/"\tR[HINT]:\tn \ty"
+                "LuminariMUD has a forum at: https://www.luminarimud.com/forums/ the public "
+                "registration may be closed due to beloved spam-bots, but any staff can make "
+                "you an account manually, just contact us via in-game mail, or email: "
+                "Zusuk@@LuminariMUD.com or Ornir@@LuminariMUD.com"
+                "  [use nohint or prefedit to deactivate this]\tn\r\n",
+  /*25*/"\tR[HINT]:\tn \ty"
+                "Voting keeps new players coming! (may require creating an account):\r\n"
+                "http://www.topmudsites.com/vote-luminarimud.html \r\n"
+                "http://www.mudconnect.com/cgi-bin/vote_rank.cgi?mud=LuminariMUD \r\n"
+                "Also the MUD community on Reddit is a great way to promot us:\r\n"
+                "https://www.reddit.com/r/MUD/ \r\n"
+                " [use nohint or prefedit to deactivate this]\tn\r\n",
+  /*26*/"\tR[HINT]:\tn \ty"
+                "Lore, story-telling, immersion...  Critical elements of a text based "
+                "world.  View our background story here including an audio version!: "
+                "https://www.luminarimud.com/lumina-voiced-stu-cook/"
+                "  [use nohint or prefedit to deactivate this]\tn\r\n",
+  /*27*/"\tR[HINT]:\tn \ty"
+                "Come visit the LuminariMUD website: https://www.luminarimud.com/ for "
+                "our forums, lore entries, related links, articles, updates.. the works!"
+                "  [use nohint or prefedit to deactivate this]\tn\r\n",
+  /*28*/"\tR[HINT]:\tn \ty"
+                "Our Facebook page: https://www.facebook.com/LuminariMud/ \r\n"
+                "  [use nohint or prefedit to deactivate this]\tn\r\n",        
 };
 
 void show_hints(void) {
