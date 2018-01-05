@@ -5258,6 +5258,9 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   int sneakdam = 0;  /* Additional sneak attack damage. */
   bool victim_is_dead = FALSE;
 
+  /* Wrap the message in tags for GUI mode. JTM 1/5/18 */                                
+  //gui_combat_wrap_open(ch);
+
   if (is_critical)
     hit_msg = "critical";
 
