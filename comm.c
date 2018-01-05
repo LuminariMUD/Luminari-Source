@@ -3307,6 +3307,12 @@ static void msdp_update(void) {
     struct char_data *ch = d->character;
     if (ch && !IS_NPC(ch) && d->connected == CON_PLAYING) {
       struct char_data *pOpponent = FIGHTING(ch);
+      struct char_data *tank = NULL;
+
+      if (pOpponent){
+        tank = FIGHTING(pOpponent);
+      }
+
       ++PlayerCount;
 
       MSDPSetString(d, eMSDP_CHARACTER_NAME, GET_NAME(ch));
@@ -3437,10 +3443,22 @@ static void msdp_update(void) {
         sprintf(buf, "%s", PERS(pOpponent, ch));
         strip_colors(buf);
         MSDPSetString(d, eMSDP_OPPONENT_NAME, buf);
+        
+        if (tank != NULL && tank != ch) {
+          buf[0]='/0';
+          sprintf(buf, "%s", PERS(tank, ch));
+          strip_colors(buf);
+          MSDPSetString(d, eMSDP_TANK_NAME, buf);
+          MSDPSetString(d, eMSDP_TANK_HEALTH, (GET_HIT(tank) * 100) / GET_MAX_HIT(tank));
+          MSDPSetString(d, eMSDP_TANK_HEALTH_MAX, 100);
+        }
       } else /* Clear the values */ {
         MSDPSetNumber(d, eMSDP_OPPONENT_HEALTH, 0);
         MSDPSetNumber(d, eMSDP_OPPONENT_LEVEL, 0);
         MSDPSetString(d, eMSDP_OPPONENT_NAME, "");
+        MSDPSetString(d, eMSDP_TANK_NAME, "");
+        MSDPSetNumber(d, eMSDP_TANK_HEALTH, 0);
+        MSDPSetNumber(d, eMSDP_TANK_HEALTH_MAX, 0);
       }
 
       MSDPUpdate(d);
