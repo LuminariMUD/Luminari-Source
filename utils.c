@@ -69,7 +69,7 @@ void gui_combat_wrap_notvict_open(struct char_data *ch, struct char_data *vict_o
 }
 void gui_combat_wrap_close(struct char_data *ch) {
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_GUI_MODE)) { /* GUI Mode wrap close: combat */
-    send_to_char(ch, "\r\n</combat_message>\r\n");
+    send_to_char(ch, "</combat_message>\r\n");
   }
 }
 void gui_combat_wrap_notvict_close(struct char_data *ch, struct char_data *vict_obj) {
