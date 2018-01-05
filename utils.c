@@ -41,7 +41,7 @@
 /* MSDP GUI Wrappers */
 void gui_combat_wrap_open(struct char_data *ch) {
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_GUI_MODE)) { /* GUI Mode wrap open: combat */
-    send_to_char(ch, "<combat_message>");
+    send_to_char(ch, "<combat_message>\r\n");
   }
 }
 void gui_combat_wrap_notvict_open(struct char_data *ch, struct char_data *vict_obj) {
@@ -64,12 +64,12 @@ void gui_combat_wrap_notvict_open(struct char_data *ch, struct char_data *vict_o
       continue;
     if (!PRF_FLAGGED(to, PRF_GUI_MODE))
       continue;
-    perform_act("<combat_message>", ch, NULL, vict_obj, to, FALSE);
+    perform_act("\r\n<combat_message>", ch, NULL, vict_obj, to, FALSE);
   }
 }
 void gui_combat_wrap_close(struct char_data *ch) {
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_GUI_MODE)) { /* GUI Mode wrap close: combat */
-    send_to_char(ch, "</combat_message>");
+    send_to_char(ch, "\r\n</combat_message>");
   }
 }
 void gui_combat_wrap_notvict_close(struct char_data *ch, struct char_data *vict_obj) {
@@ -94,7 +94,7 @@ void gui_combat_wrap_notvict_close(struct char_data *ch, struct char_data *vict_
       continue;
     if (!PRF_FLAGGED(to, PRF_GUI_MODE))
       continue;
-    perform_act("</combat_message>", ch, NULL, vict_obj, to, FALSE);
+    perform_act("\r\n</combat_message>", ch, NULL, vict_obj, to, FALSE);
   }
 }
 void gui_room_desc_wrap_open(struct char_data *ch) {
