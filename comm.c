@@ -1896,7 +1896,7 @@ static int process_output(struct descriptor_data *t) {
   char i[MAX_SOCK_BUF], *osb = i + 2;
   int result;
   
-  write_to_descriptor(t, "begin process output");
+  write_to_descriptor(t->descriptor, "begin process output");
 
   /* we may need this \r\n for later -- see below */
   strcpy(i, "\r\n"); /* strcpy: OK (for 'MAX_SOCK_BUF >= 3') */
@@ -1914,7 +1914,7 @@ static int process_output(struct descriptor_data *t) {
   else if(t->bufspace == 0) { 
     strcat(osb, "**OVERFLOW**");
   }
-  
+
   /* add the extra CRLF if the person isn't in compact mode */
   if (STATE(t) == CON_PLAYING && t->character && !IS_NPC(t->character) &&
           !PRF_FLAGGED(t->character, PRF_COMPACT)) {
@@ -1977,7 +1977,7 @@ static int process_output(struct descriptor_data *t) {
     t->bufptr -= result;
     t->bufspace += result;
   }
-  write_to_descriptor(t, "end process output");
+  write_to_descriptor(t->descriptor, "end process output");
   return (result);
 }
 
@@ -3450,13 +3450,12 @@ static void msdp_update(void) {
         strip_colors(buf);
         MSDPSetString(d, eMSDP_OPPONENT_NAME, buf);
         
-        if (tank != NULL && tank != ch) {
-          buf[0]='/0';
+        if (tank != NULL && tank != ch) {          
           sprintf(buf, "%s", PERS(tank, ch));
           strip_colors(buf);
           MSDPSetString(d, eMSDP_TANK_NAME, buf);
-          MSDPSetString(d, eMSDP_TANK_HEALTH, (GET_HIT(tank) * 100) / GET_MAX_HIT(tank));
-          MSDPSetString(d, eMSDP_TANK_HEALTH_MAX, 100);
+          MSDPSetNumber(d, eMSDP_TANK_HEALTH, (GET_HIT(tank) * 100) / GET_MAX_HIT(tank));
+          MSDPSetNumber(d, eMSDP_TANK_HEALTH_MAX, 100);
         }
       } else /* Clear the values */ {
         MSDPSetNumber(d, eMSDP_OPPONENT_HEALTH, 0);
