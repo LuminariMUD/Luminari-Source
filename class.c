@@ -1576,6 +1576,8 @@ static int level_feats[][LEVEL_FEATS] = {
 #define NOOB_BOW           814
 #define NOOB_QUIVER        816
 #define NOOB_ARROW         815
+#define NOOB_CRAFT_MAT     3135
+#define NOOB_CRAFT_MOLD    3176
 /* various general items (not gear) */
 #define NOOB_WIZ_NOTE      850
 #define NOOB_WIZ_SPELLBOOK      812
@@ -1610,6 +1612,7 @@ static int level_feats[][LEVEL_FEATS] = {
 /* function that gives chars starting gear */
 void newbieEquipment(struct char_data *ch) {
   int objNums[] = {
+    NOOB_BP, /* HAS to be first */
     NOOB_TELEPORTER,
     NOOB_TORCH,
     NOOB_RATIONS,
@@ -1617,13 +1620,17 @@ void newbieEquipment(struct char_data *ch) {
     NOOB_RATIONS,
     NOOB_RATIONS,
     NOOB_WATERSKIN,
-    NOOB_BP,
     NOOB_CRAFTING_KIT,
     NOOB_BOW,
+    NOOB_CRAFT_MAT,
+    NOOB_CRAFT_MAT,
+    NOOB_CRAFT_MAT,
+    NOOB_CRAFT_MAT,
+    NOOB_CRAFT_MOLD,
     -1 //had to end with -1
   };
   int x;
-  struct obj_data *obj = NULL, *quiver = NULL, *pouch = NULL;
+  struct obj_data *obj = NULL, *quiver = NULL, *pouch = NULL, *bp = NULL;
 
   send_to_char(ch, "\tMYou are given a set of starting equipment...\tn\r\n");
 
@@ -1631,12 +1638,21 @@ void newbieEquipment(struct char_data *ch) {
   for (x = 0; objNums[x] != -1; x++) {
     obj = read_object(objNums[x], VIRTUAL);
     if (obj) {
-      if (objNums[x] == NOOB_BP)
-        GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-      obj_to_char(obj, ch);
+      
+      /* backpack first please! */
+      if (objNums[x] == NOOB_BP) {
+        bp = obj;
+        GET_OBJ_SIZE(bp) = GET_SIZE(ch);
+        obj_to_char(bp, ch);
+      } else if (bp) { /* we should have a bp already! */
+        obj_to_obj(obj, bp);
+      } else { /* problem */
+        obj_to_char(bp, ch);        
+      }
     }
   }
 
+  /* starting quiver/arrows */
   quiver = read_object(NOOB_QUIVER, VIRTUAL);
   if (quiver)
     obj_to_char(quiver, ch);
