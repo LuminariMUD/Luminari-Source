@@ -3365,10 +3365,12 @@ static void msdp_update(void) {
 
       
       snprintf(buf, sizeof (buf), "%s", RACE_ABBR(ch));
+      strip_colors(buf)
       MSDPSetString(d, eMSDP_RACE, buf);
-      
+
       //sprinttype(ch->player.chclass, CLSLIST_NAME, buf, sizeof (buf));
       snprintf(buf, sizeof (buf), "%s", CLSLIST_NAME(ch->player.chclass));
+      strip_colors(buf)
       MSDPSetString(d, eMSDP_CLASS, buf);
 
       /* Location information */
