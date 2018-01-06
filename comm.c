@@ -3363,8 +3363,10 @@ static void msdp_update(void) {
       MSDPSetNumber(d, eMSDP_ATTACK_BONUS, compute_attack_bonus(ch, ch,
               ATTACK_TYPE_PRIMARY));
 
-      MSDPSetString(d, eMSDP_RACE, RACE_ABBR(ch));
-
+      
+      snprintf(buf, sizeof (buf), "%s", RACE_ABBR(ch));
+      MSDPSetString(d, eMSDP_RACE, buf);
+      
       //sprinttype(ch->player.chclass, CLSLIST_NAME, buf, sizeof (buf));
       snprintf(buf, sizeof (buf), "%s", CLSLIST_NAME(ch->player.chclass));
       MSDPSetString(d, eMSDP_CLASS, buf);
