@@ -5919,6 +5919,9 @@ int get_eq_score(obj_rnum a) {
   struct obj_special_ability *specab = NULL;
 
   /* simplify life, and dummy check */
+  if (a == NOTHING)
+    return -1;
+  
   obj = &obj_proto[a];
   if (!obj)
     return -1;
