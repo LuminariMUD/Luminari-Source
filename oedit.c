@@ -1315,7 +1315,7 @@ static void oedit_disp_menu(struct descriptor_data *d) {
   sprintbitarray(GET_OBJ_PERM(OLC_OBJ(d)), affected_bits, EF_ARRAY_MAX, buf2);
   
   /* build a buffer for displaying suggested worn eq stats -zusuk */
-  /* we have to fix this so treasure / here are synced! */
+  /* we have to fix this so treasure + here are synced! */
   if (GET_OBJ_RNUM(obj) != NOTHING) {
     if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_FINGER))
       len += snprintf(buf3 + len, sizeof (buf3) - len,
