@@ -5918,10 +5918,9 @@ int get_eq_score(obj_rnum a) {
   struct obj_data *obj = NULL;
   struct obj_special_ability *specab = NULL;
 
-  /* simplify life, and dummy check */
+  /* simplify life, and dummy checks */
   if (a == NOTHING)
-    return -1;
-  
+    return -1;  
   obj = &obj_proto[a];
   if (!obj)
     return -1;
@@ -6232,6 +6231,8 @@ int get_eq_score(obj_rnum a) {
     }
   }
 
+  /* END object affections*/
+  
   /* misc */
 
   /* unimplemented, but maybe shield weight offers bonus to shieldslam? */
@@ -6240,6 +6241,8 @@ int get_eq_score(obj_rnum a) {
     score += GET_OBJ_WEIGHT(obj);
   */
 
+  /* END misc */
+  
   /* DONE! */
   return score;
 }
