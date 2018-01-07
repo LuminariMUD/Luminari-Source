@@ -2566,19 +2566,29 @@ ACMD(do_wizutil) {
 }
 
 /* single zone printing fn used by "show zone" so it's not repeated in the
-   code 3 times ... -je, 4/6/93 FIXME: overflow possible */
+   code 3 times ... -je, 4/6/93 FIXME: overflow possible 
+   listall = list all the zones in game or not */
 static size_t print_zone_to_buf(char *bufptr, size_t left, zone_rnum zone, int listall) {
   size_t tmp;
   double avglvl = 0;
   int mcount = 0;
   mob_rnum mrnum;
 
+  /* calculate average mob-level of zone, original by Ornir */
+  for(mrnum = 0; mrnum <= top_of_mobt; mrnum++) {
+    if(mob_index[mrnum].vnum >= zone_table[zone].bot && mob_index[mrnum].vnum <= zone_table[zone].top) {
+      avglvl += mob_proto[mrnum].player.level;
+      mcount++;
+    }
+  }
+  avglvl = avglvl/(double)mcount;  
+  
+  /* if you send listall */
   if (listall) {
     int i, j, k, l, m, n, o;
     char buf[MAX_STRING_LENGTH];
 
     sprintbitarray(zone_table[zone].zone_flags, zone_bits, ZN_ARRAY_MAX, buf);
-
 
     tmp = snprintf(bufptr, left,
             "%3d %-30.30s%s By: %-10.10s%s Age: %3d; Reset: %3d (%s);Show Weather %d; Range: %5d-%5d\r\n",
@@ -2614,33 +2624,26 @@ static size_t print_zone_to_buf(char *bufptr, size_t left, zone_rnum zone, int l
     tmp += snprintf(bufptr + tmp, left - tmp,
             "       Zone stats:\r\n"
             "       ---------------\r\n"
-            "         Flags:    %s\r\n"
-            "         RealNum:  %2d\r\n"
-            "         Min Lev:  %2d\r\n"
-            "         Max Lev:  %2d\r\n"
-            "         Rooms:    %2d\r\n"
-            "         Objects:  %2d\r\n"
-            "         Mobiles:  %2d\r\n"
-            "         Shops:    %2d\r\n"
-            "         Triggers: %2d\r\n"
-            "         Quests:   %2d\r\n",
+            "         Flags:       %s\r\n"
+            "         RealNum:     %2d\r\n"
+            "         Min Lev:     %2d\r\n"
+            "         Max Lev:     %2d\r\n"
+            "         Rooms:       %2d\r\n"
+            "         Objects:     %2d\r\n"
+            "         Mobiles:     %2d\r\n"
+            "         Shops:       %2d\r\n"
+            "         Triggers:    %2d\r\n"
+            "         Quests:      %2d\r\n"
+            "         Avg MOB Lvl: %2.3f\r\n",
             buf, zone, zone_table[zone].min_level, zone_table[zone].max_level,
-            j, k, l, m, n, o);
+            j, k, l, m, n, o, avglvl);
 
     return tmp;
   }
 
-  for(mrnum = 0; mrnum <= top_of_mobt; mrnum++) {
-    if(mob_index[mrnum].vnum >= zone_table[zone].bot && mob_index[mrnum].vnum <= zone_table[zone].top) {
-      avglvl += mob_proto[mrnum].player.level;
-      mcount++;
-    }
-  }
-
-  avglvl = avglvl/(double)mcount;
 
   return snprintf(bufptr, left,
-          "%3d %-*s%s By: %-10.10s%s Range: %5d-%5d AvgLvl: ,%2.3f\r\n", zone_table[zone].number,
+          "%3d %-*s%s By: %-10.10s%s Range: %5d-%5d, AvgLvl: %2.3f\r\n", zone_table[zone].number,
           count_color_chars(zone_table[zone].name) + 30, zone_table[zone].name, KNRM,
           zone_table[zone].builders, KNRM, zone_table[zone].bot, zone_table[zone].top, avglvl);
 }
