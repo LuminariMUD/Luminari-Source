@@ -1239,6 +1239,9 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     return (0);
   }
 
+  /* establish base casting time for spell */
+  casting_time = SINFO.time;  
+  
   /* doing to adjust memory and establish what class the character
    will be using for casting this spell */
   if (!isEpicSpell(spellnum) && !IS_NPC(ch)) {
@@ -1254,32 +1257,41 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     /* sorcerer's call is made already in forgetSpell() */
     if (class != CLASS_SORCERER && class != CLASS_BARD)
       addSpellMemming(ch, spellnum, metamagic, spell_info[spellnum].memtime, class);
+    
+    /* level to cast this particular spell as */
+    clevel = CLASS_LEVEL(ch, class);
+    CASTING_CLASS(ch) = class;
+    
+    /* npc class */
+  } else if (IS_NPC(ch)) {
+    class = GET_CLASS(ch);
+    
+    /* level to cast this particular spell as */
+    clevel = GET_LEVEL(ch);
+    CASTING_CLASS(ch) = class;
   }
-
-  /* level to cast this particular spell as */
-  clevel = CLASS_LEVEL(ch, class);
-  CASTING_CLASS(ch) = class;
 
   /* concentration check */
   if (!concentration_check(ch, spellnum)) {
     return 0;
   }
 
-  casting_time = SINFO.time;
-  
-  if (class != CLASS_SORCERER && 
-      class != CLASS_BARD && 
-      IS_SET(metamagic, METAMAGIC_QUICKEN)) {
-    casting_time = 0;
-  }
-  if ((class == CLASS_SORCERER || class == CLASS_BARD) && 
-      IS_SET(metamagic, METAMAGIC_MAXIMIZE) &&
-      !IS_SET(metamagic, METAMAGIC_QUICKEN)) {
-    casting_time *= 2;
+  /* meta magic! */
+  if (!IS_NPC(ch)) {
+    if (class != CLASS_SORCERER &&
+            class != CLASS_BARD &&
+            IS_SET(metamagic, METAMAGIC_QUICKEN)) {
+      casting_time = 0;
+    }
+    if ((class == CLASS_SORCERER || class == CLASS_BARD) &&
+            IS_SET(metamagic, METAMAGIC_MAXIMIZE) &&
+            !IS_SET(metamagic, METAMAGIC_QUICKEN)) {
+      casting_time *= 2;
+    }
   }
   
   /* handle spells with no casting time */
-  if (casting_time <= 0) {
+  if (casting_time <= 0 && !IS_NPC(ch)) { /* we disabled this for npc's */
     send_to_char(ch, "%s", CONFIG_OK);
     say_spell(ch, spellnum, tch, tobj, FALSE);
 
@@ -1288,6 +1300,13 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
 
     return (call_magic(ch, tch, tobj, spellnum, metamagic, CASTER_LEVEL(ch), CAST_SPELL));
   } else {
+    
+    /* npc's minimum */
+    if (IS_NPC(ch)) {
+      casting_time++;
+      if (casting_time < 2)
+        casting_time = 2;
+    }
 
     /* casting time entry point */
     send_to_char(ch, "You begin casting your spell...\r\n");
@@ -1298,7 +1317,12 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     CASTING_TOBJ(ch) = tobj;
     CASTING_SPELLNUM(ch) = spellnum;
     CASTING_METAMAGIC(ch) = metamagic;
-    NEW_EVENT(eCASTING, ch, NULL, 1 * PASSES_PER_SEC);
+
+    if (IS_NPC(ch)) {
+      NEW_EVENT(eCASTING, ch, NULL, 2 * PASSES_PER_SEC);
+    } else {
+      NEW_EVENT(eCASTING, ch, NULL, 1 * PASSES_PER_SEC);
+    }
 
     /* mandatory wait-state for any spell */
     USE_MOVE_ACTION(ch);
@@ -1322,7 +1346,7 @@ ACMD(do_abort) {
 
 /* do_cast is the entry point for PC-casted spells.  It parses the arguments,
  * determines the spell number and finds a target, throws the die to see if
- * the spell can be cast, checks for sufficient mana and subtracts it, and
+ * the spell can be cast, checks for sufficient mana (hah) and subtracts it, and
  * passes control to cast_spell(). */
 ACMD(do_cast) {
   struct char_data *tch = NULL;
