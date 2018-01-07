@@ -4723,10 +4723,10 @@ path_rnum real_path(path_vnum vnum) {
 static int check_object(struct obj_data *obj) {
   char objname[MAX_INPUT_LENGTH + 32];
   int error = FALSE, y;
-  char *buf1;
+  char buf1[MAX_INPUT_LENGTH];
 
   /* stripping colors for SYSLOG -zusuk */
-  buf1 = obj->short_description;
+  strncpy(buf1, obj->short_description, sizeof (buf1));
   strip_colors(buf1);
 
   if (GET_OBJ_WEIGHT(obj) < 0 && (error = TRUE))
