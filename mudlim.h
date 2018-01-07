@@ -12,6 +12,19 @@
 extern "C" {
 #endif
 
+    
+    /* modes for gain_exp() */
+#define GAIN_EXP_MODE_DEFAULT 0
+#define GAIN_EXP_MODE_QUEST   1
+#define GAIN_EXP_MODE_CRAFT   2
+#define GAIN_EXP_MODE_SCRIPT  3
+#define GAIN_EXP_MODE_DEATH   4
+#define GAIN_EXP_MODE_GROUP   5
+#define GAIN_EXP_MODE_SOLO    6
+#define GAIN_EXP_MODE_DAMAGE  7
+#define GAIN_EXP_MODE_EDRAIN  8
+#define GAIN_EXP_MODE_DUMP    9
+#define GAIN_EXP_MODE_TRAP    10    
   
 /* limits.c functions */
 void pulse_luminari();
@@ -23,7 +36,7 @@ int hit_gain(struct char_data *ch);
 int move_gain(struct char_data *ch);
 void set_title(struct char_data *ch, char *title);
 void run_autowiz(void);
-int gain_exp(struct char_data *ch, int gain);
+int gain_exp(struct char_data *ch, int gain, int mode);
 void gain_exp_regardless(struct char_data *ch, int gain);
 void gain_condition(struct char_data *ch, int condition, int value);
 void check_idling(struct char_data *ch);

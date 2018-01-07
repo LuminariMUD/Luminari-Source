@@ -1362,7 +1362,7 @@ void die(struct char_data *ch, struct char_data *killer) {
     // no xp loss for newbs - Bakarus
   } else {
     // if not a newbie then bang that xp! - Bakarus
-    gain_exp(ch, -penalty);
+    gain_exp(ch, -penalty, GAIN_EXP_MODE_DEATH);
   }
 
   if (!IS_NPC(ch)) {
@@ -1437,11 +1437,11 @@ static void perform_group_gain(struct char_data *ch, int base,
   }
   if (share > 1)
     send_to_char(ch, "You receive your share of experience -- %d points.\r\n",
-          gain_exp(ch, share));
+          gain_exp(ch, share, GAIN_EXP_MODE_GROUP) );
   else {
     send_to_char(ch, "You receive your share of experience -- "
             "one measly little point!\r\n");
-    gain_exp(ch, share);
+    gain_exp(ch, share, GAIN_EXP_MODE_GROUP);
   }
 
   change_alignment(ch, victim);
@@ -1535,10 +1535,10 @@ static void solo_gain(struct char_data *ch, struct char_data *victim) {
   }
 
   if (exp > 1)
-    send_to_char(ch, "You receive %d experience points.\r\n", gain_exp(ch, exp));
+    send_to_char(ch, "You receive %d experience points.\r\n", gain_exp(ch, exp, GAIN_EXP_MODE_SOLO));
   else {
     send_to_char(ch, "You receive one lousy experience point.\r\n");
-    gain_exp(ch, exp);
+    gain_exp(ch, exp, GAIN_EXP_MODE_SOLO);
   }
 
   change_alignment(ch, victim);
@@ -2923,7 +2923,7 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
   GET_HIT(victim) -= dam;
 
   if (ch != victim) //xp gain
-    gain_exp(ch, GET_LEVEL(victim) * dam);
+    gain_exp(ch, GET_LEVEL(victim) * dam, GAIN_EXP_MODE_DAMAGE);
 
   if (!dam)
     update_pos(victim);

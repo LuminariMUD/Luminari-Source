@@ -1721,7 +1721,7 @@ EVENTFUNC(event_crafting) {
               GET_AUTOCQUEST_DESC(ch));
       exp = GET_LEVEL(ch) * 2;
     }
-    gain_exp(ch, exp);
+    gain_exp(ch, exp, GAIN_EXP_MODE_CRAFT);
     send_to_char(ch, "You gained %d exp for crafting...\r\n", exp);
 
     send_to_char(ch, "You have approximately %d seconds "
