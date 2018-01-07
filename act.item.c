@@ -1697,6 +1697,7 @@ ACMD(do_drink) {
         return;
     }
   }
+  
   if (!(temp = get_obj_in_list_vis(ch, arg, NULL, ch->carrying))) {
     if (!(temp = get_obj_in_list_vis(ch, arg, NULL, world[IN_ROOM(ch)].contents))) {
       send_to_char(ch, "You can't find it!\r\n");
@@ -1704,41 +1705,52 @@ ACMD(do_drink) {
     } else
       on_ground = 1;
   }
+  
   if ((GET_OBJ_TYPE(temp) != ITEM_DRINKCON) &&
           (GET_OBJ_TYPE(temp) != ITEM_FOUNTAIN)) {
     send_to_char(ch, "You can't drink from that!\r\n");
     return;
   }
-  if (on_ground && (GET_OBJ_TYPE(temp) == ITEM_DRINKCON)) {
+  
+  /*if (on_ground && (GET_OBJ_TYPE(temp) == ITEM_DRINKCON)) {
     send_to_char(ch, "You have to be holding that to drink from it.\r\n");
     return;
-  }
+  }*/
+  
   if ((GET_COND(ch, DRUNK) > 10) && (GET_COND(ch, THIRST) > 0)) {
     /* The pig is drunk */
     send_to_char(ch, "You can't seem to get close enough to your mouth.\r\n");
     act("$n tries to drink but misses $s mouth!", TRUE, ch, 0, 0, TO_ROOM);
     return;
   }
+  
   if ((GET_COND(ch, HUNGER) > 22) && (GET_COND(ch, THIRST) > 4)) {
     send_to_char(ch, "Your stomach can't contain anymore!\r\n");
     return;
   }
+  
   if (GET_OBJ_VAL(temp, 1) == 0) {
     send_to_char(ch, "It is empty.\r\n");
     return;
   }
+  
+  /*
   if (!(GET_OBJ_VAL(temp, 0) == 1)) {
     send_to_char(ch, "It is empty.\r\n");
     return;
   }
+  */ 
+  
   if (GET_COND(ch, THIRST) > 20) {
     send_to_char(ch, "You are not thirsty.\r\n");
     return;
   }
+  
   if (GET_OBJ_VAL(temp, 3) != 0 && char_has_mud_event(ch, eMAGIC_FOOD)) {
     send_to_char(ch, "You cannot drink any more magical liquids right now.\r\n");
     return;
   }
+  
   if (!consume_otrigger(temp, ch, OCMD_DRINK)) /* check trigger */
     return;
 
@@ -1790,9 +1802,11 @@ ACMD(do_drink) {
     if (GET_LEVEL(ch) < LVL_IMMORT || !PRF_FLAGGED(ch, PRF_NOHASSLE))
       attach_mud_event(new_mud_event(eMAGIC_FOOD, ch, NULL), 3000);
   }
+  
   /* removed poison value from drink containers, replaced with spellnum
    * so now if you want a poisoned drink container, just use poison spell for
    * value 3 -Nashak
+   * 
   if (GET_OBJ_VAL(temp, 3) && GET_LEVEL(ch) < LVL_IMMORT) { // The crap was poisoned !
     send_to_char(ch, "Oops, it tasted rather strange!\r\n");
     act("$n chokes and utters some strange sounds.", TRUE, ch, 0, 0, TO_ROOM);
@@ -1803,6 +1817,7 @@ ACMD(do_drink) {
     SET_BIT_AR(af.bitvector, AFF_POISON);
     affect_join(ch, &af, FALSE, FALSE, FALSE, FALSE);
   } */
+  
   /* Empty the container (unless unlimited), and no longer poison. */
   if (GET_OBJ_VAL(temp, 0) > 0) {
     GET_OBJ_VAL(temp, 1) -= amount;
