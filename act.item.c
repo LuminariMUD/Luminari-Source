@@ -320,8 +320,8 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     case ITEM_DRINKCON:
     case ITEM_FOUNTAIN:
       sprinttype(GET_OBJ_VAL(item, 2), drinks, buf, sizeof (buf));
-      send_to_char(ch, "Capacity: %d, Contains: %d, Poisoned: %s, Liquid: %s\r\n",
-              GET_OBJ_VAL(item, 0), GET_OBJ_VAL(item, 1), YESNO(GET_OBJ_VAL(item, 3)), buf);
+      send_to_char(ch, "Capacity: %d, Contains: %d, Spell: %s:%s, Liquid: %s\r\n",
+              GET_OBJ_VAL(item, 0), GET_OBJ_VAL(item, 1), YESNO(GET_OBJ_VAL(item, 3)), spell_info[GET_OBJ_VAL(item, 3)].name, buf);
       break;
     case ITEM_NOTE:
       send_to_char(ch, "Tongue: %d\r\n", GET_OBJ_VAL(item, 0));
