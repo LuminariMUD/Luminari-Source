@@ -5214,7 +5214,7 @@ void load_config(void) {
 /* Centralized character creation - Jamdog - 31st December 2007 */
 
 /* If you need a new blank char_data struct, call this          */
-struct char_data * new_char() {
+struct char_data *new_char() {
   struct char_data *ch;
   CREATE(ch, struct char_data, 1);
   clear_char(ch);
