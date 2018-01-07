@@ -252,7 +252,7 @@ ACMD(do_tell) {
       parse_at(buf2);    
     
     char buf3[MAX_INPUT_LENGTH] = {'\0'};
-    snprintf(buf3, sizeof (buf3), "%s%s told you, '%s'%s", CBCYN(vict, C_NRM), GET_NAME(ch), buf2, CCNRM(vict, C_NRM));
+    snprintf(buf3, sizeof (buf3), "%s%s told you, '%s'%s\r\n", CBCYN(vict, C_NRM), GET_NAME(ch), buf2, CCNRM(vict, C_NRM));
     //msg = act(buf3, FALSE, ch, 0, vict, TO_VICT | TO_SLEEP);
     add_history(vict, buf3, HIST_TELL);    
         
