@@ -937,7 +937,7 @@ void boot_db(void) {
     buf1 = zone_table[i].name;
     strip_colors(buf1);
     log("Resetting #%d: %s (rooms %d-%d).", zone_table[i].number,
-            buf, zone_table[i].bot, zone_table[i].top);
+            buf1, zone_table[i].bot, zone_table[i].top);
     reset_zone(i);
   }
 
