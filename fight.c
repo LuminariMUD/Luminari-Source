@@ -2763,7 +2763,7 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim) {
     }
   } else if (!IS_NPC(ch) && (ch != victim) && PRF_FLAGGED(ch, PRF_AUTOGOLD)) {
     do_get(ch, "all.coin corpse", 0, 0);
-    //do_get(ch, "all.coin", 0, 0);  //added for incorporeal - no corpse
+    do_get(ch, "all.coins", 0, 0);  //added for incorporeal - no corpse -zusuk
   }
   
   /* we make everyone in the room with auto-collect search for ammo here before
