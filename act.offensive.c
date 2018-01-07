@@ -447,7 +447,7 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill) 
        FALSE, ch, NULL, vict, TO_CHAR);
    act("$n sprawls completely through you as $e tries to attack you, slamming into the ground!",
        FALSE, ch, NULL, vict, TO_VICT);
-    GET_POS(ch) = POS_SITTING;
+    change_position(ch, POS_SITTING);
     return FALSE;
   }
   if (MOB_FLAGGED(vict, MOB_NOBASH)) {
@@ -612,10 +612,10 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill) 
   /* further processing: set position, special feats, etc */
   if (!success) {
     if (counter_success) {
-      GET_POS(ch) = POS_SITTING;
+      change_position(ch, POS_SITTING);
     }
   } else { /* success! */
-    GET_POS(vict) = POS_SITTING;
+    change_position(vict, POS_SITTING);
     if ((skill == SKILL_TRIP) ||
             (skill == SKILL_BASH) ||
             (skill == SKILL_SHIELD_CHARGE)) {
@@ -882,7 +882,7 @@ void perform_headbutt(struct char_data *ch, struct char_data *vict) {
         FALSE, ch, NULL, vict, TO_CHAR);
     act("$n sprawls completely through you as $e tries to attack!",
         FALSE, ch, NULL, vict, TO_VICT);
-    GET_POS(ch) = POS_SITTING;
+    change_position(ch, POS_SITTING);
     return;
   }
 
@@ -1046,7 +1046,7 @@ void perform_sap(struct char_data *ch, struct char_data *vict) {
   if (attack_roll(ch, vict, ATTACK_TYPE_PRIMARY, FALSE, prob) > 0) {
     dam = 5 + dice(GET_LEVEL(ch), 2);
     damage(ch, vict, dam, SKILL_SAP, DAM_FORCE, FALSE);
-    GET_POS(vict) = POS_RECLINING;
+    change_position(vict, POS_RECLINING);
 
     /* success!  fortitude save? */
     if (!savingthrow(vict, SAVING_FORT, prob, dc)) {
@@ -1232,7 +1232,7 @@ void perform_springleap(struct char_data *ch, struct char_data *vict) {
     damage(ch, vict, 0, SKILL_SPRINGLEAP, DAM_FORCE, FALSE);
   }
 
-  GET_POS(ch) = POS_STANDING;
+  change_position(ch, POS_STANDING);
   USE_MOVE_ACTION(ch);
 }
 
@@ -2553,7 +2553,7 @@ ACMD(do_tailsweep) {
         act("$N dodges a tailsweep from $n.", FALSE, ch, 0, vict,
                 TO_NOTVICT);
       } else {
-        GET_POS(vict) = POS_SITTING;
+        change_position(vict, POS_SITTING);
 
         send_to_char(ch, "You knock over %s.\r\n", GET_NAME(vict));
         send_to_char(vict, "You were knocked down by a tailsweep from %s.\r\n",
@@ -3340,7 +3340,7 @@ void perform_kick(struct char_data *ch, struct char_data *vict) {
         FALSE, ch, NULL, vict, TO_CHAR);
     act("$n sprawls completely through you as $e tries to attack!",
         FALSE, ch, NULL, vict, TO_VICT);
-    GET_POS(ch) = POS_SITTING;
+    change_position(ch, POS_SITTING);
     return;
   }
 

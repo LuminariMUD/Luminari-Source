@@ -434,22 +434,22 @@ SPECIAL(king_welmar)
     break;
 
   case 'W':
-    GET_POS(ch) = POS_STANDING;
+    change_position(ch, POS_STANDING);
     act("$n awakens and stands up.", FALSE, ch, 0, 0, TO_ROOM);
     break;
 
   case 'S':
-    GET_POS(ch) = POS_SLEEPING;
+    change_position(ch, POS_SLEEPING);
     act("$n lies down on $s beautiful bed and instantly falls asleep.", FALSE, ch, 0, 0, TO_ROOM);
     break;
 
   case 'r':
-    GET_POS(ch) = POS_SITTING;
+    change_position(ch, POS_SITTING);
     act("$n sits down on $s great throne.", FALSE, ch, 0, 0, TO_ROOM);
     break;
 
   case 's':
-    GET_POS(ch) = POS_STANDING;
+    change_position(ch, POS_STANDING);
     act("$n stands up.", FALSE, ch, 0, 0, TO_ROOM);
     break;
 
@@ -1243,7 +1243,7 @@ void tiamat_on_death(struct char_data *ch) {
     char_to_room(lich, ch->in_room);
     GET_MAX_HIT(lich) = 29999;
     GET_HIT(lich) = 29999;
-    GET_POS(lich) = POS_STANDING;
+    change_position(lich, POS_STANDING);
     move_items(ch, lich);
     return;
   }
@@ -1253,7 +1253,7 @@ void tiamat_on_death(struct char_data *ch) {
   char_to_room(lich, ch->in_room);
   GET_MAX_HIT(lich) = 29999;
   GET_HIT(lich) = 29999;
-  GET_POS(lich) = POS_STANDING;
+  change_position(lich, POS_STANDING);
    */
   act(
       "&cLWith a horrifying sound like a fearsome roar mixed with the screams of\n\r"
@@ -1269,7 +1269,7 @@ void tiamat_on_death(struct char_data *ch) {
 
       if(tch != ch && tch != lich)
         if(GET_POS(tch) > POS_SITTING)
-         GET_POS(tch) = POS_SITTING;
+          change_position(tch, POS_SITTING);
       if(tch != ch)
          WAIT_STATE(tch, PULSE_VIOLENCE * 9);
 
@@ -1298,7 +1298,7 @@ void tiamat_on_death(struct char_data *ch) {
       //af.bitvector2 = 0;
       //af.bitvector3 = 0;
       affect_join(tch, &af, FALSE, FALSE, TRUE, FALSE);
-      GET_POS(tch) = POS_SLEEPING;
+      change_position(tch, POS_SLEEPING);
     }
   }
 
@@ -2264,7 +2264,7 @@ SPECIAL(giantslayer) {
       act("You fall to your knees in agony!",
               FALSE, ch, obj, vict, TO_VICT);
       USE_MOVE_ACTION(vict);
-      GET_POS(vict) = POS_SITTING;
+      change_position(vict, POS_SITTING);
       GET_HIT(vict) -= 100;
 
       GET_OBJ_SPECTIMER(obj, 0) = 24;
@@ -3306,7 +3306,7 @@ SPECIAL(ttf_monstrosity) {
     percent = rand_number(1, 101); /* 101% is a complete failure */
     prob = GET_LEVEL(ch) / 5;
     if (percent < prob) {
-      GET_POS(vict) = POS_SITTING;
+      change_position(vict, POS_SITTING);
       WAIT_STATE(vict, 1 * PULSE_VIOLENCE);
       act("&crThe shockwave sends you crashing to the ground!&c0", FALSE, vict, 0, 0, TO_CHAR);
       act("&crThe shockwave sends &c0$n&cr crashing to the ground!&c0", FALSE, vict, 0, 0, TO_ROOM);
@@ -3342,7 +3342,7 @@ SPECIAL(ttf_abomination) {
     percent = rand_number(1, 101); /* 101% is a complete failure */
     prob = GET_LEVEL(ch) / 5;
     if (percent < prob) {
-      GET_POS(vict) = POS_SITTING;
+      change_position(vict, POS_SITTING);
       WAIT_STATE(vict, 1 * PULSE_VIOLENCE);
       act("&crYou are unable to dodge the blow, and its force sends you crashing to the ground!&c0",
           FALSE, vict, 0, 0, TO_CHAR);

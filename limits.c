@@ -306,7 +306,7 @@ void pulse_luminari() {
 
     /* 04/07/13 - added position check since pos_fighting is deprecated */
     if (GET_POS(i) == POS_FIGHTING && !FIGHTING(i))
-      GET_POS(i) = POS_STANDING;
+      change_position(i, POS_STANDING);
     
     /* safety check to make sure you aren't firing when not fighting */
     if (!FIGHTING(i))

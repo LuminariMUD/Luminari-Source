@@ -601,6 +601,7 @@
 #define POS_STUNNED    3	/**< Position = stunned	*/
 #define POS_SLEEPING   4	/**< Position = sleeping */
 #define POS_RECLINING  5	/**< Position = reclining */
+#define POS_CRAWLING   5	/**< Position = crawling - at behest of ornir */
 #define POS_RESTING    6	/**< Position = resting	*/
 #define POS_SITTING    7	/**< Position = sitting	*/
 #define POS_FIGHTING   8	/**< Position = fighting */

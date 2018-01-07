@@ -187,7 +187,7 @@ void set_grapple(struct char_data *ch, struct char_data *vict) {
 void set_pin(struct char_data *ch, struct char_data *vict) {
   if (!AFF_FLAGGED(vict, AFF_PINNED))
     SET_BIT_AR(AFF_FLAGS(vict), AFF_PINNED);
-  GET_POS(vict) = POS_RECLINING;
+  change_position(vict, POS_RECLINING);
 }
 
 /* primary grapple and reversal entry point */

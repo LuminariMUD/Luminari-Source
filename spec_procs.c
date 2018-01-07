@@ -1451,7 +1451,7 @@ SPECIAL(olhydra) {
                 FALSE, ch, 0, vict, TO_VICT);
         act("\tbThe wave hits $N\tb with full \tBforce\tb, knocking $M down.\tn",
                 FALSE, ch, 0, vict, TO_NOTVICT);
-        GET_POS(vict) = POS_SITTING;
+        change_position(vict, POS_SITTING);
         USE_FULL_ROUND_ACTION(ch);
       }
     }
@@ -2220,12 +2220,12 @@ SPECIAL(mayor) {
       break;
 
     case 'W':
-      GET_POS(ch) = POS_STANDING;
+      change_position(ch, POS_STANDING);
       act("$n awakens and groans loudly.", FALSE, ch, 0, 0, TO_ROOM);
       break;
 
     case 'S':
-      GET_POS(ch) = POS_SLEEPING;
+      change_position(ch, POS_SLEEPING);
       act("$n lies down and instantly falls asleep.", FALSE, ch, 0, 0, TO_ROOM);
       break;
 
@@ -3153,7 +3153,7 @@ SPECIAL(solid_elemental) {
 
   // auto stand if down
   if (GET_POS(ch) < POS_FIGHTING && GET_POS(ch) >= POS_STUNNED) {
-    GET_POS(ch) = POS_STANDING;
+    change_position(ch, POS_STANDING);
     act("$n clambers to $s feet.\r\n", FALSE, ch, 0, 0, TO_ROOM);
     return TRUE;
   }
@@ -3196,7 +3196,7 @@ SPECIAL(wraith_elemental) {
 
   // auto stand if down
   if (GET_POS(ch) < POS_FIGHTING && GET_POS(ch) >= POS_STUNNED) {
-    GET_POS(ch) = POS_STANDING;
+    change_position(ch, POS_STANDING);
     act("$n clambers to $s feet.\r\n", FALSE, ch, 0, 0, TO_ROOM);
     return TRUE;
   }
@@ -3598,7 +3598,7 @@ SPECIAL(naga) {
     dam = 0;
   GET_HIT(vict) -= dam;
   stop_fighting(vict);
-  GET_POS(vict) = POS_SLEEPING;
+  change_position(vict, POS_SLEEPING);
   /* Would be best to make this an affect that affects your ability to wake up, lasting a couple rounds. */
   USE_FULL_ROUND_ACTION(vict);
   return TRUE;
@@ -4923,11 +4923,12 @@ SPECIAL(xvim_normal) {
                   ch, vict, (struct obj_data *) me, 0);
           dam = rand_number(100, 200);
           if (dam > GET_HIT(vict)) {
-            GET_HIT(vict) = -10;
-            GET_POS(vict) = POS_DEAD;
+            GET_HIT(vict) = -13;
+            change_position(vict, POS_DEAD);
+            update_pos(vict);
           } else {
             GET_HIT(vict) -= dam;
-            GET_POS(vict) = POS_SITTING;
+            change_position(vict, POS_SITTING);
           }
           for (tch = world[ch->in_room].people; tch; tch = tch->next_in_room)
             USE_MOVE_ACTION(tch);
@@ -5015,11 +5016,11 @@ SPECIAL(xvim_artifact) {
                   ch, vict, (struct obj_data *) me, 0);
           dam = rand_number(100, 200) + 50;
           if (dam > GET_HIT(vict)) {
-            GET_HIT(vict) = -10;
-            GET_POS(vict) = POS_DEAD;
+            GET_HIT(vict) = -13;
+            change_position(vict, POS_DEAD);
           } else {
             GET_HIT(vict) -= dam;
-            GET_POS(vict) = POS_SITTING;
+            change_position(vict, POS_SITTING);
           }
           for (tch = world[ch->in_room].people; tch; tch = tch->next_in_room)
             USE_MOVE_ACTION(tch);
@@ -6017,7 +6018,7 @@ SPECIAL(skullsmasher) {
           "\tLand suddenly \tWgl\two\tWws brigh\twt\tWly\tL.  A look of overwhelming \trpain \tLshows on\tn\r\n"
           "\tL$S face as $E slowly slumps to the ground.\tn",
           ch, vict, (struct obj_data *) me, 0);
-  GET_POS(vict) = POS_SITTING;
+  change_position(vict, POS_SITTING);
   USE_FULL_ROUND_ACTION(vict);
   return TRUE;
 }
@@ -6106,7 +6107,7 @@ SPECIAL(snakewhip) {
               "\tLflowing freely from the wounds in the neck.\tn", FALSE, ch,
               weepan, 0, TO_ROOM);
       GET_HIT(ch) = -5;
-      GET_POS(ch) = POS_INCAP;
+      change_position(ch, POS_INCAP);
     }
     return TRUE;
   }
