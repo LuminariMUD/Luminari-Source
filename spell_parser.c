@@ -238,9 +238,14 @@ static void say_spell(struct char_data *ch, int spellnum, struct char_data *tch,
   snprintf(buf2, sizeof (buf2), format, buf);
 
   for (i = world[IN_ROOM(ch)].people; i; i = i->next_in_room) {
-    if (i == ch || i == tch || !i->desc || !AWAKE(i))
+    
+    /* need to check why we do not just use act() instead of perform_act() -zusuk */
+    if (i == ch || i == tch || !i->desc || !AWAKE(i) ||
+            PLR_FLAGGED(i, PLR_WRITING) ||
+            ROOM_FLAGGED(IN_ROOM(i), ROOM_SOUNDPROOF)
+            )
       continue;
-
+    
     if (!IS_NPC(i))
       attempt = compute_ability(i, ABILITY_SPELLCRAFT) + dice(1, 20);
     else
