@@ -6314,7 +6314,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
   if (dual) { /*default of one offhand attack for everyone*/
     numAttacks += 2; /* mainhand + offhand */
     if (GET_EQ(ch, WEAR_WIELD_OFFHAND)) { /* determine if offhand is smaller than ch */
-      if (GET_SIZE(ch) <= GET_OBJ_SIZE(GET_EQ(ch, WEAR_WIELD_OFFHAND)))
+      if (!is_using_light_weapon(ch, GET_EQ(ch, WEAR_WIELD_OFFHAND)))
         penalty -= 4; /* offhand weapon is not light! */
     }
     if (is_skilled_dualer(ch, MODE_2_WPN)) /* two weapon fighting feat? */
@@ -6421,9 +6421,15 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
 
     /* Display attack routine. */
     if (mode == DISPLAY_ROUTINE_POTENTIAL) {
+      
+      /* we have to account for perform-attack not being called since this is just a display */
+      int spec_hand = compute_attack_bonus(ch, ch, ATTACK_TYPE_PRIMARY) + penalty;
+      if (!perform_attack)
+        spec_hand -= 5;
+      
       /* display hitroll bonus */
       send_to_char(ch, "Mainhand Bonus %d, Attack Bonus:  %d; ",
-                   i + 1, compute_attack_bonus(ch, ch, ATTACK_TYPE_PRIMARY) + penalty);
+                   i + 1, spec_hand);
       /* display damage bonus */
       compute_hit_damage(ch, ch, TYPE_UNDEFINED_WTYPE, NO_DICEROLL, MODE_DISPLAY_PRIMARY, FALSE, ATTACK_TYPE_PRIMARY);
     }
