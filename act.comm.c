@@ -184,7 +184,7 @@ static int is_tell_ok(struct char_data *ch, struct char_data *vict) {
     act("$E can't hear you.", FALSE, ch, 0, vict, TO_CHAR | TO_SLEEP);
   else if (AFF_FLAGGED(vict, AFF_DEAF))
     act("$E seems to be deaf!", FALSE, ch, 0, vict, TO_CHAR | TO_SLEEP);
-  if (IS_ANIMAL(ch))
+  else if (IS_ANIMAL(ch))
     send_to_char(ch, "You try to speak, but suddenly realize you are just an animal!\r\n");
   else
     return (TRUE);
@@ -249,9 +249,18 @@ ACMD(do_tell) {
   } else {
     /* zusuk added this for history */
     if (CONFIG_SPECIAL_IN_COMM && legal_communication(argument))
-      parse_at(buf2);
-    msg = act(buf2, FALSE, ch, 0, vict, TO_VICT | TO_SLEEP);
-    add_history(vict, msg, HIST_TELL);
+      parse_at(buf2);    
+    
+    char buf3[MAX_INPUT_LENGTH] = {'\0'};
+    snprintf(buf3, sizeof (buf3), "%s$n tells you, '%s'%s", CBCYN(vict, C_NRM), buf2, CCNRM(vict, C_NRM));
+    msg = act(buf3, FALSE, ch, 0, vict, TO_VICT | TO_SLEEP);
+    add_history(vict, msg, HIST_TELL);    
+        
+    char buf4[MAX_INPUT_LENGTH] = {'\0'};
+    snprintf(buf4, sizeof (buf4), "%sYou tell $N, '%s'%s", CBCYN(ch, C_NRM), buf2, CCNRM(ch, C_NRM));
+    msg = act(buf4, FALSE, ch, 0, vict, TO_CHAR | TO_SLEEP);
+    add_history(ch, msg, HIST_TELL);
+    send_to_char(ch, "Tell failed, trying to add to their history though...\r\n");
   }
 }
 
