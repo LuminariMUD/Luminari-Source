@@ -2634,7 +2634,7 @@ static size_t print_zone_to_buf(char *bufptr, size_t left, zone_rnum zone, int l
             "         Shops:       %2d\r\n"
             "         Triggers:    %2d\r\n"
             "         Quests:      %2d\r\n"
-            "         Avg MOB Lvl: %2.3f\r\n",
+            "         Avg MOB Lvl:  %2.3f\r\n",
             buf, zone, zone_table[zone].min_level, zone_table[zone].max_level,
             j, k, l, m, n, o, avglvl);
 
