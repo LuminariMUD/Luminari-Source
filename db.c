@@ -180,12 +180,14 @@ struct {
   int tail, size;
   bool q[RQ_MAXSIZE];
 } result_q;
+
 /* init_result_q
  * note: just prepares the result_q for usage */
 void init_result_q(void) {
   result_q.size = 0;
   result_q.tail = 0;
 }
+
 /* push_result
  * Note: will push result into the result_q at head of queue.
  * Queue will be treated as a fixed sized circular list, of 127 entries,
@@ -233,10 +235,10 @@ sbyte test_result(sbyte offset) {
 
   else if (offset > 0)
     return (result_q.q[((RQ_MAXSIZE - (abs(offset) - result_q.tail))
-            % RQ_MAXSIZE)]);
+          % RQ_MAXSIZE)]);
   else
     return !(result_q.q[((RQ_MAXSIZE - (abs(offset) - result_q.tail))
-             % RQ_MAXSIZE)]);
+          % RQ_MAXSIZE)]);
 }
 
 /* routines for booting the system */
@@ -501,12 +503,12 @@ ACMD(do_reboot) {
       index_boot(DB_BOOT_HLP);
     }
   } else if (!str_cmp(arg, "regions")) {
-    /* Reload wilderness regions */    
+    /* Reload wilderness regions */
     load_regions();
   } else if (!str_cmp(arg, "paths")) {
-    /* Reload wilderness regions */    
+    /* Reload wilderness regions */
     load_paths();
-  }else {
+  } else {
     send_to_char(ch, "Unknown reload option.\r\n");
     return;
   }
@@ -2457,8 +2459,8 @@ char *parse_object(FILE *obj_f, int nr) {
             exit(1);
           }
         }
-        obj_proto[i].affected[j].location   = t[0];
-        obj_proto[i].affected[j].modifier   = t[1];
+        obj_proto[i].affected[j].location = t[0];
+        obj_proto[i].affected[j].modifier = t[1];
         obj_proto[i].affected[j].bonus_type = t[2];
         j++;
         break;
@@ -3288,8 +3290,8 @@ static void log_zone_error(zone_rnum zone, int cmd_no, const char *message) {
 
 /*
 #define ZONE_ERROR(message) \
-	{ log_zone_error(zone, cmd_no, message); last_cmd = 0; }
-*/
+     { log_zone_error(zone, cmd_no, message); last_cmd = 0; }
+ */
 #define ZONE_ERROR(message) 	{ log_zone_error(zone, cmd_no, message); push_result(0); }
 
 /* execute the reset command table of a given zone */
@@ -4170,7 +4172,7 @@ void free_char(struct char_data *ch) {
   if (GET_DR(ch) != NULL) {
     struct damage_reduction_type *dr, *tmp;
     dr = GET_DR(ch);
-    while(dr != NULL) {
+    while (dr != NULL) {
       tmp = dr;
       dr = dr->next;
       free(tmp);
@@ -4372,7 +4374,7 @@ void clear_char(struct char_data *ch) {
   GET_REAL_AC(ch) = 100; /* Basic Armor of 10 */
   if (GET_REAL_MAX_MANA(ch) < 100)
     GET_REAL_MAX_MANA(ch) = 100;
-//  ch->points.damage_reduction = NULL;
+  //  ch->points.damage_reduction = NULL;
 }
 
 void clear_object(struct obj_data *obj) {
@@ -4567,7 +4569,7 @@ void init_char(struct char_data *ch) {
   /* start crafting skills at 4 */
   if (GET_LEVEL(ch) < LVL_STAFF) {
     for (i = TOP_CRAFT_SKILL; i < BOTTOM_CRAFT_SKILL; i++) {
-        SET_SKILL(ch, i, 4);
+      SET_SKILL(ch, i, 4);
     }
   }
 }
@@ -4722,7 +4724,7 @@ static int check_object(struct obj_data *obj) {
   char objname[MAX_INPUT_LENGTH + 32];
   int error = FALSE, y;
   char *buf1;
-  
+
   /* stripping colors for SYSLOG -zusuk */
   buf1 = obj->short_description;
   strip_colors(buf1);
@@ -4755,7 +4757,7 @@ static int check_object(struct obj_data *obj) {
         /*
         log("SYSERR: Object #%d (%s) doesn't have drink type as last keyword. (%s)",
               GET_OBJ_VNUM(obj), buf1, obj->name);
-        */
+         */
       }
     }
       /* Fall through. */
@@ -4767,7 +4769,7 @@ static int check_object(struct obj_data *obj) {
         log("SYSERR: Object #%d (%s) contains (%d) more than maximum (%d).",
               GET_OBJ_VNUM(obj), buf1,
               GET_OBJ_VAL(obj, 1), GET_OBJ_VAL(obj, 0));
-        */
+         */
       }
       break;
     case ITEM_SCROLL:
@@ -4797,7 +4799,7 @@ static int check_object(struct obj_data *obj) {
             /*
             log("SYSERR: Object #%d (%s) is type NOTE and has extra description with same name. (%s)",
                     GET_OBJ_VNUM(obj), buf1, obj->name);
-            */
+             */
           }
           next_name = any_one_arg(next_name, onealias);
         } while (*onealias);
@@ -5225,4 +5227,4 @@ struct char_data * new_char() {
   return ch;
 }
 
-
+/* EOF */
