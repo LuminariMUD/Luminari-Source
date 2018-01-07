@@ -4721,16 +4721,21 @@ path_rnum real_path(path_vnum vnum) {
 static int check_object(struct obj_data *obj) {
   char objname[MAX_INPUT_LENGTH + 32];
   int error = FALSE, y;
+  char *buf1;
+  
+  /* stripping colors for SYSLOG -zusuk */
+  buf1 = obj->short_description;
+  strip_colors(buf1);
 
   if (GET_OBJ_WEIGHT(obj) < 0 && (error = TRUE))
     log("SYSERR: Object #%d (%s) has negative weight (%d).",
-          GET_OBJ_VNUM(obj), obj->short_description, GET_OBJ_WEIGHT(obj));
+          GET_OBJ_VNUM(obj), buf1, GET_OBJ_WEIGHT(obj));
 
   if (GET_OBJ_RENT(obj) < 0 && (error = TRUE))
     log("SYSERR: Object #%d (%s) has negative cost/day (%d).",
-          GET_OBJ_VNUM(obj), obj->short_description, GET_OBJ_RENT(obj));
+          GET_OBJ_VNUM(obj), buf1, GET_OBJ_RENT(obj));
 
-  snprintf(objname, sizeof (objname), "Object #%d (%s)", GET_OBJ_VNUM(obj), obj->short_description);
+  snprintf(objname, sizeof (objname), "Object #%d (%s)", GET_OBJ_VNUM(obj), buf1);
   for (y = 0; y < TW_ARRAY_MAX; y++) {
     error |= check_bitvector_names(GET_OBJ_WEAR(obj)[y], wear_bits_count, objname, "object wear");
     error |= check_bitvector_names(GET_OBJ_EXTRA(obj)[y], extra_bits_count, objname, "object extra");
@@ -4749,7 +4754,7 @@ static int check_object(struct obj_data *obj) {
       if (search_block(onealias, drinknames, TRUE) < 0 && (error = TRUE)) {
         /*
         log("SYSERR: Object #%d (%s) doesn't have drink type as last keyword. (%s)",
-              GET_OBJ_VNUM(obj), obj->short_description, obj->name);
+              GET_OBJ_VNUM(obj), buf1, obj->name);
         */
       }
     }
@@ -4760,7 +4765,7 @@ static int check_object(struct obj_data *obj) {
         /* commented out to reduce spam -zusuk */
         /*
         log("SYSERR: Object #%d (%s) contains (%d) more than maximum (%d).",
-              GET_OBJ_VNUM(obj), obj->short_description,
+              GET_OBJ_VNUM(obj), buf1,
               GET_OBJ_VAL(obj, 1), GET_OBJ_VAL(obj, 0));
         */
       }
@@ -4778,7 +4783,7 @@ static int check_object(struct obj_data *obj) {
       error |= check_object_spell_number(obj, 3);
       if (GET_OBJ_VAL(obj, 2) > GET_OBJ_VAL(obj, 1) && (error = TRUE))
         log("SYSERR: Object #%d (%s) has more charges (%d) than maximum (%d).",
-              GET_OBJ_VNUM(obj), obj->short_description,
+              GET_OBJ_VNUM(obj), buf1,
               GET_OBJ_VAL(obj, 2), GET_OBJ_VAL(obj, 1));
       break;
     case ITEM_NOTE:
@@ -4791,7 +4796,7 @@ static int check_object(struct obj_data *obj) {
             /* I am not sure why this is a problem, removed to reduce log spam -Zusuk */
             /*
             log("SYSERR: Object #%d (%s) is type NOTE and has extra description with same name. (%s)",
-                    GET_OBJ_VNUM(obj), obj->short_description, obj->name);
+                    GET_OBJ_VNUM(obj), buf1, obj->name);
             */
           }
           next_name = any_one_arg(next_name, onealias);
@@ -4801,7 +4806,7 @@ static int check_object(struct obj_data *obj) {
     case ITEM_FURNITURE:
       if (GET_OBJ_VAL(obj, 1) > GET_OBJ_VAL(obj, 0) && (error = TRUE))
         log("SYSERR: Object #%d (%s) contains (%d) more than maximum (%d).",
-              GET_OBJ_VNUM(obj), obj->short_description, GET_OBJ_VAL(obj, 1),
+              GET_OBJ_VNUM(obj), buf1, GET_OBJ_VAL(obj, 1),
               GET_OBJ_VAL(obj, 0));
       break;
   }
