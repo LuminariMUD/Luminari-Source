@@ -4715,7 +4715,7 @@ char *hints[NUM_HINTS] = {
                 "Once you have enough experience to advance, you can type GAIN "
                 "<class choice> to level up, you can gain in any class you qualify for, up "
                 "to 3 total classes.  Leveling up will result in an increase in "
-                "training points for skills, more hit points, and possible more feat points, "
+                "training points for skills, more hit points, and possibly more feat points, "
                 "movement points, boosts, PSP points.  To spend your feat points, you will "
                 "use the STUDY menu.  To spend boosts and skill points, you will use a trainer.  "
                 "If you make a mistake in choices when you advance, you can always RESPEC."
