@@ -1041,26 +1041,59 @@ void addSpellMemming(struct char_data *ch, int spellnum, int metamagic, int time
 
 /* resets the prep-times for character (in case of aborted preparation) */
 void resetMemtimes(struct char_data *ch, int class) {
-  int slot;
+  int slot = 0;
+  int i = 0;
 
-  for (slot = 0; slot < MAX_MEM; slot++) {
-    if (PREPARATION_QUEUE(ch, slot, classArray(class)).spell == TERMINATE)
-      break;
+  /* reset all mem time data */
+  if (class == -1) {
+    for (i = 0; i < 7; i++) {
+      IS_PREPARING(ch, classArray(i)) = FALSE;
 
-    /* the formula for prep-time for sorcs is just factor*circle
-     * which is conveniently equal to the corresponding PREPARATION_QUEUE()
-     * slot (the addspellmemming forumula above)
-     */
-    if (class == CLASS_SORCERER)
-      PREP_TIME(ch, slot, classArray(class)) =
-            PREPARATION_QUEUE(ch, slot, classArray(class)).spell * SORC_TIME_FACTOR;
-    else if (class == CLASS_BARD)
-      PREP_TIME(ch, slot, classArray(class)) =
-            PREPARATION_QUEUE(ch, slot, classArray(class)).spell * BARD_TIME_FACTOR;
-    else
-      PREP_TIME(ch, slot, classArray(class)) =
-            spell_info[PREPARATION_QUEUE(ch, slot, classArray(class)).spell].memtime;
+      for (slot = 0; slot < MAX_MEM; slot++) {
+        if (PREPARATION_QUEUE(ch, slot, classArray(i)).spell == TERMINATE)
+          break;
+
+        /* the formula for prep-time for sorcs is just factor*circle
+         * which is conveniently equal to the corresponding PREPARATION_QUEUE()
+         * slot (the addspellmemming forumula above)
+         */
+        if (i == CLASS_SORCERER)
+          PREP_TIME(ch, slot, classArray(i)) =
+                PREPARATION_QUEUE(ch, slot, classArray(i)).spell * SORC_TIME_FACTOR;
+        else if (i == CLASS_BARD)
+          PREP_TIME(ch, slot, classArray(i)) =
+                PREPARATION_QUEUE(ch, slot, classArray(i)).spell * BARD_TIME_FACTOR;
+        else
+          PREP_TIME(ch, slot, classArray(i)) =
+                spell_info[PREPARATION_QUEUE(ch, slot, classArray(i)).spell].memtime;
+      }
+    }
+
+    /* normal class value is passing */
+  } else {
+
+    IS_PREPARING(ch, classArray(class)) = FALSE;
+
+    for (slot = 0; slot < MAX_MEM; slot++) {
+      if (PREPARATION_QUEUE(ch, slot, classArray(class)).spell == TERMINATE)
+        break;
+
+      /* the formula for prep-time for sorcs is just factor*circle
+       * which is conveniently equal to the corresponding PREPARATION_QUEUE()
+       * slot (the addspellmemming forumula above)
+       */
+      if (class == CLASS_SORCERER)
+        PREP_TIME(ch, slot, classArray(class)) =
+              PREPARATION_QUEUE(ch, slot, classArray(class)).spell * SORC_TIME_FACTOR;
+      else if (class == CLASS_BARD)
+        PREP_TIME(ch, slot, classArray(class)) =
+              PREPARATION_QUEUE(ch, slot, classArray(class)).spell * BARD_TIME_FACTOR;
+      else
+        PREP_TIME(ch, slot, classArray(class)) =
+              spell_info[PREPARATION_QUEUE(ch, slot, classArray(class)).spell].memtime;
+    }
   }
+
 }
 
 /* adds <spellnum> to the next available slot in the characters
@@ -1532,7 +1565,7 @@ void updateMemming(struct char_data *ch, int class) {
         break;
     }
     resetMemtimes(ch, class);
-    IS_PREPARING(ch, classArray(class)) = FALSE;
+    /* moved to resetMemtimes */ /*IS_PREPARING(ch, classArray(class)) = FALSE;*/
     return;
   }
 
@@ -2261,7 +2294,7 @@ ACMD(do_gen_memorize) {
     }
   } else if ((BONUS_CASTER_LEVEL(ch, class) + CLASS_LEVEL(ch, class)) <
           spell_info[spellnum].min_level[class]) {
-    send_to_char(ch, "You have heard of that spell....\r\n");
+    send_to_char(ch, "You have heard of that magic....\r\n");
     return;
   }
 

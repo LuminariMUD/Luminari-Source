@@ -1253,11 +1253,11 @@ ACMD(do_buck) {
   act("You quickly buck, throwing $N to the ground.", FALSE, ch, 0, RIDDEN_BY(ch), TO_CHAR);
   act("$n quickly bucks, throwing you to the ground.", FALSE, ch, 0, RIDDEN_BY(ch), TO_VICT);
   act("$n quickly bucks, throwing $N to the ground.", FALSE, ch, 0, RIDDEN_BY(ch), TO_NOTVICT);
-  GET_POS(RIDDEN_BY(ch)) = POS_SITTING;
   if (rand_number(0, 4)) {
     send_to_char(RIDDEN_BY(ch), "You hit the ground hard!\r\n");
     damage(RIDDEN_BY(ch), RIDDEN_BY(ch), dice(2, 4), -1, -1, -1);
   }
+  change_position(RIDDEN_BY(ch), POS_SITTING);
   dismount_char(ch);
 
   /*

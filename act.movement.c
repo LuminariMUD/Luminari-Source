@@ -270,7 +270,7 @@ EVENTFUNC(event_falling)
     } else { /* ok we know damage is going to be suffered at this stage */
       send_to_char(ch, "You fall headfirst to the ground!  OUCH!\r\n");
       act("$n crashes into the ground headfirst, OUCH!", FALSE, ch, 0, 0, TO_ROOM);
-      GET_POS(ch) = POS_RECLINING;
+      change_position(ch, POS_RECLINING);
       start_action_cooldown(ch, atSTANDARD, 12 RL_SEC);
 
       /* we have a special situation if you die, the event will get cleared */
@@ -959,13 +959,13 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
   /* Generate the leave message(s) and display to others in the was_in room. */
   /*****/
 
-  /* actually this mechanic is a necessary one -zusuk */
 
   /* silly to keep people reclining when they leave a room */
+  /* actually this mechanic is a necessary one, single file room code, sorry folks -zusuk */
   /*
   if (GET_POS(ch) == POS_RECLINING) {
     send_to_char(ch, "You move from a crawling position to standing as you leave the area.\r\n");
-    GET_POS(ch) = POS_STANDING;
+    change_position(ch, POS_STANDING);
   }
   */
 
@@ -2249,7 +2249,7 @@ ACMD(do_stand) {
     case POS_RESTING:
       send_to_char(ch, "You stop resting, and stand up.\r\n");
       act("$n stops resting, and clambers on $s feet.", TRUE, ch, 0, 0, TO_ROOM);
-      GET_POS(ch) = POS_STANDING;
+      change_position(ch, POS_STANDING);
       /* Were they sitting in something. */
       char_from_furniture(ch);
       USE_MOVE_ACTION(ch);
@@ -2259,9 +2259,9 @@ ACMD(do_stand) {
 
       break;
     case POS_RECLINING:
-      send_to_char(ch, "You stop reclining, and stand up.\r\n");
-      act("$n stops reclining, and clambers on $s feet.", TRUE, ch, 0, 0, TO_ROOM);
-      GET_POS(ch) = POS_STANDING;
+      send_to_char(ch, "You hop from prone position to standing.\r\n");
+      act("$n hops from prone to standing on $s feet.", TRUE, ch, 0, 0, TO_ROOM);
+      change_position(ch, POS_STANDING);
       /* Were they sitting in something. */
       char_from_furniture(ch);
       USE_MOVE_ACTION(ch);
@@ -2280,7 +2280,7 @@ ACMD(do_stand) {
       send_to_char(ch, "You stop floating around, and put your feet on the ground.\r\n");
       act("$n stops floating around, and puts $s feet on the ground.",
           TRUE, ch, 0, 0, TO_ROOM);
-      GET_POS(ch) = POS_STANDING;
+      change_position(ch, POS_STANDING);
       break;
   }
 }
@@ -2305,7 +2305,7 @@ ACMD(do_sit) {
       if (found == 0) {
         send_to_char(ch, "You sit down.\r\n");
         act("$n sits down.", FALSE, ch, 0, 0, TO_ROOM);
-        GET_POS(ch) = POS_SITTING;
+        change_position(ch, POS_SITTING);
       } else {
         if (GET_OBJ_TYPE(furniture) != ITEM_FURNITURE) {
           send_to_char(ch, "You can't sit on that!\r\n");
@@ -2331,7 +2331,7 @@ ACMD(do_sit) {
           SITTING(ch) = furniture;
           NEXT_SITTING(ch) = NULL;
           GET_OBJ_VAL(furniture, 1) += 1;
-          GET_POS(ch) = POS_SITTING;
+          change_position(ch, POS_SITTING);
         }
       }
       break;
@@ -2341,24 +2341,24 @@ ACMD(do_sit) {
     case POS_RESTING:
       send_to_char(ch, "You stop resting, and sit up.\r\n");
       act("$n stops resting.", TRUE, ch, 0, 0, TO_ROOM);
-      GET_POS(ch) = POS_SITTING;
+      change_position(ch, POS_SITTING);
       break;
     case POS_RECLINING:
-      send_to_char(ch, "You stop reclining, and sit up.\r\n");
-      act("$n stops reclining and sits up.", TRUE, ch, 0, 0, TO_ROOM);
-      GET_POS(ch) = POS_SITTING;
+      send_to_char(ch, "You shift your body from prone to sitting up.\r\n");
+      act("$n shifts $s body from prone to sitting up.", TRUE, ch, 0, 0, TO_ROOM);
+      change_position(ch, POS_SITTING);
       break;
     case POS_SLEEPING:
       send_to_char(ch, "You have to wake up first.\r\n");
       break;
     case POS_FIGHTING:
       send_to_char(ch, "You drop down in a low squat!\r\n");
-      GET_POS(ch) = POS_SITTING;
+      change_position(ch, POS_SITTING);
       break;
     default:
       send_to_char(ch, "You stop floating around, and sit down.\r\n");
       act("$n stops floating around, and sits down.", TRUE, ch, 0, 0, TO_ROOM);
-      GET_POS(ch) = POS_SITTING;
+      change_position(ch, POS_SITTING);
       break;
   }
 }
@@ -2368,12 +2368,12 @@ ACMD(do_rest) {
     case POS_STANDING:
       send_to_char(ch, "You sit down and rest your tired bones.\r\n");
       act("$n sits down and rests.", TRUE, ch, 0, 0, TO_ROOM);
-      GET_POS(ch) = POS_RESTING;
+      change_position(ch, POS_RESTING);
       break;
     case POS_SITTING:
       send_to_char(ch, "You rest your tired bones.\r\n");
       act("$n rests.", TRUE, ch, 0, 0, TO_ROOM);
-      GET_POS(ch) = POS_RESTING;
+      change_position(ch, POS_RESTING);
       break;
     case POS_RESTING:
       send_to_char(ch, "You are already resting.\r\n");
@@ -2381,7 +2381,7 @@ ACMD(do_rest) {
     case POS_RECLINING:
       send_to_char(ch, "You sit up slowly.\r\n");
       act("$n sits up slowly.", TRUE, ch, 0, 0, TO_ROOM);
-      GET_POS(ch) = POS_RESTING;
+      change_position(ch, POS_RESTING);
       break;
     case POS_SLEEPING:
       send_to_char(ch, "You have to wake up first.\r\n");
@@ -2392,7 +2392,7 @@ ACMD(do_rest) {
     default:
       send_to_char(ch, "You stop floating around, and stop to rest your tired bones.\r\n");
       act("$n stops floating around, and rests.", FALSE, ch, 0, 0, TO_ROOM);
-      GET_POS(ch) = POS_RESTING;
+      change_position(ch, POS_RESTING);
       break;
   }
 }
@@ -2400,19 +2400,19 @@ ACMD(do_rest) {
 ACMD(do_recline) {
   switch (GET_POS(ch)) {
     case POS_STANDING:
-      send_to_char(ch, "You lay down and rest your tired bones.\r\n");
-      act("$n lays down and rests.", TRUE, ch, 0, 0, TO_ROOM);
-      GET_POS(ch) = POS_RECLINING;
+      send_to_char(ch, "You drop down to a prone position.\r\n");
+      act("$n drops down to a prone position.", TRUE, ch, 0, 0, TO_ROOM);
+      change_position(ch, POS_RECLINING);
       break;
     case POS_SITTING:
-      send_to_char(ch, "You shift to a lying position.\r\n");
-      act("$n shifts to a lying position.", TRUE, ch, 0, 0, TO_ROOM);
-      GET_POS(ch) = POS_RECLINING;
+      send_to_char(ch, "You shift to a prone position.\r\n");
+      act("$n shifts to a prone position.", TRUE, ch, 0, 0, TO_ROOM);
+      change_position(ch, POS_RECLINING);
       break;
     case POS_RESTING:
       send_to_char(ch, "You lie down and continue resting.\r\n");
       act("$n lays down.", TRUE, ch, 0, 0, TO_ROOM);
-      GET_POS(ch) = POS_RECLINING;
+      change_position(ch, POS_RECLINING);
       break;
     case POS_RECLINING:
       send_to_char(ch, "You are already reclining.\r\n");
@@ -2422,12 +2422,12 @@ ACMD(do_recline) {
       break;
     case POS_FIGHTING:
       send_to_char(ch, "You drop down to your stomach!\r\n");
-      GET_POS(ch) = POS_RECLINING;
+      change_position(ch, POS_RECLINING);
       break;
     default:
-      send_to_char(ch, "You stop floating around, and recline on the ground.\r\n");
-      act("$n stops floating around, and reclines.", FALSE, ch, 0, 0, TO_ROOM);
-      GET_POS(ch) = POS_RECLINING;
+      send_to_char(ch, "You stop floating around, and drop prone to the ground.\r\n");
+      act("$n stops floating around, and drops prone to the ground.", FALSE, ch, 0, 0, TO_ROOM);
+      change_position(ch, POS_RECLINING);
       break;
   }
 }
@@ -2440,7 +2440,7 @@ ACMD(do_sleep) {
     case POS_RECLINING:
       send_to_char(ch, "You go to sleep.\r\n");
       act("$n lies down and falls asleep.", TRUE, ch, 0, 0, TO_ROOM);
-      GET_POS(ch) = POS_SLEEPING;
+      change_position(ch, POS_SLEEPING);
       break;
     case POS_SLEEPING:
       send_to_char(ch, "You are already sound asleep.\r\n");
@@ -2452,7 +2452,7 @@ ACMD(do_sleep) {
       send_to_char(ch, "You stop floating around, and lie down to sleep.\r\n");
       act("$n stops floating around, and lie down to sleep.",
           TRUE, ch, 0, 0, TO_ROOM);
-      GET_POS(ch) = POS_SLEEPING;
+      change_position(ch, POS_SLEEPING);
       break;
   }
 }
@@ -2479,7 +2479,7 @@ ACMD(do_wake) {
     else {
       act("You wake $M up.", FALSE, ch, 0, vict, TO_CHAR);
       act("You are awakened by $n.", FALSE, ch, 0, vict, TO_VICT | TO_SLEEP);
-      GET_POS(vict) = POS_RECLINING;
+      change_position(ch, POS_RECLINING);
     }
     if (!self)
       return;
@@ -2491,7 +2491,7 @@ ACMD(do_wake) {
   else {
     send_to_char(ch, "You awaken.\r\n");
     act("$n awakens.", TRUE, ch, 0, 0, TO_ROOM);
-    GET_POS(ch) = POS_RECLINING;
+    change_position(ch, POS_RECLINING);
   }
 }
 
@@ -2536,3 +2536,326 @@ ACMD(do_follow) {
     }
   }
 }
+
+/* i put this here for reference */
+/*
+#define POS_DEAD       0	 //Position = dead 
+#define POS_MORTALLYW  1	 //Position = mortally wounded 
+#define POS_INCAP      2	 //Position = incapacitated 
+#define POS_STUNNED    3	 //Position = stunned	
+#define POS_SLEEPING   4	 //Position = sleeping 
+#define POS_RECLINING  5	 //Position = reclining 
+#define POS_RESTING    6	 //Position = resting	
+#define POS_SITTING    7	 //Position = sitting	
+#define POS_FIGHTING   8	 //Position = fighting 
+#define POS_STANDING   9	 //Position = standing 
+ */
+
+/* in: character, position change 
+   out: as of this writing, nothing yet 
+   function:  changing a position use to be just GET_POS(ch) = POS_X, but
+              that did not account for dynamic changes that would be connected 
+              to the change in position..  the classic example is the combat
+              maneuver TRIP, which would change your position from POS_STANDING to
+              POS_SITTING, if the victim is casting, then they should be -immediately-
+              interrupted.  */
+int change_position(struct char_data *ch, int new_position) {
+  int old_position = GET_POS(ch);
+  
+  /* this is really all that is going on here :P */
+  GET_POS(ch) = new_position;
+  
+  /* we will put some general checks for having your position changed */
+  
+  /* casting */
+  if (char_has_mud_event(ch, eCASTING) && GET_POS(ch) <= POS_SITTING) {
+    act("$n's spell is interrupted!", FALSE, ch, 0, 0,
+            TO_ROOM);
+    send_to_char(ch, "Your spell is aborted!\r\n");
+    resetCastingData(ch);
+  }  
+  
+  /* memorizing */
+  if (char_has_mud_event(ch, eMEMORIZING) && GET_POS(ch) != POS_RESTING) {
+    act("$n's preparations are aborted!", FALSE, ch, 0, 0,
+            TO_ROOM);
+    send_to_char(ch, "Your preparations are aborted!\r\n");
+    resetMemtimes(ch, -1); /* -1 means reset for all classes */
+  }
+  
+  /* end general checks */
+  
+  /* we set up some switches to account for -every- scenario of switches possible
+     this can create unique messages, etc */
+  switch (new_position) {
+    
+    case POS_DEAD:
+      switch (old_position) {
+        case POS_DEAD:
+          break;
+        case POS_MORTALLYW:
+          break;
+        case POS_INCAP:
+          break;
+        case POS_STUNNED:
+          break;
+        case POS_SLEEPING:
+          break;
+        case POS_RECLINING:
+          break;
+        case POS_RESTING:
+          break;
+        case POS_SITTING:
+          break;
+        case POS_FIGHTING:
+          break;
+        case POS_STANDING:
+          break;
+        default:break;
+      }
+      break;
+      
+    case POS_MORTALLYW:
+      switch (old_position) {
+        case POS_DEAD:
+          break;
+        case POS_MORTALLYW:
+          break;
+        case POS_INCAP:
+          break;
+        case POS_STUNNED:
+          break;
+        case POS_SLEEPING:
+          break;
+        case POS_RECLINING:
+          break;
+        case POS_RESTING:
+          break;
+        case POS_SITTING:
+          break;
+        case POS_FIGHTING:
+          break;
+        case POS_STANDING:
+          break;
+        default:break;
+      }
+      break;
+      
+    case POS_INCAP:
+      switch (old_position) {
+        case POS_DEAD:
+          break;
+        case POS_MORTALLYW:
+          break;
+        case POS_INCAP:
+          break;
+        case POS_STUNNED:
+          break;
+        case POS_SLEEPING:
+          break;
+        case POS_RECLINING:
+          break;
+        case POS_RESTING:
+          break;
+        case POS_SITTING:
+          break;
+        case POS_FIGHTING:
+          break;
+        case POS_STANDING:
+          break;
+        default:break;
+      }
+      break;
+      
+    case POS_STUNNED:
+      switch (old_position) {
+        case POS_DEAD:
+          break;
+        case POS_MORTALLYW:
+          break;
+        case POS_INCAP:
+          break;
+        case POS_STUNNED:
+          break;
+        case POS_SLEEPING:
+          break;
+        case POS_RECLINING:
+          break;
+        case POS_RESTING:
+          break;
+        case POS_SITTING:
+          break;
+        case POS_FIGHTING:
+          break;
+        case POS_STANDING:
+          break;
+        default:break;
+      }
+      break;
+      
+    case POS_SLEEPING:
+      switch (old_position) {
+        case POS_DEAD:
+          break;
+        case POS_MORTALLYW:
+          break;
+        case POS_INCAP:
+          break;
+        case POS_STUNNED:
+          break;
+        case POS_SLEEPING:
+          break;
+        case POS_RECLINING:
+          break;
+        case POS_RESTING:
+          break;
+        case POS_SITTING:
+          break;
+        case POS_FIGHTING:
+          break;
+        case POS_STANDING:
+          break;
+        default:break;
+      }
+      break;
+      
+    case POS_RECLINING:
+      switch (old_position) {
+        case POS_DEAD:
+          break;
+        case POS_MORTALLYW:
+          break;
+        case POS_INCAP:
+          break;
+        case POS_STUNNED:
+          break;
+        case POS_SLEEPING:
+          break;
+        case POS_RECLINING:
+          break;
+        case POS_RESTING:
+          break;
+        case POS_SITTING:
+          break;
+        case POS_FIGHTING:
+          break;
+        case POS_STANDING:
+          break;
+        default:break;
+      }
+      break;
+      
+    case POS_RESTING:
+      switch (old_position) {
+        case POS_DEAD:
+          break;
+        case POS_MORTALLYW:
+          break;
+        case POS_INCAP:
+          break;
+        case POS_STUNNED:
+          break;
+        case POS_SLEEPING:
+          break;
+        case POS_RECLINING:
+          break;
+        case POS_RESTING:
+          break;
+        case POS_SITTING:
+          break;
+        case POS_FIGHTING:
+          break;
+        case POS_STANDING:
+          break;
+        default:break;
+      }
+      break;
+      
+    case POS_SITTING:
+      switch (old_position) {
+        case POS_DEAD:
+          break;
+        case POS_MORTALLYW:
+          break;
+        case POS_INCAP:
+          break;
+        case POS_STUNNED:
+          break;
+        case POS_SLEEPING:
+          break;
+        case POS_RECLINING:
+          break;
+        case POS_RESTING:
+          break;
+        case POS_SITTING:
+          break;
+        case POS_FIGHTING:
+          break;
+        case POS_STANDING:
+          break;
+        default:break;
+      }
+      break;
+      
+    case POS_FIGHTING:
+      switch (old_position) {
+        case POS_DEAD:
+          break;
+        case POS_MORTALLYW:
+          break;
+        case POS_INCAP:
+          break;
+        case POS_STUNNED:
+          break;
+        case POS_SLEEPING:
+          break;
+        case POS_RECLINING:
+          break;
+        case POS_RESTING:
+          break;
+        case POS_SITTING:
+          break;
+        case POS_FIGHTING:
+          break;
+        case POS_STANDING:
+          break;
+        default:break;
+      }
+      break;
+      
+    case POS_STANDING:
+      switch (old_position) {
+        case POS_DEAD:
+          break;
+        case POS_MORTALLYW:
+          break;
+        case POS_INCAP:
+          break;
+        case POS_STUNNED:
+          break;
+        case POS_SLEEPING:
+          break;
+        case POS_RECLINING:
+          break;
+        case POS_RESTING:
+          break;
+        case POS_SITTING:
+          break;
+        case POS_FIGHTING:
+          break;
+        case POS_STANDING:
+          break;
+        default:break;
+      }
+      break;
+    default:break;
+  }
+  
+  /* we don't have a significant return value yet */
+  if (old_position == new_position)
+    return 0;
+  else
+    return 1;
+}
+
+/*EOF*/

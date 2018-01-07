@@ -2412,7 +2412,7 @@ ACMD(do_score) {
       break;
     case POS_SLEEPING: send_to_char(ch, "Sleeping\r\n");
       break;
-    case POS_RECLINING: send_to_char(ch, "Reclining\r\n");
+    case POS_RECLINING: send_to_char(ch, "Prone\r\n");
       break;
     case POS_RESTING: send_to_char(ch, "Resting\r\n");
       break;

@@ -819,19 +819,19 @@ void update_pos_dam(struct char_data *victim) {
 
   if (HAS_FEAT(victim, FEAT_DEATHLESS_FRENZY) && affected_by_spell(victim, SKILL_RAGE)) {
     if (GET_HIT(victim) <= -51)
-      GET_POS(victim) = POS_DEAD;
+      change_position(victim, POS_DEAD);
     else
       return;
   }
 
   if (GET_HIT(victim) <= -11)
-    GET_POS(victim) = POS_DEAD;
+    change_position(victim, POS_DEAD);
   else if (GET_HIT(victim) <= -6)
-    GET_POS(victim) = POS_MORTALLYW;
+    change_position(victim, POS_MORTALLYW);
   else if (GET_HIT(victim) <= -3)
-    GET_POS(victim) = POS_INCAP;
+    change_position(victim, POS_INCAP);
   else if (GET_HIT(victim) == 0)
-    GET_POS(victim) = POS_STUNNED;
+    change_position(victim, POS_STUNNED);
 
   else { // hp > 0
     if (GET_POS(victim) < POS_RESTING) {
@@ -840,7 +840,7 @@ void update_pos_dam(struct char_data *victim) {
         send_to_char(victim, "\tRYour sleep is disturbed!!\tn  ");
         GUI_CMBT_CLOSE(victim);
       }
-      GET_POS(victim) = POS_SITTING;
+      change_position(victim, POS_SITTING);
       GUI_CMBT_OPEN(victim);
       send_to_char(victim,
               "You instinctively shift from dangerous positioning to sitting...\r\n");
@@ -852,7 +852,7 @@ void update_pos(struct char_data *victim) {
 
   if (HAS_FEAT(victim, FEAT_DEATHLESS_FRENZY) && affected_by_spell(victim, SKILL_RAGE)) {
     if (GET_HIT(victim) <= -51)
-      GET_POS(victim) = POS_DEAD;
+      change_position(victim, POS_DEAD);
     else
       return;
   }
@@ -861,17 +861,17 @@ void update_pos(struct char_data *victim) {
     return;
 
   if (GET_HIT(victim) <= -11)
-    GET_POS(victim) = POS_DEAD;
+    change_position(victim, POS_DEAD);
   else if (GET_HIT(victim) <= -6)
-    GET_POS(victim) = POS_MORTALLYW;
+    change_position(victim, POS_MORTALLYW);
   else if (GET_HIT(victim) <= -3)
-    GET_POS(victim) = POS_INCAP;
+    change_position(victim, POS_INCAP);
   else if (GET_HIT(victim) == 0)
-    GET_POS(victim) = POS_STUNNED;
+    change_position(victim, POS_STUNNED);
 
     // hp > 0 , pos <= stunned
   else {
-    GET_POS(victim) = POS_RESTING;
+    change_position(victim, POS_RESTING);
     send_to_char(victim,
             "You find yourself in a resting position...\r\n");
   }
@@ -988,8 +988,8 @@ void stop_fighting(struct char_data *ch) {
   ch->next_fighting = NULL;
   FIGHTING(ch) = NULL;
   FIRING(ch) = 0;
-  if (GET_POS(ch) > POS_SITTING)
-    GET_POS(ch) = POS_STANDING;
+  if (GET_POS(ch) > POS_SITTING) /* in case they are position fighting */
+    change_position(ch, POS_STANDING);
   update_pos(ch);
 
   /* don't forget to remove the fight event! */
@@ -1254,7 +1254,7 @@ void raw_kill(struct char_data *ch, struct char_data *killer) {
   while (ch->affected) //remove affects
     affect_remove(ch, ch->affected);
 
-  // ordinary commands work in scripts -welcor
+  /* ordinary commands work in scripts -welcor */
   GET_POS(ch) = POS_STANDING;
   if (killer) {
     if (death_mtrigger(ch, killer))
@@ -1313,6 +1313,7 @@ void raw_kill_npc(struct char_data *ch, struct char_data *killer) {
   while (ch->affected)
     affect_remove(ch, ch->affected);
 
+  /* this is to get certain scripts to work (i believe) -zusuk */
   GET_POS(ch) = POS_STANDING;
 
   if (killer) {
@@ -3853,7 +3854,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
         /*fail*/else if (IS_INCORPOREAL(victim)) ;
         /*fail*/else if (MOB_FLAGGED(victim, MOB_NOBASH)) ;
         else { /*success!*/
-          GET_POS(victim) = POS_SITTING;
+          change_position(victim, POS_SITTING);
           act("\tyYou knock $N to the ground with your powerful blow!\tn", FALSE, ch, NULL, victim, TO_CHAR);
           act("\ty$n knocks you to the ground with $s powerful blow!\tn", FALSE, ch, NULL, victim, TO_VICT);
           act("\ty$n knocks $N to the ground with $s powerful blow!\tn", FALSE, ch, NULL, victim, TO_NOTVICT);
@@ -6908,7 +6909,7 @@ void perform_violence(struct char_data *ch, int phase) {
       GET_MOB_WAIT(ch) = 0;
       if ((GET_POS(ch) < POS_FIGHTING) && (GET_POS(ch) > POS_STUNNED) &&
           !AFF_FLAGGED(ch, AFF_PINNED) && GET_HIT(ch) > 0) {
-        GET_POS(ch) = POS_FIGHTING;
+        change_position(ch, POS_FIGHTING); /* this should be changed with event system since pos_fight is deprecated */
         attacks_of_opportunity(ch, 0);
         send_to_char(ch, "You scramble to your feet!\r\n");
         if (AFF_FLAGGED(ch, AFF_FLYING) || AFF_FLAGGED(ch, AFF_LEVITATE))
