@@ -120,7 +120,7 @@ ACMD(do_disabletrap) {
         act("...and is successful!", FALSE, ch, 0, 0, TO_ROOM);
         act("...and are successful!", FALSE, ch, 0, 0, TO_CHAR);
         exp = dc * dc * 100;
-        send_to_char(ch, "You receive %d experience points.\r\n", gain_exp(ch, exp));
+        send_to_char(ch, "You receive %d experience points.\r\n", gain_exp(ch, exp, GAIN_EXP_MODE_TRAP));
         extract_obj(trap);
       } else {
         act("...but fails.", FALSE, ch, 0, 0, TO_ROOM);
@@ -156,7 +156,7 @@ int perform_detecttrap(struct char_data *ch, bool silent) {
         act("You have detected a \tRtrap\tn!", FALSE, ch, 0, 0, TO_CHAR);
         set_trap_detected(trap);
         exp = dc * 100;
-        send_to_char(ch, "You receive %d experience points.\r\n", gain_exp(ch, exp));
+        send_to_char(ch, "You receive %d experience points.\r\n", gain_exp(ch, exp, GAIN_EXP_MODE_TRAP));
         return 1;
       }
     }

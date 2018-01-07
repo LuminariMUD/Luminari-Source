@@ -705,7 +705,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
             if (subfield && *subfield) {
               int addition = MIN(atoi(subfield), 1000);
 
-              gain_exp(c, addition);
+              gain_exp(c, addition, GAIN_EXP_MODE_SCRIPT);
             }
             snprintf(str, slen, "%d", GET_EXP(c));
           }

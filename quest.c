@@ -368,17 +368,18 @@ void complete_quest(struct char_data *ch) {
 
   /* any xp points reward in this quest? */
   if (QST_EXP(rnum)) {
-    gain_exp(ch, QST_EXP(rnum));
     if ((IS_HAPPYHOUR) && (IS_HAPPYEXP)) {
       happy_exp = (int) (QST_EXP(rnum) * (((float) (100 + HAPPY_EXP)) / (float) 100));
       happy_exp = MAX(happy_exp, 0);
       send_to_char(ch,
               "You have been awarded %d \tBexperience\tn for your service.\r\n\r\n",
               happy_exp);
+      gain_exp(ch, happy_exp, GAIN_EXP_MODE_QUEST);
     } else {
       send_to_char(ch,
               "You have been awarded %d \tBexperience\tn points for your service.\r\n\r\n",
               QST_EXP(rnum));
+      gain_exp(ch, QST_EXP(rnum), GAIN_EXP_MODE_QUEST);
     }
   }
 

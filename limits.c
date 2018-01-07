@@ -703,8 +703,8 @@ void run_autowiz(void) {
 #define NEWBIE_EXP               150
 #define MIN_NUM_MOBS_TO_KILL     10
 #define MIN_NUM_MOBS_TO_KILL_10  25
-#define MIN_NUM_MOBS_TO_KILL_20  100
-int gain_exp(struct char_data *ch, int gain) {
+#define MIN_NUM_MOBS_TO_KILL_20  125
+int gain_exp(struct char_data *ch, int gain, int mode) {
   int xp_to_lvl = 0;
   int gain_cap = 0;
 
@@ -736,15 +736,33 @@ int gain_exp(struct char_data *ch, int gain) {
     }
 
     /* some limited xp cap conditions */
-    xp_to_lvl = level_exp(ch, GET_LEVEL(ch) + 1) - level_exp(ch, GET_LEVEL(ch));
-    if (GET_LEVEL(ch) < 11) {
-      gain_cap = xp_to_lvl / MIN_NUM_MOBS_TO_KILL;
-    } else if (GET_LEVEL(ch) < 21) {
-      gain_cap = xp_to_lvl / MIN_NUM_MOBS_TO_KILL_10;
-    } else {
-      gain_cap = xp_to_lvl / MIN_NUM_MOBS_TO_KILL_20;
+    switch (mode) {   
+        /* quest, script xp not limited here */
+      case GAIN_EXP_MODE_QUEST:
+      case GAIN_EXP_MODE_SCRIPT:
+      case GAIN_EXP_MODE_DEATH: /* should be negative and not get here! */
+        break;
+      case GAIN_EXP_MODE_DEFAULT:
+      case GAIN_EXP_MODE_CRAFT:
+      case GAIN_EXP_MODE_GROUP:
+      case GAIN_EXP_MODE_SOLO:
+      case GAIN_EXP_MODE_DAMAGE:
+      case GAIN_EXP_MODE_EDRAIN:
+      case GAIN_EXP_MODE_DUMP:
+      case GAIN_EXP_MODE_TRAP:
+      default:
+        xp_to_lvl = level_exp(ch, GET_LEVEL(ch) + 1) - level_exp(ch, GET_LEVEL(ch));
+        if (GET_LEVEL(ch) < 11) {
+          gain_cap = xp_to_lvl / MIN_NUM_MOBS_TO_KILL;
+        } else if (GET_LEVEL(ch) < 21) {
+          gain_cap = xp_to_lvl / MIN_NUM_MOBS_TO_KILL_10;
+        } else {
+          gain_cap = xp_to_lvl / MIN_NUM_MOBS_TO_KILL_20;
+        }
+        gain = MIN(gain_cap, gain);
+        break;
     }
-    gain = MIN(gain_cap, gain);
+
 
     /* put an absolute cap on the max gain per kill */
     gain = MIN(CONFIG_MAX_EXP_GAIN, gain);
