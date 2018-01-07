@@ -798,7 +798,7 @@ void destroy_db(void) {
 /* body of the booting system */
 void boot_db(void) {
   zone_rnum i = 0;
-
+  char *buf1; /* strip color off zone names */
 
   log("Boot db -- BEGIN.");
 
@@ -934,8 +934,10 @@ void boot_db(void) {
 #endif
 
   for (i = 0; i <= top_of_zone_table; i++) {
+    buf1 = zone_table[i].name;
+    strip_colors(buf);
     log("Resetting #%d: %s (rooms %d-%d).", zone_table[i].number,
-            zone_table[i].name, zone_table[i].bot, zone_table[i].top);
+            buf, zone_table[i].bot, zone_table[i].top);
     reset_zone(i);
   }
 
