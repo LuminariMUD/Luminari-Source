@@ -4900,6 +4900,10 @@ void show_hints(void) {
     if (PRF_FLAGGED(ch, PRF_NOHINT))
       continue;
 
+    /* player is in a menu */
+    if (PLR_FLAGGED(ch, PLR_WRITING))
+      continue;
+    
     send_to_char(ch, hints[roll]);
   }
 }
