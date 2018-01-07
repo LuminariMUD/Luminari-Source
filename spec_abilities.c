@@ -37,13 +37,13 @@ struct special_ability_info_type armor_special_ability_info[NUM_ARMOR_SPECABS];
 
 const char *unused_specabname = "!UNUSED!"; /* So we can get &unused_specabname */
 
-const char *activation_methods[NUM_ACTIVATION_METHODS + 1] = { "None",
-                                                               "On Wear",
-                                                               "On Use",
-                                                               "Command Word",
-                                                               "On Hit",
-                                                               "On Crit",
-                                                               "\n" };
+const char *activation_methods[NUM_ACTIVATION_METHODS + 1] = {"None",
+  "On Wear",
+  "On Use",
+  "Command Word",
+  "On Hit",
+  "On Crit",
+  "\n"};
 
 /* Procedures for loading and managing the special abilities on boot. */
 static void add_weapon_special_ability(int specab, const char *name, int level, int actmtd, int targets, int violent, int time, int school, int cost, SPECAB_PROC_DEF(specab_proc)) {
@@ -124,103 +124,103 @@ void initialize_special_abilities(void) {
     add_unused_armor_special_ability(i);
   /* Do not change the loops above. */
 
-  add_weapon_special_ability( WEAPON_SPECAB_ANARCHIC, "Anarchic", 7, ACTMTD_NONE,
-    TAR_IGNORE, FALSE, 0, EVOCATION, 2, NULL);
+  add_weapon_special_ability(WEAPON_SPECAB_ANARCHIC, "Anarchic", 7, ACTMTD_NONE,
+          TAR_IGNORE, FALSE, 0, EVOCATION, 2, NULL);
 
-  add_weapon_special_ability( WEAPON_SPECAB_AXIOMATIC, "Axiomatic", 7, ACTMTD_NONE,
-    TAR_IGNORE, FALSE, 0, EVOCATION, 2, NULL);
+  add_weapon_special_ability(WEAPON_SPECAB_AXIOMATIC, "Axiomatic", 7, ACTMTD_NONE,
+          TAR_IGNORE, FALSE, 0, EVOCATION, 2, NULL);
 
-  add_weapon_special_ability( WEAPON_SPECAB_BANE, "Bane", 8, ACTMTD_ON_HIT|ACTMTD_ON_CRIT,
-    TAR_FIGHT_VICT, FALSE, 0, CONJURATION, 1, weapon_specab_bane);
+  add_weapon_special_ability(WEAPON_SPECAB_BANE, "Bane", 8, ACTMTD_ON_HIT | ACTMTD_ON_CRIT,
+          TAR_FIGHT_VICT, FALSE, 0, CONJURATION, 1, weapon_specab_bane);
 
-  add_weapon_special_ability( WEAPON_SPECAB_BRILLIANT_ENERGY, "Brilliant Energy", 16, ACTMTD_NONE,
-    TAR_IGNORE, FALSE, 0, TRANSMUTATION, 4, NULL);
+  add_weapon_special_ability(WEAPON_SPECAB_BRILLIANT_ENERGY, "Brilliant Energy", 16, ACTMTD_NONE,
+          TAR_IGNORE, FALSE, 0, TRANSMUTATION, 4, NULL);
 
-  add_weapon_special_ability( WEAPON_SPECAB_DANCING, "Dancing", 15, ACTMTD_NONE,
-    TAR_IGNORE, FALSE, 0, TRANSMUTATION, 4, NULL);
+  add_weapon_special_ability(WEAPON_SPECAB_DANCING, "Dancing", 15, ACTMTD_NONE,
+          TAR_IGNORE, FALSE, 0, TRANSMUTATION, 4, NULL);
 
-  add_weapon_special_ability( WEAPON_SPECAB_DEFENDING, "Defending", 8, ACTMTD_NONE,
-    TAR_IGNORE, FALSE, 0, ABJURATION, 1, NULL);
+  add_weapon_special_ability(WEAPON_SPECAB_DEFENDING, "Defending", 8, ACTMTD_NONE,
+          TAR_IGNORE, FALSE, 0, ABJURATION, 1, NULL);
 
-  add_weapon_special_ability( WEAPON_SPECAB_DISRUPTION, "Disruption", 14,  ACTMTD_NONE,
-    TAR_IGNORE, FALSE, 0, CONJURATION, 2, NULL);
+  add_weapon_special_ability(WEAPON_SPECAB_DISRUPTION, "Disruption", 14, ACTMTD_NONE,
+          TAR_IGNORE, FALSE, 0, CONJURATION, 2, NULL);
 
-  add_weapon_special_ability( WEAPON_SPECAB_DISTANCE, "Distance", 6, ACTMTD_NONE,
-    TAR_IGNORE, FALSE, 0, DIVINATION, 1, NULL);
+  add_weapon_special_ability(WEAPON_SPECAB_DISTANCE, "Distance", 6, ACTMTD_NONE,
+          TAR_IGNORE, FALSE, 0, DIVINATION, 1, NULL);
 
-  add_weapon_special_ability( WEAPON_SPECAB_FLAMING, "Flaming", 10, ACTMTD_ON_HIT|ACTMTD_COMMAND_WORD,
-    TAR_IGNORE, FALSE, 0, EVOCATION, 1, weapon_specab_flaming);
+  add_weapon_special_ability(WEAPON_SPECAB_FLAMING, "Flaming", 10, ACTMTD_ON_HIT | ACTMTD_COMMAND_WORD,
+          TAR_IGNORE, FALSE, 0, EVOCATION, 1, weapon_specab_flaming);
 
-  add_weapon_special_ability( WEAPON_SPECAB_FLAMING_BURST, "Flaming Burst", 12, ACTMTD_ON_HIT|ACTMTD_ON_CRIT|ACTMTD_COMMAND_WORD,
-    TAR_IGNORE, FALSE, 0, EVOCATION, 2, weapon_specab_flaming_burst);
+  add_weapon_special_ability(WEAPON_SPECAB_FLAMING_BURST, "Flaming Burst", 12, ACTMTD_ON_HIT | ACTMTD_ON_CRIT | ACTMTD_COMMAND_WORD,
+          TAR_IGNORE, FALSE, 0, EVOCATION, 2, weapon_specab_flaming_burst);
 
-  add_weapon_special_ability( WEAPON_SPECAB_FROST, "Frost", 8, ACTMTD_ON_HIT|ACTMTD_ON_CRIT|ACTMTD_COMMAND_WORD,
-    TAR_IGNORE, FALSE, 0, EVOCATION, 1, weapon_specab_frost);
+  add_weapon_special_ability(WEAPON_SPECAB_FROST, "Frost", 8, ACTMTD_ON_HIT | ACTMTD_ON_CRIT | ACTMTD_COMMAND_WORD,
+          TAR_IGNORE, FALSE, 0, EVOCATION, 1, weapon_specab_frost);
 
-  add_weapon_special_ability( WEAPON_SPECAB_GHOST_TOUCH, "Ghost Touch", 9, ACTMTD_NONE,
-    TAR_IGNORE, FALSE, 0, CONJURATION, 1, NULL);
+  add_weapon_special_ability(WEAPON_SPECAB_GHOST_TOUCH, "Ghost Touch", 9, ACTMTD_NONE,
+          TAR_IGNORE, FALSE, 0, CONJURATION, 1, NULL);
 
-  add_weapon_special_ability( WEAPON_SPECAB_HOLY, "Holy", 7, ACTMTD_NONE,
-    TAR_IGNORE, FALSE, 0, EVOCATION, 2, NULL);
+  add_weapon_special_ability(WEAPON_SPECAB_HOLY, "Holy", 7, ACTMTD_NONE,
+          TAR_IGNORE, FALSE, 0, EVOCATION, 2, NULL);
 
-  add_weapon_special_ability( WEAPON_SPECAB_ICY_BURST, "Icy Burst", 10, ACTMTD_NONE,
-    TAR_IGNORE, FALSE, 0, EVOCATION, 2, NULL);
+  add_weapon_special_ability(WEAPON_SPECAB_ICY_BURST, "Icy Burst", 10, ACTMTD_NONE,
+          TAR_IGNORE, FALSE, 0, EVOCATION, 2, NULL);
 
-  add_weapon_special_ability( WEAPON_SPECAB_KEEN, "Keen", 10, ACTMTD_NONE,
-    TAR_IGNORE, FALSE, 0, TRANSMUTATION, 1, NULL);
+  add_weapon_special_ability(WEAPON_SPECAB_KEEN, "Keen", 10, ACTMTD_NONE,
+          TAR_IGNORE, FALSE, 0, TRANSMUTATION, 1, NULL);
 
-  add_weapon_special_ability( WEAPON_SPECAB_KI_FOCUS, "Ki Focus", 8, ACTMTD_NONE,
-    TAR_IGNORE, FALSE, 0, TRANSMUTATION, 1, NULL);
+  add_weapon_special_ability(WEAPON_SPECAB_KI_FOCUS, "Ki Focus", 8, ACTMTD_NONE,
+          TAR_IGNORE, FALSE, 0, TRANSMUTATION, 1, NULL);
 
-  add_weapon_special_ability( WEAPON_SPECAB_MERCIFUL, "Merciful", 5, ACTMTD_NONE,
-    TAR_IGNORE, FALSE, 0, CONJURATION, 1, NULL);
+  add_weapon_special_ability(WEAPON_SPECAB_MERCIFUL, "Merciful", 5, ACTMTD_NONE,
+          TAR_IGNORE, FALSE, 0, CONJURATION, 1, NULL);
 
-  add_weapon_special_ability( WEAPON_SPECAB_MIGHTY_CLEAVING, "Mighty Cleaving", 8, ACTMTD_NONE,
-    TAR_IGNORE, FALSE, 0, EVOCATION, 1, NULL);
+  add_weapon_special_ability(WEAPON_SPECAB_MIGHTY_CLEAVING, "Mighty Cleaving", 8, ACTMTD_NONE,
+          TAR_IGNORE, FALSE, 0, EVOCATION, 1, NULL);
 
-  add_weapon_special_ability( WEAPON_SPECAB_RETURNING, "Returning", 7, ACTMTD_NONE,
-    TAR_IGNORE, FALSE, 0, TRANSMUTATION, 1, NULL);
+  add_weapon_special_ability(WEAPON_SPECAB_RETURNING, "Returning", 7, ACTMTD_NONE,
+          TAR_IGNORE, FALSE, 0, TRANSMUTATION, 1, NULL);
 
-  add_weapon_special_ability( WEAPON_SPECAB_SEEKING, "Seeking", 12, ACTMTD_NONE,
-    TAR_IGNORE, FALSE, 0, DIVINATION, 1, NULL);
+  add_weapon_special_ability(WEAPON_SPECAB_SEEKING, "Seeking", 12, ACTMTD_NONE,
+          TAR_IGNORE, FALSE, 0, DIVINATION, 1, NULL);
 
-  add_weapon_special_ability( WEAPON_SPECAB_SHOCK, "Shock", 8, ACTMTD_NONE,
-    TAR_IGNORE, FALSE, 0, EVOCATION, 1, NULL);
+  add_weapon_special_ability(WEAPON_SPECAB_SHOCK, "Shock", 8, ACTMTD_NONE,
+          TAR_IGNORE, FALSE, 0, EVOCATION, 1, NULL);
 
-  add_weapon_special_ability( WEAPON_SPECAB_SHOCKING_BURST, "Shocking Burst", 9, ACTMTD_NONE,
-    TAR_IGNORE, FALSE, 0, EVOCATION, 2, NULL);
+  add_weapon_special_ability(WEAPON_SPECAB_SHOCKING_BURST, "Shocking Burst", 9, ACTMTD_NONE,
+          TAR_IGNORE, FALSE, 0, EVOCATION, 2, NULL);
 
-  add_weapon_special_ability( WEAPON_SPECAB_SPEED, "Speed", 7, ACTMTD_NONE,
-    TAR_IGNORE, FALSE, 0, TRANSMUTATION, 3, NULL);
+  add_weapon_special_ability(WEAPON_SPECAB_SPEED, "Speed", 7, ACTMTD_NONE,
+          TAR_IGNORE, FALSE, 0, TRANSMUTATION, 3, NULL);
 
-  add_weapon_special_ability( WEAPON_SPECAB_SPELL_STORING, "Spell Storing", 12, ACTMTD_NONE,
-    TAR_IGNORE, FALSE, 0, EVOCATION, 1, NULL);
+  add_weapon_special_ability(WEAPON_SPECAB_SPELL_STORING, "Spell Storing", 12, ACTMTD_NONE,
+          TAR_IGNORE, FALSE, 0, EVOCATION, 1, NULL);
 
-  add_weapon_special_ability( WEAPON_SPECAB_THUNDERING, "Thundering", 5, ACTMTD_NONE,
-    TAR_IGNORE, FALSE, 0, NECROMANCY, 1, NULL);
+  add_weapon_special_ability(WEAPON_SPECAB_THUNDERING, "Thundering", 5, ACTMTD_NONE,
+          TAR_IGNORE, FALSE, 0, NECROMANCY, 1, NULL);
 
-  add_weapon_special_ability( WEAPON_SPECAB_THROWING, "Throwing", 5, ACTMTD_NONE,
-    TAR_IGNORE, FALSE, 0, TRANSMUTATION, 1, NULL);
+  add_weapon_special_ability(WEAPON_SPECAB_THROWING, "Throwing", 5, ACTMTD_NONE,
+          TAR_IGNORE, FALSE, 0, TRANSMUTATION, 1, NULL);
 
-  add_weapon_special_ability( WEAPON_SPECAB_UNHOLY, "Unholy", 7, ACTMTD_NONE,
-    TAR_IGNORE, FALSE, 0, EVOCATION, 2, NULL);
+  add_weapon_special_ability(WEAPON_SPECAB_UNHOLY, "Unholy", 7, ACTMTD_NONE,
+          TAR_IGNORE, FALSE, 0, EVOCATION, 2, NULL);
 
-  add_weapon_special_ability( WEAPON_SPECAB_VICIOUS, "Vicious", 9, ACTMTD_NONE,
-    TAR_IGNORE, FALSE, 0, NECROMANCY, 1, NULL);
+  add_weapon_special_ability(WEAPON_SPECAB_VICIOUS, "Vicious", 9, ACTMTD_NONE,
+          TAR_IGNORE, FALSE, 0, NECROMANCY, 1, NULL);
 
-  add_weapon_special_ability( WEAPON_SPECAB_VORPAL, "Vorpal", 18, ACTMTD_NONE,
-    TAR_IGNORE, FALSE, 0, NECROMANCY /* TRANSMUTATION TOO */, 5, NULL);
+  add_weapon_special_ability(WEAPON_SPECAB_VORPAL, "Vorpal", 18, ACTMTD_NONE,
+          TAR_IGNORE, FALSE, 0, NECROMANCY /* TRANSMUTATION TOO */, 5, NULL);
 
-  add_weapon_special_ability( WEAPON_SPECAB_WOUNDING, "Wounding", 10, ACTMTD_NONE,
-    TAR_IGNORE, FALSE, 0, EVOCATION, 2, NULL);
+  add_weapon_special_ability(WEAPON_SPECAB_WOUNDING, "Wounding", 10, ACTMTD_NONE,
+          TAR_IGNORE, FALSE, 0, EVOCATION, 2, NULL);
 
 }
 
 bool obj_has_special_ability(struct obj_data *obj, int ability) {
   struct obj_special_ability *specab = NULL;
 
-  for(specab = obj->special_abilities; specab != NULL; specab = specab->next) {
-    if(specab->ability == ability)
+  for (specab = obj->special_abilities; specab != NULL; specab = specab->next) {
+    if (specab->ability == ability)
       return TRUE;
   }
 
@@ -230,8 +230,8 @@ bool obj_has_special_ability(struct obj_data *obj, int ability) {
 struct obj_special_ability* get_obj_special_ability(struct obj_data *obj, int ability) {
   struct obj_special_ability *specab = NULL;
 
-  for(specab = obj->special_abilities; specab != NULL; specab = specab->next) {
-    if(specab->ability == ability)
+  for (specab = obj->special_abilities; specab != NULL; specab = specab->next) {
+    if (specab->ability == ability)
       return specab;
   }
 
@@ -240,25 +240,24 @@ struct obj_special_ability* get_obj_special_ability(struct obj_data *obj, int ab
 }
 
 /* Returns the number of activated abilites. */
-int  process_weapon_abilities(struct obj_data  *weapon, /* The weapon to check for special abilities. */
-                              struct char_data *ch,     /* The wielder of the weapon. */
-                              struct char_data *victim, /* The target of the ability (either fighting or
+int process_weapon_abilities(struct obj_data *weapon, /* The weapon to check for special abilities. */
+        struct char_data *ch, /* The wielder of the weapon. */
+        struct char_data *victim, /* The target of the ability (either fighting or
 							 * specified explicitly. */
-                              int    actmtd,            /* Activation method */
-                              char   *cmdword)          /* Command word (optional, NULL if none. */
-
-{
+        int actmtd, /* Activation method */
+        char *cmdword) /* Command word (optional, NULL if none. */
+ {
   int activated_abilities = 0;
   struct obj_special_ability *specab; /* struct for iterating through the object's abilities. */
   /* Run the 'callbacks' for each of the special abilities on weapon that match the activation method. */
-  for( specab = weapon->special_abilities; specab != NULL; specab = specab->next) {
+  for (specab = weapon->special_abilities; specab != NULL; specab = specab->next) {
     /* So we have an ability, check the activation method. */
-    if(IS_SET(specab->activation_method, actmtd)) { /* Match! */
-      if(actmtd == ACTMTD_COMMAND_WORD) { /* check the command word */
-        if(strcmp(specab->command_word, cmdword)) /* No Match */
+    if (IS_SET(specab->activation_method, actmtd)) { /* Match! */
+      if (actmtd == ACTMTD_COMMAND_WORD) { /* check the command word */
+        if (strcmp(specab->command_word, cmdword)) /* No Match */
           continue; /* Skip this ability, no match. */
       }
-      if(weapon_special_ability_info[specab->ability].special_ability_proc == NULL) {
+      if (weapon_special_ability_info[specab->ability].special_ability_proc == NULL) {
         log("SYSERR: PROCESS_WEAPON_ABILITIES: ability '%s' has no callback function!", weapon_special_ability_info[specab->ability].name);
         continue;
       }
@@ -279,16 +278,16 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_flaming) {
    * victim
    * obj
    */
-  switch(actmtd) {
+  switch (actmtd) {
     case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
-    case ACTMTD_USE:          /* User USEs the item. */
+    case ACTMTD_USE: /* User USEs the item. */
       /* Activate the flaming ability.
        *  - Set the FLAMING bit on the weapon (this affects the display,
        *    and is used to toggle the effect.)
        */
-      if(OBJ_FLAGGED(weapon, ITEM_FLAMING)) {
+      if (OBJ_FLAGGED(weapon, ITEM_FLAMING)) {
         /* Flaming is on, turn it off. */
-        send_to_char(ch,"The magical flames wreathing your weapon vanish.\r\n");
+        send_to_char(ch, "The magical flames wreathing your weapon vanish.\r\n");
         act("The magical flames wreathing $n's $o vanish.", FALSE, ch, weapon, NULL, TO_ROOM);
 
         REMOVE_OBJ_FLAG(weapon, ITEM_FLAMING);
@@ -301,13 +300,13 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_flaming) {
       }
       break;
     case ACTMTD_ON_HIT: /* Called whenever a weapon hits an enemy. */
-      if(OBJ_FLAGGED(weapon, ITEM_FLAMING))  /* Burn 'em. */
+      if (OBJ_FLAGGED(weapon, ITEM_FLAMING)) /* Burn 'em. */
         if (victim) {
           damage(ch, victim, dice(1, 6), TYPE_SPECAB_FLAMING, DAM_FIRE, FALSE);
         }
       break;
-    case ACTMTD_ON_CRIT:  /* Called whenever a weapon hits critically. */
-    case ACTMTD_WEAR:     /* Called whenever the item is worn. */
+    case ACTMTD_ON_CRIT: /* Called whenever a weapon hits critically. */
+    case ACTMTD_WEAR: /* Called whenever the item is worn. */
     default:
       /* Do nothing. */
       break;
@@ -324,16 +323,16 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_flaming_burst) {
    * victim
    * obj
    */
-  switch(actmtd) {
+  switch (actmtd) {
     case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
-    case ACTMTD_USE:          /* User USEs the item. */
+    case ACTMTD_USE: /* User USEs the item. */
       /* Activate the flaming ability.
        *  - Set the FLAMING bit on the weapon (this affects the display,
        *    and is used to toggle the effect.)
        */
-      if(OBJ_FLAGGED(weapon, ITEM_FLAMING)) {
+      if (OBJ_FLAGGED(weapon, ITEM_FLAMING)) {
         /* Flaming is on, turn it off. */
-        send_to_char(ch,"The magical flames wreathing your weapon vanish.\r\n");
+        send_to_char(ch, "The magical flames wreathing your weapon vanish.\r\n");
         act("The magical flames wreathing $n's $o vanish.", FALSE, ch, weapon, NULL, TO_ROOM);
 
         REMOVE_OBJ_FLAG(weapon, ITEM_FLAMING);
@@ -346,7 +345,7 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_flaming_burst) {
       }
       break;
     case ACTMTD_ON_HIT: /* Called whenever a weapon hits an enemy. */
-      if(OBJ_FLAGGED(weapon, ITEM_FLAMING))  /* Burn 'em. */
+      if (OBJ_FLAGGED(weapon, ITEM_FLAMING)) /* Burn 'em. */
         if (victim) {
           /*send_to_char(ch, "\tr[spcab]\tn");*/
           damage(ch, victim, dice(1, 6), TYPE_SPECAB_FLAMING, DAM_FIRE, FALSE);
@@ -354,7 +353,7 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_flaming_burst) {
       break;
     case ACTMTD_ON_CRIT: /* Called whenever a weapon hits critically. */
       /* We don't care if the flaming property is active, it bursts anyway! */
-      if(victim) {
+      if (victim) {
         /* send_to_char(ch,"\tr[burst]\tn");*/
         damage(ch, victim, dice(1, 10), TYPE_SPECAB_FLAMING_BURST, DAM_FIRE, FALSE);
       }
@@ -375,20 +374,20 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_bane) {
    * victim
    * obj
    */
-  switch(actmtd) {
+  switch (actmtd) {
     case ACTMTD_ON_HIT: /* Called whenever a weapon hits an enemy. */
-    if((dice(1,6) > 4) && ((GET_RACE(victim) == specab->value[0]) && (HAS_SUBRACE(victim, specab->value[1])))) {
+      if ((dice(1, 6) > 4) && ((GET_RACE(victim) == specab->value[0]) && (HAS_SUBRACE(victim, specab->value[1])))) {
 
-     act("Your $o hums happily as you fight $N!", FALSE, ch, weapon, victim, TO_CHAR);
-     act("$n's $o hums happily as $e fights you!", FALSE, ch, weapon, victim, TO_VICT);
-     act("$n's $o hums happily as $e fights $N!", FALSE, ch, weapon, victim, TO_NOTVICT);
-    }
-    break;
+        act("Your $o hums happily as you fight $N!", FALSE, ch, weapon, victim, TO_CHAR);
+        act("$n's $o hums happily as $e fights you!", FALSE, ch, weapon, victim, TO_VICT);
+        act("$n's $o hums happily as $e fights $N!", FALSE, ch, weapon, victim, TO_NOTVICT);
+      }
+      break;
     case ACTMTD_ON_CRIT: /* Called whenever a weapon hits critically. */
-    if((GET_RACE(victim) == specab->value[0]) && (HAS_SUBRACE(victim, specab->value[1]))) {
-     act("Waves of pleasure course into you from your $o as you strike $N!", FALSE, ch, weapon, victim, TO_CHAR);
-    }
-    break;
+      if ((GET_RACE(victim) == specab->value[0]) && (HAS_SUBRACE(victim, specab->value[1]))) {
+        act("Waves of pleasure course into you from your $o as you strike $N!", FALSE, ch, weapon, victim, TO_CHAR);
+      }
+      break;
     default:
       /* Do nothing. */
       break;
@@ -405,16 +404,16 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_frost) {
    * victim
    * obj
    */
-  switch(actmtd) {
+  switch (actmtd) {
     case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
-    case ACTMTD_USE:          /* User USEs the item. */
+    case ACTMTD_USE: /* User USEs the item. */
       /* Activate the flaming ability.
        *  - Set the FROST bit on the weapon (this affects the display,
        *    and is used to toggle the effect.)
        */
-      if(OBJ_FLAGGED(weapon, ITEM_FROST)) {
+      if (OBJ_FLAGGED(weapon, ITEM_FROST)) {
         /* Flaming is on, turn it off. */
-        send_to_char(ch,"The magical frost sheathing your weapon vanishes.\r\n");
+        send_to_char(ch, "The magical frost sheathing your weapon vanishes.\r\n");
         act("The magical frost sheathing $n's $o vanishes.", FALSE, ch, weapon, NULL, TO_ROOM);
 
         REMOVE_OBJ_FLAG(weapon, ITEM_FROST);
@@ -427,13 +426,13 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_frost) {
       }
       break;
     case ACTMTD_ON_HIT: /* Called whenever a weapon hits an enemy. */
-      if(OBJ_FLAGGED(weapon, ITEM_FROST))  /* Freeze 'em. */
+      if (OBJ_FLAGGED(weapon, ITEM_FROST)) /* Freeze 'em. */
         if (victim) {
           damage(ch, victim, dice(1, 6), TYPE_SPECAB_FROST, DAM_COLD, FALSE);
         }
       break;
-    case ACTMTD_ON_CRIT:  /* Called whenever a weapon hits critically. */
-    case ACTMTD_WEAR:     /* Called whenever the item is worn. */
+    case ACTMTD_ON_CRIT: /* Called whenever a weapon hits critically. */
+    case ACTMTD_WEAR: /* Called whenever the item is worn. */
     default:
       /* Do nothing. */
       break;
