@@ -1656,8 +1656,14 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
 
   /* Check to see if the victim is affected by an AURA OF COURAGE */
   bool has_aura_of_courage = FALSE;
-  if (GROUP(k) != NULL) {
-    while ((tch = (struct char_data *) simple_list(GROUP(k)->members)) != NULL) {
+  //  if (GROUP(k) != NULL) {
+  //    while ((tch = (struct char_data *) simple_list(GROUP(k)->members)) != NULL) {
+
+  if (GROUP(k) && GROUP(k)->members && GROUP(k)->members->iSize) {
+    struct iterator_data Iterator;
+
+    tch = (struct char_data *) merge_iterator(&Iterator, GROUP(k)->members);
+    for (; tch; tch = next_in_list(&Iterator)) {
       if (IN_ROOM(tch) != IN_ROOM(k))
         continue;
       if (HAS_FEAT(tch, FEAT_AURA_OF_COURAGE)) {
@@ -1666,16 +1672,18 @@ void perform_affects(struct char_data *ch, struct char_data *k) {
         break;
       }
     }
-    if (has_aura_of_courage) {
-      send_to_char(ch, "Aura of Courage (bonus resistance against fear-affects)\r\n");
-    }
+    remove_iterator(&Iterator);
+  }
+
+  if (has_aura_of_courage) {
+    send_to_char(ch, "Aura of Courage (bonus resistance against fear-affects)\r\n");
   }
 
   /* salvation */
-  if (CLASS_LEVEL(ch, CLASS_CLERIC) >= 14) {
-    if (PLR_FLAGGED(ch, PLR_SALVATION)) {
-      if (GET_SALVATION_NAME(ch) != NULL) {
-        send_to_char(ch, "Salvation:  Set at %s\r\n", GET_SALVATION_NAME(ch));
+  if (CLASS_LEVEL(k, CLASS_CLERIC) >= 14) {
+    if (PLR_FLAGGED(k, PLR_SALVATION)) {
+      if (GET_SALVATION_NAME(k) != NULL) {
+        send_to_char(ch, "Salvation:  Set at %s\r\n", GET_SALVATION_NAME(k));
       } else {
         send_to_char(ch, "Salvation:  Not set.\r\n");
       }

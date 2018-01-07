@@ -2565,7 +2565,7 @@ int change_position(struct char_data *ch, int new_position) {
   /* this is really all that is going on here :P */
   GET_POS(ch) = new_position;
   
-  /* we will put some general checks for having your position changed */
+  /* we will put some general checks for having your position changed */  
   
   /* casting */
   if (char_has_mud_event(ch, eCASTING) && GET_POS(ch) <= POS_SITTING) {
