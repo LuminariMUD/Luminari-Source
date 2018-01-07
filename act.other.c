@@ -4704,7 +4704,7 @@ char *hints[NUM_HINTS] = {
                 "You will gain more experience from grouping.  Monster "
                 "experience is increased for groups, with larger groups receiving "
                 "more total experience.  This total experience is divided amongst "
-                "all members based on their level."
+                "all members based on their level.  "
                 "  [use nohint or prefedit to deactivate this]\tn\r\n",
   /* 3*/"\tR[HINT]:\tn \ty"
                 "To view vital information about your character, type SCORE.  "
