@@ -999,7 +999,7 @@ int castingCheckOk(struct char_data *ch) {
     return 0;
   }
 
-  /* target character available? */
+  /* target character available? can add long ranged spells here like lightning bolt */
   if (CASTING_TCH(ch) && CASTING_TCH(ch)->in_room != ch->in_room &&
           !IS_SET(SINFO.targets, TAR_CHAR_WORLD)) {
     act("$n is unable to continue $s spell!", FALSE, ch, 0, 0,
@@ -1048,7 +1048,10 @@ EVENTFUNC(event_casting) {
   if (event_obj == NULL) return 0;
   pMudEvent = (struct mud_event_data *) event_obj;
   ch = (struct char_data *) pMudEvent->pStruct;
-  if (!IS_NPC(ch) && !IS_PLAYING(ch->desc)) return 0;
+  
+  /* we need this or npc's don't have casting time */
+  //if (!IS_NPC(ch) && !IS_PLAYING(ch->desc)) return 0;
+  
   int spellnum = CASTING_SPELLNUM(ch);
 
   // is he casting?
@@ -1062,7 +1065,8 @@ EVENTFUNC(event_casting) {
   }
 
   // still some time left to cast
-  if ((CASTING_TIME(ch) > 0) && !time_stopped && GET_LEVEL(ch) < LVL_STAFF) {
+  if ((CASTING_TIME(ch) > 0) && !time_stopped && 
+          (GET_LEVEL(ch) < LVL_STAFF || IS_NPC(ch)) ) {
 
     //checking positions, targets
     if (!castingCheckOk(ch))
