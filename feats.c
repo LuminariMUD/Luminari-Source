@@ -1336,7 +1336,7 @@ void assign_feats(void) {
     "enhance summoned creatures",
     "Gives all creatures you have from summoning spells +4 to strength and "
       "constitution.  Note: this will not augment your familiar, called companions, "
-      "or charmed/dominated victims.");
+      "or charmed/dominated victims.  Note: requires spell-focus in conjuration.");
 
   feato(FEAT_ENHANCED_SPELL_DAMAGE, "enhanced spell damage", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
     "+1 spell damage per die rolled",
