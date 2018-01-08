@@ -896,13 +896,20 @@ do                                                              \
 #define CASTING_METAMAGIC(ch) ((ch)->char_specials.castingMetamagic)
 #define CASTING_CLASS(ch)	((ch)->char_specials.castingClass)
 
-// memorization
+// spell preparation queue and collection (prepared spells))
 /* this refers to items in the list of spells the ch is trying to prepare */
-#define PREPARATION_QUEUE(ch, slot, cc)	(ch->player_specials->saved.preparing[slot][cc])
-/* this refers to preparation-time in a list that parallels the preparation_queue */
-#define PREP_TIME(ch, slot, cc)	(ch->player_specials->saved.preparing[slot][cc].prep_time)
-/* this refers to items in the list of spells the ch already has prepared */
-#define PREPARED_SPELLS(ch, slot, cc)	(ch->player_specials->saved.prepared[slot][cc])
+#define PREPARATION_QUEUE(ch, slot, cc)	(ch->player_specials->saved.prep_queue[slot][cc])
+/* this refers to preparation-time in a list that parallels the preparation_queue 
+    OLD system, this can be phased out */
+#define PREP_TIME(ch, slot, cc)	(ch->player_specials->saved.prep_queue[slot][cc].prep_time)
+/* this refers to items in the list of spells the ch already has prepared (collection) */
+#define PREPARED_SPELLS(ch, slot, cc)	(ch->player_specials->saved.collection[slot][cc])
+#define SPELL_COLLECTION(ch, slot, cc)  PREPARED_SPELLS(ch, slot, cc)
+/* given struct entry, this is the appropriate class for this spell in relation to queue/collection */
+#define PREP_CLASS(ch, slot, cc)	(ch->player_specials->saved.prep_queue[slot][cc].ch_class)
+/* bitvector of metamagic affecting this spell */
+#define PREP_METAMAGIC(ch, slot, cc)	(ch->player_specials->saved.prep_queue[slot][cc].metamagic)
+
 
 /* boolean indicating whether someone is in the process of preparation of a spell or not */
 #define IS_PREPARING(ch, cc)		((ch)->char_specials.is_preparing[cc])

@@ -128,8 +128,8 @@ bool can_study_known_spells(struct char_data *ch) {
   return FALSE;  
 }
 /* ch, given class we're computing bonus spells for, figure out
- if one of our other classes (probably just prestige) is adding
- bonus caster levels */
+ if one of our other classes (probably just prestige, example is
+ arcane archer) is adding bonus caster levels */
 int compute_bonus_caster_level(struct char_data *ch, int class) {
   int bonus_levels = 0;
   
@@ -197,8 +197,10 @@ bool compute_has_combat_feat(struct char_data *ch, int cfeat, int weapon) {
   if (using_comp && has_comp_feat)
     return TRUE; /* any comp longbow feat, any comp longbow used */
   
+  /* reset variables */
   has_comp_feat = FALSE;
-  using_comp = FALSE;
+  using_comp = FALSE;  
+  
   switch (weapon) {
     case WEAPON_TYPE_COMPOSITE_SHORTBOW:
     case WEAPON_TYPE_COMPOSITE_SHORTBOW_2:

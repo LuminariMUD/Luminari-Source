@@ -336,13 +336,13 @@
    pfile arrays associated with classes */
 #define MAX_CLASSES	30	// total number of maximum pc classes
 #define NUM_CASTERS	7	//direct reference to pray array
-/*  x wizard
- *  x sorcerer
- *  x cleric
- *  x druid
- *  x bard
- *  x paladin
- *  x ranger
+/*  x wizard 1
+ *  x sorcerer 2
+ *  x cleric 3
+ *  x druid 4
+ *  x bard 5
+ *  x paladin 6
+ *  x ranger 7
  * ****  load_prayX has to be changed in players.c manually for this ****
  */
 /**************************/
@@ -407,7 +407,8 @@
 #define MAX_ENEMIES  10
 
 // Memorization
-#define NUM_SLOTS	20  //conersative-value max num slots per circle
+/* sorc can get up to 9 + charisma bonus of stat cap 50 = 5 */
+#define NUM_SLOTS	15  //conersative-value max num slots per circle
 #define NUM_CIRCLES	10  //max num circles
 /* how much space to reserve in the mem arrays */
 #define MAX_MEM		NUM_SLOTS * NUM_CIRCLES
@@ -2925,10 +2926,16 @@ struct char_special_data {
   struct char_data *grapple_attacker; /**< Who is grappling me?; else NULL */
 };
 
-struct prepared_spell_data {
-  int spell;     /* Spell Number */
-  int prep_time; /* Remaining time for preparing this spell. */
+/* spell parapation, collection data - expanded for storing class and l-list data */
+struct prep_collection_spell_data {
+  int spell; /* spellnum of this spell in the collection */
+  int ch_class;    /* class that stored this spell in the collection */
   int metamagic; /* Bitvector of metamagic affecting this spell. */
+  
+  struct prep_collection_spell_data *next; /*linked-list*/
+  
+  /* old system */
+  int prep_time; /* Remaining time for preparing this spell. */
 };
 
 
@@ -2954,9 +2961,9 @@ struct player_special_data_saved {
   ubyte spec_abil[MAX_CLASSES]; //spec abilities (ex. lay on hands)
   ubyte favored_enemy[MAX_ENEMIES]; //list of ranger favored enemies
   
-  struct prepared_spell_data preparing[MAX_MEM][NUM_CASTERS]; //memorization
-  struct prepared_spell_data prepared[MAX_MEM][NUM_CASTERS]; //memorization
-  //int praytimes[MAX_MEM][NUM_CASTERS]; //memorization
+  struct prep_collection_spell_data prep_queue[MAX_MEM][NUM_CASTERS]; //memorization
+  struct prep_collection_spell_data collection[MAX_MEM][NUM_CASTERS]; //memorization
+  //int praytimes[MAX_MEM][NUM_CASTERS]; //memorization old system
 
   byte church;  // homeland-port
 
