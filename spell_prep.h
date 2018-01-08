@@ -20,6 +20,23 @@ extern "C" {
     
     /** START defines **/
     
+    /* assuming wizard as our standard, this is the base mem time for a 1st
+     * circle spell without any bonuses*/
+    #define BASE_PREP_TIME  7
+    /* this is the value added to a circle's prep time to calculate next circle's
+     * prep time, example: 7 second for 1st circle + this-interval = 2nd circle
+     * preparation time. */
+    #define PREP_TIME_INTERVALS 2
+    /* preparation times are modified by this factor, control knobs we will call
+       them to easily adjust preparation time for spell */
+    #define RANGER_PREP_TIME_FACTOR   7
+    #define PALADIN_PREP_TIME_FACTOR  7
+    #define DRUID_PREP_TIME_FACTOR    4
+    #define WIZ_PREP_TIME_FACTOR      2
+    #define CLERIC_PREP_TIME_FACTOR   4
+    #define SORC_PREP_TIME_FACTOR     5
+    #define BARD_PREP_TIME_FACTOR     6
+    
     /* char's pointer to their spell prep queue (head) */
     #define SPELL_PREP_QUEUE(ch, ch_class) (ch->player_specials->saved.preparation_queue[ch_class])
     /* spellnum of a prep-queue top item (head) */
@@ -33,6 +50,34 @@ extern "C" {
     /** END defines **/
     
     /** START functions **/
+    void init_ch_spell_prep_queue(struct char_data *ch);
+    void destroy_ch_spell_prep_queue(struct char_data *ch);
+    void load_ch_spell_prep_queue();
+    void save_ch_spell_prep_queue();  
+    void print_prep_queue(struct char_data *ch, int ch_class);
+    int is_spell_in_prep_queue(struct char_data *ch, int spell_num);
+    struct prep_collection_spell_data *create_prep_queue_entry(int spell,
+            int ch_class, int metamagic, int prep_time);
+    struct prep_collection_spell_data *spell_to_prep_queue(struct char_data *ch,
+            int spell, int ch_class, int metamagic,  int prep_time);
+    struct prep_collection_spell_data *spell_from_prep_queue(struct char_data *ch,
+            int spell, int ch_class);
+    void init_ch_spell_collection(struct char_data *ch);
+    void destroy_ch_spell_collection(struct char_data *ch);
+    void load_ch_spell_collection(struct char_data *ch);
+    void save_ch_spell_collection(struct char_data *ch);  
+    int is_spell_in_collection(struct char_data *ch, int spell_num);
+    struct prep_collection_spell_data *create_collection_entry(int spell,
+            int ch_class, int metamagic, int prep_time);
+    struct prep_collection_spell_data *spell_to_collection(struct char_data *ch,
+        int spell, int ch_class, int metamagic,  int prep_time);
+    struct prep_collection_spell_data *spell_from_collection(struct char_data *ch,
+            int spell, int ch_class);
+    bool item_from_queue_to_collection(struct char_data *ch, int spell);  
+    int compute_spells_prep_time(struct char_data *ch, int spellnum, int class,
+            int circle);
+    int compute_spells_circle(int spellnum, int class, int metamagic);
+
     /** END functions **/
     
     /** Start ACMD **/
