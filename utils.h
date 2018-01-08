@@ -904,7 +904,7 @@ do                                                              \
 #define PREP_TIME(ch, slot, cc)	(ch->player_specials->saved.prep_queue[slot][cc].prep_time)
 /* this refers to items in the list of spells the ch already has prepared (collection) */
 #define PREPARED_SPELLS(ch, slot, cc)	(ch->player_specials->saved.collection[slot][cc])
-#define SPELL_COLLECTION(ch, slot, cc)  PREPARED_SPELLS(ch, slot, cc)
+#define SPELL_COLLECTION_OLD(ch, slot, cc)  PREPARED_SPELLS(ch, slot, cc)
 /* given struct entry, this is the appropriate class for this spell in relation to queue/collection */
 #define PREP_CLASS(ch, slot, cc)	(ch->player_specials->saved.prep_queue[slot][cc].ch_class)
 /* bitvector of metamagic affecting this spell */
