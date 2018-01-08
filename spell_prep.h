@@ -19,6 +19,17 @@ extern "C" {
     /** END structs **/
     
     /** START defines **/
+    
+    /* char's pointer to their spell prep queue (head) */
+    #define SPELL_PREP_QUEUE(ch, ch_class) (ch->player_specials->saved.preparation_queue[ch_class])
+    /* spellnum of a prep-queue top item (head) */
+    #define PREP_QUEUE_ITEM_SPELLNUM(ch, ch_class) (ch->player_specials->saved.preparation_queue[ch_class]->spell)
+    
+    /* char's pointer to their spell collection */
+    #define SPELL_COLLECTION(ch, ch_class) (ch->player_specials->saved.spell_collection[ch_class])
+    /* spellnum of a collection top item (head) */
+    #define COLLECTIONE_ITEM_SPELLNUM(ch, ch_class) (ch->player_specials->saved.spell_collection[ch_class]->spell)
+    
     /** END defines **/
     
     /** START functions **/

@@ -2964,6 +2964,10 @@ struct player_special_data_saved {
   struct prep_collection_spell_data prep_queue[MAX_MEM][NUM_CASTERS]; //memorization
   struct prep_collection_spell_data collection[MAX_MEM][NUM_CASTERS]; //memorization
   //int praytimes[MAX_MEM][NUM_CASTERS]; //memorization old system
+  
+  /* new system for spell preparation */
+  struct prep_collection_spell_data *preparation_queue[NUM_CASTERS];
+  struct prep_collection_spell_data *spell_collection[NUM_CASTERS];  
 
   byte church;  // homeland-port
 
