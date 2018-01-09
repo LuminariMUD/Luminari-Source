@@ -248,6 +248,8 @@ void aff_apply_modify(struct char_data *ch, byte loc, sbyte mod, char *msg) {
       /* This needs to be updated. */
       break;
       /* Do Not Use. */
+    case APPLY_FEAT:
+      break;
     case APPLY_AGE:
       //ch->player.time.birth -= (mod * SECS_PER_MUD_YEAR);
       break;
