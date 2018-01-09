@@ -243,8 +243,9 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn, *red;
 #define OEDIT_SPECAB_VALUE_2            49
 #define OEDIT_SPECAB_VALUE_3            50
 #define OEDIT_SPECAB_VALUE_4            51
-#define OEDIT_VALUE_5               	52
-#define OEDIT_APPLY_BONUS_TYPE   53
+#define OEDIT_VALUE_5               	  52
+#define OEDIT_APPLY_BONUS_TYPE          53
+#define OEDIT_APPLYSPEC                 54
 
 
 /* Submodes of REDIT connectedness. */
