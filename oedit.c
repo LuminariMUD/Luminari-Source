@@ -596,8 +596,7 @@ void oedit_disp_specab_bane_subrace(struct descriptor_data *d) {
 }
 
 /* Menu for APPLY_FEAT */
-void oedit_disp_apply_spec_menu(struct descriptor_data *d)
- {
+void oedit_disp_apply_spec_menu(struct descriptor_data *d) {
   char *buf;
   int i, count = 0;
 
@@ -614,22 +613,18 @@ void oedit_disp_apply_spec_menu(struct descriptor_data *d)
 
       buf = "\r\nWhat feat should be modified : ";
       break;
-/*
+    /*
     case APPLY_SKILL:
-
       buf = "What skill should be modified : ";
-
       break;
-*/
+    */
     default:
       oedit_disp_prompt_apply_menu(d);
       return;
   }
 
   write_to_output(d, "\r\n%s", buf);
-
   OLC_MODE(d) = OEDIT_APPLYSPEC;
-
 }
 
 /* Ask for liquid type. */
