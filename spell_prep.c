@@ -421,9 +421,13 @@ bool item_from_queue_to_collection(struct char_data *ch, int spell) {
 void assign_feat_spell_slots(int ch_class) {
   int level_counter = 0;
   int circle_counter = 0;
-  int slots_counter = 0;
-  int number_slots = 0;
   int feat_index = 0;
+  int num_slots_assigned[NUM_CIRCLES];
+  int i = 0;
+  
+  /* lets initialize this */
+  for (i = 0; i < NUM_CIRCLES; i++)
+    num_slots_assigned[NUM_CIRCLES] = 0;
   
   /* this is so we can find the index of the feats in structs.h */
   switch (ch_class) {
@@ -453,18 +457,26 @@ void assign_feat_spell_slots(int ch_class) {
 
   /* ENGINE */
   /* traverse level aspect of chart */
-  for (level_counter = 0; level_counter < LVL_IMPL; level_counter++) {
+  for (level_counter = 0; level_counter < (LVL_IMMORT-1); level_counter++) {
     /* traverse circle aspect of chart */
     for (circle_counter = 0; circle_counter < NUM_CIRCLES; circle_counter++) {
-      /* okay we have a particular slot on the chart, handle the value */
-      number_slots = wizard_slots[level_counter][circle_counter];
-      /* slots here? at least circle 1? at least level 1? */
-      if (number_slots && circle_counter && level_counter) {
-        for (slots_counter = 0; slots_counter < number_slots; slots_counter++) {
-          /* assignment   class     feat-num                        cf    lvl            stack */
-          feat_assignment(ch_class, feat_index + circle_counter, TRUE, level_counter, TRUE);
-        }
+      
+      /* current table value <= previous saved value? */
+      if (wizard_slots[level_counter][circle_counter] <=
+              num_slots_assigned[circle_counter]) {
+        continue;
       }
+      
+      /* save this bigger value to check next iteration of loop */
+      num_slots_assigned[circle_counter] =
+              wizard_slots[level_counter][circle_counter];
+      
+      /* add a slot! */
+      if (wizard_slots[level_counter][circle_counter] && circle_counter &&
+              level_counter) {
+        feat_assignment(ch_class, feat_index + circle_counter, TRUE, level_counter, TRUE);        
+      }      
+      
     }
   }
 
