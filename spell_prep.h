@@ -83,6 +83,7 @@ extern "C" {
     int compute_spells_prep_time(struct char_data *ch, int spellnum, int class,
             int circle);
     int compute_spells_circle(int spellnum, int class, int metamagic);
+    void assign_feat_spell_slots(int ch_class);
 
     /** END functions **/
     

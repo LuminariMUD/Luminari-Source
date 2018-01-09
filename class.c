@@ -2823,6 +2823,10 @@ void load_class_list(void) {
   spell_assignment(CLASS_WIZARD, SPELL_EPIC_MAGE_ARMOR, 21);  
   spell_assignment(CLASS_WIZARD, SPELL_EPIC_WARDING,    21);
   /* no prereqs!  woo! */
+  /* INIT spell slots, assignement of spell slots based on
+     tables in constants.c */
+  assign_feat_spell_slots(CLASS_WIZARD);
+  /**/
   /****************************************************************************/
           
   /****************************************************************************/
@@ -3022,6 +3026,9 @@ void load_class_list(void) {
   spell_assignment(CLASS_CLERIC, SPELL_DRAGON_KNIGHT, 21);
   spell_assignment(CLASS_CLERIC, SPELL_GREATER_RUIN,  21);
   spell_assignment(CLASS_CLERIC, SPELL_HELLBALL,      21);
+  /* INIT spell slots, assignement of spell slots based on
+     tables in constants.c */
+  assign_feat_spell_slots(CLASS_CLERIC);
   /****************************************************************************/
   
   /****************************************************************************/
@@ -3561,6 +3568,9 @@ void load_class_list(void) {
   class_prereq_align(CLASS_DRUID, TRUE_NEUTRAL);
   class_prereq_align(CLASS_DRUID, CHAOTIC_NEUTRAL);
   class_prereq_align(CLASS_DRUID, NEUTRAL_EVIL);
+  /* INIT spell slots, assignement of spell slots based on
+     tables in constants.c */
+  assign_feat_spell_slots(CLASS_DRUID);
   /****************************************************************************/
   
   /****************************************************************************/
@@ -3937,6 +3947,11 @@ void load_class_list(void) {
   spell_assignment(CLASS_SORCERER, SPELL_HELLBALL,        21);  
   spell_assignment(CLASS_SORCERER, SPELL_EPIC_MAGE_ARMOR, 21);  
   spell_assignment(CLASS_SORCERER, SPELL_EPIC_WARDING,    21);  
+  /* PREREQS here */
+  /*****/
+  /* INIT spell slots, assignement of spell slots based on
+     tables in constants.c */
+  assign_feat_spell_slots(CLASS_SORCERER);
   /****************************************************************************/
   
   /****************************************************************************/
@@ -4062,6 +4077,10 @@ void load_class_list(void) {
   spell_assignment(CLASS_PALADIN, SPELL_HOLY_SWORD,    15);
   /* class prerequisites */
   class_prereq_align(CLASS_PALADIN, LAWFUL_GOOD);
+  /*****/
+  /* INIT spell slots, assignement of spell slots based on
+     tables in constants.c */
+  assign_feat_spell_slots(CLASS_PALADIN);
   /****************************************************************************/
   
   /****************************************************************************/
@@ -4189,6 +4208,10 @@ void load_class_list(void) {
   spell_assignment(CLASS_RANGER, SPELL_DISPEL_MAGIC,          15);
   spell_assignment(CLASS_RANGER, SPELL_CURE_SERIOUS,          15);
   /* no prereqs! */
+  /*****/
+  /* INIT spell slots, assignement of spell slots based on
+     tables in constants.c */
+  assign_feat_spell_slots(CLASS_PALADIN);
   /****************************************************************************/
   
   /****************************************************************************/
@@ -4334,6 +4357,10 @@ void load_class_list(void) {
   class_prereq_align(CLASS_BARD, CHAOTIC_EVIL);
   class_prereq_align(CLASS_BARD, CHAOTIC_GOOD);
   class_prereq_align(CLASS_BARD, CHAOTIC_NEUTRAL);
+  /*****/
+  /* INIT spell slots, assignement of spell slots based on
+     tables in constants.c */
+  assign_feat_spell_slots(CLASS_BARD);
   /****************************************************************************/
   
   /****************************************************************************/
@@ -4644,6 +4671,11 @@ void load_class_list(void) {
   class_prereq_feat(CLASS_DUELIST, FEAT_WEAPON_FINESSE, 1);
   /****************************************************************************/
   
+  /****************************************************************************/
+  /****************************************************************************/
+  
+  /****************************************************************************/
+  /****************************************************************************/
 }
 
 /** LOCAL UNDEFINES **/
