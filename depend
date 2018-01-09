@@ -318,7 +318,8 @@ spell_parser.o: spell_parser.c conf.h sysdep.h structs.h protocol.h \
  dg_scripts.h fight.h constants.h mud_event.h dg_event.h spec_procs.h \
  class.h actions.h assign_wpn_armor.h domains_schools.h grapple.h
 spell_prep.o: spell_prep.c conf.h sysdep.h structs.h protocol.h lists.h \
- utils.h interpreter.h db.h comm.h handler.h spell_prep.h
+ utils.h interpreter.h db.h comm.h handler.h constants.h spec_procs.h \
+ spells.h spell_prep.h
 spells.o: spells.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  comm.h spells.h handler.h db.h constants.h interpreter.h dg_scripts.h \
  act.h fight.h mud_event.h dg_event.h house.h screen.h craft.h mudlim.h \

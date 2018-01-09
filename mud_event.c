@@ -40,7 +40,7 @@ struct mud_event_list mud_event_index[] = {
   { "Hellball", event_countdown, EVENT_CHAR}, // eHELLBALL
   { "Epic mage armor", event_countdown, EVENT_CHAR}, // eEPICMAGEARMOR
   { "Epic warding", event_countdown, EVENT_CHAR}, // eEPICWARDING
-  { "Memorizing", event_memorizing, EVENT_CHAR}, //eMEMORIZING
+  { "Preparing Spells", event_preparing, EVENT_CHAR}, //ePREPARING
   /*15*/{ "Stunned", event_countdown, EVENT_CHAR}, //eSTUNNED
   { "Stunning fist", event_daily_use_cooldown, EVENT_CHAR}, //eSTUNNINGFIST
   { "Crafting", event_crafting, EVENT_CHAR}, //eCRAFTING

@@ -350,8 +350,6 @@ ACMD(do_scribe) {
     sprintf(buf, "%d", spellnum);
     forgetSpell(ch, spellnum, -1, -1);
   }
-
-
 }
 
 
@@ -395,381 +393,13 @@ int classArray(int class) {
   return 0;
 }
 
-// words to use for the spell preparation process for different classes.
-char *spell_prep_dict[NUM_CASTERS][4] = {
-  {"pray", "praying", "prayed", "prayers"}, // CLASS_CLERIC
-  {"commune", "communing", "communed", "communion"}, // CLASS_DRUID 
-  {"memorize", "studying", "memorized", "studies"}, // CLASS_WIZARD
-  {"meditate", "meditating", "meditated", "meditations"}, // CLASS_SORCERER
-  {"chant", "chanting", "chanted", "petitions"}, // CLASS_PALADIN 
-  {"adjure", "adjuring", "adjured", "adjurations"}, // CLASS_RANGER
-  {"compose", "composing", "composed", "compositions"}, // CLASS_BARD 
-};
-
-// the number of spells received per level for caster types
-int wizardSlots[LVL_IMPL + 1][10] = {
-  // 1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
-  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 0
-  { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-  { 2, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-  { 2, 1, 0, 0, 0, 0, 0, 0, 0, 0},
-  { 3, 2, 0, 0, 0, 0, 0, 0, 0, 0},
-  { 3, 2, 1, 0, 0, 0, 0, 0, 0, 0}, // 5
-  { 3, 3, 2, 0, 0, 0, 0, 0, 0, 0},
-  { 4, 3, 2, 1, 0, 0, 0, 0, 0, 0}, //7
-  { 4, 4, 3, 2, 0, 0, 0, 0, 0, 0},
-  { 4, 4, 3, 2, 1, 0, 0, 0, 0, 0}, //9
-  { 4, 4, 3, 3, 2, 0, 0, 0, 0, 0},
-  { 4, 4, 4, 3, 2, 1, 0, 0, 0, 0}, //11
-  { 4, 4, 4, 3, 3, 2, 0, 0, 0, 0},
-  { 4, 4, 4, 4, 3, 2, 1, 0, 0, 0}, //13
-  { 4, 4, 4, 4, 3, 3, 2, 0, 0, 0},
-  { 4, 4, 4, 4, 4, 3, 2, 1, 0, 0}, //15
-  { 4, 4, 4, 4, 4, 3, 3, 2, 0, 0},
-  { 4, 4, 4, 4, 4, 4, 3, 2, 1, 0}, //17
-  { 4, 4, 4, 4, 4, 4, 3, 3, 2, 0},
-  { 4, 4, 4, 4, 4, 4, 4, 3, 3, 0},
-  { 4, 4, 4, 4, 4, 4, 4, 4, 4, 0}, //20
-  { 4, 4, 4, 4, 4, 4, 4, 4, 4, 0}, //21
-  { 4, 4, 4, 4, 4, 4, 4, 4, 4, 0}, //22
-  { 4, 4, 4, 4, 4, 4, 4, 4, 4, 0}, //23
-  { 4, 4, 4, 4, 4, 4, 4, 4, 4, 0}, //24
-  { 4, 4, 4, 4, 4, 4, 4, 4, 4, 0}, //25
-  { 4, 4, 4, 4, 4, 4, 4, 4, 4, 0}, //26
-  { 4, 4, 4, 4, 4, 4, 4, 4, 4, 0}, //27
-  { 4, 4, 4, 4, 4, 4, 4, 4, 4, 0}, //28
-  { 4, 4, 4, 4, 4, 4, 4, 4, 4, 0}, //29
-  { 4, 4, 4, 4, 4, 4, 4, 4, 4, 0}, //30
-  { 4, 4, 4, 4, 4, 4, 4, 4, 4, 0}, //31
-  { 4, 4, 4, 4, 4, 4, 4, 4, 4, 0}, //32
-  { 4, 4, 4, 4, 4, 4, 4, 4, 4, 0}, //33
-  { 4, 4, 4, 4, 4, 4, 4, 4, 4, 0}//34
-};
-
-int sorcererSlots[LVL_IMPL + 1][10] = {
-  // 1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
-  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 0
-  { 3, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-  { 4, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-  { 5, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-  { 6, 3, 0, 0, 0, 0, 0, 0, 0, 0},
-  { 6, 4, 0, 0, 0, 0, 0, 0, 0, 0}, // 5
-  { 6, 5, 3, 0, 0, 0, 0, 0, 0, 0},
-  { 6, 6, 4, 0, 0, 0, 0, 0, 0, 0}, //7
-  { 6, 6, 5, 3, 0, 0, 0, 0, 0, 0},
-  { 6, 6, 6, 4, 0, 0, 0, 0, 0, 0}, //9
-  { 6, 6, 6, 5, 3, 0, 0, 0, 0, 0},
-  { 6, 6, 6, 6, 4, 0, 0, 0, 0, 0}, //11
-  { 6, 6, 6, 6, 5, 3, 0, 0, 0, 0},
-  { 6, 6, 6, 6, 6, 4, 0, 0, 0, 0}, //13
-  { 6, 6, 6, 6, 6, 5, 3, 0, 0, 0},
-  { 6, 6, 6, 6, 6, 6, 4, 0, 0, 0}, //15
-  { 6, 6, 6, 6, 6, 6, 5, 3, 0, 0},
-  { 6, 6, 6, 6, 6, 6, 6, 4, 0, 0}, //17
-  { 6, 6, 6, 6, 6, 6, 6, 5, 3, 0},
-  { 6, 6, 6, 6, 6, 6, 6, 6, 4, 0},
-  { 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, //20
-  { 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, //21
-  { 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, //22
-  { 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, //23
-  { 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, //24
-  { 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, //25
-  { 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, //26
-  { 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, //27
-  { 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, //28
-  { 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, //29
-  { 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, //30
-  { 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, //31
-  { 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, //32
-  { 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, //33
-  { 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}//34
-};
-
-int bardSlots[LVL_IMPL + 1][10] = {
-  // 1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
-  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 0
-  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-  { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-  { 2, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-  { 3, 1, 0, 0, 0, 0, 0, 0, 0, 0}, // 5
-  { 3, 2, 0, 0, 0, 0, 0, 0, 0, 0},
-  { 3, 2, 0, 0, 0, 0, 0, 0, 0, 0}, //7
-  { 3, 3, 1, 0, 0, 0, 0, 0, 0, 0},
-  { 3, 3, 2, 0, 0, 0, 0, 0, 0, 0}, //9
-  { 3, 3, 2, 0, 0, 0, 0, 0, 0, 0},
-  { 3, 3, 3, 1, 0, 0, 0, 0, 0, 0}, //11
-  { 3, 3, 3, 2, 0, 0, 0, 0, 0, 0},
-  { 3, 3, 3, 2, 0, 0, 0, 0, 0, 0}, //13
-  { 3, 3, 3, 3, 1, 0, 0, 0, 0, 0},
-  { 4, 3, 3, 3, 2, 0, 0, 0, 0, 0}, //15
-  { 4, 4, 3, 3, 2, 0, 0, 0, 0, 0},
-  { 4, 4, 4, 3, 3, 1, 0, 0, 0, 0}, //17
-  { 4, 4, 4, 4, 3, 2, 0, 0, 0, 0},
-  { 4, 4, 4, 4, 4, 3, 0, 0, 0, 0},
-  { 4, 4, 4, 4, 4, 4, 0, 0, 0, 0}, //20
-  { 4, 4, 4, 4, 4, 4, 0, 0, 0, 0}, //21
-  { 4, 4, 4, 4, 4, 4, 0, 0, 0, 0}, //22
-  { 4, 4, 4, 4, 4, 4, 0, 0, 0, 0}, //23
-  { 4, 4, 4, 4, 4, 4, 0, 0, 0, 0}, //24
-  { 4, 4, 4, 4, 4, 4, 0, 0, 0, 0}, //25
-  { 4, 4, 4, 4, 4, 4, 0, 0, 0, 0}, //26
-  { 4, 4, 4, 4, 4, 4, 0, 0, 0, 0}, //27
-  { 4, 4, 4, 4, 4, 4, 0, 0, 0, 0}, //28
-  { 4, 4, 4, 4, 4, 4, 0, 0, 0, 0}, //29
-  { 4, 4, 4, 4, 4, 4, 0, 0, 0, 0}, //30
-  { 4, 4, 4, 4, 4, 4, 0, 0, 0, 0}, //31
-  { 4, 4, 4, 4, 4, 4, 0, 0, 0, 0}, //32
-  { 4, 4, 4, 4, 4, 4, 0, 0, 0, 0}, //33
-  { 4, 4, 4, 4, 4, 4, 0, 0, 0, 0}//34
-};
-
-
-/** known spells for sorcs **/
-int sorcererKnown[LVL_IMPL + 1][10] = {
-  // 1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
-  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 0
-  { 2, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-  { 2, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-  { 3, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-  { 3, 1, 0, 0, 0, 0, 0, 0, 0, 0},
-  { 4, 2, 0, 0, 0, 0, 0, 0, 0, 0}, // 5
-  { 4, 2, 1, 0, 0, 0, 0, 0, 0, 0},
-  { 5, 3, 2, 0, 0, 0, 0, 0, 0, 0}, //7
-  { 5, 3, 2, 1, 0, 0, 0, 0, 0, 0},
-  { 5, 4, 3, 2, 0, 0, 0, 0, 0, 0}, //9
-  { 5, 4, 3, 2, 1, 0, 0, 0, 0, 0},
-  { 5, 5, 4, 3, 2, 0, 0, 0, 0, 0}, //11
-  { 5, 5, 4, 3, 2, 1, 0, 0, 0, 0},
-  { 5, 5, 4, 4, 3, 2, 0, 0, 0, 0}, //13
-  { 5, 5, 4, 4, 3, 2, 1, 0, 0, 0},
-  { 5, 5, 4, 4, 4, 3, 2, 0, 0, 0}, //15
-  { 5, 5, 4, 4, 4, 3, 2, 1, 0, 0},
-  { 5, 5, 4, 4, 4, 3, 3, 2, 0, 0}, //17
-  { 5, 5, 4, 4, 4, 3, 3, 2, 1, 0},
-  { 5, 5, 4, 4, 4, 3, 3, 3, 2, 0},
-  { 5, 5, 4, 4, 4, 3, 3, 3, 3, 0}, //20
-  { 5, 5, 4, 4, 4, 3, 3, 3, 3, 0}, //21
-  { 5, 5, 4, 4, 4, 3, 3, 3, 3, 0}, //22
-  { 5, 5, 4, 4, 4, 3, 3, 3, 3, 0}, //23
-  { 5, 5, 4, 4, 4, 3, 3, 3, 3, 0}, //24
-  { 5, 5, 4, 4, 4, 3, 3, 3, 3, 0}, //25
-  { 5, 5, 4, 4, 4, 3, 3, 3, 3, 0}, //26
-  { 5, 5, 4, 4, 4, 3, 3, 3, 3, 0}, //27
-  { 5, 5, 4, 4, 4, 3, 3, 3, 3, 0}, //28
-  { 5, 5, 4, 4, 4, 3, 3, 3, 3, 0}, //29
-  { 5, 5, 4, 4, 4, 3, 3, 3, 3, 0}, //30
-  { 5, 5, 4, 4, 4, 3, 3, 3, 3, 0}, //31
-  { 5, 5, 4, 4, 4, 3, 3, 3, 3, 0}, //32
-  { 5, 5, 4, 4, 4, 3, 3, 3, 3, 0}, //33
-  { 5, 5, 4, 4, 4, 3, 3, 3, 3, 0}//34
-};
-
-/** known spells for bards **/
-int bardKnown[LVL_IMPL + 1][10] = {
-  // 1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
-  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 0
-  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-  { 2, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-  { 3, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-  { 3, 2, 0, 0, 0, 0, 0, 0, 0, 0}, // 5
-  { 4, 3, 0, 0, 0, 0, 0, 0, 0, 0},
-  { 4, 3, 0, 0, 0, 0, 0, 0, 0, 0}, //7
-  { 4, 4, 2, 0, 0, 0, 0, 0, 0, 0},
-  { 4, 4, 3, 0, 0, 0, 0, 0, 0, 0}, //9
-  { 4, 4, 3, 0, 0, 0, 0, 0, 0, 0},
-  { 4, 4, 4, 2, 0, 0, 0, 0, 0, 0}, //11
-  { 4, 4, 4, 3, 0, 0, 0, 0, 0, 0},
-  { 4, 4, 4, 4, 2, 0, 0, 0, 0, 0}, //13
-  { 4, 4, 4, 4, 3, 0, 0, 0, 0, 0},
-  { 4, 4, 4, 4, 3, 0, 0, 0, 0, 0}, //15
-  { 5, 4, 4, 4, 4, 2, 0, 0, 0, 0},
-  { 5, 5, 4, 4, 4, 3, 0, 0, 0, 0}, //17
-  { 5, 5, 5, 4, 4, 3, 0, 0, 0, 0},
-  { 5, 5, 5, 5, 4, 4, 0, 0, 0, 0},
-  { 5, 5, 5, 5, 5, 4, 0, 0, 0, 0}, //20
-  { 5, 5, 5, 5, 5, 4, 0, 0, 0, 0}, //21
-  { 5, 5, 5, 5, 5, 4, 0, 0, 0, 0}, //22
-  { 5, 5, 5, 5, 5, 4, 0, 0, 0, 0}, //23
-  { 5, 5, 5, 5, 5, 4, 0, 0, 0, 0}, //24
-  { 5, 5, 5, 5, 5, 4, 0, 0, 0, 0}, //25
-  { 5, 5, 5, 5, 5, 4, 0, 0, 0, 0}, //26
-  { 5, 5, 5, 5, 5, 4, 0, 0, 0, 0}, //27
-  { 5, 5, 5, 5, 5, 4, 0, 0, 0, 0}, //28
-  { 5, 5, 5, 5, 5, 4, 0, 0, 0, 0}, //29
-  { 5, 5, 5, 5, 5, 4, 0, 0, 0, 0}, //30
-  { 5, 5, 5, 5, 5, 4, 0, 0, 0, 0}, //31
-  { 5, 5, 5, 5, 5, 4, 0, 0, 0, 0}, //32
-  { 5, 5, 5, 5, 5, 4, 0, 0, 0, 0}, //33
-  { 5, 5, 5, 5, 5, 4, 0, 0, 0, 0}//34
-};
-
-
-int rangerSlots[LVL_IMPL + 1][10] = {
-  // 1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
-  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 0
-  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 1
-  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 2
-  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 3
-  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 4
-  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 5
-  { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 6
-  { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 7
-  { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 8
-  { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 9
-  { 1, 1, 0, 0, 0, 0, 0, 0, 0, 0}, // 10
-  { 1, 1, 0, 0, 0, 0, 0, 0, 0, 0}, // 11
-  { 1, 1, 1, 0, 0, 0, 0, 0, 0, 0}, // 12
-  { 1, 1, 1, 0, 0, 0, 0, 0, 0, 0}, // 13
-  { 2, 1, 1, 0, 0, 0, 0, 0, 0, 0}, // 14
-  { 2, 1, 1, 1, 0, 0, 0, 0, 0, 0}, // 15
-  { 2, 2, 1, 1, 0, 0, 0, 0, 0, 0}, // 16
-  { 2, 2, 2, 1, 0, 0, 0, 0, 0, 0}, // 17
-  { 3, 2, 2, 1, 0, 0, 0, 0, 0, 0}, // 18
-  { 3, 3, 3, 2, 0, 0, 0, 0, 0, 0}, // 19
-  { 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, // 20
-  { 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, // 21
-  { 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, // 22
-  { 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, // 23
-  { 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, // 24
-  { 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, // 25
-  { 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, // 26
-  { 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, // 27
-  { 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, // 28
-  { 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, // 29
-  { 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, // 30
-  { 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, // 31
-  { 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, // 32
-  { 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, // 33
-  { 3, 3, 3, 3, 0, 0, 0, 0, 0, 0} // 34
-};
-
-int paladinSlots[LVL_IMPL + 1][10] = {
-  // 1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
-  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 0
-  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 1
-  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 2
-  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 3
-  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 4
-  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 5
-  { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 6
-  { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 7
-  { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 8
-  { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 9
-  { 1, 1, 0, 0, 0, 0, 0, 0, 0, 0}, // 10
-  { 1, 1, 0, 0, 0, 0, 0, 0, 0, 0}, // 11
-  { 1, 1, 1, 0, 0, 0, 0, 0, 0, 0}, // 12
-  { 1, 1, 1, 0, 0, 0, 0, 0, 0, 0}, // 13
-  { 2, 1, 1, 0, 0, 0, 0, 0, 0, 0}, // 14
-  { 2, 1, 1, 1, 0, 0, 0, 0, 0, 0}, // 15
-  { 2, 2, 1, 1, 0, 0, 0, 0, 0, 0}, // 16
-  { 2, 2, 2, 1, 0, 0, 0, 0, 0, 0}, // 17
-  { 3, 2, 2, 1, 0, 0, 0, 0, 0, 0}, // 18
-  { 3, 3, 3, 2, 0, 0, 0, 0, 0, 0}, // 19
-  { 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, // 20
-  { 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, // 21
-  { 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, // 22
-  { 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, // 23
-  { 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, // 24
-  { 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, // 25
-  { 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, // 26
-  { 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, // 27
-  { 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, // 28
-  { 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, // 29
-  { 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, // 30
-  { 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, // 31
-  { 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, // 32
-  { 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, // 33
-  { 3, 3, 3, 3, 0, 0, 0, 0, 0, 0} // 34
-};
-
-int clericSlots[LVL_IMPL + 1][10] = {
-  // 1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
-  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 0
-  { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-  { 2, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-  { 2, 1, 0, 0, 0, 0, 0, 0, 0, 0},
-  { 3, 2, 0, 0, 0, 0, 0, 0, 0, 0},
-  { 3, 2, 1, 0, 0, 0, 0, 0, 0, 0}, // 5
-  { 3, 3, 2, 0, 0, 0, 0, 0, 0, 0},
-  { 4, 3, 2, 1, 0, 0, 0, 0, 0, 0},
-  { 4, 3, 3, 2, 0, 0, 0, 0, 0, 0},
-  { 4, 4, 3, 2, 1, 0, 0, 0, 0, 0},
-  { 4, 4, 3, 3, 2, 0, 0, 0, 0, 0}, // 10
-  { 5, 4, 4, 3, 2, 1, 0, 0, 0, 0},
-  { 5, 4, 4, 3, 3, 2, 0, 0, 0, 0},
-  { 5, 5, 4, 4, 3, 2, 1, 0, 0, 0},
-  { 5, 5, 4, 4, 3, 3, 2, 0, 0, 0},
-  { 5, 5, 5, 4, 4, 3, 2, 1, 0, 0}, // 15
-  { 5, 5, 5, 4, 4, 3, 3, 2, 0, 0},
-  { 5, 5, 5, 5, 4, 4, 3, 2, 1, 0},
-  { 5, 5, 5, 5, 4, 4, 3, 3, 2, 0},
-  { 5, 5, 5, 5, 5, 4, 4, 3, 3, 0},
-  { 5, 5, 5, 5, 5, 4, 4, 4, 4, 0}, // 20
-  { 5, 5, 5, 5, 5, 4, 4, 4, 4, 0}, // 21
-  { 5, 5, 5, 5, 5, 4, 4, 4, 4, 0}, // 22
-  { 5, 5, 5, 5, 5, 4, 4, 4, 4, 0}, // 23
-  { 5, 5, 5, 5, 5, 4, 4, 4, 4, 0}, // 24
-  { 5, 5, 5, 5, 5, 4, 4, 4, 4, 0}, // 25
-  { 5, 5, 5, 5, 5, 4, 4, 4, 4, 0}, // 26
-  { 5, 5, 5, 5, 5, 4, 4, 4, 4, 0}, // 27
-  { 5, 5, 5, 5, 5, 4, 4, 4, 4, 0}, // 28
-  { 5, 5, 5, 5, 5, 4, 4, 4, 4, 0}, // 29
-  { 5, 5, 5, 5, 5, 4, 4, 4, 4, 0}, // 30
-  { 5, 5, 5, 5, 5, 4, 4, 4, 4, 0}, // 31
-  { 5, 5, 5, 5, 5, 4, 4, 4, 4, 0}, // 32
-  { 5, 5, 5, 5, 5, 4, 4, 4, 4, 0}, // 33
-  { 5, 5, 5, 5, 5, 4, 4, 4, 4, 0} // 34
-};
-
-int druidSlots[LVL_IMPL + 1][10] = {
-  // 1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
-  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 0
-  { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-  { 2, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-  { 2, 1, 0, 0, 0, 0, 0, 0, 0, 0},
-  { 3, 2, 0, 0, 0, 0, 0, 0, 0, 0},
-  { 3, 2, 1, 0, 0, 0, 0, 0, 0, 0}, // 5
-  { 3, 3, 2, 0, 0, 0, 0, 0, 0, 0},
-  { 4, 3, 2, 1, 0, 0, 0, 0, 0, 0},
-  { 4, 3, 3, 2, 0, 0, 0, 0, 0, 0},
-  { 4, 4, 3, 2, 1, 0, 0, 0, 0, 0},
-  { 4, 4, 3, 3, 2, 0, 0, 0, 0, 0}, // 10
-  { 5, 4, 4, 3, 2, 1, 0, 0, 0, 0},
-  { 5, 4, 4, 3, 3, 2, 0, 0, 0, 0},
-  { 5, 5, 4, 4, 3, 2, 1, 0, 0, 0},
-  { 5, 5, 4, 4, 3, 3, 2, 0, 0, 0},
-  { 5, 5, 5, 4, 4, 3, 2, 1, 0, 0}, // 15
-  { 5, 5, 5, 4, 4, 3, 3, 2, 0, 0},
-  { 5, 5, 5, 5, 4, 4, 3, 2, 1, 0},
-  { 5, 5, 5, 5, 4, 4, 3, 3, 2, 0},
-  { 5, 5, 5, 5, 5, 4, 4, 3, 3, 0},
-  { 5, 5, 5, 5, 5, 4, 4, 4, 4, 0}, // 20
-  { 5, 5, 5, 5, 5, 4, 4, 4, 4, 0}, // 21
-  { 5, 5, 5, 5, 5, 4, 4, 4, 4, 0}, // 22
-  { 5, 5, 5, 5, 5, 4, 4, 4, 4, 0}, // 23
-  { 5, 5, 5, 5, 5, 4, 4, 4, 4, 0}, // 24
-  { 5, 5, 5, 5, 5, 4, 4, 4, 4, 0}, // 25
-  { 5, 5, 5, 5, 5, 4, 4, 4, 4, 0}, // 26
-  { 5, 5, 5, 5, 5, 4, 4, 4, 4, 0}, // 27
-  { 5, 5, 5, 5, 5, 4, 4, 4, 4, 0}, // 28
-  { 5, 5, 5, 5, 5, 4, 4, 4, 4, 0}, // 29
-  { 5, 5, 5, 5, 5, 4, 4, 4, 4, 0}, // 30
-  { 5, 5, 5, 5, 5, 4, 4, 4, 4, 0}, // 31
-  { 5, 5, 5, 5, 5, 4, 4, 4, 4, 0}, // 32
-  { 5, 5, 5, 5, 5, 4, 4, 4, 4, 0}, // 33
-  { 5, 5, 5, 5, 5, 4, 4, 4, 4, 0} // 34
-};
-
-
 /*** Utility Functions needed for spell preparation ***/
 
 /* is character currently occupied with preparing spells? */
 int isOccupied(struct char_data *ch) {
   int i;
 
-  if (char_has_mud_event(ch, eMEMORIZING))
+  if (char_has_mud_event(ch, ePREPARING))
     return TRUE;
 
   for (i = 0; i < NUM_CASTERS; i++)
@@ -930,31 +560,31 @@ int comp_slots(struct char_data *ch, int circle, int class) {
   switch (class) {
     case CLASS_RANGER:
       spellSlots += spell_bonus[GET_WIS(ch)][circle];
-      spellSlots += rangerSlots[class_level][circle];
+      spellSlots += ranger_slots[class_level][circle];
       break;
     case CLASS_PALADIN:
       spellSlots += spell_bonus[GET_WIS(ch)][circle];
-      spellSlots += paladinSlots[class_level][circle];
+      spellSlots += paladin_slots[class_level][circle];
       break;
     case CLASS_CLERIC:
       spellSlots += spell_bonus[GET_WIS(ch)][circle];
-      spellSlots += clericSlots[class_level][circle];
+      spellSlots += cleric_slots[class_level][circle];
       break;
     case CLASS_DRUID:
       spellSlots += spell_bonus[GET_WIS(ch)][circle];
-      spellSlots += druidSlots[class_level][circle];
+      spellSlots += druid_slots[class_level][circle];
       break;
     case CLASS_WIZARD:
       spellSlots += spell_bonus[GET_INT(ch)][circle];
-      spellSlots += wizardSlots[class_level][circle];
+      spellSlots += wizard_slots[class_level][circle];
       break;
     case CLASS_SORCERER:
       spellSlots += spell_bonus[GET_CHA(ch)][circle];
-      spellSlots += sorcererSlots[class_level][circle];
+      spellSlots += sorcerer_slots[class_level][circle];
       break;
     case CLASS_BARD:
       spellSlots += spell_bonus[GET_CHA(ch)][circle];
-      spellSlots += bardSlots[class_level][circle];
+      spellSlots += bard_slots[class_level][circle];
       break;
     default:
       if (GET_LEVEL(ch) < LVL_IMMORT) {
@@ -1554,8 +1184,8 @@ void updateMemming(struct char_data *ch, int class) {
     switch (class) {
       case CLASS_SORCERER:
       case CLASS_BARD:
-        send_to_char(ch, "Your %s is interrupted.\r\n", spell_prep_dict[classArray(class)][3]);
-        sprintf(act_buf, "$n aborts $s %s.", spell_prep_dict[classArray(class)][3]);
+        send_to_char(ch, "Your %s is interrupted.\r\n", spell_prep_dictation[classArray(class)][3]);
+        sprintf(act_buf, "$n aborts $s %s.", spell_prep_dictation[classArray(class)][3]);
         act(act_buf, FALSE, ch, 0, 0, TO_ROOM);
         break;
       case CLASS_WIZARD:
@@ -1563,8 +1193,8 @@ void updateMemming(struct char_data *ch, int class) {
       case CLASS_PALADIN:
       case CLASS_RANGER:
       case CLASS_DRUID:
-        send_to_char(ch, "You abort your %s.\r\n", spell_prep_dict[classArray(class)][3]);
-        sprintf(act_buf, "$n aborts $s %s.", spell_prep_dict[classArray(class)][3]);
+        send_to_char(ch, "You abort your %s.\r\n", spell_prep_dictation[classArray(class)][3]);
+        sprintf(act_buf, "$n aborts $s %s.", spell_prep_dictation[classArray(class)][3]);
         act(act_buf, FALSE, ch, 0, 0, TO_ROOM);
         break;
     }
@@ -1614,7 +1244,7 @@ void updateMemming(struct char_data *ch, int class) {
       case CLASS_DRUID:
       case CLASS_WIZARD:
         sprintf(buf, "You finish %s for %s%s.\r\n",
-                spell_prep_dict[classArray(class)][1],
+                spell_prep_dictation[classArray(class)][1],
                 metamagic_buf,
                 spell_info[PREPARATION_QUEUE(ch, 0, classArray(class)).spell].name);
         addSpellMemmed(ch, PREPARATION_QUEUE(ch, 0, classArray(class)).spell, PREPARATION_QUEUE(ch, 0, classArray(class)).metamagic, class);
@@ -1639,8 +1269,8 @@ void updateMemming(struct char_data *ch, int class) {
         case CLASS_DRUID:
         case CLASS_SORCERER:
         case CLASS_BARD:
-          send_to_char(ch, "Your %s are complete.\r\n", spell_prep_dict[classArray(class)][3]);
-          sprintf(act_buf, "$n completes $s %s.", spell_prep_dict[classArray(class)][3]);
+          send_to_char(ch, "Your %s are complete.\r\n", spell_prep_dictation[classArray(class)][3]);
+          sprintf(act_buf, "$n completes $s %s.", spell_prep_dictation[classArray(class)][3]);
           act(act_buf, FALSE, ch, 0, 0, TO_ROOM);
           break;
       }
@@ -1648,10 +1278,10 @@ void updateMemming(struct char_data *ch, int class) {
       return;
     }
   }
-  NEW_EVENT(eMEMORIZING, ch, NULL, 1 * PASSES_PER_SEC);
+  NEW_EVENT(ePREPARING, ch, NULL, 1 * PASSES_PER_SEC);
 }
 
-EVENTFUNC(event_memorizing) {
+EVENTFUNC(event_preparing) {
   int x = 0;
   struct char_data *ch;
   struct mud_event_data *pMudEvent;
@@ -1754,7 +1384,7 @@ void display_memmed(struct char_data*ch, int class) {
       case CLASS_RANGER:
       case CLASS_WIZARD:
         send_to_char(ch, "\r\n\tGYou have %s for the following"
-                " spells:\r\n\r\n", spell_prep_dict[classArray(class)][2]);
+                " spells:\r\n\r\n", spell_prep_dictation[classArray(class)][2]);
         break;
     }
     for (slot = getCircle(ch, class); slot > 0; slot--) {
@@ -1808,7 +1438,7 @@ void display_memming(struct char_data *ch, int class) {
         case CLASS_RANGER:
         case CLASS_PALADIN:
         case CLASS_WIZARD:
-          send_to_char(ch, "\r\n\tCYou are currently %s for:\r\n", spell_prep_dict[classArray(class)][1]);
+          send_to_char(ch, "\r\n\tCYou are currently %s for:\r\n", spell_prep_dictation[classArray(class)][1]);
           break;
       }
     } else {
@@ -1819,7 +1449,7 @@ void display_memming(struct char_data *ch, int class) {
         case CLASS_PALADIN:
         case CLASS_WIZARD:
           send_to_char(ch, "\r\n\tCYou are ready to %s for: (type 'rest' "
-                  "then '%s' to continue)\r\n", spell_prep_dict[classArray(class)][0], spell_prep_dict[classArray(class)][0]);
+                  "then '%s' to continue)\r\n", spell_prep_dictation[classArray(class)][0], spell_prep_dictation[classArray(class)][0]);
           break;
       }
     }
@@ -1875,7 +1505,7 @@ void display_slots(struct char_data *ch, int class) {
     case CLASS_RANGER:
     case CLASS_PALADIN:
     case CLASS_WIZARD:
-      send_to_char(ch, "\r\nYou can %s", spell_prep_dict[classArray(class)][0]);
+      send_to_char(ch, "\r\nYou can %s", spell_prep_dictation[classArray(class)][0]);
       break;
   }
   for (slot = 0; slot < getCircle(ch, class); slot++) {
@@ -2019,11 +1649,11 @@ ACMD(do_gen_forget) {
         case CLASS_RANGER:
         case CLASS_PALADIN:
           send_to_char(ch, "You purge everything you were attempting to "
-                  "%s for.\r\n", spell_prep_dict[classArray(class)][0]);
+                  "%s for.\r\n", spell_prep_dictation[classArray(class)][0]);
           break;
         case CLASS_WIZARD:
           send_to_char(ch, "You purge everything you were attempting to "
-                  "%s.\r\n", spell_prep_dict[classArray(class)][0]);
+                  "%s.\r\n", spell_prep_dictation[classArray(class)][0]);
           break;
       }
       IS_PREPARING(ch, classArray(class)) = FALSE;
@@ -2038,10 +1668,10 @@ ACMD(do_gen_forget) {
         case CLASS_CLERIC:
         case CLASS_RANGER:
         case CLASS_PALADIN:
-          send_to_char(ch, "You purge everything you had %s for.\r\n", spell_prep_dict[classArray(class)][2]);
+          send_to_char(ch, "You purge everything you had %s for.\r\n", spell_prep_dictation[classArray(class)][2]);
           break;
         case CLASS_WIZARD:
-          send_to_char(ch, "You forget everything you had %s.\r\n", spell_prep_dict[classArray(class)][2]);
+          send_to_char(ch, "You forget everything you had %s.\r\n", spell_prep_dictation[classArray(class)][2]);
           break;
       }
       IS_PREPARING(ch, classArray(class)) = FALSE;
@@ -2222,7 +1852,7 @@ ACMD(do_gen_memorize) {
             break;
         }
         IS_PREPARING(ch, classArray(class)) = TRUE;
-        NEW_EVENT(eMEMORIZING, ch, NULL, 1 * PASSES_PER_SEC);
+        NEW_EVENT(ePREPARING, ch, NULL, 1 * PASSES_PER_SEC);
       }
     }
     return;
@@ -2352,7 +1982,7 @@ ACMD(do_gen_memorize) {
       addSpellMemming(ch, spellnum, metamagic, spell_info[spellnum].memtime, class);
       if (!isOccupied(ch)) {
         IS_PREPARING(ch, classArray(class)) = TRUE;
-        NEW_EVENT(eMEMORIZING, ch, NULL, 1 * PASSES_PER_SEC);
+        NEW_EVENT(ePREPARING, ch, NULL, 1 * PASSES_PER_SEC);
         switch (class) {
           case CLASS_DRUID:
             send_to_char(ch, "You continue your communing.\r\n");

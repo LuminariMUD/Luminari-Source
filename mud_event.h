@@ -40,7 +40,7 @@ typedef enum {
   eHELLBALL, //  hellball
   eEPICMAGEARMOR, //  epic mage armor
   eEPICWARDING, //  epic warding
-  eMEMORIZING, //  memorization
+  ePREPARING, //  memorization
   /*15*/eSTUNNED, //  stunning fist stun
   eSTUNNINGFIST, //  stunner's cooldown for stunning fist
   eCRAFTING, //  crafting event
@@ -172,7 +172,7 @@ EVENTFUNC(event_daily_use_cooldown);
 EVENTFUNC(get_protocols);
 EVENTFUNC(event_whirlwind);
 EVENTFUNC(event_casting);
-EVENTFUNC(event_memorizing);
+EVENTFUNC(event_preparing);
 EVENTFUNC(event_crafting);
 EVENTFUNC(event_acid_arrow);
 EVENTFUNC(event_implode);

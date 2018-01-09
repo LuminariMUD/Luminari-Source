@@ -1,6 +1,6 @@
 /*/ \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \
-\                                                             
-/    Luminari Spell Prep System
+\     Luminari Spell Prep System                                                        
+/  File:       spell_prep.c
 /  Created By: Zusuk                                                           
 \  Header:     spell_prep.h                                                           
 /    Handling spell preparation for all casting classes, memorization                                                           
@@ -16,7 +16,8 @@
  *  2) spell collection - these are all the spells that are prepared
  *                        ready for usage, better known as "prepared spells"
  * 
- *
+ *  We still preserved the prep-time element in the structure, despite
+ *   not needing the element in the current system.
  */
 /** END general notes */
 
@@ -33,6 +34,7 @@
 #include "handler.h"
 #include "constants.h"
 #include "spec_procs.h"
+#include "mud_event.h"
 #include "spells.h"
 #include "spell_prep.h"
  
@@ -51,7 +53,8 @@ void init_ch_spell_prep_queue(struct char_data *ch) {
   
 }
 
-/* destroy the spell prep queue, example ch logout */
+/* in: character
+ * destroy the spell prep queue, example ch logout */
 void destroy_ch_spell_prep_queue(struct char_data *ch) {
   int ch_class;
 
@@ -73,8 +76,27 @@ void load_ch_spell_prep_queue() {
 void save_ch_spell_prep_queue() {  
 }
 
-/* traverse the prep queue and print out the details
-   since the prep queue does not need any organizing, this should be simple */
+/* in: character
+ * out: true if character is actively preparing spells
+ *      false if character is NOT preparing spells
+ * is character currently occupied with preparing spells? */
+bool is_preparing_spells(struct char_data *ch) {
+  int i;
+
+  if (char_has_mud_event(ch, ePREPARING))
+    return TRUE;
+
+  for (i = 0; i < NUM_CASTERS; i++)
+    if (IS_PREPARING(ch, i))
+      return TRUE;
+
+  return FALSE;
+}
+
+/* in: character, class of the queue you want to work with
+ * traverse the prep queue and print out the details
+ * since the prep queue does not need any organizing, this should be fairly
+ * simple */
 void print_prep_queue(struct char_data *ch, int ch_class) {
   char buf[MAX_INPUT_LENGTH];
   int line_length = 80, total_time = 0;
@@ -114,16 +136,19 @@ void print_prep_queue(struct char_data *ch, int ch_class) {
 
   /* build a nice closing */
   *buf = '\0';
-  sprintf(buf, "\tYSTotal Preparation Time Remaining: %d\tC", class_names[ch_class]);
+  sprintf(buf, "\tYSTotal Preparation Time Remaining: %d\tC", total_time);
   send_to_char(ch, "\tC");
   text_line(ch, buf, line_length, '-', '-');
   send_to_char(ch, "\tn");
 
+  /* all done */
   return;
 }
 
-/* checks the ch's spell prep-queue for a given spell_num
-   returns the class corresponding to where the spell was found */
+/* in: character, spell-number
+ * out: class corresponding to the queue we found the spell-number in
+ * is the given spell-number currently in the respective class-queue?
+ *  */
 int is_spell_in_prep_queue(struct char_data *ch, int spell_num) {
   int ch_class;
   struct prep_collection_spell_data *current = NULL;
@@ -142,7 +167,9 @@ int is_spell_in_prep_queue(struct char_data *ch, int spell_num) {
   return FALSE;
 }
 
-/* create a new spell prep-queue entry */
+/* in: spell-number, class (of collection we want to access), metamagic, preparation time
+ * out: preparation/collection spell data structure
+ * create a new spell prep-queue entry, handles allocation of memory, etc */
 struct prep_collection_spell_data *create_prep_queue_entry(int spell, int ch_class, int metamagic,
         int prep_time) {
   struct prep_collection_spell_data *prep_queue_data = NULL;
@@ -157,8 +184,11 @@ struct prep_collection_spell_data *create_prep_queue_entry(int spell, int ch_cla
   return prep_queue_data;
 }
 
-/* add a spell to bottom of prep queue, example ch is memorizING a spell */
-struct prep_collection_spell_data *spell_to_prep_queue(struct char_data *ch, int spell, int ch_class, int metamagic,  int prep_time) {
+/* in: character, spell-number, class of collection we want, metamagic, prep time
+ * out: preparation/collection spell data structure
+ * add a spell to bottom of prep queue, example ch is memorizING a spell */
+struct prep_collection_spell_data *spell_to_prep_queue(struct char_data *ch,
+        int spell, int ch_class, int metamagic,  int prep_time) {
   struct prep_collection_spell_data *prep_queue_data = NULL;
   
   /* allocate memory, create entry with data */
@@ -170,9 +200,11 @@ struct prep_collection_spell_data *spell_to_prep_queue(struct char_data *ch, int
   return prep_queue_data;
 }
 
-/* remove a spell from the spell_prep queue
- * returns an instance of the spell item we found
- * example ch finished memorizing, 'forgot' */
+/* in: character, spell-number, class of collection we need
+ * out: copy of prearation/collection spell data containing entry
+ * remove a spell from the spell_prep queue
+ *   returns an instance of the spell item we found
+ * example ch finished memorizing, also 'forgetting' a spell */
 struct prep_collection_spell_data *spell_from_prep_queue(struct char_data *ch, int spell,
         int ch_class) {
   struct prep_collection_spell_data *current = SPELL_PREP_QUEUE(ch, ch_class);
@@ -226,7 +258,8 @@ struct prep_collection_spell_data *spell_from_prep_queue(struct char_data *ch, i
 void init_ch_spell_collection(struct char_data *ch) {
 }
 
-/* destroy a ch's spell prep queue, example ch logout */
+/* in: character
+ * destroy a ch's spell prep queue, example ch logout */
 void destroy_ch_spell_collection(struct char_data *ch) {
   int ch_class;
 
@@ -248,8 +281,9 @@ void load_ch_spell_collection(struct char_data *ch) {
 void save_ch_spell_collection(struct char_data *ch) {  
 }
 
-/* checks the ch's spell collection for a given spell_num
-   returns the class corresponding to where the spell was found */
+/* in: character, spell-number
+ * out: class of the respective collection
+ * checks the ch's spell collection for a given spell_num  */
 int is_spell_in_collection(struct char_data *ch, int spell_num) {
   struct prep_collection_spell_data *current = NULL;
   int ch_class;
@@ -268,7 +302,8 @@ int is_spell_in_collection(struct char_data *ch, int spell_num) {
   return FALSE;
 }
 
-/* create a new spell collection entry */
+/* in: spell-number, class (of collection we need), metamagic, prep-time
+ * create a new spell collection entry */
 struct prep_collection_spell_data *create_collection_entry(int spell, int ch_class, int metamagic,
         int prep_time) {
   struct prep_collection_spell_data *collection_data = NULL;
@@ -347,7 +382,10 @@ struct prep_collection_spell_data *spell_from_collection(struct char_data *ch, i
 
 /** START functions that connect the spell-queue and collection */
 
-/* spell from queue to collection */
+/* in: char, spellnumber
+ * out: true if success, false if failure
+ * spell from queue to collection, example finished preparing a spell and now
+ *  the spell belongs in your collection */
 bool item_from_queue_to_collection(struct char_data *ch, int spell) {  
   int class = is_spell_in_prep_queue(ch, spell);
   
@@ -445,7 +483,7 @@ int compute_spells_prep_time(struct char_data *ch, int spellnum, int class,
 }
 
 /* in: spellnum, class, metamagic
- * out: the circle this spell (now) belongs
+ * out: the circle this spell (now) belongs, FALSE (0) if failed
  * given above info, compute which circle this spell belongs to, this 'interesting'
  * set-up is due to a dated system that assigns spells by level, not circle
  * in addition we have metamagic that can modify the spell-circle as well */

@@ -113,5 +113,16 @@ extern size_t action_bits_count;
 extern size_t affected_bits_count;
 extern size_t extra_bits_count;
 extern size_t wear_bits_count;
+extern const int druid_slots[LVL_IMPL + 1][10];
+extern const int cleric_slots[LVL_IMPL + 1][10];
+extern const int paladin_slots[LVL_IMPL + 1][10];
+extern const int ranger_slots[LVL_IMPL + 1][10];
+extern const int bard_known[LVL_IMPL + 1][10];
+extern const int sorcerer_known[LVL_IMPL + 1][10];
+extern const int bard_slots[LVL_IMPL + 1][10];
+extern const int sorcerer_slots[LVL_IMPL + 1][10];
+extern const int wizard_slots[LVL_IMPL + 1][10];
+extern const char *spell_prep_dictation[NUM_CASTERS][4];
+
 
 #endif /* _CONSTANTS_H_ */
