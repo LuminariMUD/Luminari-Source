@@ -37,6 +37,8 @@ extern "C" {
     #define SORC_PREP_TIME_FACTOR     5
     #define BARD_PREP_TIME_FACTOR     6
     
+    /* macros */
+    
     /* char's pointer to their spell prep queue (head) */
     #define SPELL_PREP_QUEUE(ch, ch_class) (ch->player_specials->saved.preparation_queue[ch_class])
     /* spellnum of a prep-queue top item (head) */
@@ -50,6 +52,7 @@ extern "C" {
     /** END defines **/
     
     /** START functions **/
+    
     void init_ch_spell_prep_queue(struct char_data *ch);
     void destroy_ch_spell_prep_queue(struct char_data *ch);
     void load_ch_spell_prep_queue();
@@ -113,113 +116,6 @@ struct prep_collection_spell_data {
 };    
 */
 
-    /*
-    int init_prep_list(struct spell_node **head, int spellnum);
-    int insert_spell_prep_list(struct spell_node **head, int spellnum);
-    void remove_spell_prep_list(struct spell_node **head, int spellnum);
-    */
-/*
-int init_prep_list(struct spell_node **head, int spellnum) {
-  *head = malloc(sizeof (struct spell_node));
-  if (!*head) {
-    log("Failed to init spell-prep linked list init_prep_list()");
-    return 0;
-  }
-
-  (*head)->spellnum = spellnum;
-  (*head)->next = NULL;
-
-  return 1;
-}
-
-int insert_spell_prep_list(struct spell_node **head, int spellnum) {
-  struct spell_node *current = *head;
-  struct spell_node *tmp;
-
-  do {
-    tmp = current;
-    current = current->next;
-  } while (current);
-
-  // create a new spell_node after tmp 
-  struct spell_node *new = malloc(sizeof (struct spell_node));
-  if (!new) {
-    log("Failed to insert a new element in insert_spell_prep_list()\r\n");
-    return 0;
-  }
-  new->next = NULL;
-  new->spellnum = spellnum;
-
-  tmp->next = new;
-
-  return 1;
-}
-
-void remove_spell_prep_list(struct spell_node **head, int spellnum) {
-  struct spell_node *current = *head;
-  struct spell_node *prev = NULL;
-
-  do {
-    if (current->spellnum == spellnum) {
-      break;
-    }
-    prev = current;
-    current = current->next;
-  } while (current);
-
-  // if the first element 
-  if (current == *head) {
-    // reuse prev
-    prev = *head;
-    *head = current->next;
-    free(prev);
-    return;
-  }
-
-  // if the last element 
-  if (current->next == NULL) {
-    prev->next = NULL;
-    free(current);
-    return;
-  }
-
-  prev->next = current->next;
-  free(current);
-  return;
-}
-
-void print_prep_list(struct spell_node **head) {
-  struct spell_node *current = *head;
-  while (current) {
-    log("current spellnum: %d, address: %p\r\n", current->spellnum, current);
-    current = current->next;
-  }
-}
-
-void reverse_prep_list(struct spell_node **head) {
-  struct spell_node *current = *head, *newnext = NULL, *tmp;
-
-  do {
-    tmp = current->next;
-    current->next = newnext;
-    newnext = current;
-    current = tmp;
-  } while (current);
-
-  *head = newnext;
-  return;
-}
-
-void destroy_prep_list(struct spell_node **head) {
-  struct spell_node *spell_node = *head;
-  do {
-    struct spell_node *tmp;
-    tmp = spell_node;
-    spell_node = spell_node->next;
-    free(tmp);
-  } while (spell_node);
-}
-*/    
 
 
 #ifdef	__cplusplus
@@ -228,3 +124,4 @@ void destroy_prep_list(struct spell_node **head) {
 
 #endif	/* SPELL_PREP_H */
 
+/*EOF*/
