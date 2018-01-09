@@ -25,7 +25,7 @@
 #include "fight.h"
 #include "modify.h"
 #include "clan.h"
-#include "craft.h"oedit_disp_prompt_apply_menu
+#include "craft.h"
 #include "spec_abilities.h"
 #include "feats.h"
 #include "assign_wpn_armor.h"
