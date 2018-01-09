@@ -35,6 +35,7 @@
 #include "constants.h"
 #include "spec_procs.h"
 #include "mud_event.h"
+#include "class.h"
 #include "spells.h"
 #include "spell_prep.h"
  
@@ -409,6 +410,66 @@ bool item_from_queue_to_collection(struct char_data *ch, int spell) {
 
 
 /** START functions of general purpose, includes dated stuff we need to fix */
+
+/* in: class we need to assign spell slots to
+ * at bootup, we initialize class-data, which includes assignment
+ *  of the class feats, with our new feat-based spell-slot system, we have
+ *  to also assign ALL the spell slots as feats to the class-data, that is
+ *  what this function handles... we take charts from constants.c and use the
+ *  data to assign the feats...
+ */
+void assign_feat_spell_slots(int ch_class) {
+  int level_counter = 0;
+  int circle_counter = 0;
+  int slots_counter = 0;
+  int number_slots = 0;
+  int feat_index = 0;
+  
+  /* this is so we can find the index of the feats in structs.h */
+  switch (ch_class) {
+    case CLASS_WIZARD:
+      feat_index = WIZ_SLT_0;
+      break;
+    case CLASS_SORCERER:
+      feat_index = SRC_SLT_0;
+      break;
+    case CLASS_BARD:
+      feat_index = BRD_SLT_0;
+      break;      
+    case CLASS_CLERIC:
+      feat_index = CLR_SLT_0;
+      break;      
+    case CLASS_DRUID:
+      feat_index = DRD_SLT_0;
+      break;      
+    case CLASS_RANGER:
+      feat_index = RNG_SLT_0;
+      break;
+    case CLASS_PALADIN:
+      feat_index = PLD_SLT_0;
+      break;
+    default:break;
+  }
+
+  /* ENGINE */
+  /* traverse level aspect of chart */
+  for (level_counter = 0; level_counter < LVL_IMPL; level_counter++) {
+    /* traverse circle aspect of chart */
+    for (circle_counter = 0; circle_counter < NUM_CIRCLES; circle_counter++) {
+      /* okay we have a particular slot on the chart, handle the value */
+      number_slots = wizard_slots[level_counter][circle_counter];
+      /* slots here? at least circle 1? at least level 1? */
+      if (number_slots && circle_counter && level_counter) {
+        for (slots_counter = 0; slots_counter < number_slots; slots_counter++) {
+          /* assignment   class     feat-num                        cf    lvl            stack */
+          feat_assignment(ch_class, feat_index + circle_counter, TRUE, level_counter, TRUE);
+        }
+      }
+    }
+  }
+
+  /* all done! */
+}
 
 /* in: char data, spell number, class associated with spell, circle of spell
  * out: preparation time for spell number

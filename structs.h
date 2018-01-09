@@ -1555,8 +1555,9 @@
 #define FEAT_BARD_5TH_CIRCLE                533
 #define FEAT_BARD_6TH_CIRCLE                534
 #define FEAT_BARD_EPIC_SPELL                535
-/* cleric slots */
+/* cleric slots [MUST BE KEPT TOGETHER] */
 #define FEAT_CLERIC_1ST_CIRCLE_SLOT              536
+#define CLR_SLT_0 (FEAT_CLERIC_1ST_CIRCLE_SLOT-1)
 #define FEAT_CLERIC_2ND_CIRCLE_SLOT              537
 #define FEAT_CLERIC_3RD_CIRCLE_SLOT              538
 #define FEAT_CLERIC_4TH_CIRCLE_SLOT              539
@@ -1566,17 +1567,69 @@
 #define FEAT_CLERIC_8TH_CIRCLE_SLOT              543
 #define FEAT_CLERIC_9TH_CIRCLE_SLOT              544
 #define FEAT_CLERIC_EPIC_SPELL_SLOT              545
-/* wizard slots */
-/* druid slots */
-/* sorcerer slots */
-/* paladin slots */
-/* ranger slots */
-/* bard slots */
+/* wizard slots [MUST BE KEPT TOGETHER] */
+/*marker for slot-assignment, must match 1st slot */
+#define FEAT_WIZARD_1ST_CIRCLE_SLOT              546
+#define WIZ_SLT_0 (FEAT_WIZARD_1ST_CIRCLE_SLOT-1)
+#define FEAT_WIZARD_2ND_CIRCLE_SLOT              547
+#define FEAT_WIZARD_3RD_CIRCLE_SLOT              548
+#define FEAT_WIZARD_4TH_CIRCLE_SLOT              549
+#define FEAT_WIZARD_5TH_CIRCLE_SLOT              550
+#define FEAT_WIZARD_6TH_CIRCLE_SLOT              551
+#define FEAT_WIZARD_7TH_CIRCLE_SLOT              552
+#define FEAT_WIZARD_8TH_CIRCLE_SLOT              553
+#define FEAT_WIZARD_9TH_CIRCLE_SLOT              554
+#define FEAT_WIZARD_EPIC_SPELL_SLOT              555
+/* druid slots [MUST BE KEPT TOGETHER] */
+#define FEAT_DRUID_1ST_CIRCLE_SLOT              556
+#define DRD_SLT_0 (FEAT_DRUID_1ST_CIRCLE_SLOT-1)
+#define FEAT_DRUID_2ND_CIRCLE_SLOT              557
+#define FEAT_DRUID_3RD_CIRCLE_SLOT              558
+#define FEAT_DRUID_4TH_CIRCLE_SLOT              559
+#define FEAT_DRUID_5TH_CIRCLE_SLOT              560
+#define FEAT_DRUID_6TH_CIRCLE_SLOT              561
+#define FEAT_DRUID_7TH_CIRCLE_SLOT              562
+#define FEAT_DRUID_8TH_CIRCLE_SLOT              563
+#define FEAT_DRUID_9TH_CIRCLE_SLOT              564
+#define FEAT_DRUID_EPIC_SPELL_SLOT              565
+/* sorcerer slots [MUST BE KEPT TOGETHER] */
+#define FEAT_SORCERER_1ST_CIRCLE_SLOT              566
+#define SRC_SLT_0 (FEAT_SORCERER_1ST_CIRCLE_SLOT-1)
+#define FEAT_SORCERER_2ND_CIRCLE_SLOT              567
+#define FEAT_SORCERER_3RD_CIRCLE_SLOT              568
+#define FEAT_SORCERER_4TH_CIRCLE_SLOT              569
+#define FEAT_SORCERER_5TH_CIRCLE_SLOT              570
+#define FEAT_SORCERER_6TH_CIRCLE_SLOT              571
+#define FEAT_SORCERER_7TH_CIRCLE_SLOT              572
+#define FEAT_SORCERER_8TH_CIRCLE_SLOT              573
+#define FEAT_SORCERER_9TH_CIRCLE_SLOT              574
+#define FEAT_SORCERER_EPIC_SPELL_SLOT              575
+/* paladin slots [MUST BE KEPT TOGETHER] */
+#define FEAT_PALADIN_1ST_CIRCLE_SLOT              576
+#define PLD_SLT_0 (FEAT_PALADIN_1ST_CIRCLE_SLOT-1)
+#define FEAT_PALADIN_2ND_CIRCLE_SLOT              577
+#define FEAT_PALADIN_3RD_CIRCLE_SLOT              578
+#define FEAT_PALADIN_4TH_CIRCLE_SLOT              579
+/* ranger slots [MUST BE KEPT TOGETHER] */
+#define FEAT_RANGER_1ST_CIRCLE_SLOT              580
+#define RNG_SLT_0 (FEAT_RANGER_1ST_CIRCLE_SLOT-1)
+#define FEAT_RANGER_2ND_CIRCLE_SLOT              581
+#define FEAT_RANGER_3RD_CIRCLE_SLOT              582
+#define FEAT_RANGER_4TH_CIRCLE_SLOT              583
+/* bard slots [MUST BE KEPT TOGETHER] */
+#define FEAT_BARD_1ST_CIRCLE_SLOT              584
+#define BRD_SLT_0 (FEAT_BARD_1ST_CIRCLE_SLOT-1)
+#define FEAT_BARD_2ND_CIRCLE_SLOT              585
+#define FEAT_BARD_3RD_CIRCLE_SLOT              586
+#define FEAT_BARD_4TH_CIRCLE_SLOT              587
+#define FEAT_BARD_5TH_CIRCLE_SLOT              588
+#define FEAT_BARD_6TH_CIRCLE_SLOT              589
+#define FEAT_BARD_EPIC_SPELL_SLOT              590
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT                      546
+#define FEAT_LAST_FEAT                      591
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS                           547
+#define NUM_FEATS                           592
 /** absolute cap **/
 #define MAX_FEATS                           750
 /*****/

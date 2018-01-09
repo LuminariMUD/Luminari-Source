@@ -114,6 +114,8 @@ int modify_class_ability(struct char_data *ch, int ability, int class);
 void init_class(struct char_data *ch, int class, int level);
 void load_class_list(void);
 static int level_feats[][LEVEL_FEATS];
+void feat_assignment(int class_num, int feat_num, bool is_classfeat,
+        int level_received, bool stacks);
 
 /* ACMD */
 ACMD(do_class);
