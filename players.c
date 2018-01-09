@@ -1546,6 +1546,7 @@ static void load_affects(FILE *fl, struct char_data *ch) {
 static void load_praytimes(FILE *fl, struct char_data *ch) {
   int num = 0, num2 = 0, num3 = 0, num4 = 0, num5 = 0, num6 = 0,
           num7 = 0, num8 = 0;
+  int counter = 0;  
   char line[MAX_INPUT_LENGTH + 1];
 
   do {
@@ -1569,7 +1570,8 @@ static void load_praytimes(FILE *fl, struct char_data *ch) {
       PREP_TIME(ch, num, 5) = num7;
       PREP_TIME(ch, num, 6) = num8;
     }
-  } while (num != -1);
+    counter++;
+  } while (counter < MAX_MEM && num != -1);
 }
 
 /* prayed loading isn't a loop, so has to be manually changed if you
@@ -1577,6 +1579,7 @@ static void load_praytimes(FILE *fl, struct char_data *ch) {
 static void load_prayed_metamagic(FILE *fl, struct char_data *ch) {
   int num = 0, num2 = 0, num3 = 0, num4 = 0, num5 = 0, num6 = 0,
           num7 = 0, num8 = 0;
+  int counter = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
   do {
@@ -1599,7 +1602,8 @@ static void load_prayed_metamagic(FILE *fl, struct char_data *ch) {
       PREPARED_SPELLS(ch, num, 5).metamagic = num7;
       PREPARED_SPELLS(ch, num, 6).metamagic = num8;
     }
-  } while (num != -1);
+    counter++;
+  } while (counter < MAX_MEM && num != -1);
 }
 
 /* prayed loading isn't a loop, so has to be manually changed if you
@@ -1607,6 +1611,7 @@ static void load_prayed_metamagic(FILE *fl, struct char_data *ch) {
 static void load_prayed(FILE *fl, struct char_data *ch) {
   int num = 0, num2 = 0, num3 = 0, num4 = 0, num5 = 0, num6 = 0,
           num7 = 0, num8 = 0;
+  int counter = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
   do {
@@ -1629,7 +1634,8 @@ static void load_prayed(FILE *fl, struct char_data *ch) {
       PREPARED_SPELLS(ch, num, 5).spell = num7;
       PREPARED_SPELLS(ch, num, 6).spell = num8;
     }
-  } while (num != -1);
+    counter++;
+  } while (counter < MAX_MEM && num != -1);
 }
 
 /* praying loading isn't a loop, so has to be manually changed if you
