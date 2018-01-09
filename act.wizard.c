@@ -3990,7 +3990,9 @@ struct zcheck_affs {
   {APPLY_RES_MENTAL, -20, 20, "mental resistance"},
   {APPLY_RES_LIGHT, -20, 20, "light resistance"},  //45
   {APPLY_RES_ENERGY, -20, 20, "energy resistance"},
-  {APPLY_RES_WATER, -20, 20, "water resistance"}
+  {APPLY_RES_WATER, -20, 20, "water resistance"},
+  {APPLY_DR, -20, 20, "damage reduction"},
+  {APPLY_FEAT, 1, FEAT_LAST_FEAT, "grant feat"}
 };
 
 /* These are ABS() values. */

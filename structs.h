@@ -1909,12 +1909,13 @@
 #define APPLY_RES_LIGHT        45
 #define APPLY_RES_ENERGY       46
 #define APPLY_RES_WATER        47  //20
-
-#define APPLY_DR               48
 /* end dam_types, make sure it matches NUM_DAM_TYPES */
 
+#define APPLY_DR               48
+#define APPLY_FEAT             49
+
 /** Total number of applies */
-#define NUM_APPLIES            49
+#define NUM_APPLIES            50
 
 /* Equals the total number of SAVING_* defines in spells.h */
 #define NUM_OF_SAVING_THROWS  5
