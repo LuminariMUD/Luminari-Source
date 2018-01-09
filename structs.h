@@ -1485,26 +1485,29 @@
 #define FEAT_SHIFTER_SHAPES_3               471
 #define FEAT_SHIFTER_SHAPES_4               472
 #define FEAT_SHIFTER_SHAPES_5               473
-#define FEAT_DIVINE_1ST_CIRCLE              474
-#define FEAT_DIVINE_2ND_CIRCLE              475
-#define FEAT_DIVINE_3RD_CIRCLE              476
-#define FEAT_DIVINE_4TH_CIRCLE              477
-#define FEAT_DIVINE_5TH_CIRCLE              478
-#define FEAT_DIVINE_6TH_CIRCLE              479
-#define FEAT_DIVINE_7TH_CIRCLE              480
-#define FEAT_DIVINE_8TH_CIRCLE              481
-#define FEAT_DIVINE_9TH_CIRCLE              482
-#define FEAT_DIVINE_EPIC_SPELL              483
-#define FEAT_ARCANE_1ST_CIRCLE              484
-#define FEAT_ARCANE_2ND_CIRCLE              485
-#define FEAT_ARCANE_3RD_CIRCLE              486
-#define FEAT_ARCANE_4TH_CIRCLE              487
-#define FEAT_ARCANE_5TH_CIRCLE              488
-#define FEAT_ARCANE_6TH_CIRCLE              489
-#define FEAT_ARCANE_7TH_CIRCLE              490
-#define FEAT_ARCANE_8TH_CIRCLE              491
-#define FEAT_ARCANE_9TH_CIRCLE              492
-#define FEAT_ARCANE_EPIC_SPELL              493
+/* cleric circle */
+#define FEAT_CLERIC_1ST_CIRCLE              474
+#define FEAT_CLERIC_2ND_CIRCLE              475
+#define FEAT_CLERIC_3RD_CIRCLE              476
+#define FEAT_CLERIC_4TH_CIRCLE              477
+#define FEAT_CLERIC_5TH_CIRCLE              478
+#define FEAT_CLERIC_6TH_CIRCLE              479
+#define FEAT_CLERIC_7TH_CIRCLE              480
+#define FEAT_CLERIC_8TH_CIRCLE              481
+#define FEAT_CLERIC_9TH_CIRCLE              482
+#define FEAT_CLERIC_EPIC_SPELL              483
+/* wizard circle */
+#define FEAT_WIZARD_1ST_CIRCLE              484
+#define FEAT_WIZARD_2ND_CIRCLE              485
+#define FEAT_WIZARD_3RD_CIRCLE              486
+#define FEAT_WIZARD_4TH_CIRCLE              487
+#define FEAT_WIZARD_5TH_CIRCLE              488
+#define FEAT_WIZARD_6TH_CIRCLE              489
+#define FEAT_WIZARD_7TH_CIRCLE              490
+#define FEAT_WIZARD_8TH_CIRCLE              491
+#define FEAT_WIZARD_9TH_CIRCLE              492
+#define FEAT_WIZARD_EPIC_SPELL              493
+/**/
 #define FEAT_WEAPON_PROFICIENCY_DROW        494 //drow
 #define FEAT_DROW_RACIAL_ADJUSTMENT         495 //drow
 #define FEAT_DROW_SPELL_RESISTANCE          496 //drow
@@ -1512,11 +1515,68 @@
 #define FEAT_SLA_LEVITATE                   498 //drow, spell-like ability
 #define FEAT_SLA_DARKNESS                   499 //drow, spell-like ability
 #define FEAT_LIGHT_BLINDNESS                500 //underdark/underworld racial disadvantage
-
+/* druid circle */
+#define FEAT_DRUID_1ST_CIRCLE               501
+#define FEAT_DRUID_2ND_CIRCLE               502
+#define FEAT_DRUID_3RD_CIRCLE               503
+#define FEAT_DRUID_4TH_CIRCLE               504
+#define FEAT_DRUID_5TH_CIRCLE               505
+#define FEAT_DRUID_6TH_CIRCLE               506
+#define FEAT_DRUID_7TH_CIRCLE               507
+#define FEAT_DRUID_8TH_CIRCLE               508
+#define FEAT_DRUID_9TH_CIRCLE               509
+#define FEAT_DRUID_EPIC_SPELL               510
+/* sorcerer circle */
+#define FEAT_SORCERER_1ST_CIRCLE            511
+#define FEAT_SORCERER_2ND_CIRCLE            512
+#define FEAT_SORCERER_3RD_CIRCLE            513
+#define FEAT_SORCERER_4TH_CIRCLE            514
+#define FEAT_SORCERER_5TH_CIRCLE            515
+#define FEAT_SORCERER_6TH_CIRCLE            516
+#define FEAT_SORCERER_7TH_CIRCLE            517
+#define FEAT_SORCERER_8TH_CIRCLE            518
+#define FEAT_SORCERER_9TH_CIRCLE            519
+#define FEAT_SORCERER_EPIC_SPELL            520
+/* paladin circle */
+#define FEAT_PALADIN_1ST_CIRCLE             521
+#define FEAT_PALADIN_2ND_CIRCLE             522
+#define FEAT_PALADIN_3RD_CIRCLE             523
+#define FEAT_PALADIN_4TH_CIRCLE             524
+/* ranger circle */
+#define FEAT_RANGER_1ST_CIRCLE              525
+#define FEAT_RANGER_2ND_CIRCLE              526
+#define FEAT_RANGER_3RD_CIRCLE              527
+#define FEAT_RANGER_4TH_CIRCLE              528
+/* bard circle */
+#define FEAT_BARD_1ST_CIRCLE                529
+#define FEAT_BARD_2ND_CIRCLE                530
+#define FEAT_BARD_3RD_CIRCLE                531
+#define FEAT_BARD_4TH_CIRCLE                532
+#define FEAT_BARD_5TH_CIRCLE                533
+#define FEAT_BARD_6TH_CIRCLE                534
+#define FEAT_BARD_EPIC_SPELL                535
+/* cleric slots */
+#define FEAT_CLERIC_1ST_CIRCLE_SLOT              536
+#define FEAT_CLERIC_2ND_CIRCLE_SLOT              537
+#define FEAT_CLERIC_3RD_CIRCLE_SLOT              538
+#define FEAT_CLERIC_4TH_CIRCLE_SLOT              539
+#define FEAT_CLERIC_5TH_CIRCLE_SLOT              540
+#define FEAT_CLERIC_6TH_CIRCLE_SLOT              541
+#define FEAT_CLERIC_7TH_CIRCLE_SLOT              542
+#define FEAT_CLERIC_8TH_CIRCLE_SLOT              543
+#define FEAT_CLERIC_9TH_CIRCLE_SLOT              544
+#define FEAT_CLERIC_EPIC_SPELL_SLOT              545
+/* wizard slots */
+/* druid slots */
+/* sorcerer slots */
+/* paladin slots */
+/* ranger slots */
+/* bard slots */
+/**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT                      501
+#define FEAT_LAST_FEAT                      521
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS                           502
+#define NUM_FEATS                           522
 /** absolute cap **/
 #define MAX_FEATS                           750
 /*****/

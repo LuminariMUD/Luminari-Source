@@ -2588,17 +2588,17 @@ void load_class_list(void) {
   feat_assignment(CLASS_WIZARD, FEAT_WEAPON_PROFICIENCY_WIZARD, Y,    1,  N);
   feat_assignment(CLASS_WIZARD, FEAT_SCRIBE_SCROLL,             Y,    1,  N);
   feat_assignment(CLASS_WIZARD, FEAT_SUMMON_FAMILIAR,           Y,    1,  N);
-  feat_assignment(CLASS_WIZARD, FEAT_ARCANE_1ST_CIRCLE,         Y,    1,  N);
-  feat_assignment(CLASS_WIZARD, FEAT_ARCANE_2ND_CIRCLE,         Y,    3,  N);
-  feat_assignment(CLASS_WIZARD, FEAT_ARCANE_3RD_CIRCLE,         Y,    5,  N);
-  feat_assignment(CLASS_WIZARD, FEAT_ARCANE_4TH_CIRCLE,         Y,    7,  N);
-  feat_assignment(CLASS_WIZARD, FEAT_ARCANE_5TH_CIRCLE,         Y,    9,  N);
-  feat_assignment(CLASS_WIZARD, FEAT_ARCANE_6TH_CIRCLE,         Y,   11,  N);
-  feat_assignment(CLASS_WIZARD, FEAT_ARCANE_7TH_CIRCLE,         Y,   13,  N);
-  feat_assignment(CLASS_WIZARD, FEAT_ARCANE_8TH_CIRCLE,         Y,   15,  N);
-  feat_assignment(CLASS_WIZARD, FEAT_ARCANE_9TH_CIRCLE,         Y,   17,  N);
+  feat_assignment(CLASS_WIZARD, FEAT_WIZARD_1ST_CIRCLE,         Y,    1,  N);
+  feat_assignment(CLASS_WIZARD, FEAT_WIZARD_2ND_CIRCLE,         Y,    3,  N);
+  feat_assignment(CLASS_WIZARD, FEAT_WIZARD_3RD_CIRCLE,         Y,    5,  N);
+  feat_assignment(CLASS_WIZARD, FEAT_WIZARD_4TH_CIRCLE,         Y,    7,  N);
+  feat_assignment(CLASS_WIZARD, FEAT_WIZARD_5TH_CIRCLE,         Y,    9,  N);
+  feat_assignment(CLASS_WIZARD, FEAT_WIZARD_6TH_CIRCLE,         Y,   11,  N);
+  feat_assignment(CLASS_WIZARD, FEAT_WIZARD_7TH_CIRCLE,         Y,   13,  N);
+  feat_assignment(CLASS_WIZARD, FEAT_WIZARD_8TH_CIRCLE,         Y,   15,  N);
+  feat_assignment(CLASS_WIZARD, FEAT_WIZARD_9TH_CIRCLE,         Y,   17,  N);
   /*epic*/
-  feat_assignment(CLASS_WIZARD, FEAT_ARCANE_EPIC_SPELL,         Y,   21,  N);
+  feat_assignment(CLASS_WIZARD, FEAT_WIZARD_EPIC_SPELL,         Y,   21,  N);
   /* list of class feats */
   feat_assignment(CLASS_WIZARD, FEAT_COMBAT_CASTING   ,         Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_WIZARD, FEAT_SPELL_PENETRATION,         Y, NOASSIGN_FEAT, N);
@@ -2876,17 +2876,17 @@ void load_class_list(void) {
   feat_assignment(CLASS_CLERIC, FEAT_ARMOR_PROFICIENCY_MEDIUM,  Y,    1,  N);
   feat_assignment(CLASS_CLERIC, FEAT_ARMOR_PROFICIENCY_SHIELD,  Y,    1,  N);
   feat_assignment(CLASS_CLERIC, FEAT_TURN_UNDEAD,               Y,    1,  N);
-  feat_assignment(CLASS_CLERIC, FEAT_DIVINE_1ST_CIRCLE,         Y,    1,  N);
-  feat_assignment(CLASS_CLERIC, FEAT_DIVINE_2ND_CIRCLE,         Y,    3,  N);
-  feat_assignment(CLASS_CLERIC, FEAT_DIVINE_3RD_CIRCLE,         Y,    5,  N);
-  feat_assignment(CLASS_CLERIC, FEAT_DIVINE_4TH_CIRCLE,         Y,    7,  N);
-  feat_assignment(CLASS_CLERIC, FEAT_DIVINE_5TH_CIRCLE,         Y,    9,  N);
-  feat_assignment(CLASS_CLERIC, FEAT_DIVINE_6TH_CIRCLE,         Y,   11,  N);
-  feat_assignment(CLASS_CLERIC, FEAT_DIVINE_7TH_CIRCLE,         Y,   13,  N);
-  feat_assignment(CLASS_CLERIC, FEAT_DIVINE_8TH_CIRCLE,         Y,   15,  N);
-  feat_assignment(CLASS_CLERIC, FEAT_DIVINE_9TH_CIRCLE,         Y,   17,  N);
+  feat_assignment(CLASS_CLERIC, FEAT_CLERIC_1ST_CIRCLE,         Y,    1,  N);
+  feat_assignment(CLASS_CLERIC, FEAT_CLERIC_2ND_CIRCLE,         Y,    3,  N);
+  feat_assignment(CLASS_CLERIC, FEAT_CLERIC_3RD_CIRCLE,         Y,    5,  N);
+  feat_assignment(CLASS_CLERIC, FEAT_CLERIC_4TH_CIRCLE,         Y,    7,  N);
+  feat_assignment(CLASS_CLERIC, FEAT_CLERIC_5TH_CIRCLE,         Y,    9,  N);
+  feat_assignment(CLASS_CLERIC, FEAT_CLERIC_6TH_CIRCLE,         Y,   11,  N);
+  feat_assignment(CLASS_CLERIC, FEAT_CLERIC_7TH_CIRCLE,         Y,   13,  N);
+  feat_assignment(CLASS_CLERIC, FEAT_CLERIC_8TH_CIRCLE,         Y,   15,  N);
+  feat_assignment(CLASS_CLERIC, FEAT_CLERIC_9TH_CIRCLE,         Y,   17,  N);
   /*epic*/
-  feat_assignment(CLASS_CLERIC, FEAT_DIVINE_EPIC_SPELL,         Y,   21,  N);
+  feat_assignment(CLASS_CLERIC, FEAT_CLERIC_EPIC_SPELL,         Y,   21,  N);
   /**** spell assign ****/ 
   /*              class num      spell                   level acquired */
   /* 1st circle */
@@ -3431,17 +3431,17 @@ void load_class_list(void) {
   feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE,               Y,    18, Y);
   feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE,               Y,    20, Y);
   /* spell circles */
-  feat_assignment(CLASS_DRUID, FEAT_DIVINE_1ST_CIRCLE,        Y,    1,  N);
-  feat_assignment(CLASS_DRUID, FEAT_DIVINE_2ND_CIRCLE,        Y,    3,  N);
-  feat_assignment(CLASS_DRUID, FEAT_DIVINE_3RD_CIRCLE,        Y,    5,  N);
-  feat_assignment(CLASS_DRUID, FEAT_DIVINE_4TH_CIRCLE,        Y,    7,  N);
-  feat_assignment(CLASS_DRUID, FEAT_DIVINE_5TH_CIRCLE,        Y,    9,  N);
-  feat_assignment(CLASS_DRUID, FEAT_DIVINE_6TH_CIRCLE,        Y,    11, N);
-  feat_assignment(CLASS_DRUID, FEAT_DIVINE_7TH_CIRCLE,        Y,    13, N);
-  feat_assignment(CLASS_DRUID, FEAT_DIVINE_8TH_CIRCLE,        Y,    15, N);
-  feat_assignment(CLASS_DRUID, FEAT_DIVINE_9TH_CIRCLE,        Y,    17, N);
+  feat_assignment(CLASS_DRUID, FEAT_DRUID_1ST_CIRCLE,        Y,    1,  N);
+  feat_assignment(CLASS_DRUID, FEAT_DRUID_2ND_CIRCLE,        Y,    3,  N);
+  feat_assignment(CLASS_DRUID, FEAT_DRUID_3RD_CIRCLE,        Y,    5,  N);
+  feat_assignment(CLASS_DRUID, FEAT_DRUID_4TH_CIRCLE,        Y,    7,  N);
+  feat_assignment(CLASS_DRUID, FEAT_DRUID_5TH_CIRCLE,        Y,    9,  N);
+  feat_assignment(CLASS_DRUID, FEAT_DRUID_6TH_CIRCLE,        Y,    11, N);
+  feat_assignment(CLASS_DRUID, FEAT_DRUID_7TH_CIRCLE,        Y,    13, N);
+  feat_assignment(CLASS_DRUID, FEAT_DRUID_8TH_CIRCLE,        Y,    15, N);
+  feat_assignment(CLASS_DRUID, FEAT_DRUID_9TH_CIRCLE,        Y,    17, N);
   /*epic*/
-  feat_assignment(CLASS_DRUID, FEAT_DIVINE_EPIC_SPELL,        Y,    21, N);
+  feat_assignment(CLASS_DRUID, FEAT_DRUID_EPIC_SPELL,        Y,    21, N);
   feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE,               Y,    22, Y);
   feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE,               Y,    24, Y);
   feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE,               Y,    26, Y);
@@ -3724,17 +3724,17 @@ void load_class_list(void) {
   feat_assignment(CLASS_SORCERER, FEAT_WEAPON_PROFICIENCY_WIZARD, Y,    1,  N);
   feat_assignment(CLASS_SORCERER, FEAT_SIMPLE_WEAPON_PROFICIENCY, Y,    1,  N);
   feat_assignment(CLASS_SORCERER, FEAT_SUMMON_FAMILIAR,           Y,    1,  N);
-  feat_assignment(CLASS_SORCERER, FEAT_ARCANE_1ST_CIRCLE,         Y,    1,  N);
-  feat_assignment(CLASS_SORCERER, FEAT_ARCANE_2ND_CIRCLE,         Y,    4,  N);
-  feat_assignment(CLASS_SORCERER, FEAT_ARCANE_3RD_CIRCLE,         Y,    6,  N);
-  feat_assignment(CLASS_SORCERER, FEAT_ARCANE_4TH_CIRCLE,         Y,    8,  N);
-  feat_assignment(CLASS_SORCERER, FEAT_ARCANE_5TH_CIRCLE,         Y,   10,  N);
-  feat_assignment(CLASS_SORCERER, FEAT_ARCANE_6TH_CIRCLE,         Y,   12,  N);
-  feat_assignment(CLASS_SORCERER, FEAT_ARCANE_7TH_CIRCLE,         Y,   14,  N);
-  feat_assignment(CLASS_SORCERER, FEAT_ARCANE_8TH_CIRCLE,         Y,   16,  N);
-  feat_assignment(CLASS_SORCERER, FEAT_ARCANE_9TH_CIRCLE,         Y,   18,  N);
+  feat_assignment(CLASS_SORCERER, FEAT_SORCERER_1ST_CIRCLE,         Y,    1,  N);
+  feat_assignment(CLASS_SORCERER, FEAT_SORCERER_2ND_CIRCLE,         Y,    4,  N);
+  feat_assignment(CLASS_SORCERER, FEAT_SORCERER_3RD_CIRCLE,         Y,    6,  N);
+  feat_assignment(CLASS_SORCERER, FEAT_SORCERER_4TH_CIRCLE,         Y,    8,  N);
+  feat_assignment(CLASS_SORCERER, FEAT_SORCERER_5TH_CIRCLE,         Y,   10,  N);
+  feat_assignment(CLASS_SORCERER, FEAT_SORCERER_6TH_CIRCLE,         Y,   12,  N);
+  feat_assignment(CLASS_SORCERER, FEAT_SORCERER_7TH_CIRCLE,         Y,   14,  N);
+  feat_assignment(CLASS_SORCERER, FEAT_SORCERER_8TH_CIRCLE,         Y,   16,  N);
+  feat_assignment(CLASS_SORCERER, FEAT_SORCERER_9TH_CIRCLE,         Y,   18,  N);
   /*epic*/
-  feat_assignment(CLASS_SORCERER, FEAT_ARCANE_EPIC_SPELL,         Y,   21,  N);
+  feat_assignment(CLASS_SORCERER, FEAT_SORCERER_EPIC_SPELL,         Y,   21,  N);
   /* sorcerer do not get class feats */
   /**** spell assign ****/
   /*              class num      spell                   level acquired */
@@ -4019,10 +4019,10 @@ void load_class_list(void) {
   feat_assignment(CLASS_PALADIN, FEAT_GLORIOUS_RIDER,             Y,   19,  N);
   feat_assignment(CLASS_PALADIN, FEAT_SMITE_EVIL,                 Y,   19,  Y);
   /* spell circles */
-  feat_assignment(CLASS_PALADIN, FEAT_DIVINE_1ST_CIRCLE,          Y,    6,  N);
-  feat_assignment(CLASS_PALADIN, FEAT_DIVINE_2ND_CIRCLE,          Y,   10,  N);
-  feat_assignment(CLASS_PALADIN, FEAT_DIVINE_3RD_CIRCLE,          Y,   12,  N);
-  feat_assignment(CLASS_PALADIN, FEAT_DIVINE_4TH_CIRCLE,          Y,   15,  N);
+  feat_assignment(CLASS_PALADIN, FEAT_PALADIN_1ST_CIRCLE,          Y,    6,  N);
+  feat_assignment(CLASS_PALADIN, FEAT_PALADIN_2ND_CIRCLE,          Y,   10,  N);
+  feat_assignment(CLASS_PALADIN, FEAT_PALADIN_3RD_CIRCLE,          Y,   12,  N);
+  feat_assignment(CLASS_PALADIN, FEAT_PALADIN_4TH_CIRCLE,          Y,   15,  N);
   /*epic*/
   /* bonus epic feat - legendary rider 21 */
   feat_assignment(CLASS_PALADIN, FEAT_LEGENDARY_RIDER,            Y,   21,  N);
@@ -4137,10 +4137,10 @@ void load_class_list(void) {
   feat_assignment(CLASS_RANGER, FEAT_HIDE_IN_PLAIN_SIGHT,           Y,   17,  N);
   feat_assignment(CLASS_RANGER, FEAT_FAVORED_ENEMY_AVAILABLE,       Y,   20,  Y);
   /* spell circles */
-  feat_assignment(CLASS_RANGER, FEAT_DIVINE_1ST_CIRCLE,             Y,   6,   N);
-  feat_assignment(CLASS_RANGER, FEAT_DIVINE_2ND_CIRCLE,             Y,   10,  N);
-  feat_assignment(CLASS_RANGER, FEAT_DIVINE_3RD_CIRCLE,             Y,   12,  N);
-  feat_assignment(CLASS_RANGER, FEAT_DIVINE_4TH_CIRCLE,             Y,   15,  N);
+  feat_assignment(CLASS_RANGER, FEAT_RANGER_1ST_CIRCLE,             Y,   6,   N);
+  feat_assignment(CLASS_RANGER, FEAT_RANGER_2ND_CIRCLE,             Y,   10,  N);
+  feat_assignment(CLASS_RANGER, FEAT_RANGER_3RD_CIRCLE,             Y,   12,  N);
+  feat_assignment(CLASS_RANGER, FEAT_RANGER_4TH_CIRCLE,             Y,   15,  N);
   /* epic */
   /*CM*/
   feat_assignment(CLASS_RANGER, FEAT_PERFECT_DUAL_WEAPON_FIGHTING,  Y,   21,  N);  
@@ -4253,14 +4253,14 @@ void load_class_list(void) {
   feat_assignment(CLASS_BARD, FEAT_ACT_OF_FORGETFULNESS,      Y,    15, N);
   feat_assignment(CLASS_BARD, FEAT_SONG_OF_ROOTING,           Y,    17, N);
   /* spell circles */
-  feat_assignment(CLASS_BARD, FEAT_ARCANE_1ST_CIRCLE,         Y,    3,  N);
-  feat_assignment(CLASS_BARD, FEAT_ARCANE_2ND_CIRCLE,         Y,    5,  N);
-  feat_assignment(CLASS_BARD, FEAT_ARCANE_3RD_CIRCLE,         Y,    8,  N);
-  feat_assignment(CLASS_BARD, FEAT_ARCANE_4TH_CIRCLE,         Y,    11, N);
-  feat_assignment(CLASS_BARD, FEAT_ARCANE_5TH_CIRCLE,         Y,    14, N);
-  feat_assignment(CLASS_BARD, FEAT_ARCANE_6TH_CIRCLE,         Y,    17, N);
+  feat_assignment(CLASS_BARD, FEAT_BARD_1ST_CIRCLE,         Y,    3,  N);
+  feat_assignment(CLASS_BARD, FEAT_BARD_2ND_CIRCLE,         Y,    5,  N);
+  feat_assignment(CLASS_BARD, FEAT_BARD_3RD_CIRCLE,         Y,    8,  N);
+  feat_assignment(CLASS_BARD, FEAT_BARD_4TH_CIRCLE,         Y,    11, N);
+  feat_assignment(CLASS_BARD, FEAT_BARD_5TH_CIRCLE,         Y,    14, N);
+  feat_assignment(CLASS_BARD, FEAT_BARD_6TH_CIRCLE,         Y,    17, N);
   /*epic*/
-  feat_assignment(CLASS_BARD, FEAT_ARCANE_EPIC_SPELL,         Y,   21,  N);
+  feat_assignment(CLASS_BARD, FEAT_BARD_EPIC_SPELL,         Y,   21,  N);
   feat_assignment(CLASS_BARD, FEAT_SONG_OF_DRAGONS,           Y,   22,  N);
   feat_assignment(CLASS_BARD, FEAT_SONG_OF_THE_MAGI,          Y,   26,  N);
   /* no class feat assignments */

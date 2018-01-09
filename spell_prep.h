@@ -8,14 +8,17 @@
 /  Created on January 8, 2018, 3:27 PM                                                                                                                                                                                     
 \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ /*/
 
-#ifndef SPELL_PREP_H
-#define	SPELL_PREP_H
+#pragma once
 
 #ifdef	__cplusplus
 extern "C" {
 #endif
     
     /** START structs **/
+    
+    /* the structure for spells related to the prep system
+       is in structs.h: prep_collection_spell_data */
+    
     /** END structs **/
     
     /** START defines **/
@@ -102,19 +105,6 @@ extern "C" {
 // bitvector of metamagic affecting this spell  
 #define PREP_METAMAGIC(ch, slot, cc)	(ch->player_specials->saved.prep_queue[slot][cc].metamagic)
      */
-    /*
-// spell parapation, collection data - expanded for storing class and l-list data
-struct prep_collection_spell_data {
-  int spell; // spellnum of this spell in the collection 
-  int ch_class;    // class that stored this spell in the collection
-  int metamagic; // Bitvector of metamagic affecting this spell.
-  
-  struct prep_collection_spell_data *next; //linked-list
-  
-  // old system 
-  int prep_time; // Remaining time for preparing this spell.
-};    
-*/
 
 
 
@@ -122,6 +112,5 @@ struct prep_collection_spell_data {
 }
 #endif
 
-#endif	/* SPELL_PREP_H */
 
 /*EOF*/

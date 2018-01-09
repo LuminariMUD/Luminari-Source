@@ -1174,125 +1174,303 @@ void assign_feats(void) {
   
   /* Spellcasting feats */
   
-  /* divine spell access feats - these are purely for show currently */
+  /* divine spell access feats  */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
-  feato(FEAT_DIVINE_1ST_CIRCLE, "1st circle divine spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+  feato(FEAT_CLERIC_1ST_CIRCLE, "1st circle divine spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
     "gain access to 1st circle divine spells",
     "You now have access to 1st circle divine spells.  The spells you gain access "
       "are determined by class.  Some classes gain access to all the spells "
       "instantly upon ataining this feat, others have to select the spells via "
       "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
-  feato(FEAT_DIVINE_2ND_CIRCLE, "2nd circle divine spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+  feato(FEAT_CLERIC_2ND_CIRCLE, "2nd circle divine spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
     "gain access to 2nd circle divine spells",
     "You now have access to 2nd circle divine spells.  The spells you gain access "
       "are determined by class.  Some classes gain access to all the spells "
       "instantly upon ataining this feat, others have to select the spells via "
       "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
-  feato(FEAT_DIVINE_3RD_CIRCLE, "3rd circle divine spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+  feato(FEAT_CLERIC_3RD_CIRCLE, "3rd circle divine spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
     "gain access to 3rd circle divine spells",
     "You now have access to 3rd circle divine spells.  The spells you gain access "
       "are determined by class.  Some classes gain access to all the spells "
       "instantly upon ataining this feat, others have to select the spells via "
       "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
-  feato(FEAT_DIVINE_4TH_CIRCLE, "4th circle divine spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+  feato(FEAT_CLERIC_4TH_CIRCLE, "4th circle divine spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
     "gain access to 4th circle divine spells",
     "You now have access to 4th circle divine spells.  The spells you gain access "
       "are determined by class.  Some classes gain access to all the spells "
       "instantly upon ataining this feat, others have to select the spells via "
       "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
-  feato(FEAT_DIVINE_5TH_CIRCLE, "5th circle divine spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+  feato(FEAT_CLERIC_5TH_CIRCLE, "5th circle divine spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
     "gain access to 5th circle divine spells",
     "You now have access to 5th circle divine spells.  The spells you gain access "
       "are determined by class.  Some classes gain access to all the spells "
       "instantly upon ataining this feat, others have to select the spells via "
       "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
-  feato(FEAT_DIVINE_6TH_CIRCLE, "6th circle divine spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+  feato(FEAT_CLERIC_6TH_CIRCLE, "6th circle divine spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
     "gain access to 6th circle divine spells",
     "You now have access to 6th circle divine spells.  The spells you gain access "
       "are determined by class.  Some classes gain access to all the spells "
       "instantly upon ataining this feat, others have to select the spells via "
       "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
-  feato(FEAT_DIVINE_7TH_CIRCLE, "7th circle divine spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+  feato(FEAT_CLERIC_7TH_CIRCLE, "7th circle divine spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
     "gain access to 7th circle divine spells",
     "You now have access to 7th circle divine spells.  The spells you gain access "
       "are determined by class.  Some classes gain access to all the spells "
       "instantly upon ataining this feat, others have to select the spells via "
       "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
-  feato(FEAT_DIVINE_8TH_CIRCLE, "8th circle divine spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+  feato(FEAT_CLERIC_8TH_CIRCLE, "8th circle divine spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
     "gain access to 8th circle divine spells",
     "You now have access to 8th circle divine spells.  The spells you gain access "
       "are determined by class.  Some classes gain access to all the spells "
       "instantly upon ataining this feat, others have to select the spells via "
       "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
-  feato(FEAT_DIVINE_9TH_CIRCLE, "9th circle divine spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+  feato(FEAT_CLERIC_9TH_CIRCLE, "9th circle divine spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
     "gain access to 9th circle divine spells",
     "You now have access to 9th circle divine spells.  The spells you gain access "
       "are determined by class.  Some classes gain access to all the spells "
       "instantly upon ataining this feat, others have to select the spells via "
       "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
-  feato(FEAT_DIVINE_EPIC_SPELL, "epic divine spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+  feato(FEAT_CLERIC_EPIC_SPELL, "epic divine spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
     "gain access to epic divine spells",
     "You now have access to epic divine spells.  The spells you gain access "
       "are determined by feat selection.  Epic spells are only usable once per "
       "game-day.");
 
-  /* arcane spell access feats - these are purely for show currently */
+  /* druid spell access feats  */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
-  feato(FEAT_ARCANE_1ST_CIRCLE, "1st circle arcane spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+  feato(FEAT_DRUID_1ST_CIRCLE, "1st circle divine spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+    "gain access to 1st circle divine spells",
+    "You now have access to 1st circle divine spells.  The spells you gain access "
+      "are determined by class.  Some classes gain access to all the spells "
+      "instantly upon ataining this feat, others have to select the spells via "
+      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+  feato(FEAT_DRUID_2ND_CIRCLE, "2nd circle divine spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+    "gain access to 2nd circle divine spells",
+    "You now have access to 2nd circle divine spells.  The spells you gain access "
+      "are determined by class.  Some classes gain access to all the spells "
+      "instantly upon ataining this feat, others have to select the spells via "
+      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+  feato(FEAT_DRUID_3RD_CIRCLE, "3rd circle divine spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+    "gain access to 3rd circle divine spells",
+    "You now have access to 3rd circle divine spells.  The spells you gain access "
+      "are determined by class.  Some classes gain access to all the spells "
+      "instantly upon ataining this feat, others have to select the spells via "
+      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+  feato(FEAT_DRUID_4TH_CIRCLE, "4th circle divine spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+    "gain access to 4th circle divine spells",
+    "You now have access to 4th circle divine spells.  The spells you gain access "
+      "are determined by class.  Some classes gain access to all the spells "
+      "instantly upon ataining this feat, others have to select the spells via "
+      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+  feato(FEAT_DRUID_5TH_CIRCLE, "5th circle divine spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+    "gain access to 5th circle divine spells",
+    "You now have access to 5th circle divine spells.  The spells you gain access "
+      "are determined by class.  Some classes gain access to all the spells "
+      "instantly upon ataining this feat, others have to select the spells via "
+      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+  feato(FEAT_DRUID_6TH_CIRCLE, "6th circle divine spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+    "gain access to 6th circle divine spells",
+    "You now have access to 6th circle divine spells.  The spells you gain access "
+      "are determined by class.  Some classes gain access to all the spells "
+      "instantly upon ataining this feat, others have to select the spells via "
+      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+  feato(FEAT_DRUID_7TH_CIRCLE, "7th circle divine spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+    "gain access to 7th circle divine spells",
+    "You now have access to 7th circle divine spells.  The spells you gain access "
+      "are determined by class.  Some classes gain access to all the spells "
+      "instantly upon ataining this feat, others have to select the spells via "
+      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+  feato(FEAT_DRUID_8TH_CIRCLE, "8th circle divine spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+    "gain access to 8th circle divine spells",
+    "You now have access to 8th circle divine spells.  The spells you gain access "
+      "are determined by class.  Some classes gain access to all the spells "
+      "instantly upon ataining this feat, others have to select the spells via "
+      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+  feato(FEAT_DRUID_9TH_CIRCLE, "9th circle divine spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+    "gain access to 9th circle divine spells",
+    "You now have access to 9th circle divine spells.  The spells you gain access "
+      "are determined by class.  Some classes gain access to all the spells "
+      "instantly upon ataining this feat, others have to select the spells via "
+      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+  feato(FEAT_DRUID_EPIC_SPELL, "epic divine spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+    "gain access to epic divine spells",
+    "You now have access to epic divine spells.  The spells you gain access "
+      "are determined by feat selection.  Epic spells are only usable once per "
+      "game-day.");
+
+  /* paladin spell access feats  */
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
+  feato(FEAT_PALADIN_1ST_CIRCLE, "1st circle divine spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+    "gain access to 1st circle divine spells",
+    "You now have access to 1st circle divine spells.  The spells you gain access "
+      "are determined by class.  Some classes gain access to all the spells "
+      "instantly upon ataining this feat, others have to select the spells via "
+      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+  feato(FEAT_PALADIN_2ND_CIRCLE, "2nd circle divine spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+    "gain access to 2nd circle divine spells",
+    "You now have access to 2nd circle divine spells.  The spells you gain access "
+      "are determined by class.  Some classes gain access to all the spells "
+      "instantly upon ataining this feat, others have to select the spells via "
+      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+  feato(FEAT_PALADIN_3RD_CIRCLE, "3rd circle divine spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+    "gain access to 3rd circle divine spells",
+    "You now have access to 3rd circle divine spells.  The spells you gain access "
+      "are determined by class.  Some classes gain access to all the spells "
+      "instantly upon ataining this feat, others have to select the spells via "
+      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+  feato(FEAT_PALADIN_4TH_CIRCLE, "4th circle divine spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+    "gain access to 4th circle divine spells",
+    "You now have access to 4th circle divine spells.  The spells you gain access "
+      "are determined by class.  Some classes gain access to all the spells "
+      "instantly upon ataining this feat, others have to select the spells via "
+      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+  
+  /* ranger spell access feats  */
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
+  feato(FEAT_RANGER_1ST_CIRCLE, "1st circle divine spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+    "gain access to 1st circle divine spells",
+    "You now have access to 1st circle divine spells.  The spells you gain access "
+      "are determined by class.  Some classes gain access to all the spells "
+      "instantly upon ataining this feat, others have to select the spells via "
+      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+  feato(FEAT_RANGER_2ND_CIRCLE, "2nd circle divine spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+    "gain access to 2nd circle divine spells",
+    "You now have access to 2nd circle divine spells.  The spells you gain access "
+      "are determined by class.  Some classes gain access to all the spells "
+      "instantly upon ataining this feat, others have to select the spells via "
+      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+  feato(FEAT_RANGER_3RD_CIRCLE, "3rd circle divine spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+    "gain access to 3rd circle divine spells",
+    "You now have access to 3rd circle divine spells.  The spells you gain access "
+      "are determined by class.  Some classes gain access to all the spells "
+      "instantly upon ataining this feat, others have to select the spells via "
+      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+  feato(FEAT_RANGER_4TH_CIRCLE, "4th circle divine spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+    "gain access to 4th circle divine spells",
+    "You now have access to 4th circle divine spells.  The spells you gain access "
+      "are determined by class.  Some classes gain access to all the spells "
+      "instantly upon ataining this feat, others have to select the spells via "
+      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+  
+  /* arcane spell access feats */
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
+  feato(FEAT_WIZARD_1ST_CIRCLE, "1st circle arcane spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
     "gain access to 1st circle arcane spells",
     "You now have access to 1st circle arcane spells.  The spells you gain access "
       "are determined by class.  Some classes gain access to all the spells "
       "instantly upon ataining this feat, others have to select the spells via "
       "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
-  feato(FEAT_ARCANE_2ND_CIRCLE, "2nd circle arcane spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+  feato(FEAT_WIZARD_2ND_CIRCLE, "2nd circle arcane spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
     "gain access to 2nd circle arcane spells",
     "You now have access to 2nd circle arcane spells.  The spells you gain access "
       "are determined by class.  Some classes gain access to all the spells "
       "instantly upon ataining this feat, others have to select the spells via "
       "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
-  feato(FEAT_ARCANE_3RD_CIRCLE, "3rd circle arcane spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+  feato(FEAT_WIZARD_3RD_CIRCLE, "3rd circle arcane spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
     "gain access to 3rd circle arcane spells",
     "You now have access to 3rd circle arcane spells.  The spells you gain access "
       "are determined by class.  Some classes gain access to all the spells "
       "instantly upon ataining this feat, others have to select the spells via "
       "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
-  feato(FEAT_ARCANE_4TH_CIRCLE, "4th circle arcane spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+  feato(FEAT_WIZARD_4TH_CIRCLE, "4th circle arcane spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
     "gain access to 4th circle arcane spells",
     "You now have access to 4th circle arcane spells.  The spells you gain access "
       "are determined by class.  Some classes gain access to all the spells "
       "instantly upon ataining this feat, others have to select the spells via "
       "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
-  feato(FEAT_ARCANE_5TH_CIRCLE, "5th circle arcane spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+  feato(FEAT_WIZARD_5TH_CIRCLE, "5th circle arcane spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
     "gain access to 5th circle arcane spells",
     "You now have access to 5th circle arcane spells.  The spells you gain access "
       "are determined by class.  Some classes gain access to all the spells "
       "instantly upon ataining this feat, others have to select the spells via "
       "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
-  feato(FEAT_ARCANE_6TH_CIRCLE, "6th circle arcane spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+  feato(FEAT_WIZARD_6TH_CIRCLE, "6th circle arcane spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
     "gain access to 6th circle arcane spells",
     "You now have access to 6th circle arcane spells.  The spells you gain access "
       "are determined by class.  Some classes gain access to all the spells "
       "instantly upon ataining this feat, others have to select the spells via "
       "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
-  feato(FEAT_ARCANE_7TH_CIRCLE, "7th circle arcane spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+  feato(FEAT_WIZARD_7TH_CIRCLE, "7th circle arcane spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
     "gain access to 7th circle arcane spells",
     "You now have access to 7th circle arcane spells.  The spells you gain access "
       "are determined by class.  Some classes gain access to all the spells "
       "instantly upon ataining this feat, others have to select the spells via "
       "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
-  feato(FEAT_ARCANE_8TH_CIRCLE, "8th circle arcane spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+  feato(FEAT_WIZARD_8TH_CIRCLE, "8th circle arcane spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
     "gain access to 8th circle arcane spells",
     "You now have access to 8th circle arcane spells.  The spells you gain access "
       "are determined by class.  Some classes gain access to all the spells "
       "instantly upon ataining this feat, others have to select the spells via "
       "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
-  feato(FEAT_ARCANE_9TH_CIRCLE, "9th circle arcane spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+  feato(FEAT_WIZARD_9TH_CIRCLE, "9th circle arcane spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
     "gain access to 9th circle arcane spells",
     "You now have access to 9th circle arcane spells.  The spells you gain access "
       "are determined by class.  Some classes gain access to all the spells "
       "instantly upon ataining this feat, others have to select the spells via "
       "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
-  feato(FEAT_ARCANE_EPIC_SPELL, "epic arcane spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+  feato(FEAT_WIZARD_EPIC_SPELL, "epic arcane spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+    "gain access to epic arcane spells",
+    "You now have access to epic arcane spells.  The spells you gain access "
+      "are determined by feat selection.  Epic spells are only usable once per "
+      "game-day.");
+  
+  /* arcane spell access feats */
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
+  feato(FEAT_SORCERER_1ST_CIRCLE, "1st circle arcane spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+    "gain access to 1st circle arcane spells",
+    "You now have access to 1st circle arcane spells.  The spells you gain access "
+      "are determined by class.  Some classes gain access to all the spells "
+      "instantly upon ataining this feat, others have to select the spells via "
+      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+  feato(FEAT_SORCERER_2ND_CIRCLE, "2nd circle arcane spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+    "gain access to 2nd circle arcane spells",
+    "You now have access to 2nd circle arcane spells.  The spells you gain access "
+      "are determined by class.  Some classes gain access to all the spells "
+      "instantly upon ataining this feat, others have to select the spells via "
+      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+  feato(FEAT_SORCERER_3RD_CIRCLE, "3rd circle arcane spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+    "gain access to 3rd circle arcane spells",
+    "You now have access to 3rd circle arcane spells.  The spells you gain access "
+      "are determined by class.  Some classes gain access to all the spells "
+      "instantly upon ataining this feat, others have to select the spells via "
+      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+  feato(FEAT_SORCERER_4TH_CIRCLE, "4th circle arcane spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+    "gain access to 4th circle arcane spells",
+    "You now have access to 4th circle arcane spells.  The spells you gain access "
+      "are determined by class.  Some classes gain access to all the spells "
+      "instantly upon ataining this feat, others have to select the spells via "
+      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+  feato(FEAT_SORCERER_5TH_CIRCLE, "5th circle arcane spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+    "gain access to 5th circle arcane spells",
+    "You now have access to 5th circle arcane spells.  The spells you gain access "
+      "are determined by class.  Some classes gain access to all the spells "
+      "instantly upon ataining this feat, others have to select the spells via "
+      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+  feato(FEAT_SORCERER_6TH_CIRCLE, "6th circle arcane spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+    "gain access to 6th circle arcane spells",
+    "You now have access to 6th circle arcane spells.  The spells you gain access "
+      "are determined by class.  Some classes gain access to all the spells "
+      "instantly upon ataining this feat, others have to select the spells via "
+      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+  feato(FEAT_SORCERER_7TH_CIRCLE, "7th circle arcane spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+    "gain access to 7th circle arcane spells",
+    "You now have access to 7th circle arcane spells.  The spells you gain access "
+      "are determined by class.  Some classes gain access to all the spells "
+      "instantly upon ataining this feat, others have to select the spells via "
+      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+  feato(FEAT_SORCERER_8TH_CIRCLE, "8th circle arcane spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+    "gain access to 8th circle arcane spells",
+    "You now have access to 8th circle arcane spells.  The spells you gain access "
+      "are determined by class.  Some classes gain access to all the spells "
+      "instantly upon ataining this feat, others have to select the spells via "
+      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+  feato(FEAT_SORCERER_9TH_CIRCLE, "9th circle arcane spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+    "gain access to 9th circle arcane spells",
+    "You now have access to 9th circle arcane spells.  The spells you gain access "
+      "are determined by class.  Some classes gain access to all the spells "
+      "instantly upon ataining this feat, others have to select the spells via "
+      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+  feato(FEAT_SORCERER_EPIC_SPELL, "epic arcane spells", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
     "gain access to epic arcane spells",
     "You now have access to epic arcane spells.  The spells you gain access "
       "are determined by feat selection.  Epic spells are only usable once per "
