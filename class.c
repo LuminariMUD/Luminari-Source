@@ -30,6 +30,7 @@
 #include "pfdefaults.h"
 #include "domains_schools.h"
 #include "modify.h"
+#include "spell_prep.h"
 
 /** LOCAL DEFINES **/
 // good/bad
