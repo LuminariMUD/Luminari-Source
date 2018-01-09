@@ -53,7 +53,7 @@ bool meets_prerequisite(struct char_data *ch, struct feat_prerequisite *prereq, 
 bool has_combat_feat(struct char_data *ch, int cfeat, int compare);
 /* For help system integration, */
 bool display_feat_info(struct char_data *ch, char *featname);
-/*int find_feat_num(char *name);*/
+int find_feat_num(char *name);
 int feat_to_cfeat(int feat);
 int feat_to_sfeat(int feat);
 int feat_to_skfeat(int feat);
