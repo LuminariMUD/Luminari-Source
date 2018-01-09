@@ -1574,9 +1574,9 @@
 /* bard slots */
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT                      521
+#define FEAT_LAST_FEAT                      546
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS                           522
+#define NUM_FEATS                           547
 /** absolute cap **/
 #define MAX_FEATS                           750
 /*****/
