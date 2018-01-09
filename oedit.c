@@ -2117,7 +2117,7 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
             OLC_OBJ(d)->affected[OLC_VAL(d)].modifier = 0;
             break;
         }
-      oedit_disp_prompt_bonus_type_menu(d);
+      oedit_disp_apply_prompt_bonus_type_menu(d);
       return;
 
     case OEDIT_APPLY_BONUS_TYPE:
