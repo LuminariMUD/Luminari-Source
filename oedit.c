@@ -25,7 +25,7 @@
 #include "fight.h"
 #include "modify.h"
 #include "clan.h"
-#include "craft.h"
+#include "craft.h"oedit_disp_prompt_apply_menu
 #include "spec_abilities.h"
 #include "feats.h"
 #include "assign_wpn_armor.h"
@@ -40,6 +40,7 @@ static void oedit_disp_container_flags_menu(struct descriptor_data *d);
 static void oedit_disp_extradesc_menu(struct descriptor_data *d);
 static void oedit_disp_weapon_spells(struct descriptor_data *d);
 static void oedit_disp_prompt_apply_menu(struct descriptor_data *d);
+static void oedit_disp_apply_spec_menu(Struct descriptor_data *d);
 static void oedit_liquid_type(struct descriptor_data *d);
 static void oedit_disp_apply_menu(struct descriptor_data *d);
 //static void oedit_disp_weapon_menu(struct descriptor_data *d);
@@ -380,8 +381,15 @@ static void oedit_disp_prompt_apply_menu(struct descriptor_data *d) {
   for (counter = 0; counter < MAX_OBJ_AFFECT; counter++) {
     if (OLC_OBJ(d)->affected[counter].modifier) {
       sprinttype(OLC_OBJ(d)->affected[counter].location, apply_types, apply_buf, sizeof (apply_buf));
+      if (OLC_OBJ(d)->affected[counter].location == APPLY_FEAT) {
+        write_to_output(d, " %s%d%s) Grant Feat %s (%s)\r\n", grn, counter + 1, nrm,
+                feat_list[(OLC_OBJ(d)->affected[counter].modifier < NUM_FEATS &&
+                           OLC_OBJ(d)->affected[counter].modifier > 0 ? OLC_OBJ(d)->affected[counter].modifier : 0)].name, 
+                           bonus_types[OLC_OBJ(d)->affected[counter].bonus_type]);
+      } else {
       write_to_output(d, " %s%d%s) %+d to %s (%s)\r\n", grn, counter + 1, nrm,
               OLC_OBJ(d)->affected[counter].modifier, apply_buf, bonus_types[OLC_OBJ(d)->affected[counter].bonus_type]);
+      }
     } else {
       write_to_output(d, " %s%d%s) None.\r\n", grn, counter + 1, nrm);
     }
@@ -587,6 +595,42 @@ void oedit_disp_specab_bane_subrace(struct descriptor_data *d) {
   write_to_output(d, "\r\n%sEnter subrace number : ", nrm);
 }
 
+/* Menu for APPLY_FEAT */
+void oedit_disp_apply_spec_menu(struct descriptor_data *d)
+ {
+  char *buf;
+  int i, count = 0;
+
+  switch (OLC_OBJ(d)->affected[OLC_VAL(d)].location) {
+    case APPLY_FEAT:
+      for (i = 0; i < NUM_FEATS; i++) {
+        if (feat_list[i].in_game) {
+          count++;
+          write_to_output(d, "%s%3d%s) %s%-14.14s ", grn, i, nrm, yel, feat_list[i].name);
+          if (count % 4 == 3)
+            write_to_output(d, "\r\n");
+        }
+      }
+
+      buf = "\r\nWhat feat should be modified : ";
+      break;
+/*
+    case APPLY_SKILL:
+
+      buf = "What skill should be modified : ";
+
+      break;
+*/
+    default:
+      oedit_disp_prompt_apply_menu(d);
+      return;
+  }
+
+  write_to_output(d, "\r\n%s", buf);
+
+  OLC_MODE(d) = OEDIT_APPLYSPEC;
+
+}
 
 /* Ask for liquid type. */
 static void oedit_liquid_type(struct descriptor_data *d) {
@@ -2048,6 +2092,34 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
       OLC_OBJ(d)->affected[OLC_VAL(d)].modifier = atoi(arg);
       oedit_disp_apply_prompt_bonus_type_menu(d);
       return;
+
+    case OEDIT_APPLYSPEC:
+      if (isdigit(*arg))
+        OLC_OBJ(d)->affected[OLC_VAL(d)].modifier = atoi(arg);
+      else switch (OLC_OBJ(d)->affected[OLC_VAL(d)].location) {
+/*
+          case APPLY_SKILL:
+
+            number = find_skill_num(arg, SKTYPE_SKILL);
+
+            if (number > -1)
+
+              OLC_OBJ(d)->affected[OLC_VAL(d)].specific = number;
+
+            break;
+*/
+          case APPLY_FEAT:
+            number = find_feat_num(arg);
+            if (number > -1)
+              OLC_OBJ(d)->affected[OLC_VAL(d)].modifier = number;
+            break;
+          default:
+            OLC_OBJ(d)->affected[OLC_VAL(d)].modifier = 0;
+            break;
+        }
+      oedit_disp_prompt_bonus_type_menu(d);
+      return;
+
     case OEDIT_APPLY_BONUS_TYPE:
       number = atoi(arg);
       if (number < 0 || number > NUM_BONUS_TYPES) {
