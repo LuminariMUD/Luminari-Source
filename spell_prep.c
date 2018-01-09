@@ -77,44 +77,48 @@ void save_ch_spell_prep_queue() {
    since the prep queue does not need any organizing, this should be simple */
 void print_prep_queue(struct char_data *ch, int ch_class) {
   char buf[MAX_INPUT_LENGTH];
-  int line_length = 80;
+  int line_length = 80, total_time = 0;
 
-  
+  /* build a nice heading */
   *buf = '\0';
-  
-  switch (ch_class) {
-    
-    /* build a nice heading */
-    *buf = '\0';
-    sprintf(buf, "\tYSPreparation Queue for %s\tC", class_names[ch_class]);
-    send_to_char(ch, "\tC");
-    text_line(ch, buf, line_length, '-', '-');
-    send_to_char(ch, "\tn");
-    
-    /* easy out */
-    if (!SPELL_PREP_QUEUE(ch, ch_class))
-      return;
-    
-    struct prep_collection_spell_data *item = SPELL_PREP_QUEUE(ch, ch_class);
-    
-    *buf = '\0';
-    /* traverse and print */
-    do {
-      int spell_circle = compute_spells_circle(item->spell, item->ch_class, item->metamagic);
-      
-      sprintf(buf, "%s \tW%s\tn \tc[\tn%d\tc]\tn %s%s \tc[\tn%d seconds\tc]\tn\r\n",
-              buf,
-              skill_name(item->spell),
-              spell_circle,
-              (IS_SET(item->metamagic, METAMAGIC_QUICKEN) ? "\tc[\tnquickened\tc]\tn" : ""),
-              (IS_SET(item->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
-              compute_spells_prep_time(ch, item->spell, item->ch_class, spell_circle)
-              );
-      item = item->next;
-    } while (SPELL_PREP_QUEUE(ch, ch_class));
+  sprintf(buf, "\tYSPreparation Queue for %s\tC", class_names[ch_class]);
+  send_to_char(ch, "\tC");
+  text_line(ch, buf, line_length, '-', '-');
+  send_to_char(ch, "\tn");
 
-  }
-  
+  /* easy out */
+  if (!SPELL_PREP_QUEUE(ch, ch_class))
+    return;
+
+  struct prep_collection_spell_data *item = SPELL_PREP_QUEUE(ch, ch_class);
+
+  *buf = '\0';
+  /* traverse and print */
+  do {
+    int spell_circle = compute_spells_circle(item->spell, item->ch_class, item->metamagic);
+    int prep_time = compute_spells_prep_time(ch, item->spell, item->ch_class, spell_circle);
+    total_time += prep_time;
+
+    sprintf(buf, "%s \tW%s\tn \tc[\tn%d\tc]\tn %s%s \tc[\tn%d seconds\tc]\tn\r\n",
+            buf,
+            skill_name(item->spell),
+            spell_circle,
+            (IS_SET(item->metamagic, METAMAGIC_QUICKEN) ? "\tc[\tnquickened\tc]\tn" : ""),
+            (IS_SET(item->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
+            prep_time
+            );
+    item = item->next;
+  } while (SPELL_PREP_QUEUE(ch, ch_class));
+
+  send_to_char(ch, buf);
+
+  /* build a nice closing */
+  *buf = '\0';
+  sprintf(buf, "\tYSTotal Preparation Time Remaining: %d\tC", class_names[ch_class]);
+  send_to_char(ch, "\tC");
+  text_line(ch, buf, line_length, '-', '-');
+  send_to_char(ch, "\tn");
+
   return;
 }
 
