@@ -426,7 +426,7 @@ void assign_feat_spell_slots(int ch_class) {
   int i = 0;
   
   /* lets initialize this */
-  for (i = 0; i < NUM_CIRCLES; i++)
+  for (i = 0; i <= NUM_CIRCLES; i++)
     num_slots_assigned[NUM_CIRCLES] = 0;
   
   /* this is so we can find the index of the feats in structs.h */
