@@ -422,12 +422,16 @@ void assign_feat_spell_slots(int ch_class) {
   int level_counter = 0;
   int circle_counter = 0;
   int feat_index = 0;
-  int num_slots_assigned[NUM_CIRCLES];
+  int slots_have[NUM_CIRCLES];
+  int slot_counter = 0;
   int i = 0;
+  
+  int slots_needed = 0;
+  
   
   /* lets initialize this */
   for (i = 0; i < NUM_CIRCLES; i++)
-    num_slots_assigned[i] = 0;
+    slots_have[i] = 0;
   
   /* this is so we can find the index of the feats in structs.h */
   switch (ch_class) {
@@ -452,31 +456,50 @@ void assign_feat_spell_slots(int ch_class) {
     case CLASS_PALADIN:
       feat_index = PLD_SLT_0;
       break;
-    default:break;
+    default:
+      log("Error in assign_feat_spell_slots(), default case for class.");
+      break;
   }
 
   /* ENGINE */
+  
   /* traverse level aspect of chart */
-  for (level_counter = 0; level_counter < (LVL_IMMORT-1); level_counter++) {
+  for (level_counter = 0; level_counter < (LVL_IMMORT - 1); level_counter++) {
+    
     /* traverse circle aspect of chart */
     for (circle_counter = 0; circle_counter < NUM_CIRCLES; circle_counter++) {
-      
-      /* current table value <= previous saved value? */
-      if (wizard_slots[level_counter][circle_counter] <=
-              num_slots_assigned[circle_counter]) {
-        continue;
+
+      /* how many slots needed for this circle / level do we need? */
+      switch (ch_class) {
+        case CLASS_WIZARD:slots_needed = wizard_slots[level_counter][circle_counter];
+          break;
+        case CLASS_SORCERER:slots_needed = sorcerer_slots[level_counter][circle_counter];
+          break;
+        case CLASS_BARD:bard_slots[level_counter][circle_counter];
+          break;
+        case CLASS_CLERIC:cleric_slots[level_counter][circle_counter];
+          break;
+        case CLASS_DRUID:druid_slots[level_counter][circle_counter];
+          break;
+        case CLASS_RANGER:sorcerer_slots[level_counter][circle_counter];
+          break;
+        case CLASS_PALADIN:sorcerer_slots[level_counter][circle_counter];
+          break;
+        default:log("Error in assign_feat_spell_slots(), default case for class.");
+          break;
       }
       
-      /* save this bigger value to check next iteration of loop */
-      num_slots_assigned[circle_counter] =
-              wizard_slots[level_counter][circle_counter];
-      
-      /* add a slot! */
-      if (wizard_slots[level_counter][circle_counter] && circle_counter &&
-              level_counter) {
-        feat_assignment(ch_class, feat_index + circle_counter, TRUE, level_counter, TRUE);        
-      }      
-      
+      /* we skip already added same-circle slots */
+      slots_needed -= slots_have[circle_counter];
+
+      /* assign slot feats */
+      if (slots_needed && circle_counter && level_counter) {
+        for (slot_counter = 0; slot_counter < slots_needed; slot_counter++) {
+          feat_assignment(ch_class, feat_index + circle_counter, TRUE, level_counter, TRUE);
+          slots_have[circle_counter]++;
+        }
+      }
+
     }
   }
 
