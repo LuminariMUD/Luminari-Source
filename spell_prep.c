@@ -25,7 +25,6 @@
 
 
 /** START header files **/
-
 #include "conf.h"
 #include "sysdep.h"
 #include "structs.h"
@@ -40,7 +39,7 @@
 #include "class.h"
 #include "spells.h"
 #include "spell_prep.h"
- 
+#include "domains_schools.h"
 /** END header files **/
 
 
@@ -53,7 +52,10 @@
 
 /* clear a ch's spell prep queue, example death?, ch loadup */
 void init_ch_spell_prep_queue(struct char_data *ch) {
-  
+  int ch_class = 0;
+  for (ch_class = 0; ch_class < NUM_CASTERS; ch_class++) {
+    SPELL_PREP_QUEUE(ch, ch_class) = NULL;
+  }
 }
 
 /* in: character
@@ -76,28 +78,34 @@ void load_ch_spell_prep_queue() {
 }
 
 /* save into ch pfile their spell-preparation queue, example ch saving */
-void save_ch_spell_prep_queue() {  
+void save_ch_spell_prep_queue() {
 }
 
-/* in: character, class of queue we want to manage
+/* in: character, class of queue we want to manage, domain(cleric)
    go through the entire class's prep queue and reset all the prep-time
      elements to base prep-time */
-void reset_prep_queue_time(struct char_data *ch, int ch_class) {
+void reset_prep_queue_time(struct char_data *ch, int ch_class, int domain) {
   struct prep_collection_spell_data *current = NULL;
 
-    current = SPELL_PREP_QUEUE(ch, ch_class);
-    do {
-      current->prep_time = compute_spells_prep_time(
-              ch, 
+  current = SPELL_PREP_QUEUE(ch, ch_class);
+  do {
+    current->prep_time =
+            compute_spells_prep_time(
+            ch,
+            current->spell,
+            ch_class,
+            SPELLS_CIRCLE(/*compute_spells_circle()*/
               current->spell,
               ch_class,
-              SPELLS_CIRCLE(current->spell, ch_class, current->metamagic)
+              current->metamagic,
+              current->domain),
+            current->domain
               );
-      
-      /* transverse */
-      current = current->next;
-    } while (current);
-  
+
+    /* transverse */
+    current = current->next;
+  } while (current);
+
 }
 
 /* in: character
@@ -133,38 +141,47 @@ void print_prep_queue(struct char_data *ch, int ch_class) {
   send_to_char(ch, "\tn");
 
   /* easy out */
-  if (!SPELL_PREP_QUEUE(ch, ch_class))
+  if (!SPELL_PREP_QUEUE(ch, ch_class)) {
+    send_to_char(ch, "There is nothing in your preparation queue!\r\n");
+    /* build a nice closing */
+    *buf = '\0';
+    send_to_char(ch, "\tC");
+    text_line(ch, buf, line_length, '-', '-');
+    send_to_char(ch, "\tn");
     return;
+  }  
 
   struct prep_collection_spell_data *item = SPELL_PREP_QUEUE(ch, ch_class);
 
   *buf = '\0';
   /* traverse and print */
   do {
-    int spell_circle = compute_spells_circle(item->spell, item->ch_class, item->metamagic);
-    int prep_time = compute_spells_prep_time(ch, item->spell, item->ch_class, spell_circle);
+    int spell_circle = compute_spells_circle(item->spell, item->ch_class, item->metamagic, item->domain);
+    int prep_time = item->prep_time;
     total_time += prep_time;
 
     /* hack alert: innate_magic does not have spell-num stored, but
          instead has just the spell-circle stored as spell-num */
     if (INNATE_MAGIC_CLASS(ch_class))
-      sprintf(buf, "%s \tc[\tWcircle-slot:\tn%d\tc]\tn %s%s \tc[\tn%d seconds\tc]\tn\r\n",
-              buf,
-              item->spell,
-              (IS_SET(item->metamagic, METAMAGIC_QUICKEN) ? "\tc[\tnquickened\tc]\tn" : ""),
-              (IS_SET(item->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
-              prep_time
-              );
+      sprintf(buf, "%s \tc[\tWcircle-slot: \tn%d\tc]\tn \tc[\tn%d seconds\tc]\tn %s%s %s\r\n",
+            buf,
+            item->spell,
+            prep_time,
+            (IS_SET(item->metamagic, METAMAGIC_QUICKEN) ? "\tc[\tnquickened\tc]\tn" : ""),
+            (IS_SET(item->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
+            (item->domain ? domain_list[item->domain].name : "")
+            );
     else
-      sprintf(buf, "%s \tW%s\tn \tc[\tn%d\tc]\tn %s%s \tc[\tn%d seconds\tc]\tn\r\n",
-              buf,
-              skill_name(item->spell),
-              spell_circle,
-              (IS_SET(item->metamagic, METAMAGIC_QUICKEN) ? "\tc[\tnquickened\tc]\tn" : ""),
-              (IS_SET(item->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
-              prep_time
-              );
-    
+      sprintf(buf, "%s \tW%s\tn \tc[\tn%d circle\tc]\tn \tc[\tn%d seconds\tc]\tn %s%s %s\r\n",
+            buf,
+            skill_name(item->spell),
+            spell_circle,
+            prep_time,
+            (IS_SET(item->metamagic, METAMAGIC_QUICKEN) ? "\tc[\tnquickened\tc]\tn" : ""),
+            (IS_SET(item->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
+            (item->domain ? domain_list[item->domain].name : "")
+            );
+
     item = item->next;
   } while (SPELL_PREP_QUEUE(ch, ch_class));
 
@@ -181,6 +198,26 @@ void print_prep_queue(struct char_data *ch, int ch_class) {
   return;
 }
 
+/* in: character, class of queue we want access to
+   out: size of queue */
+int size_of_prep_queue(struct char_data *ch, int ch_class) {
+  int count = 0;
+  
+  /* nothing */
+  if (!SPELL_PREP_QUEUE(ch, ch_class)) return 0;
+  
+  struct prep_collection_spell_data *current = NULL;
+  current = SPELL_PREP_QUEUE(ch, ch_class);
+  
+  do {
+    count++;
+    /* transverse */
+    current = current->next;
+  } while (current);
+
+  return count;
+}
+
 /* in: character, spell-number
  * out: class corresponding to the queue we found the spell-number in
  * is the given spell-number currently in the respective class-queue?
@@ -194,12 +231,12 @@ int is_spell_in_prep_queue(struct char_data *ch, int spell_num) {
     do {
       if (current->spell == spell_num)
         return ch_class;
-      
+
       /* transverse */
       current = current->next;
     } while (current);
   }
-  
+
   return FALSE;
 }
 
@@ -207,7 +244,7 @@ int is_spell_in_prep_queue(struct char_data *ch, int spell_num) {
  * out: preparation/collection spell data structure
  * create a new spell prep-queue entry, handles allocation of memory, etc */
 struct prep_collection_spell_data *create_prep_queue_entry(int spell, int ch_class, int metamagic,
-        int prep_time) {
+        int prep_time, int domain) {
   struct prep_collection_spell_data *prep_queue_data = NULL;
 
   CREATE(prep_queue_data, struct prep_collection_spell_data, 1);
@@ -215,6 +252,7 @@ struct prep_collection_spell_data *create_prep_queue_entry(int spell, int ch_cla
   prep_queue_data->ch_class = ch_class;
   prep_queue_data->metamagic = metamagic;
   prep_queue_data->prep_time = prep_time;
+  prep_queue_data->domain = domain;
 
   return prep_queue_data;
 }
@@ -224,20 +262,20 @@ struct prep_collection_spell_data *create_prep_queue_entry(int spell, int ch_cla
  * add a spell to bottom of prep queue, example ch is memorizING a spell
  *   does NOT do any checking whether this is a 'legal' spell coming in  */
 struct prep_collection_spell_data *spell_to_prep_queue(struct char_data *ch,
-        int spell, int ch_class, int metamagic,  int prep_time) {
-  
+        int spell, int ch_class, int metamagic, int prep_time, int domain) {
+
   /* hack note: for innate-magic we are storing the CIRCLE the spell belongs to
        in the queue */
-  if (INNATE_MAGIC_CLASS(ch_class)) spell = compute_spells_circle(spell, ch_class, metamagic);
-  
+  if (INNATE_MAGIC_CLASS(ch_class)) spell = compute_spells_circle(spell, ch_class, metamagic, domain);
+
   struct prep_collection_spell_data *prep_queue_data = NULL;
-  
+
   /* allocate memory, create entry with data */
-  prep_queue_data = create_prep_queue_entry(spell, ch_class, metamagic, prep_time);
+  prep_queue_data = create_prep_queue_entry(spell, ch_class, metamagic, prep_time, domain);
 
   /* put on bottom of appropriate class list */
   prep_queue_data->next = SPELL_PREP_QUEUE(ch, ch_class);
-  
+
   return prep_queue_data;
 }
 
@@ -247,7 +285,7 @@ struct prep_collection_spell_data *spell_to_prep_queue(struct char_data *ch,
  *   returns an instance of the spell item we found
  * example ch finished memorizing, also 'forgetting' a spell */
 struct prep_collection_spell_data *spell_from_prep_queue(struct char_data *ch, int spell,
-        int ch_class) {
+        int ch_class, int domain) {
   struct prep_collection_spell_data *current = SPELL_PREP_QUEUE(ch, ch_class);
   struct prep_collection_spell_data *prev = NULL;
   struct prep_collection_spell_data *prep_queue_data = NULL;
@@ -260,7 +298,8 @@ struct prep_collection_spell_data *spell_from_prep_queue(struct char_data *ch, i
               current->spell,
               current->ch_class,
               current->metamagic,
-              current->prep_time
+              current->prep_time,
+              current->domain
               );
       break;
     }
@@ -297,6 +336,10 @@ struct prep_collection_spell_data *spell_from_prep_queue(struct char_data *ch, i
 
 /* clear a ch's spell collection, example death?, ch loadup */
 void init_ch_spell_collection(struct char_data *ch) {
+  int ch_class = 0;
+  for (ch_class = 0; ch_class < NUM_CASTERS; ch_class++) {
+    SPELL_COLLECTION(ch, ch_class) = NULL;
+  }
 }
 
 /* in: character
@@ -319,7 +362,27 @@ void load_ch_spell_collection(struct char_data *ch) {
 }
 
 /* save into ch pfile their spell-preparation queue, example ch saving */
-void save_ch_spell_collection(struct char_data *ch) {  
+void save_ch_spell_collection(struct char_data *ch) {
+}
+
+/* in: character, class of queue we want access to
+   out: size of collection */
+int size_of_collection(struct char_data *ch, int ch_class) {
+  int count = 0;
+  
+  /* nothing */
+  if (!SPELL_COLLECTION(ch, ch_class)) return 0;
+  
+  struct prep_collection_spell_data *current = NULL;
+  current = SPELL_COLLECTION(ch, ch_class);
+  
+  do {
+    count++;
+    /* transverse */
+    current = current->next;
+  } while (current);
+
+  return count;
 }
 
 /* in: character, spell-number
@@ -327,31 +390,32 @@ void save_ch_spell_collection(struct char_data *ch) {
  * checks the ch's spell collection for a given spell_num  */
 /* hack alert: innate-magic system is using the collection to store their
          'known' spells they select in 'study' */
+
 /*the define is: INNATE_MAGIC_KNOWN(ch, spell_num) is_spell_in_collection(ch, spell_num)*/
 int is_spell_in_collection(struct char_data *ch, int spell_num) {
   struct prep_collection_spell_data *current = NULL;
   int ch_class;
 
-  for (ch_class = 0; ch_class < NUM_CASTERS; ch_class++) {        
+  for (ch_class = 0; ch_class < NUM_CASTERS; ch_class++) {
     current = SPELL_COLLECTION(ch, ch_class);
     do {
-            
+
       if (current->spell == spell_num)
         return ch_class;
-      
+
       /* transverse */
       current = current->next;
-      
+
     } while (current);
   }
-  
+
   return FALSE;
 }
 
 /* in: spell-number, class (of collection we need), metamagic, prep-time
  * create a new spell collection entry */
 struct prep_collection_spell_data *create_collection_entry(int spell, int ch_class, int metamagic,
-        int prep_time) {
+        int prep_time, int domain) {
   struct prep_collection_spell_data *collection_data = NULL;
 
   CREATE(collection_data, struct prep_collection_spell_data, 1);
@@ -359,6 +423,7 @@ struct prep_collection_spell_data *create_collection_entry(int spell, int ch_cla
   collection_data->ch_class = ch_class;
   collection_data->metamagic = metamagic;
   collection_data->prep_time = prep_time;
+  collection_data->domain = domain;
 
   return collection_data;
 }
@@ -366,28 +431,31 @@ struct prep_collection_spell_data *create_collection_entry(int spell, int ch_cla
 /* add a spell to bottom of collection, example ch memorized a spell */
 /* hack alert: innate-magic system is using the collection to store their
      'known' spells they select in 'study' */
+
 /*INNATE_MAGIC_TO_KNOWN(ch, spell, ch_class, metamagic, prep_time) *spell_to_collection(ch, spell, ch_class, metamagic, prep_time)*/
 struct prep_collection_spell_data *spell_to_collection(struct char_data *ch,
-        int spell, int ch_class, int metamagic,  int prep_time) {
-    
+        int spell, int ch_class, int metamagic, int prep_time, int domain) {
+
   struct prep_collection_spell_data *collection_data = NULL;
-  
+
   /* allocate memory, create entry with data */
-  collection_data = create_collection_entry(spell, ch_class, metamagic, prep_time);
+  collection_data = create_collection_entry(spell, ch_class, metamagic, prep_time, domain);
 
   /* put on bottom of appropriate class list */
   collection_data->next = SPELL_COLLECTION(ch, ch_class);
-  
+
   return collection_data;
 }
 
 /* remove a spell from a collection
  * returns spell-number if successful, SPELL_RESERVED_DBC if fail
  *  example ch cast the spell */
-    /* hack alert: innate-magic system is using the collection to store their
-         'known' spells that they select in 'study' */
-    /*INNATE_MAGIC_FROM_KNOWN(ch, spell, ch_class) *spell_from_collection(ch, spell, ch_class)*/
-struct prep_collection_spell_data *spell_from_collection(struct char_data *ch, int spell, int ch_class) {
+/* hack alert: innate-magic system is using the collection to store their
+     'known' spells that they select in 'study' */
+
+/*INNATE_MAGIC_FROM_KNOWN(ch, spell, ch_class) *spell_from_collection(ch, spell, ch_class)*/
+struct prep_collection_spell_data *spell_from_collection(struct char_data *ch, int spell,
+        int ch_class, int domain) {
   struct prep_collection_spell_data *current = SPELL_COLLECTION(ch, ch_class);
   struct prep_collection_spell_data *prev = NULL;
   struct prep_collection_spell_data *collection_data = NULL;
@@ -400,7 +468,8 @@ struct prep_collection_spell_data *spell_from_collection(struct char_data *ch, i
               current->spell,
               current->ch_class,
               current->metamagic,
-              current->prep_time
+              current->prep_time,
+              current->domain
               );
       break;
     }
@@ -438,22 +507,24 @@ struct prep_collection_spell_data *spell_from_collection(struct char_data *ch, i
  * out: true if success, false if failure
  * spell from queue to collection, example finished preparing a spell and now
  *  the spell belongs in your collection */
-bool item_from_queue_to_collection(struct char_data *ch, int spell) {  
+bool item_from_queue_to_collection(struct char_data *ch, int spell, int domain) {
+  /* note class-wizard 0 is not a contradictions here :) */
   int class = is_spell_in_prep_queue(ch, spell);
-  
+
   if (class) {
     struct prep_collection_spell_data *item =
-            spell_from_prep_queue(ch, spell, class);
+            spell_from_prep_queue(ch, spell, class, domain);
     spell_to_collection(
             ch,
             item->spell,
             item->ch_class,
             item->metamagic,
-            item->prep_time
+            item->prep_time,
+            item->domain
             );
     return TRUE;
   }
-  
+
   return FALSE;
 }
 
@@ -461,23 +532,24 @@ bool item_from_queue_to_collection(struct char_data *ch, int spell) {
  * out: true if success, false if failure
  * spell from collection to queue, example finished casting a spell and now
  *  the spell belongs in your queue */
-bool item_from_collection_to_queue(struct char_data *ch, int spell) {
-    
+bool item_from_collection_to_queue(struct char_data *ch, int spell, int domain) {
+
   int class = is_spell_in_collection(ch, spell);
-  
+
   if (class) {
     struct prep_collection_spell_data *item =
-            spell_from_collection(ch, spell, class);
+            spell_from_collection(ch, spell, class, domain);
     spell_to_prep_queue(
             ch,
             item->spell,
             item->ch_class,
             item->metamagic,
-            item->prep_time
+            item->prep_time,
+            item->domain
             );
     return TRUE;
   }
-  
+
   return FALSE;
 }
 
@@ -488,7 +560,7 @@ bool item_from_collection_to_queue(struct char_data *ch, int spell) {
 
 /*  in:
     out:
-    */
+ */
 int has_innate_magic_slot() {
   return 0;
 }
@@ -498,71 +570,101 @@ int has_innate_magic_slot() {
  *   turned this into a macro in header file: HIGHEST_CIRCLE(ch, class)
  *   special note: BONUS_CASTER_LEVEL includes prestige class bonuses */
 int get_class_highest_circle(struct char_data *ch, int class) {
+
   /* npc's default to best chart */
-  if (IS_NPC(ch)) {
-    return (MAX(1, MIN(9, (GET_LEVEL(ch) + 1) / 2)));
-  }
+  if (IS_NPC(ch)) return (MAX(1, MIN(9, (GET_LEVEL(ch) + 1) / 2)));
   /* if pc has no caster classes, he/she has no business here */
-  if (!IS_CASTER(ch)) {
-    return (FALSE);
-  }
+  if (!IS_CASTER(ch)) return (FALSE);
   /* no levels in this class? */
-  if (!CLASS_LEVEL(ch, class)) {
-    return FALSE;
-  }
+  if (!CLASS_LEVEL(ch, class)) return FALSE;
+
   int class_level = CLASS_LEVEL(ch, class) + BONUS_CASTER_LEVEL(ch, class);
   switch (class) {
     case CLASS_PALADIN:
-      if (class_level < 6)
-        return FALSE;
-      else if (class_level < 10)
-        return 1;
-      else if (class_level < 12)
-        return 2;
-      else if (class_level < 15)
-        return 3;
-      else
-        return 4;
+      if (class_level < 6) return FALSE;
+      else if (class_level < 10) return 1;
+      else if (class_level < 12) return 2;
+      else if (class_level < 15) return 3;
+      else return 4;
     case CLASS_RANGER:
-      if (class_level < 6)
-        return FALSE;
-      else if (class_level < 10)
-        return 1;
-      else if (class_level < 12)
-        return 2;
-      else if (class_level < 15)
-        return 3;
-      else
-        return 4;
+      if (class_level < 6) return FALSE;
+      else if (class_level < 10) return 1;
+      else if (class_level < 12) return 2;
+      else if (class_level < 15) return 3;
+      else return 4;
     case CLASS_BARD:
-      if (class_level < 3)
-        return FALSE;
-      else if (class_level < 5)
-        return 1;
-      else if (class_level < 8)
-        return 2;
-      else if (class_level < 11)
-        return 3;
-      else if (class_level < 14)
-        return 4;
-      else if (class_level < 17)
-        return 5;
-      else
-        return 6;
-    case CLASS_SORCERER:
-      return (MAX(1, (MIN(9, class_level / 2))));
-    case CLASS_WIZARD:
-      return (MAX(1, MIN(9, (class_level + 1) / 2)));
-    case CLASS_DRUID:
-      return (MAX(1, MIN(9, (class_level + 1) / 2)));
-    case CLASS_CLERIC:
-      return (MAX(1, MIN(9, (class_level + 1) / 2)));
-    default:
-      return FALSE;
+      if (class_level < 3) return FALSE;
+      else if (class_level < 5) return 1;
+      else if (class_level < 8) return 2;
+      else if (class_level < 11) return 3;
+      else if (class_level < 14) return 4;
+      else if (class_level < 17) return 5;
+      else return 6;
+    case CLASS_SORCERER: return (MAX(1, (MIN(9, class_level / 2))));
+    case CLASS_WIZARD: return (MAX(1, MIN(9, (class_level + 1) / 2)));
+    case CLASS_DRUID: return (MAX(1, MIN(9, (class_level + 1) / 2)));
+    case CLASS_CLERIC: return (MAX(1, MIN(9, (class_level + 1) / 2)));
+    default: return FALSE;
   }
 }
 
+/* TODO: convert to feat system, construction directly below this
+     function */
+/* in: character, respective class to check 
+ * out: returns # of total slots based on class-level and stat bonus
+     of given circle */
+
+/* macro COMP_SLOT_BY_CIRCLE(ch, circle, class) */
+int compute_slots_by_circle(struct char_data *ch, int circle, int class) {
+  int spell_slots = 0;
+  int class_level = CLASS_LEVEL(ch, class);
+
+  /* they don't even have access to this circle */
+  if (HIGHEST_CIRCLE(ch, class) < circle)
+    return 0;
+
+  /* includes specials like prestige class */
+  class_level += BONUS_CASTER_LEVEL(ch, class);
+
+  switch (class) {
+    case CLASS_RANGER:
+      spell_slots += spell_bonus[GET_WIS(ch)][circle];
+      spell_slots += ranger_slots[class_level][circle];
+      break;
+    case CLASS_PALADIN:
+      spell_slots += spell_bonus[GET_WIS(ch)][circle];
+      spell_slots += paladin_slots[class_level][circle];
+      break;
+    case CLASS_CLERIC:
+      spell_slots += spell_bonus[GET_WIS(ch)][circle];
+      spell_slots += cleric_slots[class_level][circle];
+      break;
+    case CLASS_DRUID:
+      spell_slots += spell_bonus[GET_WIS(ch)][circle];
+      spell_slots += druid_slots[class_level][circle];
+      break;
+    case CLASS_WIZARD:
+      spell_slots += spell_bonus[GET_INT(ch)][circle];
+      spell_slots += wizard_slots[class_level][circle];
+      break;
+    case CLASS_SORCERER:
+      spell_slots += spell_bonus[GET_CHA(ch)][circle];
+      spell_slots += sorcerer_slots[class_level][circle];
+      break;
+    case CLASS_BARD:
+      spell_slots += spell_bonus[GET_CHA(ch)][circle];
+      spell_slots += bard_slots[class_level][circle];
+      break;
+    default:
+      if (GET_LEVEL(ch) < LVL_IMMORT) {
+        log("Invalid class passed to comp_slots.");
+      }
+      return (-1);
+  }
+  return spell_slots;
+}
 /**** UNDER CONSTRUCTION *****/
+
 /* in: class we need to assign spell slots to
  * at bootup, we initialize class-data, which includes assignment
  *  of the class feats, with our new feat-based spell-slot system, we have
@@ -579,13 +681,13 @@ void assign_feat_spell_slots(int ch_class) {
   int slot_counter = 0;
   int i = 0;
   int difference = 0;
-  
+
   /* lets initialize this */
   for (i = 0; i < NUM_CIRCLES; i++) {
     slots_have[i] = 0;
-    slots_had[i]  = 0;
+    slots_had[i] = 0;
   }
-  
+
   /* this is so we can find the index of the feats in structs.h */
   switch (ch_class) {
     case CLASS_WIZARD:
@@ -596,13 +698,13 @@ void assign_feat_spell_slots(int ch_class) {
       break;
     case CLASS_BARD:
       feat_index = BRD_SLT_0;
-      break;      
+      break;
     case CLASS_CLERIC:
       feat_index = CLR_SLT_0;
-      break;      
+      break;
     case CLASS_DRUID:
       feat_index = DRD_SLT_0;
-      break;      
+      break;
     case CLASS_RANGER:
       feat_index = RNG_SLT_0;
       break;
@@ -624,45 +726,45 @@ void assign_feat_spell_slots(int ch_class) {
       switch (ch_class) {
         case CLASS_WIZARD:
           slots_have[circle_counter] = wizard_slots[level_counter][circle_counter];
-          slots_had[circle_counter] = wizard_slots[level_counter-1][circle_counter];
+          slots_had[circle_counter] = wizard_slots[level_counter - 1][circle_counter];
           break;
         case CLASS_SORCERER:
           slots_have[circle_counter] = sorcerer_slots[level_counter][circle_counter];
-          slots_had[circle_counter] = sorcerer_slots[level_counter-1][circle_counter];
+          slots_had[circle_counter] = sorcerer_slots[level_counter - 1][circle_counter];
           break;
         case CLASS_BARD:
           slots_have[circle_counter] = bard_slots[level_counter][circle_counter];
-          slots_had[circle_counter] = bard_slots[level_counter-1][circle_counter];
+          slots_had[circle_counter] = bard_slots[level_counter - 1][circle_counter];
           break;
         case CLASS_CLERIC:
           slots_have[circle_counter] = cleric_slots[level_counter][circle_counter];
-          slots_had[circle_counter] = cleric_slots[level_counter-1][circle_counter];
+          slots_had[circle_counter] = cleric_slots[level_counter - 1][circle_counter];
           break;
         case CLASS_DRUID:
           slots_have[circle_counter] = druid_slots[level_counter][circle_counter];
-          slots_had[circle_counter] = druid_slots[level_counter-1][circle_counter];
+          slots_had[circle_counter] = druid_slots[level_counter - 1][circle_counter];
           break;
         case CLASS_RANGER:
           slots_have[circle_counter] = ranger_slots[level_counter][circle_counter];
-          slots_had[circle_counter] = ranger_slots[level_counter-1][circle_counter];
+          slots_had[circle_counter] = ranger_slots[level_counter - 1][circle_counter];
           break;
         case CLASS_PALADIN:
           slots_have[circle_counter] = paladin_slots[level_counter][circle_counter];
-          slots_had[circle_counter] = paladin_slots[level_counter-1][circle_counter];
+          slots_had[circle_counter] = paladin_slots[level_counter - 1][circle_counter];
           break;
         default:log("Error in assign_feat_spell_slots(), slots_have default case for class.");
           break;
       }
-      
+
       difference = slots_have[circle_counter] - slots_had[circle_counter];
-      
+
       if (difference) {
         for (slot_counter = 0; slot_counter < difference; slot_counter++) {
           feat_assignment(ch_class, (feat_index + circle_counter), TRUE,
-                  level_counter, TRUE);          
+                  level_counter, TRUE);
         }
       }
-      
+
     } /* circle counter */
   } /* level counter */
 
@@ -676,198 +778,151 @@ void assign_feat_spell_slots(int ch_class) {
  *   circle
  *   class (arbitrary factor value)
  *   character's skills
- *   character feats 
- */
+ *   character feats   */
 int compute_spells_prep_time(struct char_data *ch, int spellnum, int class,
-        int circle) {
+        int circle, int domain) {
   int prep_time = 0;
   int bonus_time = 0;
-  
+
   /* base prep time based on circle, etc */
   prep_time = BASE_PREP_TIME + (PREP_TIME_INTERVALS * (circle - 1));
+
+  /* this is arbitrary, to display that domain-spells can affect prep time */
+  if (domain)
+    prep_time++;
   
   /* class factors */
   switch (class) {
-    case CLASS_RANGER:
-      prep_time *= RANGER_PREP_TIME_FACTOR;
-      break;
-    case CLASS_PALADIN:
-      prep_time *= PALADIN_PREP_TIME_FACTOR;
-      break;
-    case CLASS_DRUID:
-      prep_time *= DRUID_PREP_TIME_FACTOR;
-      break;
-    case CLASS_WIZARD:
-      prep_time *= WIZ_PREP_TIME_FACTOR;
-      break;
-    case CLASS_CLERIC:
-      prep_time *= CLERIC_PREP_TIME_FACTOR;
-      break;
-    case CLASS_SORCERER:
-      prep_time *= SORC_PREP_TIME_FACTOR;
-      break;
-    case CLASS_BARD:
-      prep_time *= BARD_PREP_TIME_FACTOR;
-      break;    
+    case CLASS_RANGER: prep_time *= RANGER_PREP_TIME_FACTOR; break;
+    case CLASS_PALADIN: prep_time *= PALADIN_PREP_TIME_FACTOR; break;
+    case CLASS_DRUID: prep_time *= DRUID_PREP_TIME_FACTOR; break;
+    case CLASS_WIZARD: prep_time *= WIZ_PREP_TIME_FACTOR; break;
+    case CLASS_CLERIC: prep_time *= CLERIC_PREP_TIME_FACTOR; break;
+    case CLASS_SORCERER: prep_time *= SORC_PREP_TIME_FACTOR; break;
+    case CLASS_BARD: prep_time *= BARD_PREP_TIME_FACTOR; break;
   }
-  
+
   /** calculate bonuses **/
-  
   /*skills*/
   /* concentration */
   if (!IS_NPC(ch) && GET_ABILITY(ch, ABILITY_CONCENTRATION)) {
     bonus_time += compute_ability(ch, ABILITY_CONCENTRATION) / 4;
   }
-  
   /*feats*/
   /* faster memorization, reduces prep time by a quarter */
   if (HAS_FEAT(ch, FEAT_FASTER_MEMORIZATION)) {
     bonus_time += prep_time / 4;
   }
-  
   /*spells/affections*/
-  /* song of focused mind, halves prep time */  
+  /* song of focused mind, halves prep time */
   if (affected_by_spell(ch, SKILL_SONG_OF_FOCUSED_MIND)) {
     bonus_time += prep_time / 2;
   }
-  
   /** end bonus calculations **/
-  
+
   prep_time -= bonus_time;
-  
   if (prep_time <= 0)
     prep_time = 1;
-  
+
   return (prep_time);
 }
 
-/* in: spellnum, class, metamagic
+/* in: spellnum, class, metamagic, domain(cleric)
  * out: the circle this spell (now) belongs, FALSE (0) if failed
  * given above info, compute which circle this spell belongs to, this 'interesting'
  * set-up is due to a dated system that assigns spells by level, not circle
  * in addition we have metamagic that can modify the spell-circle as well */
-int compute_spells_circle(int spellnum, int class, int metamagic) {
+int compute_spells_circle(int spellnum, int class, int metamagic, int domain) {
   int metamagic_mod = 0;
-  int domain = 0;
+  int spell_circle = 0;
+  
+  if (spellnum <= SPELL_RESERVED_DBC || spellnum >= NUM_SPELLS)
+    return FALSE;  
 
   /* Here we add the circle changes resulting from metamagic use: */
-  if (IS_SET(metamagic, METAMAGIC_QUICKEN)) {
-    metamagic_mod += 4;
-  }
-  if (IS_SET(metamagic, METAMAGIC_MAXIMIZE)) {
+  if (IS_SET(metamagic, METAMAGIC_QUICKEN))
+    metamagic_mod += 4; 
+  if (IS_SET(metamagic, METAMAGIC_MAXIMIZE))
     metamagic_mod += 3;
-  }
-
-  if (spellnum <= SPELL_RESERVED_DBC || spellnum >= NUM_SPELLS)
-    return FALSE;
 
   switch (class) {
-    
     case CLASS_BARD:
       switch (spell_info[spellnum].min_level[class]) {
-        case 3:
-        case 4:
+        case 3:case 4:
           return 1 + metamagic_mod;
-        case 5:
-        case 6:
-        case 7:
+        case 5:case 6:case 7:
           return 2 + metamagic_mod;
-        case 8:
-        case 9:
-        case 10:
+        case 8:case 9:case 10:
           return 3 + metamagic_mod;
-        case 11:
-        case 12:
-        case 13:
+        case 11:case 12:case 13:
           return 4 + metamagic_mod;
-        case 14:
-        case 15:
-        case 16:
+        case 14:case 15:case 16:
           return 5 + metamagic_mod;
-        case 17:
-        case 18:
-        case 19:
+        case 17:case 18:case 19:
           return 6 + metamagic_mod;
-          // don't use 20, that is reserved for epic!  case 20:
-        default:
-          return FALSE;
+        /* level 20 reserved for epic spells */
+        default: return FALSE;
       }
-      return 1 + metamagic_mod;
-      
-    case CLASS_SORCERER:
-      return ((MAX(1, (spell_info[spellnum].min_level[class]) / 2)));
-      
-      /* pally can get confusing, just check out class.c to see what level
-         they get their circles at in the spell_level function */      
     case CLASS_PALADIN:
       switch (spell_info[spellnum].min_level[class]) {
-        case 6:
-        case 7:
-        case 8:
-        case 9:
+        case 6:case 7:case 8:case 9:
           return 1 + metamagic_mod;
-        case 10:
-        case 11:
+        case 10:case 11:
           return 2 + metamagic_mod;
-        case 12:
-        case 13:
-        case 14:
+        case 12:case 13:case 14:
           return 3 + metamagic_mod;
-        case 15:
-        case 16:
-        case 17:
-        case 18:
-        case 19:
-        case 20:
+        case 15:case 16:case 17:case 18:case 19:case 20:
           return 4 + metamagic_mod;
-        default:
-          return FALSE;
+        default: return FALSE;
       }
-      return 1 + metamagic_mod;
-      
-      /* rangers can get confusing, just check out class.c to see what level
-         they get their circles at in the spell_level function */
     case CLASS_RANGER:
       switch (spell_info[spellnum].min_level[class]) {
-        case 6:
-        case 7:
-        case 8:
-        case 9:
+        case 6:case 7:case 8:case 9:
           return 1 + metamagic_mod;
-        case 10:
-        case 11:
+        case 10:case 11:
           return 2 + metamagic_mod;
-        case 12:
-        case 13:
-        case 14:
+        case 12:case 13:case 14:
           return 3 + metamagic_mod;
-        case 15:
-        case 16:
-        case 17:
-        case 18:
-        case 19:
-        case 20:
+        case 15:case 16:case 17:case 18:case 19:case 20:
           return 4 + metamagic_mod;
-        default:
-          return FALSE;
+        default: return FALSE;
       }
-      return 1 + metamagic_mod;
-      
+    case CLASS_SORCERER:
+      spell_circle = spell_info[spellnum].min_level[class] / 2;
+      spell_circle += metamagic_mod;
+      if (spell_circle > TOP_CIRCLE) {
+        return FALSE;
+      }      
+      return (MAX(1, spell_circle));
     case CLASS_CLERIC:
-      return ((int) ((MIN_SPELL_LVL(spellnum, CLASS_CLERIC, domain) + 1) / 2)) + metamagic_mod;
-      
+      /* MIN_SPELL_LVL will determine whether domain has a lower level version
+           of the spell */
+      spell_circle = (MIN_SPELL_LVL(spellnum, class, domain) + 1) / 2;
+      spell_circle += metamagic_mod;
+      if (spell_circle > TOP_CIRCLE) {
+        return FALSE;
+      }      
+      return (MAX(1, spell_circle));
     case CLASS_WIZARD:
-      return ((int) ((spell_info[spellnum].min_level[class] + 1) / 2)) + metamagic_mod;
-      
+      spell_circle = (spell_info[spellnum].min_level[class] + 1) / 2;
+      spell_circle += metamagic_mod;
+      if (spell_circle > TOP_CIRCLE) {
+        return FALSE;
+      }      
+      return (MAX(1, spell_circle));
     case CLASS_DRUID:
-      return ((int) ((spell_info[spellnum].min_level[class] + 1) / 2)) + metamagic_mod;
-      
-    default:
-      return FALSE;
+      spell_circle = (spell_info[spellnum].min_level[class] + 1) / 2;
+      spell_circle += metamagic_mod;
+      if (spell_circle > TOP_CIRCLE) {
+        return FALSE;
+      }      
+      return (MAX(1, spell_circle));
+    default: return FALSE;
   }
-
-  return FALSE; 
+  return FALSE;
 }
+
+
 
 /** END functions of general purpose, includes dated stuff we need to fix */
 
