@@ -2826,7 +2826,7 @@ void load_class_list(void) {
   /* no prereqs!  woo! */
   /* INIT spell slots, assignement of spell slots based on
      tables in constants.c */
-  assign_feat_spell_slots(CLASS_WIZARD);
+  //assign_feat_spell_slots(CLASS_WIZARD);
   /**/
   /****************************************************************************/
           
@@ -3029,7 +3029,7 @@ void load_class_list(void) {
   spell_assignment(CLASS_CLERIC, SPELL_HELLBALL,      21);
   /* INIT spell slots, assignement of spell slots based on
      tables in constants.c */
-  assign_feat_spell_slots(CLASS_CLERIC);
+  //assign_feat_spell_slots(CLASS_CLERIC);
   /****************************************************************************/
   
   /****************************************************************************/
@@ -3571,7 +3571,7 @@ void load_class_list(void) {
   class_prereq_align(CLASS_DRUID, NEUTRAL_EVIL);
   /* INIT spell slots, assignement of spell slots based on
      tables in constants.c */
-  assign_feat_spell_slots(CLASS_DRUID);
+  //assign_feat_spell_slots(CLASS_DRUID);
   /****************************************************************************/
   
   /****************************************************************************/
@@ -3952,7 +3952,7 @@ void load_class_list(void) {
   /*****/
   /* INIT spell slots, assignement of spell slots based on
      tables in constants.c */
-  assign_feat_spell_slots(CLASS_SORCERER);
+  //assign_feat_spell_slots(CLASS_SORCERER);
   /****************************************************************************/
   
   /****************************************************************************/
@@ -4081,7 +4081,7 @@ void load_class_list(void) {
   /*****/
   /* INIT spell slots, assignement of spell slots based on
      tables in constants.c */
-  assign_feat_spell_slots(CLASS_PALADIN);
+  //assign_feat_spell_slots(CLASS_PALADIN);
   /****************************************************************************/
   
   /****************************************************************************/
@@ -4212,7 +4212,7 @@ void load_class_list(void) {
   /*****/
   /* INIT spell slots, assignement of spell slots based on
      tables in constants.c */
-  assign_feat_spell_slots(CLASS_RANGER);
+  //assign_feat_spell_slots(CLASS_RANGER);
   /****************************************************************************/
   
   /****************************************************************************/
@@ -4361,7 +4361,7 @@ void load_class_list(void) {
   /*****/
   /* INIT spell slots, assignement of spell slots based on
      tables in constants.c */
-  assign_feat_spell_slots(CLASS_BARD);
+  //assign_feat_spell_slots(CLASS_BARD);
   /****************************************************************************/
   
   /****************************************************************************/
