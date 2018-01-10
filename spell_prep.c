@@ -457,7 +457,7 @@ void assign_feat_spell_slots(int ch_class) {
       feat_index = PLD_SLT_0;
       break;
     default:
-      log("Error in assign_feat_spell_slots(), default case for class.");
+      log("Error in assign_feat_spell_slots(), index default case for class.");
       break;
   }
 
@@ -475,17 +475,17 @@ void assign_feat_spell_slots(int ch_class) {
           break;
         case CLASS_SORCERER:slots_needed = sorcerer_slots[level_counter][circle_counter];
           break;
-        case CLASS_BARD:bard_slots[level_counter][circle_counter];
+        case CLASS_BARD:slots_needed = bard_slots[level_counter][circle_counter];
           break;
-        case CLASS_CLERIC:cleric_slots[level_counter][circle_counter];
+        case CLASS_CLERIC:slots_needed = cleric_slots[level_counter][circle_counter];
           break;
-        case CLASS_DRUID:druid_slots[level_counter][circle_counter];
+        case CLASS_DRUID:slots_needed = druid_slots[level_counter][circle_counter];
           break;
-        case CLASS_RANGER:sorcerer_slots[level_counter][circle_counter];
+        case CLASS_RANGER:slots_needed = sorcerer_slots[level_counter][circle_counter];
           break;
-        case CLASS_PALADIN:sorcerer_slots[level_counter][circle_counter];
+        case CLASS_PALADIN:slots_needed = sorcerer_slots[level_counter][circle_counter];
           break;
-        default:log("Error in assign_feat_spell_slots(), default case for class.");
+        default:log("Error in assign_feat_spell_slots(), slots needed default case for class.");
           break;
       }
       
