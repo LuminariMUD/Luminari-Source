@@ -423,15 +423,16 @@ void assign_feat_spell_slots(int ch_class) {
   int circle_counter = 0;
   int feat_index = 0;
   int slots_have[NUM_CIRCLES];
+  int slots_had[NUM_CIRCLES];
   int slot_counter = 0;
   int i = 0;
-  
-  int slots_needed = 0;
-  
+  int difference = 0;
   
   /* lets initialize this */
-  for (i = 0; i < NUM_CIRCLES; i++)
+  for (i = 0; i < NUM_CIRCLES; i++) {
     slots_have[i] = 0;
+    slots_had[i]  = 0;
+  }
   
   /* this is so we can find the index of the feats in structs.h */
   switch (ch_class) {
@@ -463,61 +464,55 @@ void assign_feat_spell_slots(int ch_class) {
 
   /* ENGINE */
 
-  /*debug*/
-  log("CLASS: %d", ch_class);
-  
   /* traverse level aspect of chart */
-  for (level_counter = 0; level_counter < (LVL_IMMORT - 1); level_counter++) {
-        
+  for (level_counter = 1; level_counter < LVL_IMMORT; level_counter++) {
     /* traverse circle aspect of chart */
-    for (circle_counter = 0; circle_counter < NUM_CIRCLES; circle_counter++) {
-
-      /* how many slots needed for this circle / level do we need? */
+    for (circle_counter = 1; circle_counter < NUM_CIRCLES; circle_counter++) {
+      /* store slots from chart into local array from this and prev level */
       switch (ch_class) {
-        case CLASS_WIZARD:slots_needed = wizard_slots[level_counter][circle_counter];
+        case CLASS_WIZARD:
+          slots_have[circle_counter] = wizard_slots[level_counter][circle_counter];
+          slots_had[circle_counter] = wizard_slots[level_counter-1][circle_counter];
           break;
-        case CLASS_SORCERER:slots_needed = sorcerer_slots[level_counter][circle_counter];
+        case CLASS_SORCERER:
+          slots_have[circle_counter] = sorcerer_slots[level_counter][circle_counter];
+          slots_had[circle_counter] = sorcerer_slots[level_counter-1][circle_counter];
           break;
-        case CLASS_BARD:slots_needed = bard_slots[level_counter][circle_counter];
+        case CLASS_BARD:
+          slots_have[circle_counter] = bard_slots[level_counter][circle_counter];
+          slots_had[circle_counter] = bard_slots[level_counter-1][circle_counter];
           break;
-        case CLASS_CLERIC:slots_needed = cleric_slots[level_counter][circle_counter];
+        case CLASS_CLERIC:
+          slots_have[circle_counter] = cleric_slots[level_counter][circle_counter];
+          slots_had[circle_counter] = cleric_slots[level_counter-1][circle_counter];
           break;
-        case CLASS_DRUID:slots_needed = druid_slots[level_counter][circle_counter];
+        case CLASS_DRUID:
+          slots_have[circle_counter] = druid_slots[level_counter][circle_counter];
+          slots_had[circle_counter] = druid_slots[level_counter-1][circle_counter];
           break;
-        case CLASS_RANGER:slots_needed = sorcerer_slots[level_counter][circle_counter];
+        case CLASS_RANGER:
+          slots_have[circle_counter] = ranger_slots[level_counter][circle_counter];
+          slots_had[circle_counter] = ranger_slots[level_counter-1][circle_counter];
           break;
-        case CLASS_PALADIN:slots_needed = sorcerer_slots[level_counter][circle_counter];
+        case CLASS_PALADIN:
+          slots_have[circle_counter] = paladin_slots[level_counter][circle_counter];
+          slots_had[circle_counter] = paladin_slots[level_counter-1][circle_counter];
           break;
-        default:log("Error in assign_feat_spell_slots(), slots needed default case for class.");
+        default:log("Error in assign_feat_spell_slots(), slots_have default case for class.");
           break;
       }
       
-      /*debug*/
-      log("level_counter: %d, circle_counter: %d, slots_needed: %d, slots_have: %d,"
-              " sn-sh: %d", 
-              level_counter, circle_counter, slots_needed, slots_have[circle_counter],
-              (slots_needed - slots_have[circle_counter]));
+      difference = slots_have[circle_counter] - slots_had[circle_counter];
       
-      /* we skip already added same-circle slots */
-      slots_needed -= slots_have[circle_counter];
-
-      /* assign slot feats */
-      if (slots_needed && circle_counter && level_counter) {
-        for (slot_counter = 0; slot_counter < slots_needed; slot_counter++) {
-          feat_assignment(ch_class, (feat_index + circle_counter), TRUE, level_counter, TRUE);
-          slots_have[circle_counter]++;
-          /*debug*/
-          log("slot_counter, level_counter: %d, circle_counter: %d, (n)slots_needed: %d, "
-                  "slots_have: %d, slot_counter: %d, (n)slots_have: %d, feat_index: %d, "
-                  "fi+cc: %d", 
-                  level_counter, circle_counter, slots_needed, slots_have[circle_counter],
-                  slot_counter, slots_have[circle_counter], feat_index, (feat_index + circle_counter));
-          
+      if (difference) {
+        for (slot_counter = 0; slot_counter < difference; slot_counter++) {
+          feat_assignment(ch_class, (feat_index + circle_counter), TRUE,
+                  level_counter, TRUE);          
         }
       }
-
-    }
-  }
+      
+    } /* circle counter */
+  } /* level counter */
 
   /* all done! */
 }
