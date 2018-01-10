@@ -21,6 +21,150 @@ extern "C" {
     
     /** END structs **/
     
+    
+    /** START functions **/
+    
+    /** START functions related to the spell-preparation queue handling **/
+    
+    /* clear a ch's spell prep queue, example death?, ch loadup */
+    void init_ch_spell_prep_queue(struct char_data *ch);
+    
+    /* in: character
+     * destroy the spell prep queue, example ch logout */    
+    void destroy_ch_spell_prep_queue(struct char_data *ch);
+    
+    /* load from pfile into ch their spell-preparation queue, example ch login */    
+    void load_ch_spell_prep_queue();
+    
+    /* save into ch pfile their spell-preparation queue, example ch saving */
+    void save_ch_spell_prep_queue();  
+    
+    /* in: character, class of queue we want to manage
+       go through the entire class's prep queue and reset all the prep-time
+         elements to base prep-time */
+    void reset_prep_queue_time(struct char_data *ch, int ch_class);
+
+    /* in: character
+     * out: true if character is actively preparing spells
+     *      false if character is NOT preparing spells
+     * is character currently occupied with preparing spells? */
+    bool is_preparing_spells(struct char_data *ch);
+    
+    /* in: character, class of the queue you want to work with
+     * traverse the prep queue and print out the details
+     * since the prep queue does not need any organizing, this should be fairly
+     * simple */
+    /* hack alert: innate_magic does not have spell-num stored, but
+         instead has just the spell-circle stored as spell-num */
+    void print_prep_queue(struct char_data *ch, int ch_class);
+    
+    /* in: character, spell-number
+     * out: class corresponding to the queue we found the spell-number in
+     * is the given spell-number currently in the respective class-queue?
+     *  */
+    int is_spell_in_prep_queue(struct char_data *ch, int spell_num);
+    
+    /* in: spell-number, class (of collection we want to access), metamagic, preparation time
+     * out: preparation/collection spell data structure
+     * create a new spell prep-queue entry, handles allocation of memory, etc */
+    struct prep_collection_spell_data *create_prep_queue_entry(int spell,
+            int ch_class, int metamagic, int prep_time);
+    
+    /* in: character, spell-number, class of collection we want, metamagic, prep time
+     * out: preparation/collection spell data structure
+     * add a spell to bottom of prep queue, example ch is memorizING a spell
+     *   does NOT do any checking whether this is a 'legal' spell coming in  */
+    /* hack note: for innate-magic we are storing the CIRCLE the spell belongs to
+         in the queue */
+    struct prep_collection_spell_data *spell_to_prep_queue(struct char_data *ch,
+            int spell, int ch_class, int metamagic,  int prep_time);
+    
+    /* in: character, spell-number, class of collection we need
+     * out: copy of prearation/collection spell data containing entry
+     * remove a spell from the spell_prep queue
+     *   returns an instance of the spell item we found
+     * example ch finished memorizing, also 'forgetting' a spell */
+    struct prep_collection_spell_data *spell_from_prep_queue(struct char_data *ch,
+            int spell, int ch_class);
+    
+    /** END functions related to the spell-preparation queue handling **/
+
+    /** START functions related to the spell-collection handling **/
+    
+    /* clear a ch's spell collection, example death?, ch loadup */
+    void init_ch_spell_collection(struct char_data *ch);
+    
+    /* in: character
+     * destroy a ch's spell prep queue, example ch logout */    void destroy_ch_spell_collection(struct char_data *ch);
+    void load_ch_spell_collection(struct char_data *ch);
+    
+    /* save into ch pfile their spell-preparation queue, example ch saving */
+    void save_ch_spell_collection(struct char_data *ch);  
+    
+    /* in: character, spell-number
+     * out: class of the respective collection
+     * checks the ch's spell collection for a given spell_num  */
+    /* hack alert: innate-magic system is using the collection to store their
+         'known' spells they select in 'study' */
+    /*the define below: INNATE_MAGIC_KNOWN(ch, spell_num) is_spell_in_collection(ch, spell_num)*/
+    int is_spell_in_collection(struct char_data *ch, int spell_num);
+    
+    /* in: spell-number, class (of collection we need), metamagic, prep-time
+     * create a new spell collection entry */
+    struct prep_collection_spell_data *create_collection_entry(int spell,
+            int ch_class, int metamagic, int prep_time);
+    
+    /* add a spell to bottom of collection, example ch memorized a spell */
+    /* hack alert: innate-magic system is using the collection to store their
+         'known' spells they select in 'study' */
+    /*INNATE_MAGIC_TO_KNOWN(ch, spell, ch_class, metamagic, prep_time) *spell_to_collection(ch, spell, ch_class, metamagic, prep_time)*/
+    struct prep_collection_spell_data *spell_to_collection(struct char_data *ch,
+        int spell, int ch_class, int metamagic,  int prep_time);
+    
+    /* remove a spell from a collection
+     * returns spell-number if successful, SPELL_RESERVED_DBC if fail
+     *  example ch cast the spell */
+    /* hack alert: innate-magic system is using the collection to store their
+         'known' spells that they select in 'study' */
+    /*INNATE_MAGIC_FROM_KNOWN(ch, spell, ch_class) *spell_from_collection(ch, spell, ch_class)*/
+    struct prep_collection_spell_data *spell_from_collection(struct char_data *ch,
+            int spell, int ch_class);
+    
+    /** END functions related to the spell-collection handling **/
+
+    /** START functions that connect the spell-queue and collection */
+    
+    /* in: char, spellnumber
+     * out: true if success, false if failure
+     * spell from queue to collection, example finished preparing a spell and now
+     *  the spell belongs in your collection */
+    bool item_from_queue_to_collection(struct char_data *ch, int spell);  
+    
+    /* in: char, spellnumber
+     * out: true if success, false if failure
+     * spell from collection to queue, example finished casting a spell and now
+     *  the spell belongs in your queue */
+    bool item_from_collection_to_queue(struct char_data *ch, int spell);
+
+    /** END functions that connect the spell-queue and collection */
+
+    /** START functions of general purpose, includes dated stuff we need to fix */
+    
+    int compute_spells_prep_time(struct char_data *ch, int spellnum, int class,
+            int circle);
+    
+    int compute_spells_circle(int spellnum, int class, int metamagic);
+    
+    void assign_feat_spell_slots(int ch_class);
+    
+    int get_class_highest_circle(struct char_data *ch, int class);
+    
+
+    /** END functions **/
+    
+    /** Start ACMD **/
+    /** End ACMD **/
+
     /** START defines **/
     
     /* assuming wizard as our standard, this is the base mem time for a 1st
@@ -42,6 +186,27 @@ extern "C" {
     
     /* macros */
     
+    /* give us the highest circle possible based on ch's class */
+    #define HIGHEST_CIRCLE(ch, class) get_class_highest_circle(ch, class)
+
+    /* given spellnum/class/metamagic, what circle does this spell belong? */
+    #define SPELLS_CIRCLE(spellnum, class, metamagic) compute_spells_circle(spellnum, class, metamagic)
+
+    /* is this class one that uses innate magic?  example bard/sorc */
+    #define INNATE_MAGIC_CLASS(class) (class == CLASS_SORCERER || class == CLASS_BARD)
+
+    /* hack alert: innate-magic system is using the collection to store their
+         'known' spells they select in 'study' */
+    #define INNATE_MAGIC_IS_KNOWN(ch, spell_num) is_spell_in_collection(ch, spell_num)
+
+    /* hack alert: innate-magic system is using the collection to store their
+         'known' spells they select in 'study' */
+    #define INNATE_MAGIC_TO_KNOWN(ch, spell, ch_class, metamagic, prep_time) *spell_to_collection(ch, spell, ch_class, metamagic, prep_time)
+    
+    /* hack alert: innate-magic system is using the collection to store their
+         'known' spells that they select in 'study' */
+    #define INNATE_MAGIC_FROM_KNOWN(ch, spell, ch_class) *spell_from_collection(ch, spell, ch_class)
+    
     /* char's pointer to their spell prep queue (head) */
     #define SPELL_PREP_QUEUE(ch, ch_class) (ch->player_specials->saved.preparation_queue[ch_class])
     /* spellnum of a prep-queue top item (head) */
@@ -53,42 +218,7 @@ extern "C" {
     #define COLLECTIONE_ITEM_SPELLNUM(ch, ch_class) (ch->player_specials->saved.spell_collection[ch_class]->spell)
     
     /** END defines **/
-    
-    /** START functions **/
-    
-    void init_ch_spell_prep_queue(struct char_data *ch);
-    void destroy_ch_spell_prep_queue(struct char_data *ch);
-    void load_ch_spell_prep_queue();
-    void save_ch_spell_prep_queue();  
-    void print_prep_queue(struct char_data *ch, int ch_class);
-    int is_spell_in_prep_queue(struct char_data *ch, int spell_num);
-    struct prep_collection_spell_data *create_prep_queue_entry(int spell,
-            int ch_class, int metamagic, int prep_time);
-    struct prep_collection_spell_data *spell_to_prep_queue(struct char_data *ch,
-            int spell, int ch_class, int metamagic,  int prep_time);
-    struct prep_collection_spell_data *spell_from_prep_queue(struct char_data *ch,
-            int spell, int ch_class);
-    void init_ch_spell_collection(struct char_data *ch);
-    void destroy_ch_spell_collection(struct char_data *ch);
-    void load_ch_spell_collection(struct char_data *ch);
-    void save_ch_spell_collection(struct char_data *ch);  
-    int is_spell_in_collection(struct char_data *ch, int spell_num);
-    struct prep_collection_spell_data *create_collection_entry(int spell,
-            int ch_class, int metamagic, int prep_time);
-    struct prep_collection_spell_data *spell_to_collection(struct char_data *ch,
-        int spell, int ch_class, int metamagic,  int prep_time);
-    struct prep_collection_spell_data *spell_from_collection(struct char_data *ch,
-            int spell, int ch_class);
-    bool item_from_queue_to_collection(struct char_data *ch, int spell);  
-    int compute_spells_prep_time(struct char_data *ch, int spellnum, int class,
-            int circle);
-    int compute_spells_circle(int spellnum, int class, int metamagic);
-    void assign_feat_spell_slots(int ch_class);
 
-    /** END functions **/
-    
-    /** Start ACMD **/
-    /** End ACMD **/
     
     /* work space / references */
     /*
