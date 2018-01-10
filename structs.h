@@ -3042,14 +3042,13 @@ struct char_special_data {
 
 /* spell parapation, collection data - expanded for storing class and l-list data */
 struct prep_collection_spell_data {
-  int spell; /* spellnum of this spell in the collection */
-  int ch_class;    /* class that stored this spell in the collection */
+  int spell;     /* spellnum of this spell in the collection */
+  int ch_class;  /* class that stored this spell in the collection */
   int metamagic; /* Bitvector of metamagic affecting this spell. */
-  
-  struct prep_collection_spell_data *next; /*linked-list*/
-  
-  /* old system */
   int prep_time; /* Remaining time for preparing this spell. */
+  int domain;    /* relevant cleric domain level */  
+
+  struct prep_collection_spell_data *next; /*linked-list*/  
 };
 
 

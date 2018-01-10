@@ -26,6 +26,7 @@
 #include "clan.h"
 #include "mud_event.h"
 #include "craft.h"  // crafting (auto craft quest inits)
+#include "spell_prep.h"
 
 #define LOAD_HIT	0
 #define LOAD_MANA	1
@@ -102,8 +103,8 @@ void build_player_index(void) {
   }
 
   CREATE(player_table, struct player_index_element, rec_count);
-  
-  /* zusuk was here - trying to init the player index */
+
+  /* zusuk was here - trying to init the player index, probably not smart/necessary  */
   /*
   for (i = 0; i < rec_count; i++) {
     player_table[i].name = "NoName";
@@ -113,9 +114,9 @@ void build_player_index(void) {
     player_table[i].last = 0;
     player_table[i].clan = NO_CLAN;    
   }
-  */
+   */
   /**/
-  
+
   for (i = 0; i < rec_count; i++) {
     get_line(plr_index, line);
     if ((nr = sscanf(line, "%ld %s %d %s %ld %d", &player_table[i].id, arg2,
@@ -314,7 +315,7 @@ int load_char(const char *name, struct char_data *ch) {
       GET_ABILITY(ch, i) = 0;
     for (i = 0; i < NUM_FEATS; i++)
       SET_FEAT(ch, i, 0);
-    for (i = 0; i < (END_GENERAL_ABILITIES+1); i++)
+    for (i = 0; i < (END_GENERAL_ABILITIES + 1); i++)
       for (j = 0; j < NUM_SKFEATS; j++)
         ch->player_specials->saved.skill_focus[i][j] = 0;
     for (i = 0; i < NUM_CFEATS; i++)
@@ -424,6 +425,12 @@ int load_char(const char *name, struct char_data *ch) {
       PLR_FLAGS(ch)[i] = PFDEF_PLRFLAGS;
     for (i = 0; i < PR_ARRAY_MAX; i++)
       PRF_FLAGS(ch)[i] = PFDEF_PREFFLAGS;
+      
+    /* spell prep system init */
+    init_ch_spell_prep_queue(ch);
+    init_ch_spell_collection(ch);
+    
+    /* finished inits, start loading from file */
 
     while (get_line(fl, line)) {
       tag_argument(line, tag);
@@ -432,17 +439,16 @@ int load_char(const char *name, struct char_data *ch) {
         case 'A':
           if (!strcmp(tag, "Ablt")) load_abilities(fl, ch);
           else if (!strcmp(tag, "Ac  ")) GET_REAL_AC(ch) = atoi(line);
-          else if (!strcmp(tag, "Acct"))  {
+          else if (!strcmp(tag, "Acct")) {
             GET_ACCOUNT_NAME(ch) = strdup(line);
             if (ch->desc && ch->desc->account == NULL) {
-             CREATE(ch->desc->account, struct account_data, 1);
-             for (i = 0; i < MAX_CHARS_PER_ACCOUNT; i++)
-               ch->desc->account->character_names[i] = NULL;
+              CREATE(ch->desc->account, struct account_data, 1);
+              for (i = 0; i < MAX_CHARS_PER_ACCOUNT; i++)
+                ch->desc->account->character_names[i] = NULL;
 
-             load_account(GET_ACCOUNT_NAME(ch), ch->desc->account);
+              load_account(GET_ACCOUNT_NAME(ch), ch->desc->account);
             }
-          }
-          else if (!strcmp(tag, "Act ")) {
+          } else if (!strcmp(tag, "Act ")) {
             if (sscanf(line, "%s %s %s %s", f1, f2, f3, f4) == 4) {
               PLR_FLAGS(ch)[0] = asciiflag_conv(f1);
               PLR_FLAGS(ch)[1] = asciiflag_conv(f2);
@@ -482,8 +488,7 @@ int load_char(const char *name, struct char_data *ch) {
             ch->char_specials.saved.combat_feats[i][1] = asciiflag_conv(f2);
             ch->char_specials.saved.combat_feats[i][2] = asciiflag_conv(f3);
             ch->char_specials.saved.combat_feats[i][3] = asciiflag_conv(f4);
-          }
-          else if (!strcmp(tag, "Cfpt")) load_class_feat_points(fl, ch);
+          } else if (!strcmp(tag, "Cfpt")) load_class_feat_points(fl, ch);
           else if (!strcmp(tag, "Cha ")) GET_REAL_CHA(ch) = atoi(line);
           else if (!strcmp(tag, "Clas")) GET_CLASS(ch) = atoi(line);
           else if (!strcmp(tag, "Con ")) GET_REAL_CON(ch) = atoi(line);
@@ -530,7 +535,7 @@ int load_char(const char *name, struct char_data *ch) {
         case 'F':
           if (!strcmp(tag, "Frez")) GET_FREEZE_LEV(ch) = atoi(line);
           else if (!strcmp(tag, "FaEn")) load_favored_enemy(fl, ch);
-          else if (!strcmp(tag, "Feat"))  load_feats(fl, ch);
+          else if (!strcmp(tag, "Feat")) load_feats(fl, ch);
           else if (!strcmp(tag, "Ftpt")) GET_FEAT_POINTS(ch) = atoi(line);
 
           break;
@@ -597,8 +602,7 @@ int load_char(const char *name, struct char_data *ch) {
               PRF_FLAGS(ch)[3] = asciiflag_conv(f4);
             } else
               PRF_FLAGS(ch)[0] = asciiflag_conv(f1);
-          }
-          else if (!strcmp(tag, "PCAr")) GET_PREFERRED_ARCANE(ch) = atoi(line);
+          } else if (!strcmp(tag, "PCAr")) GET_PREFERRED_ARCANE(ch) = atoi(line);
           else if (!strcmp(tag, "PCDi")) GET_PREFERRED_DIVINE(ch) = atoi(line);
           break;
 
@@ -646,10 +650,9 @@ int load_char(const char *name, struct char_data *ch) {
               break;
             }
             ch->char_specials.saved.school_feats[i] = asciiflag_conv(f1);
-          }
-          else if (!strcmp(tag, "ScrW")) GET_SCREEN_WIDTH(ch) = atoi(line);
+          } else if (!strcmp(tag, "ScrW")) GET_SCREEN_WIDTH(ch) = atoi(line);
           else if (!strcmp(tag, "Skil")) load_skills(fl, ch);
-          else if (!strcmp(tag, "SklF"))  load_skill_focus(fl, ch);
+          else if (!strcmp(tag, "SklF")) load_skill_focus(fl, ch);
           else if (!strcmp(tag, "SpAb")) load_spec_abil(fl, ch);
           else if (!strcmp(tag, "SpRs")) GET_REAL_SPELL_RES(ch) = atoi(line);
           else if (!strcmp(tag, "Size")) GET_REAL_SIZE(ch) = atoi(line);
@@ -821,7 +824,7 @@ void save_char(struct char_data * ch, int mode) {
   if (GET_PASSWD(ch)) fprintf(fl, "Pass: %s\n", GET_PASSWD(ch));
   if (ch->desc && ch->desc->account && ch->desc->account->name) {
     fprintf(fl, "Acct: %s\n", ch->desc->account->name);
-//    fprintf(fl, "ActN: %s\n", ch->desc->account->name);
+    //    fprintf(fl, "ActN: %s\n", ch->desc->account->name);
   }
 
   if (GET_TITLE(ch)) fprintf(fl, "Titl: %s\n", GET_TITLE(ch));
@@ -942,18 +945,18 @@ void save_char(struct char_data * ch, int mode) {
 
   if (GET_PREFERRED_ARCANE(ch) != PFDEF_PREFERRED_ARCANE) fprintf(fl, "PCAr: %d\n", GET_PREFERRED_ARCANE(ch));
   if (GET_PREFERRED_DIVINE(ch) != PFDEF_PREFERRED_DIVINE) fprintf(fl, "PCDi: %d\n", GET_PREFERRED_DIVINE(ch));
-  
+
   if (GET_FEAT_POINTS(ch) != 0) fprintf(fl, "Ftpt: %d\n", GET_FEAT_POINTS(ch));
 
   fprintf(fl, "Cfpt:\n");
-  for(i = 0; i < NUM_CLASSES; i++)
+  for (i = 0; i < NUM_CLASSES; i++)
     if (GET_CLASS_FEATS(ch, i) != 0) fprintf(fl, "%d %d\n", i, GET_CLASS_FEATS(ch, i));
   fprintf(fl, "0\n");
 
   if (GET_EPIC_FEAT_POINTS(ch) != 0) fprintf(fl, "Efpt: %d\n", GET_EPIC_FEAT_POINTS(ch));
 
   fprintf(fl, "Ecfp:\n");
-  for(i = 0; i < NUM_CLASSES; i++)
+  for (i = 0; i < NUM_CLASSES; i++)
     if (GET_EPIC_CLASS_FEATS(ch, i) != 0) fprintf(fl, "%d %d\n", i, GET_EPIC_CLASS_FEATS(ch, i));
   fprintf(fl, "0\n");
 
@@ -1102,7 +1105,7 @@ void save_char(struct char_data * ch, int mode) {
   fprintf(fl, "Pryd:\n");
   for (i = 0; i < MAX_MEM; i++) {
     fprintf(fl, "%d ", i);
-    for (j = 0; j < NUM_CASTERS; j++) {      
+    for (j = 0; j < NUM_CASTERS; j++) {
       fprintf(fl, "%d ", PREPARED_SPELLS(ch, i, j).spell);
     }
     fprintf(fl, "\n");
@@ -1128,7 +1131,7 @@ void save_char(struct char_data * ch, int mode) {
     fprintf(fl, "\n");
   }
   fprintf(fl, "-1 -1\n");
-  
+
   //class levels
   fprintf(fl, "CLvl:\n");
   for (i = 0; i < MAX_CLASSES; i++) {
@@ -1264,16 +1267,16 @@ void save_char(struct char_data * ch, int mode) {
       aff = &tmp_aff[i];
       if (aff->spell)
         fprintf(fl,
-                "%d %d %d %d %d %d %d %d %d\n",
-                aff->spell,
-                aff->duration,
-                aff->modifier,
-                aff->location,
-                aff->bitvector[0],
-                aff->bitvector[1],
-                aff->bitvector[2],
-                aff->bitvector[3],
-                aff->bonus_type);
+              "%d %d %d %d %d %d %d %d %d\n",
+              aff->spell,
+              aff->duration,
+              aff->modifier,
+              aff->location,
+              aff->bitvector[0],
+              aff->bitvector[1],
+              aff->bitvector[2],
+              aff->bitvector[3],
+              aff->bonus_type);
     }
     fprintf(fl, "0 0 0 0 0 0 0 0 0\n");
   }
@@ -1285,15 +1288,15 @@ void save_char(struct char_data * ch, int mode) {
 
     fprintf(fl, "DmgR:\n");
     /* DR from affects...*/
-    for(dr = tmp_dr; dr != NULL; dr = dr->next) {
+    for (dr = tmp_dr; dr != NULL; dr = dr->next) {
       fprintf(fl, "1 %d %d %d %d\n", dr->amount, dr->max_damage, dr->spell, dr->feat);
       for (k = 0; k < MAX_DR_BYPASS; k++) {
         fprintf(fl, "%d %d\n", dr->bypass_cat[k], dr->bypass_val[k]);
       }
     }
     /* Permanent DR. */
-    for(dr = GET_DR(ch); dr != NULL; dr = dr->next) {
-        fprintf(fl, "1 %d %d %d %d\n", dr->amount, dr->max_damage, dr->spell, dr->feat);
+    for (dr = GET_DR(ch); dr != NULL; dr = dr->next) {
+      fprintf(fl, "1 %d %d %d %d\n", dr->amount, dr->max_damage, dr->spell, dr->feat);
       for (k = 0; k < MAX_DR_BYPASS; k++) {
         fprintf(fl, "%d %d\n", dr->bypass_cat[k], dr->bypass_val[k]);
       }
@@ -1303,14 +1306,14 @@ void save_char(struct char_data * ch, int mode) {
 
   write_aliases_ascii(fl, ch);
   save_char_vars_ascii(fl, ch);
-  
+
   /* Save account data
      Trying this before file gets closed, before use to be
      at very end of this function 11/28/2017 -Zusuk*/
   if (ch->desc && ch->desc->account) {
     for (i = 0; i < MAX_CHARS_PER_ACCOUNT; i++) {
       if (ch->desc->account->character_names[i] != NULL &&
-          !strcmp(ch->desc->account->character_names[i], GET_NAME(ch)))
+              !strcmp(ch->desc->account->character_names[i], GET_NAME(ch)))
         break;
       if (ch->desc->account->character_names[i] == NULL)
         break;
@@ -1325,7 +1328,7 @@ void save_char(struct char_data * ch, int mode) {
   fclose(fl);
 
   /* add affects, dr, etc back in */
-  
+
   /* More char_to_store code to add spell and eq affections back in. */
   for (i = 0; i < MAX_AFFECT; i++) {
     if (tmp_aff[i].spell)
@@ -1460,6 +1463,7 @@ void clean_pfiles(void) {
   /* After everything is done, we should rebuild player_index and remove the
    * entries of the players that were just deleted. */
 }
+
 /* Load Damage Reduction - load_dr */
 static void load_dr(FILE* f1, struct char_data *ch) {
   struct damage_reduction_type *dr;
@@ -1474,10 +1478,10 @@ static void load_dr(FILE* f1, struct char_data *ch) {
       CREATE(dr, struct damage_reduction_type, 1);
 
       if (n_vars == 5) {
-        dr->amount     = num2;
+        dr->amount = num2;
         dr->max_damage = num3;
-        dr->spell      = num4;
-        dr->feat       = num5;
+        dr->spell = num4;
+        dr->feat = num5;
 
         for (i = 0; i < MAX_DR_BYPASS; i++) {
           get_line(f1, line);
@@ -1523,7 +1527,7 @@ static void load_affects(FILE *fl, struct char_data *ch) {
         af.bitvector[1] = num6;
         af.bitvector[2] = num7;
         af.bitvector[3] = num8;
-        af.bonus_type   = num9;
+        af.bonus_type = num9;
       } else if (n_vars == 8) { /* New 128-bit version */
         af.bitvector[0] = num5;
         af.bitvector[1] = num6;
@@ -1546,7 +1550,7 @@ static void load_affects(FILE *fl, struct char_data *ch) {
 static void load_praytimes(FILE *fl, struct char_data *ch) {
   int num = 0, num2 = 0, num3 = 0, num4 = 0, num5 = 0, num6 = 0,
           num7 = 0, num8 = 0;
-  int counter = 0;  
+  int counter = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
   do {
@@ -1676,6 +1680,7 @@ static void load_praying(FILE *fl, struct char_data *ch) {
     counter++;
   } while (num != -1 && counter < MAX_MEM);
 }
+
 /* praying loading isn't a loop, so has to be manually changed if you
    change NUM_CASTERS! */
 static void load_praying_metamagic(FILE *fl, struct char_data *ch) {
@@ -1714,6 +1719,7 @@ static void load_praying_metamagic(FILE *fl, struct char_data *ch) {
     counter++;
   } while (num != -1 && counter < MAX_MEM);
 }
+
 static void load_class_level(FILE *fl, struct char_data *ch) {
   int num = 0, num2 = 0;
   char line[MAX_INPUT_LENGTH + 1];
@@ -1793,21 +1799,19 @@ static void load_skills(FILE *fl, struct char_data *ch) {
   } while (num != 0);
 }
 
-void load_feats(FILE *fl, struct char_data *ch)
-{
+void load_feats(FILE *fl, struct char_data *ch) {
   int num = 0, num2 = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
   do {
     get_line(fl, line);
     sscanf(line, "%d %d", &num, &num2);
-      if (num != 0)
-        SET_FEAT(ch, num, num2);
+    if (num != 0)
+      SET_FEAT(ch, num, num2);
   } while (num != 0);
 }
 
-void load_class_feat_points(FILE *fl, struct char_data *ch)
-{
+void load_class_feat_points(FILE *fl, struct char_data *ch) {
 
   int cls = 0, pts = 0, num_fields = 0;
   char line[MAX_INPUT_LENGTH + 1];
@@ -1815,15 +1819,14 @@ void load_class_feat_points(FILE *fl, struct char_data *ch)
   do {
     get_line(fl, line);
 
-    if((num_fields = sscanf(line, "%d %d", &cls, &pts)) == 1)
+    if ((num_fields = sscanf(line, "%d %d", &cls, &pts)) == 1)
       return;
     GET_CLASS_FEATS(ch, cls) = pts;
-  } while(1);
+  } while (1);
 
 }
 
-void load_epic_class_feat_points(FILE *fl, struct char_data *ch)
-{
+void load_epic_class_feat_points(FILE *fl, struct char_data *ch) {
 
   int cls = 0, pts = 0, num_fields = 0;
   char line[MAX_INPUT_LENGTH + 1];
@@ -1831,14 +1834,14 @@ void load_epic_class_feat_points(FILE *fl, struct char_data *ch)
   do {
     get_line(fl, line);
 
-    if((num_fields = sscanf(line, "%d %d", &cls, &pts)) == 1)
+    if ((num_fields = sscanf(line, "%d %d", &cls, &pts)) == 1)
       return;
     GET_EPIC_CLASS_FEATS(ch, cls) = pts;
-  } while(1);
+  } while (1);
 
 }
 
-  /* if NUM_SKFEATS changes, this must be modified manually */
+/* if NUM_SKFEATS changes, this must be modified manually */
 void load_skill_focus(FILE *fl, struct char_data *ch) {
   int skfeat = 0, skill = 0, skfeat_epic = 0;
   char line[MAX_INPUT_LENGTH + 1];

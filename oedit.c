@@ -594,7 +594,6 @@ void oedit_disp_specab_bane_subrace(struct descriptor_data *d) {
   }
   write_to_output(d, "\r\n%sEnter subrace number : ", nrm);
 }
-
 /* Menu for APPLY_FEAT */
 void oedit_disp_apply_spec_menu(struct descriptor_data *d) {
   char *buf;
@@ -613,11 +612,11 @@ void oedit_disp_apply_spec_menu(struct descriptor_data *d) {
 
       buf = "\r\nWhat feat should be modified : ";
       break;
-    /*
-    case APPLY_SKILL:
-      buf = "What skill should be modified : ";
-      break;
-    */
+      /*
+      case APPLY_SKILL:
+        buf = "What skill should be modified : ";
+        break;
+       */
     default:
       oedit_disp_prompt_apply_menu(d);
       return;

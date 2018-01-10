@@ -376,6 +376,9 @@ void add_domain_spells(int domain, int s1, int s2, int s3, int s4, int s5,
 void assign_domains(void) {
   /* start by initializing */
   init_domains();
+  
+  /* 0-value domain, used in code */
+  add_domain(DOMAIN_UNDEFINED, "none", WEAPON_TYPE_UNDEFINED, "none");
 
   /* Air Domain */
   add_domain(DOMAIN_AIR, "Air", WEAPON_TYPE_SHORT_SWORD,
@@ -643,6 +646,7 @@ ACMD(do_domain) {
   char buf[MAX_STRING_LENGTH];
   size_t len = 0;
 
+  /* 0-value is undefined, it is used in the code, but not displayed */
   for (i = 1; i < NUM_DOMAINS; i++) {
     len += snprintf(buf + len, sizeof (buf) - len,
               "%sDomain:%s %-20s %sFavored Weapon:%s %-22s\r\n%sDescription:%s %s\r\n",
