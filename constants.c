@@ -2873,8 +2873,8 @@ const char *ability_names[] = {
 
 // the number of spells received per level for caster types
 const int wizard_slots[LVL_IMPL + 1][NUM_CIRCLES + 1] = {
-  // 1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
-  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 0
+  //   1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
+  { 0, 0,  0,  0,  0,  0,  0,  0,  0,  0,  0}, // 0
   { 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
   { 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0},
   { 0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0},
