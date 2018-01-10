@@ -16,8 +16,10 @@
  *  2) spell collection - these are all the spells that are prepared
  *                        ready for usage, better known as "prepared spells"
  * 
- *  We still preserved the prep-time element in the structure, despite
- *   not needing the element in the current system.
+ *  Terminology:
+ *   innate_magic: we are calling the sorcerer/bard type system innate_magic
+ *   to differentiate the language of the classes that truly prepare their
+ *   spells
  */
 /** END general notes */
 
@@ -77,6 +79,27 @@ void load_ch_spell_prep_queue() {
 void save_ch_spell_prep_queue() {  
 }
 
+/* in: character, class of queue we want to manage
+   go through the entire class's prep queue and reset all the prep-time
+     elements to base prep-time */
+void reset_prep_queue_time(struct char_data *ch, int ch_class) {
+  struct prep_collection_spell_data *current = NULL;
+
+    current = SPELL_PREP_QUEUE(ch, ch_class);
+    do {
+      current->prep_time = compute_spells_prep_time(
+              ch, 
+              current->spell,
+              ch_class,
+              SPELLS_CIRCLE(current->spell, ch_class, current->metamagic)
+              );
+      
+      /* transverse */
+      current = current->next;
+    } while (current);
+  
+}
+
 /* in: character
  * out: true if character is actively preparing spells
  *      false if character is NOT preparing spells
@@ -122,14 +145,26 @@ void print_prep_queue(struct char_data *ch, int ch_class) {
     int prep_time = compute_spells_prep_time(ch, item->spell, item->ch_class, spell_circle);
     total_time += prep_time;
 
-    sprintf(buf, "%s \tW%s\tn \tc[\tn%d\tc]\tn %s%s \tc[\tn%d seconds\tc]\tn\r\n",
-            buf,
-            skill_name(item->spell),
-            spell_circle,
-            (IS_SET(item->metamagic, METAMAGIC_QUICKEN) ? "\tc[\tnquickened\tc]\tn" : ""),
-            (IS_SET(item->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
-            prep_time
-            );
+    /* hack alert: innate_magic does not have spell-num stored, but
+         instead has just the spell-circle stored as spell-num */
+    if (INNATE_MAGIC_CLASS(ch_class))
+      sprintf(buf, "%s \tc[\tWcircle-slot:\tn%d\tc]\tn %s%s \tc[\tn%d seconds\tc]\tn\r\n",
+              buf,
+              item->spell,
+              (IS_SET(item->metamagic, METAMAGIC_QUICKEN) ? "\tc[\tnquickened\tc]\tn" : ""),
+              (IS_SET(item->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
+              prep_time
+              );
+    else
+      sprintf(buf, "%s \tW%s\tn \tc[\tn%d\tc]\tn %s%s \tc[\tn%d seconds\tc]\tn\r\n",
+              buf,
+              skill_name(item->spell),
+              spell_circle,
+              (IS_SET(item->metamagic, METAMAGIC_QUICKEN) ? "\tc[\tnquickened\tc]\tn" : ""),
+              (IS_SET(item->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
+              prep_time
+              );
+    
     item = item->next;
   } while (SPELL_PREP_QUEUE(ch, ch_class));
 
@@ -179,7 +214,6 @@ struct prep_collection_spell_data *create_prep_queue_entry(int spell, int ch_cla
   prep_queue_data->spell = spell;
   prep_queue_data->ch_class = ch_class;
   prep_queue_data->metamagic = metamagic;
-  /* old system - dynamic now */
   prep_queue_data->prep_time = prep_time;
 
   return prep_queue_data;
@@ -187,9 +221,15 @@ struct prep_collection_spell_data *create_prep_queue_entry(int spell, int ch_cla
 
 /* in: character, spell-number, class of collection we want, metamagic, prep time
  * out: preparation/collection spell data structure
- * add a spell to bottom of prep queue, example ch is memorizING a spell */
+ * add a spell to bottom of prep queue, example ch is memorizING a spell
+ *   does NOT do any checking whether this is a 'legal' spell coming in  */
 struct prep_collection_spell_data *spell_to_prep_queue(struct char_data *ch,
         int spell, int ch_class, int metamagic,  int prep_time) {
+  
+  /* hack note: for innate-magic we are storing the CIRCLE the spell belongs to
+       in the queue */
+  if (INNATE_MAGIC_CLASS(ch_class)) spell = compute_spells_circle(spell, ch_class, metamagic);
+  
   struct prep_collection_spell_data *prep_queue_data = NULL;
   
   /* allocate memory, create entry with data */
@@ -285,18 +325,23 @@ void save_ch_spell_collection(struct char_data *ch) {
 /* in: character, spell-number
  * out: class of the respective collection
  * checks the ch's spell collection for a given spell_num  */
+/* hack alert: innate-magic system is using the collection to store their
+         'known' spells they select in 'study' */
+/*the define is: INNATE_MAGIC_KNOWN(ch, spell_num) is_spell_in_collection(ch, spell_num)*/
 int is_spell_in_collection(struct char_data *ch, int spell_num) {
   struct prep_collection_spell_data *current = NULL;
   int ch_class;
 
-  for (ch_class = 0; ch_class < NUM_CASTERS; ch_class++) {
+  for (ch_class = 0; ch_class < NUM_CASTERS; ch_class++) {        
     current = SPELL_COLLECTION(ch, ch_class);
     do {
+            
       if (current->spell == spell_num)
         return ch_class;
       
       /* transverse */
-      current = current->next;      
+      current = current->next;
+      
     } while (current);
   }
   
@@ -313,15 +358,18 @@ struct prep_collection_spell_data *create_collection_entry(int spell, int ch_cla
   collection_data->spell = spell;
   collection_data->ch_class = ch_class;
   collection_data->metamagic = metamagic;
-  /* old system - dynamic now */
   collection_data->prep_time = prep_time;
 
   return collection_data;
 }
 
 /* add a spell to bottom of collection, example ch memorized a spell */
+/* hack alert: innate-magic system is using the collection to store their
+     'known' spells they select in 'study' */
+/*INNATE_MAGIC_TO_KNOWN(ch, spell, ch_class, metamagic, prep_time) *spell_to_collection(ch, spell, ch_class, metamagic, prep_time)*/
 struct prep_collection_spell_data *spell_to_collection(struct char_data *ch,
         int spell, int ch_class, int metamagic,  int prep_time) {
+    
   struct prep_collection_spell_data *collection_data = NULL;
   
   /* allocate memory, create entry with data */
@@ -336,6 +384,9 @@ struct prep_collection_spell_data *spell_to_collection(struct char_data *ch,
 /* remove a spell from a collection
  * returns spell-number if successful, SPELL_RESERVED_DBC if fail
  *  example ch cast the spell */
+    /* hack alert: innate-magic system is using the collection to store their
+         'known' spells that they select in 'study' */
+    /*INNATE_MAGIC_FROM_KNOWN(ch, spell, ch_class) *spell_from_collection(ch, spell, ch_class)*/
 struct prep_collection_spell_data *spell_from_collection(struct char_data *ch, int spell, int ch_class) {
   struct prep_collection_spell_data *current = SPELL_COLLECTION(ch, ch_class);
   struct prep_collection_spell_data *prev = NULL;
@@ -406,11 +457,112 @@ bool item_from_queue_to_collection(struct char_data *ch, int spell) {
   return FALSE;
 }
 
+/* in: char, spellnumber
+ * out: true if success, false if failure
+ * spell from collection to queue, example finished casting a spell and now
+ *  the spell belongs in your queue */
+bool item_from_collection_to_queue(struct char_data *ch, int spell) {
+    
+  int class = is_spell_in_collection(ch, spell);
+  
+  if (class) {
+    struct prep_collection_spell_data *item =
+            spell_from_collection(ch, spell, class);
+    spell_to_prep_queue(
+            ch,
+            item->spell,
+            item->ch_class,
+            item->metamagic,
+            item->prep_time
+            );
+    return TRUE;
+  }
+  
+  return FALSE;
+}
+
 /** END functions that connect the spell-queue and collection */
 
 
 /** START functions of general purpose, includes dated stuff we need to fix */
 
+/*  in:
+    out:
+    */
+int has_innate_magic_slot() {
+  return 0;
+}
+
+/* in: character, class we need to check
+ * out: highest circle access in given class, FALSE for fail
+ *   turned this into a macro in header file: HIGHEST_CIRCLE(ch, class)
+ *   special note: BONUS_CASTER_LEVEL includes prestige class bonuses */
+int get_class_highest_circle(struct char_data *ch, int class) {
+  /* npc's default to best chart */
+  if (IS_NPC(ch)) {
+    return (MAX(1, MIN(9, (GET_LEVEL(ch) + 1) / 2)));
+  }
+  /* if pc has no caster classes, he/she has no business here */
+  if (!IS_CASTER(ch)) {
+    return (FALSE);
+  }
+  /* no levels in this class? */
+  if (!CLASS_LEVEL(ch, class)) {
+    return FALSE;
+  }
+  int class_level = CLASS_LEVEL(ch, class) + BONUS_CASTER_LEVEL(ch, class);
+  switch (class) {
+    case CLASS_PALADIN:
+      if (class_level < 6)
+        return FALSE;
+      else if (class_level < 10)
+        return 1;
+      else if (class_level < 12)
+        return 2;
+      else if (class_level < 15)
+        return 3;
+      else
+        return 4;
+    case CLASS_RANGER:
+      if (class_level < 6)
+        return FALSE;
+      else if (class_level < 10)
+        return 1;
+      else if (class_level < 12)
+        return 2;
+      else if (class_level < 15)
+        return 3;
+      else
+        return 4;
+    case CLASS_BARD:
+      if (class_level < 3)
+        return FALSE;
+      else if (class_level < 5)
+        return 1;
+      else if (class_level < 8)
+        return 2;
+      else if (class_level < 11)
+        return 3;
+      else if (class_level < 14)
+        return 4;
+      else if (class_level < 17)
+        return 5;
+      else
+        return 6;
+    case CLASS_SORCERER:
+      return (MAX(1, (MIN(9, class_level / 2))));
+    case CLASS_WIZARD:
+      return (MAX(1, MIN(9, (class_level + 1) / 2)));
+    case CLASS_DRUID:
+      return (MAX(1, MIN(9, (class_level + 1) / 2)));
+    case CLASS_CLERIC:
+      return (MAX(1, MIN(9, (class_level + 1) / 2)));
+    default:
+      return FALSE;
+  }
+}
+
+/**** UNDER CONSTRUCTION *****/
 /* in: class we need to assign spell slots to
  * at bootup, we initialize class-data, which includes assignment
  *  of the class feats, with our new feat-based spell-slot system, we have
