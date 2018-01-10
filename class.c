@@ -4212,7 +4212,7 @@ void load_class_list(void) {
   /*****/
   /* INIT spell slots, assignement of spell slots based on
      tables in constants.c */
-  assign_feat_spell_slots(CLASS_PALADIN);
+  assign_feat_spell_slots(CLASS_RANGER);
   /****************************************************************************/
   
   /****************************************************************************/
