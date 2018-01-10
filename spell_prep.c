@@ -462,10 +462,13 @@ void assign_feat_spell_slots(int ch_class) {
   }
 
   /* ENGINE */
+
+  /*debug*/
+  log("CLASS: %d", ch_class);
   
   /* traverse level aspect of chart */
   for (level_counter = 0; level_counter < (LVL_IMMORT - 1); level_counter++) {
-    
+        
     /* traverse circle aspect of chart */
     for (circle_counter = 0; circle_counter < NUM_CIRCLES; circle_counter++) {
 
@@ -489,14 +492,27 @@ void assign_feat_spell_slots(int ch_class) {
           break;
       }
       
+      /*debug*/
+      log("level_counter: %d, circle_counter: %d, slots_needed: %d, slots_have: %d,"
+              " sn-sh: %d", 
+              level_counter, circle_counter, slots_needed, slots_have[circle_counter],
+              (slots_needed - slots_have[circle_counter]));
+      
       /* we skip already added same-circle slots */
       slots_needed -= slots_have[circle_counter];
 
       /* assign slot feats */
       if (slots_needed && circle_counter && level_counter) {
         for (slot_counter = 0; slot_counter < slots_needed; slot_counter++) {
-          feat_assignment(ch_class, feat_index + circle_counter, TRUE, level_counter, TRUE);
+          feat_assignment(ch_class, (feat_index + circle_counter), TRUE, level_counter, TRUE);
           slots_have[circle_counter]++;
+          /*debug*/
+          log("slot_counter, level_counter: %d, circle_counter: %d, (n)slots_needed: %d, "
+                  "slots_have: %d, slot_counter: %d, (n)slots_have: %d, feat_index: %d, "
+                  "fi+cc: %d", 
+                  level_counter, circle_counter, slots_needed, slots_have[circle_counter],
+                  slot_counter, slots_have[circle_counter], feat_index, (feat_index + circle_counter));
+          
         }
       }
 
