@@ -3076,15 +3076,15 @@ struct player_special_data_saved {
   ubyte spec_abil[MAX_CLASSES]; //spec abilities (ex. lay on hands)
   ubyte favored_enemy[MAX_ENEMIES]; //list of ranger favored enemies
   
+  /* old spell prep system */
   struct prep_collection_spell_data prep_queue[MAX_MEM][NUM_CASTERS]; //memorization
   struct prep_collection_spell_data collection[MAX_MEM][NUM_CASTERS]; //memorization
-  //int praytimes[MAX_MEM][NUM_CASTERS]; //memorization old system
   
   /* new system for spell preparation */
   struct prep_collection_spell_data *preparation_queue[NUM_CASTERS];
   struct prep_collection_spell_data *spell_collection[NUM_CASTERS];  
 
-  byte church;  // homeland-port
+  byte church;  // homeland-port, currently unused
 
   /* schools / domains */
   byte domain_1; /* cleric domains */
@@ -3104,7 +3104,7 @@ struct player_special_data_saved {
   int pref[PR_ARRAY_MAX]; /**< preference flags */
   ubyte bad_pws; /**< number of bad login attempts */
   sbyte conditions[3]; /**< Drunk, hunger, and thirst */
-  struct txt_block * comm_hist[NUM_HIST]; /**< Communication history */
+  struct txt_block *comm_hist[NUM_HIST]; /**< Communication history */
   ubyte page_length; /**< Max number of rows of text to send at once */
   ubyte screen_width; /**< How wide the display page is */
   int olc_zone; /**< Current olc permissions */
