@@ -69,6 +69,8 @@ void destroy_ch_spell_prep_queue(struct char_data *ch) {
   int ch_class;
 
   for (ch_class = 0; ch_class < NUM_CASTERS; ch_class++) {
+    if (!SPELL_PREP_QUEUE(ch, ch_class))
+      continue;
     do {
       struct prep_collection_spell_data *tmp;
       tmp = SPELL_PREP_QUEUE(ch, ch_class);
@@ -430,6 +432,8 @@ void destroy_ch_spell_collection(struct char_data *ch) {
   int ch_class;
 
   for (ch_class = 0; ch_class < NUM_CASTERS; ch_class++) {
+    if (!SPELL_COLLECTION(ch, ch_class))
+      continue;
     do {
       struct prep_collection_spell_data *tmp;
       tmp = SPELL_COLLECTION(ch, ch_class);
@@ -1056,6 +1060,26 @@ int compute_spells_circle(int spellnum, int class, int metamagic, int domain) {
   return FALSE;
 }
 
+/* based on class, will display both:
+     prep-queue
+     collection
+   data... */
+void print_prep_collection_data(struct char_data *ch, int class) {
+  switch (class) {
+    case CLASS_SORCERER:case CLASS_BARD:
+      print_innate_magic_display(ch, class);
+      break;
+    case CLASS_CLERIC:case CLASS_WIZARD:case CLASS_RANGER:
+    case CLASS_DRUID:case CLASS_PALADIN:
+      print_collection(ch, class);
+      print_prep_queue(ch, class);
+      display_available_slots(ch, class);
+      break;
+    default:return;
+  }
+}
+
+
 /** END functions of general purpose, includes dated stuff we need to fix */
 
 
@@ -1072,6 +1096,12 @@ int compute_spells_circle(int spellnum, int class, int metamagic, int domain) {
         b) ex. forget
           i) metamagic
         c) prioritize
+ * How it works: ex. wizard, you type memorize, it should display
+ *   your spell-prep/collection interfaces.  If you are in a 'state'
+ *   of being able to continue your studies, and are not studying, 
+ *   start studying.  You can then type: memorize [metamagic] 'spellname'
+ *   to add spells to your prep-queue; this does not require being
+ *   in a proper 'state' - can do anytime.
       */
 ACMD(do_gen_preparation) {
   int class = CLASS_UNDEFINED;
@@ -1099,10 +1129,10 @@ ACMD(do_gen_preparation) {
 
   /* no argument, or forced-mode for sorc/bard system */
   if (class == CLASS_SORCERER || class == CLASS_BARD || !*argument) {
-    //printMemory(ch, class);
+    print_prep_collection_data(ch, class);
     if (GET_POS(ch) == POS_RESTING && !FIGHTING(ch)) {
       /* we check here if they are already memorizing */
-      //if (!isOccupied(ch) && PREPARATION_QUEUE(ch, 0, classArray(class)).spell != 0) {
+      if (!isOccupied(ch) && PREPARATION_QUEUE(ch, 0, classArray(class)).spell != 0) {
         switch (class) {
           case CLASS_DRUID:
             send_to_char(ch, "You continue your communion.\r\n");
@@ -1133,9 +1163,9 @@ ACMD(do_gen_preparation) {
             act("$n continues $s studies.", FALSE, ch, 0, 0, TO_ROOM);
             break;
         }
-        //IS_PREPARING(ch, classArray(class)) = TRUE;
+        IS_PREPARING(ch, classArray(class)) = TRUE;
         NEW_EVENT(ePREPARING, ch, NULL, 1 * PASSES_PER_SEC);
-      //}
+      }
     }
     return;
   } else {
@@ -1262,8 +1292,8 @@ ACMD(do_gen_preparation) {
           break;
       }
       addSpellMemming(ch, spellnum, metamagic, spell_info[spellnum].memtime, class);
-      //if (!isOccupied(ch)) {
-        //IS_PREPARING(ch, classArray(class)) = TRUE;
+      if (!isOccupied(ch)) {
+        IS_PREPARING(ch, classArray(class)) = TRUE;
         NEW_EVENT(ePREPARING, ch, NULL, 1 * PASSES_PER_SEC);
         switch (class) {
           case CLASS_DRUID:
@@ -1287,7 +1317,7 @@ ACMD(do_gen_preparation) {
             act("$n continues $s studies.", FALSE, ch, 0, 0, TO_ROOM);
             break;
         }
-      //}
+      }
       return;
     } else {
       send_to_char(ch, "You can't retain more spells of that level!\r\n");
