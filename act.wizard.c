@@ -4605,8 +4605,13 @@ ACMD(do_copyover) {
   struct descriptor_data *d, *d_next;
   char buf [100], buf2[100];
   int i;
+  int min_level_to_copyover = LVL_IMPL;
 
-  if (GET_LEVEL(ch) < LVL_IMPL) {
+  if (port == CONFIG_DFLT_DEV_PORT) {
+    min_level_to_copyover = LVL_IMMORT;
+  }
+  
+  if (GET_LEVEL(ch) < min_level_to_copyover) {
     send_to_char(ch, "Imp only command now.\r\n");
     return;
   }
