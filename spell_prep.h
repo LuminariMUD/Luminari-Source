@@ -116,6 +116,13 @@ extern "C" {
     /* Collection */
     void save_ch_spell_collection(FILE *fl, struct char_data *ch);  
     
+    /* in: character, class of the queue you want to work with
+     * traverse the prep queue and print out the details
+     */
+    /* hack alert: innate magic is using the collection to store their
+     *   'known' spells */
+    void print_collection(struct char_data *ch, int ch_class);
+    
     /* in: character, class of queue we want access to
        out: size of collection */
     int size_of_collection(struct char_data *ch, int ch_class);
@@ -172,7 +179,13 @@ extern "C" {
     /** END functions that connect the spell-queue and collection */
 
     /** START functions of general purpose, includes dated stuff we need to fix */
-    
+
+    /* based on class, will display both:
+         prep-queue
+         collection
+       data... */
+    void print_prep_collection_data(struct char_data *ch, int class);
+
     /*  in:
         out:
         */
@@ -220,6 +233,13 @@ extern "C" {
      * set-up is due to a dated system that assigns spells by level, not circle
      * in addition we have metamagic that can modify the spell-circle as well */
     int compute_spells_circle(int spellnum, int class, int metamagic, int domain);
+    
+    /* display avaialble slots based on what is in the queue/collection, and other
+       variables */
+    void display_available_slots(struct char_data *ch, int class);
+
+    /* separate system to display our hack -alicious innate-magic system */
+    void print_innate_magic_display(struct char_data *ch, int class);
     
     /** END functions **/
     
