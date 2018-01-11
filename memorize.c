@@ -1311,15 +1311,15 @@ void display_sorc(struct char_data *ch, int class) {
   send_to_char(ch, "\tCTotal Slots:\r\n");
 
   if (class == CLASS_SORCERER) {
-    for (slot = 1; slot <= getCircle(ch, CLASS_SORCERER); slot++) {
+    for (slot = 0; slot < getCircle(ch, CLASS_SORCERER); slot++) {
       send_to_char(ch, "\tM%d:\tm %d  ", slot, comp_slots(ch, slot, CLASS_SORCERER));
     }
     send_to_char(ch, "\r\n\r\n\tCSlots Used:\r\n");
-    for (slot = 1; slot <= getCircle(ch, CLASS_SORCERER); slot++) {
+    for (slot = 0; slot < getCircle(ch, CLASS_SORCERER); slot++) {
       send_to_char(ch, "\tM%d:\tm %d  ", slot, numSpells(ch, slot, CLASS_SORCERER));
     }
     send_to_char(ch, "\r\n\r\n\tCSlots Left:\r\n");
-    for (slot = 1; slot <= getCircle(ch, CLASS_SORCERER); slot++) {
+    for (slot = 0; slot < getCircle(ch, CLASS_SORCERER); slot++) {
       send_to_char(ch, "\tM%d:\tm %d  ", slot, comp_slots(ch, slot, CLASS_SORCERER) -
               numSpells(ch, slot, CLASS_SORCERER));
     }
@@ -1329,15 +1329,15 @@ void display_sorc(struct char_data *ch, int class) {
             "  \tn%d\tC seconds.\tn\r\n",
             PREP_TIME(ch, 0, classArray(CLASS_SORCERER)));
   } else if (class == CLASS_BARD) {
-    for (slot = 1; slot <= getCircle(ch, CLASS_BARD); slot++) {
+    for (slot = 0; slot < getCircle(ch, CLASS_BARD); slot++) {
       send_to_char(ch, "\tM%d:\tm %d  ", slot, comp_slots(ch, slot, CLASS_BARD));
     }
     send_to_char(ch, "\r\n\r\n\tCSlots Used:\r\n");
-    for (slot = 1; slot <= getCircle(ch, CLASS_BARD); slot++) {
+    for (slot = 0; slot < getCircle(ch, CLASS_BARD); slot++) {
       send_to_char(ch, "\tM%d:\tm %d  ", slot, numSpells(ch, slot, CLASS_BARD));
     }
     send_to_char(ch, "\r\n\r\n\tCSlots Left:\r\n");
-    for (slot = 1; slot <= getCircle(ch, CLASS_BARD); slot++) {
+    for (slot = 0; slot < getCircle(ch, CLASS_BARD); slot++) {
       send_to_char(ch, "\tM%d:\tm %d  ", slot, comp_slots(ch, slot, CLASS_BARD) -
               numSpells(ch, slot, CLASS_BARD));
     }
