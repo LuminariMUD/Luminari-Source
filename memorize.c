@@ -1312,22 +1312,22 @@ EVENTFUNC(event_preparing) {
 
 /* display sorc interface */
 void display_sorc(struct char_data *ch, int class) {
-  int slot;
+  int circle;
 
   send_to_char(ch, "\tCTotal Slots:\r\n");
 
   if (class == CLASS_SORCERER) {
-    for (slot = 0; slot < getCircle(ch, CLASS_SORCERER); slot++) {
-      send_to_char(ch, "\tM%d:\tm %d  ", slot, comp_slots(ch, slot, CLASS_SORCERER));
+    for (circle = 0; circle < getCircle(ch, CLASS_SORCERER); circle++) {
+      send_to_char(ch, "\tM%d:\tm %d  ", circle, comp_slots(ch, circle, CLASS_SORCERER));
     }
     send_to_char(ch, "\r\n\r\n\tCSlots Used:\r\n");
-    for (slot = 0; slot < getCircle(ch, CLASS_SORCERER); slot++) {
-      send_to_char(ch, "\tM%d:\tm %d  ", slot, numSpells(ch, slot, CLASS_SORCERER));
+    for (circle = 0; circle < getCircle(ch, CLASS_SORCERER); circle++) {
+      send_to_char(ch, "\tM%d:\tm %d  ", circle, numSpells(ch, circle, CLASS_SORCERER));
     }
     send_to_char(ch, "\r\n\r\n\tCSlots Left:\r\n");
-    for (slot = 0; slot < getCircle(ch, CLASS_SORCERER); slot++) {
-      send_to_char(ch, "\tM%d:\tm %d  ", slot, comp_slots(ch, slot, CLASS_SORCERER) -
-              numSpells(ch, slot, CLASS_SORCERER));
+    for (circle = 0; circle < getCircle(ch, CLASS_SORCERER); circle++) {
+      send_to_char(ch, "\tM%d:\tm %d  ", circle, comp_slots(ch, circle, CLASS_SORCERER) -
+              numSpells(ch, circle, CLASS_SORCERER));
     }
     send_to_char(ch, "\tn\r\n\r\n");
     if (PREPARATION_QUEUE(ch, 0, classArray(CLASS_SORCERER)).spell)
@@ -1335,17 +1335,17 @@ void display_sorc(struct char_data *ch, int class) {
             "  \tn%d\tC seconds.\tn\r\n",
             PREP_TIME(ch, 0, classArray(CLASS_SORCERER)));
   } else if (class == CLASS_BARD) {
-    for (slot = 0; slot < getCircle(ch, CLASS_BARD); slot++) {
-      send_to_char(ch, "\tM%d:\tm %d  ", slot, comp_slots(ch, slot, CLASS_BARD));
+    for (circle = 0; circle < getCircle(ch, CLASS_BARD); circle++) {
+      send_to_char(ch, "\tM%d:\tm %d  ", circle, comp_slots(ch, circle, CLASS_BARD));
     }
     send_to_char(ch, "\r\n\r\n\tCSlots Used:\r\n");
-    for (slot = 0; slot < getCircle(ch, CLASS_BARD); slot++) {
-      send_to_char(ch, "\tM%d:\tm %d  ", slot, numSpells(ch, slot, CLASS_BARD));
+    for (circle = 0; circle < getCircle(ch, CLASS_BARD); slot++) {
+      send_to_char(ch, "\tM%d:\tm %d  ", circle, numSpells(ch, circle, CLASS_BARD));
     }
     send_to_char(ch, "\r\n\r\n\tCSlots Left:\r\n");
-    for (slot = 0; slot < getCircle(ch, CLASS_BARD); slot++) {
-      send_to_char(ch, "\tM%d:\tm %d  ", slot, comp_slots(ch, slot, CLASS_BARD) -
-              numSpells(ch, slot, CLASS_BARD));
+    for (circle = 0; circle < getCircle(ch, CLASS_BARD); circle++) {
+      send_to_char(ch, "\tM%d:\tm %d  ", circle, comp_slots(ch, circle, CLASS_BARD) -
+              numSpells(ch, circle, CLASS_BARD));
     }
     send_to_char(ch, "\tn\r\n\r\n");
     if (PREPARATION_QUEUE(ch, 0, classArray(CLASS_BARD)).spell)
