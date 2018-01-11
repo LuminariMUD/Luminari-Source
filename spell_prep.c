@@ -1060,10 +1060,22 @@ int compute_spells_circle(int spellnum, int class, int metamagic, int domain) {
   return FALSE;
 }
 
+/* display avaialble slots based on what is in the queue/collection, and other
+   variables */
+void display_available_slots(struct char_data *ch, int class) {
+  
+}
+
+/* separate system to display our hack -alicious innate-magic system */
+void print_innate_magic_display(struct char_data *ch, int class) {
+  
+}
+
 /* based on class, will display both:
      prep-queue
      collection
-   data... */
+   data... for innate-magic system, send them to a different
+   display function */
 void print_prep_collection_data(struct char_data *ch, int class) {
   switch (class) {
     case CLASS_SORCERER:case CLASS_BARD:
@@ -1079,6 +1091,14 @@ void print_prep_collection_data(struct char_data *ch, int class) {
   }
 }
 
+/* set the preparing state of the char, this has actually become
+   redundant because of events, but we still have it
+   define: SET_PREPARING_STATE(ch, class) */
+bool set_preparing_state(struct char_data *ch, int class, bool state) {
+  switch (class) {
+  }
+  return FALSE;
+}
 
 /** END functions of general purpose, includes dated stuff we need to fix */
 
@@ -1163,7 +1183,7 @@ ACMD(do_gen_preparation) {
             act("$n continues $s studies.", FALSE, ch, 0, 0, TO_ROOM);
             break;
         }
-        IS_PREPARING(ch, classArray(class)) = TRUE;
+        IS_PREPARING(ch, 0/*classArray(class)*/) = TRUE;
         NEW_EVENT(ePREPARING, ch, NULL, 1 * PASSES_PER_SEC);
       }
     }
@@ -1292,8 +1312,8 @@ ACMD(do_gen_preparation) {
           break;
       }
       addSpellMemming(ch, spellnum, metamagic, spell_info[spellnum].memtime, class);
-      if (!isOccupied(ch)) {
-        IS_PREPARING(ch, classArray(class)) = TRUE;
+      if (!IS_PREPARING_SPELLS(ch)) {
+        IS_PREPARING(ch, /*classArray(class)*/0) = TRUE;
         NEW_EVENT(ePREPARING, ch, NULL, 1 * PASSES_PER_SEC);
         switch (class) {
           case CLASS_DRUID:
