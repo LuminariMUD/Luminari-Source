@@ -1492,7 +1492,7 @@ void display_memming(struct char_data *ch, int class) {
 
 /* display how many available slots you have left for spells */
 void display_slots(struct char_data *ch, int class) {
-  int slot, memSlot, empty[10], last = 0;
+  int slot, memSlot, empty[NUM_CIRCLES], last = 0;
   bool printed, spells = FALSE;
 
   /*** How many more spells can we mem?  ***/
@@ -1500,7 +1500,7 @@ void display_slots(struct char_data *ch, int class) {
   memSlot = 0;
 
   /* fill our empty[] with # available slots */
-  for (slot = 0; slot < getCircle(ch, class); slot++) {
+  for (slot = 0; slot <= getCircle(ch, class); slot++) {
     spells = FALSE;
 
     if ((empty[slot] = comp_slots(ch, slot, class) -
@@ -1523,7 +1523,7 @@ void display_slots(struct char_data *ch, int class) {
       send_to_char(ch, "\r\nYou can %s", spell_prep_dictation[classArray(class)][0]);
       break;
   }
-  for (slot = 0; slot < getCircle(ch, class); slot++) {
+  for (slot = 0; slot <= getCircle(ch, class); slot++) {
     if (empty[slot] > 0) {
       printed = TRUE;
       send_to_char(ch, " %d %d%s", empty[slot], (slot + 1),
