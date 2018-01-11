@@ -1485,8 +1485,8 @@ void display_slots(struct char_data *ch, int class) {
   for (slot = 0; slot < getCircle(ch, class); slot++) {
     spells = FALSE;
 
-    if ((empty[slot] = comp_slots(ch, slot + 1, class) -
-            numSpells(ch, slot + 1, class)) > 0)
+    if ((empty[slot] = comp_slots(ch, slot, class) -
+            numSpells(ch, slot, class)) > 0)
       spells = TRUE;
 
     if (spells) {
