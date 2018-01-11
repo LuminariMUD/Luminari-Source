@@ -905,6 +905,10 @@ int forgetSpell(struct char_data *ch, int spellnum, int metamagic, int class) {
 int numSpells(struct char_data *ch, int circle, int class) {
   int num = 0, slot;
 
+  /* no 0th circle right now */
+  if (circle <= 0)
+    return 0;
+  
   /* sorc types */
   if (class == CLASS_SORCERER) {
     for (slot = 0; slot < (MAX_MEM); slot++) {
