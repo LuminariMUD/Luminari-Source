@@ -544,7 +544,7 @@ static void sorc_known_spells_disp_menu(struct descriptor_data *d) {
 
                   mgn,
                   grn, nrm, yel, sorcerer_known[sorc_level][0] -
-                  count_sorc_known(d->character, 1, CLASS_SORCERER),
+                  count_sorc_known(d->character, 0, CLASS_SORCERER),
                   grn, nrm, yel, sorcerer_known[sorc_level][2] -
                   count_sorc_known(d->character, 2, CLASS_SORCERER),
                   grn, nrm, yel, sorcerer_known[sorc_level][3] -
