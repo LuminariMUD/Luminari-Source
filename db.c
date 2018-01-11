@@ -4075,11 +4075,6 @@ void free_char(struct char_data *ch) {
       GET_ALIASES(ch) = (GET_ALIASES(ch))->next;
       free_alias(a);
     }
-    /* Free the action queue */
-    if (GET_QUEUE(ch))
-      free_action_queue(GET_QUEUE(ch));
-    if (GET_ATTACK_QUEUE(ch))
-      free_attack_queue(GET_ATTACK_QUEUE(ch));
 
     if (ch->player_specials->poofin)
       free(ch->player_specials->poofin);
@@ -4159,6 +4154,12 @@ void free_char(struct char_data *ch) {
   if (SCRIPT(ch))
     extract_script(ch, MOB_TRIGGER);
 
+  /* Free the action queue */
+  if (GET_QUEUE(ch))
+    free_action_queue(GET_QUEUE(ch));
+  if (GET_ATTACK_QUEUE(ch))
+    free_attack_queue(GET_ATTACK_QUEUE(ch));
+  
   /* Mud Events */
   if (ch->events != NULL) {
     if (ch->events->iSize > 0) {
