@@ -34,10 +34,12 @@ extern "C" {
     void destroy_ch_spell_prep_queue(struct char_data *ch);
     
     /* load from pfile into ch their spell-preparation queue, example ch login */    
-    void load_ch_spell_prep_queue();
+    /* Prep_Queue */
+    void load_ch_spell_prep_queue(FILE *fl, struct char_data *ch);
     
     /* save into ch pfile their spell-preparation queue, example ch saving */
-    void save_ch_spell_prep_queue();  
+    /* Prep_Queue */
+    void save_ch_spell_prep_queue(FILE *fl, struct char_data *ch);  
     
     /* in: character, class of queue we want to manage, domain(cleric)
        go through the entire class's prep queue and reset all the prep-time
@@ -74,6 +76,10 @@ extern "C" {
     struct prep_collection_spell_data *create_prep_queue_entry(int spell,
             int ch_class, int metamagic, int prep_time, int domain);
     
+    /* in: prep collection struct
+     *   take a prep-collection struct and tag onto list */
+    void entry_to_prep_queue(struct char_data *ch, struct prep_collection_spell_data *entry);
+    
     /* in: character, spell-number, class of collection we want, metamagic, prep time
      * out: preparation/collection spell data structure
      * add a spell to bottom of prep queue, example ch is memorizING a spell
@@ -99,11 +105,16 @@ extern "C" {
     void init_ch_spell_collection(struct char_data *ch);
     
     /* in: character
-     * destroy a ch's spell prep queue, example ch logout */    void destroy_ch_spell_collection(struct char_data *ch);
-    void load_ch_spell_collection(struct char_data *ch);
+     * destroy a ch's spell prep queue, example ch logout */
+    void destroy_ch_spell_collection(struct char_data *ch);
+    
+    /* load spell collection from pfile */
+    /* Collection */
+    void load_ch_spell_collection(FILE *fl, struct char_data *ch);
     
     /* save into ch pfile their spell-preparation queue, example ch saving */
-    void save_ch_spell_collection(struct char_data *ch);  
+    /* Collection */
+    void save_ch_spell_collection(FILE *fl, struct char_data *ch);  
     
     /* in: character, class of queue we want access to
        out: size of collection */
@@ -122,6 +133,10 @@ extern "C" {
     struct prep_collection_spell_data *create_collection_entry(int spell,
             int ch_class, int metamagic, int prep_time, int domain);
     
+    /* in: prep collection struct
+     *   take a prep-collection struct and tag onto list */
+    void entry_to_collection(struct char_data *ch, struct prep_collection_spell_data *entry);
+
     /* add a spell to bottom of collection, example ch memorized a spell */
     /* hack alert: innate-magic system is using the collection to store their
          'known' spells they select in 'study' */
@@ -209,6 +224,9 @@ extern "C" {
     /** END functions **/
     
     /** Start ACMD **/
+    
+    ACMD(do_gen_preparation);
+    
     /** End ACMD **/
 
     /** START defines **/
@@ -235,6 +253,15 @@ extern "C" {
     #define SORC_PREP_TIME_FACTOR     5
     #define BARD_PREP_TIME_FACTOR     6
     
+    /* these are the subcommands for the prep system primary
+       entry point: do_gen_preparation */
+    #define SCMD_MEMORIZE   1
+    #define SCMD_PRAY       2
+    #define SCMD_COMMUNE    3
+    #define SCMD_MEDITATE   4
+    #define SCMD_CHANT      5
+    #define SCMD_ADJURE     6
+    #define SCMD_COMPOSE    7
     /* macros */
     
     /* returns total value of class queue including both the

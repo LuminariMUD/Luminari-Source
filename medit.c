@@ -616,7 +616,7 @@ static void medit_disp_menu(struct descriptor_data *d) {
 static void medit_disp_echo_menu(struct descriptor_data *d) {
   struct char_data *mob;
   int i = 0;
-
+  
   mob = OLC_MOB(d);
   get_char_colors(d->character);
   clear_screen(d);

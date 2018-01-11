@@ -394,18 +394,26 @@ bool move_on_path(struct char_data *ch) {
 
 /* mobile echo system, from homeland ported by nashak */
 void mobile_echos(struct char_data *ch) {
-  char *echo;
-  struct descriptor_data *d;
+  char *echo = NULL;
+  struct descriptor_data *d = NULL;
+  size_t num_elements = 0;
 
   if (!ECHO_COUNT(ch))
+    return;
+  if (!ECHO_ENTRIES(ch))
     return;
 
   if (rand_number(1, 75) > (ECHO_FREQ(ch) / 4))
     return;
   
+  /* found a crash bug when people delete entries, just as a cover up -zusuk */
+  num_elements = sizeof(ECHO_ENTRIES(ch))/sizeof(ECHO_ENTRIES(ch)[0]);
+  if (ECHO_COUNT(ch) > num_elements)
+    ECHO_COUNT(ch) = num_elements;
+  
   if (CURRENT_ECHO(ch) > ECHO_COUNT(ch)) /* dummy check */
     CURRENT_ECHO(ch) = 0;
-  
+    
   if (ECHO_SEQUENTIAL(ch)) {
     echo = ECHO_ENTRIES(ch)[CURRENT_ECHO(ch)++];
     if (CURRENT_ECHO(ch) >= ECHO_COUNT(ch))
@@ -418,6 +426,7 @@ void mobile_echos(struct char_data *ch) {
     return;
 
   parse_at(echo);
+  
   if (ECHO_IS_ZONE(ch)) {
     for (d = descriptor_list; d; d = d->next) {
       if (!d->character)
