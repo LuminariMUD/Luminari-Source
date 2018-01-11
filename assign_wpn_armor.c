@@ -1623,16 +1623,16 @@ void load_armor(void) {
    *    cost, AC, dexBonusCap, armorCheckPenalty, spellFailChance, (move)30ft, (move)20ft,
    *    weight, material, wear) */
   setarmor(SPEC_ARMOR_TYPE_BUCKLER, "buckler shield", ARMOR_TYPE_SHIELD,
-    150, 15, 99, -1, 5, 999, 999,
+    150, 10, 99, -1, 5, 999, 999,
     5, MATERIAL_WOOD, ITEM_WEAR_SHIELD);
   setarmor(SPEC_ARMOR_TYPE_SMALL_SHIELD, "light shield", ARMOR_TYPE_SHIELD,
-    90, 16, 99, -1, 5, 999, 999,
+    90, 15, 99, -1, 5, 999, 999,
     6, MATERIAL_WOOD, ITEM_WEAR_SHIELD);
   setarmor(SPEC_ARMOR_TYPE_LARGE_SHIELD, "heavy shield", ARMOR_TYPE_SHIELD,
-    200, 30, 99, -2, 15, 999, 999,
+    200, 20, 99, -2, 15, 999, 999,
     13, MATERIAL_WOOD, ITEM_WEAR_SHIELD);
   setarmor(SPEC_ARMOR_TYPE_TOWER_SHIELD, "tower shield", ARMOR_TYPE_TOWER_SHIELD,
-    300, 60, 2, -10, 50, 999, 999,
+    300, 40, 2, -10, 50, 999, 999,
     45, MATERIAL_WOOD, ITEM_WEAR_SHIELD);
 }
 
