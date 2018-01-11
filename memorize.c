@@ -580,6 +580,7 @@ int comp_slots(struct char_data *ch, int circle, int class) {
       spellSlots += wizard_slots[class_level][circle];
       break;
     case CLASS_SORCERER:
+      send_to_char(ch, "debug: cha %d, lvl %d, circle %d\r\n", GET_CHA(ch), class_level, circle);
       spellSlots += spell_bonus[GET_CHA(ch)][circle];
       send_to_char(ch, "spell_bonus debug: %d\r\n", spell_bonus[GET_CHA(ch)][circle]);
       spellSlots += sorcerer_slots[class_level][circle];
