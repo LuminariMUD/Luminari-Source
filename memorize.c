@@ -1339,7 +1339,7 @@ void display_sorc(struct char_data *ch, int class) {
       send_to_char(ch, "\tM%d:\tm %d  ", circle, comp_slots(ch, circle, CLASS_BARD));
     }
     send_to_char(ch, "\r\n\r\n\tCSlots Used:\r\n");
-    for (circle = 0; circle < getCircle(ch, CLASS_BARD); slot++) {
+    for (circle = 0; circle < getCircle(ch, CLASS_BARD); circle++) {
       send_to_char(ch, "\tM%d:\tm %d  ", circle, numSpells(ch, circle, CLASS_BARD));
     }
     send_to_char(ch, "\r\n\r\n\tCSlots Left:\r\n");
