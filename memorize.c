@@ -477,7 +477,7 @@ int spellCircle(int class, int spellnum, int metamagic, int domain) {
       }
       return 1 + metamagic_mod;
     case CLASS_SORCERER:
-      return (MAX(1, (MIN(9, class_level / 2))));
+      return ((MAX(1, (spell_info[spellnum].min_level[class]) / 2)));
       /* pally can get confusing, just check out class.c to see what level
          they get their circles at in the spell_level function */
     case CLASS_PALADIN:
