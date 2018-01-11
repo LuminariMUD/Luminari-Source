@@ -1548,11 +1548,17 @@ static char *make_prompt(struct descriptor_data *d) {
     len = 0;
   }
 
+  /* Add IAC GA */
+  if (len < sizeof(prompt))
+    count = snprintf(prompt + len, sizeof (prompt) - len, "%c%c", (char) IAC, (char) GA);
+  if (count >= 0)
+    len += count;
+    
   prompt_size = (int) len;
 
   /* handy debug for prompt size our prompt has potential for some large numbers,
    * with a little experimentation I was able to approach 350 - 02/02/2013 */
-  /* send_to_char(d->character, "%d", prompt_size); */
+  /* send_to_char(d->character, "%d", prompt_size); */ 
 
   return ((char *) ProtocolOutput(d, prompt, &prompt_size));
 }
