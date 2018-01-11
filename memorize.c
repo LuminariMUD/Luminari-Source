@@ -547,7 +547,7 @@ int comp_slots(struct char_data *ch, int circle, int class) {
   int class_level = CLASS_LEVEL(ch, class);
 
   /* they don't even have access to this circle */
-  if (getCircle(ch, class) < circle)
+  if (getCircle(ch, class) < circle) /*getcircle is max accessible circle in class*/
     return 0;
   
   /* we don't use 0-circle right now */
@@ -581,7 +581,9 @@ int comp_slots(struct char_data *ch, int circle, int class) {
       break;
     case CLASS_SORCERER:
       spellSlots += spell_bonus[GET_CHA(ch)][circle];
+      send_to_char(ch, "spell_bonus debug: %d\r\n", spell_bonus[GET_CHA(ch)][circle]);
       spellSlots += sorcerer_slots[class_level][circle];
+      send_to_char(ch, "sorcerer_slots debug: %d\r\n", sorcerer_slots[class_level][circle]);
       break;
     case CLASS_BARD:
       spellSlots += spell_bonus[GET_CHA(ch)][circle];
@@ -1318,9 +1320,9 @@ EVENTFUNC(event_preparing) {
 void display_sorc(struct char_data *ch, int class) {
   int circle;
 
-  send_to_char(ch, "\tCTotal Slots:\r\n");
 
   if (class == CLASS_SORCERER) {
+    send_to_char(ch, "\tCTotal Slots:\r\n");
     for (circle = 0; circle <= getCircle(ch, CLASS_SORCERER); circle++) {
       send_to_char(ch, "\tM%d:\tm %d  ", circle, comp_slots(ch, circle, CLASS_SORCERER));
     }
@@ -1339,6 +1341,7 @@ void display_sorc(struct char_data *ch, int class) {
             "  \tn%d\tC seconds.\tn\r\n",
             PREP_TIME(ch, 0, classArray(CLASS_SORCERER)));
   } else if (class == CLASS_BARD) {
+    send_to_char(ch, "\tCTotal Slots:\r\n");
     for (circle = 0; circle <= getCircle(ch, CLASS_BARD); circle++) {
       send_to_char(ch, "\tM%d:\tm %d  ", circle, comp_slots(ch, circle, CLASS_BARD));
     }
