@@ -746,6 +746,9 @@ do                                                              \
 /** Sex of ch. */
 #define GET_SEX(ch)	((ch)->player.sex)
 
+/* absolute stat cap */
+#define STAT_CAP 50
+
 
 /** Current strength of ch. */
 #define GET_REAL_STR(ch)     	((ch)->real_abils.str)
