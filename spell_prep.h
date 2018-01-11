@@ -241,6 +241,13 @@ extern "C" {
     /* separate system to display our hack -alicious innate-magic system */
     void print_innate_magic_display(struct char_data *ch, int class);
     
+    /* based on class, will display both:
+         prep-queue
+         collection
+       data... for innate-magic system, send them to a different
+       display function */
+    void print_prep_collection_data(struct char_data *ch, int class);
+    
     /** END functions **/
     
     /** Start ACMD **/
@@ -284,6 +291,9 @@ extern "C" {
     #define SCMD_COMPOSE    7
     /* macros */
     
+    /* bool to check if ch is currently trying to prep spells */
+    #define IS_PREPARING_SPELLS(ch) is_preparing_spells(ch)
+
     /* returns total value of class queue including both the
          prep-queue and collection */
     #define TOTAL_QUEUE_SIZE(ch, ch_class) ((size_of_collection(ch, ch_class)) + (size_of_prep_queue(ch, ch_class)))
