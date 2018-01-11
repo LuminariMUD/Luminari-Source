@@ -115,6 +115,8 @@ void save_ch_spell_prep_queue(FILE *fl, struct char_data *ch) {
   fprintf(fl, "Prep_Queue:\n");
 
   for (ch_class = 0; ch_class < NUM_CASTERS; ch_class++) {
+    if (!SPELL_PREP_QUEUE(ch, ch_class))
+      continue;
     current = SPELL_PREP_QUEUE(ch, ch_class);
 
     /* process! */
@@ -473,6 +475,8 @@ void save_ch_spell_collection(FILE *fl, struct char_data *ch) {
   fprintf(fl, "Collection:\n");
 
   for (ch_class = 0; ch_class < NUM_CASTERS; ch_class++) {
+    if (!SPELL_COLLECTION(ch, ch_class))
+      continue;
     current = SPELL_COLLECTION(ch, ch_class);
 
     /* process! */
