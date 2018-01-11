@@ -491,6 +491,8 @@ int load_char(const char *name, struct char_data *ch) {
           } else if (!strcmp(tag, "Cfpt")) load_class_feat_points(fl, ch);
           else if (!strcmp(tag, "Cha ")) GET_REAL_CHA(ch) = atoi(line);
           else if (!strcmp(tag, "Clas")) GET_CLASS(ch) = atoi(line);
+          else if (!strcmp(tag, "Collection"))
+            load_ch_spell_collection(fl, ch);
           else if (!strcmp(tag, "Con ")) GET_REAL_CON(ch) = atoi(line);
           else if (!strcmp(tag, "CLoc")) load_coord_location(fl, ch);
           else if (!strcmp(tag, "CLvl")) load_class_level(fl, ch);
@@ -601,8 +603,10 @@ int load_char(const char *name, struct char_data *ch) {
               PRF_FLAGS(ch)[2] = asciiflag_conv(f3);
               PRF_FLAGS(ch)[3] = asciiflag_conv(f4);
             } else
-              PRF_FLAGS(ch)[0] = asciiflag_conv(f1);
-          } else if (!strcmp(tag, "PCAr")) GET_PREFERRED_ARCANE(ch) = atoi(line);
+              PRF_FLAGS(ch)[0] = asciiflag_conv(f1);              
+          } else if (!strcmp(tag, "Prep_Queue"))
+            load_ch_spell_prep_queue(fl, ch);
+          else if (!strcmp(tag, "PCAr")) GET_PREFERRED_ARCANE(ch) = atoi(line);
           else if (!strcmp(tag, "PCDi")) GET_PREFERRED_DIVINE(ch) = atoi(line);
           break;
 
@@ -1076,6 +1080,11 @@ void save_char(struct char_data * ch, int mode) {
       fprintf(fl, "%d %d\n", i, HAS_REAL_FEAT(ch, i));
   }
   fprintf(fl, "0 0\n");
+  
+  /* spell prep system */
+  save_ch_spell_prep_queue(fl, ch);
+  save_ch_spell_collection(fl, ch);
+  /* end spell prep system */
 
   // Save memorizing list of prayers, prayed list and times
   /* Note: added metamagic to pfile.  19.01.2015 Ornir */

@@ -3050,7 +3050,9 @@ struct prep_collection_spell_data {
 
   struct prep_collection_spell_data *next; /*linked-list*/  
 };
-
+/* how many elements in above struct - used for load/saving in players.c */
+#define PRP_CLLCT_ELMNT 5
+/**/
 
 /** Data only needed by PCs, and needs to be saved to disk. */
 struct player_special_data_saved {
