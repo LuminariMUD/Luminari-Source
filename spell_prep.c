@@ -1132,7 +1132,7 @@ ACMD(do_gen_preparation) {
     print_prep_collection_data(ch, class);
     if (GET_POS(ch) == POS_RESTING && !FIGHTING(ch)) {
       /* we check here if they are already memorizing */
-      if (!isOccupied(ch) && PREPARATION_QUEUE(ch, 0, classArray(class)).spell != 0) {
+      if (/*!isOccupied(ch) &&*/ PREPARATION_QUEUE(ch, 0, 0/*classArray(class)*/).spell != 0) {
         switch (class) {
           case CLASS_DRUID:
             send_to_char(ch, "You continue your communion.\r\n");
