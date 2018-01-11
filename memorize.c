@@ -477,7 +477,7 @@ int spellCircle(int class, int spellnum, int metamagic, int domain) {
       }
       return 1 + metamagic_mod;
     case CLASS_SORCERER:
-      return ((MAX(1, (spell_info[spellnum].min_level[class]) / 2)));
+      return (MAX(1, (MIN(9, class_level / 2))));
       /* pally can get confusing, just check out class.c to see what level
          they get their circles at in the spell_level function */
     case CLASS_PALADIN:
@@ -943,7 +943,9 @@ int count_sorc_known(struct char_data *ch, int circle, int class) {
   for (slot = 0; slot < MAX_MEM; slot++) {
     if (class == CLASS_SORCERER) {
       if (spellCircle(CLASS_SORCERER,
-              PREPARED_SPELLS(ch, slot, classArray(CLASS_SORCERER)).spell, PREPARED_SPELLS(ch, slot, classArray(CLASS_SORCERER)).metamagic, DOMAIN_UNDEFINED) == circle)
+              PREPARED_SPELLS(ch, slot, classArray(CLASS_SORCERER)).spell,
+              PREPARED_SPELLS(ch, slot, classArray(CLASS_SORCERER)).metamagic,
+              DOMAIN_UNDEFINED) == circle)
         num++;
     } else if (class == CLASS_BARD) {
       if (spellCircle(CLASS_BARD,
