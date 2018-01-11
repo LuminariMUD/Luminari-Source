@@ -1013,14 +1013,14 @@ int sorc_add_known(struct char_data *ch, int spellnum, int class) {
   caster_level = CLASS_LEVEL(ch, class) + BONUS_CASTER_LEVEL(ch, class);
 
   if (class == CLASS_SORCERER) {
-    if ((sorcererKnown[caster_level][circle - 1] -
+    if ((sorcerer_known[caster_level][circle] -
             count_sorc_known(ch, circle, class)) <= 0) {
       return FALSE;
     }
   }
 
   if (class == CLASS_BARD) {
-    if ((bardKnown[caster_level][circle - 1] -
+    if ((bard_known[caster_level][circle] -
             count_sorc_known(ch, circle, class)) <= 0) {
       return FALSE;
     }
