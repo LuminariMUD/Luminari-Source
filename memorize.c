@@ -580,11 +580,11 @@ int comp_slots(struct char_data *ch, int circle, int class) {
       spellSlots += wizard_slots[class_level][circle];
       break;
     case CLASS_SORCERER:
-      send_to_char(ch, "debug: cha %d, lvl %d, circle %d\r\n", GET_CHA(ch), class_level, circle);
+      //send_to_char(ch, "debug: cha %d, lvl %d, circle %d\r\n", GET_CHA(ch), class_level, circle);
       spellSlots += spell_bonus[GET_CHA(ch)][circle];
-      send_to_char(ch, "spell_bonus debug: %d\r\n", spell_bonus[GET_CHA(ch)][circle]);
+      //send_to_char(ch, "spell_bonus debug: %d\r\n", spell_bonus[GET_CHA(ch)][circle]);
       spellSlots += sorcerer_slots[class_level][circle];
-      send_to_char(ch, "sorcerer_slots debug: %d\r\n", sorcerer_slots[class_level][circle]);
+      //send_to_char(ch, "sorcerer_slots debug: %d\r\n", sorcerer_slots[class_level][circle]);
       break;
     case CLASS_BARD:
       spellSlots += spell_bonus[GET_CHA(ch)][circle];
@@ -950,6 +950,10 @@ int numSpells(struct char_data *ch, int circle, int class) {
 /* for sorc-types:  counts how many spells you have of a given circle */
 int count_sorc_known(struct char_data *ch, int circle, int class) {
   int num = 0, slot;
+  
+  /* we don't handle 0th circle */
+  if (circle <= 0)
+    return 0;
 
   for (slot = 0; slot < MAX_MEM; slot++) {
     if (class == CLASS_SORCERER) {
