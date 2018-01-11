@@ -2993,7 +2993,7 @@ const int bard_slots[LVL_IMPL + 1][NUM_CIRCLES + 1] = {
 
 /** known spells for sorcs **/
 const int sorcerer_known[LVL_IMPL + 1][NUM_CIRCLES + 1] = {
-  // 1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
+  // 0,1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
   { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 0
   { 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0},
   { 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -3033,7 +3033,7 @@ const int sorcerer_known[LVL_IMPL + 1][NUM_CIRCLES + 1] = {
 
 /** known spells for bards **/
 const int bard_known[LVL_IMPL + 1][NUM_CIRCLES + 1] = {
-  // 1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
+  // 0,1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
   { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 0
   { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
   { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
