@@ -543,23 +543,23 @@ static void sorc_known_spells_disp_menu(struct descriptor_data *d) {
                   "Enter Choice : ",
 
                   mgn,
-                  grn, nrm, yel, sorcererKnown[sorc_level][0] -
+                  grn, nrm, yel, sorcerer_known[sorc_level][1] -
                   count_sorc_known(d->character, 1, CLASS_SORCERER),
-                  grn, nrm, yel, sorcererKnown[sorc_level][1] -
+                  grn, nrm, yel, sorcerer_known[sorc_level][2] -
                   count_sorc_known(d->character, 2, CLASS_SORCERER),
-                  grn, nrm, yel, sorcererKnown[sorc_level][2] -
+                  grn, nrm, yel, sorcerer_known[sorc_level][3] -
                   count_sorc_known(d->character, 3, CLASS_SORCERER),
-                  grn, nrm, yel, sorcererKnown[sorc_level][3] -
+                  grn, nrm, yel, sorcerer_known[sorc_level][4] -
                   count_sorc_known(d->character, 4, CLASS_SORCERER),
-                  grn, nrm, yel, sorcererKnown[sorc_level][4] -
+                  grn, nrm, yel, sorcerer_known[sorc_level][5] -
                   count_sorc_known(d->character, 5, CLASS_SORCERER),
-                  grn, nrm, yel, sorcererKnown[sorc_level][5] -
+                  grn, nrm, yel, sorcerer_known[sorc_level][6] -
                   count_sorc_known(d->character, 6, CLASS_SORCERER),
-                  grn, nrm, yel, sorcererKnown[sorc_level][6] -
+                  grn, nrm, yel, sorcerer_known[sorc_level][7] -
                   count_sorc_known(d->character, 7, CLASS_SORCERER),
-                  grn, nrm, yel, sorcererKnown[sorc_level][7] -
+                  grn, nrm, yel, sorcerer_known[sorc_level][8] -
                   count_sorc_known(d->character, 8, CLASS_SORCERER),
-                  grn, nrm, yel, sorcererKnown[sorc_level][8] -
+                  grn, nrm, yel, sorcerer_known[sorc_level][9] -
                   count_sorc_known(d->character, 9, CLASS_SORCERER),
                   grn, nrm
                   );
@@ -589,7 +589,7 @@ void sorc_study_menu(struct descriptor_data *d, int circle) {
   }
   write_to_output(d, "\r\n");
   write_to_output(d, "%sNumber of slots available:%s %d.\r\n", grn, nrm,
-          sorcererKnown[class_level][circle] -
+          sorcerer_known[class_level][circle] -
           count_sorc_known(d->character, circle, CLASS_SORCERER));
   write_to_output(d, "%s+ A plus sign marks your current selection(s).\r\n", nrm);
   write_to_output(d, "%sEnter spell choice, to add or remove "
@@ -620,17 +620,17 @@ static void bard_known_spells_disp_menu(struct descriptor_data *d) {
           "Enter Choice : ",
 
           mgn,
-          grn, nrm, yel, bardKnown[class_level][0] -
+          grn, nrm, yel, bard_known[class_level][1] -
           count_sorc_known(d->character, 1, CLASS_BARD),
-          grn, nrm, yel, bardKnown[class_level][1] -
+          grn, nrm, yel, bard_known[class_level][2] -
           count_sorc_known(d->character, 2, CLASS_BARD),
-          grn, nrm, yel, bardKnown[class_level][2] -
+          grn, nrm, yel, bard_known[class_level][3] -
           count_sorc_known(d->character, 3, CLASS_BARD),
-          grn, nrm, yel, bardKnown[class_level][3] -
+          grn, nrm, yel, bard_known[class_level][4] -
           count_sorc_known(d->character, 4, CLASS_BARD),
-          grn, nrm, yel, bardKnown[class_level][4] -
+          grn, nrm, yel, bard_known[class_level][5] -
           count_sorc_known(d->character, 5, CLASS_BARD),
-          grn, nrm, yel, bardKnown[class_level][5] -
+          grn, nrm, yel, bard_known[class_level][6] -
           count_sorc_known(d->character, 6, CLASS_BARD),
           grn, nrm
           );
@@ -663,7 +663,7 @@ void bard_study_menu(struct descriptor_data *d, int circle) {
   }
   write_to_output(d, "\r\n");
   write_to_output(d, "%sNumber of slots available:%s %d.\r\n", grn, nrm,
-          bardKnown[class_level][circle] -
+          bard_known[class_level][circle] -
           count_sorc_known(d->character, circle, CLASS_BARD));
   write_to_output(d, "%s+ A plus sign marks your current selection(s).\r\n"
           "Enter spell choice, to add or remove (Q to exit to main menu) : ", nrm);
