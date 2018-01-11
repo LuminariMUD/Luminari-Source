@@ -1321,15 +1321,15 @@ void display_sorc(struct char_data *ch, int class) {
   send_to_char(ch, "\tCTotal Slots:\r\n");
 
   if (class == CLASS_SORCERER) {
-    for (circle = 0; circle < getCircle(ch, CLASS_SORCERER); circle++) {
+    for (circle = 0; circle <= getCircle(ch, CLASS_SORCERER); circle++) {
       send_to_char(ch, "\tM%d:\tm %d  ", circle, comp_slots(ch, circle, CLASS_SORCERER));
     }
     send_to_char(ch, "\r\n\r\n\tCSlots Used:\r\n");
-    for (circle = 0; circle < getCircle(ch, CLASS_SORCERER); circle++) {
+    for (circle = 0; circle <= getCircle(ch, CLASS_SORCERER); circle++) {
       send_to_char(ch, "\tM%d:\tm %d  ", circle, numSpells(ch, circle, CLASS_SORCERER));
     }
     send_to_char(ch, "\r\n\r\n\tCSlots Left:\r\n");
-    for (circle = 0; circle < getCircle(ch, CLASS_SORCERER); circle++) {
+    for (circle = 0; circle <= getCircle(ch, CLASS_SORCERER); circle++) {
       send_to_char(ch, "\tM%d:\tm %d  ", circle, comp_slots(ch, circle, CLASS_SORCERER) -
               numSpells(ch, circle, CLASS_SORCERER));
     }
@@ -1339,15 +1339,15 @@ void display_sorc(struct char_data *ch, int class) {
             "  \tn%d\tC seconds.\tn\r\n",
             PREP_TIME(ch, 0, classArray(CLASS_SORCERER)));
   } else if (class == CLASS_BARD) {
-    for (circle = 0; circle < getCircle(ch, CLASS_BARD); circle++) {
+    for (circle = 0; circle <= getCircle(ch, CLASS_BARD); circle++) {
       send_to_char(ch, "\tM%d:\tm %d  ", circle, comp_slots(ch, circle, CLASS_BARD));
     }
     send_to_char(ch, "\r\n\r\n\tCSlots Used:\r\n");
-    for (circle = 0; circle < getCircle(ch, CLASS_BARD); circle++) {
+    for (circle = 0; circle <= getCircle(ch, CLASS_BARD); circle++) {
       send_to_char(ch, "\tM%d:\tm %d  ", circle, numSpells(ch, circle, CLASS_BARD));
     }
     send_to_char(ch, "\r\n\r\n\tCSlots Left:\r\n");
-    for (circle = 0; circle < getCircle(ch, CLASS_BARD); circle++) {
+    for (circle = 0; circle <= getCircle(ch, CLASS_BARD); circle++) {
       send_to_char(ch, "\tM%d:\tm %d  ", circle, comp_slots(ch, circle, CLASS_BARD) -
               numSpells(ch, circle, CLASS_BARD));
     }
