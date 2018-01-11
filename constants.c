@@ -1818,52 +1818,52 @@ const char *apply_types[NUM_APPLIES + 1] = {
   "Dexterity",
   "Intelligence",
   "Wisdom",
-  "Constitution",
+  "Constitution",/*5*/
   "Charisma",
   "Class",
   "Level",
   "Age",
-  "Weight",
+  "Weight", /*10*/
   "Height",
   "Max-Mana",
   "Max-HP",
   "Max-Move",
-  "Gold",
+  "Gold",/*15*/
   "Experience",
   "!Unused!",
   "Hitroll",
   "Damroll",
-  "Save-Fortitude",
+  "Save-Fortitude",/*20*/
   "Save-Reflex",
   "Save-Will",
   "Save-Poison",
   "Save-Death",
-  "Spell-Resist",
+  "Spell-Resist",/*25*/
   "Size",
   "Armor-Class",
   "Resist-Fire",
   "Resist-Cold",
-  "Resist-Air",
+  "Resist-Air",/*30*/
   "Resist-Earth",
   "Resist-Acid",
   "Resist-Holy",
   "Resist-Electric",
-  "Resist-Unholy",
+  "Resist-Unholy",/*35*/
   "Resist-Slice",
   "Resist-Puncture",
   "Resist-Force",
   "Resist-Sound",
-  "Resist-Poison",
+  "Resist-Poison",/*40*/
   "Resist-Disease",
   "Resist-Negative",
   "Resist-Illusion",
   "Resist-Mental",
-  "Resist-Light",
+  "Resist-Light",/*45*/
   "Resist-Energy",
   "Resist-Water",
   "Damage-Reduction",
-  "Grant-Feat"
-  "\n"
+  "Grant-Feat",
+  "\n"/*50*/
 };
 
 /** Matrix to show which bonus types are allowed for which apply locations */
