@@ -540,9 +540,6 @@ int spellCircle(int class, int spellnum, int metamagic, int domain) {
   }
 }
 
-/* *note remember in both constant arrays, value 0 is circle 1
-   and probably should eventually change that for uniformity  */
-
 /* returns # of total slots based on level, class and stat bonus
    of given circle */
 int comp_slots(struct char_data *ch, int circle, int class) {
@@ -553,7 +550,7 @@ int comp_slots(struct char_data *ch, int circle, int class) {
   if (getCircle(ch, class) < circle)
     return 0;
 
-  circle--;
+  //circle--;
 
   class_level += BONUS_CASTER_LEVEL(ch, class);
 
