@@ -4095,6 +4095,7 @@ void free_char(struct char_data *ch) {
     if (IS_NPC(ch))
       log("SYSERR: Mob %s (#%d) had player_specials allocated!", GET_NAME(ch), GET_MOB_VNUM(ch));
   }
+  
   if (!IS_NPC(ch) || (IS_NPC(ch) && GET_MOB_RNUM(ch) == NOBODY)) {
     /* if this is a player, or a non-prototyped non-player, free all */
     if (GET_NAME(ch))
@@ -4149,6 +4150,7 @@ void free_char(struct char_data *ch) {
       free(ECHO_ENTRIES(ch));
     }
   }
+  
   while (ch->affected)
     affect_remove(ch, ch->affected);
 
@@ -4178,6 +4180,10 @@ void free_char(struct char_data *ch) {
       free(tmp);
     }
   }
+  
+  /* spell prep */
+  destroy_ch_spell_prep_queue(ch);
+  destroy_ch_spell_collection(ch);
 
   /* new version of free_followers take the followers pointer as arg */
   free_followers(ch->followers);
