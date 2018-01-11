@@ -121,6 +121,8 @@ void mobile_activity(void);
 void mobile_echos(struct char_data *ch);
 void clearMemory(struct char_data *ch);
 
+/* absolute stat cap */
+#define STAT_CAP 50
 
 /* For new last command: */
 #define LAST_FILE LIB_ETC       "last"
