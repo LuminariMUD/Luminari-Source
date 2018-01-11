@@ -360,6 +360,7 @@ int main(int argc, char **argv) {
   else {
     log("Running game on port %d.", port);
     init_game(port);
+    log("Dev port set in utils.h to: %d.", CONFIG_DFLT_DEV_PORT);
   }
 
   log("Clearing game world.");
