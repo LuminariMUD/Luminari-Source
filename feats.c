@@ -1477,27 +1477,27 @@ void assign_feats(void) {
   
   /* ranger spell access feats  */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
-  feato(FEAT_RANGER_1ST_CIRCLE, "1st circle paladin spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 1st circle paladin spells",
-    "You now have access to 1st circle paladin spells.  The spells you gain access "
+  feato(FEAT_RANGER_1ST_CIRCLE, "1st circle ranger spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+    "gain access to 1st circle ranger spells",
+    "You now have access to 1st circle ranger spells.  The spells you gain access "
       "are determined by class.  Some classes gain access to all the spells "
       "instantly upon ataining this feat, others have to select the spells via "
       "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
-  feato(FEAT_RANGER_2ND_CIRCLE, "2nd circle paladin spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 2nd circle paladin spells",
-    "You now have access to 2nd circle paladin spells.  The spells you gain access "
+  feato(FEAT_RANGER_2ND_CIRCLE, "2nd circle ranger spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+    "gain access to 2nd circle ranger spells",
+    "You now have access to 2nd circle ranger spells.  The spells you gain access "
       "are determined by class.  Some classes gain access to all the spells "
       "instantly upon ataining this feat, others have to select the spells via "
       "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
-  feato(FEAT_RANGER_3RD_CIRCLE, "3rd circle paladin spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 3rd circle paladin spells",
-    "You now have access to 3rd circle paladin spells.  The spells you gain access "
+  feato(FEAT_RANGER_3RD_CIRCLE, "3rd circle ranger spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+    "gain access to 3rd circle ranger spells",
+    "You now have access to 3rd circle ranger spells.  The spells you gain access "
       "are determined by class.  Some classes gain access to all the spells "
       "instantly upon ataining this feat, others have to select the spells via "
       "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
-  feato(FEAT_RANGER_4TH_CIRCLE, "4th circle paladin spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 4th circle paladin spells",
-    "You now have access to 4th circle paladin spells.  The spells you gain access "
+  feato(FEAT_RANGER_4TH_CIRCLE, "4th circle ranger spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+    "gain access to 4th circle ranger spells",
+    "You now have access to 4th circle ranger spells.  The spells you gain access "
       "are determined by class.  Some classes gain access to all the spells "
       "instantly upon ataining this feat, others have to select the spells via "
       "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
