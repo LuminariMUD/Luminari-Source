@@ -378,8 +378,6 @@ void reset_char_points(struct char_data *ch) {
 //  }
 }
 
-#define STAT_CAP 50
-
 #define BASE_STAT_CAP 8
 #define HP_CAP 200
 #define MANA_CAP 300

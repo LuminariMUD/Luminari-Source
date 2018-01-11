@@ -589,7 +589,7 @@ void sorc_study_menu(struct descriptor_data *d, int circle) {
   }
   write_to_output(d, "\r\n");
   write_to_output(d, "%sNumber of slots available:%s %d.\r\n", grn, nrm,
-          sorcererKnown[class_level][circle - 1] -
+          sorcererKnown[class_level][circle] -
           count_sorc_known(d->character, circle, CLASS_SORCERER));
   write_to_output(d, "%s+ A plus sign marks your current selection(s).\r\n", nrm);
   write_to_output(d, "%sEnter spell choice, to add or remove "
@@ -663,7 +663,7 @@ void bard_study_menu(struct descriptor_data *d, int circle) {
   }
   write_to_output(d, "\r\n");
   write_to_output(d, "%sNumber of slots available:%s %d.\r\n", grn, nrm,
-          bardKnown[class_level][circle - 1] -
+          bardKnown[class_level][circle] -
           count_sorc_known(d->character, circle, CLASS_BARD));
   write_to_output(d, "%s+ A plus sign marks your current selection(s).\r\n"
           "Enter spell choice, to add or remove (Q to exit to main menu) : ", nrm);
