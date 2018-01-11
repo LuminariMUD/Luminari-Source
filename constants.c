@@ -2913,7 +2913,7 @@ const int wizard_slots[LVL_IMPL + 1][NUM_CIRCLES + 1] = {
 };
 
 const int sorcerer_slots[LVL_IMPL + 1][NUM_CIRCLES + 1] = {
-  // 1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
+  // 0,1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
   { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 0
   { 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0},
   { 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0},
