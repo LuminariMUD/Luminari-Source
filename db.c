@@ -54,6 +54,7 @@
 #include "domains_schools.h"
 #include "grapple.h"
 #include "race.h"
+#include "spell_prep.h"
 
 #include <sys/stat.h>
 /*  declarations of most of the 'global' variables */
