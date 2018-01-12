@@ -1538,8 +1538,8 @@ void display_slots(struct char_data *ch, int class) {
   for (slot = 0; slot <= getCircle(ch, class); slot++) {
     if (empty[slot] > 0) {
       printed = TRUE;
-      send_to_char(ch, " %d %d%s", empty[slot], (slot + 1),
-              (slot + 1) == 1 ? "st" : (slot + 1) == 2 ? "nd" : (slot + 1) == 3 ?
+      send_to_char(ch, " %d %d%s", empty[slot], (slot),
+              (slot) == 1 ? "st" : (slot) == 2 ? "nd" : (slot) == 3 ?
               "rd" : "th");
       if (--memSlot > 1)
         send_to_char(ch, ",");
