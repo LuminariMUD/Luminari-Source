@@ -190,7 +190,7 @@ void print_prep_queue(struct char_data *ch, int ch_class) {
 
   /* build a nice heading */
   *buf = '\0';
-  sprintf(buf, "\tYSPreparation Queue for %s\tC", class_names[ch_class]);
+  sprintf(buf, "\tYPreparation Queue for %s\tC", class_names[ch_class]);
   send_to_char(ch, "\tC");
   text_line(ch, buf, line_length, '-', '-');
   send_to_char(ch, "\tn");
@@ -1318,14 +1318,7 @@ ACMD(do_gen_preparation) {
       return;
     }
   }
-  
-        /*
-  if (GET_POS(ch) != POS_RESTING) {
-    send_to_char(ch, "You are not relaxed enough, you must be resting.\r\n");
-    return;
-  }
-  */
-  
+    
   /* we need the min-level stored for cleric domain handling */
   if (!IS_MIN_LEVEL_FOR_SPELL(ch, class, spellnum)) {
     send_to_char(ch, "That spell is beyond your grasp!\r\n");
