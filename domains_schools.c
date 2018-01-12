@@ -641,6 +641,30 @@ void init_domain_spell_level(void) {
 
 }
 
+/* fail = false
+   otherwise return domain */
+int is_domain_spell_of_ch(struct char_data *ch, int spellnum) {
+  int counter = 0;
+
+  if (GET_1ST_DOMAIN(ch)) {
+    for (counter = 0; counter < MAX_DOMAIN_SPELLS; counter++) {
+      if (domain_list[GET_1ST_DOMAIN(ch)].domain_spells[counter] == spellnum) {
+        return GET_1ST_DOMAIN(ch);
+      }
+    }
+  }
+  
+  if (GET_2ND_DOMAIN(ch)) {
+    for (counter = 0; counter < MAX_DOMAIN_SPELLS; counter++) {
+      if (domain_list[GET_2ND_DOMAIN(ch)].domain_spells[counter] == spellnum) {
+        return GET_2ND_DOMAIN(ch);
+      }
+    }
+  }
+  
+  return FALSE;
+}
+
 ACMD(do_domain) {
   int i = 0, j = 0;
   char buf[MAX_STRING_LENGTH];

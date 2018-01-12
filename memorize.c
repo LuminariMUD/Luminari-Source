@@ -135,6 +135,15 @@ bool spellbook_ok(struct char_data *ch, int spellnum, int class, bool check_scro
   if (GET_LEVEL(ch) >= LVL_IMMORT)
     return TRUE;
 
+  if (IS_DARK(IN_ROOM(ch)) && !CAN_SEE_IN_DARK(ch)) {
+    send_to_char(ch, "It is too dark to study!\r\n");
+    return FALSE;
+  }  
+  if (AFF_FLAGGED(ch, AFF_BLIND)) {
+    send_to_char(ch, "You are blind!\r\n");
+    return FALSE;
+  }
+  
   if (class == CLASS_WIZARD) {
 
     /* for-loop for inventory */
@@ -925,7 +934,10 @@ int numSpells(struct char_data *ch, int circle, int class) {
     }
   } else if (class == CLASS_CLERIC) {
     for (slot = 0; slot < (MAX_MEM); slot++) {
-      if (spellCircle(class, PREPARED_SPELLS(ch, slot, classArray(class)).spell, PREPARED_SPELLS(ch, slot, classArray(class)).metamagic, GET_1ST_DOMAIN(ch)) == circle)
+      if ( spellCircle(class,
+                       PREPARED_SPELLS(ch, slot, classArray(class)).spell,
+                       PREPARED_SPELLS(ch, slot, classArray(class)).metamagic,
+                       GET_1ST_DOMAIN(ch)) == circle )
         num++;
       else if (spellCircle(class, PREPARED_SPELLS(ch, slot, classArray(class)).spell, PREPARED_SPELLS(ch, slot, classArray(class)).metamagic, GET_2ND_DOMAIN(ch)) == circle)
         num++;
