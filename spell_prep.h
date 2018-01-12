@@ -308,6 +308,16 @@ extern "C" {
     #define SCMD_ADJURE     6
     #define SCMD_COMPOSE    7
 
+    /* index for dictation constant array */
+    #define INVALID_DICT_INDEX  (-1)
+    #define CLERIC_DICT_INDEX   0
+    #define DRUID_DICT_INDEX    1
+    #define WIZARD_DICT_INDEX   2
+    #define SORCERER_DICT_INDEX 3
+    #define PALADIN_DICT_INDEX  4
+    #define RANGER_DICT_INDEX   5
+    #define BARD_DICT_INDEX     6
+    
     /* macros */
     
     /* in: char data, spell number, class associated with spell, circle of spell
