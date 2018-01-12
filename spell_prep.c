@@ -796,6 +796,8 @@ int compute_slots_by_circle(struct char_data *ch, int circle, int class) {
       break;
   }
   
+  send_to_char(ch, "compute_slots_by_circle: %d\r\n", spell_slots);
+  
   if (spell_slots <= 0)
     return FALSE;
   
