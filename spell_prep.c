@@ -101,7 +101,12 @@ void load_ch_spell_prep_queue(FILE *fl, struct char_data *ch) {
             &domain);
 
     if (spell_num != -1) {
-      entry_to_prep_queue(ch, create_prep_queue_entry(spell_num, ch_class, metamagic, prep_time, domain));
+      entry_to_prep_queue(ch,
+                          create_prep_queue_entry(spell_num,
+                                                  ch_class,
+                                                  metamagic,
+                                                  prep_time,
+                                                  domain));
     }
     
     counter++;
