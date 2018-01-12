@@ -1241,7 +1241,7 @@ bool is_min_level_for_spell(struct char_data *ch, int class, int spellnum) {
 ACMD(do_gen_preparation) {
   int class = CLASS_UNDEFINED, min_circle_for_spell = 0;
   int spellnum = 0, metamagic = 0, dict_index = INVALID_DICT_INDEX;
-  char *buf = NULL;
+  char buf[MAX_INPUT_LENGTH];
   char *spell_arg = NULL, *metamagic_arg = NULL;
   
   switch (subcmd) {
@@ -1268,6 +1268,7 @@ ACMD(do_gen_preparation) {
       if (ready_to_prep_spells(ch, class)) {
         send_to_char(ch, "You continue your %s.\r\n",
                 spell_prep_dictation[dict_index][3]);
+        *buf = '\0';
         sprintf(buf, "$n continues $s %s.",
                 spell_prep_dictation[dict_index][3]);
         act(buf, FALSE, ch, 0, 0, TO_ROOM);
@@ -1280,6 +1281,7 @@ ACMD(do_gen_preparation) {
         if (ready_to_prep_spells(ch, class)) {
           send_to_char(ch, "You continue your %s.\r\n",
                   spell_prep_dictation[dict_index][3]);
+          *buf = '\0';
           sprintf(buf, "$n continues $s %s.",
                   spell_prep_dictation[dict_index][3]);
           act(buf, FALSE, ch, 0, 0, TO_ROOM);
@@ -1402,6 +1404,7 @@ ACMD(do_gen_preparation) {
   if (ready_to_prep_spells(ch, class)) {
     send_to_char(ch, "You continue your %s.\r\n",
             spell_prep_dictation[dict_index][3]);
+    *buf = '\0';
     sprintf(buf, "$n continues $s %s.",
             spell_prep_dictation[dict_index][3]);
     act(buf, FALSE, ch, 0, 0, TO_ROOM);
