@@ -3230,6 +3230,7 @@ const int druid_slots[LVL_IMPL + 1][NUM_CIRCLES + 1] = {
 
 // words to use for the spell preparation process for different classes.
 const char *spell_prep_dictation[NUM_CASTERS][4] = {
+/* 0       1          2         3*/
   {"pray", "praying", "prayed", "prayers"}, // CLASS_CLERIC
   {"commune", "communing", "communed", "communion"}, // CLASS_DRUID 
   {"memorize", "studying", "memorized", "studies"}, // CLASS_WIZARD

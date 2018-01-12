@@ -751,7 +751,6 @@ int get_class_highest_circle(struct char_data *ch, int class) {
 /* in: character, respective class to check 
  * out: returns # of total slots based on class-level and stat bonus
      of given circle */
-
 /* macro COMP_SLOT_BY_CIRCLE(ch, circle, class) */
 int compute_slots_by_circle(struct char_data *ch, int circle, int class) {
   int spell_slots = 0;
@@ -759,7 +758,7 @@ int compute_slots_by_circle(struct char_data *ch, int circle, int class) {
 
   /* they don't even have access to this circle */
   if (HIGHEST_CIRCLE(ch, class) < circle)
-    return 0;
+    return FALSE;
 
   /* includes specials like prestige class */
   class_level += BONUS_CASTER_LEVEL(ch, class);
@@ -794,11 +793,12 @@ int compute_slots_by_circle(struct char_data *ch, int circle, int class) {
       spell_slots += bard_slots[class_level][circle];
       break;
     default:
-      if (GET_LEVEL(ch) < LVL_IMMORT) {
-        log("Invalid class passed to comp_slots.");
-      }
-      return (-1);
+      break;
   }
+  
+  if (spell_slots <= 0)
+    return FALSE;
+  
   return spell_slots;
 }
 /**** UNDER CONSTRUCTION *****/
@@ -1093,11 +1093,103 @@ void print_prep_collection_data(struct char_data *ch, int class) {
 
 /* set the preparing state of the char, this has actually become
    redundant because of events, but we still have it
-   define: SET_PREPARING_STATE(ch, class) */
+ * returns TRUE if successfully set something, false if not
+   define: SET_PREPARING_STATE(ch, class, state) 
+   NOTE: the array in storage is only NUM_CASTERS values, which
+     does not directly sync up with our class-array, so we have
+     a conversion happening here from class-array ->to-> is_preparing-array */
 bool set_preparing_state(struct char_data *ch, int class, bool state) {
   switch (class) {
+    case CLASS_CLERIC:
+      (ch)->char_specials.is_preparing[0] = state;
+      return TRUE;
+    case CLASS_DRUID:
+      (ch)->char_specials.is_preparing[1] = state;
+      return TRUE;
+    case CLASS_WIZARD:
+      (ch)->char_specials.is_preparing[2] = state;
+      return TRUE;
+    case CLASS_SORCERER:
+      (ch)->char_specials.is_preparing[3] = state;
+      return TRUE;
+    case CLASS_PALADIN:
+      (ch)->char_specials.is_preparing[4] = state;
+      return TRUE;
+    case CLASS_RANGER:
+      (ch)->char_specials.is_preparing[5] = state;
+      return TRUE;
+    case CLASS_BARD:
+      (ch)->char_specials.is_preparing[6] = state;
+      return TRUE;
   }
   return FALSE;
+}
+
+/* are we in a state that allows us to prep spells? */
+/* define: READY_TO_PREP(ch, class) */
+bool ready_to_prep_spells(struct char_data *ch, int class) {
+  switch (class) {
+    case CLASS_WIZARD:
+      if (IS_DARK(IN_ROOM(ch)) && !CAN_SEE_IN_DARK(ch))
+        return FALSE;
+      if (AFF_FLAGGED(ch, AFF_BLIND))
+        return FALSE;
+      break;
+  }
+  if (GET_POS(ch) != POS_RESTING)
+    return FALSE;
+  if (FIGHTING(ch))
+    return FALSE;
+  
+  if (AFF_FLAGGED(ch, AFF_STUN))
+    return FALSE;
+  if (AFF_FLAGGED(ch, AFF_PARALYZED))
+    return FALSE;
+  if (AFF_FLAGGED(ch, AFF_GRAPPLED))
+    return FALSE;
+  if (AFF_FLAGGED(ch, AFF_NAUSEATED))
+    return FALSE;
+  if (AFF_FLAGGED(ch, AFF_CONFUSED))
+    return FALSE;
+  if (AFF_FLAGGED(ch, AFF_DAZED))
+    return FALSE;
+  if (AFF_FLAGGED(ch, AFF_PINNED))
+    return FALSE;
+  
+  /* made it! */
+  return TRUE;
+}
+
+/* sets prep-state as TRUE, and starts the preparing-event */
+/* START_PREPARATION(ch, class) */
+void start_preparation(struct char_data *ch, int class) {
+  SET_PREPARING_STATE(ch, class, TRUE);
+  NEW_EVENT(ePREPARING, ch, NULL, 1 * PASSES_PER_SEC);
+}
+
+/* does ch level qualify them for this particular spell?
+     includes domain system for clerics 
+   IS_MIN_LEVEL_FOR_SPELL(ch, class, spell)*/
+bool is_min_level_for_spell(struct char_data *ch, int class, int spellnum) {
+  int min_level = 0;
+  
+  switch (class) {
+    case CLASS_CLERIC: /*domain system!*/
+      min_level = MIN(MIN_SPELL_LVL(spellnum, CLASS_CLERIC, GET_1ST_DOMAIN(ch)),
+                      MIN_SPELL_LVL(spellnum, CLASS_CLERIC, GET_2ND_DOMAIN(ch)));
+      if ((BONUS_CASTER_LEVEL(ch, class) + CLASS_LEVEL(ch, CLASS_CLERIC)) <
+              min_level) {
+        return FALSE;
+      }
+      break;
+    default:
+      if ((BONUS_CASTER_LEVEL(ch, class) + CLASS_LEVEL(ch, class)) <
+              spell_info[spellnum].min_level[class]) {
+        return FALSE;
+      }
+      return TRUE;
+  }
+  return TRUE;
 }
 
 /** END functions of general purpose, includes dated stuff we need to fix */
@@ -1122,13 +1214,14 @@ bool set_preparing_state(struct char_data *ch, int class, bool state) {
  *   start studying.  You can then type: memorize [metamagic] 'spellname'
  *   to add spells to your prep-queue; this does not require being
  *   in a proper 'state' - can do anytime.
-      */
+   TODO:
+     - FIX domains as entry point value here! */
 ACMD(do_gen_preparation) {
-  int class = CLASS_UNDEFINED;
+  int class = CLASS_UNDEFINED, min_circle_for_spell = 0;
+  int spellnum = 0, metamagic = 0;
+  char *buf = NULL;
+  char *spell_arg = NULL, *metamagic_arg = NULL;
   
-  int spellnum, num_spells, metamagic = 0;
-  char *s = NULL, *m = NULL;
-
   switch (subcmd) {
     case SCMD_PRAY: class = CLASS_CLERIC;
     case SCMD_MEMORIZE: class = CLASS_WIZARD;
@@ -1147,203 +1240,149 @@ ACMD(do_gen_preparation) {
     return;
   }
 
-  /* no argument, or forced-mode for sorc/bard system */
-  if (class == CLASS_SORCERER || class == CLASS_BARD || !*argument) {
-    print_prep_collection_data(ch, class);
-    if (GET_POS(ch) == POS_RESTING && !FIGHTING(ch)) {
-      /* we check here if they are already memorizing */
-      if (/*!isOccupied(ch) &&*/ PREPARATION_QUEUE(ch, 0, 0/*classArray(class)*/).spell != 0) {
-        switch (class) {
-          case CLASS_DRUID:
-            send_to_char(ch, "You continue your communion.\r\n");
-            act("$n continues $s communion.", FALSE, ch, 0, 0, TO_ROOM);
-            break;
-          case CLASS_CLERIC:
-            send_to_char(ch, "You continue your prayers.\r\n");
-            act("$n continues $s prayers.", FALSE, ch, 0, 0, TO_ROOM);
-            break;
-          case CLASS_RANGER:
-            send_to_char(ch, "You continue your adjuration.\r\n");
-            act("$n continues $s adjuration.", FALSE, ch, 0, 0, TO_ROOM);
-            break;
-          case CLASS_PALADIN:
-            send_to_char(ch, "You continue your chant.\r\n");
-            act("$n continues $s chant.", FALSE, ch, 0, 0, TO_ROOM);
-            break;
-          case CLASS_SORCERER:
-            send_to_char(ch, "You continue your meditation.\r\n");
-            act("$n continues $s meditation.", FALSE, ch, 0, 0, TO_ROOM);
-            break;
-          case CLASS_BARD:
-            send_to_char(ch, "You continue your composition.\r\n");
-            act("$n continues $s composition.", FALSE, ch, 0, 0, TO_ROOM);
-            break;
-          default: /* wizard */
-            send_to_char(ch, "You continue your studies.\r\n");
-            act("$n continues $s studies.", FALSE, ch, 0, 0, TO_ROOM);
-            break;
-        }
-        IS_PREPARING(ch, 0/*classArray(class)*/) = TRUE;
-        NEW_EVENT(ePREPARING, ch, NULL, 1 * PASSES_PER_SEC);
+  switch (class) {
+    case CLASS_SORCERER:case CLASS_BARD:
+      print_prep_collection_data(ch, class);
+      if (READY_TO_PREP(ch, class)) {
+        send_to_char(ch, "You continue your %s.\r\n",
+                spell_prep_dictation[class][3]);
+        sprintf(buf, "$n continues $s %s.",
+                spell_prep_dictation[class][3]);
+        act(buf, FALSE, ch, 0, 0, TO_ROOM);
+        START_PREPARATION(ch, class);
       }
-    }
+      return; /* innate-magic is finished in this command */
+    default:
+      if (!*argument) {
+        print_prep_collection_data(ch, class);
+        if (READY_TO_PREP(ch, class)) {
+          send_to_char(ch, "You continue your %s.\r\n",
+                  spell_prep_dictation[class][3]);
+          sprintf(buf, "$n continues $s %s.",
+                  spell_prep_dictation[class][3]);
+          act(buf, FALSE, ch, 0, 0, TO_ROOM);
+          START_PREPARATION(ch, class);
+        }
+        return;
+      }
+      break;
+  }
+  
+  /* we now know we are not innate-magic and we have an argument */
+
+  /* Here I needed to change a bit to grab the metamagic keywords.  
+   * Valid keywords are:
+   *   quickened - Speed up casting
+   *   maximized - All variable aspects of spell (dam dice, etc) are maximum.
+   */
+
+  /* spell_arg is a pointer into the argument string.  First lets find the spell - 
+   * it should be at the end of the string. */
+  spell_arg = strtok(argument, "'");
+  if (spell_arg == NULL) {
+    send_to_char(ch, "Prepare which spell?\r\n");
     return;
-  } else {
-    /* Here I needed to change a bit to grab the metamagic keywords.  
-     * Valid keywords are:
-     *
-     *   quickened - Speed up casting
-     *   maximized - All variable aspects of spell (dam dice, etc) are maximum.
-     *
-     */
-
-    /* s is a pointer into the argument string.  First lets find the spell - 
-     * it should be at the end of the string. */
-    s = strtok(argument, "'");
-    if (s == NULL) {
-      send_to_char(ch, "Prepare which spell?\r\n");
-      return;
-    }
-
-    s = strtok(NULL, "'");
-    if (s == NULL) {
-      send_to_char(ch, "The name of the spell to prepare must be enclosed within ' and '.\r\n");
-      return;
-    }
-
-    spellnum = find_skill_num(s);
-
-    if (spellnum < 1 || spellnum > MAX_SPELLS) {
-      send_to_char(ch, "Prepare which spell?\r\n");
-      return;
-    }
-
-    /* Now we have the spell.  Back up a little and check for metamagic. */
-    for (m = strtok(argument, " "); m && m[0] != '\''; m = strtok(NULL, " ")) {
-      if (class == CLASS_SORCERER || class == CLASS_BARD) {
-        send_to_char(ch, "Spontaneous casters do not prepare spells with metamagic.\r\n");
-        return;
-      }
-      if (is_abbrev(m, "quickened")) {
-        if HAS_FEAT(ch, FEAT_QUICKEN_SPELL) {
-          SET_BIT(metamagic, METAMAGIC_QUICKEN);
-        } else {
-          send_to_char(ch, "You don't know how to quicken your magic!\r\n");
-          return;
-        }
-
-      } else if (is_abbrev(m, "maximized")) {
-        if HAS_FEAT(ch, FEAT_MAXIMIZE_SPELL) {
-          SET_BIT(metamagic, METAMAGIC_MAXIMIZE);
-        } else {
-          send_to_char(ch, "You don't know how to maximize your magic!\r\n");
-          return;
-        }
+  }
+  
+  spell_arg = strtok(NULL, "'");
+  if (spell_arg == NULL) {
+    send_to_char(ch, "The name of the spell to prepare must be enclosed within ' and '.\r\n");
+    return;
+  }
+  
+  spellnum = find_skill_num(spell_arg);
+  if (spellnum < 1 || spellnum > MAX_SPELLS) {
+    send_to_char(ch, "Prepare which spell?\r\n");
+    return;
+  }
+  
+  /* Now we have the spell.  Back up a little and check for metamagic. */
+  for (metamagic_arg = strtok(argument, " "); metamagic_arg && metamagic_arg[0] != '\'';
+          metamagic_arg = strtok(NULL, " ")) {
+    if (is_abbrev(metamagic_arg, "quickened")) {
+      if HAS_FEAT(ch, FEAT_QUICKEN_SPELL) {
+        SET_BIT(metamagic, METAMAGIC_QUICKEN);
       } else {
-        send_to_char(ch, "Use what metamagic?\r\n");
+        send_to_char(ch, "You don't know how to quicken your magic!\r\n");
         return;
       }
+    } else if (is_abbrev(metamagic_arg, "maximized")) {
+      if HAS_FEAT(ch, FEAT_MAXIMIZE_SPELL) {
+        SET_BIT(metamagic, METAMAGIC_MAXIMIZE);
+      } else {
+        send_to_char(ch, "You don't know how to maximize your magic!\r\n");
+        return;
+      }
+    } else {
+      send_to_char(ch, "Use what metamagic?\r\n");
+      return;
     }
   }
-
+  
+        /*
   if (GET_POS(ch) != POS_RESTING) {
     send_to_char(ch, "You are not relaxed enough, you must be resting.\r\n");
     return;
   }
-
-  int minLevel = 0, minLevel2 = 0, compSlots = 0;
-
-  if (class == CLASS_CLERIC) {
-    minLevel = MIN_SPELL_LVL(spellnum, CLASS_CLERIC, GET_1ST_DOMAIN(ch));
-    minLevel2 = MIN_SPELL_LVL(spellnum, CLASS_CLERIC, GET_2ND_DOMAIN(ch));
-    minLevel = MIN(minLevel, minLevel2);
-    if (BONUS_CASTER_LEVEL(ch, class) + CLASS_LEVEL(ch, CLASS_CLERIC) < minLevel) {
-      send_to_char(ch, "You have heard of that spell....\r\n");
-      return;
-    }
-  } else if ((BONUS_CASTER_LEVEL(ch, class) + CLASS_LEVEL(ch, class)) <
-          spell_info[spellnum].min_level[class]) {
-    send_to_char(ch, "You have heard of that magic....\r\n");
+  */
+  
+  /* we need the min-level stored for cleric domain handling */
+  if (!IS_MIN_LEVEL_FOR_SPELL(ch, class, spellnum)) {
+    send_to_char(ch, "That spell is beyond your grasp!\r\n");
     return;
   }
-
-  minLevel = spellCircle(class, spellnum, metamagic, GET_1ST_DOMAIN(ch));
-  minLevel = MIN(minLevel, spellCircle(class, spellnum, metamagic, GET_2ND_DOMAIN(ch)));
-
-  compSlots = comp_slots(ch, minLevel, class);
-  num_spells = numSpells(ch, minLevel, class);
-
-  if (compSlots != -1) {
-    if ((compSlots - num_spells) > 0) {
-      switch (class) {
-        case CLASS_DRUID:
-          send_to_char(ch, "You start to commune for %s%s%s.\r\n",
-                  (IS_SET(metamagic, METAMAGIC_QUICKEN) ? "quickened " : ""),
-                  (IS_SET(metamagic, METAMAGIC_MAXIMIZE) ? "maximized " : ""),
-                  spell_info[spellnum].name);
-          break;
-        case CLASS_CLERIC:
-          send_to_char(ch, "You start to pray for %s%s%s.\r\n",
-                  (IS_SET(metamagic, METAMAGIC_QUICKEN) ? "quickened " : ""),
-                  (IS_SET(metamagic, METAMAGIC_MAXIMIZE) ? "maximized " : ""),
-                  spell_info[spellnum].name);
-          break;
-        case CLASS_RANGER:
-          send_to_char(ch, "You start to adjure for %s%s%s.\r\n",
-                  (IS_SET(metamagic, METAMAGIC_QUICKEN) ? "quickened " : ""),
-                  (IS_SET(metamagic, METAMAGIC_MAXIMIZE) ? "maximized " : ""),
-                  spell_info[spellnum].name);
-          break;
-        case CLASS_PALADIN:
-          send_to_char(ch, "You start to chant for %s%s%s.\r\n",
-                  (IS_SET(metamagic, METAMAGIC_QUICKEN) ? "quickened " : ""),
-                  (IS_SET(metamagic, METAMAGIC_MAXIMIZE) ? "maximized " : ""),
-                  spell_info[spellnum].name);
-          break;
-        case CLASS_WIZARD:
-          //spellbooks
-          if (!spellbook_ok(ch, spellnum, class, TRUE)) {
-            return;
-          }
-          send_to_char(ch, "You start to memorize %s%s%s.\r\n",
-                  (IS_SET(metamagic, METAMAGIC_QUICKEN) ? "quickened " : ""),
-                  (IS_SET(metamagic, METAMAGIC_MAXIMIZE) ? "maximized " : ""),
-                  spell_info[spellnum].name);
-          break;
-      }
-      addSpellMemming(ch, spellnum, metamagic, spell_info[spellnum].memtime, class);
-      if (!IS_PREPARING_SPELLS(ch)) {
-        IS_PREPARING(ch, /*classArray(class)*/0) = TRUE;
-        NEW_EVENT(ePREPARING, ch, NULL, 1 * PASSES_PER_SEC);
-        switch (class) {
-          case CLASS_DRUID:
-            send_to_char(ch, "You continue your communing.\r\n");
-            act("$n continues $s communing.", FALSE, ch, 0, 0, TO_ROOM);
-            break;
-          case CLASS_CLERIC:
-            send_to_char(ch, "You continue your prayers.\r\n");
-            act("$n continues $s prayers.", FALSE, ch, 0, 0, TO_ROOM);
-            break;
-          case CLASS_RANGER:
-            send_to_char(ch, "You continue your adjuration.\r\n");
-            act("$n continues $s adjuration.", FALSE, ch, 0, 0, TO_ROOM);
-            break;
-          case CLASS_PALADIN:
-            send_to_char(ch, "You continue your chant.\r\n");
-            act("$n continues $s chant.", FALSE, ch, 0, 0, TO_ROOM);
-            break;
-          default: /* wizard */
-            send_to_char(ch, "You continue your studies.\r\n");
-            act("$n continues $s studies.", FALSE, ch, 0, 0, TO_ROOM);
-            break;
-        }
-      }
+  
+  min_circle_for_spell =
+          MIN(SPELLS_CIRCLE(class, spellnum, metamagic, GET_1ST_DOMAIN(ch)), 
+              SPELLS_CIRCLE(class, spellnum, metamagic, GET_2ND_DOMAIN(ch)));
+  
+  if (!COMP_SLOT_BY_CIRCLE(ch, min_circle_for_spell, class)) {
+    send_to_char(ch, "You have no slots available in that circle!\r\n");
+    return;
+  }
+  
+  /* we rely on the -proper- circle being placed for special cases such as
+     for domain-spells for clerics and metamagic, etc */
+  if ((COMP_SLOT_BY_CIRCLE(ch, min_circle_for_spell, class) -
+       TOTAL_QUEUE_SIZE(ch, class)) <= 0) { /* we have  no space! */
+    send_to_char(ch, "You can't retain more spells of that circle!\r\n");    
+  } else if (class == CLASS_WIZARD) { /* wizards spellbook reqs */
+    if (!spellbook_ok(ch, spellnum, class, TRUE)) {
+      send_to_char(ch, "You need a source to study that spell from!\r\n");
       return;
-    } else {
-      send_to_char(ch, "You can't retain more spells of that level!\r\n");
     }
-  } else
-    log("ERR:  Reached end of do_gen_memorize.");
+  } else {
+    /* success, let's throw the spell into our prep queue */
+    send_to_char(ch, "You start to %s for %s%s%s.\r\n",
+            spell_prep_dictation[class][0],
+            (IS_SET(metamagic, METAMAGIC_QUICKEN) ? "quickened " : ""),
+            (IS_SET(metamagic, METAMAGIC_MAXIMIZE) ? "maximized " : ""),
+            spell_info[spellnum].name);
+    
+    /* throw this spell into your prep queue */
+    spell_to_prep_queue(ch,
+                        spellnum,
+                        class,
+                        metamagic,
+                        CALCULATE_PREP_TIME(ch,
+                                            spellnum,
+                                            class,
+                                            min_circle_for_spell,
+                                            is_domain_spell_of_ch(ch, 
+                                                                  spellnum)),
+                        is_domain_spell_of_ch(ch, 
+                                              spellnum));
+  }
+  
+  if (READY_TO_PREP(ch, class)) {
+    send_to_char(ch, "You continue your %s.\r\n",
+            spell_prep_dictation[class][3]);
+    sprintf(buf, "$n continues $s %s.",
+            spell_prep_dictation[class][3]);
+    act(buf, FALSE, ch, 0, 0, TO_ROOM);
+    START_PREPARATION(ch, class);
+  }
+  
 }
 
 /** END ACMD() ***/

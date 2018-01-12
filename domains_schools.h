@@ -125,7 +125,7 @@ void clear_domain_feats(struct char_data *ch);
 void add_domain_feats(struct char_data *ch);
 void perform_destructiveaura(struct char_data *ch);
 void disable_restricted_school_spells(struct char_data *ch);
-
+int is_domain_spell_of_ch(struct char_data *ch, int spellnum);
 
 /******************************************/
 
