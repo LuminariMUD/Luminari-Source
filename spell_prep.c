@@ -976,6 +976,10 @@ int compute_spells_circle(int spellnum, int class, int metamagic, int domain) {
   int metamagic_mod = 0;
   int spell_circle = 0;
   
+  /*deubg*/
+  return ((spell_info[spellnum].min_level[class] + 1) / 2);
+  /*deubg*/
+  
   if (spellnum <= SPELL_RESERVED_DBC || spellnum >= NUM_SPELLS)
     return (NUM_CIRCLES+1);  
 
@@ -1003,6 +1007,7 @@ int compute_spells_circle(int spellnum, int class, int metamagic, int domain) {
         /* level 20 reserved for epic spells */
         default: return (NUM_CIRCLES+1);
       }
+      break;
     case CLASS_PALADIN:
       switch (spell_info[spellnum].min_level[class]) {
         case 6:case 7:case 8:case 9:
@@ -1015,6 +1020,7 @@ int compute_spells_circle(int spellnum, int class, int metamagic, int domain) {
           return 4 + metamagic_mod;
         default: return (NUM_CIRCLES+1);
       }
+      break;
     case CLASS_RANGER:
       switch (spell_info[spellnum].min_level[class]) {
         case 6:case 7:case 8:case 9:
@@ -1027,6 +1033,7 @@ int compute_spells_circle(int spellnum, int class, int metamagic, int domain) {
           return 4 + metamagic_mod;
         default: return (NUM_CIRCLES+1);
       }
+      break;
     case CLASS_SORCERER:
       spell_circle = spell_info[spellnum].min_level[class] / 2;
       spell_circle += metamagic_mod;
