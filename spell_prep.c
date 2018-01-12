@@ -1328,7 +1328,8 @@ ACMD(do_gen_preparation) {
     }
   }
     
-  /* we need the min-level stored for cleric domain handling */
+  /* we need the min-level stored for cleric domain handling?  nope, dealt
+   *   with below */
   if (!IS_MIN_LEVEL_FOR_SPELL(ch, class, spellnum)) {
     send_to_char(ch, "That spell is beyond your grasp!\r\n");
     return;
@@ -1352,12 +1353,13 @@ ACMD(do_gen_preparation) {
      for domain-spells for clerics and metamagic, etc */
   if ((COMP_SLOT_BY_CIRCLE(ch, min_circle_for_spell, class) -
        TOTAL_QUEUE_SIZE(ch, class)) <= 0) { /* we have  no space! */
-    send_to_char(ch, "You can't retain more spells of that circle!\r\n");    
-  } else if (class == CLASS_WIZARD) { /* wizards spellbook reqs */
-    if (!spellbook_ok(ch, spellnum, class, TRUE)) {
-      send_to_char(ch, "You need a source to study that spell from!\r\n");
-      return;
-    }
+    send_to_char(ch, "You can't retain more spells of that circle!\r\n");
+    return;
+    
+  /* wizards spellbook reqs */
+  } else if (class == CLASS_WIZARD && !spellbook_ok(ch, spellnum, class, TRUE)) {
+    send_to_char(ch, "You need a source to study that spell from!\r\n");
+    return;
   } else {
     /* success, let's throw the spell into our prep queue */
     send_to_char(ch, "You start to %s for %s%s%s.\r\n",
