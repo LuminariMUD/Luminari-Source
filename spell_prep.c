@@ -1325,6 +1325,7 @@ ACMD(do_gen_preparation) {
     return;
   }
   
+  /* we are searching for domain spells here */
   min_circle_for_spell =
           MIN(SPELLS_CIRCLE(class, spellnum, metamagic, GET_1ST_DOMAIN(ch)), 
               SPELLS_CIRCLE(class, spellnum, metamagic, GET_2ND_DOMAIN(ch)));
