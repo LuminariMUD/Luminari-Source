@@ -1218,18 +1218,18 @@ bool is_min_level_for_spell(struct char_data *ch, int class, int spellnum) {
      - FIX domains as entry point value here! */
 ACMD(do_gen_preparation) {
   int class = CLASS_UNDEFINED, min_circle_for_spell = 0;
-  int spellnum = 0, metamagic = 0;
+  int spellnum = 0, metamagic = 0, dict_index = INVALID_DICT_INDEX;
   char *buf = NULL;
   char *spell_arg = NULL, *metamagic_arg = NULL;
   
   switch (subcmd) {
-    case SCMD_PRAY: class = CLASS_CLERIC; break;
-    case SCMD_MEMORIZE: class = CLASS_WIZARD; break;
-    case SCMD_ADJURE: class = CLASS_RANGER; break;
-    case SCMD_CHANT: class = CLASS_PALADIN; break;
-    case SCMD_COMMUNE: class = CLASS_DRUID; break;
-    case SCMD_MEDITATE: class = CLASS_SORCERER; break;
-    case SCMD_COMPOSE: class = CLASS_BARD; break;
+    case SCMD_PRAY: class = CLASS_CLERIC; dict_index = CLERIC_DICT_INDEX; break;
+    case SCMD_MEMORIZE: class = CLASS_WIZARD; dict_index = WIZARD_DICT_INDEX; break;
+    case SCMD_ADJURE: class = CLASS_RANGER; dict_index = RANGER_DICT_INDEX; break;
+    case SCMD_CHANT: class = CLASS_PALADIN; dict_index = PALADIN_DICT_INDEX; break;
+    case SCMD_COMMUNE: class = CLASS_DRUID; dict_index = DRUID_DICT_INDEX; break;
+    case SCMD_MEDITATE: class = CLASS_SORCERER; dict_index = SORCERER_DICT_INDEX; break;
+    case SCMD_COMPOSE: class = CLASS_BARD; dict_index = CLERIC_DICT_INDEX; break;
     default:send_to_char(ch, "Invalid command!\r\n");
       return;
   }
@@ -1245,9 +1245,9 @@ ACMD(do_gen_preparation) {
       print_prep_collection_data(ch, class);
       if (READY_TO_PREP(ch, class)) {
         send_to_char(ch, "You continue your %s.\r\n",
-                spell_prep_dictation[class][3]);
+                spell_prep_dictation[dict_index][3]);
         sprintf(buf, "$n continues $s %s.",
-                spell_prep_dictation[class][3]);
+                spell_prep_dictation[dict_index][3]);
         act(buf, FALSE, ch, 0, 0, TO_ROOM);
         START_PREPARATION(ch, class);
       }
@@ -1257,9 +1257,9 @@ ACMD(do_gen_preparation) {
         print_prep_collection_data(ch, class);
         if (READY_TO_PREP(ch, class)) {
           send_to_char(ch, "You continue your %s.\r\n",
-                  spell_prep_dictation[class][3]);
+                  spell_prep_dictation[dict_index][3]);
           sprintf(buf, "$n continues $s %s.",
-                  spell_prep_dictation[class][3]);
+                  spell_prep_dictation[dict_index][3]);
           act(buf, FALSE, ch, 0, 0, TO_ROOM);
           START_PREPARATION(ch, class);
         }
@@ -1354,7 +1354,7 @@ ACMD(do_gen_preparation) {
   } else {
     /* success, let's throw the spell into our prep queue */
     send_to_char(ch, "You start to %s for %s%s%s.\r\n",
-            spell_prep_dictation[class][0],
+            spell_prep_dictation[dict_index][0],
             (IS_SET(metamagic, METAMAGIC_QUICKEN) ? "quickened " : ""),
             (IS_SET(metamagic, METAMAGIC_MAXIMIZE) ? "maximized " : ""),
             spell_info[spellnum].name);
@@ -1376,9 +1376,9 @@ ACMD(do_gen_preparation) {
   
   if (READY_TO_PREP(ch, class)) {
     send_to_char(ch, "You continue your %s.\r\n",
-            spell_prep_dictation[class][3]);
+            spell_prep_dictation[dict_index][3]);
     sprintf(buf, "$n continues $s %s.",
-            spell_prep_dictation[class][3]);
+            spell_prep_dictation[dict_index][3]);
     act(buf, FALSE, ch, 0, 0, TO_ROOM);
     START_PREPARATION(ch, class);
   }
