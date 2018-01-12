@@ -1223,13 +1223,13 @@ ACMD(do_gen_preparation) {
   char *spell_arg = NULL, *metamagic_arg = NULL;
   
   switch (subcmd) {
-    case SCMD_PRAY: class = CLASS_CLERIC;
-    case SCMD_MEMORIZE: class = CLASS_WIZARD;
-    case SCMD_ADJURE: class = CLASS_RANGER;
-    case SCMD_CHANT: class = CLASS_PALADIN;
-    case SCMD_COMMUNE: class = CLASS_DRUID;
-    case SCMD_MEDITATE: class = CLASS_SORCERER;
-    case SCMD_COMPOSE: class = CLASS_BARD;
+    case SCMD_PRAY: class = CLASS_CLERIC; break;
+    case SCMD_MEMORIZE: class = CLASS_WIZARD; break;
+    case SCMD_ADJURE: class = CLASS_RANGER; break;
+    case SCMD_CHANT: class = CLASS_PALADIN; break;
+    case SCMD_COMMUNE: class = CLASS_DRUID; break;
+    case SCMD_MEDITATE: class = CLASS_SORCERER; break;
+    case SCMD_COMPOSE: class = CLASS_BARD; break;
     default:send_to_char(ch, "Invalid command!\r\n");
       return;
   }
