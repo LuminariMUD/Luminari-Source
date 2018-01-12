@@ -149,7 +149,7 @@ void reset_prep_queue_time(struct char_data *ch, int ch_class, int domain) {
             ch,
             current->spell,
             ch_class,
-            SPELLS_CIRCLE(/*compute_spells_circle()*/
+            compute_spells_circle(
               current->spell,
               ch_class,
               current->metamagic,
@@ -217,7 +217,8 @@ void print_prep_queue(struct char_data *ch, int ch_class) {
 
     /* hack alert: innate_magic does not have spell-num stored, but
          instead has just the spell-circle stored as spell-num */
-    if (INNATE_MAGIC_CLASS(ch_class))
+    switch (ch_class) {
+      case CLASS_SORCERER: case CLASS_BARD:
       sprintf(buf, "%s \tc[\tWcircle-slot: \tn%d\tc]\tn \tc[\tn%d seconds\tc]\tn %s%s %s\r\n",
             buf,
             item->spell,
@@ -226,7 +227,8 @@ void print_prep_queue(struct char_data *ch, int ch_class) {
             (IS_SET(item->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
             (item->domain ? domain_list[item->domain].name : "")
             );
-    else
+        break;
+      default:
       sprintf(buf, "%s \tW%s\tn \tc[\tn%d circle\tc]\tn \tc[\tn%d seconds\tc]\tn %s%s %s\r\n",
             buf,
             skill_name(item->spell),
@@ -236,6 +238,8 @@ void print_prep_queue(struct char_data *ch, int ch_class) {
             (IS_SET(item->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
             (item->domain ? domain_list[item->domain].name : "")
             );
+        break;
+    }
 
     item = item->next;
   } while (SPELL_PREP_QUEUE(ch, ch_class));
@@ -265,8 +269,11 @@ int size_of_prep_queue_by_circle(struct char_data *ch, int ch_class, int circle)
   current = SPELL_PREP_QUEUE(ch, ch_class);
   
   do {
-    if (SPELLS_CIRCLE(current->spell, current->ch_class, current->metamagic,
-            current->domain) == circle)
+    if (compute_spells_circle(current->spell,
+                              current->ch_class,
+                              current->metamagic,
+                              current->domain
+                             ) == circle)
       count++;
     /* transverse */
     current = current->next;
@@ -350,7 +357,13 @@ struct prep_collection_spell_data *spell_to_prep_queue(struct char_data *ch,
 
   /* hack note: for innate-magic we are storing the CIRCLE the spell belongs to
        in the queue */
-  if (INNATE_MAGIC_CLASS(ch_class)) spell = compute_spells_circle(spell, ch_class, metamagic, domain);
+  switch (ch_class) {
+    case CLASS_SORCERER:case CLASS_BARD:
+      spell = compute_spells_circle(spell, ch_class, metamagic, domain);
+      break;      
+    default:
+      break;
+  }
 
   struct prep_collection_spell_data *prep_queue_data = NULL;
 
@@ -757,7 +770,7 @@ int compute_slots_by_circle(struct char_data *ch, int circle, int class) {
   int class_level = CLASS_LEVEL(ch, class);
 
   /* they don't even have access to this circle */
-  if (HIGHEST_CIRCLE(ch, class) < circle)
+  if (get_class_highest_circle(ch, class) < circle)
     return FALSE;
 
   /* includes specials like prestige class */
@@ -1172,7 +1185,7 @@ bool ready_to_prep_spells(struct char_data *ch, int class) {
 /* sets prep-state as TRUE, and starts the preparing-event */
 /* START_PREPARATION(ch, class) */
 void start_preparation(struct char_data *ch, int class) {
-  SET_PREPARING_STATE(ch, class, TRUE);
+  set_preparing_state(ch, class, TRUE);
   NEW_EVENT(ePREPARING, ch, NULL, 1 * PASSES_PER_SEC);
 }
 
@@ -1243,7 +1256,7 @@ ACMD(do_gen_preparation) {
       return;
   }
 
-  if (!HIGHEST_CIRCLE(ch, class)) {
+  if (!get_class_highest_circle(ch, class)) {
     send_to_char(ch, "Try changing professions (type score to view respective "
             "preparation commands for your class(es)!\r\n");
     return;
@@ -1252,25 +1265,25 @@ ACMD(do_gen_preparation) {
   switch (class) {
     case CLASS_SORCERER:case CLASS_BARD:
       print_prep_collection_data(ch, class);
-      if (READY_TO_PREP(ch, class)) {
+      if (ready_to_prep_spells(ch, class)) {
         send_to_char(ch, "You continue your %s.\r\n",
                 spell_prep_dictation[dict_index][3]);
         sprintf(buf, "$n continues $s %s.",
                 spell_prep_dictation[dict_index][3]);
         act(buf, FALSE, ch, 0, 0, TO_ROOM);
-        START_PREPARATION(ch, class);
+        start_preparation(ch, class);
       }
       return; /* innate-magic is finished in this command */
     default:
       if (!*argument) {
         print_prep_collection_data(ch, class);
-        if (READY_TO_PREP(ch, class)) {
+        if (ready_to_prep_spells(ch, class)) {
           send_to_char(ch, "You continue your %s.\r\n",
                   spell_prep_dictation[dict_index][3]);
           sprintf(buf, "$n continues $s %s.",
                   spell_prep_dictation[dict_index][3]);
           act(buf, FALSE, ch, 0, 0, TO_ROOM);
-          START_PREPARATION(ch, class);
+          start_preparation(ch, class);
         }
         return;
       }
@@ -1330,31 +1343,32 @@ ACMD(do_gen_preparation) {
     
   /* we need the min-level stored for cleric domain handling?  nope, dealt
    *   with below */
-  if (!IS_MIN_LEVEL_FOR_SPELL(ch, class, spellnum)) {
+  if (!is_min_level_for_spell(ch, class, spellnum)) {
     send_to_char(ch, "That spell is beyond your grasp!\r\n");
     return;
   }
   
   /* we are searching for domain spells here */
   min_circle_for_spell =
-          MIN(SPELLS_CIRCLE(class, spellnum, metamagic, GET_1ST_DOMAIN(ch)), 
-              SPELLS_CIRCLE(class, spellnum, metamagic, GET_2ND_DOMAIN(ch)));
+          MIN(compute_spells_circle(class, spellnum, metamagic, GET_1ST_DOMAIN(ch)), 
+              compute_spells_circle(class, spellnum, metamagic, GET_2ND_DOMAIN(ch)));
   send_to_char(ch, "class: %d, spellnum: %d, dict_index: %d\r\n", class,
                       spellnum, dict_index);
   send_to_char(ch, "debug: min_circle_for_spell d1: %d\r\n",
-      SPELLS_CIRCLE(class, spellnum, metamagic, GET_1ST_DOMAIN(ch)));
+      compute_spells_circle(class, spellnum, metamagic, GET_1ST_DOMAIN(ch)));
   send_to_char(ch, "debug: min_circle_for_spell d2: %d\r\n",
-      SPELLS_CIRCLE(class, spellnum, metamagic, GET_2ND_DOMAIN(ch)));
+      compute_spells_circle(class, spellnum, metamagic, GET_2ND_DOMAIN(ch)));
   
-  if (!COMP_SLOT_BY_CIRCLE(ch, min_circle_for_spell, class)) {
+  if (!compute_slots_by_circle(ch, min_circle_for_spell, class)) {
     send_to_char(ch, "You have no slots available in that circle!\r\n");
     return;
   }
   
   /* we rely on the -proper- circle being placed for special cases such as
      for domain-spells for clerics and metamagic, etc */
-  if ((COMP_SLOT_BY_CIRCLE(ch, min_circle_for_spell, class) -
-       TOTAL_QUEUE_SIZE(ch, class)) <= 0) { /* we have  no space! */
+  if ((compute_slots_by_circle(ch, min_circle_for_spell, class) -
+      (size_of_collection(ch, class)) + (size_of_prep_queue(ch, class)))
+      <= 0) { /* we have no space! */
     send_to_char(ch, "You can't retain more spells of that circle!\r\n");
     return;
     
@@ -1375,23 +1389,23 @@ ACMD(do_gen_preparation) {
                         spellnum,
                         class,
                         metamagic,
-                        CALCULATE_PREP_TIME(ch,
-                                            spellnum,
-                                            class,
-                                            min_circle_for_spell,
-                                            is_domain_spell_of_ch(ch, 
-                                                                  spellnum)),
+                        compute_spells_prep_time(ch,
+                                                 spellnum,
+                                                 class,
+                                                 min_circle_for_spell,
+                                                 is_domain_spell_of_ch(ch, 
+                                                                       spellnum)),
                         is_domain_spell_of_ch(ch, 
                                               spellnum));
   }
   
-  if (READY_TO_PREP(ch, class)) {
+  if (ready_to_prep_spells(ch, class)) {
     send_to_char(ch, "You continue your %s.\r\n",
             spell_prep_dictation[dict_index][3]);
     sprintf(buf, "$n continues $s %s.",
             spell_prep_dictation[dict_index][3]);
     act(buf, FALSE, ch, 0, 0, TO_ROOM);
-    START_PREPARATION(ch, class);
+    start_preparation(ch, class);
   }
   
 }
