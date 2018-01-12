@@ -968,7 +968,7 @@ int compute_spells_prep_time(struct char_data *ch, int spellnum, int class,
 }
 
 /* in: spellnum, class, metamagic, domain(cleric)
- * out: the circle this spell (now) belongs, FALSE (0) if failed
+ * out: the circle this spell (now) belongs, above num-circles if failed
  * given above info, compute which circle this spell belongs to, this 'interesting'
  * set-up is due to a dated system that assigns spells by level, not circle
  * in addition we have metamagic that can modify the spell-circle as well */
@@ -977,7 +977,7 @@ int compute_spells_circle(int spellnum, int class, int metamagic, int domain) {
   int spell_circle = 0;
   
   if (spellnum <= SPELL_RESERVED_DBC || spellnum >= NUM_SPELLS)
-    return FALSE;  
+    return (NUM_CIRCLES+1);  
 
   /* Here we add the circle changes resulting from metamagic use: */
   if (IS_SET(metamagic, METAMAGIC_QUICKEN))
@@ -1001,7 +1001,7 @@ int compute_spells_circle(int spellnum, int class, int metamagic, int domain) {
         case 17:case 18:case 19:
           return 6 + metamagic_mod;
         /* level 20 reserved for epic spells */
-        default: return FALSE;
+        default: return (NUM_CIRCLES+1);
       }
     case CLASS_PALADIN:
       switch (spell_info[spellnum].min_level[class]) {
@@ -1013,7 +1013,7 @@ int compute_spells_circle(int spellnum, int class, int metamagic, int domain) {
           return 3 + metamagic_mod;
         case 15:case 16:case 17:case 18:case 19:case 20:
           return 4 + metamagic_mod;
-        default: return FALSE;
+        default: return (NUM_CIRCLES+1);
       }
     case CLASS_RANGER:
       switch (spell_info[spellnum].min_level[class]) {
@@ -1025,13 +1025,13 @@ int compute_spells_circle(int spellnum, int class, int metamagic, int domain) {
           return 3 + metamagic_mod;
         case 15:case 16:case 17:case 18:case 19:case 20:
           return 4 + metamagic_mod;
-        default: return FALSE;
+        default: return (NUM_CIRCLES+1);
       }
     case CLASS_SORCERER:
       spell_circle = spell_info[spellnum].min_level[class] / 2;
       spell_circle += metamagic_mod;
       if (spell_circle > TOP_CIRCLE) {
-        return FALSE;
+        return (NUM_CIRCLES+1);
       }      
       return (MAX(1, spell_circle));
     case CLASS_CLERIC:
@@ -1040,26 +1040,26 @@ int compute_spells_circle(int spellnum, int class, int metamagic, int domain) {
       spell_circle = (MIN_SPELL_LVL(spellnum, class, domain) + 1) / 2;
       spell_circle += metamagic_mod;
       if (spell_circle > TOP_CIRCLE) {
-        return FALSE;
+        return (NUM_CIRCLES+1);
       }      
       return (MAX(1, spell_circle));
     case CLASS_WIZARD:
       spell_circle = (spell_info[spellnum].min_level[class] + 1) / 2;
       spell_circle += metamagic_mod;
       if (spell_circle > TOP_CIRCLE) {
-        return FALSE;
+        return (NUM_CIRCLES+1);
       }      
       return (MAX(1, spell_circle));
     case CLASS_DRUID:
       spell_circle = (spell_info[spellnum].min_level[class] + 1) / 2;
       spell_circle += metamagic_mod;
       if (spell_circle > TOP_CIRCLE) {
-        return FALSE;
+        return (NUM_CIRCLES+1);
       }      
       return (MAX(1, spell_circle));
-    default: return FALSE;
+    default: return (NUM_CIRCLES+1);
   }
-  return FALSE;
+  return (NUM_CIRCLES+1);
 }
 
 /* display avaialble slots based on what is in the queue/collection, and other
@@ -1331,9 +1331,9 @@ ACMD(do_gen_preparation) {
   min_circle_for_spell =
           MIN(SPELLS_CIRCLE(class, spellnum, metamagic, GET_1ST_DOMAIN(ch)), 
               SPELLS_CIRCLE(class, spellnum, metamagic, GET_2ND_DOMAIN(ch)));
-  send_to_char(ch, "debug: min_circle_for_spell d1: %d",
+  send_to_char(ch, "debug: min_circle_for_spell d1: %d\r\n",
       SPELLS_CIRCLE(class, spellnum, metamagic, GET_1ST_DOMAIN(ch)));
-  send_to_char(ch, "debug: min_circle_for_spell d2: %d",
+  send_to_char(ch, "debug: min_circle_for_spell d2: %d\r\n",
       SPELLS_CIRCLE(class, spellnum, metamagic, GET_2ND_DOMAIN(ch)));
   
   if (!COMP_SLOT_BY_CIRCLE(ch, min_circle_for_spell, class)) {
