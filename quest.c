@@ -644,13 +644,17 @@ void quest_join(struct char_data *ch, struct char_data *qm, char argument[MAX_IN
   else if ((rnum = real_quest(vnum)) == NOTHING)
     snprintf(buf, sizeof (buf),
           "\r\n%s, I don't know of such a quest!\r\n", GET_NAME(ch));
-  else if (GET_LEVEL(ch) < QST_MINLEVEL(rnum))
+  else if ((GET_LEVEL(ch) < QST_MINLEVEL(rnum)) && GET_LEVEL(ch) < LVL_IMMORT) {
     snprintf(buf, sizeof (buf),
           "\r\n%s, you are not experienced enough for that quest!\r\n", GET_NAME(ch));
-  else if (GET_LEVEL(ch) > QST_MAXLEVEL(rnum))
+    if (GET_LEVEL(ch) >= LVL_IMMORT)
+      send_to_char(ch, "\tRNOTE: you are over-riding Min-Level\tn\r\n");      
+  } else if ((GET_LEVEL(ch) > QST_MAXLEVEL(rnum)) && GET_LEVEL(ch) < LVL_IMMORT) {
     snprintf(buf, sizeof (buf),
           "\r\n%s, you are too experienced for that quest!\r\n", GET_NAME(ch));
-  else if (is_complete(ch, vnum) && !(IS_SET(QST_FLAGS(rnum), AQ_REPEATABLE)) &&
+    if (GET_LEVEL(ch) >= LVL_IMMORT)
+      send_to_char(ch, "\tRNOTE: you are over-riding Max-Level\tn\r\n");      
+  } else if (is_complete(ch, vnum) && !(IS_SET(QST_FLAGS(rnum), AQ_REPEATABLE)) &&
           GET_LEVEL(ch) < LVL_IMMORT) {    
     snprintf(buf, sizeof (buf),
           "\r\n%s, you have already completed that quest!\r\n", GET_NAME(ch));
@@ -783,6 +787,7 @@ void quest_show(struct char_data *ch, mob_vnum qm) {
               (is_complete(ch, QST_NUM(rnum)) ? "Yes" : "No "),
               ((IS_SET(QST_FLAGS(rnum), AQ_REPEATABLE)) ? "Yes" : "No ")
               );
+    
   } else {
     send_to_char(ch,
             "The following quests are available:                              Min Max\r\n"
@@ -796,6 +801,7 @@ void quest_show(struct char_data *ch, mob_vnum qm) {
               ((IS_SET(QST_FLAGS(rnum), AQ_REPEATABLE)) ? "Yes" : "No ")              
               );
   }
+  
   if (!counter)
     send_to_char(ch, "There are no quests available here at the moment.\r\n");
 }
