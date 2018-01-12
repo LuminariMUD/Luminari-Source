@@ -1644,7 +1644,6 @@ ACMD(do_gen_forget) {
     }
   }
 
-
   if (!forget_all) {
     s = strtok(arg, "'");
     if (s == NULL) {
