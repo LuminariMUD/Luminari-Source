@@ -1339,6 +1339,8 @@ ACMD(do_gen_preparation) {
   min_circle_for_spell =
           MIN(SPELLS_CIRCLE(class, spellnum, metamagic, GET_1ST_DOMAIN(ch)), 
               SPELLS_CIRCLE(class, spellnum, metamagic, GET_2ND_DOMAIN(ch)));
+  send_to_char(ch, "class: %d, spellnum: %d, dict_index: %d\r\n", class,
+                      spellnum, dict_index);
   send_to_char(ch, "debug: min_circle_for_spell d1: %d\r\n",
       SPELLS_CIRCLE(class, spellnum, metamagic, GET_1ST_DOMAIN(ch)));
   send_to_char(ch, "debug: min_circle_for_spell d2: %d\r\n",
