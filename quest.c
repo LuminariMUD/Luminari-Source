@@ -396,7 +396,9 @@ void complete_quest(struct char_data *ch) {
   /* end rewards */
 
   /* handle throwing quest in history and repeatable quests */
-  if (!IS_SET(QST_FLAGS(rnum), AQ_REPEATABLE))
+  if ( (!IS_SET(QST_FLAGS(rnum), AQ_REPEATABLE)) ||
+       (IS_SET(QST_FLAGS(rnum), AQ_REPEATABLE) &&
+          !is_complete(ch, GET_QUEST(ch))) )
     add_completed_quest(ch, vnum);
 
   /* clear the quest data from ch, clean slate */
@@ -648,10 +650,13 @@ void quest_join(struct char_data *ch, struct char_data *qm, char argument[MAX_IN
   else if (GET_LEVEL(ch) > QST_MAXLEVEL(rnum))
     snprintf(buf, sizeof (buf),
           "\r\n%s, you are too experienced for that quest!\r\n", GET_NAME(ch));
-  else if (is_complete(ch, vnum))
+  else if (is_complete(ch, vnum) && !(IS_SET(QST_FLAGS(rnum), AQ_REPEATABLE)) &&
+          GET_LEVEL(ch) < LVL_IMMORT) {    
     snprintf(buf, sizeof (buf),
           "\r\n%s, you have already completed that quest!\r\n", GET_NAME(ch));
-  else if ((QST_PREV(rnum) != NOTHING) && !is_complete(ch, QST_PREV(rnum)))
+    if (GET_LEVEL(ch) >= LVL_IMMORT)
+      send_to_char(ch, "\tRNOTE: you are over-riding 'quest completed'\tn\r\n");      
+  } else if ((QST_PREV(rnum) != NOTHING) && !is_complete(ch, QST_PREV(rnum)))
     snprintf(buf, sizeof (buf),
           "\r\n%s, that quest is not available to you yet!\r\n", GET_NAME(ch));
   else if ((QST_PREREQ(rnum) != NOTHING) &&
@@ -769,23 +774,27 @@ void quest_show(struct char_data *ch, mob_vnum qm) {
   if (GET_LEVEL(ch) >= LVL_IMMORT) {
     send_to_char(ch,
             "The following quests are available:\r\n"
-            "Index Quest Name                                           ( Vnum)  Done?\r\n"
-            "----- ---------------------------------------------------- -------- -----\r\n");
+            "Index Quest Name                                           (VNum)   Done? Repeatable?\r\n"
+            "----- ---------------------------------------------------- -------- ----- -----------\r\n");
     for (rnum = 0; rnum < total_quests; rnum++)
       if (qm == QST_MASTER(rnum))
-        send_to_char(ch, "\tg%4d\tn) \tc%-52.52s\tn \ty(%6d)\tn \ty(%s)\tn\r\n",
+        send_to_char(ch, "\tg%4d\tn) \tc%-52.52s\tn \ty(%6d)\tn \ty(%3s)\tn \ty(%3s)\tn\r\n",
               ++counter, QST_NAME(rnum), QST_NUM(rnum),
-              (is_complete(ch, QST_NUM(rnum)) ? "Yes" : "No "));
+              (is_complete(ch, QST_NUM(rnum)) ? "Yes" : "No "),
+              ((IS_SET(QST_FLAGS(rnum), AQ_REPEATABLE)) ? "Yes" : "No ")
+              );
   } else {
     send_to_char(ch,
             "The following quests are available:                              Min Max\r\n"
-            "Index Quest Name                                           Done? Lvl Lvl\r\n"
-            "----- ---------------------------------------------------- ----- --- ---\r\n");
+            "Index Quest Name                                           Done? Lvl Lvl Repeatable?\r\n"
+            "----- ---------------------------------------------------- ----- --- --- -----------\r\n");
     for (rnum = 0; rnum < total_quests; rnum++)
       if (qm == QST_MASTER(rnum))
-        send_to_char(ch, "\tg%4d\tn) \tc%-52.52s\tn \ty(%3s)\tn %3d %3d\r\n",
+        send_to_char(ch, "\tg%4d\tn) \tc%-52.52s\tn \ty(%3s)\tn %3d %3d \ty(%3s)\r\n",
               ++counter, QST_NAME(rnum), (is_complete(ch, QST_NUM(rnum)) ? "Yes" :
-                "No "), QST_MINLEVEL(rnum), QST_MAXLEVEL(rnum));
+              "No "), QST_MINLEVEL(rnum), QST_MAXLEVEL(rnum),
+              ((IS_SET(QST_FLAGS(rnum), AQ_REPEATABLE)) ? "Yes" : "No ")              
+              );
   }
   if (!counter)
     send_to_char(ch, "There are no quests available here at the moment.\r\n");
