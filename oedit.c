@@ -40,7 +40,7 @@ static void oedit_disp_container_flags_menu(struct descriptor_data *d);
 static void oedit_disp_extradesc_menu(struct descriptor_data *d);
 static void oedit_disp_weapon_spells(struct descriptor_data *d);
 static void oedit_disp_prompt_apply_menu(struct descriptor_data *d);
-static void oedit_disp_apply_spec_menu(struct descriptor_data *d);
+//static void oedit_disp_apply_spec_menu(struct descriptor_data *d);
 static void oedit_liquid_type(struct descriptor_data *d);
 static void oedit_disp_apply_menu(struct descriptor_data *d);
 //static void oedit_disp_weapon_menu(struct descriptor_data *d);
