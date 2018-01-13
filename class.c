@@ -2251,7 +2251,7 @@ void process_conditional_class_level_feats(struct char_data *ch, int class) {
           SET_FEAT(ch, FEAT_DRACONIC_HERITAGE_CLAWS, 1);
           send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_DRACONIC_HERITAGE_CLAWS].name);
         }
-        if (!HAS_REAL_FEAT(ch, FEAT_DRACONIC_HERITAGE_DRAGON_RESISTANCES)) {
+        if (!HAS_REAL_FEAT(ch, FEAT_DRACONIC_HERITAGE_DRAGON_RESISTANCES) && CLASS_LEVEL(ch, CLASS_SORCERER) >= 3) {
           SET_FEAT(ch, FEAT_DRACONIC_HERITAGE_DRAGON_RESISTANCES, 1);
           send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_DRACONIC_HERITAGE_DRAGON_RESISTANCES].name);
         }
