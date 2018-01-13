@@ -3568,10 +3568,12 @@ bool paralysis_immunity(struct char_data *ch)
 {
   if (!ch) return FALSE;
   if (HAS_FEAT(ch, FEAT_DRACONIC_HERITAGE_POWER_OF_WYRMS)) return TRUE;
+  return FALSE;
 }
 
 bool sleep_immunity(struct char_data *ch)
 {
   if (!ch) return FALSE;
   if (HAS_FEAT(ch, FEAT_DRACONIC_HERITAGE_POWER_OF_WYRMS)) return TRUE;
+  return FALSE;
 }
