@@ -594,7 +594,9 @@ void oedit_disp_specab_bane_subrace(struct descriptor_data *d) {
   }
   write_to_output(d, "\r\n%sEnter subrace number : ", nrm);
 }
+
 /* Menu for APPLY_FEAT */
+#if 0
 void oedit_disp_apply_spec_menu(struct descriptor_data *d) {
   char *buf;
   int i, count = 0;
@@ -625,6 +627,7 @@ void oedit_disp_apply_spec_menu(struct descriptor_data *d) {
   write_to_output(d, "\r\n%s", buf);
   OLC_MODE(d) = OEDIT_APPLYSPEC;
 }
+#endif
 
 /* Ask for liquid type. */
 static void oedit_liquid_type(struct descriptor_data *d) {
