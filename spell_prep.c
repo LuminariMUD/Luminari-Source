@@ -192,6 +192,7 @@ bool is_preparing_spells(struct char_data *ch) {
 void print_prep_queue(struct char_data *ch, int ch_class) {
   char buf[MAX_INPUT_LENGTH];
   int line_length = 80, total_time = 0;
+  struct prep_collection_spell_data *item = SPELL_PREP_QUEUE(ch, ch_class);
 
   /* build a nice heading */
   *buf = '\0';
@@ -201,7 +202,7 @@ void print_prep_queue(struct char_data *ch, int ch_class) {
   send_to_char(ch, "\tn");
 
   /* easy out */
-  if (!SPELL_PREP_QUEUE(ch, ch_class)) {
+  if (!item) {
     send_to_char(ch, "There is nothing in your preparation queue!\r\n");
     /* build a nice closing */
     *buf = '\0';
@@ -210,8 +211,6 @@ void print_prep_queue(struct char_data *ch, int ch_class) {
     send_to_char(ch, "\tn");
     return;
   }  
-
-  struct prep_collection_spell_data *item = SPELL_PREP_QUEUE(ch, ch_class);
 
   *buf = '\0';
   /* traverse and print */
