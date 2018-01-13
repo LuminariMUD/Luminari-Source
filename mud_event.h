@@ -123,6 +123,8 @@ typedef enum {
   eSLA_LEVITATE, /* innate levitate */
   eSLA_DARKNESS, /* innate darkness */
   eSLA_FAERIE_FIRE, /* innate faerie fire */
+  eDRACBREATH, // Sorcerer draconic heritage breath weapon
+  eDRACCLAWS, // Sorcerer draconic heritage claws attacks
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

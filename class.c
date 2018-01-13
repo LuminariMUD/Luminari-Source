@@ -703,7 +703,7 @@ bool display_class_prereqs(struct char_data *ch, char *classname) {
   
   /* prereqs, start with text line */
   send_to_char(ch, "\tC");
-  send_to_char(ch, text_line_string("\tcRequirements\tC", line_length, '-', '-'));
+  send_to_char(ch, "%s", text_line_string("\tcRequirements\tC", line_length, '-', '-'));
   send_to_char(ch, "\tn");
   send_to_char(ch, "\tcNote: you only need to meet one prereq for race and align:\tn\r\n\r\n");
 
@@ -715,7 +715,7 @@ bool display_class_prereqs(struct char_data *ch, char *classname) {
     sprintf(buf, "\tn%s%s%s - %s\r\n",
               (meets_prereqs ? "\tn" : "\tr"), prereq->description, "\tn",
               (meets_prereqs ? "\tWFulfilled!\tn" : "\trMissing\tn"));
-    send_to_char(ch, buf);
+    send_to_char(ch, "%s", buf);
     found = TRUE;
   }
   
@@ -915,7 +915,7 @@ bool display_class_info(struct char_data *ch, char *classname) {
       }
     }
   }
-  send_to_char(ch, strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
+  send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
   
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
@@ -946,7 +946,7 @@ bool display_class_info(struct char_data *ch, char *classname) {
   
   /* This we will need to buffer and wrap so that it will fit in the space provided. */
   sprintf(buf, "\tcDescription : \tn%s\r\n", class_list[class].descrip);
-  send_to_char(ch, strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
+  send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
   
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
@@ -1292,6 +1292,10 @@ int modify_class_ability(struct char_data *ch, int ability, int class) {
 
   if (HAS_FEAT(ch, FEAT_DECEPTION)) {
     if (ability == ABILITY_DISGUISE || ability == ABILITY_STEALTH)
+      ability_value = CA;
+  }
+  if (HAS_FEAT(ch, FEAT_SORCERER_BLOODLINE_DRACONIC)) {
+    if (ability == ABILITY_PERCEPTION)
       ability_value = CA;
   }
 
@@ -1946,6 +1950,9 @@ void init_start_char(struct char_data *ch) {
   for (i = 0; i < MAX_ENEMIES; i++)
     GET_FAVORED_ENEMY(ch, i) = 0;
 
+  /* for sorcerer bloodlines subtypes */
+  GET_BLOODLINE_SUBTYPE(ch) = 0;
+
   /* a bit silly, but go ahead make sure no stone-skin like spells */
   for (i = 0; i < MAX_WARDING; i++)
     GET_WARDING(ch, i) = 0;
@@ -2219,9 +2226,49 @@ void process_class_level_feats(struct char_data *ch, int class) {
       
     }
   }
+
+
   
   /* send our feat buffer to char */
   send_to_char(ch, "%s", featbuf);
+}
+
+void process_conditional_class_level_feats(struct char_data *ch, int class) {
+
+  switch(class) {
+    case CLASS_SORCERER:
+      //  Mostly Bloodlines
+      if (HAS_FEAT(ch, FEAT_SORCERER_BLOODLINE_DRACONIC)) {
+        if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 9 && !HAS_REAL_FEAT(ch, FEAT_DRACONIC_HERITAGE_BREATHWEAPON)) {
+          SET_FEAT(ch, FEAT_DRACONIC_HERITAGE_BREATHWEAPON, 1);
+          send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_DRACONIC_HERITAGE_BREATHWEAPON].name);
+        }
+        if (!HAS_REAL_FEAT(ch, FEAT_DRACONIC_HERITAGE_CLAWS)) {
+          SET_FEAT(ch, FEAT_DRACONIC_HERITAGE_CLAWS, 1);
+          send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_DRACONIC_HERITAGE_CLAWS].name);
+        }
+        if (!HAS_REAL_FEAT(ch, FEAT_DRACONIC_HERITAGE_DRAGON_RESISTANCES)) {
+          SET_FEAT(ch, FEAT_DRACONIC_HERITAGE_DRAGON_RESISTANCES, 1);
+          send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_DRACONIC_HERITAGE_DRAGON_RESISTANCES].name);
+        }
+        if (!HAS_REAL_FEAT(ch, FEAT_DRACONIC_BLOODLINE_ARCANA)) {
+          SET_FEAT(ch, FEAT_DRACONIC_BLOODLINE_ARCANA, 1);
+          send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_DRACONIC_BLOODLINE_ARCANA].name);
+        }
+        if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 15 && !HAS_REAL_FEAT(ch, FEAT_DRACONIC_HERITAGE_WINGS)) {
+          SET_FEAT(ch, FEAT_DRACONIC_HERITAGE_WINGS, 1);
+          send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_DRACONIC_HERITAGE_WINGS].name);
+        }
+        if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 20 && !HAS_REAL_FEAT(ch, FEAT_DRACONIC_HERITAGE_POWER_OF_WYRMS)) {
+          SET_FEAT(ch, FEAT_DRACONIC_HERITAGE_POWER_OF_WYRMS, 1);
+          send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_DRACONIC_HERITAGE_POWER_OF_WYRMS].name);
+          SET_FEAT(ch, FEAT_BLINDSENSE, 1);
+          send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_BLINDSENSE].name);
+        }
+      }
+      break;
+  }
+
 }
 
 /* TODO: rewrite this! */
@@ -2308,6 +2355,9 @@ void advance_level(struct char_data *ch, int class) {
     //else if (IS_EPIC(ch))
       //epic_class_feats++;      
   }
+  if (class == CLASS_SORCERER && ((CLASS_LEVEL(ch, CLASS_SORCERER) - 1) % 6 == 0)) {
+    class_feats++;
+  }
 
   /* epic class feat progresion */
   if (CLSLIST_EFEATP(class) && !(CLASS_LEVEL(ch, class) % CLSLIST_EFEATP(class)) && IS_EPIC(ch)) {
@@ -2326,6 +2376,8 @@ void advance_level(struct char_data *ch, int class) {
   process_level_feats(ch, class);
   /* 'free' class feats gained (new system) */
   process_class_level_feats(ch, class);
+  /* 'free' class feats gained that depend on previous class or feat choices */
+  process_conditional_class_level_feats(ch, class);
           
   //Racial Bonuses
   switch (GET_RACE(ch)) {

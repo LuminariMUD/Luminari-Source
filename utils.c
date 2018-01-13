@@ -3370,6 +3370,14 @@ int get_daily_uses(struct char_data *ch, int featnum){
     case FEAT_VANISH:
       daily_uses += HAS_FEAT(ch, featnum);
       break;
+    case FEAT_DRACONIC_HERITAGE_BREATHWEAPON:
+      if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 9) daily_uses++;
+      if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 17) daily_uses++;
+      if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 20) daily_uses++;
+      break;
+    case FEAT_DRACONIC_HERITAGE_CLAWS:
+      daily_uses += 3 + GET_CHA_BONUS(ch);
+      break;
   }
 
   return daily_uses;
@@ -3554,4 +3562,16 @@ int calculate_cp(struct obj_data *obj) {
   }
 
   return 0;
+}
+
+bool paralysis_immunity(struct char_data *ch)
+{
+  if (!ch) return FALSE;
+  if (HAS_FEAT(ch, FEAT_DRACONIC_HERITAGE_POWER_OF_WYRMS)) return TRUE;
+}
+
+bool sleep_immunity(struct char_data *ch)
+{
+  if (!ch) return FALSE;
+  if (HAS_FEAT(ch, FEAT_DRACONIC_HERITAGE_POWER_OF_WYRMS)) return TRUE;
 }

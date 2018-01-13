@@ -134,8 +134,10 @@ bool is_room_outdoors(room_rnum room_number);
 bool is_outdoors(struct char_data *ch);
 void set_mob_grouping(struct char_data *ch);
 int find_armor_type(int specType);
-
+int add_draconic_claws_elemental_damage(struct char_data *ch, struct char_data *victim);
 int calculate_cp(struct obj_data *obj);
+bool paralysis_immunity(struct char_data *ch);
+bool sleep_immunity(struct char_data *ch);
 
 int get_daily_uses(struct char_data *ch, int featnum);
 int start_daily_use_cooldown(struct char_data *ch, int featnum);
@@ -1085,7 +1087,10 @@ spellnum == SPELL_EPIC_WARDING )
 /** Copy the current skill level i of ch to pct. */
 #define SET_SKILL(ch, i, pct)	do { CHECK_PLAYER_SPECIAL((ch), (ch)->player_specials->saved.skills[i]) = pct; } while(0)
 
-
+/** retrieves the sorcerer bloodline of the player character */
+#define GET_SORC_BLOODLINE(ch)	  (get_sorcerer_bloodline_type(ch))
+/** retrieves the sorcerer bloodline subtype, for example dragon color for draconic bloodline */
+#define GET_BLOODLINE_SUBTYPE(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.sorcerer_bloodline_subtype))
 
 /** The current trained level of ch for ability i. */
 #define GET_ABILITY(ch, i)	CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.abilities[i]))
@@ -1162,6 +1167,7 @@ spellnum == SPELL_EPIC_WARDING )
 
 #define CAN_SET_DOMAIN(ch) (CLASS_LEVEL(ch, CLASS_CLERIC) == 1)
 #define CAN_SET_SCHOOL(ch) (CLASS_LEVEL(ch, CLASS_WIZARD) == 1)
+#define CAN_SET_S_BLOODLINE(ch) (CLASS_LEVEL(ch, CLASS_SORCERER) >= 1 && GET_SORC_BLOODLINE(ch) == 0)
 #define CAN_STUDY_CLASS_FEATS(ch) (CAN_STUDY_FEATS(ch) || (GET_LEVELUP_CLASS_FEATS(ch) + \
                                                            GET_LEVELUP_EPIC_CLASS_FEATS(ch) > 0 ? 1 : 0))
 
@@ -1485,7 +1491,7 @@ spellnum == SPELL_EPIC_WARDING )
 
 // moved this here for connection between vision macros -zusuk
 #define CAN_SEE_IN_DARK(ch) \
-   (char_has_ultra(ch) || (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_HOLYLIGHT)))
+   (char_has_ultra(ch) || HAS_FEAT(ch, FEAT_BLINDSENSE) || (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_HOLYLIGHT)))
 #define CAN_INFRA_IN_DARK(ch) \
    (char_has_infra(ch) || (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_HOLYLIGHT)))
 
@@ -1494,7 +1500,7 @@ spellnum == SPELL_EPIC_WARDING )
 
 
 /** Defines if there is enough light for sub to see in. */
-#define LIGHT_OK(sub)	(!AFF_FLAGGED(sub, AFF_BLIND) && \
+#define LIGHT_OK(sub)	((!AFF_FLAGGED(sub, AFF_BLIND) || HAS_FEAT(sub, FEAT_BLINDSENSE)) && \
    (IS_LIGHT(IN_ROOM(sub)) || CAN_SEE_IN_DARK(sub) || \
    GET_LEVEL(sub) >= LVL_IMMORT))
 #define INFRA_OK(sub)   (!AFF_FLAGGED(sub, AFF_BLIND) && \
@@ -1659,6 +1665,9 @@ spellnum == SPELL_EPIC_WARDING )
 #define CLSLIST_ABIL(classnum, abilnum)    (class_list[classnum].class_abil[abilnum])
 #define CLSLIST_TITLE(classnum, titlenum)  (class_list[classnum].titles[titlenum])
 
+/* macros for dealing with sorcerer draconic bloodlines */
+#define DRCHRTLIST_NAME(drac_heritage)     (draconic_heritage_names[drac_heritage])
+#define DRCHRT_ENERGY_TYPE(drac_heritage)  (damtypes[draconic_heritage_energy_types[drac_heritage]])
 
 /** Return the class abbreviation for ch. */
 #define CLASS_ABBR(ch) (CLSLIST_ABBRV((int)GET_CLASS(ch)))

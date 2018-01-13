@@ -123,6 +123,8 @@ struct mud_event_list mud_event_index[] = {
   { "Levitate", event_daily_use_cooldown, EVENT_CHAR}, //eSLA_LEVITATE
   { "Darkness", event_daily_use_cooldown, EVENT_CHAR}, //eSLA_DARKNESS
   { "Faerie Fire", event_daily_use_cooldown, EVENT_CHAR}, //eSLA_FAERIE_FIRE
+  { "Draconic Heritage Breath Weapon Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eDRACBREATH
+  { "Draconic Heritage Claws Attack Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eDRACCLAWS
 };
 
 /* init_events() is the ideal function for starting global events. This
@@ -535,6 +537,10 @@ EVENTFUNC(event_daily_use_cooldown) {
     case eBATTLE_RAGE:
       featnum = FEAT_BATTLE_RAGE;
       send_to_char(ch, "One of your battle rage uses has recovered.\r\n");
+      break;
+    case eDRACBREATH:
+      featnum = FEAT_DRACONIC_HERITAGE_BREATHWEAPON;
+      send_to_char(ch, "One of your draconic heritage breath weapon uses has recovered.\r\n");
       break;
     default:
       break;

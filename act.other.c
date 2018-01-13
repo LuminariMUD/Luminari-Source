@@ -2806,6 +2806,11 @@ ACMD(do_land) {
     affect_from_char(ch, SPELL_FLY);
     msg = TRUE;
   }
+
+  if (affected_by_spell(ch, SKILL_DRHRT_WINGS)) {
+    affect_from_char(ch, SKILL_DRHRT_WINGS);
+    msg = TRUE;
+  }
   
   if (affected_by_spell(ch, SPELL_LEVITATE)) {
     affect_from_char(ch, SPELL_LEVITATE);

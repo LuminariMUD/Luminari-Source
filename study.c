@@ -87,6 +87,11 @@ void finalize_study(struct descriptor_data *d);
 #define F_PSEUDO_DRAGON 88
 #define F_HELLHOUND    89
 
+/*--- sorcerer bloodlines ---*/
+#define SB_NONE			0
+#define SB_DRACONIC		1
+#define NUM_BLOODLINES		1
+
 /* make a list of vnums corresponding in order, first animals  */
 int animal_vnums[] = {
   0,
@@ -178,6 +183,12 @@ const char *familiar_names[] = {
   "6) Imp",
   "7) Pixie",
   "8) Faerie Dragon",
+  "\n" /* end with this */
+};
+/* ... and bloodlines */
+const char *bloodline_names[] = {
+  "None",
+  "1) Draconic Bloodline",
   "\n" /* end with this */
 };
 
@@ -382,7 +393,16 @@ void finalize_study(struct descriptor_data *d) {
           break;
       }
     }
+    // For level 1 sorcs we need to ensure we add their associated level 1 bloodline feats as well
+    if (i == FEAT_SORCERER_BLOODLINE_DRACONIC && CLASS_LEVEL(ch, CLASS_SORCERER) == 1) {
+      SET_FEAT(ch, FEAT_DRACONIC_HERITAGE_CLAWS, 1);
+      SET_FEAT(ch, FEAT_DRACONIC_BLOODLINE_ARCANA, 1);
+    }
   } /* for loop running through feats */
+
+  // Assign sorcerer bloodline subtype if necessary
+  if (LEVELUP(ch)->sorcerer_bloodline_subtype > 0)
+    ch->player_specials->saved.sorcerer_bloodline_subtype = LEVELUP(ch)->sorcerer_bloodline_subtype;
 
   /* set spells learned for domain */
   assign_domain_spells(ch);
@@ -427,79 +447,81 @@ bool add_levelup_feat(struct descriptor_data *d, int feat) {
   }
 
   if (feat_list[feat].epic == TRUE) { /* This is an epic feat! */
-    if (is_class_feat(feat, LEVELUP(ch)->class))
+    if (is_class_feat(feat, LEVELUP(ch)->class, ch))
       feat_type = FEAT_TYPE_EPIC_CLASS;
     else
       feat_type = FEAT_TYPE_EPIC;
   } else {
-    if (is_class_feat(feat, LEVELUP(ch)->class))
+    if (is_class_feat(feat, LEVELUP(ch)->class, ch))
       feat_type = FEAT_TYPE_NORMAL_CLASS;
     else
       feat_type = FEAT_TYPE_NORMAL;
   }
+  if (!isSorcBloodlineFeat(feat)) {
+    if ((feat_type == FEAT_TYPE_EPIC) && (LEVELUP(ch)->epic_feat_points < 1)) {
+      write_to_output(d, "You do not have enough epic feat points to gain that feat.\r\n");
+      return FALSE;
+    }
+    if ((feat_type == FEAT_TYPE_EPIC_CLASS) &&
+        ((LEVELUP(ch)->epic_feat_points < 1) &&
+        (LEVELUP(ch)->epic_class_feat_points < 1))) {
+      write_to_output(d, "You do not have enough epic class feat points to gain that feat.\r\n");
+      return FALSE;
+    }
+    if ((feat_type == FEAT_TYPE_NORMAL_CLASS) &&
+        ( (LEVELUP(ch)->class_feat_points < 1) &&
+          (LEVELUP(ch)->feat_points < 1) &&
+          (LEVELUP(ch)->epic_class_feat_points < 1) &&
+          (LEVELUP(ch)->epic_feat_points < 1) )) {
+      write_to_output(d, "You do not have enough class feat points to gain that feat.\r\n");
+      return FALSE;
+    }
+    if ((feat_type == FEAT_TYPE_NORMAL) && (LEVELUP(ch)->feat_points < 1) &&
+        (LEVELUP(ch)->epic_feat_points < 1)) {
+      write_to_output(d, "You do not have enough feat points to gain that feat.\r\n");
+      return FALSE;
+    }
+    
 
-  if ((feat_type == FEAT_TYPE_EPIC) && (LEVELUP(ch)->epic_feat_points < 1)) {
-    write_to_output(d, "You do not have enough epic feat points to gain that feat.\r\n");
-    return FALSE;
-  }
-  if ((feat_type == FEAT_TYPE_EPIC_CLASS) &&
-      ((LEVELUP(ch)->epic_feat_points < 1) &&
-       (LEVELUP(ch)->epic_class_feat_points < 1))) {
-    write_to_output(d, "You do not have enough epic class feat points to gain that feat.\r\n");
-    return FALSE;
-  }
-  if ((feat_type == FEAT_TYPE_NORMAL_CLASS) &&
-      ( (LEVELUP(ch)->class_feat_points < 1) &&
-        (LEVELUP(ch)->feat_points < 1) &&
-        (LEVELUP(ch)->epic_class_feat_points < 1) &&
-        (LEVELUP(ch)->epic_feat_points < 1) )) {
-    write_to_output(d, "You do not have enough class feat points to gain that feat.\r\n");
-    return FALSE;
-  }
-  if ((feat_type == FEAT_TYPE_NORMAL) && (LEVELUP(ch)->feat_points < 1) &&
-      (LEVELUP(ch)->epic_feat_points < 1)) {
-    write_to_output(d, "You do not have enough feat points to gain that feat.\r\n");
-    return FALSE;
-  }
-
-  /* If we are here, then we can add the feat! */
-  switch(feat_type) {
-    case FEAT_TYPE_EPIC:
-      LEVELUP(ch)->epic_feat_points--;
-      break;
-    case FEAT_TYPE_EPIC_CLASS:
-      if (LEVELUP(ch)->epic_class_feat_points > 0)
-        LEVELUP(ch)->epic_class_feat_points--;
-      else
+    /* If we are here, then we can add the feat! */
+    switch(feat_type) {
+      case FEAT_TYPE_EPIC:
         LEVELUP(ch)->epic_feat_points--;
-      break;
-    case FEAT_TYPE_NORMAL_CLASS:
-      if (LEVELUP(ch)->class_feat_points > 0)
-        LEVELUP(ch)->class_feat_points--;
-      else if (LEVELUP(ch)->feat_points > 0)
-        LEVELUP(ch)->feat_points--;
-      else if (LEVELUP(ch)->epic_class_feat_points > 0) {
-        LEVELUP(ch)->epic_class_feat_points--;
-        write_to_output(d, "You have used an epic class feat point to acquire a normal "
-            "class feat, if you do not want to do this, exit out of the study menu "
-                "without saving.\r\n");
-      } else {
-        LEVELUP(ch)->epic_feat_points--;
-        write_to_output(d, "You have used an epic feat point to acquire a normal "
-            "class feat, if you do not want to do this, exit out of the study menu "
-                "without saving.\r\n");
-      }
-      break;
-    case FEAT_TYPE_NORMAL:
-      if (LEVELUP(ch)->feat_points > 0)
-        LEVELUP(ch)->feat_points--;
-      else {
-        LEVELUP(ch)->epic_feat_points--;
-        write_to_output(d, "You have used an epic feat point to acquire a normal "
-            "feat, if you do not want to do this, exit out of the study menu "
-                "without saving.\r\n");
-      }
-      break;
+        break;
+      case FEAT_TYPE_EPIC_CLASS:
+        if (LEVELUP(ch)->epic_class_feat_points > 0)
+          LEVELUP(ch)->epic_class_feat_points--;
+        else
+          LEVELUP(ch)->epic_feat_points--;
+        break;
+      case FEAT_TYPE_NORMAL_CLASS:
+        if (LEVELUP(ch)->class_feat_points > 0)
+          LEVELUP(ch)->class_feat_points--;
+        else if (LEVELUP(ch)->feat_points > 0)
+          LEVELUP(ch)->feat_points--;
+        else if (LEVELUP(ch)->epic_class_feat_points > 0) {
+          LEVELUP(ch)->epic_class_feat_points--;
+          write_to_output(d, "You have used an epic class feat point to acquire a normal "
+              "class feat, if you do not want to do this, exit out of the study menu "
+                  "without saving.\r\n");
+        } else {
+          LEVELUP(ch)->epic_feat_points--;
+          write_to_output(d, "You have used an epic feat point to acquire a normal "
+              "class feat, if you do not want to do this, exit out of the study menu "
+                  "without saving.\r\n");
+        }
+        break;
+      case FEAT_TYPE_NORMAL:
+        if (LEVELUP(ch)->feat_points > 0)
+          LEVELUP(ch)->feat_points--;
+        else {
+          LEVELUP(ch)->epic_feat_points--;
+          write_to_output(d, "You have used an epic feat point to acquire a normal "
+              "feat, if you do not want to do this, exit out of the study menu "
+                  "without saving.\r\n");
+        }
+        break;
+    }
   }
 
   LEVELUP(ch)->feats[feat]++;
@@ -914,6 +936,27 @@ static void set_preferred_divine(struct descriptor_data *d) {
   write_to_output(d, "\r\n%sEnter your preferred divine class : ", nrm);
 }
 
+static void set_bloodline_draconic(struct descriptor_data *d) {
+  get_char_colors(d->character);
+  clear_screen(d);
+  write_to_output(d, "\r\n");
+  write_to_output(d, "Your draconic heritage determines the damage type for your\r\n");
+  write_to_output(d, "breath weapon and energy resistance once acquired.\r\n");
+  write_to_output(d, "\r\n");
+  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_BLACK, DRCHRTLIST_NAME(DRACONIC_HERITAGE_BLACK), DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_BLACK));
+  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_BLUE, DRCHRTLIST_NAME(DRACONIC_HERITAGE_BLUE), DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_BLUE));
+  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_GREEN, DRCHRTLIST_NAME(DRACONIC_HERITAGE_GREEN), DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_GREEN));
+  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_RED, DRCHRTLIST_NAME(DRACONIC_HERITAGE_RED), DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_RED));
+  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_WHITE, DRCHRTLIST_NAME(DRACONIC_HERITAGE_WHITE), DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_WHITE));
+  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_BRASS, DRCHRTLIST_NAME(DRACONIC_HERITAGE_BRASS), DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_BRASS));
+  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_BRONZE, DRCHRTLIST_NAME(DRACONIC_HERITAGE_BRONZE), DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_BRONZE));
+  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_COPPER, DRCHRTLIST_NAME(DRACONIC_HERITAGE_COPPER), DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_COPPER));
+  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_SILVER, DRCHRTLIST_NAME(DRACONIC_HERITAGE_SILVER), DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_SILVER));
+  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_GOLD, DRCHRTLIST_NAME(DRACONIC_HERITAGE_GOLD), DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_GOLD));
+  write_to_output(d, "\r\n");
+  write_to_output(d, "\r\n%sSelect the dragon type for your draconic heritage : ", nrm);
+}
+
 static void set_preferred_caster(struct descriptor_data *d) {
   get_char_colors(d->character);
   clear_screen(d);
@@ -938,6 +981,30 @@ static void set_preferred_caster(struct descriptor_data *d) {
           );
 
   OLC_MODE(d) = STUDY_SET_P_CASTER;
+}
+
+static void set_sorcerer_bloodline(struct descriptor_data *d) {
+  get_char_colors(d->character);
+  clear_screen(d);
+
+  write_to_output(d,
+          "\r\n-- %sSet Sorcerer Bloodline%s\r\n"
+          "\r\n"
+          "%s 0%s) Draconic\r\n"
+          "\r\n"
+          "%s Q%s) Quit\r\n"
+          "\r\n"
+          "Enter Choice : ",
+
+          mgn, nrm,
+          /* empty line */
+          grn, nrm,
+          /* empty line */
+          grn, nrm
+          /* empty line */
+          );
+
+  OLC_MODE(d) = STUDY_SET_S_BLOODLINE;
 }
 
 static void set_domain_submenu(struct descriptor_data *d) {
@@ -1212,6 +1279,8 @@ static void display_study_feats(struct descriptor_data *d) {
       /* is this a class feat?  and is this feat a match for 'i'? */
       if (feat_assign->is_classfeat && feat_assign->feat_num == i) {
         class_feat = TRUE; /* yep this is a class feat! */        
+      } else if (is_class_feat(i, class, ch)) {
+        class_feat = TRUE;
       }
     }
 
@@ -1285,6 +1354,7 @@ static void generic_main_disp_menu(struct descriptor_data *d) {
           "%s 7%s) Cleric Domain Selection%s\r\n"
           "%s 8%s) Wizard School Selection%s\r\n"
           "%s 9%s) Preferred Caster Classes (Prestige)%s\r\n"
+          "%s A%s) Sorcerer Bloodline Selection%s\r\n"
           "\r\n"
           "%s Q%s) Quit\r\n"
           "\r\n"
@@ -1301,6 +1371,7 @@ static void generic_main_disp_menu(struct descriptor_data *d) {
           MENU_OPT(CAN_SET_DOMAIN(ch)), CAN_SET_DOMAIN(ch) ? "" : "*", //7
           MENU_OPT(CAN_SET_SCHOOL(ch)), CAN_SET_SCHOOL(ch) ? "" : "*", //8
           MENU_OPT(CAN_SET_P_CASTER(ch)), CAN_SET_P_CASTER(ch) ? "" : "*", //9
+          MENU_OPT(CAN_SET_S_BLOODLINE(ch)), CAN_SET_S_BLOODLINE(ch) ? "" : "*", //A
           grn, nrm
           );
 
@@ -1518,6 +1589,18 @@ void study_parse(struct descriptor_data *d, char *arg) {
         case '9':
           if (CAN_SET_P_CASTER(ch))
             set_preferred_caster(d);
+          else {
+            write_to_output(d, "That is an invalid choice!\r\n");
+            generic_main_disp_menu(d);
+          }
+          break;
+        case 'A':
+        case 'a':
+          if (CAN_STUDY_FEATS(ch)) {
+            write_to_output(d, "Please choose your feat(s) first.\r\n");
+          }
+          else if (CAN_SET_S_BLOODLINE(ch))
+            set_sorcerer_bloodline(d);
           else {
             write_to_output(d, "That is an invalid choice!\r\n");
             generic_main_disp_menu(d);
@@ -1959,6 +2042,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
       OLC_MODE(d) = STUDY_SET_P_CASTER;
       set_preferred_caster(d);
       break;
+
     case STUDY_SET_P_CASTER:
       switch (*arg) {
         case 'q':
@@ -1982,6 +2066,77 @@ void study_parse(struct descriptor_data *d, char *arg) {
           set_preferred_caster(d);
           break;
       } /* end arg switch */
+      break;
+
+    case STUDY_SET_S_BLOODLINE:
+      switch (*arg) {
+        case 'q':
+        case 'Q':
+          display_main_menu(d);
+          break;
+        default:
+          number = atoi(arg);
+          switch (number) {
+            case 0:
+              set_bloodline_draconic(d);
+              OLC_MODE(d) = SET_BLOODLINE_DRACONIC;
+              return;
+            default: 
+              write_to_output(d, "That is an invalid choice.  Please choose again: ");
+              break;
+          }
+          set_sorcerer_bloodline(d);
+          break;
+      } /* end arg switch */
+      break;
+
+    case SET_BLOODLINE_DRACONIC:
+      number = atoi(arg);
+      if ( number != DRACONIC_HERITAGE_BLACK &&
+           number != DRACONIC_HERITAGE_BLUE &&
+           number != DRACONIC_HERITAGE_GREEN &&
+           number != DRACONIC_HERITAGE_RED &&
+           number != DRACONIC_HERITAGE_WHITE &&
+           number != DRACONIC_HERITAGE_BRASS &&
+           number != DRACONIC_HERITAGE_BRONZE &&
+           number != DRACONIC_HERITAGE_COPPER &&
+           number != DRACONIC_HERITAGE_SILVER &&
+           number != DRACONIC_HERITAGE_GOLD ) {
+        write_to_output(d, "Invalid value!  Try again.\r\n");
+        OLC_MODE(d) = SET_BLOODLINE_DRACONIC;
+        set_bloodline_draconic(d);
+        return;        
+      }
+      
+      /* Store the feat number in the work area in the data structure. */
+      LEVELUP(d->character)->tempFeat = FEAT_SORCERER_BLOODLINE_DRACONIC;
+      LEVELUP(ch)->sorcerer_bloodline_subtype = number;
+       /* Display the description of the bloodline, and give the player an option. */
+      write_to_output(d, "%s%s%s: %s\r\nDraconic Heritage: %s dragon - %s energy type\r\n"
+                         "Choose this bloodline and heritage? (y/n) : ",
+                         nrm, feat_list[LEVELUP(ch)->tempFeat].name, nrm, feat_list[LEVELUP(ch)->tempFeat].description,
+                         DRCHRTLIST_NAME(LEVELUP(ch)->sorcerer_bloodline_subtype), 
+                         DRCHRT_ENERGY_TYPE(LEVELUP(ch)->sorcerer_bloodline_subtype));
+      OLC_MODE(d) = STUDY_CONFIRM_BLOODLINE;
+      break;
+
+      case STUDY_CONFIRM_BLOODLINE:
+      switch(*arg) {
+        case 'n':
+        case 'N':
+          set_sorcerer_bloodline(d);
+          break;
+        case 'y':
+        case 'Y':
+          if (add_levelup_feat(d, LEVELUP(ch)->tempFeat)) {
+            write_to_output(d, "Bloodline %s chosen!\r\n", feat_list[LEVELUP(ch)->tempFeat].name);
+            if (LEVELUP(ch)->sorcerer_bloodline_subtype > 0)
+            write_to_output(d, "You've selected the %s draconic heritage.\r\n", 
+                            DRCHRTLIST_NAME(LEVELUP(ch)->sorcerer_bloodline_subtype));
+          }
+          display_main_menu(d);
+          break;
+      }
       break;
       
       /*****/

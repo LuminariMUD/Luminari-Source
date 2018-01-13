@@ -229,6 +229,9 @@ cpp_extern const struct command_info cmd_info[] = {
   { "defensivestance", "defensivestance", POS_FIGHTING, do_defensive_stance, 1, 0, FALSE, ACTION_NONE, {0, 0}},
   { "defenses", "defenses", POS_DEAD, do_defenses, 0, 0, TRUE, ACTION_NONE, {0, 0}},
   { "darkness", "darkness", POS_FIGHTING, do_darkness, 1, 0, FALSE, ACTION_MOVE, {0, 0}},
+  { "dracbreath", "dracbreath", POS_FIGHTING, do_sorcerer_breath_weapon, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
+  { "dracclaws", "dracclaws", POS_FIGHTING, do_sorcerer_claw_attack, 1, 0, FALSE, ACTION_NONE, {0, 0}},
+  { "dracwings", "dracwings", POS_FIGHTING, do_sorcerer_draconic_wings, 1, 0, FALSE, ACTION_NONE, {0, 0}},
 
   { "eat", "ea", POS_RECLINING, do_eat, 0, SCMD_EAT, FALSE, ACTION_MOVE, {0, 6}},
   { "echo", "ec", POS_SLEEPING, do_echo, LVL_IMMORT, SCMD_ECHO, TRUE, ACTION_NONE, {0, 0}},

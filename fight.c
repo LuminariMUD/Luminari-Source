@@ -571,6 +571,9 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_ARMOR_SKIN)) {
     bonuses[BONUS_TYPE_NATURALARMOR] += HAS_FEAT(ch, FEAT_ARMOR_SKIN);
   }
+  if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_DRACONIC_HERITAGE_DRAGON_RESISTANCES)) {
+    bonuses[BONUS_TYPE_NATURALARMOR] += (CLASS_LEVEL(ch, CLASS_SORCERER) >= 15 ? 4 : (CLASS_LEVEL(ch, CLASS_SORCERER) >= 9 ? 2 : 1));
+  }
   /**/
 
   /* bonus type armor */  
@@ -1588,6 +1591,9 @@ static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
   if (dam && pct <= 0)
     pct = 1;
 
+  if (affected_by_spell(ch, SKILL_DRHRT_CLAWS))
+    w_type = TYPE_CLAW;
+
   static struct dam_weapon_type {
     const char *to_room;
     const char *to_char;
@@ -1809,7 +1815,9 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
     weap = read_object(TRELUX_CLAWS, VIRTUAL);
     attacktype = TYPE_CLAW;
   }
-  
+  if (affected_by_spell(ch, SKILL_DRHRT_CLAWS))
+    attacktype = TYPE_CLAW;
+
   /* ranged weapon - general check and we want the missile to serve as our weapon */
   if (can_fire_ammo(ch, TRUE) && (dualing == 2)) {
     is_ranged = TRUE;
@@ -2053,6 +2061,11 @@ int compute_energy_absorb(struct char_data *ch, int dam_type) {
 // can return negative values, which indicates vulnerability (this is percent)
 // dam_ defines are in spells.h
 int compute_damtype_reduction(struct char_data *ch, int dam_type) {
+
+  if (HAS_FEAT(ch, FEAT_DRACONIC_HERITAGE_POWER_OF_WYRMS) && draconic_heritage_energy_types[GET_BLOODLINE_SUBTYPE(ch)] == dam_type) {
+    return 999999999; // full immunity
+  }
+
   int damtype_reduction = 0;
 
   /* universal bonsues */
@@ -2064,6 +2077,10 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type) {
 
   if (HAS_FEAT(ch, FEAT_RESISTANCE)) {
     damtype_reduction += CLASS_LEVEL(ch, CLASS_CLERIC)/6;
+  }
+
+  if (HAS_FEAT(ch, FEAT_DRACONIC_HERITAGE_DRAGON_RESISTANCES) && draconic_heritage_energy_types[GET_BLOODLINE_SUBTYPE(ch)] == dam_type) {
+    damtype_reduction += CLASS_LEVEL(ch, CLASS_SORCERER) >= 9 ? 10 : 5;
   }
 
   switch (dam_type) {
@@ -3112,7 +3129,9 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   switch (attack_type) {
 
     case ATTACK_TYPE_PRIMARY:
-      if (GET_EQ(ch, WEAR_WIELD_2H) && !is_using_double_weapon(ch))
+      if (affected_by_spell(ch, SKILL_DRHRT_CLAWS))
+        dambonus += GET_STR_BONUS(ch);
+      else if (GET_EQ(ch, WEAR_WIELD_2H) && !is_using_double_weapon(ch))
         dambonus += GET_STR_BONUS(ch) * 3 / 2; /* 2handed weapon */
       else
         dambonus += GET_STR_BONUS(ch);
@@ -3174,6 +3193,10 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
 
     default:break;
   }
+
+  // Sorcerer Draconic Bloodline Claw Attacks
+  if (ch && vict && affected_by_spell(ch, SKILL_DRHRT_CLAWS) && CLASS_LEVEL(ch, CLASS_SORCERER) >= 11)
+    add_draconic_claws_elemental_damage(ch, vict);
 
   /* penalties */
 
@@ -3560,6 +3583,8 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
   if (mode == MODE_DISPLAY_PRIMARY) {
     if (IS_WILDSHAPED(ch) || IS_MORPHED(ch)) {
       send_to_char(ch, "Claws, Teeth and Smash!\r\n");
+    } else if (affected_by_spell(ch, SKILL_DRHRT_CLAWS)) {
+      send_to_char(ch, "Draconic Claws!\r\n");
     } else if (!GET_EQ(ch, WEAR_WIELD_1) && !GET_EQ(ch, WEAR_WIELD_2H)) {
       send_to_char(ch, "Bare-hands\r\n");
     } else {
@@ -3620,7 +3645,10 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
     }
   } else if (IS_MORPHED(ch)) {
     diceOne = 2;
-    diceTwo = 6;    
+    diceTwo = 6;
+  } else if (affected_by_spell(ch, SKILL_DRHRT_CLAWS)) {
+    diceOne = 1;
+    diceTwo = (CLASS_LEVEL(ch, CLASS_SORCERER) >= 7) ? 6 : 4;
   } else if (!is_ranged && wielded && GET_OBJ_TYPE(wielded) == ITEM_WEAPON) { //weapon
     diceOne = GET_OBJ_VAL(wielded, 1);
     diceTwo = GET_OBJ_VAL(wielded, 2);
@@ -4097,7 +4125,7 @@ int handle_warding(struct char_data *ch, struct char_data *victim, int dam) {
 #undef EPIC_WARDING_ABSORB
 #undef IRONSKIN_ABSORB
 
-bool weapon_bypasses_dr(struct obj_data *weapon, struct damage_reduction_type *dr) {
+bool weapon_bypasses_dr(struct obj_data *weapon, struct damage_reduction_type *dr, struct char_data *ch) {
   bool passed = FALSE;
   int i = 0;
 
@@ -4112,6 +4140,8 @@ bool weapon_bypasses_dr(struct obj_data *weapon, struct damage_reduction_type *d
           break;
         case DR_BYPASS_CAT_MAGIC:
           if (IS_SET_AR(GET_OBJ_EXTRA(weapon), ITEM_MAGIC))
+            passed = TRUE;
+          if (affected_by_spell(ch, SKILL_DRHRT_CLAWS) && CLASS_LEVEL(ch, CLASS_SORCERER) >= 7)
             passed = TRUE;
           break;
         case DR_BYPASS_CAT_MATERIAL:
@@ -4146,12 +4176,12 @@ int apply_damage_reduction(struct char_data *ch, struct char_data *victim, struc
 
   dr = NULL;
   for (cur = GET_DR(victim); cur != NULL; cur = cur->next) {
-    if (dr == NULL || (dr->amount < cur->amount && (weapon_bypasses_dr(wielded, cur) == FALSE)))
+    if (dr == NULL || (dr->amount < cur->amount && (weapon_bypasses_dr(wielded, cur, ch) == FALSE)))
       dr = cur;
   }
 
   /* Now dr is set to the 'best' DR for the incoming damage. */
-  if (weapon_bypasses_dr(wielded, dr) == TRUE) {
+  if (weapon_bypasses_dr(wielded, dr, ch) == TRUE) {
     reduction = 0;
   } else
     reduction = MIN(dr->amount, dam);
@@ -5826,12 +5856,12 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL)) {
     sprintf(buf1, "\tW[R:%2d]\tn", diceroll);
     sprintf(buf, "%7s", buf1);
-    send_to_char(ch, buf);
+    send_to_char(ch, "%s", buf);
   }
   if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_COMBATROLL)) {
     sprintf(buf1, "\tR[R:%2d]\tn", diceroll);
     sprintf(buf, "%7s", buf1);
-    send_to_char(victim, buf);
+    send_to_char(victim, "%s", buf);
   }
   
   /*  leaving this around for debugging
@@ -6348,6 +6378,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
 
     // not dual wielding
     numAttacks++;  //default of one attack for everyone
+    
     if (mode == NORMAL_ATTACK_ROUTINE) { //normal attack routine
       if (valid_fight_cond(ch))
         if (phase == PHASE_0 || phase == PHASE_1)
@@ -6381,7 +6412,6 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
       compute_hit_damage(ch, ch, TYPE_UNDEFINED_WTYPE, NO_DICEROLL, MODE_DISPLAY_PRIMARY, FALSE, ATTACK_TYPE_PRIMARY);
     }
   }
-
 
   //execute the calculated attacks from above
   int j = 0;
@@ -7072,7 +7102,7 @@ void perform_violence(struct char_data *ch, int phase) {
     act("$n \tcis overcome with \tDfear\tc!\tn",
             TRUE, ch, 0, 0, TO_ROOM);
     perform_flee(ch);
-  }
+  }      
 
 }
 

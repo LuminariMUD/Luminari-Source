@@ -890,17 +890,19 @@ void perform_headbutt(struct char_data *ch, struct char_data *vict) {
     damage(ch, vict, dice((HAS_FEAT(ch, FEAT_IMPROVED_UNARMED_STRIKE) ? 2 : 1), 8), SKILL_HEADBUTT, DAM_FORCE, FALSE);
 
     if (!rand_number(0, 4)) {
-      new_affect(&af);
-      af.spell = SKILL_HEADBUTT;
-      SET_BIT_AR(af.bitvector, AFF_PARALYZED);
-      af.duration = 1;
-      affect_join(vict, &af, TRUE, FALSE, FALSE, FALSE);
-      act("$n slams $s head into $N with \tRVICIOUS\tn force!",
-          FALSE, ch, NULL, vict, TO_NOTVICT);
-      act("You slam your head into $N with \tRVICIOUS\tn force!",
-          FALSE, ch, NULL, vict, TO_CHAR);
-      act("$n slams $s head into you with \tRVICIOUS\tn force!",
-          FALSE, ch, NULL, vict, TO_VICT | TO_SLEEP);
+      if (!paralysis_immunity(vict)) {
+        new_affect(&af);
+        af.spell = SKILL_HEADBUTT;
+        SET_BIT_AR(af.bitvector, AFF_PARALYZED);
+        af.duration = 1;
+        affect_join(vict, &af, TRUE, FALSE, FALSE, FALSE);
+        act("$n slams $s head into $N with \tRVICIOUS\tn force!",
+            FALSE, ch, NULL, vict, TO_NOTVICT);
+        act("You slam your head into $N with \tRVICIOUS\tn force!",
+            FALSE, ch, NULL, vict, TO_CHAR);
+        act("$n slams $s head into you with \tRVICIOUS\tn force!",
+            FALSE, ch, NULL, vict, TO_VICT | TO_SLEEP);
+      }
     }
 
     /* fire-shield, etc check */
@@ -1050,17 +1052,19 @@ void perform_sap(struct char_data *ch, struct char_data *vict) {
 
     /* success!  fortitude save? */
     if (!savingthrow(vict, SAVING_FORT, prob, dc)) {
-      new_affect(&af);
-      af.spell = SKILL_SAP;
-      SET_BIT_AR(af.bitvector, AFF_PARALYZED);
-      af.duration = 1;
-      affect_join(vict, &af, TRUE, FALSE, FALSE, FALSE);
-      act("$n \tYsavagely\tn beats $N with $p!!",
-          FALSE, ch, wielded, vict, TO_NOTVICT);
-      act("You \tYsavagely\tn beat $N with $p!",
-          FALSE, ch, wielded, vict, TO_CHAR);
-      act("$n \tYsavagely\tn beats you with $p!!",
-          FALSE, ch, wielded, vict, TO_VICT | TO_SLEEP);
+      if (!paralysis_immunity(vict)) {
+        new_affect(&af);
+        af.spell = SKILL_SAP;
+        SET_BIT_AR(af.bitvector, AFF_PARALYZED);
+        af.duration = 1;
+        affect_join(vict, &af, TRUE, FALSE, FALSE, FALSE);
+        act("$n \tYsavagely\tn beats $N with $p!!",
+            FALSE, ch, wielded, vict, TO_NOTVICT);
+        act("You \tYsavagely\tn beat $N with $p!",
+            FALSE, ch, wielded, vict, TO_CHAR);
+        act("$n \tYsavagely\tn beats you with $p!!",
+            FALSE, ch, wielded, vict, TO_VICT | TO_SLEEP);
+      }
     }
 
     /* fire-shield, etc check */
@@ -2508,6 +2512,109 @@ ACMD(do_breathe) {
   USE_STANDARD_ACTION(ch);
 }
 
+ACMD(do_sorcerer_breath_weapon) {
+  int uses_remaining = 0;
+  struct char_data *vict, *next_vict;
+
+  if (!HAS_FEAT(ch, FEAT_DRACONIC_HERITAGE_BREATHWEAPON)) {
+    send_to_char(ch, "You do not have access to this ability.\r\n");
+    return;
+  }
+
+  if (!MOB_CAN_FIGHT(ch)) {
+    send_to_char(ch, "But you can't fight!\r\n");
+    return;
+  }
+
+  if (!IS_NPC(ch) && ((uses_remaining = daily_uses_remaining(ch, FEAT_DRACONIC_HERITAGE_BREATHWEAPON)) == 0)) {
+    send_to_char(ch, "You must recover before you can use your draconic heritage breath weapon again.\r\n");
+    return;
+  }
+
+  send_to_char(ch, "You have %d uses remaining.\r\n", daily_uses_remaining(ch, FEAT_DRACONIC_HERITAGE_BREATHWEAPON));
+
+  if (uses_remaining < 0) {
+    send_to_char(ch, "You do not have access to this ability.\r\n");
+    return;
+  }
+
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return;
+  }
+
+  send_to_char(ch, "You exhale breathing out %s!\r\n", DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)));
+  char to_room[200];
+  sprintf(to_room, "$n exhales breathing %s!", DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)));
+  act(to_room, FALSE, ch, 0, 0, TO_ROOM);
+
+  for (vict = world[IN_ROOM(ch)].people; vict; vict = next_vict) {
+    next_vict = vict->next_in_room;
+
+    if (aoeOK(ch, vict, SPELL_DRACONIC_BLOODLINE_BREATHWEAPON)) {
+      if (GET_LEVEL(ch) <= 15)
+        damage(ch, vict, dice(GET_LEVEL(ch), 6), SPELL_DRACONIC_BLOODLINE_BREATHWEAPON, DAM_FIRE,
+              FALSE);
+      else
+        damage(ch, vict, dice(GET_LEVEL(ch), 14), SPELL_DRACONIC_BLOODLINE_BREATHWEAPON, DAM_FIRE,
+              FALSE);
+    }
+  }
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_DRACONIC_HERITAGE_BREATHWEAPON);
+  USE_STANDARD_ACTION(ch);
+}
+
+ACMD(do_sorcerer_claw_attack) {
+  int uses_remaining = 0;
+
+  if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_DRACONIC_HERITAGE_CLAWS)) {
+    send_to_char(ch, "You have no idea how.\r\n");
+    return;
+  }
+
+  if (affected_by_spell(ch, SKILL_DRHRT_CLAWS)) {
+    send_to_char(ch, "You are already in the process of making a draconic claws attack.\r\n");
+    return;
+  }
+
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_DRACONIC_HERITAGE_CLAWS)) == 0) {
+    send_to_char(ch, "You must wait to recover your draconic heritage claw attacks.\r\n");
+    return;
+  }
+
+  if (uses_remaining < 0) {
+    send_to_char(ch, "You are not experienced enough.\r\n");
+    return;
+  }
+
+  if (!FIGHTING(ch)) {
+    send_to_char(ch, "You can only use this ability in combat.\r\n");
+    return;
+  }
+
+  if (!is_action_available(ch, atSTANDARD, TRUE)) {
+    return;
+  }
+
+  struct affected_type af;
+
+  new_affect(&af);
+
+  af.spell = SKILL_DRHRT_CLAWS;
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_DRACONIC_HERITAGE_CLAWS);
+  af.duration = 24;
+
+  affect_to_char(ch, &af);
+
+  send_to_char(ch, "Your hands morph into long draconic claws that you bring to bear on your opponent.\r\n");
+  hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_PRIMARY);
+  hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_PRIMARY);
+  affect_from_char(ch, SKILL_DRHRT_CLAWS);
+  USE_STANDARD_ACTION(ch);
+}
+
 ACMD(do_tailsweep) {
   struct char_data *vict, *next_vict;
   int percent = 0, prob = 0;
@@ -2575,7 +2682,6 @@ ACMD(do_tailsweep) {
 
     }
   }
-  USE_STANDARD_ACTION(ch);
 }
 
 ACMD(do_bash) {
@@ -4412,7 +4518,7 @@ int perform_collect(struct char_data *ch) {
 
   if (ammo) {
     sprintf(buf, "You collected ammo:  %d.\r\n", ammo);
-    send_to_char(ch, buf);
+    send_to_char(ch, "%s", buf);
     act("$n gathers $s ammunition.", FALSE, ch, 0, 0, TO_ROOM);  
   }
   

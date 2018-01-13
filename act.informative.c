@@ -617,6 +617,11 @@ static void list_one_char(struct char_data *i, struct char_data *ch) {
       act("...$e is groping around blindly!", FALSE, i, 0, ch, TO_VICT);
     if (AFF_FLAGGED(i, AFF_FAERIE_FIRE))
       act("...$e is surrounded by a pale blue light!", FALSE, i, 0, ch, TO_VICT);
+    if (affected_by_spell(i, SKILL_DRHRT_WINGS)) {
+      char wings[150];
+      sprintf(wings, "...$e has two large %s wings sprouting from $s back.", DRCHRTLIST_NAME(GET_BLOODLINE_SUBTYPE(i)));
+      act(wings, FALSE, i, 0, ch, TO_VICT);
+    }
 
     return;
 
@@ -644,6 +649,11 @@ static void list_one_char(struct char_data *i, struct char_data *ch) {
       act("...$e is groping around blindly!", FALSE, i, 0, ch, TO_VICT);
     if (AFF_FLAGGED(i, AFF_FAERIE_FIRE))
       act("...$e is surrounded by a pale blue light!", FALSE, i, 0, ch, TO_VICT);
+    if (affected_by_spell(i, SKILL_DRHRT_WINGS)) {
+      char wings[150];
+      sprintf(wings, "...$e has two large %s wings sprouting from $s back.", DRCHRTLIST_NAME(GET_BLOODLINE_SUBTYPE(i)));
+      act(wings, FALSE, i, 0, ch, TO_VICT);
+    }
 
     return;
   }
@@ -757,6 +767,11 @@ static void list_one_char(struct char_data *i, struct char_data *ch) {
     act("...$e is groping around blindly!", FALSE, i, 0, ch, TO_VICT);
   if (AFF_FLAGGED(i, AFF_FAERIE_FIRE))
     act("...$e is surrounded by a pale blue light!", FALSE, i, 0, ch, TO_VICT);
+  if (affected_by_spell(i, SKILL_DRHRT_WINGS)) {
+    char wings[150];
+    sprintf(wings, "...$e has two large %s wings sprouting from $s back.", DRCHRTLIST_NAME(GET_BLOODLINE_SUBTYPE(i)));
+    act(wings, FALSE, i, 0, ch, TO_VICT);
+  }
 }
 
 /*  The CAN_SEE and CAN_INFRA macros are both going to do a hide-check
@@ -1461,7 +1476,10 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k) {
     send_to_char(ch, "Aura of Protection Cooldown  - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eBATTLE_RAGE)))
     send_to_char(ch, "Battle Rage Cooldown  - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
-
+  if ((pMudEvent = char_has_mud_event(k, eDRACBREATH)))
+    send_to_char(ch, "Draconic Heritage Breath Weapon Cooldown  - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eDRACCLAWS)))
+    send_to_char(ch, "Draconic Heritage Claws Attack Cooldown  - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
 
   send_to_char(ch, "\tC");
   draw_line(ch, 80, '-', '-');

@@ -418,6 +418,7 @@ int load_char(const char *name, struct char_data *ch) {
     GET_DISGUISE_CON(ch) = 0;
     GET_DISGUISE_DEX(ch) = 0;
     GET_DISGUISE_AC(ch) = 0;
+    GET_BLOODLINE_SUBTYPE(ch) = PFDEF_SORC_BLOODLINE_SUBTYPE;
 
     for (i = 0; i < AF_ARRAY_MAX; i++)
       AFF_FLAGS(ch)[i] = PFDEF_AFFFLAGS;
@@ -647,6 +648,7 @@ int load_char(const char *name, struct char_data *ch) {
 
         case 'S':
           if (!strcmp(tag, "Sex ")) GET_SEX(ch) = atoi(line);
+          else if (!strcmp(tag, "SBld")) GET_BLOODLINE_SUBTYPE(ch) = atoi(line);
           else if (!strcmp(tag, "SclF")) {
             sscanf(line, "%d %s", &i, f1);
             if (i < 0 || i >= NUM_SFEATS) {
@@ -840,6 +842,7 @@ void save_char(struct char_data * ch, int mode) {
   if (POOFIN(ch)) fprintf(fl, "PfIn: %s\n", POOFIN(ch));
   if (POOFOUT(ch)) fprintf(fl, "PfOt: %s\n", POOFOUT(ch));
   if (GET_SEX(ch) != PFDEF_SEX) fprintf(fl, "Sex : %d\n", GET_SEX(ch));
+  if (GET_BLOODLINE_SUBTYPE(ch) != PFDEF_SORC_BLOODLINE_SUBTYPE) fprintf(fl, "SBld: %d\n", GET_BLOODLINE_SUBTYPE(ch));
   if (GET_CLASS(ch) != PFDEF_CLASS) fprintf(fl, "Clas: %d\n", GET_CLASS(ch));
   if (GET_REAL_RACE(ch) != PFDEF_RACE) fprintf(fl, "Race: %d\n", GET_REAL_RACE(ch));
   if (GET_REAL_SIZE(ch) != PFDEF_SIZE) fprintf(fl, "Size: %d\n", GET_REAL_SIZE(ch));
@@ -1265,6 +1268,10 @@ void save_char(struct char_data * ch, int mode) {
     if ((pMudEvent = char_has_mud_event(ch, eSPELLBATTLE)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eQUEST_COMPLETE)))
+      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+    if ((pMudEvent = char_has_mud_event(ch, eDRACBREATH)))
+      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+    if ((pMudEvent = char_has_mud_event(ch, eDRACCLAWS)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     fprintf(fl, "-1 -1\n");
   }

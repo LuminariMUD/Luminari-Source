@@ -424,6 +424,20 @@
 #define MAX_INSTRUMENTS       6
 /***************/
 
+/* Draconic Heritages from Sorcerer Bloodline: Draconic */
+#define DRACONIC_HERITAGE_NONE      0
+#define DRACONIC_HERITAGE_BLACK     1
+#define DRACONIC_HERITAGE_BLUE      2
+#define DRACONIC_HERITAGE_GREEN     3
+#define DRACONIC_HERITAGE_RED       4
+#define DRACONIC_HERITAGE_WHITE     5
+#define DRACONIC_HERITAGE_BRASS     6
+#define DRACONIC_HERITAGE_BRONZE    7
+#define DRACONIC_HERITAGE_COPPER    8
+#define DRACONIC_HERITAGE_SILVER    9
+#define DRACONIC_HERITAGE_GOLD      10
+#define NUM_DRACONIC_HERITAGE_TYPES 11 // 1 more than the last above
+
 // Races - specific, race type defines are below
 #define RACE_UNDEFINED       (-1) /*Race Undefined*/
 #define RACE_HUMAN           0 /* Race Human */
@@ -1625,11 +1639,20 @@
 #define FEAT_BARD_5TH_CIRCLE_SLOT              588
 #define FEAT_BARD_6TH_CIRCLE_SLOT              589
 #define FEAT_BARD_EPIC_SPELL_SLOT              590
+/* sorcerer bloodlines (1st batch) */
+#define FEAT_SORCERER_BLOODLINE_DRACONIC       591
+#define FEAT_DRACONIC_HERITAGE_CLAWS           592
+#define FEAT_DRACONIC_HERITAGE_DRAGON_RESISTANCES 593
+#define FEAT_DRACONIC_HERITAGE_BREATHWEAPON    594
+#define FEAT_DRACONIC_HERITAGE_WINGS           595
+#define FEAT_DRACONIC_HERITAGE_POWER_OF_WYRMS  596
+#define FEAT_DRACONIC_BLOODLINE_ARCANA         597
+
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT                      591
+#define FEAT_LAST_FEAT                      598
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS                           592
+#define NUM_FEATS                           599
 /** absolute cap **/
 #define MAX_FEATS                           750
 /*****/
@@ -1666,6 +1689,10 @@
 #define SKFEAT_SKILL_FOCUS 0
 #define SKFEAT_EPIC_SKILL_FOCUS 1
 #define NUM_SKFEATS 2 /* if this is changed, load_skill_focus() must be modified */
+
+// Sorcerer bloodline feats
+#define BLFEAT_DRACONIC         0
+#define NUM_BLFEATS             1
 
 /* object-related defines */
 /* Item types: used by obj_data.obj_flags.type_flag */
@@ -3133,6 +3160,8 @@ struct player_special_data_saved {
   time_t lastnews; /**< Last time player read news */
 
   char *account_name; // The account stored with this character.
+
+  int sorcerer_bloodline_subtype; //if the sorcerer bloodline has a subtype (ie. draconic)
 };
 
 /** Specials needed only by PCs, not NPCs.  Space for this structure is
@@ -3289,6 +3318,9 @@ struct level_data {
   int inte;
   int wis;
   int cha;
+
+  // Sorcerer Bloodline Subtype
+  int sorcerer_bloodline_subtype;
 };
 
 /** The list element that makes up a list of characters following this
