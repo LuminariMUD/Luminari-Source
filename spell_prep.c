@@ -380,6 +380,34 @@ struct prep_collection_spell_data *spell_to_prep_queue(struct char_data *ch,
 
   return prep_queue_data;
 }
+void prep_queue_add(struct char_data *ch, int spell, int ch_class, int metamagic,
+        int prep_time, int domain) {
+  struct prep_collection_spell_data *prep_queue_data = NULL;
+
+  /* hack note: for innate-magic we are storing the CIRCLE the spell belongs to
+       in the queue */
+  switch (ch_class) {
+    case CLASS_SORCERER:case CLASS_BARD:
+      spell = compute_spells_circle(spell, ch_class, metamagic, domain);
+      break;      
+    default:
+      break;
+  }
+
+  CREATE(prep_queue_data, struct prep_collection_spell_data, 1);
+  
+  prep_queue_data->spell = spell;
+  prep_queue_data->ch_class = ch_class;
+  prep_queue_data->metamagic = metamagic;
+  prep_queue_data->prep_time = prep_time;
+  prep_queue_data->domain = domain;
+  
+  /* put on bottom of appropriate class list */
+  prep_queue_data->next = SPELL_PREP_QUEUE(ch, ch_class);
+  
+  /* update what is on top */
+  SPELL_PREP_QUEUE(ch, ch_class) = prep_queue_data;
+}
 
 /* in: character, spell-number, class of collection we need
  * out: copy of prearation/collection spell data containing entry
@@ -429,6 +457,19 @@ struct prep_collection_spell_data *spell_from_prep_queue(struct char_data *ch, i
   prev->next = current->next;
   free(current);
   return prep_queue_data;
+}
+/* remove a spell from a character's memorize(in progress) linked list */
+void remove_from_prep_queue(struct char_data *ch, struct prep_collection_spell_data *mem,
+        int class) {
+  struct prep_collection_spell_data *temp = NULL;
+
+  if (SPELL_PREP_QUEUE(ch, class) == NULL) {
+    core_dump();
+    return;
+  }
+
+  REMOVE_FROM_LIST(mem, SPELL_PREP_QUEUE(ch, class), next);
+  free(mem);
 }
 
 /** END functions related to the spell-preparation queue handling **/
@@ -1172,6 +1213,9 @@ bool set_preparing_state(struct char_data *ch, int class, bool state) {
 /* are we in a state that allows us to prep spells? */
 /* define: READY_TO_PREP(ch, class) */
 bool ready_to_prep_spells(struct char_data *ch, int class) {
+  if (!SPELL_PREP_QUEUE(ch, class))
+    return FALSE;
+  
   switch (class) {
     case CLASS_WIZARD:
       if (IS_DARK(IN_ROOM(ch)) && !CAN_SEE_IN_DARK(ch))
@@ -1413,16 +1457,16 @@ ACMD(do_gen_preparation) {
             spell_info[spellnum].name);
     
     /* throw this spell into your prep queue */
-    spell_to_prep_queue(ch,
-                        spellnum,
-                        class,
-                        metamagic,
-                        compute_spells_prep_time(ch,
-                                                 spellnum,
-                                                 class,
-                                                 min_circle_for_spell,
-                                                 is_domain_spell_of_ch(ch, 
-                                                                       spellnum)),
+    prep_queue_add(ch,
+                   spellnum,
+                   class,
+                   metamagic,
+                   compute_spells_prep_time(ch,
+                                            spellnum,
+                                            class,
+                                            min_circle_for_spell,
+                                            is_domain_spell_of_ch(ch, 
+                                                                  spellnum)),
                         is_domain_spell_of_ch(ch, 
                                               spellnum));
   }
