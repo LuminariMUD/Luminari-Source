@@ -1241,6 +1241,10 @@ bool is_min_level_for_spell(struct char_data *ch, int class, int spellnum) {
 
 /** START ACMD() ***/
 
+ACMD(do_gen_consign_to_oblivion) {
+  
+}
+
 /* preparation command entry point for players */
 /*  Functionality of preparation system (trying to keep in order):
       4) To view your spell collection
