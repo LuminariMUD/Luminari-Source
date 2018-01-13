@@ -4435,7 +4435,13 @@ void init_char(struct char_data *ch) {
   /* Create the action queues */
   GET_QUEUE(ch) = create_action_queue();
   GET_ATTACK_QUEUE(ch) = create_attack_queue();
-
+  
+  /* create the preparation / collection lists */
+  for (i = 0; i < NUM_CASTERS; i++) {
+    SPELL_PREP_QUEUE(ch, i) = create_prep_collection_list(i);
+    SPELL_COLLECTION(ch, i) = create_prep_collection_list(i);
+  }
+  
   ch->player.time.birth = time(0);
   ch->player.time.logon = time(0);
   ch->player.time.played = 0;

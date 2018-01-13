@@ -1,9 +1,9 @@
 /**
-* @file actionqueues.c
-*
-* Action Queue system for Luminari MUD
-*
-*/
+ * @file actionqueues.c
+ *
+ * Action Queue system for Luminari MUD
+ *
+ */
 
 #include "conf.h"
 #include "sysdep.h"
@@ -18,82 +18,81 @@
 #include "actions.h"
 
 /* Initialize the queue, must be performed on any new queues. */
-struct queue_type * create_queue()
-{
-	struct queue_type * queue = NULL;
+struct queue_type * create_queue() {
+  struct queue_type * queue = NULL;
 
-	/* Allocate memory. */
-	CREATE(queue, struct queue_type, 1);
+  /* Allocate memory. */
+  CREATE(queue, struct queue_type, 1);
 
-	/* Initialize. */
-	queue->first = NULL;
-	queue->last  = NULL;
-	queue->size  = 0;
+  /* Initialize. */
+  queue->first = NULL;
+  queue->last = NULL;
+  queue->size = 0;
 
-	return queue;
+  return queue;
 };
 
-struct queue_type * create_action_queue() { return create_queue(); }
-struct queue_type * create_attack_queue() { return create_queue(); }
+struct queue_type * create_action_queue() {
+  return create_queue();
+}
+
+struct queue_type * create_attack_queue() {
+  return create_queue();
+}
 
 /* Empty the queue  and release the memory.  The queue pointer is
  * invalid after this operation. */
-void free_action_queue(struct queue_type * queue)
-{
-	clear_action_queue(queue);
-	free(queue);
+void free_action_queue(struct queue_type * queue) {
+  clear_action_queue(queue);
+  free(queue);
 };
 
-void free_attack_queue(struct queue_type * queue)
-{
+void free_attack_queue(struct queue_type * queue) {
   clear_attack_queue(queue);
   free(queue);
 }
 
 /* Empty the queue. */
-void clear_action_queue(struct queue_type * queue)
-{
-	struct action_data * action = NULL;
+void clear_action_queue(struct queue_type * queue) {
+  struct action_data * action = NULL;
 
-	/* Check for NULL queue*/
-	if(queue == NULL)
-		return;
-	else {
-		/* Dequeue all the actions from the queue. */
-		while(queue->size > 0) {
-			action = dequeue_action(queue);
+  /* Check for NULL queue*/
+  if (queue == NULL)
+    return;
+  else {
+    /* Dequeue all the actions from the queue. */
+    while (queue->size > 0) {
+      action = dequeue_action(queue);
 
-			/* Free the memory. */
-			free(action->argument);
-			free(action);
-		}
-	}
+      /* Free the memory. */
+      free(action->argument);
+      free(action);
+    }
+  }
   /* Send a custom MSDP event so clients can manage queue displays. */
-     
+
 };
 
-void clear_attack_queue(struct queue_type * queue)
-{
-        struct attack_action_data * attack = NULL;
+void clear_attack_queue(struct queue_type * queue) {
+  struct attack_action_data * attack = NULL;
 
-        /* Check for NULL queue*/
-        if(queue == NULL)
-                return;
-        else {
-                /* Dequeue all the actions from the queue. */
-                while(queue->size > 0) {
-                        attack = dequeue_attack(queue);
+  /* Check for NULL queue*/
+  if (queue == NULL)
+    return;
+  else {
+    /* Dequeue all the actions from the queue. */
+    while (queue->size > 0) {
+      attack = dequeue_attack(queue);
 
-                        /* Free the memory. */
-                        free(attack->argument);
-                        free(attack);
-                }
-        }
+      /* Free the memory. */
+      free(attack->argument);
+      free(attack);
+    }
+  }
   /* Send a custom MSDP event so clients can manage queue displays. */
 };
 
-void enqueue(struct queue_type * queue, void * data)
-{
+void enqueue(struct queue_type * queue, void * data) {
   struct queue_element_type * el = NULL;
 
   CREATE(el, struct queue_element_type, 1);
@@ -101,7 +100,7 @@ void enqueue(struct queue_type * queue, void * data)
   el->data = data;
   el->next = NULL;
 
-  if(queue->first == NULL) {
+  if (queue->first == NULL) {
     queue->first = el;
   } else {
     queue->last->next = el;
@@ -111,16 +110,14 @@ void enqueue(struct queue_type * queue, void * data)
 }
 
 /* Add an action to the queue. */
-void enqueue_action(struct queue_type * queue, struct action_data * action)
-{
+void enqueue_action(struct queue_type * queue, struct action_data * action) {
   enqueue(queue, (void *) action);
 
   /* Send a custom MSDP event so clients can manage queue displays */
 };
 
 /* Add an attack to the queue. */
-void enqueue_attack(struct queue_type * queue, struct attack_action_data * attack)
-{
+void enqueue_attack(struct queue_type * queue, struct attack_action_data * attack) {
   enqueue(queue, (void *) attack);
   /* Send a custom MSDP event so clients can manage queue displays */
 };
@@ -149,8 +146,7 @@ void * dequeue(struct queue_type * queue) {
 }
 
 /* Remove and return an action from the queue. */
-struct action_data * dequeue_action(struct queue_type * queue)
-{
+struct action_data * dequeue_action(struct queue_type * queue) {
   struct action_data * action = NULL;
 
   action = (struct action_data *) dequeue(queue);
@@ -163,8 +159,7 @@ struct action_data * dequeue_action(struct queue_type * queue)
 }
 
 /* Remove and return an attack from the queue. */
-struct attack_action_data * dequeue_attack(struct queue_type * queue)
-{
+struct attack_action_data * dequeue_attack(struct queue_type * queue) {
   struct attack_action_data * attack = NULL;
 
   attack = (struct attack_action_data *) dequeue(queue);
@@ -176,26 +171,23 @@ struct attack_action_data * dequeue_attack(struct queue_type * queue)
   return attack;
 }
 
-void * peek(struct queue_type * queue)
-{
-        if (queue == NULL)
-                return NULL;
-        else if (queue->first == NULL)
-                return NULL;
-        else
-                return queue->first->data;
+void * peek(struct queue_type * queue) {
+  if (queue == NULL)
+    return NULL;
+  else if (queue->first == NULL)
+    return NULL;
+  else
+    return queue->first->data;
 }
 
 /* Return a pointer to the first action on the queue.  DO NOT DELETE IT.
  * This function just gives you a 'peek' and does not dequeue the action. */
-struct action_data * peek_action(struct queue_type * queue)
-{
-  return (struct action_data *)peek(queue);
+struct action_data * peek_action(struct queue_type * queue) {
+  return (struct action_data *) peek(queue);
 };
 
-struct attack_action_data * peek_attack(struct queue_type *queue)
-{
-  return (struct attack_action_data *)peek(queue);
+struct attack_action_data * peek_attack(struct queue_type *queue) {
+  return (struct attack_action_data *) peek(queue);
 };
 
 /* Check to see if the next action on the queue owned by ch can be executed.
@@ -203,18 +195,18 @@ struct attack_action_data * peek_attack(struct queue_type *queue)
 void execute_next_action(struct char_data *ch) {
   struct action_data *action = NULL;
 
-  if((ch == NULL))
+  if ((ch == NULL))
     return;
 
   action = peek_action(GET_QUEUE(ch));
 
-  if(action == NULL) /* No action. */
+  if (action == NULL) /* No action. */
     return;
 
-  if(IS_SET(action->actions_required, ACTION_STANDARD) && !is_action_available(ch, atSTANDARD, FALSE))
+  if (IS_SET(action->actions_required, ACTION_STANDARD) && !is_action_available(ch, atSTANDARD, FALSE))
     return;
 
-  if(IS_SET(action->actions_required, ACTION_MOVE) && !is_action_available(ch, atMOVE, FALSE))
+  if (IS_SET(action->actions_required, ACTION_MOVE) && !is_action_available(ch, atMOVE, FALSE))
     return;
 
   action = dequeue_action(GET_QUEUE(ch));
@@ -222,8 +214,7 @@ void execute_next_action(struct char_data *ch) {
 };
 
 /* Check if there are pending actions on the queue. */
-int pending_actions(struct char_data * ch)
-{
+int pending_actions(struct char_data * ch) {
   if (ch == NULL)
     return 0;
 
@@ -231,8 +222,7 @@ int pending_actions(struct char_data * ch)
 };
 
 /* Check if there are pending attacks on the queue. */
-int pending_attacks(struct char_data * ch)
-{
+int pending_attacks(struct char_data * ch) {
   if (ch == NULL)
     return 0;
 
@@ -267,12 +257,12 @@ ACMD(do_queue) {
           send_to_char(ch, " %i) %s\r\n", i++, ((struct action_data *) el->data)->argument);
         } else {
           send_to_char(ch, " %i) %s%s\r\n", i++,
-                complete_cmd_info[((struct attack_action_data *) el->data)->command].command,
-                ((struct attack_action_data *) el->data)->argument);
+                  complete_cmd_info[((struct attack_action_data *) el->data)->command].command,
+                  ((struct attack_action_data *) el->data)->argument);
         }
       }
     }
-    
+
     return;
   }
 
