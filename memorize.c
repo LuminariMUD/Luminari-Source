@@ -27,6 +27,8 @@
 
 /* local, global variables, defines */
 char buf[MAX_INPUT_LENGTH] = {'\0'};
+bool isSorcBloodlineSpell(int bloodline, int spellnum);
+int getSorcBloodline(struct char_data *ch);
 #define	TERMINATE	0
 
 
@@ -972,7 +974,8 @@ int count_sorc_known(struct char_data *ch, int circle, int class) {
       if (spellCircle(CLASS_SORCERER,
               PREPARED_SPELLS(ch, slot, classArray(CLASS_SORCERER)).spell,
               PREPARED_SPELLS(ch, slot, classArray(CLASS_SORCERER)).metamagic,
-              DOMAIN_UNDEFINED) == circle)
+              DOMAIN_UNDEFINED) == circle && 
+              !isSorcBloodlineSpell(getSorcBloodline(ch), PREPARED_SPELLS(ch, slot, classArray(CLASS_SORCERER)).spell))
         num++;
     } else if (class == CLASS_BARD) {
       if (spellCircle(CLASS_BARD,
