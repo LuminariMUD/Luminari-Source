@@ -1647,12 +1647,15 @@
 #define FEAT_DRACONIC_HERITAGE_WINGS           595
 #define FEAT_DRACONIC_HERITAGE_POWER_OF_WYRMS  596
 #define FEAT_DRACONIC_BLOODLINE_ARCANA         597
+#define FEAT_SORCERER_BLOODLINE_ARCANE         598
+#define FEAT_ARCANE_BLOODLINE_ARCANA           599
+
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT                      598
+#define FEAT_LAST_FEAT                      599
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS                           599
+#define NUM_FEATS                           600
 /** absolute cap **/
 #define MAX_FEATS                           750
 /*****/

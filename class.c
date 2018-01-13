@@ -1298,6 +1298,10 @@ int modify_class_ability(struct char_data *ch, int ability, int class) {
     if (ability == ABILITY_PERCEPTION)
       ability_value = CA;
   }
+  if (HAS_FEAT(ch, FEAT_SORCERER_BLOODLINE_ARCANE)) {
+    if (ability == ABILITY_APPRAISE)
+      ability_value = CA;
+  }
 
   return ability_value;
 }
@@ -2265,6 +2269,8 @@ void process_conditional_class_level_feats(struct char_data *ch, int class) {
           SET_FEAT(ch, FEAT_BLINDSENSE, 1);
           send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_BLINDSENSE].name);
         }
+      } else if (HAS_FEAT(ch, FEAT_SORCERER_BLOODLINE_ARCANE)) {
+        
       }
       break;
   }
@@ -2355,7 +2361,8 @@ void advance_level(struct char_data *ch, int class) {
     //else if (IS_EPIC(ch))
       //epic_class_feats++;      
   }
-  if (class == CLASS_SORCERER && ((CLASS_LEVEL(ch, CLASS_SORCERER) - 1) % 6 == 0)) {
+  if (class == CLASS_SORCERER && ((CLASS_LEVEL(ch, CLASS_SORCERER) - 1) % 6 == 0) &&
+      CLASS_LEVEL(ch, CLASS_SORCERER) > 1) {
     class_feats++;
   }
 
