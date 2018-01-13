@@ -557,6 +557,9 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn, *red;
 #define STUDY_SET_P_CASTER     31
 #define SET_PREFERRED_ARCANE   32
 #define SET_PREFERRED_DIVINE   33
+#define STUDY_SET_S_BLOODLINE  34
+#define SET_BLOODLINE_DRACONIC 35
+#define STUDY_CONFIRM_BLOODLINE 36
 
 
 int save_config(IDXTYPE nowhere);

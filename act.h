@@ -344,6 +344,9 @@ ACMD(do_powerfulblow);
 ACMD(do_renewedvigor);
 ACMD(do_reneweddefense);
 ACMD(do_comeandgetme);
+ACMD(do_sorcerer_breath_weapon);
+ACMD(do_sorcerer_claw_attack);
+ACMD(do_sorcerer_draconic_wings);
 
 /*****************************************************************************
  * Begin Functions and defines for act.other.c

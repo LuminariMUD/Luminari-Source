@@ -46,7 +46,7 @@ void load_armor(void);
 void assign_feats(void);
 void sort_feats(void);
 int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg);
-int is_class_feat(int featnum, int class);
+int is_class_feat(int featnum, int class, struct char_data *ch);
 int is_daily_feat(int featnum);
 int has_feat(struct char_data *ch, int featnum);
 bool meets_prerequisite(struct char_data *ch, struct feat_prerequisite *prereq, int iarg);
@@ -60,6 +60,8 @@ int feat_to_skfeat(int feat);
 void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data *viewer);
 extern struct feat_info feat_list[];
 extern int feat_sort_info[MAX_FEATS];
+int get_sorcerer_bloodline_type(struct char_data *ch);
+bool isSorcBloodlineFeat(int featnum);
 
 /**ACMD***/
 ACMD(do_feats);

@@ -354,7 +354,7 @@ void rem_room_aff(struct raff_node *raff) {
   struct raff_node *temp;
 
   /* this room affection has expired */
-  send_to_room(raff->room, spell_info[raff->spell].wear_off_msg);
+  send_to_room(raff->room, "%s", spell_info[raff->spell].wear_off_msg);
   send_to_room(raff->room, "\r\n");
 
   /* remove the affection */
@@ -1061,6 +1061,15 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       || --------Magic AoE SPELLS------------ ||
       \****************************************/
 
+    case SPELL_DRACONIC_BLOODLINE_BREATHWEAPON:
+      //AoE
+      save = SAVING_REFL;
+      mag_resist = FALSE;
+      element = draconic_heritage_energy_types[GET_BLOODLINE_SUBTYPE(ch)];
+      num_dice = CLASS_LEVEL(ch, CLASS_SORCERER);
+      size_dice = 6;
+      break;
+
     case SPELL_ACID: //acid fog (conjuration)
       //AoE
       save = SAVING_FORT;
@@ -1294,6 +1303,9 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   }
   
   if (HAS_FEAT(ch, FEAT_ENHANCED_SPELL_DAMAGE))
+    dam += num_dice;
+
+  if (HAS_FEAT(ch, FEAT_DRACONIC_BLOODLINE_ARCANA) && element == draconic_heritage_energy_types[GET_BLOODLINE_SUBTYPE(ch)])
     dam += num_dice;
 
   //resistances to magic, message in mag_resistance
@@ -1849,6 +1861,10 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         send_to_char(ch, "The target is too powerful for this enchantment!\r\n");
         return;
       }
+      if (sleep_immunity(victim)) {
+        send_to_char(ch, "Your target is unfazed.\r\n");
+        return;
+      }
       if (mag_resistance(ch, victim, 0))
         return;
       if (!CONFIG_PK_ALLOWED && !IS_NPC(ch) && !IS_NPC(victim))
@@ -2257,6 +2273,10 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         send_to_char(ch, "Your target is not undead.\r\n");
         return;
       }
+      if (paralysis_immunity(victim)) {
+        send_to_char(ch, "Your target is unfazed.\r\n");
+        return;
+      }
       if (GET_LEVEL(victim) > 11) {
         send_to_char(ch, "Your target is too powerful to be affected by this enchantment.\r\n");
         return;
@@ -2342,6 +2362,10 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         send_to_char(ch, "This spell is only effective on animals.\r\n");
         return;
       }
+      if (paralysis_immunity(victim)) {
+        send_to_char(ch, "Your target is unfazed.\r\n");
+        return;
+      }
       if (GET_LEVEL(victim) > 11) {
         send_to_char(ch, "Your target is too powerful to be affected by this enchantment.\r\n");
         return;
@@ -2361,6 +2385,14 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     case SPELL_HOLD_PERSON: //enchantment
       if (GET_LEVEL(victim) > 11) {
         send_to_char(ch, "Your target is too powerful to be affected by this enchantment.\r\n");
+        return;
+      }
+      if (paralysis_immunity(victim)) {
+        send_to_char(ch, "Your target is unfazed.\r\n");
+        return;
+      }
+      if (paralysis_immunity(victim)) {
+        send_to_char(ch, "Your target is unfazed.\r\n");
         return;
       }
       if (mag_resistance(ch, victim, 0))
@@ -2593,6 +2625,10 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case SPELL_MASS_HOLD_PERSON: //enchantment
+      if (paralysis_immunity(victim)) {
+        send_to_char(ch, "Your target is unfazed.\r\n");
+        return;
+      }
       if (mag_resistance(ch, victim, 0))
         return;
       if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus, casttype, level, ENCHANTMENT)) {
@@ -2836,6 +2872,10 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
           to_vict = "You are stunned by the colors!";
           break;
         case 2:
+          if (paralysis_immunity(victim)) {
+            send_to_char(ch, "Your target is unfazed.\r\n");
+            return;
+          }
           SET_BIT_AR(af[0].bitvector, AFF_PARALYZED);
           af[0].duration = dice(1, 6);
           to_room = "$n is paralyzed by the colors!";
@@ -3080,6 +3120,10 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     case SPELL_SLEEP: //enchantment
       if (GET_LEVEL(victim) >= 7 || is_immune_sleep) {
         send_to_char(ch, "The target is too powerful for this enchantment!\r\n");
+        return;
+      }
+      if (sleep_immunity(victim)) {
+        send_to_char(ch, "Your target is unfazed.\r\n");
         return;
       }
       if (mag_resistance(ch, victim, 0))
@@ -3934,6 +3978,34 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
     case SPELL_LIGHTNING_BREATHE:
       to_char = "You exhale breathing out lightning!";
       to_room = "$n exhales breathing lightning!";
+      break;
+    case SPELL_DRACONIC_BLOODLINE_BREATHWEAPON:
+      switch(draconic_heritage_energy_types[GET_BLOODLINE_SUBTYPE(ch)]) {
+        case DAM_FIRE:
+          to_char = "You exhale breathing out fire!";
+          to_room = "$n exhales breathing fire!";
+          break;
+        case DAM_COLD:
+          to_char = "You exhale breathing out frost!";
+          to_room = "$n exhales breathing frost!";
+          break;
+        case DAM_ELECTRIC:
+          to_char = "You exhale breathing out lightning!";
+          to_room = "$n exhales breathing lightning!";
+          break;
+        case DAM_ACID:
+          to_char = "You exhale breathing out acid!";
+          to_room = "$n exhales breathing acid!";
+          break;
+        case DAM_POISON:
+          to_char = "You exhale breathing out poison!";
+          to_room = "$n exhales breathing poison!";
+          break;
+        default:
+         to_char = "Error DRHRTBREATH_001a, please report to a member of staff.";
+         to_room = "Error DRHRTBREATH_001b, please report to a member of staff.";
+         break;
+      }
       break;
   }
 
@@ -5248,7 +5320,7 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj,
 
     default:
       sprintf(buf, "SYSERR: unknown spellnum %d passed to mag_room", spellnum);
-      log(buf);
+      log("%s", buf);
       break;
   }
 

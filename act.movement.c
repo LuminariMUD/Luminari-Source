@@ -2858,4 +2858,32 @@ int change_position(struct char_data *ch, int new_position) {
     return 1;
 }
 
+ACMD(do_sorcerer_draconic_wings) {
+
+  if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_DRACONIC_HERITAGE_WINGS)) {
+    send_to_char(ch, "You have no idea how.\r\n");
+    return;
+  }
+
+  if (affected_by_spell(ch, SKILL_DRHRT_WINGS)) {
+    send_to_char(ch, "You retract your draconic wings.\r\n");
+    act("$n extenretracts a large pair of draconic wings into $s back.", TRUE, ch, 0, 0, TO_ROOM);
+    affect_from_char(ch, SKILL_DRHRT_WINGS);
+    return;
+  }
+
+  struct affected_type af;
+
+  new_affect(&af);
+
+  af.spell = SKILL_DRHRT_WINGS;
+  SET_BIT_AR(af.bitvector, AFF_FLYING);
+  af.duration = -1;
+
+  affect_to_char(ch, &af);
+
+  send_to_char(ch, "You extend your draconic wings, giving you flight at a speed of 60.\r\n");
+  act("$n extendsa large pair of draconic wings from $s back.", TRUE, ch, 0, 0, TO_ROOM);
+}
+
 /*EOF*/

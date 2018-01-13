@@ -399,9 +399,10 @@
 #define SPELL_DOOM                      307  // creeping doom damage proc
 #define SPELL_WHIRLWIND                 308
 #define SPELL_LEVITATE                  309 /* levitation spell - very similar to waterwalk */
+#define SPELL_DRACONIC_BLOODLINE_BREATHWEAPON 310
 
 /** Total Number of defined spells  */
-#define NUM_SPELLS                      310
+#define NUM_SPELLS                      311
 
 /* unfinished spell list (homeland-port) */
 #define SPELL_VIGORIZE_LIGHT            309
@@ -638,6 +639,8 @@
 #define SKILL_DEATH_ARROW               538
 #define SKILL_DEFENSIVE_STANCE          539
 #define SKILL_CRIPPLING_CRITICAL        540
+#define SKILL_DRHRT_CLAWS               541
+#define SKILL_DRHRT_WINGS               542
 
 /* reserving this space for different performances 580 - 599*/
 #define TOP_OF_PERFORMANCES             580
@@ -1112,6 +1115,11 @@ int mag_resistance(struct char_data *ch, struct char_data *vict, int modifier);
 int compute_spell_res(struct char_data *ch, struct char_data *vict, int mod);
 int aoeOK(struct char_data *ch, struct char_data *tch, int spellnum);
 
+
+// Sorcerer Bloodline Types
+#define SORC_BLOODLINE_NONE                     0
+#define SORC_BLOODLINE_DRACONIC                 1
+#define NUM_SORC_BLOODLINES                     2 // 1 more than the last above
 
 /**************/
 /* memorize.c */

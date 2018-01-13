@@ -1084,7 +1084,7 @@ EVENTFUNC(event_casting) {
       for (x = CASTING_TIME(ch); x > 0; x--)
         strcat(buf, "*");
       strcat(buf, "\r\n");
-      send_to_char(ch, buf);
+      send_to_char(ch, "%s", buf);
 
       if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_QUICK_CHANT))
         if (rand_number(0, 1))
@@ -2853,6 +2853,9 @@ void mag_assign_spells(void) {
   spello(SPELL_LIGHTNING_BREATHE, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
           TAR_IGNORE, TRUE, MAG_AREAS,
           NULL, 0, 0, NOSCHOOL, FALSE);
+  spello(SPELL_DRACONIC_BLOODLINE_BREATHWEAPON, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
+          TAR_IGNORE, TRUE, MAG_AREAS,
+          NULL, 0, 0, NOSCHOOL, FALSE);
   spello(SPELL_FSHIELD_DAM, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
           TAR_IGNORE, TRUE, MAG_AFFECTS,
           NULL, 0, 0, NOSCHOOL, FALSE);
@@ -3025,6 +3028,8 @@ void mag_assign_spells(void) {
   skillo(SKILL_DEATH_ARROW, "arrow of death", ACTIVE_SKILL); //538
   skillo(SKILL_DEFENSIVE_STANCE, "defensive stance", ACTIVE_SKILL); //539
   skillo(SKILL_CRIPPLING_CRITICAL, "crippling critical", PASSIVE_SKILL); //540
+  skillo(SKILL_DRHRT_CLAWS, "draconic heritage claws", ACTIVE_SKILL) // 541
+  skillo(SKILL_DRHRT_WINGS, "draconic heritage wings", ACTIVE_SKILL) // 542
   /* songs */
   skillo(SKILL_SONG_OF_FOCUSED_MIND, "song of focused mind", ACTIVE_SKILL); //588
   skillo(SKILL_SONG_OF_FEAR, "song of fear", ACTIVE_SKILL); //589

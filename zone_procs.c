@@ -1776,6 +1776,11 @@ SPECIAL(thrym) {
   if (!ch || cmd || !vict || rand_number(0, 8))
     return 0;
 
+  if (paralysis_immunity(vict)) {
+    send_to_char(ch, "Your target is unfazed.\r\n");
+    return 1;
+  }
+
   act("\tCThrym touches you with a chilling hand, freezing you in place.\tn", FALSE, vict, 0, ch, TO_CHAR);
   act("\tCThrym touches $n\tC, freezing $m in place.\tn", FALSE, vict, 0, ch, TO_ROOM);
 
@@ -1955,11 +1960,13 @@ SPECIAL(frostbite) {
         call_magic(ch, vict, 0, SPELL_CONE_OF_COLD, 0, 30, CAST_SPELL);
       else {
         call_magic(ch, vict, 0, SPELL_CONE_OF_COLD, 0, 30, CAST_SPELL);
-        new_affect(&af);
-        af.spell = SPELL_HOLD_PERSON;
-        SET_BIT_AR(af.bitvector, AFF_PARALYZED);
-        af.duration = dice(2, 4);
-        affect_join(vict, &af, TRUE, FALSE, FALSE, FALSE);
+        if (!paralysis_immunity(vict)) {  
+          new_affect(&af);
+          af.spell = SPELL_HOLD_PERSON;
+          SET_BIT_AR(af.bitvector, AFF_PARALYZED);
+          af.duration = dice(2, 4);
+          affect_join(vict, &af, TRUE, FALSE, FALSE, FALSE);
+        }
       }
 
       GET_OBJ_SPECTIMER(obj, 0) = 24;

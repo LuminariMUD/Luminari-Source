@@ -2871,6 +2871,35 @@ const char *ability_names[] = {
   "\n"
 };
 
+const char * draconic_heritage_names[NUM_DRACONIC_HERITAGE_TYPES+1] = {
+  "none",
+  "black",
+  "blue",
+  "green",
+  "red",
+  "white",
+  "brass",
+  "bronze",
+  "copper",
+  "silver",
+  "gold",
+  "\n" // always last
+};
+
+const int draconic_heritage_energy_types[NUM_DRACONIC_HERITAGE_TYPES+1] = {
+  0, // none
+  DAM_ACID, // black
+  DAM_ELECTRIC, // blue
+  DAM_POISON, // green
+  DAM_FIRE, // red
+  DAM_COLD, // white
+  DAM_FIRE, // brass
+  DAM_ELECTRIC, // bronze
+  DAM_ACID, // copper
+  DAM_COLD, // silver
+  DAM_FIRE, // gold
+  0 // always last
+};
 
 // the number of spells received per level for caster types
 const int wizard_slots[LVL_IMPL + 1][NUM_CIRCLES + 1] = {

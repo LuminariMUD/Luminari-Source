@@ -24,13 +24,41 @@
 #include "sysdep.h"
 #include "structs.h"
 #include "utils.h"
+#include "comm.h"
+#include "dg_event.h"
+#include "spells.h"
+#include "handler.h"
+#include "db.h"
+#include "interpreter.h"
+#include "constants.h"
+#include "dg_scripts.h"
+#include "class.h"
+#include "fight.h"
+#include "utils.h"
+#include "mud_event.h"
+#include "act.h"  //perform_wildshapes
+#include "mudlim.h"
+#include "oasis.h"  // mob autoroller
+#include "assign_wpn_armor.h"
+#include "feats.h"
+#include "race.h"
+#include "spec_abilities.h"
+#include "domains_schools.h"
+
+/*
+#include "conf.h"
+#include "sysdep.h"
+#include "structs.h"
+#include "utils.h"
 #include "fight.h"
 #include "comm.h"
 #include "structs.h"
+#include "constants.h"
 #include "dg_event.h"
 #include "spells.h"
 #include "spec_abilities.h"
 #include "domains_schools.h"
+*/
 
 struct special_ability_info_type weapon_special_ability_info[NUM_WEAPON_SPECABS];
 struct special_ability_info_type armor_special_ability_info[NUM_ARMOR_SPECABS];
@@ -439,3 +467,10 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_frost) {
   }
 }
 
+int add_draconic_claws_elemental_damage(struct char_data *ch, struct char_data *victim)
+{
+  int dam = dice(1, 6);
+  int damtype = draconic_heritage_energy_types[GET_BLOODLINE_SUBTYPE(ch)];
+  dam -= compute_damtype_reduction(ch, damtype);
+  return MAX(0, dam);
+}

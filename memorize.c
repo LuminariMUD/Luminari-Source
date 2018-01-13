@@ -984,6 +984,39 @@ int count_sorc_known(struct char_data *ch, int circle, int class) {
   return num;
 }
 
+bool isSorcBloodlineSpell(int bloodline, int spellnum) {
+  switch (bloodline) {
+    case SORC_BLOODLINE_DRACONIC:
+     switch (spellnum) {
+       case SPELL_MAGE_ARMOR:
+       case SPELL_RESIST_ENERGY:
+       case SPELL_FLY:
+       //case SPELL_FEAR: // Not implemented yet
+       case SPELL_WIZARD_EYE: // replace with fear when imp'd
+       case SPELL_TELEKINESIS:
+       //case SPELL_FORM_OF_THE_DRAGON_I: // Not implemented yet
+       //case SPELL_FORM_OF_THE_DRAGON_II: // Not implemented yet
+       //case SPELL_FORM_OF_THE_DRAGON_III: // Not implemented yet
+       //case SPELL_WISH: // Not implemented yet
+       case SPELL_TRUE_SEEING: // replace with form of dragon i when imp'd
+       case SPELL_WAVES_OF_EXHAUSTION: // replace with form of dragon ii when imp'd
+       case SPELL_MASS_DOMINATION: // replace with form of dragon iii when imp'd
+       case SPELL_POLYMORPH: // replace with wish when imp'd
+         return TRUE;
+     }
+     break;
+  }
+  return FALSE;
+}
+
+int getSorcBloodline(struct char_data *ch)
+{
+  if (HAS_FEAT(ch, FEAT_SORCERER_BLOODLINE_DRACONIC))
+    return SORC_BLOODLINE_DRACONIC;
+  
+  return SORC_BLOODLINE_NONE;
+}
+
 /* For Sorc-types:  Checks if they know the given spell or not */
 bool sorcKnown(struct char_data *ch, int spellnum, int class) {
   int slot;
@@ -994,6 +1027,8 @@ bool sorcKnown(struct char_data *ch, int spellnum, int class) {
 
   for (slot = 0; slot < MAX_MEM; slot++) {
     if (class == CLASS_SORCERER) {
+      if (isSorcBloodlineSpell(getSorcBloodline(ch), spellnum))
+        return TRUE;
       if (PREPARED_SPELLS(ch, slot, classArray(CLASS_SORCERER)).spell == spellnum)
         return TRUE;
     } else if (class == CLASS_BARD) {
@@ -1284,7 +1319,7 @@ void updateMemming(struct char_data *ch, int class) {
                 PREPARATION_QUEUE(ch, 0, classArray(class)).spell);
         break;
     }
-    send_to_char(ch, buf);
+    send_to_char(ch, "%s", buf);
     removeSpellMemming(ch, PREPARATION_QUEUE(ch, 0, classArray(class)).spell, PREPARATION_QUEUE(ch, 0, classArray(class)).metamagic, class);
     if (PREPARATION_QUEUE(ch, 0, classArray(class)).spell == TERMINATE) {
       switch (class) {

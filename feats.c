@@ -1776,6 +1776,49 @@ void assign_feats(void) {
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
           "the slot is used, you can 'prepare' to recover it." );
   
+  feato(FEAT_SORCERER_BLOODLINE_DRACONIC, "draconic bloodline", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "1 level as sorcerer & select the draconic bloodline",
+    "The draconic bloodline allows the sorcerer to take upon them traits "
+    "of a dragon type of their choice.  This offers a claw attack starting "
+    "at level 1, energy resistance and natural armor at level 3, a breath "
+    "weapon at level 9, retractable wings at level 15, and blindsense plus "
+    "immunity to paralysis, sleep and your draconic heritage energy type at level "
+    "20.  The draconic bloodline also offers bonus spells, bonus feats and "
+    "more.  See HELP DRACONIC-BLOODLINE for more information.");
+  feato(FEAT_DRACONIC_HERITAGE_BREATHWEAPON, "draconic breath weapon", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "draconic bloodline and sorcerer level 9+",
+    "Allows use of the dracbreath command which will allow the sorcerer to "
+    "perform a draconic breath weapon attack, doing 1d6 damage for each "
+    "level in the sorcerer class.  The damage type is determined by the "
+    "dragon type chosen by the sorcerer when choosing their bloodline.");
+  feato(FEAT_DRACONIC_HERITAGE_CLAWS, "draconic claws", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "draconic bloodline",
+    "Allows use of the dracclaws command which will perform two claw attacks "
+    "at 1d4 + strength bonus damage each.  At level 7, these claw attacks are "
+    "considered magical when attempting to bypass certain damage reduction types. "
+    "At level 9 the damage increases to 1d6, and at level 11, they deal an extra "
+    "1d6 damage of the element type associated with your draconic heritage bloodline. "
+    "These claw attacks can be used a # of times per day equal to 3 + your "
+    "charisma modifier");
+  feato(FEAT_DRACONIC_HERITAGE_DRAGON_RESISTANCES, "draconic resistances", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "draconic bloodline, sorcerer level 3",
+    "At level 3 this offers energy resistance 5 for the element type associated "
+    "with the draconic heritage subtype and +1 natural ac bonus.  At level 9 "
+    "the energy resistance amount increases to 10 and natural armor +2.  At "
+    "level 15 the natural armor bonus increases to +4.");
+  feato(FEAT_DRACONIC_BLOODLINE_ARCANA, "draconic arcana", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "draconic bloodline",
+    "When casting a spell that uses the same damage subtype as your draconic heritage, "
+    "damage will be increased by +1 per damage die.");
+  feato(FEAT_DRACONIC_HERITAGE_WINGS, "draconic wings", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "draconic bloodline, sorcerer level 15",
+    "Allows the sorcerer to extend and retract dragon-like wings using the "
+    "dracwings command.  Wings provide a fly effect with a speed of 60.");
+  feato(FEAT_DRACONIC_HERITAGE_POWER_OF_WYRMS, "power of wyrms", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "draconic bloodline, sorcerer level 20",
+    "Provides immunity to sleep, paralysis, and elemental damage that matches "
+    "your draconic heritage.  Also provides blindsense with a range of 60 feet.");
+  
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_SPELL_PENETRATION, "spell penetration", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
     "+2 bonus on caster level checks to defeat spell resistance",
@@ -2881,7 +2924,8 @@ void assign_feats(void) {
   feato(FEAT_STRENGTH_BOOST, "strength boost", FALSE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "ask staff", "ask staff");
   feato(FEAT_TRAMPLE, "trample", FALSE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "ask staff", "ask staff");
   feato(FEAT_NATURAL_ARMOR_INCREASE, "natural armor increase", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
-  feato(FEAT_BLINDSENSE, "blindsense", FALSE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "ask staff", "ask staff");
+  feato(FEAT_BLINDSENSE, "blindsense", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "draconic bloodline, sorcerer level 20", 
+  "Allows full vision even when there is no light or the character is blinded.");
 
   /* dragon rider */
   feato(FEAT_DRAGON_MOUNT_BOOST, "dragon mount boost", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "gives +18 hp, +1 ac, +1 hit and +1 damage per rank in the feat", "gives +18 hp, +10 ac, +1 hit and +1 damage per rank in the feat");
@@ -3024,6 +3068,8 @@ void assign_feats(void) {
   dailyfeat(FEAT_MASS_INVIS, eMASS_INVIS);
   dailyfeat(FEAT_AURA_OF_PROTECTION, eAURA_OF_PROTECTION);
   dailyfeat(FEAT_BATTLE_RAGE, eBATTLE_RAGE);
+  dailyfeat(FEAT_DRACONIC_HERITAGE_BREATHWEAPON, eDRACBREATH);
+  dailyfeat(FEAT_DRACONIC_HERITAGE_CLAWS, eDRACCLAWS);
 
   /** END **/
 }
@@ -4112,7 +4158,57 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         }
         strcat(buf2, buf);
         none_shown = FALSE;
-        
+
+      } else if (i == FEAT_SORCERER_BLOODLINE_DRACONIC) {
+        if (mode == 1) {
+          sprintf(buf3, "%s (%s dragon)", feat_list[i].name, DRCHRTLIST_NAME(GET_BLOODLINE_SUBTYPE(ch)));
+          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+        } else {
+          sprintf(buf3, "%s (%s dragon)", feat_list[i].name, DRCHRTLIST_NAME(GET_BLOODLINE_SUBTYPE(ch)));
+          sprintf(buf, "%-40s ", buf3);
+        }
+        strcat(buf2, buf);
+        none_shown = FALSE;
+      } else if (i == FEAT_DRACONIC_HERITAGE_BREATHWEAPON) {
+        if (mode == 1) {
+          sprintf(buf3, "%s (%s, %dx/day)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)), get_daily_uses(ch, i));
+          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+        } else {
+          sprintf(buf3, "%s (%s, %dx/day)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)), get_daily_uses(ch, i));
+          sprintf(buf, "%-40s ", buf3);
+        }
+        strcat(buf2, buf);
+        none_shown = FALSE;  
+      } else if (i == FEAT_DRACONIC_HERITAGE_CLAWS) {
+        if (mode == 1) {
+          sprintf(buf3, "%s (%s, %dx/day)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)), get_daily_uses(ch, i));
+          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+        } else {
+          sprintf(buf3, "%s (%s, %dx/day)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)), get_daily_uses(ch, i));
+          sprintf(buf, "%-40s ", buf3);
+        }
+        strcat(buf2, buf);
+        none_shown = FALSE;  
+      } else if (i == FEAT_DRACONIC_BLOODLINE_ARCANA) {
+        if (mode == 1) {
+          sprintf(buf3, "%s (%s damage)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)));
+          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+        } else {
+          sprintf(buf3, "%s (%s damage)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)));
+          sprintf(buf, "%-40s ", buf3);
+        }
+        strcat(buf2, buf);
+        none_shown = FALSE;    
+      } else if (i == FEAT_DRACONIC_HERITAGE_DRAGON_RESISTANCES || i == FEAT_DRACONIC_HERITAGE_POWER_OF_WYRMS) {
+        if (mode == 1) {
+          sprintf(buf3, "%s (resist %s)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)));
+          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+        } else {
+          sprintf(buf3, "%s (resist %s)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)));
+          sprintf(buf, "%-40s ", buf3);
+        }
+        strcat(buf2, buf);
+        none_shown = FALSE;                
       } else if (i == FEAT_IMPROVED_REACTION) {
         if (mode == 1) {
           sprintf(buf3, "%s (+%d)", feat_list[i].name, 2 * has_feat(ch, FEAT_IMPROVED_REACTION));
@@ -4600,7 +4696,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
   page_string(viewer->desc, buf2, 1);
 }
 
-int is_class_feat(int featnum, int class) {
+int is_class_feat(int featnum, int class, struct char_data *ch) {
   struct class_feat_assign *feat_assign = NULL;
 
   /* we now traverse the class's list of class-feats to see if 'featnum' matches */
@@ -4609,6 +4705,22 @@ int is_class_feat(int featnum, int class) {
     /* is this a class feat?  and is this feat a match for 'featnum'? */
     if (feat_assign->is_classfeat && feat_assign->feat_num == featnum) {
       return TRUE; /* yep this is a class feat! */
+    }
+  }
+
+  // Sorcerer bloodline class feats
+  if (class == CLASS_SORCERER) {
+    if (HAS_FEAT(ch, FEAT_SORCERER_BLOODLINE_DRACONIC)) {
+      switch (featnum) {
+        case FEAT_BLIND_FIGHT:
+        case FEAT_GREAT_FORTITUDE:
+        case FEAT_IMPROVED_INITIATIVE:
+        case FEAT_POWER_ATTACK:
+        case FEAT_QUICKEN_SPELL:
+        case FEAT_SKILL_FOCUS:
+        case FEAT_TOUGHNESS:
+          return TRUE;
+      }
     }
   }
 
@@ -4733,7 +4845,7 @@ bool display_feat_info(struct char_data *ch, char *featname) {
   sprintf(buf, "\tcDescription : \tn%s\r\n",
           feat_list[feat].description
           );
-  send_to_char(ch, strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
+  send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
   send_to_char(ch, "\tn\r\n");
@@ -4856,6 +4968,30 @@ int feat_to_skfeat(int feat) {
     default:
       return -1;
   }
+}
+
+/* sorcerer draconic bloodline heritages */
+int get_draconic_heritage_subfeat(feat) {
+  switch (feat) {
+    case FEAT_SORCERER_BLOODLINE_DRACONIC:
+      return BLFEAT_DRACONIC;
+  }
+  return -1;
+}
+
+int get_sorcerer_bloodline_type(struct char_data *ch)
+{
+  int bl = 0;
+  if (HAS_FEAT(ch, (bl = FEAT_SORCERER_BLOODLINE_DRACONIC))) return bl; else bl = 0;
+  return bl;
+}
+
+bool isSorcBloodlineFeat(int featnum) {
+  switch (featnum) {
+    case FEAT_SORCERER_BLOODLINE_DRACONIC:
+      return TRUE;
+  }
+  return FALSE;
 }
 
 /* EOF */
