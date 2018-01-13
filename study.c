@@ -1596,7 +1596,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
           break;
         case 'A':
         case 'a':
-          if (CAN_STUDY_FEATS(ch)) {
+          if (CAN_STUDY_FEATS(ch) && GET_LEVEL(ch) < LVL_IMMORT) {
             write_to_output(d, "Please choose your feat(s) first.\r\n");
           }
           else if (CAN_SET_S_BLOODLINE(ch))

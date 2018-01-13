@@ -1119,7 +1119,8 @@ int aoeOK(struct char_data *ch, struct char_data *tch, int spellnum);
 // Sorcerer Bloodline Types
 #define SORC_BLOODLINE_NONE                     0
 #define SORC_BLOODLINE_DRACONIC                 1
-#define NUM_SORC_BLOODLINES                     2 // 1 more than the last above
+#define SORC_BLOODLINE_ARCANE                   2
+#define NUM_SORC_BLOODLINES                     3 // 1 more than the last above
 
 /**************/
 /* memorize.c */

@@ -4721,6 +4721,18 @@ int is_class_feat(int featnum, int class, struct char_data *ch) {
         case FEAT_TOUGHNESS:
           return TRUE;
       }
+    } else if (HAS_FEAT(ch, FEAT_SORCERER_BLOODLINE_ARCANE)) {
+      switch (featnum) {
+        case FEAT_COMBAT_CASTING:
+        case FEAT_IMPROVED_COUNTERSPELL:
+        case FEAT_IMPROVED_INITIATIVE:
+        case FEAT_IRON_WILL:
+        case FEAT_SCRIBE_SCROLL:
+        case FEAT_SKILL_FOCUS:
+        case FEAT_SPELL_FOCUS:
+        case FEAT_STILL_SPELL:
+          return TRUE;
+      }
     }
   }
 

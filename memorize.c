@@ -1005,6 +1005,21 @@ bool isSorcBloodlineSpell(int bloodline, int spellnum) {
          return TRUE;
      }
      break;
+     case SORC_BLOODLINE_ARCANE:
+      switch (spellnum) {
+        case SPELL_IDENTIFY:
+        case SPELL_INVISIBLE:
+        case SPELL_DISPEL_MAGIC:
+        //case SPELL_DIMENSION_DOOR: // Not implemented yet
+        case SPELL_MINOR_GLOBE: // replace with dimension door when implemented
+        case SPELL_FEEBLEMIND:
+        case SPELL_TRUE_SEEING:
+        case SPELL_TELEPORT:
+        case SPELL_POWER_WORD_STUN:
+        case SPELL_TIMESTOP:
+        return TRUE;
+      }
+     break;
   }
   return FALSE;
 }
@@ -1013,6 +1028,8 @@ int getSorcBloodline(struct char_data *ch)
 {
   if (HAS_FEAT(ch, FEAT_SORCERER_BLOODLINE_DRACONIC))
     return SORC_BLOODLINE_DRACONIC;
+  if (HAS_FEAT(ch, FEAT_SORCERER_BLOODLINE_ARCANE))
+    return SORC_BLOODLINE_ARCANE;
   
   return SORC_BLOODLINE_NONE;
 }
