@@ -14,31 +14,27 @@
 /* AQ specific commands */
 ACMD(do_queue);
 
-struct action_data
-{	
-	char *argument;	
-	int actions_required;
+struct action_data {
+    char *argument;
+    int actions_required;
 };
 
-struct attack_action_data
-{
-  int command;     /* Command that generated the action. */
-  int attack_type; /* Attack type - Subcmd of the command. */
-  char *argument;  /* Argument for the attack */    
+struct attack_action_data {
+    int command; /* Command that generated the action. */
+    int attack_type; /* Attack type - Subcmd of the command. */
+    char *argument; /* Argument for the attack */
 };
 
-struct queue_element_type
-{
-//  	struct action_data   * action;
-  void * data;
-  struct queue_element_type * next;
+struct queue_element_type {
+    //  	struct action_data   * action;
+    void * data;
+    struct queue_element_type * next;
 };
 
-struct queue_type
-{
-	struct queue_element_type * first;
-	struct queue_element_type * last;
-	int size;	
+struct queue_type {
+    struct queue_element_type * first;
+    struct queue_element_type * last;
+    int size;
 };
 
 /* Action queue */
@@ -59,7 +55,7 @@ void clear_attack_queue(struct queue_type * queue);
 void enqueue_attack(struct queue_type * queue, struct attack_action_data * attack);
 struct attack_action_data * dequeue_attack(struct queue_type * queue);
 struct attack_action_data * peek_attack(struct queue_type * queue);
- 
+
 int pending_attacks(struct char_data * ch);
 
 #endif /* _ACTIONQUEUES_H_ */

@@ -427,8 +427,8 @@ int load_char(const char *name, struct char_data *ch) {
       PRF_FLAGS(ch)[i] = PFDEF_PREFFLAGS;
       
     /* spell prep system init */
-    init_ch_spell_prep_queue(ch);
-    init_ch_spell_collection(ch);
+    //init_ch_spell_prep_queue(ch);
+    //init_ch_spell_collection(ch);
     
     /* finished inits, start loading from file */
 

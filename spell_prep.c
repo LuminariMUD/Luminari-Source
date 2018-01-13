@@ -659,6 +659,23 @@ struct prep_collection_spell_data *spell_from_collection(struct char_data *ch, i
 
 /** START functions that connect the spell-queue and collection */
 
+/* allocate memory, initialize a list, example death?, ch loadup */
+struct prep_collection_spell_data *create_prep_collection_list(int class) {
+  struct prep_collection_spell_data *prep_queue_data = NULL;
+
+  CREATE(prep_queue_data, struct prep_collection_spell_data, 1);
+  
+  prep_queue_data->spell = SPELL_RESERVED_DBC;
+  prep_queue_data->ch_class = class;
+  prep_queue_data->metamagic = METAMAGIC_NONE;
+  prep_queue_data->prep_time = 0;
+  prep_queue_data->domain = DOMAIN_UNDEFINED;
+  
+  prep_queue_data->next = NULL;
+
+  return prep_queue_data;  
+}
+
 /* in: char, spellnumber
  * out: true if success, false if failure
  * spell from queue to collection, example finished preparing a spell and now
