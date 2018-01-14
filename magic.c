@@ -1614,12 +1614,12 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
       af[0].location = APPLY_HITROLL;
       af[0].modifier = -4;
-      af[0].duration = 50;
+      af[0].duration = 25;
       SET_BIT_AR(af[0].bitvector, AFF_BLIND);
 
       af[1].location = APPLY_AC_NEW;
       af[1].modifier = -4;
-      af[1].duration = 50;
+      af[1].duration = 25;
       SET_BIT_AR(af[1].bitvector, AFF_BLIND);
 
       to_room = "$n seems to be blinded!";
@@ -1723,7 +1723,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
           SET_BIT_AR(af[1].bitvector, AFF_DISEASE);
           af[1].location = APPLY_CON;
           af[1].modifier = -1 * dice(1, 3);
-          af[1].duration = 600;
+          af[1].duration = 300;
           to_vict = "You suddenly come down with filth fever.";
           to_room = "$n suddenly comes down with filth fever.";
           break;
@@ -1753,7 +1753,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
           break;
       }
       SET_BIT_AR(af[0].bitvector, AFF_DISEASE);
-      af[0].duration = 600; // 30 real minutes (supposed to be permanent)
+      af[0].duration = 300; // 15 real minutes (supposed to be permanent)
       accum_affect = FALSE;
       accum_duration = FALSE;
       break;
@@ -2775,9 +2775,9 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
       af[0].location = APPLY_STR;
       if (casttype == CAST_INNATE || casttype == CAST_WEAPON_POISON) /* trelux for example */
-        af[0].duration = GET_LEVEL(ch) * 10;
+        af[0].duration = GET_LEVEL(ch) * 5;
       else
-        af[0].duration = caster_level * 25;
+        af[0].duration = caster_level * 12;
       af[0].modifier = -2;
       SET_BIT_AR(af[0].bitvector, AFF_POISON);
       to_vict = "You feel very sick.";
@@ -3286,12 +3286,12 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
       af[0].location = APPLY_HITROLL;
       af[0].modifier = -4;
-      af[0].duration = 50;
+      af[0].duration = 25;
       SET_BIT_AR(af[0].bitvector, AFF_BLIND);
 
       af[1].location = APPLY_AC_NEW;
       af[1].modifier = -4;
-      af[1].duration = 50;
+      af[1].duration = 25;
       SET_BIT_AR(af[1].bitvector, AFF_BLIND);
 
       to_room = "$n seems to be blinded!";
