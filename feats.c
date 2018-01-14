@@ -1653,7 +1653,7 @@ void assign_feats(void) {
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
           "the slot is used, you can 'prepare' to recover it." );
   
-  /* arcane spell access feats */
+  /* sorcerer spell access feats */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_SORCERER_1ST_CIRCLE, "1st circle sorcerer spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
     "gain access to 1st circle sorcerer spells",
@@ -1772,6 +1772,94 @@ void assign_feats(void) {
           "the slot is used, you can 'prepare' to recover it." );
   feato(FEAT_SORCERER_EPIC_SPELL_SLOT, "1st circle sorcerer slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
     "sorcerer epic circle slot",
+    "This gives you the ability to cast another spell of this slot for the respective "
+          "class.  There may be other requirements for casting particular spells from this "
+          "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
+          "the slot is used, you can 'prepare' to recover it." );
+
+  /* bard spell access feats */
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
+  feato(FEAT_BARD_1ST_CIRCLE, "1st circle bard spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+    "gain access to 1st circle bard spells",
+    "You now have access to 1st circle bard spells.  The spells you gain access "
+      "are determined by class.  Some classes gain access to all the spells "
+      "instantly upon ataining this feat, others have to select the spells via "
+      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+  feato(FEAT_BARD_2ND_CIRCLE, "2nd circle bard spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+    "gain access to 2nd circle bard spells",
+    "You now have access to 2nd circle bard spells.  The spells you gain access "
+      "are determined by class.  Some classes gain access to all the spells "
+      "instantly upon ataining this feat, others have to select the spells via "
+      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+  feato(FEAT_BARD_3RD_CIRCLE, "3rd circle bard spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+    "gain access to 3rd circle bard spells",
+    "You now have access to 3rd circle bard spells.  The spells you gain access "
+      "are determined by class.  Some classes gain access to all the spells "
+      "instantly upon ataining this feat, others have to select the spells via "
+      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+  feato(FEAT_BARD_4TH_CIRCLE, "4th circle bard spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+    "gain access to 4th circle bard spells",
+    "You now have access to 4th circle bard spells.  The spells you gain access "
+      "are determined by class.  Some classes gain access to all the spells "
+      "instantly upon ataining this feat, others have to select the spells via "
+      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+  feato(FEAT_BARD_5TH_CIRCLE, "5th circle bard spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+    "gain access to 5th circle bard spells",
+    "You now have access to 5th circle bard spells.  The spells you gain access "
+      "are determined by class.  Some classes gain access to all the spells "
+      "instantly upon ataining this feat, others have to select the spells via "
+      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+  feato(FEAT_BARD_6TH_CIRCLE, "6th circle bard spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+    "gain access to 6th circle bard spells",
+    "You now have access to 6th circle bard spells.  The spells you gain access "
+      "are determined by class.  Some classes gain access to all the spells "
+      "instantly upon ataining this feat, others have to select the spells via "
+      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+  feato(FEAT_BARD_EPIC_SPELL, "epic bard spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+    "gain access to epic bard spells",
+    "You now have access to epic bard spells.  The spells you gain access "
+      "are determined by feat selection.  Epic spells are only usable once per "
+      "game-day.");
+  /* bard SLOT feats */
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
+  feato(FEAT_BARD_1ST_CIRCLE_SLOT, "1st circle bard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+    "bard 1st circle slot",
+    "This gives you the ability to cast another spell of this slot for the respective "
+          "class.  There may be other requirements for casting particular spells from this "
+          "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
+          "the slot is used, you can 'prepare' to recover it." );
+  feato(FEAT_BARD_2ND_CIRCLE_SLOT, "1st circle bard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+    "bard 2nd circle slot",
+    "This gives you the ability to cast another spell of this slot for the respective "
+          "class.  There may be other requirements for casting particular spells from this "
+          "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
+          "the slot is used, you can 'prepare' to recover it." );
+  feato(FEAT_BARD_3RD_CIRCLE_SLOT, "1st circle bard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+    "bard 3rd circle slot",
+    "This gives you the ability to cast another spell of this slot for the respective "
+          "class.  There may be other requirements for casting particular spells from this "
+          "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
+          "the slot is used, you can 'prepare' to recover it." );
+  feato(FEAT_BARD_4TH_CIRCLE_SLOT, "1st circle bard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+    "bard 4th circle slot",
+    "This gives you the ability to cast another spell of this slot for the respective "
+          "class.  There may be other requirements for casting particular spells from this "
+          "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
+          "the slot is used, you can 'prepare' to recover it." );
+  feato(FEAT_BARD_5TH_CIRCLE_SLOT, "1st circle bard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+    "bard 5th circle slot",
+    "This gives you the ability to cast another spell of this slot for the respective "
+          "class.  There may be other requirements for casting particular spells from this "
+          "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
+          "the slot is used, you can 'prepare' to recover it." );
+  feato(FEAT_BARD_6TH_CIRCLE_SLOT, "1st circle bard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+    "bard 6th circle slot",
+    "This gives you the ability to cast another spell of this slot for the respective "
+          "class.  There may be other requirements for casting particular spells from this "
+          "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
+          "the slot is used, you can 'prepare' to recover it." );
+  feato(FEAT_BARD_EPIC_SPELL_SLOT, "1st circle bard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+    "bard epic circle slot",
     "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
