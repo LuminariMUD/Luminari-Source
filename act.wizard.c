@@ -6466,8 +6466,8 @@ ACMD(do_coordconvert) {
     return;
   }
     
-  x_value = get_number(&arg1);
-  y_value = get_number(&arg2);
+  x_value = get_number(arg1);
+  y_value = get_number(arg2);
   
   if ( x_value < -1024 || y_value < -1024 ||
        x_value > 2048  || y_value > 2048 ) {
