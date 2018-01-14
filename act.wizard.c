@@ -6488,7 +6488,7 @@ ACMD(do_coordconvert) {
   send_to_char(ch, "Converting map co-ordinates to \tcpixel location\tn: %s%5d %s%5d\tn\r\n",
                    (x_value < 0 || x_value > 2048) ? "\tR" : "\tW", x_value,
                    (x_value < 0 || x_value > 2048) ? "\tR" : "\tW", y_value );
-  send_to_char(ch, "\r\n\RRed coloring\tn indicates you are above/below the boundaries for this particular category.\r\n")
+  send_to_char(ch, "\r\n\tRRed coloring\tn indicates you are above/below the boundaries for this particular category.\r\n")
 }
 
   /* EOF */
