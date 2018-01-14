@@ -6449,12 +6449,12 @@ ACMD(do_coordconvert) {
 
   two_arguments(argument, arg1, arg2);
   
-  send_to_char(ch, "                              \tCBoundaries\tn\r\n"
+  send_to_char(ch, "                            \tCBoundaries\tn\r\n"
                    "\tc              Pixel Location    In-Game Co-ordinates\r\n"
-                   "\tcTop Left:\tW       0,    0       -1024,  1024\tn\r\n"
-                   "\tcTop Right:\tW   2048,    0        1024,  1024\tn\r\n"
-                   "\tcBottom Left:\tW    0, 2048       -1024, -1024\tn\r\n"
-                   "\tcBottom Right:\tW2048, 2048        1024, -1024\tn\r\n");
+                   "\tcTop Left:\tW        0,    0       -1024,  1024\tn\r\n"
+                   "\tcTop Right:\tW    2048,    0        1024,  1024\tn\r\n"
+                   "\tcBottom Left:\tW     0, 2048       -1024, -1024\tn\r\n"
+                   "\tcBottom Right: \tW2048, 2048        1024, -1024\tn\r\n");
   
   /* need two arguments */
   if (!*arg1 || isdigit(*arg1)) {
