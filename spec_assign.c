@@ -122,17 +122,18 @@ void assign_mobiles(void)
   ASSIGNMOB(3105, mayor);
 
   /* postmasters */
-  ASSIGNMOB(110, postmaster);
-  ASSIGNMOB(1201, postmaster);
-  ASSIGNMOB(3010, postmaster);
-  ASSIGNMOB(10412, postmaster);
-  ASSIGNMOB(10719, postmaster);
-  ASSIGNMOB(23496, postmaster);
-  ASSIGNMOB(25710, postmaster);
-  ASSIGNMOB(27164, postmaster);
-  ASSIGNMOB(30128, postmaster);
-  ASSIGNMOB(31510, postmaster);
+  ASSIGNMOB(110,    postmaster);
+  ASSIGNMOB(1201,   postmaster);
+  ASSIGNMOB(3010,   postmaster);
+  ASSIGNMOB(10412,  postmaster);
+  ASSIGNMOB(10719,  postmaster);
+  ASSIGNMOB(23496,  postmaster);
+  ASSIGNMOB(25710,  postmaster);
+  ASSIGNMOB(27164,  postmaster);
+  ASSIGNMOB(30128,  postmaster);
+  ASSIGNMOB(31510,  postmaster);
   ASSIGNMOB(103010, postmaster);
+  ASSIGNMOB(145293, postmaster); /*wolves assigned this*/
 
   /* receptionists */
   ASSIGNMOB(1200, receptionist);
