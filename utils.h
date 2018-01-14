@@ -675,8 +675,7 @@ do                                                              \
 #define IS_EPIC_LEVEL(ch)       (GET_LEVEL(ch) > 20)
 #define IS_EPIC(ch)             (IS_EPIC_LEVEL(ch))
 
-
-#define SPELLBATTLE(ch)        (ch->player_specials->saved.spec_abil[AG_SPELLBATTLE])
+#define SPELLBATTLE(ch)        ((ch)->char_specials.saved.spec_abil[AG_SPELLBATTLE])
 #define DIVINE_LEVEL(ch)	(IS_NPC(ch) ? GET_LEVEL(ch) : \
                                  ( CLASS_LEVEL(ch, CLASS_CLERIC) + \
                                    CLASS_LEVEL(ch, CLASS_DRUID) + \
