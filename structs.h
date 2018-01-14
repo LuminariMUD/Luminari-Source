@@ -232,11 +232,13 @@
 #define SECT_MARSHLAND       16  // marsh/swamps
 #define SECT_HIGH_MOUNTAIN   17  // mountains (climb only)
 #define SECT_PLANES          18  // non-prime (no effect yet)
+#define SECT_OUTTER_PLANES   SECT_PLANES
 #define SECT_UD_WILD         19  // the outdoors of the underdark
 #define SECT_UD_CITY         20  // city in the underdark
 #define SECT_UD_INSIDE       21  // inside in the underdark
 #define SECT_UD_WATER        22  // water in the underdark
 #define SECT_UD_NOSWIM       23  // water, boat needed, in the underdark
+#define SECT_UD_WATER_NOSWIM SECT_UD_NOSWIM
 #define SECT_UD_NOGROUND     24  // chasm in the underdark (Flying)
 #define SECT_LAVA            25  // lava (damaging)
 #define SECT_D_ROAD_NS       26  // dirt road
