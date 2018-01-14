@@ -6445,7 +6445,7 @@ ACMD(do_eqrating) {
 ACMD(do_coordconvert) {
   char arg1[MAX_INPUT_LENGTH];
   char arg2[MAX_INPUT_LENGTH];
-  int *x_value = NOTHING, *y_value = NOTHING;
+  int x_value = -1025, y_value = -1025;
 
   two_arguments(argument, arg1, arg2);
   
@@ -6466,8 +6466,8 @@ ACMD(do_coordconvert) {
     return;
   }
     
-  x_value = get_number(&arg1);
-  y_value = get_number(&arg2);
+  x_value = atoi(arg1);
+  y_value = atoi(arg2);
   
   if ( x_value < -1024 || y_value < -1024 ||
        x_value > 2048  || y_value > 2048 ) {
