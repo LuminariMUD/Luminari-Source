@@ -6458,11 +6458,11 @@ ACMD(do_coordconvert) {
                    "\tcBottom Right: \tW2048, 2048        1024, -1024\tn\r\n\r\n");
   
   /* need two arguments */
-  if (!*arg1 || !isdigit(*arg1)) {
+  if (!*arg1) {
     send_to_char(ch, "You need two arguments: a co-ordinate or pixel X and Y values.\r\n");
     return;
   }
-  if (!*arg2 || !isdigit(*arg2)) {
+  if (!*arg2) {
     send_to_char(ch, "You need two arguments: a co-ordinate or pixel X and Y values.\r\n");
     return;
   }
