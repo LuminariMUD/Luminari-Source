@@ -15,6 +15,9 @@
 #ifndef _COMBAT_MODES_H_
 #define _COMBAT_MODES_H_
 
+/* our cap for combat modes */
+#define MODE_CAP 5
+
 #define MODE_NONE                0
 #define MODE_POWER_ATTACK        1
 #define MODE_COMBAT_EXPERTISE    2
