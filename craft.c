@@ -298,25 +298,25 @@ char *node_keywords(int material) {
     case MATERIAL_GOLD:
       return strdup("vein of yellowish ore");
     case MATERIAL_WOOD:
-      return strdup("tree fallen");
+      return strdup("wood harvest tree");
     case MATERIAL_DARKWOOD:
-      return strdup("tree darkwood fallen");
+      return strdup("wood harvest tree quality");
     case MATERIAL_LEATHER:
-      return strdup("game freshly killed corpse");
+      return strdup("game live area");
     case MATERIAL_DRAGONHIDE:
-      return strdup("wyvern freshly killed corpse");
+      return strdup("game live area exotic");
     case MATERIAL_HEMP:
-      return strdup("hemp plants");
+      return strdup("cloth raw material basic");
     case MATERIAL_COTTON:
-      return strdup("cotton plants");
+      return strdup("cloth raw material simple");
     case MATERIAL_WOOL:
-      return strdup("cache of wool");
+      return strdup("cloth raw material");
     case MATERIAL_VELVET:
-      return strdup("cache of cloth");
+      return strdup("cloth raw material quality");
     case MATERIAL_SATIN:
-      return strdup("cache of satin");
+      return strdup("cloth raw material high quality");
     case MATERIAL_SILK:
-      return strdup("silkworms");
+      return strdup("cloth raw material rich");
   }
   return strdup("node harvesting");
 }
@@ -344,25 +344,25 @@ char *node_sdesc(int material) {
     case MATERIAL_GOLD:
       return strdup("a vein of yellowish ore");
     case MATERIAL_WOOD:
-      return strdup("a fallen tree");
+      return strdup("a wood harvest");
     case MATERIAL_DARKWOOD:
-      return strdup("a fallen darkwood tree");
+      return strdup("a quality wood harvest");
     case MATERIAL_LEATHER:
-      return strdup("the corpse of some freshly killed game");
+      return strdup("an area of live game");
     case MATERIAL_DRAGONHIDE:
-      return strdup("the corpse of a freshly killed baby wyvern");
+      return strdup("an area of live exotic game");
     case MATERIAL_HEMP:
-      return strdup("a patch of hemp plants");
+      return strdup("raw material for basic cloth");
     case MATERIAL_COTTON:
-      return strdup("a patch of cotton plants");
+      return strdup("raw material for simple cloth");
     case MATERIAL_WOOL:
-      return strdup("an abandoned cache of cloth");
+      return strdup("raw material for cloth");
     case MATERIAL_VELVET:
-      return strdup("an abandoned cache of cloth");
+      return strdup("raw material for quality cloth");
     case MATERIAL_SATIN:
-      return strdup("an abandoned cache of cloth");
+      return strdup("raw material for high quality");
     case MATERIAL_SILK:
-      return strdup("a large family of silkworms");
+      return strdup("raw material for rich cloth");
   }
   return strdup("a harvesting node");
 }
@@ -378,37 +378,37 @@ char *node_desc(int material) {
   /* gold       - vein of yellowish ore */
   switch (material) {
     case MATERIAL_STEEL:
-      return strdup("A vein of dull ore is here. \tn(\tYharvest\tn)");
+      return strdup("There are veins of dull ore here. \tn(\tYharvest\tn)");
     case MATERIAL_COLD_IRON:
-      return strdup("A vein of ore is here. \tn(\tYharvest\tn)");
+      return strdup("There are veins of ore here. \tn(\tYharvest\tn)");
     case MATERIAL_MITHRIL:
-      return strdup("A vein of bright ore is here. \tn(\tYharvest\tn)");
+      return strdup("There are veins of bright ore here. \tn(\tYharvest\tn)");
     case MATERIAL_ADAMANTINE:
-      return strdup("A vein of sparkling ore is here. \tn(\tYharvest\tn)");
+      return strdup("There are veins of sparkling ore here. \tn(\tYharvest\tn)");
     case MATERIAL_SILVER:
-      return strdup("A vein of dull speckled ore is here. \tn(\tYharvest\tn)");
+      return strdup("There are veins of dull speckled ore here. \tn(\tYharvest\tn)");
     case MATERIAL_GOLD:
-      return strdup("A vein of yellowish ore is here. \tn(\tYharvest\tn)");
+      return strdup("There are veins of yellowish ore here. \tn(\tYharvest\tn)");
     case MATERIAL_WOOD:
-      return strdup("A fallen tree is here. \tn(\tYharvest\tn)");
+      return strdup("The are here looks ideal for harvesting wood. \tn(\tYharvest\tn)");
     case MATERIAL_DARKWOOD:
-      return strdup("A fallen darkwood tree is here. \tn(\tYharvest\tn)");
+      return strdup("The are here looks ideal for harvesting quality wood. \tn(\tYharvest\tn)");
     case MATERIAL_LEATHER:
-      return strdup("The corpse of some freshly killed game is here. \tn(\tYharvest\tn)");
+      return strdup("The area is live with game. \tn(\tYharvest\tn)");
     case MATERIAL_DRAGONHIDE:
-      return strdup("The corpse of a freshly killed baby wyvern is here. \tn(\tYharvest\tn)");
+      return strdup("The area is live with exotic game. \tn(\tYharvest\tn)");
     case MATERIAL_HEMP:
-      return strdup("A patch of hemp plants is here. \tn(\tYharvest\tn)");
+      return strdup("There is enough raw material for basic cloth here. \tn(\tYharvest\tn)");
     case MATERIAL_COTTON:
-      return strdup("A patch of cotton plants is here. \tn(\tYharvest\tn)");
+      return strdup("There is enough raw material for simple cloth here. \tn(\tYharvest\tn)");
     case MATERIAL_WOOL:
-      return strdup("An abandoned cache of cloth is here. \tn(\tYharvest\tn)");
+      return strdup("There is enough raw material for cloth here. \tn(\tYharvest\tn)");
     case MATERIAL_VELVET:
-      return strdup("An abandoned cache of cloth is here. \tn(\tYharvest\tn)");
+      return strdup("There is enough raw material for quality cloth here. \tn(\tYharvest\tn)");
     case MATERIAL_SATIN:
-      return strdup("An abandoned cache of cloth is here. \tn(\tYharvest\tn)");
+      return strdup("There is enough raw material for high quality cloth here. \tn(\tYharvest\tn)");
     case MATERIAL_SILK:
-      return strdup("A large family of silkworms is here. \tn(\tYharvest\tn)");
+      return strdup("There is enough raw material for rich cloth here. \tn(\tYharvest\tn)");
   }
   return strdup("A harvesting node is here.  Please inform an imm, this is an error.");
 }
@@ -1741,26 +1741,30 @@ EVENTFUNC(event_crafting) {
     return 0;
   }
 
-  if (GET_CRAFTING_TICKS(ch)) {
-    // the crafting tick is still going!  disenchant has no OBJ so we handle separate
+  if (GET_CRAFTING_TICKS(ch)) { /* still working! */
+    
+    /* disenchant.   disenchant has no OBJ so we handle separate */
     if (GET_CRAFTING_TYPE(ch) == SCMD_DISENCHANT) {
       send_to_char(ch, "You continue to %s.\r\n",
               craft_type[GET_CRAFTING_TYPE(ch)]);
       exp = 10 * GET_LEVEL(ch) + GET_LEVEL(ch);
-      // the crafting tick is still going!
+      
+    /* should be everything that is not disenchant/supplyorder */  
     } else if (GET_CRAFTING_OBJ(ch)) {
       send_to_char(ch, "You continue to %s and work to create %s.\r\n",
               craft_type[GET_CRAFTING_TYPE(ch)],
               GET_CRAFTING_OBJ(ch)->short_description);
       exp = GET_OBJ_LEVEL(GET_CRAFTING_OBJ(ch)) * GET_LEVEL(ch) + GET_LEVEL(ch);
+      
+    /* supply orders */  
     } else {
       send_to_char(ch, "You continue your supply order for %s.\r\n",
               GET_AUTOCQUEST_DESC(ch));
       exp = GET_LEVEL(ch) * 2;
     }
+    
     gain_exp(ch, exp, GAIN_EXP_MODE_CRAFT);
     send_to_char(ch, "You gained %d exp for crafting...\r\n", exp);
-
     send_to_char(ch, "You have approximately %d seconds "
             "left to go.\r\n", GET_CRAFTING_TICKS(ch) * 6);
 
@@ -1800,30 +1804,30 @@ EVENTFUNC(event_crafting) {
         break;
       case SCMD_MINE:
         skill = SKILL_MINING;
-        sprintf(buf, "You mine and process resulting in: $p.  Success!!!");
+        sprintf(buf, "Your efforts in the area result in: $p.  Success!!!");
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
-        sprintf(buf, "$n mines and processes creating: $p.");
+        sprintf(buf, "$n's efforts in the area result in: $p.");
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
         break;
       case SCMD_HUNT:
         skill = SKILL_FORESTING;
-        sprintf(buf, "Your hunt and labor result in: $p .  Success!!!");
+        sprintf(buf, "Your efforts in the area result in: $p.  Success!!!");
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
-        sprintf(buf, "$n's hunt and labor result in: $p.");
+        sprintf(buf, "$n's efforts in the area result in: $p.");
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
         break;
       case SCMD_KNIT:
         skill = SKILL_KNITTING;
-        sprintf(buf, "You turn the raw material into: $p.  Success!!!");
+        sprintf(buf, "Your efforts in the area result in: $p.  Success!!!");
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
-        sprintf(buf, "$n turns the raw material into: $p.");
+        sprintf(buf, "$n's efforts in the area result in: $p.");
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
         break;
       case SCMD_FOREST:
         skill = SKILL_FORESTING;
-        sprintf(buf, "Your foresting and labor result in: $p.  Success!!!");
+        sprintf(buf, "Your efforts in the area result in: $p.  Success!!!");
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
-        sprintf(buf, "$n forests and labors resulting in: $p.");
+        sprintf(buf, "$n's efforts in the area result in: $p.");
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
         break;
       case SCMD_DISENCHANT:
@@ -2257,11 +2261,11 @@ ACMD(do_harvest) {
   GET_CRAFTING_TICKS(ch) = 5;
   GET_CRAFTING_OBJ(ch) = obj;
 
-  // Tell the character they made something.
+  // Tell the character they started.
   sprintf(buf, "You begin to %s.", CMD_NAME);
   act(buf, FALSE, ch, 0, NULL, TO_CHAR);
 
-  // Tell the room the character made something.
+  // Tell the room the character started.
   sprintf(buf, "$n begins to %s.", CMD_NAME);
   act(buf, FALSE, ch, 0, NULL, TO_ROOM);
 
