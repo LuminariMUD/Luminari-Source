@@ -6458,11 +6458,11 @@ ACMD(do_coordconvert) {
   
   /* need two arguments */
   if (!*arg1 || isdigit(*arg1)) {
-    send_to_char(ch, "You need to enter a co-ordinate or pixel X value.\r\n");
+    send_to_char(ch, "You need two arguments: a co-ordinate or pixel X and Y values.\r\n");
     return;
   }
   if (!*arg2 || isdigit(*arg2)) {
-    send_to_char(ch, "You need to enter a co-ordinate or pixel Y value.\r\n");
+    send_to_char(ch, "You need two arguments: a co-ordinate or pixel X and Y values.\r\n");
     return;
   }
     
