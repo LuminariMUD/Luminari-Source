@@ -4692,7 +4692,7 @@ ACMD(do_happyhour) {
 }
 
 /****  little hint system *******/
-#define NUM_HINTS   29
+#define NUM_HINTS   31
 
 /* i am surrounding hints with this:
    \tR[HINT]:\tn \ty
@@ -4847,15 +4847,16 @@ char *hints[NUM_HINTS] = {
   /*22*/"\tR[HINT]:\tn \ty"
                 "Overwhelmed by all the class and feat choices?  We started a community "
                 "built thread on the FORUM.  We then transfer those submissions to "
-                "help files under the heading HELP CLASS-BUILD.  The forum link is "
-                ""
+                "help files under the heading HELP CLASS-BUILD.  The forum link is:  "
+                "http://www.luminarimud.com/forums/topic/class-builds/"
                 "  [use nohint or prefedit to deactivate this]\tn\r\n",
   /*23*/"\tR[HINT]:\tn \ty"
                 "Help files are critical!  We try our best to anticipate all the subjects "
                 "that are needed, but we rely heavily on contributions from players - "
                 "with emphasis on new ones.  Please take the time to post it on the forum at "
-                "https://www.luminarimud.com/forums/topic/hint-submissions/ you can also "
-                "post it as an IDEA in-game."
+                "http://www.luminarimud.com/forums/topic/help-files/ you can also "
+                "post it as an IDEA in-game.  You can also help the staff workload by writing "
+                "helpfiles via the forum!"
                 "  [use nohint or prefedit to deactivate this]\tn\r\n",
   /*24*/"\tR[HINT]:\tn \ty"
                 "LuminariMUD has a forum at: https://www.luminarimud.com/forums/ the public "
@@ -4889,6 +4890,16 @@ char *hints[NUM_HINTS] = {
                 "FIRE command.  To gather your ammo and make sure it does not get mixed "
                 "up with other archers, just type COLLECT.  You can even toggle AUTOCOLLECT "
                 "to make sure you automatically collect your ammo after each battle."
+                "  [use nohint or prefedit to deactivate this]\tn\r\n",
+  /*30*/"\tR[HINT]:\tn \ty"
+                "Are you using our Mudlet GUI (http://www.luminarimud.com/forums/topic/official-luminari-gui/)?  "
+                "If so, you may want to view our help file: HELP GUI-MAP to get an idea how to use "
+                "the mapper properly!"
+                "  [use nohint or prefedit to deactivate this]\tn\r\n",
+  /*31*/"\tR[HINT]:\tn \ty"
+                "Spot a typo?  Just use the command: TYPO SUBMIT <title> to enter our "
+                "text editor.  From there you can type out what you found, then type /s to "
+                "save your submission.  This creates a record for the staff to work off of!"
                 "  [use nohint or prefedit to deactivate this]\tn\r\n",
 };
 
