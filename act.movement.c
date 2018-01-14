@@ -2479,7 +2479,7 @@ ACMD(do_wake) {
     else {
       act("You wake $M up.", FALSE, ch, 0, vict, TO_CHAR);
       act("You are awakened by $n.", FALSE, ch, 0, vict, TO_VICT | TO_SLEEP);
-      change_position(ch, POS_RECLINING);
+      change_position(vict, POS_RECLINING);
     }
     if (!self)
       return;
@@ -2489,8 +2489,8 @@ ACMD(do_wake) {
   else if (GET_POS(ch) > POS_SLEEPING)
     send_to_char(ch, "You are already awake...\r\n");
   else {
-    send_to_char(ch, "You awaken.\r\n");
-    act("$n awakens.", TRUE, ch, 0, 0, TO_ROOM);
+    send_to_char(ch, "You awaken and are now in a prone position.\r\n");
+    act("$n awakens and is now in a prone position.", TRUE, ch, 0, 0, TO_ROOM);
     change_position(ch, POS_RECLINING);
   }
 }
