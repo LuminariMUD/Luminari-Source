@@ -216,7 +216,7 @@ room_rnum find_target_room(struct char_data *ch, char *rawroomstr) {
 ACMD(do_at) {
   char command[MAX_INPUT_LENGTH], buf[MAX_INPUT_LENGTH];
   room_rnum location, original_loc;
-  int orig_x, orig_y;  /* Needed if 'at'ing in the wilderness. */
+  int orig_x, orig_y; /* Needed if 'at'ing in the wilderness. */
 
   half_chop(argument, buf, command);
   if (!*buf) {
@@ -240,7 +240,7 @@ ACMD(do_at) {
 
   char_from_room(ch);
 
-  if(ZONE_FLAGGED(GET_ROOM_ZONE(location), ZONE_WILDERNESS)) {
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(location), ZONE_WILDERNESS)) {
     X_LOC(ch) = world[location].coords[0];
     Y_LOC(ch) = world[location].coords[1];
   }
@@ -266,13 +266,13 @@ ACMD(do_goto) {
 
   two_arguments(argument, arg, arg2);
 
-  if(!*arg2) {
+  if (!*arg2) {
     if ((location = find_target_room(ch, argument)) == NOWHERE)
       return;
   } else {
     /* Have two args, that means coordinates (potentially) */
     if ((location = find_room_by_coordinates(atoi(arg), atoi(arg2))) == NOWHERE) {
-      if((location = find_available_wilderness_room()) == NOWHERE) {
+      if ((location = find_available_wilderness_room()) == NOWHERE) {
         return;
       } else {
         /* Must set the coords, etc in the going_to room. */
@@ -292,8 +292,8 @@ ACMD(do_goto) {
 
   char_from_room(ch);
 
-  if(ZONE_FLAGGED(GET_ROOM_ZONE(location), ZONE_WILDERNESS)) {
-//    char_to_coords(ch, world[location].coords[0], world[location].coords[1], 0);
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(location), ZONE_WILDERNESS)) {
+    //    char_to_coords(ch, world[location].coords[0], world[location].coords[1], 0);
     X_LOC(ch) = world[location].coords[0];
     Y_LOC(ch) = world[location].coords[1];
   }
@@ -328,7 +328,7 @@ ACMD(do_trans) {
       act("$n disappears in a mushroom cloud.", FALSE, victim, 0, 0, TO_ROOM);
       char_from_room(victim);
 
-      if(ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS)) {
+      if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS)) {
         X_LOC(victim) = world[IN_ROOM(ch)].coords[0];
         Y_LOC(victim) = world[IN_ROOM(ch)].coords[1];
       }
@@ -385,7 +385,7 @@ ACMD(do_teleport) {
     act("$n disappears in a puff of smoke.", FALSE, victim, 0, 0, TO_ROOM);
     char_from_room(victim);
 
-    if(ZONE_FLAGGED(GET_ROOM_ZONE(target), ZONE_WILDERNESS)) {
+    if (ZONE_FLAGGED(GET_ROOM_ZONE(target), ZONE_WILDERNESS)) {
       X_LOC(victim) = world[target].coords[0];
       Y_LOC(victim) = world[target].coords[1];
     }
@@ -662,7 +662,7 @@ static void do_affstat_character(struct char_data *ch, struct char_data *k) {
 }
 
 static void do_stat_scriptvar(struct char_data *ch, struct char_data *k) {
-  
+
   /* check mobiles for a script */
   do_sstat_character(ch, k);
   if (SCRIPT_MEM(k)) {
@@ -682,7 +682,7 @@ static void do_stat_scriptvar(struct char_data *ch, struct char_data *k) {
     }
     send_to_char(ch, "\r\n");
   }
-  
+
   if (!(IS_NPC(k))) {
     /* this is a PC, display their global variables */
     if (k->script && k->script->global_vars) {
@@ -701,7 +701,7 @@ static void do_stat_scriptvar(struct char_data *ch, struct char_data *k) {
           send_to_char(ch, "    %10s:  %s\r\n", tv->name, tv->value);
       }
     }
-  }  
+  }
 }
 
 static void do_stat_character(struct char_data *ch, struct char_data *k) {
@@ -784,7 +784,7 @@ static void do_stat_character(struct char_data *ch, struct char_data *k) {
       }
     }
     send_to_char(ch, " Pracs(U): %d, Trains: %d\r\n", GET_PRACTICES(k),
-            GET_TRAINS(k) );
+            GET_TRAINS(k));
   }
 
   send_to_char(ch, "\tCCharacter size: \tn%s  ", size_names[GET_SIZE(k)]);
@@ -851,18 +851,18 @@ static void do_stat_character(struct char_data *ch, struct char_data *k) {
 
   send_to_char(ch,
           "\tC=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\tn\r\n");
-  
+
   if (CLASS_LEVEL(k, CLASS_CLERIC)) {
     send_to_char(ch, "\tc1st Domain: \tn%s\tc, 2nd Domain: \tn%s\tc.\r\n",
-                 domain_list[GET_1ST_DOMAIN(k)].name,
-                 domain_list[GET_2ND_DOMAIN(k)].name);
+            domain_list[GET_1ST_DOMAIN(k)].name,
+            domain_list[GET_2ND_DOMAIN(k)].name);
     draw_line(ch, line_length, '-', '-');
   }
 
   if (CLASS_LEVEL(k, CLASS_WIZARD)) {
     send_to_char(ch, "\tcSpecialty School: \tn%s\tc, Restricted: \tn%s\tc.\r\n",
-                 school_names[GET_SPECIALTY_SCHOOL(k)],
-                 school_names[restricted_school_reference[GET_SPECIALTY_SCHOOL(k)]]);
+            school_names[GET_SPECIALTY_SCHOOL(k)],
+            school_names[restricted_school_reference[GET_SPECIALTY_SCHOOL(k)]]);
     draw_line(ch, line_length, '-', '-');
   }
 
@@ -1024,11 +1024,11 @@ static void do_stat_character(struct char_data *ch, struct char_data *k) {
 
   send_to_char(ch,
           "\tC=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\tn\r\n");
-  
+
 }
 
 ACMD(do_stat) {
-  char buf1[MAX_INPUT_LENGTH] = { '\0' }, buf2[MAX_INPUT_LENGTH]= { '\0' };
+  char buf1[MAX_INPUT_LENGTH] = {'\0'}, buf2[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *victim = NULL;
   struct obj_data *object = NULL;
   struct room_data *room = NULL;
@@ -1038,8 +1038,8 @@ ACMD(do_stat) {
   if (!*buf1) {
     send_to_char(ch, "Stats on who or what or where?\r\n");
     return;
-    
-  /* stat room */
+
+    /* stat room */
   } else if (is_abbrev(buf1, "room")) {
     if (!*buf2)
       room = &world[IN_ROOM(ch)];
@@ -1052,8 +1052,8 @@ ACMD(do_stat) {
       room = &world[rnum];
     }
     do_stat_room(ch, room);
-    
-  /* stat mobile */
+
+    /* stat mobile */
   } else if (is_abbrev(buf1, "mob")) {
     if (!*buf2)
       send_to_char(ch, "Stats on which mobile?\r\n");
@@ -1063,8 +1063,8 @@ ACMD(do_stat) {
       else
         send_to_char(ch, "No such mobile around.\r\n");
     }
-    
-  /* stat player */    
+
+    /* stat player */
   } else if (is_abbrev(buf1, "player")) {
     if (!*buf2) {
       send_to_char(ch, "Stats on which player?\r\n");
@@ -1074,8 +1074,8 @@ ACMD(do_stat) {
       else
         send_to_char(ch, "No such player around.\r\n");
     }
-    
-  /* stat scripts / variables */    
+
+    /* stat scripts / variables */
   } else if (is_abbrev(buf1, "scriptvar")) {
     if (!*buf2) {
       send_to_char(ch, "Scripts / Variables on which mobile / player?\r\n");
@@ -1085,8 +1085,8 @@ ACMD(do_stat) {
       else
         send_to_char(ch, "No such player around.\r\n");
     }
-    
-  /* stat feat */        
+
+    /* stat feat */
   } else if (is_abbrev(buf1, "feats")) {
     if (!*buf2) {
       send_to_char(ch, "Feats on which player/mobile?\r\n");
@@ -1096,8 +1096,8 @@ ACMD(do_stat) {
       else
         send_to_char(ch, "No such player around.\r\n");
     }
-    
-  /* stat affects */        
+
+    /* stat affects */
   } else if (is_abbrev(buf1, "affect")) {
     if (!*buf2) {
       send_to_char(ch, "Affects on which player/mobile?\r\n");
@@ -1107,8 +1107,8 @@ ACMD(do_stat) {
       else
         send_to_char(ch, "No such player around.\r\n");
     }
-    
-  /* stat (player rent) file */            
+
+    /* stat (player rent) file */
   } else if (is_abbrev(buf1, "file")) {
     if (!*buf2)
       send_to_char(ch, "Stats on which player?\r\n");
@@ -1133,8 +1133,8 @@ ACMD(do_stat) {
         free_char(victim);
       }
     }
-    
-  /* stat object */                
+
+    /* stat object */
   } else if (is_abbrev(buf1, "object")) {
     if (!*buf2)
       send_to_char(ch, "Stats on which object?\r\n");
@@ -1144,8 +1144,8 @@ ACMD(do_stat) {
       else
         send_to_char(ch, "No such object around.\r\n");
     }
-    
-  /* stat zone */                
+
+    /* stat zone */
   } else if (is_abbrev(buf1, "zone")) {
     if (!*buf2) {
       print_zone(ch, zone_table[world[IN_ROOM(ch)].zone].number);
@@ -1154,8 +1154,8 @@ ACMD(do_stat) {
       print_zone(ch, atoi(buf2));
       return;
     }
-    
-  /* generic search, object or characters */                    
+
+    /* generic search, object or characters */
   } else {
     char *name = buf1;
     int number = get_number(&name);
@@ -1417,7 +1417,7 @@ ACMD(do_load) {
     for (i = 0; i < n; i++) {
       mob = read_mobile(r_num, REAL);
 
-      if(ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS)) {
+      if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS)) {
         X_LOC(mob) = world[IN_ROOM(ch)].coords[0];
         Y_LOC(mob) = world[IN_ROOM(ch)].coords[1];
       }
@@ -2457,7 +2457,7 @@ ACMD(do_zreset) {
             zone_table[i].number, zone_table[i].name);
   } else
     send_to_char(ch, "You do not have permission to reset this zone. Try %d.\r\n",
-            GET_OLC_ZONE(ch));
+          GET_OLC_ZONE(ch));
 }
 
 /*  General fn for wizcommands of the sort: cmd <player> */
@@ -2575,14 +2575,14 @@ static size_t print_zone_to_buf(char *bufptr, size_t left, zone_rnum zone, int l
   mob_rnum mrnum;
 
   /* calculate average mob-level of zone, original by Ornir */
-  for(mrnum = 0; mrnum <= top_of_mobt; mrnum++) {
-    if(mob_index[mrnum].vnum >= zone_table[zone].bot && mob_index[mrnum].vnum <= zone_table[zone].top) {
+  for (mrnum = 0; mrnum <= top_of_mobt; mrnum++) {
+    if (mob_index[mrnum].vnum >= zone_table[zone].bot && mob_index[mrnum].vnum <= zone_table[zone].top) {
       avglvl += mob_proto[mrnum].player.level;
       mcount++;
     }
   }
-  avglvl = avglvl/(double)mcount;  
-  
+  avglvl = avglvl / (double) mcount;
+
   /* if you send listall */
   if (listall) {
     int i, j, k, l, m, n, o;
@@ -2657,10 +2657,10 @@ ACMD(do_show) {
   struct char_data *vict = NULL;
   struct obj_data *obj = NULL;
   struct descriptor_data *d = NULL;
-  char field[MAX_INPUT_LENGTH] = { '\0' }, value[MAX_INPUT_LENGTH] = { '\0' },
-          arg[MAX_INPUT_LENGTH] = { '\0' }, buf[MAX_STRING_LENGTH] = { '\0' };
+  char field[MAX_INPUT_LENGTH] = {'\0'}, value[MAX_INPUT_LENGTH] = {'\0'},
+  arg[MAX_INPUT_LENGTH] = {'\0'}, buf[MAX_STRING_LENGTH] = {'\0'};
   int r = 0, g = 0, b = 0;
-  char colour[16] = { '\0' };
+  char colour[16] = {'\0'};
   int q_total = 0, q_approved = 0;
   struct quest_entry *quest = NULL;
 
@@ -2683,7 +2683,7 @@ ACMD(do_show) {
     { "popularity", LVL_IMMORT},
     { "bab", LVL_IMMORT},
     { "exp", LVL_IMMORT},
-    { "colour", LVL_IMMORT},  //15
+    { "colour", LVL_IMMORT}, //15
     { "citizen", LVL_IMMORT},
     { "guard", LVL_IMMORT},
     { "\n", 0}
@@ -2809,21 +2809,21 @@ ACMD(do_show) {
       con = 0;
       for (vict = character_list; vict; vict = vict->next) {
         if (IS_NPC(vict))
-          j++;  //mobile in game count
+          j++; //mobile in game count
         else if (CAN_SEE(ch, vict)) {
-          i++;  //player in game count
+          i++; //player in game count
           if (vict->desc)
-            con++;  //how many connected
+            con++; //how many connected
         }
       }
       for (obj = object_list; obj; obj = obj->next)
-        k++;  //number of objects in game
+        k++; //number of objects in game
       for (l = 0; l < top_of_mobt; l++) {
         if (mob_proto[l].mob_specials.quest) {
           for (quest = mob_proto[l].mob_specials.quest; quest; quest = quest->next) {
-            q_total++;  // total homeland quests
+            q_total++; // total homeland quests
             if (quest->approved)
-              q_approved++;  // homeland quests approved
+              q_approved++; // homeland quests approved
           }
         }
       }
@@ -2960,7 +2960,7 @@ ACMD(do_show) {
       page_string(ch->desc, buf, TRUE);
       break;
 
-    case 16:  //show citizen
+    case 16: //show citizen
       if (*value && is_number(value))
         j = atoi(value);
       else
@@ -2983,7 +2983,7 @@ ACMD(do_show) {
       page_string(ch->desc, buf, 1);
       break;
 
-    case 17:  //show guard
+    case 17: //show guard
       if (*value && is_number(value))
         j = atoi(value);
       else
@@ -3151,7 +3151,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
   int i, on = 0, off = 0, value = 0, qvnum;
   room_rnum rnum;
   room_vnum rvnum;
-  char arg1[MAX_INPUT_LENGTH] = { '\0' }, arg2[MAX_INPUT_LENGTH] = { '\0' };
+  char arg1[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
   int class = CLASS_UNDEFINED;
 
   /* Check to make sure all the levels are correct */
@@ -3483,7 +3483,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       if (IN_ROOM(vict) != NOWHERE)
         char_from_room(vict);
 
-      if(ZONE_FLAGGED(GET_ROOM_ZONE(rnum), ZONE_WILDERNESS)) {
+      if (ZONE_FLAGGED(GET_ROOM_ZONE(rnum), ZONE_WILDERNESS)) {
         X_LOC(vict) = world[rnum].coords[0];
         Y_LOC(vict) = world[rnum].coords[1];
       }
@@ -3907,25 +3907,25 @@ struct zcheck_armor {
   int ac_allowed; /* Max. AC allowed for this body part  */
   char *message; /* phrase for error message            */
 } zarmor[TOTAL_WEAR_CHECKS] = {
-  {ITEM_WEAR_FINGER, 1, "Ring"},  //0
+  {ITEM_WEAR_FINGER, 1, "Ring"}, //0
   {ITEM_WEAR_NECK, 1, "Necklace"},
   {ITEM_WEAR_BODY, 35, "Body armor"},
   {ITEM_WEAR_HEAD, 15, "Head gear"},
   {ITEM_WEAR_LEGS, 15, "Legwear"},
-  {ITEM_WEAR_FEET, 1, "Footwear"},  //5
+  {ITEM_WEAR_FEET, 1, "Footwear"}, //5
   {ITEM_WEAR_HANDS, 1, "Glove"},
   {ITEM_WEAR_ARMS, 15, "Armwear"},
   {ITEM_WEAR_SHIELD, 40, "Shield"},
   {ITEM_WEAR_ABOUT, 1, "Cloak"},
-  {ITEM_WEAR_WAIST, 1, "Belt"},  //10
+  {ITEM_WEAR_WAIST, 1, "Belt"}, //10
   {ITEM_WEAR_WRIST, 1, "Wristwear"},
   {ITEM_WEAR_WIELD, 1, "Weapon"},
   {ITEM_WEAR_HOLD, 1, "Held item"},
   {ITEM_WEAR_FACE, 1, "Face"},
-  {ITEM_WEAR_AMMO_POUCH, 1, "Ammo pouch"},  //15
+  {ITEM_WEAR_AMMO_POUCH, 1, "Ammo pouch"}, //15
   {ITEM_WEAR_EAR, 1, "Earring"},
   {ITEM_WEAR_EYES, 1, "Eyewear"},
-  {ITEM_WEAR_BADGE, 1, "Badge"}  //18
+  {ITEM_WEAR_BADGE, 1, "Badge"} //18
 };
 
 /*These are strictly boolean*/
@@ -3942,53 +3942,53 @@ struct zcheck_affs {
   int max_aff; /*max. allowed value*/
   char *message; /*phrase for error message*/
 } zaffs[NUM_APPLIES] = {
-  {APPLY_NONE, 0, -99, "unused0"},  //0
+  {APPLY_NONE, 0, -99, "unused0"}, //0
   {APPLY_STR, -5, 9, "strength"},
   {APPLY_DEX, -5, 9, "dexterity"},
   {APPLY_INT, -5, 9, "intelligence"},
   {APPLY_WIS, -5, 9, "wisdom"},
-  {APPLY_CON, -5, 9, "constitution"},  //5
+  {APPLY_CON, -5, 9, "constitution"}, //5
   {APPLY_CHA, -5, 9, "charisma"},
   {APPLY_CLASS, 0, 0, "class"},
   {APPLY_LEVEL, 0, 0, "level"},
   {APPLY_AGE, 0, 0, "age"},
-  {APPLY_CHAR_WEIGHT, 0, 0, "character weight"},  //10
+  {APPLY_CHAR_WEIGHT, 0, 0, "character weight"}, //10
   {APPLY_CHAR_HEIGHT, 0, 0, "character height"},
   {APPLY_MANA, -90, 120, "mana"},
   {APPLY_HIT, -90, 120, "hit points"},
   {APPLY_MOVE, -90, 120, "movement"},
-  {APPLY_GOLD, 0, 0, "gold"},  //15
+  {APPLY_GOLD, 0, 0, "gold"}, //15
   {APPLY_EXP, 0, 0, "experience"},
   {APPLY_AC, -10, 10, "!Unused!"},
   {APPLY_HITROLL, 0, -99, "hitroll"}, /* Handled seperately below */
   {APPLY_DAMROLL, 0, -99, "damroll"}, /* Handled seperately below */
-  {APPLY_SAVING_FORT, -5, 9, "saving throw (fortitude)"},  //20
+  {APPLY_SAVING_FORT, -5, 9, "saving throw (fortitude)"}, //20
   {APPLY_SAVING_REFL, -5, 9, "saving throw (reflex)"},
   {APPLY_SAVING_WILL, -5, 9, "saving throw (willpower)"},
   {APPLY_SAVING_POISON, -5, 9, "saving throw (poison)"},
   {APPLY_SAVING_DEATH, -5, 9, "saving throw (death)"},
-  {APPLY_SPELL_RES, -90, 99, "spell resistance"},  //25
+  {APPLY_SPELL_RES, -90, 99, "spell resistance"}, //25
   {APPLY_SIZE, -1, 1, "size mod"},
   {APPLY_AC_NEW, -2, 2, "magical AC"},
 
   {APPLY_RES_FIRE, -20, 20, "fire resistance"},
   {APPLY_RES_COLD, -20, 20, "cold resistance"},
-  {APPLY_RES_AIR, -20, 20, "air resistance"},  //30
+  {APPLY_RES_AIR, -20, 20, "air resistance"}, //30
   {APPLY_RES_EARTH, -20, 20, "earth resistance"},
   {APPLY_RES_ACID, -20, 20, "acid resistance"},
   {APPLY_RES_HOLY, -20, 20, "holy resistance"},
   {APPLY_RES_ELECTRIC, -20, 20, "electric resistance"},
-  {APPLY_RES_UNHOLY, -20, 20, "unholy resistance"},  //35
+  {APPLY_RES_UNHOLY, -20, 20, "unholy resistance"}, //35
   {APPLY_RES_SLICE, -20, 20, "slice resistance"},
   {APPLY_RES_PUNCTURE, -20, 20, "puncture resistance"},
   {APPLY_RES_FORCE, -20, 20, "force resistance"},
   {APPLY_RES_SOUND, -20, 20, "sound resistance"},
-  {APPLY_RES_POISON, -20, 20, "poison resistance"},  //40
+  {APPLY_RES_POISON, -20, 20, "poison resistance"}, //40
   {APPLY_RES_DISEASE, -20, 20, "disease resistance"},
   {APPLY_RES_NEGATIVE, -20, 20, "negative resistance"},
   {APPLY_RES_ILLUSION, -20, 20, "illusion resistance"},
   {APPLY_RES_MENTAL, -20, 20, "mental resistance"},
-  {APPLY_RES_LIGHT, -20, 20, "light resistance"},  //45
+  {APPLY_RES_LIGHT, -20, 20, "light resistance"}, //45
   {APPLY_RES_ENERGY, -20, 20, "energy resistance"},
   {APPLY_RES_WATER, -20, 20, "water resistance"},
   {APPLY_DR, -20, 20, "damage reduction"},
@@ -4610,7 +4610,7 @@ ACMD(do_copyover) {
   if (port == CONFIG_DFLT_DEV_PORT) {
     min_level_to_copyover = LVL_IMMORT;
   }
-  
+
   if (GET_LEVEL(ch) < min_level_to_copyover) {
     send_to_char(ch, "Imp only command now.\r\n");
     return;
@@ -5627,8 +5627,6 @@ ACMD(do_objlist) {
   page_string(ch->desc, buf, 1);
 }
 
-
-
 /************************************************************************
  * do_hlqlist       by Kelemvor, rewritten for Luminari by Zusuk        *
  *    This function allows immortals to view homeland quest info        *
@@ -5639,9 +5637,9 @@ ACMD(do_hlqlist) {
   mob_rnum realnum = 0;
   int temp_num = 0, num_found = 0;
   int i = 0, len = 0;
-  char buf[MAX_STRING_LENGTH] = { '\0' };
-  char buf1[MAX_INPUT_LENGTH] = { '\0' };
-  char buf2[MAX_INPUT_LENGTH] = { '\0' };
+  char buf[MAX_STRING_LENGTH] = {'\0'};
+  char buf1[MAX_INPUT_LENGTH] = {'\0'};
+  char buf2[MAX_INPUT_LENGTH] = {'\0'};
 
   /* parse any arguments */
   two_arguments(argument, buf1, buf2);
@@ -5651,13 +5649,12 @@ ACMD(do_hlqlist) {
     bottom = zone_table[world[IN_ROOM(ch)].zone].bot;
     send_to_char(ch, "Bottom:  %d\r\n", bottom);
   }
-
-  /* if buf1 is not a number send them back */
+    /* if buf1 is not a number send them back */
   else if (!isdigit(*buf1)) {
     send_to_char(ch, "\tcFirst value must be a digit, or nothing.\tn\r\n");
     return;
 
-  /* convert buf1 to an integer */
+    /* convert buf1 to an integer */
   } else
     bottom = atoi(buf1);
 
@@ -5666,8 +5663,7 @@ ACMD(do_hlqlist) {
     top = zone_table[world[IN_ROOM(ch)].zone].top;
     send_to_char(ch, "Top:  %d\r\n", top);
   }
-
-  /* if buf2 is not a number send them back */
+    /* if buf2 is not a number send them back */
   else if (!isdigit(*buf2)) {
     send_to_char(ch, "\tcSecond value must be a digit, or nothing.\tn\r\n");
     return;
@@ -5709,14 +5705,14 @@ ACMD(do_hlqlist) {
         /*
         send_to_char(ch, "[%5d] %-40s %d/%d\r\n", i,
                 mob_proto[realnum].player.short_descr, temp_num, num_found);
-        */
+         */
 
         len += snprintf(buf + len, sizeof (buf) - len,
                 "[%5d] %-40s %d/%d\r\n", i,
                 mob_proto[realnum].player.short_descr, temp_num, num_found);
 
         /* Large buf can't hold that much memory so cut off list */
-        if (len > sizeof(buf))
+        if (len > sizeof (buf))
           break;
 
       } else {
@@ -5742,7 +5738,7 @@ ACMD(do_hlqlist) {
 ACMD(do_singlefile) {
   room_rnum room = NOWHERE;
   int dirs = -1, num_exits = -1;
-  char exits[24] = "NONE", buf[MAX_INPUT_LENGTH] = { '\0' };
+  char exits[24] = "NONE", buf[MAX_INPUT_LENGTH] = {'\0'};
 
   for (room = 0; room < top_of_world; room++) {
     if (ROOM_FLAGGED(room, ROOM_SINGLEFILE)) {
@@ -5775,26 +5771,26 @@ ACMD(do_genmap) {
   void *set;
   double pos[2], point[2];
   room_rnum *room;
-//  int j = 0;
+  //  int j = 0;
 
   point[0] = 0;
   point[1] = 0;
   set = kd_nearest_range(kd_wilderness_rooms, point, 2048);
   send_to_char(ch, "range query returned %d items.\r\n", kd_res_size(set));
 
-  while( !kd_res_end( set ) ) {
+  while (!kd_res_end(set)) {
     /* get the data and position of the current result item */
-    room = (room_rnum *)kd_res_item( set, pos );
+    room = (room_rnum *) kd_res_item(set, pos);
     send_to_char(ch, " (%.3f, %.3f) is room vnum: %d\r\n", pos[0], pos[1], world[*room].number);
 
     /* go to the next entry */
-    kd_res_next( set );
+    kd_res_next(set);
   }
 
   kd_res_free(set);
-  
+
   // Test region events
-  
+
 
 }
 
@@ -5805,11 +5801,11 @@ ACMD(do_acconvert) {
 
   for (num = 0; num <= top_of_objt; num++) {
 
-      if (GET_OBJ_TYPE(&obj_proto[num]) != ITEM_ARMOR)
-        continue;
+    if (GET_OBJ_TYPE(&obj_proto[num]) != ITEM_ARMOR)
+      continue;
 
-      GET_OBJ_VAL(&obj_proto[num], 0) = (GET_OBJ_VAL(&obj_proto[num], 0)/10) + (GET_OBJ_VAL(&obj_proto[num], 0) % 10 != 0);
-      found++;
+    GET_OBJ_VAL(&obj_proto[num], 0) = (GET_OBJ_VAL(&obj_proto[num], 0) / 10) + (GET_OBJ_VAL(&obj_proto[num], 0) % 10 != 0);
+    found++;
   }
   total += found;
   send_to_char(ch, "%d converted.\r\n", found);
@@ -5855,62 +5851,62 @@ ACMD(do_oconvert) {
 
   weapon_type_keywords[WEAPON_TYPE_DAGGER] = "dagger";
 
-//  for (i = 0; i < NUM_WEAPON_TYPES; i++) {
-    /* Skip weapon types for which we have no keywords. */
-//    if (weapon_type_keywords[i] == NULL)
-//      continue;
+  //  for (i = 0; i < NUM_WEAPON_TYPES; i++) {
+  /* Skip weapon types for which we have no keywords. */
+  //    if (weapon_type_keywords[i] == NULL)
+  //      continue;
 
-    found = 0;
-    send_to_char(ch, "- Converting type %d : %s ... ", iarg, weapon_list[iarg].name);
+  found = 0;
+  send_to_char(ch, "- Converting type %d : %s ... ", iarg, weapon_list[iarg].name);
 
-    i = iarg;
+  i = iarg;
 
-    for (num = 0; num <= top_of_objt; num++) {
-      /* init */
-      hitroll = 0;
-      damroll = 0;
-      
-      if (!(GET_OBJ_TYPE(&(obj_proto[num])) == ITEM_WEAPON)) continue;
-      
-      if (is_name(arg2, obj_proto[num].name)) {
+  for (num = 0; num <= top_of_objt; num++) {
+    /* init */
+    hitroll = 0;
+    damroll = 0;
 
-        GET_OBJ_VAL(&obj_proto[num], 0) = i; /* Weapon type */
-        GET_OBJ_VAL(&obj_proto[num], 1) = weapon_list[i].numDice; /* Number of dice */
-        GET_OBJ_VAL(&obj_proto[num], 2) = weapon_list[i].diceSize; /* Type of dice */
+    if (!(GET_OBJ_TYPE(&(obj_proto[num])) == ITEM_WEAPON)) continue;
 
-        for (j = 0; j < MAX_OBJ_AFFECT; j++) {
-          if (obj_proto[num].affected[j].modifier) {
-            if (obj_proto[num].affected[j].location == APPLY_HITROLL) {                       
-              hitroll = obj_proto[num].affected[j].modifier;
-              obj_proto[num].affected[j].modifier = 0;
-              obj_proto[num].affected[j].location = 0;
-            }
-            else if (obj_proto[num].affected[j].location == APPLY_DAMROLL) {
-              damroll = obj_proto[num].affected[j].modifier;
-              obj_proto[num].affected[j].modifier = 0;
-              obj_proto[num].affected[j].location = 0;
-            }
+    if (is_name(arg2, obj_proto[num].name)) {
+
+      GET_OBJ_VAL(&obj_proto[num], 0) = i; /* Weapon type */
+      GET_OBJ_VAL(&obj_proto[num], 1) = weapon_list[i].numDice; /* Number of dice */
+      GET_OBJ_VAL(&obj_proto[num], 2) = weapon_list[i].diceSize; /* Type of dice */
+
+      for (j = 0; j < MAX_OBJ_AFFECT; j++) {
+        if (obj_proto[num].affected[j].modifier) {
+          if (obj_proto[num].affected[j].location == APPLY_HITROLL) {
+            hitroll = obj_proto[num].affected[j].modifier;
+            obj_proto[num].affected[j].modifier = 0;
+            obj_proto[num].affected[j].location = 0;
+          } else if (obj_proto[num].affected[j].location == APPLY_DAMROLL) {
+            damroll = obj_proto[num].affected[j].modifier;
+            obj_proto[num].affected[j].modifier = 0;
+            obj_proto[num].affected[j].location = 0;
           }
         }
-
-        GET_OBJ_VAL(&obj_proto[num], 4) =  MAX(hitroll, damroll);
-
-        if (GET_OBJ_VAL(&obj_proto[num], 4) > 5)
-          GET_OBJ_VAL(&obj_proto[num], 4) = 5;
-        
-        save_objects(real_zone_by_thing(obj_proto[num].item_number));
-        
-        found++;
       }
+
+      GET_OBJ_VAL(&obj_proto[num], 4) = MAX(hitroll, damroll);
+
+      if (GET_OBJ_VAL(&obj_proto[num], 4) > 5)
+        GET_OBJ_VAL(&obj_proto[num], 4) = 5;
+
+      save_objects(real_zone_by_thing(obj_proto[num].item_number));
+
+      found++;
     }
-    total += found;
-    send_to_char(ch, "%d converted.\r\n", found);
-//  }
+  }
+  total += found;
+  send_to_char(ch, "%d converted.\r\n", found);
+  //  }
   send_to_char(ch, "Total of %d objects converted.\r\n", total);
 }
 
 
 /* a function to "score" the value of equipment -zusuk */
+
 /* what to take into consideration?
   type [object values]
   weapon spells
@@ -5921,7 +5917,7 @@ ACMD(do_oconvert) {
   size
   wear-slot
   misc
-*/
+ */
 int get_eq_score(obj_rnum a) {
   int b, i;
   int score = 0;
@@ -5930,7 +5926,7 @@ int get_eq_score(obj_rnum a) {
 
   /* simplify life, and dummy checks */
   if (a == NOTHING)
-    return -1;  
+    return -1;
   obj = &obj_proto[a];
   if (!obj)
     return -1;
@@ -5949,7 +5945,7 @@ int get_eq_score(obj_rnum a) {
         case AFF_INVISIBLE:
         case AFF_HASTE:
         case AFF_FREE_MOVEMENT:
-        case AFF_BLINKING:          
+        case AFF_BLINKING:
           score += 350;
           break;
         case AFF_VAMPIRIC_TOUCH:
@@ -6017,12 +6013,12 @@ int get_eq_score(obj_rnum a) {
           score += 150;
           break;
 
-        /* no value */
+          /* no value */
         case AFF_DONTUSE:
         case AFF_GROUP:
           break;
 
-        /* negative affections */
+          /* negative affections */
         case AFF_CONFUSED:
         case AFF_FAERIE_FIRE:
         case AFF_DEATH_WARD:
@@ -6051,7 +6047,7 @@ int get_eq_score(obj_rnum a) {
           score -= 150;
           break;
 
-        /* we are trying to handle every case */
+          /* we are trying to handle every case */
         default:
           score += 9999;
           break;
@@ -6063,12 +6059,12 @@ int get_eq_score(obj_rnum a) {
   for (i = 0; i < NUM_ITEM_FLAGS; i++) {
     if (OBJ_FLAGGED(obj, i)) {
       switch (i) {
-        /* item can't have any real value in this state! */
+          /* item can't have any real value in this state! */
         case ITEM_MOLD:
           score -= 9999;
           break;
 
-        /* autoprocs have to be manually added later based on the item proc */
+          /* autoprocs have to be manually added later based on the item proc */
         case ITEM_AUTOPROC:
           score += 300;
           break;
@@ -6091,7 +6087,7 @@ int get_eq_score(obj_rnum a) {
           score += 10;
           break;
 
-        /* reduce value of items below */
+          /* reduce value of items below */
         case ITEM_INVISIBLE:
         case ITEM_NODONATE:
         case ITEM_NOLOCATE:
@@ -6139,7 +6135,7 @@ int get_eq_score(obj_rnum a) {
           score -= 150;
           break;
 
-        /* we are attempting to handle every case */
+          /* we are attempting to handle every case */
         default:
           score += 9999;
           break;
@@ -6154,9 +6150,9 @@ int get_eq_score(obj_rnum a) {
   /* weapons */
   if (GET_OBJ_TYPE(obj) == ITEM_WEAPON) {
     score += (GET_WEAPON_TYPE(obj) != 0 ? 0 : GET_OBJ_VAL(obj, 1) * GET_OBJ_VAL(obj, 2));
-    score += (GET_ENHANCEMENT_BONUS(obj) <= 5 ? GET_ENHANCEMENT_BONUS(obj) * 100: 9999);
+    score += (GET_ENHANCEMENT_BONUS(obj) <= 5 ? GET_ENHANCEMENT_BONUS(obj) * 100 : 9999);
 
-    for(specab = obj->special_abilities; specab != NULL;specab = specab->next) {
+    for (specab = obj->special_abilities; specab != NULL; specab = specab->next) {
       score += weapon_special_ability_info[specab->ability].cost * 100;
     }
   }
@@ -6229,7 +6225,7 @@ int get_eq_score(obj_rnum a) {
           score += obj_proto[a].affected[b].modifier * 20;
           break;
 
-        /* these are not supposed to be used, so add them insane numbers */
+          /* these are not supposed to be used, so add them insane numbers */
         case APPLY_CLASS:
         case APPLY_LEVEL:
         case APPLY_GOLD:
@@ -6242,22 +6238,23 @@ int get_eq_score(obj_rnum a) {
   }
 
   /* END object affections*/
-  
+
   /* misc */
 
   /* unimplemented, but maybe shield weight offers bonus to shieldslam? */
   /*
   if (CAN_WEAR(obj, ITEM_WEAR_SHIELD))
     score += GET_OBJ_WEIGHT(obj);
-  */
+   */
 
   /* END misc */
-  
+
   /* DONE! */
   return score;
 }
 
 /* a command meant to view the top end equipment of the game -zusuk */
+
 /* takes one or two arguments, 2nd argument being optional:
    arg 1:  item slot
    arg 2:  zone
@@ -6443,5 +6440,47 @@ ACMD(do_eqrating) {
   free(score);
 }
 
-/* EOF */
+/* a little command to convert co-ordinates to pixel location on a graphic
+     - used for marking zones on a map and vice versa */
+ACMD(do_coordconvert) {
+  char arg1[MAX_INPUT_LENGTH];
+  char arg2[MAX_INPUT_LENGTH];
+  int x_value = NOTHING, y_value = NOTHING;
+
+  two_arguments(argument, arg1, arg2);
+  
+  send_to_char(ch, "                              \tCBoundaries\tn\r\n"
+                   "\tc              Pixel Location    In-Game Co-ordinates\r\n"
+                   "\tcTop Left:\tW       0,    0       -1024,  1024\tn\r\n"
+                   "\tcTop Right:\tW   2048,    0        1024,  1024\tn\r\n"
+                   "\tcBottom Left:\tW    0, 2048       -1024, -1024\tn\r\n"
+                   "\tcBottom Right:\tW2048, 2048        1024, -1024\tn\r\n"
+  
+  /* need two arguments */
+  if (!*arg1 || isdigit(*arg1)) {
+    send_to_char(ch, "You need to enter a co-ordinate or pixel X value.\r\n");
+    return;
+  }
+  if (!*arg2 || isdigit(*arg2)) {
+    send_to_char(ch, "You need to enter a co-ordinate or pixel Y value.\r\n");
+    return;
+  }
+    
+  x_value = get_number(&arg1);
+  y_value = get_number(&arg2);
+  
+  if ( x_value < -1024 || y_value < -1024 ||
+       x_value > 2048  || y_value > 2048 ) {
+    send_to_char(ch, "Please try again, there is no reason to use a value below "
+            "-1024 or above 2048.\r\n");
+    return;
+  }
+  
+  send_to_char(ch, "Converting pixel location to \tcmap co-ordinates\tn: \tW%5d %5d\tn\r\n"
+                   "Converting map co-ordinates to \tcpixel location\tn: \tW%5d %5d\tn\r\n",
+                   (x_value - 1024), (1024 - y_value),
+                   (x_value + 1024), (1024 - y_value));
+}
+
+  /* EOF */
 
