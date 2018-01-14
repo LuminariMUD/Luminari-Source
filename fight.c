@@ -1283,6 +1283,7 @@ void raw_kill(struct char_data *ch, struct char_data *killer) {
   /* spec-abil saves on exit, so make sure this does not save */
   DOOM(ch) = 0;
   INCENDIARY(ch) = 0;
+  CLOUDKILL(ch) = 0;
 
   /* move char to starting room */
   char_to_room(ch, r_mortal_start_room);
@@ -1343,6 +1344,7 @@ void raw_kill_npc(struct char_data *ch, struct char_data *killer) {
   /* spec-abil saves on exit, so make sure this does not save */
   DOOM(ch) = 0;
   INCENDIARY(ch) = 0;
+  CLOUDKILL(ch) = 0;
 
   /* extraction!  *SLURRRRRRRRRRRRRP* */
   extract_char(ch);

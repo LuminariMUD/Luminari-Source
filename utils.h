@@ -919,45 +919,46 @@ do                                                              \
 /* boolean indicating whether someone is in the process of preparation of a spell or not */
 #define IS_PREPARING(ch, cc)		((ch)->char_specials.is_preparing[cc])
 
-// how many bursts of cloudkill left
-#define CLOUDKILL(ch)    ((ch)->char_specials.cloudkill)
-
 //  spells / skills
 #define GET_ALIGNMENT(ch) ((ch)->char_specials.saved.alignment)
 
+//  our spec_abil values
+#define GET_SPEC_ABIL(ch, slot)		((ch)->char_specials.saved.spec_abil[slot])
+//  better macros for spec abils
+#define GET_FAVORED_ENEMY(ch, slot)		((ch)->char_specials.saved.spec_abil[slot])
+#define IS_FAV_ENEMY_OF(ch, race)            (is_fav_enemy_of(ch, race))
+#define GET_ANIMAL_COMPANION(ch)  ((ch)->char_specials.saved.spec_abil[CALLCOMPANION])
+#define GET_FAMILIAR(ch)  ((ch)->char_specials.saved.spec_abil[CALLFAMILIAR])
+#define GET_MOUNT(ch)  ((ch)->char_specials.saved.spec_abil[CALLMOUNT])
+#define GET_SPELL_MANTLE(ch)  ((ch)->char_specials.saved.spec_abil[SPELL_MANTLE])
+#define IS_SORC_LEARNED(ch)  ((ch)->char_specials.saved.spec_abil[SORC_KNOWN])
+#define IS_DRUID_LEARNED(ch)  ((ch)->char_specials.saved.spec_abil[DRUID_KNOWN])
+#define IS_BARD_LEARNED(ch)  ((ch)->char_specials.saved.spec_abil[BARD_KNOWN])
+#define IS_RANG_LEARNED(ch)  ((ch)->char_specials.saved.spec_abil[RANG_KNOWN])
+#define IS_WIZ_LEARNED(ch)  ((ch)->char_specials.saved.spec_abil[WIZ_KNOWN])
+/* incendiary cloud spell */
+#define INCENDIARY(ch) ((ch)->char_specials.saved.spec_abil[INCEND])
+#define SONG_AFF_VAL(ch)  ((ch)->char_specials.saved.spec_abil[SONG_AFF])
+#define GET_SHAPECHANGES(ch)  ((ch)->char_specials.saved.spec_abil[SHAPECHANGES])
+/* creeping doom spell */
+#define DOOM(ch)        ((ch)->char_specials.saved.spec_abil[C_DOOM])
+/* how many bursts of cloudkill left */
+#define CLOUDKILL(ch)    ((ch)->char_specials.saved.spec_abil[CLOUD_K])
+/*trelux applypoison variables*/
+#define TRLX_PSN_VAL(ch)        ((ch)->char_specials.saved.spec_abil[TRLX_PSN_SPELL_VAL])
+#define TRLX_PSN_LVL(ch)        ((ch)->char_specials.saved.spec_abil[TRLX_PSN_SPELL_LVL])
+#define TRLX_PSN_HIT(ch)        ((ch)->char_specials.saved.spec_abil[TRLX_PSN_SPELL_HIT])
+/* moved SPELLBATTLE up near caster_level */
 
 #define GET_WARDING(ch, slot)		((ch)->char_specials.saved.warding[slot])
 #define GET_IMAGES(ch)		((ch)->char_specials.saved.warding[MIRROR])
 #define GET_STONESKIN(ch)	((ch)->char_specials.saved.warding[STONESKIN])
+#define GET_WARD_POINTS(ch) (GET_STONESKIN((ch)))
 #define TOTAL_DEFENSE(ch)		((ch)->char_specials.totalDefense)
 #define MOUNTED_BLOCKS_LEFT(ch)		((ch)->char_specials.mounted_blocks_left)
 #define DEFLECT_ARROWS_LEFT(ch)		((ch)->char_specials.deflect_arrows_left)
 #define GET_SALVATION_NAME(ch)  CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->salvation_name))
 #define GET_SALVATION_ROOM(ch)  CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->salvation_room))
-
-//  our spec_abil values
-#define GET_SPEC_ABIL(ch, slot)		(ch->player_specials->saved.spec_abil[slot])
-//  better macros for spec abils
-#define GET_FAVORED_ENEMY(ch, slot)		(ch->player_specials->saved.favored_enemy[slot])
-#define IS_FAV_ENEMY_OF(ch, race)            (is_fav_enemy_of(ch, race))
-#define GET_ANIMAL_COMPANION(ch)  (ch->player_specials->saved.spec_abil[CALLCOMPANION])
-#define GET_FAMILIAR(ch)  (ch->player_specials->saved.spec_abil[CALLFAMILIAR])
-#define GET_MOUNT(ch)  (ch->player_specials->saved.spec_abil[CALLMOUNT])
-#define GET_SPELL_MANTLE(ch)  (ch->player_specials->saved.spec_abil[SPELL_MANTLE])
-#define IS_SORC_LEARNED(ch)  (ch->player_specials->saved.spec_abil[SORC_KNOWN])
-#define IS_DRUID_LEARNED(ch)  (ch->player_specials->saved.spec_abil[DRUID_KNOWN])
-#define IS_BARD_LEARNED(ch)  (ch->player_specials->saved.spec_abil[BARD_KNOWN])
-#define IS_RANG_LEARNED(ch)  (ch->player_specials->saved.spec_abil[RANG_KNOWN])
-#define IS_WIZ_LEARNED(ch)  (ch->player_specials->saved.spec_abil[WIZ_KNOWN])
-#define INCENDIARY(ch) (ch->player_specials->saved.spec_abil[INCEND])
-#define SONG_AFF_VAL(ch)  (ch->player_specials->saved.spec_abil[SONG_AFF])
-#define GET_SHAPECHANGES(ch)  (ch->player_specials->saved.spec_abil[SHAPECHANGES])
-#define DOOM(ch)        (ch->player_specials->saved.spec_abil[C_DOOM])
-/*trelux applypoison variables*/
-#define TRLX_PSN_VAL(ch)        (ch->player_specials->saved.spec_abil[TRLX_PSN_SPELL_VAL])
-#define TRLX_PSN_LVL(ch)        (ch->player_specials->saved.spec_abil[TRLX_PSN_SPELL_LVL])
-#define TRLX_PSN_HIT(ch)        (ch->player_specials->saved.spec_abil[TRLX_PSN_SPELL_HIT])
-/* moved SPELLBATTLE up near caster_level */
 
 /** Return condition i (DRUNK, HUNGER, THIRST) of ch. */
 #define GET_COND(ch, i)		CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.conditions[(i)]))
