@@ -74,7 +74,7 @@ int weapon_damage[MAX_WEAPON_DAMAGE + 1][2] = {
   /*     12*/
   { 1, 12,},
   /*     13*/
-  { 1, 12 ,},
+  { 1, 12,},
   /*     14*/
   { 2, 6,},
   /*     15*/
@@ -218,6 +218,7 @@ void cquest_report(struct char_data *ch) {
 }
 
 /* deprecated by random_bonus_value() in treasure.c */
+
 /* this function determines the factor of bonus for crystal_value/level */
 int crystal_bonus(struct obj_data *crystal, int mod) {
   int bonus = mod + (GET_OBJ_LEVEL(crystal) / BONUS_FACTOR);
@@ -275,19 +276,27 @@ int crystal_bonus(struct obj_data *crystal, int mod) {
 /* this function returns an appropriate keyword(s) based on material */
 char *node_keywords(int material) {
 
+  /* reference */
+  /* steel      - vein of dull ore */
+  /* cold iron  - vein of ore */
+  /* mithril    - vein of bright ore */
+  /* adamantine - vein of sparkling ore */
+  /* silver     - vein of dull speckled ore */
+  /* gold       - vein of yellowish ore */
+
   switch (material) {
     case MATERIAL_STEEL:
-      return strdup("vein iron ore");
+      return strdup("vein of dull ore");
     case MATERIAL_COLD_IRON:
-      return strdup("vein cold iron ore");
+      return strdup("vein of ore");
     case MATERIAL_MITHRIL:
-      return strdup("vein mithril ore");
+      return strdup("vein of bright ore");
     case MATERIAL_ADAMANTINE:
-      return strdup("vein adamantine ore");
+      return strdup("vein of sparkling ore");
     case MATERIAL_SILVER:
-      return strdup("vein copper silver ore");
+      return strdup("vein dull speckled ore");
     case MATERIAL_GOLD:
-      return strdup("vein gold platinum ore");
+      return strdup("vein of yellowish ore");
     case MATERIAL_WOOD:
       return strdup("tree fallen");
     case MATERIAL_DARKWOOD:
@@ -314,19 +323,26 @@ char *node_keywords(int material) {
 
 /* this function returns an appropriate short-desc based on material */
 char *node_sdesc(int material) {
+  /* reference */
+  /* steel      - vein of dull ore */
+  /* cold iron  - vein of ore */
+  /* mithril    - vein of bright ore */
+  /* adamantine - vein of sparkling ore */
+  /* silver     - vein of dull speckled ore */
+  /* gold       - vein of yellowish ore */
   switch (material) {
     case MATERIAL_STEEL:
-      return strdup("a vein of iron ore");
+      return strdup("a vein of dull ore");
     case MATERIAL_COLD_IRON:
-      return strdup("a vein of cold iron ore");
+      return strdup("a vein of ore");
     case MATERIAL_MITHRIL:
-      return strdup("a vein of mithril ore");
+      return strdup("a vein of bright ore");
     case MATERIAL_ADAMANTINE:
-      return strdup("a vein of adamantine ore");
+      return strdup("a vein of sparkling ore");
     case MATERIAL_SILVER:
-      return strdup("a vein of copper and silver ore");
+      return strdup("a vein of dull speckled ore");
     case MATERIAL_GOLD:
-      return strdup("a vein of gold and platinum ore");
+      return strdup("a vein of yellowish ore");
     case MATERIAL_WOOD:
       return strdup("a fallen tree");
     case MATERIAL_DARKWOOD:
@@ -353,19 +369,26 @@ char *node_sdesc(int material) {
 
 /* this function returns an appropriate desc based on material */
 char *node_desc(int material) {
+  /* reference */
+  /* steel      - vein of dull ore */
+  /* cold iron  - vein of ore */
+  /* mithril    - vein of bright ore */
+  /* adamantine - vein of sparkling ore */
+  /* silver     - vein of dull speckled ore */
+  /* gold       - vein of yellowish ore */
   switch (material) {
     case MATERIAL_STEEL:
-      return strdup("A vein of iron ore is here. \tn(\tYharvest\tn)");
+      return strdup("A vein of dull ore is here. \tn(\tYharvest\tn)");
     case MATERIAL_COLD_IRON:
-      return strdup("A vein of cold iron ore is here. \tn(\tYharvest\tn)");
+      return strdup("A vein of ore is here. \tn(\tYharvest\tn)");
     case MATERIAL_MITHRIL:
-      return strdup("A vein of mithril ore is here. \tn(\tYharvest\tn)");
+      return strdup("A vein of bright ore is here. \tn(\tYharvest\tn)");
     case MATERIAL_ADAMANTINE:
-      return strdup("A vein of adamantine ore is here. \tn(\tYharvest\tn)");
+      return strdup("A vein of sparkling ore is here. \tn(\tYharvest\tn)");
     case MATERIAL_SILVER:
-      return strdup("A vein of copper and silver ore is here. \tn(\tYharvest\tn)");
+      return strdup("A vein of dull speckled ore is here. \tn(\tYharvest\tn)");
     case MATERIAL_GOLD:
-      return strdup("A vein of gold and platinum ore is here. \tn(\tYharvest\tn)");
+      return strdup("A vein of yellowish ore is here. \tn(\tYharvest\tn)");
     case MATERIAL_WOOD:
       return strdup("A fallen tree is here. \tn(\tYharvest\tn)");
     case MATERIAL_DARKWOOD:
@@ -395,7 +418,7 @@ char *node_desc(int material) {
 int random_node_material(int allowed) {
   int rand = 0;
 
-  if (mining_nodes >= (allowed * 2)  && foresting_nodes >= allowed &&
+  if (mining_nodes >= (allowed * 2) && foresting_nodes >= allowed &&
           farming_nodes >= allowed && hunting_nodes >= allowed)
     return MATERIAL_STEEL;
 
@@ -508,10 +531,26 @@ void reset_harvesting_rooms(void) {
           farming_nodes >= nodes_allowed && hunting_nodes >= nodes_allowed)
     return;
 
-  for (cnt = 0; cnt <= top_of_world; cnt++) {
+  for (cnt = 0; cnt < top_of_world; cnt++) {
     if (ROOM_FLAGGED(cnt, ROOM_HOUSE))
       continue;
+    if (ROOM_FLAGGED(cnt, ROOM_FLY_NEEDED))
+      continue;
+    if (ROOM_FLAGGED(cnt, ROOM_CLIMB_NEEDED))
+      continue;
     if (world[cnt].sector_type == SECT_CITY)
+      continue;
+    if (world[cnt].sector_type == SECT_INSIDE)
+      continue;
+    if (world[cnt].sector_type == SECT_WATER_NOSWIM)
+      continue;
+    if (world[cnt].sector_type == SECT_OUTTER_PLANES)
+      continue;
+    if (world[cnt].sector_type == SECT_UD_CITY)
+      continue;
+    if (world[cnt].sector_type == SECT_UD_INSIDE)
+      continue;
+    if (world[cnt].sector_type == SECT_UD_WATER_NOSWIM)
       continue;
     if (dice(1, 33) == 1) {
       obj = read_object(HARVESTING_NODE, VIRTUAL);
@@ -577,6 +616,7 @@ void reset_harvesting_rooms(void) {
 /*************************/
 
 // combine crystals to make them stronger
+
 int augment(struct obj_data *kit, struct char_data *ch) {
   struct obj_data *obj = NULL, *crystal_one = NULL, *crystal_two = NULL;
   int num_objs = 0, cost = 0, bonus = 0, bonus2 = 0;
@@ -697,6 +737,7 @@ int augment(struct obj_data *kit, struct char_data *ch) {
 
 // convert one material into another
 // requires multiples of exactly 10 of same mat to do the converstion
+
 /*  !! still under construction - zusuk !! */
 int convert(struct obj_data *kit, struct char_data *ch) {
   int cost = 500; /* flat cost */
@@ -1053,7 +1094,6 @@ int resize(char *argument, struct obj_data *kit, struct char_data *ch) {
   return 1;
 }
 
-
 /* unfinished -zusuk */
 int disenchant(struct obj_data *kit, struct char_data *ch) {
   struct obj_data *obj = NULL;
@@ -1070,7 +1110,7 @@ int disenchant(struct obj_data *kit, struct char_data *ch) {
     send_to_char(ch, "Only one item should be inside the kit.\r\n");
     return 1;
   }
-  
+
   if (IS_CARRYING_N(ch) >= CAN_CARRY_N(ch)) {
     send_to_char(ch, "You must drop something before you can disenchant anything.\r\n");
     return 1;
@@ -1078,17 +1118,17 @@ int disenchant(struct obj_data *kit, struct char_data *ch) {
   for (obj = kit->contains; obj != NULL; obj = obj->next_content) {
     break; //this should be the object
   }
-  
+
   if (!obj) {
     send_to_char(ch, "You do not seem to have a magical item in the kit.\r\n");
-    return 1;    
+    return 1;
   }
 
   if (!IS_SET_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC)) {
     send_to_char(ch, "Only magical items can be disenchanted.\r\n");
     return 1;
   }
-  
+
   /* You can disenchant object level equal to your: chemistry-skill / 3 + 1 */
   if (GET_OBJ_LEVEL(obj) > chem_check) {
     send_to_char(ch, "Your chemistry skill isn't high enough to disenchant that item!"
@@ -1110,8 +1150,8 @@ int disenchant(struct obj_data *kit, struct char_data *ch) {
   GET_CRAFTING_TYPE(ch) = SCMD_DISENCHANT;
   //GET_CRAFTING_TICKS(ch) = 4;
   GET_CRAFTING_TICKS(ch) = MAX(2, 11 - fast_craft_bonus);
-  GET_CRAFTING_OBJ(ch) = NULL;  
-  
+  GET_CRAFTING_OBJ(ch) = NULL;
+
   send_to_char(ch, "You begin to disenchant %s.\r\n", obj->short_description);
   act("$n begins to disenchant $p.", FALSE, ch, obj, 0, TO_ROOM);
 
@@ -1141,7 +1181,7 @@ int disenchant(struct obj_data *kit, struct char_data *ch) {
  */
 int create(char *argument, struct obj_data *kit,
         struct char_data *ch, int mode) {
-  char buf[MAX_INPUT_LENGTH] = { '\0' };
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   struct obj_data *obj = NULL, *mold = NULL, *crystal = NULL,
           *material = NULL, *essence = NULL;
   int num_mats = 0, obj_level = 1, skill = ABILITY_CRAFT_WEAPONSMITHING,
@@ -1352,8 +1392,7 @@ int create(char *argument, struct obj_data *kit,
           CAN_WEAR(mold, ITEM_WEAR_HOLD)
           ) {
     skill = SKILL_JEWELRY_MAKING;
-  }
-    /* body armor pieces: either armor-smith/leather-worker/or knitting */
+  }    /* body armor pieces: either armor-smith/leather-worker/or knitting */
   else if (CAN_WEAR(mold, ITEM_WEAR_BODY) ||
           CAN_WEAR(mold, ITEM_WEAR_ARMS) ||
           CAN_WEAR(mold, ITEM_WEAR_LEGS) ||
@@ -1369,12 +1408,10 @@ int create(char *argument, struct obj_data *kit,
       skill = SKILL_LEATHER_WORKING;
     else
       skill = SKILL_KNITTING;
-  }
-    /* about body */
+  }    /* about body */
   else if (CAN_WEAR(mold, ITEM_WEAR_ABOUT)) {
     skill = SKILL_KNITTING;
-  }
-    /* weapon-smithing:  weapons and shields */
+  }    /* weapon-smithing:  weapons and shields */
   else if (CAN_WEAR(mold, ITEM_WEAR_WIELD) ||
           CAN_WEAR(mold, ITEM_WEAR_SHIELD)
           ) {
@@ -1382,9 +1419,9 @@ int create(char *argument, struct obj_data *kit,
   }
 
   /* skill restriction */
-  if (GET_SKILL(ch, skill)/3 < obj_level) {
+  if (GET_SKILL(ch, skill) / 3 < obj_level) {
     send_to_char(ch, "Your skill in %s is too low to create that item.\r\n",
-             spell_info[skill].name);
+            spell_info[skill].name);
     return 1;
   }
 
@@ -1528,7 +1565,7 @@ SPECIAL(crafting_kit) {
             "to being the conversion process.\r\n");
     else if (CMD_IS("disenchant"))
       send_to_char(ch, "You must place the item you want to disenchant "
-              "in the kit.\r\n");
+            "in the kit.\r\n");
     else
       send_to_char(ch, "Unrecognized crafting-kit command!\r\n");
     return 1;
@@ -1684,12 +1721,12 @@ EVENTFUNC(event_crafting) {
   pMudEvent = (struct mud_event_data *) event_obj;
   ch = (struct char_data *) pMudEvent->pStruct;
 
-  if (!ch || !ch->desc)  return 0;
-  if (!IS_NPC(ch) && !IS_PLAYING(ch->desc))  return 0;
+  if (!ch || !ch->desc) return 0;
+  if (!IS_NPC(ch) && !IS_PLAYING(ch->desc)) return 0;
 
   // something is off, so ensure reset
   if (GET_CRAFTING_TYPE(ch) == SCMD_DISENCHANT) {
-      ; /* disenchant is unique - we do not bring an object along */
+    ; /* disenchant is unique - we do not bring an object along */
   } else if (!GET_AUTOCQUEST_VNUM(ch) && GET_CRAFTING_OBJ(ch) == NULL) {
     log("SYSERR: crafting - null object");
     return 0;
@@ -1707,10 +1744,10 @@ EVENTFUNC(event_crafting) {
   if (GET_CRAFTING_TICKS(ch)) {
     // the crafting tick is still going!  disenchant has no OBJ so we handle separate
     if (GET_CRAFTING_TYPE(ch) == SCMD_DISENCHANT) {
-       send_to_char(ch, "You continue to %s.\r\n",
+      send_to_char(ch, "You continue to %s.\r\n",
               craft_type[GET_CRAFTING_TYPE(ch)]);
-      exp = 10 * GET_LEVEL(ch) + GET_LEVEL(ch);     
-    // the crafting tick is still going!
+      exp = 10 * GET_LEVEL(ch) + GET_LEVEL(ch);
+      // the crafting tick is still going!
     } else if (GET_CRAFTING_OBJ(ch)) {
       send_to_char(ch, "You continue to %s and work to create %s.\r\n",
               craft_type[GET_CRAFTING_TYPE(ch)],
@@ -1819,7 +1856,7 @@ EVENTFUNC(event_crafting) {
         } else {
           GET_GOLD(ch) -= GET_OBJ_COST(GET_CRAFTING_OBJ(ch)) / 4;
         }
-        */
+         */
         break;
       case SCMD_AUGMENT:
         // use to be part of crafting
@@ -1934,8 +1971,8 @@ ACMD(do_harvest) {
   struct obj_data *obj = NULL, *node = NULL;
   int roll = 0, material = -1, minskill = 0;
   int skillnum = 0;
-  char arg[MAX_INPUT_LENGTH] = { '\0' };
-  char buf[MEDIUM_STRING] = { '\0' };
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  char buf[MEDIUM_STRING] = {'\0'};
   int sub_command = SCMD_CRAFT_UNDF;
 
   if (IS_CARRYING_N(ch) >= CAN_CARRY_N(ch)) {
