@@ -2728,7 +2728,7 @@ void load_class_list(void) {
   spell_assignment(CLASS_WIZARD, SPELL_DETECT_INVIS,      3);
   spell_assignment(CLASS_WIZARD, SPELL_DETECT_MAGIC,      3);
   spell_assignment(CLASS_WIZARD, SPELL_DARKNESS,          3);
-  spell_assignment(CLASS_WIZARD, SPELL_I_DARKNESS,        3);
+  //spell_assignment(CLASS_WIZARD, SPELL_I_DARKNESS,        3);
   spell_assignment(CLASS_WIZARD, SPELL_RESIST_ENERGY,     3);
   spell_assignment(CLASS_WIZARD, SPELL_ENERGY_SPHERE,     3);
   spell_assignment(CLASS_WIZARD, SPELL_ENDURANCE,         3);
@@ -3853,7 +3853,7 @@ void load_class_list(void) {
   spell_assignment(CLASS_SORCERER, SPELL_DETECT_INVIS,      4);
   spell_assignment(CLASS_SORCERER, SPELL_DETECT_MAGIC,      4);
   spell_assignment(CLASS_SORCERER, SPELL_DARKNESS,          4);
-  spell_assignment(CLASS_SORCERER, SPELL_I_DARKNESS,        4);
+  //spell_assignment(CLASS_SORCERER, SPELL_I_DARKNESS,        4);
   spell_assignment(CLASS_SORCERER, SPELL_RESIST_ENERGY,     4);
   spell_assignment(CLASS_SORCERER, SPELL_ENERGY_SPHERE,     4);
   spell_assignment(CLASS_SORCERER, SPELL_ENDURANCE,         4);
