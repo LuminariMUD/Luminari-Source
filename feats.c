@@ -4984,7 +4984,7 @@ int feat_to_skfeat(int feat) {
 }
 
 /* sorcerer draconic bloodline heritages */
-int get_draconic_heritage_subfeat(feat) {
+int get_draconic_heritage_subfeat(int feat) {
   switch (feat) {
     case FEAT_SORCERER_BLOODLINE_DRACONIC:
       return BLFEAT_DRACONIC;
