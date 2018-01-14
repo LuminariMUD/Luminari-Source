@@ -589,7 +589,7 @@ ACMD(do_zunlock);
 ACMD(do_afflist);
 ACMD(do_typelist);
 ACMD(do_eqrating);
-
+ACMD(do_coordconvert);
 ACMD(do_genmap);
 ACMD(do_oconvert);
 ACMD(do_acconvert);
