@@ -396,12 +396,13 @@
 #define DRUID_KNOWN            12 // true/false if can 'study'
 #define AG_SPELLBATTLE         13 // arg for spellbattle racial
 /* trelux weapon poison, applypoison skill */
-#define TRLX_PSN_SPELL_VAL     14 // arg for spellbattle racial
-#define TRLX_PSN_SPELL_LVL     15 // arg for spellbattle racial
-#define TRLX_PSN_SPELL_HIT     16 // arg for spellbattle racial
+#define TRLX_PSN_SPELL_VAL     14 // poison weapon data for trelux
+#define TRLX_PSN_SPELL_LVL     15 // poison weapon data for trelux
+#define TRLX_PSN_SPELL_HIT     16 // poison weapon data for trelux
+#define CLOUD_K                17 /* cloud kill spells bursts remaining */
 /* -- */
 /*---------------*/
-#define NUM_SPEC_ABIL		 17
+#define NUM_SPEC_ABIL		 18
 #define MAX_SPEC_ABIL          MAX_CLASSES
 /* max = MAX_CLASSES right now, which was 30 last time i checked  */
 
@@ -2984,6 +2985,7 @@ struct char_special_data_saved {
   int act[PM_ARRAY_MAX]; /**< act flags for NPC's; player flag for PC's */
   int affected_by[AF_ARRAY_MAX]; /**< Bitvector for spells/skills affected by */
   int warding[MAX_WARDING]; //saved warding spells like stoneskin
+  ubyte spec_abil[MAX_CLASSES]; //spec abilities (ex. lay on hands)
 
   struct damage_reduction_type *damage_reduction; /**< Damage Reduction */
 
@@ -3011,12 +3013,11 @@ struct char_special_data {
   struct char_data *fighting; /**< Target of fight; else NULL */
   struct char_data *hunting; /**< Target of NPC hunt; else NULL */
   int totalDefense; // how many totaldefense attempts left in the round
-  ubyte cloudkill; //how many more bursts of cloudkill left
   struct char_data *guarding;  //target for 'guard' ability
   bool firing;  //is char firing missile weapon?
   int mounted_blocks_left; // how many mounted combat blocks left in the round
   int deflect_arrows_left; // 
-
+  
   /* Mode Data */
   int mode_value; /* Bonus/penalty for power attack and combat expertise. */
 
@@ -3105,7 +3106,6 @@ struct player_special_data_saved {
   int spells_to_learn; //prac sessions left
   int abilities_to_learn; //training sessiosn left
   ubyte boosts; //stat boosts left
-  ubyte spec_abil[MAX_CLASSES]; //spec abilities (ex. lay on hands)
   ubyte favored_enemy[MAX_ENEMIES]; //list of ranger favored enemies
   
   /* old spell prep system */
