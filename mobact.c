@@ -554,7 +554,9 @@ int can_continue(struct char_data *ch, bool fighting) {
     return 0;
   if (GET_HIT(ch) <= 0)
     return 0;
-
+  /* almost finished victims, they will stop using these skills -zusuk */
+  if (FIGHTING(ch) && GET_HIT(FIGHTING(ch)) <= 5)
+    return 0;
   return 1;
 }
 
@@ -622,6 +624,9 @@ void npc_monk_behave(struct char_data *ch, struct char_data *vict,
    3) stunning fist
    4) quivering palm
    */
+  
+  if (!can_continue(ch, TRUE))
+    return;
 
   /* switch opponents attempt */
   if (!rand_number(0, 2) && npc_switch_opponents(ch, vict))
@@ -645,6 +650,10 @@ void npc_monk_behave(struct char_data *ch, struct char_data *vict,
 
 void npc_rogue_behave(struct char_data *ch, struct char_data *vict,
         int engaged) {
+  
+  /* almost finished victims, they will stop using these skills -zusuk */
+  if (GET_HIT(vict) <= 5)
+    return;
 
   /* list of skills to use:
    1) trip
@@ -656,6 +665,9 @@ void npc_rogue_behave(struct char_data *ch, struct char_data *vict,
     MOB_SET_FEAT(ch, FEAT_SNEAK_ATTACK, (GET_LEVEL(ch)) / 2);
   }
 
+  if (!can_continue(ch, TRUE))
+    return;
+  
   switch (rand_number(1, 2)) {
     case 1:
       if (perform_knockdown(ch, vict, SKILL_TRIP))
@@ -688,6 +700,9 @@ void npc_bard_behave(struct char_data *ch, struct char_data *vict,
   /* try to throw up song */
   perform_perform(ch);
 
+  if (!can_continue(ch, TRUE))
+    return;
+  
   switch (rand_number(1, 3)) {
     case 1:
       perform_knockdown(ch, vict, SKILL_TRIP);
@@ -718,6 +733,9 @@ void npc_warrior_behave(struct char_data *ch, struct char_data *vict,
   if (npc_rescue(ch))
     return;
 
+  if (!can_continue(ch, TRUE))
+    return;
+  
   /* switch opponents attempt */
   if (!rand_number(0, 2) && npc_switch_opponents(ch, vict))
     return;
@@ -752,6 +770,9 @@ void npc_ranger_behave(struct char_data *ch, struct char_data *vict,
   if (npc_rescue(ch))
     return;
 
+  if (!can_continue(ch, TRUE))
+    return;
+  
   /* switch opponents attempt */
   if (!rand_number(0, 2) && npc_switch_opponents(ch, vict))
     return;
@@ -777,6 +798,9 @@ void npc_paladin_behave(struct char_data *ch, struct char_data *vict,
   if (npc_rescue(ch))
     return;
 
+  if (!can_continue(ch, TRUE))
+    return;
+  
   /* switch opponents attempt */
   if (!rand_number(0, 2) && npc_switch_opponents(ch, vict))
     return;
@@ -805,6 +829,9 @@ void npc_berserker_behave(struct char_data *ch, struct char_data *vict,
   if (npc_rescue(ch))
     return;
 
+  if (!can_continue(ch, TRUE))
+    return;
+  
   /* switch opponents attempt */
   if (!rand_number(0, 2) && npc_switch_opponents(ch, vict))
     return;
@@ -821,8 +848,6 @@ void npc_class_behave(struct char_data *ch) {
   int num_targets = 0;
 
   if (MOB_FLAGGED(ch, MOB_NOCLASS))
-    return;
-  if (!can_continue(ch, TRUE))
     return;
 
   /* retrieve random valid target and number of targets */
