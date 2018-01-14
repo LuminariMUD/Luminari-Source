@@ -2,7 +2,7 @@
 /*****************************************************************************
  ** feats.c                                                                  **
  ** Source code for the LuminariMUD Feats System.                            **
- ** Initial code by Paladine (Stephen Squires), Ported by Ornir to Luminari  **
+ ** Initial code by Gicker (Stephen Squires), Ported by Ornir to Luminari    **
  *****************************************************************************/
 
 #include "conf.h"
@@ -609,7 +609,8 @@ void assign_feats(void) {
   feato(FEAT_COMBAT_EXPERTISE, "combat expertise", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
     "subtract a number from attack roll and add it to AC",
     "When active, take a value specified as penalty to attack roll and gain that "
-          "value as dodge bonus to your AC.  Usage: expert VALUE, to turn off, "
+          "value as dodge bonus to your AC.  Your combat expertise value can not "
+          "go over your unmodified base attack bonus.  Usage: expert VALUE, to turn off, "
           "just type expert with no argument.  VALUE must be between 1-5.");
     feat_prereq_attribute(FEAT_COMBAT_EXPERTISE, AB_INT, 13);
     /* required for whirlwind */
