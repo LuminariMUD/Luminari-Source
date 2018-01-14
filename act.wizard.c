@@ -6445,6 +6445,7 @@ ACMD(do_eqrating) {
 ACMD(do_coordconvert) {
   char arg1[MAX_INPUT_LENGTH];
   char arg2[MAX_INPUT_LENGTH];
+  int tmp_x_value = -1025, tmp_y_value = -1025;
   int x_value = -1025, y_value = -1025;
 
   two_arguments(argument, arg1, arg2);
@@ -6466,20 +6467,28 @@ ACMD(do_coordconvert) {
     return;
   }
     
-  x_value = atoi(arg1);
-  y_value = atoi(arg2);
+  tmp_x_value = atoi(arg1);
+  tmp_y_value = atoi(arg2);
   
-  if ( x_value < -1024 || y_value < -1024 ||
-       x_value > 2048  || y_value > 2048 ) {
+  if ( tmp_x_value < -1024 || tmp_y_value < -1024 ||
+       tmp_x_value > 2048  || tmp_y_value > 2048 ) {
     send_to_char(ch, "Please try again, there is no reason to use a value below "
             "-1024 or above 2048.\r\n");
     return;
   }
   
-  send_to_char(ch, "Converting pixel location to \tcmap co-ordinates\tn: \tW%5d %5d\tn\r\n"
-                   "Converting map co-ordinates to \tcpixel location\tn: \tW%5d %5d\tn\r\n",
-                   (x_value - 1024), (1024 - y_value),
-                   (x_value + 1024), (1024 - y_value));
+  x_value = tmp_x_value - 1024;
+  y_value = 1024 - tmp_y_value;
+  send_to_char(ch, "Converting pixel location to \tcmap co-ordinates\tn: %s%5d\tn %s%5d\tn\r\n",
+                   (x_value < -1024 || x_value > 1024) ? "\tR" : "\tW", x_value,
+                   (x_value < -1024 || x_value > 1024) ? "\tR" : "\tW", y_value );
+  
+  x_value = tmp_x_value + 1024;
+  y_value = 1024 - tmp_y_value;
+  send_to_char(ch, "Converting map co-ordinates to \tcpixel location\tn: %s%5d %s%5d\tn\r\n",
+                   (x_value < 0 || x_value > 2048) ? "\tR" : "\tW", x_value,
+                   (x_value < 0 || x_value > 2048) ? "\tR" : "\tW", y_value );
+  
 }
 
   /* EOF */
