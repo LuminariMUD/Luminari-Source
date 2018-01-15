@@ -54,6 +54,21 @@
 
 /* START linked list utility */
 
+/* clear a ch's spell prep queue, example ch loadup */
+void init_spell_prep_queue(struct char_data *ch) {
+  int ch_class = 0;
+  for (ch_class = 0; ch_class < NUM_CASTERS; ch_class++) {
+    SPELL_PREP_QUEUE(ch, ch_class) = NULL;
+  }
+}
+/* clear a ch's spell collection, example ch loadup */
+void init_collection_queue(struct char_data *ch) {
+  int ch_class = 0;
+  for (ch_class = 0; ch_class < NUM_CASTERS; ch_class++) {
+    SPELL_COLLECTION(ch, ch_class) = NULL;
+  }
+}
+
 /* destroy the spell prep queue, example ch logout */
 void destroy_spell_prep_queue(struct char_data *ch) {
   int ch_class;
