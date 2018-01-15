@@ -590,8 +590,7 @@ static char *next_page(char *str, struct char_data *ch) {
     else if (*str == '\t') {
       if (*(str + 1) != '\t')
         str++;
-    }
-      /* Check for everything else. */
+    }      /* Check for everything else. */
     else {
       /* Carriage return puts us in column one. */
       if (*str == '\r')
@@ -675,7 +674,7 @@ void show_string(struct descriptor_data *d, char *input) {
       d->showstr_head = NULL;
     }
     return;
-  }    /* Back up one page internally so we can display it again. */
+  }/* Back up one page internally so we can display it again. */
   else if (LOWER(*buf) == 'r')
     d->showstr_page = MAX(0, d->showstr_page - 1);
 
@@ -703,7 +702,7 @@ void show_string(struct descriptor_data *d, char *input) {
       free(d->showstr_head);
       d->showstr_head = NULL;
     }
-  }    /* Or if we have more to show.... */
+  }/* Or if we have more to show.... */
   else {
     diff = d->showstr_vector[d->showstr_page + 1] - d->showstr_vector[d->showstr_page];
     if (diff > MAX_STRING_LENGTH - 3) /* 3=\r\n\0 */
