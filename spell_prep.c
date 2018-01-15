@@ -154,7 +154,7 @@ struct prep_collection_spell_data *create_prep_coll_entry(int spellnum, int meta
   entry->spell = spellnum;
   entry->metamagic = metamagic;
   entry->prep_time = prep_time;
-  entry->prep_time = domain;
+  entry->domain = domain;
   entry->next = NULL;
   
   return entry;
@@ -993,6 +993,15 @@ ACMD(do_gen_preparation) {
   
   spell_data = create_prep_coll_entry(spellnum, metamagic, 0, GET_1ST_DOMAIN(ch));
   spell_data_compare = create_prep_coll_entry(spellnum, metamagic, 0, GET_2ND_DOMAIN(ch));
+  
+  /*DEBUG*/
+  send_to_char(ch, "DEBUG1: spellnum: %d, metamagic: %d, prep-time: %d, domain: %d\r\n",
+                   spell_data->spell, spell_data->metamagic, spell_data->prep_time,
+                   spell_data->domain);
+  send_to_char(ch, "DEBUG2: spellnum: %d, metamagic: %d, prep-time: %d, domain: %d\r\n",
+                   spell_data_compare->spell, spell_data_compare->metamagic,
+                   spell_data_compare->prep_time, spell_data_compare->domain);
+  
   circle_for_spell = /* checks domain spells */
       MIN(compute_spells_circle(class, spell_data), 
           compute_spells_circle(class, spell_data_compare));
