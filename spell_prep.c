@@ -1001,12 +1001,22 @@ ACMD(do_gen_preparation) {
   send_to_char(ch, "DEBUG2: spellnum: %d, metamagic: %d, prep-time: %d, domain: %d\r\n",
                    spell_data_compare->spell, spell_data_compare->metamagic,
                    spell_data_compare->prep_time, spell_data_compare->domain);
+  /*END DEBUG*/
   
   circle_for_spell = /* checks domain spells */
       MIN(compute_spells_circle(class, spell_data), 
           compute_spells_circle(class, spell_data_compare));
   
+  /*DEBUG*/
+  send_to_char(ch, "DEBUG3: compute_spells_circle: %d", compute_spells_circle(class, spell_data));
+  send_to_char(ch, "DEBUG4: compute_spells_circle: %d", compute_spells_circle(class, spell_data_compare));
+  /*END DEBUG*/  
+  
   num_slots = compute_slots_by_circle(ch, circle_for_spell, class);
+
+  /*DEBUG*/
+  send_to_char(ch, "DEBUG5: compute_slots_by_circle: %d", compute_slots_by_circle(ch, circle_for_spell, class));
+  /*END DEBUG*/  
   
   if (num_slots <= 0) {
     send_to_char(ch, "You have no slots available in that circle!\r\n");
@@ -1017,6 +1027,10 @@ ACMD(do_gen_preparation) {
     send_to_char(ch, "You can't retain more spells of that circle!\r\n");
     return;
   }
+  
+  /*DEBUG*/
+  send_to_char(ch, "DEBUG6: count_total_slots: %d", count_total_slots(ch, class, spellnum));
+  /*END DEBUG*/    
     
   /* wizards spellbook reqs */
   if (class == CLASS_WIZARD && !spellbook_ok(ch, spellnum, class, TRUE)) {
@@ -1040,6 +1054,11 @@ ACMD(do_gen_preparation) {
                                    circle_for_spell,
                                    is_domain_spell_of_ch(ch, spellnum)),
           is_domain_spell_of_ch(ch, spellnum));
+  
+  /*DEBUG*/
+  send_to_char(ch, "DEBUG7: compute_spells_prep_time: %d", compute_spells_prep_time(ch,
+      class, circle_for_spell, is_domain_spell_of_ch(ch, spellnum)));
+  /*END DEBUG*/    
     
   begin_preparing(ch, class, dict_index);  
 }
