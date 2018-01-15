@@ -914,8 +914,8 @@ void game_loop(socket_t local_mother_desc) {
     /* Print prompts for other descriptors who had no other output */
     for (d = descriptor_list; d; d = d->next) {
       /* Ornir's attempt to remove blank lines */
-      //if (!d->has_prompt && !d->pProtocol->WriteOOB) {
-      if (!d->has_prompt) {
+      if (!d->has_prompt && !d->pProtocol->WriteOOB) {
+      //if (!d->has_prompt) {
         write_to_descriptor(d->descriptor, make_prompt(d));
         d->has_prompt = TRUE;
       }
@@ -1916,10 +1916,10 @@ static int process_output(struct descriptor_data *t) {
 
   /* if we're in the overflow state, notify the user */
   /* Ornir attempt to remove blank lines */
-  /*if (t->bufspace == 0 && !t->pProtocol->WriteOOB){
+  if (t->bufspace == 0 && !t->pProtocol->WriteOOB){
     strcat(osb, "**OVERFLOW**\r\n"); // strcpy: OK (osb:MAX_SOCK_BUF-2 reserves space)
   }
-  else */
+  else
   if(t->bufspace == 0) { 
     strcat(osb, "**OVERFLOW**");
   }
