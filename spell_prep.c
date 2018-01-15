@@ -1008,14 +1008,14 @@ ACMD(do_gen_preparation) {
           compute_spells_circle(class, spell_data_compare));
   
   /*DEBUG*/
-  send_to_char(ch, "DEBUG3: compute_spells_circle: %d", compute_spells_circle(class, spell_data));
-  send_to_char(ch, "DEBUG4: compute_spells_circle: %d", compute_spells_circle(class, spell_data_compare));
+  send_to_char(ch, "DEBUG3: compute_spells_circle: %d\r\n", compute_spells_circle(class, spell_data));
+  send_to_char(ch, "DEBUG4: compute_spells_circle: %d\r\n", compute_spells_circle(class, spell_data_compare));
   /*END DEBUG*/  
   
   num_slots = compute_slots_by_circle(ch, circle_for_spell, class);
 
   /*DEBUG*/
-  send_to_char(ch, "DEBUG5: compute_slots_by_circle: %d", compute_slots_by_circle(ch, circle_for_spell, class));
+  send_to_char(ch, "DEBUG5: compute_slots_by_circle: %d\r\n", compute_slots_by_circle(ch, circle_for_spell, class));
   /*END DEBUG*/  
   
   if (num_slots <= 0) {
@@ -1023,13 +1023,14 @@ ACMD(do_gen_preparation) {
     return;
   }
   
+  /* count_total_slots is a count of how many are used by circle */
   if ((circle_for_spell - count_total_slots(ch, class, spellnum)) <= 0) {
     send_to_char(ch, "You can't retain more spells of that circle!\r\n");
     return;
   }
   
   /*DEBUG*/
-  send_to_char(ch, "DEBUG6: count_total_slots: %d", count_total_slots(ch, class, spellnum));
+  send_to_char(ch, "DEBUG6: count_total_slots: %d\r\n", count_total_slots(ch, class, spellnum));
   /*END DEBUG*/    
     
   /* wizards spellbook reqs */
