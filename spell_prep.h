@@ -104,6 +104,9 @@ extern "C" {
          a conversion happening here from class-array ->to-> is_preparing-array */
     void set_preparing_state(struct char_data *ch, int class, bool state);
 
+    /* preparing state right now? */
+    bool is_preparing(struct char_data *ch);
+
     /* sets prep-state as TRUE, and starts the preparing-event */
     /* START_PREPARATION(ch, class) */
     void start_prep_event(struct char_data *ch, int class);
@@ -225,6 +228,9 @@ extern "C" {
     #define BARD_DICT_INDEX     6
     
     /* macros */
+    
+    /* preparing state right now? */
+    #define IN_PREPARATION(ch) (is_preparing(ch))
 
     /* our in-game class array does not match up to our
          linked-list arrays, so we have to convert values */

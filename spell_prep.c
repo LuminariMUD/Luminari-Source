@@ -579,6 +579,9 @@ bool ready_to_prep_spells(struct char_data *ch, int class) {
   if (AFF_FLAGGED(ch, AFF_PINNED))
     return FALSE;
   
+  if (IN_PREPARATION(ch))
+    return FALSE;
+  
   /* made it! */
   return TRUE;
 }
@@ -593,6 +596,20 @@ bool ready_to_prep_spells(struct char_data *ch, int class) {
 void set_preparing_state(struct char_data *ch, int class, bool state) {
   class = GET_PREP_CLASS(class);
   (ch)->char_specials.is_preparing[class] = state;
+}
+
+/* preparing state right now? */
+bool is_preparing(struct char_data *ch) {
+  int i;
+
+  if (!char_has_mud_event(ch, ePREPARING))
+    return FALSE;
+
+  for (i = 0; i < NUM_CASTERS; i++)
+    if ((ch)->char_specials.is_preparing[i])
+      return TRUE;
+
+  return FALSE;
 }
 
 /* sets prep-state as TRUE, and starts the preparing-event */
@@ -976,7 +993,7 @@ ACMD(do_gen_preparation) {
 
   switch (class) {
     case CLASS_SORCERER:case CLASS_BARD:
-      print_prep_collection_data(ch, GET_PREP_CLASS(class));
+      print_prep_collection_data(ch, class);
       begin_preparing(ch, class, dict_index);
       return; /* innate-magic is finished in this command */
     default:
