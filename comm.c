@@ -1915,10 +1915,12 @@ static int process_output(struct descriptor_data *t) {
   //parse_at(osb);
 
   /* if we're in the overflow state, notify the user */
-  if (t->bufspace == 0 && !t->pProtocol->WriteOOB){
-    strcat(osb, "**OVERFLOW**\r\n"); /* strcpy: OK (osb:MAX_SOCK_BUF-2 reserves space) */
+  /* Ornir attempt to remove blank lines */
+  /*if (t->bufspace == 0 && !t->pProtocol->WriteOOB){
+    strcat(osb, "**OVERFLOW**\r\n"); // strcpy: OK (osb:MAX_SOCK_BUF-2 reserves space)
   }
-  else if(t->bufspace == 0) { 
+  else */
+  if(t->bufspace == 0) { 
     strcat(osb, "**OVERFLOW**");
   }
 
