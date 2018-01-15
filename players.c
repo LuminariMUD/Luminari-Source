@@ -409,6 +409,8 @@ int load_char(const char *name, struct char_data *ch) {
     GET_ACCOUNT_NAME(ch) = NULL;
     LEVELUP(ch) = NULL;
     GET_DR(ch) = NULL;
+    init_spell_prep_queue(ch);
+    init_collection_queue(ch);
     GET_DIPTIMER(ch) = PFDEF_DIPTIMER;
     GET_CLAN(ch) = PFDEF_CLAN;
     GET_CLANRANK(ch) = PFDEF_CLANRANK;
