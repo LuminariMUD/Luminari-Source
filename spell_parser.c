@@ -134,7 +134,7 @@ bool concentration_check(struct char_data *ch, int spellnum) {
   int concentration_dc = 0;
 
   if (IS_NPC(ch)) {
-    spell_level = MIN( (GET_LEVEL(ch) / 2), 9 );
+    spell_level = MIN( GET_LEVEL(ch), 17 );
     spell_level = MAX( 1, spell_level);
   } else if (CASTING_CLASS(ch) == CLASS_CLERIC) {
     spell_level = MIN_SPELL_LVL(spellnum, CLASS_CLERIC, GET_1ST_DOMAIN(ch));
