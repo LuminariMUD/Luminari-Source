@@ -98,12 +98,11 @@ extern "C" {
 
     /* set the preparing state of the char, this has actually become
        redundant because of events, but we still have it
-       returns TRUE if successfully set something, false if not
        define: SET_PREPARING_STATE(ch, class, state) 
        NOTE: the array in storage is only NUM_CASTERS values, which
          does not directly sync up with our class-array, so we have
          a conversion happening here from class-array ->to-> is_preparing-array */
-    bool set_preparing_state(struct char_data *ch, int class, bool state);
+    void set_preparing_state(struct char_data *ch, int class, bool state);
 
     /* sets prep-state as TRUE, and starts the preparing-event */
     /* START_PREPARATION(ch, class) */
@@ -160,9 +159,17 @@ extern "C" {
      *   class (arbitrary factor value)
      *   character's skills
      *   character feats   */
-    int compute_spells_prep_time(struct char_data *ch, int class, int circle, int domain);    
+    int compute_spells_prep_time(struct char_data *ch, int class, int circle, int domain);
+    
+    /* our in-game class array does not match up to our
+         linked-list arrays, so we have to convert values */
+    int get_prep_class(int class);
+    /* our in-game class array does not match up to our
+         linked-list arrays, so we have to convert values */
+    int get_orig_class(int class);
     
     /** END functions **/
+    
     
     /** Start ACMD **/
     
@@ -218,74 +225,17 @@ extern "C" {
     #define BARD_DICT_INDEX     6
     
     /* macros */
-    
-    /* in: char data, spell number, class associated with spell, circle of spell
-     * out: preparation time for spell number
-     * given the above info, calculate how long this particular spell will take to
-     * prepare..  this should take into account:
-     *   circle
-     *   class (arbitrary factor value)
-     *   character's skills
-     *   character feats   */
-    #define CALCULATE_PREP_TIME(ch, spellnum, class, circle, domain) (compute_spells_prep_time(ch, spellnum, class, circle, domain))
-    
-    /* does ch level qualify them for this particular spell?
-       includes domain system for clerics */
-    #define IS_MIN_LEVEL_FOR_SPELL(ch, class, spell) (is_min_level_for_spell(ch, class, spell))
 
-    /* sets prep-state as TRUE, and starts the preparing-event */
-    #define START_PREPARATION(ch, class) (start_preparation(ch, class))
-    
-    /* is ch ready to prep spells for given class? */
-    #define READY_TO_PREP(ch, class) (ready_to_prep_spells(ch, class))
+    /* our in-game class array does not match up to our
+         linked-list arrays, so we have to convert values */
+    #define GET_PREP_CLASS(class) (get_prep_class(class))
+    #define GET_ORIG_CLASS(class) (get_orig_class(class))
 
-    /* function to set the state: preparing spells or not */
-    #define SET_PREPARING_STATE(ch, class, state) (set_preparing_state(ch, class, state))
-
-    /* bool to check if ch is currently trying to prep spells */
-    #define IS_PREPARING_SPELLS(ch) (is_preparing_spells(ch))
-
-    /* returns total value of class queue including both the
-         prep-queue and collection */
-    #define TOTAL_QUEUE_SIZE(ch, ch_class) ((size_of_collection(ch, ch_class)) + (size_of_prep_queue(ch, ch_class)))
-    
-    /* returns # of total slots based on class-level and stat bonus of given circle */
-    #define COMP_SLOT_BY_CIRCLE(ch, circle, class) (compute_slots_by_circle(ch, circle, class))
-    
-    /* give us the highest circle possible based on ch's class */
-    #define HIGHEST_CIRCLE(ch, class) (get_class_highest_circle(ch, class))
-
-    /* given spellnum/class/metamagic, what circle does this spell belong? */
-    #define SPELLS_CIRCLE(spellnum, class, metamagic, domain) (compute_spells_circle(spellnum, class, metamagic, domain))
-
-    /* is this class one that uses innate magic?  example bard/sorc */
-    #define INNATE_MAGIC_CLASS(class) ((class == CLASS_SORCERER || class == CLASS_BARD))
-
-    /* hack alert: innate-magic system is using the collection to store their
-         'known' spells they select in 'study' */
-    #define INNATE_MAGIC_IS_KNOWN(ch, spell_num) (is_spell_in_collection(ch, spell_num))
-
-    /* hack alert: innate-magic system is using the collection to store their
-         'known' spells they select in 'study' */
-    #define INNATE_MAGIC_TO_KNOWN(ch, spell, ch_class, metamagic, prep_time) (*spell_to_collection(ch, spell, ch_class, metamagic, prep_time))
-    
-    /* hack alert: innate-magic system is using the collection to store their
-         'known' spells that they select in 'study' */
-    #define INNATE_MAGIC_FROM_KNOWN(ch, spell, ch_class) (*spell_from_collection(ch, spell, ch_class))
-    
     /* char's pointer to their spell prep queue (head) */
     #define SPELL_PREP_QUEUE(ch, ch_class) ((ch)->player_specials->saved.preparation_queue[ch_class])
-    #define GET_PREP_QUEUE(ch) ((ch)->player_specials->saved.preparation_queue)
-
-    /* spellnum of a prep-queue top item (head) */
-    #define PREP_QUEUE_ITEM_SPELLNUM(ch, ch_class) ((ch)->player_specials->saved.preparation_queue[ch_class]->spell)
     
     /* char's pointer to their spell collection */
     #define SPELL_COLLECTION(ch, ch_class) ((ch)->player_specials->saved.spell_collection[ch_class])
-    #define GET_COLLECTION(ch) ((ch)->player_specials->saved.spell_collection)
-
-    /* spellnum of a collection top item (head) */
-    #define COLLECTIONE_ITEM_SPELLNUM(ch, ch_class) ((ch)->player_specials->saved.spell_collection[ch_class]->spell)
     
     /** END defines **/
     
