@@ -913,7 +913,9 @@ void game_loop(socket_t local_mother_desc) {
 
     /* Print prompts for other descriptors who had no other output */
     for (d = descriptor_list; d; d = d->next) {
-      if (!d->has_prompt && !d->pProtocol->WriteOOB) {
+      /* Ornir's attempt to remove blank lines */
+      //if (!d->has_prompt && !d->pProtocol->WriteOOB) {
+      if (!d->has_prompt) {
         write_to_descriptor(d->descriptor, make_prompt(d));
         d->has_prompt = TRUE;
       }
