@@ -921,6 +921,10 @@ ACMD(do_gen_preparation) {
   char *spell_arg = NULL, *metamagic_arg = NULL;
   struct prep_collection_spell_data *spell_data, *spell_data_compare;
   
+#if DEBUGMODE
+  prep_queue_add(ch, CLASS_WIZARD, SPELL_MAGE_ARMOR, 0, 14, 0);
+#endif  
+  
   switch (subcmd) {
     case SCMD_PRAY: class = CLASS_CLERIC; break;
     case SCMD_MEMORIZE: class = CLASS_WIZARD; break;
