@@ -3257,7 +3257,7 @@ const int druid_slots[LVL_IMPL + 1][NUM_CIRCLES + 1] = {
   { 0, 5, 5, 5, 5, 5, 4, 4, 4, 4, 0} // 34
 };
 
-// words to use for the spell preparation process for different classes.
+// (old) words to use for the spell preparation process for different classes.
 const char *spell_prep_dictation[NUM_CASTERS][4] = {
 /* 0       1          2         3*/
   {"pray", "praying", "prayed", "prayers"}, // CLASS_CLERIC
@@ -3268,6 +3268,28 @@ const char *spell_prep_dictation[NUM_CASTERS][4] = {
   {"adjure", "adjuring", "adjured", "adjurations"}, // CLASS_RANGER
   {"compose", "composing", "composed", "compositions"}, // CLASS_BARD 
 };
+
+/* words to use for the spell preparation process for different classes. */
+const char *spell_prep_dict[NUM_CLASSES][4] = {
+/* 0           1             2            3 */
+  {"memorize", "studying",   "memorized", "studies"     }, /* CLASS_WIZARD */
+  {"pray",     "praying",    "prayed",    "prayers"     }, /* CLASS_CLERIC */
+  {"",         "",           "",          ""            }, /* rogue 2 */
+  {"",         "",           "",          ""            }, /* warrior 3 */
+  {"",         "",           "",          ""            }, /* monk 4 */
+  {"commune",  "communing",  "communed",  "communion"   }, // CLASS_DRUID 
+  {"",         "",           "",          ""            }, /* berserker 6 */
+  {"meditate", "meditating", "meditated", "meditations" }, // CLASS_SORCERER
+  {"chant",    "chanting",   "chanted",   "petitions"   }, // CLASS_PALADIN 
+  {"adjure",   "adjuring",   "adjured",   "adjurations" }, // CLASS_RANGER
+  {"compose",  "composing",  "composed",  "compositions"}, // CLASS_BARD 
+  {"",         "",           "",          ""            }, /* weapon master 11 */
+  {"",         "",           "",          ""            }, /* arcane archer 12 */
+  {"",         "",           "",          ""            }, /* stalwart defender 13 */
+  {"",         "",           "",          ""            }, /* shifter 14 */
+  {"",         "",           "",          ""            }, /* duelist 15 */
+};
+
 
 /* ... and bloodlines */
 const char *bloodline_names[] = {

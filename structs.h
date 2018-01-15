@@ -3059,6 +3059,7 @@ struct char_special_data {
 
   /* miscellaneous */
   int is_preparing[NUM_CASTERS]; //memorization 
+  int preparing_state[NUM_CLASSES]; /* spell preparation */
   byte position; /**< Standing, fighting, sleeping, etc. */
   int timer; /**< Timer for update */
   
@@ -3118,8 +3119,8 @@ struct player_special_data_saved {
   struct old_spell_data collection[MAX_MEM][NUM_CASTERS];
   
   /* new system for spell preparation */
-  struct prep_collection_spell_data *preparation_queue[NUM_CASTERS];
-  struct prep_collection_spell_data *spell_collection[NUM_CASTERS];  
+  struct prep_collection_spell_data *preparation_queue[NUM_CLASSES];
+  struct prep_collection_spell_data *spell_collection[NUM_CLASSES];  
 
   byte church;  // homeland-port, currently unused
 

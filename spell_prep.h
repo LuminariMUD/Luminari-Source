@@ -163,14 +163,7 @@ extern "C" {
      *   character's skills
      *   character feats   */
     int compute_spells_prep_time(struct char_data *ch, int class, int circle, int domain);
-    
-    /* our in-game class array does not match up to our
-         linked-list arrays, so we have to convert values */
-    int get_prep_class(int class);
-    /* our in-game class array does not match up to our
-         linked-list arrays, so we have to convert values */
-    int get_orig_class(int class);
-    
+        
     /** END functions **/
     
     
@@ -183,7 +176,7 @@ extern "C" {
     /** START defines **/
     
     /* highest possible circle possible */
-    #define TOP_CIRCLE         9
+    #define TOP_CIRCLE         9 /*druid/wiz/sorc/cleric*/
     #define TOP_BARD_CIRCLE    6
     #define TOP_RANGER_CIRCLE  4
     #define TOP_PALADIN_CIRCLE TOP_RANGER_CIRCLE
@@ -216,26 +209,11 @@ extern "C" {
     #define SCMD_CHANT      5
     #define SCMD_ADJURE     6
     #define SCMD_COMPOSE    7
-
-    /* index for dictation constant array */
-    #define INVALID_DICT_INDEX  (-1)
-    #define CLERIC_DICT_INDEX   0
-    #define DRUID_DICT_INDEX    1
-    #define WIZARD_DICT_INDEX   2
-    #define SORCERER_DICT_INDEX 3
-    #define PALADIN_DICT_INDEX  4
-    #define RANGER_DICT_INDEX   5
-    #define BARD_DICT_INDEX     6
     
     /* macros */
     
     /* preparing state right now? */
     #define IN_PREPARATION(ch) (is_preparing(ch))
-
-    /* our in-game class array does not match up to our
-         linked-list arrays, so we have to convert values */
-    #define GET_PREP_CLASS(class) (get_prep_class(class))
-    #define GET_ORIG_CLASS(class) (get_orig_class(class))
 
     /* char's pointer to their spell prep queue (head) */
     #define SPELL_PREP_QUEUE(ch, ch_class) ((ch)->player_specials->saved.preparation_queue[ch_class])
