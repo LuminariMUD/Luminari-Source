@@ -390,9 +390,9 @@ char *node_desc(int material) {
     case MATERIAL_GOLD:
       return strdup("There are veins of yellowish ore here. \tn(\tYharvest\tn)");
     case MATERIAL_WOOD:
-      return strdup("The are here looks ideal for harvesting wood. \tn(\tYharvest\tn)");
+      return strdup("The area here looks ideal for harvesting wood. \tn(\tYharvest\tn)");
     case MATERIAL_DARKWOOD:
-      return strdup("The are here looks ideal for harvesting quality wood. \tn(\tYharvest\tn)");
+      return strdup("The area here looks ideal for harvesting quality wood. \tn(\tYharvest\tn)");
     case MATERIAL_LEATHER:
       return strdup("The area is live with game. \tn(\tYharvest\tn)");
     case MATERIAL_DRAGONHIDE:
