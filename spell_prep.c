@@ -1022,6 +1022,10 @@ ACMD(do_gen_preparation) {
       MIN(compute_spells_circle(class, spell_data), 
           compute_spells_circle(class, spell_data_compare));
   
+  /* clean up, we are done with these */
+  free(spell_data);
+  free(spell_data_compare);
+  
   /*DEBUG*/
   send_to_char(ch, "DEBUG3: compute_spells_circle: %d\r\n", compute_spells_circle(class, spell_data));
   send_to_char(ch, "DEBUG4: compute_spells_circle: %d\r\n", compute_spells_circle(class, spell_data_compare));
