@@ -124,7 +124,8 @@ extern const int sorcerer_slots[LVL_IMPL + 1][NUM_CIRCLES + 1];
 extern const int wizard_slots[LVL_IMPL + 1][NUM_CIRCLES + 1];
 extern const char *spell_prep_dictation[NUM_CASTERS][4];
 extern const int draconic_heritage_energy_types[NUM_DRACONIC_HERITAGE_TYPES+1];
-extern const char * draconic_heritage_names[NUM_DRACONIC_HERITAGE_TYPES+1];
+extern const char *draconic_heritage_names[NUM_DRACONIC_HERITAGE_TYPES+1];
+extern const char *bloodline_names[];
 
 
 #endif /* _CONSTANTS_H_ */

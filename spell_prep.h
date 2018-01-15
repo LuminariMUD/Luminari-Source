@@ -24,183 +24,105 @@ extern "C" {
     
     /** START functions **/
     
-    /** START functions related to the spell-preparation queue handling **/
-    
-    /* clear a ch's spell prep queue, example death?, ch loadup */
-    void init_ch_spell_prep_queue(struct char_data *ch);
-    
-    /* in: character
-     * destroy the spell prep queue, example ch logout */    
-    void destroy_ch_spell_prep_queue(struct char_data *ch);
-    
-    /* load from pfile into ch their spell-preparation queue, example ch login */    
-    /* Prep_Queue */
-    void load_ch_spell_prep_queue(FILE *fl, struct char_data *ch);
-    
-    /* save into ch pfile their spell-preparation queue, example ch saving */
-    /* Prep_Queue */
-    void save_ch_spell_prep_queue(FILE *fl, struct char_data *ch);  
-    
-    /* in: character, class of queue we want to manage, domain(cleric)
-       go through the entire class's prep queue and reset all the prep-time
-         elements to base prep-time */
-    void reset_prep_queue_time(struct char_data *ch, int ch_class, int domain);
+    /* destroy the spell prep queue, example ch logout */
+    void destroy_spell_prep_queue(struct char_data *ch);
+    /* destroy the spell collection, example ch logout */
+    void destroy_spell_collection(struct char_data *ch);
 
-    /* in: character
-     * out: true if character is actively preparing spells
-     *      false if character is NOT preparing spells
-     * is character currently occupied with preparing spells? */
-    bool is_preparing_spells(struct char_data *ch);
+    /* save into ch pfile their spell-preparation queue, example ch saving */
+    void save_spell_prep_queue(FILE *fl, struct char_data *ch);
+    /* save into ch pfile their spell collection, example ch saving */
+    void save_spell_collection(FILE *fl, struct char_data *ch);
+
+    /* remove a spell from a character's prep-queue(in progress) linked list */
+    void prep_queue_remove(struct char_data *ch, struct prep_collection_spell_data *entry,
+        int class);
+    /* remove a spell from a character's collection (completed) linked list */
+    void collection_remove(struct char_data *ch, struct prep_collection_spell_data *entry,
+        int class);
+
+    /* allocate, assign a node entry */
+    struct prep_collection_spell_data *create_prep_coll_entry(int spellnum, int metamagic,
+        int prep_time, int domain);
+
+    /* add a spell to a character's prep-queue(in progress) linked list */
+    void prep_queue_add(struct char_data *ch, int ch_class, int spellnum, int metamagic,
+        int prep_time, int domain);
+    /* add a spell to a character's prep-queue(in progress) linked list */
+    void collection_add(struct char_data *ch, int ch_class, int spellnum, int metamagic,
+        int prep_time, int domain);
+    
+    /* load from pfile into ch their spell-preparation queue, example ch login
+       belongs normally in players.c, but uhhhh */
+    void load_spell_prep_queue(FILE *fl, struct char_data *ch);
+    /* load from pfile into ch their spell collection, example ch login
+       belongs normally in players.c, but uhhhh */
+    void load_spell_collection(FILE *fl, struct char_data *ch);
+
+    /* given a circle/class, count how many items of this circle in prep queue */
+    int count_circle_prep_queue(struct char_data *ch, int class, int circle);
+    /* given a circle/class, count how many items of this circle in the collection */
+    int count_circle_collection(struct char_data *ch, int class, int circle);
+    /* total # of slots consumed by circle X */
+    int count_total_slots(struct char_data *ch, int class, int circle);
     
     /* in: character, class of the queue you want to work with
      * traverse the prep queue and print out the details
      * since the prep queue does not need any organizing, this should be fairly
      * simple */
-    /* hack alert: innate_magic does not have spell-num stored, but
-         instead has just the spell-circle stored as spell-num */
     void print_prep_queue(struct char_data *ch, int ch_class);
-    
-    /* in: character, class of queue we want access to
-       out: size of queue */
-    int size_of_prep_queue(struct char_data *ch, int ch_class);
-
-    /* in: character, spell-number
-     * out: class corresponding to the queue we found the spell-number in
-     * is the given spell-number currently in the respective class-queue?
-     *  */
-    int is_spell_in_prep_queue(struct char_data *ch, int spell_num);
-    
-    /* in: spell-number, class (of collection we want to access), metamagic, preparation time
-     * out: preparation/collection spell data structure
-     * create a new spell prep-queue entry, handles allocation of memory, etc */
-    struct prep_collection_spell_data *create_prep_queue_entry(int spell,
-            int ch_class, int metamagic, int prep_time, int domain);
-    
-    /* in: prep collection struct
-     *   take a prep-collection struct and tag onto list */
-    void entry_to_prep_queue(struct char_data *ch, struct prep_collection_spell_data *entry);
-    
-    /* in: character, spell-number, class of collection we want, metamagic, prep time
-     * out: preparation/collection spell data structure
-     * add a spell to bottom of prep queue, example ch is memorizING a spell
-     *   does NOT do any checking whether this is a 'legal' spell coming in  */
-    /* hack note: for innate-magic we are storing the CIRCLE the spell belongs to
-         in the queue */
-    struct prep_collection_spell_data *spell_to_prep_queue(struct char_data *ch,
-            int spell, int ch_class, int metamagic,  int prep_time, int domain);
-    
-    /* in: character, spell-number, class of collection we need
-     * out: copy of prearation/collection spell data containing entry
-     * remove a spell from the spell_prep queue
-     *   returns an instance of the spell item we found
-     * example ch finished memorizing, also 'forgetting' a spell */
-    struct prep_collection_spell_data *spell_from_prep_queue(struct char_data *ch,
-            int spell, int ch_class, int domain);
-    
-    /** END functions related to the spell-preparation queue handling **/
-
-    /** START functions related to the spell-collection handling **/
-    
-    /* clear a ch's spell collection, example death?, ch loadup */
-    void init_ch_spell_collection(struct char_data *ch);
-    
-    /* in: character
-     * destroy a ch's spell prep queue, example ch logout */
-    void destroy_ch_spell_collection(struct char_data *ch);
-    
-    /* load spell collection from pfile */
-    /* Collection */
-    void load_ch_spell_collection(FILE *fl, struct char_data *ch);
-    
-    /* save into ch pfile their spell-preparation queue, example ch saving */
-    /* Collection */
-    void save_ch_spell_collection(FILE *fl, struct char_data *ch);  
-    
-    /* in: character, class of the queue you want to work with
-     * traverse the prep queue and print out the details
-     */
-    /* hack alert: innate magic is using the collection to store their
-     *   'known' spells */
+    /*UNFINISHED*/
     void print_collection(struct char_data *ch, int ch_class);
+
+    /* in: spellnum, class, metamagic, domain(cleric)
+     * out: the circle this spell (now) belongs, above num-circles if failed
+     * given above info, compute which circle this spell belongs to, this 'interesting'
+     * set-up is due to a dated system that assigns spells by level, not circle
+     * in addition we have metamagic that can modify the spell-circle as well */
+    int compute_spells_circle(int class, struct prep_collection_spell_data *this);
     
-    /* in: character, class of queue we want access to
-       out: size of collection */
-    int size_of_collection(struct char_data *ch, int ch_class);
-
-    /* in: character, spell-number
-     * out: class of the respective collection
-     * checks the ch's spell collection for a given spell_num  */
-    /* hack alert: innate-magic system is using the collection to store their
-         'known' spells they select in 'study' */
-    /*the define below: INNATE_MAGIC_KNOWN(ch, spell_num) */
-    int is_spell_in_collection(struct char_data *ch, int spell_num);
-    
-    /* in: spell-number, class (of collection we need), metamagic, prep-time
-     * create a new spell collection entry */
-    struct prep_collection_spell_data *create_collection_entry(int spell,
-            int ch_class, int metamagic, int prep_time, int domain);
-    
-    /* in: prep collection struct
-     *   take a prep-collection struct and tag onto list */
-    void entry_to_collection(struct char_data *ch, struct prep_collection_spell_data *entry);
-
-    /* add a spell to bottom of collection, example ch memorized a spell */
-    /* hack alert: innate-magic system is using the collection to store their
-         'known' spells they select in 'study' */
-    /*INNATE_MAGIC_TO_KNOWN(ch, spell, ch_class, metamagic, prep_time) *spell_to_collection(ch, spell, ch_class, metamagic, prep_time)*/
-    struct prep_collection_spell_data *spell_to_collection(struct char_data *ch,
-        int spell, int ch_class, int metamagic,  int prep_time, int domain);
-    
-    /* remove a spell from a collection
-     * returns spell-number if successful, SPELL_RESERVED_DBC if fail
-     *  example ch cast the spell */
-    /* hack alert: innate-magic system is using the collection to store their
-         'known' spells that they select in 'study' */
-    /*INNATE_MAGIC_FROM_KNOWN(ch, spell, ch_class) *spell_from_collection(ch, spell, ch_class)*/
-    struct prep_collection_spell_data *spell_from_collection(struct char_data *ch,
-            int spell, int ch_class, int domain);
-    
-    /** END functions related to the spell-collection handling **/
-
-    /** START functions that connect the spell-queue and collection */
-    
-    /* allocate memory, initialize a list, example death?, ch loadup */
-    struct prep_collection_spell_data *create_prep_collection_list();
-
-    /* in: char, spellnumber
-     * out: true if success, false if failure
-     * spell from queue to collection, example finished preparing a spell and now
-     *  the spell belongs in your collection */
-    bool item_from_queue_to_collection(struct char_data *ch, int spell, int domain);  
-    
-    /* in: char, spellnumber
-     * out: true if success, false if failure
-     * spell from collection to queue, example finished casting a spell and now
-     *  the spell belongs in your queue */
-    bool item_from_collection_to_queue(struct char_data *ch, int spell, int domain);
-
-    /** END functions that connect the spell-queue and collection */
-
-    /** START functions of general purpose, includes dated stuff we need to fix */
-
-    /* based on class, will display both:
-         prep-queue
-         collection
-       data... */
-    void print_prep_collection_data(struct char_data *ch, int class);
-
-    /*  in:
-        out:
-        */
-    int has_innate_magic_slot();
-
     /* in: character, class we need to check
      * out: highest circle access in given class, FALSE for fail
-     *   macro: HIGHEST_CIRCLE(ch, class)
+     *   turned this into a macro in header file: HIGHEST_CIRCLE(ch, class)
      *   special note: BONUS_CASTER_LEVEL includes prestige class bonuses */
     int get_class_highest_circle(struct char_data *ch, int class);
 
-    /***************************************/
+    /* are we in a state that allows us to prep spells? */
+    /* define: READY_TO_PREP(ch, class) */
+    bool ready_to_prep_spells(struct char_data *ch, int class);
+
+    /* set the preparing state of the char, this has actually become
+       redundant because of events, but we still have it
+       returns TRUE if successfully set something, false if not
+       define: SET_PREPARING_STATE(ch, class, state) 
+       NOTE: the array in storage is only NUM_CASTERS values, which
+         does not directly sync up with our class-array, so we have
+         a conversion happening here from class-array ->to-> is_preparing-array */
+    bool set_preparing_state(struct char_data *ch, int class, bool state);
+
+    /* sets prep-state as TRUE, and starts the preparing-event */
+    /* START_PREPARATION(ch, class) */
+    void start_prep_event(struct char_data *ch, int class);
+
+    /* does ch level qualify them for this particular spell?
+         includes domain system for clerics 
+       IS_MIN_LEVEL_FOR_SPELL(ch, class, spell)*/
+    bool is_min_level_for_spell(struct char_data *ch, int class, int spellnum);
+
+    /* in: spellnum, class, metamagic, domain(cleric)
+     * out: the circle this spell (now) belongs, above num-circles if failed
+     * given above info, compute which circle this spell belongs to, this 'interesting'
+     * set-up is due to a dated system that assigns spells by level, not circle
+     * in addition we have metamagic that can modify the spell-circle as well */
+    int compute_spells_circle(int class, struct prep_collection_spell_data *this);
+
+    /* display avaialble slots based on what is in the queue/collection, and other
+       variables */
+    void display_available_slots(struct char_data *ch, int class);
+    
+    /* separate system to display our hack -alicious innate-magic system */
+    void print_innate_magic_display(struct char_data *ch, int class);
+
     /* TODO: convert to feat system, construction directly below this
          function */
     /* in: character, respective class to check 
@@ -217,9 +139,15 @@ extern "C" {
      *  data to assign the feats...
      */
     void assign_feat_spell_slots(int ch_class);
-    /****************************************/
 
-    /* in: char data, spell number, class associated with spell, circle of spell
+    /* based on class, will display both:
+         prep-queue
+         collection
+       data... for innate-magic system, send them to a different
+       display function */
+    void print_prep_collection_data(struct char_data *ch, int class);
+
+    /* in: char data, class associated with spell, circle of spell, domain
      * out: preparation time for spell number
      * given the above info, calculate how long this particular spell will take to
      * prepare..  this should take into account:
@@ -227,48 +155,8 @@ extern "C" {
      *   class (arbitrary factor value)
      *   character's skills
      *   character feats   */
-    int compute_spells_prep_time(struct char_data *ch, int spellnum, int class,
-            int circle, int domain);
+    int compute_spells_prep_time(struct char_data *ch, int class, int circle, int domain);    
     
-    /* in: spellnum, class, metamagic, domain(cleric)
-     * out: the circle this spell (now) belongs, FALSE (0) if failed
-     * given above info, compute which circle this spell belongs to, this 'interesting'
-     * set-up is due to a dated system that assigns spells by level, not circle
-     * in addition we have metamagic that can modify the spell-circle as well */
-    int compute_spells_circle(int spellnum, int class, int metamagic, int domain);
-    
-    /* display avaialble slots based on what is in the queue/collection, and other
-       variables */
-    void display_available_slots(struct char_data *ch, int class);
-
-    /* separate system to display our hack -alicious innate-magic system */
-    void print_innate_magic_display(struct char_data *ch, int class);
-    
-    /* based on class, will display both:
-         prep-queue
-         collection
-       data... for innate-magic system, send them to a different
-       display function */
-    void print_prep_collection_data(struct char_data *ch, int class);
-    
-    /* set the preparing state of the char, this has actually become
-       redundant because of events, but we still have it
-     * returns TRUE if successfully set something, false if not
-       define: SET_PREPARING_STATE(ch, class, state) */
-    bool set_preparing_state(struct char_data *ch, int class, bool state);
-
-    /* are we in a state that allows us to prep spells? */
-    bool ready_to_prep_spells(struct char_data *ch, int class);
-
-    /* sets prep-state as TRUE, and starts the preparing-event */
-    /* START_PREPARATION(ch, class) */
-    void start_preparation(struct char_data *ch, int class);
-
-    /* does ch level qualify them for this particular spell?
-       includes domain system for clerics 
-       macro: IS_MIN_LEVEL_FOR_SPELL(ch, class, spell)*/
-    bool is_min_level_for_spell(struct char_data *ch, int class, int spellnum);    
-
     /** END functions **/
     
     /** Start ACMD **/
@@ -280,7 +168,10 @@ extern "C" {
     /** START defines **/
     
     /* highest possible circle possible */
-    #define TOP_CIRCLE 9
+    #define TOP_CIRCLE         9
+    #define TOP_BARD_CIRCLE    6
+    #define TOP_RANGER_CIRCLE  4
+    #define TOP_PALADIN_CIRCLE TOP_RANGER_CIRCLE
     
     /* assuming wizard as our standard, this is the base mem time for a 1st
      * circle spell without any bonuses*/

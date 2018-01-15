@@ -52,20 +52,10 @@
 
 /** END Globals **/
 
+/* START linked list utility */
 
-/** START functions related to the spell-preparation queue handling **/
-
-/* clear a ch's spell prep queue, example death?, ch loadup */
-void init_ch_spell_prep_queue(struct char_data *ch) {
-  int ch_class = 0;
-  for (ch_class = 0; ch_class < NUM_CASTERS; ch_class++) {
-    SPELL_PREP_QUEUE(ch, ch_class) = NULL;
-  }
-}
-
-/* in: character
- * destroy the spell prep queue, example ch logout */
-void destroy_ch_spell_prep_queue(struct char_data *ch) {
+/* destroy the spell prep queue, example ch logout */
+void destroy_spell_prep_queue(struct char_data *ch) {
   int ch_class;
 
   for (ch_class = 0; ch_class < NUM_CASTERS; ch_class++) {
@@ -79,414 +69,8 @@ void destroy_ch_spell_prep_queue(struct char_data *ch) {
     } while (SPELL_PREP_QUEUE(ch, ch_class));
   }
 }
-
-/* load from pfile into ch their spell-preparation queue, example ch login
-   belongs normally in players.c, but uhhhh */
-void load_ch_spell_prep_queue(FILE *fl, struct char_data *ch) {
-  int spell_num, ch_class, metamagic, prep_time, domain;
-  int counter = 0;
-  char line[MAX_INPUT_LENGTH + 1];
-
-  do {
-    /*init*/
-    spell_num = 0;
-    ch_class = 0;
-    metamagic = 0;
-    prep_time = 0;
-    domain = 0;
-
-    get_line(fl, line);
-
-    sscanf(line, "%d %d %d %d %d", &spell_num, &ch_class, &metamagic, &prep_time,
-            &domain);
-
-    if (spell_num != -1) {
-      entry_to_prep_queue(ch,
-                          create_prep_queue_entry(spell_num,
-                                                  ch_class,
-                                                  metamagic,
-                                                  prep_time,
-                                                  domain));
-    }
-    
-    counter++;
-  } while (counter < MAX_MEM && spell_num != -1);
-}
-
-/* save into ch pfile their spell-preparation queue, example ch saving */
-void save_ch_spell_prep_queue(FILE *fl, struct char_data *ch) {
-  struct prep_collection_spell_data *current = NULL;
-  int ch_class;
-  
-  /* label the ascii entry in the pfile */
-  fprintf(fl, "Prep_Queue:\n");
-
-  for (ch_class = 0; ch_class < NUM_CASTERS; ch_class++) {
-    if (!SPELL_PREP_QUEUE(ch, ch_class))
-      continue;
-    current = SPELL_PREP_QUEUE(ch, ch_class);
-
-    /* process! */
-    do {
-      if (current)
-        fprintf(fl, "%d %d %d %d %d\n", current->spell, current->ch_class, current->metamagic,
-              current->prep_time, current->domain);
-      /* transverse */
-      current = current->next;
-    } while (current);
-
-  }
-  
-  /* close this entry */
-  fprintf(fl, "-1 -1 -1 -1 -1\n");
-}
-
-/* in: character, class of queue we want to manage, domain(cleric)
-   go through the entire class's prep queue and reset all the prep-time
-     elements to base prep-time */
-void reset_prep_queue_time(struct char_data *ch, int ch_class, int domain) {
-  struct prep_collection_spell_data *current = NULL;
-
-  current = SPELL_PREP_QUEUE(ch, ch_class);
-  do {
-    current->prep_time =
-            compute_spells_prep_time(
-            ch,
-            current->spell,
-            ch_class,
-            compute_spells_circle(
-              current->spell,
-              ch_class,
-              current->metamagic,
-              current->domain),
-            current->domain
-              );
-
-    /* transverse */
-    current = current->next;
-  } while (current);
-
-}
-
-/* in: character
- * out: true if character is actively preparing spells
- *      false if character is NOT preparing spells
- * is character currently occupied with preparing spells? */
-bool is_preparing_spells(struct char_data *ch) {
-  int i;
-
-  if (char_has_mud_event(ch, ePREPARING))
-    return TRUE;
-
-  for (i = 0; i < NUM_CASTERS; i++)
-    if (IS_PREPARING(ch, i))
-      return TRUE;
-
-  return FALSE;
-}
-
-/* in: character, class of the queue you want to work with
- * traverse the prep queue and print out the details
- * since the prep queue does not need any organizing, this should be fairly
- * simple */
-void print_prep_queue(struct char_data *ch, int ch_class) {
-  char buf[MAX_INPUT_LENGTH];
-  int line_length = 80, total_time = 0;
-  struct prep_collection_spell_data *item = SPELL_PREP_QUEUE(ch, ch_class);
-
-  /* build a nice heading */
-  *buf = '\0';
-  sprintf(buf, "\tYPreparation Queue for %s\tC", class_names[ch_class]);
-  send_to_char(ch, "\tC");
-  text_line(ch, buf, line_length, '-', '-');
-  send_to_char(ch, "\tn");
-
-  /* easy out */
-  if (!item) {
-    send_to_char(ch, "There is nothing in your preparation queue!\r\n");
-    /* build a nice closing */
-    *buf = '\0';
-    send_to_char(ch, "\tC");
-    text_line(ch, buf, line_length, '-', '-');
-    send_to_char(ch, "\tn");
-    return;
-  }  
-
-  *buf = '\0';
-  /* traverse and print */
-  do {
-    int spell_circle = compute_spells_circle(item->spell, item->ch_class, item->metamagic, item->domain);
-    int prep_time = item->prep_time;
-    total_time += prep_time;
-
-    /* hack alert: innate_magic does not have spell-num stored, but
-         instead has just the spell-circle stored as spell-num */
-    switch (ch_class) {
-      case CLASS_SORCERER: case CLASS_BARD:
-      sprintf(buf, "%s \tc[\tWcircle-slot: \tn%d\tc]\tn \tc[\tn%d seconds\tc]\tn %s%s %s\r\n",
-            buf,
-            item->spell,
-            prep_time,
-            (IS_SET(item->metamagic, METAMAGIC_QUICKEN) ? "\tc[\tnquickened\tc]\tn" : ""),
-            (IS_SET(item->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
-            (item->domain ? domain_list[item->domain].name : "")
-            );
-        break;
-      default:
-      sprintf(buf, "%s \tW%s\tn \tc[\tn%d circle\tc]\tn \tc[\tn%d seconds\tc]\tn %s%s %s\r\n",
-            buf,
-            skill_name(item->spell),
-            spell_circle,
-            prep_time,
-            (IS_SET(item->metamagic, METAMAGIC_QUICKEN) ? "\tc[\tnquickened\tc]\tn" : ""),
-            (IS_SET(item->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
-            (item->domain ? domain_list[item->domain].name : "")
-            );
-        break;
-    }
-
-    item = item->next;
-  } while (SPELL_PREP_QUEUE(ch, ch_class));
-
-  send_to_char(ch, buf);
-
-  /* build a nice closing */
-  *buf = '\0';
-  sprintf(buf, "\tYSTotal Preparation Time Remaining: %d\tC", total_time);
-  send_to_char(ch, "\tC");
-  text_line(ch, buf, line_length, '-', '-');
-  send_to_char(ch, "\tn");
-
-  /* all done */
-  return;
-}
-
-/* in: character, class of queue we want access to, circle we want to count
-   out: count of spells */
-int size_of_prep_queue_by_circle(struct char_data *ch, int ch_class, int circle) {
-  int count = 0;
-  
-  /* nothing */
-  if (!SPELL_PREP_QUEUE(ch, ch_class)) return 0;
-  
-  struct prep_collection_spell_data *current = NULL;
-  current = SPELL_PREP_QUEUE(ch, ch_class);
-  
-  do {
-    if (compute_spells_circle(current->spell,
-                              current->ch_class,
-                              current->metamagic,
-                              current->domain
-                             ) == circle)
-      count++;
-    /* transverse */
-    current = current->next;
-  } while (current);
-
-  return count;
-}
-
-/* in: character, class of queue we want access to
-   out: size of queue */
-int size_of_prep_queue(struct char_data *ch, int ch_class) {
-  int count = 0;
-  
-  /* nothing */
-  if (!SPELL_PREP_QUEUE(ch, ch_class)) return 0;
-  
-  struct prep_collection_spell_data *current = NULL;
-  current = SPELL_PREP_QUEUE(ch, ch_class);
-  
-  do {
-    count++;
-    /* transverse */
-    current = current->next;
-  } while (current);
-
-  return count;
-}
-
-/* in: character, spell-number
- * out: class corresponding to the queue we found the spell-number in
- * is the given spell-number currently in the respective class-queue?
- *  */
-int is_spell_in_prep_queue(struct char_data *ch, int spell_num) {
-  int ch_class;
-  struct prep_collection_spell_data *current = NULL;
-
-  for (ch_class = 0; ch_class < NUM_CASTERS; ch_class++) {
-    current = SPELL_PREP_QUEUE(ch, ch_class);
-    do {
-      if (current->spell == spell_num)
-        return ch_class;
-
-      /* transverse */
-      current = current->next;
-    } while (current);
-  }
-
-  return FALSE;
-}
-
-/* in: spell-number, class (of collection we want to access), metamagic, preparation time
- * out: preparation/collection spell data structure
- * create a new spell prep-queue entry, handles allocation of memory, etc */
-struct prep_collection_spell_data *create_prep_queue_entry(int spell, int ch_class, int metamagic,
-        int prep_time, int domain) {
-  struct prep_collection_spell_data *prep_queue_data = NULL;
-
-  CREATE(prep_queue_data, struct prep_collection_spell_data, 1);
-  prep_queue_data->spell = spell;
-  prep_queue_data->ch_class = ch_class;
-  prep_queue_data->metamagic = metamagic;
-  prep_queue_data->prep_time = prep_time;
-  prep_queue_data->domain = domain;
-
-  return prep_queue_data;
-}
-
-/* in: prep collection struct
- *   take a prep-collection struct and tag onto list */
-void entry_to_prep_queue(struct char_data *ch, struct prep_collection_spell_data *entry) {
-  /* put on bottom of appropriate class list */
-  entry->next = SPELL_PREP_QUEUE(ch, entry->ch_class);  
-}
-
-/* in: character, spell-number, class of collection we want, metamagic, prep time
- * out: preparation/collection spell data structure
- * add a spell to bottom of prep queue, example ch is memorizING a spell
- *   does NOT do any checking whether this is a 'legal' spell coming in  */
-struct prep_collection_spell_data *spell_to_prep_queue(struct char_data *ch,
-        int spell, int ch_class, int metamagic, int prep_time, int domain) {
-
-  /* hack note: for innate-magic we are storing the CIRCLE the spell belongs to
-       in the queue */
-  switch (ch_class) {
-    case CLASS_SORCERER:case CLASS_BARD:
-      spell = compute_spells_circle(spell, ch_class, metamagic, domain);
-      break;      
-    default:
-      break;
-  }
-
-  struct prep_collection_spell_data *prep_queue_data = NULL;
-
-  /* allocate memory, create entry with data */
-  prep_queue_data = create_prep_queue_entry(spell, ch_class, metamagic, prep_time, domain);
-
-  /* put on bottom of appropriate class list */
-  prep_queue_data->next = SPELL_PREP_QUEUE(ch, ch_class);
-
-  return prep_queue_data;
-}
-void prep_queue_add(struct char_data *ch, int spell, int ch_class, int metamagic,
-        int prep_time, int domain) {
-  struct prep_collection_spell_data *prep_queue_data = NULL;
-
-  /* hack note: for innate-magic we are storing the CIRCLE the spell belongs to
-       in the queue */
-  switch (ch_class) {
-    case CLASS_SORCERER:case CLASS_BARD:
-      spell = compute_spells_circle(spell, ch_class, metamagic, domain);
-      break;      
-    default:
-      break;
-  }
-
-  CREATE(prep_queue_data, struct prep_collection_spell_data, 1);
-  
-  prep_queue_data->spell = spell;
-  prep_queue_data->ch_class = ch_class;
-  prep_queue_data->metamagic = metamagic;
-  prep_queue_data->prep_time = prep_time;
-  prep_queue_data->domain = domain;
-  
-  /* put on bottom of appropriate class list */
-  prep_queue_data->next = SPELL_PREP_QUEUE(ch, ch_class);
-  
-  /* update what is on top */
-  SPELL_PREP_QUEUE(ch, ch_class) = prep_queue_data;
-}
-
-/* in: character, spell-number, class of collection we need
- * out: copy of prearation/collection spell data containing entry
- * remove a spell from the spell_prep queue
- *   returns an instance of the spell item we found
- * example ch finished memorizing, also 'forgetting' a spell */
-struct prep_collection_spell_data *spell_from_prep_queue(struct char_data *ch, int spell,
-        int ch_class, int domain) {
-  struct prep_collection_spell_data *current = SPELL_PREP_QUEUE(ch, ch_class);
-  struct prep_collection_spell_data *prev = NULL;
-  struct prep_collection_spell_data *prep_queue_data = NULL;
-
-  do {
-    /* does the current entry's spell match the spellnum we are searching for? */
-    if (current->spell == spell) {
-      /* we have to duplicate this entry so we can return it */
-      prep_queue_data = create_prep_queue_entry(
-              current->spell,
-              current->ch_class,
-              current->metamagic,
-              current->prep_time,
-              current->domain
-              );
-      break;
-    }
-    /* transverse */
-    prev = current;
-    current = current->next;
-  } while (current);
-
-  /* happen to have been the first element? */
-  if (current == SPELL_PREP_QUEUE(ch, ch_class)) {
-    /* we will re-use prev */
-    prev = SPELL_PREP_QUEUE(ch, ch_class);
-    SPELL_PREP_QUEUE(ch, ch_class) = current->next;
-    free(prev);
-    return prep_queue_data;
-  }
-
-  /* happen to be the last element? */
-  if (current->next == NULL) {
-    prev->next = NULL;
-    free(current);
-    return prep_queue_data;
-  }
-
-  prev->next = current->next;
-  free(current);
-  return prep_queue_data;
-}
-/* remove a spell from a character's memorize(in progress) linked list */
-void remove_from_prep_queue(struct char_data *ch, struct prep_collection_spell_data *mem,
-        int class) {
-  struct prep_collection_spell_data *temp = NULL;
-
-  if (SPELL_PREP_QUEUE(ch, class) == NULL) {
-    core_dump();
-    return;
-  }
-
-  REMOVE_FROM_LIST(mem, SPELL_PREP_QUEUE(ch, class), next);
-  free(mem);
-}
-
-/** END functions related to the spell-preparation queue handling **/
-
-
-/** START functions related to the spell-collection handling **/
-
-/* clear a ch's spell collection, example death?, ch loadup */
-void init_ch_spell_collection(struct char_data *ch) {
-  int ch_class = 0;
-  for (ch_class = 0; ch_class < NUM_CASTERS; ch_class++) {
-    SPELL_COLLECTION(ch, ch_class) = NULL;
-  }
-}
-
-/* in: character
- * destroy a ch's spell prep queue, example ch logout */
-void destroy_ch_spell_collection(struct char_data *ch) {
+/* destroy the spell destroy_spell_collection, example ch logout */
+void destroy_spell_collection(struct char_data *ch) {
   int ch_class;
 
   for (ch_class = 0; ch_class < NUM_CASTERS; ch_class++) {
@@ -501,281 +85,385 @@ void destroy_ch_spell_collection(struct char_data *ch) {
   }
 }
 
-/* load from pfile into ch their spell-preparation queue, example ch login */
-void load_ch_spell_collection(FILE *fl, struct char_data *ch) {
+/* save into ch pfile their spell-preparation queue, example ch saving */
+void save_spell_prep_queue(FILE *fl, struct char_data *ch) {
+  struct prep_collection_spell_data *current, *next;
+  int ch_class;
+  
+  /* label the ascii entry in the pfile */
+  fprintf(fl, "Prep_Queue:\n");
+  for (ch_class = 0; ch_class < NUM_CASTERS; ch_class++) {
+    for (current = SPELL_PREP_QUEUE(ch, ch_class); current; current = next) {
+      next = current->next;
+      fprintf(fl, "%d %d %d %d %d\n", ch_class, current->spell, current->metamagic,
+              current->prep_time, current->domain);      
+    }
+  }
+  /* close this entry */
+  fprintf(fl, "-1 -1 -1 -1 -1\n");
+}
+/* save into ch pfile their spell collection, example ch saving */
+void save_spell_collection(FILE *fl, struct char_data *ch) {
+  struct prep_collection_spell_data *current, *next;
+  int ch_class;
+  
+  /* label the ascii entry in the pfile */
+  fprintf(fl, "Collection:\n");
+  for (ch_class = 0; ch_class < NUM_CASTERS; ch_class++) {
+    for (current = SPELL_COLLECTION(ch, ch_class); current; current = next) {
+      next = current->next;
+      fprintf(fl, "%d %d %d %d %d\n", ch_class, current->spell, current->metamagic,
+              current->prep_time, current->domain);      
+    }
+  }
+  /* close this entry */
+  fprintf(fl, "-1 -1 -1 -1 -1\n");
+}
+
+/* remove a spell from a character's prep-queue(in progress) linked list */
+void prep_queue_remove(struct char_data *ch, struct prep_collection_spell_data *entry,
+        int class) {
+  struct prep_collection_spell_data *temp;
+
+  if (SPELL_PREP_QUEUE(ch, class) == NULL) {
+    core_dump();
+    return;
+  }
+  REMOVE_FROM_LIST(entry, SPELL_PREP_QUEUE(ch, class), next);
+  free(entry);
+}
+/* remove a spell from a character's collection (completed) linked list */
+void collection_remove(struct char_data *ch, struct prep_collection_spell_data *entry,
+        int class) {
+  struct prep_collection_spell_data *temp;
+  
+  if (SPELL_COLLECTION(ch, class) == NULL) {
+    core_dump();
+    return;
+  }
+  REMOVE_FROM_LIST(entry, SPELL_COLLECTION(ch, class), next);
+  free(entry);
+}
+
+/* allocate, assign a node entry */
+struct prep_collection_spell_data *create_prep_coll_entry(int spellnum, int metamagic,
+        int prep_time, int domain) {
+  struct prep_collection_spell_data *entry;
+
+  CREATE(entry, struct prep_collection_spell_data, 1);
+  entry->spell = spellnum;
+  entry->metamagic = metamagic;
+  entry->prep_time = prep_time;
+  entry->prep_time = domain;
+  entry->next = NULL;
+  
+  return entry;
+}
+
+/* add a spell to a character's prep-queue(in progress) linked list */
+void prep_queue_add(struct char_data *ch, int ch_class, int spellnum, int metamagic,
+        int prep_time, int domain) {
+  struct prep_collection_spell_data *entry;
+
+  CREATE(entry, struct prep_collection_spell_data, 1);
+  entry->spell = spellnum;
+  entry->metamagic = metamagic;
+  entry->prep_time = prep_time;
+  entry->prep_time = domain;
+  entry->next = SPELL_PREP_QUEUE(ch, ch_class);
+  SPELL_PREP_QUEUE(ch, ch_class) = entry;
+}
+/* add a spell to a character's prep-queue(in progress) linked list */
+void collection_add(struct char_data *ch, int ch_class, int spellnum, int metamagic,
+        int prep_time, int domain) {
+  struct prep_collection_spell_data *entry;
+
+  CREATE(entry, struct prep_collection_spell_data, 1);
+  entry->spell = spellnum;
+  entry->metamagic = metamagic;
+  entry->prep_time = prep_time;
+  entry->prep_time = domain;
+  entry->next = SPELL_COLLECTION(ch, ch_class);
+  SPELL_COLLECTION(ch, ch_class) = entry;
+}
+
+/* load from pfile into ch their spell-preparation queue, example ch login
+   belongs normally in players.c, but uhhhh */
+void load_spell_prep_queue(FILE *fl, struct char_data *ch) {
   int spell_num, ch_class, metamagic, prep_time, domain;
   int counter = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
   do {
     /*init*/
-    spell_num = 0;
     ch_class = 0;
+    spell_num = 0;
     metamagic = 0;
     prep_time = 0;
     domain = 0;
 
     get_line(fl, line);
 
-    sscanf(line, "%d %d %d %d %d", &spell_num, &ch_class, &metamagic, &prep_time,
+    sscanf(line, "%d %d %d %d %d", &ch_class, &spell_num, &metamagic, &prep_time,
             &domain);
 
-    if (spell_num != -1) {
-      entry_to_collection(ch, create_collection_entry(spell_num, ch_class, metamagic, prep_time, domain));
+    if (ch_class != -1) {
+      prep_queue_add(ch,
+                     ch_class,
+                     spell_num,
+                     metamagic,
+                     prep_time,
+                     domain );
+    }
+    
+    counter++;
+  } while (counter < MAX_MEM && spell_num != -1);
+}
+/* load from pfile into ch their spell collection, example ch login
+   belongs normally in players.c, but uhhhh */
+void load_spell_collection(FILE *fl, struct char_data *ch) {
+  int spell_num, ch_class, metamagic, prep_time, domain;
+  int counter = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do {
+    /*init*/
+    ch_class = 0;
+    spell_num = 0;
+    metamagic = 0;
+    prep_time = 0;
+    domain = 0;
+
+    get_line(fl, line);
+
+    sscanf(line, "%d %d %d %d %d", &ch_class, &spell_num, &metamagic, &prep_time,
+            &domain);
+
+    if (ch_class != -1) {
+      collection_add(ch,
+                     ch_class,
+                     spell_num,
+                     metamagic,
+                     prep_time,
+                     domain );
     }
     
     counter++;
   } while (counter < MAX_MEM && spell_num != -1);
 }
 
-/* save into ch pfile their spell-preparation queue, example ch saving */
-void save_ch_spell_collection(FILE *fl, struct char_data *ch) {
-  struct prep_collection_spell_data *current = NULL;
-  int ch_class;
-
-  /* label the ascii entry in the pfile */
-  fprintf(fl, "Collection:\n");
-
-  for (ch_class = 0; ch_class < NUM_CASTERS; ch_class++) {
-    if (!SPELL_COLLECTION(ch, ch_class))
-      continue;
-    current = SPELL_COLLECTION(ch, ch_class);
-
-    /* process! */
-    do {
-      if (current)
-        fprintf(fl, "%d %d %d %d %d\n", current->spell, current->ch_class, current->metamagic,
-              current->prep_time, current->domain);
-      /* transverse */
-      current = current->next;
-    } while (current);
+/* given a circle/class, count how many items of this circle in prep queue */
+int count_circle_prep_queue(struct char_data *ch, int class, int circle) {
+  int this_circle = 0, counter = 0;
+  struct prep_collection_spell_data *current, *next = NULL;
+  
+  for (current = SPELL_PREP_QUEUE(ch, class); current; current = next) {
+    next = SPELL_PREP_QUEUE(ch, class)->next;
+    this_circle = compute_spells_circle(class, current);
+    if (this_circle == circle)
+      counter++;
   }
   
-  /* close this entry */
-  fprintf(fl, "-1 -1 -1 -1 -1\n");
+  return counter;
 }
-
-/* in: character, class of queue we want access to
-   out: size of collection */
-int size_of_collection(struct char_data *ch, int ch_class) {
-  int count = 0;
+/* given a circle/class, count how many items of this circle in the collection */
+int count_circle_collection(struct char_data *ch, int class, int circle) {
+  int this_circle = 0, counter = 0;
+  struct prep_collection_spell_data *current, *next;
   
-  /* nothing */
-  if (!SPELL_COLLECTION(ch, ch_class)) return 0;
-  
-  struct prep_collection_spell_data *current = NULL;
-  current = SPELL_COLLECTION(ch, ch_class);
-  
-  do {
-    count++;
-    /* transverse */
-    current = current->next;
-  } while (current);
-
-  return count;
-}
-
-/* in: character, spell-number
- * out: class of the respective collection
- * checks the ch's spell collection for a given spell_num  */
-/* hack alert: innate-magic system is using the collection to store their
-         'known' spells they select in 'study' */
-
-/*the define is: INNATE_MAGIC_KNOWN(ch, spell_num) is_spell_in_collection(ch, spell_num)*/
-int is_spell_in_collection(struct char_data *ch, int spell_num) {
-  struct prep_collection_spell_data *current = NULL;
-  int ch_class;
-
-  for (ch_class = 0; ch_class < NUM_CASTERS; ch_class++) {
-    current = SPELL_COLLECTION(ch, ch_class);
-    do {
-
-      if (current->spell == spell_num)
-        return ch_class;
-
-      /* transverse */
-      current = current->next;
-
-    } while (current);
+  for (current = SPELL_COLLECTION(ch, class); current; current = next) {
+    next = SPELL_COLLECTION(ch, class)->next;
+    this_circle = compute_spells_circle(class, current);
+    if (this_circle == circle)
+      counter++;
   }
-
-  return FALSE;
+  
+  return counter;
+}
+/* total # of slots consumed by circle X */
+int count_total_slots(struct char_data *ch, int class, int circle) {
+  return (count_circle_collection(ch, class, circle) +
+          count_circle_prep_queue(ch, class, circle));
 }
 
-/* in: spell-number, class (of collection we need), metamagic, prep-time
- * create a new spell collection entry */
-struct prep_collection_spell_data *create_collection_entry(int spell, int ch_class, int metamagic,
-        int prep_time, int domain) {
-  struct prep_collection_spell_data *collection_data = NULL;
+/* in: character, class of the queue you want to work with
+ * traverse the prep queue and print out the details
+ * since the prep queue does not need any organizing, this should be fairly
+ * simple */
+void print_prep_queue(struct char_data *ch, int ch_class) {
+  char buf[MAX_INPUT_LENGTH];
+  int line_length = 80, total_time = 0;
+  struct prep_collection_spell_data *current, *next;
 
-  CREATE(collection_data, struct prep_collection_spell_data, 1);
-  collection_data->spell = spell;
-  collection_data->ch_class = ch_class;
-  collection_data->metamagic = metamagic;
-  collection_data->prep_time = prep_time;
-  collection_data->domain = domain;
+  /* build a nice heading */
+  *buf = '\0';
+  sprintf(buf, "\tYPreparation Queue for %s\tC", class_names[ch_class]);
+  send_to_char(ch, "\tC");
+  text_line(ch, buf, line_length, '-', '-');
+  send_to_char(ch, "\tn");
 
-  return collection_data;
-}
+  /* easy out */
+  if (!SPELL_PREP_QUEUE(ch, ch_class)) {
+    send_to_char(ch, "There is nothing in your preparation queue!\r\n");
+    /* build a nice closing */
+    *buf = '\0';
+    send_to_char(ch, "\tC");
+    text_line(ch, buf, line_length, '-', '-');
+    send_to_char(ch, "\tn");
+    return;
+  }  
 
-/* in: prep collection struct
- *   take a prep-collection struct and tag onto list */
-void entry_to_collection(struct char_data *ch, struct prep_collection_spell_data *entry) {
-  /* put on bottom of appropriate class list */
-  entry->next = SPELL_COLLECTION(ch, entry->ch_class);  
-}
-
-/* add a spell to bottom of collection, example ch memorized a spell */
-/* hack alert: innate-magic system is using the collection to store their
-     'known' spells they select in 'study' */
-/*INNATE_MAGIC_TO_KNOWN(ch, spell, ch_class, metamagic, prep_time) *spell_to_collection(ch, spell, ch_class, metamagic, prep_time)*/
-struct prep_collection_spell_data *spell_to_collection(struct char_data *ch,
-        int spell, int ch_class, int metamagic, int prep_time, int domain) {
-
-  struct prep_collection_spell_data *collection_data = NULL;
-
-  /* allocate memory, create entry with data */
-  collection_data = create_collection_entry(spell, ch_class, metamagic, prep_time, domain);
-
-  /* put on bottom of appropriate class list */
-  collection_data->next = SPELL_COLLECTION(ch, ch_class);
-
-  return collection_data;
-}
-
-/* remove a spell from a collection
- * returns spell-number if successful, SPELL_RESERVED_DBC if fail
- *  example ch cast the spell */
-/* hack alert: innate-magic system is using the collection to store their
-     'known' spells that they select in 'study' */
-
-/*INNATE_MAGIC_FROM_KNOWN(ch, spell, ch_class) *spell_from_collection(ch, spell, ch_class)*/
-struct prep_collection_spell_data *spell_from_collection(struct char_data *ch, int spell,
-        int ch_class, int domain) {
-  struct prep_collection_spell_data *current = SPELL_COLLECTION(ch, ch_class);
-  struct prep_collection_spell_data *prev = NULL;
-  struct prep_collection_spell_data *collection_data = NULL;
-
-  do {
-    /* does the current entry's spell match the spellnum we are searching for? */
-    if (current->spell == spell) {
-      /* we have to duplicate this entry so we can return it */
-      collection_data = create_collection_entry(
+  /* traverse and print */
+  *buf = '\0';
+  for (current = SPELL_PREP_QUEUE(ch, ch_class); current; current = next) {
+    next = SPELL_PREP_QUEUE(ch, ch_class)->next;
+    int spell_circle = compute_spells_circle(ch_class, current);
+    int prep_time = current->prep_time;
+    total_time += prep_time;
+    /* hack alert: innate_magic does not have spell-num stored, but
+         instead has just the spell-circle stored as spell-num */
+    switch (ch_class) {
+      case CLASS_SORCERER: case CLASS_BARD:
+      sprintf(buf, "%s \tc[\tWcircle-slot: \tn%d\tc]\tn \tc[\tn%d seconds\tc]\tn %s%s %s\r\n",
+              buf,
               current->spell,
-              current->ch_class,
-              current->metamagic,
-              current->prep_time,
-              current->domain
-              );
-      break;
+              prep_time,
+              (IS_SET(current->metamagic, METAMAGIC_QUICKEN) ? "\tc[\tnquickened\tc]\tn" : ""),
+              (IS_SET(current->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
+              (current->domain ? domain_list[current->domain].name : "")
+            );
+        break;
+      default:
+      sprintf(buf, "%s \tW%s\tn \tc[\tn%d circle\tc]\tn \tc[\tn%d seconds\tc]\tn %s%s %s\r\n",
+              buf,
+              skill_name(current->spell),
+              spell_circle,
+              prep_time,
+              (IS_SET(current->metamagic, METAMAGIC_QUICKEN) ? "\tc[\tnquickened\tc]\tn" : ""),
+              (IS_SET(current->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
+              (current->domain ? domain_list[current->domain].name : "")
+            );
+        break;
     }
-    /* transverse */
-    prev = current;
-    current = current->next;
-  } while (current);
-
-  /* happen to have been the first element? */
-  if (current == SPELL_COLLECTION(ch, ch_class)) {
-    /* we will re-use prev */
-    prev = SPELL_COLLECTION(ch, ch_class);
-    SPELL_COLLECTION(ch, ch_class) = current->next;
-    free(prev);
-    return collection_data;
   }
-
-  /* happen to be the last element? */
-  if (current->next == NULL) {
-    prev->next = NULL;
-    free(current);
-    return collection_data;
-  }
-
-  prev->next = current->next;
-  free(current);
-  return collection_data;
-}
-
-/** END functions related to the spell-collection handling **/
-
-/** START functions that connect the spell-queue and collection */
-
-/* allocate memory, initialize a list, example death?, ch loadup */
-struct prep_collection_spell_data *create_prep_collection_list(int class) {
-  struct prep_collection_spell_data *prep_queue_data = NULL;
-
-  CREATE(prep_queue_data, struct prep_collection_spell_data, 1);
   
-  prep_queue_data->spell = SPELL_RESERVED_DBC;
-  prep_queue_data->ch_class = class;
-  prep_queue_data->metamagic = METAMAGIC_NONE;
-  prep_queue_data->prep_time = 0;
-  prep_queue_data->domain = DOMAIN_UNDEFINED;
+  send_to_char(ch, buf);
+
+  /* build a nice closing */
+  *buf = '\0';
+  sprintf(buf, "\tYSTotal Preparation Time Remaining: %d\tC", total_time);
+  send_to_char(ch, "\tC");
+  text_line(ch, buf, line_length, '-', '-');
+  send_to_char(ch, "\tn");
+
+  /* all done */
+  return;
+}
+/*UNFINISHED*/
+void print_collection(struct char_data *ch, int ch_class) {
   
-  prep_queue_data->next = NULL;
-
-  return prep_queue_data;  
 }
 
-/* in: char, spellnumber
- * out: true if success, false if failure
- * spell from queue to collection, example finished preparing a spell and now
- *  the spell belongs in your collection */
-bool item_from_queue_to_collection(struct char_data *ch, int spell, int domain) {
-  /* note class-wizard 0 is not a contradictions here :) */
-  int class = is_spell_in_prep_queue(ch, spell);
+/* END linked list utility */
 
-  if (class) {
-    struct prep_collection_spell_data *item =
-            spell_from_prep_queue(ch, spell, class, domain);
-    spell_to_collection(
-            ch,
-            item->spell,
-            item->ch_class,
-            item->metamagic,
-            item->prep_time,
-            item->domain
-            );
-    return TRUE;
+/* START helper functions */
+
+/* in: spellnum, class, metamagic, domain(cleric)
+ * out: the circle this spell (now) belongs, above num-circles if failed
+ * given above info, compute which circle this spell belongs to, this 'interesting'
+ * set-up is due to a dated system that assigns spells by level, not circle
+ * in addition we have metamagic that can modify the spell-circle as well */
+int compute_spells_circle(int class, struct prep_collection_spell_data *this) {
+  int metamagic_mod = 0;
+  int spell_circle = 0;
+    
+  if (this->spell <= SPELL_RESERVED_DBC || this->spell >= NUM_SPELLS)
+    return (NUM_CIRCLES+1);  
+
+  /* Here we add the circle changes resulting from metamagic use: */
+  if (IS_SET(this->metamagic, METAMAGIC_QUICKEN))
+    metamagic_mod += 4; 
+  if (IS_SET(this->metamagic, METAMAGIC_MAXIMIZE))
+    metamagic_mod += 3;
+
+  switch (class) {
+    case CLASS_BARD:
+      switch (spell_info[this->spell].min_level[class]) {
+        case 3:case 4:
+          return 1 + metamagic_mod;
+        case 5:case 6:case 7:
+          return 2 + metamagic_mod;
+        case 8:case 9:case 10:
+          return 3 + metamagic_mod;
+        case 11:case 12:case 13:
+          return 4 + metamagic_mod;
+        case 14:case 15:case 16:
+          return 5 + metamagic_mod;
+        case 17:case 18:case 19:
+          return 6 + metamagic_mod;
+        /* level 20 reserved for epic spells */
+        default: return (NUM_CIRCLES+1);
+      }
+      break;
+    case CLASS_PALADIN:
+      switch (spell_info[this->spell].min_level[class]) {
+        case 6:case 7:case 8:case 9:
+          return 1 + metamagic_mod;
+        case 10:case 11:
+          return 2 + metamagic_mod;
+        case 12:case 13:case 14:
+          return 3 + metamagic_mod;
+        case 15:case 16:case 17:case 18:case 19:case 20:
+          return 4 + metamagic_mod;
+        default: return (NUM_CIRCLES+1);
+      }
+      break;
+    case CLASS_RANGER:
+      switch (spell_info[this->spell].min_level[class]) {
+        case 6:case 7:case 8:case 9:
+          return 1 + metamagic_mod;
+        case 10:case 11:
+          return 2 + metamagic_mod;
+        case 12:case 13:case 14:
+          return 3 + metamagic_mod;
+        case 15:case 16:case 17:case 18:case 19:case 20:
+          return 4 + metamagic_mod;
+        default: return (NUM_CIRCLES+1);
+      }
+      break;
+    case CLASS_SORCERER:
+      spell_circle = spell_info[this->spell].min_level[class] / 2;
+      spell_circle += metamagic_mod;
+      if (spell_circle > TOP_CIRCLE) {
+        return (NUM_CIRCLES+1);
+      }      
+      return (MAX(1, spell_circle));
+    case CLASS_CLERIC:
+      /* MIN_SPELL_LVL will determine whether domain has a lower level version
+           of the spell */
+      spell_circle = (MIN_SPELL_LVL(this->spell, class, this->domain) + 1) / 2;
+      spell_circle += metamagic_mod;
+      if (spell_circle > TOP_CIRCLE) {
+        return (NUM_CIRCLES+1);
+      }      
+      return (MAX(1, spell_circle));
+    case CLASS_WIZARD:
+      spell_circle = (spell_info[this->spell].min_level[class] + 1) / 2;
+      spell_circle += metamagic_mod;
+      if (spell_circle > TOP_CIRCLE) {
+        return (NUM_CIRCLES+1);
+      }      
+      return (MAX(1, spell_circle));
+    case CLASS_DRUID:
+      spell_circle = (spell_info[this->spell].min_level[class] + 1) / 2;
+      spell_circle += metamagic_mod;
+      if (spell_circle > TOP_CIRCLE) {
+        return (NUM_CIRCLES+1);
+      }      
+      return (MAX(1, spell_circle));
+    default: return (NUM_CIRCLES+1);
   }
-
-  return FALSE;
-}
-
-/* in: char, spellnumber
- * out: true if success, false if failure
- * spell from collection to queue, example finished casting a spell and now
- *  the spell belongs in your queue */
-bool item_from_collection_to_queue(struct char_data *ch, int spell, int domain) {
-
-  int class = is_spell_in_collection(ch, spell);
-
-  if (class) {
-    struct prep_collection_spell_data *item =
-            spell_from_collection(ch, spell, class, domain);
-    spell_to_prep_queue(
-            ch,
-            item->spell,
-            item->ch_class,
-            item->metamagic,
-            item->prep_time,
-            item->domain
-            );
-    return TRUE;
-  }
-
-  return FALSE;
-}
-
-/** END functions that connect the spell-queue and collection */
-
-
-/** START functions of general purpose, includes dated stuff we need to fix */
-
-/*  in:
-    out:
- */
-int has_innate_magic_slot() {
-  return 0;
+  return (NUM_CIRCLES+1);
 }
 
 /* in: character, class we need to check
@@ -819,6 +507,121 @@ int get_class_highest_circle(struct char_data *ch, int class) {
     case CLASS_CLERIC: return (MAX(1, MIN(9, (class_level + 1) / 2)));
     default: return FALSE;
   }
+}
+
+/* are we in a state that allows us to prep spells? */
+/* define: READY_TO_PREP(ch, class) */
+bool ready_to_prep_spells(struct char_data *ch, int class) {
+  if (!SPELL_PREP_QUEUE(ch, class))
+    return FALSE;
+  
+  switch (class) {
+    case CLASS_WIZARD:
+      if (IS_DARK(IN_ROOM(ch)) && !CAN_SEE_IN_DARK(ch))
+        return FALSE;
+      if (AFF_FLAGGED(ch, AFF_BLIND))
+        return FALSE;
+      break;
+  }
+  if (GET_POS(ch) != POS_RESTING)
+    return FALSE;
+  if (FIGHTING(ch))
+    return FALSE;
+  
+  if (AFF_FLAGGED(ch, AFF_STUN))
+    return FALSE;
+  if (AFF_FLAGGED(ch, AFF_PARALYZED))
+    return FALSE;
+  if (AFF_FLAGGED(ch, AFF_GRAPPLED))
+    return FALSE;
+  if (AFF_FLAGGED(ch, AFF_NAUSEATED))
+    return FALSE;
+  if (AFF_FLAGGED(ch, AFF_CONFUSED))
+    return FALSE;
+  if (AFF_FLAGGED(ch, AFF_DAZED))
+    return FALSE;
+  if (AFF_FLAGGED(ch, AFF_PINNED))
+    return FALSE;
+  
+  /* made it! */
+  return TRUE;
+}
+
+/* set the preparing state of the char, this has actually become
+   redundant because of events, but we still have it
+ * returns TRUE if successfully set something, false if not
+   define: SET_PREPARING_STATE(ch, class, state) 
+   NOTE: the array in storage is only NUM_CASTERS values, which
+     does not directly sync up with our class-array, so we have
+     a conversion happening here from class-array ->to-> is_preparing-array */
+bool set_preparing_state(struct char_data *ch, int class, bool state) {
+  switch (class) {
+    case CLASS_CLERIC:
+      (ch)->char_specials.is_preparing[0] = state;
+      return TRUE;
+    case CLASS_DRUID:
+      (ch)->char_specials.is_preparing[1] = state;
+      return TRUE;
+    case CLASS_WIZARD:
+      (ch)->char_specials.is_preparing[2] = state;
+      return TRUE;
+    case CLASS_SORCERER:
+      (ch)->char_specials.is_preparing[3] = state;
+      return TRUE;
+    case CLASS_PALADIN:
+      (ch)->char_specials.is_preparing[4] = state;
+      return TRUE;
+    case CLASS_RANGER:
+      (ch)->char_specials.is_preparing[5] = state;
+      return TRUE;
+    case CLASS_BARD:
+      (ch)->char_specials.is_preparing[6] = state;
+      return TRUE;
+  }
+  return FALSE;
+}
+
+/* sets prep-state as TRUE, and starts the preparing-event */
+/* START_PREPARATION(ch, class) */
+void start_prep_event(struct char_data *ch, int class) {
+  set_preparing_state(ch, class, TRUE);
+  NEW_EVENT(ePREPARING, ch, NULL, 1 * PASSES_PER_SEC);
+}
+
+/* does ch level qualify them for this particular spell?
+     includes domain system for clerics 
+   IS_MIN_LEVEL_FOR_SPELL(ch, class, spell)*/
+bool is_min_level_for_spell(struct char_data *ch, int class, int spellnum) {
+  int min_level = 0;
+  
+  switch (class) {
+    case CLASS_CLERIC: /*domain system!*/
+      min_level = MIN(MIN_SPELL_LVL(spellnum, CLASS_CLERIC, GET_1ST_DOMAIN(ch)),
+                      MIN_SPELL_LVL(spellnum, CLASS_CLERIC, GET_2ND_DOMAIN(ch)));
+      if ((BONUS_CASTER_LEVEL(ch, class) + CLASS_LEVEL(ch, CLASS_CLERIC)) <
+              min_level) {
+        return FALSE;
+      }
+      break;
+    default:
+      if ((BONUS_CASTER_LEVEL(ch, class) + CLASS_LEVEL(ch, class)) <
+              spell_info[spellnum].min_level[class]) {
+        return FALSE;
+      }
+      return TRUE;
+  }
+  return TRUE;
+}
+
+/* display avaialble slots based on what is in the queue/collection, and other
+   variables */
+void display_available_slots(struct char_data *ch, int class) {
+  
+}
+
+/* separate system to display our hack -alicious innate-magic system */
+void print_innate_magic_display(struct char_data *ch, int class) {
+  
 }
 
 /* TODO: convert to feat system, construction directly below this
@@ -871,15 +674,12 @@ int compute_slots_by_circle(struct char_data *ch, int circle, int class) {
       break;
   }
   
-  send_to_char(ch, "compute_slots_by_circle: %d\r\n", spell_slots);
-  
   if (spell_slots <= 0)
     return FALSE;
   
   return spell_slots;
 }
 /**** UNDER CONSTRUCTION *****/
-
 /* in: class we need to assign spell slots to
  * at bootup, we initialize class-data, which includes assignment
  *  of the class feats, with our new feat-based spell-slot system, we have
@@ -986,7 +786,43 @@ void assign_feat_spell_slots(int ch_class) {
   /* all done! */
 }
 
-/* in: char data, spell number, class associated with spell, circle of spell
+/* based on class, will display both:
+     prep-queue
+     collection
+   data... for innate-magic system, send them to a different
+   display function */
+void print_prep_collection_data(struct char_data *ch, int class) {
+  switch (class) {
+    case CLASS_SORCERER:case CLASS_BARD:
+      print_innate_magic_display(ch, class);
+      break;
+    case CLASS_CLERIC:case CLASS_WIZARD:case CLASS_RANGER:
+    case CLASS_DRUID:case CLASS_PALADIN:
+      //print_collection(ch, class);
+      print_prep_queue(ch, class);
+      display_available_slots(ch, class);
+      break;
+    default:return;
+  }
+}
+/* checks to see if ch is ready to prepare, outputes messages,
+     and then fires up the event */
+void begin_preparing(struct char_data *ch, int class, int dict_index) {
+  char buf[MAX_INPUT_LENGTH];
+  
+  if (ready_to_prep_spells(ch, class)) {
+    send_to_char(ch, "You continue your %s.\r\n",
+            spell_prep_dictation[dict_index][3]);
+    *buf = '\0';
+    sprintf(buf, "$n continues $s %s.",
+            spell_prep_dictation[dict_index][3]);
+    act(buf, FALSE, ch, 0, 0, TO_ROOM);
+    start_prep_event(ch, class);
+  }
+}
+
+
+/* in: char data, class associated with spell, circle of spell, domain
  * out: preparation time for spell number
  * given the above info, calculate how long this particular spell will take to
  * prepare..  this should take into account:
@@ -994,8 +830,7 @@ void assign_feat_spell_slots(int ch_class) {
  *   class (arbitrary factor value)
  *   character's skills
  *   character feats   */
-int compute_spells_prep_time(struct char_data *ch, int spellnum, int class,
-        int circle, int domain) {
+int compute_spells_prep_time(struct char_data *ch, int class, int circle, int domain) {
   int prep_time = 0;
   int bonus_time = 0;
 
@@ -1042,251 +877,9 @@ int compute_spells_prep_time(struct char_data *ch, int spellnum, int class,
   return (prep_time);
 }
 
-/* in: spellnum, class, metamagic, domain(cleric)
- * out: the circle this spell (now) belongs, above num-circles if failed
- * given above info, compute which circle this spell belongs to, this 'interesting'
- * set-up is due to a dated system that assigns spells by level, not circle
- * in addition we have metamagic that can modify the spell-circle as well */
-int compute_spells_circle(int spellnum, int class, int metamagic, int domain) {
-  int metamagic_mod = 0;
-  int spell_circle = 0;
-  
-  /*deubg*/
-  return ((spell_info[spellnum].min_level[class] + 1) / 2);
-  /*deubg*/
-  
-  if (spellnum <= SPELL_RESERVED_DBC || spellnum >= NUM_SPELLS)
-    return (NUM_CIRCLES+1);  
+/* END helper functions */
 
-  /* Here we add the circle changes resulting from metamagic use: */
-  if (IS_SET(metamagic, METAMAGIC_QUICKEN))
-    metamagic_mod += 4; 
-  if (IS_SET(metamagic, METAMAGIC_MAXIMIZE))
-    metamagic_mod += 3;
-
-  switch (class) {
-    case CLASS_BARD:
-      switch (spell_info[spellnum].min_level[class]) {
-        case 3:case 4:
-          return 1 + metamagic_mod;
-        case 5:case 6:case 7:
-          return 2 + metamagic_mod;
-        case 8:case 9:case 10:
-          return 3 + metamagic_mod;
-        case 11:case 12:case 13:
-          return 4 + metamagic_mod;
-        case 14:case 15:case 16:
-          return 5 + metamagic_mod;
-        case 17:case 18:case 19:
-          return 6 + metamagic_mod;
-        /* level 20 reserved for epic spells */
-        default: return (NUM_CIRCLES+1);
-      }
-      break;
-    case CLASS_PALADIN:
-      switch (spell_info[spellnum].min_level[class]) {
-        case 6:case 7:case 8:case 9:
-          return 1 + metamagic_mod;
-        case 10:case 11:
-          return 2 + metamagic_mod;
-        case 12:case 13:case 14:
-          return 3 + metamagic_mod;
-        case 15:case 16:case 17:case 18:case 19:case 20:
-          return 4 + metamagic_mod;
-        default: return (NUM_CIRCLES+1);
-      }
-      break;
-    case CLASS_RANGER:
-      switch (spell_info[spellnum].min_level[class]) {
-        case 6:case 7:case 8:case 9:
-          return 1 + metamagic_mod;
-        case 10:case 11:
-          return 2 + metamagic_mod;
-        case 12:case 13:case 14:
-          return 3 + metamagic_mod;
-        case 15:case 16:case 17:case 18:case 19:case 20:
-          return 4 + metamagic_mod;
-        default: return (NUM_CIRCLES+1);
-      }
-      break;
-    case CLASS_SORCERER:
-      spell_circle = spell_info[spellnum].min_level[class] / 2;
-      spell_circle += metamagic_mod;
-      if (spell_circle > TOP_CIRCLE) {
-        return (NUM_CIRCLES+1);
-      }      
-      return (MAX(1, spell_circle));
-    case CLASS_CLERIC:
-      /* MIN_SPELL_LVL will determine whether domain has a lower level version
-           of the spell */
-      spell_circle = (MIN_SPELL_LVL(spellnum, class, domain) + 1) / 2;
-      spell_circle += metamagic_mod;
-      if (spell_circle > TOP_CIRCLE) {
-        return (NUM_CIRCLES+1);
-      }      
-      return (MAX(1, spell_circle));
-    case CLASS_WIZARD:
-      spell_circle = (spell_info[spellnum].min_level[class] + 1) / 2;
-      spell_circle += metamagic_mod;
-      if (spell_circle > TOP_CIRCLE) {
-        return (NUM_CIRCLES+1);
-      }      
-      return (MAX(1, spell_circle));
-    case CLASS_DRUID:
-      spell_circle = (spell_info[spellnum].min_level[class] + 1) / 2;
-      spell_circle += metamagic_mod;
-      if (spell_circle > TOP_CIRCLE) {
-        return (NUM_CIRCLES+1);
-      }      
-      return (MAX(1, spell_circle));
-    default: return (NUM_CIRCLES+1);
-  }
-  return (NUM_CIRCLES+1);
-}
-
-/* display avaialble slots based on what is in the queue/collection, and other
-   variables */
-void display_available_slots(struct char_data *ch, int class) {
-  
-}
-
-/* separate system to display our hack -alicious innate-magic system */
-void print_innate_magic_display(struct char_data *ch, int class) {
-  
-}
-
-/* based on class, will display both:
-     prep-queue
-     collection
-   data... for innate-magic system, send them to a different
-   display function */
-void print_prep_collection_data(struct char_data *ch, int class) {
-  switch (class) {
-    case CLASS_SORCERER:case CLASS_BARD:
-      print_innate_magic_display(ch, class);
-      break;
-    case CLASS_CLERIC:case CLASS_WIZARD:case CLASS_RANGER:
-    case CLASS_DRUID:case CLASS_PALADIN:
-      //print_collection(ch, class);
-      print_prep_queue(ch, class);
-      display_available_slots(ch, class);
-      break;
-    default:return;
-  }
-}
-
-/* set the preparing state of the char, this has actually become
-   redundant because of events, but we still have it
- * returns TRUE if successfully set something, false if not
-   define: SET_PREPARING_STATE(ch, class, state) 
-   NOTE: the array in storage is only NUM_CASTERS values, which
-     does not directly sync up with our class-array, so we have
-     a conversion happening here from class-array ->to-> is_preparing-array */
-bool set_preparing_state(struct char_data *ch, int class, bool state) {
-  switch (class) {
-    case CLASS_CLERIC:
-      (ch)->char_specials.is_preparing[0] = state;
-      return TRUE;
-    case CLASS_DRUID:
-      (ch)->char_specials.is_preparing[1] = state;
-      return TRUE;
-    case CLASS_WIZARD:
-      (ch)->char_specials.is_preparing[2] = state;
-      return TRUE;
-    case CLASS_SORCERER:
-      (ch)->char_specials.is_preparing[3] = state;
-      return TRUE;
-    case CLASS_PALADIN:
-      (ch)->char_specials.is_preparing[4] = state;
-      return TRUE;
-    case CLASS_RANGER:
-      (ch)->char_specials.is_preparing[5] = state;
-      return TRUE;
-    case CLASS_BARD:
-      (ch)->char_specials.is_preparing[6] = state;
-      return TRUE;
-  }
-  return FALSE;
-}
-
-/* are we in a state that allows us to prep spells? */
-/* define: READY_TO_PREP(ch, class) */
-bool ready_to_prep_spells(struct char_data *ch, int class) {
-  if (!SPELL_PREP_QUEUE(ch, class))
-    return FALSE;
-  
-  switch (class) {
-    case CLASS_WIZARD:
-      if (IS_DARK(IN_ROOM(ch)) && !CAN_SEE_IN_DARK(ch))
-        return FALSE;
-      if (AFF_FLAGGED(ch, AFF_BLIND))
-        return FALSE;
-      break;
-  }
-  if (GET_POS(ch) != POS_RESTING)
-    return FALSE;
-  if (FIGHTING(ch))
-    return FALSE;
-  
-  if (AFF_FLAGGED(ch, AFF_STUN))
-    return FALSE;
-  if (AFF_FLAGGED(ch, AFF_PARALYZED))
-    return FALSE;
-  if (AFF_FLAGGED(ch, AFF_GRAPPLED))
-    return FALSE;
-  if (AFF_FLAGGED(ch, AFF_NAUSEATED))
-    return FALSE;
-  if (AFF_FLAGGED(ch, AFF_CONFUSED))
-    return FALSE;
-  if (AFF_FLAGGED(ch, AFF_DAZED))
-    return FALSE;
-  if (AFF_FLAGGED(ch, AFF_PINNED))
-    return FALSE;
-  
-  /* made it! */
-  return TRUE;
-}
-
-/* sets prep-state as TRUE, and starts the preparing-event */
-/* START_PREPARATION(ch, class) */
-void start_preparation(struct char_data *ch, int class) {
-  set_preparing_state(ch, class, TRUE);
-  NEW_EVENT(ePREPARING, ch, NULL, 1 * PASSES_PER_SEC);
-}
-
-/* does ch level qualify them for this particular spell?
-     includes domain system for clerics 
-   IS_MIN_LEVEL_FOR_SPELL(ch, class, spell)*/
-bool is_min_level_for_spell(struct char_data *ch, int class, int spellnum) {
-  int min_level = 0;
-  
-  switch (class) {
-    case CLASS_CLERIC: /*domain system!*/
-      min_level = MIN(MIN_SPELL_LVL(spellnum, CLASS_CLERIC, GET_1ST_DOMAIN(ch)),
-                      MIN_SPELL_LVL(spellnum, CLASS_CLERIC, GET_2ND_DOMAIN(ch)));
-      if ((BONUS_CASTER_LEVEL(ch, class) + CLASS_LEVEL(ch, CLASS_CLERIC)) <
-              min_level) {
-        return FALSE;
-      }
-      break;
-    default:
-      if ((BONUS_CASTER_LEVEL(ch, class) + CLASS_LEVEL(ch, class)) <
-              spell_info[spellnum].min_level[class]) {
-        return FALSE;
-      }
-      return TRUE;
-  }
-  return TRUE;
-}
-
-/** END functions of general purpose, includes dated stuff we need to fix */
-
-
-/** START ACMD() ***/
-
-ACMD(do_gen_consign_to_oblivion) {
-  
-}
+/* START ACMD() */
 
 /* preparation command entry point for players */
 /*  Functionality of preparation system (trying to keep in order):
@@ -1308,10 +901,10 @@ ACMD(do_gen_consign_to_oblivion) {
    TODO:
      - FIX domains as entry point value here! */
 ACMD(do_gen_preparation) {
-  int class = CLASS_UNDEFINED, min_circle_for_spell = 0;
+  int class = CLASS_UNDEFINED, circle_for_spell = 0, num_slots = 0;
   int spellnum = 0, metamagic = 0, dict_index = INVALID_DICT_INDEX;
-  char buf[MAX_INPUT_LENGTH];
   char *spell_arg = NULL, *metamagic_arg = NULL;
+  struct prep_collection_spell_data *spell_data, *spell_data_compare;
   
   switch (subcmd) {
     case SCMD_PRAY: class = CLASS_CLERIC; dict_index = CLERIC_DICT_INDEX; break;
@@ -1334,40 +927,21 @@ ACMD(do_gen_preparation) {
   switch (class) {
     case CLASS_SORCERER:case CLASS_BARD:
       print_prep_collection_data(ch, class);
-      if (ready_to_prep_spells(ch, class)) {
-        send_to_char(ch, "You continue your %s.\r\n",
-                spell_prep_dictation[dict_index][3]);
-        *buf = '\0';
-        sprintf(buf, "$n continues $s %s.",
-                spell_prep_dictation[dict_index][3]);
-        act(buf, FALSE, ch, 0, 0, TO_ROOM);
-        start_preparation(ch, class);
-      }
+      begin_preparing(ch, class, dict_index);
       return; /* innate-magic is finished in this command */
     default:
       if (!*argument) {
         print_prep_collection_data(ch, class);
-        if (ready_to_prep_spells(ch, class)) {
-          send_to_char(ch, "You continue your %s.\r\n",
-                  spell_prep_dictation[dict_index][3]);
-          *buf = '\0';
-          sprintf(buf, "$n continues $s %s.",
-                  spell_prep_dictation[dict_index][3]);
-          act(buf, FALSE, ch, 0, 0, TO_ROOM);
-          start_preparation(ch, class);
-        }
+        begin_preparing(ch, class, dict_index);
         return;
       }
-      break;
+      break; /* we do have an argument! */
   }
-  
-  /* we now know we are not innate-magic and we have an argument */
 
   /* Here I needed to change a bit to grab the metamagic keywords.  
    * Valid keywords are:
    *   quickened - Speed up casting
-   *   maximized - All variable aspects of spell (dam dice, etc) are maximum.
-   */
+   *   maximized - All variable aspects of spell (dam dice, etc) are maximum. */
 
   /* spell_arg is a pointer into the argument string.  First lets find the spell - 
    * it should be at the end of the string. */
@@ -1412,77 +986,55 @@ ACMD(do_gen_preparation) {
     }
   }
     
-  /* we need the min-level stored for cleric domain handling?  nope, dealt
-   *   with below */
-  if (!is_min_level_for_spell(ch, class, spellnum)) {
+  if (!is_min_level_for_spell(ch, class, spellnum)) { /* checks domain eligibility */
     send_to_char(ch, "That spell is beyond your grasp!\r\n");
     return;
   }
   
-  /* we are searching for domain spells here */
-  min_circle_for_spell =
-          MIN(compute_spells_circle(class, spellnum, metamagic, GET_1ST_DOMAIN(ch)), 
-              compute_spells_circle(class, spellnum, metamagic, GET_2ND_DOMAIN(ch)));
-  send_to_char(ch, "class: %d, spellnum: %d, dict_index: %d\r\n", class,
-                      spellnum, dict_index);
-  send_to_char(ch, "debug: min_circle_for_spell d1: %d\r\n",
-      compute_spells_circle(class, spellnum, metamagic, GET_1ST_DOMAIN(ch)));
-  send_to_char(ch, "debug: min_circle_for_spell d2: %d\r\n",
-      compute_spells_circle(class, spellnum, metamagic, GET_2ND_DOMAIN(ch)));
+  spell_data = create_prep_coll_entry(spellnum, metamagic, 0, GET_1ST_DOMAIN(ch));
+  spell_data_compare = create_prep_coll_entry(spellnum, metamagic, 0, GET_2ND_DOMAIN(ch));
+  circle_for_spell = /* checks domain spells */
+      MIN(compute_spells_circle(class, spell_data), 
+          compute_spells_circle(class, spell_data_compare));
   
-  if (!compute_slots_by_circle(ch, min_circle_for_spell, class)) {
+  num_slots = compute_slots_by_circle(ch, circle_for_spell, class);
+  
+  if (num_slots <= 0) {
     send_to_char(ch, "You have no slots available in that circle!\r\n");
     return;
   }
   
-  /* we rely on the -proper- circle being placed for special cases such as
-     for domain-spells for clerics and metamagic, etc */
-  if ((compute_slots_by_circle(ch, min_circle_for_spell, class) -
-      (size_of_collection(ch, class)) + (size_of_prep_queue(ch, class)))
-      <= 0) { /* we have no space! */
+  if ((circle_for_spell - count_total_slots(ch, class, spellnum)) <= 0) {
     send_to_char(ch, "You can't retain more spells of that circle!\r\n");
     return;
+  }
     
   /* wizards spellbook reqs */
-  } else if (class == CLASS_WIZARD && !spellbook_ok(ch, spellnum, class, TRUE)) {
+  if (class == CLASS_WIZARD && !spellbook_ok(ch, spellnum, class, TRUE)) {
     send_to_char(ch, "You need a source to study that spell from!\r\n");
     return;
-  } else {
-    /* success, let's throw the spell into our prep queue */
-    send_to_char(ch, "You start to %s for %s%s%s.\r\n",
-            spell_prep_dictation[dict_index][0],
-            (IS_SET(metamagic, METAMAGIC_QUICKEN) ? "quickened " : ""),
-            (IS_SET(metamagic, METAMAGIC_MAXIMIZE) ? "maximized " : ""),
-            spell_info[spellnum].name);
+  }
+
+  /* success, let's throw the spell into our prep queue */
+  send_to_char(ch, "You start to %s for %s%s%s.\r\n",
+          spell_prep_dictation[dict_index][0],
+          (IS_SET(metamagic, METAMAGIC_QUICKEN) ? "quickened " : ""),
+          (IS_SET(metamagic, METAMAGIC_MAXIMIZE) ? "maximized " : ""),
+          spell_info[spellnum].name);
+
+  prep_queue_add(ch,
+          spellnum,
+          class,
+          metamagic,
+          compute_spells_prep_time(ch,
+                                   class,
+                                   circle_for_spell,
+                                   is_domain_spell_of_ch(ch, spellnum)),
+          is_domain_spell_of_ch(ch, spellnum));
     
-    /* throw this spell into your prep queue */
-    prep_queue_add(ch,
-                   spellnum,
-                   class,
-                   metamagic,
-                   compute_spells_prep_time(ch,
-                                            spellnum,
-                                            class,
-                                            min_circle_for_spell,
-                                            is_domain_spell_of_ch(ch, 
-                                                                  spellnum)),
-                        is_domain_spell_of_ch(ch, 
-                                              spellnum));
-  }
-  
-  if (ready_to_prep_spells(ch, class)) {
-    send_to_char(ch, "You continue your %s.\r\n",
-            spell_prep_dictation[dict_index][3]);
-    *buf = '\0';
-    sprintf(buf, "$n continues $s %s.",
-            spell_prep_dictation[dict_index][3]);
-    act(buf, FALSE, ch, 0, 0, TO_ROOM);
-    start_preparation(ch, class);
-  }
-  
+  begin_preparing(ch, class, dict_index);  
 }
 
-/** END ACMD() ***/
+/* END acmd */
 
-
-/***EOF***/
+/* EOF */

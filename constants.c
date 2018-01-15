@@ -3269,6 +3269,13 @@ const char *spell_prep_dictation[NUM_CASTERS][4] = {
   {"compose", "composing", "composed", "compositions"}, // CLASS_BARD 
 };
 
+/* ... and bloodlines */
+const char *bloodline_names[] = {
+  "None",
+  "1) Draconic Bloodline",
+  "\n" /* end with this */
+};
+
 /* --- End of constants arrays. --- */
 
 /* Various arrays we count so we can check the world files.  These
