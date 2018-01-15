@@ -24,6 +24,11 @@ extern "C" {
     
     /** START functions **/
     
+    /* clear a ch's spell prep queue, example ch loadup */
+    void init_spell_prep_queue(struct char_data *ch);
+    /* clear a ch's spell collection, example ch loadup */
+    void init_collection_queue(struct char_data *ch);
+
     /* destroy the spell prep queue, example ch logout */
     void destroy_spell_prep_queue(struct char_data *ch);
     /* destroy the spell collection, example ch logout */
