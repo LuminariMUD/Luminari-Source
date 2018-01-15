@@ -185,12 +185,7 @@ const char *familiar_names[] = {
   "8) Faerie Dragon",
   "\n" /* end with this */
 };
-/* ... and bloodlines */
-const char *bloodline_names[] = {
-  "None",
-  "1) Draconic Bloodline",
-  "\n" /* end with this */
-};
+
 
 /* NOTE: The above static menus should be converted to dynamic menus.
  * All familiars/companions/etc. are not available to all characters.

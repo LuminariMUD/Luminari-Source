@@ -3073,18 +3073,23 @@ struct char_special_data {
   struct char_data *grapple_attacker; /**< Who is grappling me?; else NULL */
 };
 
-/* spell parapation, collection data - expanded for storing class and l-list data */
+/* old memorization struct */
+struct old_spell_data {
+  int spell;     /* spellnum of this spell in the collection */
+  int metamagic; /* Bitvector of metamagic affecting this spell. */
+  int prep_time; /* time to prepare */
+};
+/**/
+
+/* spell parapation, collection data */
 struct prep_collection_spell_data {
   int spell;     /* spellnum of this spell in the collection */
-  int ch_class;  /* class that stored this spell in the collection */
   int metamagic; /* Bitvector of metamagic affecting this spell. */
   int prep_time; /* Remaining time for preparing this spell. */
-  int domain;    /* relevant cleric domain level */  
-
+  int domain;    /* domain info */  
+  
   struct prep_collection_spell_data *next; /*linked-list*/  
 };
-/* how many elements in above struct - used for load/saving in players.c */
-#define PRP_CLLCT_ELMNT 5
 /**/
 
 /** Data only needed by PCs, and needs to be saved to disk. */
@@ -3109,8 +3114,8 @@ struct player_special_data_saved {
   ubyte favored_enemy[MAX_ENEMIES]; //list of ranger favored enemies
   
   /* old spell prep system */
-  struct prep_collection_spell_data prep_queue[MAX_MEM][NUM_CASTERS]; //memorization
-  struct prep_collection_spell_data collection[MAX_MEM][NUM_CASTERS]; //memorization
+  struct old_spell_data prep_queue[MAX_MEM][NUM_CASTERS];
+  struct old_spell_data collection[MAX_MEM][NUM_CASTERS];
   
   /* new system for spell preparation */
   struct prep_collection_spell_data *preparation_queue[NUM_CASTERS];

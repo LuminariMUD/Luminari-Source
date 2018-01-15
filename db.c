@@ -4184,9 +4184,9 @@ void free_char(struct char_data *ch) {
     }
   }
   
-  /* spell prep */
-  destroy_ch_spell_prep_queue(ch);
-  destroy_ch_spell_collection(ch);
+  /* spell prep system */
+  destroy_spell_prep_queue(ch);
+  destroy_spell_collection(ch);
 
   /* new version of free_followers take the followers pointer as arg */
   free_followers(ch->followers);
