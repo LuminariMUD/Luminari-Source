@@ -373,7 +373,7 @@ void print_prep_queue(struct char_data *ch, int ch_class) {
 
   /* build a nice closing */
   *buf = '\0';
-  sprintf(buf, "\tYSTotal Preparation Time Remaining: %d\tC", total_time);
+  sprintf(buf, "\tYTotal Preparation Time Remaining: %d\tC", total_time);
   send_to_char(ch, "\tC");
   text_line(ch, buf, line_length, '-', '-');
   send_to_char(ch, "\tn");
