@@ -133,7 +133,10 @@ bool concentration_check(struct char_data *ch, int spellnum) {
   int spell_level = spell_info[spellnum].min_level[CASTING_CLASS(ch)];
   int concentration_dc = 0;
 
-  if (CASTING_CLASS(ch) == CLASS_CLERIC) {
+  if (IS_NPC(ch)) {
+    spell_level = MIN( (GET_LEVEL(ch) / 2), 9 );
+    spell_level = MAX( 1, spell_level);
+  } else if (CASTING_CLASS(ch) == CLASS_CLERIC) {
     spell_level = MIN_SPELL_LVL(spellnum, CLASS_CLERIC, GET_1ST_DOMAIN(ch));
     int spell_level2 = MIN_SPELL_LVL(spellnum, CLASS_CLERIC, GET_2ND_DOMAIN(ch));
     spell_level = MIN(spell_level, spell_level2);
