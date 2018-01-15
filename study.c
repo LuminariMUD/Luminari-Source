@@ -1429,8 +1429,20 @@ static void skfeat_disp_menu(struct descriptor_data *d) {
   get_char_colors(d->character);
   clear_screen(d);
 
-  for(i = 1; i < END_GENERAL_ABILITIES + 1; i++)
+  for(i = 1; i < END_GENERAL_ABILITIES + 1; i++) {
+    switch (i) {
+      case ABILITY_UNUSED_1:
+      case ABILITY_UNUSED_2:
+      case ABILITY_UNUSED_3:
+      case ABILITY_UNUSED_4:
+      case ABILITY_UNUSED_5:
+      case ABILITY_UNUSED_6:
+      case ABILITY_UNUSED_7:
+      case ABILITY_UNUSED_8:
+        continue;
+    }
     write_to_output(d, "%d) %s\r\n", i, ability_names[i]);
+  }
 
   write_to_output(d, "\r\n%sChoose a skill for the %s feat : ", nrm,
                   feat_list[LEVELUP(d->character)->tempFeat].name);
@@ -1758,6 +1770,19 @@ void study_parse(struct descriptor_data *d, char *arg) {
         LEVELUP(d->character)->tempFeat = -1;
         gen_feat_disp_menu(d);
         break;
+      }
+      switch (number) {
+        case ABILITY_UNUSED_1:
+        case ABILITY_UNUSED_2:
+        case ABILITY_UNUSED_3:
+        case ABILITY_UNUSED_4:
+        case ABILITY_UNUSED_5:
+        case ABILITY_UNUSED_6:
+        case ABILITY_UNUSED_7:
+        case ABILITY_UNUSED_8:
+          write_to_output(d, "That is an invalid choice!\r\n");
+          skfeat_disp_menu(d);
+          break;
       }
       if ((number < 1) || (number > END_GENERAL_ABILITIES)) {
         write_to_output(d, "That is an invalid choice!\r\n");
