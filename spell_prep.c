@@ -188,7 +188,7 @@ void prep_queue_add(struct char_data *ch, int ch_class, int spellnum, int metama
   entry->spell = spellnum;
   entry->metamagic = metamagic;
   entry->prep_time = prep_time;
-  entry->prep_time = domain;
+  entry->domain = domain;
   entry->next = SPELL_PREP_QUEUE(ch, ch_class);
   SPELL_PREP_QUEUE(ch, ch_class) = entry;
 }
@@ -201,7 +201,7 @@ void collection_add(struct char_data *ch, int ch_class, int spellnum, int metama
   entry->spell = spellnum;
   entry->metamagic = metamagic;
   entry->prep_time = prep_time;
-  entry->prep_time = domain;
+  entry->domain = domain;
   entry->next = SPELL_COLLECTION(ch, ch_class);
   SPELL_COLLECTION(ch, ch_class) = entry;
 }
