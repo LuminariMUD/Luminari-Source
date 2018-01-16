@@ -3290,6 +3290,27 @@ const char *spell_prep_dict[NUM_CLASSES][4] = {
   {"",         "",           "",          ""            }, /* duelist 15 */
 };
 
+/* words to use for the spell preparation process for different classes. */
+const char *spell_consign_dict[NUM_CLASSES][4] = {
+/* 0           1             2            3 */
+  {"forget",    "forgot",      "forgetting", "forgotten"   }, /* CLASS_WIZARD */
+  {"blank",     "blanked",     "blanking",   "blanken"     }, /* CLASS_CLERIC */
+  {"",          "",            "",           ""            }, /* rogue 2 */
+  {"",          "",            "",           ""            }, /* warrior 3 */
+  {"",          "",            "",           ""            }, /* monk 4 */
+  {"uncommune", "uncommuned",  "uncommuned", "uncommuned"  }, // CLASS_DRUID 
+  {"",          "",            "",           ""            }, /* berserker 6 */
+  {"",          "",            "",           ""            }, // CLASS_SORCERER
+  {"omit",      "omitted",     "omitting",   "omitted"     }, // CLASS_PALADIN 
+  {"unadjure",  "unadjured",   "unadjuring", "unadjured"   }, // CLASS_RANGER
+  {"",          "",            "",           ""            }, // CLASS_BARD 
+  {"",          "",            "",           ""            }, /* weapon master 11 */
+  {"",          "",            "",           ""            }, /* arcane archer 12 */
+  {"",          "",            "",           ""            }, /* stalwart defender 13 */
+  {"",          "",            "",           ""            }, /* shifter 14 */
+  {"",          "",            "",           ""            }, /* duelist 15 */
+};
+
 
 /* ... and bloodlines */
 const char *bloodline_names[] = {
