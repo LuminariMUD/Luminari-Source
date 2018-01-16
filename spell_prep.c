@@ -895,17 +895,12 @@ void display_available_slots(struct char_data *ch, int class) {
       send_to_char(ch, " \tW%d\tn \tc%d%s\tn", slot_array[slot], (slot),
               (slot) == 1 ? "st" : (slot) == 2 ? "nd" : (slot) == 3 ?
               "rd" : "th");
-      if (--num_circles > 1)
+      if (--num_circles > 0)
         send_to_char(ch, "\tY,");
-      else if (num_circles == 1)
-        send_to_char(ch, " \tYand");
     }
   }
   if (!printed)
     send_to_char(ch, " \tYno more spells!\tn\r\n");
-  else
-    send_to_char(ch, " \tYcircle spell%s.\tn\r\n",
-          slot_array[last_slot] == 1 ? "" : "s");
 
   *buf = '\0';
   send_to_char(ch, "\tC");
