@@ -84,7 +84,7 @@ extern "C" {
      * given above info, compute which circle this spell belongs to, this 'interesting'
      * set-up is due to a dated system that assigns spells by level, not circle
      * in addition we have metamagic that can modify the spell-circle as well */
-    int compute_spells_circle(int class, struct prep_collection_spell_data *this);
+    int compute_spells_circle(int class, int spellnum, int metamagic, int domain);
     
     /* in: character, class we need to check
      * out: highest circle access in given class, FALSE for fail
@@ -115,13 +115,6 @@ extern "C" {
          includes domain system for clerics 
        IS_MIN_LEVEL_FOR_SPELL(ch, class, spell)*/
     bool is_min_level_for_spell(struct char_data *ch, int class, int spellnum);
-
-    /* in: spellnum, class, metamagic, domain(cleric)
-     * out: the circle this spell (now) belongs, above num-circles if failed
-     * given above info, compute which circle this spell belongs to, this 'interesting'
-     * set-up is due to a dated system that assigns spells by level, not circle
-     * in addition we have metamagic that can modify the spell-circle as well */
-    int compute_spells_circle(int class, struct prep_collection_spell_data *this);
 
     /* display avaialble slots based on what is in the queue/collection, and other
        variables */
