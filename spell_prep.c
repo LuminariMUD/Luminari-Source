@@ -279,7 +279,10 @@ int count_circle_prep_queue(struct char_data *ch, int class, int circle) {
   for (current = SPELL_PREP_QUEUE(ch, class); current; current = next) {
     next = SPELL_PREP_QUEUE(ch, class)->next;
     /* need original class value for compute_spells_circle */
-    this_circle = compute_spells_circle(class, current);
+    this_circle = compute_spells_circle(class,
+                                        current->spell,
+                                        current->metamagic,
+                                        current->domain);
     if (this_circle == circle)
       counter++;
   }
@@ -294,7 +297,10 @@ int count_circle_collection(struct char_data *ch, int class, int circle) {
   for (current = SPELL_COLLECTION(ch, class); current; current = next) {
     next = SPELL_COLLECTION(ch, class)->next;
     /* need original class value for compute_spells_circle */
-    this_circle = compute_spells_circle(class, current);
+    this_circle = compute_spells_circle(class,
+                                        current->spell,
+                                        current->metamagic,
+                                        current->domain);
     if (this_circle == circle)
       counter++;
   }
@@ -339,7 +345,10 @@ void print_prep_queue(struct char_data *ch, int ch_class) {
   for (current = SPELL_PREP_QUEUE(ch, ch_class); current; current = next) {
     next = SPELL_PREP_QUEUE(ch, ch_class)->next;
     /* need original class values for compute_spells_circle */
-    int spell_circle = compute_spells_circle(ch_class, current);
+    int spell_circle = compute_spells_circle(ch_class,
+                                             current->spell,
+                                             current->metamagic,
+                                             current->domain);
     int prep_time = current->prep_time;
     total_time += prep_time;
     /* hack alert: innate_magic does not have spell-num stored, but
@@ -394,22 +403,22 @@ void print_collection(struct char_data *ch, int ch_class) {
  * given above info, compute which circle this spell belongs to, this 'interesting'
  * set-up is due to a dated system that assigns spells by level, not circle
  * in addition we have metamagic that can modify the spell-circle as well */
-int compute_spells_circle(int class, struct prep_collection_spell_data *this) {
+int compute_spells_circle(int class, int spellnum, int metamagic, int domain) {
   int metamagic_mod = 0;
   int spell_circle = 0;
     
-  if (this->spell <= SPELL_RESERVED_DBC || this->spell >= NUM_SPELLS)
+  if (spellnum <= SPELL_RESERVED_DBC || spellnum >= NUM_SPELLS)
     return (NUM_CIRCLES+1);  
 
   /* Here we add the circle changes resulting from metamagic use: */
-  if (IS_SET(this->metamagic, METAMAGIC_QUICKEN))
+  if (IS_SET(metamagic, METAMAGIC_QUICKEN))
     metamagic_mod += 4; 
-  if (IS_SET(this->metamagic, METAMAGIC_MAXIMIZE))
+  if (IS_SET(metamagic, METAMAGIC_MAXIMIZE))
     metamagic_mod += 3;
 
   switch (class) {
     case CLASS_BARD:
-      switch (spell_info[this->spell].min_level[class]) {
+      switch (spell_info[spellnum].min_level[class]) {
         case 3:case 4:
           return 1 + metamagic_mod;
         case 5:case 6:case 7:
@@ -427,7 +436,7 @@ int compute_spells_circle(int class, struct prep_collection_spell_data *this) {
       }
       break;
     case CLASS_PALADIN:
-      switch (spell_info[this->spell].min_level[class]) {
+      switch (spell_info[spellnum].min_level[class]) {
         case 6:case 7:case 8:case 9:
           return 1 + metamagic_mod;
         case 10:case 11:
@@ -440,7 +449,7 @@ int compute_spells_circle(int class, struct prep_collection_spell_data *this) {
       }
       break;
     case CLASS_RANGER:
-      switch (spell_info[this->spell].min_level[class]) {
+      switch (spell_info[spellnum].min_level[class]) {
         case 6:case 7:case 8:case 9:
           return 1 + metamagic_mod;
         case 10:case 11:
@@ -453,7 +462,7 @@ int compute_spells_circle(int class, struct prep_collection_spell_data *this) {
       }
       break;
     case CLASS_SORCERER:
-      spell_circle = spell_info[this->spell].min_level[class] / 2;
+      spell_circle = spell_info[spellnum].min_level[class] / 2;
       spell_circle += metamagic_mod;
       if (spell_circle > TOP_CIRCLE) {
         return (NUM_CIRCLES+1);
@@ -462,21 +471,21 @@ int compute_spells_circle(int class, struct prep_collection_spell_data *this) {
     case CLASS_CLERIC:
       /* MIN_SPELL_LVL will determine whether domain has a lower level version
            of the spell */
-      spell_circle = (MIN_SPELL_LVL(this->spell, class, this->domain) + 1) / 2;
+      spell_circle = (MIN_SPELL_LVL(spellnum, class, domain) + 1) / 2;
       spell_circle += metamagic_mod;
       if (spell_circle > TOP_CIRCLE) {
         return (NUM_CIRCLES+1);
       }      
       return (MAX(1, spell_circle));
     case CLASS_WIZARD:
-      spell_circle = (spell_info[this->spell].min_level[class] + 1) / 2;
+      spell_circle = (spell_info[spellnum].min_level[class] + 1) / 2;
       spell_circle += metamagic_mod;
       if (spell_circle > TOP_CIRCLE) {
         return (NUM_CIRCLES+1);
       }      
       return (MAX(1, spell_circle));
     case CLASS_DRUID:
-      spell_circle = (spell_info[this->spell].min_level[class] + 1) / 2;
+      spell_circle = (spell_info[spellnum].min_level[class] + 1) / 2;
       spell_circle += metamagic_mod;
       if (spell_circle > TOP_CIRCLE) {
         return (NUM_CIRCLES+1);
@@ -919,7 +928,6 @@ ACMD(do_gen_preparation) {
   int class = CLASS_UNDEFINED, circle_for_spell = 0, num_slots = 0;
   int spellnum = 0, metamagic = 0;
   char *spell_arg = NULL, *metamagic_arg = NULL;
-  struct prep_collection_spell_data *spell_data, *spell_data_compare;
   
 #if DEBUGMODE
   prep_queue_add(ch, CLASS_WIZARD, SPELL_MAGE_ARMOR, 0, 14, 0);
@@ -1009,33 +1017,17 @@ ACMD(do_gen_preparation) {
     send_to_char(ch, "That spell is beyond your grasp!\r\n");
     return;
   }
-  
-  spell_data = create_prep_coll_entry(spellnum, metamagic, 0, GET_1ST_DOMAIN(ch));
-  spell_data_compare = create_prep_coll_entry(spellnum, metamagic, 0, GET_2ND_DOMAIN(ch));
-  
-#ifdef DEBUGMODE
-  /*DEBUG*/
-  send_to_char(ch, "DEBUG1: spellnum: %d, metamagic: %d, prep-time: %d, domain: %d\r\n",
-                   spell_data->spell, spell_data->metamagic, spell_data->prep_time,
-                   spell_data->domain);
-  send_to_char(ch, "DEBUG2: spellnum: %d, metamagic: %d, prep-time: %d, domain: %d\r\n",
-                   spell_data_compare->spell, spell_data_compare->metamagic,
-                   spell_data_compare->prep_time, spell_data_compare->domain);
-  /*END DEBUG*/
-#endif
-  
+    
   circle_for_spell = /* checks domain spells */
-      MIN(compute_spells_circle(class, spell_data), 
-          compute_spells_circle(class, spell_data_compare));
-  
-  /* clean up, we are done with these */
-  free(spell_data);
-  free(spell_data_compare);
-  
+      MIN( compute_spells_circle(class, spellnum, metamagic, GET_1ST_DOMAIN(ch)), 
+           compute_spells_circle(class, spellnum, metamagic, GET_2ND_DOMAIN(ch)) );
+    
 #ifdef DEBUGMODE
   /*DEBUG*/
-  send_to_char(ch, "DEBUG3: compute_spells_circle: %d\r\n", compute_spells_circle(class, spell_data));
-  send_to_char(ch, "DEBUG4: compute_spells_circle: %d\r\n", compute_spells_circle(class, spell_data_compare));
+  send_to_char(ch, "DEBUG3: compute_spells_circle: %d\r\n",
+      compute_spells_circle(class, spellnum, metamagic, GET_1ST_DOMAIN(ch)));
+  send_to_char(ch, "DEBUG4: compute_spells_circle: %d\r\n",
+      compute_spells_circle(class, spellnum, metamagic, GET_2ND_DOMAIN(ch)));
   /*END DEBUG*/  
 #endif
   
