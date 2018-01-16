@@ -930,7 +930,7 @@ ACMD(do_gen_preparation) {
   char *spell_arg = NULL, *metamagic_arg = NULL;
   
 #if DEBUGMODE
-  prep_queue_add(ch, CLASS_WIZARD, SPELL_MAGE_ARMOR, 0, 14, 0);
+  //prep_queue_add(ch, CLASS_WIZARD, SPELL_MAGE_ARMOR, 0, 14, 0);
 #endif  
   
   switch (subcmd) {
