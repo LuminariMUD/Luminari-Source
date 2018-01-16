@@ -282,6 +282,9 @@ int count_circle_prep_queue(struct char_data *ch, int class, int circle) {
                                         current->spell,
                                         current->metamagic,
                                         current->domain);
+#ifdef DEBUGMODE
+    send_to_char(ch, "(circle%d)ccpq- spellnum: %d, this_circle: %d\r\n", circle, current->spell, this_circle);
+#endif
     if (this_circle == circle)
       counter++;
   }
@@ -361,9 +364,10 @@ void print_prep_queue(struct char_data *ch, int ch_class) {
          instead has just the spell-circle stored as spell-num */
     switch (ch_class) {
       case CLASS_SORCERER: case CLASS_BARD:
-      sprintf(buf, "%s \tc[\tWcircle-slot: \tn%d\tc]\tn \tc[\tn%d seconds\tc]\tn %s%s %s\r\n",
+      sprintf(buf, "%s \tc[\tWcircle-slot: \tn%d%s\tc]\tn \tc[\tn%2d seconds\tc]\tn %s%s %s\r\n",
               buf,
               current->spell,
+              (spell_circle == 1) ? "st" : (spell_circle == 2) ? "nd" : (spell_circle == 3) ? "rd" : "th",
               prep_time,
               (IS_SET(current->metamagic, METAMAGIC_QUICKEN) ? "\tc[\tnquickened\tc]\tn" : ""),
               (IS_SET(current->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
