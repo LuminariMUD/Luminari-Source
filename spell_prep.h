@@ -128,18 +128,7 @@ extern "C" {
          includes domain system for clerics 
        IS_MIN_LEVEL_FOR_SPELL(ch, class, spell)*/
     bool is_min_level_for_spell(struct char_data *ch, int class, int spellnum);
-
-    /* display avaialble slots based on what is in the queue/collection, and other
-       variables */
-    void display_available_slots(struct char_data *ch, int class);
-
-    /* display avaialble slots based on what is in the queue/collection, and other
-       variables */
-    void display_available_slots(struct char_data *ch, int class);
     
-    /* separate system to display our hack -alicious innate-magic system */
-    void print_innate_magic_display(struct char_data *ch, int class);
-
     /* TODO: convert to feat system, construction directly below this
          function */
     /* in: character, respective class to check 
@@ -157,6 +146,13 @@ extern "C" {
      */
     void assign_feat_spell_slots(int ch_class);
 
+    /* separate system to display our hack -alicious innate-magic system */
+    void print_innate_magic_display(struct char_data *ch, int class);
+    
+    /* display avaialble slots based on what is in the queue/collection, and other
+       variables */
+    void display_available_slots(struct char_data *ch, int class);
+    
     /* based on class, will display both:
          prep-queue
          collection

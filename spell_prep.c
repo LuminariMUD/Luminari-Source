@@ -698,52 +698,6 @@ bool is_min_level_for_spell(struct char_data *ch, int class, int spellnum) {
   return TRUE;
 }
 
-/* display avaialble slots based on what is in the queue/collection, and other
-   variables */
-void display_available_slots(struct char_data *ch, int class) {
-  int slot, num_circles = 0, slot_array[NUM_CIRCLES], last_slot = 0,
-          highest_circle = get_class_highest_circle(ch, class);
-  bool printed = FALSE, found_slot = FALSE;
-
-  /* fill our slot_array[] with # available slots */
-  for (slot = 0; slot <= highest_circle; slot++) {
-    found_slot = FALSE;
-
-    if ((slot_array[slot] = compute_slots_by_circle(ch, slot, class) -
-            count_total_slots(ch, class, slot)) > 0)
-      found_slot = TRUE;
-
-    if (found_slot) {
-      last_slot = slot; /* how do we punctuate the end */
-      num_circles++; /* keep track # circles we need to print */
-    }
-  }
-
-  send_to_char(ch, "\r\nYou can %s", spell_prep_dict[class][0]);
-      
-  for (slot = 0; slot <= highest_circle; slot++) {
-    if (slot_array[slot] > 0) {
-      printed = TRUE;
-      send_to_char(ch, " %d %d%s", slot_array[slot], (slot),
-              (slot) == 1 ? "st" : (slot) == 2 ? "nd" : (slot) == 3 ?
-              "rd" : "th");
-      if (--num_circles > 1)
-        send_to_char(ch, ",");
-      else if (num_circles == 1)
-        send_to_char(ch, " and");
-    }
-  }
-  if (!printed)
-    send_to_char(ch, " for no more spells.\r\n");
-  else
-    send_to_char(ch, " circle spell%s.\r\n",
-          slot_array[last_slot] == 1 ? "" : "s");
-}
-
-/* separate system to display our hack -alicious innate-magic system */
-void print_innate_magic_display(struct char_data *ch, int class) {
-}
-
 /* TODO: convert to feat system, construction directly below this
      function */
 /* in: character, respective class to check 
@@ -904,6 +858,59 @@ void assign_feat_spell_slots(int ch_class) {
   } /* level counter */
 
   /* all done! */
+}
+
+/* separate system to display our hack -alicious innate-magic system */
+void print_innate_magic_display(struct char_data *ch, int class) {
+}
+
+/* display avaialble slots based on what is in the queue/collection, and other
+   variables */
+void display_available_slots(struct char_data *ch, int class) {
+  int slot, num_circles = 0, slot_array[NUM_CIRCLES], last_slot = 0,
+          highest_circle = get_class_highest_circle(ch, class),
+          line_length = 80;
+  bool printed = FALSE, found_slot = FALSE;
+  char buf[MAX_INPUT_LENGTH];
+
+  /* fill our slot_array[] with # available slots */
+  for (slot = 0; slot <= highest_circle; slot++) {
+    found_slot = FALSE;
+
+    if ((slot_array[slot] = compute_slots_by_circle(ch, slot, class) -
+            count_total_slots(ch, class, slot)) > 0)
+      found_slot = TRUE;
+
+    if (found_slot) {
+      last_slot = slot; /* how do we punctuate the end */
+      num_circles++; /* keep track # circles we need to print */
+    }
+  }
+
+  send_to_char(ch, "\tYAvailable:");
+      
+  for (slot = 0; slot <= highest_circle; slot++) {
+    if (slot_array[slot] > 0) {
+      printed = TRUE;
+      send_to_char(ch, " \tW%d\tn \tc%d%s\tn", slot_array[slot], (slot),
+              (slot) == 1 ? "st" : (slot) == 2 ? "nd" : (slot) == 3 ?
+              "rd" : "th");
+      if (--num_circles > 1)
+        send_to_char(ch, "\tY,");
+      else if (num_circles == 1)
+        send_to_char(ch, " \tYand");
+    }
+  }
+  if (!printed)
+    send_to_char(ch, " \tYno more spells!\tn\r\n");
+  else
+    send_to_char(ch, " \tYcircle spell%s.\tn\r\n",
+          slot_array[last_slot] == 1 ? "" : "s");
+
+  *buf = '\0';
+  send_to_char(ch, "\tC");
+  text_line(ch, buf, line_length, '-', '-');
+  send_to_char(ch, "\tn");  
 }
 
 /* based on class, will display both:
