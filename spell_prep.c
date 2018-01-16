@@ -1014,7 +1014,9 @@ ACMD(do_consign_to_oblivion) {
   if (!consign_all) {
     spell_arg = strtok(arg, "'");
     if (spell_arg == NULL) {
-      send_to_char(ch, "Forget which spell, or all for all spells?\r\n");
+      send_to_char(ch, "Which spell do you want to %s? "
+              "Usage: %s <meta-magic arguments> '<spell name>' or ALL for all spells.\r\n",
+              spell_consign_dict[class][0]);
       return;
     }
 
@@ -1037,8 +1039,8 @@ ACMD(do_consign_to_oblivion) {
     /* if we have a queue, we are clearing it */
     if (SPELL_PREP_QUEUE(ch, class)) {
       clear_prep_queue_by_class(ch, class);
-      send_to_char(ch, "You purge everything you were attempting to "
-                       "%s for.\r\n", spell_prep_dict[class][0]);
+      send_to_char(ch, "You %s everything you were attempting to %s for.\r\n",
+              spell_consign_dict[class][0], spell_prep_dict[class][0]);
       stop_prep_event(ch, class);
       return;
     }
@@ -1046,15 +1048,15 @@ ACMD(do_consign_to_oblivion) {
     /* elseif we have a collection, we are clearing it */
     else if (SPELL_COLLECTION(ch, class)) {
       clear_collection_by_class(ch, class);
-      send_to_char(ch, "You purge everything you had %s for.\r\n",
-              spell_prep_dict[class][2]);
+      send_to_char(ch, "You %s everything you had %s for.\r\n",
+              spell_consign_dict[class][0], spell_prep_dict[class][2]);
       stop_prep_event(ch, class);
       return;
       
     /* we have nothing in -either- queue! */
     } else {
       send_to_char(ch, "There is nothing in your preparation queue or spell "
-              "collection to purge!\r\n");
+              "collection to %s!\r\n", spell_consign_dict[class][0]);
       stop_prep_event(ch, class);
       return;
     }
@@ -1075,13 +1077,13 @@ ACMD(do_consign_to_oblivion) {
             SPELL_PREP_QUEUE(ch, class)->metamagic == metamagic &&
             PREPARING_STATE(ch, class)) {
       send_to_char(ch, "Being that spell was the next in your preparation queue, you are "
-              "forced to abort your preparations.\r\n");
+              "forced to abort your %s.\r\n", spell_prep_dict[class][3]);
       stop_prep_event(ch, class);
     }
       
     if (prep_queue_remove_by_class(ch, class, spellnum, metamagic)) {
-      send_to_char(ch, "\tW%20s\tn %s%s has been consigned to oblivion from your spell "
-              "preparation queue!\r\n",
+      send_to_char(ch, "You %s \tW%20s\tn %s%s from your spell preparation queue!\r\n",
+              spell_consign_dict[class][0],
               skill_name(spellnum),
               (IS_SET(metamagic, METAMAGIC_QUICKEN)  ? "\tc[\tnquickened\tc]\tn" : ""),
               (IS_SET(metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : "")
@@ -1093,8 +1095,8 @@ ACMD(do_consign_to_oblivion) {
   /* check spell-collection for spell, if found, remove and exit */
   if (SPELL_COLLECTION(ch, class)) {
     if (collection_remove_by_class(ch, class, spellnum, metamagic)) {
-      send_to_char(ch, "\tW%20s\tn %s%s has been consigned to oblivion from your "
-              "spell collection!\r\n",
+      send_to_char(ch, "You %s \tW%20s\tn %s%s from your spell collection!\r\n",
+              spell_consign_dict[class][0],              
               skill_name(spellnum),
               (IS_SET(metamagic, METAMAGIC_QUICKEN)  ? "\tc[\tnquickened\tc]\tn" : ""),
               (IS_SET(metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : "")
