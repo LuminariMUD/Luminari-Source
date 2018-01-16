@@ -51,7 +51,7 @@
 /** START Globals **/
 
 /* toggle for debug mode */
-//#define DEBUGMODE
+#define DEBUGMODE
 
 /** END Globals **/
 
@@ -1132,7 +1132,7 @@ ACMD(do_consign_to_oblivion) {
    TODO:
      - FIX domains as entry point value here! */
 ACMD(do_gen_preparation) {
-  int class = CLASS_UNDEFINED, circle_for_spell = 0, num_slots = 0;
+  int class = CLASS_UNDEFINED, circle_for_spell = 0, num_slots_by_circle = 0;
   int spellnum = 0, metamagic = 0, domain_1st = 0, domain_2nd = 0;
   char *spell_arg = NULL, *metamagic_arg = NULL;
   
@@ -1244,7 +1244,7 @@ ACMD(do_gen_preparation) {
   /*END DEBUG*/  
 #endif
   
-  num_slots = compute_slots_by_circle(ch, circle_for_spell, class);
+  num_slots_by_circle = compute_slots_by_circle(ch, circle_for_spell, class);
 
 #ifdef DEBUGMODE
   /*DEBUG*/
@@ -1253,13 +1253,13 @@ ACMD(do_gen_preparation) {
   /*END DEBUG*/  
 #endif
   
-  if (num_slots <= 0) {
+  if (num_slots_by_circle <= 0) {
     send_to_char(ch, "You have no slots available in that circle!\r\n");
     return;
   }
   
   /* count_total_slots is a count of how many are used by circle */
-  if ((circle_for_spell - count_total_slots(ch, class, circle_for_spell)) <= 0) {
+  if ((num_slots_by_circle - count_total_slots(ch, class, circle_for_spell)) <= 0) {
     send_to_char(ch, "You can't retain more spells of that circle!\r\n");
     return;
   }
