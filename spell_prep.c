@@ -73,34 +73,40 @@ void init_collection_queue(struct char_data *ch) {
   }
 }
 
+/* clear prep queue by class */
+void clear_prep_queue_by_class(struct char_data *ch, int ch_class) {
+  if (!SPELL_PREP_QUEUE(ch, ch_class))
+    return;
+  do {
+    struct prep_collection_spell_data *tmp;
+    tmp = SPELL_PREP_QUEUE(ch, ch_class);
+    SPELL_PREP_QUEUE(ch, ch_class) = SPELL_PREP_QUEUE(ch, ch_class)->next;
+    free(tmp);
+  } while (SPELL_PREP_QUEUE(ch, ch_class));  
+}
+/* clear collection by class */
+void clear_collection_by_class(struct char_data *ch, int ch_class) {
+  if (!SPELL_COLLECTION(ch, ch_class))
+    return;
+  do {
+    struct prep_collection_spell_data *tmp;
+    tmp = SPELL_COLLECTION(ch, ch_class);
+    SPELL_COLLECTION(ch, ch_class) = SPELL_COLLECTION(ch, ch_class)->next;
+    free(tmp);
+  } while (SPELL_COLLECTION(ch, ch_class));  
+}
 /* destroy the spell prep queue, example ch logout */
 void destroy_spell_prep_queue(struct char_data *ch) {
   int ch_class;
-
   for (ch_class = 0; ch_class < NUM_CLASSES; ch_class++) {
-    if (!SPELL_PREP_QUEUE(ch, ch_class))
-      continue;
-    do {
-      struct prep_collection_spell_data *tmp;
-      tmp = SPELL_PREP_QUEUE(ch, ch_class);
-      SPELL_PREP_QUEUE(ch, ch_class) = SPELL_PREP_QUEUE(ch, ch_class)->next;
-      free(tmp);
-    } while (SPELL_PREP_QUEUE(ch, ch_class));
+    clear_prep_queue_by_class(ch, ch_class);
   }
 }
 /* destroy the spell destroy_spell_collection, example ch logout */
 void destroy_spell_collection(struct char_data *ch) {
   int ch_class;
-
   for (ch_class = 0; ch_class < NUM_CLASSES; ch_class++) {
-    if (!SPELL_COLLECTION(ch, ch_class))
-      continue;
-    do {
-      struct prep_collection_spell_data *tmp;
-      tmp = SPELL_COLLECTION(ch, ch_class);
-      SPELL_COLLECTION(ch, ch_class) = SPELL_COLLECTION(ch, ch_class)->next;
-      free(tmp);
-    } while (SPELL_COLLECTION(ch, ch_class));
+    clear_collection_by_class(ch, ch_class);
   }
 }
 
@@ -137,6 +143,41 @@ void save_spell_collection(FILE *fl, struct char_data *ch) {
   }
   /* close this entry */
   fprintf(fl, "-1 -1 -1 -1 -1\n");
+}
+
+/* give: ch, class, spellnum, and metamagic:
+   return: true if we found/removed, false if we didn't find */
+bool prep_queue_remove_by_class(struct char_data *ch, int class, int spellnum,
+        int metamagic) {
+  struct prep_collection_spell_data *current, *next = NULL;
+  
+  for (current = SPELL_PREP_QUEUE(ch, class); current; current = next) {
+    if (current->spell == spellnum && current->metamagic == metamagic) {
+      /*bingo, found it*/
+      prep_queue_remove(ch, current, class);
+      return TRUE;
+    }
+    next = current->next;
+  }
+  
+  return FALSE;
+}
+/* give: ch, class, spellnum, and metamagic:
+   return: true if we found/removed, false if we didn't find */
+bool collection_remove_by_class(struct char_data *ch, int class, int spellnum,
+        int metamagic) {
+  struct prep_collection_spell_data *current, *next = NULL;
+  
+  for (current = SPELL_COLLECTION(ch, class); current; current = next) {
+    if (current->spell == spellnum && current->metamagic == metamagic) {
+      /*bingo, found it*/
+      prep_queue_remove(ch, current, class);
+      return TRUE;
+    }
+    next = current->next;
+  }
+  
+  return FALSE;
 }
 
 /* remove a spell from a character's prep-queue(in progress) linked list */
@@ -623,6 +664,13 @@ void start_prep_event(struct char_data *ch, int class) {
   set_preparing_state(ch, class, TRUE);
   NEW_EVENT(ePREPARING, ch, NULL, 1 * PASSES_PER_SEC);
 }
+/* stop the preparing event and sets the state as false */
+void stop_prep_event(struct char_data *ch, int class) {
+  set_preparing_state(ch, class, FALSE);
+  if (char_has_mud_event(ch, ePREPARING)) {
+    event_cancel_specific(ch, ePREPARING);
+  }
+}
 
 /* does ch level qualify them for this particular spell?
      includes domain system for clerics 
@@ -916,6 +964,152 @@ int compute_spells_prep_time(struct char_data *ch, int class, int circle, int do
 
 /* START ACMD() */
 
+/* manipulation of your respective lists! command for players to
+ *   "un" prepare spells */
+ACMD(do_consign_to_oblivion) {
+  int domain_1st = 0, domain_2nd = 0, class = CLASS_UNDEFINED;
+  char *spell_arg, *metamagic_arg, arg[MAX_INPUT_LENGTH];  
+  int spellnum = 0, metamagic = 0;
+  bool consign_all = FALSE;
+
+  *arg = '\0';
+  
+  switch (subcmd) {
+    case SCMD_BLANK:
+      class = CLASS_CLERIC;
+      domain_1st = GET_1ST_DOMAIN(ch);
+      domain_2nd = GET_2ND_DOMAIN(ch);
+      break;
+    case SCMD_FORGET: class = CLASS_WIZARD; break;
+    case SCMD_UNADJURE: class = CLASS_RANGER; break;
+    case SCMD_OMIT: class = CLASS_PALADIN; break;
+    case SCMD_UNCOMMUNE: class = CLASS_DRUID; break;
+    /* innate-magic casters such as sorc / bard, do not use this command */
+    default:send_to_char(ch, "Invalid command!\r\n");
+      return;
+  }
+  
+  /* Copy the argument, strtok mangles it. */
+  sprintf(arg, "%s", argument);
+
+  /* Check for metamagic. */
+  for (metamagic_arg = strtok(argument, " "); metamagic_arg && metamagic_arg[0] != '\'';
+          metamagic_arg = strtok(NULL, " ")) {
+    if (strcmp(metamagic_arg, "all") == 0) {
+      consign_all = TRUE;
+      break;
+    } else if (is_abbrev(metamagic_arg, "quickened")) {
+      SET_BIT(metamagic, METAMAGIC_QUICKEN);
+    } else if (is_abbrev(metamagic_arg, "maximized")) {
+      SET_BIT(metamagic, METAMAGIC_MAXIMIZE);
+    } else {
+      send_to_char(ch, "With what metamagic? (if you have an argument before the "
+              "magical '' symbols, we are expecting meta-magic arguments, example: "
+              "forget MAXIMIZED 'fireball')\r\n");
+      return;
+    }
+  }
+
+  /* handle single spell, dealing with 'consign all' below */
+  if (!consign_all) {
+    spell_arg = strtok(arg, "'");
+    if (spell_arg == NULL) {
+      send_to_char(ch, "Forget which spell, or all for all spells?\r\n");
+      return;
+    }
+
+    spell_arg = strtok(NULL, "'");
+    if (spell_arg == NULL) {
+      send_to_char(ch, "Spell names must be enclosed in the Holy Magic Symbols: '\r\n");
+      return;
+    }
+
+    spellnum = find_skill_num(spell_arg);
+
+    if (!get_class_highest_circle(ch, class)) {
+      send_to_char(ch, "You do not have any casting ability in this class!\r\n");
+      return;
+    }
+    
+  /* forget ALL */  
+  } else {
+    
+    /* if we have a queue, we are clearing it */
+    if (SPELL_PREP_QUEUE(ch, class)) {
+      clear_prep_queue_by_class(ch, class);
+      send_to_char(ch, "You purge everything you were attempting to "
+                       "%s for.\r\n", spell_prep_dict[class][0]);
+      stop_prep_event(ch, class);
+      return;
+    }
+    
+    /* elseif we have a collection, we are clearing it */
+    else if (SPELL_COLLECTION(ch, class)) {
+      clear_collection_by_class(ch, class);
+      send_to_char(ch, "You purge everything you had %s for.\r\n",
+              spell_prep_dict[class][2]);
+      stop_prep_event(ch, class);
+      return;
+      
+    /* we have nothing in -either- queue! */
+    } else {
+      send_to_char(ch, "There is nothing in your preparation queue or spell "
+              "collection to purge!\r\n");
+      stop_prep_event(ch, class);
+      return;
+    }
+  } /* END forget all */
+
+  /* Begin system for forgetting a specific spell */
+  
+  if (spellnum < 1 || spellnum > MAX_SPELLS) {
+    send_to_char(ch, "You never knew that spell to begin with!\r\n");
+    return;
+  }
+
+  /* check preparation queue for spell, if found, remove and exit */
+  if (SPELL_PREP_QUEUE(ch, class)) {
+    
+    /* if this spell is top of prep queue, we are removing the event */
+    if (SPELL_PREP_QUEUE(ch, class)->spell == spellnum &&
+            SPELL_PREP_QUEUE(ch, class)->metamagic == metamagic &&
+            PREPARING_STATE(ch, class)) {
+      send_to_char(ch, "Being that spell was the next in your preparation queue, you are "
+              "forced to abort your preparations.\r\n");
+      stop_prep_event(ch, class);
+    }
+      
+    if (prep_queue_remove_by_class(ch, class, spellnum, metamagic)) {
+      send_to_char(ch, "\tW%20s\tn %s%s has been consigned to oblivion from your spell "
+              "preparation queue!\r\n",
+              skill_name(spellnum),
+              (IS_SET(metamagic, METAMAGIC_QUICKEN)  ? "\tc[\tnquickened\tc]\tn" : ""),
+              (IS_SET(metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : "")
+            );
+      return;
+    }
+  }
+
+  /* check spell-collection for spell, if found, remove and exit */
+  if (SPELL_COLLECTION(ch, class)) {
+    if (collection_remove_by_class(ch, class, spellnum, metamagic)) {
+      send_to_char(ch, "\tW%20s\tn %s%s has been consigned to oblivion from your "
+              "spell collection!\r\n",
+              skill_name(spellnum),
+              (IS_SET(metamagic, METAMAGIC_QUICKEN)  ? "\tc[\tnquickened\tc]\tn" : ""),
+              (IS_SET(metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : "")
+            );
+      return;
+    }
+  }
+
+  /* nowhere else to search to get rid of this spell! */
+  send_to_char(ch, "You do not have %s in your preparation queue or spell collection! "
+          "(make sure you used the correct command based on class and you used the "
+          "proper meta-magic arguments)\r\n", spell_info[spellnum].name);
+
+}
+
 /* preparation command entry point for players */
 /*  Functionality of preparation system (trying to keep in order):
       4) To view your spell collection
@@ -1076,7 +1270,7 @@ ACMD(do_gen_preparation) {
     
   /* wizards spellbook reqs */
   if (class == CLASS_WIZARD && !spellbook_ok(ch, spellnum, class, TRUE)) {
-    send_to_char(ch, "You need a source to study that spell from!\r\n");
+    send_to_char(ch, "You need a source (spellbook or scroll) to study that spell from!\r\n");
     return;
   }
 
