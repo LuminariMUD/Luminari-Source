@@ -588,8 +588,8 @@ cpp_extern const struct command_info cmd_info[] = {
   { "zpurge", "zpurge", POS_DEAD, do_zpurge, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},
   
   /* test commands for prep system */
-  { "memtest", "memtest", POS_RESTING, do_gen_preparation, 0, SCMD_MEMORIZE, FALSE, ACTION_NONE, {0, 0}},
-  { "fortest", "fortest", POS_RESTING, do_consign_to_oblivion, 0, SCMD_FORGET, FALSE, ACTION_NONE, {0, 0}},
+  //{ "memtest", "memtest", POS_RESTING, do_gen_preparation, 0, SCMD_MEMORIZE, FALSE, ACTION_NONE, {0, 0}},
+  //{ "fortest", "fortest", POS_RESTING, do_consign_to_oblivion, 0, SCMD_FORGET, FALSE, ACTION_NONE, {0, 0}},
   //{ "medtest", "medtest", POS_RESTING, do_gen_preparation, 0, SCMD_MEDITATE, FALSE, ACTION_NONE, {0, 0}},
 
   { "\n", "zzzzzzz", 0, 0, 0, 0, FALSE, ACTION_NONE, {0, 0}}
