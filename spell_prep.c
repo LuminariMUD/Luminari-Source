@@ -287,6 +287,10 @@ int count_circle_prep_queue(struct char_data *ch, int class, int circle) {
       counter++;
   }
   
+#ifdef DEBUGMODE
+  send_to_char(ch, "count_circle_prep_queue: %d\r\n", counter);
+#endif
+  
   return counter;
 }
 /* given a circle/class, count how many items of this circle in the collection */
@@ -304,6 +308,10 @@ int count_circle_collection(struct char_data *ch, int class, int circle) {
     if (this_circle == circle)
       counter++;
   }
+  
+#ifdef DEBUGMODE
+  send_to_char(ch, "count_circle_collection: %d\r\n", counter);
+#endif
   
   return counter;
 }
