@@ -51,7 +51,7 @@
 /** START Globals **/
 
 /* toggle for debug mode */
-#define DEBUGMODE TRUE
+#define DEBUGMODE FALSE
 
 /** END Globals **/
 
