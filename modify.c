@@ -313,9 +313,9 @@ static void playing_string_cleanup(struct descriptor_data *d, int action) {
       notify_if_playing(d->character, d->mail_to);
     } else
       write_to_output(d, "Mail aborted.\r\n");
-      act("$n stops writing mail.", TRUE, d->character, NULL, NULL, TO_ROOM);
-      free(*d->str);
-      free(d->str);
+    act("$n stops writing mail.", TRUE, d->character, NULL, NULL, TO_ROOM);
+    free(*d->str);
+    free(d->str);
   }
 
   /* We have no way of knowing which slot the post was sent to so we can only
@@ -592,7 +592,7 @@ static char *next_page(char *str, struct char_data *ch) {
     else if (*str == '\t') {
       if (*(str + 1) != '\t')
         str++;
-    }      /* Check for everything else. */
+    }/* Check for everything else. */
     else {
       /* Carriage return puts us in column one. */
       if (*str == '\r')
