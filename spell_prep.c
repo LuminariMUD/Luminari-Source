@@ -1063,7 +1063,7 @@ ACMD(do_gen_preparation) {
   }
   
   /* count_total_slots is a count of how many are used by circle */
-  if ((circle_for_spell - count_total_slots(ch, class, spellnum)) <= 0) {
+  if ((circle_for_spell - count_total_slots(ch, class, circle_for_spell)) <= 0) {
     send_to_char(ch, "You can't retain more spells of that circle!\r\n");
     return;
   }
