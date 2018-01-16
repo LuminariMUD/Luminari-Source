@@ -377,7 +377,7 @@ void print_prep_queue(struct char_data *ch, int ch_class) {
               spell_circle,
               (spell_circle == 1) ? "st" : (spell_circle == 2) ? "nd" : (spell_circle == 3) ? "rd" : "th",
               prep_time,
-              (IS_SET(current->metamagic, METAMAGIC_QUICKEN) ? "\tc[\tnquickened\tc]\tn" : ""),
+              (IS_SET(current->metamagic, METAMAGIC_QUICKEN)  ? "\tc[\tnquickened\tc]\tn" : ""),
               (IS_SET(current->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
               (current->domain ? domain_list[current->domain].name : "")
             );
