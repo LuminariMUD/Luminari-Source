@@ -1077,14 +1077,14 @@ ACMD(do_gen_preparation) {
           spell_info[spellnum].name);
 
   prep_queue_add(ch,
-          spellnum,
-          class,
-          metamagic,
-          compute_spells_prep_time(ch,
-                                   class,
-                                   circle_for_spell,
-                                   is_domain_spell_of_ch(ch, spellnum)),
-          is_domain_spell_of_ch(ch, spellnum));
+                 class,
+                 spellnum,
+                 metamagic,
+                 compute_spells_prep_time(ch,
+                                          class,
+                                          circle_for_spell,
+                                          is_domain_spell_of_ch(ch, spellnum)),
+                 is_domain_spell_of_ch(ch, spellnum));
   
 #ifdef DEBUGMODE
   /*DEBUG*/
