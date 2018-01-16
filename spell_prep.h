@@ -132,6 +132,10 @@ extern "C" {
     /* display avaialble slots based on what is in the queue/collection, and other
        variables */
     void display_available_slots(struct char_data *ch, int class);
+
+    /* display avaialble slots based on what is in the queue/collection, and other
+       variables */
+    void display_available_slots(struct char_data *ch, int class);
     
     /* separate system to display our hack -alicious innate-magic system */
     void print_innate_magic_display(struct char_data *ch, int class);
