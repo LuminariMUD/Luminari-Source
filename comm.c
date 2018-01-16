@@ -1552,11 +1552,12 @@ static char *make_prompt(struct descriptor_data *d) {
   }
 
   /* Add IAC GA */
+  /*
   if (len < sizeof(prompt))
     count = snprintf(prompt + len, sizeof (prompt) - len, "%c%c", (char) IAC, (char) GA);
   if (count >= 0)
     len += count;
-    
+*/    
   prompt_size = (int) len;
 
   /* handy debug for prompt size our prompt has potential for some large numbers,
@@ -1916,10 +1917,10 @@ static int process_output(struct descriptor_data *t) {
 
   /* if we're in the overflow state, notify the user */
   /* Ornir attempt to remove blank lines */
-  if (t->bufspace == 0 && !t->pProtocol->WriteOOB){
+  /*if (t->bufspace == 0 && !t->pProtocol->WriteOOB){
     strcat(osb, "**OVERFLOW**\r\n"); // strcpy: OK (osb:MAX_SOCK_BUF-2 reserves space)
   }
-  else
+  else*/
   if(t->bufspace == 0) { 
     strcat(osb, "**OVERFLOW**");
   }
