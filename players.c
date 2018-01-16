@@ -490,7 +490,7 @@ int load_char(const char *name, struct char_data *ch) {
           } else if (!strcmp(tag, "Cfpt")) load_class_feat_points(fl, ch);
           else if (!strcmp(tag, "Cha ")) GET_REAL_CHA(ch) = atoi(line);
           else if (!strcmp(tag, "Clas")) GET_CLASS(ch) = atoi(line);
-          else if (!strcmp(tag, "Collection")) load_spell_collection(fl, ch);
+          else if (!strcmp(tag, "Coll")) load_spell_collection(fl, ch);
           else if (!strcmp(tag, "Con ")) GET_REAL_CON(ch) = atoi(line);
           else if (!strcmp(tag, "CLoc")) load_coord_location(fl, ch);
           else if (!strcmp(tag, "CLvl")) load_class_level(fl, ch);
@@ -603,7 +603,7 @@ int load_char(const char *name, struct char_data *ch) {
             } else
               PRF_FLAGS(ch)[0] = asciiflag_conv(f1);              
           } 
-          else if (!strcmp(tag, "Prep_Queue")) load_spell_prep_queue(fl, ch);
+          else if (!strcmp(tag, "PrQu")) load_spell_prep_queue(fl, ch);
           else if (!strcmp(tag, "PCAr")) GET_PREFERRED_ARCANE(ch) = atoi(line);
           else if (!strcmp(tag, "PCDi")) GET_PREFERRED_DIVINE(ch) = atoi(line);
           break;
