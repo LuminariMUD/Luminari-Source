@@ -1167,13 +1167,17 @@ static char *make_prompt(struct descriptor_data *d) {
 
   ch = d->character;
 
-  if (d->showstr_count) /* # of pages to page through */
-    snprintf(prompt, sizeof (prompt),
+  if (d->showstr_count) { /* # of pages to page through */
+    count = snprintf(prompt, sizeof (prompt),
           "\tn[ Return to continue, (q)uit, (r)efresh, (b)ack, or page number (%d/%d) ]\tn",
           d->showstr_page, d->showstr_count);
-  else if (d->str) /* for the modify-str system */
+    if (count >= 0)
+      len += count;
+  }
+  else if (d->str) { /* for the modify-str system */
     strcpy(prompt, "] "); // strcpy: OK (for 'MAX_PROMPT_LENGTH >= 3')
-
+    len += 3;
+  }
     /* start building a prompt */
 
   else if (STATE(d) == CON_PLAYING && !IS_NPC(d->character)) { /*PC only*/
@@ -1552,12 +1556,14 @@ static char *make_prompt(struct descriptor_data *d) {
   }
 
   /* Add IAC GA */
-  /*
-  if (len < sizeof(prompt))
+  
+  if (len < sizeof(prompt)) {
     count = snprintf(prompt + len, sizeof (prompt) - len, "%c%c", (char) IAC, (char) GA);
-  if (count >= 0)
-    len += count;
-*/    
+    if (count >= 0) {
+      len += count;
+    }
+  }
+    
   prompt_size = (int) len;
 
   /* handy debug for prompt size our prompt has potential for some large numbers,
