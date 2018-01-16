@@ -1028,8 +1028,8 @@ ACMD(do_gen_preparation) {
     
 #ifdef DEBUGMODE
   /*DEBUG*/
-  send_to_char(ch, "DEBUG2: class: %d, spellnum: %d, metamagic: %d, domain_1st: %d, domain_2nd: %d\r\n",
-      class, spellnum, metamagic, domain_1st, domain_2nd);
+  send_to_char(ch, "DEBUG2: class: %d, spellnum: %d, circle_for_spell: %d, metamagic: %d, domain_1st: %d, domain_2nd: %d\r\n",
+      class, spellnum, circle_for_spell, metamagic, domain_1st, domain_2nd);
   send_to_char(ch, "DEBUG3: compute_spells_circle: %d\r\n",
       compute_spells_circle(class, spellnum, metamagic, domain_1st));
   send_to_char(ch, "DEBUG4: compute_spells_circle: %d\r\n",
