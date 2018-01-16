@@ -29,6 +29,10 @@ extern "C" {
     /* clear a ch's spell collection, example ch loadup */
     void init_collection_queue(struct char_data *ch);
 
+    /* clear prep queue by class */
+    void clear_prep_queue_by_class(struct char_data *ch, int ch_class);
+    /* clear collection by class */
+    void clear_collection_by_class(struct char_data *ch, int ch_class);
     /* destroy the spell prep queue, example ch logout */
     void destroy_spell_prep_queue(struct char_data *ch);
     /* destroy the spell collection, example ch logout */
@@ -39,6 +43,13 @@ extern "C" {
     /* save into ch pfile their spell collection, example ch saving */
     void save_spell_collection(FILE *fl, struct char_data *ch);
 
+    /* give: ch, class, spellnum, and metamagic:
+       return: true if we found/removed, false if we didn't find */
+    bool prep_queue_remove_by_class(struct char_data *ch, int class, int spellnum, int metamagic);
+    /* give: ch, class, spellnum, and metamagic:
+       return: true if we found/removed, false if we didn't find */
+    bool collection_remove_by_class(struct char_data *ch, int class, int spellnum, int metamagic);
+    
     /* remove a spell from a character's prep-queue(in progress) linked list */
     void prep_queue_remove(struct char_data *ch, struct prep_collection_spell_data *entry,
         int class);
@@ -110,6 +121,8 @@ extern "C" {
     /* sets prep-state as TRUE, and starts the preparing-event */
     /* START_PREPARATION(ch, class) */
     void start_prep_event(struct char_data *ch, int class);
+    /* stop the preparing event and sets the state as false */
+    void stop_prep_event(struct char_data *ch, int class);
 
     /* does ch level qualify them for this particular spell?
          includes domain system for clerics 
@@ -163,7 +176,8 @@ extern "C" {
     /** Start ACMD **/
     
     ACMD(do_gen_preparation);
-    
+    ACMD(do_consign_to_oblivion);
+
     /** End ACMD **/
 
     /** START defines **/
@@ -203,7 +217,18 @@ extern "C" {
     #define SCMD_ADJURE     6
     #define SCMD_COMPOSE    7
     
+    /* these are the subcommands for the prep system command:
+     *  do_consign_to_oblivion */
+    #define SCMD_FORGET     1
+    #define SCMD_BLANK      2
+    #define SCMD_UNCOMMUNE  3
+    #define SCMD_OMIT       4
+    #define SCMD_UNADJURE   5
+    
     /* macros */
+    
+    /* preparing state? */
+    #define PREPARING_STATE(ch, class) ((ch)->char_specials.preparing_state[class])
     
     /* preparing state right now? */
     #define IN_PREPARATION(ch) (is_preparing(ch))
