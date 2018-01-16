@@ -110,7 +110,7 @@ void save_spell_prep_queue(FILE *fl, struct char_data *ch) {
   int ch_class;
   
   /* label the ascii entry in the pfile */
-  fprintf(fl, "Prep_Queue\n");
+  fprintf(fl, "PrQu:\n");
   for (ch_class = 0; ch_class < NUM_CLASSES; ch_class++) {
     for (current = SPELL_PREP_QUEUE(ch, ch_class); current; current = next) {
       next = current->next;
@@ -127,7 +127,7 @@ void save_spell_collection(FILE *fl, struct char_data *ch) {
   int ch_class;
   
   /* label the ascii entry in the pfile */
-  fprintf(fl, "Collection\n");
+  fprintf(fl, "Coll:\n");
   for (ch_class = 0; ch_class < NUM_CLASSES; ch_class++) {
     for (current = SPELL_COLLECTION(ch, ch_class); current; current = next) {
       next = current->next;
