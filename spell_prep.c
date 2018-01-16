@@ -278,7 +278,6 @@ int count_circle_prep_queue(struct char_data *ch, int class, int circle) {
 
   for (current = SPELL_PREP_QUEUE(ch, class); current; current = next) {
     next = current->next;
-    /* need original class value for compute_spells_circle */
     this_circle = compute_spells_circle(class,
                                         current->spell,
                                         current->metamagic,
@@ -300,7 +299,6 @@ int count_circle_collection(struct char_data *ch, int class, int circle) {
 
   for (current = SPELL_COLLECTION(ch, class); current; current = next) {
     next = current->next;
-    /* need original class value for compute_spells_circle */
     this_circle = compute_spells_circle(class,
                                         current->spell,
                                         current->metamagic,
@@ -373,10 +371,11 @@ void print_prep_queue(struct char_data *ch, int ch_class) {
             );
         break;
       default:
-      sprintf(buf, "%s \tW%s\tn \tc[\tn%d circle\tc]\tn \tc[\tn%d seconds\tc]\tn %s%s %s\r\n",
+      sprintf(buf, "%20s \tW%s\tn \tc[\tn%d%s circle\tc]\tn \tc[\tn%d seconds\tc]\tn %s%s %s\r\n",
               buf,
               skill_name(current->spell),
               spell_circle,
+              (spell_circle == 1) ? "st" : (spell_circle == 2) ? "nd" : (spell_circle == 3) ? "rd" : "th",
               prep_time,
               (IS_SET(current->metamagic, METAMAGIC_QUICKEN) ? "\tc[\tnquickened\tc]\tn" : ""),
               (IS_SET(current->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
