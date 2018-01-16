@@ -926,7 +926,7 @@ int compute_spells_prep_time(struct char_data *ch, int class, int circle, int do
      - FIX domains as entry point value here! */
 ACMD(do_gen_preparation) {
   int class = CLASS_UNDEFINED, circle_for_spell = 0, num_slots = 0;
-  int spellnum = 0, metamagic = 0;
+  int spellnum = 0, metamagic = 0, domain_1st = 0, domain_2nd = 0;
   char *spell_arg = NULL, *metamagic_arg = NULL;
   
 #if DEBUGMODE
@@ -934,7 +934,11 @@ ACMD(do_gen_preparation) {
 #endif  
   
   switch (subcmd) {
-    case SCMD_PRAY: class = CLASS_CLERIC; break;
+    case SCMD_PRAY:
+      class = CLASS_CLERIC;
+      domain_1st = GET_1ST_DOMAIN(ch);
+      domain_2nd = GET_2ND_DOMAIN(ch);
+      break;
     case SCMD_MEMORIZE: class = CLASS_WIZARD; break;
     case SCMD_ADJURE: class = CLASS_RANGER; break;
     case SCMD_CHANT: class = CLASS_PALADIN; break;
@@ -1019,15 +1023,17 @@ ACMD(do_gen_preparation) {
   }
     
   circle_for_spell = /* checks domain spells */
-      MIN( compute_spells_circle(class, spellnum, metamagic, GET_1ST_DOMAIN(ch)), 
-           compute_spells_circle(class, spellnum, metamagic, GET_2ND_DOMAIN(ch)) );
+      MIN( compute_spells_circle(class, spellnum, metamagic, domain_1st), 
+           compute_spells_circle(class, spellnum, metamagic, domain_2nd) );
     
 #ifdef DEBUGMODE
   /*DEBUG*/
+  send_to_char(ch, "DEBUG2: class: %d, spellnum: %d, metamagic: %d, domain_1st: %d, domain_2nd: %d\r\n",
+      class, spellnum, metamagic, domain_1st, domain_2nd);
   send_to_char(ch, "DEBUG3: compute_spells_circle: %d\r\n",
-      compute_spells_circle(class, spellnum, metamagic, GET_1ST_DOMAIN(ch)));
+      compute_spells_circle(class, spellnum, metamagic, domain_1st));
   send_to_char(ch, "DEBUG4: compute_spells_circle: %d\r\n",
-      compute_spells_circle(class, spellnum, metamagic, GET_2ND_DOMAIN(ch)));
+      compute_spells_circle(class, spellnum, metamagic, domain_2nd));
   /*END DEBUG*/  
 #endif
   
@@ -1050,9 +1056,11 @@ ACMD(do_gen_preparation) {
     return;
   }
   
+#ifdef DEBUGMODE
   /*DEBUG*/
   send_to_char(ch, "DEBUG6: count_total_slots: %d\r\n", count_total_slots(ch, class, spellnum));
   /*END DEBUG*/    
+#endif
     
   /* wizards spellbook reqs */
   if (class == CLASS_WIZARD && !spellbook_ok(ch, spellnum, class, TRUE)) {
@@ -1077,10 +1085,13 @@ ACMD(do_gen_preparation) {
                                    is_domain_spell_of_ch(ch, spellnum)),
           is_domain_spell_of_ch(ch, spellnum));
   
+#ifdef DEBUGMODE
   /*DEBUG*/
   send_to_char(ch, "DEBUG7: compute_spells_prep_time: %d", compute_spells_prep_time(ch,
       class, circle_for_spell, is_domain_spell_of_ch(ch, spellnum)));
+  send_to_char(ch, "DEBUG8: is_domain_spell_of_ch: %d", is_domain_spell_of_ch(ch, spellnum));
   /*END DEBUG*/    
+#endif
     
   begin_preparing(ch, class);  
 }
