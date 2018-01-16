@@ -370,7 +370,8 @@ int count_total_slots(struct char_data *ch, int class, int circle) {
 void print_prep_queue(struct char_data *ch, int ch_class) {
   char buf[MAX_INPUT_LENGTH];
   int line_length = 80, total_time = 0;
-  struct prep_collection_spell_data *current, *next;
+  struct prep_collection_spell_data *current = SPELL_PREP_QUEUE(ch, ch_class),
+  *next;
 
   /* build a nice heading */
   *buf = '\0';
@@ -392,7 +393,7 @@ void print_prep_queue(struct char_data *ch, int ch_class) {
 
   /* traverse and print */
   *buf = '\0';
-  for (current = SPELL_PREP_QUEUE(ch, ch_class); current; current = next) {
+  for (; current; current = next) {
     next = current->next;
     /* need original class values for compute_spells_circle */
     int spell_circle = compute_spells_circle(ch_class,
