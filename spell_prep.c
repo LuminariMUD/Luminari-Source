@@ -595,23 +595,21 @@ int get_class_highest_circle(struct char_data *ch, int class) {
 /* are we in a state that allows us to prep spells? */
 /* define: READY_TO_PREP(ch, class) */
 bool ready_to_prep_spells(struct char_data *ch, int class) {
-  if (!SPELL_PREP_QUEUE(ch, class))
-    return FALSE;
   
   switch (class) {
-    case CLASS_WIZARD:
-      if (IS_DARK(IN_ROOM(ch)) && !CAN_SEE_IN_DARK(ch))
-        return FALSE;
-      if (AFF_FLAGGED(ch, AFF_BLIND))
+    case CLASS_WIZARD: /* wizards need to study a book or scroll */
+      if (!spellbook_ok(ch, SPELL_PREP_QUEUE(ch, class)->spell, CLASS_WIZARD, FALSE))
         return FALSE;
       break;
   }
   
+  /* posiiton / fighting */
   if (GET_POS(ch) != POS_RESTING)
     return FALSE;
   if (FIGHTING(ch))
     return FALSE;
   
+  /* debuffs */
   if (AFF_FLAGGED(ch, AFF_STUN))
     return FALSE;
   if (AFF_FLAGGED(ch, AFF_PARALYZED))
@@ -626,10 +624,7 @@ bool ready_to_prep_spells(struct char_data *ch, int class) {
     return FALSE;
   if (AFF_FLAGGED(ch, AFF_PINNED))
     return FALSE;
-  
-  if (IN_PREPARATION(ch))
-    return FALSE;
-  
+    
   /* made it! */
   return TRUE;
 }
@@ -649,7 +644,7 @@ void set_preparing_state(struct char_data *ch, int class, bool state) {
 bool is_preparing(struct char_data *ch) {
   int i;
 
-  if (!char_has_mud_event(ch, ePREPARING))
+  if (!char_has_mud_event(ch, ePREPARATION))
     return FALSE;
 
   for (i = 0; i < NUM_CLASSES; i++)
@@ -660,17 +655,24 @@ bool is_preparing(struct char_data *ch) {
 }
 
 /* sets prep-state as TRUE, and starts the preparing-event */
-/* START_PREPARATION(ch, class) */
+/* we check the queue for top spell for first timer */
 void start_prep_event(struct char_data *ch, int class) {
+  if (!SPELL_PREP_QUEUE(ch, class)) {
+    send_to_char(ch, "You have nothing in your preparation queue for this class to "
+            "prepare!\r\n");
+    return;
+  }
   set_preparing_state(ch, class, TRUE);
-  NEW_EVENT(ePREPARING, ch, NULL, 1 * PASSES_PER_SEC);
+  NEW_EVENT(ePREPARATION, ch, NULL,
+  ((SPELL_PREP_QUEUE(ch, class)->prep_time) * PASSES_PER_SEC));
 }
 /* stop the preparing event and sets the state as false */
 void stop_prep_event(struct char_data *ch, int class) {
   set_preparing_state(ch, class, FALSE);
-  if (char_has_mud_event(ch, ePREPARING)) {
-    event_cancel_specific(ch, ePREPARING);
+  if (char_has_mud_event(ch, ePREPARATION)) {
+    event_cancel_specific(ch, ePREPARATION);
   }
+  reset_preparation_time(ch, class);
 }
 
 /* does ch level qualify them for this particular spell?
@@ -762,6 +764,11 @@ int compute_slots_by_circle(struct char_data *ch, int circle, int class) {
  *  data to assign the feats...
  */
 void assign_feat_spell_slots(int ch_class) {
+  
+  /*UNFINISHED*/
+  return;  
+  /*UNFINISHED*/
+  
   int level_counter = 0;
   int circle_counter = 0;
   int feat_index = 0;
@@ -1001,7 +1008,104 @@ int compute_spells_prep_time(struct char_data *ch, int class, int circle, int do
   return (prep_time);
 }
 
+/* look at top of the queue, and reset preparation time of that entry */
+void reset_preparation_time(struct char_data *ch, int class) {
+  int preparation_time = 0;
+  preparation_time =
+          compute_spells_prep_time(
+            ch,
+            class,
+            compute_spells_circle(class,
+              SPELL_PREP_QUEUE(ch, class)->spell,
+              SPELL_PREP_QUEUE(ch, class)->metamagic,
+              SPELL_PREP_QUEUE(ch, class)->domain),
+            SPELL_PREP_QUEUE(ch, class)->domain);
+  SPELL_PREP_QUEUE(ch, class)->prep_time = preparation_time;  
+}
+
 /* END helper functions */
+
+
+/* START event-related */
+/* this will move the spell from the prep-queue to the collection, and if
+ * appropriate continue the preparation process - restart the event with
+ * the correct prep-time for the next spell in the queue */
+EVENTFUNC(event_preparation) {
+  int class = 0;
+  struct char_data *ch = NULL;
+  struct mud_event_data *prepare_event = NULL;
+  char metamagic_buf[MAX_STRING_LENGTH];
+  char act_buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH];
+
+  /* initialize everything and dummy checks */
+  if (event_obj == NULL)
+    return 0;
+  prepare_event = (struct mud_event_data *) event_obj;
+  ch = (struct char_data *) prepare_event->pStruct;
+
+  /* this is definitely a dummy check */
+  if (!SPELL_PREP_QUEUE(ch, class)) {
+    send_to_char(ch, "Your preparations are abroted!  You do not seem to have anything in your queue!\r\n");
+    return 0;
+  }
+
+  /* first we make a check that we arrived here in a 'valid' state, reset
+   * prearation time if not, then exit */
+  if (!ready_to_prep_spells(ch, class)) {
+    send_to_char(ch, "You are not able to finish your spell preparations!\r\n");
+    stop_prep_event(ch, class);
+    return 0;
+  }
+
+  /* if we made it here, that means we just finished pereparing this spell... */
+
+  metamagic_buf[0] = '\0';
+  sprintf(metamagic_buf, "%s%s",
+          (IS_SET(SPELL_PREP_QUEUE(ch, class)->metamagic, METAMAGIC_QUICKEN) ? "quickened " : ""),
+          (IS_SET(SPELL_PREP_QUEUE(ch, class)->metamagic, METAMAGIC_MAXIMIZE) ? "maximized " : ""));
+
+  switch (class) {
+    case CLASS_CLERIC:
+    case CLASS_RANGER:
+    case CLASS_PALADIN:
+    case CLASS_DRUID:
+    case CLASS_WIZARD:
+      sprintf(buf, "You finish %s for %s%s.\r\n",
+              spell_prep_dict[class][1],
+              metamagic_buf,
+              spell_info[SPELL_PREP_QUEUE(ch, class)->spell].name);
+      prep_queue_remove_by_class(ch, class, SPELL_PREP_QUEUE(ch, class)->spell,
+          SPELL_PREP_QUEUE(ch, class)->metamagic);
+      collection_add(ch, class, SPELL_PREP_QUEUE(ch, class)->spell,
+                                SPELL_PREP_QUEUE(ch, class)->metamagic,
+                                SPELL_PREP_QUEUE(ch, class)->prep_time,
+                                SPELL_PREP_QUEUE(ch, class)->domain);
+      break;
+    case CLASS_BARD:
+    case CLASS_SORCERER:
+      //sprintf(buf, "You have recovered a spell slot: %d.\r\n",
+              //PREPARATION_QUEUE(ch, 0, classArray(class)).spell);
+      break;
+  }
+  send_to_char(ch, "%s", buf);
+
+  /* exit until next event! */
+  if (SPELL_PREP_QUEUE(ch, class)) {
+    reset_preparation_time(ch, class);
+    return (SPELL_PREP_QUEUE(ch, class)->prep_time * PASSES_PER_SEC);
+  /* all finished!! */
+  } else {
+    stop_prep_event(ch, class);
+    send_to_char(ch, "Your %s are complete.\r\n", spell_prep_dict[class][3]);
+    sprintf(act_buf, "$n completes $s %s.", spell_prep_dict[class][3]);
+    act(act_buf, FALSE, ch, 0, 0, TO_ROOM);
+    return 0;    
+  }
+  return 0;
+}
+
+/* END event-related */
 
 
 /* START ACMD() */
