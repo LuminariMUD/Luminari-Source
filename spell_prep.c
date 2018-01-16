@@ -277,7 +277,7 @@ int count_circle_prep_queue(struct char_data *ch, int class, int circle) {
   struct prep_collection_spell_data *current, *next = NULL;
 
   for (current = SPELL_PREP_QUEUE(ch, class); current; current = next) {
-    next = SPELL_PREP_QUEUE(ch, class)->next;
+    next = current->next;
     /* need original class value for compute_spells_circle */
     this_circle = compute_spells_circle(class,
                                         current->spell,
@@ -295,7 +295,7 @@ int count_circle_collection(struct char_data *ch, int class, int circle) {
   struct prep_collection_spell_data *current, *next;
 
   for (current = SPELL_COLLECTION(ch, class); current; current = next) {
-    next = SPELL_COLLECTION(ch, class)->next;
+    next = current->next;
     /* need original class value for compute_spells_circle */
     this_circle = compute_spells_circle(class,
                                         current->spell,
