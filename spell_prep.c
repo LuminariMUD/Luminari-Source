@@ -1041,7 +1041,8 @@ ACMD(do_gen_preparation) {
 
 #ifdef DEBUGMODE
   /*DEBUG*/
-  send_to_char(ch, "DEBUG5: compute_slots_by_circle: %d\r\n", compute_slots_by_circle(ch, circle_for_spell, class));
+  send_to_char(ch, "DEBUG5: compute_slots_by_circle: %d\r\n",
+      compute_slots_by_circle(ch, circle_for_spell, class));
   /*END DEBUG*/  
 #endif
   
@@ -1087,9 +1088,9 @@ ACMD(do_gen_preparation) {
   
 #ifdef DEBUGMODE
   /*DEBUG*/
-  send_to_char(ch, "DEBUG7: compute_spells_prep_time: %d", compute_spells_prep_time(ch,
+  send_to_char(ch, "DEBUG7: compute_spells_prep_time: %d\r\n", compute_spells_prep_time(ch,
       class, circle_for_spell, is_domain_spell_of_ch(ch, spellnum)));
-  send_to_char(ch, "DEBUG8: is_domain_spell_of_ch: %d", is_domain_spell_of_ch(ch, spellnum));
+  send_to_char(ch, "DEBUG8: is_domain_spell_of_ch: %d\r\n", is_domain_spell_of_ch(ch, spellnum));
   /*END DEBUG*/    
 #endif
     
