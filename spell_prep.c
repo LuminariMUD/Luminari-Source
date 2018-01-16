@@ -1082,7 +1082,7 @@ ACMD(do_consign_to_oblivion) {
     }
       
     if (prep_queue_remove_by_class(ch, class, spellnum, metamagic)) {
-      send_to_char(ch, "You %s \tW%20s\tn %s%s from your spell preparation queue!\r\n",
+      send_to_char(ch, "You %s \tW%s\tn %s%s from your spell preparation queue!\r\n",
               spell_consign_dict[class][0],
               skill_name(spellnum),
               (IS_SET(metamagic, METAMAGIC_QUICKEN)  ? "\tc[\tnquickened\tc]\tn" : ""),
@@ -1095,7 +1095,7 @@ ACMD(do_consign_to_oblivion) {
   /* check spell-collection for spell, if found, remove and exit */
   if (SPELL_COLLECTION(ch, class)) {
     if (collection_remove_by_class(ch, class, spellnum, metamagic)) {
-      send_to_char(ch, "You %s \tW%20s\tn %s%s from your spell collection!\r\n",
+      send_to_char(ch, "You %s \tW%s\tn %s%s from your spell collection!\r\n",
               spell_consign_dict[class][0],              
               skill_name(spellnum),
               (IS_SET(metamagic, METAMAGIC_QUICKEN)  ? "\tc[\tnquickened\tc]\tn" : ""),
