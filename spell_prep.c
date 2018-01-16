@@ -1016,7 +1016,7 @@ ACMD(do_consign_to_oblivion) {
     if (spell_arg == NULL) {
       send_to_char(ch, "Which spell do you want to %s? "
               "Usage: %s <meta-magic arguments> '<spell name>' or ALL for all spells.\r\n",
-              spell_consign_dict[class][0]);
+              spell_consign_dict[class][0], spell_consign_dict[class][0]);
       return;
     }
 
