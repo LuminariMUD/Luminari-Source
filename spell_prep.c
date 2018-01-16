@@ -1135,11 +1135,7 @@ ACMD(do_gen_preparation) {
   int class = CLASS_UNDEFINED, circle_for_spell = 0, num_slots_by_circle = 0;
   int spellnum = 0, metamagic = 0, domain_1st = 0, domain_2nd = 0;
   char *spell_arg = NULL, *metamagic_arg = NULL;
-  
-#if DEBUGMODE
-  //prep_queue_add(ch, CLASS_WIZARD, SPELL_MAGE_ARMOR, 0, 14, 0);
-#endif  
-  
+    
   switch (subcmd) {
     case SCMD_PRAY:
       class = CLASS_CLERIC;
