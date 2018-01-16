@@ -121,10 +121,11 @@ typedef enum {
   eCRIPPLING_CRITICAL, /* duelist cirppling critical */
   eQUEST_COMPLETE, /* char completed a quest */
   eSLA_LEVITATE, /* innate levitate */
-  eSLA_DARKNESS, /* innate darkness */
+  /*95*/eSLA_DARKNESS, /* innate darkness */
   eSLA_FAERIE_FIRE, /* innate faerie fire */
   eDRACBREATH, // Sorcerer draconic heritage breath weapon
   eDRACCLAWS, // Sorcerer draconic heritage claws attacks
+  ePREPARATION, /* new spell preparation system */
 } event_id;
 
 /* probably a smart place to mention to not forget to update:
@@ -187,4 +188,5 @@ EVENTFUNC(event_combat_round);
 EVENTFUNC(event_action_cooldown);
 EVENTFUNC(event_trap_triggered);
 EVENTFUNC(event_bardic_performance);
+EVENTFUNC(event_preparation);
 #endif /* _MUD_EVENT_H_ */
