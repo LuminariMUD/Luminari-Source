@@ -901,6 +901,8 @@ void display_available_slots(struct char_data *ch, int class) {
   }
   if (!printed)
     send_to_char(ch, " \tYno more spells!\tn\r\n");
+  else
+    send_to_char(ch, "\tn\r\n");
 
   *buf = '\0';
   send_to_char(ch, "\tC");
