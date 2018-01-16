@@ -343,7 +343,7 @@ void print_prep_queue(struct char_data *ch, int ch_class) {
   /* traverse and print */
   *buf = '\0';
   for (current = SPELL_PREP_QUEUE(ch, ch_class); current; current = next) {
-    next = SPELL_PREP_QUEUE(ch, ch_class)->next;
+    next = current->next;
     /* need original class values for compute_spells_circle */
     int spell_circle = compute_spells_circle(ch_class,
                                              current->spell,
