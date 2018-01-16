@@ -371,7 +371,7 @@ void print_prep_queue(struct char_data *ch, int ch_class) {
             );
         break;
       default:
-      sprintf(buf, "%20s \tW%s\tn \tc[\tn%d%s circle\tc]\tn \tc[\tn%d seconds\tc]\tn %s%s %s\r\n",
+      sprintf(buf, "%s \tW%20s\tn \tc[\tn%d%s circle\tc]\tn \tc[\tn%2d seconds\tc]\tn %s%s %s\r\n",
               buf,
               skill_name(current->spell),
               spell_circle,
