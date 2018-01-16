@@ -170,6 +170,9 @@ extern "C" {
      *   character feats   */
     int compute_spells_prep_time(struct char_data *ch, int class, int circle, int domain);
         
+    /* look at top of the queue, and reset preparation time of that entry */
+    void reset_preparation_time(struct char_data *ch, int class);
+    
     /** END functions **/
     
     
