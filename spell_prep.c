@@ -173,7 +173,7 @@ bool collection_remove_by_class(struct char_data *ch, int class, int spellnum,
   for (; current; current = next) {
     if (current->spell == spellnum && current->metamagic == metamagic) {
       /*bingo, found it*/
-      prep_queue_remove(ch, current, class);
+      prep_collection(ch, current, class);
       return TRUE;
     }
     next = current->next;
