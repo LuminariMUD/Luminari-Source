@@ -1253,7 +1253,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
    will be using for casting this spell */
   if (!isEpicSpell(spellnum) && !IS_NPC(ch)) {
 
-    log("DEBUG: metamagic : %d", metamagic);
+    //log("DEBUG: metamagic : %d", metamagic);
     class = forgetSpell(ch, spellnum, metamagic, -1);
 
     if (class == -1) {
