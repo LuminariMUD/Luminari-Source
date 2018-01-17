@@ -1137,12 +1137,12 @@ EVENTFUNC(event_preparation) {
               spell_prep_dict[class][1],
               metamagic_buf,
               spell_info[SPELL_PREP_QUEUE(ch, class)->spell].name);
-      prep_queue_remove_by_class(ch, class, SPELL_PREP_QUEUE(ch, class)->spell,
-          SPELL_PREP_QUEUE(ch, class)->metamagic);
       collection_add(ch, class, SPELL_PREP_QUEUE(ch, class)->spell,
                                 SPELL_PREP_QUEUE(ch, class)->metamagic,
                                 SPELL_PREP_QUEUE(ch, class)->prep_time,
                                 SPELL_PREP_QUEUE(ch, class)->domain);
+      prep_queue_remove_by_class(ch, class, SPELL_PREP_QUEUE(ch, class)->spell,
+          SPELL_PREP_QUEUE(ch, class)->metamagic);
       break;
     case CLASS_BARD:
     case CLASS_SORCERER:
