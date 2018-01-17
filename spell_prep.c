@@ -471,7 +471,6 @@ void print_collection(struct char_data *ch, int ch_class) {
   /* loop for circles */
   for (high_circle; high_circle >= 0; high_circle--) {
     counter = 0;
-    *buf = '\0';
     struct prep_collection_spell_data *current = SPELL_COLLECTION(ch, ch_class),
             *next;
     
@@ -486,18 +485,15 @@ void print_collection(struct char_data *ch, int ch_class) {
       if (high_circle == this_circle) { /* print! */
         counter++;
         if (counter == 1) {
-          sprintf(buf, "%s \tW%20s\tn %12s%12s %13s \tY%d%s\tn\r\n",
-                  buf,
+          send_to_char(ch, "\tW%20s\tn %12s%12s %13s \tY%d%s\tn\r\n",
                   skill_name(current->spell),
                   (IS_SET(current->metamagic, METAMAGIC_QUICKEN) ? "\tc[\tnquickened\tc]\tn" : ""),
                   (IS_SET(current->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
-                  (current->domain ? domain_list[current->domain].name : ""),
+                  current->domain ? domain_list[current->domain].name : "",
                   high_circle,
                   (high_circle == 1) ? "st" : (high_circle == 2) ? "nd" : (high_circle == 3) ? "rd" : "th");
-
         } else {
-          sprintf(buf, "%s \tW%20s\tn %12s%12s %13s\r\n",
-                  buf,
+          send_to_char(ch, "\tW%20s\tn %12s%12s %13s\r\n",
                   skill_name(current->spell),
                   (IS_SET(current->metamagic, METAMAGIC_QUICKEN) ? "\tc[\tnquickened\tc]\tn" : ""),
                   (IS_SET(current->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
@@ -507,7 +503,6 @@ void print_collection(struct char_data *ch, int ch_class) {
       }
       next = current->next;
     }/*end collection*/
-    send_to_char(ch, buf);
   }/*end circle loop*/
 }
 /* END linked list utility */
