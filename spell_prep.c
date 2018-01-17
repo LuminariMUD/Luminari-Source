@@ -1120,7 +1120,6 @@ EVENTFUNC(event_preparation) {
 
   SPELL_PREP_QUEUE(ch, class)->prep_time--;
         
-
   if ((SPELL_PREP_QUEUE(ch, class)->prep_time) <= 0) {
     switch (class) {
       case CLASS_CLERIC:
@@ -1139,6 +1138,9 @@ EVENTFUNC(event_preparation) {
                 SPELL_PREP_QUEUE(ch, class)->domain);
         prep_queue_remove_by_class(ch, class, SPELL_PREP_QUEUE(ch, class)->spell,
                 SPELL_PREP_QUEUE(ch, class)->metamagic);
+        if (SPELL_PREP_QUEUE(ch, class)) {
+          reset_preparation_time(ch, class);
+        }
         break;
       case CLASS_BARD:
       case CLASS_SORCERER:
@@ -1151,7 +1153,6 @@ EVENTFUNC(event_preparation) {
 
   /* exit until next event! */
   if (SPELL_PREP_QUEUE(ch, class)) {
-    reset_preparation_time(ch, class);
     return (1 * PASSES_PER_SEC);
   /* all finished!! */
   } else {
