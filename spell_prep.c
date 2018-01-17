@@ -112,7 +112,8 @@ void destroy_spell_collection(struct char_data *ch) {
 
 /* save into ch pfile their spell-preparation queue, example ch saving */
 void save_prep_queue_by_class(FILE *fl, struct char_data *ch, int class) {
-  struct prep_collection_spell_data *current = SPELL_PREP_QUEUE(ch, class), *next;
+  struct prep_collection_spell_data *current = SPELL_PREP_QUEUE(ch, class);
+  struct prep_collection_spell_data *next;
   for (; current; current = next) {
     next = current->next;
     fprintf(fl, "%d %d %d %d %d\n", class, current->spell, current->metamagic,
@@ -121,7 +122,8 @@ void save_prep_queue_by_class(FILE *fl, struct char_data *ch, int class) {
 }
 /* save into ch pfile their spell-collection, example ch saving */
 void save_collection_by_class(FILE *fl, struct char_data *ch, int class) {
-  struct prep_collection_spell_data *current = SPELL_COLLECTION(ch, class), *next;
+  struct prep_collection_spell_data *current = SPELL_COLLECTION(ch, class);
+  struct prep_collection_spell_data *next;
   for (; current; current = next) {
     next = current->next;
     fprintf(fl, "%d %d %d %d %d\n", class, current->spell, current->metamagic,
@@ -156,8 +158,8 @@ void save_spell_collection(FILE *fl, struct char_data *ch) {
    return: true if we found/removed, false if we didn't find */
 bool prep_queue_remove_by_class(struct char_data *ch, int class, int spellnum,
         int metamagic) {
-  struct prep_collection_spell_data *current = SPELL_PREP_QUEUE(ch, class),
-          *next = NULL;
+  struct prep_collection_spell_data *current = SPELL_PREP_QUEUE(ch, class);
+  struct prep_collection_spell_data *next;
   
   for (; current; current = next) {
     next = current->next;
@@ -174,8 +176,8 @@ bool prep_queue_remove_by_class(struct char_data *ch, int class, int spellnum,
    return: true if we found/removed, false if we didn't find */
 bool collection_remove_by_class(struct char_data *ch, int class, int spellnum,
         int metamagic) {
-  struct prep_collection_spell_data *current = SPELL_COLLECTION(ch, class),
-          *next = NULL;
+  struct prep_collection_spell_data *current = SPELL_COLLECTION(ch, class);
+  struct prep_collection_spell_data *next;
   
   for (; current; current = next) {
     next = current->next;
@@ -324,7 +326,8 @@ void load_spell_collection(FILE *fl, struct char_data *ch) {
 /* given a circle/class, count how many items of this circle in prep queue */
 int count_circle_prep_queue(struct char_data *ch, int class, int circle) {
   int this_circle = 0, counter = 0;
-  struct prep_collection_spell_data *current = SPELL_PREP_QUEUE(ch, class), *next = NULL;
+  struct prep_collection_spell_data *current = SPELL_PREP_QUEUE(ch, class);
+  struct prep_collection_spell_data *next;
 
   for (; current; current = next) {
     next = current->next;
@@ -348,7 +351,8 @@ int count_circle_prep_queue(struct char_data *ch, int class, int circle) {
 /* given a circle/class, count how many items of this circle in the collection */
 int count_circle_collection(struct char_data *ch, int class, int circle) {
   int this_circle = 0, counter = 0;
-  struct prep_collection_spell_data *current = SPELL_COLLECTION(ch, class), *next;
+  struct prep_collection_spell_data *current = SPELL_COLLECTION(ch, class);
+  struct prep_collection_spell_data *next;
 
   for (; current; current = next) {
     next = current->next;
@@ -803,8 +807,8 @@ void assign_feat_spell_slots(int ch_class) {
 void print_prep_queue(struct char_data *ch, int ch_class) {
   char buf[MAX_INPUT_LENGTH];
   int line_length = 80, total_time = 0;
-  struct prep_collection_spell_data *current = SPELL_PREP_QUEUE(ch, ch_class),
-  *next;
+  struct prep_collection_spell_data *current = SPELL_PREP_QUEUE(ch, ch_class);
+  struct prep_collection_spell_data *next;
 
   /* build a nice heading */
   *buf = '\0';
@@ -899,8 +903,8 @@ void print_collection(struct char_data *ch, int ch_class) {
   /* loop for circles */
   for (high_circle; high_circle >= 0; high_circle--) {
     counter = 0;
-    struct prep_collection_spell_data *current = SPELL_COLLECTION(ch, ch_class),
-            *next;
+    struct prep_collection_spell_data *current = SPELL_COLLECTION(ch, ch_class);
+    struct prep_collection_spell_data *next;
     
     /* traverse and print */
     for (; current; current = next) {
