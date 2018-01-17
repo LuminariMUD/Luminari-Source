@@ -365,149 +365,6 @@ int count_total_slots(struct char_data *ch, int class, int circle) {
           count_circle_prep_queue(ch, class, circle));
 }
 
-/* in: character, class of the queue you want to work with
- * traverse the prep queue and print out the details
- * since the prep queue does not need any organizing, this should be fairly
- * simple */
-void print_prep_queue(struct char_data *ch, int ch_class) {
-  char buf[MAX_INPUT_LENGTH];
-  int line_length = 80, total_time = 0;
-  struct prep_collection_spell_data *current = SPELL_PREP_QUEUE(ch, ch_class),
-  *next;
-
-  /* build a nice heading */
-  *buf = '\0';
-  sprintf(buf, "\tYPreparation Queue for %s\tC", class_names[ch_class]);
-  send_to_char(ch, "\tC");
-  text_line(ch, buf, line_length, '-', '-');
-  send_to_char(ch, "\tn");
-
-  /* easy out */
-  if (!SPELL_PREP_QUEUE(ch, ch_class)) {
-    send_to_char(ch, "There is nothing in your preparation queue!\r\n");
-    /* build a nice closing */
-    *buf = '\0';
-    send_to_char(ch, "\tC");
-    text_line(ch, buf, line_length, '-', '-');
-    send_to_char(ch, "\tn");
-    return;
-  }  
-
-  /* traverse and print */
-  *buf = '\0';
-  for (; current; current = next) {
-    next = current->next;
-    /* need original class values for compute_spells_circle */
-    int spell_circle = compute_spells_circle(ch_class,
-                                             current->spell,
-                                             current->metamagic,
-                                             current->domain);
-    int prep_time = current->prep_time;
-    total_time += prep_time;
-    /* hack alert: innate_magic does not have spell-num stored, but
-         instead has just the spell-circle stored as spell-num */
-    switch (ch_class) {
-      case CLASS_SORCERER: case CLASS_BARD:
-      sprintf(buf, "%s \tc[\tWcircle-slot: \tn%d%s\tc]\tn \tc[\tn%2d seconds\tc]\tn %s%s %s\r\n",
-              buf,
-              current->spell,
-              (spell_circle == 1) ? "st" : (spell_circle == 2) ? "nd" : (spell_circle == 3) ? "rd" : "th",
-              prep_time,
-              (IS_SET(current->metamagic, METAMAGIC_QUICKEN) ? "\tc[\tnquickened\tc]\tn" : ""),
-              (IS_SET(current->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
-              (current->domain ? domain_list[current->domain].name : "")
-            );
-        break;
-      default:
-      sprintf(buf, "%s \tW%20s\tn \tc[\tn%d%s circle\tc]\tn \tc[\tn%2d seconds\tc]\tn %s%s %s\r\n",
-              buf,
-              skill_name(current->spell),
-              spell_circle,
-              (spell_circle == 1) ? "st" : (spell_circle == 2) ? "nd" : (spell_circle == 3) ? "rd" : "th",
-              prep_time,
-              (IS_SET(current->metamagic, METAMAGIC_QUICKEN)  ? "\tc[\tnquickened\tc]\tn" : ""),
-              (IS_SET(current->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
-              (current->domain ? domain_list[current->domain].name : "")
-            );
-        break;
-    }
-  }
-  
-  send_to_char(ch, buf);
-
-  /* build a nice closing */
-  *buf = '\0';
-  sprintf(buf, "\tYTotal Preparation Time Remaining: \tW%d\tC", total_time);
-  send_to_char(ch, "\tC");
-  text_line(ch, buf, line_length, '-', '-');
-  send_to_char(ch, "\tn");
-
-  /* all done */
-  return;
-}
-/* our display for our prepared spells aka collection, the level of complexity
-   of our output will determine how complex this function is ;p */
-void print_collection(struct char_data *ch, int ch_class) {
-  char buf[MAX_INPUT_LENGTH];
-  int line_length = 80, high_circle = get_class_highest_circle(ch, ch_class);
-  int counter = 0, this_circle = 0;
-
-  /* build a nice heading */
-  *buf = '\0';
-  sprintf(buf, "\tYSpell Collection for %s\tC", class_names[ch_class]);
-  send_to_char(ch, "\tC");
-  text_line(ch, buf, line_length, '-', '-');
-  send_to_char(ch, "\tn");
-
-  /* easy out */
-  if (!SPELL_COLLECTION(ch, ch_class) || high_circle <= 0) {
-    send_to_char(ch, "There is nothing in your spell collection!\r\n");
-    return;
-  }
-
-  /* loop for circles */
-  for (high_circle; high_circle >= 0; high_circle--) {
-    counter = 0;
-    struct prep_collection_spell_data *current = SPELL_COLLECTION(ch, ch_class),
-            *next;
-    
-    /* traverse and print */
-    for (; current; current = next) {
-      /* check if our circle matches this entry */
-      this_circle = compute_spells_circle(
-              ch_class,
-              current->spell,
-              current->metamagic,
-              current->domain);
-      if (high_circle == this_circle) { /* print! */
-        counter++;
-        if (counter == 1) {
-          send_to_char(ch, "\tY%d%s:\tn \tW%20s\tn %12s%12s%s%13s%s\r\n",
-                  high_circle,
-                  (high_circle == 1) ? "st" : (high_circle == 2) ? "nd" : (high_circle == 3) ? "rd" : "th",
-                  skill_name(current->spell),
-                  (IS_SET(current->metamagic, METAMAGIC_QUICKEN) ? "\tc[\tnquickened\tc]\tn" : ""),
-                  (IS_SET(current->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
-                  current->domain ? "\tc[\tn" : "",
-                  current->domain ? domain_list[current->domain].name : "",
-                  current->domain ? "\tc]\tn" : ""
-                  );
-        } else {
-          send_to_char(ch, "%4s \tW%20s\tn %12s%12s%s%13s%s\r\n",
-                  "    ",
-                  skill_name(current->spell),
-                  (IS_SET(current->metamagic, METAMAGIC_QUICKEN) ? "\tc[\tnquickened\tc]\tn" : ""),
-                  (IS_SET(current->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
-                  current->domain ? "\tc[\tn" : "",
-                  current->domain ? domain_list[current->domain].name : "",
-                  current->domain ? "\tc]\tn" : ""
-                  );
-        }
-      }
-      next = current->next;
-    }/*end collection*/
-  }/*end circle loop*/
-}
 /* END linked list utility */
 
 /* START helper functions */
@@ -930,6 +787,150 @@ void assign_feat_spell_slots(int ch_class) {
   } /* level counter */
 
   /* all done! */
+}
+
+/* in: character, class of the queue you want to work with
+ * traverse the prep queue and print out the details
+ * since the prep queue does not need any organizing, this should be fairly
+ * simple */
+void print_prep_queue(struct char_data *ch, int ch_class) {
+  char buf[MAX_INPUT_LENGTH];
+  int line_length = 80, total_time = 0;
+  struct prep_collection_spell_data *current = SPELL_PREP_QUEUE(ch, ch_class),
+  *next;
+
+  /* build a nice heading */
+  *buf = '\0';
+  sprintf(buf, "\tYPreparation Queue for %s\tC", class_names[ch_class]);
+  send_to_char(ch, "\tC");
+  text_line(ch, buf, line_length, '-', '-');
+  send_to_char(ch, "\tn");
+
+  /* easy out */
+  if (!SPELL_PREP_QUEUE(ch, ch_class)) {
+    send_to_char(ch, "There is nothing in your preparation queue!\r\n");
+    /* build a nice closing */
+    *buf = '\0';
+    send_to_char(ch, "\tC");
+    text_line(ch, buf, line_length, '-', '-');
+    send_to_char(ch, "\tn");
+    return;
+  }  
+
+  /* traverse and print */
+  *buf = '\0';
+  for (; current; current = next) {
+    next = current->next;
+    /* need original class values for compute_spells_circle */
+    int spell_circle = compute_spells_circle(ch_class,
+                                             current->spell,
+                                             current->metamagic,
+                                             current->domain);
+    int prep_time = current->prep_time;
+    total_time += prep_time;
+    /* hack alert: innate_magic does not have spell-num stored, but
+         instead has just the spell-circle stored as spell-num */
+    switch (ch_class) {
+      case CLASS_SORCERER: case CLASS_BARD:
+      sprintf(buf, "%s \tc[\tWcircle-slot: \tn%d%s\tc]\tn \tc[\tn%2d seconds\tc]\tn %s%s %s\r\n",
+              buf,
+              current->spell,
+              (spell_circle == 1) ? "st" : (spell_circle == 2) ? "nd" : (spell_circle == 3) ? "rd" : "th",
+              prep_time,
+              (IS_SET(current->metamagic, METAMAGIC_QUICKEN) ? "\tc[\tnquickened\tc]\tn" : ""),
+              (IS_SET(current->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
+              (current->domain ? domain_list[current->domain].name : "")
+            );
+        break;
+      default:
+      sprintf(buf, "%s \tW%20s\tn \tc[\tn%d%s circle\tc]\tn \tc[\tn%2d seconds\tc]\tn %s%s %s\r\n",
+              buf,
+              skill_name(current->spell),
+              spell_circle,
+              (spell_circle == 1) ? "st" : (spell_circle == 2) ? "nd" : (spell_circle == 3) ? "rd" : "th",
+              prep_time,
+              (IS_SET(current->metamagic, METAMAGIC_QUICKEN)  ? "\tc[\tnquickened\tc]\tn" : ""),
+              (IS_SET(current->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
+              (current->domain ? domain_list[current->domain].name : "")
+            );
+        break;
+    }
+  }
+  
+  send_to_char(ch, buf);
+
+  /* build a nice closing */
+  *buf = '\0';
+  sprintf(buf, "\tYTotal Preparation Time Remaining: \tW%d\tC", total_time);
+  send_to_char(ch, "\tC");
+  text_line(ch, buf, line_length, '-', '-');
+  send_to_char(ch, "\tn");
+
+  /* all done */
+  return;
+}
+/* our display for our prepared spells aka collection, the level of complexity
+   of our output will determine how complex this function is ;p */
+void print_collection(struct char_data *ch, int ch_class) {
+  char buf[MAX_INPUT_LENGTH];
+  int line_length = 80, high_circle = get_class_highest_circle(ch, ch_class);
+  int counter = 0, this_circle = 0;
+
+  /* build a nice heading */
+  *buf = '\0';
+  sprintf(buf, "\tYSpell Collection for %s\tC", class_names[ch_class]);
+  send_to_char(ch, "\tC");
+  text_line(ch, buf, line_length, '-', '-');
+  send_to_char(ch, "\tn");
+
+  /* easy out */
+  if (!SPELL_COLLECTION(ch, ch_class) || high_circle <= 0) {
+    send_to_char(ch, "There is nothing in your spell collection!\r\n");
+    return;
+  }
+
+  /* loop for circles */
+  for (high_circle; high_circle >= 0; high_circle--) {
+    counter = 0;
+    struct prep_collection_spell_data *current = SPELL_COLLECTION(ch, ch_class),
+            *next;
+    
+    /* traverse and print */
+    for (; current; current = next) {
+      /* check if our circle matches this entry */
+      this_circle = compute_spells_circle(
+              ch_class,
+              current->spell,
+              current->metamagic,
+              current->domain);
+      if (high_circle == this_circle) { /* print! */
+        counter++;
+        if (counter == 1) {
+          send_to_char(ch, "\tY%d%s:\tn \tW%20s\tn %12s%12s%s%13s%s\r\n",
+                  high_circle,
+                  (high_circle == 1) ? "st" : (high_circle == 2) ? "nd" : (high_circle == 3) ? "rd" : "th",
+                  skill_name(current->spell),
+                  (IS_SET(current->metamagic, METAMAGIC_QUICKEN) ? "\tc[\tnquickened\tc]\tn" : ""),
+                  (IS_SET(current->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
+                  current->domain ? "\tc[\tn" : "",
+                  current->domain ? domain_list[current->domain].name : "",
+                  current->domain ? "\tc]\tn" : ""
+                  );
+        } else {
+          send_to_char(ch, "%4s \tW%20s\tn %12s%12s%s%13s%s\r\n",
+                  "    ",
+                  skill_name(current->spell),
+                  (IS_SET(current->metamagic, METAMAGIC_QUICKEN) ? "\tc[\tnquickened\tc]\tn" : ""),
+                  (IS_SET(current->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
+                  current->domain ? "\tc[\tn" : "",
+                  current->domain ? domain_list[current->domain].name : "",
+                  current->domain ? "\tc]\tn" : ""
+                  );
+        }
+      }
+      next = current->next;
+    }/*end collection*/
+  }/*end circle loop*/
 }
 
 /* separate system to display our hack -alicious innate-magic system */
