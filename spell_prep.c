@@ -725,8 +725,7 @@ void start_prep_event(struct char_data *ch, int class) {
     return;
   }
   set_preparing_state(ch, class, TRUE);
-  NEW_EVENT(ePREPARATION, ch, NULL,
-  ((SPELL_PREP_QUEUE(ch, class)->prep_time) * PASSES_PER_SEC));
+  NEW_EVENT(ePREPARATION, ch, NULL, (1 * PASSES_PER_SEC));
 }
 /* stop the preparing event and sets the state as false */
 void stop_prep_event(struct char_data *ch, int class) {
