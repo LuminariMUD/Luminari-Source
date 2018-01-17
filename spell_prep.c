@@ -449,8 +449,6 @@ void print_collection(struct char_data *ch, int ch_class) {
   char buf[MAX_INPUT_LENGTH];
   int line_length = 80, high_circle = get_class_highest_circle(ch, ch_class);
   int counter = 0, this_circle = 0;
-  struct prep_collection_spell_data *current = SPELL_COLLECTION(ch, ch_class),
-  *next;
 
   /* build a nice heading */
   *buf = '\0';
@@ -474,7 +472,8 @@ void print_collection(struct char_data *ch, int ch_class) {
   *buf = '\0';
   for (high_circle; high_circle >= 0; high_circle--) {
     counter = 0;
-    *current = *SPELL_COLLECTION(ch, ch_class); /*point to head*/
+    struct prep_collection_spell_data *current = SPELL_COLLECTION(ch, ch_class),
+            *next;
     
     /* traverse and print */
     for (; current; current = next) {
