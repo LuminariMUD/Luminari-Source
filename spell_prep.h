@@ -82,15 +82,7 @@ extern "C" {
     /* total # of slots consumed by circle X */
     int count_total_slots(struct char_data *ch, int class, int circle);
     
-    /* in: character, class of the queue you want to work with
-     * traverse the prep queue and print out the details
-     * since the prep queue does not need any organizing, this should be fairly
-     * simple */
-    void print_prep_queue(struct char_data *ch, int ch_class);
-    /*UNFINISHED*/
-    void print_collection(struct char_data *ch, int ch_class);
-
-    /* in: spellnum, class, metamagic, domain(cleric)
+        /* in: spellnum, class, metamagic, domain(cleric)
      * out: the circle this spell (now) belongs, above num-circles if failed
      * given above info, compute which circle this spell belongs to, this 'interesting'
      * set-up is due to a dated system that assigns spells by level, not circle
@@ -145,6 +137,15 @@ extern "C" {
      *  data to assign the feats...
      */
     void assign_feat_spell_slots(int ch_class);
+
+    /* in: character, class of the queue you want to work with
+     * traverse the prep queue and print out the details
+     * since the prep queue does not need any organizing, this should be fairly
+     * simple */
+    void print_prep_queue(struct char_data *ch, int ch_class);
+    /* our display for our prepared spells aka collection, the level of complexity
+       of our output will determine how complex this function is ;p */
+    void print_collection(struct char_data *ch, int ch_class);
 
     /* separate system to display our hack -alicious innate-magic system */
     void print_innate_magic_display(struct char_data *ch, int class);
