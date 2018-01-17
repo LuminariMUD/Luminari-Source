@@ -887,6 +887,8 @@ void print_collection(struct char_data *ch, int ch_class) {
   int line_length = 80, high_circle = get_class_highest_circle(ch, ch_class);
   int counter = 0, this_circle = 0;
 
+  send_to
+
   /* build a nice heading */
   *buf = '\0';
   sprintf(buf, "\tYSpell Collection for %s\tC", class_names[ch_class]);
@@ -906,6 +908,16 @@ void print_collection(struct char_data *ch, int ch_class) {
     struct prep_collection_spell_data *current = SPELL_COLLECTION(ch, ch_class);
     struct prep_collection_spell_data *next;
     
+    /* DEBUG from Ornir */
+    while(current) {
+      send_to_char(ch,skill_name(current->spell));
+      current = current->next;
+    }
+
+    current = SPELL_COLLECTION(ch, ch_class);
+
+    /* End DEBUG */
+
     /* traverse and print */
     for (; current; current = next) {
       next = current->next;
