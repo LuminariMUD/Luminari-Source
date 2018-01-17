@@ -1096,11 +1096,10 @@ EVENTFUNC(event_preparation) {
   int class = 0;
   struct char_data *ch = NULL;
   struct mud_event_data *prepare_event = NULL;
-  char metamagic_buf[MAX_STRING_LENGTH];
-  char act_buf[MAX_STRING_LENGTH];
   char buf[MAX_STRING_LENGTH];
 
   /* initialize everything and dummy checks */
+  *buf = '\0';
   if (event_obj == NULL)
     return 0;
   prepare_event = (struct mud_event_data *) event_obj;
@@ -1120,48 +1119,48 @@ EVENTFUNC(event_preparation) {
     return 0;
   }
 
-  /* if we made it here, that means we just finished pereparing this spell... */
+  SPELL_PREP_QUEUE(ch, class)->prep_time--;
+        
 
-  metamagic_buf[0] = '\0';
-  sprintf(metamagic_buf, "%s%s",
-          (IS_SET(SPELL_PREP_QUEUE(ch, class)->metamagic, METAMAGIC_QUICKEN) ? "quickened " : ""),
-          (IS_SET(SPELL_PREP_QUEUE(ch, class)->metamagic, METAMAGIC_MAXIMIZE) ? "maximized " : ""));
-
-  switch (class) {
-    case CLASS_CLERIC:
-    case CLASS_RANGER:
-    case CLASS_PALADIN:
-    case CLASS_DRUID:
-    case CLASS_WIZARD:
-      sprintf(buf, "You finish %s for %s%s.\r\n",
-              spell_prep_dict[class][1],
-              metamagic_buf,
-              spell_info[SPELL_PREP_QUEUE(ch, class)->spell].name);
-      collection_add(ch, class, SPELL_PREP_QUEUE(ch, class)->spell,
-                                SPELL_PREP_QUEUE(ch, class)->metamagic,
-                                SPELL_PREP_QUEUE(ch, class)->prep_time,
-                                SPELL_PREP_QUEUE(ch, class)->domain);
-      prep_queue_remove_by_class(ch, class, SPELL_PREP_QUEUE(ch, class)->spell,
-          SPELL_PREP_QUEUE(ch, class)->metamagic);
-      break;
-    case CLASS_BARD:
-    case CLASS_SORCERER:
-      //sprintf(buf, "You have recovered a spell slot: %d.\r\n",
-              //PREPARATION_QUEUE(ch, 0, classArray(class)).spell);
-      break;
+  if ((SPELL_PREP_QUEUE(ch, class)->prep_time) <= 0) {
+    switch (class) {
+      case CLASS_CLERIC:
+      case CLASS_RANGER:
+      case CLASS_PALADIN:
+      case CLASS_DRUID:
+      case CLASS_WIZARD:
+        sprintf(buf, "You finish %s for %s%s%s.\r\n",
+                spell_prep_dict[class][1],
+                (IS_SET(SPELL_PREP_QUEUE(ch, class)->metamagic, METAMAGIC_QUICKEN) ? "quickened " : ""),
+                (IS_SET(SPELL_PREP_QUEUE(ch, class)->metamagic, METAMAGIC_MAXIMIZE) ? "maximized " : ""),
+                spell_info[SPELL_PREP_QUEUE(ch, class)->spell].name);
+        collection_add(ch, class, SPELL_PREP_QUEUE(ch, class)->spell,
+                SPELL_PREP_QUEUE(ch, class)->metamagic,
+                SPELL_PREP_QUEUE(ch, class)->prep_time,
+                SPELL_PREP_QUEUE(ch, class)->domain);
+        prep_queue_remove_by_class(ch, class, SPELL_PREP_QUEUE(ch, class)->spell,
+                SPELL_PREP_QUEUE(ch, class)->metamagic);
+        break;
+      case CLASS_BARD:
+      case CLASS_SORCERER:
+        //sprintf(buf, "You have recovered a spell slot: %d.\r\n",
+        //PREPARATION_QUEUE(ch, 0, classArray(class)).spell);
+        break;
+    }
   }
   send_to_char(ch, "%s", buf);
 
   /* exit until next event! */
   if (SPELL_PREP_QUEUE(ch, class)) {
     reset_preparation_time(ch, class);
-    return (SPELL_PREP_QUEUE(ch, class)->prep_time * PASSES_PER_SEC);
+    return (1 * PASSES_PER_SEC);
   /* all finished!! */
   } else {
+    *buf = '\0';
     stop_prep_event(ch, class);
     send_to_char(ch, "Your %s are complete.\r\n", spell_prep_dict[class][3]);
-    sprintf(act_buf, "$n completes $s %s.", spell_prep_dict[class][3]);
-    act(act_buf, FALSE, ch, 0, 0, TO_ROOM);
+    sprintf(buf, "$n completes $s %s.", spell_prep_dict[class][3]);
+    act(buf, FALSE, ch, 0, 0, TO_ROOM);
     return 0;    
   }
   return 0;
