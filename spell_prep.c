@@ -733,7 +733,9 @@ void stop_prep_event(struct char_data *ch, int class) {
   if (char_has_mud_event(ch, ePREPARATION)) {
     event_cancel_specific(ch, ePREPARATION);
   }
-  reset_preparation_time(ch, class);
+  if (SPELL_PREP_QUEUE(ch, class)) {
+    reset_preparation_time(ch, class);
+  }
 }
 
 /* does ch level qualify them for this particular spell?
