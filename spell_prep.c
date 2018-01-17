@@ -725,7 +725,9 @@ void start_prep_event(struct char_data *ch, int class) {
     return;
   }
   set_preparing_state(ch, class, TRUE);
-  NEW_EVENT(ePREPARATION, ch, NULL, (1 * PASSES_PER_SEC));
+  if (!char_has_mud_event(ch, ePREPARATION)) {
+    NEW_EVENT(ePREPARATION, ch, NULL, (1 * PASSES_PER_SEC));
+  }
 }
 /* stop the preparing event and sets the state as false */
 void stop_prep_event(struct char_data *ch, int class) {
