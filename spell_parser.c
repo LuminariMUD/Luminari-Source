@@ -1142,11 +1142,6 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     return 0;
   if (tch && IN_ROOM(tch) > top_of_world)
     return 0;
-  /* this has to ben taken out for identify spell to work */
-  /*
-  if (tobj && tobj->in_room > top_of_world)
-    return 0;
-   */
 
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SOUNDPROOF)) {
     send_to_char(ch, "You can not even speak a single word!\r\n");
