@@ -880,6 +880,7 @@ void print_prep_queue(struct char_data *ch, int ch_class) {
   /* all done */
   return;
 }
+
 /* our display for our prepared spells aka collection, the level of complexity
    of our output will determine how complex this function is ;p */
 void print_collection(struct char_data *ch, int ch_class) {
@@ -905,16 +906,6 @@ void print_collection(struct char_data *ch, int ch_class) {
     counter = 0;
     struct prep_collection_spell_data *current = SPELL_COLLECTION(ch, ch_class);
     struct prep_collection_spell_data *next;
-    
-    /* DEBUG from Ornir */
-    while(current) {
-      send_to_char(ch,skill_name(current->spell));
-      current = current->next;
-    }
-
-    current = SPELL_COLLECTION(ch, ch_class);
-
-    /* End DEBUG */
 
     /* traverse and print */
     for (; current; current = next) {

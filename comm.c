@@ -3382,7 +3382,7 @@ static void msdp_update(void) {
               ATTACK_TYPE_PRIMARY));
 
       
-      snprintf(buf, sizeof (buf), "%s", RACE_ABBR(ch));
+      snprintf(buf, sizeof (buf), "%s",race_list[GET_RACE(ch)].type);
       strip_colors(buf);
       MSDPSetString(d, eMSDP_RACE, buf);
 
