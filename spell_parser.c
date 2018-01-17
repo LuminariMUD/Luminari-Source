@@ -1249,6 +1249,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
   if (!isEpicSpell(spellnum) && !IS_NPC(ch)) {
 
     //log("DEBUG: metamagic : %d", metamagic);
+    /* SPELL PREPARATION HOOK */
     class = forgetSpell(ch, spellnum, metamagic, -1);
 
     if (class == -1) {
@@ -1257,6 +1258,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     }
 
     /* sorcerer's call is made already in forgetSpell() */
+    /* SPELL PREPARATION HOOK */
     if (class != CLASS_SORCERER && class != CLASS_BARD)
       addSpellMemming(ch, spellnum, metamagic, spell_info[spellnum].memtime, class);
 
@@ -1280,15 +1282,13 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
 
   /* meta magic! */
   if (!IS_NPC(ch)) {
-    if (class != CLASS_SORCERER &&
-            class != CLASS_BARD &&
-            IS_SET(metamagic, METAMAGIC_QUICKEN)) {
+    if (IS_SET(metamagic, METAMAGIC_QUICKEN)) {
       casting_time = 0;
     }
     if ((class == CLASS_SORCERER || class == CLASS_BARD) &&
             IS_SET(metamagic, METAMAGIC_MAXIMIZE) &&
             !IS_SET(metamagic, METAMAGIC_QUICKEN)) {
-      casting_time *= 2;
+      casting_time = casting_time * 3 / 2;
     }
   }
 
