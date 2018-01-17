@@ -899,11 +899,11 @@ void print_collection(struct char_data *ch, int ch_class) {
   /* loop for circles */
   for (high_circle; high_circle >= 0; high_circle--) {
     counter = 0;
-    struct prep_collection_spell_data *current,
+    struct prep_collection_spell_data *current = SPELL_COLLECTION(ch, ch_class),
             *next;
     
     /* traverse and print */
-    for (current = SPELL_COLLECTION(ch, ch_class); current; current = next) {
+    for (; current; current = next) {
       next = current->next;
       /* check if our circle matches this entry */
       this_circle = compute_spells_circle(
