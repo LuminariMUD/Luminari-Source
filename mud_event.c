@@ -125,6 +125,7 @@ struct mud_event_list mud_event_index[] = {
   { "Faerie Fire", event_daily_use_cooldown, EVENT_CHAR}, //eSLA_FAERIE_FIRE
   { "Draconic Heritage Breath Weapon Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eDRACBREATH
   { "Draconic Heritage Claws Attack Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eDRACCLAWS
+  { "Spell Preparation", event_preparation, EVENT_CHAR}, //ePREPARATION
 };
 
 /* init_events() is the ideal function for starting global events. This
