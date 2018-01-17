@@ -1497,7 +1497,7 @@ ACMD(do_cast) {
   /* SPELL PREPARATION HOOK */
   /* check for spell preparation (memorization, spell-slots, etc) */
   if (hasSpell(ch, spellnum, metamagic) == -1 && !isEpicSpell(spellnum)) {
-    send_to_char(ch, "You aren't ready to cast that spell... (help preparation)\r\n");
+    send_to_char(ch, "You aren't ready to cast that spell... (help preparation, or the meta-magic modification might be too high)\r\n");
     return;
   }
 
