@@ -493,7 +493,7 @@ void print_collection(struct char_data *ch, int ch_class) {
                   (IS_SET(current->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
                   current->domain ? "\tc[\tn" : "",
                   current->domain ? domain_list[current->domain].name : "",
-                  current->domain ? "\tc]\tn" : "",
+                  current->domain ? "\tc]\tn" : ""
                   );
         } else {
           send_to_char(ch, "%4s \tW%20s\tn %12s%12s%s%13s%s\r\n",
@@ -503,7 +503,7 @@ void print_collection(struct char_data *ch, int ch_class) {
                   (IS_SET(current->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
                   current->domain ? "\tc[\tn" : "",
                   current->domain ? domain_list[current->domain].name : "",
-                  current->domain ? "\tc]\tn" : "",
+                  current->domain ? "\tc]\tn" : ""
                   );
         }
       }
