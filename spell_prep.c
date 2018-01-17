@@ -995,7 +995,7 @@ void print_prep_collection_data(struct char_data *ch, int class) {
       break;
     case CLASS_CLERIC:case CLASS_WIZARD:case CLASS_RANGER:
     case CLASS_DRUID:case CLASS_PALADIN:
-      //print_collection(ch, class);
+      print_collection(ch, class);
       print_prep_queue(ch, class);
       display_available_slots(ch, class);
       break;
