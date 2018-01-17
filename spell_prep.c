@@ -1162,10 +1162,10 @@ EVENTFUNC(event_preparation) {
   /* all finished!! */
   } else {
     *buf = '\0';
-    stop_prep_event(ch, class);
     send_to_char(ch, "Your %s are complete.\r\n", spell_prep_dict[class][3]);
     sprintf(buf, "$n completes $s %s.", spell_prep_dict[class][3]);
     act(buf, FALSE, ch, 0, 0, TO_ROOM);
+    set_preparing_state(ch, class, FALSE);
     return 0;    
   }
   return 0;
