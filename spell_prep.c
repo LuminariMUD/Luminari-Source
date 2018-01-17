@@ -443,10 +443,72 @@ void print_prep_queue(struct char_data *ch, int ch_class) {
   /* all done */
   return;
 }
-/*UNFINISHED*/
+/* our display for our prepared spells aka collection, the level of complexity
+   of our output will determine how complex this function is ;p */
 void print_collection(struct char_data *ch, int ch_class) {
-}
+  char buf[MAX_INPUT_LENGTH];
+  int line_length = 80, high_circle = get_class_highest_circle(ch, ch_class);
+  int counter = 0, this_circle = 0;
+  struct prep_collection_spell_data *current = SPELL_COLLECTION(ch, ch_class),
+  *next;
 
+  /* build a nice heading */
+  *buf = '\0';
+  sprintf(buf, "\tYSpell Collection for %s\tC", class_names[ch_class]);
+  send_to_char(ch, "\tC");
+  text_line(ch, buf, line_length, '-', '-');
+  send_to_char(ch, "\tn");
+
+  /* easy out */
+  if (!SPELL_COLLECTION(ch, ch_class) || high_circle <= 0) {
+    send_to_char(ch, "There is nothing in your spell collection!\r\n");
+    /* build a nice closing */
+    *buf = '\0';
+    send_to_char(ch, "\tC");
+    text_line(ch, buf, line_length, '-', '-');
+    send_to_char(ch, "\tn");
+    return;
+  }
+
+  /* loop for circles */
+  *buf = '\0';
+  for (high_circle; high_circle >= 0; high_circle--) {
+    counter = 0;
+    *current = *SPELL_COLLECTION(ch, ch_class); /*point to head*/
+    
+    /* traverse and print */
+    for (; current; current = next) {
+      /* check if our circle matches this entry */
+      this_circle = compute_spells_circle(
+              ch_class,
+              current->spell,
+              current->metamagic,
+              current->domain);
+      if (high_circle == this_circle) { /* print! */
+        counter++;
+        sprintf(buf, "%s \tW%20s\tn %s%s %s\r\n",
+              buf,
+              skill_name(current->spell),
+              (IS_SET(current->metamagic, METAMAGIC_QUICKEN)  ? "\tc[\tnquickened\tc]\tn" : ""),
+              (IS_SET(current->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
+              (current->domain ? domain_list[current->domain].name : "")
+            );
+      }
+      next = current->next;
+    }/*end collection*/
+    
+    if (counter) { /* notify of circle */
+      sprintf(buf, "%s\tW%d%s\tC",
+              buf,
+              high_circle,
+              (high_circle == 1) ? "st" : (high_circle == 2) ? "nd" : (high_circle == 3) ? "rd" : "th");
+      send_to_char(ch, "\tC");
+      text_line(ch, buf, line_length, '-', '-');
+      send_to_char(ch, "\tn");      
+    }
+    
+  }/*end circle loop*/
+}
 /* END linked list utility */
 
 /* START helper functions */
