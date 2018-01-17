@@ -134,8 +134,8 @@ bool concentration_check(struct char_data *ch, int spellnum) {
   int concentration_dc = 0;
 
   if (IS_NPC(ch)) {
-    spell_level = MIN( GET_LEVEL(ch), 17 );
-    spell_level = MAX( 1, spell_level);
+    spell_level = MIN(GET_LEVEL(ch), 17);
+    spell_level = MAX(1, spell_level);
   } else if (CASTING_CLASS(ch) == CLASS_CLERIC) {
     spell_level = MIN_SPELL_LVL(spellnum, CLASS_CLERIC, GET_1ST_DOMAIN(ch));
     int spell_level2 = MIN_SPELL_LVL(spellnum, CLASS_CLERIC, GET_2ND_DOMAIN(ch));
@@ -241,14 +241,14 @@ static void say_spell(struct char_data *ch, int spellnum, struct char_data *tch,
   snprintf(buf2, sizeof (buf2), format, buf);
 
   for (i = world[IN_ROOM(ch)].people; i; i = i->next_in_room) {
-    
+
     /* need to check why we do not just use act() instead of perform_act() -zusuk */
     if (i == ch || i == tch || !i->desc || !AWAKE(i) ||
             PLR_FLAGGED(i, PLR_WRITING) ||
             ROOM_FLAGGED(IN_ROOM(i), ROOM_SOUNDPROOF)
             )
       continue;
-    
+
     if (!IS_NPC(i))
       attempt = compute_ability(i, ABILITY_SPELLCRAFT) + dice(1, 20);
     else
@@ -384,7 +384,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
   if (!cast_mtrigger(caster, cvict, spellnum))
     return 0;
 
-  if ((casttype != CAST_WEAPON_POISON) && caster && caster->in_room && caster->in_room != NOWHERE &&  caster->in_room < top_of_world && ROOM_AFFECTED(caster->in_room, RAFF_ANTI_MAGIC)) {
+  if ((casttype != CAST_WEAPON_POISON) && caster && caster->in_room && caster->in_room != NOWHERE && caster->in_room < top_of_world && ROOM_AFFECTED(caster->in_room, RAFF_ANTI_MAGIC)) {
     send_to_char(caster, "Your magic fizzles out and dies!\r\n");
     act("$n's magic fizzles out and dies...", FALSE, caster, 0, 0, TO_ROOM);
     return (0);
@@ -402,13 +402,13 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
     return (0);
   }
 
-  if ((casttype != CAST_WEAPON_POISON) && cvict && cvict->in_room && cvict->in_room != NOWHERE &&  cvict->in_room < top_of_world && ROOM_FLAGGED(IN_ROOM(cvict), ROOM_NOMAGIC)) {
+  if ((casttype != CAST_WEAPON_POISON) && cvict && cvict->in_room && cvict->in_room != NOWHERE && cvict->in_room < top_of_world && ROOM_FLAGGED(IN_ROOM(cvict), ROOM_NOMAGIC)) {
     send_to_char(caster, "Your magic fizzles out and dies.\r\n");
     act("$n's magic fizzles out and dies.", FALSE, caster, 0, 0, TO_ROOM);
     return (0);
   }
 
-  if ((casttype != CAST_WEAPON_POISON) && caster && caster->in_room && caster->in_room != NOWHERE &&  caster->in_room < top_of_world && ROOM_FLAGGED(IN_ROOM(caster), ROOM_PEACEFUL) &&
+  if ((casttype != CAST_WEAPON_POISON) && caster && caster->in_room && caster->in_room != NOWHERE && caster->in_room < top_of_world && ROOM_FLAGGED(IN_ROOM(caster), ROOM_PEACEFUL) &&
           (SINFO.violent || IS_SET(SINFO.routines, MAG_DAMAGE))) {
     send_to_char(caster, "A flash of white light fills the room, dispelling your violent magic!\r\n");
     act("White light from no particular source suddenly fills the room, then vanishes.", FALSE, caster, 0, 0, TO_ROOM);
@@ -421,17 +421,17 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
   }
 
   /* armor arcane failure check, these functions can be found in class.c */
- if ( !IS_EPIC_SPELL(spellnum) &&
-      (casttype != CAST_INNATE) &&
-      (casttype != CAST_POTION) &&
-      (casttype != CAST_WEAPON_POISON) &&
-      (casttype != CAST_WEAPON_SPELL) &&
-      (casttype != CAST_WAND)   && !IS_NPC(caster) )
+  if (!IS_EPIC_SPELL(spellnum) &&
+          (casttype != CAST_INNATE) &&
+          (casttype != CAST_POTION) &&
+          (casttype != CAST_WEAPON_POISON) &&
+          (casttype != CAST_WEAPON_SPELL) &&
+          (casttype != CAST_WAND) && !IS_NPC(caster))
     switch (CASTING_CLASS(caster)) {
       case CLASS_BARD:
         /* bards can wear light armor and cast unpenalized (bard spells) */
         if (compute_gear_armor_type(caster) > ARMOR_TYPE_LIGHT ||
-            compute_gear_shield_type(caster) > ARMOR_TYPE_SHIELD)
+                compute_gear_shield_type(caster) > ARMOR_TYPE_SHIELD)
           if (rand_number(1, 100) <= compute_gear_spell_failure(caster)) {
             send_to_char(caster, "Your armor ends up hampering your spell!\r\n");
             act("$n's spell is hampered by $s armor!", FALSE, caster, 0, 0, TO_ROOM);
@@ -568,7 +568,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
       spell_level = level;
       break;
 
-    /* default and casting a spell */
+      /* default and casting a spell */
     case CAST_SPELL:
       savetype = SAVING_WILL;
       switch (CASTING_CLASS(caster)) {
@@ -617,7 +617,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
   }
 
   /* now we actually process the spell based on the appropate routine */
-  
+
   /* special routine handling! */
   switch (spellnum) {
     case SPELL_POISON:
@@ -629,16 +629,16 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
         act("You suffer further from more poison!",
                 FALSE, caster, NULL, cvict, TO_VICT | TO_SLEEP);
         act("$N suffers further from more poison!",
-                  FALSE, caster, NULL, cvict, TO_NOTVICT);
+                FALSE, caster, NULL, cvict, TO_NOTVICT);
         return 1;
       }
       break;
     default:
       break;
   }
-  
+
   /* the rest of the routine handling follows: */
-  
+
   if (IS_SET(SINFO.routines, MAG_DAMAGE))
     if (mag_damage(spell_level, caster, cvict, ovict, spellnum, metamagic, savetype, casttype) == -1)
       return (-1); /* Successful and target died, don't cast again. */
@@ -791,7 +791,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
         MANUAL_SPELL(spell_recall);
         break;
     } /* end manual spells */
-    
+
   /* finished routine handling, now we have some code to engage */
 
   /* NOTE:  this requires a victim, so AoE effects have another
@@ -920,7 +920,7 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
         tch = ch;
 
       /* AOO */
-      if(FIGHTING(ch))
+      if (FIGHTING(ch))
         attack_of_opportunity(FIGHTING(ch), ch, 0);
 
       act("You recite $p which dissolves.", TRUE, ch, obj, 0, TO_CHAR);
@@ -943,7 +943,7 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
       tch = ch;
 
       /*  AOO */
-      if(FIGHTING(ch))
+      if (FIGHTING(ch))
         attack_of_opportunity(FIGHTING(ch), ch, 0);
 
       if (!consume_otrigger(obj, ch, OCMD_QUAFF)) /* check trigger */
@@ -1051,10 +1051,10 @@ EVENTFUNC(event_casting) {
   if (event_obj == NULL) return 0;
   pMudEvent = (struct mud_event_data *) event_obj;
   ch = (struct char_data *) pMudEvent->pStruct;
-  
+
   /* we need this or npc's don't have casting time */
   //if (!IS_NPC(ch) && !IS_PLAYING(ch->desc)) return 0;
-  
+
   int spellnum = CASTING_SPELLNUM(ch);
 
   // is he casting?
@@ -1068,8 +1068,8 @@ EVENTFUNC(event_casting) {
   }
 
   // still some time left to cast
-  if ((CASTING_TIME(ch) > 0) && !time_stopped && 
-          (GET_LEVEL(ch) < LVL_STAFF || IS_NPC(ch)) ) {
+  if ((CASTING_TIME(ch) > 0) && !time_stopped &&
+          (GET_LEVEL(ch) < LVL_STAFF || IS_NPC(ch))) {
 
     //checking positions, targets
     if (!castingCheckOk(ch))
@@ -1078,11 +1078,11 @@ EVENTFUNC(event_casting) {
 
       if (!concentration_check(ch, spellnum))
         return 0;
-                  
+
       //display time left to finish spell
       sprintf(buf, "Casting: %s%s%s ",
-              (IS_SET(CASTING_METAMAGIC(ch), METAMAGIC_QUICKEN) ? "quickened ": ""),
-              (IS_SET(CASTING_METAMAGIC(ch), METAMAGIC_MAXIMIZE) ? "maximized ": ""), 
+              (IS_SET(CASTING_METAMAGIC(ch), METAMAGIC_QUICKEN) ? "quickened " : ""),
+              (IS_SET(CASTING_METAMAGIC(ch), METAMAGIC_MAXIMIZE) ? "maximized " : ""),
               SINFO.name);
       for (x = CASTING_TIME(ch); x > 0; x--)
         strcat(buf, "*");
@@ -1102,7 +1102,7 @@ EVENTFUNC(event_casting) {
         if (!castingCheckOk(ch))
           return 0;
 
-        finishCasting(ch);  /* we cleared all our casting checks! */
+        finishCasting(ch); /* we cleared all our casting checks! */
         return 0;
       } else
         return (10);
@@ -1146,7 +1146,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
   /*
   if (tobj && tobj->in_room > top_of_world)
     return 0;
-  */
+   */
 
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SOUNDPROOF)) {
     send_to_char(ch, "You can not even speak a single word!\r\n");
@@ -1247,13 +1247,13 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
   }
 
   /* establish base casting time for spell */
-  casting_time = SINFO.time;  
-  
+  casting_time = SINFO.time;
+
   /* doing to adjust memory and establish what class the character
    will be using for casting this spell */
   if (!isEpicSpell(spellnum) && !IS_NPC(ch)) {
 
-    log ("DEBUG: metamagic : %d", metamagic);
+    log("DEBUG: metamagic : %d", metamagic);
     class = forgetSpell(ch, spellnum, metamagic, -1);
 
     if (class == -1) {
@@ -1264,15 +1264,15 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     /* sorcerer's call is made already in forgetSpell() */
     if (class != CLASS_SORCERER && class != CLASS_BARD)
       addSpellMemming(ch, spellnum, metamagic, spell_info[spellnum].memtime, class);
-    
+
     /* level to cast this particular spell as */
     clevel = CLASS_LEVEL(ch, class);
     CASTING_CLASS(ch) = class;
-    
+
     /* npc class */
   } else if (IS_NPC(ch)) {
     class = GET_CLASS(ch);
-    
+
     /* level to cast this particular spell as */
     clevel = GET_LEVEL(ch);
     CASTING_CLASS(ch) = class;
@@ -1296,7 +1296,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
       casting_time *= 2;
     }
   }
-  
+
   /* handle spells with no casting time */
   if (casting_time <= 0 && !IS_NPC(ch)) { /* we disabled this for npc's */
     send_to_char(ch, "%s", CONFIG_OK);
@@ -1307,7 +1307,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
 
     return (call_magic(ch, tch, tobj, spellnum, metamagic, CASTER_LEVEL(ch), CAST_SPELL));
   } else {
-    
+
     /* npc's minimum */
     if (IS_NPC(ch)) {
       casting_time++;
@@ -1358,9 +1358,8 @@ ACMD(do_abort) {
 ACMD(do_cast) {
   struct char_data *tch = NULL;
   struct obj_data *tobj = NULL;
-  char *s = NULL, *t = NULL, *m = NULL;
+  char *spell_arg = NULL, *target_arg = NULL, *metamagic_arg = NULL;
   int number = 0, spellnum = 0, i = 0, target = 0, metamagic = 0;
-  // int mana;
 
   if (IS_NPC(ch))
     return;
@@ -1369,42 +1368,39 @@ ACMD(do_cast) {
    * Valid keywords are:
    *
    *   quickened - Speed up casting
-   *   maximized - All variable aspects of spell (dam dice, etc) are maximum.
-   *
-   */        
-  
+   *   maximized - All variable aspects of spell (dam dice, etc) are maximum. */
+
   /* get: blank, spell name, target name */
-  s = strtok(argument, "'");
- 
-  if (s == NULL) {
+  spell_arg = strtok(argument, "'");
+
+  if (spell_arg == NULL) {
     send_to_char(ch, "Cast what where?\r\n");
     return;
   }
-  s = strtok(NULL, "'");
-  
-  if (s == NULL) {
+  spell_arg = strtok(NULL, "'");
+
+  if (spell_arg == NULL) {
     send_to_char(ch, "Spell names must be enclosed in the Holy Magic Symbols: '\r\n");
     return;
   }
-  
-  t = strtok(NULL, "\0");
 
-  log("DEBUG: target t = %s", t);
-  
-  
-  /* Check for metamagic. */   
-  log("DEBUG: Argument = %s", argument);
-  for (m = strtok(argument, " "); m && m[0] != '\''; m = strtok(NULL, " ")) {
-    if (is_abbrev(m, "quickened")) {
-      if HAS_FEAT(ch, FEAT_QUICKEN_SPELL) {
+  target_arg = strtok(NULL, "\0");
+
+  //log("DEBUG: target t = %s", target_arg);  
+  //log("DEBUG: Argument = %s", argument);
+
+  /* Check for metamagic. */
+  for (metamagic_arg = strtok(argument, " "); metamagic_arg && metamagic_arg[0] != '\''; metamagic_arg = strtok(NULL, " ")) {
+    if (is_abbrev(metamagic_arg, "quickened")) {
+      if (HAS_FEAT(ch, FEAT_QUICKEN_SPELL)) {
         SET_BIT(metamagic, METAMAGIC_QUICKEN);
       } else {
         send_to_char(ch, "You don't know how to quicken your magic!\r\n");
         return;
       }
       //log("DEBUG: Quickened metamagic used.");
-    } else if (is_abbrev(m, "maximized")) {
-      if HAS_FEAT(ch, FEAT_MAXIMIZE_SPELL) {
+    } else if (is_abbrev(metamagic_arg, "maximized")) {
+      if (HAS_FEAT(ch, FEAT_MAXIMIZE_SPELL)) {
         SET_BIT(metamagic, METAMAGIC_MAXIMIZE);
       } else {
         send_to_char(ch, "You don't know how to maximize your magic!\r\n");
@@ -1412,11 +1408,10 @@ ACMD(do_cast) {
       }
     }
   }
-  
-  /* spellnum = search_block(s, spells, 0); */
-  spellnum = find_skill_num(s);
 
-  if ((spellnum < 1) || (spellnum > MAX_SPELLS) || !*s) {
+  spellnum = find_skill_num(spell_arg);
+
+  if ((spellnum < 1) || (spellnum > MAX_SPELLS) || !*spell_arg) {
     send_to_char(ch, "Cast what?!?\r\n");
     return;
   }
@@ -1498,7 +1493,8 @@ ACMD(do_cast) {
     send_to_char(ch, "You do not know that spell!\r\n");
     return;
   }
-  
+
+  /* SPELL PREPARATION HOOK */
   /* check for spell preparation (memorization, spell-slots, etc) */
   if (hasSpell(ch, spellnum, metamagic) == -1 && !isEpicSpell(spellnum)) {
     send_to_char(ch, "You aren't ready to cast that spell... (help preparation)\r\n");
@@ -1539,46 +1535,46 @@ ACMD(do_cast) {
   }
 
   /* Find the target */
-  if (t != NULL) {
+  if (target_arg != NULL) {
     char arg[MAX_INPUT_LENGTH];
 
-    strlcpy(arg, t, sizeof (arg));
-    one_argument(arg, t);
-    skip_spaces(&t);
+    strlcpy(arg, target_arg, sizeof (arg));
+    one_argument(arg, target_arg);
+    skip_spaces(&target_arg);
 
     /* Copy target to global cast_arg2, for use in spells like locate object */
-    strcpy(cast_arg2, t);
+    strcpy(cast_arg2, target_arg);
   }
 
   if (IS_SET(SINFO.targets, TAR_IGNORE)) {
     target = TRUE;
-  } else if (t != NULL && *t) {
-    number = get_number(&t);
+  } else if (target_arg != NULL && *target_arg) {
+    number = get_number(&target_arg);
     if (!target && (IS_SET(SINFO.targets, TAR_CHAR_ROOM))) {
-      if ((tch = get_char_vis(ch, t, &number, FIND_CHAR_ROOM)) != NULL)
+      if ((tch = get_char_vis(ch, target_arg, &number, FIND_CHAR_ROOM)) != NULL)
         target = TRUE;
     }
     if (!target && IS_SET(SINFO.targets, TAR_CHAR_WORLD))
-      if ((tch = get_char_vis(ch, t, &number, FIND_CHAR_WORLD)) != NULL)
+      if ((tch = get_char_vis(ch, target_arg, &number, FIND_CHAR_WORLD)) != NULL)
         target = TRUE;
 
     if (!target && IS_SET(SINFO.targets, TAR_OBJ_INV))
-      if ((tobj = get_obj_in_list_vis(ch, t, &number, ch->carrying)) != NULL)
+      if ((tobj = get_obj_in_list_vis(ch, target_arg, &number, ch->carrying)) != NULL)
         target = TRUE;
 
     if (!target && IS_SET(SINFO.targets, TAR_OBJ_EQUIP)) {
       for (i = 0; !target && i < NUM_WEARS; i++)
-        if (GET_EQ(ch, i) && isname(t, GET_EQ(ch, i)->name)) {
+        if (GET_EQ(ch, i) && isname(target_arg, GET_EQ(ch, i)->name)) {
           tobj = GET_EQ(ch, i);
           target = TRUE;
         }
     }
     if (!target && IS_SET(SINFO.targets, TAR_OBJ_ROOM))
-      if ((tobj = get_obj_in_list_vis(ch, t, &number, world[IN_ROOM(ch)].contents)) != NULL)
+      if ((tobj = get_obj_in_list_vis(ch, target_arg, &number, world[IN_ROOM(ch)].contents)) != NULL)
         target = TRUE;
 
     if (!target && IS_SET(SINFO.targets, TAR_OBJ_WORLD))
-      if ((tobj = get_obj_vis(ch, t, &number)) != NULL)
+      if ((tobj = get_obj_vis(ch, target_arg, &number)) != NULL)
         target = TRUE;
 
   } else { /* if target string is empty */
@@ -1634,8 +1630,7 @@ ACMD(do_cast) {
     return;
   }
 
-    //log("DEBUG: spellnum: %d metamagic: %d hasSpell: %d", spellnum, metamagic, hasSpell(ch, spellnum, metamagic));
-  
+  //log("DEBUG: spellnum: %d metamagic: %d hasSpell: %d", spellnum, metamagic, hasSpell(ch, spellnum, metamagic));  
   cast_spell(ch, tch, tobj, spellnum, metamagic);
 }
 
@@ -1715,7 +1710,6 @@ void unused_spell(int spl) {
 
 #define skillo(skill, name, category)  spello(skill, name, 0, 0, 0, 0, 0, 0, \
                                        0, NULL, 0, 0, category, FALSE);
-
 
 /* Arguments for spello calls:
  * spellnum, maxmana, minmana, manachng, minpos, targets, violent?, routines.
