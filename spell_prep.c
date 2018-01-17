@@ -485,15 +485,16 @@ void print_collection(struct char_data *ch, int ch_class) {
       if (high_circle == this_circle) { /* print! */
         counter++;
         if (counter == 1) {
-          send_to_char(ch, "\tW%20s\tn %12s%12s %13s \tY%d%s\tn\r\n",
+          send_to_char(ch, "\tY%d%s:\tn \tW%20s\tn %12s%12s\tc[\tn%13s\tc]\tn\r\n",
+                  high_circle,
+                  (high_circle == 1) ? "st" : (high_circle == 2) ? "nd" : (high_circle == 3) ? "rd" : "th",
                   skill_name(current->spell),
                   (IS_SET(current->metamagic, METAMAGIC_QUICKEN) ? "\tc[\tnquickened\tc]\tn" : ""),
                   (IS_SET(current->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
-                  current->domain ? domain_list[current->domain].name : "",
-                  high_circle,
-                  (high_circle == 1) ? "st" : (high_circle == 2) ? "nd" : (high_circle == 3) ? "rd" : "th");
+                  current->domain ? domain_list[current->domain].name : "");
         } else {
-          send_to_char(ch, "\tW%20s\tn %12s%12s %13s\r\n",
+          send_to_char(ch, "%4s \tW%20s\tn %12s%12s\tc[\tn%13s\tc]\tn\r\n",
+                  "    ",
                   skill_name(current->spell),
                   (IS_SET(current->metamagic, METAMAGIC_QUICKEN) ? "\tc[\tnquickened\tc]\tn" : ""),
                   (IS_SET(current->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
