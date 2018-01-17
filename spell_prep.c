@@ -469,9 +469,9 @@ void print_collection(struct char_data *ch, int ch_class) {
   }
 
   /* loop for circles */
-  *buf = '\0';
   for (high_circle; high_circle >= 0; high_circle--) {
     counter = 0;
+    *buf = '\0';
     struct prep_collection_spell_data *current = SPELL_COLLECTION(ch, ch_class),
             *next;
     
@@ -497,13 +497,11 @@ void print_collection(struct char_data *ch, int ch_class) {
     }/*end collection*/
     
     if (counter) { /* notify of circle */
-      sprintf(buf, "%s\tW%d%s\tC",
+      sprintf(buf, "%s\tY%20d%s\tn\r\n",
               buf,
               high_circle,
               (high_circle == 1) ? "st" : (high_circle == 2) ? "nd" : (high_circle == 3) ? "rd" : "th");
-      send_to_char(ch, "\tC");
-      text_line(ch, buf, line_length, '-', '-');
-      send_to_char(ch, "\tn");      
+      send_to_char(ch, buf);
     }
     
   }/*end circle loop*/
