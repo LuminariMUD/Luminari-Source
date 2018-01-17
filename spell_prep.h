@@ -39,6 +39,11 @@ extern "C" {
     void destroy_spell_collection(struct char_data *ch);
 
     /* save into ch pfile their spell-preparation queue, example ch saving */
+    void save_prep_queue_by_class(FILE *fl, struct char_data *ch, int class);
+    /* save into ch pfile their spell-collection, example ch saving */
+    void save_collection_by_class(FILE *fl, struct char_data *ch, int class);
+    
+    /* save into ch pfile their spell-preparation queue, example ch saving */
     void save_spell_prep_queue(FILE *fl, struct char_data *ch);
     /* save into ch pfile their spell collection, example ch saving */
     void save_spell_collection(FILE *fl, struct char_data *ch);
