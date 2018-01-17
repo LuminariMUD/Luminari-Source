@@ -893,14 +893,14 @@ int forgetSpell(struct char_data *ch, int spellnum, int metamagic, int class) {
     /* check sorc-type arrays */
     if (CLASS_LEVEL(ch, CLASS_SORCERER)) {
       /* got a free slot? */
-      if (hasSpell(ch, spellnum, -1) == CLASS_SORCERER) {
+      if (hasSpell(ch, spellnum, metamagic) == CLASS_SORCERER) {
         addSpellMemming(ch, spellnum, 0, 0, CLASS_SORCERER);
         return CLASS_SORCERER;
       }
     }
     if (CLASS_LEVEL(ch, CLASS_BARD)) {
       /* got a free slot? */
-      if (hasSpell(ch, spellnum, -1) == CLASS_BARD) {
+      if (hasSpell(ch, spellnum, metamagic) == CLASS_BARD) {
         addSpellMemming(ch, spellnum, 0, 0, CLASS_BARD);
         return CLASS_BARD;
       }
