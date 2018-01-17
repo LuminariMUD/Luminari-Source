@@ -485,25 +485,29 @@ void print_collection(struct char_data *ch, int ch_class) {
               current->domain);
       if (high_circle == this_circle) { /* print! */
         counter++;
-        sprintf(buf, "%s \tW%20s\tn %s%s %s\r\n",
-              buf,
-              skill_name(current->spell),
-              (IS_SET(current->metamagic, METAMAGIC_QUICKEN)  ? "\tc[\tnquickened\tc]\tn" : ""),
-              (IS_SET(current->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
-              (current->domain ? domain_list[current->domain].name : "")
-            );
+        if (counter == 1) {
+          sprintf(buf, "%s \tW%20s\tn %12s%12s %13s \tY%d%s\tn\r\n",
+                  buf,
+                  skill_name(current->spell),
+                  (IS_SET(current->metamagic, METAMAGIC_QUICKEN) ? "\tc[\tnquickened\tc]\tn" : ""),
+                  (IS_SET(current->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
+                  (current->domain ? domain_list[current->domain].name : ""),
+                  high_circle,
+                  (high_circle == 1) ? "st" : (high_circle == 2) ? "nd" : (high_circle == 3) ? "rd" : "th");
+
+        } else {
+          sprintf(buf, "%s \tW%20s\tn %12s%12s %13s\r\n",
+                  buf,
+                  skill_name(current->spell),
+                  (IS_SET(current->metamagic, METAMAGIC_QUICKEN) ? "\tc[\tnquickened\tc]\tn" : ""),
+                  (IS_SET(current->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
+                  (current->domain ? domain_list[current->domain].name : "")
+                  );
+        }
       }
       next = current->next;
     }/*end collection*/
-    
-    if (counter) { /* notify of circle */
-      sprintf(buf, "%s\tY%20d%s\tn\r\n",
-              buf,
-              high_circle,
-              (high_circle == 1) ? "st" : (high_circle == 2) ? "nd" : (high_circle == 3) ? "rd" : "th");
-      send_to_char(ch, buf);
-    }
-    
+    send_to_char(ch, buf);
   }/*end circle loop*/
 }
 /* END linked list utility */
