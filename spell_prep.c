@@ -149,9 +149,10 @@ void save_spell_collection(FILE *fl, struct char_data *ch) {
    return: true if we found/removed, false if we didn't find */
 bool prep_queue_remove_by_class(struct char_data *ch, int class, int spellnum,
         int metamagic) {
-  struct prep_collection_spell_data *current, *next = NULL;
+  struct prep_collection_spell_data *current = SPELL_PREP_QUEUE(ch, class),
+          *next = NULL;
   
-  for (current = SPELL_PREP_QUEUE(ch, class); current; current = next) {
+  for (; current; current = next) {
     if (current->spell == spellnum && current->metamagic == metamagic) {
       /*bingo, found it*/
       prep_queue_remove(ch, current, class);
@@ -166,9 +167,10 @@ bool prep_queue_remove_by_class(struct char_data *ch, int class, int spellnum,
    return: true if we found/removed, false if we didn't find */
 bool collection_remove_by_class(struct char_data *ch, int class, int spellnum,
         int metamagic) {
-  struct prep_collection_spell_data *current, *next = NULL;
+  struct prep_collection_spell_data *current = SPELL_COLLECTION(ch, class),
+          *next = NULL;
   
-  for (current = SPELL_COLLECTION(ch, class); current; current = next) {
+  for (; current; current = next) {
     if (current->spell == spellnum && current->metamagic == metamagic) {
       /*bingo, found it*/
       prep_queue_remove(ch, current, class);
