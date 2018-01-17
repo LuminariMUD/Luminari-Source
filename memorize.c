@@ -894,14 +894,14 @@ int forgetSpell(struct char_data *ch, int spellnum, int metamagic, int class) {
     if (CLASS_LEVEL(ch, CLASS_SORCERER)) {
       /* got a free slot? */
       if (hasSpell(ch, spellnum, metamagic) == CLASS_SORCERER) {
-        addSpellMemming(ch, spellnum, 0, 0, CLASS_SORCERER);
+        addSpellMemming(ch, spellnum, metamagic, 0, CLASS_SORCERER);
         return CLASS_SORCERER;
       }
     }
     if (CLASS_LEVEL(ch, CLASS_BARD)) {
       /* got a free slot? */
       if (hasSpell(ch, spellnum, metamagic) == CLASS_BARD) {
-        addSpellMemming(ch, spellnum, 0, 0, CLASS_BARD);
+        addSpellMemming(ch, spellnum, metamagic, 0, CLASS_BARD);
         return CLASS_BARD;
       }
     }
