@@ -897,6 +897,7 @@ void print_collection(struct char_data *ch, int ch_class) {
     
     /* traverse and print */
     for (; current; current = next) {
+      next = current->next;
       /* check if our circle matches this entry */
       this_circle = compute_spells_circle(
               ch_class,
@@ -928,7 +929,6 @@ void print_collection(struct char_data *ch, int ch_class) {
                   );
         }
       }
-      next = current->next;
     }/*end collection*/
   }/*end circle loop*/
 }
