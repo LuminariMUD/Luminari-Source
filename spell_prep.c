@@ -660,8 +660,9 @@ bool ready_to_prep_spells(struct char_data *ch, int class) {
   
   switch (class) {
     case CLASS_WIZARD: /* wizards need to study a book or scroll */
-      if (!spellbook_ok(ch, SPELL_PREP_QUEUE(ch, class)->spell, CLASS_WIZARD, FALSE))
-        return FALSE;
+      if (SPELL_PREP_QUEUE(ch, class))
+        if (!spellbook_ok(ch, SPELL_PREP_QUEUE(ch, class)->spell, CLASS_WIZARD, FALSE))
+          return FALSE;
       break;
   }
   
