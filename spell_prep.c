@@ -462,11 +462,6 @@ void print_collection(struct char_data *ch, int ch_class) {
   /* easy out */
   if (!SPELL_COLLECTION(ch, ch_class) || high_circle <= 0) {
     send_to_char(ch, "There is nothing in your spell collection!\r\n");
-    /* build a nice closing */
-    *buf = '\0';
-    send_to_char(ch, "\tC");
-    text_line(ch, buf, line_length, '-', '-');
-    send_to_char(ch, "\tn");
     return;
   }
 
