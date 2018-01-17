@@ -1148,7 +1148,7 @@ int hasSpell(struct char_data *ch, int spellnum, int metamagic) {
   if (CLASS_LEVEL(ch, CLASS_SORCERER)) {
     // is this one of the "known" spells?
     if (sorcKnown(ch, spellnum, CLASS_SORCERER)) {
-      int circle = spellCircle(CLASS_SORCERER, spellnum, 0, DOMAIN_UNDEFINED);
+      int circle = spellCircle(CLASS_SORCERER, spellnum, metamagic, DOMAIN_UNDEFINED);
       // do we have any slots left?
       // take total slots for the correct circle and subtract from used
       if ((comp_slots(ch, circle, CLASS_SORCERER) -
@@ -1160,7 +1160,7 @@ int hasSpell(struct char_data *ch, int spellnum, int metamagic) {
   if (CLASS_LEVEL(ch, CLASS_BARD)) {
     // is this one of the "known" spells?
     if (sorcKnown(ch, spellnum, CLASS_BARD)) {
-      int circle = spellCircle(CLASS_BARD, spellnum, 0, DOMAIN_UNDEFINED);
+      int circle = spellCircle(CLASS_BARD, spellnum, metamagic, DOMAIN_UNDEFINED);
       // do we have any slots left?
       // take total slots for the correct circle and subtract from used
       if ((comp_slots(ch, circle, CLASS_BARD) -
