@@ -217,6 +217,30 @@ static void hedit_disp_keywords_menu(struct descriptor_data *d) {
   OLC_MODE(d) = HEDIT_KEYWORD_MENU;
 }
 
+bool hedit_delete_entry(struct help_entry_list* entry) {
+  OLC_HELP(d)->tag
+
+  char buf[MAX_STRING_LENGTH]; /* Buffer for DML query. */
+ 
+  if( entry == NULL) 
+    return;
+
+  /* Delete from the database FIRST. */
+  sprintf(buf, "delete from help_entries where lower(tag) = lower('%s');", entry->tag);
+
+  if (mysql_query(conn, buf)) {
+    mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Unable to delete from help_entries: %s", mysql_error(conn));
+  }
+  /* Clear out the old keywords. */
+  sprintf(buf, "DELETE from help_keywords where lower(help_tag) = lower('%s')", OLC_HELP(d)->tag);
+
+  if (mysql_query(conn, buf)) {
+    mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Unable to DELETE from help_keywords: %s", mysql_error(conn));
+  }
+  
+
+}
+
 bool hedit_delete_keyword(struct help_entry_list* entry, int num) {
   int i;
   bool found = FALSE; 
@@ -342,6 +366,8 @@ void hedit_parse(struct descriptor_data *d, char *arg)
     switch (*arg) {
       case 'y': case 'Y':
         cleanup_olc(d, CLEANUP_ALL);
+        // Actually delete the help entry and the keywords.
+        hedit_delete_entry(OLC_HELP(d));
         break;
       case 'n': case 'N': case 'q': case 'Q':
         hedit_disp_menu(d);
