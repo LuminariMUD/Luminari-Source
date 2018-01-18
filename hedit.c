@@ -265,7 +265,7 @@ bool hedit_delete_entry(struct help_entry_list* entry) {
   /* Clear out the old keywords. */
   //while (entry->keyword_list != NULL) {
   //  hedit_delete_keyword(entry, 1);
-  }
+  //}
   
   sprintf(buf, "delete from help_entries where lower(tag) = lower('%s')", entry->tag);
   mudlog(NRM, LVL_STAFF, TRUE, buf);
@@ -274,6 +274,7 @@ bool hedit_delete_entry(struct help_entry_list* entry) {
     mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Unable to delete from help_entries: %s", mysql_error(conn));
     retval = FALSE;
   }  
+  return retval;
 }
 
 void hedit_parse(struct descriptor_data *d, char *arg)
