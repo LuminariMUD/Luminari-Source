@@ -3403,7 +3403,7 @@ int start_daily_use_cooldown(struct char_data *ch, int featnum) {
 
   if ((daily_uses = get_daily_uses(ch, featnum)) < 1) {
     /* ch has no uses of this ability at all!  Error! */
-    log("SYSERR: in start_daily_use_cooldown, cooldown initiated for invalid ability!");
+    log("SYSERR: in start_daily_use_cooldown, cooldown initiated for invalid ability (featnum: %d)!", featnum);
     return (0);
   }
 
