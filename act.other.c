@@ -2232,6 +2232,7 @@ void wildshape_return(struct char_data *ch) {
 
 /* moved the engine out of do_wildshape so we can use it in other places */
 /* mode = 0, druid */
+/* mode = 1, polymorph spell (spells.c) */
 bool wildshape_engine(struct char_data *ch, char *argument, int mode) {
   int i = 0;
   char buf[200];
