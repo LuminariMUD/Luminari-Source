@@ -255,7 +255,6 @@ bool hedit_delete_keyword(struct help_entry_list* entry, int num) {
 
 bool hedit_delete_entry(struct help_entry_list* entry) {
 
-  struct help_keyword_list *keyword = NULL, *next_keyword = NULL;
   int i = 0;
   char buf[MAX_STRING_LENGTH]; /* Buffer for DML query. */
   bool retval = TRUE;
@@ -264,11 +263,11 @@ bool hedit_delete_entry(struct help_entry_list* entry) {
     return FALSE;
 
   /* Clear out the old keywords. */
-  while (entry->keyword_list) {
-    hedit_delete_keyword(entry, 1);
+  //while (entry->keyword_list != NULL) {
+  //  hedit_delete_keyword(entry, 1);
   }
   
-  sprintf(buf, "delete from help_entries where lower(tag) = lower('%s');", entry->tag);
+  sprintf(buf, "delete from help_entries where lower(tag) = lower('%s')", entry->tag);
   mudlog(NRM, LVL_STAFF, TRUE, buf);
   
   if (mysql_query(conn, buf)) {
