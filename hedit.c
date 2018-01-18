@@ -218,10 +218,10 @@ static void hedit_disp_keywords_menu(struct descriptor_data *d) {
 }
 
 bool hedit_delete_entry(struct help_entry_list* entry) {
-  OLC_HELP(d)->tag
 
   char buf[MAX_STRING_LENGTH]; /* Buffer for DML query. */
- 
+  bool return == TRUE;
+
   if( entry == NULL) 
     return;
 
@@ -230,15 +230,15 @@ bool hedit_delete_entry(struct help_entry_list* entry) {
 
   if (mysql_query(conn, buf)) {
     mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Unable to delete from help_entries: %s", mysql_error(conn));
+    return = FALSE;
   }
   /* Clear out the old keywords. */
   sprintf(buf, "DELETE from help_keywords where lower(help_tag) = lower('%s')", OLC_HELP(d)->tag);
 
   if (mysql_query(conn, buf)) {
     mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Unable to DELETE from help_keywords: %s", mysql_error(conn));
+    return = FALSE;
   }
-  
-
 }
 
 bool hedit_delete_keyword(struct help_entry_list* entry, int num) {
