@@ -2264,7 +2264,7 @@ bool wildshape_engine(struct char_data *ch, char *argument, int mode) {
   /* try to match argument to the list */
   i = display_eligible_wildshape_races(ch, argument, TRUE, mode);
 
-  if (i == -1) { /* failed to find the race */
+  if (i == -1) { /* failed to find the race! (0 is human) */
     send_to_char(ch, "Please select a race to wildshape/polymorph to or select 'return'.\r\n");
     display_eligible_wildshape_races(ch, argument, FALSE, mode);
     return FALSE;
