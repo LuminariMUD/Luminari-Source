@@ -1994,7 +1994,7 @@ int display_eligible_wildshape_races(struct char_data *ch, char *argument, int s
               abil_mods->natural_armor >= 0 ? "+" : " ", abil_mods->natural_armor);
     }
 
-    if (!strcmp(argument, race_list[i].name)) /* match argument? */
+    if (is_abbrev(argument, race_list[i].name)) /* match argument? */
       break;
   } /* end race list loop */
 
