@@ -1922,7 +1922,7 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
           oedit_disp_val3_menu(d);
           break;
         case ITEM_SWITCH:
-          GET_OBJ_VAL(OLC_OBJ(d), 0) = MIN(MAX(atoi(arg), 0), 999999);
+          GET_OBJ_VAL(OLC_OBJ(d), 1) = MIN(MAX(atoi(arg), 0), 999999);
           break;
         default:
           GET_OBJ_VAL(OLC_OBJ(d), 1) = number;
@@ -2029,9 +2029,9 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
           max_val = NUM_ATTACK_TYPES - 1;
           break;
         case ITEM_SWITCH:
-          min_val = 0;
-          max_val = 2;
-          break;
+          GET_OBJ_VAL(OLC_OBJ(d), 3) = LIMIT(number, 0, 2);
+          oedit_disp_menu(d);
+          return;
           /*
         case ITEM_MISSILE:
           min_val = 0;
