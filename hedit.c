@@ -368,6 +368,7 @@ void hedit_parse(struct descriptor_data *d, char *arg)
         // Actually delete the help entry and the keywords.
         hedit_delete_entry(OLC_HELP(d));
         cleanup_olc(d, CLEANUP_ALL);
+        write_to_output(d, "Help file deleted.\r\n");
         break;
       case 'n': case 'N': case 'q': case 'Q':
         hedit_disp_menu(d);
