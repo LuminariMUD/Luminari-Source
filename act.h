@@ -243,6 +243,12 @@ ACMD(do_recline);
 ACMD(do_sleep);
 ACMD(do_stand);
 ACMD(do_wake);
+ACMD(do_pullswitch);
+
+/* Switch info */
+#define SWITCH_UNHIDE	0
+#define SWITCH_UNLOCK	1
+#define SWITCH_OPEN	2
 /* Global variables from act.movement.c */
 #ifndef __ACT_MOVEMENT_C__
 extern const char *cmd_door[];
