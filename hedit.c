@@ -233,7 +233,7 @@ bool hedit_delete_entry(struct help_entry_list* entry) {
     retval = FALSE;
   }
   /* Clear out the old keywords. */
-  sprintf(buf, "DELETE from help_keywords where lower(help_tag) = lower('%s')", OLC_HELP(d)->tag);
+  sprintf(buf, "DELETE from help_keywords where lower(help_tag) = lower('%s')", entry->tag);
 
   if (mysql_query(conn, buf)) {
     mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Unable to DELETE from help_keywords: %s", mysql_error(conn));
