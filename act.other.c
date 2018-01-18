@@ -1986,7 +1986,7 @@ int display_eligible_wildshape_races(struct char_data *ch, char *argument, int s
       } /* end family switch */
     }
     abil_mods = set_wild_shape_mods(i);
-    if (!silent) {
+    if (!silent && race_list[i].name != NULL) {
       send_to_char(ch, "%-40s Str [%s%-2d] Con [%s%-2d] Dex [%s%-2d] NatAC [%s%-2d]\r\n", race_list[i].name,
               abil_mods->strength >= 0 ? "+" : " ", abil_mods->strength,
               abil_mods->constitution >= 0 ? "+" : " ", abil_mods->constitution,
