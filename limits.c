@@ -711,16 +711,17 @@ int gain_exp(struct char_data *ch, int gain, int mode) {
   if (!IS_NPC(ch) && ((GET_LEVEL(ch) < 1 || GET_LEVEL(ch) >= LVL_IMMORT)))
     return 0;
 
+  /* discourage people from killing their pets at the end of the day */
+  if (IS_NPC(ch) && AFF_FLAGGED(ch, AFF_CHARM) && ch->master) {
+    return 0;
+  }
+  
   if (IS_NPC(ch)) {
-    GET_EXP(ch) += gain;
+    GET_EXP(ch) += gain/2;
     return 0;
   }
 
   if (gain > 0) {
-
-    /* happy hour bonus */
-    if ((IS_HAPPYHOUR) && (IS_HAPPYEXP))
-      gain += (int) ((float) gain * ((float) HAPPY_EXP / (float) (100)));
 
     /* newbie bonus */
     if (GET_LEVEL(ch) <= NEWBIE_LEVEL)
@@ -742,13 +743,24 @@ int gain_exp(struct char_data *ch, int gain, int mode) {
       case GAIN_EXP_MODE_SCRIPT:
       case GAIN_EXP_MODE_DEATH: /* should be negative and not get here! */
         break;
-      case GAIN_EXP_MODE_DEFAULT:
+      case GAIN_EXP_MODE_EDRAIN:
       case GAIN_EXP_MODE_CRAFT:
+      case GAIN_EXP_MODE_DAMAGE:
+      case GAIN_EXP_MODE_DUMP:
+        /* further cap these */
+        xp_to_lvl = level_exp(ch, GET_LEVEL(ch) + 1) - level_exp(ch, GET_LEVEL(ch));
+        if (GET_LEVEL(ch) < 11) {
+          gain_cap = xp_to_lvl / (MIN_NUM_MOBS_TO_KILL*4);
+        } else if (GET_LEVEL(ch) < 21) {
+          gain_cap = xp_to_lvl / (MIN_NUM_MOBS_TO_KILL_10*4);
+        } else {
+          gain_cap = xp_to_lvl / (MIN_NUM_MOBS_TO_KILL_20*4);
+        }
+        gain = MIN(gain_cap, gain);
+        break;
+      case GAIN_EXP_MODE_DEFAULT:
       case GAIN_EXP_MODE_GROUP:
       case GAIN_EXP_MODE_SOLO:
-      case GAIN_EXP_MODE_DAMAGE:
-      case GAIN_EXP_MODE_EDRAIN:
-      case GAIN_EXP_MODE_DUMP:
       case GAIN_EXP_MODE_TRAP:
       default:
         xp_to_lvl = level_exp(ch, GET_LEVEL(ch) + 1) - level_exp(ch, GET_LEVEL(ch));
@@ -763,7 +775,10 @@ int gain_exp(struct char_data *ch, int gain, int mode) {
         break;
     }
 
-
+    /* happy hour bonus, purposely applied after above caps */
+    if ((IS_HAPPYHOUR) && (IS_HAPPYEXP))
+      gain += (int) ((float) gain * ((float) HAPPY_EXP / (float) (100)));
+    
     /* put an absolute cap on the max gain per kill */
     gain = MIN(CONFIG_MAX_EXP_GAIN, gain);
 
