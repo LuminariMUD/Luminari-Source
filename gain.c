@@ -366,6 +366,7 @@ void sorc_study_menu(struct descriptor_data *d, int circle) {
   get_char_colors(d->character);
   clear_screen(d);
 
+  /* SPELL PREPARATION HOOK (spellCircle) */
   for (counter = 1; counter < NUM_SPELLS; counter++) {
     if (spellCircle(CLASS_SORCERER, counter) == circle) {
       if (sorcKnown(d->character, counter, CLASS_SORCERER))
@@ -445,6 +446,7 @@ void bard_study_menu(struct descriptor_data *d, int circle) {
   get_char_colors(d->character);
   clear_screen(d);
 
+  /* SPELL PREPARATION HOOK (spellCircle) */
   for (counter = 1; counter < NUM_SPELLS; counter++) {
     if (spellCircle(CLASS_BARD, counter) == circle) {
       if (sorcKnown(d->character, counter, CLASS_BARD))
@@ -804,6 +806,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
         default:
           number = atoi(arg);
 
+          /* SPELL PREPARATION HOOK (spellCircle) */
           for (counter = 1; counter < NUM_SPELLS; counter++) {
             if (counter == number) {
               if (spellCircle(CLASS_SORCERER, counter) == global_circle) {
@@ -861,6 +864,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
         default:
           number = atoi(arg);
 
+          /* SPELL PREPARATION HOOK (spellCircle) */
           for (counter = 1; counter < NUM_SPELLS; counter++) {
             if (counter == number) {
               if (spellCircle(CLASS_BARD, counter) == global_circle) {

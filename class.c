@@ -2009,7 +2009,8 @@ void init_start_char(struct char_data *ch) {
       (ch)->player_specials->saved.skill_focus[(i)][j] = 0;
 
   /* initialize mem data, allow adjustment of spells known */
-  init_spell_slots(ch);
+  
+  init_spell_slots(ch); /* SPELL PREPARATION HOOK */
   IS_SORC_LEARNED(ch) = 0;
   IS_BARD_LEARNED(ch) = 0;
   IS_RANG_LEARNED(ch) = 0;

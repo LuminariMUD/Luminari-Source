@@ -399,7 +399,7 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim,
           give_back_items(victim, ch, quest);
         } else {
           ch->player.chclass = qcom->value;
-          init_spell_slots(ch);
+          init_spell_slots(ch); /* SPELL PREPARATION HOOK */
 
           if (qcom->value == CLASS_LICH) {
             //hack for lich remort..
