@@ -835,6 +835,9 @@ static void oedit_disp_ranged_weapons_menu(struct descriptor_data *d) {
 static void oedit_disp_val1_menu(struct descriptor_data *d) {
   OLC_MODE(d) = OEDIT_VALUE_1;
   switch (GET_OBJ_TYPE(OLC_OBJ(d))) {
+    case ITEM_SWITCH:
+      write_to_output(d, "What command to activate switch? (0=pull, 1=push) : ");
+      break;
     case ITEM_TRAP:
       oedit_disp_trap_type(d);
       break;
@@ -913,6 +916,9 @@ static void oedit_disp_val1_menu(struct descriptor_data *d) {
 static void oedit_disp_val2_menu(struct descriptor_data *d) {
   OLC_MODE(d) = OEDIT_VALUE_2;
   switch (GET_OBJ_TYPE(OLC_OBJ(d))) {
+    case ITEM_SWITCH:
+      write_to_output(d, "Which room vnum to manipulate? : ");
+      break;
     case ITEM_TRAP:
       switch (GET_OBJ_VAL(OLC_OBJ(d), 0)) {
           break;
@@ -1007,6 +1013,9 @@ static void oedit_disp_val2_menu(struct descriptor_data *d) {
 static void oedit_disp_val3_menu(struct descriptor_data *d) {
   OLC_MODE(d) = OEDIT_VALUE_3;
   switch (GET_OBJ_TYPE(OLC_OBJ(d))) {
+    case ITEM_SWITCH:
+      write_to_output(d, "Which direction? (0=n, 1=e, 2=s, 3=w, 4=u, 5=d) : "r);
+      break;
     case ITEM_TRAP:
       oedit_disp_trap_effects(d);
       break;
@@ -1073,6 +1082,9 @@ static void oedit_disp_val3_menu(struct descriptor_data *d) {
 static void oedit_disp_val4_menu(struct descriptor_data *d) {
   OLC_MODE(d) = OEDIT_VALUE_4;
   switch (GET_OBJ_TYPE(OLC_OBJ(d))) {
+    case ITEM_SWITCH:
+      write_to_output(d, "Which command (0=unhide, 1=unlock, 2=open) : ");
+      break;
     case ITEM_TRAP:
       write_to_output(d, "Recommendations:\r\n");
       write_to_output(d, "DC = 20 + level-of-trap for a normal trap\r\n");
