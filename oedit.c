@@ -1014,7 +1014,7 @@ static void oedit_disp_val3_menu(struct descriptor_data *d) {
   OLC_MODE(d) = OEDIT_VALUE_3;
   switch (GET_OBJ_TYPE(OLC_OBJ(d))) {
     case ITEM_SWITCH:
-      write_to_output(d, "Which direction? (0=n, 1=e, 2=s, 3=w, 4=u, 5=d) : "r);
+      write_to_output(d, "Which direction? (0=n, 1=e, 2=s, 3=w, 4=u, 5=d) : ");
       break;
     case ITEM_TRAP:
       oedit_disp_trap_effects(d);
