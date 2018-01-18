@@ -217,30 +217,6 @@ static void hedit_disp_keywords_menu(struct descriptor_data *d) {
   OLC_MODE(d) = HEDIT_KEYWORD_MENU;
 }
 
-bool hedit_delete_entry(struct help_entry_list* entry) {
-
-  struct help_keyword_list *keyword = NULL, *next_keyword = NULL;
-  int i = 0;
-  char buf[MAX_STRING_LENGTH]; /* Buffer for DML query. */
-  bool retval = TRUE;
-
-  if( entry == NULL) 
-    return FALSE;
-
-  /* Clear out the old keywords. */
-  while (entry->keyword_list) {
-    hedit_delete_keyword(entry, 1);
-  }
-  
-  sprintf(buf, "delete from help_entries where lower(tag) = lower('%s');", entry->tag);
-  mudlog(NRM, LVL_STAFF, TRUE, buf);
-  
-  if (mysql_query(conn, buf)) {
-    mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Unable to delete from help_entries: %s", mysql_error(conn));
-    retval = FALSE;
-  }  
-}
-
 bool hedit_delete_keyword(struct help_entry_list* entry, int num) {
   int i;
   bool found = FALSE; 
@@ -275,6 +251,30 @@ bool hedit_delete_keyword(struct help_entry_list* entry, int num) {
   }
 
   return found;
+}
+
+bool hedit_delete_entry(struct help_entry_list* entry) {
+
+  struct help_keyword_list *keyword = NULL, *next_keyword = NULL;
+  int i = 0;
+  char buf[MAX_STRING_LENGTH]; /* Buffer for DML query. */
+  bool retval = TRUE;
+
+  if( entry == NULL) 
+    return FALSE;
+
+  /* Clear out the old keywords. */
+  while (entry->keyword_list) {
+    hedit_delete_keyword(entry, 1);
+  }
+  
+  sprintf(buf, "delete from help_entries where lower(tag) = lower('%s');", entry->tag);
+  mudlog(NRM, LVL_STAFF, TRUE, buf);
+  
+  if (mysql_query(conn, buf)) {
+    mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Unable to delete from help_entries: %s", mysql_error(conn));
+    retval = FALSE;
+  }  
 }
 
 void hedit_parse(struct descriptor_data *d, char *arg)
