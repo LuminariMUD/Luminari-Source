@@ -1998,7 +1998,7 @@ int display_eligible_wildshape_races(struct char_data *ch, char *argument, int s
       break;
   } /* end race list loop */
 
-  free(abil_mods);
+  //free(abil_mods);
 
   if (i >= NUM_EXTENDED_RACES || i < 0)
     return 0; /* failed to find anything */
