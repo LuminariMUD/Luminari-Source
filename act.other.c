@@ -2350,8 +2350,11 @@ ACMD(do_wildshape) {
   }
   
   /* here is the engine, there are some more exit checks over there */
-  if (wildshape_engine(ch, argument))
+  if (wildshape_engine(ch, argument)) {
     USE_STANDARD_ACTION(ch);
+    if (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_LIMITLESS_SHAPES))
+      start_daily_use_cooldown(ch, FEAT_WILD_SHAPE);
+  }
   
   return;
 }
