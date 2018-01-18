@@ -365,9 +365,9 @@ void hedit_parse(struct descriptor_data *d, char *arg)
   case HEDIT_CONFIRM_DELETE:
     switch (*arg) {
       case 'y': case 'Y':
-        cleanup_olc(d, CLEANUP_ALL);
         // Actually delete the help entry and the keywords.
         hedit_delete_entry(OLC_HELP(d));
+        cleanup_olc(d, CLEANUP_ALL);
         break;
       case 'n': case 'N': case 'q': case 'Q':
         hedit_disp_menu(d);
