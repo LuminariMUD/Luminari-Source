@@ -263,9 +263,7 @@ bool hedit_delete_entry(struct help_entry_list* entry) {
     return FALSE;
 
   /* Clear out the old keywords. */
-  //while (entry->keyword_list != NULL) {
-  //  hedit_delete_keyword(entry, 1);
-  //}
+  while (hedit_delete_keyword(entry, 1));
   
   sprintf(buf, "delete from help_entries where lower(tag) = lower('%s')", entry->tag);
   mudlog(NRM, LVL_STAFF, TRUE, buf);
