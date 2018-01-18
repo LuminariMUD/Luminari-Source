@@ -1214,10 +1214,9 @@ ASPELL(spell_polymorph) {
 
   one_argument(cast_arg2, arg);
 
-  /* the "2" in perform_shapechange indicates its the spell being
-     cast and not the druid ability
-   */
-  perform_shapechange(ch, arg, 2);
+  /* act.other.c, part of druid wildshape engine, the value "1" notifies the
+       the function that this is the polymorph spells */
+  wildshape_engine(ch, arg, 1);
 }
 
 
