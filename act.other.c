@@ -1867,7 +1867,8 @@ int display_eligible_wildshape_races(struct char_data *ch, char *argument, int s
   CREATE(abil_mods, struct wild_shape_mods, 1);
   init_wild_shape_mods(abil_mods);
 
-  for (i = 0; i < NUM_EXTENDED_RACES; i++) {
+  /* human = 0, we gotta fix it, but we think a ZERO value is no disguise */
+  for (i = 1; i < NUM_EXTENDED_RACES; i++) {
 
     if (mode == 1) { /*polymorph spell*/
       /* we are just giving polymorph access to everything */
