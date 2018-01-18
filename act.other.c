@@ -2230,11 +2230,70 @@ void wildshape_return(struct char_data *ch) {
   return;  
 }
 
-/* wildshape!  druids cup o' tea */
-ACMD(do_wildshape) {
+/* moved the engine out of do_wildshape so we can use it in other places */
+bool wildshape_engine(struct char_data *ch, char *argument) {
   int i = 0;
   char buf[200];
   struct wild_shape_mods *abil_mods;
+
+  skip_spaces(&argument);
+  
+  if (AFF_FLAGGED(ch, AFF_WILD_SHAPE)) {
+    send_to_char(ch, "You must return to your normal shape before assuming a new form.\r\n");
+    return FALSE;
+  }
+  if (GET_DISGUISE_RACE(ch)) {
+    send_to_char(ch, "You must remove your disguise before using wildshape.\r\n");
+    return FALSE;
+  }  
+  if (IS_MORPHED(ch)) {
+    send_to_char(ch, "You can't wildshape while shape-changed!\r\n");
+    return FALSE;
+  }
+
+  /* try to match argument to the list */
+  i = display_eligible_wildshape_races(ch, argument, TRUE);
+
+  if (i == 0) { /* failed to find the race */
+    send_to_char(ch, "Please select a race to wildshape/polymorph to or select 'return'.\r\n");
+    display_eligible_wildshape_races(ch, argument, FALSE);
+    return FALSE;
+  }
+
+  sprintf(buf, "You change shape into a %s.", race_list[i].name);
+  act(buf, true, ch, 0, 0, TO_CHAR);
+  sprintf(buf, "$n changes shape into a %s.", race_list[i].name);
+  act(buf, true, ch, 0, 0, TO_ROOM);
+
+  send_to_char(ch, "Type 'wildshape return' to shift back to your normal form.\r\n");
+
+  /* we're in the clear, set the wildshape race! */
+  SET_BIT_AR(AFF_FLAGS(ch), AFF_WILD_SHAPE);
+  GET_DISGUISE_RACE(ch) = i;
+  /* determine modifiers */
+  abil_mods = set_wild_shape_mods(GET_DISGUISE_RACE(ch));
+  /* set the bonuses */
+  set_bonus_stats(ch, abil_mods->strength, abil_mods->constitution,
+                       abil_mods->dexterity, abil_mods->natural_armor);
+  /* all stat modifications are done */
+
+  /* assign appropriate racial/mobile feats here */
+  assign_wildshape_feats(ch);
+
+  FIRING(ch) = FALSE; /*just in case*/
+
+  GET_HIT(ch) += GET_LEVEL(ch);
+  GET_HIT(ch) = MIN(GET_HIT(ch), GET_MAX_HIT(ch));
+  affect_total(ch);
+  save_char(ch, 0);
+  Crash_crashsave(ch);  
+  
+  return TRUE;
+}
+
+/* wildshape!  druids cup o' tea */
+ACMD(do_wildshape) {
+  char buf[200];
   int uses_remaining = 0;
 
   skip_spaces(&argument);
@@ -2277,78 +2336,23 @@ ACMD(do_wildshape) {
   
   /* BEGIN wildshape! */
   
+  /* can we even use this? */
   if (!HAS_FEAT(ch, FEAT_WILD_SHAPE) && !HAS_REAL_FEAT(ch, FEAT_WILD_SHAPE)) {
     send_to_char(ch, "You do not have the ability to shapechange using wild shape.\r\n");
     return;
   }
-  if (AFF_FLAGGED(ch, AFF_WILD_SHAPE)) {
-    send_to_char(ch, "You must return to your normal shape before assuming a new form.\r\n");
-    return;
-  }
-  if (GET_DISGUISE_RACE(ch)) {
-    send_to_char(ch, "You must remove your disguise before using wildshape.\r\n");
-    return;
-  }  
-  if (IS_MORPHED(ch)) {
-    send_to_char(ch, "You can't wildshape while shape-changed!\r\n");
-    return;    
-  }
-
-  /* try to match argument to the list */
-  i = display_eligible_wildshape_races(ch, argument, TRUE);
-
-  if (i == 0) { /* failed to find the race */
-    send_to_char(ch, "Please select a race to switch to or select 'return'.\r\n");
-    display_eligible_wildshape_races(ch, argument, FALSE);
-    return;
-  }
-
+  uses_remaining = daily_uses_remaining(ch, FEAT_WILD_SHAPE);  
   if (HAS_FEAT(ch, FEAT_LIMITLESS_SHAPES))
     ;
-  else if ((uses_remaining = daily_uses_remaining(ch, FEAT_WILD_SHAPE)) == 0) {
+  else if (uses_remaining <= 0) {
     send_to_char(ch, "You must recover the energy required to take a wild shape.\r\n");
     return;
   }
   
-  sprintf(buf, "You change shape into a %s.", race_list[i].name);
-  act(buf, true, ch, 0, 0, TO_CHAR);
-  sprintf(buf, "$n changes shape into a %s.", race_list[i].name);
-  act(buf, true, ch, 0, 0, TO_ROOM);
-    /* */
-  send_to_char(ch, "Type 'wildshape return' to shift back to your normal form.\r\n");
-
-  /* we're in the clear, set the wildshape race! */
-  SET_BIT_AR(AFF_FLAGS(ch), AFF_WILD_SHAPE);
-  GET_DISGUISE_RACE(ch) = i;
-  /* determine modifiers */
-  abil_mods = set_wild_shape_mods(GET_DISGUISE_RACE(ch));
-  /* set the bonuses */
-  //set_bonus_attributes(ch, abil_mods->strength, abil_mods->constitution,
-  //                     abil_mods->dexterity, abil_mods->natural_armor);
-  set_bonus_stats(ch, abil_mods->strength, abil_mods->constitution,
-                       abil_mods->dexterity, abil_mods->natural_armor);
-  /* all stat modifications are done */
-
-  /* assign appropriate racial/mobile feats here */
-  assign_wildshape_feats(ch);
-
-  FIRING(ch) = FALSE; /*just in case*/
-
-  GET_HIT(ch) += GET_LEVEL(ch);
-  GET_HIT(ch) = MIN(GET_HIT(ch), GET_MAX_HIT(ch));
-  affect_total(ch);
-  save_char(ch, 0);
-  Crash_crashsave(ch);
-
-  USE_STANDARD_ACTION(ch);
-
-  /* DEBUG */
-  //for (i = 0; i < NUM_ATTACK_TYPES; i++) {
-  //  send_to_char(ch, "%d ", race_list[GET_DISGUISE_RACE(ch)].attack_types[i]);
-  //}  
-  //send_to_char(ch, "\r\n");
-  /* END DEBUG */
-
+  /* here is the engine, there are some more exit checks over there */
+  if (wildshape_engine(ch, argument))
+    USE_STANDARD_ACTION(ch);
+  
   return;
 }
 
