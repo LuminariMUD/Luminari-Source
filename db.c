@@ -606,7 +606,7 @@ void boot_world(void) {
   initialize_wilderness_lists();
 
   log("Writing wilderness map image.");
-  save_map_to_file("luminari_wilderness.png", WILD_X_SIZE, WILD_Y_SIZE);
+  //save_map_to_file("luminari_wilderness.png", WILD_X_SIZE, WILD_Y_SIZE);
 
   //save_noise_to_file(NOISE_MATERIAL_PLANE_ELEV, "luminari_wild_noise_elev_zoom.png", WILD_X_SIZE, WILD_Y_SIZE, 0);
   //save_noise_to_file(NOISE_MATERIAL_PLANE_ELEV, "luminari_wild_noise_elev_zoom.png", WILD_X_SIZE, WILD_Y_SIZE, 1);
