@@ -1922,7 +1922,8 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
           oedit_disp_val3_menu(d);
           break;
         case ITEM_SWITCH:
-          GET_OBJ_VAL(OLC_OBJ(d), 1) = MIN(MAX(atoi(arg), 0), 999999);
+          GET_OBJ_VAL(OLC_OBJ(d), 1) = LIMIT(number, 1, 999999);;
+          oedit_disp_val3_menu(d);
           break;
         default:
           GET_OBJ_VAL(OLC_OBJ(d), 1) = number;
