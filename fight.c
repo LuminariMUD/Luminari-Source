@@ -1441,6 +1441,7 @@ static void perform_group_gain(struct char_data *ch, int base,
     hap_share = share + (int) ((float) share * ((float) HAPPY_EXP / (float) (100)));
     share = MIN(CONFIG_MAX_EXP_GAIN, MAX(1, hap_share));
   }
+  
   if (share > 1)
     send_to_char(ch, "You receive your share of experience -- %d points.\r\n",
           gain_exp(ch, share, GAIN_EXP_MODE_GROUP) );
@@ -1454,6 +1455,7 @@ static void perform_group_gain(struct char_data *ch, int base,
 }
 
 /* called for splitting xp in a group (prelim) */
+#define BONUS_PER_MEMBER 2
 static void group_gain(struct char_data *ch, struct char_data *victim) {
   int tot_members = 0, base = 0, tot_gain = 0;
   struct char_data *k;
@@ -1499,6 +1501,10 @@ static void group_gain(struct char_data *ch, struct char_data *victim) {
   /* if mob isn't within 3 levels, don't give xp -zusuk */
   if ((GET_LEVEL(victim) + 3) < party_level)
     base = 1;  
+  
+  /* XP bonus for groupping */
+  base = 1 + base *
+          ( ( 100 + (tot_members*BONUS_PER_MEMBER) ) / 100 );
 
   while ((k = (struct char_data *) simple_list(GROUP(ch)->members)) != NULL) {
     if (IS_PET(k))
