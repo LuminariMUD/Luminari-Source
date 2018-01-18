@@ -1838,7 +1838,6 @@ struct wild_shape_mods *set_wild_shape_mods(int race) {
 
   return abil_mods;
 }
-
 /* At 6th level, a druid can use wild shape to change into a Large or Tiny animal
  * or a Small elemental. When taking the form of an animal, a druid's wild shape
  * now functions as beast shape II. When taking the form of an elemental, the
@@ -1861,7 +1860,7 @@ At 12th level, a druid can use wild shape to change into a Huge elemental or a
  * shape now functions as elemental body IV. When taking the form of a plant, the
  * druid's wild shape now functions as plant shape III.
  */
-int display_eligible_wildshape_races(struct char_data *ch, char *argument, int silent) {
+int display_eligible_wildshape_races(struct char_data *ch, char *argument, int silent, int mode) {
   int i = 0;
   struct wild_shape_mods *abil_mods;
 
@@ -1870,136 +1869,141 @@ int display_eligible_wildshape_races(struct char_data *ch, char *argument, int s
 
   for (i = 0; i < NUM_EXTENDED_RACES; i++) {
 
-    switch (race_list[i].family) {
-      
-      case RACE_TYPE_ANIMAL: /* animals! */
-        switch (race_list[i].size) {
-          /* fall through all the way down */
-          case SIZE_SMALL:
-            if (HAS_FEAT(ch, FEAT_WILD_SHAPE))
-              break;
-          case SIZE_MEDIUM:
-            if (HAS_FEAT(ch, FEAT_WILD_SHAPE))
-              break;
-          case SIZE_TINY:
-            if (HAS_FEAT(ch, FEAT_WILD_SHAPE_2))
-              break;
-          case SIZE_LARGE:
-            if (HAS_FEAT(ch, FEAT_WILD_SHAPE_2))
-              break;
-          case SIZE_DIMINUTIVE:
-            if (HAS_FEAT(ch, FEAT_WILD_SHAPE_3))
-              break;
-          case SIZE_HUGE:
-            if (HAS_FEAT(ch, FEAT_WILD_SHAPE_3))
-              break;
+    if (mode == 1) { /*polymorph spell*/
+      /* we are just giving polymorph access to everything */
+    } else if (mode == 0) { /*druid*/
+      switch (race_list[i].family) {
 
-          case SIZE_FINE:
-          case SIZE_GARGANTUAN:
-          case SIZE_COLOSSAL:
-          default:
-            continue;
-        }
-        break;
-        
-      case RACE_TYPE_PLANT: /* plants! */
-        switch (race_list[i].size) {
-          /* fall through all the way down */
-          case SIZE_SMALL:
-            if (HAS_FEAT(ch, FEAT_WILD_SHAPE_3))
-              break;
-          case SIZE_MEDIUM:
-            if (HAS_FEAT(ch, FEAT_WILD_SHAPE_3))
-              break;
-          case SIZE_LARGE:
-            if (HAS_FEAT(ch, FEAT_WILD_SHAPE_4))
-              break;
-          case SIZE_HUGE:
-            if (HAS_FEAT(ch, FEAT_WILD_SHAPE_5))
-              break;
+        case RACE_TYPE_ANIMAL: /* animals! */
+          switch (race_list[i].size) {
+              /* fall through all the way down */
+            case SIZE_SMALL:
+              if (HAS_FEAT(ch, FEAT_WILD_SHAPE))
+                break;
+            case SIZE_MEDIUM:
+              if (HAS_FEAT(ch, FEAT_WILD_SHAPE))
+                break;
+            case SIZE_TINY:
+              if (HAS_FEAT(ch, FEAT_WILD_SHAPE_2))
+                break;
+            case SIZE_LARGE:
+              if (HAS_FEAT(ch, FEAT_WILD_SHAPE_2))
+                break;
+            case SIZE_DIMINUTIVE:
+              if (HAS_FEAT(ch, FEAT_WILD_SHAPE_3))
+                break;
+            case SIZE_HUGE:
+              if (HAS_FEAT(ch, FEAT_WILD_SHAPE_3))
+                break;
 
-          case SIZE_DIMINUTIVE:
-          case SIZE_TINY:
-          case SIZE_FINE:
-          case SIZE_GARGANTUAN:
-          case SIZE_COLOSSAL:
-          default:
-            continue;
-        }
-        break;
-        
-      case RACE_TYPE_ELEMENTAL: /* elementals! */
-        switch (race_list[i].size) {
-          /* fall through all the way down */
-          case SIZE_SMALL:
-            if (HAS_FEAT(ch, FEAT_WILD_SHAPE_2))
-              break;
-          case SIZE_MEDIUM:
-            if (HAS_FEAT(ch, FEAT_WILD_SHAPE_3))
-              break;
-          case SIZE_LARGE:
-            if (HAS_FEAT(ch, FEAT_WILD_SHAPE_4))
-              break;
-          case SIZE_HUGE:
-            if (HAS_FEAT(ch, FEAT_WILD_SHAPE_5))
-              break;
+            case SIZE_FINE:
+            case SIZE_GARGANTUAN:
+            case SIZE_COLOSSAL:
+            default:
+              continue;
+          }
+          break;
 
-          case SIZE_DIMINUTIVE:
-          case SIZE_TINY:
-          case SIZE_FINE:
-          case SIZE_GARGANTUAN:
-          case SIZE_COLOSSAL:
-          default:
-            continue;
-        }
-        break;
-        
-      case RACE_TYPE_MAGICAL_BEAST:
-        if (HAS_FEAT(ch, FEAT_SHIFTER_SHAPES_1))
+        case RACE_TYPE_PLANT: /* plants! */
+          switch (race_list[i].size) {
+              /* fall through all the way down */
+            case SIZE_SMALL:
+              if (HAS_FEAT(ch, FEAT_WILD_SHAPE_3))
+                break;
+            case SIZE_MEDIUM:
+              if (HAS_FEAT(ch, FEAT_WILD_SHAPE_3))
+                break;
+            case SIZE_LARGE:
+              if (HAS_FEAT(ch, FEAT_WILD_SHAPE_4))
+                break;
+            case SIZE_HUGE:
+              if (HAS_FEAT(ch, FEAT_WILD_SHAPE_5))
+                break;
+
+            case SIZE_DIMINUTIVE:
+            case SIZE_TINY:
+            case SIZE_FINE:
+            case SIZE_GARGANTUAN:
+            case SIZE_COLOSSAL:
+            default:
+              continue;
+          }
           break;
-        continue;
-        
-      case RACE_TYPE_FEY:
-        if (HAS_FEAT(ch, FEAT_SHIFTER_SHAPES_2))
+
+        case RACE_TYPE_ELEMENTAL: /* elementals! */
+          switch (race_list[i].size) {
+              /* fall through all the way down */
+            case SIZE_SMALL:
+              if (HAS_FEAT(ch, FEAT_WILD_SHAPE_2))
+                break;
+            case SIZE_MEDIUM:
+              if (HAS_FEAT(ch, FEAT_WILD_SHAPE_3))
+                break;
+            case SIZE_LARGE:
+              if (HAS_FEAT(ch, FEAT_WILD_SHAPE_4))
+                break;
+            case SIZE_HUGE:
+              if (HAS_FEAT(ch, FEAT_WILD_SHAPE_5))
+                break;
+
+            case SIZE_DIMINUTIVE:
+            case SIZE_TINY:
+            case SIZE_FINE:
+            case SIZE_GARGANTUAN:
+            case SIZE_COLOSSAL:
+            default:
+              continue;
+          }
           break;
-        continue;
-        
-      case RACE_TYPE_CONSTRUCT:
-        if (HAS_FEAT(ch, FEAT_SHIFTER_SHAPES_3))
-          break;
-        continue;
-        
-      case RACE_TYPE_OUTSIDER:
-        if (HAS_FEAT(ch, FEAT_SHIFTER_SHAPES_4))
-          break;
-        continue;
-        
-      case RACE_TYPE_DRAGON:
-        if (HAS_FEAT(ch, FEAT_SHIFTER_SHAPES_5))
-          break;
-        continue;
-        
-      default:
-        continue;
+
+        case RACE_TYPE_MAGICAL_BEAST:
+          if (HAS_FEAT(ch, FEAT_SHIFTER_SHAPES_1))
+            break;
+          continue;
+
+        case RACE_TYPE_FEY:
+          if (HAS_FEAT(ch, FEAT_SHIFTER_SHAPES_2))
+            break;
+          continue;
+
+        case RACE_TYPE_CONSTRUCT:
+          if (HAS_FEAT(ch, FEAT_SHIFTER_SHAPES_3))
+            break;
+          continue;
+
+        case RACE_TYPE_OUTSIDER:
+          if (HAS_FEAT(ch, FEAT_SHIFTER_SHAPES_4))
+            break;
+          continue;
+
+        case RACE_TYPE_DRAGON:
+          if (HAS_FEAT(ch, FEAT_SHIFTER_SHAPES_5))
+            break;
+          continue;
+
+        default:
+          continue;
+      } /* end family switch */
     }
-
     abil_mods = set_wild_shape_mods(i);
     if (!silent) {
       send_to_char(ch, "%-40s Str [%s%-2d] Con [%s%-2d] Dex [%s%-2d] NatAC [%s%-2d]\r\n", race_list[i].name,
-                   abil_mods->strength >= 0 ? "+" : " ", abil_mods->strength,
-                   abil_mods->constitution >= 0 ? "+" : " ", abil_mods->constitution,
-                   abil_mods->dexterity >= 0 ? "+" : " ", abil_mods->dexterity,
-                   abil_mods->natural_armor >= 0 ? "+" : " ", abil_mods->natural_armor );
+              abil_mods->strength >= 0 ? "+" : " ", abil_mods->strength,
+              abil_mods->constitution >= 0 ? "+" : " ", abil_mods->constitution,
+              abil_mods->dexterity >= 0 ? "+" : " ", abil_mods->dexterity,
+              abil_mods->natural_armor >= 0 ? "+" : " ", abil_mods->natural_armor);
     }
 
     if (!strcmp(argument, race_list[i].name)) /* match argument? */
       break;
-  }
+  } /* end race list loop */
 
-  if (i >= NUM_EXTENDED_RACES)
+  free(abil_mods);
+
+  if (i >= NUM_EXTENDED_RACES || i < 0)
     return 0; /* failed to find anything */
   else
-    return i;
+    return i; /* specific race */
 }
 
 void set_bonus_stats(struct char_data *ch, int str, int con, int dex, int ac) {
@@ -2258,11 +2262,11 @@ bool wildshape_engine(struct char_data *ch, char *argument, int mode) {
     start_daily_use_cooldown(ch, FEAT_WILD_SHAPE);
 
   /* try to match argument to the list */
-  i = display_eligible_wildshape_races(ch, argument, TRUE);
+  i = display_eligible_wildshape_races(ch, argument, TRUE, mode);
 
   if (i == 0) { /* failed to find the race */
     send_to_char(ch, "Please select a race to wildshape/polymorph to or select 'return'.\r\n");
-    display_eligible_wildshape_races(ch, argument, FALSE);
+      i = display_eligible_wildshape_races(ch, argument, TRUE, mode);
     return FALSE;
   }
 
@@ -2306,7 +2310,7 @@ ACMD(do_wildshape) {
 
   if (!*argument && HAS_FEAT(ch, FEAT_WILD_SHAPE)) {
     send_to_char(ch, "Please select a race to switch to or select 'return'.\r\n");
-    display_eligible_wildshape_races(ch, argument, FALSE);
+    display_eligible_wildshape_races(ch, argument, FALSE, 0);
     return;
   }
 
