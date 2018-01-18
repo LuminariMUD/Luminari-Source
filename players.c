@@ -331,7 +331,7 @@ int load_char(const char *name, struct char_data *ch) {
     }
     GET_FEAT_POINTS(ch) = 0;
     GET_EPIC_FEAT_POINTS(ch) = 0;
-    init_spell_slots(ch);
+    init_spell_slots(ch); /* SPELL PREPARATION HOOK */
     GET_REAL_SIZE(ch) = PFDEF_SIZE;
     IS_MORPHED(ch) = PFDEF_MORPHED;
     GET_SEX(ch) = PFDEF_SEX;

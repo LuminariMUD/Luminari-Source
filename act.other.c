@@ -4043,6 +4043,7 @@ ACMD(do_use) {
         }
       }
       /* 2.c. Check the relevant ability score */
+      /* SPELL PREPARATION HOOK (spellCircle) */
       umd_ability_score = (skill_check(ch, ABILITY_USE_MAGIC_DEVICE, 15));
       bool passed = FALSE;
       if (spell_info[spell].min_level[CLASS_WIZARD] < LVL_STAFF)

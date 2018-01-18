@@ -4532,7 +4532,7 @@ void init_char(struct char_data *ch) {
   reset_acraft(ch);
 
   // fresh start on mem data
-  init_spell_slots(ch);
+  init_spell_slots(ch); /* SPELL PREPARATION HOOK */
 
   // make sure no cloudkills, incendiary
   CLOUDKILL(ch) = 0;
