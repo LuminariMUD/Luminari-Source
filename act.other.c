@@ -2001,7 +2001,7 @@ int display_eligible_wildshape_races(struct char_data *ch, char *argument, int s
   //free(abil_mods);
 
   if (i >= NUM_EXTENDED_RACES || i < 0)
-    return 0; /* failed to find anything */
+    return -1; /* failed to find anything */
   else
     return i; /* specific race */
 }
@@ -2264,7 +2264,7 @@ bool wildshape_engine(struct char_data *ch, char *argument, int mode) {
   /* try to match argument to the list */
   i = display_eligible_wildshape_races(ch, argument, TRUE, mode);
 
-  if (i == 0) { /* failed to find the race */
+  if (i == -1) { /* failed to find the race */
     send_to_char(ch, "Please select a race to wildshape/polymorph to or select 'return'.\r\n");
     display_eligible_wildshape_races(ch, argument, FALSE, mode);
     return FALSE;
