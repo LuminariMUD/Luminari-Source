@@ -2231,7 +2231,8 @@ void wildshape_return(struct char_data *ch) {
 }
 
 /* moved the engine out of do_wildshape so we can use it in other places */
-bool wildshape_engine(struct char_data *ch, char *argument) {
+/* mode = 0, druid */
+bool wildshape_engine(struct char_data *ch, char *argument, int mode) {
   int i = 0;
   char buf[200];
   struct wild_shape_mods *abil_mods;
@@ -2250,6 +2251,10 @@ bool wildshape_engine(struct char_data *ch, char *argument) {
     send_to_char(ch, "You can't wildshape while shape-changed!\r\n");
     return FALSE;
   }
+
+  /* if we are in druid-mode... */
+  if (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_LIMITLESS_SHAPES) && mode == 0)
+    start_daily_use_cooldown(ch, FEAT_WILD_SHAPE);
 
   /* try to match argument to the list */
   i = display_eligible_wildshape_races(ch, argument, TRUE);
@@ -2350,10 +2355,8 @@ ACMD(do_wildshape) {
   }
   
   /* here is the engine, there are some more exit checks over there */
-  if (wildshape_engine(ch, argument)) {
+  if (wildshape_engine(ch, argument, 0)) {
     USE_STANDARD_ACTION(ch);
-    if (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_LIMITLESS_SHAPES))
-      start_daily_use_cooldown(ch, FEAT_WILD_SHAPE);
   }
   
   return;
