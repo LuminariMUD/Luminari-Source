@@ -220,7 +220,7 @@ static void hedit_disp_keywords_menu(struct descriptor_data *d) {
 bool hedit_delete_entry(struct help_entry_list* entry) {
 
   char buf[MAX_STRING_LENGTH]; /* Buffer for DML query. */
-  bool return == TRUE;
+  bool return = TRUE;
 
   if( entry == NULL) 
     return;
