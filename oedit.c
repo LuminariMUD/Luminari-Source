@@ -1813,6 +1813,10 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
           GET_OBJ_VAL(OLC_OBJ(d), 0) = MIN(MAX(atoi(arg), 0), MAX_INSTRUMENTS - 1);
           break;
           
+        case ITEM_SWITCH:
+          GET_OBJ_VAL(OLC_OBJ(d), 0) = MIN(MAX(atoi(arg), 0), 1);
+          break;
+          
         case ITEM_FURNITURE:
           if (number < 0 || number > MAX_PEOPLE)
             oedit_disp_val1_menu(d);
@@ -1917,6 +1921,9 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
           GET_OBJ_VAL(OLC_OBJ(d), 1) = LIMIT(number, 1, num_of_clans);
           oedit_disp_val3_menu(d);
           break;
+        case ITEM_SWITCH:
+          GET_OBJ_VAL(OLC_OBJ(d), 0) = MIN(MAX(atoi(arg), 0), 999999);
+          break;
         default:
           GET_OBJ_VAL(OLC_OBJ(d), 1) = number;
           oedit_disp_val3_menu(d);
@@ -1977,6 +1984,10 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
           min_val = 1;
           max_val = 400000000;
           break;
+        case ITEM_SWITCH:
+          min_val = 0;
+          max_val = 5;
+          break;
         default:
           min_val = -200000000;
           max_val = 200000000;
@@ -2016,6 +2027,10 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
         case ITEM_FIREWEAPON:
           min_val = 0;
           max_val = NUM_ATTACK_TYPES - 1;
+          break;
+        case ITEM_SWITCH:
+          min_val = 0;
+          max_val = 2;
           break;
           /*
         case ITEM_MISSILE:
