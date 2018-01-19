@@ -88,10 +88,34 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
   int line_length = 80, i = 0;
   char actmtds[MAX_STRING_LENGTH];
   int (*name)(struct char_data *ch, void *me, int cmd, char *argument);
+  
+  /* zusuk set these up for quicker setup of new items */
+  int v1 = GET_OBJ_VAL(item, 0); 
+  int v2 = GET_OBJ_VAL(item, 1);
+  int v3 = GET_OBJ_VAL(item, 2);
+  int v4 = GET_OBJ_VAL(item, 3);
 
   text_line(ch, "\tcItem-Type Specific Values:\tn", line_length, '-', '-');
 
   switch (GET_OBJ_TYPE(item)) {
+
+    case ITEM_SWITCH:      
+      if (mode == ITEM_STAT_MODE_IMMORTAL) {
+        send_to_char(ch, "[%s, affecting room VNum %d, %s %s]\r\n",
+              (v1 == 0) ? "Push switch" : (v1 == 1) ? "Pull switch" : "BROKEN switch type",
+              v2,
+              (v4 == 0) ? "Unhides" : (v4 == 1) ? "Unlocks" :
+                (v4 == 2) ? "Opens" : "BROKEN exit action",
+              (v3 == 0) ? "North" : (v3 == 1) ? "East" : (v3 == 2) ? "South" :
+                (v3 == 3) ? "West" : (v3 == 4) ? "Up" : (v3 == 5) ? "Down" :
+                  "BROKEN direction"               
+                );
+      } else {
+        send_to_char(ch, "This appears to be a %s switch...\r\n",
+                v1 == 0 ? "push" : v1 == 1 ? "pull" : "(broken! report to staff)");
+      }
+      break;
+            
     case ITEM_TRAP:
       /* object value (0) is the trap-type */
       /* object value (1) is the direction of the trap (TRAP_TYPE_OPEN_DOOR and TRAP_TYPE_UNLOCK_DOOR)
