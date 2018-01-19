@@ -197,6 +197,23 @@ void perform_obj_type_list(struct char_data * ch, char *arg) {
         v5 = (obj_proto[num].obj_flags.value[4]);
 
         switch (itemtype) {
+          
+          case ITEM_SWITCH:
+            tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %s[%s%5d%s]%s "
+                    "[%s, affecting room VNum %d, %s %s] "
+                    "%s%s%s\r\n",
+                    QGRN, ++found, QNRM, /**/QCYN, QYEL, ov, QCYN, QNRM,
+                    (v1 == 0) ? "Push switch" : (v1 == 1) ? "Pull switch" : "BROKEN switch type",
+                    v2,
+                    (v4 == 0) ? "Unhides" : (v4 == 1) ? "Unlocks" :
+                      (v4 == 2) ? "Opens" : "BROKEN exit action",                    
+                    (v3 == 0) ? "North" : (v3 == 1) ? "East" : (v3 == 2) ? "South" :
+                      (v3 == 3) ? "West" : (v3 == 4) ? "Up" : (v3 == 5) ? "Down" :
+                        "BROKEN direction",
+                    QCYN, obj_proto[r_num].short_description, QNRM);
+            break;
+            
+          /* traps, big case */  
           case ITEM_TRAP:
             target_obj = real_object(v2);
             /* v1 - object value (0) is the trap-type */
