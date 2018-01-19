@@ -112,7 +112,7 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
                 );
       } else {
         send_to_char(ch, "This appears to be a %s switch...\r\n",
-                v1 == 0 ? "push" : v1 == 1 ? "pull" : "(broken! report to staff)");
+                v1 == 0 ? "\tcpush\tn" : v1 == 1 ? "\tcpull\tn" : "(broken! report to staff)");
       }
       break;
             
