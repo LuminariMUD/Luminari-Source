@@ -835,7 +835,6 @@ void print_prep_queue(struct char_data *ch, int ch_class) {
   *buf = '\0';
   for (; current; current = next) {
     next = current->next;
-#ifdef DEBUGMODE
     int spell_circle = compute_spells_circle(ch_class,
                                              current->spell,
                                              current->metamagic,
@@ -844,6 +843,7 @@ void print_prep_queue(struct char_data *ch, int ch_class) {
     total_time += prep_time;
     /* hack alert: innate_magic does not have spell-num stored, but
          instead has just the spell-circle stored as spell-num */
+#ifdef DEBUGMODE
     switch (ch_class) {
       case CLASS_SORCERER: case CLASS_BARD:
       sprintf(buf, "%s \tc[\tWcircle-slot: \tn%d%s\tc]\tn \tc[\tn%2d seconds\tc]\tn %s%s %s\r\n",
