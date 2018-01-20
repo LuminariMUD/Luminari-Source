@@ -607,6 +607,12 @@ void stop_prep_event(struct char_data *ch, int class) {
     reset_preparation_time(ch, class);
   }
 }
+/* stops all preparation irregardless of class */
+void stop_all_preparations(struct char_data *ch) {
+  int class = 0;
+  for (class = 0; class < NUM_CLASSES; class++)
+    stop_prep_event(ch, class);
+}
 
 /* does ch level qualify them for this particular spell?
      includes domain system for clerics 
