@@ -843,37 +843,31 @@ void print_prep_queue(struct char_data *ch, int ch_class) {
     total_time += prep_time;
     /* hack alert: innate_magic does not have spell-num stored, but
          instead has just the spell-circle stored as spell-num */
-#ifdef DEBUGMODE
     switch (ch_class) {
       case CLASS_SORCERER: case CLASS_BARD:
-      sprintf(buf, "%s \tc[\tWcircle-slot: \tn%d%s\tc]\tn \tc[\tn%2d seconds\tc]\tn %s%s %s\r\n",
-              buf,
-              current->spell,
-              (spell_circle == 1) ? "st" : (spell_circle == 2) ? "nd" : (spell_circle == 3) ? "rd" : "th",
-              prep_time,
-              (IS_SET(current->metamagic, METAMAGIC_QUICKEN) ? "\tc[\tnquickened\tc]\tn" : ""),
-              (IS_SET(current->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
-              (current->domain ? domain_list[current->domain].name : "")
-            );
+        send_to_char(ch, " \tc[\tWcircle-slot: \tn%d%s\tc]\tn \tc[\tn%2d seconds\tc]\tn %s%s %s\r\n",
+                current->spell,
+                (spell_circle == 1) ? "st" : (spell_circle == 2) ? "nd" : (spell_circle == 3) ? "rd" : "th",
+                prep_time,
+                (IS_SET(current->metamagic, METAMAGIC_QUICKEN) ? "\tc[\tnquickened\tc]\tn" : ""),
+                (IS_SET(current->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
+                (current->domain ? domain_list[current->domain].name : "")
+              );
         break;
       default:
-      sprintf(buf, "%s \tW%20s\tn \tc[\tn%d%s circle\tc]\tn \tc[\tn%2d seconds\tc]\tn %s%s %s\r\n",
-              buf,
-              skill_name(current->spell),
-              spell_circle,
-              (spell_circle == 1) ? "st" : (spell_circle == 2) ? "nd" : (spell_circle == 3) ? "rd" : "th",
-              prep_time,
-              (IS_SET(current->metamagic, METAMAGIC_QUICKEN)  ? "\tc[\tnquickened\tc]\tn" : ""),
-              (IS_SET(current->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
-              (current->domain ? domain_list[current->domain].name : "")
-            );
+        send_to_char(ch, " \tW%20s\tn \tc[\tn%d%s circle\tc]\tn \tc[\tn%2d seconds\tc]\tn %s%s %s\r\n",
+                skill_name(current->spell),
+                spell_circle,
+                (spell_circle == 1) ? "st" : (spell_circle == 2) ? "nd" : (spell_circle == 3) ? "rd" : "th",
+                prep_time,
+                (IS_SET(current->metamagic, METAMAGIC_QUICKEN)  ? "\tc[\tnquickened\tc]\tn" : ""),
+                (IS_SET(current->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
+                (current->domain ? domain_list[current->domain].name : "")
+              );
         break;
     }
-#endif    
   } /* end transverse */
   
-  send_to_char(ch, buf);
-
   /* build a nice closing */
   *buf = '\0';
   sprintf(buf, "\tYTotal Preparation Time Remaining: \tW%d\tC", total_time);
