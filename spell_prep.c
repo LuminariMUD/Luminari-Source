@@ -601,7 +601,7 @@ void start_prep_event(struct char_data *ch, int class) {
 void stop_prep_event(struct char_data *ch, int class) {
   set_preparing_state(ch, class, FALSE);
   if (char_has_mud_event(ch, ePREPARATION)) {
-    event_cancel_specific(ch, ePREPARATION);
+    change_event_duration(ch, ePREPARATION, 0);
   }
   if (SPELL_PREP_QUEUE(ch, class)) {
     reset_preparation_time(ch, class);
@@ -838,7 +838,6 @@ void print_prep_queue(struct char_data *ch, int ch_class) {
   *buf = '\0';
   for (; current; current = next) {
     next = current->next;
-    /* need original class values for compute_spells_circle */
     int spell_circle = compute_spells_circle(ch_class,
                                              current->spell,
                                              current->metamagic,
@@ -1016,7 +1015,7 @@ void print_prep_collection_data(struct char_data *ch, int class) {
     case CLASS_CLERIC:case CLASS_WIZARD:case CLASS_RANGER:
     case CLASS_DRUID:case CLASS_PALADIN:
       print_collection(ch, class);
-      //print_prep_queue(ch, class);
+      print_prep_queue(ch, class);
       display_available_slots(ch, class);
       break;
     default:return;
@@ -1096,17 +1095,20 @@ int compute_spells_prep_time(struct char_data *ch, int class, int circle, int do
 
 /* look at top of the queue, and reset preparation time of that entry */
 void reset_preparation_time(struct char_data *ch, int class) {
+  if (!SPELL_PREP_QUEUE(ch, class))
+    return;
+
   int preparation_time = 0;
   preparation_time =
           compute_spells_prep_time(
-            ch,
-            class,
-            compute_spells_circle(class,
-              SPELL_PREP_QUEUE(ch, class)->spell,
-              SPELL_PREP_QUEUE(ch, class)->metamagic,
-              SPELL_PREP_QUEUE(ch, class)->domain),
-            SPELL_PREP_QUEUE(ch, class)->domain);
-  SPELL_PREP_QUEUE(ch, class)->prep_time = preparation_time;  
+          ch,
+          class,
+          compute_spells_circle(class,
+          SPELL_PREP_QUEUE(ch, class)->spell,
+          SPELL_PREP_QUEUE(ch, class)->metamagic,
+          SPELL_PREP_QUEUE(ch, class)->domain),
+          SPELL_PREP_QUEUE(ch, class)->domain);
+  SPELL_PREP_QUEUE(ch, class)->prep_time = preparation_time;
 }
 
 /* END helper functions */
@@ -1128,6 +1130,8 @@ EVENTFUNC(event_preparation) {
     return 0;
   prepare_event = (struct mud_event_data *) event_obj;
   ch = (struct char_data *) prepare_event->pStruct;
+  if (!ch)
+    return 0;
 
   /* this is definitely a dummy check */
   if (!SPELL_PREP_QUEUE(ch, class)) {
