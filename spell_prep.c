@@ -1139,7 +1139,7 @@ EVENTFUNC(event_preparation) {
   /* first we make a check that we arrived here in a 'valid' state, reset
    * prearation time if not, then exit */
   if (!ready_to_prep_spells(ch, class) ||
-          !is_preparing) {
+          !is_preparing(ch)) {
     send_to_char(ch, "You are not able to finish your spell preparations!\r\n");
     stop_prep_event(ch, class);
     return 0;
