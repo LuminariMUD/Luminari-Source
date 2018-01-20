@@ -574,9 +574,6 @@ void set_preparing_state(struct char_data *ch, int class, bool state) {
 bool is_preparing(struct char_data *ch) {
   int i;
 
-  if (!char_has_mud_event(ch, ePREPARATION))
-    return FALSE;
-
   for (i = 0; i < NUM_CLASSES; i++)
     if ((ch)->char_specials.preparing_state[i])
       return TRUE;
@@ -601,7 +598,7 @@ void start_prep_event(struct char_data *ch, int class) {
 void stop_prep_event(struct char_data *ch, int class) {
   set_preparing_state(ch, class, FALSE);
   if (char_has_mud_event(ch, ePREPARATION)) {
-    change_event_duration(ch, ePREPARATION, 0);
+    //change_event_duration(ch, ePREPARATION, 0);
   }
   if (SPELL_PREP_QUEUE(ch, class)) {
     reset_preparation_time(ch, class);
@@ -1141,7 +1138,8 @@ EVENTFUNC(event_preparation) {
 
   /* first we make a check that we arrived here in a 'valid' state, reset
    * prearation time if not, then exit */
-  if (!ready_to_prep_spells(ch, class)) {
+  if (!ready_to_prep_spells(ch, class) ||
+          !is_preparing) {
     send_to_char(ch, "You are not able to finish your spell preparations!\r\n");
     stop_prep_event(ch, class);
     return 0;
