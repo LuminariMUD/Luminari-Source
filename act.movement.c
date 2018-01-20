@@ -30,6 +30,7 @@
 #include "wilderness.h" /* Wilderness! */
 #include "actions.h"
 #include "traps.h" /* for check_traps() */
+#include "spell_prep.h"
 
 /* do_gen_door utility functions */
 static int find_door(struct char_data *ch, const char *type, char *dir,
@@ -2580,6 +2581,12 @@ int change_position(struct char_data *ch, int new_position) {
             TO_ROOM);
     send_to_char(ch, "Your preparations are aborted!\r\n");
     resetMemtimes(ch, -1); /* -1 means reset for all classes */
+  }
+  if (char_has_mud_event(ch, ePREPARATION) && GET_POS(ch) != POS_RESTING) {
+    act("$n's preparations are aborted!", FALSE, ch, 0, 0,
+            TO_ROOM);
+    send_to_char(ch, "Your preparations are aborted!\r\n");
+    stop_all_preparations(ch);
   }
 
   /* end general checks */
