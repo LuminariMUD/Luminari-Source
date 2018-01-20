@@ -598,10 +598,10 @@ void start_prep_event(struct char_data *ch, int class) {
 void stop_prep_event(struct char_data *ch, int class) {
   set_preparing_state(ch, class, FALSE);
   if (char_has_mud_event(ch, ePREPARATION)) {
-    //change_event_duration(ch, ePREPARATION, 0);
+    event_cancel_specific(ch, ePREPARATION);
   }
   if (SPELL_PREP_QUEUE(ch, class)) {
-    reset_preparation_time(ch, class);
+    //reset_preparation_time(ch, class);
   }
 }
 /* stops all preparation irregardless of class */
