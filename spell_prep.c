@@ -601,7 +601,7 @@ void stop_prep_event(struct char_data *ch, int class) {
     event_cancel_specific(ch, ePREPARATION);
   }
   if (SPELL_PREP_QUEUE(ch, class)) {
-    //reset_preparation_time(ch, class);
+    reset_preparation_time(ch, class);
   }
 }
 /* stops all preparation irregardless of class */
