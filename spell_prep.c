@@ -835,6 +835,7 @@ void print_prep_queue(struct char_data *ch, int ch_class) {
   *buf = '\0';
   for (; current; current = next) {
     next = current->next;
+#ifdef DEBUGMODE
     int spell_circle = compute_spells_circle(ch_class,
                                              current->spell,
                                              current->metamagic,
@@ -868,7 +869,8 @@ void print_prep_queue(struct char_data *ch, int ch_class) {
             );
         break;
     }
-  }
+#endif    
+  } /* end transverse */
   
   send_to_char(ch, buf);
 
