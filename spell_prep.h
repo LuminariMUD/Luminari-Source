@@ -120,6 +120,8 @@ extern "C" {
     void start_prep_event(struct char_data *ch, int class);
     /* stop the preparing event and sets the state as false */
     void stop_prep_event(struct char_data *ch, int class);
+    /* stops all preparation irregardless of class */
+    void stop_all_preparations(struct char_data *ch);
 
     /* does ch level qualify them for this particular spell?
          includes domain system for clerics 
