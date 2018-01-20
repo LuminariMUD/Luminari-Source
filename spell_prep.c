@@ -1015,7 +1015,7 @@ void print_prep_collection_data(struct char_data *ch, int class) {
     case CLASS_DRUID:case CLASS_PALADIN:
       print_collection(ch, class);
       print_prep_queue(ch, class);
-      display_available_slots(ch, class);
+      //display_available_slots(ch, class);
       break;
     default:return;
   }
