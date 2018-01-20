@@ -241,9 +241,6 @@ extern "C" {
     /* preparing state? */
     #define PREPARING_STATE(ch, class) ((ch)->char_specials.preparing_state[class])
     
-    /* preparing state right now? */
-    #define IN_PREPARATION(ch) (is_preparing(ch))
-
     /* char's pointer to their spell prep queue (head) */
     #define SPELL_PREP_QUEUE(ch, ch_class) ((ch)->player_specials->saved.preparation_queue[ch_class])
     
