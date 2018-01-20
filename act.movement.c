@@ -2575,7 +2575,7 @@ int change_position(struct char_data *ch, int new_position) {
     resetCastingData(ch);
   }
 
-  /* memorizing */
+  /* preparing spells */
   if (char_has_mud_event(ch, ePREPARING) && GET_POS(ch) != POS_RESTING) {
     act("$n's preparations are aborted!", FALSE, ch, 0, 0,
             TO_ROOM);
