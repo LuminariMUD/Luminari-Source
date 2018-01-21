@@ -278,7 +278,7 @@ extern "C" {
     #define INNATE_MAGIC(ch, ch_class) ((ch)->player_specials->saved.innate_magic_queue[ch_class])
     
     /* char's array for known spells */
-    #define KNOWN_SPELLS(ch, slot, ch_class) ((ch)->player_specials->saved.known_spells[slot][ch_class])
+    #define KNOWN_SPELLS(ch, ch_class) ((ch)->player_specials->saved.known_spells[ch_class])
     
     /** END defines **/
     
