@@ -26,25 +26,35 @@ extern "C" {
     
     /* clear a ch's spell prep queue, example ch loadup */
     void init_spell_prep_queue(struct char_data *ch);
+    /* clear a ch's spell prep queue, example ch loadup */
+    void init_innate_magic_queue(struct char_data *ch);
     /* clear a ch's spell collection, example ch loadup */
     void init_collection_queue(struct char_data *ch);
 
     /* clear prep queue by class */
     void clear_prep_queue_by_class(struct char_data *ch, int ch_class);
+    /* clear innate magic by class */
+    void clear_innate_magic_by_class(struct char_data *ch, int ch_class);
     /* clear collection by class */
     void clear_collection_by_class(struct char_data *ch, int ch_class);
     /* destroy the spell prep queue, example ch logout */
     void destroy_spell_prep_queue(struct char_data *ch);
+    /* destroy the innate magic queue, example ch logout */
+    void destroy_innate_magic_queue(struct char_data *ch);
     /* destroy the spell collection, example ch logout */
     void destroy_spell_collection(struct char_data *ch);
 
     /* save into ch pfile their spell-preparation queue, example ch saving */
     void save_prep_queue_by_class(FILE *fl, struct char_data *ch, int class);
+    /* save into ch pfile their innate magic queue, example ch saving */
+    void save_innate_magic_by_class(FILE *fl, struct char_data *ch, int class);
     /* save into ch pfile their spell-collection, example ch saving */
     void save_collection_by_class(FILE *fl, struct char_data *ch, int class);
     
     /* save into ch pfile their spell-preparation queue, example ch saving */
     void save_spell_prep_queue(FILE *fl, struct char_data *ch);
+    /* save into ch pfile their innate magic queue, example ch saving */
+    void save_innate_magic_queue(FILE *fl, struct char_data *ch);
     /* save into ch pfile their spell collection, example ch saving */
     void save_spell_collection(FILE *fl, struct char_data *ch);
 
@@ -53,10 +63,16 @@ extern "C" {
     bool prep_queue_remove_by_class(struct char_data *ch, int class, int spellnum, int metamagic);
     /* give: ch, class, spellnum, and metamagic:
        return: true if we found/removed, false if we didn't find */
+    bool innate_magic_remove_by_class(struct char_data *ch, int class, int spellnum, int metamagic);
+    /* give: ch, class, spellnum, and metamagic:
+       return: true if we found/removed, false if we didn't find */
     bool collection_remove_by_class(struct char_data *ch, int class, int spellnum, int metamagic);
     
     /* remove a spell from a character's prep-queue(in progress) linked list */
     void prep_queue_remove(struct char_data *ch, struct prep_collection_spell_data *entry,
+        int class);
+    /* remove a spell from a character's innate magic(in progress) linked list */
+    void innate_magic_remove(struct char_data *ch, struct prep_collection_spell_data *entry,
         int class);
     /* remove a spell from a character's collection (completed) linked list */
     void collection_remove(struct char_data *ch, struct prep_collection_spell_data *entry,
@@ -70,23 +86,34 @@ extern "C" {
     void prep_queue_add(struct char_data *ch, int ch_class, int spellnum, int metamagic,
         int prep_time, int domain);
     /* add a spell to a character's prep-queue(in progress) linked list */
+    void innate_magic_add(struct char_data *ch, int ch_class, int spellnum, int metamagic,
+        int prep_time, int domain);
+    /* add a spell to a character's prep-queue(in progress) linked list */
     void collection_add(struct char_data *ch, int ch_class, int spellnum, int metamagic,
         int prep_time, int domain);
     
     /* load from pfile into ch their spell-preparation queue, example ch login
        belongs normally in players.c, but uhhhh */
     void load_spell_prep_queue(FILE *fl, struct char_data *ch);
+    /* load from pfile into ch their innate magic queue, example ch login
+       belongs normally in players.c, but uhhhh */
+    void load_inate_magic_queue(FILE *fl, struct char_data *ch);
     /* load from pfile into ch their spell collection, example ch login
        belongs normally in players.c, but uhhhh */
     void load_spell_collection(FILE *fl, struct char_data *ch);
 
     /* given a circle/class, count how many items of this circle in prep queue */
     int count_circle_prep_queue(struct char_data *ch, int class, int circle);
+    /* given a circle/class, count how many items of this circle in inate magic queue */
+    int count_circle_innate_magic(struct char_data *ch, int class, int circle);
     /* given a circle/class, count how many items of this circle in the collection */
     int count_circle_collection(struct char_data *ch, int class, int circle);
     /* total # of slots consumed by circle X */
     int count_total_slots(struct char_data *ch, int class, int circle);
     
+    /* for innate magic-types:  counts how many spells you have of a given circle */
+    int count_known_spells(struct char_data *ch, int circle, int class);
+
         /* in: spellnum, class, metamagic, domain(cleric)
      * out: the circle this spell (now) belongs, above num-circles if failed
      * given above info, compute which circle this spell belongs to, this 'interesting'
@@ -246,6 +273,12 @@ extern "C" {
     
     /* char's pointer to their spell collection */
     #define SPELL_COLLECTION(ch, ch_class) ((ch)->player_specials->saved.spell_collection[ch_class])
+    
+    /* char's pointer to their innate magic queue (head) */
+    #define INNATE_MAGIC(ch, ch_class) ((ch)->player_specials->saved.innate_magic_queue[ch_class])
+    
+    /* char's array for known spells */
+    #define KNOWN_SPELLS(ch, slot, ch_class) ((ch)->player_specials->saved.known_spells[slot][ch_class])
     
     /** END defines **/
     
