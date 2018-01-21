@@ -65,6 +65,13 @@ void init_spell_prep_queue(struct char_data *ch) {
     SPELL_PREP_QUEUE(ch, ch_class) = NULL;
   }
 }
+/* clear a ch's innate magic queue, example ch loadup */
+void init_innate_magic_queue(struct char_data *ch) {
+  int ch_class = 0;
+  for (ch_class = 0; ch_class < NUM_CLASSES; ch_class++) {
+    INNATE_MAGIC(ch, ch_class) = NULL;
+  }
+}
 /* clear a ch's spell collection, example ch loadup */
 void init_collection_queue(struct char_data *ch) {
   int ch_class = 0;
@@ -84,6 +91,17 @@ void clear_prep_queue_by_class(struct char_data *ch, int ch_class) {
     free(tmp);
   } while (SPELL_PREP_QUEUE(ch, ch_class));  
 }
+/* clear innate magic by class */
+void clear_innate_magic_by_class(struct char_data *ch, int ch_class) {
+  if (!INNATE_MAGIC(ch, ch_class))
+    return;
+  do {
+    struct prep_collection_spell_data *tmp;
+    tmp = INNATE_MAGIC(ch, ch_class);
+    INNATE_MAGIC(ch, ch_class) = INNATE_MAGIC(ch, ch_class)->next;
+    free(tmp);
+  } while (INNATE_MAGIC(ch, ch_class));  
+}
 /* clear collection by class */
 void clear_collection_by_class(struct char_data *ch, int ch_class) {
   if (!SPELL_COLLECTION(ch, ch_class))
@@ -102,6 +120,13 @@ void destroy_spell_prep_queue(struct char_data *ch) {
     clear_prep_queue_by_class(ch, ch_class);
   }
 }
+/* destroy the innate magic queue, example ch logout */
+void destroy_innate_magic_queue(struct char_data *ch) {
+  int ch_class;
+  for (ch_class = 0; ch_class < NUM_CLASSES; ch_class++) {
+    clear_innate_magic_by_class(ch, ch_class);
+  }
+}
 /* destroy the spell destroy_spell_collection, example ch logout */
 void destroy_spell_collection(struct char_data *ch) {
   int ch_class;
@@ -112,6 +137,16 @@ void destroy_spell_collection(struct char_data *ch) {
 
 /* save into ch pfile their spell-preparation queue, example ch saving */
 void save_prep_queue_by_class(FILE *fl, struct char_data *ch, int class) {
+  struct prep_collection_spell_data *current = SPELL_PREP_QUEUE(ch, class);
+  struct prep_collection_spell_data *next;
+  for (; current; current = next) {
+    next = current->next;
+    fprintf(fl, "%d %d %d %d %d\n", class, current->spell, current->metamagic,
+            current->prep_time, current->domain);
+  }
+}
+/* save into ch pfile their innate magic queue, example ch saving */
+void save_innate_magic_by_class(FILE *fl, struct char_data *ch, int class) {
   struct prep_collection_spell_data *current = SPELL_PREP_QUEUE(ch, class);
   struct prep_collection_spell_data *next;
   for (; current; current = next) {
@@ -142,6 +177,17 @@ void save_spell_prep_queue(FILE *fl, struct char_data *ch) {
   /* close this entry */
   fprintf(fl, "-1 -1 -1 -1 -1\n");
 }
+/* save into ch pfile their innate magic queue, example ch saving */
+void save_innate_magic_queue(FILE *fl, struct char_data *ch) {
+  int ch_class;
+  /* label the ascii entry in the pfile */
+  fprintf(fl, "IMQu:\n");
+  for (ch_class = 0; ch_class < NUM_CLASSES; ch_class++) {
+    save_innate_magic_by_class(fl, ch, ch_class);
+  }
+  /* close this entry */
+  fprintf(fl, "-1 -1 -1 -1 -1\n");
+}
 /* save into ch pfile their spell collection, example ch saving */
 void save_spell_collection(FILE *fl, struct char_data *ch) {
   int ch_class;
@@ -157,6 +203,24 @@ void save_spell_collection(FILE *fl, struct char_data *ch) {
 /* give: ch, class, spellnum, and metamagic:
    return: true if we found/removed, false if we didn't find */
 bool prep_queue_remove_by_class(struct char_data *ch, int class, int spellnum,
+        int metamagic) {
+  struct prep_collection_spell_data *current = SPELL_PREP_QUEUE(ch, class);
+  struct prep_collection_spell_data *next;
+  
+  for (; current; current = next) {
+    next = current->next;
+    if (current->spell == spellnum && current->metamagic == metamagic) {
+      /*bingo, found it*/
+      prep_queue_remove(ch, current, class);
+      return TRUE;
+    }
+  }
+  
+  return FALSE;
+}
+/* give: ch, class, spellnum, and metamagic:
+   return: true if we found/removed, false if we didn't find */
+bool innate_magic_remove_by_class(struct char_data *ch, int class, int spellnum,
         int metamagic) {
   struct prep_collection_spell_data *current = SPELL_PREP_QUEUE(ch, class);
   struct prep_collection_spell_data *next;
@@ -203,6 +267,18 @@ void prep_queue_remove(struct char_data *ch, struct prep_collection_spell_data *
   REMOVE_FROM_LIST(entry, SPELL_PREP_QUEUE(ch, class), next);
   free(entry);
 }
+/* remove a spell from a character's innate magic(in progress) linked list */
+void innate_magic_remove(struct char_data *ch, struct prep_collection_spell_data *entry,
+        int class) {
+  struct prep_collection_spell_data *temp;
+  
+  if (INNATE_MAGIC(ch, class) == NULL) {
+    core_dump();
+    return;
+  }
+  REMOVE_FROM_LIST(entry, INNATE_MAGIC(ch, class), next);
+  free(entry);
+}
 /* remove a spell from a character's collection (completed) linked list */
 void collection_remove(struct char_data *ch, struct prep_collection_spell_data *entry,
         int class) {
@@ -243,6 +319,19 @@ void prep_queue_add(struct char_data *ch, int ch_class, int spellnum, int metama
   entry->domain = domain;
   entry->next = SPELL_PREP_QUEUE(ch, ch_class);
   SPELL_PREP_QUEUE(ch, ch_class) = entry;
+}
+/* add a spell to a character's innate magic (in progress) linked list */
+void innate_magic_add(struct char_data *ch, int ch_class, int spellnum, int metamagic,
+        int prep_time, int domain) {
+  struct prep_collection_spell_data *entry;
+
+  CREATE(entry, struct prep_collection_spell_data, 1);
+  entry->spell = spellnum;
+  entry->metamagic = metamagic;
+  entry->prep_time = prep_time;
+  entry->domain = domain;
+  entry->next = INNATE_MAGIC(ch, ch_class);
+  INNATE_MAGIC(ch, ch_class) = entry;
 }
 /* add a spell to a character's prep-queue(in progress) linked list */
 void collection_add(struct char_data *ch, int ch_class, int spellnum, int metamagic,
@@ -285,6 +374,38 @@ void load_spell_prep_queue(FILE *fl, struct char_data *ch) {
                      metamagic,
                      prep_time,
                      domain );
+    }
+    
+    counter++;
+  } while (counter < MAX_MEM && spell_num != -1);
+}
+/* load from pfile into ch their innate magic queue, example ch login
+   belongs normally in players.c, but uhhhh */
+void load_innate_magic_queue(FILE *fl, struct char_data *ch) {
+  int spell_num, ch_class, metamagic, prep_time, domain;
+  int counter = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do {
+    /*init*/
+    ch_class = 0;
+    spell_num = 0;
+    metamagic = 0;
+    prep_time = 0;
+    domain = 0;
+
+    get_line(fl, line);
+
+    sscanf(line, "%d %d %d %d %d", &ch_class, &spell_num, &metamagic, &prep_time,
+            &domain);
+
+    if (ch_class != -1) {
+      innate_magic_add(ch,
+                       ch_class,
+                       spell_num,
+                       metamagic,
+                       prep_time,
+                       domain );
     }
     
     counter++;
@@ -335,17 +456,28 @@ int count_circle_prep_queue(struct char_data *ch, int class, int circle) {
                                         current->spell,
                                         current->metamagic,
                                         current->domain);
-#ifdef DEBUGMODE
-    send_to_char(ch, "(circle%d)ccpq- spellnum: %d, this_circle: %d\r\n", circle, current->spell, this_circle);
-#endif
     if (this_circle == circle)
       counter++;
   }
-  
-#ifdef DEBUGMODE
-  send_to_char(ch, "count_circle_prep_queue: %d\r\n", counter);
-#endif
-  
+    
+  return counter;
+}
+/* given a circle/class, count how many items of this circle in innate magic queue */
+int count_circle_innate_magic(struct char_data *ch, int class, int circle) {
+  int this_circle = 0, counter = 0;
+  struct prep_collection_spell_data *current = INNATE_MAGIC(ch, class);
+  struct prep_collection_spell_data *next;
+
+  for (; current; current = next) {
+    next = current->next;
+    this_circle = compute_spells_circle(class,
+                                        current->spell,
+                                        current->metamagic,
+                                        current->domain);
+    if (this_circle == circle)
+      counter++;
+  }
+    
   return counter;
 }
 /* given a circle/class, count how many items of this circle in the collection */
@@ -364,19 +496,54 @@ int count_circle_collection(struct char_data *ch, int class, int circle) {
       counter++;
   }
   
-#ifdef DEBUGMODE
-  send_to_char(ch, "count_circle_collection: %d\r\n", counter);
-#endif
-  
   return counter;
 }
 /* total # of slots consumed by circle X */
 int count_total_slots(struct char_data *ch, int class, int circle) {
   return (count_circle_collection(ch, class, circle) +
+          count_circle_innate_magic(ch, class, circle) +
           count_circle_prep_queue(ch, class, circle));
 }
 
 /* END linked list utility */
+
+
+/* START: innate magic specific functions */
+
+/* for innate magic-types:  counts how many spells you have of a given circle */
+int count_known_spells(struct char_data *ch, int circle, int class) {
+  int num = 0, slot = 0;
+  
+  /* we don't handle 0th circle */
+  if (circle <= 0 || circle > TOP_CIRCLE)
+    return 0;
+
+  for (slot = 0; slot < MAX_MEM; slot++) {
+    switch (class) {
+      case CLASS_SORCERER:
+        if ( compute_spells_circle(ch,
+                KNOWN_SPELLS(ch, slot, class),
+                0, 0) == circle &&
+             !isSorcBloodlineSpell( getSorcBloodline(ch),
+                KNOWN_SPELLS(ch, slot, class) )
+           )
+          num++;
+        break;
+      case CLASS_BARD:
+        if ( compute_spells_circle(ch,
+                KNOWN_SPELLS(ch, slot, class),
+                0, 0) == circle
+           )
+          num++;
+        break;
+    } /*end switch*/
+  } /*end slot loop*/
+  
+  return num;
+}
+
+/* END: innate magic specific functions */
+
 
 /* START helper functions */
 
@@ -562,7 +729,6 @@ bool ready_to_prep_spells(struct char_data *ch, int class) {
 /* set the preparing state of the char, this has actually become
    redundant because of events, but we still have it
  * returns TRUE if successfully set something, false if not
-   define: SET_PREPARING_STATE(ch, class, state) 
    NOTE: the array in storage is only NUM_CASTERS values, which
      does not directly sync up with our class-array, so we have
      a conversion happening here from class-array ->to-> is_preparing-array */
@@ -582,8 +748,11 @@ bool is_preparing(struct char_data *ch) {
 }
 
 /* sets prep-state as TRUE, and starts the preparing-event */
+
 /* we check the queue for top spell for first timer */
 void start_prep_event(struct char_data *ch, int class) {
+  char buf[50] = {'\0'};
+
   if (!SPELL_PREP_QUEUE(ch, class)) {
     send_to_char(ch, "You have nothing in your preparation queue for this class to "
             "prepare!\r\n");
@@ -591,7 +760,8 @@ void start_prep_event(struct char_data *ch, int class) {
   }
   set_preparing_state(ch, class, TRUE);
   if (!char_has_mud_event(ch, ePREPARATION)) {
-    NEW_EVENT(ePREPARATION, ch, NULL, (1 * PASSES_PER_SEC));
+    sprintf(buf, "%d", class); /* carry our class as the svar */
+    NEW_EVENT(ePREPARATION, ch, strdup(buf), (1 * PASSES_PER_SEC));
   }
 }
 /* stop the preparing event and sets the state as false */
@@ -1088,20 +1258,38 @@ int compute_spells_prep_time(struct char_data *ch, int class, int circle, int do
 
 /* look at top of the queue, and reset preparation time of that entry */
 void reset_preparation_time(struct char_data *ch, int class) {
-  if (!SPELL_PREP_QUEUE(ch, class))
-    return;
-
   int preparation_time = 0;
-  preparation_time =
-          compute_spells_prep_time(
-          ch,
-          class,
-          compute_spells_circle(class,
-          SPELL_PREP_QUEUE(ch, class)->spell,
-          SPELL_PREP_QUEUE(ch, class)->metamagic,
-          SPELL_PREP_QUEUE(ch, class)->domain),
-          SPELL_PREP_QUEUE(ch, class)->domain);
-  SPELL_PREP_QUEUE(ch, class)->prep_time = preparation_time;
+
+  switch (class) {
+    case CLASS_SORCERER:case CLASS_BARD:
+      if (!INNATE_MAGIC(ch, class))
+        return;
+      preparation_time =
+              compute_spells_prep_time(
+              ch,
+              class,
+              compute_spells_circle(class,
+              INNATE_MAGIC(ch, class)->spell,
+              INNATE_MAGIC(ch, class)->metamagic,
+              INNATE_MAGIC(ch, class)->domain),
+              INNATE_MAGIC(ch, class)->domain);
+      INNATE_MAGIC(ch, class)->prep_time = preparation_time;
+      break;
+    default:
+      if (!SPELL_PREP_QUEUE(ch, class))
+        return;
+      preparation_time =
+              compute_spells_prep_time(
+              ch,
+              class,
+              compute_spells_circle(class,
+              SPELL_PREP_QUEUE(ch, class)->spell,
+              SPELL_PREP_QUEUE(ch, class)->metamagic,
+              SPELL_PREP_QUEUE(ch, class)->domain),
+              SPELL_PREP_QUEUE(ch, class)->domain);
+      SPELL_PREP_QUEUE(ch, class)->prep_time = preparation_time;
+      break;
+  }
 }
 
 /* END helper functions */
@@ -1125,11 +1313,23 @@ EVENTFUNC(event_preparation) {
   ch = (struct char_data *) prepare_event->pStruct;
   if (!ch)
     return 0;
+  /* grab the svariable for class */
+  class = atoi((char *) prepare_event->sVariables);
 
   /* this is definitely a dummy check */
-  if (!SPELL_PREP_QUEUE(ch, class)) {
-    send_to_char(ch, "Your preparations are abroted!  You do not seem to have anything in your queue!\r\n");
-    return 0;
+  switch (class) {
+    case CLASS_SORCERER:case CLASS_BARD:
+      if (!INNATE_MAGIC(ch, class)) {
+        send_to_char(ch, "Your preparations are aborted!  You do not seem to have anything in your queue!\r\n");
+        return 0;
+      }
+      break;
+    default:
+      if (!SPELL_PREP_QUEUE(ch, class)) {
+        send_to_char(ch, "Your preparations are aborted!  You do not seem to have anything in your queue!\r\n");
+        return 0;
+      }
+      break;
   }
 
   /* first we make a check that we arrived here in a 'valid' state, reset
@@ -1142,15 +1342,16 @@ EVENTFUNC(event_preparation) {
   }
 
   SPELL_PREP_QUEUE(ch, class)->prep_time--;
-        
-  if ((SPELL_PREP_QUEUE(ch, class)->prep_time) <= 0) {
-    switch (class) {
-      case CLASS_CLERIC:
-      case CLASS_RANGER:
-      case CLASS_PALADIN:
-      case CLASS_DRUID:
-      case CLASS_WIZARD:
-        sprintf(buf, "You finish %s for %s%s%s.\r\n",
+  INNATE_MAGIC(ch, class)->prep_time--;
+
+  switch (class) {
+    case CLASS_CLERIC:
+    case CLASS_RANGER:
+    case CLASS_PALADIN:
+    case CLASS_DRUID:
+    case CLASS_WIZARD:
+      if ((SPELL_PREP_QUEUE(ch, class)->prep_time) <= 0) {
+        send_to_char(ch, "You finish %s for %s%s%s.\r\n",
                 spell_prep_dict[class][1],
                 (IS_SET(SPELL_PREP_QUEUE(ch, class)->metamagic, METAMAGIC_QUICKEN) ? "quickened " : ""),
                 (IS_SET(SPELL_PREP_QUEUE(ch, class)->metamagic, METAMAGIC_MAXIMIZE) ? "maximized " : ""),
@@ -1163,29 +1364,57 @@ EVENTFUNC(event_preparation) {
                 SPELL_PREP_QUEUE(ch, class)->metamagic);
         if (SPELL_PREP_QUEUE(ch, class)) {
           reset_preparation_time(ch, class);
+          return (1 * PASSES_PER_SEC);
         }
-        break;
-      case CLASS_BARD:
-      case CLASS_SORCERER:
-        //sprintf(buf, "You have recovered a spell slot: %d.\r\n",
-        //PREPARATION_QUEUE(ch, 0, classArray(class)).spell);
-        break;
-    }
+      }
+      break;
+    case CLASS_BARD:
+    case CLASS_SORCERER:
+      if ((INNATE_MAGIC(ch, class)->prep_time) <= 0) {
+        send_to_char(ch, "You finish %s for %s%s%s.\r\n",
+                spell_prep_dict[class][1],
+                (IS_SET(INNATE_MAGIC(ch, class)->metamagic, METAMAGIC_QUICKEN) ? "quickened " : ""),
+                (IS_SET(INNATE_MAGIC(ch, class)->metamagic, METAMAGIC_MAXIMIZE) ? "maximized " : ""),
+                spell_info[INNATE_MAGIC(ch, class)->spell].name);
+        innate_magic_remove_by_class(ch, class, INNATE_MAGIC(ch, class)->spell,
+                INNATE_MAGIC(ch, class)->metamagic);
+        if (INNATE_MAGIC(ch, class)) {
+          reset_preparation_time(ch, class);
+          return (1 * PASSES_PER_SEC);
+        }
+      }
+      break;
   }
-  send_to_char(ch, "%s", buf);
 
-  /* exit until next event! */
-  if (SPELL_PREP_QUEUE(ch, class)) {
-    return (1 * PASSES_PER_SEC);
-  /* all finished!! */
-  } else {
-    *buf = '\0';
-    send_to_char(ch, "Your %s are complete.\r\n", spell_prep_dict[class][3]);
-    sprintf(buf, "$n completes $s %s.", spell_prep_dict[class][3]);
-    act(buf, FALSE, ch, 0, 0, TO_ROOM);
-    set_preparing_state(ch, class, FALSE);
-    return 0;    
+  switch (class) {
+    case CLASS_CLERIC:
+    case CLASS_RANGER:
+    case CLASS_PALADIN:
+    case CLASS_DRUID:
+    case CLASS_WIZARD:
+      if (!SPELL_PREP_QUEUE(ch, class)) {
+        *buf = '\0';
+        send_to_char(ch, "Your %s are complete.\r\n", spell_prep_dict[class][3]);
+        sprintf(buf, "$n completes $s %s.", spell_prep_dict[class][3]);
+        act(buf, FALSE, ch, 0, 0, TO_ROOM);
+        set_preparing_state(ch, class, FALSE);
+        return 0;
+
+      }
+      break;
+    case CLASS_BARD:
+    case CLASS_SORCERER:
+      if (!INNATE_MAGIC(ch, class)) {
+        *buf = '\0';
+        send_to_char(ch, "Your %s are complete.\r\n", spell_prep_dict[class][3]);
+        sprintf(buf, "$n completes $s %s.", spell_prep_dict[class][3]);
+        act(buf, FALSE, ch, 0, 0, TO_ROOM);
+        set_preparing_state(ch, class, FALSE);
+        return 0;
+      }
+      break;
   }
+  
   return 0;
 }
 
@@ -1431,14 +1660,14 @@ ACMD(do_gen_preparation) {
   for (metamagic_arg = strtok(argument, " "); metamagic_arg && metamagic_arg[0] != '\'';
           metamagic_arg = strtok(NULL, " ")) {
     if (is_abbrev(metamagic_arg, "quickened")) {
-      if HAS_FEAT(ch, FEAT_QUICKEN_SPELL) {
+      if (HAS_FEAT(ch, FEAT_QUICKEN_SPELL)) {
         SET_BIT(metamagic, METAMAGIC_QUICKEN);
       } else {
         send_to_char(ch, "You don't know how to quicken your magic!\r\n");
         return;
       }
     } else if (is_abbrev(metamagic_arg, "maximized")) {
-      if HAS_FEAT(ch, FEAT_MAXIMIZE_SPELL) {
+      if (HAS_FEAT(ch, FEAT_MAXIMIZE_SPELL)) {
         SET_BIT(metamagic, METAMAGIC_MAXIMIZE);
       } else {
         send_to_char(ch, "You don't know how to maximize your magic!\r\n");
@@ -1458,26 +1687,8 @@ ACMD(do_gen_preparation) {
   circle_for_spell = /* checks domain spells */
       MIN( compute_spells_circle(class, spellnum, metamagic, domain_1st), 
            compute_spells_circle(class, spellnum, metamagic, domain_2nd) );
-    
-#ifdef DEBUGMODE
-  /*DEBUG*/
-  send_to_char(ch, "DEBUG2: class: %d, spellnum: %d, circle_for_spell: %d, metamagic: %d, domain_1st: %d, domain_2nd: %d\r\n",
-      class, spellnum, circle_for_spell, metamagic, domain_1st, domain_2nd);
-  send_to_char(ch, "DEBUG3: compute_spells_circle: %d\r\n",
-      compute_spells_circle(class, spellnum, metamagic, domain_1st));
-  send_to_char(ch, "DEBUG4: compute_spells_circle: %d\r\n",
-      compute_spells_circle(class, spellnum, metamagic, domain_2nd));
-  /*END DEBUG*/  
-#endif
   
   num_slots_by_circle = compute_slots_by_circle(ch, circle_for_spell, class);
-
-#ifdef DEBUGMODE
-  /*DEBUG*/
-  send_to_char(ch, "DEBUG5: compute_slots_by_circle: %d\r\n",
-      compute_slots_by_circle(ch, circle_for_spell, class));
-  /*END DEBUG*/  
-#endif
   
   if (num_slots_by_circle <= 0) {
     send_to_char(ch, "You have no slots available in that circle!\r\n");
@@ -1490,12 +1701,6 @@ ACMD(do_gen_preparation) {
     return;
   }
   
-#ifdef DEBUGMODE
-  /*DEBUG*/
-  send_to_char(ch, "DEBUG6: count_total_slots: %d\r\n", count_total_slots(ch, class, spellnum));
-  /*END DEBUG*/    
-#endif
-    
   /* wizards spellbook reqs */
   if (class == CLASS_WIZARD && !spellbook_ok(ch, spellnum, class, TRUE)) {
     send_to_char(ch, "You need a source (spellbook or scroll) to study that spell from!\r\n");
@@ -1519,14 +1724,6 @@ ACMD(do_gen_preparation) {
                                           is_domain_spell_of_ch(ch, spellnum)),
                  is_domain_spell_of_ch(ch, spellnum));
   
-#ifdef DEBUGMODE
-  /*DEBUG*/
-  send_to_char(ch, "DEBUG7: compute_spells_prep_time: %d\r\n", compute_spells_prep_time(ch,
-      class, circle_for_spell, is_domain_spell_of_ch(ch, spellnum)));
-  send_to_char(ch, "DEBUG8: is_domain_spell_of_ch: %d\r\n", is_domain_spell_of_ch(ch, spellnum));
-  /*END DEBUG*/    
-#endif
-    
   begin_preparing(ch, class);  
 }
 
