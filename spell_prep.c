@@ -521,7 +521,7 @@ int count_known_spells(struct char_data *ch, int circle, int class) {
   for (slot = 0; slot < MAX_MEM; slot++) {
     switch (class) {
       case CLASS_SORCERER:
-        if ( compute_spells_circle(ch,
+        if ( compute_spells_circle(class,
                 KNOWN_SPELLS(ch, slot, class),
                 0, 0) == circle &&
              !isSorcBloodlineSpell( getSorcBloodline(ch),
@@ -530,7 +530,7 @@ int count_known_spells(struct char_data *ch, int circle, int class) {
           num++;
         break;
       case CLASS_BARD:
-        if ( compute_spells_circle(ch,
+        if ( compute_spells_circle(class,
                 KNOWN_SPELLS(ch, slot, class),
                 0, 0) == circle
            )
