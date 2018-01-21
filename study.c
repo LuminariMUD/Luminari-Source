@@ -1654,8 +1654,8 @@ void study_parse(struct descriptor_data *d, char *arg) {
       if ((number < 1) ||
           (number >= NUM_FEATS) ||
           (!feat_is_available(d->character, number, 0, NULL)) ||
-          (!feat_list[i].can_learn) ||
-          (has_feat(d->character, i) && feat_list[i].can_stack)) {
+          (!feat_list[number].can_learn) ||
+          (has_feat(d->character, number) && feat_list[number].can_stack)) {
         write_to_output(d, "Invalid feat, try again.\r\n");
         gen_feat_disp_menu(d);
         break;
