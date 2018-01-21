@@ -1158,6 +1158,8 @@ int getCircle(struct char_data *ch, int class);
 int count_sorc_known(struct char_data *ch, int circle, int class);
 void sorc_extract_known(struct char_data *ch, int spellnum, int class);
 int sorc_add_known(struct char_data *ch, int spellnum, int class);
+bool isSorcBloodlineSpell(int bloodline, int spellnum);
+int getSorcBloodline(struct char_data *ch);
 
 /* from spell_parser.c */
 ACMD(do_abort);
