@@ -512,7 +512,7 @@ int count_total_slots(struct char_data *ch, int class, int circle) {
 
 /* for innate magic-types:  counts how many spells you have of a given circle */
 int count_known_spells(struct char_data *ch, int circle, int class) {
-  int num = 0, slot = 0;
+  int num = 0; //, slot = 0;
   struct prep_collection_spell_data *current = KNOWN_SPELLS(ch, class);
   struct prep_collection_spell_data *next;
   
