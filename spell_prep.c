@@ -513,27 +513,24 @@ int count_total_slots(struct char_data *ch, int class, int circle) {
 /* for innate magic-types:  counts how many spells you have of a given circle */
 int count_known_spells(struct char_data *ch, int circle, int class) {
   int num = 0, slot = 0;
+  prep_collection_spell_data *current = KNOWN_SPELLS(ch, class);
+  prep_collection_spell_data *next;
   
   /* we don't handle 0th circle */
   if (circle <= 0 || circle > TOP_CIRCLE)
     return 0;
 
-  for (slot = 0; slot < MAX_MEM; slot++) {
+  for (; current; current = next) {
+    next = current->next;
+    
     switch (class) {
       case CLASS_SORCERER:
-        if ( compute_spells_circle(class,
-                KNOWN_SPELLS(ch, slot, class),
-                0, 0) == circle &&
-             !isSorcBloodlineSpell( getSorcBloodline(ch),
-                KNOWN_SPELLS(ch, slot, class) )
-           )
+        if ( compute_spells_circle(class, current->spell, 0, 0) == circle &&
+             !isSorcBloodlineSpell(getSorcBloodline(ch), current->spell) )
           num++;
         break;
       case CLASS_BARD:
-        if ( compute_spells_circle(class,
-                KNOWN_SPELLS(ch, slot, class),
-                0, 0) == circle
-           )
+        if ( compute_spells_circle(class, current->spell, 0, 0) == circle )
           num++;
         break;
     } /*end switch*/
