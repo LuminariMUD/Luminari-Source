@@ -30,6 +30,8 @@ extern "C" {
     void init_innate_magic_queue(struct char_data *ch);
     /* clear a ch's spell collection, example ch loadup */
     void init_collection_queue(struct char_data *ch);
+    /* clear a ch's spell known, example ch loadup */
+    void init_known_spells(struct char_data *ch);
 
     /* clear prep queue by class */
     void clear_prep_queue_by_class(struct char_data *ch, int ch_class);
@@ -37,12 +39,17 @@ extern "C" {
     void clear_innate_magic_by_class(struct char_data *ch, int ch_class);
     /* clear collection by class */
     void clear_collection_by_class(struct char_data *ch, int ch_class);
+    /* clear known spells by class */
+    void clear_known_spells_by_class(struct char_data *ch, int ch_class);
+
     /* destroy the spell prep queue, example ch logout */
     void destroy_spell_prep_queue(struct char_data *ch);
     /* destroy the innate magic queue, example ch logout */
     void destroy_innate_magic_queue(struct char_data *ch);
     /* destroy the spell collection, example ch logout */
     void destroy_spell_collection(struct char_data *ch);
+    /* destroy the known spells, example ch logout */
+    void destroy_known_spells(struct char_data *ch);
 
     /* save into ch pfile their spell-preparation queue, example ch saving */
     void save_prep_queue_by_class(FILE *fl, struct char_data *ch, int class);
@@ -50,6 +57,8 @@ extern "C" {
     void save_innate_magic_by_class(FILE *fl, struct char_data *ch, int class);
     /* save into ch pfile their spell-collection, example ch saving */
     void save_collection_by_class(FILE *fl, struct char_data *ch, int class);
+    /* save into ch pfile their known spells, example ch saving */
+    void save_known_spells_by_class(FILE *fl, struct char_data *ch, int class);
     
     /* save into ch pfile their spell-preparation queue, example ch saving */
     void save_spell_prep_queue(FILE *fl, struct char_data *ch);
@@ -57,6 +66,8 @@ extern "C" {
     void save_innate_magic_queue(FILE *fl, struct char_data *ch);
     /* save into ch pfile their spell collection, example ch saving */
     void save_spell_collection(FILE *fl, struct char_data *ch);
+    /* save into ch pfile their known spells, example ch saving */
+    void save_known_spells(FILE *fl, struct char_data *ch);
 
     /* give: ch, class, spellnum, and metamagic:
        return: true if we found/removed, false if we didn't find */
@@ -67,15 +78,21 @@ extern "C" {
     /* give: ch, class, spellnum, and metamagic:
        return: true if we found/removed, false if we didn't find */
     bool collection_remove_by_class(struct char_data *ch, int class, int spellnum, int metamagic);
+    /* give: ch, class, spellnum, and metamagic:
+       return: true if we found/removed, false if we didn't find */
+    bool known_spells_remove_by_class(struct char_data *ch, int class, int spellnum, int metamagic);
     
     /* remove a spell from a character's prep-queue(in progress) linked list */
     void prep_queue_remove(struct char_data *ch, struct prep_collection_spell_data *entry,
         int class);
     /* remove a spell from a character's innate magic(in progress) linked list */
-    void innate_magic_remove(struct char_data *ch, struct prep_collection_spell_data *entry,
+    void innate_magic_remove(struct char_data *ch, struct innate_magic_data *entry,
         int class);
     /* remove a spell from a character's collection (completed) linked list */
     void collection_remove(struct char_data *ch, struct prep_collection_spell_data *entry,
+        int class);
+    /* remove a spell from known spells linked list */
+    void known_spells_remove(struct char_data *ch, struct prep_collection_spell_data *entry,
         int class);
 
     /* allocate, assign a node entry */
@@ -91,6 +108,9 @@ extern "C" {
     /* add a spell to a character's prep-queue(in progress) linked list */
     void collection_add(struct char_data *ch, int ch_class, int spellnum, int metamagic,
         int prep_time, int domain);
+    /* add a spell to a character's known spells linked list */
+    void known_spells_add(struct char_data *ch, int ch_class, int spellnum, int metamagic,
+        int prep_time, int domain);
     
     /* load from pfile into ch their spell-preparation queue, example ch login
        belongs normally in players.c, but uhhhh */
@@ -101,6 +121,9 @@ extern "C" {
     /* load from pfile into ch their spell collection, example ch login
        belongs normally in players.c, but uhhhh */
     void load_spell_collection(FILE *fl, struct char_data *ch);
+    /* load from pfile into ch their known spells, example ch login
+       belongs normally in players.c, but uhhhh */
+    void load_known_spells(FILE *fl, struct char_data *ch);
 
     /* given a circle/class, count how many items of this circle in prep queue */
     int count_circle_prep_queue(struct char_data *ch, int class, int circle);
@@ -108,11 +131,13 @@ extern "C" {
     int count_circle_innate_magic(struct char_data *ch, int class, int circle);
     /* given a circle/class, count how many items of this circle in the collection */
     int count_circle_collection(struct char_data *ch, int class, int circle);
+    /* given a circle/class, count how many items of this circle in the collection */
+    int count_circle_known_spells(struct char_data *ch, int class, int circle);
     /* total # of slots consumed by circle X */
     int count_total_slots(struct char_data *ch, int class, int circle);
     
     /* for innate magic-types:  counts how many spells you have of a given circle */
-    int count_known_spells(struct char_data *ch, int circle, int class);
+    int count_known_spells_by_circle(struct char_data *ch, int circle, int class);
 
         /* in: spellnum, class, metamagic, domain(cleric)
      * out: the circle this spell (now) belongs, above num-circles if failed
@@ -177,13 +202,15 @@ extern "C" {
      * since the prep queue does not need any organizing, this should be fairly
      * simple */
     void print_prep_queue(struct char_data *ch, int ch_class);
+    
+    /* in: character, class of the queue you want to work with
+     * traverse the innate magic and print out the details */
+    void print_innate_magic_queue(struct char_data *ch, int ch_class);
+    
     /* our display for our prepared spells aka collection, the level of complexity
        of our output will determine how complex this function is ;p */
     void print_collection(struct char_data *ch, int ch_class);
 
-    /* separate system to display our hack -alicious innate-magic system */
-    void print_innate_magic_display(struct char_data *ch, int class);
-    
     /* display avaialble slots based on what is in the queue/collection, and other
        variables */
     void display_available_slots(struct char_data *ch, int class);
