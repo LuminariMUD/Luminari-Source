@@ -17,7 +17,8 @@ act.item.o: act.item.c conf.h sysdep.h structs.h protocol.h lists.h \
 act.movement.o: act.movement.c conf.h sysdep.h structs.h protocol.h \
  lists.h utils.h comm.h interpreter.h handler.h db.h spells.h house.h \
  constants.h dg_scripts.h act.h fight.h oasis.h help.h spec_procs.h \
- mud_event.h dg_event.h hlquest.h mudlim.h wilderness.h actions.h traps.h
+ mud_event.h dg_event.h hlquest.h mudlim.h wilderness.h actions.h traps.h \
+ spell_prep.h
 act.offensive.o: act.offensive.c conf.h sysdep.h structs.h protocol.h \
  lists.h utils.h comm.h interpreter.h handler.h db.h spells.h act.h \
  fight.h mud_event.h dg_event.h constants.h spec_procs.h class.h mudlim.h \

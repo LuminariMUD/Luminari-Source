@@ -1759,7 +1759,7 @@
 /*
 #define ITEM_SHIP        28  // travel on oceans -> ITEM_BOAT  (22)
 #define ITEM_PET         33  // ?                -> ITEM_OTHER (12)
-*/
+ */
 
 
 /* Item profs: used by obj_data.obj_flags.prof_flag
@@ -1943,7 +1943,7 @@
 #define ITEM_NOBURN        (1 << 25)  // item can not be disintegrated by spells
 #define ITEM_TRANSIENT     (1 << 26)  // item will crumble and fade when dropped
 #define ITEM_AUTOPROC	  (1 << 27)  // item can be called by proc_update()
-*/
+ */
 
 /* Modifier constants used with obj affects ('A' fields) */
 #define APPLY_NONE              0	/**< No effect			*/
@@ -2656,9 +2656,9 @@ typedef unsigned long int bitvector_t;
  * Multiple extra descriptions on the same object are implemented as a
  * linked list. */
 struct extra_descr_data {
-  char *keyword; /**< Keyword for look/examine  */
-  char *description; /**< What is shown when this keyword is 'seen' */
-  struct extra_descr_data *next; /**< Next description for this mob/obj/room */
+    char *keyword; /**< Keyword for look/examine  */
+    char *description; /**< What is shown when this keyword is 'seen' */
+    struct extra_descr_data *next; /**< Next description for this mob/obj/room */
 };
 
 /* object-related structures */
@@ -2675,49 +2675,49 @@ struct extra_descr_data {
 /** object flags used in obj_data. These represent the instance values for
  * a real object, values that can change during gameplay. */
 struct obj_flag_data {
-  int value[NUM_OBJ_VAL_POSITIONS]; /**< Values of the item (see list)    */
-  byte type_flag; /**< Type of item			    */
-  byte prof_flag; // proficiency associated with item
-  int level; /**< Minimum level to use object	    */
-  int wear_flags[TW_ARRAY_MAX]; /**< Where you can wear it, if wearable */
-  int extra_flags[EF_ARRAY_MAX]; /**< If it hums, glows, etc.	    */
-  int weight; /**< Weight of the object */
-  int cost; /**< Value when sold             */
-  int cost_per_day; /**< Rent cost per real day */
-  int timer; /**< Timer for object             */
-  int bitvector[AF_ARRAY_MAX]; /**< Affects characters           */
+    int value[NUM_OBJ_VAL_POSITIONS]; /**< Values of the item (see list)    */
+    byte type_flag; /**< Type of item			    */
+    byte prof_flag; // proficiency associated with item
+    int level; /**< Minimum level to use object	    */
+    int wear_flags[TW_ARRAY_MAX]; /**< Where you can wear it, if wearable */
+    int extra_flags[EF_ARRAY_MAX]; /**< If it hums, glows, etc.	    */
+    int weight; /**< Weight of the object */
+    int cost; /**< Value when sold             */
+    int cost_per_day; /**< Rent cost per real day */
+    int timer; /**< Timer for object             */
+    int bitvector[AF_ARRAY_MAX]; /**< Affects characters           */
 
-  byte material;  // what material is the item made of?
-  int size;  // how big is the object?
+    byte material; // what material is the item made of?
+    int size; // how big is the object?
 
-  int spec_timer[SPEC_TIMER_MAX];   /* For timed procs - from homeland*/
+    int spec_timer[SPEC_TIMER_MAX]; /* For timed procs - from homeland*/
 };
 
 /** Used in obj_file_elem. DO NOT CHANGE if you are using binary object files
  * and already have a player base and don't want to do a player wipe. */
 struct obj_affected_type {
-  byte location; /**< Which ability to change (APPLY_XXX) */
-  sbyte modifier; /**< How much it changes by              */
-  int bonus_type; /**< What type of bonus is this. */
+    byte location; /**< Which ability to change (APPLY_XXX) */
+    sbyte modifier; /**< How much it changes by              */
+    int bonus_type; /**< What type of bonus is this. */
 };
 
 /* For weapon spells. */
 struct weapon_spells {
-  int spellnum;  // spellnum weapon will cast
-  int level;  // level at which it will cast spellnum
-  int percent;  // chance spellnum will fire per round
-  int inCombat;  // will spellnum fire only in combat?
+    int spellnum; // spellnum weapon will cast
+    int level; // level at which it will cast spellnum
+    int percent; // chance spellnum will fire per round
+    int inCombat; // will spellnum fire only in combat?
 };
 
 /* For special abilities for weapons, armor and 'wonderous items' - Ornir */
 struct obj_special_ability {
-  int ability;             /* Which ability does this object have? */
-  int level;               /* The 'Caster Level' of the affect. */
-  int activation_method;   /* Command word, wearing/wielding, Hitting, On Critical, etc. */
-  char* command_word;      /* Only if the activation_method is ACTTYPE_COMMAND_WORD, NULL otherwise. */
-  int value[NUM_SPECAB_VAL_POSITIONS];	/* Values for the special ability, see specab.c/specab.h for a list. */
+    int ability; /* Which ability does this object have? */
+    int level; /* The 'Caster Level' of the affect. */
+    int activation_method; /* Command word, wearing/wielding, Hitting, On Critical, etc. */
+    char* command_word; /* Only if the activation_method is ACTTYPE_COMMAND_WORD, NULL otherwise. */
+    int value[NUM_SPECAB_VAL_POSITIONS]; /* Values for the special ability, see specab.c/specab.h for a list. */
 
-  struct obj_special_ability *next; /* This is a list of abilities. */
+    struct obj_special_ability *next; /* This is a list of abilities. */
 };
 
 // Spellbooks
@@ -2726,74 +2726,74 @@ struct obj_special_ability {
 
 /* the spellbook struct */
 struct obj_spellbook_spell {
-  ush_int spellname; /* Which spell is written */
-  ubyte pages; /* How many pages does it take up */
+    ush_int spellname; /* Which spell is written */
+    ubyte pages; /* How many pages does it take up */
 };
 
 /* for weapons, the poison-data if poison is applied */
 struct obj_weapon_poison {
-  int poison; /* right now this is a spell (i.e. spellnum) */
-  int poison_level; /* level to cast above spell */
-  int poison_hits; /* how many times the poison will fire off the weapon */
+    int poison; /* right now this is a spell (i.e. spellnum) */
+    int poison_level; /* level to cast above spell */
+    int poison_hits; /* how many times the poison will fire off the weapon */
 };
 
 /** The Object structure. */
 struct obj_data {
-  obj_rnum item_number; /**< The unique id of this object instance. */
-  room_rnum in_room; /**< What room is the object lying in, or -1? */
+    obj_rnum item_number; /**< The unique id of this object instance. */
+    room_rnum in_room; /**< What room is the object lying in, or -1? */
 
-  struct obj_flag_data obj_flags; /**< Object information */
-  struct obj_affected_type affected[MAX_OBJ_AFFECT]; /**< affects */
-  struct obj_weapon_poison weapon_poison; /* for weapons, applied poison */
+    struct obj_flag_data obj_flags; /**< Object information */
+    struct obj_affected_type affected[MAX_OBJ_AFFECT]; /**< affects */
+    struct obj_weapon_poison weapon_poison; /* for weapons, applied poison */
 
-  char *name; /**< Keyword reference(s) for object. */
-  char *description; /**< Shown when the object is lying in a room. */
-  char *short_description; /**< Shown when worn, carried, in a container */
-  char *action_description; /**< Displays when (if) the object is used */
-  struct extra_descr_data *ex_description; /**< List of extra descriptions */
-  struct char_data *carried_by; /**< Points to PC/NPC carrying, or NULL */
-  struct char_data *worn_by; /**< Points to PC/NPC wearing, or NULL */
-  sh_int worn_on; /**< If the object can be worn, where can it be worn? */
+    char *name; /**< Keyword reference(s) for object. */
+    char *description; /**< Shown when the object is lying in a room. */
+    char *short_description; /**< Shown when worn, carried, in a container */
+    char *action_description; /**< Displays when (if) the object is used */
+    struct extra_descr_data *ex_description; /**< List of extra descriptions */
+    struct char_data *carried_by; /**< Points to PC/NPC carrying, or NULL */
+    struct char_data *worn_by; /**< Points to PC/NPC wearing, or NULL */
+    sh_int worn_on; /**< If the object can be worn, where can it be worn? */
 
-  struct obj_data *in_obj; /**< Points to carrying object, or NULL */
-  struct obj_data *contains; /**< List of objects being carried, or NULL */
+    struct obj_data *in_obj; /**< Points to carrying object, or NULL */
+    struct obj_data *contains; /**< List of objects being carried, or NULL */
 
-  long id; /**< used by DG triggers - unique id  */
-  struct trig_proto_list *proto_script; /**< list of default triggers  */
-  struct script_data *script; /**< script info for the object */
+    long id; /**< used by DG triggers - unique id  */
+    struct trig_proto_list *proto_script; /**< list of default triggers  */
+    struct script_data *script; /**< script info for the object */
 
-  struct obj_data *next_content; /**< For 'contains' lists   */
-  struct obj_data *next; /**< For the object list */
-  struct char_data *sitting_here; /**< For furniture, who is sitting in it */
+    struct obj_data *next_content; /**< For 'contains' lists   */
+    struct obj_data *next; /**< For the object list */
+    struct char_data *sitting_here; /**< For furniture, who is sitting in it */
 
-  bool has_spells;  // used to keep track if weapon has weapon_spells
-  // weapon spells allow gear to fire off spells intermittently or in combat
-  struct weapon_spells wpn_spells[MAX_WEAPON_SPELLS];
+    bool has_spells; // used to keep track if weapon has weapon_spells
+    // weapon spells allow gear to fire off spells intermittently or in combat
+    struct weapon_spells wpn_spells[MAX_WEAPON_SPELLS];
 
-  struct obj_spellbook_spell *sbinfo; /* For spellbook info */
+    struct obj_spellbook_spell *sbinfo; /* For spellbook info */
 
-  struct list_data *events;      /**< Used for object events */
+    struct list_data *events; /**< Used for object events */
 
-  struct obj_special_ability *special_abilities; /**< List used to store special abilities */
+    struct obj_special_ability *special_abilities; /**< List used to store special abilities */
 
-  long missile_id;  //non saving variable to id missiles
+    long missile_id; //non saving variable to id missiles
 };
 
 /** Instance info for an object that gets saved to disk.
  * DO NOT CHANGE if you are using binary object files
  * and already have a player base and don't want to do a player wipe. */
 struct obj_file_elem {
-  obj_vnum item_number; /**< The prototype, non-unique info for this object. */
+    obj_vnum item_number; /**< The prototype, non-unique info for this object. */
 
 #if USE_AUTOEQ
-  sh_int location; /**< If re-equipping objects on load, wear object here */
+    sh_int location; /**< If re-equipping objects on load, wear object here */
 #endif
-  int value[NUM_OBJ_VAL_POSITIONS]; /**< Current object values */
-  int extra_flags[EF_ARRAY_MAX]; /**< Object extra flags */
-  int weight; /**< Object weight */
-  int timer; /**< Current object timer setting */
-  int bitvector[AF_ARRAY_MAX]; /**< Object affects */
-  struct obj_affected_type affected[MAX_OBJ_AFFECT]; /**< Affects to mobs */
+    int value[NUM_OBJ_VAL_POSITIONS]; /**< Current object values */
+    int extra_flags[EF_ARRAY_MAX]; /**< Object extra flags */
+    int weight; /**< Object weight */
+    int timer; /**< Current object timer setting */
+    int bitvector[AF_ARRAY_MAX]; /**< Object affects */
+    struct obj_affected_type affected[MAX_OBJ_AFFECT]; /**< Affects to mobs */
 };
 
 /** Header block for rent files.
@@ -2805,76 +2805,76 @@ struct obj_file_elem {
  * NOTE: This is *not* used with the ascii playerfiles.
  * NOTE 2: This structure appears to be unused in this codebase? */
 struct rent_info {
-  int time;
-  int rentcode; /**< How this character rented */
-  int net_cost_per_diem; /**< ? Appears to be unused ? */
-  int gold; /**< ? Appears to be unused ? */
-  int account; /**< ? Appears to be unused ? */
-  int nitems; /**< ? Appears to be unused ? */
-  int spare0;
-  int spare1;
-  int spare2;
-  int spare3;
-  int spare4;
-  int spare5;
-  int spare6;
-  int spare7;
+    int time;
+    int rentcode; /**< How this character rented */
+    int net_cost_per_diem; /**< ? Appears to be unused ? */
+    int gold; /**< ? Appears to be unused ? */
+    int account; /**< ? Appears to be unused ? */
+    int nitems; /**< ? Appears to be unused ? */
+    int spare0;
+    int spare1;
+    int spare2;
+    int spare3;
+    int spare4;
+    int spare5;
+    int spare6;
+    int spare7;
 };
 
 /* room-related structures */
 
 /** Direction (north, south, east...) information for rooms. */
 struct room_direction_data {
-  char *general_description; /**< Show to char looking in this direction. */
+    char *general_description; /**< Show to char looking in this direction. */
 
-  char *keyword; /**< for interacting (open/close) this direction */
+    char *keyword; /**< for interacting (open/close) this direction */
 
-  sh_int /*bitvector_t*/ exit_info; /**< Door, and what type? */
-  obj_vnum key; /**< Key's vnum (-1 for no key) */
-  room_rnum to_room; /**< Where direction leads, or NOWHERE if not defined */
+    sh_int /*bitvector_t*/ exit_info; /**< Door, and what type? */
+    obj_vnum key; /**< Key's vnum (-1 for no key) */
+    room_rnum to_room; /**< Where direction leads, or NOWHERE if not defined */
 
-  /* Extra door flags. */
+    /* Extra door flags. */
 };
 
 struct raff_node {
-  room_rnum room; /* location in the world[] array of the room */
-  int timer; /* how many rounds this affection lasts */
-  long affection; /* which affection does this room have */
-  int spell; /* the spell number */
-  struct char_data *ch; // caster of this affection
+    room_rnum room; /* location in the world[] array of the room */
+    int timer; /* how many rounds this affection lasts */
+    long affection; /* which affection does this room have */
+    int spell; /* the spell number */
+    struct char_data *ch; // caster of this affection
 
-  struct raff_node *next; /* link to the next node */
+    struct raff_node *next; /* link to the next node */
 };
 
 /** The Room Structure. */
 struct room_data {
-  room_vnum number; /**< Rooms number (vnum) */
-  zone_rnum zone; /**< Room zone (for resetting) */
-  int coords[2];  /**< Room coordinates (for wilderness) */
-  int sector_type; /**< sector type (move/hide) */
-  int room_flags[RF_ARRAY_MAX]; /**< INDOORS, DARK, etc */
-  long room_affections; /* bitvector for spells/skills */
-  char *name; /**< Room name */
-  char *description; /**< Shown when entered, looked at */
-  struct extra_descr_data *ex_description; /**< Additional things to look at */
-  struct room_direction_data * dir_option[NUM_OF_DIRS]; /**< Directions */
-  byte light; /**< Number of lightsources in room */
-  byte globe; /**< Number of darkness sources in room */
-  SPECIAL(*func); /**< Points to special function attached to room */
-  struct trig_proto_list *proto_script; /**< list of default triggers */
-  struct script_data *script; /**< script info for the room */
-  struct obj_data *contents; /**< List of items in room */
-  struct char_data *people; /**< List of NPCs / PCs in room */
+    room_vnum number; /**< Rooms number (vnum) */
+    zone_rnum zone; /**< Room zone (for resetting) */
+    int coords[2]; /**< Room coordinates (for wilderness) */
+    int sector_type; /**< sector type (move/hide) */
+    int room_flags[RF_ARRAY_MAX]; /**< INDOORS, DARK, etc */
+    long room_affections; /* bitvector for spells/skills */
+    char *name; /**< Room name */
+    char *description; /**< Shown when entered, looked at */
+    struct extra_descr_data *ex_description; /**< Additional things to look at */
+    struct room_direction_data * dir_option[NUM_OF_DIRS]; /**< Directions */
+    byte light; /**< Number of lightsources in room */
+    byte globe; /**< Number of darkness sources in room */
+    SPECIAL(*func); /**< Points to special function attached to room */
+    struct trig_proto_list *proto_script; /**< list of default triggers */
+    struct script_data *script; /**< script info for the room */
+    struct obj_data *contents; /**< List of items in room */
+    struct char_data *people; /**< List of NPCs / PCs in room */
 
-  struct list_data *events;  // room events
+    struct list_data *events; // room events
 };
 
 /* char-related structures */
 
 /** Memory structure used by NPCs to remember specific PCs. */
 struct memory_rec_struct {
-  long id; /**< The PC id to remember. */
-  struct memory_rec_struct *next; /**< Next PC to remember */
+    long id; /**< The PC id to remember. */
+    struct memory_rec_struct *next; /**< Next PC to remember */
 };
 
 /** memory_rec_struct typedef */
@@ -2883,365 +2883,375 @@ typedef struct memory_rec_struct memory_rec;
 /** This structure is purely intended to be an easy way to transfer and return
  * information about time (real or mudwise). */
 struct time_info_data {
-  int hours; /**< numeric hour */
-  int day; /**< numeric day */
-  int month; /**< numeric month */
-  sh_int year; /**< numeric year */
+    int hours; /**< numeric hour */
+    int day; /**< numeric day */
+    int month; /**< numeric month */
+    sh_int year; /**< numeric year */
 };
 
 /** Player specific time information. */
 struct time_data {
-  time_t birth; /**< Represents the PCs birthday, used to calculate age. */
-  time_t logon; /**< Time of the last logon, used to calculate time played */
-  int played; /**< This is the total accumulated time played in secs */
+    time_t birth; /**< Represents the PCs birthday, used to calculate age. */
+    time_t logon; /**< Time of the last logon, used to calculate time played */
+    int played; /**< This is the total accumulated time played in secs */
 };
 
 /* Group Data Struct */
 struct group_data {
-  struct char_data *leader;  // leader of group
-  struct list_data *members;  // list of members
-  int group_flags;  // group flags set
+    struct char_data *leader; // leader of group
+    struct list_data *members; // list of members
+    int group_flags; // group flags set
 };
 
 /** The pclean_criteria_data is set up in config.c and used in db.c to determine
  * the conditions which will cause a player character to be deleted from disk
  * if the automagic pwipe system is enabled (see config.c). */
 struct pclean_criteria_data {
-  int level; /**< PC level and below to check for deletion */
-  int days; /**< time limit in days, for this level of PC */
+    int level; /**< PC level and below to check for deletion */
+    int days; /**< time limit in days, for this level of PC */
 };
 
 /** General info used by PC's and NPC's. */
 struct char_player_data {
-  char passwd[MAX_PWD_LENGTH + 1]; /**< PC's password */
-  char *name; /**< PC / NPC name */
-  char *short_descr; /**< NPC 'actions' */
-  char *long_descr; /**< PC / NPC look description */
-  char *description; /**< NPC Extra descriptions */
-  char *title; /**< PC / NPC title */
-  byte sex; /**< PC / NPC sex */
-  byte chclass; /**< PC / NPC class */
-  byte level; /**< PC / NPC level */
-  struct time_data time; /**< PC AGE in days */
-  ubyte weight; /**< PC / NPC weight */
-  ubyte height; /**< PC / NPC height */
-  byte race; // Race
-  byte pc_subrace; // SubRace
-  char *walkin; // NPC (for now) walkin message
-  char *walkout; // NPC (for now) walkout message
+    char passwd[MAX_PWD_LENGTH + 1]; /**< PC's password */
+    char *name; /**< PC / NPC name */
+    char *short_descr; /**< NPC 'actions' */
+    char *long_descr; /**< PC / NPC look description */
+    char *description; /**< NPC Extra descriptions */
+    char *title; /**< PC / NPC title */
+    byte sex; /**< PC / NPC sex */
+    byte chclass; /**< PC / NPC class */
+    byte level; /**< PC / NPC level */
+    struct time_data time; /**< PC AGE in days */
+    ubyte weight; /**< PC / NPC weight */
+    ubyte height; /**< PC / NPC height */
+    byte race; // Race
+    byte pc_subrace; // SubRace
+    char *walkin; // NPC (for now) walkin message
+    char *walkout; // NPC (for now) walkout message
 };
 
 /** Character abilities. Different instances of this structure are used for
  * both inherent and current ability scores (like when poison affects the
  * player strength). */
 struct char_ability_data {
-  sbyte str;   /**< Strength.  */
-  sbyte intel; /**< Intelligence */
-  sbyte wis;   /**< Wisdom */
-  sbyte dex;   /**< Dexterity */
-  sbyte con;   /**< Constitution */
-  sbyte cha;   /**< Charisma */
-  
-  /*unused*/sbyte str_add; /**< Strength multiplier if str = 18. Usually from 0 to 100 */  
+    sbyte str; /**< Strength.  */
+    sbyte intel; /**< Intelligence */
+    sbyte wis; /**< Wisdom */
+    sbyte dex; /**< Dexterity */
+    sbyte con; /**< Constitution */
+    sbyte cha; /**< Charisma */
+
+    /*unused*/sbyte str_add; /**< Strength multiplier if str = 18. Usually from 0 to 100 */
 };
 #define NUM_ABILITY_MODS 6
 
 /* make sure this matches spells.h define */
 #define NUM_DAM_TYPES  21
+
 /* Character 'points', or health statistics. (we have points and real_points) */
 struct char_point_data {
-  sh_int mana; /**< Current mana level  */
-  sh_int max_mana; /**< Max mana level */
-  sh_int hit; /**< Curent hit point, or health, level */
-  sh_int max_hit; /**< Max hit point, or health, level */
-  sh_int move; /**< Current move point, or stamina, level */
-  sh_int max_move; /**< Max move point, or stamina, level */
-  sh_int armor; // armor class
-  sh_int disguise_armor; /* disguise armor class bonus */
-  sh_int spell_res; // spell resistance
+    sh_int mana; /**< Current mana level  */
+    sh_int max_mana; /**< Max mana level */
+    sh_int hit; /**< Curent hit point, or health, level */
+    sh_int max_hit; /**< Max hit point, or health, level */
+    sh_int move; /**< Current move point, or stamina, level */
+    sh_int max_move; /**< Max move point, or stamina, level */
+    sh_int armor; // armor class
+    sh_int disguise_armor; /* disguise armor class bonus */
+    sh_int spell_res; // spell resistance
 
-  int gold; /**< Current gold carried on character */
-  int bank_gold; /**< Gold the char has in a bank account	*/
-  int exp; /**< The experience points, or value, of the character. */
+    int gold; /**< Current gold carried on character */
+    int bank_gold; /**< Gold the char has in a bank account	*/
+    int exp; /**< The experience points, or value, of the character. */
 
-  sbyte hitroll; /**< Any bonus or penalty to the hit roll */
-  sbyte damroll; /**< Any bonus or penalty to the damage roll */
+    sbyte hitroll; /**< Any bonus or penalty to the hit roll */
+    sbyte damroll; /**< Any bonus or penalty to the damage roll */
 
-  int size; // size
-  sh_int apply_saving_throw[NUM_OF_SAVING_THROWS]; /**< Saving throw (Bonuses) */
-  sh_int resistances[NUM_DAM_TYPES];  // resistances (dam-types)
+    int size; // size
+    sh_int apply_saving_throw[NUM_OF_SAVING_THROWS]; /**< Saving throw (Bonuses) */
+    sh_int resistances[NUM_DAM_TYPES]; // resistances (dam-types)
 
 
-  /* note - if you add something new here, make sure to check
-   handler.c reset_char_points() to see if it needs to be added */
+    /* note - if you add something new here, make sure to check
+     handler.c reset_char_points() to see if it needs to be added */
 };
 #undef NUM_DAM_TYPES
 
 /** char_special_data_saved: specials which both a PC and an NPC have in
  * common, but which must be saved to the players file for PC's. */
 struct char_special_data_saved {
-  int alignment; /**< -1000 (evil) to 1000 (good) range. */
-  long idnum; /**< PC's idnum; -1 for mobiles. */
-  int act[PM_ARRAY_MAX]; /**< act flags for NPC's; player flag for PC's */
-  int affected_by[AF_ARRAY_MAX]; /**< Bitvector for spells/skills affected by */
-  int warding[MAX_WARDING]; //saved warding spells like stoneskin
-  ubyte spec_abil[MAX_CLASSES]; //spec abilities (ex. lay on hands)
+    int alignment; /**< -1000 (evil) to 1000 (good) range. */
+    long idnum; /**< PC's idnum; -1 for mobiles. */
+    int act[PM_ARRAY_MAX]; /**< act flags for NPC's; player flag for PC's */
+    int affected_by[AF_ARRAY_MAX]; /**< Bitvector for spells/skills affected by */
+    int warding[MAX_WARDING]; //saved warding spells like stoneskin
+    ubyte spec_abil[MAX_CLASSES]; //spec abilities (ex. lay on hands)
 
-  struct damage_reduction_type *damage_reduction; /**< Damage Reduction */
+    struct damage_reduction_type *damage_reduction; /**< Damage Reduction */
 
-  /* disguise system port d20mud */
-  ubyte disguise_race;
-  ubyte disguise_sex;
-  ubyte disguise_dsc1;
-  ubyte disguise_dsc2;
-  ubyte disguise_adj1;
-  ubyte disguise_adj2;
-  ubyte disguise_roll;
-  ubyte disguise_seen;
+    /* disguise system port d20mud */
+    ubyte disguise_race;
+    ubyte disguise_sex;
+    ubyte disguise_dsc1;
+    ubyte disguise_dsc2;
+    ubyte disguise_adj1;
+    ubyte disguise_adj2;
+    ubyte disguise_roll;
+    ubyte disguise_seen;
 
-  /* Feat data */
-  int feats[NUM_FEATS];  /* Feats (value is the number of times each feat is taken) */
-  int combat_feats[NUM_CFEATS][FT_ARRAY_MAX];  /* One bitvector array per CFEAT_ type  */
-  int school_feats[NUM_SFEATS];/* One bitvector array per CFEAT_ type  */
+    /* Feat data */
+    int feats[NUM_FEATS]; /* Feats (value is the number of times each feat is taken) */
+    int combat_feats[NUM_CFEATS][FT_ARRAY_MAX]; /* One bitvector array per CFEAT_ type  */
+    int school_feats[NUM_SFEATS]; /* One bitvector array per CFEAT_ type  */
 
 };
 
 /** Special playing constants shared by PCs and NPCs which aren't in pfile */
 struct char_special_data {
-  /* combat related */
-  int initiative; /* What is this char's initiative score? */
-  struct char_data *fighting; /**< Target of fight; else NULL */
-  struct char_data *hunting; /**< Target of NPC hunt; else NULL */
-  int totalDefense; // how many totaldefense attempts left in the round
-  struct char_data *guarding;  //target for 'guard' ability
-  bool firing;  //is char firing missile weapon?
-  int mounted_blocks_left; // how many mounted combat blocks left in the round
-  int deflect_arrows_left; // 
-  
-  /* Mode Data */
-  int mode_value; /* Bonus/penalty for power attack and combat expertise. */
+    /* combat related */
+    int initiative; /* What is this char's initiative score? */
+    struct char_data *fighting; /**< Target of fight; else NULL */
+    struct char_data *hunting; /**< Target of NPC hunt; else NULL */
+    int totalDefense; // how many totaldefense attempts left in the round
+    struct char_data *guarding; //target for 'guard' ability
+    bool firing; //is char firing missile weapon?
+    int mounted_blocks_left; // how many mounted combat blocks left in the round
+    int deflect_arrows_left; // 
 
-  /* Combat related, reset each combat round. We do not use events for these because
-   * the timing needs to be perfect - They should be reset in accordance with the
-   * initiation of auto-attacks in each round. */
-  int attacks_of_opportunity; /* The number of AOO performed this round. */
+    /* Mode Data */
+    int mode_value; /* Bonus/penalty for power attack and combat expertise. */
 
-  /* furniture */
-  struct obj_data *furniture; /**< Object being sat on/in; else NULL */
-  struct char_data *next_in_furniture; /**< Next person sitting, else NULL */
+    /* Combat related, reset each combat round. We do not use events for these because
+     * the timing needs to be perfect - They should be reset in accordance with the
+     * initiation of auto-attacks in each round. */
+    int attacks_of_opportunity; /* The number of AOO performed this round. */
 
-  /* mounts */
-  struct char_data *riding; /* Who are they riding? */
-  struct char_data *ridden_by; /* Who is riding them? */
+    /* furniture */
+    struct obj_data *furniture; /**< Object being sat on/in; else NULL */
+    struct char_data *next_in_furniture; /**< Next person sitting, else NULL */
 
-  /* carrying */
-  int carry_weight; /**< Carried weight */
-  byte carry_items; /**< Number of items carried */
+    /* mounts */
+    struct char_data *riding; /* Who are they riding? */
+    struct char_data *ridden_by; /* Who is riding them? */
 
-  /** casting (time) **/
-  bool isCasting; // casting or not
-  int castingTime; // casting time
-  int castingSpellnum; // spell casting
-  int castingMetamagic; // spell metamagic
-  int castingClass; // spell casting class
-  struct char_data *castingTCH; // target char of spell
-  struct obj_data *castingTOBJ; // target obj of spell
+    /* carrying */
+    int carry_weight; /**< Carried weight */
+    byte carry_items; /**< Number of items carried */
 
-  /** crafting **/
-  ubyte crafting_type; //like SCMD_x
-  ubyte crafting_ticks;  // ticks left to complete task
-  struct obj_data *crafting_object;  // refers to obj crafting (deprecated)
-  ubyte crafting_repeat; // multiple objects created in one session
-  int crafting_bonus; // bonus for crafting the item
+    /** casting (time) **/
+    bool isCasting; // casting or not
+    int castingTime; // casting time
+    int castingSpellnum; // spell casting
+    int castingMetamagic; // spell metamagic
+    int castingClass; // spell casting class
+    struct char_data *castingTCH; // target char of spell
+    struct obj_data *castingTOBJ; // target obj of spell
 
-  /* mob feats (npc's and pc wildshaped) */
-  byte mob_feats[MAX_FEATS];  /* Feats (booleans and counters)  */
+    /** crafting **/
+    ubyte crafting_type; //like SCMD_x
+    ubyte crafting_ticks; // ticks left to complete task
+    struct obj_data *crafting_object; // refers to obj crafting (deprecated)
+    ubyte crafting_repeat; // multiple objects created in one session
+    int crafting_bonus; // bonus for crafting the item
 
-  /* miscellaneous */
-  int is_preparing[NUM_CASTERS]; //memorization 
-  int preparing_state[NUM_CLASSES]; /* spell preparation */
-  byte position; /**< Standing, fighting, sleeping, etc. */
-  int timer; /**< Timer for update */
-  
-  int weather;  /**< The current weather this player is affected by. */
+    /* mob feats (npc's and pc wildshaped) */
+    byte mob_feats[MAX_FEATS]; /* Feats (booleans and counters)  */
 
-  struct queue_type *action_queue; /**< Action command queue */
-  struct queue_type *attack_queue; /**< Attack action queue */
+    /* miscellaneous */
+    int is_preparing[NUM_CASTERS]; //memorization 
+    int preparing_state[NUM_CLASSES]; /* spell preparation */
+    byte position; /**< Standing, fighting, sleeping, etc. */
+    int timer; /**< Timer for update */
 
-  struct char_special_data_saved saved; /**< Constants saved for PCs. */
+    int weather; /**< The current weather this player is affected by. */
 
-  struct char_data *grapple_target; /**< Target of grapple attempt; else NULL */
-  struct char_data *grapple_attacker; /**< Who is grappling me?; else NULL */
+    struct queue_type *action_queue; /**< Action command queue */
+    struct queue_type *attack_queue; /**< Attack action queue */
+
+    struct char_special_data_saved saved; /**< Constants saved for PCs. */
+
+    struct char_data *grapple_target; /**< Target of grapple attempt; else NULL */
+    struct char_data *grapple_attacker; /**< Who is grappling me?; else NULL */
 };
 
 /* old memorization struct */
 struct old_spell_data {
-  int spell;     /* spellnum of this spell in the collection */
-  int metamagic; /* Bitvector of metamagic affecting this spell. */
-  int prep_time; /* time to prepare */
+    int spell; /* spellnum of this spell in the collection */
+    int metamagic; /* Bitvector of metamagic affecting this spell. */
+    int prep_time; /* time to prepare */
 };
 /**/
 
+/***/
 /* spell parapation, collection data */
 struct prep_collection_spell_data {
-  int spell;     /* spellnum of this spell in the collection */
-  int metamagic; /* Bitvector of metamagic affecting this spell. */
-  int prep_time; /* Remaining time for preparing this spell. */
-  int domain;    /* domain info */  
-  
-  struct prep_collection_spell_data *next; /*linked-list*/  
+    int spell; /* spellnum of this spell in the collection */
+    int metamagic; /* Bitvector of metamagic affecting this spell. */
+    int prep_time; /* Remaining time for preparing this spell. */
+    int domain; /* domain info */
+
+    struct prep_collection_spell_data *next; /*linked-list*/
 };
-/**/
+/* innate magic preparation data */
+struct innate_magic_data {
+    int circle; /* circle in the collection */
+    int metamagic; /* Bitvector of metamagic affecting this spell. */
+    int prep_time; /* Remaining time for preparing this spell. */
+    int domain; /* domain info */
+
+    struct innate_magic_data *next; /*linked-list*/
+};
+/***/
 
 /** Data only needed by PCs, and needs to be saved to disk. */
 struct player_special_data_saved {
+    int skills[MAX_SKILLS + 1]; //saved skills
+    ubyte abilities[MAX_ABILITIES + 1]; //abilities
 
-  int skills[MAX_SKILLS + 1]; //saved skills
-  ubyte abilities[MAX_ABILITIES + 1]; //abilities
+    /* Feats */
+    byte feat_points; /* How many general feats you can take  */
+    byte epic_feat_points; /* How many epic feats you can take */
+    byte class_feat_points[NUM_CLASSES]; /* How many class feats you can take  */
+    byte epic_class_feat_points[NUM_CLASSES]; /* How many epic class feats    */
 
-  /* Feats */
-  byte feat_points;                         /* How many general feats you can take  */
-  byte epic_feat_points;                    /* How many epic feats you can take */
-  byte class_feat_points[NUM_CLASSES];      /* How many class feats you can take  */
-  byte epic_class_feat_points[NUM_CLASSES]; /* How many epic class feats    */
+    bool skill_focus[MAX_ABILITIES + 1][NUM_SKFEATS]; /* Data for FEAT_SKILL_FOCUS */
 
-  bool skill_focus[MAX_ABILITIES + 1][NUM_SKFEATS]; /* Data for FEAT_SKILL_FOCUS */
+    ubyte morphed; //polymorphed and form
+    byte class_level[MAX_CLASSES]; //multi class
+    int spells_to_learn; //prac sessions left
+    int abilities_to_learn; //training sessiosn left
+    ubyte boosts; //stat boosts left
+    ubyte favored_enemy[MAX_ENEMIES]; //list of ranger favored enemies
 
-  ubyte morphed; //polymorphed and form
-  byte class_level[MAX_CLASSES]; //multi class
-  int spells_to_learn; //prac sessions left
-  int abilities_to_learn; //training sessiosn left
-  ubyte boosts; //stat boosts left
-  ubyte favored_enemy[MAX_ENEMIES]; //list of ranger favored enemies
-  
-  /* old spell prep system */
-  struct old_spell_data prep_queue[MAX_MEM][NUM_CASTERS];
-  struct old_spell_data collection[MAX_MEM][NUM_CASTERS];
-  
-  /* new system for spell preparation */
-  struct prep_collection_spell_data *preparation_queue[NUM_CLASSES];
-  struct prep_collection_spell_data *spell_collection[NUM_CLASSES];  
-  struct prep_collection_spell_data *innate_magic_queue[NUM_CLASSES];  
-  struct prep_collection_spell_data *known_spells[NUM_CLASSES];  
-  
-  byte church;  // homeland-port, currently unused
+    /* old spell prep system */
+    struct old_spell_data prep_queue[MAX_MEM][NUM_CASTERS];
+    struct old_spell_data collection[MAX_MEM][NUM_CASTERS];
 
-  /* schools / domains */
-  byte domain_1; /* cleric domains */
-  byte domain_2; /* cleric domains */
-  byte specialty_school; /* wizard specialty */
-  byte restricted_school_1; /* restricted school */
-  byte restricted_school_2; /* restricted school */
-  
-  /* preferred caster classs, used for prestige classes such as arcane archer */
-  byte preferred_arcane;
-  byte preferred_divine;
+    /* new system for spell preparation */
+    struct prep_collection_spell_data *preparation_queue[NUM_CLASSES];
+    struct prep_collection_spell_data *spell_collection[NUM_CLASSES];
+    struct innate_magic_data *innate_magic_queue[NUM_CLASSES];
+    struct prep_collection_spell_data *known_spells[NUM_CLASSES];
 
-  int wimp_level; /**< Below this # of hit points, flee! */
-  byte freeze_level; /**< Level of god who froze char, if any */
-  sh_int invis_level; /**< level of invisibility */
-  room_vnum load_room; /**< Which room to load PC into */
-  int pref[PR_ARRAY_MAX]; /**< preference flags */
-  ubyte bad_pws; /**< number of bad login attempts */
-  sbyte conditions[3]; /**< Drunk, hunger, and thirst */
-  struct txt_block *comm_hist[NUM_HIST]; /**< Communication history */
-  ubyte page_length; /**< Max number of rows of text to send at once */
-  ubyte screen_width; /**< How wide the display page is */
-  int olc_zone; /**< Current olc permissions */
+    byte church; // homeland-port, currently unused
 
-  int clanpoints; /**< Clan points may be spent in a clanhall */
-  clan_vnum clan; /**< The clan number to which the player belongs     */
-  int clanrank; /**< The player's rank within their clan (1=highest) */
+    /* schools / domains */
+    byte domain_1; /* cleric domains */
+    byte domain_2; /* cleric domains */
+    byte specialty_school; /* wizard specialty */
+    byte restricted_school_1; /* restricted school */
+    byte restricted_school_2; /* restricted school */
 
-  int questpoints; //quest points earned
-  qst_vnum *completed_quests; /**< Quests completed              */
-  int num_completed_quests; /**< Number completed              */
-  int current_quest; /**< vnum of current quest         */
-  int quest_time; /**< time left on current quest    */
-  int quest_counter; /**< Count of targets left to get  */
+    /* preferred caster classs, used for prestige classes such as arcane archer */
+    byte preferred_arcane;
+    byte preferred_divine;
 
-  /* auto crafting quest */
-  unsigned int autocquest_vnum;  // vnum of crafting quest item
-  char *autocquest_desc;  // description of crafting quest item
-  ubyte autocquest_material;  // material used for crafting quest
-  ubyte autocquest_makenum;  // how many more objects to finish quest
-  ubyte autocquest_qp;  // quest point reward for quest
-  unsigned int autocquest_exp;  // exp reward for quest
-  unsigned int autocquest_gold;  // gold reward for quest
+    int wimp_level; /**< Below this # of hit points, flee! */
+    byte freeze_level; /**< Level of god who froze char, if any */
+    sh_int invis_level; /**< level of invisibility */
+    room_vnum load_room; /**< Which room to load PC into */
+    int pref[PR_ARRAY_MAX]; /**< preference flags */
+    ubyte bad_pws; /**< number of bad login attempts */
+    sbyte conditions[3]; /**< Drunk, hunger, and thirst */
+    struct txt_block *comm_hist[NUM_HIST]; /**< Communication history */
+    ubyte page_length; /**< Max number of rows of text to send at once */
+    ubyte screen_width; /**< How wide the display page is */
+    int olc_zone; /**< Current olc permissions */
 
-  time_t lastmotd; /**< Last time player read motd */
-  time_t lastnews; /**< Last time player read news */
+    int clanpoints; /**< Clan points may be spent in a clanhall */
+    clan_vnum clan; /**< The clan number to which the player belongs     */
+    int clanrank; /**< The player's rank within their clan (1=highest) */
 
-  char *account_name; // The account stored with this character.
+    int questpoints; //quest points earned
+    qst_vnum *completed_quests; /**< Quests completed              */
+    int num_completed_quests; /**< Number completed              */
+    int current_quest; /**< vnum of current quest         */
+    int quest_time; /**< time left on current quest    */
+    int quest_counter; /**< Count of targets left to get  */
 
-  int sorcerer_bloodline_subtype; //if the sorcerer bloodline has a subtype (ie. draconic)
+    /* auto crafting quest */
+    unsigned int autocquest_vnum; // vnum of crafting quest item
+    char *autocquest_desc; // description of crafting quest item
+    ubyte autocquest_material; // material used for crafting quest
+    ubyte autocquest_makenum; // how many more objects to finish quest
+    ubyte autocquest_qp; // quest point reward for quest
+    unsigned int autocquest_exp; // exp reward for quest
+    unsigned int autocquest_gold; // gold reward for quest
+
+    time_t lastmotd; /**< Last time player read motd */
+    time_t lastnews; /**< Last time player read news */
+
+    char *account_name; // The account stored with this character.
+
+    int sorcerer_bloodline_subtype; //if the sorcerer bloodline has a subtype (ie. draconic)
 };
 
 /** Specials needed only by PCs, not NPCs.  Space for this structure is
  * not allocated in memory for NPCs, but it is for PCs and the portion
  * of it labelled 'saved' is saved in the players file. */
 struct player_special_data {
-  struct player_special_data_saved saved; /**< Information to be saved. */
+    struct player_special_data_saved saved; /**< Information to be saved. */
 
-  char *poofin; /**< Description displayed to room on arrival of a god. */
-  char *poofout; /**< Description displayed to room at a god's exit. */
-  struct alias_data *aliases; /**< Command aliases			*/
-  long last_tell; /**< idnum of PC who last told this PC, used to reply */
-  void *last_olc_targ; /**< ? Currently Unused ? */
-  int last_olc_mode; /**< ? Currently Unused ? */
-  char *host; /**< Resolved hostname, or ip, for player. */
-  int diplomacy_wait; /**< Diplomacy Timer */
-  int buildwalk_sector; /**< Default sector type for buildwalk */
+    char *poofin; /**< Description displayed to room on arrival of a god. */
+    char *poofout; /**< Description displayed to room at a god's exit. */
+    struct alias_data *aliases; /**< Command aliases			*/
+    long last_tell; /**< idnum of PC who last told this PC, used to reply */
+    void *last_olc_targ; /**< ? Currently Unused ? */
+    int last_olc_mode; /**< ? Currently Unused ? */
+    char *host; /**< Resolved hostname, or ip, for player. */
+    int diplomacy_wait; /**< Diplomacy Timer */
+    int buildwalk_sector; /**< Default sector type for buildwalk */
 
-  /* salvation spell */
-  room_vnum salvation_room;
-  char *salvation_name;
+    /* salvation spell */
+    room_vnum salvation_room;
+    char *salvation_name;
 
-  /* levelup data structure - Saved data for study process. */
-  struct level_data* levelup;
+    /* levelup data structure - Saved data for study process. */
+    struct level_data* levelup;
 };
 
 /** Special data used by NPCs, not PCs */
 struct mob_special_data {
-  memory_rec *memory; /**< List of PCs to remember */
-  byte attack_type; /**< The primary attack type (bite, sting, hit, etc.) */
-  byte default_pos; /**< Default position (standing, sleeping, etc.) */
-  byte damnodice; /**< The number of dice to roll for damage */
-  byte damsizedice; /**< The size of each die rolled for damage. */
-  float frustration_level; /**< The anger/frustration level of the mob */
-  byte subrace[MAX_SUBRACES]; // SubRace
-  struct quest_entry *quest; // quest info for a mob (homeland-port)
-  room_rnum loadroom;  // mob loadroom saved
-  /* echo system */
-  byte echo_is_zone;    // display the echo to entire zone
-  byte echo_frequency;  // how often to display echo
-  byte echo_sequential; // sequential/random
-  sh_int echo_count;    // how many echos
-  char **echo_entries;  // echo array
-  sh_int current_echo;  // keep track of the current echo, for sequential echos
-  /* path system */
-  int path_index;
-  int path_delay;
-  int path_reset;
-  int path_size;
-  int path[MAX_PATH];
-  /* a (generally) boolean macro that marks whether a proc fired, general use is
-     for zone-procs */
-  int proc_fired;
-  room_rnum temp_room_data;  /* for homeland, for storing temporary room data */
+    memory_rec *memory; /**< List of PCs to remember */
+    byte attack_type; /**< The primary attack type (bite, sting, hit, etc.) */
+    byte default_pos; /**< Default position (standing, sleeping, etc.) */
+    byte damnodice; /**< The number of dice to roll for damage */
+    byte damsizedice; /**< The size of each die rolled for damage. */
+    float frustration_level; /**< The anger/frustration level of the mob */
+    byte subrace[MAX_SUBRACES]; // SubRace
+    struct quest_entry *quest; // quest info for a mob (homeland-port)
+    room_rnum loadroom; // mob loadroom saved
+    /* echo system */
+    byte echo_is_zone; // display the echo to entire zone
+    byte echo_frequency; // how often to display echo
+    byte echo_sequential; // sequential/random
+    sh_int echo_count; // how many echos
+    char **echo_entries; // echo array
+    sh_int current_echo; // keep track of the current echo, for sequential echos
+    /* path system */
+    int path_index;
+    int path_delay;
+    int path_reset;
+    int path_size;
+    int path[MAX_PATH];
+    /* a (generally) boolean macro that marks whether a proc fired, general use is
+       for zone-procs */
+    int proc_fired;
+    room_rnum temp_room_data; /* for homeland, for storing temporary room data */
 };
 
 /** An affect structure. */
 struct affected_type {
-  sh_int spell; /**< The spell that caused this */
-  sh_int duration; /**< For how long its effects will last      */
-  sh_int modifier; /**< Added/subtracted to/from apropriate ability     */
-  byte location; /**< Tells which ability to change(APPLY_XXX). */
-  int bitvector[AF_ARRAY_MAX]; /**< Tells which bits to set (AFF_XXX). */
+    sh_int spell; /**< The spell that caused this */
+    sh_int duration; /**< For how long its effects will last      */
+    sh_int modifier; /**< Added/subtracted to/from apropriate ability     */
+    byte location; /**< Tells which ability to change(APPLY_XXX). */
+    int bitvector[AF_ARRAY_MAX]; /**< Tells which bits to set (AFF_XXX). */
 
-  int bonus_type; /**< What type of bonus (if this is a bonus) is this. */
+    int bonus_type; /**< What type of bonus (if this is a bonus) is this. */
 
-  struct affected_type *next; /**< The next affect in the list of affects. */
+    struct affected_type *next; /**< The next affect in the list of affects. */
 };
 
 /* The Maximum number of types that can be required to bypass DR. */
@@ -3263,185 +3273,185 @@ struct affected_type {
 
 /** A damage reduction structure. */
 struct damage_reduction_type {
-  int duration;   /* The duration of this DR effect. */
-  int amount;     /* The amount of DR. */
-  int max_damage; /* The amount of damage this DR can take before it dissipates.  -1 is perm. */
-  int spell;      /* Spell granting this DR. */
-  int feat;       /* Feat granting this DR. */
+    int duration; /* The duration of this DR effect. */
+    int amount; /* The amount of DR. */
+    int max_damage; /* The amount of damage this DR can take before it dissipates.  -1 is perm. */
+    int spell; /* Spell granting this DR. */
+    int feat; /* Feat granting this DR. */
 
-  /* The following values can be a bit confusing - So a clarification
-   * is in order.
-   *
-   * 'bypass_cat' is an array of integer values (one of the above defines)
-   * 'bypass_val' is an array of integer values that expands upon the category.
-   *
-   * 'bypass_val' only has values for the following categories:
-   *
-   * DR_BYPASS_CAT_MATERIAL - The value is the corresponding material.
-   * DR_BYPASS_CAT_DAMTYPE- The value is the corresponding damage type.
-   *
-   * MAX_DR_BYPASS sets the maximum number of bypasses that can be set
-   * on a particular DR.  For simplicity, bypasses are only 'OR' separated...
-   * meaning that if a dr 10 has two categories, for example magic and spell, it
-   * would be DR 10/(magic or spell)
-   */
-  int bypass_cat[MAX_DR_BYPASS]; /* Category of bypass */
-  int bypass_val[MAX_DR_BYPASS]; /* Value (required for certain categories) */
+    /* The following values can be a bit confusing - So a clarification
+     * is in order.
+     *
+     * 'bypass_cat' is an array of integer values (one of the above defines)
+     * 'bypass_val' is an array of integer values that expands upon the category.
+     *
+     * 'bypass_val' only has values for the following categories:
+     *
+     * DR_BYPASS_CAT_MATERIAL - The value is the corresponding material.
+     * DR_BYPASS_CAT_DAMTYPE- The value is the corresponding damage type.
+     *
+     * MAX_DR_BYPASS sets the maximum number of bypasses that can be set
+     * on a particular DR.  For simplicity, bypasses are only 'OR' separated...
+     * meaning that if a dr 10 has two categories, for example magic and spell, it
+     * would be DR 10/(magic or spell)
+     */
+    int bypass_cat[MAX_DR_BYPASS]; /* Category of bypass */
+    int bypass_val[MAX_DR_BYPASS]; /* Value (required for certain categories) */
 
-  struct damage_reduction_type *next;
+    struct damage_reduction_type *next;
 };
 
 /* Structure for levelup data - Used as a temporary storage area during 'study' command
  * Ascess via the LEVELUP(ch) macro. */
 
 struct level_data {
-  int level;
-  int class;
-  int feats[NUM_FEATS];
-  int combat_feats[NUM_CFEATS][FT_ARRAY_MAX];
-  int school_feats[NUM_SFEATS];
-  int boosts[6];
-  bool skill_focus[MAX_ABILITIES + 1][NUM_SKFEATS]; /* Data for FEAT_SKILL_FOCUS */
+    int level;
+    int class;
+    int feats[NUM_FEATS];
+    int combat_feats[NUM_CFEATS][FT_ARRAY_MAX];
+    int school_feats[NUM_SFEATS];
+    int boosts[6];
+    bool skill_focus[MAX_ABILITIES + 1][NUM_SKFEATS]; /* Data for FEAT_SKILL_FOCUS */
 
-  /* Feat point information */
-  int feat_points;
-  int class_feat_points;
-  int epic_feat_points;
-  int epic_class_feat_points;
+    /* Feat point information */
+    int feat_points;
+    int class_feat_points;
+    int epic_feat_points;
+    int epic_class_feat_points;
 
-  /* Ability, skill, boost information */
-  int practices;
-  int trains;
-  int num_boosts;
+    /* Ability, skill, boost information */
+    int practices;
+    int trains;
+    int num_boosts;
 
-  int spell_circle;
-  int favored_slot;
+    int spell_circle;
+    int favored_slot;
 
-  int feat_type;
-  int tempFeat;
-  int feat_weapons[NUM_FEATS];
-  int feat_skills[NUM_FEATS];
-/*        int spells_known[NUM_SPELLS];*/
-  int spell_slots[10];
+    int feat_type;
+    int tempFeat;
+    int feat_weapons[NUM_FEATS];
+    int feat_skills[NUM_FEATS];
+    /*        int spells_known[NUM_SPELLS];*/
+    int spell_slots[10];
 
-  /* setting stats */
-  int str;
-  int dex;
-  int con;
-  int inte;
-  int wis;
-  int cha;
+    /* setting stats */
+    int str;
+    int dex;
+    int con;
+    int inte;
+    int wis;
+    int cha;
 
-  // Sorcerer Bloodline Subtype
-  int sorcerer_bloodline_subtype;
+    // Sorcerer Bloodline Subtype
+    int sorcerer_bloodline_subtype;
 };
 
 /** The list element that makes up a list of characters following this
  * character. */
 struct follow_type {
-  struct char_data *follower; /**< Character directly following. */
-  struct follow_type *next; /**< Next character following. */
+    struct char_data *follower; /**< Character directly following. */
+    struct follow_type *next; /**< Next character following. */
 };
 
 /** Master structure for PCs and NPCs. */
 struct char_data {
-  int pfilepos; /**< PC playerfile pos and id number */
-  mob_rnum nr; /**< NPC real instance number */
-  int coords[2]; /**< Current coordinate location, used in wilderness. */
-  room_rnum in_room; /**< Current location (real room number) */
-  room_rnum was_in_room; /**< Previous location for linkdead people  */
-  int wait; /**< wait for how many loops before taking action. */
+    int pfilepos; /**< PC playerfile pos and id number */
+    mob_rnum nr; /**< NPC real instance number */
+    int coords[2]; /**< Current coordinate location, used in wilderness. */
+    room_rnum in_room; /**< Current location (real room number) */
+    room_rnum was_in_room; /**< Previous location for linkdead people  */
+    int wait; /**< wait for how many loops before taking action. */
 
-  struct char_player_data player; /**< General PC/NPC data */
-  struct char_ability_data real_abils; /**< Abilities without modifiers */
-  struct char_ability_data aff_abils; /**< Abilities with modifiers */
-  struct char_ability_data disguise_abils; /* wildshape/shapechange/etc bonuses */
-  struct char_point_data points; /**< Point/statistics */
-  struct char_point_data real_points; /**< Point/statistics */
-  struct char_special_data char_specials; /**< PC/NPC specials	  */
-  struct player_special_data *player_specials; /**< PC specials		  */
-  struct mob_special_data mob_specials; /**< NPC specials		  */
+    struct char_player_data player; /**< General PC/NPC data */
+    struct char_ability_data real_abils; /**< Abilities without modifiers */
+    struct char_ability_data aff_abils; /**< Abilities with modifiers */
+    struct char_ability_data disguise_abils; /* wildshape/shapechange/etc bonuses */
+    struct char_point_data points; /**< Point/statistics */
+    struct char_point_data real_points; /**< Point/statistics */
+    struct char_special_data char_specials; /**< PC/NPC specials	  */
+    struct player_special_data *player_specials; /**< PC specials		  */
+    struct mob_special_data mob_specials; /**< NPC specials		  */
 
-  struct affected_type *affected; /**< affected by what spells    */
-  struct obj_data * equipment[NUM_WEARS]; /**< Equipment array            */
+    struct affected_type *affected; /**< affected by what spells    */
+    struct obj_data * equipment[NUM_WEARS]; /**< Equipment array            */
 
-  struct obj_data *carrying; /**< List head for objects in inventory */
-  struct descriptor_data *desc; /**< Descriptor/connection info; NPCs = NULL */
+    struct obj_data *carrying; /**< List head for objects in inventory */
+    struct descriptor_data *desc; /**< Descriptor/connection info; NPCs = NULL */
 
-  long id; /**< used by DG triggers - unique id */
-  struct trig_proto_list *proto_script; /**< list of default triggers */
-  struct script_data *script; /**< script info for the object */
-  struct script_memory *memory; /**< for mob memory triggers */
+    long id; /**< used by DG triggers - unique id */
+    struct trig_proto_list *proto_script; /**< list of default triggers */
+    struct script_data *script; /**< script info for the object */
+    struct script_memory *memory; /**< for mob memory triggers */
 
-  struct char_data *next_in_room; /**< Next PC in the room */
-  struct char_data *next; /**< Next char_data in the room */
-  struct char_data *next_fighting; /**< Next in line to fight */
+    struct char_data *next_in_room; /**< Next PC in the room */
+    struct char_data *next; /**< Next char_data in the room */
+    struct char_data *next_fighting; /**< Next in line to fight */
 
-  struct follow_type *followers; /**< List of characters following */
-  struct char_data *master; /**< List of character being followed */
+    struct follow_type *followers; /**< List of characters following */
+    struct char_data *master; /**< List of character being followed */
 
-  struct group_data *group; /**< Character's Group */
+    struct group_data *group; /**< Character's Group */
 
-  long pref; /**< unique session id */
+    long pref; /**< unique session id */
 
-  struct list_data * events;
+    struct list_data * events;
 
 };
 
 /** descriptor-related structures */
 struct txt_block {
-  char *text; /**< ? */
-  int aliased; /**< ? */
-  struct txt_block *next; /**< ? */
+    char *text; /**< ? */
+    int aliased; /**< ? */
+    struct txt_block *next; /**< ? */
 };
 
 /** ? */
 struct txt_q {
-  struct txt_block *head; /**< ? */
-  struct txt_block *tail; /**< ? */
+    struct txt_block *head; /**< ? */
+    struct txt_block *tail; /**< ? */
 };
 
 /** Master structure players. Holds the real players connection to the mud.
  * An analogy is the char_data is the body of the character, the descriptor_data
  * is the soul. */
 struct descriptor_data {
-  socket_t descriptor; /**< file descriptor for socket */
-  char host[HOST_LENGTH + 1]; /**< hostname */
-  byte bad_pws; /**< number of bad pw attemps this login */
-  byte idle_tics; /**< tics idle at password prompt		*/
-  int connected; /**< mode of 'connectedness'		*/
-  int desc_num; /**< unique num assigned to desc		*/
-  time_t login_time; /**< when the person connected		*/
-  char *showstr_head; /**< for keeping track of an internal str	*/
-  char **showstr_vector; /**< for paging through texts		*/
-  int showstr_count; /**< number of pages to page through	*/
-  int showstr_page; /**< which page are we currently showing?	*/
-  char **str; /**< for the modify-str system		*/
-  char *backstr; /**< backup string for modify-str system	*/
-  size_t max_str; /**< maximum size of string in modify-str	*/
-  long mail_to; /**< name for mail system			*/
-  int has_prompt; /**< is the user at a prompt?             */
-  char inbuf[MAX_RAW_INPUT_LENGTH]; /**< buffer for raw input		*/
-  char last_input[MAX_INPUT_LENGTH]; /**< the last input			*/
-  char small_outbuf[SMALL_BUFSIZE]; /**< standard output buffer		*/
-  char *output; /**< ptr to the current output buffer	*/
-  char **history; /**< History of commands, for ! mostly.	*/
-  int history_pos; /**< Circular array position.		*/
-  int bufptr; /**< ptr to end of current output		*/
-  int bufspace; /**< space left in the output buffer	*/
-  struct txt_block *large_outbuf; /**< ptr to large buffer, if we need it */
-  struct txt_q input; /**< q of unprocessed input		*/
-  struct char_data *character; /**< linked to char			*/
-  struct char_data *original; /**< original char if switched		*/
-  struct descriptor_data *snooping; /**< Who is this char snooping	*/
-  struct descriptor_data *snoop_by; /**< And who is snooping this char	*/
-  struct descriptor_data *next; /**< link to next descriptor		*/
-  struct oasis_olc_data *olc; /**< OLC info */
+    socket_t descriptor; /**< file descriptor for socket */
+    char host[HOST_LENGTH + 1]; /**< hostname */
+    byte bad_pws; /**< number of bad pw attemps this login */
+    byte idle_tics; /**< tics idle at password prompt		*/
+    int connected; /**< mode of 'connectedness'		*/
+    int desc_num; /**< unique num assigned to desc		*/
+    time_t login_time; /**< when the person connected		*/
+    char *showstr_head; /**< for keeping track of an internal str	*/
+    char **showstr_vector; /**< for paging through texts		*/
+    int showstr_count; /**< number of pages to page through	*/
+    int showstr_page; /**< which page are we currently showing?	*/
+    char **str; /**< for the modify-str system		*/
+    char *backstr; /**< backup string for modify-str system	*/
+    size_t max_str; /**< maximum size of string in modify-str	*/
+    long mail_to; /**< name for mail system			*/
+    int has_prompt; /**< is the user at a prompt?             */
+    char inbuf[MAX_RAW_INPUT_LENGTH]; /**< buffer for raw input		*/
+    char last_input[MAX_INPUT_LENGTH]; /**< the last input			*/
+    char small_outbuf[SMALL_BUFSIZE]; /**< standard output buffer		*/
+    char *output; /**< ptr to the current output buffer	*/
+    char **history; /**< History of commands, for ! mostly.	*/
+    int history_pos; /**< Circular array position.		*/
+    int bufptr; /**< ptr to end of current output		*/
+    int bufspace; /**< space left in the output buffer	*/
+    struct txt_block *large_outbuf; /**< ptr to large buffer, if we need it */
+    struct txt_q input; /**< q of unprocessed input		*/
+    struct char_data *character; /**< linked to char			*/
+    struct char_data *original; /**< original char if switched		*/
+    struct descriptor_data *snooping; /**< Who is this char snooping	*/
+    struct descriptor_data *snoop_by; /**< And who is snooping this char	*/
+    struct descriptor_data *next; /**< link to next descriptor		*/
+    struct oasis_olc_data *olc; /**< OLC info */
 
-  protocol_t *pProtocol; /**< Kavir plugin */
-  struct list_data *events;  // event system
+    protocol_t *pProtocol; /**< Kavir plugin */
+    struct list_data *events; // event system
 
-  struct account_data *account; /**< Account system */
+    struct account_data *account; /**< Account system */
 };
 
 /* other miscellaneous structures */
@@ -3449,167 +3459,167 @@ struct descriptor_data {
 /** Fight message display. This structure is used to hold the information to
  * be displayed for every different violent hit type. */
 struct msg_type {
-  char *attacker_msg; /**< Message displayed to attecker. */
-  char *victim_msg; /**< Message displayed to victim. */
-  char *room_msg; /**< Message displayed to rest of players in room. */
+    char *attacker_msg; /**< Message displayed to attecker. */
+    char *victim_msg; /**< Message displayed to victim. */
+    char *room_msg; /**< Message displayed to rest of players in room. */
 };
 
 /** An entire message structure for a type of hit or spell or skill. */
 struct message_type {
-  struct msg_type die_msg; /**< Messages for death strikes. */
-  struct msg_type miss_msg; /**< Messages for missed strikes. */
-  struct msg_type hit_msg; /**< Messages for a succesful strike. */
-  struct msg_type god_msg; /**< Messages when trying to hit a god. */
-  struct message_type *next; /**< Next set of messages. */
+    struct msg_type die_msg; /**< Messages for death strikes. */
+    struct msg_type miss_msg; /**< Messages for missed strikes. */
+    struct msg_type hit_msg; /**< Messages for a succesful strike. */
+    struct msg_type god_msg; /**< Messages when trying to hit a god. */
+    struct message_type *next; /**< Next set of messages. */
 };
 
 /** Head of list of messages for an attack type. */
 struct message_list {
-  int a_type; /**< The id of this attack type. */
-  int number_of_attacks; /**< How many attack messages to chose from. */
-  struct message_type *msg; /**< List of messages.			*/
+    int a_type; /**< The id of this attack type. */
+    int number_of_attacks; /**< How many attack messages to chose from. */
+    struct message_type *msg; /**< List of messages.			*/
 };
 
 /** Social message data structure. */
 struct social_messg {
-  int act_nr; /**< The social id. */
-  char *command; /**< The command to activate (smile, wave, etc.) */
-  char *sort_as; /**< Priority of social sorted by this. */
-  int hide; /**< If true, and target can't see actor, target doesn't see */
-  int min_victim_position; /**< Required Position of victim */
-  int min_char_position; /**< Required Position of char */
-  int min_level_char; /**< Minimum PC level required to use this social. */
+    int act_nr; /**< The social id. */
+    char *command; /**< The command to activate (smile, wave, etc.) */
+    char *sort_as; /**< Priority of social sorted by this. */
+    int hide; /**< If true, and target can't see actor, target doesn't see */
+    int min_victim_position; /**< Required Position of victim */
+    int min_char_position; /**< Required Position of char */
+    int min_level_char; /**< Minimum PC level required to use this social. */
 
-  /* No argument was supplied */
-  char *char_no_arg; /**< Displayed to char when no argument is supplied */
-  char *others_no_arg; /**< Displayed to others when no arg is supplied */
+    /* No argument was supplied */
+    char *char_no_arg; /**< Displayed to char when no argument is supplied */
+    char *others_no_arg; /**< Displayed to others when no arg is supplied */
 
-  /* An argument was there, and a victim was found */
-  char *char_found; /**< Display to char when arg is supplied */
-  char *others_found; /**< Display to others when arg is supplied */
-  char *vict_found; /**< Display to target arg */
+    /* An argument was there, and a victim was found */
+    char *char_found; /**< Display to char when arg is supplied */
+    char *others_found; /**< Display to others when arg is supplied */
+    char *vict_found; /**< Display to target arg */
 
-  /* An argument was there, as well as a body part, and a victim was found */
-  char *char_body_found; /**< Display to actor */
-  char *others_body_found; /**< Display to others */
-  char *vict_body_found; /**< Display to target argument */
+    /* An argument was there, as well as a body part, and a victim was found */
+    char *char_body_found; /**< Display to actor */
+    char *others_body_found; /**< Display to others */
+    char *vict_body_found; /**< Display to target argument */
 
-  /* An argument was there, but no victim was found */
-  char *not_found; /**< Display when no victim is found */
+    /* An argument was there, but no victim was found */
+    char *not_found; /**< Display when no victim is found */
 
-  /* The victim turned out to be the character */
-  char *char_auto; /**< Display when self is supplied */
-  char *others_auto; /**< Display to others when self is supplied */
+    /* The victim turned out to be the character */
+    char *char_auto; /**< Display when self is supplied */
+    char *others_auto; /**< Display to others when self is supplied */
 
-  /* If the char cant be found search the char's inven and do these: */
-  char *char_obj_found; /**< Social performed on object, display to char */
-  char *others_obj_found; /**< Social performed on object, display to others */
+    /* If the char cant be found search the char's inven and do these: */
+    char *char_obj_found; /**< Social performed on object, display to char */
+    char *others_obj_found; /**< Social performed on object, display to others */
 };
 
 /** Describes bonuses, or negatives, applied to thieves skills. In practice
  * this list is tied to the character's dexterity attribute. */
 struct dex_skill_type {
-  sh_int p_pocket; /**< Alters the success rate of pick pockets */
-  sh_int p_locks; /**< Alters the success of pick locks */
-  sh_int traps; /**< Historically alters the success of trap finding. */
-  sh_int sneak; /**< Alters the success of sneaking without being detected */
-  sh_int hide; /**< Alters the success of hiding out of sight */
+    sh_int p_pocket; /**< Alters the success rate of pick pockets */
+    sh_int p_locks; /**< Alters the success of pick locks */
+    sh_int traps; /**< Historically alters the success of trap finding. */
+    sh_int sneak; /**< Alters the success of sneaking without being detected */
+    sh_int hide; /**< Alters the success of hiding out of sight */
 };
 
 /** Describes the bonuses applied for a specific value of a character's
  * strength attribute. */
 struct dex_app_type {
-  sh_int reaction; /**< Historically affects reaction savings throws. */
-  sh_int miss_att; /**< Historically affects missile attacks */
-  sh_int defensive; /**< Alters character's inherent armor class */
+    sh_int reaction; /**< Historically affects reaction savings throws. */
+    sh_int miss_att; /**< Historically affects missile attacks */
+    sh_int defensive; /**< Alters character's inherent armor class */
 };
 
 /** Describes the bonuses applied for a specific value of a character's
  * strength attribute. */
 struct str_app_type {
-  sh_int tohit; /**< To Hit (THAC0) Bonus/Penalty        */
-  sh_int todam; /**< Damage Bonus/Penalty                */
-  sh_int carry_w; /**< Maximum weight that can be carrried */
-  sh_int wield_w; /**< Maximum weight that can be wielded  */
+    sh_int tohit; /**< To Hit (THAC0) Bonus/Penalty        */
+    sh_int todam; /**< Damage Bonus/Penalty                */
+    sh_int carry_w; /**< Maximum weight that can be carrried */
+    sh_int wield_w; /**< Maximum weight that can be wielded  */
 };
 
 /** Describes the bonuses applied for a specific value of a character's
  * wisdom attribute. */
 struct wis_app_type {
-  byte bonus; /**< how many practices player gains per lev */
+    byte bonus; /**< how many practices player gains per lev */
 };
 
 /** Describes the bonuses applied for a specific value of a character's
  * intelligence attribute. */
 struct int_app_type {
-  byte learn; /**< how many % a player learns a spell/skill */
+    byte learn; /**< how many % a player learns a spell/skill */
 };
 
 /** Describes the bonuses applied for a specific value of a
  * character's constitution attribute. */
 struct con_app_type {
-  sh_int hitp; /**< Added to a character's new MAXHP at each new level. */
+    sh_int hitp; /**< Added to a character's new MAXHP at each new level. */
 };
 
 /** Describes the bonuses applied for a specific value of a
  * character's charisma attribute. */
 struct cha_app_type {
-  sh_int cha_bonus; /* charisma bonus */
+    sh_int cha_bonus; /* charisma bonus */
 };
 
 /** Stores, and used to deliver, the current weather information
  * in the mud world. */
 struct weather_data {
-  int pressure; /**< How is the pressure ( Mb )? */
-  int change; /**< How fast and what way does it change? */
-  int sky; /**< How is the sky? */
-  int sunlight; /**< And how much sun? */
+    int pressure; /**< How is the pressure ( Mb )? */
+    int change; /**< How fast and what way does it change? */
+    int sky; /**< How is the sky? */
+    int sunlight; /**< And how much sun? */
 };
 
 /** Element in monster and object index-tables.
  NOTE: Assumes sizeof(mob_vnum) >= sizeof(obj_vnum) */
 struct index_data {
-  mob_vnum vnum; /**< virtual number of this mob/obj   */
-  int number; /**< number of existing units of this mob/obj  */
-  /** Point to any SPECIAL function assoicated with mob/obj.
-   * Note: These are not trigger scripts. They are functions hard coded in
-   * the source code. */
-  SPECIAL(*func);
+    mob_vnum vnum; /**< virtual number of this mob/obj   */
+    int number; /**< number of existing units of this mob/obj  */
+    /** Point to any SPECIAL function assoicated with mob/obj.
+     * Note: These are not trigger scripts. They are functions hard coded in
+     * the source code. */
+    SPECIAL(*func);
 
-  char *farg; /**< String argument for special function. */
-  struct trig_data *proto; /**< Points to the trigger prototype. */
+    char *farg; /**< String argument for special function. */
+    struct trig_data *proto; /**< Points to the trigger prototype. */
 };
 
 /** Master linked list for the mob/object prototype trigger lists. */
 struct trig_proto_list {
-  int vnum; /**< vnum of the trigger   */
-  struct trig_proto_list *next; /**< next trigger          */
+    int vnum; /**< vnum of the trigger   */
+    struct trig_proto_list *next; /**< next trigger          */
 };
 
 struct guild_info_type {
-  int pc_class;
-  room_vnum guild_room;
-  int direction;
+    int pc_class;
+    room_vnum guild_room;
+    int direction;
 };
 
 /** Happy Hour Data */
 struct happyhour {
-  int qp_rate;  // % increase in qp
-  int exp_rate;  // % increase in exp
-  int gold_rate;  // % increase in gold
-  int treasure_rate;  // % increase in treasure drop
-  int ticks_left;  // time left for happyhour
+    int qp_rate; // % increase in qp
+    int exp_rate; // % increase in exp
+    int gold_rate; // % increase in gold
+    int treasure_rate; // % increase in treasure drop
+    int ticks_left; // time left for happyhour
 };
 
 /** structure for list of recent players (see 'recent' command) */
 struct recent_player {
-  int vnum; /* The ID number for this instance */
-  char name[MAX_NAME_LENGTH]; /* The char name of the player     */
-  bool new_player; /* Is this a new player?           */
-  bool copyover_player; /* Is this a player that was on during the last copyover? */
-  time_t time; /* login time                      */
-  char host[HOST_LENGTH + 1]; /* Host IP address                 */
-  struct recent_player *next; /* Pointer to the next instance    */
+    int vnum; /* The ID number for this instance */
+    char name[MAX_NAME_LENGTH]; /* The char name of the player     */
+    bool new_player; /* Is this a new player?           */
+    bool copyover_player; /* Is this a player that was on during the last copyover? */
+    time_t time; /* login time                      */
+    char host[HOST_LENGTH + 1]; /* Host IP address                 */
+    struct recent_player *next; /* Pointer to the next instance    */
 };
 
 /* Config structs */
@@ -3617,84 +3627,84 @@ struct recent_player {
 /** The game configuration structure used for configurating the game play
  * variables. */
 struct game_data {
-  int pk_allowed; /**< Is player killing allowed?    */
-  int pt_allowed; /**< Is player thieving allowed?   */
-  int level_can_shout; /**< Level player must be to shout.   */
-  int holler_move_cost; /**< Cost to holler in move points.    */
-  int tunnel_size; /**< Number of people allowed in a tunnel.*/
-  int max_exp_gain; /**< Maximum experience gainable per kill.*/
-  int max_exp_loss; /**< Maximum experience losable per death.*/
-  int max_npc_corpse_time; /**< Num tics before NPC corpses decompose*/
-  int max_pc_corpse_time; /**< Num tics before PC corpse decomposes.*/
-  int idle_void; /**< Num tics before PC sent to void(idle)*/
-  int idle_rent_time; /**< Num tics before PC is autorented.   */
-  int idle_max_level; /**< Level of players immune to idle.     */
-  int dts_are_dumps; /**< Should items in dt's be junked?   */
-  int load_into_inventory; /**< Objects load in immortals inventory. */
-  int track_through_doors; /**< Track through doors while closed?    */
-  int no_mort_to_immort; /**< Prevent mortals leveling to imms?    */
-  int disp_closed_doors; /**< Display closed doors in autoexit?    */
-  int diagonal_dirs; /**< Are there 6 or 10 directions? */
-  int map_option; /**< MAP_ON, MAP_OFF or MAP_IMM_ONLY      */
-  int map_size; /**< Default size for map command         */
-  int minimap_size; /**< Default size for mini-map (automap)  */
-  int script_players; /**< Is attaching scripts to players allowed? */
-  float min_pop_to_claim; /**< Minimum popularity percentage required to claim a zone */
+    int pk_allowed; /**< Is player killing allowed?    */
+    int pt_allowed; /**< Is player thieving allowed?   */
+    int level_can_shout; /**< Level player must be to shout.   */
+    int holler_move_cost; /**< Cost to holler in move points.    */
+    int tunnel_size; /**< Number of people allowed in a tunnel.*/
+    int max_exp_gain; /**< Maximum experience gainable per kill.*/
+    int max_exp_loss; /**< Maximum experience losable per death.*/
+    int max_npc_corpse_time; /**< Num tics before NPC corpses decompose*/
+    int max_pc_corpse_time; /**< Num tics before PC corpse decomposes.*/
+    int idle_void; /**< Num tics before PC sent to void(idle)*/
+    int idle_rent_time; /**< Num tics before PC is autorented.   */
+    int idle_max_level; /**< Level of players immune to idle.     */
+    int dts_are_dumps; /**< Should items in dt's be junked?   */
+    int load_into_inventory; /**< Objects load in immortals inventory. */
+    int track_through_doors; /**< Track through doors while closed?    */
+    int no_mort_to_immort; /**< Prevent mortals leveling to imms?    */
+    int disp_closed_doors; /**< Display closed doors in autoexit?    */
+    int diagonal_dirs; /**< Are there 6 or 10 directions? */
+    int map_option; /**< MAP_ON, MAP_OFF or MAP_IMM_ONLY      */
+    int map_size; /**< Default size for map command         */
+    int minimap_size; /**< Default size for mini-map (automap)  */
+    int script_players; /**< Is attaching scripts to players allowed? */
+    float min_pop_to_claim; /**< Minimum popularity percentage required to claim a zone */
 
-  char *OK; /**< When player receives 'Okay.' text.    */
-  char *NOPERSON; /**< 'No one by that name here.'   */
-  char *NOEFFECT; /**< 'Nothing seems to happen.'            */
+    char *OK; /**< When player receives 'Okay.' text.    */
+    char *NOPERSON; /**< 'No one by that name here.'   */
+    char *NOEFFECT; /**< 'Nothing seems to happen.'            */
 };
 
 /** The rent and crashsave options. */
 struct crash_save_data {
-  int free_rent; /**< Should the MUD allow rent for free?   */
-  int max_obj_save; /**< Max items players can rent.           */
-  int min_rent_cost; /**< surcharge on top of item costs.       */
-  int auto_save; /**< Does the game automatically save ppl? */
-  int autosave_time; /**< if auto_save=TRUE, how often?         */
-  int crash_file_timeout; /**< Life of crashfiles and idlesaves.     */
-  int rent_file_timeout; /**< Lifetime of normal rent files in days */
+    int free_rent; /**< Should the MUD allow rent for free?   */
+    int max_obj_save; /**< Max items players can rent.           */
+    int min_rent_cost; /**< surcharge on top of item costs.       */
+    int auto_save; /**< Does the game automatically save ppl? */
+    int autosave_time; /**< if auto_save=TRUE, how often?         */
+    int crash_file_timeout; /**< Life of crashfiles and idlesaves.     */
+    int rent_file_timeout; /**< Lifetime of normal rent files in days */
 };
 
 /** Important room numbers. This structure stores vnums, not real array
  * numbers. */
 struct room_numbers {
-  room_vnum mortal_start_room; /**< vnum of room that mortals enter at.  */
-  room_vnum immort_start_room; /**< vnum of room that immorts enter at.  */
-  room_vnum frozen_start_room; /**< vnum of room that frozen ppl enter.  */
-  room_vnum donation_room_1; /**< vnum of donation room #1.            */
-  room_vnum donation_room_2; /**< vnum of donation room #2.            */
-  room_vnum donation_room_3; /**< vnum of donation room #3.            */
+    room_vnum mortal_start_room; /**< vnum of room that mortals enter at.  */
+    room_vnum immort_start_room; /**< vnum of room that immorts enter at.  */
+    room_vnum frozen_start_room; /**< vnum of room that frozen ppl enter.  */
+    room_vnum donation_room_1; /**< vnum of donation room #1.            */
+    room_vnum donation_room_2; /**< vnum of donation room #2.            */
+    room_vnum donation_room_3; /**< vnum of donation room #3.            */
 };
 
 /** Operational game variables. */
 struct game_operation {
-  ush_int DFLT_PORT; /**< The default port to run the game.  */
-  char *DFLT_IP; /**< Bind to all interfaces.     */
-  char *DFLT_DIR; /**< The default directory (lib).    */
-  char *LOGNAME; /**< The file to log messages to.    */
-  int max_playing; /**< Maximum number of players allowed. */
-  int max_filesize; /**< Maximum size of misc files.   */
-  int max_bad_pws; /**< Maximum number of pword attempts.  */
-  int siteok_everyone; /**< Everyone from all sites are SITEOK.*/
-  int nameserver_is_slow; /**< Is the nameserver slow or fast?   */
-  int use_new_socials; /**< Use new or old socials file ?      */
-  int auto_save_olc; /**< Does OLC save to disk right away ? */
-  char *MENU; /**< The MAIN MENU.        */
-  char *WELC_MESSG; /**< The welcome message.      */
-  char *START_MESSG; /**< The start msg for new characters.  */
-  int medit_advanced; /**< Does the medit OLC show the advanced stats menu ? */
-  int ibt_autosave; /**< Does "bug resolve" autosave ? */
-  int protocol_negotiation; /**< Enable the protocol negotiation system ? */
-  int special_in_comm; /**< Enable use of a special character in communication channels ? */
-  int debug_mode; /**< Current Debug Mode */
+    ush_int DFLT_PORT; /**< The default port to run the game.  */
+    char *DFLT_IP; /**< Bind to all interfaces.     */
+    char *DFLT_DIR; /**< The default directory (lib).    */
+    char *LOGNAME; /**< The file to log messages to.    */
+    int max_playing; /**< Maximum number of players allowed. */
+    int max_filesize; /**< Maximum size of misc files.   */
+    int max_bad_pws; /**< Maximum number of pword attempts.  */
+    int siteok_everyone; /**< Everyone from all sites are SITEOK.*/
+    int nameserver_is_slow; /**< Is the nameserver slow or fast?   */
+    int use_new_socials; /**< Use new or old socials file ?      */
+    int auto_save_olc; /**< Does OLC save to disk right away ? */
+    char *MENU; /**< The MAIN MENU.        */
+    char *WELC_MESSG; /**< The welcome message.      */
+    char *START_MESSG; /**< The start msg for new characters.  */
+    int medit_advanced; /**< Does the medit OLC show the advanced stats menu ? */
+    int ibt_autosave; /**< Does "bug resolve" autosave ? */
+    int protocol_negotiation; /**< Enable the protocol negotiation system ? */
+    int special_in_comm; /**< Enable use of a special character in communication channels ? */
+    int debug_mode; /**< Current Debug Mode */
 };
 
 /** The Autowizard options. */
 struct autowiz_data {
-  int use_autowiz; /**< Use the autowiz feature?   */
-  int min_wizlist_lev; /**< Minimun level to show on wizlist.  */
+    int use_autowiz; /**< Use the autowiz feature?   */
+    int min_wizlist_lev; /**< Minimun level to show on wizlist.  */
 };
 
 /**
@@ -3707,18 +3717,18 @@ struct autowiz_data {
  play, the information will be saved to disk.
  */
 struct config_data {
-  /** Path to on-disk file where the config_data structure gets written. */
-  char *CONFFILE;
-  /** In-game specific global settings, such as allowing player killing. */
-  struct game_data play;
-  /** How is renting, crash files, and object saving handled? */
-  struct crash_save_data csd;
-  /** Special designated rooms, like start rooms, and donation rooms. */
-  struct room_numbers room_nums;
-  /** Basic operational settings, like max file sizes and max players. */
-  struct game_operation operation;
-  /** Autowiz specific settings, like turning it on and minimum level */
-  struct autowiz_data autowiz;
+    /** Path to on-disk file where the config_data structure gets written. */
+    char *CONFFILE;
+    /** In-game specific global settings, such as allowing player killing. */
+    struct game_data play;
+    /** How is renting, crash files, and object saving handled? */
+    struct crash_save_data csd;
+    /** Special designated rooms, like start rooms, and donation rooms. */
+    struct room_numbers room_nums;
+    /** Basic operational settings, like max file sizes and max players. */
+    struct game_operation operation;
+    /** Autowiz specific settings, like turning it on and minimum level */
+    struct autowiz_data autowiz;
 };
 
 #ifdef MEMORY_DEBUG
@@ -3727,9 +3737,9 @@ struct config_data {
 
 /* Action types */
 typedef enum {
-  atSTANDARD,
-  atMOVE,
-  atSWIFT
+    atSTANDARD,
+    atMOVE,
+    atSWIFT
 } action_type;
 
 #define NUM_ACTIONS 3
@@ -3747,68 +3757,66 @@ typedef enum {
 /* Account data structure.  Account data is kept in the database,
  * but loaded into this structure while the player is in-game. */
 struct account_data {
-
-        int id;
-        char *name;
-        char password[MAX_PWD_LENGTH+1];
-        sbyte bad_password_count;
-        char *character_names[MAX_CHARS_PER_ACCOUNT];
-        ush_int experience;
-//        ush_int gift_experience;
-//        sbyte level;
-//        int account_flags;
-//        time_t last_login;
-//        sbyte read_rules;
-//        char * websiteAccount;
-//        byte polls[100];
-//        char * web_password;
-        int classes[MAX_UNLOCKED_CLASSES];
-        int races[MAX_UNLOCKED_RACES];
-        char *email;
-//        int surveys[4];
-//        struct obj_data *item_bank;
-//        int item_bank_size;
-//        char *ignored[MAX_CHARS_PER_ACCOUNT];
+    int id;
+    char *name;
+    char password[MAX_PWD_LENGTH + 1];
+    sbyte bad_password_count;
+    char *character_names[MAX_CHARS_PER_ACCOUNT];
+    ush_int experience;
+    //        ush_int gift_experience;
+    //        sbyte level;
+    //        int account_flags;
+    //        time_t last_login;
+    //        sbyte read_rules;
+    //        char * websiteAccount;
+    //        byte polls[100];
+    //        char * web_password;
+    int classes[MAX_UNLOCKED_CLASSES];
+    int races[MAX_UNLOCKED_RACES];
+    char *email;
+    //        int surveys[4];
+    //        struct obj_data *item_bank;
+    //        int item_bank_size;
+    //        char *ignored[MAX_CHARS_PER_ACCOUNT];
 };
 
 /* structs - race data for extension of races */
 struct race_data {
-    
-  /* displaying the race */
-  char *name; /* lower case no-spaces (for like accessing help file) */
-  char *type; /* full capitalized and spaced version */  
-  char *type_color; /* full colored, capitalized and spaced version */
-  char *abbrev; /* 4 letter abbreviation */
-  char *abbrev_color; /* 4 letter abbreviation colored */
-  
-  /* extended race details */
-  char *descrip; /* race description */  
-  char *morph_to_char; /* wildshape message to ch */
-  char *morph_to_room; /* wildshape message to room */
-  
-  /* race assigned values! */
-  ubyte family; /* race's family type (iron golem would be a CONSTRUCT) */
-  byte size; /* default size class for this race */
-  bool is_pc; /* can a PC select this race to play? */
-  ubyte level_adjustment; /* for pc-races: penalty to xp for race due to power */
-  int unlock_cost; /* if locked, cost to unlock in account xp */
-  byte epic_adv; /* normal, advance or epic race (pc)? */
-  
-  /* array assigned values! */
-  sbyte genders[NUM_SEX]; /* this race can be this sex? */
-  byte ability_mods[NUM_ABILITY_MODS]; /* modifications to base stats based on race */
-  sbyte alignments[NUM_ALIGNMENTS]; /* acceptable alignments for this race */
-  byte attack_types[NUM_ATTACK_TYPES]; /* race have this attack type? (when not wielding) */
-  
-  /* linked lists */
-  struct race_feat_assign *featassign_list; /* list of feat assigns */
-  struct affect_assign *affassign_list; /* list of affect assigns */
-  
-  /* these are only ideas for now */
-  
-  /*int body_parts[NUM_WEARS];*/ /* for expansion - to add customized wear slots */
-  /*byte favored_class[NUM_SEX];*/ /* favored class system, not yet implemented */
-  /*ush_int language;*/ /* default language - not used yet */
+    /* displaying the race */
+    char *name; /* lower case no-spaces (for like accessing help file) */
+    char *type; /* full capitalized and spaced version */
+    char *type_color; /* full colored, capitalized and spaced version */
+    char *abbrev; /* 4 letter abbreviation */
+    char *abbrev_color; /* 4 letter abbreviation colored */
+
+    /* extended race details */
+    char *descrip; /* race description */
+    char *morph_to_char; /* wildshape message to ch */
+    char *morph_to_room; /* wildshape message to room */
+
+    /* race assigned values! */
+    ubyte family; /* race's family type (iron golem would be a CONSTRUCT) */
+    byte size; /* default size class for this race */
+    bool is_pc; /* can a PC select this race to play? */
+    ubyte level_adjustment; /* for pc-races: penalty to xp for race due to power */
+    int unlock_cost; /* if locked, cost to unlock in account xp */
+    byte epic_adv; /* normal, advance or epic race (pc)? */
+
+    /* array assigned values! */
+    sbyte genders[NUM_SEX]; /* this race can be this sex? */
+    byte ability_mods[NUM_ABILITY_MODS]; /* modifications to base stats based on race */
+    sbyte alignments[NUM_ALIGNMENTS]; /* acceptable alignments for this race */
+    byte attack_types[NUM_ATTACK_TYPES]; /* race have this attack type? (when not wielding) */
+
+    /* linked lists */
+    struct race_feat_assign *featassign_list; /* list of feat assigns */
+    struct affect_assign *affassign_list; /* list of affect assigns */
+
+    /* these are only ideas for now */
+
+    /*int body_parts[NUM_WEARS];*/ /* for expansion - to add customized wear slots */
+    /*byte favored_class[NUM_SEX];*/ /* favored class system, not yet implemented */
+    /*ush_int language;*/ /* default language - not used yet */
 };
 
 extern struct race_data race_list[];
