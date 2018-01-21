@@ -3122,7 +3122,7 @@ struct player_special_data_saved {
   struct prep_collection_spell_data *preparation_queue[NUM_CLASSES];
   struct prep_collection_spell_data *spell_collection[NUM_CLASSES];  
   struct prep_collection_spell_data *innate_magic_queue[NUM_CLASSES];  
-  int known_spells[MAX_MEM][NUM_CLASSES];
+  struct prep_collection_spell_data *known_spells[NUM_CLASSES];  
   
   byte church;  // homeland-port, currently unused
 
