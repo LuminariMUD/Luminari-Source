@@ -140,12 +140,12 @@ bool spellbook_ok(struct char_data *ch, int spellnum, int class, bool check_scro
   if (IS_DARK(IN_ROOM(ch)) && !CAN_SEE_IN_DARK(ch)) {
     send_to_char(ch, "It is too dark to study!\r\n");
     return FALSE;
-  }  
+  }
   if (AFF_FLAGGED(ch, AFF_BLIND)) {
     send_to_char(ch, "You are blind!\r\n");
     return FALSE;
   }
-  
+
   if (class == CLASS_WIZARD) {
 
     /* for-loop for inventory */
@@ -560,7 +560,7 @@ int comp_slots(struct char_data *ch, int circle, int class) {
   /* they don't even have access to this circle */
   if (getCircle(ch, class) < circle) /*getcircle is max accessible circle in class*/
     return 0;
-  
+
   /* we don't use 0-circle right now */
   if (circle <= 0)
     return 0;
@@ -922,7 +922,7 @@ int numSpells(struct char_data *ch, int circle, int class) {
   /* no 0th circle right now */
   if (circle <= 0)
     return 0;
-  
+
   /* sorc types */
   if (class == CLASS_SORCERER) {
     for (slot = 0; slot < (MAX_MEM); slot++) {
@@ -936,10 +936,10 @@ int numSpells(struct char_data *ch, int circle, int class) {
     }
   } else if (class == CLASS_CLERIC) {
     for (slot = 0; slot < (MAX_MEM); slot++) {
-      if ( spellCircle(class,
-                       PREPARED_SPELLS(ch, slot, classArray(class)).spell,
-                       PREPARED_SPELLS(ch, slot, classArray(class)).metamagic,
-                       GET_1ST_DOMAIN(ch)) == circle )
+      if (spellCircle(class,
+              PREPARED_SPELLS(ch, slot, classArray(class)).spell,
+              PREPARED_SPELLS(ch, slot, classArray(class)).metamagic,
+              GET_1ST_DOMAIN(ch)) == circle)
         num++;
       else if (spellCircle(class, PREPARED_SPELLS(ch, slot, classArray(class)).spell, PREPARED_SPELLS(ch, slot, classArray(class)).metamagic, GET_2ND_DOMAIN(ch)) == circle)
         num++;
@@ -964,7 +964,7 @@ int numSpells(struct char_data *ch, int circle, int class) {
 /* for sorc-types:  counts how many spells you have of a given circle */
 int count_sorc_known(struct char_data *ch, int circle, int class) {
   int num = 0, slot;
-  
+
   /* we don't handle 0th circle */
   if (circle <= 0)
     return 0;
@@ -974,7 +974,7 @@ int count_sorc_known(struct char_data *ch, int circle, int class) {
       if (spellCircle(CLASS_SORCERER,
               PREPARED_SPELLS(ch, slot, classArray(CLASS_SORCERER)).spell,
               PREPARED_SPELLS(ch, slot, classArray(CLASS_SORCERER)).metamagic,
-              DOMAIN_UNDEFINED) == circle && 
+              DOMAIN_UNDEFINED) == circle &&
               !isSorcBloodlineSpell(getSorcBloodline(ch), PREPARED_SPELLS(ch, slot, classArray(CLASS_SORCERER)).spell))
         num++;
     } else if (class == CLASS_BARD) {
@@ -990,50 +990,49 @@ int count_sorc_known(struct char_data *ch, int circle, int class) {
 bool isSorcBloodlineSpell(int bloodline, int spellnum) {
   switch (bloodline) {
     case SORC_BLOODLINE_DRACONIC:
-     switch (spellnum) {
-       case SPELL_MAGE_ARMOR:
-       case SPELL_RESIST_ENERGY:
-       case SPELL_FLY:
-       //case SPELL_FEAR: // Not implemented yet
-       case SPELL_WIZARD_EYE: // replace with fear when imp'd
-       case SPELL_TELEKINESIS:
-       //case SPELL_FORM_OF_THE_DRAGON_I: // Not implemented yet
-       //case SPELL_FORM_OF_THE_DRAGON_II: // Not implemented yet
-       //case SPELL_FORM_OF_THE_DRAGON_III: // Not implemented yet
-       //case SPELL_WISH: // Not implemented yet
-       case SPELL_TRUE_SEEING: // replace with form of dragon i when imp'd
-       case SPELL_WAVES_OF_EXHAUSTION: // replace with form of dragon ii when imp'd
-       case SPELL_MASS_DOMINATION: // replace with form of dragon iii when imp'd
-       case SPELL_POLYMORPH: // replace with wish when imp'd
-         return TRUE;
-     }
-     break;
-     case SORC_BLOODLINE_ARCANE:
+      switch (spellnum) {
+        case SPELL_MAGE_ARMOR:
+        case SPELL_RESIST_ENERGY:
+        case SPELL_FLY:
+          //case SPELL_FEAR: // Not implemented yet
+        case SPELL_WIZARD_EYE: // replace with fear when imp'd
+        case SPELL_TELEKINESIS:
+          //case SPELL_FORM_OF_THE_DRAGON_I: // Not implemented yet
+          //case SPELL_FORM_OF_THE_DRAGON_II: // Not implemented yet
+          //case SPELL_FORM_OF_THE_DRAGON_III: // Not implemented yet
+          //case SPELL_WISH: // Not implemented yet
+        case SPELL_TRUE_SEEING: // replace with form of dragon i when imp'd
+        case SPELL_WAVES_OF_EXHAUSTION: // replace with form of dragon ii when imp'd
+        case SPELL_MASS_DOMINATION: // replace with form of dragon iii when imp'd
+        case SPELL_POLYMORPH: // replace with wish when imp'd
+          return TRUE;
+      }
+      break;
+    case SORC_BLOODLINE_ARCANE:
       switch (spellnum) {
         case SPELL_IDENTIFY:
         case SPELL_INVISIBLE:
         case SPELL_DISPEL_MAGIC:
-        //case SPELL_DIMENSION_DOOR: // Not implemented yet
+          //case SPELL_DIMENSION_DOOR: // Not implemented yet
         case SPELL_MINOR_GLOBE: // replace with dimension door when implemented
         case SPELL_FEEBLEMIND:
         case SPELL_TRUE_SEEING:
         case SPELL_TELEPORT:
         case SPELL_POWER_WORD_STUN:
         case SPELL_TIMESTOP:
-        return TRUE;
+          return TRUE;
       }
-     break;
+      break;
   }
   return FALSE;
 }
 
-int getSorcBloodline(struct char_data *ch)
-{
+int getSorcBloodline(struct char_data *ch) {
   if (HAS_FEAT(ch, FEAT_SORCERER_BLOODLINE_DRACONIC))
     return SORC_BLOODLINE_DRACONIC;
   if (HAS_FEAT(ch, FEAT_SORCERER_BLOODLINE_ARCANE))
     return SORC_BLOODLINE_ARCANE;
-  
+
   return SORC_BLOODLINE_NONE;
 }
 
