@@ -1203,7 +1203,7 @@ bool spell_prep_gen_check(struct char_data *ch, int spellnum, int metamagic) {
 
       /*DEBUG*/
       send_to_char(ch, "class: %d, circle %d, metamagic: %d, prep_time %d, is_domain %d\r\n",
-              class, circle, metamagic, prep_time, is_domain);
+              class, circle_of_this_spell, metamagic, prep_time, is_domain);
       /*DEBUG*/
       return class;
     }
