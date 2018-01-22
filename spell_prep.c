@@ -1161,7 +1161,7 @@ bool spell_prep_gen_extract(struct char_data *ch, int spellnum, int metamagic) {
     is_domain = is_domain_spell_of_ch(ch, spellnum);
     circle = /* computes adjustment to circle via metamagic */
             compute_spells_circle(class, spellnum, metamagic, is_domain);
-    if (is_a_known_spell(ch, spellnum, class) &&
+    if (is_a_known_spell(ch, class, spellnum) &&
             (compute_slots_by_circle(ch, class, circle) -
             count_total_slots(ch, class, circle) > 0)) {      
       
@@ -1203,11 +1203,11 @@ bool spell_prep_gen_check(struct char_data *ch, int spellnum, int metamagic) {
     send_to_char(ch, "class: %d, circle %d, metamagic: %d\r\n",
             class, circle_of_this_spell, metamagic);
     send_to_char(ch, "known? %d, compute_slots_by_circle: %d, count_total_slots %d\r\n",
-            is_a_known_spell(ch, spellnum, class),
+            is_a_known_spell(ch, class, spellnum),
             compute_slots_by_circle(ch, class, circle_of_this_spell),
             count_total_slots(ch, class, circle_of_this_spell));
     /*DEBUG*/
-    if (is_a_known_spell(ch, spellnum, class) &&
+    if (is_a_known_spell(ch, class, spellnum) &&
             (compute_slots_by_circle(ch, class, circle_of_this_spell) -
             count_total_slots(ch, class, circle_of_this_spell) > 0)) {
 
