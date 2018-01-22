@@ -113,7 +113,7 @@ extern "C" {
     void load_spell_prep_queue(FILE *fl, struct char_data *ch);
     /* load from pfile into ch their innate magic queue, example ch login
        belongs normally in players.c, but uhhhh */
-    void load_inate_magic_queue(FILE *fl, struct char_data *ch);
+    void load_innate_magic_queue(FILE *fl, struct char_data *ch);
     /* load from pfile into ch their spell collection, example ch login
        belongs normally in players.c, but uhhhh */
     void load_spell_collection(FILE *fl, struct char_data *ch);
