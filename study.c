@@ -561,23 +561,22 @@ static void sorc_known_spells_disp_menu(struct descriptor_data *d) {
                   mgn,
                   grn, nrm, yel, sorcerer_known[sorc_level][1] -
                   count_known_spells_by_circle(d->character, CLASS_SORCERER, 1),
-                  //count_sorc_known(d->character, 1, CLASS_SORCERER),
                   grn, nrm, yel, sorcerer_known[sorc_level][2] -
-                  count_sorc_known(d->character, 2, CLASS_SORCERER),
+                  count_known_spells_by_circle(d->character, CLASS_SORCERER, 2),
                   grn, nrm, yel, sorcerer_known[sorc_level][3] -
-                  count_sorc_known(d->character, 3, CLASS_SORCERER),
+                  count_known_spells_by_circle(d->character, CLASS_SORCERER, 3),
                   grn, nrm, yel, sorcerer_known[sorc_level][4] -
-                  count_sorc_known(d->character, 4, CLASS_SORCERER),
+                  count_known_spells_by_circle(d->character, CLASS_SORCERER, 4),
                   grn, nrm, yel, sorcerer_known[sorc_level][5] -
-                  count_sorc_known(d->character, 5, CLASS_SORCERER),
+                  count_known_spells_by_circle(d->character, CLASS_SORCERER, 5),
                   grn, nrm, yel, sorcerer_known[sorc_level][6] -
-                  count_sorc_known(d->character, 6, CLASS_SORCERER),
+                  count_known_spells_by_circle(d->character, CLASS_SORCERER, 6),
                   grn, nrm, yel, sorcerer_known[sorc_level][7] -
-                  count_sorc_known(d->character, 7, CLASS_SORCERER),
+                  count_known_spells_by_circle(d->character, CLASS_SORCERER, 7),
                   grn, nrm, yel, sorcerer_known[sorc_level][8] -
-                  count_sorc_known(d->character, 8, CLASS_SORCERER),
+                  count_known_spells_by_circle(d->character, CLASS_SORCERER, 8),
                   grn, nrm, yel, sorcerer_known[sorc_level][9] -
-                  count_sorc_known(d->character, 9, CLASS_SORCERER),
+                  count_known_spells_by_circle(d->character, CLASS_SORCERER, 9),
                   grn, nrm
                   );
 
@@ -601,7 +600,8 @@ void sorc_study_menu(struct descriptor_data *d, int circle) {
                               METAMAGIC_NONE,
                               DOMAIN_UNDEFINED) == circle) {
     //if (spellCircle(CLASS_SORCERER, counter, 0, DOMAIN_UNDEFINED) == circle) {
-      if (sorcKnown(d->character, counter, CLASS_SORCERER))
+      if (is_a_known_spell(d->character, CLASS_SORCERER, counter))
+      //if (sorcKnown(d->character, counter, CLASS_SORCERER))
         write_to_output(d, "%s%2d%s)%s+%-20.20s %s", grn, counter, nrm, mgn,
               spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
       else
@@ -612,7 +612,7 @@ void sorc_study_menu(struct descriptor_data *d, int circle) {
   write_to_output(d, "\r\n");
   write_to_output(d, "%sNumber of slots available:%s %d.\r\n", grn, nrm,
           sorcerer_known[class_level][circle] -
-          count_sorc_known(d->character, circle, CLASS_SORCERER));
+          count_known_spells_by_circle(d->character, CLASS_SORCERER, circle));
   write_to_output(d, "%s+ A plus sign marks your current selection(s).\r\n", nrm);
   write_to_output(d, "%sEnter spell choice, to add or remove "
           "(Q to exit to main menu) : ", nrm);
