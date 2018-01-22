@@ -604,14 +604,14 @@ bool is_spell_in_collection(struct char_data *ch, int class, int spellnum,
 /* in: ch, spellnum, class (should only be bard/sorc so far)
    out: bool, is a known spell or not */
 bool is_a_known_spell(struct char_data *ch, int class, int spellnum) {
-  /*DEBUG*/
+  /*DEBUG*//*
   if (GET_LEVEL(ch) >= LVL_IMMORT) {
     if (class == CLASS_SORCERER || class == CLASS_BARD) {
       send_to_char(ch, "Staff over-ride in is_a_known_spell()\r\n");
       return TRUE;
     }
   }
-  /*DEBUG*/
+  *//*DEBUG*/
   
   switch (class) {
     /* bloodline system for sorcerer */
@@ -1178,10 +1178,6 @@ bool spell_prep_gen_extract(struct char_data *ch, int spellnum, int metamagic) {
       
       /*place circle in innate magic queue*/
       prep_time = compute_spells_prep_time(ch, class, circle, is_domain);
-      /*DEBUG*/
-      send_to_char(ch, "class: %d, circle %d, metamagic: %d, prep_time %d, is_domain %d\r\n",
-              class, circle, metamagic, prep_time, is_domain);
-      /*DEBUG*/
       innate_magic_add(ch, class, circle, metamagic, prep_time, is_domain);
       
       return class;
@@ -1210,14 +1206,6 @@ bool spell_prep_gen_check(struct char_data *ch, int spellnum, int metamagic) {
   for (class = 0; class < NUM_CLASSES; class++) {
     circle_of_this_spell = /* computes adjustment to circle via metamagic */
             compute_spells_circle(class, spellnum, metamagic, DOMAIN_UNDEFINED);
-    /*DEBUG*/
-    send_to_char(ch, "class: %d, circle %d, metamagic: %d\r\n",
-            class, circle_of_this_spell, metamagic);
-    send_to_char(ch, "known? %d, compute_slots_by_circle: %d, count_total_slots %d\r\n",
-            is_a_known_spell(ch, class, spellnum),
-            compute_slots_by_circle(ch, class, circle_of_this_spell),
-            count_total_slots(ch, class, circle_of_this_spell));
-    /*DEBUG*/
     if (is_a_known_spell(ch, class, spellnum) &&
             (compute_slots_by_circle(ch, class, circle_of_this_spell) -
             count_total_slots(ch, class, circle_of_this_spell) > 0)) {
