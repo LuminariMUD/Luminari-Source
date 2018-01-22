@@ -522,7 +522,7 @@ int count_circle_collection(struct char_data *ch, int class, int circle) {
   return counter;
 }
 /* for innate magic-types:  counts how many spells you have of a given circle */
-int count_known_spells_by_circle(struct char_data *ch, int circle, int class) {
+int count_known_spells_by_circle(struct char_data *ch, int class, int circle) {
   int counter = 0;
   struct known_spell_data *current = KNOWN_SPELLS(ch, class);
   struct known_spell_data *next;
