@@ -491,13 +491,13 @@ int count_circle_prep_queue(struct char_data *ch, int class, int circle) {
 }
 /* given a circle/class, count how many items of this circle in innate magic queue */
 int count_circle_innate_magic(struct char_data *ch, int class, int circle) {
-  int this_circle = 0, counter = 0;
+  int counter = 0;
   struct innate_magic_data *current = INNATE_MAGIC(ch, class);
   struct innate_magic_data *next;
 
   for (; current; current = next) {
     next = current->next;
-    if (this_circle == current->circle)
+    if (circle == current->circle)
       counter++;
   }
     
