@@ -1560,11 +1560,9 @@ void reset_preparation_time(struct char_data *ch, int class) {
               compute_spells_prep_time(
               ch,
               class,
-              compute_spells_circle(class,
               INNATE_MAGIC(ch, class)->circle,
-              INNATE_MAGIC(ch, class)->metamagic,
-              INNATE_MAGIC(ch, class)->domain),
-              INNATE_MAGIC(ch, class)->domain);
+              INNATE_MAGIC(ch, class)->domain
+              );
       INNATE_MAGIC(ch, class)->prep_time = preparation_time;
       break;
     default:
