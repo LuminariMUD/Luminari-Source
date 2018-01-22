@@ -593,15 +593,13 @@ void sorc_study_menu(struct descriptor_data *d, int circle) {
   get_char_colors(d->character);
   clear_screen(d);
 
-  /* SPELL PREPARATION HOOK (spellCircle) */
+  /* SPELL PREPARATION HOOK */
   for (counter = 1; counter < NUM_SPELLS; counter++) {
     if (compute_spells_circle(CLASS_SORCERER,
                               counter,
                               METAMAGIC_NONE,
                               DOMAIN_UNDEFINED) == circle) {
-    //if (spellCircle(CLASS_SORCERER, counter, 0, DOMAIN_UNDEFINED) == circle) {
       if (is_a_known_spell(d->character, CLASS_SORCERER, counter))
-      //if (sorcKnown(d->character, counter, CLASS_SORCERER))
         write_to_output(d, "%s%2d%s)%s+%-20.20s %s", grn, counter, nrm, mgn,
               spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
       else
@@ -643,17 +641,17 @@ static void bard_known_spells_disp_menu(struct descriptor_data *d) {
 
           mgn,
           grn, nrm, yel, bard_known[class_level][1] -
-          count_sorc_known(d->character, 1, CLASS_BARD),
+          count_known_spells_by_circle(d->character, CLASS_BARD, 1),
           grn, nrm, yel, bard_known[class_level][2] -
-          count_sorc_known(d->character, 2, CLASS_BARD),
+          count_known_spells_by_circle(d->character, CLASS_BARD, 2),
           grn, nrm, yel, bard_known[class_level][3] -
-          count_sorc_known(d->character, 3, CLASS_BARD),
+          count_known_spells_by_circle(d->character, CLASS_BARD, 3),
           grn, nrm, yel, bard_known[class_level][4] -
-          count_sorc_known(d->character, 4, CLASS_BARD),
+          count_known_spells_by_circle(d->character, CLASS_BARD, 4),
           grn, nrm, yel, bard_known[class_level][5] -
-          count_sorc_known(d->character, 5, CLASS_BARD),
+          count_known_spells_by_circle(d->character, CLASS_BARD, 5),
           grn, nrm, yel, bard_known[class_level][6] -
-          count_sorc_known(d->character, 6, CLASS_BARD),
+          count_known_spells_by_circle(d->character, CLASS_BARD, 6),
           grn, nrm
           );
 
@@ -671,10 +669,13 @@ void bard_study_menu(struct descriptor_data *d, int circle) {
   get_char_colors(d->character);
   clear_screen(d);
 
-  /* SPELL PREPARATION HOOK (spellCircle) */
+  /* SPELL PREPARATION HOOK */
   for (counter = 1; counter < NUM_SPELLS; counter++) {
-    if (spellCircle(CLASS_BARD, counter, 0, DOMAIN_UNDEFINED) == circle) {
-      if (sorcKnown(d->character, counter, CLASS_BARD))
+    if (compute_spells_circle(CLASS_BARD,
+                              counter,
+                              METAMAGIC_NONE,
+                              DOMAIN_UNDEFINED) == circle) {
+      if (is_a_known_spell(d->character, CLASS_BARD, counter))
         write_to_output(d, "%s%2d%s) %s+%-20.20s %s", grn, counter, nrm, mgn,
             spell_info[counter].name,
             !(++columns % 3) ? "\r\n" : "");
@@ -687,7 +688,7 @@ void bard_study_menu(struct descriptor_data *d, int circle) {
   write_to_output(d, "\r\n");
   write_to_output(d, "%sNumber of slots available:%s %d.\r\n", grn, nrm,
           bard_known[class_level][circle] -
-          count_sorc_known(d->character, circle, CLASS_BARD));
+          count_known_spells_by_circle(d->character, CLASS_BARD, circle));
   write_to_output(d, "%s+ A plus sign marks your current selection(s).\r\n"
           "Enter spell choice, to add or remove (Q to exit to main menu) : ", nrm);
 
@@ -1852,7 +1853,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
         default:
           number = atoi(arg);
 
-          /* SPELL PREPARATION HOOK (spellCircle) */
+          /* SPELL PREPARATION HOOK */
           for (counter = 1; counter < NUM_SPELLS; counter++) {
             if (counter == number) {
               if (compute_spells_circle(CLASS_SORCERER,
@@ -1860,13 +1861,9 @@ void study_parse(struct descriptor_data *d, char *arg) {
                                         METAMAGIC_NONE,
                                         DOMAIN_UNDEFINED) ==
                       LEVELUP(d->character)->spell_circle) {
-              //if (spellCircle(CLASS_SORCERER, counter, 0, DOMAIN_UNDEFINED) == LEVELUP(d->character)->spell_circle) {
                 if (is_a_known_spell(d->character, CLASS_SORCERER, counter))
-                //if (sorcKnown(d->character, counter, CLASS_SORCERER))
                   known_spells_remove_by_class(d->character,CLASS_SORCERER, counter, METAMAGIC_NONE);
-                  //sorc_extract_known(d->character, counter, CLASS_SORCERER);
                 else if (!known_spells_add(d->character, CLASS_SORCERER, counter, FALSE))
-                //else if (!sorc_add_known(d->character, counter, CLASS_SORCERER))
                   write_to_output(d, "You are all FULL for spells!\r\n");
               }
             }
@@ -1913,13 +1910,17 @@ void study_parse(struct descriptor_data *d, char *arg) {
         default:
           number = atoi(arg);
 
-          /* SPELL PREPARATION HOOK (spellCircle) */
+          /* SPELL PREPARATION HOOK */
           for (counter = 1; counter < NUM_SPELLS; counter++) {
             if (counter == number) {
-              if (spellCircle(CLASS_BARD, counter, 0, DOMAIN_UNDEFINED) == LEVELUP(d->character)->spell_circle) {
-                if (sorcKnown(d->character, counter, CLASS_BARD))
-                  sorc_extract_known(d->character, counter, CLASS_BARD);
-                else if (!sorc_add_known(d->character, counter, CLASS_BARD))
+              if (compute_spells_circle(CLASS_BARD,
+                                        counter,
+                                        METAMAGIC_NONE,
+                                        DOMAIN_UNDEFINED) ==
+                      LEVELUP(d->character)->spell_circle) {
+                if (is_a_known_spell(d->character, CLASS_BARD, counter))
+                  known_spells_remove_by_class(d->character,CLASS_BARD, counter, METAMAGIC_NONE);
+                else if (!known_spells_add(d->character, CLASS_BARD, counter, FALSE))
                   write_to_output(d, "You are all FULL for spells!\r\n");
               }
             }
