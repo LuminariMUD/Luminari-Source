@@ -1588,6 +1588,7 @@ void reset_preparation_time(struct char_data *ch, int class) {
 
 
 /* START event-related */
+
 /* this will move the spell from the prep-queue to the collection, and if
  * appropriate continue the preparation process - restart the event with
  * the correct prep-time for the next spell in the queue */
@@ -1633,15 +1634,13 @@ EVENTFUNC(event_preparation) {
     return 0;
   }
 
-  SPELL_PREP_QUEUE(ch, class)->prep_time--;
-  INNATE_MAGIC(ch, class)->prep_time--;
-
   switch (class) {
     case CLASS_CLERIC:
     case CLASS_RANGER:
     case CLASS_PALADIN:
     case CLASS_DRUID:
     case CLASS_WIZARD:
+      SPELL_PREP_QUEUE(ch, class)->prep_time--;
       if ((SPELL_PREP_QUEUE(ch, class)->prep_time) <= 0) {
         send_to_char(ch, "You finish %s for %s%s%s.\r\n",
                 spell_prep_dict[class][1],
@@ -1662,6 +1661,7 @@ EVENTFUNC(event_preparation) {
       break;
     case CLASS_BARD:
     case CLASS_SORCERER:
+      INNATE_MAGIC(ch, class)->prep_time--;
       if ((INNATE_MAGIC(ch, class)->prep_time) <= 0) {
         send_to_char(ch, "You finish %s for %s%s%d circle slot.\r\n",
                 spell_prep_dict[class][1],
@@ -1706,7 +1706,7 @@ EVENTFUNC(event_preparation) {
       }
       break;
   }
-  
+
   return 0;
 }
 
