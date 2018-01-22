@@ -385,8 +385,25 @@ void collection_add(struct char_data *ch, int ch_class, int spellnum, int metama
   SPELL_COLLECTION(ch, ch_class) = entry;
 }
 /* add a spell to a character's known spells linked list */
-void known_spells_add(struct char_data *ch, int ch_class, int spellnum, int metamagic,
+bool known_spells_add(struct char_data *ch, int ch_class, int spellnum, int metamagic,
         int prep_time, int domain) {
+  int circle = compute_spells_circle(ch_class, spellnum,
+          METAMAGIC_NONE, DOMAIN_UNDEFINED);
+  int caster_level = CLASS_LEVEL(ch, ch_class) + BONUS_CASTER_LEVEL(ch, ch_class);
+
+  switch (ch_class) {
+    case CLASS_BARD:
+      if (bard_known[caster_level][circle] -
+                  count_known_spells_by_circle(ch, ch_class, circle) <= 0)
+        return FALSE;
+      break;
+    case CLASS_SORCERER:
+      if (sorcerer_known[caster_level][circle] -
+                  count_known_spells_by_circle(ch, ch_class, circle) <= 0)
+        return FALSE;
+      break;
+  }
+  
   struct known_spell_data *entry;
 
   CREATE(entry, struct known_spell_data, 1);
@@ -396,6 +413,8 @@ void known_spells_add(struct char_data *ch, int ch_class, int spellnum, int meta
   entry->domain = domain;
   entry->next = KNOWN_SPELLS(ch, ch_class);
   KNOWN_SPELLS(ch, ch_class) = entry;
+  
+  return TRUE;
 }
 
 /* load from pfile into ch their spell-preparation queue, example ch login */
