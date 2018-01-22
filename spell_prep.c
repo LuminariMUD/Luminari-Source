@@ -1635,11 +1635,24 @@ EVENTFUNC(event_preparation) {
   }
 
   switch (class) {
-    case CLASS_CLERIC:
-    case CLASS_RANGER:
-    case CLASS_PALADIN:
-    case CLASS_DRUID:
-    case CLASS_WIZARD:
+    case CLASS_BARD:
+    case CLASS_SORCERER:
+      INNATE_MAGIC(ch, class)->prep_time--;
+      if ((INNATE_MAGIC(ch, class)->prep_time) <= 0) {
+        send_to_char(ch, "You finish %s for %s%s%d circle slot.\r\n",
+                spell_prep_dict[class][1],
+                (IS_SET(INNATE_MAGIC(ch, class)->metamagic, METAMAGIC_QUICKEN) ? "quickened " : ""),
+                (IS_SET(INNATE_MAGIC(ch, class)->metamagic, METAMAGIC_MAXIMIZE) ? "maximized " : ""),
+                INNATE_MAGIC(ch, class)->circle);
+        innate_magic_remove_by_class(ch, class, INNATE_MAGIC(ch, class)->circle,
+                INNATE_MAGIC(ch, class)->metamagic);
+        if (INNATE_MAGIC(ch, class)) {
+          reset_preparation_time(ch, class);
+          return (1 * PASSES_PER_SEC);
+        }
+      }
+      break;
+    default:
       SPELL_PREP_QUEUE(ch, class)->prep_time--;
       if ((SPELL_PREP_QUEUE(ch, class)->prep_time) <= 0) {
         send_to_char(ch, "You finish %s for %s%s%s.\r\n",
@@ -1659,41 +1672,10 @@ EVENTFUNC(event_preparation) {
         }
       }
       break;
-    case CLASS_BARD:
-    case CLASS_SORCERER:
-      INNATE_MAGIC(ch, class)->prep_time--;
-      if ((INNATE_MAGIC(ch, class)->prep_time) <= 0) {
-        send_to_char(ch, "You finish %s for %s%s%d circle slot.\r\n",
-                spell_prep_dict[class][1],
-                (IS_SET(INNATE_MAGIC(ch, class)->metamagic, METAMAGIC_QUICKEN) ? "quickened " : ""),
-                (IS_SET(INNATE_MAGIC(ch, class)->metamagic, METAMAGIC_MAXIMIZE) ? "maximized " : ""),
-                INNATE_MAGIC(ch, class)->circle);
-        innate_magic_remove_by_class(ch, class, INNATE_MAGIC(ch, class)->circle,
-                INNATE_MAGIC(ch, class)->metamagic);
-        if (INNATE_MAGIC(ch, class)) {
-          reset_preparation_time(ch, class);
-          return (1 * PASSES_PER_SEC);
-        }
-      }
-      break;
+
   }
 
   switch (class) {
-    case CLASS_CLERIC:
-    case CLASS_RANGER:
-    case CLASS_PALADIN:
-    case CLASS_DRUID:
-    case CLASS_WIZARD:
-      if (!SPELL_PREP_QUEUE(ch, class)) {
-        *buf = '\0';
-        send_to_char(ch, "Your %s are complete.\r\n", spell_prep_dict[class][3]);
-        sprintf(buf, "$n completes $s %s.", spell_prep_dict[class][3]);
-        act(buf, FALSE, ch, 0, 0, TO_ROOM);
-        set_preparing_state(ch, class, FALSE);
-        return 0;
-
-      }
-      break;
     case CLASS_BARD:
     case CLASS_SORCERER:
       if (!INNATE_MAGIC(ch, class)) {
@@ -1703,6 +1685,17 @@ EVENTFUNC(event_preparation) {
         act(buf, FALSE, ch, 0, 0, TO_ROOM);
         set_preparing_state(ch, class, FALSE);
         return 0;
+      }
+      break;
+    default:
+      if (!SPELL_PREP_QUEUE(ch, class)) {
+        *buf = '\0';
+        send_to_char(ch, "Your %s are complete.\r\n", spell_prep_dict[class][3]);
+        sprintf(buf, "$n completes $s %s.", spell_prep_dict[class][3]);
+        act(buf, FALSE, ch, 0, 0, TO_ROOM);
+        set_preparing_state(ch, class, FALSE);
+        return 0;
+
       }
       break;
   }
