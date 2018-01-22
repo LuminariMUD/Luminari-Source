@@ -184,7 +184,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "ct", "ct", POS_DEAD, do_clantalk, 1, 0, TRUE, ACTION_NONE, {0, 0}},
   { "create", "create", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}},
   { "checkcraft", "checkcraft", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}},
-  { "compose", "compose", POS_RESTING, do_gen_memorize, 0, SCMD_COMPOSE, FALSE, ACTION_NONE, {0, 0}},
+  { "compose", "compose", POS_RESTING, do_gen_preparation, 0, SCMD_COMPOSE, FALSE, ACTION_NONE, {0, 0}},
   //{ "convert", "covert", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}},
   { "crystalfist", "crystalf", POS_FIGHTING, do_crystalfist, 0, 0, FALSE, ACTION_NONE, {0, 0}},
   { "crystalbody", "crystalb", POS_FIGHTING, do_crystalbody, 0, 0, FALSE, ACTION_NONE, {0, 0}},
@@ -351,7 +351,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "mail", "mail", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}},
   { "map", "map", POS_STANDING, do_map, 1, 0, FALSE, ACTION_NONE, {0, 0}},
   { "medit", "med", POS_DEAD, do_oasis_medit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},
-  { "meditate", "meditate", POS_RESTING, do_gen_memorize, 0, SCMD_MEDITATE, FALSE, ACTION_NONE, {0, 0}},
+  { "meditate", "meditate", POS_RESTING, do_gen_preparation, 0, SCMD_MEDITATE, FALSE, ACTION_NONE, {0, 0}},
   { "mlist", "mlist", POS_DEAD, do_oasis_list, LVL_BUILDER, SCMD_OASIS_MLIST, TRUE, ACTION_NONE, {0, 0}},
   { "mcopy", "mcopy", POS_DEAD, do_oasis_copy, LVL_STAFF, CON_MEDIT, TRUE, ACTION_NONE, {0, 0}},
   { "motd", "motd", POS_DEAD, do_gen_ps, 0, SCMD_MOTD, TRUE, ACTION_NONE, {0, 0}},
@@ -593,7 +593,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "memtest", "memtest", POS_RESTING, do_gen_preparation, LVL_BUILDER, SCMD_MEMORIZE, FALSE, ACTION_NONE, {0, 0}},
   { "fortest", "fortest", POS_RESTING, do_consign_to_oblivion, LVL_BUILDER, SCMD_FORGET, FALSE, ACTION_NONE, {0, 0}},
   { "medtest", "medtest", POS_RESTING, do_gen_preparation, LVL_BUILDER, SCMD_MEDITATE, FALSE, ACTION_NONE, {0, 0}},
-  { "comtest", "comtest", POS_RESTING, do_gen_preparation, 0, SCMD_COMPOSE, FALSE, ACTION_NONE, {0, 0}},
+  { "comtest", "comtest", POS_RESTING, do_gen_preparation, LVL_BUILDER, SCMD_COMPOSE, FALSE, ACTION_NONE, {0, 0}},
 
   { "\n", "zzzzzzz", 0, 0, 0, 0, FALSE, ACTION_NONE, {0, 0}}
 }; /* this must be last */
