@@ -145,7 +145,7 @@ extern "C" {
             int metamagic);
     /* in: ch, spellnum, class (should only be bard/sorc so far)
        out: bool, is a known spell or not */
-    bool is_a_known_spell(struct char_data *ch, int spellnum, int class);
+    bool is_a_known_spell(struct char_data *ch, int class, int spellnum);
 
     /* in: bloodline, spellnum
        out: bool - is this a bloodline spell? */    
