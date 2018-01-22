@@ -2562,13 +2562,10 @@ ACMD(do_follow) {
 int change_position(struct char_data *ch, int new_position) {
   int old_position = GET_POS(ch);
 
-  /* this is really all that is going on here :P */
-  GET_POS(ch) = new_position;
-
   /* we will put some general checks for having your position changed */
 
   /* casting */
-  if (char_has_mud_event(ch, eCASTING) && GET_POS(ch) <= POS_SITTING) {
+  if (char_has_mud_event(ch, eCASTING) && new_position <= POS_SITTING) {
     act("$n's spell is interrupted!", FALSE, ch, 0, 0,
             TO_ROOM);
     send_to_char(ch, "Your spell is aborted!\r\n");
@@ -2576,13 +2573,13 @@ int change_position(struct char_data *ch, int new_position) {
   }
 
   /* preparing spells */
-  if (char_has_mud_event(ch, ePREPARING) && GET_POS(ch) != POS_RESTING) {
+  if (char_has_mud_event(ch, ePREPARING) && new_position != POS_RESTING) {
     act("$n's preparations are aborted!", FALSE, ch, 0, 0,
             TO_ROOM);
     send_to_char(ch, "Your preparations are aborted!\r\n");
     resetMemtimes(ch, -1); /* -1 means reset for all classes */
   }
-  if (char_has_mud_event(ch, ePREPARATION) && GET_POS(ch) != POS_RESTING) {
+  if (char_has_mud_event(ch, ePREPARATION) && new_position != POS_RESTING) {
     act("$n's preparations are aborted!", FALSE, ch, 0, 0,
             TO_ROOM);
     send_to_char(ch, "Your preparations are aborted!\r\n");
@@ -2856,6 +2853,9 @@ int change_position(struct char_data *ch, int new_position) {
       break;
     default:break;
   }
+  
+  /* this is really all that is going on here :P */
+  GET_POS(ch) = new_position;
 
   /* we don't have a significant return value yet */
   if (old_position == new_position)
