@@ -121,7 +121,7 @@ void clear_known_spells_by_class(struct char_data *ch, int ch_class) {
   if (!KNOWN_SPELLS(ch, ch_class))
     return;
   do {
-    struct prep_collection_spell_data *tmp;
+    struct known_spell_data *tmp;
     tmp = KNOWN_SPELLS(ch, ch_class);
     KNOWN_SPELLS(ch, ch_class) = KNOWN_SPELLS(ch, ch_class)->next;
     free(tmp);
@@ -185,8 +185,8 @@ void save_collection_by_class(FILE *fl, struct char_data *ch, int class) {
 }
 /* save into ch pfile their known spells, example ch saving */
 void save_known_spells_by_class(FILE *fl, struct char_data *ch, int class) {
-  struct prep_collection_spell_data *current = KNOWN_SPELLS(ch, class);
-  struct prep_collection_spell_data *next;
+  struct known_spell_data *current = KNOWN_SPELLS(ch, class);
+  struct known_spell_data *next;
   for (; current; current = next) {
     next = current->next;
     fprintf(fl, "%d %d %d %d %d\n", class, current->spell, current->metamagic,
@@ -282,8 +282,8 @@ bool collection_remove_by_class(struct char_data *ch, int class, int spellnum,
    return: true if we found/removed, false if we didn't find */
 bool known_spells_remove_by_class(struct char_data *ch, int class, int spellnum,
         int metamagic) {
-  struct prep_collection_spell_data *current = KNOWN_SPELLS(ch, class);
-  struct prep_collection_spell_data *next;
+  struct known_spell_data *current = KNOWN_SPELLS(ch, class);
+  struct known_spell_data *next;
   
   for (; current; current = next) {
     next = current->next;
@@ -333,9 +333,9 @@ void collection_remove(struct char_data *ch, struct prep_collection_spell_data *
   free(entry);
 }
 /* remove a spell from a character's known spells linked list */
-void known_spells_remove(struct char_data *ch, struct prep_collection_spell_data *entry,
+void known_spells_remove(struct char_data *ch, struct known_spell_data *entry,
         int class) {
-  struct prep_collection_spell_data *temp;
+  struct known_spell_data *temp;
     
   if (KNOWN_SPELLS(ch, class) == NULL) {
     core_dump();
@@ -343,21 +343,6 @@ void known_spells_remove(struct char_data *ch, struct prep_collection_spell_data
   }
   REMOVE_FROM_LIST(entry, KNOWN_SPELLS(ch, class), next);
   free(entry);
-}
-
-/* allocate, assign a node entry */
-struct prep_collection_spell_data *create_prep_coll_entry(int spellnum, int metamagic,
-        int prep_time, int domain) {
-  struct prep_collection_spell_data *entry;
-
-  CREATE(entry, struct prep_collection_spell_data, 1);
-  entry->spell = spellnum;
-  entry->metamagic = metamagic;
-  entry->prep_time = prep_time;
-  entry->domain = domain;
-  entry->next = NULL;
-  
-  return entry;
 }
 
 /* add a spell to a character's prep-queue(in progress) linked list */
@@ -402,9 +387,9 @@ void collection_add(struct char_data *ch, int ch_class, int spellnum, int metama
 /* add a spell to a character's known spells linked list */
 void known_spells_add(struct char_data *ch, int ch_class, int spellnum, int metamagic,
         int prep_time, int domain) {
-  struct prep_collection_spell_data *entry;
+  struct known_spell_data *entry;
 
-  CREATE(entry, struct prep_collection_spell_data, 1);
+  CREATE(entry, struct known_spell_data, 1);
   entry->spell = spellnum;
   entry->metamagic = metamagic;
   entry->prep_time = prep_time;
@@ -536,23 +521,11 @@ int count_circle_collection(struct char_data *ch, int class, int circle) {
   
   return counter;
 }
-/* total # of slots consumed by circle X */
-int count_total_slots(struct char_data *ch, int class, int circle) {
-  return (count_circle_collection(ch, class, circle) +
-          count_circle_innate_magic(ch, class, circle) +
-          count_circle_prep_queue(ch, class, circle));
-}
-
-/* END linked list utility */
-
-
-/* START: innate magic , spells known specific functions */
-
 /* for innate magic-types:  counts how many spells you have of a given circle */
 int count_known_spells_by_circle(struct char_data *ch, int circle, int class) {
   int counter = 0;
-  struct prep_collection_spell_data *current = KNOWN_SPELLS(ch, class);
-  struct prep_collection_spell_data *next;
+  struct known_spell_data *current = KNOWN_SPELLS(ch, class);
+  struct known_spell_data *next;
   
   /* we don't handle 0th circle */
   if (circle <= 0 || circle > TOP_CIRCLE)
@@ -576,12 +549,70 @@ int count_known_spells_by_circle(struct char_data *ch, int circle, int class) {
   
   return counter;
 }
+/* total # of slots consumed by circle X */
+int count_total_slots(struct char_data *ch, int class, int circle) {
+  return (count_circle_collection(ch, class, circle) +
+          count_circle_innate_magic(ch, class, circle) +
+          count_circle_prep_queue(ch, class, circle));
+}
 
+/* in: ch, class, spellnum, metamagic, domain
+ *   search mode allows a general search with ONLY spellnum
+   out: bool - is it in our prep queue? */
+int is_spell_in_prep_queue(struct char_data *ch, int class, int spellnum,
+        int metamagic, int domain, int search_mode) {
+  struct prep_collection_spell_data *current = SPELL_PREP_QUEUE(ch, class);
+  struct prep_collection_spell_data *next;
+  
+  for (; current; current = next) {
+    next = current->next;
+    if (current->spell == spellnum && current->metamagic == metamagic &&
+            current->domain == domain)
+      return TRUE;
+    if (search_mode == SPREP_SEARCH_ALL && current->spell == spellnum)
+      return TRUE;
+  }
+  
+  return FALSE;    
+}
+/* in: ch, class, circle
+   out: bool - is (circle) in our innate magic queue? */
+bool is_in_innate_magic_queue(struct char_data *ch, int class, int circle) {
+  struct innate_magic_data *current = INNATE_MAGIC(ch, class);
+  struct innate_magic_data *next;
+  
+  for (; current; current = next) {
+    next = current->next;
+    if (current->circle == circle)
+      return TRUE;
+  }
+  
+  return FALSE;  
+}
+/* in: ch, class, spellnum, metamagic, domain
+ *   search mode allows a general search with ONLY spellnum
+   out: bool - is it in our collection? */
+bool is_spell_in_collection(struct char_data *ch, int class, int spellnum,
+        int metamagic, int domain, int search_mode) {
+  struct prep_collection_spell_data *current = SPELL_COLLECTION(ch, class);
+  struct prep_collection_spell_data *next;
+  
+  for (; current; current = next) {
+    next = current->next;
+    if (current->spell == spellnum && current->metamagic == metamagic &&
+            current->domain == domain)
+      return TRUE;
+    if (search_mode == SPREP_SEARCH_ALL && current->spell == spellnum)
+      return TRUE;
+  }
+  
+  return FALSE;  
+}
 /* in: ch, spellnum, class (should only be bard/sorc so far)
    out: bool, is a known spell or not */
-bool is_a_known_spell(struct char_data *ch, int spellnum, int class) {
-  struct prep_collection_spell_data *current = KNOWN_SPELLS(ch, class);
-  struct prep_collection_spell_data *next;
+bool is_a_known_spell(struct char_data *ch, int class, int spellnum) {
+  struct known_spell_data *current = KNOWN_SPELLS(ch, class);
+  struct known_spell_data *next;
   
   for (; current; current = next) {
     next = current->next;
@@ -592,8 +623,63 @@ bool is_a_known_spell(struct char_data *ch, int spellnum, int class) {
   return FALSE;
 }
 
+/* END linked list utility */
 
-/* END: innate magic specific functions */
+
+/* START bloodline code */
+
+/* in: bloodline, spellnum
+   out: bool - is this a bloodline spell? */
+bool is_sorc_bloodline_spell(int bloodline, int spellnum) {
+  switch (bloodline) {
+    case SORC_BLOODLINE_DRACONIC:
+      switch (spellnum) {
+        case SPELL_MAGE_ARMOR:
+        case SPELL_RESIST_ENERGY:
+        case SPELL_FLY:
+          //case SPELL_FEAR: // Not implemented yet
+        case SPELL_WIZARD_EYE: // replace with fear when imp'd
+        case SPELL_TELEKINESIS:
+          //case SPELL_FORM_OF_THE_DRAGON_I: // Not implemented yet
+          //case SPELL_FORM_OF_THE_DRAGON_II: // Not implemented yet
+          //case SPELL_FORM_OF_THE_DRAGON_III: // Not implemented yet
+          //case SPELL_WISH: // Not implemented yet
+        case SPELL_TRUE_SEEING: // replace with form of dragon i when imp'd
+        case SPELL_WAVES_OF_EXHAUSTION: // replace with form of dragon ii when imp'd
+        case SPELL_MASS_DOMINATION: // replace with form of dragon iii when imp'd
+        case SPELL_POLYMORPH: // replace with wish when imp'd
+          return TRUE;
+      }
+      break;
+    case SORC_BLOODLINE_ARCANE:
+      switch (spellnum) {
+        case SPELL_IDENTIFY:
+        case SPELL_INVISIBLE:
+        case SPELL_DISPEL_MAGIC:
+          //case SPELL_DIMENSION_DOOR: // Not implemented yet
+        case SPELL_MINOR_GLOBE: // replace with dimension door when implemented
+        case SPELL_FEEBLEMIND:
+        case SPELL_TRUE_SEEING:
+        case SPELL_TELEPORT:
+        case SPELL_POWER_WORD_STUN:
+        case SPELL_TIMESTOP:
+          return TRUE;
+      }
+      break;
+  }
+  return FALSE;
+}
+/* given char, check their bloodline */
+int get_sorc_bloodline(struct char_data *ch) {
+  if (HAS_FEAT(ch, FEAT_SORCERER_BLOODLINE_DRACONIC))
+    return SORC_BLOODLINE_DRACONIC;
+  if (HAS_FEAT(ch, FEAT_SORCERER_BLOODLINE_ARCANE))
+    return SORC_BLOODLINE_ARCANE;
+
+  return SORC_BLOODLINE_NONE;
+}
+
+/* END: bloodline code */
 
 
 /* START helper functions */
@@ -1266,6 +1352,7 @@ void print_prep_collection_data(struct char_data *ch, int class) {
   switch (class) {
     case CLASS_SORCERER:case CLASS_BARD:
       print_innate_magic_queue(ch, class);
+      display_available_slots(ch, class);
       break;
     case CLASS_CLERIC:case CLASS_WIZARD:case CLASS_RANGER:
     case CLASS_DRUID:case CLASS_PALADIN:

@@ -3084,6 +3084,15 @@ struct old_spell_data {
 /**/
 
 /***/
+/* known spells list */
+struct known_spell_data {
+    int spell; /* spellnum of this spell in the collection */
+    int metamagic; /* Bitvector of metamagic affecting this spell. */
+    int prep_time; /* Remaining time for preparing this spell. */
+    int domain; /* domain info */
+
+    struct known_spell_data *next; /*linked-list*/
+};
 /* spell parapation, collection data */
 struct prep_collection_spell_data {
     int spell; /* spellnum of this spell in the collection */
@@ -3132,7 +3141,7 @@ struct player_special_data_saved {
     struct prep_collection_spell_data *preparation_queue[NUM_CLASSES];
     struct prep_collection_spell_data *spell_collection[NUM_CLASSES];
     struct innate_magic_data *innate_magic_queue[NUM_CLASSES];
-    struct prep_collection_spell_data *known_spells[NUM_CLASSES];
+    struct known_spell_data *known_spells[NUM_CLASSES];
 
     byte church; // homeland-port, currently unused
 

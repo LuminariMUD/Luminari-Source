@@ -380,7 +380,7 @@ ACMD(do_scribe) {
 
 /* since the spell array position for classes doesn't correspond
  * with the class values, we need a little conversion
- */
+ */ /*new project note: no equivalent*/
 int classArray(int class) {
   switch (class) {
     case CLASS_CLERIC:
@@ -1391,18 +1391,17 @@ EVENTFUNC(event_preparing) {
 void display_sorc(struct char_data *ch, int class) {
   int circle;
 
-
   if (class == CLASS_SORCERER) {
     send_to_char(ch, "\tCTotal Slots:\r\n");
-    for (circle = 0; circle <= getCircle(ch, CLASS_SORCERER); circle++) {
+    for (circle = 1; circle <= getCircle(ch, CLASS_SORCERER); circle++) {
       send_to_char(ch, "\tM%d:\tm %d  ", circle, comp_slots(ch, circle, CLASS_SORCERER));
     }
     send_to_char(ch, "\r\n\r\n\tCSlots Used:\r\n");
-    for (circle = 0; circle <= getCircle(ch, CLASS_SORCERER); circle++) {
+    for (circle = 1; circle <= getCircle(ch, CLASS_SORCERER); circle++) {
       send_to_char(ch, "\tM%d:\tm %d  ", circle, numSpells(ch, circle, CLASS_SORCERER));
     }
     send_to_char(ch, "\r\n\r\n\tCSlots Left:\r\n");
-    for (circle = 0; circle <= getCircle(ch, CLASS_SORCERER); circle++) {
+    for (circle = 1; circle <= getCircle(ch, CLASS_SORCERER); circle++) {
       send_to_char(ch, "\tM%d:\tm %d  ", circle, comp_slots(ch, circle, CLASS_SORCERER) -
               numSpells(ch, circle, CLASS_SORCERER));
     }
