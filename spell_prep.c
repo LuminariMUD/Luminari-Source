@@ -1199,8 +1199,14 @@ bool spell_prep_gen_check(struct char_data *ch, int spellnum, int metamagic) {
             compute_spells_circle(class, spellnum, metamagic, DOMAIN_UNDEFINED);
     if (is_a_known_spell(ch, spellnum, class) &&
             (compute_slots_by_circle(ch, class, circle_of_this_spell) -
-            count_total_slots(ch, class, circle_of_this_spell) > 0))
+            count_total_slots(ch, class, circle_of_this_spell) > 0)) {
+
+      /*DEBUG*/
+      send_to_char(ch, "class: %d, circle %d, metamagic: %d, prep_time %d, is_domain %d\r\n",
+              class, circle, metamagic, prep_time, is_domain);
+      /*DEBUG*/
       return class;
+    }
   }  
   
   /* FAILED! */
