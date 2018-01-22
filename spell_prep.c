@@ -557,19 +557,15 @@ int count_total_slots(struct char_data *ch, int class, int circle) {
 }
 
 /* in: ch, class, spellnum, metamagic, domain
- *   search mode allows a general search with ONLY spellnum
    out: bool - is it in our prep queue? */
 int is_spell_in_prep_queue(struct char_data *ch, int class, int spellnum,
-        int metamagic, int domain, int search_mode) {
+        int metamagic) {
   struct prep_collection_spell_data *current = SPELL_PREP_QUEUE(ch, class);
   struct prep_collection_spell_data *next;
   
   for (; current; current = next) {
     next = current->next;
-    if (current->spell == spellnum && current->metamagic == metamagic &&
-            current->domain == domain)
-      return TRUE;
-    if (search_mode == SPREP_SEARCH_ALL && current->spell == spellnum)
+    if (current->spell == spellnum && current->metamagic == metamagic)
       return TRUE;
   }
   
@@ -593,16 +589,13 @@ bool is_in_innate_magic_queue(struct char_data *ch, int class, int circle) {
  *   search mode allows a general search with ONLY spellnum
    out: bool - is it in our collection? */
 bool is_spell_in_collection(struct char_data *ch, int class, int spellnum,
-        int metamagic, int domain, int search_mode) {
+        int metamagic) {
   struct prep_collection_spell_data *current = SPELL_COLLECTION(ch, class);
   struct prep_collection_spell_data *next;
   
   for (; current; current = next) {
     next = current->next;
-    if (current->spell == spellnum && current->metamagic == metamagic &&
-            current->domain == domain)
-      return TRUE;
-    if (search_mode == SPREP_SEARCH_ALL && current->spell == spellnum)
+    if (current->spell == spellnum && current->metamagic == metamagic)
       return TRUE;
   }
   
@@ -611,6 +604,22 @@ bool is_spell_in_collection(struct char_data *ch, int class, int spellnum,
 /* in: ch, spellnum, class (should only be bard/sorc so far)
    out: bool, is a known spell or not */
 bool is_a_known_spell(struct char_data *ch, int class, int spellnum) {
+  /*DEBUG*/
+  if (GET_LEVEL(ch) >= LVL_IMPL) {
+    send_to_char(ch, "Forger over-ride in is_a_known_spell()\r\n");
+    return TRUE;
+  }
+  /*DEBUG*/
+  
+  switch (class) {
+    /* bloodline system for sorcerer */
+    case CLASS_SORCERER:
+      if (is_sorc_bloodline_spell(get_sorc_bloodline(ch), spellnum))
+        return TRUE;
+      break;
+    default:break;
+  }
+  
   struct known_spell_data *current = KNOWN_SPELLS(ch, class);
   struct known_spell_data *next;
   
@@ -956,7 +965,7 @@ bool is_min_level_for_spell(struct char_data *ch, int class, int spellnum) {
 /* in: character, respective class to check 
  * out: returns # of total slots based on class-level and stat bonus
      of given circle */
-int compute_slots_by_circle(struct char_data *ch, int circle, int class) {
+int compute_slots_by_circle(struct char_data *ch, int class, int circle) {
   int spell_slots = 0;
   int class_level = CLASS_LEVEL(ch, class);
 
@@ -1115,6 +1124,83 @@ void assign_feat_spell_slots(int ch_class) {
   } /* level counter */
 
   /* all done! */
+}
+
+/* this function is our connection between the casting system and spell preparation
+   system, we are checking -all- our spell prep systems to see if we have the 
+   given spell, if we do:
+     gen prep system: extract from collection and move to prep queue
+     innate magic system:  put the proper circle in innate magic queue
+ * we check general prep system first, THEN innate magic system  */
+bool spell_prep_gen_extract(struct char_data *ch, int spellnum, int metamagic) {
+  int class = CLASS_UNDEFINED, prep_time = 99,
+          circle = TOP_CIRCLE + 1, is_domain = FALSE;
+  
+  /* go through all the classes checking our collection */
+  for (class = 0; class < NUM_CLASSES; class++) {
+    if (is_spell_in_collection(ch, class, spellnum, metamagic)) {
+      
+      /*extract from collection*/
+      if (!collection_remove_by_class(ch, class, spellnum, metamagic))
+        return CLASS_UNDEFINED; /* failed somehow */
+      
+      /*place in queue*/
+      is_domain = is_domain_spell_of_ch(ch, spellnum);
+      circle = compute_spells_circle(class, spellnum, metamagic, is_domain);
+      prep_time = compute_spells_prep_time(ch, class, circle, is_domain);
+      prep_queue_add(ch, class, spellnum, metamagic, prep_time, is_domain);
+      
+      return class;
+    }
+  }
+    
+  /* nothing yet? go through our innate magic system now! */
+  for (class = 0; class < NUM_CLASSES; class++) {
+    is_domain = is_domain_spell_of_ch(ch, spellnum);
+    circle = /* computes adjustment to circle via metamagic */
+            compute_spells_circle(class, spellnum, metamagic, is_domain);
+    if (is_a_known_spell(ch, spellnum, class) &&
+            (compute_slots_by_circle(ch, class, circle) -
+            count_total_slots(ch, class, circle) > 0)) {
+      
+      /*place circle in innate magic queue*/
+      prep_time = compute_spells_prep_time(ch, class, circle, is_domain);
+      innate_magic_add(ch, class, circle, metamagic, prep_time, is_domain);
+      
+      return class;
+    }
+  }  
+  
+  /* FAILED! */
+  return CLASS_UNDEFINED;   
+}
+
+/* this function is our connection between the casting system and spell preparation
+   system, we are checking -all- our spell prep systems to see if we have the 
+   given spell, if we do, returns class, otherwise undefined-class 
+   we are checking our spell-prep system, THEN innate magic system */
+bool spell_prep_gen_check(struct char_data *ch, int spellnum, int metamagic) {
+  int class = 0;
+  
+  /* go through all the classes checking our collection */
+  for (class = 0; class < NUM_CLASSES; class++) {
+    if (is_spell_in_collection(ch, class, spellnum, metamagic))
+      return class;
+  }
+    
+  /* nothing yet? go through our innate magic system now! */
+  int circle_of_this_spell = TOP_CIRCLE + 1;
+  for (class = 0; class < NUM_CLASSES; class++) {
+    circle_of_this_spell = /* computes adjustment to circle via metamagic */
+            compute_spells_circle(class, spellnum, metamagic, DOMAIN_UNDEFINED);
+    if (is_a_known_spell(ch, spellnum, class) &&
+            (compute_slots_by_circle(ch, class, circle_of_this_spell) -
+            count_total_slots(ch, class, circle_of_this_spell) > 0))
+      return class;
+  }  
+  
+  /* FAILED! */
+  return CLASS_UNDEFINED; 
 }
 
 /* in: character, class of the queue you want to work with
@@ -1310,7 +1396,7 @@ void display_available_slots(struct char_data *ch, int class) {
   for (slot = 0; slot <= highest_circle; slot++) {
     found_slot = FALSE;
 
-    if ((slot_array[slot] = compute_slots_by_circle(ch, slot, class) -
+    if ((slot_array[slot] = compute_slots_by_circle(ch, class, slot) -
             count_total_slots(ch, class, slot)) > 0)
       found_slot = TRUE;
 
@@ -1867,7 +1953,7 @@ ACMD(do_gen_preparation) {
       MIN( compute_spells_circle(class, spellnum, metamagic, domain_1st), 
            compute_spells_circle(class, spellnum, metamagic, domain_2nd) );
   
-  num_slots_by_circle = compute_slots_by_circle(ch, circle_for_spell, class);
+  num_slots_by_circle = compute_slots_by_circle(ch, class, circle_for_spell);
   
   if (num_slots_by_circle <= 0) {
     send_to_char(ch, "You have no slots available in that circle!\r\n");
