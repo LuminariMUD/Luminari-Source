@@ -410,7 +410,9 @@ int load_char(const char *name, struct char_data *ch) {
     LEVELUP(ch) = NULL;
     GET_DR(ch) = NULL;
     init_spell_prep_queue(ch);
+    init_innate_magic_queue(ch);
     init_collection_queue(ch);
+    init_known_spells(ch);
     GET_DIPTIMER(ch) = PFDEF_DIPTIMER;
     GET_CLAN(ch) = PFDEF_CLAN;
     GET_CLANRANK(ch) = PFDEF_CLANRANK;
@@ -557,8 +559,13 @@ int load_char(const char *name, struct char_data *ch) {
 
         case 'I':
           if (!strcmp(tag, "Id  ")) GET_IDNUM(ch) = atol(line);
+          else if (!strcmp(tag, "InMa")) load_inate_magic_queue(fl, ch);
           else if (!strcmp(tag, "Int ")) GET_REAL_INT(ch) = atoi(line);
           else if (!strcmp(tag, "Invs")) GET_INVIS_LEV(ch) = atoi(line);
+          break;
+          
+        case 'K':
+          if (!strcmp(tag, "KnSp")) load_known_spells(fl, ch);
           break;
 
         case 'L':
@@ -1083,7 +1090,9 @@ void save_char(struct char_data * ch, int mode) {
   
   /* spell prep system */
   save_spell_prep_queue(fl, ch);
+  save_innate_magic_queue(fl, ch);
   save_spell_collection(fl, ch);
+  save_known_spells(fl, ch);
   /* end spell prep system */
 
   // Save memorizing list of prayers, prayed list and times
