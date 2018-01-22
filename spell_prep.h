@@ -92,12 +92,8 @@ extern "C" {
     void collection_remove(struct char_data *ch, struct prep_collection_spell_data *entry,
         int class);
     /* remove a spell from known spells linked list */
-    void known_spells_remove(struct char_data *ch, struct prep_collection_spell_data *entry,
+    void known_spells_remove(struct char_data *ch, struct known_spell_data *entry,
         int class);
-
-    /* allocate, assign a node entry */
-    struct prep_collection_spell_data *create_prep_coll_entry(int spellnum, int metamagic,
-        int prep_time, int domain);
 
     /* add a spell to a character's prep-queue(in progress) linked list */
     void prep_queue_add(struct char_data *ch, int ch_class, int spellnum, int metamagic,
@@ -131,15 +127,35 @@ extern "C" {
     int count_circle_innate_magic(struct char_data *ch, int class, int circle);
     /* given a circle/class, count how many items of this circle in the collection */
     int count_circle_collection(struct char_data *ch, int class, int circle);
-    /* given a circle/class, count how many items of this circle in the collection */
-    int count_circle_known_spells(struct char_data *ch, int class, int circle);
+    /* for innate magic-types:  counts how many spells you have of a given circle */
+    int count_known_spells_by_circle(struct char_data *ch, int circle, int class);
     /* total # of slots consumed by circle X */
     int count_total_slots(struct char_data *ch, int class, int circle);
     
-    /* for innate magic-types:  counts how many spells you have of a given circle */
-    int count_known_spells_by_circle(struct char_data *ch, int circle, int class);
+    /* in: ch, class, spellnum, metamagic, domain
+     *   search mode allows a general search with ONLY spellnum
+       out: bool - is it in our prep queue? */
+    int is_spell_in_prep_queue(struct char_data *ch, int class, int spellnum,
+            int metamagic, int domain, int search_mode);
+    /* in: ch, class, circle
+       out: bool - is (circle) in our innate magic queue? */
+    bool is_in_innate_magic_queue(struct char_data *ch, int class, int circle);
+    /* in: ch, class, spellnum, metamagic, domain
+     *   search mode allows a general search with ONLY spellnum
+       out: bool - is it in our collection? */
+    bool is_spell_in_collection(struct char_data *ch, int class, int spellnum,
+            int metamagic, int domain, int search_mode);
+    /* in: ch, spellnum, class (should only be bard/sorc so far)
+       out: bool, is a known spell or not */
+    bool is_a_known_spell(struct char_data *ch, int spellnum, int class);
 
-        /* in: spellnum, class, metamagic, domain(cleric)
+    /* in: bloodline, spellnum
+       out: bool - is this a bloodline spell? */    
+    bool is_sorc_bloodline_spell(int bloodline, int spellnum);
+    /* given char, check their bloodline */
+    int get_sorc_bloodline(struct char_data *ch);
+
+    /* in: spellnum, class, metamagic, domain(cleric)
      * out: the circle this spell (now) belongs, above num-circles if failed
      * given above info, compute which circle this spell belongs to, this 'interesting'
      * set-up is due to a dated system that assigns spells by level, not circle
@@ -289,6 +305,10 @@ extern "C" {
     #define SCMD_UNCOMMUNE  3
     #define SCMD_OMIT       4
     #define SCMD_UNADJURE   5
+    
+    /* MODE for searching from our lists */
+    #define SPREP_SERACH_NORMAL 0
+    #define SPREP_SEARCH_ALL    1
     
     /* macros */
     
