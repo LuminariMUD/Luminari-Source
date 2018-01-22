@@ -1670,7 +1670,6 @@ EVENTFUNC(event_preparation) {
         }
       }
       break;
-
   }
 
   switch (class) {
@@ -1693,12 +1692,11 @@ EVENTFUNC(event_preparation) {
         act(buf, FALSE, ch, 0, 0, TO_ROOM);
         set_preparing_state(ch, class, FALSE);
         return 0;
-
       }
       break;
   }
-
-  return 0;
+  
+  return (1 * PASSES_PER_SEC);
 }
 
 /* END event-related */
