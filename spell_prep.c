@@ -605,9 +605,11 @@ bool is_spell_in_collection(struct char_data *ch, int class, int spellnum,
    out: bool, is a known spell or not */
 bool is_a_known_spell(struct char_data *ch, int class, int spellnum) {
   /*DEBUG*/
-  if ((class == CLASS_SORCERER || class == CLASS_BARD) && GET_LEVEL(ch) >= LVL_IMMORT) {
-    send_to_char(ch, "Staff over-ride in is_a_known_spell()\r\n");
-    return TRUE;
+  if (GET_LEVEL(ch) >= LVL_IMMORT) {
+    if (class == CLASS_SORCERER || class == CLASS_BARD) {
+      send_to_char(ch, "Staff over-ride in is_a_known_spell()\r\n");
+      return TRUE;
+    }
   }
   /*DEBUG*/
   
