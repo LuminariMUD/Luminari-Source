@@ -22,6 +22,7 @@
 #include "constants.h"
 #include "assign_wpn_armor.h"
 #include "domains_schools.h"
+#include "spell_prep.h"
 
 /*-------------------------------------------------------------------*/
 /*. Function prototypes . */
@@ -288,7 +289,6 @@ void finalize_study(struct descriptor_data *d) {
   for (i = 0; i < NUM_FEATS; i++) {
     if (LEVELUP(ch)->feats[i]) {
 
-      /* zusuk was here */
       SET_FEAT(ch, i, HAS_REAL_FEAT(ch, i) + LEVELUP(ch)->feats[i]);
 
       if ((subfeat = feat_to_skfeat(i)) != -1) {
@@ -476,7 +476,6 @@ bool add_levelup_feat(struct descriptor_data *d, int feat) {
       write_to_output(d, "You do not have enough feat points to gain that feat.\r\n");
       return FALSE;
     }
-    
 
     /* If we are here, then we can add the feat! */
     switch(feat_type) {
@@ -561,7 +560,8 @@ static void sorc_known_spells_disp_menu(struct descriptor_data *d) {
 
                   mgn,
                   grn, nrm, yel, sorcerer_known[sorc_level][1] -
-                  count_sorc_known(d->character, 1, CLASS_SORCERER),
+                  count_known_spells_by_circle(d->character, CLASS_SORCERER, 1),
+                  //count_sorc_known(d->character, 1, CLASS_SORCERER),
                   grn, nrm, yel, sorcerer_known[sorc_level][2] -
                   count_sorc_known(d->character, 2, CLASS_SORCERER),
                   grn, nrm, yel, sorcerer_known[sorc_level][3] -
@@ -596,7 +596,11 @@ void sorc_study_menu(struct descriptor_data *d, int circle) {
 
   /* SPELL PREPARATION HOOK (spellCircle) */
   for (counter = 1; counter < NUM_SPELLS; counter++) {
-    if (spellCircle(CLASS_SORCERER, counter, 0, DOMAIN_UNDEFINED) == circle) {
+    if (compute_spells_circle(CLASS_SORCERER,
+                              counter,
+                              METAMAGIC_NONE,
+                              DOMAIN_UNDEFINED) == circle) {
+    //if (spellCircle(CLASS_SORCERER, counter, 0, DOMAIN_UNDEFINED) == circle) {
       if (sorcKnown(d->character, counter, CLASS_SORCERER))
         write_to_output(d, "%s%2d%s)%s+%-20.20s %s", grn, counter, nrm, mgn,
               spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
