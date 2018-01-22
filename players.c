@@ -559,7 +559,7 @@ int load_char(const char *name, struct char_data *ch) {
 
         case 'I':
           if (!strcmp(tag, "Id  ")) GET_IDNUM(ch) = atol(line);
-          else if (!strcmp(tag, "InMa")) load_inate_magic_queue(fl, ch);
+          else if (!strcmp(tag, "InMa")) load_innate_magic_queue(fl, ch);
           else if (!strcmp(tag, "Int ")) GET_REAL_INT(ch) = atoi(line);
           else if (!strcmp(tag, "Invs")) GET_INVIS_LEV(ch) = atoi(line);
           break;
