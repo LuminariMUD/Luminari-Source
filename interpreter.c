@@ -592,7 +592,7 @@ cpp_extern const struct command_info cmd_info[] = {
   /* test commands for prep system */
   { "memtest", "memtest", POS_RESTING, do_gen_preparation, LVL_BUILDER, SCMD_MEMORIZE, FALSE, ACTION_NONE, {0, 0}},
   { "fortest", "fortest", POS_RESTING, do_consign_to_oblivion, LVL_BUILDER, SCMD_FORGET, FALSE, ACTION_NONE, {0, 0}},
-  //{ "medtest", "medtest", POS_RESTING, do_gen_preparation, LVL_BUILDER, SCMD_MEDITATE, FALSE, ACTION_NONE, {0, 0}},
+  { "medtest", "medtest", POS_RESTING, do_gen_preparation, LVL_BUILDER, SCMD_MEDITATE, FALSE, ACTION_NONE, {0, 0}},
 
   { "\n", "zzzzzzz", 0, 0, 0, 0, FALSE, ACTION_NONE, {0, 0}}
 }; /* this must be last */
