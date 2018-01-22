@@ -1200,7 +1200,8 @@ bool spell_prep_gen_check(struct char_data *ch, int spellnum, int metamagic) {
     /*DEBUG*/
     send_to_char(ch, "class: %d, circle %d, metamagic: %d\r\n",
             class, circle_of_this_spell, metamagic);
-    send_to_char(ch, "compute_slots_by_circle: %d, count_total_slots %d\r\n",
+    send_to_char(ch, "known? %d, compute_slots_by_circle: %d, count_total_slots %d\r\n",
+            is_a_known_spell(ch, spellnum, class),
             compute_slots_by_circle(ch, class, circle_of_this_spell),
             count_total_slots(ch, class, circle_of_this_spell));
     /*DEBUG*/
