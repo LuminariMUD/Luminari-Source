@@ -1202,8 +1202,8 @@ bool spell_prep_gen_check(struct char_data *ch, int spellnum, int metamagic) {
             count_total_slots(ch, class, circle_of_this_spell) > 0)) {
 
       /*DEBUG*/
-      send_to_char(ch, "class: %d, circle %d, metamagic: %d, prep_time %d, is_domain %d\r\n",
-              class, circle_of_this_spell, metamagic, prep_time, is_domain);
+      send_to_char(ch, "class: %d, circle %d, metamagic: %d\r\n",
+              class, circle_of_this_spell, metamagic);
       /*DEBUG*/
       return class;
     }
