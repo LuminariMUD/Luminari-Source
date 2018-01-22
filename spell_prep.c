@@ -1161,13 +1161,14 @@ bool spell_prep_gen_extract(struct char_data *ch, int spellnum, int metamagic) {
             compute_spells_circle(class, spellnum, metamagic, is_domain);
     if (is_a_known_spell(ch, spellnum, class) &&
             (compute_slots_by_circle(ch, class, circle) -
-            count_total_slots(ch, class, circle) > 0)) {
-      
-      send_to_char(ch, "class: %d, circle %d, metamagic: %d, prep_time %d, is_domain %d\r\n",
-              class, circle, metamagic, prep_time, is_domain);
+            count_total_slots(ch, class, circle) > 0)) {      
       
       /*place circle in innate magic queue*/
       prep_time = compute_spells_prep_time(ch, class, circle, is_domain);
+      /*DEBUG*/
+      send_to_char(ch, "class: %d, circle %d, metamagic: %d, prep_time %d, is_domain %d\r\n",
+              class, circle, metamagic, prep_time, is_domain);
+      /*DEBUG*/
       innate_magic_add(ch, class, circle, metamagic, prep_time, is_domain);
       
       return class;
