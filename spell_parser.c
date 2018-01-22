@@ -26,6 +26,7 @@
 #include "assign_wpn_armor.h"
 #include "domains_schools.h"
 #include "grapple.h"
+#include "spell_prep.h"
 
 #define SINFO spell_info[spellnum]
 
@@ -1248,19 +1249,25 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
    will be using for casting this spell */
   if (!isEpicSpell(spellnum) && !IS_NPC(ch)) {
 
-    //log("DEBUG: metamagic : %d", metamagic);
     /* SPELL PREPARATION HOOK */
+    /* OLD SPELL PREP SYSTEM */
+    /*
     class = forgetSpell(ch, spellnum, metamagic, -1);
-
     if (class == -1) {
       send_to_char(ch, "ERR:  Report BUG98237 to an IMM!\r\n");
       return 0;
     }
-
-    /* sorcerer's call is made already in forgetSpell() */
-    /* SPELL PREPARATION HOOK */
+    // sorcerer's call is made already in forgetSpell()
     if (class != CLASS_SORCERER && class != CLASS_BARD)
       addSpellMemming(ch, spellnum, metamagic, spell_info[spellnum].memtime, class);
+    */
+    /* NEW SPELL PREP SYSTEM */
+    class = spell_prep_gen_extract(ch, spellnum, metamagic);
+    if (class == CLASS_UNDEFINED) {
+      send_to_char(ch, "ERR:  Report BUG770 to an IMM!\r\n");
+      log("spell_prep_gen_extract() failed in cast_spell()");
+      return 0;
+    }
 
     /* level to cast this particular spell as */
     clevel = CLASS_LEVEL(ch, class);
@@ -1490,9 +1497,18 @@ ACMD(do_cast) {
   }
 
   /* SPELL PREPARATION HOOK */
+  /* OLD SYSTEM */
   /* check for spell preparation (memorization, spell-slots, etc) */
+  /*
   if (hasSpell(ch, spellnum, metamagic) == -1 && !isEpicSpell(spellnum)) {
     send_to_char(ch, "You aren't ready to cast that spell... (help preparation, or the meta-magic modification might be too high)\r\n");
+    return;
+  }
+  */
+  /* NEW SYSTEM */
+  if (spell_prep_gen_check(ch, spellnum, metamagic) == CLASS_UNDEFINED &&
+          !isEpicSpell(spellnum)) {
+    send_to_char(ch, "You are not ready to cast that spell... (help preparation, or the meta-magic modification might be too high)\r\n");
     return;
   }
 

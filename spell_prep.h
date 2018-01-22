@@ -72,9 +72,9 @@ extern "C" {
     /* give: ch, class, spellnum, and metamagic:
        return: true if we found/removed, false if we didn't find */
     bool prep_queue_remove_by_class(struct char_data *ch, int class, int spellnum, int metamagic);
-    /* give: ch, class, spellnum, and metamagic:
+    /* give: ch, class, circle, and metamagic:
        return: true if we found/removed, false if we didn't find */
-    bool innate_magic_remove_by_class(struct char_data *ch, int class, int spellnum, int metamagic);
+    bool innate_magic_remove_by_class(struct char_data *ch, int class, int circle, int metamagic);
     /* give: ch, class, spellnum, and metamagic:
        return: true if we found/removed, false if we didn't find */
     bool collection_remove_by_class(struct char_data *ch, int class, int spellnum, int metamagic);
@@ -99,7 +99,7 @@ extern "C" {
     void prep_queue_add(struct char_data *ch, int ch_class, int spellnum, int metamagic,
         int prep_time, int domain);
     /* add a spell to a character's prep-queue(in progress) linked list */
-    void innate_magic_add(struct char_data *ch, int ch_class, int spellnum, int metamagic,
+    void innate_magic_add(struct char_data *ch, int ch_class, int circle, int metamagic,
         int prep_time, int domain);
     /* add a spell to a character's prep-queue(in progress) linked list */
     void collection_add(struct char_data *ch, int ch_class, int spellnum, int metamagic,
@@ -133,18 +133,16 @@ extern "C" {
     int count_total_slots(struct char_data *ch, int class, int circle);
     
     /* in: ch, class, spellnum, metamagic, domain
-     *   search mode allows a general search with ONLY spellnum
        out: bool - is it in our prep queue? */
     int is_spell_in_prep_queue(struct char_data *ch, int class, int spellnum,
-            int metamagic, int domain, int search_mode);
+            int metamagic);
     /* in: ch, class, circle
        out: bool - is (circle) in our innate magic queue? */
     bool is_in_innate_magic_queue(struct char_data *ch, int class, int circle);
     /* in: ch, class, spellnum, metamagic, domain
-     *   search mode allows a general search with ONLY spellnum
        out: bool - is it in our collection? */
     bool is_spell_in_collection(struct char_data *ch, int class, int spellnum,
-            int metamagic, int domain, int search_mode);
+            int metamagic);
     /* in: ch, spellnum, class (should only be bard/sorc so far)
        out: bool, is a known spell or not */
     bool is_a_known_spell(struct char_data *ch, int spellnum, int class);
@@ -201,8 +199,7 @@ extern "C" {
     /* in: character, respective class to check 
      * out: returns # of total slots based on class-level and stat bonus
          of given circle */
-    /* macro COMP_SLOT_BY_CIRCLE(ch, circle, class) */
-    int compute_slots_by_circle(struct char_data *ch, int circle, int class);
+    int compute_slots_by_circle(struct char_data *ch, int class, int circle);
     /**** UNDER CONSTRUCTION *****/
     /* in: class we need to assign spell slots to
      * at bootup, we initialize class-data, which includes assignment
@@ -213,6 +210,19 @@ extern "C" {
      */
     void assign_feat_spell_slots(int ch_class);
 
+    /* this function is our connection between the casting system and spell preparation
+       system, we are checking -all- our spell prep systems to see if we have the 
+       given spell, if we do:
+         gen prep system: extract from collection and move to prep queue
+         innate magic system:  put the proper circle in innate magic queue
+     * we check general prep system first, THEN innate magic system  */
+    bool spell_prep_gen_extract(struct char_data *ch, int spellnum, int metamagic);
+
+    /* this function is our connection between the casting system and spell preparation
+       system, we are checking -all- our spell prep systems to see if we have the 
+       given spell, if we do, return TRUE, otherwise FALSE */
+    bool spell_prep_gen_check(struct char_data *ch, int spellnum, int metamagic);
+    
     /* in: character, class of the queue you want to work with
      * traverse the prep queue and print out the details
      * since the prep queue does not need any organizing, this should be fairly
