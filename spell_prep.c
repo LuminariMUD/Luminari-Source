@@ -901,10 +901,21 @@ bool is_preparing(struct char_data *ch) {
 void start_prep_event(struct char_data *ch, int class) {
   char buf[50] = {'\0'};
 
-  if (!SPELL_PREP_QUEUE(ch, class)) {
-    send_to_char(ch, "You have nothing in your preparation queue for this class to "
-            "prepare!\r\n");
-    return;
+  switch (class) {
+    case CLASS_SORCERER:case CLASS_BARD:
+      if (!INNATE_MAGIC(ch, class)) {
+        send_to_char(ch, "You have nothing in your innate magic queue for this class to "
+                "prepare!\r\n");
+        return;
+      }
+      break;
+    default:
+      if (!SPELL_PREP_QUEUE(ch, class)) {
+        send_to_char(ch, "You have nothing in your preparation queue for this class to "
+                "prepare!\r\n");
+        return;
+      }
+      break;
   }
   set_preparing_state(ch, class, TRUE);
   if (!char_has_mud_event(ch, ePREPARATION)) {
