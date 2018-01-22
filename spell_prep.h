@@ -105,7 +105,7 @@ extern "C" {
     void collection_add(struct char_data *ch, int ch_class, int spellnum, int metamagic,
         int prep_time, int domain);
     /* add a spell to a character's known spells linked list */
-    void known_spells_add(struct char_data *ch, int ch_class, int spellnum, int metamagic,
+    bool known_spells_add(struct char_data *ch, int ch_class, int spellnum, int metamagic,
         int prep_time, int domain);
     
     /* load from pfile into ch their spell-preparation queue, example ch login
