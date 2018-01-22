@@ -1163,6 +1163,9 @@ bool spell_prep_gen_extract(struct char_data *ch, int spellnum, int metamagic) {
             (compute_slots_by_circle(ch, class, circle) -
             count_total_slots(ch, class, circle) > 0)) {
       
+      send_to_char(ch, "class: %d, circle %d, metamagic: %d, prep_time %d, is_domain %d\r\n",
+              class, circle, metamagic, prep_time, is_domain);
+      
       /*place circle in innate magic queue*/
       prep_time = compute_spells_prep_time(ch, class, circle, is_domain);
       innate_magic_add(ch, class, circle, metamagic, prep_time, is_domain);
@@ -1273,14 +1276,14 @@ void print_innate_magic_queue(struct char_data *ch, int ch_class) {
 
   /* build a nice heading */
   *buf = '\0';
-  sprintf(buf, "\tYPreparation Queue for %s\tC", class_names[ch_class]);
+  sprintf(buf, "\tYInnate Magic Queue for %s\tC", class_names[ch_class]);
   send_to_char(ch, "\tC");
   text_line(ch, buf, line_length, '-', '-');
   send_to_char(ch, "\tn");
 
   /* easy out */
   if (!INNATE_MAGIC(ch, ch_class)) {
-    send_to_char(ch, "There is nothing in your preparation queue!\r\n");
+    send_to_char(ch, "There is nothing in your innate magic queue!\r\n");
     /* build a nice closing */
     *buf = '\0';
     send_to_char(ch, "\tC");
