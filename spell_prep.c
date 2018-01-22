@@ -1184,33 +1184,36 @@ bool spell_prep_gen_extract(struct char_data *ch, int spellnum, int metamagic) {
    given spell, if we do, returns class, otherwise undefined-class 
    we are checking our spell-prep system, THEN innate magic system */
 bool spell_prep_gen_check(struct char_data *ch, int spellnum, int metamagic) {
-  int class = 0;
-  
+  int class = CLASS_UNDEFINED;
+
   /* go through all the classes checking our collection */
   for (class = 0; class < NUM_CLASSES; class++) {
     if (is_spell_in_collection(ch, class, spellnum, metamagic))
       return class;
   }
-    
+
   /* nothing yet? go through our innate magic system now! */
   int circle_of_this_spell = TOP_CIRCLE + 1;
   for (class = 0; class < NUM_CLASSES; class++) {
     circle_of_this_spell = /* computes adjustment to circle via metamagic */
             compute_spells_circle(class, spellnum, metamagic, DOMAIN_UNDEFINED);
+    /*DEBUG*/
+    send_to_char(ch, "class: %d, circle %d, metamagic: %d\r\n",
+            class, circle_of_this_spell, metamagic);
+    send_to_char(ch, "compute_slots_by_circle: %d, count_total_slots %d\r\n",
+            compute_slots_by_circle(ch, class, circle_of_this_spell),
+            count_total_slots(ch, class, circle_of_this_spell));
+    /*DEBUG*/
     if (is_a_known_spell(ch, spellnum, class) &&
             (compute_slots_by_circle(ch, class, circle_of_this_spell) -
             count_total_slots(ch, class, circle_of_this_spell) > 0)) {
 
-      /*DEBUG*/
-      send_to_char(ch, "class: %d, circle %d, metamagic: %d\r\n",
-              class, circle_of_this_spell, metamagic);
-      /*DEBUG*/
       return class;
     }
-  }  
-  
+  }
+
   /* FAILED! */
-  return CLASS_UNDEFINED; 
+  return CLASS_UNDEFINED;
 }
 
 /* in: character, class of the queue you want to work with
