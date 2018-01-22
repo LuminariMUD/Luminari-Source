@@ -189,8 +189,7 @@ void save_known_spells_by_class(FILE *fl, struct char_data *ch, int class) {
   struct known_spell_data *next;
   for (; current; current = next) {
     next = current->next;
-    fprintf(fl, "%d %d %d %d %d\n", class, current->spell, current->metamagic,
-            current->prep_time, current->domain);
+    fprintf(fl, "%d %d\n", class, current->spell);
   }
 }
 
@@ -224,7 +223,7 @@ void save_known_spells(FILE *fl, struct char_data *ch) {
   fprintf(fl, "KnSp:\n");
   for (ch_class = 0; ch_class < NUM_CLASSES; ch_class++)
     save_known_spells_by_class(fl, ch, ch_class);
-  fprintf(fl, "-1 -1 -1 -1 -1\n");
+  fprintf(fl, "-1 -1\n");
 }
 
 /* give: ch, class, spellnum, and metamagic:
@@ -385,32 +384,33 @@ void collection_add(struct char_data *ch, int ch_class, int spellnum, int metama
   SPELL_COLLECTION(ch, ch_class) = entry;
 }
 /* add a spell to a character's known spells linked list */
-bool known_spells_add(struct char_data *ch, int ch_class, int spellnum, int metamagic,
-        int prep_time, int domain) {
+bool known_spells_add(struct char_data *ch, int ch_class, int spellnum, bool loading) {
   int circle = compute_spells_circle(ch_class, spellnum,
           METAMAGIC_NONE, DOMAIN_UNDEFINED);
   int caster_level = CLASS_LEVEL(ch, ch_class) + BONUS_CASTER_LEVEL(ch, ch_class);
 
-  switch (ch_class) {
-    case CLASS_BARD:
-      if (bard_known[caster_level][circle] -
-                  count_known_spells_by_circle(ch, ch_class, circle) <= 0)
-        return FALSE;
-      break;
-    case CLASS_SORCERER:
-      if (sorcerer_known[caster_level][circle] -
-                  count_known_spells_by_circle(ch, ch_class, circle) <= 0)
-        return FALSE;
-      break;
+  if (!loading) {
+    switch (ch_class) {
+      case CLASS_BARD:
+        if (bard_known[caster_level][circle] -
+                count_known_spells_by_circle(ch, ch_class, circle) <= 0)
+          return FALSE;
+        break;
+      case CLASS_SORCERER:
+        if (sorcerer_known[caster_level][circle] -
+                count_known_spells_by_circle(ch, ch_class, circle) <= 0)
+          return FALSE;
+        break;
+    }
   }
   
   struct known_spell_data *entry;
 
   CREATE(entry, struct known_spell_data, 1);
   entry->spell = spellnum;
-  entry->metamagic = metamagic;
-  entry->prep_time = prep_time;
-  entry->domain = domain;
+  entry->metamagic = METAMAGIC_NONE;
+  entry->prep_time = 0;
+  entry->domain = DOMAIN_UNDEFINED;
   entry->next = KNOWN_SPELLS(ch, ch_class);
   KNOWN_SPELLS(ch, ch_class) = entry;
   
@@ -473,21 +473,20 @@ void load_spell_collection(FILE *fl, struct char_data *ch) {
 }
 /* load from pfile into ch their known spells, example ch login */
 void load_known_spells(FILE *fl, struct char_data *ch) {
-  int spell_num, ch_class, metamagic, prep_time, domain, counter = 0;
+  int spell_num, ch_class, counter = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
   do {
-    ch_class = 0; spell_num = 0; metamagic = 0; prep_time = 0; domain = 0;
+    ch_class = 0; spell_num = 0;
 
     get_line(fl, line);
-    sscanf(line, "%d %d %d %d %d", &ch_class, &spell_num, &metamagic, &prep_time,
-            &domain);
+    sscanf(line, "%d %d", &ch_class, &spell_num);
 
     if (ch_class != -1)
-      known_spells_add(ch, ch_class, spell_num, metamagic, prep_time, domain);
+      known_spells_add(ch, ch_class, spell_num, TRUE);
     
     counter++;
-  } while (counter < MAX_MEM && spell_num != -1);
+  } while (counter < MAX_MEM && ch_class != -1);
 }
 
 /* given a circle/class, count how many items of this circle in prep queue */
