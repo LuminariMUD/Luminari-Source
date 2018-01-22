@@ -1855,10 +1855,19 @@ void study_parse(struct descriptor_data *d, char *arg) {
           /* SPELL PREPARATION HOOK (spellCircle) */
           for (counter = 1; counter < NUM_SPELLS; counter++) {
             if (counter == number) {
-              if (spellCircle(CLASS_SORCERER, counter, 0, DOMAIN_UNDEFINED) == LEVELUP(d->character)->spell_circle) {
-                if (sorcKnown(d->character, counter, CLASS_SORCERER))
-                  sorc_extract_known(d->character, counter, CLASS_SORCERER);
-                else if (!sorc_add_known(d->character, counter, CLASS_SORCERER))
+              if (compute_spells_circle(CLASS_SORCERER,
+                                        counter,
+                                        METAMAGIC_NONE,
+                                        DOMAIN_UNDEFINED) ==
+                      LEVELUP(d->character)->spell_circle) {
+              //if (spellCircle(CLASS_SORCERER, counter, 0, DOMAIN_UNDEFINED) == LEVELUP(d->character)->spell_circle) {
+                if (is_a_known_spell(d->character, CLASS_SORCERER, counter))
+                //if (sorcKnown(d->character, counter, CLASS_SORCERER))
+                  known_spells_remove_by_class(d->character,CLASS_SORCERER, counter, METAMAGIC_NONE);
+                  //sorc_extract_known(d->character, counter, CLASS_SORCERER);
+                else if (!known_spells_add(d->character, CLASS_SORCERER, counter,
+                                           METAMAGIC_NONE, DOMAIN_UNDEFINED))
+                //else if (!sorc_add_known(d->character, counter, CLASS_SORCERER))
                   write_to_output(d, "You are all FULL for spells!\r\n");
               }
             }
