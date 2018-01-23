@@ -1862,7 +1862,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
                                         DOMAIN_UNDEFINED) ==
                       LEVELUP(d->character)->spell_circle) {
                 if (is_a_known_spell(d->character, CLASS_SORCERER, counter))
-                  known_spells_remove_by_class(d->character,CLASS_SORCERER, counter, METAMAGIC_NONE);
+                  known_spells_remove_by_class(d->character, CLASS_SORCERER, counter);
                 else if (!known_spells_add(d->character, CLASS_SORCERER, counter, FALSE))
                   write_to_output(d, "You are all FULL for spells!\r\n");
               }
@@ -1919,7 +1919,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
                                         DOMAIN_UNDEFINED) ==
                       LEVELUP(d->character)->spell_circle) {
                 if (is_a_known_spell(d->character, CLASS_BARD, counter))
-                  known_spells_remove_by_class(d->character,CLASS_BARD, counter, METAMAGIC_NONE);
+                  known_spells_remove_by_class(d->character,CLASS_BARD, counter);
                 else if (!known_spells_add(d->character, CLASS_BARD, counter, FALSE))
                   write_to_output(d, "You are all FULL for spells!\r\n");
               }
