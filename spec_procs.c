@@ -33,6 +33,7 @@
 #include "assign_wpn_armor.h"
 #include "domains_schools.h"
 #include "feats.h"
+#include "spell_prep.h"
 
 /* locally defined functions of local (file) scope */
 static int compare_spells(const void *x, const void *y);
@@ -459,7 +460,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle) {
 
     len = snprintf(buf2, sizeof (buf2), "\tCKnown Spell List\tn\r\n");
 
-    for (slot = getCircle(ch, class); slot > 0; slot--) {
+    for (slot = get_class_highest_circle(ch, class); slot > 0; slot--) {
       if ((circle != -1) && circle != slot)
         continue;
       nlen = snprintf(buf2 + len, sizeof (buf2) - len,

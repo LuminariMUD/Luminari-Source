@@ -321,7 +321,8 @@ spec_procs.o: spec_procs.c conf.h sysdep.h structs.h protocol.h lists.h \
 spell_parser.o: spell_parser.c conf.h sysdep.h structs.h protocol.h \
  lists.h utils.h interpreter.h spells.h handler.h comm.h db.h \
  dg_scripts.h fight.h constants.h mud_event.h dg_event.h spec_procs.h \
- class.h actions.h assign_wpn_armor.h domains_schools.h grapple.h
+ class.h actions.h assign_wpn_armor.h domains_schools.h grapple.h \
+ spell_prep.h
 spell_prep.o: spell_prep.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h interpreter.h db.h comm.h handler.h constants.h spec_procs.h \
  spells.h mud_event.h dg_event.h class.h spell_prep.h domains_schools.h
@@ -331,7 +332,8 @@ spells.o: spells.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  item.h domains_schools.h
 study.o: study.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  comm.h db.h oasis.h help.h screen.h interpreter.h modify.h spells.h \
- feats.h class.h constants.h assign_wpn_armor.h domains_schools.h
+ feats.h class.h constants.h assign_wpn_armor.h domains_schools.h \
+ spell_prep.h
 tedit.o: tedit.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  interpreter.h comm.h db.h genolc.h oasis.h help.h improved-edit.h \
  modify.h
