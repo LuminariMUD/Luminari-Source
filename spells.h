@@ -12,6 +12,12 @@
 #ifndef _SPELLS_H_
 #define _SPELLS_H_
 
+/* Metamagic Defines*/
+#define METAMAGIC_NONE     0
+#define METAMAGIC_QUICKEN  (1 << 0)
+#define METAMAGIC_MAXIMIZE (1 << 1)
+#define METAMAGIC_HEIGHTEN (1 << 2)
+
 /* renamed 0-values to help clarify context in code */
 #define NO_DICEROLL  0
 #define NO_MOD       0
@@ -1122,15 +1128,9 @@ int aoeOK(struct char_data *ch, struct char_data *tch, int spellnum);
 #define SORC_BLOODLINE_ARCANE                   2
 #define NUM_SORC_BLOODLINES                     3 // 1 more than the last above
 
-/**************/
-/* memorize.c */
-/**************/
-
-/* Metamagic Defines*/
-#define METAMAGIC_NONE     0
-#define METAMAGIC_QUICKEN  (1 << 0)
-#define METAMAGIC_MAXIMIZE (1 << 1)
-#define METAMAGIC_HEIGHTEN (1 << 2)
+/**********************/
+/* spellbook_scroll.c */
+/**********************/
 
 /* spellbook functions */
 void display_scroll(struct char_data *ch, struct obj_data *obj);
@@ -1140,8 +1140,14 @@ int spell_in_scroll(struct obj_data *obj, int spellnum);
 bool spellbook_ok(struct char_data *ch, int spellnum, int class, bool check_scroll);
 /* spellbook commands */
 ACMD(do_scribe);
-/* memorize related functions */
+
+/* new vs old system for spell prep */
+#define OLD_SPELL_PREP
+
+/* old system memorize related functions */
+#ifdef OLD_SPELL_PREP
 void init_spell_slots(struct char_data *ch);
+#endif
 int spellCircle(int class, int spellnum, int metamagic, int domain);
 int comp_slots(struct char_data *ch, int circle, int class);
 void addSpellMemming(struct char_data *ch, int spellnum, int metamagic, int time, int mode);
@@ -1153,13 +1159,13 @@ int numSpells(struct char_data *ch, int circle, int class);
 bool sorcKnown(struct char_data *ch, int spellnum, int class);
 int hasSpell(struct char_data *ch, int spellnum, int metamagic);
 int getCircle(struct char_data *ch, int class);
-//int sorcererKnown[LVL_IMPL + 1][10];
-//int bardKnown[LVL_IMPL + 1][10];
 int count_sorc_known(struct char_data *ch, int circle, int class);
 void sorc_extract_known(struct char_data *ch, int spellnum, int class);
 int sorc_add_known(struct char_data *ch, int spellnum, int class);
 bool isSorcBloodlineSpell(int bloodline, int spellnum);
 int getSorcBloodline(struct char_data *ch);
+
+#undef OLD_SPELL_PREP
 
 /* from spell_parser.c */
 ACMD(do_abort);
