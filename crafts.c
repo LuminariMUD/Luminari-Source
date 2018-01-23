@@ -491,7 +491,7 @@ EVENTFUNC(event_craft)
   }
 
   if ((craft = get_craft_from_arg(pMudEvent->sVariables)) == NULL) {
-    mudlog(CMP, LVL_GOD, TRUE, "SYSERR: Event Craft called without craft.");
+    mudlog(CMP, LVL_STAFF, TRUE, "SYSERR: Event Craft called without craft.");
     return (0);
   }
   
@@ -507,7 +507,7 @@ EVENTFUNC(event_craft)
 
     if ((obj = read_object(CRAFT_OBJVNUM(craft), VIRTUAL)) == NULL) {
       send_to_char(ch, "You seem to have an issue with your crafting.\r\n");
-      mudlog(CMP, LVL_GOD, TRUE, "SYSERR: Event Craft called without created object.");
+      mudlog(CMP, LVL_STAFF, TRUE, "SYSERR: Event Craft called without created object.");
     return (0);
     }
 
