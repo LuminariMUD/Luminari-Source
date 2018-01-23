@@ -331,7 +331,7 @@ ACMD(do_scribe) {
       return;
     }
 
-    if (hasSpell(ch, spellnum, -1) != CLASS_WIZARD) {
+    if (!is_spell_in_collection(ch, CLASS_WIZARD, spellnum, METAMAGIC_NONE)) {
       send_to_char(ch, "You must have the spell committed to memory before "
               "you can scribe it!\r\n");
       return;
@@ -357,7 +357,7 @@ ACMD(do_scribe) {
     send_to_char(ch, "The magical energy committed for the spell '%s' has been "
             "expended.\r\n", spell_info[spellnum].name);
     sprintf(buf, "%d", spellnum);
-    forgetSpell(ch, spellnum, -1, -1);
+    collection_remove_by_class(ch, CLASS_WIZARD, spellnum, METAMAGIC_NONE);
   }
 }
 
@@ -547,6 +547,74 @@ int spellCircle(int class, int spellnum, int metamagic, int domain) {
     default:
       return ((int) ((spell_info[spellnum].min_level[class] + 1) / 2)) + metamagic_mod;
   }
+}
+
+/* returns the characters highest circle access in a given class */
+int getCircle(struct char_data *ch, int class) {
+  /* npc's default to best chart */
+  if (IS_NPC(ch)) {
+    return (MAX(1, MIN(9, (GET_LEVEL(ch) + 1) / 2)));
+  }
+  /* if pc has no caster classes, he/she has no business here */
+  if (!IS_CASTER(ch)) {
+    return (-1);
+  }
+  if (!CLASS_LEVEL(ch, class)) {
+    return 0;
+  }
+
+  int class_level = CLASS_LEVEL(ch, class) + BONUS_CASTER_LEVEL(ch, class);
+
+  switch (class) {
+    case CLASS_PALADIN:
+      if (class_level < 6)
+        return 0;
+      else if (class_level < 10)
+        return 1;
+      else if (class_level < 12)
+        return 2;
+      else if (class_level < 15)
+        return 3;
+      else
+        return 4;
+    case CLASS_RANGER:
+      if (class_level < 6)
+        return 0;
+      else if (class_level < 10)
+        return 1;
+      else if (class_level < 12)
+        return 2;
+      else if (class_level < 15)
+        return 3;
+      else
+        return 4;
+    case CLASS_BARD:
+      if (class_level < 3)
+        return 0;
+      else if (class_level < 5)
+        return 1;
+      else if (class_level < 8)
+        return 2;
+      else if (class_level < 11)
+        return 3;
+      else if (class_level < 14)
+        return 4;
+      else if (class_level < 17)
+        return 5;
+      else
+        return 6;
+    case CLASS_SORCERER:
+      return (MAX(1, (MIN(9, class_level / 2))));
+    case CLASS_WIZARD:
+      return (MAX(1, MIN(9, (class_level + 1) / 2)));
+    case CLASS_DRUID:
+      return (MAX(1, MIN(9, (class_level + 1) / 2)));
+    case CLASS_CLERIC:
+      return (MAX(1, MIN(9, (class_level + 1) / 2)));
+    default:
+      return (MAX(1, MIN(9, (class_level + 1) / 2)));
+  }
+
 }
 
 /* returns # of total slots based on level, class and stat bonus
@@ -1168,74 +1236,6 @@ int hasSpell(struct char_data *ch, int spellnum, int metamagic) {
 
   /* can return -1 for no class char has, has this spell */
   return -1;
-}
-
-/* returns the characters highest circle access in a given class */
-int getCircle(struct char_data *ch, int class) {
-  /* npc's default to best chart */
-  if (IS_NPC(ch)) {
-    return (MAX(1, MIN(9, (GET_LEVEL(ch) + 1) / 2)));
-  }
-  /* if pc has no caster classes, he/she has no business here */
-  if (!IS_CASTER(ch)) {
-    return (-1);
-  }
-  if (!CLASS_LEVEL(ch, class)) {
-    return 0;
-  }
-
-  int class_level = CLASS_LEVEL(ch, class) + BONUS_CASTER_LEVEL(ch, class);
-
-  switch (class) {
-    case CLASS_PALADIN:
-      if (class_level < 6)
-        return 0;
-      else if (class_level < 10)
-        return 1;
-      else if (class_level < 12)
-        return 2;
-      else if (class_level < 15)
-        return 3;
-      else
-        return 4;
-    case CLASS_RANGER:
-      if (class_level < 6)
-        return 0;
-      else if (class_level < 10)
-        return 1;
-      else if (class_level < 12)
-        return 2;
-      else if (class_level < 15)
-        return 3;
-      else
-        return 4;
-    case CLASS_BARD:
-      if (class_level < 3)
-        return 0;
-      else if (class_level < 5)
-        return 1;
-      else if (class_level < 8)
-        return 2;
-      else if (class_level < 11)
-        return 3;
-      else if (class_level < 14)
-        return 4;
-      else if (class_level < 17)
-        return 5;
-      else
-        return 6;
-    case CLASS_SORCERER:
-      return (MAX(1, (MIN(9, class_level / 2))));
-    case CLASS_WIZARD:
-      return (MAX(1, MIN(9, (class_level + 1) / 2)));
-    case CLASS_DRUID:
-      return (MAX(1, MIN(9, (class_level + 1) / 2)));
-    case CLASS_CLERIC:
-      return (MAX(1, MIN(9, (class_level + 1) / 2)));
-    default:
-      return (MAX(1, MIN(9, (class_level + 1) / 2)));
-  }
-
 }
 
 /********** end utility ***************/
