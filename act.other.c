@@ -46,6 +46,7 @@
 #include "oasis.h"
 #include "domains_schools.h"
 #include "spells.h"
+#include "spell_prep.h"
 
 #define SHAPE_AFFECTS         3
 #define MOB_ZOMBIE            11   /* animate dead levels 1-7 */
