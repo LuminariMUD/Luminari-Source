@@ -21,6 +21,7 @@
 #include "constants.h"
 #include "mud_event.h"
 #include "actions.h"
+#include "spell_prep.h"
 
 /*-----------------------------------*/
 /* utility functions */
