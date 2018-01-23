@@ -375,7 +375,7 @@ ACMD(do_scribe) {
  * To make it even more confusing, a lot of the functions
  *   have a double role, for wizard-types and sorc-types
  */
-#ifdef OLD_SPELL_PREP
+
 /* since the spell array position for classes doesn't correspond
  * with the class values, we need a little conversion
  */ /*new project note: no equivalent*/
@@ -401,7 +401,6 @@ int classArray(int class) {
   log("int classArray(int class) - received invalid class!");
   return 0;
 }
-#endif
 
 /*** Utility Functions needed for spell preparation ***/
 
