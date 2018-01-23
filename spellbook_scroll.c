@@ -1,11 +1,10 @@
 /****************************************************************************
  *  Realms of Luminari
- *  File:     memorize.c
- *  Usage:    spell memorization functions, two types:wizard-type and sorc-type
+ *  File:     spellbook_scroll.c
+ *  Usage:    scroll related functions
  *            spellbook-related functions are here too
  *  Header:   Header Info is in spells.h
- *  Authors:  Nashak and Zusuk
- *            Spellbook functions taken from CWG project, adapted by Zusuk
+ *  Authors:  Spellbook functions taken from CWG project, adapted by Zusuk
  ****************************************************************************/
 
 /*** TODO:  03/14/2013 reported - move header info into separate file or
@@ -30,7 +29,6 @@ char buf[MAX_INPUT_LENGTH] = {'\0'};
 bool isSorcBloodlineSpell(int bloodline, int spellnum);
 int getSorcBloodline(struct char_data *ch);
 #define	TERMINATE	0
-
 
 /* =============================================== */
 /* ==================Spellbooks=================== */
@@ -377,7 +375,7 @@ ACMD(do_scribe) {
  * To make it even more confusing, a lot of the functions
  *   have a double role, for wizard-types and sorc-types
  */
-
+#ifdef OLD_SPELL_PREP
 /* since the spell array position for classes doesn't correspond
  * with the class values, we need a little conversion
  */ /*new project note: no equivalent*/
@@ -403,6 +401,7 @@ int classArray(int class) {
   log("int classArray(int class) - received invalid class!");
   return 0;
 }
+#endif
 
 /*** Utility Functions needed for spell preparation ***/
 
