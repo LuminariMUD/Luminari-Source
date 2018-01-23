@@ -729,7 +729,7 @@ static void craftedit_disp_skill_menu(struct descriptor_data *d)
   get_char_colors(d->character);
   clear_screen(d);
 
-  for (counter = 1; counter <= MAX_SKILLS; counter++) {
+  for (counter = TOP_CRAFT_SKILL; counter < BOTTOM_CRAFT_SKILL; counter++) {
     if (spell_info[counter].min_level[0] == LVL_IMPL + 1) /* UNUSED */
       continue;
     write_to_output(d, "\t2%3d\t3) \t1%-20.20s\tn %s", counter,
