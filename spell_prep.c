@@ -555,7 +555,7 @@ int count_known_spells_by_circle(struct char_data *ch, int class, int circle) {
     switch (class) {
       case CLASS_SORCERER:
         if (compute_spells_circle(class, current->spell, 0, 0) == circle &&
-            !isSorcBloodlineSpell(getSorcBloodline(ch), current->spell) )
+            !is_sorc_bloodline_spell(get_sorc_bloodline(ch), current->spell) )
           counter++;
         break;
       case CLASS_BARD:
