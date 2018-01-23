@@ -185,7 +185,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "ct", "ct", POS_DEAD, do_clantalk, 1, 0, TRUE, ACTION_NONE, {0, 0}},
   /* NewCraft */
   { "craft"    , "craft"   , POS_STANDING, do_craft          , 0,         0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}},
-  { "craftedit", "crafte"  , POS_DEAD    , do_oasis_craftedit, LVL_GRGOD, 0, TRUE, ACTION_NONE,                   {0, 0}},
+  { "craftedit", "crafte"  , POS_DEAD    , do_oasis_craftedit, LVL_BUILDER, 0, TRUE, ACTION_NONE,                   {0, 0}},
   
   { "create", "create", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}},
   { "checkcraft", "checkcraft", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}},
