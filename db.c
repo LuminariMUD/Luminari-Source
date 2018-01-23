@@ -4534,8 +4534,11 @@ void init_char(struct char_data *ch) {
   reset_acraft(ch);
 
   // fresh start on mem data
-  init_spell_slots(ch); /* SPELL PREPARATION HOOK */
-
+  destroy_spell_prep_queue(ch);
+  destroy_innate_magic_queue(ch);
+  destroy_spell_collection(ch);
+  destroy_known_spells(ch);
+  
   // make sure no cloudkills, incendiary
   CLOUDKILL(ch) = 0;
   DOOM(ch) = 0;
