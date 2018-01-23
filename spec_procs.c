@@ -473,7 +473,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle) {
         sinfo = spell_info[i].min_level[class];
 
         /* SPELL PREPARATION HOOK (spellCircle) */
-        if (class == CLASS_SORCERER && sorcKnown(ch, i, CLASS_SORCERER) &&
+        if (class == CLASS_SORCERER && is_a_known_spell(ch, CLASS_SORCERER, i) &&
                 compute_spells_circle(CLASS_SORCERER, i, 0, DOMAIN_UNDEFINED) == slot) {
           nlen = snprintf(buf2 + len, sizeof (buf2) - len,
                   "%-20s \tWMastered\tn\r\n", spell_info[i].name);
@@ -481,7 +481,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle) {
             break;
           len += nlen;
           /* SPELL PREPARATION HOOK (spellCircle) */
-        } else if (class == CLASS_BARD && sorcKnown(ch, i, CLASS_BARD) &&
+        } else if (class == CLASS_BARD && is_a_known_spell(ch, CLASS_BARD, i) &&
                 compute_spells_circle(CLASS_BARD, i, 0, DOMAIN_UNDEFINED) == slot) {
           nlen = snprintf(buf2 + len, sizeof (buf2) - len,
                   "%-20s \tWMastered\tn\r\n", spell_info[i].name);

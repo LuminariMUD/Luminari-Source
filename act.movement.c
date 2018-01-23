@@ -2573,12 +2573,6 @@ int change_position(struct char_data *ch, int new_position) {
   }
 
   /* preparing spells */
-  if (char_has_mud_event(ch, ePREPARING) && new_position != POS_RESTING) {
-    act("$n's preparations are aborted!", FALSE, ch, 0, 0,
-            TO_ROOM);
-    send_to_char(ch, "Your preparations are aborted!\r\n");
-    resetMemtimes(ch, -1); /* -1 means reset for all classes */
-  }
   if (char_has_mud_event(ch, ePREPARATION) && new_position != POS_RESTING) {
     act("$n's preparations are aborted!", FALSE, ch, 0, 0,
             TO_ROOM);

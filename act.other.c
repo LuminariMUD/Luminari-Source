@@ -479,20 +479,17 @@ ACMD(do_imbuearrow) {
     return;
   }
   
-  /* confirm we have a slot (sorc type), or memorized (wizard type) */
-  if (hasSpell(ch, spell_num, 0) == -1) {
-    send_to_char(ch, "You have to have the spell prepared in order to imbue!\r\n");
-    return;    
-  }
-  /* now use that slot */
-  class = forgetSpell(ch, spell_num, 0, -1);
-  if (class == -1) {
-    send_to_char(ch, "ERR:  Report BUG246tf to an IMM!\r\n");
+  if (spell_prep_gen_check(ch, spell_num, METAMAGIC_NONE) == CLASS_UNDEFINED) {
+    send_to_char(ch, "You have to have the spell prepared in order to imbue!!\r\n");
     return;
   }
-  /* sorcerer's call is made already in forgetSpell() */
-  if (class != CLASS_SORCERER && class != CLASS_BARD)
-    addSpellMemming(ch, spell_num, 0, spell_info[spell_num].memtime, class);
+  
+  class = spell_prep_gen_extract(ch, spell_num, METAMAGIC_NONE);
+  if (class == CLASS_UNDEFINED) {
+    send_to_char(ch, "ERR:  Report BUG771 to an IMM!\r\n");
+    log("spell_prep_gen_extract() failed in imbue_arrow");
+    return 0;
+  }
   
   /* SUCCESS! */
   start_daily_use_cooldown(ch, FEAT_IMBUE_ARROW);
