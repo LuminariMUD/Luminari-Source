@@ -1142,7 +1142,7 @@ bool spellbook_ok(struct char_data *ch, int spellnum, int class, bool check_scro
 ACMD(do_scribe);
 
 /* new vs old system for spell prep */
-#define OLD_SPELL_PREP
+//#define OLD_SPELL_PREP
 
 /* old system memorize related functions */
 #ifdef OLD_SPELL_PREP
