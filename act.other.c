@@ -488,7 +488,7 @@ ACMD(do_imbuearrow) {
   if (class == CLASS_UNDEFINED) {
     send_to_char(ch, "ERR:  Report BUG771 to an IMM!\r\n");
     log("spell_prep_gen_extract() failed in imbue_arrow");
-    return 0;
+    return;
   }
   
   /* SUCCESS! */
