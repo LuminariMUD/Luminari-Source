@@ -306,7 +306,9 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int 
         case ITEM_DRINKCON:
           send_to_char(ch, "It looks like a drink container.");
           break;
-
+        case ITEM_BLUEPRINT:
+          show_craft(ch, get_craft_from_id(GET_OBJ_VAL(obj, 0)));
+          break;
         default:
           send_to_char(ch, "You see nothing special..");
           break;

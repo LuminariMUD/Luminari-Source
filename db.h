@@ -138,6 +138,7 @@
 #define BAN_FILE	LIB_ETC"badsites"  /* for the siteban system	*/
 #define HCONTROL_FILE	LIB_ETC"hcontrol"  /* for the house system	*/
 #define TIME_FILE	LIB_ETC"time"	   /* for calendar system	*/
+#define CRAFT_FILE	LIB_ETC"crafts"	   /* for crafting system */ /* NewCraft */
 #define CHANGE_LOG_FILE "../changelog"     /* for the changelog         */
 #define CLAN_FILE       LIB_ETC"clans"     /* for clan system */
 #define CLAIMS_FILE     LIB_ETC"claims"    /* for clan zone claims */

@@ -27,6 +27,7 @@
 #include "quest.h"
 #include "ibt.h"
 #include "msgedit.h"
+#include "crafts.h" /* NewCraft */
 
 /* Internal Data Structures */
 /** @deprecated olc_scmd_info appears to be deprecated. Commented out for now.
@@ -201,7 +202,18 @@ void cleanup_olc(struct descriptor_data *d, byte cleanup_type)
      OLC_MSG_LIST(d) = NULL;  
      OLC_MSG(d) = NULL;
    }  
-  
+
+   /* NewCraft */
+   if (OLC_CRAFT(d)) {
+     free_craft(OLC_CRAFT(d));
+     OLC_CRAFT(d) = NULL;
+   }
+
+   if (OLC_CRAFT_REQ(d)) {
+     free(OLC_CRAFT_REQ(d));
+     OLC_CRAFT_REQ(d) = NULL;
+   }
+
   /* Free storage if allocated (tedit, aedit, and trigedit). This is the command
    * list - it's been copied to disk already, so just free it -Welcor. */
    if (OLC_STORAGE(d)) {

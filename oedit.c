@@ -884,6 +884,10 @@ static void oedit_disp_val1_menu(struct descriptor_data *d) {
     case ITEM_FURNITURE:
       write_to_output(d, "Number of people it can hold : ");
       break;
+    /* NewCraft */
+    case ITEM_BLUEPRINT:
+      write_to_output(d, "Enter Craft ID number : ");
+      break;
     case ITEM_FIREWEAPON:
       oedit_disp_ranged_menu(d);
       break;
@@ -1852,7 +1856,12 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
         case ITEM_AMMO_POUCH:
           GET_OBJ_VAL(OLC_OBJ(d), 0) = LIMIT(atoi(arg), -1, MAX_CONTAINER_SIZE);
           break;
-          
+
+        /* NewCraft */
+        case ITEM_BLUEPRINT:
+          GET_OBJ_VAL(OLC_OBJ(d), 0) = LIMIT(atoi(arg), 0, 1000);
+          break;          
+
           /* special values for worn gear, example monk-gloves will apply
              an enhancement bonus to damage */
         case ITEM_WORN:

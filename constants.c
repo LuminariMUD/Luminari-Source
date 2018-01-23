@@ -1720,6 +1720,7 @@ const char *item_types[NUM_ITEM_TYPES + 1] = {
   "Wagon",
   "Resources", //45
   "Pet", //46
+  "Blueprint", //47 /* NewCraft */
   "\n"
 };
 
@@ -2790,6 +2791,21 @@ const char *ibt_bits[] = {
   "Resolved",
   "Important",
   "InProgress",
+  "\n"
+};
+
+/* NewCraft */
+/* Craft Flags */
+const char * craft_flags[] = {
+  "Needs Recipe",
+  "\n"
+};
+
+/* Requirement Flags */
+const char * requirement_flags[] = {
+  "INROOM",
+  "!REMOVE",
+  "SAVEonFAIL",
   "\n"
 };
 

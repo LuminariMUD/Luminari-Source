@@ -129,5 +129,8 @@ extern const int draconic_heritage_energy_types[NUM_DRACONIC_HERITAGE_TYPES+1];
 extern const char *draconic_heritage_names[NUM_DRACONIC_HERITAGE_TYPES+1];
 extern const char *bloodline_names[];
 
+/* NewCraft */
+extern const char *craft_flags[];
+extern const char *requirement_flags[];
 
 #endif /* _CONSTANTS_H_ */

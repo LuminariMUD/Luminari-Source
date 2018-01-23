@@ -106,6 +106,9 @@ struct oasis_olc_data {
   struct clan_data *clan; /* used for 'clanedit'      */
   struct message_list *msg;
   struct message_type *m_type;
+  /* NewCraft */
+  struct craft_data *craft;      /* used for 'craftedit'     */
+  struct requirement_data *req;  /*           ditto          */
   
   /* Wilderness editing */
   struct region_data *region; /* Used for 'regedit' */
@@ -151,6 +154,10 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn, *red;
 #define OLC_IBT(d)     (OLC(d)->ibt)      /**< IBT (idea/bug/typo) structure */
 #define OLC_CLAN(d)    (OLC(d)->clan)     /**< Clan structure       */
 #define OLC_REGION(d)  (OLC(d)->region)   /**< Region structure  */
+
+/* NewCraft */
+#define OLC_CRAFT(d)     (OLC(d)->craft)    /**< Craft structure      */
+#define OLC_CRAFT_REQ(d) (OLC(d)->req)
 
 /* homeland-port */
 #define OLC_HLQUEST(d)     (OLC(d)->hlquest) /* hl autoquest */
@@ -634,6 +641,11 @@ ACMD(do_tedit);
 
 /* public functions from qedit.c */
 ACMD(do_oasis_qedit);
+
+/* NewCraft */
+/* public functions from crafts.c */
+void craftedit_parse(struct descriptor_data *d, char *arg);
+ACMD(do_oasis_craftedit);
 
 /* public functions from study.c */
 ACMD(do_study);

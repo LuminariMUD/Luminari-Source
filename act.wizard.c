@@ -47,6 +47,7 @@
 #include "item.h"
 #include "feats.h"
 #include "domains_schools.h"
+#include "crafts.h" /* NewCraft */
 
 /* local utility functions with file scope */
 static int perform_set(struct char_data *ch, struct char_data *vict, int mode, char *val_arg);
@@ -2683,9 +2684,10 @@ ACMD(do_show) {
     { "popularity", LVL_IMMORT},
     { "bab", LVL_IMMORT},
     { "exp", LVL_IMMORT},
-    { "colour", LVL_IMMORT}, //15
+    { "colour", LVL_IMMORT}, //15    
     { "citizen", LVL_IMMORT},
     { "guard", LVL_IMMORT},
+    { "crafts",     LVL_IMMORT },
     { "\n", 0}
   };
 
@@ -3005,8 +3007,15 @@ ACMD(do_show) {
       }
       page_string(ch->desc, buf, 1);
       break;
+    /* NewCraft */
+    case 18: //show craft 
+      if (!*value)
+        list_all_crafts(ch);
+      else
+        show_craft(ch, get_craft_from_arg(value));        
+      break;    
 
-      /* show what? */
+    /* show what? */
     default:
       send_to_char(ch, "Sorry, I don't understand that.\r\n");
       break;
