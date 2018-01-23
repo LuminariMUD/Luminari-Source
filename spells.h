@@ -1147,8 +1147,8 @@ ACMD(do_scribe);
 /* old system memorize related functions */
 #ifdef OLD_SPELL_PREP
 void init_spell_slots(struct char_data *ch);
-#endif
 int spellCircle(int class, int spellnum, int metamagic, int domain);
+#endif
 int comp_slots(struct char_data *ch, int circle, int class);
 void addSpellMemming(struct char_data *ch, int spellnum, int metamagic, int time, int mode);
 void resetMemtimes(struct char_data *ch, int class);
