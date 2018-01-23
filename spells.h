@@ -1141,31 +1141,6 @@ bool spellbook_ok(struct char_data *ch, int spellnum, int class, bool check_scro
 /* spellbook commands */
 ACMD(do_scribe);
 
-/* new vs old system for spell prep */
-//#define OLD_SPELL_PREP
-
-/* old system memorize related functions */
-#ifdef OLD_SPELL_PREP
-void init_spell_slots(struct char_data *ch);
-int spellCircle(int class, int spellnum, int metamagic, int domain);
-int comp_slots(struct char_data *ch, int circle, int class);
-void addSpellMemming(struct char_data *ch, int spellnum, int metamagic, int time, int mode);
-void resetMemtimes(struct char_data *ch, int class);
-void addSpellMemmed(struct char_data *ch, int spellnum, int metamagic, int class);
-void removeSpellMemming(struct char_data *ch, int spellnum, int metamagic, int class);
-int forgetSpell(struct char_data *ch, int spellnum, int metamagic, int mode);
-int numSpells(struct char_data *ch, int circle, int class);
-bool sorcKnown(struct char_data *ch, int spellnum, int class);
-int hasSpell(struct char_data *ch, int spellnum, int metamagic);
-int getCircle(struct char_data *ch, int class);
-int count_sorc_known(struct char_data *ch, int circle, int class);
-void sorc_extract_known(struct char_data *ch, int spellnum, int class);
-int sorc_add_known(struct char_data *ch, int spellnum, int class);
-bool isSorcBloodlineSpell(int bloodline, int spellnum);
-int getSorcBloodline(struct char_data *ch);
-#endif
-
-#undef OLD_SPELL_PREP
 
 /* from spell_parser.c */
 ACMD(do_abort);
