@@ -1149,7 +1149,6 @@ ACMD(do_scribe);
 void init_spell_slots(struct char_data *ch);
 int spellCircle(int class, int spellnum, int metamagic, int domain);
 int comp_slots(struct char_data *ch, int circle, int class);
-#endif
 void addSpellMemming(struct char_data *ch, int spellnum, int metamagic, int time, int mode);
 void resetMemtimes(struct char_data *ch, int class);
 void addSpellMemmed(struct char_data *ch, int spellnum, int metamagic, int class);
@@ -1157,6 +1156,7 @@ void removeSpellMemming(struct char_data *ch, int spellnum, int metamagic, int c
 int forgetSpell(struct char_data *ch, int spellnum, int metamagic, int mode);
 int numSpells(struct char_data *ch, int circle, int class);
 bool sorcKnown(struct char_data *ch, int spellnum, int class);
+#endif
 int hasSpell(struct char_data *ch, int spellnum, int metamagic);
 int getCircle(struct char_data *ch, int class);
 int count_sorc_known(struct char_data *ch, int circle, int class);

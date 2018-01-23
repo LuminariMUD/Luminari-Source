@@ -1250,17 +1250,6 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
   if (!isEpicSpell(spellnum) && !IS_NPC(ch)) {
 
     /* SPELL PREPARATION HOOK */
-    /* OLD SPELL PREP SYSTEM */
-    /*
-    class = forgetSpell(ch, spellnum, metamagic, -1);
-    if (class == -1) {
-      send_to_char(ch, "ERR:  Report BUG98237 to an IMM!\r\n");
-      return 0;
-    }
-    // sorcerer's call is made already in forgetSpell()
-    if (class != CLASS_SORCERER && class != CLASS_BARD)
-      addSpellMemming(ch, spellnum, metamagic, spell_info[spellnum].memtime, class);
-    */
     /* NEW SPELL PREP SYSTEM */
     class = spell_prep_gen_extract(ch, spellnum, metamagic);
     if (class == CLASS_UNDEFINED) {

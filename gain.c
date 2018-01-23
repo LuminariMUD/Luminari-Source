@@ -369,7 +369,7 @@ void sorc_study_menu(struct descriptor_data *d, int circle) {
   /* SPELL PREPARATION HOOK (spellCircle) */
   for (counter = 1; counter < NUM_SPELLS; counter++) {
     if (compute_spells_circle(CLASS_SORCERER, counter) == circle) {
-      if (sorcKnown(d->character, counter, CLASS_SORCERER))
+      if (is_a_known_spell(d->character, CLASS_SORCERER, counter))
         write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, mgn,
               spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
       else
@@ -449,7 +449,7 @@ void bard_study_menu(struct descriptor_data *d, int circle) {
   /* SPELL PREPARATION HOOK (spellCircle) */
   for (counter = 1; counter < NUM_SPELLS; counter++) {
     if (compute_spells_circle(CLASS_BARD, counter) == circle) {
-      if (sorcKnown(d->character, counter, CLASS_BARD))
+      if (is_a_known_spell(d->character, CLASS_BARD, counter))
         write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, mgn,
               spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
       else
@@ -810,7 +810,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
           for (counter = 1; counter < NUM_SPELLS; counter++) {
             if (counter == number) {
               if (compute_spells_circle(CLASS_SORCERER, counter) == global_circle) {
-                if (sorcKnown(d->character, counter, CLASS_SORCERER))
+                if (is_a_known_spell(d->character, CLASS_SORCERER, counter))
                   sorc_extract_known(d->character, counter, CLASS_SORCERER);
                 else if (!sorc_add_known(d->character, counter, CLASS_SORCERER))
                   write_to_output(d, "You are all FULL for spells!\r\n");
@@ -868,7 +868,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
           for (counter = 1; counter < NUM_SPELLS; counter++) {
             if (counter == number) {
               if (compute_spells_circle(CLASS_BARD, counter) == global_circle) {
-                if (sorcKnown(d->character, counter, CLASS_BARD))
+                if (is_a_known_spell(d->character, CLASS_BARD, counter))
                   sorc_extract_known(d->character, counter, CLASS_BARD);
                 else if (!sorc_add_known(d->character, counter, CLASS_BARD))
                   write_to_output(d, "You are all FULL for spells!\r\n");
