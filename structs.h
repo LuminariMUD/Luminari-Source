@@ -960,19 +960,23 @@
 #define CON_QALIGN       37 /**< alignment selection in char creation */
 #define CON_QRACE_HELP   38 /**< help info (race) during char creation */
 #define CON_HLQEDIT      39 /**< homeland-port quest editor */
-#define CON_QSTATS       40 /**< Point-buy system for stats */
+/* NewCraft */
+#define CON_CRAFTEDIT    40
+
+#define CON_QSTATS       41 /**< Point-buy system for stats */
 
 /* Account connection states - Ornir Oct 20, 2014 */
-#define CON_ACCOUNT_NAME         41
-#define CON_ACCOUNT_NAME_CONFIRM 42
-#define CON_ACCOUNT_MENU         43
-#define CON_ACCOUNT_ADD          44
-#define CON_ACCOUNT_ADD_PWD      45
+#define CON_ACCOUNT_NAME         42
+#define CON_ACCOUNT_NAME_CONFIRM 43
+#define CON_ACCOUNT_MENU         44
+#define CON_ACCOUNT_ADD          45
+#define CON_ACCOUNT_ADD_PWD      46
+
 
 /* OLC States range - used by IS_IN_OLC and IS_PLAYING */
 #define FIRST_OLC_STATE CON_OEDIT     /**< The first CON_ state that is an OLC */
-#define LAST_OLC_STATE  CON_HLQEDIT    /**< The last CON_ state that is an OLC  */
-#define NUM_CON_STATES	46
+#define LAST_OLC_STATE  CON_CRAFTEDIT    /**< The last CON_ state that is an OLC  */
+#define NUM_CON_STATES	47
 
 /* Character equipment positions: used as index for char_data.equipment[] */
 /* NOTE: Don't confuse these constants with the ITEM_ bitvectors
@@ -1749,9 +1753,10 @@
 #define ITEM_WAGON       44  // used for carrying resources for trade
 #define ITEM_RESOURCE    45  // used for trade with wagon
 #define ITEM_PET         46  /* object will convert into a mobile follower upon purchase */
+#define ITEM_BLUEPRINT   47  /* NewCraft */
 /**/
 /** Total number of item types.*/
-#define NUM_ITEM_TYPES   47
+#define NUM_ITEM_TYPES   48
 
 /* homeland-port */
 /*  note:  swapped free1 (7) with fireweapon

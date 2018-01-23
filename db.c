@@ -55,6 +55,7 @@
 #include "grapple.h"
 #include "race.h"
 #include "spell_prep.h"
+#include "crafts.h" /* NewCraft */
 
 #include <sys/stat.h>
 /*  declarations of most of the 'global' variables */
@@ -793,6 +794,17 @@ void destroy_db(void) {
   }
   free(trig_index);
 
+  /* Craft Cleanup */
+  if (global_craft_list->iSize > 0) {
+    struct craft_data * craft;
+
+    while ((craft = (struct craft_data *) simple_list(global_craft_list)) != NULL) {
+      remove_from_list(craft, global_craft_list);
+      free_craft(craft);  
+    }
+  }
+  free_list(global_craft_list);
+
   /* Events */
   event_free_all();
 
@@ -811,6 +823,7 @@ void boot_db(void) {
   log("Initialize Global / Group Lists");
   global_lists = create_list();
   group_list = create_list();
+  global_craft_list = create_list(); /* NewCraft */
 
   log("Initializing Events");
   init_events();
@@ -912,6 +925,10 @@ void boot_db(void) {
   if (!mini_mud) {
     log("Booting houses.");
     House_boot();
+
+    /* NewCraft */
+    log("Booting crafts.");
+    load_crafts();    
 
     log("Booting clans.");
     load_clans();

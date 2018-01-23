@@ -54,6 +54,7 @@
 #include "assign_wpn_armor.h"
 #include "bardic_performance.h"
 #include "spell_prep.h"
+#include "crafts.h" /* NewCraft */
 
 /* local (file scope) functions */
 static int perform_dupe_check(struct descriptor_data *d);
@@ -182,6 +183,10 @@ cpp_extern const struct command_info cmd_info[] = {
   { "copyover", "copyover", POS_DEAD, do_copyover, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}},
   { "credits", "cred", POS_DEAD, do_gen_ps, 0, SCMD_CREDITS, TRUE, ACTION_NONE, {0, 0}},
   { "ct", "ct", POS_DEAD, do_clantalk, 1, 0, TRUE, ACTION_NONE, {0, 0}},
+  /* NewCraft */
+  { "craft"    , "craft"   , POS_STANDING, do_craft          , 0,         0, ACTION_STANDARD | ACTION_MOVE, {6, 6}},
+  { "craftedit", "crafte"  , POS_DEAD    , do_oasis_craftedit, LVL_GRGOD, 0, ACTION_NONE,                   {0, 0}},
+  
   { "create", "create", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}},
   { "checkcraft", "checkcraft", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}},
   { "compose", "compose", POS_RESTING, do_gen_preparation, 0, SCMD_COMPOSE, FALSE, ACTION_NONE, {0, 0}},
@@ -1683,6 +1688,8 @@ void nanny(struct descriptor_data *d, char *arg) {
     { CON_CLANEDIT, clanedit_parse},
     { CON_MSGEDIT, msgedit_parse},
     { CON_STUDY, study_parse},
+    /* NewCraft */
+    { CON_CRAFTEDIT, craftedit_parse },
     { -1, NULL}
   };
 
