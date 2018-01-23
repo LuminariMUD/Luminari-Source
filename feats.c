@@ -3226,9 +3226,9 @@ bool meets_prerequisite(struct char_data *ch, struct feat_prerequisite *prereq, 
             return FALSE;
           /* This stuff is all messed up - fix. */
           if (prereq->values[2] > 0) {
-            if (!(comp_slots(ch, CLASS_WIZARD, prereq->values[2]) == 0 ||
-                    comp_slots(ch, CLASS_SORCERER, prereq->values[2]) == 0 ||
-                    comp_slots(ch, CLASS_BARD, prereq->values[2]) == 0))
+            if (!(compute_slots_by_circle(ch, CLASS_WIZARD, prereq->values[2]) == 0 ||
+                    compute_slots_by_circle(ch, CLASS_SORCERER, prereq->values[2]) == 0 ||
+                    compute_slots_by_circle(ch, CLASS_BARD, prereq->values[2]) == 0))
               return FALSE;
           }
           break;
@@ -3239,10 +3239,10 @@ bool meets_prerequisite(struct char_data *ch, struct feat_prerequisite *prereq, 
                   IS_RANGER(ch)))
             return FALSE;
           if (prereq->values[2] > 0) {
-            if (!(comp_slots(ch, CLASS_CLERIC, prereq->values[2]) == 0 ||
-                    comp_slots(ch, CLASS_PALADIN, prereq->values[2]) == 0 ||
-                    comp_slots(ch, CLASS_DRUID, prereq->values[2]) == 0 ||
-                    comp_slots(ch, CLASS_RANGER, prereq->values[2]) == 0))
+            if (!(compute_slots_by_circle(ch, CLASS_CLERIC, prereq->values[2]) == 0 ||
+                    compute_slots_by_circle(ch, CLASS_PALADIN, prereq->values[2]) == 0 ||
+                    compute_slots_by_circle(ch, CLASS_DRUID, prereq->values[2]) == 0 ||
+                    compute_slots_by_circle(ch, CLASS_RANGER, prereq->values[2]) == 0))
               return FALSE;
           }
           break;
@@ -3250,13 +3250,13 @@ bool meets_prerequisite(struct char_data *ch, struct feat_prerequisite *prereq, 
           if (!IS_SPELLCASTER(ch))
             return FALSE;
           if (prereq->values[2] > 0) {
-            if (!(comp_slots(ch, CLASS_WIZARD, prereq->values[2]) == 0 ||
-                    comp_slots(ch, CLASS_SORCERER, prereq->values[2]) == 0 ||
-                    comp_slots(ch, CLASS_BARD, prereq->values[2]) == 0 ||
-                    comp_slots(ch, CLASS_CLERIC, prereq->values[2]) == 0 ||
-                    comp_slots(ch, CLASS_PALADIN, prereq->values[2]) == 0 ||
-                    comp_slots(ch, CLASS_DRUID, prereq->values[2]) == 0 ||
-                    comp_slots(ch, CLASS_RANGER, prereq->values[2]) == 0))
+            if (!(compute_slots_by_circle(ch, CLASS_WIZARD, prereq->values[2]) == 0 ||
+                    compute_slots_by_circle(ch, CLASS_SORCERER, prereq->values[2]) == 0 ||
+                    compute_slots_by_circle(ch, CLASS_BARD, prereq->values[2]) == 0 ||
+                    compute_slots_by_circle(ch, CLASS_CLERIC, prereq->values[2]) == 0 ||
+                    compute_slots_by_circle(ch, CLASS_PALADIN, prereq->values[2]) == 0 ||
+                    compute_slots_by_circle(ch, CLASS_DRUID, prereq->values[2]) == 0 ||
+                    compute_slots_by_circle(ch, CLASS_RANGER, prereq->values[2]) == 0))
               return FALSE;
           }
           break;
@@ -3336,13 +3336,13 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
       case FEAT_AUTOMATIC_QUICKEN_SPELL:
         if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) < 30)
           return FALSE;
-        if (comp_slots(ch, CLASS_SORCERER, 9) > 0)
+        if (compute_slots_by_circle(ch, CLASS_SORCERER, 9) > 0)
           return TRUE;
-        if (comp_slots(ch, CLASS_WIZARD, 9) > 0)
+        if (compute_slots_by_circle(ch, CLASS_WIZARD, 9) > 0)
           return TRUE;
-        if (comp_slots(ch, CLASS_CLERIC, 9) > 0)
+        if (compute_slots_by_circle(ch, CLASS_CLERIC, 9) > 0)
           return TRUE;
-        if (comp_slots(ch, CLASS_DRUID, 9) > 0)
+        if (compute_slots_by_circle(ch, CLASS_DRUID, 9) > 0)
           return TRUE;
         return FALSE;
 
@@ -3353,13 +3353,13 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
           return FALSE;
         if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) < 30)
           return FALSE;
-        if (comp_slots(ch, CLASS_SORCERER, 9) > 0)
+        if (compute_slots_by_circle(ch, CLASS_SORCERER, 9) > 0)
           return TRUE;
-        if (comp_slots(ch, CLASS_WIZARD, 9) > 0)
+        if (compute_slots_by_circle(ch, CLASS_WIZARD, 9) > 0)
           return TRUE;
-        if (comp_slots(ch, CLASS_CLERIC, 9) > 0)
+        if (compute_slots_by_circle(ch, CLASS_CLERIC, 9) > 0)
           return TRUE;
-        if (comp_slots(ch, CLASS_DRUID, 9) > 0)
+        if (compute_slots_by_circle(ch, CLASS_DRUID, 9) > 0)
           return TRUE;
         return FALSE;
 
