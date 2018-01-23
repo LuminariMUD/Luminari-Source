@@ -368,7 +368,7 @@ void sorc_study_menu(struct descriptor_data *d, int circle) {
 
   /* SPELL PREPARATION HOOK (spellCircle) */
   for (counter = 1; counter < NUM_SPELLS; counter++) {
-    if (spellCircle(CLASS_SORCERER, counter) == circle) {
+    if (compute_spells_circle(CLASS_SORCERER, counter) == circle) {
       if (sorcKnown(d->character, counter, CLASS_SORCERER))
         write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, mgn,
               spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
@@ -448,7 +448,7 @@ void bard_study_menu(struct descriptor_data *d, int circle) {
 
   /* SPELL PREPARATION HOOK (spellCircle) */
   for (counter = 1; counter < NUM_SPELLS; counter++) {
-    if (spellCircle(CLASS_BARD, counter) == circle) {
+    if (compute_spells_circle(CLASS_BARD, counter) == circle) {
       if (sorcKnown(d->character, counter, CLASS_BARD))
         write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, mgn,
               spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
@@ -809,7 +809,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
           /* SPELL PREPARATION HOOK (spellCircle) */
           for (counter = 1; counter < NUM_SPELLS; counter++) {
             if (counter == number) {
-              if (spellCircle(CLASS_SORCERER, counter) == global_circle) {
+              if (compute_spells_circle(CLASS_SORCERER, counter) == global_circle) {
                 if (sorcKnown(d->character, counter, CLASS_SORCERER))
                   sorc_extract_known(d->character, counter, CLASS_SORCERER);
                 else if (!sorc_add_known(d->character, counter, CLASS_SORCERER))
@@ -867,7 +867,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
           /* SPELL PREPARATION HOOK (spellCircle) */
           for (counter = 1; counter < NUM_SPELLS; counter++) {
             if (counter == number) {
-              if (spellCircle(CLASS_BARD, counter) == global_circle) {
+              if (compute_spells_circle(CLASS_BARD, counter) == global_circle) {
                 if (sorcKnown(d->character, counter, CLASS_BARD))
                   sorc_extract_known(d->character, counter, CLASS_BARD);
                 else if (!sorc_add_known(d->character, counter, CLASS_BARD))
