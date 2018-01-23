@@ -8,6 +8,7 @@
 /  Created on January 8, 2018, 3:27 PM                                                                                                                                                                                     
 \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ /*/
 
+/* Extra credits:  Gicker for Sorcerer Bloodlines */
 
 /** START general notes */
 /*
