@@ -1156,7 +1156,6 @@ void removeSpellMemming(struct char_data *ch, int spellnum, int metamagic, int c
 int forgetSpell(struct char_data *ch, int spellnum, int metamagic, int mode);
 int numSpells(struct char_data *ch, int circle, int class);
 bool sorcKnown(struct char_data *ch, int spellnum, int class);
-#endif
 int hasSpell(struct char_data *ch, int spellnum, int metamagic);
 int getCircle(struct char_data *ch, int class);
 int count_sorc_known(struct char_data *ch, int circle, int class);
@@ -1164,6 +1163,7 @@ void sorc_extract_known(struct char_data *ch, int spellnum, int class);
 int sorc_add_known(struct char_data *ch, int spellnum, int class);
 bool isSorcBloodlineSpell(int bloodline, int spellnum);
 int getSorcBloodline(struct char_data *ch);
+#endif
 
 #undef OLD_SPELL_PREP
 

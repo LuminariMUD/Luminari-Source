@@ -279,14 +279,13 @@ bool collection_remove_by_class(struct char_data *ch, int class, int spellnum,
 }
 /* give: ch, class, spellnum, and metamagic:
    return: true if we found/removed, false if we didn't find */
-bool known_spells_remove_by_class(struct char_data *ch, int class, int spellnum,
-        int metamagic) {
+bool known_spells_remove_by_class(struct char_data *ch, int class, int spellnum) {
   struct known_spell_data *current = KNOWN_SPELLS(ch, class);
   struct known_spell_data *next;
   
   for (; current; current = next) {
     next = current->next;
-    if (current->spell == spellnum && current->metamagic == metamagic) {
+    if (current->spell == spellnum) {
       known_spells_remove(ch, current, class);
       return TRUE;
     }
