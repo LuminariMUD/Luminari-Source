@@ -22,6 +22,7 @@
 #include "mud_event.h"
 #include "assign_wpn_armor.h"
 #include "domains_schools.h"
+#include "spell_prep.h"
 
 /* Local Functions */
 /* Prerequisite definition procedures */
