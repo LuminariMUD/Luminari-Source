@@ -23,6 +23,7 @@
 #include "act.h"
 #include "handler.h"  // for obj_from_char()
 #include "spec_procs.h"  // for compute_ability
+#include "spell_prep.h"
 
 /* local, global variables, defines */
 char buf[MAX_INPUT_LENGTH] = {'\0'};
