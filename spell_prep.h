@@ -80,7 +80,7 @@ extern "C" {
     bool collection_remove_by_class(struct char_data *ch, int class, int spellnum, int metamagic);
     /* give: ch, class, spellnum, and metamagic:
        return: true if we found/removed, false if we didn't find */
-    bool known_spells_remove_by_class(struct char_data *ch, int class, int spellnum, int metamagic);
+    bool known_spells_remove_by_class(struct char_data *ch, int class, int spellnum);
     
     /* remove a spell from a character's prep-queue(in progress) linked list */
     void prep_queue_remove(struct char_data *ch, struct prep_collection_spell_data *entry,

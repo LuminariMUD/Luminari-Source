@@ -329,23 +329,23 @@ static void sorc_disp_menu(struct descriptor_data *d) {
 
           mgn,
           grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][0] -
-          count_sorc_known(d->character, 1, CLASS_SORCERER),
+          count_known_spells_by_circle(d->character, CLASS_SORCERER, 1),
           grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][1] -
-          count_sorc_known(d->character, 2, CLASS_SORCERER),
+          count_known_spells_by_circle(d->character, CLASS_SORCERER, 2),
           grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][2] -
-          count_sorc_known(d->character, 3, CLASS_SORCERER),
+          count_known_spells_by_circle(d->character, CLASS_SORCERER, 3),
           grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][3] -
-          count_sorc_known(d->character, 4, CLASS_SORCERER),
+          count_known_spells_by_circle(d->character, CLASS_SORCERER, 4),
           grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][4] -
-          count_sorc_known(d->character, 5, CLASS_SORCERER),
+          count_known_spells_by_circle(d->character, CLASS_SORCERER, 5),
           grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][5] -
-          count_sorc_known(d->character, 6, CLASS_SORCERER),
+          count_known_spells_by_circle(d->character, CLASS_SORCERER, 6),
           grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][6] -
-          count_sorc_known(d->character, 7, CLASS_SORCERER),
+          count_known_spells_by_circle(d->character, CLASS_SORCERER, 7),
           grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][7] -
-          count_sorc_known(d->character, 8, CLASS_SORCERER),
+          count_known_spells_by_circle(d->character, CLASS_SORCERER, 8),
           grn, nrm, yel, sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][8] -
-          count_sorc_known(d->character, 9, CLASS_SORCERER),
+          count_known_spells_by_circle(d->character, CLASS_SORCERER, 9),
           grn, nrm,
           grn, nrm,
           mgn, nrm,
@@ -380,7 +380,7 @@ void sorc_study_menu(struct descriptor_data *d, int circle) {
   write_to_output(d, "\r\n");
   write_to_output(d, "%sNumber of slots availble:%s %d.\r\n", grn, nrm,
           sorcererKnown[CLASS_LEVEL(d->character, CLASS_SORCERER)][circle - 1] -
-          count_sorc_known(d->character, circle, CLASS_SORCERER));
+          count_known_spells_by_circle(d->character, CLASS_SORCERER, circle));
   write_to_output(d, "%sEnter spell choice, to add or remove "
           "(Q to exit to main menu) : ", nrm);
 
@@ -416,17 +416,17 @@ static void bard_disp_menu(struct descriptor_data *d) {
 
           mgn,
           grn, nrm, yel, bardKnown[CLASS_LEVEL(d->character, CLASS_BARD)][0] -
-          count_sorc_known(d->character, 1, CLASS_BARD),
+          count_known_spells_by_circle(d->character, CLASS_BARD, 1),
           grn, nrm, yel, bardKnown[CLASS_LEVEL(d->character, CLASS_BARD)][1] -
-          count_sorc_known(d->character, 2, CLASS_BARD),
+          count_known_spells_by_circle(d->character, CLASS_BARD, 2),
           grn, nrm, yel, bardKnown[CLASS_LEVEL(d->character, CLASS_BARD)][2] -
-          count_sorc_known(d->character, 3, CLASS_BARD),
+          count_known_spells_by_circle(d->character, CLASS_BARD, 3),
           grn, nrm, yel, bardKnown[CLASS_LEVEL(d->character, CLASS_BARD)][3] -
-          count_sorc_known(d->character, 4, CLASS_BARD),
+          count_known_spells_by_circle(d->character, CLASS_BARD, 4),
           grn, nrm, yel, bardKnown[CLASS_LEVEL(d->character, CLASS_BARD)][4] -
-          count_sorc_known(d->character, 5, CLASS_BARD),
+          count_known_spells_by_circle(d->character, CLASS_BARD, 5),
           grn, nrm, yel, bardKnown[CLASS_LEVEL(d->character, CLASS_BARD)][5] -
-          count_sorc_known(d->character, 6, CLASS_BARD),
+          count_known_spells_by_circle(d->character, CLASS_BARD, 6),
           grn, nrm,
           grn, nrm,
           mgn, nrm
@@ -460,7 +460,7 @@ void bard_study_menu(struct descriptor_data *d, int circle) {
   write_to_output(d, "\r\n");
   write_to_output(d, "%sNumber of slots availble:%s %d.\r\n", grn, nrm,
           sorcererKnown[CLASS_LEVEL(d->character, CLASS_BARD)][circle - 1] -
-          count_sorc_known(d->character, circle, CLASS_BARD));
+          count_known_spells_by_circle(d->character, CLASS_BARD, circle));
   write_to_output(d, "%sEnter spell choice, to add or remove "
           "(Q to exit to main menu) : ", nrm);
 
@@ -811,8 +811,8 @@ void study_parse(struct descriptor_data *d, char *arg) {
             if (counter == number) {
               if (compute_spells_circle(CLASS_SORCERER, counter) == global_circle) {
                 if (is_a_known_spell(d->character, CLASS_SORCERER, counter))
-                  sorc_extract_known(d->character, counter, CLASS_SORCERER);
-                else if (!sorc_add_known(d->character, counter, CLASS_SORCERER))
+                  known_spells_remove_by_class(d->character, CLASS_SORCERER, counter);
+                else if (!known_spells_add(d->character, CLASS_SORCERER, counter, FALSE))
                   write_to_output(d, "You are all FULL for spells!\r\n");
               }
             }
@@ -869,8 +869,8 @@ void study_parse(struct descriptor_data *d, char *arg) {
             if (counter == number) {
               if (compute_spells_circle(CLASS_BARD, counter) == global_circle) {
                 if (is_a_known_spell(d->character, CLASS_BARD, counter))
-                  sorc_extract_known(d->character, counter, CLASS_BARD);
-                else if (!sorc_add_known(d->character, counter, CLASS_BARD))
+                  known_spells_remove_by_class(d->character, CLASS_BARD, counter);
+                else if (!known_spells_add(d->character, CLASS_BARD, counter, FALSE))
                   write_to_output(d, "You are all FULL for spells!\r\n");
               }
             }
