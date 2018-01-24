@@ -1163,7 +1163,7 @@ static char *make_prompt(struct descriptor_data *d) {
   struct char_data *ch = NULL;
   int count = 0, prompt_size = 0;
   size_t len = 0;
-  bool found = TRUE;
+  //bool found = TRUE;
 
   /* Note, prompt is truncated at MAX_PROMPT_LENGTH chars (structs.h) */
 
