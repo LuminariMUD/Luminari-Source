@@ -2152,10 +2152,12 @@ SPECIAL(guild) {
       send_to_char(ch, CONFIG_OK);
       send_to_char(ch, "\tMYour intelligence increases!\tn\r\n");
       GET_REAL_INT(ch) += 1;
-      /* Give extra skill practice, but only for this level */
-      if (!(GET_REAL_INT(ch) % 2))
-        GET_TRAINS(ch)++;
       GET_BOOSTS(ch) -= 1;
+      /* Give them retroactive trains */
+      if (!(GET_REAL_INT(ch) % 2)) {
+        GET_TRAINS(ch) += GET_LEVEL(ch);
+        send_to_char(ch, "\tMYou gain %d trains!\tn\r\n", GET_LEVEL(ch));
+      }
     } else if (!strncasecmp("wisdom", argument, strlen(argument))) {
       send_to_char(ch, CONFIG_OK);
       send_to_char(ch, "\tMYour wisdom increases!\tn\r\n");
