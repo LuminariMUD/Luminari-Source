@@ -1983,6 +1983,11 @@ ACMD(do_harvest) {
     send_to_char(ch, "You must drop something before you can harvest anything else.\r\n");
     return;
   }
+  if (IS_CARRYING_W(ch) >= CAN_CARRY_W(ch)) {
+    send_to_char(ch, "You must lighten your load before you can harvest anything else.\r\n");
+    return;    
+  }
+
 
   if (FIGHTING(ch)) {
     send_to_char(ch, "You are too busy fighting!\r\n");
