@@ -4742,7 +4742,7 @@ EVENTFUNC(event_copyover) {
       if (pt->character)
         send_to_char(pt->character, "\r\n     \tR[COPYOVER IMMINENT!]\r\n");
     sprintf(buf, "%d", (timer - 1));
-    pMudEvent->sVariables = strdup(buf);
+    copyover_event->sVariables = strdup(buf);
     return (1 * PASSES_PER_SEC);    
   }
   
@@ -4751,7 +4751,7 @@ EVENTFUNC(event_copyover) {
       if (pt->character)
         send_to_char(pt->character, "\r\n     \tR[Copyover in less than 2 seconds]\r\n");
     sprintf(buf, "%d", (timer - 1));
-    pMudEvent->sVariables = strdup(buf);
+    copyover_event->sVariables = strdup(buf);
     return (1 * PASSES_PER_SEC);    
   }
   
@@ -4760,7 +4760,7 @@ EVENTFUNC(event_copyover) {
       if (pt->character)
         send_to_char(pt->character, "\r\n     \tR[Copyover in less than 3 seconds]\r\n");
     sprintf(buf, "%d", (timer - 1));
-    pMudEvent->sVariables = strdup(buf);
+    copyover_event->sVariables = strdup(buf);
     return (1 * PASSES_PER_SEC);    
   }
   
@@ -4769,7 +4769,7 @@ EVENTFUNC(event_copyover) {
       if (pt->character)
         send_to_char(pt->character, "\r\n     \tR[Copyover in less than 10 seconds]\r\n");
     sprintf(buf, "%d", (timer - 7));
-    pMudEvent->sVariables = strdup(buf);
+    copyover_event->sVariables = strdup(buf);
     return (7 * PASSES_PER_SEC);    
   }
 
@@ -4778,12 +4778,12 @@ EVENTFUNC(event_copyover) {
       if (pt->character)
         send_to_char(pt->character, "\r\n     \tR[Copyover in less than 30 seconds]\r\n");
     sprintf(buf, "%d", (timer - 20));
-    pMudEvent->sVariables = strdup(buf);
+    copyover_event->sVariables = strdup(buf);
     return (20 * PASSES_PER_SEC);    
   }
   
   else {
-    pMudEvent->sVariables = strdup("30");
+    copyover_event->sVariables = strdup("30");
     return ((timer - 30) * PASSES_PER_SEC);
   }
 }
