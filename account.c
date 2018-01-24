@@ -562,17 +562,18 @@ void combine_accounts(void) {
 }
  */
 
-ACMD(do_account) {
+/* engine for ACMD(do_account) */
+void perform_do_account(struct char_data *ch, struct char_data *vict) {
   bool found = FALSE;
   int i = 0;
 
-  if (IS_NPC(ch) || !ch->desc || !ch->desc->account) {
+  if (IS_NPC(vict) || !vict->desc || !vict->desc->account) {
     send_to_char(ch, "The account command can only be used by player characters "
             "with a valid account.\r\n");
     return;
   }
 
-  struct account_data *acc = ch->desc->account;
+  struct account_data *acc = vict->desc->account;
   send_to_char(ch, "\tC");
   draw_line(ch, 80, '-', '-');
   send_to_char(ch,
@@ -617,10 +618,15 @@ ACMD(do_account) {
   if (!found)
     send_to_char(ch, "  None.\r\n");
 
-  send_to_char(ch, "You can unlock races and classes via the 'accexp' command.\r\n");
+  if (ch == vict)
+    send_to_char(ch, "You can unlock races and classes via the 'accexp' command.\r\n");
 
   send_to_char(ch, "\tC");
-  draw_line(ch, 80, '-', '-');
+  draw_line(ch, 80, '-', '-');  
+}
+
+ACMD(do_account) {  
+  perform_do_account(ch, ch);
 }
 
 /* Remove the player from the database, so that accounts do not reference it. */
