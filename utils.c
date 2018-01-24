@@ -1442,8 +1442,9 @@ void increase_skill(struct char_data *ch, int skillnum) {
   }
 
   if (notched)
-    send_to_char(ch, "\tMYou feel your skill in \tC%s\tM improve!\tn\r\n",
-            spell_info[skillnum].name);
+    send_to_char(ch, "\tMYou feel your skill in \tC%s\tM improve! Your skill at "
+            "\tC%s\tM is now %d!\tn", spell_info[skillnum].name, spell_info[skillnum].name,
+                                      GET_SKILL(ch, skillnum));
   return;
 }
 #undef USE
