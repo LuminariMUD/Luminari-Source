@@ -922,7 +922,7 @@ do                                                              \
 #define GET_ALIGNMENT(ch) ((ch)->char_specials.saved.alignment)
 
 /* ranger favored enemy array */
-#define GET_FAVORED_ENEMY(ch, slot)		((ch)->player_specials->saved..favored_enemy[slot])
+#define GET_FAVORED_ENEMY(ch, slot)		((ch)->player_specials->saved.favored_enemy[slot])
 
 //  our spec_abil values
 #define GET_SPEC_ABIL(ch, slot)		((ch)->char_specials.saved.spec_abil[slot])
