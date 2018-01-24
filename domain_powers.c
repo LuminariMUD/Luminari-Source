@@ -108,6 +108,11 @@ ACMD(do_blessedtouch) {
     return;
   }
 
+  if (!GROUP(ch)) {
+    send_to_char(ch, "You can't use this ability if you're not in a group (group new)!\r\n");
+    return (0);
+  }
+  
   if ((uses_remaining = daily_uses_remaining(ch, FEAT_BLESSED_TOUCH)) == 0) {
     send_to_char(ch, "You must recover the divine energy required to use this feat again.\r\n");
     return;
@@ -143,7 +148,7 @@ ACMD(do_blessedtouch) {
     act("$n shoots a \tWwhite\tn aura towards you!", FALSE, ch, 0, vict, TO_VICT);
     act("$n shoots a \tWwhite\tn aura towards $N!", FALSE, ch, 0, vict, TO_NOTVICT);
   }
-  call_magic(ch, vict, 0, SPELL_AID, 0, CLASS_LEVEL(ch, CLASS_CLERIC), CAST_INNATE);
+  call_magic(ch, vict, NULL, SPELL_AID, 0, CLASS_LEVEL(ch, CLASS_CLERIC), CAST_INNATE);
 
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_BLESSED_TOUCH);
