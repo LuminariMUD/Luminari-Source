@@ -396,7 +396,6 @@ bool move_on_path(struct char_data *ch) {
 void mobile_echos(struct char_data *ch) {
   char *echo = NULL;
   struct descriptor_data *d = NULL;
-  size_t num_elements = 0;
 
   if (!ECHO_COUNT(ch))
     return;
