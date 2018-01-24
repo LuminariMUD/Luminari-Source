@@ -4647,7 +4647,7 @@ void perform_do_copyover() {
       write_to_descriptor(d->descriptor, "\n\rSorry, we are rebooting. Come back in a few minutes.\n\r");
       close_socket(d); /* throw'em out */
     } else {
-      send_to_char(och, "\n\r \tR*** \tWTime stops for a moment as space and time folds upon itself! \tR***\tn\n\r"
+      write_to_descriptor(d->descriptor, "\n\r \tR*** \tWTime stops for a moment as space and time folds upon itself! \tR***\tn\n\r"
               "\tc[The game will pause for about 30 seconds while new code is being imported, "
               "you will need to reform if you were grouped.  If you get disconnected, "
               "you should be able to reconnect immediately or within a few minutes.]\tn\r\n");
