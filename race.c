@@ -861,7 +861,7 @@ void assign_races(void) {
       /*morph to-char*/"Your body twists and contorts painfully until your form becomes Crystal-Dwarf.",
       /*morph to-room*/"$n's body twists and contorts painfully until $s form becomes Crystal-Dwarf.");
     set_race_genders(RACE_CRYSTAL_DWARF, N, Y, Y); /* n m f */
-    set_race_abilities(RACE_CRYSTAL_DWARF, 2, 8, 0, 2, 0, 2); /* str con int wis dex cha */
+    set_race_abilities(RACE_CRYSTAL_DWARF, 2, 4, 0, 2, 0, 2); /* str con int wis dex cha */
     set_race_alignments(RACE_CRYSTAL_DWARF, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */  
     set_race_attack_types(RACE_CRYSTAL_DWARF,
      /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
@@ -905,7 +905,7 @@ void assign_races(void) {
       /*morph to-char*/"Your body twists and contorts painfully until your form becomes Trelux.",
       /*morph to-room*/"$n's body twists and contorts painfully until $s form becomes Trelux.");
     set_race_genders(RACE_TRELUX, N, Y, Y); /* n m f */
-    set_race_abilities(RACE_TRELUX, 2, 8, 0, 2, 0, 2); /* str con int wis dex cha */
+    set_race_abilities(RACE_TRELUX, 2, 4, 0, 0, 4, 0); /* str con int wis dex cha */
     set_race_alignments(RACE_TRELUX, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */  
     set_race_attack_types(RACE_TRELUX,
      /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
