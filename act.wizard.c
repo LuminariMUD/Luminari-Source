@@ -4742,41 +4742,43 @@ EVENTFUNC(event_copyover) {
     return 0;
   }
   
-  if (current_timer == 1) {
+  else if (current_timer == 1) {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
         send_to_char(pt->character, "\r\n     \tR[COPYOVER IMMINENT!]\r\n");
     return (1 * PASSES_PER_SEC);    
   }
   
-  if (current_timer == 2) {
+  else if (current_timer == 2) {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
         send_to_char(pt->character, "\r\n     \tR[Copyover in 2 seconds]\r\n");
     return (1 * PASSES_PER_SEC);    
   }
   
-  if (current_timer == 3) {
+  else if (current_timer == 3) {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
         send_to_char(pt->character, "\r\n     \tR[Copyover in 3 seconds]\r\n");
     return (1 * PASSES_PER_SEC);    
   }
   
-  if (current_timer == 10) {
+  else if (current_timer == 10) {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
         send_to_char(pt->character, "\r\n     \tR[Copyover in 10 seconds]\r\n");
     return (7 * PASSES_PER_SEC);    
   }
 
-  if (current_timer == 30) {
+  else if (current_timer == 30) {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
         send_to_char(pt->character, "\r\n     \tR[Copyover in 30 seconds]\r\n");
     return (20 * PASSES_PER_SEC);    
   }
-
+  
+  else 
+    return ((current_timer - 30) * PASSES_PER_SEC);
 }
 
 /* (c) 1996-97 Erwin S. Andreasen. Modified by Zusuk to accept countdown argument */
