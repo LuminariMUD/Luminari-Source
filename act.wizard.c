@@ -4716,14 +4716,21 @@ void perform_do_copyover() {
 EVENTFUNC(event_copyover) {
   struct mud_event_data *copyover_event = NULL;
   struct descriptor_data *pt = NULL;
+  struct char_data *ch = NULL;
   int timer = 0;
   char buf[50] = {'\0'};
 
   /* initialize everything and dummy checks */
   if (event_obj == NULL)
     return 0;  
+  ch = (struct char_data *) copyover_event->pStruct;
+  if (!ch) {
+    return 0;
+  }
   copyover_event = (struct mud_event_data *) event_obj;
 
+  /* in case our event owner decides to log out*/
+  
   /* grab and clear initial timer from sVar */
   if (copyover_event->sVariables) {
     timer = atoi((char *) copyover_event->sVariables); /* in seconds */
@@ -4731,8 +4738,14 @@ EVENTFUNC(event_copyover) {
   } else
     timer = 0;
   
-  /* all done, copyover! */
+  /* all done, copyover (if we can)! */
   if (timer <= 0) {
+    if (!IS_PLAYING(ch)) { /*invalid state for copyover, cancel*/
+      for (pt = descriptor_list; pt; pt = pt->next)
+        if (pt->character)
+          send_to_char(pt->character, "\r\n     \tW[Copyover has been CANCELLED]\tn\r\n");
+      return 0;
+    }
     perform_do_copyover();
     return 0;
   }
@@ -4740,7 +4753,7 @@ EVENTFUNC(event_copyover) {
   else if (timer == 1) {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
-        send_to_char(pt->character, "\r\n     \tR[COPYOVER IMMINENT!]\r\n");
+        send_to_char(pt->character, "\r\n     \tR[COPYOVER IMMINENT!]\tn\r\n");
     sprintf(buf, "%d", (timer - 1));
     copyover_event->sVariables = strdup(buf);
     return (1 * PASSES_PER_SEC);    
@@ -4749,7 +4762,7 @@ EVENTFUNC(event_copyover) {
   else if (timer == 2) {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
-        send_to_char(pt->character, "\r\n     \tR[Copyover in less than 2 seconds]\r\n");
+        send_to_char(pt->character, "\r\n     \tR[Copyover in less than 2 seconds]\tn\r\n");
     sprintf(buf, "%d", (timer - 1));
     copyover_event->sVariables = strdup(buf);
     return (1 * PASSES_PER_SEC);    
@@ -4758,7 +4771,7 @@ EVENTFUNC(event_copyover) {
   else if (timer == 3) {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
-        send_to_char(pt->character, "\r\n     \tR[Copyover in less than 3 seconds]\r\n");
+        send_to_char(pt->character, "\r\n     \tR[Copyover in less than 3 seconds]\tn\r\n");
     sprintf(buf, "%d", (timer - 1));
     copyover_event->sVariables = strdup(buf);
     return (1 * PASSES_PER_SEC);    
@@ -4767,7 +4780,7 @@ EVENTFUNC(event_copyover) {
   else if (timer <= 10) {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
-        send_to_char(pt->character, "\r\n     \tR[Copyover in less than 10 seconds]\r\n");
+        send_to_char(pt->character, "\r\n     \tR[Copyover in less than 10 seconds]\tn\r\n");
     sprintf(buf, "%d", (timer - 7));
     copyover_event->sVariables = strdup(buf);
     return (7 * PASSES_PER_SEC);    
@@ -4776,7 +4789,7 @@ EVENTFUNC(event_copyover) {
   else if (timer <= 30) {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
-        send_to_char(pt->character, "\r\n     \tR[Copyover in less than 30 seconds]\r\n");
+        send_to_char(pt->character, "\r\n     \tR[Copyover in less than 30 seconds]\tn\r\n");
     sprintf(buf, "%d", (timer - 20));
     copyover_event->sVariables = strdup(buf);
     return (20 * PASSES_PER_SEC);    
@@ -4785,7 +4798,7 @@ EVENTFUNC(event_copyover) {
   else if (timer <= 60) {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
-        send_to_char(pt->character, "\r\n     \tR[Copyover in less than 1 minute, please disengage from combat and find a safe place to wait]\r\n");
+        send_to_char(pt->character, "\r\n     \tR[Copyover in less than 1 minute, please disengage from combat and find a safe place to wait]\tn\r\n");
     sprintf(buf, "%d", (timer - 30));
     copyover_event->sVariables = strdup(buf);
     return (30 * PASSES_PER_SEC);    
@@ -4794,7 +4807,7 @@ EVENTFUNC(event_copyover) {
   else if (timer <= 180) {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
-        send_to_char(pt->character, "\r\n     \tR[Copyover in less than 3 minutes]\r\n");
+        send_to_char(pt->character, "\r\n     \tR[Copyover in less than 3 minutes]\tn\r\n");
     sprintf(buf, "%d", (timer - 120));
     copyover_event->sVariables = strdup(buf);
     return (120 * PASSES_PER_SEC);    
@@ -4803,7 +4816,7 @@ EVENTFUNC(event_copyover) {
   else if (timer <= 300) {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
-        send_to_char(pt->character, "\r\n     \tR[Copyover in less than 5 minutes]\r\n");
+        send_to_char(pt->character, "\r\n     \tR[Copyover in less than 5 minutes]\tn\r\n");
     sprintf(buf, "%d", (timer - 120));
     copyover_event->sVariables = strdup(buf);
     return (120 * PASSES_PER_SEC);    
@@ -4812,7 +4825,7 @@ EVENTFUNC(event_copyover) {
   else if (timer <= 600) {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
-        send_to_char(pt->character, "\r\n     \tR[Copyover in less than 10 minutes]\r\n");
+        send_to_char(pt->character, "\r\n     \tR[Copyover in less than 10 minutes]\tn\r\n");
     sprintf(buf, "%d", (timer - 300));
     copyover_event->sVariables = strdup(buf);
     return (300 * PASSES_PER_SEC);    
@@ -4821,7 +4834,7 @@ EVENTFUNC(event_copyover) {
   else {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
-        send_to_char(pt->character, "\r\n     \tR[Copyover in about %d minutes]\r\n",
+        send_to_char(pt->character, "\r\n     \tR[Copyover in about %d minutes]\tn\r\n",
                 timer/60);
     copyover_event->sVariables = strdup("600");
     return ((timer - 600) * PASSES_PER_SEC);
@@ -4834,6 +4847,7 @@ ACMD(do_copyover) {
   char arg[MAX_INPUT_LENGTH];
   int timer = 0;
   char buf[50] = {'\0'};
+  struct descriptor_data *pt = NULL;
 
   if (port == CONFIG_DFLT_DEV_PORT) {
     min_level_to_copyover = LVL_IMMORT;
@@ -4856,6 +4870,9 @@ ACMD(do_copyover) {
             "Only the initiator of the copyover event can cancel it.\r\n");
     if (char_has_mud_event(ch, eCOPYOVER)) {
       event_cancel_specific(ch, eCOPYOVER);
+      for (pt = descriptor_list; pt; pt = pt->next)
+        if (pt->character)
+          send_to_char(pt->character, "\r\n     \tW[Copyover has been CANCELLED]\tn\r\n");
     }
     return; 
   }
