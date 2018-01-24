@@ -4782,7 +4782,47 @@ EVENTFUNC(event_copyover) {
     return (20 * PASSES_PER_SEC);    
   }
   
+  else if (timer <= 60) {
+    for (pt = descriptor_list; pt; pt = pt->next)
+      if (pt->character)
+        send_to_char(pt->character, "\r\n     \tR[Copyover in less than 1 minute]\r\n");
+    sprintf(buf, "%d", (timer - 30));
+    copyover_event->sVariables = strdup(buf);
+    return (30 * PASSES_PER_SEC);    
+  }
+  
+  else if (timer <= 180) {
+    for (pt = descriptor_list; pt; pt = pt->next)
+      if (pt->character)
+        send_to_char(pt->character, "\r\n     \tR[Copyover in less than 3 minutes]\r\n");
+    sprintf(buf, "%d", (timer - 120));
+    copyover_event->sVariables = strdup(buf);
+    return (120 * PASSES_PER_SEC);    
+  }
+  
+  else if (timer <= 300) {
+    for (pt = descriptor_list; pt; pt = pt->next)
+      if (pt->character)
+        send_to_char(pt->character, "\r\n     \tR[Copyover in less than 5 minutes]\r\n");
+    sprintf(buf, "%d", (timer - 120));
+    copyover_event->sVariables = strdup(buf);
+    return (120 * PASSES_PER_SEC);    
+  }
+  
+  else if (timer <= 600) {
+    for (pt = descriptor_list; pt; pt = pt->next)
+      if (pt->character)
+        send_to_char(pt->character, "\r\n     \tR[Copyover in less than 10 minutes]\r\n");
+    sprintf(buf, "%d", (timer - 300));
+    copyover_event->sVariables = strdup(buf);
+    return (300 * PASSES_PER_SEC);    
+  }
+  
   else {
+    for (pt = descriptor_list; pt; pt = pt->next)
+      if (pt->character)
+        send_to_char(pt->character, "\r\n     \tR[Copyover in about %d minutes]\r\n",
+                timer/60);
     copyover_event->sVariables = strdup("30");
     return ((timer - 30) * PASSES_PER_SEC);
   }
