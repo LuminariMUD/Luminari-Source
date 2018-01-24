@@ -2699,7 +2699,7 @@ ACMD(do_show) {
     { "colour", LVL_IMMORT}, //15    
     { "citizen", LVL_IMMORT},
     { "guard", LVL_IMMORT},
-    { "crafts",     LVL_IMMORT },
+    { "crafts", LVL_IMMORT},
     { "\n", 0}
   };
 
@@ -3019,15 +3019,15 @@ ACMD(do_show) {
       }
       page_string(ch->desc, buf, 1);
       break;
-    /* NewCraft */
+      /* NewCraft */
     case 18: //show craft 
       if (!*value)
         list_all_crafts(ch);
       else
-        show_craft(ch, get_craft_from_arg(value));        
-      break;    
+        show_craft(ch, get_craft_from_arg(value));
+      break;
 
-    /* show what? */
+      /* show what? */
     default:
       send_to_char(ch, "Sorry, I don't understand that.\r\n");
       break;
@@ -4638,7 +4638,7 @@ void perform_do_copyover() {
 
   /* For each playing descriptor, save its state */
   for (d = descriptor_list; d; d = d_next) {
-    struct char_data * och = d->character;
+    struct char_data *och = d->character;
     /* We delete from the list , so need to save this */
     d_next = d->next;
 
@@ -4686,12 +4686,10 @@ void perform_do_copyover() {
       GET_LOADROOM(och) = GET_ROOM_VNUM(IN_ROOM(och));
       Crash_rentsave(och, 0);
       save_char(och, 0);
-      if (IS_PLAYING(d) && d->character) {
-        send_to_char(d->character, "\n\r \tR*** \tWTime stops for a moment as space and time folds upon itself! \tR***\tn\n\r"
-                "\tc[The game will pause for about 30 seconds while new code is being imported, "
-                "you will need to reform if you were grouped.  If you get disconnected, "
-                "you should be able to reconnect immediately or within a few minutes.]\tn\r\n");
-      }
+      send_to_char(och, "\n\r \tR*** \tWTime stops for a moment as space and time folds upon itself! \tR***\tn\n\r"
+              "\tc[The game will pause for about 30 seconds while new code is being imported, "
+              "you will need to reform if you were grouped.  If you get disconnected, "
+              "you should be able to reconnect immediately or within a few minutes.]\tn\r\n");
     }
   } /* end descriptor loop */
 
@@ -4712,7 +4710,7 @@ void perform_do_copyover() {
   perror("do_copyover: execl");
   log("Copyover FAILED!\n\r");
 
-  exit(1); /* too much trouble to try to recover! */  
+  exit(1); /* too much trouble to try to recover! */
 }
 
 /* (c) 1996-97 Erwin S. Andreasen. */
@@ -4728,16 +4726,16 @@ ACMD(do_copyover) {
     send_to_char(ch, "You are not high enough level staff to use this command.\r\n");
     return;
   }
-  
+
   one_argument(argument, arg);
 
   if (!*arg) {
-    perform_do_copyover();    
+    perform_do_copyover();
     return;
   }
-  
-  
-  
+
+
+
 }
 
 ACMD(do_peace) {
@@ -5683,8 +5681,7 @@ ACMD(do_hlqlist) {
   if (!*buf1) {
     bottom = zone_table[world[IN_ROOM(ch)].zone].bot;
     send_to_char(ch, "Bottom:  %d\r\n", bottom);
-  }
-    /* if buf1 is not a number send them back */
+  }    /* if buf1 is not a number send them back */
   else if (!isdigit(*buf1)) {
     send_to_char(ch, "\tcFirst value must be a digit, or nothing.\tn\r\n");
     return;
@@ -5697,8 +5694,7 @@ ACMD(do_hlqlist) {
   if (!*buf2) {
     top = zone_table[world[IN_ROOM(ch)].zone].top;
     send_to_char(ch, "Top:  %d\r\n", top);
-  }
-    /* if buf2 is not a number send them back */
+  }    /* if buf2 is not a number send them back */
   else if (!isdigit(*buf2)) {
     send_to_char(ch, "\tcSecond value must be a digit, or nothing.\tn\r\n");
     return;
@@ -6484,14 +6480,14 @@ ACMD(do_coordconvert) {
   int x_value = -1025, y_value = -1025;
 
   two_arguments(argument, arg1, arg2);
-  
+
   send_to_char(ch, "                            \tCBoundaries\tn\r\n"
-                   "\tc              Pixel Location    In-Game Co-ordinates\r\n"
-                   "\tcTop Left:\tW        0,    0       -1024,  1024\tn\r\n"
-                   "\tcTop Right:\tW    2048,    0        1024,  1024\tn\r\n"
-                   "\tcBottom Left:\tW     0, 2048       -1024, -1024\tn\r\n"
-                   "\tcBottom Right: \tW2048, 2048        1024, -1024\tn\r\n\r\n");
-  
+          "\tc              Pixel Location    In-Game Co-ordinates\r\n"
+          "\tcTop Left:\tW        0,    0       -1024,  1024\tn\r\n"
+          "\tcTop Right:\tW    2048,    0        1024,  1024\tn\r\n"
+          "\tcBottom Left:\tW     0, 2048       -1024, -1024\tn\r\n"
+          "\tcBottom Right: \tW2048, 2048        1024, -1024\tn\r\n\r\n");
+
   /* need two arguments */
   if (!*arg1) {
     send_to_char(ch, "You need two arguments: a co-ordinate or pixel X and Y values.\r\n");
@@ -6501,30 +6497,30 @@ ACMD(do_coordconvert) {
     send_to_char(ch, "You need two arguments: a co-ordinate or pixel X and Y values.\r\n");
     return;
   }
-    
+
   tmp_x_value = atoi(arg1);
   tmp_y_value = atoi(arg2);
-  
-  if ( tmp_x_value < -1024 || tmp_y_value < -1024 ||
-       tmp_x_value > 2048  || tmp_y_value > 2048 ) {
+
+  if (tmp_x_value < -1024 || tmp_y_value < -1024 ||
+          tmp_x_value > 2048 || tmp_y_value > 2048) {
     send_to_char(ch, "Please try again, there is no reason to use a value below "
             "-1024 or above 2048.\r\n");
     return;
   }
-  
+
   x_value = tmp_x_value - 1024;
   y_value = 1024 - tmp_y_value;
   send_to_char(ch, "Converting pixel location to \tcmap co-ordinates\tn: %s%5d\tn %s%5d\tn\r\n",
-                   (x_value < -1024 || x_value > 1024) ? "\tR" : "\tW", x_value,
-                   (x_value < -1024 || x_value > 1024) ? "\tR" : "\tW", y_value );
-  
+          (x_value < -1024 || x_value > 1024) ? "\tR" : "\tW", x_value,
+          (x_value < -1024 || x_value > 1024) ? "\tR" : "\tW", y_value);
+
   x_value = tmp_x_value + 1024;
   y_value = 1024 - tmp_y_value;
   send_to_char(ch, "Converting map co-ordinates to \tcpixel location\tn: %s%5d %s%5d\tn\r\n",
-                   (x_value < 0 || x_value > 2048) ? "\tR" : "\tW", x_value,
-                   (x_value < 0 || x_value > 2048) ? "\tR" : "\tW", y_value );
+          (x_value < 0 || x_value > 2048) ? "\tR" : "\tW", x_value,
+          (x_value < 0 || x_value > 2048) ? "\tR" : "\tW", y_value);
   send_to_char(ch, "\r\n\tRRed coloring\tn indicates you are above/below the boundaries for this particular category.\r\n");
 }
 
-  /* EOF */
+/* EOF */
 
