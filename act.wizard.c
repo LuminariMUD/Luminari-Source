@@ -4754,28 +4754,28 @@ EVENTFUNC(event_copyover) {
   else if (current_timer == 2) {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
-        send_to_char(pt->character, "\r\n     \tR[Copyover in 2 seconds]\r\n");
+        send_to_char(pt->character, "\r\n     \tR[Copyover in less than 2 seconds]\r\n");
     return (1 * PASSES_PER_SEC);    
   }
   
   else if (current_timer == 3) {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
-        send_to_char(pt->character, "\r\n     \tR[Copyover in 3 seconds]\r\n");
+        send_to_char(pt->character, "\r\n     \tR[Copyover in less than 3 seconds]\r\n");
     return (1 * PASSES_PER_SEC);    
   }
   
   else if (current_timer <= 10) {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
-        send_to_char(pt->character, "\r\n     \tR[Copyover in 10 seconds]\r\n");
+        send_to_char(pt->character, "\r\n     \tR[Copyover in less than 10 seconds]\r\n");
     return (7 * PASSES_PER_SEC);    
   }
 
   else if (current_timer <= 30) {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
-        send_to_char(pt->character, "\r\n     \tR[Copyover in 30 seconds]\r\n");
+        send_to_char(pt->character, "\r\n     \tR[Copyover in less than 30 seconds]\r\n");
     return (20 * PASSES_PER_SEC);    
   }
   
