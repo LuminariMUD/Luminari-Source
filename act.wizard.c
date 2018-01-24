@@ -4851,6 +4851,15 @@ ACMD(do_copyover) {
     return;
   }
   
+  if (is_abbrev(arg, "cancel")) {
+    send_to_char(ch, "If the copyover event was on you, it has been canceled.  "
+            "Only the initiator of the copyover event can cancel it.\r\n");
+    if (char_has_mud_event(ch, eCOPYOVER)) {
+      event_cancel_specific(ch, eCOPYOVER);
+    }
+    return; 
+  }
+  
   timer = atoi(arg);
   
   if (timer <= 0) {
@@ -4860,8 +4869,7 @@ ACMD(do_copyover) {
   
   send_to_char(ch, "Event for copyover has started and will complete in %d "
           "seconds.\r\n"
-          "This event is attached to YOU and does not save, so you can log out "
-          "to cancel it anytime.\r\n", timer);
+          "To cancel type: copyover cancel\r\n", timer);
   
   sprintf(buf, "%d", timer); /* sVariable */
   NEW_EVENT(eCOPYOVER, ch, strdup(buf), (1 * PASSES_PER_SEC));
