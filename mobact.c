@@ -411,7 +411,8 @@ void mobile_echos(struct char_data *ch) {
   if (ECHO_COUNT(ch) > num_elements)
     ECHO_COUNT(ch) = num_elements;
   /*DEBUG*/
-  char buf[MAX_INPUT_LENGTH] = strdup(num_elements);
+  char buf[MAX_INPUT_LENGTH];
+  sprintf(buf, "%d", num_elements);
   act(buf, FALSE, ch, 0, 0, TO_ROOM);
   /*DEBUG*/
 
