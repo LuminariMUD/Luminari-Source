@@ -92,6 +92,7 @@
 #include "actionqueues.h"
 #include "assign_wpn_armor.h"
 #include "wilderness.h"
+#include "spell_prep.h"
 
 #ifndef INVALID_SOCKET
 #define INVALID_SOCKET (-1)
@@ -1158,10 +1159,11 @@ void echo_on(struct descriptor_data *d) {
  * note - i just parse the whole string now, add all the color you want */
 static char *make_prompt(struct descriptor_data *d) {
   static char prompt[MAX_PROMPT_LENGTH] = {'\0'};
-  int door = 0, slen = 0;
+  int door = 0, slen = 0, i = 0;
   struct char_data *ch = NULL;
   int count = 0, prompt_size = 0;
   size_t len = 0;
+  bool found = TRUE;
 
   /* Note, prompt is truncated at MAX_PROMPT_LENGTH chars (structs.h) */
 
@@ -1282,9 +1284,19 @@ static char *make_prompt(struct descriptor_data *d) {
 
       /* display memtime */
       if (PRF_FLAGGED(d->character, PRF_DISPMEMTIME) && len < sizeof (prompt)) {
-        count = snprintf(prompt + len, sizeof (prompt) - len, "MEM: %d/%d/%d/%d ",
-                PREP_TIME(ch, 0, 0), PREP_TIME(ch, 0, 1),
-                PREP_TIME(ch, 0, 2), PREP_TIME(ch, 0, 3));
+        count = snprintf(prompt + len, sizeof (prompt) - len, "PrepTime: ");
+        for (i = 0; i < NUM_CLASSES; i++) {
+          if (SPELL_PREP_QUEUE(d->character, i) &&
+                  SPELL_PREP_QUEUE(d->character, i)->prep_time) {
+            count = snprintf(prompt + len, sizeof (prompt) - len, "%d ",
+                    SPELL_PREP_QUEUE(d->character, i)->prep_time);            
+          }
+          if (INNATE_MAGIC(d->character, i) &&
+                  INNATE_MAGIC(d->character, i)->prep_time) {
+            count = snprintf(prompt + len, sizeof (prompt) - len, "%d ",
+                    INNATE_MAGIC(d->character, i)->prep_time);            
+          }
+        }
         if (count >= 0)
           len += count;
       }
