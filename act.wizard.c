@@ -4859,7 +4859,9 @@ ACMD(do_copyover) {
   }
   
   send_to_char(ch, "Event for copyover has started and will complete in %d "
-          "seconds.\r\n", timer);
+          "seconds.\r\n"
+          "This event is attached to YOU and does not save, so you can log out "
+          "to cancel it anytime.\r\n", timer);
   
   sprintf(buf, "%d", timer); /* sVariable */
   NEW_EVENT(eCOPYOVER, ch, strdup(buf), (1 * PASSES_PER_SEC));
