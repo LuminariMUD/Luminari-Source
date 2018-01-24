@@ -183,10 +183,8 @@ cpp_extern const struct command_info cmd_info[] = {
   { "copyover", "copyover", POS_DEAD, do_copyover, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}},
   { "credits", "cred", POS_DEAD, do_gen_ps, 0, SCMD_CREDITS, TRUE, ACTION_NONE, {0, 0}},
   { "ct", "ct", POS_DEAD, do_clantalk, 1, 0, TRUE, ACTION_NONE, {0, 0}},
-  /* NewCraft */
-  { "craft"    , "craft"   , POS_STANDING, do_craft          , 0,         0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}},
-  { "craftedit", "crafte"  , POS_DEAD    , do_oasis_craftedit, LVL_BUILDER, 0, TRUE, ACTION_NONE,                   {0, 0}},
-  
+  { "craft", "craft", POS_STANDING, do_craft, 0, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}},
+  { "craftedit", "crafte", POS_DEAD, do_oasis_craftedit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},  
   { "create", "create", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}},
   { "checkcraft", "checkcraft", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}},
   { "compose", "compose", POS_RESTING, do_gen_preparation, 0, SCMD_COMPOSE, FALSE, ACTION_NONE, {0, 0}},
@@ -660,7 +658,7 @@ int script_command_interpreter(struct char_data *ch, char *arg) {
   return 1; // We took care of execution. Let caller know.
 }
 
-const char *fill[] ={
+const char *fill[] = {
   "in",
   "from",
   "with",
@@ -671,7 +669,7 @@ const char *fill[] ={
   "\n"
 };
 
-const char *reserved[] ={
+const char *reserved[] = {
   "a",
   "an",
   "self",
@@ -732,18 +730,18 @@ void command_interpreter(struct char_data *ch, char *argument) {
   {
     int cont; /* continue the command checks */
     char saystring[] = "say"; /* replacement string */
-        
+
     /* if we are using the arglist in scripts, we have an issue with intercepting
        commands that have more than one access point, example:  "say" and "'" both
        will call the same command in the code, but are sending a different ARG to
        the command trigger checks...  resolution for now is to just replace the
        "'" with "say" when we find it here. -Zusuk */
-    
+
     if (is_abbrev(arg, "'")) {
       cont = command_wtrigger(ch, saystring, line); /* any world triggers ? */
     } else
       cont = command_wtrigger(ch, arg, line); /* any world triggers ? */
-    
+
     if (!cont) {
       if (is_abbrev(arg, "'")) {
         cont = command_mtrigger(ch, saystring, line); /* any mobile triggers ? */
@@ -757,7 +755,7 @@ void command_interpreter(struct char_data *ch, char *argument) {
         cont = command_otrigger(ch, arg, line); /* any object triggers ? */
     }
     if (cont) {
-      return; /* yes, command trigger took over */      
+      return; /* yes, command trigger took over */
     }
   }
 
@@ -882,7 +880,7 @@ void command_interpreter(struct char_data *ch, char *argument) {
           !is_abbrev(complete_cmd_info[cmd].command, "tell")
           )
     send_to_char(ch, "You are too busy crafting. [Available commands: gossip/"
-            "chat/look/score/group/say/tell/reply/help/prefedit/bug/typo/idea]\r\n");
+          "chat/look/score/group/say/tell/reply/help/prefedit/bug/typo/idea]\r\n");
   else if (GET_POS(ch) < complete_cmd_info[cmd].minimum_position)
     switch (GET_POS(ch)) {
       case POS_DEAD:
@@ -910,28 +908,27 @@ void command_interpreter(struct char_data *ch, char *argument) {
       case POS_FIGHTING:
         send_to_char(ch, "No way!  You're fighting for your life!\r\n");
         break;
-//    } else if (HAS_WAIT(ch) && complete_cmd_info[cmd].ignore_wait == FALSE) {
-//      send_to_char(ch, "You need to wait longer before you are able to do that.\r\n");
+        //    } else if (HAS_WAIT(ch) && complete_cmd_info[cmd].ignore_wait == FALSE) {
+        //      send_to_char(ch, "You need to wait longer before you are able to do that.\r\n");
     } else if (!IS_NPC(ch) &&
-               ((IS_SET(complete_cmd_info[cmd].actions_required, ACTION_STANDARD) && !is_action_available(ch, atSTANDARD, FALSE)) ||
-               ((IS_SET(complete_cmd_info[cmd].actions_required, ACTION_MOVE) && (!is_action_available(ch, atMOVE, FALSE) &&
-                                                                                 !is_action_available(ch, atSTANDARD, FALSE))))))
-    {
-      if (pending_actions(ch) > MAX_QUEUE_SIZE) {
-        send_to_char(ch, "The action queue is full.\r\n");
-      } else {
-        /* Add to the queue */
-        struct action_data *action;
-        CREATE(action, struct action_data, 1);
-        action->argument = strdup(argument);
-        action->actions_required = complete_cmd_info[cmd].actions_required;
+          ((IS_SET(complete_cmd_info[cmd].actions_required, ACTION_STANDARD) && !is_action_available(ch, atSTANDARD, FALSE)) ||
+          ((IS_SET(complete_cmd_info[cmd].actions_required, ACTION_MOVE) && (!is_action_available(ch, atMOVE, FALSE) &&
+          !is_action_available(ch, atSTANDARD, FALSE)))))) {
+    if (pending_actions(ch) > MAX_QUEUE_SIZE) {
+      send_to_char(ch, "The action queue is full.\r\n");
+    } else {
+      /* Add to the queue */
+      struct action_data *action;
+      CREATE(action, struct action_data, 1);
+      action->argument = strdup(argument);
+      action->actions_required = complete_cmd_info[cmd].actions_required;
 
-        enqueue_action(GET_QUEUE(ch), action);
-        send_to_char(ch, "The command was added to the queue.\r\n");
-      }
-    } else if (no_specials || !special(ch, cmd, line)) {
-      ((*complete_cmd_info[cmd].command_pointer) (ch, line, cmd, complete_cmd_info[cmd].subcmd));
+      enqueue_action(GET_QUEUE(ch), action);
+      send_to_char(ch, "The command was added to the queue.\r\n");
     }
+  } else if (no_specials || !special(ch, cmd, line)) {
+    ((*complete_cmd_info[cmd].command_pointer) (ch, line, cmd, complete_cmd_info[cmd].subcmd));
+  }
 }
 
 /* Routines to handle aliasing. */
@@ -1689,7 +1686,7 @@ void nanny(struct descriptor_data *d, char *arg) {
     { CON_MSGEDIT, msgedit_parse},
     { CON_STUDY, study_parse},
     /* NewCraft */
-    { CON_CRAFTEDIT, craftedit_parse },
+    { CON_CRAFTEDIT, craftedit_parse},
     { -1, NULL}
   };
 
