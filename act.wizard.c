@@ -4785,7 +4785,7 @@ EVENTFUNC(event_copyover) {
   else if (timer <= 60) {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
-        send_to_char(pt->character, "\r\n     \tR[Copyover in less than 1 minute]\r\n");
+        send_to_char(pt->character, "\r\n     \tR[Copyover in less than 1 minute, please disengage from combat and find a safe place to wait]\r\n");
     sprintf(buf, "%d", (timer - 30));
     copyover_event->sVariables = strdup(buf);
     return (30 * PASSES_PER_SEC);    
