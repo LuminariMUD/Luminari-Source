@@ -405,16 +405,6 @@ void mobile_echos(struct char_data *ch) {
 
   if (rand_number(1, 75) > (ECHO_FREQ(ch) / 4))
     return;
-  
-  /* found a crash bug when people delete entries, just as a cover up -zusuk */
-  num_elements = (sizeof(ECHO_ENTRIES(ch))) / (sizeof(*ECHO_ENTRIES(ch)));
-  if (ECHO_COUNT(ch) > num_elements)
-    ECHO_COUNT(ch) = num_elements;
-  /*DEBUG*/
-  char buf[MAX_INPUT_LENGTH];
-  sprintf(buf, "%d", (int)num_elements);
-  act(buf, FALSE, ch, 0, 0, TO_ROOM);
-  /*DEBUG*/
 
   if (CURRENT_ECHO(ch) > ECHO_COUNT(ch)) /* dummy check */
     CURRENT_ECHO(ch) = 0;
