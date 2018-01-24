@@ -48,6 +48,7 @@
 #include "feats.h"
 #include "domains_schools.h"
 #include "crafts.h" /* NewCraft */
+#include "account.h"
 
 /* local utility functions with file scope */
 static int perform_set(struct char_data *ch, struct char_data *vict, int mode, char *val_arg);
@@ -1105,6 +1106,17 @@ ACMD(do_stat) {
     } else {
       if ((victim = get_char_vis(ch, buf2, NULL, FIND_CHAR_WORLD)) != NULL)
         do_affstat_character(ch, victim);
+      else
+        send_to_char(ch, "No such player around.\r\n");
+    }
+
+    /* stat account */
+  } else if (is_abbrev(buf1, "account")) {
+    if (!*buf2) {
+      send_to_char(ch, "Account on which player?\r\n");
+    } else {
+      if ((victim = get_char_vis(ch, buf2, NULL, FIND_CHAR_WORLD)) != NULL)
+        perform_do_account(ch, victim);
       else
         send_to_char(ch, "No such player around.\r\n");
     }
