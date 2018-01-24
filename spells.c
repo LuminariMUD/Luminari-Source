@@ -54,7 +54,7 @@
 #define SPELL_PRISMATIC_SPHERE          211
 | stops movement? | spellnum | long name | short name | keywords | duration |
    duration = 0 is default: 1 + level / 10
-*/
+ */
 struct wall_information wallinfo[] = {
   /* WALL_TYPE_FORCE 0 */
   { TRUE,
@@ -62,35 +62,35 @@ struct wall_information wallinfo[] = {
     "\tRA wall of force stands towards the %s.\tn",
     "\tRa wall of force\tn",
     "wall force",
-    1 },
+    1},
   /* WALL_TYPE_FIRE 1 */
   { FALSE,
     SPELL_WALL_OF_FIRE,
     "\trA wall of f\tRi\trre stands towards the %s.\tn",
     "\tra wall of fire\tn",
     "wall fire",
-    0 },
+    0},
   /* WALL_TYPE_THORNS 2 */
   { FALSE,
     SPELL_WALL_OF_THORNS,
     "\tGA wall of thorns stands towards the %s.\tn",
     "\tGa wall of thorns\tn",
     "wall thorns",
-    0 },
+    0},
   /* WALL_TYPE_FOG 3 */
   { FALSE,
     SPELL_WALL_OF_FOG,
     "\tCA foggy cloud forms a wall towards the %s.\tn",
     "\tCa wall of fog\tn",
     "wall fog",
-    0 },
+    0},
   /* WALL_TYPE_PRISM 4 */
   { FALSE,
     SPELL_PRISMATIC_SPHERE,
     "\tnA \tRp\tYr\tBi\tMs\tWm\tn forms a wall towards the %s.\tn",
     "\tna wall of \tRp\tYr\tBi\tMs\tWm\tn",
     "wall prism",
-    0 },
+    0},
 };
 
 /* called from movement, etc..  basically make the wall work - we will try
@@ -160,7 +160,7 @@ bool check_wall(struct char_data *victim, int dir) {
    to it and do a little basic dummy checking */
 void create_wall(struct char_data *ch, int room, int dir, int type, int level) {
   struct obj_data *wall = NULL;
-  char buf[MAX_INPUT_LENGTH] = { '\0' };
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   for (wall = world[room].contents; wall; wall = wall->next_content) {
     if (GET_OBJ_TYPE(wall) == ITEM_WALL && GET_OBJ_VAL(wall, WALL_DIR) == dir) {
@@ -322,14 +322,12 @@ void effect_charm(struct char_data *ch, struct char_data *victim,
     if (IS_NPC(victim))
       hit(victim, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
   }
-
   else if (IS_AFFECTED(victim, AFF_MIND_BLANK)) {
     send_to_char(ch, "Your victim is protected from this "
             "enchantment!\r\n");
     if (IS_NPC(victim))
       hit(victim, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
   }
-
   else if (AFF_FLAGGED(ch, AFF_CHARM))
     send_to_char(ch, "You can't have any followers of your own!\r\n");
 
@@ -358,8 +356,7 @@ void effect_charm(struct char_data *ch, struct char_data *victim,
     send_to_char(ch, "You failed to penetrate the spell resistance!");
     if (IS_NPC(victim))
       hit(victim, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
-  }
-  else if (mag_savingthrow(ch, victim, SAVING_WILL, bonus, casttype, level, ENCHANTMENT)) {
+  } else if (mag_savingthrow(ch, victim, SAVING_WILL, bonus, casttype, level, ENCHANTMENT)) {
     send_to_char(ch, "Your victim resists!\r\n");
     if (IS_NPC(victim))
       hit(victim, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
@@ -408,6 +405,7 @@ void effect_charm(struct char_data *ch, struct char_data *victim,
 /* for dispel magic and greater dispelling */
 
 /* a hack job so far, gets rid of the first x affections */
+
 /* TODO:  add strength/etc to affection struct, that'd help a lot especially
    here */
 void perform_dispel(struct char_data *ch, struct char_data *vict,
@@ -419,10 +417,10 @@ void perform_dispel(struct char_data *ch, struct char_data *vict,
     if (IS_SET_AR(ROOM_FLAGS(IN_ROOM(ch)), (ROOM_FOG))) {
 
       //if (SECT(ch->in_room) != SECT_CLOUDS && SECT(ch->in_room) != SECT_SHADOWPLANE) {
-        REMOVE_BIT_AR(ROOM_FLAGS(IN_ROOM(ch)), (ROOM_FOG));
-        send_to_room(IN_ROOM(ch), "\tWThe fog dissipates into thin air!\tn\r\n");
+      REMOVE_BIT_AR(ROOM_FLAGS(IN_ROOM(ch)), (ROOM_FOG));
+      send_to_room(IN_ROOM(ch), "\tWThe fog dissipates into thin air!\tn\r\n");
       //} else {
-        //send_to_room("Your magic is useless against these clouds!\r\n", ch->in_room);
+      //send_to_room("Your magic is useless against these clouds!\r\n", ch->in_room);
       //}
     }
     return;
@@ -572,7 +570,7 @@ EVENTFUNC(event_acid_arrow) {
     level = 15; /* so lame */
 
   if (mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, EVOCATION))
-    damage(ch, victim, (dice(3, 6)/2), SPELL_ACID_ARROW, DAM_ENERGY,
+    damage(ch, victim, (dice(3, 6) / 2), SPELL_ACID_ARROW, DAM_ENERGY,
           FALSE);
   else
     damage(ch, victim, dice(3, 6), SPELL_ACID_ARROW, DAM_ENERGY,
@@ -620,7 +618,7 @@ EVENTFUNC(event_implode) {
     level = 15; /* so lame */
 
   if (mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, DIVINATION))
-    damage(ch, victim, (dice(CASTER_LEVEL(ch), 6)/2), SPELL_IMPLODE, DAM_PUNCTURE,
+    damage(ch, victim, (dice(CASTER_LEVEL(ch), 6) / 2), SPELL_IMPLODE, DAM_PUNCTURE,
           FALSE);
   else
     damage(ch, victim, dice(CASTER_LEVEL(ch), 6), SPELL_IMPLODE, DAM_PUNCTURE,
@@ -632,6 +630,7 @@ EVENTFUNC(event_implode) {
 
 /************************************************************/
 /*  ASPELL defines                                          */
+
 /************************************************************/
 
 
@@ -680,8 +679,6 @@ ASPELL(spell_banish) {
     }
   }
 }
-
-
 
 ASPELL(spell_charm) // enchantment
 {
@@ -733,7 +730,6 @@ ASPELL(spell_clairvoyance) {
   }
 }
 
-
 ASPELL(spell_cloudkill) {
   if (INCENDIARY(ch) || DOOM(ch)) {
     send_to_char(ch, "You already have a cloud following you!\r\n");
@@ -745,7 +741,6 @@ ASPELL(spell_cloudkill) {
   CLOUDKILL(ch) = MAGIC_LEVEL(ch) / 5;
 }
 
-
 ASPELL(spell_control_plants) {
   if (victim == NULL || ch == NULL)
     return;
@@ -756,6 +751,7 @@ ASPELL(spell_control_plants) {
     send_to_char(ch, "This spell can only be used on plants.");
   }
 }
+
 /* i decided to wait for room events for this one */
 ASPELL(spell_control_weather) {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
@@ -775,7 +771,6 @@ ASPELL(spell_control_weather) {
     return;
   }
 }
-
 
 ASPELL(spell_create_water) {
   int water;
@@ -803,7 +798,6 @@ ASPELL(spell_create_water) {
   }
 }
 
-
 ASPELL(spell_creeping_doom) {
   if (CLOUDKILL(ch) || INCENDIARY(ch)) {
     send_to_char(ch, "You already have a cloud following you!\r\n");
@@ -815,7 +809,6 @@ ASPELL(spell_creeping_doom) {
 
   DOOM(ch) = MAX(1, DIVINE_LEVEL(ch) / 4);
 }
-
 
 ASPELL(spell_detect_poison) {
   if (victim) {
@@ -849,7 +842,6 @@ ASPELL(spell_detect_poison) {
   }
 }
 
-
 ASPELL(spell_dismissal) {
   struct follow_type *k;
 
@@ -876,7 +868,6 @@ ASPELL(spell_dismissal) {
   }
 }
 
-
 ASPELL(spell_dispel_magic) // divination
 {
 
@@ -888,7 +879,6 @@ ASPELL(spell_dispel_magic) // divination
   perform_dispel(ch, victim, obj, SPELL_DISPEL_MAGIC);
 }
 
-
 ASPELL(spell_dominate_person) // enchantment
 {
   if (victim == NULL || ch == NULL)
@@ -896,7 +886,6 @@ ASPELL(spell_dominate_person) // enchantment
 
   effect_charm(ch, victim, SPELL_DOMINATE_PERSON, casttype, level);
 }
-
 
 /* Cannot use this spell on an equipped object or it will mess up the wielding
  * character's hit/dam totals. */
@@ -934,7 +923,6 @@ ASPELL(spell_enchant_weapon) // enchantment
     act("$p glows \tYyellow\tn.", FALSE, ch, obj, 0, TO_CHAR);
 }
 
-
 ASPELL(spell_greater_dispelling) // abjuration
 {
   if (ch == NULL)
@@ -944,7 +932,6 @@ ASPELL(spell_greater_dispelling) // abjuration
 
   perform_dispel(ch, victim, obj, SPELL_GREATER_DISPELLING);
 }
-
 
 ASPELL(spell_group_summon) {
   struct char_data *tch = NULL;
@@ -989,7 +976,6 @@ ASPELL(spell_group_summon) {
   }
 }
 
-
 ASPELL(spell_identify) // divination
 {
   if (obj) {
@@ -1000,7 +986,6 @@ ASPELL(spell_identify) // divination
     lore_id_vict(ch, victim);
   }
 }
-
 
 ASPELL(spell_implode) {
   int x = 0;
@@ -1021,7 +1006,6 @@ ASPELL(spell_implode) {
   }
 }
 
-
 ASPELL(spell_incendiary_cloud) {
   if (CLOUDKILL(ch) || DOOM(ch)) {
     send_to_char(ch, "You already have a cloud following you!\r\n");
@@ -1033,7 +1017,6 @@ ASPELL(spell_incendiary_cloud) {
 
   INCENDIARY(ch) = MAX(1, MAGIC_LEVEL(ch) / 4);
 }
-
 
 ASPELL(spell_locate_creature) {
   struct char_data *i;
@@ -1061,7 +1044,6 @@ ASPELL(spell_locate_creature) {
   if (!found)
     send_to_char(ch, "Couldn't find any such creature.\r\n");
 }
-
 
 ASPELL(spell_locate_object) {
   struct obj_data *i;
@@ -1099,7 +1081,6 @@ ASPELL(spell_locate_object) {
   }
 }
 
-
 ASPELL(spell_mass_domination) // enchantment
 {
   struct char_data *tch, *next_tch;
@@ -1115,7 +1096,6 @@ ASPELL(spell_mass_domination) // enchantment
     }
   }
 }
-
 
 ASPELL(spell_plane_shift) {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
@@ -1205,7 +1185,6 @@ ASPELL(spell_plane_shift) {
   greet_memory_mtrigger(ch);
 }
 
-
 ASPELL(spell_polymorph) {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
 
@@ -1218,7 +1197,6 @@ ASPELL(spell_polymorph) {
        the function that this is the polymorph spells */
   wildshape_engine(ch, arg, 1);
 }
-
 
 ASPELL(spell_prismatic_sphere) {
   struct char_data *mob;
@@ -1240,7 +1218,6 @@ ASPELL(spell_prismatic_sphere) {
 
   load_mtrigger(mob);
 }
-
 
 ASPELL(spell_recall) {
   if (victim == NULL || IS_NPC(victim))
@@ -1267,7 +1244,6 @@ ASPELL(spell_recall) {
   greet_memory_mtrigger(victim);
 }
 
-
 ASPELL(spell_refuge) // illusion (also divine)
 {
   struct char_data *tch, *next_tch;
@@ -1292,7 +1268,7 @@ ASPELL(spell_refuge) // illusion (also divine)
       if (IS_NPC(tch))
         clearMemory(tch);
 
-    /* this should be allies */
+      /* this should be allies */
     } else if (tch) {
       send_to_char(tch, "You are now refuged.\r\n");
       if (FIGHTING(tch))
@@ -1314,10 +1290,23 @@ ASPELL(spell_refuge) // illusion (also divine)
   }
 }
 
-
 ASPELL(spell_salvation) // divination
 {
   room_vnum load_broom;
+
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ASTRAL_PLANE)) {
+    send_to_char(ch, "You can't use salvation on the astral plane.\r\n");
+    return;
+  }
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ETH_PLANE)) {
+    send_to_char(ch, "You can't use salvation on the ethereal plane.\r\n");
+    return;
+  }
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ELEMENTAL)) {
+    send_to_char(ch, "You can't use salvation on the elemental plane.\r\n");
+    return;
+  }
+
 
   if (!PLR_FLAGGED(ch, PLR_SALVATION) ||
           !GET_SALVATION_NAME(ch) ||
@@ -1336,8 +1325,7 @@ ASPELL(spell_salvation) // divination
     GET_SALVATION_ROOM(ch) = load_broom;
     send_to_char(ch, "Your salvation is set to this room.\r\n");
     return;
-  }
-  else {
+  } else {
     if (!valid_mortal_tele_dest(ch, real_room(world[ch->in_room].number), TRUE)) {
       send_to_char(ch, "You can't use salvation here.\r\n");
       return;
@@ -1357,7 +1345,6 @@ ASPELL(spell_salvation) // divination
     return;
   }
 }
-
 
 ASPELL(spell_spellstaff) {
   char spellname[MAX_STRING_LENGTH] = {'\0'};
@@ -1380,12 +1367,12 @@ ASPELL(spell_spellstaff) {
   else if (GET_EQ(ch, WEAR_HOLD_2H) && GET_OBJ_TYPE(GET_EQ(ch, WEAR_HOLD_2H)) == ITEM_STAFF)
     staff = GET_EQ(ch, WEAR_HOLD_2H);
 
-//  for (staff = ch->carrying; staff; staff = staff->next_content) {
-//    if (GET_OBJ_TYPE(staff) == ITEM_STAFF) {
-//      // found one!
-//      break;
-//    }
-//  }
+  //  for (staff = ch->carrying; staff; staff = staff->next_content) {
+  //    if (GET_OBJ_TYPE(staff) == ITEM_STAFF) {
+  //      // found one!
+  //      break;
+  //    }
+  //  }
 
   if (staff) {
     if (GET_OBJ_VAL(staff, 2) > 0) {
@@ -1418,7 +1405,6 @@ ASPELL(spell_spellstaff) {
     send_to_char(ch, "You are not holding a staff.\r\n");
   }
 }
-
 
 ASPELL(spell_storm_of_vengeance) {
   struct mud_event_data *pMudEvent = NULL;
@@ -1517,7 +1503,6 @@ ASPELL(spell_summon) {
   greet_mtrigger(victim, -1);
   greet_memory_mtrigger(victim);
 }
-
 
 ASPELL(spell_teleport) {
   room_rnum to_room = NOWHERE;
@@ -1716,7 +1701,7 @@ ASPELL(spell_wall_of_force) {
   send_to_char(ch, "You conjure a wall of force!\r\n");
 
   load_mtrigger(mob);
-  */
+   */
 }
 
 ASPELL(spell_wizard_eye) {
