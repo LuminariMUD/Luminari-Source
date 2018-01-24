@@ -4713,10 +4713,78 @@ void perform_do_copyover() {
   exit(1); /* too much trouble to try to recover! */
 }
 
-/* (c) 1996-97 Erwin S. Andreasen. */
+EVENTFUNC(event_copyover) {
+  struct mud_event_data *copyover_event = NULL;
+  struct descriptor_data *pt;
+  int initial_timer = 0;
+  int current_timer = 0;
+
+  /* initialize everything and dummy checks */
+  if (event_obj == NULL)
+    return 0;  
+  copyover_event = (struct mud_event_data *) event_obj;
+
+  /* grab and clear initial timer from sVar */
+  if (copyover_event->sVariables) {
+    initial_timer = atoi((char *) copyover_event->sVariables); /* in seconds */
+    free(copyover_event->sVariables);
+  }
+
+  /* current timer */
+  if (initial_timer)
+    current_timer = initial_timer; /* seconds */
+  else
+    current_timer = (int) (event_time(copyover_event->pEvent) / 10); /* seconds */
+  
+  /* all done, copyover! */
+  if (current_timer <= 0) {
+    perform_do_copyover();
+    return 0;
+  }
+  
+  if (current_timer == 1) {
+    for (pt = descriptor_list; pt; pt = pt->next)
+      if (pt->character)
+        send_to_char(pt->character, "\r\n     \tR[COPYOVER IMMINENT!]\r\n");
+    return (1 * PASSES_PER_SEC);    
+  }
+  
+  if (current_timer == 2) {
+    for (pt = descriptor_list; pt; pt = pt->next)
+      if (pt->character)
+        send_to_char(pt->character, "\r\n     \tR[Copyover in 2 seconds]\r\n");
+    return (1 * PASSES_PER_SEC);    
+  }
+  
+  if (current_timer == 3) {
+    for (pt = descriptor_list; pt; pt = pt->next)
+      if (pt->character)
+        send_to_char(pt->character, "\r\n     \tR[Copyover in 3 seconds]\r\n");
+    return (1 * PASSES_PER_SEC);    
+  }
+  
+  if (current_timer == 10) {
+    for (pt = descriptor_list; pt; pt = pt->next)
+      if (pt->character)
+        send_to_char(pt->character, "\r\n     \tR[Copyover in 10 seconds]\r\n");
+    return (7 * PASSES_PER_SEC);    
+  }
+
+  if (current_timer == 30) {
+    for (pt = descriptor_list; pt; pt = pt->next)
+      if (pt->character)
+        send_to_char(pt->character, "\r\n     \tR[Copyover in 30 seconds]\r\n");
+    return (20 * PASSES_PER_SEC);    
+  }
+
+}
+
+/* (c) 1996-97 Erwin S. Andreasen. Modified by Zusuk to accept countdown argument */
 ACMD(do_copyover) {
   int min_level_to_copyover = LVL_IMPL;
   char arg[MAX_INPUT_LENGTH];
+  int timer = 0;
+  char buf[50] = {'\0'};
 
   if (port == CONFIG_DFLT_DEV_PORT) {
     min_level_to_copyover = LVL_IMMORT;
@@ -4733,11 +4801,23 @@ ACMD(do_copyover) {
     perform_do_copyover();
     return;
   }
-
-
-
+  
+  timer = atoi(arg);
+  
+  if (timer <= 0) {
+    perform_do_copyover();
+    return;    
+  }
+  
+  send_to_char(ch, "Event for copyover has started and will complete in %d "
+          "seconds.\r\n", timer);
+  
+  sprintf(buf, "%d", timer); /* sVariable */
+  NEW_EVENT(eCOPYOVER, ch, strdup(buf), (1 * PASSES_PER_SEC));
+  
 }
 
+/* stop combat in the room you are in */
 ACMD(do_peace) {
   struct char_data *vict, *next_v;
 

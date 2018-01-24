@@ -127,6 +127,7 @@ typedef enum {
   eDRACCLAWS, // Sorcerer draconic heritage claws attacks
   ePREPARATION, /* new spell preparation system */
   eCRAFT, /* NewCraft */
+  eCOPYOVER, /* copyover event */
 } event_id;
 
 /* probably a smart place to mention to not forget to update:
@@ -191,4 +192,5 @@ EVENTFUNC(event_trap_triggered);
 EVENTFUNC(event_bardic_performance);
 EVENTFUNC(event_preparation);
 EVENTFUNC(event_craft); /* NewCraft */
+EVENTFUNC(event_copyover);
 #endif /* _MUD_EVENT_H_ */

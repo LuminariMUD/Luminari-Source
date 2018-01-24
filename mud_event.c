@@ -126,7 +126,8 @@ struct mud_event_list mud_event_index[] = {
   { "Draconic Heritage Breath Weapon Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eDRACBREATH
   { "Draconic Heritage Claws Attack Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eDRACCLAWS
   { "Spell Preparation", event_preparation, EVENT_CHAR}, //ePREPARATION
-  { "Craft"        , event_craft, EVENT_CHAR } /* eCRAFT */ /* NewCraft */
+  { "Craft", event_craft, EVENT_CHAR }, /* eCRAFT */ /* NewCraft */
+  { "Copyover Event!", event_copyover, EVENT_CHAR } /* eCOPYOVER */ /* copyover delay */
 };
 
 /* init_events() is the ideal function for starting global events. This
