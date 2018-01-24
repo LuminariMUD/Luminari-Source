@@ -110,7 +110,7 @@ ACMD(do_blessedtouch) {
 
   if (!GROUP(ch)) {
     send_to_char(ch, "You can't use this ability if you're not in a group (group new)!\r\n");
-    return (0);
+    return;
   }
   
   if ((uses_remaining = daily_uses_remaining(ch, FEAT_BLESSED_TOUCH)) == 0) {
