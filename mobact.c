@@ -407,7 +407,7 @@ void mobile_echos(struct char_data *ch) {
     return;
   
   /* found a crash bug when people delete entries, just as a cover up -zusuk */
-  num_elements = sizeof(ECHO_ENTRIES(ch))/sizeof(ECHO_ENTRIES(ch)[0]);
+  num_elements = (sizeof(ECHO_ENTRIES(ch))) / (sizeof(*ECHO_ENTRIES(ch)));
   if (ECHO_COUNT(ch) > num_elements)
     ECHO_COUNT(ch) = num_elements;
   /*DEBUG*/
