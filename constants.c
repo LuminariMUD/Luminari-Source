@@ -1451,23 +1451,6 @@ const char *connected_types[NUM_CON_STATES + 1] = {
   "\n" /* make sure this matches NUM_CON_STATES */
 };
 
-#define CON_QRACE        32 /**< Choose character race */
-#define CON_CLANEDIT     33 /**< OLC mode - clan edit */
-#define CON_MSGEDIT      34 /**< OLC mode - message editor */
-#define CON_STUDY        35 /**< OLC mode - sorc-spells-known editor */
-#define CON_QCLASS_HELP  36 /**< help info during char creation */
-#define CON_QALIGN       37 /**< alignment selection in char creation */
-#define CON_QRACE_HELP   38 /**< help info (race) during char creation */
-#define CON_HLQEDIT      39 /**< homeland-port quest editor */
-#define CON_QSTATS       40 /**< Point-buy system for stats */
-
-/* Account connection states - Ornir Oct 20, 2014 */
-#define CON_ACCOUNT_NAME         41
-#define CON_ACCOUNT_NAME_CONFIRM 42
-#define CON_ACCOUNT_MENU         43
-#define CON_ACCOUNT_ADD          44
-#define CON_ACCOUNT_ADD_PWD      45
-
 /** Describes the position in the equipment listing.
  * @pre Must be in the same order as the defines.
  * Not used in sprinttype() so no \n. */
