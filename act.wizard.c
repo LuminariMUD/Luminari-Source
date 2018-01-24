@@ -4624,7 +4624,7 @@ ACMD(do_checkloadstatus) {
 void perform_do_copyover() {
   FILE *fp;
   struct descriptor_data *d, *d_next;
-  char buf[100], buf2[100], arg[MAX_INPUT_LENGTH];
+  char buf[100], buf2[100];
   int i;
 
   fp = fopen(COPYOVER_FILE, "w");
@@ -4718,6 +4718,7 @@ void perform_do_copyover() {
 /* (c) 1996-97 Erwin S. Andreasen. */
 ACMD(do_copyover) {
   int min_level_to_copyover = LVL_IMPL;
+  char arg[MAX_INPUT_LENGTH];
 
   if (port == CONFIG_DFLT_DEV_PORT) {
     min_level_to_copyover = LVL_IMMORT;
