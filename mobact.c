@@ -410,7 +410,11 @@ void mobile_echos(struct char_data *ch) {
   num_elements = sizeof(ECHO_ENTRIES(ch))/sizeof(ECHO_ENTRIES(ch)[0]);
   if (ECHO_COUNT(ch) > num_elements)
     ECHO_COUNT(ch) = num_elements;
-  
+  /*DEBUG*/
+  char buf[MAX_INPUT_LENGTH] = strdup(num_elements);
+  act(buf, FALSE, ch, 0, 0, TO_ROOM);
+  /*DEBUG*/
+
   if (CURRENT_ECHO(ch) > ECHO_COUNT(ch)) /* dummy check */
     CURRENT_ECHO(ch) = 0;
     
