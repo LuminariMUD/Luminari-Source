@@ -441,7 +441,7 @@ obj_data *get_obj_near_obj(obj_data *obj, char *name) {
         return obj->in_obj;
     } else if (isname(name, obj->in_obj->name))
       return obj->in_obj;
-  }    /* or worn ?*/
+  }/* or worn ?*/
   else if (obj->worn_by && (i = get_object_in_equip(obj->worn_by, name)))
     return i;
     /* or carried ? */
@@ -972,8 +972,7 @@ ACMD(do_attach) {
     else
       send_to_char(ch, "Trigger %d (%s) attached to player named %s.\r\n",
             tn, GET_TRIG_NAME(trig), GET_NAME(victim));
-  }
-  else if (is_abbrev(arg, "object") || is_abbrev(arg, "otr")) {
+  } else if (is_abbrev(arg, "object") || is_abbrev(arg, "otr")) {
     object = get_obj_vis(ch, targ_name, NULL);
     if (!object) { /* search room for one with this vnum */
       for (object = world[IN_ROOM(ch)].contents; object; object = object->next_content)
@@ -1012,8 +1011,7 @@ ACMD(do_attach) {
             (object->short_description ?
             object->short_description : object->name),
             GET_OBJ_VNUM(object));
-  }
-  else if (is_abbrev(arg, "room") || is_abbrev(arg, "wtr")) {
+  } else if (is_abbrev(arg, "room") || is_abbrev(arg, "wtr")) {
     if (strchr(targ_name, '.'))
       rnum = IN_ROOM(ch);
     else if (isdigit(*targ_name))
@@ -1045,8 +1043,7 @@ ACMD(do_attach) {
 
     send_to_char(ch, "Trigger %d (%s) attached to room %d.\r\n",
             tn, GET_TRIG_NAME(trig), world[rnum].number);
-  }
-  else
+  } else
     send_to_char(ch, "Please specify 'mob', 'obj', or 'room'.\r\n");
 }
 
@@ -1080,8 +1077,7 @@ static int remove_trigger(struct script_data *sc, char *name) {
       if (isname(name, GET_TRIG_NAME(i)))
         if (++n >= num)
           break;
-    }
-      /* This isn't clean. A numeric value will match if it's position OR vnum
+    }      /* This isn't clean. A numeric value will match if it's position OR vnum
        * is found. originally the number was position-only. */
     else if (++n >= num)
       break;
@@ -1093,8 +1089,7 @@ static int remove_trigger(struct script_data *sc, char *name) {
     if (j) {
       j->next = i->next;
       extract_trigger(i);
-    }
-      /* this was the first trigger */
+    }      /* this was the first trigger */
     else {
       TRIGGERS(sc) = i->next;
       extract_trigger(i);
@@ -1148,8 +1143,7 @@ ACMD(do_detach) {
       }
     } else
       send_to_char(ch, "That trigger was not found.\r\n");
-  }
-  else {
+  } else {
     if (is_abbrev(arg1, "mobile") || !str_cmp(arg1, "mtr")) {
       victim = get_char_vis(ch, arg2, NULL, FIND_CHAR_WORLD);
       if (!victim) { /* search room for one with this vnum */
@@ -1167,8 +1161,7 @@ ACMD(do_detach) {
         send_to_char(ch, "You must specify a trigger to remove.\r\n");
       else
         trigger = arg3;
-    }
-    else if (is_abbrev(arg1, "object") || !str_cmp(arg1, "otr")) {
+    } else if (is_abbrev(arg1, "object") || !str_cmp(arg1, "otr")) {
       object = get_obj_vis(ch, arg2, NULL);
       if (!object) { /* search room for one with this vnum */
         for (object = world[IN_ROOM(ch)].contents; object; object = object->next_content)
@@ -1219,16 +1212,14 @@ ACMD(do_detach) {
       } else if (trigger && !str_cmp(trigger, "all")) {
         extract_script(victim, MOB_TRIGGER);
         send_to_char(ch, "All triggers removed from %s.\r\n", IS_NPC(victim) ? GET_SHORT(victim) : GET_NAME(victim));
-      }
-      else if (trigger && remove_trigger(SCRIPT(victim), trigger)) {
+      } else if (trigger && remove_trigger(SCRIPT(victim), trigger)) {
         send_to_char(ch, "Trigger removed.\r\n");
         if (!TRIGGERS(SCRIPT(victim))) {
           extract_script(victim, MOB_TRIGGER);
         }
       } else
         send_to_char(ch, "That trigger was not found.\r\n");
-    }
-    else if (object) {
+    } else if (object) {
       if (!SCRIPT(object))
         send_to_char(ch, "That object doesn't have any triggers.\r\n");
 
@@ -1240,8 +1231,7 @@ ACMD(do_detach) {
         send_to_char(ch, "All triggers removed from %s.\r\n",
                 object->short_description ? object->short_description :
                 object->name);
-      }
-      else if (remove_trigger(SCRIPT(object), trigger)) {
+      } else if (remove_trigger(SCRIPT(object), trigger)) {
         send_to_char(ch, "Trigger removed.\r\n");
         if (!TRIGGERS(SCRIPT(object))) {
           extract_script(object, OBJ_TRIGGER);
@@ -1328,50 +1318,42 @@ static void eval_op(char *op, char *lhs, char *rhs, char *result, void *go,
       strcpy(result, "0");
     else
       strcpy(result, "1");
-  }
-  else if (!strcmp("&&", op)) {
+  } else if (!strcmp("&&", op)) {
     if (!*lhs || (*lhs == '0') || !*rhs || (*rhs == '0'))
       strcpy(result, "0");
     else
       strcpy(result, "1");
-  }
-  else if (!strcmp("==", op)) {
+  } else if (!strcmp("==", op)) {
     if (is_num(lhs) && is_num(rhs))
       sprintf(result, "%d", atoi(lhs) == atoi(rhs));
     else
       sprintf(result, "%d", !str_cmp(lhs, rhs));
-  }
-  else if (!strcmp("!=", op)) {
+  } else if (!strcmp("!=", op)) {
     if (is_num(lhs) && is_num(rhs))
       sprintf(result, "%d", atoi(lhs) != atoi(rhs));
     else
       sprintf(result, "%d", str_cmp(lhs, rhs));
-  }
-  else if (!strcmp("<=", op)) {
+  } else if (!strcmp("<=", op)) {
     if (is_num(lhs) && is_num(rhs))
       sprintf(result, "%d", atoi(lhs) <= atoi(rhs));
     else
       sprintf(result, "%d", str_cmp(lhs, rhs) <= 0);
-  }
-  else if (!strcmp(">=", op)) {
+  } else if (!strcmp(">=", op)) {
     if (is_num(lhs) && is_num(rhs))
       sprintf(result, "%d", atoi(lhs) >= atoi(rhs));
     else
       sprintf(result, "%d", str_cmp(lhs, rhs) <= 0);
-  }
-  else if (!strcmp("<", op)) {
+  } else if (!strcmp("<", op)) {
     if (is_num(lhs) && is_num(rhs))
       sprintf(result, "%d", atoi(lhs) < atoi(rhs));
     else
       sprintf(result, "%d", str_cmp(lhs, rhs) < 0);
-  }
-  else if (!strcmp(">", op)) {
+  } else if (!strcmp(">", op)) {
     if (is_num(lhs) && is_num(rhs))
       sprintf(result, "%d", atoi(lhs) > atoi(rhs));
     else
       sprintf(result, "%d", str_cmp(lhs, rhs) > 0);
-  }
-  else if (!strcmp("/=", op))
+  } else if (!strcmp("/=", op))
     sprintf(result, "%c", str_str(lhs, rhs) ? '1' : '0');
 
   else if (!strcmp("*", op))
@@ -1440,8 +1422,7 @@ static void eval_expr(char *line, char *result, void *go, struct script_data *sc
     p = matching_paren(expr);
     *p = '\0';
     eval_expr(expr + 1, result, go, sc, trig, type);
-  }
-  else
+  } else
     var_subst(go, sc, trig, type, line, result);
 }
 
@@ -1579,12 +1560,10 @@ static struct cmdlist_element *find_else_end(trig_data *trig,
         GET_TRIG_DEPTH(trig)++;
         return c;
       }
-    }
-    else if (!strn_cmp("else", p, 4)) {
+    } else if (!strn_cmp("else", p, 4)) {
       GET_TRIG_DEPTH(trig)++;
       return c;
-    }
-    else if (!strn_cmp("end", p, 3))
+    } else if (!strn_cmp("end", p, 3))
       return c;
 
     /* thanks to Russell Ryan for this fix */
@@ -1637,8 +1616,7 @@ static void process_wait(void *go, trig_data *trig, int type, char *cmd,
       when = (SECS_PER_MUD_DAY * PASSES_PER_SEC) - when + ntime;
     else
       when = ntime - when;
-  }
-  else {
+  } else {
     if (sscanf(arg, "%ld %c", &when, &c) == 2) {
       if (c == 't')
         when *= PULSES_PER_MUD_HOUR;
@@ -2455,8 +2433,7 @@ int script_driver(void *go_adress, trig_data *trig, int type, int mode) {
         GET_TRIG_DEPTH(trig)++;
       else
         cl = find_else_end(trig, cl, go, sc, type);
-    }
-    else if (!strn_cmp("elseif ", p, 7) ||
+    } else if (!strn_cmp("elseif ", p, 7) ||
             !strn_cmp("else", p, 4)) {
       /* If not in an if-block, ignore the extra 'else[if]' and warn about it. */
       if (GET_TRIG_DEPTH(trig) == 1) {
@@ -2517,8 +2494,7 @@ int script_driver(void *go_adress, trig_data *trig, int type, int mode) {
       cl = find_done(cl);
     } else if (!strn_cmp("case", p, 4)) {
       /* Do nothing, this allows multiple cases to a single instance */
-    }
-    else {
+    } else {
       var_subst(go, sc, trig, type, p, cmd);
 
       if (!strn_cmp(cmd, "eval ", 5))
@@ -2569,8 +2545,7 @@ int script_driver(void *go_adress, trig_data *trig, int type, int mode) {
         process_wait(go, trig, type, cmd, cl);
         depth--;
         return ret_val;
-      }
-      else if (!strn_cmp(cmd, "attach ", 7))
+      } else if (!strn_cmp(cmd, "attach ", 7))
         process_attach(go, sc, trig, type, cmd);
 
       else if (!strn_cmp(cmd, "detach ", 7))
