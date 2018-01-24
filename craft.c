@@ -1305,7 +1305,7 @@ int create(char *argument, struct obj_data *kit,
    */
   mats_needed = MAX(MIN_MATS, (GET_OBJ_WEIGHT(mold) / WEIGHT_FACTOR));
 
-  /* elvent crafting reduces material needed */
+  /* elven crafting reduces material needed */
   if (HAS_FEAT(ch, FEAT_ELVEN_CRAFTING))
     mats_needed = MAX(MIN_ELF_MATS, mats_needed / 2);
 
@@ -1392,7 +1392,7 @@ int create(char *argument, struct obj_data *kit,
           CAN_WEAR(mold, ITEM_WEAR_HOLD)
           ) {
     skill = SKILL_JEWELRY_MAKING;
-  }    /* body armor pieces: either armor-smith/leather-worker/or knitting */
+  }/* body armor pieces: either armor-smith/leather-worker/or knitting */
   else if (CAN_WEAR(mold, ITEM_WEAR_BODY) ||
           CAN_WEAR(mold, ITEM_WEAR_ARMS) ||
           CAN_WEAR(mold, ITEM_WEAR_LEGS) ||
@@ -1408,10 +1408,10 @@ int create(char *argument, struct obj_data *kit,
       skill = SKILL_LEATHER_WORKING;
     else
       skill = SKILL_KNITTING;
-  }    /* about body */
+  }/* about body */
   else if (CAN_WEAR(mold, ITEM_WEAR_ABOUT)) {
     skill = SKILL_KNITTING;
-  }    /* weapon-smithing:  weapons and shields */
+  }/* weapon-smithing:  weapons and shields */
   else if (CAN_WEAR(mold, ITEM_WEAR_WIELD) ||
           CAN_WEAR(mold, ITEM_WEAR_SHIELD)
           ) {
@@ -1742,27 +1742,27 @@ EVENTFUNC(event_crafting) {
   }
 
   if (GET_CRAFTING_TICKS(ch)) { /* still working! */
-    
+
     /* disenchant.   disenchant has no OBJ so we handle separate */
     if (GET_CRAFTING_TYPE(ch) == SCMD_DISENCHANT) {
       send_to_char(ch, "You continue to %s.\r\n",
               craft_type[GET_CRAFTING_TYPE(ch)]);
       exp = 10 * GET_LEVEL(ch) + GET_LEVEL(ch);
-      
-    /* should be everything that is not disenchant/supplyorder */  
+
+      /* should be everything that is not disenchant/supplyorder */
     } else if (GET_CRAFTING_OBJ(ch)) {
       send_to_char(ch, "You continue to %s and work to create %s.\r\n",
               craft_type[GET_CRAFTING_TYPE(ch)],
               GET_CRAFTING_OBJ(ch)->short_description);
       exp = GET_OBJ_LEVEL(GET_CRAFTING_OBJ(ch)) * GET_LEVEL(ch) + GET_LEVEL(ch);
-      
-    /* supply orders */  
+
+      /* supply orders */
     } else {
       send_to_char(ch, "You continue your supply order for %s.\r\n",
               GET_AUTOCQUEST_DESC(ch));
       exp = GET_LEVEL(ch) * 2;
     }
-    
+
     gain_exp(ch, exp, GAIN_EXP_MODE_CRAFT);
     send_to_char(ch, "You gained %d exp for crafting...\r\n", exp);
     send_to_char(ch, "You have approximately %d seconds "
@@ -1985,7 +1985,7 @@ ACMD(do_harvest) {
   }
   if (IS_CARRYING_W(ch) >= CAN_CARRY_W(ch)) {
     send_to_char(ch, "You must lighten your load before you can harvest anything else.\r\n");
-    return;    
+    return;
   }
 
 
