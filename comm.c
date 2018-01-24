@@ -1288,12 +1288,12 @@ static char *make_prompt(struct descriptor_data *d) {
         for (i = 0; i < NUM_CLASSES; i++) {
           if (SPELL_PREP_QUEUE(d->character, i) &&
                   SPELL_PREP_QUEUE(d->character, i)->prep_time) {
-            count = snprintf(prompt + len, sizeof (prompt) - len, "%d ",
+            count += snprintf(prompt + len, sizeof (prompt) - len, "%d ",
                     SPELL_PREP_QUEUE(d->character, i)->prep_time);            
           }
           if (INNATE_MAGIC(d->character, i) &&
                   INNATE_MAGIC(d->character, i)->prep_time) {
-            count = snprintf(prompt + len, sizeof (prompt) - len, "%d ",
+            count += snprintf(prompt + len, sizeof (prompt) - len, "%d ",
                     INNATE_MAGIC(d->character, i)->prep_time);            
           }
         }
