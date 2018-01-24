@@ -4620,34 +4620,19 @@ ACMD(do_checkloadstatus) {
 }
 /* Zone Checker code above. */
 
-/* (c) 1996-97 Erwin S. Andreasen. */
-ACMD(do_copyover) {
+/* copyover engine */
+void perform_do_copyover() {
   FILE *fp;
   struct descriptor_data *d, *d_next;
-  char buf [100], buf2[100];
+  char buf[100], buf2[100];
   int i;
   int min_level_to_copyover = LVL_IMPL;
 
-  if (port == CONFIG_DFLT_DEV_PORT) {
-    min_level_to_copyover = LVL_IMMORT;
-  }
-
-  if (GET_LEVEL(ch) < min_level_to_copyover) {
-    send_to_char(ch, "Imp only command now.\r\n");
-    return;
-  }
-
   fp = fopen(COPYOVER_FILE, "w");
   if (!fp) {
-    send_to_char(ch, "Copyover file not writeable, aborted.\n\r");
+    log("Copyover file not writeable, aborted.\n\r");
     return;
   }
-
-  sprintf(buf, "\n\r *** Time stops for a moment as %s folds space and time!\n\r"
-          "(The game will pause for about 20 seconds while new code is being imported, "
-          "you will need to reform if you were grouped.  If you get disconnected, "
-          "you should be able to reconnect immediately or within a few minutes.)\r\n",
-          GET_NAME(ch));
 
   /* write boot_time as first line in file */
   fprintf(fp, "%ld\n", (long) boot_time);
@@ -4702,9 +4687,14 @@ ACMD(do_copyover) {
       GET_LOADROOM(och) = GET_ROOM_VNUM(IN_ROOM(och));
       Crash_rentsave(och, 0);
       save_char(och, 0);
-      write_to_descriptor(d->descriptor, buf);
+      if (IS_PLAYING(d) && d->character) {
+        send_to_char(d->character, "\n\r \tR*** \tWTime stops for a moment as space and time folds upon itself! \tR***\tn\n\r"
+                "\tc[The game will pause for about 30 seconds while new code is being imported, "
+                "you will need to reform if you were grouped.  If you get disconnected, "
+                "you should be able to reconnect immediately or within a few minutes.]\tn\r\n");
+      }
     }
-  }
+  } /* end descriptor loop */
 
   fprintf(fp, "-1\n");
   fclose(fp);
@@ -4721,9 +4711,33 @@ ACMD(do_copyover) {
 
   /* Failed - successful exec will not return */
   perror("do_copyover: execl");
-  send_to_char(ch, "Copyover FAILED!\n\r");
+  log("Copyover FAILED!\n\r");
 
-  exit(1); /* too much trouble to try to recover! */
+  exit(1); /* too much trouble to try to recover! */  
+}
+
+/* (c) 1996-97 Erwin S. Andreasen. */
+ACMD(do_copyover) {
+  int min_level_to_copyover = LVL_IMPL;
+
+  if (port == CONFIG_DFLT_DEV_PORT) {
+    min_level_to_copyover = LVL_IMMORT;
+  }
+
+  if (GET_LEVEL(ch) < min_level_to_copyover) {
+    send_to_char(ch, "You are not high enough level staff to use this command.\r\n");
+    return;
+  }
+  
+  one_argument(argument, arg);
+
+  if (!*arg) {
+    perform_do_copyover();    
+    return;
+  }
+  
+  
+  
 }
 
 ACMD(do_peace) {
