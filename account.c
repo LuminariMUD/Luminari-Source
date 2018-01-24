@@ -564,6 +564,7 @@ void combine_accounts(void) {
  */
 
 /* engine for ACMD(do_account) */
+void perform_do_account(struct char_data *ch, struct char_data *vict) {
   bool found = FALSE;
   int i = 0;
 
