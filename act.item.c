@@ -2768,19 +2768,19 @@ ACMD(do_sac) {
       break;
     case 2:
       send_to_char(ch, "You sacrifice %s to the gods.\r\nThe gods give you %d experience points.\r\n", GET_OBJ_SHORT(j), (2 * GET_OBJ_COST(j)));
-      GET_EXP(ch) += (2 * GET_OBJ_COST(j));
+      GET_EXP(ch) += (GET_OBJ_COST(j));
       break;
     case 3:
       send_to_char(ch, "You sacrifice %s to the gods.\r\nYou receive %d experience points.\r\n", GET_OBJ_SHORT(j), GET_OBJ_COST(j));
-      GET_EXP(ch) += GET_OBJ_COST(j);
+      GET_EXP(ch) += GET_OBJ_COST(j)/2;
       break;
     case 4:
       send_to_char(ch, "Your sacrifice to the gods is rewarded with %d gold coins.\r\n", GET_OBJ_COST(j));
-      increase_gold(ch, GET_OBJ_COST(j));
+      increase_gold(ch, GET_OBJ_COST(j)/2);
       break;
     case 5:
       send_to_char(ch, "Your sacrifice to the gods is rewarded with %d gold coins\r\n", (2 * GET_OBJ_COST(j)));
-      increase_gold(ch, (2 * GET_OBJ_COST(j)));
+      increase_gold(ch, (GET_OBJ_COST(j)));
       break;
     default: /* should not get here */
       send_to_char(ch, "You sacrifice %s to the gods.\r\nYou receive one gold coin for your humility.\r\n", GET_OBJ_SHORT(j));
