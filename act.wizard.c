@@ -4715,9 +4715,9 @@ void perform_do_copyover() {
 
 EVENTFUNC(event_copyover) {
   struct mud_event_data *copyover_event = NULL;
-  struct descriptor_data *pt;
-  int initial_timer = 0;
-  int current_timer = 0;
+  struct descriptor_data *pt = NULL;
+  int timer = 0;
+  char buf[50] = {'\0'};
 
   /* initialize everything and dummy checks */
   if (event_obj == NULL)
@@ -4726,61 +4726,66 @@ EVENTFUNC(event_copyover) {
 
   /* grab and clear initial timer from sVar */
   if (copyover_event->sVariables) {
-    initial_timer = atoi((char *) copyover_event->sVariables); /* in seconds */
+    timer = atoi((char *) copyover_event->sVariables); /* in seconds */
     free(copyover_event->sVariables);
-  }
-
-  /* current timer */
-  if (initial_timer)
-    current_timer = initial_timer; /* seconds */
-  else if (copyover_event->pEvent)
-    current_timer = (int) (event_time(copyover_event->pEvent) / 10); /* seconds */
-  else
-    current_timer = 0;
+  } else
+    timer = 0;
   
   /* all done, copyover! */
-  if (current_timer <= 0) {
+  if (timer <= 0) {
     perform_do_copyover();
     return 0;
   }
   
-  else if (current_timer == 1) {
+  else if (timer == 1) {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
         send_to_char(pt->character, "\r\n     \tR[COPYOVER IMMINENT!]\r\n");
+    sprintf(buf, "%d", (timer - 1));
+    pMudEvent->sVariables = strdup(buf);
     return (1 * PASSES_PER_SEC);    
   }
   
-  else if (current_timer == 2) {
+  else if (timer == 2) {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
         send_to_char(pt->character, "\r\n     \tR[Copyover in less than 2 seconds]\r\n");
+    sprintf(buf, "%d", (timer - 1));
+    pMudEvent->sVariables = strdup(buf);
     return (1 * PASSES_PER_SEC);    
   }
   
-  else if (current_timer == 3) {
+  else if (timer == 3) {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
         send_to_char(pt->character, "\r\n     \tR[Copyover in less than 3 seconds]\r\n");
+    sprintf(buf, "%d", (timer - 1));
+    pMudEvent->sVariables = strdup(buf);
     return (1 * PASSES_PER_SEC);    
   }
   
-  else if (current_timer <= 10) {
+  else if (timer <= 10) {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
         send_to_char(pt->character, "\r\n     \tR[Copyover in less than 10 seconds]\r\n");
+    sprintf(buf, "%d", (timer - 7));
+    pMudEvent->sVariables = strdup(buf);
     return (7 * PASSES_PER_SEC);    
   }
 
-  else if (current_timer <= 30) {
+  else if (timer <= 30) {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
         send_to_char(pt->character, "\r\n     \tR[Copyover in less than 30 seconds]\r\n");
+    sprintf(buf, "%d", (timer - 20));
+    pMudEvent->sVariables = strdup(buf);
     return (20 * PASSES_PER_SEC);    
   }
   
-  else 
-    return ((current_timer - 30) * PASSES_PER_SEC);
+  else {
+    pMudEvent->sVariables = strdup("30");
+    return ((timer - 30) * PASSES_PER_SEC);
+  }
 }
 
 /* (c) 1996-97 Erwin S. Andreasen. Modified by Zusuk to accept countdown argument */
