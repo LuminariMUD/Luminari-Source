@@ -1510,6 +1510,7 @@ void begin_preparing(struct char_data *ch, int class) {
 int compute_spells_prep_time(struct char_data *ch, int class, int circle, int domain) {
   int prep_time = 0;
   int bonus_time = 0;
+  int stat_bonus = 0;
 
   /* base prep time based on circle, etc */
   prep_time = BASE_PREP_TIME + (PREP_TIME_INTERVALS * (circle - 1));
@@ -1520,17 +1521,40 @@ int compute_spells_prep_time(struct char_data *ch, int class, int circle, int do
   
   /* class factors */
   switch (class) {
-    case CLASS_RANGER: prep_time *= RANGER_PREP_TIME_FACTOR; break;
-    case CLASS_PALADIN: prep_time *= PALADIN_PREP_TIME_FACTOR; break;
-    case CLASS_DRUID: prep_time *= DRUID_PREP_TIME_FACTOR; break;
-    case CLASS_WIZARD: prep_time *= WIZ_PREP_TIME_FACTOR; break;
-    case CLASS_CLERIC: prep_time *= CLERIC_PREP_TIME_FACTOR; break;
-    case CLASS_SORCERER: prep_time *= SORC_PREP_TIME_FACTOR; break;
-    case CLASS_BARD: prep_time *= BARD_PREP_TIME_FACTOR; break;
+    case CLASS_RANGER:
+      prep_time *= RANGER_PREP_TIME_FACTOR;
+      stat_bonus = GET_WIS_BONUS(ch);
+      break;
+    case CLASS_PALADIN:
+      prep_time *= PALADIN_PREP_TIME_FACTOR;
+      stat_bonus = GET_WIS_BONUS(ch);
+      break;
+    case CLASS_DRUID:
+      prep_time *= DRUID_PREP_TIME_FACTOR;
+      stat_bonus = GET_WIS_BONUS(ch);
+      break;
+    case CLASS_WIZARD:
+      prep_time *= WIZ_PREP_TIME_FACTOR;
+      stat_bonus = GET_INT_BONUS(ch);
+      break;
+    case CLASS_CLERIC:
+      prep_time *= CLERIC_PREP_TIME_FACTOR;
+      stat_bonus = GET_WIS_BONUS(ch);
+      break;
+    case CLASS_SORCERER:
+      prep_time *= SORC_PREP_TIME_FACTOR;
+      stat_bonus = GET_CHA_BONUS(ch);
+      break;
+    case CLASS_BARD:
+      prep_time *= BARD_PREP_TIME_FACTOR;
+      stat_bonus = GET_CHA_BONUS(ch);
+      break;
   }
 
   /** calculate bonuses **/
   /*skills*/
+  /* stat bonus */
+  bonus_time += stat_bonus;
   /* concentration */
   if (!IS_NPC(ch) && GET_ABILITY(ch, ABILITY_CONCENTRATION)) {
     bonus_time += compute_ability(ch, ABILITY_CONCENTRATION) / 4;
