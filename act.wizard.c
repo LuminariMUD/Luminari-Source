@@ -4733,7 +4733,7 @@ EVENTFUNC(event_copyover) {
   /* current timer */
   if (initial_timer)
     current_timer = initial_timer; /* seconds */
-  else
+  else if (current_timer->q_el)
     current_timer = (int) (event_time(copyover_event->pEvent) / 10); /* seconds */
   
   /* all done, copyover! */
@@ -4763,14 +4763,14 @@ EVENTFUNC(event_copyover) {
     return (1 * PASSES_PER_SEC);    
   }
   
-  else if (current_timer == 10) {
+  else if (current_timer <= 10) {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
         send_to_char(pt->character, "\r\n     \tR[Copyover in 10 seconds]\r\n");
     return (7 * PASSES_PER_SEC);    
   }
 
-  else if (current_timer == 30) {
+  else if (current_timer <= 30) {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
         send_to_char(pt->character, "\r\n     \tR[Copyover in 30 seconds]\r\n");
