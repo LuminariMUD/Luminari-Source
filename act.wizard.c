@@ -4740,7 +4740,7 @@ EVENTFUNC(event_copyover) {
   
   /* all done, copyover (if we can)! */
   if (timer <= 0) {
-    if (!is_playing(ch)) { /*invalid state for copyover, cancel*/
+    if (!IS_PLAYING(ch->desc)) { /*invalid state for copyover, cancel*/
       for (pt = descriptor_list; pt; pt = pt->next)
         if (pt->character)
           send_to_char(pt->character, "\r\n     \tW[Copyover has been CANCELLED]\tn\r\n");
