@@ -4733,8 +4733,10 @@ EVENTFUNC(event_copyover) {
   /* current timer */
   if (initial_timer)
     current_timer = initial_timer; /* seconds */
-  else
+  else if (copyover_event->pEvent->q_el)
     current_timer = (int) (event_time(copyover_event->pEvent) / 10); /* seconds */
+  else
+    current_timer = 0;
   
   /* all done, copyover! */
   if (current_timer <= 0) {
