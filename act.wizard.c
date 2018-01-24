@@ -4723,11 +4723,9 @@ EVENTFUNC(event_copyover) {
   /* initialize everything and dummy checks */
   if (event_obj == NULL)
     return 0;  
-  ch = (struct char_data *) copyover_event->pStruct;
-  if (!ch) {
-    return 0;
-  }
+  
   copyover_event = (struct mud_event_data *) event_obj;
+  ch = (struct char_data *) copyover_event->pStruct;
 
   /* in case our event owner decides to log out*/
   
@@ -4740,7 +4738,7 @@ EVENTFUNC(event_copyover) {
   
   /* all done, copyover (if we can)! */
   if (timer <= 0) {
-    if (!ch->desc || !IS_PLAYING(ch->desc)) { /*invalid state for copyover, cancel*/
+    if (!ch || !ch->desc || !IS_PLAYING(ch->desc)) { /*invalid state for copyover, cancel*/
       for (pt = descriptor_list; pt; pt = pt->next)
         if (pt->character)
           send_to_char(pt->character, "\r\n     \tW[Copyover has been CANCELLED]\tn\r\n");
