@@ -1,3 +1,13 @@
+/*/ \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \
+\                                                             
+/  Luminari Crafts System                                                           
+/  Created By: Created by Vatiken, (Joseph Arnusch)                                                           
+\              installed by Ornir                                               
+/  Header file: crafts.h                                                           
+\  Created: June 21st, 2012                                                          
+/                                                                                                                                                                                       
+\ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ /*/
+
 #include "conf.h"
 #include "sysdep.h"
 #include "structs.h"
