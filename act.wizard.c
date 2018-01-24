@@ -4624,9 +4624,8 @@ ACMD(do_checkloadstatus) {
 void perform_do_copyover() {
   FILE *fp;
   struct descriptor_data *d, *d_next;
-  char buf[100], buf2[100];
+  char buf[100], buf2[100], arg[MAX_INPUT_LENGTH];
   int i;
-  int min_level_to_copyover = LVL_IMPL;
 
   fp = fopen(COPYOVER_FILE, "w");
   if (!fp) {
