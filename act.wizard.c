@@ -4823,8 +4823,8 @@ EVENTFUNC(event_copyover) {
       if (pt->character)
         send_to_char(pt->character, "\r\n     \tR[Copyover in about %d minutes]\r\n",
                 timer/60);
-    copyover_event->sVariables = strdup("30");
-    return ((timer - 30) * PASSES_PER_SEC);
+    copyover_event->sVariables = strdup("600");
+    return ((timer - 600) * PASSES_PER_SEC);
   }
 }
 
