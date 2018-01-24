@@ -569,8 +569,7 @@ void perform_do_account(struct char_data *ch, struct char_data *vict) {
   int i = 0;
 
   if (IS_NPC(vict) || !vict->desc || !vict->desc->account) {
-    send_to_char(ch, "The account command can only be used by player characters "void perform_do_account(struct char_data *ch, struct char_data *vict) {
-
+    send_to_char(ch, "The account command can only be used by player characters "
             "with a valid account.\r\n");
     return;
   }
