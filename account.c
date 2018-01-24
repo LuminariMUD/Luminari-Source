@@ -4,7 +4,7 @@
 /  Created By: Ornir                                                           
 \                                                             
 /  using act.h as the header file currently                                                           
-\                                                             
+\         todo: move header stuff into account.h                                                   
 /                                                                                                                                                                                       
 \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ /*/
 
@@ -25,6 +25,7 @@
 #include "screen.h"
 #include "class.h"
 #include "act.h"
+#include "account.h"
 
 extern MYSQL *conn;
 
@@ -563,12 +564,12 @@ void combine_accounts(void) {
  */
 
 /* engine for ACMD(do_account) */
-void perform_do_account(struct char_data *ch, struct char_data *vict) {
   bool found = FALSE;
   int i = 0;
 
   if (IS_NPC(vict) || !vict->desc || !vict->desc->account) {
-    send_to_char(ch, "The account command can only be used by player characters "
+    send_to_char(ch, "The account command can only be used by player characters "void perform_do_account(struct char_data *ch, struct char_data *vict) {
+
             "with a valid account.\r\n");
     return;
   }
