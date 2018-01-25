@@ -346,9 +346,10 @@ cpp_extern const struct command_info cmd_info[] = {
   { "lore", "lore", POS_RESTING, do_lore, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
   { "land", "land", POS_FIGHTING, do_land, 1, 0, FALSE, ACTION_MOVE, {0, 6}},
   { "loadmagic", "loadmagic", POS_DEAD, do_loadmagic, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}},
-  { "loadmagicspecific", "lms", POS_DEAD, do_loadmagicspecific, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}},
+  { "loadmagicspecific", "loadmagicspecific", POS_DEAD, do_loadmagicspecific, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}},
   { "lightningarc", "lightningarc", POS_FIGHTING, do_lightningarc, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
   { "levitate", "levitate", POS_FIGHTING, do_levitate, 1, 0, FALSE, ACTION_MOVE, {0, 0}},
+  { "lms", "lms", POS_DEAD, do_loadmagicspecific, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}},
 
   { "memorize", "memorize", POS_RESTING, do_gen_preparation, 0, SCMD_MEMORIZE, FALSE, ACTION_NONE, {0, 0}},
   { "mail", "mail", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}},
