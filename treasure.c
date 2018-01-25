@@ -44,7 +44,7 @@ char *label_rare_grade(int rare_grade) {
       sprintf(desc, "\tG[Rare]\tn ");
       break;
   }
-  return desc;
+  return *desc;
 }
 
 /* utility function to determine 'rare grade' - extra special items */
