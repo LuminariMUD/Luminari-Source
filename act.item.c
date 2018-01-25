@@ -452,7 +452,7 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
 
 /* a central location for identification/statting of items */
 void do_stat_object(struct char_data *ch, struct obj_data *j, int mode) {
-  int i, found;
+  int i, found, feat_num;
   obj_vnum vnum = GET_OBJ_VNUM(j);
   struct obj_data *j2;
   struct extra_descr_data *desc;
@@ -529,9 +529,12 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode) {
   for (i = 0; i < MAX_OBJ_AFFECT; i++)
     if (j->affected[i].modifier) {
       sprinttype(j->affected[i].location, apply_types, buf, sizeof (buf));
-      if (j->affected[i].location == APPLY_FEAT)
-        send_to_char(ch, "%s %s: %s (%s)", found++ ? "," : "", buf, feat_list[j->affected[i].modifier].name, bonus_types[j->affected[i].bonus_type]);
-      else
+      if (j->affected[i].location == APPLY_FEAT) {
+        feat_num = j->affected[i].modifier;
+        if (feat_num < 0 || feat_num >= NUM_FEATS)
+          feat_num = 0;
+        send_to_char(ch, "%s %s: %s (%s)", found++ ? "," : "", buf, feat_list[feat_num].name, bonus_types[j->affected[i].bonus_type]);
+      } else
         send_to_char(ch, "%s %+d to %s (%s)", found++ ? "," : "", j->affected[i].modifier, buf, bonus_types[j->affected[i].bonus_type]);
     }
   if (!found)
