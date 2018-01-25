@@ -535,7 +535,7 @@ void award_magic_item(int number, struct char_data *ch, int grade) {
           break;
       }
     } else if (roll <= 75) {       /* 56 - 75   20% */
-      give_misc_magic_item(ch, determine_rnd_misc_cat(), cp_convert_grade_enchantment(grade), FALSE);
+      award_misc_magic_item(ch, determine_rnd_misc_cat(), cp_convert_grade_enchantment(grade));
     } else  {                      /* 76 - 100  25% */
       award_magic_armor(ch, grade, -1);
     }
@@ -2301,6 +2301,7 @@ void give_magic_weapon(struct char_data *ch, int selection, int enchantment, boo
 
 /* give away specific misc item
  * 1) finger, 2) neck, 3) feet, 4) hands, 5) about, 6) waist, 7) wrist, 8) held
+ *   9) monk gloves (hands)
  * method:
  * 1)  determine item
  * 2)  determine material
@@ -2572,6 +2573,283 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment, b
 
   /* level, bonus and cost */
   cp_modify_object_applies(ch, obj, enchantment, CP_TYPE_MISC, silent_mode);
+}
+#undef SHORT_STRING
+
+/* give away specific misc item
+ * 1) finger, 2) neck, 3) feet, 4) hands, 5) about, 6) waist, 7) wrist, 8) held
+ *   9) monk gloves (hands)
+ * method:
+ * 1)  determine item
+ * 2)  determine material
+ * 3)  assign description
+ * 4)  determine modifier (if applicable)
+ * 5)  determine amount (if applicable)
+ */
+#define SHORT_STRING    80
+void award_misc_magic_item(struct char_data *ch, int category, int grade) {
+  struct obj_data *obj = NULL;
+  int vnum = -1, material = MATERIAL_BRONZE;
+  int level = 0;
+  char desc[MEDIUM_STRING] = {'\0'}, armor_name[MEDIUM_STRING] = {'\0'};
+  char keywords[MEDIUM_STRING] = {'\0'};
+  char desc2[SHORT_STRING] = {'\0'}, desc3[SHORT_STRING] = {'\0'};
+  
+  /* assign base material
+   * and last but not least, give appropriate start of description
+   *  */
+  switch (category) {
+    case 1: /*finger*/
+      vnum = RING_MOLD;
+      material = MATERIAL_COPPER;
+      sprintf(armor_name, ring_descs[rand_number(0, NUM_A_RING_DESCS - 1)]);
+      sprintf(desc2, gemstones[rand_number(0, NUM_A_GEMSTONES - 1)]);
+      break;
+    case 2: /*neck*/
+      vnum = NECKLACE_MOLD;
+      material = MATERIAL_COPPER;
+      sprintf(armor_name, neck_descs[rand_number(0, NUM_A_NECK_DESCS - 1)]);
+      sprintf(desc2, gemstones[rand_number(0, NUM_A_GEMSTONES - 1)]);
+      break;
+    case 3: /*feet*/
+      vnum = BOOTS_MOLD;
+      material = MATERIAL_LEATHER;
+      sprintf(armor_name, boot_descs[rand_number(0, NUM_A_BOOT_DESCS - 1)]);
+      sprintf(desc2, armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
+      sprintf(desc3, colors[rand_number(0, NUM_A_COLORS - 1)]);
+      break;
+    case 4: /*hands*/
+      vnum = GLOVES_MOLD;
+      material = MATERIAL_LEATHER;
+      sprintf(armor_name, hands_descs[rand_number(0, NUM_A_HAND_DESCS - 1)]);
+      sprintf(desc2, armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
+      sprintf(desc3, colors[rand_number(0, NUM_A_COLORS - 1)]);
+      break;
+    case 5: /*about*/
+      vnum = CLOAK_MOLD;
+      material = MATERIAL_COTTON;
+      sprintf(armor_name, cloak_descs[rand_number(0, NUM_A_CLOAK_DESCS - 1)]);
+      sprintf(desc2, armor_crests[rand_number(0, NUM_A_ARMOR_CRESTS - 1)]);
+      sprintf(desc3, colors[rand_number(0, NUM_A_COLORS - 1)]);
+      break;
+    case 6: /*waist*/
+      vnum = BELT_MOLD;
+      material = MATERIAL_LEATHER;
+      sprintf(armor_name, waist_descs[rand_number(0, NUM_A_WAIST_DESCS - 1)]);
+      sprintf(desc2, armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
+      sprintf(desc3, colors[rand_number(0, NUM_A_COLORS - 1)]);
+      break;
+    case 7: /*wrist*/
+      vnum = WRIST_MOLD;
+      material = MATERIAL_COPPER;
+      sprintf(armor_name, wrist_descs[rand_number(0, NUM_A_WRIST_DESCS - 1)]);
+      sprintf(desc2, gemstones[rand_number(0, NUM_A_GEMSTONES-1)]);
+      break;
+    case 8: /*held*/
+      vnum = HELD_MOLD;
+      material = MATERIAL_ONYX;
+      sprintf(armor_name, crystal_descs[rand_number(0, NUM_A_CRYSTAL_DESCS - 1)]);
+      sprintf(desc2, colors[rand_number(0, NUM_A_COLORS - 1)]);
+      break;
+    case 9: /*monk gloves*/
+      vnum = GLOVES_MOLD;
+      material = MATERIAL_LEATHER;
+      sprintf(armor_name, monk_glove_descs[rand_number(0, NUM_A_MONK_GLOVE_DESCS - 1)]);
+      sprintf(desc2, armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
+      sprintf(desc3, colors[rand_number(0, NUM_A_COLORS - 1)]);
+      break;
+  }
+
+  /* we already determined 'base' material, now
+   determine whether an upgrade was achieved by grade */
+  switch (material) {
+    
+    case MATERIAL_COPPER:
+      switch (grade) {
+        case 0:
+        case 1:
+          material = MATERIAL_COPPER;
+          break;
+        case 2:
+          material = MATERIAL_BRASS;
+          break;
+        case 3:
+          material = MATERIAL_SILVER;
+          break;
+        case 4:
+          material = MATERIAL_GOLD;
+          break;
+        default: /* 5 or 6 */
+          material = MATERIAL_PLATINUM;
+          break;
+      }
+      break; /*end copper*/
+      
+    case MATERIAL_LEATHER:
+      switch (grade) {
+        case 0:
+        case 1:
+        case 2:
+        case 3:
+        case 4:
+          material = MATERIAL_LEATHER;
+          break;
+        default: /* 5 or 6 */
+          material = MATERIAL_DRAGONHIDE;
+          break;
+      }
+      break; /*end leather*/
+      
+    case MATERIAL_COTTON:
+      switch (grade) {
+        case 0:
+          material = MATERIAL_HEMP;
+          break;
+        case 1:
+          material = MATERIAL_COTTON;
+          break;
+        case 2:
+          material = MATERIAL_WOOL;
+          break;
+        case 3:
+          material = MATERIAL_VELVET;
+          break;
+        case 4:
+        case 5:
+          material = MATERIAL_SATIN;
+          break;
+        default: /* 6 */
+          material = MATERIAL_SILK;
+          break;
+      }
+      break; /*end cotton*/
+      
+      /* options:  crystal, obsidian, onyx, ivory, pewter; just random */
+    case MATERIAL_ONYX:
+      switch (dice(1, 5)) {
+        case 1:
+          material = MATERIAL_ONYX;
+          break;
+        case 2:
+          material = MATERIAL_PEWTER;
+          break;
+        case 3:
+          material = MATERIAL_IVORY;
+          break;
+        case 4:
+          material = MATERIAL_OBSIDIAN;
+          break;
+        default: /* 5 */
+          material = MATERIAL_CRYSTAL;
+          break;
+      }
+      break; /*end onyx*/
+
+  }
+
+  /* determine level */
+  switch (grade) {
+    case 0:
+    case 1:
+      level = 0;
+      break;
+    case 2:
+      level = 5;
+      break;
+    case 3:
+      level = 10;
+      break;
+    case 4:
+      level = 15;
+      break;
+    case 5:
+      level = 20;
+      break;
+    default: /*6*/
+      level = 25;
+      break;
+  }
+
+  /* ok load object */
+  if ((obj = read_object(vnum, VIRTUAL)) == NULL) {
+    log("SYSERR: award_misc_magic_item created NULL object");
+    return;
+  }
+  
+  /* special handling for monk gloves, etc */
+  switch (category) {
+    case 9: /* monk gloves */
+      GET_OBJ_VAL(obj, 0) = grade;
+      break;
+    default:break;
+  }
+  
+  /* set material */
+  GET_OBJ_MATERIAL(obj) = material;
+
+  /* put together a descrip */
+  switch (vnum) {
+    case RING_MOLD:
+    case NECKLACE_MOLD:
+    case WRIST_MOLD:
+      sprintf(keywords, "%s %s set with %s gemstone",
+              armor_name, material_name[material], desc2);
+      obj->name = strdup(keywords);
+      sprintf(desc, "%s%s %s %s set with %s %s gemstone", desc,
+              AN(material_name[material]), material_name[material],
+              armor_name, AN(desc2), desc2);
+      obj->short_description = strdup(desc);
+      sprintf(desc, "%s %s %s set with %s %s gemstone lies here.",
+              AN(material_name[material]), material_name[material],
+              armor_name, AN(desc2), desc2);
+      obj->description = strdup(CAP(desc));
+      break;
+    case BOOTS_MOLD:
+    case GLOVES_MOLD:
+      sprintf(keywords, "%s pair %s %s", armor_name, desc2, desc3);
+      obj->name = strdup(keywords);
+      sprintf(desc, "%sa pair of %s %s %s", desc, desc2, desc3,
+              armor_name);
+      obj->short_description = strdup(desc);
+      sprintf(desc, "A pair of %s %s %s lie here.", desc2, desc3,
+              armor_name);
+      obj->description = strdup(desc);
+      break;
+    case CLOAK_MOLD:
+      sprintf(keywords, "%s %s %s %s bearing crest", armor_name, desc2,
+              material_name[material], desc3);
+      obj->name = strdup(keywords);
+      sprintf(desc, "%s%s %s %s %s bearing the crest of %s %s", desc, AN(desc3), desc3,
+              material_name[material], armor_name, AN(desc2),
+              desc2);
+      obj->short_description = strdup(desc);
+      sprintf(desc, "%s %s %s %s bearing the crest of %s %s is lying here.", AN(desc3), desc3,
+              material_name[material], armor_name, AN(desc2),
+              desc2);
+      obj->description = strdup(CAP(desc));
+      break;
+    case BELT_MOLD:
+      sprintf(keywords, "%s %s %s", armor_name, desc2, desc3);
+      obj->name = strdup(keywords);
+      sprintf(desc, "%s%s %s %s %s", desc, AN(desc2), desc2, desc3,
+              armor_name);
+      obj->short_description = strdup(desc);
+      sprintf(desc, "%s %s %s %s lie here.", AN(desc2), desc2, desc3,
+              armor_name);
+      obj->description = strdup(desc);
+      break;
+    case HELD_MOLD:
+      sprintf(keywords, "%s %s orb", armor_name, desc2);
+      obj->name = strdup(keywords);
+      sprintf(desc, "%sa %s %s orb", desc, desc2, armor_name);
+      obj->short_description = strdup(desc);
+      sprintf(desc, "A %s %s orb is lying here.", desc2, armor_name);
+      obj->description = strdup(desc);
+      break;
+  }
+
+  /* level, bonus and cost */
+  cp_modify_object_applies(ch, obj, grade, CP_TYPE_MISC, FALSE);
 }
 #undef SHORT_STRING
 
@@ -2852,7 +3130,7 @@ ACMD(do_loadmagicspecific) {
       award_magic_armor(ch, grade, ITEM_WEAR_HEAD);
       break;
     case 6: /* misc */
-      give_misc_magic_item(ch, determine_rnd_misc_cat(), cp_convert_grade_enchantment(grade), FALSE);      
+      award_misc_magic_item(ch, determine_rnd_misc_cat(), cp_convert_grade_enchantment(grade));      
       break;
     case 7: /* shield */
       award_magic_armor(ch, grade, ITEM_WEAR_SHIELD);
