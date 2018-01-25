@@ -62,7 +62,7 @@ int cp_convert_grade_enchantment(int grade) {
       else
         enchantment = 6;
       break;
-    case default: //GRADE_MUNDANE:
+    default: //GRADE_MUNDANE:
       if (rand_number(0, 1))
         enchantment = 1;
       else
