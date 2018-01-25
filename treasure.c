@@ -1227,7 +1227,7 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
   /* rare grade */
   if (rare_grade > RARE_GRADE_NORMAL) {
     feat_num = apply_bonus_feat(rare_grade);
-    send_to_char(ch, "debug: %d\r\n", feat_num);
+    //send_to_char(ch, "debug: %d\r\n", feat_num);
     if (feat_num != FEAT_UNDEFINED) {
       obj->affected[1].location = APPLY_FEAT;
       obj->affected[1].modifier = feat_num;
