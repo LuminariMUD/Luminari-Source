@@ -3288,23 +3288,36 @@ char *get_align_by_num(int align) {
 
   return "Unknown";
 }
-
 /* Feats */
 int get_feat_value(struct char_data *ch, int featnum) {
+  struct obj_data *obj;
+  int i = 0, j = 0;
+  int featval = 0;
+
   if ((featnum <= FEAT_UNDEFINED) || (featnum >= FEAT_LAST_FEAT)) {
     log("SYSERR: get_feat_value called with invalid featnum: %d", featnum);
     return 0;
   }
-
-  int featval = 0;
 
   /* Check for the feat. */
   if (IS_NPC(ch))
     featval = MOB_HAS_FEAT(ch, featnum);
   else if (AFF_FLAGGED(ch, AFF_WILD_SHAPE) && GET_DISGUISE_RACE(ch))
     featval = MOB_HAS_FEAT(ch, featnum);
-  else
-    featval = HAS_REAL_FEAT(ch, featnum);
+  else {
+    /* check if we got this feat equipped */
+    for (j = 0; j < NUM_WEARS; j++) {
+      if ((obj = GET_EQ(ch, j)) == NULL)
+        continue;
+      for (i = 0; i < MAX_OBJ_AFFECT; i++) {
+        if (obj->affected[i].location == APPLY_FEAT && obj->affected[i].modifier == featnum) {
+          featval++;
+          break; /* capped at +1, sorry folks */
+        }
+      }
+    }
+    featval += HAS_REAL_FEAT(ch, featnum);
+  }
 
   return featval;
 }
