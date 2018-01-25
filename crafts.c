@@ -494,8 +494,9 @@ EVENTFUNC(event_craft) {
     return (0);
   }
 
-  skill = GET_SKILL(ch, CRAFT_SKILL(craft)) - (CRAFT_SKILL_LEVEL(craft) / 2);
-  rand = rand_number(1, 100);
+  skill = GET_SKILL(ch, CRAFT_SKILL(craft));
+  rand = rand_number(0, (CRAFT_SKILL_LEVEL(craft) * 2));
+  rand = MIN(101, rand);
 
   if (skill > rand) {
 
