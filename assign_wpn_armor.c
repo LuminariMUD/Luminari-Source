@@ -28,19 +28,19 @@ const char *weapon_type[NUM_WEAPON_TYPES];
 /* simply checks if ch has proficiency with given weapon_type */
 int is_proficient_with_weapon(struct char_data *ch, int weapon) {
 
-  if ((has_feat(ch, FEAT_SIMPLE_WEAPON_PROFICIENCY) || HAS_FEAT(ch, FEAT_WEAPON_EXPERT))&&
+  if ((HAS_FEAT(ch, FEAT_SIMPLE_WEAPON_PROFICIENCY) || HAS_FEAT(ch, FEAT_WEAPON_EXPERT))&&
           IS_SET(weapon_list[weapon].weaponFlags, WEAPON_FLAG_SIMPLE))
     return TRUE;
 
-  if ((has_feat(ch, FEAT_MARTIAL_WEAPON_PROFICIENCY) || HAS_FEAT(ch, FEAT_WEAPON_EXPERT))&&
+  if ((HAS_FEAT(ch, FEAT_MARTIAL_WEAPON_PROFICIENCY) || HAS_FEAT(ch, FEAT_WEAPON_EXPERT))&&
           IS_SET(weapon_list[weapon].weaponFlags, WEAPON_FLAG_MARTIAL))
     return TRUE;
 
-  if (has_feat(ch, FEAT_EXOTIC_WEAPON_PROFICIENCY) &&
+  if (HAS_FEAT(ch, FEAT_EXOTIC_WEAPON_PROFICIENCY) &&
           IS_SET(weapon_list[weapon].weaponFlags, WEAPON_FLAG_EXOTIC))
     return TRUE;
 
-  if (has_feat(ch, FEAT_WEAPON_PROFICIENCY_MONK) &&
+  if (HAS_FEAT(ch, FEAT_WEAPON_PROFICIENCY_MONK) &&
           weapon_list[weapon].weaponFamily == WEAPON_FAMILY_MONK)
     return TRUE;
 
@@ -48,7 +48,7 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon) {
    * dagger, dart, quarterstaff, scimitar, scythe, sickle, shortspear, sling, 
    * and spear. They are also proficient with all natural attacks (claw, bite, 
    * and so forth) of any form they assume with wild shape.*/
-  if (has_feat(ch, FEAT_WEAPON_PROFICIENCY_DRUID) ||
+  if (HAS_FEAT(ch, FEAT_WEAPON_PROFICIENCY_DRUID) ||
       CLASS_LEVEL(ch, CLASS_DRUID) > 0) {
     switch (weapon) {
       case WEAPON_TYPE_CLUB:
@@ -64,7 +64,7 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon) {
     }
   }
 
-  if (has_feat(ch, FEAT_WEAPON_PROFICIENCY_BARD) ||
+  if (HAS_FEAT(ch, FEAT_WEAPON_PROFICIENCY_BARD) ||
       CLASS_LEVEL(ch, CLASS_BARD) > 0) {
     switch (weapon) {
       case WEAPON_TYPE_LONG_SWORD:
@@ -77,7 +77,7 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon) {
     }
   }
 
-  if (has_feat(ch, FEAT_WEAPON_PROFICIENCY_ROGUE) ||
+  if (HAS_FEAT(ch, FEAT_WEAPON_PROFICIENCY_ROGUE) ||
       CLASS_LEVEL(ch, CLASS_ROGUE) > 0) {
     switch (weapon) {
       case WEAPON_TYPE_HAND_CROSSBOW:
@@ -89,7 +89,7 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon) {
     }
   }
 
-  if (has_feat(ch, FEAT_WEAPON_PROFICIENCY_WIZARD) ||
+  if (HAS_FEAT(ch, FEAT_WEAPON_PROFICIENCY_WIZARD) ||
       CLASS_LEVEL(ch, CLASS_WIZARD) > 0) {
     switch (weapon) {
       case WEAPON_TYPE_DAGGER:
@@ -101,7 +101,7 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon) {
     }
   }
 
-  if (has_feat(ch, FEAT_WEAPON_PROFICIENCY_DROW) ||
+  if (HAS_FEAT(ch, FEAT_WEAPON_PROFICIENCY_DROW) ||
       IS_DROW(ch)) {
     switch (weapon) {
       case WEAPON_TYPE_HAND_CROSSBOW:
@@ -111,7 +111,7 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon) {
     }
   }
         
-  if (has_feat(ch, FEAT_WEAPON_PROFICIENCY_ELF) ||
+  if (HAS_FEAT(ch, FEAT_WEAPON_PROFICIENCY_ELF) ||
       IS_ELF(ch)) {
     switch (weapon) {
       case WEAPON_TYPE_LONG_SWORD:
@@ -133,7 +133,7 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon) {
   }
 
   if (IS_DWARF(ch) &&
-      has_feat(ch, FEAT_MARTIAL_WEAPON_PROFICIENCY)) {
+      HAS_FEAT(ch, FEAT_MARTIAL_WEAPON_PROFICIENCY)) {
     switch (weapon) {
       case WEAPON_TYPE_DWARVEN_WAR_AXE:
       case WEAPON_TYPE_DWARVEN_URGOSH:
@@ -142,7 +142,7 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon) {
   }
 
   /* TODO: Adapt this - Focus on an aspect of the divine, not a deity. */
-  /*  if (has_feat((char_data *) ch, FEAT_DEITY_WEAPON_PROFICIENCY) && weapon == deity_list[GET_DEITY(ch)].favored_weapon)
+  /*  if (HAS_FEAT((char_data *) ch, FEAT_DEITY_WEAPON_PROFICIENCY) && weapon == deity_list[GET_DEITY(ch)].favored_weapon)
       return TRUE;
    */
 
@@ -186,7 +186,7 @@ bool ready_to_reload(struct char_data *ch, struct obj_data *wielded, bool silent
     case WEAPON_TYPE_HEAVY_CROSSBOW:
       
       /* RAPID RELOAD! */
-      if (has_feat(ch, FEAT_RAPID_RELOAD)) {
+      if (HAS_FEAT(ch, FEAT_RAPID_RELOAD)) {
         if (is_action_available(ch, atMOVE, FALSE)) {
           if (reload_weapon(ch, wielded, silent_mode)) {
             USE_MOVE_ACTION(ch); /* success! */
@@ -228,7 +228,7 @@ bool ready_to_reload(struct char_data *ch, struct obj_data *wielded, bool silent
     case WEAPON_TYPE_SLING:
       
       /* RAPID RELOAD! */
-      if (has_feat(ch, FEAT_RAPID_RELOAD))
+      if (HAS_FEAT(ch, FEAT_RAPID_RELOAD))
         reload_weapon(ch, wielded, silent_mode);
       
       else if (is_action_available(ch, atMOVE, FALSE)) {
@@ -1259,15 +1259,15 @@ int is_proficient_with_body_armor(struct char_data *ch) {
       return TRUE;
       break;
     case ARMOR_TYPE_LIGHT:
-      if (has_feat(ch, FEAT_ARMOR_PROFICIENCY_LIGHT))
+      if (HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_LIGHT))
         return TRUE;
       break;
     case ARMOR_TYPE_MEDIUM:
-      if (has_feat(ch, FEAT_ARMOR_PROFICIENCY_MEDIUM))
+      if (HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_MEDIUM))
         return TRUE;
       break;
     case ARMOR_TYPE_HEAVY:
-      if (has_feat(ch, FEAT_ARMOR_PROFICIENCY_HEAVY))
+      if (HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_HEAVY))
         return TRUE;
       break;
     default:
@@ -1291,15 +1291,15 @@ int is_proficient_with_helm(struct char_data *ch) {
       return TRUE;
       break;
     case ARMOR_TYPE_LIGHT:
-      if (has_feat(ch, FEAT_ARMOR_PROFICIENCY_LIGHT))
+      if (HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_LIGHT))
         return TRUE;
       break;
     case ARMOR_TYPE_MEDIUM:
-      if (has_feat(ch, FEAT_ARMOR_PROFICIENCY_MEDIUM))
+      if (HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_MEDIUM))
         return TRUE;
       break;
     case ARMOR_TYPE_HEAVY:
-      if (has_feat(ch, FEAT_ARMOR_PROFICIENCY_HEAVY))
+      if (HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_HEAVY))
         return TRUE;
       break;
     default:
@@ -1323,15 +1323,15 @@ int is_proficient_with_sleeves(struct char_data *ch) {
       return TRUE;
       break;
     case ARMOR_TYPE_LIGHT:
-      if (has_feat(ch, FEAT_ARMOR_PROFICIENCY_LIGHT))
+      if (HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_LIGHT))
         return TRUE;
       break;
     case ARMOR_TYPE_MEDIUM:
-      if (has_feat(ch, FEAT_ARMOR_PROFICIENCY_MEDIUM))
+      if (HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_MEDIUM))
         return TRUE;
       break;
     case ARMOR_TYPE_HEAVY:
-      if (has_feat(ch, FEAT_ARMOR_PROFICIENCY_HEAVY))
+      if (HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_HEAVY))
         return TRUE;
       break;
     default:
@@ -1355,15 +1355,15 @@ int is_proficient_with_leggings(struct char_data *ch) {
       return TRUE;
       break;
     case ARMOR_TYPE_LIGHT:
-      if (has_feat(ch, FEAT_ARMOR_PROFICIENCY_LIGHT))
+      if (HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_LIGHT))
         return TRUE;
       break;
     case ARMOR_TYPE_MEDIUM:
-      if (has_feat(ch, FEAT_ARMOR_PROFICIENCY_MEDIUM))
+      if (HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_MEDIUM))
         return TRUE;
       break;
     case ARMOR_TYPE_HEAVY:
-      if (has_feat(ch, FEAT_ARMOR_PROFICIENCY_HEAVY))
+      if (HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_HEAVY))
         return TRUE;
       break;
     default:

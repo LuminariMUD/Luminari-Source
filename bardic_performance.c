@@ -116,7 +116,7 @@ void list_available_performances(struct char_data *ch) {
   
   send_to_char(ch, "Available performances:\r\n");
   for (i = 0; i < NUM_FEATS; i++) {
-    if (has_feat(ch, i)) {
+    if (HAS_FEAT(ch, i)) {
       if (feat_list[i].feat_type == FEAT_TYPE_PERFORMANCE) {
         send_to_char(ch, "%s\r\n", feat_list[i].name);
       }

@@ -2032,7 +2032,7 @@ void perform_abilities(struct char_data *ch, struct char_data *k) {
   send_to_char(ch, "\tn");
 
   for (i = 0; i < NUM_FEATS; i++) {
-    if (has_feat(k, i) && is_daily_feat(i)) {
+    if (HAS_FEAT(k, i) && is_daily_feat(i)) {
       sprintf(buf, feat_types[feat_list[i].feat_type]);
       remaining = daily_uses_remaining(k, i);
       total = get_daily_uses(k, i);
