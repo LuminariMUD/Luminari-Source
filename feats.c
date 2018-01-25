@@ -53,27 +53,34 @@ void sort_feats(void) {
   qsort(&feat_sort_info[1], NUM_FEATS, sizeof (int), compare_feats);
 }
 
-/* checks if the char has the feat either saved to file or in the process
- of acquiring it in study */
-int has_feat(struct char_data *ch, int featnum) {
+int has_feat_requirement_check(struct char_data *ch, int featnum) {
   if (ch->desc && LEVELUP(ch)) { /* check if he's in study mode */
     return (HAS_FEAT(ch, featnum) + LEVELUP(ch)->feats[featnum]);
   }
-  /*
-   * // this is for the option of allowing feats on items
-    struct obj_data *obj;
-    int i = 0, j = 0;
+  
+  return (HAS_FEAT(ch, featnum));
+}
+/* checks if the char has the feat either saved to file or in the process
+ of acquiring it in study */
+int has_feat(struct char_data *ch, int featnum) {
+  struct obj_data *obj;
+  int i = 0, j = 0;
 
-    for (j = 0; j < NUM_WEARS; j++) {
-      if ((obj = GET_EQ(ch, j)) == NULL)
-        continue;
-      for (i = 0; i < 6; i++) {
-        if (obj->affected[i].location == APPLY_FEAT && obj->affected[i].specific == featnum)
-          return (has_feat(ch, featnum) + obj->affected[i].modifier);
-      }
+  if (ch->desc && LEVELUP(ch)) { /* check if he's in study mode */
+    return (HAS_FEAT(ch, featnum) + LEVELUP(ch)->feats[featnum]);
+  }
+
+  /* check if we got this feat equipped */
+  for (j = 0; j < NUM_WEARS; j++) {
+    if ((obj = GET_EQ(ch, j)) == NULL)
+      continue;
+    for (i = 0; i < MAX_OBJ_AFFECT; i++) {
+      if (obj->affected[i].location == APPLY_FEAT && obj->affected[i].specific == featnum)
+        return (HAS_FEAT(ch, featnum) + obj->affected[i].modifier);
     }
-   */
-  return HAS_FEAT(ch, featnum);
+  }
+
+  return (HAS_FEAT(ch, featnum));
 }
 
 /* checks if ch has feat (compare) as one of his/her combat feats (cfeat) */
@@ -3207,7 +3214,7 @@ bool meets_prerequisite(struct char_data *ch, struct feat_prerequisite *prereq, 
         return FALSE;
       break;
     case FEAT_PREREQ_FEAT:
-      if (has_feat(ch, prereq->values[0]) < prereq->values[1])
+      if (has_feat_requirement_check(ch, prereq->values[0]) < prereq->values[1])
         return FALSE;
       break;
     case FEAT_PREREQ_ABILITY:
@@ -3320,7 +3327,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
   if (feat_list[featnum].epic == TRUE && !IS_EPIC(ch)) /* epic only feat */
     return FALSE;
 
-  if (has_feat(ch, featnum) && !feat_list[featnum].can_stack) /* stackable? */
+  if (has_feat_requirement_check(ch, featnum) && !feat_list[featnum].can_stack) /* stackable? */
     return FALSE;
 
   if (feat_list[featnum].in_game == FALSE) /* feat in the game at all? */
@@ -3348,9 +3355,9 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
         return FALSE;
 
       case FEAT_INTENSIFY_SPELL:
-        if (!has_feat(ch, FEAT_MAXIMIZE_SPELL))
+        if (!has_feat_requirement_check(ch, FEAT_MAXIMIZE_SPELL))
           return FALSE;
-        if (!has_feat(ch, FEAT_EMPOWER_SPELL))
+        if (!has_feat_requirement_check(ch, FEAT_EMPOWER_SPELL))
           return FALSE;
         if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) < 30)
           return FALSE;
@@ -3367,11 +3374,11 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
       case FEAT_SWARM_OF_ARROWS:
         if (ch->real_abils.dex < 23)
           return FALSE;
-        if (!has_feat(ch, FEAT_POINT_BLANK_SHOT))
+        if (!has_feat_requirement_check(ch, FEAT_POINT_BLANK_SHOT))
           return FALSE;
-        if (!has_feat(ch, FEAT_RAPID_SHOT))
+        if (!has_feat_requirement_check(ch, FEAT_RAPID_SHOT))
           return FALSE;
-        if (has_feat(ch, FEAT_WEAPON_FOCUS)) /* Need to check for BOW... */
+        if (has_feat_requirement_check(ch, FEAT_WEAPON_FOCUS)) /* Need to check for BOW... */
           return FALSE;
         return TRUE;
 
@@ -3413,7 +3420,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
                 GET_ABILITY(ch, ABILITY_INTIMIDATE) < 10 &&
                 GET_ABILITY(ch, ABILITY_BLUFF) < 10)
           return false;
-        if (!has_feat(ch, FEAT_COMBAT_CHALLENGE))
+        if (!has_feat_requirement_check(ch, FEAT_COMBAT_CHALLENGE))
           return false;
         return true;
 
@@ -3422,12 +3429,12 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
                 GET_ABILITY(ch, ABILITY_INTIMIDATE) < 15 &&
                 GET_ABILITY(ch, ABILITY_BLUFF) < 15)
           return false;
-        if (!has_feat(ch, FEAT_IMPROVED_COMBAT_CHALLENGE))
+        if (!has_feat_requirement_check(ch, FEAT_IMPROVED_COMBAT_CHALLENGE))
           return false;
         return true;
 
       case FEAT_EPIC_PROWESS:
-        if (has_feat(ch, FEAT_EPIC_PROWESS) >= 5)
+        if (has_feat_requirement_check(ch, FEAT_EPIC_PROWESS) >= 5)
           return FALSE;
         return TRUE;
 
@@ -3436,58 +3443,58 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
                 GET_ABILITY(ch, ABILITY_INTIMIDATE) < 20 &&
                 GET_ABILITY(ch, ABILITY_BLUFF) < 20)
           return false;
-        if (!has_feat(ch, FEAT_GREATER_COMBAT_CHALLENGE))
+        if (!has_feat_requirement_check(ch, FEAT_GREATER_COMBAT_CHALLENGE))
           return false;
         return true;
 
       case FEAT_NATURAL_SPELL:
         if (ch->real_abils.wis < 13)
           return false;
-        if (!has_feat(ch, FEAT_WILD_SHAPE))
+        if (!has_feat_requirement_check(ch, FEAT_WILD_SHAPE))
           return false;
         return true;
 
       case FEAT_EPIC_DODGE:
-        if (ch->real_abils.dex >= 25 && has_feat(ch, FEAT_DODGE) && has_feat(ch, FEAT_DEFENSIVE_ROLL) && GET_ABILITY(ch, ABILITY_ACROBATICS) >= 30)
+        if (ch->real_abils.dex >= 25 && has_feat_requirement_check(ch, FEAT_DODGE) && has_feat_requirement_check(ch, FEAT_DEFENSIVE_ROLL) && GET_ABILITY(ch, ABILITY_ACROBATICS) >= 30)
           return TRUE;
         return FALSE;
 
       case FEAT_IMPROVED_SNEAK_ATTACK:
-        if (has_feat(ch, FEAT_SNEAK_ATTACK) >= 8)
+        if (has_feat_requirement_check(ch, FEAT_SNEAK_ATTACK) >= 8)
           return TRUE;
         return FALSE;
 
       case FEAT_SNEAK_ATTACK:
-        if (has_feat(ch, FEAT_SNEAK_ATTACK) < 8)
+        if (has_feat_requirement_check(ch, FEAT_SNEAK_ATTACK) < 8)
           return FALSE;
         return TRUE;
 
       case FEAT_SNEAK_ATTACK_OF_OPPORTUNITY:
-        if (has_feat(ch, FEAT_SNEAK_ATTACK) < 8)
+        if (has_feat_requirement_check(ch, FEAT_SNEAK_ATTACK) < 8)
           return FALSE;
-        if (!has_feat(ch, FEAT_OPPORTUNIST))
+        if (!has_feat_requirement_check(ch, FEAT_OPPORTUNIST))
           return FALSE;
         return TRUE;
 
       case FEAT_STEADFAST_DETERMINATION:
-        if (!has_feat(ch, FEAT_ENDURANCE))
+        if (!has_feat_requirement_check(ch, FEAT_ENDURANCE))
           return FALSE;
         return TRUE;
 
       case FEAT_GREAT_SMITING:
-        if (ch->real_abils.cha >= 25 && has_feat(ch, FEAT_SMITE_EVIL))
+        if (ch->real_abils.cha >= 25 && has_feat_requirement_check(ch, FEAT_SMITE_EVIL))
           return TRUE;
         return FALSE;
 
       case FEAT_DIVINE_MIGHT:
       case FEAT_DIVINE_SHIELD:
-        if (has_feat(ch, FEAT_TURN_UNDEAD) && has_feat(ch, FEAT_POWER_ATTACK) &&
+        if (has_feat_requirement_check(ch, FEAT_TURN_UNDEAD) && has_feat_requirement_check(ch, FEAT_POWER_ATTACK) &&
                 ch->real_abils.cha >= 13 && ch->real_abils.str >= 13)
           return TRUE;
         return FALSE;
 
       case FEAT_DIVINE_VENGEANCE:
-        if (has_feat(ch, FEAT_TURN_UNDEAD) && has_feat(ch, FEAT_EXTRA_TURNING))
+        if (has_feat_requirement_check(ch, FEAT_TURN_UNDEAD) && has_feat_requirement_check(ch, FEAT_EXTRA_TURNING))
           return TRUE;
         return FALSE;
 
@@ -3506,7 +3513,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
         return FALSE;
 
       case FEAT_AUGMENT_SUMMONING:
-        if (has_feat(ch, FEAT_SPELL_FOCUS) && HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_SPELL_FOCUS), CONJURATION))
+        if (has_feat_requirement_check(ch, FEAT_SPELL_FOCUS) && HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_SPELL_FOCUS), CONJURATION))
           return TRUE;
         return FALSE;
 
@@ -3545,7 +3552,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
 
       case FEAT_EXTEND_RAGE:
       case FEAT_EXTRA_RAGE:
-        if (has_feat(ch, FEAT_RAGE))
+        if (has_feat_requirement_check(ch, FEAT_RAGE))
           return TRUE;
         return FALSE;
 
@@ -3553,7 +3560,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
         return TRUE;
 
       case FEAT_FAVORED_ENEMY:
-        if (has_feat(ch, FEAT_FAVORED_ENEMY_AVAILABLE))
+        if (has_feat_requirement_check(ch, FEAT_FAVORED_ENEMY_AVAILABLE))
           return TRUE;
         return FALSE;
 
@@ -3573,14 +3580,14 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
         return TRUE;
 
       case FEAT_TWO_WEAPON_DEFENSE:
-        if (!has_feat(ch, FEAT_TWO_WEAPON_FIGHTING))
+        if (!has_feat_requirement_check(ch, FEAT_TWO_WEAPON_FIGHTING))
           return FALSE;
         if (ch->real_abils.dex < 15)
           return FALSE;
         return TRUE;
 
       case FEAT_IMPROVED_FEINT:
-        if (!has_feat(ch, FEAT_COMBAT_EXPERTISE))
+        if (!has_feat_requirement_check(ch, FEAT_COMBAT_EXPERTISE))
           return false;
         return true;
 
@@ -3630,12 +3637,12 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
         return false;
 
       case FEAT_ARMOR_PROFICIENCY_HEAVY:
-        if (has_feat(ch, FEAT_ARMOR_PROFICIENCY_MEDIUM))
+        if (has_feat_requirement_check(ch, FEAT_ARMOR_PROFICIENCY_MEDIUM))
           return TRUE;
         return FALSE;
 
       case FEAT_ARMOR_PROFICIENCY_MEDIUM:
-        if (has_feat(ch, FEAT_ARMOR_PROFICIENCY_LIGHT))
+        if (has_feat_requirement_check(ch, FEAT_ARMOR_PROFICIENCY_LIGHT))
           return TRUE;
         return FALSE;
 
@@ -3645,40 +3652,40 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
         return FALSE;
 
       case FEAT_MOBILITY:
-        if (has_feat(ch, FEAT_DODGE))
+        if (has_feat_requirement_check(ch, FEAT_DODGE))
           return TRUE;
         return FALSE;
 
 
       case FEAT_IMPROVED_DISARM:
-        if (has_feat(ch, FEAT_COMBAT_EXPERTISE) &&
+        if (has_feat_requirement_check(ch, FEAT_COMBAT_EXPERTISE) &&
             ch->real_abils.intel >= 13)
           return TRUE;
         return FALSE;
 
       case FEAT_GREATER_DISARM:
-        if (has_feat(ch, FEAT_IMPROVED_DISARM) &&
-            has_feat(ch, FEAT_COMBAT_EXPERTISE) &&
+        if (has_feat_requirement_check(ch, FEAT_IMPROVED_DISARM) &&
+            has_feat_requirement_check(ch, FEAT_COMBAT_EXPERTISE) &&
             ch->real_abils.intel >= 13)
           return TRUE;
         return FALSE;
 
       case FEAT_IMPROVED_TRIP:
-        if (has_feat(ch, FEAT_COMBAT_EXPERTISE))
+        if (has_feat_requirement_check(ch, FEAT_COMBAT_EXPERTISE))
           return TRUE;
         return FALSE;
 
       case FEAT_IMPROVED_GRAPPLE:
-        if (has_feat(ch, FEAT_IMPROVED_UNARMED_STRIKE) && ch->real_abils.intel >= 13)
+        if (has_feat_requirement_check(ch, FEAT_IMPROVED_UNARMED_STRIKE) && ch->real_abils.intel >= 13)
           return TRUE;
         return FALSE;
 
       case FEAT_WHIRLWIND_ATTACK:
-        if (!has_feat(ch, FEAT_DODGE))
+        if (!has_feat_requirement_check(ch, FEAT_DODGE))
           return FALSE;
-        if (!has_feat(ch, FEAT_MOBILITY))
+        if (!has_feat_requirement_check(ch, FEAT_MOBILITY))
           return FALSE;
-        if (!has_feat(ch, FEAT_SPRING_ATTACK))
+        if (!has_feat_requirement_check(ch, FEAT_SPRING_ATTACK))
           return FALSE;
         if (ch->real_abils.intel < 13)
           return FALSE;
@@ -3689,7 +3696,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
         return TRUE;
 
       case FEAT_STUNNING_FIST:
-        if (has_feat(ch, FEAT_IMPROVED_UNARMED_STRIKE) && ch->real_abils.wis >= 13 && ch->real_abils.dex >= 13 && BAB(ch) >= 8)
+        if (has_feat_requirement_check(ch, FEAT_IMPROVED_UNARMED_STRIKE) && ch->real_abils.wis >= 13 && ch->real_abils.dex >= 13 && BAB(ch) >= 8)
           return TRUE;
         if (CLASS_LEVEL(ch, CLASS_MONK) > 0)
           return TRUE;
@@ -3701,20 +3708,20 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
         return FALSE;
 
       case FEAT_CLEAVE:
-        if (has_feat(ch, FEAT_POWER_ATTACK))
+        if (has_feat_requirement_check(ch, FEAT_POWER_ATTACK))
           return TRUE;
         return FALSE;
 
       case FEAT_GREAT_CLEAVE:
-        if (has_feat(ch, FEAT_POWER_ATTACK) &&
-                has_feat(ch, FEAT_CLEAVE) &&
+        if (has_feat_requirement_check(ch, FEAT_POWER_ATTACK) &&
+                has_feat_requirement_check(ch, FEAT_CLEAVE) &&
                 (BAB(ch) >= 4) &&
                 (ch->real_abils.str >= 13))
           return TRUE;
         else return FALSE;
 
       case FEAT_SUNDER:
-        if (has_feat(ch, FEAT_POWER_ATTACK))
+        if (has_feat_requirement_check(ch, FEAT_POWER_ATTACK))
           return TRUE;
         return FALSE;
 
@@ -3724,18 +3731,18 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
         return FALSE;
 
       case FEAT_IMPROVED_TWO_WEAPON_FIGHTING:
-        if (ch->real_abils.dex >= 17 && has_feat(ch, FEAT_TWO_WEAPON_FIGHTING) && BAB(ch) >= 6)
+        if (ch->real_abils.dex >= 17 && has_feat_requirement_check(ch, FEAT_TWO_WEAPON_FIGHTING) && BAB(ch) >= 6)
           return TRUE;
         return FALSE;
 
       case FEAT_GREATER_TWO_WEAPON_FIGHTING:
-        if (ch->real_abils.dex >= 19 && has_feat(ch, FEAT_TWO_WEAPON_FIGHTING) &&
-            has_feat(ch, FEAT_IMPROVED_TWO_WEAPON_FIGHTING) && BAB(ch) >= 11)
+        if (ch->real_abils.dex >= 19 && has_feat_requirement_check(ch, FEAT_TWO_WEAPON_FIGHTING) &&
+            has_feat_requirement_check(ch, FEAT_IMPROVED_TWO_WEAPON_FIGHTING) && BAB(ch) >= 11)
           return TRUE;
         return FALSE;
 
       case FEAT_PERFECT_TWO_WEAPON_FIGHTING:
-        if (ch->real_abils.dex >= 21 && has_feat(ch, FEAT_GREATER_TWO_WEAPON_FIGHTING))
+        if (ch->real_abils.dex >= 21 && has_feat_requirement_check(ch, FEAT_GREATER_TWO_WEAPON_FIGHTING))
           return TRUE;
         return FALSE;
 
@@ -3807,21 +3814,21 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
             return TRUE;
          */
       case FEAT_ARMOR_SPECIALIZATION_LIGHT:
-        if (!has_feat(ch, FEAT_ARMOR_PROFICIENCY_LIGHT))
+        if (!has_feat_requirement_check(ch, FEAT_ARMOR_PROFICIENCY_LIGHT))
           return FALSE;
         if (BAB(ch) < 11)
           return FALSE;
         return TRUE;
 
       case FEAT_ARMOR_SPECIALIZATION_MEDIUM:
-        if (!has_feat(ch, FEAT_ARMOR_PROFICIENCY_MEDIUM))
+        if (!has_feat_requirement_check(ch, FEAT_ARMOR_PROFICIENCY_MEDIUM))
           return FALSE;
         if (BAB(ch) < 11)
           return FALSE;
         return TRUE;
 
       case FEAT_ARMOR_SPECIALIZATION_HEAVY:
-        if (!has_feat(ch, FEAT_ARMOR_PROFICIENCY_HEAVY))
+        if (!has_feat_requirement_check(ch, FEAT_ARMOR_PROFICIENCY_HEAVY))
           return FALSE;
         if (BAB(ch) < 11)
           return FALSE;
@@ -3855,7 +3862,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
             return FALSE;
 
           case  FEAT_IMPROVED_WEAPON_FINESSE:
-             if (!has_feat(ch, FEAT_WEAPON_FINESSE))
+             if (!has_feat_requirement_check(ch, FEAT_WEAPON_FINESSE))
                return FALSE;
              if (BAB(ch) < 4)
                   return FALSE;
@@ -3900,7 +3907,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
           return TRUE;
         return FALSE;
       case FEAT_GREATER_SPELL_FOCUS:
-        if (CLASS_LEVEL(ch, CLASS_WIZARD) && has_feat(ch, FEAT_SPELL_FOCUS))
+        if (CLASS_LEVEL(ch, CLASS_WIZARD) && has_feat_requirement_check(ch, FEAT_SPELL_FOCUS))
           return TRUE;
         return FALSE;
 
@@ -4024,24 +4031,24 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
         return FALSE;
 
       case FEAT_IMPROVED_SPELL_RESISTANCE:
-        if (has_feat(ch, FEAT_DIAMOND_SOUL))
+        if (has_feat_requirement_check(ch, FEAT_DIAMOND_SOUL))
           return TRUE;
         return FALSE;
 
       case FEAT_IMPROVED_SHIELD_PUNCH:
-        if (has_feat(ch, FEAT_ARMOR_PROFICIENCY_SHIELD))
+        if (has_feat_requirement_check(ch, FEAT_ARMOR_PROFICIENCY_SHIELD))
           return TRUE;
         return FALSE;
 
       case FEAT_SHIELD_CHARGE:
-        if (!has_feat(ch, FEAT_IMPROVED_SHIELD_PUNCH) ||
+        if (!has_feat_requirement_check(ch, FEAT_IMPROVED_SHIELD_PUNCH) ||
                 (BAB(ch) < 3))
           return FALSE;
         return TRUE;
 
       case FEAT_SHIELD_SLAM:
-        if (!has_feat(ch, FEAT_SHIELD_CHARGE) ||
-                !has_feat(ch, FEAT_IMPROVED_SHIELD_PUNCH) ||
+        if (!has_feat_requirement_check(ch, FEAT_SHIELD_CHARGE) ||
+                !has_feat_requirement_check(ch, FEAT_IMPROVED_SHIELD_PUNCH) ||
                 (BAB(ch) < 6))
           return FALSE;
         return TRUE;
