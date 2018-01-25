@@ -75,8 +75,8 @@ int has_feat(struct char_data *ch, int featnum) {
     if ((obj = GET_EQ(ch, j)) == NULL)
       continue;
     for (i = 0; i < MAX_OBJ_AFFECT; i++) {
-      if (obj->affected[i].location == APPLY_FEAT && obj->affected[i].specific == featnum)
-        return (HAS_FEAT(ch, featnum) + obj->affected[i].modifier);
+      if (obj->affected[i].location == APPLY_FEAT && obj->affected[i].modifier == featnum)
+        return ((HAS_FEAT(ch, featnum))++);
     }
   }
 
