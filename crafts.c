@@ -496,7 +496,7 @@ EVENTFUNC(event_craft) {
 
   skill = GET_SKILL(ch, CRAFT_SKILL(craft));
   rand = rand_number(0, (CRAFT_SKILL_LEVEL(craft) * 2));
-  rand = MIN(101, rand);
+  rand = MIN(151, rand);
 
   if (skill > rand) {
 
@@ -566,7 +566,8 @@ ACMD(do_craft) {
 
   /* Other Checks */
   if (GET_SKILL(ch, CRAFT_SKILL(craft)) < CRAFT_SKILL_LEVEL(craft)) {
-    send_to_char(ch, "You aren't skilled enough in %s to craft that.\r\n", spell_info[CRAFT_SKILL(craft)].name);
+    send_to_char(ch, "You aren't skilled enough in %s to craft that, you need at least %d.\r\n",
+            spell_info[CRAFT_SKILL(craft)].name, CRAFT_SKILL_LEVEL(craft));
     return;
   }
 
