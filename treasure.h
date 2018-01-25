@@ -265,7 +265,9 @@ extern const char *ammo_head_descs[NUM_A_AMMO_HEAD_DESCS + 1];
 bool valid_item_spell(int spellnum);
 /* when grouped, determine random recipient from group */
 struct char_data *find_treasure_recipient(struct char_data *killer);
-
+/* modify objects bonuses, set value, level, 'say' and deliver */
+void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
+        int enchantment_grade, int cp_type, int rare_grade, int silent_mode);
 // determines whether the character will get treasure or not
 void determine_treasure(struct char_data *ch, struct char_data *mob);
 // character should get treasure, chooses what awards are given out
