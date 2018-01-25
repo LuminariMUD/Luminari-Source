@@ -37,6 +37,7 @@
 #include "assign_wpn_armor.h"
 #include "domains_schools.h"
 #include "desc_engine.h"
+#include "crafts.h"
 
 /* prototypes of local functions */
 /* do_diagnose utility functions */
