@@ -1454,7 +1454,7 @@ void give_magic_armor(struct char_data *ch, int selection, int enchantment, bool
   /* END DESCRIPTION SECTION */
 
   /* BONUS SECTION */
-  cp_modify_object_applies(ch, obj, enchantment, CP_TYPE_ARMOR, rare_grade, silent_mode);
+  cp_modify_object_applies(ch, obj, enchantment, CP_TYPE_ARMOR, RARE_GRADE_NORMAL, silent_mode);
   /* END BONUS SECTION */
 }
 
@@ -2313,7 +2313,7 @@ void give_magic_weapon(struct char_data *ch, int selection, int enchantment, boo
 
   /* object is fully described
    base object is taken care of including material, now set random stats, etc */
-  cp_modify_object_applies(ch, obj, enchantment, CP_TYPE_WEAPON, rare_grade, silent_mode);
+  cp_modify_object_applies(ch, obj, enchantment, CP_TYPE_WEAPON, RARE_GRADE_NORMAL, silent_mode);
 }
 #undef SHORT_STRING
 
@@ -2591,7 +2591,7 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment, b
   }
 
   /* level, bonus and cost */
-  cp_modify_object_applies(ch, obj, enchantment, CP_TYPE_MISC, rare_grade, silent_mode);
+  cp_modify_object_applies(ch, obj, enchantment, CP_TYPE_MISC, RARE_GRADE_NORMAL, silent_mode);
 }
 #undef SHORT_STRING
 
