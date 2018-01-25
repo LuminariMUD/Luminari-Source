@@ -61,10 +61,9 @@ static void oedit_save_to_disk(int zone_num);
 static void oedit_disp_spellbook_menu(struct descriptor_data *d);
 static void oedit_disp_weapon_special_abilities_menu(struct descriptor_data *d);
 static void oedit_disp_assign_weapon_specab_menu(struct descriptor_data *d);
- 
+
 /* handy macro */
 #define S_PRODUCT(s, i) ((s)->producing[(i)])
-
 
 /* Utility and exported functions */
 ACMD(do_oasis_oedit) {
@@ -356,13 +355,14 @@ static void oedit_disp_extradesc_menu(struct descriptor_data *d) {
           grn, nrm, !extra_desc->next ? "Not set." : "Set.", grn, nrm);
   OLC_MODE(d) = OEDIT_EXTRADESC_MENU;
 }
+
 /* Ask for the bonus type for this apply. */
 static void oedit_disp_apply_prompt_bonus_type_menu(struct descriptor_data *d) {
   int i = 0;
   for (i = 0; i < NUM_BONUS_TYPES; i++) {
     write_to_output(d,
-                    " %s%2d%s) %-20s",
-                    nrm, i, nrm, bonus_types[i]);
+            " %s%2d%s) %-20s",
+            nrm, i, nrm, bonus_types[i]);
     if (((i + 1) % 3) == 0)
       write_to_output(d, "\r\n");
   }
@@ -384,11 +384,11 @@ static void oedit_disp_prompt_apply_menu(struct descriptor_data *d) {
       if (OLC_OBJ(d)->affected[counter].location == APPLY_FEAT) {
         write_to_output(d, " %s%d%s) Grant Feat %s (%s)\r\n", grn, counter + 1, nrm,
                 feat_list[(OLC_OBJ(d)->affected[counter].modifier < NUM_FEATS &&
-                           OLC_OBJ(d)->affected[counter].modifier > 0 ? OLC_OBJ(d)->affected[counter].modifier : 0)].name, 
-                           bonus_types[OLC_OBJ(d)->affected[counter].bonus_type]);
+                OLC_OBJ(d)->affected[counter].modifier > 0 ? OLC_OBJ(d)->affected[counter].modifier : 0)].name,
+                bonus_types[OLC_OBJ(d)->affected[counter].bonus_type]);
       } else {
-      write_to_output(d, " %s%d%s) %+d to %s (%s)\r\n", grn, counter + 1, nrm,
-              OLC_OBJ(d)->affected[counter].modifier, apply_buf, bonus_types[OLC_OBJ(d)->affected[counter].bonus_type]);
+        write_to_output(d, " %s%d%s) %+d to %s (%s)\r\n", grn, counter + 1, nrm,
+                OLC_OBJ(d)->affected[counter].modifier, apply_buf, bonus_types[OLC_OBJ(d)->affected[counter].bonus_type]);
       }
     } else {
       write_to_output(d, " %s%d%s) None.\r\n", grn, counter + 1, nrm);
@@ -398,8 +398,7 @@ static void oedit_disp_prompt_apply_menu(struct descriptor_data *d) {
   OLC_MODE(d) = OEDIT_PROMPT_APPLY;
 }
 
-void oedit_disp_prompt_spellbook_menu(struct descriptor_data *d)
-{
+void oedit_disp_prompt_spellbook_menu(struct descriptor_data *d) {
   int counter, columns, i, u = 0;
 
   clear_screen(d);
@@ -426,8 +425,7 @@ void oedit_disp_prompt_spellbook_menu(struct descriptor_data *d)
   OLC_MODE(d) = OEDIT_PROMPT_SPELLBOOK;
 }
 
-void oedit_disp_spellbook_menu(struct descriptor_data *d)
-{
+void oedit_disp_spellbook_menu(struct descriptor_data *d) {
   int counter, columns, i;
 
   clear_screen(d);
@@ -438,7 +436,7 @@ void oedit_disp_spellbook_menu(struct descriptor_data *d)
     write_to_output(d, "---Circle %d Spells---==============================================---\r\n", i);
     for (counter = 0; counter < NUM_SPELLS; counter++) {
       if (((spell_info[counter].min_level[CLASS_WIZARD] + 1) / 2) == i &&
-          spell_info[counter].schoolOfMagic != NOSCHOOL)
+              spell_info[counter].schoolOfMagic != NOSCHOOL)
         write_to_output(d, "%3d) %-20.20s%s", counter, spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
     }
   }
@@ -457,24 +455,24 @@ static void oedit_disp_weapon_special_abilities_menu(struct descriptor_data *d) 
   write_to_output(d,
           "Weapon special abilities menu\r\n");
 
-  for (specab = OLC_OBJ(d)->special_abilities;specab != NULL;specab = specab->next) {
+  for (specab = OLC_OBJ(d)->special_abilities; specab != NULL; specab = specab->next) {
     counter++;
     found = TRUE;
     sprintbit(specab->activation_method, activation_methods, actmtds, MAX_STRING_LENGTH);
     write_to_output(d,
-          "%s%d%s) Ability: %s%s%s Level: %s%d%s\r\n"
-          "   Activation Methods: %s%s%s\r\n"
-          "   CommandWord: %s%s%s\r\n"
-          "   Values: [%s%d%s] [%s%d%s] [%s%d%s] [%s%d%s]\r\n",
-          grn, counter, nrm, yel, weapon_special_ability_info[specab->ability].name, nrm, yel, specab->level, nrm,
-          yel, actmtds, nrm,
-          yel, (specab->command_word == NULL ? "Not set." : specab->command_word), nrm,
-          yel, specab->value[0], nrm,
-          yel, specab->value[1], nrm,
-          yel, specab->value[2], nrm,
-          yel, specab->value[3], nrm);
+            "%s%d%s) Ability: %s%s%s Level: %s%d%s\r\n"
+            "   Activation Methods: %s%s%s\r\n"
+            "   CommandWord: %s%s%s\r\n"
+            "   Values: [%s%d%s] [%s%d%s] [%s%d%s] [%s%d%s]\r\n",
+            grn, counter, nrm, yel, weapon_special_ability_info[specab->ability].name, nrm, yel, specab->level, nrm,
+            yel, actmtds, nrm,
+            yel, (specab->command_word == NULL ? "Not set." : specab->command_word), nrm,
+            yel, specab->value[0], nrm,
+            yel, specab->value[1], nrm,
+            yel, specab->value[2], nrm,
+            yel, specab->value[3], nrm);
   }
-  if(!found)
+  if (!found)
     write_to_output(d, "No weapon special abilities assigned.\r\n");
 
   write_to_output(d,
@@ -510,9 +508,9 @@ static void oedit_disp_assign_weapon_specab_menu(struct descriptor_data *d) {
   write_to_output(d,
           "Weapon special abilities menu\r\n");
 
-    sprintbit(OLC_SPECAB(d)->activation_method, activation_methods, actmtds, MAX_STRING_LENGTH);
+  sprintbit(OLC_SPECAB(d)->activation_method, activation_methods, actmtds, MAX_STRING_LENGTH);
 
-    write_to_output(d,
+  write_to_output(d,
           "%sA%s) Ability: %s%s%s\r\n"
           "%sL%s) Level: %s%d%s\r\n"
           "%sM%s) Activation Methods: %s%s%s\r\n"
@@ -525,10 +523,10 @@ static void oedit_disp_assign_weapon_specab_menu(struct descriptor_data *d) {
           grn, nrm, yel, actmtds, nrm,
           grn, nrm, yel, (specab->command_word == NULL ? "Not set." : specab->command_word), nrm,
           grn, nrm, yel, specab->value[0], nrm,
-                    yel, specab->value[1], nrm,
-                    yel, specab->value[2], nrm,
-                    yel, specab->value[3], nrm,
-	  grn, nrm);
+          yel, specab->value[1], nrm,
+          yel, specab->value[2], nrm,
+          yel, specab->value[3], nrm,
+          grn, nrm);
 
 
   OLC_MODE(d) = OEDIT_ASSIGN_WEAPON_SPECAB_MENU;
@@ -543,7 +541,7 @@ static void oedit_weapon_specab(struct descriptor_data *d) {
 
   /* we want to use column_list here, but we don't have a pre made list
    * of string values.  Make one, and make sure it is in order. */
-  for (i = 0; i < NUM_WEAPON_SPECABS - 1 ; i++) {
+  for (i = 0; i < NUM_WEAPON_SPECABS - 1; i++) {
     specab_names[i] = weapon_special_ability_info[i + 1].name;
   }
 
@@ -597,6 +595,7 @@ void oedit_disp_specab_bane_subrace(struct descriptor_data *d) {
 
 /* Menu for APPLY_FEAT */
 #if 0
+
 void oedit_disp_apply_spec_menu(struct descriptor_data *d) {
   char *buf;
   int i, count = 0;
@@ -643,11 +642,12 @@ static void oedit_disp_apply_menu(struct descriptor_data *d) {
   get_char_colors(d->character);
   clear_screen(d);
   column_list(d->character, 0, apply_types, NUM_APPLIES, TRUE);
-  write_to_output(d, "\r\nEnter apply type (0 is no apply) : ");
+  write_to_output(d, "\r\nEnter apply type (0 is no apply)\r\n(for 'grant feat' select featnum here, 'featlist' out of editor for master list) : ");
   OLC_MODE(d) = OEDIT_APPLY;
 }
 
 /* Weapon type. */
+
 /*
 static void oedit_disp_weapon_menu(struct descriptor_data *d) {
   int counter, columns = 0;
@@ -662,7 +662,7 @@ static void oedit_disp_weapon_menu(struct descriptor_data *d) {
   }
   write_to_output(d, "\r\nEnter weapon type : ");
 }
-*/
+ */
 
 static void oedit_disp_portaltypes_menu(struct descriptor_data *d) {
   int counter, columns = 0;
@@ -749,7 +749,7 @@ static void oedit_disp_trap_effects(struct descriptor_data *d) {
 
   write_to_output(d, "\r\n");
   for (counter = TRAP_EFFECT_FIRST_VALUE; counter < TOP_TRAP_EFFECTS; counter++) {
-    write_to_output(d, "%d) %s\r\n", counter, trap_effects[counter-1000]);
+    write_to_output(d, "%d) %s\r\n", counter, trap_effects[counter - 1000]);
   }
 
   write_to_output(d, "\r\n%s(You can also choose any spellnum)\r\n", nrm);
@@ -773,7 +773,7 @@ void oedit_disp_armor_type_menu(struct descriptor_data *d) {
 
   /* we want to use column_list here, but we don't have a pre made list
    * of string values (without undefined).  Make one, and make sure it is in order. */
-  for (i = 0; i < NUM_SPEC_ARMOR_TYPES - 1 ; i++) {
+  for (i = 0; i < NUM_SPEC_ARMOR_TYPES - 1; i++) {
     armor_types[i] = armor_list[i + 1].name;
   }
 
@@ -804,7 +804,7 @@ int compute_ranged_weapon_actual_value(int list_value) {
     }
   }
 
-  for (i = 1; i < counter-1; i++) {
+  for (i = 1; i < counter - 1; i++) {
     if (i == list_value) {
       return weapon_types[i];
     }
@@ -829,7 +829,7 @@ static void oedit_disp_ranged_weapons_menu(struct descriptor_data *d) {
 
   column_list(d->character, 3, weapon_types, counter, TRUE);
 }
-*/
+ */
 
 /* Object value #1 */
 static void oedit_disp_val1_menu(struct descriptor_data *d) {
@@ -884,7 +884,7 @@ static void oedit_disp_val1_menu(struct descriptor_data *d) {
     case ITEM_FURNITURE:
       write_to_output(d, "Number of people it can hold : ");
       break;
-    /* NewCraft */
+      /* NewCraft */
     case ITEM_BLUEPRINT:
       write_to_output(d, "Enter Craft ID number : ");
       break;
@@ -898,7 +898,7 @@ static void oedit_disp_val1_menu(struct descriptor_data *d) {
       oedit_disp_instrument_menu(d);
       break;
     case ITEM_WORN:
-      write_to_output(d, "Special value for worn gear (example gloves for monk-gloves enhancement: ");      
+      write_to_output(d, "Special value for worn gear (example gloves for monk-gloves enhancement: ");
       break;
     case ITEM_BOAT: // these object types have no 'values' so go back to menu
     case ITEM_KEY:
@@ -953,13 +953,13 @@ static void oedit_disp_val2_menu(struct descriptor_data *d) {
     case ITEM_STAFF:
       write_to_output(d, "Max number of charges : ");
       break;
-    /* Changed to use standard values for weapons. */
-    /*case ITEM_WEAPON:
-      write_to_output(d, "Number of damage dice (%d) : ", GET_OBJ_VAL(OLC_OBJ(d), 1));
-      break;
-    */
+      /* Changed to use standard values for weapons. */
+      /*case ITEM_WEAPON:
+        write_to_output(d, "Number of damage dice (%d) : ", GET_OBJ_VAL(OLC_OBJ(d), 1));
+        break;
+       */
     case ITEM_ARMOR:
-    //case ITEM_CLANARMOR:
+      //case ITEM_CLANARMOR:
       /* Armor Type - zusuk */
       oedit_disp_armor_type_menu(d);
       write_to_output(d, "\r\nChoose an armor type : ");
@@ -1044,12 +1044,12 @@ static void oedit_disp_val3_menu(struct descriptor_data *d) {
     case ITEM_STAFF:
       write_to_output(d, "Number of charges remaining : ");
       break;
-    /* Use standard values for weapons */
-    /*
-    case ITEM_WEAPON:
-      write_to_output(d, "Size of damage dice : ");
-      break;
-    */
+      /* Use standard values for weapons */
+      /*
+      case ITEM_WEAPON:
+        write_to_output(d, "Size of damage dice : ");
+        break;
+       */
     case ITEM_FIREWEAPON:
       write_to_output(d, "Breaking probability : ");
       break;
@@ -1145,10 +1145,9 @@ static void oedit_disp_val5_menu(struct descriptor_data *d) {
   }
 }
 
-
 static void oedit_disp_specab_val1_menu(struct descriptor_data *d) {
   OLC_MODE(d) = OEDIT_SPECAB_VALUE_1;
-  switch(OLC_SPECAB(d)->ability) {
+  switch (OLC_SPECAB(d)->ability) {
     case WEAPON_SPECAB_BANE:
       oedit_disp_specab_bane_race(d);
       break;
@@ -1160,7 +1159,7 @@ static void oedit_disp_specab_val1_menu(struct descriptor_data *d) {
 
 static void oedit_disp_specab_val2_menu(struct descriptor_data *d) {
   OLC_MODE(d) = OEDIT_SPECAB_VALUE_2;
-  switch(OLC_SPECAB(d)->ability) {
+  switch (OLC_SPECAB(d)->ability) {
     case WEAPON_SPECAB_BANE:
       oedit_disp_specab_bane_subrace(d);
       break;
@@ -1198,9 +1197,10 @@ static void oedit_disp_prof_menu(struct descriptor_data *d) {
   }
   write_to_output(d, "\r\nEnter object proficiency : ");
 }
-*/
+ */
 
 // item material
+
 static void oedit_disp_mats_menu(struct descriptor_data *d) {
   int counter, columns = 0;
 
@@ -1286,23 +1286,23 @@ bool remove_special_ability(struct obj_data *obj, int number) {
   specab = obj->special_abilities;
   prev_specab = NULL;
 
-  for(i = 1;(i < number) && (specab != NULL);i++) {
+  for (i = 1; (i < number) && (specab != NULL); i++) {
     prev_specab = specab;
     specab = specab->next;
   }
   /* Check to see if we found the ability. */
-  if((i == number)&&(specab != NULL)) {
+  if ((i == number)&&(specab != NULL)) {
 
     deleted = TRUE;
 
     /* Remove it from the list. */
-    if(prev_specab == NULL)
+    if (prev_specab == NULL)
       obj->special_abilities = specab->next;
     else
       prev_specab->next = specab->next;
 
     /* Free up the memory. */
-    if(specab->command_word != NULL)
+    if (specab->command_word != NULL)
       free(specab->command_word);
     free(specab);
   }
@@ -1317,7 +1317,7 @@ struct obj_special_ability* get_specab_by_position(struct obj_data *obj, int pos
   specab = obj->special_abilities;
   prev_specab = NULL;
 
-  for(i = 1;(i < position) && (specab != NULL);i++) {
+  for (i = 1; (i < position) && (specab != NULL); i++) {
     prev_specab = specab;
     specab = specab->next;
   }
@@ -1336,7 +1336,7 @@ static void oedit_disp_menu(struct descriptor_data *d) {
 
   get_char_colors(d->character);
   clear_screen(d);
-  
+
   /* Build buffers for object type */
   sprinttype(GET_OBJ_TYPE(obj), item_types, buf1, sizeof (buf1));
 
@@ -1363,14 +1363,14 @@ static void oedit_disp_menu(struct descriptor_data *d) {
           //grn, nrm, cyn, item_profs[GET_OBJ_PROF(obj)],
           grn, nrm, cyn, buf2
           );
-  
+
   /* Send first half then build second half of menu. */
-  
+
   /* wear slots of gear */
   sprintbitarray(GET_OBJ_WEAR(OLC_OBJ(d)), wear_bits, EF_ARRAY_MAX, buf1);
   /* permanent affections of gear */
   sprintbitarray(GET_OBJ_PERM(OLC_OBJ(d)), affected_bits, EF_ARRAY_MAX, buf2);
-  
+
   /* build a buffer for displaying suggested worn eq stats -zusuk */
   /* we have to fix this so treasure + here are synced! */
   if (GET_OBJ_RNUM(obj) != NOTHING) {
@@ -1447,7 +1447,7 @@ static void oedit_disp_menu(struct descriptor_data *d) {
           "%sD%s) Applies menu\r\n"
           "%sE%s) Extra descriptions menu: %s%s%s\r\n"
           "%sF%s) Weapon Spells          : %s%s\r\n"
-	  "%sJ%s) Special Abilities      : %s%s\r\n"
+          "%sJ%s) Special Abilities      : %s%s\r\n"
           "%sM%s) Min Level              : %s%d\r\n"
           "%sP%s) Perm Affects           : %s%s\r\n"
           "%sS%s) Script                 : %s%s\r\n"
@@ -1476,10 +1476,10 @@ static void oedit_disp_menu(struct descriptor_data *d) {
           grn, nrm, cyn, HAS_SPECIAL_ABILITIES(obj) ? "Set." : "Not Set.",
           grn, nrm, cyn, GET_OBJ_LEVEL(obj),
           grn, nrm, cyn, buf2,
-          grn, nrm, cyn, OLC_SCRIPT(d) ? "Set." : "Not Set.", 
+          grn, nrm, cyn, OLC_SCRIPT(d) ? "Set." : "Not Set.",
           grn, nrm, /* spellbook */
-          nrm, cyn, (GET_OBJ_RNUM(obj)==NOTHING) ? -999 : get_eq_score(GET_OBJ_RNUM(obj)),/* eq rating */
-          nrm, cyn, (GET_OBJ_RNUM(obj)==NOTHING) ? "save/exit first" : buf3, /* suggestions */
+          nrm, cyn, (GET_OBJ_RNUM(obj) == NOTHING) ? -999 : get_eq_score(GET_OBJ_RNUM(obj)), /* eq rating */
+          nrm, cyn, (GET_OBJ_RNUM(obj) == NOTHING) ? "save/exit first" : buf3, /* suggestions */
           grn, nrm, /* copy object */
           grn, nrm, /* delete object */
           grn, nrm /* quite */
@@ -1565,8 +1565,8 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
           oedit_disp_type_menu(d);
           OLC_MODE(d) = OEDIT_TYPE;
           break;
-        //case 'g':
-        //case 'G':
+          //case 'g':
+          //case 'G':
           //oedit_disp_prof_menu(d);
           //OLC_MODE(d) = OEDIT_PROF;
           //break;
@@ -1812,15 +1812,15 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
     case OEDIT_VALUE_1:
       number = atoi(arg);
       switch (GET_OBJ_TYPE(OLC_OBJ(d))) {
-        
+
         case ITEM_INSTRUMENT:
           GET_OBJ_VAL(OLC_OBJ(d), 0) = MIN(MAX(atoi(arg), 0), MAX_INSTRUMENTS - 1);
           break;
-          
+
         case ITEM_SWITCH:
           GET_OBJ_VAL(OLC_OBJ(d), 0) = MIN(MAX(atoi(arg), 0), 1);
           break;
-          
+
         case ITEM_FURNITURE:
           if (number < 0 || number > MAX_PEOPLE)
             oedit_disp_val1_menu(d);
@@ -1829,10 +1829,10 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
             oedit_disp_val2_menu(d);
           }
           break;
-          
+
           /* val[0] is AC from old system setup */
           /* ITEM_ARMOR */
-          
+
         case ITEM_WEAPON:
           /* function from treasure.c */
           set_weapon_object(OLC_OBJ(d),
@@ -1841,7 +1841,7 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
           /*  Skip a few. */
           oedit_disp_val5_menu(d);
           return;
-          
+
         case ITEM_FIREWEAPON:
           GET_OBJ_VAL(OLC_OBJ(d), 0) = MIN(MAX(atoi(arg), 0), NUM_RANGED_WEAPONS - 1);
           break;
@@ -1857,24 +1857,24 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
           GET_OBJ_VAL(OLC_OBJ(d), 0) = LIMIT(atoi(arg), -1, MAX_CONTAINER_SIZE);
           break;
 
-        /* NewCraft */
+          /* NewCraft */
         case ITEM_BLUEPRINT:
           GET_OBJ_VAL(OLC_OBJ(d), 0) = LIMIT(atoi(arg), 0, 1000);
-          break;          
+          break;
 
           /* special values for worn gear, example monk-gloves will apply
              an enhancement bonus to damage */
         case ITEM_WORN:
           GET_OBJ_VAL(OLC_OBJ(d), 0) = LIMIT(atoi(arg), 1, 10);
           break;
-          
+
         default:
           GET_OBJ_VAL(OLC_OBJ(d), 0) = atoi(arg);
       }
       /* proceed to menu 2 */
       oedit_disp_val2_menu(d);
       return;
-      
+
     case OEDIT_VALUE_2:
       /* Here, I do need to check for out of range values. */
       number = atoi(arg);
@@ -1931,7 +1931,8 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
           oedit_disp_val3_menu(d);
           break;
         case ITEM_SWITCH:
-          GET_OBJ_VAL(OLC_OBJ(d), 1) = LIMIT(number, 1, 999999);;
+          GET_OBJ_VAL(OLC_OBJ(d), 1) = LIMIT(number, 1, 999999);
+          ;
           oedit_disp_val3_menu(d);
           break;
         default:
@@ -2081,8 +2082,8 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
       GET_OBJ_VAL(OLC_OBJ(d), 4) = LIMIT(number, min_val, max_val);
       break;
 
-//    }
-//  }
+      //    }
+      //  }
 
     case OEDIT_PROMPT_APPLY:
       if ((number = atoi(arg)) == 0)
@@ -2131,17 +2132,13 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
       if (isdigit(*arg))
         OLC_OBJ(d)->affected[OLC_VAL(d)].modifier = atoi(arg);
       else switch (OLC_OBJ(d)->affected[OLC_VAL(d)].location) {
-/*
-          case APPLY_SKILL:
-
-            number = find_skill_num(arg, SKTYPE_SKILL);
-
-            if (number > -1)
-
-              OLC_OBJ(d)->affected[OLC_VAL(d)].specific = number;
-
-            break;
-*/
+            /*
+                      case APPLY_SKILL:
+                        number = find_skill_num(arg, SKTYPE_SKILL);
+                        if (number > -1)
+                          OLC_OBJ(d)->affected[OLC_VAL(d)].specific = number;
+                        break;
+             */
           case APPLY_FEAT:
             number = find_feat_num(arg);
             if (number > -1)
@@ -2378,12 +2375,13 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
         }
 
         OLC_OBJ(d)->sbinfo[OLC_VAL(d)].spellname = number;
-        OLC_OBJ(d)->sbinfo[OLC_VAL(d)].pages = MAX(1, lowest_spell_level(number) / 2);;
+        OLC_OBJ(d)->sbinfo[OLC_VAL(d)].pages = MAX(1, lowest_spell_level(number) / 2);
+        ;
         oedit_disp_prompt_spellbook_menu(d);
       }
       return;
     case OEDIT_WEAPON_SPECAB_MENU:
-      switch(*arg) {
+      switch (*arg) {
         case 'N':
         case 'n':
           /* Create a new special ability and assign it to the list. */
@@ -2392,14 +2390,14 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
           OLC_OBJ(d)->special_abilities = OLC_SPECAB(d);
 
           OLC_MODE(d) = OEDIT_ASSIGN_WEAPON_SPECAB_MENU;
-	  OLC_VAL(d) = 1;
+          OLC_VAL(d) = 1;
           oedit_disp_assign_weapon_specab_menu(d);
           break;
         case 'E':
         case 'e':
           write_to_output(d, "Edit which ability? : ");
           OLC_MODE(d) = OEDIT_EDIT_WEAPON_SPECAB;
-	  OLC_VAL(d) = 1;
+          OLC_VAL(d) = 1;
           break;
         case 'D':
         case 'd':
@@ -2421,7 +2419,7 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
       number = atoi(arg);
       OLC_SPECAB(d) = get_specab_by_position(OLC_OBJ(d), number);
 
-      if(OLC_SPECAB(d) == NULL) {
+      if (OLC_SPECAB(d) == NULL) {
         write_to_output(d, "Invalid special ability number. \r\n");
         OLC_MODE(d) = OEDIT_WEAPON_SPECAB_MENU;
         oedit_disp_weapon_special_abilities_menu(d);
@@ -2432,7 +2430,7 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
       }
       return;
     case OEDIT_ASSIGN_WEAPON_SPECAB_MENU:
-      switch(*arg) {
+      switch (*arg) {
         case 'A':
         case 'a':
           /* Choose ability. */
@@ -2484,7 +2482,7 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
       }
       OLC_SPECAB(d) = NULL;
 
-      if(remove_special_ability(OLC_OBJ(d), number))
+      if (remove_special_ability(OLC_OBJ(d), number))
         write_to_output(d, "Ability deleted.\r\n");
       else
         write_to_output(d, "That ability does not exist!\r\n");
@@ -2501,7 +2499,7 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
       }
 
       OLC_SPECAB(d)->ability = number;
-      OLC_SPECAB(d)->level   = weapon_special_ability_info[number].level;
+      OLC_SPECAB(d)->level = weapon_special_ability_info[number].level;
       OLC_SPECAB(d)->activation_method = weapon_special_ability_info[number].activation_method;
 
       OLC_MODE(d) = OEDIT_ASSIGN_WEAPON_SPECAB_MENU;
@@ -2509,7 +2507,7 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
       return;
     case OEDIT_WEAPON_SPECAB_LEVEL:
       number = atoi(arg);
-      if((number < 1) || (number > 34)) {
+      if ((number < 1) || (number > 34)) {
         write_to_output(d, "Invalid level, try again : ");
         return;
       }
@@ -2542,10 +2540,10 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
         return;
       }
     case OEDIT_SPECAB_VALUE_1:
-      switch(OLC_SPECAB(d)->ability) {
+      switch (OLC_SPECAB(d)->ability) {
         case WEAPON_SPECAB_BANE: /* Val 1: NPC RACE */
           number = atoi(arg);
-          if((number < 0) || (number >= NUM_RACE_TYPES)) {
+          if ((number < 0) || (number >= NUM_RACE_TYPES)) {
             /* Value out of range. */
             write_to_output(d, "Invalid choice, try again : ");
             return;
@@ -2555,15 +2553,15 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
           oedit_disp_specab_val2_menu(d);
           return;
         case WEAPON_SPECAB_SPELL_STORING: /* Val 1: SPELL NUMBER */
-        ;
+          ;
         default:
-        ;
+          ;
       }
     case OEDIT_SPECAB_VALUE_2:
-      switch(OLC_SPECAB(d)->ability) {
+      switch (OLC_SPECAB(d)->ability) {
         case WEAPON_SPECAB_BANE: /* Val 2: NPC SUBRACE */
-         number = atoi(arg);
-          if((number < 0) || (number >= NUM_SUB_RACES)) {
+          number = atoi(arg);
+          if ((number < 0) || (number >= NUM_SUB_RACES)) {
             /* Value out of range. */
             write_to_output(d, "Invalid choice, try again : ");
             return;
@@ -2575,21 +2573,21 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
 
           return;
         case WEAPON_SPECAB_SPELL_STORING: /* Val 2: SPELL LEVEL */
-        ;
+          ;
         default:
-        ;
+          ;
       }
 
     case OEDIT_SPECAB_VALUE_3:
-      switch(OLC_SPECAB(d)->ability) {
+      switch (OLC_SPECAB(d)->ability) {
         default:
-        ;
+          ;
       }
 
     case OEDIT_SPECAB_VALUE_4:
-      switch(OLC_SPECAB(d)->ability) {
+      switch (OLC_SPECAB(d)->ability) {
         default:
-        ;
+          ;
       }
 
     default:
