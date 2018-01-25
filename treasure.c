@@ -695,7 +695,7 @@ void award_random_crystal(struct char_data *ch, int grade) {
   
   /* determine if rare or not, start building string */
   rare_grade = determine_rare_grade();
-  sprintf(desc, label_rare_grade(rare_grade)); 
+  sprintf(buf, label_rare_grade(rare_grade)); 
   
   /* this is just to make sure the item is set correctly */
   GET_OBJ_TYPE(obj) = ITEM_CRYSTAL;
@@ -721,49 +721,49 @@ void award_random_crystal(struct char_data *ch, int grade) {
 
   // two colors and descriptor
   if (roll >= 91) {
-    sprintf(buf, "arcanite crystal %s %s %s", colors[color1], colors[color2],
+    sprintf(buf, "%sarcanite crystal %s %s %s", buf, colors[color1], colors[color2],
             crystal_descs[desc]);
     obj->name = strdup(buf);
-    sprintf(buf, "a %s, %s and %s arcanite crystal", crystal_descs[desc],
+    sprintf(buf, "%sa %s, %s and %s arcanite crystal", buf, crystal_descs[desc],
             colors[color1], colors[color2]);
     obj->short_description = strdup(buf);
-    sprintf(buf, "A %s, %s and %s arcanite crystal lies here.", crystal_descs[desc],
+    sprintf(buf, "%sA %s, %s and %s arcanite crystal lies here.", buf, crystal_descs[desc],
             colors[color1], colors[color2]);
     obj->description = strdup(buf);
 
     // one color and descriptor
   } else if (roll >= 66) {
-    sprintf(buf, "arcanite crystal %s %s", colors[color1], crystal_descs[desc]);
+    sprintf(buf, "%sarcanite crystal %s %s", buf, colors[color1], crystal_descs[desc]);
     obj->name = strdup(buf);
-    sprintf(buf, "a %s %s arcanite crystal", crystal_descs[desc], colors[color1]);
+    sprintf(buf, "%sa %s %s arcanite crystal", buf, crystal_descs[desc], colors[color1]);
     obj->short_description = strdup(buf);
-    sprintf(buf, "A %s %s arcanite crystal lies here.", crystal_descs[desc],
+    sprintf(buf, "%sA %s %s arcanite crystal lies here.", buf, crystal_descs[desc],
             colors[color1]);
     obj->description = strdup(buf);
 
     // two colors no descriptor
   } else if (roll >= 41) {
-    sprintf(buf, "arcanite crystal %s %s", colors[color1], colors[color2]);
+    sprintf(buf, "%sarcanite crystal %s %s", buf, colors[color1], colors[color2]);
     obj->name = strdup(buf);
-    sprintf(buf, "a %s and %s arcanite crystal", colors[color1], colors[color2]);
+    sprintf(buf, "%sa %s and %s arcanite crystal", buf, colors[color1], colors[color2]);
     obj->short_description = strdup(buf);
-    sprintf(buf, "A %s and %s arcanite crystal lies here.", colors[color1], colors[color2]);
+    sprintf(buf, "%sA %s and %s arcanite crystal lies here.", buf, colors[color1], colors[color2]);
     obj->description = strdup(buf);
   } else if (roll >= 21) {// one color no descriptor
-    sprintf(buf, "arcanite crystal %s", colors[color1]);
+    sprintf(buf, "%sarcanite crystal %s", buf, colors[color1]);
     obj->name = strdup(buf);
-    sprintf(buf, "a %s arcanite crystal", colors[color1]);
+    sprintf(buf, "%sa %s arcanite crystal", buf, colors[color1]);
     obj->short_description = strdup(buf);
-    sprintf(buf, "A %s arcanite crystal lies here.", colors[color1]);
+    sprintf(buf, "%sA %s arcanite crystal lies here.", buf, colors[color1]);
     obj->description = strdup(buf);
 
     // descriptor only
   } else {
-    sprintf(buf, "arcanite crystal %s", crystal_descs[desc]);
+    sprintf(buf, "%sarcanite crystal %s", buf, crystal_descs[desc]);
     obj->name = strdup(buf);
-    sprintf(buf, "a %s arcanite crystal", crystal_descs[desc]);
+    sprintf(buf, "%sa %s arcanite crystal", buf, crystal_descs[desc]);
     obj->short_description = strdup(buf);
-    sprintf(buf, "A %s arcanite crystal lies here.", crystal_descs[desc]);
+    sprintf(buf, "%sA %s arcanite crystal lies here.", buf, crystal_descs[desc]);
     obj->description = strdup(buf);
   }
 
