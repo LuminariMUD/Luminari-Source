@@ -2353,7 +2353,7 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type) {
         damtype_reduction += 20;
       if (!IS_NPC(ch) && GET_RACE(ch) == RACE_CRYSTAL_DWARF)
         damtype_reduction += 10;
-      if (!IS_NPC(ch) && GET_RACE(ch) == RACE_HALF_TROLL)
+      if (HAS_FEAT(ch, FEAT_STRONG_AGAINST_DISEASE))
         damtype_reduction += 50;
 
       /* npc vulnerabilities/strengths */
