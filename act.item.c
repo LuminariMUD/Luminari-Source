@@ -417,6 +417,9 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
         send_to_char(ch, "Wearable item.\r\n");        
       }
       break;
+    case ITEM_CRYSTAL:
+      send_to_char(ch, "Arcanite crafting crystal - can be used in crafting.\r\n");
+      break;
     default:
       send_to_char(ch, "Report this item to a coder to add the ITEM_type\r\n");
       break;
