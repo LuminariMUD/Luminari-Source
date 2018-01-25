@@ -35,6 +35,7 @@
 #include "assign_wpn_armor.h"
 #include "spec_abilities.h"
 #include "item.h"
+#include "feats.h"
 
 /* local function prototypes */
 /* do_get utility functions */
