@@ -48,7 +48,7 @@ void sort_feats(void);
 int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg);
 int is_class_feat(int featnum, int class, struct char_data *ch);
 int is_daily_feat(int featnum);
-int has_feat(struct char_data *ch, int featnum);
+int has_feat_requirement_check(struct char_data *ch, int featnum);
 bool meets_prerequisite(struct char_data *ch, struct feat_prerequisite *prereq, int iarg);
 bool has_combat_feat(struct char_data *ch, int cfeat, int compare);
 /* For help system integration, */
