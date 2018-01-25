@@ -424,6 +424,156 @@ int determine_stat_apply(int wear) {
   return stat;
 }
 
+/* pick a random feat to put on our special items */
+int apply_bonus_feat(int rare_grade) {
+  
+  /* just in case */
+  if (rare_grade <= RARE_GRADE_NORMAL)
+    return FEAT_UNDEFINED;
+  if (rare_grade > RARE_GRADE_MYTHICAL)
+    return FEAT_UNDEFINED;
+  
+  int feat_num = FEAT_UNDEFINED;
+  int dice;
+  
+  switch (rare_grade) {
+    case RARE_GRADE_RARE:
+      dice = dice(1, 93);
+      break;
+    case RARE_GRADE_LEGENDARY:
+      dice = dice(1, 121);
+      break;
+    case RARE_GRADE_MYTHICAL:
+      dice = dice(1, 151);
+      break;
+  }
+  
+  if (dice <= 3)
+    feat_num = FEAT_ALERTNESS;
+  else if (dice <= 6)
+    feat_num = FEAT_ARMOR_PROFICIENCY_LIGHT;
+  else if (dice <= 9)
+    feat_num = FEAT_ARMOR_PROFICIENCY_MEDIUM;
+  else if (dice <= 12)
+    feat_num = FEAT_ENDURANCE;
+  else if (dice <= 15)
+    feat_num = FEAT_FAST_MOVEMENT;
+  else if (dice <= 18)
+    feat_num = FEAT_DETECT_EVIL;
+  else if (dice <= 21)
+    feat_num = FEAT_SLEEP_ENCHANTMENT_IMMUNITY;
+  else if (dice <= 24)
+    feat_num = FEAT_RESISTANCE_TO_ENCHANTMENTS;
+  else if (dice <= 27)
+    feat_num = FEAT_IRON_WILL;
+  else if (dice <= 30)
+    feat_num = FEAT_LIGHTNING_REFLEXES;
+  else if (dice <= 33)
+    feat_num = FEAT_STABILITY;
+  else if (dice <= 36)
+    feat_num = FEAT_TOUGHNESS;
+  else if (dice <= 39)
+    feat_num = FEAT_LUCKY;
+  else if (dice <= 42)
+    feat_num = FEAT_UNARMED_STRIKE;
+  else if (dice <= 45)
+    feat_num = FEAT_INFRAVISION;
+  else if (dice <= 48)
+    feat_num = FEAT_DETECT_GOOD;
+  else if (dice <= 51)
+    feat_num = FEAT_RESISTANCE_TO_ILLUSIONS;
+  else if (dice <= 54)
+    feat_num = FEAT_ARMOR_PROFICIENCY_SHIELD;
+  else if (dice <= 57)
+    feat_num = FEAT_ANIMAL_AFFINITY;
+  else if (dice <= 60)
+    feat_num = FEAT_DECEITFUL;
+  else if (dice <= 63)
+    feat_num = FEAT_DEFT_HANDS;
+  else if (dice <= 66)
+    feat_num = FEAT_DILIGENT;
+  else if (dice <= 69)
+    feat_num = FEAT_MAGICAL_APTITUDE;
+  else if (dice <= 72)
+    feat_num = FEAT_NIMBLE_FINGERS;
+  else if (dice <= 75)
+    feat_num = FEAT_PERSUASIVE;
+  else if (dice <= 78)
+    feat_num = FEAT_SELF_SUFFICIENT;
+  else if (dice <= 81)
+    feat_num = FEAT_ARMOR_PROFICIENCY_TOWER_SHIELD;
+  else if (dice <= 84)
+    feat_num = FEAT_ARMOR_SPECIALIZATION_LIGHT;
+  else if (dice <= 87)
+    feat_num = FEAT_ARMOR_SPECIALIZATION_MEDIUM;
+  else if (dice <= 90)
+    feat_num = FEAT_STRONG_AGAINST_POISON;
+  else if (dice <= 93)
+    feat_num = FEAT_STRONG_AGAINST_DISEASE;
+  
+  /* nicer feats */
+  else if (dice <= 95)
+    feat_num = FEAT_ARMOR_SPECIALIZATION_HEAVY;
+  else if (dice <= 97)
+    feat_num = FEAT_BARDIC_KNOWLEDGE;
+  else if (dice <= 99)
+    feat_num = FEAT_TWO_WEAPON_DEFENSE;
+  else if (dice <= 101)
+    feat_num = FEAT_STEALTHY;
+  else if (dice <= 103)
+    feat_num = FEAT_RAPID_RELOAD;
+  else if (dice <= 105)
+    feat_num = FEAT_IMPROVED_SHIELD_PUNCH;
+  else if (dice <= 107)
+    feat_num = FEAT_IMPROVED_FEINT;
+  else if (dice <= 109)
+    feat_num = FEAT_IMPROVED_GRAPPLE;
+  else if (dice <= 111)
+    feat_num = FEAT_EXOTIC_WEAPON_PROFICIENCY;
+  else if (dice <= 113)
+    feat_num = FEAT_SNEAK_ATTACK;
+  else if (dice <= 115)
+    feat_num = FEAT_FAST_HEALER;
+  else if (dice <= 117)
+    feat_num = FEAT_ABLE_LEARNER;
+  else if (dice <= 119)
+    feat_num = FEAT_IMPROVED_TAUNTING;
+  else if (dice <= 121)
+    feat_num = FEAT_IMPROVED_INTIMIDATION;  
+  else if (dice <= 123)
+    feat_num = FEAT_WEAPON_FINESSE;
+  else if (dice <= 125)
+    feat_num = FEAT_TWO_WEAPON_FIGHTING;
+  else if (dice <= 127)
+    feat_num = FEAT_SPRING_ATTACK;
+  else if (dice <= 129)
+    feat_num = FEAT_MOBILITY;
+  else if (dice <= 131)
+    feat_num = FEAT_MARTIAL_WEAPON_PROFICIENCY;
+  else if (dice <= 133)
+    feat_num = FEAT_IMPROVED_TRIP;
+  else if (dice <= 135)
+    feat_num = FEAT_IMPROVED_INITIATIVE;
+  else if (dice <= 137)
+    feat_num = FEAT_IMPROVED_DISARM;
+  else if (dice <= 139)
+    feat_num = FEAT_RAGE;  
+  else if (dice <= 141)
+    feat_num = FEAT_DODGE;
+  else if (dice <= 143)
+    feat_num = FEAT_DEFLECT_ARROWS;
+  else if (dice <= 145)
+    feat_num = FEAT_COMBAT_REFLEXES;
+  else if (dice <= 147)
+    feat_num = FEAT_CLEAVE;
+  else if (dice <= 149)
+    feat_num = FEAT_ARMOR_PROFICIENCY_HEAVY;
+  else if (dice <= 151)
+    feat_num = FEAT_BLIND_FIGHT;
+  
+  return feat_num;
+}
+
 /* function to adjust the bonus value based on the apply location */
 
 /* called by random_bonus_value(), cp_modify_object_applies(), */
@@ -1065,6 +1215,25 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
     obj->affected[0].location = bonus_location;
     obj->affected[0].modifier = adjust_bonus_value(bonus_location, bonus_value);
     obj->affected[0].bonus_type = adjust_bonus_type(bonus_location);
+  }
+  
+  /* rare grade */
+  if (rare_grade > RARE_GRADE_NORMAL) {
+    obj->affected[1].location = APPLY_FEAT;
+    obj->affected[1].modifier = apply_bonus_feat(rare_grade);
+    obj->affected[1].bonus_type = adjust_bonus_type(APPLY_FEAT);
+    switch (rare_grade) {
+      case RARE_GRADE_LEGENDARY:
+        obj->affected[2].location = bonus_location;
+        obj->affected[2].modifier = adjust_bonus_value(bonus_location, 1);
+        obj->affected[2].bonus_type = BONUS_TYPE_INHERENT;
+        break;
+      case RARE_GRADE_MYTHICAL:
+        obj->affected[2].location = bonus_location;
+        obj->affected[2].modifier = adjust_bonus_value(bonus_location, dice(1,2));
+        obj->affected[2].bonus_type = BONUS_TYPE_INHERENT;
+        break;
+    }
   }
 
   /* lets modify this ammo's breakability (base 30%) */
