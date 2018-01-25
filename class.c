@@ -548,7 +548,7 @@ bool meets_class_prerequisite(struct char_data *ch, struct class_prerequisite *p
       
       /* feat requirement */
     case CLASS_PREREQ_FEAT:
-      if (has_feat(ch, prereq->values[0]) < prereq->values[1])
+      if (has_feat_requirement_check(ch, prereq->values[0]) < prereq->values[1])
         return FALSE;
       break;
       

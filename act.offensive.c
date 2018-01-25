@@ -4207,7 +4207,7 @@ ACMD(do_reload) {
     case WEAPON_TYPE_HEAVY_REP_XBOW:
     case WEAPON_TYPE_LIGHT_REP_XBOW:
     case WEAPON_TYPE_HEAVY_CROSSBOW:
-      if (has_feat(ch, FEAT_RAPID_RELOAD)) {
+      if (HAS_FEAT(ch, FEAT_RAPID_RELOAD)) {
         if (is_action_available(ch, atMOVE, TRUE)) {
           if (reload_weapon(ch, wielded, FALSE)) {
             USE_MOVE_ACTION(ch); /* success! */
@@ -4236,7 +4236,7 @@ ACMD(do_reload) {
     case WEAPON_TYPE_HAND_CROSSBOW:
     case WEAPON_TYPE_LIGHT_CROSSBOW:
     case WEAPON_TYPE_SLING:
-      if (has_feat(ch, FEAT_RAPID_RELOAD))
+      if (HAS_FEAT(ch, FEAT_RAPID_RELOAD))
         reload_weapon(ch, wielded, FALSE);
       else if (is_action_available(ch, atMOVE, TRUE)) {
         if (reload_weapon(ch, wielded, FALSE)) {

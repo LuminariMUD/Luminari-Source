@@ -1762,7 +1762,7 @@ ACMD(do_restore) {
       SUBRACE(ch) = 0;
       GET_DISGUISE_RACE(ch) = 0;
       for (i = 1; i < NUM_FEATS; i++) {
-        if (!has_feat(ch, i)) {
+        if (!HAS_FEAT(ch, i)) {
           SET_FEAT(ch, i, 1);
           found = TRUE;
         }
