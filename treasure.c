@@ -571,6 +571,12 @@ int apply_bonus_feat(int rare_grade) {
   else if (dice <= 151)
     feat_num = FEAT_BLIND_FIGHT;
   
+  /* just in case */
+  if (feat_num < 0)
+    feat_num = FEAT_UNDEFINED;
+  if (feat_num >= NUM_FEATS)
+    feat_num = FEAT_UNDEFINED;
+  
   return feat_num;
 }
 
@@ -1180,6 +1186,7 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
         int enchantment_grade, int cp_type, int rare_grade, int silent_mode) {
   int bonus_value = enchantment_grade, bonus_location = APPLY_NONE;
   bool has_enhancement = FALSE;
+  int feat_num = FEAT_UNDEFINED;
 
   /* items that will only get an enhancement bonus */
   if (CAN_WEAR(obj, ITEM_WEAR_WIELD) || CAN_WEAR(obj, ITEM_WEAR_SHIELD) ||
@@ -1219,9 +1226,12 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
   
   /* rare grade */
   if (rare_grade > RARE_GRADE_NORMAL) {
-    obj->affected[1].location = APPLY_FEAT;
-    obj->affected[1].modifier = apply_bonus_feat(rare_grade);
-    obj->affected[1].bonus_type = adjust_bonus_type(APPLY_FEAT);
+    feat_num = apply_bonus_feat(rare_grade);
+    if (feat_num != FEAT_UNDEFINED) {
+      obj->affected[1].location = APPLY_FEAT;
+      obj->affected[1].modifier = feat_num;
+      obj->affected[1].bonus_type = adjust_bonus_type(APPLY_FEAT);
+    }
     
     switch (rare_grade) {
       case RARE_GRADE_LEGENDARY:
