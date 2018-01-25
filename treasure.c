@@ -27,6 +27,41 @@
 
 /***  utility functions ***/
 
+/* utility function to label 'rare grade' gear */
+char *label_rare_grade(int rare_grade) {
+  char *desc = NULL;
+  switch (rare_grade) {
+    case RARE_GRADE_MYTHICAL:
+      sprintf(desc, "\tM[Mythical]\tn ");
+      break;
+    case RARE_GRADE_LEGENDARY:
+      sprintf(desc, "\tY[Legendary]\tn ");
+      break;
+    case RARE_GRADE_RARE:
+      sprintf(desc, "\tG[Rare]\tn ");
+      break;
+  }
+  return desc;
+}
+
+/* utility function to determine 'rare grade' - extra special items */
+int determine_rare_grade() {
+  int roll = 0, rare_grade = RARE_GRADE_NORMAL;
+  
+  /* determine if rare or not */
+  roll = dice(1, 100);
+  
+  if (roll == 1) {
+    rare_grade = RARE_GRADE_MYTHICAL;
+  } else if (roll <= 6) {
+    rare_grade = RARE_GRADE_LEGENDARY;
+  } else if (roll <= 16) {
+    rare_grade = RARE_GRADE_RARE;
+  }
+  
+  return rare_grade;
+}
+
 /* utility function that converts a grade rating to an enchantment rating */
 int cp_convert_grade_enchantment(int grade) {
   int enchantment = 0;
@@ -1457,17 +1492,9 @@ void award_magic_armor(struct char_data *ch, int grade, int wear_slot) {
   /* we should have a completely usable armor now, just missing descrip/stats */
   
   /* determine if rare or not, start building string */
-  roll = dice(1, 100);
-  if (roll == 1) {
-    rare_grade = 3;
-    sprintf(desc, "\tM[Mythical]\tn ");
-  } else if (roll <= 6) {
-    rare_grade = 2;
-    sprintf(desc, "\tY[Legendary]\tn ");
-  } else if (roll <= 16) {
-    rare_grade = 1;
-    sprintf(desc, "\tG[Rare]\tn ");
-  }
+  rare_grade = determine_rare_grade();
+  sprintf(desc, label_rare_grade(rare_grade));
+  
   /* a suit of (body), or a pair of (arm/leg), or AN() (helm) */
   if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_BODY)) {
     sprintf(desc, "%s%s", desc, "a suit of");    
