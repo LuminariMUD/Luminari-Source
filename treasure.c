@@ -517,7 +517,7 @@ void determine_treasure(struct char_data *ch, struct char_data *mob) {
   grade = dice(1, max_grade);
 
   if (dice(1, 100) <= MAX(TREASURE_PERCENT, HAPPY_TREASURE)) {
-    award_magic_item(dice(1, 2), ch, grade);
+    award_magic_item(1, ch, grade);
     sprintf(buf, "\tYYou have found %d coins hidden on $N's corpse!\tn", gold);
     act(buf, FALSE, ch, 0, mob, TO_CHAR);
     sprintf(buf, "$n \tYhas has found %d coins hidden on $N's corpse!\tn", gold);
@@ -3089,19 +3089,18 @@ SPECIAL(bazaar) {
 ACMD(do_loadmagicspecific) {
   char arg1[MAX_STRING_LENGTH];
   char arg2[MAX_STRING_LENGTH];
-  int type = 0;
   int grade = 0;
 
   two_arguments(argument, arg1, arg2);
 
   if (!*arg1) {
-    send_to_char(ch, "Syntax: loadmagicspecific [mundane | minor | typical | medium | major | superior] "
-            "[weapon | shield | body | legs | arms | head | misc]\r\n");
+    send_to_char(ch, "Syntax: loadmagicspecific [mundane|minor|typical|medium|major|superior] "
+            "[weapon|shield|body|legs|arms|head|crystal|expendable|ammo|finger|neck|wrist|feet|monk|hand|about|waist|held]\r\n");
     return;
   }
 
   if (!*arg2) {
-    send_to_char(ch, "The second argument must be either weapon/body/legs/arms/head/misc.\r\n");
+    send_to_char(ch, "2nd argument must be: [weapon|shield|body|legs|arms|head|crystal|expendable|ammo|finger|neck|wrist|feet|monk|hand|about|waist|held]\r\n");
     return;
   }
 
@@ -3118,57 +3117,51 @@ ACMD(do_loadmagicspecific) {
   else if (is_abbrev(arg1, "superior"))
     grade = GRADE_SUPERIOR;
   else {
-    send_to_char(ch, "Syntax: loadmagicspecific [mundane | minor | typical | medium | major | superior] "
-            "[weapon | shield | body | legs | arms | head | misc]\r\n");
+    send_to_char(ch, "Syntax: loadmagicspecific [mundane|minor|typical|medium|major|superior] "
+            "[weapon|shield|body|legs|arms|head|crystal|expendable|ammo|finger|neck|wrist|feet|monk|hand|about|waist|held]\r\n");
     return;
   }
 
   if (is_abbrev(arg2, "weapon"))
-    type = 1;
+    award_magic_weapon(ch, grade);
   else if (is_abbrev(arg2, "body"))
-    type = 2;
+    award_magic_armor(ch, grade, ITEM_WEAR_BODY);
   else if (is_abbrev(arg2, "legs"))
-    type = 3;
+    award_magic_armor(ch, grade, ITEM_WEAR_LEGS);
   else if (is_abbrev(arg2, "arms"))
-    type = 4;
+    award_magic_armor(ch, grade, ITEM_WEAR_ARMS);
   else if (is_abbrev(arg2, "head"))
-    type = 5;
-  else if (is_abbrev(arg2, "misc"))
-    type = 6;
+    award_magic_armor(ch, grade, ITEM_WEAR_HEAD);
+  else if (is_abbrev(arg2, "crystal"))
+    award_random_crystal(ch, grade);
   else if (is_abbrev(arg2, "shield"))
-    type = 7;
+    award_magic_armor(ch, grade, ITEM_WEAR_SHIELD);
+  else if (is_abbrev(arg2, "ammo"))
+    award_magic_ammo(ch, grade);
+  else if (is_abbrev(arg2, "finger"))
+    award_misc_magic_item(ch, TRS_SLOT_FINGER, grade);
+  else if (is_abbrev(arg2, "neck"))
+    award_misc_magic_item(ch, TRS_SLOT_NECK, grade);
+  else if (is_abbrev(arg2, "wrist"))
+    award_misc_magic_item(ch, TRS_SLOT_WRIST, grade);
+  else if (is_abbrev(arg2, "feet"))
+    award_misc_magic_item(ch, TRS_SLOT_FEET, grade);
+  else if (is_abbrev(arg2, "monk"))
+    award_misc_magic_item(ch, TRS_SLOT_MONK_GLOVES grade);
+  else if (is_abbrev(arg2, "hand"))
+    award_misc_magic_item(ch, TRS_SLOT_HAND, grade);
+  else if (is_abbrev(arg2, "about"))
+    award_misc_magic_item(ch, TRS_SLOT_ABOUT, grade);
+  else if (is_abbrev(arg2, "waist"))
+    award_misc_magic_item(ch, TRS_SLOT_WAIST, grade);
+  else if (is_abbrev(arg2, "held"))
+    award_misc_magic_item(ch, TRS_SLOT_HELD, grade);
   else {
-    send_to_char(ch, "The second argument must be either weapon/shield/body/legs/arms/head/misc.\r\n");
-    return;
+    send_to_char(ch, "2nd argument must be: [weapon|shield|body|legs|arms|head|crystal|"
+            "expendable|ammo|finger|neck|wrist|feet|monk|hand|about|waist|held]\r\n");
   }
 
-  switch (type) {
-    case 1: /* weapon */
-      award_magic_weapon(ch, grade);
-      break;
-    case 2: /* body */
-      award_magic_armor(ch, grade, ITEM_WEAR_BODY);
-      break;
-    case 3: /* legs */
-      award_magic_armor(ch, grade, ITEM_WEAR_LEGS);
-      break;
-    case 4: /* arms */
-      award_magic_armor(ch, grade, ITEM_WEAR_ARMS);
-      break;
-    case 5: /* head */
-      award_magic_armor(ch, grade, ITEM_WEAR_HEAD);
-      break;
-    case 6: /* misc */
-      award_misc_magic_item(ch, determine_rnd_misc_cat(), cp_convert_grade_enchantment(grade));      
-      break;
-    case 7: /* shield */
-      award_magic_armor(ch, grade, ITEM_WEAR_SHIELD);
-      break;
-    default:
-      send_to_char(ch, "Syntax: loadmagicspecific [mundane | minor | typical | medium | major | superior] "
-              "[weapon | body | legs | arms | head | misc]\r\n");
-      break;
-  }
+  return;
 }
 
 /* staff tool to load random items */
