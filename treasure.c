@@ -29,7 +29,10 @@
 
 /* utility function to label 'rare grade' gear */
 char *label_rare_grade(int rare_grade) {
-  char *desc = NULL;
+  char desc[20];
+  
+  *desc = '\0';
+  
   switch (rare_grade) {
     case RARE_GRADE_MYTHICAL:
       sprintf(desc, "\tM[Mythical]\tn ");
