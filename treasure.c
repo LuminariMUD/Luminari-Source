@@ -32,12 +32,6 @@ int cp_convert_grade_enchantment(int grade) {
   int enchantment = 0;
   
   switch (grade) {
-    case GRADE_MUNDANE:
-      if (rand_number(0, 1))
-        enchantment = 1;
-      else
-        enchantment = 0;
-      break;
     case GRADE_MINOR:
       if (rand_number(0, 1))
         enchantment = 2;
@@ -62,11 +56,17 @@ int cp_convert_grade_enchantment(int grade) {
       else
         enchantment = 5;
       break;
-    default: /* GRADE_SUPERIOR */
+    case GRADE_SUPERIOR:
       if (rand_number(0, 3))
         enchantment = 5;
       else
         enchantment = 6;
+      break;
+    case default: //GRADE_MUNDANE:
+      if (rand_number(0, 1))
+        enchantment = 1;
+      else
+        enchantment = 0;
       break;
   }
   
@@ -994,8 +994,8 @@ void award_expendable_item(struct char_data *ch, int grade, int type) {
  bonus as the currency, so we have to make decisions on the value of receiving
  other stats such as strength, hps, etc */
 void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
-        int enchantment, int grade, int cp_type, int silent_mode) {
-  int bonus_value = enchantment, bonus_location = APPLY_NONE;
+        int enchantment_grade, int cp_type, int silent_mode) {
+  int bonus_value = enchantment_grade, bonus_location = APPLY_NONE;
   bool has_enhancement = FALSE;
 
   /* items that will only get an enhancement bonus */
@@ -1005,7 +1005,7 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
           cp_type == CP_TYPE_AMMO
       ) {
     /* object value 4 for these particular objects are their enchantment bonus */
-    GET_OBJ_VAL(obj, 4) = enchantment;
+    GET_OBJ_VAL(obj, 4) = bonus_value;
     has_enhancement = TRUE;
   }
   else if (CAN_WEAR(obj, ITEM_WEAR_FINGER)) {
@@ -1041,17 +1041,17 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
 
   /* lets modify this ammo's breakability (base 30%) */
   if (cp_type == CP_TYPE_AMMO)
-    GET_OBJ_VAL(obj, 2) -= (grade*5 / 2 + enchantment * 10 / 2);
+    GET_OBJ_VAL(obj, 2) -= (bonus_value*5 / 2 + bonus_value * 10 / 2);
   
-  GET_OBJ_LEVEL(obj) = grade*5;
+  GET_OBJ_LEVEL(obj) = bonus_value*5;
   if (cp_type == CP_TYPE_AMMO)
     ;
   else  // set value
-    GET_OBJ_COST(obj) = (1+GET_OBJ_LEVEL(obj)) * 100 + (enchantment*5);  
+    GET_OBJ_COST(obj) = (1+GET_OBJ_LEVEL(obj)) * 100 + (bonus_value*5);  
   
   REMOVE_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MOLD);  // make sure not mold
   
-  if (grade >= 2)
+  if (bonus_value >= 1)
     SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC);  // add magic tag
 
   obj_to_char(obj, ch); // deliver object
@@ -1292,7 +1292,7 @@ void award_magic_ammo(struct char_data *ch, int grade) {
 
   /* BONUS SECTION */
   SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC);  
-  cp_modify_object_applies(ch, obj, cp_convert_grade_enchantment(rare_grade), grade, CP_TYPE_AMMO, FALSE);
+  cp_modify_object_applies(ch, obj, cp_convert_grade_enchantment(grade), CP_TYPE_AMMO, FALSE);
   /* END BONUS SECTION */
 }
 
@@ -1421,7 +1421,7 @@ void give_magic_armor(struct char_data *ch, int selection, int enchantment, bool
   /* END DESCRIPTION SECTION */
 
   /* BONUS SECTION */
-  cp_modify_object_applies(ch, obj, enchantment, enchantment, CP_TYPE_ARMOR, silent_mode);
+  cp_modify_object_applies(ch, obj, enchantment, CP_TYPE_ARMOR, silent_mode);
   /* END BONUS SECTION */
 }
 
@@ -1567,7 +1567,7 @@ void award_magic_armor(struct char_data *ch, int grade, int wear_slot) {
   /* END DESCRIPTION SECTION */
 
   /* BONUS SECTION */
-  cp_modify_object_applies(ch, obj, cp_convert_grade_enchantment(rare_grade), grade, CP_TYPE_ARMOR, FALSE);
+  cp_modify_object_applies(ch, obj, cp_convert_grade_enchantment(grade), CP_TYPE_ARMOR, FALSE);
   /* END BONUS SECTION */
 }
 
@@ -2073,7 +2073,7 @@ void award_magic_weapon(struct char_data *ch, int grade) {
 
   /* object is fully described
    base object is taken care of including material, now set random stats, etc */
-  cp_modify_object_applies(ch, obj, grade, grade, CP_TYPE_WEAPON, FALSE);
+  cp_modify_object_applies(ch, obj, cp_convert_grade_enchantment(grade), CP_TYPE_WEAPON, FALSE);
 }
 #undef SHORT_STRING
 
@@ -2294,7 +2294,7 @@ void give_magic_weapon(struct char_data *ch, int selection, int enchantment, boo
 
   /* object is fully described
    base object is taken care of including material, now set random stats, etc */
-  cp_modify_object_applies(ch, obj, enchantment, enchantment, CP_TYPE_WEAPON, silent_mode);
+  cp_modify_object_applies(ch, obj, cp_convert_grade_enchantment(grade), CP_TYPE_WEAPON, silent_mode);
 }
 #undef SHORT_STRING
 
@@ -2620,7 +2620,7 @@ void award_misc_magic_item(struct char_data *ch, int grade) {
   }
 
   /* level, bonus and cost */
-  cp_modify_object_applies(ch, obj, cp_convert_grade_enchantment(rare_grade), grade, CP_TYPE_MISC, FALSE);
+  cp_modify_object_applies(ch, obj, cp_convert_grade_enchantment(grade), CP_TYPE_MISC, FALSE);
 }
 #undef SHORT_STRING
 
@@ -2896,7 +2896,7 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment, b
   }
 
   /* level, bonus and cost */
-  cp_modify_object_applies(ch, obj, enchantment, level, CP_TYPE_MISC, silent_mode);
+  cp_modify_object_applies(ch, obj, enchantment, CP_TYPE_MISC, silent_mode);
 }
 #undef SHORT_STRING
 
