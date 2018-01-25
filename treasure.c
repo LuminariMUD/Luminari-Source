@@ -50,9 +50,9 @@ int determine_rare_grade() {
   
   if (roll == 1) {
     rare_grade = RARE_GRADE_MYTHICAL;
-  } else if (roll <= 6) {
+  } else if (roll <= 5) {
     rare_grade = RARE_GRADE_LEGENDARY;
-  } else if (roll <= 16) {
+  } else if (roll <= 15) {
     rare_grade = RARE_GRADE_RARE;
   }
   
@@ -686,12 +686,17 @@ void award_random_crystal(struct char_data *ch, int grade) {
   int color1 = -1, color2 = -1, desc = -1, roll = 0;
   struct obj_data *obj = NULL;
   char buf[MEDIUM_STRING] = {'\0'};
+  int rare_grade = RARE_GRADE_NORMAL;
 
   if ((obj = read_object(CRYSTAL_PROTOTYPE, VIRTUAL)) == NULL) {
     log("SYSERR:  get_random_crystal read_object returned NULL");
     return;
   }
-
+  
+  /* determine if rare or not, start building string */
+  rare_grade = determine_rare_grade();
+  sprintf(desc, label_rare_grade(rare_grade)); 
+  
   /* this is just to make sure the item is set correctly */
   GET_OBJ_TYPE(obj) = ITEM_CRYSTAL;
   GET_OBJ_LEVEL(obj) = grade * 5;
@@ -1235,7 +1240,7 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
 void award_magic_ammo(struct char_data *ch, int grade) {
   struct obj_data *obj = NULL;
   int armor_desc_roll = 0;
-  //int rare_grade = 0; //TODO
+  int rare_grade = RARE_GRADE_NORMAL;
   int level = 0;
   char desc[MEDIUM_STRING] = {'\0'};
   char keywords[MEDIUM_STRING] = {'\0'};
@@ -1245,7 +1250,11 @@ void award_magic_ammo(struct char_data *ch, int grade) {
     log("SYSERR: award_magic_ammo created NULL object");
     return;
   }  
-
+  
+  /* determine if rare or not, start building string */
+  rare_grade = determine_rare_grade();
+  sprintf(desc, label_rare_grade(rare_grade)); 
+  
   /* pick a random ammo, 0 = undefined */
   armor_desc_roll = rand_number(1, NUM_AMMO_TYPES - 1);
   
@@ -1894,18 +1903,9 @@ void award_magic_weapon(struct char_data *ch, int grade) {
   set_weapon_object(obj, roll);
   /* we should have a completely usable weapon now, just missing descripts/stats */
   
-  /* determine if rare or not */
-  roll = dice(1, 100);
-  if (roll == 1) {
-    rare_grade = 3;
-    sprintf(desc, "\tM[Mythical] \tn");
-  } else if (roll <= 6) {
-    rare_grade = 2;
-    sprintf(desc, "\tY[Legendary] \tn");
-  } else if (roll <= 16) {
-    rare_grade = 1;
-    sprintf(desc, "\tG[Rare] \tn");
-  }
+  /* determine if rare or not, start building string */
+  rare_grade = determine_rare_grade();
+  sprintf(desc, label_rare_grade(rare_grade));
 
   /* ok assigning final material here, check for upgrade */
   GET_OBJ_MATERIAL(obj) =
@@ -2618,6 +2618,11 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade) {
   char desc[MEDIUM_STRING] = {'\0'}, armor_name[MEDIUM_STRING] = {'\0'};
   char keywords[MEDIUM_STRING] = {'\0'};
   char desc2[SHORT_STRING] = {'\0'}, desc3[SHORT_STRING] = {'\0'};
+  int rare_grade = RARE_GRADE_NORMAL;
+  
+  /* determine if rare or not, start building string */
+  rare_grade = determine_rare_grade();
+  sprintf(desc, label_rare_grade(rare_grade));  
   
   /* assign base material
    * and last but not least, give appropriate start of description
