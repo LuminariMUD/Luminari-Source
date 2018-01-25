@@ -2073,7 +2073,7 @@ void award_magic_weapon(struct char_data *ch, int grade) {
 
   /* object is fully described
    base object is taken care of including material, now set random stats, etc */
-  cp_modify_object_applies(ch, obj, cp_convert_grade_enchantment(rare_grade), grade, CP_TYPE_WEAPON, FALSE);
+  cp_modify_object_applies(ch, obj, grade, grade, CP_TYPE_WEAPON, FALSE);
 }
 #undef SHORT_STRING
 
