@@ -3147,7 +3147,7 @@ ACMD(do_loadmagicspecific) {
   else if (is_abbrev(arg2, "feet"))
     award_misc_magic_item(ch, TRS_SLOT_FEET, grade);
   else if (is_abbrev(arg2, "monk"))
-    award_misc_magic_item(ch, TRS_SLOT_MONK_GLOVES grade);
+    award_misc_magic_item(ch, TRS_SLOT_MONK_GLOVES, grade);
   else if (is_abbrev(arg2, "hand"))
     award_misc_magic_item(ch, TRS_SLOT_HAND, grade);
   else if (is_abbrev(arg2, "about"))
