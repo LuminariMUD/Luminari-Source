@@ -1203,7 +1203,8 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
 void award_magic_ammo(struct char_data *ch, int grade) {
   struct obj_data *obj = NULL;
   int armor_desc_roll = 0;
-  int rare_grade = 0, level = 0;
+  //int rare_grade = 0; //TODO
+  int level = 0;
   char desc[MEDIUM_STRING] = {'\0'};
   char keywords[MEDIUM_STRING] = {'\0'};
 
@@ -2294,7 +2295,7 @@ void give_magic_weapon(struct char_data *ch, int selection, int enchantment, boo
 
   /* object is fully described
    base object is taken care of including material, now set random stats, etc */
-  cp_modify_object_applies(ch, obj, cp_convert_grade_enchantment(grade), CP_TYPE_WEAPON, silent_mode);
+  cp_modify_object_applies(ch, obj, enchantment, CP_TYPE_WEAPON, silent_mode);
 }
 #undef SHORT_STRING
 
