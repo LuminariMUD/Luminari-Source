@@ -1575,7 +1575,7 @@ int compute_spells_prep_time(struct char_data *ch, int class, int circle, int do
   if (prep_time <= 0)
     prep_time = 1;
 
-  return (prep_time);
+  return ( MAX(circle, prep_time) );
 }
 
 /* look at top of the queue, and reset preparation time of that entry */
