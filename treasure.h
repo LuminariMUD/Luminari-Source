@@ -28,11 +28,13 @@
 #define TRS_SLOT_NECK       2
 #define TRS_SLOT_FEET       3
 #define TRS_SLOT_HANDS      4
+#define TRS_SLOT_HAND TRS_SLOT_HANDS
 #define TRS_SLOT_ABOUT      5
 #define TRS_SLOT_WAIST      6
 #define TRS_SLOT_WRIST      7
 #define TRS_SLOT_HELD       8
 #define TRS_SLOT_MONK_GLOVE 9
+#define TRS_SLOT_MONK_GLOVES TRS_SLOT_MONK_GLOVE
 /* for random miscellaneous items, this is the number of categories */
 #define NUM_MISC_CATEGORIES 9 /* match last value above */
 
