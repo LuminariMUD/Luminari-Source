@@ -13,6 +13,12 @@
 
 /* defines */
 
+/* rare grade */
+#define RARE_GRADE_NORMAL     0
+#define RARE_GRADE_RARE       1
+#define RARE_GRADE_LEGENDARY  2
+#define RARE_GRADE_MYTHICAL   3
+
 /* added this because the apply_X bonus is capped, stop it before
    it causes problems */
 #define RANDOM_BONUS_CAP  127
