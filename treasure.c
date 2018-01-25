@@ -32,11 +32,11 @@ char *label_rare_grade(int rare_grade) {
   
   switch (rare_grade) {
     case RARE_GRADE_MYTHICAL:
-      return "\tM[Mythical]\tn ";
+      return "[Mythical] ";
     case RARE_GRADE_LEGENDARY:
-      return "\tY[Legendary]\tn ";
+      return "[Legendary] ";
     case RARE_GRADE_RARE:
-      return "\tG[Rare]\tn ";
+      return "[Rare] ";
   }
   return NULL;
 }
@@ -707,7 +707,8 @@ void award_random_crystal(struct char_data *ch, int grade) {
   obj->affected[0].location = random_apply_value();
   /* determine bonus */
   /* this is deprecated, level determines modifier now (in craft.c) */
-  obj->affected[0].modifier = grade;
+  obj->affected[0].modifier = adjust_bonus_value(obj->affected[0].location,
+                                  grade);
   obj->affected[0].bonus_type = adjust_bonus_type(obj->affected[0].location);
 
   /* random color(s) and description */
@@ -3173,6 +3174,8 @@ ACMD(do_loadmagicspecific) {
       award_misc_magic_item(ch, TRS_SLOT_HELD, grade);
   }
 
+  send_to_char(ch, "You attempt to create some items!\r\n");
+  
   return;
 }
 
