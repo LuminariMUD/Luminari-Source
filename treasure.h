@@ -49,6 +49,7 @@
 #define CP_TYPE_WEAPON       2
 #define CP_TYPE_MISC         3
 #define CP_TYPE_AMMO         4
+#define CP_TYPE_CRYSTAL      5
 
 /* percentage chance of random treasure drop */
 /* DO NOT MAKE OVER 98 (because of happyhour settings) */
