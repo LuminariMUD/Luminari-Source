@@ -1222,6 +1222,7 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
     obj->affected[1].location = APPLY_FEAT;
     obj->affected[1].modifier = apply_bonus_feat(rare_grade);
     obj->affected[1].bonus_type = adjust_bonus_type(APPLY_FEAT);
+    
     switch (rare_grade) {
       case RARE_GRADE_LEGENDARY:
         if (has_enhancement)
