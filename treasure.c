@@ -1071,7 +1071,9 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
   if (cp_type == CP_TYPE_AMMO)
     GET_OBJ_VAL(obj, 2) -= MIN(29, (dice(5, bonus_value) + bonus_value) );
 
+  /* object level (min level to use) */
   GET_OBJ_LEVEL(obj) = bonus_value * 5;
+  
   if (cp_type == CP_TYPE_AMMO)
     ;
   else // set value
@@ -3094,11 +3096,11 @@ ACMD(do_loadmagicspecific) {
 
   if (!*arg1) {
     send_to_char(ch, "Syntax: lms [mundane|minor|typical|medium|major|superior] "
-            "[weapon|shield|body|legs|arms|head|crystal|expendable|ammo|finger|neck|wrist|feet|monk|hand|about|waist|held] <AMOUNT>\r\n");
+            "[weapon|shield|body|legs|arms|head|crystal|ammo|finger|neck|wrist|feet|monk|hand|about|waist|held|scroll|potion|wand|staff] <AMOUNT>\r\n");
     return;
   }
   if (!*arg2) {
-    send_to_char(ch, "2nd argument must be: [weapon|shield|body|legs|arms|head|crystal|expendable|ammo|finger|neck|wrist|feet|monk|hand|about|waist|held]\r\n");
+    send_to_char(ch, "2nd argument must be: [weapon|shield|body|legs|arms|head|crystal|ammo|finger|neck|wrist|feet|monk|hand|about|waist|held|scroll|potion|wand|staff]\r\n");
     return;
   }
 
@@ -3128,7 +3130,7 @@ ACMD(do_loadmagicspecific) {
     grade = GRADE_SUPERIOR;
   else {
     send_to_char(ch, "Syntax: lms [mundane|minor|typical|medium|major|superior] "
-            "[weapon|shield|body|legs|arms|head|crystal|expendable|ammo|finger|neck|wrist|feet|monk|hand|about|waist|held]\r\n");
+            "[weapon|shield|body|legs|arms|head|crystal|ammo|finger|neck|wrist|feet|monk|hand|about|waist|held|scroll|potion|wand|staff]\r\n");
     return;
   }
 
@@ -3167,8 +3169,16 @@ ACMD(do_loadmagicspecific) {
       award_misc_magic_item(ch, TRS_SLOT_WAIST, grade);
     else if (is_abbrev(arg2, "held"))
       award_misc_magic_item(ch, TRS_SLOT_HELD, grade);
+    else if (is_abbrev(arg2, "scroll"))
+      award_expendable_item(ch, grade, TYPE_SCROLL);
+    else if (is_abbrev(arg2, "potion"))
+      award_expendable_item(ch, grade, TYPE_POTION);
+    else if (is_abbrev(arg2, "wand"))
+      award_expendable_item(ch, grade, TYPE_WAND);
+    else if (is_abbrev(arg2, "staff"))
+      award_expendable_item(ch, grade, TYPE_STAFF);
   }
-
+  
   send_to_char(ch, "You attempt to create some items!\r\n");
 
   return;
