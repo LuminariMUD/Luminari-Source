@@ -29,7 +29,7 @@
 
 /* utility function to label 'rare grade' gear */
 char *label_rare_grade(int rare_grade) {
-  
+
   switch (rare_grade) {
     case RARE_GRADE_MYTHICAL:
       return "[Mythical] ";
@@ -44,10 +44,10 @@ char *label_rare_grade(int rare_grade) {
 /* utility function to determine 'rare grade' - extra special items */
 int determine_rare_grade() {
   int roll = 0, rare_grade = RARE_GRADE_NORMAL;
-  
+
   /* determine if rare or not */
   roll = dice(1, 100);
-  
+
   if (roll == 1) {
     rare_grade = RARE_GRADE_MYTHICAL;
   } else if (roll <= 5) {
@@ -55,14 +55,14 @@ int determine_rare_grade() {
   } else if (roll <= 15) {
     rare_grade = RARE_GRADE_RARE;
   }
-  
+
   return rare_grade;
 }
 
 /* utility function that converts a grade rating to an enchantment rating */
 int cp_convert_grade_enchantment(int grade) {
   int enchantment = 0;
-  
+
   switch (grade) {
     case GRADE_MINOR:
       if (rand_number(0, 1))
@@ -75,7 +75,7 @@ int cp_convert_grade_enchantment(int grade) {
         enchantment = 3;
       else
         enchantment = 2;
-      break;            
+      break;
     case GRADE_MEDIUM:
       if (rand_number(0, 2))
         enchantment = 3;
@@ -101,7 +101,7 @@ int cp_convert_grade_enchantment(int grade) {
         enchantment = 0;
       break;
   }
-  
+
   return enchantment;
 }
 
@@ -110,7 +110,7 @@ int determine_rnd_misc_cat() {
   int diceroll = dice(1, 11);
   int category = 0;
 
-  switch(diceroll) {
+  switch (diceroll) {
     case 1: /*ring*/
     case 2:
       category = TRS_SLOT_FINGER;
@@ -127,7 +127,7 @@ int determine_rnd_misc_cat() {
       category = TRS_SLOT_FEET;
       break;
     case 8: /*hands*/
-      if (dice(1,10) == 10) /* monk gloves */
+      if (dice(1, 10) == 10) /* monk gloves */
         category = TRS_SLOT_MONK_GLOVE;
       else
         category = TRS_SLOT_HANDS;
@@ -142,11 +142,11 @@ int determine_rnd_misc_cat() {
       category = TRS_SLOT_HELD;
       break;
   }
-    
+
   return category;
 }
 
-  /* this function is used to inform ch and surrounding of a bazaar purchase */
+/* this function is used to inform ch and surrounding of a bazaar purchase */
 void say_bazaar(struct char_data *ch, struct obj_data *obj) {
   if (ch && obj) {
     /* message */
@@ -162,9 +162,9 @@ void say_treasure(struct char_data *ch, struct obj_data *obj) {
     char buf[MAX_STRING_LENGTH] = {'\0'};
 
     send_to_char(ch, "\tYYou have found %s\tn\tY in a nearby lair (random treasure drop)!\tn\r\n", obj->short_description);
-    
+
     sprintf(buf, "$n \tYhas found %s\tn\tY in a nearby lair (random treasure drop)!\tn", obj->short_description);
-    act(buf, FALSE, ch, 0, ch, TO_NOTVICT);  
+    act(buf, FALSE, ch, 0, ch, TO_NOTVICT);
   }
 }
 
@@ -425,6 +425,7 @@ int determine_stat_apply(int wear) {
 }
 
 /* function to adjust the bonus value based on the apply location */
+
 /* called by random_bonus_value(), cp_modify_object_applies(), */
 int adjust_bonus_value(int apply_location, int bonus) {
   int adjusted_bonus = bonus;
@@ -433,7 +434,7 @@ int adjust_bonus_value(int apply_location, int bonus) {
     case APPLY_MOVE:
       adjusted_bonus = bonus * 12;
       break;
-    /* no modifications */
+      /* no modifications */
     default:
       break;
   }
@@ -441,6 +442,7 @@ int adjust_bonus_value(int apply_location, int bonus) {
 }
 
 /* assign bonus-types to the bonus */
+
 /* called by: cp_modify_object_applies() */
 int adjust_bonus_type(int apply_location) {
   switch (apply_location) {
@@ -455,6 +457,7 @@ int adjust_bonus_type(int apply_location) {
 }
 
 /* function that returns bonus value based on apply-value and level */
+
 /* called by award_random_crystal() */
 int random_bonus_value(int apply_value, int level, int mod) {
   int bonus = MAX(1, (level / BONUS_FACTOR) + mod);
@@ -510,9 +513,9 @@ void determine_treasure(struct char_data *ch, struct char_data *mob) {
   } else if (level >= 5) {
     max_grade = GRADE_MINOR;
   } else {
-    max_grade = GRADE_MUNDANE;    
+    max_grade = GRADE_MUNDANE;
   }
-  
+
   /* okay now determine grade */
   grade = dice(1, max_grade);
 
@@ -537,19 +540,19 @@ void award_magic_item(int number, struct char_data *ch, int grade) {
   if (number >= 50)
     number = 50;
 
- /* crystals drop 5% of the time.
- * scrolls/wands/potions/staves drop 40% of the time. (each 10%)
- * trinkets (bracelets, rings, etc. including cloaks, boots and gloves) drop 20% of the time.
- * armor (head, arms, legs, body) drop 25% of the time.
- * weapons drop 10% of the time. */
+  /* crystals drop 5% of the time.
+   * scrolls/wands/potions/staves drop 40% of the time. (each 10%)
+   * trinkets (bracelets, rings, etc. including cloaks, boots and gloves) drop 20% of the time.
+   * armor (head, arms, legs, body) drop 25% of the time.
+   * weapons drop 10% of the time. */
   for (i = 0; i < number; i++) {
     roll = dice(1, 100);
-    if (roll <= 5)                 /*  1 - 5    5%  */
+    if (roll <= 5) /*  1 - 5    5%  */
       award_random_crystal(ch, grade);
-    else if (roll <= 15)           /*  6 - 15   10% */
+    else if (roll <= 15) /*  6 - 15   10% */
       award_magic_weapon(ch, grade);
-    else if (roll <= 55) {         /* 16 - 55   40% */
-      switch (dice(1,6)) {
+    else if (roll <= 55) { /* 16 - 55   40% */
+      switch (dice(1, 6)) {
         case 1:
           award_expendable_item(ch, grade, TYPE_SCROLL);
           break;
@@ -566,9 +569,9 @@ void award_magic_item(int number, struct char_data *ch, int grade) {
           award_magic_ammo(ch, grade);
           break;
       }
-    } else if (roll <= 75) {       /* 56 - 75   20% */
+    } else if (roll <= 75) { /* 56 - 75   20% */
       award_misc_magic_item(ch, determine_rnd_misc_cat(), cp_convert_grade_enchantment(grade));
-    } else  {                      /* 76 - 100  25% */
+    } else { /* 76 - 100  25% */
       award_magic_armor(ch, grade, -1);
     }
   }
@@ -693,18 +696,18 @@ void award_random_crystal(struct char_data *ch, int grade) {
     log("SYSERR:  get_random_crystal read_object returned NULL");
     return;
   }
-  
+
   /* determine if rare or not, start building string */
   rare_grade = determine_rare_grade();
-  sprintf(buf2, label_rare_grade(rare_grade)); 
-  
+  sprintf(buf2, label_rare_grade(rare_grade));
+
   /* this is just to make sure the item is set correctly */
   GET_OBJ_TYPE(obj) = ITEM_CRYSTAL;
   GET_OBJ_MATERIAL(obj) = MATERIAL_CRYSTAL;
 
   /* random color(s) and description */
   color1 = rand_number(0, NUM_A_COLORS - 1);
-  color2 = rand_number(0, NUM_A_COLORS  - 1);
+  color2 = rand_number(0, NUM_A_COLORS - 1);
   while (color2 == color1)
     color2 = rand_number(0, NUM_A_COLORS - 1);
   desc = rand_number(0, NUM_A_CRYSTAL_DESCS - 1);
@@ -758,11 +761,12 @@ void award_random_crystal(struct char_data *ch, int grade) {
     sprintf(buf, "%sA %s arcanite crystal lies here.", buf2, crystal_descs[desc]);
     obj->description = strdup(buf);
   }
-  
-  cp_modify_object_applies(ch, obj, cp_convert_grade_enchantment(grade), CP_TYPE_CRYSTAL, FALSE);
+
+  cp_modify_object_applies(ch, obj, cp_convert_grade_enchantment(grade), CP_TYPE_CRYSTAL, rare_grade, FALSE);
 }
 
 /* awards potions or scroll or wand or staff */
+
 /* reminder, stock:
    obj value 0:  spell level
    obj value 1:  potion/scroll - spell #1; staff/wand - max charges
@@ -1023,45 +1027,37 @@ void award_expendable_item(struct char_data *ch, int grade, int type) {
  bonus as the currency, so we have to make decisions on the value of receiving
  other stats such as strength, hps, etc */
 void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
-        int enchantment_grade, int cp_type, int silent_mode) {
+        int enchantment_grade, int cp_type, int rare_grade, int silent_mode) {
   int bonus_value = enchantment_grade, bonus_location = APPLY_NONE;
   bool has_enhancement = FALSE;
 
   /* items that will only get an enhancement bonus */
   if (CAN_WEAR(obj, ITEM_WEAR_WIELD) || CAN_WEAR(obj, ITEM_WEAR_SHIELD) ||
-      CAN_WEAR(obj, ITEM_WEAR_HEAD) || CAN_WEAR(obj, ITEM_WEAR_BODY) ||
-      CAN_WEAR(obj, ITEM_WEAR_LEGS) || CAN_WEAR(obj, ITEM_WEAR_ARMS) ||
+          CAN_WEAR(obj, ITEM_WEAR_HEAD) || CAN_WEAR(obj, ITEM_WEAR_BODY) ||
+          CAN_WEAR(obj, ITEM_WEAR_LEGS) || CAN_WEAR(obj, ITEM_WEAR_ARMS) ||
           cp_type == CP_TYPE_AMMO
-      ) {
+          ) {
     /* object value 4 for these particular objects are their enchantment bonus */
     GET_OBJ_VAL(obj, 4) = bonus_value;
     has_enhancement = TRUE;
-  }
-  else if (cp_type == CP_TYPE_CRYSTAL) {
+  } else if (cp_type == CP_TYPE_CRYSTAL) {
     bonus_location = random_apply_value();
-  }  
+  }
   else if (CAN_WEAR(obj, ITEM_WEAR_FINGER)) {
     bonus_location = determine_stat_apply(WEAR_FINGER_R);
-  }
-  else if (CAN_WEAR(obj, ITEM_WEAR_NECK)) {
+  } else if (CAN_WEAR(obj, ITEM_WEAR_NECK)) {
     bonus_location = determine_stat_apply(WEAR_NECK_1);
-  }
-  else if (CAN_WEAR(obj, ITEM_WEAR_FEET)) {
+  } else if (CAN_WEAR(obj, ITEM_WEAR_FEET)) {
     bonus_location = determine_stat_apply(WEAR_FEET);
-  }
-  else if (CAN_WEAR(obj, ITEM_WEAR_HANDS)) {
+  } else if (CAN_WEAR(obj, ITEM_WEAR_HANDS)) {
     bonus_location = determine_stat_apply(WEAR_HANDS);
-  }
-  else if (CAN_WEAR(obj, ITEM_WEAR_ABOUT)) {
+  } else if (CAN_WEAR(obj, ITEM_WEAR_ABOUT)) {
     bonus_location = determine_stat_apply(WEAR_ABOUT);
-  }
-  else if (CAN_WEAR(obj, ITEM_WEAR_WAIST)) {
+  } else if (CAN_WEAR(obj, ITEM_WEAR_WAIST)) {
     bonus_location = determine_stat_apply(WEAR_WAIST);
-  }
-  else if (CAN_WEAR(obj, ITEM_WEAR_WRIST)) {
+  } else if (CAN_WEAR(obj, ITEM_WEAR_WRIST)) {
     bonus_location = determine_stat_apply(WEAR_WRIST_R);
-  }
-  else if (CAN_WEAR(obj, ITEM_WEAR_HOLD)) {
+  } else if (CAN_WEAR(obj, ITEM_WEAR_HOLD)) {
     bonus_location = determine_stat_apply(WEAR_HOLD_1);
   }
 
@@ -1074,17 +1070,17 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
   /* lets modify this ammo's breakability (base 30%) */
   if (cp_type == CP_TYPE_AMMO)
     GET_OBJ_VAL(obj, 2) += (bonus_value * 5 / 2) + (bonus_value * 10 / 2);
-  
+
   GET_OBJ_LEVEL(obj) = bonus_value * 5;
   if (cp_type == CP_TYPE_AMMO)
     ;
-  else  // set value
-    GET_OBJ_COST(obj) = (1+GET_OBJ_LEVEL(obj)) * 100 + (bonus_value*5);  
-  
-  REMOVE_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MOLD);  // make sure not mold
-  
+  else // set value
+    GET_OBJ_COST(obj) = (1 + GET_OBJ_LEVEL(obj)) * 100 + (bonus_value * 5);
+
+  REMOVE_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MOLD); // make sure not mold
+
   if (bonus_value >= 1)
-    SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC);  // add magic tag
+    SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC); // add magic tag
 
   obj_to_char(obj, ch); // deliver object
 
@@ -1229,7 +1225,7 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
   //inform ch and surrounding that they received this item
   say_treasure(ch, obj);
 }
-*/
+ */
 
 /* Give away random magic ammo */
 void award_magic_ammo(struct char_data *ch, int grade) {
@@ -1244,19 +1240,19 @@ void award_magic_ammo(struct char_data *ch, int grade) {
   if ((obj = read_object(AMMO_PROTO, VIRTUAL)) == NULL) {
     log("SYSERR: award_magic_ammo created NULL object");
     return;
-  }  
-  
+  }
+
   /* determine if rare or not, start building string */
   rare_grade = determine_rare_grade();
-  sprintf(desc, label_rare_grade(rare_grade)); 
-  
+  sprintf(desc, label_rare_grade(rare_grade));
+
   /* pick a random ammo, 0 = undefined */
   armor_desc_roll = rand_number(1, NUM_AMMO_TYPES - 1);
-  
+
   /* now set up this new object */
   set_ammo_object(obj, armor_desc_roll);
   /* we should have a completely usable ammo now, just missing descrip/stats */
-  
+
   /* set the object material, check for upgrade */
   GET_OBJ_MATERIAL(obj) = possible_material_upgrade(GET_OBJ_MATERIAL(obj), grade);
 
@@ -1282,8 +1278,8 @@ void award_magic_ammo(struct char_data *ch, int grade) {
       break;
   }
 
-  /* BEGIN DESCRIPTION SECTION */  
-  
+  /* BEGIN DESCRIPTION SECTION */
+
   /* arrow, bolt, dart
    * a|an [ammo_descs, ex. dwarven-made] [material] [arrow|bolt|dart]
    *   with a [piercing_descs, ex. grooved] tip
@@ -1291,29 +1287,29 @@ void award_magic_ammo(struct char_data *ch, int grade) {
    * a/an [ammo_descs] [material] sling-bullet
    */
   armor_desc_roll = rand_number(0, NUM_A_AMMO_DESCS - 1);
-  
+
   /* a dwarven-made */
   sprintf(desc, "%s %s", AN(ammo_descs[armor_desc_roll]),
-      ammo_descs[armor_desc_roll]);
+          ammo_descs[armor_desc_roll]);
   sprintf(keywords, "%s", ammo_descs[armor_desc_roll]);
-  
+
   /* mithril sling-bullet */
   sprintf(desc, "%s %s %s", desc, material_name[GET_OBJ_MATERIAL(obj)],
-      ammo_types[GET_OBJ_VAL(obj, 0)]);
+          ammo_types[GET_OBJ_VAL(obj, 0)]);
   sprintf(keywords, "%s %s %s", keywords, material_name[GET_OBJ_MATERIAL(obj)],
-      ammo_types[GET_OBJ_VAL(obj, 0)]);
-  
+          ammo_types[GET_OBJ_VAL(obj, 0)]);
+
   /* sling bullets done! */
   if (GET_OBJ_VAL(obj, 0) == AMMO_TYPE_STONE)
     ;
-  /* with a grooved tip (arrows, bolts, darts) */
+    /* with a grooved tip (arrows, bolts, darts) */
   else {
     armor_desc_roll = rand_number(1, NUM_A_AMMO_HEAD_DESCS - 1);
     sprintf(desc, "%s with a %s tip", desc, ammo_head_descs[armor_desc_roll]);
     sprintf(keywords, "%s %s tip", keywords,
             ammo_head_descs[armor_desc_roll]);
   }
-  
+
   /* we are adding "ammo" as a keyword here for ease of handling for players */
   sprintf(keywords, "%s ammo", keywords);
 
@@ -1328,8 +1324,8 @@ void award_magic_ammo(struct char_data *ch, int grade) {
   /* END DESCRIPTION SECTION */
 
   /* BONUS SECTION */
-  SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC);  
-  cp_modify_object_applies(ch, obj, cp_convert_grade_enchantment(grade), CP_TYPE_AMMO, FALSE);
+  SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC);
+  cp_modify_object_applies(ch, obj, cp_convert_grade_enchantment(grade), CP_TYPE_AMMO, rare_grade, FALSE);
   /* END BONUS SECTION */
 }
 
@@ -1351,24 +1347,24 @@ void give_magic_armor(struct char_data *ch, int selection, int enchantment, bool
   if ((obj = read_object(ARMOR_PROTO, VIRTUAL)) == NULL) {
     log("SYSERR: give_magic_armor created NULL object");
     return;
-  }  
+  }
 
   /* now set up this new object */
   set_armor_object(obj, selection);
   /* we should have a completely usable armor now, just missing descrip/stats */
-  
+
   /* a suit of (body), or a pair of (arm/leg), or AN() (helm) */
   if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_BODY)) {
-    sprintf(desc, "%s%s", desc, "a suit of");    
+    sprintf(desc, "%s%s", desc, "a suit of");
   } else if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_HEAD) ||
-             IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_SHIELD)) {
+          IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_SHIELD)) {
     armor_desc_roll = rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1);
     sprintf(desc, "%s%s", desc,
-            AN(armor_special_descs[armor_desc_roll]));    
+            AN(armor_special_descs[armor_desc_roll]));
   } else {
-    sprintf(desc, "%s%s", desc, "a pair of");        
+    sprintf(desc, "%s%s", desc, "a pair of");
   }
-  
+
   /* set the object material, check for upgrade */
   GET_OBJ_MATERIAL(obj) = possible_material_upgrade(GET_OBJ_MATERIAL(obj), enchantment);
 
@@ -1458,7 +1454,7 @@ void give_magic_armor(struct char_data *ch, int selection, int enchantment, bool
   /* END DESCRIPTION SECTION */
 
   /* BONUS SECTION */
-  cp_modify_object_applies(ch, obj, enchantment, CP_TYPE_ARMOR, silent_mode);
+  cp_modify_object_applies(ch, obj, enchantment, CP_TYPE_ARMOR, rare_grade, silent_mode);
   /* END BONUS SECTION */
 }
 
@@ -1481,33 +1477,33 @@ void award_magic_armor(struct char_data *ch, int grade, int wear_slot) {
   if ((obj = read_object(ARMOR_PROTO, VIRTUAL)) == NULL) {
     log("SYSERR: award_magic_armor created NULL object");
     return;
-  }  
+  }
 
   /* pick a random armor, 0 = undefined */
   do {
     roll = rand_number(1, NUM_SPEC_ARMOR_TYPES - 1);
   } while (armor_list[roll].wear != wear_slot && wear_slot != -1);
-  
+
   /* now set up this new object */
   set_armor_object(obj, roll);
   /* we should have a completely usable armor now, just missing descrip/stats */
-  
+
   /* determine if rare or not, start building string */
   rare_grade = determine_rare_grade();
   sprintf(desc, label_rare_grade(rare_grade));
-  
+
   /* a suit of (body), or a pair of (arm/leg), or AN() (helm) */
   if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_BODY)) {
-    sprintf(desc, "%s%s", desc, "a suit of");    
+    sprintf(desc, "%s%s", desc, "a suit of");
   } else if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_HEAD) ||
-             IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_SHIELD)) {
+          IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_SHIELD)) {
     armor_desc_roll = rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1);
     sprintf(desc, "%s%s", desc,
-            AN(armor_special_descs[armor_desc_roll]));    
+            AN(armor_special_descs[armor_desc_roll]));
   } else {
-    sprintf(desc, "%s%s", desc, "a pair of");        
+    sprintf(desc, "%s%s", desc, "a pair of");
   }
-  
+
   /* set the object material, check for upgrade */
   GET_OBJ_MATERIAL(obj) = possible_material_upgrade(GET_OBJ_MATERIAL(obj), grade);
 
@@ -1596,7 +1592,7 @@ void award_magic_armor(struct char_data *ch, int grade, int wear_slot) {
   /* END DESCRIPTION SECTION */
 
   /* BONUS SECTION */
-  cp_modify_object_applies(ch, obj, cp_convert_grade_enchantment(grade), CP_TYPE_ARMOR, FALSE);
+  cp_modify_object_applies(ch, obj, cp_convert_grade_enchantment(grade), CP_TYPE_ARMOR, rare_grade, FALSE);
   /* END BONUS SECTION */
 }
 
@@ -1604,28 +1600,28 @@ void award_magic_armor(struct char_data *ch, int grade, int wear_slot) {
    ammo object values:
  * 0 : ammo type
    2 : break probability
-   */
+ */
 void set_ammo_object(struct obj_data *obj, int type) {
 
   GET_OBJ_TYPE(obj) = ITEM_MISSILE;
-  
+
   /* Ammo Type, 0 Value */
   GET_OBJ_VAL(obj, 0) = type;
 
   /* Base breakability 30% */
   GET_OBJ_VAL(obj, 2) = 30;
-  
+
   /* for convenience we are going to go ahead and set some other values */
   GET_OBJ_COST(obj) = 10;
   GET_OBJ_WEIGHT(obj) = 0;
-  
+
   /* base material */
   switch (type) {
     case AMMO_TYPE_STONE:
       GET_OBJ_MATERIAL(obj) = MATERIAL_STONE;
       break;
     default:
-      GET_OBJ_MATERIAL(obj) = MATERIAL_WOOD;      
+      GET_OBJ_MATERIAL(obj) = MATERIAL_WOOD;
       break;
   }
 }
@@ -1639,10 +1635,10 @@ void set_armor_object(struct obj_data *obj, int type) {
   int wear_inc;
 
   GET_OBJ_TYPE(obj) = ITEM_ARMOR;
-  
+
   /* Armor Type, 2nd Value */
   GET_OBJ_VAL(obj, 1) = type;
-  
+
   /* auto set ac apply, 1st value */
   GET_OBJ_VAL(obj, 0) =
           armor_list[GET_OBJ_VAL(obj, 1)].armorBonus;
@@ -1656,21 +1652,22 @@ void set_armor_object(struct obj_data *obj, int type) {
           armor_list[GET_OBJ_VAL(obj, 1)].material;
 
   /* set the proper wear bits! */
-  
+
   /* going to go ahead and reset all the bits off */
   for (wear_inc = 0; wear_inc < NUM_ITEM_WEARS; wear_inc++) {
     REMOVE_BIT_AR(GET_OBJ_WEAR(obj), wear_inc);
   }
-  
+
   /* now set take bit */
   TOGGLE_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_TAKE);
-  
+
   /* now set the appropriate wear flag bit */
   TOGGLE_BIT_AR(GET_OBJ_WEAR(obj),
           armor_list[GET_OBJ_VAL(obj, 1)].wear);
 }
 
 /* automatically set object up to be a given weapon type */
+
 /* weapon object values:
    0 : the base weapon-type, i.e. long sword
    1 : number of damage dice
@@ -1680,7 +1677,7 @@ void set_weapon_object(struct obj_data *obj, int type) {
   int wear_inc;
 
   GET_OBJ_TYPE(obj) = ITEM_WEAPON;
-  
+
   /* Weapon Type */
   GET_OBJ_VAL(obj, 0) = type;
 
@@ -1695,17 +1692,17 @@ void set_weapon_object(struct obj_data *obj, int type) {
   GET_OBJ_MATERIAL(obj) = weapon_list[GET_OBJ_VAL(obj, 0)].material;
   /* size */
   GET_OBJ_SIZE(obj) = weapon_list[GET_OBJ_VAL(obj, 0)].size;
-  
+
   /* set the proper wear bits */
-  
+
   /* going to go ahead and reset all the bits off */
   for (wear_inc = 0; wear_inc < NUM_ITEM_WEARS; wear_inc++) {
     REMOVE_BIT_AR(GET_OBJ_WEAR(obj), wear_inc);
   }
-  
+
   /* now set take bit */
   TOGGLE_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_TAKE);
-  
+
   /* now set the appropriate wear flag bit */
   TOGGLE_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_WIELD);
 }
@@ -1715,14 +1712,14 @@ void set_weapon_object(struct obj_data *obj, int type) {
 int possible_material_upgrade(int base_mat, int grade) {
   int material = base_mat;
   int roll = dice(1, 100); /* randomness */
-  
+
   /* sometimes we carry enchantment value into here, which would be
      from 0-6, this will fix that */
   if (grade < GRADE_MUNDANE)
     grade = GRADE_MUNDANE;
   if (grade > GRADE_SUPERIOR)
     grade = GRADE_SUPERIOR;
-  
+
   switch (material) {
     case MATERIAL_BRONZE:
       switch (grade) {
@@ -1863,8 +1860,8 @@ int possible_material_upgrade(int base_mat, int grade) {
           break;
       }
       break;
-  }  
-  
+  }
+
   return material;
 }
 
@@ -1876,6 +1873,7 @@ int possible_material_upgrade(int base_mat, int grade) {
  * 5)  determine amount (if applicable)
  */
 #define SHORT_STRING 80
+
 void award_magic_weapon(struct char_data *ch, int grade) {
   struct obj_data *obj = NULL;
   int roll = 0;
@@ -1889,15 +1887,15 @@ void award_magic_weapon(struct char_data *ch, int grade) {
   if ((obj = read_object(WEAPON_PROTO, VIRTUAL)) == NULL) {
     log("SYSERR: award_magic_weapon created NULL object");
     return;
-  }  
-  
+  }
+
   /* pick a random weapon, 0 = undefined 1 = unarmed */
   roll = rand_number(2, NUM_WEAPON_TYPES - 1);
 
   /* now set up this new object */
   set_weapon_object(obj, roll);
   /* we should have a completely usable weapon now, just missing descripts/stats */
-  
+
   /* determine if rare or not, start building string */
   rare_grade = determine_rare_grade();
   sprintf(desc, label_rare_grade(rare_grade));
@@ -2093,7 +2091,7 @@ void award_magic_weapon(struct char_data *ch, int grade) {
 
   /* object is fully described
    base object is taken care of including material, now set random stats, etc */
-  cp_modify_object_applies(ch, obj, cp_convert_grade_enchantment(grade), CP_TYPE_WEAPON, FALSE);
+  cp_modify_object_applies(ch, obj, cp_convert_grade_enchantment(grade), CP_TYPE_WEAPON, rare_grade, FALSE);
 }
 #undef SHORT_STRING
 
@@ -2103,6 +2101,7 @@ void award_magic_weapon(struct char_data *ch, int grade) {
  * 3)  determine modifier (if applicable)
  */
 #define SHORT_STRING 80
+
 void give_magic_weapon(struct char_data *ch, int selection, int enchantment, bool silent_mode) {
   struct obj_data *obj = NULL;
   int roll = 0;
@@ -2116,12 +2115,12 @@ void give_magic_weapon(struct char_data *ch, int selection, int enchantment, boo
   if ((obj = read_object(WEAPON_PROTO, VIRTUAL)) == NULL) {
     log("SYSERR: give_magic_weapon created NULL object");
     return;
-  }  
-  
+  }
+
   /* now set up this new object */
   set_weapon_object(obj, selection);
   /* we should have a completely usable weapon now, just missing descripts/stats */
-  
+
   /* ok assigning final material here, check for upgrade */
   GET_OBJ_MATERIAL(obj) =
           possible_material_upgrade(GET_OBJ_MATERIAL(obj), enchantment);
@@ -2314,7 +2313,7 @@ void give_magic_weapon(struct char_data *ch, int selection, int enchantment, boo
 
   /* object is fully described
    base object is taken care of including material, now set random stats, etc */
-  cp_modify_object_applies(ch, obj, enchantment, CP_TYPE_WEAPON, silent_mode);
+  cp_modify_object_applies(ch, obj, enchantment, CP_TYPE_WEAPON, rare_grade, silent_mode);
 }
 #undef SHORT_STRING
 
@@ -2329,6 +2328,7 @@ void give_magic_weapon(struct char_data *ch, int selection, int enchantment, boo
  * 5)  determine amount (if applicable)
  */
 #define SHORT_STRING    80
+
 void give_misc_magic_item(struct char_data *ch, int category, int enchantment, bool silent_mode) {
   struct obj_data *obj = NULL;
   int vnum = -1, material = MATERIAL_BRONZE;
@@ -2385,7 +2385,7 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment, b
       vnum = WRIST_MOLD;
       material = MATERIAL_COPPER;
       sprintf(armor_name, wrist_descs[rand_number(0, NUM_A_WRIST_DESCS - 1)]);
-      sprintf(desc2, gemstones[rand_number(0, NUM_A_GEMSTONES-1)]);
+      sprintf(desc2, gemstones[rand_number(0, NUM_A_GEMSTONES - 1)]);
       break;
     case 8: /*held*/
       vnum = HELD_MOLD;
@@ -2405,7 +2405,7 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment, b
   /* we already determined 'base' material, now
    determine whether an upgrade was achieved by enchantment */
   switch (material) {
-    
+
     case MATERIAL_COPPER:
       switch (enchantment) {
         case 0:
@@ -2426,7 +2426,7 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment, b
           break;
       }
       break; /*end copper*/
-      
+
     case MATERIAL_LEATHER:
       switch (enchantment) {
         case 0:
@@ -2441,7 +2441,7 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment, b
           break;
       }
       break; /*end leather*/
-      
+
     case MATERIAL_COTTON:
       switch (enchantment) {
         case 0:
@@ -2465,7 +2465,7 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment, b
           break;
       }
       break; /*end cotton*/
-      
+
       /* options:  crystal, obsidian, onyx, ivory, pewter; just random */
     case MATERIAL_ONYX:
       switch (dice(1, 5)) {
@@ -2517,7 +2517,7 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment, b
     log("SYSERR: give_misc_magic_item created NULL object");
     return;
   }
-  
+
   /* special handling for monk gloves, etc */
   switch (category) {
     case 9:
@@ -2525,7 +2525,7 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment, b
       break;
     default:break;
   }
-  
+
   /* set material */
   GET_OBJ_MATERIAL(obj) = material;
 
@@ -2591,7 +2591,7 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment, b
   }
 
   /* level, bonus and cost */
-  cp_modify_object_applies(ch, obj, enchantment, CP_TYPE_MISC, silent_mode);
+  cp_modify_object_applies(ch, obj, enchantment, CP_TYPE_MISC, rare_grade, silent_mode);
 }
 #undef SHORT_STRING
 
@@ -2606,6 +2606,7 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment, b
  * 5)  determine amount (if applicable)
  */
 #define SHORT_STRING    80
+
 void award_misc_magic_item(struct char_data *ch, int category, int grade) {
   struct obj_data *obj = NULL;
   int vnum = -1, material = MATERIAL_BRONZE;
@@ -2614,11 +2615,11 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade) {
   char keywords[MEDIUM_STRING] = {'\0'};
   char desc2[SHORT_STRING] = {'\0'}, desc3[SHORT_STRING] = {'\0'};
   int rare_grade = RARE_GRADE_NORMAL;
-  
+
   /* determine if rare or not, start building string */
   rare_grade = determine_rare_grade();
-  sprintf(desc, label_rare_grade(rare_grade));  
-  
+  sprintf(desc, label_rare_grade(rare_grade));
+
   /* assign base material
    * and last but not least, give appropriate start of description
    *  */
@@ -2667,7 +2668,7 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade) {
       vnum = WRIST_MOLD;
       material = MATERIAL_COPPER;
       sprintf(armor_name, wrist_descs[rand_number(0, NUM_A_WRIST_DESCS - 1)]);
-      sprintf(desc2, gemstones[rand_number(0, NUM_A_GEMSTONES-1)]);
+      sprintf(desc2, gemstones[rand_number(0, NUM_A_GEMSTONES - 1)]);
       break;
     case 8: /*held*/
       vnum = HELD_MOLD;
@@ -2687,7 +2688,7 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade) {
   /* we already determined 'base' material, now
    determine whether an upgrade was achieved by grade */
   switch (material) {
-    
+
     case MATERIAL_COPPER:
       switch (grade) {
         case 0:
@@ -2708,7 +2709,7 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade) {
           break;
       }
       break; /*end copper*/
-      
+
     case MATERIAL_LEATHER:
       switch (grade) {
         case 0:
@@ -2723,7 +2724,7 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade) {
           break;
       }
       break; /*end leather*/
-      
+
     case MATERIAL_COTTON:
       switch (grade) {
         case 0:
@@ -2747,7 +2748,7 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade) {
           break;
       }
       break; /*end cotton*/
-      
+
       /* options:  crystal, obsidian, onyx, ivory, pewter; just random */
     case MATERIAL_ONYX:
       switch (dice(1, 5)) {
@@ -2799,7 +2800,7 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade) {
     log("SYSERR: award_misc_magic_item created NULL object");
     return;
   }
-  
+
   /* special handling for monk gloves, etc */
   switch (category) {
     case 9: /* monk gloves */
@@ -2807,7 +2808,7 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade) {
       break;
     default:break;
   }
-  
+
   /* set material */
   GET_OBJ_MATERIAL(obj) = material;
 
@@ -2873,7 +2874,7 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade) {
   }
 
   /* level, bonus and cost */
-  cp_modify_object_applies(ch, obj, grade, CP_TYPE_MISC, FALSE);
+  cp_modify_object_applies(ch, obj, grade, CP_TYPE_MISC, rare_grade, FALSE);
 }
 #undef SHORT_STRING
 
@@ -2886,7 +2887,7 @@ void load_treasure(char_data *mob) {
     return;
 
   level = GET_LEVEL(mob);
-  
+
   /* determine maximum grade of treasure */
   if (level >= 25) {
     max_grade = GRADE_SUPERIOR;
@@ -2899,12 +2900,12 @@ void load_treasure(char_data *mob) {
   } else if (level >= 5) {
     max_grade = GRADE_MINOR;
   } else {
-    max_grade = GRADE_MUNDANE;    
+    max_grade = GRADE_MUNDANE;
   }
-  
+
   /* okay now determine grade */
   grade = dice(1, max_grade);
-  
+
   /* Give the mob one magic item. */
   award_magic_item(1, mob, grade);
 }
@@ -2912,7 +2913,7 @@ void load_treasure(char_data *mob) {
 /* utility function for bazaar below - misc armoring such
    as rings, necklaces, bracelets, etc */
 void disp_misc_type_menu(struct char_data *ch) {
-  
+
   send_to_char(ch,
           "1) finger\r\n"
           "2) neck\r\n"
@@ -2924,7 +2925,7 @@ void disp_misc_type_menu(struct char_data *ch) {
           "8) hold\r\n"
           "9) monk-gloves\r\n"
           );
-  
+
 }
 
 /* command to load specific treasure */
@@ -3072,11 +3073,11 @@ SPECIAL(bazaar) {
       default:
         break;
     }
-    
+
     return TRUE; /*end*/
-    
+
   }
-  
+
   return FALSE;
 }
 
@@ -3100,7 +3101,7 @@ ACMD(do_loadmagicspecific) {
     send_to_char(ch, "2nd argument must be: [weapon|shield|body|legs|arms|head|crystal|expendable|ammo|finger|neck|wrist|feet|monk|hand|about|waist|held]\r\n");
     return;
   }
-  
+
   /* amount */
   if (!*arg3) {
     number = 1;
@@ -3169,7 +3170,7 @@ ACMD(do_loadmagicspecific) {
   }
 
   send_to_char(ch, "You attempt to create some items!\r\n");
-  
+
   return;
 }
 
