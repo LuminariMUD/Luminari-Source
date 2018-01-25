@@ -2702,7 +2702,7 @@ struct obj_flag_data {
  * and already have a player base and don't want to do a player wipe. */
 struct obj_affected_type {
     byte location; /**< Which ability to change (APPLY_XXX) */
-    sbyte modifier; /**< How much it changes by              */
+    int modifier; /**< How much it changes by              */
     int bonus_type; /**< What type of bonus is this. */
 };
 
