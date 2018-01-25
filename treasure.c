@@ -29,22 +29,20 @@
 
 /* utility function to label 'rare grade' gear */
 char *label_rare_grade(int rare_grade) {
-  char desc[20];
-  
-  *desc = '\0';
+  char *desc = NULL;
   
   switch (rare_grade) {
     case RARE_GRADE_MYTHICAL:
-      sprintf(desc, "\tM[Mythical]\tn ");
+      *desc = "\tM[Mythical]\tn ";
       break;
     case RARE_GRADE_LEGENDARY:
-      sprintf(desc, "\tY[Legendary]\tn ");
+      *desc = "\tY[Legendary]\tn ";
       break;
     case RARE_GRADE_RARE:
-      sprintf(desc, "\tG[Rare]\tn ");
+      *desc = "\tG[Rare]\tn ";
       break;
   }
-  return *desc;
+  return desc;
 }
 
 /* utility function to determine 'rare grade' - extra special items */
