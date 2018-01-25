@@ -664,8 +664,7 @@ void award_random_crystal(struct char_data *ch, int grade) {
 
   /* this is just to make sure the item is set correctly */
   GET_OBJ_TYPE(obj) = ITEM_CRYSTAL;
-  GET_OBJ_LEVEL(obj) = rand_number(6, level);
-  level = GET_OBJ_LEVEL(obj); /* for determining bonus */
+  GET_OBJ_LEVEL(obj) = rand_number(5, grade*5);
   GET_OBJ_COST(obj) = (1+GET_OBJ_LEVEL(obj)) * 100;
   GET_OBJ_MATERIAL(obj) = MATERIAL_CRYSTAL;
 
@@ -673,7 +672,7 @@ void award_random_crystal(struct char_data *ch, int grade) {
   obj->affected[0].location = random_apply_value();
   /* determine bonus */
   /* this is deprecated, level determines modifier now (in craft.c) */
-  obj->affected[0].modifier = level / 5 + rand_number(0, 2);
+  obj->affected[0].modifier = grade;
   obj->affected[0].bonus_type = adjust_bonus_type(obj->affected[0].location);
 
   /* random color(s) and description */
