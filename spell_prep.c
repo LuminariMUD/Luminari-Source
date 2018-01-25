@@ -1554,7 +1554,7 @@ int compute_spells_prep_time(struct char_data *ch, int class, int circle, int do
   /** calculate bonuses **/
   /*skills*/
   /* stat bonus */
-  bonus_time += stat_bonus;
+  bonus_time += stat_bonus / 2;
   /* concentration */
   if (!IS_NPC(ch) && GET_ABILITY(ch, ABILITY_CONCENTRATION)) {
     bonus_time += compute_ability(ch, ABILITY_CONCENTRATION) / 4;
