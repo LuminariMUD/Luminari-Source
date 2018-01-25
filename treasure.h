@@ -1,15 +1,34 @@
-/*
- * File:   treasure.h
- * Author: Zusuk (ported from d20mud)
- *
- * Created:  03/10/2013
- */
+/*/ \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \
+\                                                             
+/  Luminari Treasure System, Inspired by D20mud's Treasure System                                                           
+/  Created By: Zusuk, original d20 code written by Gicker                                                           
+\                                                             
+/
+\         todo: CP system by Ornir                                               
+/                                                                                                                                                                                       
+\ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ /*/
 
 #ifndef TREASURE_H
 #define	TREASURE_H
 
-
 /* defines */
+
+/* added this because the apply_X bonus is capped, stop it before
+   it causes problems */
+#define RANDOM_BONUS_CAP  127
+
+/* misc-slots for random/determined magic items */
+#define TRS_SLOT_FINGER     1
+#define TRS_SLOT_NECK       2
+#define TRS_SLOT_FEET       3
+#define TRS_SLOT_HANDS      4
+#define TRS_SLOT_ABOUT      5
+#define TRS_SLOT_WAIST      6
+#define TRS_SLOT_WRIST      7
+#define TRS_SLOT_HELD       8
+#define TRS_SLOT_MONK_GLOVE 9
+/* for random miscellaneous items, this is the number of categories */
+#define NUM_MISC_CATEGORIES 9 /* match last value above */
 
 /* Ornir CP System Defines, CP = creation points*/
 /* we manually add +X to cp_max_bonus in the code */
@@ -25,7 +44,7 @@
 
 /* percentage chance of random treasure drop */
 /* DO NOT MAKE OVER 98 (because of happyhour settings) */
-#define TREASURE_PERCENT 10
+#define TREASURE_PERCENT 5
 
 /* array sizes for treasure_const.c */
 #define NUM_A_GEMSTONES       27
@@ -200,12 +219,10 @@
 /* end misc molds */
 #define NUM_MISC_MOLDS 8
 
-
 /* item prototype for potions/scrolls/wands/staves */
 #define ITEM_PROTOTYPE        3210
 /* item prototype for crystals */
 #define CRYSTAL_PROTOTYPE     3211
-
 
 /* treasure_const.c - list of constant arrays */
 extern const char *gemstones[NUM_A_GEMSTONES + 1];
@@ -244,21 +261,21 @@ struct char_data *find_treasure_recipient(struct char_data *killer);
 void determine_treasure(struct char_data *ch, struct char_data *mob);
 // character should get treasure, chooses what awards are given out
 // uses:  award_special/expendable (potion/scroll/wand/staff)/weapon/"item"/armor
-void award_magic_item(int number, struct char_data *ch, int level, int grade);
+void award_magic_item(int number, struct char_data *ch, int grade);
 /* function that creates a random crystal */
-void award_random_crystal(struct char_data *ch, int level);
+void award_random_crystal(struct char_data *ch, int grade);
 // gives away staff/potion/scroll/wand
 void award_expendable_item(struct char_data *ch, int grade, int type);
 // gives away random magic armor
-void award_magic_armor(struct char_data *ch, int grade, int moblevel, int wear_slot);
+void award_magic_armor(struct char_data *ch, int grade, int wear_slot);
 // gives away random magic weapon
-void award_magic_weapon(struct char_data *ch, int grade, int moblevel);
+void award_magic_weapon(struct char_data *ch, int grade);
 // gives away random armor pieces (outside of body-armor/shield)
-void award_misc_magic_item(struct char_data *ch, int grade, int moblevel);
+void award_misc_magic_item(struct char_data *ch, int grade);
 // gives away random ammo
-void award_magic_ammo(struct char_data *ch, int grade, int moblevel);
+void award_magic_ammo(struct char_data *ch, int grade);
 // determines bonus modifiers to apply_value
-int random_bonus_value(int apply_value, int level, int mod);
+int random_bonus_value(int apply_value, int grade, int mod);
 // take an object, and set its values to an appropriate weapon of 'type'
 void set_weapon_object(struct obj_data *obj, int type);
 // take an object, and set its values to an appropriate armor of 'type'
@@ -279,7 +296,6 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment, b
  * This is a work in progress. */
 void load_treasure(struct char_data *mob);
 
-
 // staff tool to load random items
 ACMD(do_loadmagic);
 ACMD(do_loadmagicspecific);
@@ -288,6 +304,4 @@ ACMD(do_loadmagicspecific);
 /* special procedures */
 SPECIAL(bazaar);
 
-
 #endif	/* TREASURE_H */
-
