@@ -528,7 +528,10 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode) {
   for (i = 0; i < MAX_OBJ_AFFECT; i++)
     if (j->affected[i].modifier) {
       sprinttype(j->affected[i].location, apply_types, buf, sizeof (buf));
-      send_to_char(ch, "%s %+d to %s (%s)", found++ ? "," : "", j->affected[i].modifier, buf, bonus_types[j->affected[i].bonus_type]);
+      if (j->affected[i].location == APPLY_FEAT)
+        send_to_char(ch, "%s %s: %s (%s)", found++ ? "," : "", buf, feat_list[j->affected[i].modifier].name, bonus_types[j->affected[i].bonus_type]);
+      else
+        send_to_char(ch, "%s %+d to %s (%s)", found++ ? "," : "", j->affected[i].modifier, buf, bonus_types[j->affected[i].bonus_type]);
     }
   if (!found)
     send_to_char(ch, " None");
