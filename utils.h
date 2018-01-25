@@ -1130,7 +1130,7 @@ spellnum == SPELL_EPIC_WARDING )
 #define GET_SKILL_FEAT(ch,i,j)  ((ch)->player_specials->saved.skill_focus[i][j])
 
 /* Macros to check LEVELUP feats. */
-#define HAS_LEVELUP_FEAT(ch, i)         (get_feat_value((ch), i))
+#define HAS_LEVELUP_FEAT(ch, i)         (has_feat_requirement_check((ch), i))
 #define SET_LEVELUP_FEAT(ch, i, j)      (LEVELUP(ch)->feats[i] = j)
 #define HAS_LEVELUP_COMBAT_FEAT(ch,i,j) (IS_SET_AR(LEVELUP(ch)->combat_feats[i], j))
 #define SET_LEVELUP_COMBAT_FEAT(ch,i,j) (SET_BIT_AR(LEVELUP(ch)->combat_feats[(i)], (j)))

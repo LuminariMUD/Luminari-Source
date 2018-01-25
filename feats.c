@@ -53,6 +53,7 @@ void sort_feats(void) {
   qsort(&feat_sort_info[1], NUM_FEATS, sizeof (int), compare_feats);
 }
 
+/* we use this for checking requirements and levelup struct */
 int has_feat_requirement_check(struct char_data *ch, int featnum) {
   if (ch->desc && LEVELUP(ch)) { /* check if he's in study mode */
     return (HAS_FEAT(ch, featnum) + LEVELUP(ch)->feats[featnum]);
@@ -60,28 +61,11 @@ int has_feat_requirement_check(struct char_data *ch, int featnum) {
   
   return (HAS_FEAT(ch, featnum));
 }
-/* checks if the char has the feat either saved to file or in the process
- of acquiring it in study */
-int has_feat(struct char_data *ch, int featnum) {
-  struct obj_data *obj;
-  int i = 0, j = 0;
 
-  if (ch->desc && LEVELUP(ch)) { /* check if he's in study mode */
-    return (HAS_FEAT(ch, featnum) + LEVELUP(ch)->feats[featnum]);
-  }
-
-  /* check if we got this feat equipped */
-  for (j = 0; j < NUM_WEARS; j++) {
-    if ((obj = GET_EQ(ch, j)) == NULL)
-      continue;
-    for (i = 0; i < MAX_OBJ_AFFECT; i++) {
-      if (obj->affected[i].location == APPLY_FEAT && obj->affected[i].modifier == featnum)
-        return ((HAS_FEAT(ch, featnum)) + 1);
-    }
-  }
-
-  return (HAS_FEAT(ch, featnum));
-}
+/* our main tool for checking if someone has a feat is the macro:
+     HAS_FEAT(ch, feat-number)
+   which is just the utility function in utils.c:
+     get_feat_value(ch, feat-number) */
 
 /* checks if ch has feat (compare) as one of his/her combat feats (cfeat) */
 bool has_combat_feat(struct char_data *ch, int cfeat, int compare) {
