@@ -436,7 +436,7 @@ bool add_levelup_feat(struct descriptor_data *d, int feat) {
   struct char_data *ch = d->character;
   int feat_type = 0;
 
-  if (has_feat(ch, feat) && !feat_list[feat].can_stack) {
+  if (has_feat_requirement_check(ch, feat) && !feat_list[feat].can_stack) {
     write_to_output(d, "You already have this feat.\r\n");
     return FALSE;
   }
@@ -1292,7 +1292,7 @@ static void display_study_feats(struct descriptor_data *d) {
         feat_is_available(ch, i, 0, NULL) &&
         feat_list[i].in_game &&
         feat_list[i].can_learn &&
-        (!has_feat(ch, i) || feat_list[i].can_stack))) {
+        (!has_feat_requirement_check(ch, i) || feat_list[i].can_stack))) {
 
       write_to_output(d,
                       "%s%s%3d%s) %-30s%s",
@@ -1660,7 +1660,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
           (number >= NUM_FEATS) ||
           (!feat_is_available(d->character, number, 0, NULL)) ||
           (!feat_list[number].can_learn) ||
-          (has_feat(d->character, number) && feat_list[number].can_stack)) {
+          (has_feat_requirement_check(d->character, number) && feat_list[number].can_stack)) {
         write_to_output(d, "Invalid feat, try again.\r\n");
         gen_feat_disp_menu(d);
         break;
