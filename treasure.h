@@ -277,7 +277,7 @@ void award_magic_armor(struct char_data *ch, int grade, int wear_slot);
 // gives away random magic weapon
 void award_magic_weapon(struct char_data *ch, int grade);
 // gives away random armor pieces (outside of body-armor/shield)
-void award_misc_magic_item(struct char_data *ch, int grade);
+void award_misc_magic_item(struct char_data *ch, int category, int grade);
 // gives away random ammo
 void award_magic_ammo(struct char_data *ch, int grade);
 // determines bonus modifiers to apply_value
