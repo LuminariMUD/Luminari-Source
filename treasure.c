@@ -700,17 +700,7 @@ void award_random_crystal(struct char_data *ch, int grade) {
   
   /* this is just to make sure the item is set correctly */
   GET_OBJ_TYPE(obj) = ITEM_CRYSTAL;
-  GET_OBJ_LEVEL(obj) = grade * 5;
-  GET_OBJ_COST(obj) = (1+GET_OBJ_LEVEL(obj)) * 100;
   GET_OBJ_MATERIAL(obj) = MATERIAL_CRYSTAL;
-
-  /* set a random apply value */
-  obj->affected[0].location = random_apply_value();
-  /* determine bonus */
-  /* this is deprecated, level determines modifier now (in craft.c) */
-  obj->affected[0].modifier = adjust_bonus_value(obj->affected[0].location,
-                                  grade);
-  obj->affected[0].bonus_type = adjust_bonus_type(obj->affected[0].location);
 
   /* random color(s) and description */
   color1 = rand_number(0, NUM_A_COLORS - 1);
@@ -768,8 +758,8 @@ void award_random_crystal(struct char_data *ch, int grade) {
     sprintf(buf, "%sA %s arcanite crystal lies here.", buf2, crystal_descs[desc]);
     obj->description = strdup(buf);
   }
-
-  obj_to_char(obj, ch);
+  
+  cp_modify_object_applies(ch, obj, cp_convert_grade_enchantment(grade), CP_TYPE_CRYSTAL, FALSE);
 }
 
 /* awards potions or scroll or wand or staff */
@@ -1047,6 +1037,9 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
     GET_OBJ_VAL(obj, 4) = bonus_value;
     has_enhancement = TRUE;
   }
+  else if (cp_type == CP_TYPE_CRYSTAL) {
+    bonus_location = random_apply_value();
+  }  
   else if (CAN_WEAR(obj, ITEM_WEAR_FINGER)) {
     bonus_location = determine_stat_apply(WEAR_FINGER_R);
   }
@@ -1080,7 +1073,7 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
 
   /* lets modify this ammo's breakability (base 30%) */
   if (cp_type == CP_TYPE_AMMO)
-    GET_OBJ_VAL(obj, 2) -= (bonus_value*5 / 2 + bonus_value * 10 / 2);
+    GET_OBJ_VAL(obj, 2) += (bonus_value * 5 / 2) + (bonus_value * 10 / 2);
   
   GET_OBJ_LEVEL(obj) = bonus_value * 5;
   if (cp_type == CP_TYPE_AMMO)
