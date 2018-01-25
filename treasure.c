@@ -1061,6 +1061,10 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
     say_treasure(ch, obj);
   else
     say_bazaar(ch, obj);
+
+  /* staff will get a free ID here -zusuk */
+  if (GET_LEVEL(ch) >= LVL_IMMORT)
+    do_stat_object(ch, obj, ITEM_STAT_MODE_IMMORTAL);
 }
 
 /* this is ornir's original version, taken out until he has time to finish it */
