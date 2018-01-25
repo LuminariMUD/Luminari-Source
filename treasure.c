@@ -1419,7 +1419,7 @@ void give_magic_armor(struct char_data *ch, int selection, int enchantment, bool
   /* END DESCRIPTION SECTION */
 
   /* BONUS SECTION */
-  cp_modify_object_applies(ch, obj, enchantment, grade, CP_TYPE_ARMOR, silent_mode);
+  cp_modify_object_applies(ch, obj, enchantment, enchantment, CP_TYPE_ARMOR, silent_mode);
   /* END BONUS SECTION */
 }
 
