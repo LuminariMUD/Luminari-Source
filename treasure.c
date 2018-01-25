@@ -530,9 +530,7 @@ void award_magic_item(int number, struct char_data *ch, int grade) {
         case 4:
           award_expendable_item(ch, grade, TYPE_STAFF);
           break;
-        default: /* giving 3 */
-          award_magic_ammo(ch, grade);
-          award_magic_ammo(ch, grade);
+        default: /* 5- 6 */
           award_magic_ammo(ch, grade);
           break;
       }
@@ -1310,7 +1308,7 @@ void give_magic_armor(struct char_data *ch, int selection, int enchantment, bool
 
   /* ok load blank object */
   if ((obj = read_object(ARMOR_PROTO, VIRTUAL)) == NULL) {
-    log("SYSERR: award_magic_armor created NULL object");
+    log("SYSERR: give_magic_armor created NULL object");
     return;
   }  
 
