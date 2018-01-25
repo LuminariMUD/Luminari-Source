@@ -438,13 +438,13 @@ int apply_bonus_feat(int rare_grade) {
   
   switch (rare_grade) {
     case RARE_GRADE_RARE:
-      dice = dice(1, 93);
+      dice = rand_number(1, 93);
       break;
     case RARE_GRADE_LEGENDARY:
-      dice = dice(1, 121);
+      dice = rand_number(1, 121);
       break;
     case RARE_GRADE_MYTHICAL:
-      dice = dice(1, 151);
+      dice = rand_number(1, 151);
       break;
   }
   
