@@ -662,7 +662,7 @@ void award_random_crystal(struct char_data *ch, int grade) {
 
   /* this is just to make sure the item is set correctly */
   GET_OBJ_TYPE(obj) = ITEM_CRYSTAL;
-  GET_OBJ_LEVEL(obj) = rand_number(5, grade*5);
+  GET_OBJ_LEVEL(obj) = grade * 5;
   GET_OBJ_COST(obj) = (1+GET_OBJ_LEVEL(obj)) * 100;
   GET_OBJ_MATERIAL(obj) = MATERIAL_CRYSTAL;
 
@@ -1043,7 +1043,7 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
   if (cp_type == CP_TYPE_AMMO)
     GET_OBJ_VAL(obj, 2) -= (bonus_value*5 / 2 + bonus_value * 10 / 2);
   
-  GET_OBJ_LEVEL(obj) = bonus_value*5;
+  GET_OBJ_LEVEL(obj) = bonus_value * 5;
   if (cp_type == CP_TYPE_AMMO)
     ;
   else  // set value
