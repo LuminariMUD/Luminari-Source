@@ -1069,7 +1069,7 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
 
   /* lets modify this ammo's breakability (base 30%) */
   if (cp_type == CP_TYPE_AMMO)
-    GET_OBJ_VAL(obj, 2) -= MIN( 29,  ((bonus_value * 5 / 2) + (bonus_value * 10 / 2)) );
+    GET_OBJ_VAL(obj, 2) -= MIN(29, dice(1, bonus_value) * 5);
 
   GET_OBJ_LEVEL(obj) = bonus_value * 5;
   if (cp_type == CP_TYPE_AMMO)
