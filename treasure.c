@@ -3089,19 +3089,33 @@ SPECIAL(bazaar) {
 ACMD(do_loadmagicspecific) {
   char arg1[MAX_STRING_LENGTH];
   char arg2[MAX_STRING_LENGTH];
+  char arg3[MAX_STRING_LENGTH];
   int grade = 0;
+  int number = 0;
+  int i = 0;
 
-  two_arguments(argument, arg1, arg2);
+  three_arguments(argument, arg1, arg2, arg3);
 
   if (!*arg1) {
-    send_to_char(ch, "Syntax: loadmagicspecific [mundane|minor|typical|medium|major|superior] "
-            "[weapon|shield|body|legs|arms|head|crystal|expendable|ammo|finger|neck|wrist|feet|monk|hand|about|waist|held]\r\n");
+    send_to_char(ch, "Syntax: lms [mundane|minor|typical|medium|major|superior] "
+            "[weapon|shield|body|legs|arms|head|crystal|expendable|ammo|finger|neck|wrist|feet|monk|hand|about|waist|held] <AMOUNT>\r\n");
     return;
   }
-
   if (!*arg2) {
     send_to_char(ch, "2nd argument must be: [weapon|shield|body|legs|arms|head|crystal|expendable|ammo|finger|neck|wrist|feet|monk|hand|about|waist|held]\r\n");
     return;
+  }
+  
+  /* amount */
+  if (!*arg3) {
+    number = 1;
+  } else {
+    number = atoi(arg3);
+    if (number <= 0)
+      number = 1;
+
+    if (number > 25)
+      number = 25;
   }
 
   if (is_abbrev(arg1, "mundane"))
@@ -3117,48 +3131,46 @@ ACMD(do_loadmagicspecific) {
   else if (is_abbrev(arg1, "superior"))
     grade = GRADE_SUPERIOR;
   else {
-    send_to_char(ch, "Syntax: loadmagicspecific [mundane|minor|typical|medium|major|superior] "
+    send_to_char(ch, "Syntax: lms [mundane|minor|typical|medium|major|superior] "
             "[weapon|shield|body|legs|arms|head|crystal|expendable|ammo|finger|neck|wrist|feet|monk|hand|about|waist|held]\r\n");
     return;
   }
 
-  if (is_abbrev(arg2, "weapon"))
-    award_magic_weapon(ch, grade);
-  else if (is_abbrev(arg2, "body"))
-    award_magic_armor(ch, grade, ITEM_WEAR_BODY);
-  else if (is_abbrev(arg2, "legs"))
-    award_magic_armor(ch, grade, ITEM_WEAR_LEGS);
-  else if (is_abbrev(arg2, "arms"))
-    award_magic_armor(ch, grade, ITEM_WEAR_ARMS);
-  else if (is_abbrev(arg2, "head"))
-    award_magic_armor(ch, grade, ITEM_WEAR_HEAD);
-  else if (is_abbrev(arg2, "crystal"))
-    award_random_crystal(ch, grade);
-  else if (is_abbrev(arg2, "shield"))
-    award_magic_armor(ch, grade, ITEM_WEAR_SHIELD);
-  else if (is_abbrev(arg2, "ammo"))
-    award_magic_ammo(ch, grade);
-  else if (is_abbrev(arg2, "finger"))
-    award_misc_magic_item(ch, TRS_SLOT_FINGER, grade);
-  else if (is_abbrev(arg2, "neck"))
-    award_misc_magic_item(ch, TRS_SLOT_NECK, grade);
-  else if (is_abbrev(arg2, "wrist"))
-    award_misc_magic_item(ch, TRS_SLOT_WRIST, grade);
-  else if (is_abbrev(arg2, "feet"))
-    award_misc_magic_item(ch, TRS_SLOT_FEET, grade);
-  else if (is_abbrev(arg2, "monk"))
-    award_misc_magic_item(ch, TRS_SLOT_MONK_GLOVES, grade);
-  else if (is_abbrev(arg2, "hand"))
-    award_misc_magic_item(ch, TRS_SLOT_HAND, grade);
-  else if (is_abbrev(arg2, "about"))
-    award_misc_magic_item(ch, TRS_SLOT_ABOUT, grade);
-  else if (is_abbrev(arg2, "waist"))
-    award_misc_magic_item(ch, TRS_SLOT_WAIST, grade);
-  else if (is_abbrev(arg2, "held"))
-    award_misc_magic_item(ch, TRS_SLOT_HELD, grade);
-  else {
-    send_to_char(ch, "2nd argument must be: [weapon|shield|body|legs|arms|head|crystal|"
-            "expendable|ammo|finger|neck|wrist|feet|monk|hand|about|waist|held]\r\n");
+  for (i = 0; i < number; i++) {
+    if (is_abbrev(arg2, "weapon"))
+      award_magic_weapon(ch, grade);
+    else if (is_abbrev(arg2, "body"))
+      award_magic_armor(ch, grade, ITEM_WEAR_BODY);
+    else if (is_abbrev(arg2, "legs"))
+      award_magic_armor(ch, grade, ITEM_WEAR_LEGS);
+    else if (is_abbrev(arg2, "arms"))
+      award_magic_armor(ch, grade, ITEM_WEAR_ARMS);
+    else if (is_abbrev(arg2, "head"))
+      award_magic_armor(ch, grade, ITEM_WEAR_HEAD);
+    else if (is_abbrev(arg2, "crystal"))
+      award_random_crystal(ch, grade);
+    else if (is_abbrev(arg2, "shield"))
+      award_magic_armor(ch, grade, ITEM_WEAR_SHIELD);
+    else if (is_abbrev(arg2, "ammo"))
+      award_magic_ammo(ch, grade);
+    else if (is_abbrev(arg2, "finger"))
+      award_misc_magic_item(ch, TRS_SLOT_FINGER, grade);
+    else if (is_abbrev(arg2, "neck"))
+      award_misc_magic_item(ch, TRS_SLOT_NECK, grade);
+    else if (is_abbrev(arg2, "wrist"))
+      award_misc_magic_item(ch, TRS_SLOT_WRIST, grade);
+    else if (is_abbrev(arg2, "feet"))
+      award_misc_magic_item(ch, TRS_SLOT_FEET, grade);
+    else if (is_abbrev(arg2, "monk"))
+      award_misc_magic_item(ch, TRS_SLOT_MONK_GLOVES, grade);
+    else if (is_abbrev(arg2, "hand"))
+      award_misc_magic_item(ch, TRS_SLOT_HAND, grade);
+    else if (is_abbrev(arg2, "about"))
+      award_misc_magic_item(ch, TRS_SLOT_ABOUT, grade);
+    else if (is_abbrev(arg2, "waist"))
+      award_misc_magic_item(ch, TRS_SLOT_WAIST, grade);
+    else if (is_abbrev(arg2, "held"))
+      award_misc_magic_item(ch, TRS_SLOT_HELD, grade);
   }
 
   return;
@@ -3175,7 +3187,7 @@ ACMD(do_loadmagic) {
 
   if (!*arg1) {
     send_to_char(ch, "Syntax: loadmagic [mundane | minor | typical | medium | major | superior] [# of items]\r\n");
-    send_to_char(ch, "See also: loadmagicspecific\r\n");
+    send_to_char(ch, "See also: loadmagicspecific (lms)\r\n");
     return;
   }
 
