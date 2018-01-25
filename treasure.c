@@ -434,17 +434,17 @@ int apply_bonus_feat(int rare_grade) {
     return FEAT_UNDEFINED;
   
   int feat_num = FEAT_UNDEFINED;
-  int roll;
+  int roll = 1;
   
   switch (rare_grade) {
     case RARE_GRADE_RARE:
-      roll = rand_number(1, 93);
+      roll = dice(1, 93);
       break;
     case RARE_GRADE_LEGENDARY:
-      roll = rand_number(1, 121);
+      roll = dice(1, 121);
       break;
     case RARE_GRADE_MYTHICAL:
-      roll = rand_number(1, 151);
+      roll = dice(1, 151);
       break;
   }
   
