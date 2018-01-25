@@ -1,8 +1,12 @@
-/* *************************************************************************
- *   File: treasure_const.c                            Part of LuminariMUD *
- *  Usage: constants for random treasure objects                           *
- *  Author: d20mud, ported to tba/luminari by Zusuk                        *
- ************************************************************************* */
+/*/ \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \
+\                                                             
+/  Luminari Treasure System, Inspired by D20mud's Treasure System                                                           
+/  Created By: Zusuk, original d20 code written by Gicker                                                           
+\                                                             
+/  using treasure.h as the header file currently                                                           
+\         todo: CP system by Ornir                                               
+/                                                                                                                                                                                       
+\ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ /*/
 
 #include "conf.h"
 #include "sysdep.h"

@@ -1,12 +1,12 @@
-/* *************************************************************************
- *  File:   treasure.c                                 Part of LuminariMUD *
- *  Usage:  functions for random treasure objects                          *
- *  Author: d20mud, ported to tba/luminari by Zusuk                        *
- ************************************************************************* *
- * This code is going through a rewrite, to make a more consistent system
- * across the mud for magic item generation (crafting, random treasure,
- * etc.)  Changes by Ornir.
- *************************************************************************/
+/*/ \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \
+\                                                             
+/  Luminari Treasure System, Inspired by D20mud's Treasure System                                                           
+/  Created By: Zusuk, original d20 code written by Gicker                                                           
+\                                                             
+/  using treasure.h as the header file currently                                                           
+\         todo: CP system by Ornir                                               
+/                                                                                                                                                                                       
+\ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ /*/
 
 #include "conf.h"
 #include "sysdep.h"
@@ -24,19 +24,6 @@
 #include "assign_wpn_armor.h"
 #include "oasis.h"
 #include "item.h"
-
-/* misc-slots for random/determined magic items */
-#define TRS_SLOT_FINGER     1
-#define TRS_SLOT_NECK       2
-#define TRS_SLOT_FEET       3
-#define TRS_SLOT_HANDS      4
-#define TRS_SLOT_ABOUT      5
-#define TRS_SLOT_WAIST      6
-#define TRS_SLOT_WRIST      7
-#define TRS_SLOT_HELD       8
-#define TRS_SLOT_MONK_GLOVE 9
-/* for random miscellaneous items, this is the number of categories */
-#define NUM_MISC_CATEGORIES 9 /* match last value above */
 
 /***  utility functions ***/
 
@@ -405,9 +392,6 @@ int determine_stat_apply(int wear) {
   return stat;
 }
 
-/* added this because the apply_X bonus is capped, stop it before
-   it causes problems */
-#define RANDOM_BONUS_CAP  127
 /* function to adjust the bonus value based on the apply location */
 /* called by random_bonus_value(), cp_modify_object_applies(), */
 int adjust_bonus_value(int apply_location, int bonus) {
@@ -501,7 +485,7 @@ void determine_treasure(struct char_data *ch, struct char_data *mob) {
   grade = dice(1, max_grade);
 
   if (dice(1, 100) <= MAX(TREASURE_PERCENT, HAPPY_TREASURE)) {
-    award_magic_item(dice(1, 2), ch, level, grade);
+    award_magic_item(dice(1, 2), ch, grade);
     sprintf(buf, "\tYYou have found %d coins hidden on $N's corpse!\tn", gold);
     act(buf, FALSE, ch, 0, mob, TO_CHAR);
     sprintf(buf, "$n \tYhas has found %d coins hidden on $N's corpse!\tn", gold);
@@ -512,7 +496,7 @@ void determine_treasure(struct char_data *ch, struct char_data *mob) {
 }
 
 /* character should get treasure, roll dice for what items to give out */
-void award_magic_item(int number, struct char_data *ch, int level, int grade) {
+void award_magic_item(int number, struct char_data *ch, int grade) {
   int i = 0;
   int roll = 0;
   if (number <= 0)
@@ -529,9 +513,9 @@ void award_magic_item(int number, struct char_data *ch, int level, int grade) {
   for (i = 0; i < number; i++) {
     roll = dice(1, 100);
     if (roll <= 5)                 /*  1 - 5    5%  */
-      award_random_crystal(ch, level);
+      award_random_crystal(ch, grade);
     else if (roll <= 15)           /*  6 - 15   10% */
-      award_magic_weapon(ch, grade, level);
+      award_magic_weapon(ch, grade);
     else if (roll <= 55) {         /* 16 - 55   40% */
       switch (dice(1,6)) {
         case 1:
@@ -547,15 +531,15 @@ void award_magic_item(int number, struct char_data *ch, int level, int grade) {
           award_expendable_item(ch, grade, TYPE_STAFF);
           break;
         default: /* giving 3 */
-          award_magic_ammo(ch, grade, level);
-          award_magic_ammo(ch, grade, level);
-          award_magic_ammo(ch, grade, level);
+          award_magic_ammo(ch, grade);
+          award_magic_ammo(ch, grade);
+          award_magic_ammo(ch, grade);
           break;
       }
     } else if (roll <= 75) {       /* 56 - 75   20% */
       give_misc_magic_item(ch, determine_rnd_misc_cat(), cp_convert_grade_enchantment(grade), FALSE);
     } else  {                      /* 76 - 100  25% */
-      award_magic_armor(ch, grade, level, -1);
+      award_magic_armor(ch, grade, -1);
     }
   }
 }
@@ -668,7 +652,7 @@ int random_apply_value(void) {
 }
 
 /* function to create a random crystal */
-void award_random_crystal(struct char_data *ch, int level) {
+void award_random_crystal(struct char_data *ch, int grade) {
   int color1 = -1, color2 = -1, desc = -1, roll = 0;
   struct obj_data *obj = NULL;
   char buf[MEDIUM_STRING] = {'\0'};
@@ -1013,7 +997,7 @@ void award_expendable_item(struct char_data *ch, int grade, int type) {
  bonus as the currency, so we have to make decisions on the value of receiving
  other stats such as strength, hps, etc */
 void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
-        int enchantment, int level, int cp_type, int silent_mode) {
+        int enchantment, int grade, int cp_type, int silent_mode) {
   int bonus_value = enchantment, bonus_location = APPLY_NONE;
   bool has_enhancement = FALSE;
 
@@ -1060,9 +1044,9 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
 
   /* lets modify this ammo's breakability (base 30%) */
   if (cp_type == CP_TYPE_AMMO)
-    GET_OBJ_VAL(obj, 2) -= (level / 2 + enchantment * 10 / 2);
+    GET_OBJ_VAL(obj, 2) -= (grade*5 / 2 + enchantment * 10 / 2);
   
-  GET_OBJ_LEVEL(obj) = level;
+  GET_OBJ_LEVEL(obj) = grade*5;
   if (cp_type == CP_TYPE_AMMO)
     ;
   else  // set value
@@ -1070,7 +1054,7 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
   
   REMOVE_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MOLD);  // make sure not mold
   
-  if (level >= 5)
+  if (grade >= 2)
     SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC);  // add magic tag
 
   obj_to_char(obj, ch); // deliver object
@@ -1215,7 +1199,7 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
 */
 
 /* Give away random magic ammo */
-void award_magic_ammo(struct char_data *ch, int grade, int moblevel) {
+void award_magic_ammo(struct char_data *ch, int grade) {
   struct obj_data *obj = NULL;
   int armor_desc_roll = 0;
   int rare_grade = 0, level = 0;
@@ -1307,14 +1291,14 @@ void award_magic_ammo(struct char_data *ch, int grade, int moblevel) {
 
   /* BONUS SECTION */
   SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC);  
-  cp_modify_object_applies(ch, obj, cp_convert_grade_enchantment(rare_grade), level, CP_TYPE_AMMO, FALSE);
+  cp_modify_object_applies(ch, obj, cp_convert_grade_enchantment(rare_grade), grade, CP_TYPE_AMMO, FALSE);
   /* END BONUS SECTION */
 }
 
 /* Give away random magic armor
  * (includes:  body/head/legs/arms/shield)
  * 1)  determine material
- * 2)  determine level
+ * 2)  determine grade
  * 3)  determine Creation Points
  * 4)  determine AC bonus (Always first stat...)
  * 5)  craft description based on object and bonuses */
@@ -1436,7 +1420,7 @@ void give_magic_armor(struct char_data *ch, int selection, int enchantment, bool
   /* END DESCRIPTION SECTION */
 
   /* BONUS SECTION */
-  cp_modify_object_applies(ch, obj, enchantment, level, CP_TYPE_ARMOR, silent_mode);
+  cp_modify_object_applies(ch, obj, enchantment, grade, CP_TYPE_ARMOR, silent_mode);
   /* END BONUS SECTION */
 }
 
@@ -1448,7 +1432,7 @@ void give_magic_armor(struct char_data *ch, int selection, int enchantment, bool
  * 3)  determine Creation Points
  * 4)  determine AC bonus (Always first stat...)
  * 5)  craft description based on object and bonuses */
-void award_magic_armor(struct char_data *ch, int grade, int moblevel, int wear_slot) {
+void award_magic_armor(struct char_data *ch, int grade, int wear_slot) {
   struct obj_data *obj = NULL;
   int roll = 0, armor_desc_roll = 0, crest_num = 0;
   int rare_grade = 0, color1 = 0, color2 = 0, level = 0;
@@ -1582,7 +1566,7 @@ void award_magic_armor(struct char_data *ch, int grade, int moblevel, int wear_s
   /* END DESCRIPTION SECTION */
 
   /* BONUS SECTION */
-  cp_modify_object_applies(ch, obj, cp_convert_grade_enchantment(rare_grade), level, CP_TYPE_ARMOR, FALSE);
+  cp_modify_object_applies(ch, obj, cp_convert_grade_enchantment(rare_grade), grade, CP_TYPE_ARMOR, FALSE);
   /* END BONUS SECTION */
 }
 
@@ -1862,7 +1846,7 @@ int possible_material_upgrade(int base_mat, int grade) {
  * 5)  determine amount (if applicable)
  */
 #define SHORT_STRING 80
-void award_magic_weapon(struct char_data *ch, int grade, int moblevel) {
+void award_magic_weapon(struct char_data *ch, int grade) {
   struct obj_data *obj = NULL;
   int roll = 0;
   int rare_grade = 0, color1 = 0, color2 = 0, level = 0, roll2 = 0, roll3 = 0;
@@ -2088,7 +2072,7 @@ void award_magic_weapon(struct char_data *ch, int grade, int moblevel) {
 
   /* object is fully described
    base object is taken care of including material, now set random stats, etc */
-  cp_modify_object_applies(ch, obj, cp_convert_grade_enchantment(rare_grade), level, CP_TYPE_WEAPON, FALSE);
+  cp_modify_object_applies(ch, obj, cp_convert_grade_enchantment(rare_grade), grade, CP_TYPE_WEAPON, FALSE);
 }
 #undef SHORT_STRING
 
@@ -2309,7 +2293,7 @@ void give_magic_weapon(struct char_data *ch, int selection, int enchantment, boo
 
   /* object is fully described
    base object is taken care of including material, now set random stats, etc */
-  cp_modify_object_applies(ch, obj, enchantment, level, CP_TYPE_WEAPON, silent_mode);
+  cp_modify_object_applies(ch, obj, enchantment, grade, CP_TYPE_WEAPON, silent_mode);
 }
 #undef SHORT_STRING
 
@@ -2323,7 +2307,7 @@ void give_magic_weapon(struct char_data *ch, int selection, int enchantment, boo
  * 5)  determine amount (if applicable)
  */
 #define SHORT_STRING    80
-void award_misc_magic_item(struct char_data *ch, int grade, int moblevel) {
+void award_misc_magic_item(struct char_data *ch, int grade) {
   struct obj_data *obj = NULL;
   int vnum = -1, material = MATERIAL_BRONZE, roll = 0;
   int rare_grade = 0, level = 0;
@@ -2635,7 +2619,7 @@ void award_misc_magic_item(struct char_data *ch, int grade, int moblevel) {
   }
 
   /* level, bonus and cost */
-  cp_modify_object_applies(ch, obj, cp_convert_grade_enchantment(rare_grade), level, CP_TYPE_MISC, FALSE);
+  cp_modify_object_applies(ch, obj, cp_convert_grade_enchantment(rare_grade), grade, CP_TYPE_MISC, FALSE);
 }
 #undef SHORT_STRING
 
@@ -2944,7 +2928,7 @@ void load_treasure(char_data *mob) {
   grade = dice(1, max_grade);
   
   /* Give the mob one magic item. */
-  award_magic_item(1, mob, level, grade);
+  award_magic_item(1, mob, grade);
 }
 
 /* utility function for bazaar below - misc armoring such
@@ -3177,25 +3161,25 @@ ACMD(do_loadmagicspecific) {
 
   switch (type) {
     case 1: /* weapon */
-      award_magic_weapon(ch, grade, GET_LEVEL(ch));
+      award_magic_weapon(ch, grade);
       break;
     case 2: /* body */
-      award_magic_armor(ch, grade, GET_LEVEL(ch), ITEM_WEAR_BODY);
+      award_magic_armor(ch, grade, ITEM_WEAR_BODY);
       break;
     case 3: /* legs */
-      award_magic_armor(ch, grade, GET_LEVEL(ch), ITEM_WEAR_LEGS);
+      award_magic_armor(ch, grade, ITEM_WEAR_LEGS);
       break;
     case 4: /* arms */
-      award_magic_armor(ch, grade, GET_LEVEL(ch), ITEM_WEAR_ARMS);
+      award_magic_armor(ch, grade, ITEM_WEAR_ARMS);
       break;
     case 5: /* head */
-      award_magic_armor(ch, grade, GET_LEVEL(ch), ITEM_WEAR_HEAD);
+      award_magic_armor(ch, grade, ITEM_WEAR_HEAD);
       break;
     case 6: /* misc */
       give_misc_magic_item(ch, determine_rnd_misc_cat(), cp_convert_grade_enchantment(grade), FALSE);      
       break;
     case 7: /* shield */
-      award_magic_armor(ch, grade, GET_LEVEL(ch), ITEM_WEAR_SHIELD);
+      award_magic_armor(ch, grade, ITEM_WEAR_SHIELD);
       break;
     default:
       send_to_char(ch, "Syntax: loadmagicspecific [mundane | minor | typical | medium | major | superior] "
@@ -3250,6 +3234,6 @@ ACMD(do_loadmagic) {
   if (number >= 50)
     number = 50;
 
-  award_magic_item(number, ch, GET_LEVEL(ch), grade);
+  award_magic_item(number, ch, grade);
 }
 
