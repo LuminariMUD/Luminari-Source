@@ -38,12 +38,14 @@
 /* Functions of a general utility nature
    Functions directly related to utils.h needs
  */
+
 /* MSDP GUI Wrappers */
 void gui_combat_wrap_open(struct char_data *ch) {
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_GUI_MODE)) { /* GUI Mode wrap open: combat */
     //send_to_char(ch, "<combat_message>\r\n");
   }
 }
+
 void gui_combat_wrap_notvict_open(struct char_data *ch, struct char_data *vict_obj) {
   if (!ch)
     return;
@@ -51,12 +53,12 @@ void gui_combat_wrap_notvict_open(struct char_data *ch, struct char_data *vict_o
     return;
   if (IS_NPC(ch))
     return;
-  
+
   /* we accept NULL victim */
-  
+
   int to_sleeping = 0;
   struct char_data *to = world[IN_ROOM(ch)].people;
-  
+
   for (; to; to = to->next_in_room) {
     if (!SENDOK(to) || (to == ch))
       continue;
@@ -67,11 +69,13 @@ void gui_combat_wrap_notvict_open(struct char_data *ch, struct char_data *vict_o
     //perform_act("<combat_message>\r\n", ch, NULL, vict_obj, to, FALSE);
   }
 }
+
 void gui_combat_wrap_close(struct char_data *ch) {
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_GUI_MODE)) { /* GUI Mode wrap close: combat */
     //send_to_char(ch, "</combat_message>\r\n");
   }
 }
+
 void gui_combat_wrap_notvict_close(struct char_data *ch, struct char_data *vict_obj) {
   if (!ch)
     return;
@@ -79,12 +83,12 @@ void gui_combat_wrap_notvict_close(struct char_data *ch, struct char_data *vict_
     return;
   if (IS_NPC(ch))
     return;
-  
+
   /* we accept NULL victim */
-  
+
   int to_sleeping = 0;
   struct char_data *to = world[IN_ROOM(ch)].people;
-  
+
   for (; to; to = to->next_in_room) {
     if (to == ch)
       continue;
@@ -97,11 +101,13 @@ void gui_combat_wrap_notvict_close(struct char_data *ch, struct char_data *vict_
     //perform_act("</combat_message>\r\n", ch, NULL, vict_obj, to, FALSE);
   }
 }
+
 void gui_room_desc_wrap_open(struct char_data *ch) {
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_GUI_MODE)) { /* GUI Mode wrap open: room description */
     send_to_char(ch, "<room_desc>");
   }
 }
+
 void gui_room_desc_wrap_close(struct char_data *ch) {
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_GUI_MODE)) { /* GUI Mode wrap close: room description */
     send_to_char(ch, "</room_desc>");
@@ -111,28 +117,29 @@ void gui_room_desc_wrap_close(struct char_data *ch) {
 /* can this CH select the option to change their 'known' spells
  in the study system? */
 bool can_study_known_spells(struct char_data *ch) {
-  
+
   /* sorcerer*/
   if (LEVELUP(ch)->class == CLASS_SORCERER ||
-       (LEVELUP(ch)->class == CLASS_ARCANE_ARCHER &&
-        GET_PREFERRED_ARCANE(ch) == CLASS_SORCERER) )
+          (LEVELUP(ch)->class == CLASS_ARCANE_ARCHER &&
+          GET_PREFERRED_ARCANE(ch) == CLASS_SORCERER))
     return TRUE;
-  
+
   /* bard */
-  if (LEVELUP(ch)->class == CLASS_BARD  ||
-       (LEVELUP(ch)->class == CLASS_ARCANE_ARCHER &&
-        GET_PREFERRED_ARCANE(ch) == CLASS_BARD) )
+  if (LEVELUP(ch)->class == CLASS_BARD ||
+          (LEVELUP(ch)->class == CLASS_ARCANE_ARCHER &&
+          GET_PREFERRED_ARCANE(ch) == CLASS_BARD))
     return TRUE;
 
   /* nope! */
-  return FALSE;  
+  return FALSE;
 }
+
 /* ch, given class we're computing bonus spells for, figure out
  if one of our other classes (probably just prestige, example is
  arcane archer) is adding bonus caster levels */
 int compute_bonus_caster_level(struct char_data *ch, int class) {
   int bonus_levels = 0;
-  
+
   switch (class) {
     case CLASS_WIZARD:
     case CLASS_SORCERER:
@@ -142,25 +149,25 @@ int compute_bonus_caster_level(struct char_data *ch, int class) {
       break;
     case CLASS_CLERIC:
     case CLASS_DRUID:
-      break;      
+      break;
     default:break;
   }
-  
+
   return bonus_levels;
 }
 
 int compute_arcane_level(struct char_data *ch) {
   int arcane_level = 0;
-  
+
   if (IS_NPC(ch)) /* npc is simple for now */
     return (GET_LEVEL(ch));
-  
+
   arcane_level += CLASS_LEVEL(ch, CLASS_WIZARD);
   arcane_level += CLASS_LEVEL(ch, CLASS_SORCERER);
   arcane_level += CLASS_LEVEL(ch, CLASS_BARD);
   arcane_level += CLASS_LEVEL(ch, CLASS_ARCANE_ARCHER) * 3 / 4;
-  arcane_level += compute_arcana_golem_level(ch) - (SPELLBATTLE(ch)/2);
-  
+  arcane_level += compute_arcana_golem_level(ch) - (SPELLBATTLE(ch) / 2);
+
   return arcane_level;
 }
 
@@ -169,7 +176,7 @@ this use to be a nice(?) compact macro, but circumstances forced expansion */
 bool compute_has_combat_feat(struct char_data *ch, int cfeat, int weapon) {
   bool using_comp = FALSE;
   bool has_comp_feat = FALSE;
-  
+
   /* had to add special test to weapon combat feats because of the way
      I set up composite bows with various strength modifiers -zusuk */
   switch (weapon) {
@@ -182,25 +189,27 @@ bool compute_has_combat_feat(struct char_data *ch, int cfeat, int weapon) {
       break;
     default:break; /* most cases */
   }
-  if ( IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat],
+  if (IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat],
           WEAPON_TYPE_COMPOSITE_LONGBOW) ||
-       IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat],
+          IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat],
           WEAPON_TYPE_COMPOSITE_LONGBOW_2) ||
-       IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat],
+          IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat],
           WEAPON_TYPE_COMPOSITE_LONGBOW_3) ||
-       IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat],
+          IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat],
           WEAPON_TYPE_COMPOSITE_LONGBOW_4) ||
-       IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat],
+          IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat],
           WEAPON_TYPE_COMPOSITE_LONGBOW_5)
-      ) { has_comp_feat = TRUE; }
-  
+          ) {
+    has_comp_feat = TRUE;
+  }
+
   if (using_comp && has_comp_feat)
     return TRUE; /* any comp longbow feat, any comp longbow used */
-  
+
   /* reset variables */
   has_comp_feat = FALSE;
-  using_comp = FALSE;  
-  
+  using_comp = FALSE;
+
   switch (weapon) {
     case WEAPON_TYPE_COMPOSITE_SHORTBOW:
     case WEAPON_TYPE_COMPOSITE_SHORTBOW_2:
@@ -211,28 +220,30 @@ bool compute_has_combat_feat(struct char_data *ch, int cfeat, int weapon) {
       break;
     default:break; /* most cases */
   }
-  if ( IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat],
+  if (IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat],
           WEAPON_TYPE_COMPOSITE_SHORTBOW) ||
-       IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat],
+          IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat],
           WEAPON_TYPE_COMPOSITE_SHORTBOW_2) ||
-       IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat],
+          IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat],
           WEAPON_TYPE_COMPOSITE_SHORTBOW_3) ||
-       IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat],
+          IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat],
           WEAPON_TYPE_COMPOSITE_SHORTBOW_4) ||
-       IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat],
+          IS_SET_AR((ch)->char_specials.saved.combat_feats[cfeat],
           WEAPON_TYPE_COMPOSITE_SHORTBOW_5)
-      ) { has_comp_feat = TRUE; }
-  
+          ) {
+    has_comp_feat = TRUE;
+  }
+
   if (using_comp && has_comp_feat)
     return TRUE; /* any comp bow feat, any comp bow used */
-    
+
   /*debug*/
   //send_to_char(ch, "feat: %d, weapon: %d\r\n", cfeat, weapon);
-  
-  /* normal test now */  
+
+  /* normal test now */
   if ((IS_SET_AR((ch)->char_specials.saved.combat_feats[(cfeat)], (weapon))))
     return TRUE;
-  
+
   /* nope, nothing! */
   return FALSE;
 }
@@ -251,109 +262,153 @@ int compute_dexterity_bonus(struct char_data *ch) {
 #define TOTAL_STAT_POINTS 30
 #define MAX_POINTS_IN_A_STAT 10
 #define BASE_STAT 8
-int stats_cost_chart[11] = { /* cost for total points */
-/*0  1  2  3  4  5  6  7  8   9   10 */
+int stats_cost_chart[11] = {/* cost for total points */
+  /*0  1  2  3  4  5  6  7  8   9   10 */
   0, 1, 2, 3, 4, 5, 6, 8, 10, 13, 16
 };
+
 int comp_base_dex(struct char_data *ch) {
   int base_dex = BASE_STAT;
   switch (GET_RACE(ch)) {
-    case RACE_ELF:         base_dex += 2; break;
-    case RACE_DROW:        base_dex += 2; break;
-    case RACE_HALFLING:    base_dex += 2; break;
-    case RACE_HALF_TROLL:  base_dex += 2; break;
-    case RACE_TRELUX:      base_dex += 8; break;
+    case RACE_ELF: base_dex += 2;
+      break;
+    case RACE_DROW: base_dex += 2;
+      break;
+    case RACE_HALFLING: base_dex += 2;
+      break;
+    case RACE_HALF_TROLL: base_dex += 2;
+      break;
+    case RACE_TRELUX: base_dex += 8;
+      break;
   }
   return base_dex;
 }
+
 int comp_dex_cost(struct char_data *ch, int number) {
   int base_dex = comp_base_dex(ch), current_dex = GET_REAL_DEX(ch) + number;
   return stats_cost_chart[current_dex - base_dex];
 }
+
 int comp_base_str(struct char_data *ch) {
   int base_str = BASE_STAT;
   switch (GET_RACE(ch)) {
-    case RACE_HALFLING:        base_str -= 2; break;
-    case RACE_GNOME:           base_str -= 2; break;
-    case RACE_HALF_TROLL:      base_str += 2; break;
-    case RACE_CRYSTAL_DWARF:   base_str += 2; break;
-    case RACE_TRELUX:          base_str += 2; break;
-    case RACE_ARCANA_GOLEM:    base_str -= 2; break;
+    case RACE_HALFLING: base_str -= 2;
+      break;
+    case RACE_GNOME: base_str -= 2;
+      break;
+    case RACE_HALF_TROLL: base_str += 2;
+      break;
+    case RACE_CRYSTAL_DWARF: base_str += 2;
+      break;
+    case RACE_TRELUX: base_str += 2;
+      break;
+    case RACE_ARCANA_GOLEM: base_str -= 2;
+      break;
   }
   return base_str;
 }
+
 int comp_str_cost(struct char_data *ch, int number) {
   int base_str = comp_base_str(ch),
           current_str = GET_REAL_STR(ch) + number;
   return stats_cost_chart[current_str - base_str];
 }
+
 int comp_base_con(struct char_data *ch) {
   int base_con = BASE_STAT;
   switch (GET_RACE(ch)) {
-    case RACE_DROW:            base_con -= 2; break;
-    case RACE_ELF:             base_con -= 2; break;
-    case RACE_DWARF:           base_con += 2; break;
-    case RACE_GNOME:           base_con += 2; break;
-    case RACE_HALF_TROLL:      base_con += 2; break;
-    case RACE_CRYSTAL_DWARF:   base_con += 8; break;
-    case RACE_TRELUX:          base_con += 4; break;
-    case RACE_ARCANA_GOLEM:    base_con -= 2; break;
+    case RACE_DROW: base_con -= 2;
+      break;
+    case RACE_ELF: base_con -= 2;
+      break;
+    case RACE_DWARF: base_con += 2;
+      break;
+    case RACE_GNOME: base_con += 2;
+      break;
+    case RACE_HALF_TROLL: base_con += 2;
+      break;
+    case RACE_CRYSTAL_DWARF: base_con += 8;
+      break;
+    case RACE_TRELUX: base_con += 4;
+      break;
+    case RACE_ARCANA_GOLEM: base_con -= 2;
+      break;
   }
   return base_con;
 }
+
 int comp_con_cost(struct char_data *ch, int number) {
-  int base_con = comp_base_con(ch), current_con = GET_REAL_CON(ch)+number;
+  int base_con = comp_base_con(ch), current_con = GET_REAL_CON(ch) + number;
   return stats_cost_chart[current_con - base_con];
 }
+
 int comp_base_inte(struct char_data *ch) {
   int base_inte = BASE_STAT;
   switch (GET_RACE(ch)) {
-    case RACE_HALF_TROLL:     base_inte -= 4; break;
-    case RACE_ARCANA_GOLEM:   base_inte += 2; break;
-    case RACE_DROW:           base_inte += 2; break;
+    case RACE_HALF_TROLL: base_inte -= 4;
+      break;
+    case RACE_ARCANA_GOLEM: base_inte += 2;
+      break;
+    case RACE_DROW: base_inte += 2;
+      break;
   }
   return base_inte;
 }
+
 int comp_inte_cost(struct char_data *ch, int number) {
-  int base_inte = comp_base_inte(ch), current_inte = GET_REAL_INT(ch)+number;
+  int base_inte = comp_base_inte(ch), current_inte = GET_REAL_INT(ch) + number;
   return stats_cost_chart[current_inte - base_inte];
 }
+
 int comp_base_wis(struct char_data *ch) {
   int base_wis = BASE_STAT;
   switch (GET_RACE(ch)) {
-    case RACE_HALF_TROLL:      base_wis -= 4; break;
-    case RACE_CRYSTAL_DWARF:   base_wis += 2; break;
-    case RACE_ARCANA_GOLEM:    base_wis += 2; break;
-    case RACE_DROW:            base_wis += 2; break;
+    case RACE_HALF_TROLL: base_wis -= 4;
+      break;
+    case RACE_CRYSTAL_DWARF: base_wis += 2;
+      break;
+    case RACE_ARCANA_GOLEM: base_wis += 2;
+      break;
+    case RACE_DROW: base_wis += 2;
+      break;
   }
   return base_wis;
 }
+
 int comp_wis_cost(struct char_data *ch, int number) {
-  int base_wis = comp_base_wis(ch), current_wis = GET_REAL_WIS(ch)+number;
+  int base_wis = comp_base_wis(ch), current_wis = GET_REAL_WIS(ch) + number;
   return stats_cost_chart[current_wis - base_wis];
 }
+
 int comp_base_cha(struct char_data *ch) {
   int base_cha = BASE_STAT;
   switch (GET_RACE(ch)) {
-    case RACE_DWARF:            base_cha -= 2; break;
-    case RACE_DROW:             base_cha += 2; break;
-    case RACE_HALF_TROLL:       base_cha -= 4; break;
-    case RACE_CRYSTAL_DWARF:    base_cha += 2; break;
-    case RACE_ARCANA_GOLEM:     base_cha += 2; break;
+    case RACE_DWARF: base_cha -= 2;
+      break;
+    case RACE_DROW: base_cha += 2;
+      break;
+    case RACE_HALF_TROLL: base_cha -= 4;
+      break;
+    case RACE_CRYSTAL_DWARF: base_cha += 2;
+      break;
+    case RACE_ARCANA_GOLEM: base_cha += 2;
+      break;
   }
   return base_cha;
 }
+
 int comp_cha_cost(struct char_data *ch, int number) {
-  int base_cha = comp_base_cha(ch), current_cha = GET_REAL_CHA(ch)+number;
+  int base_cha = comp_base_cha(ch), current_cha = GET_REAL_CHA(ch) + number;
   return stats_cost_chart[current_cha - base_cha];
 }
 
 int comp_total_stat_points(struct char_data *ch) {
-  return (comp_cha_cost(ch,0)+comp_wis_cost(ch,0)+comp_inte_cost(ch,0)+
-          comp_str_cost(ch,0)+comp_dex_cost(ch,0)+comp_con_cost(ch,0));
+  return (comp_cha_cost(ch, 0) + comp_wis_cost(ch, 0) + comp_inte_cost(ch, 0) +
+          comp_str_cost(ch, 0) + comp_dex_cost(ch, 0) + comp_con_cost(ch, 0));
 }
+
 int stats_point_left(struct char_data *ch) {
-  return (TOTAL_STAT_POINTS-comp_total_stat_points(ch));
+  return (TOTAL_STAT_POINTS - comp_total_stat_points(ch));
 }
 
 /* unused */
@@ -446,7 +501,7 @@ room_vnum get_direction_vnum(room_rnum room_origin, int direction) {
   if (exit_vnum == 1000000) {
     x_coordinate = world[room_origin].coords[0];
     y_coordinate = world[room_origin].coords[1];
-    switch(direction) {
+    switch (direction) {
       case NORTH:
         y_coordinate++;
         break;
@@ -459,15 +514,15 @@ room_vnum get_direction_vnum(room_rnum room_origin, int direction) {
       case WEST:
         x_coordinate--;
         break;
-	  default:
-         log("SYSERR: Wilderness utility failure.");
-         //Bad direction for wilderness travel (up/down)
-         return NOWHERE;
+      default:
+        log("SYSERR: Wilderness utility failure.");
+        //Bad direction for wilderness travel (up/down)
+        return NOWHERE;
     }
     exit_rnum = find_room_by_coordinates(x_coordinate, y_coordinate);
     if (exit_rnum == NOWHERE) {
       exit_rnum = find_available_wilderness_room();
-      if(exit_rnum == NOWHERE) {
+      if (exit_rnum == NOWHERE) {
         log("SYSERR: Wilderness utility failure.");
         return NOWHERE;
       }
@@ -824,6 +879,7 @@ int skill_check(struct char_data *ch, int skill, int dc) {
 #define C_SKILL 20
 /* for stricter crafting skill notching (fast crafting) */
 #define C_SKILL_SLOW 100
+
 void increase_skill(struct char_data *ch, int skillnum) {
   int notched = FALSE;
 
@@ -840,7 +896,7 @@ void increase_skill(struct char_data *ch, int skillnum) {
   int craft = rand_number(0, C_SKILL);
   int slow_craft = rand_number(0, C_SKILL_SLOW);
 
-  switch(skillnum) {
+  switch (skillnum) {
     case SKILL_BACKSTAB:
       if (!use) {
         notched = TRUE;
@@ -1298,7 +1354,7 @@ void increase_skill(struct char_data *ch, int skillnum) {
       }
       break;
 
-    /* crafting skills */
+      /* crafting skills */
     case SKILL_MINING:
       if (!craft) {
         notched = TRUE;
@@ -1389,7 +1445,7 @@ void increase_skill(struct char_data *ch, int skillnum) {
         GET_SKILL(ch, skillnum)++;
       }
       break;
-    /* end crafting */
+      /* end crafting */
 
     case SKILL_LIGHTNING_REFLEXES:
       if (!pass) {
@@ -1438,13 +1494,14 @@ void increase_skill(struct char_data *ch, int skillnum) {
         notched = TRUE;
         GET_SKILL(ch, skillnum)++;
       }
-      return;;
+      return;
+      ;
   }
 
   if (notched)
     send_to_char(ch, "\tMYou feel your skill in \tC%s\tM improve! Your skill at "
-            "\tC%s\tM is now %d!\tn", spell_info[skillnum].name, spell_info[skillnum].name,
-                                      GET_SKILL(ch, skillnum));
+          "\tC%s\tM is now %d!\tn", spell_info[skillnum].name, spell_info[skillnum].name,
+          GET_SKILL(ch, skillnum));
   return;
 }
 #undef USE
@@ -2336,7 +2393,7 @@ bool room_is_daylit(room_rnum room) {
     log("room_is_daylit: Invalid room rnum %d. (0-%d)", room, top_of_world);
     return (FALSE);
   }
-  
+
   /* disqualifiers */
   /* sectors */
   if (SECT(room) == SECT_INSIDE)
@@ -2370,10 +2427,10 @@ bool room_is_daylit(room_rnum room) {
   /* time/weather system */
   if (weather_info.sunlight == SUN_SET || weather_info.sunlight == SUN_DARK)
     return (FALSE);
-   
+
   /* room is not indoors, room is not 'dark', room is not affected by darkness
      it is NOT sun-set and NOT sun-dark */
-  return (TRUE);  
+  return (TRUE);
 }
 
 /** Tests to see if a room is dark. Rules (unless overridden by ROOM_DARK):
@@ -2411,7 +2468,7 @@ bool room_is_dark(room_rnum room) {
   if (ROOM_AFFECTED(room, RAFF_DARKNESS))
     return (TRUE);
 
-  /* sectors dark by nature */  
+  /* sectors dark by nature */
   if (SECT(room) == SECT_UNDERWATER)
     return (TRUE);
   if (SECT(room) == SECT_UD_WILD)
@@ -2429,7 +2486,7 @@ bool room_is_dark(room_rnum room) {
   if (SECT(room) == SECT_CAVE)
     return (TRUE);
   /* end sectors */
-  
+
   return (FALSE);
 }
 
@@ -3252,42 +3309,39 @@ int get_feat_value(struct char_data *ch, int featnum) {
   return featval;
 }
 
-
-int find_armor_type(int specType)
-{
+int find_armor_type(int specType) {
 
   switch (specType) {
 
-  case SPEC_ARMOR_TYPE_PADDED:
-  case SPEC_ARMOR_TYPE_LEATHER:
-  case SPEC_ARMOR_TYPE_STUDDED_LEATHER:
-  case SPEC_ARMOR_TYPE_LIGHT_CHAIN:
-    return ARMOR_TYPE_LIGHT;
+    case SPEC_ARMOR_TYPE_PADDED:
+    case SPEC_ARMOR_TYPE_LEATHER:
+    case SPEC_ARMOR_TYPE_STUDDED_LEATHER:
+    case SPEC_ARMOR_TYPE_LIGHT_CHAIN:
+      return ARMOR_TYPE_LIGHT;
 
-  case SPEC_ARMOR_TYPE_HIDE:
-  case SPEC_ARMOR_TYPE_SCALE:
-  case SPEC_ARMOR_TYPE_CHAINMAIL:
-  case SPEC_ARMOR_TYPE_PIECEMEAL:
-    return ARMOR_TYPE_MEDIUM;
+    case SPEC_ARMOR_TYPE_HIDE:
+    case SPEC_ARMOR_TYPE_SCALE:
+    case SPEC_ARMOR_TYPE_CHAINMAIL:
+    case SPEC_ARMOR_TYPE_PIECEMEAL:
+      return ARMOR_TYPE_MEDIUM;
 
-  case SPEC_ARMOR_TYPE_SPLINT:
-  case SPEC_ARMOR_TYPE_BANDED:
-  case SPEC_ARMOR_TYPE_HALF_PLATE:
-  case SPEC_ARMOR_TYPE_FULL_PLATE:
-    return ARMOR_TYPE_HEAVY;
+    case SPEC_ARMOR_TYPE_SPLINT:
+    case SPEC_ARMOR_TYPE_BANDED:
+    case SPEC_ARMOR_TYPE_HALF_PLATE:
+    case SPEC_ARMOR_TYPE_FULL_PLATE:
+      return ARMOR_TYPE_HEAVY;
 
-  case SPEC_ARMOR_TYPE_BUCKLER:
-  case SPEC_ARMOR_TYPE_SMALL_SHIELD:
-  case SPEC_ARMOR_TYPE_LARGE_SHIELD:
-  case SPEC_ARMOR_TYPE_TOWER_SHIELD:
-    return ARMOR_TYPE_SHIELD;
+    case SPEC_ARMOR_TYPE_BUCKLER:
+    case SPEC_ARMOR_TYPE_SMALL_SHIELD:
+    case SPEC_ARMOR_TYPE_LARGE_SHIELD:
+    case SPEC_ARMOR_TYPE_TOWER_SHIELD:
+      return ARMOR_TYPE_SHIELD;
   }
   return ARMOR_TYPE_LIGHT;
 }
 
 /* did CH successfully making his saving-throw? */
-int savingthrow(struct char_data *ch, int save, int modifier, int dc)
-{
+int savingthrow(struct char_data *ch, int save, int modifier, int dc) {
   int roll = dice(1, 20);
 
   /* 1 is an automatic failure. */
@@ -3300,7 +3354,7 @@ int savingthrow(struct char_data *ch, int save, int modifier, int dc)
 
   roll += compute_mag_saves(ch, save, modifier);
 
-  if(roll >= dc)
+  if (roll >= dc)
     return TRUE;
   else
     return FALSE;
@@ -3309,12 +3363,12 @@ int savingthrow(struct char_data *ch, int save, int modifier, int dc)
 
 /* Utilities for managing daily use abilities for players. */
 
-int get_daily_uses(struct char_data *ch, int featnum){
+int get_daily_uses(struct char_data *ch, int featnum) {
   int daily_uses = 0;
 
   switch (featnum) {
     case FEAT_STUNNING_FIST:
-      daily_uses += CLASS_LEVEL(ch, CLASS_MONK) + (GET_LEVEL(ch) - CLASS_LEVEL(ch, CLASS_MONK))/4;
+      daily_uses += CLASS_LEVEL(ch, CLASS_MONK) + (GET_LEVEL(ch) - CLASS_LEVEL(ch, CLASS_MONK)) / 4;
       break;
     case FEAT_LAYHANDS:
       daily_uses += CLASS_LEVEL(ch, CLASS_PALADIN) / 2 + GET_CHA_BONUS(ch);
@@ -3384,7 +3438,6 @@ int get_daily_uses(struct char_data *ch, int featnum){
   return daily_uses;
 }
 
-
 /* Function to create an event, based on the mud_event passed in, that will either:
  * 1.) Create a new event with the proper sVariables
  * 2.) Update an existing event with a new sVariable value
@@ -3397,7 +3450,7 @@ int start_daily_use_cooldown(struct char_data *ch, int featnum) {
   event_id iId = 0;
 
   /* Transform the feat number to the event id for that ability. */
-  if((iId = feat_list[featnum].event) == eNULL) {
+  if ((iId = feat_list[featnum].event) == eNULL) {
     log("SYSERR: in start_daily_use_cooldown, no cooldown event defined for %s!", feat_list[featnum].name);
     return (0);
   }
@@ -3417,7 +3470,7 @@ int start_daily_use_cooldown(struct char_data *ch, int featnum) {
       log("SYSERR: sVariables field is NULL for daily-use-cooldown-event: %d", iId);
     } else {
 
-      if(sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1) {
+      if (sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1) {
         log("SYSERR: In start_daily_use_cooldown, bad sVariables for daily-use-cooldown-event: %d", iId);
         uses = 0;
       }
@@ -3433,7 +3486,7 @@ int start_daily_use_cooldown(struct char_data *ch, int featnum) {
   } else {
     /* No event - so attach one. */
     uses = 1;
-    attach_mud_event(new_mud_event(iId, ch, "uses:1"), (SECS_PER_MUD_DAY/daily_uses) RL_SEC);
+    attach_mud_event(new_mud_event(iId, ch, "uses:1"), (SECS_PER_MUD_DAY / daily_uses) RL_SEC);
   }
 
   return uses;
@@ -3456,7 +3509,7 @@ int daily_uses_remaining(struct char_data *ch, int featnum) {
        * maybe some legacy code or bad id. */
       log("SYSERR: sVariables field is NULL for daily-use-cooldown-event: %d", iId);
     } else {
-      if(sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1) {
+      if (sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1) {
         log("SYSERR: In daily_uses_remaining, bad sVariables for daily-use-cooldown-event: %d", iId);
         uses = 0;
       }
@@ -3475,14 +3528,14 @@ char* line_string(int length, char first, char second) {
   static char buf[MAX_STRING_LENGTH]; /* Note - static! */
   int i = 0;
   while (i < length)
-    if((i % 2) == 0)
+    if ((i % 2) == 0)
       buf[i++] = first;
     else
       buf[i++] = second;
 
   buf[i++] = '\r';
   buf[i++] = '\n';
-  buf[i]   = '\0'; /* String terminator */
+  buf[i] = '\0'; /* String terminator */
 
   return buf;
 }
@@ -3502,34 +3555,34 @@ char* text_line_string(char *text, int length, char first, char second) {
   text_length = strlen(text);
   text_print_length = count_non_protocol_chars(text);
 
-  pre_length = (length - (text_print_length))/2; /* (length - (text length + '[  ]'))/2 */
-//  pre_length = (length - (text_length + 4))/2; /* (length - (text length + '[  ]'))/2 */
-//  pre_length = 2;
+  pre_length = (length - (text_print_length)) / 2; /* (length - (text length + '[  ]'))/2 */
+  //  pre_length = (length - (text_length + 4))/2; /* (length - (text length + '[  ]'))/2 */
+  //  pre_length = 2;
 
   while (i < pre_length) {
-    if((i % 2) == 0)
+    if ((i % 2) == 0)
       buf[i] = first;
     else
       buf[i] = second;
     i++;
   }
-//  buf[i++] = '[';
-//  buf[i++] = ' ';
+  //  buf[i++] = '[';
+  //  buf[i++] = ' ';
 
   while (j < text_length)
     buf[i++] = text[j++];
 
-//  buf[i++] = ' ';
-//  buf[i++] = ']';
+  //  buf[i++] = ' ';
+  //  buf[i++] = ']';
 
   while (i < length + (text_length - text_print_length)) /* Have to include the non printables */
-    if((i % 2) == 0)
+    if ((i % 2) == 0)
       buf[i++] = first;
     else
       buf[i++] = second;
   buf[i++] = '\r';
   buf[i++] = '\n';
-  buf[i]   = '\0';    /* Terminate the string. */
+  buf[i] = '\0'; /* Terminate the string. */
 
   return buf;
 }
@@ -3553,7 +3606,7 @@ int calculate_cp(struct obj_data *obj) {
     case ITEM_WEAPON: /* obj is a weapon, use the cp calc for weapons. */
       current_cp += GET_ENHANCEMENT_BONUS(obj) * GET_ENHANCEMENT_BONUS(obj) * 2000;
 
-      for(specab = obj->special_abilities; specab != NULL;specab = specab->next) {
+      for (specab = obj->special_abilities; specab != NULL; specab = specab->next) {
         current_cp += (weapon_special_ability_info[specab->ability].cost * weapon_special_ability_info[specab->ability].cost * 2000);
       }
 
@@ -3565,15 +3618,13 @@ int calculate_cp(struct obj_data *obj) {
   return 0;
 }
 
-bool paralysis_immunity(struct char_data *ch)
-{
+bool paralysis_immunity(struct char_data *ch) {
   if (!ch) return FALSE;
   if (HAS_FEAT(ch, FEAT_DRACONIC_HERITAGE_POWER_OF_WYRMS)) return TRUE;
   return FALSE;
 }
 
-bool sleep_immunity(struct char_data *ch)
-{
+bool sleep_immunity(struct char_data *ch) {
   if (!ch) return FALSE;
   if (HAS_FEAT(ch, FEAT_DRACONIC_HERITAGE_POWER_OF_WYRMS)) return TRUE;
   return FALSE;
