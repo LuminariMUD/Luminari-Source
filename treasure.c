@@ -2292,7 +2292,7 @@ void give_magic_weapon(struct char_data *ch, int selection, int enchantment, boo
 
   /* object is fully described
    base object is taken care of including material, now set random stats, etc */
-  cp_modify_object_applies(ch, obj, enchantment, grade, CP_TYPE_WEAPON, silent_mode);
+  cp_modify_object_applies(ch, obj, enchantment, enchantment, CP_TYPE_WEAPON, silent_mode);
 }
 #undef SHORT_STRING
 
