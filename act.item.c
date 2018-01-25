@@ -532,7 +532,7 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode) {
       if (j->affected[i].location == APPLY_FEAT) {
         feat_num = j->affected[i].modifier;
         if (feat_num < 0 || feat_num >= NUM_FEATS)
-          feat_num = 0;
+          feat_num = FEAT_UNDEFINED;
         send_to_char(ch, "%s %s:(%d)%s (%s)", found++ ? "," : "", buf, j->affected[i].modifier, feat_list[feat_num].name, bonus_types[j->affected[i].bonus_type]);
       } else
         send_to_char(ch, "%s %+d to %s (%s)", found++ ? "," : "", j->affected[i].modifier, buf, bonus_types[j->affected[i].bonus_type]);
