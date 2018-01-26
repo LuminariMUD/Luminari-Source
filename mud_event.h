@@ -22,6 +22,7 @@ struct region_data;
 #define EVENT_CHAR   2
 #define EVENT_ROOM   3
 #define EVENT_REGION 4
+#define EVENT_OBJECT 5
 
 #define NEW_EVENT(event_id, struct, var, time) (attach_mud_event(new_mud_event(event_id, struct,  var), time))
 
