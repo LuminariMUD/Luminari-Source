@@ -24,8 +24,6 @@
  * 
  *  TODO:
  *    *slots assignment by feats
- *    *maybe combine the queue's and add another structure field to separate?
- *    *create truly separate system for innate-magic
  */
 /** END general notes */
 
@@ -715,8 +713,7 @@ int get_sorc_bloodline(struct char_data *ch) {
 
 /* in: spellnum, class, metamagic, domain(cleric)
  * out: the circle this spell (now) belongs, above num-circles if failed
- * given above info, compute which circle this spell belongs to, this 'interesting'
- * set-up is due to a dated system that assigns spells by level, not circle
+ * given above info, compute which circle this spell belongs to
  * in addition we have metamagic that can modify the spell-circle as well */
 int compute_spells_circle(int class, int spellnum, int metamagic, int domain) {
   int metamagic_mod = 0;
@@ -894,10 +891,7 @@ bool ready_to_prep_spells(struct char_data *ch, int class) {
 
 /* set the preparing state of the char, this has actually become
    redundant because of events, but we still have it
- * returns TRUE if successfully set something, false if not
-   NOTE: the array in storage is only NUM_CASTERS values, which
-     does not directly sync up with our class-array, so we have
-     a conversion happening here from class-array ->to-> is_preparing-array */
+ * returns TRUE if successfully set something, false if not */
 void set_preparing_state(struct char_data *ch, int class, bool state) {
   (ch)->char_specials.preparing_state[class] = state;
 }
@@ -914,7 +908,6 @@ bool is_preparing(struct char_data *ch) {
 }
 
 /* sets prep-state as TRUE, and starts the preparing-event */
-
 /* we check the queue for top spell for first timer */
 void start_prep_event(struct char_data *ch, int class) {
   char buf[50] = {'\0'};
@@ -1482,7 +1475,7 @@ void print_prep_collection_data(struct char_data *ch, int class) {
     default:return;
   }
 }
-/* checks to see if ch is ready to prepare, outputes messages,
+/* checks to see if ch is ready to prepare, outputs messages,
      and then fires up the event */
 void begin_preparing(struct char_data *ch, int class) {
   char buf[MAX_INPUT_LENGTH];
