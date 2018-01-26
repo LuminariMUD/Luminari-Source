@@ -292,9 +292,9 @@ extern "C" {
     #define RANGER_PREP_TIME_FACTOR   5
     #define PALADIN_PREP_TIME_FACTOR  5
     #define DRUID_PREP_TIME_FACTOR    4
-    #define WIZ_PREP_TIME_FACTOR      2
+    #define WIZ_PREP_TIME_FACTOR      3
     #define CLERIC_PREP_TIME_FACTOR   4
-    #define SORC_PREP_TIME_FACTOR     3.5
+    #define SORC_PREP_TIME_FACTOR     4
     #define BARD_PREP_TIME_FACTOR     4
     
     /* these are the subcommands for the prep system primary
