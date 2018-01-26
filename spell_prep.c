@@ -1511,6 +1511,7 @@ int compute_spells_prep_time(struct char_data *ch, int class, int circle, int do
   int prep_time = 0;
   int bonus_time = 0;
   int stat_bonus = 0;
+  int level_bonus = 0;
 
   /* base prep time based on circle, etc */
   prep_time = BASE_PREP_TIME + (PREP_TIME_INTERVALS * (circle - 1));
@@ -1520,6 +1521,7 @@ int compute_spells_prep_time(struct char_data *ch, int class, int circle, int do
     prep_time++;
   
   /* class factors */
+  level_bonus = CLASS_LEVEL(ch, class) / 2;
   switch (class) {
     case CLASS_RANGER:
       prep_time *= RANGER_PREP_TIME_FACTOR;
@@ -1552,6 +1554,8 @@ int compute_spells_prep_time(struct char_data *ch, int class, int circle, int do
   }
 
   /** calculate bonuses **/
+  /*level*/
+  bonus_time += level_bonus;
   /*skills*/
   /* stat bonus */
   bonus_time += stat_bonus / 2;
@@ -1575,7 +1579,7 @@ int compute_spells_prep_time(struct char_data *ch, int class, int circle, int do
   if (prep_time <= 0)
     prep_time = 1;
 
-  return ( MAX(circle, prep_time) );
+  return ( MAX(circle, prep_time) ); /* CAP */
 }
 
 /* look at top of the queue, and reset preparation time of that entry */
