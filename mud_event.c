@@ -26,27 +26,32 @@ struct list_data * world_events = NULL;
 /* The mud_event_index[] is merely a tool for organizing events, and giving
  * them a "const char *" name to help in potential debugging */
 struct mud_event_list mud_event_index[] = {
-  /*0*/{ "Null", NULL, -1}, /* eNULL */
+  /*0*/
+  { "Null", NULL, -1}, /* eNULL */
   { "Protocol", get_protocols, EVENT_DESC}, /* ePROTOCOLS */
   { "Whirlwind", event_whirlwind, EVENT_CHAR}, /* eWHIRLWIND */
   { "Casting", event_casting, EVENT_CHAR}, /* eCASTING */
   { "Lay on hands", event_daily_use_cooldown, EVENT_CHAR}, // eLAYONHANDS
-  /*5*/{ "Treat injury", event_countdown, EVENT_CHAR}, // eTREATINJURY
+  /*5*/
+  { "Treat injury", event_countdown, EVENT_CHAR}, // eTREATINJURY
   { "Taunt Cool Down", event_countdown, EVENT_CHAR}, // eTAUNT
   { "Taunted", event_countdown, EVENT_CHAR}, // eTAUNTED
   { "Mummy dust", event_countdown, EVENT_CHAR}, // eMUMMYDUST
   { "Dragon knight", event_countdown, EVENT_CHAR}, //  eDRAGONKNIGHT
-  /*10*/{ "Greater ruin", event_countdown, EVENT_CHAR}, // eGREATERRUIN
+  /*10*/
+  { "Greater ruin", event_countdown, EVENT_CHAR}, // eGREATERRUIN
   { "Hellball", event_countdown, EVENT_CHAR}, // eHELLBALL
   { "Epic mage armor", event_countdown, EVENT_CHAR}, // eEPICMAGEARMOR
   { "Epic warding", event_countdown, EVENT_CHAR}, // eEPICWARDING
   { "Preparing Spells", event_preparation, EVENT_CHAR}, //ePREPARING
-  /*15*/{ "Stunned", event_countdown, EVENT_CHAR}, //eSTUNNED
+  /*15*/
+  { "Stunned", event_countdown, EVENT_CHAR}, //eSTUNNED
   { "Stunning fist", event_daily_use_cooldown, EVENT_CHAR}, //eSTUNNINGFIST
   { "Crafting", event_crafting, EVENT_CHAR}, //eCRAFTING
   { "Crystal fist", event_daily_use_cooldown, EVENT_CHAR}, //eCRYSTALFIST
   { "Crystal body", event_daily_use_cooldown, EVENT_CHAR}, //eCRYRSTALBODY
-  /*20*/{ "Rage", event_daily_use_cooldown, EVENT_CHAR}, //eRAGE
+  /*20*/
+  { "Rage", event_daily_use_cooldown, EVENT_CHAR}, //eRAGE
   { "Acid arrow", event_acid_arrow, EVENT_CHAR}, //eACIDARROW
   { "Defensive Roll", event_countdown, EVENT_CHAR}, // eD_ROLL
   { "Purify", event_countdown, EVENT_CHAR}, // ePURIFY
@@ -56,7 +61,8 @@ struct mud_event_list mud_event_index[] = {
   { "Implode", event_implode, EVENT_CHAR}, //eIMPLODE
   { "Smite Evil", event_daily_use_cooldown, EVENT_CHAR}, // eSMITE_EVIL
   { "Perform", event_countdown, EVENT_CHAR}, // ePERFORM
-  /*30*/{ "Mob Purge", event_countdown, EVENT_CHAR}, // ePURGEMOB
+  /*30*/
+  { "Mob Purge", event_countdown, EVENT_CHAR}, // ePURGEMOB
   { "SoV Ice Storm", event_ice_storm, EVENT_CHAR}, // eICE_STORM
   { "SoV Chain Lightning", event_chain_lightning, EVENT_CHAR}, // eCHAIN_LIGHTNING
   { "Darkness", event_countdown, EVENT_ROOM}, /* eDARKNESS */
@@ -66,7 +72,8 @@ struct mud_event_list mud_event_index[] = {
   { "Turn Undead", event_countdown, EVENT_CHAR}, /* eTURN_UNDEAD */
   { "SpellBattle", event_countdown, EVENT_CHAR}, /* eSPELLBATTLE */
   { "Falling", event_falling, EVENT_CHAR}, /* eFALLING */
-  /*40*/{ "Check Occupied", event_check_occupied, EVENT_ROOM}, /* eCHECK_OCCUPIED */
+  /*40*/
+  { "Check Occupied", event_check_occupied, EVENT_ROOM}, /* eCHECK_OCCUPIED */
   { "Tracks", event_tracks, EVENT_ROOM}, /* eTRACKS */
   { "Wild Shape", event_daily_use_cooldown, EVENT_CHAR}, /* eWILD_SHAPE */
   { "Shield Recovery", event_countdown, EVENT_CHAR}, /* eSHIELD_RECOVERY */
@@ -76,7 +83,8 @@ struct mud_event_list mud_event_index[] = {
   { "Wholeness of Body", event_countdown, EVENT_CHAR}, // eWHOLENESSOFBODY
   { "Empty Body", event_countdown, EVENT_CHAR}, // eEMPTYBODY
   { "Quivering Palm", event_daily_use_cooldown, EVENT_CHAR}, //eQUIVERINGPALM
-  /*50*/{ "Swift Action Cooldown", event_action_cooldown, EVENT_CHAR}, // eSWIFTACTION
+  /*50*/
+  { "Swift Action Cooldown", event_action_cooldown, EVENT_CHAR}, // eSWIFTACTION
   { "Trap Triggered", event_trap_triggered, EVENT_CHAR}, // eTRAPTRIGGERED */
   { "Suprise Accuracy", event_countdown, EVENT_CHAR}, //eSUPRISE_ACCURACY
   { "Powerful Blow", event_countdown, EVENT_CHAR}, //ePOWERFUL_BLOW
@@ -86,7 +94,8 @@ struct mud_event_list mud_event_index[] = {
   { "Vanish", event_countdown, EVENT_CHAR}, //eVANISH
   { "Vanish Cool Down", event_daily_use_cooldown, EVENT_CHAR}, //eVANISHED
   { "Intimidated", event_countdown, EVENT_CHAR}, //eINTIMIDATED
-  /*60*/{ "Intimidated Cool Down", event_countdown, EVENT_CHAR}, //eINTIMIDATE_COOLDOWN
+  /*60*/
+  { "Intimidated Cool Down", event_countdown, EVENT_CHAR}, //eINTIMIDATE_COOLDOWN
   { "Lightning Arc Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eLIGHTNING_ARC
   { "Acid Dart Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eACID_DART
   { "Fire Bolt Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eFIRE_BOLT
@@ -96,7 +105,8 @@ struct mud_event_list mud_event_index[] = {
   { "Smite Good", event_daily_use_cooldown, EVENT_CHAR}, // eSMITE_GOOD
   { "Destructive Smite", event_daily_use_cooldown, EVENT_CHAR}, // eSMITE_DESTRUCTION
   { "Destructive Aura", event_daily_use_cooldown, EVENT_CHAR}, // eDESTRUCTIVE_AURA
-  /*70*/{ "Evil Touch", event_daily_use_cooldown, EVENT_CHAR}, // eEVIL_TOUCH
+  /*70*/
+  { "Evil Touch", event_daily_use_cooldown, EVENT_CHAR}, // eEVIL_TOUCH
   { "Good Touch", event_daily_use_cooldown, EVENT_CHAR}, // eGOOD_TOUCH
   { "Healing Touch", event_daily_use_cooldown, EVENT_CHAR}, // eHEALING_TOUCH
   { "Eye of Knowledge", event_daily_use_cooldown, EVENT_CHAR}, // eEYE_OF_KNOWLEDGE
@@ -106,7 +116,8 @@ struct mud_event_list mud_event_index[] = {
   { "Mass Invis", event_daily_use_cooldown, EVENT_CHAR}, // eMASS_INVIS
   { "Aura of Protection", event_daily_use_cooldown, EVENT_CHAR}, // eAURA_OF_PROTECTION
   { "Battle Rage", event_daily_use_cooldown, EVENT_CHAR}, // eBATTLE_RAGE
-  /*80*/{ "Crystal fist", event_countdown, EVENT_CHAR}, //eCRYSTALFIST_AFF
+  /*80*/
+  { "Crystal fist", event_countdown, EVENT_CHAR}, //eCRYSTALFIST_AFF
   { "Crystal body", event_countdown, EVENT_CHAR}, //eCRYRSTALBODY_AFF
   { "Bardic Performance", event_bardic_performance, EVENT_CHAR}, /* eBARDIC_PERFORMANCE */
   { "Encounter Region Reset", event_countdown, EVENT_REGION}, // eENCOUNTER_REG_RESET
@@ -116,7 +127,8 @@ struct mud_event_list mud_event_index[] = {
   { "Swarm of Arrows", event_daily_use_cooldown, EVENT_CHAR}, //eARROW_SWARM
   { "Renewed Defense", event_countdown, EVENT_CHAR}, // eRENEWEDDEFENSE
   { "Last Word", event_countdown, EVENT_CHAR}, // eLAST_WORD
-  /*90*/{ "Smash Defense", event_countdown, EVENT_CHAR}, // eSMASH_DEFENSE
+  /*90*/
+  { "Smash Defense", event_countdown, EVENT_CHAR}, // eSMASH_DEFENSE
   { "Defensive Stance", event_daily_use_cooldown, EVENT_CHAR}, //eDEFENSIVE_STANCE
   { "Crippled by Critical", event_countdown, EVENT_CHAR}, //eCRIPPLING_CRITICAL
   { "Quest Completed!", event_countdown, EVENT_CHAR}, //eQUEST_COMPLETE
@@ -126,8 +138,8 @@ struct mud_event_list mud_event_index[] = {
   { "Draconic Heritage Breath Weapon Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eDRACBREATH
   { "Draconic Heritage Claws Attack Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eDRACCLAWS
   { "Spell Preparation", event_preparation, EVENT_CHAR}, //ePREPARATION
-  { "Craft", event_craft, EVENT_CHAR }, /* eCRAFT */ /* NewCraft */
-  { "Copyover Event!", event_copyover, EVENT_CHAR } /* eCOPYOVER */ /* copyover delay */
+  { "Craft", event_craft, EVENT_CHAR}, /* eCRAFT */ /* NewCraft */
+  { "Copyover Event!", event_copyover, EVENT_CHAR} /* eCOPYOVER */ /* copyover delay */
 };
 
 /* init_events() is the ideal function for starting global events. This
@@ -145,11 +157,14 @@ EVENTFUNC(event_countdown) {
   struct mud_event_data *pMudEvent = NULL;
   struct char_data *ch = NULL;
   struct room_data *room = NULL;
-  room_vnum *rvnum;
+  struct obj_data *obj = NULL;
+  room_vnum *rvnum = NULL;
   room_rnum rnum = NOWHERE;
-  region_vnum *regvnum;
+  region_vnum *regvnum = NULL;
   region_rnum regrnum = NOWHERE;
-  
+  obj_vnum *obj_vnum = NULL;
+  obj_rnum obj_rnum = NOWHERE;
+
   pMudEvent = (struct mud_event_data *) event_obj;
 
   if (!pMudEvent)
@@ -161,6 +176,11 @@ EVENTFUNC(event_countdown) {
   switch (mud_event_index[pMudEvent->iId].iEvent_Type) {
     case EVENT_CHAR:
       ch = (struct char_data *) pMudEvent->pStruct;
+      break;
+    case EVENT_OBJECT:
+      obj = (struct obj_data *) pMudEvent->pStruct;
+      //obj_rnum = real_obj(*obj_vnum);
+      //obj = &obj[real_obj(obj_rnum)];
       break;
     case EVENT_ROOM:
       rvnum = (room_vnum *) pMudEvent->pStruct;
@@ -310,16 +330,16 @@ EVENTFUNC(event_countdown) {
     case eINTIMIDATE_COOLDOWN:
       send_to_char(ch, "You are now able to intimidate again.\r\n");
       break;
-   case eEMPTYBODY:
+    case eEMPTYBODY:
       send_to_char(ch, "You are now able to use Empty Body again.\r\n");
       break;
-   case eWHOLENESSOFBODY:
+    case eWHOLENESSOFBODY:
       send_to_char(ch, "You are now able to use Wholeness of Body again.\r\n");
       break;
-   case eRENEWEDVIGOR:
+    case eRENEWEDVIGOR:
       send_to_char(ch, "You are now able to use Renewed Vigor again.\r\n");
       break;
-   case eRENEWEDDEFENSE:
+    case eRENEWEDDEFENSE:
       send_to_char(ch, "You are now able to use Renewed Defense again.\r\n");
       break;
     case eTREATINJURY:
@@ -347,7 +367,7 @@ EVENTFUNC(event_countdown) {
       if (regrnum == NOWHERE) {
         log("SYSERR: event_countdown for eENCOUNTER_REG_RESET, region out of bounds.");
         break;
-      }        
+      }
       log("Encounter Region '%s' with vnum: %d reset.", region_table[regrnum].name, region_table[regrnum].vnum);
       break;
     default:
@@ -386,7 +406,7 @@ EVENTFUNC(event_daily_use_cooldown) {
      * maybe some legacy code or bad id. */
     log("SYSERR: sVariables field is NULL for daily-use-cooldown-event: %d", pMudEvent->iId);
   } else {
-    if(sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1) {
+    if (sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1) {
       log("SYSERR: In daily_uses_remaining, bad sVariables for dauly-use-cooldown-event: %d", pMudEvent->iId);
       uses = 0;
     }
@@ -551,14 +571,14 @@ EVENTFUNC(event_daily_use_cooldown) {
 
   uses -= 1;
   if (uses > 0) {
-    if(pMudEvent->sVariables != NULL)
+    if (pMudEvent->sVariables != NULL)
       free(pMudEvent->sVariables);
 
     sprintf(buf, "uses:%d", uses);
     pMudEvent->sVariables = strdup(buf);
 
     if (get_daily_uses(ch, featnum)) /* divide by 0! */
-      cooldown = (SECS_PER_MUD_DAY/get_daily_uses(ch, featnum)) RL_SEC;
+      cooldown = (SECS_PER_MUD_DAY / get_daily_uses(ch, featnum)) RL_SEC;
 
   }
 
@@ -575,17 +595,17 @@ EVENTFUNC(event_daily_use_cooldown) {
  *         Region support has also been added for wilderness regions.
  */
 void attach_mud_event(struct mud_event_data *pMudEvent, long time) {
-  
-  struct event * pEvent = NULL;
-  
-  struct descriptor_data * d      = NULL;
-  struct char_data       * ch     = NULL;
-  struct room_data       * room   = NULL;
-  struct region_data     * region = NULL;
-  
-  room_vnum   *rvnum = NULL;
+  struct event *pEvent = NULL;
+
+  struct descriptor_data *d = NULL;
+  struct char_data *ch = NULL;
+  struct room_data *room = NULL;
+  struct region_data *region = NULL;
+  struct obj_data *obj = NULL;
+
+  room_vnum *rvnum = NULL;
   region_vnum *regvnum = NULL;
-  
+
   pEvent = event_create(mud_event_index[pMudEvent->iId].func, pMudEvent, time);
   pEvent->isMudEvent = TRUE;
   pMudEvent->pEvent = pEvent;
@@ -606,6 +626,14 @@ void attach_mud_event(struct mud_event_data *pMudEvent, long time) {
 
       add_to_list(pEvent, ch->events);
       break;
+    case EVENT_OBJECT:
+      obj = (struct obj_data *) pMudEvent->pStruct;
+
+      if (obj->events == NULL)
+        obj->events = create_list();
+
+      add_to_list(pEvent, obj->events);
+      break;
     case EVENT_ROOM:
 
       CREATE(rvnum, room_vnum, 1);
@@ -613,7 +641,7 @@ void attach_mud_event(struct mud_event_data *pMudEvent, long time) {
       pMudEvent->pStruct = rvnum;
       room = &world[real_room(*rvnum)];
 
-//      log("[DEBUG] Adding Event %s to room %d",mud_event_index[pMudEvent->iId].event_name, room->number);
+      //      log("[DEBUG] Adding Event %s to room %d",mud_event_index[pMudEvent->iId].event_name, room->number);
 
       if (room->events == NULL)
         room->events = create_list();
@@ -624,20 +652,20 @@ void attach_mud_event(struct mud_event_data *pMudEvent, long time) {
       CREATE(regvnum, region_vnum, 1);
       *regvnum = *((region_vnum *) pMudEvent->pStruct);
       pMudEvent->pStruct = regvnum;
-      
+
       log("TEST DEBUG REGION EVENTS: vnum %d rnum %d", *((region_vnum *) pMudEvent->pStruct), real_region(*regvnum));
-      
-      if(real_region(*regvnum) == NOWHERE) {
+
+      if (real_region(*regvnum) == NOWHERE) {
         log("SYSERR: Attempt to add event to out-of-range region!");
         free(regvnum);
         break;
       }
-      
+
       region = &region_table[real_region(*regvnum)];
-      
+
       if (region->events == NULL)
         region->events = create_list();
-      
+
       add_to_list(pEvent, region->events);
       break;
   }
@@ -659,12 +687,13 @@ struct mud_event_data *new_mud_event(event_id iId, void *pStruct, char *sVariabl
 }
 
 void free_mud_event(struct mud_event_data *pMudEvent) {
-  struct descriptor_data * d =      NULL;
-  struct char_data       * ch =     NULL;
-  struct room_data       * room =   NULL;
-  struct region_data     * region = NULL;
-  
-  room_vnum   *rvnum = NULL;
+  struct descriptor_data *d = NULL;
+  struct char_data *ch = NULL;
+  struct room_data *room = NULL;
+  struct region_data *region = NULL;
+  struct obj_data *obj = NULL;
+
+  room_vnum *rvnum = NULL;
   region_vnum *regvnum = NULL;
 
   switch (mud_event_index[pMudEvent->iId].iEvent_Type) {
@@ -684,6 +713,15 @@ void free_mud_event(struct mud_event_data *pMudEvent) {
         ch->events = NULL;
       }
       break;
+    case EVENT_OBJECT:
+      obj = (struct obj_data *) pMudEvent->pStruct;
+      remove_from_list(pMudEvent->pEvent, obj->events);
+
+      if (obj->events && obj->events->iSize == 0) {
+        free_list(obj->events);
+        obj->events = NULL;
+      }
+      break;
     case EVENT_ROOM:
       /* Due to OLC changes, if rooms were deleted then the room we have in the event might be
        * invalid.  This entire system needs to be re-evaluated!  We should really use RNUM
@@ -693,13 +731,13 @@ void free_mud_event(struct mud_event_data *pMudEvent) {
 
       room = &world[real_room(*rvnum)];
 
-//      log("[DEBUG] Removing Event %s from room %d, which has %d events.",mud_event_index[pMudEvent->iId].event_name, room->number, (room->events == NULL ? 0 : room->events->iSize));
+      //      log("[DEBUG] Removing Event %s from room %d, which has %d events.",mud_event_index[pMudEvent->iId].event_name, room->number, (room->events == NULL ? 0 : room->events->iSize));
 
       free(pMudEvent->pStruct);
 
       remove_from_list(pMudEvent->pEvent, room->events);
 
-      if (room->events && room->events->iSize == 0) {  /* Added the null check here. - Ornir*/
+      if (room->events && room->events->iSize == 0) { /* Added the null check here. - Ornir*/
         free_list(room->events);
         room->events = NULL;
       }
@@ -713,7 +751,7 @@ void free_mud_event(struct mud_event_data *pMudEvent) {
 
       remove_from_list(pMudEvent->pEvent, region->events);
 
-      if (region->events && region->events->iSize == 0) {  /* Added the null check here. - Ornir*/
+      if (region->events && region->events->iSize == 0) { /* Added the null check here. - Ornir*/
         free_list(region->events);
         region->events = NULL;
       }
@@ -751,11 +789,11 @@ struct mud_event_data * char_has_mud_event(struct char_data * ch, event_id iId) 
     }
   }
   simple_list(NULL);
-  */
+   */
 
-  for( pEvent = (struct event *) merge_iterator(&it, ch->events);
-       pEvent != NULL;
-       pEvent = next_in_list(&it)) {
+  for (pEvent = (struct event *) merge_iterator(&it, ch->events);
+          pEvent != NULL;
+          pEvent = next_in_list(&it)) {
     if (!pEvent->isMudEvent)
       continue;
     pMudEvent = (struct mud_event_data *) pEvent->event_obj;
@@ -848,9 +886,9 @@ void event_cancel_specific(struct char_data *ch, event_id iId) {
     return;
   }
 
-  for( pEvent = (struct event *) merge_iterator(&it, ch->events);
-       pEvent != NULL;
-       pEvent = next_in_list(&it)) {
+  for (pEvent = (struct event *) merge_iterator(&it, ch->events);
+          pEvent != NULL;
+          pEvent = next_in_list(&it)) {
     if (!pEvent->isMudEvent)
       continue;
     pMudEvent = (struct mud_event_data *) pEvent->event_obj;
@@ -866,7 +904,7 @@ void event_cancel_specific(struct char_data *ch, event_id iId) {
   simple_list(NULL);
   act("Clearing simple list for $n.", FALSE, ch, NULL, NULL, TO_ROOM);
   send_to_char(ch, "Clearing simple list.\r\n");
-  */
+   */
   /* fill simple_list with ch's events, use it to try and find event ID */
   /*
   while ((pEvent = (struct event *) simple_list(ch->events)) != NULL) {
@@ -878,13 +916,13 @@ void event_cancel_specific(struct char_data *ch, event_id iId) {
       break;
     }
   }
-  */
+   */
   /* need to clear simple lists */
   /*
   simple_list(NULL);
   act("Clearing simple list for $n, 2nd time.", FALSE, ch, NULL, NULL, TO_ROOM);
   send_to_char(ch, "Clearing simple list, 2nd time.\r\n");
-  */
+   */
 
   if (found) {
     //act("event found for $n, attempting to cancel", FALSE, ch, NULL, NULL, TO_ROOM);
@@ -913,14 +951,14 @@ void clear_char_event_list(struct char_data * ch) {
   /* This uses iterators because we might be in the middle of another
    * function using simple_list, and that method requires that we do not use simple_list again
    * on another list -> It generates unpredictable results.  Iterators are safe. */
-  for( pEvent = (struct event *) merge_iterator(&it, ch->events);
-       pEvent != NULL;
-       pEvent = next_in_list(&it)) {
+  for (pEvent = (struct event *) merge_iterator(&it, ch->events);
+          pEvent != NULL;
+          pEvent = next_in_list(&it)) {
     /* Here we have an issue - If we are currently executing an event, and it results in a char
      * having their events cleared (death) then we must be sure that we don't clear the executing
      * event!  Doing so will crash the event system. */
 
-    if(event_is_queued(pEvent))
+    if (event_is_queued(pEvent))
       event_cancel(pEvent);
     else if (ch->events->iSize == 1)
       break;
