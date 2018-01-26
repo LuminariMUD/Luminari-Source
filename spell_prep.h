@@ -289,13 +289,13 @@ extern "C" {
 
     /* preparation times are modified by this factor, control knobs we will call
          them to easily adjust preparation time for spell */
-    #define RANGER_PREP_TIME_FACTOR   5
-    #define PALADIN_PREP_TIME_FACTOR  5
-    #define DRUID_PREP_TIME_FACTOR    4
-    #define WIZ_PREP_TIME_FACTOR      3
-    #define CLERIC_PREP_TIME_FACTOR   4
-    #define SORC_PREP_TIME_FACTOR     4
-    #define BARD_PREP_TIME_FACTOR     4
+    #define RANGER_PREP_TIME_FACTOR   4.0
+    #define PALADIN_PREP_TIME_FACTOR  4.0
+    #define DRUID_PREP_TIME_FACTOR    3.0
+    #define WIZ_PREP_TIME_FACTOR      2.5
+    #define CLERIC_PREP_TIME_FACTOR   3.0
+    #define SORC_PREP_TIME_FACTOR     3.0
+    #define BARD_PREP_TIME_FACTOR     3.0
     
     /* these are the subcommands for the prep system primary
        entry point: do_gen_preparation */
