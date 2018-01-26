@@ -1,11 +1,12 @@
-/*
- * Crafting System
- *
- * From d20MUD
- * Ported and re-written by Zusuk
- *
- * craft.h has most of the header info
- */
+/*/ \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \
+\                                                             
+/  Luminari Crafting System, Inspired by D20mud's Craft System                                                           
+/  Created By: Zusuk, original code from Gicker                                                           
+\                                                             
+/  using craft.h as the header file currently                                                           
+\                                                          
+/                                                                                                                                                                                       
+\ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ /*/
 
 /*
  * Hard metal -> Mining
@@ -17,7 +18,6 @@
 
 #include "conf.h"
 #include "sysdep.h"
-
 #include "structs.h"
 #include "utils.h"
 #include "comm.h"
@@ -62,7 +62,7 @@ int weapon_damage[MAX_WEAPON_DAMAGE + 1][2] = {
   /*     6 */
   { 1, 6,},
   /*     7 */
-  { 1, 6,},
+  { 2, 3,},
   /*     8 */
   { 1, 8,},
   /*     9 */
@@ -70,33 +70,33 @@ int weapon_damage[MAX_WEAPON_DAMAGE + 1][2] = {
   /*     10*/
   { 1, 10,},
   /*     11*/
-  { 1, 10,},
+  { 2, 5,},
   /*     12*/
   { 1, 12,},
   /*     13*/
-  { 1, 12,},
+  { 2, 6,},
   /*     14*/
-  { 2, 6,},
+  { 1, 14,},
   /*     15*/
-  { 2, 6,},
+  { 2, 7,},
   /*     16*/
-  { 2, 8,},
+  { 1, 16,},
   /*     17*/
   { 2, 8,},
   /*     18*/
-  { 2, 10,},
+  { 1, 18,},
   /*     19*/
-  { 2, 10,},
+  { 2, 9,},
   /*     20*/
-  { 2, 10,},
+  { 1, 20,},
   /*     21*/
   { 2, 10,},
   /*     22*/
-  { 2, 12,},
+  { 1, 22,},
   /*     23*/
-  { 2, 12,},
+  { 2, 11,},
   /*     24*/
-  { 2, 12,}
+  { 1, 24,}
 };
 
 /* the primary use of this function is to modify a weapons damage
@@ -178,6 +178,7 @@ void reset_craft(struct char_data *ch) {
 
 /* simple function to reset auto craft data */
 void reset_acraft(struct char_data *ch) {
+  
   /* initialize values */
   GET_AUTOCQUEST_VNUM(ch) = 0;
   GET_AUTOCQUEST_MAKENUM(ch) = 0;
@@ -185,7 +186,9 @@ void reset_acraft(struct char_data *ch) {
   GET_AUTOCQUEST_EXP(ch) = 0;
   GET_AUTOCQUEST_GOLD(ch) = 0;
   GET_AUTOCQUEST_MATERIAL(ch) = 0;
-  free(GET_AUTOCQUEST_DESC(ch)); // I have no idea if this is actually needed
+  
+  if (GET_AUTOCQUEST_DESC(ch))
+    free(GET_AUTOCQUEST_DESC(ch));
   GET_AUTOCQUEST_DESC(ch) = strdup("nothing");
 }
 
@@ -215,30 +218,6 @@ void cquest_report(struct char_data *ch) {
           "'supplyorder complete' to finish your supply "
           "order and receive your reward or 'supplyorder quit' "
           "to quit your current supply order.\r\n");
-}
-
-/* deprecated by random_bonus_value() in treasure.c */
-
-/* this function determines the factor of bonus for crystal_value/level */
-int crystal_bonus(struct obj_data *crystal, int mod) {
-  int bonus = mod + (GET_OBJ_LEVEL(crystal) / BONUS_FACTOR);
-
-  switch (GET_OBJ_VAL(crystal, 0)) {
-
-    case APPLY_HIT:
-      bonus *= 12;
-      break;
-
-    case APPLY_MOVE:
-      bonus *= 24;
-      break;
-
-
-    default: // default - unmodified
-      break;
-  }
-
-  return bonus;
 }
 
 /*
@@ -520,8 +499,27 @@ void reset_harvesting_rooms(void) {
   struct obj_data *obj = NULL;
 
   for (cnt = 0; cnt <= top_of_world; cnt++) {
+    if (ROOM_FLAGGED(cnt, ROOM_HOUSE))
+      continue;
+    if (ROOM_FLAGGED(cnt, ROOM_FLY_NEEDED))
+      continue;
+    if (ROOM_FLAGGED(cnt, ROOM_CLIMB_NEEDED))
+      continue;
     if (world[cnt].sector_type == SECT_CITY)
       continue;
+    if (world[cnt].sector_type == SECT_INSIDE)
+      continue;
+    if (world[cnt].sector_type == SECT_WATER_NOSWIM)
+      continue;
+    if (world[cnt].sector_type == SECT_OUTTER_PLANES)
+      continue;
+    if (world[cnt].sector_type == SECT_UD_CITY)
+      continue;
+    if (world[cnt].sector_type == SECT_UD_INSIDE)
+      continue;
+    if (world[cnt].sector_type == SECT_UD_WATER_NOSWIM)
+      continue;
+    
     num_rooms++;
   }
 
@@ -616,7 +614,6 @@ void reset_harvesting_rooms(void) {
 /*************************/
 
 // combine crystals to make them stronger
-
 int augment(struct obj_data *kit, struct char_data *ch) {
   struct obj_data *obj = NULL, *crystal_one = NULL, *crystal_two = NULL;
   int num_objs = 0, cost = 0, bonus = 0, bonus2 = 0;
@@ -737,7 +734,6 @@ int augment(struct obj_data *kit, struct char_data *ch) {
 
 // convert one material into another
 // requires multiples of exactly 10 of same mat to do the converstion
-
 /*  !! still under construction - zusuk !! */
 int convert(struct obj_data *kit, struct char_data *ch) {
   int cost = 500; /* flat cost */
@@ -855,8 +851,6 @@ int restring(char *argument, struct obj_data *kit, struct char_data *ch) {
   }
 
   if (obj->ex_description) {
-    send_to_char(ch, "You cannot restring items with extra descriptions.\r\n");
-    return 1;
     send_to_char(ch, "You cannot restring items with extra descriptions.\r\n");
     return 1;
   }
