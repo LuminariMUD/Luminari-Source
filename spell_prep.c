@@ -1508,7 +1508,7 @@ void begin_preparing(struct char_data *ch, int class) {
  *   character's skills
  *   character feats   */
 int compute_spells_prep_time(struct char_data *ch, int class, int circle, int domain) {
-  int prep_time = 0;
+  float prep_time = 0.0;
   int bonus_time = 0;
   int stat_bonus = 0;
   int level_bonus = 0;
