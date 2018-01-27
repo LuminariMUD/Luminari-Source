@@ -2803,10 +2803,10 @@ void assign_feats(void) {
             
   /* Duelist */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
-  /*1*/feato(FEAT_CANNY_DEFENSE, "canny defense", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+  /*1*/feato(FEAT_CANNY_DEFENSE, "canny defense", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "add int bonus (max class level) to ac when using light or no armor and no shield",
     "add int bonus (max class level) to ac when using light or no armor and no shield");
-  /*1*/feato(FEAT_PRECISE_STRIKE, "precise strike", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+  /*1*/feato(FEAT_PRECISE_STRIKE, "precise strike", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "add duelist level to damage when using light or no armor and no shield",
     "A duelist gains the ability to strike precisely when light or not armored and no shield, "
                "adding her duelist level to her damage roll. When making a precise "
