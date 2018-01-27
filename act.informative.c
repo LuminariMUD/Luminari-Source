@@ -494,6 +494,11 @@ static void diag_char_to_char(struct char_data *i, struct char_data *ch) {
   pers = NULL;
 }
 
+/* 
+ * These next functions/procedures are where we need to implement the customized color system!
+ * To start with, just providing sane colors for things like room descriptions would go a long way.
+ */
+
 static void look_at_char(struct char_data *i, struct char_data *ch) {
   int j, found, is_disguised = FALSE;
   char buf[MAX_INPUT_LENGTH];
