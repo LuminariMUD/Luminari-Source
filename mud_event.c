@@ -162,8 +162,8 @@ EVENTFUNC(event_countdown) {
   room_rnum rnum = NOWHERE;
   region_vnum *regvnum = NULL;
   region_rnum regrnum = NOWHERE;
-  obj_vnum *obj_vnum = NULL;
-  obj_rnum obj_rnum = NOWHERE;
+  //obj_vnum *obj_vnum = NULL;
+  //obj_rnum obj_rnum = NOWHERE;
 
   pMudEvent = (struct mud_event_data *) event_obj;
 
