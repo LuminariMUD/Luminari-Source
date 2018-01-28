@@ -1213,9 +1213,9 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
   struct obj_data *obj = NULL, *mold = NULL, *crystal = NULL,
           *material = NULL, *essence = NULL;
   int num_mats = 0, obj_level = 1, skill = ABILITY_CRAFT_WEAPONSMITHING,
-          crystal_value = -1, mats_needed = 12345, found = 0, i = 0, bonus = 0;
+          mats_needed = 12345, found = 0, i = 0;
   int fast_craft_bonus = GET_SKILL(ch, SKILL_FAST_CRAFTER) / 33;
-  int chance_of_crit = 0, i = 0;
+  int chance_of_crit = 0;
 
   /* sort through our kit and check if we got everything we need */
   for (obj = kit->contains; obj != NULL; obj = obj->next_content) {
