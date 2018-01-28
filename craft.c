@@ -1,7 +1,7 @@
 /*/ \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \
 \                                                             
 /  Luminari Crafting System, Inspired by D20mud's Craft System                                                           
-/  Created By: Zusuk, original code from Gicker                                                           
+/  Created By: Zusuk, original d20 code from Gicker                                                           
 \                                                             
 /  using craft.h as the header file currently                                                           
 \                                                          
@@ -44,111 +44,117 @@ int foresting_nodes = 0;
 /* crafting local utility functions*/
 /***********************************/
 
-/* bare in mind any CAP that has been established for num/size of dice */
-int weapon_damage[MAX_WEAPON_DAMAGE + 1][2] = {
-  /* damage  num_dice  siz_dice */
-  /*     0 */
-  { 0, 0,},
-  /*     1 */
-  { 1, 1,},
-  /*     2 */
-  { 1, 2,},
-  /*     3 */
-  { 1, 2,},
-  /*     4 */
+/* charts for weapon resize, if weapon dice don't fall on any of these, invalid */
+int weapon_damage_a[NUM_SIZES][2] = {
+  /* num_dice, siz_dice */  
+  { 0, 0,}, /* SIZE_RESERVED */
+  { 1, 2,}, //fine
+  { 1, 3,},
   { 1, 4,},
-  /*     5 */
-  { 2, 2,},
-  /*     6 */
   { 1, 6,},
-  /*     7 */
-  { 2, 3,},
-  /*     8 */
   { 1, 8,},
-  /*     9 */
-  { 2, 4,},
-  /*     10*/
-  { 1, 10,},
-  /*     11*/
-  { 2, 5,},
-  /*     12*/
-  { 1, 12,},
-  /*     13*/
   { 2, 6,},
-  /*     14*/
-  { 1, 14,},
-  /*     15*/
-  { 2, 7,},
-  /*     16*/
-  { 1, 16,},
-  /*     17*/
+  { 3, 6,},
+  { 4, 6,},
+  { 6, 6,}, //colossal
+};
+int weapon_damage_b[NUM_SIZES][2] = {
+  /* num_dice, siz_dice */
+  { 0, 0,}, /* SIZE_RESERVED */
+  { 1, 1,}, //fine
+  { 2, 1,},
+  { 2, 3,},
+  { 1, 7,},  
+  { 2, 4,},
+  { 1, 12,},
+  { 4, 4,},
+  { 6, 4,},
+  { 5, 8,}, //colossal
+};
+int weapon_damage_c[NUM_SIZES][2] = {
+  /* num_dice, siz_dice */
+  { 0, 0,}, /* SIZE_RESERVED */
+  { 0, 0,}, /* invalid (fine) */
+  { 3, 1,}, //diminiutive
+  { 2, 2,},
+  { 3, 2,},
+  { 1, 9,},  
+  { 1, 10,},
   { 2, 8,},
-  /*     18*/
-  { 1, 18,},
-  /*     19*/
-  { 2, 9,},
-  /*     20*/
-  { 1, 20,},
-  /*     21*/
-  { 2, 10,},
-  /*     22*/
-  { 1, 22,},
-  /*     23*/
-  { 2, 11,},
-  /*     24*/
-  { 1, 24,}
+  { 3, 8,},
+  { 4, 8,}, //colossal
 };
 
-/* the primary use of this function is to modify a weapons damage
- * when resizing it...
+/* the primary use of this function is to modify a weapons damage on resize
  *   weapon:  object, needs to be a weapon
- *   scaling:  integer, negative or positive indicating how many
- *             size classes the weapon is shifting
- *
- * returns TRUE if successful, FALSE if failed
- */
-bool scale_damage(struct obj_data *weapon, int scaling) {
-  int max_damage = 0; // number-of-dice * size-of-dice of weapon
-  int new_max_damage = 0; // new weapon damage
+ * we have 3 charts above trying to accomodate most weapons you could
+ *   possibly ecnounter
+ * returns TRUE if successful, FALSE if failed */
+bool scale_damage(struct char_data *ch, struct obj_data *weapon, int new_size) {
   int num_of_dice = 0; // number-of-dice rolled for weapon dam
   int size_of_dice = 0; // size-of-dice rolled for weapon dam
-  int size = -1; // starting size of weapon
-  int new_size = -1; // new size of weapon
+  int size = SIZE_UNDEFINED; // old size of weapon
+  int counter = 0;
+  int size_shift = SIZE_UNDEFINED;
 
-  /* no scaling to be done */
-  if (!scaling)
+  /* wha?! no object? */
+  if (!weapon) {
+    send_to_char(ch, "You do not seem to have an object for resizing!\r\n");    
     return FALSE;
-
-  if (!weapon)
-    return FALSE;
+  }
 
   /* this only works for weapons */
-  if (GET_OBJ_TYPE(weapon) != ITEM_WEAPON)
+  if (GET_OBJ_TYPE(weapon) != ITEM_WEAPON) {
+    send_to_char(ch, "You do not seem to have a weapon for resizing!\r\n");    
     return FALSE;
+  }
 
   /* assigned for ease-of-use */
-  num_of_dice = GET_OBJ_VAL(weapon, 1); // how many dice are we rolling?
-  size_of_dice = GET_OBJ_VAL(weapon, 2); // how big is the current dice roll?
-  size = GET_OBJ_SIZE(weapon); // what is current size of weapon?
-  new_size = size + scaling; // what size will weapon be now?
-  max_damage = num_of_dice * size_of_dice; // weapons max damage
-  new_max_damage = max_damage + (scaling * WEAPON_RESIZE_INC); // new max dam
+  num_of_dice = GET_OBJ_VAL(weapon, 1); /* how many dice are we rolling on old size */
+  size_of_dice = GET_OBJ_VAL(weapon, 2); /* how big is the current dice roll on old size */
+  size = GET_OBJ_SIZE(weapon); /* what is current size of weapon? */
+  size_shift = new_size - size; /* how many size classes to shift in charts */
 
-  /* make sure the weapon is not becoming too big or too small */
-  if (new_size >= NUM_SIZES ||
-          new_size <= SIZE_RESERVED)
+  /* first check to make sure we have this value on one of the charts, if
+     not we are calling it invalid */
+  for (counter = 0; counter < NUM_SIZES; counter++) {    
+    
+    /* check our charts - chart A */
+    if (weapon_damage_a[counter][0] == num_of_dice &&
+            weapon_damage_a[counter][1] == size_of_dice) {
+      /* valid shift in chart?  calculate our new location on chart */
+      if (counter + size_shift >= NUM_SIZES ||
+              counter + size_shift <= SIZE_RESERVED) {
+        send_to_char(ch, "Invalid resize!\r\n");
+        return FALSE;
+      }
+      /* valid!  set and exit clean */
+      GET_OBJ_VAL(weapon, 1) = weapon_damage_a[counter + size_shift][0];
+      GET_OBJ_VAL(weapon, 2) = weapon_damage_a[counter + size_shift][1];
+      GET_OBJ_SIZE(weapon) = new_size;
+      return TRUE;
+    }
+    
+    /* check our charts - chart B */
+    if (weapon_damage_b[counter][0] == num_of_dice &&
+            weapon_damage_b[counter][1] == size_of_dice) {
+      /* valid shift in chart?  calculate our new location on chart */
+      if (counter + size_shift >= NUM_SIZES ||
+              counter + size_shift <= SIZE_RESERVED) {
+        send_to_char(ch, "Invalid resize!\r\n");
+        return FALSE;
+      }
+      /* valid!  set and exit clean */
+      GET_OBJ_VAL(weapon, 1) = weapon_damage_b[counter + size_shift][0];
+      GET_OBJ_VAL(weapon, 2) = weapon_damage_b[counter + size_shift][1];
+      GET_OBJ_SIZE(weapon) = new_size;
+      return TRUE;
+    }
+    
+    /* couldn't find anything on the charts! */
+    send_to_char(ch, "Could not find your weapon on any of the charts!  You "
+            "should turn this weapon in to a builder-staff member to adjust.\r\n");
     return FALSE;
-
-  /* more cap-checks, min/max damage */
-  if (new_max_damage > MAX_WEAPON_DAMAGE ||
-          new_max_damage < MIN_WEAPON_DAMAGE)
-    return FALSE;
-
-  /* OK, passed all our checks, modify weapon damage */
-  GET_OBJ_VAL(weapon, 1) = weapon_damage[new_max_damage][0];
-  GET_OBJ_VAL(weapon, 2) = weapon_damage[new_max_damage][1];
-
-  return TRUE;
 }
 
 /* this function will switch the material of an item based on the
@@ -1037,30 +1043,31 @@ int resize(char *argument, struct obj_data *kit, struct char_data *ch) {
     send_to_char(ch, "The object is already the size you desire.\r\n");
     return 1;
   }
+  
+  /* "cost" of resizing */
+  cost = GET_OBJ_COST(obj) / 2;
+  if (GET_GOLD(ch) < cost) {
+    send_to_char(ch, "You need %d coins on hand for supplies to resize this "
+            "item.\r\n", cost);
+    return 1;
+  }
 
   /* weapon damage adjustment */
   if (GET_OBJ_TYPE(obj) == ITEM_WEAPON) {
     num_dice = GET_OBJ_VAL(obj, 1);
     size_dice = GET_OBJ_VAL(obj, 2);
 
-    if (scale_damage(obj, newsize - GET_OBJ_SIZE(obj))) {
+    if (scale_damage(ch, obj, newsize)) {
       /* success, weapon upgraded or downgraded in damage
          corresponding to size change */
       send_to_char(ch, "Weapon change:  %dd%d to %dd%d\r\n",
               num_dice, size_dice, GET_OBJ_VAL(obj, 1), GET_OBJ_VAL(obj, 2));
     } else {
-      send_to_char(ch, "This weapon can not be resized.\r\n");
+      send_to_char(ch, "You failed to resize this weapon!\r\n");
       return 1;
     }
   }
 
-  /* "cost" of resizing */
-  cost = GET_OBJ_COST(obj) / 2;
-  if (GET_GOLD(ch) < cost) {
-    send_to_char(ch, "You need %d coins on hand for supplies to make this "
-            "item.\r\n", cost);
-    return 1;
-  }
   send_to_char(ch, "It cost you %d coins to resize this item.\r\n",
           cost);
   GET_GOLD(ch) -= cost;
