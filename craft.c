@@ -215,8 +215,7 @@ void reset_acraft(struct char_data *ch) {
 }
 
 /* compartmentalized auto-quest crafting reporting since its done
-   a few times in the code
- */
+   a few times in the code */
 void cquest_report(struct char_data *ch) {
   if (GET_AUTOCQUEST_VNUM(ch)) {
     if (GET_AUTOCQUEST_MAKENUM(ch) <= 0)
@@ -635,10 +634,11 @@ void reset_harvesting_rooms(void) {
 /* start primary engines */
 /*************************/
 
-// combine crystals to make them stronger
+// combine essence to make them stronger
 int augment(struct obj_data *kit, struct char_data *ch) {
-  struct obj_data *obj = NULL, *crystal_one = NULL, *crystal_two = NULL;
-  int num_objs = 0, cost = 0, bonus = 0, bonus2 = 0;
+  struct obj_data *obj = NULL, *essence_one = NULL, *essence_two = NULL;
+  int num_objs = 0, cost = 0, level_diff = 0, success_chance = 0;
+  int dice_roll = 0, essence_level = 0;
   int skill_type = SKILL_CHEMISTRY; // change this to change the skill used
   char buf[MAX_INPUT_LENGTH];
   int fast_craft_bonus = GET_SKILL(ch, SKILL_FAST_CRAFTER) / 33;
@@ -651,10 +651,10 @@ int augment(struct obj_data *kit, struct char_data *ch) {
         send_to_char(ch, "Make sure only two items are in the kit.\r\n");
         return 1;
       }
-      if (GET_OBJ_TYPE(obj) == ITEM_CRYSTAL && !crystal_one) {
-        crystal_one = obj;
-      } else if (GET_OBJ_TYPE(obj) == ITEM_CRYSTAL && !crystal_two) {
-        crystal_two = obj;
+      if (GET_OBJ_TYPE(obj) == ITEM_ESSENCE && !essence_one) {
+        essence_one = obj;
+      } else if (GET_OBJ_TYPE(obj) == ITEM_ESSENCE && !essence_two) {
+        essence_two = obj;
       }
     }
   }
@@ -663,89 +663,86 @@ int augment(struct obj_data *kit, struct char_data *ch) {
     send_to_char(ch, "Make sure only two items are in the kit.\r\n");
     return 1;
   }
-  if (!crystal_one || !crystal_two) {
-    send_to_char(ch, "You need two crystals to augment.\r\n");
+  if (!essence_one || !essence_two) {
+    send_to_char(ch, "You need two essences to augment.\r\n");
     return 1;
   }
-  if (apply_types[crystal_one->affected[0].location] !=
-          apply_types[crystal_two->affected[0].location]) {
-    send_to_char(ch, "The crystal 'apply type' needs to be the same to"
-            " augment.\r\n");
+  if (GET_OBJ_LEVEL(essence_one) >= (LVL_IMMORT - 1) ||
+          GET_OBJ_LEVEL(essence_two) >= (LVL_IMMORT - 1)) {
+    send_to_char(ch, "You can not further augment that essence!\r\n");
+    return 1;    
+  }
+  level_diff = abs(GET_OBJ_LEVEL(essence_one) - GET_OBJ_LEVEL(essence_two));
+  /* essence have to be 4 level range of each other */
+  if (level_diff <= 4) {
+    send_to_char(ch, "The essence have to be closer in power (level) to each other!\r\n");
     return 1;
   }
-  // if the crystals aren't at least 2nd level, you are going to create junk
-  if (GET_OBJ_LEVEL(crystal_one) < 2 || GET_OBJ_LEVEL(crystal_two) < 2) {
-    send_to_char(ch, "These crystals are too weak to augment together.\r\n");
-    return 1;
-  }
-
-  // new level of crystal, with cap
-  /* first determine the higher/lower bonus */
-  if (GET_OBJ_LEVEL(crystal_one) >= GET_OBJ_LEVEL(crystal_two)) {
-    bonus = GET_OBJ_LEVEL(crystal_one);
-    bonus2 = GET_OBJ_LEVEL(crystal_two);
-  } else {
-    bonus = GET_OBJ_LEVEL(crystal_two);
-    bonus2 = GET_OBJ_LEVEL(crystal_one);
-  }
-  /* new level is half of lower level crystal + higher level crystal */
-  bonus = bonus + (bonus2 / 2);
-
-  if (bonus > (LVL_IMMORT - 1)) { // cap
-    send_to_char(ch, "This augmentation process would create a crystal that is unstable!\r\n");
-    return 1;
-  }
-
-  if (bonus > GET_SKILL(ch, skill_type) / 3) { // high enough skill?
-    send_to_char(ch, "The crystal level is %d but your %s skill is "
+  
+  /* what is the level we are adjusting? */
+  if (GET_OBJ_LEVEL(essence_one) >= GET_OBJ_LEVEL(essence_two))
+    essence_level = GET_OBJ_LEVEL(essence_one);
+  else
+    essence_level = GET_OBJ_LEVEL(essence_two);
+    
+  /* high enough skill? */
+  if (essence_level > (GET_SKILL(ch, skill_type) / 3)) {
+    send_to_char(ch, "The essence level is %d but your %s skill is "
             "only capable of creating level %d crystals.\r\n",
-            bonus, skill_name(skill_type),
+            essence_level, skill_name(skill_type),
             (GET_SKILL(ch, skill_type) / 3));
     return 1;
   }
-
-  cost = bonus * bonus * 1000 / 3; // expense for augmenting
+  
+  cost = essence_level * 500 / 3; // expense for augmenting
   if (GET_GOLD(ch) < cost) {
     send_to_char(ch, "You need %d coins on hand for supplies to augment this "
             "crystal.\r\n", cost);
     return 1;
   }
+  
+  /* roll the dice! */
+  dice_roll = dice(1, 100);
+  
+  /* success is level difference divided by 4,  percent */
+  success_chance = 100 - (level_diff * 25);
+  success_chance -= essence_level; /* minus level */
+  
+  /* critical success */
+  if (dice_roll >= 95)
+    success_chance = 150;
+  
+  dice_roll += GET_SKILL(ch, skill_type) / 3;
+  
+  /* failed our attempt */
+  if (dice_roll > success_chance) {
+    send_to_char(ch, "There seems to be a flaw in your augmentation...\r\n");
+  }
+  
+  /* success! */
+  else {
+    GET_OBJ_LEVEL(essence_one) = essence_level;
+  }
 
-  // crystal_one is converted to the new crystal
-  GET_OBJ_LEVEL(crystal_one) = bonus;
-  GET_OBJ_COST(crystal_one) = GET_OBJ_COST(crystal_one) +
-          GET_OBJ_COST(crystal_two);
-
-  // exp bonus for crafting ticks
-  GET_CRAFTING_BONUS(ch) = 10 + MIN(60, GET_OBJ_LEVEL(crystal_one));
-
-  // new name
-  sprintf(buf, "\twa crystal of\ty %s\tw max level\ty %d\tn",
-          apply_types[crystal_one->affected[0].location],
-          GET_OBJ_LEVEL(crystal_one));
-  crystal_one->name = strdup(buf);
-  crystal_one->short_description = strdup(buf);
-  sprintf(buf, "\twA crystal of\ty %s\tw max level\ty %d\tw lies here.\tn",
-          apply_types[crystal_one->affected[0].location],
-          GET_OBJ_LEVEL(crystal_one));
-  crystal_one->description = strdup(buf);
-
-  send_to_char(ch, "It cost you %d coins in supplies to "
-          "augment this crystal.\r\n", cost);
+  /* exp bonus for crafting ticks */
+  GET_CRAFTING_BONUS(ch) = 10 + MIN(30, essence_level);
+  /* cost */
+  send_to_char(ch, "It cost you %d coins in supplies to augment this "
+          "essence.\r\n", cost);
   GET_GOLD(ch) -= cost;
-
+  
   GET_CRAFTING_TYPE(ch) = SCMD_AUGMENT;
   GET_CRAFTING_TICKS(ch) = 5 - fast_craft_bonus;
-  GET_CRAFTING_OBJ(ch) = crystal_one;
+  GET_CRAFTING_OBJ(ch) = essence_one;
   send_to_char(ch, "You begin to augment %s.\r\n",
-          crystal_one->short_description);
-  act("$n begins to augment $p.", FALSE, ch, crystal_one, 0, TO_ROOM);
+          essence_one->short_description);
+  act("$n begins to augment $p.", FALSE, ch, essence_one, 0, TO_ROOM);
 
-  // get rid of the items in the kit
-  obj_from_obj(crystal_one);
-  extract_obj(crystal_two);
+  /* get rid of the items in the kit */
+  obj_from_obj(essence_one);
+  extract_obj(essence_two);
 
-  obj_to_char(crystal_one, ch);
+  obj_to_char(essence_one, ch);
   NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
 
   if (!IS_NPC(ch))
@@ -995,7 +992,7 @@ int autocraft(struct obj_data *kit, struct char_data *ch) {
 
   GET_CRAFTING_TYPE(ch) = SCMD_SUPPLYORDER;
   GET_CRAFTING_TICKS(ch) = 5 - fast_craft_bonus;
-  GET_AUTOCQUEST_GOLD(ch) += GET_LEVEL(ch) * GET_LEVEL(ch);
+  GET_AUTOCQUEST_GOLD(ch) += GET_LEVEL(ch);
   send_to_char(ch, "You begin a supply order for %s.\r\n",
           GET_AUTOCQUEST_DESC(ch));
   act("$n begins a supply order.", FALSE, ch, NULL, 0, TO_ROOM);
@@ -1599,9 +1596,9 @@ SPECIAL(crafting_kit) {
   else if (CMD_IS("autocraft"))
     return autocraft(kit, ch);
   else if (CMD_IS("create"))
-    return create(argument, kit, ch, 1);
+    return create(argument, kit, ch, CREATE_MODE_CREATE);
   else if (CMD_IS("checkcraft"))
-    return create(NULL, kit, ch, 2);
+    return create(NULL, kit, ch, CREATE_MODE_CHECK);
   else if (CMD_IS("disenchant"))
     return disenchant(kit, ch);
   else {
@@ -1686,9 +1683,12 @@ SPECIAL(crafting_quest) {
 
     GET_AUTOCQUEST_DESC(ch) = strdup(desc);
     GET_AUTOCQUEST_MAKENUM(ch) = AUTOCQUEST_MAKENUM;
-    GET_AUTOCQUEST_QP(ch) = 1;
-    GET_AUTOCQUEST_EXP(ch) = (GET_LEVEL(ch) * GET_LEVEL(ch)) * 10;
-    GET_AUTOCQUEST_GOLD(ch) = GET_LEVEL(ch) * 100;
+    if (!rand_number(0, 20))
+      GET_AUTOCQUEST_QP(ch) = 1;
+    else
+      GET_AUTOCQUEST_QP(ch) = 0;
+    GET_AUTOCQUEST_EXP(ch) = GET_LEVEL(ch) * 10;
+    GET_AUTOCQUEST_GOLD(ch) = GET_LEVEL(ch) * 2;
 
     send_to_char(ch, "You have been commissioned for a supply order to "
             "make %s.  We expect you to make %d before you can collect your "
