@@ -171,6 +171,7 @@ void add_to_obj_list(struct obj_list_item *lst, int num_items, obj_vnum nvo, int
   }
 }
 
+/* list objects by type */
 void perform_obj_type_list(struct char_data * ch, char *arg) {
   int num, itemtype, v1, v2 = -1, v3 = -1, v4 = -1, v5 = -1, found = 0,
           len = 0, tmp_len = 0;
@@ -415,6 +416,8 @@ void perform_obj_type_list(struct char_data * ch, char *arg) {
           case ITEM_NOTE:
           case ITEM_PEN:
           case ITEM_BOAT:
+          case ITEM_CRYSTAL:
+          case ITEM_ESSENCE:
           case ITEM_KEY:
           case ITEM_FURNITURE:
             tmp_len = snprintf(buf + len, sizeof (buf) - len, "%s%3d%s) %s[%s%8d%s] %s%s\r\n",
