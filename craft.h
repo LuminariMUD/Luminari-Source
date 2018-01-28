@@ -36,6 +36,9 @@
 #define NODE_CAP_FACTOR     33
 // end DEFINES //
 
+#define CREATE_MODE_CREATE  1
+#define CREATE_MODE_CHECK   2
+
 /* item defines, by vnum */
 #define HARVESTING_NODE       811
 #define STEEL_MATERIAL        3121
