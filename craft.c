@@ -1479,7 +1479,8 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
     if (essence) {
       /*debug*/
       if (GET_LEVEL(ch) >= LVL_IMMORT) {
-        send_to_char(ch, "Staff override on crit chance\r\n");
+        send_to_char(ch, "Staff override on crit chance (real chance: %d)\r\n",
+                chance_of_crit);
         chance_of_crit = 101;
       }
       /*debug*/
@@ -1488,7 +1489,7 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
         mold->affected[3].location = random_apply_value();
         mold->affected[3].modifier = adjust_bonus_value(mold->affected[3].location, 1);
         mold->affected[3].bonus_type = BONUS_TYPE_INHERENT;
-        send_to_char(ch, "You feel a sense of inspiration as you being your craft!\r\n");
+        send_to_char(ch, "You feel a sense of inspiration as you begin your craft!\r\n");
       }
     }
     
