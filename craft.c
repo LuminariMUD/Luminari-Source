@@ -673,7 +673,7 @@ int augment(struct obj_data *kit, struct char_data *ch) {
   }
   level_diff = abs(GET_OBJ_LEVEL(essence_one) - GET_OBJ_LEVEL(essence_two));
   /* essence have to be 4 level range of each other */
-  if (level_diff <= 4) {
+  if (level_diff > 4) {
     send_to_char(ch, "The essence have to be closer in power (level) to each other!\r\n");
     return 1;
   }
