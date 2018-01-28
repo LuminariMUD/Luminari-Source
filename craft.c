@@ -1108,12 +1108,12 @@ int resize(char *argument, struct obj_data *kit, struct char_data *ch) {
   return 1;
 }
 
-/* unfinished -zusuk */
+/* convert magic objects to essence */
 int disenchant(struct obj_data *kit, struct char_data *ch) {
   struct obj_data *obj = NULL;
-  int num_objs = 0;
+  int num_objs = 0, essence_level = 0;
   int fast_craft_bonus = GET_SKILL(ch, SKILL_FAST_CRAFTER) / 33;
-  int chem_check = GET_SKILL(ch, SKILL_CHEMISTRY) / 3 + 1;
+  int chem_check = GET_SKILL(ch, SKILL_CHEMISTRY) + dice(1, 20);
 
   /* Cycle through contents */
   /* disenchant requires just one item be inside the kit */
@@ -1144,15 +1144,14 @@ int disenchant(struct obj_data *kit, struct char_data *ch) {
   }
 
   /* You can disenchant object level equal to your: chemistry-skill / 3 + 1 */
-  if (GET_OBJ_LEVEL(obj) > chem_check) {
-    send_to_char(ch, "Your chemistry skill isn't high enough to disenchant that item!"
-            "  You can disenchant objects up to level %d.\r\n",
-            chem_check);
+  if (GET_OBJ_LEVEL(obj) < 5) {
+    send_to_char(ch, "You need a more powerful object to have any chance of "
+            "extracting magic essence.\r\n");
     return 1;
   }
-
-  /* award crystal for item */
-  award_random_crystal(ch, GET_OBJ_LEVEL(obj));
+  
+  /* determine the level of this essence */
+  essence_level = dice(1, ((GET_OBJ_LEVEL(obj)/2)));
 
   /* getting complaints it is too slow to notch - zusuk */
   if (!IS_NPC(ch)) {
@@ -1162,7 +1161,6 @@ int disenchant(struct obj_data *kit, struct char_data *ch) {
   }
 
   GET_CRAFTING_TYPE(ch) = SCMD_DISENCHANT;
-  //GET_CRAFTING_TICKS(ch) = 4;
   GET_CRAFTING_TICKS(ch) = MAX(2, 11 - fast_craft_bonus);
   GET_CRAFTING_OBJ(ch) = NULL;
 
@@ -1172,7 +1170,23 @@ int disenchant(struct obj_data *kit, struct char_data *ch) {
   /* clear item that got disenchanted */
   obj_from_obj(obj);
   extract_obj(obj);
-
+  
+  /* make the check! */
+  if (chem_check <= (GET_OBJ_LEVEL(obj) * 3 + 20)) {
+    /* fail! */
+    send_to_char(ch, "You are having difficulty extracting the magical essence...\r\n");
+  } else {
+    /* create the essence */
+    obj = read_object(MAGICAL_ESSENCE, VIRTUAL);
+    if (!obj) {
+      log("Failed to load the seence object in disenchant()");
+      send_to_char(ch, "Report to staff please: disenchant failed to load essence object.\r\n");
+      return 1;
+    }
+    GET_OBJ_LEVEL(obj) = essence_level;
+    obj_to_char(obj);
+  }
+  
   NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
   return 1;
 }
