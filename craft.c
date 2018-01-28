@@ -1184,7 +1184,7 @@ int disenchant(struct obj_data *kit, struct char_data *ch) {
       return 1;
     }
     GET_OBJ_LEVEL(obj) = essence_level;
-    obj_to_char(obj);
+    obj_to_char(obj, ch);
   }
   
   NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
