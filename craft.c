@@ -731,7 +731,7 @@ int augment(struct obj_data *kit, struct char_data *ch) {
   GET_GOLD(ch) -= cost;
   
   GET_CRAFTING_TYPE(ch) = SCMD_AUGMENT;
-  GET_CRAFTING_TICKS(ch) = 5 - fast_craft_bonus;
+  GET_CRAFTING_TICKS(ch) = 10 - fast_craft_bonus;
   GET_CRAFTING_OBJ(ch) = essence_one;
   send_to_char(ch, "You begin to augment %s.\r\n",
           essence_one->short_description);
