@@ -297,6 +297,10 @@ void set_ammo_object(struct obj_data *obj, int type);
 int possible_material_upgrade(int base_mat, int grade);
 /* give a random 'misc' magical item to ch */
 void give_misc_magic_item(struct char_data *ch, int category, int enchantment, bool silent_mode);
+/* select a random valid apply-value */
+int random_apply_value(void);
+/* called by random_bonus_value(), cp_modify_object_applies(), */
+int adjust_bonus_value(int apply_location, int bonus);
 
 /* Procedures for loading mobs with items, rather than simply handing them out
  * automaticalyl after death.  Used with random treasure load resets.
