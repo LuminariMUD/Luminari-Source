@@ -1425,7 +1425,7 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
   int cost = obj_level * obj_level * 100 / 3;
 
   /** passed all the tests, time to check or create the item **/
-  if (CREATE_MODE_CHECK == 2) { /* checkcraft */
+  if (CREATE_MODE_CHECK == mode) { /* checkcraft */
     send_to_char(ch, "This crafting session will create the following "
             "item:\r\n\r\n");
     do_stat_object(ch, mold, ITEM_STAT_MODE_IDENTIFY_SPELL);    
