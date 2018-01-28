@@ -40,6 +40,8 @@
 #define CREATE_MODE_CHECK   2
 
 /* item defines, by vnum */
+#define MAGICAL_ESSENCE       3248
+
 #define HARVESTING_NODE       811
 #define STEEL_MATERIAL        3121
 #define LEATHER_MATERIAL      3122 // this matches low quality leather below
