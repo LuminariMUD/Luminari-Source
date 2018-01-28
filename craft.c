@@ -720,6 +720,7 @@ int augment(struct obj_data *kit, struct char_data *ch) {
   
   /* success! */
   else {
+    essence_level++;
     GET_OBJ_LEVEL(essence_one) = essence_level;
   }
 
