@@ -1459,13 +1459,30 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
         if (crystal->affected[i].modifier && crystal->affected[i].location) {
           mold->affected[i].location = crystal->affected[i].location;
           mold->affected[i].modifier = crystal->affected[i].modifier;
-          mold->affected[i].bonus_type = crystal->affected[i].bonus_type;
+          if (!crystal->affected[i].bonus_type)
+            mold->affected[i].bonus_type = BONUS_TYPE_ENHANCEMENT;
+          else
+            mold->affected[i].bonus_type = crystal->affected[i].bonus_type;
         }
+      }
+      /* enhancement bonus */
+      if (CAN_WEAR(mold, ITEM_WEAR_WIELD) || CAN_WEAR(mold, ITEM_WEAR_SHIELD) ||
+              CAN_WEAR(mold, ITEM_WEAR_HEAD) || CAN_WEAR(mold, ITEM_WEAR_BODY) ||
+              CAN_WEAR(mold, ITEM_WEAR_LEGS) || CAN_WEAR(mold, ITEM_WEAR_ARMS) ||
+              GET_OBJ_TYPE(mold) == ITEM_MISSILE
+              ) {
+        GET_OBJ_VAL(mold, 4) = MIN(TREASURE_MAX_BONUS, ((GET_OBJ_LEVEL(mold) + 5) / 5));
       }
     }
 
     /* try for master-work craft! */
     if (essence) {
+      /*debug*/
+      if (GET_LEVEL(ch) >= LVL_IMMORT) {
+        send_to_char(ch, "Staff override on crit chance\r\n");
+        chance_of_crit = 101;
+      }
+      /*debug*/
       if (dice(1, 100) <= chance_of_crit) {
         /* did it! we assumed [3rd] value is available for this bonus */
         mold->affected[3].location = random_apply_value();
