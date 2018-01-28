@@ -84,7 +84,6 @@ int weapon_damage_c[NUM_SIZES][2] = {
   { 3, 8,},
   { 4, 8,}, //colossal
 };
-
 /* the primary use of this function is to modify a weapons damage on resize
  *   weapon:  object, needs to be a weapon
  * we have 3 charts above trying to accomodate most weapons you could
@@ -99,13 +98,13 @@ bool scale_damage(struct char_data *ch, struct obj_data *weapon, int new_size) {
 
   /* wha?! no object? */
   if (!weapon) {
-    send_to_char(ch, "You do not seem to have an object for resizing!\r\n");    
+    send_to_char(ch, "You do not seem to have an object for resizing!\r\n");
     return FALSE;
   }
 
   /* this only works for weapons */
   if (GET_OBJ_TYPE(weapon) != ITEM_WEAPON) {
-    send_to_char(ch, "You do not seem to have a weapon for resizing!\r\n");    
+    send_to_char(ch, "You do not seem to have a weapon for resizing!\r\n");
     return FALSE;
   }
 
@@ -117,8 +116,8 @@ bool scale_damage(struct char_data *ch, struct obj_data *weapon, int new_size) {
 
   /* first check to make sure we have this value on one of the charts, if
      not we are calling it invalid */
-  for (counter = 0; counter < NUM_SIZES; counter++) {    
-    
+  for (counter = 0; counter < NUM_SIZES; counter++) {
+
     /* check our charts - chart A */
     if (weapon_damage_a[counter][0] == num_of_dice &&
             weapon_damage_a[counter][1] == size_of_dice) {
@@ -134,7 +133,7 @@ bool scale_damage(struct char_data *ch, struct obj_data *weapon, int new_size) {
       GET_OBJ_SIZE(weapon) = new_size;
       return TRUE;
     }
-    
+
     /* check our charts - chart B */
     if (weapon_damage_b[counter][0] == num_of_dice &&
             weapon_damage_b[counter][1] == size_of_dice) {
@@ -150,11 +149,28 @@ bool scale_damage(struct char_data *ch, struct obj_data *weapon, int new_size) {
       GET_OBJ_SIZE(weapon) = new_size;
       return TRUE;
     }
-    
-    /* couldn't find anything on the charts! */
-    send_to_char(ch, "Could not find your weapon on any of the charts!  You "
-            "should turn this weapon in to a builder-staff member to adjust.\r\n");
-    return FALSE;
+
+    /* check our charts - chart C */
+    if (weapon_damage_c[counter][0] == num_of_dice &&
+            weapon_damage_c[counter][1] == size_of_dice) {
+      /* valid shift in chart?  calculate our new location on chart */
+      if (counter + size_shift >= NUM_SIZES ||
+              counter + size_shift <= SIZE_FINE) { /* no 'fine' value for this weapon */
+        send_to_char(ch, "Invalid resize!\r\n");
+        return FALSE;
+      }
+      /* valid!  set and exit clean */
+      GET_OBJ_VAL(weapon, 1) = weapon_damage_c[counter + size_shift][0];
+      GET_OBJ_VAL(weapon, 2) = weapon_damage_c[counter + size_shift][1];
+      GET_OBJ_SIZE(weapon) = new_size;
+      return TRUE;
+    }
+  }
+
+  /* couldn't find anything on the charts! */
+  send_to_char(ch, "Could not find your weapon on any of the charts!  You "
+          "should turn this weapon in to a builder-staff member to adjust.\r\n");
+  return FALSE;
 }
 
 /* this function will switch the material of an item based on the
