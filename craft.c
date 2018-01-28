@@ -33,6 +33,7 @@
 #include "treasure.h"
 #include "mudlim.h"
 #include "spec_procs.h" /* For compute_ability() */
+#include "item.h"
 
 /* global variables */
 int mining_nodes = 0;
@@ -1207,14 +1208,14 @@ int disenchant(struct obj_data *kit, struct char_data *ch) {
 /*
  * create is for wearable gear at this stage
  */
-int create(char *argument, struct obj_data *kit,
-        struct char_data *ch, int mode) {
+int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode) {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   struct obj_data *obj = NULL, *mold = NULL, *crystal = NULL,
           *material = NULL, *essence = NULL;
   int num_mats = 0, obj_level = 1, skill = ABILITY_CRAFT_WEAPONSMITHING,
           crystal_value = -1, mats_needed = 12345, found = 0, i = 0, bonus = 0;
   int fast_craft_bonus = GET_SKILL(ch, SKILL_FAST_CRAFTER) / 33;
+  int chance_of_crit = 0, i = 0;
 
   /* sort through our kit and check if we got everything we need */
   for (obj = kit->contains; obj != NULL; obj = obj->next_content) {
@@ -1232,7 +1233,7 @@ int create(char *argument, struct obj_data *kit,
       }
 
       if (found) { // we didn't have a mold and found one, iterate main loop
-        found = 0;
+        found = FALSE;
         continue;
       }
 
@@ -1291,6 +1292,8 @@ int create(char *argument, struct obj_data *kit,
 
   /* set base level, crystal should be ultimate determinant */
   obj_level = GET_OBJ_LEVEL(mold);
+  if (crystal)
+    obj_level = GET_OBJ_LEVEL(crystal);
 
   if (!material) {
     send_to_char(ch, "You need to put materials into the kit.\r\n");
@@ -1350,7 +1353,7 @@ int create(char *argument, struct obj_data *kit,
 
   /** check for other disqualifiers */
   /* valid name */
-  if (mode == 1 && !strstr(argument,
+  if (mode == CREATE_MODE_CREATE && !strstr(argument,
           material_name[GET_OBJ_MATERIAL(material)])) {
     send_to_char(ch, "You must include the material name, '%s', in the object "
             "description somewhere.\r\n",
@@ -1359,58 +1362,24 @@ int create(char *argument, struct obj_data *kit,
     return 1;
   }
 
-  /*** valid crystal usage ***/
-  if (crystal) {
-    crystal_value = crystal->affected[0].location;
-
-    if (crystal_value == APPLY_HITROLL &&
-            !CAN_WEAR(mold, ITEM_WEAR_HANDS)) {
-      send_to_char(ch, "You can only imbue gauntlets or gloves with a "
-              "hitroll enhancement.\r\n");
-      return 1;
-    }
-
-    if ((crystal_value == APPLY_HITROLL ||
-            crystal_value == APPLY_DAMROLL) &&
-            !CAN_WEAR(mold, ITEM_WEAR_WIELD)) {
-      send_to_char(ch, "You cannot imbue a non-weapon with weapon bonuses.\r\n");
-      return 1;
-    }
-
-    /* for skill restriction and object level */
-    obj_level += GET_OBJ_LEVEL(crystal);
-
-    /* determine crystal bonus, etc */
-    int mod = 0;
-    for (i = 0; i <= MAX_CRAFT_CRIT; i++) {
-      if (dice(1, 100) == 100)
-        mod++;
-      if (mod)
-        send_to_char(ch, "@l@WYou have received a critical success on your "
-              "craft! (+%d)@n\r\n", mod);
-    }
-
+  /* calculate chance for master work */
+  if (essence) {
+    chance_of_crit += GET_OBJ_LEVEL(essence);
+    /* feat, etc bonuses */
     if (HAS_FEAT(ch, FEAT_MASTERWORK_CRAFTING)) {
-      send_to_char(ch, "Your masterwork-crafting skill increases the quality of "
-              "the item.\r\n");
-      mod++;
+      send_to_char(ch, "Your masterwork-crafting skill increases the chance of creating a master-piece!\r\n");
+      chance_of_crit += 5;
     }
-
     if (HAS_FEAT(ch, FEAT_DWARVEN_CRAFTING)) {
-      send_to_char(ch, "Your dwarven-crafting skill increases the quality of "
-              "the item.\r\n");
-      mod++;
+      send_to_char(ch, "Your dwarven-crafting skill increases the chance of creating a master-piece!\r\n");
+      chance_of_crit += 5;
     }
-
     if (HAS_FEAT(ch, FEAT_DRACONIC_CRAFTING)) {
-      send_to_char(ch, "Your draconic-crafting skill increases the quality of "
-              "the item.\r\n");
-      mod++;
+      send_to_char(ch, "Your draconic-crafting skill increases the chance of creating a master-piece!\r\n");
+      chance_of_crit += 5;
     }
-    bonus = random_bonus_value(crystal_value, GET_OBJ_LEVEL(crystal), mod);
   }
-  /*** end valid crystal usage ***/
-
+    
   /* which skill is used for this crafting session? */
   /* we determine crafting skill by wear-flag */
 
@@ -1456,14 +1425,13 @@ int create(char *argument, struct obj_data *kit,
   int cost = obj_level * obj_level * 100 / 3;
 
   /** passed all the tests, time to check or create the item **/
-  if (mode == 2) { /* checkcraft */
+  if (CREATE_MODE_CHECK == 2) { /* checkcraft */
     send_to_char(ch, "This crafting session will create the following "
             "item:\r\n\r\n");
-    call_magic(ch, ch, mold, SPELL_IDENTIFY, 0, LVL_IMMORT, CAST_SPELL);
+    do_stat_object(ch, mold, ITEM_STAT_MODE_IDENTIFY_SPELL);    
     if (crystal) {
-      send_to_char(ch, "You will be enhancing this value: %s.\r\n",
-              apply_types[crystal_value]);
-      send_to_char(ch, "The total bonus will be: %d.\r\n", bonus);
+      send_to_char(ch, "You will be enhancing it with this crystal:\r\n");
+      do_stat_object(ch, crystal, ITEM_STAT_MODE_IDENTIFY_SPELL);    
     }
     send_to_char(ch, "The item will be level: %d.\r\n", obj_level);
     send_to_char(ch, "It will make use of your %s skill, which has a value "
@@ -1471,6 +1439,8 @@ int create(char *argument, struct obj_data *kit,
             spell_info[skill].name, GET_SKILL(ch, skill));
     send_to_char(ch, "This crafting session will take 60 seconds.\r\n");
     send_to_char(ch, "You need %d gold on hand to make this item.\r\n", cost);
+    send_to_char(ch, "You have a %d percent chance of creating a masterwork item.\r\n",
+            chance_of_crit);
     return 1;
   } else if (GET_GOLD(ch) < cost) {
     send_to_char(ch, "You need %d coins on hand for supplies to make"
@@ -1478,14 +1448,33 @@ int create(char *argument, struct obj_data *kit,
     return 1;
   } else { /* create */
     REMOVE_BIT_AR(GET_OBJ_EXTRA(mold), ITEM_MOLD);
-    if (essence)
+    if (essence || crystal)
       SET_BIT_AR(GET_OBJ_EXTRA(mold), ITEM_MAGIC);
     GET_OBJ_LEVEL(mold) = obj_level;
     GET_OBJ_MATERIAL(mold) = GET_OBJ_MATERIAL(material);
+    
+    /* transfer crystal over to item */
     if (crystal) {
-      mold->affected[0].location = crystal_value;
-      mold->affected[0].modifier = bonus;
+      for (i = 0; i < MAX_OBJ_AFFECT; i++) {
+        if (crystal->affected[i].modifier && crystal->affected[i].location) {
+          mold->affected[i].location = crystal->affected[i].location;
+          mold->affected[i].modifier = crystal->affected[i].modifier;
+          mold->affected[i].bonus_type = crystal->affected[i].bonus_type;
+        }
+      }
     }
+
+    /* try for master-work craft! */
+    if (essence) {
+      if (dice(1, 100) <= chance_of_crit) {
+        /* did it! we assumed [3rd] value is available for this bonus */
+        mold->affected[3].location = random_apply_value();
+        mold->affected[3].modifier = adjust_bonus_value(mold->affected[3].location, 1);
+        mold->affected[3].bonus_type = BONUS_TYPE_INHERENT;
+        send_to_char(ch, "You feel a sense of inspiration as you being your craft!\r\n");
+      }
+    }
+    
     GET_OBJ_COST(mold) = 100 + GET_OBJ_LEVEL(mold) * 50 *
             MAX(1, GET_OBJ_LEVEL(mold) - 1) +
             GET_OBJ_COST(mold);
