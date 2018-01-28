@@ -640,7 +640,6 @@ int augment(struct obj_data *kit, struct char_data *ch) {
   int num_objs = 0, cost = 0, level_diff = 0, success_chance = 0;
   int dice_roll = 0, essence_level = 0;
   int skill_type = SKILL_CHEMISTRY; // change this to change the skill used
-  char buf[MAX_INPUT_LENGTH];
   int fast_craft_bonus = GET_SKILL(ch, SKILL_FAST_CRAFTER) / 33;
 
   // Cycle through contents and categorize
