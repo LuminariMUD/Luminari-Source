@@ -607,5 +607,6 @@ ACMD(do_genmap);
 ACMD(do_oconvert);
 ACMD(do_acconvert);
 ACMD(do_findmagic);
+ACMD(do_cmdlev);
 
 #endif /* _ACT_H_ */
