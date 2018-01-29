@@ -3030,7 +3030,7 @@ ACMD(do_show) {
       break;
 
       /* show todo */
-    case 11:
+    case 19:
       if (!*value) {
         send_to_char(ch, "Usage: show todo <player>\r\n");
         return;
