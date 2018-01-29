@@ -1364,7 +1364,7 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
 
   /* calculate chance for master work */
   if (essence) {
-    chance_of_crit += GET_OBJ_LEVEL(essence);
+    chance_of_crit += (GET_OBJ_LEVEL(essence) * 2);
     /* feat, etc bonuses */
     if (HAS_FEAT(ch, FEAT_MASTERWORK_CRAFTING)) {
       send_to_char(ch, "Your masterwork-crafting skill increases the chance of creating a master-piece!\r\n");
