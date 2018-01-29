@@ -174,7 +174,7 @@ void do_slug_rank(struct char_data *ch, char *arg) {
           c = d->original;
         else
           c = d->character;
-        if ((CAN_SEE(ch, c) && !PRF_FLAGGED(c, PRF_NORANK)) ||
+        if ((CAN_SEE(ch, c) && /*!PRF_FLAGGED(c, PRF_NORANK)*/) ||
                 (GET_LEVEL(ch) == LVL_IMPL)) {
           if (k) {
             if (k < MAX_RANKED) {
@@ -331,10 +331,11 @@ int rank_compare_bot(const void *n1, const void *n2) {
 
 // added --mystic-- 5Jan06
 
+/*
 ranktype rank_clanbucks(struct char_data *ch) {
   sprintf(kbuf, "%27ld", GET_CLANBUCKS(ch));
   return (kbuf);
-} /* end rank_clanbucks */
+}*/ /* end rank_clanbucks */
 
 ranktype rank_hp(struct char_data *ch) {
   sprintf(kbuf, "%27d", GET_MAX_HIT(ch));
