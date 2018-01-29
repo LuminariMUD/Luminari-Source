@@ -1198,19 +1198,19 @@ void generate_river(struct char_data* ch, int dir) {
     }
 
     if ((new_x == x) && (new_y == y)) {
-      if (dir = NORTH) {
+      if (dir == NORTH) {
         new_x = x;
         new_y = y + 1;
       }
-      if (dir = EAST) {
+      if (dir == EAST) {
         new_x = x + 1;
         new_y = y;
       }
-      if (dir = SOUTH) {
+      if (dir == SOUTH) {
         new_x = x;
         new_y = y - 1;
       }
-      if (dir = WEST) {
+      if (dir == WEST) {
         new_x = x - 1;
         new_y = y;
       }
@@ -1289,7 +1289,7 @@ void generate_river(struct char_data* ch, int dir) {
   sprintf(buf, "River Path: ");
   for (vtx = 0; vtx < num_vertices; vtx++) {
     char buf2[100];
-    sprintf(buf2, "%d %d,", vertices[vtx].x, vertices[vtx].y)
+    sprintf(buf2, "%d %d,", vertices[vtx].x, vertices[vtx].y);
     strcat(buf, buf2);
   }
   send_to_char(ch, buf);  
