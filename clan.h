@@ -135,6 +135,7 @@ struct clan_data *clan_list;
 struct claim_data *claim_list;
 int num_of_clans;
 
+int find_clan_by_id(int clan_id);
 clan_rnum real_clan(clan_vnum c);
 clan_rnum get_clan_by_name(const char *c_n);
 int count_clan_members(clan_rnum c);
