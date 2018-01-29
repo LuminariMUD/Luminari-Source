@@ -267,7 +267,7 @@ void House_crashsave(room_vnum vnum) {
 }
 
 /* Delete a house save file */
-static void House_delete_file(room_vnum vnum) {
+void House_delete_file(room_vnum vnum) {
   char filename[MAX_INPUT_LENGTH];
   FILE *fl;
 
@@ -321,7 +321,7 @@ static void House_listrent(struct char_data *ch, room_vnum vnum) {
 }
 
 /* Functions for house administration (creation, deletion, etc. */
-static int find_house(room_vnum vnum) {
+int find_house(room_vnum vnum) {
   int i;
 
   for (i = 0; i < num_of_houses; i++)
@@ -332,7 +332,7 @@ static int find_house(room_vnum vnum) {
 }
 
 /* Save the house control information */
-static void House_save_control(void) {
+void House_save_control(void) {
   FILE *fl;
 
   if (!(fl = fopen(HCONTROL_FILE, "wb"))) {
