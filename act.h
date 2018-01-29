@@ -143,6 +143,11 @@ ACMD(do_track);
 ACMD(do_hp);
 ACMD(do_tnl);
 ACMD(do_moves);
+
+/*****************************************************************************
+ * Begin Functions and defines for rank.c
+ ****************************************************************************/
+void do_slug_rank(struct char_data *ch, char *arg);
 ACMD(do_rank);
 
 
