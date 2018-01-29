@@ -1,5 +1,5 @@
 /**************************************************************************
- *  File: interpreter.c                                     Part of LuminariMUD *
+ *  File: interpreter.c                                Part of LuminariMUD *
  *  Usage: Parse user commands, search for specials, call ACMD functions.  *
  *                                                                         *
  *  All rights reserved.  See license for complete information.            *
@@ -1683,6 +1683,7 @@ void nanny(struct descriptor_data *d, char *arg) {
     { CON_TRIGEDIT, trigedit_parse},
     { CON_AEDIT, aedit_parse},
     { CON_HEDIT, hedit_parse},
+    { CON_HSEDIT, hsedit_parse},
     { CON_QEDIT, qedit_parse},
     { CON_HLQEDIT, hlqedit_parse},
     { CON_PREFEDIT, prefedit_parse},

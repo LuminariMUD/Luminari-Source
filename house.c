@@ -1,5 +1,5 @@
 /**************************************************************************
- *  File: house.c                                           Part of LuminariMUD *
+ *  File: house.c                                      Part of LuminariMUD *
  *  Usage: Handling of player houses.                                      *
  *                                                                         *
  *  All rights reserved.  See license for complete information.            *
@@ -20,8 +20,14 @@
 #include "constants.h"
 #include "modify.h"
 #include "mysql.h"
+#include "clan.h"
 
 #define MAX_BAG_ROWS   5
+
+/* external functions */
+obj_save_data *objsave_parse_objects(FILE *fl);
+int objsave_save_obj_record(struct obj_data *obj, FILE *fl, int location);
+zone_rnum real_zone_by_thing(room_vnum vznum);
 
 /* local (file scope only) globals */
 static struct house_control_rec house_control[MAX_HOUSES];
@@ -673,21 +679,38 @@ void House_save_all(void) {
       if (ROOM_FLAGGED(real_house, ROOM_HOUSE_CRASH))
         House_crashsave(house_control[i].vnum);
 }
-
 /* note: arg passed must be house vnum, so there. */
 int House_can_enter(struct char_data *ch, room_vnum house) {
   int i, j;
 
-  if (GET_LEVEL(ch) >= LVL_GRSTAFF || (i = find_house(house)) == NOWHERE)
+  /* Not a house */
+  if ((i = find_house(house)) == NOWHERE)
+    return (1);
+
+  /* Not a god house, and player is a god */
+  if ((GET_LEVEL(ch) >= LVL_GRGOD) && (house_control[i].mode != HOUSE_GOD)) /* Even gods can't just walk into Imm-owned houses */
     return (1);
 
   switch (house_control[i].mode) {
     case HOUSE_PRIVATE:
+    case HOUSE_GOD: /* A god's house can ONLY be entered by the owner and guests - already checked above */
       if (GET_IDNUM(ch) == house_control[i].owner)
         return (1);
       for (j = 0; j < house_control[i].num_of_guests; j++)
         if (GET_IDNUM(ch) == house_control[i].guests[j])
           return (1);
+      break;
+
+    case HOUSE_CLAN: /* Clan-owned houses - Only clan members may enter */
+      zvnum = zone_table[real_zone_by_thing(house_control[i].vnum)].number;
+      log("(HCE) Zone: %d, Clan ID: %d, Clanhall Zone: %d", zvnum, GET_CLAN(ch), clan[find_clan_by_id(GET_CLAN(ch))].hall);
+      if ((GET_CLAN(ch) > 0) && (clan[find_clan_by_id(GET_CLAN(ch))].hall == zvnum))
+        return (1);
+      break;
+
+    default:
+      mudlog(CMP, LVL_IMPL, TRUE, "SYSERR: Invalid house type in room %d", house_control[i].vnum);
+      break;
   }
 
   return (0);
@@ -718,6 +741,20 @@ void House_list_guests(struct char_data *ch, int i, int quiet) {
     send_to_char(ch, "all dead");
 
   send_to_char(ch, "\r\n");
+}
+
+bool is_house_owner(struct char_data *ch, int room_vnum) {
+  int i;
+  bool bRet = FALSE;
+
+  for (i = 0; i < num_of_houses; i++) {
+    if ((house_control[i].vnum == room_vnum) || (house_control[i].atrium == room_vnum)) {
+      if (house_control[i].owner == GET_IDNUM(ch)) {
+        bRet = TRUE;
+      }
+    }
+  }
+  return (bRet);
 }
 
 /*************************************************************************

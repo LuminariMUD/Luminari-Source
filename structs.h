@@ -1,5 +1,5 @@
 /**
- * @file structs.h
+ * @file structs.h                                 Part of LuminariMUD
  * Core structures used within the core mud code.
  *
  * Part of the core tbaMUD source code distribution, which is a derivative
@@ -960,23 +960,20 @@
 #define CON_QALIGN       37 /**< alignment selection in char creation */
 #define CON_QRACE_HELP   38 /**< help info (race) during char creation */
 #define CON_HLQEDIT      39 /**< homeland-port quest editor */
-/* NewCraft */
-#define CON_CRAFTEDIT    40
-
+#define CON_CRAFTEDIT    40 /**< crafts system */
 #define CON_QSTATS       41 /**< Point-buy system for stats */
-
 /* Account connection states - Ornir Oct 20, 2014 */
 #define CON_ACCOUNT_NAME         42
 #define CON_ACCOUNT_NAME_CONFIRM 43
 #define CON_ACCOUNT_MENU         44
 #define CON_ACCOUNT_ADD          45
 #define CON_ACCOUNT_ADD_PWD      46
-
+#define CON_HSEDIT               47 /* OLC mode - house edit      .*/
 
 /* OLC States range - used by IS_IN_OLC and IS_PLAYING */
 #define FIRST_OLC_STATE CON_OEDIT     /**< The first CON_ state that is an OLC */
 #define LAST_OLC_STATE  CON_CRAFTEDIT    /**< The last CON_ state that is an OLC  */
-#define NUM_CON_STATES	47
+#define NUM_CON_STATES	48
 
 /* Character equipment positions: used as index for char_data.equipment[] */
 /* NOTE: Don't confuse these constants with the ITEM_ bitvectors

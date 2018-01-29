@@ -1,5 +1,5 @@
 /**
- * @file oasis.h
+ * @file oasis.h                              Part of LuminariMUD
  * Oasis online creation general defines.
  *
  * Part of the core tbaMUD source code distribution, which is a derivative
@@ -85,25 +85,26 @@ void send_cannot_edit(struct char_data *ch, zone_vnum zone);
 /* NO and YES are defined in utils.h. Removed from here. */
 
 struct oasis_olc_data {
-  int mode; /* how to parse input       */
-  zone_rnum zone_num; /* current zone             */
-  room_vnum number; /* vnum of subject          */
-  int value; /* mostly 'has changed' flag*/
-  char *storage; /* used for 'tedit'         */
-  struct char_data *mob; /* used for 'medit'         */
-  struct room_data *room; /* used for 'redit'         */
-  struct obj_data *obj; /* used for 'oedit'         */
-  struct zone_data *zone; /* used for 'zedit'         */
-  struct shop_data *shop; /* used for 'sedit'         */
-  struct config_data *config; /* used for 'cedit'         */
-  struct aq_data *quest; /* used for 'qedit'         */
-  struct extra_descr_data *desc; /* used in '[r|o|m]edit'    */
+  int mode; /* how to parse input */
+  zone_rnum zone_num; /* current zone */
+  room_vnum number; /* vnum of subject */
+  int value; /* mostly 'has changed' flag */
+  char *storage; /* used for 'tedit' */
+  struct char_data *mob; /* used for 'medit' */
+  struct room_data *room; /* used for 'redit' */
+  struct obj_data *obj; /* used for 'oedit' */
+  struct zone_data *zone; /* used for 'zedit' */
+  struct shop_data *shop; /* used for 'sedit' */
+  struct config_data *config; /* used for 'cedit' */
+  struct house_control_rec *house; /* used for 'hsedit' */ 
+  struct aq_data *quest; /* used for 'qedit' */
+  struct extra_descr_data *desc; /* used in '[r|o|m]edit' */
   struct obj_special_ability *specab; /* used in 'oedit' */
-  struct social_messg *action; /* Aedit uses this one      */
-  struct trig_data *trig;
-  struct prefs_data *prefs; /* used for 'prefedit'      */
-  struct ibt_data *ibt; /* used for 'ibtedit'       */
-  struct clan_data *clan; /* used for 'clanedit'      */
+  struct social_messg *action; /* Aedit uses this one */
+  struct trig_data *trig; /* trigedit */
+  struct prefs_data *prefs; /* used for 'prefedit' */
+  struct ibt_data *ibt; /* used for 'ibtedit' */
+  struct clan_data *clan; /* used for 'clanedit' */
   struct message_list *msg;
   struct message_type *m_type;
   /* NewCraft */
@@ -134,7 +135,6 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn, *red;
 #define OLC_NUM(d)     (OLC(d)->number)   /**< Room/Obj VNUM.	*/
 #define OLC_VAL(d)     (OLC(d)->value)    /**< Scratch variable.	*/
 #define OLC_ZNUM(d)    (OLC(d)->zone_num) /**< Real zone number.	*/
-
 #define OLC_STORAGE(d) (OLC(d)->storage)  /**< char pointer.	*/
 #define OLC_ROOM(d)    (OLC(d)->room)     /**< Room structure.	*/
 #define OLC_OBJ(d)     (OLC(d)->obj)      /**< Object structure.	*/
@@ -146,8 +146,8 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn, *red;
 #define OLC_CONFIG(d)  (OLC(d)->config)   /**< Config structure.	*/
 #define OLC_TRIG(d)    (OLC(d)->trig)     /**< Trigger structure.   */
 #define OLC_QUEST(d)   (OLC(d)->quest)    /**< Quest structure      */
-#define OLC_MSG_LIST(d) (OLC(d)->msg)      /**< Message structure    */
-
+#define OLC_MSG_LIST(d) (OLC(d)->msg)     /**< Message structure    */
+#define OLC_HOUSE(d)    (OLC(d)->house)   /**< house structure      */ 
 #define OLC_ACTION(d)  (OLC(d)->action)   /**< Action structure     */
 #define OLC_HELP(d)    (OLC(d)->help)     /**< Hedit structure      */
 #define OLC_PREFS(d)   (OLC(d)->prefs)    /**< Preferences structure */
@@ -492,6 +492,31 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn, *red;
 #define HEDIT_NEW_KEYWORD               8
 #define HEDIT_DEL_KEYWORD               9
 #define HEDIT_CONFIRM_DELETE           10
+
+/*. House editor .*/ 
+ #define HSEDIT_MAIN_MENU                 0 
+ #define HSEDIT_CONFIRM_SAVESTRING        1 
+ #define HSEDIT_OWNER_MENU                2 
+ #define HSEDIT_OWNER_NAME                3 
+ #define HSEDIT_OWNER_ID                  4 
+ #define HSEDIT_ROOM                      5 
+ #define HSEDIT_ATRIUM                    6 
+ #define HSEDIT_DIR_MENU                  7 
+ #define HSEDIT_GUEST_MENU                8 
+ #define HSEDIT_GUEST_ADD                 9 
+ #define HSEDIT_GUEST_DELETE              10 
+ #define HSEDIT_GUEST_CLEAR               11 
+ #define HSEDIT_FLAGS                     12 
+ #define HSEDIT_BUILD_DATE                13 
+ #define HSEDIT_PAYMENT                   14 
+ #define HSEDIT_TYPE                      15 
+ #define HSEDIT_DELETE                    16 
+ #define HSEDIT_VALUE_0                   17 
+ #define HSEDIT_VALUE_1                   18 
+ #define HSEDIT_VALUE_2                   19 
+ #define HSEDIT_VALUE_3                   20 
+ #define HSEDIT_NOVNUM                    21 
+ #define HSEDIT_BUILDER                   22 
 
 /* Clanedit Submodes of connectedness. */
 #define CLANEDIT_CONFIRM_SAVESTRING    0    /**< Submode for quit option, does player want to save? */
