@@ -1128,6 +1128,7 @@ void generate_river(struct char_data* ch, int dir) {
   double loc[2], pos[2];
   void* set;
   char buf[MAX_STRING_LENGTH];
+  int move_dir = NORTH;
 
   if(IN_ROOM(ch) != NOWHERE && !IS_WILDERNESS_VNUM(world[IN_ROOM(ch)].number)) {
     send_to_char(ch, "This command is only valid in the wilderness.");
@@ -1177,45 +1178,52 @@ void generate_river(struct char_data* ch, int dir) {
     int w_elev = get_elevation(NOISE_MATERIAL_PLANE_ELEV, x - 1, y);
 
     if (n_elev < elev) {
-          elev = n_elev;           
-          new_x = x;
-          new_y = y + 1;
+      move_dir = NORTH;
+      elev = n_elev;           
+      new_x = x;
+      new_y = y + 1;
     }
     if (e_elev < elev) {
-          elev = e_elev;           
-          new_x = x + 1;
-          new_y = y;
+      move_dir = EAST;    
+      elev = e_elev;           
+      new_x = x + 1;
+      new_y = y;
     }
     if (s_elev < elev) {
-          elev = s_elev;           
-          new_x = x;
-          new_y = y - 1;
+      move_dir = SOUTH;
+      elev = s_elev;           
+      new_x = x;
+      new_y = y - 1;
     }    
     if (w_elev < elev) {
-          elev = w_elev;           
+      move_dir = WEST;
+      elev = w_elev;           
+      new_x = x - 1;
+      new_y = y;
+    }
+
+    /* Check if we have visited this location before */
+    for (int i = 0; i < num_vertices; i++) {
+      if((x == new_x && y == new_y) || (vertices[i].x == new_x && vertices[i].y == new_y) {
+        if (dir == NORTH) {
+          new_x = x;
+          new_y = y + 1;
+        }
+        if (dir == EAST) {
+          new_x = x + 1;
+          new_y = y;
+        }
+        if (dir == SOUTH) {
+          new_x = x;
+          new_y = y - 1;
+        }
+        if (dir == WEST) {
           new_x = x - 1;
           new_y = y;
-    }
-
-    if ((new_x == x) && (new_y == y)) {
-      if (dir == NORTH) {
-        new_x = x;
-        new_y = y + 1;
+        }
       }
-      if (dir == EAST) {
-        new_x = x + 1;
-        new_y = y;
-      }
-      if (dir == SOUTH) {
-        new_x = x;
-        new_y = y - 1;
-      }
-      if (dir == WEST) {
-        new_x = x - 1;
-        new_y = y;
-      }
-    }
-
+    } 
+    
     x = new_x;
     y = new_y;
 
