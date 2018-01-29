@@ -1,5 +1,5 @@
 /**
-* @file house.h
+* @file house.h                                    Part of LuminariMUD
 * Player house structures, prototypes and defines.
 * 
 * Part of the core tbaMUD source code distribution, which is a derivative
@@ -16,6 +16,9 @@
 #define MAX_GUESTS	10
 
 #define HOUSE_PRIVATE	0
+#define HOUSE_GOD       1  /* Imm owned house */ 
+#define HOUSE_CLAN      2  /* Clan crash-save room */ 
+#define NUM_HOUSE_TYPES 3 
 
 struct house_control_rec {
    room_vnum vnum;		/* vnum of this house		*/
@@ -27,8 +30,8 @@ struct house_control_rec {
    int num_of_guests;		/* how many guests for house	*/
    long guests[MAX_GUESTS];	/* idnums of house's guests	*/
    time_t last_payment;		/* date of last house payment   */
-   long spare0;
-   long spare1;
+   long bitvector;              /* bitvector for the house */
+   long builtby;                /* who created this hosue */
    long spare2;
    long spare3;
    long spare4;
@@ -37,6 +40,18 @@ struct house_control_rec {
    long spare7;
 };
 
+ /* House can have up to 31 bitvectors - don't go higher */ 
+ #define HOUSE_NOGUESTS   (1 << 0)   /* Owner cannot add guests                    */ 
+ #define HOUSE_FREE       (1 << 1)   /* House does not require payments            */ 
+ #define HOUSE_NOIMMS     (1 << 2)   /* Imms below level 33 cannot enter          */ 
+ #define HOUSE_IMPONLY    (1 << 3)   /* Imms below level 34 cannot enter         */ 
+ #define HOUSE_RENTFREE   (1 << 4)   /* No rent is charged on items left here      */ 
+ #define HOUSE_SAVENORENT (1 << 5)   /* NORENT items are crashsaved too            */ 
+ #define HOUSE_NOSAVE     (1 << 6)   /* Do not crash save this room - private only */ 
+ 
+ #define HOUSE_NUM_FLAGS 7
+
+#define HOUSE_FLAGS(house) (house).bitvector 
 #define TOROOM(room, dir) (world[room].dir_option[dir] ? \
 			    world[room].dir_option[dir]->to_room : NOWHERE)
 
