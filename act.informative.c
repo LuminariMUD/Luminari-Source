@@ -3850,6 +3850,31 @@ ACMD(do_toggle) {
     send_to_char(ch, "%s", tog_messages[toggle].disable_msg);
 }
 
+/* new wizhelp function, courtesy of paragon codebase -zusuk */
+void do_wizhelp(struct char_data *ch) {
+  extern int *cmd_sort_info;
+  int no = 1, i, cmd_num;
+  int level;
+
+  send_to_char(ch, "The following privileged commands are available:\r\n");
+
+  for (level = LVL_IMPL; level >= LVL_IMMORT; level--) {
+    send_to_char(ch, "%sLevel %d%s:\r\n", CCCYN(ch, C_NRM), level, CCNRM(ch, C_NRM));
+    for (no = 1, cmd_num = 1; complete_cmd_info[cmd_sort_info[cmd_num]].command[0] != '\n'; cmd_num++) {
+      i = cmd_sort_info[cmd_num];
+
+      if (complete_cmd_info[i].minimum_level != level)
+        continue;
+
+      send_to_char(ch, "%-14s%s", complete_cmd_info[i].command, no++ % 7 == 0 ? "\r\n" : "");
+    }
+    if (no % 7 != 1)
+      send_to_char(ch, "\r\n");
+    if (level != LVL_IMMORT)
+      send_to_char(ch, "\r\n");
+  }
+}
+
 ACMD(do_commands) {
   int no, i, cmd_num;
   int wizhelp = 0, socials = 0;
@@ -3874,8 +3899,11 @@ ACMD(do_commands) {
 
   if (subcmd == SCMD_SOCIALS)
     socials = 1;
-  else if (subcmd == SCMD_WIZHELP)
+  else if (subcmd == SCMD_WIZHELP) {
     wizhelp = 1;
+    do_wizhelp(ch);
+    return;
+  }
 
   sprintf(buf, "The following %s%s are available to %s:\r\n",
           wizhelp ? "privileged " : "",
