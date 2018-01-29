@@ -81,13 +81,11 @@ crafting related skills:
  */
 
 Crafting Commands:
-augment - combine crystals to make them stronger ?
-  combine essence to make them stronger
+augment - combine essence to make them stronger
 convert - convert 10 of one mat to make something else ?
 restring - rename an object
 autocraft - crafting quest, supply order
 resize - resize object
-disenchant - create random crystals ?
-  create essence
+disenchant - create essence
 create - create/craft an object
 checkcraft - check the result of create
