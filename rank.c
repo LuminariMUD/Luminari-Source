@@ -481,9 +481,9 @@ ranktype rank_kd(struct char_data *ch) {
 } */ /* end rank_kd */
 
 ranktype rank_played(struct char_data *ch) {
-  struct time_info_data *playing_time;
+  struct time_info_data playing_time;
   //struct time_info_data real_time_passed(time_t t2, time_t t1);
-  playing_time = real_time_passed((time(0) - ch->player.time.logon) + ch->player.time.played, 0);
+  playing_time = *real_time_passed((time(0) - ch->player.time.logon) + ch->player.time.played, 0);
   sprintf(kbuf, "%3d days, %2d hours.", playing_time.day, playing_time.hours);
   return (kbuf);
 } /* end rank_days */
