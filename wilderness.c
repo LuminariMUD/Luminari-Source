@@ -1116,3 +1116,181 @@ void save_noise_to_file(int idx, const char* fn, int xsize, int ysize, int zoom)
   gdImageDestroy(im);
 
 }
+
+void generate_river(struct char_data* ch, int dir) {
+  /* Start at your current wilderness location, then create a river that meanders in direction 'dir' */
+  int x, y, vtx;
+  int elevation;
+  struct vertex vertices[1024];
+  int num_vertices = 0;
+  int sector_type;
+  room_rnum* room;
+  double loc[2], pos[2];
+
+  char buf[MAX_STRING_LENGTH];
+
+  if(IN_ROOM(ch) != NOWHERE && !IS_WILDERNESS_VNUM(world[IN_ROOM(ch)].number)) {
+    send_to_char(ch, "This command is only valid in the wilderness.");
+    return;
+  }
+
+  /* Now we are sure we are in the wilderness.  Get our coords. */
+  x = world[IN_ROOM(ch)].coords[X_COORD];
+  y = world[IN_ROOM(ch)].coords[Y_COORD];
+
+  /* Init the path */
+  //path_table[i].vnum         = atoi(row[0]);
+  //path_table[i].rnum         = i;
+  
+  //path_table[i].zone         = real_zone(atoi(row[1]));
+  //path_table[i].name         = strdup(row[2]);
+  //path_table[i].path_type    = atoi(row[3]);
+  
+  num_vertices = 0;
+  vtx = 0;
+    
+  sector_type = world[IN_ROOM(ch)].sector_type;
+
+  while ((sector_type != SECT_WATER_SWIM) &&
+         (sector_type != SECT_WATER_NOSWIM) &&
+         (sector_type != SECT_OCEAN)) {
+
+    /* dummy check */
+    if (num_vertices == 1024)
+        break;
+
+    //CREATE(vertices, struct vertex, 1);
+
+    vertices[vtx].x = x;
+    vertices[vtx].y = y;          
+
+    num_vertices++;
+    vtx++;
+
+    /* Find the next room, using gradient descent: */
+    int new_x = x;
+    int new_y = y;
+    int elev = get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y);
+    int n_elev = get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y + 1);
+    int e_elev = get_elevation(NOISE_MATERIAL_PLANE_ELEV, x + 1, y);
+    int s_elev = get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y - 1);
+    int w_elev = get_elevation(NOISE_MATERIAL_PLANE_ELEV, x - 1, y);
+
+    if (n_elev < elev) {
+          elev = n_elev;           
+          ney_x = x;
+          new_y = y + 1;
+    }
+    if (e_elev < elev) {
+          elev = e_elev;           
+          ney_x = x + 1;
+          new_y = y;
+    }
+    if (s_elev < elev) {
+          elev = s_elev;           
+          ney_x = x;
+          new_y = y - 1;
+    }    
+    if (w_elev < elev) {
+          elev = w_elev;           
+          ney_x = x - 1;
+          new_y = y;
+    }
+
+    if ((new_x == x) && (new_y == y)) {
+      if (dir = NORTH) {
+        ney_x = x;
+        new_y = y + 1;
+      }
+      if (dir = EAST) {
+        ney_x = x + 1;
+        new_y = y;
+      }
+      if (dir = SOUTH) {
+        ney_x = x;
+        new_y = y - 1;
+      }
+      if (dir = WEST) {
+        ney_x = x - 1;
+        new_y = y;
+      }
+    }
+
+    x = new_x;
+    y = new_y;
+
+    /* We need to check for prebuilt rooms at these coordinates, as well
+    * as regions that might change the sector type.  */
+    /* Start with the default - The value returned for the generated wilderness. */
+    sector_type = get_sector_type(get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y),
+                                  get_temperature(NOISE_MATERIAL_PLANE_ELEV, x, y),
+                                  get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x, y));
+
+
+    /* Should reflect changes from regions */
+    struct region_list *regions = NULL;
+    struct region_list *curr_region = NULL;
+    struct path_list *paths = NULL;
+    struct path_list *curr_path = NULL;
+
+    /* Get the enclosing regions. */
+    regions = get_enclosing_regions(real_zone(WILD_ZONE_VNUM),
+                                    x,
+                                    y);
+    /* Get the enclosing paths. */
+    paths = get_enclosing_paths(real_zone(WILD_ZONE_VNUM),
+                                    x,
+                                    y);
+
+    /* Override default values with region-based values. */
+    for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next) {
+      switch (region_table[curr_region->rnum].region_type) {
+        case REGION_SECTOR:
+          sector_type = region_table[curr_region->rnum].region_props;
+
+          break;
+        case REGION_SECTOR_TRANSFORM:
+          break;
+        case REGION_GEOGRAPHIC:
+        case REGION_ENCOUNTER:
+        default:
+          break;
+      }
+    }
+
+    /* Override default values with path-based values. */
+    for (curr_path = paths; curr_path != NULL; curr_path = curr_path->next) {
+      switch (path_table[curr_path->rnum].path_type) {
+        case PATH_ROAD:
+        case PATH_RIVER:
+          sector_type = path_table[curr_path->rnum].path_props;
+          break;
+        default:
+          break;
+      }
+    }
+
+    /* use the kd_wilderness_rooms kd-tree index to look up the nearby rooms */
+    loc[0] = x;
+    loc[1] = -y;
+    set = kd_nearest_range(kd_wilderness_rooms, loc, 1); /* size is 1, we check each coord. */
+
+    while (!kd_res_end(set)) {
+      room = (room_rnum *) kd_res_item(set, pos);
+      sector_type = world[*room].sector_type;
+
+      /* go to the next entry */
+      kd_res_next(set);
+    }
+    kd_res_free(set);  
+  }  
+
+  /* Now display the vertices to the player */  
+  sprintf(buf, "River Path: ");
+  for (vtx = 0; vtx < num_vertices; vtx++) {
+    char buf2[100];
+    sprintf(buf2, "%d %d,", vertices[vtx].x, vertices[vtx].y)
+    strcat(buf, buf2);
+  }
+  send_to_char(ch, buf);  
+}
