@@ -5979,7 +5979,7 @@ ACMD(do_singlefile) {
 /* Test command to display a map, radius 4, generated using noise. */
 ACMD(do_genmap) {
 
-  generate_river(struct char_data* ch, 0);
+  generate_river(ch, 0);
 /*
   void *set;
   double pos[2], point[2];
