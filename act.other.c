@@ -4954,6 +4954,61 @@ ACMD(do_nohints) {
 
 /********** end hint system ********/
 
+/* todo list system, from ParagonMUD */
+void display_todo(struct char_data *ch, struct char_data *vict) {
+  int i;
+  struct txt_block *tmp;
+  for (tmp = GET_TODO(vict), i = 1; tmp; tmp = tmp->next, i++)
+    send_to_char(ch, "%d) %s\r\n%s", i, tmp->text, (tmp->next ? "\r\n" : ""));
+}
+
+/* todo list system, from ParagonMUD, ported by Zusuk */
+ACMD(do_todo) {
+  struct txt_block *tmp;
+
+  skip_spaces(&argument);
+
+  if (!*argument) {
+    if (!GET_TODO(ch))
+      send_to_char(ch, "You have nothing to do!\r\n");
+    else
+      display_todo(ch, ch);
+    return;
+  }
+  if (!isdigit(*argument)) {
+
+    while (*argument == '~') argument++;
+
+    if (!(tmp = GET_TODO(ch))) {
+      CREATE(GET_TODO(ch), struct txt_block, 1);
+      GET_TODO(ch)->text = strdup(argument);
+    } else {
+      while (tmp->next)
+        tmp = tmp->next;
+      CREATE(tmp->next, struct txt_block, 1);
+      tmp->next->text = strdup(argument);
+    }
+    send_to_char(ch, "Great, another thing to do!\r\n");
+  } else {
+    int num, i, success = 0;
+    sscanf(argument, "%d", &num);
+
+    if (num == 1 && GET_TODO(ch) && (success = 1))
+      GET_TODO(ch) = GET_TODO(ch)->next;
+    else
+      for (tmp = GET_TODO(ch), i = 1; tmp && tmp->next; tmp = tmp->next, i++)
+        if (i + 1 == num) {
+          tmp->next = tmp->next->next;
+          success = 1;
+          break;
+        }
+    if (success)
+      send_to_char(ch, "Phew!  One less thing to do!\r\n");
+    else
+      send_to_char(ch, "No such item exists in your todo list!\r\n");
+  }
+}
+
 /* some cleanup */
 #undef NUM_HINTS
 #undef SHAPE_AFFECTS

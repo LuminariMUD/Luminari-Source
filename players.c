@@ -689,6 +689,21 @@ int load_char(const char *name, struct char_data *ch) {
               add_trigger(SCRIPT(ch), t, -1);
             }
           } else if (!strcmp(tag, "Trns")) GET_TRAINS(ch) = atoi(line);
+          else if (!strcmp(tag, "Todo")) {
+            CREATE(GET_TODO(ch), struct txt_block, 1);
+            struct txt_block *tmp = GET_TODO(ch);
+
+            get_line(fl, line);
+            while (*line != '~') {
+              tmp->text = strdup(line);
+              get_line(fl, line);
+
+              if (*line != '~') {
+                CREATE(tmp->next, struct txt_block, 1);
+                tmp = tmp->next;
+              }
+            }
+          }
           break;
 
         case 'V':
@@ -841,6 +856,19 @@ void save_char(struct char_data * ch, int mode) {
   }
 
   if (GET_TITLE(ch)) fprintf(fl, "Titl: %s\n", GET_TITLE(ch));
+
+  /*save todo lists*/
+  struct txt_block *tmp;
+  if ((tmp = GET_TODO(ch))) {
+    fprintf(fl, "Todo:\n");
+    while (tmp) {
+      if (tmp->text)
+        fprintf(fl, "%s\n", tmp->text);
+      tmp = tmp->next;
+    }
+    fprintf(fl, "~\n");
+  }   
+  
   if (ch->player.description && *ch->player.description) {
     strcpy(buf, ch->player.description);
     strip_cr(buf);

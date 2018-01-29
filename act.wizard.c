@@ -2700,6 +2700,7 @@ ACMD(do_show) {
     { "citizen", LVL_IMMORT},
     { "guard", LVL_IMMORT},
     { "crafts", LVL_IMMORT},
+    { "todo", LVL_IMMORT},
     { "\n", 0}
   };
 
@@ -3019,6 +3020,7 @@ ACMD(do_show) {
       }
       page_string(ch->desc, buf, 1);
       break;
+      
       /* NewCraft */
     case 18: //show craft 
       if (!*value)
@@ -3027,6 +3029,30 @@ ACMD(do_show) {
         show_craft(ch, get_craft_from_arg(value));
       break;
 
+      /* show todo */
+    case 11:
+      if (!*value) {
+        send_to_char(ch, "Usage: show todo <player>\r\n");
+        return;
+      }
+
+      vict = new_char();
+
+      if (load_char(value, vict) < 0) {
+        send_to_char(ch, "No such player exists.\r\n");
+        free_char(vict);
+        return;
+      }
+
+      if (GET_TODO(vict) && GET_TODO(vict)->text && *GET_TODO(vict)->text)
+        display_todo(ch, vict);
+      else
+        send_to_char(ch, "%s has nothing to do!\r\n", GET_NAME(vict));
+
+      free_char(vict);
+
+      break;
+      
       /* show what? */
     default:
       send_to_char(ch, "Sorry, I don't understand that.\r\n");

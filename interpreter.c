@@ -546,6 +546,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "tame", "tame", POS_FIGHTING, do_tame, 0, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}},
   { "totaldefense", "totaldefense", POS_FIGHTING, do_mode, 1, MODE_TOTAL_DEFENSE, FALSE, ACTION_NONE, {0, 0}},
   { "tnl", "tnl", POS_DEAD, do_tnl, 1, 0, TRUE, ACTION_NONE, {0, 0}},
+  { "todo", "todo", POS_DEAD, do_todo, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}},
 
   { "unlock", "unlock", POS_SITTING, do_gen_door, 0, SCMD_UNLOCK, FALSE, ACTION_NONE, {0, 0}},
   { "unban", "unban", POS_DEAD, do_unban, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}},
