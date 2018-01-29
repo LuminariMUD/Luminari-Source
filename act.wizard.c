@@ -6744,12 +6744,12 @@ ACMD(do_cmdlev) {
 
   two_arguments(argument, buf, buf2);
 
-  if ((!buf) || (!*buf)) {
+  if (!*buf) {
     send_to_char(ch, "Usage: cmdlev <command> <level>\r\nTemporarily sets the required level for a command.\r\n");
     send_to_char(ch, "Be careful with Imm commands!\r\nA reboot will reset all command levels to default.\r\n");
     return;
   }
-  if ((!buf2) || (!*buf2)) {
+  if (!*buf2) {
     send_to_char(ch, "Usage: cmdlev <command> <level>\r\nWhat level would you like to set this command at?.\r\n");
     return;
   }
