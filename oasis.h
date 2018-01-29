@@ -660,6 +660,15 @@ void hedit_string_cleanup(struct descriptor_data *d, int terminator);
 void free_help(struct help_index_element *help);
 ACMD(do_oasis_hedit);
 
+/* public functions from hsedit.c */
+ void hsedit_save_to_disk( void ); 
+ void hsedit_setup_new(struct descriptor_data *d); 
+ void hsedit_setup_existing(struct descriptor_data *d, int real_num); 
+ void hsedit_parse(struct descriptor_data *d, char *arg); 
+ void hsedit_string_cleanup(struct descriptor_data *d, int terminator); 
+ void free_house(struct house_control_rec *house); 
+ ACMD(do_oasis_hsedit); 
+ 
 /* public functions from tedit.c */
 void tedit_string_cleanup(struct descriptor_data *d, int terminator);
 ACMD(do_tedit);
