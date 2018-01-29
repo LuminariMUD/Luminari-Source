@@ -3169,6 +3169,7 @@ struct player_special_data_saved {
     ubyte bad_pws; /**< number of bad login attempts */
     sbyte conditions[3]; /**< Drunk, hunger, and thirst */
     struct txt_block *comm_hist[NUM_HIST]; /**< Communication history */
+    struct txt_block *todo_list; /* Player's todo list */
     ubyte page_length; /**< Max number of rows of text to send at once */
     ubyte screen_width; /**< How wide the display page is */
     int olc_zone; /**< Current olc permissions */
