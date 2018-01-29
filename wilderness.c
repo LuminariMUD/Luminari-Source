@@ -1120,7 +1120,7 @@ void save_noise_to_file(int idx, const char* fn, int xsize, int ysize, int zoom)
 void generate_river(struct char_data* ch, int dir) {
   /* Start at your current wilderness location, then create a river that meanders in direction 'dir' */
   int x, y, vtx, i;
-  int elevation;
+  /* int elevation; */
   struct vertex vertices[1024];
   int num_vertices = 0;
   int sector_type;
