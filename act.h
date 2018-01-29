@@ -478,6 +478,7 @@ ACMD(do_disguise);
 ACMD(do_ethshift);
 ACMD(do_handleanimal);
 //ACMD(do_nohints);
+ACMD(do_todo);
 
 /*****************************************************************************
  * Begin Functions and defines for act.social.c
