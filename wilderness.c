@@ -1206,19 +1206,23 @@ void generate_river(struct char_data* ch, int dir) {
     /* Check if we have visited this location before */
     for (i = 0; i < num_vertices; i++) {
       if((x == new_x && y == new_y) || (vertices[i].x == new_x && vertices[i].y == new_y)) {
-        if (dir == NORTH) {
+        if (new_move_dir != NORTH) {
+          new_move_dir = NORTH;
           new_x = x;
           new_y = y + 1;
         }
-        if (dir == EAST) {
+        if (new_move_dir != EAST) {
+          new_move_dir = EAST;
           new_x = x + 1;
           new_y = y;
         }
-        if (dir == SOUTH) {
+        if (new_move_dir != SOUTH) {
+          new_move_dir = SOUTH;
           new_x = x;
           new_y = y - 1;
         }
-        if (dir == WEST) {
+        if (new_move_dir != WEST) {
+          new_move_dir = WEST;
           new_x = x - 1;
           new_y = y;
         }
