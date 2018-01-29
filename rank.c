@@ -113,7 +113,7 @@ int KEY_PRINTING = FALSE; /* used by rank functions sometimes */
 char kbuf[80]; /* used by rank functions */
 char *kbp;
 
-struct rank_data tt[MAX_RANKED];
+struct rank_data tt[MAX_RANKED + 1];
 
 /* primary function for display, in act.informative.c */
 void do_slug_rank(struct char_data *ch, char *arg) {
