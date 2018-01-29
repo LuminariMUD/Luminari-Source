@@ -126,7 +126,7 @@ int find_clan_by_id(int idnum) {
   int i;
 
   for (i = 0; i < num_of_clans; i++)
-    if (idnum == clan[i].id)
+    if (idnum == clan_list[i].id)
       return i;
   return -1;
 
