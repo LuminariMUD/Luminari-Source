@@ -6737,4 +6737,46 @@ ACMD(do_findmagic) {
   return;
 }
 
+/* temporarily change a command's level, adapted from ParagonMUD by Zusuk */
+ACMD(do_cmdlev) {
+  int iCmd, iLev;
+  char buf[MAX_STRING_LENGTH], buf2[MAX_STRING_LENGTH];
+
+  two_arguments(argument, buf, buf2);
+
+  if ((!buf) || (!*buf)) {
+    send_to_char(ch, "Usage: cmdlev <command> <level>\r\nTemporarily sets the required level for a command.\r\n");
+    send_to_char(ch, "Be careful with Imm commands!\r\nA reboot will reset all command levels to default.\r\n");
+    return;
+  }
+  if ((!buf2) || (!*buf2)) {
+    send_to_char(ch, "Usage: cmdlev <command> <level>\r\nWhat level would you like to set this command at?.\r\n");
+    return;
+  }
+
+  iCmd = find_command(buf);
+
+  if (iCmd == -1) {
+    send_to_char(ch, "That command does not exist!  Unable to change level!\r\n");
+    return;
+  }
+
+  iLev = atoi(buf2);
+
+  if ((iLev < 1) || (iLev > GET_LEVEL(ch))) {
+    send_to_char(ch, "Invalid level (Range: 1-%d)\r\n", GET_LEVEL(ch));
+    return;
+  }
+  if (complete_cmd_info[iCmd].minimum_level > GET_LEVEL(ch)) {
+    send_to_char(ch, "You cannot change the level on a command to which you don't have access!\r\n");
+    return;
+  }
+
+  /* All checks done - set the command level */
+  complete_cmd_info[iCmd].minimum_level = iLev;
+  send_to_char(ch, "Command level changed (%s%s%s is now available to anyone level %d or higher)\r\n", CCYEL(ch, C_NRM), complete_cmd_info[iCmd].command, CCNRM(ch, C_NRM), iLev);
+  send_to_char(ch, "NOTE: Command levels are restored to default during a reboot or copyover\r\n");
+  mudlog(NRM, MAX(LVL_IMPL, GET_INVIS_LEV(ch)), TRUE, "(GC) %s set command level for %s to %d", GET_NAME(ch), complete_cmd_info[iCmd].command, iLev);
+}
+
 /* EOF */
