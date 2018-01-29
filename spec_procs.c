@@ -1,5 +1,5 @@
 /**************************************************************************
- *  File: spec_procs.c                                      Part of LuminariMUD *
+ *  File: spec_procs.c                                 Part of LuminariMUD *
  *  Usage: Implementation of special procedures for mobiles/objects/rooms. *
  *                                                                         *
  *  All rights reserved.  See license for complete information.            *
@@ -1108,7 +1108,6 @@ void process_skill(struct char_data *ch, int skillnum) {
 /* Mob Special Function                                            */
 /* 'Stock-room' must also be created and made into a player house   */
 /* so that only the shop owner can get the piles of gold left there */
-
 /* Stock room must be 1 VNUM higher than the actual shop            */
 SPECIAL(player_owned_shops) {
   room_rnum private_room;
@@ -1144,10 +1143,12 @@ SPECIAL(player_owned_shops) {
       send_to_char(ch, "Mobiles can't buy from a player-owned shop!\r\n");
       return TRUE;
     }
-    sprintf(buf, "Owner: @W%s@n", shop_owner);
+    sprintf(buf, "Owner: \tW%s\tn", shop_owner);
     send_to_char(ch, "Player-owned Shop %*s\r\n", count_color_chars(buf) + 55, buf);
-    send_to_char(ch, " ##   Available   Item                                               Cost\r\n");
-    send_to_char(ch, "-------------------------------------------------------------------------\r\n");
+    send_to_char(ch,
+            " ##   Available   Item                                               Cost\r\n");
+    send_to_char(ch,
+            "-------------------------------------------------------------------------\r\n");
 
     for (i = world[private_room].contents; i; i = i->next_content) {
       num_items = 0;
@@ -1162,8 +1163,11 @@ SPECIAL(player_owned_shops) {
         if (!strcmp(j->short_description, i->short_description))
           num_items++;
 
-      if (CAN_SEE_OBJ(ch, i) && (*i->description != '.' || PRF_FLAGGED(ch, PRF_HOLYLIGHT)) && !(GET_OBJ_TYPE(i) == ITEM_MONEY)) {
-        send_to_char(ch, "%3d)  %5d      %-*s %11d\r\n", num++, num_items, count_color_chars(i->short_description) + 44, i->short_description, GET_OBJ_COST(i));
+      if (CAN_SEE_OBJ(ch, i) && (*i->description != '.' || PRF_FLAGGED(ch, PRF_HOLYLIGHT)) &&
+              !(GET_OBJ_TYPE(i) == ITEM_MONEY)) {
+        send_to_char(ch, "%3d)  %5d      %-*s %11d\r\n", num++, num_items,
+                count_color_chars(i->short_description) + 44, i->short_description,
+                GET_OBJ_COST(i));
       }
     }
 
@@ -1172,7 +1176,8 @@ SPECIAL(player_owned_shops) {
 
     skip_spaces(&argument);
 
-    log("player_shops: %s looking for %s in room %d", GET_NAME(ch), argument, world[private_room].number);
+    log("player_shops: %s looking for %s in room %d", GET_NAME(ch), argument,
+            world[private_room].number);
 
     i = get_obj_in_list_vis(ch, argument, NULL, world[private_room].contents);
 
@@ -1187,7 +1192,8 @@ SPECIAL(player_owned_shops) {
       return (TRUE);
     }
 
-    /* Just to avoid crashes, if the object has no cost, then don't try to make a pile of no gold */
+    /* Just to avoid crashes, if the object has no cost, then don't
+     * try to make a pile of no gold */
     if (GET_OBJ_COST(i) > 0) {
       /* Take gold from player */
       GET_GOLD(ch) -= GET_OBJ_COST(i);
@@ -1202,9 +1208,11 @@ SPECIAL(player_owned_shops) {
     obj_to_char(i, ch);
 
     /* Let everyone know what's happening */
-    send_to_char(ch, "%s hands you %s, and takes your payment.\r\n", CAP(GET_NAME((struct char_data *) me)), i->short_description);
+    send_to_char(ch, "%s hands you %s, and takes your payment.\r\n",
+            CAP(GET_NAME((struct char_data *) me)), i->short_description);
     act("$n buys $p from $N.", FALSE, ch, i, (struct char_data *) me, TO_ROOM);
-    send_to_char(ch, "%s thanks you for your custom, please come again!\r\n", shop_owner);
+    send_to_char(ch, "%s thanks you for your business, 'please come again!'\r\n",
+            shop_owner);
     log("player_shops: item bought and paid for");
 
     return (TRUE);
