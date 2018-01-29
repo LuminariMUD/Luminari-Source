@@ -35,6 +35,10 @@
 #include "feats.h"
 #include "spell_prep.h"
 
+/* external functions */
+extern struct house_control_rec house_control[];
+extern int num_of_houses;
+
 /* locally defined functions of local (file) scope */
 static int compare_spells(const void *x, const void *y);
 static void npc_steal(struct char_data *ch, struct char_data *victim);
