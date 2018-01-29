@@ -5,7 +5,7 @@
 \                    ported to Luminari by Zusuk             
 /  Date: November 1996, January 20th 2007, January 29 2018                                                          
 \       Command is in act.informative.c                                                   
-/                                                                                                                                                                                       
+/  Header: act.h                                                                                                                                                                                     
 \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ /*/
 #include <ctype.h>
 #include <stdio.h>
@@ -23,6 +23,7 @@
 #include "spells.h"
 #include "limits.h"
 #include "screen.h"
+#include "act.h"
 
 /* extern vars */
 extern struct room_data *world;
