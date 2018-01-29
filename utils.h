@@ -1058,7 +1058,7 @@ spellnum == SPELL_EPIC_WARDING )
 #define GET_SCREEN_WIDTH(ch)    CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.screen_width))
 
 /** staff todo lists */
-#define GET_TODO(ch)            CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved->todo_list)) 
+#define GET_TODO(ch)            CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.todo_list)) 
 
 /* Autoquests data */
 /** Return the number of questpoints ch has. */
