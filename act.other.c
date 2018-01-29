@@ -4989,6 +4989,8 @@ ACMD(do_todo) {
       tmp->next->text = strdup(argument);
     }
     send_to_char(ch, "Great, another thing to do!\r\n");
+    save_char(ch, 0);
+    Crash_crashsave(ch);
   } else {
     int num, i, success = 0;
     sscanf(argument, "%d", &num);
@@ -5006,6 +5008,8 @@ ACMD(do_todo) {
       send_to_char(ch, "Phew!  One less thing to do!\r\n");
     else
       send_to_char(ch, "No such item exists in your todo list!\r\n");
+    save_char(ch, 0);
+    Crash_crashsave(ch);
   }
 }
 
