@@ -1,5 +1,5 @@
 /**************************************************************************
- *  File: db.c                                              Part of tbaMUD *
+ *  File: db.c                                              Part of LuminariMUD *
  *  Usage: Loading/saving chars, booting/resetting world, internal funcs.  *
  *                                                                         *
  *  All rights reserved.  See license for complete information.            *

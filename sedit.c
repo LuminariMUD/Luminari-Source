@@ -1,5 +1,5 @@
 /**************************************************************************
-*  File: sedit.c                                           Part of tbaMUD *
+*  File: sedit.c                                           Part of LuminariMUD *
 *  Usage: Oasis OLC - Shops.                                              *
 *                                                                         *
 * Copyright 1996 Harvey Gilpin. 1997-2001 George Greer.                   *

@@ -1,6 +1,6 @@
 /**************************************************************************
- *  File: act.other.c                                       Part of tbaMUD *
- *  Usage: Miscellaneous player-level commands.                             *
+ *  File: act.other.c                                  Part of LuminariMUD *
+ *  Usage: Miscellaneous player-level commands.                            *
  *                                                                         *
  *  All rights reserved.  See license for complete information.            *
  *                                                                         *

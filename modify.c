@@ -1,5 +1,5 @@
 /**************************************************************************
- *  File: modify.c                                          Part of tbaMUD *
+ *  File: modify.c                                          Part of LuminariMUD *
  *  Usage: Run-time modification of game variables.                        *
  *                                                                         *
  *  All rights reserved.  See license for complete information.            *

@@ -1,5 +1,5 @@
 /**************************************************************************
-*  File: genmob.c                                          Part of tbaMUD *
+*  File: genmob.c                                          Part of LuminariMUD *
 *  Usage: Generic OLC Library - Mobiles.                                  *
 *                                                                         *
 *  Copyright 1996 by Harvey Gilpin, 1997-2001 by George Greer.            *

@@ -1,5 +1,5 @@
 /**************************************************************************
- *  File: spec_procs.c                                      Part of tbaMUD *
+ *  File: spec_procs.c                                      Part of LuminariMUD *
  *  Usage: Implementation of special procedures for mobiles/objects/rooms. *
  *                                                                         *
  *  All rights reserved.  See license for complete information.            *

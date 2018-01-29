@@ -1,5 +1,5 @@
 /**************************************************************************
- *  File: mud_event.c                                       Part of tbaMUD *
+ *  File: mud_event.c                                       Part of LuminariMUD *
  *  Usage: Handling of the mud event system                                *
  *                                                                         *
  *  By Vatiken. Copyright 2012 by Joseph Arnusch                           *

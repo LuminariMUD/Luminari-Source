@@ -1,5 +1,5 @@
 /* ************************************************************************
-*  file:  rebuildMailIndex.c                               Part of tbaMUD *
+*  file:  rebuildMailIndex.c                               Part of LuminariMUD *
 *  Copyright (C) 1990, 2010 - see 'license.doc' for complete information. *
 *  All Rights Reserved                                                    *
 ************************************************************************* */

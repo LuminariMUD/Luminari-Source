@@ -1,5 +1,5 @@
 /**************************************************************************
-*   File: random.c                                         Part of tbaMUD *
+*   File: random.c                                         Part of LuminariMUD *
 *  Usage: Pseudo-random number generator.                                 *
 **************************************************************************/
 

@@ -1,5 +1,5 @@
 /* ************************************************************************
-*  File: wld2html.c                                        Part of tbaMUD *
+*  File: wld2html.c                                        Part of LuminariMUD *
 *  Usage: Convert a DikuMUD .wld file into a series of .html files        *
 *                                                                         *
 *  This program is in the public domain.                                  *

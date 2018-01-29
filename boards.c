@@ -1,5 +1,5 @@
 /**************************************************************************
-*  File: boards.c                                          Part of tbaMUD *
+*  File: boards.c                                          Part of LuminariMUD *
 *  Usage: Handling of multiple bulletin boards.                           *
 *                                                                         *
 *  All rights reserved.  See license for complete information.            *

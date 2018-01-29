@@ -1,5 +1,5 @@
 /**************************************************************************
- *  File: medit.c                                           Part of tbaMUD *
+ *  File: medit.c                                           Part of LuminariMUD *
  *  Usage: Oasis OLC - Mobiles.                                            *
  *                                                                         *
  * Copyright 1996 Harvey Gilpin. 1997-2001 George Greer.                   *

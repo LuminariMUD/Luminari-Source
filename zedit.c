@@ -1,5 +1,5 @@
 /**************************************************************************
- *  File: zedit.c                                           Part of tbaMUD *
+ *  File: zedit.c                                           Part of LuminariMUD *
  *  Usage: Oasis OLC - Zones and commands.                                 *
  *                                                                         *
  * Copyright 1996 Harvey Gilpin. 1997-2001 George Greer.                   *

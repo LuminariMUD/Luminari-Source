@@ -1,5 +1,5 @@
 /**************************************************************************
-*  File: mail.c                                            Part of tbaMUD *
+*  File: mail.c                                            Part of LuminariMUD *
 *  Usage: Internal funcs and player spec-procs of mudmail system.         *
 *                                                                         *
 *  All rights reserved.  See license for complete information.            *

@@ -1,5 +1,5 @@
 /**************************************************************************
-*  File: oasis_copy.c                                      Part of tbaMUD *
+*  File: oasis_copy.c                                      Part of LuminariMUD *
 *  Usage: Oasis OLC copying.                                              *
 *                                                                         *
 * By Levork. Copyright 1996 Harvey Gilpin. 1997-2001 George Greer.        *

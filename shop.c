@@ -1,5 +1,5 @@
 /**************************************************************************
-*  File: shop.c                                            Part of tbaMUD *
+*  File: shop.c                                            Part of LuminariMUD *
 *  Usage: Shopkeepers, loading config files, spec procs.                  *
 *                                                                         *
 *  All rights reserved.  See license for complete information.            *

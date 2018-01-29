@@ -1,5 +1,5 @@
 /* ************************************************************************
-*  file:  autowiz.c                                        Part of tbaMUD *
+*  file:  autowiz.c                                        Part of LuminariMUD *
 *  Usage: self-updating wizlists                                          *
 *  Written by Jeremy Elson                                                *
 *  All Rights Reserved                                                    *

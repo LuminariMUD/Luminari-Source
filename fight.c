@@ -1,5 +1,5 @@
 /**************************************************************************
- *  File: fight.c                                           Part of tbaMUD *
+ *  File: fight.c                                           Part of LuminariMUD *
  *  Usage: Combat system.                                                  *
  *                                                                         *
  *  All rights reserved.  See license for complete information.            *

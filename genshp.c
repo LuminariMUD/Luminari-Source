@@ -1,5 +1,5 @@
 /**************************************************************************
-*  File: genshp.c                                          Part of tbaMUD *
+*  File: genshp.c                                          Part of LuminariMUD *
 *  Usage: Generic OLC Library - Shops.                                    *
 *                                                                         *
 *  Copyright 1996 by Harvey Gilpin, 1997-2001 by George Greer.            *
