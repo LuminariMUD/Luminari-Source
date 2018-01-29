@@ -122,6 +122,7 @@ const struct clan_cmds clan_commands[] = {
  Start basic clan utility functions
  ***************************************************************************/
 
+/*
 int find_clan_by_id(int idnum) {
   int i;
 
@@ -131,6 +132,7 @@ int find_clan_by_id(int idnum) {
   return -1;
 
 }
+*/
 
 clan_rnum real_clan(clan_vnum c) {
   int i;
