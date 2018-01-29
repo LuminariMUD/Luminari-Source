@@ -1126,7 +1126,7 @@ void generate_river(struct char_data* ch, int dir) {
   int sector_type;
   room_rnum* room;
   double loc[2], pos[2];
-
+  void* set;
   char buf[MAX_STRING_LENGTH];
 
   if(IN_ROOM(ch) != NOWHERE && !IS_WILDERNESS_VNUM(world[IN_ROOM(ch)].number)) {
