@@ -28,17 +28,19 @@
 obj_save_data *objsave_parse_objects(FILE *fl);
 zone_rnum real_zone_by_thing(room_vnum vznum);
 
-/* local (file scope only) globals */
-static struct house_control_rec house_control[MAX_HOUSES];
-static int num_of_houses = 0;
+/* globals */
+struct house_control_rec house_control[MAX_HOUSES];
+int num_of_houses = 0;
+
+/* functions */
+void House_delete_file(room_vnum vnum);
+int find_house(room_vnum vnum);
+void House_save_control(void);
 
 /* local functions */
 static int House_get_filename(room_vnum vnum, char *filename, size_t maxlen);
 static int House_load(room_vnum vnum);
 static void House_restore_weight(struct obj_data *obj);
-static void House_delete_file(room_vnum vnum);
-static int find_house(room_vnum vnum);
-static void House_save_control(void);
 static void hcontrol_build_house(struct char_data *ch, char *arg);
 static void hcontrol_destroy_house(struct char_data *ch, char *arg);
 static void hcontrol_pay_house(struct char_data *ch, char *arg);
