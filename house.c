@@ -26,7 +26,6 @@
 
 /* external functions */
 obj_save_data *objsave_parse_objects(FILE *fl);
-int objsave_save_obj_record(struct obj_data *obj, FILE *fl, int location);
 zone_rnum real_zone_by_thing(room_vnum vznum);
 
 /* local (file scope only) globals */
@@ -682,13 +681,14 @@ void House_save_all(void) {
 /* note: arg passed must be house vnum, so there. */
 int House_can_enter(struct char_data *ch, room_vnum house) {
   int i, j;
+  zone_vnum zvnum;
 
   /* Not a house */
   if ((i = find_house(house)) == NOWHERE)
     return (1);
 
   /* Not a god house, and player is a god */
-  if ((GET_LEVEL(ch) >= LVL_GRGOD) && (house_control[i].mode != HOUSE_GOD)) /* Even gods can't just walk into Imm-owned houses */
+  if ((GET_LEVEL(ch) >= LVL_GRSTAFF) && (house_control[i].mode != HOUSE_GOD)) /* Even gods can't just walk into Imm-owned houses */
     return (1);
 
   switch (house_control[i].mode) {
