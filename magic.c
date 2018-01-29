@@ -1,5 +1,5 @@
 /**************************************************************************
- *  File: magic.c                                           Part of tbaMUD *
+ *  File: magic.c                                           Part of LuminariMUD *
  *  Usage: Low-level functions for magic; spell template code.             *
  *                                                                         *
  *  All rights reserved.  See license for complete information.            *

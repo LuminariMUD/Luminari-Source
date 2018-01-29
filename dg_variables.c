@@ -1,5 +1,5 @@
 /**************************************************************************
- *  File: dg_variables.c                                    Part of tbaMUD *
+ *  File: dg_variables.c                                    Part of LuminariMUD *
  *  Usage: Contains the functions dealing with variable substitution.      *
  *                                                                         *
  *  $Author: Mark A. Heilpern/egreen/Welcor $                              *

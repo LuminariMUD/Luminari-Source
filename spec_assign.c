@@ -1,5 +1,5 @@
 /**************************************************************************
-*  File: spec_assign.c                                     Part of tbaMUD *
+*  File: spec_assign.c                                     Part of LuminariMUD *
 *  Usage: Functions to assign function pointers to objs/mobs/rooms        *
 *                                                                         *
 *  All rights reserved.  See license for complete information.            *

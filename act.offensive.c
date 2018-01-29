@@ -1,5 +1,5 @@
 /**************************************************************************
- *  File: act.offensive.c                                   Part of tbaMUD *
+ *  File: act.offensive.c                                   Part of LuminariMUD *
  *  Usage: Player-level commands of an offensive nature.                   *
  *                                                                         *
  *  All rights reserved.  See license for complete information.            *

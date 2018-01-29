@@ -1,5 +1,5 @@
 /**************************************************************************
-*  File: genolc.c                                          Part of tbaMUD *
+*  File: genolc.c                                          Part of LuminariMUD *
 *  Usage: Generic OLC Library - General.                                  *
 *                                                                         *
 *  Copyright 1996 by Harvey Gilpin, 1997-2001 by George Greer.            *

@@ -1,5 +1,5 @@
 /**************************************************************************
- *  File: spells.c                                          Part of tbaMUD *
+ *  File: spells.c                                          Part of LuminariMUD *
  *  Usage: Implementation of "manual spells."                              *
  *                                                                         *
  *  All rights reserved.  See license for complete information.            *

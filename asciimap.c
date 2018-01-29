@@ -1,5 +1,5 @@
 /**************************************************************************
- *  File: asciimap.c                                        Part of tbaMUD *
+ *  File: asciimap.c                                        Part of LuminariMUD *
  *  Usage: Generates an ASCII map of the player's surroundings.            *
  *                                                                         *
  *  All rights reserved.  See license for complete information.            *

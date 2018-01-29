@@ -1,5 +1,5 @@
 /**************************************************************************
-*  File: oasis.c                                           Part of tbaMUD *
+*  File: oasis.c                                           Part of LuminariMUD *
 *  Usage: Oasis - General.                                                *
 *                                                                         *
 * By Levork. Copyright 1996 Harvey Gilpin. 1997-2001 George Greer.        *

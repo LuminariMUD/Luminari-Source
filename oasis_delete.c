@@ -1,5 +1,5 @@
 /**************************************************************************
-*  File: oasis_delete.c                                    Part of tbaMUD *
+*  File: oasis_delete.c                                    Part of LuminariMUD *
 *  Usage: Oasis OLC deletion.                                             *
 *                                                                         *
 * By Levork. Copyright 1996 Harvey Gilpin. 1997-2001 George Greer.        *

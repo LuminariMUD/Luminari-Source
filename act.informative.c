@@ -1,5 +1,5 @@
 /**************************************************************************
- *  File: act.informative.c                                 Part of tbaMUD *
+ *  File: act.informative.c                                 Part of LuminariMUD *
  *  Usage: Player-level commands of an informative nature.                 *
  *                                                                         *
  *  All rights reserved.  See license for complete information.            *

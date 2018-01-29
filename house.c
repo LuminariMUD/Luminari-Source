@@ -1,5 +1,5 @@
 /**************************************************************************
- *  File: house.c                                           Part of tbaMUD *
+ *  File: house.c                                           Part of LuminariMUD *
  *  Usage: Handling of player houses.                                      *
  *                                                                         *
  *  All rights reserved.  See license for complete information.            *

@@ -1,5 +1,5 @@
 /**************************************************************************
-*  File: dg_db_scripts.c                                   Part of tbaMUD *
+*  File: dg_db_scripts.c                                   Part of LuminariMUD *
 *  Usage: Contains routines to handle db functions for scripts and trigs. *
 *                                                                         *
 *  All rights reserved.  See license for complete information.            *

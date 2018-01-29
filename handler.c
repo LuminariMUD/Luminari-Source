@@ -1,5 +1,5 @@
 /**************************************************************************
- *  File: handler.c                                         Part of tbaMUD *
+ *  File: handler.c                                         Part of LuminariMUD *
  *  Usage: Internal funcs: moving and finding chars/objs.                  *
  *                                                                         *
  *  All rights reserved.  See license for complete information.            *

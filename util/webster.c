@@ -1,5 +1,5 @@
 /* ************************************************************************
- *  File: webster.c                                         Part of tbaMUD *
+ *  File: webster.c                                         Part of LuminariMUD *
  *  Usage: Use an online dictionary via tell m-w <word>.                   *
  *                                                                         *
  *  Based on the Circle 3.0 syntax checker and wld2html programs.          *

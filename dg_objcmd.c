@@ -1,5 +1,5 @@
 /**************************************************************************
-*  File: dg_objcmd.c                                       Part of tbaMUD *
+*  File: dg_objcmd.c                                       Part of LuminariMUD *
 *  Usage: Contains the command_interpreter for objects, object commands.  *
 *                                                                         *
 *  $Author: galion/Mark A. Heilpern/egreen/Welcor $                       *

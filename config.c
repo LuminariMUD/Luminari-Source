@@ -1,5 +1,5 @@
 /**************************************************************************
-*  File: config.c                                          Part of tbaMUD *
+*  File: config.c                                          Part of LuminariMUD *
 *  Usage: Configuration of various aspects of LuminariMUD operation.      *
 *                                                                         *
 *  All rights reserved.  See license for complete information.            *

@@ -1,5 +1,5 @@
 /**************************************************************************
-*  File: bsd-snprintf.c                                    Part of tbaMUD *
+*  File: bsd-snprintf.c                                    Part of LuminariMUD *
 *  Usage: Used if your OS does not provide snprintf() or vsnprintf().     *
 **************************************************************************/
 

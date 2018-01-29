@@ -1,5 +1,5 @@
 /**************************************************************************
- *  File: objsave.c                                         Part of tbaMUD *
+ *  File: objsave.c                                         Part of LuminariMUD *
  *  Usage: loading/saving player objects for rent and crash-save           *
  *                                                                         *
  *  All rights reserved.  See license for complete information.            *

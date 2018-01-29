@@ -1,5 +1,5 @@
 /**************************************************************************
-*  File: dg_wldcmd.c                                       Part of tbaMUD *
+*  File: dg_wldcmd.c                                       Part of LuminariMUD *
 *  Usage: Contains the command_interpreter for rooms, room commands.      *
 *                                                                         *
 *  $Author: galion/Mark A. Heilpern/egreen/Welcor $                       *

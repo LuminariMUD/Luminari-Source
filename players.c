@@ -1,5 +1,5 @@
 /**************************************************************************
- *  File: players.c                                         Part of tbaMUD *
+ *  File: players.c                                         Part of LuminariMUD *
  *  Usage: Player loading/saving and utility routines.                     *
  *                                                                         *
  *  All rights reserved.  See license for complete information.            *
