@@ -253,14 +253,14 @@ void init_keys(void) {
   add_key("gold", "gold carried", rank_gold);
   add_key("bank", "bank balance", rank_bank);
   add_key("age", "age", rank_age);
-  add_key("kills", "kills", rank_kills);
-  add_key("deaths", "deaths", rank_deaths);
-  add_key("kd", "kills to deaths ratio", rank_kd);
+  //add_key("kills", "kills", rank_kills);
+  //add_key("deaths", "deaths", rank_deaths);
+  //add_key("kd", "kills to deaths ratio", rank_kd);
   add_key("played", "time played", rank_played);
   add_key("birth", "time since creation", rank_birth);
-  add_key("remorts", "number of remorts", rank_remorts);
-  add_key("blabber", "# of gossips", rank_blabber);
-  add_key("clanbucks", "clan taxes earned", rank_clanbucks);
+  //add_key("remorts", "number of remorts", rank_remorts);
+  //add_key("blabber", "# of gossips", rank_blabber);
+  //add_key("clanbucks", "clan taxes earned", rank_clanbucks);
 
   add_key("help", "help", NULL);
 } /* end init_keys */
