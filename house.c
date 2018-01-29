@@ -703,7 +703,7 @@ int House_can_enter(struct char_data *ch, room_vnum house) {
 
     case HOUSE_CLAN: /* Clan-owned houses - Only clan members may enter */
       zvnum = zone_table[real_zone_by_thing(house_control[i].vnum)].number;
-      log("(HCE) Zone: %d, Clan ID: %d, Clanhall Zone: %d", zvnum, GET_CLAN(ch), clan[find_clan_by_id(GET_CLAN(ch))].hall);
+      log("(HCE) Zone: %d, Clan ID: %d, Clanhall Zone: %d", zvnum, GET_CLAN(ch), clan_list[GET_CLAN(ch)].hall);
       if ((GET_CLAN(ch) > 0) && (clan_list[GET_CLAN(ch)].hall == zvnum))
         return (1);
       break;
