@@ -564,7 +564,7 @@ void hsedit_parse(struct descriptor_data * d, char *arg) {
         case '3':
           if ((OLC_HOUSE(d)->vnum == NOWHERE) || (real_room(OLC_HOUSE(d)->vnum) == NOWHERE)) {
             send_to_char(d->character, "ERROR: Invalid house VNUM\r\n(Press Enter)\r\n");
-            mudlog(NRM, LVL_GRGOD, TRUE, "SYSERR: Invalid house VNUM in hsedit");
+            mudlog(NRM, LVL_GRSTAFF, TRUE, "SYSERR: Invalid house VNUM in hsedit");
           } else {
             hsedit_dir_menu(d);
           }
