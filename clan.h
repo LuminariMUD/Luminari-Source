@@ -217,6 +217,7 @@ void clanedit_string_cleanup(struct descriptor_data *d, int terminator);
 /* External globals (proably needed by any file that loads this header) */
 extern struct clan_data *clan_list;
 extern int num_of_clans;
+extern struct clan_rec clan[MAX_CLANS];
 #endif
 
 
