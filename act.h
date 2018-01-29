@@ -376,6 +376,7 @@ void update_msdp_group(struct char_data *ch);
 void update_msdp_inventory(struct char_data *ch);
 bool wildshape_engine(struct char_data *ch, char *argument, int mode);
 void show_hints(void);
+void display_todo(struct char_data *ch, struct char_data *vict);
 
 /* do_gen_tog */
 ACMD(do_gen_tog);
