@@ -1128,7 +1128,8 @@ void generate_river(struct char_data* ch, int dir) {
   double loc[2], pos[2];
   void* set;
   char buf[MAX_STRING_LENGTH];
-  int move_dir = NORTH;
+  int move_dir = -1;
+  int new_move_dir = -1;
 
   if(IN_ROOM(ch) != NOWHERE && !IS_WILDERNESS_VNUM(world[IN_ROOM(ch)].number)) {
     send_to_char(ch, "This command is only valid in the wilderness.");
@@ -1177,26 +1178,26 @@ void generate_river(struct char_data* ch, int dir) {
     int s_elev = get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y - 1);
     int w_elev = get_elevation(NOISE_MATERIAL_PLANE_ELEV, x - 1, y);
 
-    if (n_elev < elev) {
-      move_dir = NORTH;
+    if (move_dir != SOUTH && n_elev < elev) {
+      new_move_dir = NORTH;
       elev = n_elev;           
       new_x = x;
       new_y = y + 1;
     }
-    if (e_elev < elev) {
-      move_dir = EAST;    
+    if (move_dir != WEST && e_elev < elev) {
+      new_move_dir = EAST;    
       elev = e_elev;           
       new_x = x + 1;
       new_y = y;
     }
-    if (s_elev < elev) {
-      move_dir = SOUTH;
+    if (move_dir != NORTH && s_elev < elev) {
+      new_move_dir = SOUTH;
       elev = s_elev;           
       new_x = x;
       new_y = y - 1;
     }    
-    if (w_elev < elev) {
-      move_dir = WEST;
+    if (move_dir != EAST && w_elev < elev) {
+      new_move_dir = WEST;
       elev = w_elev;           
       new_x = x - 1;
       new_y = y;
@@ -1224,6 +1225,7 @@ void generate_river(struct char_data* ch, int dir) {
       }
     } 
     
+    move_dir = new_move_dir;
     x = new_x;
     y = new_y;
 
