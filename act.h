@@ -606,4 +606,6 @@ ACMD(do_coordconvert);
 ACMD(do_genmap);
 ACMD(do_oconvert);
 ACMD(do_acconvert);
+ACMD(do_findmagic);
+
 #endif /* _ACT_H_ */
