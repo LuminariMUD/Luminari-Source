@@ -1178,40 +1178,40 @@ void generate_river(struct char_data* ch, int dir) {
 
     if (n_elev < elev) {
           elev = n_elev;           
-          ney_x = x;
+          new_x = x;
           new_y = y + 1;
     }
     if (e_elev < elev) {
           elev = e_elev;           
-          ney_x = x + 1;
+          new_x = x + 1;
           new_y = y;
     }
     if (s_elev < elev) {
           elev = s_elev;           
-          ney_x = x;
+          new_x = x;
           new_y = y - 1;
     }    
     if (w_elev < elev) {
           elev = w_elev;           
-          ney_x = x - 1;
+          new_x = x - 1;
           new_y = y;
     }
 
     if ((new_x == x) && (new_y == y)) {
       if (dir = NORTH) {
-        ney_x = x;
+        new_x = x;
         new_y = y + 1;
       }
       if (dir = EAST) {
-        ney_x = x + 1;
+        new_x = x + 1;
         new_y = y;
       }
       if (dir = SOUTH) {
-        ney_x = x;
+        new_x = x;
         new_y = y - 1;
       }
       if (dir = WEST) {
-        ney_x = x - 1;
+        new_x = x - 1;
         new_y = y;
       }
     }
