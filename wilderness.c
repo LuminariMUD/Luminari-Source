@@ -1204,7 +1204,7 @@ void generate_river(struct char_data* ch, int dir) {
 
     /* Check if we have visited this location before */
     for (i = 0; i < num_vertices; i++) {
-      if((x == new_x && y == new_y) || (vertices[i].x == new_x && vertices[i].y == new_y) {
+      if((x == new_x && y == new_y) || (vertices[i].x == new_x && vertices[i].y == new_y)) {
         if (dir == NORTH) {
           new_x = x;
           new_y = y + 1;
