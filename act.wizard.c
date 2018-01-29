@@ -1,5 +1,5 @@
 /**************************************************************************
- *  File: act.wizard.c                                      Part of tbaMUD *
+ *  File: act.wizard.c                                 Part of LuminariMUD *
  *  Usage: Player-level god commands and other goodies.                    *
  *                                                                         *
  *  All rights reserved.  See license for complete information.            *
