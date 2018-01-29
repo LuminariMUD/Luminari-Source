@@ -1,12 +1,12 @@
 /**************************************************************************
-*  File: spec_assign.c                                     Part of LuminariMUD *
-*  Usage: Functions to assign function pointers to objs/mobs/rooms        *
-*                                                                         *
-*  All rights reserved.  See license for complete information.            *
-*                                                                         *
-*  Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University *
-*  CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.               *
-**************************************************************************/
+ *  File: spec_assign.c                                     Part of LuminariMUD *
+ *  Usage: Functions to assign function pointers to objs/mobs/rooms        *
+ *                                                                         *
+ *  All rights reserved.  See license for complete information.            *
+ *                                                                         *
+ *  Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University *
+ *  CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.               *
+ **************************************************************************/
 
 #include "conf.h"
 #include "sysdep.h"
@@ -29,8 +29,7 @@ static void ASSIGNMOB(mob_vnum mob, SPECIAL(fname));
 static void ASSIGNOBJ(obj_vnum obj, SPECIAL(fname));
 
 /* functions to perform assignments */
-static void ASSIGNMOB(mob_vnum mob, SPECIAL(fname))
-{
+static void ASSIGNMOB(mob_vnum mob, SPECIAL(fname)) {
   mob_rnum rnum;
 
   if ((rnum = real_mobile(mob)) != NOBODY)
@@ -39,8 +38,7 @@ static void ASSIGNMOB(mob_vnum mob, SPECIAL(fname))
     log("SYSERR: Attempt to assign spec to non-existant mob #%d", mob);
 }
 
-static void ASSIGNOBJ(obj_vnum obj, SPECIAL(fname))
-{
+static void ASSIGNOBJ(obj_vnum obj, SPECIAL(fname)) {
   obj_rnum rnum;
 
   if ((rnum = real_object(obj)) != NOTHING)
@@ -49,8 +47,7 @@ static void ASSIGNOBJ(obj_vnum obj, SPECIAL(fname))
     log("SYSERR: Attempt to assign spec to non-existant obj #%d", obj);
 }
 
-static void ASSIGNROOM(room_vnum room, SPECIAL(fname))
-{
+static void ASSIGNROOM(room_vnum room, SPECIAL(fname)) {
   room_rnum rnum;
 
   if ((rnum = real_room(room)) != NOWHERE)
@@ -60,10 +57,10 @@ static void ASSIGNROOM(room_vnum room, SPECIAL(fname))
 }
 
 /* Assignments */
+
 /* assign special procedures to mobiles. Guildguards, snake, thief, wizard,
  * puff, fido, janitor, and cityguards are now implemented via triggers. */
-void assign_mobiles(void)
-{
+void assign_mobiles(void) {
   assign_kings_castle();
 
   /* cryogenicist */
@@ -118,20 +115,23 @@ void assign_mobiles(void)
   /* female newbie trainer mosswood village */
   ASSIGNMOB(145333, guild);
 
+  /* player owned shop mobiles */
+  ASSIGNMOB(899, player_owned_shops);
+
   /* mayors */
   ASSIGNMOB(3105, mayor);
 
   /* postmasters */
-  ASSIGNMOB(110,    postmaster);
-  ASSIGNMOB(1201,   postmaster);
-  ASSIGNMOB(3010,   postmaster);
-  ASSIGNMOB(10412,  postmaster);
-  ASSIGNMOB(10719,  postmaster);
-  ASSIGNMOB(23496,  postmaster);
-  ASSIGNMOB(25710,  postmaster);
-  ASSIGNMOB(27164,  postmaster);
-  ASSIGNMOB(30128,  postmaster);
-  ASSIGNMOB(31510,  postmaster);
+  ASSIGNMOB(110, postmaster);
+  ASSIGNMOB(1201, postmaster);
+  ASSIGNMOB(3010, postmaster);
+  ASSIGNMOB(10412, postmaster);
+  ASSIGNMOB(10719, postmaster);
+  ASSIGNMOB(23496, postmaster);
+  ASSIGNMOB(25710, postmaster);
+  ASSIGNMOB(27164, postmaster);
+  ASSIGNMOB(30128, postmaster);
+  ASSIGNMOB(31510, postmaster);
   ASSIGNMOB(103010, postmaster);
   ASSIGNMOB(145293, postmaster); /*wolves assigned this*/
 
@@ -153,8 +153,8 @@ void assign_mobiles(void)
   ASSIGNMOB(142300, abyss_randomizer);
 
   /* crimson flame zone mob specs */
-  ASSIGNMOB(106040, cf_trainingmaster);  // training master
-  ASSIGNMOB(106000, cf_alathar);  // lord alathar
+  ASSIGNMOB(106040, cf_trainingmaster); // training master
+  ASSIGNMOB(106000, cf_alathar); // lord alathar
 
   /* Jotunheim */
   ASSIGNMOB(196027, thrym);
@@ -162,14 +162,14 @@ void assign_mobiles(void)
   ASSIGNMOB(196070, ymir);
   ASSIGNMOB(196033, gatehouse_guard);
   ASSIGNMOB(196032, gatehouse_guard);
-  ASSIGNMOB(196200, jot_invasion_loader);  // this will load invasion
+  ASSIGNMOB(196200, jot_invasion_loader); // this will load invasion
 
   /* more homeland assigns, unsorted */
   ASSIGNMOB(200002, postmaster);
   ASSIGNMOB(200001, receptionist);
   /* not yet defined
   ASSIGNMOB(200000, guild_golem);
-  */
+   */
   ASSIGNMOB(155699, cube_slider);
 
   //ASSIGNMOB(126907, receptionist);
@@ -209,7 +209,7 @@ void assign_mobiles(void)
   ASSIGNMOB(122008, trade_master);
   ASSIGNMOB(122009, trade_master);
   ASSIGNMOB(122010, trade_master);
-  */
+   */
   /* trade object mobs */
   /* not yet defined
   ASSIGNOBJ(122000, trade_object);
@@ -245,7 +245,7 @@ void assign_mobiles(void)
   ASSIGNOBJ(122030, trade_object);
   ASSIGNOBJ(122031, trade_object);
   ASSIGNOBJ(122032, trade_object);
-  */
+   */
 
   /* Trade Bandit mobs */
   /* not yet defined
@@ -268,7 +268,7 @@ void assign_mobiles(void)
   ASSIGNMOB(122046, trade_bandit);
   ASSIGNMOB(122047, trade_bandit);
   ASSIGNMOB(122048, trade_bandit);
-  */
+   */
 
   /* bandit guard */
   ASSIGNMOB(143304, bandit_guard);
@@ -621,29 +621,28 @@ void assign_mobiles(void)
 }
 
 /* assign special procedures to objects */
-void assign_objects(void)
-{
-  ASSIGNOBJ(1226, gen_board);   /* builder's board */
-  ASSIGNOBJ(1227, gen_board);   /* staff board */
-  ASSIGNOBJ(1228, gen_board);   /* advertising board */
-  ASSIGNOBJ(3096, gen_board);	/* social board */
-  ASSIGNOBJ(3097, gen_board);	/* freeze board */
-  ASSIGNOBJ(3098, gen_board);	/* immortal board */
-  ASSIGNOBJ(3099, gen_board);	/* mortal board */
-  ASSIGNOBJ(100400, gen_board);   /* quest board */
-  ASSIGNOBJ(103093, gen_board);   /* ashenport market board */
-  ASSIGNOBJ(103094, gen_board);   /* forger board */
-  ASSIGNOBJ(103095, gen_board);   /* areas board */
-  ASSIGNOBJ(103096, gen_board);	/* social board */
-  ASSIGNOBJ(103097, gen_board);	/* freeze board */
-  ASSIGNOBJ(103098, gen_board);	/* immortal board */
-  ASSIGNOBJ(103099, gen_board);	/* mortal board */
-          
+void assign_objects(void) {
+  ASSIGNOBJ(1226, gen_board); /* builder's board */
+  ASSIGNOBJ(1227, gen_board); /* staff board */
+  ASSIGNOBJ(1228, gen_board); /* advertising board */
+  ASSIGNOBJ(3096, gen_board); /* social board */
+  ASSIGNOBJ(3097, gen_board); /* freeze board */
+  ASSIGNOBJ(3098, gen_board); /* immortal board */
+  ASSIGNOBJ(3099, gen_board); /* mortal board */
+  ASSIGNOBJ(100400, gen_board); /* quest board */
+  ASSIGNOBJ(103093, gen_board); /* ashenport market board */
+  ASSIGNOBJ(103094, gen_board); /* forger board */
+  ASSIGNOBJ(103095, gen_board); /* areas board */
+  ASSIGNOBJ(103096, gen_board); /* social board */
+  ASSIGNOBJ(103097, gen_board); /* freeze board */
+  ASSIGNOBJ(103098, gen_board); /* immortal board */
+  ASSIGNOBJ(103099, gen_board); /* mortal board */
+
   ASSIGNOBJ(115, bank);
-  ASSIGNOBJ(334, bank);	        /* atm */
-  ASSIGNOBJ(336, bank);	        /* cashcard */
-  ASSIGNOBJ(3034, bank);        /* atm */
-  ASSIGNOBJ(3036, bank);        /* cashcard */
+  ASSIGNOBJ(334, bank); /* atm */
+  ASSIGNOBJ(336, bank); /* cashcard */
+  ASSIGNOBJ(3034, bank); /* atm */
+  ASSIGNOBJ(3036, bank); /* cashcard */
   ASSIGNOBJ(3907, bank);
   ASSIGNOBJ(10640, bank);
   ASSIGNOBJ(10751, bank);
@@ -651,40 +650,40 @@ void assign_objects(void)
   ASSIGNOBJ(102541, bank);
   ASSIGNOBJ(103122, bank);
   /* homeland - need to be converted to objects */
-/*
-  ASSIGNOBJ(105039, bank);
-  ASSIGNOBJ(105807, bank);
-  ASSIGNOBJ(108181, bank);
-  ASSIGNOBJ(108198, bank);
-  ASSIGNOBJ(110421, bank);
-  ASSIGNOBJ(111374, bank);
-  ASSIGNOBJ(113010, bank);
-  ASSIGNOBJ(119102, bank);
-  ASSIGNOBJ(121475, bank);
-  ASSIGNOBJ(121825, bank);
-  ASSIGNOBJ(122685, bank);
-  ASSIGNOBJ(125088, bank);
-  ASSIGNOBJ(125984, bank);
-  ASSIGNOBJ(126906, bank);
-  ASSIGNOBJ(127618, bank);
-  ASSIGNOBJ(135051, bank);
-  ASSIGNOBJ(138809, bank);
-*/
+  /*
+    ASSIGNOBJ(105039, bank);
+    ASSIGNOBJ(105807, bank);
+    ASSIGNOBJ(108181, bank);
+    ASSIGNOBJ(108198, bank);
+    ASSIGNOBJ(110421, bank);
+    ASSIGNOBJ(111374, bank);
+    ASSIGNOBJ(113010, bank);
+    ASSIGNOBJ(119102, bank);
+    ASSIGNOBJ(121475, bank);
+    ASSIGNOBJ(121825, bank);
+    ASSIGNOBJ(122685, bank);
+    ASSIGNOBJ(125088, bank);
+    ASSIGNOBJ(125984, bank);
+    ASSIGNOBJ(126906, bank);
+    ASSIGNOBJ(127618, bank);
+    ASSIGNOBJ(135051, bank);
+    ASSIGNOBJ(138809, bank);
+   */
 
   ASSIGNOBJ(3118, crafting_kit);
 
-  ASSIGNOBJ(104072, chionthar_ferry);  //transport
+  ASSIGNOBJ(104072, chionthar_ferry); //transport
 
-  ASSIGNOBJ(128106, ches);  //weapon
+  ASSIGNOBJ(128106, ches); //weapon
 
-  ASSIGNOBJ(128150, spikeshield);  //shield
+  ASSIGNOBJ(128150, spikeshield); //shield
 
   ASSIGNOBJ(224, monk_glove);
-  
+
   /* tiamat */
   ASSIGNOBJ(132125, tia_rapier);
 
-  ASSIGNOBJ(136100, air_sphere);  //weapon (lightning)
+  ASSIGNOBJ(136100, air_sphere); //weapon (lightning)
 
   /* JOTUNHEIM EQ */
   ASSIGNOBJ(196012, mistweave);
@@ -730,7 +729,7 @@ void assign_objects(void)
   /* not yet defined
   ASSIGNOBJ(101290, storage_chest);
   ASSIGNOBJ(101291, storage_chest);
-  */
+   */
 
   /* Mere Teleports*/
   ASSIGNOBJ(126703, floating_teleport);
@@ -746,7 +745,7 @@ void assign_objects(void)
   ASSIGNOBJ(100603, forest_idol);
   ASSIGNOBJ(100604, forest_idol);
   ASSIGNOBJ(100605, forest_idol);
-  */
+   */
 
   /* Weapon Procs */
   ASSIGNOBJ(141914, witherdirk);
@@ -802,7 +801,7 @@ void assign_objects(void)
   ASSIGNOBJ(132126, drow_scimitar);
   ASSIGNOBJ(133103, mithril_rapier);
   ASSIGNOBJ(141800, treantshield);
-  */
+   */
 
   ASSIGNOBJ(132125, tia_rapier);
   ASSIGNOBJ(138447, disruption_mace);
@@ -814,20 +813,19 @@ void assign_objects(void)
 }
 
 /* assign special procedures to rooms */
-void assign_rooms(void)
-{
+void assign_rooms(void) {
   room_rnum i;
 
   /* bazaar - spend quest points on magic gear */
   ASSIGNROOM(103006, bazaar);
 
-  /* crafting quest (autocraft) */          
+  /* crafting quest (autocraft) */
   ASSIGNROOM(370, crafting_quest);
 
   /* wizard library - research wizard spells for spellbook */
   ASSIGNROOM(5905, wizard_library); /* wizard training mansion */
   ASSIGNROOM(103047, wizard_library); /* Ashenport Mage's Guild */
-  
+
   /* buy pets */
   ASSIGNROOM(3031, pet_shops);
   ASSIGNROOM(10738, pet_shops);
@@ -900,10 +898,10 @@ void assign_rooms(void)
   ASSIGNROOM(132903, kt_twister);
   ASSIGNROOM(132904, kt_twister);
   ASSIGNROOM(132905, kt_twister);
-  
+
   /* kt shadowmaker */
   //ASSIGNROOM( 32921, kt_shadowmaker);
-  
+
   /* quicksand */
   ASSIGNROOM(126771, quicksand);
   ASSIGNROOM(126776, quicksand);
@@ -929,58 +927,58 @@ void assign_rooms(void)
 }
 
 struct spec_func_data {
-   char *name;
-   SPECIAL(*func);
+  char *name;
+  SPECIAL(*func);
 };
 
 struct spec_func_data spec_func_list[] = {
-  {"Mayor",          mayor },
-  {"Snake",          snake },
-  {"Thief",          thief },
-  {"wizard",         wizard },
-  {"Puff",           puff },
-  {"Fido",           fido },
-  {"Janitor",        janitor },
-  {"Cityguard",      cityguard },
-  {"Postmaster",     postmaster },
-  {"Receptionist",   receptionist },
-  {"Cryogenicist",   cryogenicist},
-  {"Bulletin Board", gen_board },
-  {"Bank",           bank },
-  {"Pet Shop",       pet_shops },
-  {"Dump",           dump },
-  {"Guildmaster",    guild },
-  {"Guild Guard",    guild_guard },
-  {"Questmaster",    questmaster },
-  {"Shopkeeper",     shop_keeper },
+  {"Mayor", mayor},
+  {"Snake", snake},
+  {"Thief", thief},
+  {"wizard", wizard},
+  {"Puff", puff},
+  {"Fido", fido},
+  {"Janitor", janitor},
+  {"Cityguard", cityguard},
+  {"Postmaster", postmaster},
+  {"Receptionist", receptionist},
+  {"Cryogenicist", cryogenicist},
+  {"Bulletin Board", gen_board},
+  {"Bank", bank},
+  {"Pet Shop", pet_shops},
+  {"Dump", dump},
+  {"Guildmaster", guild},
+  {"Guild Guard", guild_guard},
+  {"Questmaster", questmaster},
+  {"Shopkeeper", shop_keeper},
   /* end stock specs */
-  {"Magical Wall",      wall },
-  {"Faithful Hound",    hound },
-  {"Mistweave",         mistweave },
-  {"Frostbite",         frostbite },
-  {"Ymir Cloak",        ymir_cloak },
-  {"Vaprak Claws",      vaprak_claws },
-  {"Valkyrie Sword",    valkyrie_sword },
-  {"Twilight",          twilight },
-  {"Fake Twilight",     fake_twilight },
-  {"Giantslayer",       giantslayer },
-  {"Planetar Sword",    planetar_sword },
-  {"Crafting Kit",      crafting_kit },
-  {"Chionthar_Ferry",   chionthar_ferry },
-  {"Ches",              ches },
-  {"SpikeShield",       spikeshield },
-  {"Air Sphere",        air_sphere },
-  {"Crafting Quest",    crafting_quest },
-  {"Abyss Randomizer",  abyss_randomizer },
-  {"Trainingmaster",    cf_trainingmaster },
-  {"Alathar",           cf_alathar },
-  {"Thrym",             thrym },
-  {"Planetar",          planetar },
-  {"Ymir",              ymir },
-  {"Gatehouse Guard",   gatehouse_guard },
-  {"Invasion",          jot_invasion_loader },
-  {"Crystal Rapier",    tia_rapier },
-  {"Pet Object",        bought_pet },
+  {"Magical Wall", wall},
+  {"Faithful Hound", hound},
+  {"Mistweave", mistweave},
+  {"Frostbite", frostbite},
+  {"Ymir Cloak", ymir_cloak},
+  {"Vaprak Claws", vaprak_claws},
+  {"Valkyrie Sword", valkyrie_sword},
+  {"Twilight", twilight},
+  {"Fake Twilight", fake_twilight},
+  {"Giantslayer", giantslayer},
+  {"Planetar Sword", planetar_sword},
+  {"Crafting Kit", crafting_kit},
+  {"Chionthar_Ferry", chionthar_ferry},
+  {"Ches", ches},
+  {"SpikeShield", spikeshield},
+  {"Air Sphere", air_sphere},
+  {"Crafting Quest", crafting_quest},
+  {"Abyss Randomizer", abyss_randomizer},
+  {"Trainingmaster", cf_trainingmaster},
+  {"Alathar", cf_alathar},
+  {"Thrym", thrym},
+  {"Planetar", planetar},
+  {"Ymir", ymir},
+  {"Gatehouse Guard", gatehouse_guard},
+  {"Invasion", jot_invasion_loader},
+  {"Crystal Rapier", tia_rapier},
+  {"Pet Object", bought_pet},
 
   {"\n", NULL}
 };

@@ -102,6 +102,7 @@ void sort_spells(void) {
 
 //returns true if you have all the requisites for the skill
 //false if you don't
+
 int meet_skill_reqs(struct char_data *ch, int skillnum) {
   //doesn't apply to staff
   if (GET_LEVEL(ch) >= LVL_IMMORT)
@@ -335,7 +336,7 @@ int meet_skill_reqs(struct char_data *ch, int skillnum) {
       // nature step - level 6 (shared with ranger)
 
       /* warrior */
-    case SKILL_SHIELD_SPECIALIST:  // not a free skill
+    case SKILL_SHIELD_SPECIALIST: // not a free skill
       if (CLASS_LEVEL(ch, CLASS_WARRIOR) >= 6)
         return TRUE;
       else return FALSE;
@@ -370,7 +371,7 @@ int meet_skill_reqs(struct char_data *ch, int skillnum) {
       if (CLASS_LEVEL(ch, CLASS_ROGUE) >= 4)
         return TRUE;
       else return FALSE;
-     case SKILL_SAP:  // not a free skill
+    case SKILL_SAP: // not a free skill
       if (CLASS_LEVEL(ch, CLASS_ROGUE) >= 10)
         return TRUE;
       else return FALSE;
@@ -427,7 +428,7 @@ int meet_skill_reqs(struct char_data *ch, int skillnum) {
     case SKILL_MASTERWORK_CRAFTING:
     case SKILL_DRACONIC_CRAFTING:
     case SKILL_DWARVEN_CRAFTING:
-    case SKILL_SPELLBATTLE:  //arcana golem innate
+    case SKILL_SPELLBATTLE: //arcana golem innate
     default: return FALSE;
   }
   return FALSE;
@@ -490,18 +491,18 @@ void list_spells(struct char_data *ch, int mode, int class, int circle) {
           len += nlen;
           /* SPELL PREPARATION HOOK (spellCircle) */
         } else if (class == CLASS_WIZARD && spellbook_ok(ch, i, class, FALSE) &&
-                (BONUS_CASTER_LEVEL(ch, class)+CLASS_LEVEL(ch, class)) >= sinfo &&
+                (BONUS_CASTER_LEVEL(ch, class) + CLASS_LEVEL(ch, class)) >= sinfo &&
                 compute_spells_circle(class, i, 0, DOMAIN_UNDEFINED) == slot &&
                 GET_SKILL(ch, i)) {
           nlen = snprintf(buf2 + len, sizeof (buf2) - len,
                   "%-20s %-15s \tRReady\tn\r\n", spell_info[i].name,
-                          school_names_specific[spell_info[i].schoolOfMagic]);
+                  school_names_specific[spell_info[i].schoolOfMagic]);
           if (len + nlen >= sizeof (buf2) || nlen < 0)
             break;
           len += nlen;
           /* SPELL PREPARATION HOOK (spellCircle) */
         } else if (class != CLASS_SORCERER && class != CLASS_BARD && class != CLASS_WIZARD &&
-                (BONUS_CASTER_LEVEL(ch, class)+CLASS_LEVEL(ch, class)) >= MIN_SPELL_LVL(i, class, domain_1) && compute_spells_circle(class, i, 0, domain_1) == slot &&
+                (BONUS_CASTER_LEVEL(ch, class) + CLASS_LEVEL(ch, class)) >= MIN_SPELL_LVL(i, class, domain_1) && compute_spells_circle(class, i, 0, domain_1) == slot &&
                 GET_SKILL(ch, i)) {
           nlen = snprintf(buf2 + len, sizeof (buf2) - len,
                   "%-20s \tWMastered\tn\r\n", spell_info[i].name);
@@ -510,7 +511,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle) {
           len += nlen;
           /* SPELL PREPARATION HOOK (spellCircle) */
         } else if (class != CLASS_SORCERER && class != CLASS_BARD && class != CLASS_WIZARD &&
-                (BONUS_CASTER_LEVEL(ch, class)+CLASS_LEVEL(ch, class)) >= MIN_SPELL_LVL(i, class, domain_2) && compute_spells_circle(class, i, 0, domain_2) == slot &&
+                (BONUS_CASTER_LEVEL(ch, class) + CLASS_LEVEL(ch, class)) >= MIN_SPELL_LVL(i, class, domain_2) && compute_spells_circle(class, i, 0, domain_2) == slot &&
                 GET_SKILL(ch, i)) {
           nlen = snprintf(buf2 + len, sizeof (buf2) - len,
                   "%-20s \tWMastered\tn\r\n", spell_info[i].name);
@@ -529,7 +530,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle) {
     else
       slot = 9;
 
-    for (; slot > 0; slot--) {      
+    for (; slot > 0; slot--) {
       if ((circle != -1) && circle != slot)
         continue;
       nlen = snprintf(buf2 + len, sizeof (buf2) - len,
@@ -545,7 +546,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle) {
         if (compute_spells_circle(class, i, 0, DOMAIN_UNDEFINED) == slot) {
           nlen = snprintf(buf2 + len, sizeof (buf2) - len,
                   "%-20s %-15s\r\n", spell_info[i].name,
-                          school_names_specific[spell_info[i].schoolOfMagic]);
+                  school_names_specific[spell_info[i].schoolOfMagic]);
           if (len + nlen >= sizeof (buf2) || nlen < 0)
             break;
           len += nlen;
@@ -734,9 +735,9 @@ int compute_ability(struct char_data *ch, int abilityNum) {
     value += GET_ABILITY(ch, abilityNum);
 
   /* Check for armor proficiency? */
-  
+
   switch (abilityNum) {
-    
+
     case ABILITY_ACROBATICS:
       value += GET_DEX_BONUS(ch);
       value += compute_gear_armor_penalty(ch);
@@ -749,9 +750,9 @@ int compute_ability(struct char_data *ch, int abilityNum) {
         value += 3;
       }
       if (AFF_FLAGGED(ch, AFF_ACROBATIC))
-        value += 10;      
+        value += 10;
       return value;
-      
+
     case ABILITY_STEALTH:
       value += GET_DEX_BONUS(ch);
       if (HAS_FEAT(ch, FEAT_STEALTHY))
@@ -764,10 +765,10 @@ int compute_ability(struct char_data *ch, int abilityNum) {
         value += 4;
       value += compute_gear_armor_penalty(ch);
       return value;
-      
+
     case ABILITY_PERCEPTION:
       value += GET_WIS_BONUS(ch);
-      
+
       if (HAS_FEAT(ch, FEAT_KEEN_SENSES)) {
         /* Unnamed bonus, elves */
         value += 2;
@@ -955,7 +956,7 @@ int compute_ability(struct char_data *ch, int abilityNum) {
       value += GET_CHA_BONUS(ch);
       return value;
 
-    /* Knowledge Skills */
+      /* Knowledge Skills */
     case ABILITY_CRAFT_WOODWORKING:
     case ABILITY_CRAFT_TAILORING:
     case ABILITY_CRAFT_ALCHEMY:
@@ -1023,10 +1024,10 @@ void list_abilities(struct char_data *ch, int ability_type) {
   }
 
   //if (IS_NPC(ch))
-    //return;
+  //return;
 
   send_to_char(ch, "*Name of skill, invested points, total points with all active bonuses\tn\r\n"
-                   "\tcSkill              Inve Tota Class/Cross/Unavailable  \tMUnspent trains: \tm%d\tn\r\n",
+          "\tcSkill              Inve Tota Class/Cross/Unavailable  \tMUnspent trains: \tm%d\tn\r\n",
           GET_TRAINS(ch));
 
   for (i = start_ability; i < end_ability; i++) {
@@ -1049,17 +1050,18 @@ void list_abilities(struct char_data *ch, int ability_type) {
             ability_names[i], GET_ABILITY(ch, i), compute_ability(ch, i),
             cross_names[modify_class_ability(ch, i, GET_CLASS(ch))]);
 
-  }  
+  }
 }
 
 //further expansion -zusuk
+
 void process_skill(struct char_data *ch, int skillnum) {
   switch (skillnum) {
       // epic spells
 
 
-    /* Epic spells we need a way to learn them that is NOT based in the trainer.
-     * Questing comes to mind. */
+      /* Epic spells we need a way to learn them that is NOT based in the trainer.
+       * Questing comes to mind. */
     case SKILL_MUMMY_DUST:
       send_to_char(ch, "\tMYou gained Epic Spell:  Mummy Dust!\tn\r\n");
       SET_SKILL(ch, SPELL_MUMMY_DUST, 99);
@@ -1097,6 +1099,116 @@ void process_skill(struct char_data *ch, int skillnum) {
 /*************************************************/
 /**** General special procedures for mobiles. ****/
 /*************************************************/
+
+/* Player owned shops - Created by Jamdog - 22nd February 2007      */
+/* Mob Special Function                                            */
+/* 'Stock-room' must also be created and made into a player house   */
+/* so that only the shop owner can get the piles of gold left there */
+
+/* Stock room must be 1 VNUM higher than the actual shop            */
+SPECIAL(player_owned_shops) {
+  room_rnum private_room;
+  struct obj_data *i, *j;
+  int num = 1, num_items = 0, hse;
+  char *temp, shop_owner[MAX_NAME_LENGTH + 1], buf[MAX_STRING_LENGTH];
+  bool found = FALSE;
+
+  if (!cmd)
+    return FALSE;
+
+  /* Gross. */
+  private_room = IN_ROOM(ch) + 1;
+
+  /* Grab the name of the shop owner */
+  for (hse = 0; hse < num_of_houses; hse++) {
+    if (house_control[hse].vnum == world[private_room].number) {
+      /* Avoid seeing <UNDEF> entries from self-deleted people. */
+      if ((temp = get_name_by_id(house_control[hse].owner)) == NULL) {
+        sprintf(shop_owner, "Someone");
+      } else {
+        sprintf(shop_owner, "%s", CAP(get_name_by_id(house_control[hse].owner)));
+      }
+      found = TRUE;
+    }
+  }
+
+  if (found == FALSE)
+    sprintf(shop_owner, "Invalid Shop - Tell an Imp");
+
+  if (CMD_IS("list")) {
+    if (IS_NPC(ch)) {
+      send_to_char(ch, "Mobiles can't buy from a player-owned shop!\r\n");
+      return TRUE;
+    }
+    sprintf(buf, "Owner: @W%s@n", shop_owner);
+    send_to_char(ch, "Player-owned Shop %*s\r\n", count_color_chars(buf) + 55, buf);
+    send_to_char(ch, " ##   Available   Item                                               Cost\r\n");
+    send_to_char(ch, "-------------------------------------------------------------------------\r\n");
+
+    for (i = world[private_room].contents; i; i = i->next_content) {
+      num_items = 0;
+      for (j = world[private_room].contents; j != i; j = j->next_content)
+        if (!strcmp(j->short_description, i->short_description))
+          break;
+
+      if (j != i)
+        continue;
+
+      for (j = i; j; j = j->next_content)
+        if (!strcmp(j->short_description, i->short_description))
+          num_items++;
+
+      if (CAN_SEE_OBJ(ch, i) && (*i->description != '.' || PRF_FLAGGED(ch, PRF_HOLYLIGHT)) && !(GET_OBJ_TYPE(i) == ITEM_MONEY)) {
+        send_to_char(ch, "%3d)  %5d      %-*s %11d\r\n", num++, num_items, count_color_chars(i->short_description) + 44, i->short_description, GET_OBJ_COST(i));
+      }
+    }
+
+    return (TRUE);
+  } else if (CMD_IS("buy")) {
+
+    skip_spaces(&argument);
+
+    log("player_shops: %s looking for %s in room %d", GET_NAME(ch), argument, world[private_room].number);
+
+    i = get_obj_in_list_vis(ch, argument, NULL, world[private_room].contents);
+
+    if ((i == NULL) || (GET_OBJ_TYPE(i) == ITEM_MONEY)) {
+      send_to_char(ch, "There is no such item for sale!\r\n");
+      return (TRUE);
+    }
+    log("player_shops: found %s (cost: %d)", i->short_description, GET_OBJ_COST(i));
+
+    if (GET_GOLD(ch) < GET_OBJ_COST(i)) {
+      send_to_char(ch, "You don't have enough gold!\r\n");
+      return (TRUE);
+    }
+
+    /* Just to avoid crashes, if the object has no cost, then don't try to make a pile of no gold */
+    if (GET_OBJ_COST(i) > 0) {
+      /* Take gold from player */
+      GET_GOLD(ch) -= GET_OBJ_COST(i);
+
+      /* Put gold in stock-room */
+      j = create_money(GET_OBJ_COST(i));
+      obj_to_room(j, private_room);
+    }
+
+    /* Move item from stock-room to player's inventory */
+    obj_from_room(i);
+    obj_to_char(i, ch);
+
+    /* Let everyone know what's happening */
+    send_to_char(ch, "%s hands you %s, and takes your payment.\r\n", CAP(GET_NAME((struct char_data *) me)), i->short_description);
+    act("$n buys $p from $N.", FALSE, ch, i, (struct char_data *) me, TO_ROOM);
+    send_to_char(ch, "%s thanks you for your custom, please come again!\r\n", shop_owner);
+    log("player_shops: item bought and paid for");
+
+    return (TRUE);
+  }
+
+  /* All commands except list and buy */
+  return (FALSE);
+}
 
 static void npc_steal(struct char_data *ch, struct char_data *victim) {
   int gold;
@@ -1256,7 +1368,7 @@ void yan_maelstrom(struct char_data *ch) {
       act("\tw$N is enveloped in $n's \tCs\tcw\twi\tcr\tCl\tci\twn\tCg \tcmaelstrom\tw, $S body pelted by \twgusts\tc of wind.\tn",
               FALSE, ch, 0, vict, TO_NOTVICT);
     }
-    damage(ch, vict, dam, -1, DAM_AIR, FALSE);  //type -1 = no dam msg
+    damage(ch, vict, dam, -1, DAM_AIR, FALSE); //type -1 = no dam msg
   }
 }
 
@@ -1285,13 +1397,13 @@ void yan_windgust(struct char_data *ch) {
       act("\tw$N is blasted by $n's \tcgust\tw of wind, and suddenly keels over from\r\n"
               "\twthe damage.\tn",
               FALSE, ch, 0, vict, TO_NOTVICT);
-      damage(ch, vict, dam, -1, DAM_AIR, FALSE);  // type -1 = no dam msg
+      damage(ch, vict, dam, -1, DAM_AIR, FALSE); // type -1 = no dam msg
     } else {
       act("\twYou are blasted by a \tCf\tci\twer\tcc\tCe\tc gust\tw of wind hurled by $n.\tn",
               FALSE, ch, 0, vict, TO_VICT);
       act("\tw$N is blasted by a \tCf\tci\twer\tcc\tCe\tc gust\tw of wind hurled by $n.\tn",
               FALSE, ch, 0, vict, TO_NOTVICT);
-      damage(ch, vict, dam, -1, DAM_AIR, FALSE);  //-1 type = no dam mess
+      damage(ch, vict, dam, -1, DAM_AIR, FALSE); //-1 type = no dam mess
       if (dice(1, 40) > GET_CON(vict)) {
         new_affect(&af);
         af.spell = SKILL_CHARGE;
@@ -1966,7 +2078,7 @@ SPECIAL(guild) {
 
     list_crafting_skills(ch);
     return (TRUE);
-    
+
     /***************************************/
     /* everything below this is deprecated */
     /***************************************/
@@ -1993,8 +2105,8 @@ SPECIAL(guild) {
       send_to_char(ch, "You are already learned in that area.\r\n");
       return (TRUE);
     }
-    */
-    
+     */
+
     if (skill_num > SPELL_RESERVED_DBC && skill_num < MAX_SPELLS) {
       send_to_char(ch, "You can't practice spells.\r\n");
       return (TRUE);
@@ -2027,8 +2139,8 @@ SPECIAL(guild) {
     if (GET_SKILL(ch, skill_num) >= LEARNED(ch))
       send_to_char(ch, "You are now \tGlearned\tn in '%s.'\r\n",
             spell_info[skill_num].name);
-    */
-    
+     */
+
     //for further expansion - zusuk
     process_skill(ch, skill_num);
 
@@ -2959,7 +3071,7 @@ SPECIAL(guild_golem) {
 
   return FALSE;
 }
-*/
+ */
 
 /* from Homeland */
 /*
@@ -2995,10 +3107,11 @@ SPECIAL(guild_guard) {
 
   return FALSE;
 }
-*/
+ */
 
 /* from Homeland */
 //doesnt work properly if multiple instances.. :) -V
+
 SPECIAL(practice_dummy) {
   int rounddam = 0;
   static int round_count;
@@ -3336,8 +3449,8 @@ SPECIAL(harpell) {
   if (FIGHTING(ch) && !ROOM_FLAGGED(ch->in_room, ROOM_SOUNDPROOF)) {
     if (AFF_FLAGGED(FIGHTING(ch), AFF_CHARM) && FIGHTING(ch)->master)
       sprintf(buf, "%s shouts, 'HELP! %s has ordered his pets to kill "
-              "me!!'\r\n", ch->player.short_descr,
-              GET_NAME(FIGHTING(ch)->master));
+            "me!!'\r\n", ch->player.short_descr,
+            GET_NAME(FIGHTING(ch)->master));
     else
       sprintf(buf, "%s shouts, 'HELP! %s is trying to kill me!\r\n",
             ch->player.short_descr, GET_NAME(FIGHTING(ch)));
@@ -3352,7 +3465,7 @@ SPECIAL(harpell) {
             cast_spell(i, FIGHTING(ch)->master, NULL, SPELL_TELEPORT, 0);
           else
             hit(i, FIGHTING(ch)->master, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0,
-                    FALSE);
+                  FALSE);
         } else {
           if (FIGHTING(ch)->in_room != i->in_room)
             cast_spell(i, FIGHTING(ch), NULL, SPELL_TELEPORT, 0);
@@ -3543,7 +3656,6 @@ SPECIAL(willowisp) {
   return FALSE;
 }
 
-
 /* from homeland */
 SPECIAL(naga_golem) {
   if (cmd || GET_POS(ch) == POS_DEAD)
@@ -3588,13 +3700,13 @@ SPECIAL(naga) {
   if (MOB_FLAGGED(vict, MOB_NOSLEEP))
     return FALSE;
 
-  act(    "$n\tL thrusts its powerful barbed tail-stinger into your flesh causing\tn\r\n"
+  act("$n\tL thrusts its powerful barbed tail-stinger into your flesh causing\tn\r\n"
           "\tLyou to scream in agony.  As it snaps back its tail, poison oozes into the large\tn\r\n"
           "\tLwound that is opened.  You begin to fall into a drug induced "
           "sleep.\tn\r\n", FALSE, ch, 0, vict, TO_VICT);
 
 
-  act(    "$n\tL thrusts its powerful barbed tail-stinger into $N's flesh causing\tn\r\n"
+  act("$n\tL thrusts its powerful barbed tail-stinger into $N's flesh causing\tn\r\n"
           "\tL$M\tL to scream in agony.  As it snaps back its tail, poison oozes into the large\tn\r\n"
           "\tLwound that is opened.  \tn$N\tL begin to fall into a drug "
           "induced sleep.\tn\r\n", TRUE, ch, 0, vict, TO_NOTVICT);
@@ -3649,6 +3761,7 @@ SPECIAL(fp_invoker) {
 
 /* from homeland */
 static bool gr_stalled = FALSE;
+
 SPECIAL(gromph) {
   struct char_data *victim;
   int dir = -1;
@@ -3987,7 +4100,7 @@ SPECIAL(emporium) {
 
   return TRUE;
 }
-*/
+ */
 
 /* research spells for wizard - this is meant to fill the gap in the game we
    have for lack of scroll placement, special thanks to Stephen Squires for
@@ -4035,7 +4148,7 @@ SPECIAL(wizard_library) {
 
     if (GET_GOLD(ch) < cost) {
       send_to_char(ch, "You do not have enough coins to research this spell, you "
-                   "need %d coins.\r\n", cost);
+              "need %d coins.\r\n", cost);
       return TRUE;
     }
 
@@ -4046,7 +4159,7 @@ SPECIAL(wizard_library) {
         if (GET_OBJ_TYPE(obj) == ITEM_SPELLBOOK) {
           if (spell_in_book(obj, spellnum)) {
             send_to_char(ch, "You already have the spell '%s' in this spellbook.\r\n",
-                         spell_info[spellnum].name);
+                    spell_info[spellnum].name);
             return TRUE;
           }
           /* found a spellbook that doesn't have the spell! */
@@ -4066,7 +4179,7 @@ SPECIAL(wizard_library) {
           if (GET_OBJ_TYPE(obj) == ITEM_SPELLBOOK) {
             if (spell_in_book(obj, spellnum)) {
               send_to_char(ch, "You already have the spell '%s' in this spellbook.\r\n",
-                           spell_info[spellnum].name);
+                      spell_info[spellnum].name);
               return TRUE;
             }
             /* found a spellbook that doesn't have the spell! */
@@ -4109,8 +4222,8 @@ SPECIAL(wizard_library) {
     obj->sbinfo[i].spellname = spellnum;
     obj->sbinfo[i].pages = MAX(1, lowest_spell_level(spellnum) / 2);
     send_to_char(ch, "Your research is successful and you scribe the spell '%s' "
-                 "into your spellbook, which takes up %d pages and cost %d coins.\r\n",
-                 spell_info[spellnum].name, obj->sbinfo[i].pages, cost);
+            "into your spellbook, which takes up %d pages and cost %d coins.\r\n",
+            spell_info[spellnum].name, obj->sbinfo[i].pages, cost);
 
     USE_FULL_ROUND_ACTION(ch);
     return TRUE;
@@ -4189,7 +4302,7 @@ SPECIAL(pet_shops) {
       send_to_char(ch, "You can't have any more pets!\r\n");
       return (TRUE);
     }
-    
+
     /* success! */
     decrease_gold(ch, PET_PRICE(pet));
 
@@ -4237,6 +4350,7 @@ SPECIAL(pet_shops) {
 /*****************************************/
 
 /* NOTE to be confused with the weapon-spells code used in OLC, etc */
+
 /*  This was ported to accomodate the HL objects that were imported */
 void weapons_spells(char *to_ch, char *to_vict, char *to_room,
         struct char_data *ch, struct char_data *vict,
@@ -4326,6 +4440,7 @@ void move_ship(struct obj_data *ship, int dir) {
 
 // use timer for count.
 // weight is wether towards start or end.
+
 void update_ship(struct obj_data *ship, int start, int end, int movedelay, int waitdelay) {
   int dest = real_room(end);
 
@@ -4387,7 +4502,7 @@ ACMD(do_disembark) {
 SPECIAL(monk_glove) {
   if (!ch)
     return FALSE;
-  
+
   struct char_data *vict = FIGHTING(ch);
 
   if (!cmd && !strcmp(argument, "identify")) {
@@ -4435,7 +4550,7 @@ SPECIAL(spikeshield) {
     act("$n's \tcshield \tCglows brightly\tL as it steals some \trlifeforce\tn "
             "\tLfrom you and transfers it back to $m.\tn",
             FALSE, ch, (struct obj_data *) me, vict, TO_VICT);
-    damage(ch, vict, 5, -1, DAM_ENERGY, FALSE);  // type -1 = no dam message
+    damage(ch, vict, 5, -1, DAM_ENERGY, FALSE); // type -1 = no dam message
     call_magic(ch, ch, 0, SPELL_CURE_LIGHT, 0, 1, CAST_SPELL);
     return TRUE;
   }
@@ -4451,7 +4566,7 @@ SPECIAL(spikeshield) {
             "\tLcausing the rows of \trspikes\tL to drive into your body.\tn",
             FALSE, ch, (struct obj_data *) me, vict, TO_VICT);
     damage(ch, vict, (dice(3, 8) + 4), -1, DAM_PUNCTURE,
-            FALSE);  // type -1 = no dam message
+            FALSE); // type -1 = no dam message
     return TRUE;
   }
 
@@ -4539,7 +4654,7 @@ SPECIAL(ches) {
               "\tLflows through the weapon into $N \tn\r\n"
               "\tLcausing $S hair to stand on end.\tn\tn\r\n",
               FALSE, ch, (struct obj_data *) me, vict, TO_NOTVICT);
-      damage(ch, vict, 20 + dice(2, 8), -1, DAM_ELECTRIC, FALSE);  // type -1 = no dam message
+      damage(ch, vict, 20 + dice(2, 8), -1, DAM_ELECTRIC, FALSE); // type -1 = no dam message
       return TRUE;
     }
   }
@@ -4554,7 +4669,7 @@ SPECIAL(ches) {
         send_to_char(ch, "Nothing happens.\r\n");
         return TRUE;
       }
-      act(    "\tcAs you quietly speak the word of power to your stiletto\tn\r\n"
+      act("\tcAs you quietly speak the word of power to your stiletto\tn\r\n"
               "\tcthe aquamarine on the hilt begins to fizzle and pop. The\tn\r\n"
               "\tcnoise continues to culminate until there is a loud crack.\tn\r\n"
               "\tcThe hilt flashes bright for a split second before a sharp\tn\r\n"
@@ -4639,14 +4754,14 @@ SPECIAL(flamingwhip) {
           "\tr$n\tr's $p \trlashes out with infernal \tRfire\tr, burning YOU\tr badly!\tn",
           "\tr$n\tr's $p \trlashes out with infernal \tRfire\tr, burning $N\tr badly!\tn",
           ch, vict, (struct obj_data *) me, 0);
-  damage(ch, vict, dice(6, 4), -1, DAM_FIRE, FALSE);  // type -1 = no dam message
+  damage(ch, vict, dice(6, 4), -1, DAM_FIRE, FALSE); // type -1 = no dam message
 
   return TRUE;
 }
 
 /* Helmblade vnum 121207
   only procs against evil,  a minor heal on wielder and a dispel_evil.
-*/
+ */
 SPECIAL(helmblade) {
   struct char_data *vict = FIGHTING(ch);
 
@@ -4682,6 +4797,7 @@ SPECIAL(helmblade) {
 }
 
 /* from homeland */
+
 /* obj - 113898 has special proc when combined with 113897 */
 SPECIAL(flaming_scimitar) {
   struct char_data *vict = FIGHTING(ch);
@@ -4741,6 +4857,7 @@ SPECIAL(flaming_scimitar) {
 }
 
 /* from homeland */
+
 /* obj - 113897 has special proc when combined with 113898 */
 SPECIAL(frosty_scimitar) {
   struct char_data *vict = FIGHTING(ch);
@@ -4794,6 +4911,7 @@ SPECIAL(frosty_scimitar) {
   }
   return FALSE;
 }
+
 /* from homeland */
 SPECIAL(disruption_mace) {
   struct char_data *vict = FIGHTING(ch);
@@ -4835,7 +4953,7 @@ SPECIAL(forest_idol)
   obj_from_char(obj);
   obj_to_room(obj, ch->in_room );
 }
-*/
+ */
 
 /* from homeland */
 SPECIAL(haste_bracers) {
@@ -5169,7 +5287,7 @@ SPECIAL(dorfaxe) {
           "\tWand strikes with great power into \tn$M.\tn",
           ch, vict, (struct obj_data *) me, 0);
 
-  damage(ch, vict, dam, -1, DAM_HOLY, FALSE);  // type -1 = no dam message
+  damage(ch, vict, dam, -1, DAM_HOLY, FALSE); // type -1 = no dam message
   return TRUE;
 }
 
@@ -5261,35 +5379,35 @@ SPECIAL(purity) {
 
   dam = dice(2, 24);
   if (dam < GET_HIT(vict) + 10) {
-    act(    "\twThe head of your $p starts to \tYglow \twwith a \tWbright white light\tw.\r\n"
+    act("\twThe head of your $p starts to \tYglow \twwith a \tWbright white light\tw.\r\n"
             "A beam of concetrated \tWholiness \twshoots towards $N.\r\n"
             "The \tWlightbeam \twsurrounds $N who howls in pain and fear.\tn"
             , FALSE, ch, (struct obj_data *) me, vict, TO_CHAR);
-    act(    "$n's $p \twstarts to \tYglow \twwith a \tWbright white light\tw.\r\n"
+    act("$n's $p \twstarts to \tYglow \twwith a \tWbright white light\tw.\r\n"
             "A beam of concentrated \tWholiness \twshoots towards $N.\r\n"
             "The \tWlightbeam \twsurrounds $N who howls in pain and fear.\tn"
             , FALSE, ch, (struct obj_data *) me, vict, TO_NOTVICT);
-    act(    "$n's $p \twstarts to \tYglow \twwith a \tWbright white light\tw.\r\n"
+    act("$n's $p \twstarts to \tYglow \twwith a \tWbright white light\tw.\r\n"
             "A beam of concentrated \tWholiness \twshoots towards you.\r\n"
             "The \tWlightbeam \twsurrounds you and you howl in pain and fear.\tn"
             , FALSE, ch, (struct obj_data *) me, vict, TO_VICT);
   } else {
-    act(    "\twThe head of your $p starts to \tYglow \twwith a \tWbright white light\t.w\r\n"
+    act("\twThe head of your $p starts to \tYglow \twwith a \tWbright white light\t.w\r\n"
             "A beam of concentrated \tWholiness \twshoots towards $N.\r\n"
             "The \tWlightbeam \twburns a hole right through $N who falls lifeless to the ground.\tn"
             , FALSE, ch, (struct obj_data *) me, vict, TO_CHAR);
-    act(    "$n's $p \twstarts to \tYglow \twwith a \tWbright white light\tw.\r\n"
+    act("$n's $p \twstarts to \tYglow \twwith a \tWbright white light\tw.\r\n"
             "A beam of concentrated \tWholiness \twshoots towards you.\r\n"
             "The \tWlightbeam \twburns a hole right through you and you fall lifeless to the ground.\tn"
             , FALSE, ch, (struct obj_data *) me, vict, TO_VICT);
-    act(    "$n's $p \twstarts to \tYglow \twwith a \tWbright white light\tw.\r\n"
+    act("$n's $p \twstarts to \tYglow \twwith a \tWbright white light\tw.\r\n"
             "A beam of concentrated \tWholiness \twshoots towards $N.\r\n"
             "The \tWlightbeam \twburns a hole right through $N who falls lifeless to the ground.\tn"
             , FALSE, ch, (struct obj_data *) me, vict, TO_NOTVICT);
 
     call_magic(ch, vict, 0, SPELL_BLINDNESS, 0, GET_LEVEL(ch), CAST_SPELL);
   }
-  damage(ch, vict, dam, -1, DAM_HOLY, FALSE);  // type -1 = no dam message
+  damage(ch, vict, dam, -1, DAM_HOLY, FALSE); // type -1 = no dam message
   return TRUE;
 }
 
@@ -5339,7 +5457,7 @@ SPECIAL(greatsword) {
           "\tCSilvery flames shoot from $n's $p\tC towards you\tC.\r\nThe flames sear and burn you and you scream in pain.\tn",
           "\tCSilvery flames shoot from $n's $p\tC towards $N\tC.\r\nThe flames sear and burn $N\tC who screams in pain.\tn",
           ch, vict, (struct obj_data *) me, 0);
-  damage(ch, vict, dam, -1, DAM_ENERGY, FALSE);  // type -1 = no dam message
+  damage(ch, vict, dam, -1, DAM_ENERGY, FALSE); // type -1 = no dam message
   return TRUE;
 }
 
@@ -5530,7 +5648,7 @@ SPECIAL(spiderdagger) {
 SPECIAL(sparksword) {
   if (!ch)
     return FALSE;
-  
+
   struct char_data *vict = FIGHTING(ch);
 
   if (!cmd && !strcmp(argument, "identify")) {
@@ -5881,8 +5999,7 @@ SPECIAL(neverwinter_valve_control) {
     }
     if (IS_CLOSED(real_room(123534), WEST))
       OPEN_DOOR(real_room(123534), dummy, WEST);
-  }
-  else if (avalve && !bvalve && cvalve && !dvalve) {
+  } else if (avalve && !bvalve && cvalve && !dvalve) {
     if (IS_CLOSED(real_room(123440), EAST)) {
       OPEN_DOOR(real_room(123440), dummy, EAST);
       change = TRUE;
@@ -5897,8 +6014,7 @@ SPECIAL(neverwinter_valve_control) {
       OPEN_DOOR(real_room(123533), dummy, EAST);
     if (!IS_CLOSED(real_room(123534), WEST))
       OPEN_DOOR(real_room(123534), dummy, WEST);
-  }
-  else if (!avalve && bvalve && cvalve && dvalve) {
+  } else if (!avalve && bvalve && cvalve && dvalve) {
     if (!IS_CLOSED(real_room(123440), EAST))
       OPEN_DOOR(real_room(123440), dummy, EAST);
     if (!IS_CLOSED(real_room(123441), WEST))
@@ -5970,8 +6086,7 @@ SPECIAL(bloodaxe) {
             "the axehead reshapes into a powerful maw and bites $N\tL in the throat. \tRBlood \tLflows "
             "between the the canine jaws and spills to the ground and $N\tL howls in pain. With "
             "a satisfied grin the maw reverts back to an axehead.\tn", ch, vict, (struct obj_data *) me, 0);
-  }
-  else {
+  } else {
     weapons_spells("\tLYour $p \tLstarts \trhumming \tLlouder and louder. Suddenly the "
             "axehead reshapes into a powerful maw and bites $N\tL in the throat. $N\tL "
             "looks at the \tRblood \tLflowing freely from the wound, then $S\tL eyes "
@@ -6104,13 +6219,13 @@ SPECIAL(snakewhip) {
 
   if ((GET_RACE(ch) != RACE_DROW || GET_SEX(ch) != SEX_FEMALE) && is_wearing(ch, 135500)) {
     if (GET_HIT(ch) > 0) {
-      act(    "\tLYour $p \tLh\tYi\tLss\tYe\tLs angrily as it turns against you.\r\n"
+      act("\tLYour $p \tLh\tYi\tLss\tYe\tLs angrily as it turns against you.\r\n"
               "All three snakeheads suddenly lunges forwardand sink their fangs in you throat. \r\n"
               "You barely have time to feel the terrible pain before you fall over with \tRbl\tro\tRod\r\n"
               "\tLflowing freely from the wounds in your neck.\tn", FALSE, ch,
               weepan, 0, TO_CHAR);
 
-      act(    "$n's $p \tLh\tYi\tLss\tYe\tLs angrily as it turns against $n\tL. \r\n"
+      act("$n's $p \tLh\tYi\tLss\tYe\tLs angrily as it turns against $n\tL. \r\n"
               "All three snakeheads suddenly lunges forward and sink their fangs in $n's \tLthroat.\r\n"
               "$n \tLbarely have time to feel the terrible pain before falling over with \tRbl\tro\tRod\r\n"
               "\tLflowing freely from the wounds in the neck.\tn", FALSE, ch,
@@ -6545,7 +6660,7 @@ SPECIAL(bank) {
       send_to_char(ch, "\twYou currently have \tWno\tw money deposited.\tn\r\n");
     return (TRUE);
   } else if (CMD_IS("deposit")) {
-    
+
     /* code to accomdate "all" */
     skip_spaces(&argument);
     if (is_abbrev(argument, "all")) {
@@ -6554,9 +6669,9 @@ SPECIAL(bank) {
       act("$n makes a bank transaction.", TRUE, ch, 0, FALSE, TO_ROOM);
       decrease_gold(ch, amount);
       increase_bank(ch, amount);
-      return (TRUE);      
+      return (TRUE);
     }
-    
+
     if ((amount = atoi(argument)) <= 0) {
       send_to_char(ch, "How much do you want to deposit?\r\n");
       return (TRUE);
@@ -6571,7 +6686,7 @@ SPECIAL(bank) {
     act("$n makes a bank transaction.", TRUE, ch, 0, FALSE, TO_ROOM);
     return (TRUE);
   } else if (CMD_IS("withdraw")) {
-    
+
     /* code to accomdate "all" */
     skip_spaces(&argument);
     if (is_abbrev(argument, "all")) {
@@ -6580,9 +6695,9 @@ SPECIAL(bank) {
       act("$n makes a bank transaction.", TRUE, ch, 0, FALSE, TO_ROOM);
       increase_gold(ch, amount);
       decrease_bank(ch, amount);
-      return (TRUE);      
+      return (TRUE);
     }
-    
+
     if ((amount = atoi(argument)) <= 0) {
       send_to_char(ch, "How much do you want to withdraw?\r\n");
       return (TRUE);
@@ -6776,10 +6891,10 @@ SPECIAL(bought_pet) {
     return FALSE;
 
   pet = read_mobile(GET_OBJ_VNUM(obj), VIRTUAL);
-  
+
   /* found matching vnum for obejct, loaded pet succesfully */
   if (pet) {
-    
+
     /* load and set pet as following, customize moves a bit here */
     char_to_room(pet, obj->carried_by->in_room);
     add_follower(pet, obj->carried_by);
@@ -6789,12 +6904,12 @@ SPECIAL(bought_pet) {
 
     /* success message */
     send_to_char(obj->carried_by, "You have acquired a companion.\r\n");
-    
+
     /* get rid of the purchased object */
     extract_obj(obj);
     return TRUE;
   }
-  
+
   /* failed to load pet */
   return FALSE;
 }
@@ -6883,7 +6998,7 @@ SPECIAL(clang_bracer) {
         send_to_char(ch, "You attempt to invoke your bracer, but nothing happens.\r\n");
         return TRUE;
       }
-      
+
       struct group_data *group;
 
       if ((group = GROUP(ch)) == NULL) {
@@ -6893,8 +7008,8 @@ SPECIAL(clang_bracer) {
 
       /* success! */
       send_to_group(NULL, group, "The memories of ancient battles fills your mind, each "
-          "blow clear as if it were yesterday.  You feel your muscles tighten "
-          "then relax as the skill of ancient warriors is merged with your own.\r\n");      
+              "blow clear as if it were yesterday.  You feel your muscles tighten "
+              "then relax as the skill of ancient warriors is merged with your own.\r\n");
       call_magic(ch, ch, 0, SPELL_MASS_ENHANCE, 0, 30, CAST_POTION);
       GET_OBJ_SPECTIMER((struct obj_data *) me, 0) = 24;
       return TRUE;
