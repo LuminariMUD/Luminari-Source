@@ -174,7 +174,7 @@ void do_slug_rank(struct char_data *ch, char *arg) {
           c = d->original;
         else
           c = d->character;
-        if ((CAN_SEE(ch, c) && /*!PRF_FLAGGED(c, PRF_NORANK)*/) ||
+        if ((CAN_SEE(ch, c) /*&& !PRF_FLAGGED(c, PRF_NORANK)*/) ||
                 (GET_LEVEL(ch) == LVL_IMPL)) {
           if (k) {
             if (k < MAX_RANKED) {
@@ -482,7 +482,7 @@ ranktype rank_kd(struct char_data *ch) {
 
 ranktype rank_played(struct char_data *ch) {
   struct time_info_data playing_time;
-  struct time_info_data real_time_passed(time_t t2, time_t t1);
+  //struct time_info_data real_time_passed(time_t t2, time_t t1);
   playing_time = real_time_passed((time(0) - ch->player.time.logon) + ch->player.time.played, 0);
   sprintf(kbuf, "%3d days, %2d hours.", playing_time.day, playing_time.hours);
   return (kbuf);
