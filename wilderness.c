@@ -1119,7 +1119,7 @@ void save_noise_to_file(int idx, const char* fn, int xsize, int ysize, int zoom)
 
 void generate_river(struct char_data* ch, int dir) {
   /* Start at your current wilderness location, then create a river that meanders in direction 'dir' */
-  int x, y, vtx;
+  int x, y, vtx, i;
   int elevation;
   struct vertex vertices[1024];
   int num_vertices = 0;
@@ -1203,7 +1203,7 @@ void generate_river(struct char_data* ch, int dir) {
     }
 
     /* Check if we have visited this location before */
-    for (int i = 0; i < num_vertices; i++) {
+    for (i = 0; i < num_vertices; i++) {
       if((x == new_x && y == new_y) || (vertices[i].x == new_x && vertices[i].y == new_y) {
         if (dir == NORTH) {
           new_x = x;
