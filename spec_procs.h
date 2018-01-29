@@ -1,16 +1,16 @@
 /**
-* @file spec_procs.h
-* Header file for special procedure modules. This file groups a lot of the
-* legacy special procedures found in spec_procs.c and zone_procs.c.
-*
-* Part of the core tbaMUD source code distribution, which is a derivative
-* of, and continuation of, CircleMUD.
-*
-* All rights reserved.  See license for complete information.
-* Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University
-* CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.
-*
-*/
+ * @file spec_procs.h
+ * Header file for special procedure modules. This file groups a lot of the
+ * legacy special procedures found in spec_procs.c and zone_procs.c.
+ *
+ * Part of the core tbaMUD source code distribution, which is a derivative
+ * of, and continuation of, CircleMUD.
+ *
+ * All rights reserved.  See license for complete information.
+ * Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University
+ * CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.
+ *
+ */
 #ifndef _SPEC_PROCS_H_
 #define _SPEC_PROCS_H_
 
@@ -24,7 +24,7 @@ int sorted_skills[MAX_SKILLS + 1];
  * Begin Functions and defines for zone_procs.c
  ****************************************************************************/
 void assign_kings_castle(void);
-int do_npc_rescue(struct char_data *ch, struct char_data *friend);
+int do_npc_rescue(struct char_data *ch, struct char_data * friend);
 
 /*****************************************************************************
  * Begin Functions and defines for spec_assign.c
@@ -32,7 +32,7 @@ int do_npc_rescue(struct char_data *ch, struct char_data *friend);
 void assign_mobiles(void);
 void assign_objects(void);
 void assign_rooms(void);
-const char *get_spec_func_name(SPECIAL(*func)) ;
+const char *get_spec_func_name(SPECIAL(*func));
 
 /*****************************************************************************
  * Begin Functions and defines for spec_procs.c
@@ -81,9 +81,9 @@ SPECIAL(jot_invasion_loader);
 SPECIAL(wizard_library);
 
 /* new batch - 10/20/13 */
-SPECIAL(air_sphere);  //weapon
-SPECIAL(chionthar_ferry);  //transport
-SPECIAL(spikeshield);  //shield
+SPECIAL(air_sphere); //weapon
+SPECIAL(chionthar_ferry); //transport
+SPECIAL(spikeshield); //shield
 
 
 SPECIAL(hive_death);
@@ -243,6 +243,8 @@ SPECIAL(haste_bracers);
 SPECIAL(disruption_mace);
 SPECIAL(angel_leggings); /* 4-9-04 by tempus */
 SPECIAL(monk_glove);
+
+SPECIAL(player_owned_shops);
 
 
 #endif /* _SPEC_PROCS_H_ */
