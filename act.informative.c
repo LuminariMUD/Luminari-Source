@@ -4521,3 +4521,7 @@ EVENTFUNC(event_tracks) {
   return 60 RL_SEC; /* Decay tracks every 60 seconds, subject to change :) */
 }
 
+/* rank command, in rank.c */
+ACMD(do_rank) {
+  do_slug_rank(ch, argument);
+}
