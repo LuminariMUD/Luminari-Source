@@ -6676,5 +6676,65 @@ ACMD(do_coordconvert) {
   send_to_char(ch, "\r\n\tRRed coloring\tn indicates you are above/below the boundaries for this particular category.\r\n");
 }
 
-/* EOF */
+/* findmagic command - finds scrolls, potions, wands or staves with a specified spell */
+/* Written by Jamdog - 25th February 2007, ported by Zusuk                                             */
+ACMD(do_findmagic) {
+  char spellname[MAX_INPUT_LENGTH], objname[MAX_INPUT_LENGTH];
+  int spellnum, hits = 0, r_num, num;
+  struct obj_data *obj;
 
+  half_chop(argument, objname, spellname);
+
+  if ((!*objname) || (!*spellname)) {
+    send_to_char(ch, "Usage: findmagic [potion|scroll|wand|staff] <spell>\r\n\r\n");
+    send_to_char(ch, "<spell> can be the spell name or VNUM. Do NOT use quotes.\r\nSpell Name abbreviations are allowed.\r\n");
+    send_to_char(ch, "Examples:\r\n   findmagic potion armor\r\n   findmagic scroll 56\r\n  findmagic staff sanc");
+    return;
+  }
+
+  spellnum = find_skill_num(spellname);
+
+  if (spellnum == -1) {
+    spellnum = atoi(spellname);
+    if (spellnum <= 0) {
+      send_to_char(ch, "Invalid spell name or spell number\r\nUsage: findmagic [potion|scroll|wand|staff] <spell>");
+      return;
+    }
+  }
+
+  for (num = 0; num <= top_of_objt; num++) {
+
+    if (((obj_proto[num].obj_flags.type_flag == ITEM_POTION) && (!strcmp(objname, "potion"))) ||
+            ((obj_proto[num].obj_flags.type_flag == ITEM_SCROLL) && (!strcmp(objname, "scroll")))) {
+      if ((obj_proto[num].obj_flags.value[1] == spellnum) ||
+              (obj_proto[num].obj_flags.value[2] == spellnum) ||
+              (obj_proto[num].obj_flags.value[3] == spellnum)) {
+        hits++;
+        r_num = real_object(obj_index[num].vnum);
+        obj = read_object(r_num, REAL);
+        if (hits == 1) send_to_char(ch, "Showing %ss with the '%s' spell\r\nNum  VNUM    Name\r\n", objname, skill_name(spellnum));
+        send_to_char(ch, "%4d %s[%s%5d%s]%s %s%s\r\n", hits, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM), obj_index[num].vnum, CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), obj->short_description, CCNRM(ch, C_NRM));
+      }
+    }
+    if (((obj_proto[num].obj_flags.type_flag == ITEM_WAND) && (!strcmp(objname, "wand"))) ||
+            ((obj_proto[num].obj_flags.type_flag == ITEM_STAFF) && (!strcmp(objname, "staff")))) {
+      if (obj_proto[num].obj_flags.value[3] == spellnum) {
+        hits++;
+        r_num = real_object(obj_index[num].vnum);
+        obj = read_object(r_num, REAL);
+        if (hits == 1) send_to_char(ch, "Num  VNUM   Name\r\n");
+        send_to_char(ch, "%4d %6d %s (%d charges)\r\n", hits, obj_index[num].vnum, obj->short_description, obj_proto[num].obj_flags.value[1]);
+      }
+    }
+  }
+
+  if (hits > 0) {
+    send_to_char(ch, "%d %ss found with the '%s' spell\r\n", hits, objname, skill_name(spellnum));
+  } else {
+    send_to_char(ch, "Sorry, no %ss found with the '%s' spell\r\n", objname, skill_name(spellnum));
+  }
+
+  return;
+}
+
+/* EOF */
