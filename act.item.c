@@ -1,5 +1,5 @@
 /**************************************************************************
- *  File: act.item.c                                        Part of LuminariMUD *
+ *  File: act.item.c                                   Part of LuminariMUD *
  *  Usage: Object handling routines -- get/drop and container handling.    *
  *                                                                         *
  *  All rights reserved.  See license for complete information.            *
@@ -72,12 +72,12 @@ static void wear_message(struct char_data *ch, struct obj_data *obj, int where);
                     "- Invalid Clan ID on CLANARMOR\r\n");
           }
  */
-      /* values 0 is reserved for Apply to AC */
+/* values 0 is reserved for Apply to AC */
 /*
     case ITEM_CLANARMOR:
       write_to_output(d, "Clan ID Number: ");
       break;
-*/
+ */
 
 /* assistant function for statting/identify/lore of objects */
 void display_item_object_values(struct char_data *ch, struct obj_data *item, int mode) {
@@ -89,9 +89,9 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
   int line_length = 80, i = 0;
   char actmtds[MAX_STRING_LENGTH];
   int (*name)(struct char_data *ch, void *me, int cmd, char *argument);
-  
+
   /* zusuk set these up for quicker setup of new items */
-  int v1 = GET_OBJ_VAL(item, 0); 
+  int v1 = GET_OBJ_VAL(item, 0);
   int v2 = GET_OBJ_VAL(item, 1);
   int v3 = GET_OBJ_VAL(item, 2);
   int v4 = GET_OBJ_VAL(item, 3);
@@ -100,23 +100,23 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
 
   switch (GET_OBJ_TYPE(item)) {
 
-    case ITEM_SWITCH:      
+    case ITEM_SWITCH:
       if (mode == ITEM_STAT_MODE_IMMORTAL) {
         send_to_char(ch, "[%s, affecting room VNum %d, %s %s]\r\n",
-              (v1 == 0) ? "Push switch" : (v1 == 1) ? "Pull switch" : "BROKEN switch type",
-              v2,
-              (v4 == 0) ? "Unhides" : (v4 == 1) ? "Unlocks" :
+                (v1 == 0) ? "Push switch" : (v1 == 1) ? "Pull switch" : "BROKEN switch type",
+                v2,
+                (v4 == 0) ? "Unhides" : (v4 == 1) ? "Unlocks" :
                 (v4 == 2) ? "Opens" : "BROKEN exit action",
-              (v3 == 0) ? "North" : (v3 == 1) ? "East" : (v3 == 2) ? "South" :
+                (v3 == 0) ? "North" : (v3 == 1) ? "East" : (v3 == 2) ? "South" :
                 (v3 == 3) ? "West" : (v3 == 4) ? "Up" : (v3 == 5) ? "Down" :
-                  "BROKEN direction"               
+                "BROKEN direction"
                 );
       } else {
         send_to_char(ch, "This appears to be a %s switch...\r\n",
                 v1 == 0 ? "\tcpush\tn" : v1 == 1 ? "\tcpull\tn" : "(broken! report to staff)");
       }
       break;
-            
+
     case ITEM_TRAP:
       /* object value (0) is the trap-type */
       /* object value (1) is the direction of the trap (TRAP_TYPE_OPEN_DOOR and TRAP_TYPE_UNLOCK_DOOR)
@@ -154,7 +154,7 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
         send_to_char(ch, "Invalid trap effect on this object [2]\r\n");
       } else if (GET_OBJ_VAL(item, 2) >= TRAP_EFFECT_FIRST_VALUE) {
         /* homeland port */
-        send_to_char(ch, "Trap effect: %s\r\n", trap_effects[GET_OBJ_VAL(item, 2)-1000]);
+        send_to_char(ch, "Trap effect: %s\r\n", trap_effects[GET_OBJ_VAL(item, 2) - 1000]);
       } else {
         send_to_char(ch, "Spell effect: %s\r\n", spell_info[GET_OBJ_VAL(item, 2)].name);
       }
@@ -190,35 +190,35 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
       /* weapon poison */
       if (item->weapon_poison.poison) {
         send_to_char(ch, "Weapon Poisoned: %s, Level of Poison: %d, Applications Left: %d\r\n",
-                     spell_info[item->weapon_poison.poison].name,
-                     item->weapon_poison.poison_level,
-                     item->weapon_poison.poison_hits );
+                spell_info[item->weapon_poison.poison].name,
+                item->weapon_poison.poison_level,
+                item->weapon_poison.poison_hits);
       }
 
       send_to_char(ch, "Weapon Type: %s (%d) Enhancement Bonus: %d\r\n",
-                 weapon_list[GET_WEAPON_TYPE(item)].name,
-                 GET_WEAPON_TYPE(item),
-                 GET_ENHANCEMENT_BONUS(item));
+              weapon_list[GET_WEAPON_TYPE(item)].name,
+              GET_WEAPON_TYPE(item),
+              GET_ENHANCEMENT_BONUS(item));
       send_to_char(ch, "Todam: %dd%d, Avg Damage: %.1f.\r\n",
-                   GET_OBJ_VAL(item, 1), GET_OBJ_VAL(item, 2),
-                   ((GET_OBJ_VAL(item, 2) + 1) / 2.0) * GET_OBJ_VAL(item, 1));
+              GET_OBJ_VAL(item, 1), GET_OBJ_VAL(item, 2),
+              ((GET_OBJ_VAL(item, 2) + 1) / 2.0) * GET_OBJ_VAL(item, 1));
 
       /* weapon special abilities*/
       bool found = FALSE;
       send_to_char(ch, "Special Abilities:\r\n");
-      for(specab = item->special_abilities; specab != NULL; specab = specab->next) {
+      for (specab = item->special_abilities; specab != NULL; specab = specab->next) {
         found = TRUE;
         sprintbit(specab->activation_method, activation_methods, actmtds, MAX_STRING_LENGTH);
         send_to_char(ch, "Ability: %s Level: %d\r\n"
-                         "    Activation Methods: %s\r\n"
-                         "    CommandWord: %s\r\n"
-                         "    Values: [%d] [%d] [%d] [%d]\r\n",
-                     weapon_special_ability_info[specab->ability].name,
-                     specab->level, actmtds,
-                     (specab->command_word == NULL ? "Not set." : specab->command_word),
-                     specab->value[0],specab->value[1],specab->value[2],specab->value[3]);
+                "    Activation Methods: %s\r\n"
+                "    CommandWord: %s\r\n"
+                "    Values: [%d] [%d] [%d] [%d]\r\n",
+                weapon_special_ability_info[specab->ability].name,
+                specab->level, actmtds,
+                (specab->command_word == NULL ? "Not set." : specab->command_word),
+                specab->value[0], specab->value[1], specab->value[2], specab->value[3]);
       }
-      if(!found)
+      if (!found)
         send_to_char(ch, "No weapon special abilities assigned.\r\n");
 
       /* weapon spells */
@@ -229,9 +229,9 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
         for (i = 0; i < MAX_WEAPON_SPELLS; i++) { /* increment this weapons spells */
           if (GET_WEAPON_SPELL(item, i)) {
             send_to_char(ch, "%s, Level: %d, Percent: %d, Procs in combat?: %s\r\n",
-                         spell_info[GET_WEAPON_SPELL(item, i)].name, GET_WEAPON_SPELL_LVL(item, i),
-                         GET_WEAPON_SPELL_PCT(item, i),
-                         GET_WEAPON_SPELL_AGG(item, i) ? "Yes" : "No"
+                    spell_info[GET_WEAPON_SPELL(item, i)].name, GET_WEAPON_SPELL_LVL(item, i),
+                    GET_WEAPON_SPELL_PCT(item, i),
+                    GET_WEAPON_SPELL_AGG(item, i) ? "Yes" : "No"
                     );
           }
         }
@@ -261,35 +261,35 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
       sprintbit(weapon_list[weapon_val].weaponFlags, weapon_flags, buf, sizeof (buf));
       if (mode == ITEM_STAT_MODE_IMMORTAL) {
         send_to_char(ch, "Damage: %dD%d, Threat: %d, Crit. Multi: %d, Weapon Flags: %s\r\n",
-                     weapon_list[weapon_val].numDice,weapon_list[weapon_val].diceSize,
-                     (20 - weapon_list[weapon_val].critRange),
-                     crit_multi, buf);
+                weapon_list[weapon_val].numDice, weapon_list[weapon_val].diceSize,
+                (20 - weapon_list[weapon_val].critRange),
+                crit_multi, buf);
       } else {
         send_to_char(ch, "Damage: %dD%d, Threat: %d, Crit. Multi: %d, Weapon Flags: %s\r\n",
-                     weapon_list[weapon_val].numDice,weapon_list[weapon_val].diceSize,
-                     (20 - weapon_list[weapon_val].critRange),
-                     crit_multi, buf);
+                weapon_list[weapon_val].numDice, weapon_list[weapon_val].diceSize,
+                (20 - weapon_list[weapon_val].critRange),
+                crit_multi, buf);
       }
       sprintbit(weapon_list[weapon_val].damageTypes, weapon_damage_types, buf2, sizeof (buf2));
       if (mode == ITEM_STAT_MODE_IMMORTAL) {
         send_to_char(ch, "Sugg. Cost: %d, Damage-Types: %s, Sugg. Weight: %d\r\n",
-                     weapon_list[weapon_val].cost, buf2, weapon_list[weapon_val].weight);
+                weapon_list[weapon_val].cost, buf2, weapon_list[weapon_val].weight);
       } else {
         send_to_char(ch, "Damage-Types: %s\r\n", buf2);
       }
       send_to_char(ch, "Range: %d, Family: %s\r\n",
-                     weapon_list[weapon_val].range, weapon_family[weapon_list[weapon_val].weaponFamily]
+              weapon_list[weapon_val].range, weapon_family[weapon_list[weapon_val].weaponFamily]
               );
       if (mode == ITEM_STAT_MODE_IMMORTAL) {
         send_to_char(ch, "Sugg. Size: %s, Sugg. Material: %s, Handle Type: %s, Head Type: %s\r\n",
-                     sizes[weapon_list[weapon_val].size], material_name[weapon_list[weapon_val].material],
-                     weapon_handle_types[weapon_list[weapon_val].handle_type],
-                     weapon_head_types[weapon_list[weapon_val].head_type]
+                sizes[weapon_list[weapon_val].size], material_name[weapon_list[weapon_val].material],
+                weapon_handle_types[weapon_list[weapon_val].handle_type],
+                weapon_head_types[weapon_list[weapon_val].head_type]
                 );
       } else {
         send_to_char(ch, "Handle Type: %s, Head Type: %s\r\n",
-                     weapon_handle_types[weapon_list[weapon_val].handle_type],
-                     weapon_head_types[weapon_list[weapon_val].head_type] );
+                weapon_handle_types[weapon_list[weapon_val].handle_type],
+                weapon_head_types[weapon_list[weapon_val].head_type]);
       }
 
       break;
@@ -297,7 +297,7 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     case ITEM_ARMOR:
       if (mode == ITEM_STAT_MODE_IMMORTAL) {
         send_to_char(ch, "AC-apply: [%d], Enhancement Bonus: +%d\r\n",
-                     GET_OBJ_VAL(item, 0), GET_ENHANCEMENT_BONUS(item));
+                GET_OBJ_VAL(item, 0), GET_ENHANCEMENT_BONUS(item));
       } else {
         /* players should see the float value */
         send_to_char(ch, "AC-apply: [%.1f], Enhancement Bonus: +%d\r\n",
@@ -308,25 +308,25 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
       send_to_char(ch, "Values defined by armor type:\r\n");
       if (mode == ITEM_STAT_MODE_IMMORTAL) {
         send_to_char(ch, "Armor: %s, Type: %s, Sugg. Cost: %d, Sugg. AC: %d,\r\n",
-                     armor_list[armor_val].name,
-                     armor_type[armor_list[armor_val].armorType],
-                     armor_list[armor_val].cost,
-                     armor_list[armor_val].armorBonus );
+                armor_list[armor_val].name,
+                armor_type[armor_list[armor_val].armorType],
+                armor_list[armor_val].cost,
+                armor_list[armor_val].armorBonus);
       } else {
         send_to_char(ch, "Armor-Proficiency: %s, Armor-Type: %s\r\n", armor_list[armor_val].name,
-                     armor_type[armor_list[armor_val].armorType]);
+                armor_type[armor_list[armor_val].armorType]);
       }
       send_to_char(ch, "Max Dex Bonus: %d, Armor-Check: %d, Spell-Fail: %d, 30ft: %d, 20ft: %d,\r\n",
-                     armor_list[armor_val].dexBonus,
-                     armor_list[armor_val].armorCheck,
-                     armor_list[armor_val].spellFail,
-                     armor_list[armor_val].thirtyFoot, armor_list[armor_val].twentyFoot
-                   );
+              armor_list[armor_val].dexBonus,
+              armor_list[armor_val].armorCheck,
+              armor_list[armor_val].spellFail,
+              armor_list[armor_val].thirtyFoot, armor_list[armor_val].twentyFoot
+              );
       if (mode == ITEM_STAT_MODE_IMMORTAL) {
         send_to_char(ch, "Sugg. Weight: %d, Sugg. Material: %s, Sugg. Wear-Slot: %s\r\n",
-                     armor_list[armor_val].weight,
-                     material_name[armor_list[armor_val].material],
-                     wear_bits[armor_list[armor_val].wear] );
+                armor_list[armor_val].weight,
+                material_name[armor_list[armor_val].material],
+                wear_bits[armor_list[armor_val].wear]);
       }
 
       break;
@@ -347,7 +347,7 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
       sprinttype(GET_OBJ_VAL(item, 2), drinks, buf, sizeof (buf));
       send_to_char(ch, "Capacity: %d, Contains: %d, Spell: %s:%s, Liquid: %s\r\n",
               GET_OBJ_VAL(item, 0), GET_OBJ_VAL(item, 1), YESNO(GET_OBJ_VAL(item, 3)),
-              (GET_OBJ_VAL(item, 3)>0) ? spell_info[GET_OBJ_VAL(item, 3)].name : "none", buf);
+              (GET_OBJ_VAL(item, 3) > 0) ? spell_info[GET_OBJ_VAL(item, 3)].name : "none", buf);
       break;
     case ITEM_NOTE:
       send_to_char(ch, "Tongue: %d\r\n", GET_OBJ_VAL(item, 0));
@@ -385,9 +385,9 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
       /* weapon poison */
       if (item->weapon_poison.poison) {
         send_to_char(ch, "Weapon Poisoned: %s, Level of Poison: %d, Applications Left: %d\r\n",
-                     spell_info[item->weapon_poison.poison].name,
-                     item->weapon_poison.poison_level,
-                     item->weapon_poison.poison_hits );
+                spell_info[item->weapon_poison.poison].name,
+                item->weapon_poison.poison_level,
+                item->weapon_poison.poison_hits);
       }
       send_to_char(ch,
               "Type:                   %s\r\n"
@@ -413,9 +413,9 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
       /* monk glove */
       if (CAN_WEAR(item, ITEM_WEAR_HANDS) && GET_OBJ_VAL(item, 0))
         send_to_char(ch, "Monk Glove Enchantment: %d\r\n", GET_OBJ_VAL(item, 0));
-      /* default */
+        /* default */
       else {
-        send_to_char(ch, "Wearable item.\r\n");        
+        send_to_char(ch, "Wearable item.\r\n");
       }
       break;
     case ITEM_CRYSTAL:
@@ -466,23 +466,23 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode) {
   sprinttype(GET_OBJ_TYPE(j), item_types, buf, sizeof (buf));
   if (mode == ITEM_STAT_MODE_IMMORTAL) {
     send_to_char(ch, "\tCType:\tn %s, VNum: [%5d], RNum: [%5d], Idnum: [%5ld], SpecProc: %s\r\n",
-                 buf, vnum, GET_OBJ_RNUM(j), GET_ID(j),
-                 GET_OBJ_SPEC(j) ? (get_spec_func_name(GET_OBJ_SPEC(j))) : "None");
+            buf, vnum, GET_OBJ_RNUM(j), GET_ID(j),
+            GET_OBJ_SPEC(j) ? (get_spec_func_name(GET_OBJ_SPEC(j))) : "None");
   } else {
     send_to_char(ch, "\tCItem Type:\tn %s, Special Feature: %s\r\n", buf,
-                 GET_OBJ_SPEC(j) ? (get_spec_func_name(GET_OBJ_SPEC(j))) : "None"  );
+            GET_OBJ_SPEC(j) ? (get_spec_func_name(GET_OBJ_SPEC(j))) : "None");
   }
 
   /* display description information */
   text_line(ch, "\tcDescription Information\tn", line_length, '-', '-');
   send_to_char(ch, "Name: '%s'\r\n",
-               j->short_description ? j->short_description : "<None>");
+          j->short_description ? j->short_description : "<None>");
   send_to_char(ch, "Keywords: %s\r\n", j->name);
   if (mode == ITEM_STAT_MODE_IMMORTAL) {
     send_to_char(ch, "L-Desc: '%s'\r\n",
-                 j->description ? j->description : "<None>");
+            j->description ? j->description : "<None>");
     send_to_char(ch, "A-Desc: '%s'\r\n",
-                 j->action_description ? j->action_description : "<None>");
+            j->action_description ? j->action_description : "<None>");
     if (j->ex_description) {
       send_to_char(ch, "Extra descriptions:");
       for (desc = j->ex_description; desc; desc = desc->next)
@@ -494,12 +494,12 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode) {
   /* various variables */
   text_line(ch, "\tcVarious Variables\tn", line_length, '-', '-');
   send_to_char(ch, "Weight: %d, Value: %d, Cost/day: %d, Timer: %d, Min level: %d\r\n",
-               GET_OBJ_WEIGHT(j), GET_OBJ_COST(j), GET_OBJ_RENT(j), GET_OBJ_TIMER(j), GET_OBJ_LEVEL(j));
+          GET_OBJ_WEIGHT(j), GET_OBJ_COST(j), GET_OBJ_RENT(j), GET_OBJ_TIMER(j), GET_OBJ_LEVEL(j));
   send_to_char(ch, "Size: %s, Material: %s, Bound to: %s\r\n",
-            size_names[GET_OBJ_SIZE(j)],
-            material_name[GET_OBJ_MATERIAL(j)],
-            (get_name_by_id(GET_OBJ_BOUND_ID(j)) != NULL) ? CAP(get_name_by_id(GET_OBJ_BOUND_ID(j))) :
-            "(Unknown)");
+          size_names[GET_OBJ_SIZE(j)],
+          material_name[GET_OBJ_MATERIAL(j)],
+          (get_name_by_id(GET_OBJ_BOUND_ID(j)) != NULL) ? CAP(get_name_by_id(GET_OBJ_BOUND_ID(j))) :
+          "(Unknown)");
   if (mode == ITEM_STAT_MODE_IMMORTAL) {
     for (i = 0; i < SPEC_TIMER_MAX; i++) {
       send_to_char(ch, "SpecTimer %d: %d | ", i, GET_OBJ_SPECTIMER(j, i));
@@ -525,7 +525,7 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode) {
   send_to_char(ch, "Set char bits : %s\r\n", buf);
   sprintbitarray(GET_OBJ_EXTRA(j), extra_bits, EF_ARRAY_MAX, buf);
   send_to_char(ch, "Extra flags   : %s\r\n", buf);
-    /* affections */
+  /* affections */
   found = FALSE;
   send_to_char(ch, "Affections:");
   for (i = 0; i < MAX_OBJ_AFFECT; i++)
@@ -547,7 +547,7 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode) {
   if (mode == ITEM_STAT_MODE_IMMORTAL) {
     text_line(ch, "\tcLocation Information\tn", line_length, '-', '-');
     send_to_char(ch, "In room: %d (%s), ", GET_ROOM_VNUM(IN_ROOM(j)),
-                 IN_ROOM(j) == NOWHERE ? "Nowhere" : world[IN_ROOM(j)].name);
+            IN_ROOM(j) == NOWHERE ? "Nowhere" : world[IN_ROOM(j)].name);
     /* In order to make it this far, we must already be able to see the character
      * holding the object. Therefore, we do not need CAN_SEE(). */
     send_to_char(ch, "In object: %s, ", j->in_obj ? j->in_obj->short_description : "None");
@@ -577,7 +577,7 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode) {
 
   if (mode == ITEM_STAT_MODE_IMMORTAL) {
     text_line(ch, "\tcObject Scripts:\tn", line_length, '-', '-');
-        /* check the object for a script */
+    /* check the object for a script */
     do_sstat_object(ch, j);
   }
   draw_line(ch, line_length, '-', '-');
@@ -678,7 +678,7 @@ byte object_saving_throws(int material_type, int type)
   // Should not get here unless something is wrong.
   return 100;
 }
-*/
+ */
 
 /*
 int obj_savingthrow(int material, int type)
@@ -695,7 +695,7 @@ int obj_savingthrow(int material, int type)
 
   return (false);
 }
-*/
+ */
 
 /* function needs to do two things, attacker's weapon could take damage
      and the attackee could take damage to their armor. */
@@ -815,7 +815,7 @@ void damage_object(struct char_data *ch, struct char_data *victim) {
 
   return;
 }
-*/
+ */
 
 /* function to update number of lights in a room */
 void check_room_lighting_special(room_rnum room, struct char_data *ch,
@@ -826,7 +826,7 @@ void check_room_lighting_special(room_rnum room, struct char_data *ch,
     return;
 
   if (OBJ_FLAGGED(light_source, ITEM_MAGLIGHT) ||
-      OBJ_FLAGGED(light_source, ITEM_GLOW)) {
+          OBJ_FLAGGED(light_source, ITEM_GLOW)) {
     if (take_out_of_container) {
       world[room].light++;
       //world[room].globe += val2;
@@ -836,13 +836,13 @@ void check_room_lighting_special(room_rnum room, struct char_data *ch,
       if (world[room].light < 0)
         world[room].light = 0;
       //if (world[room].globe < 0)
-        //world[room].globe = 0;
+      //world[room].globe = 0;
     }
   }
 }
 
 static void perform_put(struct char_data *ch, struct obj_data *obj, struct obj_data *cont) {
-  char buf[MEDIUM_STRING] = { '\0' };
+  char buf[MEDIUM_STRING] = {'\0'};
 
   if (!drop_otrigger(obj, ch))
     return;
@@ -1042,6 +1042,7 @@ static void perform_get_from_container(struct char_data *ch, struct obj_data *ob
         struct obj_data *cont, int mode) {
   bool is_corpse = FALSE, is_clan = FALSE;
   int ct = 0;
+  char buf[MAX_INPUT_LENGTH];
 
   if ((GET_OBJ_BOUND_ID(cont) != NOBODY) && (GET_OBJ_BOUND_ID(cont) != GET_IDNUM(ch))) {
     if (get_name_by_id(GET_OBJ_BOUND_ID(cont)) != NULL) {
@@ -1050,7 +1051,7 @@ static void perform_get_from_container(struct char_data *ch, struct obj_data *ob
       return;
     }
   }
-  
+
   if (!strncmp(cont->name, "corpse ", 7))
     is_corpse = TRUE;
   if (GET_CLAN(ch) != NO_CLAN && GET_CLANRANK(ch) != NO_CLANRANK)
@@ -1720,6 +1721,7 @@ ACMD(do_drink) {
   // struct affected_type af;
   int amount, weight;
   int on_ground = 0;
+  char buf[MAX_INPUT_LENGTH];
 
   one_argument(argument, arg);
 
@@ -1749,7 +1751,7 @@ ACMD(do_drink) {
         return;
     }
   }
-  
+
   if (!(temp = get_obj_in_list_vis(ch, arg, NULL, ch->carrying))) {
     if (!(temp = get_obj_in_list_vis(ch, arg, NULL, world[IN_ROOM(ch)].contents))) {
       send_to_char(ch, "You can't find it!\r\n");
@@ -1757,13 +1759,13 @@ ACMD(do_drink) {
     } else
       on_ground = 1;
   }
-  
+
   if ((GET_OBJ_TYPE(temp) != ITEM_DRINKCON) &&
           (GET_OBJ_TYPE(temp) != ITEM_FOUNTAIN)) {
     send_to_char(ch, "You can't drink from that!\r\n");
     return;
   }
-  
+
   if (GET_OBJ_BOUND_ID(temp) != NOBODY) {
     if (GET_OBJ_BOUND_ID(temp) != GET_IDNUM(ch)) {
       if (get_name_by_id(GET_OBJ_BOUND_ID(temp)) == NULL)
@@ -1773,47 +1775,47 @@ ACMD(do_drink) {
 
       act(buf, FALSE, ch, temp, 0, TO_CHAR);
     }
-  }    
-  
+  }
+
   /*if (on_ground && (GET_OBJ_TYPE(temp) == ITEM_DRINKCON)) {
     send_to_char(ch, "You have to be holding that to drink from it.\r\n");
     return;
   }*/
-  
+
   if ((GET_COND(ch, DRUNK) > 10) && (GET_COND(ch, THIRST) > 0)) {
     /* The pig is drunk */
     send_to_char(ch, "You can't seem to get close enough to your mouth.\r\n");
     act("$n tries to drink but misses $s mouth!", TRUE, ch, 0, 0, TO_ROOM);
     return;
   }
-  
+
   if ((GET_COND(ch, HUNGER) > 22) && (GET_COND(ch, THIRST) > 4)) {
     send_to_char(ch, "Your stomach can't contain anymore!\r\n");
     return;
   }
-  
+
   if (GET_OBJ_VAL(temp, 1) == 0) {
     send_to_char(ch, "It is empty.\r\n");
     return;
   }
-  
+
   /*
   if (!(GET_OBJ_VAL(temp, 0) == 1)) {
     send_to_char(ch, "It is empty.\r\n");
     return;
   }
-  */ 
-  
+   */
+
   if (GET_COND(ch, THIRST) > 20) {
     send_to_char(ch, "You are not thirsty.\r\n");
     return;
   }
-  
+
   if (GET_OBJ_VAL(temp, 3) != 0 && char_has_mud_event(ch, eMAGIC_FOOD)) {
     send_to_char(ch, "You cannot drink any more magical liquids right now.\r\n");
     return;
   }
-  
+
   if (!consume_otrigger(temp, ch, OCMD_DRINK)) /* check trigger */
     return;
 
@@ -1865,7 +1867,7 @@ ACMD(do_drink) {
     if (GET_LEVEL(ch) < LVL_IMMORT || !PRF_FLAGGED(ch, PRF_NOHASSLE))
       attach_mud_event(new_mud_event(eMAGIC_FOOD, ch, NULL), 3000);
   }
-  
+
   /* removed poison value from drink containers, replaced with spellnum
    * so now if you want a poisoned drink container, just use poison spell for
    * value 3 -Nashak
@@ -1880,7 +1882,7 @@ ACMD(do_drink) {
     SET_BIT_AR(af.bitvector, AFF_POISON);
     affect_join(ch, &af, FALSE, FALSE, FALSE, FALSE);
   } */
-  
+
   /* Empty the container (unless unlimited), and no longer poison. */
   if (GET_OBJ_VAL(temp, 0) > 0) {
     GET_OBJ_VAL(temp, 1) -= amount;
@@ -1902,6 +1904,7 @@ ACMD(do_eat) {
   struct obj_data *food;
   struct affected_type af;
   int amount;
+  char buf[MAX_INPUT_LENGTH];
 
   one_argument(argument, arg);
 
@@ -2218,10 +2221,10 @@ static void wear_message(struct char_data *ch, struct obj_data *obj, int where) 
 
   /* extinguished light! */
   if (where == WEAR_LIGHT && GET_OBJ_TYPE(obj) == ITEM_LIGHT &&
-        GET_OBJ_VAL(obj, 2) == 0) {
+          GET_OBJ_VAL(obj, 2) == 0) {
     act("$n holds $p.", TRUE, ch, obj, 0, TO_ROOM);
-    act("You hold $p.", FALSE, ch, obj, 0, TO_CHAR);    
-  } else {  
+    act("You hold $p.", FALSE, ch, obj, 0, TO_CHAR);
+  } else {
     act(wear_messages[where][0], TRUE, ch, obj, 0, TO_ROOM);
     act(wear_messages[where][1], FALSE, ch, obj, 0, TO_CHAR);
   }
@@ -2247,7 +2250,7 @@ static int hands_have(struct char_data *ch) {
       break;
   }
   //if (GET_LEVEL(ch) >= LVL_IMPL)
-    //num = 4;
+  //num = 4;
   return (num);
 }
 
@@ -2264,6 +2267,7 @@ static int hands_available(struct char_data *ch) {
    how may hands you have available to equipping these items.  Also some
    held and wielded items will take two hands based on their size.  */
 //  should only return 1 or 2, -1 if problematic
+
 static int hands_needed(struct char_data *ch, struct obj_data *obj) {
   /* example:  huge sword,   medium human, size =  2
    *           large sword,  medium human, size =  1
@@ -2297,7 +2301,8 @@ int is_wielding_type(struct char_data *ch) {
 
 /* the guts of the 'wear' mechanic for equipping gear */
 void perform_wear(struct char_data *ch, struct obj_data *obj, int where) {
-  
+  char buf[MAX_INPUT_LENGTH];
+
   /* TAKE is used for objects that don't require special bits, ex. HOLD */
   int wear_bitvectors[] = {
     ITEM_WEAR_TAKE, ITEM_WEAR_FINGER, ITEM_WEAR_FINGER, ITEM_WEAR_NECK,
@@ -2339,7 +2344,7 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where) {
     "You are already wearing something on your eyes.\r\n",
     "You are already wearing a badge.\r\n",
   };
-  
+
   /* we are looking for some quick exits */
   if (IS_ANIMAL(ch)) {
     send_to_char(ch, "You are animal, how you going to wear that?\r\n");
@@ -2347,7 +2352,7 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where) {
   }
 
   /* see hands_needed() for notes */
-  int handsNeeded = hands_needed(ch, obj);  
+  int handsNeeded = hands_needed(ch, obj);
   if (handsNeeded == -1) {
     send_to_char(ch, "There is no way this item will fit you!\r\n");
     return;
@@ -2377,7 +2382,7 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where) {
     act("You can't wear $p there.", FALSE, ch, obj, 0, TO_CHAR);
     return;
   }
-  
+
   if (GET_OBJ_BOUND_ID(obj) != NOBODY) {
     if (GET_OBJ_BOUND_ID(obj) != GET_IDNUM(ch)) {
       if (get_name_by_id(GET_OBJ_BOUND_ID(obj)) == NULL)
@@ -2389,7 +2394,7 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where) {
       return;
     }
   }
-  
+
   if (GET_RACE(ch) == RACE_TRELUX && (where == WEAR_FINGER_R ||
           where == WEAR_FINGER_L || where == WEAR_HEAD ||
           where == WEAR_LEGS || where == WEAR_FEET || where == WEAR_HANDS)) {
@@ -2479,32 +2484,32 @@ int find_eq_pos(struct char_data *ch, struct obj_data *obj, char *arg) {
   /* this is lined up with equipment_types, it SHOULD be lined
    up with wear_bits (constants.c) probably, but not changing the status quo */
   const char *keywords[NUM_WEARS + 1] = {
-    "!RESERVED!",  //0 (takeable)
+    "!RESERVED!", //0 (takeable)
     "finger",
-    "!RESERVED!",  // (2nd finger)
+    "!RESERVED!", // (2nd finger)
     "neck",
-    "!RESERVED!",  // (2nd neck)
-    "body",  //5
+    "!RESERVED!", // (2nd neck)
+    "body", //5
     "head",
     "legs",
     "feet",
     "hands",
-    "arms",  //10
+    "arms", //10
     "shield",
     "about",
     "waist",
     "wrist",
-    "!RESERVED!",  //15 (2nd wrist)
-    "!RESERVED!",  // (wielded)
-    "!RESERVED!",  // (held)
-    "!RESERVED!",  // (wielded offhand)
-    "!RESERVED!",  // (held offhand)
-    "!RESERVED!",  //20 (wielded twohanded)
-    "!RESERVED!",  // (held twohanded)
+    "!RESERVED!", //15 (2nd wrist)
+    "!RESERVED!", // (wielded)
+    "!RESERVED!", // (held)
+    "!RESERVED!", // (wielded offhand)
+    "!RESERVED!", // (held offhand)
+    "!RESERVED!", //20 (wielded twohanded)
+    "!RESERVED!", // (held twohanded)
     "face",
     "ammo-pouch",
     "ear",
-    "!RESERVED!",  //25 (2nd ear)
+    "!RESERVED!", //25 (2nd ear)
     "eyes",
     "badge",
     "\n"
@@ -2528,7 +2533,7 @@ int find_eq_pos(struct char_data *ch, struct obj_data *obj, char *arg) {
     if (CAN_WEAR(obj, ITEM_WEAR_EAR)) where = WEAR_EAR_R;
     if (CAN_WEAR(obj, ITEM_WEAR_EYES)) where = WEAR_EYES;
     if (CAN_WEAR(obj, ITEM_WEAR_BADGE)) where = WEAR_BADGE;
-    
+
     /* this means we have an argument, does it match our keywords-array ?*/
   } else if ((where = search_block(arg, keywords, FALSE)) < 0) {
     send_to_char(ch, "'%s'?  What part of your body is THAT?\r\n", arg);
@@ -2554,21 +2559,21 @@ ACMD(do_wear) {
     send_to_char(ch, "Wear what?\r\n");
     return;
   }
-  
+
   dotmode = find_all_dots(arg1);
 
   if (*arg2 && (dotmode != FIND_INDIV)) {
     send_to_char(ch, "You can't specify the same body location for more than one item!\r\n");
     return;
   }
-  
+
   /* wear all */
   if (dotmode == FIND_ALL) {
-    
+
     /* go through all carried objects */
     for (obj = ch->carrying; obj; obj = next_obj) {
       next_obj = obj->next_content;
-      
+
       /* where does this gear fit? */
       if (CAN_SEE_OBJ(ch, obj) && (where = find_eq_pos(ch, obj, 0)) >= 0) {
         if (GET_LEVEL(ch) < GET_OBJ_LEVEL(obj))
@@ -2584,15 +2589,14 @@ ACMD(do_wear) {
     if (!items_worn)
       send_to_char(ch, "You don't seem to have anything wearable.\r\n");
   }
-  
-  /* wear all.X */
+    /* wear all.X */
   else if (dotmode == FIND_ALLDOT) {
-    
+
     if (!*arg1) {
       send_to_char(ch, "Wear all of what?\r\n");
       return;
     }
-    
+
     if (!(obj = get_obj_in_list_vis(ch, arg1, NULL, ch->carrying)))
       send_to_char(ch, "You don't seem to have any %ss.\r\n", arg1);
     else if (GET_LEVEL(ch) < GET_OBJ_LEVEL(obj))
@@ -2611,8 +2615,7 @@ ACMD(do_wear) {
       }
     }
   }
-  
-  /* not wear all, or wear all.X */
+    /* not wear all, or wear all.X */
   else {
     if (!(obj = get_obj_in_list_vis(ch, arg1, NULL, ch->carrying)))
       send_to_char(ch, "You don't seem to have %s %s.\r\n", AN(arg1), arg1);
@@ -2628,7 +2631,7 @@ ACMD(do_wear) {
         act("You can't wear $p.", FALSE, ch, obj, 0, TO_CHAR);
     }
   }
-  
+
   /* end */
 }
 
@@ -2676,13 +2679,13 @@ ACMD(do_wield) {
     send_to_char(ch, "Wield what?\r\n");
   else if (!(obj = get_obj_in_list_vis(ch, arg, NULL, ch->carrying)))
     send_to_char(ch, "You don't seem to have %s %s.\r\n", AN(arg), arg);
-  /* need test to make sure we don't wield a 2nd missile weapon */
+    /* need test to make sure we don't wield a 2nd missile weapon */
   else if (is_using_ranged_weapon(ch, TRUE)) {
     send_to_char(ch, "You are already using a ranged weapon!\r\n");
-  /* wielding a weapon, now trying to dual wield a ranged weapon */
-  } else if ( obj && (GET_EQ(ch, WEAR_WIELD_1) || GET_EQ(ch, WEAR_WIELD_OFFHAND)) &&
-              IS_SET(weapon_list[GET_OBJ_VAL(obj, 0)].weaponFlags, WEAPON_FLAG_RANGED)) {
-    send_to_char(ch, "You can't equip a ranged weapon while already wielding another weapon!\r\n");    
+    /* wielding a weapon, now trying to dual wield a ranged weapon */
+  } else if (obj && (GET_EQ(ch, WEAR_WIELD_1) || GET_EQ(ch, WEAR_WIELD_OFFHAND)) &&
+          IS_SET(weapon_list[GET_OBJ_VAL(obj, 0)].weaponFlags, WEAPON_FLAG_RANGED)) {
+    send_to_char(ch, "You can't equip a ranged weapon while already wielding another weapon!\r\n");
   } else {
     perform_wield(ch, obj, TRUE);
   }
@@ -2829,16 +2832,16 @@ ACMD(do_sac) {
       GET_EXP(ch) += (GET_OBJ_COST(j));
       break;
     case 3:
-      send_to_char(ch, "You sacrifice %s to the gods.\r\nYou receive %d experience points.\r\n", GET_OBJ_SHORT(j), GET_OBJ_COST(j)/2);
-      GET_EXP(ch) += GET_OBJ_COST(j)/2;
+      send_to_char(ch, "You sacrifice %s to the gods.\r\nYou receive %d experience points.\r\n", GET_OBJ_SHORT(j), GET_OBJ_COST(j) / 2);
+      GET_EXP(ch) += GET_OBJ_COST(j) / 2;
       break;
     case 4:
-      send_to_char(ch, "Your sacrifice to the gods is rewarded with %d gold coins.\r\n", GET_OBJ_COST(j)/4);
-      increase_gold(ch, GET_OBJ_COST(j)/4);
+      send_to_char(ch, "Your sacrifice to the gods is rewarded with %d gold coins.\r\n", GET_OBJ_COST(j) / 4);
+      increase_gold(ch, GET_OBJ_COST(j) / 4);
       break;
     case 5:
-      send_to_char(ch, "Your sacrifice to the gods is rewarded with %d gold coins\r\n", (GET_OBJ_COST(j)/2));
-      increase_gold(ch, (GET_OBJ_COST(j)/2));
+      send_to_char(ch, "Your sacrifice to the gods is rewarded with %d gold coins\r\n", (GET_OBJ_COST(j) / 2));
+      increase_gold(ch, (GET_OBJ_COST(j) / 2));
       break;
     default: /* should not get here */
       send_to_char(ch, "You sacrifice %s to the gods.\r\nYou receive one gold coin for your humility.\r\n", GET_OBJ_SHORT(j));
