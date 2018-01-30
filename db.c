@@ -3436,16 +3436,16 @@ void reset_zone(zone_rnum zone) {
                 (number(1, 100) <= ZCMD.arg3)) {
           obj = read_object(ZCMD.arg1, REAL);
           obj_to_char(obj, mob);
-          push_result(1);
           load_otrigger(obj);
           tobj = obj;
+          push_result(1);
         } else if ((ZCMD.arg2 == 0 && boot_time <= 1) &&
                 (number(1, 100) <= ZCMD.arg3)) {
           obj = read_object(ZCMD.arg1, REAL);
           obj_to_char(obj, mob);
-          push_result(1);
           load_otrigger(obj);
           tobj = obj;
+          push_result(1);
         } else
           push_result(0);
         tmob = NULL;
