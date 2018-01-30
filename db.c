@@ -3344,7 +3344,7 @@ void reset_zone(zone_rnum zone) {
      * added to the game, be certain to update the list of commands in load_zone
      * () so that the counting will still be correct. - ae. */
     switch (ZCMD.command) {
-      
+
       case '*': /* ignore command */
         push_result(0);
         break;
@@ -3464,7 +3464,7 @@ void reset_zone(zone_rnum zone) {
         if (rand_number(1, 100) <= ZCMD.arg1)
           load_treasure(mob);
         break;
-        
+
       case 'L': /* random treasure to container (with percentage loads) */
         if (rand_number(1, 100) <= ZCMD.arg2) {
           if (!(obj_to = get_obj_num(ZCMD.arg3))) {
@@ -3478,18 +3478,42 @@ void reset_zone(zone_rnum zone) {
         } else
           push_result(0);
         break;
-        
+
       case 'E': /* object to equipment list (with percentage loads) */
         if (!mob) {
-          char error[MAX_INPUT_LENGTH];
-          snprintf(error, sizeof (error), "trying to equip non-existant mob with "
-                  "obj #%d", obj_index[ZCMD.arg1].vnum);
-          ZONE_ERROR(error);
-          //ZCMD.command = '*';
+          if (ZCMD.if_flag == 0) {
+            char error[MAX_INPUT_LENGTH];
+            snprintf(error, sizeof (error), "trying to equip non-existant mob with "
+                    "obj #%d", obj_index[ZCMD.arg1].vnum);
+            ZONE_ERROR(error);
+            //ZCMD.command = '*';
+          } else
+            push_result(0);
           break;
         }
-        if ((obj_index[ZCMD.arg1].number < ZCMD.arg2 || (ZCMD.arg2 == 0 && boot_time <= 1)) &&
-                rand_number(1, 100) <= ZCMD.arg4) {
+        /* we have a mob */
+        if (obj_index[ZCMD.arg1].number < ZCMD.arg2 &&
+                (number(1, 100) <= ZCMD.arg4)) {
+          if (ZCMD.arg3 < 0 || ZCMD.arg3 >= NUM_WEARS) {
+            char error[MAX_INPUT_LENGTH];
+            snprintf(error, sizeof (error), "invalid equipment pos number (mob %s, "
+                    "obj %d, pos %d)", GET_NAME(mob), obj_index[ZCMD.arg2].vnum, ZCMD.arg3);
+            ZONE_ERROR(error);
+            //ZCMD.command = '*';
+          } else {
+            obj = read_object(ZCMD.arg1, REAL);
+            IN_ROOM(obj) = IN_ROOM(mob);
+            load_otrigger(obj);
+            if (wear_otrigger(obj, mob, ZCMD.arg3)) {
+              IN_ROOM(obj) = NOWHERE;
+              equip_char(mob, obj, ZCMD.arg3);
+            } else
+              obj_to_char(obj, mob);
+            tobj = obj;
+            push_result(1);
+          }
+        } else if ((ZCMD.arg2 == 0 && boot_time <= 1) &&
+                (number(1, 100) <= ZCMD.arg4)) {
           if (ZCMD.arg3 < 0 || ZCMD.arg3 >= NUM_WEARS) {
             char error[MAX_INPUT_LENGTH];
             snprintf(error, sizeof (error), "invalid equipment pos number (mob %s, "
@@ -3510,6 +3534,7 @@ void reset_zone(zone_rnum zone) {
           }
         } else
           push_result(0);
+
         tmob = NULL;
         break;
 
