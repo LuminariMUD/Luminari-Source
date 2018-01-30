@@ -6815,4 +6815,77 @@ ACMD(do_cmdlev) {
   mudlog(NRM, MAX(LVL_IMPL, GET_INVIS_LEV(ch)), TRUE, "(GC) %s set command level for %s to %d", GET_NAME(ch), complete_cmd_info[iCmd].command, iLev);
 }
 
+
+ACMD(do_unbind) {
+  char obj_name[MAX_INPUT_LENGTH];
+  struct obj_data *obj;
+
+  one_argument(argument, obj_name);
+  if (!*obj_name) {
+    send_to_char(ch, "What would you like to unbind?\r\n");
+    return;
+  }
+
+  if (!(obj = get_obj_in_list_vis(ch, obj_name, NULL, ch->carrying))) {
+    send_to_char(ch, "You are not carrying a %s?\r\n", obj_name);
+    return;
+  }
+
+  if (GET_OBJ_BOUND_ID(obj) == NOBODY) {
+    send_to_char(ch, "But, the %s@n is not bound to anyone!\r\n", obj->short_description);
+    return;
+  }
+
+  if (get_name_by_id(GET_OBJ_BOUND_ID(obj)) == NULL) {
+    send_to_char(ch, "It would appear that the person this object is bound to has deleted!\r\n");
+    send_to_char(ch, "This item has now been unbound!\r\n");
+    GET_OBJ_BOUND_ID(obj) = NOBODY;
+    return;
+  }
+  sprintf(obj_name, "%s", obj->short_description);
+  send_to_char(ch, "%s%s was bound to %s\r\n", CAP(obj_name), CCNRM(ch, C_NRM), get_name_by_id(GET_OBJ_BOUND_ID(obj)));
+  send_to_char(ch, "This item has now been unbound!\r\n");
+  GET_OBJ_BOUND_ID(obj) = NOBODY;
+}
+
+ACMD(do_bind) {
+  char char_name[MAX_INPUT_LENGTH], obj_name[MAX_INPUT_LENGTH];
+  struct obj_data *obj;
+  struct char_data *vict;
+
+  two_arguments(argument, obj_name, char_name);
+
+  if (!*obj_name) {
+    send_to_char(ch, "What do you want to bind, and to whom?\r\n");
+    return;
+  }
+
+  if (!(obj = get_obj_in_list_vis(ch, obj_name, NULL, ch->carrying))) {
+    send_to_char(ch, "You are not carrying a %s?\r\n", obj_name);
+    return;
+  }
+
+  if (!*char_name) {
+    send_to_char(ch, "To whom would you like to bind %s?\r\n", obj->short_description);
+    return;
+  }
+
+  if (!(vict = get_char_vis(ch, char_name, NULL, FIND_CHAR_WORLD))) {
+    send_to_char(ch, "No one by that name currently logged in.\r\n");
+    return;
+  }
+
+  if (GET_OBJ_BOUND_ID(obj) != NOBODY) {
+    if (GET_OBJ_BOUND_ID(obj) == GET_IDNUM(vict)) {
+      send_to_char(ch, "It is already bound to %s.\r\n", GET_NAME(vict));
+      return;
+    } else {
+      send_to_char(ch, "It is currently bound to %s. Unbind it first!\r\n", get_name_by_id(GET_OBJ_BOUND_ID(obj)));
+      return;
+    }
+  }
+  GET_OBJ_BOUND_ID(obj) = GET_IDNUM(vict);
+  send_to_char(ch, "%s is now bound to %s.", obj->short_description, GET_NAME(vict));
+}
+
 /* EOF */

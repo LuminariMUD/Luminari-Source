@@ -2693,6 +2693,7 @@ struct obj_flag_data {
     int size; // how big is the object?
 
     int spec_timer[SPEC_TIMER_MAX]; /* For timed procs - from homeland*/
+    int bound_id; /* ID of player this item is bound to */
 };
 
 /** Used in obj_file_elem. DO NOT CHANGE if you are using binary object files
@@ -3086,6 +3087,7 @@ struct old_spell_data {
 /**/
 
 /***/
+
 /* known spells list */
 struct known_spell_data {
     int spell; /* spellnum of this spell in the collection */
@@ -3095,6 +3097,7 @@ struct known_spell_data {
 
     struct known_spell_data *next; /*linked-list*/
 };
+
 /* spell parapation, collection data */
 struct prep_collection_spell_data {
     int spell; /* spellnum of this spell in the collection */
@@ -3104,6 +3107,7 @@ struct prep_collection_spell_data {
 
     struct prep_collection_spell_data *next; /*linked-list*/
 };
+
 /* innate magic preparation data */
 struct innate_magic_data {
     int circle; /* circle in the collection */

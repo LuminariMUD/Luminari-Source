@@ -495,9 +495,11 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode) {
   text_line(ch, "\tcVarious Variables\tn", line_length, '-', '-');
   send_to_char(ch, "Weight: %d, Value: %d, Cost/day: %d, Timer: %d, Min level: %d\r\n",
                GET_OBJ_WEIGHT(j), GET_OBJ_COST(j), GET_OBJ_RENT(j), GET_OBJ_TIMER(j), GET_OBJ_LEVEL(j));
-  send_to_char(ch, "Size: %s, Material: %s\r\n",
-               size_names[GET_OBJ_SIZE(j)],
-               material_name[GET_OBJ_MATERIAL(j)]);
+  send_to_char(ch, "Size: %s, Material: %s, Bound to: %s\r\n",
+            size_names[GET_OBJ_SIZE(j)],
+            material_name[GET_OBJ_MATERIAL(j)],
+            (get_name_by_id(GET_OBJ_BOUND_ID(j)) != NULL) ? CAP(get_name_by_id(GET_OBJ_BOUND_ID(j))) :
+            "(Unknown)");
   if (mode == ITEM_STAT_MODE_IMMORTAL) {
     for (i = 0; i < SPEC_TIMER_MAX; i++) {
       send_to_char(ch, "SpecTimer %d: %d | ", i, GET_OBJ_SPECTIMER(j, i));
@@ -848,6 +850,14 @@ static void perform_put(struct char_data *ch, struct obj_data *obj, struct obj_d
   if (!obj) /* object might be extracted by drop_otrigger */
     return;
 
+  if ((GET_OBJ_BOUND_ID(cont) != NOBODY) && (GET_OBJ_BOUND_ID(cont) != GET_IDNUM(ch))) {
+    if (get_name_by_id(GET_OBJ_BOUND_ID(cont)) != NULL) {
+      sprintf(buf, "$p belongs to %s.  You cannot put anything inside it.\r\n", CAP(get_name_by_id(GET_OBJ_BOUND_ID(cont))));
+      act(buf, FALSE, ch, cont, 0, TO_CHAR);
+      return;
+    }
+  }
+
   if (GET_OBJ_TYPE(cont) == ITEM_AMMO_POUCH && GET_OBJ_TYPE(obj) != ITEM_MISSILE) {
     act("You can only put ammo into $P.", FALSE, ch, obj, cont, TO_CHAR);
     return;
@@ -1030,10 +1040,17 @@ static void get_check_money(struct char_data *ch, struct obj_data *obj) {
 
 static void perform_get_from_container(struct char_data *ch, struct obj_data *obj,
         struct obj_data *cont, int mode) {
-
   bool is_corpse = FALSE, is_clan = FALSE;
   int ct = 0;
 
+  if ((GET_OBJ_BOUND_ID(cont) != NOBODY) && (GET_OBJ_BOUND_ID(cont) != GET_IDNUM(ch))) {
+    if (get_name_by_id(GET_OBJ_BOUND_ID(cont)) != NULL) {
+      sprintf(buf, "$p belongs to %s.  You cannot get anything out of it.\r\n", CAP(get_name_by_id(GET_OBJ_BOUND_ID(cont))));
+      act(buf, FALSE, ch, cont, 0, TO_CHAR);
+      return;
+    }
+  }
+  
   if (!strncmp(cont->name, "corpse ", 7))
     is_corpse = TRUE;
   if (GET_CLAN(ch) != NO_CLAN && GET_CLANRANK(ch) != NO_CLANRANK)
@@ -1747,6 +1764,17 @@ ACMD(do_drink) {
     return;
   }
   
+  if (GET_OBJ_BOUND_ID(temp) != NOBODY) {
+    if (GET_OBJ_BOUND_ID(temp) != GET_IDNUM(ch)) {
+      if (get_name_by_id(GET_OBJ_BOUND_ID(temp)) == NULL)
+        sprintf(buf, "$p%s belongs to someone else.  You can't drink from it.", CCNRM(ch, C_NRM));
+      else
+        sprintf(buf, "$p%s belongs to %s.  You can't drink from it.", CCNRM(ch, C_NRM), CAP(get_name_by_id(GET_OBJ_BOUND_ID(temp))));
+
+      act(buf, FALSE, ch, temp, 0, TO_CHAR);
+    }
+  }    
+  
   /*if (on_ground && (GET_OBJ_TYPE(temp) == ITEM_DRINKCON)) {
     send_to_char(ch, "You have to be holding that to drink from it.\r\n");
     return;
@@ -1896,6 +1924,16 @@ ACMD(do_eat) {
   if ((GET_OBJ_TYPE(food) != ITEM_FOOD) && (GET_LEVEL(ch) < LVL_IMMORT)) {
     send_to_char(ch, "You can't eat THAT!\r\n");
     return;
+  }
+  if (GET_OBJ_BOUND_ID(food) != NOBODY) {
+    if (GET_OBJ_BOUND_ID(food) != GET_IDNUM(ch)) {
+      if (get_name_by_id(GET_OBJ_BOUND_ID(food)) == NULL)
+        sprintf(buf, "$p%s belongs to someone else.  You can't eat it.", CCNRM(ch, C_NRM));
+      else
+        sprintf(buf, "$p%s belongs to %s.  You can't eat it.", CCNRM(ch, C_NRM), CAP(get_name_by_id(GET_OBJ_BOUND_ID(food))));
+
+      act(buf, FALSE, ch, food, 0, TO_CHAR);
+    }
   }
   if (GET_COND(ch, HUNGER) > 20) { /* Stomach full */
     send_to_char(ch, "You are too full to eat more!\r\n");
@@ -2334,14 +2372,24 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where) {
     }
   }
 
-
-
   /* first, make sure that the wear position is valid. */
   if (!CAN_WEAR(obj, wear_bitvectors[where])) {
     act("You can't wear $p there.", FALSE, ch, obj, 0, TO_CHAR);
     return;
   }
+  
+  if (GET_OBJ_BOUND_ID(obj) != NOBODY) {
+    if (GET_OBJ_BOUND_ID(obj) != GET_IDNUM(ch)) {
+      if (get_name_by_id(GET_OBJ_BOUND_ID(obj)) == NULL)
+        sprintf(buf, "$p%s belongs to someone else.  You can't use it.", CCNRM(ch, C_NRM));
+      else
+        sprintf(buf, "$p%s belongs to %s.  You can't use it.", CCNRM(ch, C_NRM), CAP(get_name_by_id(GET_OBJ_BOUND_ID(obj))));
 
+      act(buf, FALSE, ch, obj, 0, TO_CHAR);
+      return;
+    }
+  }
+  
   if (GET_RACE(ch) == RACE_TRELUX && (where == WEAR_FINGER_R ||
           where == WEAR_FINGER_L || where == WEAR_HEAD ||
           where == WEAR_LEGS || where == WEAR_FEET || where == WEAR_HANDS)) {

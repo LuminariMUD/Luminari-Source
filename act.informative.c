@@ -1,5 +1,5 @@
 /**************************************************************************
- *  File: act.informative.c                                 Part of LuminariMUD *
+ *  File: act.informative.c                            Part of LuminariMUD *
  *  Usage: Player-level commands of an informative nature.                 *
  *                                                                         *
  *  All rights reserved.  See license for complete information.            *
@@ -64,9 +64,6 @@ int spell_sort_info[MAX_SKILLS + 1];
 int sorted_spells[MAX_SKILLS + 1];
 int sorted_skills[MAX_SKILLS + 1];
 int boot_high = 0;
-
-
-
 
 /*******  UTILITY FUNCTIONS ***********/
 
@@ -4525,3 +4522,5 @@ EVENTFUNC(event_tracks) {
 ACMD(do_rank) {
   do_slug_rank(ch, argument);
 }
+
+/*EOF*/

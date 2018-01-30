@@ -1,21 +1,21 @@
 /***
-**
-* @file act.h
-* Header file for the core act* c files.
-*
-* Part of the core tbaMUD source code distribution, which is a derivative
-* of, and continuation of, CircleMUD.
-*
-* All rights reserved.  See license for complete information.
-* Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University
-* CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.
-*
-* @todo Utility functions that could easily be moved elsewhere have been
-* marked. Suggest a review of all utility functions (aka. non ACMDs) and
-* determine if the utility functions should be placed into a lower level
-* (non-ACMD focused) shared module.
-*
-*/
+ **
+ * @file act.h                        Part of LuminariMUD
+ * Header file for the core act* c files.
+ *
+ * Part of the core tbaMUD source code distribution, which is a derivative
+ * of, and continuation of, CircleMUD.
+ *
+ * All rights reserved.  See license for complete information.
+ * Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University
+ * CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.
+ *
+ * @todo Utility functions that could easily be moved elsewhere have been
+ * marked. Suggest a review of all utility functions (aka. non ACMDs) and
+ * determine if the utility functions should be placed into a lower level
+ * (non-ACMD focused) shared module.
+ *
+ */
 #ifndef _ACT_H_
 #define _ACT_H_
 
@@ -497,8 +497,8 @@ ACMD(do_action);
 ACMD(do_gmote);
 
 /******************
-* memorize
-*******************/
+ * memorize
+ *******************/
 ACMD(do_gen_forget);
 
 #define SCMD_FORGET      1
@@ -610,5 +610,7 @@ ACMD(do_oconvert);
 ACMD(do_acconvert);
 ACMD(do_findmagic);
 ACMD(do_cmdlev);
+ACMD(do_bind);
+ACMD(do_unbind);
 
 #endif /* _ACT_H_ */
