@@ -1119,12 +1119,10 @@ SPECIAL(player_owned_shops) {
   if (!cmd)
     return FALSE;
 
-  /* Gross. */
-  private_room = IN_ROOM(ch) + 1;
 
   /* Grab the name of the shop owner */
   for (hse = 0; hse < num_of_houses; hse++) {
-    if (house_control[hse].vnum == world[private_room].number) {
+    if (house_control[hse].atrium == IN_ROOM(ch)) {
       /* Avoid seeing <UNDEF> entries from self-deleted people. */
       if ((temp = get_name_by_id(house_control[hse].owner)) == NULL) {
         sprintf(shop_owner, "Someone");
@@ -1132,11 +1130,14 @@ SPECIAL(player_owned_shops) {
         sprintf(shop_owner, "%s", CAP(get_name_by_id(house_control[hse].owner)));
       }
       found = TRUE;
+      break;
     }
   }
 
   if (found == FALSE)
     sprintf(shop_owner, "Invalid Shop - Tell an Imp");
+  
+  private_room = house_control[hse].vnum;  
 
   if (CMD_IS("list")) {
     if (IS_NPC(ch)) {
