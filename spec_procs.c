@@ -1109,7 +1109,9 @@ void process_skill(struct char_data *ch, int skillnum) {
 /* 'Stock-room' must also be created and made into a player house   */
 /* so that only the shop owner can get the piles of gold left there */
 /* Stock room must be 1 VNUM higher than the actual shop            */
-#define PLAYER_SHOP_DEBUG
+
+/* debug */
+//#define PLAYER_SHOP_DEBUG
 
 SPECIAL(player_owned_shops) {
   room_rnum private_room;
