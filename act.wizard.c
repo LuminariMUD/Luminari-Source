@@ -6888,4 +6888,122 @@ ACMD(do_obind) {
   send_to_char(ch, "%s is now bound to %s.", obj->short_description, GET_NAME(vict));
 }
 
+#define PLIST_FORMAT \
+  "plist [minlev[-maxlev]] [-n name] [-a] [-u] [-o] [-i] [-m]"
+
+ACMD(do_plist) {
+  int i, len = 0, count = 0;
+  char col, mode, buf[MAX_STRING_LENGTH], name_search[MAX_NAME_LENGTH], time_str[MAX_STRING_LENGTH];
+  struct time_info_data time_away;
+  int low = 0, high = LVL_IMPL, low_day = 0, high_day = 10000, low_hr = 0, high_hr = 24;
+  int active = 0, unactive = 0, old = 0, selected = 0;
+
+  skip_spaces(&argument);
+  strcpy(buf, argument); /* strcpy: OK (sizeof: argument == buf) */
+  name_search[0] = '\0';
+
+  while (*buf) {
+    char arg[MAX_INPUT_LENGTH], buf1[MAX_INPUT_LENGTH];
+
+    half_chop(buf, arg, buf1);
+    if (isdigit(*arg)) {
+      if (sscanf(arg, "%d-%d", &low, &high) == 1)
+        high = low;
+      strcpy(buf, buf1); /* strcpy: OK (sizeof: buf1 == buf) */
+    } else if (*arg == '-') {
+      mode = *(arg + 1); /* just in case; we destroy arg in the switch */
+      switch (mode) {
+        case 'l':
+          half_chop(buf1, arg, buf);
+          sscanf(arg, "%d-%d", &low, &high);
+          break;
+        case 'n':
+          half_chop(buf1, name_search, buf);
+          break;
+        case 'a':
+          strcpy(buf, buf1);
+          selected = active = TRUE;
+          break;
+        case 'u':
+          strcpy(buf, buf1);
+          selected = unactive = TRUE;
+          break;
+        case 'o':
+          strcpy(buf, buf1);
+          selected = old = TRUE;
+          break;
+        case 'd':
+          half_chop(buf1, arg, buf);
+          if (sscanf(arg, "%d-%d", &low_day, &high_day) == 1)
+            high_day = low_day;
+          break;
+        case 'h':
+          half_chop(buf1, arg, buf);
+          if (sscanf(arg, "%d-%d", &low_hr, &high_hr) == 1)
+            high_hr = low_hr;
+          break;
+        default:
+          send_to_char(ch, "%s\r\n", PLIST_FORMAT);
+          return;
+      }
+    } else {
+      send_to_char(ch, "%s\r\n", PLIST_FORMAT);
+      return;
+    }
+  }
+
+  len = 0;
+  len += snprintf(buf + len, sizeof (buf) - len, "\tM[ Id] (Lvl) Name         Last\tn\r\n"
+          "\tc-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\tn\r\n");
+
+  for (i = 0; i <= top_of_p_table; i++) {
+    if (player_table[i].level < low || player_table[i].level > high)
+      continue;
+
+    if (*name_search && str_cmp(name_search, player_table[i].name))
+      continue;
+
+    time_away = *real_time_passed(time(0), player_table[i].last);
+
+    if (time_away.day >= 60 || time_away.month >= 1 || time_away.year >= 1) {
+      if (!old && selected)
+        continue;
+      col = 'd';
+    } else if (time_away.day >= 21 && player_table[i].level >= LVL_IMMORT) {
+      if (!old && selected)
+        continue;
+      col = 'd';
+    } else if (time_away.day >= 14 || time_away.month >= 1 || time_away.year >= 1) {
+      if (!unactive && selected)
+        continue;
+      col = 'D';
+    } else if ((time_away.day >= 7 || time_away.month >= 1 || time_away.year >= 1) && player_table[i].level >= LVL_IMMORT) {
+      if (!unactive && selected)
+        continue;
+      col = 'D';
+    } else {
+      if (!active && selected)
+        continue;
+      col = 'W';
+    }
+
+    if (time_away.day > high_day || time_away.day < low_day)
+      continue;
+    if (time_away.hours > high_hr || time_away.hours < low_hr)
+      continue;
+
+    strcpy(time_str, asctime(localtime(&player_table[i].last)));
+
+    time_str[strlen(time_str) - 1] = '\0';
+
+    len += snprintf(buf + len, sizeof (buf) - len, "\t%c[%3ld] (%3d) %-12s %s\tn\r\n",
+            col, player_table[i].id, player_table[i].level, CAP(strdup(player_table[i].name)),
+            time_str);
+    count++;
+  }
+  snprintf(buf + len, sizeof (buf) - len, "@c-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-@n\r\n"
+          "%d players listed.\r\n", count);
+  page_string(ch->desc, buf, TRUE);
+}
+
 /* EOF */
