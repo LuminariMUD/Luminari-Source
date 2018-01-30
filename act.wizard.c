@@ -5992,7 +5992,6 @@ ACMD(do_genmap) {
   name = strtok(argument, "'");
 
   generate_river(ch, dir, vnum, name);
-  load_paths();
 /*
   void *set;
   double pos[2], point[2];
