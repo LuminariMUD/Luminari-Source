@@ -979,6 +979,7 @@ struct spec_func_data spec_func_list[] = {
   {"Invasion", jot_invasion_loader},
   {"Crystal Rapier", tia_rapier},
   {"Pet Object", bought_pet},
+  {"Player Shop", player_owned_shops},
 
   {"\n", NULL}
 };
