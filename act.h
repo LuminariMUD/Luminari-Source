@@ -613,5 +613,6 @@ ACMD(do_cmdlev);
 ACMD(do_obind);
 ACMD(do_unbind);
 //ACMD(do_plist);
+ACMD(do_finddoor);
 
 #endif /* _ACT_H_ */

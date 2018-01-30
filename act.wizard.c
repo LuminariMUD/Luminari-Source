@@ -7007,5 +7007,55 @@ ACMD(do_plist) {
   page_string(ch->desc, buf, TRUE);
 }
 */
-        
+
+/* do_finddoor, finds the door(s) that a key goes to */
+ACMD(do_finddoor) {
+  int d, vnum = NOTHING, num = 0;
+  size_t len, nlen;
+  room_rnum i;
+  char arg[MAX_INPUT_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {0};
+  struct char_data *tmp_char;
+  struct obj_data *obj;
+
+  one_argument(argument, arg);
+
+  if (!*arg) {
+    send_to_char(ch, "Format: finddoor <obj/vnum>\r\n");
+  } else if (is_number(arg)) {
+    vnum = atoi(arg);
+    obj = &obj_proto[real_object(vnum)];
+  } else {
+    generic_find(arg,
+            FIND_OBJ_INV | FIND_OBJ_ROOM | FIND_OBJ_WORLD | FIND_OBJ_EQUIP,
+            ch, &tmp_char, &obj);
+    if (!obj)
+      send_to_char(ch, "What key do you want to find a door for?\r\n");
+    else
+      vnum = GET_OBJ_VNUM(obj);
+  }
+  if (vnum != NOTHING) {
+    len = snprintf(buf, sizeof (buf), "Doors unlocked by key %s[%s%d%s]%s %s%s are:\r\n",
+            CCCYN(ch, C_NRM), CCYEL(ch, C_NRM), vnum, CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), obj->short_description, CCNRM(ch, C_NRM));
+    for (i = 0; i <= top_of_world; i++) {
+      for (d = 0; d < NUM_OF_DIRS; d++) {
+        if (world[i].dir_option[d] && world[i].dir_option[d]->key &&
+                world[i].dir_option[d]->key == vnum) {
+          nlen = snprintf(buf + len, sizeof (buf) - len,
+                  "[%3d] Room %d, %s (%s)\r\n",
+                  ++num, world[i].number,
+                  dirs[d], world[i].dir_option[d]->keyword);
+          if (len + nlen >= sizeof (buf) || nlen < 0)
+            break;
+          len += nlen;
+        }
+      } /* for all directions */
+    } /* for all rooms */
+    if (num > 0)
+      page_string(ch->desc, buf, 1);
+    else
+      send_to_char(ch, "No doors were found for key [%d] %s.\r\n", vnum, obj->short_description);
+  }
+}
+
 /* EOF */
