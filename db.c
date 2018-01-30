@@ -204,12 +204,6 @@ void push_result(byte result) {
     result_q.size = RQ_MAXSIZE;
   result_q.tail = (result_q.tail + 1) % RQ_MAXSIZE;
 }
-/* this function will be implemented when command can
- * be dependent on success or failure of specific command #
-sbyte test_result(sbyte offset) {
-
-}
- */
 
 /* test_result
  * returns - if offset is positive
@@ -3329,12 +3323,14 @@ void reset_zone(zone_rnum zone) {
   init_result_q();
 
   for (cmd_no = 0; ZCMD.command != 'S'; cmd_no++) {
+    
     if (jump > 0) {
       jump--;
       push_result(0);
       continue;
     }
 
+    /* checking our if_flag if we need to jump around */
     if (!test_result(ZCMD.if_flag)) {
       push_result(0);
       continue;
