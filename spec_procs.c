@@ -1130,7 +1130,7 @@ SPECIAL(player_owned_shops) {
 #ifdef PLAYER_SHOP_DEBUG
     send_to_char(ch, "House counter: %d, This-atrium: %d\r\n", hse, house_control[hse].atrium);
 #endif
-    if (house_control[hse].atrium == IN_ROOM(ch)) {
+    if (real_room(house_control[hse].atrium) == IN_ROOM(ch)) {
       /* Avoid seeing <UNDEF> entries from self-deleted people. */
       if ((temp = get_name_by_id(house_control[hse].owner)) == NULL) {
         sprintf(shop_owner, "Someone");
@@ -1145,7 +1145,7 @@ SPECIAL(player_owned_shops) {
   if (found == FALSE)
     sprintf(shop_owner, "Invalid Shop - Tell an Imp");
 
-  private_room = house_control[hse].vnum;
+  private_room = real_room(house_control[hse].vnum);
 #ifdef PLAYER_SHOP_DEBUG
   send_to_char(ch, "House VNum %d\r\n", house_control[hse].vnum);
 #endif
