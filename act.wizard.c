@@ -6888,6 +6888,7 @@ ACMD(do_obind) {
   send_to_char(ch, "%s is now bound to %s.", obj->short_description, GET_NAME(vict));
 }
 
+/*
 #define PLIST_FORMAT \
   "plist [minlev[-maxlev]] [-n name] [-a] [-u] [-o] [-i] [-m]"
 
@@ -6899,7 +6900,7 @@ ACMD(do_plist) {
   int active = 0, unactive = 0, old = 0, selected = 0;
 
   skip_spaces(&argument);
-  strcpy(buf, argument); /* strcpy: OK (sizeof: argument == buf) */
+  strcpy(buf, argument); // strcpy: OK (sizeof: argument == buf)
   name_search[0] = '\0';
 
   while (*buf) {
@@ -6909,9 +6910,9 @@ ACMD(do_plist) {
     if (isdigit(*arg)) {
       if (sscanf(arg, "%d-%d", &low, &high) == 1)
         high = low;
-      strcpy(buf, buf1); /* strcpy: OK (sizeof: buf1 == buf) */
+      strcpy(buf, buf1); // strcpy: OK (sizeof: buf1 == buf)
     } else if (*arg == '-') {
-      mode = *(arg + 1); /* just in case; we destroy arg in the switch */
+      mode = *(arg + 1); // just in case; we destroy arg in the switch
       switch (mode) {
         case 'l':
           half_chop(buf1, arg, buf);
@@ -7005,5 +7006,6 @@ ACMD(do_plist) {
           "%d players listed.\r\n", count);
   page_string(ch->desc, buf, TRUE);
 }
-
+*/
+        
 /* EOF */
