@@ -3493,7 +3493,7 @@ void reset_zone(zone_rnum zone) {
         }
         /* we have a mob */
         if (obj_index[ZCMD.arg1].number < ZCMD.arg2 &&
-                (number(1, 100) <= ZCMD.arg4)) {
+                (rand_number(1, 100) <= ZCMD.arg4)) {
           if (ZCMD.arg3 < 0 || ZCMD.arg3 >= NUM_WEARS) {
             char error[MAX_INPUT_LENGTH];
             snprintf(error, sizeof (error), "invalid equipment pos number (mob %s, "
@@ -3513,7 +3513,7 @@ void reset_zone(zone_rnum zone) {
             push_result(1);
           }
         } else if ((ZCMD.arg2 == 0 && boot_time <= 1) &&
-                (number(1, 100) <= ZCMD.arg4)) {
+                (rand_number(1, 100) <= ZCMD.arg4)) {
           if (ZCMD.arg3 < 0 || ZCMD.arg3 >= NUM_WEARS) {
             char error[MAX_INPUT_LENGTH];
             snprintf(error, sizeof (error), "invalid equipment pos number (mob %s, "
