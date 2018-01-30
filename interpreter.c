@@ -420,6 +420,7 @@ cpp_extern const struct command_info cmd_info[] = {
   //{ "play", "play", POS_FIGHTING, do_play, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
   { "push", "push", POS_STANDING, do_pullswitch, 0, 0, FALSE, ACTION_MOVE, {0, 6}},
   { "pull", "pull", POS_STANDING, do_pullswitch, 0, 0, FALSE, ACTION_MOVE, {0, 6}},
+  { "plist", "plist", POS_DEAD, do_plist, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}},
 
   { "queue", "q", POS_DEAD, do_queue, 0, SCMD_ACTION_QUEUE, FALSE, ACTION_NONE, {0, 0}},
   { "qedit", "qedit", POS_DEAD, do_oasis_qedit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},
