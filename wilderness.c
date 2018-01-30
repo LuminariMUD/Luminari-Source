@@ -1297,7 +1297,7 @@ void generate_river(struct char_data* ch, int dir, region_vnum vnum, char *name)
  
   /* Create the structure for the path */
   river.vnum = vnum;
-  river.zone = zone_table[world[IN_ROOM(ch)].zone].number;
+  river.zone = world[IN_ROOM(ch)].zone;
   river.name = strdup(name);
   river.path_type = 5; /* Corresponds to river glyphs in the db */
   river.path_props = PATH_STREAM;
