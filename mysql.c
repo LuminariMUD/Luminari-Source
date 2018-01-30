@@ -554,7 +554,7 @@ void insert_path(struct path_data *path) {
 
   sprintf(linestring, "ST_GeomFromText('LINESTRING(");
   
-  for (vtx = 0, vtx < path->num_vertices, vtx++){
+  for (vtx = 0; vtx < path->num_vertices; vtx++){
     char buf[100];
     sprintf(buf, "%d %d%s", path->vertices[vtx].x, path->vertices[vtx].y, (vtx + 1 = path->num_vertices ? ")')", ",");
     strcat(linestring, buf);
