@@ -173,8 +173,8 @@ void load_regions() {
   
   int numrows;
 
-  char buf[1024];
-  char buf2[1024];
+  char buf[MAX_STRING_LENGTH];
+  char buf2[MAX_STRING_LENGTH];
 
   char** tokens;  /* Storage for tokenized linestring points */
   char** it;      /* Token iterator */
