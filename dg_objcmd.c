@@ -744,14 +744,14 @@ static OCMD(do_oat) {
     extract_obj(object);
 }
 
-OCMD(do_obind) {
+OCMD(do_objbind) {
   char buf[MAX_INPUT_LENGTH];
   char_data *ch;
 
   any_one_arg(argument, buf);
 
   if (!*buf) {
-    obj_log(obj, "obind called with no args");
+    obj_log(obj, "objbind called with no args");
     return;
   }
 
@@ -759,9 +759,9 @@ OCMD(do_obind) {
     if (!IS_NPC(ch))
       GET_OBJ_BOUND_ID(obj) = GET_IDNUM(ch);
     else
-      obj_log(obj, "target for obind is NPC");
+      obj_log(obj, "target for objbind is NPC");
   } else
-    obj_log(obj, "no target found for obind");
+    obj_log(obj, "no target found for objbind");
 }
 
 static OCMD(do_omove) {
@@ -800,7 +800,8 @@ const struct obj_command_info obj_cmd_info[] = {
 
   { "oasound ", do_oasound, 0},
   { "oat ", do_oat, 0},
-  { "obind ", do_obind, 0},
+  { "obind ", do_objbind, 0},
+  { "objbind ", do_objbind, 0},
   { "odoor ", do_odoor, 0},
   { "odamage ", do_odamage, 0},
   { "oecho ", do_oecho, 0},
