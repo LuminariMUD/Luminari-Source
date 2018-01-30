@@ -5978,13 +5978,20 @@ ACMD(do_singlefile) {
 
 /* Test command to display a map, radius 4, generated using noise. */
 ACMD(do_genmap) {
-  char value[MAX_INPUT_LENGTH];  
+  char arg1[MAX_STRING_LENGTH];
+  char arg2[MAX_STRING_LENGTH];
+  char arg3[MAX_STRING_LENGTH];      
   int dir = 0;
-  one_argument(argument, (char*) &value);
+  region_vnum vnum;
+  char name[1024];
+  
+  three_arguments(argument, arg1, arg2, arg3);
+  
+  dir = atoi(arg1);
+  vnum = atoi(arg2);
+  sscanf(arg3, "'%s'", name);
 
-  dir = atoi(value);
-
-  generate_river(ch, 0);
+  generate_river(ch, dir, vnum, name);
   load_paths();
 /*
   void *set;
