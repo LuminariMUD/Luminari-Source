@@ -5983,8 +5983,9 @@ ACMD(do_genmap) {
   one_argument(argument, (char*) &value);
 
   dir = atoi(value);
-  
+
   generate_river(ch, 0);
+  load_paths();
 /*
   void *set;
   double pos[2], point[2];
