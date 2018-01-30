@@ -1104,15 +1104,12 @@ void process_skill(struct char_data *ch, int skillnum) {
 /**** General special procedures for mobiles. ****/
 /*************************************************/
 
-/* Player owned shops - Created by Jamdog - 22nd February 2007      */
-/* Mob Special Function                                            */
-/* 'Stock-room' must also be created and made into a player house   */
-/* so that only the shop owner can get the piles of gold left there */
-/* Stock room must be 1 VNUM higher than the actual shop            */
-
-/* debug */
-//#define PLAYER_SHOP_DEBUG
-
+/* Player owned shops - Created by Jamdog - 22nd February 2007
+ *   Ported by Zusuk, added flexibility in vnums, debugs, formatting
+ * Mob Special Function: the mob must be in the ATRIUM of the house
+ * Items to be sold will be everything on the ground of the house
+ */
+/* debug */ //#define PLAYER_SHOP_DEBUG
 SPECIAL(player_owned_shops) {
   room_rnum private_room;
   room_vnum house_vnum;
@@ -1233,7 +1230,7 @@ SPECIAL(player_owned_shops) {
     log("player_shops: item bought and paid for");
     
     /* we have to save here to cement the transaction, otherwise a well timed
-       crash or whatnot will duplicate the item */
+       crash or whatnot will duplicate the item -Zusuk */
     save_char(ch, 0);
     Crash_crashsave(ch);
     House_crashsave(house_vnum);
