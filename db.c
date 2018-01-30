@@ -1,5 +1,5 @@
 /**************************************************************************
- *  File: db.c                                              Part of LuminariMUD *
+ *  File: db.c                                         Part of LuminariMUD *
  *  Usage: Loading/saving chars, booting/resetting world, internal funcs.  *
  *                                                                         *
  *  All rights reserved.  See license for complete information.            *
@@ -800,7 +800,7 @@ void destroy_db(void) {
 
     while ((craft = (struct craft_data *) simple_list(global_craft_list)) != NULL) {
       remove_from_list(craft, global_craft_list);
-      free_craft(craft);  
+      free_craft(craft);
     }
   }
   free_list(global_craft_list);
@@ -928,7 +928,7 @@ void boot_db(void) {
 
     /* NewCraft */
     log("Booting crafts.");
-    load_crafts();    
+    load_crafts();
 
     log("Booting clans.");
     load_clans();
@@ -2366,6 +2366,10 @@ char *parse_object(FILE *obj_f, int nr) {
     log("SYSERR: Format error in first numeric line (expecting 13 args, got %d), %s", retval, buf2);
     exit(1);
   }
+
+  /* Set 'bound' value as NOBODY regardless, as object prototypes should NEVER
+   * bind to a player.  This is done in rent files only!  - Jamdog - 8/21/07 */
+  GET_OBJ_BOUND_ID(obj_proto + i) = NOBODY;
 
   /* Object flags checked in check_object(). */
   GET_OBJ_TYPE(obj_proto + i) = t[0];
@@ -4092,7 +4096,7 @@ void free_char(struct char_data *ch) {
       GET_ALIASES(ch) = (GET_ALIASES(ch))->next;
       free_alias(a);
     }
-    
+
     /* Free the action queue */
     if (GET_QUEUE(ch))
       free_action_queue(GET_QUEUE(ch));
@@ -4114,7 +4118,7 @@ void free_char(struct char_data *ch) {
     if (IS_NPC(ch))
       log("SYSERR: Mob %s (#%d) had player_specials allocated!", GET_NAME(ch), GET_MOB_VNUM(ch));
   }
-  
+
   if (!IS_NPC(ch) || (IS_NPC(ch) && GET_MOB_RNUM(ch) == NOBODY)) {
     /* if this is a player, or a non-prototyped non-player, free all */
     if (GET_NAME(ch))
@@ -4169,7 +4173,7 @@ void free_char(struct char_data *ch) {
       free(ECHO_ENTRIES(ch));
     }
   }
-  
+
   while (ch->affected)
     affect_remove(ch, ch->affected);
 
@@ -4177,7 +4181,7 @@ void free_char(struct char_data *ch) {
   if (SCRIPT(ch))
     extract_script(ch, MOB_TRIGGER);
 
-  
+
   /* Mud Events */
   if (ch->events != NULL) {
     if (ch->events->iSize > 0) {
@@ -4200,7 +4204,7 @@ void free_char(struct char_data *ch) {
       free(tmp);
     }
   }
-  
+
   /* spell prep system */
   destroy_spell_prep_queue(ch);
   destroy_innate_magic_queue(ch);
@@ -4454,15 +4458,15 @@ void init_char(struct char_data *ch) {
   /* Create the action queues */
   GET_QUEUE(ch) = create_action_queue();
   GET_ATTACK_QUEUE(ch) = create_attack_queue();
-  
+
   /* create the preparation / collection lists */
   /*
   for (i = 0; i < NUM_CASTERS; i++) {
     SPELL_PREP_QUEUE(ch, i) = create_prep_collection_list(i);
     SPELL_COLLECTION(ch, i) = create_prep_collection_list(i);
   }
-  */
-  
+   */
+
   ch->player.time.birth = time(0);
   ch->player.time.logon = time(0);
   ch->player.time.played = 0;
@@ -4555,7 +4559,7 @@ void init_char(struct char_data *ch) {
   destroy_innate_magic_queue(ch);
   destroy_spell_collection(ch);
   destroy_known_spells(ch);
-  
+
   // make sure no cloudkills, incendiary
   CLOUDKILL(ch) = 0;
   DOOM(ch) = 0;

@@ -1,5 +1,5 @@
 /**************************************************************************
- *  File: dg_variables.c                                    Part of LuminariMUD *
+ *  File: dg_variables.c                               Part of LuminariMUD *
  *  Usage: Contains the functions dealing with variable substitution.      *
  *                                                                         *
  *  $Author: Mark A. Heilpern/egreen/Welcor $                              *
@@ -270,6 +270,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
   char *recho[] = {"mrecho ", "orecho ", "wrecho "};
   /* there is no such thing as mmove, thus the mecho below  */
   char *omove[] = {"mecho ", "omove ", "wmove "};
+  char *bind[] = {"mecho ", "obind ", "wecho "};
 
   *str = '\0';
 
@@ -1309,6 +1310,15 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
             } else
               snprintf(str, slen, "0");
           }
+        case 'b':
+          if (!str_cmp(field, "bound")) {
+            if (GET_OBJ_BOUND_ID(o) != NOBODY) {
+              snprintf(str, slen, "%c%ld", UID_CHAR, (long) GET_OBJ_BOUND_ID(o));
+            } else {
+              *str = '\0';
+            }
+          }
+          break;
         case 'c':
           if (!str_cmp(field, "cost")) {
             if (subfield && *subfield) {

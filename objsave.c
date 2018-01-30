@@ -1,5 +1,5 @@
 /**************************************************************************
- *  File: objsave.c                                         Part of LuminariMUD *
+ *  File: objsave.c                                    Part of LuminariMUD *
  *  Usage: loading/saving player objects for rent and crash-save           *
  *                                                                         *
  *  All rights reserved.  See license for complete information.            *
@@ -64,6 +64,7 @@ int objsave_save_obj_record(struct obj_data *obj, struct char_data *ch, FILE *fp
 }
 
 /* Writes one object record to FILE.  Old name: Obj_to_store() */
+
 /* this function will basically check if an individual object has been modified
  from its default state, if so we write those modifications to file, otherwise
  the vnum is adequate
@@ -79,10 +80,10 @@ int objsave_save_obj_record(struct obj_data *obj, struct char_data *ch, FILE *fp
 int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_vnum house_vnum, FILE *fp, int locate) {
 
 #ifdef OBJSAVE_DB
-  char ins_buf[36767];  /* For MySQL insert. */
-  char line_buf[MAX_STRING_LENGTH+1]; /* For building MySQL insert statement. */
+  char ins_buf[36767]; /* For MySQL insert. */
+  char line_buf[MAX_STRING_LENGTH + 1]; /* For building MySQL insert statement. */
 #endif
-  
+
   int counter2, i = 0;
   struct extra_descr_data *ex_desc;
   char buf1[MAX_STRING_LENGTH + 1];
@@ -105,18 +106,18 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
 
 #ifdef OBJSAVE_DB
   if (ch != NULL) /* GHETTTTTOOOOOOOOO */
-    sprintf(ins_buf, "insert into player_save_objs (name, serialized_obj) values ('%s', '", GET_NAME(ch) );
-  else 
+    sprintf(ins_buf, "insert into player_save_objs (name, serialized_obj) values ('%s', '", GET_NAME(ch));
+  else
     sprintf(ins_buf, "insert into house_data (vnum, serialized_obj) values ('%d', '", house_vnum);
 #endif  
-  
+
   fprintf(fp, "#%d\n", GET_OBJ_VNUM(obj));
 
 #ifdef OBJSAVE_DB
   sprintf(line_buf, "#%d\n", GET_OBJ_VNUM(obj));
   strcat(ins_buf, line_buf);
 #endif
-  
+
   /* autoequip location? */
   if (locate)
     fprintf(fp, "Loc : %d\n", locate);
@@ -147,47 +148,47 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
           GET_OBJ_VAL(obj, 14) != GET_OBJ_VAL(temp, 14) ||
           GET_OBJ_VAL(obj, 15) != GET_OBJ_VAL(temp, 15)) {
     fprintf(fp,
-          "Vals: %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n",
-          GET_OBJ_VAL(obj, 0),
-          GET_OBJ_VAL(obj, 1),
-          GET_OBJ_VAL(obj, 2),
-          GET_OBJ_VAL(obj, 3),
-          GET_OBJ_VAL(obj, 4),
-          GET_OBJ_VAL(obj, 5),
-          GET_OBJ_VAL(obj, 6),
-          GET_OBJ_VAL(obj, 7),
-          GET_OBJ_VAL(obj, 8),
-          GET_OBJ_VAL(obj, 9),
-          GET_OBJ_VAL(obj, 10),
-          GET_OBJ_VAL(obj, 11),
-          GET_OBJ_VAL(obj, 12),
-          GET_OBJ_VAL(obj, 13),
-          GET_OBJ_VAL(obj, 14),
-          GET_OBJ_VAL(obj, 15)
-          );
+            "Vals: %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n",
+            GET_OBJ_VAL(obj, 0),
+            GET_OBJ_VAL(obj, 1),
+            GET_OBJ_VAL(obj, 2),
+            GET_OBJ_VAL(obj, 3),
+            GET_OBJ_VAL(obj, 4),
+            GET_OBJ_VAL(obj, 5),
+            GET_OBJ_VAL(obj, 6),
+            GET_OBJ_VAL(obj, 7),
+            GET_OBJ_VAL(obj, 8),
+            GET_OBJ_VAL(obj, 9),
+            GET_OBJ_VAL(obj, 10),
+            GET_OBJ_VAL(obj, 11),
+            GET_OBJ_VAL(obj, 12),
+            GET_OBJ_VAL(obj, 13),
+            GET_OBJ_VAL(obj, 14),
+            GET_OBJ_VAL(obj, 15)
+            );
 
 #ifdef OBJSAVE_DB
-  sprintf(line_buf, "Vals: %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n",
-          GET_OBJ_VAL(obj, 0),
-          GET_OBJ_VAL(obj, 1),
-          GET_OBJ_VAL(obj, 2),
-          GET_OBJ_VAL(obj, 3),
-          GET_OBJ_VAL(obj, 4),
-          GET_OBJ_VAL(obj, 5),
-          GET_OBJ_VAL(obj, 6),
-          GET_OBJ_VAL(obj, 7),
-          GET_OBJ_VAL(obj, 8),
-          GET_OBJ_VAL(obj, 9),
-          GET_OBJ_VAL(obj, 10),
-          GET_OBJ_VAL(obj, 11),
-          GET_OBJ_VAL(obj, 12),
-          GET_OBJ_VAL(obj, 13),
-          GET_OBJ_VAL(obj, 14),
-          GET_OBJ_VAL(obj, 15)
-          );
-  strcat(ins_buf, line_buf);
+    sprintf(line_buf, "Vals: %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n",
+            GET_OBJ_VAL(obj, 0),
+            GET_OBJ_VAL(obj, 1),
+            GET_OBJ_VAL(obj, 2),
+            GET_OBJ_VAL(obj, 3),
+            GET_OBJ_VAL(obj, 4),
+            GET_OBJ_VAL(obj, 5),
+            GET_OBJ_VAL(obj, 6),
+            GET_OBJ_VAL(obj, 7),
+            GET_OBJ_VAL(obj, 8),
+            GET_OBJ_VAL(obj, 9),
+            GET_OBJ_VAL(obj, 10),
+            GET_OBJ_VAL(obj, 11),
+            GET_OBJ_VAL(obj, 12),
+            GET_OBJ_VAL(obj, 13),
+            GET_OBJ_VAL(obj, 14),
+            GET_OBJ_VAL(obj, 15)
+            );
+    strcat(ins_buf, line_buf);
 #endif
-    
+
   }
   if (GET_OBJ_EXTRA(obj) != GET_OBJ_EXTRA(temp)) {
     fprintf(fp, "Flag: %d %d %d %d\n", GET_OBJ_EXTRA(obj)[0], GET_OBJ_EXTRA(obj)[1], GET_OBJ_EXTRA(obj)[2], GET_OBJ_EXTRA(obj)[3]);
@@ -196,7 +197,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
     strcat(ins_buf, line_buf);
 #endif    
   }
-  
+
 #define TEST_OBJS(obj1, obj2, field) ((!obj1->field || !obj2->field || \
                                       strcmp(obj1->field, obj2->field)))
 #define TEST_OBJN(field) (obj->obj_flags.field != temp->obj_flags.field)
@@ -215,7 +216,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
     strcat(ins_buf, line_buf);
 #endif    
   }
-  
+
   /* These two could be a pain on the read... we'll see... */
   if (TEST_OBJS(obj, temp, description)) {
     fprintf(fp, "Desc: %s\n", obj->description ? obj->description : "Undefined");
@@ -225,7 +226,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
 #endif        
   }
   /* Only even try to process this if an action desc exists */
-  if (obj->action_description || temp->action_description) 
+  if (obj->action_description || temp->action_description)
     if (TEST_OBJS(obj, temp, action_description)) {
       fprintf(fp, "ADes:\n%s~\n", buf1);
 #ifdef OBJSAVE_DB
@@ -285,21 +286,28 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
   if (TEST_OBJN(cost_per_day)) {
     fprintf(fp, "Rent: %d\n", GET_OBJ_RENT(obj));
 #ifdef OBJSAVE_DB
-    sprintf(line_buf,"Rent: %d\n", GET_OBJ_RENT(obj));
+    sprintf(line_buf, "Rent: %d\n", GET_OBJ_RENT(obj));
+    strcat(ins_buf, line_buf);
+#endif             
+  }
+  if (TEST_OBJN(bound_id)) {
+    fprintf(fp, "Bind: %d\n", GET_OBJ_BOUND_ID(obj));
+#ifdef OBJSAVE_DB
+    sprintf(line_buf, "Bind: %d\n", GET_OBJ_BOUND_ID(obj));
     strcat(ins_buf, line_buf);
 #endif             
   }
   if (TEST_OBJN(bitvector)) {
     fprintf(fp, "Perm: %d %d %d %d\n", GET_OBJ_PERM(obj)[0], GET_OBJ_PERM(obj)[1], GET_OBJ_PERM(obj)[2], GET_OBJ_PERM(obj)[3]);
 #ifdef OBJSAVE_DB
-    sprintf(line_buf,"Perm: %d %d %d %d\n", GET_OBJ_PERM(obj)[0], GET_OBJ_PERM(obj)[1], GET_OBJ_PERM(obj)[2], GET_OBJ_PERM(obj)[3]);
+    sprintf(line_buf, "Perm: %d %d %d %d\n", GET_OBJ_PERM(obj)[0], GET_OBJ_PERM(obj)[1], GET_OBJ_PERM(obj)[2], GET_OBJ_PERM(obj)[3]);
     strcat(ins_buf, line_buf);
 #endif                 
   }
   if (TEST_OBJN(wear_flags)) {
     fprintf(fp, "Wear: %d %d %d %d\n", GET_OBJ_WEAR(obj)[0], GET_OBJ_WEAR(obj)[1], GET_OBJ_WEAR(obj)[2], GET_OBJ_WEAR(obj)[3]);
 #ifdef OBJSAVE_DB
-    sprintf(line_buf,"Wear: %d %d %d %d\n", GET_OBJ_WEAR(obj)[0], GET_OBJ_WEAR(obj)[1], GET_OBJ_WEAR(obj)[2], GET_OBJ_WEAR(obj)[3]);
+    sprintf(line_buf, "Wear: %d %d %d %d\n", GET_OBJ_WEAR(obj)[0], GET_OBJ_WEAR(obj)[1], GET_OBJ_WEAR(obj)[2], GET_OBJ_WEAR(obj)[3]);
     strcat(ins_buf, line_buf);
 #endif         
   }
@@ -308,16 +316,16 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
   for (counter2 = 0; counter2 < MAX_OBJ_AFFECT; counter2++)
     if (obj->affected[counter2].modifier != temp->affected[counter2].modifier) {
       fprintf(fp, "Aff : %d %d %d\n",
-            counter2,
-            obj->affected[counter2].location,
-            obj->affected[counter2].modifier
-            );
+              counter2,
+              obj->affected[counter2].location,
+              obj->affected[counter2].modifier
+              );
 #ifdef OBJSAVE_DB
-      sprintf(line_buf,"Aff : %d %d %d\n",
-            counter2,
-            obj->affected[counter2].location,
-            obj->affected[counter2].modifier
-            );
+      sprintf(line_buf, "Aff : %d %d %d\n",
+              counter2,
+              obj->affected[counter2].location,
+              obj->affected[counter2].modifier
+              );
       strcat(ins_buf, line_buf);
 #endif         
     }
@@ -343,13 +351,13 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
                 buf1
                 );
 #ifdef OBJSAVE_DB
-      sprintf(line_buf,"EDes:\n"
+        sprintf(line_buf, "EDes:\n"
                 "%s~\n"
                 "%s~\n",
                 ex_desc->keyword,
                 buf1
                 );
-      strcat(ins_buf, line_buf);
+        strcat(ins_buf, line_buf);
 #endif         
       }
     }
@@ -360,20 +368,20 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
     for (i = 0; i < SPELLBOOK_SIZE; i++) {
       fprintf(fp, "Spbk: %d %d\n", obj->sbinfo[i].spellname, obj->sbinfo[i].pages);
 #ifdef OBJSAVE_DB
-      sprintf(line_buf,"Spbk: %d %d\n", obj->sbinfo[i].spellname, obj->sbinfo[i].pages);
+      sprintf(line_buf, "Spbk: %d %d\n", obj->sbinfo[i].spellname, obj->sbinfo[i].pages);
       strcat(ins_buf, line_buf);
 #endif           
     }
   }
-  
+
   /*** end checks for object modifications ****/
 
   fprintf(fp, "\n");
-  
+
 #ifdef OBJSAVE_DB
   sprintf(line_buf, "');");
   strcat(ins_buf, line_buf);
-  if (ch != NULL) { /* GHETTTTTTTOOOOOOOOO */    
+  if (ch != NULL) { /* GHETTTTTTTOOOOOOOOO */
     if (mysql_query(conn, ins_buf)) {
       log("SYSERR: Unable to INSERT into player_save_objs: %s", mysql_error(conn));
       return 1;
@@ -385,7 +393,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
     }
   }
 #endif   
-  
+
   extract_obj(temp);
 
   return 1;
@@ -512,17 +520,17 @@ static void auto_equip(struct char_data *ch, struct obj_data *obj, int location)
         location = LOC_INVENTORY;
     }
 
-//    mudlog(BRF, LVL_IMMORT, TRUE, "DEBUG: autoeq for %s: %s worn in position %d.", GET_NAME(ch),obj->name, location);
+    //    mudlog(BRF, LVL_IMMORT, TRUE, "DEBUG: autoeq for %s: %s worn in position %d.", GET_NAME(ch),obj->name, location);
 
     if (location > 0) { /* Wearable. */
       if (!GET_EQ(ch, j)) {
         /* Check the characters's alignment to prevent them from being zapped
          * through the auto-equipping. */
-//        if (invalid_align(ch, obj) || invalid_class(ch, obj) || invalid_prof(ch, obj))
+        //        if (invalid_align(ch, obj) || invalid_class(ch, obj) || invalid_prof(ch, obj))
 
-//          location = LOC_INVENTORY;
-//        else
-          equip_char(ch, obj, j);
+        //          location = LOC_INVENTORY;
+        //        else
+        equip_char(ch, obj, j);
       } else { /* Oops, saved a player with double equipment? */
         mudlog(BRF, LVL_IMMORT, TRUE,
                 "SYSERR: autoeq: '%s' already equipped in position %d.", GET_NAME(ch), location);
@@ -657,7 +665,7 @@ void Crash_listrent(struct char_data *ch, char *name) {
   obj_save_data *loaded, *current;
   int rentcode, timed, netcost, gold, account, nitems, numread, len;
   //bool using_db = FALSE;
-  
+
   if (!get_filename(filename, sizeof (filename), CRASH_FILE, name))
     return;
 
@@ -843,19 +851,19 @@ void Crash_crashsave(struct char_data *ch) {
   char del_buf[2048];
   if (mysql_query(conn, "start transaction;")) {
     log("SYSERR: Unable to start transaction for saving of player object data: %s",
-            mysql_error(conn));    
-    return ;
-  }  
+            mysql_error(conn));
+    return;
+  }
   /* Delete existing save data.  In the future may just flag these for deletion. */
   sprintf(del_buf, "delete from player_save_objs where name = '%s';",
           GET_NAME(ch));
   if (mysql_query(conn, del_buf)) {
     log("SYSERR: Unable to delete player object save data: %s",
-            mysql_error(conn));    
-    return ;
-  }  
+            mysql_error(conn));
+    return;
+  }
 #endif  
-  
+
   /* write to file rentcode: rentcode, time, cost for renting, gold, bank-gold */
   if (!objsave_write_rentcode(fp, RENT_CRASH, 0, ch))
     return;
@@ -876,19 +884,19 @@ void Crash_crashsave(struct char_data *ch) {
     fclose(fp);
     return;
   }
-  
+
   /* makes sure containers have proper weight for carrying objects with weight value */
   Crash_restore_weight(ch->carrying);
 
   fprintf(fp, "$~\n");
   fclose(fp);
-  
+
 #ifdef OBJSAVE_DB
   if (mysql_query(conn, "commit;")) {
     log("SYSERR: Unable to commit transaction for saving of player object data: %s",
-            mysql_error(conn));    
-    return ;
-  }  
+            mysql_error(conn));
+    return;
+  }
 #endif  
   REMOVE_BIT_AR(PLR_FLAGS(ch), PLR_CRASH);
 }
@@ -993,19 +1001,19 @@ void Crash_rentsave(struct char_data *ch, int cost) {
   char del_buf[2048];
   if (mysql_query(conn, "start transaction;")) {
     log("SYSERR: Unable to start transaction for saving of player object data: %s",
-            mysql_error(conn));    
-    return ;
-  }  
+            mysql_error(conn));
+    return;
+  }
   /* Delete existing save data.  In the future may just flag these for deletion. */
   sprintf(del_buf, "delete from player_save_objs where name = '%s';",
           GET_NAME(ch));
   if (mysql_query(conn, del_buf)) {
     log("SYSERR: Unable to delete player object save data: %s",
-            mysql_error(conn));    
-    return ;
-  }  
+            mysql_error(conn));
+    return;
+  }
 #endif
-  
+
   /* get rid of all !rent items */
   Crash_extract_norent_eq(ch);
   Crash_extract_norents(ch->carrying);
@@ -1029,22 +1037,22 @@ void Crash_rentsave(struct char_data *ch, int cost) {
 
     }
   }
-  
+
   /* inventory: recursive save function (like bags) */
   if (!Crash_save(ch->carrying, ch, fp, 0)) {
     fclose(fp);
     return;
   }
-  
+
   /* file terminating char and close */
   fprintf(fp, "$~\n");
   fclose(fp);
-  
+
 #ifdef OBJSAVE_DB
   if (mysql_query(conn, "commit;")) {
-    log("SYSERR: Unable to commit transaction for saving of player object data: %s", mysql_error(conn));    
-    return ;
-  }  
+    log("SYSERR: Unable to commit transaction for saving of player object data: %s", mysql_error(conn));
+    return;
+  }
 #endif
 
   /* recursively remove objects and their contents */
@@ -1053,25 +1061,25 @@ void Crash_rentsave(struct char_data *ch, int cost) {
 
 /* write to file rentcode: rentcode, time, cost for renting, gold, bank-gold */
 static int objsave_write_rentcode(FILE *fl, int rentcode, int cost_per_day, struct char_data *ch) {
-  
+
 #ifdef OBJSAVE_DB
   char buf[2048]; /* For MySQL insert. */
-  
+
   sprintf(buf, "update player_data set obj_save_header = '%d %ld %d %d %d %d'"
-               "where name = '%s';",
+          "where name = '%s';",
           rentcode,
           (long) time(0),
           cost_per_day,
           GET_GOLD(ch),
           GET_BANK_GOLD(ch),
           0,
-          GET_NAME(ch));  
+          GET_NAME(ch));
   if (mysql_query(conn, buf)) {
-    log("SYSERR: Unable to INSERT obj_save_header into PLAYER_DATA: %s", mysql_error(conn));    
+    log("SYSERR: Unable to INSERT obj_save_header into PLAYER_DATA: %s", mysql_error(conn));
     return FALSE;
-  }  
+  }
 #endif
-  
+
   if (fprintf(fl, "%d %ld %d %d %d %d\r\n",
           rentcode,
           (long) time(0),
@@ -1117,18 +1125,18 @@ static void Crash_cryosave(struct char_data *ch, int cost) {
         fclose(fp);
         return;
       }
-      /* makes sure containers have proper weight for carrying objects with weight value */      
+      /* makes sure containers have proper weight for carrying objects with weight value */
       Crash_restore_weight(GET_EQ(ch, j));
       /* recursively remove objects and their contents */
       Crash_extract_objs(GET_EQ(ch, j));
     }
-  
+
   /* inventory: recursive save function (like bags) */
   if (!Crash_save(ch->carrying, ch, fp, 0)) {
     fclose(fp);
     return;
   }
-  
+
   fprintf(fp, "$~\n");
   fclose(fp);
 
@@ -1562,8 +1570,8 @@ obj_save_data *objsave_parse_objects(FILE *fl) {
           for (i = 0; i < NUM_OBJ_VAL_POSITIONS; i++)
             t[i] = 0;
           sscanf(line, "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d",
-            &t[0], &t[1], &t[2], &t[3], &t[4], &t[5], &t[6], &t[7],
-            &t[8], &t[9], &t[10], &t[11], &t[12], &t[13], &t[14], &t[15]);
+                  &t[0], &t[1], &t[2], &t[3], &t[4], &t[5], &t[6], &t[7],
+                  &t[8], &t[9], &t[10], &t[11], &t[12], &t[13], &t[14], &t[15]);
           for (i = 0; i < NUM_OBJ_VAL_POSITIONS; i++)
             GET_OBJ_VAL(temp, i) = t[i];
         }
@@ -1591,21 +1599,21 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum) {
   char buf[1024];
   char *serialized_obj;
   int locate;
-  
-  char** lines;  /* Storage for tokenized serialization */
-  char** line;     /* Token iterator */
-  
+
+  char** lines; /* Storage for tokenized serialization */
+  char** line; /* Token iterator */
+
   if (house_vnum == NOWHERE) {
     sprintf(buf, "SELECT   serialized_obj "
-                 "FROM     player_save_objs "
-                 "WHERE    name = '%s' "
-                 "ORDER BY creation_date ASC;", name);
+            "FROM     player_save_objs "
+            "WHERE    name = '%s' "
+            "ORDER BY creation_date ASC;", name);
 
     if (mysql_query(conn, buf)) {
       log("SYSERR: Unable to SELECT from player_save_objs: %s", mysql_error(conn));
       exit(1);
-    } 
-  
+    }
+
     if (!(result = mysql_store_result(conn))) {
       log("SYSERR: Unable to SELECT from player_save_objs: %s", mysql_error(conn));
       exit(1);
@@ -1613,41 +1621,41 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum) {
   } else {
     /* house_vnum was given, so load the house data instead. */
     sprintf(buf, "SELECT   serialized_obj "
-                 "FROM     house_data "
-                 "WHERE    vnum = '%d' "
-                 "ORDER BY creation_date ASC;", house_vnum);
+            "FROM     house_data "
+            "WHERE    vnum = '%d' "
+            "ORDER BY creation_date ASC;", house_vnum);
 
     if (mysql_query(conn, buf)) {
       log("SYSERR: Unable to SELECT from house_data: %s", mysql_error(conn));
       exit(1);
-    } 
-  
+    }
+
     if (!(result = mysql_store_result(conn))) {
       log("SYSERR: Unable to SELECT from house_data: %s", mysql_error(conn));
       exit(1);
     }
   }
-  
+
   head = NULL;
   current = NULL;
-  
+
   /* Loop through the rows, each row is a serialized object.
    * For each row take the serialized object and loop through the lines
    * processing each one.
    */
-  while ((row = mysql_fetch_row(result))) { 
+  while ((row = mysql_fetch_row(result))) {
     char tag[6];
     int num;
-    
+
     /* Get the data from the row structure. */
     serialized_obj = strdup(row[0]);
-    
+
     lines = tokenize(serialized_obj, "\n");
-    
+
     locate = 0;
     temp = NULL;
-    
-    for(line=lines; line && *line; ++line) {     
+
+    for (line = lines; line && *line; ++line) {
       if (**line == '#') {
         /* check for false alarm. */
         if (sscanf(*line, "#%d", &nr) == 1) {
@@ -1675,22 +1683,22 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum) {
           } else {
             log("Nonexistent object %d found in rent file.", nr);
           }
-        } 
-       
+        }
+
         /* Reset the counter for spellbooks. */
         j = 0;
 
         /* go read next line - nothing more to see here. */
         continue;
-      }      
-      
+      }
+
       /* If "temp" is NULL, we are most likely progressing through
        * a non-existant object, so just keep continuing till we find
        * the next object */
       if (temp == NULL) {
         continue;
       }
-      
+
       tag_argument(*line, tag);
       num = atoi(*line);
       /* we need an incrementor here */
@@ -1787,16 +1795,16 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum) {
           else if (!strcmp(tag, "Spbk")) {
             sscanf(*line, "%d %d", &t[0], &t[1]);
             if (j < SPELLBOOK_SIZE) {
-  
+
               if (!temp->sbinfo) {
                 CREATE(temp->sbinfo, struct obj_spellbook_spell, SPELLBOOK_SIZE);
                 memset((char *) temp->sbinfo, 0, SPELLBOOK_SIZE * sizeof (struct obj_spellbook_spell));
               }
-  
+
               temp->sbinfo[j].spellname = t[0];
               temp->sbinfo[j].pages = t[1];
               j++;
-            }   
+            }
           }
         case 'T':
           if (!strcmp(tag, "Type"))
@@ -1818,28 +1826,28 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum) {
             for (i = 0; i < NUM_OBJ_VAL_POSITIONS; i++)
               t[i] = 0;
             sscanf(*line, "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d",
-              &t[0], &t[1], &t[2], &t[3], &t[4], &t[5], &t[6], &t[7],
-              &t[8], &t[9], &t[10], &t[11], &t[12], &t[13], &t[14], &t[15]);
+                    &t[0], &t[1], &t[2], &t[3], &t[4], &t[5], &t[6], &t[7],
+                    &t[8], &t[9], &t[10], &t[11], &t[12], &t[13], &t[14], &t[15]);
             for (i = 0; i < NUM_OBJ_VAL_POSITIONS; i++)
               GET_OBJ_VAL(temp, i) = t[i];
           }
           break;
         default:
           log("Unknown tag in saved obj: %s", tag);
-      }      
-          
+      }
+
       free(*line);
-    }          
-    
+    }
+
     /* So now if temp is not null, we have an object. 
      * Create space for it and add it to the list.  */
     if (temp) {
-      
+
       CREATE(tempsave, obj_save_data, 1);
       tempsave->obj = temp;
       tempsave->locate = locate;
-      
-      if (current == NULL) {                       
+
+      if (current == NULL) {
         head = tempsave;
         current = head;
       } else {
@@ -1847,12 +1855,12 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum) {
         current = current->next;
       }
       temp = NULL;
-      
+
     }
-    
+
     free(serialized_obj); /* Done with this! */
   }
-  
+
   mysql_free_result(result);
   return head;
 }
@@ -1870,13 +1878,13 @@ static int Crash_load_objs(struct char_data *ch) {
   obj_save_data *loaded, *current;
 
   bool using_db = FALSE; /* Needed outside the ifdefined */
-  
+
 #ifdef OBJSAVE_DB  
   MYSQL_RES *result;
   MYSQL_ROW row;
   char sql_buf[1024];
 #endif
-  
+
   if (!get_filename(filename, sizeof (filename), CRASH_FILE, GET_NAME(ch)))
     return 1;
 
@@ -1884,16 +1892,16 @@ static int Crash_load_objs(struct char_data *ch) {
     cont_row[i] = NULL;
 
 #ifdef OBJSAVE_DB
-  
-  log("INFO: Loading saved object data from db for: %s", GET_NAME(ch));    
+
+  log("INFO: Loading saved object data from db for: %s", GET_NAME(ch));
 
   sprintf(sql_buf, "SELECT obj_save_header from player_data where name = '%s';", GET_NAME(ch));
 
   if (mysql_query(conn, sql_buf)) {
     log("SYSERR: Unable to get obj_save_header from player_data: %s", mysql_error(conn));
     exit(1);
-  } 
-  
+  }
+
   if (!(result = mysql_store_result(conn))) {
     log("SYSERR: Unable to obj_save_header from player_data: %s", mysql_error(conn));
     exit(1);
@@ -1902,22 +1910,22 @@ static int Crash_load_objs(struct char_data *ch) {
   if (mysql_num_rows(result) > 1) {
     log("SYSERR: Too many rows returned on SELECT from player_data for: %s", GET_NAME(ch));
   }
-  
+
   row = mysql_fetch_row(result);
-  
+
   if (row && (strcmp(row[0], "") != 0)) {
     /* This player has saved objects in the database */
     log("INFO: Object save header found for: %s", GET_NAME(ch));
     sscanf(row[0], "%d %d %d %d %d %d", &rentcode, &timed,
-          &netcost, &gold, &account, &nitems);
+            &netcost, &gold, &account, &nitems);
     using_db = TRUE;
   } else {
     /* This player has NO saved objects in the database */
     log("INFO: Object save header not found, using file for: %s", GET_NAME(ch));
     using_db = FALSE;
   }
-  mysql_free_result(result);   
-  
+  mysql_free_result(result);
+
 #endif  
 
   if (!using_db && !(fl = fopen(filename, "r"))) {
@@ -1931,7 +1939,7 @@ static int Crash_load_objs(struct char_data *ch) {
     mudlog(NRM, MAX(LVL_IMMORT, GET_INVIS_LEV(ch)), TRUE, "%s entering game with no equipment.", GET_NAME(ch));
     return 1;
   }
-  
+
   if (!using_db && get_line(fl, line))
     sscanf(line, "%d %d %d %d %d %d", &rentcode, &timed,
           &netcost, &gold, &account, &nitems);
@@ -1978,19 +1986,19 @@ static int Crash_load_objs(struct char_data *ch) {
       break;
   }
   /* Load from the db if the header information is found in the player_data table. */
-  if (using_db)  {
+  if (using_db) {
     loaded = objsave_parse_objects_db(GET_NAME(ch), NOWHERE);
-   
+
     if (loaded == NULL) {
-    /* no equipment stored in the database. */
-    mudlog(NRM, MAX(LVL_IMMORT, GET_INVIS_LEV(ch)), TRUE, "%s entering game with no equipment (db).", GET_NAME(ch));
-    return 1;
+      /* no equipment stored in the database. */
+      mudlog(NRM, MAX(LVL_IMMORT, GET_INVIS_LEV(ch)), TRUE, "%s entering game with no equipment (db).", GET_NAME(ch));
+      return 1;
     }
-  } else    
+  } else
     loaded = objsave_parse_objects(fl);
-  
-  
-    
+
+
+
   for (current = loaded; current != NULL; current = current->next)
     num_objs += handle_obj(current->obj, ch, current->locate, cont_row);
 
@@ -2005,7 +2013,7 @@ static int Crash_load_objs(struct char_data *ch) {
   /* Little hoarding check. -gg 3/1/98 */
   mudlog(NRM, MAX(LVL_STAFF, GET_INVIS_LEV(ch)), TRUE, "%s (level %d) has %d %s (max %d).",
           GET_NAME(ch), GET_LEVEL(ch), num_objs, num_objs > 1 ? "objects" : "object", CONFIG_MAX_OBJ_SAVE);
-  
+
   if (!using_db)
     fclose(fl);
 

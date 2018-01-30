@@ -1,5 +1,5 @@
 /**************************************************************************
- *  File: oedit.c                                           Part of LuminariMUD *
+ *  File: oedit.c                                      Part of LuminariMUD *
  *  Usage: Oasis OLC - Objects.                                            *
  *                                                                         *
  * By Levork. Copyright 1996 Harvey Gilpin. 1997-2001 George Greer.        *
@@ -201,6 +201,7 @@ static void oedit_setup_new(struct descriptor_data *d) {
   OLC_OBJ(d)->description = strdup("An unfinished object is lying here.");
   OLC_OBJ(d)->short_description = strdup("an unfinished object");
   SET_BIT_AR(GET_OBJ_WEAR(OLC_OBJ(d)), ITEM_WEAR_TAKE);
+  GET_OBJ_BOUND_ID(OLC_OBJ(d)) = NOBODY;  
   OLC_VAL(d) = 0;
   OLC_ITEM_TYPE(d) = OBJ_TRIGGER;
   GET_OBJ_MATERIAL(OLC_OBJ(d)) = 0;

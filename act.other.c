@@ -3992,6 +3992,28 @@ ACMD(do_use) {
       break;
   }
 
+  if ((GET_OBJ_BOUND_ID(mag_item) != NOBODY) && (GET_OBJ_BOUND_ID(mag_item) != GET_IDNUM(ch))) {
+    if (get_name_by_id(GET_OBJ_BOUND_ID(mag_item)) != NULL) {
+      switch (subcmd) {
+        case SCMD_QUAFF:
+          send_to_char(ch, "That potion belongs to %s, go quaff your own!\r\n", CAP(get_name_by_id(GET_OBJ_BOUND_ID(mag_item))));
+          break;
+
+        case SCMD_RECITE:
+          send_to_char(ch, "That scroll belongs to %s, go recite your own!\r\n", CAP(get_name_by_id(GET_OBJ_BOUND_ID(mag_item))));
+          break;
+
+        case SCMD_USE:
+          if (GET_OBJ_TYPE(mag_item) == ITEM_WAND)
+            send_to_char(ch, "That wand belongs to %s, go wave your own about!\r\n", CAP(get_name_by_id(GET_OBJ_BOUND_ID(mag_item))));
+          else
+            send_to_char(ch, "That staff belongs to %s, go wave your own about!\r\n", CAP(get_name_by_id(GET_OBJ_BOUND_ID(mag_item))));
+          break;
+      }
+      return;
+    }
+  }
+  
   /* Check if we can actually use the item in question... */
   switch (subcmd) {
 

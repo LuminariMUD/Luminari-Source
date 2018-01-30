@@ -162,6 +162,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "blessedtouch", "blessedtouch", POS_STANDING, do_blessedtouch, 0, 0, FALSE, ACTION_STANDARD, {6, 0}},
   { "battlerage", "battlerage", POS_STANDING, do_battlerage, 0, 0, FALSE, ACTION_STANDARD, {6, 0}},
   { "bazaar", "bazaar", POS_STANDING, do_not_here, 0, 0, FALSE, ACTION_NONE, {0, 0}},
+  { "bind", "bind", POS_DEAD, do_bind, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}},
 
   { "cast", "c", POS_SITTING, do_cast, 1, 0, FALSE, ACTION_MOVE, {0, 6}},
   { "cedit", "cedit", POS_DEAD, do_oasis_cedit, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}},
@@ -558,6 +559,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "users", "users", POS_DEAD, do_users, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}},
   { "utter", "ut", POS_RECLINING, do_utter, 0, 0, FALSE, ACTION_NONE, {0, 0}},
   { "unadjure", "unadjure", POS_RECLINING, do_consign_to_oblivion, 0, SCMD_UNADJURE, FALSE, ACTION_NONE, {0, 0}},
+  { "unbind", "unbind", POS_DEAD, do_unbind, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}},
 
   { "value", "val", POS_STANDING, do_not_here, 0, 0, FALSE, ACTION_NONE, {0, 0}},
   { "version", "ver", POS_DEAD, do_gen_ps, 0, SCMD_VERSION, TRUE, ACTION_NONE, {0, 0}},

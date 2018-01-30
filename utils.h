@@ -1,5 +1,5 @@
 /**
- * @file utils.h
+ * @file utils.h                              Part of LuminariMUD
  * Utility macros and prototypes of utility functions.
  *
  * Part of the core tbaMUD source code distribution, which is a derivative
@@ -1366,7 +1366,7 @@ spellnum == SPELL_EPIC_WARDING )
 
 /*#define SENDOK(ch)    (((ch)->desc || SCRIPT_CHECK((ch), MTRIG_ACT)) && \
                       (to_sleeping || AWAKE(ch)))
-*/
+ */
 /* deaf flag maybe isn't a good idea to have here */
 /*
 #define SENDOK(ch)	(((ch)->desc || SCRIPT_CHECK((ch), MTRIG_ACT)) && \
@@ -1447,6 +1447,8 @@ spellnum == SPELL_EPIC_WARDING )
 #define GET_OBJ_SPEC(obj)	(VALID_OBJ_RNUM(obj) ? \
 				obj_index[GET_OBJ_RNUM(obj)].func : NULL)
 
+/* bound objects - only usable by a designated player */
+#define GET_OBJ_BOUND_ID(obj)   ((obj)->obj_flags.bound_id)
 
 /** Defines if an obj is a corpse. */
 #define IS_CORPSE(obj)		(GET_OBJ_TYPE(obj) == ITEM_CONTAINER && \
