@@ -11,6 +11,7 @@
 #include <mysql/mysql.h> /* System headerfile for mysql. */
 
 extern MYSQL *conn;
+extern struct path_data;
 
 void connect_to_mysql();
 void disconnect_from_mysql();
