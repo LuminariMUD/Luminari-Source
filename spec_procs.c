@@ -1115,6 +1115,7 @@ void process_skill(struct char_data *ch, int skillnum) {
 
 SPECIAL(player_owned_shops) {
   room_rnum private_room;
+  room_vnum house_vnum;
   struct obj_data *i, *j;
   int num = 1, num_items = 0, hse;
   char *temp, shop_owner[MAX_NAME_LENGTH + 1], buf[MAX_STRING_LENGTH];
@@ -1148,6 +1149,8 @@ SPECIAL(player_owned_shops) {
     sprintf(shop_owner, "Invalid Shop - Tell an Imp");
 
   private_room = real_room(house_control[hse].vnum);
+  house_vnum = house_control[hse].vnum;
+  
 #ifdef PLAYER_SHOP_DEBUG
   send_to_char(ch, "House VNum %d\r\n", house_control[hse].vnum);
 #endif
@@ -1228,7 +1231,13 @@ SPECIAL(player_owned_shops) {
     send_to_char(ch, "%s thanks you for your business, 'please come again!'\r\n",
             shop_owner);
     log("player_shops: item bought and paid for");
-
+    
+    /* we have to save here to cement the transaction, otherwise a well timed
+       crash or whatnot will duplicate the item */
+    save_char(ch, 0);
+    Crash_crashsave(ch);
+    House_crashsave(house_vnum);
+  
     return (TRUE);
   }
 
