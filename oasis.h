@@ -113,6 +113,7 @@ struct oasis_olc_data {
   
   /* Wilderness editing */
   struct region_data *region; /* Used for 'regedit' */
+  struct path_data *path; /* Used for 'pathedit' */
 
   /* homeland-port */
   struct quest_entry *hlquest;

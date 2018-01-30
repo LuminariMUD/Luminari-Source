@@ -1117,7 +1117,7 @@ void save_noise_to_file(int idx, const char* fn, int xsize, int ysize, int zoom)
 
 }
 
-void generate_river(struct char_data* ch, int dir) {
+void generate_river(struct char_data* ch, int dir, region_vnum vnum, char *name) {
   /* Start at your current wilderness location, then create a river that meanders in direction 'dir' */
   int x, y, vtx, i;
   /* int elevation; */
@@ -1131,6 +1131,9 @@ void generate_river(struct char_data* ch, int dir) {
   int move_dir = -1;
   int new_move_dir = -1;
 
+  /* Path structure. */
+  struct path_data river;
+
   if(IN_ROOM(ch) != NOWHERE && !IS_WILDERNESS_VNUM(world[IN_ROOM(ch)].number)) {
     send_to_char(ch, "This command is only valid in the wilderness.");
     return;
@@ -1139,14 +1142,6 @@ void generate_river(struct char_data* ch, int dir) {
   /* Now we are sure we are in the wilderness.  Get our coords. */
   x = world[IN_ROOM(ch)].coords[X_COORD];
   y = world[IN_ROOM(ch)].coords[Y_COORD];
-
-  /* Init the path */
-  //path_table[i].vnum         = atoi(row[0]);
-  //path_table[i].rnum         = i;
-  
-  //path_table[i].zone         = real_zone(atoi(row[1]));
-  //path_table[i].name         = strdup(row[2]);
-  //path_table[i].path_type    = atoi(row[3]);
   
   num_vertices = 0;
   vtx = 0;
@@ -1298,13 +1293,35 @@ void generate_river(struct char_data* ch, int dir) {
     }
     kd_res_free(set);  
   }  
+ 
+  /* Create the structure for the path */
+  river.vnum = vnum;
+  river.zone = zone_table[world[IN_ROOM(i->character)].zone].zone_vnum;
+  river.name = strdup(name);
+  river.path_type = 5; /* Corresponds to river glyphs in the db */
+  river.path_props = PATH_STREAM;
+  river.num_vertices = num_vertices;
+  
+  CREATE(river.vertices, struct vertex, num_vertices);
+  
+  for (vtx = 0; vtx < num_vertices; vtx++) {
+    river.vertices[vtx].x = vertices[vtx].x;
+    river.vertices[vtx].y = vertices[vtx].y;
+  }
+
+  insert_path(&river);
+
+  /* Done with this. */
+  free(river.name);
+  free(river.vertices);
 
   /* Now display the vertices to the player */  
-  sprintf(buf, "River Path: ");
+  /*sprintf(buf, "River Path: ");
   for (vtx = 0; vtx < num_vertices; vtx++) {
     char buf2[100];
     sprintf(buf2, "%d %d,", vertices[vtx].x, vertices[vtx].y);
     strcat(buf, buf2);
   }
   send_to_char(ch, buf);  
+  */
 }

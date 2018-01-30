@@ -545,6 +545,47 @@ void load_paths() {
   mysql_free_result(result);
 }
 
+/* Insert a path into the database. */
+void insert_path(struct path_data *path) {
+  /* path_data* path_table */
+
+  int i = 0, vtx = 0, j = 0;
+  char linestring[MAX_STRING_LENGTH];
+
+  sprintf(linestring, "ST_GeomFromText('LINESTRING(");
+  
+  for (vtx = 0, vtx < path->num_vertices, vtx++){
+    char buf[100];
+    sprintf(buf, "%d %d%s", path->vertices[vtx].x, path->vertices[vtx].y, (vtx + 1 = path->num_vertices ? ")')", ",");
+    strcat(linestring, buf);
+  }
+
+  log("INFO: Inserting Path [%s] '%s' into MySQL:", path->vnum, path->name);
+  sprintf(buf, "insert into path_data "
+                      "vnum, "
+                      "zone_vnum, " 
+                      "path_type, "
+                      "name, "
+                      "path_props, "
+                      "path_linestring) "
+                      "VALUES ("
+                      "%s, "
+                      "%s, "
+                      "%s, "
+                      "'%s', "
+                      "%s, "
+                      "%s);",path->vnum, zone_table[path->zone].zone_vnum, path->path_type, path->name, path->path_props, linestring);
+
+  log("QUERY: %s",buf);
+
+  /* Check the connection, reconnect if necessary. */
+  mysql_ping(conn);
+
+  if (mysql_query(conn, buf)) {
+    log("SYSERR: Unable to INSERT into path_data: %s", mysql_error(conn));
+  } 
+}
+
 struct path_list* get_enclosing_paths(zone_rnum zone, int x, int y) {
   MYSQL_RES *result;
   MYSQL_ROW row;
