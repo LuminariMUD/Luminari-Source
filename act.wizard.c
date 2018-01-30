@@ -6848,7 +6848,7 @@ ACMD(do_unbind) {
   GET_OBJ_BOUND_ID(obj) = NOBODY;
 }
 
-ACMD(do_bind) {
+ACMD(do_obind) {
   char char_name[MAX_INPUT_LENGTH], obj_name[MAX_INPUT_LENGTH];
   struct obj_data *obj;
   struct char_data *vict;
