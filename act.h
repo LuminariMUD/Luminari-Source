@@ -610,7 +610,7 @@ ACMD(do_oconvert);
 ACMD(do_acconvert);
 ACMD(do_findmagic);
 ACMD(do_cmdlev);
-ACMD(do_bind);
+ACMD(do_obind);
 ACMD(do_unbind);
 
 #endif /* _ACT_H_ */
