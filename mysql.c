@@ -548,16 +548,16 @@ void load_paths() {
 /* Insert a path into the database. */
 void insert_path(struct path_data *path) {
   /* path_data* path_table */
-
+  char buf[MAX_STRING_LENGTH];
   int i = 0, vtx = 0, j = 0;
   char linestring[MAX_STRING_LENGTH];
 
   sprintf(linestring, "ST_GeomFromText('LINESTRING(");
   
   for (vtx = 0; vtx < path->num_vertices; vtx++){
-    char buf[100];
-    sprintf(buf, "%d %d%s", path->vertices[vtx].x, path->vertices[vtx].y, (vtx + 1 == path->num_vertices ? ")')" : ","));
-    strcat(linestring, buf);
+    char buf2[100];
+    sprintf(buf2, "%d %d%s", path->vertices[vtx].x, path->vertices[vtx].y, (vtx + 1 == path->num_vertices ? ")')" : ","));
+    strcat(linestring, buf2);
   }
 
   log("INFO: Inserting Path [%d] '%s' into MySQL:", (int)path->vnum, path->name);
