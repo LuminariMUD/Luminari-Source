@@ -3433,14 +3433,14 @@ void reset_zone(zone_rnum zone) {
           break;
         }
         if (obj_index[ZCMD.arg1].number < ZCMD.arg2 &&
-                (number(1, 100) <= ZCMD.arg3)) {
+                (rand_number(1, 100) <= ZCMD.arg3)) {
           obj = read_object(ZCMD.arg1, REAL);
           obj_to_char(obj, mob);
           load_otrigger(obj);
           tobj = obj;
           push_result(1);
         } else if ((ZCMD.arg2 == 0 && boot_time <= 1) &&
-                (number(1, 100) <= ZCMD.arg3)) {
+                (rand_number(1, 100) <= ZCMD.arg3)) {
           obj = read_object(ZCMD.arg1, REAL);
           obj_to_char(obj, mob);
           load_otrigger(obj);
