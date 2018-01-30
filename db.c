@@ -3470,7 +3470,8 @@ void reset_zone(zone_rnum zone) {
             ZCMD.command = '*';
             break;
           }
-          load_treasure_in_obj(obj_to);
+          /* Unfinished */
+          //load_treasure_in_obj(obj_to);
           push_result(1);
         } else
           push_result(0);
