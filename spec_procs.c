@@ -1109,6 +1109,8 @@ void process_skill(struct char_data *ch, int skillnum) {
 /* 'Stock-room' must also be created and made into a player house   */
 /* so that only the shop owner can get the piles of gold left there */
 /* Stock room must be 1 VNUM higher than the actual shop            */
+#define PLAYER_SHOP_DEBUG
+
 SPECIAL(player_owned_shops) {
   room_rnum private_room;
   struct obj_data *i, *j;
@@ -1119,9 +1121,15 @@ SPECIAL(player_owned_shops) {
   if (!cmd)
     return FALSE;
 
+#ifdef PLAYER_SHOP_DEBUG
+  send_to_char(ch, "IN_ROOM(ch): %d\r\n", IN_ROOM(ch));
+#endif
 
   /* Grab the name of the shop owner */
   for (hse = 0; hse < num_of_houses; hse++) {
+#ifdef PLAYER_SHOP_DEBUG
+    send_to_char(ch, "House counter: %d, This-atrium: %d\r\n", hse, house_control[hse].atrium);
+#endif
     if (house_control[hse].atrium == IN_ROOM(ch)) {
       /* Avoid seeing <UNDEF> entries from self-deleted people. */
       if ((temp = get_name_by_id(house_control[hse].owner)) == NULL) {
@@ -1136,8 +1144,11 @@ SPECIAL(player_owned_shops) {
 
   if (found == FALSE)
     sprintf(shop_owner, "Invalid Shop - Tell an Imp");
-  
-  private_room = house_control[hse].vnum;  
+
+  private_room = house_control[hse].vnum;
+#ifdef PLAYER_SHOP_DEBUG
+  send_to_char(ch, "House VNum %d\r\n", house_control[hse].vnum);
+#endif
 
   if (CMD_IS("list")) {
     if (IS_NPC(ch)) {
@@ -1222,6 +1233,9 @@ SPECIAL(player_owned_shops) {
   /* All commands except list and buy */
   return (FALSE);
 }
+#ifdef PLAYER_SHOP_DEBUG
+#undef PLAYER_SHOP_DEBUG
+#endif
 
 static void npc_steal(struct char_data *ch, struct char_data *victim) {
   int gold;
