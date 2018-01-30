@@ -5983,13 +5983,13 @@ ACMD(do_genmap) {
   char arg3[MAX_STRING_LENGTH];      
   int dir = 0;
   region_vnum vnum;
-  char name[1024];
+  char *name = NULL;
   
   three_arguments(argument, arg1, arg2, arg3);
   
   dir = atoi(arg1);
   vnum = atoi(arg2);
-  sscanf(arg3, "'%s'", name);
+  name = strtok(argument, "'");
 
   generate_river(ch, dir, vnum, name);
   load_paths();
