@@ -549,7 +549,7 @@ void load_paths() {
 void insert_path(struct path_data *path) {
   /* path_data* path_table */
   char buf[MAX_STRING_LENGTH];
-  int i = 0, vtx = 0, j = 0;
+  int vtx = 0;
   char linestring[MAX_STRING_LENGTH];
 
   sprintf(linestring, "ST_GeomFromText('LINESTRING(");
@@ -569,11 +569,11 @@ void insert_path(struct path_data *path) {
                       "path_props, "
                       "path_linestring) "
                       "VALUES ("
-                      "%s, "
-                      "%s, "
-                      "%s, "
+                      "%d, "
+                      "%d, "
+                      "%d, "
                       "'%s', "
-                      "%s, "
+                      "%d, "
                       "%s);",path->vnum, zone_table[path->zone].number, path->path_type, path->name, path->path_props, linestring);
 
   log("QUERY: %s",buf);
