@@ -3426,8 +3426,9 @@ void reset_zone(zone_rnum zone) {
         if (!mob) {
           if (ZCMD.if_flag == 0) {
             char error[MAX_INPUT_LENGTH];
-            snprintf(error, sizeof (error), "attempt to give obj #%d to non-existant mob, command disabled", obj_index[ZCMD.arg1].vnum);
+            snprintf(error, sizeof (error), "attempt to give obj #%d to non-existant mob", obj_index[ZCMD.arg1].vnum);
             ZONE_ERROR(error);
+            //ZCMD.command = '*';
           } else
             push_result(0);
           break;
@@ -3454,9 +3455,9 @@ void reset_zone(zone_rnum zone) {
       case 'I': /* random treasure to mobile (with percentage loads) */
         if (!mob) {
           char error[MAX_INPUT_LENGTH];
-          snprintf(error, sizeof (error), "attempt to give random treasure to non-existant mob, command disabled");
+          snprintf(error, sizeof (error), "attempt to give random treasure to non-existant mob");
           ZONE_ERROR(error);
-          ZCMD.command = '*';
+          //ZCMD.command = '*';
           break;
         }
         if (rand_number(1, 100) <= ZCMD.arg1)
@@ -3466,8 +3467,8 @@ void reset_zone(zone_rnum zone) {
       case 'L': /* random treasure to container (with percentage loads) */
         if (rand_number(1, 100) <= ZCMD.arg2) {
           if (!(obj_to = get_obj_num(ZCMD.arg3))) {
-            ZONE_ERROR("target obj not found, command disabled");
-            ZCMD.command = '*';
+            ZONE_ERROR("target obj not found");
+            //ZCMD.command = '*';
             break;
           }
           /* Unfinished */
@@ -3481,9 +3482,9 @@ void reset_zone(zone_rnum zone) {
         if (!mob) {
           char error[MAX_INPUT_LENGTH];
           snprintf(error, sizeof (error), "trying to equip non-existant mob with "
-                  "obj #%d, command disabled", obj_index[ZCMD.arg1].vnum);
+                  "obj #%d", obj_index[ZCMD.arg1].vnum);
           ZONE_ERROR(error);
-          ZCMD.command = '*';
+          //ZCMD.command = '*';
           break;
         }
         if ((obj_index[ZCMD.arg1].number < ZCMD.arg2 || (ZCMD.arg2 == 0 && boot_time <= 1)) &&
@@ -3522,9 +3523,9 @@ void reset_zone(zone_rnum zone) {
         if (ZCMD.arg2 < 0 || ZCMD.arg2 >= DIR_COUNT ||
                 (world[ZCMD.arg1].dir_option[ZCMD.arg2] == NULL)) {
           char error[MAX_INPUT_LENGTH];
-          snprintf(error, sizeof (error), "door does not exist in room %d - dir %d, command disabled", world[ZCMD.arg1].number, ZCMD.arg2);
+          snprintf(error, sizeof (error), "door does not exist in room %d - dir %d", world[ZCMD.arg1].number, ZCMD.arg2);
           ZONE_ERROR(error);
-          ZCMD.command = '*';
+          //ZCMD.command = '*';
         } else
           switch (ZCMD.arg3) {
             case 0:
