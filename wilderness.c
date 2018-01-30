@@ -18,6 +18,8 @@
 #include "mysql.h"
 #include "desc_engine.h"
 
+void insert_path(struct path_data *path);
+
 struct kdtree* kd_wilderness_rooms = NULL;
 
 int wild_waterline = 128;
