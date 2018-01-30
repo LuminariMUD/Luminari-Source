@@ -612,6 +612,6 @@ ACMD(do_findmagic);
 ACMD(do_cmdlev);
 ACMD(do_obind);
 ACMD(do_unbind);
-ACMD(do_plist);
+//ACMD(do_plist);
 
 #endif /* _ACT_H_ */
