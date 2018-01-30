@@ -3344,6 +3344,7 @@ void reset_zone(zone_rnum zone) {
      * added to the game, be certain to update the list of commands in load_zone
      * () so that the counting will still be correct. - ae. */
     switch (ZCMD.command) {
+      
       case '*': /* ignore command */
         push_result(0);
         break;
@@ -3357,7 +3358,6 @@ void reset_zone(zone_rnum zone) {
         break;
 
       case 'M': /* read a mobile (with percentage loads) */
-        //if ((mob_index[ZCMD.arg1].number < ZCMD.arg2 || (ZCMD.arg2 == 0 && boot_time <= 1)) &&
         if ((check_max_existing(ZCMD.arg1, ZCMD.arg2, ZCMD.arg3) || (ZCMD.arg2 == 0 && boot_time <= 1)) &&
                 rand_number(1, 100) <= ZCMD.arg4) {
           mob = read_mobile(ZCMD.arg1, REAL);
@@ -3373,10 +3373,6 @@ void reset_zone(zone_rnum zone) {
           tmob = mob;
           GET_MOB_LOADROOM(mob) = IN_ROOM(mob);
 
-          /* Calculate random treasure for the mobile. -Ornir */
-          /*if (dice(1, 100) <= MAX(TREASURE_PERCENT, HAPPY_TREASURE)) {
-            load_treasure(mob);
-          }*/
           push_result(1);
         } else
           push_result(0);
@@ -3415,8 +3411,6 @@ void reset_zone(zone_rnum zone) {
             } else {
               push_result(0);
             }
-            /*ZONE_ERROR("target obj not found, command disabled");
-           ZCMD.command = '*';*/
             break;
           }
           obj_to_obj(obj, obj_to);
@@ -3434,14 +3428,19 @@ void reset_zone(zone_rnum zone) {
             char error[MAX_INPUT_LENGTH];
             snprintf(error, sizeof (error), "attempt to give obj #%d to non-existant mob, command disabled", obj_index[ZCMD.arg1].vnum);
             ZONE_ERROR(error);
-            /*ZCMD.command = '*';*/
           } else
             push_result(0);
           break;
         }
-        if ((obj_index[ZCMD.arg1].number < ZCMD.arg2 ||
-                (ZCMD.arg2 == 0 && boot_time <= 1)) &&
-                rand_number(1, 100) <= ZCMD.arg3) {
+        if (obj_index[ZCMD.arg1].number < ZCMD.arg2 &&
+                (number(1, 100) <= ZCMD.arg3)) {
+          obj = read_object(ZCMD.arg1, REAL);
+          obj_to_char(obj, mob);
+          push_result(1);
+          load_otrigger(obj);
+          tobj = obj;
+        } else if ((ZCMD.arg2 == 0 && boot_time <= 1) &&
+                (number(1, 100) <= ZCMD.arg3)) {
           obj = read_object(ZCMD.arg1, REAL);
           obj_to_char(obj, mob);
           push_result(1);
@@ -3463,8 +3462,9 @@ void reset_zone(zone_rnum zone) {
         if (rand_number(1, 100) <= ZCMD.arg1)
           load_treasure(mob);
         break;
+        
       case 'L': /* random treasure to container (with percentage loads) */
-        /*if (rand_number(1, 100) <= ZCMD.arg2) {
+        if (rand_number(1, 100) <= ZCMD.arg2) {
           if (!(obj_to = get_obj_num(ZCMD.arg3))) {
             ZONE_ERROR("target obj not found, command disabled");
             ZCMD.command = '*';
@@ -3473,14 +3473,14 @@ void reset_zone(zone_rnum zone) {
           load_treasure_in_obj(obj_to);
           push_result(1);
         } else
-          push_result(0);*/
-        /* Disable this for now... */
-        push_result(0);
+          push_result(0);
         break;
+        
       case 'E': /* object to equipment list (with percentage loads) */
         if (!mob) {
           char error[MAX_INPUT_LENGTH];
-          snprintf(error, sizeof (error), "trying to equip non-existant mob with obj #%d, command disabled", obj_index[ZCMD.arg1].vnum);
+          snprintf(error, sizeof (error), "trying to equip non-existant mob with "
+                  "obj #%d, command disabled", obj_index[ZCMD.arg1].vnum);
           ZONE_ERROR(error);
           ZCMD.command = '*';
           break;
@@ -3489,7 +3489,8 @@ void reset_zone(zone_rnum zone) {
                 rand_number(1, 100) <= ZCMD.arg4) {
           if (ZCMD.arg3 < 0 || ZCMD.arg3 >= NUM_WEARS) {
             char error[MAX_INPUT_LENGTH];
-            snprintf(error, sizeof (error), "invalid equipment pos number (mob %s, obj %d, pos %d)", GET_NAME(mob), obj_index[ZCMD.arg2].vnum, ZCMD.arg3);
+            snprintf(error, sizeof (error), "invalid equipment pos number (mob %s, "
+                    "obj %d, pos %d)", GET_NAME(mob), obj_index[ZCMD.arg2].vnum, ZCMD.arg3);
             ZONE_ERROR(error);
           } else {
             obj = read_object(ZCMD.arg1, REAL);
@@ -3515,7 +3516,6 @@ void reset_zone(zone_rnum zone) {
         tmob = NULL;
         tobj = NULL;
         break;
-
 
       case 'D': /* set state of door */
         if (ZCMD.arg2 < 0 || ZCMD.arg2 >= DIR_COUNT ||
@@ -3709,10 +3709,8 @@ void reset_zone(zone_rnum zone) {
         ZONE_ERROR("unknown cmd in reset table; cmd disabled");
         ZCMD.command = '*';
         break;
-    }
-  }
-  //}
-
+    } /* end zone command switch */
+  } /* end zone command list loop */
 
   zone_table[zone].age = 0;
 
