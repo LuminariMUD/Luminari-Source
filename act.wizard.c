@@ -5978,6 +5978,10 @@ ACMD(do_singlefile) {
 
 /* Test command to display a map, radius 4, generated using noise. */
 ACMD(do_genmap) {
+  
+  /* command temporarily disabled - zusuk*/
+  return;
+  
   char arg1[MAX_STRING_LENGTH];
   char arg2[MAX_STRING_LENGTH];
   char arg3[MAX_STRING_LENGTH];      
