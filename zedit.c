@@ -1181,6 +1181,7 @@ void zedit_parse(struct descriptor_data *d, char *arg) {
             zedit_disp_arg1(d);
           } else {
             write_to_output(d, "Is this command dependent on the [s]uccess/[f]ailure of the previous one?\r\n"
+                    "Failure is [ELSE], success is [THEN], both commands ignore previous [s]/[f] above it.\r\n"
                     "N = NO, # references number in list (s#/f#/n):\r\n");
             OLC_MODE(d) = ZEDIT_IF_FLAG;
           }
