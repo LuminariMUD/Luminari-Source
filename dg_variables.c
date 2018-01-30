@@ -339,6 +339,8 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
         snprintf(str, slen, "%s", recho[type]);
       else if (!str_cmp(var, "move"))
         snprintf(str, slen, "%s", omove[type]);
+      else if (!str_cmp(var, "bind"))
+        snprintf(str, slen, "%s", bind[type]);
       else
         *str = '\0';
     }
