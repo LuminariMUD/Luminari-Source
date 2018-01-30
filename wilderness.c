@@ -1127,7 +1127,6 @@ void generate_river(struct char_data* ch, int dir, region_vnum vnum, char *name)
   room_rnum* room;
   double loc[2], pos[2];
   void* set;
-  char buf[MAX_STRING_LENGTH];
   int move_dir = -1;
   int new_move_dir = -1;
 
