@@ -560,7 +560,7 @@ void insert_path(struct path_data *path) {
     strcat(linestring, buf);
   }
 
-  log("INFO: Inserting Path [%s] '%s' into MySQL:", path->vnum, path->name);
+  log("INFO: Inserting Path [%d] '%s' into MySQL:", (int)path->vnum, path->name);
   sprintf(buf, "insert into path_data "
                       "vnum, "
                       "zone_vnum, " 
