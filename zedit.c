@@ -1,5 +1,5 @@
 /**************************************************************************
- *  File: zedit.c                                           Part of LuminariMUD *
+ *  File: zedit.c                                      Part of LuminariMUD *
  *  Usage: Oasis OLC - Zones and commands.                                 *
  *                                                                         *
  * Copyright 1996 Harvey Gilpin. 1997-2001 George Greer.                   *
@@ -218,7 +218,7 @@ void perform_zone_restat(struct descriptor_data *d) {
       continue;
     medit_setup_new(d);
     char_to_room(mob, real_room(1));
-    */
+     */
     medit_setup_existing(d, rmob);
     autoroll_mob(mob, FALSE, FALSE);
     save_mobiles(zone_num);
@@ -501,14 +501,14 @@ static void zedit_disp_menu(struct descriptor_data *d) {
             (MYCMD.if_flag < 0) ? "fails" : "executes");
     else
       sprintf(buf1, "%s", (MYCMD.if_flag == 0) ? "" :
-            (MYCMD.if_flag < 0) ? "  [ON FAIL]: " : "  [ON SUCCESS]: ");
+            (MYCMD.if_flag < 0) ? "  [ELSE]: " : "  [THEN]: ");
 
     /* Translate what the command means. */
     write_to_output(d, "%s%d - %s", nrm, counter, yel);
     switch (MYCMD.command) {
       case 'I':
         write_to_output(d, "%sGive it random treasure (%d%%)",
-          buf1, MYCMD.arg1);
+                buf1, MYCMD.arg1);
         break;
       case 'L':
         write_to_output(d, "%sPut random treasure in %s [%s%d%s] (%d%%)",
@@ -608,7 +608,7 @@ static void zedit_disp_menu(struct descriptor_data *d) {
             sprintf(door_reset_string, "closed and hidden (hard)");
             break;
           case 9:
-            sprintf(door_reset_string,"locked (medium) and hidden (easy)");
+            sprintf(door_reset_string, "locked (medium) and hidden (easy)");
             break;
           case 10:
             sprintf(door_reset_string, "locked (medium) and hidden (medium)");
@@ -636,7 +636,7 @@ static void zedit_disp_menu(struct descriptor_data *d) {
         write_to_output(d, "%sSet door %s as %s.",
                 buf1, // MYCMD.if_flag ? " then " : "",
                 dirs[MYCMD.arg2], door_reset_string
-//                MYCMD.arg3 ? ((MYCMD.arg3 == 1) ? "closed" : "locked") : "open"
+                //                MYCMD.arg3 ? ((MYCMD.arg3 == 1) ? "closed" : "locked") : "open"
                 );
         break;
       case 'T':
@@ -807,7 +807,7 @@ static void zedit_disp_arg3(struct descriptor_data *d) {
       write_to_output(d, "Count maximum (g)lobally, or in (r)oom : ");
       break;
     case 'E':
-      column_list(d->character, 0, equipment_types, NUM_WEARS-4, TRUE); // added -4 to prevent ear/ear/eyes/badge
+      column_list(d->character, 0, equipment_types, NUM_WEARS - 4, TRUE); // added -4 to prevent ear/ear/eyes/badge
       write_to_output(d, "Location to equip : ");
       break;
     case 'P':
@@ -978,15 +978,15 @@ void zedit_parse(struct descriptor_data *d, char *arg) {
             cleanup_olc(d, CLEANUP_ALL);
           }
           break;
-        /*
-        case 'a':
-        case 'A':
-          // Restat all mobiles in the MUD?
-          write_to_output(d, "Confirm you want to restat all mobiles "
-                  "in the zone (you can NOT undo this once done) :\r\n");
-          OLC_MODE(d) = ZEDIT_CONFIRM_RESTAT;
-          break;
-        */
+          /*
+          case 'a':
+          case 'A':
+            // Restat all mobiles in the MUD?
+            write_to_output(d, "Confirm you want to restat all mobiles "
+                    "in the zone (you can NOT undo this once done) :\r\n");
+            OLC_MODE(d) = ZEDIT_CONFIRM_RESTAT;
+            break;
+           */
         case 'n':
         case 'N':
           /* New entry. */
@@ -1180,7 +1180,8 @@ void zedit_parse(struct descriptor_data *d, char *arg) {
             OLC_CMD(d).if_flag = 1;
             zedit_disp_arg1(d);
           } else {
-            write_to_output(d, "Is this command dependent on the success/failure of the previous one?\r\n(s/f/[n]):\r\n");
+            write_to_output(d, "Is this command dependent on the [s]uccess/[f]ailure of the previous one?\r\n"
+                    "N = NO, # references number in list (s#/f#/n):\r\n");
             OLC_MODE(d) = ZEDIT_IF_FLAG;
           }
         } else { /* 'if-flag' not appropriate. */
@@ -1194,10 +1195,10 @@ void zedit_parse(struct descriptor_data *d, char *arg) {
     case ZEDIT_IF_FLAG:
       /* Parse the input for the if flag, and goto next quiz. */
       switch (*arg) {
-        //case 'y':
-        //case 'Y':
-        //  OLC_CMD(d).if_flag = 1;
-        //  break;
+          //case 'y':
+          //case 'Y':
+          //  OLC_CMD(d).if_flag = 1;
+          //  break;
         case 'n':
         case 'N':
         case '\0':
@@ -1205,12 +1206,12 @@ void zedit_parse(struct descriptor_data *d, char *arg) {
           break;
         case 'f':
         case 'F':
-          //if ((OLC_CMD(d).if_flag = -atoi(arg + 1)) == 0)
+          if ((OLC_CMD(d).if_flag = -atoi(arg + 1)) == 0)
             OLC_CMD(d).if_flag = -1;
           break;
         case 's':
         case 'S':
-          //if ((OLC_CMD(d).if_flag = atoi(arg + 1)) == 0)
+          if ((OLC_CMD(d).if_flag = atoi(arg + 1)) == 0)
             OLC_CMD(d).if_flag = 1;
           break;
         default:
@@ -1238,13 +1239,13 @@ void zedit_parse(struct descriptor_data *d, char *arg) {
           }
           break;
         case 'L':
-         if ((pos = real_object(atoi(arg))) != NOTHING) {
+          if ((pos = real_object(atoi(arg))) != NOTHING) {
             OLC_CMD(d).arg3 = pos;
             zedit_disp_arg2(d);
             //zedit_disp_menu(d);
-         } else
+          } else
             write_to_output(d, "That object does not exist, try again : ");
-         break;
+          break;
         case 'J':
           pos = atoi(arg);
           if (pos < 0 || pos > 5) { // arbitrary maximum jump
@@ -1398,7 +1399,7 @@ void zedit_parse(struct descriptor_data *d, char *arg) {
         case 'E':
           pos = atoi(arg) - 1;
           /* Count number of wear positions. */
-          if (pos < 0 || pos >= NUM_WEARS-4) // added -4 to prevent ear/ear/eyes/badge
+          if (pos < 0 || pos >= NUM_WEARS - 4) // added -4 to prevent ear/ear/eyes/badge
             write_to_output(d, "Try again : ");
           else {
             OLC_CMD(d).arg3 = pos;
@@ -1544,7 +1545,7 @@ void zedit_parse(struct descriptor_data *d, char *arg) {
 
       zedit_disp_menu(d);
       break;
-      */
+       */
 
       /*-------------------------------------------------------------------*/
     case ZEDIT_ZONE_NAME:
