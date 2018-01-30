@@ -574,7 +574,7 @@ void insert_path(struct path_data *path) {
                       "%s, "
                       "'%s', "
                       "%s, "
-                      "%s);",path->vnum, zone_table[path->zone].zone_vnum, path->path_type, path->name, path->path_props, linestring);
+                      "%s);",path->vnum, zone_table[path->zone].number, path->path_type, path->name, path->path_props, linestring);
 
   log("QUERY: %s",buf);
 
