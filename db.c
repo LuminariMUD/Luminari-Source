@@ -3408,6 +3408,7 @@ void reset_zone(zone_rnum zone) {
           if (!(obj_to = get_obj_num(ZCMD.arg3))) {
             if (ZCMD.if_flag == 0) {
               ZONE_ERROR("target obj not found");
+              //ZCMD.command = '*';
             } else {
               push_result(0);
             }
@@ -3494,6 +3495,7 @@ void reset_zone(zone_rnum zone) {
             snprintf(error, sizeof (error), "invalid equipment pos number (mob %s, "
                     "obj %d, pos %d)", GET_NAME(mob), obj_index[ZCMD.arg2].vnum, ZCMD.arg3);
             ZONE_ERROR(error);
+            //ZCMD.command = '*';
           } else {
             obj = read_object(ZCMD.arg1, REAL);
             IN_ROOM(obj) = IN_ROOM(mob);
@@ -3669,6 +3671,7 @@ void reset_zone(zone_rnum zone) {
         } else if (ZCMD.arg1 == WLD_TRIGGER) {
           if (ZCMD.arg3 == NOWHERE || ZCMD.arg3 > top_of_world) {
             ZONE_ERROR("Invalid room number in trigger assignment");
+            //ZCMD.command = '*';
           }
           if (!world[ZCMD.arg3].script)
             CREATE(world[ZCMD.arg3].script, struct script_data, 1);
@@ -3682,6 +3685,7 @@ void reset_zone(zone_rnum zone) {
         if (ZCMD.arg1 == MOB_TRIGGER && tmob) {
           if (!SCRIPT(tmob)) {
             ZONE_ERROR("Attempt to give variable to scriptless mobile");
+            //ZCMD.command = '*';
           } else
             add_var(&(SCRIPT(tmob)->global_vars), ZCMD.sarg1, ZCMD.sarg2,
                   ZCMD.arg3);
@@ -3689,6 +3693,7 @@ void reset_zone(zone_rnum zone) {
         } else if (ZCMD.arg1 == OBJ_TRIGGER && tobj) {
           if (!SCRIPT(tobj)) {
             ZONE_ERROR("Attempt to give variable to scriptless object");
+            //ZCMD.command = '*';
           } else
             add_var(&(SCRIPT(tobj)->global_vars), ZCMD.sarg1, ZCMD.sarg2,
                   ZCMD.arg3);
@@ -3696,9 +3701,11 @@ void reset_zone(zone_rnum zone) {
         } else if (ZCMD.arg1 == WLD_TRIGGER) {
           if (ZCMD.arg3 == NOWHERE || ZCMD.arg3 > top_of_world) {
             ZONE_ERROR("Invalid room number in variable assignment");
+            //ZCMD.command = '*';
           } else {
             if (!(world[ZCMD.arg3].script)) {
               ZONE_ERROR("Attempt to give variable to scriptless object");
+              //ZCMD.command = '*';
             } else
               add_var(&(world[ZCMD.arg3].script->global_vars),
                     ZCMD.sarg1, ZCMD.sarg2, ZCMD.arg2);
