@@ -5998,7 +5998,7 @@ ACMD(do_genmap) {
   
   skip_spaces(&arg_text);
   
-  /*debug*/send_to_char(ch, "%s\r\n", arg_text);
+  /*debug*/send_to_char(ch, "Debug arg_text: %s\r\n", arg_text);
   
   dir = atoi(arg1);
   vnum = atoi(arg2);
