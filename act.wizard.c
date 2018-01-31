@@ -5962,14 +5962,11 @@ ACMD(do_singlefile) {
 
 #include "wilderness.h"
 #include "kdtree.h"
-
 #include "mysql.h"
 #include "rtree/rTreeIndex.h"
-
 /* Test command to display a map, radius 4, generated using noise. */
 /* genmap 3 100011 FooBar River */
 /* genmap north 100011 FooBar River */
-
 /* genmap <arg1> <arg2> <arg3> */
 ACMD(do_genmap) {
   char arg1[MAX_STRING_LENGTH];
@@ -6017,8 +6014,6 @@ ACMD(do_genmap) {
     kd_res_free(set);
    */
   // Test region events
-
-
 }
 
 /* do_acconvert - Commant to convert exising armor to the new (Sept 9, 2014)
