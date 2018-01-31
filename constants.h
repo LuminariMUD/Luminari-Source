@@ -128,6 +128,7 @@ extern const char *spell_prep_dict[NUM_CLASSES][4];
 extern const int draconic_heritage_energy_types[NUM_DRACONIC_HERITAGE_TYPES+1];
 extern const char *draconic_heritage_names[NUM_DRACONIC_HERITAGE_TYPES+1];
 extern const char *bloodline_names[];
+extern const char *do_cast_types[][6];
 
 /* NewCraft */
 extern const char *craft_flags[];
