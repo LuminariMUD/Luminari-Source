@@ -1180,9 +1180,9 @@ void zedit_parse(struct descriptor_data *d, char *arg) {
             OLC_CMD(d).if_flag = 1;
             zedit_disp_arg1(d);
           } else {
-            write_to_output(d, "Is this command dependent on the [s]uccess/[f]ailure of the previous one?\r\n"
-                    "Failure is [ELSE], success is [THEN], both commands ignore previous [s]/[f] above it.\r\n"
-                    "N = NO, # references number in list (s#/f#/n):\r\n");
+            write_to_output(d, "Dependent commands: [T]hen, [E]lse or [N]ormal (indpendent)\r\n"
+                    "[T]hen and [E]lse can accept single number digits to reference previous lines.\r\n"
+                    "(t#/e#/n):  ");
             OLC_MODE(d) = ZEDIT_IF_FLAG;
           }
         } else { /* 'if-flag' not appropriate. */
@@ -1196,22 +1196,18 @@ void zedit_parse(struct descriptor_data *d, char *arg) {
     case ZEDIT_IF_FLAG:
       /* Parse the input for the if flag, and goto next quiz. */
       switch (*arg) {
-          //case 'y':
-          //case 'Y':
-          //  OLC_CMD(d).if_flag = 1;
-          //  break;
         case 'n':
         case 'N':
         case '\0':
           OLC_CMD(d).if_flag = 0;
           break;
-        case 'f':
-        case 'F':
+        case 'e':
+        case 'E':
           if ((OLC_CMD(d).if_flag = -atoi(arg + 1)) == 0)
             OLC_CMD(d).if_flag = -1;
           break;
-        case 's':
-        case 'S':
+        case 't':
+        case 'T':
           if ((OLC_CMD(d).if_flag = atoi(arg + 1)) == 0)
             OLC_CMD(d).if_flag = 1;
           break;
