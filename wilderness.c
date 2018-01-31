@@ -27,50 +27,83 @@ int wild_waterline = 128;
 /* \t= changes a color to be BACKGROUND. */
 struct wild_map_info_type wild_map_info[] = {
   /* 0 */
-  { SECT_INSIDE, "\tn.\tn", { NULL }},
-  { SECT_CITY, "\twC\tn", { NULL }},
+  { SECT_INSIDE, "\tn.\tn",
+    { NULL}},
+  { SECT_CITY, "\twC\tn",
+    { NULL}},
   { SECT_FIELD, "\tg,\tn",
-    { "\t[F120],\tn", "\t[F121],\tn", "\t[F130],\tn", "\t[F131],\tn" }},
+    { "\t[F120],\tn", "\t[F121],\tn", "\t[F130],\tn", "\t[F131],\tn"}},
   { SECT_FOREST, "\tGY\tn",
     {"\t[f020]Y\tn", "\t[f030]Y\tn", "\t[f040]Y\tn", "\t[f050]Y\tn"}},
-  { SECT_HILLS, "\tyn\tn", { NULL }},
+  { SECT_HILLS, "\tyn\tn",
+    { NULL}},
   /* 5 */
-  { SECT_MOUNTAIN, "\tw^\tn",{ NULL }},
-  { SECT_WATER_SWIM, "\tB~\tn",{ NULL }},
-  { SECT_WATER_NOSWIM, "\tb=\tn",{ NULL }},
-  { SECT_FLYING, "\tC^\tn",{ NULL }},
-  { SECT_UNDERWATER, "\tbU\tn",{ NULL }},
+  { SECT_MOUNTAIN, "\tw^\tn",
+    { NULL}},
+  { SECT_WATER_SWIM, "\tB~\tn",
+    { NULL}},
+  { SECT_WATER_NOSWIM, "\tb=\tn",
+    { NULL}},
+  { SECT_FLYING, "\tC^\tn",
+    { NULL}},
+  { SECT_UNDERWATER, "\tbU\tn",
+    { NULL}},
   /* 10 */
-  { SECT_ZONE_START, "\tRX\tn",{ NULL }},
-  { SECT_ROAD_NS, "\tD|\tn",{ NULL }},  /* This is somewhat obsolete. */
-  { SECT_ROAD_EW, "\tD-\tn",{ NULL }},  /* This is somewhat obsolete. */
-  { SECT_ROAD_INT, "\tD+\tn",{ NULL }}, /* This is somewhat obsolete. */
-  { SECT_DESERT, "\tY.\tn",{ NULL }},
+  { SECT_ZONE_START, "\tRX\tn",
+    { NULL}},
+  { SECT_ROAD_NS, "\tD|\tn",
+    { NULL}}, /* This is somewhat obsolete. */
+  { SECT_ROAD_EW, "\tD-\tn",
+    { NULL}}, /* This is somewhat obsolete. */
+  { SECT_ROAD_INT, "\tD+\tn",
+    { NULL}}, /* This is somewhat obsolete. */
+  { SECT_DESERT, "\tY.\tn",
+    { NULL}},
   /* 15 */
-  { SECT_OCEAN, "\tb~\tn",{ NULL }},
-  { SECT_MARSHLAND, "\tM,\tn",{ NULL }},
-  { SECT_HIGH_MOUNTAIN, "\tW^\tn",{ NULL }},
-  { SECT_PLANES, "\tM.\tn",{ NULL }},
-  { SECT_UD_WILD, "\tMY\tn",{ NULL }},
+  { SECT_OCEAN, "\tb~\tn",
+    { NULL}},
+  { SECT_MARSHLAND, "\tM,\tn",
+    { NULL}},
+  { SECT_HIGH_MOUNTAIN, "\tW^\tn",
+    { NULL}},
+  { SECT_PLANES, "\tM.\tn",
+    { NULL}},
+  { SECT_UD_WILD, "\tMY\tn",
+    { NULL}},
   /* 20 */
-  { SECT_UD_CITY, "\tmC\tn",{ NULL }},
-  { SECT_UD_INSIDE, "\tm.\tn",{ NULL }},
-  { SECT_UD_WATER, "\tm~\tn",{ NULL }},
-  { SECT_UD_NOSWIM, "\tM=\tn",{ NULL }},
-  { SECT_UD_NOGROUND, "\tm^\tn",{ NULL }},
+  { SECT_UD_CITY, "\tmC\tn",
+    { NULL}},
+  { SECT_UD_INSIDE, "\tm.\tn",
+    { NULL}},
+  { SECT_UD_WATER, "\tm~\tn",
+    { NULL}},
+  { SECT_UD_NOSWIM, "\tM=\tn",
+    { NULL}},
+  { SECT_UD_NOGROUND, "\tm^\tn",
+    { NULL}},
   /* 25 */
-  { SECT_LAVA, "\tR.\tn",{ NULL }},
-  { SECT_D_ROAD_NS, "\ty|\tn",{ NULL }},  /* This is somewhat obsolete. */
-  { SECT_D_ROAD_EW, "\ty-\tn",{ NULL }},  /* This is somewhat obsolete. */
-  { SECT_D_ROAD_INT, "\ty+\tn",{ NULL }}, /* This is somewhat obsolete. */
-  { SECT_CAVE, "\tDC\tn",{ NULL }},
+  { SECT_LAVA, "\tR.\tn",
+    { NULL}},
+  { SECT_D_ROAD_NS, "\ty|\tn",
+    { NULL}}, /* This is somewhat obsolete. */
+  { SECT_D_ROAD_EW, "\ty-\tn",
+    { NULL}}, /* This is somewhat obsolete. */
+  { SECT_D_ROAD_INT, "\ty+\tn",
+    { NULL}}, /* This is somewhat obsolete. */
+  { SECT_CAVE, "\tDC\tn",
+    { NULL}},
   /* 30 */
-  { SECT_JUNGLE, "\tg&\tn",{ NULL }},
-  { SECT_TUNDRA, "\tW.\tn",{ NULL }},
-  { SECT_TAIGA, "\tgA\tn",{ NULL }},
-  { SECT_BEACH, "\ty:\tn",{ NULL }},
+  { SECT_JUNGLE, "\tg&\tn",
+    { NULL}},
+  { SECT_TUNDRA, "\tW.\tn",
+    { NULL}},
+  { SECT_TAIGA, "\tgA\tn",
+    { NULL}},
+  { SECT_BEACH, "\ty:\tn",
+    { NULL}},
 
-  { -1, "",{ NULL }}, /* RESERVED, NUM_ROOM_SECTORS */
+  { -1, "",
+    { NULL}}, /* RESERVED, NUM_ROOM_SECTORS */
 };
 
 /* Initialize the kd-tree that indexes the static rooms of the wilderness.
@@ -127,7 +160,7 @@ double get_radial_gradient(int x, int y) {
 
   for (box = 0; box < 1; box++) {
     if (((x > bounding_boxes[box][0]) && (x <= bounding_boxes[box][2])) &&
-        ((y > bounding_boxes[box][1]) && (y <= bounding_boxes[box][3]))) {
+            ((y > bounding_boxes[box][1]) && (y <= bounding_boxes[box][3]))) {
       /* We are within this bounding box. */
       xsize = (bounding_boxes[box][2] - bounding_boxes[box][0]);
       ysize = (bounding_boxes[box][3] - bounding_boxes[box][1]);
@@ -216,20 +249,20 @@ int get_weather(int x, int y) {
   double time_base;
   time_t now;
 
-    
+
   now = time(NULL);
   time_base = now % 100000;
-  
-  time_base = time_base / (double) (100000.0); 
+
+  time_base = time_base / (double) (100000.0);
   trans_x = x / (double) (WILD_X_SIZE / 1.0);
   trans_y = y / (double) (WILD_Y_SIZE / 1.0);
 
   result = PerlinNoise3D(NOISE_WEATHER, trans_x * 50.0, trans_y * 50.0, time_base * 100, 2.0, 2.0, 8);
-    
+
   result = (result + 1) / 2.0;
   //log("DEBUG: Weather - %f %f %f %f", trans_x, trans_y, time_base, result);
-  
-  return 255 *result;
+
+  return 255 * result;
 }
 
 int get_moisture(int map, int x, int y) {
@@ -295,12 +328,12 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
     for (x = 0; x < xsize; x++) {
       map[x][y].vis = 0;
       map[x][y].sector_type = get_sector_type(get_elevation(NOISE_MATERIAL_PLANE_ELEV, x + x_offset, y + y_offset),
-                                              get_temperature(NOISE_MATERIAL_PLANE_ELEV, x + x_offset, y + y_offset),
-                                              get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x + x_offset, y + y_offset));
+              get_temperature(NOISE_MATERIAL_PLANE_ELEV, x + x_offset, y + y_offset),
+              get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x + x_offset, y + y_offset));
       map[x][y].glyph = NULL;
       map[x][y].num_regions = 0;
       map[x][y].weather = get_weather(x + x_offset, y + y_offset);
-      
+
       /* Map should reflect changes from regions */
       struct region_list *regions = NULL;
       struct region_list *curr_region = NULL;
@@ -309,21 +342,21 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
 
       /* Get the enclosing regions. */
       regions = get_enclosing_regions(real_zone(WILD_ZONE_VNUM),
-                                      x + x_offset,
-                                      y + y_offset);
+              x + x_offset,
+              y + y_offset);
       paths = get_enclosing_paths(real_zone(WILD_ZONE_VNUM),
-                                  x + x_offset,
-                                  y + y_offset);
+              x + x_offset,
+              y + y_offset);
       //log("-> MAP: Processing location (%d, %d)", x + x_offset, y + y_offset);
       /* Override default values with region-based values. */
       for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next) {
-        
-        /* Add this region to the tile's region list */        
-        if ( map[x][y].num_regions < 24) {
+
+        /* Add this region to the tile's region list */
+        if (map[x][y].num_regions < 24) {
           map[x][y].regions[map[x][y].num_regions] = curr_region->rnum;
           map[x][y].num_regions++;
         }
-        
+
         switch (region_table[curr_region->rnum].region_type) {
           case REGION_SECTOR:
             map[x][y].sector_type = region_table[curr_region->rnum].region_props;
@@ -335,7 +368,7 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
           case REGION_ENCOUNTER:
           default:
             break;
-        }               
+        }
       }
 
       /* Override default values with path-based values. */
@@ -343,7 +376,7 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
         //if (curr_path->rnum != NOWHERE) /*added by zusuk*/
         switch (path_table[curr_path->rnum].path_type) {
           case PATH_ROAD:
-          case PATH_DIRT_ROAD:            
+          case PATH_DIRT_ROAD:
           case PATH_RIVER:
             map[x][y].sector_type = path_table[curr_path->rnum].path_props;
             map[x][y].glyph = path_table[curr_path->rnum].glyphs[curr_path->glyph_type];
@@ -356,10 +389,10 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
       /* Check if the sector type has variant glyphs */
       if (wild_map_info[map[x][y].sector_type].variant_disp[0]) {
         if (map[x][y].sector_type == SECT_FIELD ||
-            map[x][y].sector_type == SECT_MOUNTAIN ||
-            map[x][y].sector_type == SECT_HIGH_MOUNTAIN ||
-            map[x][y].sector_type == SECT_WATER_NOSWIM ||
-            map[x][y].sector_type == SECT_OCEAN)
+                map[x][y].sector_type == SECT_MOUNTAIN ||
+                map[x][y].sector_type == SECT_HIGH_MOUNTAIN ||
+                map[x][y].sector_type == SECT_WATER_NOSWIM ||
+                map[x][y].sector_type == SECT_OCEAN)
           map[x][y].glyph = wild_map_info[map[x][y].sector_type].variant_disp[get_elevation(NOISE_MATERIAL_PLANE_MOISTURE, x + x_offset, y + y_offset) % NUM_VARIANT_GLYPHS];
         else
           map[x][y].glyph = wild_map_info[map[x][y].sector_type].variant_disp[get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x + x_offset, y + y_offset) % NUM_VARIANT_GLYPHS];
@@ -478,8 +511,8 @@ room_rnum find_room_by_coordinates(int x, int y) {
   /* Check the dynamic rooms. */
   for (i = WILD_DYNAMIC_ROOM_VNUM_START; (i <= WILD_DYNAMIC_ROOM_VNUM_END) && (real_room(i) != NOWHERE); i++) {
     if ((ROOM_FLAGGED(real_room(i), ROOM_OCCUPIED)) &&
-        (world[real_room(i)].coords[X_COORD] == x) &&
-        (world[real_room(i)].coords[Y_COORD] == y)) {
+            (world[real_room(i)].coords[X_COORD] == x) &&
+            (world[real_room(i)].coords[Y_COORD] == y)) {
       /* Match */
       return real_room(i);
     }
@@ -516,7 +549,7 @@ void assign_wilderness_room(room_rnum room, int x, int y) {
   /* Set defaults */
   static char *wilderness_name = "The Wilderness of Luminari";
   static char *wilderness_desc = "The wilderness extends in all directions.";
-  
+
   struct region_list *regions = NULL;
   struct region_list *curr_region = NULL;
   struct path_list *paths = NULL;
@@ -535,18 +568,18 @@ void assign_wilderness_room(room_rnum room, int x, int y) {
   regions = get_enclosing_regions(GET_ROOM_ZONE(room), x, y);
   /* Get the enclosing paths. */
   paths = get_enclosing_paths(GET_ROOM_ZONE(room), x, y);
-  
+
   if (world[room].name && world[room].name != wilderness_name)
     free(world[room].name);
   if (world[room].description && world[room].description != wilderness_desc)
     free(world[room].description);
 
   /* Assign the default values. */
-  
+
   world[room].name = wilderness_name;
   world[room].sector_type = get_sector_type(get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y),
-                                            get_temperature(NOISE_MATERIAL_PLANE_ELEV, x, y),
-                                            get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x, y));
+          get_temperature(NOISE_MATERIAL_PLANE_ELEV, x, y),
+          get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x, y));
 
   /* Override default values with region-based values. */
   for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next) {
@@ -574,7 +607,7 @@ void assign_wilderness_room(room_rnum room, int x, int y) {
       switch (path_table[curr_path->rnum].path_type) {
         case PATH_ROAD:
         case PATH_DIRT_ROAD:
-        case PATH_RIVER:          
+        case PATH_RIVER:
           world[room].name = strdup(path_table[curr_path->rnum].name);
           world[room].sector_type = path_table[curr_path->rnum].path_props;
           break;
@@ -583,11 +616,10 @@ void assign_wilderness_room(room_rnum room, int x, int y) {
       }
     }
   }
-  
+
   /* Generate the description, now that everything else is set up. */
   world[room].description = wilderness_desc;
 }
-
 
 void line_vis(struct wild_map_tile **map, int x, int y, int x2, int y2) {
   int i = 0;
@@ -655,25 +687,24 @@ static char* wilderness_map_to_string(struct wild_map_tile ** map, int size, int
   bool region_colored = FALSE;
   int centerx = ((size - 1) / 2);
   int centery = ((size - 1) / 2);
-  
+
   int weather_value = 0;
 
-  
+
   for (y = size - 1; y >= 0; y--) {
     for (x = 0; x < size; x++) {
-      
+
       if (((shape == WILD_MAP_SHAPE_CIRCLE) &&
-          (sqrt((centerx - x)*(centerx - x) + (centery - y)*(centery - y)) <= (((size - 1) / 2) + 1))) ||
-          (shape == WILD_MAP_SHAPE_RECT)) {        
+              (sqrt((centerx - x)*(centerx - x) + (centery - y)*(centery - y)) <= (((size - 1) / 2) + 1))) ||
+              (shape == WILD_MAP_SHAPE_RECT)) {
         if ((x == centerx) && (y == centery)) {
           strcpy(mp, "\tM*\tn");
           mp += strlen("\tM*\tn");
-        }
-        else {          
+        } else {
           /* Here we have to check the flag on the player, if they are viewing regions (only for STAFF) then the regions will show up
            * in different colors on the map using background colors. */
           for (i = 0; i < map[x][y].num_regions; i++) {
-            if (FALSE && region_table[map[x][y].regions[i]].region_type == 1) { 
+            if (FALSE && region_table[map[x][y].regions[i]].region_type == 1) {
               /* Geographic region */
               /* Pick a color */
               strcpy(mp, "\033[1;46m");
@@ -681,17 +712,17 @@ static char* wilderness_map_to_string(struct wild_map_tile ** map, int size, int
               region_colored = TRUE;
               break;
             }
-          }                       
-          if ((map_type == MAP_TYPE_NORMAL) || 
-              (map_type == MAP_TYPE_WEATHER && map[x][y].weather < 178)) {
+          }
+          if ((map_type == MAP_TYPE_NORMAL) ||
+                  (map_type == MAP_TYPE_WEATHER && map[x][y].weather < 178)) {
             strcpy(mp, (map[x][y].vis == 0 ? " " : (map[x][y].glyph == NULL ? wild_map_info[map[x][y].sector_type].disp : map[x][y].glyph)));
             mp += strlen((map[x][y].vis == 0 ? " " : (map[x][y].glyph == NULL ? wild_map_info[map[x][y].sector_type].disp : map[x][y].glyph)));
           }
-    
+
           /* Check the map_type - if this is a weather map then overlay weather glyphs on the map */
           if (map_type == MAP_TYPE_WEATHER) {
             weather_value = map[x][y].weather;
-            if (weather_value >= 225) { 
+            if (weather_value >= 225) {
               strcpy(mp, "\tYL\tn");
               mp += strlen("\tYL\tn");
             } else if (weather_value >= 200) {
@@ -700,15 +731,15 @@ static char* wilderness_map_to_string(struct wild_map_tile ** map, int size, int
             } else if (weather_value >= 178) {
               strcpy(mp, "\tbR\tn");
               mp += strlen("\tbR\tn");
-            }                        
+            }
           }
-          
+
           if (region_colored == TRUE) {
             /* Set the background color back */
             strcpy(mp, "\033[1;40m");
             mp += strlen("\033[1;40m");
             region_colored = FALSE;
-          } 
+          }
         }
       } else {
         strcpy(mp, " ");
@@ -729,7 +760,7 @@ void show_wilderness_map(struct char_data* ch, int size, int x, int y) {
   int i;
   //int j;
   char* generated_desc = NULL;
-  
+
   int xsize = size;
   int ysize = size;
   int centerx = ((xsize - 1) / 2);
@@ -755,81 +786,80 @@ void show_wilderness_map(struct char_data* ch, int size, int x, int y) {
   }
 
   //  send_to_char(ch, "%s", wilderness_map_to_string(map, size));
-  
+
   if (!IS_NPC(ch))
     if (IS_SET_AR(ROOM_FLAGS(IN_ROOM(ch)), ROOM_GENDESC) || IS_DYNAMIC(IN_ROOM(ch))) {
       generated_desc = gen_room_description(ch, IN_ROOM(ch));
       if (PRF_FLAGGED(ch, PRF_GUI_MODE)) {
         // Display the map inline, with tags.
         send_to_char(ch,
-                     "<WILDERNESS_MAP>\n"
-                     "%s"
-                     "</WILDERNESS_MAP>\n"
-                     "\tn%s\tn\n",
-                     wilderness_map_to_string(map, size, WILD_MAP_SHAPE_CIRCLE, MAP_TYPE_NORMAL),
-                     generated_desc
-                     );
+                "<WILDERNESS_MAP>\n"
+                "%s"
+                "</WILDERNESS_MAP>\n"
+                "\tn%s\tn\n",
+                wilderness_map_to_string(map, size, WILD_MAP_SHAPE_CIRCLE, MAP_TYPE_NORMAL),
+                generated_desc
+                );
       } else {
         send_to_char(ch,
-                    "%s",
-                    strpaste(wilderness_map_to_string(map, size, WILD_MAP_SHAPE_CIRCLE, MAP_TYPE_NORMAL),
-                              strfrmt(generated_desc,
-                                      GET_SCREEN_WIDTH(ch) - size,
-                                      size,
-                                      FALSE,
-                                      TRUE,
-                                      TRUE
-                              ),
-                              " \tn")
-                    );
+                "%s",
+                strpaste(wilderness_map_to_string(map, size, WILD_MAP_SHAPE_CIRCLE, MAP_TYPE_NORMAL),
+                strfrmt(generated_desc,
+                GET_SCREEN_WIDTH(ch) - size,
+                size,
+                FALSE,
+                TRUE,
+                TRUE
+                ),
+                " \tn")
+                );
       }
       free(generated_desc);
     } else {
       if (PRF_FLAGGED(ch, PRF_GUI_MODE)) {
         // Display the map inline, with tags.
         send_to_char(ch,
-                     "<WILDERNESS_MAP>\n"
-                     "%s"
-                     "</WILDERNESS_MAP>\n"
-                     "\tn%s\tn\n",
-                     wilderness_map_to_string(map, size, WILD_MAP_SHAPE_CIRCLE, MAP_TYPE_NORMAL),
-                     world[IN_ROOM(ch)].description
-                     );
+                "<WILDERNESS_MAP>\n"
+                "%s"
+                "</WILDERNESS_MAP>\n"
+                "\tn%s\tn\n",
+                wilderness_map_to_string(map, size, WILD_MAP_SHAPE_CIRCLE, MAP_TYPE_NORMAL),
+                world[IN_ROOM(ch)].description
+                );
       } else {
-      send_to_char(ch,
-                   "%s",
-                   strpaste(wilderness_map_to_string(map, size, WILD_MAP_SHAPE_CIRCLE, MAP_TYPE_NORMAL),
-                            strfrmt(world[IN_ROOM(ch)].description,
-                                    GET_SCREEN_WIDTH(ch) - size,
-                                    size,
-                                    FALSE,
-                                    TRUE,
-                                    TRUE),
-                            " \tn")
-                          );
+        send_to_char(ch,
+                "%s",
+                strpaste(wilderness_map_to_string(map, size, WILD_MAP_SHAPE_CIRCLE, MAP_TYPE_NORMAL),
+                strfrmt(world[IN_ROOM(ch)].description,
+                GET_SCREEN_WIDTH(ch) - size,
+                size,
+                FALSE,
+                TRUE,
+                TRUE),
+                " \tn")
+                );
       }
-    }
-  else
+    } else
     send_to_char(ch,
-               "%s",
-               strpaste(wilderness_map_to_string(map, size, WILD_MAP_SHAPE_CIRCLE, MAP_TYPE_NORMAL),
-                        strfrmt(world[IN_ROOM(ch)].description,
-                                80 - size,
-                                size,
-                                FALSE,
-                                TRUE,
-                                TRUE),
-                        " \tn")
-               );
+          "%s",
+          strpaste(wilderness_map_to_string(map, size, WILD_MAP_SHAPE_CIRCLE, MAP_TYPE_NORMAL),
+          strfrmt(world[IN_ROOM(ch)].description,
+          80 - size,
+          size,
+          FALSE,
+          TRUE,
+          TRUE),
+          " \tn")
+          );
 
   send_to_char(ch, " Current Location  : (\tC%d\tn, \tC%d\tn)\r\n"
-                   " Weather           : %d\r\n",
-               /*                   " Current Elevation : %.3d   "
-                   " Current Moisture  : %d\r\n"
-                   " Gradient          : %f   "
-                   " Current Temp.     : %d\r\n"
-                   " Current Sector    : %s\r\n",  */
-               x, y, get_weather(x, y));
+          " Weather           : %d\r\n",
+          /*                   " Current Elevation : %.3d   "
+              " Current Moisture  : %d\r\n"
+              " Gradient          : %f   "
+              " Current Temp.     : %d\r\n"
+              " Current Sector    : %s\r\n",  */
+          x, y, get_weather(x, y));
   /*                   get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y),
                      get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x, y),
                      get_radial_gradient(x, y),
@@ -872,9 +902,9 @@ EVENTFUNC(event_check_occupied) {
    * - Room Effects
    */
   if ((room->room_affections == 0) &&
-      (room->contents == NULL) &&
-      (room->people == NULL) &&
-      (room->events && room->events->iSize == 1)) {
+          (room->contents == NULL) &&
+          (room->people == NULL) &&
+          (room->events && room->events->iSize == 1)) {
 
     REMOVE_BIT_AR(ROOM_FLAGS(rnum), ROOM_OCCUPIED);
     return 0; /* No need to continue checking! */
@@ -984,8 +1014,8 @@ void save_map_to_file(const char* fn, int xsize, int ysize) {
        * as regions that might change the sector type.  */
       /* Start with the default - The value returned for the generated wilderness. */
       sector_type = get_sector_type(get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, -y),
-                                    get_temperature(NOISE_MATERIAL_PLANE_ELEV, x, -y),
-                                    get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x, -y));
+              get_temperature(NOISE_MATERIAL_PLANE_ELEV, x, -y),
+              get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x, -y));
 
 
       /* Map should reflect changes from regions */
@@ -996,12 +1026,12 @@ void save_map_to_file(const char* fn, int xsize, int ysize) {
 
       /* Get the enclosing regions. */
       regions = get_enclosing_regions(real_zone(WILD_ZONE_VNUM),
-                                      x,
-                                      -y);
+              x,
+              -y);
       /* Get the enclosing paths. */
       paths = get_enclosing_paths(real_zone(WILD_ZONE_VNUM),
-                                      x,
-                                      -y);
+              x,
+              -y);
 
       /* Override default values with region-based values. */
       for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next) {
@@ -1135,7 +1165,7 @@ void generate_river(struct char_data* ch, int dir, region_vnum vnum, char *name)
   /* Path structure. */
   struct path_data river;
 
-  if(IN_ROOM(ch) != NOWHERE && !IS_WILDERNESS_VNUM(world[IN_ROOM(ch)].number)) {
+  if (IN_ROOM(ch) != NOWHERE && !IS_WILDERNESS_VNUM(world[IN_ROOM(ch)].number)) {
     send_to_char(ch, "This command is only valid in the wilderness.");
     return;
   }
@@ -1143,25 +1173,25 @@ void generate_river(struct char_data* ch, int dir, region_vnum vnum, char *name)
   /* Now we are sure we are in the wilderness.  Get our coords. */
   x = world[IN_ROOM(ch)].coords[X_COORD];
   y = world[IN_ROOM(ch)].coords[Y_COORD];
-  
+
   num_vertices = 0;
   vtx = 0;
-    
+
   sector_type = world[IN_ROOM(ch)].sector_type;
 
   while ((sector_type != SECT_WATER_SWIM) &&
-         (sector_type != SECT_WATER_NOSWIM) &&
-         (sector_type != SECT_OCEAN)) {
+          (sector_type != SECT_WATER_NOSWIM) &&
+          (sector_type != SECT_OCEAN)) {
 
     /* dummy check */
     if (num_vertices == 1024) {
       break;
     }
-      
+
     //CREATE(vertices, struct vertex, 1);
 
     vertices[vtx].x = x;
-    vertices[vtx].y = y;          
+    vertices[vtx].y = y;
 
     num_vertices++;
     vtx++;
@@ -1177,32 +1207,32 @@ void generate_river(struct char_data* ch, int dir, region_vnum vnum, char *name)
 
     if (move_dir != SOUTH && n_elev < elev) {
       new_move_dir = NORTH;
-      elev = n_elev;           
+      elev = n_elev;
       new_x = x;
       new_y = y + 1;
     }
     if (move_dir != WEST && e_elev < elev) {
-      new_move_dir = EAST;    
-      elev = e_elev;           
+      new_move_dir = EAST;
+      elev = e_elev;
       new_x = x + 1;
       new_y = y;
     }
     if (move_dir != NORTH && s_elev < elev) {
       new_move_dir = SOUTH;
-      elev = s_elev;           
+      elev = s_elev;
       new_x = x;
       new_y = y - 1;
-    }    
+    }
     if (move_dir != EAST && w_elev < elev) {
       new_move_dir = WEST;
-      elev = w_elev;           
+      elev = w_elev;
       new_x = x - 1;
       new_y = y;
     }
 
     /* Check if we have visited this location before */
     for (i = 0; i < num_vertices; i++) {
-      if((x == new_x && y == new_y) || (vertices[i].x == new_x && vertices[i].y == new_y)) {
+      if ((x == new_x && y == new_y) || (vertices[i].x == new_x && vertices[i].y == new_y)) {
         if (new_move_dir != NORTH) {
           new_move_dir = NORTH;
           new_x = x;
@@ -1224,18 +1254,18 @@ void generate_river(struct char_data* ch, int dir, region_vnum vnum, char *name)
           new_y = y;
         }
       }
-    } 
-    
+    }
+
     move_dir = new_move_dir;
     x = new_x;
     y = new_y;
 
     /* We need to check for prebuilt rooms at these coordinates, as well
-    * as regions that might change the sector type.  */
+     * as regions that might change the sector type.  */
     /* Start with the default - The value returned for the generated wilderness. */
     sector_type = get_sector_type(get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y),
-                                  get_temperature(NOISE_MATERIAL_PLANE_ELEV, x, y),
-                                  get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x, y));
+            get_temperature(NOISE_MATERIAL_PLANE_ELEV, x, y),
+            get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x, y));
 
 
     /* Should reflect changes from regions */
@@ -1246,12 +1276,12 @@ void generate_river(struct char_data* ch, int dir, region_vnum vnum, char *name)
 
     /* Get the enclosing regions. */
     regions = get_enclosing_regions(real_zone(WILD_ZONE_VNUM),
-                                    x,
-                                    y);
+            x,
+            y);
     /* Get the enclosing paths. */
     paths = get_enclosing_paths(real_zone(WILD_ZONE_VNUM),
-                                    x,
-                                    y);
+            x,
+            y);
 
     /* Override default values with region-based values. */
     for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next) {
@@ -1293,19 +1323,19 @@ void generate_river(struct char_data* ch, int dir, region_vnum vnum, char *name)
       /* go to the next entry */
       kd_res_next(set);
     }
-    kd_res_free(set);  
-  }  
- 
+    kd_res_free(set);
+  }
+
   /* Create the structure for the path */
   river.vnum = vnum;
   river.zone = world[IN_ROOM(ch)].zone;
-  river.name = strdup(name);
+  river.name = STRALLOC(name);
   river.path_type = 5; /* Corresponds to river glyphs in the db */
   river.path_props = PATH_STREAM;
   river.num_vertices = num_vertices;
-  
+
   CREATE(river.vertices, struct vertex, num_vertices);
-  
+
   for (vtx = 0; vtx < num_vertices; vtx++) {
     river.vertices[vtx].x = vertices[vtx].x;
     river.vertices[vtx].y = vertices[vtx].y;
@@ -1317,7 +1347,7 @@ void generate_river(struct char_data* ch, int dir, region_vnum vnum, char *name)
   free(river.name);
   free(river.vertices);
 
-  /* Now display the vertices to the player */  
+  /* Now display the vertices to the player */
   /*sprintf(buf, "River Path: ");
   for (vtx = 0; vtx < num_vertices; vtx++) {
     char buf2[100];
@@ -1325,5 +1355,5 @@ void generate_river(struct char_data* ch, int dir, region_vnum vnum, char *name)
     strcat(buf, buf2);
   }
   send_to_char(ch, buf);  
-  */
+   */
 }
