@@ -5964,6 +5964,69 @@ ACMD(do_singlefile) {
 #include "kdtree.h"
 #include "mysql.h"
 #include "rtree/rTreeIndex.h"
+
+/* Command to generate a wilderness river. */
+ACMD(do_genriver) {
+  char arg1[MAX_STRING_LENGTH];
+  char arg2[MAX_STRING_LENGTH];
+  char *name = NULL;
+  int dir = 0;
+  region_vnum vnum;
+
+/* genreiver north 100011 FooBar River
+ * genmap <arg1> <arg2> <name string> */
+  
+  name = two_arguments(argument, arg1, arg2);
+
+  if (!*arg1) {
+    send_to_char(ch, "1st argument requires direction: genmap \tRnorth\tn 4 FooBar River, "
+            "cardinal directions or equivalent values accepted.\r\n");
+    return;
+  }
+  
+  if (!*arg2) {
+    send_to_char(ch, "2nd argument requires VNum: genmap n \tR4\tn FooBar River, "
+            "unique vnums only, pathlist to view.\r\n");
+    return;
+  }
+  
+  skip_spaces(&name);
+
+  if (!*name) {
+    send_to_char(ch, "3rd argument requires river name: genmap n 4 \tRFooBar River\tn\r\n");
+    return;
+  }  
+  
+  if (is_abbrev(arg1, "north"))
+    dir = NORTH;
+  else if (is_abbrev(arg1, "east"))
+    dir = EAST;
+  else if (is_abbrev(arg1, "south"))
+    dir = SOUTH;
+  else if (is_abbrev(arg1, "west"))
+    dir = WEST;
+  else
+    dir = atoi(arg1);
+  
+  if (dir < NORTH || dir >= NUM_OF_DIRS) {
+    send_to_char(ch, "Invalid direction.\r\n");
+    return;
+  }
+  
+  vnum = atoi(arg2);
+  
+  /* tested upper limited -zusuk */
+  if (vnum < 0 || vnum > 1215752191) {
+    send_to_char(ch, "Invalid VNum.\r\n");
+    return;
+  }  
+
+  generate_river(ch, dir, vnum, name);
+  load_paths();
+
+  send_to_char(ch, "River created!\r\n");
+}
+
 /* Test command to display a map, radius 4, generated using noise. */
 ACMD(do_genmap) {
   char arg1[MAX_STRING_LENGTH];
