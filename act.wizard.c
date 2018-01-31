@@ -5979,7 +5979,17 @@ ACMD(do_genmap) {
 
   skip_spaces(&name);
 
-  dir = atoi(arg1);
+  if (is_abbrev(arg1, "north"))
+    dir = NORTH;
+  else if (is_abbrev(arg1, "east"))
+    dir = EAST;
+  else if (is_abbrev(arg1, "south"))
+    dir = SOUTH;
+  else if (is_abbrev(arg1, "west"))
+    dir = WEST;
+  else
+    dir = atoi(arg1);
+  
   vnum = atoi(arg2);
 
   /*debug*/send_to_char(ch, "Debug- dir: %d, vnum: %d, name: %s\r\n",
