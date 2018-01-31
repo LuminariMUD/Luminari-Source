@@ -5965,9 +5965,6 @@ ACMD(do_singlefile) {
 #include "mysql.h"
 #include "rtree/rTreeIndex.h"
 /* Test command to display a map, radius 4, generated using noise. */
-/* genmap 3 100011 FooBar River */
-/* genmap north 100011 FooBar River */
-/* genmap <arg1> <arg2> <arg3> */
 ACMD(do_genmap) {
   char arg1[MAX_STRING_LENGTH];
   char arg2[MAX_STRING_LENGTH];
@@ -5975,6 +5972,9 @@ ACMD(do_genmap) {
   int dir = 0;
   region_vnum vnum;
 
+/* genmap north 100011 FooBar River
+ * genmap <arg1> <arg2> <name string> */
+  
   name = two_arguments(argument, arg1, arg2);
 
   if (!*arg1) {
