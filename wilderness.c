@@ -698,8 +698,8 @@ static char* wilderness_map_to_string(struct wild_map_tile ** map, int size, int
               (sqrt((centerx - x)*(centerx - x) + (centery - y)*(centery - y)) <= (((size - 1) / 2) + 1))) ||
               (shape == WILD_MAP_SHAPE_RECT)) {
         if ((x == centerx) && (y == centery)) {
-          strcpy(mp, "\tM*\tn");
-          mp += strlen("\tM*\tn");
+          strcpy(mp, "\tM\t[u128946/*]\tn");
+          mp += strlen("\tMt[u128946/*]\tn");
         } else {
           /* Here we have to check the flag on the player, if they are viewing regions (only for STAFF) then the regions will show up
            * in different colors on the map using background colors. */
