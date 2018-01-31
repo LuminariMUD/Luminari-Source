@@ -6007,7 +6007,18 @@ ACMD(do_genmap) {
   else
     dir = atoi(arg1);
   
+  if (dir < NORTH || dir >= NUM_OF_DIRS) {
+    send_to_char(ch, "Invalid direction.\r\n");
+    return;
+  }
+  
   vnum = atoi(arg2);
+  
+  /* the upper limit is arbitrary, can be removed */
+  if (vnum < 0 || vnum == NOWHERE || vnum > 9999999) {
+    send_to_char(ch, "Invalid VNum.\r\n");
+    return;
+  }  
 
   /*debug*/send_to_char(ch, "Debug- dir: %d, vnum: %d, name: %s\r\n",
           dir, vnum, name);
