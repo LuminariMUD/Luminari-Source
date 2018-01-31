@@ -4558,6 +4558,30 @@ SPECIAL(monk_glove) {
   return TRUE;
 }
 
+SPECIAL(monk_glove_cold) {
+  if (!ch)
+    return FALSE;
+
+  struct char_data *vict = FIGHTING(ch);
+
+  if (!cmd && !strcmp(argument, "identify")) {
+    send_to_char(ch, "Proc: Cold damage.\r\n");
+    return TRUE;
+  }
+
+  if (cmd || !vict || rand_number(0, 15))
+    return FALSE;
+
+  weapons_spells(
+          "\twYour $p\tw \tWfrosts\tw as you hit $N causing $M to shudder violently from the \tBcold\tw!\tn",
+          "$n\tw's $p\tw \tWfrosts\tw as $e hits you causing you to shudder violently from the \tBcold\tw!\tn",
+          "$n\tw's $p\tw \tWfrosts\tw as $e hits $N causing $M to shudder violently from the \tBcold\tw!\tn",
+          ch, vict, (struct obj_data *) me, 0);
+  damage(ch, vict, dice(2, 8), -1, DAM_COLD, FALSE);
+
+  return TRUE;
+}
+
 /* from homeland */
 SPECIAL(spikeshield) {
   if (!ch)
