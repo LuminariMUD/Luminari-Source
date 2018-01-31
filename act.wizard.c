@@ -5977,6 +5977,9 @@ ACMD(do_singlefile) {
 #include "rtree/rTreeIndex.h"
 
 /* Test command to display a map, radius 4, generated using noise. */
+/* genmap 3 100011 FooBar River */
+/* genamp north 100011 FooBar River */
+/* genamp <arg1> <arg2> <arg3> */
 ACMD(do_genmap) {
   
   /* command temporarily disabled - zusuk*/
@@ -5987,15 +5990,15 @@ ACMD(do_genmap) {
   char arg3[MAX_STRING_LENGTH];      
   int dir = 0;
   region_vnum vnum;
-  char *name = NULL;
+  //char *name = NULL;
   
   three_arguments(argument, arg1, arg2, arg3);
   
   dir = atoi(arg1);
   vnum = atoi(arg2);
-  name = strtok(argument, "'");
+  //name = strtok(argument, "'");
 
-  generate_river(ch, dir, vnum, name);
+  generate_river(ch, dir, vnum, arg3);
   load_paths();
   
 /*
