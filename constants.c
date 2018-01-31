@@ -3310,13 +3310,21 @@ const char *spell_consign_dict[NUM_CLASSES][4] = {
   {"",          "",            "",           ""            }, /* duelist 15 */
 };
 
-
 /* ... and bloodlines */
 const char *bloodline_names[] = {
   "None",
   "1) Draconic Bloodline",
   "\n" /* end with this */
 };
+
+const char *do_cast_types[][6] = {
+    /*0*/       /*1*/      /*2*/            /*3*/      /*4*/       /*5*/
+  { "Cast",     "cast",    "Spell",         "Magic",   "magic",    "caster"     },
+  { "Manifest", "manfest", "Manifestation", "Psionic", "psionics", "psionicist" },
+  /* end with this */
+  { "\n",       "\n",      "\n",            "\n",      "\n",       "\n"         }  
+};
+
 
 /* --- End of constants arrays. --- */
 

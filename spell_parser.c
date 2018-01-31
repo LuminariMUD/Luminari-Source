@@ -1342,19 +1342,30 @@ ACMD(do_abort) {
   resetCastingData(ch);
 }
 
-/* do_cast is the entry point for PC-casted spells.  It parses the arguments,
+/* do_gen_cast is the entry point for PC-casted spells.  It parses the arguments,
  * determines the spell number and finds a target, throws the die to see if
  * the spell can be cast, checks for sufficient mana (hah) and subtracts it, and
  * passes control to cast_spell(). */
-ACMD(do_cast) {
+ACMD(do_gen_cast) {
   struct char_data *tch = NULL;
   struct obj_data *tobj = NULL;
-  char *spell_arg = NULL, *target_arg = NULL, *metamagic_arg = NULL;
+  char *spell_arg = NULL, *target_arg = NULL, *metamagic_arg = NULL,
+       *casting_arg = NULL;
   int number = 0, spellnum = 0, i = 0, target = 0, metamagic = 0;
 
   if (IS_NPC(ch))
     return;
 
+  /* different cast types are divided here */
+  switch (subcmd) {
+    case SCMD_CAST_SPELL:
+      break;
+    case SCMD_CAST_PSIONIC:
+      break;
+    default:
+      break;
+  }
+  
   /* Here I needed to change a bit to grab the metamagic keywords.  
    * Valid keywords are:
    *
@@ -1365,13 +1376,14 @@ ACMD(do_cast) {
   spell_arg = strtok(argument, "'");
 
   if (spell_arg == NULL) {
-    send_to_char(ch, "Cast what where?\r\n");
+    send_to_char(ch, "%s what where?\r\n", do_cast_types[subcmd][0]);
     return;
   }
   spell_arg = strtok(NULL, "'");
 
   if (spell_arg == NULL) {
-    send_to_char(ch, "Spell names must be enclosed in the Holy Magic Symbols: '\r\n");
+    send_to_char(ch, "%s names must be enclosed in the Powerful %s Symbols: '\r\n",
+            do_cast_types[subcmd][2], do_cast_types[subcmd][3]);
     return;
   }
 
@@ -1386,7 +1398,8 @@ ACMD(do_cast) {
       if (HAS_FEAT(ch, FEAT_QUICKEN_SPELL)) {
         SET_BIT(metamagic, METAMAGIC_QUICKEN);
       } else {
-        send_to_char(ch, "You don't know how to quicken your magic!\r\n");
+        send_to_char(ch, "You don't know how to quicken your %s!\r\n",
+                do_cast_types[subcmd][4]);
         return;
       }
       //log("DEBUG: Quickened metamagic used.");
@@ -1394,7 +1407,8 @@ ACMD(do_cast) {
       if (HAS_FEAT(ch, FEAT_MAXIMIZE_SPELL)) {
         SET_BIT(metamagic, METAMAGIC_MAXIMIZE);
       } else {
-        send_to_char(ch, "You don't know how to maximize your magic!\r\n");
+        send_to_char(ch, "You don't know how to maximize your %s!\r\n",
+                do_cast_types[subcmd][4]);
         return;
       }
     }
@@ -1403,29 +1417,31 @@ ACMD(do_cast) {
   spellnum = find_skill_num(spell_arg);
 
   if ((spellnum < 1) || (spellnum > MAX_SPELLS) || !*spell_arg) {
-    send_to_char(ch, "Cast what?!?\r\n");
+    send_to_char(ch, "%s what?!?\r\n", do_cast_types[subcmd][0]);
     return;
   }
 
   if (IS_AFFECTED(ch, AFF_TFORM) ||
           IS_AFFECTED(ch, AFF_BATTLETIDE) ||
           affected_by_spell(ch, SPELL_BATTLETIDE)) {
-    send_to_char(ch, "Cast?  Why do that when you can SMASH!!\r\n");
+    send_to_char(ch, "%s?  Why do that when you can SMASH!!\r\n",
+            do_cast_types[subcmd][0]);
     return;
   }
 
   if (IS_AFFECTED(ch, AFF_WILD_SHAPE) && !HAS_FEAT(ch, FEAT_NATURAL_SPELL)) {
-    send_to_char(ch, "Cast?  You have no idea how!\r\n");
+    send_to_char(ch, "%s?  You have no idea how!\r\n",
+            do_cast_types[subcmd][0]);
     return;
   }
 
   if (!IS_CASTER(ch)) {
-    send_to_char(ch, "You are not even a caster!\r\n");
+    send_to_char(ch, "You are not even a %s!\r\n", do_cast_types[subcmd][5]);
     return;
   }
 
   if (GET_SKILL(ch, spellnum) == 0) {
-    send_to_char(ch, "You are unfamiliar with that spell.\r\n");
+    send_to_char(ch, "You are unfamiliar with that %s.\r\n", do_cast_types[subcmd][2]);
     return;
   }
 
@@ -1481,14 +1497,15 @@ ACMD(do_cast) {
           BONUS_CASTER_LEVEL(ch, CLASS_BARD) + CLASS_LEVEL(ch, CLASS_BARD) < SINFO.min_level[CLASS_BARD] &&
           BONUS_CASTER_LEVEL(ch, CLASS_SORCERER) + CLASS_LEVEL(ch, CLASS_SORCERER) < SINFO.min_level[CLASS_SORCERER]
           ) {
-    send_to_char(ch, "You do not know that spell!\r\n");
+    send_to_char(ch, "You do not know that %s!\r\n", do_cast_types[subcmd][2]);
     return;
   }
 
   /* SPELL PREPARATION HOOK */
   if (spell_prep_gen_check(ch, spellnum, metamagic) == CLASS_UNDEFINED &&
           !isEpicSpell(spellnum)) {
-    send_to_char(ch, "You are not ready to cast that spell... (help preparation, or the meta-magic modification might be too high)\r\n");
+    send_to_char(ch, "You are not ready to %s that %s... (help preparation, or the meta-magic modification might be too high)\r\n",
+            do_cast_types[subcmd][1], do_cast_types[subcmd][2]);
     return;
   }
 
@@ -1586,19 +1603,22 @@ ACMD(do_cast) {
       target = TRUE;
     }
     if (!target) {
-      send_to_char(ch, "Upon %s should the spell be cast?\r\n",
-              IS_SET(SINFO.targets, TAR_OBJ_ROOM | TAR_OBJ_INV | TAR_OBJ_WORLD | TAR_OBJ_EQUIP) ? "what" : "who");
+      send_to_char(ch, "Upon %s should the %s be %s?\r\n",
+              IS_SET(SINFO.targets, TAR_OBJ_ROOM | TAR_OBJ_INV | TAR_OBJ_WORLD | TAR_OBJ_EQUIP) ? "what" : "who",
+              do_cast_types[subcmd][2], do_cast_types[subcmd][1]);
       return;
     }
   }
 
   if (target && (tch == ch) && SINFO.violent && (spellnum != SPELL_DISPEL_MAGIC)) {
-    send_to_char(ch, "You shouldn't cast that on yourself -- could be bad for your health!\r\n");
+    send_to_char(ch, "You shouldn't %s that on yourself -- could be bad for your health!\r\n",
+            do_cast_types[subcmd][1]);
     return;
   }
 
   if (!target) {
-    send_to_char(ch, "Cannot find the target of your spell!\r\n");
+    send_to_char(ch, "Cannot find the target of your %s!\r\n",
+            do_cast_types[subcmd][2]);
     return;
   }
 
@@ -1616,12 +1636,12 @@ ACMD(do_cast) {
 
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL) &&
           (SINFO.violent || IS_SET(SINFO.routines, MAG_DAMAGE))) {
-    send_to_char(ch, "A flash of white light fills the room, dispelling your violent magic!\r\n");
+    send_to_char(ch, "A flash of white light fills the room, dispelling your violent %s!\r\n",
+            do_cast_types[subcmd][4]);
     act("White light from no particular source suddenly fills the room, then vanishes.", FALSE, ch, 0, 0, TO_ROOM);
     return;
   }
 
-  //log("DEBUG: spellnum: %d metamagic: %d hasSpell: %d", spellnum, metamagic, hasSpell(ch, spellnum, metamagic));  
   cast_spell(ch, tch, tobj, spellnum, metamagic);
 }
 

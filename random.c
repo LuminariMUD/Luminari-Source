@@ -1,7 +1,7 @@
 /**************************************************************************
-*   File: random.c                                         Part of LuminariMUD *
-*  Usage: Pseudo-random number generator.                                 *
-**************************************************************************/
+ *   File: random.c                                    Part of LuminariMUD *
+ *  Usage: Pseudo-random number generator.                                 *
+ **************************************************************************/
 
 /* I am bothered by the non-portablility of 'rand' and 'random' -- rand is ANSI
  * C, but on some systems such as Suns, rand has seriously tragic spectral 
@@ -31,35 +31,33 @@
 #define	r (unsigned int)2836
 
 /* F(z)	= (az)%m
-**	= az-m(az/m)
-**
-** F(z)  = G(z)+mT(z)
-** G(z)  = a(z%q)- r(z/q)
-** T(z)  = (z/q) - (az/m)
-**
-** F(z)  = a(z%q)- rz/q+ m((z/q) - a(z/m))
-** 	 = a(z%q)- rz/q+ m(z/q) - az */
+ **	= az-m(az/m)
+ **
+ ** F(z)  = G(z)+mT(z)
+ ** G(z)  = a(z%q)- r(z/q)
+ ** T(z)  = (z/q) - (az/m)
+ **
+ ** F(z)  = a(z%q)- rz/q+ m((z/q) - a(z/m))
+ ** 	 = a(z%q)- rz/q+ m(z/q) - az */
 
 static unsigned long seed;
 
-void circle_srandom(unsigned long initial_seed)
-{
-    seed = initial_seed;
+void circle_srandom(unsigned long initial_seed) {
+  seed = initial_seed;
 }
 
-unsigned long circle_random(void)
-{
-   int lo, hi, test;
+unsigned long circle_random(void) {
+  int lo, hi, test;
 
-    hi   = seed/q;
-    lo   = seed%q;
+  hi = seed / q;
+  lo = seed % q;
 
-    test = a*lo - r*hi;
+  test = a * lo - r*hi;
 
-    if (test > 0)
-	seed = test;
-    else
-	seed = test+ m;
+  if (test > 0)
+    seed = test;
+  else
+    seed = test + m;
 
-    return (seed);
+  return (seed);
 }

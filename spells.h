@@ -1143,12 +1143,16 @@ ACMD(do_scribe);
 
 
 /* from spell_parser.c */
+ACMD(do_gen_cast);
+#define SCMD_CAST_SPELL   0  /* don't forget to add to constants.c */
+#define SCMD_CAST_PSIONIC 1
+
 ACMD(do_abort);
-ACMD(do_cast);
 void unused_spell(int spl);
 void mag_assign_spells(void);
 void resetCastingData(struct char_data *ch);
 int lowest_spell_level(int spellnum);
+/**/
 
 /* Global variables exported */
 #ifndef __SPELL_PARSER_C__
