@@ -1154,7 +1154,7 @@ void generate_river(struct char_data* ch, int dir, region_vnum vnum, char *name)
          (sector_type != SECT_OCEAN)) {
 
     /* dummy check */
-    if (num_vertices == 256) {
+    if (num_vertices == 1024) {
       break;
     }
       
