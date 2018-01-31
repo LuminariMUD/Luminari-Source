@@ -496,9 +496,9 @@ void load_paths() {
      /* Clear it */
       for (j = 0; j <= top_of_path_table;j++) {
         free(path_table[j].name);
-        free(path_table[i].glyphs[GLYPH_TYPE_PATH_NS]);
-        free(path_table[i].glyphs[GLYPH_TYPE_PATH_EW]);
-        free(path_table[i].glyphs[GLYPH_TYPE_PATH_INT]);
+        //free(path_table[i].glyphs[GLYPH_TYPE_PATH_NS]);
+        //free(path_table[i].glyphs[GLYPH_TYPE_PATH_EW]);
+        //free(path_table[i].glyphs[GLYPH_TYPE_PATH_INT]);
         free(path_table[j].vertices);                     
         
       }      
