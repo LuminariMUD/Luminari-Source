@@ -40,7 +40,7 @@
 #define TERRAIN_TILE_TYPE_PLAINS         "\tG.\tn"
 #define TERRAIN_TILE_TYPE_MOUNTAIN       "\tw^\tn"
 #define TERRAIN_TILE_TYPE_HILL           "\tyn\tn"
-#define TERRAIN_TILE_TYPE_FOREST         "\tgY\tn"
+#define TERRAIN_TILE_TYPE_FOREST         "\tg\t[U127795/Y]Y\tn"
 
 /* Wilderness noise definitions */
 #define NOISE_MATERIAL_PLANE_ELEV       0
