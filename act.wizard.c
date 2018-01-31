@@ -6014,7 +6014,8 @@ ACMD(do_genmap) {
   
   vnum = atoi(arg2);
   
-  if (vnum < 0 || vnum == NOWHERE) {
+  /* tested upper limited -zusuk */
+  if (vnum < 0 || vnum > 1215752191) {
     send_to_char(ch, "Invalid VNum.\r\n");
     return;
   }  
