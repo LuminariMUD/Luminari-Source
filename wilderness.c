@@ -1158,7 +1158,6 @@ void generate_river(struct char_data* ch, int dir, region_vnum vnum, char *name)
       break;
     }
       
-
     //CREATE(vertices, struct vertex, 1);
 
     vertices[vtx].x = x;
