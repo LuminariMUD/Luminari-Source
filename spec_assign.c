@@ -678,7 +678,8 @@ void assign_objects(void) {
 
   ASSIGNOBJ(128150, spikeshield); //shield
 
-  ASSIGNOBJ(224, monk_glove);
+  ASSIGNOBJ(224, monk_glove); /*electric damage*/
+  ASSIGNOBJ(9215, monk_glove_cold);
 
   /* tiamat */
   ASSIGNOBJ(132125, tia_rapier);
@@ -951,7 +952,6 @@ struct spec_func_data spec_func_list[] = {
   {"Guild Guard", guild_guard},
   {"Questmaster", questmaster},
   {"Shopkeeper", shop_keeper},
-  /* end stock specs */
   {"Magical Wall", wall},
   {"Faithful Hound", hound},
   {"Mistweave", mistweave},
@@ -980,6 +980,8 @@ struct spec_func_data spec_func_list[] = {
   {"Crystal Rapier", tia_rapier},
   {"Pet Object", bought_pet},
   {"Player Shop", player_owned_shops},
+  {"Monk Shock Gloves", monk_glove},
+  {"Monk Frost Gloves", monk_glove_cold},
 
   {"\n", NULL}
 };
