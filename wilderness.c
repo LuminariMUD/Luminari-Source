@@ -58,7 +58,7 @@ struct wild_map_info_type wild_map_info[] = {
   { SECT_ROAD_INT, "\tD+\tn",
     { NULL}}, /* This is somewhat obsolete. */
   { SECT_DESERT, "\tY.\tn",
-    {"\tY.\tn", "\tY.\tn", "\tY.\tn", "\tG\t[u127797/t]\n"}},
+    { NULL }},
   /* 15 */
   { SECT_OCEAN, "\tb~\tn",
     { NULL}},
