@@ -33,8 +33,8 @@ struct wild_map_info_type wild_map_info[] = {
     { NULL}},
   { SECT_FIELD, "\tg,\tn",
     { "\t[F120],\tn", "\t[F121],\tn", "\t[F130],\tn", "\t[F131],\tn"}},
-  { SECT_FOREST, "\tGY\tn",
-    {"\t[f020]Y\tn", "\t[f030]Y\tn", "\t[f040]Y\tn", "\t[f050]Y\tn"}},
+  { SECT_FOREST, "\tG\t[u127795/Y]\tn",
+    {"\t[f020]\t[u127795/Y]\tn", "\t[f030]\t[u127795/Y]\tn", "\t[f040]\t[u127795/Y]\tn", "\t[f050]\t[u127795/Y]\tn"}},
   { SECT_HILLS, "\tyn\tn",
     { NULL}},
   /* 5 */
