@@ -5980,7 +5980,7 @@ ACMD(do_singlefile) {
 ACMD(do_genmap) {
   
   /* command temporarily disabled - zusuk*/
-  return;
+  //return;
   
   char arg1[MAX_STRING_LENGTH];
   char arg2[MAX_STRING_LENGTH];
