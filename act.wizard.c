@@ -5977,8 +5977,25 @@ ACMD(do_genmap) {
 
   name = two_arguments(argument, arg1, arg2);
 
+  if (!*arg1) {
+    send_to_char(ch, "1st argument requires direction: genmap \tRnorth\tn 4 FooBar River, "
+            "cardinal directions or equivalent values accepted.\r\n");
+    return;
+  }
+  
+  if (!*arg2) {
+    send_to_char(ch, "2nd argument requires VNum: genmap n \tR4\tn FooBar River, "
+            "unique vnums only, pathlist to view.\r\n");
+    return;
+  }
+  
   skip_spaces(&name);
 
+  if (!*name) {
+    send_to_char(ch, "3rd argument requires river name: genmap n 4 \tRFooBar River\tn\r\n");
+    return;
+  }  
+  
   if (is_abbrev(arg1, "north"))
     dir = NORTH;
   else if (is_abbrev(arg1, "east"))
