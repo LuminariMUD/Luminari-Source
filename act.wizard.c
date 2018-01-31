@@ -5978,8 +5978,8 @@ ACMD(do_singlefile) {
 
 /* Test command to display a map, radius 4, generated using noise. */
 /* genmap 3 100011 FooBar River */
-/* genamp north 100011 FooBar River */
-/* genamp <arg1> <arg2> <arg3> */
+/* genmap north 100011 FooBar River */
+/* genmap <arg1> <arg2> <arg3> */
 ACMD(do_genmap) {
   
   /* command temporarily disabled - zusuk*/
@@ -5987,18 +5987,20 @@ ACMD(do_genmap) {
   
   char arg1[MAX_STRING_LENGTH];
   char arg2[MAX_STRING_LENGTH];
-  char arg3[MAX_STRING_LENGTH];      
+  char arg3[MAX_STRING_LENGTH];
+  char *arg_text = NULL;
   int dir = 0;
   region_vnum vnum;
   //char *name = NULL;
   
-  three_arguments(argument, arg1, arg2, arg3);
+  arg_text = two_arguments(argument, arg1, arg2);
+  //three_arguments(argument, arg1, arg2, arg3);
   
   dir = atoi(arg1);
   vnum = atoi(arg2);
   //name = strtok(argument, "'");
 
-  generate_river(ch, dir, vnum, arg3);
+  generate_river(ch, dir, vnum, arg_text);
   load_paths();
   
 /*
