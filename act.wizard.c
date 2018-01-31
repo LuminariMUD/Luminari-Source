@@ -5987,7 +5987,7 @@ ACMD(do_genmap) {
   
   char arg1[MAX_STRING_LENGTH];
   char arg2[MAX_STRING_LENGTH];
-  char arg3[MAX_STRING_LENGTH];
+  //char arg3[MAX_STRING_LENGTH];
   char *arg_text = NULL;
   int dir = 0;
   region_vnum vnum;
