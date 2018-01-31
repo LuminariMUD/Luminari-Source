@@ -29,7 +29,7 @@ struct wild_map_info_type wild_map_info[] = {
   /* 0 */
   { SECT_INSIDE, "\tn.\tn",
     { NULL}},
-  { SECT_CITY, "\twC\tn",
+  { SECT_CITY, "\tw\t[u127984/C]\tn",
     { NULL}},
   { SECT_FIELD, "\tg,\tn",
     { "\t[F120],\tn", "\t[F121],\tn", "\t[F130],\tn", "\t[F131],\tn"}},
@@ -58,7 +58,7 @@ struct wild_map_info_type wild_map_info[] = {
   { SECT_ROAD_INT, "\tD+\tn",
     { NULL}}, /* This is somewhat obsolete. */
   { SECT_DESERT, "\tY.\tn",
-    { NULL}},
+    {"\tY.\tn", "\tY.\tn", "\tY.\tn", "\tG\t[u127797/t]\n"}},
   /* 15 */
   { SECT_OCEAN, "\tb~\tn",
     { NULL}},
@@ -93,11 +93,11 @@ struct wild_map_info_type wild_map_info[] = {
   { SECT_CAVE, "\tDC\tn",
     { NULL}},
   /* 30 */
-  { SECT_JUNGLE, "\tg&\tn",
+  { SECT_JUNGLE, "\tg\t[u127796/&]\tn",
     { NULL}},
   { SECT_TUNDRA, "\tW.\tn",
     { NULL}},
-  { SECT_TAIGA, "\tgA\tn",
+  { SECT_TAIGA, "\tg\t[u127794/A]\tn",
     { NULL}},
   { SECT_BEACH, "\ty:\tn",
     { NULL}},
