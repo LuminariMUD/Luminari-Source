@@ -3020,7 +3020,7 @@ ACMD(do_show) {
       }
       page_string(ch->desc, buf, 1);
       break;
-      
+
       /* NewCraft */
     case 18: //show craft 
       if (!*value)
@@ -3052,7 +3052,7 @@ ACMD(do_show) {
       free_char(vict);
 
       break;
-      
+
       /* show what? */
     default:
       send_to_char(ch, "Sorry, I don't understand that.\r\n");
@@ -4748,20 +4748,20 @@ EVENTFUNC(event_copyover) {
 
   /* initialize everything and dummy checks */
   if (event_obj == NULL)
-    return 0;  
-  
+    return 0;
+
   copyover_event = (struct mud_event_data *) event_obj;
   ch = (struct char_data *) copyover_event->pStruct;
 
   /* in case our event owner decides to log out*/
-  
+
   /* grab and clear initial timer from sVar */
   if (copyover_event->sVariables) {
     timer = atoi((char *) copyover_event->sVariables); /* in seconds */
     free(copyover_event->sVariables);
   } else
     timer = 0;
-  
+
   /* all done, copyover (if we can)! */
   if (timer <= 0) {
     if (!ch || !ch->desc || !IS_PLAYING(ch->desc)) { /*invalid state for copyover, cancel*/
@@ -4773,93 +4773,83 @@ EVENTFUNC(event_copyover) {
     perform_do_copyover();
     return 0;
   }
-  
   else if (timer == 1) {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
         send_to_char(pt->character, "\r\n     \tR[COPYOVER IMMINENT!]\tn\r\n");
     sprintf(buf, "%d", (timer - 1));
     copyover_event->sVariables = strdup(buf);
-    return (1 * PASSES_PER_SEC);    
+    return (1 * PASSES_PER_SEC);
   }
-  
   else if (timer == 2) {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
         send_to_char(pt->character, "\r\n     \tR[Copyover in less than 2 seconds]\tn\r\n");
     sprintf(buf, "%d", (timer - 1));
     copyover_event->sVariables = strdup(buf);
-    return (1 * PASSES_PER_SEC);    
+    return (1 * PASSES_PER_SEC);
   }
-  
   else if (timer == 3) {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
         send_to_char(pt->character, "\r\n     \tR[Copyover in less than 3 seconds]\tn\r\n");
     sprintf(buf, "%d", (timer - 1));
     copyover_event->sVariables = strdup(buf);
-    return (1 * PASSES_PER_SEC);    
+    return (1 * PASSES_PER_SEC);
   }
-  
   else if (timer <= 10) {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
         send_to_char(pt->character, "\r\n     \tR[Copyover in less than 10 seconds]\tn\r\n");
     sprintf(buf, "%d", (3));
     copyover_event->sVariables = strdup(buf);
-    return ((timer-3) * PASSES_PER_SEC);    
+    return ((timer - 3) * PASSES_PER_SEC);
   }
-
   else if (timer <= 30) {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
         send_to_char(pt->character, "\r\n     \tR[Copyover in less than 30 seconds]\tn\r\n");
     sprintf(buf, "%d", (10));
     copyover_event->sVariables = strdup(buf);
-    return ((timer-10) * PASSES_PER_SEC);    
+    return ((timer - 10) * PASSES_PER_SEC);
   }
-  
   else if (timer <= 60) {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
         send_to_char(pt->character, "\r\n     \tR[Copyover in less than 1 minute, please disengage from combat and find a safe place to wait]\tn\r\n");
     sprintf(buf, "%d", (30));
     copyover_event->sVariables = strdup(buf);
-    return ((timer-30) * PASSES_PER_SEC);    
+    return ((timer - 30) * PASSES_PER_SEC);
   }
-  
   else if (timer <= 180) {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
         send_to_char(pt->character, "\r\n     \tR[Copyover in less than 3 minutes]\tn\r\n");
     sprintf(buf, "%d", (60));
     copyover_event->sVariables = strdup(buf);
-    return ((timer-60) * PASSES_PER_SEC);    
+    return ((timer - 60) * PASSES_PER_SEC);
   }
-  
   else if (timer <= 300) {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
         send_to_char(pt->character, "\r\n     \tR[Copyover in less than 5 minutes]\tn\r\n");
     sprintf(buf, "%d", (180));
     copyover_event->sVariables = strdup(buf);
-    return ((timer-180) * PASSES_PER_SEC);    
+    return ((timer - 180) * PASSES_PER_SEC);
   }
-  
   else if (timer <= 600) {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
         send_to_char(pt->character, "\r\n     \tR[Copyover in less than 10 minutes]\tn\r\n");
     sprintf(buf, "%d", (300));
     copyover_event->sVariables = strdup(buf);
-    return ((timer-300) * PASSES_PER_SEC);    
+    return ((timer - 300) * PASSES_PER_SEC);
   }
-  
   else {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
         send_to_char(pt->character, "\r\n     \tR[Copyover in about %d minutes]\tn\r\n",
-                timer/60);
+              timer / 60);
     copyover_event->sVariables = strdup("600");
     return ((timer - 600) * PASSES_PER_SEC);
   }
@@ -4888,7 +4878,7 @@ ACMD(do_copyover) {
     perform_do_copyover();
     return;
   }
-  
+
   if (is_abbrev(arg, "cancel")) {
     send_to_char(ch, "If the copyover event was on you, it has been canceled.  "
             "Only the initiator of the copyover event can cancel it.\r\n");
@@ -4898,23 +4888,23 @@ ACMD(do_copyover) {
         if (pt->character)
           send_to_char(pt->character, "\r\n     \tW[Copyover has been CANCELLED]\tn\r\n");
     }
-    return; 
+    return;
   }
-  
+
   timer = atoi(arg);
-  
+
   if (timer <= 0) {
     perform_do_copyover();
-    return;    
+    return;
   }
-  
+
   send_to_char(ch, "Event for copyover has started and will complete in %d "
           "seconds.\r\n"
           "To cancel type: copyover cancel\r\n", timer);
-  
+
   sprintf(buf, "%d", timer); /* sVariable */
   NEW_EVENT(eCOPYOVER, ch, strdup(buf), (1 * PASSES_PER_SEC));
-  
+
 }
 
 /* stop combat in the room you are in */
@@ -5861,7 +5851,7 @@ ACMD(do_hlqlist) {
   if (!*buf1) {
     bottom = zone_table[world[IN_ROOM(ch)].zone].bot;
     send_to_char(ch, "Bottom:  %d\r\n", bottom);
-  }    /* if buf1 is not a number send them back */
+  }/* if buf1 is not a number send them back */
   else if (!isdigit(*buf1)) {
     send_to_char(ch, "\tcFirst value must be a digit, or nothing.\tn\r\n");
     return;
@@ -5874,7 +5864,7 @@ ACMD(do_hlqlist) {
   if (!*buf2) {
     top = zone_table[world[IN_ROOM(ch)].zone].top;
     send_to_char(ch, "Top:  %d\r\n", top);
-  }    /* if buf2 is not a number send them back */
+  }/* if buf2 is not a number send them back */
   else if (!isdigit(*buf2)) {
     send_to_char(ch, "\tcSecond value must be a digit, or nothing.\tn\r\n");
     return;
@@ -5979,59 +5969,53 @@ ACMD(do_singlefile) {
 /* Test command to display a map, radius 4, generated using noise. */
 /* genmap 3 100011 FooBar River */
 /* genmap north 100011 FooBar River */
+
 /* genmap <arg1> <arg2> <arg3> */
 ACMD(do_genmap) {
-  
-  /* command temporarily disabled - zusuk*/
-  //return;
-  
   char arg1[MAX_STRING_LENGTH];
   char arg2[MAX_STRING_LENGTH];
-  //char arg3[MAX_STRING_LENGTH];
-  char *arg_text = NULL;
+  char *name = NULL;
   int dir = 0;
   region_vnum vnum;
-  //char *name = NULL;
-  
-  arg_text = two_arguments(argument, arg1, arg2);
-  //three_arguments(argument, arg1, arg2, arg3);
-  
-  skip_spaces(&arg_text);
-  
-  /*debug*/send_to_char(ch, "Debug arg_text: %s\r\n", arg_text);
-  
+
+  name = two_arguments(argument, arg1, arg2);
+
+  skip_spaces(&name);
+
   dir = atoi(arg1);
   vnum = atoi(arg2);
-  //name = strtok(argument, "'");
 
-  generate_river(ch, dir, vnum, arg_text);
+  /*debug*/send_to_char(ch, "Debug- dir: %d, vnum: %d, name: %s\r\n",
+          dir, vnum, name);
+
+  generate_river(ch, dir, vnum, name);
   load_paths();
-  
-/*
-  void *set;
-  double pos[2], point[2];
-  room_rnum *room;
-  //  int j = 0;
 
-  point[0] = 0;
-  point[1] = 0;
-  set = kd_nearest_range(kd_wilderness_rooms, point, 2048);
-  send_to_char(ch, "range query returned %d items.\r\n", kd_res_size(set));
+  /*
+    void *set;
+    double pos[2], point[2];
+    room_rnum *room;
+    //  int j = 0;
 
-  while (!kd_res_end(set)) {
-  */
-    /* get the data and position of the current result item */
+    point[0] = 0;
+    point[1] = 0;
+    set = kd_nearest_range(kd_wilderness_rooms, point, 2048);
+    send_to_char(ch, "range query returned %d items.\r\n", kd_res_size(set));
+
+    while (!kd_res_end(set)) {
+   */
+  /* get the data and position of the current result item */
   /*
     room = (room_rnum *) kd_res_item(set, pos);
     send_to_char(ch, " (%.3f, %.3f) is room vnum: %d\r\n", pos[0], pos[1], world[*room].number);
-*/
-    /* go to the next entry */
-/*
-    kd_res_next(set);
-  }
+   */
+  /* go to the next entry */
+  /*
+      kd_res_next(set);
+    }
 
-  kd_res_free(set);
-*/
+    kd_res_free(set);
+   */
   // Test region events
 
 
@@ -6735,6 +6719,7 @@ ACMD(do_coordconvert) {
 }
 
 /* findmagic command - finds scrolls, potions, wands or staves with a specified spell */
+
 /* Written by Jamdog - 25th February 2007, ported by Zusuk                                             */
 ACMD(do_findmagic) {
   char spellname[MAX_INPUT_LENGTH], objname[MAX_INPUT_LENGTH];
@@ -6836,7 +6821,6 @@ ACMD(do_cmdlev) {
   send_to_char(ch, "NOTE: Command levels are restored to default during a reboot or copyover\r\n");
   mudlog(NRM, MAX(LVL_IMPL, GET_INVIS_LEV(ch)), TRUE, "(GC) %s set command level for %s to %d", GET_NAME(ch), complete_cmd_info[iCmd].command, iLev);
 }
-
 
 ACMD(do_unbind) {
   char obj_name[MAX_INPUT_LENGTH];
@@ -7028,7 +7012,7 @@ ACMD(do_plist) {
           "%d players listed.\r\n", count);
   page_string(ch->desc, buf, TRUE);
 }
-*/
+ */
 
 /* do_finddoor, finds the door(s) that a key goes to */
 ACMD(do_finddoor) {
