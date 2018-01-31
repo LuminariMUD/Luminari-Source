@@ -76,31 +76,21 @@ SPECIAL(abyss_randomizer);
 SPECIAL(cf_trainingmaster);
 SPECIAL(cf_alathar);
 SPECIAL(jot_invasion_loader);
-
-/* rooms */
 SPECIAL(wizard_library);
-
-/* new batch - 10/20/13 */
-SPECIAL(air_sphere); //weapon
-SPECIAL(chionthar_ferry); //transport
-SPECIAL(spikeshield); //shield
-
-
+SPECIAL(air_sphere);
+SPECIAL(chionthar_ferry);
+SPECIAL(spikeshield);
 SPECIAL(hive_death);
 SPECIAL(courage);
-
 SPECIAL(trade_master);
 SPECIAL(trade_bandit);
 SPECIAL(trade_object);
-
 SPECIAL(forest_idol);
-
 SPECIAL(cube_slider);
 SPECIAL(guild_golem);
 SPECIAL(battlemaze_guard);
 SPECIAL(fzoul);
 SPECIAL(bandit_guard);
-
 SPECIAL(shar_statue);
 SPECIAL(shar_heart);
 SPECIAL(acidsword);
@@ -108,7 +98,6 @@ SPECIAL(snakewhip);
 SPECIAL(witherdirk);
 SPECIAL(cf_alathar);
 SPECIAL(cf_trainingmaster);
-
 SPECIAL(spiderdagger);
 SPECIAL(menzo_chokers);
 SPECIAL(planetar);
@@ -116,7 +105,6 @@ SPECIAL(ymir);
 SPECIAL(thrym);
 SPECIAL(gatehouse_guard);
 SPECIAL(jot_invasion_loader);
-
 SPECIAL(abyss_randomizer);
 SPECIAL(practice_dummy);
 SPECIAL(tia_moonblade);
@@ -161,7 +149,7 @@ SPECIAL(cryogenicist);
 SPECIAL(guild_guard);
 SPECIAL(guild);
 SPECIAL(fido);
-SPECIAL(tiamat); /* Iyachtu 3/5/00 */
+SPECIAL(tiamat);
 SPECIAL(dracolich);
 SPECIAL(imix);
 SPECIAL(practice_dummy);
@@ -196,8 +184,6 @@ SPECIAL(naga);
 SPECIAL(naga_golem);
 SPECIAL(mercenary);
 SPECIAL(shadowdragon);
-
-/* WEAPONS  */
 SPECIAL(warbow);
 SPECIAL(malevolence);
 SPECIAL(xvim_artifact);
@@ -241,10 +227,11 @@ SPECIAL(valkyrie_sword);
 SPECIAL(planetar_sword);
 SPECIAL(haste_bracers);
 SPECIAL(disruption_mace);
-SPECIAL(angel_leggings); /* 4-9-04 by tempus */
+SPECIAL(angel_leggings);
 SPECIAL(monk_glove);
-
+SPECIAL(monk_glove_cold);
 SPECIAL(player_owned_shops);
 
+/** !!MAKE SURE TO ADD TO: spec_func_list!!!  **/
 
 #endif /* _SPEC_PROCS_H_ */
