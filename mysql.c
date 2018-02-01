@@ -587,7 +587,7 @@ void insert_path(struct path_data *path) {
 }
 
 /* Delete a path from the database. */
-boolean delete_path(region_vnum vnum) {
+bool delete_path(region_vnum vnum) {
   /* path_data* path_table */
   char buf[MAX_STRING_LENGTH];
 

@@ -71,6 +71,8 @@ static struct recent_player *create_recent(void);
 const char *get_spec_func_name(SPECIAL(*func));
 bool zedit_get_levels(struct descriptor_data *d, char *buf);
 
+bool delete_path(region_vnum vnum);
+
 /* Local Globals */
 static struct recent_player *recent_list = NULL; /** Global list of recent players */
 
