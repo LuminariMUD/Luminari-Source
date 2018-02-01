@@ -6045,7 +6045,12 @@ ACMD(do_deletepath) {
     return;
   }  
 
-  delete_path(vnum);
+  if(delete_path(vnum)) {
+    send_to_char(ch, "\tnPath deleted!\r\n");
+  } else {
+    send_to_char(ch, "\tnPath not found.\r\n");
+  }
+
   load_paths();
 }
 
