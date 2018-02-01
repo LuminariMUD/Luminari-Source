@@ -1514,6 +1514,7 @@ static void group_gain(struct char_data *ch, struct char_data *victim) {
       perform_group_gain(k, base, victim);
   }
 }
+#undef BONUS_PER_MEMBER
 
 /* called for splitting xp if NOT in a group (engine) */
 static void solo_gain(struct char_data *ch, struct char_data *victim) {
