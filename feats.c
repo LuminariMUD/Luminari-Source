@@ -1,6 +1,6 @@
 
 /*****************************************************************************
- ** feats.c                                                                  **
+ ** feats.c                                       Part of LuminariMUD        **
  ** Source code for the LuminariMUD Feats System.                            **
  ** Initial code by Gicker (Stephen Squires), Ported by Ornir to Luminari    **
  *****************************************************************************/
@@ -32,7 +32,8 @@ struct feat_info feat_list[NUM_FEATS];
 /* END */
 
 /* START */
-void free_feats(void) {} /* Nothing to do right now.  What, for shutdown maybe? */
+void free_feats(void) {
+} /* Nothing to do right now.  What, for shutdown maybe? */
 
 /* Helper function for t sort_feats function - not very robust and should not be reused.
  * SCARY pointer stuff! */
@@ -42,6 +43,7 @@ int compare_feats(const void *x, const void *y) {
 
   return strcmp(feat_list[a].name, feat_list[b].name);
 }
+
 /* sort feats called at boot up */
 void sort_feats(void) {
   int a;
@@ -58,7 +60,7 @@ int has_feat_requirement_check(struct char_data *ch, int featnum) {
   if (ch->desc && LEVELUP(ch)) { /* check if he's in study mode */
     return (HAS_FEAT(ch, featnum) + LEVELUP(ch)->feats[featnum]);
   }
-  
+
   return (HAS_FEAT(ch, featnum));
 }
 
@@ -93,7 +95,7 @@ bool has_spell_feat(struct char_data *ch, int sfeat, int school) {
 
   return FALSE;
 }
-*/
+ */
 
 /* create/allocate memory for a pre-req struct, then assign the prereqs */
 struct feat_prerequisite* create_prerequisite(int prereq_type, int val1, int val2, int val3) {
@@ -218,10 +220,10 @@ void feat_prereq_spellcasting(int featnum, int casting_type, int prep_type, int 
   };
 
   prereq = create_prerequisite(FEAT_PREREQ_SPELLCASTING, casting_type, prep_type,
-                               circle);
+          circle);
 
   sprintf(buf, "Ability to cast %s %s spells", casting_types[casting_type],
-                spell_preparation_types[prep_type]);
+          spell_preparation_types[prep_type]);
   prereq->description = strdup(buf);
 
   /*   Link it up. */
@@ -271,23 +273,26 @@ void feat_prereq_weapon_proficiency(int featnum) {
   feat_list[featnum].prerequisite_list = prereq;
 }
 
-  /* ASSIGNING FEATS - Below are the various feat initializations :
-   *   1) feat number, defined in structs.h
-   *   2) displayed name of the feat
-   *   3) in the game or not, and thus can be learned and displayed
-   *   4) learned through a trainer (study menu) or whether it is a feat given automatically
-   *      to certain classes or races.
-   *   5) feat can stack with itself.
-   *   6) feat type, for organization in the selection menu
-   *   7) short description of the feat.
-   *   8) long description of the feat.   */
+/* ASSIGNING FEATS - Below are the various feat initializations :
+ *   1) feat number, defined in structs.h
+ *   2) displayed name of the feat
+ *   3) in the game or not, and thus can be learned and displayed
+ *   4) learned through a trainer (study menu) or whether it is a feat given automatically
+ *      to certain classes or races.
+ *   5) feat can stack with itself.
+ *   6) feat type, for organization in the selection menu
+ *   7) short description of the feat.
+ *   8) long description of the feat.   */
+
 /* utility functions for assigning "specials" to individual feats */
 void epicfeat(int featnum) {
   feat_list[featnum].epic = TRUE;
 }
+
 void combatfeat(int featnum) {
   feat_list[featnum].combat_feat = TRUE;
 }
+
 void dailyfeat(int featnum, event_id event) {
   feat_list[featnum].event = event;
 }
@@ -307,7 +312,7 @@ void feato(int featnum, char *name, int in_game, int can_learn, int can_stack, i
 void initialize_feat_list(void) {
   int i;
 
-/* initialize the list of feats */
+  /* initialize the list of feats */
   for (i = 0; i < NUM_FEATS; i++) {
     feat_list[i].name = "Unused Feat";
     feat_list[i].in_game = FALSE;
@@ -322,6 +327,7 @@ void initialize_feat_list(void) {
     feat_list[i].event = eNULL; /* Set all feats to eNULL event as default. */
   }
 }
+
 /* primary function for assigning feats */
 void assign_feats(void) {
 
@@ -333,8 +339,8 @@ void assign_feats(void) {
   /* NPC Racial Feats (and wildshape) */
 
   feato(FEAT_NATURAL_ATTACK, "natural attack", TRUE, FALSE, TRUE, FEAT_TYPE_INNATE_ABILITY,
-    "proficiency with your natural attack",
-    "Depending on the level and size of the shifter, the natural attack of the "
+          "proficiency with your natural attack",
+          "Depending on the level and size of the shifter, the natural attack of the "
           "shifted form will get more powerful and accurate.  The number of dice "
           "rolled for natural attack is determined by the number of ranks the wildshaper "
           "has in this feat.  The size of dice is determined by the size of the race the "
@@ -342,11 +348,11 @@ void assign_feats(void) {
           "bonus to their accuracy in the form of enhancement bonus OR whatever enhancement "
           "bonus the weapon they were wielding when they shapechanged - whichever is higher.");
   feato(FEAT_NATURAL_TRACKER, "natural tracker", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "naturally able to track",
-    "Without this feat (or similar) you are unable to track opponents.");
+          "naturally able to track",
+          "Without this feat (or similar) you are unable to track opponents.");
   feato(FEAT_POISON_BITE, "poison bite", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "your bite can cause poison",
-    "When attacking an opponent, you have a high chance of inflicting poison through your bite.");
+          "your bite can cause poison",
+          "When attacking an opponent, you have a high chance of inflicting poison through your bite.");
 
   /*************************/
   /* NPC Racial Feats Shared Elsewhere */
@@ -357,88 +363,88 @@ void assign_feats(void) {
 
   /* Human */
   feato(FEAT_QUICK_TO_MASTER, "quick to master", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "extra starting feat",
-    "You start off with an extra feat.");
+          "extra starting feat",
+          "You start off with an extra feat.");
   feato(FEAT_SKILLED, "skilled", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "gain bonus skill point",
-    "4 extra skill points at 1st level, plus 1 additional skill point at each level up");
+          "gain bonus skill point",
+          "4 extra skill points at 1st level, plus 1 additional skill point at each level up");
 
   /* Dwarf */
   feato(FEAT_SPELL_HARDINESS, "hardiness", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "+2 spell save versus damaging spells",
-    "+2 spell save versus damaging spells");
+          "+2 spell save versus damaging spells",
+          "+2 spell save versus damaging spells");
   feato(FEAT_DWARF_RACIAL_ADJUSTMENT, "dwarf racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "+2 con -2 cha",
-    "As a racial adjustment you have +2 to constitution and -2 to charisma");
+          "+2 con -2 cha",
+          "As a racial adjustment you have +2 to constitution and -2 to charisma");
 
   /* Halfling */
   feato(FEAT_SHADOW_HOPPER, "shadow hopper", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "+2 to stealth",
-    "+2 to stealth");
+          "+2 to stealth",
+          "+2 to stealth");
   feato(FEAT_LUCKY, "lucky", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "+1 bonus to all saves",
-    "+1 bonus to all saves");
+          "+1 bonus to all saves",
+          "+1 bonus to all saves");
   feato(FEAT_HALFLING_RACIAL_ADJUSTMENT, "halfling racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "+2 dex -2 str",
-    "You gain +2 to dexterity and -2 strength as racial stat adjustments.");
+          "+2 dex -2 str",
+          "You gain +2 to dexterity and -2 strength as racial stat adjustments.");
 
   /* Half-Elf */
   feato(FEAT_HALF_BLOOD, "half blood", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "+2 discipline and lore",
-    "+2 discipline and lore");
+          "+2 discipline and lore",
+          "+2 discipline and lore");
 
   /* Half-Orc */
   feato(FEAT_HALF_ORC_RACIAL_ADJUSTMENT, "halforc racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "+2 str, -2 int/cha",
-    "Half-Orcs as a racial adjustment have +2 strength and -2 intelligence/charisma.");
+          "+2 str, -2 int/cha",
+          "Half-Orcs as a racial adjustment have +2 strength and -2 intelligence/charisma.");
 
   /* Gnome */
   feato(FEAT_RESISTANCE_TO_ILLUSIONS, "resistance to illusions", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "+2 saving throw bonus against illusions",
-    "+2 saving throw bonus against illusions");
+          "+2 saving throw bonus against illusions",
+          "+2 saving throw bonus against illusions");
   feato(FEAT_ILLUSION_AFFINITY, "illusion affinity", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "+2 DC opponents saves versus their illusions",
-    "+2 DC opponents saves versus their illusions");
+          "+2 DC opponents saves versus their illusions",
+          "+2 DC opponents saves versus their illusions");
   feato(FEAT_TINKER_FOCUS, "tinker focus", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "+2 concentration and use magic device",
-    "+2 concentration and use magic device");
+          "+2 concentration and use magic device",
+          "+2 concentration and use magic device");
   feato(FEAT_GNOME_RACIAL_ADJUSTMENT, "gnome racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "+2 con -2 str",
-    "Gnomes as a racial adjustment have +2 constitution and -2 strength.");
+          "+2 con -2 str",
+          "Gnomes as a racial adjustment have +2 constitution and -2 strength.");
 
   /* Elf */
   feato(FEAT_SLEEP_ENCHANTMENT_IMMUNITY, "sleep enchantment immunity", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "immunity to sleep enchantments",
-    "immunity to sleep enchantments");
+          "immunity to sleep enchantments",
+          "immunity to sleep enchantments");
   feato(FEAT_ELF_RACIAL_ADJUSTMENT, "elf racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "+2 dex -2 con",
-    "Elven racial adjustment to stats are: +2 dexterity -2 constitution.");
+          "+2 dex -2 con",
+          "Elven racial adjustment to stats are: +2 dexterity -2 constitution.");
 
   /* Half-Troll */
   feato(FEAT_TROLL_REGENERATION, "troll regeneration", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "rapid health regeneration",
-    "Half-Trolls recover health much quicker than other races, and this effect is even more dramatic during combat.");
+          "rapid health regeneration",
+          "Half-Trolls recover health much quicker than other races, and this effect is even more dramatic during combat.");
   feato(FEAT_WEAKNESS_TO_FIRE, "weakness to fire", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "50 percent vulnerability to fire",
-    "50 percent vulnerability to fire");
+          "50 percent vulnerability to fire",
+          "50 percent vulnerability to fire");
   feato(FEAT_WEAKNESS_TO_ACID, "weakness to acid", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "25 percent vulnerability to acid",
-    "25 percent vulnerability to acid");
+          "25 percent vulnerability to acid",
+          "25 percent vulnerability to acid");
   feato(FEAT_STRONG_AGAINST_POISON, "strong against poison", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "25 percent resist poison",
-    "25 percent resist poison");
+          "25 percent resist poison",
+          "25 percent resist poison");
   feato(FEAT_STRONG_AGAINST_DISEASE, "strong against disease", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "50 percent resist disease",
-    "50 percent resist disease");
+          "50 percent resist disease",
+          "50 percent resist disease");
   feato(FEAT_HALF_TROLL_RACIAL_ADJUSTMENT, "halftroll racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "+2 str/dex/con -4 int/wis/cha",
-    "As racial stat adjustments Half-Trolls get: +2 to strength/dexterity/constitution and -4 to intelligence/wisdom/charisma.");
+          "+2 str/dex/con -4 int/wis/cha",
+          "As racial stat adjustments Half-Trolls get: +2 to strength/dexterity/constitution and -4 to intelligence/wisdom/charisma.");
 
 
   /* Arcana Golem */
   feato(FEAT_SPELLBATTLE, "spellbattle", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "strengthen your body with arcane power",
-    "By channeling their inner magic, Arcana Golems can use it to provide a huge "
+          "strengthen your body with arcane power",
+          "By channeling their inner magic, Arcana Golems can use it to provide a huge "
           "surge to their physical attributes in the rare cases in which they "
           "must resort to physical violence. While the eldritch energies cloud "
           "their mind and finesse, the bonus to durability and power can provide "
@@ -455,37 +461,37 @@ void assign_feats(void) {
           "Spell-Battle at the same time you use Power Attack, Combat Expertise, "
           "or similar effects");
   feato(FEAT_SPELL_VULNERABILITY, "spell vulnerability", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    " -2 damaging spell saves",
-    "You get a -2 penalty to all spell saves involving damage.");
+          " -2 damaging spell saves",
+          "You get a -2 penalty to all spell saves involving damage.");
   feato(FEAT_ENCHANTMENT_VULNERABILITY, "enchantment vulnerability", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "-2 enchantment saves",
-    "You get a -2 penalty to all enchantment spells saves.");
+          "-2 enchantment saves",
+          "You get a -2 penalty to all enchantment spells saves.");
   feato(FEAT_PHYSICAL_VULNERABILITY, "physical vulnerability", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    " -2 penalty to AC",
-    "You get a -2 penalty to your natural armor class value.");
+          " -2 penalty to AC",
+          "You get a -2 penalty to your natural armor class value.");
   feato(FEAT_MAGICAL_HERITAGE, "magical heritage", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "strong connection to magic",
-    "Arcana Golem gain a 6th of their level as bonus to Caster-Level, Spellcraft Checks and Concentration Checks.");
+          "strong connection to magic",
+          "Arcana Golem gain a 6th of their level as bonus to Caster-Level, Spellcraft Checks and Concentration Checks.");
   feato(FEAT_ARCANA_GOLEM_RACIAL_ADJUSTMENT, "arcanagolem racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "-2 con/str, +2 int/wis/cha",
-    "Arcana Golem natural racial adjustment to stats are: -2 constitution/strength, +2 intelligence/wisdom/charisma.");
+          "-2 con/str, +2 int/wis/cha",
+          "Arcana Golem natural racial adjustment to stats are: -2 constitution/strength, +2 intelligence/wisdom/charisma.");
 
 
   /* Crystal Dwarf */
   feato(FEAT_CRYSTAL_BODY, "crystal body", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "damage reduction 3/- temporarily",
-    "Allows you to harden your crystal-like body for a short time. "
+          "damage reduction 3/- temporarily",
+          "Allows you to harden your crystal-like body for a short time. "
           "(Damage reduction 3/-)");
   feato(FEAT_CRYSTAL_FIST, "crystal fist", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "melee +3 damage temporarily",
-    "Allows you to innately grow jagged and sharp crystals on your arms and legs "
+          "melee +3 damage temporarily",
+          "Allows you to innately grow jagged and sharp crystals on your arms and legs "
           "to enhance damage in melee. (+3 damage)");
   feato(FEAT_CRYSTAL_SKIN, "crystal skin", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "gain some resistances",
-    "10 percent resistance to acid, puncture, poison and disease");
+          "gain some resistances",
+          "10 percent resistance to acid, puncture, poison and disease");
   feato(FEAT_CRYSTAL_DWARF_RACIAL_ADJUSTMENT, "crystaldwarf racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "+4 con, +2 str, +2 wis, +2 cha",
-    "As a natural racial bonus, crystal-dwarves start with +4 constituion, +2 to strength, wisdom and charisma.");
+          "+4 con, +2 str, +2 wis, +2 cha",
+          "As a natural racial bonus, crystal-dwarves start with +4 constituion, +2 to strength, wisdom and charisma.");
 
   /* Drow */
   //sleep enchantment immunity - shared
@@ -494,96 +500,96 @@ void assign_feats(void) {
   //resistance to enchantments - shared
   //light blindness - shared
   feato(FEAT_SLA_LEVITATE, "drow levitate", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "sla - levitate 3/day",
-    "Drow have a spell-like ability to use 'levitate' on themselves three times per day");
+          "sla - levitate 3/day",
+          "Drow have a spell-like ability to use 'levitate' on themselves three times per day");
   feato(FEAT_SLA_DARKNESS, "drow darkness", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "sla - darkness 3/day",
-    "Drow have a spell-like ability to use 'darkness' on the current room three times per day");
+          "sla - darkness 3/day",
+          "Drow have a spell-like ability to use 'darkness' on the current room three times per day");
   feato(FEAT_SLA_FAERIE_FIRE, "drow faerie fire", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "sla - faerie fire 3/day",
-    "Drow have a spell-like ability to use 'faerie fire' on opponents three times per day");
+          "sla - faerie fire 3/day",
+          "Drow have a spell-like ability to use 'faerie fire' on opponents three times per day");
   feato(FEAT_DROW_SPELL_RESISTANCE, "drow spell resist", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "10 + level spell resist",
-    "Due to their magical nature and society, Drow have a strong natural resistance "
+          "10 + level spell resist",
+          "Due to their magical nature and society, Drow have a strong natural resistance "
           "to magic.  A Drow's spell resistance is equal to 10 + their level.");
   feato(FEAT_DROW_RACIAL_ADJUSTMENT, "drow racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "+2 dex +2 wis +2 int +2 cha -2 con",
-    "Drow racial adjustment to stats are: +2 dexterity, +2 charisma, +2 wisdom, "
+          "+2 dex +2 wis +2 int +2 cha -2 con",
+          "Drow racial adjustment to stats are: +2 dexterity, +2 charisma, +2 wisdom, "
           "+2 intelligence and -2 constitution.");
   feato(FEAT_WEAPON_PROFICIENCY_DROW, "weapon proficiency - drow", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "gain bonus weapon proficiency",
-    "As part of your drow upbringing, you were trained in the usage of "
+          "gain bonus weapon proficiency",
+          "As part of your drow upbringing, you were trained in the usage of "
           "hand-crossbows, rapiers and short-swords.");
-  
-  
+
+
   /* Trelux */
   feato(FEAT_VULNERABLE_TO_COLD, "vulnerable to cold", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "20 percent weakness to cold attacks",
-    "20 percent weakness to cold attacks");
+          "20 percent weakness to cold attacks",
+          "20 percent weakness to cold attacks");
   feato(FEAT_TRELUX_EXOSKELETON, "trelux exoskeleton", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "resistances and natural armor bonus",
-    "Trelux have an extremely strong exoskeleton that gets harder as they mature. "
+          "resistances and natural armor bonus",
+          "Trelux have an extremely strong exoskeleton that gets harder as they mature. "
           "(They gain +1 AC-bonus every 5 levels)  Also the exoskeleton grants "
           "resistance to all damage forms except cold.");
   feato(FEAT_LEAP, "leap", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "20 percent damage avoidance",
-    "Leap is a Trelux ability to completely avoid attacks 20% of the time by "
+          "20 percent damage avoidance",
+          "Leap is a Trelux ability to completely avoid attacks 20% of the time by "
           "leaping away from danger with their powerful insect-like legs.");
   feato(FEAT_WINGS, "wings", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "able to fly",
-    "Commands: 'fly' and 'land'  Those with wings are able to fly at will.");
+          "able to fly",
+          "Commands: 'fly' and 'land'  Those with wings are able to fly at will.");
   feato(FEAT_TRELUX_EQ, "trelux eq", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "can't use some eq slots",
-    "Due to their pincer-like hands, Trelux cannot wield weapons, hold items, wear "
+          "can't use some eq slots",
+          "Due to their pincer-like hands, Trelux cannot wield weapons, hold items, wear "
           "gloves or wear rings.  Also due to their insect-like legs, Trelux cannot "
           "wear items on their legs and feet.");
   feato(FEAT_TRELUX_PINCERS, "trelux pincers", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "trelux natural pincer weapon",
-    "Trelux don't have hands, they have insect-like pincers.  These pincers can "
+          "trelux natural pincer weapon",
+          "Trelux don't have hands, they have insect-like pincers.  These pincers can "
           "be used as dangerous weapons.  Trelux Monks gain an extra dice of damage "
           "due to these pincers.  Also, Trelux pincers have a chance of poisoning "
           "their victim - note Trelux naturally are 'dual wielding' and will have"
           "a partial but reduced penalty to hit with their 'off' pincer.");
   feato(FEAT_TRELUX_RACIAL_ADJUSTMENT, "trelux racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "+4 dex, +2 str, +4 con",
-    "As racial modifiers, Trelux gain 4 dexterity, 2 strength and 4 constitution as a natural starting bonus.");
+          "+4 dex, +2 str, +4 con",
+          "As racial modifiers, Trelux gain 4 dexterity, 2 strength and 4 constitution as a natural starting bonus.");
 
   /* Shared - Various */
   feato(FEAT_LIGHT_BLINDNESS, "light blindness", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "penalties in daylight",
-    "You receive penalties of -1 to hitroll, damroll, saves and skill checks when "
+          "penalties in daylight",
+          "You receive penalties of -1 to hitroll, damroll, saves and skill checks when "
           "outdoors during the day.  Darkness spells and effects negate this penalty");
   feato(FEAT_KEEN_SENSES, "keen senses", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "+2 perception and sense motive",
-    "+2 perception and sense motive");
+          "+2 perception and sense motive",
+          "+2 perception and sense motive");
   feato(FEAT_WEAPON_PROFICIENCY_ELF, "weapon proficiency - elves", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "gain bonus weapon proficiency",
-    "As part of your elf upbringing, you were trained in the usage of long swords, "
+          "gain bonus weapon proficiency",
+          "As part of your elf upbringing, you were trained in the usage of long swords, "
           "rapiers, long bows, composite bows, short bows and composite short bows.");
   feato(FEAT_ULTRAVISION, "ultravision", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "you can see perfectly even in complete dark",
-    "you can see perfectly even in complete dark");
+          "you can see perfectly even in complete dark",
+          "you can see perfectly even in complete dark");
   feato(FEAT_INFRAVISION, "infravision", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "you can see outlines of life in complete dark",
-    "you can see outlines of life in complete dark");
+          "you can see outlines of life in complete dark",
+          "you can see outlines of life in complete dark");
   feato(FEAT_COMBAT_TRAINING_VS_GIANTS, "combat training vs giants", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "+1 size bonus versus larger opponents",
-    "+1 size bonus versus larger opponents");
+          "+1 size bonus versus larger opponents",
+          "+1 size bonus versus larger opponents");
   feato(FEAT_POISON_RESIST, "poison resist", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "+2 saves versus poison",
-    "+2 saves versus poison");
+          "+2 saves versus poison",
+          "+2 saves versus poison");
   feato(FEAT_VITAL, "vital", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "start with +10 hps",
-    "start with +10 hps");
+          "start with +10 hps",
+          "start with +10 hps");
   feato(FEAT_HARDY, "hardy", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "gain an extra hit point per level",
-    "gain an extra hit point per level");
+          "gain an extra hit point per level",
+          "gain an extra hit point per level");
   feato(FEAT_RESISTANCE_TO_ENCHANTMENTS, "resistance to enchantments", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "+2 saving throw bonus against enchantments",
-    "+2 saving throw bonus against enchantments");
+          "+2 saving throw bonus against enchantments",
+          "+2 saving throw bonus against enchantments");
   feato(FEAT_STABILITY, "stability", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "+4 resist to bash and trip skill",
-    "+4 resist to bash and trip skill");
+          "+4 resist to bash and trip skill",
+          "+4 resist to bash and trip skill");
 
   /* End Racial ability feats */
 
@@ -593,31 +599,31 @@ void assign_feats(void) {
 
   /* combat modes */
   feato(FEAT_POWER_ATTACK, "power attack", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "subtract a number from hit and add to dam.  If 2H weapon add 2x dam instead",
-    "When active, take a value specified as penalty to attack roll and gain that "
+          "subtract a number from hit and add to dam.  If 2H weapon add 2x dam instead",
+          "When active, take a value specified as penalty to attack roll and gain that "
           "value as damage bonus.  Usage: powerattack VALUE, to turn off, "
           "just type powerattack with no argument.  VALUE must be between 1-5.");
-    feat_prereq_attribute(FEAT_POWER_ATTACK, AB_STR, 13);
+  feat_prereq_attribute(FEAT_POWER_ATTACK, AB_STR, 13);
   feato(FEAT_COMBAT_EXPERTISE, "combat expertise", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "subtract a number from attack roll and add it to AC",
-    "When active, take a value specified as penalty to attack roll and gain that "
+          "subtract a number from attack roll and add it to AC",
+          "When active, take a value specified as penalty to attack roll and gain that "
           "value as dodge bonus to your AC.  Your combat expertise value can not "
           "go over your unmodified base attack bonus.  Usage: expert VALUE, to turn off, "
           "just type expert with no argument.  VALUE must be between 1-5.");
-    feat_prereq_attribute(FEAT_COMBAT_EXPERTISE, AB_INT, 13);
-    /* required for whirlwind */
+  feat_prereq_attribute(FEAT_COMBAT_EXPERTISE, AB_INT, 13);
+  /* required for whirlwind */
 
   /* cleave */
   feato(FEAT_CLEAVE, "cleave", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "extra attack against opponent once per round",
-    "You get an extra attack against an opponent adjacent to your target once"
+          "extra attack against opponent once per round",
+          "You get an extra attack against an opponent adjacent to your target once"
           "per round.");
   feat_prereq_attribute(FEAT_CLEAVE, AB_STR, 13);
   feat_prereq_feat(FEAT_CLEAVE, FEAT_POWER_ATTACK, 1);
 
   feato(FEAT_GREAT_CLEAVE, "great cleave", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "extra attack against opponent once per round",
-    "You get an extra attack against an opponent adjacent to your target once"
+          "extra attack against opponent once per round",
+          "You get an extra attack against an opponent adjacent to your target once"
           "per round.  This feat stacks with cleave, effectively giving you 2 "
           "bonus attacks.");
   feat_prereq_feat(FEAT_GREAT_CLEAVE, FEAT_CLEAVE, 1);
@@ -627,1628 +633,1628 @@ void assign_feats(void) {
 
   /* weapon focus feats */
   feato(FEAT_WEAPON_FOCUS, "weapon focus", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT,
-    "+1 to hit rolls for selected weapon",
-    "+1 to hit rolls for selected weapon");
-    feat_prereq_bab(FEAT_WEAPON_FOCUS, 1);
-    feat_prereq_weapon_proficiency(FEAT_WEAPON_FOCUS);
+          "+1 to hit rolls for selected weapon",
+          "+1 to hit rolls for selected weapon");
+  feat_prereq_bab(FEAT_WEAPON_FOCUS, 1);
+  feat_prereq_weapon_proficiency(FEAT_WEAPON_FOCUS);
   feato(FEAT_GREATER_WEAPON_FOCUS, "greater weapon focus", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT,
-    "+1 to hit rolls with weapon",
-    "+1 to hit rolls with weapon");
-    feat_prereq_cfeat(FEAT_GREATER_WEAPON_FOCUS, FEAT_WEAPON_FOCUS);
-    feat_prereq_weapon_proficiency(FEAT_GREATER_WEAPON_FOCUS);
-    feat_prereq_class_level(FEAT_GREATER_WEAPON_FOCUS, CLASS_WARRIOR, 8);
+          "+1 to hit rolls with weapon",
+          "+1 to hit rolls with weapon");
+  feat_prereq_cfeat(FEAT_GREATER_WEAPON_FOCUS, FEAT_WEAPON_FOCUS);
+  feat_prereq_weapon_proficiency(FEAT_GREATER_WEAPON_FOCUS);
+  feat_prereq_class_level(FEAT_GREATER_WEAPON_FOCUS, CLASS_WARRIOR, 8);
   feato(FEAT_WEAPON_SPECIALIZATION, "weapon specialization", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT,
-    "+2 to dam rolls with chosen weapon",
-    "Choose one type of weapon, such as greataxe, for which you have already "
-      "selected the Weapon Focus feat. You can also choose unarmed strike as "
-      "your weapon for purposes of this feat. You gain a +2 bonus on damage "
-      "using the selected weapon.");
-    feat_prereq_weapon_proficiency(FEAT_WEAPON_SPECIALIZATION);
-    feat_prereq_cfeat(FEAT_WEAPON_SPECIALIZATION, FEAT_WEAPON_FOCUS);
-    feat_prereq_class_level(FEAT_WEAPON_SPECIALIZATION, CLASS_WARRIOR, 4);
+          "+2 to dam rolls with chosen weapon",
+          "Choose one type of weapon, such as greataxe, for which you have already "
+          "selected the Weapon Focus feat. You can also choose unarmed strike as "
+          "your weapon for purposes of this feat. You gain a +2 bonus on damage "
+          "using the selected weapon.");
+  feat_prereq_weapon_proficiency(FEAT_WEAPON_SPECIALIZATION);
+  feat_prereq_cfeat(FEAT_WEAPON_SPECIALIZATION, FEAT_WEAPON_FOCUS);
+  feat_prereq_class_level(FEAT_WEAPON_SPECIALIZATION, CLASS_WARRIOR, 4);
   feato(FEAT_GREATER_WEAPON_SPECIALIZATION, "greater weapon specialization", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "+4 damage with weapon",
-    "Choose one type of weapon, such as halberd, for which you have already "
-      "selected the Weapon Focus feat. You can also choose unarmed strike as "
-      "your weapon for purposes of this feat. You gain a +4 bonus on damage "
-      "using the selected weapon (stacks).");
-    feat_prereq_weapon_proficiency(FEAT_GREATER_WEAPON_SPECIALIZATION);
-    feat_prereq_cfeat(FEAT_GREATER_WEAPON_SPECIALIZATION, FEAT_WEAPON_FOCUS);
-    feat_prereq_cfeat(FEAT_GREATER_WEAPON_SPECIALIZATION, FEAT_GREATER_WEAPON_FOCUS);
-    feat_prereq_cfeat(FEAT_GREATER_WEAPON_SPECIALIZATION, FEAT_WEAPON_SPECIALIZATION);
-    feat_prereq_class_level(FEAT_GREATER_WEAPON_SPECIALIZATION, CLASS_WARRIOR, 12);
+          "+4 damage with weapon",
+          "Choose one type of weapon, such as halberd, for which you have already "
+          "selected the Weapon Focus feat. You can also choose unarmed strike as "
+          "your weapon for purposes of this feat. You gain a +4 bonus on damage "
+          "using the selected weapon (stacks).");
+  feat_prereq_weapon_proficiency(FEAT_GREATER_WEAPON_SPECIALIZATION);
+  feat_prereq_cfeat(FEAT_GREATER_WEAPON_SPECIALIZATION, FEAT_WEAPON_FOCUS);
+  feat_prereq_cfeat(FEAT_GREATER_WEAPON_SPECIALIZATION, FEAT_GREATER_WEAPON_FOCUS);
+  feat_prereq_cfeat(FEAT_GREATER_WEAPON_SPECIALIZATION, FEAT_WEAPON_SPECIALIZATION);
+  feat_prereq_class_level(FEAT_GREATER_WEAPON_SPECIALIZATION, CLASS_WARRIOR, 12);
 
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
 
   /* mobility feats */
   feato(FEAT_DODGE, "dodge", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "+1 dodge bonus to ac",
-    "+1 dodge bonus to ac");
-    feat_prereq_attribute(FEAT_DODGE, AB_DEX, 13);
+          "+1 dodge bonus to ac",
+          "+1 dodge bonus to ac");
+  feat_prereq_attribute(FEAT_DODGE, AB_DEX, 13);
   feato(FEAT_MOBILITY, "mobility", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "+4 dodge ac bonus against attacks of opportunity",
-    "+4 dodge ac bonus against attacks of opportunity");
-    feat_prereq_attribute(FEAT_MOBILITY, AB_DEX, 13);
-    feat_prereq_feat(FEAT_MOBILITY, FEAT_DODGE, 1);
+          "+4 dodge ac bonus against attacks of opportunity",
+          "+4 dodge ac bonus against attacks of opportunity");
+  feat_prereq_attribute(FEAT_MOBILITY, AB_DEX, 13);
+  feat_prereq_feat(FEAT_MOBILITY, FEAT_DODGE, 1);
   feato(FEAT_SPRING_ATTACK, "spring attack", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "you can choose the direction you flee and gain springleap",
-    "you can choose the direction you flee and gain springleap");
-    feat_prereq_bab(FEAT_SPRING_ATTACK, 4);
-    feat_prereq_attribute(FEAT_SPRING_ATTACK, AB_DEX, 13);
-    feat_prereq_feat(FEAT_SPRING_ATTACK, FEAT_DODGE, 1);
-    feat_prereq_feat(FEAT_SPRING_ATTACK, FEAT_MOBILITY, 1);
+          "you can choose the direction you flee and gain springleap",
+          "you can choose the direction you flee and gain springleap");
+  feat_prereq_bab(FEAT_SPRING_ATTACK, 4);
+  feat_prereq_attribute(FEAT_SPRING_ATTACK, AB_DEX, 13);
+  feat_prereq_feat(FEAT_SPRING_ATTACK, FEAT_DODGE, 1);
+  feat_prereq_feat(FEAT_SPRING_ATTACK, FEAT_MOBILITY, 1);
   feato(FEAT_WHIRLWIND_ATTACK, "whirlwind attack", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "lashes out at multiple enemies in one movement",
-    "As a full round action, you can lash out and strike a number of foes based "
-      "on the number of attacks you have +1.  All these attacks are made "
-      "at your full attack bonus.");
-    feat_prereq_attribute(FEAT_WHIRLWIND_ATTACK, AB_DEX, 13);
-    feat_prereq_attribute(FEAT_WHIRLWIND_ATTACK, AB_INT, 13);
-    feat_prereq_feat(FEAT_WHIRLWIND_ATTACK, FEAT_COMBAT_EXPERTISE, 1);
-    feat_prereq_feat(FEAT_WHIRLWIND_ATTACK, FEAT_DODGE, 1);
-    feat_prereq_feat(FEAT_WHIRLWIND_ATTACK, FEAT_MOBILITY, 1);
-    feat_prereq_feat(FEAT_WHIRLWIND_ATTACK, FEAT_SPRING_ATTACK, 1);
-    feat_prereq_bab(FEAT_WHIRLWIND_ATTACK, 4);
+          "lashes out at multiple enemies in one movement",
+          "As a full round action, you can lash out and strike a number of foes based "
+          "on the number of attacks you have +1.  All these attacks are made "
+          "at your full attack bonus.");
+  feat_prereq_attribute(FEAT_WHIRLWIND_ATTACK, AB_DEX, 13);
+  feat_prereq_attribute(FEAT_WHIRLWIND_ATTACK, AB_INT, 13);
+  feat_prereq_feat(FEAT_WHIRLWIND_ATTACK, FEAT_COMBAT_EXPERTISE, 1);
+  feat_prereq_feat(FEAT_WHIRLWIND_ATTACK, FEAT_DODGE, 1);
+  feat_prereq_feat(FEAT_WHIRLWIND_ATTACK, FEAT_MOBILITY, 1);
+  feat_prereq_feat(FEAT_WHIRLWIND_ATTACK, FEAT_SPRING_ATTACK, 1);
+  feat_prereq_bab(FEAT_WHIRLWIND_ATTACK, 4);
 
   /* critical feats */
   feato(FEAT_POWER_CRITICAL, "power critical", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT,
-    "+4 to rolls to confirm critical hits.",
-    "+4 to rolls to confirm critical hits.");
-    feat_prereq_weapon_proficiency(FEAT_POWER_CRITICAL);
-    feat_prereq_bab(FEAT_POWER_CRITICAL, 4);
+          "+4 to rolls to confirm critical hits.",
+          "+4 to rolls to confirm critical hits.");
+  feat_prereq_weapon_proficiency(FEAT_POWER_CRITICAL);
+  feat_prereq_bab(FEAT_POWER_CRITICAL, 4);
   feato(FEAT_IMPROVED_CRITICAL, "improved critical", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT,
-    "doubled critical threat rating for weapon chosen",
-    "doubled critical threat rating for weapon chosen");
-    feat_prereq_weapon_proficiency(FEAT_IMPROVED_CRITICAL);
-    feat_prereq_bab(FEAT_IMPROVED_CRITICAL, 8);
+          "doubled critical threat rating for weapon chosen",
+          "doubled critical threat rating for weapon chosen");
+  feat_prereq_weapon_proficiency(FEAT_IMPROVED_CRITICAL);
+  feat_prereq_bab(FEAT_IMPROVED_CRITICAL, 8);
 
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   /* ranged attack feats */
   feato(FEAT_POINT_BLANK_SHOT, "point blank shot", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "+1 to hit and dam rolls with ranged weapons in the same room",
-    "+1 to hit and dam rolls with ranged weapons in the same room, can fight "
-      "in close quarters with ranged weapon");
+          "+1 to hit and dam rolls with ranged weapons in the same room",
+          "+1 to hit and dam rolls with ranged weapons in the same room, can fight "
+          "in close quarters with ranged weapon");
   feato(FEAT_FAR_SHOT, "far shot", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "allows firing outside room",
-    "When the 'far shot' feat is taken you are able to fire in any direction at "
-      "a target in the next room.");
-    feat_prereq_attribute(FEAT_FAR_SHOT, AB_DEX, 15);
-    feat_prereq_feat(FEAT_FAR_SHOT, FEAT_POINT_BLANK_SHOT, 1);
+          "allows firing outside room",
+          "When the 'far shot' feat is taken you are able to fire in any direction at "
+          "a target in the next room.");
+  feat_prereq_attribute(FEAT_FAR_SHOT, AB_DEX, 15);
+  feat_prereq_feat(FEAT_FAR_SHOT, FEAT_POINT_BLANK_SHOT, 1);
   feato(FEAT_RAPID_SHOT, "rapid shot", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "extra attack ranged weapon at -2 to all attacks",
-    "can make extra attack per round with ranged weapon at -2 to all attacks");
-    feat_prereq_attribute(FEAT_RAPID_SHOT, AB_DEX, 13);
-    feat_prereq_feat(FEAT_RAPID_SHOT, FEAT_POINT_BLANK_SHOT, 1);
+          "extra attack ranged weapon at -2 to all attacks",
+          "can make extra attack per round with ranged weapon at -2 to all attacks");
+  feat_prereq_attribute(FEAT_RAPID_SHOT, AB_DEX, 13);
+  feat_prereq_feat(FEAT_RAPID_SHOT, FEAT_POINT_BLANK_SHOT, 1);
   feato(FEAT_MANYSHOT, "manyshot", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "extra ranged attack when rapid shot turned on",
-    "extra ranged attack when rapid shot turned on");
-    feat_prereq_attribute(FEAT_MANYSHOT, AB_DEX, 15);
-    feat_prereq_feat(FEAT_MANYSHOT, FEAT_RAPID_SHOT, 1);
+          "extra ranged attack when rapid shot turned on",
+          "extra ranged attack when rapid shot turned on");
+  feat_prereq_attribute(FEAT_MANYSHOT, AB_DEX, 15);
+  feat_prereq_feat(FEAT_MANYSHOT, FEAT_RAPID_SHOT, 1);
   feato(FEAT_PRECISE_SHOT, "precise shot", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "You may shoot in melee without the standard -4 to hit penalty",
-    "You may shoot in melee without the standard -4 to hit penalty");
-    feat_prereq_attribute(FEAT_PRECISE_SHOT, AB_DEX, 13);
+          "You may shoot in melee without the standard -4 to hit penalty",
+          "You may shoot in melee without the standard -4 to hit penalty");
+  feat_prereq_attribute(FEAT_PRECISE_SHOT, AB_DEX, 13);
   feato(FEAT_IMPROVED_PRECISE_SHOT, "improved precise shot", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "+4 to hit on all close ranged attacks",
-    "+4 to hit on all close ranged attacks");
-    feat_prereq_feat(FEAT_IMPROVED_PRECISE_SHOT, FEAT_PRECISE_SHOT, 1);
-    feat_prereq_bab(FEAT_IMPROVED_PRECISE_SHOT, 12);
+          "+4 to hit on all close ranged attacks",
+          "+4 to hit on all close ranged attacks");
+  feat_prereq_feat(FEAT_IMPROVED_PRECISE_SHOT, FEAT_PRECISE_SHOT, 1);
+  feat_prereq_bab(FEAT_IMPROVED_PRECISE_SHOT, 12);
   feato(FEAT_RAPID_RELOAD, "rapid reload", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "can load crossbows and slings rapidly",
-    "The time required for you to reload your chosen type of weapon is reduced "
-      "to a free action (for a hand or light crossbow), a move action (for heavy "
-      "crossbow or one-handed firearm). If you have selected this feat for a hand "
-      "crossbow or light crossbow, you may fire that weapon as many times in a "
-      "full-attack action as you could attack if you were using a bow.");
+          "can load crossbows and slings rapidly",
+          "The time required for you to reload your chosen type of weapon is reduced "
+          "to a free action (for a hand or light crossbow), a move action (for heavy "
+          "crossbow or one-handed firearm). If you have selected this feat for a hand "
+          "crossbow or light crossbow, you may fire that weapon as many times in a "
+          "full-attack action as you could attack if you were using a bow.");
   feato(FEAT_DEFLECT_ARROWS, "deflect arrows", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "can deflect one ranged attack per round",
-    "You must have at least one hand free to use this feat. "
-     "Once per round when you would normally be hit with an attack from a ranged "
-     "weapon, you may deflect it so that you take no damage from it. You must be "
-     "aware of the attack and not flat-footed. Attempting to deflect a ranged "
-     "attack doesn't count as an action. Unusually massive ranged weapons (such "
-     "as boulders or ballista bolts) and ranged attacks generated by natural "
-     "attacks or spell effects can't be deflected.");
-    feat_prereq_feat(FEAT_DEFLECT_ARROWS, FEAT_IMPROVED_UNARMED_STRIKE, 1);
-    feat_prereq_attribute(FEAT_DEFLECT_ARROWS, AB_DEX, 13);
+          "can deflect one ranged attack per round",
+          "You must have at least one hand free to use this feat. "
+          "Once per round when you would normally be hit with an attack from a ranged "
+          "weapon, you may deflect it so that you take no damage from it. You must be "
+          "aware of the attack and not flat-footed. Attempting to deflect a ranged "
+          "attack doesn't count as an action. Unusually massive ranged weapons (such "
+          "as boulders or ballista bolts) and ranged attacks generated by natural "
+          "attacks or spell effects can't be deflected.");
+  feat_prereq_feat(FEAT_DEFLECT_ARROWS, FEAT_IMPROVED_UNARMED_STRIKE, 1);
+  feat_prereq_attribute(FEAT_DEFLECT_ARROWS, AB_DEX, 13);
   feato(FEAT_SNATCH_ARROWS, "snatch arrows", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "instead of deflecting arrows you can snatch them out of the air",
-    "instead of deflecting arrows you can snatch them out of the air");
-    feat_prereq_attribute(FEAT_SNATCH_ARROWS, AB_DEX, 17);
-    feat_prereq_feat(FEAT_SNATCH_ARROWS, FEAT_DEFLECT_ARROWS, 1);
+          "instead of deflecting arrows you can snatch them out of the air",
+          "instead of deflecting arrows you can snatch them out of the air");
+  feat_prereq_attribute(FEAT_SNATCH_ARROWS, AB_DEX, 17);
+  feat_prereq_feat(FEAT_SNATCH_ARROWS, FEAT_DEFLECT_ARROWS, 1);
 
   /* here is our mounted combat feats */
   feato(FEAT_MOUNTED_COMBAT, "mounted combat", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "once per round rider may negate a hit against him with a successful ride vs attack roll check",
-    "once per round rider may negate a hit against him with a successful ride vs attack roll check");
-    feat_prereq_ability(FEAT_MOUNTED_COMBAT, ABILITY_RIDE, 4);
+          "once per round rider may negate a hit against him with a successful ride vs attack roll check",
+          "once per round rider may negate a hit against him with a successful ride vs attack roll check");
+  feat_prereq_ability(FEAT_MOUNTED_COMBAT, ABILITY_RIDE, 4);
   feato(FEAT_RIDE_BY_ATTACK, "ride by attack", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "normally use full round action on charge, now use move action",
-    "normally use full round action on charge, now use move action");
-    feat_prereq_feat(FEAT_RIDE_BY_ATTACK, FEAT_MOUNTED_COMBAT, 1);
-    feat_prereq_ability(FEAT_RIDE_BY_ATTACK, ABILITY_RIDE, 6);
+          "normally use full round action on charge, now use move action",
+          "normally use full round action on charge, now use move action");
+  feat_prereq_feat(FEAT_RIDE_BY_ATTACK, FEAT_MOUNTED_COMBAT, 1);
+  feat_prereq_ability(FEAT_RIDE_BY_ATTACK, ABILITY_RIDE, 6);
   feato(FEAT_SPIRITED_CHARGE, "spirited charge", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "When mounted and using charge, you deal double damage with a melee weapon (or triple damage with a lance).",
-    "When mounted and using charge, you deal double damage with a melee weapon (or triple damage with a lance).");
-    feat_prereq_ability(FEAT_SPIRITED_CHARGE, ABILITY_RIDE, 8);
-    feat_prereq_feat(FEAT_SPIRITED_CHARGE, FEAT_MOUNTED_COMBAT, 1);
-    feat_prereq_feat(FEAT_SPIRITED_CHARGE, FEAT_RIDE_BY_ATTACK, 1);
+          "When mounted and using charge, you deal double damage with a melee weapon (or triple damage with a lance).",
+          "When mounted and using charge, you deal double damage with a melee weapon (or triple damage with a lance).");
+  feat_prereq_ability(FEAT_SPIRITED_CHARGE, ABILITY_RIDE, 8);
+  feat_prereq_feat(FEAT_SPIRITED_CHARGE, FEAT_MOUNTED_COMBAT, 1);
+  feat_prereq_feat(FEAT_SPIRITED_CHARGE, FEAT_RIDE_BY_ATTACK, 1);
   /* end mounted combat feats */
 
   /* ranged attack + mounted combat feats */
   feato(FEAT_MOUNTED_ARCHERY, "mounted archery", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
-    "no penalty for mounted archery attacks",
-    "normally mounted archery combat imposes a -4 penalty to attacks, with this "
-      "feat you have no penalty to your attacks");
-    feat_prereq_feat(FEAT_MOUNTED_ARCHERY, FEAT_MOUNTED_COMBAT, 1);
-    feat_prereq_ability(FEAT_MOUNTED_ARCHERY, ABILITY_RIDE, 6);
+          "no penalty for mounted archery attacks",
+          "normally mounted archery combat imposes a -4 penalty to attacks, with this "
+          "feat you have no penalty to your attacks");
+  feat_prereq_feat(FEAT_MOUNTED_ARCHERY, FEAT_MOUNTED_COMBAT, 1);
+  feat_prereq_ability(FEAT_MOUNTED_ARCHERY, ABILITY_RIDE, 6);
 
   /* shield feats */
   feato(FEAT_IMPROVED_SHIELD_PUNCH, "improved shield punch", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "retain your shield's AC bonus when you shield punch",
-    "retain your shield's AC bonus when you shield punch");
-    feat_prereq_feat(FEAT_IMPROVED_SHIELD_PUNCH, FEAT_ARMOR_PROFICIENCY_SHIELD, 1);
+          "retain your shield's AC bonus when you shield punch",
+          "retain your shield's AC bonus when you shield punch");
+  feat_prereq_feat(FEAT_IMPROVED_SHIELD_PUNCH, FEAT_ARMOR_PROFICIENCY_SHIELD, 1);
   feato(FEAT_SHIELD_CHARGE, "shield charge", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "charge with shield for damage and knockdown attempt (shieldcharge)",
-    "Making an off-hand attack with your shield with a +2 bonus doing 1d6 + strength-bonus "
+          "charge with shield for damage and knockdown attempt (shieldcharge)",
+          "Making an off-hand attack with your shield with a +2 bonus doing 1d6 + strength-bonus "
           "damage, you attempt to slam your shield and bodyweight "
           "into your opponent.  A successful hit will result in a knockdown attempt. "
           "To use this skill, just type: shieldcharge <opponent>");
-    feat_prereq_bab(FEAT_SHIELD_CHARGE, 3);
-    feat_prereq_feat(FEAT_SHIELD_CHARGE, FEAT_IMPROVED_SHIELD_PUNCH, 1);
+  feat_prereq_bab(FEAT_SHIELD_CHARGE, 3);
+  feat_prereq_feat(FEAT_SHIELD_CHARGE, FEAT_IMPROVED_SHIELD_PUNCH, 1);
   feato(FEAT_SHIELD_SLAM, "shield slam", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "daze an opponent of any size by slamming them with your shield",
-    "You make an offhand attackroll against your opponent, if you land the attack "
-      "with your shield, you will do 1d6 + strength-bonus/2 damage.  In addition if "
-      "your opponent fails a fortitude save versus 10 + your-level/2 + your strength "
-      "bonus, they will be dazed for a full combat round and unable to attack you.");
-    feat_prereq_bab(FEAT_SHIELD_SLAM, 6);
-    feat_prereq_feat(FEAT_SHIELD_SLAM, FEAT_SHIELD_CHARGE, 1);
-    feat_prereq_feat(FEAT_SHIELD_SLAM, FEAT_IMPROVED_SHIELD_PUNCH, 1);
+          "daze an opponent of any size by slamming them with your shield",
+          "You make an offhand attackroll against your opponent, if you land the attack "
+          "with your shield, you will do 1d6 + strength-bonus/2 damage.  In addition if "
+          "your opponent fails a fortitude save versus 10 + your-level/2 + your strength "
+          "bonus, they will be dazed for a full combat round and unable to attack you.");
+  feat_prereq_bab(FEAT_SHIELD_SLAM, 6);
+  feat_prereq_feat(FEAT_SHIELD_SLAM, FEAT_SHIELD_CHARGE, 1);
+  feat_prereq_feat(FEAT_SHIELD_SLAM, FEAT_IMPROVED_SHIELD_PUNCH, 1);
 
   /* two weapon fighting feats */
   feato(FEAT_TWO_WEAPON_FIGHTING, "two weapon fighting", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "reduces penalty for two weapon fighting",
-    "reduces penalty for two weapon fighting");
-    feat_prereq_attribute(FEAT_TWO_WEAPON_FIGHTING, AB_DEX, 15);
+          "reduces penalty for two weapon fighting",
+          "reduces penalty for two weapon fighting");
+  feat_prereq_attribute(FEAT_TWO_WEAPON_FIGHTING, AB_DEX, 15);
   feato(FEAT_IMPROVED_TWO_WEAPON_FIGHTING, "improved two weapon fighting", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "extra attack with offhand weapon at -5 penalty",
-    "extra attack with offhand weapon at -5 penalty");
-    feat_prereq_cfeat(FEAT_IMPROVED_TWO_WEAPON_FIGHTING, FEAT_TWO_WEAPON_FIGHTING);
-    feat_prereq_attribute(FEAT_IMPROVED_TWO_WEAPON_FIGHTING, AB_DEX, 17);
+          "extra attack with offhand weapon at -5 penalty",
+          "extra attack with offhand weapon at -5 penalty");
+  feat_prereq_cfeat(FEAT_IMPROVED_TWO_WEAPON_FIGHTING, FEAT_TWO_WEAPON_FIGHTING);
+  feat_prereq_attribute(FEAT_IMPROVED_TWO_WEAPON_FIGHTING, AB_DEX, 17);
   feato(FEAT_GREATER_TWO_WEAPON_FIGHTING, "greater two weapon fighting", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "gives an additional offhand weapon attack at -10 penalty",
-    "gives an additional offhand weapon attack at -10 penalty");
-    feat_prereq_cfeat(FEAT_GREATER_TWO_WEAPON_FIGHTING, FEAT_IMPROVED_TWO_WEAPON_FIGHTING);
-    feat_prereq_attribute(FEAT_GREATER_TWO_WEAPON_FIGHTING, AB_DEX, 19);
+          "gives an additional offhand weapon attack at -10 penalty",
+          "gives an additional offhand weapon attack at -10 penalty");
+  feat_prereq_cfeat(FEAT_GREATER_TWO_WEAPON_FIGHTING, FEAT_IMPROVED_TWO_WEAPON_FIGHTING);
+  feat_prereq_attribute(FEAT_GREATER_TWO_WEAPON_FIGHTING, AB_DEX, 19);
   feato(FEAT_TWO_WEAPON_DEFENSE, "two weapon defense", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "when wielding two weapons receive +1 shield ac bonus",
-    "When dual-wielding, or using a double-weapon, you automatically get a +1 "
-      "bonus to deflection AC");
+          "when wielding two weapons receive +1 shield ac bonus",
+          "When dual-wielding, or using a double-weapon, you automatically get a +1 "
+          "bonus to deflection AC");
   feat_prereq_cfeat(FEAT_TWO_WEAPON_DEFENSE, FEAT_TWO_WEAPON_FIGHTING);
 
   /* uncategorized combat feats */
   feato(FEAT_BLIND_FIGHT, "blind fighting", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "when fighting blind, retain dex bonus to AC and deny enemy +2 attack bonus for invisibility or other concealment.",
-    "when fighting blind, retain dex bonus to AC and deny enemy +2 attack bonus for invisibility or other concealment.");
+          "when fighting blind, retain dex bonus to AC and deny enemy +2 attack bonus for invisibility or other concealment.",
+          "when fighting blind, retain dex bonus to AC and deny enemy +2 attack bonus for invisibility or other concealment.");
 
   feato(FEAT_COMBAT_REFLEXES, "combat reflexes", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "can make a number of attacks of opportunity equal to dex bonus",
-    "can make a number of attacks of opportunity equal to dex bonus");
+          "can make a number of attacks of opportunity equal to dex bonus",
+          "can make a number of attacks of opportunity equal to dex bonus");
 
   feato(FEAT_IMPROVED_GRAPPLE, "improved grapple", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "improve your grappling",
-    "You do not provoke an attack of opportunity when performing a grapple combat "
+          "improve your grappling",
+          "You do not provoke an attack of opportunity when performing a grapple combat "
           "maneuver. In addition, you receive a +2 bonus on checks made to grapple "
           "a foe. You also receive a +2 bonus to your Combat Maneuver Defense "
           "whenever an opponent tries to grapple you.");
-    feat_prereq_feat(FEAT_IMPROVED_GRAPPLE, FEAT_IMPROVED_UNARMED_STRIKE, 1);
-    feat_prereq_attribute(FEAT_IMPROVED_GRAPPLE, AB_DEX, 13);
+  feat_prereq_feat(FEAT_IMPROVED_GRAPPLE, FEAT_IMPROVED_UNARMED_STRIKE, 1);
+  feat_prereq_attribute(FEAT_IMPROVED_GRAPPLE, AB_DEX, 13);
 
   feato(FEAT_IMPROVED_INITIATIVE, "improved initiative", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "+4 to initiative checks to see who attacks first each round",
-    "+4 to initiative checks to see who attacks first each round");
+          "+4 to initiative checks to see who attacks first each round",
+          "+4 to initiative checks to see who attacks first each round");
 
   feato(FEAT_IMPROVED_TRIP, "improved trip", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "no AoO when tripping, +4 to trip, attack immediately",
-    "no attack of opportunity when tripping, +4 to trip check, attack immediately "
-      "on successful trip.");
-    feat_prereq_attribute(FEAT_IMPROVED_TRIP, AB_INT, 13);
-    feat_prereq_feat(FEAT_IMPROVED_TRIP, FEAT_COMBAT_EXPERTISE, 1);
+          "no AoO when tripping, +4 to trip, attack immediately",
+          "no attack of opportunity when tripping, +4 to trip check, attack immediately "
+          "on successful trip.");
+  feat_prereq_attribute(FEAT_IMPROVED_TRIP, AB_INT, 13);
+  feat_prereq_feat(FEAT_IMPROVED_TRIP, FEAT_COMBAT_EXPERTISE, 1);
 
   feato(FEAT_IMPROVED_DISARM, "improved disarm", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "opponent doesn't receive AoO",
-    "You do not provoke an attack of opportunity when performing a disarm combat "
-      "maneuver. In addition, you receive a +2 bonus on checks made to disarm "
-      "a foe. You also receive a +2 bonus to your Combat Maneuver Defense "
-      "whenever an opponent tries to disarm you.");
-    feat_prereq_attribute(FEAT_IMPROVED_DISARM, AB_INT, 13);
-    feat_prereq_feat(FEAT_IMPROVED_DISARM, FEAT_COMBAT_EXPERTISE, 1);
+          "opponent doesn't receive AoO",
+          "You do not provoke an attack of opportunity when performing a disarm combat "
+          "maneuver. In addition, you receive a +2 bonus on checks made to disarm "
+          "a foe. You also receive a +2 bonus to your Combat Maneuver Defense "
+          "whenever an opponent tries to disarm you.");
+  feat_prereq_attribute(FEAT_IMPROVED_DISARM, AB_INT, 13);
+  feat_prereq_feat(FEAT_IMPROVED_DISARM, FEAT_COMBAT_EXPERTISE, 1);
   feato(FEAT_GREATER_DISARM, "greater disarm", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "knock weapon to ground on successful disarm",
-    "On a successful disarm, normally the weapon is knocked to the opponent's "
+          "knock weapon to ground on successful disarm",
+          "On a successful disarm, normally the weapon is knocked to the opponent's "
           "inventory, but with greater disarm, the weapon gets knocked into "
           "the room.");
-    feat_prereq_attribute(FEAT_GREATER_DISARM, AB_INT, 13);
-    feat_prereq_feat(FEAT_GREATER_DISARM, FEAT_COMBAT_EXPERTISE, 1);
-    feat_prereq_feat(FEAT_GREATER_DISARM, FEAT_IMPROVED_DISARM, 1);
+  feat_prereq_attribute(FEAT_GREATER_DISARM, AB_INT, 13);
+  feat_prereq_feat(FEAT_GREATER_DISARM, FEAT_COMBAT_EXPERTISE, 1);
+  feat_prereq_feat(FEAT_GREATER_DISARM, FEAT_IMPROVED_DISARM, 1);
 
   feato(FEAT_IMPROVED_FEINT, "improved feint", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "can feint as a move action",
-    "You can make a Bluff check to feint in combat as a move action as opposed "
-      "to standard action.");
-    feat_prereq_attribute(FEAT_IMPROVED_FEINT, AB_INT, 13);
-    feat_prereq_feat(FEAT_IMPROVED_FEINT, FEAT_COMBAT_EXPERTISE, 1);
+          "can feint as a move action",
+          "You can make a Bluff check to feint in combat as a move action as opposed "
+          "to standard action.");
+  feat_prereq_attribute(FEAT_IMPROVED_FEINT, AB_INT, 13);
+  feat_prereq_feat(FEAT_IMPROVED_FEINT, FEAT_COMBAT_EXPERTISE, 1);
 
   feato(FEAT_IMPROVED_TAUNTING, "improved taunting", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "can taunt as a move action",
-    "You can make a diplomacy check to taunt in combat as a move action as opposed "
-      "to standard action.");
-    feat_prereq_ability(FEAT_IMPROVED_TAUNTING, ABILITY_DIPLOMACY, 10);
+          "can taunt as a move action",
+          "You can make a diplomacy check to taunt in combat as a move action as opposed "
+          "to standard action.");
+  feat_prereq_ability(FEAT_IMPROVED_TAUNTING, ABILITY_DIPLOMACY, 10);
 
   feato(FEAT_IMPROVED_INTIMIDATION, "improved intimidation", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "can intimidate as a move action",
-    "You can make a intimidate check to taunt in combat as a move action as opposed "
-      "to standard action.");
-    feat_prereq_ability(FEAT_IMPROVED_INTIMIDATION, ABILITY_INTIMIDATE, 10);
+          "can intimidate as a move action",
+          "You can make a intimidate check to taunt in combat as a move action as opposed "
+          "to standard action.");
+  feat_prereq_ability(FEAT_IMPROVED_INTIMIDATION, ABILITY_INTIMIDATE, 10);
 
-    /* monks get this for free */
+  /* monks get this for free */
   feato(FEAT_IMPROVED_UNARMED_STRIKE, "improved unarmed strike", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "Unarmed attacks are considered to be weapons.",
-    "You are considered to be armed even when unarmed—you do not provoke attacks "
+          "Unarmed attacks are considered to be weapons.",
+          "You are considered to be armed even when unarmed—you do not provoke attacks "
           "of opportunity when you attack foes while unarmed.  You can disarm foes without "
           "a penalty when fighting unarmed.  Also you get access to the headbutt combat maneuver.");
 
-    /* note: monks get this for free */
+  /* note: monks get this for free */
   feato(FEAT_STUNNING_FIST, "stunning fist", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "may make unarmed attack to stun opponent for one round",
-    "may make unarmed attack to stun opponent for one round");
-    feat_prereq_attribute(FEAT_STUNNING_FIST, AB_DEX, 13);
-    feat_prereq_attribute(FEAT_STUNNING_FIST, AB_WIS, 13);
-    feat_prereq_feat(FEAT_STUNNING_FIST, FEAT_IMPROVED_UNARMED_STRIKE, 1);
-    feat_prereq_bab(FEAT_STUNNING_FIST, 8);
+          "may make unarmed attack to stun opponent for one round",
+          "may make unarmed attack to stun opponent for one round");
+  feat_prereq_attribute(FEAT_STUNNING_FIST, AB_DEX, 13);
+  feat_prereq_attribute(FEAT_STUNNING_FIST, AB_WIS, 13);
+  feat_prereq_feat(FEAT_STUNNING_FIST, FEAT_IMPROVED_UNARMED_STRIKE, 1);
+  feat_prereq_bab(FEAT_STUNNING_FIST, 8);
 
-    /* rogues get this feat for free */
+  /* rogues get this feat for free */
   feato(FEAT_WEAPON_FINESSE, "weapon finesse", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "use dex for hit roll of weapons",
-    "Use dexterity bonus for hit roll of weapons (if better than strength bonus), "
-      "there is no benefit to this feat for archery.  Only works for 'light' classed "
-      "weapons, or weapons that are a smaller size class than the character.");
-    feat_prereq_bab(FEAT_WEAPON_FINESSE, 1);
+          "use dex for hit roll of weapons",
+          "Use dexterity bonus for hit roll of weapons (if better than strength bonus), "
+          "there is no benefit to this feat for archery.  Only works for 'light' classed "
+          "weapons, or weapons that are a smaller size class than the character.");
+  feat_prereq_bab(FEAT_WEAPON_FINESSE, 1);
 
   /* epic */
   feato(FEAT_DAMAGE_REDUCTION, "damage reduction", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT,
-    "3/- damage reduction per rank of feat",
-    "You get 3/- damage reduction per rank of feat, this stacks with other forms "
+          "3/- damage reduction per rank of feat",
+          "You get 3/- damage reduction per rank of feat, this stacks with other forms "
           "of damage reduction.  Note that damage reduction caps at 20.");
-    feat_prereq_attribute(FEAT_DAMAGE_REDUCTION, AB_CON, 21);
+  feat_prereq_attribute(FEAT_DAMAGE_REDUCTION, AB_CON, 21);
   feato(FEAT_SELF_CONCEALMENT, "self concealment", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT,
-    "10 percent miss chance for attacks against you per rank",
-    "You get 10 percent miss chance for all incoming attacks against you per rank, "
+          "10 percent miss chance for attacks against you per rank",
+          "You get 10 percent miss chance for all incoming attacks against you per rank, "
           "concealment caps at 50 percent.");
-    feat_prereq_ability(FEAT_SELF_CONCEALMENT, ABILITY_STEALTH, 25);
-    feat_prereq_ability(FEAT_SELF_CONCEALMENT, ABILITY_ACROBATICS, 25);
-    feat_prereq_attribute(FEAT_SELF_CONCEALMENT, AB_DEX, 21);
+  feat_prereq_ability(FEAT_SELF_CONCEALMENT, ABILITY_STEALTH, 25);
+  feat_prereq_ability(FEAT_SELF_CONCEALMENT, ABILITY_ACROBATICS, 25);
+  feat_prereq_attribute(FEAT_SELF_CONCEALMENT, AB_DEX, 21);
   feato(FEAT_EPIC_PROWESS, "epic prowess", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT,
-    "+1 to all attacks per rank",
-    "+1 to all attacks per rank");
+          "+1 to all attacks per rank",
+          "+1 to all attacks per rank");
   /* two weapon fighting feats, epic */
   feato(FEAT_PERFECT_TWO_WEAPON_FIGHTING, "perfect two weapon fighting", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "Extra attack with offhand weapon",
-    "Extra attack with offhand weapon with no penalty");
-    feat_prereq_cfeat(FEAT_PERFECT_TWO_WEAPON_FIGHTING, FEAT_GREATER_TWO_WEAPON_FIGHTING);
-    feat_prereq_attribute(FEAT_PERFECT_TWO_WEAPON_FIGHTING, AB_DEX, 21);
+          "Extra attack with offhand weapon",
+          "Extra attack with offhand weapon with no penalty");
+  feat_prereq_cfeat(FEAT_PERFECT_TWO_WEAPON_FIGHTING, FEAT_GREATER_TWO_WEAPON_FIGHTING);
+  feat_prereq_attribute(FEAT_PERFECT_TWO_WEAPON_FIGHTING, AB_DEX, 21);
   /* archery epic feats */
   feato(FEAT_EPIC_MANYSHOT, "epic manyshot", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "extra ranged attack when rapid shot turned on",
-    "extra ranged attack when rapid shot turned on");
-    feat_prereq_attribute(FEAT_EPIC_MANYSHOT, AB_DEX, 19);
-    feat_prereq_feat(FEAT_EPIC_MANYSHOT, FEAT_MANYSHOT, 1);
+          "extra ranged attack when rapid shot turned on",
+          "extra ranged attack when rapid shot turned on");
+  feat_prereq_attribute(FEAT_EPIC_MANYSHOT, AB_DEX, 19);
+  feat_prereq_feat(FEAT_EPIC_MANYSHOT, FEAT_MANYSHOT, 1);
   feato(FEAT_BLINDING_SPEED, "blinding speed", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "get an extra attack, as if hasted",
-    "You get an extra attack, as if hasted.");
-    feat_prereq_attribute(FEAT_BLINDING_SPEED, AB_DEX, 25);
+          "get an extra attack, as if hasted",
+          "You get an extra attack, as if hasted.");
+  feat_prereq_attribute(FEAT_BLINDING_SPEED, AB_DEX, 25);
   feato(FEAT_EPIC_WEAPON_SPECIALIZATION, "epic weapon specialization", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-    "+3 hit/dam with weapon",
-    "Choose one type of weapon, such as halberd, for which you have already "
-      "selected the Weapon Focus feat. You can also choose unarmed strike as "
-      "your weapon for purposes of this feat. You gain a +3 bonus on damage "
-      "and attack bonus using the selected weapon (stacks).");
-    feat_prereq_cfeat(FEAT_EPIC_WEAPON_SPECIALIZATION, FEAT_GREATER_WEAPON_SPECIALIZATION);
-    feat_prereq_class_level(FEAT_EPIC_WEAPON_SPECIALIZATION, CLASS_WARRIOR, 20);
+          "+3 hit/dam with weapon",
+          "Choose one type of weapon, such as halberd, for which you have already "
+          "selected the Weapon Focus feat. You can also choose unarmed strike as "
+          "your weapon for purposes of this feat. You gain a +3 bonus on damage "
+          "and attack bonus using the selected weapon (stacks).");
+  feat_prereq_cfeat(FEAT_EPIC_WEAPON_SPECIALIZATION, FEAT_GREATER_WEAPON_SPECIALIZATION);
+  feat_prereq_class_level(FEAT_EPIC_WEAPON_SPECIALIZATION, CLASS_WARRIOR, 20);
 
   /*****************/
   /* General feats */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
 
-    /* putting bard feats (not free) here */
+  /* putting bard feats (not free) here */
   feato(FEAT_LINGERING_SONG, "lingering performance", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
-  "extra round for bardic performance",
-  "A bardic performance repeats every 7 seconds, and the effects of the performance "
+          "extra round for bardic performance",
+          "A bardic performance repeats every 7 seconds, and the effects of the performance "
           "last for 1 round (6 seconds).  This feat increases the duration of the "
           "effects to 2 rounds (12 seconds).");
 
   feato(FEAT_ENERGY_RESISTANCE, "energy resistance", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
-    "reduces all energy related damage by 1 per rank",
-    "Reduces all energy related damage by 1 per rank, this includes: fire, cold, "
+          "reduces all energy related damage by 1 per rank",
+          "Reduces all energy related damage by 1 per rank, this includes: fire, cold, "
           "air, earth, acid, holy, electric, unholy, slice, puncture, force, sound, "
           "poison, disease, negative, illusion, mental, light and energy.");
 
   feato(FEAT_FAST_HEALER, "fast healer", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
-    "improve treatinjury ability",
-    "You have become proficient in treating injuries, when using the treatinjury "
+          "improve treatinjury ability",
+          "You have become proficient in treating injuries, when using the treatinjury "
           "ability, the cooldown will be half as long.");
 
   /*skill focus*/
   feato(FEAT_SKILL_FOCUS, "skill focus", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
-    "+3 in chosen skill",
-    "Taking skill focus will give you +3 in chosen skill, this feat can be taken "
+          "+3 in chosen skill",
+          "Taking skill focus will give you +3 in chosen skill, this feat can be taken "
           "multiple times, but only once per skill chosen.");
 
   /* weapon / armor proficiency */
   feato(FEAT_ARMOR_PROFICIENCY_LIGHT, "light armor proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
-    "allows unpenalized use of light armor ",
-    "allows unpenalized use of light armor ");
+          "allows unpenalized use of light armor ",
+          "allows unpenalized use of light armor ");
   feato(FEAT_ARMOR_PROFICIENCY_MEDIUM, "medium armor proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
-    "allows unpenalized use of medium armor ",
-    "allows unpenalized use of medium armor ");
-    feat_prereq_feat(FEAT_ARMOR_PROFICIENCY_MEDIUM, FEAT_ARMOR_PROFICIENCY_LIGHT, 1);
+          "allows unpenalized use of medium armor ",
+          "allows unpenalized use of medium armor ");
+  feat_prereq_feat(FEAT_ARMOR_PROFICIENCY_MEDIUM, FEAT_ARMOR_PROFICIENCY_LIGHT, 1);
   feato(FEAT_ARMOR_PROFICIENCY_HEAVY, "heavy armor proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
-    "allows unpenalized use of heavy armor ",
-    "allows unpenalized use of heavy armor ");
-    feat_prereq_feat(FEAT_ARMOR_PROFICIENCY_HEAVY, FEAT_ARMOR_PROFICIENCY_LIGHT, 1);
-    feat_prereq_feat(FEAT_ARMOR_PROFICIENCY_HEAVY, FEAT_ARMOR_PROFICIENCY_MEDIUM, 1);
+          "allows unpenalized use of heavy armor ",
+          "allows unpenalized use of heavy armor ");
+  feat_prereq_feat(FEAT_ARMOR_PROFICIENCY_HEAVY, FEAT_ARMOR_PROFICIENCY_LIGHT, 1);
+  feat_prereq_feat(FEAT_ARMOR_PROFICIENCY_HEAVY, FEAT_ARMOR_PROFICIENCY_MEDIUM, 1);
   feato(FEAT_ARMOR_PROFICIENCY_SHIELD, "shield armor proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
-    "able to use bucklers, shields without penalty ",
-    "able to use bucklers, light, medium and heavy shields without penalty, does not include tower shields");
+          "able to use bucklers, shields without penalty ",
+          "able to use bucklers, light, medium and heavy shields without penalty, does not include tower shields");
   feato(FEAT_ARMOR_PROFICIENCY_TOWER_SHIELD, "tower shield proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
-    "can use tower shields without penalties",
-    "can use tower shields without penalties");
-    feat_prereq_feat(FEAT_ARMOR_PROFICIENCY_TOWER_SHIELD, FEAT_ARMOR_PROFICIENCY_SHIELD, 1);
+          "can use tower shields without penalties",
+          "can use tower shields without penalties");
+  feat_prereq_feat(FEAT_ARMOR_PROFICIENCY_TOWER_SHIELD, FEAT_ARMOR_PROFICIENCY_SHIELD, 1);
   feato(FEAT_SIMPLE_WEAPON_PROFICIENCY, "simple weapon proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
-    "may use all simple weapons",
-    "may use all simple weapons");
+          "may use all simple weapons",
+          "may use all simple weapons");
   feato(FEAT_MARTIAL_WEAPON_PROFICIENCY, "martial weapon proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
-    "able to use all martial weapons",
-    "able to use all martial weapons");
-    feat_prereq_feat(FEAT_MARTIAL_WEAPON_PROFICIENCY, FEAT_SIMPLE_WEAPON_PROFICIENCY, 1);
+          "able to use all martial weapons",
+          "able to use all martial weapons");
+  feat_prereq_feat(FEAT_MARTIAL_WEAPON_PROFICIENCY, FEAT_SIMPLE_WEAPON_PROFICIENCY, 1);
   feato(FEAT_EXOTIC_WEAPON_PROFICIENCY, "exotic weapon proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
-    "can use exotic weapons without penalties",
-    "can use exotic weapons without penalties");
-    feat_prereq_bab(FEAT_EXOTIC_WEAPON_PROFICIENCY, 2);
-    feat_prereq_feat(FEAT_EXOTIC_WEAPON_PROFICIENCY, FEAT_MARTIAL_WEAPON_PROFICIENCY, 1);
+          "can use exotic weapons without penalties",
+          "can use exotic weapons without penalties");
+  feat_prereq_bab(FEAT_EXOTIC_WEAPON_PROFICIENCY, 2);
+  feat_prereq_feat(FEAT_EXOTIC_WEAPON_PROFICIENCY, FEAT_MARTIAL_WEAPON_PROFICIENCY, 1);
   /********/
 
-    /* armor specialization */
+  /* armor specialization */
   feato(FEAT_ARMOR_SPECIALIZATION_HEAVY, "armor specialization (heavy)", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
-    "DR 2/- when wearing heavy armor",
-    "DR 2/- when wearing heavy armor");
-    feat_prereq_bab(FEAT_ARMOR_SPECIALIZATION_HEAVY, 11);
-    feat_prereq_feat(FEAT_ARMOR_SPECIALIZATION_HEAVY, FEAT_ARMOR_PROFICIENCY_HEAVY, 1);
+          "DR 2/- when wearing heavy armor",
+          "DR 2/- when wearing heavy armor");
+  feat_prereq_bab(FEAT_ARMOR_SPECIALIZATION_HEAVY, 11);
+  feat_prereq_feat(FEAT_ARMOR_SPECIALIZATION_HEAVY, FEAT_ARMOR_PROFICIENCY_HEAVY, 1);
   feato(FEAT_ARMOR_SPECIALIZATION_LIGHT, "armor specialization (light)", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
-    "DR 2/- when wearing light armor",
-    "DR 2/- when wearing light armor");
-    feat_prereq_bab(FEAT_ARMOR_SPECIALIZATION_LIGHT, 11);
-    feat_prereq_feat(FEAT_ARMOR_SPECIALIZATION_LIGHT, FEAT_ARMOR_PROFICIENCY_LIGHT, 1);
+          "DR 2/- when wearing light armor",
+          "DR 2/- when wearing light armor");
+  feat_prereq_bab(FEAT_ARMOR_SPECIALIZATION_LIGHT, 11);
+  feat_prereq_feat(FEAT_ARMOR_SPECIALIZATION_LIGHT, FEAT_ARMOR_PROFICIENCY_LIGHT, 1);
   feato(FEAT_ARMOR_SPECIALIZATION_MEDIUM, "armor specialization (medium)", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
-    "DR 2/- when wearing medium armor",
-    "DR 2/- when wearing medium armor");
-    feat_prereq_bab(FEAT_ARMOR_SPECIALIZATION_MEDIUM, 11);
-    feat_prereq_feat(FEAT_ARMOR_SPECIALIZATION_MEDIUM, FEAT_ARMOR_PROFICIENCY_MEDIUM, 1);
+          "DR 2/- when wearing medium armor",
+          "DR 2/- when wearing medium armor");
+  feat_prereq_bab(FEAT_ARMOR_SPECIALIZATION_MEDIUM, 11);
+  feat_prereq_feat(FEAT_ARMOR_SPECIALIZATION_MEDIUM, FEAT_ARMOR_PROFICIENCY_MEDIUM, 1);
 
   feato(FEAT_ABLE_LEARNER, "able learner", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
-    "+1 to all skills",
-    "+1 to all skills");
+          "+1 to all skills",
+          "+1 to all skills");
   feato(FEAT_ACROBATIC, "acrobatic", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
-    "+3 to acrobatics skill checks",
-    "+3 to acrobatics skill checks");
+          "+3 to acrobatics skill checks",
+          "+3 to acrobatics skill checks");
   feato(FEAT_AGILE, "agile", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
-    "+2 to acrobatics and escape artist skill checks",
-    "+2 to acrobatics and escape artist skill checks");
+          "+2 to acrobatics and escape artist skill checks",
+          "+2 to acrobatics and escape artist skill checks");
   feato(FEAT_ALERTNESS, "alertness", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
-    "+2 to perception and sense motive skill checks ",
-    "+2 to perception and sense motive skill checks ");
+          "+2 to perception and sense motive skill checks ",
+          "+2 to perception and sense motive skill checks ");
   feato(FEAT_ANIMAL_AFFINITY, "animal affinity", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
-    "+2 to handle animal and ride skill checks",
-    "+2 to handle animal and ride skill checks");
+          "+2 to handle animal and ride skill checks",
+          "+2 to handle animal and ride skill checks");
 
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_ATHLETIC, "athletic", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
-    "+2 to swim and climb skill checks",
-    "+2 to swim and climb skill checks");
+          "+2 to swim and climb skill checks",
+          "+2 to swim and climb skill checks");
   feato(FEAT_DECEITFUL, "deceitful", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
-    "+2 to disguise and forgery skill checks",
-    "+2 to disguise and forgery skill checks");
+          "+2 to disguise and forgery skill checks",
+          "+2 to disguise and forgery skill checks");
   feato(FEAT_DEFT_HANDS, "deft hands", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
-    "+3 to sleight of hand checks",
-    "+3 to sleight of hand skill checks");
+          "+3 to sleight of hand checks",
+          "+3 to sleight of hand skill checks");
   feato(FEAT_DILIGENT, "diligent", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
-    "+2 bonus to appraise and use magical device skill checks",
-    "+2 bonus to appraise and use magical device skill checks");
+          "+2 bonus to appraise and use magical device skill checks",
+          "+2 bonus to appraise and use magical device skill checks");
   feato(FEAT_ENDURANCE, "endurance", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
-    "larger movement gain, and recovery",
-    "One with endurance will gain extra movement points per level and in addition "
-      "recover movement points quicker.");
+          "larger movement gain, and recovery",
+          "One with endurance will gain extra movement points per level and in addition "
+          "recover movement points quicker.");
 
   /* extra cleric feat */
   feato(FEAT_EXTRA_TURNING, "extra turning", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
-    "2 extra turn attempts per day",
-    "2 extra turn attempts per day");
+          "2 extra turn attempts per day",
+          "2 extra turn attempts per day");
   feat_prereq_feat(FEAT_EXTRA_TURNING, FEAT_TURN_UNDEAD, 1);
 
   feato(FEAT_GREAT_FORTITUDE, "great fortitude", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
-    "+2 to all fortitude saving throw checks",
-    "+2 to all fortitude saving throw checks");
+          "+2 to all fortitude saving throw checks",
+          "+2 to all fortitude saving throw checks");
 
   feato(FEAT_INVESTIGATOR, "investigator", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
-    "+2 to lore and perception checks",
-    "+2 to lore and perception checks");
+          "+2 to lore and perception checks",
+          "+2 to lore and perception checks");
   feato(FEAT_IRON_WILL, "iron will", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
-    "+2 to all willpower saving throw checks",
-    "+2 to all willpower saving throw checks");
+          "+2 to all willpower saving throw checks",
+          "+2 to all willpower saving throw checks");
   feato(FEAT_LIGHTNING_REFLEXES, "lightning reflexes", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
-    "+2 to all reflex saving throw checks",
-    "+2 to all reflex saving throw checks");
+          "+2 to all reflex saving throw checks",
+          "+2 to all reflex saving throw checks");
   feato(FEAT_MAGICAL_APTITUDE, "magical aptitude", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
-    "+2 to spellcraft and use magical device skill checks",
-    "+2 to spellcraft and use magical device skill checks");
+          "+2 to spellcraft and use magical device skill checks",
+          "+2 to spellcraft and use magical device skill checks");
   feato(FEAT_NEGOTIATOR, "negotiator", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
-    "+2 to diplomacy and sense motive skills",
-    "+2 to diplomacy and sense motive skills");
+          "+2 to diplomacy and sense motive skills",
+          "+2 to diplomacy and sense motive skills");
   feato(FEAT_NIMBLE_FINGERS, "nimble fingers", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
-    "+2 to disable device skill checks",
-    "+2 to disable device skill checks");
+          "+2 to disable device skill checks",
+          "+2 to disable device skill checks");
   feato(FEAT_PERSUASIVE, "persuasive", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
-    "+2 to bluff and intimidate skill checks",
-    "+2 to bluff and intimidate skill checks");
+          "+2 to bluff and intimidate skill checks",
+          "+2 to bluff and intimidate skill checks");
   feato(FEAT_SELF_SUFFICIENT, "self sufficient", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
-    "+2 to heal and survival skill checks",
-    "+2 to heal and survival skill checks");
+          "+2 to heal and survival skill checks",
+          "+2 to heal and survival skill checks");
   feato(FEAT_STEALTHY, "stealthy", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
-    "+2 to hide and move silently skill checks",
-    "+2 to hide and move silently skill checks");
+          "+2 to hide and move silently skill checks",
+          "+2 to hide and move silently skill checks");
   feato(FEAT_TOUGHNESS, "toughness", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
-    "+1 hp per level, +(level) hp upon taking",
-    "+1 hp per level, +(level) hp upon taking");
+          "+1 hp per level, +(level) hp upon taking",
+          "+1 hp per level, +(level) hp upon taking");
   /* rangers get this for free */
   feato(FEAT_TRACK, "track", TRUE, FALSE, FALSE, FEAT_TYPE_GENERAL,
-    "use survival skill to track others",
-    "use survival skill to track others");
-    feat_prereq_ability(FEAT_TRACK, ABILITY_SURVIVAL, 19);
+          "use survival skill to track others",
+          "use survival skill to track others");
+  feat_prereq_ability(FEAT_TRACK, ABILITY_SURVIVAL, 19);
 
   /* Epic */
   feato(FEAT_FAST_HEALING, "fast healing", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
-    "accelerated regeneration of hps",
-    "Heals extra 3 hp per 5 seconds.  This feat stacks with itself and other "
+          "accelerated regeneration of hps",
+          "Heals extra 3 hp per 5 seconds.  This feat stacks with itself and other "
           "regeneration abilities, spells and racial innates.");
-    feat_prereq_attribute(FEAT_FAST_HEALING, AB_CON, 21);
+  feat_prereq_attribute(FEAT_FAST_HEALING, AB_CON, 21);
   feato(FEAT_EPIC_SKILL_FOCUS, "epic skill focus", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
-    "+6 in chosen skill",
-    "Taking epic skill focus will give you +6 in chosen skill, this feat can be taken "
+          "+6 in chosen skill",
+          "Taking epic skill focus will give you +6 in chosen skill, this feat can be taken "
           "multiple times, but only once per skill chosen.");
   feato(FEAT_EPIC_TOUGHNESS, "epic toughness", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
-    "gain 30 hps",
-    "Gain 30 more maximum hit points");
+          "gain 30 hps",
+          "Gain 30 more maximum hit points");
   feato(FEAT_ARMOR_SKIN, "armor skin", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
-    "Increases natural armor by 1",
-    "Increases natural armor by 1");
+          "Increases natural armor by 1",
+          "Increases natural armor by 1");
   /* monk */ feato(FEAT_IMPROVED_SPELL_RESISTANCE, "improved spell resistance", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
-    "+2 to spell resistance",
-    "+2 to spell resistance");
+          "+2 to spell resistance",
+          "+2 to spell resistance");
   feat_prereq_feat(FEAT_IMPROVED_SPELL_RESISTANCE, FEAT_DIAMOND_SOUL, 1);
   feato(FEAT_GREAT_CONSTITUTION, "great constitution", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
-    "Increases Constitution by 1",
-    "Increases Constitution by 1");
+          "Increases Constitution by 1",
+          "Increases Constitution by 1");
   feato(FEAT_GREAT_DEXTERITY, "great dexterity", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
-    "Increases Dexterity by 1",
-    "Increases Dexterity by 1");
+          "Increases Dexterity by 1",
+          "Increases Dexterity by 1");
   feato(FEAT_GREAT_INTELLIGENCE, "great intelligence", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
-    "Increases Intelligence by 1",
-    "Increases Intelligence by 1");
+          "Increases Intelligence by 1",
+          "Increases Intelligence by 1");
   feato(FEAT_GREAT_STRENGTH, "great strength", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
-    "Increases Strength by 1",
-    "Increases Strength by 1");
+          "Increases Strength by 1",
+          "Increases Strength by 1");
   feato(FEAT_GREAT_WISDOM, "great wisdom", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
-    "Increases Wisdom by 1",
-    "Increases Wisdom by 1");
+          "Increases Wisdom by 1",
+          "Increases Wisdom by 1");
   feato(FEAT_GREAT_CHARISMA, "great charisma", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
-    "Increases Charisma by 1",
-    "Increases Charisma by 1");
+          "Increases Charisma by 1",
+          "Increases Charisma by 1");
 
   /* MetaMagic Feats */
   feato(FEAT_MAXIMIZE_SPELL, "maximize spell", TRUE, TRUE, FALSE, FEAT_TYPE_METAMAGIC,
-    "all spells cast while maximize enabled do maximum effect",
-    "A spell prepared as 'maximized' will take a slot 3 circles higher and when "
+          "all spells cast while maximize enabled do maximum effect",
+          "A spell prepared as 'maximized' will take a slot 3 circles higher and when "
           "cast it will do maximum possible effect/damage values.");
   feato(FEAT_QUICKEN_SPELL, "quicken spell", TRUE, TRUE, FALSE, FEAT_TYPE_METAMAGIC,
-    "cast a spell with casting time instantly",
-    "A spell prepared as 'quickened' will take a slot 4 circles higher and when "
+          "cast a spell with casting time instantly",
+          "A spell prepared as 'quickened' will take a slot 4 circles higher and when "
           "cast it will remove all casting time for that given spell.");
-  
+
   /* Spellcasting feats */
-  
+
   /* divine spell access feats  */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_CLERIC_1ST_CIRCLE, "1st circle cleric spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 1st circle cleric spells",
-    "You now have access to 1st circle cleric spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 1st circle cleric spells",
+          "You now have access to 1st circle cleric spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   feato(FEAT_CLERIC_2ND_CIRCLE, "2nd circle cleric spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 2nd circle cleric spells",
-    "You now have access to 2nd circle cleric spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 2nd circle cleric spells",
+          "You now have access to 2nd circle cleric spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   feato(FEAT_CLERIC_3RD_CIRCLE, "3rd circle cleric spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 3rd circle cleric spells",
-    "You now have access to 3rd circle cleric spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 3rd circle cleric spells",
+          "You now have access to 3rd circle cleric spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   feato(FEAT_CLERIC_4TH_CIRCLE, "4th circle cleric spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 4th circle cleric spells",
-    "You now have access to 4th circle cleric spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 4th circle cleric spells",
+          "You now have access to 4th circle cleric spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   feato(FEAT_CLERIC_5TH_CIRCLE, "5th circle cleric spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 5th circle cleric spells",
-    "You now have access to 5th circle cleric spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 5th circle cleric spells",
+          "You now have access to 5th circle cleric spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   feato(FEAT_CLERIC_6TH_CIRCLE, "6th circle cleric spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 6th circle cleric spells",
-    "You now have access to 6th circle cleric spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 6th circle cleric spells",
+          "You now have access to 6th circle cleric spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   feato(FEAT_CLERIC_7TH_CIRCLE, "7th circle cleric spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 7th circle cleric spells",
-    "You now have access to 7th circle cleric spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 7th circle cleric spells",
+          "You now have access to 7th circle cleric spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   feato(FEAT_CLERIC_8TH_CIRCLE, "8th circle cleric spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 8th circle cleric spells",
-    "You now have access to 8th circle cleric spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 8th circle cleric spells",
+          "You now have access to 8th circle cleric spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   feato(FEAT_CLERIC_9TH_CIRCLE, "9th circle cleric spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 9th circle cleric spells",
-    "You now have access to 9th circle cleric spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 9th circle cleric spells",
+          "You now have access to 9th circle cleric spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   feato(FEAT_CLERIC_EPIC_SPELL, "epic cleric spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to epic cleric spells",
-    "You now have access to epic cleric spells.  The spells you gain access "
-      "are determined by feat selection.  Epic spells are only usable once per "
-      "game-day.");
+          "gain access to epic cleric spells",
+          "You now have access to epic cleric spells.  The spells you gain access "
+          "are determined by feat selection.  Epic spells are only usable once per "
+          "game-day.");
   /* cleric SLOT feats */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_CLERIC_1ST_CIRCLE_SLOT, "1st circle cleric slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "cleric 1st circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "cleric 1st circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
   feato(FEAT_CLERIC_2ND_CIRCLE_SLOT, "1st circle cleric slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "cleric 2nd circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "cleric 2nd circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
   feato(FEAT_CLERIC_3RD_CIRCLE_SLOT, "1st circle cleric slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "cleric 3rd circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "cleric 3rd circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
   feato(FEAT_CLERIC_4TH_CIRCLE_SLOT, "1st circle cleric slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "cleric 4th circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "cleric 4th circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
   feato(FEAT_CLERIC_5TH_CIRCLE_SLOT, "1st circle cleric slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "cleric 5th circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "cleric 5th circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
   feato(FEAT_CLERIC_6TH_CIRCLE_SLOT, "1st circle cleric slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "cleric 6th circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "cleric 6th circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
   feato(FEAT_CLERIC_7TH_CIRCLE_SLOT, "1st circle cleric slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "cleric 7th circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "cleric 7th circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
   feato(FEAT_CLERIC_8TH_CIRCLE_SLOT, "1st circle cleric slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "cleric 8th circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "cleric 8th circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
   feato(FEAT_CLERIC_9TH_CIRCLE_SLOT, "1st circle cleric slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "cleric 9th circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "cleric 9th circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
   feato(FEAT_CLERIC_EPIC_SPELL_SLOT, "1st circle cleric slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "cleric epic circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "cleric epic circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
 
   /* druid spell access feats  */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_DRUID_1ST_CIRCLE, "1st circle druid spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 1st circle druid spells",
-    "You now have access to 1st circle druid spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 1st circle druid spells",
+          "You now have access to 1st circle druid spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   feato(FEAT_DRUID_2ND_CIRCLE, "2nd circle druid spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 2nd circle druid spells",
-    "You now have access to 2nd circle druid spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 2nd circle druid spells",
+          "You now have access to 2nd circle druid spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   feato(FEAT_DRUID_3RD_CIRCLE, "3rd circle druid spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 3rd circle druid spells",
-    "You now have access to 3rd circle druid spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 3rd circle druid spells",
+          "You now have access to 3rd circle druid spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   feato(FEAT_DRUID_4TH_CIRCLE, "4th circle druid spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 4th circle druid spells",
-    "You now have access to 4th circle druid spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 4th circle druid spells",
+          "You now have access to 4th circle druid spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   feato(FEAT_DRUID_5TH_CIRCLE, "5th circle druid spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 5th circle druid spells",
-    "You now have access to 5th circle druid spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 5th circle druid spells",
+          "You now have access to 5th circle druid spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   feato(FEAT_DRUID_6TH_CIRCLE, "6th circle druid spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 6th circle druid spells",
-    "You now have access to 6th circle druid spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 6th circle druid spells",
+          "You now have access to 6th circle druid spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   feato(FEAT_DRUID_7TH_CIRCLE, "7th circle druid spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 7th circle druid spells",
-    "You now have access to 7th circle druid spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 7th circle druid spells",
+          "You now have access to 7th circle druid spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   feato(FEAT_DRUID_8TH_CIRCLE, "8th circle druid spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 8th circle druid spells",
-    "You now have access to 8th circle druid spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 8th circle druid spells",
+          "You now have access to 8th circle druid spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   feato(FEAT_DRUID_9TH_CIRCLE, "9th circle druid spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 9th circle druid spells",
-    "You now have access to 9th circle druid spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 9th circle druid spells",
+          "You now have access to 9th circle druid spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   feato(FEAT_DRUID_EPIC_SPELL, "epic druid spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to epic druid spells",
-    "You now have access to epic druid spells.  The spells you gain access "
-      "are determined by feat selection.  Epic spells are only usable once per "
-      "game-day.");
+          "gain access to epic druid spells",
+          "You now have access to epic druid spells.  The spells you gain access "
+          "are determined by feat selection.  Epic spells are only usable once per "
+          "game-day.");
   /* druid SLOT feats */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_DRUID_1ST_CIRCLE_SLOT, "1st circle druid slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "druid 1st circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "druid 1st circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
   feato(FEAT_DRUID_2ND_CIRCLE_SLOT, "1st circle druid slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "druid 2nd circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "druid 2nd circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
   feato(FEAT_DRUID_3RD_CIRCLE_SLOT, "1st circle druid slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "druid 3rd circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "druid 3rd circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
   feato(FEAT_DRUID_4TH_CIRCLE_SLOT, "1st circle druid slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "druid 4th circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "druid 4th circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
   feato(FEAT_DRUID_5TH_CIRCLE_SLOT, "1st circle druid slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "druid 5th circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "druid 5th circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
   feato(FEAT_DRUID_6TH_CIRCLE_SLOT, "1st circle druid slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "druid 6th circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "druid 6th circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
   feato(FEAT_DRUID_7TH_CIRCLE_SLOT, "1st circle druid slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "druid 7th circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "druid 7th circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
   feato(FEAT_DRUID_8TH_CIRCLE_SLOT, "1st circle druid slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "druid 8th circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "druid 8th circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
   feato(FEAT_DRUID_9TH_CIRCLE_SLOT, "1st circle druid slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "druid 9th circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "druid 9th circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
   feato(FEAT_DRUID_EPIC_SPELL_SLOT, "1st circle druid slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "druid epic circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "druid epic circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
-  
+          "the slot is used, you can 'prepare' to recover it.");
+
   /* paladin spell access feats  */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_PALADIN_1ST_CIRCLE, "1st circle paladin spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 1st circle paladin spells",
-    "You now have access to 1st circle paladin spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 1st circle paladin spells",
+          "You now have access to 1st circle paladin spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   feato(FEAT_PALADIN_2ND_CIRCLE, "2nd circle paladin spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 2nd circle paladin spells",
-    "You now have access to 2nd circle paladin spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 2nd circle paladin spells",
+          "You now have access to 2nd circle paladin spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   feato(FEAT_PALADIN_3RD_CIRCLE, "3rd circle paladin spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 3rd circle paladin spells",
-    "You now have access to 3rd circle paladin spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 3rd circle paladin spells",
+          "You now have access to 3rd circle paladin spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   feato(FEAT_PALADIN_4TH_CIRCLE, "4th circle paladin spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 4th circle paladin spells",
-    "You now have access to 4th circle paladin spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 4th circle paladin spells",
+          "You now have access to 4th circle paladin spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   /* paladin SLOT feats */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_PALADIN_1ST_CIRCLE_SLOT, "1st circle paladin slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "paladin 1st circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "paladin 1st circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
   feato(FEAT_PALADIN_2ND_CIRCLE_SLOT, "1st circle paladin slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "paladin 2nd circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "paladin 2nd circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
   feato(FEAT_PALADIN_3RD_CIRCLE_SLOT, "1st circle paladin slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "paladin 3rd circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "paladin 3rd circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
   feato(FEAT_PALADIN_4TH_CIRCLE_SLOT, "1st circle paladin slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "paladin 4th circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "paladin 4th circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
-  
+          "the slot is used, you can 'prepare' to recover it.");
+
   /* ranger spell access feats  */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_RANGER_1ST_CIRCLE, "1st circle ranger spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 1st circle ranger spells",
-    "You now have access to 1st circle ranger spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 1st circle ranger spells",
+          "You now have access to 1st circle ranger spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   feato(FEAT_RANGER_2ND_CIRCLE, "2nd circle ranger spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 2nd circle ranger spells",
-    "You now have access to 2nd circle ranger spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 2nd circle ranger spells",
+          "You now have access to 2nd circle ranger spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   feato(FEAT_RANGER_3RD_CIRCLE, "3rd circle ranger spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 3rd circle ranger spells",
-    "You now have access to 3rd circle ranger spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 3rd circle ranger spells",
+          "You now have access to 3rd circle ranger spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   feato(FEAT_RANGER_4TH_CIRCLE, "4th circle ranger spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 4th circle ranger spells",
-    "You now have access to 4th circle ranger spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 4th circle ranger spells",
+          "You now have access to 4th circle ranger spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   /* ranger SLOT feats */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_RANGER_1ST_CIRCLE_SLOT, "1st circle ranger slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "ranger 1st circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "ranger 1st circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
   feato(FEAT_RANGER_2ND_CIRCLE_SLOT, "1st circle ranger slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "ranger 2nd circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "ranger 2nd circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
   feato(FEAT_RANGER_3RD_CIRCLE_SLOT, "1st circle ranger slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "ranger 3rd circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "ranger 3rd circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
   feato(FEAT_RANGER_4TH_CIRCLE_SLOT, "1st circle ranger slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "ranger 4th circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "ranger 4th circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
-  
+          "the slot is used, you can 'prepare' to recover it.");
+
   /* wizard spell access feats */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_WIZARD_1ST_CIRCLE, "1st circle wizard spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 1st circle wizard spells",
-    "You now have access to 1st circle wizard spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 1st circle wizard spells",
+          "You now have access to 1st circle wizard spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   feato(FEAT_WIZARD_2ND_CIRCLE, "2nd circle wizard spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 2nd circle wizard spells",
-    "You now have access to 2nd circle wizard spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 2nd circle wizard spells",
+          "You now have access to 2nd circle wizard spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   feato(FEAT_WIZARD_3RD_CIRCLE, "3rd circle wizard spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 3rd circle wizard spells",
-    "You now have access to 3rd circle wizard spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 3rd circle wizard spells",
+          "You now have access to 3rd circle wizard spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   feato(FEAT_WIZARD_4TH_CIRCLE, "4th circle wizard spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 4th circle wizard spells",
-    "You now have access to 4th circle wizard spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 4th circle wizard spells",
+          "You now have access to 4th circle wizard spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   feato(FEAT_WIZARD_5TH_CIRCLE, "5th circle wizard spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 5th circle wizard spells",
-    "You now have access to 5th circle wizard spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 5th circle wizard spells",
+          "You now have access to 5th circle wizard spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   feato(FEAT_WIZARD_6TH_CIRCLE, "6th circle wizard spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 6th circle wizard spells",
-    "You now have access to 6th circle wizard spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 6th circle wizard spells",
+          "You now have access to 6th circle wizard spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   feato(FEAT_WIZARD_7TH_CIRCLE, "7th circle wizard spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 7th circle wizard spells",
-    "You now have access to 7th circle wizard spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 7th circle wizard spells",
+          "You now have access to 7th circle wizard spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   feato(FEAT_WIZARD_8TH_CIRCLE, "8th circle wizard spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 8th circle wizard spells",
-    "You now have access to 8th circle wizard spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 8th circle wizard spells",
+          "You now have access to 8th circle wizard spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   feato(FEAT_WIZARD_9TH_CIRCLE, "9th circle wizard spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 9th circle wizard spells",
-    "You now have access to 9th circle wizard spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 9th circle wizard spells",
+          "You now have access to 9th circle wizard spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   feato(FEAT_WIZARD_EPIC_SPELL, "epic wizard spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to epic wizard spells",
-    "You now have access to epic wizard spells.  The spells you gain access "
-      "are determined by feat selection.  Epic spells are only usable once per "
-      "game-day.");
+          "gain access to epic wizard spells",
+          "You now have access to epic wizard spells.  The spells you gain access "
+          "are determined by feat selection.  Epic spells are only usable once per "
+          "game-day.");
   /* wizard SLOT feats */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_WIZARD_1ST_CIRCLE_SLOT, "1st circle wizard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "wizard 1st circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "wizard 1st circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
   feato(FEAT_WIZARD_2ND_CIRCLE_SLOT, "1st circle wizard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "wizard 2nd circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "wizard 2nd circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
   feato(FEAT_WIZARD_3RD_CIRCLE_SLOT, "1st circle wizard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "wizard 3rd circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "wizard 3rd circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
   feato(FEAT_WIZARD_4TH_CIRCLE_SLOT, "1st circle wizard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "wizard 4th circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "wizard 4th circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
   feato(FEAT_WIZARD_5TH_CIRCLE_SLOT, "1st circle wizard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "wizard 5th circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "wizard 5th circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
   feato(FEAT_WIZARD_6TH_CIRCLE_SLOT, "1st circle wizard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "wizard 6th circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "wizard 6th circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
   feato(FEAT_WIZARD_7TH_CIRCLE_SLOT, "1st circle wizard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "wizard 7th circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "wizard 7th circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
   feato(FEAT_WIZARD_8TH_CIRCLE_SLOT, "1st circle wizard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "wizard 8th circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "wizard 8th circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
   feato(FEAT_WIZARD_9TH_CIRCLE_SLOT, "1st circle wizard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "wizard 9th circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "wizard 9th circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
   feato(FEAT_WIZARD_EPIC_SPELL_SLOT, "1st circle wizard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "wizard epic circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "wizard epic circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
-  
+          "the slot is used, you can 'prepare' to recover it.");
+
   /* sorcerer spell access feats */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_SORCERER_1ST_CIRCLE, "1st circle sorcerer spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 1st circle sorcerer spells",
-    "You now have access to 1st circle sorcerer spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 1st circle sorcerer spells",
+          "You now have access to 1st circle sorcerer spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   feato(FEAT_SORCERER_2ND_CIRCLE, "2nd circle sorcerer spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 2nd circle sorcerer spells",
-    "You now have access to 2nd circle sorcerer spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 2nd circle sorcerer spells",
+          "You now have access to 2nd circle sorcerer spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   feato(FEAT_SORCERER_3RD_CIRCLE, "3rd circle sorcerer spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 3rd circle sorcerer spells",
-    "You now have access to 3rd circle sorcerer spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 3rd circle sorcerer spells",
+          "You now have access to 3rd circle sorcerer spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   feato(FEAT_SORCERER_4TH_CIRCLE, "4th circle sorcerer spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 4th circle sorcerer spells",
-    "You now have access to 4th circle sorcerer spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 4th circle sorcerer spells",
+          "You now have access to 4th circle sorcerer spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   feato(FEAT_SORCERER_5TH_CIRCLE, "5th circle sorcerer spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 5th circle sorcerer spells",
-    "You now have access to 5th circle sorcerer spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 5th circle sorcerer spells",
+          "You now have access to 5th circle sorcerer spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   feato(FEAT_SORCERER_6TH_CIRCLE, "6th circle sorcerer spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 6th circle sorcerer spells",
-    "You now have access to 6th circle sorcerer spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 6th circle sorcerer spells",
+          "You now have access to 6th circle sorcerer spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   feato(FEAT_SORCERER_7TH_CIRCLE, "7th circle sorcerer spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 7th circle sorcerer spells",
-    "You now have access to 7th circle sorcerer spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 7th circle sorcerer spells",
+          "You now have access to 7th circle sorcerer spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   feato(FEAT_SORCERER_8TH_CIRCLE, "8th circle sorcerer spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 8th circle sorcerer spells",
-    "You now have access to 8th circle sorcerer spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 8th circle sorcerer spells",
+          "You now have access to 8th circle sorcerer spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   feato(FEAT_SORCERER_9TH_CIRCLE, "9th circle sorcerer spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 9th circle sorcerer spells",
-    "You now have access to 9th circle sorcerer spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 9th circle sorcerer spells",
+          "You now have access to 9th circle sorcerer spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   feato(FEAT_SORCERER_EPIC_SPELL, "epic sorcerer spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to epic sorcerer spells",
-    "You now have access to epic sorcerer spells.  The spells you gain access "
-      "are determined by feat selection.  Epic spells are only usable once per "
-      "game-day.");
+          "gain access to epic sorcerer spells",
+          "You now have access to epic sorcerer spells.  The spells you gain access "
+          "are determined by feat selection.  Epic spells are only usable once per "
+          "game-day.");
   /* sorcerer SLOT feats */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_SORCERER_1ST_CIRCLE_SLOT, "1st circle sorcerer slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "sorcerer 1st circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "sorcerer 1st circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
   feato(FEAT_SORCERER_2ND_CIRCLE_SLOT, "1st circle sorcerer slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "sorcerer 2nd circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "sorcerer 2nd circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
   feato(FEAT_SORCERER_3RD_CIRCLE_SLOT, "1st circle sorcerer slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "sorcerer 3rd circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "sorcerer 3rd circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
   feato(FEAT_SORCERER_4TH_CIRCLE_SLOT, "1st circle sorcerer slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "sorcerer 4th circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "sorcerer 4th circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
   feato(FEAT_SORCERER_5TH_CIRCLE_SLOT, "1st circle sorcerer slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "sorcerer 5th circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "sorcerer 5th circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
   feato(FEAT_SORCERER_6TH_CIRCLE_SLOT, "1st circle sorcerer slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "sorcerer 6th circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "sorcerer 6th circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
   feato(FEAT_SORCERER_7TH_CIRCLE_SLOT, "1st circle sorcerer slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "sorcerer 7th circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "sorcerer 7th circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
   feato(FEAT_SORCERER_8TH_CIRCLE_SLOT, "1st circle sorcerer slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "sorcerer 8th circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "sorcerer 8th circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
   feato(FEAT_SORCERER_9TH_CIRCLE_SLOT, "1st circle sorcerer slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "sorcerer 9th circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "sorcerer 9th circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
   feato(FEAT_SORCERER_EPIC_SPELL_SLOT, "1st circle sorcerer slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "sorcerer epic circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "sorcerer epic circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
 
   /* bard spell access feats */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_BARD_1ST_CIRCLE, "1st circle bard spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 1st circle bard spells",
-    "You now have access to 1st circle bard spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 1st circle bard spells",
+          "You now have access to 1st circle bard spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   feato(FEAT_BARD_2ND_CIRCLE, "2nd circle bard spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 2nd circle bard spells",
-    "You now have access to 2nd circle bard spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 2nd circle bard spells",
+          "You now have access to 2nd circle bard spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   feato(FEAT_BARD_3RD_CIRCLE, "3rd circle bard spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 3rd circle bard spells",
-    "You now have access to 3rd circle bard spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 3rd circle bard spells",
+          "You now have access to 3rd circle bard spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   feato(FEAT_BARD_4TH_CIRCLE, "4th circle bard spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 4th circle bard spells",
-    "You now have access to 4th circle bard spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 4th circle bard spells",
+          "You now have access to 4th circle bard spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   feato(FEAT_BARD_5TH_CIRCLE, "5th circle bard spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 5th circle bard spells",
-    "You now have access to 5th circle bard spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 5th circle bard spells",
+          "You now have access to 5th circle bard spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   feato(FEAT_BARD_6TH_CIRCLE, "6th circle bard spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to 6th circle bard spells",
-    "You now have access to 6th circle bard spells.  The spells you gain access "
-      "are determined by class.  Some classes gain access to all the spells "
-      "instantly upon ataining this feat, others have to select the spells via "
-      "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+          "gain access to 6th circle bard spells",
+          "You now have access to 6th circle bard spells.  The spells you gain access "
+          "are determined by class.  Some classes gain access to all the spells "
+          "instantly upon ataining this feat, others have to select the spells via "
+          "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
   feato(FEAT_BARD_EPIC_SPELL, "epic bard spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to epic bard spells",
-    "You now have access to epic bard spells.  The spells you gain access "
-      "are determined by feat selection.  Epic spells are only usable once per "
-      "game-day.");
+          "gain access to epic bard spells",
+          "You now have access to epic bard spells.  The spells you gain access "
+          "are determined by feat selection.  Epic spells are only usable once per "
+          "game-day.");
   /* bard SLOT feats */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_BARD_1ST_CIRCLE_SLOT, "1st circle bard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "bard 1st circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "bard 1st circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
   feato(FEAT_BARD_2ND_CIRCLE_SLOT, "1st circle bard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "bard 2nd circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "bard 2nd circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
   feato(FEAT_BARD_3RD_CIRCLE_SLOT, "1st circle bard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "bard 3rd circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "bard 3rd circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
   feato(FEAT_BARD_4TH_CIRCLE_SLOT, "1st circle bard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "bard 4th circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "bard 4th circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
   feato(FEAT_BARD_5TH_CIRCLE_SLOT, "1st circle bard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "bard 5th circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "bard 5th circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
   feato(FEAT_BARD_6TH_CIRCLE_SLOT, "1st circle bard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "bard 6th circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "bard 6th circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
+          "the slot is used, you can 'prepare' to recover it.");
   feato(FEAT_BARD_EPIC_SPELL_SLOT, "1st circle bard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "bard epic circle slot",
-    "This gives you the ability to cast another spell of this slot for the respective "
+          "bard epic circle slot",
+          "This gives you the ability to cast another spell of this slot for the respective "
           "class.  There may be other requirements for casting particular spells from this "
           "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-          "the slot is used, you can 'prepare' to recover it." );
-  
+          "the slot is used, you can 'prepare' to recover it.");
+
   feato(FEAT_SORCERER_BLOODLINE_DRACONIC, "draconic bloodline", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "1 level as sorcerer & select the draconic bloodline",
-    "The draconic bloodline allows the sorcerer to take upon them traits "
-    "of a dragon type of their choice.  This offers a claw attack starting "
-    "at level 1, energy resistance and natural armor at level 3, a breath "
-    "weapon at level 9, retractable wings at level 15, and blindsense plus "
-    "immunity to paralysis, sleep and your draconic heritage energy type at level "
-    "20.  The draconic bloodline also offers bonus spells, bonus feats and "
-    "more.  See HELP DRACONIC-BLOODLINE for more information.");
+          "1 level as sorcerer & select the draconic bloodline",
+          "The draconic bloodline allows the sorcerer to take upon them traits "
+          "of a dragon type of their choice.  This offers a claw attack starting "
+          "at level 1, energy resistance and natural armor at level 3, a breath "
+          "weapon at level 9, retractable wings at level 15, and blindsense plus "
+          "immunity to paralysis, sleep and your draconic heritage energy type at level "
+          "20.  The draconic bloodline also offers bonus spells, bonus feats and "
+          "more.  See HELP DRACONIC-BLOODLINE for more information.");
   feato(FEAT_DRACONIC_HERITAGE_BREATHWEAPON, "draconic breath weapon", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "draconic bloodline and sorcerer level 9+",
-    "Allows use of the dracbreath command which will allow the sorcerer to "
-    "perform a draconic breath weapon attack, doing 1d6 damage for each "
-    "level in the sorcerer class.  The damage type is determined by the "
-    "dragon type chosen by the sorcerer when choosing their bloodline.");
+          "draconic bloodline and sorcerer level 9+",
+          "Allows use of the dracbreath command which will allow the sorcerer to "
+          "perform a draconic breath weapon attack, doing 1d6 damage for each "
+          "level in the sorcerer class.  The damage type is determined by the "
+          "dragon type chosen by the sorcerer when choosing their bloodline.");
   feato(FEAT_DRACONIC_HERITAGE_CLAWS, "draconic claws", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "draconic bloodline",
-    "Allows use of the dracclaws command which will perform two claw attacks "
-    "at 1d4 + strength bonus damage each.  At level 7, these claw attacks are "
-    "considered magical when attempting to bypass certain damage reduction types. "
-    "At level 9 the damage increases to 1d6, and at level 11, they deal an extra "
-    "1d6 damage of the element type associated with your draconic heritage bloodline. "
-    "These claw attacks can be used a # of times per day equal to 3 + your "
-    "charisma modifier");
+          "draconic bloodline",
+          "Allows use of the dracclaws command which will perform two claw attacks "
+          "at 1d4 + strength bonus damage each.  At level 7, these claw attacks are "
+          "considered magical when attempting to bypass certain damage reduction types. "
+          "At level 9 the damage increases to 1d6, and at level 11, they deal an extra "
+          "1d6 damage of the element type associated with your draconic heritage bloodline. "
+          "These claw attacks can be used a # of times per day equal to 3 + your "
+          "charisma modifier");
   feato(FEAT_DRACONIC_HERITAGE_DRAGON_RESISTANCES, "draconic resistances", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "draconic bloodline, sorcerer level 3",
-    "At level 3 this offers energy resistance 5 for the element type associated "
-    "with the draconic heritage subtype and +1 natural ac bonus.  At level 9 "
-    "the energy resistance amount increases to 10 and natural armor +2.  At "
-    "level 15 the natural armor bonus increases to +4.");
+          "draconic bloodline, sorcerer level 3",
+          "At level 3 this offers energy resistance 5 for the element type associated "
+          "with the draconic heritage subtype and +1 natural ac bonus.  At level 9 "
+          "the energy resistance amount increases to 10 and natural armor +2.  At "
+          "level 15 the natural armor bonus increases to +4.");
   feato(FEAT_DRACONIC_BLOODLINE_ARCANA, "draconic arcana", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "draconic bloodline",
-    "When casting a spell that uses the same damage subtype as your draconic heritage, "
-    "damage will be increased by +1 per damage die.");
+          "draconic bloodline",
+          "When casting a spell that uses the same damage subtype as your draconic heritage, "
+          "damage will be increased by +1 per damage die.");
   feato(FEAT_DRACONIC_HERITAGE_WINGS, "draconic wings", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "draconic bloodline, sorcerer level 15",
-    "Allows the sorcerer to extend and retract dragon-like wings using the "
-    "dracwings command.  Wings provide a fly effect with a speed of 60.");
+          "draconic bloodline, sorcerer level 15",
+          "Allows the sorcerer to extend and retract dragon-like wings using the "
+          "dracwings command.  Wings provide a fly effect with a speed of 60.");
   feato(FEAT_DRACONIC_HERITAGE_POWER_OF_WYRMS, "power of wyrms", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "draconic bloodline, sorcerer level 20",
-    "Provides immunity to sleep, paralysis, and elemental damage that matches "
-    "your draconic heritage.  Also provides blindsense with a range of 60 feet.");
-  
+          "draconic bloodline, sorcerer level 20",
+          "Provides immunity to sleep, paralysis, and elemental damage that matches "
+          "your draconic heritage.  Also provides blindsense with a range of 60 feet.");
+
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_SPELL_PENETRATION, "spell penetration", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "+2 bonus on caster level checks to defeat spell resistance",
-    "+2 bonus on caster level checks to defeat spell resistance");
+          "+2 bonus on caster level checks to defeat spell resistance",
+          "+2 bonus on caster level checks to defeat spell resistance");
   feato(FEAT_GREATER_SPELL_PENETRATION, "greater spell penetration", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "+2 to caster level checks to defeat spell resistance",
-    "+2 to caster level checks to defeat spell resistance");
+          "+2 to caster level checks to defeat spell resistance",
+          "+2 to caster level checks to defeat spell resistance");
   feat_prereq_feat(FEAT_GREATER_SPELL_PENETRATION, FEAT_SPELL_PENETRATION, 1);
 
   feato(FEAT_ARMORED_SPELLCASTING, "armored spellcasting", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "reduce penalty for casting arcane spells while armored",
-    "reduces the arcane armor weight penalty by 5");
+          "reduce penalty for casting arcane spells while armored",
+          "reduces the arcane armor weight penalty by 5");
 
   feato(FEAT_FASTER_MEMORIZATION, "faster memorization", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "decreases spell memorization time",
-    "Chance to decrease total memorization time and each memorization pulse to "
+          "decreases spell memorization time",
+          "Chance to decrease total memorization time and each memorization pulse to "
           "further reduce memorization time.");
 
   feato(FEAT_SPELL_FOCUS, "spell focus", TRUE, TRUE, TRUE, FEAT_TYPE_SPELLCASTING,
-    "+1 to all spell dcs for all spells in school/domain",
-    "+1 to all spell dcs for all spells in school/domain");
+          "+1 to all spell dcs for all spells in school/domain",
+          "+1 to all spell dcs for all spells in school/domain");
   feato(FEAT_GREATER_SPELL_FOCUS, "greater spell focus", TRUE, TRUE, TRUE, FEAT_TYPE_SPELLCASTING,
-    "+2 to all spell dcs for all spells in school/domain",
-    "+2 to all spell dcs for all spells in school/domain");
+          "+2 to all spell dcs for all spells in school/domain",
+          "+2 to all spell dcs for all spells in school/domain");
 
   feato(FEAT_IMPROVED_FAMILIAR, "improved familiar", TRUE, TRUE, TRUE, FEAT_TYPE_SPELLCASTING,
-    "your familiar gets more powerful",
-    "Each rank in this feat will give your familiar: 1 AC, 10 Hit-points, +1 to "
+          "your familiar gets more powerful",
+          "Each rank in this feat will give your familiar: 1 AC, 10 Hit-points, +1 to "
           "strength, dexterity and constitution.");
 
   feato(FEAT_QUICK_CHANT, "quick chant", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "you can cast spells faster",
-    "You can cast spells about 50 percent faster than normal with this feat.");
+          "you can cast spells faster",
+          "You can cast spells about 50 percent faster than normal with this feat.");
 
   feato(FEAT_AUGMENT_SUMMONING, "augment summoning", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "enhance summoned creatures",
-    "Gives all creatures you have from summoning spells +4 to strength and "
-      "constitution.  Note: this will not augment your familiar, called companions, "
-      "or charmed/dominated victims.  Note: requires spell-focus in conjuration.");
+          "enhance summoned creatures",
+          "Gives all creatures you have from summoning spells +4 to strength and "
+          "constitution.  Note: this will not augment your familiar, called companions, "
+          "or charmed/dominated victims.  Note: requires spell-focus in conjuration.");
 
   feato(FEAT_ENHANCED_SPELL_DAMAGE, "enhanced spell damage", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "+1 spell damage per die rolled",
-    "You gain +1 spell damage per die rolled, example:  if you are level 10 and "
-      "normally create a 10d6 damage fireball, with this feat your fireball would "
-      "do 10d6+10.");
+          "+1 spell damage per die rolled",
+          "You gain +1 spell damage per die rolled, example:  if you are level 10 and "
+          "normally create a 10d6 damage fireball, with this feat your fireball would "
+          "do 10d6+10.");
 
   feato(FEAT_COMBAT_CASTING, "combat casting", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "+4 to concentration checks made in combat or when grappled ",
-    "+4 to concentration checks made in combat or when grappled ");
+          "+4 to concentration checks made in combat or when grappled ",
+          "+4 to concentration checks made in combat or when grappled ");
 
   /* epic type spellcasting feats */
   feato(FEAT_MUMMY_DUST, "mummy dust", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to epic spell - mummy dust",
-    "Once per game day, you can cast a spell that will conjure a powerful Mummy "
+          "gain access to epic spell - mummy dust",
+          "Once per game day, you can cast a spell that will conjure a powerful Mummy "
           "Lord to assist you in combat.");
-    feat_prereq_ability(FEAT_MUMMY_DUST, ABILITY_SPELLCRAFT, 23);
+  feat_prereq_ability(FEAT_MUMMY_DUST, ABILITY_SPELLCRAFT, 23);
   feato(FEAT_DRAGON_KNIGHT, "dragon knight", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to epic spell - dragon knight",
-    "Once per game day, you can cast a spell that will conjure a small red dragon"
+          "gain access to epic spell - dragon knight",
+          "Once per game day, you can cast a spell that will conjure a small red dragon"
           " to assist you in combat.");
-    feat_prereq_ability(FEAT_DRAGON_KNIGHT, ABILITY_SPELLCRAFT, 25);
+  feat_prereq_ability(FEAT_DRAGON_KNIGHT, ABILITY_SPELLCRAFT, 25);
   feato(FEAT_GREATER_RUIN, "greater ruin", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to epic spell - greater ruin",
-    "Once per game day, you can cast a spell that will cause serious damage to "
+          "gain access to epic spell - greater ruin",
+          "Once per game day, you can cast a spell that will cause serious damage to "
           "a selected target.");
-    feat_prereq_ability(FEAT_GREATER_RUIN, ABILITY_SPELLCRAFT, 27);
+  feat_prereq_ability(FEAT_GREATER_RUIN, ABILITY_SPELLCRAFT, 27);
   feato(FEAT_HELLBALL, "hellball", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to epic spell - greater ruin",
-    "Once per game day, you can cast a spell that will cause serious damage to "
+          "gain access to epic spell - greater ruin",
+          "Once per game day, you can cast a spell that will cause serious damage to "
           "all the targets in a room.");
-    feat_prereq_ability(FEAT_HELLBALL, ABILITY_SPELLCRAFT, 29);
+  feat_prereq_ability(FEAT_HELLBALL, ABILITY_SPELLCRAFT, 29);
   feato(FEAT_EPIC_MAGE_ARMOR, "epic mage armor", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to epic spell - epic mage armor",
-    "Once per game day, you can cast a spell that will give a massive AC bonus to "
+          "gain access to epic spell - epic mage armor",
+          "Once per game day, you can cast a spell that will give a massive AC bonus to "
           "the caster.");
-    feat_prereq_ability(FEAT_EPIC_MAGE_ARMOR, ABILITY_SPELLCRAFT, 31);
+  feat_prereq_ability(FEAT_EPIC_MAGE_ARMOR, ABILITY_SPELLCRAFT, 31);
   feato(FEAT_EPIC_WARDING, "epic warding", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
-    "gain access to epic spell - epic warding",
-    "Once per game day, you can cast a spell that will absorb a massive amount "
+          "gain access to epic spell - epic warding",
+          "Once per game day, you can cast a spell that will absorb a massive amount "
           "of damage.");
-    feat_prereq_ability(FEAT_EPIC_WARDING, ABILITY_SPELLCRAFT, 32);
+  feat_prereq_ability(FEAT_EPIC_WARDING, ABILITY_SPELLCRAFT, 32);
   /* zusuk marker */
 
 
   /* Crafting feats */
 
   feato(FEAT_DRACONIC_CRAFTING, "draconic crafting", TRUE, FALSE, FALSE, FEAT_TYPE_CRAFT,
-    "All magical items created gain higher bonuses w/o increasing level",
-    "All magical items created gain higher bonuses w/o increasing level");
+          "All magical items created gain higher bonuses w/o increasing level",
+          "All magical items created gain higher bonuses w/o increasing level");
   feato(FEAT_DWARVEN_CRAFTING, "dwarven crafting", TRUE, FALSE, FALSE, FEAT_TYPE_CRAFT,
-    "All weapons and armor made have higher bonuses",
-    "All weapons and armor made have higher bonuses");
+          "All weapons and armor made have higher bonuses",
+          "All weapons and armor made have higher bonuses");
   feato(FEAT_ELVEN_CRAFTING, "elven crafting", TRUE, FALSE, FALSE, FEAT_TYPE_CRAFT,
-    "All equipment made is 50 percent weight and uses 50 percent materials",
-    "All equipment made is 50 percent weight and uses 50 percent materials");
+          "All equipment made is 50 percent weight and uses 50 percent materials",
+          "All equipment made is 50 percent weight and uses 50 percent materials");
   /* NOT IN GAME */feato(FEAT_FAST_CRAFTER, "fast crafter", FALSE, FALSE, FALSE, FEAT_TYPE_CRAFT,
-    "Reduces crafting time",
-    "Reduces crafting time");
+          "Reduces crafting time",
+          "Reduces crafting time");
 
   /* Cleric Domain (ability) Feats */
   feato(FEAT_LIGHTNING_ARC, "lightning arc", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
-    "you can unleash an arc of electricity",
-    "As a standard action, you can unleash an arc of electricity. This arc of "
+          "you can unleash an arc of electricity",
+          "As a standard action, you can unleash an arc of electricity. This arc of "
           "electricity deals 1d6+10 points of electric damage + 1 point for "
           "every two cleric levels you possess. You can use this ability a number "
           "of times per day equal to 3 + your Wisdom modifier.");
   feato(FEAT_ACID_DART, "acid dart", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
-    "you can unleash a dart of acid",
-    "As a standard action, you can unleash a dart of acid. This dart of "
+          "you can unleash a dart of acid",
+          "As a standard action, you can unleash a dart of acid. This dart of "
           "acid deals 1d6+10 points of acid damage + 1 point for "
           "every two cleric levels you possess. You can use this ability a number "
           "of times per day equal to 3 + your Wisdom modifier.");
   feato(FEAT_FIRE_BOLT, "fire bolt", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
-    "you can unleash a bolt of fire",
-    "As a standard action, you can unleash a bolt of fire. This bolt of "
+          "you can unleash a bolt of fire",
+          "As a standard action, you can unleash a bolt of fire. This bolt of "
           "fire deals 1d6+10 points of fire damage + 1 point for "
           "every two cleric levels you possess. You can use this ability a number "
           "of times per day equal to 3 + your Wisdom modifier.");
   feato(FEAT_ICICLE, "icicle", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
-    "you can unleash an icicle",
-    "As a standard action, you can unleash an icicle. This icicle "
+          "you can unleash an icicle",
+          "As a standard action, you can unleash an icicle. This icicle "
           "deals 1d6+10 points of cold damage + 1 point for "
           "every two cleric levels you possess. You can use this ability a number "
           "of times per day equal to 3 + your Wisdom modifier.");
   feato(FEAT_DOMAIN_ELECTRIC_RESIST, "domain electric resistance", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
-    "gain electricity resistance",
-    "At 6th cleric levels, you gain resist electricity 10. This resistance increases "
+          "gain electricity resistance",
+          "At 6th cleric levels, you gain resist electricity 10. This resistance increases "
           "to 20 at 12th level and to 50 at 20th level.");
   feato(FEAT_DOMAIN_ACID_RESIST, "domain acid resistance", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
-    "gain acid resistance",
-    "At 6th cleric levels, you gain resist acid 10. This resistance increases "
+          "gain acid resistance",
+          "At 6th cleric levels, you gain resist acid 10. This resistance increases "
           "to 20 at 12th level and to 50 at 20th level.");
   feato(FEAT_DOMAIN_FIRE_RESIST, "domain fire resistance", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
-    "gain fire resistance",
-    "At 6th cleric levels, you gain resist fire 10. This resistance increases "
+          "gain fire resistance",
+          "At 6th cleric levels, you gain resist fire 10. This resistance increases "
           "to 20 at 12th level and to 50 at 20th level.");
   feato(FEAT_DOMAIN_COLD_RESIST, "domain cold resistance", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
-    "gain cold resistance",
-    "At 6th cleric levels, you gain resist cold 10. This resistance increases "
+          "gain cold resistance",
+          "At 6th cleric levels, you gain resist cold 10. This resistance increases "
           "to 20 at 12th level and to 50 at 20th level.");
   feato(FEAT_CURSE_TOUCH, "curse touch", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
-    "you can unleash a curse",
-    "As a standard action, you can unleash a curse (like the spell).  You can use "
-      "this ability a number of times per day equal to 3 + your Wisdom modifier.");
+          "you can unleash a curse",
+          "As a standard action, you can unleash a curse (like the spell).  You can use "
+          "this ability a number of times per day equal to 3 + your Wisdom modifier.");
   feato(FEAT_CHAOTIC_WEAPON, "chaotic weapon", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
-    "your weapon becomes chaotic",
-    "Any weapon you wield behaves as if it is chaotic, and will do additional 2d6 "
-      "damage against lawful-raced and lawful-aligned opponents.");
+          "your weapon becomes chaotic",
+          "Any weapon you wield behaves as if it is chaotic, and will do additional 2d6 "
+          "damage against lawful-raced and lawful-aligned opponents.");
   feato(FEAT_DESTRUCTIVE_SMITE, "destructive smite", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
-    "add 1/2 cleric level to damage",
-    "You gain the destructive smite power: the supernatural ability to make a "
-      "single melee attack with a morale bonus on damage rolls equal to 1/2 your "
-      "cleric level (minimum 1). You must declare the destructive smite before "
-      "making the attack. You can use this ability a number of times per day "
-      "equal to 3 + your Wisdom modifier.");
+          "add 1/2 cleric level to damage",
+          "You gain the destructive smite power: the supernatural ability to make a "
+          "single melee attack with a morale bonus on damage rolls equal to 1/2 your "
+          "cleric level (minimum 1). You must declare the destructive smite before "
+          "making the attack. You can use this ability a number of times per day "
+          "equal to 3 + your Wisdom modifier.");
   feato(FEAT_DESTRUCTIVE_AURA, "destructive aura", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
-    "add 1/2 cleric level to group's damage",
-    "As a standard action, you can unleash a destructive aura which will give "
-      "all your group companions cleric-level/2 bonus damage for 1 round.  You can use "
-      "this ability a number of times per day equal to your Wisdom modifier.");
+          "add 1/2 cleric level to group's damage",
+          "As a standard action, you can unleash a destructive aura which will give "
+          "all your group companions cleric-level/2 bonus damage for 1 round.  You can use "
+          "this ability a number of times per day equal to your Wisdom modifier.");
   feato(FEAT_EVIL_TOUCH, "evil touch", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
-    "inflict disease with touch attack",
-    "You can cause a creature to become sickened as a melee touch attack.  This "
+          "inflict disease with touch attack",
+          "You can cause a creature to become sickened as a melee touch attack.  This "
           "ability lasts for a number of rounds equal to 1/2 "
           "your cleric level (minimum 1). You can use this ability a number of times "
           "per day equal to 3 + your Wisdom modifier.");
   feato(FEAT_EVIL_SCYTHE, "evil scythe", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
-    "empower your weapon with unholy damage",
-    "At 8th level, you can give a weapon touched the unholy special weapon quality "
+          "empower your weapon with unholy damage",
+          "At 8th level, you can give a weapon touched the unholy special weapon quality "
           "for a number of rounds equal to 1/2 your cleric level. You can use "
           "this ability once per day at 8th level, and an additional time per "
           "day for every four levels beyond 8th.");
   feato(FEAT_GOOD_TOUCH, "good touch", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
-    "cure disease and poison with touch",
-    "You can touch a creature as a standard action, removing one poison affliction "
+          "cure disease and poison with touch",
+          "You can touch a creature as a standard action, removing one poison affliction "
           "and one disease per usage. You can use this ability "
           "a number of times per day equal to 3 + your Wisdom modifier.");
   feato(FEAT_GOOD_LANCE, "good lance", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
-    "empower your weapon with holy damage",
-    "At 8th level, you can give a weapon you touch the holy special weapon quality "
+          "empower your weapon with holy damage",
+          "At 8th level, you can give a weapon you touch the holy special weapon quality "
           "for a number of rounds equal to 1/2 your cleric level. You can use this "
           "ability once per day at 8th level, and an additional time per day for "
           "every four levels beyond 8th.");
   feato(FEAT_HEALING_TOUCH, "healing touch", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
-    "you can heal with your touch",
-    "You can touch a living creature as a standard action, healing it for 20 + 1d4 points "
+          "you can heal with your touch",
+          "You can touch a living creature as a standard action, healing it for 20 + 1d4 points "
           "of damage plus 1 for every two cleric levels you possess. You can only "
           "use this ability on a creature that is below half their total hit points. You can use "
           "this ability a number of times per day equal to 3 + your Wisdom modifier.");
   feato(FEAT_EMPOWERED_HEALING, "empowered healing", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
-    "heal spells empowered",
-    "At 6th level, all of your cure spells are treated as if they were empowered, "
+          "heal spells empowered",
+          "At 6th level, all of your cure spells are treated as if they were empowered, "
           "increasing the amount of damage healed by half (+50%). This does not "
           "apply to damage dealt to undead with a cure spell. This does not stack "
           "with the Empower Spell metamagic feat.");
   feato(FEAT_KNOWLEDGE, "knowledge", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
-    "your lore ability is enhanced",
-    "You get +4 to your lore checks and you can apply your wisdom bonus to your "
+          "your lore ability is enhanced",
+          "You get +4 to your lore checks and you can apply your wisdom bonus to your "
           "lore checks.");
   feato(FEAT_EYE_OF_KNOWLEDGE, "eye of knowledge", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
-    "summon a wizard eye",
-    "Like the 'wizard eye' spell available to arcane casters, you can summon a "
+          "summon a wizard eye",
+          "Like the 'wizard eye' spell available to arcane casters, you can summon a "
           "wizard eye which you can control to scout for you.  You can use this "
           "ability a number of times per day equal to 3 + your Wisdom modifier.");
   feato(FEAT_BLESSED_TOUCH, "blessed touch", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
-    "can bless with your touch",
-    "You can touch a willing creature as a standard action, infusing it with the "
+          "can bless with your touch",
+          "You can touch a willing creature as a standard action, infusing it with the "
           "power of divine order and allowing it to treat all attack rolls, skill "
           "checks, ability checks, and saving throws for 1 round as if the natural "
           "d20 roll resulted in an 11. You can use this ability a number of times "
           "per day equal to 3 + your Wisdom modifier.");
   feato(FEAT_LAWFUL_WEAPON, "lawful weapon", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
-    "your weapons becomes lawful",
-    "Any weapon you wield behaves as if it is axiomatic, and will do additional 2d6 "
-      "damage against chaotic-raced and chaotic-aligned opponents.");
+          "your weapons becomes lawful",
+          "Any weapon you wield behaves as if it is axiomatic, and will do additional 2d6 "
+          "damage against chaotic-raced and chaotic-aligned opponents.");
   feato(FEAT_DECEPTION, "deception", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
-    "gain stealth and disguise as class abilities",
-    "Both stealth and disguise are now class abilities to you, making them twice "
+          "gain stealth and disguise as class abilities",
+          "Both stealth and disguise are now class abilities to you, making them twice "
           "as effective at training.");
   feato(FEAT_COPYCAT, "copycat", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
-    "can innate create mirror images",
-    "You can use 'mirror image', like the arcane spell.  You can use this ability "
+          "can innate create mirror images",
+          "You can use 'mirror image', like the arcane spell.  You can use this ability "
           "a number of times per day equal to your Wisdom modifier.");
   feato(FEAT_MASS_INVIS, "mass invis", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
-    "can use mass invisibility",
-    "You can use 'mass invisibility', like the arcane spell.  You can use this ability "
+          "can use mass invisibility",
+          "You can use 'mass invisibility', like the arcane spell.  You can use this ability "
           "a number of times per day equal to your Wisdom modifier.");
   feato(FEAT_RESISTANCE, "resistance", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
-    "gain bonus to all resistances",
-    "You get +1 to all your resistances per 6 cleric levels.");
+          "gain bonus to all resistances",
+          "You get +1 to all your resistances per 6 cleric levels.");
   feato(FEAT_SAVES, "saves", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
-    "gain bonus to all saves",
-    "You get +1 to all your saves per 6 cleric levels.");
+          "gain bonus to all saves",
+          "You get +1 to all your saves per 6 cleric levels.");
   feato(FEAT_AURA_OF_PROTECTION, "aura of protection", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
-    "grant AC/sves bonus to group",
-    "You can grant +1 to all saves and AC per 6 cleric levels to all your "
+          "grant AC/sves bonus to group",
+          "You can grant +1 to all saves and AC per 6 cleric levels to all your "
           "group members for 4 rounds.  You can use this ability a number of times "
           "per day equal to 3 + your Wisdom modifier.");
   feato(FEAT_ETH_SHIFT, "ethereal shift", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
-    "shift between ethereal/prime planes at will",
-    "You gain the ability to shift group members or yourself, at will, to the "
+          "shift between ethereal/prime planes at will",
+          "You gain the ability to shift group members or yourself, at will, to the "
           "ethereal plane and back to the prime material plane.");
   feato(FEAT_BATTLE_RAGE, "battle rage", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
-    "bonus to hitroll/damage",
-    "You add your cleric level / 4 to both your hitroll and damroll for "
+          "bonus to hitroll/damage",
+          "You add your cleric level / 4 to both your hitroll and damroll for "
           "5 rounds.  You can use this ability a number of times per day equal "
           "to your Wisdom modifier.  Note: You need at least 4 levels in cleric "
           "class to use this ability.");
   feato(FEAT_WEAPON_EXPERT, "weapon expert", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
-    "+1 to attack rolls, can use all martial weapons",
-    "This feat behaves like the martial weapon proficiency, granting you proficiency "
+          "+1 to attack rolls, can use all martial weapons",
+          "This feat behaves like the martial weapon proficiency, granting you proficiency "
           "in all weapons except for exotic ones.  In addition you get a +1 to all "
           "attack rolls when wielding a weapon.");
 
   /* Wild Feats (druid) */
   feato(FEAT_NATURAL_SPELL, "natural spell", TRUE, TRUE, FALSE, FEAT_TYPE_WILD,
-    "allows casting of spells while wildshaped",
-    "Upon selecting this feat, the character is able to cast spells while wildshaped.");
-    feat_prereq_attribute(FEAT_NATURAL_SPELL, AB_WIS, 13);
-    feat_prereq_feat(FEAT_NATURAL_SPELL, FEAT_WILD_SHAPE, 1);
+          "allows casting of spells while wildshaped",
+          "Upon selecting this feat, the character is able to cast spells while wildshaped.");
+  feat_prereq_attribute(FEAT_NATURAL_SPELL, AB_WIS, 13);
+  feat_prereq_feat(FEAT_NATURAL_SPELL, FEAT_WILD_SHAPE, 1);
 
   /*****/
   /* Class ability feats */
 
   /* warrior */
   feato(FEAT_ARMOR_TRAINING, "armor training", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "reduced armor penalty, increased maxdex",
-    "The penalty caused by wearing armor is reduced by 1 per rank of this feat.  "
-      "In addition your maximum dexterity for your armoring increased 1 per rank.");
+          "reduced armor penalty, increased maxdex",
+          "The penalty caused by wearing armor is reduced by 1 per rank of this feat.  "
+          "In addition your maximum dexterity for your armoring increased 1 per rank.");
   feato(FEAT_WEAPON_TRAINING, "weapon training", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "+2 confirm crit, +1 min diceroll",
-    "You get to reroll your attack diceroll if you roll 1, per rank of this feat "
-      "(example: 4 ranks means you cannot roll lower than 5).  In addition, you "
-      "get +2 to confirming critical hits per rank.");
+          "+2 confirm crit, +1 min diceroll",
+          "You get to reroll your attack diceroll if you roll 1, per rank of this feat "
+          "(example: 4 ranks means you cannot roll lower than 5).  In addition, you "
+          "get +2 to confirming critical hits per rank.");
   feato(FEAT_STALWART_WARRIOR, "stalwart warrior", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "apply class level to AC",
-    "The warrior gets to apply all warrior-levels divided by 4 to AC.");
+          "apply class level to AC",
+          "The warrior gets to apply all warrior-levels divided by 4 to AC.");
   feato(FEAT_ARMOR_MASTERY, "armor mastery i", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "gains Damage Reduction 5/all when armored",
-    "Gain Damage Reduction 5/all whenever wearing armor or using a shield.");
+          "gains Damage Reduction 5/all when armored",
+          "Gain Damage Reduction 5/all whenever wearing armor or using a shield.");
   feato(FEAT_WEAPON_MASTERY, "weapon mastery i", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "cannot be disarmed, +2 ac when using any weapon",
-    "Gain immunity to disarm attempts, in addition, while wielding any type of "
-      "weapon, gain a bonus 2 to deflection AC.");
+          "cannot be disarmed, +2 ac when using any weapon",
+          "Gain immunity to disarm attempts, in addition, while wielding any type of "
+          "weapon, gain a bonus 2 to deflection AC.");
   feato(FEAT_ARMOR_MASTERY_2, "armor mastery ii", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "become extremely skilled with shields",
-    "You gain 2 bonus AC while using a shield, in addition you gain 25 magic "
-      "resistance while using a shield.");
+          "become extremely skilled with shields",
+          "You gain 2 bonus AC while using a shield, in addition you gain 25 magic "
+          "resistance while using a shield.");
   feato(FEAT_WEAPON_MASTERY_2, "weapon mastery ii", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "+6 to CMD and CMB",
-    "While wielding a weapon, gain a +6 bonus to all combat maneuver attempts and +6 bonus to defending "
-      "against any combat maneuver.");
+          "+6 to CMD and CMB",
+          "While wielding a weapon, gain a +6 bonus to all combat maneuver attempts and +6 bonus to defending "
+          "against any combat maneuver.");
 
   /* Cleric */
   /* turn undead is below, shared with paladin */
 
   /* Cleric / Paladin */
   feato(FEAT_TURN_UNDEAD, "turn undead", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "can cause fear in or destroy undead based on class level and charisma bonus",
-    "can cause fear in or destroy undead based on class level and charisma bonus");
+          "can cause fear in or destroy undead based on class level and charisma bonus",
+          "can cause fear in or destroy undead based on class level and charisma bonus");
 
   /* Paladin / Champion of Torm */
   feato(FEAT_DIVINE_GRACE, "divine grace", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "charisma bonus added to all saving throw checks",
-    "charisma bonus added to all saving throw checks");
+          "charisma bonus added to all saving throw checks",
+          "charisma bonus added to all saving throw checks");
 
   /* Paladin */
   /* divine grace is above, shared with champion of torm */
   /* turn undead is above, shared with cleric */
   feato(FEAT_AURA_OF_COURAGE, "aura of courage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "Immunity to fear attacks, +4 bonus to fear saves for group members",
-    "Immunity to fear attacks, +4 bonus to fear saves for group members");
+          "Immunity to fear attacks, +4 bonus to fear saves for group members",
+          "Immunity to fear attacks, +4 bonus to fear saves for group members");
   feato(FEAT_SMITE_EVIL, "smite evil", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "add level to hit roll and charisma bonus to damage",
-    "add level to hit roll and charisma bonus to damage");
+          "add level to hit roll and charisma bonus to damage",
+          "add level to hit roll and charisma bonus to damage");
   feato(FEAT_DETECT_EVIL, "detect evil", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "able to detect evil alignments",
-    "able to detect evil alignments");
+          "able to detect evil alignments",
+          "able to detect evil alignments");
   feato(FEAT_AURA_OF_GOOD, "aura of good", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "able to detect good alignments",
-    "able to detect good alignments");
+          "able to detect good alignments",
+          "able to detect good alignments");
   feato(FEAT_DIVINE_HEALTH, "divine health", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "immune to disease",
-    "immune to disease");
+          "immune to disease",
+          "immune to disease");
   feato(FEAT_LAYHANDS, "lay on hands", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "Powerful divine healing ability usable a limited number of times a day",
-    "Powerful divine healing ability usable a limited number of times a day");
+          "Powerful divine healing ability usable a limited number of times a day",
+          "Powerful divine healing ability usable a limited number of times a day");
   feato(FEAT_REMOVE_DISEASE, "remove disease", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "can cure diseases",
-    "can cure diseases (purify)");
+          "can cure diseases",
+          "can cure diseases (purify)");
   feato(FEAT_CALL_MOUNT, "call mount", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "Allows you to call a paladin mount",
-    "Allows you to call a paladin mount");
+          "Allows you to call a paladin mount",
+          "Allows you to call a paladin mount");
   feato(FEAT_DIVINE_BOND, "divine bond", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "bonuses to attack and damage rolls",
-    "Hitroll and Damage bonus of 1 + paladin-level/3 for levels above 5, the "
-      "bonus caps at 6");
+          "bonuses to attack and damage rolls",
+          "Hitroll and Damage bonus of 1 + paladin-level/3 for levels above 5, the "
+          "bonus caps at 6");
   feato(FEAT_GLORIOUS_RIDER, "glorious rider", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "use cha instead of dex for ride checks",
-    "Normally ride checks for performing skills while mounted, uses your dexterity "
-      "bonus to compute your chance.  With this feat you can use your charisma bonus instead.");
+          "use cha instead of dex for ride checks",
+          "Normally ride checks for performing skills while mounted, uses your dexterity "
+          "bonus to compute your chance.  With this feat you can use your charisma bonus instead.");
   feato(FEAT_LEGENDARY_RIDER, "legendary rider", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "no armor penalty to ride check, can block extra attack",
-    "You can now block up to two attacks a round with successful ride checks "
-      "against the incoming attacks.  In addition, you no longer suffer any "
-      "penalty because of armor while mounted.");
+          "no armor penalty to ride check, can block extra attack",
+          "You can now block up to two attacks a round with successful ride checks "
+          "against the incoming attacks.  In addition, you no longer suffer any "
+          "penalty because of armor while mounted.");
   feato(FEAT_EPIC_MOUNT, "epic mount", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "you get a more powerful mount",
-    "You get an epic level mount with some special abilities.");
+          "you get a more powerful mount",
+          "You get an epic level mount with some special abilities.");
 
   /* Rogue */
   /* trap sense below (shared with berserker) */
@@ -2256,331 +2262,331 @@ void assign_feats(void) {
   /* improved uncanny dodge below (shared with berserker) */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   /*talent*/feato(FEAT_CRIPPLING_STRIKE, "crippling strike", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "Chance to do strength damage with a sneak attack.",
-    "Chance to do strength damage with a sneak attack.");
+          "Chance to do strength damage with a sneak attack.",
+          "Chance to do strength damage with a sneak attack.");
   /*talent*/feato(FEAT_IMPROVED_EVASION, "improved evasion", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "as evasion but half damage of failed save",
-    "as evasion but half damage of failed save");
+          "as evasion but half damage of failed save",
+          "as evasion but half damage of failed save");
   feato(FEAT_EVASION, "evasion", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "on successful reflex save no damage from spells and effects",
-    "on successful reflex save no damage from spells and effects");
+          "on successful reflex save no damage from spells and effects",
+          "on successful reflex save no damage from spells and effects");
   feato(FEAT_TRAPFINDING, "trapfinding", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "+4 to detecting traps",
-    "+4 to detecting traps (detecttrap)");
+          "+4 to detecting traps",
+          "+4 to detecting traps (detecttrap)");
   /*adv talent*/feato(FEAT_DEFENSIVE_ROLL, "defensive roll", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "can survive a potentially fatal blow",
-    "can survive a potentially fatal blow, has long cooldown before usable "
-      "again (automatic usage)");
+          "can survive a potentially fatal blow",
+          "can survive a potentially fatal blow, has long cooldown before usable "
+          "again (automatic usage)");
   /*epic talent*/feato(FEAT_BACKSTAB, "backstab", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "bonus to attack and double damage",
-    "You get +4 to attack (and another +1 if sneaking, +1 if hiding).  Do double "
-      "damage as well.  In addition, backstab is a move-action instead of full "
-      "round action.  Backstab requires a piercing weapon to be a success.");
+          "bonus to attack and double damage",
+          "You get +4 to attack (and another +1 if sneaking, +1 if hiding).  Do double "
+          "damage as well.  In addition, backstab is a move-action instead of full "
+          "round action.  Backstab requires a piercing weapon to be a success.");
   /*epic talent*/feato(FEAT_SAP, "sap", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "chance to knock opponent out",
-    "When both sneaking and hiding (in that order) and wielding a bludgeon weapon, you can perform a special sap attack "
-      "which on success, will knock an opponent down and if they fail a fortitude save "
-      "versus rogue-level / 2 + dex bonus they will be paralyzed for 2 rounds.  This type of "
-      "attack will get a -6 penalty to success, but can be negated by wielding a "
-      "2-handed bludgeoning weapon (+4 bonus) and if your opponent can't see you (+4 bonus).");
+          "chance to knock opponent out",
+          "When both sneaking and hiding (in that order) and wielding a bludgeon weapon, you can perform a special sap attack "
+          "which on success, will knock an opponent down and if they fail a fortitude save "
+          "versus rogue-level / 2 + dex bonus they will be paralyzed for 2 rounds.  This type of "
+          "attack will get a -6 penalty to success, but can be negated by wielding a "
+          "2-handed bludgeoning weapon (+4 bonus) and if your opponent can't see you (+4 bonus).");
   /*epic talent*/feato(FEAT_VANISH, "vanish", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "escape combat!",
-    "Once per day, you can use vanish as a free action to completely escape combat "
-      "effectively disengaging and entering a sneak/hidden mode.  This also heals "
-      "10 hitpoints and gives 25 percent concealment for 2 rounds.");
+          "escape combat!",
+          "Once per day, you can use vanish as a free action to completely escape combat "
+          "effectively disengaging and entering a sneak/hidden mode.  This also heals "
+          "10 hitpoints and gives 25 percent concealment for 2 rounds.");
   /*epic talent*/feato(FEAT_IMPROVED_VANISH, "improved vanish", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "improves vanish feat",
-    "Vanish now heals 20 hitpoints and gives 100 percent concealment for 2 rounds.");
+          "improves vanish feat",
+          "Vanish now heals 20 hitpoints and gives 100 percent concealment for 2 rounds.");
   /*talent*/feato(FEAT_SLIPPERY_MIND, "slippery mind", TRUE, TRUE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "extra chance for will saves vs mind affecting spells",
-    "extra chance for will saves vs mind affecting spells");
+          "extra chance for will saves vs mind affecting spells",
+          "extra chance for will saves vs mind affecting spells");
   /*talent*/feato(FEAT_APPLY_POISON, "apply poison", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "can apply poison to weapons",
-    "can apply poison to weapons (applypoison)");
+          "can apply poison to weapons",
+          "can apply poison to weapons (applypoison)");
   /*talent*/feato(FEAT_DIRT_KICK, "dirt kick", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "can kick dirt into opponents face (blindness)",
-    "Upon a successful unarmed attack roll you will kick dirt into your opponents "
-      "eyes causing minor damage.  In addition if your opponent fails his/her reflex "
-      "saving throw versus 10 + your-level/2 + dex-bonus, they will be blinded for 1 "
-      "to level/5 rounds.  To use this skill type: dirtkick <opponent>.");
+          "can kick dirt into opponents face (blindness)",
+          "Upon a successful unarmed attack roll you will kick dirt into your opponents "
+          "eyes causing minor damage.  In addition if your opponent fails his/her reflex "
+          "saving throw versus 10 + your-level/2 + dex-bonus, they will be blinded for 1 "
+          "to level/5 rounds.  To use this skill type: dirtkick <opponent>.");
   feato(FEAT_SNEAK_ATTACK, "sneak attack", TRUE, FALSE, TRUE, FEAT_TYPE_COMBAT,
-    "+1d6 to damage when flanking",
-    "+1d6/rank to damage when flanking, opponent is flat-footed, or opponent is without dexterity bonus");
+          "+1d6 to damage when flanking",
+          "+1d6/rank to damage when flanking, opponent is flat-footed, or opponent is without dexterity bonus");
   feat_prereq_class_level(FEAT_SNEAK_ATTACK, CLASS_ROGUE, 2);
   feato(FEAT_WEAPON_PROFICIENCY_ROGUE, "weapon proficiency - rogues", TRUE, FALSE, FALSE, FEAT_TYPE_GENERAL,
-  "proficiency in rogue weapons",
-  "You are proficient in the usage of hand-crossbows, rapiers, sap, short-sword "
+          "proficiency in rogue weapons",
+          "You are proficient in the usage of hand-crossbows, rapiers, sap, short-sword "
           "and short-bow.");
 
 
   /* Rogue / Berserker */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_TRAP_SENSE, "trap sense", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
-    "auto-sense traps",
-    "Normally to find traps you have to actively try to detect them.  With "
-      "this feat you will make a perception check to detect traps automatically. "
-      "For every point you have in this feat your bonus to your check is increase by 1.");
+          "auto-sense traps",
+          "Normally to find traps you have to actively try to detect them.  With "
+          "this feat you will make a perception check to detect traps automatically. "
+          "For every point you have in this feat your bonus to your check is increase by 1.");
   feato(FEAT_UNCANNY_DODGE, "uncanny dodge", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "retains dex bonus when flat footed",
-    "retains dexterity bonus when flat footed");
+          "retains dex bonus when flat footed",
+          "retains dexterity bonus when flat footed");
   feato(FEAT_IMPROVED_UNCANNY_DODGE, "improved uncanny dodge", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "cannot be flanked",
-    "cannot be flanked, unless opponents berserker/rogue levels are 4 or more");
+          "cannot be flanked",
+          "cannot be flanked, unless opponents berserker/rogue levels are 4 or more");
 
   /* Ranger */
   /* the favored enemy mechanic is already built into the study system, not utilizing these two feats */
   /* unfinished */ feato(FEAT_FAVORED_ENEMY_AVAILABLE, "favored enemy available", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "can choose an enemy type as a favored enemy",
-    "can choose an enemy type as a favored enemy");
+          "can choose an enemy type as a favored enemy",
+          "can choose an enemy type as a favored enemy");
   /* unfinished */ feato(FEAT_FAVORED_ENEMY, "favored enemy", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
-    "Gain bonuses when fighting against a particular type of enemy",
-    "Gain bonuses when fighting against a particular type of enemy");
+          "Gain bonuses when fighting against a particular type of enemy",
+          "Gain bonuses when fighting against a particular type of enemy");
   /* modified from original */
   feato(FEAT_CAMOUFLAGE, "camouflage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "gain stealth bonus in nature",
-    "Gains +6 bonus to sneak/hide in nature");
+          "gain stealth bonus in nature",
+          "Gains +6 bonus to sneak/hide in nature");
   feato(FEAT_HIDE_IN_PLAIN_SIGHT, "hide in plain sight", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "can hide in battle",
-    "This feat grants the ability to perform the stealth maneuver: hide, even while in combat.  This check is made with a -8 penalty");
+          "can hide in battle",
+          "This feat grants the ability to perform the stealth maneuver: hide, even while in combat.  This check is made with a -8 penalty");
   /* unfinished */ feato(FEAT_SWIFT_TRACKER, "swift tracker", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "No penalty while autotracking.",
-    "No penalty while autotracking.");
+          "No penalty while autotracking.",
+          "No penalty while autotracking.");
   /* combat mastery should be either an archer set of feats or dual wielding set of feats, for now we give them both */
   /* we have to make separate feats for dual weapon fighting (two weapon fighting) */
   feato(FEAT_DUAL_WEAPON_FIGHTING, "dual weapon fighting", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
-    "reduces penalty for two weapon fighting",
-    "reduces penalty for two weapon fighting while wearing light or lighter armor");
+          "reduces penalty for two weapon fighting",
+          "reduces penalty for two weapon fighting while wearing light or lighter armor");
   feato(FEAT_IMPROVED_DUAL_WEAPON_FIGHTING, "improved dual weapon fighting", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
-    "extra attack with offhand weapon at -5 penalty",
-    "extra attack with offhand weapon at -5 penalty while wearing light or lighter armor");
+          "extra attack with offhand weapon at -5 penalty",
+          "extra attack with offhand weapon at -5 penalty while wearing light or lighter armor");
   feato(FEAT_GREATER_DUAL_WEAPON_FIGHTING, "greater dual weapon fighting", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
-    "gives an additional offhand weapon attack at -10 penalty",
-    "gives an additional offhand weapon attack at -10 penalty while wearing light or lighter armor");
-    /* point blank shot */
-    /* rapid shot */
-    /* manyshot */
+          "gives an additional offhand weapon attack at -10 penalty",
+          "gives an additional offhand weapon attack at -10 penalty while wearing light or lighter armor");
+  /* point blank shot */
+  /* rapid shot */
+  /* manyshot */
   /* epic */
-    /* epic manyshot */
+  /* epic manyshot */
   feato(FEAT_PERFECT_DUAL_WEAPON_FIGHTING, "perfect dual weapon fighting", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
-    "Extra attack with offhand weapon",
-    "Extra attack with offhand weapon while wearing light or lighter armor");
+          "Extra attack with offhand weapon",
+          "Extra attack with offhand weapon while wearing light or lighter armor");
   feato(FEAT_BANE_OF_ENEMIES, "bane of enemies", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "weapon acts as bane",
-    "Any weapon you wield that strikes an opponent that is a favored enemy will "
-      "act as a bane weapon and do an additional 2d6 damage.");
+          "weapon acts as bane",
+          "Any weapon you wield that strikes an opponent that is a favored enemy will "
+          "act as a bane weapon and do an additional 2d6 damage.");
   feato(FEAT_EPIC_FAVORED_ENEMY, "epic favored enemy", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "gain extra bonus to dam against fav enemy",
-    "You will gain an extra +4 to attack bonus and damage against any of your "
-      "favored enemies.");
+          "gain extra bonus to dam against fav enemy",
+          "You will gain an extra +4 to attack bonus and damage against any of your "
+          "favored enemies.");
 
   /* Ranger / Druid */
   feato(FEAT_ANIMAL_COMPANION, "animal companion", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "Can call a loyal companion animal that accompanies the adventurer.",
-    "Can call a loyal companion animal that accompanies the adventurer.");
+          "Can call a loyal companion animal that accompanies the adventurer.",
+          "Can call a loyal companion animal that accompanies the adventurer.");
   /* unfinished */ feato(FEAT_WILD_EMPATHY, "wild empathy", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "The adventurer can improve the attitude of an animal.",
-    "The adventurer can improve the attitude of an animal.");
+          "The adventurer can improve the attitude of an animal.",
+          "The adventurer can improve the attitude of an animal.");
   /* unfinished */ feato(FEAT_WOODLAND_STRIDE, "woodland stride", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "Reduced movement penalty when moving through woodland areas.",
-    "Reduced movement penalty when moving through woodland areas.");
+          "Reduced movement penalty when moving through woodland areas.",
+          "Reduced movement penalty when moving through woodland areas.");
 
   /* Druid */
   feato(FEAT_VENOM_IMMUNITY, "venom immunity", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "grants immunity to poison",
-    "grants immunity to poison");
+          "grants immunity to poison",
+          "grants immunity to poison");
   /* unfinished */ feato(FEAT_NATURE_SENSE, "nature sense", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "+2 to lore and survival skills",
-    "+2 to lore and survival skills");
+          "+2 to lore and survival skills",
+          "+2 to lore and survival skills");
   /* unfinished */ feato(FEAT_RESIST_NATURES_LURE, "resist nature's lure", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "+4 to resist spells and spell like abilities from fey creatures",
-    "+4 to resist spells and spell like abilities from fey creatures");
+          "+4 to resist spells and spell like abilities from fey creatures",
+          "+4 to resist spells and spell like abilities from fey creatures");
   /* unfinished */ feato(FEAT_THOUSAND_FACES, "a thousand faces", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "Can alter one's physical appearance, giving +10 to disguise checks.",
-    "Can alter one's physical appearance, giving +10 to disguise checks.");
+          "Can alter one's physical appearance, giving +10 to disguise checks.",
+          "Can alter one's physical appearance, giving +10 to disguise checks.");
   /* modified from original */
   feato(FEAT_TRACKLESS_STEP, "trackless step", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "bonus to hide/sneak in nature",
-    "+4 bonus to hide/sneak in nature");
+          "bonus to hide/sneak in nature",
+          "+4 bonus to hide/sneak in nature");
   feato(FEAT_WILD_SHAPE, "wild shape", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
-    "Gain the ability to shapechange",
-    "Gains the ability to turn into any small or medium animal and back again "
+          "Gain the ability to shapechange",
+          "Gains the ability to turn into any small or medium animal and back again "
           "once per day. Options for new forms include all creatures with the "
           "animal type.  Changing form (to animal or back) is a standard action "
           "and doesn't provoke an attack of opportunity.");
   feato(FEAT_WILD_SHAPE_2, "wild shape ii", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "Advance the ability to shapechange",
-    "Can use wildshape to change into a Large or Tiny animal or a Small elemental.");
+          "Advance the ability to shapechange",
+          "Can use wildshape to change into a Large or Tiny animal or a Small elemental.");
   feato(FEAT_WILD_SHAPE_3, "wild shape iii", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "Advance the ability to shapechange",
-    "Can use wildshape to change into a Huge or Diminutive animal, a Medium "
+          "Advance the ability to shapechange",
+          "Can use wildshape to change into a Huge or Diminutive animal, a Medium "
           "elemental, or a Small or Medium plant creature.");
   feato(FEAT_WILD_SHAPE_4, "wild shape iv", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "Advance the ability to shapechange",
-    "Can use wildshape to change into a Large elemental or a Large plant creature.");
+          "Advance the ability to shapechange",
+          "Can use wildshape to change into a Large elemental or a Large plant creature.");
   feato(FEAT_WILD_SHAPE_5, "wild shape v", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "Advance the ability to shapechange",
-    "Can use wildshape to change into a Huge elemental or a Huge plant creature.");
+          "Advance the ability to shapechange",
+          "Can use wildshape to change into a Huge elemental or a Huge plant creature.");
   feato(FEAT_WEAPON_PROFICIENCY_DRUID, "weapon proficiency - druids", TRUE, FALSE, FALSE, FEAT_TYPE_GENERAL,
-    "proficiency in druid weapons",
-    "You are proficient in the usage of clubs, daggers, quarterstaff, darts, sickle, scimitar, shortspear, spear and slings.");
+          "proficiency in druid weapons",
+          "You are proficient in the usage of clubs, daggers, quarterstaff, darts, sickle, scimitar, shortspear, spear and slings.");
 
   /* Druid / Monk */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_TIMELESS_BODY, "timeless body", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-  "immune to negative aging effects (unfinished)",
-  "immune to negative aging effects (unfinished) - currently gives a flat 25 percent "
-    "reduction to all incoming negative damage");
+          "immune to negative aging effects (unfinished)",
+          "immune to negative aging effects (unfinished) - currently gives a flat 25 percent "
+          "reduction to all incoming negative damage");
 
   /* Monk */
   feato(FEAT_UNARMED_STRIKE, "unarmed strike", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "Unarmed attacks are considered to be weapons.",
-    "Unarmed attacks are considered to be weapons.");
+          "Unarmed attacks are considered to be weapons.",
+          "Unarmed attacks are considered to be weapons.");
   /* improved unarmed strike monks get for free */
   /*unfinished*/feato(FEAT_KI_STRIKE, "ki strike", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "unarmed attack considered a magical weapon (unfinished)",
-    "unarmed attack considered a magical weapon [note: until fixed this feat "
-      "just gives a +1 to hitroll/damroll]");
+          "unarmed attack considered a magical weapon (unfinished)",
+          "unarmed attack considered a magical weapon [note: until fixed this feat "
+          "just gives a +1 to hitroll/damroll]");
   feato(FEAT_STILL_MIND, "still mind", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "+2 bonus on saving throws vs. Enchantments",
-    "+2 bonus on saving throws vs. Enchantments");
+          "+2 bonus on saving throws vs. Enchantments",
+          "+2 bonus on saving throws vs. Enchantments");
   feato(FEAT_WHOLENESS_OF_BODY, "wholeness of body", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "can heal class level*2 + 20 hp to self",
-    "can heal class level*2 + 20 hp to self");
+          "can heal class level*2 + 20 hp to self",
+          "can heal class level*2 + 20 hp to self");
   feato(FEAT_SLOW_FALL, "slow fall", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "no damage for falling 1 room/feat rank",
-    "no damage for falling 1 room/feat rank");
+          "no damage for falling 1 room/feat rank",
+          "no damage for falling 1 room/feat rank");
   feato(FEAT_ABUNDANT_STEP, "abundant step", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "magically move between tight spaces, as the spell dimension door",
-    "Magically move between tight spaces, as the spell dimension door.  You "
-      "can even go through doors.  To use, you must give directions from your "
-      "current location.  Example: abundantstep w w n n e 2w n n e");
+          "magically move between tight spaces, as the spell dimension door",
+          "Magically move between tight spaces, as the spell dimension door.  You "
+          "can even go through doors.  To use, you must give directions from your "
+          "current location.  Example: abundantstep w w n n e 2w n n e");
   feato(FEAT_DIAMOND_BODY, "diamond body", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "immune to disease",
-    "immune to disease");
+          "immune to disease",
+          "immune to disease");
   feato(FEAT_DIAMOND_SOUL, "diamond soul", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "spell resistance equal to class level + 10",
-    "spell resistance equal to class level + 10");
+          "spell resistance equal to class level + 10",
+          "spell resistance equal to class level + 10");
   feato(FEAT_EMPTY_BODY, "empty body", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "50 percent concealment for 1 round/monk level per day",
-    "50 percent concealment for 1 round/monk level per day");
+          "50 percent concealment for 1 round/monk level per day",
+          "50 percent concealment for 1 round/monk level per day");
   feato(FEAT_FLURRY_OF_BLOWS, "flurry of blows", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "extra attack when fighting unarmed at -2 to all attacks",
-    "Flurry of Blows is a special mode available to monks (type flurryofblows).  You get an extra attack "
-      "at full BAB, but at a penalty to -2 to all your attacks.  At level 5 the "
-      "penalty drops to -1, and at level 9 the penalty disappears completely. ");
+          "extra attack when fighting unarmed at -2 to all attacks",
+          "Flurry of Blows is a special mode available to monks (type flurryofblows).  You get an extra attack "
+          "at full BAB, but at a penalty to -2 to all your attacks.  At level 5 the "
+          "penalty drops to -1, and at level 9 the penalty disappears completely. ");
   feato(FEAT_GREATER_FLURRY, "greater flurry", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
-    "extra unarmed attack when using flurry of blows",
-    "extra unarmed attack when using flurry of blows, at level 15 you get yet "
-      "another bonus attack at full BAB");
+          "extra unarmed attack when using flurry of blows",
+          "extra unarmed attack when using flurry of blows, at level 15 you get yet "
+          "another bonus attack at full BAB");
   /*unfinished*/ feato(FEAT_PERFECT_SELF, "perfect self", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "Gain 10/magic damage reduction (unfinished)",
-    "Gain 10/magic damage reduction [note: until our damage reduction system is "
-      "changed, this feat will give a flat 3 damage reduction against ALL incoming attacks");
+          "Gain 10/magic damage reduction (unfinished)",
+          "Gain 10/magic damage reduction [note: until our damage reduction system is "
+          "changed, this feat will give a flat 3 damage reduction against ALL incoming attacks");
   feato(FEAT_PURITY_OF_BODY, "purity of body", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "immune to poison",
-    "immune to poison");
+          "immune to poison",
+          "immune to poison");
   feato(FEAT_QUIVERING_PALM, "quivering palm", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "chance to kill on strike with unarmed attack",
-    "You will do your wisdom bonus as bonus damage to your next unarmed strike, "
-      "in addition, to opponents that are your level or lower, they have to make "
-      "a fortitude save vs DC: your monk level/2 + your wisdom bonus + 10 in order "
-      "to survive your quivering palm attack");
+          "chance to kill on strike with unarmed attack",
+          "You will do your wisdom bonus as bonus damage to your next unarmed strike, "
+          "in addition, to opponents that are your level or lower, they have to make "
+          "a fortitude save vs DC: your monk level/2 + your wisdom bonus + 10 in order "
+          "to survive your quivering palm attack");
   feato(FEAT_WEAPON_PROFICIENCY_MONK, "weapon proficiency - monks", TRUE, FALSE, FALSE, FEAT_TYPE_GENERAL,
-    "proficiency in monk weapons",
-    "You are proficient in the usage of quarterstaff, kama, siangham, and shuriken.");
+          "proficiency in monk weapons",
+          "You are proficient in the usage of quarterstaff, kama, siangham, and shuriken.");
   /* not imped */feato(FEAT_TONGUE_OF_THE_SUN_AND_MOON, "tongue of the sun and moon [not impd]", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "[not implemented] can speak any language", "[not implemented] can speak any language");
   /*epic*//* free blinding speed */
   /*epic*/feato(FEAT_KEEN_STRIKE, "keen strike", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "critical more unarmed, better stunning fist",
-    "Your threat range with unarmed attacks increase by 1, in addition you get "
-      "a +4 bonus to your stunning fist DC.");
+          "critical more unarmed, better stunning fist",
+          "Your threat range with unarmed attacks increase by 1, in addition you get "
+          "a +4 bonus to your stunning fist DC.");
   /*epic*/feato(FEAT_OUTSIDER, "outsider", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "you become an outsider",
-    "You gain the ability to shift at will to the ethereal plane and back "
-      "additionally you gain 15 percent concealment.");
+          "you become an outsider",
+          "You gain the ability to shift at will to the ethereal plane and back "
+          "additionally you gain 15 percent concealment.");
 
   /* Bard */
   feato(FEAT_WEAPON_PROFICIENCY_BARD, "weapon proficiency - bards", TRUE, FALSE, FALSE, FEAT_TYPE_GENERAL,
-    "proficiency in bard weapons",
-    "You are proficient in the usage of long swords, rapiers, sap, short swords, short bows and whips.");
+          "proficiency in bard weapons",
+          "You are proficient in the usage of long swords, rapiers, sap, short swords, short bows and whips.");
   feato(FEAT_BARDIC_KNOWLEDGE, "bardic knowledge", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "+Int modifier bonus on knowledge checks.",
-    "+Int modifier bonus on knowledge checks.");
+          "+Int modifier bonus on knowledge checks.",
+          "+Int modifier bonus on knowledge checks.");
   feato(FEAT_BARDIC_MUSIC, "bardic music", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "Use Perform skill to create various magical effects.",
-    "Use Perform skill to create various magical effects.");
+          "Use Perform skill to create various magical effects.",
+          "Use Perform skill to create various magical effects.");
   /* unfinished */ feato(FEAT_COUNTERSONG, "countersong", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "(not yet implemented)Boost group members' resistance to sonic attacks.",
-    "(not yet implemented)Boost group members' resistance to sonic attacks.");
+          "(not yet implemented)Boost group members' resistance to sonic attacks.",
+          "(not yet implemented)Boost group members' resistance to sonic attacks.");
   /* 1*/feato(FEAT_SONG_OF_HEALING, "song of healing", TRUE, FALSE, FALSE, FEAT_TYPE_PERFORMANCE,
-    "song to heal group members (lyre)",
-    "When this song is played, its beautiful verse allows any present gain the "
-      "benefit of its healing power. The amount of healing it provides is "
-      "dependent on the level of the musician. To play this song, the bard must be "
-      "holding a lyre.");
+          "song to heal group members (lyre)",
+          "When this song is played, its beautiful verse allows any present gain the "
+          "benefit of its healing power. The amount of healing it provides is "
+          "dependent on the level of the musician. To play this song, the bard must be "
+          "holding a lyre.");
   /* 2*/feato(FEAT_DANCE_OF_PROTECTION, "dance of protection", TRUE, FALSE, FALSE, FEAT_TYPE_PERFORMANCE,
-    "dance to protect group members (drum)",
-    "When this dance is performed, it supplies a level of protection "
-      "to its observer. It gives bonuses to armor, making it harder for opponents "
-      "to hit the observer. The dance also gives the benefit of a heightened level "
-      "of spell resistance. To perform this dance, a bard must be holding a drum.");
+          "dance to protect group members (drum)",
+          "When this dance is performed, it supplies a level of protection "
+          "to its observer. It gives bonuses to armor, making it harder for opponents "
+          "to hit the observer. The dance also gives the benefit of a heightened level "
+          "of spell resistance. To perform this dance, a bard must be holding a drum.");
   /* 3*/feato(FEAT_SONG_OF_FOCUSED_MIND, "song of focused mind", TRUE, FALSE, FALSE, FEAT_TYPE_PERFORMANCE,
-    "song to augment casters (harp)",
-    "This song allows the bard to sing a song that speeds up the "
-      "memorization and praying for spells by anyone in the room at the "
-      "time that the song is sung.  This song lends itself to the harp.");
+          "song to augment casters (harp)",
+          "This song allows the bard to sing a song that speeds up the "
+          "memorization and praying for spells by anyone in the room at the "
+          "time that the song is sung.  This song lends itself to the harp.");
   /* 5*/feato(FEAT_SONG_OF_HEROISM, "song of heroism", TRUE, FALSE, FALSE, FEAT_TYPE_PERFORMANCE,
-    "song to enhance combat abilities (drum)",
-    "When this song is played, the listeners are enhanced with fighting "
-      "abilities. In most cases, the listeners gain enhancements in their "
-      "abilities to hit targets and to inflict damage upon them. However, if the "
-      "singer is extremely proficient, the listeners may gain an extra attack per "
-      "round. To play this song, a bard must be holding a drum.");
+          "song to enhance combat abilities (drum)",
+          "When this song is played, the listeners are enhanced with fighting "
+          "abilities. In most cases, the listeners gain enhancements in their "
+          "abilities to hit targets and to inflict damage upon them. However, if the "
+          "singer is extremely proficient, the listeners may gain an extra attack per "
+          "round. To play this song, a bard must be holding a drum.");
   /* 7*/feato(FEAT_ORATORY_OF_REJUVENATION, "oratory of rejuvenation", TRUE, FALSE, FALSE, FEAT_TYPE_PERFORMANCE,
-    "oratory of light healing of hps/moves (lyre)",
-    "When this oratory is performed, the listeners regain lost movement points. The "
-      "oratory also provides a minor level of healing to its listeners, and has a "
-      "slight chance of removing any poisons present in their system. To play this "
-      "oratory, a bard must be holding a lyre.");
+          "oratory of light healing of hps/moves (lyre)",
+          "When this oratory is performed, the listeners regain lost movement points. The "
+          "oratory also provides a minor level of healing to its listeners, and has a "
+          "slight chance of removing any poisons present in their system. To play this "
+          "oratory, a bard must be holding a lyre.");
   /* 9*/feato(FEAT_SONG_OF_FLIGHT, "song of flight", TRUE, FALSE, FALSE, FEAT_TYPE_PERFORMANCE,
-    "song bestows flight and restores moves (horn)",
-    "When listeners hear this song playing, they are given the ability to fly for "
-      "a period of time. Movement points are also slightly restored. To play this "
-      "song, the bard must be holding a horn.");
+          "song bestows flight and restores moves (horn)",
+          "When listeners hear this song playing, they are given the ability to fly for "
+          "a period of time. Movement points are also slightly restored. To play this "
+          "song, the bard must be holding a horn.");
   /*11*/feato(FEAT_SONG_OF_REVELATION, "song of revelation", TRUE, FALSE, FALSE, FEAT_TYPE_PERFORMANCE,
-    "song enhances perception (flute)",
-    "When this song is played, the listeners begin to see things which they "
-      "formerly could not see. Depending on the proficiency of the musical artist, "
-      "listeners may see invisible beings, magical enchantments, alignments, hidden "
-      "beings, and adjacent rooms. To play this song, a bard must be holding a "
-      "flute.");
+          "song enhances perception (flute)",
+          "When this song is played, the listeners begin to see things which they "
+          "formerly could not see. Depending on the proficiency of the musical artist, "
+          "listeners may see invisible beings, magical enchantments, alignments, hidden "
+          "beings, and adjacent rooms. To play this song, a bard must be holding a "
+          "flute.");
   /*13*/feato(FEAT_SONG_OF_FEAR, "song of fear", TRUE, FALSE, FALSE, FEAT_TYPE_PERFORMANCE,
-    "song inspires fear in foes (harp)",
-    "This songs put immense fear into the heart of the bard's enemies. They will "
-      "fight less effectively and attempt to flee as quickly as possible.  This "
-      "song lends itself well to the harp.");
+          "song inspires fear in foes (harp)",
+          "This songs put immense fear into the heart of the bard's enemies. They will "
+          "fight less effectively and attempt to flee as quickly as possible.  This "
+          "song lends itself well to the harp.");
   /*15*/feato(FEAT_ACT_OF_FORGETFULNESS, "skit of forgetfulness", TRUE, FALSE, FALSE, FEAT_TYPE_PERFORMANCE,
-    "skit inspires forgetfulness in foes (flute)",
-    "When this skit is performed, a mob may forget it has been attacked. To act "
-      "this skit, a bard must be holding a flute.");
+          "skit inspires forgetfulness in foes (flute)",
+          "When this skit is performed, a mob may forget it has been attacked. To act "
+          "this skit, a bard must be holding a flute.");
   /*17*/feato(FEAT_SONG_OF_ROOTING, "song of rooting", TRUE, FALSE, FALSE, FEAT_TYPE_PERFORMANCE,
-    "song bogs down foes (mandolin)",
-    "This song creates a strong sense of rooting amongst the enemies of the bard. "
-      "Their get sucked into the ground, making them unable to leave the area, while "
-      "also reducing their capabilities to fight effectively.  This song is appropriate "
-      "for the mandolin.");
-        /*epic*/
+          "song bogs down foes (mandolin)",
+          "This song creates a strong sense of rooting amongst the enemies of the bard. "
+          "Their get sucked into the ground, making them unable to leave the area, while "
+          "also reducing their capabilities to fight effectively.  This song is appropriate "
+          "for the mandolin.");
+  /*epic*/
   /*21*/feato(FEAT_SONG_OF_DRAGONS, "song of dragons", TRUE, FALSE, FALSE, FEAT_TYPE_PERFORMANCE,
-    "song prepares group for dragon-slaying (horn)",
-    "When this song is played, it can give three different affects to it's "
-      "listeners during each verse: It heals nearly half the affect of the heal "
-      "song, or it grants a great deal of saving versus reflex, as well as enhancing "
-      "armor class. In order to play this song the bard must be holding a horn.");
+          "song prepares group for dragon-slaying (horn)",
+          "When this song is played, it can give three different affects to it's "
+          "listeners during each verse: It heals nearly half the affect of the heal "
+          "song, or it grants a great deal of saving versus reflex, as well as enhancing "
+          "armor class. In order to play this song the bard must be holding a horn.");
   /*25*/feato(FEAT_SONG_OF_THE_MAGI, "song of the magi", TRUE, FALSE, FALSE, FEAT_TYPE_PERFORMANCE,
-    "song hampers magic defense of foes (mandolin)",
-    "When this song is played, it will strengthen the offensive magic of "
-      "the group-members of the bard, by reducing the spell-save and magic resistance "
-      "of all their enemies in the area.  Uses the mandolin.");
+          "song hampers magic defense of foes (mandolin)",
+          "When this song is played, it will strengthen the offensive magic of "
+          "the group-members of the bard, by reducing the spell-save and magic resistance "
+          "of all their enemies in the area.  Uses the mandolin.");
 
   /* Berserker */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
@@ -2588,282 +2594,282 @@ void assign_feats(void) {
   /* improved uncanny dodge above (shared with rogue) */
   /* trap sense above (shared with rogue) */
   feato(FEAT_INDOMITABLE_WILL, "indomitable will", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "bonus to will save while raging",
-    "While in rage, gain a +4 bonus on Will saves");
+          "bonus to will save while raging",
+          "While in rage, gain a +4 bonus on Will saves");
   feato(FEAT_SHRUG_DAMAGE, "shrug damage", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
-    "Shrug off damage, grants damage reduction",
-    "Your extensive training and violent lifestyle allow you to shrug off a "
-      "portion of incoming damage.  This ability grants you DR 1/- for every point"
-      "invested in this feat.");
+          "Shrug off damage, grants damage reduction",
+          "Your extensive training and violent lifestyle allow you to shrug off a "
+          "portion of incoming damage.  This ability grants you DR 1/- for every point"
+          "invested in this feat.");
   feato(FEAT_RAGE, "rage", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
-    "+4 bonus to con, str, and will for several rounds",
-    "+4 bonus to constitution, strength and will-saves, but 2 penalty to AC, for "
-      "(2 * constitution-bonus + 6) rounds");
+          "+4 bonus to con, str, and will for several rounds",
+          "+4 bonus to constitution, strength and will-saves, but 2 penalty to AC, for "
+          "(2 * constitution-bonus + 6) rounds");
   feato(FEAT_GREATER_RAGE, "greater rage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "+6 to str, con, and will when raging",
-    "+6 to strength, constitution, and will-saves when raging");
+          "+6 to str, con, and will when raging",
+          "+6 to strength, constitution, and will-saves when raging");
   feato(FEAT_MIGHTY_RAGE, "mighty rage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "+9 to str, con and will when raging",
-    "+9 to strength, constitution, and will-saves when raging");
+          "+9 to str, con and will when raging",
+          "+9 to strength, constitution, and will-saves when raging");
   feato(FEAT_INDOMITABLE_RAGE, "indomitable rage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "+12 to str, con and will when raging",
-    "+12 to strength, constitution, and will-saves when raging");
+          "+12 to str, con and will when raging",
+          "+12 to strength, constitution, and will-saves when raging");
   feato(FEAT_TIRELESS_RAGE, "tireless rage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "no fatigue after raging",
-    "no fatigue after raging");
+          "no fatigue after raging",
+          "no fatigue after raging");
   /*temporary mechanic*/feato(FEAT_FAST_MOVEMENT, "fast movement", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
-    "reduces movement usage, and increases movement regen",
-    "Reduces movement usage, and increases movement regeneration.  This is a temporary mechanic.");
+          "reduces movement usage, and increases movement regen",
+          "Reduces movement usage, and increases movement regeneration.  This is a temporary mechanic.");
   /*rage power*/feato(FEAT_RP_SUPRISE_ACCURACY, "suprise accuracy", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "bonus hitroll once/rage",
-    "Gain a +1 morale bonus on one attack roll.  This bonus increases by +1 for "
-      "every 4 berserker levels attained. This power is used as a swift action.  This power "
-      "can only be used once per rage.");
+          "bonus hitroll once/rage",
+          "Gain a +1 morale bonus on one attack roll.  This bonus increases by +1 for "
+          "every 4 berserker levels attained. This power is used as a swift action.  This power "
+          "can only be used once per rage.");
   /*rage power*/feato(FEAT_RP_POWERFUL_BLOW, "powerful blow", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "bonus damage once/rage",
-    "Gain a +1 bonus on a single damage roll. This bonus increases by +1 for "
-      "every 4 berserker levels attained. This power is used as a swift action.  "
-      "This power can only be used once per rage.");
+          "bonus damage once/rage",
+          "Gain a +1 bonus on a single damage roll. This bonus increases by +1 for "
+          "every 4 berserker levels attained. This power is used as a swift action.  "
+          "This power can only be used once per rage.");
   /*rage power*/feato(FEAT_RP_RENEWED_VIGOR, "renewed vigor", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "able to heal while raging",
-    "As a standard action, the berserker heals 3d8 points of damage + her "
-      "Constitution modifier. For every four levels the berserker has attained "
-      "above 4th, this amount of damage healed increases by 1d8.  This power can "
-      "be used only once per day and only while raging.");
+          "able to heal while raging",
+          "As a standard action, the berserker heals 3d8 points of damage + her "
+          "Constitution modifier. For every four levels the berserker has attained "
+          "above 4th, this amount of damage healed increases by 1d8.  This power can "
+          "be used only once per day and only while raging.");
   /*rage power*/feato(FEAT_RP_HEAVY_SHRUG, "heavy shrug", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "increased DR while raging",
-    "The berserker's damage reduction increases by 3/-. This increase is always "
-      "active while the berserker is raging.");
+          "increased DR while raging",
+          "The berserker's damage reduction increases by 3/-. This increase is always "
+          "active while the berserker is raging.");
   /*rage power*/feato(FEAT_RP_FEARLESS_RAGE, "fearless rage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "fearless while raging",
-    "While raging, the berserker is immune to the shaken and frightened conditions. ");
+          "fearless while raging",
+          "While raging, the berserker is immune to the shaken and frightened conditions. ");
   /*rage power*/feato(FEAT_RP_COME_AND_GET_ME, "come and get me", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "take it, but dish it out heavy",
-    "While raging, as a free action the berserker may leave herself open to "
-      "attack while preparing devastating counterattacks. Enemies gain a +4 bonus "
-      "on attack and damage rolls against the berserker until the beginning of "
-      "her next turn, but every attack against the berserker provokes an attack "
-      "of opportunity from her, which is resolved prior to resolving each enemy attack. ");
+          "take it, but dish it out heavy",
+          "While raging, as a free action the berserker may leave herself open to "
+          "attack while preparing devastating counterattacks. Enemies gain a +4 bonus "
+          "on attack and damage rolls against the berserker until the beginning of "
+          "her next turn, but every attack against the berserker provokes an attack "
+          "of opportunity from her, which is resolved prior to resolving each enemy attack. ");
   /*epic*/feato(FEAT_RAGING_CRITICAL, "raging critical", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "your criticals knock over opponents while raging",
-    "While raging, on successful criticals, against opponents that are standing, and not too "
-      "much larger or smaller than you, your powerful critical attacks will knock "
-      "them down.");
+          "your criticals knock over opponents while raging",
+          "While raging, on successful criticals, against opponents that are standing, and not too "
+          "much larger or smaller than you, your powerful critical attacks will knock "
+          "them down.");
   /*epic*/feato(FEAT_EATER_OF_MAGIC, "eater of magic", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "successful saving throws will heal rager",
-    "While raging, if the rager makes a successful saving throw, they recover "
-      "their level in hit points.");
+          "successful saving throws will heal rager",
+          "While raging, if the rager makes a successful saving throw, they recover "
+          "their level in hit points.");
   /*epic*/feato(FEAT_RAGE_RESISTANCE, "rage resistance", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "gain boost in resistances while raging",
-    "While raging, you will gain a 10 bonus to all your resistances.");
+          "gain boost in resistances while raging",
+          "While raging, you will gain a 10 bonus to all your resistances.");
   /*epic*/feato(FEAT_DEATHLESS_FRENZY, "deathless frenzy", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "the rager is nearly unstoppable",
-    "While raging, you have to be brought to -51 or lower to be stopped.");
+          "the rager is nearly unstoppable",
+          "While raging, you have to be brought to -51 or lower to be stopped.");
 
   /* Sorcerer/Wizard */
   feato(FEAT_SUMMON_FAMILIAR, "summon familiar", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "summon a magical pet",
-    "summon a magical pet - help call familiar for more information");
+          "summon a magical pet",
+          "summon a magical pet - help call familiar for more information");
   feato(FEAT_WEAPON_PROFICIENCY_WIZARD, "weapon proficiency - wizards", TRUE, FALSE, FALSE, FEAT_TYPE_GENERAL,
-    "proficiency in wizard weapons",
-    "You are proficient in the usage of daggers, quarterstaff, club, heavy and light crossbows.");
+          "proficiency in wizard weapons",
+          "You are proficient in the usage of daggers, quarterstaff, club, heavy and light crossbows.");
 
   /* weapon master */
   /*lvl 1*/feato(FEAT_WEAPON_OF_CHOICE, "weapons of choice", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "All weapons with weapon focus gain special abilities",
-    "All weapons with weapon focus gain special abilities");
+          "All weapons with weapon focus gain special abilities",
+          "All weapons with weapon focus gain special abilities");
   /*lvl 2*/feato(FEAT_SUPERIOR_WEAPON_FOCUS, "superior weapon focus", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "Weapons of choice have +1 to hit",
-    "Weapons of choice have +1 to hit");
+          "Weapons of choice have +1 to hit",
+          "Weapons of choice have +1 to hit");
   /*lvl 4*/feato(FEAT_CRITICAL_SPECIALIST, "critical specialist", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
-    "Weapons of choice have +1 to threat range per rank",
-    "Weapons of choice have +1 to threat range per rank");
+          "Weapons of choice have +1 to threat range per rank",
+          "Weapons of choice have +1 to threat range per rank");
   /*lvl 6*/feato(FEAT_UNSTOPPABLE_STRIKE, "unstoppable strike", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
-    "Weapons of Choice have 5 percent chance to deal max damage",
-    "Weapons of Choice have 5 percent chance to deal max damage per rank");
+          "Weapons of Choice have 5 percent chance to deal max damage",
+          "Weapons of Choice have 5 percent chance to deal max damage per rank");
   /*lvl 8 - 2nd rank of critical specialist */
   /*lvl 10*/feato(FEAT_INCREASED_MULTIPLIER, "increased multiplier", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "Weapons of choice have +1 to their critical multiplier",
-    "Weapons of choice have +1 to their critical multiplier");
+          "Weapons of choice have +1 to their critical multiplier",
+          "Weapons of choice have +1 to their critical multiplier");
 
   /* arcane archer */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   /*lvl 1*/feato(FEAT_ENHANCE_ARROW_MAGIC, "enhance arrow", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
-    "gain +1 enhancement bonus to arrows",
-    "All arrows fired from the arcane archer will gain a +1 enhancement bonus to"
-      "both attack bonus and damage.  This feat stacks.");
+          "gain +1 enhancement bonus to arrows",
+          "All arrows fired from the arcane archer will gain a +1 enhancement bonus to"
+          "both attack bonus and damage.  This feat stacks.");
   /*lvl 2*/feato(FEAT_SEEKER_ARROW, "seeker arrow", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
-    "free action shot that always hits",
-    "As a free action once per day per rank of the seeker arrow feat, the arcane "
-      "archer can fire an arrow that gains +20 to hit.  This feat stacks, useable "
-                   "twice a day per feat.  Usage is: seekerarrow <target>");
+          "free action shot that always hits",
+          "As a free action once per day per rank of the seeker arrow feat, the arcane "
+          "archer can fire an arrow that gains +20 to hit.  This feat stacks, useable "
+          "twice a day per feat.  Usage is: seekerarrow <target>");
   /*lvl 3 enhance arrow*/
   /*lvl 4*/feato(FEAT_IMBUE_ARROW, "imbue arrow", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
-    "imbue an arrow with one of your spells",
-    "You can transfer your magical energy into one of your arrows.  This transfer "
-      "of power is temporary (approximately 8 game hours).  Upon the launching of "
-      "the arrow the magical energy from the arrow will be expended upon the "
-      "target.  This feat stacks, useable twice a day per feat.  Usage: imbuearrow "
-                   "<arrow name> <spell name>");
+          "imbue an arrow with one of your spells",
+          "You can transfer your magical energy into one of your arrows.  This transfer "
+          "of power is temporary (approximately 8 game hours).  Upon the launching of "
+          "the arrow the magical energy from the arrow will be expended upon the "
+          "target.  This feat stacks, useable twice a day per feat.  Usage: imbuearrow "
+          "<arrow name> <spell name>");
   /*lvl 5 enhance, lvl 6 seeker, lvl 6 imbue, lvl 7 enhance, lvl 8 seeker*/
   /*lvl 8*/feato(FEAT_SWARM_OF_ARROWS, "swarm of arrows", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "fire a barrage of arrows",
-    "As a standard action, once per day, you can fire an arrow at full attack bonus "
-                   "at each and every target in the area.  You will need at least a single "
-                   "projectile for each target.  Usage: arrowswarm");
+          "fire a barrage of arrows",
+          "As a standard action, once per day, you can fire an arrow at full attack bonus "
+          "at each and every target in the area.  You will need at least a single "
+          "projectile for each target.  Usage: arrowswarm");
   /*lvl 9 enhance*/
   /*lvl 10*/feato(FEAT_ARROW_OF_DEATH, "arrow of death", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "one shot one kill",
-    "You will do your intelligence or charisma (whichever is higher) bonus as bonus "
-                    "damage to your next arrow shot, "
-      "in addition, to opponents that are your level or lower, they have to make "
-      "a fortitude save vs DC: your arcane level + your intelligence or charisma "
-                    "(whichver is higher) bonus + 10 in order "
-      "to survive your arrow of death.  Usage: deatharrow");
+          "one shot one kill",
+          "You will do your intelligence or charisma (whichever is higher) bonus as bonus "
+          "damage to your next arrow shot, "
+          "in addition, to opponents that are your level or lower, they have to make "
+          "a fortitude save vs DC: your arcane level + your intelligence or charisma "
+          "(whichver is higher) bonus + 10 in order "
+          "to survive your arrow of death.  Usage: deatharrow");
 
   /* class feats that are implemented on classes that are not yet in the game */
 
   /* stalwart defender */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   /*1*/feato(FEAT_AC_BONUS, "AC bonus", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
-    "+1 dodge AC bonus",
-    "A stalwart defender receives a dodge bonus to AC that starts at +1 and improves "
-      "as the defender gains levels, until it reaches +4 at 10th level.  This"
-      " feat stacks.");
+          "+1 dodge AC bonus",
+          "A stalwart defender receives a dodge bonus to AC that starts at +1 and improves "
+          "as the defender gains levels, until it reaches +4 at 10th level.  This"
+          " feat stacks.");
   /*1*/feato(FEAT_DEFENSIVE_STANCE, "defensive stance", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
-    "a position of readiness and trance-like determination",
-    "At 1st level, a stalwart defender can enter a defensive stance, a position of readiness and trance-like determination."
-      "  A stalwart defender can maintain this stance for a number of rounds per day equal to 6 + his Constitution modifier."
-      "  Also he can maintain the stance for 2 additional rounds per day * their class level.  The stalwart defender can enter "
-      "and end a defensive stance as a free action.  While in a defensive stance, the stalwart defender gains a +2 dodge bonus to AC, "
-      "a +4 morale bonus to his Strength and Constitution, as well as a +2 morale bonus on Will saves. The increase to "
-      "Constitution grants the stalwart defender 2 hit points per Hit Die.  While in a defensive stance, a stalwart defender "
-      "cannot move from his current position through any means.  After ending the stance, he is fatigued for 10 rounds "
-      "A stalwart defender cannot enter a new defensive stance while fatigued or exhausted but can otherwise enter a stance multiple "
-      "times during a single encounter or combat.  A defensive stance requires a level of emotional calm, and it may not be maintained "
-      "by a character in a rage (such as from the rage class feature).  This feat stacks indicating additional daily usages.");
+          "a position of readiness and trance-like determination",
+          "At 1st level, a stalwart defender can enter a defensive stance, a position of readiness and trance-like determination."
+          "  A stalwart defender can maintain this stance for a number of rounds per day equal to 6 + his Constitution modifier."
+          "  Also he can maintain the stance for 2 additional rounds per day * their class level.  The stalwart defender can enter "
+          "and end a defensive stance as a free action.  While in a defensive stance, the stalwart defender gains a +2 dodge bonus to AC, "
+          "a +4 morale bonus to his Strength and Constitution, as well as a +2 morale bonus on Will saves. The increase to "
+          "Constitution grants the stalwart defender 2 hit points per Hit Die.  While in a defensive stance, a stalwart defender "
+          "cannot move from his current position through any means.  After ending the stance, he is fatigued for 10 rounds "
+          "A stalwart defender cannot enter a new defensive stance while fatigued or exhausted but can otherwise enter a stance multiple "
+          "times during a single encounter or combat.  A defensive stance requires a level of emotional calm, and it may not be maintained "
+          "by a character in a rage (such as from the rage class feature).  This feat stacks indicating additional daily usages.");
   /*2*/feato(FEAT_FEARLESS_DEFENSE, "fearless defense", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "immune to fear effects while in defensive stance",
-    "While in a defensive stance, the stalwart defender is immune to fear and fear-like effects.");
+          "immune to fear effects while in defensive stance",
+          "While in a defensive stance, the stalwart defender is immune to fear and fear-like effects.");
   /*3*/ /* uncanny dodge */
   /*4*/ /* AC bonus */
   /*4*/feato(FEAT_IMMOBILE_DEFENSE, "immobile defense", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "bonus to CMD while in defensive stance",
-    "While in a defensive stance, the stalwart defender adds his class-level / 2 to his Combat Maneuver Defense.");
+          "bonus to CMD while in defensive stance",
+          "While in a defensive stance, the stalwart defender adds his class-level / 2 to his Combat Maneuver Defense.");
   /*5*/ /* damage reduction 1 */
   /*6*/feato(FEAT_DR_DEFENSE, "damage reduction defense", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "DR 1/- while in defensive stance",
-    "While in a defensive stance, you are able to shrug off 1/- damage via damage reduction.");
+          "DR 1/- while in defensive stance",
+          "While in a defensive stance, you are able to shrug off 1/- damage via damage reduction.");
   /*7*/ /* AC bonus */ /* damage reduction 3 */ /* improved uncanny dodge */
   /*8*/feato(FEAT_RENEWED_DEFENSE, "renewed defense", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "can heal self while in defensive stance",
-    "As a swift action, the stalwart defender heals 1d8 points of damage + his "
-               "Constitution modifier + 10. For every two levels the stalwart defender "
-               "has attained above 2nd, this healing increases by 1d8.  This power "
-               "can be used only once per day and only while in a defensive stance.");
+          "can heal self while in defensive stance",
+          "As a swift action, the stalwart defender heals 1d8 points of damage + his "
+          "Constitution modifier + 10. For every two levels the stalwart defender "
+          "has attained above 2nd, this healing increases by 1d8.  This power "
+          "can be used only once per day and only while in a defensive stance.");
   /*9*/feato(FEAT_MOBILE_DEFENSE, "mobile defense", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "Allows one to move while in defensive stance",
-    "A stalwart defender can adjust his position while maintaining a defensive "
-      "stance without losing the benefit of the stance.");
+          "Allows one to move while in defensive stance",
+          "A stalwart defender can adjust his position while maintaining a defensive "
+          "stance without losing the benefit of the stance.");
   /*10*/ /* AC bonus */ /* damage reduction 5 */
   /*10*/feato(FEAT_SMASH_DEFENSE, "smash defense", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "free knockdown attack while in defensive stance",
-    "While in defensive stance, once per round (every 6 seconds), the Stalwart "
-      "Defender gets a free knock-down attempt against the opponent he is "
-      "directly engaged with.");
+          "free knockdown attack while in defensive stance",
+          "While in defensive stance, once per round (every 6 seconds), the Stalwart "
+          "Defender gets a free knock-down attempt against the opponent he is "
+          "directly engaged with.");
   /*10*/feato(FEAT_LAST_WORD, "last word", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "two extra attacks before suffering death blow in defensive stance",
-    "Once per day, while in a defensive stance, a stalwart defender can make two "
-      "melee attacks against an opponent within reach in response to an attack that would "
-      "reduce him to negative hit points, knock him unconscious, or kill him. For example, "
-      "a stalwart defender has 1 hit point left when a red dragon bites him; the defender may "
-      "use this ability even if the dragon’s bite would otherwise kill him instantly. Once the "
-      "defender’s attacks are resolved, he suffers the normal effect of the attack that provoked "
-      "this ability.");
-        
+          "two extra attacks before suffering death blow in defensive stance",
+          "Once per day, while in a defensive stance, a stalwart defender can make two "
+          "melee attacks against an opponent within reach in response to an attack that would "
+          "reduce him to negative hit points, knock him unconscious, or kill him. For example, "
+          "a stalwart defender has 1 hit point left when a red dragon bites him; the defender may "
+          "use this ability even if the dragon’s bite would otherwise kill him instantly. Once the "
+          "defender’s attacks are resolved, he suffers the normal effect of the attack that provoked "
+          "this ability.");
+
   /* Shifter */
   /*1*/feato(FEAT_LIMITLESS_SHAPES, "limitless shapes", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "no limit to number of times a shifter changes shapes",
-    "no limit to number of times a shifter changes shapes");
+          "no limit to number of times a shifter changes shapes",
+          "no limit to number of times a shifter changes shapes");
   /*2*/feato(FEAT_SHIFTER_SHAPES_1, "shifter shapes i", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "magical beast shape",
-    "magical beast shape");
+          "magical beast shape",
+          "magical beast shape");
   /*4*/feato(FEAT_SHIFTER_SHAPES_2, "shifter shapes ii", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "fey shape",
-    "fey shape");
+          "fey shape",
+          "fey shape");
   /*6*/feato(FEAT_SHIFTER_SHAPES_3, "shifter shapes iii", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "construct shape",
-    "construct shape");
+          "construct shape",
+          "construct shape");
   /*8*/feato(FEAT_SHIFTER_SHAPES_4, "shifter shapes iv", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "outsider shape",
-    "outsider shape");
+          "outsider shape",
+          "outsider shape");
   /*10*/feato(FEAT_SHIFTER_SHAPES_5, "shifter shapes v", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "dragon shape",
-    "dragon shape");
-            
+          "dragon shape",
+          "dragon shape");
+
   /* Duelist */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   /*1*/feato(FEAT_CANNY_DEFENSE, "canny defense", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "add int bonus (max class level) to ac when using light or no armor and no shield",
-    "add int bonus (max class level) to ac when using light or no armor and no shield");
+          "add int bonus (max class level) to ac when using light or no armor and no shield",
+          "add int bonus (max class level) to ac when using light or no armor and no shield");
   /*1*/feato(FEAT_PRECISE_STRIKE, "precise strike", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "add duelist level to damage when using light or no armor and no shield",
-    "A duelist gains the ability to strike precisely when light or not armored and no shield, "
-               "adding her duelist level to her damage roll. When making a precise "
-               "strike, a duelist cannot attack with a weapon in her other hand or use a "
-               "shield. A duelist's precise strike only works against living creatures with "
-               "discernible anatomies. Any creature that is immune to critical hits is also "
-               "immune to a precise strike, and any item or ability that protects a creature "
-               "from critical hits also protects a creature from a precise strike.");
+          "add duelist level to damage when using light or no armor and no shield",
+          "A duelist gains the ability to strike precisely when light or not armored and no shield, "
+          "adding her duelist level to her damage roll. When making a precise "
+          "strike, a duelist cannot attack with a weapon in her other hand or use a "
+          "shield. A duelist's precise strike only works against living creatures with "
+          "discernible anatomies. Any creature that is immune to critical hits is also "
+          "immune to a precise strike, and any item or ability that protects a creature "
+          "from critical hits also protects a creature from a precise strike.");
   /*2*/feato(FEAT_IMPROVED_REACTION, "improved reaction", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
-    "+2 to initiative, stacks with improved initiative",
-    "+2 to initiative, stacks with improved initiative");
+          "+2 to initiative, stacks with improved initiative",
+          "+2 to initiative, stacks with improved initiative");
   /*2*/feato(FEAT_PARRY, "parry", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "+4 bonus to total defense",
-    "+4 bonus to total defense");       
+          "+4 bonus to total defense",
+          "+4 bonus to total defense");
   /*3*/feato(FEAT_ENHANCED_MOBILITY, "enhanced mobility", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "+4 dodge bonus vs AOO",
-    "gain an additional +4 dodge bonus to AC against "
+          "+4 dodge bonus vs AOO",
+          "gain an additional +4 dodge bonus to AC against "
           "attacks of opportunity provoked by movement. This bonus stacks with "
           "that granted by the Mobility feat.");
   /*4*/ /* combat reflexes */
   /*4*/feato(FEAT_GRACE, "grace", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "+2 reflex saves",
-    "gain a +2 bonus on Reflex saves");
+          "+2 reflex saves",
+          "gain a +2 bonus on Reflex saves");
   /*5*/feato(FEAT_RIPOSTE, "riposte", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "+2 bonus to riposte attempts (totaldefense)",
-    "+2 bonus to riposte attempts (totaldefense)");
+          "+2 bonus to riposte attempts (totaldefense)",
+          "+2 bonus to riposte attempts (totaldefense)");
   /*6*/feato(FEAT_ACROBATIC_CHARGE, "dextrous charge", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "+4 damage when charging on foot",
-    "+4 damage when charging on foot");
+          "+4 damage when charging on foot",
+          "+4 damage when charging on foot");
   /*7*/feato(FEAT_ELABORATE_PARRY, "elaborate parry", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "when fighting total defense, gains +1 deflection ac per two class levels",
-    "when fighting total defense, gains +1 deflection ac per two class levels");
+          "when fighting total defense, gains +1 deflection ac per two class levels",
+          "when fighting total defense, gains +1 deflection ac per two class levels");
   /*8*/ /* improved reaction */
   /*9*/ /* deflect arrows */
   /*9*/feato(FEAT_NO_RETREAT, "no retreat", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "allows you to gain an AoO against retreating opponents",
-    "allows you to gain an attack of opportunity against retreating opponents");
+          "allows you to gain an AoO against retreating opponents",
+          "allows you to gain an attack of opportunity against retreating opponents");
   /*10*/feato(FEAT_CRIPPLING_CRITICAL, "crippling critical", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "allows your criticals to have progressive effects",
-    "Your criticals will stack progressive negative effects on your opponent: 1d4"
-                " strength damage, 1d4 dexterity damage, -4 penalty to each save, "
-                "-4 penalty to AC, then finally doing 2d4 bleed and movement damage.");
-        
-  /* Blackguard */   /* knight of the skull (dragonlance) */
+          "allows your criticals to have progressive effects",
+          "Your criticals will stack progressive negative effects on your opponent: 1d4"
+          " strength damage, 1d4 dexterity damage, -4 penalty to each save, "
+          "-4 penalty to AC, then finally doing 2d4 bleed and movement damage.");
+
+  /* Blackguard */ /* knight of the skull (dragonlance) */
   feato(FEAT_SMITE_GOOD, "smite good", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "add level to hit roll and charisma bonus to damage",
-    "add level to hit roll and charisma bonus to damage against good aligned targets");
+          "add level to hit roll and charisma bonus to damage",
+          "add level to hit roll and charisma bonus to damage against good aligned targets");
 
   /* Pale/Death Master */
   feato(FEAT_ANIMATE_DEAD, "animate dead", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "allows innate use of animate dead spell",
-    "Allows innate use of animate dead spell once per day.  You get one use per ");
+          "allows innate use of animate dead spell",
+          "Allows innate use of animate dead spell once per day.  You get one use per ");
 
   /**************************/
   /* Disabled/Unimplemented */
   /**************************/
-  
+
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_IMPROVED_OVERRUN, "improved overrun", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
   feato(FEAT_QUICK_DRAW, "quick draw", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "ask staff", "ask staff");
@@ -2913,14 +2919,14 @@ void assign_feats(void) {
   /* ranger */
   /* in this form, these ranger feats are not in the game, they are just given both sets of feats for free now */
   /* unfinished */ feato(FEAT_COMBAT_STYLE, "combat style", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "Either Rapid Shot or Two Weapon Fighting, depending on the chosen combat style.",
-    "Either Rapid Shot or Two Weapon Fighting, depending on the chosen combat style.");
+          "Either Rapid Shot or Two Weapon Fighting, depending on the chosen combat style.",
+          "Either Rapid Shot or Two Weapon Fighting, depending on the chosen combat style.");
   /* unfinished */ feato(FEAT_IMPROVED_COMBAT_STYLE, "improved combat style", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "Either Manyshot or Improved Two Weapon Fighting, depending on the chosen combat style.",
-    "Either Manyshot or Improved Two Weapon Fighting, depending on the chosen combat style.");
+          "Either Manyshot or Improved Two Weapon Fighting, depending on the chosen combat style.",
+          "Either Manyshot or Improved Two Weapon Fighting, depending on the chosen combat style.");
   /* unfinished */ feato(FEAT_COMBAT_STYLE_MASTERY, "combat style master", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-    "Either Improved Precise Shot or Greater Two Weapon Fighting, depending on the chosen combat style.",
-    "Either Improved Precise Shot or Greater Two Weapon Fighting, depending on the chosen combat style.");
+          "Either Improved Precise Shot or Greater Two Weapon Fighting, depending on the chosen combat style.",
+          "Either Improved Precise Shot or Greater Two Weapon Fighting, depending on the chosen combat style.");
 
   /* Bard */
   feato(FEAT_EXTRA_MUSIC, "extra music", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "4 extra bard music uses per day", "4 extra bard music uses per day");
@@ -3005,8 +3011,8 @@ void assign_feats(void) {
   feato(FEAT_STRENGTH_BOOST, "strength boost", FALSE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "ask staff", "ask staff");
   feato(FEAT_TRAMPLE, "trample", FALSE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "ask staff", "ask staff");
   feato(FEAT_NATURAL_ARMOR_INCREASE, "natural armor increase", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
-  feato(FEAT_BLINDSENSE, "blindsense", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "draconic bloodline, sorcerer level 20", 
-  "Allows full vision even when there is no light or the character is blinded.");
+  feato(FEAT_BLINDSENSE, "blindsense", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "draconic bloodline, sorcerer level 20",
+          "Allows full vision even when there is no light or the character is blinded.");
 
   /* dragon rider */
   feato(FEAT_DRAGON_MOUNT_BOOST, "dragon mount boost", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "gives +18 hp, +1 ac, +1 hit and +1 damage per rank in the feat", "gives +18 hp, +10 ac, +1 hit and +1 damage per rank in the feat");
@@ -3019,7 +3025,7 @@ void assign_feats(void) {
   feato(FEAT_ENHANCE_ARROW_DISTANCE, "enhance arrow (distance)", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "doubles range increment on weapon.", "doubles range increment on weapon.");
   feato(FEAT_ENHANCE_ARROW_ELEMENTAL, "enhance arrow (elemental)", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "+1d6 elemental damage with bows", "+1d6 elemental damage with bows");
   feato(FEAT_ENHANCE_ARROW_ELEMENTAL_BURST, "enhance arrow (elemental burst)", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "+2d10 on critical hits with bows", "+2d10 on critical hits with bows");
-  
+
   /* wizard / sorc */
   /*craft*/
   feato(FEAT_BREW_POTION, "brew potion", FALSE, FALSE, FALSE, FEAT_TYPE_CRAFT, "can create magical potions ", "can create magical potions ");
@@ -3643,14 +3649,14 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
 
       case FEAT_IMPROVED_DISARM:
         if (has_feat_requirement_check(ch, FEAT_COMBAT_EXPERTISE) &&
-            ch->real_abils.intel >= 13)
+                ch->real_abils.intel >= 13)
           return TRUE;
         return FALSE;
 
       case FEAT_GREATER_DISARM:
         if (has_feat_requirement_check(ch, FEAT_IMPROVED_DISARM) &&
-            has_feat_requirement_check(ch, FEAT_COMBAT_EXPERTISE) &&
-            ch->real_abils.intel >= 13)
+                has_feat_requirement_check(ch, FEAT_COMBAT_EXPERTISE) &&
+                ch->real_abils.intel >= 13)
           return TRUE;
         return FALSE;
 
@@ -3721,7 +3727,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
 
       case FEAT_GREATER_TWO_WEAPON_FIGHTING:
         if (ch->real_abils.dex >= 19 && has_feat_requirement_check(ch, FEAT_TWO_WEAPON_FIGHTING) &&
-            has_feat_requirement_check(ch, FEAT_IMPROVED_TWO_WEAPON_FIGHTING) && BAB(ch) >= 11)
+                has_feat_requirement_check(ch, FEAT_IMPROVED_TWO_WEAPON_FIGHTING) && BAB(ch) >= 11)
           return TRUE;
         return FALSE;
 
@@ -3748,54 +3754,54 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
         if (!iarg || has_combat_feat(ch, CFEAT_WEAPON_FOCUS, iarg))
           return TRUE;
         return FALSE;
-/*
-          case FEAT_WEAPON_FLURRY:
-            if (BAB(ch) < 14)
-              return FALSE;
-            if (!iarg)
-              return TRUE;
-            if (!is_proficient_with_weapon(ch, iarg))
-              return FALSE;
-            if (!has_combat_feat(ch, CFEAT_WEAPON_FOCUS, iarg))
-              return FALSE;
-            if (!has_combat_feat(ch, CFEAT_WEAPON_SPECIALIZATION, iarg))
-              return FALSE;
-            if (!has_combat_feat(ch, CFEAT_WEAPON_MASTERY, iarg))
-              return FALSE;
-            return TRUE;
+        /*
+                  case FEAT_WEAPON_FLURRY:
+                    if (BAB(ch) < 14)
+                      return FALSE;
+                    if (!iarg)
+                      return TRUE;
+                    if (!is_proficient_with_weapon(ch, iarg))
+                      return FALSE;
+                    if (!has_combat_feat(ch, CFEAT_WEAPON_FOCUS, iarg))
+                      return FALSE;
+                    if (!has_combat_feat(ch, CFEAT_WEAPON_SPECIALIZATION, iarg))
+                      return FALSE;
+                    if (!has_combat_feat(ch, CFEAT_WEAPON_MASTERY, iarg))
+                      return FALSE;
+                    return TRUE;
 
-          case FEAT_WEAPON_SUPREMACY:
-            if (CLASS_LEVEL(ch, CLASS_WARRIOR) < 17)
-              return FALSE;
-            if (!iarg)
-              return TRUE;
-            if (!is_proficient_with_weapon(ch, iarg))
-              return FALSE;
-            if (!has_combat_feat(ch, CFEAT_WEAPON_FOCUS, iarg))
-              return FALSE;
-            if (!has_combat_feat(ch, CFEAT_WEAPON_SPECIALIZATION, iarg))
-              return FALSE;
-            if (!has_combat_feat(ch, CFEAT_GREATER_WEAPON_FOCUS, iarg))
-              return FALSE;
-            if (!has_combat_feat(ch, CFEAT_GREATER_WEAPON_SPECIALIZATION, iarg))
-              return FALSE;
-            if (!has_combat_feat(ch, CFEAT_WEAPON_MASTERY, iarg))
-              return FALSE;
-            return TRUE;
+                  case FEAT_WEAPON_SUPREMACY:
+                    if (CLASS_LEVEL(ch, CLASS_WARRIOR) < 17)
+                      return FALSE;
+                    if (!iarg)
+                      return TRUE;
+                    if (!is_proficient_with_weapon(ch, iarg))
+                      return FALSE;
+                    if (!has_combat_feat(ch, CFEAT_WEAPON_FOCUS, iarg))
+                      return FALSE;
+                    if (!has_combat_feat(ch, CFEAT_WEAPON_SPECIALIZATION, iarg))
+                      return FALSE;
+                    if (!has_combat_feat(ch, CFEAT_GREATER_WEAPON_FOCUS, iarg))
+                      return FALSE;
+                    if (!has_combat_feat(ch, CFEAT_GREATER_WEAPON_SPECIALIZATION, iarg))
+                      return FALSE;
+                    if (!has_combat_feat(ch, CFEAT_WEAPON_MASTERY, iarg))
+                      return FALSE;
+                    return TRUE;
 
-          case FEAT_ROBILARS_GAMBIT:
-            if (!HAS_REAL_FEAT(ch, FEAT_COMBAT_REFLEXES))
-              return FALSE;
-            if (BAB(ch) < 12)
-              return FALSE;
-            return TRUE;
+                  case FEAT_ROBILARS_GAMBIT:
+                    if (!HAS_REAL_FEAT(ch, FEAT_COMBAT_REFLEXES))
+                      return FALSE;
+                    if (BAB(ch) < 12)
+                      return FALSE;
+                    return TRUE;
 
-          case FEAT_KNOCKDOWN:
-            if (!HAS_REAL_FEAT(ch, FEAT_IMPROVED_TRIP))
-              return FALSE;
-            if (BAB(ch) < 4)
-              return FALSE;
-            return TRUE;
+                  case FEAT_KNOCKDOWN:
+                    if (!HAS_REAL_FEAT(ch, FEAT_IMPROVED_TRIP))
+                      return FALSE;
+                    if (BAB(ch) < 4)
+                      return FALSE;
+                    return TRUE;
          */
       case FEAT_ARMOR_SPECIALIZATION_LIGHT:
         if (!has_feat_requirement_check(ch, FEAT_ARMOR_PROFICIENCY_LIGHT))
@@ -3882,7 +3888,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
         if (!iarg)
           return TRUE;
         if (is_proficient_with_weapon(ch, iarg) &&
-                has_combat_feat(ch, FEAT_GREATER_WEAPON_SPECIALIZATION, iarg) )
+                has_combat_feat(ch, FEAT_GREATER_WEAPON_SPECIALIZATION, iarg))
           return TRUE;
         return FALSE;
 
@@ -3901,8 +3907,8 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
         return FALSE;
       case FEAT_DRAGON_KNIGHT:
         if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) >= 25 && CASTER_LEVEL(ch) >= 21 &&
-            (CLASS_LEVEL(ch, CLASS_WIZARD) > 17 ||
-              CLASS_LEVEL(ch, CLASS_SORCERER) > 19))
+                (CLASS_LEVEL(ch, CLASS_WIZARD) > 17 ||
+                CLASS_LEVEL(ch, CLASS_SORCERER) > 19))
           return TRUE;
         return FALSE;
       case FEAT_GREATER_RUIN:
@@ -3911,20 +3917,20 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg) {
         return FALSE;
       case FEAT_HELLBALL:
         if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) >= 29 && CASTER_LEVEL(ch) >= 23 &&
-              (CLASS_LEVEL(ch, CLASS_WIZARD) > 16 ||
-              CLASS_LEVEL(ch, CLASS_SORCERER) > 18))
+                (CLASS_LEVEL(ch, CLASS_WIZARD) > 16 ||
+                CLASS_LEVEL(ch, CLASS_SORCERER) > 18))
           return TRUE;
         return FALSE;
       case FEAT_EPIC_MAGE_ARMOR:
         if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) >= 31 && CASTER_LEVEL(ch) >= 24 &&
-            (CLASS_LEVEL(ch, CLASS_WIZARD) > 13 ||
-             CLASS_LEVEL(ch, CLASS_SORCERER) > 13))
+                (CLASS_LEVEL(ch, CLASS_WIZARD) > 13 ||
+                CLASS_LEVEL(ch, CLASS_SORCERER) > 13))
           return TRUE;
         return FALSE;
       case FEAT_EPIC_WARDING:
         if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) >= 32 && CASTER_LEVEL(ch) >= 25 &&
-            (CLASS_LEVEL(ch, CLASS_WIZARD) > 15 ||
-             CLASS_LEVEL(ch, CLASS_SORCERER) > 15))
+                (CLASS_LEVEL(ch, CLASS_WIZARD) > 15 ||
+                CLASS_LEVEL(ch, CLASS_SORCERER) > 15))
           return TRUE;
         return FALSE;
 
@@ -4086,7 +4092,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
   int i, sortpos, j;
   int none_shown = TRUE;
   int mode = 0;
-  char buf [MAX_STRING_LENGTH] = { '\0' }, buf2[MAX_STRING_LENGTH] = { '\0' }, buf3[150] = { '\0' };
+  char buf [MAX_STRING_LENGTH] = {'\0'}, buf2[MAX_STRING_LENGTH] = {'\0'}, buf3[150] = {'\0'};
   int count = 0;
   int subfeat;
   int line_length = 80; /* Width of the display. */
@@ -4142,19 +4148,19 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       } else if ((subfeat = feat_to_cfeat(i)) != -1) {
         /* This is a 'combat feat' */
         for (j = 1; j < NUM_WEAPON_TYPES; j++) {
-          
+
           /* we are not going to show extra composite bows */
-          if ( j == WEAPON_TYPE_COMPOSITE_LONGBOW_2 ||
-               j == WEAPON_TYPE_COMPOSITE_LONGBOW_3 ||                  
-               j == WEAPON_TYPE_COMPOSITE_LONGBOW_4 ||                  
-               j == WEAPON_TYPE_COMPOSITE_LONGBOW_5 ||                  
-               j == WEAPON_TYPE_COMPOSITE_SHORTBOW_2 ||                  
-               j == WEAPON_TYPE_COMPOSITE_SHORTBOW_3 ||                  
-               j == WEAPON_TYPE_COMPOSITE_SHORTBOW_4 ||                  
-               j == WEAPON_TYPE_COMPOSITE_SHORTBOW_5
-              )
+          if (j == WEAPON_TYPE_COMPOSITE_LONGBOW_2 ||
+                  j == WEAPON_TYPE_COMPOSITE_LONGBOW_3 ||
+                  j == WEAPON_TYPE_COMPOSITE_LONGBOW_4 ||
+                  j == WEAPON_TYPE_COMPOSITE_LONGBOW_5 ||
+                  j == WEAPON_TYPE_COMPOSITE_SHORTBOW_2 ||
+                  j == WEAPON_TYPE_COMPOSITE_SHORTBOW_3 ||
+                  j == WEAPON_TYPE_COMPOSITE_SHORTBOW_4 ||
+                  j == WEAPON_TYPE_COMPOSITE_SHORTBOW_5
+                  )
             continue;
-          
+
           if (HAS_COMBAT_FEAT(ch, subfeat, j)) {
             if (mode == 1) {
               sprintf(buf3, "%s (%s)", feat_list[i].name, weapon_list[j].name);
@@ -4193,8 +4199,8 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
             none_shown = FALSE;
           }
         }
-        
-      /* begin non special formats */
+
+        /* begin non special formats */
 
       } else if (i == FEAT_FAST_HEALING) {
         if (mode == 1) {
@@ -4209,10 +4215,10 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
 
       } else if (i == FEAT_DAMAGE_REDUCTION) {
         if (mode == 1) {
-          sprintf(buf3, "%s (%d/-)", feat_list[i].name, 3*HAS_FEAT(ch, FEAT_DAMAGE_REDUCTION));
+          sprintf(buf3, "%s (%d/-)", feat_list[i].name, 3 * HAS_FEAT(ch, FEAT_DAMAGE_REDUCTION));
           sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         } else {
-          sprintf(buf3, "%s (%d/-)", feat_list[i].name, 3*HAS_FEAT(ch, FEAT_DAMAGE_REDUCTION));
+          sprintf(buf3, "%s (%d/-)", feat_list[i].name, 3 * HAS_FEAT(ch, FEAT_DAMAGE_REDUCTION));
           sprintf(buf, "%-40s ", buf3);
         }
         strcat(buf2, buf);
@@ -4259,7 +4265,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           sprintf(buf, "%-40s ", buf3);
         }
         strcat(buf2, buf);
-        none_shown = FALSE;  
+        none_shown = FALSE;
       } else if (i == FEAT_DRACONIC_HERITAGE_CLAWS) {
         if (mode == 1) {
           sprintf(buf3, "%s (%s, %dx/day)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)), get_daily_uses(ch, i));
@@ -4269,7 +4275,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           sprintf(buf, "%-40s ", buf3);
         }
         strcat(buf2, buf);
-        none_shown = FALSE;  
+        none_shown = FALSE;
       } else if (i == FEAT_DRACONIC_BLOODLINE_ARCANA) {
         if (mode == 1) {
           sprintf(buf3, "%s (%s damage)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)));
@@ -4279,7 +4285,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           sprintf(buf, "%-40s ", buf3);
         }
         strcat(buf2, buf);
-        none_shown = FALSE;    
+        none_shown = FALSE;
       } else if (i == FEAT_DRACONIC_HERITAGE_DRAGON_RESISTANCES || i == FEAT_DRACONIC_HERITAGE_POWER_OF_WYRMS) {
         if (mode == 1) {
           sprintf(buf3, "%s (resist %s)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)));
@@ -4289,7 +4295,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           sprintf(buf, "%-40s ", buf3);
         }
         strcat(buf2, buf);
-        none_shown = FALSE;                
+        none_shown = FALSE;
       } else if (i == FEAT_IMPROVED_REACTION) {
         if (mode == 1) {
           sprintf(buf3, "%s (+%d)", feat_list[i].name, 2 * HAS_FEAT(ch, FEAT_IMPROVED_REACTION));
@@ -4300,7 +4306,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         }
         strcat(buf2, buf);
         none_shown = FALSE;
-        
+
       } else if (i == FEAT_NATURAL_ATTACK) {
         if (mode == 1) {
           sprintf(buf3, "%s (+%d attack dice rolls)", feat_list[i].name, HAS_FEAT(ch, FEAT_NATURAL_ATTACK));
@@ -4708,7 +4714,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         strcat(buf2, buf);
         none_shown = FALSE;
 
-      /* DEFAULT output */
+        /* DEFAULT output */
       } else {
         if (mode == 1) {
           sprintf(buf3, "%s", feat_list[i].name);
@@ -4728,7 +4734,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           strcat(buf2, "\r\n");
       }
 
-    /* alternatively, list available or full feat lists */
+      /* alternatively, list available or full feat lists */
     } else if (feat_list[i].in_game &&
             ((list_type == LIST_FEATS_ALL) ||
             (list_type == LIST_FEATS_AVAILABLE && (feat_is_available(ch, i, 0, NULL) && feat_list[i].can_learn)))) {
@@ -4998,7 +5004,7 @@ ACMD(do_feats) {
 
     if (!strcmp(featname, "")) {
       send_to_char(ch, "You must provide the name of a feat.\r\n");
-    } else if(!display_feat_info(ch, featname)) {
+    } else if (!display_feat_info(ch, featname)) {
       send_to_char(ch, "Could not find that feat.\r\n");
     }
   } else if (is_abbrev(arg, "available")) {
@@ -5028,8 +5034,8 @@ int feat_to_cfeat(int feat) {
       return CFEAT_EPIC_WEAPON_SPECIALIZATION;
     case FEAT_IMPROVED_WEAPON_FINESSE:
       return CFEAT_IMPROVED_WEAPON_FINESSE;
-   // case FEAT_EXOTIC_WEAPON_PROFICIENCY:
-   //   return CFEAT_EXOTIC_WEAPON_PROFICIENCY;
+      // case FEAT_EXOTIC_WEAPON_PROFICIENCY:
+      //   return CFEAT_EXOTIC_WEAPON_PROFICIENCY;
     case FEAT_MONKEY_GRIP:
       return CFEAT_MONKEY_GRIP;
     case FEAT_WEAPON_FLURRY:
@@ -5072,10 +5078,10 @@ int get_draconic_heritage_subfeat(int feat) {
   return -1;
 }
 
-int get_sorcerer_bloodline_type(struct char_data *ch)
-{
+int get_sorcerer_bloodline_type(struct char_data *ch) {
   int bl = 0;
-  if (HAS_FEAT(ch, (bl = FEAT_SORCERER_BLOODLINE_DRACONIC))) return bl; else bl = 0;
+  if (HAS_FEAT(ch, (bl = FEAT_SORCERER_BLOODLINE_DRACONIC))) return bl;
+  else bl = 0;
   return bl;
 }
 
