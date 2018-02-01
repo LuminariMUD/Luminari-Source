@@ -93,7 +93,7 @@ extern struct kdtree* kd_wilderness_rooms;
 
 struct wild_map_info_type {
   int sector_type;
-  char disp[20];
+  char disp[50];
   char *variant_disp[NUM_VARIANT_GLYPHS];
 };
 
