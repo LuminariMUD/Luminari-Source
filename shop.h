@@ -166,7 +166,7 @@ struct stack_data {
 /* Shop flags */
 #define WILL_START_FIGHT    (1 << 0)
 #define WILL_BANK_MONEY     (1 << 1)
-#define HAS_UNLIMITED_CASH  (1 << 2)
+#define HAS_UNLIMITED_CASH  (1 << 2) /*zusuk disabled*/
 /** Total number of shop flags */
 #define NUM_SHOP_FLAGS    3
 

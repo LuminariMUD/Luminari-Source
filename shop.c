@@ -801,19 +801,23 @@ static void shopping_sell(char *arg, struct char_data *ch, struct char_data *kee
   if (!(obj = get_selling_obj(ch, name, keeper, shop_nr, TRUE)))
     return;
 
-  if (!IS_SET(SHOP_BITVECTOR(shop_nr), HAS_UNLIMITED_CASH) && GET_GOLD(keeper) + SHOP_BANK(shop_nr) < sell_price(obj, shop_nr, keeper, ch)) {
+  if (/*!IS_SET(SHOP_BITVECTOR(shop_nr), HAS_UNLIMITED_CASH) &&*/ GET_GOLD(keeper) +
+          SHOP_BANK(shop_nr) < sell_price(obj, shop_nr, keeper, ch)) {
     char buf[MAX_INPUT_LENGTH];
 
     snprintf(buf, sizeof (buf), shop_index[shop_nr].missing_cash1, GET_NAME(ch));
     do_tell(keeper, buf, cmd_tell, 0);
     return;
   }
-  while (obj && (IS_SET(SHOP_BITVECTOR(shop_nr), HAS_UNLIMITED_CASH) || GET_GOLD(keeper) + SHOP_BANK(shop_nr) >= sell_price(obj, shop_nr, keeper, ch)) && sold < sellnum) {
+  while (obj && (/*IS_SET(SHOP_BITVECTOR(shop_nr), HAS_UNLIMITED_CASH) ||*/
+          GET_GOLD(keeper) + SHOP_BANK(shop_nr) >=
+          sell_price(obj, shop_nr, keeper, ch)) && sold < sellnum) {
     int charged = sell_price(obj, shop_nr, keeper, ch);
 
     goldamt += charged;
-    if (!IS_SET(SHOP_BITVECTOR(shop_nr), HAS_UNLIMITED_CASH))
-      decrease_gold(keeper, charged);
+    
+    /*if (!IS_SET(SHOP_BITVECTOR(shop_nr), HAS_UNLIMITED_CASH))*/
+    decrease_gold(keeper, charged);
 
     sold++;
     obj_from_char(obj);
@@ -870,13 +874,13 @@ static void shopping_value(char *arg, struct char_data *ch, struct char_data *ke
   /* let the playe know what kind of cash we got */
   char buf2[MAX_INPUT_LENGTH];
 
-  if (IS_SET(SHOP_BITVECTOR(shop_nr), HAS_UNLIMITED_CASH)) {
+  /*if (IS_SET(SHOP_BITVECTOR(shop_nr), HAS_UNLIMITED_CASH)) {
     snprintf(buf2, sizeof (buf2), "%s I have plenty of cash if you are willing to sell!", GET_NAME(ch));
     do_tell(keeper, buf2, cmd_tell, 0);
-  } else {
-    snprintf(buf2, sizeof (buf2), "%s Just so you know, currently I have %d coins available to purchase goods from customers.", GET_NAME(ch), GET_GOLD(keeper) + SHOP_BANK(shop_nr));
-    do_tell(keeper, buf2, cmd_tell, 0);
-  }
+  } else {*/
+  snprintf(buf2, sizeof (buf2), "%s Just so you know, currently I have %d coins available to purchase goods from customers.", GET_NAME(ch), GET_GOLD(keeper) + SHOP_BANK(shop_nr));
+  do_tell(keeper, buf2, cmd_tell, 0);
+  /*}*/
 
   snprintf(buf, sizeof (buf), "%s That is worth %d coins to me...", GET_NAME(ch), sell_price(obj, shop_nr, keeper, ch));
   do_tell(keeper, buf, cmd_tell, 0);
