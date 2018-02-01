@@ -587,7 +587,7 @@ void insert_path(struct path_data *path) {
 }
 
 /* Delete a path from the database. */
-void delete_path(region_vnum vnum) {
+boolean delete_path(region_vnum vnum) {
   /* path_data* path_table */
   char buf[MAX_STRING_LENGTH];
 
@@ -602,7 +602,9 @@ void delete_path(region_vnum vnum) {
 
   if (mysql_query(conn, buf)) {
     log("SYSERR: Unable to delete from path_data: %s", mysql_error(conn));
-  } 
+    return false;
+  }
+  return true; 
 }
 
 struct path_list* get_enclosing_paths(zone_rnum zone, int x, int y) {
