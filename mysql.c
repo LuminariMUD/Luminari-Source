@@ -586,6 +586,25 @@ void insert_path(struct path_data *path) {
   } 
 }
 
+/* Delete a path from the database. */
+void delete_path(region_vnum vnum) {
+  /* path_data* path_table */
+  char buf[MAX_STRING_LENGTH];
+
+  log("INFO: Deleting Path [%d] from MySQL:", (int)vnum, path->name);
+  sprintf(buf, "delete from path_data "
+               "where vnum = %d;",(int)vnum);
+
+  log("QUERY: %s",buf);
+
+  /* Check the connection, reconnect if necessary. */
+  mysql_ping(conn);
+
+  if (mysql_query(conn, buf)) {
+    log("SYSERR: Unable to delete from path_data: %s", mysql_error(conn));
+  } 
+}
+
 struct path_list* get_enclosing_paths(zone_rnum zone, int x, int y) {
   MYSQL_RES *result;
   MYSQL_ROW row;
