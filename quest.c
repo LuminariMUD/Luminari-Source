@@ -1,5 +1,5 @@
 /* ***********************************************************************
- *    File:   quest.c                                  Part of CircleMUD  *
+ *    File:   quest.c                                Part of LuminariMUD  *
  * Version:   2.1 (December 2005) Written for CircleMud CWG / Suntzu      *
  * Purpose:   To provide special quest-related code.                      *
  * Copyright: Kenneth Ray                                                 *
@@ -7,12 +7,10 @@
  * Morgaelin - quest.c                                                    *
  * Copyright (C) 1997 MS                                                  *
  *********************************************************************** */
-
 #define __QUEST_C__
 
 #include "conf.h"
 #include "sysdep.h"
-
 #include "structs.h"
 #include "utils.h"
 #include "interpreter.h"
@@ -632,7 +630,6 @@ void quest_join(struct char_data *ch, struct char_data *qm, char argument[MAX_IN
   qst_rnum rnum = NOWHERE;
   char buf[MAX_INPUT_LENGTH];
   bool has_quest_object = FALSE;
-  struct obj_data *obj = NULL;
   int i = 0;
 
   /* we will check for quest object here */
