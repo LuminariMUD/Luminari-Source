@@ -598,6 +598,26 @@ void perform_obj_aff_list(struct char_data * ch, char *arg) {
 }
 
 void perform_obj_name_list(struct char_data * ch, char *arg) {
+  int num, found = 0;
+  obj_vnum ov;
+
+  send_to_char(ch, "Objects with the name '%s'\r\n"
+          "Index VNum    Num   Object Name                                Object Type\r\n"
+          "----- ------- ----- ------------------------------------------ ----------------\r\n", arg);
+  for (num = 0; num <= top_of_objt; num++) {
+    if (is_name(arg, obj_proto[num].name)) {
+      ov = obj_index[num].vnum;
+      send_to_char(ch, "%s%4d%s) %s[%s%5d%s] %s(%s%3d%s)%s %-*s%s [%s]%s%s\r\n",
+              QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM,
+              QGRN, obj_index[num].number, QNRM, QCYN, 42 + count_color_chars(obj_proto[num].short_description),
+              obj_proto[num].short_description, QYEL, item_types[obj_proto[num].obj_flags.type_flag], QNRM,
+              obj_proto[num].proto_script ? " [TRIG]" : "");
+    }
+  }
+}
+
+/*
+void perform_obj_name_list(struct char_data * ch, char *arg) {
   int num, found = 0, len = 0, tmp_len = 0;
   obj_vnum ov;
   char buf[MAX_STRING_LENGTH];
@@ -617,10 +637,9 @@ void perform_obj_name_list(struct char_data * ch, char *arg) {
     }
   }
 
-  send_to_char(ch, buf);
-  
-  //page_string(ch->desc, buf, TRUE);
+  page_string(ch->desc, buf, TRUE);
 }
+*/
 
 /* Ingame Commands */
 ACMD(do_oasis_list) {
