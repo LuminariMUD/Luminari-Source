@@ -323,10 +323,10 @@ int performance_effects(struct char_data *ch, struct char_data *tch, struct affe
         }
         af.location = APPLY_AC_NEW;
         af.modifier = MAX(1, (effectiveness + 2) / 19);
-        affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
+        affect_join(tch, &af, FALSE, FALSE, FALSE, FALSE);
         af.location = APPLY_SAVING_REFL;
         af.modifier = effectiveness / 5;
-        affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
+        affect_join(tch, &af, FALSE, FALSE, FALSE, FALSE);
       }
       break;
 
