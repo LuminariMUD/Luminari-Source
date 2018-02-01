@@ -591,7 +591,7 @@ void delete_path(region_vnum vnum) {
   /* path_data* path_table */
   char buf[MAX_STRING_LENGTH];
 
-  log("INFO: Deleting Path [%d] from MySQL:", (int)vnum, path->name);
+  log("INFO: Deleting Path [%d] from MySQL:", (int)vnum);
   sprintf(buf, "delete from path_data "
                "where vnum = %d;",(int)vnum);
 
