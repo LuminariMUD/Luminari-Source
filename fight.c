@@ -1503,7 +1503,8 @@ static void group_gain(struct char_data *ch, struct char_data *victim) {
     base = 1;  
   
   /* XP bonus for groupping */
-  base = 1 + base *
+  if (tot_members > 1)
+    base = 1 + base *
           ( ( 100 + (tot_members*BONUS_PER_MEMBER) ) / 100 );
 
   while ((k = (struct char_data *) simple_list(GROUP(ch)->members)) != NULL) {
