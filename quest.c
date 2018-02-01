@@ -628,49 +628,70 @@ void quest_hist(struct char_data *ch, char argument[MAX_STRING_LENGTH]) {
 }
 
 void quest_join(struct char_data *ch, struct char_data *qm, char argument[MAX_INPUT_LENGTH]) {
-  qst_vnum vnum;
-  qst_rnum rnum;
+  qst_vnum vnum = NOTHING;
+  qst_rnum rnum = NOWHERE;
   char buf[MAX_INPUT_LENGTH];
+  bool has_quest_object = FALSE;
+  struct obj_data *obj = NULL;
+  int i = 0;
 
-  if (!*argument)
+  /* we will check for quest object here */
+  if ((QST_PREREQ(rnum) != NOTHING) &&
+          (real_object(QST_PREREQ(rnum)) != NOTHING)) {
+    
+    /* inventory will do it */
+    if (get_obj_in_list_num(real_object(QST_PREREQ(rnum)),
+            ch->carrying) != NULL)
+      has_quest_object = TRUE;
+
+    /* and wearing will do it too */
+    for (i = 0; i < NUM_WEARS; i++) {
+      if (GET_EQ(ch, i) &&
+              GET_OBJ_RNUM(GET_EQ(ch, i)) == real_object(QST_PREREQ(rnum))) {
+        has_quest_object = TRUE;
+        break;
+      }
+    }
+  }
+  
+  if (!*argument) {
     snprintf(buf, sizeof (buf),
-          "\r\n%s, what quest did you wish to join?\r\n", GET_NAME(ch));
-  else if (GET_QUEST(ch) != NOTHING)
+            "\r\n%s, what quest did you wish to join?\r\n", GET_NAME(ch));
+  } else if (GET_QUEST(ch) != NOTHING) {
     snprintf(buf, sizeof (buf),
-          "\r\n%s, but you are already part of a quest!\r\n", GET_NAME(ch));
-  else if ((vnum = find_quest_by_qmnum(ch, GET_MOB_VNUM(qm), atoi(argument))) == NOTHING)
+            "\r\n%s, but you are already part of a quest!\r\n", GET_NAME(ch));
+  } else if ((vnum = find_quest_by_qmnum(ch, GET_MOB_VNUM(qm), atoi(argument))) == NOTHING) {
     snprintf(buf, sizeof (buf),
-          "\r\n%s, I don't know of such a quest!\r\n", GET_NAME(ch));
-  else if ((rnum = real_quest(vnum)) == NOTHING)
+            "\r\n%s, I don't know of such a quest!\r\n", GET_NAME(ch));
+  } else if ((rnum = real_quest(vnum)) == NOTHING) {
     snprintf(buf, sizeof (buf),
-          "\r\n%s, I don't know of such a quest!\r\n", GET_NAME(ch));
-  else if ((GET_LEVEL(ch) < QST_MINLEVEL(rnum)) && GET_LEVEL(ch) < LVL_IMMORT) {
+            "\r\n%s, I don't know of such a quest!\r\n", GET_NAME(ch));
+  } else if ((GET_LEVEL(ch) < QST_MINLEVEL(rnum)) && GET_LEVEL(ch) < LVL_IMMORT) {
     snprintf(buf, sizeof (buf),
-          "\r\n%s, you are not experienced enough for that quest!\r\n", GET_NAME(ch));
+            "\r\n%s, you are not experienced enough for that quest!\r\n", GET_NAME(ch));
     if (GET_LEVEL(ch) >= LVL_IMMORT)
-      send_to_char(ch, "\tRNOTE: you are over-riding Min-Level\tn\r\n");      
+      send_to_char(ch, "\tRNOTE: you are over-riding Min-Level\tn\r\n");
   } else if ((GET_LEVEL(ch) > QST_MAXLEVEL(rnum)) && GET_LEVEL(ch) < LVL_IMMORT) {
     snprintf(buf, sizeof (buf),
-          "\r\n%s, you are too experienced for that quest!\r\n", GET_NAME(ch));
+            "\r\n%s, you are too experienced for that quest!\r\n", GET_NAME(ch));
     if (GET_LEVEL(ch) >= LVL_IMMORT)
-      send_to_char(ch, "\tRNOTE: you are over-riding Max-Level\tn\r\n");      
+      send_to_char(ch, "\tRNOTE: you are over-riding Max-Level\tn\r\n");
   } else if (is_complete(ch, vnum) && !(IS_SET(QST_FLAGS(rnum), AQ_REPEATABLE)) &&
-          GET_LEVEL(ch) < LVL_IMMORT) {    
+          GET_LEVEL(ch) < LVL_IMMORT) {
     snprintf(buf, sizeof (buf),
-          "\r\n%s, you have already completed that quest!\r\n", GET_NAME(ch));
+            "\r\n%s, you have already completed that quest!\r\n", GET_NAME(ch));
     if (GET_LEVEL(ch) >= LVL_IMMORT)
-      send_to_char(ch, "\tRNOTE: you are over-riding 'quest completed'\tn\r\n");      
-  } else if ((QST_PREV(rnum) != NOTHING) && !is_complete(ch, QST_PREV(rnum)))
+      send_to_char(ch, "\tRNOTE: you are over-riding 'quest completed'\tn\r\n");
+  } else if ((QST_PREV(rnum) != NOTHING) && !is_complete(ch, QST_PREV(rnum))) {
     snprintf(buf, sizeof (buf),
-          "\r\n%s, that quest is not available to you yet!\r\n", GET_NAME(ch));
-  else if ((QST_PREREQ(rnum) != NOTHING) &&
+            "\r\n%s, that quest is not available to you yet!\r\n", GET_NAME(ch));
+  } else if ((QST_PREREQ(rnum) != NOTHING) &&
           (real_object(QST_PREREQ(rnum)) != NOTHING) &&
-          (get_obj_in_list_num(real_object(QST_PREREQ(rnum)),
-          ch->carrying) == NULL))
-    snprintf(buf, sizeof (buf),
-          "\r\n%s, you need to have %s first!\r\n", GET_NAME(ch),
-          obj_proto[real_object(QST_PREREQ(rnum))].short_description);
-  else {
+          !has_quest_object) {
+      snprintf(buf, sizeof (buf),
+              "\r\n%s, you need to have %s first!\r\n", GET_NAME(ch),
+              obj_proto[real_object(QST_PREREQ(rnum))].short_description);
+  } else {
     act("You join the quest.", TRUE, ch, NULL, NULL, TO_CHAR);
     act("$n has joined a quest.", TRUE, ch, NULL, NULL, TO_ROOM);
     snprintf(buf, sizeof (buf),
