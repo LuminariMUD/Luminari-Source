@@ -153,7 +153,7 @@ void show_quest_to_player(struct char_data *ch, struct quest_entry *quest) {
         case QUEST_COMMAND_KIT:
           sprintf(buf, "\tcSET_KIT\tn of a %s to become %s.\r\n",
                   CLSLIST_NAME(qcom->location),
-                  CLSLIST_NAME(qcom->value) );
+                  CLSLIST_NAME(qcom->value));
           send_to_char(ch, buf);
           break;
         case QUEST_COMMAND_LOAD_MOB_INROOM:
