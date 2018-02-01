@@ -597,6 +597,7 @@ void perform_obj_aff_list(struct char_data * ch, char *arg) {
   page_string(ch->desc, buf, TRUE);
 }
 
+/*
 void perform_obj_name_list(struct char_data * ch, char *arg) {
   int num, found = 0;
   obj_vnum ov;
@@ -615,12 +616,12 @@ void perform_obj_name_list(struct char_data * ch, char *arg) {
     }
   }
 }
+*/
 
-/*
 void perform_obj_name_list(struct char_data * ch, char *arg) {
   int num, found = 0, len = 0, tmp_len = 0;
   obj_vnum ov;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_OUTPUT_BUFFER];
 
   len = snprintf(buf, sizeof (buf), "Objects with the name '%s'\r\n"
           "Index VNum    Num   Object Name                                Object Type\r\n"
@@ -634,12 +635,13 @@ void perform_obj_name_list(struct char_data * ch, char *arg) {
               obj_proto[num].short_description, QYEL, item_types[obj_proto[num].obj_flags.type_flag], QNRM,
               obj_proto[num].proto_script ? " [TRIG]" : "");
       len += tmp_len;
+      if (len >= (MAX_OUTPUT_BUFFER-80))
+        break;
     }
   }
 
   page_string(ch->desc, buf, TRUE);
 }
-*/
 
 /* Ingame Commands */
 ACMD(do_oasis_list) {
