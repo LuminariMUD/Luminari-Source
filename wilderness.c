@@ -57,12 +57,12 @@ struct wild_map_info_type wild_map_info[] = {
     { NULL}}, /* This is somewhat obsolete. */
   { SECT_ROAD_INT, "\tD\t[u65291]\t[u65291/+]\tn",
     { NULL}}, /* This is somewhat obsolete. */
-  { SECT_DESERT, "\tY\t[u65294/.]\tn",
+  { SECT_DESERT, "\tY\t[u65294]\t[u65294/.]\tn",
     { NULL }},
   /* 15 */
   { SECT_OCEAN, "\tb\t[u65374/~]\tn",
     { NULL}},
-  { SECT_MARSHLAND, "\tM\t[u65292/,]\tn",
+  { SECT_MARSHLAND, "\tM\t[u65292]\t[u65292/,]\tn",
     { NULL}},
   { SECT_HIGH_MOUNTAIN, "\tW\t[u127956/^]\tn",
     { NULL}},
@@ -82,15 +82,15 @@ struct wild_map_info_type wild_map_info[] = {
   { SECT_UD_NOGROUND, "\tm\t[u65342/^]\tn",
     { NULL}},
   /* 25 */
-  { SECT_LAVA, "\tR\t[u65294/.]\tn",
+  { SECT_LAVA, "\tR\t[u65294]\t[u65294/.]\tn",
     { NULL}},
-  { SECT_D_ROAD_NS, "\ty\t[u65372/|]\tn",
+  { SECT_D_ROAD_NS, "\ty\t[u65372]\t[u65372/|]\tn",
     { NULL}}, /* This is somewhat obsolete. */
-  { SECT_D_ROAD_EW, "\ty\t[u65293/-]\tn",
+  { SECT_D_ROAD_EW, "\ty\t[u65293]\t[u65293/-]\tn",
     { NULL}}, /* This is somewhat obsolete. */
-  { SECT_D_ROAD_INT, "\ty\t[u65291/+]\tn",
+  { SECT_D_ROAD_INT, "\ty\t[u65291]\t[u65291/+]\tn",
     { NULL}}, /* This is somewhat obsolete. */
-  { SECT_CAVE, "\tD\t[u65315/C]\tn",
+  { SECT_CAVE, "\tD\t[u65315]\t[u65315/C]\tn",
     { NULL}},
   /* 30 */
   { SECT_JUNGLE, "\tg\t[u127796/&]\tn",
