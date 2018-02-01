@@ -605,7 +605,7 @@ bool delete_path(region_vnum vnum) {
     return false;
   }
 
-  if (mysql_affected_rows())
+  if (mysql_affected_rows(conn))
     return true; 
   else
     return false;
