@@ -85,7 +85,7 @@ ranktype rank_deaths(struct char_data *ch);
 ranktype rank_highest_xp(struct char_data *ch);
 ranktype rank_kd(struct char_data *ch);
 ranktype rank_played(struct char_data *ch);
-ranktype rank_birth(struct char_data *ch);
+//ranktype rank_birth(struct char_data *ch);
 ranktype rank_remorts(struct char_data *ch);
 ranktype rank_blabber(struct char_data *ch);
 
@@ -258,7 +258,7 @@ void init_keys(void) {
   //add_key("deaths", "deaths", rank_deaths);
   //add_key("kd", "kills to deaths ratio", rank_kd);
   add_key("played", "time played", rank_played);
-  add_key("birth", "time since creation", rank_birth);
+  //add_key("birth", "time since creation", rank_birth);
   //add_key("remorts", "number of remorts", rank_remorts);
   //add_key("blabber", "# of gossips", rank_blabber);
   //add_key("clanbucks", "clan taxes earned", rank_clanbucks);
@@ -489,12 +489,13 @@ ranktype rank_played(struct char_data *ch) {
   return (kbuf);
 } /* end rank_days */
 
+/*
 ranktype rank_birth(struct char_data *ch) {
   struct time_info_data *playing_time;
   playing_time = age(ch);
   sprintf(kbuf, "%3d days, %2d hours.", playing_time->day, playing_time->hours);
   return (kbuf);
-} /* end rank_days */
+} */ /* end rank_days */
 
 /*
 ranktype rank_remorts(struct char_data *ch) {
