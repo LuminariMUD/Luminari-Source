@@ -931,7 +931,7 @@ ACMD(do_checkapproved) {
         total++;
       }
       if (count > 0) {
-        sprintf(buf, "[%5d] %-40s  %d/%d\r\n"
+        sprintf(buf, "\tn[%5d] %-40s\tn  %d/%d\tn\r\n"
                 , mob_index[i].vnum
                 , mob_proto[i].player.short_descr
                 , total - count
