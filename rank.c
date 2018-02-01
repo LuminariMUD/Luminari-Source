@@ -220,7 +220,8 @@ void do_slug_rank(struct char_data *ch, char *arg) {
     for (i = 0; i < rk; i++) {
       strcpy(kbuf, GET_KEY(tt[i].ch, the_key));
       for (kbp = kbuf; *kbp == ' '; kbp++);
-      send_to_char(ch, "#%2d: %15s %*s\n\r", i + 1, GET_NAME(tt[i].ch), count_color_chars(kbp) + 18, kbp);
+      send_to_char(ch, "#%2d: %15s %*s\n\r", i + 1, GET_NAME(tt[i].ch),
+              count_color_chars(kbp) + 18, (GET_LEVEL(ch) >= LVL_IMMORT) ? kbp : "");
     }
     send_to_char(ch, "%s\n\r", CONFIG_OK);
   }
