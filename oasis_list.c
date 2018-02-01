@@ -604,7 +604,7 @@ void perform_obj_name_list(struct char_data * ch, char *arg) {
   send_to_char(ch, "Objects with the name '%s'\r\n"
           "Index VNum    Num   Object Name                                Object Type\r\n"
           "----- ------- ----- ------------------------------------------ ----------------\r\n", arg);
-  for (num = 7659; num <= top_of_objt; num++) {
+  for (num = 8780; num <= top_of_objt; num++) {
     if (is_name(arg, obj_proto[num].name)) {
       ov = obj_index[num].vnum;
       send_to_char(ch, "%s%4d%s) %s[%s%5d%s] %s(%s%3d%s)%s %-*s%s [%s]%s%s\r\n",
