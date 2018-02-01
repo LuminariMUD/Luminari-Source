@@ -617,7 +617,9 @@ void perform_obj_name_list(struct char_data * ch, char *arg) {
     }
   }
 
-  page_string(ch->desc, buf, TRUE);
+  send_to_char(ch, buf);
+  
+  //page_string(ch->desc, buf, TRUE);
 }
 
 /* Ingame Commands */
