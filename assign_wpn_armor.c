@@ -1,7 +1,7 @@
- /*****************************************************************************
- ** assign_wpn_armor.c
-  *
-  * Assigning weapon and armor values for respective types                   **
+/*****************************************************************************
+ ** assign_wpn_armor.c                        Part of LuminariMUD
+ * author: zusuk
+ * Assigning weapon and armor values for respective types                   **
  *****************************************************************************/
 
 #include "conf.h"
@@ -27,16 +27,16 @@ const char *weapon_type[NUM_WEAPON_TYPES];
 
 /* simply checks if ch has proficiency with given weapon_type */
 int is_proficient_with_weapon(struct char_data *ch, int weapon) {
-  
+
   /* :) */
   if (weapon == WEAPON_TYPE_UNARMED && CLASS_LEVEL(ch, CLASS_MONK))
     return TRUE;
 
-  if ((HAS_FEAT(ch, FEAT_SIMPLE_WEAPON_PROFICIENCY) || HAS_FEAT(ch, FEAT_WEAPON_EXPERT))&&
+  if ((HAS_FEAT(ch, FEAT_SIMPLE_WEAPON_PROFICIENCY) || HAS_FEAT(ch, FEAT_WEAPON_EXPERT)) &&
           IS_SET(weapon_list[weapon].weaponFlags, WEAPON_FLAG_SIMPLE))
     return TRUE;
 
-  if ((HAS_FEAT(ch, FEAT_MARTIAL_WEAPON_PROFICIENCY) || HAS_FEAT(ch, FEAT_WEAPON_EXPERT))&&
+  if ((HAS_FEAT(ch, FEAT_MARTIAL_WEAPON_PROFICIENCY) || HAS_FEAT(ch, FEAT_WEAPON_EXPERT)) &&
           IS_SET(weapon_list[weapon].weaponFlags, WEAPON_FLAG_MARTIAL))
     return TRUE;
 
@@ -53,7 +53,7 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon) {
    * and spear. They are also proficient with all natural attacks (claw, bite, 
    * and so forth) of any form they assume with wild shape.*/
   if (HAS_FEAT(ch, FEAT_WEAPON_PROFICIENCY_DRUID) ||
-      CLASS_LEVEL(ch, CLASS_DRUID) > 0) {
+          CLASS_LEVEL(ch, CLASS_DRUID) > 0) {
     switch (weapon) {
       case WEAPON_TYPE_CLUB:
       case WEAPON_TYPE_DAGGER:
@@ -69,7 +69,7 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon) {
   }
 
   if (HAS_FEAT(ch, FEAT_WEAPON_PROFICIENCY_BARD) ||
-      CLASS_LEVEL(ch, CLASS_BARD) > 0) {
+          CLASS_LEVEL(ch, CLASS_BARD) > 0) {
     switch (weapon) {
       case WEAPON_TYPE_LONG_SWORD:
       case WEAPON_TYPE_RAPIER:
@@ -82,7 +82,7 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon) {
   }
 
   if (HAS_FEAT(ch, FEAT_WEAPON_PROFICIENCY_ROGUE) ||
-      CLASS_LEVEL(ch, CLASS_ROGUE) > 0) {
+          CLASS_LEVEL(ch, CLASS_ROGUE) > 0) {
     switch (weapon) {
       case WEAPON_TYPE_HAND_CROSSBOW:
       case WEAPON_TYPE_RAPIER:
@@ -94,7 +94,7 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon) {
   }
 
   if (HAS_FEAT(ch, FEAT_WEAPON_PROFICIENCY_WIZARD) ||
-      CLASS_LEVEL(ch, CLASS_WIZARD) > 0) {
+          CLASS_LEVEL(ch, CLASS_WIZARD) > 0) {
     switch (weapon) {
       case WEAPON_TYPE_DAGGER:
       case WEAPON_TYPE_QUARTERSTAFF:
@@ -106,7 +106,7 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon) {
   }
 
   if (HAS_FEAT(ch, FEAT_WEAPON_PROFICIENCY_DROW) ||
-      IS_DROW(ch)) {
+          IS_DROW(ch)) {
     switch (weapon) {
       case WEAPON_TYPE_HAND_CROSSBOW:
       case WEAPON_TYPE_RAPIER:
@@ -114,9 +114,9 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon) {
         return TRUE;
     }
   }
-        
+
   if (HAS_FEAT(ch, FEAT_WEAPON_PROFICIENCY_ELF) ||
-      IS_ELF(ch)) {
+          IS_ELF(ch)) {
     switch (weapon) {
       case WEAPON_TYPE_LONG_SWORD:
       case WEAPON_TYPE_RAPIER:
@@ -137,7 +137,7 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon) {
   }
 
   if (IS_DWARF(ch) &&
-      HAS_FEAT(ch, FEAT_MARTIAL_WEAPON_PROFICIENCY)) {
+          HAS_FEAT(ch, FEAT_MARTIAL_WEAPON_PROFICIENCY)) {
     switch (weapon) {
       case WEAPON_TYPE_DWARVEN_WAR_AXE:
       case WEAPON_TYPE_DWARVEN_URGOSH:
@@ -166,7 +166,7 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon) {
           IS_SET(weapon_list[weapon].damageTypes, DAMAGE_TYPE_BLUDGEONING)) {
     return TRUE;
   }
-  */
+   */
 
   /* nope not proficient with given weapon! */
   return FALSE;
@@ -179,7 +179,7 @@ bool weapon_needs_reload(struct char_data *ch, struct obj_data *weapon, bool sil
     if (!silent_mode)
       send_to_char(ch, "Your weapon is not empty yet!\r\n");
     return FALSE;
-  }  
+  }
   return TRUE;
 }
 
@@ -188,7 +188,7 @@ bool ready_to_reload(struct char_data *ch, struct obj_data *wielded, bool silent
     case WEAPON_TYPE_HEAVY_REP_XBOW:
     case WEAPON_TYPE_LIGHT_REP_XBOW:
     case WEAPON_TYPE_HEAVY_CROSSBOW:
-      
+
       /* RAPID RELOAD! */
       if (HAS_FEAT(ch, FEAT_RAPID_RELOAD)) {
         if (is_action_available(ch, atMOVE, FALSE)) {
@@ -206,10 +206,10 @@ bool ready_to_reload(struct char_data *ch, struct obj_data *wielded, bool silent
             send_to_char(ch, "You need a move action to reload!\r\n");
           return FALSE;
         }
-        
-      /* no rapid reload */
+
+        /* no rapid reload */
       } else if (is_action_available(ch, atSTANDARD, FALSE) &&
-          is_action_available(ch, atMOVE, FALSE)) {
+              is_action_available(ch, atMOVE, FALSE)) {
         if (reload_weapon(ch, wielded, silent_mode)) {
           USE_FULL_ROUND_ACTION(ch); /* success! */
         } else {
@@ -218,7 +218,7 @@ bool ready_to_reload(struct char_data *ch, struct obj_data *wielded, bool silent
           /* failed reload */
           return FALSE;
         }
-        
+
       } else {
         /* reloading requires a full round action */
         if (!silent_mode)
@@ -230,11 +230,11 @@ bool ready_to_reload(struct char_data *ch, struct obj_data *wielded, bool silent
     case WEAPON_TYPE_HAND_CROSSBOW:
     case WEAPON_TYPE_LIGHT_CROSSBOW:
     case WEAPON_TYPE_SLING:
-      
+
       /* RAPID RELOAD! */
       if (HAS_FEAT(ch, FEAT_RAPID_RELOAD))
         reload_weapon(ch, wielded, silent_mode);
-      
+
       else if (is_action_available(ch, atMOVE, FALSE)) {
         if (reload_weapon(ch, wielded, silent_mode)) {
           USE_MOVE_ACTION(ch); /* success! */
@@ -258,7 +258,7 @@ bool ready_to_reload(struct char_data *ch, struct obj_data *wielded, bool silent
         send_to_char(ch, "The cucumber you are wielding is fully loaded! (error)\r\n");
       return FALSE;
   }
-  
+
   /* we made it! */
   return TRUE;
 }
@@ -274,41 +274,41 @@ bool ready_to_reload(struct char_data *ch, struct obj_data *wielded, bool silent
  * @returns:  true if success */
 bool process_load_weapon(struct char_data *ch, struct obj_data *weapon,
         bool silent_mode) {
-  
+
   /* position check */
   if (GET_POS(ch) <= POS_STUNNED) {
     if (!silent_mode)
       send_to_char(ch, "You are in no position to do this!\r \n");
     return FALSE;
   }
-  
+
   /* can't do this if stunned */
   if (AFF_FLAGGED(ch, AFF_STUN) || char_has_mud_event(ch, eSTUNNED)) {
     if (!silent_mode)
       send_to_char(ch, "You can not reload a weapon while stunned!\r\n");
-    return FALSE;    
+    return FALSE;
   }
-  
+
   /* ranged weapon? */
   if (!is_using_ranged_weapon(ch, silent_mode)) {
     return FALSE;
   }
-  
+
   /* weapon that needs reloading? */
   if (!is_reloading_weapon(ch, weapon, silent_mode)) {
     return FALSE;
   }
-  
+
   /* emptied out yet? */
   if (!weapon_needs_reload(ch, weapon, silent_mode)) {
-    return FALSE;    
+    return FALSE;
   }
-  
+
   /* check for actions, if available, reload */
   if (!ready_to_reload(ch, weapon, silent_mode)) {
     return FALSE;
   }
-  
+
   /* success! */
   send_to_char(ch, "You reload %s.\r\n", weapon->short_description);
   if (FIGHTING(ch))
@@ -322,12 +322,13 @@ bool auto_reload_weapon(struct char_data *ch, bool silent_mode) {
 
   if (!process_load_weapon(ch, wielded, silent_mode))
     return FALSE;
-  
+
   return TRUE;
 }
 
 
 #define MAX_AMMO_INSIDE_WEAPON 5 //unused
+
 bool reload_weapon(struct char_data *ch, struct obj_data *wielded, bool silent_mode) {
   int load_amount = 0;
 
@@ -350,7 +351,7 @@ bool reload_weapon(struct char_data *ch, struct obj_data *wielded, bool silent_m
 
   /* load her up! Object Value 5 is "loaded status" */
   GET_OBJ_VAL(wielded, 5) = load_amount;
-  
+
   /* if we are in combat, let's make sure we start firing! */
   if (FIGHTING(ch))
     FIRING(ch) = TRUE;
@@ -360,7 +361,7 @@ bool reload_weapon(struct char_data *ch, struct obj_data *wielded, bool silent_m
 
 /* this function checks if weapon is loaded (like crossbows) */
 bool weapon_is_loaded(struct char_data *ch, struct obj_data *wielded, bool silent) {
-  
+
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTORELOAD) && FIGHTING(ch))
     silent = TRUE; /* ornir suggested this */
 
@@ -373,9 +374,10 @@ bool weapon_is_loaded(struct char_data *ch, struct obj_data *wielded, bool silen
 
   return TRUE;
 }
+
 /* this function will check to make sure ammo is ready for firing */
 bool has_ammo_in_pouch(struct char_data *ch, struct obj_data *wielded,
-                               bool silent) {
+        bool silent) {
   struct obj_data *ammo_pouch = GET_EQ(ch, WEAR_AMMO_POUCH);
 
   if (!wielded) {
@@ -482,6 +484,7 @@ bool has_ammo_in_pouch(struct char_data *ch, struct obj_data *wielded,
   /* cleared all checks */
   return TRUE;
 }
+
 /* ranged combat (archery, etc)
  * this function will check for a ranged weapon, ammo and does
  * a check of loaded-status (like x-bow) and "has_ammo_in_pouch" */
@@ -507,11 +510,12 @@ bool can_fire_ammo(struct char_data *ch, bool silent) {
       return FALSE;
     }
   }
-  **/
-          
+   **/
+
   /* ok! */
   return TRUE;
 }
+
 /*check all wielded slots looking for ranged weapon*/
 struct obj_data *is_using_ranged_weapon(struct char_data *ch, bool silent_mode) {
   struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_2H);
@@ -526,7 +530,7 @@ struct obj_data *is_using_ranged_weapon(struct char_data *ch, bool silent_mode) 
       send_to_char(ch, "You are not wielding a ranged weapon!\r\n");
     return NULL;
   }
-  
+
   if (IS_WILDSHAPED(ch) || IS_MORPHED(ch)) {
     if (!silent_mode)
       send_to_char(ch, "What?!!?\r\n");
@@ -993,6 +997,7 @@ void load_weapons(void) {
 #define ARMOR_TYPE_SHIELD   4
 #define ARMOR_TYPE_TOWER_SHIELD   5
 #define NUM_ARMOR_TYPES     6 */
+
 /* we have to be strict here, some classes such as monk require armor_type
    check, we are going to return the lowest armortype-value that the given
    ch is wearing */
@@ -1031,12 +1036,12 @@ int compute_gear_shield_type(struct char_data *ch) {
 /* enhancement bonus + material bonus */
 int compute_gear_enhancement_bonus(struct char_data *ch) {
   struct obj_data *obj = NULL;
-  int enhancement_bonus = 0;  
+  int enhancement_bonus = 0;
   float counter = 0.0;
   float num_pieces = 0.0;
 
   /* we're going to check slot-by-slot */
-  
+
   /* SPECIAL HANDLING FOR SHIELD */
   /* shield - gets full enchantment bonus, so _do not_ increment num_pieces */
   obj = GET_EQ(ch, WEAR_SHIELD);
@@ -1050,7 +1055,7 @@ int compute_gear_enhancement_bonus(struct char_data *ch) {
         counter += 1.1;
         break;
     }
-    counter += (float)GET_OBJ_VAL(obj, 4) * 1.01;
+    counter += (float) GET_OBJ_VAL(obj, 4) * 1.01;
     /* DON'T increment num_pieces, should get full bang for buck on shields */
   }
   enhancement_bonus += counter;
@@ -1070,7 +1075,7 @@ int compute_gear_enhancement_bonus(struct char_data *ch) {
         counter += 1.1;
         break;
     }
-    counter += (float)GET_OBJ_VAL(obj, 4) * 1.01;
+    counter += (float) GET_OBJ_VAL(obj, 4) * 1.01;
   }
 
   /* head */
@@ -1086,7 +1091,7 @@ int compute_gear_enhancement_bonus(struct char_data *ch) {
         counter += 1.1;
         break;
     }
-    counter += (float)GET_OBJ_VAL(obj, 4) * 1.01;
+    counter += (float) GET_OBJ_VAL(obj, 4) * 1.01;
   }
 
   /* legs */
@@ -1102,7 +1107,7 @@ int compute_gear_enhancement_bonus(struct char_data *ch) {
         counter += 1.1;
         break;
     }
-    counter += (float)GET_OBJ_VAL(obj, 4) * 1.01;
+    counter += (float) GET_OBJ_VAL(obj, 4) * 1.01;
   }
 
   /* arms */
@@ -1118,10 +1123,10 @@ int compute_gear_enhancement_bonus(struct char_data *ch) {
         counter += 1.1;
         break;
     }
-    counter += (float)GET_OBJ_VAL(obj, 4) * 1.01;
+    counter += (float) GET_OBJ_VAL(obj, 4) * 1.01;
   }
-  
-  enhancement_bonus += MAX(0, (int)( counter/num_pieces ));
+
+  enhancement_bonus += MAX(0, (int) (counter / num_pieces));
 
   return enhancement_bonus;
 }
@@ -1134,8 +1139,8 @@ int compute_gear_spell_failure(struct char_data *ch) {
   for (i = 0; i < NUM_WEARS; i++) {
     obj = GET_EQ(ch, i);
     if (obj && GET_OBJ_TYPE(obj) == ITEM_ARMOR &&
-        (i == WEAR_BODY || i == WEAR_HEAD || i == WEAR_LEGS || i == WEAR_ARMS ||
-         i == WEAR_SHIELD)) {
+            (i == WEAR_BODY || i == WEAR_HEAD || i == WEAR_LEGS || i == WEAR_ARMS ||
+            i == WEAR_SHIELD)) {
       if (i != WEAR_SHIELD) /* shield and armor combined increase spell failure chance */
         count++;
       /* ok we have an armor piece... */
@@ -1167,8 +1172,8 @@ int compute_gear_armor_penalty(struct char_data *ch) {
   for (i = 0; i < NUM_WEARS; i++) {
     obj = GET_EQ(ch, i);
     if (obj && GET_OBJ_TYPE(obj) == ITEM_ARMOR &&
-        (i == WEAR_BODY || i == WEAR_HEAD || i == WEAR_LEGS || i == WEAR_ARMS ||
-         i == WEAR_SHIELD)) {
+            (i == WEAR_BODY || i == WEAR_HEAD || i == WEAR_LEGS || i == WEAR_ARMS ||
+            i == WEAR_SHIELD)) {
       count++;
       /* ok we have an armor piece... */
       armor_penalty += armor_list[GET_OBJ_VAL(obj, 1)].armorCheck;
@@ -1195,14 +1200,14 @@ int compute_gear_max_dex(struct char_data *ch) {
 
   if (IS_WILDSHAPED(ch) || IS_MORPHED(ch))/* not wearing armor, no limit to dexterity */
     return 99;
-  
+
   struct obj_data *obj = NULL;
 
   for (i = 0; i < NUM_WEARS; i++) {
     obj = GET_EQ(ch, i);
     if (obj && GET_OBJ_TYPE(obj) == ITEM_ARMOR &&
-        (i == WEAR_BODY || i == WEAR_HEAD || i == WEAR_LEGS || i == WEAR_ARMS ||
-         i == WEAR_SHIELD)) {
+            (i == WEAR_BODY || i == WEAR_HEAD || i == WEAR_LEGS || i == WEAR_ARMS ||
+            i == WEAR_SHIELD)) {
       /* ok we have an armor piece... */
       armor_max_dexterity = armor_list[GET_OBJ_VAL(obj, 1)].dexBonus;
       if (armor_max_dexterity == 99) /* no limit to dexterity */
@@ -1380,20 +1385,20 @@ int is_proficient_with_leggings(struct char_data *ch) {
 /* simply checks if ch has proficiency with given armor_type */
 int is_proficient_with_armor(struct char_data *ch) {
   if (
-      is_proficient_with_leggings(ch) &&
-      is_proficient_with_sleeves(ch) &&
-      is_proficient_with_helm(ch) &&
-      is_proficient_with_body_armor(ch) &&
-      is_proficient_with_shield(ch)
-      )
+          is_proficient_with_leggings(ch) &&
+          is_proficient_with_sleeves(ch) &&
+          is_proficient_with_helm(ch) &&
+          is_proficient_with_body_armor(ch) &&
+          is_proficient_with_shield(ch)
+          )
     return TRUE;
 
   return FALSE;
 }
 
 void setarmor(int type, char *name, int armorType, int cost, int armorBonus,
-              int dexBonus, int armorCheck, int spellFail, int thirtyFoot,
-              int twentyFoot, int weight, int material, int wear) {
+        int dexBonus, int armorCheck, int spellFail, int thirtyFoot,
+        int twentyFoot, int weight, int material, int wear) {
   armor_list[type].name = name;
   armor_list[type].armorType = armorType;
   armor_list[type].cost = cost;
@@ -1434,134 +1439,134 @@ void load_armor(void) {
    *    weight, material, wear) */
   /* UNARMORED */
   setarmor(SPEC_ARMOR_TYPE_CLOTHING, "robe", ARMOR_TYPE_NONE,
-    10, 0, 99, 0, 0, 30, 20,
-    1, MATERIAL_COTTON, ITEM_WEAR_BODY);
+          10, 0, 99, 0, 0, 30, 20,
+          1, MATERIAL_COTTON, ITEM_WEAR_BODY);
   setarmor(SPEC_ARMOR_TYPE_CLOTHING_HEAD, "hood", ARMOR_TYPE_NONE,
-    10, 0, 99, 0, 0, 30, 20,
-    1, MATERIAL_COTTON, ITEM_WEAR_HEAD);
+          10, 0, 99, 0, 0, 30, 20,
+          1, MATERIAL_COTTON, ITEM_WEAR_HEAD);
   setarmor(SPEC_ARMOR_TYPE_CLOTHING_ARMS, "sleeves", ARMOR_TYPE_NONE,
-    10, 0, 99, 0, 0, 30, 20,
-    1, MATERIAL_COTTON, ITEM_WEAR_ARMS);
+          10, 0, 99, 0, 0, 30, 20,
+          1, MATERIAL_COTTON, ITEM_WEAR_ARMS);
   setarmor(SPEC_ARMOR_TYPE_CLOTHING_LEGS, "pants", ARMOR_TYPE_NONE,
-    10, 0, 99, 0, 0, 30, 20,
-    1, MATERIAL_COTTON, ITEM_WEAR_LEGS);
+          10, 0, 99, 0, 0, 30, 20,
+          1, MATERIAL_COTTON, ITEM_WEAR_LEGS);
 
   /* LIGHT ARMOR ********************/
   setarmor(SPEC_ARMOR_TYPE_PADDED, "padded body armor", ARMOR_TYPE_LIGHT,
-    50, 9, 8, 0, 5, 30, 20,
-    7, MATERIAL_COTTON, ITEM_WEAR_BODY);
+          50, 9, 8, 0, 5, 30, 20,
+          7, MATERIAL_COTTON, ITEM_WEAR_BODY);
   setarmor(SPEC_ARMOR_TYPE_PADDED_HEAD, "padded armor helm", ARMOR_TYPE_LIGHT,
-    50, 1, 8, 0, 5, 30, 20,
-    1, MATERIAL_COTTON, ITEM_WEAR_HEAD);
+          50, 1, 8, 0, 5, 30, 20,
+          1, MATERIAL_COTTON, ITEM_WEAR_HEAD);
   setarmor(SPEC_ARMOR_TYPE_PADDED_ARMS, "padded armor sleeves", ARMOR_TYPE_LIGHT,
-    50, 1, 8, 0, 5, 30, 20,
-    1, MATERIAL_COTTON, ITEM_WEAR_ARMS);
+          50, 1, 8, 0, 5, 30, 20,
+          1, MATERIAL_COTTON, ITEM_WEAR_ARMS);
   setarmor(SPEC_ARMOR_TYPE_PADDED_LEGS, "padded armor leggings", ARMOR_TYPE_LIGHT,
-    50, 1, 8, 0, 5, 30, 20,
-    1, MATERIAL_COTTON, ITEM_WEAR_LEGS);
+          50, 1, 8, 0, 5, 30, 20,
+          1, MATERIAL_COTTON, ITEM_WEAR_LEGS);
 
   setarmor(SPEC_ARMOR_TYPE_LEATHER, "leather armor", ARMOR_TYPE_LIGHT,
-    100, 14, 6, 0, 10, 30, 20,
-    9, MATERIAL_LEATHER, ITEM_WEAR_BODY);
+          100, 14, 6, 0, 10, 30, 20,
+          9, MATERIAL_LEATHER, ITEM_WEAR_BODY);
   setarmor(SPEC_ARMOR_TYPE_LEATHER_HEAD, "leather helm", ARMOR_TYPE_LIGHT,
-    100, 4, 6, 0, 10, 30, 20,
-    2, MATERIAL_LEATHER, ITEM_WEAR_HEAD);
+          100, 4, 6, 0, 10, 30, 20,
+          2, MATERIAL_LEATHER, ITEM_WEAR_HEAD);
   setarmor(SPEC_ARMOR_TYPE_LEATHER_ARMS, "leather sleeves", ARMOR_TYPE_LIGHT,
-    100, 4, 6, 0, 10, 30, 20,
-    2, MATERIAL_LEATHER, ITEM_WEAR_ARMS);
+          100, 4, 6, 0, 10, 30, 20,
+          2, MATERIAL_LEATHER, ITEM_WEAR_ARMS);
   setarmor(SPEC_ARMOR_TYPE_LEATHER_LEGS, "leather leggings", ARMOR_TYPE_LIGHT,
-    100, 4, 6, 0, 10, 30, 20,
-    2, MATERIAL_LEATHER, ITEM_WEAR_LEGS);
+          100, 4, 6, 0, 10, 30, 20,
+          2, MATERIAL_LEATHER, ITEM_WEAR_LEGS);
 
   /* (armor, name, type,
    *    cost, AC, dexBonusCap, armorCheckPenalty, spellFailChance, (move)30ft, (move)20ft,
    *    weight, material, wear) */
   setarmor(SPEC_ARMOR_TYPE_STUDDED_LEATHER, "studded leather armor", ARMOR_TYPE_LIGHT,
-    250, 20, 5, -1, 15, 30, 20,
-    11, MATERIAL_LEATHER, ITEM_WEAR_BODY);
+          250, 20, 5, -1, 15, 30, 20,
+          11, MATERIAL_LEATHER, ITEM_WEAR_BODY);
   setarmor(SPEC_ARMOR_TYPE_STUDDED_LEATHER_HEAD, "studded leather helm", ARMOR_TYPE_LIGHT,
-    250, 6, 5, -1, 15, 30, 20,
-    3, MATERIAL_LEATHER, ITEM_WEAR_HEAD);
+          250, 6, 5, -1, 15, 30, 20,
+          3, MATERIAL_LEATHER, ITEM_WEAR_HEAD);
   setarmor(SPEC_ARMOR_TYPE_STUDDED_LEATHER_ARMS, "studded leather sleeves", ARMOR_TYPE_LIGHT,
-    250, 6, 5, -1, 15, 30, 20,
-    3, MATERIAL_LEATHER, ITEM_WEAR_ARMS);
+          250, 6, 5, -1, 15, 30, 20,
+          3, MATERIAL_LEATHER, ITEM_WEAR_ARMS);
   setarmor(SPEC_ARMOR_TYPE_STUDDED_LEATHER_LEGS, "studded leather leggings", ARMOR_TYPE_LIGHT,
-    250, 6, 5, -1, 15, 30, 20,
-    3, MATERIAL_LEATHER, ITEM_WEAR_LEGS);
+          250, 6, 5, -1, 15, 30, 20,
+          3, MATERIAL_LEATHER, ITEM_WEAR_LEGS);
 
   setarmor(SPEC_ARMOR_TYPE_LIGHT_CHAIN, "light chainmail armor", ARMOR_TYPE_LIGHT,
-    1000, 24, 4, -2, 20, 30, 20,
-    13, MATERIAL_STEEL, ITEM_WEAR_BODY);
+          1000, 24, 4, -2, 20, 30, 20,
+          13, MATERIAL_STEEL, ITEM_WEAR_BODY);
   setarmor(SPEC_ARMOR_TYPE_LIGHT_CHAIN_HEAD, "light chainmail helm", ARMOR_TYPE_LIGHT,
-    1000, 9, 4, -2, 20, 30, 20,
-    4, MATERIAL_STEEL, ITEM_WEAR_HEAD);
+          1000, 9, 4, -2, 20, 30, 20,
+          4, MATERIAL_STEEL, ITEM_WEAR_HEAD);
   setarmor(SPEC_ARMOR_TYPE_LIGHT_CHAIN_ARMS, "light chainmail sleeves", ARMOR_TYPE_LIGHT,
-    1000, 9, 4, -2, 20, 30, 20,
-    4, MATERIAL_STEEL, ITEM_WEAR_ARMS);
+          1000, 9, 4, -2, 20, 30, 20,
+          4, MATERIAL_STEEL, ITEM_WEAR_ARMS);
   setarmor(SPEC_ARMOR_TYPE_LIGHT_CHAIN_LEGS, "light chainmail leggings", ARMOR_TYPE_LIGHT,
-    1000, 9, 4, -2, 20, 30, 20,
-    4, MATERIAL_STEEL, ITEM_WEAR_LEGS);
+          1000, 9, 4, -2, 20, 30, 20,
+          4, MATERIAL_STEEL, ITEM_WEAR_LEGS);
 
   /******************* MEDIUM ARMOR *******************************************/
 
   setarmor(SPEC_ARMOR_TYPE_HIDE, "hide armor", ARMOR_TYPE_MEDIUM,
-    150, 26, 4, -3, 20, 20, 15,
-    13, MATERIAL_LEATHER, ITEM_WEAR_BODY);
+          150, 26, 4, -3, 20, 20, 15,
+          13, MATERIAL_LEATHER, ITEM_WEAR_BODY);
   setarmor(SPEC_ARMOR_TYPE_HIDE_HEAD, "hide helm", ARMOR_TYPE_MEDIUM,
-    150, 10, 4, -3, 20, 20, 15,
-    4, MATERIAL_LEATHER, ITEM_WEAR_HEAD);
+          150, 10, 4, -3, 20, 20, 15,
+          4, MATERIAL_LEATHER, ITEM_WEAR_HEAD);
   setarmor(SPEC_ARMOR_TYPE_HIDE_ARMS, "hide sleeves", ARMOR_TYPE_MEDIUM,
-    150, 10, 4, -3, 20, 20, 15,
-    4, MATERIAL_LEATHER, ITEM_WEAR_ARMS);
+          150, 10, 4, -3, 20, 20, 15,
+          4, MATERIAL_LEATHER, ITEM_WEAR_ARMS);
   setarmor(SPEC_ARMOR_TYPE_HIDE_LEGS, "hide leggings", ARMOR_TYPE_MEDIUM,
-    150, 10, 4, -3, 20, 20, 15,
-    4, MATERIAL_LEATHER, ITEM_WEAR_LEGS);
+          150, 10, 4, -3, 20, 20, 15,
+          4, MATERIAL_LEATHER, ITEM_WEAR_LEGS);
 
   /* (armor, name, type,
    *    cost, AC, dexBonusCap, armorCheckPenalty, spellFailChance, (move)30ft, (move)20ft,
    *    weight, material, wear) */
   setarmor(SPEC_ARMOR_TYPE_SCALE, "scale armor", ARMOR_TYPE_MEDIUM,
-    500, 32, 3, -4, 25, 20, 15,
-    15, MATERIAL_STEEL, ITEM_WEAR_BODY);
+          500, 32, 3, -4, 25, 20, 15,
+          15, MATERIAL_STEEL, ITEM_WEAR_BODY);
   setarmor(SPEC_ARMOR_TYPE_SCALE_HEAD, "scale helm", ARMOR_TYPE_MEDIUM,
-    500, 12, 3, -4, 25, 20, 15,
-    5, MATERIAL_STEEL, ITEM_WEAR_HEAD);
+          500, 12, 3, -4, 25, 20, 15,
+          5, MATERIAL_STEEL, ITEM_WEAR_HEAD);
   setarmor(SPEC_ARMOR_TYPE_SCALE_ARMS, "scale sleeves", ARMOR_TYPE_MEDIUM,
-    500, 12, 3, -4, 25, 20, 15,
-    5, MATERIAL_STEEL, ITEM_WEAR_ARMS);
+          500, 12, 3, -4, 25, 20, 15,
+          5, MATERIAL_STEEL, ITEM_WEAR_ARMS);
   setarmor(SPEC_ARMOR_TYPE_SCALE_LEGS, "scale leggings", ARMOR_TYPE_MEDIUM,
-    500, 12, 3, -4, 25, 20, 15,
-    5, MATERIAL_STEEL, ITEM_WEAR_LEGS);
+          500, 12, 3, -4, 25, 20, 15,
+          5, MATERIAL_STEEL, ITEM_WEAR_LEGS);
 
   setarmor(SPEC_ARMOR_TYPE_CHAINMAIL, "chainmail armor", ARMOR_TYPE_MEDIUM,
-    1500, 37, 2, -5, 30, 20, 15,
-    27, MATERIAL_STEEL, ITEM_WEAR_BODY);
+          1500, 37, 2, -5, 30, 20, 15,
+          27, MATERIAL_STEEL, ITEM_WEAR_BODY);
   setarmor(SPEC_ARMOR_TYPE_CHAINMAIL_HEAD, "chainmail helm", ARMOR_TYPE_MEDIUM,
-    1500, 15, 2, -5, 30, 20, 15,
-    11, MATERIAL_STEEL, ITEM_WEAR_HEAD);
+          1500, 15, 2, -5, 30, 20, 15,
+          11, MATERIAL_STEEL, ITEM_WEAR_HEAD);
   /* duplicate item */
   setarmor(SPEC_ARMOR_TYPE_CHAIN_HEAD, "chainmail helm", ARMOR_TYPE_MEDIUM,
-    1500, 15, 2, -5, 30, 20, 15,
-    11, MATERIAL_STEEL, ITEM_WEAR_HEAD);
+          1500, 15, 2, -5, 30, 20, 15,
+          11, MATERIAL_STEEL, ITEM_WEAR_HEAD);
   setarmor(SPEC_ARMOR_TYPE_CHAINMAIL_ARMS, "chainmail sleeves", ARMOR_TYPE_MEDIUM,
-    1500, 15, 2, -5, 30, 20, 15,
-    11, MATERIAL_STEEL, ITEM_WEAR_ARMS);
+          1500, 15, 2, -5, 30, 20, 15,
+          11, MATERIAL_STEEL, ITEM_WEAR_ARMS);
   setarmor(SPEC_ARMOR_TYPE_CHAINMAIL_LEGS, "chainmail leggings", ARMOR_TYPE_MEDIUM,
-    1500, 15, 2, -5, 30, 20, 15,
-    11, MATERIAL_STEEL, ITEM_WEAR_LEGS);
+          1500, 15, 2, -5, 30, 20, 15,
+          11, MATERIAL_STEEL, ITEM_WEAR_LEGS);
 
   setarmor(SPEC_ARMOR_TYPE_PIECEMEAL, "piecemeal armor", ARMOR_TYPE_MEDIUM,
-    2000, 35, 3, -4, 25, 20, 15,
-    19, MATERIAL_STEEL, ITEM_WEAR_BODY);
+          2000, 35, 3, -4, 25, 20, 15,
+          19, MATERIAL_STEEL, ITEM_WEAR_BODY);
   setarmor(SPEC_ARMOR_TYPE_PIECEMEAL_HEAD, "piecemeal helm", ARMOR_TYPE_MEDIUM,
-    2000, 14, 3, -4, 25, 20, 15,
-    7, MATERIAL_STEEL, ITEM_WEAR_HEAD);
+          2000, 14, 3, -4, 25, 20, 15,
+          7, MATERIAL_STEEL, ITEM_WEAR_HEAD);
   setarmor(SPEC_ARMOR_TYPE_PIECEMEAL_ARMS, "piecemeal sleeves", ARMOR_TYPE_MEDIUM,
-    2000, 14, 3, -4, 25, 20, 15,
-    7, MATERIAL_STEEL, ITEM_WEAR_ARMS);
+          2000, 14, 3, -4, 25, 20, 15,
+          7, MATERIAL_STEEL, ITEM_WEAR_ARMS);
   setarmor(SPEC_ARMOR_TYPE_PIECEMEAL_LEGS, "piecemeal leggings", ARMOR_TYPE_MEDIUM,
-    2000, 14, 3, -4, 25, 20, 15,
-    7, MATERIAL_STEEL, ITEM_WEAR_LEGS);
+          2000, 14, 3, -4, 25, 20, 15,
+          7, MATERIAL_STEEL, ITEM_WEAR_LEGS);
 
   /******************* HEAVY ARMOR *******************************************/
 
@@ -1569,75 +1574,75 @@ void load_armor(void) {
    *    cost, AC, dexBonusCap, armorCheckPenalty, spellFailChance, (move)30ft, (move)20ft,
    *    weight, material, wear) */
   setarmor(SPEC_ARMOR_TYPE_SPLINT, "splint mail armor", ARMOR_TYPE_HEAVY,
-    2000, 46, 0, -7, 40, 20, 15,
-    21, MATERIAL_STEEL, ITEM_WEAR_BODY);
+          2000, 46, 0, -7, 40, 20, 15,
+          21, MATERIAL_STEEL, ITEM_WEAR_BODY);
   setarmor(SPEC_ARMOR_TYPE_SPLINT_HEAD, "splint mail helm", ARMOR_TYPE_HEAVY,
-    2000, 19, 0, -7, 40, 20, 15,
-    8, MATERIAL_STEEL, ITEM_WEAR_HEAD);
+          2000, 19, 0, -7, 40, 20, 15,
+          8, MATERIAL_STEEL, ITEM_WEAR_HEAD);
   setarmor(SPEC_ARMOR_TYPE_SPLINT_ARMS, "splint mail sleeves", ARMOR_TYPE_HEAVY,
-    2000, 19, 0, -7, 40, 20, 15,
-    8, MATERIAL_STEEL, ITEM_WEAR_ARMS);
+          2000, 19, 0, -7, 40, 20, 15,
+          8, MATERIAL_STEEL, ITEM_WEAR_ARMS);
   setarmor(SPEC_ARMOR_TYPE_SPLINT_LEGS, "splint mail leggings", ARMOR_TYPE_HEAVY,
-    2000, 19, 0, -7, 40, 20, 15,
-    8, MATERIAL_STEEL, ITEM_WEAR_LEGS);
+          2000, 19, 0, -7, 40, 20, 15,
+          8, MATERIAL_STEEL, ITEM_WEAR_LEGS);
 
   setarmor(SPEC_ARMOR_TYPE_BANDED, "banded mail armor", ARMOR_TYPE_HEAVY,
-    2500, 47, 1, -6, 35, 20, 15,
-    17, MATERIAL_STEEL, ITEM_WEAR_BODY);
+          2500, 47, 1, -6, 35, 20, 15,
+          17, MATERIAL_STEEL, ITEM_WEAR_BODY);
   setarmor(SPEC_ARMOR_TYPE_BANDED_HEAD, "banded mail helm", ARMOR_TYPE_HEAVY,
-    2500, 20, 1, -6, 35, 20, 15,
-    6, MATERIAL_STEEL, ITEM_WEAR_HEAD);
+          2500, 20, 1, -6, 35, 20, 15,
+          6, MATERIAL_STEEL, ITEM_WEAR_HEAD);
   setarmor(SPEC_ARMOR_TYPE_BANDED_ARMS, "banded mail sleeves", ARMOR_TYPE_HEAVY,
-    2500, 20, 1, -6, 35, 20, 15,
-    6, MATERIAL_STEEL, ITEM_WEAR_ARMS);
+          2500, 20, 1, -6, 35, 20, 15,
+          6, MATERIAL_STEEL, ITEM_WEAR_ARMS);
   setarmor(SPEC_ARMOR_TYPE_BANDED_LEGS, "banded mail leggings", ARMOR_TYPE_HEAVY,
-    2500, 20, 1, -6, 35, 20, 15,
-    6, MATERIAL_STEEL, ITEM_WEAR_LEGS);
+          2500, 20, 1, -6, 35, 20, 15,
+          6, MATERIAL_STEEL, ITEM_WEAR_LEGS);
 
   setarmor(SPEC_ARMOR_TYPE_HALF_PLATE, "half plate armor", ARMOR_TYPE_HEAVY,
-    6000, 52, 1, -6, 40, 20, 15,
-    23, MATERIAL_STEEL, ITEM_WEAR_BODY);
+          6000, 52, 1, -6, 40, 20, 15,
+          23, MATERIAL_STEEL, ITEM_WEAR_BODY);
   setarmor(SPEC_ARMOR_TYPE_HALF_PLATE_HEAD, "half plate helm", ARMOR_TYPE_HEAVY,
-    6000, 22, 1, -6, 40, 20, 15,
-    9, MATERIAL_STEEL, ITEM_WEAR_HEAD);
+          6000, 22, 1, -6, 40, 20, 15,
+          9, MATERIAL_STEEL, ITEM_WEAR_HEAD);
   setarmor(SPEC_ARMOR_TYPE_HALF_PLATE_ARMS, "half plate sleeves", ARMOR_TYPE_HEAVY,
-    6000, 22, 1, -6, 40, 20, 15,
-    9, MATERIAL_STEEL, ITEM_WEAR_ARMS);
+          6000, 22, 1, -6, 40, 20, 15,
+          9, MATERIAL_STEEL, ITEM_WEAR_ARMS);
   setarmor(SPEC_ARMOR_TYPE_HALF_PLATE_LEGS, "half plate leggings", ARMOR_TYPE_HEAVY,
-    6000, 22, 1, -6, 40, 20, 15,
-    9, MATERIAL_STEEL, ITEM_WEAR_LEGS);
+          6000, 22, 1, -6, 40, 20, 15,
+          9, MATERIAL_STEEL, ITEM_WEAR_LEGS);
 
   /* (armor, name, type,
    *    cost, AC, dexBonusCap, armorCheckPenalty, spellFailChance, (move)30ft, (move)20ft,
    *    weight, material, wear) */
   setarmor(SPEC_ARMOR_TYPE_FULL_PLATE, "full plate armor", ARMOR_TYPE_HEAVY,
-    15000, 60, 1, -6, 35, 20, 15,
-    23, MATERIAL_STEEL, ITEM_WEAR_BODY);
+          15000, 60, 1, -6, 35, 20, 15,
+          23, MATERIAL_STEEL, ITEM_WEAR_BODY);
   setarmor(SPEC_ARMOR_TYPE_FULL_PLATE_HEAD, "full plate helm", ARMOR_TYPE_HEAVY,
-    15000, 25, 1, -6, 35, 20, 15,
-    9, MATERIAL_STEEL, ITEM_WEAR_HEAD);
+          15000, 25, 1, -6, 35, 20, 15,
+          9, MATERIAL_STEEL, ITEM_WEAR_HEAD);
   setarmor(SPEC_ARMOR_TYPE_FULL_PLATE_ARMS, "full plate sleeves", ARMOR_TYPE_HEAVY,
-    15000, 25, 1, -6, 35, 20, 15,
-    9, MATERIAL_STEEL, ITEM_WEAR_ARMS);
+          15000, 25, 1, -6, 35, 20, 15,
+          9, MATERIAL_STEEL, ITEM_WEAR_ARMS);
   setarmor(SPEC_ARMOR_TYPE_FULL_PLATE_LEGS, "full plate leggings", ARMOR_TYPE_HEAVY,
-    15000, 25, 1, -6, 35, 20, 15,
-    9, MATERIAL_STEEL, ITEM_WEAR_LEGS);
+          15000, 25, 1, -6, 35, 20, 15,
+          9, MATERIAL_STEEL, ITEM_WEAR_LEGS);
 
   /* (armor, name, type,
    *    cost, AC, dexBonusCap, armorCheckPenalty, spellFailChance, (move)30ft, (move)20ft,
    *    weight, material, wear) */
   setarmor(SPEC_ARMOR_TYPE_BUCKLER, "buckler shield", ARMOR_TYPE_SHIELD,
-    150, 10, 99, -1, 5, 999, 999,
-    5, MATERIAL_WOOD, ITEM_WEAR_SHIELD);
+          150, 10, 99, -1, 5, 999, 999,
+          5, MATERIAL_WOOD, ITEM_WEAR_SHIELD);
   setarmor(SPEC_ARMOR_TYPE_SMALL_SHIELD, "light shield", ARMOR_TYPE_SHIELD,
-    90, 15, 99, -1, 5, 999, 999,
-    6, MATERIAL_WOOD, ITEM_WEAR_SHIELD);
+          90, 15, 99, -1, 5, 999, 999,
+          6, MATERIAL_WOOD, ITEM_WEAR_SHIELD);
   setarmor(SPEC_ARMOR_TYPE_LARGE_SHIELD, "heavy shield", ARMOR_TYPE_SHIELD,
-    200, 20, 99, -2, 15, 999, 999,
-    13, MATERIAL_WOOD, ITEM_WEAR_SHIELD);
+          200, 20, 99, -2, 15, 999, 999,
+          13, MATERIAL_WOOD, ITEM_WEAR_SHIELD);
   setarmor(SPEC_ARMOR_TYPE_TOWER_SHIELD, "tower shield", ARMOR_TYPE_TOWER_SHIELD,
-    300, 40, 2, -10, 50, 999, 999,
-    45, MATERIAL_WOOD, ITEM_WEAR_SHIELD);
+          300, 40, 2, -10, 50, 999, 999,
+          45, MATERIAL_WOOD, ITEM_WEAR_SHIELD);
 }
 
 /******* special mixed checks (such as monk) */
@@ -1676,17 +1681,17 @@ bool monk_gear_ok(struct char_data *ch) {
 
   obj = GET_EQ(ch, WEAR_WIELD_1);
   if (obj &&
-      (weapon_list[GET_WEAPON_TYPE(obj)].weaponFamily != WEAPON_FAMILY_MONK))
+          (weapon_list[GET_WEAPON_TYPE(obj)].weaponFamily != WEAPON_FAMILY_MONK))
     return FALSE;
 
   obj = GET_EQ(ch, WEAR_WIELD_OFFHAND);
   if (obj &&
-      (weapon_list[GET_WEAPON_TYPE(obj)].weaponFamily != WEAPON_FAMILY_MONK))
+          (weapon_list[GET_WEAPON_TYPE(obj)].weaponFamily != WEAPON_FAMILY_MONK))
     return FALSE;
 
   obj = GET_EQ(ch, WEAR_WIELD_2H);
   if (obj &&
-      (weapon_list[GET_WEAPON_TYPE(obj)].weaponFamily != WEAPON_FAMILY_MONK))
+          (weapon_list[GET_WEAPON_TYPE(obj)].weaponFamily != WEAPON_FAMILY_MONK))
     return FALSE;
 
   /* now check to make sure he isn't wearing invalid armor */
@@ -1732,17 +1737,17 @@ ACMD(do_weaponlist) {
     sprintbit(weapon_list[type].damageTypes, weapon_damage_types, buf3, sizeof (buf3));
 
     len += snprintf(buf + len, sizeof (buf) - len,
-                   "\tW%s\tn, Dam: %dd%d, Threat: %d, Crit-Multi: %d, Flags: %s, Cost: %d, "
+            "\tW%s\tn, Dam: %dd%d, Threat: %d, Crit-Multi: %d, Flags: %s, Cost: %d, "
             "Dam-Types: %s, Weight: %d, Range: %d, Family: %s, Size: %s, Material: %s, "
             "Handle: %s, Head: %s.\r\n",
-                   weapon_list[type].name, weapon_list[type].numDice, weapon_list[type].diceSize,
-                   (20 - weapon_list[type].critRange), crit_multi, buf2, weapon_list[type].cost,
-                   buf3, weapon_list[type].weight, weapon_list[type].range,
-                   weapon_family[weapon_list[type].weaponFamily],
-                   sizes[weapon_list[type].size], material_name[weapon_list[type].material],
-                   weapon_handle_types[weapon_list[type].handle_type],
-                   weapon_head_types[weapon_list[type].head_type]
-                   );
+            weapon_list[type].name, weapon_list[type].numDice, weapon_list[type].diceSize,
+            (20 - weapon_list[type].critRange), crit_multi, buf2, weapon_list[type].cost,
+            buf3, weapon_list[type].weight, weapon_list[type].range,
+            weapon_family[weapon_list[type].weaponFamily],
+            sizes[weapon_list[type].size], material_name[weapon_list[type].material],
+            weapon_handle_types[weapon_list[type].handle_type],
+            weapon_head_types[weapon_list[type].head_type]
+            );
 
   }
   page_string(ch->desc, buf, 1);
@@ -1759,10 +1764,10 @@ ACMD(do_armorlist) {
             "AC: %.1f, Max Dex: %d, Armor Penalty: %d, Spell Fail: %d, Weight: %d, "
             "Material: %s\r\n",
             armor_list[i].name, armor_type[armor_list[i].armorType],
-            armor_list[i].cost, (float)armor_list[i].armorBonus/10.0,
+            armor_list[i].cost, (float) armor_list[i].armorBonus / 10.0,
             armor_list[i].dexBonus, armor_list[i].armorCheck, armor_list[i].spellFail,
             armor_list[i].weight, material_name[armor_list[i].material]
-                    );
+            );
   }
   page_string(ch->desc, buf, 1);
 }
@@ -1844,7 +1849,7 @@ int proficiency_worn(struct char_data *ch, int type) {
 
   return prof;
 }
-*/
+ */
 
 /* deprecated */
 /*
@@ -1876,7 +1881,7 @@ int determine_gear_weight(struct char_data *ch, int type) {
 
   return weight;
 }
-*/
+ */
 
 /* this function will determine the penalty (or lack of) created
  by the gear the character is wearing - this penalty is mostly in
@@ -1904,7 +1909,7 @@ int compute_gear_penalty_check(struct char_data *ch) {
 
   return 0; //should be less than 10
 }
-*/
+ */
 
 /* this function will determine the % penalty created by the
    gear the char is wearing - this penalty is unique to
@@ -1939,7 +1944,7 @@ int compute_gear_arcane_fail(struct char_data *ch) {
   return 0; //should be less than 10
 
 }
-*/
+ */
 
 /* this function will determine the dam-reduc created by the
    gear the char is wearing  */
@@ -1973,7 +1978,7 @@ int compute_gear_dam_reduc(struct char_data *ch) {
 
   return 0; //should be less than 10
 }
-*/
+ */
 
 /* this function will determine the max-dex created by the
    gear the char is wearing  */
@@ -2010,4 +2015,4 @@ int compute_gear_max_dex(struct char_data *ch) {
   else
     return 99; // wearing no weight!
 }
-*/
+ */
