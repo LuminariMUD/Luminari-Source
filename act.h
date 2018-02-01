@@ -607,6 +607,7 @@ ACMD(do_eqrating);
 ACMD(do_coordconvert);
 ACMD(do_genmap);
 ACMD(do_genriver);
+ACMD(do_deletepath);
 ACMD(do_oconvert);
 ACMD(do_acconvert);
 ACMD(do_findmagic);
