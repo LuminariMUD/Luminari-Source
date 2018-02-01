@@ -604,7 +604,11 @@ bool delete_path(region_vnum vnum) {
     log("SYSERR: Unable to delete from path_data: %s", mysql_error(conn));
     return false;
   }
-  return true; 
+
+  if (mysql_affected_rows())
+    return true; 
+  else
+    return false;
 }
 
 struct path_list* get_enclosing_paths(zone_rnum zone, int x, int y) {
