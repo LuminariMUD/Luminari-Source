@@ -17,7 +17,7 @@
 #include "interpreter.h"
 #include "handler.h"
 #include "db.h"
-
+#include "psionics.h"
 #include "feats.h"
 /* spells.h included in header file */
 
@@ -35,16 +35,15 @@
 
 
 
-#ifdef PSI_CLASS_ENABLED
 /* returns 0 if PC cannot use the skill, other wise returns the psp cost of
  * using the skill.. Gods still pay 1 psp per skill, faster and less messier that way */
 
 /* hah, not entirely true.  returns -1 if the PC can't use the skill,
-   returns 0 if they don't have enough mana.  I've swithced that now, for
+   returns 0 if they don't have enough psp.  I've swithced that now, for
    mob psionics. --D2 */
 int canUsePsionicSkill(struct char_data *ch, int skill) {
   int proficiency = 0, pspCost = 0, level = 0, hasPsps = 0;
-  struct obj_data * crystal;
+  struct obj_data *crystal;
 
   /* Should never happen if called from psi skill routines but you in case.. */
   if (!ch) {
@@ -55,74 +54,74 @@ int canUsePsionicSkill(struct char_data *ch, int skill) {
   //  if (IS_TRUSTED(ch))
   //    return 1;
 
-  if (IS_PC(ch)) {
+  if (!IS_NPC(ch)) {
     if (!(proficiency = GET_SKILL(ch, skill)))
       return 0;
   } else if (IS_PSIONICIST(ch)) {
     level = GET_LEVEL(ch);
     switch (skill) {
-      case SKILL_CHARGE:
+      case PSIONIC_CHARGE:
         return 1;
-      case SKILL_MINDBLAST:
+      case PSIONIC_MINDBLAST:
         break;
-      case SKILL_PROJECT_FORCE:
-        if (level < 9)
+      case PSIONIC_PROJECT_FORCE:
+        if (level < 4)
           return 0;
         break;
-      case SKILL_DETONATE:
-        if (level < 9)
+      case PSIONIC_DETONATE:
+        if (level < 4)
           return 0;
         break;
-      case SKILL_ADRENALIZE:
-        if (level < 12)
+      case PSIONIC_ADRENALIZE:
+        if (level < 6)
           return 0;
         break;
-      case SKILL_FLESH_ARMOR:
-        if (level < 17)
+      case PSIONIC_FLESH_ARMOR:
+        if (level < 8)
           return 0;
         break;
-      case SKILL_REDUCTION:
-        if (level < 17)
+      case PSIONIC_REDUCTION:
+        if (level < 8)
           return 0;
         break;
-      case SKILL_EXPANSION:
-        if (level < 17)
+      case PSIONIC_EXPANSION:
+        if (level < 8)
           return 0;
         break;
-      case SKILL_DEATH_FIELD:
+      case PSIONIC_DEATH_FIELD:
+        if (level < 10)
+          return 0;
+        break;
+      case PSIONIC_EQUALIBRIUM:
+        if (level < 10)
+          return 0;
+        break;
+      case PSIONIC_SYNAPTIC_STATE:
+        if (level < 15)
+          return 0;
+        break;
+      case PSIONIC_TOWER_OF_IRON_WILL:
+        if (level < 18)
+          return 0;
+        break;
+      case PSIONIC_CANNIBALIZE:
         if (level < 20)
           return 0;
         break;
-      case SKILL_EQUALIBRIUM:
-        if (level < 20)
+      case PSIONIC_SHIFT:
+        if (level < 21)
           return 0;
         break;
-      case SKILL_SYNAPTIC_STATIC:
-        if (level < 31)
+      case PSIONIC_BATTLE_TRANCE:
+        if (level < 22)
           return 0;
         break;
-      case SKILL_TOWER_OF_IRON_WILL:
-        if (level < 37)
+      case PSIONIC_GLOBE_OF_DARKNESS:
+        if (level < 23)
           return 0;
         break;
-      case SKILL_CANIBALIZE:
-        if (level < 40)
-          return 0;
-        break;
-      case SKILL_SHIFT:
-        if (level < 41)
-          return 0;
-        break;
-      case SKILL_BATTLE_TRANCE:
-        if (level < 45)
-          return 0;
-        break;
-      case SKILL_METAGLOBE:
-        if (level < 47)
-          return 0;
-        break;
-      case SKILL_ULTRABLAST:
-        if (level < 47)
+      case PSIONIC_ULTRABLAST:
+        if (level < 24)
           return 0;
         break;
     }
@@ -132,16 +131,16 @@ int canUsePsionicSkill(struct char_data *ch, int skill) {
   pspCost = pspTable[indexToPspTable[skill]].pspCost;
   pspCost -= ((float) pspCost * 0.2) * ((float) proficiency / 100);
   /* blah, ugly hack */
-  if (skill == SKILL_CHARGE && pspCost < 1)
+  if (skill == PSIONIC_CHARGE && pspCost < 1)
     pspCost = 1;
   /* same shyte, diff skill - Iyachtu */
-  if (skill == SKILL_CANIBALIZE && pspCost < 1)
+  if (skill == PSIONIC_CANIBALIZE && pspCost < 1)
     pspCost = 1;
 
   crystal = findPSPCrystal(ch);
   if (crystal)
     hasPsps = crystal->value[PSP_CRYSTAL_CURRENT_CAPACITY];
-  hasPsps += GET_MANA(ch);
+  hasPsps += GET_PSP(ch);
 
   if (hasPsps < pspCost) {
     if (IS_PC(ch))
@@ -152,6 +151,8 @@ int canUsePsionicSkill(struct char_data *ch, int skill) {
 
   return MAX(0, pspCost);
 }
+
+#ifdef PSI_CLASS_ENABLED
 
 void incSkillSubPsp(struct char_data *ch, int skill, int amount, int skillGain) {
   struct obj_data * crystal;
@@ -170,23 +171,23 @@ void incSkillSubPsp(struct char_data *ch, int skill, int amount, int skillGain) 
   if (IS_PC(ch))
     debuglog(51, DS_PSIONICS, "%s [%s] for %d", GET_NAME(ch), skills[pindex2Skill[skill]].name, amount);
 
-  if (GET_MANA(ch) - amount < 0) {
-    amount -= GET_MANA(ch);
-    GET_MANA(ch) = 0;
+  if (GET_PSP(ch) - amount < 0) {
+    amount -= GET_PSP(ch);
+    GET_PSP(ch) = 0;
     crystal = findPSPCrystal(ch);
     /* no crystal? that'd be bad... */
     if (!crystal) {
       wizlog(51, "incSkillSubPsp: Cannot find any charged PSP crystals in %s inv.\nSubtracting from 0 psps.", GET_NAME(ch));
-      GET_MANA(ch) -= amount;
+      GET_PSP(ch) -= amount;
     } else {
       crystal->value[PSP_CRYSTAL_CURRENT_CAPACITY] -= amount;
       if (crystal->value[PSP_CRYSTAL_CURRENT_CAPACITY] < 0)
         wizlog(51, "incSkillSubPsp: [%s]'s psp crystal charge below 0\n", GET_NAME(ch));
     }
   } else
-    GET_MANA(ch) -= amount;
+    GET_PSP(ch) -= amount;
 
-  StartRegen(ch, EVENT_MANA_REGEN);
+  StartRegen(ch, EVENT_PSP_REGEN);
 
   if (!IS_TRUSTED(ch))
     if (pspTable[indexToPspTable[skill]].waitState)
@@ -195,13 +196,13 @@ void incSkillSubPsp(struct char_data *ch, int skill, int amount, int skillGain) 
   CharSkillGainChance(ch, skill, pspTable[indexToPspTable[skill]].skillIncrease);
 
   /* Use the pspTable to get the skillGain chance */
-  if (skillGain == SKILL_GAIN_ON) {
+  if (skillGain == PSIONIC_GAIN_ON) {
     CharSkillGainChance(ch, skill, pspTable[indexToPspTable[skill]].skillIncrease);
     return;
   }
 
   /* Dont increase the skill at all */
-  if (skillGain == SKILL_GAIN_OFF)
+  if (skillGain == PSIONIC_GAIN_OFF)
     return;
 
   /* Otherwise use the skillGain chance passed as an argument.. */
@@ -239,19 +240,19 @@ int psiDamage(struct char_data *ch, P_char vict, int dam, int skill) {
   int adj_skill, off_level;
 
   switch (skill) {
-    case SKILL_MINDBLAST:
+    case PSIONIC_MINDBLAST:
       off_level = 11;
       break;
-    case SKILL_DETONATE:
+    case PSIONIC_DETONATE:
       off_level = 13;
       break;
-    case SKILL_PROJECT_FORCE:
+    case PSIONIC_PROJECT_FORCE:
       off_level = 15;
       break;
-    case SKILL_DEATH_FIELD:
+    case PSIONIC_DEATH_FIELD:
       off_level = 16;
       break;
-    case SKILL_ULTRABLAST:
+    case PSIONIC_ULTRABLAST:
       off_level = 20;
       break;
   }
@@ -259,7 +260,7 @@ int psiDamage(struct char_data *ch, P_char vict, int dam, int skill) {
   adj_skill = pindex2Skill[skill];
   dam = FindSpellDamage(ch, vict, off_level, skill);
 
-  if (skill != SKILL_DEATH_FIELD) {
+  if (skill != PSIONIC_DEATH_FIELD) {
     if (NewSaves(vict, SAVING_BREATH, 1))
       dam >>= 1;
   }
@@ -373,13 +374,13 @@ void do_drain(struct char_data *ch, char *arg, int cmd) {
 
   switch (GET_RACE(victim)) {
     case RACE_ILLITHID:
-      /* Nasty surprise while trying to drain fellow illithids.. Take away all mana */
+      /* Nasty surprise while trying to drain fellow illithids.. Take away all psp */
       send_to_char("&+LDrain your own brethren?!\n", ch);
       send_to_char("&+LYou feel a wave of pain roll over you.\n", ch);
       act("&+L$n shivers and staggers back as $s his tentacles touch&N $N's &+Lhead.", TRUE, ch, 0, victim, TO_ROOM);
-      if (GET_MANA(ch) > 0 && !IS_TRUSTED(ch)) {
-        GET_MANA(ch) = 0;
-        StartRegen(ch, EVENT_MANA_REGEN);
+      if (GET_PSP(ch) > 0 && !IS_TRUSTED(ch)) {
+        GET_PSP(ch) = 0;
+        StartRegen(ch, EVENT_PSP_REGEN);
       }
       return;
     case RACE_SPIRIT:
@@ -444,10 +445,10 @@ void illithid_feeding(struct char_data *ch, P_char victim) {
   act("&+m$n loosens $s grip on&N $N's &+mhead and stands up.", TRUE, ch, 0, victim, TO_ROOM);
   send_to_char("&+mAll of your energy is slowly slurped from your brain and you "
           "feel yourself falling into the cold sleep of death...&N\n", victim);
-  GET_MANA(ch) += (GET_C_INT(victim) * 8) + GET_C_WIS(victim);
+  GET_PSP(ch) += (GET_C_INT(victim) * 8) + GET_C_WIS(victim);
 
-  if (GET_MANA(ch) > GET_MAX_MANA(ch))
-    GET_MANA(ch) = GET_MAX_MANA(ch);
+  if (GET_PSP(ch) > GET_MAX_PSP(ch))
+    GET_PSP(ch) = GET_MAX_PSP(ch);
 
   if (GET_COND(ch, FULL) < 100)
     GET_COND(ch, FULL) += 25;
@@ -467,7 +468,7 @@ void do_aurasight(struct char_data *ch, char *arg, int cmd) {
     dump_core();
   }
 
-  psp = canUsePsionicSkill(ch, SKILL_AURASIGHT);
+  psp = canUsePsionicSkill(ch, PSIONIC_AURASIGHT);
 
   if (psp == 0) {
     send_to_char("You have absolutely no idea how to go about doing that.\n", ch);
@@ -479,7 +480,7 @@ void do_aurasight(struct char_data *ch, char *arg, int cmd) {
     return;
   }
 
-  skl_lvl =  GET_SKILL(ch, SKILL_AURASIGHT);
+  skl_lvl =  GET_SKILL(ch, PSIONIC_AURASIGHT);
   victim = ParseTarget(ch, arg);
 
   if (!victim) {
@@ -529,8 +530,8 @@ void do_aurasight(struct char_data *ch, char *arg, int cmd) {
   }
 
   act(buf, TRUE, ch, 0, victim, TO_CHAR);
-  incSkillSubPsp(ch, SKILL_AURASIGHT, psp, SKILL_GAIN_ON);
-  psiSkillUsageLogging(ch, victim, arg, SKILL_AURASIGHT);
+  incSkillSubPsp(ch, PSIONIC_AURASIGHT, psp, PSIONIC_GAIN_ON);
+  psiSkillUsageLogging(ch, victim, arg, PSIONIC_AURASIGHT);
 
   return;
 }
@@ -545,7 +546,7 @@ void do_combatmind(struct char_data *ch, char *arg, int cmd) {
     dump_core();
   }
 
-  psp = canUsePsionicSkill(ch, SKILL_COMBATMIND);
+  psp = canUsePsionicSkill(ch, PSIONIC_COMBATMIND);
 
   if (psp == 0) {
     send_to_char("If you only had an idea how to go about it..\n", ch);
@@ -557,7 +558,7 @@ void do_combatmind(struct char_data *ch, char *arg, int cmd) {
     return;
   }
 
-  skl_lvl =  GET_SKILL(ch, SKILL_COMBATMIND);
+  skl_lvl =  GET_SKILL(ch, PSIONIC_COMBATMIND);
 
   if (arg) {
     victim = ParseTarget(ch, arg);
@@ -575,14 +576,14 @@ void do_combatmind(struct char_data *ch, char *arg, int cmd) {
     }
   }
 
-  if (affected_by_spell(victim, SKILL_COMBATMIND)) {
+  if (affected_by_spell(victim, PSIONIC_COMBATMIND)) {
     send_to_char("The projection does not seem to make any difference!\n", ch);
     return;
   }
 
   bzero(&af, sizeof (af));
-  af.type = SKILL_COMBATMIND;
-  af.duration = MAX(5,  GET_SKILL(ch, SKILL_COMBATMIND) / 10);
+  af.type = PSIONIC_COMBATMIND;
+  af.duration = MAX(5,  GET_SKILL(ch, PSIONIC_COMBATMIND) / 10);
   af.modifier = GET_LEVEL(ch) / 6;
   CLEAR_CBITS(af.sets_affs, AFF_BYTES);
   affect_to_char(victim, &af);
@@ -598,8 +599,8 @@ void do_combatmind(struct char_data *ch, char *arg, int cmd) {
   act("$n &N&+cbecomes more alert, evaluating possible targets.", TRUE, victim, 0, 0, TO_ROOM);
   act("$N &N&+cbecomes more alert as a result of your projection", TRUE, ch, 0, victim, TO_CHAR);
 
-  incSkillSubPsp(ch, SKILL_COMBATMIND, psp, SKILL_GAIN_ON);
-  psiSkillUsageLogging(ch, victim, arg, SKILL_COMBATMIND);
+  incSkillSubPsp(ch, PSIONIC_COMBATMIND, psp, PSIONIC_GAIN_ON);
+  psiSkillUsageLogging(ch, victim, arg, PSIONIC_COMBATMIND);
 
   return;
 }
@@ -615,12 +616,12 @@ void do_vision(struct char_data *ch, char *arg, int cmd)
     dump_core();
   }
 
-  if(!canUsePsionicSkill(ch, SKILL_VISION)) {
+  if(!canUsePsionicSkill(ch, PSIONIC_VISION)) {
       send_to_char("You have no idea how to enhance your senses.\n", ch);
       return;
   }
 
-  skl_lvl =  GET_SKILL(ch, SKILL_VISION);
+  skl_lvl =  GET_SKILL(ch, PSIONIC_VISION);
 
   if(arg) {
     victim = ParseTarget(ch, arg);
@@ -630,14 +631,14 @@ void do_vision(struct char_data *ch, char *arg, int cmd)
     }
   }
 
-  if (affected_by_spell(ch, SKILL_VISION)) {
+  if (affected_by_spell(ch, PSIONIC_VISION)) {
     send_to_char("There's only that much you can see!\n", ch);
     return;
   }
 
   bzero(&af, sizeof(af));
-  af.type = SKILL_VISION;
-  af.duration = MAX(5,  GET_SKILL(ch, SKILL_VISION) / 5) ;
+  af.type = PSIONIC_VISION;
+  af.duration = MAX(5,  GET_SKILL(ch, PSIONIC_VISION) / 5) ;
   SET_CBIT(af.sets_affs, AFF_DETECT_MAGIC);
   SET_CBIT(af.sets_affs, AFF_SENSE_LIFE);
   SET_CBIT(af.sets_affs, AFF_DETECT_INVISIBLE);
@@ -647,8 +648,8 @@ void do_vision(struct char_data *ch, char *arg, int cmd)
   act("&+cYou are suddenly filled with knowledge of battle tactics!", TRUE, ch, 0, victim, TO_CHAR);
   act("&+cA glimmer of understanding crosses $N's face.", TRUE, ch, 0, victim, TO_ROOM);
 
-  incSkillSubPsp(ch, SKILL_VISION, psp, SKILL_GAIN_ON);
-  psiSkillUsageLogging(ch, victim, arg, SKILL_VISION);
+  incSkillSubPsp(ch, PSIONIC_VISION, psp, PSIONIC_GAIN_ON);
+  psiSkillUsageLogging(ch, victim, arg, PSIONIC_VISION);
 
   return;
 }
@@ -707,7 +708,7 @@ void do_sense_danger(struct char_data *ch, char *arg, int cmd) {
     dump_core();
   }
 
-  psp = canUsePsionicSkill(ch, SKILL_SENSE_DANGER);
+  psp = canUsePsionicSkill(ch, PSIONIC_SENSE_DANGER);
 
   if (psp == 0) {
     send_to_char("You don't know how to sense remote danger.\n", ch);
@@ -719,7 +720,7 @@ void do_sense_danger(struct char_data *ch, char *arg, int cmd) {
     return;
   }
 
-  skl_lvl =  GET_SKILL(ch, SKILL_SENSE_DANGER);
+  skl_lvl =  GET_SKILL(ch, PSIONIC_SENSE_DANGER);
 
   bzero(aggro_lvls, sizeof (aggro_lvls));
 
@@ -746,8 +747,8 @@ void do_sense_danger(struct char_data *ch, char *arg, int cmd) {
     if (lvl_diff > 20) {
       if (!NewSaves(ch, SAVING_PARA, -2) && !IS_TRUSTED(ch)) {
         send_to_char("The viciousness of the mind you have just sensed makes you panic in utter terror.\n", ch);
-        incSkillSubPsp(ch, SKILL_SENSE_DANGER, psp, SKILL_GAIN_ON);
-        psiSkillUsageLogging(ch, 0, arg, SKILL_SENSE_DANGER);
+        incSkillSubPsp(ch, PSIONIC_SENSE_DANGER, psp, PSIONIC_GAIN_ON);
+        psiSkillUsageLogging(ch, 0, arg, PSIONIC_SENSE_DANGER);
         do_flee(ch, 0, 1);
         return;
       }
@@ -758,8 +759,8 @@ void do_sense_danger(struct char_data *ch, char *arg, int cmd) {
 
   if (exitflag) {
     send_to_char("You don't seem to detect anything angry at you around here.\n", ch);
-    incSkillSubPsp(ch, SKILL_SENSE_DANGER, psp, SKILL_GAIN_ON);
-    psiSkillUsageLogging(ch, 0, arg, SKILL_SENSE_DANGER);
+    incSkillSubPsp(ch, PSIONIC_SENSE_DANGER, psp, PSIONIC_GAIN_ON);
+    psiSkillUsageLogging(ch, 0, arg, PSIONIC_SENSE_DANGER);
     return;
   }
 
@@ -812,8 +813,8 @@ void do_sense_danger(struct char_data *ch, char *arg, int cmd) {
 
   send_to_char(buf, ch);
 
-  incSkillSubPsp(ch, SKILL_SENSE_DANGER, psp, SKILL_GAIN_ON);
-  psiSkillUsageLogging(ch, 0, arg, SKILL_SENSE_DANGER);
+  incSkillSubPsp(ch, PSIONIC_SENSE_DANGER, psp, PSIONIC_GAIN_ON);
+  psiSkillUsageLogging(ch, 0, arg, PSIONIC_SENSE_DANGER);
 
   return;
 }
@@ -827,7 +828,7 @@ void do_mindblast(struct char_data *ch, char *arg, int cmd) {
     dump_core();
   }
 
-  psp = canUsePsionicSkill(ch, SKILL_MINDBLAST);
+  psp = canUsePsionicSkill(ch, PSIONIC_MINDBLAST);
 
   if (psp == 0) {
     send_to_char("You don't know how to mind blast.\n", ch);
@@ -839,7 +840,7 @@ void do_mindblast(struct char_data *ch, char *arg, int cmd) {
     return;
   }
 
-  skl_lvl =  GET_SKILL(ch, SKILL_MINDBLAST);
+  skl_lvl =  GET_SKILL(ch, PSIONIC_MINDBLAST);
 
   victim = ParseTarget(ch, arg);
 
@@ -858,7 +859,7 @@ void do_mindblast(struct char_data *ch, char *arg, int cmd) {
   if (!CanPsiDoFightMove(ch, victim))
     return;
 
-  skl_lvl =  GET_SKILL(ch, SKILL_MINDBLAST);
+  skl_lvl =  GET_SKILL(ch, PSIONIC_MINDBLAST);
   
   if (IS_NPC(ch))
     skl_lvl = (GET_LEVEL(ch) * 1.5);
@@ -891,11 +892,11 @@ void do_mindblast(struct char_data *ch, char *arg, int cmd) {
     Stun(victim, stun_time * PULSE_VIOLENCE);
   }
 
-  dam = psiDamage(ch, victim, dam, SKILL_MINDBLAST);
-  damage(ch, victim, dam, SKILL_MINDBLAST);
+  dam = psiDamage(ch, victim, dam, PSIONIC_MINDBLAST);
+  damage(ch, victim, dam, PSIONIC_MINDBLAST);
 
-  incSkillSubPsp(ch, SKILL_MINDBLAST, psp, SKILL_GAIN_ON);
-  psiSkillUsageLogging(ch, victim, arg, SKILL_MINDBLAST);
+  incSkillSubPsp(ch, PSIONIC_MINDBLAST, psp, PSIONIC_GAIN_ON);
+  psiSkillUsageLogging(ch, victim, arg, PSIONIC_MINDBLAST);
 
   return;
 }
@@ -915,7 +916,7 @@ void do_detonate(struct char_data *ch, char *arg, int cmd) {
     dump_core();
   }
 
-  psp = canUsePsionicSkill(ch, SKILL_DETONATE);
+  psp = canUsePsionicSkill(ch, PSIONIC_DETONATE);
 
   if (psp == 0) {
     send_to_char("You don't know how to detonate.\n", ch);
@@ -927,7 +928,7 @@ void do_detonate(struct char_data *ch, char *arg, int cmd) {
     return;
   }
 
-  skl_lvl =  GET_SKILL(ch, SKILL_DETONATE);
+  skl_lvl =  GET_SKILL(ch, PSIONIC_DETONATE);
   if (IS_NPC(ch))
     skl_lvl = (GET_LEVEL(ch) * (3 / 2));
 
@@ -971,8 +972,8 @@ void do_detonate(struct char_data *ch, char *arg, int cmd) {
 
   if (can_det != 1) {
     send_to_char("Your projection does not seem to have any effect on this creature.\n", ch);
-    incSkillSubPsp(ch, SKILL_DETONATE, psp, SKILL_GAIN_ON);
-    psiSkillUsageLogging(ch, victim, arg, SKILL_DETONATE);
+    incSkillSubPsp(ch, PSIONIC_DETONATE, psp, PSIONIC_GAIN_ON);
+    psiSkillUsageLogging(ch, victim, arg, PSIONIC_DETONATE);
     return;
   }
 
@@ -995,11 +996,11 @@ void do_detonate(struct char_data *ch, char *arg, int cmd) {
   act("You are overwhelmed by a great pain as $n&N does something with your body!", FALSE, ch, 0, victim, TO_VICT);
   act("A fine mist of particles explodes outward from $N's&N body!", FALSE, ch, 0, victim, TO_NOTVICT);
 
-  dam = psiDamage(ch, victim, dam, SKILL_DETONATE);
-  damage(ch, victim, dam, SKILL_DETONATE);
+  dam = psiDamage(ch, victim, dam, PSIONIC_DETONATE);
+  damage(ch, victim, dam, PSIONIC_DETONATE);
 
-  incSkillSubPsp(ch, SKILL_DETONATE, psp, SKILL_GAIN_ON);
-  psiSkillUsageLogging(ch, victim, arg, SKILL_DETONATE);
+  incSkillSubPsp(ch, PSIONIC_DETONATE, psp, PSIONIC_GAIN_ON);
+  psiSkillUsageLogging(ch, victim, arg, PSIONIC_DETONATE);
 
   return;
 }
@@ -1024,7 +1025,7 @@ int do_project_force(struct char_data *ch, char *arg, int cmd)
     dump_core();
   }
 
-  psp = canUsePsionicSkill(ch, SKILL_PROJECT_FORCE);
+  psp = canUsePsionicSkill(ch, PSIONIC_PROJECT_FORCE);
 
   if (psp == 0) {
     send_to_char("You don't know how to project force.\n", ch);
@@ -1036,7 +1037,7 @@ int do_project_force(struct char_data *ch, char *arg, int cmd)
     return FALSE;
   }
 
-  skl_lvl =  GET_SKILL(ch, SKILL_PROJECT_FORCE);
+  skl_lvl =  GET_SKILL(ch, PSIONIC_PROJECT_FORCE);
   if (IS_NPC(ch))
     skl_lvl = (GET_LEVEL(ch) * (3 / 2));
 
@@ -1061,7 +1062,7 @@ int do_project_force(struct char_data *ch, char *arg, int cmd)
   dam += number(-13, 13); /* randomize a bit */
 
   /* Moved damage to this line, so following works - Iyachtu */
-  dam = psiDamage(ch, victim, dam, SKILL_PROJECT_FORCE);
+  dam = psiDamage(ch, victim, dam, PSIONIC_PROJECT_FORCE);
 
   if ((number(0, 850 + skl_lvl) == 666) && (skl_lvl < 70)) {
     if (!saves_spell(ch, SAVING_BREATH) && (would_die(ch, dam)) && IS_PC(ch)) {
@@ -1071,8 +1072,8 @@ int do_project_force(struct char_data *ch, char *arg, int cmd)
     } else {
       send_to_char("&+rYour projection misfires badly but you are able to absorb most of the force front.\n", ch);
       GET_HIT(ch) -= dam;
-      incSkillSubPsp(ch, SKILL_PROJECT_FORCE, psp, SKILL_GAIN_ON);
-      psiSkillUsageLogging(ch, victim, arg, SKILL_PROJECT_FORCE);
+      incSkillSubPsp(ch, PSIONIC_PROJECT_FORCE, psp, PSIONIC_GAIN_ON);
+      psiSkillUsageLogging(ch, victim, arg, PSIONIC_PROJECT_FORCE);
       return TRUE;
     }
   }
@@ -1097,13 +1098,13 @@ int do_project_force(struct char_data *ch, char *arg, int cmd)
       act("$N&N stumbles but somehow manages to absorb the brunt of the assault.", FALSE, ch, 0, victim, TO_NOTVICT);
     }
 
-    damage(ch, victim, dam, SKILL_PROJECT_FORCE);
-    incSkillSubPsp(ch, SKILL_PROJECT_FORCE, psp, SKILL_GAIN_ON);
-    psiSkillUsageLogging(ch, victim, arg, SKILL_PROJECT_FORCE);
+    damage(ch, victim, dam, PSIONIC_PROJECT_FORCE);
+    incSkillSubPsp(ch, PSIONIC_PROJECT_FORCE, psp, PSIONIC_GAIN_ON);
+    psiSkillUsageLogging(ch, victim, arg, PSIONIC_PROJECT_FORCE);
 
   } else {
     send_to_char("Your projection has no visible effect.\n", ch);
-    incSkillSubPsp(ch, SKILL_PROJECT_FORCE, psp, SKILL_GAIN_ON);
+    incSkillSubPsp(ch, PSIONIC_PROJECT_FORCE, psp, PSIONIC_GAIN_ON);
   }
   return TRUE;
 }
@@ -1119,7 +1120,7 @@ void do_death_field(struct char_data *ch, char *arg, int cmd) {
     dump_core();
   }
 
-  psp = canUsePsionicSkill(ch, SKILL_DEATH_FIELD);
+  psp = canUsePsionicSkill(ch, PSIONIC_DEATH_FIELD);
 
   if (psp == 0) {
     send_to_char("You don't know how to create a death field.\n", ch);
@@ -1131,7 +1132,7 @@ void do_death_field(struct char_data *ch, char *arg, int cmd) {
     return;
   }
 
-  skl_lvl =  GET_SKILL(ch, SKILL_DEATH_FIELD);
+  skl_lvl =  GET_SKILL(ch, PSIONIC_DEATH_FIELD);
   if (IS_NPC(ch))
     skl_lvl = (GET_LEVEL(ch) * (3 / 2));
 
@@ -1164,19 +1165,19 @@ void do_death_field(struct char_data *ch, char *arg, int cmd) {
       dam = dice(((GET_LEVEL(ch) >> 2) + (skl_lvl >> 2)), 7);
 
       attempted++;
-      dam = psiDamage(ch, vict, dam, SKILL_DEATH_FIELD);
+      dam = psiDamage(ch, vict, dam, PSIONIC_DEATH_FIELD);
       if (AreaSave(ch, vict, &dam, num_mobs) == AVOID_AREA)
         continue;
       landed++;
       if (saves_spell(vict, SAVING_PARA))
         dam >>= 1;
-      damage(ch, vict, dam, SKILL_DEATH_FIELD);
+      damage(ch, vict, dam, PSIONIC_DEATH_FIELD);
     }
   }
 
   area_message(ch, landed, attempted - landed, "death field");
-  incSkillSubPsp(ch, SKILL_DEATH_FIELD, psp, SKILL_GAIN_ON);
-  psiSkillUsageLogging(ch, 0, arg, SKILL_DEATH_FIELD);
+  incSkillSubPsp(ch, PSIONIC_DEATH_FIELD, psp, PSIONIC_GAIN_ON);
+  psiSkillUsageLogging(ch, 0, arg, PSIONIC_DEATH_FIELD);
   return;
 }
 
@@ -1190,7 +1191,7 @@ void do_adrenalize(struct char_data *ch, char *arg, int cmd) {
     dump_core();
   }
 
-  psp = canUsePsionicSkill(ch, SKILL_ADRENALIZE);
+  psp = canUsePsionicSkill(ch, PSIONIC_ADRENALIZE);
 
   if (psp == 0) {
     send_to_char("You don't know how to increase your adrenal level.\n", ch);
@@ -1210,19 +1211,19 @@ void do_adrenalize(struct char_data *ch, char *arg, int cmd) {
   }
 
 
-  if (affected_by_spell(victim, SKILL_ADRENALIZE)) {
+  if (affected_by_spell(victim, PSIONIC_ADRENALIZE)) {
     send_to_char("&+rIncreasing your adrenal levels any further would be terminal!\n", victim);
     return;
   }
 
-  skl_lvl =  GET_SKILL(ch, SKILL_ADRENALIZE);
+  skl_lvl =  GET_SKILL(ch, PSIONIC_ADRENALIZE);
   if (IS_NPC(ch))
     skl_lvl = (GET_LEVEL(ch) * (3 / 2));
 
   bzero(&af, sizeof (af));
   af.duration = MAX(3, (skl_lvl >> 2));
   af.modifier = MAX(3, skl_lvl / 10);
-  af.type = SKILL_ADRENALIZE;
+  af.type = PSIONIC_ADRENALIZE;
   af.location = APPLY_HITROLL;
   CLEAR_CBITS(af.sets_affs, AFF_BYTES);
   affect_to_char(victim, &af);
@@ -1247,8 +1248,8 @@ void do_adrenalize(struct char_data *ch, char *arg, int cmd) {
   af.location = APPLY_CON;
   affect_to_char(victim, &af);
 
-  incSkillSubPsp(ch, SKILL_ADRENALIZE, psp, SKILL_GAIN_ON);
-  psiSkillUsageLogging(ch, victim, arg, SKILL_ADRENALIZE);
+  incSkillSubPsp(ch, PSIONIC_ADRENALIZE, psp, PSIONIC_GAIN_ON);
+  psiSkillUsageLogging(ch, victim, arg, PSIONIC_ADRENALIZE);
   return;
 }
 
@@ -1262,7 +1263,7 @@ void do_body_control(struct char_data *ch, char *arg, int cmd) {
     dump_core();
   }
 
-  psp = canUsePsionicSkill(ch, SKILL_BODY_CONTROL);
+  psp = canUsePsionicSkill(ch, PSIONIC_BODY_CONTROL);
 
   if (psp == 0) {
     send_to_char("You don't know how to adapt your body to hostile environments.\n", ch);
@@ -1281,23 +1282,23 @@ void do_body_control(struct char_data *ch, char *arg, int cmd) {
     return;
   }
 
-  skl_lvl =  GET_SKILL(ch, SKILL_BODY_CONTROL);
+  skl_lvl =  GET_SKILL(ch, PSIONIC_BODY_CONTROL);
 
-  if (affected_by_spell(victim, SKILL_BODY_CONTROL)) {
+  if (affected_by_spell(victim, PSIONIC_BODY_CONTROL)) {
     send_to_char("&+rYour body is already protected from the elements.\n", victim);
     return;
   }
 
   bzero(&af, sizeof (af));
-  af.type = SKILL_BODY_CONTROL;
-  af.duration = MAX(15,  GET_SKILL(ch, SKILL_BODY_CONTROL));
+  af.type = PSIONIC_BODY_CONTROL;
+  af.duration = MAX(15,  GET_SKILL(ch, PSIONIC_BODY_CONTROL));
   SET_CBIT(af.sets_affs, AFF_BODY_CONTROL);
   affect_to_char(ch, &af);
 
   send_to_char("&+rYou become immune to hostile environments.\n", victim);
 
-  incSkillSubPsp(ch, SKILL_BODY_CONTROL, psp, SKILL_GAIN_ON);
-  psiSkillUsageLogging(ch, 0, arg, SKILL_BODY_CONTROL);
+  incSkillSubPsp(ch, PSIONIC_BODY_CONTROL, psp, PSIONIC_GAIN_ON);
+  psiSkillUsageLogging(ch, 0, arg, PSIONIC_BODY_CONTROL);
   
   return;
 }
@@ -1312,7 +1313,7 @@ void do_catfall(struct char_data *ch, char *arg, int cmd) {
     dump_core();
   }
 
-  psp = canUsePsionicSkill(ch, SKILL_CATFALL);
+  psp = canUsePsionicSkill(ch, PSIONIC_CATFALL);
 
   if (psp == 0) {
     send_to_char("You don't know how to perform that manipulation on your own body.\n", ch);
@@ -1336,17 +1337,17 @@ void do_catfall(struct char_data *ch, char *arg, int cmd) {
     return;
   }
 
-  skl_lvl =  GET_SKILL(ch, SKILL_CATFALL);
+  skl_lvl =  GET_SKILL(ch, PSIONIC_CATFALL);
 
   bzero(&af, sizeof (af));
-  af.type = SKILL_CATFALL;
-  af.duration = MAX(15,  GET_SKILL(ch, SKILL_CATFALL) >> 1);
+  af.type = PSIONIC_CATFALL;
+  af.duration = MAX(15,  GET_SKILL(ch, PSIONIC_CATFALL) >> 1);
   SET_CBIT(af.sets_affs, AFF_CATFALL);
   affect_to_char(ch, &af);
 
   send_to_char("You feel a weird sensation as your legs reform slightly.\n", victim);
-  incSkillSubPsp(ch, SKILL_CATFALL, psp, SKILL_GAIN_ON);
-  psiSkillUsageLogging(ch, victim, arg, SKILL_CATFALL);
+  incSkillSubPsp(ch, PSIONIC_CATFALL, psp, PSIONIC_GAIN_ON);
+  psiSkillUsageLogging(ch, victim, arg, PSIONIC_CATFALL);
 
   return;
 }
@@ -1361,7 +1362,7 @@ void do_flesharmor(struct char_data *ch, char *arg, int cmd) {
     dump_core();
   }
 
-  psp = canUsePsionicSkill(ch, SKILL_FLESH_ARMOR);
+  psp = canUsePsionicSkill(ch, PSIONIC_FLESH_ARMOR);
 
   if (psp == 0) {
     send_to_char("You have no idea how to protect yourself that way.\n", ch);
@@ -1381,17 +1382,17 @@ void do_flesharmor(struct char_data *ch, char *arg, int cmd) {
     }
   }
 
-  if (affected_by_spell(ch, SKILL_FLESH_ARMOR)) {
+  if (affected_by_spell(ch, PSIONIC_FLESH_ARMOR)) {
     send_to_char("You don't know how to further protect your body in that fashion.\n", ch);
     return;
   }
 
-  skl_lvl =  GET_SKILL(ch, SKILL_FLESH_ARMOR);
+  skl_lvl =  GET_SKILL(ch, PSIONIC_FLESH_ARMOR);
   if (IS_NPC(ch))
     skl_lvl = (GET_LEVEL(ch) * (3 / 2));
 
   bzero(&af, sizeof (af));
-  af.type = SKILL_FLESH_ARMOR;
+  af.type = PSIONIC_FLESH_ARMOR;
   af.duration = 10;
   af.modifier = -MAX(10, (GET_LEVEL(ch) / 10) * (skl_lvl / 14));
   af.location = APPLY_AC;
@@ -1401,8 +1402,8 @@ void do_flesharmor(struct char_data *ch, char *arg, int cmd) {
   if (skl_lvl > 80 && !number(0, (11 - skl_lvl / 10)))
     spell_stone_skin(GET_LEVEL(ch), ch, ch, 0, TRUE);
 
-  incSkillSubPsp(ch, SKILL_FLESH_ARMOR, psp, SKILL_GAIN_ON);
-  psiSkillUsageLogging(ch, victim, arg, SKILL_FLESH_ARMOR);
+  incSkillSubPsp(ch, PSIONIC_FLESH_ARMOR, psp, PSIONIC_GAIN_ON);
+  psiSkillUsageLogging(ch, victim, arg, PSIONIC_FLESH_ARMOR);
 
   return;
 }
@@ -1417,7 +1418,7 @@ void do_reduction(struct char_data *ch, char *arg, int cmd) {
     dump_core();
   }
 
-  psp = canUsePsionicSkill(ch, SKILL_REDUCTION);
+  psp = canUsePsionicSkill(ch, PSIONIC_REDUCTION);
 
   if (psp == 0) {
     send_to_char("You have absolutely no idea how to change your bodies dimensions.\n", ch);
@@ -1438,12 +1439,12 @@ void do_reduction(struct char_data *ch, char *arg, int cmd) {
     }
   }
 
-  if (affected_by_spell(ch, SKILL_REDUCTION) || affected_by_spell(ch, SKILL_EXPANSION) || affected_by_spell(ch, SPELL_ENLARGE) || affected_by_spell(ch, SPELL_REDUCE)) {
+  if (affected_by_spell(ch, PSIONIC_REDUCTION) || affected_by_spell(ch, PSIONIC_EXPANSION) || affected_by_spell(ch, SPELL_ENLARGE) || affected_by_spell(ch, SPELL_REDUCE)) {
     send_to_char("That would be rather terminal. You stop your projection.\n", ch);
     return;
   }
 
-  skl_lvl =  GET_SKILL(ch, SKILL_REDUCTION);
+  skl_lvl =  GET_SKILL(ch, PSIONIC_REDUCTION);
   if (IS_NPC(ch))
     skl_lvl = (GET_LEVEL(ch) * (3 / 2));
 
@@ -1460,7 +1461,7 @@ void do_reduction(struct char_data *ch, char *arg, int cmd) {
 
   bzero(&af, sizeof (af));
   af.duration = MAX(5, skl_lvl / 6);
-  af.type = SKILL_REDUCTION;
+  af.type = PSIONIC_REDUCTION;
   af.modifier = -heightmod;
   af.location = APPLY_CHAR_HEIGHT;
   affect_to_char(ch, &af);
@@ -1471,8 +1472,8 @@ void do_reduction(struct char_data *ch, char *arg, int cmd) {
   act("&+cYour body shrinks substantionaly as you complete your projection.&N", TRUE, ch, 0, victim, TO_CHAR);
   act("$n's&+c body shrinks as $s projection completes.&N", TRUE, ch, 0, victim, TO_ROOM);
 
-  incSkillSubPsp(ch, SKILL_REDUCTION, psp, SKILL_GAIN_ON);
-  psiSkillUsageLogging(ch, victim, arg, SKILL_REDUCTION);
+  incSkillSubPsp(ch, PSIONIC_REDUCTION, psp, PSIONIC_GAIN_ON);
+  psiSkillUsageLogging(ch, victim, arg, PSIONIC_REDUCTION);
 
   return;
 }
@@ -1487,7 +1488,7 @@ void do_expansion(struct char_data *ch, char *arg, int cmd) {
     dump_core();
   }
 
-  psp = canUsePsionicSkill(ch, SKILL_EXPANSION);
+  psp = canUsePsionicSkill(ch, PSIONIC_EXPANSION);
 
   if (psp == 0) {
     send_to_char("You have absolutely no idea how to change your bodies dimensions.\n", ch);
@@ -1507,12 +1508,12 @@ void do_expansion(struct char_data *ch, char *arg, int cmd) {
     }
   }
 
-  if (affected_by_spell(ch, SKILL_EXPANSION) || affected_by_spell(ch, SKILL_REDUCTION) || affected_by_spell(ch, SPELL_ENLARGE) || affected_by_spell(ch, SPELL_REDUCE)) {
+  if (affected_by_spell(ch, PSIONIC_EXPANSION) || affected_by_spell(ch, PSIONIC_REDUCTION) || affected_by_spell(ch, SPELL_ENLARGE) || affected_by_spell(ch, SPELL_REDUCE)) {
     send_to_char("That would be rather terminal. You stop your projection.\n", ch);
     return;
   }
 
-  skl_lvl =  GET_SKILL(ch, SKILL_EXPANSION);
+  skl_lvl =  GET_SKILL(ch, PSIONIC_EXPANSION);
   if (IS_NPC(ch))
     skl_lvl = (GET_LEVEL(ch) * (3 / 2));
 
@@ -1524,7 +1525,7 @@ void do_expansion(struct char_data *ch, char *arg, int cmd) {
 
   bzero(&af, sizeof (af));
   af.duration = MAX(5, skl_lvl / 6);
-  af.type = SKILL_EXPANSION;
+  af.type = PSIONIC_EXPANSION;
   af.modifier = heightmod;
   af.location = APPLY_CHAR_HEIGHT;
   affect_to_char(ch, &af);
@@ -1536,8 +1537,8 @@ void do_expansion(struct char_data *ch, char *arg, int cmd) {
   act("&+cYour body grows taller as you complete your projection.&N", TRUE, ch, 0, victim, TO_CHAR);
   act("&+c$n's body grows taller as $s projection completes.&N", TRUE, ch, 0, victim, TO_ROOM);
 
-  incSkillSubPsp(ch, SKILL_EXPANSION, psp, SKILL_GAIN_ON);
-  psiSkillUsageLogging(ch, victim, arg, SKILL_EXPANSION);
+  incSkillSubPsp(ch, PSIONIC_EXPANSION, psp, PSIONIC_GAIN_ON);
+  psiSkillUsageLogging(ch, victim, arg, PSIONIC_EXPANSION);
 
   return;
 }
@@ -1551,7 +1552,7 @@ void do_sustain(struct char_data *ch, char *arg, int cmd) {
     dump_core();
   }
 
-  psp = canUsePsionicSkill(ch, SKILL_SUSTAIN);
+  psp = canUsePsionicSkill(ch, PSIONIC_SUSTAIN);
 
   if (psp == 0) {
     send_to_char("You have no idea how to accomplish that.\n", ch);
@@ -1571,7 +1572,7 @@ void do_sustain(struct char_data *ch, char *arg, int cmd) {
     }
   }
 
-  skl_lvl =  GET_SKILL(ch, SKILL_SUSTAIN);
+  skl_lvl =  GET_SKILL(ch, PSIONIC_SUSTAIN);
 
   mvpts = 40 + dice(1, 10);
 
@@ -1590,8 +1591,8 @@ void do_sustain(struct char_data *ch, char *arg, int cmd) {
     send_to_char("&+cYou abort abruptly.\n", ch);
   }
 
-  incSkillSubPsp(ch, SKILL_SUSTAIN, psp, SKILL_GAIN_ON);
-  psiSkillUsageLogging(ch, victim, arg, SKILL_SUSTAIN);
+  incSkillSubPsp(ch, PSIONIC_SUSTAIN, psp, PSIONIC_GAIN_ON);
+  psiSkillUsageLogging(ch, victim, arg, PSIONIC_SUSTAIN);
 
   return;
 }
@@ -1608,7 +1609,7 @@ void do_equalibrium(struct char_data *ch, char *arg, int cmd) {
     dump_core();
   }
 
-  psp = canUsePsionicSkill(ch, SKILL_EQUALIBRIUM);
+  psp = canUsePsionicSkill(ch, PSIONIC_EQUALIBRIUM);
 
   if (psp == 0) {
     send_to_char("You have no idea how to accomplish that.\n", ch);
@@ -1626,7 +1627,7 @@ void do_equalibrium(struct char_data *ch, char *arg, int cmd) {
       return;
     }
 
-  skl_lvl =  GET_SKILL(ch, SKILL_EQUALIBRIUM);
+  skl_lvl =  GET_SKILL(ch, PSIONIC_EQUALIBRIUM);
 
   if (GET_LEVEL(ch) > 10)
     poison = TRUE;
@@ -1683,8 +1684,8 @@ void do_equalibrium(struct char_data *ch, char *arg, int cmd) {
   if (!used)
     send_to_char("There seems to be nothing wrong with your body at the moment.\n", ch);
 
-  incSkillSubPsp(ch, SKILL_EQUALIBRIUM, psp, SKILL_GAIN_ON);
-  psiSkillUsageLogging(ch, victim, arg, SKILL_EQUALIBRIUM);
+  incSkillSubPsp(ch, PSIONIC_EQUALIBRIUM, psp, PSIONIC_GAIN_ON);
+  psiSkillUsageLogging(ch, victim, arg, PSIONIC_EQUALIBRIUM);
 
   return;
 }
@@ -1709,7 +1710,7 @@ void do_shift(struct char_data *ch, char *arg, int cmd) {
     dump_core();
   }
 
-  psp = canUsePsionicSkill(ch, SKILL_SHIFT);
+  psp = canUsePsionicSkill(ch, PSIONIC_SHIFT);
 
   if (psp == 0) {
     send_to_char("You have no idea how to do that. Looks like you'll have to walk.\n", ch);
@@ -1876,11 +1877,11 @@ void do_shift(struct char_data *ch, char *arg, int cmd) {
   }
 
   if (srcChar == ch)
-    incSkillSubPsp(ch, SKILL_SHIFT, psp, SKILL_GAIN_ON);
+    incSkillSubPsp(ch, PSIONIC_SHIFT, psp, PSIONIC_GAIN_ON);
   else
-    incSkillSubPsp(ch, SKILL_SHIFT, psp << 1, SKILL_GAIN_ON);
+    incSkillSubPsp(ch, PSIONIC_SHIFT, psp << 1, PSIONIC_GAIN_ON);
 
-  psiSkillUsageLogging(ch, 0, arg, SKILL_SHIFT);
+  psiSkillUsageLogging(ch, 0, arg, PSIONIC_SHIFT);
 
   return;
 
@@ -1897,7 +1898,7 @@ void do_rift(struct char_data *ch, char *arg, int cmd) {
     return;
   }
 
-  psp = canUsePsionicSkill(ch, SKILL_RIFT);
+  psp = canUsePsionicSkill(ch, PSIONIC_RIFT);
 
   if (psp == 0) {
     send_to_char("You have no idea how to do that. Looks like you'll have to walk.\n", ch);
@@ -1916,7 +1917,7 @@ void do_rift(struct char_data *ch, char *arg, int cmd) {
     return;
   }
 
-  skl_lvl =  GET_SKILL(ch, SKILL_RIFT);
+  skl_lvl =  GET_SKILL(ch, PSIONIC_RIFT);
 
   one_argument(arg, Gbuf4);
 
@@ -2027,8 +2028,8 @@ void do_rift(struct char_data *ch, char *arg, int cmd) {
   sprintf(Gbuf4, "You open a planar rift to  %s plane!\n", plane_info[plane_to].keyword);
   send_to_char(Gbuf4, ch);
 
-  incSkillSubPsp(ch, SKILL_RIFT, psp, SKILL_GAIN_ON);
-  psiSkillUsageLogging(ch, 0, arg, SKILL_RIFT);
+  incSkillSubPsp(ch, PSIONIC_RIFT, psp, PSIONIC_GAIN_ON);
+  psiSkillUsageLogging(ch, 0, arg, PSIONIC_RIFT);
 
   return;
 
@@ -2059,7 +2060,7 @@ void do_dominate(struct char_data *ch, char *arg, int cmd) {
     dump_core();
   }
 
-  psp = canUsePsionicSkill(ch, SKILL_DOMINATE);
+  psp = canUsePsionicSkill(ch, PSIONIC_DOMINATE);
 
   if (psp == 0) {
     send_to_char("Dominate? You wouldn't be able to dominate someone if they paid you.\n", ch);
@@ -2105,7 +2106,7 @@ void do_dominate(struct char_data *ch, char *arg, int cmd) {
     return;
   }
 
-  maxPets = ( GET_SKILL(ch, SKILL_DOMINATE) / DOMINATE_MODIFIER);
+  maxPets = ( GET_SKILL(ch, PSIONIC_DOMINATE) / DOMINATE_MODIFIER);
 
   if (getNumberOfPets(ch) >= maxPets) {
     send_to_char("You aren't strong enough to control more followers.\n", ch);
@@ -2120,9 +2121,9 @@ void do_dominate(struct char_data *ch, char *arg, int cmd) {
       send_to_char("You can't get a clear line of sight in these cramped quarters.\n", ch);
       return;
     } else {
-      dominate_single(ch, victim,  GET_SKILL(ch, SKILL_DOMINATE));
-      incSkillSubPsp(ch, SKILL_DOMINATE, psp, SKILL_GAIN_ON);
-      psiSkillUsageLogging(ch, victim, arg, SKILL_DOMINATE);
+      dominate_single(ch, victim,  GET_SKILL(ch, PSIONIC_DOMINATE));
+      incSkillSubPsp(ch, PSIONIC_DOMINATE, psp, PSIONIC_GAIN_ON);
+      psiSkillUsageLogging(ch, victim, arg, PSIONIC_DOMINATE);
     }
   } else
     send_to_char("Dominate who?\n", ch);
@@ -2142,7 +2143,7 @@ void do_mass_domination(struct char_data *ch, char *arg, int cmd) {
     dump_core();
   }
 
-  psp = canUsePsionicSkill(ch, SKILL_MASS_DOMINATION);
+  psp = canUsePsionicSkill(ch, PSIONIC_MASS_DOMINATION);
 
   if (psp == 0) {
     send_to_char("Dominate? You wouldn't be able to dominate someone if they paid you.\n", ch);
@@ -2175,7 +2176,7 @@ void do_mass_domination(struct char_data *ch, char *arg, int cmd) {
     return;
   }
 
-  skl_lvl =  GET_SKILL(ch, SKILL_MASS_DOMINATION);
+  skl_lvl =  GET_SKILL(ch, PSIONIC_MASS_DOMINATION);
   maxFollowers = skl_lvl / DOMINATE_MODIFIER;
   numFollowers = getNumberOfPets(ch);
 
@@ -2192,8 +2193,8 @@ void do_mass_domination(struct char_data *ch, char *arg, int cmd) {
     }
   }
 
-  incSkillSubPsp(ch, SKILL_MASS_DOMINATION, psp, SKILL_GAIN_ON);
-  psiSkillUsageLogging(ch, 0, arg, SKILL_MASS_DOMINATION);
+  incSkillSubPsp(ch, PSIONIC_MASS_DOMINATION, psp, PSIONIC_GAIN_ON);
+  psiSkillUsageLogging(ch, 0, arg, PSIONIC_MASS_DOMINATION);
 }
 
 /* Again a slight modification of spell_charm_person to suit the squids.. */
@@ -2350,7 +2351,7 @@ void do_synaptic_static(struct char_data *ch, char *arg, int cmd) {
     dump_core();
   }
 
-  psp = canUsePsionicSkill(ch, SKILL_SYNAPTIC_STATIC);
+  psp = canUsePsionicSkill(ch, PSIONIC_SYNAPTIC_STATIC);
 
   if (psp == 0) {
     send_to_char("You have no idea how to make someone forget anything.\n", ch);
@@ -2388,7 +2389,7 @@ void do_synaptic_static(struct char_data *ch, char *arg, int cmd) {
   if (!CanPsiDoFightMove(ch, victim))
     return;
 
-  skl_lvl =  GET_SKILL(ch, SKILL_SYNAPTIC_STATIC);
+  skl_lvl =  GET_SKILL(ch, PSIONIC_SYNAPTIC_STATIC);
   tmp_lvl = skl_lvl / 10;
   for (i = 1; i <= tmp_lvl; i++) {
     circle = number(1, tmp_lvl);
@@ -2411,8 +2412,8 @@ void do_synaptic_static(struct char_data *ch, char *arg, int cmd) {
   if (!IS_FIGHTING(victim))
     hit(victim, ch, TYPE_UNDEFINED);
 
-  incSkillSubPsp(ch, SKILL_SYNAPTIC_STATIC, psp, SKILL_GAIN_ON);
-  psiSkillUsageLogging(ch, victim, arg, SKILL_SYNAPTIC_STATIC);
+  incSkillSubPsp(ch, PSIONIC_SYNAPTIC_STATIC, psp, PSIONIC_GAIN_ON);
+  psiSkillUsageLogging(ch, victim, arg, PSIONIC_SYNAPTIC_STATIC);
 
   return;
 }
@@ -2427,7 +2428,7 @@ void do_tower_of_iron_will(struct char_data *ch, char *arg, int cmd) {
     dump_core();
   }
 
-  psp = canUsePsionicSkill(ch, SKILL_TOWER_OF_IRON_WILL);
+  psp = canUsePsionicSkill(ch, PSIONIC_TOWER_OF_IRON_WILL);
 
   if (psp == 0) {
     send_to_char("You don't know how to protect yourself from psionic "
@@ -2453,17 +2454,17 @@ void do_tower_of_iron_will(struct char_data *ch, char *arg, int cmd) {
     return;
   }
 
-  if (!affected_by_spell(ch, SKILL_TOWER_OF_IRON_WILL))
+  if (!affected_by_spell(ch, PSIONIC_TOWER_OF_IRON_WILL))
     send_to_char("&+BYou envelop your mind in a protective tower.&N\n", ch);
 
   bzero(&af, sizeof (af));
-  af.type = SKILL_TOWER_OF_IRON_WILL;
+  af.type = PSIONIC_TOWER_OF_IRON_WILL;
   af.duration = 3;
   SET_CBIT(af.sets_affs, AFF_TOWER_OF_IRON_WILL);
   affect_to_char(ch, &af);
 
-  incSkillSubPsp(ch, SKILL_TOWER_OF_IRON_WILL, psp, SKILL_GAIN_ON);
-  psiSkillUsageLogging(ch, victim, arg, SKILL_TOWER_OF_IRON_WILL);
+  incSkillSubPsp(ch, PSIONIC_TOWER_OF_IRON_WILL, psp, PSIONIC_GAIN_ON);
+  psiSkillUsageLogging(ch, victim, arg, PSIONIC_TOWER_OF_IRON_WILL);
 
   return;
 }
@@ -2486,7 +2487,7 @@ void do_canibalize(struct char_data *ch, char *arg, int cmd) {
     dump_core();
   }
 
-  can_use = canUsePsionicSkill(ch, SKILL_CANIBALIZE);
+  can_use = canUsePsionicSkill(ch, PSIONIC_CANIBALIZE);
 
   if (can_use == 0) {
     send_to_char("Canibalize? But you aren't even hungry.\n", ch);
@@ -2498,8 +2499,8 @@ void do_canibalize(struct char_data *ch, char *arg, int cmd) {
     return;
   }
 
-  if (!CHECK_SKILL_USAGE(ch, TIMED_USAGE_CANIBALIZE)) {
-    time_to_rest = SKILL_HOURS_TO_REST(ch, TIMED_USAGE_CANIBALIZE);
+  if (!CHECK_PSIONIC_USAGE(ch, TIMED_USAGE_CANIBALIZE)) {
+    time_to_rest = PSIONIC_HOURS_TO_REST(ch, TIMED_USAGE_CANIBALIZE);
     if (time_to_rest > 5)
       send_to_char("Your body needs quite a bit more time to regenerate.\n", ch);
     else if (time_to_rest <= 1)
@@ -2515,7 +2516,7 @@ void do_canibalize(struct char_data *ch, char *arg, int cmd) {
   }
 
   /* This is the fixed version of getting the proficiency - Iyachtu */
-  skl_lvl =  GET_SKILL(ch, SKILL_CANIBALIZE);
+  skl_lvl =  GET_SKILL(ch, PSIONIC_CANIBALIZE);
 
   one_argument(arg, oneArg);
 
@@ -2583,19 +2584,19 @@ void do_canibalize(struct char_data *ch, char *arg, int cmd) {
   else
     send_to_char("There wasn't enough available energy in your body to successfully\ncomplete your projection.\n", ch);
 
-  if (GET_MANA(ch) >= GET_MAX_MANA(ch))
+  if (GET_PSP(ch) >= GET_MAX_PSP(ch))
     send_to_char("Your projection has no effect.\n", ch);
   else {
-    GET_MANA(ch) += psps;
-    if (GET_MANA(ch) >= GET_MAX_MANA(ch))
-      GET_MANA(ch) = GET_MAX_MANA(ch);
+    GET_PSP(ch) += psps;
+    if (GET_PSP(ch) >= GET_MAX_PSP(ch))
+      GET_PSP(ch) = GET_MAX_PSP(ch);
   }
 
   GET_MOVE(ch) -= moves;
-  UPDATE_SKILL_USAGE(ch, TIMED_USAGE_CANIBALIZE);
+  UPDATE_PSIONIC_USAGE(ch, TIMED_USAGE_CANIBALIZE);
 
-  incSkillSubPsp(ch, SKILL_CANIBALIZE, 0, SKILL_GAIN_ON);
-  psiSkillUsageLogging(ch, 0, arg, SKILL_CANIBALIZE);
+  incSkillSubPsp(ch, PSIONIC_CANIBALIZE, 0, PSIONIC_GAIN_ON);
+  psiSkillUsageLogging(ch, 0, arg, PSIONIC_CANIBALIZE);
 
   return;
 }
@@ -2609,7 +2610,7 @@ void do_stasis_field(struct char_data *ch, char *arg, int cmd) {
     dump_core();
   }
 
-  psp = canUsePsionicSkill(ch, SKILL_STASIS_FIELD);
+  psp = canUsePsionicSkill(ch, PSIONIC_STASIS_FIELD);
 
   if (psp == 0) {
     send_to_char("Yes, it can be done. Unfortunately you have no idea how.\n", ch);
@@ -2621,7 +2622,7 @@ void do_stasis_field(struct char_data *ch, char *arg, int cmd) {
     return;
   }
 
-  skl_lvl =  GET_SKILL(ch, SKILL_STASIS_FIELD);
+  skl_lvl =  GET_SKILL(ch, PSIONIC_STASIS_FIELD);
 
   if (ch->in_room == NOWHERE)
     return;
@@ -2636,7 +2637,7 @@ void do_stasis_field(struct char_data *ch, char *arg, int cmd) {
 
   bzero(&af, sizeof (af));
   CLEAR_CBITS(af.sets_affs, AFF_BYTES);
-  af.type = SKILL_STASIS_FIELD;
+  af.type = PSIONIC_STASIS_FIELD;
   af.duration = skl_lvl / 4;
   SET_CBIT(af.sets_affs, AFF_STASIS_FIELD);
   affect_to_char(ch, &af);
@@ -2646,8 +2647,8 @@ void do_stasis_field(struct char_data *ch, char *arg, int cmd) {
 
   AddEvent(EVENT_CHAR_EXECUTE, 2 * PULSE_VIOLENCE, TRUE, ch, createStasisSphear);
 
-  incSkillSubPsp(ch, SKILL_STASIS_FIELD, psp, SKILL_GAIN_ON);
-  psiSkillUsageLogging(ch, 0, arg, SKILL_STASIS_FIELD);
+  incSkillSubPsp(ch, PSIONIC_STASIS_FIELD, psp, PSIONIC_GAIN_ON);
+  psiSkillUsageLogging(ch, 0, arg, PSIONIC_STASIS_FIELD);
 
   return;
 }
@@ -2666,7 +2667,7 @@ void createStasisSphear(struct char_data *ch) {
   }
 
   for (t_char = world[ch->in_room].people; t_char; t_char = t_char->next_in_room) {
-    GET_HIT(t_char) +=  GET_SKILL(ch, SKILL_STASIS_FIELD) / 10;
+    GET_HIT(t_char) +=  GET_SKILL(ch, PSIONIC_STASIS_FIELD) / 10;
     if (GET_HIT(t_char) > GET_MAX_HIT(t_char))
       GET_HIT(t_char) = GET_MAX_HIT(t_char);
     update_pos(t_char);
@@ -2675,7 +2676,7 @@ void createStasisSphear(struct char_data *ch) {
   if (IS_AFFECTED(ch, AFF_STASIS_FIELD))
     AddEvent(EVENT_CHAR_EXECUTE, 2 * PULSE_VIOLENCE, TRUE, ch, createStasisSphear);
   else {
-    affect_from_char(ch, SKILL_STASIS_FIELD);
+    affect_from_char(ch, PSIONIC_STASIS_FIELD);
     send_to_char("&+WThe sphere around you slowly dissipates.\n", ch);
     act("The translucent sphere centered around $n slowly dissipates.", TRUE, ch, 0, 0, TO_ROOM);
   }
@@ -2691,7 +2692,7 @@ void do_ultrablast(struct char_data *ch, char *arg, int cmd) {
     dump_core();
   }
 
-  psp = canUsePsionicSkill(ch, SKILL_ULTRABLAST);
+  psp = canUsePsionicSkill(ch, PSIONIC_ULTRABLAST);
 
   if (psp == 0) {
     send_to_char("You've heard about it, unfortunately you have no idea how to do that.\n", ch);
@@ -2714,7 +2715,7 @@ void do_ultrablast(struct char_data *ch, char *arg, int cmd) {
     return;
   }
 
-  skl_lvl =  GET_SKILL(ch, SKILL_ULTRABLAST);
+  skl_lvl =  GET_SKILL(ch, PSIONIC_ULTRABLAST);
 
   num_mobs = area_valid_targets(ch);
 
@@ -2730,7 +2731,7 @@ void do_ultrablast(struct char_data *ch, char *arg, int cmd) {
   for (vict = world[ch->in_room].people; vict; vict = next) {
     next = vict->next_in_room;
     if (AreaAffectCheck(ch, vict)) {
-      dam = psiDamage(ch, vict, 9, SKILL_ULTRABLAST); /* fix later -Iyachtu */
+      dam = psiDamage(ch, vict, 9, PSIONIC_ULTRABLAST); /* fix later -Iyachtu */
       if (IS_PC(ch))
         dam += (dam / 20);
       else
@@ -2740,17 +2741,17 @@ void do_ultrablast(struct char_data *ch, char *arg, int cmd) {
         continue;
       landed++;
       
-      psiDamage(ch, vict, dam, SKILL_ULTRABLAST);
+      psiDamage(ch, vict, dam, PSIONIC_ULTRABLAST);
 
       debuglog(51, DS_D2, "%s ultrablast: target - %s, skill - %d, damage - %d",
               GET_NAME(ch), GET_NAME(vict), skl_lvl, dam);
-      damage(ch, vict, dam, SKILL_ULTRABLAST);
+      damage(ch, vict, dam, PSIONIC_ULTRABLAST);
     }
   }
 
   area_message(ch, landed, attempted - landed, "ultrablast");
-  incSkillSubPsp(ch, SKILL_ULTRABLAST, psp, SKILL_GAIN_ON);
-  psiSkillUsageLogging(ch, 0, arg, SKILL_ULTRABLAST);
+  incSkillSubPsp(ch, PSIONIC_ULTRABLAST, psp, PSIONIC_GAIN_ON);
+  psiSkillUsageLogging(ch, 0, arg, PSIONIC_ULTRABLAST);
 
   return;
 }
@@ -2766,7 +2767,7 @@ void do_battle_trance(struct char_data *ch, char *arg, int cmd) {
     dump_core();
   }
 
-  psp = canUsePsionicSkill(ch, SKILL_BATTLE_TRANCE);
+  psp = canUsePsionicSkill(ch, PSIONIC_BATTLE_TRANCE);
 
   if (psp == 0) {
     send_to_char("Battle Trance? Aye, you've heard about it before..\n", ch);
@@ -2778,7 +2779,7 @@ void do_battle_trance(struct char_data *ch, char *arg, int cmd) {
     return;
   }
 
-  skl_lvl =  GET_SKILL(ch, SKILL_BATTLE_TRANCE);
+  skl_lvl =  GET_SKILL(ch, PSIONIC_BATTLE_TRANCE);
 
   duration = MAX(4 * PULSE_VIOLENCE, ((skl_lvl / 20) * PULSE_VIOLENCE) * 4);
   modifier = MAX(1, (skl_lvl + 1) / 20);
@@ -2795,16 +2796,16 @@ void do_battle_trance(struct char_data *ch, char *arg, int cmd) {
   for (t_char = world[ch->in_room].people; t_char; t_char = next) {
     next = t_char->next_in_room;
     if (IS_GROUPED(ch, t_char) && IS_FIGHTING(t_char)
-            && !affected_by_spell(t_char, SKILL_BATTLE_TRANCE)) {
+            && !affected_by_spell(t_char, PSIONIC_BATTLE_TRANCE)) {
       bzero(&af, sizeof (af));
       CLEAR_CBITS(af.sets_affs, AFF_BYTES);
-      af.type = SKILL_BATTLE_TRANCE;
+      af.type = PSIONIC_BATTLE_TRANCE;
       af.duration = number(1, 2);
       af.modifier = modifier;
       af.location = APPLY_HITROLL;
       affect_to_char(t_char, &af);
       CLEAR_CBITS(af.sets_affs, AFF_BYTES);
-      af.type = SKILL_BATTLE_TRANCE;
+      af.type = PSIONIC_BATTLE_TRANCE;
       af.duration = number(1, 2);
       af.modifier = modifier;
       af.location = APPLY_DAMROLL;
@@ -2813,8 +2814,8 @@ void do_battle_trance(struct char_data *ch, char *arg, int cmd) {
       act("$N's projection improves your fighting ability.", TRUE, t_char, 0, ch, TO_CHAR),
               act("Your projection improves $N fighting ability.", TRUE, ch, 0, t_char, TO_CHAR);
 
-      if (!affected_by_spell(t_char, SKILL_BERSERK) && allowBerserk) {
-        Berserk(t_char, TRUE, SKILL_BATTLE_TRANCE);
+      if (!affected_by_spell(t_char, PSIONIC_BERSERK) && allowBerserk) {
+        Berserk(t_char, TRUE, PSIONIC_BATTLE_TRANCE);
         act("You force $N into mindless battle rage!", TRUE, ch, 0, t_char, TO_CHAR);
         send_to_char("Your vision blurs as a wave of FURY overcomes you!\n", t_char);
         allowBerserk--;
@@ -2822,8 +2823,8 @@ void do_battle_trance(struct char_data *ch, char *arg, int cmd) {
     }
   }
 
-  incSkillSubPsp(ch, SKILL_BATTLE_TRANCE, psp, SKILL_GAIN_ON);
-  psiSkillUsageLogging(ch, 0, arg, SKILL_BATTLE_TRANCE);
+  incSkillSubPsp(ch, PSIONIC_BATTLE_TRANCE, psp, PSIONIC_GAIN_ON);
+  psiSkillUsageLogging(ch, 0, arg, PSIONIC_BATTLE_TRANCE);
 
   return;
 }
@@ -2841,7 +2842,7 @@ void do_metaglobe(struct char_data *ch, char *arg, int cmd) {
     dump_core();
   }
 
-  psp = canUsePsionicSkill(ch, SKILL_METAGLOBE);
+  psp = canUsePsionicSkill(ch, PSIONIC_METAGLOBE);
 
   if (psp == 0) {
     send_to_char("You don't know how to create major globes.\n", ch);
@@ -2872,7 +2873,7 @@ void do_metaglobe(struct char_data *ch, char *arg, int cmd) {
   *tptr = 0;
 
   /* check if all are digits and convert */
-  skl_lvl =  GET_SKILL(ch, SKILL_METAGLOBE);
+  skl_lvl =  GET_SKILL(ch, PSIONIC_METAGLOBE);
   lvl = skl_lvl;
   tptr = mask;
   for (; *tptr != 0; tptr++) {
@@ -2929,7 +2930,7 @@ void do_metaglobe(struct char_data *ch, char *arg, int cmd) {
   /* set the aff structure from which we extract the circle
    * exclusion mask.. */
   bzero(&af, sizeof (af));
-  af.type = SKILL_METAGLOBE;
+  af.type = PSIONIC_METAGLOBE;
   af.duration = 9999;
   af.modifier = bitmask;
   SET_CBIT(af.sets_affs, AFF_METAGLOBE);
@@ -2943,8 +2944,8 @@ void do_metaglobe(struct char_data *ch, char *arg, int cmd) {
   act("$n&N&+r begins to shimmer.", TRUE, victim, 0, 0, TO_ROOM);
   act("&+rYou begin to shimmer.", TRUE, victim, 0, 0, TO_CHAR);
 
-  incSkillSubPsp(ch, SKILL_METAGLOBE, psp, SKILL_GAIN_ON);
-  psiSkillUsageLogging(ch, victim, arg, SKILL_METAGLOBE);
+  incSkillSubPsp(ch, PSIONIC_METAGLOBE, psp, PSIONIC_GAIN_ON);
+  psiSkillUsageLogging(ch, victim, arg, PSIONIC_METAGLOBE);
 
   return;
 }
@@ -2959,7 +2960,7 @@ void removeMetaGlobe(struct char_data *ch) {
   if (ch->in_room == NOWHERE)
     return;
 
-  affect_from_char(ch, SKILL_METAGLOBE);
+  affect_from_char(ch, PSIONIC_METAGLOBE);
 
   return;
 }
@@ -2973,7 +2974,7 @@ void do_globe_of_darkness(struct char_data *ch, char *arg, int cmd) {
     dump_core();
   }
 
-  psp = canUsePsionicSkill(ch, SKILL_DARKNESS);
+  psp = canUsePsionicSkill(ch, PSIONIC_DARKNESS);
 
   if (psp == 0) {
     send_to_char("Yeah, you'd need a light switch to do that...\n", ch);
@@ -2990,14 +2991,14 @@ void do_globe_of_darkness(struct char_data *ch, char *arg, int cmd) {
     return;
   }
 
-  skl_lvl =  GET_SKILL(ch, SKILL_DARKNESS);
+  skl_lvl =  GET_SKILL(ch, PSIONIC_DARKNESS);
 
   /* setting AFF_GLOBE_OF_DARKNESS will cause the char_to_room to
    * see if the room entered already has a DARK flag on.. if no,
    * make it DARK and shedule an eventGlobeOfDarkness */
 
   bzero(&af, sizeof (af));
-  af.type = SKILL_DARKNESS;
+  af.type = PSIONIC_DARKNESS;
   af.duration = skl_lvl / 10;
   SET_CBIT(af.sets_affs, AFF_GLOBE_OF_DARKNESS);
   affect_to_char(ch, &af);
@@ -3013,8 +3014,8 @@ void do_globe_of_darkness(struct char_data *ch, char *arg, int cmd) {
 
   AddEvent(EVENT_ROOM_EXECUTE, 1, TRUE, ch, eventGlobeOfDarkness);
 
-  incSkillSubPsp(ch, SKILL_DARKNESS, psp, SKILL_GAIN_ON);
-  psiSkillUsageLogging(ch, ch, arg, SKILL_DARKNESS);
+  incSkillSubPsp(ch, PSIONIC_DARKNESS, psp, PSIONIC_GAIN_ON);
+  psiSkillUsageLogging(ch, ch, arg, PSIONIC_DARKNESS);
   return;
 }
 
@@ -3069,7 +3070,7 @@ void do_charge(struct char_data *ch, char *arg, int cmd) {
     dump_core();
   }
 
-  if ((psp = canUsePsionicSkill(ch, SKILL_CHARGE)) == 0) {
+  if ((psp = canUsePsionicSkill(ch, PSIONIC_CHARGE)) == 0) {
     send_to_char("You charge off wildly, looking for greener pastures.\n", ch);
     return;
   }
@@ -3122,7 +3123,7 @@ void do_charge(struct char_data *ch, char *arg, int cmd) {
 
   AddEvent(EVENT_CHAR_EXECUTE, PULSE_VIOLENCE, TRUE, ch, chargePSPCrystal);
 
-  psiSkillUsageLogging(ch, NULL, arg, SKILL_CHARGE);
+  psiSkillUsageLogging(ch, NULL, arg, PSIONIC_CHARGE);
 
   CharWait(ch, PULSE_VIOLENCE);
 
@@ -3154,7 +3155,7 @@ void chargePSPCrystal(struct char_data *ch) {
     return;
   }
 
-  skl_lvl =  GET_SKILL(ch, SKILL_CHARGE);
+  skl_lvl =  GET_SKILL(ch, PSIONIC_CHARGE);
 
   inc = 1 + skl_lvl / 25;
 
@@ -3176,7 +3177,7 @@ void chargePSPCrystal(struct char_data *ch) {
 
   AddEvent(EVENT_CHAR_EXECUTE, PULSE_VIOLENCE, TRUE, ch, chargePSPCrystal);
 
-  incSkillSubPsp(ch, SKILL_CHARGE, 0, SKILL_GAIN_ON);
+  incSkillSubPsp(ch, PSIONIC_CHARGE, 0, PSIONIC_GAIN_ON);
 
   return;
 }
@@ -3313,7 +3314,7 @@ void do_enhance (struct char_data *ch, char *arg, int cmd)
    }
 
    if(IS_PC(ch)) {
-      skl_lvl =  GET_SKILL(ch, SKILL_ENHANCE);
+      skl_lvl =  GET_SKILL(ch, PSIONIC_ENHANCE);
       if (!skl_lvl && !IS_TRUSTED(ch)) {
          send_to_char("You have no idea how to enhance yourself or anybody else.\n", ch);
          return;
@@ -3333,11 +3334,11 @@ void do_enhance (struct char_data *ch, char *arg, int cmd)
    }
    else {
     sprintf(buf, "You only know how to enhance:\n");
-    if( GET_SKILL(ch, SKILL_ENHANCE) > 5)
+    if( GET_SKILL(ch, PSIONIC_ENHANCE) > 5)
        sprintf( buf, " Strength\n Agility\n Dexterity\n Constitution\n");
-    if( GET_SKILL(ch, SKILL_ENHANCE) > 30)
+    if( GET_SKILL(ch, PSIONIC_ENHANCE) > 30)
        sprintf( buf, " Vision\n" );
-    if( GET_SKILL(ch, SKILL_ENHANCE) > 50)
+    if( GET_SKILL(ch, PSIONIC_ENHANCE) > 50)
        sprintf( buf, " Stamina\n" );
     send_to_char( buf, ch );
     return;
@@ -3367,17 +3368,17 @@ void psionic_enhance_str(struct char_data *ch)
 
   struct affected_type af;
 
-  if (affected_by_spell(ch, SKILL_ENHANCE_STR)) {
+  if (affected_by_spell(ch, PSIONIC_ENHANCE_STR)) {
     send_to_char("&+rExpanding your muscles any further would be decisively fatal.\n", ch);
     send_to_char("&+rYour manipulation has no effect.\n", ch);
     return;
   }
 
   bzero(&af, sizeof(af));
-  af.type = SKILL_ENHANCE_STR;
+  af.type = PSIONIC_ENHANCE_STR;
   af.duration = GET_LEVEL(ch);
   af.location = APPLY_STR;
-  af.modifier = MAX(3,  GET_SKILL(ch, SKILL_ENHANCE)/10);
+  af.modifier = MAX(3,  GET_SKILL(ch, PSIONIC_ENHANCE)/10);
   affect_to_char(ch, &af);
 
   act("&+CA momentary wave of pain washes over your body as your muscles grow and reform.", TRUE, ch, 0, ch, TO_CHAR);
@@ -3391,17 +3392,17 @@ void psionic_enhance_dex(struct char_data *ch)
 
   struct affected_type af;
 
-  if (affected_by_spell(victim, SKILL_ENHANCE_DEX)) {
+  if (affected_by_spell(victim, PSIONIC_ENHANCE_DEX)) {
     send_to_char("&+rIncreasing your dexterity this way would most likely be fatal.&N\n", ch);
     send_to_char("&+rYour manipulation has no effect.&N\n", ch);
     return;
   }
 
   bzero(&af, sizeof(af));
-  af.type = SKILL_ENHANCE_DEX;
+  af.type = PSIONIC_ENHANCE_DEX;
   af.duration = GET_LEVEL(ch);
   af.location = APPLY_DEX;
-  af.modifier = MAX(3,  GET_SKILL(ch, SKILL_ENHANCE)/10);
+  af.modifier = MAX(3,  GET_SKILL(ch, PSIONIC_ENHANCE)/10);
   affect_to_char(ch, &af);
 
   act("&+CYou successfully increase your manual dexterity.", TRUE, ch, 0, ch, TO_CHAR);
@@ -3414,16 +3415,16 @@ void psionic_enhance_agi(struct char_data *ch)
 
   struct affected_type af;
 
-  if (affected_by_spell(victim, SKILL_ENHANCE_AGI)) {
+  if (affected_by_spell(victim, PSIONIC_ENHANCE_AGI)) {
     send_to_char("&+rYou can't get any more agile than this.\n", ch);
     send_to_char("&+rYour manipulation has no effect.\n", ch);
     return;
   }
   bzero(&af, sizeof(af));
-  af.type = SKILL_ENHANCE_AGI;
+  af.type = PSIONIC_ENHANCE_AGI;
   af.duration = GET_LEVEL(ch);
   af.location = APPLY_AGI;
-  af.modifier = MAX(3,  GET_SKILL(ch, SKILL_ENHANCE)/10);
+  af.modifier = MAX(3,  GET_SKILL(ch, PSIONIC_ENHANCE)/10);
   affect_to_char(ch, &af);
 
   act("&+CYou suddenly feel your limbs move with greater ease and speed.", TRUE, ch, 0, ch, TO_CHAR);
@@ -3436,17 +3437,17 @@ void do_enhance_con(struct char_data *ch)
 
   struct affected_type af;
 
-  if (affected_by_spell(victim, SKILL_ENHANCE_CON)) {
+  if (affected_by_spell(victim, PSIONIC_ENHANCE_CON)) {
     send_to_char("&+rYour constitution can't get any better that way.\n", ch);
     send_to_char("&+rYour manipulation has no effect.\n", ch);
     return;
   }
 
   bzero(&af, sizeof(af));
-  af.type = SKILL_ENHANCE_CON;
+  af.type = PSIONIC_ENHANCE_CON;
   af.duration = GET_LEVEL(ch);
   af.location = APPLY_CON;
-  af.modifier = MAX(3,  GET_SKILL(ch, SKILL_ENHANCE)/10);
+  af.modifier = MAX(3,  GET_SKILL(ch, PSIONIC_ENHANCE)/10);
   affect_to_char(victim, &af);
 
   act("&+CYou successfully change your body structure.", TRUE, ch, 0, 0, TO_CHAR);
@@ -3462,7 +3463,7 @@ void psionic_enhance_vision(struct char_data *ch)
 
   struct affected_type af;
 
-  if (affected_by_spell(ch, SKILL_ENHANCE_VISION) ||
+  if (affected_by_spell(ch, PSIONIC_ENHANCE_VISION) ||
        affected_by_spell(ch, SPELL_DETECT_INVISIBLE)) {
     send_to_char("&+rYour constitution can't get any better that way.\n", ch);
     send_to_char("&+rYour manipulation has no effect.\n", ch);
@@ -3470,10 +3471,10 @@ void psionic_enhance_vision(struct char_data *ch)
   }
 
   bzero(&af, sizeof(af));
-  af.type = SKILL_ENHANCE_CON;
+  af.type = PSIONIC_ENHANCE_CON;
   af.duration = GET_LEVEL(ch);
   af.location = APPLY_CON;
-  af.modifier = MAX(3,  GET_SKILL(ch, SKILL_ENHANCE)/10);
+  af.modifier = MAX(3,  GET_SKILL(ch, PSIONIC_ENHANCE)/10);
   affect_to_char(victim, &af);
 
   act("&+CYou successfully change your body structure.", TRUE, ch, 0, 0, TO_CHAR);

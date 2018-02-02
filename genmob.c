@@ -540,7 +540,7 @@ int write_mobile_record(mob_vnum mvnum, struct char_data *mob, FILE *fd)
              2nd edition DnD AC!
            * this is the opposite of what is done in db.c's parse_simple_mob */
       GET_LEVEL(mob), 20 - GET_HITROLL(mob), (20 - (GET_AC(mob) / 10)), GET_HIT(mob),
-      GET_MANA(mob), GET_MOVE(mob), GET_NDD(mob), GET_SDD(mob),
+      GET_PSP(mob), GET_MOVE(mob), GET_NDD(mob), GET_SDD(mob),
       GET_DAMROLL(mob));
 
   /* position fighting is deprecated */

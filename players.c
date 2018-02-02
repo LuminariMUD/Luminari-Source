@@ -29,7 +29,7 @@
 #include "spell_prep.h"
 
 #define LOAD_HIT	0
-#define LOAD_MANA	1
+#define LOAD_PSP	1
 #define LOAD_MOVE	2
 #define LOAD_STRENGTH	3
 
@@ -380,8 +380,8 @@ int load_char(const char *name, struct char_data *ch) {
     GET_REAL_CHA(ch) = PFDEF_CHA;
     GET_HIT(ch) = PFDEF_HIT;
     GET_REAL_MAX_HIT(ch) = PFDEF_MAXHIT;
-    GET_MANA(ch) = PFDEF_MANA;
-    GET_REAL_MAX_MANA(ch) = PFDEF_MAXMANA;
+    GET_PSP(ch) = PFDEF_PSP;
+    GET_REAL_MAX_PSP(ch) = PFDEF_MAXPSP;
     GET_MOVE(ch) = PFDEF_MOVE;
     GET_REAL_SPELL_RES(ch) = PFDEF_SPELL_RES;
     GET_REAL_MAX_MOVE(ch) = PFDEF_MAXMOVE;
@@ -580,7 +580,7 @@ int load_char(const char *name, struct char_data *ch) {
           break;
 
         case 'M':
-          if (!strcmp(tag, "Mana")) load_HMVS(ch, line, LOAD_MANA);
+          if (!strcmp(tag, "PSP")) load_HMVS(ch, line, LOAD_PSP);
           else if (!strcmp(tag, "Move")) load_HMVS(ch, line, LOAD_MOVE);
           else if (!strcmp(tag, "Mrph")) IS_MORPHED(ch) = atol(line);
           break;
@@ -1008,7 +1008,7 @@ void save_char(struct char_data * ch, int mode) {
   if (GET_COND(ch, DRUNK) != PFDEF_DRUNK && GET_LEVEL(ch) < LVL_IMMORT) fprintf(fl, "Drnk: %d\n", GET_COND(ch, DRUNK));
 
   if (GET_HIT(ch) != PFDEF_HIT || GET_MAX_HIT(ch) != PFDEF_MAXHIT) fprintf(fl, "Hit : %d/%d\n", GET_HIT(ch), GET_MAX_HIT(ch));
-  if (GET_MANA(ch) != PFDEF_MANA || GET_MAX_MANA(ch) != PFDEF_MAXMANA) fprintf(fl, "Mana: %d/%d\n", GET_MANA(ch), GET_MAX_MANA(ch));
+  if (GET_PSP(ch) != PFDEF_PSP || GET_MAX_PSP(ch) != PFDEF_MAXPSP) fprintf(fl, "PSP: %d/%d\n", GET_PSP(ch), GET_MAX_PSP(ch));
   if (GET_MOVE(ch) != PFDEF_MOVE || GET_MAX_MOVE(ch) != PFDEF_MAXMOVE) fprintf(fl, "Move: %d/%d\n", GET_MOVE(ch), GET_MAX_MOVE(ch));
 
   if (GET_STR(ch) != PFDEF_STR || GET_ADD(ch) != PFDEF_STRADD) fprintf(fl, "Str : %d/%d\n", GET_STR(ch), GET_ADD(ch));
@@ -1945,9 +1945,9 @@ static void load_HMVS(struct char_data *ch, const char *line, int mode) {
       GET_REAL_MAX_HIT(ch) = num2;
       break;
 
-    case LOAD_MANA:
-      GET_MANA(ch) = num;
-      GET_REAL_MAX_MANA(ch) = num2;
+    case LOAD_PSP:
+      GET_PSP(ch) = num;
+      GET_REAL_MAX_PSP(ch) = num2;
       break;
 
     case LOAD_MOVE:

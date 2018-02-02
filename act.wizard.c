@@ -834,9 +834,9 @@ static void do_stat_character(struct char_data *ch, struct char_data *k) {
           GET_STR(k), GET_INT(k), GET_WIS(k),
           GET_DEX(k), GET_CON(k), GET_CHA(k));
 
-  send_to_char(ch, "\tCHit p.:[\tn%d\tC/\tn%d\tC+\tn%d\tC]  Mana p.:[\tn%d\tC/\tn%d\tC+\tn%d\tC]  Move p.:[\tn%d\tC/\tn%d\tC+\tn%d\tC]\tn\r\n",
+  send_to_char(ch, "\tCHit p.:[\tn%d\tC/\tn%d\tC+\tn%d\tC]  PSP p.:[\tn%d\tC/\tn%d\tC+\tn%d\tC]  Move p.:[\tn%d\tC/\tn%d\tC+\tn%d\tC]\tn\r\n",
           GET_HIT(k), GET_MAX_HIT(k), hit_gain(k),
-          GET_MANA(k), GET_MAX_MANA(k), mana_gain(k),
+          GET_PSP(k), GET_MAX_PSP(k), psp_gain(k),
           GET_MOVE(k), GET_MAX_MOVE(k), move_gain(k));
 
   send_to_char(ch, "\tCGold: [\tn%9d\tC], Bank: [\tn%9d\tC] (Total: \tn%d\tC), \tn",
@@ -1705,7 +1705,7 @@ ACMD(do_restore) {
         continue;
 
       GET_HIT(vict) = GET_MAX_HIT(vict);
-      GET_MANA(vict) = GET_MAX_MANA(vict);
+      GET_PSP(vict) = GET_MAX_PSP(vict);
       GET_MOVE(vict) = GET_MAX_MOVE(vict);
 
       if (GET_COND(vict, HUNGER) != -1)
@@ -1723,7 +1723,7 @@ ACMD(do_restore) {
     send_to_char(ch, "They don't need your help.\r\n");
   else {
     GET_HIT(vict) = GET_MAX_HIT(vict);
-    GET_MANA(vict) = GET_MAX_MANA(vict);
+    GET_PSP(vict) = GET_MAX_PSP(vict);
     GET_MOVE(vict) = GET_MAX_MOVE(vict);
 
     if (!IS_NPC(vict) && GET_COND(vict, HUNGER) != -1)
@@ -3115,9 +3115,9 @@ struct set_struct {
   { "killer", LVL_STAFF, PC, BINARY},
   { "level", LVL_GRSTAFF, BOTH, NUMBER}, /* 27 */
   { "loadroom", LVL_BUILDER, PC, MISC},
-  { "mana", LVL_BUILDER, BOTH, NUMBER},
+  { "psp", LVL_BUILDER, BOTH, NUMBER},
   { "maxhit", LVL_BUILDER, BOTH, NUMBER},
-  { "maxmana", LVL_BUILDER, BOTH, NUMBER},
+  { "maxpsp", LVL_BUILDER, BOTH, NUMBER},
   { "maxmove", LVL_BUILDER, BOTH, NUMBER}, /* 32 */
   { "move", LVL_BUILDER, BOTH, NUMBER},
   { "name", LVL_IMMORT, PC, MISC},
@@ -3421,16 +3421,16 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
         return (0);
       }
       break;
-    case 29: /* mana */
-      GET_MANA(vict) = RANGE(0, GET_MAX_MANA(vict));
+    case 29: /* psp */
+      GET_PSP(vict) = RANGE(0, GET_MAX_PSP(vict));
       affect_total(vict);
       break;
     case 30: /* maxhit */
       GET_REAL_MAX_HIT(vict) = RANGE(1, GET_LEVEL(vict) * 500);
       affect_total(vict);
       break;
-    case 31: /* maxmana */
-      GET_REAL_MAX_MANA(vict) = RANGE(1, GET_LEVEL(vict) * 500);
+    case 31: /* maxpsp */
+      GET_REAL_MAX_PSP(vict) = RANGE(1, GET_LEVEL(vict) * 500);
       affect_total(vict);
       break;
     case 32: /* maxmove */
@@ -4003,7 +4003,7 @@ struct zcheck_affs {
   {APPLY_AGE, 0, 0, "age"},
   {APPLY_CHAR_WEIGHT, 0, 0, "character weight"}, //10
   {APPLY_CHAR_HEIGHT, 0, 0, "character height"},
-  {APPLY_MANA, -90, 120, "mana"},
+  {APPLY_PSP, -90, 120, "psp"},
   {APPLY_HIT, -90, 120, "hit points"},
   {APPLY_MOVE, -90, 120, "movement"},
   {APPLY_GOLD, 0, 0, "gold"}, //15
@@ -6490,7 +6490,7 @@ int get_eq_score(obj_rnum a) {
         case APPLY_CHAR_WEIGHT:
         case APPLY_CHAR_HEIGHT:
         case APPLY_MOVE:
-        case APPLY_MANA:
+        case APPLY_PSP:
           /* these are not worth so much*/
           score += obj_proto[a].affected[b].modifier;
           break;

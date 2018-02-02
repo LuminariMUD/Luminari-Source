@@ -333,7 +333,7 @@ int determine_stat_apply(int wear) {
           stat = APPLY_SAVING_FORT;
           break;
         case 2:
-          stat = APPLY_MANA;
+          stat = APPLY_PSP;
           break;
         case 3:
           stat = APPLY_RES_ELECTRIC;

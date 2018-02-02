@@ -1682,10 +1682,10 @@ static void parse_simple_mob(FILE *mob_f, int i, int nr) {
   //  GET_REAL_MAX_HIT(mob_proto + i) = 0;
   GET_MAX_HIT(mob_proto + i) = 0;
   GET_HIT(mob_proto + i) = t[3];
-  GET_MANA(mob_proto + i) = t[4];
+  GET_PSP(mob_proto + i) = t[4];
   GET_MOVE(mob_proto + i) = t[5];
 
-  GET_REAL_MAX_MANA(mob_proto + i) = 10;
+  GET_REAL_MAX_PSP(mob_proto + i) = 10;
   GET_REAL_MAX_MOVE(mob_proto + i) = 50;
 
   GET_REAL_SPELL_RES(mob_proto + i) = 0;
@@ -3060,9 +3060,9 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */ {
   //mob->events = create_list();
 
   if (!GET_MAX_HIT(mob)) {
-    GET_MAX_HIT(mob) = dice(GET_HIT(mob), GET_MANA(mob)) + GET_MOVE(mob);
+    GET_MAX_HIT(mob) = dice(GET_HIT(mob), GET_PSP(mob)) + GET_MOVE(mob);
   } else
-    GET_MAX_HIT(mob) = rand_number(GET_HIT(mob), GET_MANA(mob));
+    GET_MAX_HIT(mob) = rand_number(GET_HIT(mob), GET_PSP(mob));
 
   GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob);
 
@@ -3070,7 +3070,7 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */ {
     GET_SPELL_RES(mob) = 0;
 
   GET_HIT(mob) = GET_MAX_HIT(mob);
-  GET_MANA(mob) = GET_REAL_MAX_MANA(mob) = GET_MAX_MANA(mob);
+  GET_PSP(mob) = GET_REAL_MAX_PSP(mob) = GET_MAX_PSP(mob);
   GET_MOVE(mob) = GET_REAL_MAX_MOVE(mob) = GET_MAX_MOVE(mob);
 
   /* pos_fighting is deprecated */
@@ -4405,8 +4405,8 @@ void reset_char(struct char_data *ch) {
     GET_HIT(ch) = 1;
   if (GET_MOVE(ch) <= 0)
     GET_MOVE(ch) = 1;
-  if (GET_MANA(ch) <= 0)
-    GET_MANA(ch) = 1;
+  if (GET_PSP(ch) <= 0)
+    GET_PSP(ch) = 1;
 
   GET_LAST_TELL(ch) = NOBODY;
 }
@@ -4432,8 +4432,8 @@ void clear_char(struct char_data *ch) {
     PROC_FIRED(ch) = 0;
 
   GET_REAL_AC(ch) = 100; /* Basic Armor of 10 */
-  if (GET_REAL_MAX_MANA(ch) < 100)
-    GET_REAL_MAX_MANA(ch) = 100;
+  if (GET_REAL_MAX_PSP(ch) < 100)
+    GET_REAL_MAX_PSP(ch) = 100;
   //  ch->points.damage_reduction = NULL;
 }
 
@@ -4464,10 +4464,10 @@ void init_char(struct char_data *ch) {
 
     /* The implementor never goes through do_start(). */
     GET_REAL_MAX_HIT(ch) = 500;
-    GET_REAL_MAX_MANA(ch) = 100;
+    GET_REAL_MAX_PSP(ch) = 100;
     GET_REAL_MAX_MOVE(ch) = 82;
     GET_HIT(ch) = GET_REAL_MAX_HIT(ch);
-    GET_MANA(ch) = GET_REAL_MAX_MANA(ch);
+    GET_PSP(ch) = GET_REAL_MAX_PSP(ch);
     GET_MOVE(ch) = GET_REAL_MAX_MOVE(ch);
     newbieEquipment(ch);
   }

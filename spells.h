@@ -459,7 +459,7 @@
 #define PSIONIC_MASS_DOMINATE           353
 #define PSIONIC_SYNAPTIC_STATE          354
 #define PSIONIC_GLOBE_OF_DARKNESS       355
-#define PSIONIC_MANA_DRAIN              356
+#define PSIONIC_PSP_DRAIN              356
 #define PSIONIC_SEVER_THE_TIE           357
 #define PSIONIC_DISLOCATION             358
 #define PSIONIC_DEATH_FIELD             359
@@ -955,9 +955,9 @@
 
 struct spell_info_type {
   byte min_position; /* Position for caster	 */
-  int mana_min; /* Min amount of mana used by a spell (highest lev) */
-  int mana_max; /* Max amount of mana used by a spell (lowest lev) */
-  int mana_change; /* Change in mana used by spell from lev to lev */
+  int psp_min; /* Min amount of psp used by a spell (highest lev) */
+  int psp_max; /* Max amount of psp used by a spell (lowest lev) */
+  int psp_change; /* Change in psp used by spell from lev to lev */
 
   int min_level[NUM_CLASSES]; /* the level [class] gets this spell (lvl_impl + 1, if they don't get */
   int routines;

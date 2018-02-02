@@ -100,7 +100,7 @@ static void prefedit_disp_main_menu(struct descriptor_data *d) {
 
   sprintf(prompt_string, "%s%s%s%s%s%s%s%s",
           PREFEDIT_FLAGGED(PRF_DISPHP) ? "H" : "",
-          PREFEDIT_FLAGGED(PRF_DISPMANA) ? "M" : "",
+          PREFEDIT_FLAGGED(PRF_DISPPSP) ? "M" : "",
           PREFEDIT_FLAGGED(PRF_DISPMOVE) ? "V" : "",
           PREFEDIT_FLAGGED(PRF_DISPEXP) ? " XP" : "",
           PREFEDIT_FLAGGED(PRF_DISPEXITS) ? " EX" : "",
@@ -332,7 +332,7 @@ static void prefedit_disp_prompt_menu(struct descriptor_data *d) {
   else
     sprintf(prompt_string, "%s%s%s%s%s%s%s%s",
           PREFEDIT_FLAGGED(PRF_DISPHP) ? "H" : "",
-          PREFEDIT_FLAGGED(PRF_DISPMANA) ? "M" : "",
+          PREFEDIT_FLAGGED(PRF_DISPPSP) ? "M" : "",
           PREFEDIT_FLAGGED(PRF_DISPMOVE) ? "V" : "",
           PREFEDIT_FLAGGED(PRF_DISPEXP) ? " XP" : "",
           PREFEDIT_FLAGGED(PRF_DISPEXITS) ? " EX" : "",
@@ -343,7 +343,7 @@ static void prefedit_disp_prompt_menu(struct descriptor_data *d) {
 
   send_to_char(d->character, "%sPrompt Settings\r\n"
           "%s1%s) Toggle HP\r\n"
-          "%s2%s) Toggle Mana\r\n"
+          "%s2%s) Toggle PSP\r\n"
           "%s3%s) Toggle Moves\r\n"
           "%s4%s) Toggle auto flag\r\n"
           "%s5%s) Toggle XP\r\n"
@@ -786,10 +786,10 @@ void prefedit_parse(struct descriptor_data * d, char *arg) {
             else
               SET_BIT_AR(PREFEDIT_GET_FLAGS, PRF_DISPHP);
           } else if (number == 2) {
-            if (PREFEDIT_FLAGGED(PRF_DISPMANA))
-              REMOVE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_DISPMANA);
+            if (PREFEDIT_FLAGGED(PRF_DISPPSP))
+              REMOVE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_DISPPSP);
             else
-              SET_BIT_AR(PREFEDIT_GET_FLAGS, PRF_DISPMANA);
+              SET_BIT_AR(PREFEDIT_GET_FLAGS, PRF_DISPPSP);
           } else if (number == 3) {
             if (PREFEDIT_FLAGGED(PRF_DISPMOVE))
               REMOVE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_DISPMOVE);
@@ -867,9 +867,9 @@ void prefedit_Restore_Defaults(struct descriptor_data *d) {
   if (!PREFEDIT_FLAGGED(PRF_DISPHP))
     SET_BIT_AR(PREFEDIT_GET_FLAGS, PRF_DISPHP);
 
-  /* PRF_DISPMANA   - On */
-  if (!PREFEDIT_FLAGGED(PRF_DISPMANA))
-    SET_BIT_AR(PREFEDIT_GET_FLAGS, PRF_DISPMANA);
+  /* PRF_DISPPSP   - On */
+  if (!PREFEDIT_FLAGGED(PRF_DISPPSP))
+    SET_BIT_AR(PREFEDIT_GET_FLAGS, PRF_DISPPSP);
 
   /* PRF_DISPMOVE   - On */
   if (!PREFEDIT_FLAGGED(PRF_DISPMOVE))

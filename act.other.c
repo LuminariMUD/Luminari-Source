@@ -3603,7 +3603,7 @@ static void print_group(struct char_data *ch) {
           count_color_chars(GET_NAME(k)) + 22, GET_NAME(k),
           GROUP_LEADER(GROUP(ch)) == k ? CBGRN(ch, C_NRM) : CCGRN(ch, C_NRM),
           GET_HIT(k), GET_MAX_HIT(k),
-          //GET_MANA(k), GET_MAX_MANA(k),
+          //GET_PSP(k), GET_MAX_PSP(k),
           GET_MOVE(k), GET_MAX_MOVE(k),
           CCNRM(ch, C_NRM));
 }
@@ -3850,7 +3850,7 @@ ACMD(do_greport) {
   //send_to_group(NULL, group, "%s reports: %d/%dH, %d/%dM, %d/%dV\r\n",
   send_to_group(NULL, group, "%s reports: %d/%dH, %d/%dV\r\n",
           GET_NAME(ch), GET_HIT(ch), GET_MAX_HIT(ch),
-          //GET_MANA(ch), GET_MAX_MANA(ch),
+          //GET_PSP(ch), GET_MAX_PSP(ch),
           GET_MOVE(ch), GET_MAX_MOVE(ch));
 }
 
@@ -3861,7 +3861,7 @@ ACMD(do_report) {
   //send_to_room(IN_ROOM(ch), "%s status: %d/%dH, %d/%dM, %d/%dV\r\n",
   send_to_room(IN_ROOM(ch), "%s status: %d/%dH, %d/%dV\r\n",
           GET_NAME(ch), GET_HIT(ch), GET_MAX_HIT(ch),
-          //GET_MANA(ch), GET_MAX_MANA(ch),
+          //GET_PSP(ch), GET_MAX_PSP(ch),
           GET_MOVE(ch), GET_MAX_MOVE(ch));
 }
 
@@ -4227,7 +4227,7 @@ bool is_prompt_empty(struct char_data *ch) {
     prompt_is_empty = FALSE;
   if (IS_SET_AR(PRF_FLAGS(ch), PRF_DISPHP))
     prompt_is_empty = FALSE;
-  if (IS_SET_AR(PRF_FLAGS(ch), PRF_DISPMANA))
+  if (IS_SET_AR(PRF_FLAGS(ch), PRF_DISPPSP))
     prompt_is_empty = FALSE;
   if (IS_SET_AR(PRF_FLAGS(ch), PRF_DISPMOVE))
     prompt_is_empty = FALSE;
@@ -4273,7 +4273,7 @@ ACMD(do_display) {
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPAUTO);
 
     SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPHP);
-    SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPMANA);
+    SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPPSP);
     SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPMOVE);
     SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPEXP);
     SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPEXITS);
@@ -4284,7 +4284,7 @@ ACMD(do_display) {
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPAUTO);
 
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPHP);
-    REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPMANA);
+    REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPPSP);
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPMOVE);
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPEXP);
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPEXITS);
@@ -4295,7 +4295,7 @@ ACMD(do_display) {
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPAUTO);
 
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPHP);
-    REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPMANA);
+    REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPPSP);
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPMOVE);
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPEXP);
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPEXITS);
@@ -4309,7 +4309,7 @@ ACMD(do_display) {
           SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPHP);
           break;
         case 'm':
-          SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPMANA);
+          SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPPSP);
           break;
         case 'v':
           SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPMOVE);

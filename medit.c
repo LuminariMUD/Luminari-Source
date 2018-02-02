@@ -227,8 +227,8 @@ void medit_setup_existing(struct descriptor_data *d, int rmob_num) {
 static void init_mobile(struct char_data *mob) {
   clear_char(mob);
 
-  GET_HIT(mob) = GET_MANA(mob) = 1;
-  GET_MAX_MANA(mob) = GET_MAX_MOVE(mob) = 100;
+  GET_HIT(mob) = GET_PSP(mob) = 1;
+  GET_MAX_PSP(mob) = GET_MAX_MOVE(mob) = 100;
   GET_NDD(mob) = GET_SDD(mob) = 1;
   GET_WEIGHT(mob) = 200;
   GET_HEIGHT(mob) = 200;
@@ -707,7 +707,7 @@ static void medit_disp_stats_menu(struct descriptor_data *d) {
   clear_screen(d);
 
   /* Color codes have to be used here, for count_color_codes to work */
-  sprintf(buf, "(range \ty%d\tn to \ty%d\tn)", GET_HIT(mob) + GET_MOVE(mob), (GET_HIT(mob) * GET_MANA(mob)) + GET_MOVE(mob));
+  sprintf(buf, "(range \ty%d\tn to \ty%d\tn)", GET_HIT(mob) + GET_MOVE(mob), (GET_HIT(mob) * GET_PSP(mob)) + GET_MOVE(mob));
 
   /* Top section - standard stats */
   write_to_output(d,
@@ -727,7 +727,7 @@ static void medit_disp_stats_menu(struct descriptor_data *d) {
           cyn, nrm, cyn, yel, GET_LEVEL(mob), cyn, nrm,
           cyn, nrm, cyn, nrm,
           cyn, nrm, cyn, yel, GET_HIT(mob), cyn, nrm, cyn, nrm, cyn, yel, GET_NDD(mob), cyn, nrm,
-          cyn, nrm, cyn, yel, GET_MANA(mob), cyn, nrm, cyn, nrm, cyn, yel, GET_SDD(mob), cyn, nrm,
+          cyn, nrm, cyn, yel, GET_PSP(mob), cyn, nrm, cyn, nrm, cyn, yel, GET_SDD(mob), cyn, nrm,
           cyn, nrm, cyn, yel, GET_MOVE(mob), cyn, nrm, cyn, nrm, cyn, yel, GET_DAMROLL(mob), cyn, nrm,
 
           count_color_chars(buf) + 28, buf,
@@ -1528,7 +1528,7 @@ void medit_parse(struct descriptor_data *d, char *arg) {
       return;
 
     case MEDIT_SIZE_HP_DICE:
-      GET_MANA(OLC_MOB(d)) = LIMIT(i, 0, 1000);
+      GET_PSP(OLC_MOB(d)) = LIMIT(i, 0, 1000);
       OLC_VAL(d) = TRUE;
       medit_disp_stats_menu(d);
       return;
@@ -1897,7 +1897,7 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned) {
 
   /* hit points roll */
   GET_HIT(mob) = 1; /* number of hitpoint dice */
-  GET_MANA(mob) = dice(1, level); /* size of hitpoint dice   */
+  GET_PSP(mob) = dice(1, level); /* size of hitpoint dice   */
 
   /* damroll */
   GET_DAMROLL(mob) = (level / 6) + 1; /* damroll (dam bonus) 1-6 */

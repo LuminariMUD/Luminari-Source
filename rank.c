@@ -57,7 +57,7 @@ struct rank_data {
 ranktype rank_clanbucks(struct char_data *ch);
 ranktype rank_gauntlet(struct char_data *ch);
 ranktype rank_hp(struct char_data *ch);
-ranktype rank_mana(struct char_data *ch);
+ranktype rank_psp(struct char_data *ch);
 ranktype rank_moves(struct char_data *ch);
 ranktype rank_curhp(struct char_data *ch);
 ranktype rank_power(struct char_data *ch);
@@ -231,10 +231,10 @@ void do_slug_rank(struct char_data *ch, char *arg) {
 /* put the add_keys in the order you want them displayed in help */
 void init_keys(void) {
   add_key("hp", "hit points", rank_hp);
-  add_key("mana", "mana points", rank_mana);
+  add_key("psp", "psp points", rank_psp);
   add_key("moves", "move points", rank_moves);
   add_key("curhp", "hit points", rank_curhp);
-  add_key("power", "the sum of hp,mana,moves", rank_power);
+  add_key("power", "the sum of hp,psp,moves", rank_power);
   add_key("strength", "strength", rank_str);
   add_key("intel", "intelligence", rank_int);
   add_key("wisdom", "wisdom", rank_wis);
@@ -343,10 +343,10 @@ ranktype rank_hp(struct char_data *ch) {
   return (kbuf);
 } /* end rank_hp */
 
-ranktype rank_mana(struct char_data *ch) {
-  sprintf(kbuf, "%27d", GET_MAX_MANA(ch));
+ranktype rank_psp(struct char_data *ch) {
+  sprintf(kbuf, "%27d", GET_MAX_PSP(ch));
   return (kbuf);
-} /* end rank_mana */
+} /* end rank_psp */
 
 ranktype rank_moves(struct char_data *ch) {
   sprintf(kbuf, "%27d", GET_MAX_MOVE(ch));
@@ -359,7 +359,7 @@ ranktype rank_curhp(struct char_data *ch) {
 } /* end rank_hp */
 
 ranktype rank_power(struct char_data*ch) {
-  sprintf(kbuf, "%27d", (GET_MAX_MOVE(ch) + GET_MAX_MANA(ch) + GET_MAX_HIT(ch)));
+  sprintf(kbuf, "%27d", (GET_MAX_MOVE(ch) + GET_MAX_PSP(ch) + GET_MAX_HIT(ch)));
   return (kbuf);
 } /*end rank_power */
 

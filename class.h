@@ -72,7 +72,7 @@ struct class_table {
   bool prestige_class; /* prestige class? */
   int base_attack_bonus; /* whether high, medium or low */
   int hit_dice; /* how many hp this class can get on level up */
-  int mana_gain; /* how much mana this class gets on level up */
+  int psp_gain; /* how much psp this class gets on level up */
   int move_gain; /* how much moves this class gets on level up */
   int trains_gain; /* how many trains this class gets before int bonus */
   bool in_game; /* class currently in the game? */

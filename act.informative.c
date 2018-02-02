@@ -78,8 +78,8 @@ void lore_id_vict(struct char_data *ch, struct char_data *tch) {
           GET_NAME(tch), age(tch)->year, age(tch)->month,
           age(tch)->day, age(tch)->hours);
   send_to_char(ch, "Alignment: %s.\r\n", get_align_by_num(GET_ALIGNMENT(tch)));
-  send_to_char(ch, "Level: %d, Hits: %d, Mana: %d\r\n", GET_LEVEL(tch),
-          GET_HIT(tch), GET_MANA(tch));
+  send_to_char(ch, "Level: %d, Hits: %d, PSP: %d\r\n", GET_LEVEL(tch),
+          GET_HIT(tch), GET_PSP(tch));
   send_to_char(ch, "AC: %d, Hitroll: %d, Damroll: %d\r\n",
           compute_armor_class(NULL, tch, FALSE, MODE_ARMOR_CLASS_NORMAL),
           GET_HITROLL(tch), GET_DAMROLL(tch));
@@ -2328,7 +2328,7 @@ Race      : Humn                 Sex     : Male
 Age       : 18 yrs / 0 mths      Played  : 1 days / 0 hrs
 Size      : Medium               Load    : 41/920 lbs
 --------------------------------------------------------------------------------
-Hit points: 38(38)    Moves: 84(84)    Mana: 100(100)
+Hit points: 38(38)    Moves: 84(84)    PSP: 100(100)
 ----------------------------------Experience------------------------------------
 Level: 2                          CstrLvl : 0   DivLvl: 0   MgcLvl: 0
 Exp  : 2000                       ExpTNL  : 9000
@@ -3585,7 +3585,7 @@ ACMD(do_toggle) {
             "        Compact: %-3s    "
             "          Quest: %-3s\r\n"
 
-            "   Mana Display: %-3s    "
+            "   PSP Display: %-3s    "
             "         NoTell: %-3s    "
             "       NoRepeat: %-3s\r\n"
 
@@ -3638,7 +3638,7 @@ ACMD(do_toggle) {
             ONOFF(PRF_FLAGGED(ch, PRF_COMPACT)),
             ONOFF(PRF_FLAGGED(ch, PRF_QUEST)),
 
-            ONOFF(PRF_FLAGGED(ch, PRF_DISPMANA)),
+            ONOFF(PRF_FLAGGED(ch, PRF_DISPPSP)),
             ONOFF(PRF_FLAGGED(ch, PRF_NOTELL)),
             ONOFF(PRF_FLAGGED(ch, PRF_NOREPEAT)),
 

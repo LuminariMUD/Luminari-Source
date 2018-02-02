@@ -1202,9 +1202,9 @@ static char *make_prompt(struct descriptor_data *d) {
         if (count >= 0)
           len += count;
       }
-      if (GET_MANA(ch) << 2 < GET_MAX_MANA(ch) && len < sizeof (prompt)) {
+      if (GET_PSP(ch) << 2 < GET_MAX_PSP(ch) && len < sizeof (prompt)) {
         count = snprintf(prompt + len, sizeof (prompt) - len, "%d%sM%s ",
-                GET_MANA(ch),
+                GET_PSP(ch),
                 CCYEL(ch, C_NRM), CCNRM(ch, C_NRM));
         if (count >= 0)
           len += count;
@@ -1239,10 +1239,10 @@ static char *make_prompt(struct descriptor_data *d) {
           len += count;
       }
 
-      /* display mana points */
-      if (PRF_FLAGGED(d->character, PRF_DISPMANA) && len < sizeof (prompt)) {
+      /* display psp points */
+      if (PRF_FLAGGED(d->character, PRF_DISPPSP) && len < sizeof (prompt)) {
         count = snprintf(prompt + len, sizeof (prompt) - len, "%d/%d%sM%s ",
-                GET_MANA(d->character), GET_MAX_MANA(d->character),
+                GET_PSP(d->character), GET_MAX_PSP(d->character),
                 CCYEL(d->character, C_NRM), CCNRM(d->character, C_NRM));
         if (count >= 0)
           len += count;
@@ -3461,8 +3461,8 @@ static void msdp_update(void) {
         MSDPSetNumber(d, eMSDP_ROOM_VNUM, GET_ROOM_VNUM(IN_ROOM(ch)));
       } /*end location info*/
 
-      MSDPSetNumber(d, eMSDP_MANA, GET_MANA(ch));
-      MSDPSetNumber(d, eMSDP_MANA_MAX, GET_MAX_MANA(ch));
+      MSDPSetNumber(d, eMSDP_PSP, GET_PSP(ch));
+      MSDPSetNumber(d, eMSDP_PSP_MAX, GET_MAX_PSP(ch));
       MSDPSetNumber(d, eMSDP_WIMPY, GET_WIMP_LEV(ch));
       MSDPSetNumber(d, eMSDP_MONEY, GET_GOLD(ch));
       MSDPSetNumber(d, eMSDP_MOVEMENT, GET_MOVE(ch));
