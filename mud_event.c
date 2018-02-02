@@ -392,7 +392,7 @@ EVENTFUNC(event_countdown) {
           eroom_rnum = real_room(eroom_vnum);        
           log("LOG: Processing encounter room vnum: %d", eroom_vnum);
           
-          if (room_rnum == NOWHERE) {
+          if (eroom_rnum == NOWHERE) {
             log("  ERROR: Encounter room is NOWHERE");
             continue;
           }
@@ -412,7 +412,7 @@ EVENTFUNC(event_countdown) {
 
           /* Build the room. */
           assign_wilderness_room(eroom_rnum, x, y);
-          
+
 
           free(*it);
         }       
