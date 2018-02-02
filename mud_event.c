@@ -165,6 +165,9 @@ EVENTFUNC(event_countdown) {
   //obj_vnum *obj_vnum = NULL;
   //obj_rnum obj_rnum = NOWHERE;
 
+  char** tokens;  /* Storage for tokenized encounter room vnums */
+  char** it;      /* Token iterator */  
+
   pMudEvent = (struct mud_event_data *) event_obj;
 
   if (!pMudEvent)
@@ -190,7 +193,33 @@ EVENTFUNC(event_countdown) {
     case EVENT_REGION:
       regvnum = (region_vnum *) pMudEvent->pStruct;
       regrnum = real_region(*regvnum);
+      
       log("LOG: EVENT_REGION case in EVENTFUNC(event_countdown): Region VNum %d, RNum %d", *regvnum, regrnum);
+      
+      if (pMudEvent->sVariables == NULL) {
+        /* This encounter region has no encounter rooms. */
+        log("SYSERR: No encounter rooms set for encounter region vnum: %d", *regvnum);
+      } else {
+        
+        tokens = tokenize(pMudEvent->sVariables, ",");         
+        for(it=tokens; it && *it; ++it) {
+          room_vnum eroom_vnum;          
+          room_rnum eroom_rnum;
+          
+          sscanf(*it, "%d", eroom_vnum);
+          eroom_rnum = real_room(eroom_vnum);        
+          log("LOG: Processing encounter room vnum: %d", eroom_vnum);
+          
+          free(*it);
+        }
+
+        /*if (sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1) {
+          log("SYSERR: In daily_uses_remaining, bad sVariables for dauly-use-cooldown-event: %d", pMudEvent->iId);
+          uses = 0;
+        }
+        */
+      }
+
       break;
     default:
       break;
