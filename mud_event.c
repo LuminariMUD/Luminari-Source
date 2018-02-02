@@ -193,29 +193,8 @@ EVENTFUNC(event_countdown) {
       break;
     case EVENT_REGION:
       regvnum = (region_vnum *) pMudEvent->pStruct;
-      regrnum = real_region(*regvnum);
-      
-      log("LOG: EVENT_REGION case in EVENTFUNC(event_countdown): Region VNum %d, RNum %d", *regvnum, regrnum);
-      
-      if (pMudEvent->sVariables == NULL) {
-        /* This encounter region has no encounter rooms. */
-        log("SYSERR: No encounter rooms set for encounter region vnum: %d", *regvnum);
-      } else {
-        
-        tokens = tokenize(pMudEvent->sVariables, ","); 
-        
-        for(it=tokens; it && *it; ++it) {
-          room_vnum eroom_vnum;          
-          room_rnum eroom_rnum;
-          
-          sscanf(*it, "%d", &eroom_vnum);
-          eroom_rnum = real_room(eroom_vnum);        
-          log("LOG: Processing encounter room vnum: %d", eroom_vnum);
-
-          free(*it);
-        }       
-      }
-
+      regrnum = real_region(*regvnum);     
+      log("LOG: EVENT_REGION case in EVENTFUNC(event_countdown): Region VNum %d, RNum %d", *regvnum, regrnum);      
       break;
     default:
       break;
@@ -394,6 +373,29 @@ EVENTFUNC(event_countdown) {
         break;
       }
       log("Encounter Region '%s' with vnum: %d reset.", region_table[regrnum].name, region_table[regrnum].vnum);
+      
+      
+            
+      if (pMudEvent->sVariables == NULL) {
+        /* This encounter region has no encounter rooms. */
+        log("SYSERR: No encounter rooms set for encounter region vnum: %d", *regvnum);
+      } else {
+        /* Process all encounter rooms for this region */
+        tokens = tokenize(pMudEvent->sVariables, ","); 
+        
+        for(it=tokens; it && *it; ++it) {
+          room_vnum eroom_vnum;          
+          room_rnum eroom_rnum;
+          
+          sscanf(*it, "%d", &eroom_vnum);
+          eroom_rnum = real_room(eroom_vnum);        
+          log("LOG: Processing encounter room vnum: %d", eroom_vnum);
+
+          free(*it);
+        }       
+      }
+
+
       break;
     default:
       break;
