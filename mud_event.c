@@ -385,11 +385,34 @@ EVENTFUNC(event_countdown) {
         
         for(it=tokens; it && *it; ++it) {
           room_vnum eroom_vnum;          
-          room_rnum eroom_rnum;
-          
+          room_rnum eroom_rnum = NOWHERE;
+          int x, y;
+
           sscanf(*it, "%d", &eroom_vnum);
           eroom_rnum = real_room(eroom_vnum);        
           log("LOG: Processing encounter room vnum: %d", eroom_vnum);
+          
+          if (room_rnum == NOWHERE) {
+            log("  ERROR: Encounter room is NOWHERE");
+            continue;
+          }
+          
+          /* Find a location in the region where this room will be placed, 
+             it can not be the same coords as a static room. */
+          do { 
+
+            /* Generate the random point */
+
+            // DEBUG: Set the room nearby, just for testing....
+            x = world[eroom_rnum].coords[0] - 1;
+            y = world[eroom_rnum].coords[1] - 1;
+          
+            /* Check for a static room at this location. */
+          } while (find_room_by_coordinates(x, y) != NOWHERE) 
+
+          /* Build the room. */
+          assign_wilderness_room(eroom_rnum, x, y);
+          
 
           free(*it);
         }       
