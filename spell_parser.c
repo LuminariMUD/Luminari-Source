@@ -1349,8 +1349,7 @@ ACMD(do_abort) {
 ACMD(do_gen_cast) {
   struct char_data *tch = NULL;
   struct obj_data *tobj = NULL;
-  char *spell_arg = NULL, *target_arg = NULL, *metamagic_arg = NULL,
-       *casting_arg = NULL;
+  char *spell_arg = NULL, *target_arg = NULL, *metamagic_arg = NULL;
   int number = 0, spellnum = 0, i = 0, target = 0, metamagic = 0;
 
   if (IS_NPC(ch))
