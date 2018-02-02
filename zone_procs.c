@@ -326,7 +326,7 @@ static void fry_victim(struct char_data *ch)
 {
   struct char_data *tch;
 
-  if (ch->points.mana < 10)
+  if (ch->points.psp < 10)
     return;
 
   /* Find someone suitable to fry ! */
@@ -360,7 +360,7 @@ static void fry_victim(struct char_data *ch)
     break;
   }
 
-  ch->points.mana -= 10;
+  ch->points.psp -= 10;
 
   return;
 }

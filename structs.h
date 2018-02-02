@@ -328,10 +328,11 @@
 #define CLASS_STALWARTDEFENDER CLASS_STALWART_DEFENDER
 #define CLASS_SHIFTER           14
 #define CLASS_DUELIST           15
+#define CLASS_PSIONICIST        16
 /* !!!---- CRITICAL ----!!! make sure to add class names to constants.c's
    class_names[] - we are dependent on that for loading the feat-list */
 /** Total number of available PC Classes */
-#define NUM_CLASSES             16
+#define NUM_CLASSES             17
 
 // related to pc (classes, etc)
 /* note that max_classes was established to reign in some of the
@@ -728,7 +729,7 @@
 #define PRF_NOSHOUT       2   /**< Can't hear shouts */
 #define PRF_NOTELL        3   /**< Can't receive tells */
 #define PRF_DISPHP        4   /**< Display hit points in prompt */
-#define PRF_DISPMANA      5   /**< Display mana points in prompt */
+#define PRF_DISPPSP      5   /**< Display psp points in prompt */
 #define PRF_DISPMOVE      6   /**< Display move points in prompt */
 #define PRF_AUTOEXIT      7   /**< Display exits in a room */
 #define PRF_NOHASSLE      8   /**< Aggr mobs won't attack */
@@ -849,7 +850,7 @@
 #define AFF_DANGERSENSE      71  // sense aggro in surround rooms
 #define AFF_SAFEFALL         72  // reduce damage from falling
 #define AFF_TOWER_OF_IRON_WILL 73  // reduce psionic damage (no effect yet)
-#define AFF_INERTIAL_BARRIER 74  // absorb damage based on mana
+#define AFF_INERTIAL_BARRIER 74  // absorb damage based on psp
 #define AFF_NOTELEPORT       75  // make target not reachable via teleport
 /* works in progress */
 #define AFF_MAX_DAMAGE       76  // enhance next attack/spell/etc (no affect yet)
@@ -1960,7 +1961,7 @@
 #define APPLY_AGE               9	/**< Apply to age			*/
 #define APPLY_CHAR_WEIGHT      10	/**< Apply to weight		*/
 #define APPLY_CHAR_HEIGHT      11	/**< Apply to height		*/
-#define APPLY_MANA             12	/**< Apply to max mana		*/
+#define APPLY_PSP             12	/**< Apply to max psp		*/
 #define APPLY_HIT              13	/**< Apply to max hit points	*/
 #define APPLY_MOVE             14	/**< Apply to max move points	*/
 #define APPLY_GOLD             15	/**< Reserved			*/
@@ -2954,8 +2955,8 @@ struct char_ability_data {
 
 /* Character 'points', or health statistics. (we have points and real_points) */
 struct char_point_data {
-    sh_int mana; /**< Current mana level  */
-    sh_int max_mana; /**< Max mana level */
+    sh_int psp; /**< Current psp level  */
+    sh_int max_psp; /**< Max psp level */
     sh_int hit; /**< Curent hit point, or health, level */
     sh_int max_hit; /**< Max hit point, or health, level */
     sh_int move; /**< Current move point, or stamina, level */

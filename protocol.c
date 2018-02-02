@@ -77,7 +77,7 @@ static void CompressEnd(descriptor_t *apDescriptor) {
  * custom GUI, admittedly, but still better than a plain terminal window.
  *
  * These are per-player so that they can be customised for different characters
- * (eg changing 'mana' to 'blood' for vampires).  You could even allow players
+ * (eg changing 'psp' to 'blood' for vampires).  You could even allow players
  * to customise the buttons and gauges themselves if you wish.
  */
 static const char s_Button1[] = "\005\002Help\002help\006";
@@ -87,7 +87,7 @@ static const char s_Button4[] = "\005\002Equipment\002equipment\006";
 static const char s_Button5[] = "\005\002Inventory\002inventory\006";
 
 static const char s_Gauge1[] = "\005\002Health\002red\002HEALTH\002HEALTH_MAX\006";
-static const char s_Gauge2[] = "\005\002Mana\002blue\002MANA\002MANA_MAX\006";
+static const char s_Gauge2[] = "\005\002PSP\002blue\002PSP\002PSP_MAX\006";
 static const char s_Gauge3[] = "\005\002Movement\002green\002MOVEMENT\002MOVEMENT_MAX\006";
 static const char s_Gauge4[] = "\005\002Exp TNL\002yellow\002EXPERIENCE\002EXPERIENCE_MAX\006";
 static const char s_Gauge5[] = "\005\002Opponent\002darkred\002OPPONENT_HEALTH\002OPPONENT_HEALTH_MAX\006";
@@ -125,8 +125,8 @@ static variable_name_t VariableNameTable[eMSDP_MAX + 1] ={
   { eMSDP_LEVEL, "LEVEL", NUMBER_READ_ONLY},
   { eMSDP_RACE, "RACE", STRING_READ_ONLY},
   { eMSDP_CLASS, "CLASS", STRING_READ_ONLY},
-  { eMSDP_MANA, "MANA", NUMBER_READ_ONLY},
-  { eMSDP_MANA_MAX, "MANA_MAX", NUMBER_READ_ONLY},
+  { eMSDP_PSP, "PSP", NUMBER_READ_ONLY},
+  { eMSDP_PSP_MAX, "PSP_MAX", NUMBER_READ_ONLY},
   { eMSDP_WIMPY, "WIMPY", NUMBER_READ_ONLY},
   { eMSDP_PRACTICE, "PRACTICE", NUMBER_READ_ONLY},
   { eMSDP_MONEY, "MONEY", NUMBER_READ_ONLY},

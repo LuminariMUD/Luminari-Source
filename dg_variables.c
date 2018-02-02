@@ -863,12 +863,12 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
           }
           break;
         case 'm':
-          if (!str_cmp(field, "mana")) {
+          if (!str_cmp(field, "psp")) {
             if (subfield && *subfield) {
               int addition = atoi(subfield);
-              GET_MANA(c) += addition;
+              GET_PSP(c) += addition;
             }
-            snprintf(str, slen, "%d", GET_MANA(c));
+            snprintf(str, slen, "%d", GET_PSP(c));
           } else if (!str_cmp(field, "master")) {
             if (!c->master)
               *str = '\0';
@@ -880,12 +880,12 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
               GET_MAX_HIT(c) = MAX(GET_MAX_HIT(c) + addition, 1);
             }
             snprintf(str, slen, "%d", GET_MAX_HIT(c));
-          } else if (!str_cmp(field, "maxmana")) {
+          } else if (!str_cmp(field, "maxpsp")) {
             if (subfield && *subfield) {
               int addition = atoi(subfield);
-              GET_MAX_MANA(c) = MAX(GET_MAX_MANA(c) + addition, 1);
+              GET_MAX_PSP(c) = MAX(GET_MAX_PSP(c) + addition, 1);
             }
-            snprintf(str, slen, "%d", GET_MAX_MANA(c));
+            snprintf(str, slen, "%d", GET_MAX_PSP(c));
           } else if (!str_cmp(field, "maxmove")) {
             if (subfield && *subfield) {
               int addition = atoi(subfield);

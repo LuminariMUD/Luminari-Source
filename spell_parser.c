@@ -39,10 +39,10 @@ const char *unused_wearoff = "!UNUSED WEAROFF!"; /* So we can get &unused_wearof
 /* Local (File Scope) Function Prototypes */
 static void say_spell(struct char_data *ch, int spellnum, struct char_data *tch,
         struct obj_data *tobj, bool start);
-static void spello(int spl, const char *name, int max_mana, int min_mana,
-        int mana_change, int minpos, int targets, int violent, int routines,
+static void spello(int spl, const char *name, int max_psp, int min_psp,
+        int psp_change, int minpos, int targets, int violent, int routines,
         const char *wearoff, int time, int memtime, int school, bool quest);
-//static int mag_manacost(struct char_data *ch, int spellnum);
+//static int mag_pspcost(struct char_data *ch, int spellnum);
 
 /* Local (File Scope) Variables */
 struct syllable {
@@ -118,12 +118,12 @@ static struct syllable syls[] = {
 };
 
 /* may use this for mobs to control their casting
-static int mag_manacost(struct char_data *ch, int spellnum)
+static int mag_pspcost(struct char_data *ch, int spellnum)
 {
 
-  return (MAX(SINFO.mana_max - (SINFO.mana_change *
+  return (MAX(SINFO.psp_max - (SINFO.psp_change *
               (GET_LEVEL(ch) - SINFO.min_level[(int) GET_CLASS(ch)])),
-          SINFO.mana_min) / 2);
+          SINFO.psp_min) / 2);
 }
  */
 
@@ -1344,7 +1344,7 @@ ACMD(do_abort) {
 
 /* do_gen_cast is the entry point for PC-casted spells.  It parses the arguments,
  * determines the spell number and finds a target, throws the die to see if
- * the spell can be cast, checks for sufficient mana (hah) and subtracts it, and
+ * the spell can be cast, checks for sufficient psp (hah) and subtracts it, and
  * passes control to cast_spell(). */
 ACMD(do_gen_cast) {
   struct char_data *tch = NULL;
@@ -1670,8 +1670,8 @@ void spell_level(int spell, int chclass, int level) {
 }
 
 /* Assign the spells on boot up */
-static void spello(int spl, const char *name, int max_mana, int min_mana,
-        int mana_change, int minpos, int targets, int violent,
+static void spello(int spl, const char *name, int max_psp, int min_psp,
+        int psp_change, int minpos, int targets, int violent,
         int routines, const char *wearoff, int time, int memtime, int school,
         bool quest) {
   int i;
@@ -1680,9 +1680,9 @@ static void spello(int spl, const char *name, int max_mana, int min_mana,
     spell_info[spl].min_level[i] = LVL_IMMORT;
   for (i = 0; i < NUM_DOMAINS; i++)
     spell_info[spl].domain[i] = LVL_IMMORT;
-  spell_info[spl].mana_max = max_mana;
-  spell_info[spl].mana_min = min_mana;
-  spell_info[spl].mana_change = mana_change;
+  spell_info[spl].psp_max = max_psp;
+  spell_info[spl].psp_min = min_psp;
+  spell_info[spl].psp_change = psp_change;
   spell_info[spl].min_position = minpos;
   spell_info[spl].targets = targets;
   spell_info[spl].violent = violent;
@@ -1703,9 +1703,9 @@ void unused_spell(int spl) {
     spell_info[spl].min_level[i] = LVL_IMPL + 1;
   for (i = 0; i < NUM_DOMAINS; i++)
     spell_info[spl].domain[i] = LVL_IMPL + 1;
-  spell_info[spl].mana_max = 0;
-  spell_info[spl].mana_min = 0;
-  spell_info[spl].mana_change = 0;
+  spell_info[spl].psp_max = 0;
+  spell_info[spl].psp_min = 0;
+  spell_info[spl].psp_change = 0;
   spell_info[spl].min_position = POS_DEAD;
   spell_info[spl].targets = 0;
   spell_info[spl].violent = 0;
@@ -1723,16 +1723,16 @@ void unused_spell(int spl) {
                                        0, NULL, 0, 0, category, FALSE);
 
 /* Arguments for spello calls:
- * spellnum, maxmana, minmana, manachng, minpos, targets, violent?, routines.
+ * spellnum, maxpsp, minpsp, pspchng, minpos, targets, violent?, routines.
  * spellnum:  Number of the spell.  Usually the symbolic name as defined in
  *  spells.h (such as SPELL_HEAL).
  * spellname: The name of the spell.
- * maxmana :  The maximum mana this spell will take (i.e., the mana it
+ * maxpsp :  The maximum psp this spell will take (i.e., the psp it
  *  will take when the player first gets the spell).
- * minmana :  The minimum mana this spell will take, no matter how high
+ * minpsp :  The minimum psp this spell will take, no matter how high
  *  level the caster is.
- * manachng:  The change in mana for the spell from level to level.  This
- *  number should be positive, but represents the reduction in mana cost as
+ * pspchng:  The change in psp for the spell from level to level.  This
+ *  number should be positive, but represents the reduction in psp cost as
  *  the caster's level increases.
  * minpos  :  Minimum position the caster must be in for the spell to work
  *  (usually fighting or standing).

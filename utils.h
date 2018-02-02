@@ -809,11 +809,11 @@ do                                                              \
 /** Maximum move points (stamina) of ch. */
 #define GET_REAL_MAX_MOVE(ch)  ((ch)->real_points.max_move)
 #define GET_MAX_MOVE(ch)  ((ch)->points.max_move)
-/** Current mana points (magic) of ch. */
-#define GET_MANA(ch)	  ((ch)->points.mana)
-/** Maximum mana points (magic) of ch. */
-#define GET_REAL_MAX_MANA(ch)  ((ch)->real_points.max_mana)
-#define GET_MAX_MANA(ch)  ((ch)->points.max_mana)
+/** Current psp points (magic) of ch. */
+#define GET_PSP(ch)	  ((ch)->points.psp)
+/** Maximum psp points (magic) of ch. */
+#define GET_REAL_MAX_PSP(ch)  ((ch)->real_points.max_psp)
+#define GET_MAX_PSP(ch)  ((ch)->points.max_psp)
 /** Gold on ch. */
 #define GET_GOLD(ch)	  ((ch)->points.gold)
 /** Gold in bank of ch. */
@@ -1661,7 +1661,7 @@ spellnum == SPELL_EPIC_WARDING )
 #define CLSLIST_PRESTIGE(classnum)         (class_list[classnum].prestige_class)
 #define CLSLIST_BAB(classnum)              (class_list[classnum].base_attack_bonus)
 #define CLSLIST_HPS(classnum)              (class_list[classnum].hit_dice)
-#define CLSLIST_MANA(classnum)             (class_list[classnum].mana_gain)
+#define CLSLIST_PSP(classnum)             (class_list[classnum].psp_gain)
 #define CLSLIST_MVS(classnum)              (class_list[classnum].move_gain)
 #define CLSLIST_TRAINS(classnum)           (class_list[classnum].trains_gain)
 #define CLSLIST_INGAME(classnum)           (class_list[classnum].in_game)
@@ -1687,6 +1687,7 @@ spellnum == SPELL_EPIC_WARDING )
 // these have changed since multi-class, you are classified as CLASS_x if you
 // got any levels in it - zusuk
 #define IS_WIZARD(ch)	     (CLASS_LEVEL(ch, CLASS_WIZARD))
+#define IS_PSIONICIST(ch)	     (CLASS_LEVEL(ch, CLASS_PSIONICIST))
 #define IS_SORCERER(ch)       (CLASS_LEVEL(ch, CLASS_SORCERER))
 #define IS_BARD(ch)       (CLASS_LEVEL(ch, CLASS_BARD))
 #define IS_CLERIC(ch)		(CLASS_LEVEL(ch, CLASS_CLERIC))

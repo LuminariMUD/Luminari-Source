@@ -46,8 +46,8 @@ struct char_ability_data_plrtoascii {
 
 /* Char's points.  Used in char_file_u *DO*NOT*CHANGE* */
 struct char_point_data_plrtoascii {
-   sh_int mana;
-   sh_int max_mana;     /* Max mana for PC/NPC			   */
+   sh_int psp;
+   sh_int max_psp;     /* Max psp for PC/NPC			   */
    sh_int hit;
    sh_int max_hit;      /* Max hit for PC/NPC                      */
    sh_int move;
@@ -370,8 +370,8 @@ void convert(char *filename)
 
     if (cpd->hit != PFDEF_HIT || cpd->max_hit != PFDEF_MAXHIT)
       fprintf(outfile, "Hit : %d/%d\n", cpd->hit, cpd->max_hit);
-    if (cpd->mana != PFDEF_MANA || cpd->max_mana != PFDEF_MAXMANA)
-      fprintf(outfile, "Mana: %d/%d\n", cpd->mana, cpd->max_mana);
+    if (cpd->psp != PFDEF_PSP || cpd->max_psp != PFDEF_MAXPSP)
+      fprintf(outfile, "PSP: %d/%d\n", cpd->psp, cpd->max_psp);
     if (cpd->move != PFDEF_MOVE || cpd->max_move != PFDEF_MAXMOVE)
       fprintf(outfile, "Move: %d/%d\n", cpd->move, cpd->max_move);
     if (cpd->armor != PFDEF_AC)

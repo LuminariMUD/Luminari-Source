@@ -319,7 +319,7 @@ void feat_assignment(int class_num, int feat_num, bool is_classfeat,
 /* function that will assign a list of values to a given class */
 void classo(int class_num, char *name, char *abbrev, char *colored_abbrev,
         char *menu_name, int max_level, bool locked_class, int prestige_class,
-        int base_attack_bonus, int hit_dice, int mana_gain, int move_gain,
+        int base_attack_bonus, int hit_dice, int psp_gain, int move_gain,
         int trains_gain, bool in_game, int unlock_cost, int epic_feat_progression,
         char *descrip) {
   class_list[class_num].name = name;
@@ -331,7 +331,7 @@ void classo(int class_num, char *name, char *abbrev, char *colored_abbrev,
   class_list[class_num].prestige_class = prestige_class;
   class_list[class_num].base_attack_bonus = base_attack_bonus;
   class_list[class_num].hit_dice = hit_dice;
-  class_list[class_num].mana_gain = mana_gain;
+  class_list[class_num].psp_gain = psp_gain;
   class_list[class_num].move_gain = move_gain;
   class_list[class_num].trains_gain = trains_gain;
   class_list[class_num].in_game = in_game;
@@ -421,7 +421,7 @@ void init_class_list(int class_num) {
   class_list[class_num].prestige_class = N;
   class_list[class_num].base_attack_bonus = L;
   class_list[class_num].hit_dice = 4;
-  class_list[class_num].mana_gain = 0;
+  class_list[class_num].psp_gain = 0;
   class_list[class_num].move_gain = 0;
   class_list[class_num].trains_gain = 2;  
   class_list[class_num].in_game = N;
@@ -1975,7 +1975,7 @@ void init_start_char(struct char_data *ch) {
   GET_REAL_HITROLL(ch) = 0;
   GET_REAL_DAMROLL(ch) = 0;
   GET_REAL_MAX_HIT(ch) = 20;
-  GET_REAL_MAX_MANA(ch) = 100;
+  GET_REAL_MAX_PSP(ch) = 100;
   GET_REAL_MAX_MOVE(ch) = 82;
   GET_PRACTICES(ch) = 0;
   GET_TRAINS(ch) = 0;
@@ -2130,7 +2130,7 @@ void do_start(struct char_data *ch) {
   //from level 0 -> level 1
   advance_level(ch, GET_CLASS(ch));
   GET_HIT(ch) = GET_MAX_HIT(ch);
-  GET_MANA(ch) = GET_MAX_MANA(ch);
+  GET_PSP(ch) = GET_MAX_PSP(ch);
   GET_MOVE(ch) = GET_MAX_MOVE(ch);
   GET_COND(ch, DRUNK) = 0;
   if (CONFIG_SITEOK_ALL)
@@ -2318,7 +2318,7 @@ void process_level_feats(struct char_data *ch, int class) {
 /* our function for leveling up */
 void advance_level(struct char_data *ch, int class) {
   int add_hp = 0, at_armor = 100,
-          add_mana = 0, add_move = 0, k, trains = 0;
+          add_psp = 0, add_move = 0, k, trains = 0;
   int feats = 0, class_feats = 0, epic_feats = 0, epic_class_feats = 0;
   int i = 0;
 
@@ -2345,9 +2345,9 @@ void advance_level(struct char_data *ch, int class) {
   /* calculate moves gain */
   add_move += rand_number(1, CLSLIST_MVS(class));
   
-  /* calculate mana gain */
-  //add_mana += rand_number(CLSLIST_MANA(class)/2, CLSLIST_MANA(class));
-  add_mana = 0;
+  /* calculate psp gain */
+  //add_psp += rand_number(CLSLIST_PSP(class)/2, CLSLIST_PSP(class));
+  add_psp = 0;
   
   /* calculate trains gained */
   trains += MAX(1, (CLSLIST_TRAINS(class) + (GET_REAL_INT_BONUS(ch))));
@@ -2435,8 +2435,8 @@ void advance_level(struct char_data *ch, int class) {
   GET_REAL_MAX_MOVE(ch) += MAX(1, add_move);
   send_to_char(ch, "\tMTotal Move:\tn %d\r\n", MAX(1, add_move));
   if (GET_LEVEL(ch) > 1) {
-    GET_REAL_MAX_MANA(ch) += add_mana;
-    send_to_char(ch, "\tMTotal Mana:\tn %d\r\n", add_mana);
+    GET_REAL_MAX_PSP(ch) += add_psp;
+    send_to_char(ch, "\tMTotal PSP:\tn %d\r\n", add_psp);
   }
   GET_FEAT_POINTS(ch) += feats;
   if (feats)
@@ -2608,7 +2608,7 @@ void load_class_list(void) {
   /****************************************************************************/
   /*     class-number  name      abrv   clr-abrv     menu-name*/
   classo(CLASS_WIZARD, "wizard", "Wiz", "\tmWiz\tn", "m) \tmWizard\tn",
-    /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCost efeatp*/
+    /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCost efeatp*/
       -1,       N,    N,        L,  4, 0,   1,   2,     Y,       0,       5,
       /*Descrip*/ "Beyond the veil of the mundane hide the secrets of absolute "
     "power. The works of beings beyond mortals, the legends of realms where titans "
@@ -2896,7 +2896,7 @@ void load_class_list(void) {
   /****************************************************************************/
   /*     class-number  name      abrv   clr-abrv     menu-name*/
   classo(CLASS_CLERIC, "cleric", "Cle", "\tBCle\tn", "c) \tBCleric\tn",
-    /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst eFeatp*/
+    /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst eFeatp*/
       -1,       N,    N,        M,  8, 0,   1,   2,     Y,       0,      0,
       /*descrip*/"In faith and the miracles of the divine, many find a greater "
     "purpose. Called to serve powers beyond most mortal understanding, all priests "
@@ -3098,7 +3098,7 @@ void load_class_list(void) {
   /****************************************************************************/
   /*     class-number  name     abrv   clr-abrv     menu-name*/
   classo(CLASS_ROGUE, "rogue", "Rog", "\twRog\tn", "t) \twRogue\tn",
-      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst eFeatp*/
+      /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst eFeatp*/
         -1,       N,    N,        M,  6, 0,   2,   8,     Y,       0,      0,
         /*descrip*/"Life is an endless adventure for those who live by their wits. "
     "Ever just one step ahead of danger, rogues bank on their cunning, skill, and "
@@ -3201,7 +3201,7 @@ void load_class_list(void) {
   /****************************************************************************/
   /*     class-number  name        abrv   clr-abrv       menu-name*/
   classo(CLASS_WARRIOR, "warrior", "War", "\tRWar\tn", "w) \tRWarrior\tn",
-      /* max-lvl  lock? prestige? BAB HD  mana move trains in-game? unlkCst, eFeatp */
+      /* max-lvl  lock? prestige? BAB HD  psp move trains in-game? unlkCst, eFeatp */
         -1,       N,    N,        H,  10, 0,   1,   2,     Y,       0,       2,
         /*descrip*/"Some take up arms for glory, wealth, or revenge. Others do "
     "battle to prove themselves, to protect others, or because they know nothing "
@@ -3341,7 +3341,7 @@ void load_class_list(void) {
   /****************************************************************************/
   /*     class-number  name    abrv   clr-abrv     menu-name*/
   classo(CLASS_MONK, "monk", "Mon", "\tgMon\tn", "o) \tgMonk\tn",
-      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst, eFeatp */
+      /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp */
         -1,       N,    N,        M,  8, 0,   2,   4,     Y,       0,       0,
         /*descrip*/"For the truly exemplary, martial skill transcends the "
     "battlefield—it is a lifestyle, a doctrine, a state of mind. These warrior-"
@@ -3433,7 +3433,7 @@ void load_class_list(void) {
   /****************************************************************************/
   /*     class-number  name      abrv   clr-abrv          menu-name*/
   classo(CLASS_DRUID, "druid", "Dru", "\tGD\tgr\tGu\tn", "d) \tGD\tgr\tGu\tgi\tGd\tn",
-      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst, eFeatp*/
+      /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
         -1,       N,    N,        M,  8, 0,   3,   4,     Y,       0,       0,
         /*descrip*/"Within the purity of the elements and the order of the wilds "
     "lingers a power beyond the marvels of civilization. Furtive yet undeniable, "
@@ -3640,7 +3640,7 @@ void load_class_list(void) {
   /****************************************************************************/
   /*     class-number        name      abrv   clr-abrv           menu-name*/
   classo(CLASS_BERSERKER, "berserker", "Bes", "\trB\tRe\trs\tn", "b) \trBer\tRser\trker\tn",
-      /* max-lvl  lock? prestige? BAB HD  mana move trains in-game? unlkCst, eFeatp */
+      /* max-lvl  lock? prestige? BAB HD  psp move trains in-game? unlkCst, eFeatp */
         -1,       N,    N,        H,  12, 0,   2,   4,     Y,       0,       0,
         /*descrip*/"For some, there is only rage. In the ways of their people, in "
     "the fury of their passion, in the howl of battle, conflict is all these brutal "
@@ -3752,7 +3752,7 @@ void load_class_list(void) {
   /****************************************************************************/
   /*     class-number     name      abrv   clr-abrv     menu-name*/
   classo(CLASS_SORCERER, "sorcerer", "Sor", "\tMSor\tn", "s) \tMSorcerer\tn",
-      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst, eFeatp*/
+      /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
         -1,       N,    N,        L,  4, 0,   1,   2,     Y,       0,       0,
         /*descrip*/"Scions of innately magical bloodlines, the chosen of deities, "
     "the spawn of monsters, pawns of fate and destiny, or simply flukes of fickle "
@@ -4021,7 +4021,7 @@ void load_class_list(void) {
   /****************************************************************************/
   /*     class-number   name      abrv   clr-abrv     menu-name*/
   classo(CLASS_PALADIN, "paladin", "Pal", "\tWPal\tn", "p) \tWPaladin\tn",
-      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst, eFeatp*/
+      /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
         -1,       N,    N,        H,  10, 0,   1,   2,     Y,      0,       0,
         /*descrip*/"Through a select, worthy few shines the power of the divine. "
     "Called paladins, these noble souls dedicate their swords and lives to the "
@@ -4150,7 +4150,7 @@ void load_class_list(void) {
   /****************************************************************************/
   /*     class-number  name      abrv   clr-abrv     menu-name*/
   classo(CLASS_RANGER, "ranger", "Ran", "\tYRan\tn", "r) \tYRanger\tn",
-      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst, eFeatp */
+      /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp */
         -1,       N,    N,        H,  10, 0,   3,   4,     Y,      0,       0,
         /*descrip*/"For those who relish the thrill of the hunt, there are only "
     "predators and prey. Be they scouts, trackers, or bounty hunters, rangers share "
@@ -4281,7 +4281,7 @@ void load_class_list(void) {
   /****************************************************************************/
   /*     class-number  name   abrv   clr-abrv     menu-name*/
   classo(CLASS_BARD, "bard", "Bar", "\tCBar\tn", "a) \tCBard\tn",
-      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst, eFeatp */
+      /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp */
         -1,       N,    N,        M,  6, 0,   2,   6,     Y,       0,       0,
         /*descrip*/"Untold wonders and secrets exist for those skillful enough to "
     "discover them. Through cleverness, talent, and magic, these cunning few unravel "
@@ -4430,7 +4430,7 @@ void load_class_list(void) {
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
   classo(CLASS_WEAPON_MASTER, "weaponmaster", "WpM", "\tcWpM\tn", "e) \tcWeaponMaster\tn",
-      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst, eFeatp*/
+      /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
         10,       Y,    Y,        H,  10, 0,   1,   2,     Y,      5000,    0,
         /*descrip*/"For the weapon master, perfection is found in the mastery of a "
     "single melee weapon. A weapon master seeks to unite this weapon of choice with "
@@ -4489,7 +4489,7 @@ void load_class_list(void) {
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
   classo(CLASS_ARCANE_ARCHER, "arcanearcher", "ArA", "\tGArA\tn", "f) \tGArcaneArcher\tn",
-      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst, eFeatp*/
+      /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
         10,       Y,    Y,        H,  10, 0,   1,   4,     Y,      5000,    0,
         /*descrip*/"Many who seek to perfect the use of the bow sometimes pursue "
     "the path of the arcane archer. Arcane archers are masters of ranged combat, "
@@ -4551,7 +4551,7 @@ void load_class_list(void) {
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
   classo(CLASS_STALWART_DEFENDER, "stalwartdefender", "SDe", "\tWS\tcDe\tn", "g) \tWStalwart \tcDefender\tn",
-      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst, eFeatp*/
+      /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
         10,       Y,    Y,        H,  12, 0,   1,   2,     Y,      5000,    0,
         /*descrip*/"Drawn from the ranks of guards, knights, mercenaries, and "
     "thugs alike, stalwart defenders are masters of claiming an area and refusing "
@@ -4622,7 +4622,7 @@ void load_class_list(void) {
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
   classo(CLASS_SHIFTER, "shifter", "Shf", "\twS\tWh\twf\tn", "f) \twSh\tWift\twer\tn",
-      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst, eFeatp*/
+      /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
         10,       Y,    Y,        M,  8, 0,   1,   4,     N,       5000,    0,
         /*descrip*/"A shifter has no form they call their own. Instead, they clothe "
     "themselves in whatever shape is most expedient at the time. While others base "
@@ -4673,7 +4673,7 @@ void load_class_list(void) {
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
   classo(CLASS_DUELIST, "duelist", "Due", "\tcDue\tn", "i) \tcDuelist\tn",
-      /* max-lvl  lock? prestige? BAB HD mana move trains in-game? unlkCst, eFeatp*/
+      /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
         10,       Y,    Y,        H,  10, 0,   1,   4,     Y,      5000,    0,
         /*descrip*/"Duelists represent the pinnacle of elegant swordplay. They "
     "move with a grace unmatched by most foes, parrying blows and countering attacks "

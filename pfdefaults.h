@@ -60,8 +60,8 @@
 #define PFDEF_CHA		0
 #define PFDEF_HIT		0
 #define PFDEF_MAXHIT		0
-#define PFDEF_MANA		0
-#define PFDEF_MAXMANA		0
+#define PFDEF_PSP		0
+#define PFDEF_MAXPSP		0
 #define PFDEF_MOVE		0
 #define PFDEF_MAXMOVE		0
 #define PFDEF_HUNGER		0

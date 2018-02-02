@@ -322,7 +322,7 @@ void pulse_luminari() {
     /* vitals regeneration */
     if (GET_HIT(i) == GET_MAX_HIT(i) &&
             GET_MOVE(i) == GET_MAX_MOVE(i) &&
-            GET_MANA(i) == GET_MAX_MANA(i) &&
+            GET_PSP(i) == GET_MAX_PSP(i) &&
             !AFF_FLAGGED(i, AFF_POISON))
       ;
     else
@@ -510,10 +510,10 @@ void regen_update(struct char_data *ch) {
       move_regen += 2;
     GET_MOVE(ch) = MIN(GET_MOVE(ch) + (move_regen * 3), GET_MAX_MOVE(ch));
   }
-  if (GET_MANA(ch) > GET_MAX_MANA(ch)) {
-    GET_MANA(ch)--;
+  if (GET_PSP(ch) > GET_MAX_PSP(ch)) {
+    GET_PSP(ch)--;
   } else {
-    GET_MANA(ch) = MIN(GET_MANA(ch) + (hp * 2), GET_MAX_MANA(ch));
+    GET_PSP(ch) = MIN(GET_PSP(ch) + (hp * 2), GET_MAX_PSP(ch));
   }
 
   update_pos(ch);
@@ -521,15 +521,15 @@ void regen_update(struct char_data *ch) {
 }
 
 
-/* The hit_limit, mana_limit, and move_limit functions are gone.  They added an
+/* The hit_limit, psp_limit, and move_limit functions are gone.  They added an
  * unnecessary level of complexity to the internal structure, weren't
  * particularly useful, and led to some annoying bugs.  From the players' point
  * of view, the only difference the removal of these functions will make is
  * that a character's age will now only affect the HMV gain per tick, and _not_
  * the HMV maximums. */
 
-/* manapoint gain pr. game hour */
-int mana_gain(struct char_data *ch) {
+/* psppoint gain pr. game hour */
+int psp_gain(struct char_data *ch) {
   int gain;
 
   if (IS_NPC(ch)) {

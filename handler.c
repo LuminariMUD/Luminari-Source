@@ -136,8 +136,8 @@ void aff_apply_modify(struct char_data *ch, byte loc, sbyte mod, char *msg) {
       GET_HEIGHT(ch) += mod;
       break;
 
-    case APPLY_MANA:
-      GET_MAX_MANA(ch) += mod;
+    case APPLY_PSP:
+      GET_MAX_PSP(ch) += mod;
       break;
     case APPLY_HIT:
       GET_MAX_HIT(ch) += mod;
@@ -350,7 +350,7 @@ void reset_char_points(struct char_data *ch) {
   //struct damage_reduction_type *damreduct;
   //struct dr_bypass_type *dr_bypass;
 
-  ch->points.max_mana = ch->real_points.max_mana;
+  ch->points.max_psp = ch->real_points.max_psp;
   ch->points.max_hit = ch->real_points.max_hit;
   ch->points.max_move = ch->real_points.max_move;
   ch->points.armor = ch->real_points.armor;
@@ -380,14 +380,14 @@ void reset_char_points(struct char_data *ch) {
 
 #define BASE_STAT_CAP 8
 #define HP_CAP 200
-#define MANA_CAP 300
+#define PSP_CAP 300
 #define MOVE_CAP 999
 #define HITDAM_CAP 10
 #define AC_CAP -140
 #define SAVE_CAP 10
 #define RESIST_CAP 100
 void compute_char_cap(struct char_data *ch) {
-  int hp_cap, mana_cap, move_cap, hit_cap, dam_cap, ac_cap,
+  int hp_cap, psp_cap, move_cap, hit_cap, dam_cap, ac_cap,
           save_cap, resist_cap, class, class_level = 0;
   int str_cap, dex_cap, con_cap, wis_cap, int_cap, cha_cap;
   int rage_bonus = 0;
@@ -417,7 +417,7 @@ void compute_char_cap(struct char_data *ch) {
   int_cap = BASE_STAT_CAP + GET_REAL_INT(ch);
   cha_cap = BASE_STAT_CAP + GET_REAL_CHA(ch);
   hp_cap = HP_CAP + GET_REAL_MAX_HIT(ch);
-  mana_cap = MANA_CAP + GET_REAL_MAX_MANA(ch);
+  psp_cap = PSP_CAP + GET_REAL_MAX_PSP(ch);
   move_cap = MOVE_CAP + GET_REAL_MAX_MOVE(ch);
   hit_cap = HITDAM_CAP + GET_REAL_HITROLL(ch);
   dam_cap = HITDAM_CAP + GET_REAL_DAMROLL(ch);
@@ -569,7 +569,7 @@ void compute_char_cap(struct char_data *ch) {
 #undef STAT_CAP
 #undef BASE_STAT_CAP
 #undef HP_CAP
-#undef MANA_CAP
+#undef PSP_CAP
 #undef MOVE_CAP
 #undef HITDAM_CAP
 #undef AC_CAP
