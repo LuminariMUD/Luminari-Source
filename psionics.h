@@ -1,8 +1,12 @@
-/* 
- * File:   psionics.h
- * Author: zusuk
- *
- */
+/*/ \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \
+\                                                             
+/  Luminari Psionics System, Inspired by Outcast Psionics                                                           
+/  Created By: Altherog, ported by Zusuk                                                           
+\                                                             
+/                                                             
+\         todo: actually make a pathfinder system                                                   
+/                                                                                                                                                                                       
+\ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ /*/
 
 #ifndef PSIONICS_H
 #define	PSIONICS_H

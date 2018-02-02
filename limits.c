@@ -701,9 +701,11 @@ void run_autowiz(void) {
 
 /* changed to return gain */
 #define NEWBIE_EXP               150
-#define MIN_NUM_MOBS_TO_KILL     10
-#define MIN_NUM_MOBS_TO_KILL_10  25
-#define MIN_NUM_MOBS_TO_KILL_20  125
+#define MIN_NUM_MOBS_TO_KILL_5   9
+#define MIN_NUM_MOBS_TO_KILL_10  24
+#define MIN_NUM_MOBS_TO_KILL_15  59
+#define MIN_NUM_MOBS_TO_KILL_20  120
+#define MIN_NUM_MOBS_TO_KILL_25  185
 int gain_exp(struct char_data *ch, int gain, int mode) {
   int xp_to_lvl = 0;
   int gain_cap = 0;
@@ -749,12 +751,18 @@ int gain_exp(struct char_data *ch, int gain, int mode) {
       case GAIN_EXP_MODE_DUMP:
         /* further cap these */
         xp_to_lvl = level_exp(ch, GET_LEVEL(ch) + 1) - level_exp(ch, GET_LEVEL(ch));
-        if (GET_LEVEL(ch) < 11) {
-          gain_cap = xp_to_lvl / (MIN_NUM_MOBS_TO_KILL*4);
-        } else if (GET_LEVEL(ch) < 21) {
+        if (GET_LEVEL(ch) < 6) {
+          ; /* no cap */
+        } else if (GET_LEVEL(ch) < 11) {
+          gain_cap = xp_to_lvl / (MIN_NUM_MOBS_TO_KILL_5*4);
+        } else if (GET_LEVEL(ch) < 16) {
           gain_cap = xp_to_lvl / (MIN_NUM_MOBS_TO_KILL_10*4);
-        } else {
+        } else if (GET_LEVEL(ch) < 21) {
+          gain_cap = xp_to_lvl / (MIN_NUM_MOBS_TO_KILL_15*4);
+        } else if (GET_LEVEL(ch) < 26) {
           gain_cap = xp_to_lvl / (MIN_NUM_MOBS_TO_KILL_20*4);
+        } else {
+          gain_cap = xp_to_lvl / (MIN_NUM_MOBS_TO_KILL_25*4);
         }
         gain = MIN(gain_cap, gain);
         break;
@@ -764,12 +772,18 @@ int gain_exp(struct char_data *ch, int gain, int mode) {
       case GAIN_EXP_MODE_TRAP:
       default:
         xp_to_lvl = level_exp(ch, GET_LEVEL(ch) + 1) - level_exp(ch, GET_LEVEL(ch));
-        if (GET_LEVEL(ch) < 11) {
-          gain_cap = xp_to_lvl / MIN_NUM_MOBS_TO_KILL;
+        if (GET_LEVEL(ch) < 6) {
+          ; /* no cap */
+        } else if (GET_LEVEL(ch) < 11) {
+          gain_cap = xp_to_lvl / (MIN_NUM_MOBS_TO_KILL_5);
+        } else if (GET_LEVEL(ch) < 16) {
+          gain_cap = xp_to_lvl / (MIN_NUM_MOBS_TO_KILL_10);
         } else if (GET_LEVEL(ch) < 21) {
-          gain_cap = xp_to_lvl / MIN_NUM_MOBS_TO_KILL_10;
+          gain_cap = xp_to_lvl / (MIN_NUM_MOBS_TO_KILL_15);
+        } else if (GET_LEVEL(ch) < 26) {
+          gain_cap = xp_to_lvl / (MIN_NUM_MOBS_TO_KILL_20);
         } else {
-          gain_cap = xp_to_lvl / MIN_NUM_MOBS_TO_KILL_20;
+          gain_cap = xp_to_lvl / (MIN_NUM_MOBS_TO_KILL_25);
         }
         gain = MIN(gain_cap, gain);
         break;
