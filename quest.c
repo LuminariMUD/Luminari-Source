@@ -626,31 +626,35 @@ void quest_hist(struct char_data *ch, char argument[MAX_STRING_LENGTH]) {
 }
 
 void quest_join(struct char_data *ch, struct char_data *qm, char argument[MAX_INPUT_LENGTH]) {
-  qst_vnum vnum = NOTHING;
-  qst_rnum rnum = NOWHERE;
+  qst_vnum vnum = NOTHING, tempvnum = NOTHING;
+  qst_rnum rnum = NOWHERE, temprnum = NOWHERE;
   char buf[MAX_INPUT_LENGTH];
   bool has_quest_object = FALSE;
   int i = 0;
 
-  /* we will check for quest object here */
-  if ((QST_PREREQ(rnum) != NOTHING) &&
-          (real_object(QST_PREREQ(rnum)) != NOTHING)) {
-    
-    /* inventory will do it */
-    if (get_obj_in_list_num(real_object(QST_PREREQ(rnum)),
-            ch->carrying) != NULL)
-      has_quest_object = TRUE;
+  /* we will check for quest object here, this is terrible, im sick, leave me alone ;p */
+  if ((tempvnum = find_quest_by_qmnum(ch, GET_MOB_VNUM(qm), atoi(argument))) != NOTHING) {
+    if ((temprnum = real_quest(tempvnum)) == NOTHING) {
+      if ((QST_PREREQ(temprnum) != NOTHING) &&
+              (real_object(QST_PREREQ(temprnum)) != NOTHING)) {
 
-    /* and wearing will do it too */
-    for (i = 0; i < NUM_WEARS; i++) {
-      if (GET_EQ(ch, i) &&
-              GET_OBJ_RNUM(GET_EQ(ch, i)) == real_object(QST_PREREQ(rnum))) {
-        has_quest_object = TRUE;
-        break;
+        /* inventory will do it */
+        if (get_obj_in_list_num(real_object(QST_PREREQ(temprnum)),
+                ch->carrying) != NULL)
+          has_quest_object = TRUE;
+
+        /* and wearing will do it too */
+        for (i = 0; i < NUM_WEARS; i++) {
+          if (GET_EQ(ch, i) &&
+                  GET_OBJ_RNUM(GET_EQ(ch, i)) == real_object(QST_PREREQ(temprnum))) {
+            has_quest_object = TRUE;
+            break;
+          }
+        }
       }
     }
   }
-  
+
   if (!*argument) {
     snprintf(buf, sizeof (buf),
             "\r\n%s, what quest did you wish to join?\r\n", GET_NAME(ch));
@@ -682,12 +686,12 @@ void quest_join(struct char_data *ch, struct char_data *qm, char argument[MAX_IN
   } else if ((QST_PREV(rnum) != NOTHING) && !is_complete(ch, QST_PREV(rnum))) {
     snprintf(buf, sizeof (buf),
             "\r\n%s, that quest is not available to you yet!\r\n", GET_NAME(ch));
-  } else if ( (QST_PREREQ(rnum) != NOTHING) &&
+  } else if ((QST_PREREQ(rnum) != NOTHING) &&
           (real_object(QST_PREREQ(rnum)) != NOTHING) &&
           !has_quest_object) {
-      snprintf(buf, sizeof (buf),
-              "\r\n%s, you need to have %s first!\r\n", GET_NAME(ch),
-              obj_proto[real_object(QST_PREREQ(rnum))].short_description);
+    snprintf(buf, sizeof (buf),
+            "\r\n%s, you need to have %s first!\r\n", GET_NAME(ch),
+            obj_proto[real_object(QST_PREREQ(rnum))].short_description);
   } else {
     act("You join the quest.", TRUE, ch, NULL, NULL, TO_CHAR);
     act("$n has joined a quest.", TRUE, ch, NULL, NULL, TO_ROOM);
