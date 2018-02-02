@@ -34,6 +34,7 @@
 /* EOF */
 
 
+#ifdef PSI_CLASS_ENABLED
 
 /* returns 0 if PC cannot use the skill, other wise returns the psp cost of
  * using the skill.. Gods still pay 1 psp per skill, faster and less messier that way */
@@ -152,7 +153,6 @@ int canUsePsionicSkill(struct char_data *ch, int skill) {
   return MAX(0, pspCost);
 }
 
-#ifdef PSI_CLASS_ENABLED
 
 void incSkillSubPsp(struct char_data *ch, int skill, int amount, int skillGain) {
   struct obj_data * crystal;
