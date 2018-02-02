@@ -202,23 +202,18 @@ EVENTFUNC(event_countdown) {
         log("SYSERR: No encounter rooms set for encounter region vnum: %d", *regvnum);
       } else {
         
-        tokens = tokenize(pMudEvent->sVariables, ",");         
+        tokens = tokenize(pMudEvent->sVariables, ","); 
+        
         for(it=tokens; it && *it; ++it) {
           room_vnum eroom_vnum;          
           room_rnum eroom_rnum;
           
-          sscanf(*it, "%d", eroom_vnum);
+          sscanf(*it, "%d", &eroom_vnum);
           eroom_rnum = real_room(eroom_vnum);        
           log("LOG: Processing encounter room vnum: %d", eroom_vnum);
 
           free(*it);
-        }
-
-        /*if (sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1) {
-          log("SYSERR: In daily_uses_remaining, bad sVariables for dauly-use-cooldown-event: %d", pMudEvent->iId);
-          uses = 0;
-        }
-        */
+        }       
       }
 
       break;
