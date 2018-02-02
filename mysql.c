@@ -188,8 +188,9 @@ void load_regions() {
                       "NumPoints(ExteriorRing(`region_polygon`)), "
                       "AsText(ExteriorRing(region_polygon)), "
                       "region_props, "
-                      "region_reset_data "
-               "  from region_data");
+                      "region_reset_data, "
+                      "region_reset_time "
+                  "from region_data");
 
 
   if (mysql_query(conn, buf)) {
@@ -245,9 +246,10 @@ void load_regions() {
     top_of_region_table = i; 
     
     /* Add a reset event if this is an encounter region */
-    if (region_table[i].region_type == REGION_ENCOUNTER) {
+    if (region_table[i].region_type == REGION_ENCOUNTER &&
+        atoi(row[8]) > 0 ) {
       log (" adding event for vnum %d", region_table[i].vnum);
-      NEW_EVENT(eENCOUNTER_REG_RESET, &(region_table[i].vnum), row[7], 60 RL_SEC);
+      NEW_EVENT(eENCOUNTER_REG_RESET, &(region_table[i].vnum), row[7], atoi(row[8]) RL_SEC);
     }
     i++;
   } 
