@@ -682,7 +682,7 @@ void quest_join(struct char_data *ch, struct char_data *qm, char argument[MAX_IN
   } else if ((QST_PREV(rnum) != NOTHING) && !is_complete(ch, QST_PREV(rnum))) {
     snprintf(buf, sizeof (buf),
             "\r\n%s, that quest is not available to you yet!\r\n", GET_NAME(ch));
-  } else if ((QST_PREREQ(rnum) != NOTHING) &&
+  } else if ( (QST_PREREQ(rnum) != NOTHING) &&
           (real_object(QST_PREREQ(rnum)) != NOTHING) &&
           !has_quest_object) {
       snprintf(buf, sizeof (buf),
