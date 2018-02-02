@@ -408,7 +408,7 @@ EVENTFUNC(event_countdown) {
             y = world[eroom_rnum].coords[1] - 1;
           
             /* Check for a static room at this location. */
-          } while (find_room_by_coordinates(x, y) != NOWHERE) 
+          } while (find_room_by_coordinates(x, y) != NOWHERE);
 
           /* Build the room. */
           assign_wilderness_room(eroom_rnum, x, y);
