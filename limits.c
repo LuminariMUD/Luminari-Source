@@ -752,7 +752,7 @@ int gain_exp(struct char_data *ch, int gain, int mode) {
         /* further cap these */
         xp_to_lvl = level_exp(ch, GET_LEVEL(ch) + 1) - level_exp(ch, GET_LEVEL(ch));
         if (GET_LEVEL(ch) < 6) {
-          ; /* no cap */
+          gain_cap = gain; /* no cap */
         } else if (GET_LEVEL(ch) < 11) {
           gain_cap = xp_to_lvl / (MIN_NUM_MOBS_TO_KILL_5*4);
         } else if (GET_LEVEL(ch) < 16) {
@@ -773,7 +773,7 @@ int gain_exp(struct char_data *ch, int gain, int mode) {
       default:
         xp_to_lvl = level_exp(ch, GET_LEVEL(ch) + 1) - level_exp(ch, GET_LEVEL(ch));
         if (GET_LEVEL(ch) < 6) {
-          ; /* no cap */
+          gain_cap = gain; /* no cap */
         } else if (GET_LEVEL(ch) < 11) {
           gain_cap = xp_to_lvl / (MIN_NUM_MOBS_TO_KILL_5);
         } else if (GET_LEVEL(ch) < 16) {
