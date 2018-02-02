@@ -18,6 +18,7 @@
 #include "handler.h"
 #include "wilderness.h"
 #include "quest.h"
+#include "mysql.h"
 
 
 /* Global List */
@@ -209,7 +210,7 @@ EVENTFUNC(event_countdown) {
           sscanf(*it, "%d", eroom_vnum);
           eroom_rnum = real_room(eroom_vnum);        
           log("LOG: Processing encounter room vnum: %d", eroom_vnum);
-          
+
           free(*it);
         }
 
