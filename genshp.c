@@ -1,9 +1,9 @@
 /**************************************************************************
-*  File: genshp.c                                          Part of LuminariMUD *
-*  Usage: Generic OLC Library - Shops.                                    *
-*                                                                         *
-*  Copyright 1996 by Harvey Gilpin, 1997-2001 by George Greer.            *
-**************************************************************************/
+ *  File: genshp.c                                     Part of LuminariMUD *
+ *  Usage: Generic OLC Library - Shops.                                    *
+ *                                                                         *
+ *  Copyright 1996 by Harvey Gilpin, 1997-2001 by George Greer.            *
+ **************************************************************************/
 
 #include "conf.h"
 #include "sysdep.h"
@@ -24,8 +24,7 @@ static void copy_shop_type_list(struct shop_buy_data **tlist, struct shop_buy_da
 static void free_shop_strings(struct shop_data *shop);
 static void free_shop_type_list(struct shop_buy_data **list);
 
-void copy_shop(struct shop_data *tshop, struct shop_data *fshop, int free_old_strings)
-{
+void copy_shop(struct shop_data *tshop, struct shop_data *fshop, int free_old_strings) {
   /* Copy basic information over. */
   S_NUM(tshop) = S_NUM(fshop);
   S_KEEPER(tshop) = S_KEEPER(fshop);
@@ -61,8 +60,7 @@ void copy_shop(struct shop_data *tshop, struct shop_data *fshop, int free_old_st
 }
 
 /* Copy a 'NOTHING' terminated integer array list. */
-static void copy_shop_list(IDXTYPE **tlist, IDXTYPE *flist)
-{
+static void copy_shop_list(IDXTYPE **tlist, IDXTYPE *flist) {
   int num_items, i;
 
   if (*tlist)
@@ -81,8 +79,7 @@ static void copy_shop_list(IDXTYPE **tlist, IDXTYPE *flist)
 }
 
 /* Copy a -1 terminated (in the type field) shop_buy_data array list. */
-static void copy_shop_type_list(struct shop_buy_data **tlist, struct shop_buy_data *flist)
-{
+static void copy_shop_type_list(struct shop_buy_data **tlist, struct shop_buy_data *flist) {
   int num_items, i;
 
   if (*tlist)
@@ -103,8 +100,7 @@ static void copy_shop_type_list(struct shop_buy_data **tlist, struct shop_buy_da
   }
 }
 
-void remove_shop_from_type_list(struct shop_buy_data **list, int num)
-{
+void remove_shop_from_type_list(struct shop_buy_data **list, int num) {
   int i, num_items;
   struct shop_buy_data *nlist;
 
@@ -125,8 +121,7 @@ void remove_shop_from_type_list(struct shop_buy_data **list, int num)
   *list = nlist;
 }
 
-void add_shop_to_type_list(struct shop_buy_data **list, struct shop_buy_data *newl)
-{
+void add_shop_to_type_list(struct shop_buy_data **list, struct shop_buy_data *newl) {
   int i, num_items;
   struct shop_buy_data *nlist;
 
@@ -147,8 +142,7 @@ void add_shop_to_type_list(struct shop_buy_data **list, struct shop_buy_data *ne
   *list = nlist;
 }
 
-void add_shop_to_int_list(IDXTYPE **list, IDXTYPE newi)
-{
+void add_shop_to_int_list(IDXTYPE **list, IDXTYPE newi) {
   IDXTYPE i, num_items, *nlist;
 
   /* Count number of entries. */
@@ -168,8 +162,7 @@ void add_shop_to_int_list(IDXTYPE **list, IDXTYPE newi)
   *list = nlist;
 }
 
-void remove_shop_from_int_list(IDXTYPE **list, IDXTYPE num)
-{
+void remove_shop_from_int_list(IDXTYPE **list, IDXTYPE num) {
   IDXTYPE i, num_items, *nlist;
 
   /* Count number of entries. */
@@ -193,8 +186,7 @@ void remove_shop_from_int_list(IDXTYPE **list, IDXTYPE num)
 }
 
 /* Free all the notice character strings in a shop structure. */
-static void free_shop_strings(struct shop_data *shop)
-{
+static void free_shop_strings(struct shop_data *shop) {
   if (S_NOITEM1(shop)) {
     free(S_NOITEM1(shop));
     S_NOITEM1(shop) = NULL;
@@ -226,8 +218,7 @@ static void free_shop_strings(struct shop_data *shop)
 }
 
 /* Free a type list and all the strings it contains. */
-static void free_shop_type_list(struct shop_buy_data **list)
-{
+static void free_shop_type_list(struct shop_buy_data **list) {
   int i;
 
   for (i = 0; (*list)[i].type != NOTHING; i++)
@@ -239,8 +230,7 @@ static void free_shop_type_list(struct shop_buy_data **list)
 }
 
 /* Free up the whole shop structure and it's content. */
-void free_shop(struct shop_data *shop)
-{
+void free_shop(struct shop_data *shop) {
   free_shop_strings(shop);
   free_shop_type_list(&(S_NAMELISTS(shop)));
   free(S_ROOMS(shop));
@@ -250,8 +240,7 @@ void free_shop(struct shop_data *shop)
 
 /* Returns the real number of the shop with given virtual number. We take so
  * good care to keep it sorted - let's use it. - Welcor */
-shop_rnum real_shop(shop_vnum vnum)
-{
+shop_rnum real_shop(shop_vnum vnum) {
   int bot, top, mid;
 
   bot = 0;
@@ -271,15 +260,14 @@ shop_rnum real_shop(shop_vnum vnum)
 }
 
 /* Generic string modifier for shop keeper messages. */
-void modify_shop_string(char **str, char *new_s)
-{
+void modify_shop_string(char **str, char *new_s) {
 
   char buf[MAX_STRING_LENGTH];
   char *pointer;
 
   /* Check the '%s' is present, if not, add it. */
   if (*new_s != '%') {
-    snprintf(buf, sizeof(buf), "%%s %s", new_s);
+    snprintf(buf, sizeof (buf), "%%s %s", new_s);
     pointer = buf;
   } else
     pointer = new_s;
@@ -289,16 +277,15 @@ void modify_shop_string(char **str, char *new_s)
   *str = strdup(pointer);
 }
 
-int add_shop(struct shop_data *nshp)
-{
+int add_shop(struct shop_data *nshp) {
   shop_rnum rshop;
   int found = 0;
   zone_rnum rznum = real_zone_by_thing(S_NUM(nshp));
 
   /* The shop already exists, just update it. */
   if ((rshop = real_shop(S_NUM(nshp))) != NOWHERE) {
-   /* free old strings. They're not used in any other place -- Welcor */
-   copy_shop(&shop_index[rshop], nshp, TRUE);
+    /* free old strings. They're not used in any other place -- Welcor */
+    copy_shop(&shop_index[rshop], nshp, TRUE);
     if (rznum != NOWHERE)
       add_to_save_list(zone_table[rznum].number, SL_SHP);
     else
@@ -341,8 +328,7 @@ int add_shop(struct shop_data *nshp)
   return rshop;
 }
 
-int save_shops(zone_rnum zone_num)
-{
+int save_shops(zone_rnum zone_num) {
   int i, j, rshop, num_shops = 0;
   FILE *shop_file;
   char fname[128], oldname[128], buf[MAX_STRING_LENGTH];
@@ -357,11 +343,11 @@ int save_shops(zone_rnum zone_num)
     return FALSE;
   }
 
-  snprintf(fname, sizeof(fname), "%s/%d.new", SHP_PREFIX, zone_table[zone_num].number);
+  snprintf(fname, sizeof (fname), "%s/%d.new", SHP_PREFIX, zone_table[zone_num].number);
   if (!(shop_file = fopen(fname, "w"))) {
     mudlog(BRF, LVL_STAFF, TRUE, "SYSERR: OLC: Cannot open shop file!");
     return FALSE;
-  } else if (fprintf(shop_file, "CircleMUD v3.0 Shop File~\n") < 0) {
+  } else if (fprintf(shop_file, "LuinariMUD v3.0 Shop File~\n") < 0) {
     mudlog(BRF, LVL_STAFF, TRUE, "SYSERR: OLC: Cannot write to shop file!");
     fclose(shop_file);
     return FALSE;
@@ -374,64 +360,64 @@ int save_shops(zone_rnum zone_num)
 
       /* Save the products. */
       for (j = 0; S_PRODUCT(shop, j) != NOTHING; j++)
-	fprintf(shop_file, "%d\n", obj_index[S_PRODUCT(shop, j)].vnum);
+        fprintf(shop_file, "%d\n", obj_index[S_PRODUCT(shop, j)].vnum);
       fprintf(shop_file, "-1\n");
 
       /* Save the rates. */
       fprintf(shop_file, "%1.2f\n"
-                         "%1.2f\n",
-                         S_BUYPROFIT(shop),
-                         S_SELLPROFIT(shop));
+              "%1.2f\n",
+              S_BUYPROFIT(shop),
+              S_SELLPROFIT(shop));
 
       /* Save the buy types and namelists. */
-      for (j = 0;S_BUYTYPE(shop, j) != NOTHING; j++)
+      for (j = 0; S_BUYTYPE(shop, j) != NOTHING; j++)
         fprintf(shop_file, "%d%s\n",
-                S_BUYTYPE(shop, j),
-		S_BUYWORD(shop, j) ? S_BUYWORD(shop, j) : "");
+              S_BUYTYPE(shop, j),
+              S_BUYWORD(shop, j) ? S_BUYWORD(shop, j) : "");
       fprintf(shop_file, "-1\n");
 
       /* Save messages. Added some defaults as sanity checks. */
       sprintf(buf,
-	      "%s~\n"
-	      "%s~\n"
-	      "%s~\n"
-	      "%s~\n"
-	      "%s~\n"
-	      "%s~\n"
-	      "%s~\n"
-	      "%d\n"
-	      "%ld\n"
-	      "%d\n"
-	      "%d\n",
-	      S_NOITEM1(shop) ? S_NOITEM1(shop) : "%s Ke?!",
-	      S_NOITEM2(shop) ? S_NOITEM2(shop) : "%s Ke?!",
-	      S_NOBUY(shop) ? S_NOBUY(shop) : "%s Ke?!",
-	      S_NOCASH1(shop) ? S_NOCASH1(shop) : "%s Ke?!",
-	      S_NOCASH2(shop) ? S_NOCASH2(shop) : "%s Ke?!",
-	      S_BUY(shop) ? S_BUY(shop) : "%s Ke?! %d?",
-	      S_SELL(shop) ? S_SELL(shop) : "%s Ke?! %d?",
-	      S_BROKE_TEMPER(shop),
-	      S_BITVECTOR(shop),
-	      S_KEEPER(shop) == NOBODY ? -1 : mob_index[S_KEEPER(shop)].vnum,
-	      S_NOTRADE(shop)
-	      );
-        
-        fputs(convert_from_tabs(buf), shop_file);
+              "%s~\n"
+              "%s~\n"
+              "%s~\n"
+              "%s~\n"
+              "%s~\n"
+              "%s~\n"
+              "%s~\n"
+              "%d\n"
+              "%ld\n"
+              "%d\n"
+              "%d\n",
+              S_NOITEM1(shop) ? S_NOITEM1(shop) : "%s Ke?!",
+              S_NOITEM2(shop) ? S_NOITEM2(shop) : "%s Ke?!",
+              S_NOBUY(shop) ? S_NOBUY(shop) : "%s Ke?!",
+              S_NOCASH1(shop) ? S_NOCASH1(shop) : "%s Ke?!",
+              S_NOCASH2(shop) ? S_NOCASH2(shop) : "%s Ke?!",
+              S_BUY(shop) ? S_BUY(shop) : "%s Ke?! %d?",
+              S_SELL(shop) ? S_SELL(shop) : "%s Ke?! %d?",
+              S_BROKE_TEMPER(shop),
+              S_BITVECTOR(shop),
+              S_KEEPER(shop) == NOBODY ? -1 : mob_index[S_KEEPER(shop)].vnum,
+              S_NOTRADE(shop)
+              );
+
+      fputs(convert_from_tabs(buf), shop_file);
 
       /* Save the rooms. */
-      for (j = 0;S_ROOM(shop, j) != NOWHERE; j++)
+      for (j = 0; S_ROOM(shop, j) != NOWHERE; j++)
         fprintf(shop_file, "%d\n", S_ROOM(shop, j));
       fprintf(shop_file, "-1\n");
 
       /* Save open/closing times. */
       fprintf(shop_file, "%d\n%d\n%d\n%d\n", S_OPEN1(shop), S_CLOSE1(shop),
-          S_OPEN2(shop), S_CLOSE2(shop));
+              S_OPEN2(shop), S_CLOSE2(shop));
       num_shops++;
     }
   }
   fprintf(shop_file, "$~\n");
   fclose(shop_file);
-  snprintf(oldname, sizeof(oldname), "%s/%d.shp", SHP_PREFIX, zone_table[zone_num].number);
+  snprintf(oldname, sizeof (oldname), "%s/%d.shp", SHP_PREFIX, zone_table[zone_num].number);
   remove(oldname);
   rename(fname, oldname);
 

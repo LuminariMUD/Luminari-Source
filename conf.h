@@ -31,7 +31,7 @@
 /* Define if you can safely include both <sys/time.h> and <time.h>.  */
 #define TIME_WITH_SYS_TIME 1
 
-/* Define if we're compiling CircleMUD under any type of UNIX system.  */
+/* Define if we're compiling LuminariMUD under any type of UNIX system.  */
 #define CIRCLE_UNIX 1
 
 /* Define if the system is capable of using crypt() to encrypt.  */

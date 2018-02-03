@@ -1,5 +1,5 @@
 /* ***********************************************************************
- *    File:   qedit.c                                  Part of CircleMUD  *
+ *    File:   qedit.c                                Part of LuminariMUD  *
  * Version:   2.0 (November 2005) Written for CircleMud CWG / Suntzu      *
  * Purpose:   To provide special quest-related code.                      *
  * Copyright: Kenneth Ray                                                 *

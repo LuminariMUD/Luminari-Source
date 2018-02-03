@@ -1,5 +1,5 @@
 /* ***********************************************************************
- *    File:   genqst.c                                 Part of CircleMUD  *
+ *    File:   genqst.c                               Part of LuminariMUD  *
  * Version:   2.0 (November 2005) Written for CircleMud CWG / Suntzu      *
  * Purpose:   To provide special quest-related code.                      *
  * Copyright: Kenneth Ray                                                 *
@@ -137,45 +137,45 @@ int delete_quest(qst_rnum rnum) {
   qst_rnum i;
   zone_rnum rznum;
   mob_vnum qm = NOBODY;
-  SPECIAL(*tempfunc);  
+  SPECIAL(*tempfunc);
   int quests_remaining = 0;
-  
+
   /* added dummy check in case rnum is funky going in here -zusuk */
   if (rnum != NOWHERE)
     qm = QST_MASTER(rnum);
 
   if (rnum >= total_quests)
     return FALSE;
-  
+
   rznum = real_zone_by_thing(QST_NUM(rnum));
-  
+
   log("GenOLC: delete_quest: Deleting quest #%d (%s).",
           QST_NUM(rnum), QST_NAME(rnum));
-  
+
   /* make a note of the quest master's secondary spec proc */
   tempfunc = QST_FUNC(rnum);
 
   free_quest_strings(&aquest_table[rnum]);
-  
+
   for (i = rnum; i < total_quests - 1; i++) {
     aquest_table[i] = aquest_table[i + 1];
   }
-  
+
   total_quests--;
-  
+
   if (total_quests > 0)
     RECREATE(aquest_table, struct aq_data, total_quests);
   else {
     free(aquest_table);
     aquest_table = NULL;
   }
-  
+
   if (rznum != NOWHERE)
     add_to_save_list(zone_table[rznum].number, SL_QST);
   else
     mudlog(BRF, LVL_BUILDER, TRUE,
           "SYSERR: GenOLC: Cannot determine quest zone.");
-  
+
   /* does the questmaster mob have any quests left? */
   if (qm != NOBODY) {
     for (i = 0; i < total_quests; i++) {
@@ -185,7 +185,7 @@ int delete_quest(qst_rnum rnum) {
     if (quests_remaining == 0)
       mob_index[qm].func = tempfunc; // point back to original spec proc
   }
-  
+
   return TRUE;
 }
 

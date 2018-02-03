@@ -1,7 +1,7 @@
 /* *************************************************************************
  *   File: hlqedit.c                                   Part of LuminariMUD *
  *  Usage: alternate quest system                                          *
- *  Author: Homeland (Vhaerun), ported to tba/luminari by Zusuk            *
+ *  Author: Homeland (Vhaerun), ported to luminari by Zusuk                *
  ************************************************************************* */
 
 
@@ -38,8 +38,7 @@ char *hlqedit_command = "CIOMADTXFKUS";
 /*---------------------------------------------*/
 
 /* this is ported from old circlemud 3.0 for exclusive usage
-   for the questing system
- */
+   for the questing system */
 void zedit_create_index(int znum) {
   FILE *newfile, *oldfile;
   char new_name[32], old_name[32], *prefix;
@@ -48,7 +47,7 @@ void zedit_create_index(int znum) {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   prefix = HLQST_PREFIX;
-      
+
   sprintf(old_name, "%s/index", prefix);
   sprintf(new_name, "%s/newindex", prefix);
 
@@ -142,7 +141,7 @@ void hlqedit_setup(struct descriptor_data *d, mob_rnum mob) {
 
         qtmp->next = quest;
         quest = qtmp;
- 
+
         /* in chain */
         for (qcomexist = qexist->in; qcomexist; qcomexist = qcomexist->next) {
           CREATE(qcom, struct quest_command, 1);
@@ -152,7 +151,7 @@ void hlqedit_setup(struct descriptor_data *d, mob_rnum mob) {
           qcom->next = quest->in;
           quest->in = qcom;
         }
-        
+
         /* out chain */
         for (qcomexist = qexist->out; qcomexist; qcomexist = qcomexist->next) {
           CREATE(qcom, struct quest_command, 1);
@@ -169,7 +168,7 @@ void hlqedit_setup(struct descriptor_data *d, mob_rnum mob) {
             qlast->next = qcom;
           }
         } /* end out chain */
-        
+
       } /* end if qexist */
     } /* for loop */
   }
@@ -188,7 +187,7 @@ void hlqedit_setup(struct descriptor_data *d, mob_rnum mob) {
 struct quest_entry *getquest(struct descriptor_data *d, int num) {
   struct quest_entry *quest;
   int a = 1;
-  
+
   for (quest = OLC_HLQUEST(d); quest; quest = quest->next) {
     if (a == num)
       return quest;
@@ -200,7 +199,7 @@ struct quest_entry *getquest(struct descriptor_data *d, int num) {
 /* utility function, links quest chain*/
 void hlqedit_addtoout(struct descriptor_data *d, struct quest_command *qcom) {
   struct quest_command *qlast;
-  
+
   if (!OLC_QUESTENTRY(d)->out)
     OLC_QUESTENTRY(d)->out = qcom;
   else {
@@ -225,17 +224,17 @@ void hlqedit_addtoout(struct descriptor_data *d, struct quest_command *qcom) {
 void hlqedit_save_internally(struct descriptor_data *d) {
   struct char_data *i = NULL;
   struct char_data *ch = NULL;
-  
+
   ch = OLC_MOB(d);
-  
+
   /* quest mobs have to be wiped off the planet */
   for (i = character_list; i; i = i->next) {
     if (!IS_NPC(i))
       continue;
     if (GET_MOB_VNUM(i) == GET_MOB_VNUM(ch))
-      extract_char(i);    
+      extract_char(i);
   }
-    
+
   free_hlquest(ch);
   ch->mob_specials.quest = OLC_HLQUEST(d);
 
@@ -257,7 +256,7 @@ void hlqedit_save_to_disk(int zone_num) {
   int rmob_num;
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   char buf2[MAX_INPUT_LENGTH] = {'\0'};
-  
+
 
   if (zone_num < 0 || zone_num > top_of_zone_table) {
     log("SYSERR: hlqedit_save_to_disk: Invalid real zone passed!");
@@ -314,7 +313,7 @@ void hlqedit_save_to_disk(int zone_num) {
               fprintf(fp, "O %c %d %d\n", hlqedit_command[qcom->type],
                     qcom->value, qcom->location);
             fprintf(fp, "S\n");
-         }
+          }
         }
       }
     }
@@ -420,7 +419,7 @@ void hlqedit_disp_menu(struct descriptor_data *d) {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   int num = 1;
   struct quest_entry *quest;
-  
+
   get_char_colors(d->character);
 
   /* If a new entry has been writtem, add it to quest chain*/
@@ -437,10 +436,10 @@ void hlqedit_disp_menu(struct descriptor_data *d) {
   for (quest = OLC_HLQUEST(d); quest; quest = quest->next) {
     if (quest->type == QUEST_ASK)
       sprintf(buf, "%d) (%s) ASK %s", num, quest->approved ? "OK" :
-        "-", quest->keywords);
+            "-", quest->keywords);
     else if (quest->type == QUEST_ROOM)
       sprintf(buf, "%d) (%s) ROOM %d", num, quest->approved ? "OK" :
-        "-", quest->room);
+            "-", quest->room);
     else {
       if (quest->in > 0) {
         if (quest->in->type == QUEST_COMMAND_ITEM)
@@ -486,7 +485,7 @@ void hlqedit_disp_menu(struct descriptor_data *d) {
  */
 void hlqedit_init_replymsg(struct descriptor_data *d) {
   char *msg = NULL;
-  
+
   OLC_MODE(d) = HLQEDIT_REPLYMSG;
   write_to_output(d, "Enter reply message on quest:\r\n");
   send_editor_help(d);
@@ -498,7 +497,6 @@ void hlqedit_init_replymsg(struct descriptor_data *d) {
   string_write(d, &OLC_QUESTENTRY(d)->reply_msg, MAX_ROOM_DESC, 0, msg);
   OLC_VAL(d) = 1;
 }
-        
 
 /**************************************************************************
   The main loop
@@ -577,7 +575,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
       OLC_MODE(d) = HLQEDIT_REPLYMSG;
       hlqedit_init_replymsg(d);
       return;
-      
+
       break;
 
     case HLQEDIT_REPLYMSG:
@@ -624,7 +622,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
           return;
       }
     }
-    break;
+      break;
 
     case HLQEDIT_IN_COIN:
       number = atoi(arg);
@@ -700,7 +698,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
           OLC_MODE(d) = HLQEDIT_OUT_OPEN_DOOR;
           send_to_char(d->character, "Select room (vnum)?  ");
           return;
-          
+
           break;
 
         case 'a':
@@ -710,7 +708,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
           qcom->type = QUEST_COMMAND_ATTACK_QUESTOR;
           hlqedit_init_replymsg(d);
           return;
-          
+
           break;
 
         case 'd':
@@ -720,7 +718,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
           qcom->type = QUEST_COMMAND_DISAPPEAR;
           hlqedit_init_replymsg(d);
           return;
-          
+
           break;
 
         case 'f':
@@ -732,7 +730,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
                   " questor.\r\n");
           hlqedit_disp_outcommand_menu(d);
           return;
-          
+
           break;
 
         case 'k':
@@ -766,7 +764,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
           OLC_MODE(d) = HLQEDIT_OUT_TEACH_SPELL; //same no need for new.
           hlqedit_disp_spells(d);
           return;
-          
+
           break;
 
         case '0':
@@ -774,7 +772,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
         case 'e':
           hlqedit_init_replymsg(d);
           return;
-          
+
           break;
       } /* end out command arg switch */
       break;
@@ -788,9 +786,9 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
         hlqedit_disp_outcommand_menu(d);
       }
       return;
-      
+
       break;
-      
+
     case HLQEDIT_OUT_ITEM:
       if ((number = real_object(atoi(arg))) != NOTHING) {
         OLC_QCOM(d)->value = atoi(arg);
@@ -798,7 +796,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
       } else
         send_to_char(d->character, "That object does not exist, try again:  ");
       return;
-      
+
       break;
 
     case HLQEDIT_OUT_LOAD_OBJECT:
@@ -809,9 +807,9 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
       } else
         send_to_char(d->character, "That object does not exist, try again:  ");
       return;
-      
+
       break;
-      
+
     case HLQEDIT_OUT_LOAD_MOB:
       if ((number = real_mobile(atoi(arg))) != NOBODY) {
         OLC_QCOM(d)->value = atoi(arg);
@@ -820,7 +818,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
       } else
         send_to_char(d->character, "That mob does not exist, try again:  ");
       return;
-      
+
       break;
 
     case HLQEDIT_OUT_TEACH_SPELL:
@@ -842,7 +840,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
       }
       hlqedit_disp_outcommand_menu(d);
       return;
-      
+
       break;
 
     case HLQEDIT_OUT_CHURCH:
@@ -853,7 +851,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
         return;
       }
       break;
-      
+
     case HLQEDIT_OUT_KIT_SELECT:
       number = atoi(arg);
       if (number >= 0 && number < NUM_CLASSES) {
@@ -884,7 +882,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
         send_to_char(d->character, "Which room to open door in (vnum)?:  ");
       }
       return;
-      
+
       break;
 
     case HLQEDIT_OUT_OPEN_DOOR_DIR:
@@ -898,7 +896,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
       return;
 
       break;
-      
+
     case HLQEDIT_DELETE_QUEST:
     {
       OLC_VAL(d) = 1;
@@ -921,7 +919,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
       hlqedit_disp_menu(d);
       return;
     }
-    break;
+      break;
 
     case HLQEDIT_APPROVE_QUEST:
       number = atoi(arg);
@@ -936,7 +934,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
       }
       hlqedit_disp_menu(d);
       return;
-      
+
       break;
 
     case HLQEDIT_VIEW_QUEST:
@@ -948,8 +946,8 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
         show_quest_to_player(d->character, quest);
       break;
     }
-    
-    
+
+
     case HLQEDIT_MAIN_MENU:
       switch (*arg) {
         case 'q':
@@ -966,7 +964,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg) {
         case 'A':
           if (GET_LEVEL(d->character) < LVL_GRSTAFF)
             send_to_char(d->character, "You are not high enough level to do"
-                    " that!\r\n");
+                  " that!\r\n");
           else {
             OLC_VAL(d) = 1;
             OLC_MODE(d) = HLQEDIT_APPROVE_QUEST;
@@ -1025,7 +1023,7 @@ ACMD(do_hlqedit) {
   //No screwing around as a mobile.
   if (IS_NPC(ch) || !ch->desc || STATE(ch->desc) != CON_PLAYING)
     return;
-  
+
   // parse arguments
   buf3 = two_arguments(argument, buf1, buf2);
 
@@ -1061,7 +1059,7 @@ ACMD(do_hlqedit) {
   // if numberic arg was given, get it
   if (number == NOBODY)
     number = atoi(buf1);
-  
+
   /* debug */
   send_to_char(ch, "Number inputed: %d\r\n", number);
 
@@ -1070,7 +1068,7 @@ ACMD(do_hlqedit) {
     if (STATE(d) == CON_HLQEDIT || STATE(d) == CON_MEDIT) {
       if (d->olc && OLC_NUM(d) == number) {
         send_to_char(ch, "That hlquest/mob is currently being edited by %s.\r\n",
-          PERS(d->character, ch));
+                PERS(d->character, ch));
         return;
       }
     }
@@ -1080,17 +1078,17 @@ ACMD(do_hlqedit) {
   // give descriptor olc struct
   if (d->olc) {
     mudlog(BRF, LVL_IMMORT, TRUE,
-      "SYSERR: do_oasis_hlquest: Player already had olc structure.");
+            "SYSERR: do_oasis_hlquest: Player already had olc structure.");
     free(d->olc);
   }
   CREATE(d->olc, struct oasis_olc_data, 1);
 
   /* Find the zone. */
   OLC_ZNUM(d) = save ? real_zone(number) : real_zone_by_thing(number);
-  
+
   /* debug */
   send_to_char(ch, "OLC Zone Number: %d\r\n", OLC_ZNUM(d));
-  
+
   if (OLC_ZNUM(d) == NOWHERE) {
     send_to_char(ch, "Sorry, there is no zone for that number!\r\n");
     free(d->olc);
@@ -1110,7 +1108,7 @@ ACMD(do_hlqedit) {
   if (save) {
     send_to_char(ch, "Saving all hlquest info in zone %d.\r\n",
             zone_table[OLC_ZNUM(d)].number);
-    log( "OLC: %s saves hlquest info for zone %d.", GET_NAME(ch),
+    log("OLC: %s saves hlquest info for zone %d.", GET_NAME(ch),
             zone_table[OLC_ZNUM(d)].number);
 
     send_to_char(ch, "Saving to disk...");
@@ -1118,7 +1116,7 @@ ACMD(do_hlqedit) {
     /* Save the mobiles. */
     send_to_char(ch, "Saving mobiles...");
     save_mobiles(OLC_ZNUM(d));
-    
+
     free(d->olc);
     d->olc = NULL;
     return;
@@ -1129,19 +1127,19 @@ ACMD(do_hlqedit) {
   // take descriptor and start up subcommands
   if ((real_num = real_mobile(number)) == NOBODY) {
     send_to_char(ch, "No such mob to make a quest for!\r\n");
-    
+
     free(d->olc);
     d->olc = NULL;
     return;
   }
   hlqedit_setup(d, real_num);
   STATE(d) = CON_HLQEDIT;
-      
+
   act("$n starts using OLC (hlqedit).", TRUE, d->character, 0, 0, TO_ROOM);
   SET_BIT_AR(PLR_FLAGS(ch), PLR_WRITING);
 
   mudlog(BRF, LVL_IMMORT, TRUE,
-         "OLC: %s starts editing zone %d allowed zone %d",
-         GET_NAME(ch), zone_table[OLC_ZNUM(d)].number, GET_OLC_ZONE(ch));
+          "OLC: %s starts editing zone %d allowed zone %d",
+          GET_NAME(ch), zone_table[OLC_ZNUM(d)].number, GET_OLC_ZONE(ch));
 }
 

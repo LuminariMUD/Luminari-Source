@@ -198,7 +198,7 @@ ACMD(do_tell) {
   int i = 0;
   struct char_data *vict = NULL;
   char buf[MAX_INPUT_LENGTH] = {'\0'}, buf2[MAX_INPUT_LENGTH] = {'\0'},
-          *msg = NULL;
+  *msg = NULL;
 
   half_chop(argument, buf, buf2);
 
@@ -249,13 +249,13 @@ ACMD(do_tell) {
   } else {
     /* zusuk added this for history */
     if (CONFIG_SPECIAL_IN_COMM && legal_communication(argument))
-      parse_at(buf2);    
-    
+      parse_at(buf2);
+
     char buf3[MAX_INPUT_LENGTH] = {'\0'};
     snprintf(buf3, sizeof (buf3), "%s%s told you, '%s'%s\r\n", CBCYN(vict, C_NRM), GET_NAME(ch), buf2, CCNRM(vict, C_NRM));
     //msg = act(buf3, FALSE, ch, 0, vict, TO_VICT | TO_SLEEP);
-    add_history(vict, buf3, HIST_TELL);    
-        
+    add_history(vict, buf3, HIST_TELL);
+
     char buf4[MAX_INPUT_LENGTH] = {'\0'};
     snprintf(buf4, sizeof (buf4), "%sYou tell $N, '%s'%s", CBCYN(ch, C_NRM), buf2, CCNRM(ch, C_NRM));
     msg = act(buf4, FALSE, ch, 0, vict, TO_CHAR | TO_SLEEP);
@@ -575,7 +575,7 @@ ACMD(do_gen_comm) {
     send_to_char(ch, "You can't speak!\r\n");
     return;
   }
-  
+
   /* skip leading spaces */
   skip_spaces(&argument);
 
