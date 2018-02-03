@@ -763,7 +763,7 @@ bool get_random_region_location(region_vnum region, int *x, int*y) {
     /* Parse the polygon text data to get the vertices, etc.
        eg: LINESTRING(0 0,10 0,10 10,0 10,0 0) */
     log(" Envelope: %s", row[0]);       
-    sscanf(row[0], "ROLYGON((%[^)]))", buf2);
+    sscanf(row[0], "POLYGON((%[^)]))", buf2);
     tokens = tokenize(buf2, ",");
    
     int newx, newy;    
