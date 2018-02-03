@@ -420,6 +420,7 @@ EVENTFUNC(event_countdown) {
           assign_wilderness_room(eroom_rnum, x, y);          
         }       
       }
+      initialize_wilderness_lists();
       return 60 RL_SEC;
 
       break;
