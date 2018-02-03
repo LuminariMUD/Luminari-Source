@@ -1468,8 +1468,8 @@ spellnum == SPELL_EPIC_WARDING )
 
 /* Compound utilities and other macros. */
 /** Used to compute version. To see if the code running is newer than 3.0pl13,
- * you would use: if _CIRCLEMUD > CIRCLEMUD_VERSION(3,0,13) */
-#define CIRCLEMUD_VERSION(major, minor, patchlevel) \
+ * you would use: if _LUMINARIMUD > LUMINARIMUD_VERSION(3,0,13) */
+#define LUMINARIMUD_VERSION(major, minor, patchlevel) \
        (((major) << 16) + ((minor) << 8) + (patchlevel))
 
 

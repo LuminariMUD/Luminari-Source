@@ -1,7 +1,7 @@
 /**************************************************************************
 *  File: race.c                                               LuminariMUD *
 *  Usage: Source file for race-specific code.                             *
-*                                                                         *
+*  Authors:  Nashak and Zusuk                                             *
 *  All rights reserved.  See license for complete information.            *
 **************************************************************************/
 
