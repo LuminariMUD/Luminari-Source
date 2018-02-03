@@ -258,6 +258,43 @@ void load_regions() {
 }
 
 /* Move this out to another file... */
+bool is_point_within_region(region_vnum region, int x, int y) {
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  bool retval;
+  
+  char buf[1024];
+ 
+  /* Need an ORDER BY here, since we can have multiple regions. */
+  sprintf(buf, "SELECT 1 "
+               "from region_index "
+               "where vnum = %d and "
+               "ST_Within(GeomFromText('POINT(%d %d)'), region_polygon)",
+               region_vnum,
+               x, y);
+  
+  /* Check the connection, reconnect if necessary. */
+  mysql_ping(conn);
+
+  if (mysql_query(conn, buf)) {
+    log("SYSERR: Unable to SELECT from region_index: %s", mysql_error(conn));
+    exit(1);
+  }
+ 
+  if (!(result = mysql_store_result(conn))) {
+    log("SYSERR: Unable to SELECT from region_index: %s", mysql_error(conn));
+    exit(1);
+  }
+  
+  retval = false;
+  while ((row = mysql_fetch_row(result))) {
+    retval = true;    
+  }
+  mysql_free_result(result);
+
+  return retval;
+}
+
 struct region_list* get_enclosing_regions(zone_rnum zone, int x, int y) {
   MYSQL_RES *result;
   MYSQL_ROW row;
@@ -674,6 +711,76 @@ struct path_list* get_enclosing_paths(zone_rnum zone, int x, int y) {
 
 void save_paths() {
 
+}
+
+/* 
+ * Get a random point within the given region.  Note, the parameters x and y will
+ * contain the random point!  If no point can be found then the function will not
+ * change the values of x and y and will return false.  IF a point can be found that 
+ * point will be returned in x and y and the function will return true.
+ * 
+ * This function accesses the database several times.
+ */
+bool get_random_region_location(region_vnum region, int *x, int*y) {
+  MYSQL_RES *result; 
+  MYSQL_ROW row;
+  int xlow, xhigh, ylow, yhigh;
+  int xp, yp;
+
+  char buf[MAX_STRING_LENGTH];
+  char buf2[MAX_STRING_LENGTH];
+
+  char** tokens;  /* Storage for tokenized linestring points */
+  char** it;      /* Token iterator */
+
+ 
+  sprintf(buf, "SELECT AsText(Envelope(region_polygon)) "                      
+               "from region_data"
+               "where vnum = %d;"              
+               , region_vnum);               
+  
+  /* Check the connection, reconnect if necessary. */
+  mysql_ping(conn);
+
+  if (mysql_query(conn, buf)) {
+    log("SYSERR: Unable to SELECT from path_data: %s", mysql_error(conn));
+    return false;
+  }
+ 
+  if (!(result = mysql_store_result(conn))) {
+    log("SYSERR: Unable to SELECT from path_data: %s", mysql_error(conn));
+    return false;
+  }
+
+  while ((row = mysql_fetch_row(result))) { 
+
+    /* Parse the polygon text data to get the vertices, etc.
+       eg: LINESTRING(0 0,10 0,10 10,0 10,0 0) */
+    sscanf(row[0], "LINESTRING(%[^)])", buf2);
+    tokens = tokenize(buf2, ",");
+   
+    int newx, newy;
+    for(it=tokens; it && *it; ++it) {
+      sscanf(*it, "%d %d", &newx, &newy);
+      if (newx < xlow) xlow = newx;
+      if (newx > xhigh) xhigh = newx;
+      if (newy < ylow) ylow = newy;
+      if (newy > yhigh) yhigh = newy;
+      free(*it);
+    }      
+
+    top_of_path_table = i; 
+    i++;
+  } 
+
+  do {
+    xp = rand_number(xlow, xhigh);
+    yp = rand_number(ylow, yhigh);
+  while (!is_point_within_region(region, xp, yp));
+  
+  *x = xp;
+  *y = yp;
+  return true;
 }
 
 #ifdef DO_NOT_COMPILE_EXAMPLES
