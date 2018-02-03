@@ -397,27 +397,30 @@ EVENTFUNC(event_countdown) {
             continue;
           }
           
+          /* First check that the encounter room is empty of players */
+          if (world[eroom_rnum].people != NULL) {
+            /* Someone is in the room, so skip this one. */            
+            continue;
+          }
+
           /* Find a location in the region where this room will be placed, 
-             it can not be the same coords as a static room. */
+             it can not be the same coords as a static room and noone should be at those coordinates. */
           do { 
 
             /* Generate the random point */
-
+            get_random_region_location(regvnum, &x, &y)
             // DEBUG: Set the room nearby, just for testing....
-            x = world[eroom_rnum].coords[0] - 1;
-            y = world[eroom_rnum].coords[1] - 1;
+            //x = world[eroom_rnum].coords[0] - 1;
+            //y = world[eroom_rnum].coords[1] - 1;
           
             /* Check for a static room at this location. */
           } while (find_room_by_coordinates(x, y) != NOWHERE);
 
           /* Build the room. */
-          assign_wilderness_room(eroom_rnum, x, y);
-
-
-          free(*it);
+          assign_wilderness_room(eroom_rnum, x, y);          
         }       
       }
-
+      return 60 RL_SEC;
 
       break;
     default:
