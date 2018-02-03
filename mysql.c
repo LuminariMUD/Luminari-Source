@@ -12,12 +12,10 @@
 
 MYSQL *conn = NULL;
 
-void after_world_load()
-{
+void after_world_load() {
 }
 
-void connect_to_mysql()
-{
+void connect_to_mysql() {
   char host[128], database[128], username[128], password[128];
   char line[128], key[128], val[128];
   FILE *file;
@@ -44,8 +42,7 @@ void connect_to_mysql()
       else {
         log("SYSERR: Unknown line in MySQL configuration: %s", line);
       }
-    }
-    else {
+    } else {
       log("SYSERR: Unknown line in MySQL configuration: %s", line);
       exit(1);
     }
@@ -75,12 +72,10 @@ void connect_to_mysql()
   }
 }
 
-void disconnect_from_mysql()
-{
+void disconnect_from_mysql() {
   mysql_close(conn);
   mysql_library_end();
 }
-
 
 /* Load the wilderness data for the specified zone. */
 struct wilderness_data* load_wilderness(zone_vnum zone) {
@@ -99,8 +94,8 @@ struct wilderness_data* load_wilderness(zone_vnum zone) {
   if (mysql_query(conn, buf)) {
     log("SYSERR: Unable to SELECT from wilderness_data: %s", mysql_error(conn));
     exit(1);
-  } 
-  
+  }
+
   if (!(result = mysql_store_result(conn))) {
     log("SYSERR: Unable to SELECT from wilderness_data: %s", mysql_error(conn));
     exit(1);
@@ -109,57 +104,54 @@ struct wilderness_data* load_wilderness(zone_vnum zone) {
   if (mysql_num_rows(result) > 1) {
     log("SYSERR: Too many rows returned on SELECT from wilderness_data for zone: %d", zone);
   }
- 
+
   CREATE(wild, struct wilderness_data, 1);
-  
+
   /* Just use the first row. */
   row = mysql_fetch_row(result);
 
   if (row) {
-    wild->id        = atoi(row[0]);
-    wild->zone      = real_zone(zone);
-    wild->nav_vnum  = atoi(row[1]);
+    wild->id = atoi(row[0]);
+    wild->zone = real_zone(zone);
+    wild->nav_vnum = atoi(row[1]);
     wild->dynamic_vnum_pool_start = atoi(row[2]);
-    wild->dynamic_vnum_pool_end   = atoi(row[3]);
-    wild->x_size    = atoi(row[4]);
-    wild->y_size    = atoi(row[5]);
-    wild->elevation_seed  = atoi(row[6]);
-    wild->distortion_seed = atoi(row[7]); 
-    wild->moisture_seed   = atoi(row[8]);
-    wild->min_temp        = atoi(row[9]);
-    wild->max_temp        = atoi(row[10]); 
-  } 
+    wild->dynamic_vnum_pool_end = atoi(row[3]);
+    wild->x_size = atoi(row[4]);
+    wild->y_size = atoi(row[5]);
+    wild->elevation_seed = atoi(row[6]);
+    wild->distortion_seed = atoi(row[7]);
+    wild->moisture_seed = atoi(row[8]);
+    wild->min_temp = atoi(row[9]);
+    wild->max_temp = atoi(row[10]);
+  }
 
   mysql_free_result(result);
-  return wild;   
+  return wild;
 }
 
 /* String tokenizer. */
-char** tokenize(const char* input, const char* delim)
-{
-    char* str = strdup(input);
-    int count = 0;
-    int capacity = 10;
-    char** result = malloc(capacity*sizeof(*result));
+char** tokenize(const char* input, const char* delim) {
+  char* str = strdup(input);
+  int count = 0;
+  int capacity = 10;
+  char** result = malloc(capacity * sizeof (*result));
 
-    char* tok=strtok(str,delim); 
+  char* tok = strtok(str, delim);
 
-    while(1)
-    {
-        if (count >= capacity)
-            result = realloc(result, (capacity*=2)*sizeof(*result));
+  while (1) {
+    if (count >= capacity)
+      result = realloc(result, (capacity *= 2) * sizeof (*result));
 
-        result[count++] = tok? strdup(tok) : tok;
+    result[count++] = tok ? strdup(tok) : tok;
 
-        if (!tok) break;
+    if (!tok) break;
 
-        tok=strtok(NULL,delim);
-    } 
+    tok = strtok(NULL, delim);
+  }
 
-    free(str);
-    return result;
+  free(str);
+  return result;
 }
-
 
 void load_regions() {
   /* region_data* region_table */
@@ -170,27 +162,27 @@ void load_regions() {
   int i = 0, vtx = 0;
   int j = 0;
   //int k = 0;
-  
+
   int numrows;
 
   char buf[MAX_STRING_LENGTH];
   char buf2[MAX_STRING_LENGTH];
 
-  char** tokens;  /* Storage for tokenized linestring points */
-  char** it;      /* Token iterator */
+  char** tokens; /* Storage for tokenized linestring points */
+  char** it; /* Token iterator */
 
   log("INFO: Loading region data from MySQL");
 
   sprintf(buf, "SELECT vnum, "
-                      "zone_vnum, " 
-                      "name, "
-                      "region_type, "
-                      "NumPoints(ExteriorRing(`region_polygon`)), "
-                      "AsText(ExteriorRing(region_polygon)), "
-                      "region_props, "
-                      "region_reset_data, "
-                      "region_reset_time "
-                  "from region_data");
+          "zone_vnum, "
+          "name, "
+          "region_type, "
+          "NumPoints(ExteriorRing(`region_polygon`)), "
+          "AsText(ExteriorRing(region_polygon)), "
+          "region_props, "
+          "region_reset_data, "
+          "region_reset_time "
+          "from region_data");
 
 
   if (mysql_query(conn, buf)) {
@@ -203,28 +195,28 @@ void load_regions() {
     exit(1);
   }
 
- if ( (numrows = mysql_num_rows(result)) < 1) 
-   return;
- else {
-   if (region_table != NULL) {
-     /* Clear it */
-     for (j = 0; j <= top_of_region_table;j++) {
-       free(region_table[j].name);
-       free(region_table[j].vertices);    
-       clear_region_event_list(&region_table[j]);
-     }
-     free(region_table);
-   }
+  if ((numrows = mysql_num_rows(result)) < 1)
+    return;
+  else {
+    if (region_table != NULL) {
+      /* Clear it */
+      for (j = 0; j <= top_of_region_table; j++) {
+        free(region_table[j].name);
+        free(region_table[j].vertices);
+        clear_region_event_list(&region_table[j]);
+      }
+      free(region_table);
+    }
     /* Allocate memory for all of the region data. */
     CREATE(region_table, struct region_data, numrows);
   }
- 
-  while ((row = mysql_fetch_row(result))) { 
-    region_table[i].vnum         = atoi(row[0]);
-    region_table[i].rnum         = i;
-    region_table[i].zone         = real_zone(atoi(row[1]));
-    region_table[i].name         = strdup(row[2]);
-    region_table[i].region_type  = atoi(row[3]);
+
+  while ((row = mysql_fetch_row(result))) {
+    region_table[i].vnum = atoi(row[0]);
+    region_table[i].rnum = i;
+    region_table[i].zone = real_zone(atoi(row[1]));
+    region_table[i].name = strdup(row[2]);
+    region_table[i].region_type = atoi(row[3]);
     region_table[i].num_vertices = atoi(row[4]);
     region_table[i].region_props = atoi(row[6]);
 
@@ -232,28 +224,28 @@ void load_regions() {
        eg: LINESTRING(0 0,10 0,10 10,0 10,0 0) */
     sscanf(row[5], "LINESTRING(%[^)])", buf2);
     tokens = tokenize(buf2, ",");
-   
+
     CREATE(region_table[i].vertices, struct vertex, region_table[i].num_vertices);
 
     vtx = 0;
 
-    for(it=tokens; it && *it; ++it) {
+    for (it = tokens; it && *it; ++it) {
       sscanf(*it, "%d %d", &(region_table[i].vertices[vtx].x), &(region_table[i].vertices[vtx].y));
       vtx++;
       free(*it);
-    }      
-    
-    top_of_region_table = i; 
-    
+    }
+
+    top_of_region_table = i;
+
     /* Add a reset event if this is an encounter region */
     if (region_table[i].region_type == REGION_ENCOUNTER &&
-        atoi(row[8]) > 0 ) {
-      log (" adding event for vnum %d", region_table[i].vnum);
+            atoi(row[8]) > 0) {
+      log(" adding event for vnum %d", region_table[i].vnum);
       NEW_EVENT(eENCOUNTER_REG_RESET, &(region_table[i].vnum), row[7], atoi(row[8]) RL_SEC);
     }
     i++;
-  } 
-  
+  }
+
   mysql_free_result(result);
 }
 
@@ -262,17 +254,17 @@ bool is_point_within_region(region_vnum region, int x, int y) {
   MYSQL_RES *result;
   MYSQL_ROW row;
   bool retval;
-  
+
   char buf[1024];
- 
+
   /* Need an ORDER BY here, since we can have multiple regions. */
   sprintf(buf, "SELECT 1 "
-               "from region_index "
-               "where vnum = %d and "
-               "ST_Within(GeomFromText('POINT(%d %d)'), region_polygon)",
-               region,
-               x, y);
-  
+          "from region_index "
+          "where vnum = %d and "
+          "ST_Within(GeomFromText('POINT(%d %d)'), region_polygon)",
+          region,
+          x, y);
+
   /* Check the connection, reconnect if necessary. */
   mysql_ping(conn);
 
@@ -280,15 +272,15 @@ bool is_point_within_region(region_vnum region, int x, int y) {
     log("SYSERR: Unable to SELECT from region_index: %s", mysql_error(conn));
     exit(1);
   }
- 
+
   if (!(result = mysql_store_result(conn))) {
     log("SYSERR: Unable to SELECT from region_index: %s", mysql_error(conn));
     exit(1);
   }
-  
+
   retval = false;
   while ((row = mysql_fetch_row(result))) {
-    retval = true;    
+    retval = true;
   }
   mysql_free_result(result);
 
@@ -300,33 +292,33 @@ struct region_list* get_enclosing_regions(zone_rnum zone, int x, int y) {
   MYSQL_ROW row;
 
   struct region_list *regions = NULL;
-  struct region_list *new_node = NULL; 
- 
+  struct region_list *new_node = NULL;
+
   char buf[1024];
- 
+
   /* Need an ORDER BY here, since we can have multiple regions. */
   sprintf(buf, "SELECT vnum,  "
-               "case " 
-               "  when ST_Within(geomfromtext('Point(%d %d)'), region_polygon) then "
-               "  case "
-               "    when (geomfromtext('Point(%d %d)') = Centroid(region_polygon)) then '1' "
-               "    when (ST_Distance(geomfromtext('Point(%d %d)'), exteriorring(region_polygon)) > "
-               "          ST_Distance(geomfromtext('Point(%d %d)'), Centroid(region_polygon))/2) then '2' "
-               "    else '3' "
-               "  end " 
-               "  else NULL "
-               "end as loc " 
-               "  from region_index "
-               "  where zone_vnum = %d "
-               "  and ST_Within(GeomFromText('POINT(%d %d)'), region_polygon)",               
-               x, y, 
-               x, y,
-               x, y,
-               x, y,
-               zone_table[zone].number,
-               x, y
-               );
-  
+          "case "
+          "  when ST_Within(geomfromtext('Point(%d %d)'), region_polygon) then "
+          "  case "
+          "    when (geomfromtext('Point(%d %d)') = Centroid(region_polygon)) then '1' "
+          "    when (ST_Distance(geomfromtext('Point(%d %d)'), exteriorring(region_polygon)) > "
+          "          ST_Distance(geomfromtext('Point(%d %d)'), Centroid(region_polygon))/2) then '2' "
+          "    else '3' "
+          "  end "
+          "  else NULL "
+          "end as loc "
+          "  from region_index "
+          "  where zone_vnum = %d "
+          "  and ST_Within(GeomFromText('POINT(%d %d)'), region_polygon)",
+          x, y,
+          x, y,
+          x, y,
+          x, y,
+          zone_table[zone].number,
+          x, y
+          );
+
   /* Check the connection, reconnect if necessary. */
   mysql_ping(conn);
 
@@ -334,28 +326,28 @@ struct region_list* get_enclosing_regions(zone_rnum zone, int x, int y) {
     log("SYSERR: Unable to SELECT from region_index: %s", mysql_error(conn));
     exit(1);
   }
- 
+
   if (!(result = mysql_store_result(conn))) {
     log("SYSERR: Unable to SELECT from region_index: %s", mysql_error(conn));
     exit(1);
   }
-  
+
   while ((row = mysql_fetch_row(result))) {
- 
+
     /* Allocate memory for the region data. */
     CREATE(new_node, struct region_list, 1);
-    new_node->rnum = real_region(atoi(row[0]));    
-    if (atoi(row[1]) == 1)       
+    new_node->rnum = real_region(atoi(row[0]));
+    if (atoi(row[1]) == 1)
       new_node->pos = REGION_POS_CENTER;
     else if (atoi(row[1]) == 2)
       new_node->pos = REGION_POS_INSIDE;
     else if (atoi(row[1]) == 3)
       new_node->pos = REGION_POS_EDGE;
-    else 
+    else
       new_node->pos = REGION_POS_UNDEFINED;
     new_node->next = regions;
     regions = new_node;
-    new_node = NULL; 
+    new_node = NULL;
   }
   mysql_free_result(result);
 
@@ -370,83 +362,83 @@ struct region_proximity_list* get_nearby_regions(zone_rnum zone, int x, int y, i
   MYSQL_ROW row;
 
   struct region_proximity_list *regions = NULL;
-  struct region_proximity_list *new_node = NULL; 
-  
+  struct region_proximity_list *new_node = NULL;
+
   int i = 0;
- 
+
   char buf[6000];
- 
+
   /* Need an ORDER BY here, since we can have multiple regions. */
-  sprintf(buf, "select * from (select " 
-               "  ri.vnum, "
-               "  case " 
-               "    when ST_Intersects(ri.region_polygon, "
-               "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) "
-               "    then ST_Area(ST_Intersection(ri.region_polygon, "
-               "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))'))) else 0.0 end as n, "         
-               "  case " 
-               "    when ST_Intersects(ri.region_polygon, "
-               "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) "
-               "    then ST_Area(ST_Intersection(ri.region_polygon, "
-               "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))'))) else 0.0 end as ne, "          
-               "  case " 
-               "    when ST_Intersects(ri.region_polygon, "
-               "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) "
-               "    then ST_Area(ST_Intersection(ri.region_polygon, "
-               "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))'))) else 0.0 end as e, "
-               "  case " 
-               "    when ST_Intersects(ri.region_polygon, "
-               "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) "
-               "    then ST_Area(ST_Intersection(ri.region_polygon, "
-               "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))'))) else 0.0 end as se, "
-               "  case " 
-               "    when ST_Intersects(ri.region_polygon, "
-               "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) "
-               "    then ST_Area(ST_Intersection(ri.region_polygon, "
-               "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))'))) else 0.0 end as s, "
-               "  case " 
-               "    when ST_Intersects(ri.region_polygon, "
-               "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) "
-               "    then ST_Area(ST_Intersection(ri.region_polygon, "
-               "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))'))) else 0.0 end as sw, "
-               "  case " 
-               "    when ST_Intersects(ri.region_polygon, "
-               "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) "
-               "    then ST_Area(ST_Intersection(ri.region_polygon, "
-               "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))'))) else 0.0 end as w, "
-               "  case " 
-               "    when ST_Intersects(ri.region_polygon, "
-               "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) "
-               "    then ST_Area(ST_Intersection(ri.region_polygon, "
-               "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))'))) else 0.0 end as nw, "
-               "  ST_Distance(ri.region_polygon, geomfromtext('Point(%d %d)')) as dist "    
-               "  from region_index as ri, "
-               "       region_data as rd "
-               "  where ri.vnum = rd.vnum and"
-               "        rd.region_type = 1 "
-               "  order by ST_Distance(ri.region_polygon, geomfromtext('Point(%d %d)')) desc " // GEROGRAPHIC regions only.
-               " ) nearby_regions "
-               "  where ((n > 0) or (ne > 0) or (e > 0) or (se > 0) or (s > 0) or (sw > 0) or (w > 0) or (nw > 0));",                
-               x, y, (r*-.5 + x), (r*.87 + y), (r*.5 + x), (r*.87 + y), x, y,    /* n */
-               x, y, (r*-.5 + x), (r*.87 + y), (r*.5 + x), (r*.87 + y), x, y, 
-               x, y, (r*.5 + x),  (r*.87 + y), (r*.87 + x), (r*.5 + y), x, y,    /* ne */
-               x, y, (r*.5 + x),  (r*.87 + y), (r*.87 + x), (r*.5 + y), x, y,
-               x, y, (r*.87 + x), (r*.5 + y), (r*.87 + x), (r*-.5 + y), x, y,    /* e */ 
-               x, y, (r*.87 + x), (r*.5 + y), (r*.87 + x), (r*-.5 + y), x, y,
-               x, y, (r*.87 + x), (r*-.5 + y), (r*.5 + x), (r*-.87 + y), x, y,   /* se */
-               x, y, (r*.87 + x), (r*-.5 + y), (r*.5 + x), (r*-.87 + y), x, y,
-               x, y, (r*.5 + x), (r*-.87 + y), (r*-.5 + x), (r*-.87 + y), x, y,  /* s */
-               x, y, (r*.5 + x), (r*-.87 + y), (r*-.5 + x), (r*-.87 + y), x, y,
-               x, y, (r*-.5 + x), (r*-.87 + y), (r*-.87 + x), (r*-.5 + y), x, y, /* sw */
-               x, y, (r*-.5 + x), (r*-.87 + y), (r*-.87 + x), (r*-.5 + y), x, y,
-               x, y, (r*-.87 + x), (r*-.5 + y), (r*-.87 + x), (r*.5 + y), x, y,  /* w */
-               x, y, (r*-.87 + x), (r*-.5 + y), (r*-.87 + x), (r*.5 + y), x, y,
-               x, y, (r*-.87 + x), (r*.5 + y), (r*-.5 + x), (r*.87 + y), x, y,   /* nw */
-               x, y, (r*-.87 + x), (r*.5 + y), (r*-.5 + x), (r*.87 + y), x, y,
-               x, y,
-               x, y
-          );      
-  
+  sprintf(buf, "select * from (select "
+          "  ri.vnum, "
+          "  case "
+          "    when ST_Intersects(ri.region_polygon, "
+          "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) "
+          "    then ST_Area(ST_Intersection(ri.region_polygon, "
+          "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))'))) else 0.0 end as n, "
+          "  case "
+          "    when ST_Intersects(ri.region_polygon, "
+          "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) "
+          "    then ST_Area(ST_Intersection(ri.region_polygon, "
+          "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))'))) else 0.0 end as ne, "
+          "  case "
+          "    when ST_Intersects(ri.region_polygon, "
+          "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) "
+          "    then ST_Area(ST_Intersection(ri.region_polygon, "
+          "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))'))) else 0.0 end as e, "
+          "  case "
+          "    when ST_Intersects(ri.region_polygon, "
+          "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) "
+          "    then ST_Area(ST_Intersection(ri.region_polygon, "
+          "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))'))) else 0.0 end as se, "
+          "  case "
+          "    when ST_Intersects(ri.region_polygon, "
+          "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) "
+          "    then ST_Area(ST_Intersection(ri.region_polygon, "
+          "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))'))) else 0.0 end as s, "
+          "  case "
+          "    when ST_Intersects(ri.region_polygon, "
+          "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) "
+          "    then ST_Area(ST_Intersection(ri.region_polygon, "
+          "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))'))) else 0.0 end as sw, "
+          "  case "
+          "    when ST_Intersects(ri.region_polygon, "
+          "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) "
+          "    then ST_Area(ST_Intersection(ri.region_polygon, "
+          "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))'))) else 0.0 end as w, "
+          "  case "
+          "    when ST_Intersects(ri.region_polygon, "
+          "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) "
+          "    then ST_Area(ST_Intersection(ri.region_polygon, "
+          "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))'))) else 0.0 end as nw, "
+          "  ST_Distance(ri.region_polygon, geomfromtext('Point(%d %d)')) as dist "
+          "  from region_index as ri, "
+          "       region_data as rd "
+          "  where ri.vnum = rd.vnum and"
+          "        rd.region_type = 1 "
+          "  order by ST_Distance(ri.region_polygon, geomfromtext('Point(%d %d)')) desc " // GEROGRAPHIC regions only.
+          " ) nearby_regions "
+          "  where ((n > 0) or (ne > 0) or (e > 0) or (se > 0) or (s > 0) or (sw > 0) or (w > 0) or (nw > 0));",
+          x, y, (r*-.5 + x), (r * .87 + y), (r * .5 + x), (r * .87 + y), x, y, /* n */
+          x, y, (r*-.5 + x), (r * .87 + y), (r * .5 + x), (r * .87 + y), x, y,
+          x, y, (r * .5 + x), (r * .87 + y), (r * .87 + x), (r * .5 + y), x, y, /* ne */
+          x, y, (r * .5 + x), (r * .87 + y), (r * .87 + x), (r * .5 + y), x, y,
+          x, y, (r * .87 + x), (r * .5 + y), (r * .87 + x), (r*-.5 + y), x, y, /* e */
+          x, y, (r * .87 + x), (r * .5 + y), (r * .87 + x), (r*-.5 + y), x, y,
+          x, y, (r * .87 + x), (r*-.5 + y), (r * .5 + x), (r*-.87 + y), x, y, /* se */
+          x, y, (r * .87 + x), (r*-.5 + y), (r * .5 + x), (r*-.87 + y), x, y,
+          x, y, (r * .5 + x), (r*-.87 + y), (r*-.5 + x), (r*-.87 + y), x, y, /* s */
+          x, y, (r * .5 + x), (r*-.87 + y), (r*-.5 + x), (r*-.87 + y), x, y,
+          x, y, (r*-.5 + x), (r*-.87 + y), (r*-.87 + x), (r*-.5 + y), x, y, /* sw */
+          x, y, (r*-.5 + x), (r*-.87 + y), (r*-.87 + x), (r*-.5 + y), x, y,
+          x, y, (r*-.87 + x), (r*-.5 + y), (r*-.87 + x), (r * .5 + y), x, y, /* w */
+          x, y, (r*-.87 + x), (r*-.5 + y), (r*-.87 + x), (r * .5 + y), x, y,
+          x, y, (r*-.87 + x), (r * .5 + y), (r*-.5 + x), (r * .87 + y), x, y, /* nw */
+          x, y, (r*-.87 + x), (r * .5 + y), (r*-.5 + x), (r * .87 + y), x, y,
+          x, y,
+          x, y
+          );
+
   /* Check the connection, reconnect if necessary. */
   mysql_ping(conn);
 
@@ -454,26 +446,26 @@ struct region_proximity_list* get_nearby_regions(zone_rnum zone, int x, int y, i
     log("SYSERR: Unable to SELECT from region_index: %s", mysql_error(conn));
     exit(1);
   }
- 
+
   if (!(result = mysql_store_result(conn))) {
     log("SYSERR: Unable to SELECT from region_index: %s", mysql_error(conn));
     exit(1);
   }
-  
+
   while ((row = mysql_fetch_row(result))) {
- 
+
     /* Allocate memory for the region data. */
     CREATE(new_node, struct region_proximity_list, 1);
-    new_node->rnum = real_region(atoi(row[0])); 
-    
+    new_node->rnum = real_region(atoi(row[0]));
+
     for (i = 0; i < 8; i++) {
-      new_node->dirs[i]  = atof(row[i + 1]);
+      new_node->dirs[i] = atof(row[i + 1]);
     }
     new_node->dist = atof(row[9]);
-    
+
     new_node->next = regions;
     regions = new_node;
-    new_node = NULL; 
+    new_node = NULL;
   }
   mysql_free_result(result);
 
@@ -498,24 +490,24 @@ void load_paths() {
   char buf[1024];
   char buf2[1024];
 
-  char** tokens;  /* Storage for tokenized linestring points */
-  char** it;      /* Token iterator */
+  char** tokens; /* Storage for tokenized linestring points */
+  char** it; /* Token iterator */
 
   log("INFO: Loading path data from MySQL");
 
   sprintf(buf, "SELECT p.vnum, "
-                      "p.zone_vnum, " 
-                      "p.name, "
-                      "p.path_type, "
-                      "NumPoints(p.path_linestring), "
-                      "AsText(p.path_linestring), "
-                      "p.path_props, "
-                      "pt.glyph_ns, "
-                      "pt.glyph_ew, "
-                      "pt.glyph_int "
-               "  from path_data p,"
-               "       path_types pt"
-               "  where p.path_type = pt.path_type");
+          "p.zone_vnum, "
+          "p.name, "
+          "p.path_type, "
+          "NumPoints(p.path_linestring), "
+          "AsText(p.path_linestring), "
+          "p.path_props, "
+          "pt.glyph_ns, "
+          "pt.glyph_ew, "
+          "pt.glyph_int "
+          "  from path_data p,"
+          "       path_types pt"
+          "  where p.path_type = pt.path_type");
 
 
   if (mysql_query(conn, buf)) {
@@ -528,60 +520,60 @@ void load_paths() {
     exit(1);
   }
 
- if ( (numrows = mysql_num_rows(result)) < 1) 
-   return;
- else {
+  if ((numrows = mysql_num_rows(result)) < 1)
+    return;
+  else {
     /* Allocate memory for all of the region data. */
-   if (path_table != NULL) {
-     /* Clear it */
-      for (j = 0; j <= top_of_path_table;j++) {
+    if (path_table != NULL) {
+      /* Clear it */
+      for (j = 0; j <= top_of_path_table; j++) {
         free(path_table[j].name);
         //free(path_table[i].glyphs[GLYPH_TYPE_PATH_NS]);
         //free(path_table[i].glyphs[GLYPH_TYPE_PATH_EW]);
         //free(path_table[i].glyphs[GLYPH_TYPE_PATH_INT]);
-        free(path_table[j].vertices);                     
-        
-      }      
-     free(path_table);
-   }
+        free(path_table[j].vertices);
+
+      }
+      free(path_table);
+    }
     CREATE(path_table, struct path_data, numrows);
   }
- 
-  while ((row = mysql_fetch_row(result))) { 
-    path_table[i].vnum         = atoi(row[0]);
-    path_table[i].rnum         = i;
-    path_table[i].zone         = real_zone(atoi(row[1]));
-    path_table[i].name         = strdup(row[2]);
-    path_table[i].path_type    = atoi(row[3]);
+
+  while ((row = mysql_fetch_row(result))) {
+    path_table[i].vnum = atoi(row[0]);
+    path_table[i].rnum = i;
+    path_table[i].zone = real_zone(atoi(row[1]));
+    path_table[i].name = strdup(row[2]);
+    path_table[i].path_type = atoi(row[3]);
     path_table[i].num_vertices = atoi(row[4]);
-    path_table[i].path_props   = atoi(row[6]);
-    
-    path_table[i].glyphs[GLYPH_TYPE_PATH_NS]  = strdup(row[7]);
-    path_table[i].glyphs[GLYPH_TYPE_PATH_EW]  = strdup(row[8]);
+    path_table[i].path_props = atoi(row[6]);
+
+    path_table[i].glyphs[GLYPH_TYPE_PATH_NS] = strdup(row[7]);
+    path_table[i].glyphs[GLYPH_TYPE_PATH_EW] = strdup(row[8]);
     path_table[i].glyphs[GLYPH_TYPE_PATH_INT] = strdup(row[9]);
-    
+
     parse_at(path_table[i].glyphs[GLYPH_TYPE_PATH_NS]);
     parse_at(path_table[i].glyphs[GLYPH_TYPE_PATH_EW]);
     parse_at(path_table[i].glyphs[GLYPH_TYPE_PATH_INT]);
-    
+
     /* Parse the polygon text data to get the vertices, etc.
        eg: LINESTRING(0 0,10 0,10 10,0 10,0 0) */
     sscanf(row[5], "LINESTRING(%[^)])", buf2);
     tokens = tokenize(buf2, ",");
-   
+
     CREATE(path_table[i].vertices, struct vertex, path_table[i].num_vertices);
 
     vtx = 0;
 
-    for(it=tokens; it && *it; ++it) {
+    for (it = tokens; it && *it; ++it) {
       sscanf(*it, "%d %d", &(path_table[i].vertices[vtx].x), &(path_table[i].vertices[vtx].y));
       vtx++;
       free(*it);
-    }      
+    }
 
-    top_of_path_table = i; 
+    top_of_path_table = i;
     i++;
-  } 
+  }
   mysql_free_result(result);
 }
 
@@ -593,37 +585,37 @@ void insert_path(struct path_data *path) {
   char linestring[MAX_STRING_LENGTH];
 
   sprintf(linestring, "ST_GeomFromText('LINESTRING(");
-  
-  for (vtx = 0; vtx < path->num_vertices; vtx++){
+
+  for (vtx = 0; vtx < path->num_vertices; vtx++) {
     char buf2[100];
     sprintf(buf2, "%d %d%s", path->vertices[vtx].x, path->vertices[vtx].y, (vtx + 1 == path->num_vertices ? ")')" : ","));
     strcat(linestring, buf2);
   }
 
-  log("INFO: Inserting Path [%d] '%s' into MySQL:", (int)path->vnum, path->name);
+  log("INFO: Inserting Path [%d] '%s' into MySQL:", (int) path->vnum, path->name);
   sprintf(buf, "insert into path_data "
-                      "(vnum, "
-                      "zone_vnum, " 
-                      "path_type, "
-                      "name, "
-                      "path_props, "
-                      "path_linestring) "
-                      "VALUES ("
-                      "%d, "
-                      "%d, "
-                      "%d, "
-                      "'%s', "
-                      "%d, "
-                      "%s);",path->vnum, zone_table[path->zone].number, path->path_type, path->name, path->path_props, linestring);
+          "(vnum, "
+          "zone_vnum, "
+          "path_type, "
+          "name, "
+          "path_props, "
+          "path_linestring) "
+          "VALUES ("
+          "%d, "
+          "%d, "
+          "%d, "
+          "'%s', "
+          "%d, "
+          "%s);", path->vnum, zone_table[path->zone].number, path->path_type, path->name, path->path_props, linestring);
 
-  log("QUERY: %s",buf);
+  log("QUERY: %s", buf);
 
   /* Check the connection, reconnect if necessary. */
   mysql_ping(conn);
 
   if (mysql_query(conn, buf)) {
     log("SYSERR: Unable to INSERT into path_data: %s", mysql_error(conn));
-  } 
+  }
 }
 
 /* Delete a path from the database. */
@@ -631,11 +623,11 @@ bool delete_path(region_vnum vnum) {
   /* path_data* path_table */
   char buf[MAX_STRING_LENGTH];
 
-  log("INFO: Deleting Path [%d] from MySQL:", (int)vnum);
+  log("INFO: Deleting Path [%d] from MySQL:", (int) vnum);
   sprintf(buf, "delete from path_data "
-               "where vnum = %d;",(int)vnum);
+          "where vnum = %d;", (int) vnum);
 
-  log("QUERY: %s",buf);
+  log("QUERY: %s", buf);
 
   /* Check the connection, reconnect if necessary. */
   mysql_ping(conn);
@@ -646,7 +638,7 @@ bool delete_path(region_vnum vnum) {
   }
 
   if (mysql_affected_rows(conn))
-    return true; 
+    return true;
   else
     return false;
 }
@@ -656,31 +648,31 @@ struct path_list* get_enclosing_paths(zone_rnum zone, int x, int y) {
   MYSQL_ROW row;
 
   struct path_list *paths = NULL;
-  struct path_list *new_node = NULL; 
+  struct path_list *new_node = NULL;
 
- 
+
   char buf[1024];
- 
+
   sprintf(buf, "SELECT vnum, "
-               "  CASE WHEN (ST_Touches(GeomFromText('POINT(%d %d)'), path_linestring) AND "
-               "             ST_Touches(GeomFromText('POINT(%d %d)'), path_linestring)) THEN %d"
-               "    WHEN (ST_Touches(GeomFromText('POINT(%d %d)'), path_linestring) AND "
-               "               ST_Touches(GeomFromText('POINT(%d %d)'), path_linestring)) THEN %d "
-               "    ELSE %d"
-               "  END AS glyph "               
-               "  from path_index "
-               "  where zone_vnum = %d "
-               "  and ST_Touches(GeomFromText('POINT(%d %d)'), path_linestring)"              
-               , x, y-1
-               , x, y+1
-               , GLYPH_TYPE_PATH_NS
-               , x-1, y
-               , x+1, y
-               , GLYPH_TYPE_PATH_EW
-               , GLYPH_TYPE_PATH_INT
-               , zone_table[zone].number
-               , x, y);               
-  
+          "  CASE WHEN (ST_Touches(GeomFromText('POINT(%d %d)'), path_linestring) AND "
+          "             ST_Touches(GeomFromText('POINT(%d %d)'), path_linestring)) THEN %d"
+          "    WHEN (ST_Touches(GeomFromText('POINT(%d %d)'), path_linestring) AND "
+          "               ST_Touches(GeomFromText('POINT(%d %d)'), path_linestring)) THEN %d "
+          "    ELSE %d"
+          "  END AS glyph "
+          "  from path_index "
+          "  where zone_vnum = %d "
+          "  and ST_Touches(GeomFromText('POINT(%d %d)'), path_linestring)"
+          , x, y - 1
+          , x, y + 1
+          , GLYPH_TYPE_PATH_NS
+          , x - 1, y
+          , x + 1, y
+          , GLYPH_TYPE_PATH_EW
+          , GLYPH_TYPE_PATH_INT
+          , zone_table[zone].number
+          , x, y);
+
   /* Check the connection, reconnect if necessary. */
   mysql_ping(conn);
 
@@ -688,21 +680,21 @@ struct path_list* get_enclosing_paths(zone_rnum zone, int x, int y) {
     log("SYSERR: Unable to SELECT from path_index: %s", mysql_error(conn));
     exit(1);
   }
- 
+
   if (!(result = mysql_store_result(conn))) {
     log("SYSERR: Unable to SELECT from path_index: %s", mysql_error(conn));
     exit(1);
   }
-  
+
   while ((row = mysql_fetch_row(result))) {
- 
+
     /* Allocate memory for the region data. */
     CREATE(new_node, struct path_list, 1);
     new_node->rnum = real_path(atoi(row[0]));
     new_node->glyph_type = atoi(row[1]);
     new_node->next = paths;
     paths = new_node;
-    new_node = NULL; 
+    new_node = NULL;
   }
   mysql_free_result(result);
 
@@ -722,7 +714,7 @@ void save_paths() {
  * This function accesses the database several times.
  */
 bool get_random_region_location(region_vnum region, int *x, int*y) {
-  MYSQL_RES *result; 
+  MYSQL_RES *result;
   MYSQL_ROW row;
   int xlow, xhigh, ylow, yhigh;
   int xp, yp;
@@ -730,9 +722,9 @@ bool get_random_region_location(region_vnum region, int *x, int*y) {
   char buf[MAX_STRING_LENGTH];
   char buf2[MAX_STRING_LENGTH];
 
-  char** tokens;  /* Storage for tokenized linestring points */
-  char** it;      /* Token iterator */
- 
+  char** tokens; /* Storage for tokenized linestring points */
+  char** it; /* Token iterator */
+
   xlow = 99999;
   xhigh = -99999;
   ylow = 99999;
@@ -740,11 +732,11 @@ bool get_random_region_location(region_vnum region, int *x, int*y) {
 
   log(" Getting random point in region with vnum : %d", region);
 
-  sprintf(buf, "SELECT ST_AsText(ST_Envelope(region_polygon)) "                      
-               "from region_data "
-               "where vnum = %d;"              
-               , region);               
-  
+  sprintf(buf, "SELECT ST_AsText(ST_Envelope(region_polygon)) "
+          "from region_data "
+          "where vnum = %d;"
+          , region);
+
   /* Check the connection, reconnect if necessary. */
   mysql_ping(conn);
 
@@ -752,22 +744,22 @@ bool get_random_region_location(region_vnum region, int *x, int*y) {
     log("SYSERR: Unable to SELECT from region_data: %s", mysql_error(conn));
     return false;
   }
- 
+
   if (!(result = mysql_store_result(conn))) {
     log("SYSERR: Unable to SELECT from region_data: %s", mysql_error(conn));
     return false;
   }
 
-  while ((row = mysql_fetch_row(result))) { 
+  while ((row = mysql_fetch_row(result))) {
 
     /* Parse the polygon text data to get the vertices, etc.
        eg: LINESTRING(0 0,10 0,10 10,0 10,0 0) */
-    log(" Envelope: %s", row[0]);       
+    log(" Envelope: %s", row[0]);
     sscanf(row[0], "POLYGON((%[^)]))", buf2);
     tokens = tokenize(buf2, ",");
-   
-    int newx, newy;    
-    for(it=tokens; it && *it; ++it) {
+
+    int newx, newy;
+    for (it = tokens; it && *it; ++it) {
       log(" Token: %s", *it);
       sscanf(*it, "%d %d", &newx, &newy);
       if (newx < xlow) xlow = newx;
@@ -775,17 +767,17 @@ bool get_random_region_location(region_vnum region, int *x, int*y) {
       if (newy < ylow) ylow = newy;
       if (newy > yhigh) yhigh = newy;
       free(*it);
-    }      
-  } 
+    }
+  }
 
-  log("xrange: %d - %d yrange: %d - %d", xlow, xhigh, ylow,yhigh);
+  log("xrange: %d - %d yrange: %d - %d", xlow, xhigh, ylow, yhigh);
 
   do {
     xp = rand_number(xlow, xhigh);
     yp = rand_number(ylow, yhigh);
     log("new point: (%d, %d)", xp, yp);
   } while (!is_point_within_region(region, xp, yp));
-  
+
   log("Returning point within region %d : (%d, %d)", region, xp, yp);
   *x = xp;
   *y = yp;
@@ -794,8 +786,7 @@ bool get_random_region_location(region_vnum region, int *x, int*y) {
 
 #ifdef DO_NOT_COMPILE_EXAMPLES
 
-void who_to_mysql()
-{
+void who_to_mysql() {
   struct descriptor_data *d;
   struct char_data *tch;
   char buf[1024], buf2[MAX_TITLE_LENGTH * 2];
@@ -831,12 +822,11 @@ void who_to_mysql()
     /* Hide level for anonymous players */
     if (PRF_FLAGGED(tch, PRF_ANON)) {
       sprintf(buf, "INSERT INTO who (player, title, killer, thief) VALUES ('%s', '%s', %d, %d)",
-        GET_NAME(tch), buf2, PLR_FLAGGED(tch, PLR_KILLER) ? 1 : 0, PLR_FLAGGED(tch, PLR_THIEF) ? 1 : 0);
-    }
-    else {
+              GET_NAME(tch), buf2, PLR_FLAGGED(tch, PLR_KILLER) ? 1 : 0, PLR_FLAGGED(tch, PLR_THIEF) ? 1 : 0);
+    } else {
       sprintf(buf, "INSERT INTO who (player, level, title, killer, thief) VALUES ('%s', %d, '%s', %d, %d)",
-        GET_NAME(tch), GET_LEVEL(tch), buf2,
-        PLR_FLAGGED(tch, PLR_KILLER) ? 1 : 0, PLR_FLAGGED(tch, PLR_THIEF) ? 1 : 0);
+              GET_NAME(tch), GET_LEVEL(tch), buf2,
+              PLR_FLAGGED(tch, PLR_KILLER) ? 1 : 0, PLR_FLAGGED(tch, PLR_THIEF) ? 1 : 0);
     }
 
     if (mysql_query(conn, buf)) {
@@ -845,9 +835,7 @@ void who_to_mysql()
   }
 }
 
-
-void read_factions_from_mysql()
-{
+void read_factions_from_mysql() {
   struct faction_data *fact = NULL;
   MYSQL_RES *result;
   MYSQL_ROW row;
@@ -896,7 +884,7 @@ void read_factions_from_mysql()
   while ((row = mysql_fetch_row(result))) {
     /* Select correct faction */
     if (!fact || strcmp(fact->id, row[0]))
-        fact = find_faction(row[0], NULL);
+      fact = find_faction(row[0], NULL);
 
     /* If we were unable to select the correct faction, exit with a serious error */
     if (!fact) {
@@ -922,7 +910,7 @@ void read_factions_from_mysql()
   while ((row = mysql_fetch_row(result))) {
     /* Select correct faction */
     if (!fact || strcmp(fact->id, row[0]))
-        fact = find_faction(row[0], NULL);
+      fact = find_faction(row[0], NULL);
 
     /* If we were unable to select the correct faction, exit with a serious error */
     if (!fact) {
@@ -961,8 +949,7 @@ void read_factions_from_mysql()
         log("SYSERR: Invalid mob %s or sharecount %s for faction %s.", row[0], row[2], row[1]);
       else
         set_monster_ownership(i, fact, total);
-    }
-    else {
+    } else {
       log("SYSERR: Mob %s owns shares in unknown faction %s.", row[0], row[1]);
     }
   }
@@ -987,8 +974,7 @@ void read_factions_from_mysql()
         log("SYSERR: Invalid player %s sharecount %s for faction %s.", row[0], row[2], row[1]);
       else
         set_player_ownership(row[0], fact, total);
-    }
-    else {
+    } else {
       log("SYSERR: Player %s owns shares in unknown faction %s.", row[0], row[1]);
     }
   }
