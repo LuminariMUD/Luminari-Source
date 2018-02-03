@@ -144,7 +144,7 @@ void parse_quest(FILE *quest_f, int nr) {
   static int i = 0, j;
   int retval = 0, t[7];
   char f1[128], buf2[MAX_STRING_LENGTH];
-  
+
   aquest_table[i].vnum = nr;
   aquest_table[i].qm = NOBODY;
   aquest_table[i].name = NULL;
@@ -231,7 +231,7 @@ void assign_the_quests(void) {
 
   for (rnum = 0; rnum < total_quests; rnum++) {
     if (QST_MASTER(rnum) == NOBODY ||
-        QST_MASTER(rnum) <= 0) {
+            QST_MASTER(rnum) <= 0) {
       log("SYSERR: Quest #%d has no questmaster specified.", QST_NUM(rnum));
       continue;
     }
@@ -244,7 +244,7 @@ void assign_the_quests(void) {
       continue;
     }
     if (mob_index[(mrnum)].func &&
-        mob_index[(mrnum)].func != questmaster)
+            mob_index[(mrnum)].func != questmaster)
       QST_FUNC(rnum) = mob_index[(mrnum)].func;
     mob_index[(mrnum)].func = questmaster;
   }
@@ -311,21 +311,21 @@ void complete_quest(struct char_data *ch) {
   qst_rnum rnum = -1;
   qst_vnum vnum = GET_QUEST(ch);
   struct obj_data *new_obj = NULL;
-  int happy_qp = 0, happy_gold = 0, happy_exp = 0;    
-  
+  int happy_qp = 0, happy_gold = 0, happy_exp = 0;
+
   /* dummy check */
   if (GET_QUEST(ch) == NOTHING) {
     log("UH OH: complete_quest() called without a quest VNUM!");
     return;
   }
-  
+
   /* we should NOT be getting this */
   if (GET_QUEST_COUNTER(ch) > 0) {
     send_to_char(ch, "You still have to achieve \tm%d\tn out of \tM%d\tn goals for the quest.\r\n\r\n",
             --GET_QUEST_COUNTER(ch), QST_QUANTITY(rnum));
     save_char(ch, 0);
     log("UH OH: complete_quest() quest-counter is greater than zero!");
-    return;    
+    return;
   }
 
   rnum = real_quest(vnum);
@@ -394,9 +394,9 @@ void complete_quest(struct char_data *ch) {
   /* end rewards */
 
   /* handle throwing quest in history and repeatable quests */
-  if ( (!IS_SET(QST_FLAGS(rnum), AQ_REPEATABLE)) ||
-       (IS_SET(QST_FLAGS(rnum), AQ_REPEATABLE) &&
-          !is_complete(ch, GET_QUEST(ch))) )
+  if ((!IS_SET(QST_FLAGS(rnum), AQ_REPEATABLE)) ||
+          (IS_SET(QST_FLAGS(rnum), AQ_REPEATABLE) &&
+          !is_complete(ch, GET_QUEST(ch))))
     add_completed_quest(ch, vnum);
 
   /* clear the quest data from ch, clean slate */
@@ -412,7 +412,7 @@ void complete_quest(struct char_data *ch) {
             "\tW***The next stage of your quest awaits:\tn\r\n\r\n%s\r\n",
             QST_INFO(rnum));
   }
-  
+
 }
 
 /* this function is called upon completion of a quest
@@ -420,28 +420,28 @@ void complete_quest(struct char_data *ch) {
  * NOTE: We added the actual completion to an event that
  * will call: void complete_quest() above */
 void generic_complete_quest(struct char_data *ch) {
-    
+
   /* more work to do on this quest! make sure to decrement counter  */
   if (GET_QUEST(ch) != NOTHING && --GET_QUEST_COUNTER(ch) > 0) {
     qst_rnum rnum = -1;
     qst_vnum vnum = GET_QUEST(ch);
 
     rnum = real_quest(vnum);
-    
+
     send_to_char(ch, "You still have to achieve \tm%d\tn out of \tM%d\tn goals for the quest.\r\n\r\n",
             GET_QUEST_COUNTER(ch), QST_QUANTITY(rnum));
-    save_char(ch, 0);    
-    
-  /* the quest is truly complete? */  
+    save_char(ch, 0);
+
+    /* the quest is truly complete? */
   } else if (GET_QUEST(ch) != NOTHING) {
-    struct mud_event_data *pMudEvent = NULL;    
-    char buf[128] = { '\0' };
+    struct mud_event_data *pMudEvent = NULL;
+    char buf[128] = {'\0'};
     qst_vnum event_quest_num = NOTHING;
-    
+
     if ((pMudEvent = char_has_mud_event(ch, eQUEST_COMPLETE))) {
       /* grab vnum of quest that is in event */
       event_quest_num = atoi((char *) pMudEvent->sVariables);
-            
+
       /* make sure we do not already have an event for this quest! */
       if (event_quest_num == GET_QUEST(ch)) {
         /* get out of here, we are already processing this particular
@@ -449,9 +449,9 @@ void generic_complete_quest(struct char_data *ch) {
         return;
       }
     }
-    
+
     /* we should be in the clear to tag this player with a completed quest */
-    sprintf(buf, "%d", GET_QUEST(ch)); /* sending vnum to event of quest */    
+    sprintf(buf, "%d", GET_QUEST(ch)); /* sending vnum to event of quest */
     attach_mud_event(new_mud_event(eQUEST_COMPLETE, ch, buf), 1);
   }
 }
@@ -539,6 +539,7 @@ void check_timed_quests(void) {
 
 /*--------------------------------------------------------------------------*/
 /* Quest Command Helper Functions                                           */
+
 /*--------------------------------------------------------------------------*/
 void list_quests(struct char_data *ch, zone_rnum zone, qst_vnum vmin, qst_vnum vmax) {
   qst_rnum rnum;
@@ -584,14 +585,14 @@ void quest_hist(struct char_data *ch, char argument[MAX_STRING_LENGTH]) {
     }
     if (!counter)
       send_to_char(ch, "You haven't completed any quests yet.\r\n");
-    
+
     return;
   }
-  
+
   /* convert argument to a integer */
   num_arg = atoi(argument);
   num_arg--;
-  
+
   /* this is a safeguard check */
   if (num_arg >= MAX_COMPLETED_QUESTS) {
     send_to_char(ch, "You have exceeded the maximum amount of completed quests.\r\n");
@@ -603,9 +604,9 @@ void quest_hist(struct char_data *ch, char argument[MAX_STRING_LENGTH]) {
   if (num_arg < 0) {
     send_to_char(ch, "Invalid argument!\r\n");
     log("ERROR: num_arg [%d] in quest_hist() is less than zero", num_arg);
-    return;   
+    return;
   }
-  
+
   /* argument equal to number in history */
   if ((rnum = real_quest(ch->player_specials->saved.completed_quests[num_arg])) != NOTHING) {
 
@@ -617,7 +618,7 @@ void quest_hist(struct char_data *ch, char argument[MAX_STRING_LENGTH]) {
             QST_NAME(rnum), QST_DESC(rnum),
             QST_INFO(rnum), QST_DONE(rnum)
             );
-  
+
   } else {
     send_to_char(ch, "\r\nNot valid input, please either use no input to view "
             "your complete history or type history <nn> to view the details of "
@@ -626,91 +627,119 @@ void quest_hist(struct char_data *ch, char argument[MAX_STRING_LENGTH]) {
 }
 
 void quest_join(struct char_data *ch, struct char_data *qm, char argument[MAX_INPUT_LENGTH]) {
-  qst_vnum vnum = NOTHING, tempvnum = NOTHING;
-  qst_rnum rnum = NOWHERE, temprnum = NOWHERE;
+  qst_vnum vnum = NOTHING;
+  qst_rnum rnum = NOWHERE;
   char buf[MAX_INPUT_LENGTH];
   bool has_quest_object = FALSE;
   int i = 0;
 
-  /* we will check for quest object here, this is terrible, im sick, leave me alone ;p */
-  if ((tempvnum = find_quest_by_qmnum(ch, GET_MOB_VNUM(qm), atoi(argument))) != NOTHING) {
-    if ((temprnum = real_quest(tempvnum)) == NOTHING) {
-      if ((QST_PREREQ(temprnum) != NOTHING) &&
-              (real_object(QST_PREREQ(temprnum)) != NOTHING)) {
-
-        /* inventory will do it */
-        if (get_obj_in_list_num(real_object(QST_PREREQ(temprnum)),
-                ch->carrying) != NULL)
-          has_quest_object = TRUE;
-
-        /* and wearing will do it too */
-        for (i = 0; i < NUM_WEARS; i++) {
-          if (GET_EQ(ch, i) &&
-                  GET_OBJ_RNUM(GET_EQ(ch, i)) == real_object(QST_PREREQ(temprnum))) {
-            has_quest_object = TRUE;
-            break;
-          }
-        }
-      }
-    }
-  }
-
   if (!*argument) {
     snprintf(buf, sizeof (buf),
             "\r\n%s, what quest did you wish to join?\r\n", GET_NAME(ch));
-  } else if (GET_QUEST(ch) != NOTHING) {
+    send_to_char(ch, "%s", buf);
+    return;
+  }
+
+  if (GET_QUEST(ch) != NOTHING) {
     snprintf(buf, sizeof (buf),
             "\r\n%s, but you are already part of a quest!\r\n", GET_NAME(ch));
-  } else if ((vnum = find_quest_by_qmnum(ch, GET_MOB_VNUM(qm), atoi(argument))) == NOTHING) {
+    send_to_char(ch, "%s", buf);
+    return;
+  }
+
+  /* assign vnum */
+  if ((vnum = find_quest_by_qmnum(ch, GET_MOB_VNUM(qm), atoi(argument))) == NOTHING) {
     snprintf(buf, sizeof (buf),
             "\r\n%s, I don't know of such a quest!\r\n", GET_NAME(ch));
-  } else if ((rnum = real_quest(vnum)) == NOTHING) {
+    send_to_char(ch, "%s", buf);
+    return;
+  }
+
+  if ((rnum = real_quest(vnum)) == NOTHING) {
     snprintf(buf, sizeof (buf),
             "\r\n%s, I don't know of such a quest!\r\n", GET_NAME(ch));
-  } else if ((GET_LEVEL(ch) < QST_MINLEVEL(rnum)) && GET_LEVEL(ch) < LVL_IMMORT) {
+    send_to_char(ch, "%s", buf);
+    return;
+  }
+
+  if ((GET_LEVEL(ch) < QST_MINLEVEL(rnum)) && GET_LEVEL(ch) < LVL_IMMORT) {
     snprintf(buf, sizeof (buf),
             "\r\n%s, you are not experienced enough for that quest!\r\n", GET_NAME(ch));
-    if (GET_LEVEL(ch) >= LVL_IMMORT)
-      send_to_char(ch, "\tRNOTE: you are over-riding Min-Level\tn\r\n");
-  } else if ((GET_LEVEL(ch) > QST_MAXLEVEL(rnum)) && GET_LEVEL(ch) < LVL_IMMORT) {
+    send_to_char(ch, "%s", buf);
+    return;
+  } else if (GET_LEVEL(ch) >= LVL_IMMORT) {
+    send_to_char(ch, "\tRNOTE: you are over-riding Min-Level\tn\r\n");
+  }
+
+  if ((GET_LEVEL(ch) > QST_MAXLEVEL(rnum)) && GET_LEVEL(ch) < LVL_IMMORT) {
     snprintf(buf, sizeof (buf),
             "\r\n%s, you are too experienced for that quest!\r\n", GET_NAME(ch));
-    if (GET_LEVEL(ch) >= LVL_IMMORT)
-      send_to_char(ch, "\tRNOTE: you are over-riding Max-Level\tn\r\n");
-  } else if (is_complete(ch, vnum) && !(IS_SET(QST_FLAGS(rnum), AQ_REPEATABLE)) &&
+    send_to_char(ch, "%s", buf);
+    return;
+  } else if (GET_LEVEL(ch) >= LVL_IMMORT) {
+    send_to_char(ch, "\tRNOTE: you are over-riding Max-Level\tn\r\n");
+  }
+
+  if (is_complete(ch, vnum) && !(IS_SET(QST_FLAGS(rnum), AQ_REPEATABLE)) &&
           GET_LEVEL(ch) < LVL_IMMORT) {
     snprintf(buf, sizeof (buf),
             "\r\n%s, you have already completed that quest!\r\n", GET_NAME(ch));
-    if (GET_LEVEL(ch) >= LVL_IMMORT)
-      send_to_char(ch, "\tRNOTE: you are over-riding 'quest completed'\tn\r\n");
-  } else if ((QST_PREV(rnum) != NOTHING) && !is_complete(ch, QST_PREV(rnum))) {
+    send_to_char(ch, "%s", buf);
+    return;
+  } else if (GET_LEVEL(ch) >= LVL_IMMORT) {
+    send_to_char(ch, "\tRNOTE: you are over-riding 'quest completed'\tn\r\n");
+  }
+
+  /* requires previous quest completed */
+  if ((QST_PREV(rnum) != NOTHING) && !is_complete(ch, QST_PREV(rnum))) {
     snprintf(buf, sizeof (buf),
             "\r\n%s, that quest is not available to you yet!\r\n", GET_NAME(ch));
-  } else if ((QST_PREREQ(rnum) != NOTHING) &&
-          (real_object(QST_PREREQ(rnum)) != NOTHING) &&
-          !has_quest_object) {
-    snprintf(buf, sizeof (buf),
-            "\r\n%s, you need to have %s first!\r\n", GET_NAME(ch),
-            obj_proto[real_object(QST_PREREQ(rnum))].short_description);
-  } else {
-    act("You join the quest.", TRUE, ch, NULL, NULL, TO_CHAR);
-    act("$n has joined a quest.", TRUE, ch, NULL, NULL, TO_ROOM);
-    snprintf(buf, sizeof (buf),
-            "\tW%s \tWlisten carefully to the instructions.\tn\r\n\r\n", GET_NAME(ch));
-    //do_tell(qm, buf, cmd_tell, 0);
     send_to_char(ch, "%s", buf);
-    set_quest(ch, rnum);
-    send_to_char(ch, "%s", QST_INFO(rnum));
-    if (QST_TIME(rnum) != -1)
+    return;
+  }
+
+  /* does this quest require an object? */
+  if ((QST_PREREQ(rnum) != NOTHING) && (real_object(QST_PREREQ(rnum)) != NOTHING)) {
+    /* inventory will do it */
+    if (get_obj_in_list_num(real_object(QST_PREREQ(rnum)),
+            ch->carrying) != NULL)
+      has_quest_object = TRUE;
+
+    /* and wearing will do it too */
+    for (i = 0; i < NUM_WEARS; i++) {
+      if (GET_EQ(ch, i) &&
+              GET_OBJ_RNUM(GET_EQ(ch, i)) == real_object(QST_PREREQ(rnum))) {
+        has_quest_object = TRUE;
+        break;
+      }
+    }
+
+    if (!has_quest_object) {
       snprintf(buf, sizeof (buf),
+              "\r\n%s, you need to have %s first!\r\n", GET_NAME(ch),
+              obj_proto[real_object(QST_PREREQ(rnum))].short_description);
+      send_to_char(ch, "%s", buf);
+      return;
+    }
+  }
+
+  /* we made it! */
+  act("You join the quest.", TRUE, ch, NULL, NULL, TO_CHAR);
+  act("$n has joined a quest.", TRUE, ch, NULL, NULL, TO_ROOM);
+  snprintf(buf, sizeof (buf),
+          "\tW%s \tWlisten carefully to the instructions.\tn\r\n\r\n", GET_NAME(ch));
+  send_to_char(ch, "%s", buf);
+  set_quest(ch, rnum);
+  send_to_char(ch, "%s", QST_INFO(rnum));
+  if (QST_TIME(rnum) != -1) {
+    snprintf(buf, sizeof (buf),
             "\r\n\tW%s, \tWyou have a time limit of %d turn%s to complete the quest.\tn\r\n\r\n",
             GET_NAME(ch), QST_TIME(rnum), QST_TIME(rnum) == 1 ? "" : "s");
-    else
-      snprintf(buf, sizeof (buf),
+  } else {
+    snprintf(buf, sizeof (buf),
             "\r\n\tW%s, \tWyou can take however long you want to complete the quest.\tn\r\n",
             GET_NAME(ch));
   }
-  //do_tell(qm, buf, cmd_tell, 0);
   send_to_char(ch, "%s", buf);
   save_char(ch, 0);
 }
@@ -809,7 +838,7 @@ void quest_show(struct char_data *ch, mob_vnum qm) {
               (is_complete(ch, QST_NUM(rnum)) ? "Yes" : "No "),
               ((IS_SET(QST_FLAGS(rnum), AQ_REPEATABLE)) ? "Yes" : "No ")
               );
-    
+
   } else {
     send_to_char(ch,
             "The following quests are available:                              Min Max\r\n"
@@ -820,10 +849,10 @@ void quest_show(struct char_data *ch, mob_vnum qm) {
         send_to_char(ch, "\tg%4d\tn) \tc%-52.52s\tn \ty(%3s)\tn %3d %3d \ty(%3s)\r\n",
               ++counter, QST_NAME(rnum), (is_complete(ch, QST_NUM(rnum)) ? "Yes" :
               "No "), QST_MINLEVEL(rnum), QST_MAXLEVEL(rnum),
-              ((IS_SET(QST_FLAGS(rnum), AQ_REPEATABLE)) ? "Yes" : "No ")              
+              ((IS_SET(QST_FLAGS(rnum), AQ_REPEATABLE)) ? "Yes" : "No ")
               );
   }
-  
+
   if (!counter)
     send_to_char(ch, "There are no quests available here at the moment.\r\n");
 }
@@ -836,7 +865,7 @@ void quest_assign(struct char_data *ch, char argument[MAX_STRING_LENGTH]) {
   //qst_vnum vnum = NOTHING;
 
   two_arguments(argument, arg1, arg2);
-  
+
   if (GET_LEVEL(ch) < LVL_IMMORT)
     send_to_char(ch, "Huh!?!\r\n");
   else if (!*arg1)
@@ -851,7 +880,7 @@ void quest_assign(struct char_data *ch, char argument[MAX_STRING_LENGTH]) {
     send_to_char(ch, "That character already completed that quest.\r\n");
   else if (GET_QUEST(ch))
     send_to_char(ch, "That character is in the middle of a quest right now.\r\n");
-    
+
   GET_QUEST(ch) = atoi(arg2);
   complete_quest(ch);
 }
@@ -870,8 +899,8 @@ void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH]) {
     send_to_char(ch, "%s\r\n", quest_imm_usage);
   else if ((rnum = real_quest(atoi(argument))) == NOTHING)
     send_to_char(ch, "That quest does not exist.\r\n");
-  
-  
+
+
   else {
     sprintbit(QST_FLAGS(rnum), aq_flags, buf, sizeof (buf));
     switch (QST_TYPE(rnum)) {
@@ -901,13 +930,13 @@ void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH]) {
         snprintf(targetname, sizeof (targetname), "Unknown");
         break;
     }
-    
+
     /* determine quest object reward name */
     snprintf(rewardname, sizeof (rewardname), "%s",
             real_object(QST_OBJ(rnum)) == NOTHING ?
             "An unknown object" :
             obj_proto[real_object(QST_OBJ(rnum))].short_description);
-    
+
     qmrnum = real_mobile(QST_MASTER(rnum));
     send_to_char(ch,
             "VNum  : [\ty%5d\tn], RNum: [\ty%5d\tn] -- Questmaster: [\ty%5d\tn] \ty%s\tn\r\n"
@@ -920,9 +949,9 @@ void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH]) {
             "Target: \ty%d\tn \ty%s\tn, Quantity: \ty%d\tn\r\n"
             "Value : \ty%d\tn, Penalty: \ty%d\tn, Min Level: \ty%2d\tn, Max Level: \ty%2d\tn\r\n"
             "Gold Reward: \ty%d\tn, Exp Reward: \ty%d\tn, Obj Reward: \ty(%d)\tn %s\r\n"
-            "Flags : \tc%s\tn\r\n"            
+            "Flags : \tc%s\tn\r\n"
             ,
-            
+
             QST_NUM(rnum), rnum,
             QST_MASTER(rnum) == NOBODY ? -1 : QST_MASTER(rnum),
             (qmrnum == NOBODY) ? "(Invalid vnum)" : GET_NAME(&mob_proto[(qmrnum)]),
@@ -939,7 +968,7 @@ void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH]) {
             QST_MAXLEVEL(rnum) /*val3*/,
             QST_GOLD(rnum), QST_EXP(rnum), QST_OBJ(rnum), rewardname,
             buf);
-    
+
     if (QST_PREREQ(rnum) != NOTHING)
       send_to_char(ch, "Preq  : [\ty%5d\tn] \ty%s\tn\r\n",
             QST_PREREQ(rnum) == NOTHING ? -1 : QST_PREREQ(rnum),
@@ -974,6 +1003,7 @@ void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH]) {
 
 /*--------------------------------------------------------------------------*/
 /* Quest Command Processing Function and Questmaster Special                */
+
 /*--------------------------------------------------------------------------*/
 ACMD(do_quest) {
   char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
