@@ -417,7 +417,9 @@ EVENTFUNC(event_countdown) {
           } while (find_room_by_coordinates(x, y) != NOWHERE);
 
           /* Build the room. */
-          assign_wilderness_room(eroom_rnum, x, y);          
+          //assign_wilderness_room(eroom_rnum, x, y);          
+          world[eroom_rnum].coords[0] = x;
+          world[eroom_rnum].coords[1] = y;
         }       
         initialize_wilderness_lists();
       }
