@@ -760,6 +760,10 @@ bool get_random_region_location(region_vnum region, int *x, int*y) {
     tokens = tokenize(buf2, ",");
    
     int newx, newy;
+    xlow = 99999;
+    xhigh = -99999;
+    ylow = 99999;
+    yhigh = -99999;
     for(it=tokens; it && *it; ++it) {
       sscanf(*it, "%d %d", &newx, &newy);
       if (newx < xlow) xlow = newx;
