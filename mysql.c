@@ -738,6 +738,8 @@ bool get_random_region_location(region_vnum region, int *x, int*y) {
   ylow = 99999;
   yhigh = -99999;
 
+  log(" Getting random point in region with vnum : %d", region);
+  
   sprintf(buf, "SELECT ST_AsText(ST_Envelope(region_polygon)) "                      
                "from region_data "
                "where vnum = %d;"              
