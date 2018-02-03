@@ -738,8 +738,8 @@ bool get_random_region_location(region_vnum region, int *x, int*y) {
   ylow = 99999;
   yhigh = -99999;
 
-  sprintf(buf, "SELECT AsText(Envelope(region_polygon)) "                      
-               "from region_data"
+  sprintf(buf, "SELECT ST_AsText(ST_Envelope(region_polygon)) "                      
+               "from region_data "
                "where vnum = %d;"              
                , region);               
   
@@ -747,12 +747,12 @@ bool get_random_region_location(region_vnum region, int *x, int*y) {
   mysql_ping(conn);
 
   if (mysql_query(conn, buf)) {
-    log("SYSERR: Unable to SELECT from path_data: %s", mysql_error(conn));
+    log("SYSERR: Unable to SELECT from region_data: %s", mysql_error(conn));
     return false;
   }
  
   if (!(result = mysql_store_result(conn))) {
-    log("SYSERR: Unable to SELECT from path_data: %s", mysql_error(conn));
+    log("SYSERR: Unable to SELECT from region_data: %s", mysql_error(conn));
     return false;
   }
 
