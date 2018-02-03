@@ -768,9 +768,6 @@ bool get_random_region_location(region_vnum region, int *x, int*y) {
       if (newy > yhigh) yhigh = newy;
       free(*it);
     }      
-
-    top_of_path_table = i; 
-    i++;
   } 
 
   do {
