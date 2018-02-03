@@ -773,7 +773,7 @@ bool get_random_region_location(region_vnum region, int *x, int*y) {
   do {
     xp = rand_number(xlow, xhigh);
     yp = rand_number(ylow, yhigh);
-  while (!is_point_within_region(region, xp, yp));
+  } while (!is_point_within_region(region, xp, yp));
   
   *x = xp;
   *y = yp;
