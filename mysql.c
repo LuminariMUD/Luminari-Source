@@ -270,7 +270,7 @@ bool is_point_within_region(region_vnum region, int x, int y) {
                "from region_index "
                "where vnum = %d and "
                "ST_Within(GeomFromText('POINT(%d %d)'), region_polygon)",
-               region_vnum,
+               region,
                x, y);
   
   /* Check the connection, reconnect if necessary. */
