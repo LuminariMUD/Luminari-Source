@@ -760,11 +760,13 @@ bool get_random_region_location(region_vnum region, int *x, int*y) {
 
     /* Parse the polygon text data to get the vertices, etc.
        eg: LINESTRING(0 0,10 0,10 10,0 10,0 0) */
+    log(" Envelope: %s", row[0]);       
     sscanf(row[0], "LINESTRING(%[^)])", buf2);
     tokens = tokenize(buf2, ",");
    
     int newx, newy;    
     for(it=tokens; it && *it; ++it) {
+      log(" Token: %s", *it);
       sscanf(*it, "%d %d", &newx, &newy);
       if (newx < xlow) xlow = newx;
       if (newx > xhigh) xhigh = newx;
