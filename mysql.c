@@ -732,8 +732,12 @@ bool get_random_region_location(region_vnum region, int *x, int*y) {
 
   char** tokens;  /* Storage for tokenized linestring points */
   char** it;      /* Token iterator */
-
  
+  xlow = 99999;
+  xhigh = -99999;
+  ylow = 99999;
+  yhigh = -99999;
+
   sprintf(buf, "SELECT AsText(Envelope(region_polygon)) "                      
                "from region_data"
                "where vnum = %d;"              
@@ -759,11 +763,7 @@ bool get_random_region_location(region_vnum region, int *x, int*y) {
     sscanf(row[0], "LINESTRING(%[^)])", buf2);
     tokens = tokenize(buf2, ",");
    
-    int newx, newy;
-    xlow = 99999;
-    xhigh = -99999;
-    ylow = 99999;
-    yhigh = -99999;
+    int newx, newy;    
     for(it=tokens; it && *it; ++it) {
       sscanf(*it, "%d %d", &newx, &newy);
       if (newx < xlow) xlow = newx;
