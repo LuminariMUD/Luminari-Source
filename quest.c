@@ -626,9 +626,11 @@ void quest_hist(struct char_data *ch, char argument[MAX_STRING_LENGTH]) {
   }
 }
 
+/* rewrote this so quest objects can be equipped -zusuk */
 void quest_join(struct char_data *ch, struct char_data *qm, char argument[MAX_INPUT_LENGTH]) {
   qst_vnum vnum = NOTHING;
   qst_rnum rnum = NOWHERE;
+  obj_rnum objrnum = NOTHING;
   char buf[MAX_INPUT_LENGTH];
   bool has_quest_object = FALSE;
   int i = 0;
@@ -655,6 +657,7 @@ void quest_join(struct char_data *ch, struct char_data *qm, char argument[MAX_IN
     return;
   }
 
+  /* assign rnum */
   if ((rnum = real_quest(vnum)) == NOTHING) {
     snprintf(buf, sizeof (buf),
             "\r\n%s, I don't know of such a quest!\r\n", GET_NAME(ch));
@@ -680,6 +683,7 @@ void quest_join(struct char_data *ch, struct char_data *qm, char argument[MAX_IN
     send_to_char(ch, "\tRNOTE: you are over-riding Max-Level\tn\r\n");
   }
 
+  /* repeatable quests are handled here */
   if (is_complete(ch, vnum) && !(IS_SET(QST_FLAGS(rnum), AQ_REPEATABLE)) &&
           GET_LEVEL(ch) < LVL_IMMORT) {
     snprintf(buf, sizeof (buf),
@@ -690,7 +694,7 @@ void quest_join(struct char_data *ch, struct char_data *qm, char argument[MAX_IN
     send_to_char(ch, "\tRNOTE: you are over-riding 'quest completed'\tn\r\n");
   }
 
-  /* requires previous quest completed */
+  /* requires previous quest completed (quest chain) */
   if ((QST_PREV(rnum) != NOTHING) && !is_complete(ch, QST_PREV(rnum))) {
     snprintf(buf, sizeof (buf),
             "\r\n%s, that quest is not available to you yet!\r\n", GET_NAME(ch));
@@ -699,16 +703,14 @@ void quest_join(struct char_data *ch, struct char_data *qm, char argument[MAX_IN
   }
 
   /* does this quest require an object? */
-  if ((QST_PREREQ(rnum) != NOTHING) && (real_object(QST_PREREQ(rnum)) != NOTHING)) {
+  if ((QST_PREREQ(rnum) != NOTHING) && ((objrnum = real_object(QST_PREREQ(rnum))) != NOTHING)) {
     /* inventory will do it */
-    if (get_obj_in_list_num(real_object(QST_PREREQ(rnum)),
-            ch->carrying) != NULL)
+    if (get_obj_in_list_num(objrnum, ch->carrying) != NULL)
       has_quest_object = TRUE;
 
     /* and wearing will do it too */
     for (i = 0; i < NUM_WEARS; i++) {
-      if (GET_EQ(ch, i) &&
-              GET_OBJ_RNUM(GET_EQ(ch, i)) == real_object(QST_PREREQ(rnum))) {
+      if (GET_EQ(ch, i) && GET_OBJ_RNUM(GET_EQ(ch, i)) == objrnum) {
         has_quest_object = TRUE;
         break;
       }
