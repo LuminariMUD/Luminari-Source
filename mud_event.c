@@ -419,8 +419,9 @@ EVENTFUNC(event_countdown) {
           /* Build the room. */
           assign_wilderness_room(eroom_rnum, x, y);          
         }       
+        initialize_wilderness_lists();
       }
-      initialize_wilderness_lists();
+      
       return 60 RL_SEC;
 
       break;
