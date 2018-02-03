@@ -737,7 +737,7 @@ bool get_random_region_location(region_vnum region, int *x, int*y) {
   sprintf(buf, "SELECT AsText(Envelope(region_polygon)) "                      
                "from region_data"
                "where vnum = %d;"              
-               , region_vnum);               
+               , region);               
   
   /* Check the connection, reconnect if necessary. */
   mysql_ping(conn);
