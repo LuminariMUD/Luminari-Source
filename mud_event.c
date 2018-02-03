@@ -408,7 +408,7 @@ EVENTFUNC(event_countdown) {
           do { 
 
             /* Generate the random point */
-            get_random_region_location(regvnum, &x, &y);
+            get_random_region_location(*regvnum, &x, &y);
             // DEBUG: Set the room nearby, just for testing....
             //x = world[eroom_rnum].coords[0] - 1;
             //y = world[eroom_rnum].coords[1] - 1;
