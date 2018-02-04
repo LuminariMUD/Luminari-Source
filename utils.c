@@ -2075,6 +2075,10 @@ void stop_follower(struct char_data *ch) {
     if (affected_by_spell(ch, SPELL_MASS_DOMINATION))
       affect_from_char(ch, SPELL_MASS_DOMINATION);
     
+    if (GROUP(ch)) {
+      leave_group(ch);            
+    }    
+    
   } else {
     act("You stop following $N.", FALSE, ch, 0, ch->master, TO_CHAR);
     act("$n stops following $N.", TRUE, ch, 0, ch->master, TO_NOTVICT);
