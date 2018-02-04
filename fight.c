@@ -2809,8 +2809,10 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim) {
     if (tch == victim)
       continue;
     send_to_char(tch, "test 3\r\n");
-    if (PRF_FLAGGED(tch, PRF_AUTOCOLLECT))
+    if (PRF_FLAGGED(tch, PRF_AUTOCOLLECT)) {
+      send_to_char(tch, "test 3.5\r\n");
       perform_collect(tch, FALSE);
+    }
     send_to_char(tch, "test 4\r\n");
   }
   
