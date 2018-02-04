@@ -1,5 +1,5 @@
 /**************************************************************************
- *  File: players.c                                         Part of LuminariMUD *
+ *  File: players.c                                    Part of LuminariMUD *
  *  Usage: Player loading/saving and utility routines.                     *
  *                                                                         *
  *  All rights reserved.  See license for complete information.            *
@@ -819,15 +819,17 @@ void save_char(struct char_data * ch, int mode) {
    * create a dr structure that is loosely coupled to the affect for the spell.
    * If the spell affect is removed, however, the stoneskin dr is dropped.)
    * This only counts for dr where spell is != 0. */
-  for (cur_dr = GET_DR(ch); cur_dr != NULL; cur_dr = cur_dr->next) {
-    if (cur_dr->spell != 0) {
+  if (ch && GET_DR(ch) != NULL) {
+    for (cur_dr = GET_DR(ch); cur_dr != NULL; cur_dr = cur_dr->next) {
+      if (cur_dr->spell != 0) {
 
-      struct damage_reduction_type *tmp;
+        struct damage_reduction_type *tmp;
 
-      CREATE(tmp, struct damage_reduction_type, 1);
-      *tmp = *cur_dr;
-      tmp->next = tmp_dr;
-      tmp_dr = tmp;
+        CREATE(tmp, struct damage_reduction_type, 1);
+        *tmp = *cur_dr;
+        tmp->next = tmp_dr;
+        tmp_dr = tmp;
+      }
     }
   }
 
