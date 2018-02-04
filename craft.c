@@ -1208,7 +1208,7 @@ int disenchant(struct obj_data *kit, struct char_data *ch) {
 /*
  * create is for wearable gear at this stage
  */
-#define CREATE_STRING_LIMIT 65
+#define CREATE_STRING_LIMIT 60
 int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode) {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   struct obj_data *obj = NULL, *mold = NULL, *crystal = NULL,
@@ -1536,7 +1536,11 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
     obj_to_char(kit, ch);
 
     obj_to_char(mold, ch);
-
+    
+    /*save here just in case*/
+    save_char(ch, 0);
+    Crash_crashsave(ch);    
+    
     if (!IS_NPC(ch))
       increase_skill(ch, skill);
     NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
