@@ -671,7 +671,7 @@ ACMD(do_map) {
     send_to_char(ch, "It is too dark to see the map.\r\n");
     return;
   } else if (AFF_FLAGGED(ch, AFF_BLIND) && GET_LEVEL(ch) < LVL_IMMORT &&
-          !HAS_FEAT(ch, FEAT_BLINDENSE)) {
+          !HAS_FEAT(ch, FEAT_BLINDSENSE)) {
     send_to_char(ch, "You can't see the map while blind!\r\n");
     return;
   }
