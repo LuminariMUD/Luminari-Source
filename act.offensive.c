@@ -4488,7 +4488,7 @@ int perform_collect(struct char_data *ch, bool silent) {
     nobj = obj->next_content;
 
     /*debug*/
-    act("$p", FALSE, ch, obj, 0, TO_CHAR);
+    //act("$p", FALSE, ch, obj, 0, TO_CHAR);
     
     /* checking corpse for ammo first */
     if (IS_CORPSE(obj)) {
