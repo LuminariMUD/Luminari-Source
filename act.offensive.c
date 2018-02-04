@@ -4505,9 +4505,10 @@ int perform_collect(struct char_data *ch, bool silent) {
           }
         }
       }
-
-      /* checking room for ammo */
-    } else if (GET_OBJ_TYPE(obj) == ITEM_MISSILE &&
+    }
+    
+    /* checking room for ammo */
+    if (GET_OBJ_TYPE(obj) == ITEM_MISSILE &&
             MISSILE_ID(obj) == GET_IDNUM(ch)) {
       if (num_obj_in_obj(ammo_pouch) < GET_OBJ_VAL(ammo_pouch, 0)) {
         obj_from_room(obj);
@@ -4520,7 +4521,8 @@ int perform_collect(struct char_data *ch, bool silent) {
         break;
       }
     }
-  }
+    
+  } /*for loop*/
 
   if (ammo && !silent) {
     sprintf(buf, "You collected ammo:  %d.\r\n", ammo);
