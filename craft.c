@@ -1222,7 +1222,7 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
   for (l = 0; *(argument + l); l++) {
     if (*(argument + l) == '\'') {
       send_to_char(ch, "The usage of the character: ' is not allowed in create "
-              "currently (it conflicts with color codes).\r\n", l, CREATE_STRING_LIMIT);
+              "currently (it conflicts with color codes).\r\n");
       return 1;      
     }
   }
