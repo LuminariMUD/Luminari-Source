@@ -1208,15 +1208,24 @@ int disenchant(struct obj_data *kit, struct char_data *ch) {
 /*
  * create is for wearable gear at this stage
  */
+#define CREATE_STRING_LIMIT 65
 int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode) {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   struct obj_data *obj = NULL, *mold = NULL, *crystal = NULL,
           *material = NULL, *essence = NULL;
   int num_mats = 0, obj_level = 1, skill = ABILITY_CRAFT_WEAPONSMITHING,
-          mats_needed = 12345, found = 0, i = 0;
+          mats_needed = 12345, found = 0, i = 0, l = 0;
   int fast_craft_bonus = GET_SKILL(ch, SKILL_FAST_CRAFTER) / 33;
   int chance_of_crit = 0;
-
+  
+  /* string length limit, object doesn't save if you exceed this limit -zusuk */
+  l = strlen(argument);
+  if (l > CREATE_STRING_LIMIT) {
+    send_to_char(ch, "The length (%d) of the name you gave your object is over "
+            "the limit (%d).\r\n", l, CREATE_STRING_LIMIT);
+    return 1;
+  }
+    
   /* sort through our kit and check if we got everything we need */
   for (obj = kit->contains; obj != NULL; obj = obj->next_content) {
     if (obj) {
@@ -1506,7 +1515,7 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
     parse_at(argument);
 
     /* restringing aspect */
-    mold->name = strdup(argument);
+    mold->name = strdup(argument); /*keywords*/
     mold->short_description = strdup(argument);
     sprintf(buf, "%s lies here.", CAP(argument));
     mold->description = strdup(buf);
@@ -1533,6 +1542,7 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
   }
   return 1;
 }
+#undef CREATE_STRING_LIMIT
 
 SPECIAL(crafting_kit) {
   if (!CMD_IS("resize") && !CMD_IS("create") && !CMD_IS("checkcraft") &&
