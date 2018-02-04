@@ -866,7 +866,7 @@ void affect_remove(struct char_data *ch, struct affected_type *af) {
   
   /* we have some special handling here to prevent abuse, we can even
      add that mobiles go agggro on their master at this point -zusuk */
-  if (af->bitvector[AFF_CHARM] /*&& ch->master != NULL*/) {
+  if (IS_SET_AR(af->bitvector, AFF_CHARM) /*&& ch->master != NULL*/) {
     //stop_follower_engine(ch);
     if (GROUP(ch)) {
       leave_group(ch);            
