@@ -4256,7 +4256,7 @@ ACMD(do_display) {
   skip_spaces(&argument);
 
   if (!*argument) {
-    send_to_char(ch, "Usage: prompt { { H | M | V | X | T | R | E | A } | all |"
+    send_to_char(ch, "Usage: prompt { { H | P | V | X | T | R | E | A } | all |"
             " auto | none }\r\n");
     send_to_char(ch, "Notice this command is deprecated, we recommend using "
             " PREFEDIT instead.\r\n");
@@ -4308,7 +4308,7 @@ ACMD(do_display) {
         case 'h':
           SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPHP);
           break;
-        case 'm':
+        case 'p':
           SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPPSP);
           break;
         case 'v':
