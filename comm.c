@@ -916,7 +916,7 @@ void game_loop(socket_t local_mother_desc) {
     for (d = descriptor_list; d; d = d->next) {
       /* Ornir's attempt to remove blank lines */
       if (!d->has_prompt && !d->pProtocol->WriteOOB) {
-      //if (!d->has_prompt) {
+        //if (!d->has_prompt) {
         write_to_descriptor(d->descriptor, make_prompt(d));
         d->has_prompt = TRUE;
       }
@@ -1171,16 +1171,14 @@ static char *make_prompt(struct descriptor_data *d) {
 
   if (d->showstr_count) { /* # of pages to page through */
     count = snprintf(prompt, sizeof (prompt),
-          "\tn[ Return to continue, (q)uit, (r)efresh, (b)ack, or page number (%d/%d) ]\tn",
-          d->showstr_page, d->showstr_count);
+            "\tn[ Return to continue, (q)uit, (r)efresh, (b)ack, or page number (%d/%d) ]\tn",
+            d->showstr_page, d->showstr_count);
     if (count >= 0)
       len += count;
-  }
-  else if (d->str) { /* for the modify-str system */
+  } else if (d->str) { /* for the modify-str system */
     strcpy(prompt, "] "); // strcpy: OK (for 'MAX_PROMPT_LENGTH >= 3')
     len += 3;
-  }
-    /* start building a prompt */
+  }    /* start building a prompt */
 
   else if (STATE(d) == CON_PLAYING && !IS_NPC(d->character)) { /*PC only*/
 
@@ -1296,7 +1294,7 @@ static char *make_prompt(struct descriptor_data *d) {
           if (INNATE_MAGIC(d->character, i) &&
                   INNATE_MAGIC(d->character, i)->prep_time) {
             count = snprintf(prompt + len, sizeof (prompt) - len, "%d ",
-                    INNATE_MAGIC(d->character, i)->prep_time);            
+                    INNATE_MAGIC(d->character, i)->prep_time);
             if (count >= 0) len += count;
           }
         }
@@ -1328,7 +1326,8 @@ static char *make_prompt(struct descriptor_data *d) {
 
         if (isDark && !CAN_SEE_IN_DARK(ch) && !CAN_INFRA_IN_DARK(ch)) {
           seesExits = 0;
-        } else if (AFF_FLAGGED(ch, AFF_BLIND) && GET_LEVEL(ch) < LVL_IMMORT) {
+        } else if (AFF_FLAGGED(ch, AFF_BLIND) && GET_LEVEL(ch) < LVL_IMMORT &&
+                !HAS_FEAT(ch, FEAT_BLINDENSE)) {
           seesExits = 0;
         } else if (ROOM_AFFECTED(ch->in_room, RAFF_FOG)) {
           seesExits = 0;
@@ -1569,19 +1568,19 @@ static char *make_prompt(struct descriptor_data *d) {
   }
 
   /* Add IAC GA */
-  
-  if (len < sizeof(prompt)) {
+
+  if (len < sizeof (prompt)) {
     count = snprintf(prompt + len, sizeof (prompt) - len, "%c%c", (char) IAC, (char) GA);
     if (count >= 0) {
       len += count;
     }
   }
-    
+
   prompt_size = (int) len;
 
   /* handy debug for prompt size our prompt has potential for some large numbers,
    * with a little experimentation I was able to approach 350 - 02/02/2013 */
-  /* send_to_char(d->character, "%d", prompt_size); */ 
+  /* send_to_char(d->character, "%d", prompt_size); */
 
   return ((char *) ProtocolOutput(d, prompt, &prompt_size));
 }
@@ -1924,7 +1923,7 @@ static int new_descriptor(socket_t s) {
 static int process_output(struct descriptor_data *t) {
   char i[MAX_SOCK_BUF], *osb = i + 2;
   int result;
-  
+
   /* we may need this \r\n for later -- see below */
   strcpy(i, "\r\n"); /* strcpy: OK (for 'MAX_SOCK_BUF >= 3') */
 
@@ -1940,7 +1939,7 @@ static int process_output(struct descriptor_data *t) {
     strcat(osb, "**OVERFLOW**\r\n"); // strcpy: OK (osb:MAX_SOCK_BUF-2 reserves space)
   }
   else*/
-  if(t->bufspace == 0) { 
+  if (t->bufspace == 0) {
     strcat(osb, "**OVERFLOW**");
   }
 
@@ -3343,7 +3342,7 @@ static void msdp_update(void) {
       struct char_data *pOpponent = FIGHTING(ch);
       struct char_data *tank = NULL;
 
-      if (pOpponent){
+      if (pOpponent) {
         tank = FIGHTING(pOpponent);
       }
 
@@ -3394,8 +3393,8 @@ static void msdp_update(void) {
       MSDPSetNumber(d, eMSDP_ATTACK_BONUS, compute_attack_bonus(ch, ch,
               ATTACK_TYPE_PRIMARY));
 
-      
-      snprintf(buf, sizeof (buf), "%s",race_list[GET_RACE(ch)].type);
+
+      snprintf(buf, sizeof (buf), "%s", race_list[GET_RACE(ch)].type);
       strip_colors(buf);
       MSDPSetString(d, eMSDP_RACE, buf);
 
@@ -3481,8 +3480,8 @@ static void msdp_update(void) {
         sprintf(buf, "%s", PERS(pOpponent, ch));
         strip_colors(buf);
         MSDPSetString(d, eMSDP_OPPONENT_NAME, buf);
-        
-        if (tank != NULL && tank != ch) {          
+
+        if (tank != NULL && tank != ch) {
           sprintf(buf, "%s", PERS(tank, ch));
           strip_colors(buf);
           MSDPSetString(d, eMSDP_TANK_NAME, buf);

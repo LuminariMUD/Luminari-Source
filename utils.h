@@ -2016,3 +2016,5 @@ spellnum == SPELL_EPIC_WARDING )
 #define GUI_RDSC_CLOSE(ch)               (gui_room_desc_wrap_close(ch))
 
 #endif /* _UTILS_H_ */
+
+/*EOF*/

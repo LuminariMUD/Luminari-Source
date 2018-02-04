@@ -1,5 +1,5 @@
 /**************************************************************************
- *  File: modify.c                                          Part of LuminariMUD *
+ *  File: modify.c                                     Part of LuminariMUD *
  *  Usage: Run-time modification of game variables.                        *
  *                                                                         *
  *  All rights reserved.  See license for complete information.            *
@@ -77,8 +77,7 @@ void smash_tilde(char *str) {
 }
 
 /* so it turns out that write_to_descriptor can't handle protocol info
- * so i made this simple function to strip color codes -zusuk
- */
+ * so i made this simple function to strip color codes -zusuk */
 void strip_colors(char *str) {
   char *p = str;
   char *n = str;
