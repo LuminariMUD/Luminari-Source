@@ -1208,7 +1208,7 @@ int disenchant(struct obj_data *kit, struct char_data *ch) {
 /*
  * create is for wearable gear at this stage
  */
-#define CREATE_STRING_LIMIT 60
+#define CREATE_STRING_LIMIT 80
 int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode) {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   struct obj_data *obj = NULL, *mold = NULL, *crystal = NULL,
@@ -1217,9 +1217,17 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
           mats_needed = 12345, found = 0, i = 0, l = 0;
   int fast_craft_bonus = GET_SKILL(ch, SKILL_FAST_CRAFTER) / 33;
   int chance_of_crit = 0;
+
+  /* weird find, color codes doesn't play nice with the ' character -zusuk */
+  for (l = 0; *(arg + l); l++) {
+    if (*(arg + l) = '\'') {
+      send_to_char(ch, "The usage of the character: ' is not allowed in create "
+              "currently (it conflicts with color codes).\r\n", l, CREATE_STRING_LIMIT);
+      return 1;      
+    }
+  }
   
   /* string length limit, object doesn't save if you exceed this limit -zusuk */
-  l = strlen(argument);
   if (l > CREATE_STRING_LIMIT) {
     send_to_char(ch, "The length (%d) of the name you gave your object is over "
             "the limit (%d).\r\n", l, CREATE_STRING_LIMIT);
