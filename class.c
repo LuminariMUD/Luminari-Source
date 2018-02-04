@@ -1,7 +1,7 @@
 /**************************************************************************
- *  File: class.c                                           Part of LuminariMUD *
+ *  File: class.c                                      Part of LuminariMUD *
  *  Usage: Source file for class-specific code.                            *
- *                                                                         *
+ *  Author:  Circle, rewritten by Zusuk                                    *
  *  All rights reserved.  See license for complete information.            *
  *                                                                         *
  *  Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University *
@@ -61,6 +61,7 @@
 struct class_table class_list[NUM_CLASSES];
 
 /* SET OF UTILITY FUNCTIONS for the purpose of class prereqs */
+
 /* create/allocate memory for a pre-req struct, then assign the prereqs */
 struct class_prerequisite* create_prereq(int prereq_type, int val1,
         int val2, int val3) {
@@ -137,12 +138,12 @@ void class_prereq_feat(int class_num, int feat, int ranks) {
 void class_prereq_cfeat(int class_num, int feat, int special) {
   struct class_prerequisite *prereq = NULL;
   char buf[80];
-  
+
   const char *cfeat_special[NUM_CFEAT_SPECIAL] = {
     "no special circumstance",
     "in any bow",
   };
-  
+
   prereq = create_prereq(CLASS_PREREQ_CFEAT, feat, special, 0);
 
   sprintf(buf, "%s (%s)", feat_list[feat].name, cfeat_special[special]);
@@ -188,7 +189,7 @@ void class_prereq_spellcasting(int class_num, int casting_type, int prep_type, i
   prereq = create_prereq(CLASS_PREREQ_SPELLCASTING, casting_type, prep_type, circle);
 
   sprintf(buf, "Has %s %s (circle) %d spells", casting_types[casting_type],
-      spell_preparation_types[prep_type], circle);
+          spell_preparation_types[prep_type], circle);
   prereq->description = strdup(buf);
 
   /*   Link it up. */
@@ -240,7 +241,7 @@ void class_prereq_align(int class_num, int alignment) {
      #define LAWFUL_EVIL         6
      #define NEUTRAL_EVIL        7
      #define CHAOTIC_EVIL        8 */
-  
+
   sprintf(buf, "Align: %s", alignment_names_nocolor[alignment]);
   prereq->description = strdup(buf);
 
@@ -265,6 +266,7 @@ void class_prereq_weapon_proficiency(int class_num) {
 
 /* our little mini struct series for assigning spells to a class and to assigning
    minimum-level for those spells */
+
 /* create/allocate memory for the spellassign struct */
 struct class_spell_assign* create_spell_assign(int spell_num, int level) {
   struct class_spell_assign *spell_asign = NULL;
@@ -275,6 +277,7 @@ struct class_spell_assign* create_spell_assign(int spell_num, int level) {
 
   return spell_asign;
 }
+
 /* actual function called to perform the spell assignment */
 void spell_assignment(int class_num, int spell_num, int level) {
   struct class_spell_assign *spell_asign = NULL;
@@ -288,6 +291,7 @@ void spell_assignment(int class_num, int spell_num, int level) {
 
 /* our little mini struct series for assigning feats to a class and to assigning
    class-feats to a class */
+
 /* create/allocate memory for the spellassign struct */
 struct class_feat_assign* create_feat_assign(int feat_num, bool is_classfeat,
         int level_received, bool stacks) {
@@ -302,6 +306,7 @@ struct class_feat_assign* create_feat_assign(int feat_num, bool is_classfeat,
   return feat_assign;
 }
 /* actual function called to perform the feat assignment */
+
 /* when assigning class feats use this format:
    feat_assignment(CLASS_blah, FEAT_blah_blah, Y, NOASSIGN_FEAT, N); */
 void feat_assignment(int class_num, int feat_num, bool is_classfeat,
@@ -314,7 +319,6 @@ void feat_assignment(int class_num, int feat_num, bool is_classfeat,
   feat_assign->next = class_list[class_num].featassign_list;
   class_list[class_num].featassign_list = feat_assign;
 }
-
 
 /* function that will assign a list of values to a given class */
 void classo(int class_num, char *name, char *abbrev, char *colored_abbrev,
@@ -366,11 +370,11 @@ void assign_class_titles(int class_num, char *title_4, char *title_9, char *titl
 /* function used for assigned a classes 'preferred' saves */
 void assign_class_saves(int class_num, int save_fort, int save_refl, int save_will,
         int save_posn, int save_deth) {
-  class_list[class_num].preferred_saves[SAVING_FORT] = save_fort;  
-  class_list[class_num].preferred_saves[SAVING_REFL] = save_refl;  
-  class_list[class_num].preferred_saves[SAVING_WILL] = save_will;  
-  class_list[class_num].preferred_saves[SAVING_POISON] = save_posn;  
-  class_list[class_num].preferred_saves[SAVING_DEATH] = save_deth;  
+  class_list[class_num].preferred_saves[SAVING_FORT] = save_fort;
+  class_list[class_num].preferred_saves[SAVING_REFL] = save_refl;
+  class_list[class_num].preferred_saves[SAVING_WILL] = save_will;
+  class_list[class_num].preferred_saves[SAVING_POISON] = save_posn;
+  class_list[class_num].preferred_saves[SAVING_DEATH] = save_deth;
 }
 
 /* function used for assigning whether a given ability is not-available, cross-class
@@ -423,12 +427,12 @@ void init_class_list(int class_num) {
   class_list[class_num].hit_dice = 4;
   class_list[class_num].psp_gain = 0;
   class_list[class_num].move_gain = 0;
-  class_list[class_num].trains_gain = 2;  
+  class_list[class_num].trains_gain = 2;
   class_list[class_num].in_game = N;
   class_list[class_num].unlock_cost = 0;
   class_list[class_num].epic_feat_progression = 5;
   class_list[class_num].descrip = "undescribed class";
-  
+
   int i = 0;
   for (i = 0; i < NUM_PREFERRED_SAVES; i++)
     class_list[class_num].preferred_saves[i] = B;
@@ -436,53 +440,53 @@ void init_class_list(int class_num) {
     class_list[class_num].class_abil[i] = NA;
   for (i = 0; i < MAX_NUM_TITLES; i++)
     class_list[class_num].titles[i] = "";
-  
-  class_list[class_num].prereq_list = NULL;  
-  class_list[class_num].spellassign_list = NULL;  
-  class_list[class_num].featassign_list = NULL;  
+
+  class_list[class_num].prereq_list = NULL;
+  class_list[class_num].spellassign_list = NULL;
+  class_list[class_num].featassign_list = NULL;
 }
 
 /* this was created to handle special scenarios for combat feat requirements
    for classes */
 bool has_special_cfeat(struct char_data *ch, int featnum, int mode) {
   switch (mode) {
-    
-    /* featnum in any bow */    
+
+      /* featnum in any bow */
     case CFEAT_SPECIAL_BOW:
       if (!HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
               WEAPON_TYPE_LONG_BOW) &&
-          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
+              !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
               WEAPON_TYPE_COMPOSITE_LONGBOW) &&
-          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
+              !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
               WEAPON_TYPE_COMPOSITE_LONGBOW_2) &&
-          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
+              !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
               WEAPON_TYPE_COMPOSITE_LONGBOW_3) &&
-          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
+              !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
               WEAPON_TYPE_COMPOSITE_LONGBOW_4) &&
-          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
+              !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
               WEAPON_TYPE_COMPOSITE_LONGBOW_5) &&
-              
-          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
+
+              !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
               WEAPON_TYPE_SHORT_BOW) &&
-          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
+              !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
               WEAPON_TYPE_COMPOSITE_SHORTBOW) &&
-          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
+              !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
               WEAPON_TYPE_COMPOSITE_SHORTBOW_2) &&
-          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
+              !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
               WEAPON_TYPE_COMPOSITE_SHORTBOW_3) &&
-          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
+              !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
               WEAPON_TYPE_COMPOSITE_SHORTBOW_4) &&
-          !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
-              WEAPON_TYPE_COMPOSITE_SHORTBOW_5)              
+              !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
+              WEAPON_TYPE_COMPOSITE_SHORTBOW_5)
               ) {
         return FALSE;
       }
       break;
-      
+
       /* auto pass by default */
-    case CFEAT_SPECIAL_NONE:      
+    case CFEAT_SPECIAL_NONE:
       break;
-      
+
     default:
       return FALSE;
   }
@@ -496,17 +500,17 @@ bool has_special_cfeat(struct char_data *ch, int featnum, int mode) {
 bool meets_class_prerequisite(struct char_data *ch, struct class_prerequisite *prereq, int iarg) {
 
   switch (prereq->prerequisite_type) {
-    
+
     case CLASS_PREREQ_NONE:
       /* This is a NON-prereq. */
       break;
-      
+
       /* valid alignments - special handling since list of valids */
     case CLASS_PREREQ_ALIGN:
       if (prereq->values[0] != convert_alignment(GET_ALIGNMENT(ch)))
         return FALSE;
       break;
-      
+
       /* minimum stats */
     case CLASS_PREREQ_ATTRIBUTE:
       switch (prereq->values[0]) {
@@ -539,25 +543,25 @@ bool meets_class_prerequisite(struct char_data *ch, struct class_prerequisite *p
           return FALSE;
       }
       break;
-      
+
       /* min. class level */
     case CLASS_PREREQ_CLASS_LEVEL:
       if (CLASS_LEVEL(ch, prereq->values[0]) < prereq->values[1])
         return FALSE;
       break;
-      
+
       /* feat requirement */
     case CLASS_PREREQ_FEAT:
       if (has_feat_requirement_check(ch, prereq->values[0]) < prereq->values[1])
         return FALSE;
       break;
-      
+
       /* required ability */
     case CLASS_PREREQ_ABILITY:
       if (GET_ABILITY(ch, prereq->values[0]) < prereq->values[1])
         return FALSE;
       break;
-      
+
       /* spellcasting type and preparation type */
     case CLASS_PREREQ_SPELLCASTING:
       switch (prereq->values[0]) {
@@ -629,19 +633,19 @@ bool meets_class_prerequisite(struct char_data *ch, struct class_prerequisite *p
           return FALSE;
       }
       break;
-      
+
       /* valid races - special handling since list of valids */
     case CLASS_PREREQ_RACE:
       if (!IS_NPC(ch) && GET_RACE(ch) != prereq->values[0])
         return FALSE;
       break;
-      
+
       /* minimum BAB requirement */
     case CLASS_PREREQ_BAB:
       if (BAB(ch) < prereq->values[0])
         return FALSE;
       break;
-      
+
       /* combat feat */
     case CLASS_PREREQ_CFEAT:
       /*  SPECIAL CASE - You must have a feat, and it must be the cfeat for the chosen weapon. */
@@ -652,13 +656,13 @@ bool meets_class_prerequisite(struct char_data *ch, struct class_prerequisite *p
       if (!iarg && !has_special_cfeat(ch, prereq->values[0], prereq->values[1]))
         return FALSE;
       break;
-      
+
       /* weapon proficiency requirement */
     case CLASS_PREREQ_WEAPON_PROFICIENCY:
       if (iarg && !is_proficient_with_weapon(ch, iarg))
         return FALSE;
       break;
-      
+
     default:
       log("SYSERR: meets_class_prerequisite() - Bad prerequisite type %d", prereq->prerequisite_type);
       return FALSE;
@@ -672,35 +676,35 @@ bool display_class_prereqs(struct char_data *ch, char *classname) {
   int class = CLASS_UNDEFINED;
   struct class_prerequisite *prereq = NULL;
   static int line_length = 80;
-  char buf[MAX_STRING_LENGTH] = { '\0' };  
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   bool meets_prereqs = FALSE, found = FALSE;
-  
+
   skip_spaces(&classname);
   class = parse_class_long(classname);
 
   if (class == CLASS_UNDEFINED) {
     return FALSE;
   }
-  
+
   /* do some math to check if we have max levels in a given class */
-  int max_class_level = CLSLIST_MAXLVL(class);  
+  int max_class_level = CLSLIST_MAXLVL(class);
   if (max_class_level == -1) /* no limit */
     max_class_level = LVL_IMMORT - 1;
-  
-  /* display top */  
+
+  /* display top */
   send_to_char(ch, "\tC\r\n");
   draw_line(ch, line_length, '-', '-');
-  
+
   /* basic info */
   send_to_char(ch, "\tcClass Name        : \tn%s\r\n", CLSLIST_NAME(class));
   send_to_char(ch, "\tcMax Level in Class: \tn%d - %s\r\n", max_class_level,
-      (CLASS_LEVEL(ch, class) >= max_class_level) ?
-          "\trCap reached!\tn" : "\tWLevel cap not reached!\tn" );
+          (CLASS_LEVEL(ch, class) >= max_class_level) ?
+          "\trCap reached!\tn" : "\tWLevel cap not reached!\tn");
   send_to_char(ch, "\tcUnlock Cost       : \tn%d Account XP - %s\r\n", CLSLIST_COST(class),
-          has_unlocked_class(ch, class) ? "\tWUnlocked!\tn" : "\trLocked!\tn");      
+          has_unlocked_class(ch, class) ? "\tWUnlocked!\tn" : "\trLocked!\tn");
   send_to_char(ch, "\tcClass in the Game?: \tn%s\r\n", CLSLIST_INGAME(class) ?
-                   "\tWYes\tn" : "\trNo\tn");
-  
+          "\tWYes\tn" : "\trNo\tn");
+
   /* prereqs, start with text line */
   send_to_char(ch, "\tC");
   send_to_char(ch, "%s", text_line_string("\tcRequirements\tC", line_length, '-', '-'));
@@ -713,15 +717,15 @@ bool display_class_prereqs(struct char_data *ch, char *classname) {
     if (meets_class_prerequisite(ch, prereq, NO_IARG))
       meets_prereqs = TRUE;
     sprintf(buf, "\tn%s%s%s - %s\r\n",
-              (meets_prereqs ? "\tn" : "\tr"), prereq->description, "\tn",
-              (meets_prereqs ? "\tWFulfilled!\tn" : "\trMissing\tn"));
+            (meets_prereqs ? "\tn" : "\tr"), prereq->description, "\tn",
+            (meets_prereqs ? "\tWFulfilled!\tn" : "\trMissing\tn"));
     send_to_char(ch, "%s", buf);
     found = TRUE;
   }
-  
+
   if (!found)
     send_to_char(ch, "\tWNo requirements!\tn\r\n");
-  
+
   /* close prereq display */
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
@@ -730,15 +734,15 @@ bool display_class_prereqs(struct char_data *ch, char *classname) {
   if (class_is_available(ch, class, 0, NULL)) {
     send_to_char(ch, "\tWClass IS AVAILABLE!\tn\r\n");
   } else {
-    send_to_char(ch, "\trClass is not available!\tn\r\n");    
+    send_to_char(ch, "\trClass is not available!\tn\r\n");
   }
-  
+
   /* close display */
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
   send_to_char(ch, "\tn");
   send_to_char(ch, "\tcNote: Epic races currently can not multi-class\tn\r\n\r\n");
-  
+
   return TRUE;
 }
 
@@ -749,14 +753,14 @@ void display_all_classes(struct char_data *ch) {
   int counter, columns = 0;
 
   write_to_output(d, "\r\n");
-  
-  for (counter = 0; counter < NUM_CLASSES; counter++) {    
+
+  for (counter = 0; counter < NUM_CLASSES; counter++) {
     write_to_output(d, "%s%-20.20s %s",
             class_is_available(ch, counter, MODE_CLASSLIST_NORMAL, NULL) ? " " : "*",
-            CLSLIST_NAME(counter), 
+            CLSLIST_NAME(counter),
             !(++columns % 3) ? "\r\n" : "");
   }
-  
+
   write_to_output(d, "\r\n");
   write_to_output(d, "* - not qualified 'class prereqs <class name>' for details\r\n");
   write_to_output(d, "\r\n");
@@ -768,7 +772,7 @@ bool class_is_available(struct char_data *ch, int classnum, int iarg, char *sarg
   int i = 0, max_class_level = CLSLIST_MAXLVL(classnum);
   bool has_alignment_restrictions = FALSE, has_valid_alignment = FALSE;
   bool has_race_restrictions = FALSE, has_valid_race = FALSE;
-  
+
   /* dumb-dumb check */
   if (classnum < 0 || classnum >= NUM_CLASSES)
     return FALSE;
@@ -776,14 +780,14 @@ bool class_is_available(struct char_data *ch, int classnum, int iarg, char *sarg
   /* is this class even in the game? */
   if (!CLSLIST_INGAME(classnum))
     return FALSE;
-  
+
   /* cap for class ranks */
   if (max_class_level == -1) /* no limit */
     max_class_level = LVL_IMMORT - 1;
   if (CLASS_LEVEL(ch, classnum) >= max_class_level) {
     return FALSE;
   }
-  
+
   /* prevent epic race from currently multi-classing */
   if (iarg == MODE_CLASSLIST_NORMAL) {
     for (i = 0; i < NUM_CLASSES; i++)
@@ -803,50 +807,50 @@ bool class_is_available(struct char_data *ch, int classnum, int iarg, char *sarg
       default: break;
     }
   }
-  
+
   /* locked class that has been unlocked yet? */
   if (!has_unlocked_class(ch, classnum))
     return FALSE;
-        
-  /* class prerequisites list */  
+
+  /* class prerequisites list */
   if (class_list[classnum].prereq_list != NULL) {
-    
+
     /*  This class has prerequisites. Traverse the list and check. */
     for (prereq = class_list[classnum].prereq_list; prereq != NULL; prereq = prereq->next) {
-      
+
       /* we have to check for valid lists, like a list of valid alignments or races */
       switch (prereq->prerequisite_type) {
-        
-        /* has align restriction?  well any qualification will work */
+
+          /* has align restriction?  well any qualification will work */
         case CLASS_PREREQ_ALIGN:
           has_alignment_restrictions = TRUE;
           if (meets_class_prerequisite(ch, prereq, iarg) == TRUE)
             has_valid_alignment = TRUE;
           break;
-          
-        /* has race restriction?  well any qualification will work */
+
+          /* has race restriction?  well any qualification will work */
         case CLASS_PREREQ_RACE:
           has_race_restrictions = TRUE;
           if (meets_class_prerequisite(ch, prereq, iarg) == TRUE)
             has_valid_race = TRUE;
           break;
-          
-        /* our default normal case, instant disqualification */  
+
+          /* our default normal case, instant disqualification */
         default:
           if (meets_class_prerequisite(ch, prereq, iarg) == FALSE)
             return FALSE; /* these are instant disqualifications */
           break;
       }
     } /* finished transversing list */
-    
+
     /* final check for 'valid lists' such as alignment / race list */
     if (has_alignment_restrictions && !has_valid_alignment)
       return FALSE; /* doesn't mean alignment reqs */
     if (has_race_restrictions && !has_valid_race)
       return FALSE; /* doesn't mean race reqs */
-    
+
   }
-  
+
   /* made it! */
   return TRUE;
 }
@@ -854,8 +858,8 @@ bool class_is_available(struct char_data *ch, int classnum, int iarg, char *sarg
 /* display a specific classes details */
 bool display_class_info(struct char_data *ch, char *classname) {
   int class = -1, i = 0;
-  char buf[MAX_STRING_LENGTH] = { '\0' };  
-  char buf2[MAX_STRING_LENGTH] = { '\0' };
+  char buf[MAX_STRING_LENGTH] = {'\0'};
+  char buf2[MAX_STRING_LENGTH] = {'\0'};
   static int line_length = 80;
   bool first_skill = TRUE;
   size_t len = 0;
@@ -872,33 +876,33 @@ bool display_class_info(struct char_data *ch, char *classname) {
   /* Display the class info, formatted. */
   send_to_char(ch, "\tC\r\n");
   draw_line(ch, line_length, '-', '-');
-  
+
   send_to_char(ch, "\tcClass Name       : \tn%s\r\n", CLSLIST_NAME(class));
   send_to_char(ch, "\tcPrestige Class?  : \tn%s\r\n", CLSLIST_PRESTIGE(class) ? "Yes" : "No");
   send_to_char(ch, "\tcMaximum Levels   : \tn%d\r\n", CLSLIST_MAXLVL(class));
-  send_to_char(ch, "\tcUnlock Cost      : \tn%d Account XP\r\n", CLSLIST_COST(class));  
+  send_to_char(ch, "\tcUnlock Cost      : \tn%d Account XP\r\n", CLSLIST_COST(class));
   send_to_char(ch, "\tcBAB Progression  : \tn%s\r\n",
-      (CLSLIST_BAB(i) == 2) ? "High" : (CLSLIST_BAB(class) ? "Medium" : "Low"));
+          (CLSLIST_BAB(i) == 2) ? "High" : (CLSLIST_BAB(class) ? "Medium" : "Low"));
   send_to_char(ch, "\tcHitpoint Gain    : \tn%d-%d plus constitution bonus\r\n",
-      CLSLIST_HPS(class)/2, CLSLIST_HPS(class));
+          CLSLIST_HPS(class) / 2, CLSLIST_HPS(class));
   send_to_char(ch, "\tcMovement Gain    : \tn0-%d\r\n", CLSLIST_MVS(class));
   send_to_char(ch, "\tcTraining Sessions: \tn%d plus Intelligence Mod (4x this value at 1st "
-          "level)\r\n", CLSLIST_TRAINS(class));  
+          "level)\r\n", CLSLIST_TRAINS(class));
   send_to_char(ch, "\tcEpic Feat Prog   : \tnGain an epic feat every %d levels\r\n",
-      CLSLIST_EFEATP(class));
+          CLSLIST_EFEATP(class));
   send_to_char(ch, "\tcClass in Game?   : \tn%s\r\n", CLSLIST_INGAME(class) ?
-                   "\tnYes\tn" : "\trNo, ask staff\tn");
-  
+          "\tnYes\tn" : "\trNo, ask staff\tn");
+
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
-  
+
   send_to_char(ch, "\tcWillpower Save Progression: \tn%s\r\n",
-      CLSLIST_SAVES(class, SAVING_WILL) ? "Good" : "Poor");
+          CLSLIST_SAVES(class, SAVING_WILL) ? "Good" : "Poor");
   send_to_char(ch, "\tcFortitude Save Progression: \tn%s\r\n",
-      CLSLIST_SAVES(class, SAVING_FORT) ? "Good" : "Poor");
+          CLSLIST_SAVES(class, SAVING_FORT) ? "Good" : "Poor");
   send_to_char(ch, "\tcReflex Save Progression   : \tn%s\r\n",
-      CLSLIST_SAVES(class, SAVING_REFL) ? "Good" : "Poor");
-  
+          CLSLIST_SAVES(class, SAVING_REFL) ? "Good" : "Poor");
+
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
 
@@ -916,10 +920,10 @@ bool display_class_info(struct char_data *ch, char *classname) {
     }
   }
   send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
-  
+
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
-  
+
   /*  Here display the prerequisites */
   if (class_list[class].prereq_list == NULL) {
     sprintf(buf, "\tCPrerequisites : \tnnone\r\n");
@@ -943,23 +947,23 @@ bool display_class_info(struct char_data *ch, char *classname) {
 
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
-  
+
   /* This we will need to buffer and wrap so that it will fit in the space provided. */
   sprintf(buf, "\tcDescription : \tn%s\r\n", class_list[class].descrip);
   send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
-  
+
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
-  
+
   send_to_char(ch, "\tYType: \tRclass feats %s\tY for this class's feat info.\tn\r\n",
-    CLSLIST_NAME(class));
- 
+          CLSLIST_NAME(class));
+
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
-  
+
   send_to_char(ch, "\tn\r\n");
 
-  return TRUE;  
+  return TRUE;
 }
 
 /* this was created for debugging the class command and new classes added to the
@@ -978,59 +982,59 @@ void display_imm_classlist(struct char_data *ch) {
   send_to_char(ch, "    survival,swim,use_magic_device,perform\r\n");
   send_to_char(ch, "Class Titles\r\n");
   send_to_char(ch, "============================================");
-  
+
   for (i = 0; i < NUM_CLASSES; i++) {
     len += snprintf(buf + len, sizeof (buf) - len,
-        "\r\n%d] %s %s %s | %s | %d %s %s %s %d %d %d %s %d %d\r\n     %s\r\n"
-        "  %s %s %s\r\n"
-        "     %s %s %s %s %s %s %s\r\n"
-        "     %s %s %s %s %s %s %s %s\r\n"
-        "     %s %s %s %s %s %s\r\n"
-        "     %s %s %s %s\r\n",
-        i, CLSLIST_NAME(i), CLSLIST_ABBRV(i), CLSLIST_CLRABBRV(i), CLSLIST_MENU(i),
-          CLSLIST_MAXLVL(i), CLSLIST_LOCK(i) ? "Y" : "N", CLSLIST_PRESTIGE(i) ? "Y" : "N",
-          (CLSLIST_BAB(i) == 2) ? "H" : (CLSLIST_BAB(i) ? "M" : "L"), CLSLIST_HPS(i),
-          CLSLIST_MVS(i), CLSLIST_TRAINS(i), CLSLIST_INGAME(i) ? "Y" : "N", CLSLIST_COST(i), CLSLIST_EFEATP(i),
+            "\r\n%d] %s %s %s | %s | %d %s %s %s %d %d %d %s %d %d\r\n     %s\r\n"
+            "  %s %s %s\r\n"
+            "     %s %s %s %s %s %s %s\r\n"
+            "     %s %s %s %s %s %s %s %s\r\n"
+            "     %s %s %s %s %s %s\r\n"
+            "     %s %s %s %s\r\n",
+            i, CLSLIST_NAME(i), CLSLIST_ABBRV(i), CLSLIST_CLRABBRV(i), CLSLIST_MENU(i),
+            CLSLIST_MAXLVL(i), CLSLIST_LOCK(i) ? "Y" : "N", CLSLIST_PRESTIGE(i) ? "Y" : "N",
+            (CLSLIST_BAB(i) == 2) ? "H" : (CLSLIST_BAB(i) ? "M" : "L"), CLSLIST_HPS(i),
+            CLSLIST_MVS(i), CLSLIST_TRAINS(i), CLSLIST_INGAME(i) ? "Y" : "N", CLSLIST_COST(i), CLSLIST_EFEATP(i),
             CLSLIST_DESCRIP(i),
-        CLSLIST_SAVES(i, 0) ? "G" : "B", CLSLIST_SAVES(i, 1) ? "G" : "B", CLSLIST_SAVES(i, 2) ? "G" : "B", 
-        (CLSLIST_ABIL(i, ABILITY_ACROBATICS) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_ACROBATICS) ? "CC" : "NA"),
-          (CLSLIST_ABIL(i, ABILITY_STEALTH) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_STEALTH) ? "CC" : "NA"),
-          (CLSLIST_ABIL(i, ABILITY_PERCEPTION) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_PERCEPTION) ? "CC" : "NA"),
-          (CLSLIST_ABIL(i, ABILITY_HEAL) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_HEAL) ? "CC" : "NA"),            
-          (CLSLIST_ABIL(i, ABILITY_INTIMIDATE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_INTIMIDATE) ? "CC" : "NA"),
-          (CLSLIST_ABIL(i, ABILITY_CONCENTRATION) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_CONCENTRATION) ? "CC" : "NA"),
-          (CLSLIST_ABIL(i, ABILITY_SPELLCRAFT) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_SPELLCRAFT) ? "CC" : "NA"),
-        (CLSLIST_ABIL(i, ABILITY_APPRAISE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_APPRAISE) ? "CC" : "NA"),
-          (CLSLIST_ABIL(i, ABILITY_DISCIPLINE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_DISCIPLINE) ? "CC" : "NA"),
-          (CLSLIST_ABIL(i, ABILITY_TOTAL_DEFENSE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_TOTAL_DEFENSE) ? "CC" : "NA"),
-          (CLSLIST_ABIL(i, ABILITY_LORE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_LORE) ? "CC" : "NA"),
-          (CLSLIST_ABIL(i, ABILITY_RIDE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_RIDE) ? "CC" : "NA"),
-          (CLSLIST_ABIL(i, ABILITY_CLIMB) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_CLIMB) ? "CC" : "NA"),
-          (CLSLIST_ABIL(i, ABILITY_SLEIGHT_OF_HAND) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_SLEIGHT_OF_HAND) ? "CC" : "NA"),
-          (CLSLIST_ABIL(i, ABILITY_BLUFF) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_BLUFF) ? "CC" : "NA"),
-        (CLSLIST_ABIL(i, ABILITY_DIPLOMACY) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_DIPLOMACY) ? "CC" : "NA"),
-          (CLSLIST_ABIL(i, ABILITY_DISABLE_DEVICE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_DISABLE_DEVICE) ? "CC" : "NA"),
-          (CLSLIST_ABIL(i, ABILITY_DISGUISE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_DISGUISE) ? "CC" : "NA"),
-          (CLSLIST_ABIL(i, ABILITY_ESCAPE_ARTIST) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_ESCAPE_ARTIST) ? "CC" : "NA"),
-          (CLSLIST_ABIL(i, ABILITY_HANDLE_ANIMAL) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_HANDLE_ANIMAL) ? "CC" : "NA"),
-          (CLSLIST_ABIL(i, ABILITY_SENSE_MOTIVE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_SENSE_MOTIVE) ? "CC" : "NA"),
-        (CLSLIST_ABIL(i, ABILITY_SURVIVAL) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_SURVIVAL) ? "CC" : "NA"),
-          (CLSLIST_ABIL(i, ABILITY_SWIM) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_SWIM) ? "CC" : "NA"),
-          (CLSLIST_ABIL(i, ABILITY_USE_MAGIC_DEVICE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_USE_MAGIC_DEVICE) ? "CC" : "NA"),
-          (CLSLIST_ABIL(i, ABILITY_PERFORM) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_PERFORM) ? "CC" : "NA")
-                    );
+            CLSLIST_SAVES(i, 0) ? "G" : "B", CLSLIST_SAVES(i, 1) ? "G" : "B", CLSLIST_SAVES(i, 2) ? "G" : "B",
+            (CLSLIST_ABIL(i, ABILITY_ACROBATICS) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_ACROBATICS) ? "CC" : "NA"),
+            (CLSLIST_ABIL(i, ABILITY_STEALTH) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_STEALTH) ? "CC" : "NA"),
+            (CLSLIST_ABIL(i, ABILITY_PERCEPTION) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_PERCEPTION) ? "CC" : "NA"),
+            (CLSLIST_ABIL(i, ABILITY_HEAL) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_HEAL) ? "CC" : "NA"),
+            (CLSLIST_ABIL(i, ABILITY_INTIMIDATE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_INTIMIDATE) ? "CC" : "NA"),
+            (CLSLIST_ABIL(i, ABILITY_CONCENTRATION) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_CONCENTRATION) ? "CC" : "NA"),
+            (CLSLIST_ABIL(i, ABILITY_SPELLCRAFT) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_SPELLCRAFT) ? "CC" : "NA"),
+            (CLSLIST_ABIL(i, ABILITY_APPRAISE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_APPRAISE) ? "CC" : "NA"),
+            (CLSLIST_ABIL(i, ABILITY_DISCIPLINE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_DISCIPLINE) ? "CC" : "NA"),
+            (CLSLIST_ABIL(i, ABILITY_TOTAL_DEFENSE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_TOTAL_DEFENSE) ? "CC" : "NA"),
+            (CLSLIST_ABIL(i, ABILITY_LORE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_LORE) ? "CC" : "NA"),
+            (CLSLIST_ABIL(i, ABILITY_RIDE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_RIDE) ? "CC" : "NA"),
+            (CLSLIST_ABIL(i, ABILITY_CLIMB) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_CLIMB) ? "CC" : "NA"),
+            (CLSLIST_ABIL(i, ABILITY_SLEIGHT_OF_HAND) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_SLEIGHT_OF_HAND) ? "CC" : "NA"),
+            (CLSLIST_ABIL(i, ABILITY_BLUFF) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_BLUFF) ? "CC" : "NA"),
+            (CLSLIST_ABIL(i, ABILITY_DIPLOMACY) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_DIPLOMACY) ? "CC" : "NA"),
+            (CLSLIST_ABIL(i, ABILITY_DISABLE_DEVICE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_DISABLE_DEVICE) ? "CC" : "NA"),
+            (CLSLIST_ABIL(i, ABILITY_DISGUISE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_DISGUISE) ? "CC" : "NA"),
+            (CLSLIST_ABIL(i, ABILITY_ESCAPE_ARTIST) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_ESCAPE_ARTIST) ? "CC" : "NA"),
+            (CLSLIST_ABIL(i, ABILITY_HANDLE_ANIMAL) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_HANDLE_ANIMAL) ? "CC" : "NA"),
+            (CLSLIST_ABIL(i, ABILITY_SENSE_MOTIVE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_SENSE_MOTIVE) ? "CC" : "NA"),
+            (CLSLIST_ABIL(i, ABILITY_SURVIVAL) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_SURVIVAL) ? "CC" : "NA"),
+            (CLSLIST_ABIL(i, ABILITY_SWIM) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_SWIM) ? "CC" : "NA"),
+            (CLSLIST_ABIL(i, ABILITY_USE_MAGIC_DEVICE) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_USE_MAGIC_DEVICE) ? "CC" : "NA"),
+            (CLSLIST_ABIL(i, ABILITY_PERFORM) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_PERFORM) ? "CC" : "NA")
+            );
     for (j = 0; j < MAX_NUM_TITLES; j++) {
       len += snprintf(buf + len, sizeof (buf) - len, "%s\r\n", CLSLIST_TITLE(i, j));
     }
     len += snprintf(buf + len, sizeof (buf) - len, "============================================\r\n");
   }
-  page_string(ch->desc, buf, 1);  
+  page_string(ch->desc, buf, 1);
 }
 
 bool view_class_feats(struct char_data *ch, char *classname) {
   int class = CLASS_UNDEFINED;
   struct class_feat_assign *feat_assign = NULL;
-  
+
   skip_spaces(&classname);
   class = parse_class_long(classname);
 
@@ -1054,13 +1058,13 @@ bool view_class_feats(struct char_data *ch, char *classname) {
             feat_assign = feat_assign->next) {
       if (feat_assign->level_received > 0) /* -1 is just class feat assign */
         send_to_char(ch, "Level: %-2d, Stacks: %-3s, Feat: %s\r\n",
-                   feat_assign->level_received,
-                   feat_assign->stacks ? "Yes" : "No",
-                   feat_list[feat_assign->feat_num].name);
+              feat_assign->level_received,
+              feat_assign->stacks ? "Yes" : "No",
+              feat_list[feat_assign->feat_num].name);
     }
   }
   send_to_char(ch, "\r\n");
-  
+
   return TRUE;
 }
 
@@ -1078,46 +1082,47 @@ ACMD(do_class) {
   /* no argument, or general list of classes */
   if (is_abbrev(arg, "list") || !*arg) {
     display_all_classes(ch);
-    
-  /* class info - specific info on given class */    
+
+    /* class info - specific info on given class */
   } else if (is_abbrev(arg, "info")) {
 
     if (!strcmp(classname, "")) {
       send_to_char(ch, "\r\nYou must provide the name of a class.\r\n");
-    } else if(!display_class_info(ch, classname)) {
+    } else if (!display_class_info(ch, classname)) {
       send_to_char(ch, "Could not find that class.\r\n");
     }
-    
-  /* class feat - list of free feats for given class */    
+
+    /* class feat - list of free feats for given class */
   } else if (is_abbrev(arg, "feats")) {
 
     if (!strcmp(classname, "")) {
       send_to_char(ch, "\r\nYou must provide the name of a class.\r\n");
-    } else if(!view_class_feats(ch, classname)) {
+    } else if (!view_class_feats(ch, classname)) {
       send_to_char(ch, "Could not find that class.\r\n");
     }
-            
-  /* cryptic class listing for staff :) */
+
+    /* cryptic class listing for staff :) */
   } else if (is_abbrev(arg, "staff")) {
     display_imm_classlist(ch);
-    
-  /* class listing just to view pre-requisites for a given class */  
+
+    /* class listing just to view pre-requisites for a given class */
   } else if (is_abbrev(arg, "prereqs")) {
-    
+
     if (!strcmp(classname, "")) {
       send_to_char(ch, "\r\nYou must provide the name of a class.\r\n");
-    } else if(!display_class_prereqs(ch, classname)) {
+    } else if (!display_class_prereqs(ch, classname)) {
       send_to_char(ch, "Could not find that class.\r\n");
     }
-    
+
   }
-  
+
   send_to_char(ch, "\tDUsage: class <list|info|feats|staff|prereqs> <class name>\tn\r\n");
 }
 
 /* TODO: phase this out using classo prereqs */
 /* does the ch have a valid alignment for proposed class?  currently only used
  in interpreter.c for starting chars */
+
 /* returns 1 for valid alignment, returns 0 for problem with alignment */
 int valid_align_by_class(int alignment, int class) {
   switch (class) {
@@ -1195,7 +1200,7 @@ const char *church_types[] = {
   "Shar",
   "Silvanus",
   "\n"
-};  // 14
+}; // 14
 
 /* The code to interpret a class letter -- just used in who list */
 int parse_class(char arg) {
@@ -1211,19 +1216,19 @@ int parse_class(char arg) {
     case 'g': return CLASS_STALWART_DEFENDER;
     case 'h': return CLASS_SHIFTER;
     case 'i': return CLASS_DUELIST;
-    /* empty letters */
+      /* empty letters */
     case 'm': return CLASS_WIZARD;
-    /* empty letters */
+      /* empty letters */
     case 'o': return CLASS_MONK;
     case 'p': return CLASS_PALADIN;
-    /* empty letters */
+      /* empty letters */
     case 'r': return CLASS_RANGER;
     case 's': return CLASS_SORCERER;
     case 't': return CLASS_ROGUE;
-    /* empty letters */
+      /* empty letters */
     case 'w': return CLASS_WARRIOR;
-    /* empty letters */
-    
+      /* empty letters */
+
     default: return CLASS_UNDEFINED;
   }
 }
@@ -1314,7 +1319,7 @@ byte saving_throws(struct char_data *ch, int type) {
     else
       return (GET_LEVEL(ch) / 4 + 1);
   }
-  
+
   int i, save = 0;
   float counter = 1.1;
 
@@ -1322,23 +1327,24 @@ byte saving_throws(struct char_data *ch, int type) {
   for (i = 0; i < MAX_CLASSES; i++) {
     if (CLASS_LEVEL(ch, i)) { // found class and level
       if (CLSLIST_SAVES(i, type))
-        counter += (float)CLASS_LEVEL(ch, i) / 2.0;
+        counter += (float) CLASS_LEVEL(ch, i) / 2.0;
       else
-        counter += (float)CLASS_LEVEL(ch, i) / 4.0;
+        counter += (float) CLASS_LEVEL(ch, i) / 4.0;
     }
   }
-  
-  save = (int)counter;
+
+  save = (int) counter;
   return save;
 }
 
 // base attack bonus, replacement for THAC0 system
+
 int BAB(struct char_data *ch) {
-  
+
   /* gnarly huh? */
   if (IS_AFFECTED(ch, AFF_TFORM))
     return (GET_LEVEL(ch));
-  
+
   /* npc is simple */
   if (IS_NPC(ch)) {
     switch (CLSLIST_BAB(GET_CLASS(ch))) {
@@ -1351,10 +1357,10 @@ int BAB(struct char_data *ch) {
         return ( (int) (GET_LEVEL(ch) / 2));
     }
   }
-  
+
   int i, bab = 0, level, wildshape_level = 0;
   float counter = 0.0;
-  
+
   /* wildshape */
   if (IS_WILDSHAPED(ch) || IS_MORPHED(ch))
     wildshape_level = CLASS_LEVEL(ch, CLASS_DRUID) + CLASS_LEVEL(ch, CLASS_SHIFTER);
@@ -1366,25 +1372,25 @@ int BAB(struct char_data *ch) {
     if (level) {
       switch (CLSLIST_BAB(i)) {
         case M:
-          counter += (float)level * 3.0 / 4.0;
+          counter += (float) level * 3.0 / 4.0;
           break;
         case H:
-          counter += (float)level;
+          counter += (float) level;
           break;
         case L:
         default:
-          counter += (float)level / 2.0;
+          counter += (float) level / 2.0;
           break;
       }
     }
   }
 
-  bab = (int)counter;
-  
+  bab = (int) counter;
+
   if (char_has_mud_event(ch, eSPELLBATTLE) && SPELLBATTLE(ch) > 0) {
     bab += MAX(1, (SPELLBATTLE(ch) * 2 / 3));
   }
-  
+
   if (wildshape_level > bab)
     bab = wildshape_level;
 
@@ -1395,7 +1401,7 @@ int BAB(struct char_data *ch) {
 }
 
 /* Default titles system, simplified from stock -zusuk */
-const char *titles(int chclass, int level) {  
+const char *titles(int chclass, int level) {
   if (level <= 0 || level > LVL_IMPL)
     return "the Being";
   if (level == LVL_IMPL)
@@ -1419,7 +1425,7 @@ const char *titles(int chclass, int level) {
   else if (level <= 29)
     title_num = 5;
   else if (level <= 30)
-    title_num = 6;  
+    title_num = 6;
   else if (level <= LVL_IMMORT)
     title_num = 7;
   else if (level <= LVL_STAFF)
@@ -1428,8 +1434,8 @@ const char *titles(int chclass, int level) {
     title_num = 9;
   else
     title_num = 10;
-  
-  return ( CLSLIST_TITLE(chclass, title_num) );
+
+  return ( CLSLIST_TITLE(chclass, title_num));
 }
 
 /* use to be old rolling system, now its just used to initialize base stats */
@@ -1457,12 +1463,12 @@ static int level_feats[][LEVEL_FEATS] = {
   /****************/
 
   /* class, race, stacks?, level, feat_ name */
-        /* Human */
+  /* Human */
   {CLASS_UNDEFINED, RACE_HUMAN, FALSE, 1, FEAT_QUICK_TO_MASTER},
   {CLASS_UNDEFINED, RACE_HUMAN, FALSE, 1, FEAT_SKILLED},
 
   /* class, race, stacks?, level, feat_ name */
-        /* Dwarf */
+  /* Dwarf */
   {CLASS_UNDEFINED, RACE_DWARF, FALSE, 1, FEAT_INFRAVISION},
   {CLASS_UNDEFINED, RACE_DWARF, FALSE, 1, FEAT_POISON_RESIST},
   {CLASS_UNDEFINED, RACE_DWARF, FALSE, 1, FEAT_STABILITY},
@@ -1471,7 +1477,7 @@ static int level_feats[][LEVEL_FEATS] = {
   {CLASS_UNDEFINED, RACE_DWARF, FALSE, 1, FEAT_DWARF_RACIAL_ADJUSTMENT},
 
   /* class, race, stacks?, level, feat_ name */
-        /* Half-Troll */
+  /* Half-Troll */
   {CLASS_UNDEFINED, RACE_HALF_TROLL, FALSE, 1, FEAT_ULTRAVISION},
   {CLASS_UNDEFINED, RACE_HALF_TROLL, FALSE, 1, FEAT_TROLL_REGENERATION},
   {CLASS_UNDEFINED, RACE_HALF_TROLL, FALSE, 1, FEAT_WEAKNESS_TO_FIRE},
@@ -1481,7 +1487,7 @@ static int level_feats[][LEVEL_FEATS] = {
   {CLASS_UNDEFINED, RACE_HALF_TROLL, FALSE, 1, FEAT_HALF_TROLL_RACIAL_ADJUSTMENT},
 
   /* class, race, stacks?, level, feat_ name */
-        /* Halfling */
+  /* Halfling */
   {CLASS_UNDEFINED, RACE_HALFLING, FALSE, 1, FEAT_INFRAVISION},
   {CLASS_UNDEFINED, RACE_HALFLING, FALSE, 1, FEAT_SHADOW_HOPPER},
   {CLASS_UNDEFINED, RACE_HALFLING, FALSE, 1, FEAT_LUCKY},
@@ -1489,7 +1495,7 @@ static int level_feats[][LEVEL_FEATS] = {
   {CLASS_UNDEFINED, RACE_HALFLING, FALSE, 1, FEAT_HALFLING_RACIAL_ADJUSTMENT},
 
   /* class, race, stacks?, level, feat_ name */
-        /* Half-Elf */
+  /* Half-Elf */
   {CLASS_UNDEFINED, RACE_HALF_ELF, FALSE, 1, FEAT_INFRAVISION},
   {CLASS_UNDEFINED, RACE_HALF_ELF, FALSE, 1, FEAT_WEAPON_PROFICIENCY_ELF},
   {CLASS_UNDEFINED, RACE_HALF_ELF, FALSE, 1, FEAT_RESISTANCE_TO_ENCHANTMENTS},
@@ -1497,12 +1503,12 @@ static int level_feats[][LEVEL_FEATS] = {
   {CLASS_UNDEFINED, RACE_HALF_ELF, FALSE, 1, FEAT_KEEN_SENSES},
 
   /* class, race, stacks?, level, feat_ name */
-        /* Half-Orc */
+  /* Half-Orc */
   {CLASS_UNDEFINED, RACE_HALF_ORC, FALSE, 1, FEAT_ULTRAVISION},
   {CLASS_UNDEFINED, RACE_HALF_ORC, FALSE, 1, FEAT_HALF_ORC_RACIAL_ADJUSTMENT},
 
   /* class, race, stacks?, level, feat_ name */
-        /* Gnome */
+  /* Gnome */
   {CLASS_UNDEFINED, RACE_GNOME, FALSE, 1, FEAT_INFRAVISION},
   {CLASS_UNDEFINED, RACE_GNOME, FALSE, 1, FEAT_COMBAT_TRAINING_VS_GIANTS},
   {CLASS_UNDEFINED, RACE_GNOME, FALSE, 1, FEAT_RESISTANCE_TO_ILLUSIONS},
@@ -1511,7 +1517,7 @@ static int level_feats[][LEVEL_FEATS] = {
   {CLASS_UNDEFINED, RACE_GNOME, FALSE, 1, FEAT_GNOME_RACIAL_ADJUSTMENT},
 
   /* class, race, stacks?, level, feat_ name */
-        /* Trelux */
+  /* Trelux */
   {CLASS_UNDEFINED, RACE_TRELUX, FALSE, 1, FEAT_ULTRAVISION},
   {CLASS_UNDEFINED, RACE_TRELUX, FALSE, 1, FEAT_VITAL},
   {CLASS_UNDEFINED, RACE_TRELUX, FALSE, 1, FEAT_HARDY},
@@ -1523,7 +1529,7 @@ static int level_feats[][LEVEL_FEATS] = {
   {CLASS_UNDEFINED, RACE_TRELUX, FALSE, 1, FEAT_TRELUX_PINCERS},
 
   /* class, race, stacks?, level, feat_ name */
-        /* elf */
+  /* elf */
   {CLASS_UNDEFINED, RACE_ELF, FALSE, 1, FEAT_INFRAVISION},
   {CLASS_UNDEFINED, RACE_ELF, FALSE, 1, FEAT_WEAPON_PROFICIENCY_ELF},
   {CLASS_UNDEFINED, RACE_ELF, FALSE, 1, FEAT_SLEEP_ENCHANTMENT_IMMUNITY},
@@ -1532,7 +1538,7 @@ static int level_feats[][LEVEL_FEATS] = {
   {CLASS_UNDEFINED, RACE_ELF, FALSE, 1, FEAT_ELF_RACIAL_ADJUSTMENT},
 
   /* class, race, stacks?, level, feat_ name */
-        /* crystal dwarf */
+  /* crystal dwarf */
   {CLASS_UNDEFINED, RACE_CRYSTAL_DWARF, FALSE, 1, FEAT_INFRAVISION},
   {CLASS_UNDEFINED, RACE_CRYSTAL_DWARF, FALSE, 1, FEAT_CRYSTAL_BODY},
   {CLASS_UNDEFINED, RACE_CRYSTAL_DWARF, FALSE, 1, FEAT_CRYSTAL_FIST},
@@ -1544,7 +1550,7 @@ static int level_feats[][LEVEL_FEATS] = {
   {CLASS_UNDEFINED, RACE_CRYSTAL_DWARF, FALSE, 1, FEAT_CRYSTAL_DWARF_RACIAL_ADJUSTMENT},
 
   /* class, race, stacks?, level, feat_ name */
-        /* Arcana Golem */
+  /* Arcana Golem */
   {CLASS_UNDEFINED, RACE_ARCANA_GOLEM, FALSE, 1, FEAT_SPELLBATTLE},
   {CLASS_UNDEFINED, RACE_ARCANA_GOLEM, FALSE, 1, FEAT_SPELL_VULNERABILITY},
   {CLASS_UNDEFINED, RACE_ARCANA_GOLEM, FALSE, 1, FEAT_ENCHANTMENT_VULNERABILITY},
@@ -1553,7 +1559,7 @@ static int level_feats[][LEVEL_FEATS] = {
   {CLASS_UNDEFINED, RACE_ARCANA_GOLEM, FALSE, 1, FEAT_ARCANA_GOLEM_RACIAL_ADJUSTMENT},
 
   /* class, race, stacks?, level, feat_ name */
-        /* Drow */
+  /* Drow */
   {CLASS_UNDEFINED, RACE_DROW, FALSE, 1, FEAT_ULTRAVISION},
   {CLASS_UNDEFINED, RACE_DROW, FALSE, 1, FEAT_SLEEP_ENCHANTMENT_IMMUNITY},
   {CLASS_UNDEFINED, RACE_DROW, FALSE, 1, FEAT_KEEN_SENSES},
@@ -1647,7 +1653,7 @@ void newbieEquipment(struct char_data *ch) {
   for (x = 0; objNums[x] != -1; x++) {
     obj = read_object(objNums[x], VIRTUAL);
     if (obj) {
-      
+
       /* backpack first please! */
       if (objNums[x] == NOOB_BP) {
         bp = obj;
@@ -1656,7 +1662,7 @@ void newbieEquipment(struct char_data *ch) {
       } else if (bp) { /* we should have a bp already! */
         obj_to_obj(obj, bp);
       } else { /* problem */
-        obj_to_char(bp, ch);        
+        obj_to_char(bp, ch);
       }
     }
   }
@@ -1682,7 +1688,7 @@ void newbieEquipment(struct char_data *ch) {
     case RACE_DROW:
       obj = read_object(NOOB_DROW_XBOW, VIRTUAL);
       obj_to_char(obj, ch); // drow hand xbow
-      
+
       /* pouch and bolts for xbow */
       pouch = read_object(NOOB_DROW_POUCH, VIRTUAL);
       if (pouch)
@@ -1697,14 +1703,14 @@ void newbieEquipment(struct char_data *ch) {
     default:
       break;
   } /*  end of race specific gear */
-  
+
   /* class specific gear */
   switch (GET_CLASS(ch)) {
     case CLASS_PALADIN:
       /*fallthrough*/
     case CLASS_CLERIC:
       // holy symbol, not implemented so took out
-      
+
       obj = read_object(NOOB_LEATHER_SLEEVES, VIRTUAL);
       GET_OBJ_SIZE(obj) = GET_SIZE(ch);
       obj_to_char(obj, ch); // leather sleeves
@@ -1723,9 +1729,9 @@ void newbieEquipment(struct char_data *ch) {
       obj = read_object(NOOB_SCALE_MAIL, VIRTUAL);
       GET_OBJ_SIZE(obj) = GET_SIZE(ch);
       obj_to_char(obj, ch); // scale mail
-      
+
       break;
-      
+
     case CLASS_DRUID:
 
       obj = read_object(NOOB_LEATHER_SLEEVES, VIRTUAL);
@@ -1761,7 +1767,7 @@ void newbieEquipment(struct char_data *ch) {
       obj = read_object(NOOB_STUD_LEATHER, VIRTUAL);
       GET_OBJ_SIZE(obj) = GET_SIZE(ch);
       obj_to_char(obj, ch); // studded leather
-      
+
       obj = read_object(NOOB_LEATHER_SLEEVES, VIRTUAL);
       GET_OBJ_SIZE(obj) = GET_SIZE(ch);
       obj_to_char(obj, ch); // leather sleeves
@@ -1772,7 +1778,7 @@ void newbieEquipment(struct char_data *ch) {
 
       obj = read_object(NOOB_LONG_SWORD, VIRTUAL);
       obj_to_char(obj, ch); // long sword
-        
+
       obj = read_object(NOOB_IRON_SHIELD, VIRTUAL);
       GET_OBJ_SIZE(obj) = GET_SIZE(ch);
       obj_to_char(obj, ch); // shield
@@ -1800,7 +1806,7 @@ void newbieEquipment(struct char_data *ch) {
       obj_to_char(obj, ch);
       obj = read_object(MANDOLIN, VIRTUAL);
       obj_to_char(obj, ch);
-      
+
       /*FALL THROUGH*/
     case CLASS_ROGUE:
       obj = read_object(NOOB_LEATHER_SLEEVES, VIRTUAL);
@@ -1895,12 +1901,12 @@ void newbieEquipment(struct char_data *ch) {
 /* this is used to assign all the spells */
 void init_class(struct char_data *ch, int class, int level) {
   struct class_spell_assign *spell_assign = NULL;
-  
+
   if (class_list[class].spellassign_list != NULL) {
     /*  This class has spell assignment! Traverse the list and check. */
     for (spell_assign = class_list[class].spellassign_list; spell_assign != NULL;
             spell_assign = spell_assign->next) {
-      SET_SKILL(ch, spell_assign->spell_num, 99);      
+      SET_SKILL(ch, spell_assign->spell_num, 99);
     }
   }
 
@@ -2013,7 +2019,7 @@ void init_start_char(struct char_data *ch) {
   destroy_innate_magic_queue(ch);
   destroy_spell_collection(ch);
   destroy_known_spells(ch);
-  
+
   IS_SORC_LEARNED(ch) = 0;
   IS_BARD_LEARNED(ch) = 0;
   IS_RANG_LEARNED(ch) = 0;
@@ -2108,8 +2114,8 @@ void init_start_char(struct char_data *ch) {
   /* warrior bonus */
   if (GET_CLASS(ch) == CLASS_WARRIOR)
     GET_CLASS_FEATS(ch, CLASS_WARRIOR)++; /* Bonus Feat */
-  
-  /* when you study it reinitializes your trains now */  
+
+  /* when you study it reinitializes your trains now */
   int int_bonus = GET_INT_BONUS(ch); /* this is the way it should be */
 
   /* assign trains, this gets over-written anyhow during study session at lvl 1 */
@@ -2147,28 +2153,28 @@ void process_class_level_feats(struct char_data *ch, int class) {
   /* deal with some instant disqualification */
   if (class < 0 || class >= NUM_CLASSES)
     return;
-  class_level = CLASS_LEVEL(ch, class); 
+  class_level = CLASS_LEVEL(ch, class);
   if (class_level <= 0)
     return;
   if (class_list[class].featassign_list == NULL)
     return;
-  
+
   sprintf(featbuf, "\tM");
-  
+
   /*  This class has potential feat assignment! Traverse the list and assign. */
   for (feat_assign = class_list[class].featassign_list; feat_assign != NULL;
-            feat_assign = feat_assign->next) {
-    
+          feat_assign = feat_assign->next) {
+
     /* appropriate level to receive this feat? */
     if (feat_assign->level_received == class_level) {
-      
+
       /* any special handling for this feat? */
       switch (feat_assign->feat_num) {
-        
+
         case FEAT_SNEAK_ATTACK:
           sprintf(featbuf, "%s\tMYour sneak attack has increased to +%dd6!\tn\r\n", featbuf, HAS_FEAT(ch, FEAT_SNEAK_ATTACK) + 1);
           break;
-          
+
         case FEAT_SHRUG_DAMAGE:
           for (dr = GET_DR(ch); dr != NULL; dr = dr->next) {
             if (dr->feat == FEAT_SHRUG_DAMAGE) {
@@ -2195,28 +2201,28 @@ void process_class_level_feats(struct char_data *ch, int class) {
 
           sprintf(featbuf, "%s\tMYou can now shrug off %d damage!\tn\r\n", featbuf, HAS_FEAT(ch, FEAT_SHRUG_DAMAGE) + 1);
           break;
-          
+
         case FEAT_STRENGTH_BOOST:
           ch->real_abils.str += 2;
           sprintf(featbuf, "%s\tMYour natural strength has increased by +2!\r\n", featbuf);
           break;
-          
+
         case FEAT_CHARISMA_BOOST:
           ch->real_abils.cha += 2;
           sprintf(featbuf, "%s\tMYour natural charisma has increased by +2!\r\n", featbuf);
           break;
-          
+
         case FEAT_CONSTITUTION_BOOST:
           ch->real_abils.con += 2;
           sprintf(featbuf, "%s\tMYour natural constitution has increased by +2!\r\n", featbuf);
           break;
-          
+
         case FEAT_INTELLIGENCE_BOOST:
           ch->real_abils.intel += 2;
           sprintf(featbuf, "%s\tMYour natural intelligence has increased by +2!\r\n", featbuf);
           break;
-          
-        /* no special handling */
+
+          /* no special handling */
         default:
           if (HAS_FEAT(ch, feat_assign->feat_num))
             sprintf(featbuf, "%s\tMYou have improved your %s %s!\tn\r\n", featbuf,
@@ -2228,22 +2234,22 @@ void process_class_level_feats(struct char_data *ch, int class) {
                   feat_types[feat_list[feat_assign->feat_num].feat_type]);
           break;
       }
-      
+
       /* now actually adjust the feat */
       SET_FEAT(ch, feat_assign->feat_num, HAS_REAL_FEAT(ch, feat_assign->feat_num) + 1);
-      
+
     }
   }
 
 
-  
+
   /* send our feat buffer to char */
   send_to_char(ch, "%s", featbuf);
 }
 
 void process_conditional_class_level_feats(struct char_data *ch, int class) {
 
-  switch(class) {
+  switch (class) {
     case CLASS_SORCERER:
       //  Mostly Bloodlines
       if (HAS_FEAT(ch, FEAT_SORCERER_BLOODLINE_DRACONIC)) {
@@ -2274,7 +2280,7 @@ void process_conditional_class_level_feats(struct char_data *ch, int class) {
           send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_BLINDSENSE].name);
         }
       } else if (HAS_FEAT(ch, FEAT_SORCERER_BLOODLINE_ARCANE)) {
-        
+
       }
       break;
   }
@@ -2282,6 +2288,7 @@ void process_conditional_class_level_feats(struct char_data *ch, int class) {
 }
 
 /* TODO: rewrite this! */
+
 /* at each level we run this function to assign free RACE feats */
 void process_level_feats(struct char_data *ch, int class) {
   char featbuf[MAX_STRING_LENGTH];
@@ -2299,15 +2306,15 @@ void process_level_feats(struct char_data *ch, int class) {
             !HAS_FEAT(ch, level_feats[i][LF_FEAT])) {
       if (HAS_FEAT(ch, level_feats[i][LF_FEAT]))
         sprintf(featbuf, "%s\tMYou have improved your %s %s!\tn\r\n", featbuf,
-            feat_list[level_feats[i][LF_FEAT]].name,
-            feat_types[feat_list[level_feats[i][LF_FEAT]].feat_type] );
+              feat_list[level_feats[i][LF_FEAT]].name,
+              feat_types[feat_list[level_feats[i][LF_FEAT]].feat_type]);
       else
         sprintf(featbuf, "%s\tMYou have gained the %s %s!\tn\r\n", featbuf,
-            feat_list[level_feats[i][LF_FEAT]].name,
-            feat_types[feat_list[level_feats[i][LF_FEAT]].feat_type] );
+              feat_list[level_feats[i][LF_FEAT]].name,
+              feat_types[feat_list[level_feats[i][LF_FEAT]].feat_type]);
       SET_FEAT(ch, level_feats[i][LF_FEAT], HAS_REAL_FEAT(ch, level_feats[i][LF_FEAT]) + 1);
     }
-    
+
     /* counter */
     i++;
   }
@@ -2340,33 +2347,33 @@ void advance_level(struct char_data *ch, int class) {
   send_to_char(ch, "\tMGAINS:\tn\r\n");
 
   /* calculate hps gain */
-  add_hp += rand_number(CLSLIST_HPS(class)/2, CLSLIST_HPS(class));
-  
+  add_hp += rand_number(CLSLIST_HPS(class) / 2, CLSLIST_HPS(class));
+
   /* calculate moves gain */
   add_move += rand_number(1, CLSLIST_MVS(class));
-  
+
   /* calculate psp gain */
   //add_psp += rand_number(CLSLIST_PSP(class)/2, CLSLIST_PSP(class));
   add_psp = 0;
-  
+
   /* calculate trains gained */
   trains += MAX(1, (CLSLIST_TRAINS(class) + (GET_REAL_INT_BONUS(ch))));
-    
-  /* pre epic special class feat progression */  
+
+  /* pre epic special class feat progression */
   if (class == CLASS_WIZARD && !(CLASS_LEVEL(ch, CLASS_WIZARD) % 5)) {
     if (!IS_EPIC(ch))
       class_feats++; // wizards get a bonus class feat every 5 levels
     //else if (IS_EPIC(ch))
-      //epic_class_feats++;      
+    //epic_class_feats++;      
   }
   if (class == CLASS_WARRIOR && !(CLASS_LEVEL(ch, CLASS_WARRIOR) % 2)) {
     if (!IS_EPIC(ch))
       class_feats++; // warriors get a bonus class feat every 2 levels
     //else if (IS_EPIC(ch))
-      //epic_class_feats++;      
+    //epic_class_feats++;      
   }
   if (class == CLASS_SORCERER && ((CLASS_LEVEL(ch, CLASS_SORCERER) - 1) % 6 == 0) &&
-      CLASS_LEVEL(ch, CLASS_SORCERER) > 1) {
+          CLASS_LEVEL(ch, CLASS_SORCERER) > 1) {
     class_feats++;
   }
 
@@ -2374,7 +2381,7 @@ void advance_level(struct char_data *ch, int class) {
   if (CLSLIST_EFEATP(class) && !(CLASS_LEVEL(ch, class) % CLSLIST_EFEATP(class)) && IS_EPIC(ch)) {
     epic_class_feats++;
   }
-  
+
   /* further movement modifications */
   if (HAS_FEAT(ch, FEAT_ENDURANCE)) {
     add_move += rand_number(1, 2);
@@ -2389,7 +2396,7 @@ void advance_level(struct char_data *ch, int class) {
   process_class_level_feats(ch, class);
   /* 'free' class feats gained that depend on previous class or feat choices */
   process_conditional_class_level_feats(ch, class);
-          
+
   //Racial Bonuses
   switch (GET_RACE(ch)) {
     case RACE_HUMAN:
@@ -2486,11 +2493,13 @@ int backstab_mult(struct char_data *ch) {
 }
 
 // used by handler.c, completely depreacted function right now
+
 int invalid_class(struct char_data *ch, struct obj_data *obj) {
   return FALSE;
 }
 
 // vital min level info!
+
 void init_spell_levels(void) {
   int i = 0, j = 0, class = 0;
   struct class_spell_assign *spell_assign = NULL;
@@ -2511,11 +2520,12 @@ void init_spell_levels(void) {
       }
     }
   }
- 
+
 }
 
 // level_exp ran with level+1 will give xp to next level
 // level_exp+1 - level_exp = exp to next level
+
 int level_exp(struct char_data *ch, int level) {
   int chclass = GET_CLASS(ch);
   int exp = 0, factor = 0;
@@ -2594,7 +2604,7 @@ void load_class_list(void) {
   int i = 0;
   for (i = 0; i < NUM_CLASSES; i++)
     init_class_list(i);
-  
+
   /* here goes assignment, for sanity we arranged it the assignments accordingly:
    *  classo
    *  preferred saves
@@ -2604,1028 +2614,1028 @@ void load_class_list(void) {
    *  classfeat assignment
    *  class spell assignment (if necessary)
    *  prereqs   */
-  
+
   /****************************************************************************/
   /*     class-number  name      abrv   clr-abrv     menu-name*/
   classo(CLASS_WIZARD, "wizard", "Wiz", "\tmWiz\tn", "m) \tmWizard\tn",
-    /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCost efeatp*/
-      -1,       N,    N,        L,  4, 0,   1,   2,     Y,       0,       5,
-      /*Descrip*/ "Beyond the veil of the mundane hide the secrets of absolute "
-    "power. The works of beings beyond mortals, the legends of realms where titans "
-    "and spirits tread, the lore of creations both wondrous and terrible—such "
-    "mysteries call to those with the ambition and the intellect to rise above "
-    "the common folk to grasp true might. Such is the path of the wizard. These "
-    "shrewd magic-users seek, collect, and covet esoteric knowledge, drawing on "
-    "cultic arts to work wonders beyond the abilities of mere mortals. While some "
-    "might choose a particular field of magical study and become masters of such "
-    "powers, others embrace versatility, reveling in the unbounded wonders of all "
-    "magic. In either case, wizards prove a cunning and potent lot, capable of "
-    "smiting their foes, empowering their allies, and shaping the world to their "
-    "every desire.");
+          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCost efeatp*/
+          -1, N, N, L, 4, 0, 1, 2, Y, 0, 5,
+          /*Descrip*/ "Beyond the veil of the mundane hide the secrets of absolute "
+          "power. The works of beings beyond mortals, the legends of realms where titans "
+          "and spirits tread, the lore of creations both wondrous and terrible—such "
+          "mysteries call to those with the ambition and the intellect to rise above "
+          "the common folk to grasp true might. Such is the path of the wizard. These "
+          "shrewd magic-users seek, collect, and covet esoteric knowledge, drawing on "
+          "cultic arts to work wonders beyond the abilities of mere mortals. While some "
+          "might choose a particular field of magical study and become masters of such "
+          "powers, others embrace versatility, reveling in the unbounded wonders of all "
+          "magic. In either case, wizards prove a cunning and potent lot, capable of "
+          "smiting their foes, empowering their allies, and shaping the world to their "
+          "every desire.");
   /* class-number then saves: fortitude, reflex, will, poison, death */
-  assign_class_saves(CLASS_WIZARD, B,    B,      G,    B,      B);
+  assign_class_saves(CLASS_WIZARD, B, B, G, B, B);
   assign_class_abils(CLASS_WIZARD, /* class number */
-    /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
-      CC,        CC,     CC,        CA,  CC,        CA,            CA,
-    /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
-      CA,      CC,        CC,           CA,  CA,  CC,   CC,             CC,
-    /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
-      CC,       CC,            CC,      CC,           CC,           CA,
-    /*survival,swim,use_magic_device,perform*/
-      CC,      CA,  CA,              CC
-    );
+          /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+          CC, CC, CC, CA, CC, CA, CA,
+          /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+          CA, CC, CC, CA, CA, CC, CC, CC,
+          /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+          CC, CC, CC, CC, CC, CA,
+          /*survival,swim,use_magic_device,perform*/
+          CC, CA, CA, CC
+          );
   assign_class_titles(CLASS_WIZARD, /* class number */
-    "",                              /* <= 4  */
-    "the Reader of Arcane Texts",    /* <= 9  */
-    "the Ever-Learning",             /* <= 14 */
-    "the Advanced Student",          /* <= 19 */
-    "the Channel of Power",          /* <= 24 */
-    "the Delver of Mysteries",       /* <= 29 */
-    "the Knower of Hidden Things",   /* <= 30 */
-    "the Immortal Warlock",          /* <= LVL_IMMORT */
-    "the Avatar of Magic",           /* <= LVL_STAFF */
-    "the God of Magic",              /* <= LVL_GRSTAFF */
-    "the Wizard"                    /* default */  
-  );
+          "", /* <= 4  */
+          "the Reader of Arcane Texts", /* <= 9  */
+          "the Ever-Learning", /* <= 14 */
+          "the Advanced Student", /* <= 19 */
+          "the Channel of Power", /* <= 24 */
+          "the Delver of Mysteries", /* <= 29 */
+          "the Knower of Hidden Things", /* <= 30 */
+          "the Immortal Warlock", /* <= LVL_IMMORT */
+          "the Avatar of Magic", /* <= LVL_STAFF */
+          "the God of Magic", /* <= LVL_GRSTAFF */
+          "the Wizard" /* default */
+          );
   /* feat assignment */
   /*              class num     feat                            cfeat lvl stack */
-  feat_assignment(CLASS_WIZARD, FEAT_WEAPON_PROFICIENCY_WIZARD, Y,    1,  N);
-  feat_assignment(CLASS_WIZARD, FEAT_SCRIBE_SCROLL,             Y,    1,  N);
-  feat_assignment(CLASS_WIZARD, FEAT_SUMMON_FAMILIAR,           Y,    1,  N);
-  feat_assignment(CLASS_WIZARD, FEAT_WIZARD_1ST_CIRCLE,         Y,    1,  N);
-  feat_assignment(CLASS_WIZARD, FEAT_WIZARD_2ND_CIRCLE,         Y,    3,  N);
-  feat_assignment(CLASS_WIZARD, FEAT_WIZARD_3RD_CIRCLE,         Y,    5,  N);
-  feat_assignment(CLASS_WIZARD, FEAT_WIZARD_4TH_CIRCLE,         Y,    7,  N);
-  feat_assignment(CLASS_WIZARD, FEAT_WIZARD_5TH_CIRCLE,         Y,    9,  N);
-  feat_assignment(CLASS_WIZARD, FEAT_WIZARD_6TH_CIRCLE,         Y,   11,  N);
-  feat_assignment(CLASS_WIZARD, FEAT_WIZARD_7TH_CIRCLE,         Y,   13,  N);
-  feat_assignment(CLASS_WIZARD, FEAT_WIZARD_8TH_CIRCLE,         Y,   15,  N);
-  feat_assignment(CLASS_WIZARD, FEAT_WIZARD_9TH_CIRCLE,         Y,   17,  N);
+  feat_assignment(CLASS_WIZARD, FEAT_WEAPON_PROFICIENCY_WIZARD, Y, 1, N);
+  feat_assignment(CLASS_WIZARD, FEAT_SCRIBE_SCROLL, Y, 1, N);
+  feat_assignment(CLASS_WIZARD, FEAT_SUMMON_FAMILIAR, Y, 1, N);
+  feat_assignment(CLASS_WIZARD, FEAT_WIZARD_1ST_CIRCLE, Y, 1, N);
+  feat_assignment(CLASS_WIZARD, FEAT_WIZARD_2ND_CIRCLE, Y, 3, N);
+  feat_assignment(CLASS_WIZARD, FEAT_WIZARD_3RD_CIRCLE, Y, 5, N);
+  feat_assignment(CLASS_WIZARD, FEAT_WIZARD_4TH_CIRCLE, Y, 7, N);
+  feat_assignment(CLASS_WIZARD, FEAT_WIZARD_5TH_CIRCLE, Y, 9, N);
+  feat_assignment(CLASS_WIZARD, FEAT_WIZARD_6TH_CIRCLE, Y, 11, N);
+  feat_assignment(CLASS_WIZARD, FEAT_WIZARD_7TH_CIRCLE, Y, 13, N);
+  feat_assignment(CLASS_WIZARD, FEAT_WIZARD_8TH_CIRCLE, Y, 15, N);
+  feat_assignment(CLASS_WIZARD, FEAT_WIZARD_9TH_CIRCLE, Y, 17, N);
   /*epic*/
-  feat_assignment(CLASS_WIZARD, FEAT_WIZARD_EPIC_SPELL,         Y,   21,  N);
+  feat_assignment(CLASS_WIZARD, FEAT_WIZARD_EPIC_SPELL, Y, 21, N);
   /* list of class feats */
-  feat_assignment(CLASS_WIZARD, FEAT_COMBAT_CASTING   ,         Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WIZARD, FEAT_SPELL_PENETRATION,         Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WIZARD, FEAT_COMBAT_CASTING, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WIZARD, FEAT_SPELL_PENETRATION, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_WIZARD, FEAT_GREATER_SPELL_PENETRATION, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WIZARD, FEAT_ARMORED_SPELLCASTING,      Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WIZARD, FEAT_FASTER_MEMORIZATION,       Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WIZARD, FEAT_SPELL_FOCUS,               Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WIZARD, FEAT_GREATER_SPELL_FOCUS,       Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WIZARD, FEAT_IMPROVED_FAMILIAR,         Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WIZARD, FEAT_QUICK_CHANT,               Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WIZARD, FEAT_AUGMENT_SUMMONING,         Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WIZARD, FEAT_ENHANCED_SPELL_DAMAGE,     Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WIZARD, FEAT_MAXIMIZE_SPELL,            Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WIZARD, FEAT_QUICKEN_SPELL,             Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WIZARD, FEAT_ARMORED_SPELLCASTING, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WIZARD, FEAT_FASTER_MEMORIZATION, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WIZARD, FEAT_SPELL_FOCUS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WIZARD, FEAT_GREATER_SPELL_FOCUS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WIZARD, FEAT_IMPROVED_FAMILIAR, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WIZARD, FEAT_QUICK_CHANT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WIZARD, FEAT_AUGMENT_SUMMONING, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WIZARD, FEAT_ENHANCED_SPELL_DAMAGE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WIZARD, FEAT_MAXIMIZE_SPELL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WIZARD, FEAT_QUICKEN_SPELL, Y, NOASSIGN_FEAT, N);
   /* epic class */
-  feat_assignment(CLASS_WIZARD, FEAT_MUMMY_DUST,                Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WIZARD, FEAT_GREATER_RUIN,              Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WIZARD, FEAT_DRAGON_KNIGHT,             Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WIZARD, FEAT_HELLBALL,                  Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WIZARD, FEAT_EPIC_MAGE_ARMOR,           Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WIZARD, FEAT_EPIC_WARDING,              Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WIZARD, FEAT_GREAT_INTELLIGENCE,        Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WIZARD, FEAT_MUMMY_DUST, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WIZARD, FEAT_GREATER_RUIN, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WIZARD, FEAT_DRAGON_KNIGHT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WIZARD, FEAT_HELLBALL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WIZARD, FEAT_EPIC_MAGE_ARMOR, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WIZARD, FEAT_EPIC_WARDING, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WIZARD, FEAT_GREAT_INTELLIGENCE, Y, NOASSIGN_FEAT, N);
   /**** spell assign ****/
   /*              class num      spell                   level acquired */
   /* 1st circle */
-  spell_assignment(CLASS_WIZARD, SPELL_HORIZIKAULS_BOOM,    1);
-  spell_assignment(CLASS_WIZARD, SPELL_MAGIC_MISSILE,       1);
-  spell_assignment(CLASS_WIZARD, SPELL_BURNING_HANDS,       1);
-  spell_assignment(CLASS_WIZARD, SPELL_ICE_DAGGER,          1);
-  spell_assignment(CLASS_WIZARD, SPELL_MAGE_ARMOR,          1);
-  spell_assignment(CLASS_WIZARD, SPELL_SUMMON_CREATURE_1,   1);
-  spell_assignment(CLASS_WIZARD, SPELL_CHILL_TOUCH,         1);
+  spell_assignment(CLASS_WIZARD, SPELL_HORIZIKAULS_BOOM, 1);
+  spell_assignment(CLASS_WIZARD, SPELL_MAGIC_MISSILE, 1);
+  spell_assignment(CLASS_WIZARD, SPELL_BURNING_HANDS, 1);
+  spell_assignment(CLASS_WIZARD, SPELL_ICE_DAGGER, 1);
+  spell_assignment(CLASS_WIZARD, SPELL_MAGE_ARMOR, 1);
+  spell_assignment(CLASS_WIZARD, SPELL_SUMMON_CREATURE_1, 1);
+  spell_assignment(CLASS_WIZARD, SPELL_CHILL_TOUCH, 1);
   spell_assignment(CLASS_WIZARD, SPELL_NEGATIVE_ENERGY_RAY, 1);
   spell_assignment(CLASS_WIZARD, SPELL_RAY_OF_ENFEEBLEMENT, 1);
-  spell_assignment(CLASS_WIZARD, SPELL_CHARM,               1);
-  spell_assignment(CLASS_WIZARD, SPELL_ENCHANT_WEAPON,      1);
-  spell_assignment(CLASS_WIZARD, SPELL_SLEEP,               1);
-  spell_assignment(CLASS_WIZARD, SPELL_COLOR_SPRAY,         1);
-  spell_assignment(CLASS_WIZARD, SPELL_SCARE,               1);
-  spell_assignment(CLASS_WIZARD, SPELL_TRUE_STRIKE,         1);
-  spell_assignment(CLASS_WIZARD, SPELL_IDENTIFY,            1);
-  spell_assignment(CLASS_WIZARD, SPELL_SHELGARNS_BLADE,     1);
-  spell_assignment(CLASS_WIZARD, SPELL_GREASE,              1);
-  spell_assignment(CLASS_WIZARD, SPELL_ENDURE_ELEMENTS,     1);
-  spell_assignment(CLASS_WIZARD, SPELL_PROT_FROM_EVIL,      1);
-  spell_assignment(CLASS_WIZARD, SPELL_PROT_FROM_GOOD,      1);
+  spell_assignment(CLASS_WIZARD, SPELL_CHARM, 1);
+  spell_assignment(CLASS_WIZARD, SPELL_ENCHANT_WEAPON, 1);
+  spell_assignment(CLASS_WIZARD, SPELL_SLEEP, 1);
+  spell_assignment(CLASS_WIZARD, SPELL_COLOR_SPRAY, 1);
+  spell_assignment(CLASS_WIZARD, SPELL_SCARE, 1);
+  spell_assignment(CLASS_WIZARD, SPELL_TRUE_STRIKE, 1);
+  spell_assignment(CLASS_WIZARD, SPELL_IDENTIFY, 1);
+  spell_assignment(CLASS_WIZARD, SPELL_SHELGARNS_BLADE, 1);
+  spell_assignment(CLASS_WIZARD, SPELL_GREASE, 1);
+  spell_assignment(CLASS_WIZARD, SPELL_ENDURE_ELEMENTS, 1);
+  spell_assignment(CLASS_WIZARD, SPELL_PROT_FROM_EVIL, 1);
+  spell_assignment(CLASS_WIZARD, SPELL_PROT_FROM_GOOD, 1);
   spell_assignment(CLASS_WIZARD, SPELL_EXPEDITIOUS_RETREAT, 1);
-  spell_assignment(CLASS_WIZARD, SPELL_IRON_GUTS,           1);
-  spell_assignment(CLASS_WIZARD, SPELL_SHIELD,              1);
+  spell_assignment(CLASS_WIZARD, SPELL_IRON_GUTS, 1);
+  spell_assignment(CLASS_WIZARD, SPELL_SHIELD, 1);
   /*              class num      spell                   level acquired */
   /* 2nd circle */
-  spell_assignment(CLASS_WIZARD, SPELL_SHOCKING_GRASP,    3);
-  spell_assignment(CLASS_WIZARD, SPELL_SCORCHING_RAY,     3);
-  spell_assignment(CLASS_WIZARD, SPELL_CONTINUAL_FLAME,   3);
+  spell_assignment(CLASS_WIZARD, SPELL_SHOCKING_GRASP, 3);
+  spell_assignment(CLASS_WIZARD, SPELL_SCORCHING_RAY, 3);
+  spell_assignment(CLASS_WIZARD, SPELL_CONTINUAL_FLAME, 3);
   spell_assignment(CLASS_WIZARD, SPELL_SUMMON_CREATURE_2, 3);
-  spell_assignment(CLASS_WIZARD, SPELL_WEB,               3);
-  spell_assignment(CLASS_WIZARD, SPELL_ACID_ARROW,        3);
-  spell_assignment(CLASS_WIZARD, SPELL_BLINDNESS,         3);
-  spell_assignment(CLASS_WIZARD, SPELL_DEAFNESS,          3);
-  spell_assignment(CLASS_WIZARD, SPELL_FALSE_LIFE,        3);
-  spell_assignment(CLASS_WIZARD, SPELL_DAZE_MONSTER,      3);
-  spell_assignment(CLASS_WIZARD, SPELL_HIDEOUS_LAUGHTER,  3);
-  spell_assignment(CLASS_WIZARD, SPELL_TOUCH_OF_IDIOCY,   3);
-  spell_assignment(CLASS_WIZARD, SPELL_BLUR,              3);
-  spell_assignment(CLASS_WIZARD, SPELL_MIRROR_IMAGE,      3);
-  spell_assignment(CLASS_WIZARD, SPELL_INVISIBLE,         3);
-  spell_assignment(CLASS_WIZARD, SPELL_DETECT_INVIS,      3);
-  spell_assignment(CLASS_WIZARD, SPELL_DETECT_MAGIC,      3);
-  spell_assignment(CLASS_WIZARD, SPELL_DARKNESS,          3);
+  spell_assignment(CLASS_WIZARD, SPELL_WEB, 3);
+  spell_assignment(CLASS_WIZARD, SPELL_ACID_ARROW, 3);
+  spell_assignment(CLASS_WIZARD, SPELL_BLINDNESS, 3);
+  spell_assignment(CLASS_WIZARD, SPELL_DEAFNESS, 3);
+  spell_assignment(CLASS_WIZARD, SPELL_FALSE_LIFE, 3);
+  spell_assignment(CLASS_WIZARD, SPELL_DAZE_MONSTER, 3);
+  spell_assignment(CLASS_WIZARD, SPELL_HIDEOUS_LAUGHTER, 3);
+  spell_assignment(CLASS_WIZARD, SPELL_TOUCH_OF_IDIOCY, 3);
+  spell_assignment(CLASS_WIZARD, SPELL_BLUR, 3);
+  spell_assignment(CLASS_WIZARD, SPELL_MIRROR_IMAGE, 3);
+  spell_assignment(CLASS_WIZARD, SPELL_INVISIBLE, 3);
+  spell_assignment(CLASS_WIZARD, SPELL_DETECT_INVIS, 3);
+  spell_assignment(CLASS_WIZARD, SPELL_DETECT_MAGIC, 3);
+  spell_assignment(CLASS_WIZARD, SPELL_DARKNESS, 3);
   //spell_assignment(CLASS_WIZARD, SPELL_I_DARKNESS,        3);
-  spell_assignment(CLASS_WIZARD, SPELL_RESIST_ENERGY,     3);
-  spell_assignment(CLASS_WIZARD, SPELL_ENERGY_SPHERE,     3);
-  spell_assignment(CLASS_WIZARD, SPELL_ENDURANCE,         3);
-  spell_assignment(CLASS_WIZARD, SPELL_STRENGTH,          3);
-  spell_assignment(CLASS_WIZARD, SPELL_GRACE,             3);
+  spell_assignment(CLASS_WIZARD, SPELL_RESIST_ENERGY, 3);
+  spell_assignment(CLASS_WIZARD, SPELL_ENERGY_SPHERE, 3);
+  spell_assignment(CLASS_WIZARD, SPELL_ENDURANCE, 3);
+  spell_assignment(CLASS_WIZARD, SPELL_STRENGTH, 3);
+  spell_assignment(CLASS_WIZARD, SPELL_GRACE, 3);
   /*              class num      spell                   level acquired */
   /* 3rd circle */
-  spell_assignment(CLASS_WIZARD, SPELL_LIGHTNING_BOLT,      5);
-  spell_assignment(CLASS_WIZARD, SPELL_FIREBALL,            5);
-  spell_assignment(CLASS_WIZARD, SPELL_WATER_BREATHE,       5);
-  spell_assignment(CLASS_WIZARD, SPELL_SUMMON_CREATURE_3,   5);
-  spell_assignment(CLASS_WIZARD, SPELL_PHANTOM_STEED,       5);
-  spell_assignment(CLASS_WIZARD, SPELL_STINKING_CLOUD,      5);
-  spell_assignment(CLASS_WIZARD, SPELL_HALT_UNDEAD,         5);
-  spell_assignment(CLASS_WIZARD, SPELL_VAMPIRIC_TOUCH,      5);
-  spell_assignment(CLASS_WIZARD, SPELL_HEROISM,             5);
-  spell_assignment(CLASS_WIZARD, SPELL_FLY,                 5);
-  spell_assignment(CLASS_WIZARD, SPELL_HOLD_PERSON,         5);
-  spell_assignment(CLASS_WIZARD, SPELL_DEEP_SLUMBER,        5);
-  spell_assignment(CLASS_WIZARD, SPELL_WALL_OF_FOG,         5);
+  spell_assignment(CLASS_WIZARD, SPELL_LIGHTNING_BOLT, 5);
+  spell_assignment(CLASS_WIZARD, SPELL_FIREBALL, 5);
+  spell_assignment(CLASS_WIZARD, SPELL_WATER_BREATHE, 5);
+  spell_assignment(CLASS_WIZARD, SPELL_SUMMON_CREATURE_3, 5);
+  spell_assignment(CLASS_WIZARD, SPELL_PHANTOM_STEED, 5);
+  spell_assignment(CLASS_WIZARD, SPELL_STINKING_CLOUD, 5);
+  spell_assignment(CLASS_WIZARD, SPELL_HALT_UNDEAD, 5);
+  spell_assignment(CLASS_WIZARD, SPELL_VAMPIRIC_TOUCH, 5);
+  spell_assignment(CLASS_WIZARD, SPELL_HEROISM, 5);
+  spell_assignment(CLASS_WIZARD, SPELL_FLY, 5);
+  spell_assignment(CLASS_WIZARD, SPELL_HOLD_PERSON, 5);
+  spell_assignment(CLASS_WIZARD, SPELL_DEEP_SLUMBER, 5);
+  spell_assignment(CLASS_WIZARD, SPELL_WALL_OF_FOG, 5);
   spell_assignment(CLASS_WIZARD, SPELL_INVISIBILITY_SPHERE, 5);
-  spell_assignment(CLASS_WIZARD, SPELL_DAYLIGHT,            5);
-  spell_assignment(CLASS_WIZARD, SPELL_CLAIRVOYANCE,        5);
-  spell_assignment(CLASS_WIZARD, SPELL_NON_DETECTION,       5);
-  spell_assignment(CLASS_WIZARD, SPELL_DISPEL_MAGIC,        5);
-  spell_assignment(CLASS_WIZARD, SPELL_HASTE,               5);
-  spell_assignment(CLASS_WIZARD, SPELL_SLOW,                5);
-  spell_assignment(CLASS_WIZARD, SPELL_CIRCLE_A_EVIL,       5);
-  spell_assignment(CLASS_WIZARD, SPELL_CIRCLE_A_GOOD,       5);
-  spell_assignment(CLASS_WIZARD, SPELL_CUNNING,             5);
-  spell_assignment(CLASS_WIZARD, SPELL_WISDOM,              5);
-  spell_assignment(CLASS_WIZARD, SPELL_CHARISMA,            5);
+  spell_assignment(CLASS_WIZARD, SPELL_DAYLIGHT, 5);
+  spell_assignment(CLASS_WIZARD, SPELL_CLAIRVOYANCE, 5);
+  spell_assignment(CLASS_WIZARD, SPELL_NON_DETECTION, 5);
+  spell_assignment(CLASS_WIZARD, SPELL_DISPEL_MAGIC, 5);
+  spell_assignment(CLASS_WIZARD, SPELL_HASTE, 5);
+  spell_assignment(CLASS_WIZARD, SPELL_SLOW, 5);
+  spell_assignment(CLASS_WIZARD, SPELL_CIRCLE_A_EVIL, 5);
+  spell_assignment(CLASS_WIZARD, SPELL_CIRCLE_A_GOOD, 5);
+  spell_assignment(CLASS_WIZARD, SPELL_CUNNING, 5);
+  spell_assignment(CLASS_WIZARD, SPELL_WISDOM, 5);
+  spell_assignment(CLASS_WIZARD, SPELL_CHARISMA, 5);
   /*              class num      spell                   level acquired */
-  /* 4th circle */  
-  spell_assignment(CLASS_WIZARD, SPELL_FIRE_SHIELD,       7);
-  spell_assignment(CLASS_WIZARD, SPELL_COLD_SHIELD,       7);
-  spell_assignment(CLASS_WIZARD, SPELL_ICE_STORM,         7);
-  spell_assignment(CLASS_WIZARD, SPELL_BILLOWING_CLOUD,   7);
+  /* 4th circle */
+  spell_assignment(CLASS_WIZARD, SPELL_FIRE_SHIELD, 7);
+  spell_assignment(CLASS_WIZARD, SPELL_COLD_SHIELD, 7);
+  spell_assignment(CLASS_WIZARD, SPELL_ICE_STORM, 7);
+  spell_assignment(CLASS_WIZARD, SPELL_BILLOWING_CLOUD, 7);
   spell_assignment(CLASS_WIZARD, SPELL_SUMMON_CREATURE_4, 7);
-  spell_assignment(CLASS_WIZARD, SPELL_ANIMATE_DEAD,      7);
-  spell_assignment(CLASS_WIZARD, SPELL_CURSE,             7);
-  spell_assignment(CLASS_WIZARD, SPELL_INFRAVISION,       7);
-  spell_assignment(CLASS_WIZARD, SPELL_POISON,            7);
-  spell_assignment(CLASS_WIZARD, SPELL_GREATER_INVIS,     7);
-  spell_assignment(CLASS_WIZARD, SPELL_RAINBOW_PATTERN,   7);
-  spell_assignment(CLASS_WIZARD, SPELL_WIZARD_EYE,        7);
-  spell_assignment(CLASS_WIZARD, SPELL_LOCATE_CREATURE,   7);
-  spell_assignment(CLASS_WIZARD, SPELL_MINOR_GLOBE,       7);
-  spell_assignment(CLASS_WIZARD, SPELL_REMOVE_CURSE,      7);
-  spell_assignment(CLASS_WIZARD, SPELL_STONESKIN,         7);
-  spell_assignment(CLASS_WIZARD, SPELL_ENLARGE_PERSON,    7);
-  spell_assignment(CLASS_WIZARD, SPELL_SHRINK_PERSON,     7);
+  spell_assignment(CLASS_WIZARD, SPELL_ANIMATE_DEAD, 7);
+  spell_assignment(CLASS_WIZARD, SPELL_CURSE, 7);
+  spell_assignment(CLASS_WIZARD, SPELL_INFRAVISION, 7);
+  spell_assignment(CLASS_WIZARD, SPELL_POISON, 7);
+  spell_assignment(CLASS_WIZARD, SPELL_GREATER_INVIS, 7);
+  spell_assignment(CLASS_WIZARD, SPELL_RAINBOW_PATTERN, 7);
+  spell_assignment(CLASS_WIZARD, SPELL_WIZARD_EYE, 7);
+  spell_assignment(CLASS_WIZARD, SPELL_LOCATE_CREATURE, 7);
+  spell_assignment(CLASS_WIZARD, SPELL_MINOR_GLOBE, 7);
+  spell_assignment(CLASS_WIZARD, SPELL_REMOVE_CURSE, 7);
+  spell_assignment(CLASS_WIZARD, SPELL_STONESKIN, 7);
+  spell_assignment(CLASS_WIZARD, SPELL_ENLARGE_PERSON, 7);
+  spell_assignment(CLASS_WIZARD, SPELL_SHRINK_PERSON, 7);
   /*              class num      spell                   level acquired */
   /* 5th circle */
-  spell_assignment(CLASS_WIZARD, SPELL_INTERPOSING_HAND,  9);
-  spell_assignment(CLASS_WIZARD, SPELL_WALL_OF_FORCE,     9);
+  spell_assignment(CLASS_WIZARD, SPELL_INTERPOSING_HAND, 9);
+  spell_assignment(CLASS_WIZARD, SPELL_WALL_OF_FORCE, 9);
   spell_assignment(CLASS_WIZARD, SPELL_BALL_OF_LIGHTNING, 9);
-  spell_assignment(CLASS_WIZARD, SPELL_CLOUDKILL,         9);
+  spell_assignment(CLASS_WIZARD, SPELL_CLOUDKILL, 9);
   spell_assignment(CLASS_WIZARD, SPELL_SUMMON_CREATURE_5, 9);
-  spell_assignment(CLASS_WIZARD, SPELL_WAVES_OF_FATIGUE,  9);
-  spell_assignment(CLASS_WIZARD, SPELL_SYMBOL_OF_PAIN,    9);
-  spell_assignment(CLASS_WIZARD, SPELL_DOMINATE_PERSON,   9);
-  spell_assignment(CLASS_WIZARD, SPELL_FEEBLEMIND,        9);
-  spell_assignment(CLASS_WIZARD, SPELL_NIGHTMARE,         9);
-  spell_assignment(CLASS_WIZARD, SPELL_MIND_FOG,          9);
-  spell_assignment(CLASS_WIZARD, SPELL_ACID_SHEATH,       9);
-  spell_assignment(CLASS_WIZARD, SPELL_FAITHFUL_HOUND,    9);
-  spell_assignment(CLASS_WIZARD, SPELL_DISMISSAL,         9);
-  spell_assignment(CLASS_WIZARD, SPELL_CONE_OF_COLD,      9);
-  spell_assignment(CLASS_WIZARD, SPELL_TELEKINESIS,       9);
-  spell_assignment(CLASS_WIZARD, SPELL_FIREBRAND,         9);
+  spell_assignment(CLASS_WIZARD, SPELL_WAVES_OF_FATIGUE, 9);
+  spell_assignment(CLASS_WIZARD, SPELL_SYMBOL_OF_PAIN, 9);
+  spell_assignment(CLASS_WIZARD, SPELL_DOMINATE_PERSON, 9);
+  spell_assignment(CLASS_WIZARD, SPELL_FEEBLEMIND, 9);
+  spell_assignment(CLASS_WIZARD, SPELL_NIGHTMARE, 9);
+  spell_assignment(CLASS_WIZARD, SPELL_MIND_FOG, 9);
+  spell_assignment(CLASS_WIZARD, SPELL_ACID_SHEATH, 9);
+  spell_assignment(CLASS_WIZARD, SPELL_FAITHFUL_HOUND, 9);
+  spell_assignment(CLASS_WIZARD, SPELL_DISMISSAL, 9);
+  spell_assignment(CLASS_WIZARD, SPELL_CONE_OF_COLD, 9);
+  spell_assignment(CLASS_WIZARD, SPELL_TELEKINESIS, 9);
+  spell_assignment(CLASS_WIZARD, SPELL_FIREBRAND, 9);
   /*              class num      spell                   level acquired */
   /* 6th circle */
-  spell_assignment(CLASS_WIZARD, SPELL_FREEZING_SPHERE,      11);
-  spell_assignment(CLASS_WIZARD, SPELL_ACID_FOG,             11);
-  spell_assignment(CLASS_WIZARD, SPELL_SUMMON_CREATURE_6,    11);
-  spell_assignment(CLASS_WIZARD, SPELL_TRANSFORMATION,       11);
-  spell_assignment(CLASS_WIZARD, SPELL_EYEBITE,              11);
-  spell_assignment(CLASS_WIZARD, SPELL_MASS_HASTE,           11);
-  spell_assignment(CLASS_WIZARD, SPELL_GREATER_HEROISM,      11);
-  spell_assignment(CLASS_WIZARD, SPELL_ANTI_MAGIC_FIELD,     11);
+  spell_assignment(CLASS_WIZARD, SPELL_FREEZING_SPHERE, 11);
+  spell_assignment(CLASS_WIZARD, SPELL_ACID_FOG, 11);
+  spell_assignment(CLASS_WIZARD, SPELL_SUMMON_CREATURE_6, 11);
+  spell_assignment(CLASS_WIZARD, SPELL_TRANSFORMATION, 11);
+  spell_assignment(CLASS_WIZARD, SPELL_EYEBITE, 11);
+  spell_assignment(CLASS_WIZARD, SPELL_MASS_HASTE, 11);
+  spell_assignment(CLASS_WIZARD, SPELL_GREATER_HEROISM, 11);
+  spell_assignment(CLASS_WIZARD, SPELL_ANTI_MAGIC_FIELD, 11);
   spell_assignment(CLASS_WIZARD, SPELL_GREATER_MIRROR_IMAGE, 11);
-  spell_assignment(CLASS_WIZARD, SPELL_LOCATE_OBJECT,        11);
-  spell_assignment(CLASS_WIZARD, SPELL_TRUE_SEEING,          11);
-  spell_assignment(CLASS_WIZARD, SPELL_GLOBE_OF_INVULN,      11);
-  spell_assignment(CLASS_WIZARD, SPELL_GREATER_DISPELLING,   11);
-  spell_assignment(CLASS_WIZARD, SPELL_CLONE,                11);
-  spell_assignment(CLASS_WIZARD, SPELL_WATERWALK,            11);
-  spell_assignment(CLASS_WIZARD, SPELL_LEVITATE,             11);
+  spell_assignment(CLASS_WIZARD, SPELL_LOCATE_OBJECT, 11);
+  spell_assignment(CLASS_WIZARD, SPELL_TRUE_SEEING, 11);
+  spell_assignment(CLASS_WIZARD, SPELL_GLOBE_OF_INVULN, 11);
+  spell_assignment(CLASS_WIZARD, SPELL_GREATER_DISPELLING, 11);
+  spell_assignment(CLASS_WIZARD, SPELL_CLONE, 11);
+  spell_assignment(CLASS_WIZARD, SPELL_WATERWALK, 11);
+  spell_assignment(CLASS_WIZARD, SPELL_LEVITATE, 11);
   /*              class num      spell                   level acquired */
   /* 7th circle */
-  spell_assignment(CLASS_WIZARD, SPELL_MISSILE_STORM,       13);
-  spell_assignment(CLASS_WIZARD, SPELL_GRASPING_HAND,       13);
-  spell_assignment(CLASS_WIZARD, SPELL_SUMMON_CREATURE_7,   13);
-  spell_assignment(CLASS_WIZARD, SPELL_CONTROL_WEATHER,     13);
-  spell_assignment(CLASS_WIZARD, SPELL_POWER_WORD_BLIND,    13);
+  spell_assignment(CLASS_WIZARD, SPELL_MISSILE_STORM, 13);
+  spell_assignment(CLASS_WIZARD, SPELL_GRASPING_HAND, 13);
+  spell_assignment(CLASS_WIZARD, SPELL_SUMMON_CREATURE_7, 13);
+  spell_assignment(CLASS_WIZARD, SPELL_CONTROL_WEATHER, 13);
+  spell_assignment(CLASS_WIZARD, SPELL_POWER_WORD_BLIND, 13);
   spell_assignment(CLASS_WIZARD, SPELL_WAVES_OF_EXHAUSTION, 13);
-  spell_assignment(CLASS_WIZARD, SPELL_MASS_HOLD_PERSON,    13);
-  spell_assignment(CLASS_WIZARD, SPELL_MASS_FLY,            13);
-  spell_assignment(CLASS_WIZARD, SPELL_DISPLACEMENT,        13);
-  spell_assignment(CLASS_WIZARD, SPELL_PRISMATIC_SPRAY,     13);
-  spell_assignment(CLASS_WIZARD, SPELL_DETECT_POISON,       13);
-  spell_assignment(CLASS_WIZARD, SPELL_POWER_WORD_STUN,     13);
+  spell_assignment(CLASS_WIZARD, SPELL_MASS_HOLD_PERSON, 13);
+  spell_assignment(CLASS_WIZARD, SPELL_MASS_FLY, 13);
+  spell_assignment(CLASS_WIZARD, SPELL_DISPLACEMENT, 13);
+  spell_assignment(CLASS_WIZARD, SPELL_PRISMATIC_SPRAY, 13);
+  spell_assignment(CLASS_WIZARD, SPELL_DETECT_POISON, 13);
+  spell_assignment(CLASS_WIZARD, SPELL_POWER_WORD_STUN, 13);
   spell_assignment(CLASS_WIZARD, SPELL_PROTECT_FROM_SPELLS, 13);
-  spell_assignment(CLASS_WIZARD, SPELL_THUNDERCLAP,         13);
-  spell_assignment(CLASS_WIZARD, SPELL_SPELL_MANTLE,        13);
-  spell_assignment(CLASS_WIZARD, SPELL_TELEPORT,            13);
-  spell_assignment(CLASS_WIZARD, SPELL_MASS_WISDOM,         13);
-  spell_assignment(CLASS_WIZARD, SPELL_MASS_CHARISMA,       13);
-  spell_assignment(CLASS_WIZARD, SPELL_MASS_CUNNING,        13);
+  spell_assignment(CLASS_WIZARD, SPELL_THUNDERCLAP, 13);
+  spell_assignment(CLASS_WIZARD, SPELL_SPELL_MANTLE, 13);
+  spell_assignment(CLASS_WIZARD, SPELL_TELEPORT, 13);
+  spell_assignment(CLASS_WIZARD, SPELL_MASS_WISDOM, 13);
+  spell_assignment(CLASS_WIZARD, SPELL_MASS_CHARISMA, 13);
+  spell_assignment(CLASS_WIZARD, SPELL_MASS_CUNNING, 13);
   /*              class num      spell                   level acquired */
   /* 8th circle */
-  spell_assignment(CLASS_WIZARD, SPELL_CLENCHED_FIST,      15);
-  spell_assignment(CLASS_WIZARD, SPELL_CHAIN_LIGHTNING,    15);
-  spell_assignment(CLASS_WIZARD, SPELL_INCENDIARY_CLOUD,   15);
-  spell_assignment(CLASS_WIZARD, SPELL_SUMMON_CREATURE_8,  15);
-  spell_assignment(CLASS_WIZARD, SPELL_HORRID_WILTING,     15);
-  spell_assignment(CLASS_WIZARD, SPELL_GREATER_ANIMATION,  15);
+  spell_assignment(CLASS_WIZARD, SPELL_CLENCHED_FIST, 15);
+  spell_assignment(CLASS_WIZARD, SPELL_CHAIN_LIGHTNING, 15);
+  spell_assignment(CLASS_WIZARD, SPELL_INCENDIARY_CLOUD, 15);
+  spell_assignment(CLASS_WIZARD, SPELL_SUMMON_CREATURE_8, 15);
+  spell_assignment(CLASS_WIZARD, SPELL_HORRID_WILTING, 15);
+  spell_assignment(CLASS_WIZARD, SPELL_GREATER_ANIMATION, 15);
   spell_assignment(CLASS_WIZARD, SPELL_IRRESISTIBLE_DANCE, 15);
-  spell_assignment(CLASS_WIZARD, SPELL_MASS_DOMINATION,    15);
-  spell_assignment(CLASS_WIZARD, SPELL_SCINT_PATTERN,      15);
-  spell_assignment(CLASS_WIZARD, SPELL_REFUGE,             15);
-  spell_assignment(CLASS_WIZARD, SPELL_BANISH,             15);
-  spell_assignment(CLASS_WIZARD, SPELL_SUNBURST,           15);
-  spell_assignment(CLASS_WIZARD, SPELL_SPELL_TURNING,      15);
-  spell_assignment(CLASS_WIZARD, SPELL_MIND_BLANK,         15);
-  spell_assignment(CLASS_WIZARD, SPELL_IRONSKIN,           15);
-  spell_assignment(CLASS_WIZARD, SPELL_PORTAL,             15);
+  spell_assignment(CLASS_WIZARD, SPELL_MASS_DOMINATION, 15);
+  spell_assignment(CLASS_WIZARD, SPELL_SCINT_PATTERN, 15);
+  spell_assignment(CLASS_WIZARD, SPELL_REFUGE, 15);
+  spell_assignment(CLASS_WIZARD, SPELL_BANISH, 15);
+  spell_assignment(CLASS_WIZARD, SPELL_SUNBURST, 15);
+  spell_assignment(CLASS_WIZARD, SPELL_SPELL_TURNING, 15);
+  spell_assignment(CLASS_WIZARD, SPELL_MIND_BLANK, 15);
+  spell_assignment(CLASS_WIZARD, SPELL_IRONSKIN, 15);
+  spell_assignment(CLASS_WIZARD, SPELL_PORTAL, 15);
   /*              class num      spell                   level acquired */
   /* 9th circle */
-  spell_assignment(CLASS_WIZARD, SPELL_METEOR_SWARM,         17);
-  spell_assignment(CLASS_WIZARD, SPELL_BLADE_OF_DISASTER,    17);
-  spell_assignment(CLASS_WIZARD, SPELL_SUMMON_CREATURE_9,    17);
-  spell_assignment(CLASS_WIZARD, SPELL_GATE,                 17);
-  spell_assignment(CLASS_WIZARD, SPELL_ENERGY_DRAIN,         17);
-  spell_assignment(CLASS_WIZARD, SPELL_WAIL_OF_THE_BANSHEE,  17);
-  spell_assignment(CLASS_WIZARD, SPELL_POWER_WORD_KILL,      17);
-  spell_assignment(CLASS_WIZARD, SPELL_ENFEEBLEMENT,         17);
-  spell_assignment(CLASS_WIZARD, SPELL_WEIRD,                17);
-  spell_assignment(CLASS_WIZARD, SPELL_SHADOW_SHIELD,        17);
-  spell_assignment(CLASS_WIZARD, SPELL_PRISMATIC_SPHERE,     17);
-  spell_assignment(CLASS_WIZARD, SPELL_IMPLODE,              17);
-  spell_assignment(CLASS_WIZARD, SPELL_TIMESTOP,             17);
+  spell_assignment(CLASS_WIZARD, SPELL_METEOR_SWARM, 17);
+  spell_assignment(CLASS_WIZARD, SPELL_BLADE_OF_DISASTER, 17);
+  spell_assignment(CLASS_WIZARD, SPELL_SUMMON_CREATURE_9, 17);
+  spell_assignment(CLASS_WIZARD, SPELL_GATE, 17);
+  spell_assignment(CLASS_WIZARD, SPELL_ENERGY_DRAIN, 17);
+  spell_assignment(CLASS_WIZARD, SPELL_WAIL_OF_THE_BANSHEE, 17);
+  spell_assignment(CLASS_WIZARD, SPELL_POWER_WORD_KILL, 17);
+  spell_assignment(CLASS_WIZARD, SPELL_ENFEEBLEMENT, 17);
+  spell_assignment(CLASS_WIZARD, SPELL_WEIRD, 17);
+  spell_assignment(CLASS_WIZARD, SPELL_SHADOW_SHIELD, 17);
+  spell_assignment(CLASS_WIZARD, SPELL_PRISMATIC_SPHERE, 17);
+  spell_assignment(CLASS_WIZARD, SPELL_IMPLODE, 17);
+  spell_assignment(CLASS_WIZARD, SPELL_TIMESTOP, 17);
   spell_assignment(CLASS_WIZARD, SPELL_GREATER_SPELL_MANTLE, 17);
-  spell_assignment(CLASS_WIZARD, SPELL_POLYMORPH,            17);
-  spell_assignment(CLASS_WIZARD, SPELL_MASS_ENHANCE,         17);  
+  spell_assignment(CLASS_WIZARD, SPELL_POLYMORPH, 17);
+  spell_assignment(CLASS_WIZARD, SPELL_MASS_ENHANCE, 17);
   /*epic*/
-  spell_assignment(CLASS_WIZARD, SPELL_MUMMY_DUST,      21);  
-  spell_assignment(CLASS_WIZARD, SPELL_DRAGON_KNIGHT,   21);  
-  spell_assignment(CLASS_WIZARD, SPELL_GREATER_RUIN,    21);  
-  spell_assignment(CLASS_WIZARD, SPELL_HELLBALL,        21);  
-  spell_assignment(CLASS_WIZARD, SPELL_EPIC_MAGE_ARMOR, 21);  
-  spell_assignment(CLASS_WIZARD, SPELL_EPIC_WARDING,    21);
+  spell_assignment(CLASS_WIZARD, SPELL_MUMMY_DUST, 21);
+  spell_assignment(CLASS_WIZARD, SPELL_DRAGON_KNIGHT, 21);
+  spell_assignment(CLASS_WIZARD, SPELL_GREATER_RUIN, 21);
+  spell_assignment(CLASS_WIZARD, SPELL_HELLBALL, 21);
+  spell_assignment(CLASS_WIZARD, SPELL_EPIC_MAGE_ARMOR, 21);
+  spell_assignment(CLASS_WIZARD, SPELL_EPIC_WARDING, 21);
   /* no prereqs!  woo! */
   /* INIT spell slots, assignement of spell slots based on
      tables in constants.c */
   //assign_feat_spell_slots(CLASS_WIZARD);
   /**/
   /****************************************************************************/
-          
+
   /****************************************************************************/
   /*     class-number  name      abrv   clr-abrv     menu-name*/
   classo(CLASS_CLERIC, "cleric", "Cle", "\tBCle\tn", "c) \tBCleric\tn",
-    /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst eFeatp*/
-      -1,       N,    N,        M,  8, 0,   1,   2,     Y,       0,      0,
-      /*descrip*/"In faith and the miracles of the divine, many find a greater "
-    "purpose. Called to serve powers beyond most mortal understanding, all priests "
-    "preach wonders and provide for the spiritual needs of their people. Clerics "
-    "are more than mere priests, though; these emissaries of the divine work the "
-    "will of the greater powers through strength of arms and the magic of their "
-    "divine channels. Devoted to the tenets of the religions and philosophies that "
-    "inspire them, these ecclesiastics quest to spread the knowledge and influence "
-    "of their faith. Yet while they might share similar abilities, clerics prove as "
-    "different from one another as the powers they serve, with some offering healing "
-    "and redemption, others judging law and truth, and still others spreading "
-    "conflict and corruption. The ways of the cleric are varied, yet all who tread "
-    "these paths walk with the mightiest of allies and bear the arms of the divine "
-    "themselves.");
+          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst eFeatp*/
+          -1, N, N, M, 8, 0, 1, 2, Y, 0, 0,
+          /*descrip*/"In faith and the miracles of the divine, many find a greater "
+          "purpose. Called to serve powers beyond most mortal understanding, all priests "
+          "preach wonders and provide for the spiritual needs of their people. Clerics "
+          "are more than mere priests, though; these emissaries of the divine work the "
+          "will of the greater powers through strength of arms and the magic of their "
+          "divine channels. Devoted to the tenets of the religions and philosophies that "
+          "inspire them, these ecclesiastics quest to spread the knowledge and influence "
+          "of their faith. Yet while they might share similar abilities, clerics prove as "
+          "different from one another as the powers they serve, with some offering healing "
+          "and redemption, others judging law and truth, and still others spreading "
+          "conflict and corruption. The ways of the cleric are varied, yet all who tread "
+          "these paths walk with the mightiest of allies and bear the arms of the divine "
+          "themselves.");
   /* class-number then saves: fortitude, reflex, will, poison, death */
-  assign_class_saves(CLASS_CLERIC, G,    B,      G,    B,      B);
+  assign_class_saves(CLASS_CLERIC, G, B, G, B, B);
   assign_class_abils(CLASS_CLERIC, /* class number */
-    /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
-      CC,        CC,     CC,        CA,  CC,        CA,            CA,
-    /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
-      CA,      CC,        CA,           CA,  CA,  CC,   CC,             CC,
-    /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
-      CA,       CC,            CC,      CC,           CC,           CC,
-    /*survival,swim,use_magic_device,perform*/
-      CC,      CA,  CC,              CC
-    );
+          /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+          CC, CC, CC, CA, CC, CA, CA,
+          /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+          CA, CC, CA, CA, CA, CC, CC, CC,
+          /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+          CA, CC, CC, CC, CC, CC,
+          /*survival,swim,use_magic_device,perform*/
+          CC, CA, CC, CC
+          );
   assign_class_titles(CLASS_CLERIC, /* class number */
-    "",                             /* <= 4  */
-    "the Devotee",                  /* <= 9  */
-    "the Example",                  /* <= 14 */
-    "the Truly Pious",              /* <= 19 */
-    "the Mighty in Faith",          /* <= 24 */
-    "the God-Favored",              /* <= 29 */
-    "the One Who Moves Mountains",  /* <= 30 */
-    "the Immortal Cardinal",        /* <= LVL_IMMORT */
-    "the Inquisitor",               /* <= LVL_STAFF */
-    "the God of Good and Evil",     /* <= LVL_GRSTAFF */
-    "the Cleric"                    /* default */  
-  );
+          "", /* <= 4  */
+          "the Devotee", /* <= 9  */
+          "the Example", /* <= 14 */
+          "the Truly Pious", /* <= 19 */
+          "the Mighty in Faith", /* <= 24 */
+          "the God-Favored", /* <= 29 */
+          "the One Who Moves Mountains", /* <= 30 */
+          "the Immortal Cardinal", /* <= LVL_IMMORT */
+          "the Inquisitor", /* <= LVL_STAFF */
+          "the God of Good and Evil", /* <= LVL_GRSTAFF */
+          "the Cleric" /* default */
+          );
   /* feat assignment */
   /*              class num     feat                            cfeat lvl stack */
-  feat_assignment(CLASS_CLERIC, FEAT_SIMPLE_WEAPON_PROFICIENCY, Y,    1,  N);
-  feat_assignment(CLASS_CLERIC, FEAT_ARMOR_PROFICIENCY_HEAVY,   Y,    1,  N);
-  feat_assignment(CLASS_CLERIC, FEAT_ARMOR_PROFICIENCY_LIGHT,   Y,    1,  N);
-  feat_assignment(CLASS_CLERIC, FEAT_ARMOR_PROFICIENCY_MEDIUM,  Y,    1,  N);
-  feat_assignment(CLASS_CLERIC, FEAT_ARMOR_PROFICIENCY_SHIELD,  Y,    1,  N);
-  feat_assignment(CLASS_CLERIC, FEAT_TURN_UNDEAD,               Y,    1,  N);
-  feat_assignment(CLASS_CLERIC, FEAT_CLERIC_1ST_CIRCLE,         Y,    1,  N);
-  feat_assignment(CLASS_CLERIC, FEAT_CLERIC_2ND_CIRCLE,         Y,    3,  N);
-  feat_assignment(CLASS_CLERIC, FEAT_CLERIC_3RD_CIRCLE,         Y,    5,  N);
-  feat_assignment(CLASS_CLERIC, FEAT_CLERIC_4TH_CIRCLE,         Y,    7,  N);
-  feat_assignment(CLASS_CLERIC, FEAT_CLERIC_5TH_CIRCLE,         Y,    9,  N);
-  feat_assignment(CLASS_CLERIC, FEAT_CLERIC_6TH_CIRCLE,         Y,   11,  N);
-  feat_assignment(CLASS_CLERIC, FEAT_CLERIC_7TH_CIRCLE,         Y,   13,  N);
-  feat_assignment(CLASS_CLERIC, FEAT_CLERIC_8TH_CIRCLE,         Y,   15,  N);
-  feat_assignment(CLASS_CLERIC, FEAT_CLERIC_9TH_CIRCLE,         Y,   17,  N);
+  feat_assignment(CLASS_CLERIC, FEAT_SIMPLE_WEAPON_PROFICIENCY, Y, 1, N);
+  feat_assignment(CLASS_CLERIC, FEAT_ARMOR_PROFICIENCY_HEAVY, Y, 1, N);
+  feat_assignment(CLASS_CLERIC, FEAT_ARMOR_PROFICIENCY_LIGHT, Y, 1, N);
+  feat_assignment(CLASS_CLERIC, FEAT_ARMOR_PROFICIENCY_MEDIUM, Y, 1, N);
+  feat_assignment(CLASS_CLERIC, FEAT_ARMOR_PROFICIENCY_SHIELD, Y, 1, N);
+  feat_assignment(CLASS_CLERIC, FEAT_TURN_UNDEAD, Y, 1, N);
+  feat_assignment(CLASS_CLERIC, FEAT_CLERIC_1ST_CIRCLE, Y, 1, N);
+  feat_assignment(CLASS_CLERIC, FEAT_CLERIC_2ND_CIRCLE, Y, 3, N);
+  feat_assignment(CLASS_CLERIC, FEAT_CLERIC_3RD_CIRCLE, Y, 5, N);
+  feat_assignment(CLASS_CLERIC, FEAT_CLERIC_4TH_CIRCLE, Y, 7, N);
+  feat_assignment(CLASS_CLERIC, FEAT_CLERIC_5TH_CIRCLE, Y, 9, N);
+  feat_assignment(CLASS_CLERIC, FEAT_CLERIC_6TH_CIRCLE, Y, 11, N);
+  feat_assignment(CLASS_CLERIC, FEAT_CLERIC_7TH_CIRCLE, Y, 13, N);
+  feat_assignment(CLASS_CLERIC, FEAT_CLERIC_8TH_CIRCLE, Y, 15, N);
+  feat_assignment(CLASS_CLERIC, FEAT_CLERIC_9TH_CIRCLE, Y, 17, N);
   /*epic*/
-  feat_assignment(CLASS_CLERIC, FEAT_CLERIC_EPIC_SPELL,         Y,   21,  N);
-  /**** spell assign ****/ 
+  feat_assignment(CLASS_CLERIC, FEAT_CLERIC_EPIC_SPELL, Y, 21, N);
+  /**** spell assign ****/
   /*              class num      spell                   level acquired */
   /* 1st circle */
-  spell_assignment(CLASS_CLERIC, SPELL_ARMOR,               1);
-  spell_assignment(CLASS_CLERIC, SPELL_CURE_LIGHT,          1);
-  spell_assignment(CLASS_CLERIC, SPELL_ENDURANCE,           1);
-  spell_assignment(CLASS_CLERIC, SPELL_CAUSE_LIGHT_WOUNDS,  1);
+  spell_assignment(CLASS_CLERIC, SPELL_ARMOR, 1);
+  spell_assignment(CLASS_CLERIC, SPELL_CURE_LIGHT, 1);
+  spell_assignment(CLASS_CLERIC, SPELL_ENDURANCE, 1);
+  spell_assignment(CLASS_CLERIC, SPELL_CAUSE_LIGHT_WOUNDS, 1);
   spell_assignment(CLASS_CLERIC, SPELL_NEGATIVE_ENERGY_RAY, 1);
-  spell_assignment(CLASS_CLERIC, SPELL_ENDURE_ELEMENTS,     1);
-  spell_assignment(CLASS_CLERIC, SPELL_PROT_FROM_GOOD,      1);
-  spell_assignment(CLASS_CLERIC, SPELL_PROT_FROM_EVIL,      1);
-  spell_assignment(CLASS_CLERIC, SPELL_SUMMON_CREATURE_1,   1);
-  spell_assignment(CLASS_CLERIC, SPELL_STRENGTH,            1);
-  spell_assignment(CLASS_CLERIC, SPELL_GRACE,               1);
-  spell_assignment(CLASS_CLERIC, SPELL_REMOVE_FEAR,         1);
+  spell_assignment(CLASS_CLERIC, SPELL_ENDURE_ELEMENTS, 1);
+  spell_assignment(CLASS_CLERIC, SPELL_PROT_FROM_GOOD, 1);
+  spell_assignment(CLASS_CLERIC, SPELL_PROT_FROM_EVIL, 1);
+  spell_assignment(CLASS_CLERIC, SPELL_SUMMON_CREATURE_1, 1);
+  spell_assignment(CLASS_CLERIC, SPELL_STRENGTH, 1);
+  spell_assignment(CLASS_CLERIC, SPELL_GRACE, 1);
+  spell_assignment(CLASS_CLERIC, SPELL_REMOVE_FEAR, 1);
   /*              class num      spell                   level acquired */
   /* 2nd circle */
-  spell_assignment(CLASS_CLERIC, SPELL_CREATE_FOOD,           3);
-  spell_assignment(CLASS_CLERIC, SPELL_CREATE_WATER,          3);
-  spell_assignment(CLASS_CLERIC, SPELL_DETECT_POISON,         3);
+  spell_assignment(CLASS_CLERIC, SPELL_CREATE_FOOD, 3);
+  spell_assignment(CLASS_CLERIC, SPELL_CREATE_WATER, 3);
+  spell_assignment(CLASS_CLERIC, SPELL_DETECT_POISON, 3);
   spell_assignment(CLASS_CLERIC, SPELL_CAUSE_MODERATE_WOUNDS, 3);
-  spell_assignment(CLASS_CLERIC, SPELL_CURE_MODERATE,         3);
-  spell_assignment(CLASS_CLERIC, SPELL_SCARE,                 3);
-  spell_assignment(CLASS_CLERIC, SPELL_SUMMON_CREATURE_2,     3);
-  spell_assignment(CLASS_CLERIC, SPELL_DETECT_MAGIC,          3);
-  spell_assignment(CLASS_CLERIC, SPELL_DARKNESS,              3);
-  spell_assignment(CLASS_CLERIC, SPELL_RESIST_ENERGY,         3);
-  spell_assignment(CLASS_CLERIC, SPELL_WISDOM,                3);
-  spell_assignment(CLASS_CLERIC, SPELL_CHARISMA,              3);
+  spell_assignment(CLASS_CLERIC, SPELL_CURE_MODERATE, 3);
+  spell_assignment(CLASS_CLERIC, SPELL_SCARE, 3);
+  spell_assignment(CLASS_CLERIC, SPELL_SUMMON_CREATURE_2, 3);
+  spell_assignment(CLASS_CLERIC, SPELL_DETECT_MAGIC, 3);
+  spell_assignment(CLASS_CLERIC, SPELL_DARKNESS, 3);
+  spell_assignment(CLASS_CLERIC, SPELL_RESIST_ENERGY, 3);
+  spell_assignment(CLASS_CLERIC, SPELL_WISDOM, 3);
+  spell_assignment(CLASS_CLERIC, SPELL_CHARISMA, 3);
   /*              class num      spell                   level acquired */
   /* 3rd circle */
-  spell_assignment(CLASS_CLERIC, SPELL_BLESS,                5);
-  spell_assignment(CLASS_CLERIC, SPELL_CURE_BLIND,           5);
-  spell_assignment(CLASS_CLERIC, SPELL_DETECT_ALIGN,         5);
+  spell_assignment(CLASS_CLERIC, SPELL_BLESS, 5);
+  spell_assignment(CLASS_CLERIC, SPELL_CURE_BLIND, 5);
+  spell_assignment(CLASS_CLERIC, SPELL_DETECT_ALIGN, 5);
   spell_assignment(CLASS_CLERIC, SPELL_CAUSE_SERIOUS_WOUNDS, 5);
-  spell_assignment(CLASS_CLERIC, SPELL_CURE_SERIOUS,         5);
-  spell_assignment(CLASS_CLERIC, SPELL_SUMMON_CREATURE_3,    5);
-  spell_assignment(CLASS_CLERIC, SPELL_BLINDNESS,            5);
-  spell_assignment(CLASS_CLERIC, SPELL_DEAFNESS,             5);
-  spell_assignment(CLASS_CLERIC, SPELL_CURE_DEAFNESS,        5);
-  spell_assignment(CLASS_CLERIC, SPELL_CUNNING,              5);
-  spell_assignment(CLASS_CLERIC, SPELL_DISPEL_MAGIC,         5);
-  spell_assignment(CLASS_CLERIC, SPELL_ANIMATE_DEAD,         5);
-  spell_assignment(CLASS_CLERIC, SPELL_FAERIE_FOG,           5);
+  spell_assignment(CLASS_CLERIC, SPELL_CURE_SERIOUS, 5);
+  spell_assignment(CLASS_CLERIC, SPELL_SUMMON_CREATURE_3, 5);
+  spell_assignment(CLASS_CLERIC, SPELL_BLINDNESS, 5);
+  spell_assignment(CLASS_CLERIC, SPELL_DEAFNESS, 5);
+  spell_assignment(CLASS_CLERIC, SPELL_CURE_DEAFNESS, 5);
+  spell_assignment(CLASS_CLERIC, SPELL_CUNNING, 5);
+  spell_assignment(CLASS_CLERIC, SPELL_DISPEL_MAGIC, 5);
+  spell_assignment(CLASS_CLERIC, SPELL_ANIMATE_DEAD, 5);
+  spell_assignment(CLASS_CLERIC, SPELL_FAERIE_FOG, 5);
   /*              class num      spell                   level acquired */
   /* 4th circle */
-  spell_assignment(CLASS_CLERIC, SPELL_CURE_CRITIC,           7);
-  spell_assignment(CLASS_CLERIC, SPELL_REMOVE_CURSE,          7);
-  spell_assignment(CLASS_CLERIC, SPELL_INFRAVISION,           7);
+  spell_assignment(CLASS_CLERIC, SPELL_CURE_CRITIC, 7);
+  spell_assignment(CLASS_CLERIC, SPELL_REMOVE_CURSE, 7);
+  spell_assignment(CLASS_CLERIC, SPELL_INFRAVISION, 7);
   spell_assignment(CLASS_CLERIC, SPELL_CAUSE_CRITICAL_WOUNDS, 7);
-  spell_assignment(CLASS_CLERIC, SPELL_SUMMON_CREATURE_4,     7);
-  spell_assignment(CLASS_CLERIC, SPELL_CIRCLE_A_EVIL,         7);
-  spell_assignment(CLASS_CLERIC, SPELL_CIRCLE_A_GOOD,         7);
-  spell_assignment(CLASS_CLERIC, SPELL_CURSE,                 7);
-  spell_assignment(CLASS_CLERIC, SPELL_DAYLIGHT,              7);
-  spell_assignment(CLASS_CLERIC, SPELL_MASS_CURE_LIGHT,       7);
-  spell_assignment(CLASS_CLERIC, SPELL_AID,                   7);
-  spell_assignment(CLASS_CLERIC, SPELL_BRAVERY,               7);
+  spell_assignment(CLASS_CLERIC, SPELL_SUMMON_CREATURE_4, 7);
+  spell_assignment(CLASS_CLERIC, SPELL_CIRCLE_A_EVIL, 7);
+  spell_assignment(CLASS_CLERIC, SPELL_CIRCLE_A_GOOD, 7);
+  spell_assignment(CLASS_CLERIC, SPELL_CURSE, 7);
+  spell_assignment(CLASS_CLERIC, SPELL_DAYLIGHT, 7);
+  spell_assignment(CLASS_CLERIC, SPELL_MASS_CURE_LIGHT, 7);
+  spell_assignment(CLASS_CLERIC, SPELL_AID, 7);
+  spell_assignment(CLASS_CLERIC, SPELL_BRAVERY, 7);
   /*              class num      spell                   level acquired */
   /* 5th circle */
-  spell_assignment(CLASS_CLERIC, SPELL_POISON,             9);
-  spell_assignment(CLASS_CLERIC, SPELL_REMOVE_POISON,      9);
-  spell_assignment(CLASS_CLERIC, SPELL_PROT_FROM_EVIL,     9);
-  spell_assignment(CLASS_CLERIC, SPELL_GROUP_ARMOR,        9);
-  spell_assignment(CLASS_CLERIC, SPELL_FLAME_STRIKE,       9);
-  spell_assignment(CLASS_CLERIC, SPELL_PROT_FROM_GOOD,     9);
+  spell_assignment(CLASS_CLERIC, SPELL_POISON, 9);
+  spell_assignment(CLASS_CLERIC, SPELL_REMOVE_POISON, 9);
+  spell_assignment(CLASS_CLERIC, SPELL_PROT_FROM_EVIL, 9);
+  spell_assignment(CLASS_CLERIC, SPELL_GROUP_ARMOR, 9);
+  spell_assignment(CLASS_CLERIC, SPELL_FLAME_STRIKE, 9);
+  spell_assignment(CLASS_CLERIC, SPELL_PROT_FROM_GOOD, 9);
   spell_assignment(CLASS_CLERIC, SPELL_MASS_CURE_MODERATE, 9);
-  spell_assignment(CLASS_CLERIC, SPELL_SUMMON_CREATURE_5,  9);
-  spell_assignment(CLASS_CLERIC, SPELL_WATER_BREATHE,      9);
-  spell_assignment(CLASS_CLERIC, SPELL_WATERWALK,          9);
-  spell_assignment(CLASS_CLERIC, SPELL_REGENERATION,       9);
-  spell_assignment(CLASS_CLERIC, SPELL_FREE_MOVEMENT,      9);
-  spell_assignment(CLASS_CLERIC, SPELL_STRENGTHEN_BONE,    9);
+  spell_assignment(CLASS_CLERIC, SPELL_SUMMON_CREATURE_5, 9);
+  spell_assignment(CLASS_CLERIC, SPELL_WATER_BREATHE, 9);
+  spell_assignment(CLASS_CLERIC, SPELL_WATERWALK, 9);
+  spell_assignment(CLASS_CLERIC, SPELL_REGENERATION, 9);
+  spell_assignment(CLASS_CLERIC, SPELL_FREE_MOVEMENT, 9);
+  spell_assignment(CLASS_CLERIC, SPELL_STRENGTHEN_BONE, 9);
   /*              class num      spell                   level acquired */
   /* 6th circle */
-  spell_assignment(CLASS_CLERIC, SPELL_DISPEL_EVIL,       11);
-  spell_assignment(CLASS_CLERIC, SPELL_HARM,              11);
-  spell_assignment(CLASS_CLERIC, SPELL_HEAL,              11);
-  spell_assignment(CLASS_CLERIC, SPELL_DISPEL_GOOD,       11);
+  spell_assignment(CLASS_CLERIC, SPELL_DISPEL_EVIL, 11);
+  spell_assignment(CLASS_CLERIC, SPELL_HARM, 11);
+  spell_assignment(CLASS_CLERIC, SPELL_HEAL, 11);
+  spell_assignment(CLASS_CLERIC, SPELL_DISPEL_GOOD, 11);
   spell_assignment(CLASS_CLERIC, SPELL_SUMMON_CREATURE_6, 11);
   spell_assignment(CLASS_CLERIC, SPELL_MASS_CURE_SERIOUS, 11);
-  spell_assignment(CLASS_CLERIC, SPELL_EYEBITE,           11);
-  spell_assignment(CLASS_CLERIC, SPELL_PRAYER,            11);
-  spell_assignment(CLASS_CLERIC, SPELL_MASS_WISDOM,       11);
-  spell_assignment(CLASS_CLERIC, SPELL_MASS_CHARISMA,     11);
-  spell_assignment(CLASS_CLERIC, SPELL_MASS_CUNNING,      11);
-  spell_assignment(CLASS_CLERIC, SPELL_REMOVE_DISEASE,    11);
-  spell_assignment(CLASS_CLERIC, SPELL_LEVITATE,          11);
+  spell_assignment(CLASS_CLERIC, SPELL_EYEBITE, 11);
+  spell_assignment(CLASS_CLERIC, SPELL_PRAYER, 11);
+  spell_assignment(CLASS_CLERIC, SPELL_MASS_WISDOM, 11);
+  spell_assignment(CLASS_CLERIC, SPELL_MASS_CHARISMA, 11);
+  spell_assignment(CLASS_CLERIC, SPELL_MASS_CUNNING, 11);
+  spell_assignment(CLASS_CLERIC, SPELL_REMOVE_DISEASE, 11);
+  spell_assignment(CLASS_CLERIC, SPELL_LEVITATE, 11);
   /*              class num      spell                   level acquired */
   /* 7th circle */
-  spell_assignment(CLASS_CLERIC, SPELL_CALL_LIGHTNING,     13);
+  spell_assignment(CLASS_CLERIC, SPELL_CALL_LIGHTNING, 13);
   //spell_assignment(CLASS_CLERIC, SPELL_CONTROL_WEATHER,    13);
-  spell_assignment(CLASS_CLERIC, SPELL_SUMMON,             13);
-  spell_assignment(CLASS_CLERIC, SPELL_WORD_OF_RECALL,     13);
-  spell_assignment(CLASS_CLERIC, SPELL_SUMMON_CREATURE_7,  13);
-  spell_assignment(CLASS_CLERIC, SPELL_MASS_CURE_CRIT,     13);
+  spell_assignment(CLASS_CLERIC, SPELL_SUMMON, 13);
+  spell_assignment(CLASS_CLERIC, SPELL_WORD_OF_RECALL, 13);
+  spell_assignment(CLASS_CLERIC, SPELL_SUMMON_CREATURE_7, 13);
+  spell_assignment(CLASS_CLERIC, SPELL_MASS_CURE_CRIT, 13);
   spell_assignment(CLASS_CLERIC, SPELL_GREATER_DISPELLING, 13);
-  spell_assignment(CLASS_CLERIC, SPELL_MASS_ENHANCE,       13);
-  spell_assignment(CLASS_CLERIC, SPELL_BLADE_BARRIER,      13);
-  spell_assignment(CLASS_CLERIC, SPELL_BATTLETIDE,         13);
-  spell_assignment(CLASS_CLERIC, SPELL_SPELL_RESISTANCE,   13);
-  spell_assignment(CLASS_CLERIC, SPELL_SENSE_LIFE,         13);
+  spell_assignment(CLASS_CLERIC, SPELL_MASS_ENHANCE, 13);
+  spell_assignment(CLASS_CLERIC, SPELL_BLADE_BARRIER, 13);
+  spell_assignment(CLASS_CLERIC, SPELL_BATTLETIDE, 13);
+  spell_assignment(CLASS_CLERIC, SPELL_SPELL_RESISTANCE, 13);
+  spell_assignment(CLASS_CLERIC, SPELL_SENSE_LIFE, 13);
   /*              class num      spell                   level acquired */
   /* 8th circle */
   //spell_assignment(CLASS_CLERIC, SPELL_SANCTUARY,       15);
-  spell_assignment(CLASS_CLERIC, SPELL_DESTRUCTION,       15);
+  spell_assignment(CLASS_CLERIC, SPELL_DESTRUCTION, 15);
   spell_assignment(CLASS_CLERIC, SPELL_SUMMON_CREATURE_8, 15);
-  spell_assignment(CLASS_CLERIC, SPELL_SPELL_MANTLE,      15);
-  spell_assignment(CLASS_CLERIC, SPELL_TRUE_SEEING,       15);
-  spell_assignment(CLASS_CLERIC, SPELL_WORD_OF_FAITH,     15);
+  spell_assignment(CLASS_CLERIC, SPELL_SPELL_MANTLE, 15);
+  spell_assignment(CLASS_CLERIC, SPELL_TRUE_SEEING, 15);
+  spell_assignment(CLASS_CLERIC, SPELL_WORD_OF_FAITH, 15);
   spell_assignment(CLASS_CLERIC, SPELL_GREATER_ANIMATION, 15);
-  spell_assignment(CLASS_CLERIC, SPELL_EARTHQUAKE,        15);
-  spell_assignment(CLASS_CLERIC, SPELL_ANTI_MAGIC_FIELD,  15);
-  spell_assignment(CLASS_CLERIC, SPELL_DIMENSIONAL_LOCK,  15);
-  spell_assignment(CLASS_CLERIC, SPELL_SALVATION,         15);
-  spell_assignment(CLASS_CLERIC, SPELL_SPRING_OF_LIFE,    15);
+  spell_assignment(CLASS_CLERIC, SPELL_EARTHQUAKE, 15);
+  spell_assignment(CLASS_CLERIC, SPELL_ANTI_MAGIC_FIELD, 15);
+  spell_assignment(CLASS_CLERIC, SPELL_DIMENSIONAL_LOCK, 15);
+  spell_assignment(CLASS_CLERIC, SPELL_SALVATION, 15);
+  spell_assignment(CLASS_CLERIC, SPELL_SPRING_OF_LIFE, 15);
   /*              class num      spell                   level acquired */
   /* 9th circle */
-  spell_assignment(CLASS_CLERIC, SPELL_SUNBURST,           17);
-  spell_assignment(CLASS_CLERIC, SPELL_ENERGY_DRAIN,       17);
-  spell_assignment(CLASS_CLERIC, SPELL_GROUP_HEAL,         17);
-  spell_assignment(CLASS_CLERIC, SPELL_SUMMON_CREATURE_9,  17);
-  spell_assignment(CLASS_CLERIC, SPELL_PLANE_SHIFT,        17);
+  spell_assignment(CLASS_CLERIC, SPELL_SUNBURST, 17);
+  spell_assignment(CLASS_CLERIC, SPELL_ENERGY_DRAIN, 17);
+  spell_assignment(CLASS_CLERIC, SPELL_GROUP_HEAL, 17);
+  spell_assignment(CLASS_CLERIC, SPELL_SUMMON_CREATURE_9, 17);
+  spell_assignment(CLASS_CLERIC, SPELL_PLANE_SHIFT, 17);
   spell_assignment(CLASS_CLERIC, SPELL_STORM_OF_VENGEANCE, 17);
-  spell_assignment(CLASS_CLERIC, SPELL_IMPLODE,            17);
-  spell_assignment(CLASS_CLERIC, SPELL_REFUGE,             17);
-  spell_assignment(CLASS_CLERIC, SPELL_GROUP_SUMMON,       17);
+  spell_assignment(CLASS_CLERIC, SPELL_IMPLODE, 17);
+  spell_assignment(CLASS_CLERIC, SPELL_REFUGE, 17);
+  spell_assignment(CLASS_CLERIC, SPELL_GROUP_SUMMON, 17);
   //spell_assignment(CLASS_CLERIC, death shield, 17);
   //spell_assignment(CLASS_CLERIC, command, 17);
   //spell_assignment(CLASS_CLERIC, air walker, 17);
   /*epic spells*/
-  spell_assignment(CLASS_CLERIC, SPELL_MUMMY_DUST,    21);
+  spell_assignment(CLASS_CLERIC, SPELL_MUMMY_DUST, 21);
   spell_assignment(CLASS_CLERIC, SPELL_DRAGON_KNIGHT, 21);
-  spell_assignment(CLASS_CLERIC, SPELL_GREATER_RUIN,  21);
-  spell_assignment(CLASS_CLERIC, SPELL_HELLBALL,      21);
+  spell_assignment(CLASS_CLERIC, SPELL_GREATER_RUIN, 21);
+  spell_assignment(CLASS_CLERIC, SPELL_HELLBALL, 21);
   /* INIT spell slots, assignement of spell slots based on
      tables in constants.c */
   //assign_feat_spell_slots(CLASS_CLERIC);
   /****************************************************************************/
-  
+
   /****************************************************************************/
   /*     class-number  name     abrv   clr-abrv     menu-name*/
   classo(CLASS_ROGUE, "rogue", "Rog", "\twRog\tn", "t) \twRogue\tn",
-      /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst eFeatp*/
-        -1,       N,    N,        M,  6, 0,   2,   8,     Y,       0,      0,
-        /*descrip*/"Life is an endless adventure for those who live by their wits. "
-    "Ever just one step ahead of danger, rogues bank on their cunning, skill, and "
-    "charm to bend fate to their favor. Never knowing what to expect, they prepare "
-    "for everything, becoming masters of a wide variety of skills, training "
-    "themselves to be adept manipulators, agile acrobats, shadowy stalkers, or "
-    "masters of any of dozens of other professions or talents. Thieves and gamblers, "
-    "fast talkers and diplomats, bandits and bounty hunters, and explorers and "
-    "investigators all might be considered rogues, as well as countless other "
-    "professions that rely upon wits, prowess, or luck. Although many rogues favor "
-    "cities and the innumerable opportunities of civilization, some embrace lives "
-    "on the road, journeying far, meeting exotic people, and facing fantastic "
-    "danger in pursuit of equally fantastic riches. In the end, any who desire to "
-    "shape their fates and live life on their own terms might come to be called "
-    "rogues.");
+          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst eFeatp*/
+          -1, N, N, M, 6, 0, 2, 8, Y, 0, 0,
+          /*descrip*/"Life is an endless adventure for those who live by their wits. "
+          "Ever just one step ahead of danger, rogues bank on their cunning, skill, and "
+          "charm to bend fate to their favor. Never knowing what to expect, they prepare "
+          "for everything, becoming masters of a wide variety of skills, training "
+          "themselves to be adept manipulators, agile acrobats, shadowy stalkers, or "
+          "masters of any of dozens of other professions or talents. Thieves and gamblers, "
+          "fast talkers and diplomats, bandits and bounty hunters, and explorers and "
+          "investigators all might be considered rogues, as well as countless other "
+          "professions that rely upon wits, prowess, or luck. Although many rogues favor "
+          "cities and the innumerable opportunities of civilization, some embrace lives "
+          "on the road, journeying far, meeting exotic people, and facing fantastic "
+          "danger in pursuit of equally fantastic riches. In the end, any who desire to "
+          "shape their fates and live life on their own terms might come to be called "
+          "rogues.");
   /* class-number then saves: fortitude, reflex, will, poison, death */
-  assign_class_saves(CLASS_ROGUE, B,    G,      B,    B,      B);
+  assign_class_saves(CLASS_ROGUE, B, G, B, B, B);
   assign_class_abils(CLASS_ROGUE, /* class number */
-    /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
-      CA,        CA,     CA,        CA,  CC,        CC,            CC,
-    /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
-      CA,      CC,        CA,           CA,  CA,  CA,   CA,             CA,
-    /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
-      CA,       CA,            CA,      CA,           CC,           CA,
-    /*survival,swim,use_magic_device,perform*/
-      CC,      CA,  CA,              CC
-    );
+          /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+          CA, CA, CA, CA, CC, CC, CC,
+          /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+          CA, CC, CA, CA, CA, CA, CA, CA,
+          /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+          CA, CA, CA, CA, CC, CA,
+          /*survival,swim,use_magic_device,perform*/
+          CC, CA, CA, CC
+          );
   assign_class_titles(CLASS_ROGUE, /* class number */
-    "",                                  /* <= 4  */
-    "the Rover",                         /* <= 9  */
-    "the Multifarious",                  /* <= 14 */
-    "the Illusive",                      /* <= 19 */
-    "the Swindler",                      /* <= 24 */
-    "the Marauder",                      /* <= 29 */
-    "the Volatile",                      /* <= 30 */
-    "the Immortal Assassin",             /* <= LVL_IMMORT */
-    "the Demi God of Thieves",           /* <= LVL_STAFF */
-    "the God of Thieves and Tradesmen",  /* <= LVL_GRSTAFF */
-    "the Rogue"                          /* default */  
-  );
+          "", /* <= 4  */
+          "the Rover", /* <= 9  */
+          "the Multifarious", /* <= 14 */
+          "the Illusive", /* <= 19 */
+          "the Swindler", /* <= 24 */
+          "the Marauder", /* <= 29 */
+          "the Volatile", /* <= 30 */
+          "the Immortal Assassin", /* <= LVL_IMMORT */
+          "the Demi God of Thieves", /* <= LVL_STAFF */
+          "the God of Thieves and Tradesmen", /* <= LVL_GRSTAFF */
+          "the Rogue" /* default */
+          );
   /* feat assignment */
   /*              class num     feat                           cfeat lvl stack */
-  feat_assignment(CLASS_ROGUE, FEAT_SIMPLE_WEAPON_PROFICIENCY, Y,    1,  N);
-  feat_assignment(CLASS_ROGUE, FEAT_WEAPON_PROFICIENCY_ROGUE,  Y,    1,  N);
-  feat_assignment(CLASS_ROGUE, FEAT_ARMOR_PROFICIENCY_LIGHT,   Y,    1,  N);
-  feat_assignment(CLASS_ROGUE, FEAT_WEAPON_FINESSE,            Y,    1,  N);
-  feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK,              Y,    1,  Y);
-  feat_assignment(CLASS_ROGUE, FEAT_TRAPFINDING,               Y,    1,  N);
-  feat_assignment(CLASS_ROGUE, FEAT_EVASION,                   Y,    2,  N);
-  feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK,              Y,    3,  Y);
-  feat_assignment(CLASS_ROGUE, FEAT_TRAP_SENSE,                Y,    3,  Y);
+  feat_assignment(CLASS_ROGUE, FEAT_SIMPLE_WEAPON_PROFICIENCY, Y, 1, N);
+  feat_assignment(CLASS_ROGUE, FEAT_WEAPON_PROFICIENCY_ROGUE, Y, 1, N);
+  feat_assignment(CLASS_ROGUE, FEAT_ARMOR_PROFICIENCY_LIGHT, Y, 1, N);
+  feat_assignment(CLASS_ROGUE, FEAT_WEAPON_FINESSE, Y, 1, N);
+  feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK, Y, 1, Y);
+  feat_assignment(CLASS_ROGUE, FEAT_TRAPFINDING, Y, 1, N);
+  feat_assignment(CLASS_ROGUE, FEAT_EVASION, Y, 2, N);
+  feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK, Y, 3, Y);
+  feat_assignment(CLASS_ROGUE, FEAT_TRAP_SENSE, Y, 3, Y);
   /* talent lvl 3, slippery mind*/
-  feat_assignment(CLASS_ROGUE, FEAT_SLIPPERY_MIND,             Y,    3,  N);
-  feat_assignment(CLASS_ROGUE, FEAT_UNCANNY_DODGE,             Y,    4,  N);
-  feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK,              Y,    5,  Y);
-  feat_assignment(CLASS_ROGUE, FEAT_TRAP_SENSE,                Y,    6,  Y);
+  feat_assignment(CLASS_ROGUE, FEAT_SLIPPERY_MIND, Y, 3, N);
+  feat_assignment(CLASS_ROGUE, FEAT_UNCANNY_DODGE, Y, 4, N);
+  feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK, Y, 5, Y);
+  feat_assignment(CLASS_ROGUE, FEAT_TRAP_SENSE, Y, 6, Y);
   /* talent lvl 6, crippling strike*/
-  feat_assignment(CLASS_ROGUE, FEAT_CRIPPLING_STRIKE,          Y,    6,  N);
-  feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK,              Y,    7,  Y);
-  feat_assignment(CLASS_ROGUE, FEAT_IMPROVED_UNCANNY_DODGE,    Y,    8,  N);
-  feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK,              Y,    9,  Y);
-  feat_assignment(CLASS_ROGUE, FEAT_TRAP_SENSE,                Y,    9,  Y);
+  feat_assignment(CLASS_ROGUE, FEAT_CRIPPLING_STRIKE, Y, 6, N);
+  feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK, Y, 7, Y);
+  feat_assignment(CLASS_ROGUE, FEAT_IMPROVED_UNCANNY_DODGE, Y, 8, N);
+  feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK, Y, 9, Y);
+  feat_assignment(CLASS_ROGUE, FEAT_TRAP_SENSE, Y, 9, Y);
   /* talent lvl 9, improved evasion*/
-  feat_assignment(CLASS_ROGUE, FEAT_IMPROVED_EVASION,          Y,    9,  N);
-  feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK,              Y,   11,  Y);
-  feat_assignment(CLASS_ROGUE, FEAT_TRAP_SENSE,                Y,   12,  Y);
+  feat_assignment(CLASS_ROGUE, FEAT_IMPROVED_EVASION, Y, 9, N);
+  feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK, Y, 11, Y);
+  feat_assignment(CLASS_ROGUE, FEAT_TRAP_SENSE, Y, 12, Y);
   /* talent lvl 12, apply poison */
-  feat_assignment(CLASS_ROGUE, FEAT_APPLY_POISON,              Y,   12,  N);
-  feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK,              Y,   13,  Y);
-  feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK,              Y,   15,  Y);
-  feat_assignment(CLASS_ROGUE, FEAT_TRAP_SENSE,                Y,   15,  Y);
+  feat_assignment(CLASS_ROGUE, FEAT_APPLY_POISON, Y, 12, N);
+  feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK, Y, 13, Y);
+  feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK, Y, 15, Y);
+  feat_assignment(CLASS_ROGUE, FEAT_TRAP_SENSE, Y, 15, Y);
   /* advanced talent lvl 15, defensive roll */
-  feat_assignment(CLASS_ROGUE, FEAT_DEFENSIVE_ROLL,            Y,   15,  N);
-  feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK,              Y,   17,  Y);
-  feat_assignment(CLASS_ROGUE, FEAT_TRAP_SENSE,                Y,   18,  Y);
+  feat_assignment(CLASS_ROGUE, FEAT_DEFENSIVE_ROLL, Y, 15, N);
+  feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK, Y, 17, Y);
+  feat_assignment(CLASS_ROGUE, FEAT_TRAP_SENSE, Y, 18, Y);
   /* talent lvl 18, dirtkick */
-  feat_assignment(CLASS_ROGUE, FEAT_DIRT_KICK,                 Y,   18,  N);
-  feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK,              Y,   19,  Y);
+  feat_assignment(CLASS_ROGUE, FEAT_DIRT_KICK, Y, 18, N);
+  feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK, Y, 19, Y);
   /*epic*/
-  feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK,              Y,   21,  Y);
+  feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK, Y, 21, Y);
   /* talent lvl 21, backstab */
-  feat_assignment(CLASS_ROGUE, FEAT_BACKSTAB,                  Y,   21,  N);
-  feat_assignment(CLASS_ROGUE, FEAT_TRAP_SENSE,                Y,   22,  Y);
-  feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK,              Y,   23,  Y);
+  feat_assignment(CLASS_ROGUE, FEAT_BACKSTAB, Y, 21, N);
+  feat_assignment(CLASS_ROGUE, FEAT_TRAP_SENSE, Y, 22, Y);
+  feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK, Y, 23, Y);
   /* talent lvl 24, sap */
-  feat_assignment(CLASS_ROGUE, FEAT_SAP,                       Y,   24,  N);
-  feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK,              Y,   25,  Y);
-  feat_assignment(CLASS_ROGUE, FEAT_TRAP_SENSE,                Y,   26,  Y);
-  feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK,              Y,   27,  Y);
+  feat_assignment(CLASS_ROGUE, FEAT_SAP, Y, 24, N);
+  feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK, Y, 25, Y);
+  feat_assignment(CLASS_ROGUE, FEAT_TRAP_SENSE, Y, 26, Y);
+  feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK, Y, 27, Y);
   /* talent lvl 27, vanish */
-  feat_assignment(CLASS_ROGUE, FEAT_VANISH,                    Y,   27,  N);
-  feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK,              Y,   29,  Y);
-  feat_assignment(CLASS_ROGUE, FEAT_TRAP_SENSE,                Y,   30,  Y);
+  feat_assignment(CLASS_ROGUE, FEAT_VANISH, Y, 27, N);
+  feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK, Y, 29, Y);
+  feat_assignment(CLASS_ROGUE, FEAT_TRAP_SENSE, Y, 30, Y);
   /* talent lvl 30, improved vanish */
-  feat_assignment(CLASS_ROGUE, FEAT_IMPROVED_VANISH,           Y,   30,  N);
+  feat_assignment(CLASS_ROGUE, FEAT_IMPROVED_VANISH, Y, 30, N);
   /* rogues don't currently have any class feats */
   /* no prereqs! */
   /****************************************************************************/
-  
+
   /****************************************************************************/
   /*     class-number  name        abrv   clr-abrv       menu-name*/
   classo(CLASS_WARRIOR, "warrior", "War", "\tRWar\tn", "w) \tRWarrior\tn",
-      /* max-lvl  lock? prestige? BAB HD  psp move trains in-game? unlkCst, eFeatp */
-        -1,       N,    N,        H,  10, 0,   1,   2,     Y,       0,       2,
-        /*descrip*/"Some take up arms for glory, wealth, or revenge. Others do "
-    "battle to prove themselves, to protect others, or because they know nothing "
-    "else. Still others learn the ways of weaponcraft to hone their bodies in "
-    "battle and prove their mettle in the forge of war. Lords of the battlefield, "
-    "warriors are a disparate lot, training with many weapons or just one, perfecting "
-    "the uses of armor, learning the fighting techniques of exotic masters, and "
-    "studying the art of combat, all to shape themselves into living weapons. Far "
-    "more than mere thugs, these skilled combatants reveal the true deadliness of "
-    "their weapons, turning hunks of metal into arms capable of taming kingdoms, "
-    "slaughtering monsters, and rousing the hearts of armies. Soldiers, knights, "
-    "hunters, and artists of war, warriors are unparalleled champions, and woe to "
-    "those who dare stand against them.");
+          /* max-lvl  lock? prestige? BAB HD  psp move trains in-game? unlkCst, eFeatp */
+          -1, N, N, H, 10, 0, 1, 2, Y, 0, 2,
+          /*descrip*/"Some take up arms for glory, wealth, or revenge. Others do "
+          "battle to prove themselves, to protect others, or because they know nothing "
+          "else. Still others learn the ways of weaponcraft to hone their bodies in "
+          "battle and prove their mettle in the forge of war. Lords of the battlefield, "
+          "warriors are a disparate lot, training with many weapons or just one, perfecting "
+          "the uses of armor, learning the fighting techniques of exotic masters, and "
+          "studying the art of combat, all to shape themselves into living weapons. Far "
+          "more than mere thugs, these skilled combatants reveal the true deadliness of "
+          "their weapons, turning hunks of metal into arms capable of taming kingdoms, "
+          "slaughtering monsters, and rousing the hearts of armies. Soldiers, knights, "
+          "hunters, and artists of war, warriors are unparalleled champions, and woe to "
+          "those who dare stand against them.");
   /* class-number then saves: fortitude, reflex, will, poison, death */
-  assign_class_saves(CLASS_WARRIOR, G,    B,      B,    B,      B);
+  assign_class_saves(CLASS_WARRIOR, G, B, B, B, B);
   assign_class_abils(CLASS_WARRIOR, /* class number */
-    /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
-      CC,        CC,     CC,        CA,  CA,        CA,            CC,
-    /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
-      CC,      CA,        CA,           CA,  CA,  CA,   CC,             CC,
-    /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
-      CA,       CC,            CC,      CC,           CC,           CC,
-    /*survival,swim,use_magic_device,perform*/
-      CC,      CA,  CC,              CC
-    );
+          /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+          CC, CC, CC, CA, CA, CA, CC,
+          /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+          CC, CA, CA, CA, CA, CA, CC, CC,
+          /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+          CA, CC, CC, CC, CC, CC,
+          /*survival,swim,use_magic_device,perform*/
+          CC, CA, CC, CC
+          );
   assign_class_titles(CLASS_WARRIOR, /* class number */
-    "",                             /* <= 4  */
-    "the Mostly Harmless",          /* <= 9  */
-    "the Useful in Bar-Fights",     /* <= 14 */
-    "the Friend to Violence",       /* <= 19 */
-    "the Strong",                   /* <= 24 */
-    "the Bane of All Enemies",      /* <= 29 */
-    "the Exceptionally Dangerous",  /* <= 30 */
-    "the Immortal Warlord",         /* <= LVL_IMMORT */
-    "the Extirpator",               /* <= LVL_STAFF */
-    "the God of War",               /* <= LVL_GRSTAFF */
-    "the Warrior"                   /* default */  
-  );
+          "", /* <= 4  */
+          "the Mostly Harmless", /* <= 9  */
+          "the Useful in Bar-Fights", /* <= 14 */
+          "the Friend to Violence", /* <= 19 */
+          "the Strong", /* <= 24 */
+          "the Bane of All Enemies", /* <= 29 */
+          "the Exceptionally Dangerous", /* <= 30 */
+          "the Immortal Warlord", /* <= LVL_IMMORT */
+          "the Extirpator", /* <= LVL_STAFF */
+          "the God of War", /* <= LVL_GRSTAFF */
+          "the Warrior" /* default */
+          );
   /* feat assignment */
   /* bonus: they select from a master list of combat feats every 2 levels */
   /*              class num     feat                            cfeat lvl stack */
-  feat_assignment(CLASS_WARRIOR, FEAT_MARTIAL_WEAPON_PROFICIENCY,     Y,    1,  N);
-  feat_assignment(CLASS_WARRIOR, FEAT_ARMOR_PROFICIENCY_HEAVY,        Y,    1,  N);
-  feat_assignment(CLASS_WARRIOR, FEAT_ARMOR_PROFICIENCY_LIGHT,        Y,    1,  N);
-  feat_assignment(CLASS_WARRIOR, FEAT_ARMOR_PROFICIENCY_MEDIUM,       Y,    1,  N);
-  feat_assignment(CLASS_WARRIOR, FEAT_ARMOR_PROFICIENCY_SHIELD,       Y,    1,  N);
-  feat_assignment(CLASS_WARRIOR, FEAT_ARMOR_PROFICIENCY_TOWER_SHIELD, Y,    1,  N);
-  feat_assignment(CLASS_WARRIOR, FEAT_SIMPLE_WEAPON_PROFICIENCY,      Y,    1,  N);
-  feat_assignment(CLASS_WARRIOR, FEAT_ARMOR_TRAINING,                 Y,    3,  Y);
-  feat_assignment(CLASS_WARRIOR, FEAT_WEAPON_TRAINING,                Y,    5,  Y);
-  feat_assignment(CLASS_WARRIOR, FEAT_ARMOR_TRAINING,                 Y,    7,  Y);
-  feat_assignment(CLASS_WARRIOR, FEAT_WEAPON_TRAINING,                Y,    9,  Y);
-  feat_assignment(CLASS_WARRIOR, FEAT_ARMOR_TRAINING,                 Y,   11,  Y);
-  feat_assignment(CLASS_WARRIOR, FEAT_WEAPON_TRAINING,                Y,   13,  Y);
-  feat_assignment(CLASS_WARRIOR, FEAT_ARMOR_TRAINING,                 Y,   15,  Y);
-  feat_assignment(CLASS_WARRIOR, FEAT_WEAPON_TRAINING,                Y,   17,  Y);
-  feat_assignment(CLASS_WARRIOR, FEAT_STALWART_WARRIOR,               Y,   19,  N);
+  feat_assignment(CLASS_WARRIOR, FEAT_MARTIAL_WEAPON_PROFICIENCY, Y, 1, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_ARMOR_PROFICIENCY_HEAVY, Y, 1, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_ARMOR_PROFICIENCY_LIGHT, Y, 1, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_ARMOR_PROFICIENCY_MEDIUM, Y, 1, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_ARMOR_PROFICIENCY_SHIELD, Y, 1, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_ARMOR_PROFICIENCY_TOWER_SHIELD, Y, 1, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_SIMPLE_WEAPON_PROFICIENCY, Y, 1, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_ARMOR_TRAINING, Y, 3, Y);
+  feat_assignment(CLASS_WARRIOR, FEAT_WEAPON_TRAINING, Y, 5, Y);
+  feat_assignment(CLASS_WARRIOR, FEAT_ARMOR_TRAINING, Y, 7, Y);
+  feat_assignment(CLASS_WARRIOR, FEAT_WEAPON_TRAINING, Y, 9, Y);
+  feat_assignment(CLASS_WARRIOR, FEAT_ARMOR_TRAINING, Y, 11, Y);
+  feat_assignment(CLASS_WARRIOR, FEAT_WEAPON_TRAINING, Y, 13, Y);
+  feat_assignment(CLASS_WARRIOR, FEAT_ARMOR_TRAINING, Y, 15, Y);
+  feat_assignment(CLASS_WARRIOR, FEAT_WEAPON_TRAINING, Y, 17, Y);
+  feat_assignment(CLASS_WARRIOR, FEAT_STALWART_WARRIOR, Y, 19, N);
   /*epic*/
-  feat_assignment(CLASS_WARRIOR, FEAT_ARMOR_MASTERY,            Y,   21,  N);
-  feat_assignment(CLASS_WARRIOR, FEAT_WEAPON_MASTERY,           Y,   24,  N);
-  feat_assignment(CLASS_WARRIOR, FEAT_ARMOR_MASTERY_2,          Y,   27,  N);
-  feat_assignment(CLASS_WARRIOR, FEAT_WEAPON_MASTERY_2,         Y,   30,  N);
+  feat_assignment(CLASS_WARRIOR, FEAT_ARMOR_MASTERY, Y, 21, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_WEAPON_MASTERY, Y, 24, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_ARMOR_MASTERY_2, Y, 27, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_WEAPON_MASTERY_2, Y, 30, N);
   /* list of class feats */
-  feat_assignment(CLASS_WARRIOR, FEAT_ARMOR_SKIN,                    Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_ARMOR_SPECIALIZATION_LIGHT,    Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_ARMOR_SPECIALIZATION_MEDIUM,   Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_ARMOR_SPECIALIZATION_HEAVY,    Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_BLIND_FIGHT,                   Y, NOASSIGN_FEAT, N);  
-  feat_assignment(CLASS_WARRIOR, FEAT_CLEAVE,                        Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_COMBAT_EXPERTISE,              Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_COMBAT_REFLEXES,               Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_DEFLECT_ARROWS,                Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_DAMAGE_REDUCTION,              Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_DODGE,                         Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_EXOTIC_WEAPON_PROFICIENCY,     Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_FAR_SHOT,                      Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_GREAT_CLEAVE,                  Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_GREATER_TWO_WEAPON_FIGHTING,   Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_GREATER_WEAPON_FOCUS,          Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_ARMOR_SKIN, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_ARMOR_SPECIALIZATION_LIGHT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_ARMOR_SPECIALIZATION_MEDIUM, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_ARMOR_SPECIALIZATION_HEAVY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_BLIND_FIGHT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_CLEAVE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_COMBAT_EXPERTISE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_COMBAT_REFLEXES, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_DEFLECT_ARROWS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_DAMAGE_REDUCTION, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_DODGE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_EXOTIC_WEAPON_PROFICIENCY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_FAR_SHOT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_GREAT_CLEAVE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_GREATER_TWO_WEAPON_FIGHTING, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_GREATER_WEAPON_FOCUS, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_WARRIOR, FEAT_GREATER_WEAPON_SPECIALIZATION, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_IMPROVED_BULL_RUSH,            Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_IMPROVED_CRITICAL,             Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_IMPROVED_DISARM,               Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_IMPROVED_FEINT,                Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_IMPROVED_GRAPPLE,              Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_IMPROVED_INITIATIVE,           Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_IMPROVED_OVERRUN,              Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_IMPROVED_PRECISE_SHOT,         Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_IMPROVED_SHIELD_PUNCH,         Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_KNOCKDOWN,                     Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_SHIELD_CHARGE,                 Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_SHIELD_SLAM,                   Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_IMPROVED_SUNDER,               Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_IMPROVED_TRIP,                 Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_IMPROVED_TWO_WEAPON_FIGHTING,  Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_IMPROVED_UNARMED_STRIKE,       Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_MANYSHOT,                      Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_MOBILITY,                      Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_MOUNTED_ARCHERY,               Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_MOUNTED_COMBAT,                Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_POINT_BLANK_SHOT,              Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_POWER_ATTACK,                  Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_PRECISE_SHOT,                  Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_QUICK_DRAW,                    Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_RAPID_RELOAD,                  Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_RAPID_SHOT,                    Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_RIDE_BY_ATTACK,                Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_ROBILARS_GAMBIT,               Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_SHOT_ON_THE_RUN,               Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_SNATCH_ARROWS,                 Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_SPIRITED_CHARGE,               Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_SPRING_ATTACK,                 Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_STUNNING_FIST,                 Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_SWARM_OF_ARROWS,               Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_TRAMPLE,                       Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_TWO_WEAPON_DEFENSE,            Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_TWO_WEAPON_FIGHTING,           Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_WEAPON_FINESSE,                Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_WEAPON_FOCUS,                  Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_WEAPON_SPECIALIZATION,         Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_WHIRLWIND_ATTACK,              Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_FAST_HEALING,                  Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_WEAPON_MASTERY,                Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_WEAPON_FLURRY,                 Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_WEAPON_SUPREMACY,              Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_IMPROVED_BULL_RUSH, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_IMPROVED_CRITICAL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_IMPROVED_DISARM, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_IMPROVED_FEINT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_IMPROVED_GRAPPLE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_IMPROVED_INITIATIVE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_IMPROVED_OVERRUN, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_IMPROVED_PRECISE_SHOT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_IMPROVED_SHIELD_PUNCH, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_KNOCKDOWN, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_SHIELD_CHARGE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_SHIELD_SLAM, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_IMPROVED_SUNDER, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_IMPROVED_TRIP, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_IMPROVED_TWO_WEAPON_FIGHTING, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_IMPROVED_UNARMED_STRIKE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_MANYSHOT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_MOBILITY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_MOUNTED_ARCHERY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_MOUNTED_COMBAT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_POINT_BLANK_SHOT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_POWER_ATTACK, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_PRECISE_SHOT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_QUICK_DRAW, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_RAPID_RELOAD, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_RAPID_SHOT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_RIDE_BY_ATTACK, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_ROBILARS_GAMBIT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_SHOT_ON_THE_RUN, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_SNATCH_ARROWS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_SPIRITED_CHARGE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_SPRING_ATTACK, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_STUNNING_FIST, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_SWARM_OF_ARROWS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_TRAMPLE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_TWO_WEAPON_DEFENSE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_TWO_WEAPON_FIGHTING, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_WEAPON_FINESSE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_WEAPON_FOCUS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_WEAPON_SPECIALIZATION, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_WHIRLWIND_ATTACK, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_FAST_HEALING, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_WEAPON_MASTERY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_WEAPON_FLURRY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_WEAPON_SUPREMACY, Y, NOASSIGN_FEAT, N);
   /* epic class */
-  feat_assignment(CLASS_WARRIOR, FEAT_EPIC_PROWESS,                  Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_GREAT_STRENGTH,                Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_GREAT_DEXTERITY,               Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_GREAT_CONSTITUTION,            Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_EPIC_TOUGHNESS,                Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_EPIC_WEAPON_SPECIALIZATION,    Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_EPIC_PROWESS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_GREAT_STRENGTH, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_GREAT_DEXTERITY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_GREAT_CONSTITUTION, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_EPIC_TOUGHNESS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_EPIC_WEAPON_SPECIALIZATION, Y, NOASSIGN_FEAT, N);
   /* no spell assign */
   /* no prereqs! */
   /****************************************************************************/
-  
+
   /****************************************************************************/
   /*     class-number  name    abrv   clr-abrv     menu-name*/
   classo(CLASS_MONK, "monk", "Mon", "\tgMon\tn", "o) \tgMonk\tn",
-      /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp */
-        -1,       N,    N,        M,  8, 0,   2,   4,     Y,       0,       0,
-        /*descrip*/"For the truly exemplary, martial skill transcends the "
-    "battlefield—it is a lifestyle, a doctrine, a state of mind. These warrior-"
-    "artists search out methods of battle beyond swords and shields, finding "
-    "weapons within themselves just as capable of crippling or killing as any "
-    "blade. These monks (so called since they adhere to ancient philosophies and "
-    "strict martial disciplines) elevate their bodies to become weapons of war, "
-    "from battle-minded ascetics to self-taught brawlers. Monks tread the path of "
-    "discipline, and those with the will to endure that path discover within "
-    "themselves not what they are, but what they are meant to be.");
+          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp */
+          -1, N, N, M, 8, 0, 2, 4, Y, 0, 0,
+          /*descrip*/"For the truly exemplary, martial skill transcends the "
+          "battlefield—it is a lifestyle, a doctrine, a state of mind. These warrior-"
+          "artists search out methods of battle beyond swords and shields, finding "
+          "weapons within themselves just as capable of crippling or killing as any "
+          "blade. These monks (so called since they adhere to ancient philosophies and "
+          "strict martial disciplines) elevate their bodies to become weapons of war, "
+          "from battle-minded ascetics to self-taught brawlers. Monks tread the path of "
+          "discipline, and those with the will to endure that path discover within "
+          "themselves not what they are, but what they are meant to be.");
   /* class-number then saves: fortitude, reflex, will, poison, death */
-  assign_class_saves(CLASS_MONK,   G,    G,      G,    B,      B);
+  assign_class_saves(CLASS_MONK, G, G, G, B, B);
   assign_class_abils(CLASS_MONK, /* class number */
-    /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
-      CA,        CA,     CA,        CA,  CC,        CA,            CC,
-    /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
-      CC,      CA,        CA,           CA,  CA,  CA,   CC,             CC,
-    /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
-      CC,       CC,            CC,      CA,           CC,           CC,
-    /*survival,swim,use_magic_device,perform*/
-      CC,      CA,  CC,              CC
-    );
+          /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+          CA, CA, CA, CA, CC, CA, CC,
+          /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+          CC, CA, CA, CA, CA, CA, CC, CC,
+          /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+          CC, CC, CC, CA, CC, CC,
+          /*survival,swim,use_magic_device,perform*/
+          CC, CA, CC, CC
+          );
   assign_class_titles(CLASS_MONK, /* class number */
-    "",                         /* <= 4  */
-    "of the Crushing Fist",     /* <= 9  */
-    "of the Stomping Foot",    /* <= 14 */
-    "of the Directed Motions",  /* <= 19 */
-    "of the Disciplined Body",  /* <= 24 */
-    "of the Disciplined Mind",  /* <= 29 */
-    "of the Mastered Self",     /* <= 30 */
-    "the Immortal Monk",        /* <= LVL_IMMORT */
-    "the Inquisitor Monk",      /* <= LVL_STAFF */
-    "the God of the Fist",      /* <= LVL_GRSTAFF */
-    "the Monk"                  /* default */  
-  );
+          "", /* <= 4  */
+          "of the Crushing Fist", /* <= 9  */
+          "of the Stomping Foot", /* <= 14 */
+          "of the Directed Motions", /* <= 19 */
+          "of the Disciplined Body", /* <= 24 */
+          "of the Disciplined Mind", /* <= 29 */
+          "of the Mastered Self", /* <= 30 */
+          "the Immortal Monk", /* <= LVL_IMMORT */
+          "the Inquisitor Monk", /* <= LVL_STAFF */
+          "the God of the Fist", /* <= LVL_GRSTAFF */
+          "the Monk" /* default */
+          );
   /* feat assignment */
   /*              class num     feat                           cfeat lvl stack */
-  feat_assignment(CLASS_MONK, FEAT_WEAPON_PROFICIENCY_MONK,    Y,    1,  N);
-  feat_assignment(CLASS_MONK, FEAT_UNARMED_STRIKE,             Y,    1,  N);
-  feat_assignment(CLASS_MONK, FEAT_IMPROVED_UNARMED_STRIKE,    Y,    1,  N);
-  feat_assignment(CLASS_MONK, FEAT_FLURRY_OF_BLOWS,            Y,    1,  N);
-  feat_assignment(CLASS_MONK, FEAT_STUNNING_FIST,              Y,    1,  N);
-  feat_assignment(CLASS_MONK, FEAT_EVASION,                    Y,    2,  N);
-  feat_assignment(CLASS_MONK, FEAT_STILL_MIND,                 Y,    3,  N);
-  feat_assignment(CLASS_MONK, FEAT_KI_STRIKE,                  Y,    4,  Y);
-  feat_assignment(CLASS_MONK, FEAT_SLOW_FALL,                  Y,    4,  Y);
-  feat_assignment(CLASS_MONK, FEAT_SLOW_FALL,                  Y,    5,  Y);
-  feat_assignment(CLASS_MONK, FEAT_PURITY_OF_BODY,             Y,    5,  N);
-  feat_assignment(CLASS_MONK, FEAT_SLOW_FALL,                  Y,    6,  Y);
-  feat_assignment(CLASS_MONK, FEAT_WHOLENESS_OF_BODY,          Y,    7,  N);
-  feat_assignment(CLASS_MONK, FEAT_SLOW_FALL,                  Y,    8,  Y);
-  feat_assignment(CLASS_MONK, FEAT_IMPROVED_EVASION,           Y,    9,  N);
-  feat_assignment(CLASS_MONK, FEAT_KI_STRIKE,                  Y,    10,  Y);
-  feat_assignment(CLASS_MONK, FEAT_SLOW_FALL,                  Y,    10,  Y);
-  feat_assignment(CLASS_MONK, FEAT_DIAMOND_BODY,               Y,    11,  N);
-  feat_assignment(CLASS_MONK, FEAT_GREATER_FLURRY,             Y,    11,  N);
-  feat_assignment(CLASS_MONK, FEAT_ABUNDANT_STEP,              Y,    12,  N);
-  feat_assignment(CLASS_MONK, FEAT_SLOW_FALL,                  Y,    12,  Y);
-  feat_assignment(CLASS_MONK, FEAT_DIAMOND_SOUL,               Y,    13,  N);
-  feat_assignment(CLASS_MONK, FEAT_SLOW_FALL,                  Y,    14,  Y);
-  feat_assignment(CLASS_MONK, FEAT_QUIVERING_PALM,             Y,    15,  N);
-  feat_assignment(CLASS_MONK, FEAT_KI_STRIKE,                  Y,    15,  Y);
-  feat_assignment(CLASS_MONK, FEAT_TIMELESS_BODY,              Y,    16,  N);
+  feat_assignment(CLASS_MONK, FEAT_WEAPON_PROFICIENCY_MONK, Y, 1, N);
+  feat_assignment(CLASS_MONK, FEAT_UNARMED_STRIKE, Y, 1, N);
+  feat_assignment(CLASS_MONK, FEAT_IMPROVED_UNARMED_STRIKE, Y, 1, N);
+  feat_assignment(CLASS_MONK, FEAT_FLURRY_OF_BLOWS, Y, 1, N);
+  feat_assignment(CLASS_MONK, FEAT_STUNNING_FIST, Y, 1, N);
+  feat_assignment(CLASS_MONK, FEAT_EVASION, Y, 2, N);
+  feat_assignment(CLASS_MONK, FEAT_STILL_MIND, Y, 3, N);
+  feat_assignment(CLASS_MONK, FEAT_KI_STRIKE, Y, 4, Y);
+  feat_assignment(CLASS_MONK, FEAT_SLOW_FALL, Y, 4, Y);
+  feat_assignment(CLASS_MONK, FEAT_SLOW_FALL, Y, 5, Y);
+  feat_assignment(CLASS_MONK, FEAT_PURITY_OF_BODY, Y, 5, N);
+  feat_assignment(CLASS_MONK, FEAT_SLOW_FALL, Y, 6, Y);
+  feat_assignment(CLASS_MONK, FEAT_WHOLENESS_OF_BODY, Y, 7, N);
+  feat_assignment(CLASS_MONK, FEAT_SLOW_FALL, Y, 8, Y);
+  feat_assignment(CLASS_MONK, FEAT_IMPROVED_EVASION, Y, 9, N);
+  feat_assignment(CLASS_MONK, FEAT_KI_STRIKE, Y, 10, Y);
+  feat_assignment(CLASS_MONK, FEAT_SLOW_FALL, Y, 10, Y);
+  feat_assignment(CLASS_MONK, FEAT_DIAMOND_BODY, Y, 11, N);
+  feat_assignment(CLASS_MONK, FEAT_GREATER_FLURRY, Y, 11, N);
+  feat_assignment(CLASS_MONK, FEAT_ABUNDANT_STEP, Y, 12, N);
+  feat_assignment(CLASS_MONK, FEAT_SLOW_FALL, Y, 12, Y);
+  feat_assignment(CLASS_MONK, FEAT_DIAMOND_SOUL, Y, 13, N);
+  feat_assignment(CLASS_MONK, FEAT_SLOW_FALL, Y, 14, Y);
+  feat_assignment(CLASS_MONK, FEAT_QUIVERING_PALM, Y, 15, N);
+  feat_assignment(CLASS_MONK, FEAT_KI_STRIKE, Y, 15, Y);
+  feat_assignment(CLASS_MONK, FEAT_TIMELESS_BODY, Y, 16, N);
   /* note this feat does nothing currently */
-  feat_assignment(CLASS_MONK, FEAT_TONGUE_OF_THE_SUN_AND_MOON, Y,    17,  N);
-  feat_assignment(CLASS_MONK, FEAT_SLOW_FALL,                  Y,    18,  Y);
-  feat_assignment(CLASS_MONK, FEAT_EMPTY_BODY,                 Y,    19,  N);
-  feat_assignment(CLASS_MONK, FEAT_PERFECT_SELF,               Y,    20,  N);
-  feat_assignment(CLASS_MONK, FEAT_SLOW_FALL,                  Y,    20,  Y);
+  feat_assignment(CLASS_MONK, FEAT_TONGUE_OF_THE_SUN_AND_MOON, Y, 17, N);
+  feat_assignment(CLASS_MONK, FEAT_SLOW_FALL, Y, 18, Y);
+  feat_assignment(CLASS_MONK, FEAT_EMPTY_BODY, Y, 19, N);
+  feat_assignment(CLASS_MONK, FEAT_PERFECT_SELF, Y, 20, N);
+  feat_assignment(CLASS_MONK, FEAT_SLOW_FALL, Y, 20, Y);
   /*epic*/
-  feat_assignment(CLASS_MONK, FEAT_SLOW_FALL,                  Y,   21,  Y);  
+  feat_assignment(CLASS_MONK, FEAT_SLOW_FALL, Y, 21, Y);
   /* 23 bonus free epic feat */
-  feat_assignment(CLASS_MONK, FEAT_KEEN_STRIKE,                Y,   23,  N);  
-  feat_assignment(CLASS_MONK, FEAT_SLOW_FALL,                  Y,   24,  Y);  
-  feat_assignment(CLASS_MONK, FEAT_SLOW_FALL,                  Y,   26,  Y);  
+  feat_assignment(CLASS_MONK, FEAT_KEEN_STRIKE, Y, 23, N);
+  feat_assignment(CLASS_MONK, FEAT_SLOW_FALL, Y, 24, Y);
+  feat_assignment(CLASS_MONK, FEAT_SLOW_FALL, Y, 26, Y);
   /* 26 bonus free epic feat */
-  feat_assignment(CLASS_MONK, FEAT_BLINDING_SPEED,             Y,   26,  N);  
-  feat_assignment(CLASS_MONK, FEAT_SLOW_FALL,                  Y,   28,  Y);  
+  feat_assignment(CLASS_MONK, FEAT_BLINDING_SPEED, Y, 26, N);
+  feat_assignment(CLASS_MONK, FEAT_SLOW_FALL, Y, 28, Y);
   /* 29 bonus free epic feat */
-  feat_assignment(CLASS_MONK, FEAT_OUTSIDER,                   Y,   29,  N);  
-  feat_assignment(CLASS_MONK, FEAT_SLOW_FALL,                  Y,   30,  Y);  
+  feat_assignment(CLASS_MONK, FEAT_OUTSIDER, Y, 29, N);
+  feat_assignment(CLASS_MONK, FEAT_SLOW_FALL, Y, 30, Y);
   /* monks get no class feats */
   /* prereqs */
   class_prereq_align(CLASS_MONK, LAWFUL_GOOD);
   class_prereq_align(CLASS_MONK, LAWFUL_NEUTRAL);
   class_prereq_align(CLASS_MONK, LAWFUL_EVIL);
   /****************************************************************************/
-  
+
   /****************************************************************************/
   /*     class-number  name      abrv   clr-abrv          menu-name*/
   classo(CLASS_DRUID, "druid", "Dru", "\tGD\tgr\tGu\tn", "d) \tGD\tgr\tGu\tgi\tGd\tn",
-      /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
-        -1,       N,    N,        M,  8, 0,   3,   4,     Y,       0,       0,
-        /*descrip*/"Within the purity of the elements and the order of the wilds "
-    "lingers a power beyond the marvels of civilization. Furtive yet undeniable, "
-    "these primal magics are guarded over by servants of philosophical balance "
-    "known as druids. Allies to beasts and manipulators of nature, these often "
-    "misunderstood protectors of the wild strive to shield their lands from all "
-    "who would threaten them and prove the might of the wilds to those who lock "
-    "themselves behind city walls. Rewarded for their devotion with incredible "
-    "powers, druids gain unparalleled shape-shifting abilities, the companionship "
-    "of mighty beasts, and the power to call upon nature's wrath. The mightiest "
-    "temper powers akin to storms, earthquakes, and volcanoes with primeval wisdom "
-    "long abandoned and forgotten by civilization.");
+          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
+          -1, N, N, M, 8, 0, 3, 4, Y, 0, 0,
+          /*descrip*/"Within the purity of the elements and the order of the wilds "
+          "lingers a power beyond the marvels of civilization. Furtive yet undeniable, "
+          "these primal magics are guarded over by servants of philosophical balance "
+          "known as druids. Allies to beasts and manipulators of nature, these often "
+          "misunderstood protectors of the wild strive to shield their lands from all "
+          "who would threaten them and prove the might of the wilds to those who lock "
+          "themselves behind city walls. Rewarded for their devotion with incredible "
+          "powers, druids gain unparalleled shape-shifting abilities, the companionship "
+          "of mighty beasts, and the power to call upon nature's wrath. The mightiest "
+          "temper powers akin to storms, earthquakes, and volcanoes with primeval wisdom "
+          "long abandoned and forgotten by civilization.");
   /* class-number then saves: fortitude, reflex, will, poison, death */
-  assign_class_saves(CLASS_DRUID,  G,    B,      G,    B,      B);
+  assign_class_saves(CLASS_DRUID, G, B, G, B, B);
   assign_class_abils(CLASS_DRUID, /* class number */
-    /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
-      CC,        CC,     CC,        CA,  CC,        CA,            CA,
-    /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
-      CC,      CC,        CA,           CA,  CA,  CC,   CC,             CC,
-    /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
-      CA,       CC,            CC,      CC,           CA,           CA,
-    /*survival,swim,use_magic_device,perform*/
-      CA,      CA,  CC,              CC
-    );
+          /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+          CC, CC, CC, CA, CC, CA, CA,
+          /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+          CC, CC, CA, CA, CA, CC, CC, CC,
+          /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+          CA, CC, CC, CC, CA, CA,
+          /*survival,swim,use_magic_device,perform*/
+          CA, CA, CC, CC
+          );
   assign_class_titles(CLASS_DRUID, /* class number */
-    "",                            /* <= 4  */
-    "the Walker on Loam",          /* <= 9  */
-    "the Speaker for Beasts",      /* <= 14 */
-    "the Watcher from Shade",      /* <= 19 */
-    "the Whispering Winds",        /* <= 24 */
-    "the Balancer",                /* <= 29 */
-    "the Still Waters",            /* <= 30 */
-    "the Avatar of Nature",        /* <= LVL_IMMORT */
-    "the Wrath of Nature",         /* <= LVL_STAFF */
-    "the Storm of Earth's Voice",  /* <= LVL_GRSTAFF */
-    "the Druid"                    /* default */  
-  );
+          "", /* <= 4  */
+          "the Walker on Loam", /* <= 9  */
+          "the Speaker for Beasts", /* <= 14 */
+          "the Watcher from Shade", /* <= 19 */
+          "the Whispering Winds", /* <= 24 */
+          "the Balancer", /* <= 29 */
+          "the Still Waters", /* <= 30 */
+          "the Avatar of Nature", /* <= LVL_IMMORT */
+          "the Wrath of Nature", /* <= LVL_STAFF */
+          "the Storm of Earth's Voice", /* <= LVL_GRSTAFF */
+          "the Druid" /* default */
+          );
   /* feat assignment */
   /*              class num     feat                          cfeat lvl stack */
-  feat_assignment(CLASS_DRUID, FEAT_WEAPON_PROFICIENCY_DRUID, Y,    1,  N);
-  feat_assignment(CLASS_DRUID, FEAT_ARMOR_PROFICIENCY_LIGHT,  Y,    1,  N);
-  feat_assignment(CLASS_DRUID, FEAT_ARMOR_PROFICIENCY_MEDIUM, Y,    1,  N);
-  feat_assignment(CLASS_DRUID, FEAT_ARMOR_PROFICIENCY_SHIELD, Y,    1,  N);
-  feat_assignment(CLASS_DRUID, FEAT_ANIMAL_COMPANION,         Y,    1,  N);
-  feat_assignment(CLASS_DRUID, FEAT_NATURE_SENSE,             Y,    1,  N);
-  feat_assignment(CLASS_DRUID, FEAT_WILD_EMPATHY,             Y,    2,  N);
-  feat_assignment(CLASS_DRUID, FEAT_WOODLAND_STRIDE,          Y,    2,  N);
-  feat_assignment(CLASS_DRUID, FEAT_TRACKLESS_STEP,           Y,    3,  N);
-  feat_assignment(CLASS_DRUID, FEAT_RESIST_NATURES_LURE,      Y,    4,  N);
+  feat_assignment(CLASS_DRUID, FEAT_WEAPON_PROFICIENCY_DRUID, Y, 1, N);
+  feat_assignment(CLASS_DRUID, FEAT_ARMOR_PROFICIENCY_LIGHT, Y, 1, N);
+  feat_assignment(CLASS_DRUID, FEAT_ARMOR_PROFICIENCY_MEDIUM, Y, 1, N);
+  feat_assignment(CLASS_DRUID, FEAT_ARMOR_PROFICIENCY_SHIELD, Y, 1, N);
+  feat_assignment(CLASS_DRUID, FEAT_ANIMAL_COMPANION, Y, 1, N);
+  feat_assignment(CLASS_DRUID, FEAT_NATURE_SENSE, Y, 1, N);
+  feat_assignment(CLASS_DRUID, FEAT_WILD_EMPATHY, Y, 2, N);
+  feat_assignment(CLASS_DRUID, FEAT_WOODLAND_STRIDE, Y, 2, N);
+  feat_assignment(CLASS_DRUID, FEAT_TRACKLESS_STEP, Y, 3, N);
+  feat_assignment(CLASS_DRUID, FEAT_RESIST_NATURES_LURE, Y, 4, N);
   /* FEAT_WILD_SHAPE is the first level of wildshape forms AND cooldown */
-  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE,               Y,    4,  Y);
-  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE,               Y,    6,  Y);
+  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE, Y, 4, Y);
+  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE, Y, 6, Y);
   /* FEAT_WILD_SHAPE_x is the xth level of wildshape forms, does not affect cooldown */
-  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE_2,             Y,    6,  N);
-  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE,               Y,    8,  Y);
-  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE_3,             Y,    8,  N);
-  feat_assignment(CLASS_DRUID, FEAT_VENOM_IMMUNITY,           Y,    9,  N);
-  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE,               Y,    10, Y);
-  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE_4,             Y,    10, N);
-  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE,               Y,    12, Y);
-  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE_5,             Y,    12, N);
-  feat_assignment(CLASS_DRUID, FEAT_THOUSAND_FACES,           Y,    13, N);
-  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE,               Y,    14, Y);
-  feat_assignment(CLASS_DRUID, FEAT_TIMELESS_BODY,            Y,    15, N);
-  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE,               Y,    16, Y);
-  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE,               Y,    18, Y);
-  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE,               Y,    20, Y);
+  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE_2, Y, 6, N);
+  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE, Y, 8, Y);
+  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE_3, Y, 8, N);
+  feat_assignment(CLASS_DRUID, FEAT_VENOM_IMMUNITY, Y, 9, N);
+  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE, Y, 10, Y);
+  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE_4, Y, 10, N);
+  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE, Y, 12, Y);
+  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE_5, Y, 12, N);
+  feat_assignment(CLASS_DRUID, FEAT_THOUSAND_FACES, Y, 13, N);
+  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE, Y, 14, Y);
+  feat_assignment(CLASS_DRUID, FEAT_TIMELESS_BODY, Y, 15, N);
+  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE, Y, 16, Y);
+  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE, Y, 18, Y);
+  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE, Y, 20, Y);
   /* spell circles */
-  feat_assignment(CLASS_DRUID, FEAT_DRUID_1ST_CIRCLE,        Y,    1,  N);
-  feat_assignment(CLASS_DRUID, FEAT_DRUID_2ND_CIRCLE,        Y,    3,  N);
-  feat_assignment(CLASS_DRUID, FEAT_DRUID_3RD_CIRCLE,        Y,    5,  N);
-  feat_assignment(CLASS_DRUID, FEAT_DRUID_4TH_CIRCLE,        Y,    7,  N);
-  feat_assignment(CLASS_DRUID, FEAT_DRUID_5TH_CIRCLE,        Y,    9,  N);
-  feat_assignment(CLASS_DRUID, FEAT_DRUID_6TH_CIRCLE,        Y,    11, N);
-  feat_assignment(CLASS_DRUID, FEAT_DRUID_7TH_CIRCLE,        Y,    13, N);
-  feat_assignment(CLASS_DRUID, FEAT_DRUID_8TH_CIRCLE,        Y,    15, N);
-  feat_assignment(CLASS_DRUID, FEAT_DRUID_9TH_CIRCLE,        Y,    17, N);
+  feat_assignment(CLASS_DRUID, FEAT_DRUID_1ST_CIRCLE, Y, 1, N);
+  feat_assignment(CLASS_DRUID, FEAT_DRUID_2ND_CIRCLE, Y, 3, N);
+  feat_assignment(CLASS_DRUID, FEAT_DRUID_3RD_CIRCLE, Y, 5, N);
+  feat_assignment(CLASS_DRUID, FEAT_DRUID_4TH_CIRCLE, Y, 7, N);
+  feat_assignment(CLASS_DRUID, FEAT_DRUID_5TH_CIRCLE, Y, 9, N);
+  feat_assignment(CLASS_DRUID, FEAT_DRUID_6TH_CIRCLE, Y, 11, N);
+  feat_assignment(CLASS_DRUID, FEAT_DRUID_7TH_CIRCLE, Y, 13, N);
+  feat_assignment(CLASS_DRUID, FEAT_DRUID_8TH_CIRCLE, Y, 15, N);
+  feat_assignment(CLASS_DRUID, FEAT_DRUID_9TH_CIRCLE, Y, 17, N);
   /*epic*/
-  feat_assignment(CLASS_DRUID, FEAT_DRUID_EPIC_SPELL,        Y,    21, N);
-  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE,               Y,    22, Y);
-  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE,               Y,    24, Y);
-  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE,               Y,    26, Y);
-  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE,               Y,    28, Y);
-  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE,               Y,    30, Y); 
+  feat_assignment(CLASS_DRUID, FEAT_DRUID_EPIC_SPELL, Y, 21, N);
+  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE, Y, 22, Y);
+  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE, Y, 24, Y);
+  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE, Y, 26, Y);
+  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE, Y, 28, Y);
+  feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE, Y, 30, Y);
   /* no class feats */
   /**** spell assign ****/
   /*              class num      spell                   level acquired */
   /* 1st circle */
-  spell_assignment(CLASS_DRUID, SPELL_CHARM_ANIMAL,          1);
-  spell_assignment(CLASS_DRUID, SPELL_CURE_LIGHT,            1);
-  spell_assignment(CLASS_DRUID, SPELL_FAERIE_FIRE,           1);
-  spell_assignment(CLASS_DRUID, SPELL_GOODBERRY,             1);
-  spell_assignment(CLASS_DRUID, SPELL_JUMP,                  1);
-  spell_assignment(CLASS_DRUID, SPELL_MAGIC_FANG,            1);
-  spell_assignment(CLASS_DRUID, SPELL_MAGIC_STONE,           1);
-  spell_assignment(CLASS_DRUID, SPELL_OBSCURING_MIST,        1);
-  spell_assignment(CLASS_DRUID, SPELL_PRODUCE_FLAME,         1);
+  spell_assignment(CLASS_DRUID, SPELL_CHARM_ANIMAL, 1);
+  spell_assignment(CLASS_DRUID, SPELL_CURE_LIGHT, 1);
+  spell_assignment(CLASS_DRUID, SPELL_FAERIE_FIRE, 1);
+  spell_assignment(CLASS_DRUID, SPELL_GOODBERRY, 1);
+  spell_assignment(CLASS_DRUID, SPELL_JUMP, 1);
+  spell_assignment(CLASS_DRUID, SPELL_MAGIC_FANG, 1);
+  spell_assignment(CLASS_DRUID, SPELL_MAGIC_STONE, 1);
+  spell_assignment(CLASS_DRUID, SPELL_OBSCURING_MIST, 1);
+  spell_assignment(CLASS_DRUID, SPELL_PRODUCE_FLAME, 1);
   spell_assignment(CLASS_DRUID, SPELL_SUMMON_NATURES_ALLY_1, 1);
   /*              class num      spell                   level acquired */
   /* 2nd circle */
-  spell_assignment(CLASS_DRUID, SPELL_BARKSKIN,              3);
-  spell_assignment(CLASS_DRUID, SPELL_ENDURANCE,             3);
-  spell_assignment(CLASS_DRUID, SPELL_STRENGTH,              3);
-  spell_assignment(CLASS_DRUID, SPELL_GRACE,                 3);
-  spell_assignment(CLASS_DRUID, SPELL_FLAME_BLADE,           3);
-  spell_assignment(CLASS_DRUID, SPELL_FLAMING_SPHERE,        3);
-  spell_assignment(CLASS_DRUID, SPELL_HOLD_ANIMAL,           3);
+  spell_assignment(CLASS_DRUID, SPELL_BARKSKIN, 3);
+  spell_assignment(CLASS_DRUID, SPELL_ENDURANCE, 3);
+  spell_assignment(CLASS_DRUID, SPELL_STRENGTH, 3);
+  spell_assignment(CLASS_DRUID, SPELL_GRACE, 3);
+  spell_assignment(CLASS_DRUID, SPELL_FLAME_BLADE, 3);
+  spell_assignment(CLASS_DRUID, SPELL_FLAMING_SPHERE, 3);
+  spell_assignment(CLASS_DRUID, SPELL_HOLD_ANIMAL, 3);
   spell_assignment(CLASS_DRUID, SPELL_SUMMON_NATURES_ALLY_2, 3);
-  spell_assignment(CLASS_DRUID, SPELL_SUMMON_SWARM,          3);
-  spell_assignment(CLASS_DRUID, SPELL_WISDOM,                3);
+  spell_assignment(CLASS_DRUID, SPELL_SUMMON_SWARM, 3);
+  spell_assignment(CLASS_DRUID, SPELL_WISDOM, 3);
   /*              class num      spell                   level acquired */
   /* 3rd circle */
-  spell_assignment(CLASS_DRUID, SPELL_CALL_LIGHTNING,        5);
-  spell_assignment(CLASS_DRUID, SPELL_CURE_MODERATE,         5);
-  spell_assignment(CLASS_DRUID, SPELL_CONTAGION,             5);
-  spell_assignment(CLASS_DRUID, SPELL_GREATER_MAGIC_FANG,    5);
-  spell_assignment(CLASS_DRUID, SPELL_POISON,                5);
-  spell_assignment(CLASS_DRUID, SPELL_REMOVE_DISEASE,        5);
-  spell_assignment(CLASS_DRUID, SPELL_REMOVE_POISON,         5);
-  spell_assignment(CLASS_DRUID, SPELL_SPIKE_GROWTH,          5);
+  spell_assignment(CLASS_DRUID, SPELL_CALL_LIGHTNING, 5);
+  spell_assignment(CLASS_DRUID, SPELL_CURE_MODERATE, 5);
+  spell_assignment(CLASS_DRUID, SPELL_CONTAGION, 5);
+  spell_assignment(CLASS_DRUID, SPELL_GREATER_MAGIC_FANG, 5);
+  spell_assignment(CLASS_DRUID, SPELL_POISON, 5);
+  spell_assignment(CLASS_DRUID, SPELL_REMOVE_DISEASE, 5);
+  spell_assignment(CLASS_DRUID, SPELL_REMOVE_POISON, 5);
+  spell_assignment(CLASS_DRUID, SPELL_SPIKE_GROWTH, 5);
   spell_assignment(CLASS_DRUID, SPELL_SUMMON_NATURES_ALLY_3, 5);
   /*              class num      spell                   level acquired */
   /* 4th circle */
-  spell_assignment(CLASS_DRUID, SPELL_BLIGHT,                7);
-  spell_assignment(CLASS_DRUID, SPELL_CURE_SERIOUS,          7);
-  spell_assignment(CLASS_DRUID, SPELL_DISPEL_MAGIC,          7);
-  spell_assignment(CLASS_DRUID, SPELL_FLAME_STRIKE,          7);
-  spell_assignment(CLASS_DRUID, SPELL_FREE_MOVEMENT,         7);
-  spell_assignment(CLASS_DRUID, SPELL_ICE_STORM,             7);
-  spell_assignment(CLASS_DRUID, SPELL_LOCATE_CREATURE,       7);
-  spell_assignment(CLASS_DRUID, SPELL_SPIKE_STONES,          7);
+  spell_assignment(CLASS_DRUID, SPELL_BLIGHT, 7);
+  spell_assignment(CLASS_DRUID, SPELL_CURE_SERIOUS, 7);
+  spell_assignment(CLASS_DRUID, SPELL_DISPEL_MAGIC, 7);
+  spell_assignment(CLASS_DRUID, SPELL_FLAME_STRIKE, 7);
+  spell_assignment(CLASS_DRUID, SPELL_FREE_MOVEMENT, 7);
+  spell_assignment(CLASS_DRUID, SPELL_ICE_STORM, 7);
+  spell_assignment(CLASS_DRUID, SPELL_LOCATE_CREATURE, 7);
+  spell_assignment(CLASS_DRUID, SPELL_SPIKE_STONES, 7);
   spell_assignment(CLASS_DRUID, SPELL_SUMMON_NATURES_ALLY_4, 7);
   //spell_assignment(SPELL_REINCARNATE, 7);
   /*              class num      spell                   level acquired */
   /* 5th circle */
   //spell_assignment(CLASS_DRUID, SPELL_BALEFUL_POLYMORPH, 9);
-  spell_assignment(CLASS_DRUID, SPELL_CALL_LIGHTNING_STORM,  9);
-  spell_assignment(CLASS_DRUID, SPELL_CURE_CRITIC,           9);
-  spell_assignment(CLASS_DRUID, SPELL_DEATH_WARD,            9);
-  spell_assignment(CLASS_DRUID, SPELL_HALLOW,                9);
-  spell_assignment(CLASS_DRUID, SPELL_INSECT_PLAGUE,         9);
-  spell_assignment(CLASS_DRUID, SPELL_STONESKIN,             9);
+  spell_assignment(CLASS_DRUID, SPELL_CALL_LIGHTNING_STORM, 9);
+  spell_assignment(CLASS_DRUID, SPELL_CURE_CRITIC, 9);
+  spell_assignment(CLASS_DRUID, SPELL_DEATH_WARD, 9);
+  spell_assignment(CLASS_DRUID, SPELL_HALLOW, 9);
+  spell_assignment(CLASS_DRUID, SPELL_INSECT_PLAGUE, 9);
+  spell_assignment(CLASS_DRUID, SPELL_STONESKIN, 9);
   spell_assignment(CLASS_DRUID, SPELL_SUMMON_NATURES_ALLY_5, 9);
-  spell_assignment(CLASS_DRUID, SPELL_UNHALLOW,              9);
-  spell_assignment(CLASS_DRUID, SPELL_WALL_OF_FIRE,          9);
-  spell_assignment(CLASS_DRUID, SPELL_WALL_OF_THORNS,        9);
+  spell_assignment(CLASS_DRUID, SPELL_UNHALLOW, 9);
+  spell_assignment(CLASS_DRUID, SPELL_WALL_OF_FIRE, 9);
+  spell_assignment(CLASS_DRUID, SPELL_WALL_OF_THORNS, 9);
   /*              class num      spell                   level acquired */
   /* 6th circle */
-  spell_assignment(CLASS_DRUID, SPELL_FIRE_SEEDS,            11);
-  spell_assignment(CLASS_DRUID, SPELL_GREATER_DISPELLING,    11);
-  spell_assignment(CLASS_DRUID, SPELL_MASS_ENDURANCE,        11);
-  spell_assignment(CLASS_DRUID, SPELL_MASS_STRENGTH,         11);
-  spell_assignment(CLASS_DRUID, SPELL_MASS_GRACE,            11);
-  spell_assignment(CLASS_DRUID, SPELL_MASS_WISDOM,           11);
-  spell_assignment(CLASS_DRUID, SPELL_SPELLSTAFF,            11);
+  spell_assignment(CLASS_DRUID, SPELL_FIRE_SEEDS, 11);
+  spell_assignment(CLASS_DRUID, SPELL_GREATER_DISPELLING, 11);
+  spell_assignment(CLASS_DRUID, SPELL_MASS_ENDURANCE, 11);
+  spell_assignment(CLASS_DRUID, SPELL_MASS_STRENGTH, 11);
+  spell_assignment(CLASS_DRUID, SPELL_MASS_GRACE, 11);
+  spell_assignment(CLASS_DRUID, SPELL_MASS_WISDOM, 11);
+  spell_assignment(CLASS_DRUID, SPELL_SPELLSTAFF, 11);
   spell_assignment(CLASS_DRUID, SPELL_SUMMON_NATURES_ALLY_6, 11);
-  spell_assignment(CLASS_DRUID, SPELL_TRANSPORT_VIA_PLANTS,  11);
-  spell_assignment(CLASS_DRUID, SPELL_MASS_CURE_LIGHT,       11);
+  spell_assignment(CLASS_DRUID, SPELL_TRANSPORT_VIA_PLANTS, 11);
+  spell_assignment(CLASS_DRUID, SPELL_MASS_CURE_LIGHT, 11);
   /*              class num      spell                   level acquired */
   /* 7th circle */
-  spell_assignment(CLASS_DRUID, SPELL_CONTROL_WEATHER,       13);
-  spell_assignment(CLASS_DRUID, SPELL_CREEPING_DOOM,         13);
-  spell_assignment(CLASS_DRUID, SPELL_FIRE_STORM,            13);
-  spell_assignment(CLASS_DRUID, SPELL_HEAL,                  13);
-  spell_assignment(CLASS_DRUID, SPELL_MASS_CURE_MODERATE,    13);
+  spell_assignment(CLASS_DRUID, SPELL_CONTROL_WEATHER, 13);
+  spell_assignment(CLASS_DRUID, SPELL_CREEPING_DOOM, 13);
+  spell_assignment(CLASS_DRUID, SPELL_FIRE_STORM, 13);
+  spell_assignment(CLASS_DRUID, SPELL_HEAL, 13);
+  spell_assignment(CLASS_DRUID, SPELL_MASS_CURE_MODERATE, 13);
   spell_assignment(CLASS_DRUID, SPELL_SUMMON_NATURES_ALLY_7, 13);
-  spell_assignment(CLASS_DRUID, SPELL_SUNBEAM,               13);
+  spell_assignment(CLASS_DRUID, SPELL_SUNBEAM, 13);
   //spell_assignment(CLASS_DRUID, SPELL_GREATER_SCRYING, 13);
   /*              class num      spell                   level acquired */
   /* 8th circle */
-  spell_assignment(CLASS_DRUID, SPELL_ANIMAL_SHAPES,         15);
-  spell_assignment(CLASS_DRUID, SPELL_CONTROL_PLANTS,        15);
-  spell_assignment(CLASS_DRUID, SPELL_EARTHQUAKE,            15);
-  spell_assignment(CLASS_DRUID, SPELL_FINGER_OF_DEATH,       15);
-  spell_assignment(CLASS_DRUID, SPELL_MASS_CURE_SERIOUS,     15);
+  spell_assignment(CLASS_DRUID, SPELL_ANIMAL_SHAPES, 15);
+  spell_assignment(CLASS_DRUID, SPELL_CONTROL_PLANTS, 15);
+  spell_assignment(CLASS_DRUID, SPELL_EARTHQUAKE, 15);
+  spell_assignment(CLASS_DRUID, SPELL_FINGER_OF_DEATH, 15);
+  spell_assignment(CLASS_DRUID, SPELL_MASS_CURE_SERIOUS, 15);
   spell_assignment(CLASS_DRUID, SPELL_SUMMON_NATURES_ALLY_8, 15);
-  spell_assignment(CLASS_DRUID, SPELL_SUNBURST,              15);
-  spell_assignment(CLASS_DRUID, SPELL_WHIRLWIND,             15);
-  spell_assignment(CLASS_DRUID, SPELL_WORD_OF_RECALL,        15);
+  spell_assignment(CLASS_DRUID, SPELL_SUNBURST, 15);
+  spell_assignment(CLASS_DRUID, SPELL_WHIRLWIND, 15);
+  spell_assignment(CLASS_DRUID, SPELL_WORD_OF_RECALL, 15);
   /*              class num      spell                   level acquired */
   /* 9th circle */
-  spell_assignment(CLASS_DRUID, SPELL_ELEMENTAL_SWARM,       17);
-  spell_assignment(CLASS_DRUID, SPELL_REGENERATION,          17);
-  spell_assignment(CLASS_DRUID, SPELL_MASS_CURE_CRIT,        17);
-  spell_assignment(CLASS_DRUID, SPELL_SHAMBLER,              17);
-  spell_assignment(CLASS_DRUID, SPELL_POLYMORPH,             17);
-  spell_assignment(CLASS_DRUID, SPELL_STORM_OF_VENGEANCE,    17);
+  spell_assignment(CLASS_DRUID, SPELL_ELEMENTAL_SWARM, 17);
+  spell_assignment(CLASS_DRUID, SPELL_REGENERATION, 17);
+  spell_assignment(CLASS_DRUID, SPELL_MASS_CURE_CRIT, 17);
+  spell_assignment(CLASS_DRUID, SPELL_SHAMBLER, 17);
+  spell_assignment(CLASS_DRUID, SPELL_POLYMORPH, 17);
+  spell_assignment(CLASS_DRUID, SPELL_STORM_OF_VENGEANCE, 17);
   spell_assignment(CLASS_DRUID, SPELL_SUMMON_NATURES_ALLY_9, 17);
   /*epic*/
   spell_assignment(CLASS_DRUID, SPELL_DRAGON_KNIGHT, 21);
-  spell_assignment(CLASS_DRUID, SPELL_GREATER_RUIN,  21);
-  spell_assignment(CLASS_DRUID, SPELL_HELLBALL,      21);
+  spell_assignment(CLASS_DRUID, SPELL_GREATER_RUIN, 21);
+  spell_assignment(CLASS_DRUID, SPELL_HELLBALL, 21);
   /* class prerequisites */
   class_prereq_align(CLASS_DRUID, NEUTRAL_GOOD);
   class_prereq_align(CLASS_DRUID, LAWFUL_NEUTRAL);
@@ -3636,509 +3646,509 @@ void load_class_list(void) {
      tables in constants.c */
   //assign_feat_spell_slots(CLASS_DRUID);
   /****************************************************************************/
-  
+
   /****************************************************************************/
   /*     class-number        name      abrv   clr-abrv           menu-name*/
   classo(CLASS_BERSERKER, "berserker", "Bes", "\trB\tRe\trs\tn", "b) \trBer\tRser\trker\tn",
-      /* max-lvl  lock? prestige? BAB HD  psp move trains in-game? unlkCst, eFeatp */
-        -1,       N,    N,        H,  12, 0,   2,   4,     Y,       0,       0,
-        /*descrip*/"For some, there is only rage. In the ways of their people, in "
-    "the fury of their passion, in the howl of battle, conflict is all these brutal "
-    "souls know. Savages, hired muscle, masters of vicious martial techniques, they "
-    "are not soldiers or professional warriors—they are the battle possessed, "
-    "creatures of slaughter and spirits of war. Known as berserkers, these warmongers "
-    "know little of training, preparation, or the rules of warfare; for them, only "
-    "the moment exists, with the foes that stand before them and the knowledge that "
-    "the next moment might hold their death. They possess a sixth sense in regard to "
-    "danger and the endurance to weather all that might entail. These brutal warriors "
-    "might rise from all walks of life, both civilized and savage, though whole "
-    "societies embracing such philosophies roam the wild places of the world. Within "
-    "berserkers storms the primal spirit of battle, and woe to those who face their "
-    "rage.");
+          /* max-lvl  lock? prestige? BAB HD  psp move trains in-game? unlkCst, eFeatp */
+          -1, N, N, H, 12, 0, 2, 4, Y, 0, 0,
+          /*descrip*/"For some, there is only rage. In the ways of their people, in "
+          "the fury of their passion, in the howl of battle, conflict is all these brutal "
+          "souls know. Savages, hired muscle, masters of vicious martial techniques, they "
+          "are not soldiers or professional warriors—they are the battle possessed, "
+          "creatures of slaughter and spirits of war. Known as berserkers, these warmongers "
+          "know little of training, preparation, or the rules of warfare; for them, only "
+          "the moment exists, with the foes that stand before them and the knowledge that "
+          "the next moment might hold their death. They possess a sixth sense in regard to "
+          "danger and the endurance to weather all that might entail. These brutal warriors "
+          "might rise from all walks of life, both civilized and savage, though whole "
+          "societies embracing such philosophies roam the wild places of the world. Within "
+          "berserkers storms the primal spirit of battle, and woe to those who face their "
+          "rage.");
   /* class-number then saves: fortitude, reflex, will, poison, death */
-  assign_class_saves(CLASS_BERSERKER, G,    B,      B,    B,      B);
+  assign_class_saves(CLASS_BERSERKER, G, B, B, B, B);
   assign_class_abils(CLASS_BERSERKER, /* class number */
-    /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
-      CC,        CC,     CC,        CA,  CA,        CC,            CC,
-    /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
-      CC,      CA,        CC,           CA,  CA,  CA,   CC,             CC,
-    /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
-      CC,       CC,            CC,      CA,           CC,           CC,
-    /*survival,swim,use_magic_device,perform*/
-      CC,      CA,  CC,              CC
-    );
+          /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+          CC, CC, CC, CA, CA, CC, CC,
+          /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+          CC, CA, CC, CA, CA, CA, CC, CC,
+          /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+          CC, CC, CC, CA, CC, CC,
+          /*survival,swim,use_magic_device,perform*/
+          CC, CA, CC, CC
+          );
   assign_class_titles(CLASS_BERSERKER, /* class number */
-    "",                        /* <= 4  */
-    "the Ripper of Flesh",     /* <= 9  */
-    "the Shatterer of Bone",   /* <= 14 */
-    "the Cleaver of Organs",   /* <= 19 */
-    "the Wrecker of Hope",     /* <= 24 */
-    "the Effulgence of Rage",  /* <= 29 */
-    "the Foe-Hewer",           /* <= 30 */
-    "the Immortal Warlord",    /* <= LVL_IMMORT */
-    "the Extirpator",          /* <= LVL_STAFF */
-    "the God of Rage",         /* <= LVL_GRSTAFF */
-    "the Berserker"            /* default */  
-  );
+          "", /* <= 4  */
+          "the Ripper of Flesh", /* <= 9  */
+          "the Shatterer of Bone", /* <= 14 */
+          "the Cleaver of Organs", /* <= 19 */
+          "the Wrecker of Hope", /* <= 24 */
+          "the Effulgence of Rage", /* <= 29 */
+          "the Foe-Hewer", /* <= 30 */
+          "the Immortal Warlord", /* <= LVL_IMMORT */
+          "the Extirpator", /* <= LVL_STAFF */
+          "the God of Rage", /* <= LVL_GRSTAFF */
+          "the Berserker" /* default */
+          );
   /* feat assignment */
   /*              class num     feat                               cfeat lvl stack */
-  feat_assignment(CLASS_BERSERKER, FEAT_SIMPLE_WEAPON_PROFICIENCY,  Y,    1,  N);
-  feat_assignment(CLASS_BERSERKER, FEAT_ARMOR_PROFICIENCY_LIGHT,    Y,    1,  N);
-  feat_assignment(CLASS_BERSERKER, FEAT_ARMOR_PROFICIENCY_MEDIUM,   Y,    1,  N);
-  feat_assignment(CLASS_BERSERKER, FEAT_ARMOR_PROFICIENCY_SHIELD,   Y,    1,  N);
-  feat_assignment(CLASS_BERSERKER, FEAT_MARTIAL_WEAPON_PROFICIENCY, Y,    1,  N);
-  feat_assignment(CLASS_BERSERKER, FEAT_FAST_MOVEMENT,              Y,    1,  N);
-  feat_assignment(CLASS_BERSERKER, FEAT_RAGE,                       Y,    1,  Y);
-  feat_assignment(CLASS_BERSERKER, FEAT_UNCANNY_DODGE,              Y,    2,  N);
-  feat_assignment(CLASS_BERSERKER, FEAT_TRAP_SENSE,                 Y,    3,  Y);
+  feat_assignment(CLASS_BERSERKER, FEAT_SIMPLE_WEAPON_PROFICIENCY, Y, 1, N);
+  feat_assignment(CLASS_BERSERKER, FEAT_ARMOR_PROFICIENCY_LIGHT, Y, 1, N);
+  feat_assignment(CLASS_BERSERKER, FEAT_ARMOR_PROFICIENCY_MEDIUM, Y, 1, N);
+  feat_assignment(CLASS_BERSERKER, FEAT_ARMOR_PROFICIENCY_SHIELD, Y, 1, N);
+  feat_assignment(CLASS_BERSERKER, FEAT_MARTIAL_WEAPON_PROFICIENCY, Y, 1, N);
+  feat_assignment(CLASS_BERSERKER, FEAT_FAST_MOVEMENT, Y, 1, N);
+  feat_assignment(CLASS_BERSERKER, FEAT_RAGE, Y, 1, Y);
+  feat_assignment(CLASS_BERSERKER, FEAT_UNCANNY_DODGE, Y, 2, N);
+  feat_assignment(CLASS_BERSERKER, FEAT_TRAP_SENSE, Y, 3, Y);
   /* rage power (level 3) */
-  feat_assignment(CLASS_BERSERKER, FEAT_RP_SUPRISE_ACCURACY,        Y,    3,  N);
-  feat_assignment(CLASS_BERSERKER, FEAT_RAGE,                       Y,    4,  Y);
-  feat_assignment(CLASS_BERSERKER, FEAT_SHRUG_DAMAGE,               Y,    4,  Y);
-  feat_assignment(CLASS_BERSERKER, FEAT_IMPROVED_UNCANNY_DODGE,     Y,    5,  N);
-  feat_assignment(CLASS_BERSERKER, FEAT_TRAP_SENSE,                 Y,    6,  Y);
+  feat_assignment(CLASS_BERSERKER, FEAT_RP_SUPRISE_ACCURACY, Y, 3, N);
+  feat_assignment(CLASS_BERSERKER, FEAT_RAGE, Y, 4, Y);
+  feat_assignment(CLASS_BERSERKER, FEAT_SHRUG_DAMAGE, Y, 4, Y);
+  feat_assignment(CLASS_BERSERKER, FEAT_IMPROVED_UNCANNY_DODGE, Y, 5, N);
+  feat_assignment(CLASS_BERSERKER, FEAT_TRAP_SENSE, Y, 6, Y);
   /* rage power (level 6) */
-  feat_assignment(CLASS_BERSERKER, FEAT_RP_POWERFUL_BLOW,           Y,    6,  N);
-  feat_assignment(CLASS_BERSERKER, FEAT_SHRUG_DAMAGE,               Y,    7,  Y);
-  feat_assignment(CLASS_BERSERKER, FEAT_RAGE,                       Y,    8,  Y);
-  feat_assignment(CLASS_BERSERKER, FEAT_TRAP_SENSE,                 Y,    9,  Y);
+  feat_assignment(CLASS_BERSERKER, FEAT_RP_POWERFUL_BLOW, Y, 6, N);
+  feat_assignment(CLASS_BERSERKER, FEAT_SHRUG_DAMAGE, Y, 7, Y);
+  feat_assignment(CLASS_BERSERKER, FEAT_RAGE, Y, 8, Y);
+  feat_assignment(CLASS_BERSERKER, FEAT_TRAP_SENSE, Y, 9, Y);
   /* rage power (level 9) */
-  feat_assignment(CLASS_BERSERKER, FEAT_RP_RENEWED_VIGOR,           Y,    9,  N);
-  feat_assignment(CLASS_BERSERKER, FEAT_SHRUG_DAMAGE,               Y,   10,  Y);
-  feat_assignment(CLASS_BERSERKER, FEAT_GREATER_RAGE,               Y,   11,  N);
-  feat_assignment(CLASS_BERSERKER, FEAT_RAGE,                       Y,   11,  Y);
-  feat_assignment(CLASS_BERSERKER, FEAT_TRAP_SENSE,                 Y,   12,  Y);
+  feat_assignment(CLASS_BERSERKER, FEAT_RP_RENEWED_VIGOR, Y, 9, N);
+  feat_assignment(CLASS_BERSERKER, FEAT_SHRUG_DAMAGE, Y, 10, Y);
+  feat_assignment(CLASS_BERSERKER, FEAT_GREATER_RAGE, Y, 11, N);
+  feat_assignment(CLASS_BERSERKER, FEAT_RAGE, Y, 11, Y);
+  feat_assignment(CLASS_BERSERKER, FEAT_TRAP_SENSE, Y, 12, Y);
   /* rage power (level 12) */
-  feat_assignment(CLASS_BERSERKER, FEAT_RP_HEAVY_SHRUG,             Y,   12,  N);
-  feat_assignment(CLASS_BERSERKER, FEAT_SHRUG_DAMAGE,               Y,   13,  Y);
-  feat_assignment(CLASS_BERSERKER, FEAT_INDOMITABLE_WILL,           Y,   14,  N);
-  feat_assignment(CLASS_BERSERKER, FEAT_TRAP_SENSE,                 Y,   15,  Y);
-  feat_assignment(CLASS_BERSERKER, FEAT_RAGE,                       Y,   15,  Y);
+  feat_assignment(CLASS_BERSERKER, FEAT_RP_HEAVY_SHRUG, Y, 12, N);
+  feat_assignment(CLASS_BERSERKER, FEAT_SHRUG_DAMAGE, Y, 13, Y);
+  feat_assignment(CLASS_BERSERKER, FEAT_INDOMITABLE_WILL, Y, 14, N);
+  feat_assignment(CLASS_BERSERKER, FEAT_TRAP_SENSE, Y, 15, Y);
+  feat_assignment(CLASS_BERSERKER, FEAT_RAGE, Y, 15, Y);
   /* rage power (level 15) */
-  feat_assignment(CLASS_BERSERKER, FEAT_RP_FEARLESS_RAGE,           Y,   15,  N);
-  feat_assignment(CLASS_BERSERKER, FEAT_SHRUG_DAMAGE,               Y,   16,  Y);
-  feat_assignment(CLASS_BERSERKER, FEAT_TIRELESS_RAGE,              Y,   17,  N);
-  feat_assignment(CLASS_BERSERKER, FEAT_TRAP_SENSE,                 Y,   18,  Y);
+  feat_assignment(CLASS_BERSERKER, FEAT_RP_FEARLESS_RAGE, Y, 15, N);
+  feat_assignment(CLASS_BERSERKER, FEAT_SHRUG_DAMAGE, Y, 16, Y);
+  feat_assignment(CLASS_BERSERKER, FEAT_TIRELESS_RAGE, Y, 17, N);
+  feat_assignment(CLASS_BERSERKER, FEAT_TRAP_SENSE, Y, 18, Y);
   /* rage power (level 18) */
-  feat_assignment(CLASS_BERSERKER, FEAT_RP_COME_AND_GET_ME,         Y,   18,  N);
-  feat_assignment(CLASS_BERSERKER, FEAT_SHRUG_DAMAGE,               Y,   19,  Y);
-  feat_assignment(CLASS_BERSERKER, FEAT_RAGE,                       Y,   20,  Y);
-  feat_assignment(CLASS_BERSERKER, FEAT_MIGHTY_RAGE,                Y,   20,  N);
+  feat_assignment(CLASS_BERSERKER, FEAT_RP_COME_AND_GET_ME, Y, 18, N);
+  feat_assignment(CLASS_BERSERKER, FEAT_SHRUG_DAMAGE, Y, 19, Y);
+  feat_assignment(CLASS_BERSERKER, FEAT_RAGE, Y, 20, Y);
+  feat_assignment(CLASS_BERSERKER, FEAT_MIGHTY_RAGE, Y, 20, N);
   /*epic*/
   /* this ended up being wayyyyy too powerful */
   //feat_assignment(CLASS_BERSERKER, FEAT_RAGING_CRITICAL, Y, 21, N);  
   /* rage power lvl 22*/
-  feat_assignment(CLASS_BERSERKER, FEAT_EATER_OF_MAGIC,             Y,   22,  N);  
-  feat_assignment(CLASS_BERSERKER, FEAT_SHRUG_DAMAGE,               Y,   22,  Y);  
-  feat_assignment(CLASS_BERSERKER, FEAT_RAGE,                       Y,   24,  Y); 
-  feat_assignment(CLASS_BERSERKER, FEAT_SHRUG_DAMAGE,               Y,   25,  Y);  
+  feat_assignment(CLASS_BERSERKER, FEAT_EATER_OF_MAGIC, Y, 22, N);
+  feat_assignment(CLASS_BERSERKER, FEAT_SHRUG_DAMAGE, Y, 22, Y);
+  feat_assignment(CLASS_BERSERKER, FEAT_RAGE, Y, 24, Y);
+  feat_assignment(CLASS_BERSERKER, FEAT_SHRUG_DAMAGE, Y, 25, Y);
   /* rage power lvl 26*/
-  feat_assignment(CLASS_BERSERKER, FEAT_RAGE_RESISTANCE,            Y,   26,  N);  
-  feat_assignment(CLASS_BERSERKER, FEAT_INDOMITABLE_RAGE,           Y,   27,  N);  
-  feat_assignment(CLASS_BERSERKER, FEAT_SHRUG_DAMAGE,               Y,   28,  Y);  
-  feat_assignment(CLASS_BERSERKER, FEAT_RAGE,                       Y,   29,  Y);  
+  feat_assignment(CLASS_BERSERKER, FEAT_RAGE_RESISTANCE, Y, 26, N);
+  feat_assignment(CLASS_BERSERKER, FEAT_INDOMITABLE_RAGE, Y, 27, N);
+  feat_assignment(CLASS_BERSERKER, FEAT_SHRUG_DAMAGE, Y, 28, Y);
+  feat_assignment(CLASS_BERSERKER, FEAT_RAGE, Y, 29, Y);
   /* rage power lvl 30*/
-  feat_assignment(CLASS_BERSERKER, FEAT_DEATHLESS_FRENZY,           Y,   30,  N);  
+  feat_assignment(CLASS_BERSERKER, FEAT_DEATHLESS_FRENZY, Y, 30, N);
   /* no spell assignment */
   /* class prerequisites */
   class_prereq_align(CLASS_BERSERKER, NEUTRAL_GOOD);
   class_prereq_align(CLASS_BERSERKER, TRUE_NEUTRAL);
-  class_prereq_align(CLASS_BERSERKER, NEUTRAL_EVIL);  
+  class_prereq_align(CLASS_BERSERKER, NEUTRAL_EVIL);
   class_prereq_align(CLASS_BERSERKER, CHAOTIC_EVIL);
   class_prereq_align(CLASS_BERSERKER, CHAOTIC_GOOD);
   class_prereq_align(CLASS_BERSERKER, CHAOTIC_NEUTRAL);
   /****************************************************************************/
-  
+
   /****************************************************************************/
   /*     class-number     name      abrv   clr-abrv     menu-name*/
   classo(CLASS_SORCERER, "sorcerer", "Sor", "\tMSor\tn", "s) \tMSorcerer\tn",
-      /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
-        -1,       N,    N,        L,  4, 0,   1,   2,     Y,       0,       0,
-        /*descrip*/"Scions of innately magical bloodlines, the chosen of deities, "
-    "the spawn of monsters, pawns of fate and destiny, or simply flukes of fickle "
-    "magic, sorcerers look within themselves for arcane prowess and draw forth might "
-    "few mortals can imagine. Emboldened by lives ever threatening to be consumed "
-    "by their innate powers, these magic-touched souls endlessly indulge in and "
-    "refine their mysterious abilities, gradually learning how to harness their "
-    "birthright and coax forth ever greater arcane feats. Just as varied as these "
-    "innately powerful spellcasters' abilities and inspirations are the ways in "
-    "which they choose to utilize their gifts. While some seek to control their "
-    "abilities through meditation and discipline, becoming masters of their "
-    "fantastic birthright, others give in to their magic, letting it rule their "
-    "lives with often explosive results. Regardless, sorcerers live and breathe "
-    "that which other spellcasters devote their lives to mastering, and for them "
-    "magic is more than a boon or a field of study; it is life itself.");
+          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
+          -1, N, N, L, 4, 0, 1, 2, Y, 0, 0,
+          /*descrip*/"Scions of innately magical bloodlines, the chosen of deities, "
+          "the spawn of monsters, pawns of fate and destiny, or simply flukes of fickle "
+          "magic, sorcerers look within themselves for arcane prowess and draw forth might "
+          "few mortals can imagine. Emboldened by lives ever threatening to be consumed "
+          "by their innate powers, these magic-touched souls endlessly indulge in and "
+          "refine their mysterious abilities, gradually learning how to harness their "
+          "birthright and coax forth ever greater arcane feats. Just as varied as these "
+          "innately powerful spellcasters' abilities and inspirations are the ways in "
+          "which they choose to utilize their gifts. While some seek to control their "
+          "abilities through meditation and discipline, becoming masters of their "
+          "fantastic birthright, others give in to their magic, letting it rule their "
+          "lives with often explosive results. Regardless, sorcerers live and breathe "
+          "that which other spellcasters devote their lives to mastering, and for them "
+          "magic is more than a boon or a field of study; it is life itself.");
   /* class-number then saves: fortitude, reflex, will, poison, death */
-  assign_class_saves(CLASS_SORCERER, B,    B,      G,    B,      B);
+  assign_class_saves(CLASS_SORCERER, B, B, G, B, B);
   assign_class_abils(CLASS_SORCERER, /* class number */
-    /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
-      CC,        CC,     CC,        CA,  CC,        CA,            CA,
-    /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
-      CC,      CC,        CC,           CA,  CA,  CC,   CC,             CA,
-    /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
-      CC,       CC,            CC,      CC,           CC,           CC,
-    /*survival,swim,use_magic_device,perform*/
-      CC,      CA,  CA,              CC
-    );
+          /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+          CC, CC, CC, CA, CC, CA, CA,
+          /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+          CC, CC, CC, CA, CA, CC, CC, CA,
+          /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+          CC, CC, CC, CC, CC, CC,
+          /*survival,swim,use_magic_device,perform*/
+          CC, CA, CA, CC
+          );
   assign_class_titles(CLASS_SORCERER, /* class number */
-    "",                            /* <= 4  */
-    "the Awakened",                /* <= 9  */
-    "the Torch",                   /* <= 14 */
-    "the Firebrand",               /* <= 19 */
-    "the Destroyer",               /* <= 24 */
-    "the Crux of Power",           /* <= 29 */
-    "the Near-Divine",             /* <= 30 */
-    "the Immortal Magic Weaver",   /* <= LVL_IMMORT */
-    "the Avatar of the Flow",      /* <= LVL_STAFF */
-    "the Hand of Mystical Might",  /* <= LVL_GRSTAFF */
-    "the Sorcerer"                 /* default */  
-  );
+          "", /* <= 4  */
+          "the Awakened", /* <= 9  */
+          "the Torch", /* <= 14 */
+          "the Firebrand", /* <= 19 */
+          "the Destroyer", /* <= 24 */
+          "the Crux of Power", /* <= 29 */
+          "the Near-Divine", /* <= 30 */
+          "the Immortal Magic Weaver", /* <= LVL_IMMORT */
+          "the Avatar of the Flow", /* <= LVL_STAFF */
+          "the Hand of Mystical Might", /* <= LVL_GRSTAFF */
+          "the Sorcerer" /* default */
+          );
   /* feat assignment */
   /*              class num     feat                            cfeat lvl stack */
-  feat_assignment(CLASS_SORCERER, FEAT_WEAPON_PROFICIENCY_WIZARD, Y,    1,  N);
-  feat_assignment(CLASS_SORCERER, FEAT_SIMPLE_WEAPON_PROFICIENCY, Y,    1,  N);
-  feat_assignment(CLASS_SORCERER, FEAT_SUMMON_FAMILIAR,           Y,    1,  N);
-  feat_assignment(CLASS_SORCERER, FEAT_SORCERER_1ST_CIRCLE,         Y,    1,  N);
-  feat_assignment(CLASS_SORCERER, FEAT_SORCERER_2ND_CIRCLE,         Y,    4,  N);
-  feat_assignment(CLASS_SORCERER, FEAT_SORCERER_3RD_CIRCLE,         Y,    6,  N);
-  feat_assignment(CLASS_SORCERER, FEAT_SORCERER_4TH_CIRCLE,         Y,    8,  N);
-  feat_assignment(CLASS_SORCERER, FEAT_SORCERER_5TH_CIRCLE,         Y,   10,  N);
-  feat_assignment(CLASS_SORCERER, FEAT_SORCERER_6TH_CIRCLE,         Y,   12,  N);
-  feat_assignment(CLASS_SORCERER, FEAT_SORCERER_7TH_CIRCLE,         Y,   14,  N);
-  feat_assignment(CLASS_SORCERER, FEAT_SORCERER_8TH_CIRCLE,         Y,   16,  N);
-  feat_assignment(CLASS_SORCERER, FEAT_SORCERER_9TH_CIRCLE,         Y,   18,  N);
+  feat_assignment(CLASS_SORCERER, FEAT_WEAPON_PROFICIENCY_WIZARD, Y, 1, N);
+  feat_assignment(CLASS_SORCERER, FEAT_SIMPLE_WEAPON_PROFICIENCY, Y, 1, N);
+  feat_assignment(CLASS_SORCERER, FEAT_SUMMON_FAMILIAR, Y, 1, N);
+  feat_assignment(CLASS_SORCERER, FEAT_SORCERER_1ST_CIRCLE, Y, 1, N);
+  feat_assignment(CLASS_SORCERER, FEAT_SORCERER_2ND_CIRCLE, Y, 4, N);
+  feat_assignment(CLASS_SORCERER, FEAT_SORCERER_3RD_CIRCLE, Y, 6, N);
+  feat_assignment(CLASS_SORCERER, FEAT_SORCERER_4TH_CIRCLE, Y, 8, N);
+  feat_assignment(CLASS_SORCERER, FEAT_SORCERER_5TH_CIRCLE, Y, 10, N);
+  feat_assignment(CLASS_SORCERER, FEAT_SORCERER_6TH_CIRCLE, Y, 12, N);
+  feat_assignment(CLASS_SORCERER, FEAT_SORCERER_7TH_CIRCLE, Y, 14, N);
+  feat_assignment(CLASS_SORCERER, FEAT_SORCERER_8TH_CIRCLE, Y, 16, N);
+  feat_assignment(CLASS_SORCERER, FEAT_SORCERER_9TH_CIRCLE, Y, 18, N);
   /*epic*/
-  feat_assignment(CLASS_SORCERER, FEAT_SORCERER_EPIC_SPELL,         Y,   21,  N);
+  feat_assignment(CLASS_SORCERER, FEAT_SORCERER_EPIC_SPELL, Y, 21, N);
   /* sorcerer do not get class feats */
   /**** spell assign ****/
   /*              class num      spell                   level acquired */
   /* 1st circle */
-  spell_assignment(CLASS_SORCERER, SPELL_HORIZIKAULS_BOOM,    1);
-  spell_assignment(CLASS_SORCERER, SPELL_MAGIC_MISSILE,       1);
-  spell_assignment(CLASS_SORCERER, SPELL_BURNING_HANDS,       1);
-  spell_assignment(CLASS_SORCERER, SPELL_ICE_DAGGER,          1);
-  spell_assignment(CLASS_SORCERER, SPELL_MAGE_ARMOR,          1);
-  spell_assignment(CLASS_SORCERER, SPELL_SUMMON_CREATURE_1,   1);
-  spell_assignment(CLASS_SORCERER, SPELL_CHILL_TOUCH,         1);
+  spell_assignment(CLASS_SORCERER, SPELL_HORIZIKAULS_BOOM, 1);
+  spell_assignment(CLASS_SORCERER, SPELL_MAGIC_MISSILE, 1);
+  spell_assignment(CLASS_SORCERER, SPELL_BURNING_HANDS, 1);
+  spell_assignment(CLASS_SORCERER, SPELL_ICE_DAGGER, 1);
+  spell_assignment(CLASS_SORCERER, SPELL_MAGE_ARMOR, 1);
+  spell_assignment(CLASS_SORCERER, SPELL_SUMMON_CREATURE_1, 1);
+  spell_assignment(CLASS_SORCERER, SPELL_CHILL_TOUCH, 1);
   spell_assignment(CLASS_SORCERER, SPELL_NEGATIVE_ENERGY_RAY, 1);
   spell_assignment(CLASS_SORCERER, SPELL_RAY_OF_ENFEEBLEMENT, 1);
-  spell_assignment(CLASS_SORCERER, SPELL_CHARM,               1);
-  spell_assignment(CLASS_SORCERER, SPELL_ENCHANT_WEAPON,      1);
-  spell_assignment(CLASS_SORCERER, SPELL_SLEEP,               1);
-  spell_assignment(CLASS_SORCERER, SPELL_COLOR_SPRAY,         1);
-  spell_assignment(CLASS_SORCERER, SPELL_SCARE,               1);
-  spell_assignment(CLASS_SORCERER, SPELL_TRUE_STRIKE,         1);
-  spell_assignment(CLASS_SORCERER, SPELL_IDENTIFY,            1);
-  spell_assignment(CLASS_SORCERER, SPELL_SHELGARNS_BLADE,     1);
-  spell_assignment(CLASS_SORCERER, SPELL_GREASE,              1);
-  spell_assignment(CLASS_SORCERER, SPELL_ENDURE_ELEMENTS,     1);
-  spell_assignment(CLASS_SORCERER, SPELL_PROT_FROM_EVIL,      1);
-  spell_assignment(CLASS_SORCERER, SPELL_PROT_FROM_GOOD,      1);
+  spell_assignment(CLASS_SORCERER, SPELL_CHARM, 1);
+  spell_assignment(CLASS_SORCERER, SPELL_ENCHANT_WEAPON, 1);
+  spell_assignment(CLASS_SORCERER, SPELL_SLEEP, 1);
+  spell_assignment(CLASS_SORCERER, SPELL_COLOR_SPRAY, 1);
+  spell_assignment(CLASS_SORCERER, SPELL_SCARE, 1);
+  spell_assignment(CLASS_SORCERER, SPELL_TRUE_STRIKE, 1);
+  spell_assignment(CLASS_SORCERER, SPELL_IDENTIFY, 1);
+  spell_assignment(CLASS_SORCERER, SPELL_SHELGARNS_BLADE, 1);
+  spell_assignment(CLASS_SORCERER, SPELL_GREASE, 1);
+  spell_assignment(CLASS_SORCERER, SPELL_ENDURE_ELEMENTS, 1);
+  spell_assignment(CLASS_SORCERER, SPELL_PROT_FROM_EVIL, 1);
+  spell_assignment(CLASS_SORCERER, SPELL_PROT_FROM_GOOD, 1);
   spell_assignment(CLASS_SORCERER, SPELL_EXPEDITIOUS_RETREAT, 1);
-  spell_assignment(CLASS_SORCERER, SPELL_IRON_GUTS,           1);
-  spell_assignment(CLASS_SORCERER, SPELL_SHIELD,              1);
+  spell_assignment(CLASS_SORCERER, SPELL_IRON_GUTS, 1);
+  spell_assignment(CLASS_SORCERER, SPELL_SHIELD, 1);
   /*              class num      spell                   level acquired */
   /* 2nd circle */
-  spell_assignment(CLASS_SORCERER, SPELL_SHOCKING_GRASP,    4);
-  spell_assignment(CLASS_SORCERER, SPELL_SCORCHING_RAY,     4);
-  spell_assignment(CLASS_SORCERER, SPELL_CONTINUAL_FLAME,   4);
+  spell_assignment(CLASS_SORCERER, SPELL_SHOCKING_GRASP, 4);
+  spell_assignment(CLASS_SORCERER, SPELL_SCORCHING_RAY, 4);
+  spell_assignment(CLASS_SORCERER, SPELL_CONTINUAL_FLAME, 4);
   spell_assignment(CLASS_SORCERER, SPELL_SUMMON_CREATURE_2, 4);
-  spell_assignment(CLASS_SORCERER, SPELL_WEB,               4);
-  spell_assignment(CLASS_SORCERER, SPELL_ACID_ARROW,        4);
-  spell_assignment(CLASS_SORCERER, SPELL_BLINDNESS,         4);
-  spell_assignment(CLASS_SORCERER, SPELL_DEAFNESS,          4);
-  spell_assignment(CLASS_SORCERER, SPELL_FALSE_LIFE,        4);
-  spell_assignment(CLASS_SORCERER, SPELL_DAZE_MONSTER,      4);
-  spell_assignment(CLASS_SORCERER, SPELL_HIDEOUS_LAUGHTER,  4);
-  spell_assignment(CLASS_SORCERER, SPELL_TOUCH_OF_IDIOCY,   4);
-  spell_assignment(CLASS_SORCERER, SPELL_BLUR,              4);
-  spell_assignment(CLASS_SORCERER, SPELL_MIRROR_IMAGE,      4);
-  spell_assignment(CLASS_SORCERER, SPELL_INVISIBLE,         4);
-  spell_assignment(CLASS_SORCERER, SPELL_DETECT_INVIS,      4);
-  spell_assignment(CLASS_SORCERER, SPELL_DETECT_MAGIC,      4);
-  spell_assignment(CLASS_SORCERER, SPELL_DARKNESS,          4);
+  spell_assignment(CLASS_SORCERER, SPELL_WEB, 4);
+  spell_assignment(CLASS_SORCERER, SPELL_ACID_ARROW, 4);
+  spell_assignment(CLASS_SORCERER, SPELL_BLINDNESS, 4);
+  spell_assignment(CLASS_SORCERER, SPELL_DEAFNESS, 4);
+  spell_assignment(CLASS_SORCERER, SPELL_FALSE_LIFE, 4);
+  spell_assignment(CLASS_SORCERER, SPELL_DAZE_MONSTER, 4);
+  spell_assignment(CLASS_SORCERER, SPELL_HIDEOUS_LAUGHTER, 4);
+  spell_assignment(CLASS_SORCERER, SPELL_TOUCH_OF_IDIOCY, 4);
+  spell_assignment(CLASS_SORCERER, SPELL_BLUR, 4);
+  spell_assignment(CLASS_SORCERER, SPELL_MIRROR_IMAGE, 4);
+  spell_assignment(CLASS_SORCERER, SPELL_INVISIBLE, 4);
+  spell_assignment(CLASS_SORCERER, SPELL_DETECT_INVIS, 4);
+  spell_assignment(CLASS_SORCERER, SPELL_DETECT_MAGIC, 4);
+  spell_assignment(CLASS_SORCERER, SPELL_DARKNESS, 4);
   //spell_assignment(CLASS_SORCERER, SPELL_I_DARKNESS,        4);
-  spell_assignment(CLASS_SORCERER, SPELL_RESIST_ENERGY,     4);
-  spell_assignment(CLASS_SORCERER, SPELL_ENERGY_SPHERE,     4);
-  spell_assignment(CLASS_SORCERER, SPELL_ENDURANCE,         4);
-  spell_assignment(CLASS_SORCERER, SPELL_STRENGTH,          4);
-  spell_assignment(CLASS_SORCERER, SPELL_GRACE,             4);
+  spell_assignment(CLASS_SORCERER, SPELL_RESIST_ENERGY, 4);
+  spell_assignment(CLASS_SORCERER, SPELL_ENERGY_SPHERE, 4);
+  spell_assignment(CLASS_SORCERER, SPELL_ENDURANCE, 4);
+  spell_assignment(CLASS_SORCERER, SPELL_STRENGTH, 4);
+  spell_assignment(CLASS_SORCERER, SPELL_GRACE, 4);
   /*              class num      spell                   level acquired */
   /* 3rd circle */
-  spell_assignment(CLASS_SORCERER, SPELL_LIGHTNING_BOLT,      6);
-  spell_assignment(CLASS_SORCERER, SPELL_FIREBALL,            6);
-  spell_assignment(CLASS_SORCERER, SPELL_WATER_BREATHE,       6);
-  spell_assignment(CLASS_SORCERER, SPELL_SUMMON_CREATURE_3,   6);
-  spell_assignment(CLASS_SORCERER, SPELL_PHANTOM_STEED,       6);
-  spell_assignment(CLASS_SORCERER, SPELL_STINKING_CLOUD,      6);
-  spell_assignment(CLASS_SORCERER, SPELL_HALT_UNDEAD,         6);
-  spell_assignment(CLASS_SORCERER, SPELL_VAMPIRIC_TOUCH,      6);
-  spell_assignment(CLASS_SORCERER, SPELL_HEROISM,             6);
-  spell_assignment(CLASS_SORCERER, SPELL_FLY,                 6);
-  spell_assignment(CLASS_SORCERER, SPELL_HOLD_PERSON,         6);
-  spell_assignment(CLASS_SORCERER, SPELL_DEEP_SLUMBER,        6);
-  spell_assignment(CLASS_SORCERER, SPELL_WALL_OF_FOG,         6);
+  spell_assignment(CLASS_SORCERER, SPELL_LIGHTNING_BOLT, 6);
+  spell_assignment(CLASS_SORCERER, SPELL_FIREBALL, 6);
+  spell_assignment(CLASS_SORCERER, SPELL_WATER_BREATHE, 6);
+  spell_assignment(CLASS_SORCERER, SPELL_SUMMON_CREATURE_3, 6);
+  spell_assignment(CLASS_SORCERER, SPELL_PHANTOM_STEED, 6);
+  spell_assignment(CLASS_SORCERER, SPELL_STINKING_CLOUD, 6);
+  spell_assignment(CLASS_SORCERER, SPELL_HALT_UNDEAD, 6);
+  spell_assignment(CLASS_SORCERER, SPELL_VAMPIRIC_TOUCH, 6);
+  spell_assignment(CLASS_SORCERER, SPELL_HEROISM, 6);
+  spell_assignment(CLASS_SORCERER, SPELL_FLY, 6);
+  spell_assignment(CLASS_SORCERER, SPELL_HOLD_PERSON, 6);
+  spell_assignment(CLASS_SORCERER, SPELL_DEEP_SLUMBER, 6);
+  spell_assignment(CLASS_SORCERER, SPELL_WALL_OF_FOG, 6);
   spell_assignment(CLASS_SORCERER, SPELL_INVISIBILITY_SPHERE, 6);
-  spell_assignment(CLASS_SORCERER, SPELL_DAYLIGHT,            6);
-  spell_assignment(CLASS_SORCERER, SPELL_CLAIRVOYANCE,        6);
-  spell_assignment(CLASS_SORCERER, SPELL_NON_DETECTION,       6);
-  spell_assignment(CLASS_SORCERER, SPELL_DISPEL_MAGIC,        6);
-  spell_assignment(CLASS_SORCERER, SPELL_HASTE,               6);
-  spell_assignment(CLASS_SORCERER, SPELL_SLOW,                6);
-  spell_assignment(CLASS_SORCERER, SPELL_CIRCLE_A_EVIL,       6);
-  spell_assignment(CLASS_SORCERER, SPELL_CIRCLE_A_GOOD,       6);
-  spell_assignment(CLASS_SORCERER, SPELL_CUNNING,             6);
-  spell_assignment(CLASS_SORCERER, SPELL_WISDOM,              6);
-  spell_assignment(CLASS_SORCERER, SPELL_CHARISMA,            6);
+  spell_assignment(CLASS_SORCERER, SPELL_DAYLIGHT, 6);
+  spell_assignment(CLASS_SORCERER, SPELL_CLAIRVOYANCE, 6);
+  spell_assignment(CLASS_SORCERER, SPELL_NON_DETECTION, 6);
+  spell_assignment(CLASS_SORCERER, SPELL_DISPEL_MAGIC, 6);
+  spell_assignment(CLASS_SORCERER, SPELL_HASTE, 6);
+  spell_assignment(CLASS_SORCERER, SPELL_SLOW, 6);
+  spell_assignment(CLASS_SORCERER, SPELL_CIRCLE_A_EVIL, 6);
+  spell_assignment(CLASS_SORCERER, SPELL_CIRCLE_A_GOOD, 6);
+  spell_assignment(CLASS_SORCERER, SPELL_CUNNING, 6);
+  spell_assignment(CLASS_SORCERER, SPELL_WISDOM, 6);
+  spell_assignment(CLASS_SORCERER, SPELL_CHARISMA, 6);
   /*              class num      spell                   level acquired */
-  /* 4th circle */  
-  spell_assignment(CLASS_SORCERER, SPELL_FIRE_SHIELD,       8);
-  spell_assignment(CLASS_SORCERER, SPELL_COLD_SHIELD,       8);
-  spell_assignment(CLASS_SORCERER, SPELL_ICE_STORM,         8);
-  spell_assignment(CLASS_SORCERER, SPELL_BILLOWING_CLOUD,   8);
+  /* 4th circle */
+  spell_assignment(CLASS_SORCERER, SPELL_FIRE_SHIELD, 8);
+  spell_assignment(CLASS_SORCERER, SPELL_COLD_SHIELD, 8);
+  spell_assignment(CLASS_SORCERER, SPELL_ICE_STORM, 8);
+  spell_assignment(CLASS_SORCERER, SPELL_BILLOWING_CLOUD, 8);
   spell_assignment(CLASS_SORCERER, SPELL_SUMMON_CREATURE_4, 8);
-  spell_assignment(CLASS_SORCERER, SPELL_ANIMATE_DEAD,      8);
-  spell_assignment(CLASS_SORCERER, SPELL_CURSE,             8);
-  spell_assignment(CLASS_SORCERER, SPELL_INFRAVISION,       8);
-  spell_assignment(CLASS_SORCERER, SPELL_POISON,            8);
-  spell_assignment(CLASS_SORCERER, SPELL_GREATER_INVIS,     8);
-  spell_assignment(CLASS_SORCERER, SPELL_RAINBOW_PATTERN,   8);
-  spell_assignment(CLASS_SORCERER, SPELL_WIZARD_EYE,        8);
-  spell_assignment(CLASS_SORCERER, SPELL_LOCATE_CREATURE,   8);
-  spell_assignment(CLASS_SORCERER, SPELL_MINOR_GLOBE,       8);
-  spell_assignment(CLASS_SORCERER, SPELL_REMOVE_CURSE,      8);
-  spell_assignment(CLASS_SORCERER, SPELL_STONESKIN,         8);
-  spell_assignment(CLASS_SORCERER, SPELL_ENLARGE_PERSON,    8);
-  spell_assignment(CLASS_SORCERER, SPELL_SHRINK_PERSON,     8);
+  spell_assignment(CLASS_SORCERER, SPELL_ANIMATE_DEAD, 8);
+  spell_assignment(CLASS_SORCERER, SPELL_CURSE, 8);
+  spell_assignment(CLASS_SORCERER, SPELL_INFRAVISION, 8);
+  spell_assignment(CLASS_SORCERER, SPELL_POISON, 8);
+  spell_assignment(CLASS_SORCERER, SPELL_GREATER_INVIS, 8);
+  spell_assignment(CLASS_SORCERER, SPELL_RAINBOW_PATTERN, 8);
+  spell_assignment(CLASS_SORCERER, SPELL_WIZARD_EYE, 8);
+  spell_assignment(CLASS_SORCERER, SPELL_LOCATE_CREATURE, 8);
+  spell_assignment(CLASS_SORCERER, SPELL_MINOR_GLOBE, 8);
+  spell_assignment(CLASS_SORCERER, SPELL_REMOVE_CURSE, 8);
+  spell_assignment(CLASS_SORCERER, SPELL_STONESKIN, 8);
+  spell_assignment(CLASS_SORCERER, SPELL_ENLARGE_PERSON, 8);
+  spell_assignment(CLASS_SORCERER, SPELL_SHRINK_PERSON, 8);
   /*              class num      spell                   level acquired */
   /* 5th circle */
-  spell_assignment(CLASS_SORCERER, SPELL_INTERPOSING_HAND,  10);
-  spell_assignment(CLASS_SORCERER, SPELL_WALL_OF_FORCE,     10);
+  spell_assignment(CLASS_SORCERER, SPELL_INTERPOSING_HAND, 10);
+  spell_assignment(CLASS_SORCERER, SPELL_WALL_OF_FORCE, 10);
   spell_assignment(CLASS_SORCERER, SPELL_BALL_OF_LIGHTNING, 10);
-  spell_assignment(CLASS_SORCERER, SPELL_CLOUDKILL,         10);
+  spell_assignment(CLASS_SORCERER, SPELL_CLOUDKILL, 10);
   spell_assignment(CLASS_SORCERER, SPELL_SUMMON_CREATURE_5, 10);
-  spell_assignment(CLASS_SORCERER, SPELL_WAVES_OF_FATIGUE,  10);
-  spell_assignment(CLASS_SORCERER, SPELL_SYMBOL_OF_PAIN,    10);
-  spell_assignment(CLASS_SORCERER, SPELL_DOMINATE_PERSON,   10);
-  spell_assignment(CLASS_SORCERER, SPELL_FEEBLEMIND,        10);
-  spell_assignment(CLASS_SORCERER, SPELL_NIGHTMARE,         10);
-  spell_assignment(CLASS_SORCERER, SPELL_MIND_FOG,          10);
-  spell_assignment(CLASS_SORCERER, SPELL_ACID_SHEATH,       10);
-  spell_assignment(CLASS_SORCERER, SPELL_FAITHFUL_HOUND,    10);
-  spell_assignment(CLASS_SORCERER, SPELL_DISMISSAL,         10);
-  spell_assignment(CLASS_SORCERER, SPELL_CONE_OF_COLD,      10);
-  spell_assignment(CLASS_SORCERER, SPELL_TELEKINESIS,       10);
-  spell_assignment(CLASS_SORCERER, SPELL_FIREBRAND,         10);
+  spell_assignment(CLASS_SORCERER, SPELL_WAVES_OF_FATIGUE, 10);
+  spell_assignment(CLASS_SORCERER, SPELL_SYMBOL_OF_PAIN, 10);
+  spell_assignment(CLASS_SORCERER, SPELL_DOMINATE_PERSON, 10);
+  spell_assignment(CLASS_SORCERER, SPELL_FEEBLEMIND, 10);
+  spell_assignment(CLASS_SORCERER, SPELL_NIGHTMARE, 10);
+  spell_assignment(CLASS_SORCERER, SPELL_MIND_FOG, 10);
+  spell_assignment(CLASS_SORCERER, SPELL_ACID_SHEATH, 10);
+  spell_assignment(CLASS_SORCERER, SPELL_FAITHFUL_HOUND, 10);
+  spell_assignment(CLASS_SORCERER, SPELL_DISMISSAL, 10);
+  spell_assignment(CLASS_SORCERER, SPELL_CONE_OF_COLD, 10);
+  spell_assignment(CLASS_SORCERER, SPELL_TELEKINESIS, 10);
+  spell_assignment(CLASS_SORCERER, SPELL_FIREBRAND, 10);
   /*              class num      spell                   level acquired */
   /* 6th circle */
-  spell_assignment(CLASS_SORCERER, SPELL_FREEZING_SPHERE,      12);
-  spell_assignment(CLASS_SORCERER, SPELL_ACID_FOG,             12);
-  spell_assignment(CLASS_SORCERER, SPELL_SUMMON_CREATURE_6,    12);
-  spell_assignment(CLASS_SORCERER, SPELL_TRANSFORMATION,       12);
-  spell_assignment(CLASS_SORCERER, SPELL_EYEBITE,              12);
-  spell_assignment(CLASS_SORCERER, SPELL_MASS_HASTE,           12);
-  spell_assignment(CLASS_SORCERER, SPELL_GREATER_HEROISM,      12);
-  spell_assignment(CLASS_SORCERER, SPELL_ANTI_MAGIC_FIELD,     12);
+  spell_assignment(CLASS_SORCERER, SPELL_FREEZING_SPHERE, 12);
+  spell_assignment(CLASS_SORCERER, SPELL_ACID_FOG, 12);
+  spell_assignment(CLASS_SORCERER, SPELL_SUMMON_CREATURE_6, 12);
+  spell_assignment(CLASS_SORCERER, SPELL_TRANSFORMATION, 12);
+  spell_assignment(CLASS_SORCERER, SPELL_EYEBITE, 12);
+  spell_assignment(CLASS_SORCERER, SPELL_MASS_HASTE, 12);
+  spell_assignment(CLASS_SORCERER, SPELL_GREATER_HEROISM, 12);
+  spell_assignment(CLASS_SORCERER, SPELL_ANTI_MAGIC_FIELD, 12);
   spell_assignment(CLASS_SORCERER, SPELL_GREATER_MIRROR_IMAGE, 12);
-  spell_assignment(CLASS_SORCERER, SPELL_LOCATE_OBJECT,        12);
-  spell_assignment(CLASS_SORCERER, SPELL_TRUE_SEEING,          12);
-  spell_assignment(CLASS_SORCERER, SPELL_GLOBE_OF_INVULN,      12);
-  spell_assignment(CLASS_SORCERER, SPELL_GREATER_DISPELLING,   12);
-  spell_assignment(CLASS_SORCERER, SPELL_CLONE,                12);
-  spell_assignment(CLASS_SORCERER, SPELL_WATERWALK,            12);
-  spell_assignment(CLASS_SORCERER, SPELL_LEVITATE,             12);
+  spell_assignment(CLASS_SORCERER, SPELL_LOCATE_OBJECT, 12);
+  spell_assignment(CLASS_SORCERER, SPELL_TRUE_SEEING, 12);
+  spell_assignment(CLASS_SORCERER, SPELL_GLOBE_OF_INVULN, 12);
+  spell_assignment(CLASS_SORCERER, SPELL_GREATER_DISPELLING, 12);
+  spell_assignment(CLASS_SORCERER, SPELL_CLONE, 12);
+  spell_assignment(CLASS_SORCERER, SPELL_WATERWALK, 12);
+  spell_assignment(CLASS_SORCERER, SPELL_LEVITATE, 12);
   /*              class num      spell                   level acquired */
   /* 7th circle */
-  spell_assignment(CLASS_SORCERER, SPELL_MISSILE_STORM,       14);
-  spell_assignment(CLASS_SORCERER, SPELL_GRASPING_HAND,       14);
-  spell_assignment(CLASS_SORCERER, SPELL_SUMMON_CREATURE_7,   14);
-  spell_assignment(CLASS_SORCERER, SPELL_CONTROL_WEATHER,     14);
-  spell_assignment(CLASS_SORCERER, SPELL_POWER_WORD_BLIND,    14);
+  spell_assignment(CLASS_SORCERER, SPELL_MISSILE_STORM, 14);
+  spell_assignment(CLASS_SORCERER, SPELL_GRASPING_HAND, 14);
+  spell_assignment(CLASS_SORCERER, SPELL_SUMMON_CREATURE_7, 14);
+  spell_assignment(CLASS_SORCERER, SPELL_CONTROL_WEATHER, 14);
+  spell_assignment(CLASS_SORCERER, SPELL_POWER_WORD_BLIND, 14);
   spell_assignment(CLASS_SORCERER, SPELL_WAVES_OF_EXHAUSTION, 14);
-  spell_assignment(CLASS_SORCERER, SPELL_MASS_HOLD_PERSON,    14);
-  spell_assignment(CLASS_SORCERER, SPELL_MASS_FLY,            14);
-  spell_assignment(CLASS_SORCERER, SPELL_DISPLACEMENT,        14);
-  spell_assignment(CLASS_SORCERER, SPELL_PRISMATIC_SPRAY,     14);
-  spell_assignment(CLASS_SORCERER, SPELL_DETECT_POISON,       14);
-  spell_assignment(CLASS_SORCERER, SPELL_POWER_WORD_STUN,     14);
+  spell_assignment(CLASS_SORCERER, SPELL_MASS_HOLD_PERSON, 14);
+  spell_assignment(CLASS_SORCERER, SPELL_MASS_FLY, 14);
+  spell_assignment(CLASS_SORCERER, SPELL_DISPLACEMENT, 14);
+  spell_assignment(CLASS_SORCERER, SPELL_PRISMATIC_SPRAY, 14);
+  spell_assignment(CLASS_SORCERER, SPELL_DETECT_POISON, 14);
+  spell_assignment(CLASS_SORCERER, SPELL_POWER_WORD_STUN, 14);
   spell_assignment(CLASS_SORCERER, SPELL_PROTECT_FROM_SPELLS, 14);
-  spell_assignment(CLASS_SORCERER, SPELL_THUNDERCLAP,         14);
-  spell_assignment(CLASS_SORCERER, SPELL_SPELL_MANTLE,        14);
-  spell_assignment(CLASS_SORCERER, SPELL_TELEPORT,            14);
-  spell_assignment(CLASS_SORCERER, SPELL_MASS_WISDOM,         14);
-  spell_assignment(CLASS_SORCERER, SPELL_MASS_CHARISMA,       14);
-  spell_assignment(CLASS_SORCERER, SPELL_MASS_CUNNING,        14);
+  spell_assignment(CLASS_SORCERER, SPELL_THUNDERCLAP, 14);
+  spell_assignment(CLASS_SORCERER, SPELL_SPELL_MANTLE, 14);
+  spell_assignment(CLASS_SORCERER, SPELL_TELEPORT, 14);
+  spell_assignment(CLASS_SORCERER, SPELL_MASS_WISDOM, 14);
+  spell_assignment(CLASS_SORCERER, SPELL_MASS_CHARISMA, 14);
+  spell_assignment(CLASS_SORCERER, SPELL_MASS_CUNNING, 14);
   /*              class num      spell                   level acquired */
   /* 8th circle */
-  spell_assignment(CLASS_SORCERER, SPELL_CLENCHED_FIST,      16);
-  spell_assignment(CLASS_SORCERER, SPELL_CHAIN_LIGHTNING,    16);
-  spell_assignment(CLASS_SORCERER, SPELL_INCENDIARY_CLOUD,   16);
-  spell_assignment(CLASS_SORCERER, SPELL_SUMMON_CREATURE_8,  16);
-  spell_assignment(CLASS_SORCERER, SPELL_HORRID_WILTING,     16);
-  spell_assignment(CLASS_SORCERER, SPELL_GREATER_ANIMATION,  16);
+  spell_assignment(CLASS_SORCERER, SPELL_CLENCHED_FIST, 16);
+  spell_assignment(CLASS_SORCERER, SPELL_CHAIN_LIGHTNING, 16);
+  spell_assignment(CLASS_SORCERER, SPELL_INCENDIARY_CLOUD, 16);
+  spell_assignment(CLASS_SORCERER, SPELL_SUMMON_CREATURE_8, 16);
+  spell_assignment(CLASS_SORCERER, SPELL_HORRID_WILTING, 16);
+  spell_assignment(CLASS_SORCERER, SPELL_GREATER_ANIMATION, 16);
   spell_assignment(CLASS_SORCERER, SPELL_IRRESISTIBLE_DANCE, 16);
-  spell_assignment(CLASS_SORCERER, SPELL_MASS_DOMINATION,    16);
-  spell_assignment(CLASS_SORCERER, SPELL_SCINT_PATTERN,      16);
-  spell_assignment(CLASS_SORCERER, SPELL_REFUGE,             16);
-  spell_assignment(CLASS_SORCERER, SPELL_BANISH,             16);
-  spell_assignment(CLASS_SORCERER, SPELL_SUNBURST,           16);
-  spell_assignment(CLASS_SORCERER, SPELL_SPELL_TURNING,      16);
-  spell_assignment(CLASS_SORCERER, SPELL_MIND_BLANK,         16);
-  spell_assignment(CLASS_SORCERER, SPELL_IRONSKIN,           16);
-  spell_assignment(CLASS_SORCERER, SPELL_PORTAL,             16);
+  spell_assignment(CLASS_SORCERER, SPELL_MASS_DOMINATION, 16);
+  spell_assignment(CLASS_SORCERER, SPELL_SCINT_PATTERN, 16);
+  spell_assignment(CLASS_SORCERER, SPELL_REFUGE, 16);
+  spell_assignment(CLASS_SORCERER, SPELL_BANISH, 16);
+  spell_assignment(CLASS_SORCERER, SPELL_SUNBURST, 16);
+  spell_assignment(CLASS_SORCERER, SPELL_SPELL_TURNING, 16);
+  spell_assignment(CLASS_SORCERER, SPELL_MIND_BLANK, 16);
+  spell_assignment(CLASS_SORCERER, SPELL_IRONSKIN, 16);
+  spell_assignment(CLASS_SORCERER, SPELL_PORTAL, 16);
   /*              class num      spell                   level acquired */
   /* 9th circle */
-  spell_assignment(CLASS_SORCERER, SPELL_METEOR_SWARM,         18);
-  spell_assignment(CLASS_SORCERER, SPELL_BLADE_OF_DISASTER,    18);
-  spell_assignment(CLASS_SORCERER, SPELL_SUMMON_CREATURE_9,    18);
-  spell_assignment(CLASS_SORCERER, SPELL_GATE,                 18);
-  spell_assignment(CLASS_SORCERER, SPELL_ENERGY_DRAIN,         18);
-  spell_assignment(CLASS_SORCERER, SPELL_WAIL_OF_THE_BANSHEE,  18);
-  spell_assignment(CLASS_SORCERER, SPELL_POWER_WORD_KILL,      18);
-  spell_assignment(CLASS_SORCERER, SPELL_ENFEEBLEMENT,         18);
-  spell_assignment(CLASS_SORCERER, SPELL_WEIRD,                18);
-  spell_assignment(CLASS_SORCERER, SPELL_SHADOW_SHIELD,        18);
-  spell_assignment(CLASS_SORCERER, SPELL_PRISMATIC_SPHERE,     18);
-  spell_assignment(CLASS_SORCERER, SPELL_IMPLODE,              18);
-  spell_assignment(CLASS_SORCERER, SPELL_TIMESTOP,             18);
+  spell_assignment(CLASS_SORCERER, SPELL_METEOR_SWARM, 18);
+  spell_assignment(CLASS_SORCERER, SPELL_BLADE_OF_DISASTER, 18);
+  spell_assignment(CLASS_SORCERER, SPELL_SUMMON_CREATURE_9, 18);
+  spell_assignment(CLASS_SORCERER, SPELL_GATE, 18);
+  spell_assignment(CLASS_SORCERER, SPELL_ENERGY_DRAIN, 18);
+  spell_assignment(CLASS_SORCERER, SPELL_WAIL_OF_THE_BANSHEE, 18);
+  spell_assignment(CLASS_SORCERER, SPELL_POWER_WORD_KILL, 18);
+  spell_assignment(CLASS_SORCERER, SPELL_ENFEEBLEMENT, 18);
+  spell_assignment(CLASS_SORCERER, SPELL_WEIRD, 18);
+  spell_assignment(CLASS_SORCERER, SPELL_SHADOW_SHIELD, 18);
+  spell_assignment(CLASS_SORCERER, SPELL_PRISMATIC_SPHERE, 18);
+  spell_assignment(CLASS_SORCERER, SPELL_IMPLODE, 18);
+  spell_assignment(CLASS_SORCERER, SPELL_TIMESTOP, 18);
   spell_assignment(CLASS_SORCERER, SPELL_GREATER_SPELL_MANTLE, 18);
-  spell_assignment(CLASS_SORCERER, SPELL_POLYMORPH,            18);
-  spell_assignment(CLASS_SORCERER, SPELL_MASS_ENHANCE,         18);  
+  spell_assignment(CLASS_SORCERER, SPELL_POLYMORPH, 18);
+  spell_assignment(CLASS_SORCERER, SPELL_MASS_ENHANCE, 18);
   /*epic*/
-  spell_assignment(CLASS_SORCERER, SPELL_MUMMY_DUST,      21);  
-  spell_assignment(CLASS_SORCERER, SPELL_DRAGON_KNIGHT,   21);  
-  spell_assignment(CLASS_SORCERER, SPELL_GREATER_RUIN,    21);  
-  spell_assignment(CLASS_SORCERER, SPELL_HELLBALL,        21);  
-  spell_assignment(CLASS_SORCERER, SPELL_EPIC_MAGE_ARMOR, 21);  
-  spell_assignment(CLASS_SORCERER, SPELL_EPIC_WARDING,    21);  
+  spell_assignment(CLASS_SORCERER, SPELL_MUMMY_DUST, 21);
+  spell_assignment(CLASS_SORCERER, SPELL_DRAGON_KNIGHT, 21);
+  spell_assignment(CLASS_SORCERER, SPELL_GREATER_RUIN, 21);
+  spell_assignment(CLASS_SORCERER, SPELL_HELLBALL, 21);
+  spell_assignment(CLASS_SORCERER, SPELL_EPIC_MAGE_ARMOR, 21);
+  spell_assignment(CLASS_SORCERER, SPELL_EPIC_WARDING, 21);
   /* PREREQS here */
   /*****/
   /* INIT spell slots, assignement of spell slots based on
      tables in constants.c */
   //assign_feat_spell_slots(CLASS_SORCERER);
   /****************************************************************************/
-  
+
   /****************************************************************************/
   /*     class-number   name      abrv   clr-abrv     menu-name*/
   classo(CLASS_PALADIN, "paladin", "Pal", "\tWPal\tn", "p) \tWPaladin\tn",
-      /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
-        -1,       N,    N,        H,  10, 0,   1,   2,     Y,      0,       0,
-        /*descrip*/"Through a select, worthy few shines the power of the divine. "
-    "Called paladins, these noble souls dedicate their swords and lives to the "
-    "battle against evil. Knights, crusaders, and law-bringers, paladins seek not "
-    "just to spread divine justice but to embody the teachings of the virtuous "
-    "deities they serve. In pursuit of their lofty goals, they adhere to ironclad "
-    "laws of morality and discipline. As reward for their righteousness, these "
-    "holy champions are blessed with boons to aid them in their quests: powers "
-    "to banish evil, heal the innocent, and inspire the faithful. Although their "
-    "convictions might lead them into conflict with the very souls they would "
-    "save, paladins weather endless challenges of faith and dark temptations, "
-    "risking their lives to do right and fighting to bring about a brighter "
-    "future.");
+          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
+          -1, N, N, H, 10, 0, 1, 2, Y, 0, 0,
+          /*descrip*/"Through a select, worthy few shines the power of the divine. "
+          "Called paladins, these noble souls dedicate their swords and lives to the "
+          "battle against evil. Knights, crusaders, and law-bringers, paladins seek not "
+          "just to spread divine justice but to embody the teachings of the virtuous "
+          "deities they serve. In pursuit of their lofty goals, they adhere to ironclad "
+          "laws of morality and discipline. As reward for their righteousness, these "
+          "holy champions are blessed with boons to aid them in their quests: powers "
+          "to banish evil, heal the innocent, and inspire the faithful. Although their "
+          "convictions might lead them into conflict with the very souls they would "
+          "save, paladins weather endless challenges of faith and dark temptations, "
+          "risking their lives to do right and fighting to bring about a brighter "
+          "future.");
   /* class-number then saves: fortitude, reflex, will, poison, death */
-  assign_class_saves(CLASS_PALADIN, B,    B,      G,    B,      B);
+  assign_class_saves(CLASS_PALADIN, B, B, G, B, B);
   assign_class_abils(CLASS_PALADIN, /* class number */
-    /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
-      CC,        CC,     CC,        CA,  CA,        CA,            CC,
-    /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
-      CC,      CA,        CA,           CA,  CA,  CC,   CC,             CC,
-    /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
-      CA,       CC,            CC,      CC,           CA,           CA,
-    /*survival,swim,use_magic_device,perform*/
-      CC,      CA,  CC,              CC
-    );
+          /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+          CC, CC, CC, CA, CA, CA, CC,
+          /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+          CC, CA, CA, CA, CA, CC, CC, CC,
+          /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+          CA, CC, CC, CC, CA, CA,
+          /*survival,swim,use_magic_device,perform*/
+          CC, CA, CC, CC
+          );
   assign_class_titles(CLASS_PALADIN, /* class number */
-    "",                                /* <= 4  */
-    "the Initiated",                   /* <= 9  */
-    "the Accepted",                    /* <= 14 */
-    "the Hand of Mercy",               /* <= 19 */
-    "the Sword of Justice",            /* <= 24 */
-    "who Walks in the Light",          /* <= 29 */
-    "the Defender of the Faith",       /* <= 30 */
-    "the Immortal Justicar",           /* <= LVL_IMMORT */
-    "the Immortal Sword of Light",     /* <= LVL_STAFF */
-    "the Immortal Hammer of Justice",  /* <= LVL_GRSTAFF */
-    "the Paladin"                      /* default */  
-  );
+          "", /* <= 4  */
+          "the Initiated", /* <= 9  */
+          "the Accepted", /* <= 14 */
+          "the Hand of Mercy", /* <= 19 */
+          "the Sword of Justice", /* <= 24 */
+          "who Walks in the Light", /* <= 29 */
+          "the Defender of the Faith", /* <= 30 */
+          "the Immortal Justicar", /* <= LVL_IMMORT */
+          "the Immortal Sword of Light", /* <= LVL_STAFF */
+          "the Immortal Hammer of Justice", /* <= LVL_GRSTAFF */
+          "the Paladin" /* default */
+          );
   /* feat assignment */
   /*              class num     feat                            cfeat lvl stack */
-  feat_assignment(CLASS_PALADIN, FEAT_SIMPLE_WEAPON_PROFICIENCY,  Y,    1,  N);
-  feat_assignment(CLASS_PALADIN, FEAT_ARMOR_PROFICIENCY_HEAVY,    Y,    1,  N);
-  feat_assignment(CLASS_PALADIN, FEAT_ARMOR_PROFICIENCY_LIGHT,    Y,    1,  N);
-  feat_assignment(CLASS_PALADIN, FEAT_ARMOR_PROFICIENCY_MEDIUM,   Y,    1,  N);
-  feat_assignment(CLASS_PALADIN, FEAT_ARMOR_PROFICIENCY_SHIELD,   Y,    1,  N);
-  feat_assignment(CLASS_PALADIN, FEAT_MARTIAL_WEAPON_PROFICIENCY, Y,    1,  N);
-  feat_assignment(CLASS_PALADIN, FEAT_AURA_OF_GOOD,               Y,    1,  N);
-  feat_assignment(CLASS_PALADIN, FEAT_DETECT_EVIL,                Y,    1,  N);
-  feat_assignment(CLASS_PALADIN, FEAT_SMITE_EVIL,                 Y,    1,  Y);
-  feat_assignment(CLASS_PALADIN, FEAT_DIVINE_GRACE,               Y,    2,  N);
-  feat_assignment(CLASS_PALADIN, FEAT_LAYHANDS,                   Y,    3,  N);
-  feat_assignment(CLASS_PALADIN, FEAT_TURN_UNDEAD,                Y,    3,  N);
-  feat_assignment(CLASS_PALADIN, FEAT_AURA_OF_COURAGE,            Y,    4,  N);
-  feat_assignment(CLASS_PALADIN, FEAT_DIVINE_HEALTH,              Y,    5,  N);
+  feat_assignment(CLASS_PALADIN, FEAT_SIMPLE_WEAPON_PROFICIENCY, Y, 1, N);
+  feat_assignment(CLASS_PALADIN, FEAT_ARMOR_PROFICIENCY_HEAVY, Y, 1, N);
+  feat_assignment(CLASS_PALADIN, FEAT_ARMOR_PROFICIENCY_LIGHT, Y, 1, N);
+  feat_assignment(CLASS_PALADIN, FEAT_ARMOR_PROFICIENCY_MEDIUM, Y, 1, N);
+  feat_assignment(CLASS_PALADIN, FEAT_ARMOR_PROFICIENCY_SHIELD, Y, 1, N);
+  feat_assignment(CLASS_PALADIN, FEAT_MARTIAL_WEAPON_PROFICIENCY, Y, 1, N);
+  feat_assignment(CLASS_PALADIN, FEAT_AURA_OF_GOOD, Y, 1, N);
+  feat_assignment(CLASS_PALADIN, FEAT_DETECT_EVIL, Y, 1, N);
+  feat_assignment(CLASS_PALADIN, FEAT_SMITE_EVIL, Y, 1, Y);
+  feat_assignment(CLASS_PALADIN, FEAT_DIVINE_GRACE, Y, 2, N);
+  feat_assignment(CLASS_PALADIN, FEAT_LAYHANDS, Y, 3, N);
+  feat_assignment(CLASS_PALADIN, FEAT_TURN_UNDEAD, Y, 3, N);
+  feat_assignment(CLASS_PALADIN, FEAT_AURA_OF_COURAGE, Y, 4, N);
+  feat_assignment(CLASS_PALADIN, FEAT_DIVINE_HEALTH, Y, 5, N);
   /* bonus feat - mounted combat 5 */
-  feat_assignment(CLASS_PALADIN, FEAT_MOUNTED_COMBAT,             Y,    5,  N);
-  feat_assignment(CLASS_PALADIN, FEAT_SMITE_EVIL,                 Y,    5,  Y);
+  feat_assignment(CLASS_PALADIN, FEAT_MOUNTED_COMBAT, Y, 5, N);
+  feat_assignment(CLASS_PALADIN, FEAT_SMITE_EVIL, Y, 5, Y);
   /* bonus feat - ride by attack 6 */
-  feat_assignment(CLASS_PALADIN, FEAT_RIDE_BY_ATTACK,             Y,    6,  N);
-  feat_assignment(CLASS_PALADIN, FEAT_REMOVE_DISEASE,             Y,    6,  Y);
-  feat_assignment(CLASS_PALADIN, FEAT_CALL_MOUNT,                 Y,    7,  N);
-  feat_assignment(CLASS_PALADIN, FEAT_DIVINE_BOND,                Y,    8,  N);
+  feat_assignment(CLASS_PALADIN, FEAT_RIDE_BY_ATTACK, Y, 6, N);
+  feat_assignment(CLASS_PALADIN, FEAT_REMOVE_DISEASE, Y, 6, Y);
+  feat_assignment(CLASS_PALADIN, FEAT_CALL_MOUNT, Y, 7, N);
+  feat_assignment(CLASS_PALADIN, FEAT_DIVINE_BOND, Y, 8, N);
   /* bonus feat - spirited charge 9 */
-  feat_assignment(CLASS_PALADIN, FEAT_SPIRITED_CHARGE,            Y,    9,  N);
-  feat_assignment(CLASS_PALADIN, FEAT_REMOVE_DISEASE,             Y,    9,  Y);
-  feat_assignment(CLASS_PALADIN, FEAT_SMITE_EVIL,                 Y,   10,  Y);
-  feat_assignment(CLASS_PALADIN, FEAT_REMOVE_DISEASE,             Y,   12,  Y);
+  feat_assignment(CLASS_PALADIN, FEAT_SPIRITED_CHARGE, Y, 9, N);
+  feat_assignment(CLASS_PALADIN, FEAT_REMOVE_DISEASE, Y, 9, Y);
+  feat_assignment(CLASS_PALADIN, FEAT_SMITE_EVIL, Y, 10, Y);
+  feat_assignment(CLASS_PALADIN, FEAT_REMOVE_DISEASE, Y, 12, Y);
   /* bonus feat - mounted archery 13 */
-  feat_assignment(CLASS_PALADIN, FEAT_MOUNTED_ARCHERY,            Y,   13,  N);
-  feat_assignment(CLASS_PALADIN, FEAT_REMOVE_DISEASE,             Y,   14,  Y);
-  feat_assignment(CLASS_PALADIN, FEAT_SMITE_EVIL,                 Y,   15,  Y);
-  feat_assignment(CLASS_PALADIN, FEAT_REMOVE_DISEASE,             Y,   18,  Y);
+  feat_assignment(CLASS_PALADIN, FEAT_MOUNTED_ARCHERY, Y, 13, N);
+  feat_assignment(CLASS_PALADIN, FEAT_REMOVE_DISEASE, Y, 14, Y);
+  feat_assignment(CLASS_PALADIN, FEAT_SMITE_EVIL, Y, 15, Y);
+  feat_assignment(CLASS_PALADIN, FEAT_REMOVE_DISEASE, Y, 18, Y);
   /* bonus feat - glorious rider 19 */
-  feat_assignment(CLASS_PALADIN, FEAT_GLORIOUS_RIDER,             Y,   19,  N);
-  feat_assignment(CLASS_PALADIN, FEAT_SMITE_EVIL,                 Y,   19,  Y);
+  feat_assignment(CLASS_PALADIN, FEAT_GLORIOUS_RIDER, Y, 19, N);
+  feat_assignment(CLASS_PALADIN, FEAT_SMITE_EVIL, Y, 19, Y);
   /* spell circles */
-  feat_assignment(CLASS_PALADIN, FEAT_PALADIN_1ST_CIRCLE,          Y,    6,  N);
-  feat_assignment(CLASS_PALADIN, FEAT_PALADIN_2ND_CIRCLE,          Y,   10,  N);
-  feat_assignment(CLASS_PALADIN, FEAT_PALADIN_3RD_CIRCLE,          Y,   12,  N);
-  feat_assignment(CLASS_PALADIN, FEAT_PALADIN_4TH_CIRCLE,          Y,   15,  N);
+  feat_assignment(CLASS_PALADIN, FEAT_PALADIN_1ST_CIRCLE, Y, 6, N);
+  feat_assignment(CLASS_PALADIN, FEAT_PALADIN_2ND_CIRCLE, Y, 10, N);
+  feat_assignment(CLASS_PALADIN, FEAT_PALADIN_3RD_CIRCLE, Y, 12, N);
+  feat_assignment(CLASS_PALADIN, FEAT_PALADIN_4TH_CIRCLE, Y, 15, N);
   /*epic*/
   /* bonus epic feat - legendary rider 21 */
-  feat_assignment(CLASS_PALADIN, FEAT_LEGENDARY_RIDER,            Y,   21,  N);
-  feat_assignment(CLASS_PALADIN, FEAT_REMOVE_DISEASE,             Y,   22,  Y);
-  feat_assignment(CLASS_PALADIN, FEAT_SMITE_EVIL,                 Y,   25,  Y);
-  feat_assignment(CLASS_PALADIN, FEAT_REMOVE_DISEASE,             Y,   26,  Y);
+  feat_assignment(CLASS_PALADIN, FEAT_LEGENDARY_RIDER, Y, 21, N);
+  feat_assignment(CLASS_PALADIN, FEAT_REMOVE_DISEASE, Y, 22, Y);
+  feat_assignment(CLASS_PALADIN, FEAT_SMITE_EVIL, Y, 25, Y);
+  feat_assignment(CLASS_PALADIN, FEAT_REMOVE_DISEASE, Y, 26, Y);
   /* bonus epic feat - epic mount 27 */
-  feat_assignment(CLASS_PALADIN, FEAT_EPIC_MOUNT,                 Y,   27,  N);
-  feat_assignment(CLASS_PALADIN, FEAT_REMOVE_DISEASE,             Y,   30,  Y);
-  feat_assignment(CLASS_PALADIN, FEAT_SMITE_EVIL,                 Y,   30,  Y);
+  feat_assignment(CLASS_PALADIN, FEAT_EPIC_MOUNT, Y, 27, N);
+  feat_assignment(CLASS_PALADIN, FEAT_REMOVE_DISEASE, Y, 30, Y);
+  feat_assignment(CLASS_PALADIN, FEAT_SMITE_EVIL, Y, 30, Y);
   /* paladin has no class feats */
   /**** spell assign ****/
   /*              class num      spell                   level acquired */
   /* 1st circle */
   spell_assignment(CLASS_PALADIN, SPELL_CURE_LIGHT, 6);
-  spell_assignment(CLASS_PALADIN, SPELL_ENDURANCE,  6);
-  spell_assignment(CLASS_PALADIN, SPELL_ARMOR,      6);
+  spell_assignment(CLASS_PALADIN, SPELL_ENDURANCE, 6);
+  spell_assignment(CLASS_PALADIN, SPELL_ARMOR, 6);
   /*              class num      spell                   level acquired */
   /* 2nd circle */
-  spell_assignment(CLASS_PALADIN, SPELL_CREATE_FOOD,   10);
-  spell_assignment(CLASS_PALADIN, SPELL_CREATE_WATER,  10);
+  spell_assignment(CLASS_PALADIN, SPELL_CREATE_FOOD, 10);
+  spell_assignment(CLASS_PALADIN, SPELL_CREATE_WATER, 10);
   spell_assignment(CLASS_PALADIN, SPELL_DETECT_POISON, 10);
   spell_assignment(CLASS_PALADIN, SPELL_CURE_MODERATE, 10);
   /*              class num      spell                   level acquired */
   /* 3rd circle */
   spell_assignment(CLASS_PALADIN, SPELL_DETECT_ALIGN, 12);
-  spell_assignment(CLASS_PALADIN, SPELL_CURE_BLIND,   12);
-  spell_assignment(CLASS_PALADIN, SPELL_BLESS,        12);
+  spell_assignment(CLASS_PALADIN, SPELL_CURE_BLIND, 12);
+  spell_assignment(CLASS_PALADIN, SPELL_BLESS, 12);
   spell_assignment(CLASS_PALADIN, SPELL_CURE_SERIOUS, 12);
   /*              class num      spell                   level acquired */
   /* 4th circle */
-  spell_assignment(CLASS_PALADIN, SPELL_AID,           15);
-  spell_assignment(CLASS_PALADIN, SPELL_INFRAVISION,   15);
-  spell_assignment(CLASS_PALADIN, SPELL_REMOVE_CURSE,  15);
+  spell_assignment(CLASS_PALADIN, SPELL_AID, 15);
+  spell_assignment(CLASS_PALADIN, SPELL_INFRAVISION, 15);
+  spell_assignment(CLASS_PALADIN, SPELL_REMOVE_CURSE, 15);
   spell_assignment(CLASS_PALADIN, SPELL_REMOVE_POISON, 15);
-  spell_assignment(CLASS_PALADIN, SPELL_CURE_CRITIC,   15);
-  spell_assignment(CLASS_PALADIN, SPELL_HOLY_SWORD,    15);
+  spell_assignment(CLASS_PALADIN, SPELL_CURE_CRITIC, 15);
+  spell_assignment(CLASS_PALADIN, SPELL_HOLY_SWORD, 15);
   /* class prerequisites */
   class_prereq_align(CLASS_PALADIN, LAWFUL_GOOD);
   /*****/
@@ -4146,278 +4156,278 @@ void load_class_list(void) {
      tables in constants.c */
   //assign_feat_spell_slots(CLASS_PALADIN);
   /****************************************************************************/
-  
+
   /****************************************************************************/
   /*     class-number  name      abrv   clr-abrv     menu-name*/
   classo(CLASS_RANGER, "ranger", "Ran", "\tYRan\tn", "r) \tYRanger\tn",
-      /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp */
-        -1,       N,    N,        H,  10, 0,   3,   4,     Y,      0,       0,
-        /*descrip*/"For those who relish the thrill of the hunt, there are only "
-    "predators and prey. Be they scouts, trackers, or bounty hunters, rangers share "
-    "much in common: unique mastery of specialized weapons, skill at stalking even "
-    "the most elusive game, and the expertise to defeat a wide range of quarries. "
-    "Knowledgeable, patient, and skilled hunters, these rangers hound man, beast, "
-    "and monster alike, gaining insight into the way of the predator, skill in "
-    "varied environments, and ever more lethal martial prowess. While some track "
-    "man-eating creatures to protect the frontier, others pursue more cunning "
-    "game—even fugitives among their own people.");
+          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp */
+          -1, N, N, H, 10, 0, 3, 4, Y, 0, 0,
+          /*descrip*/"For those who relish the thrill of the hunt, there are only "
+          "predators and prey. Be they scouts, trackers, or bounty hunters, rangers share "
+          "much in common: unique mastery of specialized weapons, skill at stalking even "
+          "the most elusive game, and the expertise to defeat a wide range of quarries. "
+          "Knowledgeable, patient, and skilled hunters, these rangers hound man, beast, "
+          "and monster alike, gaining insight into the way of the predator, skill in "
+          "varied environments, and ever more lethal martial prowess. While some track "
+          "man-eating creatures to protect the frontier, others pursue more cunning "
+          "game—even fugitives among their own people.");
   /* class-number then saves: fortitude, reflex, will, poison, death */
-  assign_class_saves(CLASS_RANGER, G,    B,      B,    B,      B);
+  assign_class_saves(CLASS_RANGER, G, B, B, B, B);
   assign_class_abils(CLASS_RANGER, /* class number */
-    /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
-      CC,        CA,     CA,        CA,  CC,        CA,            CC,
-    /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
-      CC,      CA,        CA,           CA,  CA,  CA,   CC,             CC,
-    /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
-      CC,       CC,            CC,      CA,           CA,           CC,
-    /*survival,swim,use_magic_device,perform*/
-      CA,      CA,  CC,              CC
-    );
+          /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+          CC, CA, CA, CA, CC, CA, CC,
+          /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+          CC, CA, CA, CA, CA, CA, CC, CC,
+          /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+          CC, CC, CC, CA, CA, CC,
+          /*survival,swim,use_magic_device,perform*/
+          CA, CA, CC, CC
+          );
   assign_class_titles(CLASS_RANGER, /* class number */
-    "",                                /* <= 4  */
-    "the Dirt-watcher",                   /* <= 9  */
-    "the Hunter",                    /* <= 14 */
-    "the Tracker",               /* <= 19 */
-    "the Finder of Prey",            /* <= 24 */
-    "the Hidden Stalker",          /* <= 29 */
-    "the Great Seeker",       /* <= 30 */
-    "the Avatar of the Wild",           /* <= LVL_IMMORT */
-    "the Wrath of the Wild",     /* <= LVL_STAFF */
-    "the Cyclone of Nature",  /* <= LVL_GRSTAFF */
-    "the Ranger"                      /* default */  
-  );
+          "", /* <= 4  */
+          "the Dirt-watcher", /* <= 9  */
+          "the Hunter", /* <= 14 */
+          "the Tracker", /* <= 19 */
+          "the Finder of Prey", /* <= 24 */
+          "the Hidden Stalker", /* <= 29 */
+          "the Great Seeker", /* <= 30 */
+          "the Avatar of the Wild", /* <= LVL_IMMORT */
+          "the Wrath of the Wild", /* <= LVL_STAFF */
+          "the Cyclone of Nature", /* <= LVL_GRSTAFF */
+          "the Ranger" /* default */
+          );
   /* feat assignment */
   /*              class num     feat                               cfeat lvl stack */
-  feat_assignment(CLASS_RANGER, FEAT_SIMPLE_WEAPON_PROFICIENCY,     Y,    1,  N);
-  feat_assignment(CLASS_RANGER, FEAT_ARMOR_PROFICIENCY_LIGHT,       Y,    1,  N);
-  feat_assignment(CLASS_RANGER, FEAT_ARMOR_PROFICIENCY_MEDIUM,      Y,    1,  N);
-  feat_assignment(CLASS_RANGER, FEAT_ARMOR_PROFICIENCY_SHIELD,      Y,    1,  N);
-  feat_assignment(CLASS_RANGER, FEAT_MARTIAL_WEAPON_PROFICIENCY,    Y,    1,  N);
-  feat_assignment(CLASS_RANGER, FEAT_FAVORED_ENEMY_AVAILABLE,       Y,    1,  Y);
-  feat_assignment(CLASS_RANGER, FEAT_WILD_EMPATHY,                  Y,    2,  N);
+  feat_assignment(CLASS_RANGER, FEAT_SIMPLE_WEAPON_PROFICIENCY, Y, 1, N);
+  feat_assignment(CLASS_RANGER, FEAT_ARMOR_PROFICIENCY_LIGHT, Y, 1, N);
+  feat_assignment(CLASS_RANGER, FEAT_ARMOR_PROFICIENCY_MEDIUM, Y, 1, N);
+  feat_assignment(CLASS_RANGER, FEAT_ARMOR_PROFICIENCY_SHIELD, Y, 1, N);
+  feat_assignment(CLASS_RANGER, FEAT_MARTIAL_WEAPON_PROFICIENCY, Y, 1, N);
+  feat_assignment(CLASS_RANGER, FEAT_FAVORED_ENEMY_AVAILABLE, Y, 1, Y);
+  feat_assignment(CLASS_RANGER, FEAT_WILD_EMPATHY, Y, 2, N);
   /*CM*/
-  feat_assignment(CLASS_RANGER, FEAT_DUAL_WEAPON_FIGHTING,          Y,    3,  N);
+  feat_assignment(CLASS_RANGER, FEAT_DUAL_WEAPON_FIGHTING, Y, 3, N);
   /*CM*/
-  feat_assignment(CLASS_RANGER, FEAT_POINT_BLANK_SHOT,              Y,    4,  N);
-  feat_assignment(CLASS_RANGER, FEAT_ENDURANCE,                     Y,    4,  N);
-  feat_assignment(CLASS_RANGER, FEAT_ANIMAL_COMPANION,              Y,    4,  N);
-  feat_assignment(CLASS_RANGER, FEAT_FAVORED_ENEMY_AVAILABLE,       Y,    5,  Y);
+  feat_assignment(CLASS_RANGER, FEAT_POINT_BLANK_SHOT, Y, 4, N);
+  feat_assignment(CLASS_RANGER, FEAT_ENDURANCE, Y, 4, N);
+  feat_assignment(CLASS_RANGER, FEAT_ANIMAL_COMPANION, Y, 4, N);
+  feat_assignment(CLASS_RANGER, FEAT_FAVORED_ENEMY_AVAILABLE, Y, 5, Y);
   /*CM*/
-  feat_assignment(CLASS_RANGER, FEAT_IMPROVED_DUAL_WEAPON_FIGHTING, Y,    6,  N);
+  feat_assignment(CLASS_RANGER, FEAT_IMPROVED_DUAL_WEAPON_FIGHTING, Y, 6, N);
   /*CM*/
-  feat_assignment(CLASS_RANGER, FEAT_RAPID_SHOT,                    Y,    7,  N);
-  feat_assignment(CLASS_RANGER, FEAT_WOODLAND_STRIDE,               Y,    8,  N);
-  feat_assignment(CLASS_RANGER, FEAT_SWIFT_TRACKER,                 Y,    9,  N);
-  feat_assignment(CLASS_RANGER, FEAT_EVASION,                       Y,   10,  N);
-  feat_assignment(CLASS_RANGER, FEAT_FAVORED_ENEMY_AVAILABLE,       Y,   10,  Y);
+  feat_assignment(CLASS_RANGER, FEAT_RAPID_SHOT, Y, 7, N);
+  feat_assignment(CLASS_RANGER, FEAT_WOODLAND_STRIDE, Y, 8, N);
+  feat_assignment(CLASS_RANGER, FEAT_SWIFT_TRACKER, Y, 9, N);
+  feat_assignment(CLASS_RANGER, FEAT_EVASION, Y, 10, N);
+  feat_assignment(CLASS_RANGER, FEAT_FAVORED_ENEMY_AVAILABLE, Y, 10, Y);
   /*CM*/
-  feat_assignment(CLASS_RANGER, FEAT_GREATER_DUAL_WEAPON_FIGHTING,  Y,   11,  N);
+  feat_assignment(CLASS_RANGER, FEAT_GREATER_DUAL_WEAPON_FIGHTING, Y, 11, N);
   /*CM*/
-  feat_assignment(CLASS_RANGER, FEAT_MANYSHOT,                      Y,   12,  N);
-  feat_assignment(CLASS_RANGER, FEAT_CAMOUFLAGE,                    Y,   13,  N);
-  feat_assignment(CLASS_RANGER, FEAT_TRACK,                         Y,   14,  N);
-  feat_assignment(CLASS_RANGER, FEAT_FAVORED_ENEMY_AVAILABLE,       Y,   15,  Y);
-  feat_assignment(CLASS_RANGER, FEAT_HIDE_IN_PLAIN_SIGHT,           Y,   17,  N);
-  feat_assignment(CLASS_RANGER, FEAT_FAVORED_ENEMY_AVAILABLE,       Y,   20,  Y);
+  feat_assignment(CLASS_RANGER, FEAT_MANYSHOT, Y, 12, N);
+  feat_assignment(CLASS_RANGER, FEAT_CAMOUFLAGE, Y, 13, N);
+  feat_assignment(CLASS_RANGER, FEAT_TRACK, Y, 14, N);
+  feat_assignment(CLASS_RANGER, FEAT_FAVORED_ENEMY_AVAILABLE, Y, 15, Y);
+  feat_assignment(CLASS_RANGER, FEAT_HIDE_IN_PLAIN_SIGHT, Y, 17, N);
+  feat_assignment(CLASS_RANGER, FEAT_FAVORED_ENEMY_AVAILABLE, Y, 20, Y);
   /* spell circles */
-  feat_assignment(CLASS_RANGER, FEAT_RANGER_1ST_CIRCLE,             Y,   6,   N);
-  feat_assignment(CLASS_RANGER, FEAT_RANGER_2ND_CIRCLE,             Y,   10,  N);
-  feat_assignment(CLASS_RANGER, FEAT_RANGER_3RD_CIRCLE,             Y,   12,  N);
-  feat_assignment(CLASS_RANGER, FEAT_RANGER_4TH_CIRCLE,             Y,   15,  N);
+  feat_assignment(CLASS_RANGER, FEAT_RANGER_1ST_CIRCLE, Y, 6, N);
+  feat_assignment(CLASS_RANGER, FEAT_RANGER_2ND_CIRCLE, Y, 10, N);
+  feat_assignment(CLASS_RANGER, FEAT_RANGER_3RD_CIRCLE, Y, 12, N);
+  feat_assignment(CLASS_RANGER, FEAT_RANGER_4TH_CIRCLE, Y, 15, N);
   /* epic */
   /*CM*/
-  feat_assignment(CLASS_RANGER, FEAT_PERFECT_DUAL_WEAPON_FIGHTING,  Y,   21,  N);  
+  feat_assignment(CLASS_RANGER, FEAT_PERFECT_DUAL_WEAPON_FIGHTING, Y, 21, N);
   /*CM*/
-  feat_assignment(CLASS_RANGER, FEAT_EPIC_MANYSHOT,                 Y,   22,  N);  
+  feat_assignment(CLASS_RANGER, FEAT_EPIC_MANYSHOT, Y, 22, N);
   /* bonus feat - improved evasion 23 */
-  feat_assignment(CLASS_RANGER, FEAT_IMPROVED_EVASION,              Y,   23,  N);  
-  feat_assignment(CLASS_RANGER, FEAT_FAVORED_ENEMY_AVAILABLE,       Y,   25,  Y);  
+  feat_assignment(CLASS_RANGER, FEAT_IMPROVED_EVASION, Y, 23, N);
+  feat_assignment(CLASS_RANGER, FEAT_FAVORED_ENEMY_AVAILABLE, Y, 25, Y);
   /* bonus feat - bane of enemies 26 */
-  feat_assignment(CLASS_RANGER, FEAT_BANE_OF_ENEMIES,               Y,   26,  N);  
+  feat_assignment(CLASS_RANGER, FEAT_BANE_OF_ENEMIES, Y, 26, N);
   /* bonus feat - epic favored enemy 29 */
-  feat_assignment(CLASS_RANGER, FEAT_EPIC_FAVORED_ENEMY,            Y,   29,  N);  
-  feat_assignment(CLASS_RANGER, FEAT_FAVORED_ENEMY_AVAILABLE,       Y,   30,  Y);  
+  feat_assignment(CLASS_RANGER, FEAT_EPIC_FAVORED_ENEMY, Y, 29, N);
+  feat_assignment(CLASS_RANGER, FEAT_FAVORED_ENEMY_AVAILABLE, Y, 30, Y);
   /* no classfeats */
   /**** spell assignment *****/
   /*              class num      spell                   level acquired */
   /* 1st circle */
-  spell_assignment(CLASS_RANGER, SPELL_CURE_LIGHT,            6);
-  spell_assignment(CLASS_RANGER, SPELL_CHARM_ANIMAL,          6);
-  spell_assignment(CLASS_RANGER, SPELL_FAERIE_FIRE,           6);
-  spell_assignment(CLASS_RANGER, SPELL_JUMP,                  6);
-  spell_assignment(CLASS_RANGER, SPELL_MAGIC_FANG,            6);
+  spell_assignment(CLASS_RANGER, SPELL_CURE_LIGHT, 6);
+  spell_assignment(CLASS_RANGER, SPELL_CHARM_ANIMAL, 6);
+  spell_assignment(CLASS_RANGER, SPELL_FAERIE_FIRE, 6);
+  spell_assignment(CLASS_RANGER, SPELL_JUMP, 6);
+  spell_assignment(CLASS_RANGER, SPELL_MAGIC_FANG, 6);
   spell_assignment(CLASS_RANGER, SPELL_SUMMON_NATURES_ALLY_1, 6);
   /*              class num      spell                   level acquired */
   /* 2nd circle */
-  spell_assignment(CLASS_RANGER, SPELL_ENDURANCE,             10);
-  spell_assignment(CLASS_RANGER, SPELL_BARKSKIN,              10);
-  spell_assignment(CLASS_RANGER, SPELL_GRACE,                 10);
-  spell_assignment(CLASS_RANGER, SPELL_HOLD_ANIMAL,           10);
-  spell_assignment(CLASS_RANGER, SPELL_WISDOM,                10);
-  spell_assignment(CLASS_RANGER, SPELL_STRENGTH,              10);
+  spell_assignment(CLASS_RANGER, SPELL_ENDURANCE, 10);
+  spell_assignment(CLASS_RANGER, SPELL_BARKSKIN, 10);
+  spell_assignment(CLASS_RANGER, SPELL_GRACE, 10);
+  spell_assignment(CLASS_RANGER, SPELL_HOLD_ANIMAL, 10);
+  spell_assignment(CLASS_RANGER, SPELL_WISDOM, 10);
+  spell_assignment(CLASS_RANGER, SPELL_STRENGTH, 10);
   spell_assignment(CLASS_RANGER, SPELL_SUMMON_NATURES_ALLY_2, 10);
   /*              class num      spell                   level acquired */
   /* 3rd circle */
-  spell_assignment(CLASS_RANGER, SPELL_SPIKE_GROWTH,          12);
-  spell_assignment(CLASS_RANGER, SPELL_GREATER_MAGIC_FANG,    12);
-  spell_assignment(CLASS_RANGER, SPELL_CONTAGION,             12);
-  spell_assignment(CLASS_RANGER, SPELL_CURE_MODERATE,         12);
+  spell_assignment(CLASS_RANGER, SPELL_SPIKE_GROWTH, 12);
+  spell_assignment(CLASS_RANGER, SPELL_GREATER_MAGIC_FANG, 12);
+  spell_assignment(CLASS_RANGER, SPELL_CONTAGION, 12);
+  spell_assignment(CLASS_RANGER, SPELL_CURE_MODERATE, 12);
   spell_assignment(CLASS_RANGER, SPELL_SUMMON_NATURES_ALLY_3, 12);
-  spell_assignment(CLASS_RANGER, SPELL_REMOVE_DISEASE,        12);
-  spell_assignment(CLASS_RANGER, SPELL_REMOVE_POISON,         12);
+  spell_assignment(CLASS_RANGER, SPELL_REMOVE_DISEASE, 12);
+  spell_assignment(CLASS_RANGER, SPELL_REMOVE_POISON, 12);
   /*              class num      spell                   level acquired */
   /* 4th circle */
   spell_assignment(CLASS_RANGER, SPELL_SUMMON_NATURES_ALLY_6, 15);
-  spell_assignment(CLASS_RANGER, SPELL_FREE_MOVEMENT,         15);
-  spell_assignment(CLASS_RANGER, SPELL_DISPEL_MAGIC,          15);
-  spell_assignment(CLASS_RANGER, SPELL_CURE_SERIOUS,          15);
+  spell_assignment(CLASS_RANGER, SPELL_FREE_MOVEMENT, 15);
+  spell_assignment(CLASS_RANGER, SPELL_DISPEL_MAGIC, 15);
+  spell_assignment(CLASS_RANGER, SPELL_CURE_SERIOUS, 15);
   /* no prereqs! */
   /*****/
   /* INIT spell slots, assignement of spell slots based on
      tables in constants.c */
   //assign_feat_spell_slots(CLASS_RANGER);
   /****************************************************************************/
-  
+
   /****************************************************************************/
   /*     class-number  name   abrv   clr-abrv     menu-name*/
   classo(CLASS_BARD, "bard", "Bar", "\tCBar\tn", "a) \tCBard\tn",
-      /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp */
-        -1,       N,    N,        M,  6, 0,   2,   6,     Y,       0,       0,
-        /*descrip*/"Untold wonders and secrets exist for those skillful enough to "
-    "discover them. Through cleverness, talent, and magic, these cunning few unravel "
-    "the wiles of the world, becoming adept in the arts of persuasion, manipulation, "
-    "and inspiration. Typically masters of one or many forms of artistry, bards "
-    "possess an uncanny ability to know more than they should and use what they "
-    "learn to keep themselves and their allies ever one step ahead of danger. Bards "
-    "are quick-witted and captivating, and their skills might lead them down many "
-    "paths, be they gamblers or jacks-of-all-trades, scholars or performers, leaders "
-    "or scoundrels, or even all of the above. For bards, every day brings its own "
-    "opportunities, adventures, and challenges, and only by bucking the odds, knowing "
-    "the most, and being the best might they claim the treasures of each.");
+          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp */
+          -1, N, N, M, 6, 0, 2, 6, Y, 0, 0,
+          /*descrip*/"Untold wonders and secrets exist for those skillful enough to "
+          "discover them. Through cleverness, talent, and magic, these cunning few unravel "
+          "the wiles of the world, becoming adept in the arts of persuasion, manipulation, "
+          "and inspiration. Typically masters of one or many forms of artistry, bards "
+          "possess an uncanny ability to know more than they should and use what they "
+          "learn to keep themselves and their allies ever one step ahead of danger. Bards "
+          "are quick-witted and captivating, and their skills might lead them down many "
+          "paths, be they gamblers or jacks-of-all-trades, scholars or performers, leaders "
+          "or scoundrels, or even all of the above. For bards, every day brings its own "
+          "opportunities, adventures, and challenges, and only by bucking the odds, knowing "
+          "the most, and being the best might they claim the treasures of each.");
   /* class-number then saves: fortitude, reflex, will, poison, death */
-  assign_class_saves(CLASS_BARD,   B,    G,      G,    B,      B);
+  assign_class_saves(CLASS_BARD, B, G, G, B, B);
   assign_class_abils(CLASS_BARD, /* class number */
-    /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
-      CA,        CA,     CA,        CA,  CC,        CA,            CA,
-    /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
-      CA,      CC,        CA,           CA,  CA,  CA,   CA,             CA,
-    /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
-      CA,       CC,            CA,      CA,           CC,           CC,
-    /*survival,swim,use_magic_device,perform*/
-      CC,      CA,  CA,              CA
-    );
+          /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+          CA, CA, CA, CA, CC, CA, CA,
+          /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+          CA, CC, CA, CA, CA, CA, CA, CA,
+          /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+          CA, CC, CA, CA, CC, CC,
+          /*survival,swim,use_magic_device,perform*/
+          CC, CA, CA, CA
+          );
   assign_class_titles(CLASS_BARD, /* class number */
-    "",                         /* <= 4  */
-    "the Melodious",            /* <= 9  */
-    "the Hummer of Harmonies",  /* <= 14 */
-    "Weaver of Song",           /* <= 19 */
-    "Keeper of Chords",         /* <= 24 */
-    "the Composer",             /* <= 29 */
-    "the Maestro",              /* <= 30 */
-    "the Immortal Songweaver",  /* <= LVL_IMMORT */
-    "the Master of Sound",      /* <= LVL_STAFF */
-    "the Lord of Dance",        /* <= LVL_GRSTAFF */
-    "the Bard"                  /* default */  
-  );
+          "", /* <= 4  */
+          "the Melodious", /* <= 9  */
+          "the Hummer of Harmonies", /* <= 14 */
+          "Weaver of Song", /* <= 19 */
+          "Keeper of Chords", /* <= 24 */
+          "the Composer", /* <= 29 */
+          "the Maestro", /* <= 30 */
+          "the Immortal Songweaver", /* <= LVL_IMMORT */
+          "the Master of Sound", /* <= LVL_STAFF */
+          "the Lord of Dance", /* <= LVL_GRSTAFF */
+          "the Bard" /* default */
+          );
   /* feat assignment */
   /*              class num     feat                          cfeat lvl stack */
-  feat_assignment(CLASS_BARD, FEAT_SIMPLE_WEAPON_PROFICIENCY, Y,    1,  N);
-  feat_assignment(CLASS_BARD, FEAT_WEAPON_PROFICIENCY_BARD,   Y,    1,  N);
-  feat_assignment(CLASS_BARD, FEAT_WEAPON_PROFICIENCY_ROGUE,  Y,    1,  N);
-  feat_assignment(CLASS_BARD, FEAT_ARMOR_PROFICIENCY_LIGHT,   Y,    1,  N);
-  feat_assignment(CLASS_BARD, FEAT_ARMOR_PROFICIENCY_SHIELD,  Y,    1,  N);
-  feat_assignment(CLASS_BARD, FEAT_BARDIC_MUSIC,              Y,    1,  N);
-  feat_assignment(CLASS_BARD, FEAT_BARDIC_KNOWLEDGE,          Y,    1,  N);
-  feat_assignment(CLASS_BARD, FEAT_COUNTERSONG,               Y,    1,  N);
-  feat_assignment(CLASS_BARD, FEAT_SONG_OF_HEALING,           Y,    1,  N);
-  feat_assignment(CLASS_BARD, FEAT_DANCE_OF_PROTECTION,       Y,    2,  N);
-  feat_assignment(CLASS_BARD, FEAT_SONG_OF_FOCUSED_MIND,      Y,    3,  N);
-  feat_assignment(CLASS_BARD, FEAT_SONG_OF_HEROISM,           Y,    5,  N);
-  feat_assignment(CLASS_BARD, FEAT_ORATORY_OF_REJUVENATION,   Y,    7,  N);
-  feat_assignment(CLASS_BARD, FEAT_SONG_OF_FLIGHT,            Y,    9,  N);
-  feat_assignment(CLASS_BARD, FEAT_SONG_OF_REVELATION,        Y,    11, N);
-  feat_assignment(CLASS_BARD, FEAT_SONG_OF_FEAR,              Y,    13, N);
-  feat_assignment(CLASS_BARD, FEAT_ACT_OF_FORGETFULNESS,      Y,    15, N);
-  feat_assignment(CLASS_BARD, FEAT_SONG_OF_ROOTING,           Y,    17, N);
+  feat_assignment(CLASS_BARD, FEAT_SIMPLE_WEAPON_PROFICIENCY, Y, 1, N);
+  feat_assignment(CLASS_BARD, FEAT_WEAPON_PROFICIENCY_BARD, Y, 1, N);
+  feat_assignment(CLASS_BARD, FEAT_WEAPON_PROFICIENCY_ROGUE, Y, 1, N);
+  feat_assignment(CLASS_BARD, FEAT_ARMOR_PROFICIENCY_LIGHT, Y, 1, N);
+  feat_assignment(CLASS_BARD, FEAT_ARMOR_PROFICIENCY_SHIELD, Y, 1, N);
+  feat_assignment(CLASS_BARD, FEAT_BARDIC_MUSIC, Y, 1, N);
+  feat_assignment(CLASS_BARD, FEAT_BARDIC_KNOWLEDGE, Y, 1, N);
+  feat_assignment(CLASS_BARD, FEAT_COUNTERSONG, Y, 1, N);
+  feat_assignment(CLASS_BARD, FEAT_SONG_OF_HEALING, Y, 1, N);
+  feat_assignment(CLASS_BARD, FEAT_DANCE_OF_PROTECTION, Y, 2, N);
+  feat_assignment(CLASS_BARD, FEAT_SONG_OF_FOCUSED_MIND, Y, 3, N);
+  feat_assignment(CLASS_BARD, FEAT_SONG_OF_HEROISM, Y, 5, N);
+  feat_assignment(CLASS_BARD, FEAT_ORATORY_OF_REJUVENATION, Y, 7, N);
+  feat_assignment(CLASS_BARD, FEAT_SONG_OF_FLIGHT, Y, 9, N);
+  feat_assignment(CLASS_BARD, FEAT_SONG_OF_REVELATION, Y, 11, N);
+  feat_assignment(CLASS_BARD, FEAT_SONG_OF_FEAR, Y, 13, N);
+  feat_assignment(CLASS_BARD, FEAT_ACT_OF_FORGETFULNESS, Y, 15, N);
+  feat_assignment(CLASS_BARD, FEAT_SONG_OF_ROOTING, Y, 17, N);
   /* spell circles */
-  feat_assignment(CLASS_BARD, FEAT_BARD_1ST_CIRCLE,         Y,    3,  N);
-  feat_assignment(CLASS_BARD, FEAT_BARD_2ND_CIRCLE,         Y,    5,  N);
-  feat_assignment(CLASS_BARD, FEAT_BARD_3RD_CIRCLE,         Y,    8,  N);
-  feat_assignment(CLASS_BARD, FEAT_BARD_4TH_CIRCLE,         Y,    11, N);
-  feat_assignment(CLASS_BARD, FEAT_BARD_5TH_CIRCLE,         Y,    14, N);
-  feat_assignment(CLASS_BARD, FEAT_BARD_6TH_CIRCLE,         Y,    17, N);
+  feat_assignment(CLASS_BARD, FEAT_BARD_1ST_CIRCLE, Y, 3, N);
+  feat_assignment(CLASS_BARD, FEAT_BARD_2ND_CIRCLE, Y, 5, N);
+  feat_assignment(CLASS_BARD, FEAT_BARD_3RD_CIRCLE, Y, 8, N);
+  feat_assignment(CLASS_BARD, FEAT_BARD_4TH_CIRCLE, Y, 11, N);
+  feat_assignment(CLASS_BARD, FEAT_BARD_5TH_CIRCLE, Y, 14, N);
+  feat_assignment(CLASS_BARD, FEAT_BARD_6TH_CIRCLE, Y, 17, N);
   /*epic*/
-  feat_assignment(CLASS_BARD, FEAT_BARD_EPIC_SPELL,         Y,   21,  N);
-  feat_assignment(CLASS_BARD, FEAT_SONG_OF_DRAGONS,           Y,   22,  N);
-  feat_assignment(CLASS_BARD, FEAT_SONG_OF_THE_MAGI,          Y,   26,  N);
+  feat_assignment(CLASS_BARD, FEAT_BARD_EPIC_SPELL, Y, 21, N);
+  feat_assignment(CLASS_BARD, FEAT_SONG_OF_DRAGONS, Y, 22, N);
+  feat_assignment(CLASS_BARD, FEAT_SONG_OF_THE_MAGI, Y, 26, N);
   /* no class feat assignments */
-  /**** spell assign ****/  
+  /**** spell assign ****/
   /*              class num      spell                   level acquired */
   /* 1st circle */
-  spell_assignment(CLASS_BARD, SPELL_HORIZIKAULS_BOOM,  3);
-  spell_assignment(CLASS_BARD, SPELL_SHIELD,            3);
+  spell_assignment(CLASS_BARD, SPELL_HORIZIKAULS_BOOM, 3);
+  spell_assignment(CLASS_BARD, SPELL_SHIELD, 3);
   spell_assignment(CLASS_BARD, SPELL_SUMMON_CREATURE_1, 3);
-  spell_assignment(CLASS_BARD, SPELL_CHARM,             3);
-  spell_assignment(CLASS_BARD, SPELL_ENDURE_ELEMENTS,   3);
-  spell_assignment(CLASS_BARD, SPELL_PROT_FROM_EVIL,    3);
-  spell_assignment(CLASS_BARD, SPELL_PROT_FROM_GOOD,    3);
-  spell_assignment(CLASS_BARD, SPELL_MAGIC_MISSILE,     3);
-  spell_assignment(CLASS_BARD, SPELL_CURE_LIGHT,        3);
+  spell_assignment(CLASS_BARD, SPELL_CHARM, 3);
+  spell_assignment(CLASS_BARD, SPELL_ENDURE_ELEMENTS, 3);
+  spell_assignment(CLASS_BARD, SPELL_PROT_FROM_EVIL, 3);
+  spell_assignment(CLASS_BARD, SPELL_PROT_FROM_GOOD, 3);
+  spell_assignment(CLASS_BARD, SPELL_MAGIC_MISSILE, 3);
+  spell_assignment(CLASS_BARD, SPELL_CURE_LIGHT, 3);
   /*              class num      spell                   level acquired */
   /* 2nd circle */
   spell_assignment(CLASS_BARD, SPELL_SUMMON_CREATURE_2, 5);
-  spell_assignment(CLASS_BARD, SPELL_DEAFNESS,          5);
-  spell_assignment(CLASS_BARD, SPELL_HIDEOUS_LAUGHTER,  5);
-  spell_assignment(CLASS_BARD, SPELL_MIRROR_IMAGE,      5);
-  spell_assignment(CLASS_BARD, SPELL_DETECT_INVIS,      5);
-  spell_assignment(CLASS_BARD, SPELL_DETECT_MAGIC,      5);
-  spell_assignment(CLASS_BARD, SPELL_INVISIBLE,         5);
-  spell_assignment(CLASS_BARD, SPELL_ENDURANCE,         5);
-  spell_assignment(CLASS_BARD, SPELL_STRENGTH,          5);
-  spell_assignment(CLASS_BARD, SPELL_GRACE,             5);
-  spell_assignment(CLASS_BARD, SPELL_CURE_MODERATE,     5);
+  spell_assignment(CLASS_BARD, SPELL_DEAFNESS, 5);
+  spell_assignment(CLASS_BARD, SPELL_HIDEOUS_LAUGHTER, 5);
+  spell_assignment(CLASS_BARD, SPELL_MIRROR_IMAGE, 5);
+  spell_assignment(CLASS_BARD, SPELL_DETECT_INVIS, 5);
+  spell_assignment(CLASS_BARD, SPELL_DETECT_MAGIC, 5);
+  spell_assignment(CLASS_BARD, SPELL_INVISIBLE, 5);
+  spell_assignment(CLASS_BARD, SPELL_ENDURANCE, 5);
+  spell_assignment(CLASS_BARD, SPELL_STRENGTH, 5);
+  spell_assignment(CLASS_BARD, SPELL_GRACE, 5);
+  spell_assignment(CLASS_BARD, SPELL_CURE_MODERATE, 5);
   /*              class num      spell                   level acquired */
   /* 3rd circle */
   spell_assignment(CLASS_BARD, SPELL_SUMMON_CREATURE_3, 8);
-  spell_assignment(CLASS_BARD, SPELL_LIGHTNING_BOLT,    8);
-  spell_assignment(CLASS_BARD, SPELL_DEEP_SLUMBER,      8);
-  spell_assignment(CLASS_BARD, SPELL_HASTE,             8);
-  spell_assignment(CLASS_BARD, SPELL_CIRCLE_A_EVIL,     8);
-  spell_assignment(CLASS_BARD, SPELL_CIRCLE_A_GOOD,     8);
-  spell_assignment(CLASS_BARD, SPELL_CUNNING,           8);
-  spell_assignment(CLASS_BARD, SPELL_WISDOM,            8);
-  spell_assignment(CLASS_BARD, SPELL_CHARISMA,          8);
-  spell_assignment(CLASS_BARD, SPELL_CURE_SERIOUS,      8);
+  spell_assignment(CLASS_BARD, SPELL_LIGHTNING_BOLT, 8);
+  spell_assignment(CLASS_BARD, SPELL_DEEP_SLUMBER, 8);
+  spell_assignment(CLASS_BARD, SPELL_HASTE, 8);
+  spell_assignment(CLASS_BARD, SPELL_CIRCLE_A_EVIL, 8);
+  spell_assignment(CLASS_BARD, SPELL_CIRCLE_A_GOOD, 8);
+  spell_assignment(CLASS_BARD, SPELL_CUNNING, 8);
+  spell_assignment(CLASS_BARD, SPELL_WISDOM, 8);
+  spell_assignment(CLASS_BARD, SPELL_CHARISMA, 8);
+  spell_assignment(CLASS_BARD, SPELL_CURE_SERIOUS, 8);
   /*              class num      spell                   level acquired */
   /* 4th circle */
   spell_assignment(CLASS_BARD, SPELL_SUMMON_CREATURE_4, 11);
-  spell_assignment(CLASS_BARD, SPELL_GREATER_INVIS,     11);
-  spell_assignment(CLASS_BARD, SPELL_RAINBOW_PATTERN,   11);
-  spell_assignment(CLASS_BARD, SPELL_REMOVE_CURSE,      11);
-  spell_assignment(CLASS_BARD, SPELL_ICE_STORM,         11);
-  spell_assignment(CLASS_BARD, SPELL_CURE_CRITIC,       11);
+  spell_assignment(CLASS_BARD, SPELL_GREATER_INVIS, 11);
+  spell_assignment(CLASS_BARD, SPELL_RAINBOW_PATTERN, 11);
+  spell_assignment(CLASS_BARD, SPELL_REMOVE_CURSE, 11);
+  spell_assignment(CLASS_BARD, SPELL_ICE_STORM, 11);
+  spell_assignment(CLASS_BARD, SPELL_CURE_CRITIC, 11);
   /*              class num      spell                   level acquired */
   /* 5th circle */
   spell_assignment(CLASS_BARD, SPELL_SUMMON_CREATURE_5, 14);
-  spell_assignment(CLASS_BARD, SPELL_ACID_SHEATH,       14);
-  spell_assignment(CLASS_BARD, SPELL_CONE_OF_COLD,      14);
-  spell_assignment(CLASS_BARD, SPELL_NIGHTMARE,         14);
-  spell_assignment(CLASS_BARD, SPELL_MIND_FOG,          14);
-  spell_assignment(CLASS_BARD, SPELL_MASS_CURE_LIGHT,   14);
+  spell_assignment(CLASS_BARD, SPELL_ACID_SHEATH, 14);
+  spell_assignment(CLASS_BARD, SPELL_CONE_OF_COLD, 14);
+  spell_assignment(CLASS_BARD, SPELL_NIGHTMARE, 14);
+  spell_assignment(CLASS_BARD, SPELL_MIND_FOG, 14);
+  spell_assignment(CLASS_BARD, SPELL_MASS_CURE_LIGHT, 14);
   /*              class num      spell                   level acquired */
   /* 6th circle */
-  spell_assignment(CLASS_BARD, SPELL_SUMMON_CREATURE_7,  17);
-  spell_assignment(CLASS_BARD, SPELL_FREEZING_SPHERE,    17);
-  spell_assignment(CLASS_BARD, SPELL_GREATER_HEROISM,    17);
+  spell_assignment(CLASS_BARD, SPELL_SUMMON_CREATURE_7, 17);
+  spell_assignment(CLASS_BARD, SPELL_FREEZING_SPHERE, 17);
+  spell_assignment(CLASS_BARD, SPELL_GREATER_HEROISM, 17);
   spell_assignment(CLASS_BARD, SPELL_MASS_CURE_MODERATE, 17);
-  spell_assignment(CLASS_BARD, SPELL_STONESKIN,          17);
+  spell_assignment(CLASS_BARD, SPELL_STONESKIN, 17);
   /*epic*/
-  spell_assignment(CLASS_BARD, SPELL_MUMMY_DUST,   21);
+  spell_assignment(CLASS_BARD, SPELL_MUMMY_DUST, 21);
   spell_assignment(CLASS_BARD, SPELL_GREATER_RUIN, 21);
   /* class prerequisites */
   class_prereq_align(CLASS_BARD, NEUTRAL_GOOD);
   class_prereq_align(CLASS_BARD, TRUE_NEUTRAL);
-  class_prereq_align(CLASS_BARD, NEUTRAL_EVIL);  
+  class_prereq_align(CLASS_BARD, NEUTRAL_EVIL);
   class_prereq_align(CLASS_BARD, CHAOTIC_EVIL);
   class_prereq_align(CLASS_BARD, CHAOTIC_GOOD);
   class_prereq_align(CLASS_BARD, CHAOTIC_NEUTRAL);
@@ -4426,53 +4436,53 @@ void load_class_list(void) {
      tables in constants.c */
   //assign_feat_spell_slots(CLASS_BARD);
   /****************************************************************************/
-  
+
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
   classo(CLASS_WEAPON_MASTER, "weaponmaster", "WpM", "\tcWpM\tn", "e) \tcWeaponMaster\tn",
-      /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
-        10,       Y,    Y,        H,  10, 0,   1,   2,     Y,      5000,    0,
-        /*descrip*/"For the weapon master, perfection is found in the mastery of a "
-    "single melee weapon. A weapon master seeks to unite this weapon of choice with "
-    "his body, to make them one, and to use the weapon as naturally and without "
-    "thought as any other limb.");
+          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
+          10, Y, Y, H, 10, 0, 1, 2, Y, 5000, 0,
+          /*descrip*/"For the weapon master, perfection is found in the mastery of a "
+          "single melee weapon. A weapon master seeks to unite this weapon of choice with "
+          "his body, to make them one, and to use the weapon as naturally and without "
+          "thought as any other limb.");
   /* class-number then saves:        fortitude, reflex, will, poison, death */
-  assign_class_saves(CLASS_WEAPON_MASTER, B,    G,      B,    B,      B);
+  assign_class_saves(CLASS_WEAPON_MASTER, B, G, B, B, B);
   assign_class_abils(CLASS_WEAPON_MASTER, /* class number */
-    /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
-      CC,        CC,     CC,        CA,  CA,        CC,            CC,
-    /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
-      CC,      CA,        CA,           CA,  CA,  CC,   CC,             CA,
-    /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
-      CC,       CC,            CC,      CC,           CC,           CA,
-    /*survival,swim,use_magic_device,perform*/
-      CC,      CA,  CC,              CC
-    );
+          /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+          CC, CC, CC, CA, CA, CC, CC,
+          /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+          CC, CA, CA, CA, CA, CC, CC, CA,
+          /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+          CC, CC, CC, CC, CC, CA,
+          /*survival,swim,use_magic_device,perform*/
+          CC, CA, CC, CC
+          );
   assign_class_titles(CLASS_WEAPON_MASTER, /* class number */
-    "",                           /* <= 4  */
-    "the Inexperienced Weapon",   /* <= 9  */
-    "the Weapon",                 /* <= 14 */
-    "the Skilled Weapon",         /* <= 19 */
-    "the Master Weapon",          /* <= 24 */
-    "the Master of All Weapons",  /* <= 29 */
-    "the Unmatched Weapon",       /* <= 30 */
-    "the Immortal WeaponMaster",  /* <= LVL_IMMORT */
-    "the Relentless Weapon",      /* <= LVL_STAFF */
-    "the God of Weapons",         /* <= LVL_GRSTAFF */
-    "the WeaponMaster"            /* default */  
-  );
+          "", /* <= 4  */
+          "the Inexperienced Weapon", /* <= 9  */
+          "the Weapon", /* <= 14 */
+          "the Skilled Weapon", /* <= 19 */
+          "the Master Weapon", /* <= 24 */
+          "the Master of All Weapons", /* <= 29 */
+          "the Unmatched Weapon", /* <= 30 */
+          "the Immortal WeaponMaster", /* <= LVL_IMMORT */
+          "the Relentless Weapon", /* <= LVL_STAFF */
+          "the God of Weapons", /* <= LVL_GRSTAFF */
+          "the WeaponMaster" /* default */
+          );
   /* feat assignment */
   /*              class num     feat                              cfeat lvl stack */
-  feat_assignment(CLASS_WEAPON_MASTER, FEAT_WEAPON_OF_CHOICE,      Y,    1,  N);
-  feat_assignment(CLASS_WEAPON_MASTER, FEAT_SUPERIOR_WEAPON_FOCUS, Y,    2,  N);
-  feat_assignment(CLASS_WEAPON_MASTER, FEAT_UNSTOPPABLE_STRIKE,    Y,    3,  Y);
-  feat_assignment(CLASS_WEAPON_MASTER, FEAT_CRITICAL_SPECIALIST,   Y,    4,  Y);
-  feat_assignment(CLASS_WEAPON_MASTER, FEAT_UNSTOPPABLE_STRIKE,    Y,    5,  Y);
-  feat_assignment(CLASS_WEAPON_MASTER, FEAT_UNSTOPPABLE_STRIKE,    Y,    6,  Y);
-  feat_assignment(CLASS_WEAPON_MASTER, FEAT_UNSTOPPABLE_STRIKE,    Y,    7,  Y);
-  feat_assignment(CLASS_WEAPON_MASTER, FEAT_CRITICAL_SPECIALIST,   Y,    8,  Y);
-  feat_assignment(CLASS_WEAPON_MASTER, FEAT_UNSTOPPABLE_STRIKE,    Y,    9,  Y);
-  feat_assignment(CLASS_WEAPON_MASTER, FEAT_INCREASED_MULTIPLIER,  Y,   10,  N);
+  feat_assignment(CLASS_WEAPON_MASTER, FEAT_WEAPON_OF_CHOICE, Y, 1, N);
+  feat_assignment(CLASS_WEAPON_MASTER, FEAT_SUPERIOR_WEAPON_FOCUS, Y, 2, N);
+  feat_assignment(CLASS_WEAPON_MASTER, FEAT_UNSTOPPABLE_STRIKE, Y, 3, Y);
+  feat_assignment(CLASS_WEAPON_MASTER, FEAT_CRITICAL_SPECIALIST, Y, 4, Y);
+  feat_assignment(CLASS_WEAPON_MASTER, FEAT_UNSTOPPABLE_STRIKE, Y, 5, Y);
+  feat_assignment(CLASS_WEAPON_MASTER, FEAT_UNSTOPPABLE_STRIKE, Y, 6, Y);
+  feat_assignment(CLASS_WEAPON_MASTER, FEAT_UNSTOPPABLE_STRIKE, Y, 7, Y);
+  feat_assignment(CLASS_WEAPON_MASTER, FEAT_CRITICAL_SPECIALIST, Y, 8, Y);
+  feat_assignment(CLASS_WEAPON_MASTER, FEAT_UNSTOPPABLE_STRIKE, Y, 9, Y);
+  feat_assignment(CLASS_WEAPON_MASTER, FEAT_INCREASED_MULTIPLIER, Y, 10, N);
   /* no class feats */
   /* no spell assignment */
   /* class prereqs */
@@ -4485,56 +4495,56 @@ void load_class_list(void) {
   class_prereq_bab(CLASS_WEAPON_MASTER, 5);
   class_prereq_ability(CLASS_WEAPON_MASTER, ABILITY_INTIMIDATE, 4);
   /****************************************************************************/
-  
+
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
   classo(CLASS_ARCANE_ARCHER, "arcanearcher", "ArA", "\tGArA\tn", "f) \tGArcaneArcher\tn",
-      /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
-        10,       Y,    Y,        H,  10, 0,   1,   4,     Y,      5000,    0,
-        /*descrip*/"Many who seek to perfect the use of the bow sometimes pursue "
-    "the path of the arcane archer. Arcane archers are masters of ranged combat, "
-    "as they possess the ability to strike at targets with unerring accuracy and "
-    "can imbue their arrows with powerful spells. Arrows fired by arcane archers "
-    "can fell even the most powerful foes with a single, deadly shot.");
+          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
+          10, Y, Y, H, 10, 0, 1, 4, Y, 5000, 0,
+          /*descrip*/"Many who seek to perfect the use of the bow sometimes pursue "
+          "the path of the arcane archer. Arcane archers are masters of ranged combat, "
+          "as they possess the ability to strike at targets with unerring accuracy and "
+          "can imbue their arrows with powerful spells. Arrows fired by arcane archers "
+          "can fell even the most powerful foes with a single, deadly shot.");
   /* class-number then saves:        fortitude, reflex, will, poison, death */
-  assign_class_saves(CLASS_ARCANE_ARCHER, G,    G,      B,    B,      B);
+  assign_class_saves(CLASS_ARCANE_ARCHER, G, G, B, B, B);
   assign_class_abils(CLASS_ARCANE_ARCHER, /* class number */
-    /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
-      CC,        CA,     CA,        CA,  CA,        CA,            CA,
-    /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
-      CC,      CC,        CC,           CA,  CA,  CC,   CC,             CC,
-    /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
-      CC,       CC,            CC,      CC,           CC,           CC,
-    /*survival,swim,use_magic_device,perform*/
-      CC,      CA,  CC,              CC
-    );
+          /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+          CC, CA, CA, CA, CA, CA, CA,
+          /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+          CC, CC, CC, CA, CA, CC, CC, CC,
+          /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+          CC, CC, CC, CC, CC, CC,
+          /*survival,swim,use_magic_device,perform*/
+          CC, CA, CC, CC
+          );
   assign_class_titles(CLASS_ARCANE_ARCHER, /* class number */
-    "",                           /* <= 4  */
-    "the Precise Shot",           /* <= 9  */
-    "the Magical Archer",         /* <= 14 */
-    "the Masterful Archer",       /* <= 19 */
-    "the Mystical Arrow",         /* <= 24 */
-    "the Arrow Wizard",           /* <= 29 */
-    "the Arrow Storm",            /* <= 30 */
-    "the Immortal ArcaneArcher",  /* <= LVL_IMMORT */
-    "the Limitless Archer",       /* <= LVL_STAFF */
-    "the God of Archery",         /* <= LVL_GRSTAFF */
-    "the ArcaneArcher"            /* default */  
-  );
+          "", /* <= 4  */
+          "the Precise Shot", /* <= 9  */
+          "the Magical Archer", /* <= 14 */
+          "the Masterful Archer", /* <= 19 */
+          "the Mystical Arrow", /* <= 24 */
+          "the Arrow Wizard", /* <= 29 */
+          "the Arrow Storm", /* <= 30 */
+          "the Immortal ArcaneArcher", /* <= LVL_IMMORT */
+          "the Limitless Archer", /* <= LVL_STAFF */
+          "the God of Archery", /* <= LVL_GRSTAFF */
+          "the ArcaneArcher" /* default */
+          );
   /* feat assignment */
   /*              class num     feat                             cfeat lvl stack */
-  feat_assignment(CLASS_ARCANE_ARCHER, FEAT_ENHANCE_ARROW_MAGIC, Y,    1,  Y);
-  feat_assignment(CLASS_ARCANE_ARCHER, FEAT_SEEKER_ARROW,        Y,    2,  Y);
-  feat_assignment(CLASS_ARCANE_ARCHER, FEAT_ENHANCE_ARROW_MAGIC, Y,    3,  Y);
-  feat_assignment(CLASS_ARCANE_ARCHER, FEAT_IMBUE_ARROW,         Y,    4,  Y);
-  feat_assignment(CLASS_ARCANE_ARCHER, FEAT_ENHANCE_ARROW_MAGIC, Y,    5,  Y);
-  feat_assignment(CLASS_ARCANE_ARCHER, FEAT_SEEKER_ARROW,        Y,    6,  Y);
-  feat_assignment(CLASS_ARCANE_ARCHER, FEAT_IMBUE_ARROW,         Y,    6,  Y);
-  feat_assignment(CLASS_ARCANE_ARCHER, FEAT_ENHANCE_ARROW_MAGIC, Y,    7,  Y);
-  feat_assignment(CLASS_ARCANE_ARCHER, FEAT_SEEKER_ARROW,        Y,    8,  Y);
-  feat_assignment(CLASS_ARCANE_ARCHER, FEAT_SWARM_OF_ARROWS,     Y,    8,  N);
-  feat_assignment(CLASS_ARCANE_ARCHER, FEAT_ENHANCE_ARROW_MAGIC, Y,    9,  Y);
-  feat_assignment(CLASS_ARCANE_ARCHER, FEAT_ARROW_OF_DEATH,      Y,   10,  N);
+  feat_assignment(CLASS_ARCANE_ARCHER, FEAT_ENHANCE_ARROW_MAGIC, Y, 1, Y);
+  feat_assignment(CLASS_ARCANE_ARCHER, FEAT_SEEKER_ARROW, Y, 2, Y);
+  feat_assignment(CLASS_ARCANE_ARCHER, FEAT_ENHANCE_ARROW_MAGIC, Y, 3, Y);
+  feat_assignment(CLASS_ARCANE_ARCHER, FEAT_IMBUE_ARROW, Y, 4, Y);
+  feat_assignment(CLASS_ARCANE_ARCHER, FEAT_ENHANCE_ARROW_MAGIC, Y, 5, Y);
+  feat_assignment(CLASS_ARCANE_ARCHER, FEAT_SEEKER_ARROW, Y, 6, Y);
+  feat_assignment(CLASS_ARCANE_ARCHER, FEAT_IMBUE_ARROW, Y, 6, Y);
+  feat_assignment(CLASS_ARCANE_ARCHER, FEAT_ENHANCE_ARROW_MAGIC, Y, 7, Y);
+  feat_assignment(CLASS_ARCANE_ARCHER, FEAT_SEEKER_ARROW, Y, 8, Y);
+  feat_assignment(CLASS_ARCANE_ARCHER, FEAT_SWARM_OF_ARROWS, Y, 8, N);
+  feat_assignment(CLASS_ARCANE_ARCHER, FEAT_ENHANCE_ARROW_MAGIC, Y, 9, Y);
+  feat_assignment(CLASS_ARCANE_ARCHER, FEAT_ARROW_OF_DEATH, Y, 10, N);
   /* no spell assignment */
   /* class prereqs */
   class_prereq_bab(CLASS_ARCANE_ARCHER, 5);
@@ -4544,70 +4554,70 @@ void load_class_list(void) {
   class_prereq_feat(CLASS_ARCANE_ARCHER, FEAT_POINT_BLANK_SHOT, 1);
   class_prereq_feat(CLASS_ARCANE_ARCHER, FEAT_PRECISE_SHOT, 1);
   class_prereq_spellcasting(CLASS_ARCANE_ARCHER, CASTING_TYPE_ARCANE,
-      PREP_TYPE_ANY, 1 /*circle*/);
+          PREP_TYPE_ANY, 1 /*circle*/);
   class_prereq_cfeat(CLASS_ARCANE_ARCHER, FEAT_WEAPON_FOCUS, CFEAT_SPECIAL_BOW);
   /****************************************************************************/
-  
+
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
   classo(CLASS_STALWART_DEFENDER, "stalwartdefender", "SDe", "\tWS\tcDe\tn", "g) \tWStalwart \tcDefender\tn",
-      /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
-        10,       Y,    Y,        H,  12, 0,   1,   2,     Y,      5000,    0,
-        /*descrip*/"Drawn from the ranks of guards, knights, mercenaries, and "
-    "thugs alike, stalwart defenders are masters of claiming an area and refusing "
-    "to relinquish it. This behavior is more than a tactical decision for stalwart "
-    "defenders; it is an obsessive, stubborn expression of the need to be undefeated. "
-    "When stalwart defenders set themselves in a defensive stance, they place their "
-    "whole effort into weathering whatever foe, conflict, or threat comes their way.");
+          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
+          10, Y, Y, H, 12, 0, 1, 2, Y, 5000, 0,
+          /*descrip*/"Drawn from the ranks of guards, knights, mercenaries, and "
+          "thugs alike, stalwart defenders are masters of claiming an area and refusing "
+          "to relinquish it. This behavior is more than a tactical decision for stalwart "
+          "defenders; it is an obsessive, stubborn expression of the need to be undefeated. "
+          "When stalwart defenders set themselves in a defensive stance, they place their "
+          "whole effort into weathering whatever foe, conflict, or threat comes their way.");
   /* class-number then saves:        fortitude, reflex, will, poison, death */
-  assign_class_saves(CLASS_STALWART_DEFENDER, G,    B,      G,    B,      B);
+  assign_class_saves(CLASS_STALWART_DEFENDER, G, B, G, B, B);
   assign_class_abils(CLASS_STALWART_DEFENDER, /* class number */
-    /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
-      CC,        CC,     CA,        CA,  CA,        CC,            CC,
-    /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
-      CC,      CC,        CC,           CA,  CA,  CA,   CC,             CC,
-    /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
-      CC,       CC,            CC,      CC,           CC,           CA,
-    /*survival,swim,use_magic_device,perform*/
-      CC,      CA,  CC,              CC
-    );
+          /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+          CC, CC, CA, CA, CA, CC, CC,
+          /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+          CC, CC, CC, CA, CA, CA, CC, CC,
+          /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+          CC, CC, CC, CC, CC, CA,
+          /*survival,swim,use_magic_device,perform*/
+          CC, CA, CC, CC
+          );
   assign_class_titles(CLASS_STALWART_DEFENDER, /* class number */
-    "",                        /* <= 4  */
-    "the Defender",            /* <= 9  */
-    "the Immovable",           /* <= 14 */
-    "the Wall",                /* <= 19 */
-    "the Stalwart Wall",       /* <= 24 */
-    "the Wall of Iron",        /* <= 29 */
-    "the Wall of Steel",       /* <= 30 */
-    "the Immortal Defender",   /* <= LVL_IMMORT */
-    "the Indestructible Wall", /* <= LVL_STAFF */
-    "the God of Defense",      /* <= LVL_GRSTAFF */
-    "the Stalwart Defender"    /* default */  
-  );
+          "", /* <= 4  */
+          "the Defender", /* <= 9  */
+          "the Immovable", /* <= 14 */
+          "the Wall", /* <= 19 */
+          "the Stalwart Wall", /* <= 24 */
+          "the Wall of Iron", /* <= 29 */
+          "the Wall of Steel", /* <= 30 */
+          "the Immortal Defender", /* <= LVL_IMMORT */
+          "the Indestructible Wall", /* <= LVL_STAFF */
+          "the God of Defense", /* <= LVL_GRSTAFF */
+          "the Stalwart Defender" /* default */
+          );
   /* feat assignment */
   /*              class num     feat                                   cfeat lvl stack */
-  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_AC_BONUS,               Y,    1,  Y);
-  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_DEFENSIVE_STANCE,       Y,    1,  Y);
-  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_FEARLESS_DEFENSE,       Y,    2,  N);
-  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_UNCANNY_DODGE,          Y,    3,  N);
-  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_DEFENSIVE_STANCE,       Y,    3,  Y);
-  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_AC_BONUS,               Y,    4,  Y);
-  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_IMMOBILE_DEFENSE,       Y,    4,  N);
-  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_SHRUG_DAMAGE,           Y,    5,  Y);  
-  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_DEFENSIVE_STANCE,       Y,    5,  Y);
-  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_AC_BONUS,               Y,    7,  Y);
-  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_SHRUG_DAMAGE,           Y,    7,  Y);
-  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_SHRUG_DAMAGE,           Y,    7,  Y);
-  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_IMPROVED_UNCANNY_DODGE, Y,    7,  N);
-  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_DEFENSIVE_STANCE,       Y,    7,  Y);
-  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_RENEWED_DEFENSE,        Y,    8,  N);
-  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_MOBILE_DEFENSE,         Y,    9,  N);
-  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_DEFENSIVE_STANCE,       Y,    9,  Y);
-  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_LAST_WORD,              Y,   10,  N);
-  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_AC_BONUS,               Y,   10,  Y);
-  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_SHRUG_DAMAGE,           Y,   10,  Y);
-  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_SHRUG_DAMAGE,           Y,   10,  Y);
-  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_SMASH_DEFENSE,          Y,   10,  N);
+  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_AC_BONUS, Y, 1, Y);
+  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_DEFENSIVE_STANCE, Y, 1, Y);
+  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_FEARLESS_DEFENSE, Y, 2, N);
+  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_UNCANNY_DODGE, Y, 3, N);
+  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_DEFENSIVE_STANCE, Y, 3, Y);
+  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_AC_BONUS, Y, 4, Y);
+  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_IMMOBILE_DEFENSE, Y, 4, N);
+  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_SHRUG_DAMAGE, Y, 5, Y);
+  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_DEFENSIVE_STANCE, Y, 5, Y);
+  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_AC_BONUS, Y, 7, Y);
+  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_SHRUG_DAMAGE, Y, 7, Y);
+  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_SHRUG_DAMAGE, Y, 7, Y);
+  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_IMPROVED_UNCANNY_DODGE, Y, 7, N);
+  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_DEFENSIVE_STANCE, Y, 7, Y);
+  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_RENEWED_DEFENSE, Y, 8, N);
+  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_MOBILE_DEFENSE, Y, 9, N);
+  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_DEFENSIVE_STANCE, Y, 9, Y);
+  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_LAST_WORD, Y, 10, N);
+  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_AC_BONUS, Y, 10, Y);
+  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_SHRUG_DAMAGE, Y, 10, Y);
+  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_SHRUG_DAMAGE, Y, 10, Y);
+  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_SMASH_DEFENSE, Y, 10, N);
   /* no class feats */
   /* no spell assignment */
   /* class prereqs */
@@ -4622,109 +4632,109 @@ void load_class_list(void) {
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
   classo(CLASS_SHIFTER, "shifter", "Shf", "\twS\tWh\twf\tn", "f) \twSh\tWift\twer\tn",
-      /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
-        10,       Y,    Y,        M,  8, 0,   1,   4,     N,       5000,    0,
-        /*descrip*/"A shifter has no form they call their own. Instead, they clothe "
-    "themselves in whatever shape is most expedient at the time. While others base "
-    "their identities largely on their external forms, the shifter actually comes "
-    "closer to their true self through all of their transformations. Of necessity, "
-    "their sense of self is based not on their outward form, but on their soul, which "
-    "is truly the only constant about them. It is the inner strength of that soul "
-    "that enables them to take on any shape and remain themselves within.");
+          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
+          10, Y, Y, M, 8, 0, 1, 4, N, 5000, 0,
+          /*descrip*/"A shifter has no form they call their own. Instead, they clothe "
+          "themselves in whatever shape is most expedient at the time. While others base "
+          "their identities largely on their external forms, the shifter actually comes "
+          "closer to their true self through all of their transformations. Of necessity, "
+          "their sense of self is based not on their outward form, but on their soul, which "
+          "is truly the only constant about them. It is the inner strength of that soul "
+          "that enables them to take on any shape and remain themselves within.");
   /* class-number then saves:        fortitude, reflex, will, poison, death */
-  assign_class_saves(CLASS_SHIFTER, G,    G,      B,    G,      B);
+  assign_class_saves(CLASS_SHIFTER, G, G, B, G, B);
   assign_class_abils(CLASS_SHIFTER, /* class number */
-    /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
-      CC,        CC,     CA,        CA,  CC,        CA,            CA,
-    /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
-      CC,      CC,        CC,           CA,  CA,  CC,   CC,             CC,
-    /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
-      CA,       CC,            CA,      CC,           CA,           CC,
-    /*survival,swim,use_magic_device,perform*/
-      CC,      CA,  CC,              CC
-    );
+          /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+          CC, CC, CA, CA, CC, CA, CA,
+          /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+          CC, CC, CC, CA, CA, CC, CC, CC,
+          /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+          CA, CC, CA, CC, CA, CC,
+          /*survival,swim,use_magic_device,perform*/
+          CC, CA, CC, CC
+          );
   assign_class_titles(CLASS_SHIFTER, /* class number */
-    "",                         /* <= 4  */
-    "the Shape Changer",        /* <= 9  */
-    "the Changeling",           /* <= 14 */
-    "the Formless",             /* <= 19 */
-    "the Shape Shifter",        /* <= 24 */
-    "the Form Changer",         /* <= 29 */
-    "the Perpetually Changing", /* <= 30 */
-    "the Immortal Shifter",     /* <= LVL_IMMORT */
-    "the Limitless Changeling", /* <= LVL_STAFF */
-    "the God of Shifting",      /* <= LVL_GRSTAFF */
-    "the Shifter"               /* default */  
-  );
+          "", /* <= 4  */
+          "the Shape Changer", /* <= 9  */
+          "the Changeling", /* <= 14 */
+          "the Formless", /* <= 19 */
+          "the Shape Shifter", /* <= 24 */
+          "the Form Changer", /* <= 29 */
+          "the Perpetually Changing", /* <= 30 */
+          "the Immortal Shifter", /* <= LVL_IMMORT */
+          "the Limitless Changeling", /* <= LVL_STAFF */
+          "the God of Shifting", /* <= LVL_GRSTAFF */
+          "the Shifter" /* default */
+          );
   /* feat assignment */
   /*              class num     feat                                 cfeat lvl stack */
-  feat_assignment(CLASS_SHIFTER, FEAT_LIMITLESS_SHAPES,               Y,    1,  N);
-  feat_assignment(CLASS_SHIFTER, FEAT_SHIFTER_SHAPES_1,               Y,    2,  N);
-  feat_assignment(CLASS_SHIFTER, FEAT_SHIFTER_SHAPES_2,               Y,    4,  N);
-  feat_assignment(CLASS_SHIFTER, FEAT_SHIFTER_SHAPES_3,               Y,    6,  N);
-  feat_assignment(CLASS_SHIFTER, FEAT_SHIFTER_SHAPES_4,               Y,    8,  N);
-  feat_assignment(CLASS_SHIFTER, FEAT_SHIFTER_SHAPES_5,               Y,   10,  N);
+  feat_assignment(CLASS_SHIFTER, FEAT_LIMITLESS_SHAPES, Y, 1, N);
+  feat_assignment(CLASS_SHIFTER, FEAT_SHIFTER_SHAPES_1, Y, 2, N);
+  feat_assignment(CLASS_SHIFTER, FEAT_SHIFTER_SHAPES_2, Y, 4, N);
+  feat_assignment(CLASS_SHIFTER, FEAT_SHIFTER_SHAPES_3, Y, 6, N);
+  feat_assignment(CLASS_SHIFTER, FEAT_SHIFTER_SHAPES_4, Y, 8, N);
+  feat_assignment(CLASS_SHIFTER, FEAT_SHIFTER_SHAPES_5, Y, 10, N);
   /* no class feats */
   /* no spell assignment */
   /* class prereqs */
   class_prereq_class_level(CLASS_SHIFTER, CLASS_DRUID, 6);
   /****************************************************************************/
-  
+
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
   classo(CLASS_DUELIST, "duelist", "Due", "\tcDue\tn", "i) \tcDuelist\tn",
-      /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
-        10,       Y,    Y,        H,  10, 0,   1,   4,     Y,      5000,    0,
-        /*descrip*/"Duelists represent the pinnacle of elegant swordplay. They "
-    "move with a grace unmatched by most foes, parrying blows and countering attacks "
-    "with swift thrusts of their blades. They may wear armor, but generally eschew "
-    "such bulky protection as their grace allows them to dodge their opponents with "
-    "ease. While others flounder on treacherous terrain, duelists charge nimbly "
-    "across the battlefield, leaping and tumbling into the fray. They thrive in "
-    "melee, where their skill with the blade allows them to make sudden attacks "
-    "against clumsy foes and to cripple opponents with particularly well-placed "
-    "thrusts of the blade.");
+          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
+          10, Y, Y, H, 10, 0, 1, 4, Y, 5000, 0,
+          /*descrip*/"Duelists represent the pinnacle of elegant swordplay. They "
+          "move with a grace unmatched by most foes, parrying blows and countering attacks "
+          "with swift thrusts of their blades. They may wear armor, but generally eschew "
+          "such bulky protection as their grace allows them to dodge their opponents with "
+          "ease. While others flounder on treacherous terrain, duelists charge nimbly "
+          "across the battlefield, leaping and tumbling into the fray. They thrive in "
+          "melee, where their skill with the blade allows them to make sudden attacks "
+          "against clumsy foes and to cripple opponents with particularly well-placed "
+          "thrusts of the blade.");
   /* class-number then saves:  fortitude, reflex, will, poison, death */
-  assign_class_saves(CLASS_DUELIST, B,    G,      B,    B,      B);
+  assign_class_saves(CLASS_DUELIST, B, G, B, B, B);
   assign_class_abils(CLASS_DUELIST, /* class number */
-    /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
-      CA,        CC,     CA,        CA,  CC,        CC,            CC,
-    /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
-      CC,      CC,        CA,           CA,  CA,  CC,   CC,             CA,
-    /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
-      CC,       CC,            CC,      CA,           CC,           CA,
-    /*survival,swim,use_magic_device,perform*/
-      CC,      CA,  CC,              CA
-    );
+          /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+          CA, CC, CA, CA, CC, CC, CC,
+          /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+          CC, CC, CA, CA, CA, CC, CC, CA,
+          /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+          CC, CC, CC, CA, CC, CA,
+          /*survival,swim,use_magic_device,perform*/
+          CC, CA, CC, CA
+          );
   assign_class_titles(CLASS_DUELIST, /* class number */
-    "",                        /* <= 4  */
-    "the Acrobatic",            /* <= 9  */
-    "the Nimble Maneuver",           /* <= 14 */
-    "the Agile Duelist",                /* <= 19 */
-    "the Crossed Blade",       /* <= 24 */
-    "the Graceful Weapon",        /* <= 29 */
-    "the Elaborate Parry",       /* <= 30 */
-    "the Immortal Duelist",   /* <= LVL_IMMORT */
-    "the Untouchable Duelist", /* <= LVL_STAFF */
-    "the God of Duelist",      /* <= LVL_GRSTAFF */
-    "the Duelist"    /* default */  
-  );
+          "", /* <= 4  */
+          "the Acrobatic", /* <= 9  */
+          "the Nimble Maneuver", /* <= 14 */
+          "the Agile Duelist", /* <= 19 */
+          "the Crossed Blade", /* <= 24 */
+          "the Graceful Weapon", /* <= 29 */
+          "the Elaborate Parry", /* <= 30 */
+          "the Immortal Duelist", /* <= LVL_IMMORT */
+          "the Untouchable Duelist", /* <= LVL_STAFF */
+          "the God of Duelist", /* <= LVL_GRSTAFF */
+          "the Duelist" /* default */
+          );
   /* feat assignment */
   /*              class num      feat                      cfeat lvl stack */
-  feat_assignment(CLASS_DUELIST, FEAT_CANNY_DEFENSE,       Y,    1,  N);
-  feat_assignment(CLASS_DUELIST, FEAT_PRECISE_STRIKE,      Y,    1,  N);
-  feat_assignment(CLASS_DUELIST, FEAT_IMPROVED_REACTION,   Y,    2,  Y);
-  feat_assignment(CLASS_DUELIST, FEAT_PARRY,               Y,    2,  N);
-  feat_assignment(CLASS_DUELIST, FEAT_ENHANCED_MOBILITY,   Y,    3,  N);
-  feat_assignment(CLASS_DUELIST, FEAT_GRACE,               Y,    4,  N);
-  feat_assignment(CLASS_DUELIST, FEAT_COMBAT_REFLEXES,     Y,    4,  N);
-  feat_assignment(CLASS_DUELIST, FEAT_RIPOSTE,             Y,    5,  N);
-  feat_assignment(CLASS_DUELIST, FEAT_ACROBATIC_CHARGE,    Y,    6,  N);
-  feat_assignment(CLASS_DUELIST, FEAT_ELABORATE_PARRY,     Y,    7,  N);
-  feat_assignment(CLASS_DUELIST, FEAT_IMPROVED_REACTION,   Y,    8,  Y);
-  feat_assignment(CLASS_DUELIST, FEAT_DEFLECT_ARROWS,      Y,    9,  Y);
-  feat_assignment(CLASS_DUELIST, FEAT_NO_RETREAT,          Y,    9,  N);
-  feat_assignment(CLASS_DUELIST, FEAT_CRIPPLING_CRITICAL,  Y,   10,  N);
+  feat_assignment(CLASS_DUELIST, FEAT_CANNY_DEFENSE, Y, 1, N);
+  feat_assignment(CLASS_DUELIST, FEAT_PRECISE_STRIKE, Y, 1, N);
+  feat_assignment(CLASS_DUELIST, FEAT_IMPROVED_REACTION, Y, 2, Y);
+  feat_assignment(CLASS_DUELIST, FEAT_PARRY, Y, 2, N);
+  feat_assignment(CLASS_DUELIST, FEAT_ENHANCED_MOBILITY, Y, 3, N);
+  feat_assignment(CLASS_DUELIST, FEAT_GRACE, Y, 4, N);
+  feat_assignment(CLASS_DUELIST, FEAT_COMBAT_REFLEXES, Y, 4, N);
+  feat_assignment(CLASS_DUELIST, FEAT_RIPOSTE, Y, 5, N);
+  feat_assignment(CLASS_DUELIST, FEAT_ACROBATIC_CHARGE, Y, 6, N);
+  feat_assignment(CLASS_DUELIST, FEAT_ELABORATE_PARRY, Y, 7, N);
+  feat_assignment(CLASS_DUELIST, FEAT_IMPROVED_REACTION, Y, 8, Y);
+  feat_assignment(CLASS_DUELIST, FEAT_DEFLECT_ARROWS, Y, 9, Y);
+  feat_assignment(CLASS_DUELIST, FEAT_NO_RETREAT, Y, 9, N);
+  feat_assignment(CLASS_DUELIST, FEAT_CRIPPLING_CRITICAL, Y, 10, N);
   /* no spell assignment */
   /* class prereqs */
   class_prereq_bab(CLASS_DUELIST, 6);
@@ -4734,10 +4744,10 @@ void load_class_list(void) {
   class_prereq_feat(CLASS_DUELIST, FEAT_MOBILITY, 1);
   class_prereq_feat(CLASS_DUELIST, FEAT_WEAPON_FINESSE, 1);
   /****************************************************************************/
-  
+
   /****************************************************************************/
   /****************************************************************************/
-  
+
   /****************************************************************************/
   /****************************************************************************/
 }

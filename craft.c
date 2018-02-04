@@ -705,7 +705,7 @@ int augment(struct obj_data *kit, struct char_data *ch) {
   dice_roll = dice(1, 100);
   
   /* success is level difference divided by 4,  percent */
-  success_chance = 100 - (level_diff * 25);
+  success_chance = 100 - (level_diff * 10);
   success_chance -= essence_level; /* minus level */
   
   /* critical success */
@@ -1785,7 +1785,6 @@ EVENTFUNC(event_crafting) {
   if (!ch || !ch->desc) return 0;
   if (!IS_NPC(ch) && !IS_PLAYING(ch->desc)) return 0;
 
-  // something is off, so ensure reset
   if (GET_CRAFTING_TYPE(ch) == SCMD_DISENCHANT) {
     ; /* disenchant is unique - we do not bring an object along */
   } else if (!GET_AUTOCQUEST_VNUM(ch) && GET_CRAFTING_OBJ(ch) == NULL) {

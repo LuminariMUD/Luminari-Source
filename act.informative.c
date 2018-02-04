@@ -865,7 +865,7 @@ void look_at_room_number(struct char_data * ch, int ignore_brief, long room_numb
     send_to_char(ch, "\tLIt is pitch black...\tn\r\n");
     list_char_to_char(world[room_number].people, ch);
     return;
-  } else if (AFF_FLAGGED(ch, AFF_BLIND)) {
+  } else if (AFF_FLAGGED(ch, AFF_BLIND) && !HAS_FEAT(ch, FEAT_BLINDSENSE)) {
     send_to_char(ch, "You're blind, you can't see anything!\r\n");
     if (AFF_FLAGGED(ch, AFF_SENSE_LIFE))
       list_char_to_char(world[room_number].people, ch);
@@ -945,7 +945,8 @@ void look_at_room(struct char_data *ch, int ignore_brief) {
   if (room_dark) {
     send_to_char(ch, "It is pitch black...\r\n");
     return;
-  } else if (AFF_FLAGGED(ch, AFF_BLIND) && GET_LEVEL(ch) < LVL_IMMORT) {
+  } else if (AFF_FLAGGED(ch, AFF_BLIND) && GET_LEVEL(ch) < LVL_IMMORT &&
+          !HAS_FEAT(ch, FEAT_BLINDSENSE)) {
     send_to_char(ch, "You see nothing but infinite darkness...\r\n");
     return;
   } else if (ROOM_AFFECTED(ch->in_room, RAFF_FOG)) {
@@ -1919,7 +1920,8 @@ ACMD(do_look) {
 
   if (GET_POS(ch) < POS_SLEEPING)
     send_to_char(ch, "You can't see anything but stars!\r\n");
-  else if (AFF_FLAGGED(ch, AFF_BLIND) && GET_LEVEL(ch) < LVL_IMMORT)
+  else if (AFF_FLAGGED(ch, AFF_BLIND) && GET_LEVEL(ch) < LVL_IMMORT &&
+          !HAS_FEAT(ch, FEAT_BLINDSENSE))
     send_to_char(ch, "You can't see a damned thing, you're blind!\r\n");
   else if (IS_DARK(IN_ROOM(ch)) && !CAN_SEE_IN_DARK(ch) && !CAN_INFRA_IN_DARK(ch)) {
     send_to_char(ch, "It is pitch black...\r\n");
@@ -4260,7 +4262,7 @@ ACMD(do_scan) {
   else
     return;
 
-  if (IS_AFFECTED(ch, AFF_BLIND)) {
+  if (IS_AFFECTED(ch, AFF_BLIND) && !HAS_FEAT(ch, FEAT_BLINDSENSE)) {
     send_to_char(ch, "You can't see a damned thing, you're blind!\r\n");
     return;
   }
@@ -4344,7 +4346,8 @@ ACMD(do_moves) {
 ACMD(do_exits) {
   int door, len = 0;
 
-  if (AFF_FLAGGED(ch, AFF_BLIND) && GET_LEVEL(ch) < LVL_IMMORT) {
+  if (AFF_FLAGGED(ch, AFF_BLIND) && GET_LEVEL(ch) < LVL_IMMORT &&
+          !HAS_FEAT(ch, FEAT_BLINDSENSE)) {
     send_to_char(ch, "You can't see a damned thing, you're blind!\r\n");
     return;
   }

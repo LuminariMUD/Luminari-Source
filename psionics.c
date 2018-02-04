@@ -48,7 +48,7 @@ int canUsePsionicSkill(struct char_data *ch, int skill) {
 
   /* Should never happen if called from psi skill routines but you in case.. */
   if (!ch) {
-    log( "assert: bogus params in canUsePsionicSkill");
+    log("assert: bogus params in canUsePsionicSkill");
     core_dump();
   }
 
@@ -153,12 +153,11 @@ int canUsePsionicSkill(struct char_data *ch, int skill) {
   return MAX(0, pspCost);
 }
 
-
 void incSkillSubPsp(struct char_data *ch, int skill, int amount, int skillGain) {
   struct obj_data * crystal;
 
   if (!ch) {
-    log( "assert: bogus params in subtractPsps");
+    log("assert: bogus params in subtractPsps");
     dump_core();
   }
 
@@ -342,7 +341,7 @@ void do_drain(struct char_data *ch, char *arg, int cmd) {
   int drain_delay;
 
   if (!ch) {
-    log( "assert: bogus params in do_drain()");
+    log("assert: bogus params in do_drain()");
     dump_core();
   }
 
@@ -420,7 +419,7 @@ void do_drain(struct char_data *ch, char *arg, int cmd) {
 
 void illithid_feeding(struct char_data *ch, P_char victim) {
   if (!(victim && ch)) {
-    log( "assert: bogus params in illithid_feeding()");
+    log("assert: bogus params in illithid_feeding()");
     dump_core();
   }
 
@@ -428,7 +427,7 @@ void illithid_feeding(struct char_data *ch, P_char victim) {
     return;
 
   if (!IS_AFFECTED(ch, AFF_BRAINDRAIN)) {
-    log( "assert: bogus illithid_feeding call. No AFF_BRAINDRAIN.");
+    log("assert: bogus illithid_feeding call. No AFF_BRAINDRAIN.");
     dump_core();
   }
 
@@ -464,7 +463,7 @@ void do_aurasight(struct char_data *ch, char *arg, int cmd) {
   int skl_lvl, align, psp;
 
   if (!ch) {
-    log( "assert: bogus param in do_aurasight");
+    log("assert: bogus param in do_aurasight");
     dump_core();
   }
 
@@ -480,7 +479,7 @@ void do_aurasight(struct char_data *ch, char *arg, int cmd) {
     return;
   }
 
-  skl_lvl =  GET_SKILL(ch, PSIONIC_AURASIGHT);
+  skl_lvl = GET_SKILL(ch, PSIONIC_AURASIGHT);
   victim = ParseTarget(ch, arg);
 
   if (!victim) {
@@ -542,7 +541,7 @@ void do_combatmind(struct char_data *ch, char *arg, int cmd) {
   struct affected_type af;
 
   if (!ch) {
-    log( "assert: bogus param in do_combatmind");
+    log("assert: bogus param in do_combatmind");
     dump_core();
   }
 
@@ -558,7 +557,7 @@ void do_combatmind(struct char_data *ch, char *arg, int cmd) {
     return;
   }
 
-  skl_lvl =  GET_SKILL(ch, PSIONIC_COMBATMIND);
+  skl_lvl = GET_SKILL(ch, PSIONIC_COMBATMIND);
 
   if (arg) {
     victim = ParseTarget(ch, arg);
@@ -583,7 +582,7 @@ void do_combatmind(struct char_data *ch, char *arg, int cmd) {
 
   bzero(&af, sizeof (af));
   af.type = PSIONIC_COMBATMIND;
-  af.duration = MAX(5,  GET_SKILL(ch, PSIONIC_COMBATMIND) / 10);
+  af.duration = MAX(5, GET_SKILL(ch, PSIONIC_COMBATMIND) / 10);
   af.modifier = GET_LEVEL(ch) / 6;
   CLEAR_CBITS(af.sets_affs, AFF_BYTES);
   affect_to_char(victim, &af);
@@ -605,27 +604,26 @@ void do_combatmind(struct char_data *ch, char *arg, int cmd) {
   return;
 }
 
-void do_vision(struct char_data *ch, char *arg, int cmd)
-{
-  P_char victim=0;
+void do_vision(struct char_data *ch, char *arg, int cmd) {
+  P_char victim = 0;
   int skl_lvl;
   struct affected_type af;
 
   if (!ch) {
-    logit ( "assert: bogus param in do_vision");
+    logit("assert: bogus param in do_vision");
     dump_core();
   }
 
-  if(!canUsePsionicSkill(ch, PSIONIC_VISION)) {
-      send_to_char("You have no idea how to enhance your senses.\n", ch);
-      return;
+  if (!canUsePsionicSkill(ch, PSIONIC_VISION)) {
+    send_to_char("You have no idea how to enhance your senses.\n", ch);
+    return;
   }
 
-  skl_lvl =  GET_SKILL(ch, PSIONIC_VISION);
+  skl_lvl = GET_SKILL(ch, PSIONIC_VISION);
 
-  if(arg) {
+  if (arg) {
     victim = ParseTarget(ch, arg);
-    if (ch!=victim) {
+    if (ch != victim) {
       send_to_char("You can only project that onto yourself.\n", ch);
       return;
     }
@@ -636,9 +634,9 @@ void do_vision(struct char_data *ch, char *arg, int cmd)
     return;
   }
 
-  bzero(&af, sizeof(af));
+  bzero(&af, sizeof (af));
   af.type = PSIONIC_VISION;
-  af.duration = MAX(5,  GET_SKILL(ch, PSIONIC_VISION) / 5) ;
+  af.duration = MAX(5, GET_SKILL(ch, PSIONIC_VISION) / 5);
   SET_CBIT(af.sets_affs, AFF_DETECT_MAGIC);
   SET_CBIT(af.sets_affs, AFF_SENSE_LIFE);
   SET_CBIT(af.sets_affs, AFF_DETECT_INVISIBLE);
@@ -704,7 +702,7 @@ void do_sense_danger(struct char_data *ch, char *arg, int cmd) {
   struct room_direction_data *temp = NULL;
 
   if (!ch) {
-    log( "assert: bogus param in do_sense_danger");
+    log("assert: bogus param in do_sense_danger");
     dump_core();
   }
 
@@ -720,7 +718,7 @@ void do_sense_danger(struct char_data *ch, char *arg, int cmd) {
     return;
   }
 
-  skl_lvl =  GET_SKILL(ch, PSIONIC_SENSE_DANGER);
+  skl_lvl = GET_SKILL(ch, PSIONIC_SENSE_DANGER);
 
   bzero(aggro_lvls, sizeof (aggro_lvls));
 
@@ -824,7 +822,7 @@ void do_mindblast(struct char_data *ch, char *arg, int cmd) {
   int skl_lvl, percent, dam, psp, resist = 0, stun_time = 0, will = 0;
 
   if (!ch) {
-    log( "assert: bogus param in do_mindblast");
+    log("assert: bogus param in do_mindblast");
     dump_core();
   }
 
@@ -840,7 +838,7 @@ void do_mindblast(struct char_data *ch, char *arg, int cmd) {
     return;
   }
 
-  skl_lvl =  GET_SKILL(ch, PSIONIC_MINDBLAST);
+  skl_lvl = GET_SKILL(ch, PSIONIC_MINDBLAST);
 
   victim = ParseTarget(ch, arg);
 
@@ -859,8 +857,8 @@ void do_mindblast(struct char_data *ch, char *arg, int cmd) {
   if (!CanPsiDoFightMove(ch, victim))
     return;
 
-  skl_lvl =  GET_SKILL(ch, PSIONIC_MINDBLAST);
-  
+  skl_lvl = GET_SKILL(ch, PSIONIC_MINDBLAST);
+
   if (IS_NPC(ch))
     skl_lvl = (GET_LEVEL(ch) * 1.5);
   dam = dice(MIN(GET_LEVEL(ch), 33), 6) + (skl_lvl >> 2);
@@ -912,7 +910,7 @@ void do_detonate(struct char_data *ch, char *arg, int cmd) {
   P_char victim;
 
   if (!ch) {
-    log( "assert: bogus parm in do_detonate");
+    log("assert: bogus parm in do_detonate");
     dump_core();
   }
 
@@ -928,7 +926,7 @@ void do_detonate(struct char_data *ch, char *arg, int cmd) {
     return;
   }
 
-  skl_lvl =  GET_SKILL(ch, PSIONIC_DETONATE);
+  skl_lvl = GET_SKILL(ch, PSIONIC_DETONATE);
   if (IS_NPC(ch))
     skl_lvl = (GET_LEVEL(ch) * (3 / 2));
 
@@ -1012,16 +1010,14 @@ int do_project_force(struct char_data *ch, char *arg, int cmd)
 /* Iyachtu 8/24/01 */ {
   int dam, skl_lvl = 0, psp;
   P_char victim;
-  const int dam_project[] =
-  {     0,   0,   0,   0,   0,   0,   0,   0,  40,  40,
-       42,  42,  45,  47,  50,  50,  50,  50,  55,  55,
-       55,  55,  60,  60,  65,  65,  70,  75,  80,  85,
-       95, 100, 105, 110, 125, 130, 135, 140, 145, 150,
-      160, 170, 180, 190, 200, 210, 220, 230, 240, 250, 260
-  };
+  const int dam_project[] ={0, 0, 0, 0, 0, 0, 0, 0, 40, 40,
+    42, 42, 45, 47, 50, 50, 50, 50, 55, 55,
+    55, 55, 60, 60, 65, 65, 70, 75, 80, 85,
+    95, 100, 105, 110, 125, 130, 135, 140, 145, 150,
+    160, 170, 180, 190, 200, 210, 220, 230, 240, 250, 260};
 
   if (!ch) {
-    log( "assert: bogus parm in do_project_force");
+    log("assert: bogus parm in do_project_force");
     dump_core();
   }
 
@@ -1037,7 +1033,7 @@ int do_project_force(struct char_data *ch, char *arg, int cmd)
     return FALSE;
   }
 
-  skl_lvl =  GET_SKILL(ch, PSIONIC_PROJECT_FORCE);
+  skl_lvl = GET_SKILL(ch, PSIONIC_PROJECT_FORCE);
   if (IS_NPC(ch))
     skl_lvl = (GET_LEVEL(ch) * (3 / 2));
 
@@ -1116,7 +1112,7 @@ void do_death_field(struct char_data *ch, char *arg, int cmd) {
   int landed = 0, attempted = 0;
 
   if (!ch) {
-    log( "assert: bogus parm in do_death_field");
+    log("assert: bogus parm in do_death_field");
     dump_core();
   }
 
@@ -1132,7 +1128,7 @@ void do_death_field(struct char_data *ch, char *arg, int cmd) {
     return;
   }
 
-  skl_lvl =  GET_SKILL(ch, PSIONIC_DEATH_FIELD);
+  skl_lvl = GET_SKILL(ch, PSIONIC_DEATH_FIELD);
   if (IS_NPC(ch))
     skl_lvl = (GET_LEVEL(ch) * (3 / 2));
 
@@ -1187,7 +1183,7 @@ void do_adrenalize(struct char_data *ch, char *arg, int cmd) {
   int psp, skl_lvl;
 
   if (!ch) {
-    log( "assert: bogus param in do_adrenalize");
+    log("assert: bogus param in do_adrenalize");
     dump_core();
   }
 
@@ -1216,7 +1212,7 @@ void do_adrenalize(struct char_data *ch, char *arg, int cmd) {
     return;
   }
 
-  skl_lvl =  GET_SKILL(ch, PSIONIC_ADRENALIZE);
+  skl_lvl = GET_SKILL(ch, PSIONIC_ADRENALIZE);
   if (IS_NPC(ch))
     skl_lvl = (GET_LEVEL(ch) * (3 / 2));
 
@@ -1259,7 +1255,7 @@ void do_body_control(struct char_data *ch, char *arg, int cmd) {
   int skl_lvl, psp;
 
   if (!ch) {
-    log( "assert: bogus param in do_body_control");
+    log("assert: bogus param in do_body_control");
     dump_core();
   }
 
@@ -1282,7 +1278,7 @@ void do_body_control(struct char_data *ch, char *arg, int cmd) {
     return;
   }
 
-  skl_lvl =  GET_SKILL(ch, PSIONIC_BODY_CONTROL);
+  skl_lvl = GET_SKILL(ch, PSIONIC_BODY_CONTROL);
 
   if (affected_by_spell(victim, PSIONIC_BODY_CONTROL)) {
     send_to_char("&+rYour body is already protected from the elements.\n", victim);
@@ -1291,7 +1287,7 @@ void do_body_control(struct char_data *ch, char *arg, int cmd) {
 
   bzero(&af, sizeof (af));
   af.type = PSIONIC_BODY_CONTROL;
-  af.duration = MAX(15,  GET_SKILL(ch, PSIONIC_BODY_CONTROL));
+  af.duration = MAX(15, GET_SKILL(ch, PSIONIC_BODY_CONTROL));
   SET_CBIT(af.sets_affs, AFF_BODY_CONTROL);
   affect_to_char(ch, &af);
 
@@ -1299,7 +1295,7 @@ void do_body_control(struct char_data *ch, char *arg, int cmd) {
 
   incSkillSubPsp(ch, PSIONIC_BODY_CONTROL, psp, PSIONIC_GAIN_ON);
   psiSkillUsageLogging(ch, 0, arg, PSIONIC_BODY_CONTROL);
-  
+
   return;
 }
 
@@ -1309,7 +1305,7 @@ void do_catfall(struct char_data *ch, char *arg, int cmd) {
   int skl_lvl, psp;
 
   if (!ch) {
-    log( "assert: bogus param in do_catfall");
+    log("assert: bogus param in do_catfall");
     dump_core();
   }
 
@@ -1337,11 +1333,11 @@ void do_catfall(struct char_data *ch, char *arg, int cmd) {
     return;
   }
 
-  skl_lvl =  GET_SKILL(ch, PSIONIC_CATFALL);
+  skl_lvl = GET_SKILL(ch, PSIONIC_CATFALL);
 
   bzero(&af, sizeof (af));
   af.type = PSIONIC_CATFALL;
-  af.duration = MAX(15,  GET_SKILL(ch, PSIONIC_CATFALL) >> 1);
+  af.duration = MAX(15, GET_SKILL(ch, PSIONIC_CATFALL) >> 1);
   SET_CBIT(af.sets_affs, AFF_CATFALL);
   affect_to_char(ch, &af);
 
@@ -1358,7 +1354,7 @@ void do_flesharmor(struct char_data *ch, char *arg, int cmd) {
   struct affected_type af;
 
   if (!ch) {
-    log( "assert: bogus param in do_flesharmor");
+    log("assert: bogus param in do_flesharmor");
     dump_core();
   }
 
@@ -1387,7 +1383,7 @@ void do_flesharmor(struct char_data *ch, char *arg, int cmd) {
     return;
   }
 
-  skl_lvl =  GET_SKILL(ch, PSIONIC_FLESH_ARMOR);
+  skl_lvl = GET_SKILL(ch, PSIONIC_FLESH_ARMOR);
   if (IS_NPC(ch))
     skl_lvl = (GET_LEVEL(ch) * (3 / 2));
 
@@ -1414,7 +1410,7 @@ void do_reduction(struct char_data *ch, char *arg, int cmd) {
   struct affected_type af;
 
   if (!ch) {
-    log( "assert: bogus param in do_reduction");
+    log("assert: bogus param in do_reduction");
     dump_core();
   }
 
@@ -1444,7 +1440,7 @@ void do_reduction(struct char_data *ch, char *arg, int cmd) {
     return;
   }
 
-  skl_lvl =  GET_SKILL(ch, PSIONIC_REDUCTION);
+  skl_lvl = GET_SKILL(ch, PSIONIC_REDUCTION);
   if (IS_NPC(ch))
     skl_lvl = (GET_LEVEL(ch) * (3 / 2));
 
@@ -1455,7 +1451,7 @@ void do_reduction(struct char_data *ch, char *arg, int cmd) {
   weightmod *= ((float) skl_lvl / 130);
 
   if (heightmod >= GET_HEIGHT(ch)) {
-    log( "do_reduction(): height modifier larger then PC's height.");
+    log("do_reduction(): height modifier larger then PC's height.");
     dump_core();
   }
 
@@ -1484,7 +1480,7 @@ void do_expansion(struct char_data *ch, char *arg, int cmd) {
   struct affected_type af;
 
   if (!ch) {
-    log( "assert: bogus param in do_expansion");
+    log("assert: bogus param in do_expansion");
     dump_core();
   }
 
@@ -1513,7 +1509,7 @@ void do_expansion(struct char_data *ch, char *arg, int cmd) {
     return;
   }
 
-  skl_lvl =  GET_SKILL(ch, PSIONIC_EXPANSION);
+  skl_lvl = GET_SKILL(ch, PSIONIC_EXPANSION);
   if (IS_NPC(ch))
     skl_lvl = (GET_LEVEL(ch) * (3 / 2));
 
@@ -1548,7 +1544,7 @@ void do_sustain(struct char_data *ch, char *arg, int cmd) {
   int skl_lvl, mvpts, psp;
 
   if (!ch) {
-    log( "assert: bogus param in do_sustain");
+    log("assert: bogus param in do_sustain");
     dump_core();
   }
 
@@ -1572,7 +1568,7 @@ void do_sustain(struct char_data *ch, char *arg, int cmd) {
     }
   }
 
-  skl_lvl =  GET_SKILL(ch, PSIONIC_SUSTAIN);
+  skl_lvl = GET_SKILL(ch, PSIONIC_SUSTAIN);
 
   mvpts = 40 + dice(1, 10);
 
@@ -1605,7 +1601,7 @@ void do_equalibrium(struct char_data *ch, char *arg, int cmd) {
   int used = FALSE;
 
   if (!ch) {
-    log( "assert: bogus param in do_equalibrium");
+    log("assert: bogus param in do_equalibrium");
     dump_core();
   }
 
@@ -1627,7 +1623,7 @@ void do_equalibrium(struct char_data *ch, char *arg, int cmd) {
       return;
     }
 
-  skl_lvl =  GET_SKILL(ch, PSIONIC_EQUALIBRIUM);
+  skl_lvl = GET_SKILL(ch, PSIONIC_EQUALIBRIUM);
 
   if (GET_LEVEL(ch) > 10)
     poison = TRUE;
@@ -1706,7 +1702,7 @@ void do_shift(struct char_data *ch, char *arg, int cmd) {
   arg2[0] = 0;
 
   if (!ch) {
-    log( "assert: bogus parm in do_shift");
+    log("assert: bogus parm in do_shift");
     dump_core();
   }
 
@@ -1894,7 +1890,7 @@ void do_rift(struct char_data *ch, char *arg, int cmd) {
   int tries, to_room, plane_to, plane_from, g1, g2, skl_lvl, psp;
 
   if (!ch || (ch->in_room == NOWHERE)) {
-    log( "assert: bogus parmeters in do_rift");
+    log("assert: bogus parmeters in do_rift");
     return;
   }
 
@@ -1917,7 +1913,7 @@ void do_rift(struct char_data *ch, char *arg, int cmd) {
     return;
   }
 
-  skl_lvl =  GET_SKILL(ch, PSIONIC_RIFT);
+  skl_lvl = GET_SKILL(ch, PSIONIC_RIFT);
 
   one_argument(arg, Gbuf4);
 
@@ -2051,12 +2047,13 @@ void do_rift(struct char_data *ch, char *arg, int cmd) {
  */
 
 #define DOMINATE_MODIFIER  6
+
 void do_dominate(struct char_data *ch, char *arg, int cmd) {
   P_char victim;
   int psp, maxPets;
 
   if (!(ch)) {
-    log( "assert: bogus parms in do_dominate");
+    log("assert: bogus parms in do_dominate");
     dump_core();
   }
 
@@ -2106,7 +2103,7 @@ void do_dominate(struct char_data *ch, char *arg, int cmd) {
     return;
   }
 
-  maxPets = ( GET_SKILL(ch, PSIONIC_DOMINATE) / DOMINATE_MODIFIER);
+  maxPets = (GET_SKILL(ch, PSIONIC_DOMINATE) / DOMINATE_MODIFIER);
 
   if (getNumberOfPets(ch) >= maxPets) {
     send_to_char("You aren't strong enough to control more followers.\n", ch);
@@ -2121,7 +2118,7 @@ void do_dominate(struct char_data *ch, char *arg, int cmd) {
       send_to_char("You can't get a clear line of sight in these cramped quarters.\n", ch);
       return;
     } else {
-      dominate_single(ch, victim,  GET_SKILL(ch, PSIONIC_DOMINATE));
+      dominate_single(ch, victim, GET_SKILL(ch, PSIONIC_DOMINATE));
       incSkillSubPsp(ch, PSIONIC_DOMINATE, psp, PSIONIC_GAIN_ON);
       psiSkillUsageLogging(ch, victim, arg, PSIONIC_DOMINATE);
     }
@@ -2139,7 +2136,7 @@ void do_mass_domination(struct char_data *ch, char *arg, int cmd) {
   int numFollowers = 0;
 
   if (!(ch)) {
-    log( "assert: bogus parms");
+    log("assert: bogus parms");
     dump_core();
   }
 
@@ -2176,7 +2173,7 @@ void do_mass_domination(struct char_data *ch, char *arg, int cmd) {
     return;
   }
 
-  skl_lvl =  GET_SKILL(ch, PSIONIC_MASS_DOMINATION);
+  skl_lvl = GET_SKILL(ch, PSIONIC_MASS_DOMINATION);
   maxFollowers = skl_lvl / DOMINATE_MODIFIER;
   numFollowers = getNumberOfPets(ch);
 
@@ -2211,7 +2208,7 @@ int dominate_single(struct char_data *ch, P_char victim, int skill_level) {
   P_event e1;
 
   if (!ch || !victim) {
-    log( "assert: bogus params in do_dominate");
+    log("assert: bogus params in do_dominate");
     dump_core();
   }
 
@@ -2347,7 +2344,7 @@ void do_synaptic_static(struct char_data *ch, char *arg, int cmd) {
   P_char victim;
 
   if (!ch) {
-    log( "assert: bogus parm in do_mind_wipe");
+    log("assert: bogus parm in do_mind_wipe");
     dump_core();
   }
 
@@ -2389,7 +2386,7 @@ void do_synaptic_static(struct char_data *ch, char *arg, int cmd) {
   if (!CanPsiDoFightMove(ch, victim))
     return;
 
-  skl_lvl =  GET_SKILL(ch, PSIONIC_SYNAPTIC_STATIC);
+  skl_lvl = GET_SKILL(ch, PSIONIC_SYNAPTIC_STATIC);
   tmp_lvl = skl_lvl / 10;
   for (i = 1; i <= tmp_lvl; i++) {
     circle = number(1, tmp_lvl);
@@ -2424,7 +2421,7 @@ void do_tower_of_iron_will(struct char_data *ch, char *arg, int cmd) {
   int psp;
 
   if (!ch) {
-    log( "assert: bogus param in do_tower_of_iron_will");
+    log("assert: bogus param in do_tower_of_iron_will");
     dump_core();
   }
 
@@ -2483,7 +2480,7 @@ void do_canibalize(struct char_data *ch, char *arg, int cmd) {
   char oneArg[MAX_STRING_LENGTH];
 
   if (!ch) {
-    log( "assert: bogus param in do_canibalize");
+    log("assert: bogus param in do_canibalize");
     dump_core();
   }
 
@@ -2516,7 +2513,7 @@ void do_canibalize(struct char_data *ch, char *arg, int cmd) {
   }
 
   /* This is the fixed version of getting the proficiency - Iyachtu */
-  skl_lvl =  GET_SKILL(ch, PSIONIC_CANIBALIZE);
+  skl_lvl = GET_SKILL(ch, PSIONIC_CANIBALIZE);
 
   one_argument(arg, oneArg);
 
@@ -2606,7 +2603,7 @@ void do_stasis_field(struct char_data *ch, char *arg, int cmd) {
   struct affected_type af;
 
   if (!ch) {
-    log( "assert: bogus param in do_stasis_field");
+    log("assert: bogus param in do_stasis_field");
     dump_core();
   }
 
@@ -2622,7 +2619,7 @@ void do_stasis_field(struct char_data *ch, char *arg, int cmd) {
     return;
   }
 
-  skl_lvl =  GET_SKILL(ch, PSIONIC_STASIS_FIELD);
+  skl_lvl = GET_SKILL(ch, PSIONIC_STASIS_FIELD);
 
   if (ch->in_room == NOWHERE)
     return;
@@ -2657,7 +2654,7 @@ void createStasisSphear(struct char_data *ch) {
   P_char t_char;
 
   if (!ch) {
-    log( "assert: bogus parameter in Event Call to createStasisSphear");
+    log("assert: bogus parameter in Event Call to createStasisSphear");
     dump_core();
   }
 
@@ -2667,7 +2664,7 @@ void createStasisSphear(struct char_data *ch) {
   }
 
   for (t_char = world[ch->in_room].people; t_char; t_char = t_char->next_in_room) {
-    GET_HIT(t_char) +=  GET_SKILL(ch, PSIONIC_STASIS_FIELD) / 10;
+    GET_HIT(t_char) += GET_SKILL(ch, PSIONIC_STASIS_FIELD) / 10;
     if (GET_HIT(t_char) > GET_MAX_HIT(t_char))
       GET_HIT(t_char) = GET_MAX_HIT(t_char);
     update_pos(t_char);
@@ -2688,7 +2685,7 @@ void do_ultrablast(struct char_data *ch, char *arg, int cmd) {
   int landed = 0, attempted = 0;
 
   if (!ch) {
-    log( "assert: bogus parm in do_ultrablast");
+    log("assert: bogus parm in do_ultrablast");
     dump_core();
   }
 
@@ -2715,7 +2712,7 @@ void do_ultrablast(struct char_data *ch, char *arg, int cmd) {
     return;
   }
 
-  skl_lvl =  GET_SKILL(ch, PSIONIC_ULTRABLAST);
+  skl_lvl = GET_SKILL(ch, PSIONIC_ULTRABLAST);
 
   num_mobs = area_valid_targets(ch);
 
@@ -2740,7 +2737,7 @@ void do_ultrablast(struct char_data *ch, char *arg, int cmd) {
       if (AreaSave(ch, vict, &dam, num_mobs) == AVOID_AREA)
         continue;
       landed++;
-      
+
       psiDamage(ch, vict, dam, PSIONIC_ULTRABLAST);
 
       debuglog(51, DS_D2, "%s ultrablast: target - %s, skill - %d, damage - %d",
@@ -2763,7 +2760,7 @@ void do_battle_trance(struct char_data *ch, char *arg, int cmd) {
   struct affected_type af;
 
   if (!ch) {
-    log( "assert: bogus parm in do_trance");
+    log("assert: bogus parm in do_trance");
     dump_core();
   }
 
@@ -2779,7 +2776,7 @@ void do_battle_trance(struct char_data *ch, char *arg, int cmd) {
     return;
   }
 
-  skl_lvl =  GET_SKILL(ch, PSIONIC_BATTLE_TRANCE);
+  skl_lvl = GET_SKILL(ch, PSIONIC_BATTLE_TRANCE);
 
   duration = MAX(4 * PULSE_VIOLENCE, ((skl_lvl / 20) * PULSE_VIOLENCE) * 4);
   modifier = MAX(1, (skl_lvl + 1) / 20);
@@ -2838,7 +2835,7 @@ void do_metaglobe(struct char_data *ch, char *arg, int cmd) {
   char *tptr;
 
   if (!ch) {
-    log( "assert: bogus param in do_metaglobe");
+    log("assert: bogus param in do_metaglobe");
     dump_core();
   }
 
@@ -2873,7 +2870,7 @@ void do_metaglobe(struct char_data *ch, char *arg, int cmd) {
   *tptr = 0;
 
   /* check if all are digits and convert */
-  skl_lvl =  GET_SKILL(ch, PSIONIC_METAGLOBE);
+  skl_lvl = GET_SKILL(ch, PSIONIC_METAGLOBE);
   lvl = skl_lvl;
   tptr = mask;
   for (; *tptr != 0; tptr++) {
@@ -2953,7 +2950,7 @@ void do_metaglobe(struct char_data *ch, char *arg, int cmd) {
 void removeMetaGlobe(struct char_data *ch) {
 
   if (!ch) {
-    log( "assert: bogus param in removeMetaGlobe");
+    log("assert: bogus param in removeMetaGlobe");
     dump_core();
   }
 
@@ -2970,7 +2967,7 @@ void do_globe_of_darkness(struct char_data *ch, char *arg, int cmd) {
   int psp, skl_lvl;
 
   if (!ch) {
-    log( "assert: bogus param in do_globe_of_darkness");
+    log("assert: bogus param in do_globe_of_darkness");
     dump_core();
   }
 
@@ -2991,7 +2988,7 @@ void do_globe_of_darkness(struct char_data *ch, char *arg, int cmd) {
     return;
   }
 
-  skl_lvl =  GET_SKILL(ch, PSIONIC_DARKNESS);
+  skl_lvl = GET_SKILL(ch, PSIONIC_DARKNESS);
 
   /* setting AFF_GLOBE_OF_DARKNESS will cause the char_to_room to
    * see if the room entered already has a DARK flag on.. if no,
@@ -3023,7 +3020,7 @@ void eventGlobeOfDarkness(struct char_data *ch, P_room room) {
   int tmpRealRoom;
 
   if (!ch) {
-    log( "assert: bogus param in eventGlobeOfDarkness");
+    log("assert: bogus param in eventGlobeOfDarkness");
     dump_core();
   }
 
@@ -3066,7 +3063,7 @@ void do_charge(struct char_data *ch, char *arg, int cmd) {
   struct obj_data * crystal;
 
   if (!ch) {
-    log( "assert: bogus param in do_charge");
+    log("assert: bogus param in do_charge");
     dump_core();
   }
 
@@ -3155,7 +3152,7 @@ void chargePSPCrystal(struct char_data *ch) {
     return;
   }
 
-  skl_lvl =  GET_SKILL(ch, PSIONIC_CHARGE);
+  skl_lvl = GET_SKILL(ch, PSIONIC_CHARGE);
 
   inc = 1 + skl_lvl / 25;
 
@@ -3497,7 +3494,7 @@ void do_telekinate(struct char_data *ch, char *arg, int cmd) {
   int delay;
 
   if (!(victim && ch)) {
-    log( "assert: bogus parms in spell_empathic_healing()");
+    log("assert: bogus parms in spell_empathic_healing()");
     dump_core();
   }
 

@@ -4774,80 +4774,70 @@ EVENTFUNC(event_copyover) {
     }
     perform_do_copyover();
     return 0;
-  }
-  else if (timer == 1) {
+  } else if (timer == 1) {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
         send_to_char(pt->character, "\r\n     \tR[COPYOVER IMMINENT!]\tn\r\n");
     sprintf(buf, "%d", (timer - 1));
     copyover_event->sVariables = strdup(buf);
     return (1 * PASSES_PER_SEC);
-  }
-  else if (timer == 2) {
+  } else if (timer == 2) {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
         send_to_char(pt->character, "\r\n     \tR[Copyover in less than 2 seconds]\tn\r\n");
     sprintf(buf, "%d", (timer - 1));
     copyover_event->sVariables = strdup(buf);
     return (1 * PASSES_PER_SEC);
-  }
-  else if (timer == 3) {
+  } else if (timer == 3) {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
         send_to_char(pt->character, "\r\n     \tR[Copyover in less than 3 seconds]\tn\r\n");
     sprintf(buf, "%d", (timer - 1));
     copyover_event->sVariables = strdup(buf);
     return (1 * PASSES_PER_SEC);
-  }
-  else if (timer <= 10) {
+  } else if (timer <= 10) {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
         send_to_char(pt->character, "\r\n     \tR[Copyover in less than 10 seconds]\tn\r\n");
     sprintf(buf, "%d", (3));
     copyover_event->sVariables = strdup(buf);
     return ((timer - 3) * PASSES_PER_SEC);
-  }
-  else if (timer <= 30) {
+  } else if (timer <= 30) {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
         send_to_char(pt->character, "\r\n     \tR[Copyover in less than 30 seconds]\tn\r\n");
     sprintf(buf, "%d", (10));
     copyover_event->sVariables = strdup(buf);
     return ((timer - 10) * PASSES_PER_SEC);
-  }
-  else if (timer <= 60) {
+  } else if (timer <= 60) {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
         send_to_char(pt->character, "\r\n     \tR[Copyover in less than 1 minute, please disengage from combat and find a safe place to wait]\tn\r\n");
     sprintf(buf, "%d", (30));
     copyover_event->sVariables = strdup(buf);
     return ((timer - 30) * PASSES_PER_SEC);
-  }
-  else if (timer <= 180) {
+  } else if (timer <= 180) {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
         send_to_char(pt->character, "\r\n     \tR[Copyover in less than 3 minutes]\tn\r\n");
     sprintf(buf, "%d", (60));
     copyover_event->sVariables = strdup(buf);
     return ((timer - 60) * PASSES_PER_SEC);
-  }
-  else if (timer <= 300) {
+  } else if (timer <= 300) {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
         send_to_char(pt->character, "\r\n     \tR[Copyover in less than 5 minutes]\tn\r\n");
     sprintf(buf, "%d", (180));
     copyover_event->sVariables = strdup(buf);
     return ((timer - 180) * PASSES_PER_SEC);
-  }
-  else if (timer <= 600) {
+  } else if (timer <= 600) {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
         send_to_char(pt->character, "\r\n     \tR[Copyover in less than 10 minutes]\tn\r\n");
     sprintf(buf, "%d", (300));
     copyover_event->sVariables = strdup(buf);
     return ((timer - 300) * PASSES_PER_SEC);
-  }
-  else {
+  } else {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
         send_to_char(pt->character, "\r\n     \tR[Copyover in about %d minutes]\tn\r\n",
@@ -5975,9 +5965,9 @@ ACMD(do_genriver) {
   int dir = 0;
   region_vnum vnum;
 
-/* genreiver north 100011 FooBar River
- * genmap <arg1> <arg2> <name string> */
-  
+  /* genreiver north 100011 FooBar River
+   * genmap <arg1> <arg2> <name string> */
+
   name = two_arguments(argument, arg1, arg2);
 
   if (!*arg1) {
@@ -5985,20 +5975,20 @@ ACMD(do_genriver) {
             "cardinal directions or equivalent values accepted.\r\n");
     return;
   }
-  
+
   if (!*arg2) {
     send_to_char(ch, "2nd argument requires VNum: genriver n \tR4\tn FooBar River, "
             "unique vnums only, pathlist to view.\r\n");
     return;
   }
-  
+
   skip_spaces(&name);
 
   if (!*name) {
     send_to_char(ch, "3rd argument requires river name: genriver n 4 \tRFooBar River\tn\r\n");
     return;
-  }  
-  
+  }
+
   if (is_abbrev(arg1, "north"))
     dir = NORTH;
   else if (is_abbrev(arg1, "east"))
@@ -6009,19 +5999,19 @@ ACMD(do_genriver) {
     dir = WEST;
   else
     dir = atoi(arg1);
-  
+
   if (dir < NORTH || dir >= NUM_OF_DIRS) {
     send_to_char(ch, "Invalid direction.\r\n");
     return;
   }
-  
+
   vnum = atoi(arg2);
-  
+
   /* tested upper limited -zusuk */
   if (vnum < 0 || vnum > 1215752191) {
     send_to_char(ch, "Invalid VNum.\r\n");
     return;
-  }  
+  }
 
   generate_river(ch, dir, vnum, name);
   load_paths();
@@ -6045,9 +6035,9 @@ ACMD(do_deletepath) {
   if (vnum < 0 || vnum > 1215752191) {
     send_to_char(ch, "\tnInvalid VNum.\r\n");
     return;
-  }  
+  }
 
-  if(delete_path(vnum)) {
+  if (delete_path(vnum)) {
     send_to_char(ch, "\tnPath deleted!\r\n");
   } else {
     send_to_char(ch, "\tnPath not found.\r\n");
@@ -6064,9 +6054,9 @@ ACMD(do_genmap) {
   int dir = 0;
   region_vnum vnum;
 
-/* genmap north 100011 FooBar River
- * genmap <arg1> <arg2> <name string> */
-  
+  /* genmap north 100011 FooBar River
+   * genmap <arg1> <arg2> <name string> */
+
   name = two_arguments(argument, arg1, arg2);
 
   if (!*arg1) {
@@ -6074,20 +6064,20 @@ ACMD(do_genmap) {
             "cardinal directions or equivalent values accepted.\r\n");
     return;
   }
-  
+
   if (!*arg2) {
     send_to_char(ch, "2nd argument requires VNum: genmap n \tR4\tn FooBar River, "
             "unique vnums only, pathlist to view.\r\n");
     return;
   }
-  
+
   skip_spaces(&name);
 
   if (!*name) {
     send_to_char(ch, "3rd argument requires river name: genmap n 4 \tRFooBar River\tn\r\n");
     return;
-  }  
-  
+  }
+
   if (is_abbrev(arg1, "north"))
     dir = NORTH;
   else if (is_abbrev(arg1, "east"))
@@ -6098,19 +6088,19 @@ ACMD(do_genmap) {
     dir = WEST;
   else
     dir = atoi(arg1);
-  
+
   if (dir < NORTH || dir >= NUM_OF_DIRS) {
     send_to_char(ch, "Invalid direction.\r\n");
     return;
   }
-  
+
   vnum = atoi(arg2);
-  
+
   /* tested upper limited -zusuk */
   if (vnum < 0 || vnum > 1215752191) {
     send_to_char(ch, "Invalid VNum.\r\n");
     return;
-  }  
+  }
 
   /*debug*/send_to_char(ch, "Debug- dir: %d, vnum: %d, name: %s\r\n",
           dir, vnum, name);

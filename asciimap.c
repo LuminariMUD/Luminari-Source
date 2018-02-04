@@ -42,7 +42,7 @@
 #define MAX_MAP_DIR 10
 #define MAX_MAP_FOLLOW 10
 
- /* anything greater than num sect types */
+/* anything greater than num sect types */
 #define SECT_EMPTY (NUM_ROOM_SECTORS + 1)
 #define SECT_STRANGE (SECT_EMPTY + 1)
 #define SECT_HERE  (SECT_STRANGE + 1)
@@ -73,7 +73,7 @@ struct map_info_type {
   char disp[20];
 };
 
-static struct map_info_type door_info[] ={
+static struct map_info_type door_info[] = {
   { DOOR_NONE, "   "},
   { DOOR_DOWN_AND_SE, "\tr-\tn\\ "},
   { DOOR_UP_AND_NE, "\tr+\tn/ "},
@@ -89,7 +89,7 @@ static struct map_info_type door_info[] ={
   { DOOR_NS, " | "}
 };
 
-static struct map_info_type compact_door_info[] ={
+static struct map_info_type compact_door_info[] = {
   { DOOR_NONE, " "},
   { DOOR_DOWN_AND_SE, "\tR\\\tn"},
   { DOOR_UP_AND_NE, "\tR/\tn"},
@@ -108,7 +108,7 @@ static struct map_info_type compact_door_info[] ={
 /* Add new sector types below for both map_info and world_map_info     */
 /* The last 3 MUST remain the same, although the symbol can be changed */
 /* New sectors also need to be added to the perform_map function below */
-static struct map_info_type map_info[] ={
+static struct map_info_type map_info[] = {
   { SECT_INSIDE, "\tc[\tn.\tc]\tn"}, /* 0 */
   { SECT_CITY, "\tc[\twC\tc]\tn"},
   { SECT_FIELD, "\tc[\tg,\tc]\tn"},
@@ -129,28 +129,28 @@ static struct map_info_type map_info[] ={
   { SECT_HIGH_MOUNTAIN, "\tc[\tRM\tc]\tn"}, //17
   { SECT_PLANES, "\tc[\tD.\tc]\tn"}, //18
   { SECT_UD_WILD, "\tc[\tM\t=Y\tn\tc]\tn"},
-  { SECT_UD_CITY, "\tc[\tmC\tc]\tn"},  // 20
+  { SECT_UD_CITY, "\tc[\tmC\tc]\tn"}, // 20
   { SECT_UD_INSIDE, "\tc[\tm.\tc]\tn"},
   { SECT_UD_WATER, "\tc[\tm\t=~\tn\tc]\tn"},
   { SECT_UD_NOSWIM, "\tc[\tM\t==\tn\tc]\tn"},
   { SECT_UD_NOGROUND, "\tc[\tm^\tc]\tn"},
-  { SECT_LAVA, "\tc[\tR.\tc]\tn"},  //25  
-  { SECT_D_ROAD_NS, "\tc[\ty|\tc]\tn"}, 
-  { SECT_D_ROAD_EW, "\tc[\ty-\tc]\tn"}, 
+  { SECT_LAVA, "\tc[\tR.\tc]\tn"}, //25  
+  { SECT_D_ROAD_NS, "\tc[\ty|\tc]\tn"},
+  { SECT_D_ROAD_EW, "\tc[\ty-\tc]\tn"},
   { SECT_D_ROAD_INT, "\tc[\ty+\tc]\tn"},
   { SECT_CAVE, "\tc[\tD\t=C\tc]\tn"},
   { SECT_JUNGLE, "\tg&\tn"},
   { SECT_TUNDRA, "\tW.\tn"},
   { SECT_TAIGA, "\tgA\tn"},
   { SECT_BEACH, "\ty:\tn"},
- 
-  { -1, ""},  /* RESERVED, NUM_ROOM_SECTORS */
+
+  { -1, ""}, /* RESERVED, NUM_ROOM_SECTORS */
   { SECT_EMPTY, "   "}, /* NUM_ROOM_SECTORS + 1 */
   { SECT_STRANGE, "\tc[\tR?\tc]\tn"},
   { SECT_HERE, "\tc[\tW&\tc]\tn"},
 };
 
-static struct map_info_type world_map_info[] ={
+static struct map_info_type world_map_info[] = {
   { SECT_INSIDE, "\tn.\tn"}, /* 0 */
   { SECT_CITY, "\twC\tn"},
   { SECT_FIELD, "\tg,\tn"},
@@ -171,22 +171,22 @@ static struct map_info_type world_map_info[] ={
   { SECT_HIGH_MOUNTAIN, "\tRM\tn"}, /* 17 */
   { SECT_PLANES, "\tM.\tn"}, /* 18 */
   { SECT_UD_WILD, "\tM\t=Y\tn"},
-  { SECT_UD_CITY, "\tmC\tn"},  // 20
+  { SECT_UD_CITY, "\tmC\tn"}, // 20
   { SECT_UD_INSIDE, "\tm.\tn"},
   { SECT_UD_WATER, "\tm\t=~\tn\tn"},
   { SECT_UD_NOSWIM, "\tM\t==\tn\tn"},
   { SECT_UD_NOGROUND, "\tm^\tn"},
-  { SECT_LAVA, "\tR.\tc]\tn"},  //25  
-  { SECT_D_ROAD_NS, "\ty|\tn"}, 
-  { SECT_D_ROAD_EW, "\ty-\tn"}, 
+  { SECT_LAVA, "\tR.\tc]\tn"}, //25  
+  { SECT_D_ROAD_NS, "\ty|\tn"},
+  { SECT_D_ROAD_EW, "\ty-\tn"},
   { SECT_D_ROAD_INT, "\ty+\tn"},
   { SECT_CAVE, "\tD\t=C\tn"},
   { SECT_JUNGLE, "\tg&\tn"},
   { SECT_TUNDRA, "\tW.\tn"},
   { SECT_TAIGA, "\tgA\tn"},
   { SECT_BEACH, "\ty:\tn"},
-  
-  { -1, ""},  /* RESERVED, NUM_ROOM_SECTORS */
+
+  { -1, ""}, /* RESERVED, NUM_ROOM_SECTORS */
   { SECT_EMPTY, " "},
   { SECT_STRANGE, "\tR?\tn"},
   { SECT_HERE, "\tW&\tn"},
@@ -488,11 +488,11 @@ void perform_map(struct char_data *ch, char *argument, bool worldmap) {
   int size = DEFAULT_MAP_SIZE;
   int centre, x, y, min, max;
   char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH], buf[MAX_STRING_LENGTH],
-    buf1[MAX_STRING_LENGTH], buf2[MAX_STRING_LENGTH];
+          buf1[MAX_STRING_LENGTH], buf2[MAX_STRING_LENGTH];
   int count = 0;
   int ew_size = 0, ns_size = 0;
   int mapshape = MAP_CIRCLE;
-  
+
 
 
   two_arguments(argument, arg1, arg2);
@@ -571,7 +571,7 @@ void perform_map(struct char_data *ch, char *argument, bool worldmap) {
   count += sprintf(buf + count, "\tn%s D Rd E-W\\\\", map_info[SECT_D_ROAD_EW].disp);
   count += sprintf(buf + count, "\tn%s D Inters\\\\", map_info[SECT_D_ROAD_INT].disp);
   count += sprintf(buf + count, "\tn%s Cave\\\\", map_info[SECT_CAVE].disp);
-  
+
   strcpy(buf, strfrmt(buf, LEGEND_WIDTH, CANVAS_HEIGHT + 2, FALSE, TRUE, TRUE));
 
   /* Start with an empty column */
@@ -643,13 +643,13 @@ void str_and_map(char *str, struct char_data *ch, room_vnum target_room) {
     send_to_char(ch, "%s", WorldMap(centre, size, MAP_CIRCLE, MAP_COMPACT));
     //    send_to_char(ch, "%s", strpaste(strfrmt(str, GET_SCREEN_WIDTH(ch) - char_size, size*2 + 1,
     //	FALSE, TRUE, TRUE), WorldMap(centre, size, MAP_CIRCLE, MAP_COMPACT), " \tn"));
-    
+
   } else {
     send_to_char(ch, "%s", strpaste(strfrmt(str, GET_SCREEN_WIDTH(ch) - char_size,
-          size * 2 + 1, FALSE, TRUE, TRUE), CompactStringMap(centre, size), " \tn"));
-    
+            size * 2 + 1, FALSE, TRUE, TRUE), CompactStringMap(centre, size), " \tn"));
+
   }
-  
+
 }
 
 bool show_worldmap(struct char_data *ch) {
@@ -670,7 +670,8 @@ ACMD(do_map) {
   if (IS_DARK(IN_ROOM(ch)) && !CAN_SEE_IN_DARK(ch)) {
     send_to_char(ch, "It is too dark to see the map.\r\n");
     return;
-  } else if (AFF_FLAGGED(ch, AFF_BLIND) && GET_LEVEL(ch) < LVL_IMMORT) {
+  } else if (AFF_FLAGGED(ch, AFF_BLIND) && GET_LEVEL(ch) < LVL_IMMORT &&
+          !HAS_FEAT(ch, FEAT_BLINDENSE)) {
     send_to_char(ch, "You can't see the map while blind!\r\n");
     return;
   }
@@ -679,3 +680,5 @@ ACMD(do_map) {
   else
     perform_map(ch, argument, show_worldmap(ch));
 }
+
+/*EOF*/

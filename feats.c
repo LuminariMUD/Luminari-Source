@@ -2246,7 +2246,8 @@ void assign_feats(void) {
   feato(FEAT_GLORIOUS_RIDER, "glorious rider", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
           "use cha instead of dex for ride checks",
           "Normally ride checks for performing skills while mounted, uses your dexterity "
-          "bonus to compute your chance.  With this feat you can use your charisma bonus instead.");
+          "bonus to compute your chance.  With this feat you can use your charisma bonus instead.  "
+          "This does NOT eliminate the armor penalty created by armor as related to dexterity.");
   feato(FEAT_LEGENDARY_RIDER, "legendary rider", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
           "no armor penalty to ride check, can block extra attack",
           "You can now block up to two attacks a round with successful ride checks "

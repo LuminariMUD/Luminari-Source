@@ -1110,6 +1110,7 @@ void process_skill(struct char_data *ch, int skillnum) {
  * Items to be sold will be everything on the ground of the house
  */
 /* debug */ //#define PLAYER_SHOP_DEBUG
+
 SPECIAL(player_owned_shops) {
   room_rnum private_room;
   room_vnum house_vnum;
@@ -1147,7 +1148,7 @@ SPECIAL(player_owned_shops) {
 
   private_room = real_room(house_control[hse].vnum);
   house_vnum = house_control[hse].vnum;
-  
+
 #ifdef PLAYER_SHOP_DEBUG
   send_to_char(ch, "House VNum %d\r\n", house_control[hse].vnum);
 #endif
@@ -1228,13 +1229,13 @@ SPECIAL(player_owned_shops) {
     send_to_char(ch, "%s thanks you for your business, 'please come again!'\r\n",
             shop_owner);
     log("player_shops: item bought and paid for");
-    
+
     /* we have to save here to cement the transaction, otherwise a well timed
        crash or whatnot will duplicate the item -Zusuk */
     save_char(ch, 0);
     Crash_crashsave(ch);
     House_crashsave(house_vnum);
-  
+
     return (TRUE);
   }
 
