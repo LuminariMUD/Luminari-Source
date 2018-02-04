@@ -1997,6 +1997,7 @@ void init_start_char(struct char_data *ch) {
   GET_REAL_SPELL_RES(ch) = 0;
 
   /* gotta clear DR */
+  /*
   if (GET_DR(ch) != NULL) {
     struct damage_reduction_type *dr, *tmp;
     dr = GET_DR(ch);
@@ -2006,6 +2007,7 @@ void init_start_char(struct char_data *ch) {
       free(tmp);
     }
   }  
+  */
   
   /* reset skills/abilities */
   /* we don't want players to lose their hard-earned crafting skills */
