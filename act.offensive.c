@@ -4470,7 +4470,7 @@ ACMD(do_autofire) {
 }
 
 /* function used to gather up all the ammo in the room/corpses-in-room */
-int perform_collect(struct char_data *ch) {
+int perform_collect(struct char_data *ch, bool silent) {
   struct obj_data *ammo_pouch = GET_EQ(ch, WEAR_AMMO_POUCH);
   struct obj_data *obj = NULL;
   struct obj_data *nobj = NULL;
@@ -4497,7 +4497,8 @@ int perform_collect(struct char_data *ch) {
             obj_from_obj(cobj);
             obj_to_obj(cobj, ammo_pouch);
             ammo++;
-            act("You get $p.", FALSE, ch, cobj, 0, TO_CHAR);
+            if (!silent)
+              act("You get $p.", FALSE, ch, cobj, 0, TO_CHAR);
           } else {
             fit = FALSE;
             break;
@@ -4512,7 +4513,8 @@ int perform_collect(struct char_data *ch) {
         obj_from_room(obj);
         obj_to_obj(obj, ammo_pouch);
         ammo++;
-        act("You get $p.", FALSE, ch, obj, 0, TO_CHAR);
+        if (!silent)
+          act("You get $p.", FALSE, ch, obj, 0, TO_CHAR);
       } else {
         fit = FALSE;
         break;
@@ -4520,13 +4522,13 @@ int perform_collect(struct char_data *ch) {
     }
   }
 
-  if (ammo) {
+  if (ammo && !silent) {
     sprintf(buf, "You collected ammo:  %d.\r\n", ammo);
     send_to_char(ch, "%s", buf);
     act("$n gathers $s ammunition.", FALSE, ch, 0, 0, TO_ROOM);
   }
 
-  if (!fit)
+  if (!fit && !silent)
     send_to_char(ch, "There are still some of your ammunition laying around that does not fit into your currently"
           " equipped ammo pouch.\r\n");
 
@@ -4542,7 +4544,7 @@ ACMD(do_collect) {
     return;
   }
 
-  perform_collect(ch);
+  perform_collect(ch, FALSE);
 }
 
 /*
