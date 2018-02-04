@@ -2806,8 +2806,6 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim) {
       continue;
     if (tch == victim)
       continue;
-    if (IN_ROOM(tch) != rnum)
-      continue;
     if (PRF_FLAGGED(tch, PRF_AUTOCOLLECT))
       perform_collect(tch, FALSE);
   }
