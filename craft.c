@@ -1227,7 +1227,7 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
     }
   }
   
-  /* string length limit, object doesn't save if you exceed this limit -zusuk */
+  /* string length limit  -zusuk */
   if (l > CREATE_STRING_LIMIT) {
     send_to_char(ch, "The length (%d) of the name you gave your object is over "
             "the limit (%d).\r\n", l, CREATE_STRING_LIMIT);
