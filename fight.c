@@ -2798,7 +2798,7 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim) {
    any of the autolooting, etc */
   for (tch = world[rnum].people; tch; tch = tch->next_in_room) {
     /*debug*/
-    //send_to_char(tch, "%d", IN_ROOM(victim));
+    send_to_char(tch, "rnum: %d, in-room-tch: %d", rnum, IN_ROOM(tch));
     /*end debug*/
     if (!tch)
       continue;
@@ -2809,7 +2809,7 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim) {
     if (IN_ROOM(tch) != rnum)
       continue;
     if (PRF_FLAGGED(tch, PRF_AUTOCOLLECT))
-      perform_collect(tch);
+      perform_collect(tch, FALSE);
   }
   
   if (!IS_NPC(ch) && (ch != victim) && PRF_FLAGGED(ch, PRF_AUTOLOOT)) {
