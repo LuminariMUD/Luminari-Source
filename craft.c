@@ -1518,7 +1518,8 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
     mold->short_description = strdup(argument);
     sprintf(buf, "%s lies here.", CAP(argument));
     mold->description = strdup(buf);
-    mold->name = strdup(strip_colors(argument)); /*keywords, leave last*/
+    strip_colors(argument);
+    mold->name = strdup(argument); /*keywords, leave last*/
 
     send_to_char(ch, "You begin to craft %s.\r\n", mold->short_description);
     act("$n begins to craft $p.", FALSE, ch, mold, 0, TO_ROOM);
