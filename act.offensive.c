@@ -4508,7 +4508,7 @@ int perform_collect(struct char_data *ch, bool silent) {
     }
     
     /* checking room for ammo */
-    if (GET_OBJ_TYPE(obj) == ITEM_MISSILE &&
+    else if (GET_OBJ_TYPE(obj) == ITEM_MISSILE &&
             MISSILE_ID(obj) == GET_IDNUM(ch)) {
       if (num_obj_in_obj(ammo_pouch) < GET_OBJ_VAL(ammo_pouch, 0)) {
         obj_from_room(obj);
