@@ -4487,6 +4487,9 @@ int perform_collect(struct char_data *ch, bool silent) {
   for (obj = world[ch->in_room].contents; obj; obj = nobj) {
     nobj = obj->next_content;
 
+    /*debug*/
+    act("$p", FALSE, ch, obj, 0, TO_CHAR);
+    
     /* checking corpse for ammo first */
     if (IS_CORPSE(obj)) {
       for (cobj = obj->contains; cobj; cobj = next_obj) {
