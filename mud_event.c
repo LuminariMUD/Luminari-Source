@@ -19,7 +19,7 @@
 #include "wilderness.h"
 #include "quest.h"
 #include "mysql.h"
-
+#include "act.h"
 
 /* Global List */
 struct list_data * world_events = NULL;
