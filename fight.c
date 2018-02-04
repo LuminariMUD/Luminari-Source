@@ -2815,19 +2815,6 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim) {
   if (IS_NPC(victim) && !IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOSAC))
     do_sac(ch, "corpse", 0, 0);
   
-  /* i can't find the issue, some reason when there is no corpse autocollect
-   * is not workingn, so i added a 2nd attempt here */
-  for (tch = world[rnum].people; tch; tch = tch->next_in_room) {
-    if (!tch)
-      continue;
-    if (IS_NPC(tch))
-      continue;
-    if (tch == victim)
-      continue;
-    if (PRF_FLAGGED(tch, PRF_AUTOCOLLECT))
-      perform_collect(tch, FALSE);
-  }
-  
   /* all done! */
   return (-1);
 }
