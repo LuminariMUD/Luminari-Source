@@ -129,6 +129,7 @@ typedef enum {
   ePREPARATION, /* new spell preparation system */
   eCRAFT, /* NewCraft */
   eCOPYOVER, /* copyover event */
+  eCOLLECT_DELAY, /* autocollect event */
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

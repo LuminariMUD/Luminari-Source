@@ -2802,8 +2802,7 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim) {
     if (IS_NPC(tch))
       continue;
     if (PRF_FLAGGED(tch, PRF_AUTOCOLLECT)) {
-      do_collect(ch, "", 0, 0);
-      //perform_collect(tch, FALSE);
+      attach_mud_event(new_mud_event(eCOLLECT_DELAY, ch, NULL), 1);
     }
   }
   

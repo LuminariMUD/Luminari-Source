@@ -1,5 +1,5 @@
 /**************************************************************************
- *  File: mud_event.c                                       Part of LuminariMUD *
+ *  File: mud_event.c                                  Part of LuminariMUD *
  *  Usage: Handling of the mud event system                                *
  *                                                                         *
  *  By Vatiken. Copyright 2012 by Joseph Arnusch                           *
@@ -140,7 +140,8 @@ struct mud_event_list mud_event_index[] = {
   { "Draconic Heritage Claws Attack Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eDRACCLAWS
   { "Spell Preparation", event_preparation, EVENT_CHAR}, //ePREPARATION
   { "Craft", event_craft, EVENT_CHAR}, /* eCRAFT */ /* NewCraft */
-  { "Copyover Event!", event_copyover, EVENT_CHAR} /* eCOPYOVER */ /* copyover delay */
+  { "Copyover Event!", event_copyover, EVENT_CHAR}, /* eCOPYOVER */ /* copyover delay */
+  { "Autocollect delay", event_countdown, EVENT_CHAR}, //eCOLLECT_DELAY
 };
 
 /* init_events() is the ideal function for starting global events. This
@@ -358,6 +359,9 @@ EVENTFUNC(event_countdown) {
       break;
     case eTURN_UNDEAD:
       send_to_char(ch, "You are able to turn undead again.\r\n");
+      break;      
+    case eCOLLECT_DELAY:
+      perform_collect(ch);
       break;
     case eQUEST_COMPLETE:
       complete_quest(ch);
