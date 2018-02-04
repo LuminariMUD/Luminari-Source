@@ -1219,8 +1219,8 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
   int chance_of_crit = 0;
 
   /* weird find, color codes doesn't play nice with the ' character -zusuk */
-  for (l = 0; *(arg + l); l++) {
-    if (*(arg + l) = '\'') {
+  for (l = 0; *(argument + l); l++) {
+    if (*(argument + l) = '\'') {
       send_to_char(ch, "The usage of the character: ' is not allowed in create "
               "currently (it conflicts with color codes).\r\n", l, CREATE_STRING_LIMIT);
       return 1;      
