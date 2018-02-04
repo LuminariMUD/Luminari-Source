@@ -361,7 +361,7 @@ EVENTFUNC(event_countdown) {
       send_to_char(ch, "You are able to turn undead again.\r\n");
       break;      
     case eCOLLECT_DELAY:
-      perform_collect(ch);
+      perform_collect(ch, FALSE);
       break;
     case eQUEST_COMPLETE:
       complete_quest(ch);
