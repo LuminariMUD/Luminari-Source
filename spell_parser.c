@@ -1445,8 +1445,8 @@ ACMD(do_gen_cast) {
   }
 
   if (isEpicSpell(spellnum) && metamagic) {
-    send_to_char(ch, "You can not use metamagic with epic spells, the powah "
-            "would blow you into tiny bits!!\r\n");
+    send_to_char(ch, "Are you trying to implode the universe?!  Sorry, no metamagic "
+            "on epic spells currently!\r\n");
     return;
   }
   
