@@ -2801,8 +2801,10 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim) {
       continue;
     if (IS_NPC(tch))
       continue;
-    if (PRF_FLAGGED(tch, PRF_AUTOCOLLECT))
-      perform_collect(tch, FALSE);
+    if (PRF_FLAGGED(tch, PRF_AUTOCOLLECT)) {
+      do_collect(ch, "", 0, 0);
+      //perform_collect(tch, FALSE);
+    }
   }
   
   if (!IS_NPC(ch) && (ch != victim) && PRF_FLAGGED(ch, PRF_AUTOLOOT)) {
