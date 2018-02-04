@@ -1327,7 +1327,7 @@ static char *make_prompt(struct descriptor_data *d) {
         if (isDark && !CAN_SEE_IN_DARK(ch) && !CAN_INFRA_IN_DARK(ch)) {
           seesExits = 0;
         } else if (AFF_FLAGGED(ch, AFF_BLIND) && GET_LEVEL(ch) < LVL_IMMORT &&
-                !HAS_FEAT(ch, FEAT_BLINDENSE)) {
+                !HAS_FEAT(ch, FEAT_BLINDSENSE)) {
           seesExits = 0;
         } else if (ROOM_AFFECTED(ch->in_room, RAFF_FOG)) {
           seesExits = 0;
