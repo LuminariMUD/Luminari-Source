@@ -1,5 +1,5 @@
 /**************************************************************************
- *  File: spells.c                                          Part of LuminariMUD *
+ *  File: spells.c                                     Part of LuminariMUD *
  *  Usage: Implementation of "manual spells."                              *
  *                                                                         *
  *  All rights reserved.  See license for complete information.            *
@@ -308,7 +308,9 @@ void effect_charm(struct char_data *ch, struct char_data *victim,
 
   /* resistance bonuses, etc */
   if (!IS_NPC(victim) && (GET_RACE(victim) == RACE_ELF || //elven enchantment resistance
-          GET_RACE(victim) == RACE_H_ELF)) // added check for IS_NPC because RACE_TYPE_HUMAN == RACE_ELF and RACE_TYPE_ABERRATION == RACE_H_ELF
+          GET_RACE(victim) == RACE_H_ELF))
+    /* added check for IS_NPC because RACE_TYPE_HUMAN == RACE_ELF and
+     * RACE_TYPE_ABERRATION == RACE_H_ELF */
     bonus += 2;
   if (!IS_NPC(victim) && HAS_FEAT(victim, FEAT_STILL_MIND))
     bonus += 2;
@@ -321,14 +323,12 @@ void effect_charm(struct char_data *ch, struct char_data *victim,
             "enchantments!\r\n");
     if (IS_NPC(victim))
       hit(victim, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
-  }
-  else if (IS_AFFECTED(victim, AFF_MIND_BLANK)) {
+  } else if (IS_AFFECTED(victim, AFF_MIND_BLANK)) {
     send_to_char(ch, "Your victim is protected from this "
             "enchantment!\r\n");
     if (IS_NPC(victim))
       hit(victim, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
-  }
-  else if (AFF_FLAGGED(ch, AFF_CHARM))
+  } else if (AFF_FLAGGED(ch, AFF_CHARM))
     send_to_char(ch, "You can't have any followers of your own!\r\n");
 
   else if (AFF_FLAGGED(victim, AFF_CHARM))

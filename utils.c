@@ -2023,37 +2023,12 @@ bool circle_follow(struct char_data *ch, struct char_data *victim) {
   return (FALSE);
 }
 
-/** Call on a character (NPC or PC) to stop them from following someone and
- * to break any charm affect.
- * @todo Make the messages returned from the broken charm affect more
- * understandable.
- * @pre ch MUST be following someone, else core dump.
- * @post The charm affect (AFF_CHARM) will be removed from the character and
- * the character will stop following the "master" they were following.
- * @param ch The character (NPC or PC) to stop from following.
- * */
-void stop_follower(struct char_data *ch) {
-  struct follow_type *j = NULL, *k = NULL;
-
-  /* Makes sure this function is not called when it shouldn't be called. */
-  if (ch->master == NULL) {
-    core_dump();
-    return;
-  }
-
-  if (AFF_FLAGGED(ch, AFF_CHARM)) {
-    act("You realize that you do not need to serve $N anymore!",
-            FALSE, ch, 0, ch->master, TO_CHAR);
-    //    act("$n realizes that $N is a jerk!", FALSE, ch, 0, ch->master, TO_NOTVICT);
-    act("$n is no longer serving you!", FALSE, ch, 0, ch->master, TO_VICT);
-    if (affected_by_spell(ch, SPELL_CHARM))
-      affect_from_char(ch, SPELL_CHARM);
-  } else {
-    act("You stop following $N.", FALSE, ch, 0, ch->master, TO_CHAR);
-    act("$n stops following $N.", TRUE, ch, 0, ch->master, TO_NOTVICT);
-    act("$n stops following you.", TRUE, ch, 0, ch->master, TO_VICT);
-  }
-
+/* had to create this to get the "meat" out of stop_follower() for application
+   in other scenarios */
+void stop_follower_engine(struct char_data *ch) {
+  struct follow_type *k = NULL;
+  struct follow_type *j = NULL;
+  
   if (ch->master->followers->follower == ch) { /* Head of follower-list? */
     k = ch->master->followers;
     ch->master->followers = k->next;
@@ -2065,15 +2040,57 @@ void stop_follower(struct char_data *ch) {
     j = k->next;
     k->next = j->next;
     free(j);
+  }  
+}
+
+/** Call on a character (NPC or PC) to stop them from following someone and
+ * to break any charm affect.
+ * @todo Make the messages returned from the broken charm affect more
+ * understandable.
+ * @pre ch MUST be following someone, else core dump.
+ * @post The charm affect (AFF_CHARM) will be removed from the character and
+ * the character will stop following the "master" they were following.
+ * @param ch The character (NPC or PC) to stop from following.
+ * */
+void stop_follower(struct char_data *ch) {
+
+  /* Makes sure this function is not called when it shouldn't be called. */
+  if (ch->master == NULL) {
+    core_dump();
+    return;
   }
+
+  if (AFF_FLAGGED(ch, AFF_CHARM)) {
+    act("You realize that you do not need to serve $N anymore!",
+            FALSE, ch, 0, ch->master, TO_CHAR);
+    act("$n is no longer serving you!", FALSE, ch, 0, ch->master, TO_VICT);
+    
+    /* hope i got everything - zusuk */
+    if (affected_by_spell(ch, SPELL_CHARM))
+      affect_from_char(ch, SPELL_CHARM);
+    if (affected_by_spell(ch, SPELL_CHARM_ANIMAL))
+      affect_from_char(ch, SPELL_CHARM_ANIMAL);
+    if (affected_by_spell(ch, SPELL_DOMINATE_PERSON))
+      affect_from_char(ch, SPELL_DOMINATE_PERSON);
+    if (affected_by_spell(ch, SPELL_MASS_DOMINATION))
+      affect_from_char(ch, SPELL_MASS_DOMINATION);
+    
+  } else {
+    act("You stop following $N.", FALSE, ch, 0, ch->master, TO_CHAR);
+    act("$n stops following $N.", TRUE, ch, 0, ch->master, TO_NOTVICT);
+    act("$n stops following you.", TRUE, ch, 0, ch->master, TO_VICT);
+  }
+
+  stop_follower_engine(ch); /* moved this out to function above -zusuk */
 
   ch->master = NULL;
   REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_CHARM);
+  
+  /* for cleanup -zusuk */
   if (IS_NPC(ch) && (MOB_FLAGGED(ch, MOB_C_ANIMAL) || MOB_FLAGGED(ch, MOB_C_FAMILIAR) ||
           MOB_FLAGGED(ch, MOB_C_MOUNT) || MOB_FLAGGED(ch, MOB_ELEMENTAL) ||
           MOB_FLAGGED(ch, MOB_ANIMATED_DEAD)))
     attach_mud_event(new_mud_event(ePURGEMOB, ch, NULL), (12 * PASSES_PER_SEC));
-
 }
 
 /** Finds the number of follows that are following, and charmed by, the
