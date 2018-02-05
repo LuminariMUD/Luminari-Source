@@ -381,7 +381,7 @@ void perform_charge(struct char_data *ch, struct char_data *vict) {
   af[1].location = APPLY_HITROLL; /* bonus */
   af[1].modifier = 2;
 
-  af[2].location = APPLY_AC; /* penalty */
+  af[2].location = APPLY_AC_NEW; /* penalty */
   af[2].modifier = -2;
 
   for (i = 0; i < CHARGE_AFFECTS; i++)
