@@ -1219,11 +1219,13 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
   int chance_of_crit = 0;
 
   /* weird find, color codes doesn't play nice with the ' character -zusuk */
-  for (l = 0; *(argument + l); l++) {
-    if (*(argument + l) == '\'') {
-      send_to_char(ch, "The usage of the character: ' is not allowed in create "
-              "currently (it conflicts with color codes).\r\n");
-      return 1;      
+  if (*argument) {
+    for (l = 0; *(argument + l); l++) {
+      if (*(argument + l) == '\'') {
+        send_to_char(ch, "The usage of the character: ' is not allowed in create "
+                "currently (it conflicts with color codes).\r\n");
+        return 1;
+      }
     }
   }
   
@@ -1385,15 +1387,15 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
     /* feat, etc bonuses */
     if (HAS_FEAT(ch, FEAT_MASTERWORK_CRAFTING)) {
       send_to_char(ch, "Your masterwork-crafting skill increases the chance of creating a master-piece!\r\n");
-      chance_of_crit += 5;
+      chance_of_crit += 10;
     }
     if (HAS_FEAT(ch, FEAT_DWARVEN_CRAFTING)) {
       send_to_char(ch, "Your dwarven-crafting skill increases the chance of creating a master-piece!\r\n");
-      chance_of_crit += 5;
+      chance_of_crit += 10;
     }
     if (HAS_FEAT(ch, FEAT_DRACONIC_CRAFTING)) {
       send_to_char(ch, "Your draconic-crafting skill increases the chance of creating a master-piece!\r\n");
-      chance_of_crit += 5;
+      chance_of_crit += 10;
     }
   }
     
@@ -1450,6 +1452,18 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
       send_to_char(ch, "You will be enhancing it with this crystal:\r\n");
       do_stat_object(ch, crystal, ITEM_STAT_MODE_IDENTIFY_SPELL);    
     }
+  /* calculate chance for master work */
+  if (essence) {
+    send_to_char(ch, "Chance of critical (masterwork): %d.", GET_OBJ_LEVEL(essence) * 2);
+    /* feat, etc bonuses */
+    if (HAS_FEAT(ch, FEAT_MASTERWORK_CRAFTING))
+      send_to_char(ch, "Masterwork Crafting feat bonus: 10.  ");
+    if (HAS_FEAT(ch, FEAT_DWARVEN_CRAFTING))
+      send_to_char(ch, "Dwarven Crafting feat bonus: 10.  ");
+    if (HAS_FEAT(ch, FEAT_DRACONIC_CRAFTING))
+      send_to_char(ch, "Draconic Crafting feat bonus: 10.  ");
+    send_to_char(ch, "\r\n");
+  }    
     send_to_char(ch, "The item will be level: %d.\r\n", obj_level);
     send_to_char(ch, "It will make use of your %s skill, which has a value "
             "of %d.\r\n",
