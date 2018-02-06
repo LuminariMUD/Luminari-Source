@@ -1228,14 +1228,14 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
       }
     }
   }
-  
+
   /* string length limit  -zusuk */
   if (l > CREATE_STRING_LIMIT) {
     send_to_char(ch, "The length (%d) of the name you gave your object is over "
             "the limit (%d).\r\n", l, CREATE_STRING_LIMIT);
     return 1;
   }
-    
+
   /* sort through our kit and check if we got everything we need */
   for (obj = kit->contains; obj != NULL; obj = obj->next_content) {
     if (obj) {
@@ -1398,7 +1398,7 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
       chance_of_crit += 10;
     }
   }
-    
+
   /* which skill is used for this crafting session? */
   /* we determine crafting skill by wear-flag */
 
@@ -1437,7 +1437,7 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
   /* skill restriction */
   if (GET_SKILL(ch, skill) / 3 < obj_level) {
     send_to_char(ch, "Your skill in %s (%d) is too low to create that item, you need %d.\r\n",
-            spell_info[skill].name, GET_SKILL(ch, skill), obj_level*3);
+            spell_info[skill].name, GET_SKILL(ch, skill), obj_level * 3);
     return 1;
   }
 
@@ -1447,43 +1447,50 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
   if (CREATE_MODE_CHECK == mode) { /* checkcraft */
     send_to_char(ch, "This crafting session will create the following "
             "item:\r\n\r\n");
-    do_stat_object(ch, mold, ITEM_STAT_MODE_IDENTIFY_SPELL);    
+    do_stat_object(ch, mold, ITEM_STAT_MODE_IDENTIFY_SPELL);
     if (crystal) {
       send_to_char(ch, "You will be enhancing it with this crystal:\r\n");
-      do_stat_object(ch, crystal, ITEM_STAT_MODE_IDENTIFY_SPELL);    
+      do_stat_object(ch, crystal, ITEM_STAT_MODE_IDENTIFY_SPELL);
     }
-  /* calculate chance for master work */
-  if (essence) {
-    send_to_char(ch, "Chance of critical (masterwork): %d.", GET_OBJ_LEVEL(essence) * 2);
-    /* feat, etc bonuses */
-    if (HAS_FEAT(ch, FEAT_MASTERWORK_CRAFTING))
-      send_to_char(ch, "Masterwork Crafting feat bonus: 10.  ");
-    if (HAS_FEAT(ch, FEAT_DWARVEN_CRAFTING))
-      send_to_char(ch, "Dwarven Crafting feat bonus: 10.  ");
-    if (HAS_FEAT(ch, FEAT_DRACONIC_CRAFTING))
-      send_to_char(ch, "Draconic Crafting feat bonus: 10.  ");
-    send_to_char(ch, "\r\n");
-  }    
+    /* calculate chance for master work */
+    if (essence) {
+      send_to_char(ch, "Basic essence chance of critical (masterwork): %d.", GET_OBJ_LEVEL(essence) * 2);
+      /* feat, etc bonuses */
+      if (HAS_FEAT(ch, FEAT_MASTERWORK_CRAFTING))
+        send_to_char(ch, "Masterwork Crafting feat bonus: 10.  ");
+      if (HAS_FEAT(ch, FEAT_DWARVEN_CRAFTING))
+        send_to_char(ch, "Dwarven Crafting feat bonus: 10.  ");
+      if (HAS_FEAT(ch, FEAT_DRACONIC_CRAFTING))
+        send_to_char(ch, "Draconic Crafting feat bonus: 10.  ");
+      send_to_char(ch, "\r\n");
+      send_to_char(ch, "You have a %d percent chance of creating a masterwork item.\r\n",
+              chance_of_crit);
+    }
     send_to_char(ch, "The item will be level: %d.\r\n", obj_level);
     send_to_char(ch, "It will make use of your %s skill, which has a value "
             "of %d.\r\n",
             spell_info[skill].name, GET_SKILL(ch, skill));
     send_to_char(ch, "This crafting session will take 60 seconds.\r\n");
     send_to_char(ch, "You need %d gold on hand to make this item.\r\n", cost);
-    send_to_char(ch, "You have a %d percent chance of creating a masterwork item.\r\n",
-            chance_of_crit);
+
     return 1;
-  } else if (GET_GOLD(ch) < cost) {
+  } 
+  
+  /* not enough gold? */
+  else if (GET_GOLD(ch) < cost) {
     send_to_char(ch, "You need %d coins on hand for supplies to make"
             "this item.\r\n", cost);
     return 1;
-  } else { /* create */
+  }
+  
+  /* CREATE! */  
+  else {
     REMOVE_BIT_AR(GET_OBJ_EXTRA(mold), ITEM_MOLD);
     if (essence || crystal)
       SET_BIT_AR(GET_OBJ_EXTRA(mold), ITEM_MAGIC);
     GET_OBJ_LEVEL(mold) = obj_level;
     GET_OBJ_MATERIAL(mold) = GET_OBJ_MATERIAL(material);
-    
+
     /* transfer crystal over to item */
     if (crystal) {
       for (i = 0; i < MAX_OBJ_AFFECT; i++) {
@@ -1523,7 +1530,7 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
         send_to_char(ch, "You feel a sense of inspiration as you begin your craft!\r\n");
       }
     }
-    
+
     GET_OBJ_COST(mold) = 100 + GET_OBJ_LEVEL(mold) * 50 *
             MAX(1, GET_OBJ_LEVEL(mold) - 1) +
             GET_OBJ_COST(mold);
@@ -1558,11 +1565,11 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
     obj_to_char(kit, ch);
 
     obj_to_char(mold, ch);
-    
+
     /*save here just in case*/
     save_char(ch, 0);
-    Crash_crashsave(ch);    
-    
+    Crash_crashsave(ch);
+
     if (!IS_NPC(ch))
       increase_skill(ch, skill);
     NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
