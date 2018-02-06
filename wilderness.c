@@ -480,7 +480,7 @@ int get_sector_type(int elevation, int temperature, int moisture) {
 }
 
 /* Get the sector type, modified by regions and paths. */
-int get_modified_sector_type(int x, int y) {
+int get_modified_sector_type(zone_rnum zone, int x, int y) {
 
   struct region_list *regions = NULL;
   struct region_list *curr_region = NULL;
@@ -490,9 +490,9 @@ int get_modified_sector_type(int x, int y) {
   int elev, temp, mois;
 
   /* Get the enclosing regions. */
-  regions = get_enclosing_regions(GET_ROOM_ZONE(room), x, y);
+  regions = get_enclosing_regions(zone, x, y);
   /* Get the enclosing paths. */
-  paths = get_enclosing_paths(GET_ROOM_ZONE(room), x, y);
+  paths = get_enclosing_paths(zone, x, y);
 
   elev = get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y);
   temp = get_temperature(NOISE_MATERIAL_PLANE_ELEV, x, y);
