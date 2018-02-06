@@ -592,7 +592,12 @@ void quest_hist(struct char_data *ch, char argument[MAX_STRING_LENGTH]) {
   /* convert argument to a integer */
   num_arg = atoi(argument);
   num_arg--;
-
+  
+  if (num_arg >= GET_NUM_QUESTS(ch)) {
+    send_to_char(ch, "You haven't completed that many quests yet.  Try quest progress?\r\n");    
+    return;
+  }
+  
   /* this is a safeguard check */
   if (num_arg >= MAX_COMPLETED_QUESTS) {
     send_to_char(ch, "You have exceeded the maximum amount of completed quests.\r\n");
