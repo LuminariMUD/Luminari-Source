@@ -504,11 +504,10 @@ int get_modified_sector_type(zone_rnum zone, int x, int y) {
   for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next) {
     log("-> Processing REGION_TYPE : %d", region_table[curr_region->rnum].region_type);
     switch (region_table[curr_region->rnum].region_type) {
-      case REGION_GEOGRAPHIC:
-        world[room].name = strdup(region_table[curr_region->rnum].name);
+      case REGION_GEOGRAPHIC:       
         break;
       case REGION_SECTOR:
-        world[room].sector_type = region_table[curr_region->rnum].region_props;
+        sector_type = region_table[curr_region->rnum].region_props;
         log("  -> Changing (%d, %d) to sector : %d", x, y, region_table[curr_region->rnum].region_props);
         break;
       case REGION_SECTOR_TRANSFORM:
