@@ -1219,7 +1219,7 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
   int chance_of_crit = 0;
 
   /* weird find, color codes doesn't play nice with the ' character -zusuk */
-  if (*argument && mode == CREATE_MODE_CREATE) {
+  if (mode == CREATE_MODE_CREATE && *argument) {
     for (l = 0; *(argument + l); l++) {
       if (*(argument + l) == '\'') {
         send_to_char(ch, "The usage of the character: ' is not allowed in create "
