@@ -413,16 +413,13 @@ EVENTFUNC(event_countdown) {
 
             /* Generate the random point */
             get_random_region_location(*regvnum, &x, &y);                        
-            
-                 
-            
+                                         
             /* Check for a static room at this location. */
             if (find_room_by_coordinates(x, y) == NOWHERE) {              
-            /* Get the sector type (terrain) for this location, checking regions and paths.
-              //int sector = get_sector_type(zone, x, y);       
-              
               /* Make sure the sector types match. */
-              break;
+              if (world[eroom_rnum].sector_type == get_modified_sector_type(GET_ROOM_ZONE(eroom_rnum), x, y)) {
+                break;
+              }
             }
           } while (1);
 
