@@ -409,8 +409,9 @@ EVENTFUNC(event_countdown) {
 
           /* Find a location in the region where this room will be placed, 
              it can not be the same coords as a static room and noone should be at those coordinates. */
+          int ctr = 0;
           do { 
-
+            
             /* Generate the random point */
             get_random_region_location(*regvnum, &x, &y);                        
                                          
@@ -420,8 +421,8 @@ EVENTFUNC(event_countdown) {
               if (world[eroom_rnum].sector_type == get_modified_sector_type(GET_ROOM_ZONE(eroom_rnum), x, y)) {
                 break;
               }
-            }
-          } while (1);
+            }            
+          } while (++ctr < 128);
 
           /* Build the room. */
           //assign_wilderness_room(eroom_rnum, x, y);          
