@@ -412,13 +412,19 @@ EVENTFUNC(event_countdown) {
           do { 
 
             /* Generate the random point */
-            get_random_region_location(*regvnum, &x, &y);
-            // DEBUG: Set the room nearby, just for testing....
-            //x = world[eroom_rnum].coords[0] - 1;
-            //y = world[eroom_rnum].coords[1] - 1;
-          
+            get_random_region_location(*regvnum, &x, &y);                        
+            
+                 
+            
             /* Check for a static room at this location. */
-          } while (find_room_by_coordinates(x, y) != NOWHERE);
+            if (find_room_by_coordinates(x, y) == NOWHERE) {              
+            /* Get the sector type (terrain) for this location, checking regions and paths.
+              //int sector = get_sector_type(zone, x, y);       
+              
+              /* Make sure the sector types match. */
+              break;
+            }
+          } while (1);
 
           /* Build the room. */
           //assign_wilderness_room(eroom_rnum, x, y);          

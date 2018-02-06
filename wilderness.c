@@ -479,6 +479,68 @@ int get_sector_type(int elevation, int temperature, int moisture) {
 
 }
 
+/* Get the sector type, modified by regions and paths. */
+int get_modified_sector_type(int x, int y) {
+
+  struct region_list *regions = NULL;
+  struct region_list *curr_region = NULL;
+  struct path_list *paths = NULL;
+  struct path_list *curr_path = NULL;
+  int sector_type;
+  int elev, temp, mois;
+
+  /* Get the enclosing regions. */
+  regions = get_enclosing_regions(GET_ROOM_ZONE(room), x, y);
+  /* Get the enclosing paths. */
+  paths = get_enclosing_paths(GET_ROOM_ZONE(room), x, y);
+
+  elev = get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y);
+  temp = get_temperature(NOISE_MATERIAL_PLANE_ELEV, x, y);
+  mois = get_moisture(NOISE_MATERIAL_PLANE_ELEV, x, y);
+
+  sector_type = get_sector_type(elev, temp, mois);
+
+  /* Override default values with region-based values. */
+  for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next) {
+    log("-> Processing REGION_TYPE : %d", region_table[curr_region->rnum].region_type);
+    switch (region_table[curr_region->rnum].region_type) {
+      case REGION_GEOGRAPHIC:
+        world[room].name = strdup(region_table[curr_region->rnum].name);
+        break;
+      case REGION_SECTOR:
+        world[room].sector_type = region_table[curr_region->rnum].region_props;
+        log("  -> Changing (%d, %d) to sector : %d", x, y, region_table[curr_region->rnum].region_props);
+        break;
+      case REGION_SECTOR_TRANSFORM:
+        elev += region_table[curr_region->rnum].region_props;
+        log("  -> Adjusting elevation at (%d, %d) by : %d", x, y, region_table[curr_region->rnum].region_props);
+        sector_type = get_sector_type(elev, temp, mois);
+        break;
+      case REGION_ENCOUNTER:
+        break;
+      default:
+        break;
+    }
+  }
+
+  /* Override default values with path-based values. */
+  for (curr_path = paths; curr_path != NULL; curr_path = curr_path->next) {
+    if (curr_path->rnum != NOWHERE) { /*added by zusuk*/
+      log("PATH: %s found!", path_table[curr_path->rnum].name);
+      switch (path_table[curr_path->rnum].path_type) {
+        case PATH_ROAD:
+        case PATH_DIRT_ROAD:
+        case PATH_RIVER:
+            sector_type = path_table[curr_path->rnum].path_props;
+          break;
+        default:
+          break;
+      }
+    }
+  }
+  return sector_type;
+}
+
 room_rnum find_static_room_by_coordinates(int x, int y) {
   double loc[2], pos[2];
   void* set;
