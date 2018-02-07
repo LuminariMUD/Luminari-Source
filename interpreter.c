@@ -1340,16 +1340,20 @@ int special(struct char_data *ch, int cmd, char *arg) {
         return (1);
 
   /* special in mobile present? */
-  for (k = world[IN_ROOM(ch)].people; k; k = k->next_in_room)
-    if (!MOB_FLAGGED(k, MOB_NOTDEADYET))
-      if (GET_MOB_SPEC(k) && GET_MOB_SPEC(k) (ch, k, cmd, arg))
-        return (1);
+  if (IN_ROOM(ch) != NOWHERE) {
+    for (k = world[IN_ROOM(ch)].people; k; k = k->next_in_room)
+      if (!MOB_FLAGGED(k, MOB_NOTDEADYET))
+        if (GET_MOB_SPEC(k) && GET_MOB_SPEC(k) (ch, k, cmd, arg))
+          return (1);
+  }
 
   /* special in object present? */
-  for (i = world[IN_ROOM(ch)].contents; i; i = i->next_content)
-    if (GET_OBJ_SPEC(i) != NULL)
-      if (GET_OBJ_SPEC(i) (ch, i, cmd, arg))
-        return (1);
+  if (IN_ROOM(ch) != NOWHERE) {
+    for (i = world[IN_ROOM(ch)].contents; i; i = i->next_content)
+      if (GET_OBJ_SPEC(i) != NULL)
+        if (GET_OBJ_SPEC(i) (ch, i, cmd, arg))
+          return (1);
+  }
 
   return (0);
 }
