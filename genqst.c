@@ -4,8 +4,8 @@
  * Purpose:   To provide special quest-related code.                      *
  * Copyright: Kenneth Ray                                                 *
  * Original Version Details:                                              *
- * Copyright 1996 by Harvey Gilpin           *
- * Copyright 1997-2001 by George Greer (greerga@circlemud.org)     *
+ * Copyright 1996 by Harvey Gilpin                                        *
+ * Copyright 1997-2001 by George Greer (greerga@circlemud.org)            *
  ************************************************************************ */
 
 #include "conf.h"
@@ -21,9 +21,14 @@
 
 /* duplicate a quest in olc */
 int copy_quest(struct aq_data *to, struct aq_data *from, int free_old_strings) {
-  int i;
+
   if (free_old_strings)
     free_quest_strings(to);
+
+  *to = *from;
+
+  /*
+  int i;
   to->vnum = from->vnum;
   to->flags = from->flags;
   to->type = from->type;
@@ -39,6 +44,8 @@ int copy_quest(struct aq_data *to, struct aq_data *from, int free_old_strings) {
   to->exp_reward = from->exp_reward;
   to->obj_reward = from->obj_reward;
   to->func = from->func;
+   */
+
   return copy_quest_strings(to, from);
 }
 
