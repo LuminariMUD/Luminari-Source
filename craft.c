@@ -1215,7 +1215,7 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
           *material = NULL, *essence = NULL;
   int num_mats = 0, obj_level = 1, skill = ABILITY_CRAFT_WEAPONSMITHING,
           mats_needed = 12345, found = 0, i = 0, l = 0;
-  int fast_craft_bonus = GET_SKILL(ch, SKILL_FAST_CRAFTER) / 33;
+  int fast_craft_bonus = 0;
   int chance_of_crit = 0;
 
   /* weird find, color codes doesn't play nice with the ' character -zusuk */
@@ -1557,6 +1557,7 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
     GET_CRAFTING_OBJ(ch) = mold;
     obj_from_obj(mold); /* extracting this causes issues, solution? */
     GET_CRAFTING_TYPE(ch) = SCMD_CRAFT;
+    fast_craft_bonus = GET_SKILL(ch, SKILL_FAST_CRAFTER) / 33;
     GET_CRAFTING_TICKS(ch) = 11 - fast_craft_bonus;
     int kit_obj_vnum = GET_OBJ_VNUM(kit);
     obj_from_room(kit);
