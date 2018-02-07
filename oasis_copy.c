@@ -1,10 +1,10 @@
 /**************************************************************************
-*  File: oasis_copy.c                                      Part of LuminariMUD *
-*  Usage: Oasis OLC copying.                                              *
-*                                                                         *
-* By Levork. Copyright 1996 Harvey Gilpin. 1997-2001 George Greer.        *
-* 2002 Kip Potter [Mythran].                                              *
-**************************************************************************/
+ *  File: oasis_copy.c                                 Part of LuminariMUD *
+ *  Usage: Oasis OLC copying.                                              *
+ *                                                                         *
+ * By Levork. Copyright 1996 Harvey Gilpin. 1997-2001 George Greer.        *
+ * 2002 Kip Potter [Mythran].                                              *
+ **************************************************************************/
 
 #include "conf.h"
 #include "sysdep.h"
@@ -30,15 +30,13 @@
 /* Utility function for buildwalk */
 static room_vnum redit_find_new_vnum(zone_rnum zone);
 
-
 /***********************************************************
-* This function makes use of the high level OLC functions  *
-* to copy most types of mud objects. The type of data is   *
-* determined by the subcmd variable and the functions are  *
-* looked up in a table.                                    *
-***********************************************************/
-ACMD(do_oasis_copy)
-{
+ * This function makes use of the high level OLC functions  *
+ * to copy most types of mud objects. The type of data is   *
+ * determined by the subcmd variable and the functions are  *
+ * looked up in a table.                                    *
+ ***********************************************************/
+ACMD(do_oasis_copy) {
   int i, src_vnum, src_rnum, dst_vnum, dst_rnum;
   char buf1[MAX_INPUT_LENGTH];
   char buf2[MAX_INPUT_LENGTH];
@@ -46,23 +44,19 @@ ACMD(do_oasis_copy)
 
   struct {
     int con_type;
-    IDXTYPE (*binary_search)(IDXTYPE vnum);
+    IDXTYPE(*binary_search)(IDXTYPE vnum);
     void (*save_func)(struct descriptor_data *d);
     void (*setup_existing)(struct descriptor_data *d, int rnum);
     const char *command;
     const char *text;
   } oasis_copy_info[] = {
-    { CON_REDIT,  real_room,   redit_save_internally, redit_setup_existing, "rcopy", "room" },
-    { CON_OEDIT,  real_object, oedit_save_internally, oedit_setup_existing, "ocopy", "object" },
-    { CON_MEDIT,  real_mobile, medit_save_internally, medit_setup_existing, "mcopy", "mobile" },
-    { CON_SEDIT,  real_shop,   sedit_save_internally, sedit_setup_existing, "scopy", "shop" },
-    { CON_TRIGEDIT, real_trigger, trigedit_save,   trigedit_setup_existing, "tcopy", "trigger" },
-    { CON_QEDIT,
-            real_quest,
-            qedit_save_internally,
-            qedit_setup_existing,
-            "qcopy", "quest" },
-    { -1,         NULL,        NULL,                  NULL,                 "\n", "\n" }
+    { CON_REDIT, real_room, redit_save_internally, redit_setup_existing, "rcopy", "room"},
+    { CON_OEDIT, real_object, oedit_save_internally, oedit_setup_existing, "ocopy", "object"},
+    { CON_MEDIT, real_mobile, medit_save_internally, medit_setup_existing, "mcopy", "mobile"},
+    { CON_SEDIT, real_shop, sedit_save_internally, sedit_setup_existing, "scopy", "shop"},
+    { CON_TRIGEDIT, real_trigger, trigedit_save, trigedit_setup_existing, "tcopy", "trigger"},
+    { CON_QEDIT, real_quest, qedit_save_internally, qedit_setup_existing, "qcopy", "quest"},
+    { -1, NULL, NULL, NULL, "\n", "\n"}
   };
 
   /* Find the given connection type in the table (passed in subcmd). */
@@ -108,8 +102,8 @@ ACMD(do_oasis_copy)
   for (d = descriptor_list; d; d = d->next) {
     if (STATE(d) == subcmd) {
       if (d->olc && OLC_NUM(d) == dst_vnum) {
-	send_to_char(ch, "The target %s (#%d) is currently being edited by %s.\r\n",
-	oasis_copy_info[i].text, dst_vnum, GET_NAME(d->character));
+        send_to_char(ch, "The target %s (#%d) is currently being edited by %s.\r\n",
+                oasis_copy_info[i].text, dst_vnum, GET_NAME(d->character));
         return;
       }
     }
@@ -156,8 +150,7 @@ ACMD(do_oasis_copy)
 }
 
 /* Commands */
-ACMD(do_dig)
-{
+ACMD(do_dig) {
   char sdir[MAX_INPUT_LENGTH], sroom[MAX_INPUT_LENGTH], *new_room_name;
   room_vnum rvnum = NOWHERE;
   room_rnum rrnum = NOWHERE;
@@ -172,7 +165,7 @@ ACMD(do_dig)
   /* Can't dig if we don't know where to go. */
   if (!*sdir || !*sroom) {
     send_to_char(ch, "Format: dig <direction> <room> - to create an exit\r\n"
-                     "        dig <direction> -1     - to delete an exit\r\n");
+            "        dig <direction> -1     - to delete an exit\r\n");
     return;
   }
 
@@ -181,7 +174,7 @@ ACMD(do_dig)
   if (rawvnum == -1)
     rvnum = NOWHERE;
   else
-    rvnum = (room_vnum)rawvnum;
+    rvnum = (room_vnum) rawvnum;
   rrnum = real_room(rvnum);
 
   /* wilderness dyanmic room dummy checks */
@@ -210,8 +203,8 @@ ACMD(do_dig)
   /* Lets not allow digging to limbo. After all, it'd just get us more errors
    * on 'show errors.' */
   if (rvnum == 0) {
-   send_to_char(ch, "The target exists, but you can't dig to limbo!\r\n");
-   return;
+    send_to_char(ch, "The target exists, but you can't dig to limbo!\r\n");
+    return;
   }
   /* Target room == -1 removes the exit. */
   if (rvnum == NOTHING) {
@@ -228,13 +221,13 @@ ACMD(do_dig)
       return;
     }
     send_to_char(ch, "There is no exit to the %s.\r\n"
-                     "No exit removed.\r\n", dirs[dir]);
+            "No exit removed.\r\n", dirs[dir]);
     return;
   }
   /* Can't dig in a direction, if it's already a door. */
   if (W_EXIT(IN_ROOM(ch), dir)) {
-      send_to_char(ch, "There already is an exit to the %s.\r\n", dirs[dir]);
-      return;
+    send_to_char(ch, "There already is an exit to the %s.\r\n", dirs[dir]);
+    return;
   }
 
   /* Make sure that the builder has access to the zone he's linking to. */
@@ -264,9 +257,9 @@ ACMD(do_dig)
 
     /* Copy the room's name. */
     if (*new_room_name)
-     OLC_ROOM(d)->name = strdup(new_room_name);
+      OLC_ROOM(d)->name = strdup(new_room_name);
     else
-     OLC_ROOM(d)->name = strdup("An unfinished room");
+      OLC_ROOM(d)->name = strdup("An unfinished room");
 
     /* Copy the room's description.*/
     OLC_ROOM(d)->description = strdup("You are in an unfinished room.\r\n");
@@ -292,12 +285,12 @@ ACMD(do_dig)
   add_to_save_list(zone_table[world[IN_ROOM(ch)].zone].number, SL_WLD);
 
   send_to_char(ch, "You make an exit %s to room %d (%s).\r\n",
-                   dirs[dir], rvnum, world[rrnum].name);
+          dirs[dir], rvnum, world[rrnum].name);
 
   /* Check if we can dig from there to here. */
   if (W_EXIT(rrnum, rev_dir[dir]))
     send_to_char(ch, "You cannot dig from %d to here. The target room already has an exit to the %s.\r\n",
-                     rvnum, dirs[rev_dir[dir]]);
+          rvnum, dirs[rev_dir[dir]]);
   else {
     CREATE(W_EXIT(rrnum, rev_dir[dir]), struct room_direction_data, 1);
     W_EXIT(rrnum, rev_dir[dir])->general_description = NULL;
@@ -308,15 +301,15 @@ ACMD(do_dig)
 }
 
 /* BuildWalk - OasisOLC Extension by D. Tyler Barnes. */
+
 /* For buildwalk. Finds the next free vnum in the zone */
-static room_vnum redit_find_new_vnum(zone_rnum zone)
-{
+static room_vnum redit_find_new_vnum(zone_rnum zone) {
   room_vnum vnum;
   room_vnum top;
   room_rnum rnum;
 
   /* Handle wilderness limits differently. */
-  if(ZONE_FLAGGED(zone, ZONE_WILDERNESS)) {
+  if (ZONE_FLAGGED(zone, ZONE_WILDERNESS)) {
     vnum = WILD_ROOM_VNUM_START;
     top = WILD_ROOM_VNUM_END;
   } else {
@@ -329,36 +322,35 @@ static room_vnum redit_find_new_vnum(zone_rnum zone)
   if (rnum == NOWHERE)
     return vnum;
 
-  for(;;) {
+  for (;;) {
     if (vnum > zone_table[zone].top)
-      return(NOWHERE);
+      return (NOWHERE);
     if (rnum > top_of_world || world[rnum].number > vnum)
       break;
     rnum++;
     vnum++;
   }
-  return(vnum);
+  return (vnum);
 }
 
-int buildwalk(struct char_data *ch, int dir)
-{
+int buildwalk(struct char_data *ch, int dir) {
   int new_x = 0, new_y = 0;
   char buf[MAX_INPUT_LENGTH];
   room_vnum vnum;
   room_rnum rnum;
 
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_BUILDWALK) &&
-      GET_LEVEL(ch) >= LVL_BUILDER) {
+          GET_LEVEL(ch) >= LVL_BUILDER) {
 
     get_char_colors(ch);
 
     /* If this is a wilderness zone, set the coordinates */
-    if(ZONE_FLAGGED(world[IN_ROOM(ch)].zone, ZONE_WILDERNESS)) {
+    if (ZONE_FLAGGED(world[IN_ROOM(ch)].zone, ZONE_WILDERNESS)) {
 
       new_x = X_LOC(ch);
       new_y = Y_LOC(ch);
 
-      switch(dir) {
+      switch (dir) {
         case NORTH:
           new_y++;
           break;
@@ -405,7 +397,7 @@ int buildwalk(struct char_data *ch, int dir)
       OLC_ROOM(d)->sector_type = GET_BUILDWALK_SECTOR(ch);
 
       /* If this is a wilderness zone, set the coordinates */
-      if(ZONE_FLAGGED(OLC_ZNUM(d), ZONE_WILDERNESS)) {
+      if (ZONE_FLAGGED(OLC_ZNUM(d), ZONE_WILDERNESS)) {
         OLC_ROOM(d)->coords[0] = new_x;
         OLC_ROOM(d)->coords[1] = new_y;
       }
@@ -418,7 +410,7 @@ int buildwalk(struct char_data *ch, int dir)
       /* Link rooms */
       rnum = real_room(vnum);
 
-      if(ZONE_FLAGGED(GET_ROOM_ZONE(rnum), ZONE_WILDERNESS)) {
+      if (ZONE_FLAGGED(GET_ROOM_ZONE(rnum), ZONE_WILDERNESS)) {
         /* Wilderness exits default to the 'link' vnum. */
         CREATE(world[rnum].dir_option[NORTH], struct room_direction_data, 1);
         CREATE(world[rnum].dir_option[SOUTH], struct room_direction_data, 1);
@@ -449,5 +441,5 @@ int buildwalk(struct char_data *ch, int dir)
     }
   }
 
-  return(0);
+  return (0);
 }
