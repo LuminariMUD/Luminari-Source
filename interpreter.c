@@ -1813,6 +1813,15 @@ void nanny(struct descriptor_data *d, char *arg) {
         case 'C':
         case 'c':
           /* Create a new character */
+          /* New policy - Character naming. */
+          write_to_output(d, "All character names must meet a certain standard of quality in order to foster a more immersive and creative environment.  The staff retains the right to make the final judgment of whether a character name meets this standard.\r\n");
+          write_to_output(d, "Some guidelines:\r\n\r\n");
+          write_to_output(d, "1. Do not use names such as Joe, Bob, Larry, Carl and so forth.\r\n");
+          write_to_output(d, "2.'Exotic' proper names like 'Xavier' and such may be acceptable\r\n");
+          write_to_output(d, "2. Do not name yourself after a deity, fictional or otherwise.\r\n");
+          write_to_output(d, "3. Do not use the names of well-known fictional characters.\r\n");
+          write_to_output(d, "4. Names should fit with the fantasy theme of the mud.\r\n\r\n");
+          write_to_output(d, "If we find your name is not suitable for our environment, an immortal staff member will appear before you and offer you a rename.  Please be nice and civil, and we will return with the same. If you need help developing a name for your character there are many websites that generate random names.\r\n\r\n");
           write_to_output(d, "What will your new character be called? : ");
           STATE(d) = CON_GET_NAME;
           return;
