@@ -224,11 +224,17 @@ static void qedit_setup_new(struct descriptor_data *d) {
 
 /*-------------------------------------------------------------------*/
 
-/* edit a quest that already exists */
+/* edit a quest that already exists, modified this so it'll work with qcopy - zusuk */
 void qedit_setup_existing(struct descriptor_data *d, int r_num) {
+  struct aq_data *quest = NULL;
+  
   /*. Alloc some quest shaped space . */
-  CREATE(OLC_QUEST(d), struct aq_data, 1);
-  copy_quest(OLC_QUEST(d), aquest_table + r_num, FALSE);
+  CREATE(quest, struct aq_data, 1);
+  
+  copy_quest(quest, aquest_table + r_num, FALSE);
+  
+  OLC_QUEST(d) = quest;
+  
   qedit_disp_menu(d);
 }
 
