@@ -440,6 +440,11 @@ bool add_levelup_feat(struct descriptor_data *d, int feat) {
   struct char_data *ch = d->character;
   int feat_type = 0;
 
+  if (feat <= FEAT_UNDEFINED || feat >= NUM_FEATS) {
+    write_to_output(d, "Invalid feat.\r\n");
+    return FALSE;
+  }
+  
   if (has_feat_requirement_check(ch, feat) && !feat_list[feat].can_stack) {
     write_to_output(d, "You already have this feat.\r\n");
     return FALSE;
