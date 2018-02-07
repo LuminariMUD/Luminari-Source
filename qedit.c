@@ -191,6 +191,7 @@ static void qedit_setup_new(struct descriptor_data *d) {
 
   /* Allociate some quest shaped space                          */
   CREATE(quest, struct aq_data, 1);
+  
   /* Set default values                                         */
   quest->vnum = OLC_NUM(d); /* Quest vnum             */
   quest->qm = NOBODY; /* Questmaster rnum       */
@@ -216,8 +217,12 @@ static void qedit_setup_new(struct descriptor_data *d) {
   quest->done = strdup("You have completed the quest.\r\n");
   quest->quit = strdup("You have abandoned the quest.\r\n");
   quest->func = NULL; /* Secondary qm spec proc */
+  
   /* Set the descriptor OLC structure to point to this quest    */
   OLC_QUEST(d) = quest;
+  /* Has changed flag. (It hasn't so far, we just made it.) */
+  OLC_VAL(d) = FALSE;
+  
   /* Show the main quest edit menu                              */
   qedit_disp_menu(d);
 }
