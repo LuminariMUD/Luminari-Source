@@ -138,6 +138,7 @@ int add_draconic_claws_elemental_damage(struct char_data *ch, struct char_data *
 int calculate_cp(struct obj_data *obj);
 bool paralysis_immunity(struct char_data *ch);
 bool sleep_immunity(struct char_data *ch);
+int get_levelup_sorcerer_bloodline_type(struct char_data *ch);
 
 int get_daily_uses(struct char_data *ch, int featnum);
 int start_daily_use_cooldown(struct char_data *ch, int featnum);
@@ -866,6 +867,7 @@ do                                                              \
 
 #define POWER_ATTACK(ch) ((ch)->char_specials.mode_value)
 #define COMBAT_EXPERTISE(ch) ((ch)->char_specials.mode_value)
+#define GET_DC_BONUS(ch)  ((ch)->player_specials->dc_bonus)
 
 
 /** Unique ID of ch. */
@@ -1172,7 +1174,7 @@ spellnum == SPELL_EPIC_WARDING )
 
 #define CAN_SET_DOMAIN(ch) (CLASS_LEVEL(ch, CLASS_CLERIC) == 1)
 #define CAN_SET_SCHOOL(ch) (CLASS_LEVEL(ch, CLASS_WIZARD) == 1)
-#define CAN_SET_S_BLOODLINE(ch) (CLASS_LEVEL(ch, CLASS_SORCERER) >= 1 && GET_SORC_BLOODLINE(ch) == 0)
+#define CAN_SET_S_BLOODLINE(ch) (CLASS_LEVEL(ch, CLASS_SORCERER) >= 1 && GET_SORC_BLOODLINE(ch) == 0 && get_levelup_sorcerer_bloodline_type(ch) == 0)
 #define CAN_STUDY_CLASS_FEATS(ch) (CAN_STUDY_FEATS(ch) || (GET_LEVELUP_CLASS_FEATS(ch) + \
                                                            GET_LEVELUP_EPIC_CLASS_FEATS(ch) > 0 ? 1 : 0))
 
@@ -1675,6 +1677,9 @@ spellnum == SPELL_EPIC_WARDING )
 /* macros for dealing with sorcerer draconic bloodlines */
 #define DRCHRTLIST_NAME(drac_heritage)     (draconic_heritage_names[drac_heritage])
 #define DRCHRT_ENERGY_TYPE(drac_heritage)  (damtypes[draconic_heritage_energy_types[drac_heritage]])
+/* macros for dealing with sorcerer arcane bloodlines */
+#define NEW_ARCANA_SLOT(ch, i)              CHECK_PLAYER_SPECIAL(ch, (ch->player_specials->saved.new_arcana_circles[i]))
+#define APOTHEOSIS_SLOTS(ch)                ((ch)->player_specials->arcane_apotheosis_slots)
 
 /** Return the class abbreviation for ch. */
 #define CLASS_ABBR(ch) (CLSLIST_ABBRV((int)GET_CLASS(ch)))
@@ -1682,8 +1687,7 @@ spellnum == SPELL_EPIC_WARDING )
 		CLSLIST_ABBRV(class))
 
 // quick macro to see if someone is an immortal or not - Bakarus
-#define IS_IMMORTAL(ch) (GET_LEVEL(ch) >= LVL_IMMORT)
-#define IS_TRUSTED(ch) (!IS_NPC(ch) && IS_IMMORTAL(ch))
+#define IS_IMMORTAL(ch)         (GET_LEVEL(ch) > LVL_IMMORT)
 
 // these have changed since multi-class, you are classified as CLASS_x if you
 // got any levels in it - zusuk

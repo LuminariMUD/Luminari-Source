@@ -13,10 +13,11 @@
 #define _SPELLS_H_
 
 /* Metamagic Defines*/
-#define METAMAGIC_NONE     0
-#define METAMAGIC_QUICKEN  (1 << 0)
-#define METAMAGIC_MAXIMIZE (1 << 1)
-#define METAMAGIC_HEIGHTEN (1 << 2)
+#define METAMAGIC_NONE     	0
+#define METAMAGIC_QUICKEN  	(1 << 0)
+#define METAMAGIC_MAXIMIZE 	(1 << 1)
+#define METAMAGIC_HEIGHTEN 	(1 << 2)
+#define METAMAGIC_ARCANE_ADEPT  (1 << 3)
 
 /* renamed 0-values to help clarify context in code */
 #define NO_DICEROLL  0

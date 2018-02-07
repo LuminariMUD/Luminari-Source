@@ -845,7 +845,10 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
         send_to_char(ch, "It seems powerless.\r\n");
         act("Nothing seems to happen.", FALSE, ch, obj, 0, TO_ROOM);
       } else {
-        GET_OBJ_VAL(obj, 2)--;
+        if (APOTHEOSIS_SLOTS(ch) >= 3)
+          APOTHEOSIS_SLOTS(ch) -= 3;
+        else
+          GET_OBJ_VAL(obj, 2)--;
         USE_STANDARD_ACTION(ch);
 
         /* Level to cast spell at. */
@@ -898,9 +901,11 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
         send_to_char(ch, "It seems powerless.\r\n");
         act("Nothing seems to happen.", FALSE, ch, obj, 0, TO_ROOM);
         return;
-      }
-      GET_OBJ_VAL(obj, 2)--;
-
+      }  
+      if (APOTHEOSIS_SLOTS(ch) >= 3)
+          APOTHEOSIS_SLOTS(ch) -= 3;
+      else
+        GET_OBJ_VAL(obj, 2)--;
       USE_STANDARD_ACTION(ch);
 
       if (GET_OBJ_VAL(obj, 0))
@@ -1284,7 +1289,10 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     if ((class == CLASS_SORCERER || class == CLASS_BARD) &&
             IS_SET(metamagic, METAMAGIC_MAXIMIZE) &&
             !IS_SET(metamagic, METAMAGIC_QUICKEN)) {
-      casting_time = casting_time * 3 / 2;
+      // Sorcerers with Arcane Bloodline
+      if (IS_SET(metamagic, METAMAGIC_ARCANE_ADEPT) || HAS_FEAT(ch, FEAT_ARCANE_APOTHEOSIS)) ;
+      else 
+        casting_time = casting_time * 3 / 2;
     }
   }
 
@@ -1410,6 +1418,19 @@ ACMD(do_gen_cast) {
                 do_cast_types[subcmd][4]);
         return;
       }
+    } else if (is_abbrev(metamagic_arg, "metamagicadept")) {
+      if HAS_FEAT(ch, FEAT_METAMAGIC_ADEPT) {
+        SET_BIT(metamagic, METAMAGIC_ARCANE_ADEPT);
+      } else {
+        send_to_char(ch, "You do not know the secrets of metamagic adepts!\r\n");
+        return;
+      }
+      if (!IS_NPC(ch) && (daily_uses_remaining(ch, FEAT_METAMAGIC_ADEPT)) == 0) {
+        send_to_char(ch, "You must recover before you can use your metamagic adept ability again.\r\n");
+        return;
+      }
+      if (!IS_NPC(ch))
+        start_daily_use_cooldown(ch, FEAT_METAMAGIC_ADEPT);
     }
   }
 

@@ -1654,13 +1654,17 @@
 #define FEAT_DRACONIC_BLOODLINE_ARCANA         597
 #define FEAT_SORCERER_BLOODLINE_ARCANE         598
 #define FEAT_ARCANE_BLOODLINE_ARCANA           599
+#define FEAT_METAMAGIC_ADEPT                   600
+#define FEAT_NEW_ARCANA                        601
+#define FEAT_SCHOOL_POWER                      602
+#define FEAT_ARCANE_APOTHEOSIS                 603
 
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT                      598
+#define FEAT_LAST_FEAT                      604
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS                           599
+#define NUM_FEATS                           605
 /** absolute cap **/
 #define MAX_FEATS                           750
 /*****/
@@ -3202,6 +3206,7 @@ struct player_special_data_saved {
     char *account_name; // The account stored with this character.
 
     int sorcerer_bloodline_subtype; //if the sorcerer bloodline has a subtype (ie. draconic)
+    int new_arcana_circles[4];
 };
 
 /** Specials needed only by PCs, not NPCs.  Space for this structure is
@@ -3226,6 +3231,14 @@ struct player_special_data {
 
     /* levelup data structure - Saved data for study process. */
     struct level_data* levelup;
+
+    byte dc_bonus; /* used to apply dc bonuses, usually to spells.  
+                    Must be reset to zero manually after applying the bonus */
+    byte arcane_apotheosis_slots; /* used with the apotheosis command to store spell slots
+                                   to be used in place of wand or staff charges.  These stored
+                                  slots decay at a rate of 1 per 6-second round and cannot have
+                                  more than 9 stored at any given time.  They are not saved over
+                                  reboots/copyovers/character quitting. */
 };
 
 /** Special data used by NPCs, not PCs */

@@ -24,8 +24,6 @@
 //#define PSI_CLASS_ENABLED
 
 /* GLOBALS */
-ush_int indexToPspTable[MAX_SKILLS];
-
 
 /* UTILITY FUNCTIONS */
 
@@ -35,19 +33,6 @@ ush_int indexToPspTable[MAX_SKILLS];
 
 /* EOF */
 
-
-
-/* Initialize the PSP Cost Table during boot. It basicaly allows to move the
- * skills around without need to update some other lookup tables..
- */
-void bootInitializePSPTable(void) {
-  int i = 0;
-
-  bzero(indexToPspTable, sizeof (indexToPspTable));
-
-  while (pspTable[i].skill != SPELL_RESERVED_DBC)
-    indexToPspTable[pspTable[i].skill] = i++;
-}
 
 #ifdef PSI_CLASS_ENABLED
 
@@ -67,8 +52,8 @@ int canUsePsionicSkill(struct char_data *ch, int skill) {
     core_dump();
   }
 
-  if (IS_TRUSTED(ch)) /*staff*/
-    return 1;
+  //  if (IS_TRUSTED(ch))
+  //    return 1;
 
   if (!IS_NPC(ch)) {
     if (!(proficiency = GET_SKILL(ch, skill)))
@@ -168,8 +153,6 @@ int canUsePsionicSkill(struct char_data *ch, int skill) {
   return MAX(0, pspCost);
 }
 
-
-
 void incSkillSubPsp(struct char_data *ch, int skill, int amount, int skillGain) {
   struct obj_data * crystal;
 
@@ -237,6 +220,17 @@ void psiSkillUsageLogging(struct char_data *ch, P_char vict, char *arg, int skil
    */
 }
 
+/* Initialize the PSP Cost Table during boot. It basicaly allows to move the
+ * skills around without need to update some other lookup tables..
+ */
+void bootInitializePSPTable(void) {
+  int i = 0;
+
+  bzero(indexToPspTable, sizeof (indexToPspTable));
+
+  while (pspTable[i].skill != SPELL_RESERVED_DBC)
+    indexToPspTable[pspTable[i].skill] = i++;
+}
 
 /* this function replaces all psi damage calculations (formerly handled
    within each skill function) by assigning an offensive level and determining

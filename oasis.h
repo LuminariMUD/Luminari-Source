@@ -593,7 +593,7 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn, *red;
 #define STUDY_SET_S_BLOODLINE  34
 #define SET_BLOODLINE_DRACONIC 35
 #define STUDY_CONFIRM_BLOODLINE 36
-
+#define SET_BLOODLINE_ARCANE   37
 
 int save_config(IDXTYPE nowhere);
 
@@ -676,8 +676,6 @@ ACMD(do_tedit);
 
 /* public functions from qedit.c */
 ACMD(do_oasis_qedit);
-void qedit_save_internally(struct descriptor_data *d);
-void qedit_setup_existing(struct descriptor_data *d, int rnum);
 
 /* NewCraft */
 /* public functions from crafts.c */

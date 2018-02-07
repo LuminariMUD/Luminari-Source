@@ -2293,7 +2293,38 @@ void process_conditional_class_level_feats(struct char_data *ch, int class) {
           send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_BLINDSENSE].name);
         }
       } else if (HAS_FEAT(ch, FEAT_SORCERER_BLOODLINE_ARCANE)) {
-
+        if (!HAS_REAL_FEAT(ch, FEAT_ARCANE_BLOODLINE_ARCANA)) {
+          SET_FEAT(ch, FEAT_ARCANE_BLOODLINE_ARCANA, 1);
+          send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_ARCANE_BLOODLINE_ARCANA].name);
+        }
+        if (!HAS_REAL_FEAT(ch, FEAT_IMPROVED_FAMILIAR)) {
+          SET_FEAT(ch, FEAT_IMPROVED_FAMILIAR, 1);
+          send_to_char(ch, "You have gained the %s feat as a benefit of your arcane bloodline!\r\n", feat_list[FEAT_IMPROVED_FAMILIAR].name);
+        }
+        if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 3 && !HAS_REAL_FEAT(ch, FEAT_METAMAGIC_ADEPT)) {
+          SET_FEAT(ch, FEAT_METAMAGIC_ADEPT, 1);
+          send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_METAMAGIC_ADEPT].name);
+        }
+        if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 9 && !HAS_REAL_FEAT(ch, FEAT_NEW_ARCANA)) {
+          SET_FEAT(ch, FEAT_NEW_ARCANA, 1);
+          send_to_char(ch, "You have gained the %s feat!  You can now learn a bonus spell for each spell circle 1-3.\r\n", feat_list[FEAT_NEW_ARCANA].name);
+        }
+        if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 13 && HAS_REAL_FEAT(ch, FEAT_NEW_ARCANA) == 1) {
+          SET_FEAT(ch, FEAT_NEW_ARCANA, 2);
+          send_to_char(ch, "You have improved the %s feat!  You can now learn a bonus spell for each spell circle 4-6.\r\n", feat_list[FEAT_NEW_ARCANA].name);
+        }
+        if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 17 && HAS_REAL_FEAT(ch, FEAT_NEW_ARCANA) == 2) {
+          SET_FEAT(ch, FEAT_NEW_ARCANA, 3);
+          send_to_char(ch, "You have improved the %s feat!  You can now learn a bonus spell for each spell circle 7-9.\r\n", feat_list[FEAT_NEW_ARCANA].name);
+        }
+        if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 15 && !HAS_REAL_FEAT(ch, FEAT_SCHOOL_POWER)) {
+          SET_FEAT(ch, FEAT_SCHOOL_POWER, 1);
+          send_to_char(ch, "You have gained the %s (%s) feat!\r\n", feat_list[FEAT_SCHOOL_POWER].name, school_names[GET_BLOODLINE_SUBTYPE(ch)]);
+        }
+        if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 20 && !HAS_REAL_FEAT(ch, FEAT_ARCANE_APOTHEOSIS)) {
+          SET_FEAT(ch, FEAT_ARCANE_APOTHEOSIS, 1);
+          send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_ARCANE_APOTHEOSIS].name);
+        }
       }
       break;
   }

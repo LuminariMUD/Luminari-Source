@@ -426,7 +426,7 @@ int load_char(const char *name, struct char_data *ch) {
     GET_DISGUISE_DEX(ch) = 0;
     GET_DISGUISE_AC(ch) = 0;
     GET_BLOODLINE_SUBTYPE(ch) = PFDEF_SORC_BLOODLINE_SUBTYPE;
-
+    NEW_ARCANA_SLOT(ch, 0) = NEW_ARCANA_SLOT(ch, 1) = NEW_ARCANA_SLOT(ch, 2) = NEW_ARCANA_SLOT(ch, 3) = 0;
     for (i = 0; i < AF_ARRAY_MAX; i++)
       AFF_FLAGS(ch)[i] = PFDEF_AFFFLAGS;
     for (i = 0; i < PM_ARRAY_MAX; i++)
@@ -587,6 +587,9 @@ int load_char(const char *name, struct char_data *ch) {
 
         case 'N':
           if (!strcmp(tag, "Name")) GET_PC_NAME(ch) = strdup(line);
+          else if (!strcmp(tag, "NAr1")) NEW_ARCANA_SLOT(ch, 1) = atoi(line);
+          else if (!strcmp(tag, "NAr2")) NEW_ARCANA_SLOT(ch, 2) = atoi(line);
+          else if (!strcmp(tag, "NAr3")) NEW_ARCANA_SLOT(ch, 3) = atoi(line);
           break;
 
         case 'O':
@@ -889,7 +892,9 @@ void save_char(struct char_data * ch, int mode) {
   if (GET_DISGUISE_DEX(ch)) fprintf(fl, "DDex: %d\n", GET_DISGUISE_DEX(ch));
   if (GET_DISGUISE_CON(ch)) fprintf(fl, "DCon: %d\n", GET_DISGUISE_CON(ch));
   if (GET_DISGUISE_AC(ch)) fprintf(fl, "DAC: %d\n", GET_DISGUISE_AC(ch));
-
+  if (NEW_ARCANA_SLOT(ch, 1)) fprintf(fl, "NAr1: %d\n", NEW_ARCANA_SLOT(ch, 1));
+  if (NEW_ARCANA_SLOT(ch, 2)) fprintf(fl, "NAr2: %d\n", NEW_ARCANA_SLOT(ch, 2));
+  if (NEW_ARCANA_SLOT(ch, 3)) fprintf(fl, "NAr3: %d\n", NEW_ARCANA_SLOT(ch, 3));
   fprintf(fl, "Id  : %ld\n", GET_IDNUM(ch));
   fprintf(fl, "Brth: %ld\n", (long) ch->player.time.birth);
   fprintf(fl, "Plyd: %d\n", ch->player.time.played);
@@ -1311,6 +1316,8 @@ void save_char(struct char_data * ch, int mode) {
     if ((pMudEvent = char_has_mud_event(ch, eDRACBREATH)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eDRACCLAWS)))
+      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+    if ((pMudEvent = char_has_mud_event(ch, eARCANEADEPT)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     fprintf(fl, "-1 -1\n");
   }

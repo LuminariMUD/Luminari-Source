@@ -91,7 +91,8 @@ void finalize_study(struct descriptor_data *d);
 /*--- sorcerer bloodlines ---*/
 #define SB_NONE			0
 #define SB_DRACONIC		1
-#define NUM_BLOODLINES		1
+#define SB_ARCANE		2
+#define NUM_BLOODLINES	2
 
 /* make a list of vnums corresponding in order, first animals  */
 int animal_vnums[] = {
@@ -386,12 +387,15 @@ void finalize_study(struct descriptor_data *d) {
           dr->next = GET_DR(ch);
           GET_DR(ch) = dr;
           break;
+	case FEAT_SORCERER_BLOODLINE_DRACONIC:
+          SET_FEAT(ch, FEAT_DRACONIC_HERITAGE_CLAWS, 1);
+          SET_FEAT(ch, FEAT_DRACONIC_BLOODLINE_ARCANA, 1);
+          break;
+        case FEAT_SORCERER_BLOODLINE_ARCANE:
+          SET_FEAT(ch, FEAT_IMPROVED_FAMILIAR, HAS_REAL_FEAT(ch, FEAT_IMPROVED_FAMILIAR) + 1);
+          SET_FEAT(ch, FEAT_ARCANE_BLOODLINE_ARCANA, 1);
+          break;
       }
-    }
-    // For level 1 sorcs we need to ensure we add their associated level 1 bloodline feats as well
-    if (i == FEAT_SORCERER_BLOODLINE_DRACONIC && CLASS_LEVEL(ch, CLASS_SORCERER) == 1) {
-      SET_FEAT(ch, FEAT_DRACONIC_HERITAGE_CLAWS, 1);
-      SET_FEAT(ch, FEAT_DRACONIC_BLOODLINE_ARCANA, 1);
     }
   } /* for loop running through feats */
 
@@ -968,6 +972,20 @@ static void set_bloodline_draconic(struct descriptor_data *d) {
   write_to_output(d, "\r\n%sSelect the dragon type for your draconic heritage : ", nrm);
 }
 
+static void set_bloodline_arcane(struct descriptor_data *d)
+{
+  get_char_colors(d->character);
+  clear_screen(d);
+  write_to_output(d, "\r\n");
+  write_to_output(d, "Your arcane heritage mainly determines the spell school associated with\r\n");
+  write_to_output(d, "with the 'school power' bloodline feat.\r\n");
+  write_to_output(d, "\r\n");
+  int i = 1;
+  for (i; i < NUM_SCHOOLS; i++)
+    write_to_output(d, "%d) %s\r\n", i, spell_schools[i]);
+  write_to_output(d, "\r\n");
+  write_to_output(d, "\r\n%sSelect the arcane school type for your arcane bloodline : ", nrm);
+}
 static void set_preferred_caster(struct descriptor_data *d) {
   get_char_colors(d->character);
   clear_screen(d);
@@ -1001,13 +1019,16 @@ static void set_sorcerer_bloodline(struct descriptor_data *d) {
   write_to_output(d,
           "\r\n-- %sSet Sorcerer Bloodline%s\r\n"
           "\r\n"
-          "%s 0%s) Draconic\r\n"
+//          "%s 0%s) Arcane\r\n"
+          "%s 1%s) Draconic\r\n"
           "\r\n"
           "%s Q%s) Quit\r\n"
           "\r\n"
           "Enter Choice : ",
 
           mgn, nrm,
+          /* empty line */
+//          grn, nrm,
           /* empty line */
           grn, nrm,
           /* empty line */
@@ -2126,6 +2147,12 @@ void study_parse(struct descriptor_data *d, char *arg) {
           number = atoi(arg);
           switch (number) {
             case 0:
+		write_to_output(d, "That is not an eligible option at this time.\r\n");
+// commented out until all arcane bloodline features are implemented -- Gicker, Feb 7, 2018
+//              set_bloodline_arcane(d);
+//              OLC_MODE(d) = SET_BLOODLINE_ARCANE;
+              return;
+            case 1:
               set_bloodline_draconic(d);
               OLC_MODE(d) = SET_BLOODLINE_DRACONIC;
               return;
@@ -2168,6 +2195,24 @@ void study_parse(struct descriptor_data *d, char *arg) {
       OLC_MODE(d) = STUDY_CONFIRM_BLOODLINE;
       break;
 
+    case SET_BLOODLINE_ARCANE:
+      number = atoi(arg);
+      if ( number <= 0 || number >= NUM_SCHOOLS ) {
+        write_to_output(d, "Invalid value!  Try again.\r\n");
+        OLC_MODE(d) = SET_BLOODLINE_ARCANE;
+        return;        
+      }
+      
+      /* Store the feat number in the work area in the data structure. */
+      LEVELUP(d->character)->tempFeat = FEAT_SORCERER_BLOODLINE_ARCANE;
+      LEVELUP(ch)->sorcerer_bloodline_subtype = number;
+       /* Display the description of the bloodline, and give the player an option. */
+      write_to_output(d, "%s%s%s: %s\r\nArcane Heritage: %s school of arcane magic\r\n"
+                         "Choose this bloodline and heritage? (y/n) : ",
+                         nrm, feat_list[LEVELUP(ch)->tempFeat].name, nrm, feat_list[LEVELUP(ch)->tempFeat].description,
+                         spell_schools[LEVELUP(ch)->sorcerer_bloodline_subtype]);
+      OLC_MODE(d) = STUDY_CONFIRM_BLOODLINE;
+      break;
       case STUDY_CONFIRM_BLOODLINE:
       switch(*arg) {
         case 'n':
@@ -2178,9 +2223,15 @@ void study_parse(struct descriptor_data *d, char *arg) {
         case 'Y':
           if (add_levelup_feat(d, LEVELUP(ch)->tempFeat)) {
             write_to_output(d, "Bloodline %s chosen!\r\n", feat_list[LEVELUP(ch)->tempFeat].name);
-            if (LEVELUP(ch)->sorcerer_bloodline_subtype > 0)
-            write_to_output(d, "You've selected the %s draconic heritage.\r\n", 
-                            DRCHRTLIST_NAME(LEVELUP(ch)->sorcerer_bloodline_subtype));
+            if (LEVELUP(ch)->sorcerer_bloodline_subtype > 0) {
+              if (LEVELUP(ch)->tempFeat == FEAT_SORCERER_BLOODLINE_DRACONIC) {
+                write_to_output(d, "You've selected the %s draconic heritage.\r\n", 
+                                DRCHRTLIST_NAME(LEVELUP(ch)->sorcerer_bloodline_subtype));
+              } else if (LEVELUP(ch)->tempFeat == FEAT_SORCERER_BLOODLINE_ARCANE) {
+                write_to_output(d, "You've selected the %s arcane heritage.\r\n", 
+                                spell_schools[LEVELUP(ch)->sorcerer_bloodline_subtype]);
+              }
+            }
           }
           display_main_menu(d);
           break;
