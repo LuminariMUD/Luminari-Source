@@ -24,6 +24,7 @@
 #include "constants.h"
 #include "dg_scripts.h"
 #include "wilderness.h"
+#include "quest.h"
 
 /* Local, filescope function prototypes */
 /* Utility function for buildwalk */
