@@ -420,6 +420,10 @@ ACMD(do_study) {
     send_to_char(ch, "Finish your battle first!\r\n");
     return;    
   }
+  if (IS_NPC(ch) || !ch->desc) { /* thanks fizban */
+    send_to_char(ch, "Only PC's with a descriptor can study.\r\n");
+    return;
+  }
   
   struct descriptor_data *d = ch->desc;
 
