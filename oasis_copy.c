@@ -56,6 +56,7 @@ ACMD(do_oasis_copy)
     { CON_MEDIT,  real_mobile, medit_save_internally, medit_setup_existing, "mcopy", "mobile" },
     { CON_SEDIT,  real_shop,   sedit_save_internally, sedit_setup_existing, "scopy", "shop" },
     { CON_TRIGEDIT, real_trigger, trigedit_save,   trigedit_setup_existing, "tcopy", "trigger" },
+    { CON_QEDIT, real_quest, qedit_save_internally,   qedit_setup_existing, "qcopy", "quest" },
     { -1,         NULL,        NULL,                  NULL,                 "\n", "\n" }
   };
 

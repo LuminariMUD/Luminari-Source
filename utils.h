@@ -1682,7 +1682,8 @@ spellnum == SPELL_EPIC_WARDING )
 		CLSLIST_ABBRV(class))
 
 // quick macro to see if someone is an immortal or not - Bakarus
-#define IS_IMMORTAL(ch)         (GET_LEVEL(ch) > LVL_IMMORT)
+#define IS_IMMORTAL(ch) (GET_LEVEL(ch) >= LVL_IMMORT)
+#define IS_TRUSTED(ch) (!IS_NPC(ch) && IS_IMMORTAL(ch))
 
 // these have changed since multi-class, you are classified as CLASS_x if you
 // got any levels in it - zusuk
