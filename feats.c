@@ -1905,7 +1905,42 @@ void assign_feats(void) {
           "draconic bloodline, sorcerer level 20",
           "Provides immunity to sleep, paralysis, and elemental damage that matches "
           "your draconic heritage.  Also provides blindsense with a range of 60 feet.");
-
+  feato(FEAT_SORCERER_BLOODLINE_ARCANE, "arcane bloodline", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "level one sorcerer",
+    "The arcane bloodline is developed through a long heritage of masterful "
+    "arcane spellcasters whose gift has passed on to manifest naturally within "
+    "the sorcerer.  The arcane bloodline offers additional spell knowledge, "
+    "increased metamagic prowess, enhanced ability in a school of choice and an innate "
+    "ability to use consumable magic such as wands and staves.");
+  feato(FEAT_ARCANE_BLOODLINE_ARCANA, "arcane arcana", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "arcane bloodline selected",
+    "The arcane bloodline arcana benefit enhances any spell being cast using "
+    "any metamagic feat to be performed with an additional +1 to the spell "
+    "dc to resist or reduce the spell effect.");
+  feato(FEAT_METAMAGIC_ADEPT, "metamagic adept", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "arcane bloodline, sorcerer level 3",
+    "Allows the sorcerer to negate extra casting times when casting a spell "
+    "in combination with one or more metamagic effects, such as maximize spell. "
+    "This ability is activated by prepending the spell name with 'arcaneadept'. "
+    "\r\nExample: cast maximize arcaneadept 'fireball'");
+  feato(FEAT_NEW_ARCANA, "new arcana", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "arcane bloodline, sorcerer level 9",
+    "This feat allows the sorcerer to receive a bonus spell slot starting at "
+    "spell circles 1-3, then 1-6 at feat rank 2 and finally 1-9 at feat rank "
+    "3.");
+  feato(FEAT_SCHOOL_POWER, "school power", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "arcane bloodline, sorcerer level 15",
+    "This feat allows the sorcerer to increase the DCs by +2 for all spells cast "
+    "from their associated arcane bloodline school.  This stacks with bonuses from "
+    "the spell focus feat.");
+  feato(FEAT_ARCANE_APOTHEOSIS, "arcane apotheosis", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "arcane bloodline, sorcerer level 20",
+    "This feat automatically negates any extra casting time for spells that "
+    "are cast using metamagic effects such as maximize spell.  In addition, the "
+    "sorcerer can expend spell slots instead of item charges, when using items that "
+    "expend charges, such as wands and staves.  For every three levels of spell "
+    "slots used, one less charge will be expended.  See the apotheosis command and HELP "
+    "APOTHEOSIS for more information.");
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_SPELL_PENETRATION, "spell penetration", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
           "+2 bonus on caster level checks to defeat spell resistance",
@@ -3158,6 +3193,7 @@ void assign_feats(void) {
   dailyfeat(FEAT_BATTLE_RAGE, eBATTLE_RAGE);
   dailyfeat(FEAT_DRACONIC_HERITAGE_BREATHWEAPON, eDRACBREATH);
   dailyfeat(FEAT_DRACONIC_HERITAGE_CLAWS, eDRACCLAWS);
+  dailyfeat(FEAT_METAMAGIC_ADEPT, eARCANEADEPT);
 
   /** END **/
 }
@@ -4277,6 +4313,16 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         }
         strcat(buf2, buf);
         none_shown = FALSE;
+      } else if (i == FEAT_NEW_ARCANA) {
+        if (mode == 1) {
+          sprintf(buf3, "%s (%d extra spells)", feat_list[i].name, HAS_REAL_FEAT(ch, i));
+          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+        } else {
+          sprintf(buf3, "%s (%d extra spells)", feat_list[i].name, HAS_REAL_FEAT(ch, i));
+          sprintf(buf, "%-40s ", buf3);
+        }
+        strcat(buf2, buf);
+        none_shown = FALSE;  
       } else if (i == FEAT_DRACONIC_BLOODLINE_ARCANA) {
         if (mode == 1) {
           sprintf(buf3, "%s (%s damage)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)));
@@ -5082,13 +5128,24 @@ int get_draconic_heritage_subfeat(int feat) {
 int get_sorcerer_bloodline_type(struct char_data *ch) {
   int bl = 0;
   if (HAS_FEAT(ch, (bl = FEAT_SORCERER_BLOODLINE_DRACONIC))) return bl;
+  else if (HAS_FEAT(ch, (bl = FEAT_SORCERER_BLOODLINE_ARCANE))) return bl;
   else bl = 0;
   return bl;
+}
+
+int get_levelup_sorcerer_bloodline_type(struct char_data *ch)
+{
+  int bl = FEAT_SORCERER_BLOODLINE_DRACONIC;
+  if (LEVELUP(ch)->feats[bl] > 0) return bl;
+  bl = FEAT_SORCERER_BLOODLINE_ARCANE;
+  if (LEVELUP(ch)->feats[bl] > 0) return bl;
+  return 0;
 }
 
 bool isSorcBloodlineFeat(int featnum) {
   switch (featnum) {
     case FEAT_SORCERER_BLOODLINE_DRACONIC:
+    case FEAT_SORCERER_BLOODLINE_ARCANE:
       return TRUE;
   }
   return FALSE;

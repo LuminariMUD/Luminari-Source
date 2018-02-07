@@ -142,6 +142,7 @@ struct mud_event_list mud_event_index[] = {
   { "Craft", event_craft, EVENT_CHAR}, /* eCRAFT */ /* NewCraft */
   { "Copyover Event!", event_copyover, EVENT_CHAR}, /* eCOPYOVER */ /* copyover delay */
   { "Autocollect delay", event_countdown, EVENT_CHAR}, //eCOLLECT_DELAY
+  { "Metamagic Adept Usage Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eARCANEADEPT
 };
 
 /* init_events() is the ideal function for starting global events. This
@@ -629,6 +630,10 @@ EVENTFUNC(event_daily_use_cooldown) {
     case eDRACBREATH:
       featnum = FEAT_DRACONIC_HERITAGE_BREATHWEAPON;
       send_to_char(ch, "One of your draconic heritage breath weapon uses has recovered.\r\n");
+      break;
+    case eARCANEADEPT:
+      featnum = FEAT_METAMAGIC_ADEPT;
+      send_to_char(ch, "One of your metamagic (arcane) adept uses has recovered.\r\n");
       break;
     default:
       break;

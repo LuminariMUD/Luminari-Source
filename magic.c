@@ -220,6 +220,11 @@ int mag_savingthrow(struct char_data *ch, struct char_data *vict,
     //send_to_char(ch, "Bingo 3!\r\n");
     challenge += 2;
   }
+  if (HAS_REAL_FEAT(ch, FEAT_SCHOOL_POWER) && GET_BLOODLINE_SUBTYPE(ch) == school) {
+    challenge += 2;
+  }
+
+  challenge += GET_DC_BONUS(ch); GET_DC_BONUS(ch) = 0;  // Always set to zero after applying dc_bonus
 
   if (AFF_FLAGGED(vict, AFF_PROTECT_GOOD) && IS_GOOD(ch))
     savethrow += 2;
@@ -1306,6 +1311,9 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   } else {
     dam = dice(num_dice, size_dice) + bonus;
   }
+
+  if (HAS_FEAT(ch, FEAT_ARCANE_BLOODLINE_ARCANA) && metamagic > 0)
+    GET_DC_BONUS(ch) += 1;
 
   if (HAS_FEAT(ch, FEAT_ENHANCED_SPELL_DAMAGE))
     dam += num_dice;

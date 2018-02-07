@@ -130,6 +130,7 @@ typedef enum {
   eCRAFT, /* NewCraft */
   eCOPYOVER, /* copyover event */
   eCOLLECT_DELAY, /* autocollect event */
+  eARCANEADEPT, // Sorcerer metamagic adept feat uses
 } event_id;
 
 /* probably a smart place to mention to not forget to update:
