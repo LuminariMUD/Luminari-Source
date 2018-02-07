@@ -677,7 +677,7 @@ ACMD(do_tedit);
 /* public functions from qedit.c */
 ACMD(do_oasis_qedit);
 void qedit_save_internally(struct descriptor_data *d);
-void qedit_setup_existing(struct descriptor_data *d, qst_rnum rnum);
+void qedit_setup_existing(struct descriptor_data *d, int rnum);
 
 /* NewCraft */
 /* public functions from crafts.c */
