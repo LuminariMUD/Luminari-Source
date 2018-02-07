@@ -225,7 +225,7 @@ static void qedit_setup_new(struct descriptor_data *d) {
 /*-------------------------------------------------------------------*/
 
 /* edit a quest that already exists */
-void qedit_setup_existing(struct descriptor_data *d, qst_rnum r_num) {
+void qedit_setup_existing(struct descriptor_data *d, int r_num) {
   /*. Alloc some quest shaped space . */
   CREATE(OLC_QUEST(d), struct aq_data, 1);
   copy_quest(OLC_QUEST(d), aquest_table + r_num, FALSE);
