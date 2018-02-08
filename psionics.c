@@ -24,6 +24,7 @@
 //#define PSI_CLASS_ENABLED
 
 /* GLOBALS */
+ush_int indexToPspTable[MAX_SKILLS];
 
 /* UTILITY FUNCTIONS */
 
