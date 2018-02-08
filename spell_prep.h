@@ -259,6 +259,8 @@ extern "C" {
         
     /* look at top of the queue, and reset preparation time of that entry */
     void reset_preparation_time(struct char_data *ch, int class);
+    /* return the number of unspent new arcana slots obtained via the arcane sorcerer bloodline */
+    int free_arcana_slots(struct char_data *ch);
     
     /** END functions **/
     

@@ -9,11 +9,17 @@ act.informative.o: act.informative.c conf.h sysdep.h structs.h protocol.h \
  constants.h dg_scripts.h mud_event.h dg_event.h mail.h act.h class.h \
  race.h fight.h modify.h asciimap.h clan.h craft.h wilderness.h quest.h \
  feats.h assign_wpn_armor.h domains_schools.h desc_engine.h crafts.h
+actionqueues.o: actionqueues.c conf.h sysdep.h structs.h protocol.h \
+ lists.h utils.h db.h comm.h interpreter.h actionqueues.h mud_event.h \
+ dg_event.h actions.h
+actions.o: actions.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
+ db.h comm.h interpreter.h screen.h modify.h handler.h spells.h \
+ mud_event.h dg_event.h actions.h act.h domains_schools.h
 act.item.o: act.item.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h comm.h screen.h interpreter.h handler.h db.h spells.h \
  constants.h dg_scripts.h oasis.h help.h act.h quest.h spec_procs.h \
  clan.h mud_event.h dg_event.h hlquest.h fight.h mudlim.h actions.h \
- traps.h assign_wpn_armor.h spec_abilities.h item.h
+ traps.h assign_wpn_armor.h spec_abilities.h item.h feats.h
 act.movement.o: act.movement.c conf.h sysdep.h structs.h protocol.h \
  lists.h utils.h comm.h interpreter.h handler.h db.h spells.h house.h \
  constants.h dg_scripts.h act.h fight.h oasis.h help.h spec_procs.h \
@@ -38,12 +44,6 @@ act.wizard.o: act.wizard.c conf.h sysdep.h structs.h protocol.h lists.h \
  dg_event.h clan.h craft.h hlquest.h mudlim.h spec_abilities.h \
  wilderness.h feats.h assign_wpn_armor.h item.h domains_schools.h \
  crafts.h account.h kdtree.h mysql.h rtree/rTreeIndex.h
-actionqueues.o: actionqueues.c conf.h sysdep.h structs.h protocol.h \
- lists.h utils.h db.h comm.h interpreter.h actionqueues.h mud_event.h \
- dg_event.h actions.h
-actions.o: actions.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
- db.h comm.h interpreter.h screen.h modify.h handler.h spells.h \
- mud_event.h dg_event.h actions.h act.h domains_schools.h
 aedit.o: aedit.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  interpreter.h handler.h comm.h db.h oasis.h help.h screen.h constants.h \
  genolc.h act.h
@@ -91,7 +91,7 @@ constants.o: constants.c conf.h sysdep.h structs.h protocol.h lists.h \
  handler.h
 craft.o: craft.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  comm.h spells.h interpreter.h constants.h handler.h db.h craft.h \
- mud_event.h dg_event.h modify.h treasure.h mudlim.h spec_procs.h
+ mud_event.h dg_event.h modify.h treasure.h mudlim.h spec_procs.h item.h
 crafts.o: crafts.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  db.h comm.h act.h handler.h interpreter.h screen.h constants.h oasis.h \
  help.h genolc.h spells.h mud_event.h dg_event.h crafts.h
@@ -202,7 +202,11 @@ hlquest.o: hlquest.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  comm.h interpreter.h handler.h db.h hlquest.h spells.h race.h class.h \
  fight.h act.h constants.h mud_event.h dg_event.h actions.h spell_prep.h
 house.o: house.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
- comm.h handler.h db.h interpreter.h house.h constants.h modify.h mysql.h
+ comm.h handler.h db.h interpreter.h house.h constants.h modify.h mysql.h \
+ clan.h
+hsedit.o: hsedit.c conf.h sysdep.h structs.h protocol.h lists.h comm.h \
+ utils.h handler.h interpreter.h db.h boards.h oasis.h help.h genolc.h \
+ genzon.h house.h screen.h
 ibt.o: ibt.c conf.h sysdep.h structs.h protocol.h lists.h utils.h comm.h \
  db.h handler.h interpreter.h constants.h screen.h act.h ibt.h oasis.h \
  help.h improved-edit.h modify.h
@@ -247,7 +251,7 @@ msgedit.o: msgedit.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  interpreter.h modify.h
 mud_event.o: mud_event.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h db.h dg_event.h constants.h comm.h mud_event.h handler.h \
- wilderness.h quest.h
+ wilderness.h quest.h mysql.h act.h
 mysql.o: mysql.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  db.h comm.h modify.h mysql.h wilderness.h mud_event.h dg_event.h
 oasis.o: oasis.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
@@ -257,7 +261,7 @@ oasis.o: oasis.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
 oasis_copy.o: oasis_copy.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h comm.h interpreter.h handler.h db.h shop.h genshp.h genolc.h \
  genzon.h genwld.h oasis.h help.h improved-edit.h constants.h \
- dg_scripts.h wilderness.h
+ dg_scripts.h wilderness.h quest.h
 oasis_delete.o: oasis_delete.c conf.h sysdep.h structs.h protocol.h \
  lists.h utils.h comm.h interpreter.h handler.h db.h genolc.h oasis.h \
  help.h improved-edit.h
@@ -285,7 +289,7 @@ protocol.o: protocol.c protocol.h conf.h sysdep.h structs.h lists.h \
  utils.h comm.h interpreter.h handler.h db.h screen.h improved-edit.h \
  dg_scripts.h act.h modify.h
 psionics.o: psionics.c conf.h sysdep.h structs.h protocol.h lists.h \
- utils.h comm.h interpreter.h handler.h db.h
+ utils.h comm.h interpreter.h handler.h db.h psionics.h spells.h feats.h
 qedit.o: qedit.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  comm.h db.h oasis.h help.h improved-edit.h screen.h genolc.h genzon.h \
  interpreter.h modify.h quest.h
@@ -295,6 +299,8 @@ quest.o: quest.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
 race.o: race.c conf.h sysdep.h structs.h protocol.h lists.h utils.h db.h \
  spells.h interpreter.h constants.h act.h handler.h comm.h race.h feats.h
 random.o: random.c conf.h sysdep.h structs.h protocol.h lists.h utils.h
+rank.o: rank.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
+ comm.h interpreter.h handler.h db.h spells.h screen.h act.h
 redit.o: redit.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  comm.h interpreter.h db.h boards.h genolc.h genwld.h genzon.h oasis.h \
  help.h improved-edit.h dg_olc.h dg_scripts.h constants.h modify.h \
@@ -318,6 +324,10 @@ spec_procs.o: spec_procs.c conf.h sysdep.h structs.h protocol.h lists.h \
  spec_procs.h class.h fight.h modify.h house.h clan.h mudlim.h graph.h \
  dg_scripts.h mud_event.h dg_event.h actions.h assign_wpn_armor.h \
  domains_schools.h feats.h spell_prep.h
+spellbook_scroll.o: spellbook_scroll.c conf.h sysdep.h structs.h \
+ protocol.h lists.h utils.h interpreter.h spells.h db.h comm.h \
+ mud_event.h dg_event.h constants.h act.h handler.h spec_procs.h \
+ spell_prep.h
 spell_parser.o: spell_parser.c conf.h sysdep.h structs.h protocol.h \
  lists.h utils.h interpreter.h spells.h handler.h comm.h db.h \
  dg_scripts.h fight.h constants.h mud_event.h dg_event.h spec_procs.h \
@@ -326,10 +336,6 @@ spell_parser.o: spell_parser.c conf.h sysdep.h structs.h protocol.h \
 spell_prep.o: spell_prep.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h interpreter.h db.h comm.h handler.h constants.h spec_procs.h \
  spells.h mud_event.h dg_event.h class.h spell_prep.h domains_schools.h
-spellbook_scroll.o: spellbook_scroll.c conf.h sysdep.h structs.h \
- protocol.h lists.h utils.h interpreter.h spells.h db.h comm.h \
- mud_event.h dg_event.h constants.h act.h handler.h spec_procs.h \
- spell_prep.h
 spells.o: spells.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  comm.h spells.h handler.h db.h constants.h interpreter.h dg_scripts.h \
  act.h fight.h mud_event.h dg_event.h house.h screen.h craft.h mudlim.h \

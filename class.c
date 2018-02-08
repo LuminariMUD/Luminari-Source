@@ -1963,6 +1963,9 @@ void init_start_char(struct char_data *ch) {
   /* for sorcerer bloodlines subtypes */
   GET_BLOODLINE_SUBTYPE(ch) = 0;
 
+  for (i = 0; i < 3; i++)
+    NEW_ARCANA_SLOT(ch, i) = 0;
+
   /* a bit silly, but go ahead make sure no stone-skin like spells */
   for (i = 0; i < MAX_WARDING; i++)
     GET_WARDING(ch, i) = 0;
@@ -2307,15 +2310,15 @@ void process_conditional_class_level_feats(struct char_data *ch, int class) {
         }
         if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 9 && !HAS_REAL_FEAT(ch, FEAT_NEW_ARCANA)) {
           SET_FEAT(ch, FEAT_NEW_ARCANA, 1);
-          send_to_char(ch, "You have gained the %s feat!  You can now learn a bonus spell for each spell circle 1-3.\r\n", feat_list[FEAT_NEW_ARCANA].name);
+          send_to_char(ch, "You have gained the %s feat!  You can now learn a bonus spell from among the spell circles you can currently cast.\r\n", feat_list[FEAT_NEW_ARCANA].name);
         }
         if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 13 && HAS_REAL_FEAT(ch, FEAT_NEW_ARCANA) == 1) {
           SET_FEAT(ch, FEAT_NEW_ARCANA, 2);
-          send_to_char(ch, "You have improved the %s feat!  You can now learn a bonus spell for each spell circle 4-6.\r\n", feat_list[FEAT_NEW_ARCANA].name);
+          send_to_char(ch, "You have improved the %s feat!  You can now learn a bonus spell from among the spell circles you can currently cast.\r\n", feat_list[FEAT_NEW_ARCANA].name);
         }
         if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 17 && HAS_REAL_FEAT(ch, FEAT_NEW_ARCANA) == 2) {
           SET_FEAT(ch, FEAT_NEW_ARCANA, 3);
-          send_to_char(ch, "You have improved the %s feat!  You can now learn a bonus spell for each spell circle 7-9.\r\n", feat_list[FEAT_NEW_ARCANA].name);
+          send_to_char(ch, "You have improved the %s feat!  You can now learn a bonus spell from among the spell circles you can currently cast.\r\n", feat_list[FEAT_NEW_ARCANA].name);
         }
         if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 15 && !HAS_REAL_FEAT(ch, FEAT_SCHOOL_POWER)) {
           SET_FEAT(ch, FEAT_SCHOOL_POWER, 1);
