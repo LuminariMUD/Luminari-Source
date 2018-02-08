@@ -1400,7 +1400,7 @@ int isMagicArmored(struct char_data *victim) {
 #define MAX_SPELL_AFFECTS 6	/* change if more needed */
 
 void mag_affects(int level, struct char_data *ch, struct char_data *victim,
-        struct obj_data *wpn, int spellnum, int savetype, int casttype) {
+        struct obj_data *wpn, int spellnum, int savetype, int casttype, int metamagic) {
   struct affected_type af[MAX_SPELL_AFFECTS];
   bool accum_affect = FALSE, accum_duration = FALSE;
   const char *to_vict = NULL, *to_room = NULL;
@@ -1412,6 +1412,11 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
   if (victim == NULL || ch == NULL)
     return;
+
+  if (spell_info[spellnum].violent)
+    if (HAS_FEAT(ch, FEAT_ARCANE_BLOODLINE_ARCANA) && metamagic > 0)
+      GET_DC_BONUS(ch) += 1;
+
 
   /* elven drow resistance to certain enchantments such as sleep */
   if (HAS_FEAT(victim, FEAT_SLEEP_ENCHANTMENT_IMMUNITY)) {
@@ -3603,10 +3608,10 @@ static void perform_mag_groups(int level, struct char_data *ch,
       mag_points(level, ch, tch, obj, SPELL_HEAL, savetype, casttype);
       break;
     case SPELL_GROUP_ARMOR:
-      mag_affects(level, ch, tch, obj, SPELL_ARMOR, savetype, casttype);
+      mag_affects(level, ch, tch, obj, SPELL_ARMOR, savetype, casttype, 0);
       break;
     case SPELL_MASS_HASTE:
-      mag_affects(level, ch, tch, obj, SPELL_HASTE, savetype, casttype);
+      mag_affects(level, ch, tch, obj, SPELL_HASTE, savetype, casttype, 0);
       break;
     case SPELL_MASS_CURE_CRIT:
       mag_points(level, ch, tch, obj, SPELL_CURE_CRITIC, savetype, casttype);
@@ -3621,46 +3626,46 @@ static void perform_mag_groups(int level, struct char_data *ch,
       mag_points(level, ch, tch, obj, SPELL_CURE_LIGHT, savetype, casttype);
       break;
     case SPELL_CIRCLE_A_EVIL:
-      mag_affects(level, ch, tch, obj, SPELL_PROT_FROM_EVIL, savetype, casttype);
+      mag_affects(level, ch, tch, obj, SPELL_PROT_FROM_EVIL, savetype, casttype, 0);
       break;
     case SPELL_CIRCLE_A_GOOD:
-      mag_affects(level, ch, tch, obj, SPELL_PROT_FROM_GOOD, savetype, casttype);
+      mag_affects(level, ch, tch, obj, SPELL_PROT_FROM_GOOD, savetype, casttype, 0);
       break;
     case SPELL_INVISIBILITY_SPHERE:
-      mag_affects(level, ch, tch, obj, SPELL_INVISIBLE, savetype, casttype);
+      mag_affects(level, ch, tch, obj, SPELL_INVISIBLE, savetype, casttype, 0);
       break;
     case SPELL_GROUP_RECALL:
       spell_recall(level, ch, tch, NULL, casttype);
       break;
     case SPELL_MASS_FLY:
-      mag_affects(level, ch, tch, obj, SPELL_FLY, savetype, casttype);
+      mag_affects(level, ch, tch, obj, SPELL_FLY, savetype, casttype, 0);
       break;
     case SPELL_MASS_CUNNING:
-      mag_affects(level, ch, tch, obj, SPELL_MASS_CUNNING, savetype, casttype);
+      mag_affects(level, ch, tch, obj, SPELL_MASS_CUNNING, savetype, casttype, 0);
       break;
     case SPELL_MASS_CHARISMA:
-      mag_affects(level, ch, tch, obj, SPELL_MASS_CHARISMA, savetype, casttype);
+      mag_affects(level, ch, tch, obj, SPELL_MASS_CHARISMA, savetype, casttype, 0);
       break;
     case SPELL_MASS_WISDOM:
-      mag_affects(level, ch, tch, obj, SPELL_MASS_WISDOM, savetype, casttype);
+      mag_affects(level, ch, tch, obj, SPELL_MASS_WISDOM, savetype, casttype, 0);
       break;
     case SPELL_MASS_ENHANCE:
-      mag_affects(level, ch, tch, obj, SPELL_MASS_ENHANCE, savetype, casttype);
+      mag_affects(level, ch, tch, obj, SPELL_MASS_ENHANCE, savetype, casttype, 0);
       break;
     case SPELL_AID:
-      mag_affects(level, ch, tch, obj, SPELL_AID, savetype, casttype);
+      mag_affects(level, ch, tch, obj, SPELL_AID, savetype, casttype, 0);
       break;
     case SPELL_PRAYER:
-      mag_affects(level, ch, tch, obj, SPELL_PRAYER, savetype, casttype);
+      mag_affects(level, ch, tch, obj, SPELL_PRAYER, savetype, casttype, 0);
       break;
     case SPELL_MASS_ENDURANCE:
-      mag_affects(level, ch, tch, obj, SPELL_MASS_ENDURANCE, savetype, casttype);
+      mag_affects(level, ch, tch, obj, SPELL_MASS_ENDURANCE, savetype, casttype, 0);
       break;
     case SPELL_MASS_GRACE:
-      mag_affects(level, ch, tch, obj, SPELL_MASS_GRACE, savetype, casttype);
+      mag_affects(level, ch, tch, obj, SPELL_MASS_GRACE, savetype, casttype, 0);
       break;
     case SPELL_MASS_STRENGTH:
-      mag_affects(level, ch, tch, obj, SPELL_MASS_STRENGTH, savetype, casttype);
+      mag_affects(level, ch, tch, obj, SPELL_MASS_STRENGTH, savetype, casttype, 0);
       break;
     case SPELL_ANIMAL_SHAPES:
       /* found in act.other.c */
@@ -3740,7 +3745,7 @@ void mag_groups(int level, struct char_data *ch, struct obj_data *obj,
 
 /* Mass spells affect every creature in the room except the caster. */
 void mag_masses(int level, struct char_data *ch, struct obj_data *obj,
-        int spellnum, int savetype, int casttype) {
+        int spellnum, int savetype, int casttype, int metamagic) {
   struct char_data *tch, *tch_next;
   int isEffect = FALSE;
 
@@ -3760,9 +3765,9 @@ void mag_masses(int level, struct char_data *ch, struct obj_data *obj,
     }
 
     if (isEffect)
-      mag_affects(level, ch, tch, obj, spellnum, savetype, casttype);
+      mag_affects(level, ch, tch, obj, spellnum, savetype, casttype, metamagic);
     else
-      mag_damage(level, ch, tch, obj, spellnum, 0, 1, casttype);
+      mag_damage(level, ch, tch, obj, spellnum, metamagic, 1, casttype);
   }
 }
 
@@ -4033,9 +4038,9 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
     if (aoeOK(ch, tch, spellnum)) {
       if (is_eff_and_dam) {
         mag_damage(level, ch, tch, obj, spellnum, metamagic, 1, casttype);
-        mag_affects(level, ch, tch, obj, spellnum, savetype, casttype);
+        mag_affects(level, ch, tch, obj, spellnum, savetype, casttype, metamagic);
       } else if (isEffect)
-        mag_affects(level, ch, tch, obj, spellnum, savetype, casttype);
+        mag_affects(level, ch, tch, obj, spellnum, savetype, casttype, metamagic);
       else if (is_uneffect)
         mag_unaffects(level, ch, tch, obj, spellnum, savetype, casttype);
       else
