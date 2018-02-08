@@ -10,10 +10,8 @@
 
 #include "conf.h"
 #include "sysdep.h"
-
 #include "structs.h"
 #include "utils.h"
-
 #include "comm.h"
 #include "db.h"
 #include "oasis.h"
@@ -31,13 +29,12 @@
 static void qedit_setup_new(struct descriptor_data *d);
 static void qedit_setup_existing(struct descriptor_data *d, qst_rnum rnum);
 static void qedit_disp_menu(struct descriptor_data *d);
-static void qedit_save_internally(struct descriptor_data *d);
 static void qedit_save_to_disk(int num);
 
 /*-------------------------------------------------------------------*/
 
 /* from genqst.c - saving a quest to memory */
-static void qedit_save_internally(struct descriptor_data *d) {
+void qedit_save_internally(struct descriptor_data *d) {
   add_quest(OLC_QUEST(d));
 }
 
@@ -234,10 +231,16 @@ static void qedit_setup_new(struct descriptor_data *d) {
 /*-------------------------------------------------------------------*/
 
 /* edit a quest that already exists */
-static void qedit_setup_existing(struct descriptor_data *d, qst_rnum r_num) {
+void qedit_setup_existing(struct descriptor_data *d, qst_rnum r_num) {
+  struct aq_data *quest = NULL;
+  
   /*. Alloc some quest shaped space . */
-  CREATE(OLC_QUEST(d), struct aq_data, 1);
-  copy_quest(OLC_QUEST(d), aquest_table + r_num, FALSE);
+  CREATE(quest, struct aq_data, 1);
+  
+  copy_quest(quest, aquest_table + r_num, FALSE);
+  
+  OLC_QUEST(d) = quest;
+  
   qedit_disp_menu(d);
 }
 
