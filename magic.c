@@ -3552,6 +3552,11 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       break;
   }
 
+  // sanity check.   it should be reset to zero via mag_savinthrow, but let's do it here just in
+  // case an offensive (violent) spell doesn't call for a saving throw.
+  GET_DC_BONUS(ch) = 0;
+
+
   /* slippery mind */
   if (is_mind_affect && !IS_NPC(victim) &&
           HAS_FEAT(victim, FEAT_SLIPPERY_MIND)) {

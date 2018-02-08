@@ -548,29 +548,36 @@ static void display_main_menu(struct descriptor_data *d) {
 }
 
 static void sorc_known_spells_disp_menu(struct descriptor_data *d) {
-  int sorc_level = CLASS_LEVEL(d->character, CLASS_SORCERER) +
-                     BONUS_CASTER_LEVEL(d->character, CLASS_SORCERER);
-  
+//  int sorc_level = CLASS_LEVEL(d->character, CLASS_SORCERER) +
+//                     BONUS_CASTER_LEVEL(d->character, CLASS_SORCERER);
   get_char_colors(d->character);
   clear_screen(d);
+
+
+  char arcana_slots[100];
+  if (free_arcana_slots(d->character) > 0)
+    sprintf(arcana_slots, "%s A%s) Assign New Arcana Circle\r\n\r\n", grn, nrm);
+  else
+    sprintf(arcana_slots, "%s", nrm);
 
   write_to_output(d,
                   "\r\n-- %sSpells Known Menu\r\n"
                   "\r\n"
-                  "%s 1%s) 1st Circle     : %s%d\r\n"
-                  "%s 2%s) 2nd Circle     : %s%d\r\n"
-                  "%s 3%s) 3rd Circle     : %s%d\r\n"
-                  "%s 4%s) 4th Circle     : %s%d\r\n"
-                  "%s 5%s) 5th Circle     : %s%d\r\n"
-                  "%s 6%s) 6th Circle     : %s%d\r\n"
-                  "%s 7%s) 7th Circle     : %s%d\r\n"
-                  "%s 8%s) 8th Circle     : %s%d\r\n"
-                  "%s 9%s) 9th Circle     : %s%d\r\n"
+                  "%s 1%s) 1st Circle     : %s%d of %d selected\r\n"
+                  "%s 2%s) 2nd Circle     : %s%d of %d selected\r\n"
+                  "%s 3%s) 3rd Circle     : %s%d of %d selected\r\n"
+                  "%s 4%s) 4th Circle     : %s%d of %d selected\r\n"
+                  "%s 5%s) 5th Circle     : %s%d of %d selected\r\n"
+                  "%s 6%s) 6th Circle     : %s%d of %d selected\r\n"
+                  "%s 7%s) 7th Circle     : %s%d of %d selected\r\n"
+                  "%s 8%s) 8th Circle     : %s%d of %d selected\r\n"
+                  "%s 9%s) 9th Circle     : %s%d of %d selected\r\n"
                   "\r\n"
+                  "%s"
                   "%s Q%s) Quit\r\n"
                   "\r\n"
                   "Enter Choice : ",
-
+/*
                   mgn,
                   grn, nrm, yel, sorcerer_known[sorc_level][1] -
                   count_known_spells_by_circle(d->character, CLASS_SORCERER, 1),
@@ -590,6 +597,38 @@ static void sorc_known_spells_disp_menu(struct descriptor_data *d) {
                   count_known_spells_by_circle(d->character, CLASS_SORCERER, 8),
                   grn, nrm, yel, sorcerer_known[sorc_level][9] -
                   count_known_spells_by_circle(d->character, CLASS_SORCERER, 9),
+                  arcana_slots,
+                  grn, nrm
+*/
+                  mgn,
+                  grn, nrm, yel,
+                  count_known_spells_by_circle(d->character, CLASS_SORCERER, 1),
+                  compute_slots_by_circle(d->character, CLASS_SORCERER, 1),
+                  grn, nrm, yel,
+                  count_known_spells_by_circle(d->character, CLASS_SORCERER, 2),
+                  compute_slots_by_circle(d->character, CLASS_SORCERER, 2),
+                  grn, nrm, yel,
+                  count_known_spells_by_circle(d->character, CLASS_SORCERER, 3),
+                  compute_slots_by_circle(d->character, CLASS_SORCERER, 3),
+                  grn, nrm, yel,
+                  count_known_spells_by_circle(d->character, CLASS_SORCERER, 4),
+                  compute_slots_by_circle(d->character, CLASS_SORCERER, 4),
+                  grn, nrm, yel,
+                  count_known_spells_by_circle(d->character, CLASS_SORCERER, 5),
+                  compute_slots_by_circle(d->character, CLASS_SORCERER, 5),
+                  grn, nrm, yel,
+                  count_known_spells_by_circle(d->character, CLASS_SORCERER, 6),
+                  compute_slots_by_circle(d->character, CLASS_SORCERER, 6),
+                  grn, nrm, yel,
+                  count_known_spells_by_circle(d->character, CLASS_SORCERER, 7),
+                  compute_slots_by_circle(d->character, CLASS_SORCERER, 7),
+                  grn, nrm, yel,
+                  count_known_spells_by_circle(d->character, CLASS_SORCERER, 8),
+                  compute_slots_by_circle(d->character, CLASS_SORCERER, 8),
+                  grn, nrm, yel,
+                  count_known_spells_by_circle(d->character, CLASS_SORCERER, 9),
+                  compute_slots_by_circle(d->character, CLASS_SORCERER, 9),
+                  arcana_slots,
                   grn, nrm
                   );
 
@@ -598,8 +637,8 @@ static void sorc_known_spells_disp_menu(struct descriptor_data *d) {
 
 void sorc_study_menu(struct descriptor_data *d, int circle) {
   int counter, columns = 0;
-  int class_level = CLASS_LEVEL(d->character, CLASS_SORCERER) +
-                      BONUS_CASTER_LEVEL(d->character, CLASS_SORCERER);
+//  int class_level = CLASS_LEVEL(d->character, CLASS_SORCERER) +
+//                      BONUS_CASTER_LEVEL(d->character, CLASS_SORCERER);
 
   LEVELUP(d->character)->spell_circle = circle;
 
@@ -622,7 +661,8 @@ void sorc_study_menu(struct descriptor_data *d, int circle) {
   }
   write_to_output(d, "\r\n");
   write_to_output(d, "%sNumber of slots available:%s %d.\r\n", grn, nrm,
-          sorcerer_known[class_level][circle] -
+//          sorcerer_known[class_level][circle] -
+          compute_slots_by_circle(d->character, CLASS_SORCERER, circle) - 
           count_known_spells_by_circle(d->character, CLASS_SORCERER, circle));
   write_to_output(d, "%s+ A plus sign marks your current selection(s).\r\n", nrm);
   write_to_output(d, "%sEnter spell choice, to add or remove "
@@ -986,6 +1026,33 @@ static void set_bloodline_arcane(struct descriptor_data *d)
   write_to_output(d, "\r\n");
   write_to_output(d, "\r\n%sSelect the arcane school type for your arcane bloodline : ", nrm);
 }
+
+static void display_new_arcana_menu(struct descriptor_data *d) {
+  struct char_data *ch = d->character;
+  get_char_colors(d->character);
+  clear_screen(d);
+
+  write_to_output(d,
+          "\r\n"
+          "New Arcana Menu\r\n"
+          "\r\n"
+          "Free NewArcana Slots: %s%d%s\r\n"
+          "\r\n"
+          "Please type in the number of the spell circle for which you would like\r\n"
+          "to receive a bonus spell choice.  For example if you would like to have an\r\n"
+          "extra circle 2 slot added to the list of spells you can case, then simply type\r\n"
+          "in '2' (without the quotes).  Once spent, these can only be recovered with a\r\n"
+          "respec, so choose carefully.  It also must be of a spell circle you are able\r\n"
+          "to cast.\r\n"
+          "\r\n"
+          "Enter Choice : ",
+          yel, free_arcana_slots(ch), nrm
+          );
+
+  OLC_MODE(d) = SET_NEW_ARCANA;
+}
+
+
 static void set_preferred_caster(struct descriptor_data *d) {
   get_char_colors(d->character);
   clear_screen(d);
@@ -1019,7 +1086,7 @@ static void set_sorcerer_bloodline(struct descriptor_data *d) {
   write_to_output(d,
           "\r\n-- %sSet Sorcerer Bloodline%s\r\n"
           "\r\n"
-//          "%s 0%s) Arcane\r\n"
+          "%s 0%s) Arcane\r\n"
           "%s 1%s) Draconic\r\n"
           "\r\n"
           "%s Q%s) Quit\r\n"
@@ -1028,7 +1095,7 @@ static void set_sorcerer_bloodline(struct descriptor_data *d) {
 
           mgn, nrm,
           /* empty line */
-//          grn, nrm,
+          grn, nrm,
           /* empty line */
           grn, nrm,
           /* empty line */
@@ -1853,6 +1920,14 @@ void study_parse(struct descriptor_data *d, char *arg) {
         case 'Q':
           display_main_menu(d);
           break;
+        case 'a':
+        case 'A':
+          if (free_arcana_slots(ch) <= 0) {
+            write_to_output(d, "That is not a valid option.\r\n");
+          } else {
+            display_new_arcana_menu(d);
+          }
+          break;
           /* here are our spell levels for 'spells known' */
         case '1':
         case '2':
@@ -1869,6 +1944,42 @@ void study_parse(struct descriptor_data *d, char *arg) {
         default:
           write_to_output(d, "That is an invalid choice!\r\n");
           sorc_known_spells_disp_menu(d);
+          break;
+      }
+      break;
+
+    case SET_NEW_ARCANA:
+      switch (*arg) {
+        case 'q':
+        case 'Q':
+          sorc_known_spells_disp_menu(d);
+          OLC_MODE(d) = STUDY_SORC_KNOWN_SPELLS_MENU;
+          break;
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9':
+          if (free_arcana_slots(d->character) <= 0) {
+            write_to_output(d, "You do not have any free new arcana slots.\r\n");
+          } else if (compute_slots_by_circle(d->character, CLASS_SORCERER, atoi(arg)) <= 0) {
+            write_to_output(d, "You are not able to cast spells of that circle yet.\r\n");
+          } else {
+            write_to_output(d, "You've assigned an extra spell circle %s with your new arcana prowess.\r\n", arg);
+            if (NEW_ARCANA_SLOT(d->character, 0) <= 0) NEW_ARCANA_SLOT(d->character, 0) = atoi(arg);
+            else if (NEW_ARCANA_SLOT(d->character, 1) <= 0) NEW_ARCANA_SLOT(d->character, 1) = atoi(arg);
+            else if (NEW_ARCANA_SLOT(d->character, 2) <= 0) NEW_ARCANA_SLOT(d->character, 2) = atoi(arg);
+            write_to_output(d, "You have %d new arcana slots let to spend.\r\n", free_arcana_slots(d->character));
+          }
+          write_to_output(d, "Please select a spell circle, or type 'Q' to exit this menu.\r\nEnter your choice:");
+          break;
+        default:
+          write_to_output(d, "That is an invalid choice!\r\n");
+          write_to_output(d, "Please select a spell circle, or type 'Q' to exit this menu.\r\nEnter your choice:");
           break;
       }
       break;
@@ -2148,9 +2259,8 @@ void study_parse(struct descriptor_data *d, char *arg) {
           switch (number) {
             case 0:
 		write_to_output(d, "That is not an eligible option at this time.\r\n");
-// commented out until all arcane bloodline features are implemented -- Gicker, Feb 7, 2018
-//              set_bloodline_arcane(d);
-//              OLC_MODE(d) = SET_BLOODLINE_ARCANE;
+              set_bloodline_arcane(d);
+              OLC_MODE(d) = SET_BLOODLINE_ARCANE;
               return;
             case 1:
               set_bloodline_draconic(d);

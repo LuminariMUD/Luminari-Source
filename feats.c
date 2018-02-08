@@ -1921,7 +1921,7 @@ void assign_feats(void) {
     "arcane bloodline, sorcerer level 3",
     "Allows the sorcerer to negate extra casting times when casting a spell "
     "in combination with one or more metamagic effects, such as maximize spell. "
-    "This ability is activated by prepending the spell name with 'arcaneadept'. "
+    "This ability is activated by prepending the spell name with 'metamagicadept'. "
     "\r\nExample: cast maximize arcaneadept 'fireball'");
   feato(FEAT_NEW_ARCANA, "new arcana", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "arcane bloodline, sorcerer level 9",
@@ -4315,10 +4315,10 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         none_shown = FALSE;
       } else if (i == FEAT_NEW_ARCANA) {
         if (mode == 1) {
-          sprintf(buf3, "%s (%d extra spells)", feat_list[i].name, HAS_REAL_FEAT(ch, i));
+          sprintf(buf3, "%s (extra circle slots: %d/%d/%d)", feat_list[i].name, NEW_ARCANA_SLOT(ch, 0), NEW_ARCANA_SLOT(ch, 1), NEW_ARCANA_SLOT(ch, 2) );
           sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         } else {
-          sprintf(buf3, "%s (%d extra spells)", feat_list[i].name, HAS_REAL_FEAT(ch, i));
+          sprintf(buf3, "%s (extra circle slots: %d/%d/%d)", feat_list[i].name, NEW_ARCANA_SLOT(ch, 0), NEW_ARCANA_SLOT(ch, 1), NEW_ARCANA_SLOT(ch, 2) );
           sprintf(buf, "%-40s ", buf3);
         }
         strcat(buf2, buf);

@@ -1,11 +1,11 @@
 /*/ \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \
-\     Luminari Spell Prep System                                                        
+\     Luminari Spell Prep System
 /  File:       spell_prep.c
-/  Created By: Zusuk                                                           
-\  Header:     spell_prep.h                                                           
-/    Handling spell preparation for all casting classes, memorization                                                           
+/  Created By: Zusuk
+\  Header:     spell_prep.h
+/    Handling spell preparation for all casting classes, memorization
 \    system, queue, related commands, etc
-/  Created on January 8, 2018, 3:27 PM                                                                                                                                                                                     
+/  Created on January 8, 2018, 3:27 PM
 \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ /*/
 
 /* Extra credits:  Gicker for Sorcerer Bloodlines */
@@ -395,7 +395,8 @@ bool known_spells_add(struct char_data *ch, int ch_class, int spellnum, bool loa
           return FALSE;
         break;
       case CLASS_SORCERER:
-        if (sorcerer_known[caster_level][circle] -
+        if (compute_slots_by_circle(ch, ch_class, circle) - 
+          //sorcerer_known[caster_level][circle] -
                 count_known_spells_by_circle(ch, ch_class, circle) <= 0)
           return FALSE;
         break;
@@ -990,7 +991,7 @@ bool is_min_level_for_spell(struct char_data *ch, int class, int spellnum) {
  * out: returns # of total slots based on class-level and stat bonus
      of given circle */
 int compute_slots_by_circle(struct char_data *ch, int class, int circle) {
-  int spell_slots = 0;
+  int spell_slots = 0, i = 0;
   int class_level = CLASS_LEVEL(ch, class);
 
   /* they don't even have access to this circle */
@@ -1023,7 +1024,13 @@ int compute_slots_by_circle(struct char_data *ch, int class, int circle) {
       break;
     case CLASS_SORCERER:
       spell_slots += spell_bonus[GET_CHA(ch)][circle];
-      spell_slots += sorcerer_slots[class_level][circle];
+      spell_slots += sorcerer_known[class_level][circle];
+      if (HAS_REAL_FEAT(ch, FEAT_NEW_ARCANA)) {
+        for (i = 0; i < 4; i++) {
+          if (NEW_ARCANA_SLOT(ch, i) == circle)
+            spell_slots++;
+        }
+      }
       break;
     case CLASS_BARD:
       spell_slots += spell_bonus[GET_CHA(ch)][circle];
@@ -1607,6 +1614,19 @@ void reset_preparation_time(struct char_data *ch, int class) {
       SPELL_PREP_QUEUE(ch, class)->prep_time = preparation_time;
       break;
   }
+}
+
+int free_arcana_slots(struct char_data *ch)
+{
+  int i = 0;
+
+  int num_slots = HAS_REAL_FEAT(ch, FEAT_NEW_ARCANA);
+
+  for (i = 0; i < 3; i++) {
+    if (NEW_ARCANA_SLOT(ch, i) > 0)
+      num_slots--;
+  }
+  return MAX(0, num_slots);
 }
 
 /* END helper functions */

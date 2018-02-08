@@ -587,6 +587,7 @@ int load_char(const char *name, struct char_data *ch) {
 
         case 'N':
           if (!strcmp(tag, "Name")) GET_PC_NAME(ch) = strdup(line);
+          else if (!strcmp(tag, "NAr0")) NEW_ARCANA_SLOT(ch, 0) = atoi(line);
           else if (!strcmp(tag, "NAr1")) NEW_ARCANA_SLOT(ch, 1) = atoi(line);
           else if (!strcmp(tag, "NAr2")) NEW_ARCANA_SLOT(ch, 2) = atoi(line);
           else if (!strcmp(tag, "NAr3")) NEW_ARCANA_SLOT(ch, 3) = atoi(line);
@@ -892,6 +893,7 @@ void save_char(struct char_data * ch, int mode) {
   if (GET_DISGUISE_DEX(ch)) fprintf(fl, "DDex: %d\n", GET_DISGUISE_DEX(ch));
   if (GET_DISGUISE_CON(ch)) fprintf(fl, "DCon: %d\n", GET_DISGUISE_CON(ch));
   if (GET_DISGUISE_AC(ch)) fprintf(fl, "DAC: %d\n", GET_DISGUISE_AC(ch));
+  if (NEW_ARCANA_SLOT(ch, 0)) fprintf(fl, "NAr0: %d\n", NEW_ARCANA_SLOT(ch, 0));
   if (NEW_ARCANA_SLOT(ch, 1)) fprintf(fl, "NAr1: %d\n", NEW_ARCANA_SLOT(ch, 1));
   if (NEW_ARCANA_SLOT(ch, 2)) fprintf(fl, "NAr2: %d\n", NEW_ARCANA_SLOT(ch, 2));
   if (NEW_ARCANA_SLOT(ch, 3)) fprintf(fl, "NAr3: %d\n", NEW_ARCANA_SLOT(ch, 3));
