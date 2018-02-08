@@ -27,7 +27,6 @@
 /*. Function prototypes . */
 
 static void qedit_setup_new(struct descriptor_data *d);
-static void qedit_setup_existing(struct descriptor_data *d, qst_rnum rnum);
 static void qedit_disp_menu(struct descriptor_data *d);
 static void qedit_save_to_disk(int num);
 
@@ -231,7 +230,7 @@ static void qedit_setup_new(struct descriptor_data *d) {
 /*-------------------------------------------------------------------*/
 
 /* edit a quest that already exists */
-void qedit_setup_existing(struct descriptor_data *d, qst_rnum r_num) {
+void qedit_setup_existing(struct descriptor_data *d, int r_num) {
   struct aq_data *quest = NULL;
   
   /*. Alloc some quest shaped space . */
