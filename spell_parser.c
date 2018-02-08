@@ -645,7 +645,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
       return (-1); /* Successful and target died, don't cast again. */
 
   if (IS_SET(SINFO.routines, MAG_AFFECTS))
-    mag_affects(spell_level, caster, cvict, ovict, spellnum, savetype, casttype);
+    mag_affects(spell_level, caster, cvict, ovict, spellnum, savetype, casttype, metamagic);
 
   if (IS_SET(SINFO.routines, MAG_UNAFFECTS))
     mag_unaffects(spell_level, caster, cvict, ovict, spellnum, savetype, casttype);
@@ -660,7 +660,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
     mag_groups(spell_level, caster, ovict, spellnum, savetype, casttype);
 
   if (IS_SET(SINFO.routines, MAG_MASSES))
-    mag_masses(spell_level, caster, ovict, spellnum, savetype, casttype);
+    mag_masses(spell_level, caster, ovict, spellnum, savetype, casttype, metamagic);
 
   if (IS_SET(SINFO.routines, MAG_AREAS))
     mag_areas(spell_level, caster, ovict, spellnum, metamagic, savetype, casttype);
