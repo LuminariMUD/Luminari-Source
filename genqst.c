@@ -25,10 +25,10 @@ int copy_quest(struct aq_data *to, struct aq_data *from, int free_old_strings) {
   if (free_old_strings)
     free_quest_strings(to);
 
-  *to = *from;
+  /* *to = *from; */
 
-  /*
   int i;
+  
   to->vnum = from->vnum;
   to->flags = from->flags;
   to->type = from->type;
@@ -44,7 +44,6 @@ int copy_quest(struct aq_data *to, struct aq_data *from, int free_old_strings) {
   to->exp_reward = from->exp_reward;
   to->obj_reward = from->obj_reward;
   to->func = from->func;
-   */
 
   return copy_quest_strings(to, from);
 }
