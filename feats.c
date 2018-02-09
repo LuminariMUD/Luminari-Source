@@ -1905,6 +1905,7 @@ void assign_feats(void) {
           "draconic bloodline, sorcerer level 20",
           "Provides immunity to sleep, paralysis, and elemental damage that matches "
           "your draconic heritage.  Also provides blindsense with a range of 60 feet.");
+  
   feato(FEAT_SORCERER_BLOODLINE_ARCANE, "arcane bloodline", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "level one sorcerer",
     "The arcane bloodline is developed through a long heritage of masterful "
@@ -1941,6 +1942,7 @@ void assign_feats(void) {
     "expend charges, such as wands and staves.  For every three levels of spell "
     "slots used, one less charge will be expended.  See the apotheosis command and HELP "
     "APOTHEOSIS for more information.");
+  
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_SPELL_PENETRATION, "spell penetration", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
           "+2 bonus on caster level checks to defeat spell resistance",
