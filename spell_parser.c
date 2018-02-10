@@ -1420,17 +1420,17 @@ ACMD(do_gen_cast) {
       }
     } else if (is_abbrev(metamagic_arg, "metamagicadept")) {
       if HAS_FEAT(ch, FEAT_METAMAGIC_ADEPT) {
+        if (!IS_NPC(ch) && (daily_uses_remaining(ch, FEAT_METAMAGIC_ADEPT)) == 0) {
+          send_to_char(ch, "You must recover before you can use your metamagic adept ability again.\r\n");
+          return;
+        }
+        if (!IS_NPC(ch))
+          start_daily_use_cooldown(ch, FEAT_METAMAGIC_ADEPT);
         SET_BIT(metamagic, METAMAGIC_ARCANE_ADEPT);
       } else {
         send_to_char(ch, "You do not know the secrets of metamagic adepts!\r\n");
         return;
       }
-      if (!IS_NPC(ch) && (daily_uses_remaining(ch, FEAT_METAMAGIC_ADEPT)) == 0) {
-        send_to_char(ch, "You must recover before you can use your metamagic adept ability again.\r\n");
-        return;
-      }
-      if (!IS_NPC(ch))
-        start_daily_use_cooldown(ch, FEAT_METAMAGIC_ADEPT);
     }
   }
 
