@@ -1923,7 +1923,7 @@ void assign_feats(void) {
     "Allows the sorcerer to negate extra casting times when casting a spell "
     "in combination with one or more metamagic effects, such as maximize spell. "
     "This ability is activated by prepending the spell name with 'metamagicadept'. "
-    "\r\nExample: cast maximize arcaneadept 'fireball'");
+    "\r\nExample: cast maximize metamagicadept 'fireball'");
   feato(FEAT_NEW_ARCANA, "new arcana", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "arcane bloodline, sorcerer level 9",
     "This feat allows the sorcerer to receive a bonus spell slot starting at "
