@@ -329,10 +329,16 @@
 #define CLASS_SHIFTER           14
 #define CLASS_DUELIST           15
 #define CLASS_PSIONICIST        16
+#define CLASS_PSION CLASS_PSIONICIST
+#define CLASS_PSYCHIC_WARRIOR   17
+#define CLASS_PSY_WARR CLASS_PSYCHIC_WARRIOR
+#define CLASS_SOULKNIFE         18
+#define CLASS_SOUL_KNIFE CLASS_SOULKNIFE
+#define CLASS_WILDER            19
 /* !!!---- CRITICAL ----!!! make sure to add class names to constants.c's
    class_names[] - we are dependent on that for loading the feat-list */
 /** Total number of available PC Classes */
-#define NUM_CLASSES             17
+#define NUM_CLASSES             20
 
 // related to pc (classes, etc)
 /* note that max_classes was established to reign in some of the
