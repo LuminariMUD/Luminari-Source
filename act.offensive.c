@@ -1901,7 +1901,7 @@ ACMD(do_hit) {
 
   /* not yet engaged */
   if (!FIGHTING(ch) && !char_has_mud_event(ch, eCOMBAT_ROUND)) {
-    
+
     /* INITIATIVE */
     if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_IMPROVED_INITIATIVE))
       chInitiative += 4;
@@ -1909,14 +1909,21 @@ ACMD(do_hit) {
     if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_IMPROVED_INITIATIVE))
       victInitiative += 4;
     victInitiative += GET_DEX(vict);
-    
+
     if (chInitiative >= victInitiative || GET_POS(vict) < POS_FIGHTING || !CAN_SEE(vict, ch)) {
 
       /* ch is taking an action so loses the Flat-footed flag */
       if (AFF_FLAGGED(ch, AFF_FLAT_FOOTED))
         REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLAT_FOOTED);
+
       hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE); /* ch first */
-    } else {
+
+      if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_IMPROVED_INITIATIVE) &&
+              GET_POS(vict) > POS_DEAD) {
+        send_to_char(vict, "\tYYour superior initiative grants another attack!\tn\r\n");
+        hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+      }
+    } else { /* ch lost initiative */
 
       /* this is just to avoid silly messages in peace rooms -zusuk */
       if (!ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL) && !ROOM_FLAGGED(IN_ROOM(vict), ROOM_PEACEFUL)) {
@@ -1931,17 +1938,22 @@ ACMD(do_hit) {
 
       hit(vict, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE); // victim is first
       update_pos(ch);
-      
+
       if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_IMPROVED_INITIATIVE) &&
               GET_POS(ch) > POS_DEAD) {
         send_to_char(vict, "\tYYour superior initiative grants another attack!\tn\r\n");
         hit(vict, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
       }
     } /* END INITIATIVE */
-    /* END not-fighting scenario */    
-    
+    /* END not-fighting scenario */
+
   } else { /* fighting, so trying to switch opponents */
-    
+
+    if (GET_POS(ch) <= POS_SITTING) {
+      send_to_char(ch, "You are in no position to switch opponents!\r\n");
+      return;
+    }
+
     /* don't forget to remove the fight event! */
     if (char_has_mud_event(ch, eCOMBAT_ROUND)) {
       event_cancel_specific(ch, eCOMBAT_ROUND);
@@ -1949,7 +1961,7 @@ ACMD(do_hit) {
 
     send_to_char(ch, "You switch opponents!\r\n");
     act("$n switches opponents!", FALSE, ch, 0, vict, TO_ROOM);
-    
+
     USE_STANDARD_ACTION(ch);
     stop_fighting(ch);
     hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
@@ -1986,7 +1998,7 @@ ACMD(do_kill) {
             ch->next_in_room != vict && vict->next_in_room != ch) {
       send_to_char(ch, "You simply can't reach that far.\r\n");
       return;
-      
+
     } else if (GET_LEVEL(ch) <= GET_LEVEL(vict) ||
             PRF_FLAGGED(vict, PRF_NOHASSLE)) {
       do_hit(ch, argument, cmd, subcmd);
@@ -1995,17 +2007,15 @@ ACMD(do_kill) {
             !PRF_FLAGGED(ch, PRF_NOHASSLE)) {
       do_hit(ch, argument, cmd, subcmd);
       return;
-    } else {
+
+    } else { /* should be higher level staff against someone with nohas off */
 
       act("You chop $M to pieces!  Ah!  The blood!", FALSE, ch, 0, vict, TO_CHAR);
       act("$N chops you to pieces!", FALSE, vict, 0, ch, TO_CHAR);
       act("$n brutally slays $N!", FALSE, ch, 0, vict, TO_NOTVICT);
-      
-      if (!IS_NPC(vict))
-        raw_kill(vict, ch);
-      else
-        raw_kill_npc(vict, ch);
-      
+
+      raw_kill(vict, ch);
+
       return;
     }
   }
@@ -4509,7 +4519,7 @@ int perform_collect(struct char_data *ch, bool silent) {
 
     /*debug*/
     //act("$p", FALSE, ch, obj, 0, TO_CHAR);
-    
+
     /* checking corpse for ammo first */
     if (IS_CORPSE(obj)) {
       for (cobj = obj->contains; cobj; cobj = next_obj) {
@@ -4529,8 +4539,7 @@ int perform_collect(struct char_data *ch, bool silent) {
         }
       }
     }
-    
-    /* checking room for ammo */
+      /* checking room for ammo */
     else if (GET_OBJ_TYPE(obj) == ITEM_MISSILE &&
             MISSILE_ID(obj) == GET_IDNUM(ch)) {
       if (num_obj_in_obj(ammo_pouch) < GET_OBJ_VAL(ammo_pouch, 0)) {
@@ -4544,7 +4553,7 @@ int perform_collect(struct char_data *ch, bool silent) {
         break;
       }
     }
-    
+
   } /*for loop*/
 
   if (ammo && !silent) {
