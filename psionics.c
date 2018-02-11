@@ -42,6 +42,7 @@ ush_int indexToPspTable[MAX_SKILLS];
 /* Initialize the PSP Cost Table during boot. It basicaly allows to move the
  * skills around without need to update some other lookup tables..
  */
+ush_int indexToPspTable[MAX_SKILLS];
 void bootInitializePSPTable(void) {
   int i = 0;
 
