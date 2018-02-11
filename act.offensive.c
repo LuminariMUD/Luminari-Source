@@ -1473,7 +1473,6 @@ ACMD(do_turnundead) {
   }
 
   one_argument(argument, buf);
-
   if (!(vict = get_char_room_vis(ch, buf, NULL))) {
     send_to_char(ch, "Turn who?\r\n");
     return;
@@ -1488,14 +1487,6 @@ ACMD(do_turnundead) {
     send_to_char(ch, "You can only attempt to turn undead!\r\n");
     return;
   }
-
-  //if (char_has_mud_event(ch, eTURN_UNDEAD)) {
-  //  send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
-  //  return;
-  //}
-
-  /* add cooldown, increase skill */
-  //attach_mud_event(new_mud_event(eTURN_UNDEAD, ch, NULL), 120 * PASSES_PER_SEC);
 
   /* too powerful */
   if (GET_LEVEL(vict) >= LVL_IMMORT) {
@@ -1560,7 +1551,8 @@ ACMD(do_turnundead) {
       act("$N blasphemously mocks your faith!", FALSE, ch, 0, vict, TO_CHAR);
       act("You blasphemously mock $N and $S faith!", FALSE, vict, 0, ch, TO_CHAR);
       act("$n blasphemously mocks $N and $S faith!", FALSE, vict, 0, ch, TO_NOTVICT);
-      hit(vict, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+      if (!FIGHTING(vict))
+        hit(vict, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
       break;
     case 1: /* Undead is turned */
       act("The power of your faith overwhelms $N, who flees!", FALSE, ch, 0, vict, TO_CHAR);
