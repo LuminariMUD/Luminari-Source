@@ -8,7 +8,6 @@
 /                                                                                                                                                                                       
 \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ /*/
 
-#include <zconf.h>
 #include "conf.h"
 #include "sysdep.h"
 #include "structs.h"
@@ -21,262 +20,23 @@
 #include "feats.h"
 /* spells.h included in header file */
 
-//#define PSI_CLASS_ENABLED
-
 /* GLOBALS */
-ush_int indexToPspTable[MAX_SKILLS];
 
 /* UTILITY FUNCTIONS */
 
-/* PRIMARY FUNCTIONS */
+/* function to modify PSP's */
+bool modify_psp(struct char_data *ch, struct char_data *vict, int manifest_num) {
+  return FALSE;
+}
 
+/* PRIMARY FUNCTIONS */
 
 
 /* EOF */
 
 
-
-
-
-
-/* Initialize the PSP Cost Table during boot. It basicaly allows to move the
- * skills around without need to update some other lookup tables..
- */
-ush_int indexToPspTable[MAX_SKILLS];
-void bootInitializePSPTable(void) {
-  int i = 0;
-
-  bzero(indexToPspTable, sizeof (indexToPspTable));
-
-  while (pspTable[i].skill != SPELL_RESERVED_DBC)
-    indexToPspTable[pspTable[i].skill] = i++;
-}
 #ifdef PSI_CLASS_ENABLED
 
-/* this function replaces all psi damage calculations (formerly handled
-   within each skill function) by assigning an offensive level and determining
-   damage in the FindSpellDamage function.  --DMB */
-int psiDamage(struct char_data *ch, P_char vict, int dam, int skill) {
-  int adj_skill, off_level;
-
-  switch (skill) {
-    case PSIONIC_MINDBLAST:
-      off_level = 11;
-      break;
-    case PSIONIC_DETONATE:
-      off_level = 13;
-      break;
-    case PSIONIC_PROJECT_FORCE:
-      off_level = 15;
-      break;
-    case PSIONIC_DEATH_FIELD:
-      off_level = 16;
-      break;
-    case PSIONIC_ULTRABLAST:
-      off_level = 20;
-      break;
-  }
-
-  adj_skill = pindex2Skill[skill];
-  dam = FindSpellDamage(ch, vict, off_level, skill);
-
-  if (skill != PSIONIC_DEATH_FIELD) {
-    if (NewSaves(vict, SAVING_BREATH, 1))
-      dam >>= 1;
-  }
-
-  if (IS_PC(ch) && IS_PC(vict))
-    dam = adjustSkillDamage(dam, adj_skill);
-
-  return dam;
-}
-
-bool canDrain(struct char_data *ch, P_char victim) {
-  if (IS_AFFECTED(victim, AFF_CHARM) && (victim->following == ch))
-    return TRUE;
-
-  if (IS_PC(victim) && IS_PC(ch) && !IN_ACHERON(victim)) {
-    send_to_char("Player killing isn't allowed!\n", ch);
-    return FALSE;
-  }
-
-  if (victim == ch) {
-    send_to_char("Aren't we funny today...\n", ch);
-    return FALSE;
-  }
-  if (GET_STAT(victim) == STAT_DEAD) {
-    send_to_char("What?  Dead isn't good enough?  Leave that corpse alone!\n", ch);
-    return FALSE;
-  }
-  if (!AWAKE(ch)) {
-    send_to_char("You can't do that if you're not awake!\n", ch);
-    return FALSE;
-  }
-  if (affected_by_spell(ch, SONG_PEACE)) {
-    send_to_char("You feel way too peaceful to consider doing anything offensive!\n", ch);
-    return FALSE;
-  }
-  if (CHAR_IN_SAFE_ZONE(ch)) {
-    send_to_char("You feel ashamed trying to disrupt the tranquility of this place.\n", ch);
-    return FALSE;
-  }
-  if (IS_RIDING(ch)) {
-    send_to_char("While mounted? I don't think so...\n", ch);
-    return FALSE;
-  }
-  if (IS_CSET(world[ch->in_room].room_flags, SINGLE_FILE) && !AdjacentInRoom(ch, victim)) {
-    act("$N seems to be just a BIT out of reach.", FALSE, ch, 0, victim, TO_CHAR);
-    return FALSE;
-  }
-  if (!CAN_SEE(ch, victim)) {
-    send_to_char("Um.. you don't see any such target here?\n", ch);
-    return FALSE;
-  }
-  if (nokill(ch, victim))
-    return FALSE;
-
-  if (CHAR_IN_SAFE_ZONE(ch)) {
-    send_to_char("You feel ashamed trying to disrupt the tranquility of this place.\n", ch);
-    return FALSE;
-  }
-  if (IS_AFFECTED(ch, AFF_STUNNED)) {
-    send_to_char("You're too stunned to contemplate that!\n", ch);
-    return FALSE;
-  }
-  if (IS_AFFECTED(ch, AFF_KNOCKED_OUT)) {
-    send_to_char("You can't do much of anything while knocked out!\n", ch);
-    return FALSE;
-  }
-  if (IS_AFFECTED(ch, AFF_MINOR_PARALYSIS) || IS_AFFECTED(ch, AFF_MAJOR_PARALYSIS)) {
-    send_to_char("It's tough to do anything while paralyzed.\n", ch);
-    return FALSE;
-  }
-  if (IS_AFFECTED(victim, AFF_CHARM) && (victim->following != ch))
-    return FALSE;
-
-  return TRUE;
-}
-
-void do_drain(struct char_data *ch, char *arg, int cmd) {
-  P_char victim;
-  int drain_delay;
-
-  if (!ch) {
-    log("assert: bogus params in do_drain()");
-    dump_core();
-  }
-
-  if (GET_RACE(ch) != RACE_ILLITHID) {
-    send_to_char("You have absolutely no idea how to go about doing that.\n", ch);
-    return;
-  }
-
-  if (!*arg) {
-    send_to_char("So just WHO would you like to have for dinner again?\n", ch);
-    return;
-  }
-  if (!(victim = get_char_room_vis(ch, arg))) {
-    send_to_char("Unfortunately your victim does not happen to be here.\n", ch);
-    return;
-  }
-
-  /* use the normal candofightmove since draining is a physical not a mental
-   * skill.. ie cant do it while paralyzed or out of reach in a single file
-   * room..                                                                  */
-  if (!canDrain(ch, victim))
-    return;
-
-  if (IS_AFFECTED(ch, AFF_BRAINDRAIN)) {
-    send_to_char("&+LError in do_brain() synchronization. Report to a God.\n", ch);
-    wizlog(51, "ERROR: do_drain() called with AFF_BRAINDRAIN on for %s and %s", GET_NAME(ch), GET_NAME(victim));
-    return;
-  }
-
-  switch (GET_RACE(victim)) {
-    case RACE_ILLITHID:
-      /* Nasty surprise while trying to drain fellow illithids.. Take away all psp */
-      send_to_char("&+LDrain your own brethren?!\n", ch);
-      send_to_char("&+LYou feel a wave of pain roll over you.\n", ch);
-      act("&+L$n shivers and staggers back as $s his tentacles touch&N $N's &+Lhead.", TRUE, ch, 0, victim, TO_ROOM);
-      if (GET_PSP(ch) > 0 && !IS_TRUSTED(ch)) {
-        GET_PSP(ch) = 0;
-        StartRegen(ch, EVENT_PSP_REGEN);
-      }
-      return;
-    case RACE_SPIRIT:
-    case RACE_F_ELEMENTAL:
-    case RACE_W_ELEMENTAL:
-    case RACE_A_ELEMENTAL:
-    case RACE_E_ELEMENTAL:
-    case RACE_GHOST:
-    case RACE_INSECT:
-    case RACE_TREE:
-    case RACE_PARASITE:
-    case RACE_POSSESSED:
-    case RACE_HIGH_UNDEAD:
-    case RACE_UNDEAD:
-      send_to_char("&+LDraining that creature would be rather impossible.\n", ch);
-      act("&+L$n futilely tries to drain&N $N.", TRUE, ch, 0, victim, TO_ROOM);
-      return;
-    default:
-      break;
-  }
-
-  if ((GET_STAT(victim) >= STAT_SLEEPING) && (!IS_AFFECTED(victim, AFF_CHARM))) {
-    send_to_char("You have to subdue your victim first!\n", ch);
-    return;
-  }
-
-  SET_CBIT(ch->specials.affects, AFF_BRAINDRAIN);
-  drain_delay = MAX(4, (GET_LEVEL(victim) / 2));
-  AddEvent(EVENT_BRAIN_DRAINING, drain_delay, TRUE, ch, victim);
-  act("&+LYou kneel down and grasp&N $N's &+Lhead in your tentacles.", TRUE, ch, 0, victim, TO_CHAR);
-  act("&+LYou start to feed on $S energy!", TRUE, ch, 0, victim, TO_CHAR);
-  act("&+L$n kneels down and grasps&N $N's &+Lhead with $s tentacles.", TRUE, ch, 0, victim, TO_ROOM);
-  send_to_char("&+LA flash of pain grips your brain, as something starts to drain your energies.&N\n", victim);
-  CharWait(ch, drain_delay + 12); /* lag the sucker so it wont move away */
-  return;
-}
-
-void illithid_feeding(struct char_data *ch, P_char victim) {
-  if (!(victim && ch)) {
-    log("assert: bogus params in illithid_feeding()");
-    dump_core();
-  }
-
-  if (ch->in_room == NOWHERE)
-    return;
-
-  if (!IS_AFFECTED(ch, AFF_BRAINDRAIN)) {
-    log("assert: bogus illithid_feeding call. No AFF_BRAINDRAIN.");
-    dump_core();
-  }
-
-  REMOVE_CBIT(ch->specials.affects, AFF_BRAINDRAIN);
-
-  if (ch->in_room != victim->in_room) {
-    send_to_char("Your victim does not seem to be here anymore.\n", ch);
-    send_to_char("That's it for feeding this time!\n", ch);
-    act("$n looks extremely confused as he aborts $s feeding.", TRUE, ch, 0, victim, TO_ROOM);
-    return;
-  }
-
-  act("&+mThe feast comes to an end as you loosen your tentacles' grip.", TRUE, ch, 0, victim, TO_CHAR);
-  act("&+m$n loosens $s grip on&N $N's &+mhead and stands up.", TRUE, ch, 0, victim, TO_ROOM);
-  send_to_char("&+mAll of your energy is slowly slurped from your brain and you "
-          "feel yourself falling into the cold sleep of death...&N\n", victim);
-  GET_PSP(ch) += (GET_C_INT(victim) * 8) + GET_C_WIS(victim);
-
-  if (GET_PSP(ch) > GET_MAX_PSP(ch))
-    GET_PSP(ch) = GET_MAX_PSP(ch);
-
-  if (GET_COND(ch, FULL) < 100)
-    GET_COND(ch, FULL) += 25;
-  if (GET_COND(ch, THIRST) < 100)
-    GET_COND(ch, THIRST) += 25;
-  SuddenDeath(victim, ch, "brain drain");
-  return;
-}
 
 /**********************   CLAIRSENTIENCE SKILLS   **************************/
 void do_aurasight(struct char_data *ch, char *arg, int cmd) {
