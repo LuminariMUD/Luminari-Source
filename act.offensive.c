@@ -1862,89 +1862,104 @@ ACMD(do_hit) {
   }
 
   one_argument(argument, arg);
-
-  if (!*arg)
+  if (!*arg) {
     send_to_char(ch, "Hit who?\r\n");
-  else if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
-    send_to_char(ch, "They don't seem to be here.\r\n");
-  else if (vict == ch) {
-    send_to_char(ch, "You hit yourself...OUCH!.\r\n");
-    act("$n hits $mself, and says OUCH!", FALSE, ch, 0, vict, TO_ROOM);
-  } else if (FIGHTING(ch) == vict) {
-    send_to_char(ch, "You are already fighting that one!\r\n");
-  } else if (AFF_FLAGGED(ch, AFF_CHARM) && (ch->master == vict))
-    act("$N is just such a good friend, you simply can't hit $M.", FALSE, ch, 0, vict, TO_CHAR);
-  else if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
-          ch->next_in_room != vict && vict->next_in_room != ch) {
-    send_to_char(ch, "You simply can't reach that far.\r\n");
-  } else {
-    if (!CONFIG_PK_ALLOWED && !IS_NPC(vict) && !IS_NPC(ch))
-      check_killer(ch, vict);
-    /* already fighting */
-    if (!FIGHTING(ch)) {
-      if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_IMPROVED_INITIATIVE))
-        chInitiative += 4;
-      chInitiative += GET_DEX(ch);
-      if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_IMPROVED_INITIATIVE))
-        victInitiative += 4;
-      victInitiative += GET_DEX(vict);
-      if (chInitiative >= victInitiative || GET_POS(vict) < POS_FIGHTING || !CAN_SEE(vict, ch)) {
-
-        /* ch is taking an action so loses the Flat-footed flag */
-        if (AFF_FLAGGED(ch, AFF_FLAT_FOOTED))
-          REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLAT_FOOTED);
-        //set_fighting(ch, vict);
-        hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE); /* ch first */
-      } else {
-
-        /* this is just to avoid silly messages in peace rooms -zusuk */
-        if (!ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL) && !ROOM_FLAGGED(IN_ROOM(vict), ROOM_PEACEFUL)) {
-          send_to_char(vict, "\tYYour superior initiative grants the first strike!\tn\r\n");
-          send_to_char(ch,
-                  "\tyYour opponents superior \tYinitiative\ty grants the first strike!\tn\r\n");
-        }
-
-        /* vict is taking an action so loses the Flat-footed flag */
-        if (AFF_FLAGGED(vict, AFF_FLAT_FOOTED))
-          REMOVE_BIT_AR(AFF_FLAGS(vict), AFF_FLAT_FOOTED);
-
-        //set_fighting(vict, ch);
-
-        hit(vict, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE); // victim is first
-        update_pos(ch);
-        if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_IMPROVED_INITIATIVE) &&
-                GET_POS(ch) > POS_DEAD) {
-          send_to_char(vict, "\tYYour superior initiative grants another attack!\tn\r\n");
-          hit(vict, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
-        }
-      }
-      /* not fighting, so switch opponents */
-    } else {
-      /* don't forget to remove the fight event! */
-      if (char_has_mud_event(ch, eCOMBAT_ROUND)) {
-        event_cancel_specific(ch, eCOMBAT_ROUND);
-      }
-
-      USE_STANDARD_ACTION(ch);
-      stop_fighting(ch);
-      send_to_char(ch, "You switch opponents!\r\n");
-      act("$n switches opponents!", FALSE, ch, 0, vict, TO_ROOM);
-
-      //set_fighting(ch, vict);
-
-      hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
-
-      //everyone gets a free shot at you unless you make a acrobatics check
-      //15 is DC
-      if (FIGHTING(ch) && FIGHTING(vict)) {
-        if (!skill_check(ch, ABILITY_ACROBATICS, 15))
-          attacks_of_opportunity(ch, 0);
-      }
-
-    }
-
+    return;
   }
 
+  /* grab our target */
+  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
+    send_to_char(ch, "They don't seem to be here.\r\n");
+    return;
+  }
+
+  if (vict == ch) {
+    send_to_char(ch, "You hit yourself...OUCH!.\r\n");
+    act("$n hits $mself, and says OUCH!", FALSE, ch, 0, vict, TO_ROOM);
+    return;
+  }
+
+  if (FIGHTING(ch) == vict) {
+    send_to_char(ch, "You are already fighting that one!\r\n");
+    return;
+  }
+
+  if (AFF_FLAGGED(ch, AFF_CHARM) && (ch->master == vict)) {
+    act("$N is just such a good friend, you simply can't hit $M.", FALSE, ch, 0, vict, TO_CHAR);
+    return;
+  }
+
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
+          ch->next_in_room != vict && vict->next_in_room != ch) {
+    send_to_char(ch, "You simply can't reach that far.\r\n");
+    return;
+  }
+
+  /* PKILL */
+  if (!CONFIG_PK_ALLOWED && !IS_NPC(vict) && !IS_NPC(ch))
+    check_killer(ch, vict);
+
+  /* not yet engaged */
+  if (!FIGHTING(ch) && !char_has_mud_event(ch, eCOMBAT_ROUND)) {
+    
+    /* INITIATIVE */
+    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_IMPROVED_INITIATIVE))
+      chInitiative += 4;
+    chInitiative += GET_DEX(ch);
+    if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_IMPROVED_INITIATIVE))
+      victInitiative += 4;
+    victInitiative += GET_DEX(vict);
+    
+    if (chInitiative >= victInitiative || GET_POS(vict) < POS_FIGHTING || !CAN_SEE(vict, ch)) {
+
+      /* ch is taking an action so loses the Flat-footed flag */
+      if (AFF_FLAGGED(ch, AFF_FLAT_FOOTED))
+        REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLAT_FOOTED);
+      hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE); /* ch first */
+    } else {
+
+      /* this is just to avoid silly messages in peace rooms -zusuk */
+      if (!ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL) && !ROOM_FLAGGED(IN_ROOM(vict), ROOM_PEACEFUL)) {
+        send_to_char(vict, "\tYYour superior initiative grants the first strike!\tn\r\n");
+        send_to_char(ch,
+                "\tyYour opponents superior \tYinitiative\ty grants the first strike!\tn\r\n");
+      }
+
+      /* vict is taking an action so loses the Flat-footed flag */
+      if (AFF_FLAGGED(vict, AFF_FLAT_FOOTED))
+        REMOVE_BIT_AR(AFF_FLAGS(vict), AFF_FLAT_FOOTED);
+
+      hit(vict, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE); // victim is first
+      update_pos(ch);
+      
+      if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_IMPROVED_INITIATIVE) &&
+              GET_POS(ch) > POS_DEAD) {
+        send_to_char(vict, "\tYYour superior initiative grants another attack!\tn\r\n");
+        hit(vict, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+      }
+    } /* END INITIATIVE */
+    /* END not-fighting scenario */    
+    
+  } else { /* fighting, so trying to switch opponents */
+    
+    /* don't forget to remove the fight event! */
+    if (char_has_mud_event(ch, eCOMBAT_ROUND)) {
+      event_cancel_specific(ch, eCOMBAT_ROUND);
+    }
+
+    send_to_char(ch, "You switch opponents!\r\n");
+    act("$n switches opponents!", FALSE, ch, 0, vict, TO_ROOM);
+    
+    USE_STANDARD_ACTION(ch);
+    stop_fighting(ch);
+    hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+
+    /* everyone gets a free shot at you unless you make a acrobatics check 15 is DC */
+    if (FIGHTING(ch) && FIGHTING(vict)) {
+      if (!skill_check(ch, ABILITY_ACROBATICS, 15))
+        attacks_of_opportunity(ch, 0);
+    }
+  }
 }
 
 ACMD(do_kill) {
@@ -1956,37 +1971,42 @@ ACMD(do_kill) {
     return;
   }
 
-  if (GET_LEVEL(ch) < LVL_IMMORT || IS_NPC(ch) ||
-          !PRF_FLAGGED(ch, PRF_NOHASSLE)) {
-    do_hit(ch, argument, cmd, subcmd);
-    return;
-  }
   one_argument(argument, arg);
 
   if (!*arg) {
     send_to_char(ch, "Kill who?\r\n");
-  } else {
-    if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
+  } else { /* we have an argument */
+    if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
       send_to_char(ch, "They aren't here.\r\n");
-    else if (ch == vict)
+      return;
+    } else if (ch == vict) {
       send_to_char(ch, "Your mother would be so sad.. :(\r\n");
-    else if (GET_LEVEL(ch) <= GET_LEVEL(vict) ||
+      return;
+    } else if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
+            ch->next_in_room != vict && vict->next_in_room != ch) {
+      send_to_char(ch, "You simply can't reach that far.\r\n");
+      return;
+      
+    } else if (GET_LEVEL(ch) <= GET_LEVEL(vict) ||
             PRF_FLAGGED(vict, PRF_NOHASSLE)) {
       do_hit(ch, argument, cmd, subcmd);
+      return;
+    } else if (GET_LEVEL(ch) < LVL_IMMORT || IS_NPC(ch) ||
+            !PRF_FLAGGED(ch, PRF_NOHASSLE)) {
+      do_hit(ch, argument, cmd, subcmd);
+      return;
     } else {
-      if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
-              ch->next_in_room != vict && vict->next_in_room != ch) {
-        send_to_char(ch, "You simply can't reach that far.\r\n");
-        return;
-      }
 
       act("You chop $M to pieces!  Ah!  The blood!", FALSE, ch, 0, vict, TO_CHAR);
       act("$N chops you to pieces!", FALSE, vict, 0, ch, TO_CHAR);
       act("$n brutally slays $N!", FALSE, ch, 0, vict, TO_NOTVICT);
+      
       if (!IS_NPC(vict))
         raw_kill(vict, ch);
       else
         raw_kill_npc(vict, ch);
+      
+      return;
     }
   }
 }
