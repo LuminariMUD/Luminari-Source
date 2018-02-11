@@ -983,7 +983,7 @@ spellnum == SPELL_EPIC_WARDING )
 /* domain macros */
 #define GET_1ST_DOMAIN(ch)	CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.domain_1))
 #define GET_2ND_DOMAIN(ch)	CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.domain_2))
-#define HAS_DOMAIN(ch, domain) (GET_1ST_DOMAIN(ch) == i || GET_2ND_DOMAIN(ch) == i)
+#define HAS_DOMAIN(ch, domain) (GET_1ST_DOMAIN(ch) == domain || GET_2ND_DOMAIN(ch) == domain)
 /* macro for determining the level you get a spell, added to support
  domain granted-spells */
 /* this will return 99 if the 'domain' doesn't grant the 'spell' */
