@@ -912,20 +912,22 @@ void check_killer(struct char_data *ch, struct char_data *vict) {
 }
 
 /* a function that sets ch fighting victim */
-void set_fighting(struct char_data *ch, struct char_data *vict) {
+/* TRUE - succeeding in engaging in combat
+   FALSE - failed to engage in combat */
+bool set_fighting(struct char_data *ch, struct char_data *vict) {
   struct char_data *current = NULL, *previous = NULL;
   int delay;
 
   if (ch == vict)
-    return;
+    return FALSE;
 
   if (FIGHTING(ch)) {
     core_dump();
-    return;
+    return FALSE;;
   }
 
   if (char_has_mud_event(ch, eCOMBAT_ROUND)) {
-    return;
+    return FALSE;;
   }
 
   GET_INITIATIVE(ch) = roll_initiative(ch);
@@ -969,15 +971,15 @@ void set_fighting(struct char_data *ch, struct char_data *vict) {
     delay = 2 RL_SEC;
   else
     delay = 4 RL_SEC;
-
-  //  send_to_char(ch, "DEBUG: SETTING FIGHT EVENT!\r\n");
   
   /* make sure firing if appropriate */
   if (can_fire_ammo(ch, TRUE))
     FIRING(ch) = TRUE;
   
-  //if (!char_has_mud_event(ch, eCOMBAT_ROUND))
+  /* start the combat loop, making sure we begin with phase "1" */
   attach_mud_event(new_mud_event(eCOMBAT_ROUND, ch, strdup("1")), delay);
+  
+  return TRUE;
 }
 
 /* remove a char from the list of fighting chars */
