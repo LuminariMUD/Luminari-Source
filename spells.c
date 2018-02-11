@@ -731,6 +731,8 @@ ASPELL(spell_clairvoyance) {
 }
 
 ASPELL(spell_cloudkill) {
+  int num_of_clouds = 0;
+  
   if (INCENDIARY(ch) || DOOM(ch)) {
     send_to_char(ch, "You already have a cloud following you!\r\n");
     return;
@@ -738,7 +740,11 @@ ASPELL(spell_cloudkill) {
   send_to_char(ch, "You summon forth a cloud of death!\r\n");
   act("$n summons forth a cloud of death!", FALSE, ch, 0, 0, TO_ROOM);
 
-  CLOUDKILL(ch) = MAGIC_LEVEL(ch) / 5;
+  if (!IS_NPC(ch) && HAS_DOMAIN(ch, DOMAIN_DESTRUCTION)) {
+    num_of_clouds = DIVINE_LEVEL(ch) / 5;    
+  }
+  
+  CLOUDKILL(ch) = MAX((MAGIC_LEVEL(ch) / 5), num_of_clouds);
 }
 
 ASPELL(spell_control_plants) {
