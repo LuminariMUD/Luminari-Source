@@ -984,7 +984,7 @@ bool set_fighting(struct char_data *ch, struct char_data *vict) {
 
 /* remove a char from the list of fighting chars */
 void stop_fighting(struct char_data *ch) {
-  struct char_data *temp;
+  struct char_data *temp = NULL;
 
   if (ch == next_combat_list)
     next_combat_list = ch->next_fighting;
@@ -993,14 +993,14 @@ void stop_fighting(struct char_data *ch) {
   ch->next_fighting = NULL;
   FIGHTING(ch) = NULL;
   FIRING(ch) = 0;
-  if (GET_POS(ch) > POS_SITTING) /* in case they are position fighting */
+  if (GET_POS(ch) == POS_FIGHTING) /* in case they are position fighting */
     change_position(ch, POS_STANDING);
   update_pos(ch);
 
   /* don't forget to remove the fight event! */
-  //if (char_has_mud_event(ch, eCOMBAT_ROUND)) {
-  //  event_cancel_specific(ch, eCOMBAT_ROUND);
-  //}
+  if (char_has_mud_event(ch, eCOMBAT_ROUND)) {
+    event_cancel_specific(ch, eCOMBAT_ROUND);
+  }
 
   /* Reset the combat data */
   GET_TOTAL_AOO(ch) = 0;
@@ -1214,14 +1214,14 @@ void kill_quest_completion_check(struct char_data *killer, struct char_data *ch)
   }
 }
 
-// we're not extracting anybody anymore, just penalize them xp
-// and move them back to the starting room -zusuk
-/* we will consider changing this back to corpse creation and dump
-   but only on the condition of corpse-saving code */
+/* PC death: we are not extracting OR creating corpses.  Open to
+     restoring corpse creation upon creation of a good corpse
+     saving solution so we do not have to worry about copyover
+     or crashes deleting all of the PC's gear */
 void raw_kill(struct char_data *ch, struct char_data *killer) {
   struct char_data *k, *temp;
 
-  //stop relevant fighting
+  /* stop relevant fighting */
   if (FIGHTING(ch))
     stop_fighting(ch);
   for (k = combat_list; k; k = temp) {
@@ -1229,6 +1229,10 @@ void raw_kill(struct char_data *ch, struct char_data *killer) {
     if (FIGHTING(k) == ch)
       stop_fighting(k);
   }
+  
+  /* clear all affections */
+  while (ch->affected)
+    affect_remove(ch, ch->affected);
 
   /* this was commented out for some reason, undid that to make sure
    events clear on death */
@@ -1256,9 +1260,6 @@ void raw_kill(struct char_data *ch, struct char_data *killer) {
     leave_group(ch);
   }
 
-  while (ch->affected) //remove affects
-    affect_remove(ch, ch->affected);
-
   /* ordinary commands work in scripts -welcor */
   GET_POS(ch) = POS_STANDING;
   if (killer) {
@@ -1274,82 +1275,39 @@ void raw_kill(struct char_data *ch, struct char_data *killer) {
   /* Clear the action queue */
   clear_action_queue(GET_QUEUE(ch));
 
-  /* at this stage you are completely dead */
-
-  //this replaces extraction
-  char_from_room(ch);
-  death_message(ch);
-  GET_HIT(ch) = 1;
-  update_pos(ch);
-
-  /* spec-abil saves on exit, so make sure this does not save */
-  DOOM(ch) = 0;
-  INCENDIARY(ch) = 0;
-  CLOUDKILL(ch) = 0;
-
-  /* move char to starting room */
-  char_to_room(ch, r_mortal_start_room);
-  act("$n appears in the middle of the room.", TRUE, ch, 0, 0, TO_ROOM);
-  look_at_room(ch, 0);
-  entry_memory_mtrigger(ch);
-  greet_mtrigger(ch, -1);
-  greet_memory_mtrigger(ch);
-  resetCastingData(ch);
-
-  save_char(ch, 0);
-  Crash_delete_crashfile(ch);
-  //end extraction replacement
-
-  if (killer) {
-    autoquest_trigger_check(killer, NULL, NULL, AQ_MOB_SAVE);
-    autoquest_trigger_check(killer, NULL, NULL, AQ_ROOM_CLEAR);
-  }
-
-  /* "punishment" for death */
-  start_action_cooldown(ch, atSTANDARD, 12 RL_SEC);
-}
-
-/* this is the raw_kill code called for npc's death, we handle it
- differently priarmily because we don't currently make corpses for
- PC's */
-void raw_kill_npc(struct char_data *ch, struct char_data *killer) {
-  if (FIGHTING(ch))
-    stop_fighting(ch);
-
-  while (ch->affected)
-    affect_remove(ch, ch->affected);
-
-  /* this is to get certain scripts to work (i believe) -zusuk */
-  GET_POS(ch) = POS_STANDING;
-
-  if (killer) {
-    if (death_mtrigger(ch, killer))
-      death_cry(ch);
-  } else
-    death_cry(ch);
-
-  /* make sure group gets credit for kill if ch involved in quest */
-  kill_quest_completion_check(killer, ch);
-
-  update_pos(ch);
-
   /* random treasure drop */
-  if (killer && ch)
-    determine_treasure(find_treasure_recipient(killer), ch);
-
-  make_corpse(ch);
-
-  /* this was commented out for some reason, undid that to make sure
-     events clear on death */
-  clear_char_event_list(ch);
-
+  if (killer && ch && IS_NPC(ch))
+    determine_treasure(find_treasure_recipient(killer), ch);  
+  
   /* spec-abil saves on exit, so make sure this does not save */
   DOOM(ch) = 0;
   INCENDIARY(ch) = 0;
   CLOUDKILL(ch) = 0;
 
-  /* extraction!  *SLURRRRRRRRRRRRRP* */
-  extract_char(ch);
+  /* final handling, primary difference between npc/pc death */
+  if (IS_NPC(ch)) {
+    make_corpse(ch);
+    /* extraction!  *SLURRRRRRRRRRRRRP* */
+    extract_char(ch);    
+  } else { /* PC's do not extract currently or make a corpse */
+    char_from_room(ch);
+    death_message(ch);
+    GET_HIT(ch) = 1;
+    update_pos(ch);
+    /* move char to starting room */
+    char_to_room(ch, r_mortal_start_room);
+    act("$n appears in the middle of the room.", TRUE, ch, 0, 0, TO_ROOM);
+    look_at_room(ch, 0);
+    entry_memory_mtrigger(ch);
+    greet_mtrigger(ch, -1);
+    greet_memory_mtrigger(ch);
+    resetCastingData(ch);
+
+    save_char(ch, 0);
+    Crash_delete_crashfile(ch);
+    /* "punishment" for death */
+    start_action_cooldown(ch, atSTANDARD, 12 RL_SEC); 
+  }
 
   if (killer) {
     autoquest_trigger_check(killer, NULL, NULL, AQ_MOB_SAVE);
@@ -1425,10 +1383,7 @@ void die(struct char_data *ch, struct char_data *killer) {
     }
   }
 
-  if (!IS_NPC(ch))
-    raw_kill(ch, killer);
-  else
-    raw_kill_npc(ch, killer);
+  raw_kill(ch, killer);
 }
 
 /* called for splitting xp in a group (engine) */
