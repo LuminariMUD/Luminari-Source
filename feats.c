@@ -4263,6 +4263,17 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         strcat(buf2, buf);
         none_shown = FALSE;
 
+      } else if (i == FEAT_IMPROVED_FAMILIAR) {
+        if (mode == 1) {
+          sprintf(buf3, "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR));
+          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+        } else {
+          sprintf(buf3, "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR));
+          sprintf(buf, "%-40s ", buf3);
+        }
+        strcat(buf2, buf);
+        none_shown = FALSE;
+
       } else if (i == FEAT_SHRUG_DAMAGE) {
         if (mode == 1) {
           sprintf(buf3, "%s (%d/-)", feat_list[i].name, HAS_FEAT(ch, FEAT_SHRUG_DAMAGE));
