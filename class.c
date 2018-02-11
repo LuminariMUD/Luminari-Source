@@ -3866,7 +3866,20 @@ void load_class_list(void) {
   feat_assignment(CLASS_SORCERER, FEAT_SORCERER_9TH_CIRCLE, Y, 18, N);
   /*epic*/
   feat_assignment(CLASS_SORCERER, FEAT_SORCERER_EPIC_SPELL, Y, 21, N);
-  /* sorcerer do not get class feats */
+  /* list of class feats */
+  feat_assignment(CLASS_SORCERER, FEAT_COMBAT_CASTING, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SORCERER, FEAT_SPELL_PENETRATION, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SORCERER, FEAT_GREATER_SPELL_PENETRATION, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SORCERER, FEAT_ARMORED_SPELLCASTING, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SORCERER, FEAT_FASTER_MEMORIZATION, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SORCERER, FEAT_SPELL_FOCUS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SORCERER, FEAT_GREATER_SPELL_FOCUS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SORCERER, FEAT_IMPROVED_FAMILIAR, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SORCERER, FEAT_QUICK_CHANT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SORCERER, FEAT_AUGMENT_SUMMONING, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SORCERER, FEAT_ENHANCED_SPELL_DAMAGE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SORCERER, FEAT_MAXIMIZE_SPELL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SORCERER, FEAT_QUICKEN_SPELL, Y, NOASSIGN_FEAT, N);
   /**** spell assign ****/
   /*              class num      spell                   level acquired */
   /* 1st circle */
