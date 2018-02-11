@@ -1691,8 +1691,12 @@ spellnum == SPELL_EPIC_WARDING )
 
 // these have changed since multi-class, you are classified as CLASS_x if you
 // got any levels in it - zusuk
+#define IS_PSION(ch)	     (CLASS_LEVEL(ch, CLASS_PSIONICIST))
+#define IS_PSY_WARR(ch)	     (CLASS_LEVEL(ch, CLASS_PSY_WARR))
+#define IS_SOULKNIFE(ch)	     (CLASS_LEVEL(ch, CLASS_SOULKNIFE))
+#define IS_WILDER(ch)	     (CLASS_LEVEL(ch, CLASS_WILDER))
+#define IS_PSI(ch) (IS_PSION(ch) || IS_PSY_WARR(ch) || IS_SOULKNIFE(ch) || IS_WILDER(ch))
 #define IS_WIZARD(ch)	     (CLASS_LEVEL(ch, CLASS_WIZARD))
-#define IS_PSIONICIST(ch)	     (CLASS_LEVEL(ch, CLASS_PSIONICIST))
 #define IS_SORCERER(ch)       (CLASS_LEVEL(ch, CLASS_SORCERER))
 #define IS_BARD(ch)       (CLASS_LEVEL(ch, CLASS_BARD))
 #define IS_CLERIC(ch)		(CLASS_LEVEL(ch, CLASS_CLERIC))

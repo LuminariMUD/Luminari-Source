@@ -1,10 +1,10 @@
 /*/ \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \
 \                                                             
-/  Luminari Psionics System, Inspired by Outcast Psionics                                                           
-/  Created By: Altherog, ported by Zusuk                                                           
+/  Luminari Psionics System                                                        
+/  Created By: Zusuk                                                           
 \                                                             
 /  using psionics.h as the header file currently                                                           
-\         todo: actually make a pathfinder system                                                   
+\         todo: make a pathfinder system
 /                                                                                                                                                                                       
 \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ /*/
 
@@ -18,11 +18,74 @@
 #include "db.h"
 #include "psionics.h"
 #include "feats.h"
-/* spells.h included in header file */
+#include "spells.h"
 
 /* GLOBALS */
 
 /* UTILITY FUNCTIONS */
+
+/* function to separate spells from psionics */
+bool is_manifestation(int skill_num) {
+  switch (skill_num) {
+    case PSIONIC_AURA_SIGHT:
+    case PSIONIC_COMBATMIND:
+    case PSIONIC_MINDBLAST:
+    case PSIONIC_EGO_WHIP:
+    case PSIONIC_BODY_EQUALIBRIUM:
+    case PSIONIC_SENSE_DANGER:
+    case PSIONIC_PYROKINESIS:
+    case PSIONIC_CREATE_OBJECT:
+    case PSIONIC_FLOAT:
+    case PSIONIC_ENHANCED_STRENGTH:
+    case PSIONIC_DETONATE:
+    case PSIONIC_ADRENALIZE:
+    case PSIONIC_BODY_WEAPONRY:
+    case PSIONIC_ENERGY_CONTAINMENT:
+    case PSIONIC_SHARE_STRENGTH:
+    case PSIONIC_CATFALL:
+    case PSIONIC_INTELLECT_FORTRESS:
+    case PSIONIC_PLANE_SHIFT:
+    case PSIONIC_PROJECT_FORCE:
+    case PSIONIC_EXPANSION:
+    case PSIONIC_REDUCTION:
+    case PSIONIC_SUSTAIN:
+    case PSIONIC_MIND_THRUST:
+    case PSIONIC_BIOFEEDBACK:
+    case PSIONIC_EQUALIBRIUM:
+    case PSIONIC_FLESH_ARMOR:
+    case PSIONIC_DOMINATE:
+    case PSIONIC_AEROKINESIS:
+    case PSIONIC_DIMENSION_WALK:
+    case PSIONIC_LEND_HEALTH:
+    case PSIONIC_AWE:
+    case PSIONIC_ALL_AROUND_VISION:
+    case PSIONIC_KNOW_LOCATION:
+    case PSIONIC_MASS_DOMINATE:
+    case PSIONIC_SYNAPTIC_STATE:
+    case PSIONIC_GLOBE_OF_DARKNESS:
+    case PSIONIC_PSP_DRAIN:
+    case PSIONIC_SEVER_THE_TIE:
+    case PSIONIC_DISLOCATION:
+    case PSIONIC_DEATH_FIELD:
+    case PSIONIC_TOWER_OF_IRON_WILL:
+    case PSIONIC_ETHEREAL_WALKING:
+    case PSIONIC_CANNIBALIZE:
+    case PSIONIC_SHIFT:
+    case PSIONIC_CRISIS_OF_BREATH:
+    case PSIONIC_STASIS_FIELD:
+    case PSIONIC_INTERTIAL_BARRIER:
+    case PSIONIC_PLANAR_RIFT:
+    case PSIONIC_BATTLE_TRANCE:
+    case PSIONIC_ULTRABLAST:
+    case PSIONIC_CHARGE:
+    case PSIONIC_ALTER_AURA:
+    case PSIONIC_ENHANCE_SKILL:
+    case PSIONIC_ATTRACTION:
+      return TRUE;
+    default:break;
+  }
+  return FALSE;
+}
 
 /* function to modify PSP's */
 bool modify_psp(struct char_data *ch, struct char_data *vict, int manifest_num) {
