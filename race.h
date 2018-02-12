@@ -50,6 +50,7 @@ int invalid_race(struct char_data *ch, struct obj_data *obj);
 int parse_race_long(char *arg);
 void assign_races(void);
 bool display_race_info(struct char_data *ch, char *racename);
+int get_race_stat(int race, int stat);
 
 /* ACMD */
 ACMD(do_race);
