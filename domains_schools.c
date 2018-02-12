@@ -101,7 +101,7 @@ char *domainpower_names[NUM_DOMAIN_POWERS + 1] = {
   "Good Touch", //15
   "Good Lance",
   "Healing Touch",
-  "Enpowered Healing",
+  "Empowered Healing",
   "Knowledge",
   "Eye of Knowledge", //20
   "Blessed Touch",
