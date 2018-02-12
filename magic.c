@@ -1377,7 +1377,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
 }
 
 /* make sure you don't stack armor spells for silly high AC */
-int isMagicArmored(struct char_data *victim) {
+int isMagicArmored(struct char_data *ch, struct char_data *victim) {
   if (affected_by_spell(victim, SPELL_EPIC_MAGE_ARMOR) ||
           affected_by_spell(victim, SPELL_MAGE_ARMOR) ||
           affected_by_spell(victim, SPELL_SHIELD) ||
@@ -1385,7 +1385,7 @@ int isMagicArmored(struct char_data *victim) {
           affected_by_spell(victim, SPELL_ARMOR) ||
           affected_by_spell(victim, SPELL_BARKSKIN)) {
 
-    send_to_char(victim, "Your target already has magical armoring!\r\n");
+    send_to_char(ch, "Your target already has magical armoring!\r\n");
     return TRUE;
   }
 
@@ -1544,7 +1544,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case SPELL_ARMOR:
-      if (isMagicArmored(victim))
+      if (isMagicArmored(ch, victim))
         return;
 
       af[0].location = APPLY_AC_NEW;
@@ -1556,7 +1556,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case SPELL_BARKSKIN: // transmutation
-      if (isMagicArmored(victim))
+      if (isMagicArmored(ch, victim))
         return;
 
       af[0].location = APPLY_AC_NEW;
@@ -2011,7 +2011,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case SPELL_EPIC_MAGE_ARMOR: //epic
-      if (isMagicArmored(victim))
+      if (isMagicArmored(ch, victim))
         return;
 
       af[0].location = APPLY_AC_NEW;
@@ -2519,7 +2519,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case SPELL_MAGE_ARMOR: //conjuration
-      if (isMagicArmored(victim))
+      if (isMagicArmored(ch, victim))
         return;
 
       af[0].location = APPLY_AC_NEW;
@@ -3076,7 +3076,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case SPELL_SHADOW_SHIELD: //illusion
-      if (isMagicArmored(victim))
+      if (isMagicArmored(ch, victim))
         return;
 
       af[0].location = APPLY_AC_NEW;
@@ -3116,7 +3116,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case SPELL_SHIELD: //transmutation
-      if (isMagicArmored(victim))
+      if (isMagicArmored(ch, victim))
         return;
 
       af[0].location = APPLY_AC_NEW;
