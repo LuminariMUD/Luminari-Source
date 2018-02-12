@@ -1924,6 +1924,10 @@ void init_class(struct char_data *ch, int class, int level) {
 void init_start_char(struct char_data *ch) {
   int trains = 0, i = 0, j = 0;
 
+  /* leave group */
+  if (GROUP(ch))
+    leave_group(ch);
+  
   /* handle followers */
   if (ch->followers || ch->master)
     die_follower(ch);  
