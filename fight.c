@@ -2785,7 +2785,6 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim) {
 
 // death < 0, no dam = 0, damage done > 0
 /* ALLLLLL damage goes through this function */
-
 /* probably need to bring in another variable letting us know our source, like:
    -melee attack
    -spell
@@ -2838,8 +2837,15 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
       set_fighting(victim, ch);
     }
   }
-  if (victim->master == ch) // pet leaves you
+  
+  /* pets leave if attacked */
+  if (victim->master == ch)    
     stop_follower(victim);
+  
+  /* if target is in your group, you forfeit your position in the group -zusuk */
+  if (GROUP(ch) && GROUP(victim) && GROUP(ch) == GROUP(victim)) {
+    leave_group(ch);
+  }
 
   if (!CONFIG_PK_ALLOWED) { // PK check
     check_killer(ch, victim);
@@ -2909,7 +2915,8 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
   dam = MAX(MIN(dam, 999), 0); //damage cap
   GET_HIT(victim) -= dam;
 
-  if (ch != victim) //xp gain
+  /* xp gain for damage, limiting it more -zusuk */
+  if (ch != victim && GET_EXP(victim) && (GET_LEVEL(ch) - GET_LEVEL(victim)) <= 3)
     gain_exp(ch, GET_LEVEL(victim) * dam, GAIN_EXP_MODE_DAMAGE);
 
   if (!dam)
