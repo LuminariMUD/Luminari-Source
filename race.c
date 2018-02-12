@@ -75,6 +75,12 @@ void set_race_abilities(int race, int str_mod, int con_mod, int int_mod,
   race_list[race].ability_mods[4] = dex_mod;
   race_list[race].ability_mods[5] = cha_mod;
 }
+int get_race_stat(int race, int stat) {
+  if (stat < 0 || stat > 5)
+    return 0;
+  
+  return (race_list[race].ability_mods[stat]);
+}
 
 /* appropriate alignments for given race */
 void set_race_alignments(int race, int lg, int ng, int cg, int ln, int tn, int cn,
