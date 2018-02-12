@@ -17,6 +17,14 @@
 // this is for shapechange/wildshape, define for array max
 #define NUM_SHAPE_TYPES  5
 
+/* order of stat attributes relevant for race modifications to stats */
+#define R_STR_MOD    0
+#define R_CON_MOD    1
+#define R_INTEL_MOD  2
+#define R_WIS_MOD    3
+#define R_DEX_MOD    4
+#define R_CHA_MOD    5
+  
 /* feat assignment / race-feat data for races */
 struct race_feat_assign {
   int feat_num;       /* feat number like FEAT_WEAPON_FOCUS */
