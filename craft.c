@@ -1867,14 +1867,14 @@ EVENTFUNC(event_crafting) {
     switch (GET_CRAFTING_TYPE(ch)) {
       case SCMD_RESIZE:
         // no skill association
-        sprintf(buf, "You resize $p.  Success!!!");
+        sprintf(buf, "You resize $p.");
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
         sprintf(buf, "$n resizes $p.");
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
         break;
       case SCMD_DIVIDE:
         // no skill association
-        sprintf(buf, "You create $p (x%d).  Success!!!",
+        sprintf(buf, "You create $p (x%d).",
                 GET_CRAFTING_REPEAT(ch));
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
         sprintf(buf, "$n creates $p (x%d).", GET_CRAFTING_REPEAT(ch));
@@ -1887,35 +1887,35 @@ EVENTFUNC(event_crafting) {
         break;
       case SCMD_MINE:
         skill = SKILL_MINING;
-        sprintf(buf, "Your efforts in the area result in: $p.  Success!!!");
+        sprintf(buf, "Your efforts in the area result in: $p.");
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
         sprintf(buf, "$n's efforts in the area result in: $p.");
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
         break;
       case SCMD_HUNT:
         skill = SKILL_FORESTING;
-        sprintf(buf, "Your efforts in the area result in: $p.  Success!!!");
+        sprintf(buf, "Your efforts in the area result in: $p.");
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
         sprintf(buf, "$n's efforts in the area result in: $p.");
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
         break;
       case SCMD_KNIT:
         skill = SKILL_KNITTING;
-        sprintf(buf, "Your efforts in the area result in: $p.  Success!!!");
+        sprintf(buf, "Your efforts in the area result in: $p.");
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
         sprintf(buf, "$n's efforts in the area result in: $p.");
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
         break;
       case SCMD_FOREST:
         skill = SKILL_FORESTING;
-        sprintf(buf, "Your efforts in the area result in: $p.  Success!!!");
+        sprintf(buf, "Your efforts in the area result in: $p.");
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
         sprintf(buf, "$n's efforts in the area result in: $p.");
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
         break;
       case SCMD_DISENCHANT:
         skill = SKILL_CHEMISTRY;
-        sprintf(buf, "You complete the disenchantment process.  Success!!!");
+        sprintf(buf, "You complete the disenchantment process.");
         act(buf, false, ch, 0, 0, TO_CHAR);
         sprintf(buf, "$n finishes the disenchanting process.");
         act(buf, false, ch, 0, 0, TO_ROOM);
@@ -1933,7 +1933,7 @@ EVENTFUNC(event_crafting) {
           GET_CRAFTING_REPEAT(ch) = 0;
         } else
           sprintf(buf2, "\tn");
-        sprintf(buf, "You create $p%s.  Success!!!", buf2);
+        sprintf(buf, "You create $p%s.", buf2);
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
         sprintf(buf, "$n creates $p%s.", buf2);
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
@@ -1957,7 +1957,7 @@ EVENTFUNC(event_crafting) {
           GET_CRAFTING_REPEAT(ch) = 0;
         } else
           sprintf(buf2, "\tn");
-        sprintf(buf, "You augment $p%s.  Success!!!", buf2);
+        sprintf(buf, "You augment $p%s.", buf2);
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
         sprintf(buf, "$n augments $p%s.", buf2);
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
@@ -1974,7 +1974,7 @@ EVENTFUNC(event_crafting) {
           GET_CRAFTING_REPEAT(ch) = 0;
         } else
           sprintf(buf2, "\tn");
-        sprintf(buf, "You convert $p%s.  Success!!!", buf2);
+        sprintf(buf, "You convert $p%s.", buf2);
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
         sprintf(buf, "$n converts $p%s.", buf2);
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
@@ -1982,7 +1982,7 @@ EVENTFUNC(event_crafting) {
       case SCMD_RESTRING:
         // no skill association
         sprintf(buf2, "\tn");
-        sprintf(buf, "You rename $p%s.  Success!!!", buf2);
+        sprintf(buf, "You rename $p%s.", buf2);
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
         sprintf(buf, "$n renames $p%s.", buf2);
         act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);

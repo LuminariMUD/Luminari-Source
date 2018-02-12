@@ -250,7 +250,7 @@ static void prefedit_disp_toggles_menu(struct descriptor_data *d) {
           CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
           PREFEDIT_FLAGGED(PRF_AUTOCOLLECT) ?
           CBRED(d->character, C_NRM) : CBGRN(d->character, C_NRM),
-          ONOFF(!PREFEDIT_FLAGGED(PRF_AUTOCOLLECT)), CCCYN(d->character, C_NRM)
+          ONOFF(PREFEDIT_FLAGGED(PRF_AUTOCOLLECT)), CCCYN(d->character, C_NRM)
           /*end*/);
 
   send_to_char(d->character, "%s7%s) Automap      %s[%s%3s%s]      %sT%s) AutoReload %s[%s%3s%s]\r\n"

@@ -885,6 +885,7 @@ void command_interpreter(struct char_data *ch, char *argument) {
           !is_abbrev(complete_cmd_info[cmd].command, "score") &&
           !is_abbrev(complete_cmd_info[cmd].command, "group") &&
           !is_abbrev(complete_cmd_info[cmd].command, "say") &&
+          !is_abbrev(complete_cmd_info[cmd].command, "'") &&
           !is_abbrev(complete_cmd_info[cmd].command, "help") &&
           !is_abbrev(complete_cmd_info[cmd].command, "reply") &&
           !is_abbrev(complete_cmd_info[cmd].command, "prefedit") &&
