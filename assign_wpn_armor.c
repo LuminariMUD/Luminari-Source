@@ -18,12 +18,14 @@
 #include "feats.h"
 #include "constants.h"
 #include "modify.h"
+#include "domain_schools.h"
 
 
 /* global */
 struct armor_table armor_list[NUM_SPEC_ARMOR_TYPES];
 struct weapon_table weapon_list[NUM_WEAPON_TYPES];
 const char *weapon_type[NUM_WEAPON_TYPES];
+
 
 /* simply checks if ch has proficiency with given weapon_type */
 int is_proficient_with_weapon(struct char_data *ch, int weapon) {
@@ -144,6 +146,12 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon) {
         return TRUE;
     }
   }
+  
+  /* cleric domain, favored weapons */
+  if (domain_list[GET_1ST_DOMAIN(ch)].favored_weapon == weapon)
+    return TRUE;
+  if (domain_list[GET_2ND_DOMAIN(ch)].favored_weapon == weapon)
+    return TRUE;
 
   /* TODO: Adapt this - Focus on an aspect of the divine, not a deity. */
   /*  if (HAS_FEAT((char_data *) ch, FEAT_DEITY_WEAPON_PROFICIENCY) && weapon == deity_list[GET_DEITY(ch)].favored_weapon)
