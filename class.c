@@ -31,6 +31,7 @@
 #include "domains_schools.h"
 #include "modify.h"
 #include "spell_prep.h"
+#include "race.h"
 
 /** LOCAL DEFINES **/
 // good/bad
@@ -1923,6 +1924,10 @@ void init_class(struct char_data *ch, int class, int level) {
 void init_start_char(struct char_data *ch) {
   int trains = 0, i = 0, j = 0;
 
+  /* handle followers */
+  if (ch->followers || ch->master)
+    die_follower(ch);  
+  
   /* clear polymorph, affections cleared below */
   SUBRACE(ch) = 0;
   IS_MORPHED(ch) = 0;
@@ -1984,7 +1989,7 @@ void init_start_char(struct char_data *ch) {
   GET_REAL_HITROLL(ch) = 0;
   GET_REAL_DAMROLL(ch) = 0;
   GET_REAL_MAX_HIT(ch) = 20;
-  GET_REAL_MAX_PSP(ch) = 100;
+  GET_REAL_MAX_PSP(ch) = 15;
   GET_REAL_MAX_MOVE(ch) = 82;
   GET_PRACTICES(ch) = 0;
   GET_TRAINS(ch) = 0;
@@ -2046,7 +2051,15 @@ void init_start_char(struct char_data *ch) {
   GET_COND(ch, HUNGER) = -1;
   GET_COND(ch, THIRST) = -1;
 
-  /* universal skills */
+  /* stat modifications */
+  GET_REAL_CON(ch) += get_race_stat(GET_RACE(ch), R_CON_MOD);
+  GET_REAL_STR(ch) += get_race_stat(GET_RACE(ch), R_STR_MOD);
+  GET_REAL_DEX(ch) += get_race_stat(GET_RACE(ch), R_DEX_MOD);
+  GET_REAL_INT(ch) += get_race_stat(GET_RACE(ch), R_INTEL_MOD);
+  GET_REAL_WIS(ch) += get_race_stat(GET_RACE(ch), R_WIS_MOD);
+  GET_REAL_CHA(ch) += get_race_stat(GET_RACE(ch), R_CHA_MOD);
+  
+  /* some racial modifications, size, etc */
   switch (GET_RACE(ch)) {
     case RACE_HUMAN:
       GET_REAL_SIZE(ch) = SIZE_MEDIUM;
@@ -2055,72 +2068,38 @@ void init_start_char(struct char_data *ch) {
       break;
     case RACE_ELF:
       GET_REAL_SIZE(ch) = SIZE_MEDIUM;
-      GET_REAL_DEX(ch) += 2;
-      GET_REAL_CON(ch) -= 2;
       break;
     case RACE_DWARF:
       GET_REAL_SIZE(ch) = SIZE_MEDIUM;
-      GET_REAL_CON(ch) += 2;
-      GET_REAL_CHA(ch) -= 2;
       break;
     case RACE_HALFLING:
       GET_REAL_SIZE(ch) = SIZE_SMALL;
-      GET_REAL_STR(ch) -= 2;
-      GET_REAL_DEX(ch) += 2;
       break;
     case RACE_H_ELF:
       GET_REAL_SIZE(ch) = SIZE_MEDIUM;
       break;
     case RACE_H_ORC:
       GET_REAL_SIZE(ch) = SIZE_MEDIUM;
-      GET_REAL_INT(ch) -= 2;
-      GET_REAL_CHA(ch) -= 2;
-      GET_REAL_STR(ch) += 2;
       break;
     case RACE_GNOME:
       GET_REAL_SIZE(ch) = SIZE_SMALL;
-      GET_REAL_CON(ch) += 2;
-      GET_REAL_STR(ch) -= 2;
       break;
     case RACE_HALF_TROLL:
       GET_REAL_SIZE(ch) = SIZE_LARGE;
-      GET_REAL_CON(ch) += 2;
-      GET_REAL_STR(ch) += 2;
-      GET_REAL_DEX(ch) += 2;
-      GET_REAL_INT(ch) -= 4;
-      GET_REAL_WIS(ch) -= 4;
-      GET_REAL_CHA(ch) -= 4;
       break;
     case RACE_CRYSTAL_DWARF:
       GET_REAL_SIZE(ch) = SIZE_MEDIUM;
-      GET_REAL_CON(ch) += 8;
-      GET_REAL_STR(ch) += 2;
-      GET_REAL_CHA(ch) += 2;
-      GET_REAL_WIS(ch) += 2;
       GET_MAX_HIT(ch) += 10;
       break;
     case RACE_TRELUX:
       GET_REAL_SIZE(ch) = SIZE_SMALL;
-      GET_REAL_STR(ch) += 2;
-      GET_REAL_DEX(ch) += 8;
-      GET_REAL_CON(ch) += 4;
       GET_MAX_HIT(ch) += 10;
       break;
     case RACE_ARCANA_GOLEM:
       GET_REAL_SIZE(ch) = SIZE_MEDIUM;
-      GET_REAL_CON(ch) -= 2;
-      GET_REAL_STR(ch) -= 2;
-      GET_REAL_INT(ch) += 2;
-      GET_REAL_WIS(ch) += 2;
-      GET_REAL_CHA(ch) += 2;
       break;
     case RACE_DROW:
       GET_REAL_SIZE(ch) = SIZE_MEDIUM;
-      GET_REAL_CON(ch) -= 2;
-      GET_REAL_DEX(ch) += 2;
-      GET_REAL_INT(ch) += 2;
-      GET_REAL_WIS(ch) += 2;
-      GET_REAL_CHA(ch) += 2;
       break;
     default:
       GET_REAL_SIZE(ch) = SIZE_MEDIUM;
