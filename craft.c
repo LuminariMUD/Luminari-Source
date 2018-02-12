@@ -47,7 +47,7 @@ int foresting_nodes = 0;
 
 /* charts for weapon resize, if weapon dice don't fall on any of these, invalid */
 int weapon_damage_a[NUM_SIZES][2] = {
-  /* num_dice, siz_dice */  
+  /* num_dice, siz_dice */
   { 0, 0,}, /* SIZE_RESERVED */
   { 1, 2,}, //fine
   { 1, 3,},
@@ -65,7 +65,7 @@ int weapon_damage_b[NUM_SIZES][2] = {
   { 1, 1,}, //fine
   { 2, 1,},
   { 2, 3,},
-  { 1, 7,},  
+  { 1, 7,},
   { 2, 4,},
   { 1, 12,},
   { 4, 4,},
@@ -79,12 +79,13 @@ int weapon_damage_c[NUM_SIZES][2] = {
   { 3, 1,}, //diminiutive
   { 2, 2,},
   { 3, 2,},
-  { 1, 9,},  
+  { 1, 9,},
   { 1, 10,},
   { 2, 8,},
   { 3, 8,},
   { 4, 8,}, //colossal
 };
+
 /* the primary use of this function is to modify a weapons damage on resize
  *   weapon:  object, needs to be a weapon
  * we have 3 charts above trying to accomodate most weapons you could
@@ -164,6 +165,8 @@ bool scale_damage(struct char_data *ch, struct obj_data *weapon, int new_size) {
       GET_OBJ_VAL(weapon, 1) = weapon_damage_c[counter + size_shift][0];
       GET_OBJ_VAL(weapon, 2) = weapon_damage_c[counter + size_shift][1];
       GET_OBJ_SIZE(weapon) = new_size;
+      save_char(ch, 0);
+      Crash_crashsave(ch);
       return TRUE;
     }
   }
@@ -201,7 +204,7 @@ void reset_craft(struct char_data *ch) {
 
 /* simple function to reset auto craft data */
 void reset_acraft(struct char_data *ch) {
-  
+
   /* initialize values */
   GET_AUTOCQUEST_VNUM(ch) = 0;
   GET_AUTOCQUEST_MAKENUM(ch) = 0;
@@ -209,7 +212,7 @@ void reset_acraft(struct char_data *ch) {
   GET_AUTOCQUEST_EXP(ch) = 0;
   GET_AUTOCQUEST_GOLD(ch) = 0;
   GET_AUTOCQUEST_MATERIAL(ch) = 0;
-  
+
   if (GET_AUTOCQUEST_DESC(ch))
     free(GET_AUTOCQUEST_DESC(ch));
   GET_AUTOCQUEST_DESC(ch) = strdup("nothing");
@@ -541,7 +544,7 @@ void reset_harvesting_rooms(void) {
       continue;
     if (world[cnt].sector_type == SECT_UD_WATER_NOSWIM)
       continue;
-    
+
     num_rooms++;
   }
 
@@ -636,6 +639,7 @@ void reset_harvesting_rooms(void) {
 /*************************/
 
 // combine essence to make them stronger
+
 int augment(struct obj_data *kit, struct char_data *ch) {
   struct obj_data *obj = NULL, *essence_one = NULL, *essence_two = NULL;
   int num_objs = 0, cost = 0, level_diff = 0, success_chance = 0;
@@ -670,7 +674,7 @@ int augment(struct obj_data *kit, struct char_data *ch) {
   if (GET_OBJ_LEVEL(essence_one) >= (LVL_IMMORT - 1) ||
           GET_OBJ_LEVEL(essence_two) >= (LVL_IMMORT - 1)) {
     send_to_char(ch, "You can not further augment that essence!\r\n");
-    return 1;    
+    return 1;
   }
   level_diff = abs(GET_OBJ_LEVEL(essence_one) - GET_OBJ_LEVEL(essence_two));
   /* essence have to be 4 level range of each other */
@@ -678,13 +682,13 @@ int augment(struct obj_data *kit, struct char_data *ch) {
     send_to_char(ch, "The essence have to be closer in power (level) to each other!\r\n");
     return 1;
   }
-  
+
   /* what is the level we are adjusting? */
   if (GET_OBJ_LEVEL(essence_one) >= GET_OBJ_LEVEL(essence_two))
     essence_level = GET_OBJ_LEVEL(essence_one);
   else
     essence_level = GET_OBJ_LEVEL(essence_two);
-    
+
   /* high enough skill? */
   if (essence_level > (GET_SKILL(ch, skill_type) / 3)) {
     send_to_char(ch, "The essence level is %d but your %s skill is "
@@ -693,33 +697,32 @@ int augment(struct obj_data *kit, struct char_data *ch) {
             (GET_SKILL(ch, skill_type) / 3));
     return 1;
   }
-  
+
   cost = essence_level * 500 / 3; // expense for augmenting
   if (GET_GOLD(ch) < cost) {
     send_to_char(ch, "You need %d coins on hand for supplies to augment this "
             "crystal.\r\n", cost);
     return 1;
   }
-  
+
   /* roll the dice! */
   dice_roll = dice(1, 100);
-  
+
   /* success is level difference divided by 4,  percent */
   success_chance = 100 - (level_diff * 10);
   success_chance -= essence_level; /* minus level */
-  
+
   /* critical success */
   if (dice_roll >= 95)
     success_chance = 150;
-  
+
   dice_roll += GET_SKILL(ch, skill_type) / 3;
-  
+
   /* failed our attempt */
   if (dice_roll > success_chance) {
     send_to_char(ch, "There seems to be a flaw in your augmentation...\r\n");
   }
-  
-  /* success! */
+    /* success! */
   else {
     essence_level++;
     GET_OBJ_LEVEL(essence_one) = essence_level;
@@ -731,7 +734,7 @@ int augment(struct obj_data *kit, struct char_data *ch) {
   send_to_char(ch, "It cost you %d coins in supplies to augment this "
           "essence.\r\n", cost);
   GET_GOLD(ch) -= cost;
-  
+
   GET_CRAFTING_TYPE(ch) = SCMD_AUGMENT;
   GET_CRAFTING_TICKS(ch) = 10 - fast_craft_bonus;
   GET_CRAFTING_OBJ(ch) = essence_one;
@@ -742,8 +745,10 @@ int augment(struct obj_data *kit, struct char_data *ch) {
   /* get rid of the items in the kit */
   obj_from_obj(essence_one);
   extract_obj(essence_two);
-
   obj_to_char(essence_one, ch);
+  save_char(ch, 0);
+  Crash_crashsave(ch);
+
   NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
 
   if (!IS_NPC(ch))
@@ -754,6 +759,7 @@ int augment(struct obj_data *kit, struct char_data *ch) {
 
 // convert one material into another
 // requires multiples of exactly 10 of same mat to do the converstion
+
 /*  !! still under construction - zusuk !! */
 int convert(struct obj_data *kit, struct char_data *ch) {
   int cost = 500; /* flat cost */
@@ -846,6 +852,9 @@ int convert(struct obj_data *kit, struct char_data *ch) {
   obj_to_char(kit, ch);
 
   obj_to_char(new_mat, ch);
+
+  save_char(ch, 0);
+  Crash_crashsave(ch);
   NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
 
   return 1;
@@ -925,6 +934,8 @@ int restring(char *argument, struct obj_data *kit, struct char_data *ch) {
   obj_from_obj(obj);
 
   obj_to_char(obj, ch);
+  save_char(ch, 0);
+  Crash_crashsave(ch);
   NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
 
   return 1;
@@ -1003,7 +1014,8 @@ int autocraft(struct obj_data *kit, struct char_data *ch) {
   extract_obj(kit);
   kit = read_object(obj_vnum, VIRTUAL);
   obj_to_char(kit, ch);
-
+  save_char(ch, 0);
+  Crash_crashsave(ch);
   NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
 
   return 1;
@@ -1057,7 +1069,7 @@ int resize(char *argument, struct obj_data *kit, struct char_data *ch) {
     send_to_char(ch, "The object is already the size you desire.\r\n");
     return 1;
   }
-  
+
   /* "cost" of resizing */
   cost = GET_OBJ_COST(obj) / 2;
   if (GET_GOLD(ch) < cost) {
@@ -1104,6 +1116,8 @@ int resize(char *argument, struct obj_data *kit, struct char_data *ch) {
   GET_CRAFTING_TICKS(ch) = 5 - fast_craft_bonus;
 
   obj_to_char(obj, ch);
+  save_char(ch, 0);
+  Crash_crashsave(ch);
   NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
 
   return 1;
@@ -1150,9 +1164,9 @@ int disenchant(struct obj_data *kit, struct char_data *ch) {
             "extracting magic essence.\r\n");
     return 1;
   }
-  
+
   /* determine the level of this essence */
-  essence_level = dice(1, ((GET_OBJ_LEVEL(obj)/2)));
+  essence_level = dice(1, ((GET_OBJ_LEVEL(obj) / 2)));
 
   /* getting complaints it is too slow to notch - zusuk */
   if (!IS_NPC(ch)) {
@@ -1171,7 +1185,7 @@ int disenchant(struct obj_data *kit, struct char_data *ch) {
   /* clear item that got disenchanted */
   obj_from_obj(obj);
   extract_obj(obj);
-  
+
   /* make the check! */
   if (chem_check <= (GET_OBJ_LEVEL(obj) * 3 + 20)) {
     /* fail! */
@@ -1187,7 +1201,9 @@ int disenchant(struct obj_data *kit, struct char_data *ch) {
     GET_OBJ_LEVEL(obj) = essence_level;
     obj_to_char(obj, ch);
   }
-  
+
+  save_char(ch, 0);
+  Crash_crashsave(ch);
   NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
   return 1;
 }
@@ -1209,6 +1225,7 @@ int disenchant(struct obj_data *kit, struct char_data *ch) {
  * create is for wearable gear at this stage
  */
 #define CREATE_STRING_LIMIT 80
+
 int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode) {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   struct obj_data *obj = NULL, *mold = NULL, *crystal = NULL,
@@ -1475,16 +1492,15 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
     send_to_char(ch, "You need %d gold on hand to make this item.\r\n", cost);
 
     return 1;
-  } 
-  
-  /* not enough gold? */
+  }
+
+    /* not enough gold? */
   else if (GET_GOLD(ch) < cost) {
     send_to_char(ch, "You need %d coins on hand for supplies to make"
             "this item.\r\n", cost);
     return 1;
   }
-  
-  /* CREATE! */  
+    /* CREATE! */
   else {
     REMOVE_BIT_AR(GET_OBJ_EXTRA(mold), ITEM_MOLD);
     if (essence || crystal)
