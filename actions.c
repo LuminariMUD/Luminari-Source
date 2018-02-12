@@ -41,9 +41,10 @@ void (*attack_actions[NUM_ATTACK_ACTIONS])(struct char_data *ch,
   do_smitegood,         /* AA_SMITE_GOOD */
   do_destructivesmite,  /* AA_SMITE_DESTRUCTION */
   do_seekerarrow,       /* AA_SEEKER_ARROW */
-  do_deatharrow,       /* AA_DEATH_ARROW */
-  do_arrowswarm,       /* AA_ARROW_SWARM */
-  do_faeriefire,       /* AA_FAERIE_FIRE */
+  do_deatharrow,        /* AA_DEATH_ARROW */
+  do_arrowswarm,        /* AA_ARROW_SWARM */
+  do_faeriefire,        /* AA_FAERIE_FIRE */
+  do_feint,             /* AA_FEINT */  
 };
 
 void update_msdp_actions(struct char_data * ch) {

@@ -269,7 +269,8 @@ cpp_extern const struct command_info cmd_info[] = {
   { "fly", "fly", POS_FIGHTING, do_fly, 1, 0, FALSE, ACTION_MOVE, {0, 6}},
   { "fire", "fire", POS_FIGHTING, do_fire, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
   { "flurryofblows", "flurryofblows", POS_FIGHTING, do_mode, 1, MODE_FLURRY_OF_BLOWS, FALSE, ACTION_NONE, {0, 0}},
-  { "feint", "feint", POS_FIGHTING, do_feint, 1, 0, FALSE, ACTION_NONE, {0, 0}},
+  { "feint", "feint", POS_FIGHTING, do_process_attack, 1, AA_FEINT, FALSE, ACTION_NONE, {0, 0}},
+  
   { "firebolt", "firebolt", POS_FIGHTING, do_firebolt, 1, 0, FALSE, ACTION_STANDARD, {6, 0}},
   { "freegrapple", "freegrapple", POS_RECLINING, do_free_grapple, 1, 0, FALSE, ACTION_NONE, {0, 0}},
   { "faeriefire", "faeriefire", POS_FIGHTING, do_process_attack, 1, AA_FAERIE_FIRE, FALSE, ACTION_NONE, {0, 0}},
