@@ -1,7 +1,7 @@
 /*****************************************************************************
- ** assign_wpn_armor.c                        Part of LuminariMUD
+ * assign_wpn_armor.c                        Part of LuminariMUD
  * author: zusuk
- * Assigning weapon and armor values for respective types                   **
+ * Assigning weapon and armor values for respective types                   
  *****************************************************************************/
 
 #include "conf.h"
@@ -18,7 +18,7 @@
 #include "feats.h"
 #include "constants.h"
 #include "modify.h"
-#include "domain_schools.h"
+#include "domains_schools.h"
 
 
 /* global */
