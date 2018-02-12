@@ -3536,7 +3536,7 @@ void perform_seekerarrow(struct char_data *ch, struct char_data *vict) {
 }
 
 /* As a free action once per day per rank of the seeker arrow feat, the arcane 
-                   archer can fire an arrow that does not miss. */
+                   archer can fire an arrow that does not miss (+20 to hit). */
 ACMD(do_seekerarrow) {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
@@ -4607,6 +4607,10 @@ int perform_feint(struct char_data *ch, struct char_data *vict) {
     send_to_char(ch, "You can't see well enough to attempt that.\r\n");
     return -1;
   }
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return -1;
+  }  
 
   /* calculate our final bluff skill check (feint attempt) */
   bluff_skill_check = dice(1, 20) + compute_ability(ch, ABILITY_BLUFF);
@@ -4692,19 +4696,6 @@ ACMD(do_feint) {
   if (affected_by_spell(vict, SKILL_FEINT)) {
     send_to_char(ch, "Your opponent is already off balance!\r\n");
     return;
-  }
-
-  if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_IMPROVED_FEINT)) {
-    if (!is_action_available(ch, atMOVE, FALSE)
-            && !is_action_available(ch, atSTANDARD, FALSE)) {
-      send_to_char(ch, "You are not ready to feint again!\r\n");
-      return;
-    }
-  } else {
-    if (!is_action_available(ch, atSTANDARD, FALSE)) {
-      send_to_char(ch, "You are not ready to feint again!\r\n");
-      return;
-    }
   }
 
   perform_feint(ch, vict);

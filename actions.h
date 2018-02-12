@@ -24,8 +24,9 @@
 #define AA_DEATH_ARROW       15
 #define AA_ARROW_SWARM       16
 #define AA_FAERIE_FIRE       17
+#define AA_FEINT             18
 /**/
-#define NUM_ATTACK_ACTIONS   18
+#define NUM_ATTACK_ACTIONS   19
 /**************************/
 
 #define USE_STANDARD_ACTION(ch)   start_action_cooldown(ch, atSTANDARD, 6 RL_SEC)
