@@ -437,7 +437,7 @@ ACMD(do_ibt) {
   last_ibt = get_last_ibt(subcmd);
 
   if ((!*arg)) {
-    if (GET_LEVEL(ch) >= LVL_GRSTAFF) {
+    if (GET_LEVEL(ch) >= LVL_IMMORTAL) {
       send_to_char(ch, "Usage: %s%s submit <header>%s\r\n"
               "       %s%s list%s\r\n"
               "       %s%s show <num>%s\r\n"
@@ -578,7 +578,7 @@ ACMD(do_ibt) {
       } else {
         send_to_char(ch, "No %ss have been found that were reported by you!\r\n", CMD_NAME);
       }
-      if (GET_LEVEL(ch) >= LVL_GRSTAFF) {
+      if (GET_LEVEL(ch) >= LVL_IMMORTAL) {
         send_to_char(ch, "%sYou may use %s remove, resolve or edit to change the list..%s\r\n", QCYN, CMD_NAME, QNRM);
       }
       send_to_char(ch, "%sYou may use %s%s show <number>%s to see more indepth about the %s.%s\r\n", QCYN, QYEL, CMD_NAME, QCYN, CMD_NAME, QNRM);
@@ -631,7 +631,7 @@ ACMD(do_ibt) {
             TANA(CMD_NAME), CMD_NAME);
     return;
   } else if (is_abbrev(arg, "resolve")) {
-    if (GET_LEVEL(ch) < LVL_GRSTAFF) {
+    if (GET_LEVEL(ch) < LVL_IMMORTAL) {
       send_to_char(ch, "%s what?\r\n", ibt_types[subcmd]);
       return;
     }
@@ -658,7 +658,7 @@ ACMD(do_ibt) {
     }
     return;
   } else if (is_abbrev(arg, "remove")) {
-    if (GET_LEVEL(ch) < LVL_GRSTAFF) {
+    if (GET_LEVEL(ch) < LVL_IMMORTAL) {
       send_to_char(ch, "%s what?\r\n", ibt_types[subcmd]);
       return;
     }
@@ -684,21 +684,21 @@ ACMD(do_ibt) {
     }
     return;
   } else if (is_abbrev(arg, "save")) {
-    if (GET_LEVEL(ch) < LVL_GRSTAFF) {
+    if (GET_LEVEL(ch) < LVL_IMMORTAL) {
       send_to_char(ch, "%s what?\r\n", ibt_types[subcmd]);
       return;
     }
     save_ibt_file(subcmd);
     send_to_char(ch, "%s list saved.\r\n", ibt_types[subcmd]);
   } else if (is_abbrev(arg, "edit")) {
-    if (GET_LEVEL(ch) < LVL_GRSTAFF) {
+    if (GET_LEVEL(ch) < LVL_IMMORTAL) {
       send_to_char(ch, "%s what?\r\n", ibt_types[subcmd]);
       return;
     }
     /* Pass control to the OLC without the 'edit' arg */
     do_oasis_ibtedit(ch, arg_text, cmd, subcmd);
   } else {
-    if (GET_LEVEL(ch) < LVL_GRSTAFF) {
+    if (GET_LEVEL(ch) < LVL_IMMORTAL) {
       send_to_char(ch, "%s what?\r\n", ibt_types[subcmd]);
       send_to_char(ch, "Usage: %s submit <text>\r\n", ibt_types[subcmd]);
       return;
