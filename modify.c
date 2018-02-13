@@ -345,6 +345,11 @@ static void playing_string_cleanup(struct descriptor_data *d, int action) {
       mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s stops editing an idea.",
               GET_NAME(d->character));
       write_to_output(d, "Idea aborted!\r\n");
+
+      /* added by zusuk */
+      free(*d->str);
+      free(d->str);
+
       clean_ibt_list(SCMD_IDEA);
     }
   }
@@ -365,6 +370,11 @@ static void playing_string_cleanup(struct descriptor_data *d, int action) {
       mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s stops editing a bug.",
               GET_NAME(d->character));
       write_to_output(d, "Bug aborted!\r\n");
+
+      /* added by zusuk */
+      free(*d->str);
+      free(d->str);
+
       clean_ibt_list(SCMD_BUG);
     }
   }
@@ -381,6 +391,11 @@ static void playing_string_cleanup(struct descriptor_data *d, int action) {
       mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s stops editing a typo.",
               GET_NAME(d->character));
       write_to_output(d, "Typo aborted!\r\n");
+
+      /* added by zusuk */
+      free(*d->str);
+      free(d->str);
+
       clean_ibt_list(SCMD_TYPO);
     }
   }

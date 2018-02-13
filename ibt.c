@@ -1,5 +1,5 @@
 /**************************************************************************
- *  File: ibt.c                                             Part of LuminariMUD *
+ *  File: ibt.c                                        Part of LuminariMUD *
  *  Usage: Loading/saving/editing of Ideas, Bugs and Typos lists           *
  *                                                                         *
  *  All rights reserved.  See license for complete information.            *
@@ -9,25 +9,15 @@
  *  CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.               *
  **************************************************************************/
 
-//#if defined(macintosh)
-//#include <types.h>
-//#include <time.h>
-//#else
-//#include <sys/types.h>
-//#include <sys/time.h>
-//#endif
 #include "conf.h"
 #include "sysdep.h"
-
 #include "structs.h"
 #include "utils.h"
 #include "comm.h"
 #include "db.h"
 #include "handler.h"
 #include "interpreter.h"
-//#include "genobj.h"
 #include "constants.h"
-//#include "fight.h"
 #include "screen.h"
 #include "act.h"
 #include "utils.h"
@@ -387,9 +377,8 @@ bool ibt_in_list(int mode, IBT_DATA *ibt) {
   return FALSE;
 }
 
-/* Free up an IBT struct, removing it from the list if necessary */
-
-/* returns TRUE on success                                       */
+/* Free up an IBT struct, removing it from the list if necessary
+   returns TRUE on success  */
 bool free_ibt(int mode, IBT_DATA *ibtData) {
   if (ibtData == NULL) return FALSE;
 
@@ -720,11 +709,10 @@ ACMD(do_ibt) {
   }
 }
 
-/* IBT Editor OLC */
-/* OLC_VAL(d)  - The IBT 'mode' - Idea, Bug or Typo */
-/* OLC_NUM(d)  - The IBT number (shown in 'list')   */
-
-/* OLC_ZNUM(d) - Used as 'has changed' flag         */
+/* IBT Editor OLC 
+   OLC_VAL(d)  - The IBT 'mode' - Idea, Bug or Typo 
+   OLC_NUM(d)  - The IBT number (shown in 'list')   
+   OLC_ZNUM(d) - Used as 'has changed' flag */
 ACMD(do_oasis_ibtedit) {
   int number = NOTHING;
   struct descriptor_data *d;
@@ -950,7 +938,7 @@ static void ibtedit_disp_flags(struct descriptor_data *d) {
 }
 /*-------------------------------------------------------------------*/
 
-/* main clanedit parser function... interpreter throws all input to here. */
+/* main ibt edit parser function... interpreter throws all input to here. */
 void ibtedit_parse(struct descriptor_data *d, char *arg) {
   int i;
   char *oldtext = NULL;
@@ -1127,6 +1115,8 @@ void free_ibt_lists() {
   }
 }
 
+/* original */
+/*
 void clean_ibt_list(int mode) {
   IBT_DATA *ibtData = get_first_ibt(mode), *ibtTemp;
   while (ibtData) {
@@ -1137,3 +1127,17 @@ void clean_ibt_list(int mode) {
     }
   }
 }
+*/
+
+void clean_ibt_list(int mode) {
+  IBT_DATA *ibtData = get_first_ibt(mode), *ibtTemp;
+  while (ibtData) {
+    ibtTemp = ibtData;
+    ibtData = ibtData->next;
+    if (!ibtTemp->body || !*ibtTemp->body) {
+      free_ibt(mode, ibtTemp);
+    }
+  }
+}
+
+/*EOF*/
