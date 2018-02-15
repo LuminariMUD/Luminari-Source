@@ -297,7 +297,7 @@ bool npc_rescue(struct char_data *ch) {
   // going to prioritize rescuing master (if it has one)
   if (AFF_FLAGGED(ch, AFF_CHARM) && ch->master && !rand_number(0, 1) &&
           (GET_MAX_HIT(ch) / GET_HIT(ch)) <= 2) {
-    if (FIGHTING(ch->master) && (GET_MAX_HIT(ch->master) / GET_HIT(ch->master)) <= 3) {
+    if (FIGHTING(ch->master) && ((GET_MAX_HIT(ch->master) / GET_HIT(ch->master)) <= 3)) {
       perform_rescue(ch, ch->master);
       return TRUE;
     }
@@ -311,7 +311,8 @@ bool npc_rescue(struct char_data *ch) {
       loop_counter++;
       if (loop_counter >= RESCUE_LOOP)
         break;
-    } while (!victim || victim == ch);
+    } while (!victim || victim == ch || !FIGHTING(victim) ||
+            ((GET_MAX_HIT(victim) / GET_HIT(victim)) > 3));
 
     if (loop_counter < RESCUE_LOOP && FIGHTING(victim)) {
       perform_rescue(ch, victim);
