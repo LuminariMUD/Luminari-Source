@@ -3624,9 +3624,11 @@ ACMD(do_faeriefire) {
 }
 
 ACMD(do_kick) {
+  /* zusuk was here!
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
-
+  */
+  
   if (!MOB_CAN_FIGHT(ch)) {
     send_to_char(ch, "But you can't fight!\r\n");
     return;
