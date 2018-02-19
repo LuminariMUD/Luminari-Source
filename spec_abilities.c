@@ -337,7 +337,7 @@ int process_armor_abilities(struct char_data *ch, /* The player wearing the armo
           continue;
         }
         activated_abilities++;
-        (*special_ability_info[specab->ability].special_ability_proc) (specab, armor, ch, victim, actmtd);
+        (*special_ability_info[specab->ability].special_ability_proc) (specab, obj, ch, victim, actmtd);
 
       }
     }
