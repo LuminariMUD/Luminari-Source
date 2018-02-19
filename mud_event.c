@@ -926,6 +926,35 @@ struct mud_event_data *room_has_mud_event(struct room_data *rm, event_id iId) {
   return NULL;
 }
 
+struct mud_event_data *obj_has_mud_event(struct obj_data *obj, event_id iId) {
+  struct event * pEvent = NULL;
+  struct mud_event_data * pMudEvent = NULL;
+  bool found = FALSE;
+
+  if (obj->events == NULL)
+    return NULL;
+
+  if (obj->events->iSize == 0)
+    return NULL;
+
+  simple_list(NULL);
+  while ((pEvent = (struct event *) simple_list(obj->events)) != NULL) {
+    if (!pEvent->isMudEvent)
+      continue;
+    pMudEvent = (struct mud_event_data *) pEvent->event_obj;
+    if (pMudEvent->iId == iId) {
+      found = TRUE;
+      break;
+    }
+  }
+  simple_list(NULL);
+
+  if (found)
+    return (pMudEvent);
+
+  return NULL;
+}
+
 struct mud_event_data *region_has_mud_event(struct region_data *reg, event_id iId) {
   struct event * pEvent = NULL;
   struct mud_event_data * pMudEvent = NULL;

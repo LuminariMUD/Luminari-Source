@@ -163,6 +163,7 @@ void attach_mud_event(struct mud_event_data *pMudEvent, long time);
 void free_mud_event(struct mud_event_data *pMudEvent);
 struct mud_event_data *char_has_mud_event(struct char_data *ch, event_id iId);
 struct mud_event_data *room_has_mud_event(struct room_data *rm, event_id iId);      // Ornir
+struct mud_event_data *obj_has_mud_event(struct obj_data *obj, event_id iId);       // Ornir
 struct mud_event_data *region_has_mud_event(struct region_data *reg, event_id iId); // Ornir
 void clear_char_event_list(struct char_data *ch);
 void clear_room_event_list(struct room_data *rm);
