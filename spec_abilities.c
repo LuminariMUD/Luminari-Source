@@ -277,7 +277,7 @@ int process_weapon_abilities(struct obj_data *weapon, /* The weapon to check for
   /* Run the 'callbacks' for each of the special abilities on weapon that match the activation method. */
   for (specab = weapon->special_abilities; specab != NULL; specab = specab->next) {
     /* Only deal with weapon special abilities */
-    if (specab->type != SPECAB_TYPE_WEAPON)
+    if (special_ability_info[specab->ability].type != SPECAB_TYPE_WEAPON)
       continue;
     /* So we have an ability, check the activation method. */
     if (IS_SET(specab->activation_method, actmtd)) { /* Match! */
@@ -322,7 +322,7 @@ int process_armor_abilities(struct char_data *ch, /* The player wearing the armo
     /* Run the 'callbacks' for each of the special abilities on the object that match the activation method. */
     for (specab = obj->special_abilities; specab != NULL; specab = specab->next) {
       /* Only deal with armor special abilities */
-      if (specab->type != SPECAB_TYPE_ARMOR)
+      if (special_ability_info[specab->ability].type != SPECAB_TYPE_ARMOR)
         continue;
       
       /* So we have an ability, check the activation method. */
