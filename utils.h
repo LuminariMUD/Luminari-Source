@@ -143,7 +143,7 @@ int get_levelup_sorcerer_bloodline_type(struct char_data *ch);
 int get_daily_uses(struct char_data *ch, int featnum);
 int start_daily_use_cooldown(struct char_data *ch, int featnum);
 int daily_uses_remaining(struct char_data *ch, int featnum);
-int daily_armor_specab_uses_remaining(struct obj_data *, int specab);
+int daily_armor_specab_uses_remaining(struct obj_data *obj, int specab);
 int start_armor_specab_daily_use_cooldown(struct obj_data *obj, int specab);
 
 /* ASCII output formatting */
