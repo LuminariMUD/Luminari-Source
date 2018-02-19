@@ -479,7 +479,7 @@ EVENTFUNC(event_daily_use_cooldown) {
     log("SYSERR: sVariables field is NULL for daily-use-cooldown-event: %d", pMudEvent->iId);
   } else {
     if (sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1) {
-      log("SYSERR: In daily_uses_remaining, bad sVariables for daily-use-cooldown-event: %d", pMudEvent->iId);
+      log("SYSERR: In event_daily_use_cooldown, bad sVariables for daily-use-cooldown-event: %d", pMudEvent->iId);
       uses = 0;
     }
   }

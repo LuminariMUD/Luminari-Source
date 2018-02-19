@@ -145,7 +145,7 @@ void initialize_special_abilities(void) {
   /* Do not change the loop above. */
 
   add_armor_special_ability(ARMOR_SPECAB_BLINDING, "Blinding", 7, ACTMTD_COMMAND_WORD,
-          TAR_IGNORE, TRUE, 0, EVOCATION, 1, NULL);
+          TAR_IGNORE, TRUE, 0, EVOCATION, 1, armor_specab_blinding);
 
   daily_armor_specab(ARMOR_SPECAB_BLINDING, eARMOR_SPECAB_BLINDING, 2);          
 
@@ -363,9 +363,9 @@ ARMOR_SPECIAL_ABILITY(armor_specab_blinding) {
        *  - Check the cooldown - This ability can be used 2x a day, so set a cooldown on the shield using events.
        *  - Send a message to the room, then attempt to blind engaged creatures.
        */      
-      if(daily_armor_specab_uses_remaining(armor, ARMOR_SPECAB_BLINDING) < 1) {
+      if(daily_armor_specab_uses_remaining(armor, ARMOR_SPECAB_BLINDING) == 0) {
         /* No uses remaining... */
-        send_to_char(ch, "Nothing seems to happen.\r\n");
+        send_to_char(ch, "The item must regain its energies before this ability can be invoked again.\r\n");
         break;
       }
 
