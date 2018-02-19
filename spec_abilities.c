@@ -337,7 +337,7 @@ int process_armor_abilities(struct char_data *ch, /* The player wearing the armo
           continue;
         }
         activated_abilities++;
-        (*special_ability_info[specab->ability].special_ability_proc) (specab, weapon, ch, victim, actmtd);
+        (*special_ability_info[specab->ability].special_ability_proc) (specab, armor, ch, victim, actmtd);
 
       }
     }
@@ -354,10 +354,8 @@ ARMOR_SPECIAL_ABILITY(armor_specab_blinding) {
    * victim
    * obj
    */
-struct char_data *ch = NULL, *tch = NULL;
-  struct mud_event_data *pMudEvent = NULL;
+  struct *tch = NULL;
   struct list_data *room_list = NULL;
-  int count = 0;
 
   switch (actmtd) {
     case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */    
