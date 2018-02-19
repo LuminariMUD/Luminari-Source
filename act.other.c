@@ -4207,11 +4207,12 @@ ACMD(do_utter) {
         case WEAR_WIELD_2H:
           found += process_weapon_abilities(mag_item, ch, NULL, ACTMTD_COMMAND_WORD, argument);
           break;
-        default:
+        default:          
           break;
       }
     }
   }
+  found += process_armor_abilities(ch, NULL, ACTMTD_COMMAND_WORD, argument);
   if (found == 0)
     send_to_char(ch, "Nothing happens.\r\n");
   else
