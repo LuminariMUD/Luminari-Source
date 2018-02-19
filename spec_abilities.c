@@ -303,11 +303,12 @@ int process_armor_abilities(struct char_data *ch, /* The player wearing the armo
                             int actmtd, /* Activation method */
                             char *cmdword) /* Command word (optional, NULL if none. */
  {
+  int i = 0;
   int activated_abilities = 0;
   struct obj_data *obj;
   
   /* Check every piece of armor/equipment that the player is wearing. */
-  for (int i = 0; i < NUM_WEARS; i++) {
+  for (i = 0; i < NUM_WEARS; i++) {
     
     if ((i == WEAR_WIELD_1) ||
         (i == WEAR_WIELD_OFFHAND) ||
