@@ -394,7 +394,7 @@ ARMOR_SPECIAL_ABILITY(armor_specab_blinding) {
       if (room_list)
         free_list(room_list);
    
-      start_armor_specab_daily_use_cooldown(obj, ARMOR_SPECAB_BLINDING);
+      start_armor_specab_daily_use_cooldown(armor, ARMOR_SPECAB_BLINDING);
       break;
     case ACTMTD_USE: /* User USEs the item. */
       break;
