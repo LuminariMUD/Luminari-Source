@@ -318,31 +318,31 @@ int process_armor_abilities(struct char_data *ch, /* The player wearing the armo
     } 
 
     obj = GET_EQ(ch, i);
-    
-    struct obj_special_ability *specab; /* struct for iterating through the object's abilities. */
-    /* Run the 'callbacks' for each of the special abilities on the object that match the activation method. */
-    for (specab = obj->special_abilities; specab != NULL; specab = specab->next) {
-      /* Only deal with armor special abilities */
-      if (special_ability_info[specab->ability].type != SPECAB_TYPE_ARMOR)
-        continue;
-      
-      /* So we have an ability, check the activation method. */
-      if (IS_SET(specab->activation_method, actmtd)) { /* Match! */
-        if (actmtd == ACTMTD_COMMAND_WORD) { /* check the command word */
-          if (strcmp(specab->command_word, cmdword)) /* No Match */
-            continue; /* Skip this ability, no match. */
-        }
-        if (special_ability_info[specab->ability].special_ability_proc == NULL) {
-          log("SYSERR: PROCESS_ARMOR_ABILITIES: ability '%s' has no callback function!", special_ability_info[specab->ability].name);
+    if (obj != NULL) {
+      struct obj_special_ability *specab; /* struct for iterating through the object's abilities. */
+      /* Run the 'callbacks' for each of the special abilities on the object that match the activation method. */
+      for (specab = obj->special_abilities; specab != NULL; specab = specab->next) {
+        /* Only deal with armor special abilities */
+        if (special_ability_info[specab->ability].type != SPECAB_TYPE_ARMOR)
           continue;
-        }
-        activated_abilities++;
-        (*special_ability_info[specab->ability].special_ability_proc) (specab, obj, ch, victim, actmtd);
+        
+        /* So we have an ability, check the activation method. */
+        if (IS_SET(specab->activation_method, actmtd)) { /* Match! */
+          if (actmtd == ACTMTD_COMMAND_WORD) { /* check the command word */
+            if (strcmp(specab->command_word, cmdword)) /* No Match */
+              continue; /* Skip this ability, no match. */
+          }
+          if (special_ability_info[specab->ability].special_ability_proc == NULL) {
+            log("SYSERR: PROCESS_ARMOR_ABILITIES: ability '%s' has no callback function!", special_ability_info[specab->ability].name);
+            continue;
+          }
+          activated_abilities++;
+          (*special_ability_info[specab->ability].special_ability_proc) (specab, obj, ch, victim, actmtd);
 
+        }
       }
     }
   }
-
   return activated_abilities;
 }
 
