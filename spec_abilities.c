@@ -379,7 +379,7 @@ ARMOR_SPECIAL_ABILITY(armor_specab_blinding) {
         break;
 
       for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
-        if (FIGHTING(tch) == ch))
+        if (FIGHTING(tch) == ch)
           add_to_list(tch, room_list);
 
       /* If our list is empty or has "0" entries print a message and enable coolodown. */
