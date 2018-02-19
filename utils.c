@@ -3603,7 +3603,7 @@ int start_armor_specab_daily_use_cooldown(struct obj_data *obj, int specab) {
   } else {
     /* No event - so attach one. */
     uses = 1;
-    attach_mud_event(new_mud_event(iId, ch, "uses:1"), (SECS_PER_MUD_DAY / daily_uses) RL_SEC);
+    attach_mud_event(new_mud_event(iId, obj, "uses:1"), (SECS_PER_MUD_DAY / daily_uses) RL_SEC);
   }
 
   return uses;
