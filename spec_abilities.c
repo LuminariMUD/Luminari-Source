@@ -363,7 +363,7 @@ ARMOR_SPECIAL_ABILITY(armor_specab_blinding) {
        *  - Check the cooldown - This ability can be used 2x a day, so set a cooldown on the shield using events.
        *  - Send a message to the room, then attempt to blind engaged creatures.
        */      
-      if(daily_armor_specab_uses_remaining(obj, ARMOR_SPECAB_BLINDING) < 1) {
+      if(daily_armor_specab_uses_remaining(armor, ARMOR_SPECAB_BLINDING) < 1) {
         /* No uses remaining... */
         send_to_char(ch, "Nothing seems to happen.\r\n");
         break;
