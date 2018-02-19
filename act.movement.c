@@ -2364,6 +2364,12 @@ ACMD(do_sit) {
 }
 
 ACMD(do_rest) {
+    struct mud_event_data *pMudEvent = NULL;
+    
+  if ((pMudEvent = char_has_mud_event(ch, eRAGE)))  
+    send_to_char(ch, "Rest now? No way. PRESS ON!\r\n");
+    return;
+    
   switch (GET_POS(ch)) {
     case POS_STANDING:
       send_to_char(ch, "You sit down and rest your tired bones.\r\n");
@@ -2433,6 +2439,12 @@ ACMD(do_recline) {
 }
 
 ACMD(do_sleep) {
+    struct mud_event_data *pMudEvent = NULL;
+    
+  if ((pMudEvent = char_has_mud_event(ch, eRAGE)))  
+    send_to_char(ch, "You are way too hyper for that right now!\r\n");
+    return;
+    
   switch (GET_POS(ch)) {
     case POS_STANDING:
     case POS_SITTING:
