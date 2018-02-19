@@ -3596,7 +3596,7 @@ int start_armor_specab_daily_use_cooldown(struct obj_data *obj, int specab) {
     uses++;
 
     if (uses > daily_uses)
-      log("SYSERR: Daily uses exceeed maximum for %s, specab %s", GET_NAME(ch), special_ability_info[specab].name);
+      log("SYSERR: Daily uses exceeed maximum for %s, specab %s", obj->name, special_ability_info[specab].name);
 
     sprintf(buf, "uses:%d", uses);
     pMudEvent->sVariables = strdup(buf);
