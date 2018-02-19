@@ -480,7 +480,7 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_flaming_burst) {
         act("Magical flames spread down the length of $n's $o!", FALSE, ch, weapon, NULL, TO_ROOM);
 
         SET_OBJ_FLAG(weapon, ITEM_FLAMING);
-      }s
+      }
       break;
     case ACTMTD_ON_HIT: /* Called whenever a weapon hits an enemy. */
       if (OBJ_FLAGGED(weapon, ITEM_FLAMING)) /* Burn 'em. */
