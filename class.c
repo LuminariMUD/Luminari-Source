@@ -4591,7 +4591,8 @@ void load_class_list(void) {
   /* no spell assignment */
   /* class prereqs */
   class_prereq_bab(CLASS_ARCANE_ARCHER, 5);
-  /* elf, half-elf only */
+  /* elf, half-elf, drow only */
+  class_prereq_race(CLASS_ARCANE_ARCHER, RACE_DROW);
   class_prereq_race(CLASS_ARCANE_ARCHER, RACE_ELF);
   class_prereq_race(CLASS_ARCANE_ARCHER, RACE_HALF_ELF);
   class_prereq_feat(CLASS_ARCANE_ARCHER, FEAT_POINT_BLANK_SHOT, 1);
