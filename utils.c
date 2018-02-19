@@ -3611,7 +3611,7 @@ int start_armor_specab_daily_use_cooldown(struct obj_data *obj, int specab) {
 
 /* Function to return the number of daily uses remaining for a particular armor special ability.
  * Returns the number of daily uses available or -1 if the object does not have that special ability. */
-int daily_armor_specab_uses_remaining(struct obj_data *, int specab) {
+int daily_armor_specab_uses_remaining(struct obj_data *obj, int specab) {
   struct mud_event_data * pMudEvent = NULL;
   int uses = 0;
   int uses_per_day = 0;
@@ -3620,7 +3620,7 @@ int daily_armor_specab_uses_remaining(struct obj_data *, int specab) {
   if ((iId = special_ability_info[specab].event) == eNULL)
     return -1;
 
-  if ((pMudEvent = char_has_mud_event(ch, iId))) {
+  if ((pMudEvent = obj_has_mud_event(obj, iId))) {
     if (pMudEvent->sVariables == NULL) {
       /* This is odd - This field should always be populated for daily-use abilities,
        * maybe some legacy code or bad id. */
