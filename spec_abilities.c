@@ -354,7 +354,7 @@ ARMOR_SPECIAL_ABILITY(armor_specab_blinding) {
    * victim
    * obj
    */
-  struct *tch = NULL;
+  struct char_data *tch = NULL;
   struct list_data *room_list = NULL;
 
   switch (actmtd) {
