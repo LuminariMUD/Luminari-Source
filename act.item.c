@@ -328,8 +328,25 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
                 material_name[armor_list[armor_val].material],
                 wear_bits[armor_list[armor_val].wear]);
       }
+      /* Special abilities*/
+      bool found = FALSE;
+      send_to_char(ch, "Special Abilities:\r\n");
+      for (specab = item->special_abilities; specab != NULL; specab = specab->next) {
+        found = TRUE;
+        sprintbit(specab->activation_method, activation_methods, actmtds, MAX_STRING_LENGTH);
+        send_to_char(ch, "Ability: %s Level: %d\r\n"
+                "    Activation Methods: %s\r\n"
+                "    CommandWord: %s\r\n"
+                "    Values: [%d] [%d] [%d] [%d]\r\n",
+                special_ability_info[specab->ability].name,
+                specab->level, actmtds,
+                (specab->command_word == NULL ? "Not set." : specab->command_word),
+                specab->value[0], specab->value[1], specab->value[2], specab->value[3]);
+      }
+      if (!found)
+        send_to_char(ch, "No special abilities assigned.\r\n");
 
-      break;
+      break;      
     case ITEM_CONTAINER:
       sprintbit(GET_OBJ_VAL(item, 1), container_bits, buf, sizeof (buf));
       send_to_char(ch, "Weight capacity: %d, Lock Type: %s, Key Num: %d, Corpse: %s\r\n",
