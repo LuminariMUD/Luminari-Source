@@ -3578,7 +3578,7 @@ int start_armor_specab_daily_use_cooldown(struct obj_data *obj, int specab) {
     return (0);
   }
 
-  if ((pMudEvent = char_has_mud_event(ch, iId))) {
+  if ((pMudEvent = obj_has_mud_event(obj, iId))) {
     /* Player is on cooldown for this ability - just update the event. */
     /* The number of uses is stored in the pMudEvent->sVariables field. */
     if (pMudEvent->sVariables == NULL) {
