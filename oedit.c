@@ -465,7 +465,7 @@ static void oedit_disp_weapon_special_abilities_menu(struct descriptor_data *d) 
             "   Activation Methods: %s%s%s\r\n"
             "   CommandWord: %s%s%s\r\n"
             "   Values: [%s%d%s] [%s%d%s] [%s%d%s] [%s%d%s]\r\n",
-            grn, counter, nrm, yel, weapon_special_ability_info[specab->ability].name, nrm, yel, specab->level, nrm,
+            grn, counter, nrm, yel, special_ability_info[specab->ability].name, nrm, yel, specab->level, nrm,
             yel, actmtds, nrm,
             yel, (specab->command_word == NULL ? "Not set." : specab->command_word), nrm,
             yel, specab->value[0], nrm,
@@ -519,7 +519,7 @@ static void oedit_disp_assign_weapon_specab_menu(struct descriptor_data *d) {
           "%sV%s) Values: [%s%d%s] [%s%d%s] [%s%d%s] [%s%d%s]\r\n"
           "%sQ%s) Quit\r\n"
           "Enter Choice : ",
-          grn, nrm, yel, weapon_special_ability_info[specab->ability].name, nrm,
+          grn, nrm, yel, special_ability_info[specab->ability].name, nrm,
           grn, nrm, yel, specab->level, nrm,
           grn, nrm, yel, actmtds, nrm,
           grn, nrm, yel, (specab->command_word == NULL ? "Not set." : specab->command_word), nrm,
@@ -534,7 +534,7 @@ static void oedit_disp_assign_weapon_specab_menu(struct descriptor_data *d) {
 }
 
 static void oedit_weapon_specab(struct descriptor_data *d) {
-  const char *specab_names[NUM_WEAPON_SPECABS - 1]; /* We are ignoring the first, 0 value. */
+  const char *specab_names[NUM_SPECABS - 1]; /* We are ignoring the first, 0 value. */
   int i = 0;
 
   get_char_colors(d->character);
@@ -542,11 +542,11 @@ static void oedit_weapon_specab(struct descriptor_data *d) {
 
   /* we want to use column_list here, but we don't have a pre made list
    * of string values.  Make one, and make sure it is in order. */
-  for (i = 0; i < NUM_WEAPON_SPECABS - 1; i++) {
-    specab_names[i] = weapon_special_ability_info[i + 1].name;
+  for (i = 0; i < NUM_SPECABS - 1; i++) {
+    specab_names[i] = special_ability_info[i + 1].name;
   }
 
-  column_list(d->character, 0, specab_names, NUM_WEAPON_SPECABS - 1, TRUE);
+  column_list(d->character, 0, specab_names, NUM_SPECABS - 1, TRUE);
   write_to_output(d, "\r\n%sEnter weapon special ability : ", nrm);
   OLC_MODE(d) = OEDIT_WEAPON_SPECAB;
 }
@@ -2494,14 +2494,14 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
     case OEDIT_WEAPON_SPECAB:
       /* The user has chosen a special ability for this weapon. */
       number = atoi(arg); /* No need to decrement number, we adjusted it already. */
-      if ((number < 0) || (number >= NUM_WEAPON_SPECABS)) {
+      if ((number < 0) || (number >= NUM_SPECABS)) {
         write_to_output(d, "Invalid choice, try again : ");
         return;
       }
 
       OLC_SPECAB(d)->ability = number;
-      OLC_SPECAB(d)->level = weapon_special_ability_info[number].level;
-      OLC_SPECAB(d)->activation_method = weapon_special_ability_info[number].activation_method;
+      OLC_SPECAB(d)->level = special_ability_info[number].level;
+      OLC_SPECAB(d)->activation_method = special_ability_info[number].activation_method;
 
       OLC_MODE(d) = OEDIT_ASSIGN_WEAPON_SPECAB_MENU;
       oedit_disp_assign_weapon_specab_menu(d);

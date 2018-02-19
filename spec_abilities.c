@@ -60,8 +60,7 @@
 #include "domains_schools.h"
 */
 
-struct special_ability_info_type weapon_special_ability_info[NUM_WEAPON_SPECABS];
-struct special_ability_info_type armor_special_ability_info[NUM_ARMOR_SPECABS];
+struct special_ability_info_type special_ability_info[NUM_SPECABS];
 
 const char *unused_specabname = "!UNUSED!"; /* So we can get &unused_specabname */
 
@@ -75,55 +74,50 @@ const char *activation_methods[NUM_ACTIVATION_METHODS + 1] = {"None",
 
 /* Procedures for loading and managing the special abilities on boot. */
 static void add_weapon_special_ability(int specab, const char *name, int level, int actmtd, int targets, int violent, int time, int school, int cost, SPECAB_PROC_DEF(specab_proc)) {
-  weapon_special_ability_info[specab].level = level;
-  weapon_special_ability_info[specab].activation_method = actmtd;
-  weapon_special_ability_info[specab].targets = targets;
-  weapon_special_ability_info[specab].violent = violent;
-  weapon_special_ability_info[specab].name = name;
-  weapon_special_ability_info[specab].time = time;
-  weapon_special_ability_info[specab].school = school;
-  weapon_special_ability_info[specab].cost = cost;
-  weapon_special_ability_info[specab].special_ability_proc = specab_proc;
+  special_ability_info[specab].type = SPECAB_TYPE_WEAPON;
+  special_ability_info[specab].level = level;
+  special_ability_info[specab].activation_method = actmtd;
+  special_ability_info[specab].targets = targets;
+  special_ability_info[specab].violent = violent;
+  special_ability_info[specab].name = name;
+  special_ability_info[specab].time = time;
+  special_ability_info[specab].school = school;
+  special_ability_info[specab].cost = cost;
+  special_ability_info[specab].special_ability_proc = specab_proc;
 }
 
-/*
+
 static void add_armor_special_ability(int specab, const char *name, int level, int actmtd, int targets, int violent, int time, int school, int cost, SPECAB_PROC_DEF(specab_proc)) {
-  armor_special_ability_info[specab].level = level;
-  armor_special_ability_info[specab].activation_method = actmtd;
-  armor_special_ability_info[specab].targets = targets;
-  armor_special_ability_info[specab].violent = violent;
-  armor_special_ability_info[specab].name = name;
-  armor_special_ability_info[specab].time = time;
-  armor_special_ability_info[specab].school = school;
-  armor_special_ability_info[specab].cost = cost;
-  armor_special_ability_info[specab].special_ability_proc = specab_proc;
-
-}
- */
-
-static void add_unused_weapon_special_ability(int specab) {
-  weapon_special_ability_info[specab].level = 0;
-  weapon_special_ability_info[specab].activation_method = 0;
-  weapon_special_ability_info[specab].targets = 0;
-  weapon_special_ability_info[specab].violent = 0;
-  weapon_special_ability_info[specab].name = unused_specabname;
-  weapon_special_ability_info[specab].time = 0;
-  weapon_special_ability_info[specab].school = NOSCHOOL;
-  weapon_special_ability_info[specab].cost = 0;
-  weapon_special_ability_info[specab].special_ability_proc = NULL;
+  special_ability_info[specab].type = SPECAB_TYPE_ARMOR;
+  special_ability_info[specab].level = level;
+  special_ability_info[specab].activation_method = actmtd;
+  special_ability_info[specab].targets = targets;
+  special_ability_info[specab].violent = violent;
+  special_ability_info[specab].name = name;
+  special_ability_info[specab].time = time;
+  special_ability_info[specab].school = school;
+  special_ability_info[specab].cost = cost;
+  special_ability_info[specab].special_ability_proc = specab_proc;
 }
 
-static void add_unused_armor_special_ability(int specab) {
-  armor_special_ability_info[specab].level = 0;
-  armor_special_ability_info[specab].activation_method = 0;
-  armor_special_ability_info[specab].targets = 0;
-  armor_special_ability_info[specab].violent = 0;
-  armor_special_ability_info[specab].name = unused_specabname;
-  armor_special_ability_info[specab].time = 0;
-  armor_special_ability_info[specab].school = NOSCHOOL;
-  armor_special_ability_info[specab].cost = 0;
-  armor_special_ability_info[specab].special_ability_proc = NULL;
+void daily_armor_specab(int specab, event_id event, int daily_uses) {
+  special_ability_info[specab].daily_uses = daily_uses;  
+  special_ability_info[specab].event = event;
+}
 
+static void add_unused_special_ability(int specab) {
+  special_ability_info[specab].type = SPECAB_TYPE_NONE;
+  special_ability_info[specab].level = 0;
+  special_ability_info[specab].activation_method = 0;
+  special_ability_info[specab].targets = 0;
+  special_ability_info[specab].violent = 0;
+  special_ability_info[specab].name = unused_specabname;
+  special_ability_info[specab].time = 0;
+  special_ability_info[specab].school = NOSCHOOL;
+  special_ability_info[specab].cost = 0;
+  special_ability_info[specab].daily_uses = 0;
+  special_ability_info[specab].event = eNULL;
+  special_ability_info[specab].special_ability_proc = NULL;
 }
 
 /**  (Targeting re-used from spells.h)
@@ -146,11 +140,14 @@ void initialize_special_abilities(void) {
 
   /* Initialize all abilities to UNUSED. */
   /* Do not change the loops below. */
-  for (i = 0; i < NUM_WEAPON_SPECABS; i++)
-    add_unused_weapon_special_ability(i);
-  for (i = 0; i < NUM_ARMOR_SPECABS; i++)
-    add_unused_armor_special_ability(i);
-  /* Do not change the loops above. */
+  for (i = 0; i < NUM_SPECABS; i++)
+    add_unused_special_ability(i);
+  /* Do not change the loop above. */
+
+  add_armor_special_ability(ARMOR_SPECAB_BLINDING, "Blinding", 7, ACTMTD_COMMAND_WORD,
+          TAR_IGNORE, TRUE, 0, EVOCATION, 1, NULL);
+
+  daily_armor_specab(ARMOR_SPECAB_BLINDING, eARMOR_SPECAB_BLINDING, 2);          
 
   add_weapon_special_ability(WEAPON_SPECAB_ANARCHIC, "Anarchic", 7, ACTMTD_NONE,
           TAR_IGNORE, FALSE, 0, EVOCATION, 2, NULL);
@@ -279,23 +276,137 @@ int process_weapon_abilities(struct obj_data *weapon, /* The weapon to check for
   struct obj_special_ability *specab; /* struct for iterating through the object's abilities. */
   /* Run the 'callbacks' for each of the special abilities on weapon that match the activation method. */
   for (specab = weapon->special_abilities; specab != NULL; specab = specab->next) {
+    /* Only deal with weapon special abilities */
+    if (specab->type != SPECAB_TYPE_WEAPON)
+      continue;
     /* So we have an ability, check the activation method. */
     if (IS_SET(specab->activation_method, actmtd)) { /* Match! */
       if (actmtd == ACTMTD_COMMAND_WORD) { /* check the command word */
         if (strcmp(specab->command_word, cmdword)) /* No Match */
           continue; /* Skip this ability, no match. */
       }
-      if (weapon_special_ability_info[specab->ability].special_ability_proc == NULL) {
-        log("SYSERR: PROCESS_WEAPON_ABILITIES: ability '%s' has no callback function!", weapon_special_ability_info[specab->ability].name);
+      if (special_ability_info[specab->ability].special_ability_proc == NULL) {
+        log("SYSERR: PROCESS_WEAPON_ABILITIES: ability '%s' has no callback function!", special_ability_info[specab->ability].name);
         continue;
       }
       activated_abilities++;
-      (*weapon_special_ability_info[specab->ability].special_ability_proc) (specab, weapon, ch, victim, actmtd);
+      (*special_ability_info[specab->ability].special_ability_proc) (specab, weapon, ch, victim, actmtd);
 
     }
   }
 
   return activated_abilities;
+}
+
+int process_armor_abilities(struct char_data *ch, /* The player wearing the armor. */
+                            struct char_data *victim, /* The target of the ability (either fighting or specified explicitly. */
+                            int actmtd, /* Activation method */
+                            char *cmdword) /* Command word (optional, NULL if none. */
+ {
+  int activated_abilities = 0;
+  struct obj_data *obj;
+  
+  /* Check every piece of armor/equipment that the player is wearing. */
+  for (int i = 0; i < NUM_WEARS; i++) {
+    
+    if ((i == WEAR_WIELD_1) ||
+        (i == WEAR_WIELD_OFFHAND) ||
+        (i == WEAR_WIELD_2H)) {
+      /* Skip weapons */
+      continue;
+    } 
+
+    obj = GET_EQ(ch, i);
+    
+    struct obj_special_ability *specab; /* struct for iterating through the object's abilities. */
+    /* Run the 'callbacks' for each of the special abilities on the object that match the activation method. */
+    for (specab = obj->special_abilities; specab != NULL; specab = specab->next) {
+      /* Only deal with armor special abilities */
+      if (specab->type != SPECAB_TYPE_ARMOR)
+        continue;
+      
+      /* So we have an ability, check the activation method. */
+      if (IS_SET(specab->activation_method, actmtd)) { /* Match! */
+        if (actmtd == ACTMTD_COMMAND_WORD) { /* check the command word */
+          if (strcmp(specab->command_word, cmdword)) /* No Match */
+            continue; /* Skip this ability, no match. */
+        }
+        if (special_ability_info[specab->ability].special_ability_proc == NULL) {
+          log("SYSERR: PROCESS_ARMOR_ABILITIES: ability '%s' has no callback function!", special_ability_info[specab->ability].name);
+          continue;
+        }
+        activated_abilities++;
+        (*special_ability_info[specab->ability].special_ability_proc) (specab, weapon, ch, victim, actmtd);
+
+      }
+    }
+  }
+
+  return activated_abilities;
+}
+
+ARMOR_SPECIAL_ABILITY(armor_specab_blinding) {
+  /*
+   * level
+   * armor
+   * ch
+   * victim
+   * obj
+   */
+struct char_data *ch = NULL, *tch = NULL;
+  struct mud_event_data *pMudEvent = NULL;
+  struct list_data *room_list = NULL;
+  int count = 0;
+
+  switch (actmtd) {
+    case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */    
+      /* Activate the blinding ability.
+       *  - Check the cooldown - This ability can be used 2x a day, so set a cooldown on the shield using events.
+       *  - Send a message to the room, then attempt to blind engaged creatures.
+       */      
+      if(daily_armor_specab_uses_remaining(obj, ARMOR_SPECAB_BLINDING) < 1) {
+        /* No uses remaining... */
+        send_to_char(ch, "Nothing seems to happen.\r\n");
+        break;
+      }
+
+      /* When using a list, we have to make sure to allocate the list as it
+       * uses dynamic memory */
+      room_list = create_list();
+
+      /* We search through the "next_in_room", and grab all NPCs fighting ch and add them
+       * to our list */
+      if (!IN_ROOM(ch))
+        break;
+
+      for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+        if (FIGHTING(tch, ch))
+          add_to_list(tch, room_list);
+
+      /* If our list is empty or has "0" entries print a message and enable coolodown. */
+      if (room_list->iSize == 0) {        
+        send_to_char(ch, "There are no enemies engaged in combat wih you!\r\n");        
+      } else {      
+        /* Find all engaged opponents (in the room), give them a chance to avoid getting blinded, blind the unlucky ones. */
+        send_to_char(ch, "This will have been a short (1d4) blind attack!  Rawr!\r\n");
+      }
+
+      /* Now that our attack is done, let's free our list */
+      if (room_list)
+        free_list(room_list);
+   
+      start_armor_specab_daily_use_cooldown(obj, ARMOR_SPECAB_BLINDING);
+      break;
+    case ACTMTD_USE: /* User USEs the item. */
+      break;
+    case ACTMTD_ON_HIT: /* Called whenever a weapon hits an enemy. */
+      break;
+    case ACTMTD_ON_CRIT: /* Called whenever a weapon hits critically. */
+    case ACTMTD_WEAR: /* Called whenever the item is worn. */
+    default:
+      /* Do nothing. */
+      break;
+  }
 }
 
 WEAPON_SPECIAL_ABILITY(weapon_specab_flaming) {
@@ -370,7 +481,7 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_flaming_burst) {
         act("Magical flames spread down the length of $n's $o!", FALSE, ch, weapon, NULL, TO_ROOM);
 
         SET_OBJ_FLAG(weapon, ITEM_FLAMING);
-      }
+      }s
       break;
     case ACTMTD_ON_HIT: /* Called whenever a weapon hits an enemy. */
       if (OBJ_FLAGGED(weapon, ITEM_FLAMING)) /* Burn 'em. */
