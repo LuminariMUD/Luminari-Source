@@ -213,7 +213,7 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
                 "    Activation Methods: %s\r\n"
                 "    CommandWord: %s\r\n"
                 "    Values: [%d] [%d] [%d] [%d]\r\n",
-                weapon_special_ability_info[specab->ability].name,
+                special_ability_info[specab->ability].name,
                 specab->level, actmtds,
                 (specab->command_word == NULL ? "Not set." : specab->command_word),
                 specab->value[0], specab->value[1], specab->value[2], specab->value[3]);

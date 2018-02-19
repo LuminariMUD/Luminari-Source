@@ -6468,7 +6468,7 @@ int get_eq_score(obj_rnum a) {
     score += (GET_ENHANCEMENT_BONUS(obj) <= 5 ? GET_ENHANCEMENT_BONUS(obj) * 100 : 9999);
 
     for (specab = obj->special_abilities; specab != NULL; specab = specab->next) {
-      score += weapon_special_ability_info[specab->ability].cost * 100;
+      score += special_ability_info[specab->ability].cost * 100;
     }
   }
 

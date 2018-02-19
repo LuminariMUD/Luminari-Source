@@ -131,6 +131,7 @@ typedef enum {
   eCOPYOVER, /* copyover event */
   eCOLLECT_DELAY, /* autocollect event */
   eARCANEADEPT, // Sorcerer metamagic adept feat uses
+  eARMOR_SPECAB_BLINDING, /* cooldown event for blinding armor special ability */
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

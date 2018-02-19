@@ -42,7 +42,7 @@ extern const char* activation_methods[];
  * These abilities have been taken from the d20srd, 
  * augmented by other sourcebooks. */
 
-#define WEAPON_SPECAB_NONE             0       /* No ability, placeholder. */
+#define SPECAB_NONE                    0       /* No ability, placeholder. */
 
 /* Weapons */
 #define WEAPON_SPECAB_ANARCHIC         1       /* Infused with the power of Chaos. */
@@ -76,36 +76,33 @@ extern const char* activation_methods[];
 #define WEAPON_SPECAB_VORPAL          29       /* Sever the head of the opponent on natural 20. */
 #define WEAPON_SPECAB_WOUNDING        30       /* Cause blood loss on hit. (Constitution damage) */
 
-#define NUM_WEAPON_SPECABS            31       /* Number of Special Abilities for weapons and armor. */
-
 /* Armor and Shields */
 /* NOTE: Some of these could be implemented using APPLY_* tags.  If this works, then they can be removed
  * from this list.  They are included here for completeness. */
-#define ARMOR_SPECAB_NONE             0	      /* No ability, placeholder. */  
-#define ARMOR_SPECAB_ACID_RESIST      1       /* Reduce damage from Acid-based attacks. */
-#define ARMOR_SPECAB_ANIMATED         2       /* Shields only, shield floats in front of the wielder. */
-#define ARMOR_SPECAB_ARROW_CATCHING   3       /* Shields only, divert projectiles from other targets to the shield. */
-#define ARMOR_SPECAB_ARROW_DEFLECT    4       /* Shields only, deflects mundane arrows and projectiles. */
-#define ARMOR_SPECAB_BASHING          5       /* Shields only, bonus to shield bash. (+1)*/
-#define ARMOR_SPECAB_BLINDING         6       /* Shields only, flashes with brilliant light, short group blind. */
-#define ARMOR_SPECAB_COLD_RESIST      7       /* Reduce damage from Cold-based attacks. */
-#define ARMOR_SPECAB_ELEC_RESIST      8       /* Reduce damage from Electricity-based attacks. */
-#define ARMOR_SPECAB_ETHEREALNESS     9       /* Allows wearer to become ethereal. */
-#define ARMOR_SPECAB_FIRE_RESIST     10       /* Reduce damage from Fire-based attacks. */
-#define ARMOR_SPECAB_FORTIFICATION   11       /* Proctect the wearer from sneak attack and critical hits. */
-#define ARMOR_SPECAB_GHOST_TOUCH     12       /* Protects from attacks by incorporeal creatures. */
-#define ARMOR_SPECAB_GLAMERED        13       /* Disguise armor as normal clothing on command. */
-#define ARMOR_SPECAB_INVULNERABILTY  14       /* Provide damage Reduction 5/magic. */
-#define ARMOR_SPECAB_REFLECTING      15       /* Reflect a spell back to it's caster 1x/day */
-#define ARMOR_SPECAB_SHADOW          16       /* Blurs the wearer during hide attempts, bonus to hide. */
-#define ARMOR_SPECAB_SILENT_MOVES    17       /* Allows wearer to move silently, bonus to sneak. */
-#define ARMOR_SPECAB_SLICK           18       /* Armor is covered by a slick oil, bonus to escape artist. */
-#define ARMOR_SPECAB_SONIC_RESIST    19       /* Reduce damage from Sonic-based attacks. */
-#define ARMOR_SPECAB_SPELL_RESIST    20       /* Grant the wearer spell resistance. */
-#define ARMOR_SPECAB_UNDEAD_CONTROL  21       /* Control up to 26HD of undead/day, lose control at dawn. */
-#define ARMOR_SPECAB_WILD            22       /* Preserve armo/enhancement bonus while in wild shape. */
+#define ARMOR_SPECAB_ACID_RESIST      31       /* Reduce damage from Acid-based attacks. */
+#define ARMOR_SPECAB_ANIMATED         32       /* Shields only, shield floats in front of the wielder. */
+#define ARMOR_SPECAB_ARROW_CATCHING   33       /* Shields only, divert projectiles from other targets to the shield. */
+#define ARMOR_SPECAB_ARROW_DEFLECT    34       /* Shields only, deflects mundane arrows and projectiles. */
+#define ARMOR_SPECAB_BASHING          35       /* Shields only, bonus to shield bash. (+1)*/
+#define ARMOR_SPECAB_BLINDING         36       /* Shields only, flashes with brilliant light, short group blind. */
+#define ARMOR_SPECAB_COLD_RESIST      37       /* Reduce damage from Cold-based attacks. */
+#define ARMOR_SPECAB_ELEC_RESIST      38       /* Reduce damage from Electricity-based attacks. */
+#define ARMOR_SPECAB_ETHEREALNESS     39       /* Allows wearer to become ethereal. */
+#define ARMOR_SPECAB_FIRE_RESIST      40       /* Reduce damage from Fire-based attacks. */
+#define ARMOR_SPECAB_FORTIFICATION    41       /* Proctect the wearer from sneak attack and critical hits. */
+#define ARMOR_SPECAB_GHOST_TOUCH      42       /* Protects from attacks by incorporeal creatures. */
+#define ARMOR_SPECAB_GLAMERED         43       /* Disguise armor as normal clothing on command. */
+#define ARMOR_SPECAB_INVULNERABILTY   44       /* Provide damage Reduction 5/magic. */
+#define ARMOR_SPECAB_REFLECTING       45       /* Reflect a spell back to it's caster 1x/day */
+#define ARMOR_SPECAB_SHADOW           46       /* Blurs the wearer during hide attempts, bonus to hide. */
+#define ARMOR_SPECAB_SILENT_MOVES     47       /* Allows wearer to move silently, bonus to sneak. */
+#define ARMOR_SPECAB_SLICK            48       /* Armor is covered by a slick oil, bonus to escape artist. */
+#define ARMOR_SPECAB_SONIC_RESIST     49       /* Reduce damage from Sonic-based attacks. */
+#define ARMOR_SPECAB_SPELL_RESIST     50       /* Grant the wearer spell resistance. */
+#define ARMOR_SPECAB_UNDEAD_CONTROL   51       /* Control up to 26HD of undead/day, lose control at dawn. */
+#define ARMOR_SPECAB_WILD             52       /* Preserve armo/enhancement bonus while in wild shape. */
 
-#define NUM_ARMOR_SPECABS            23       /* Number of Special Abilities for weapons and armor. */
+#define NUM_SPECABS                   53       /* Number of Special Abilities */
 
 bool obj_has_special_ability(struct obj_data *obj, int ability); 
 struct obj_special_ability* get_obj_special_ability(struct obj_data *obj, int ability);
@@ -118,8 +115,17 @@ struct obj_special_ability* get_obj_special_ability(struct obj_data *obj, int ab
                               struct char_data *victim,           /* The target of the ability. */\
                               int    actmtd)                      /* The activation method triggered. */
 
+/* Special Ability Types */
+#define SPECAB_TYPE_NONE   0
+#define SPECAB_TYPE_WEAPON 1 
+#define SPECAB_TYPE_ARMOR  2
+#define SPECAB_TYPE_OTHER  3
+
+#define NUM_SPECAB_TYPES   4
+
 /* Structure to hold ability data. */
 struct special_ability_info_type {  
+  int type;
   int activation_method;
   int level;
   byte violent;
@@ -127,13 +133,14 @@ struct special_ability_info_type {
   const char *name; /* Input size not limited. Originates from string constants. */  
   int time; /* Time required to process the ability */
   int school; /* School of magic, necessary for detect magic. */
-  int cost; /* Enhancement Bonus cost. */  
+  int cost; /* Enhancement Bonus cost. */
+  int daily_uses; /* The maximum number of daily uses for this ability. */
+  int event; /* The event_id of the cooldown event, used for daily use abilities. */  
 
   SPECAB_PROC_DEF(special_ability_proc);
 };
 
-struct special_ability_info_type weapon_special_ability_info[NUM_WEAPON_SPECABS];
-struct special_ability_info_type armor_special_ability_info[NUM_ARMOR_SPECABS];
+struct special_ability_info_type special_ability_info[NUM_SPECABS];
 
 /* Macros for defining the actual abilities */
 #define WEAPON_SPECIAL_ABILITY(abilityname) \
@@ -178,5 +185,7 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_frost);
 //WEAPON_SPECIAL_ABILITY(weapon_specab_holy);
 //WEAPON_SPECIAL_ABILITY(weapon_specab_unholy);
 
+/* Prototypes for armor special abilities */
+ARMOR_SPECIAL_ABILITY(armor_specab_blinding);
 
 #endif

@@ -3555,6 +3555,89 @@ int daily_uses_remaining(struct char_data *ch, int featnum) {
   return uses_per_day - uses;
 }
 
+/* Function to create an event, based on the mud_event passed in, that will either:
+ * 1.) Create a new event with the proper sVariables
+ * 2.) Update an existing event with a new sVariable value
+ *
+ * Returns the current number of uses on cooldown. */
+int start_armor_specab_daily_use_cooldown(struct obj_data *obj, int specab) {
+  struct mud_event_data * pMudEvent = NULL;
+  int uses = 0, daily_uses = 0;
+  char buf[128];
+  event_id iId = 0;
+
+  /* Transform the feat number to the event id for that ability. */
+  if ((iId = special_ability_info[specab].event) == eNULL) {
+    log("SYSERR: in start_daily_use_cooldown, no cooldown event defined for %s!", special_ability_info[specab].name);
+    return (0);
+  }
+
+  if ((daily_uses = special_ability_info[specab].daily_uses) < 1) {
+    /* ch has no uses of this ability at all!  Error! */
+    log("SYSERR: in start_daily_use_cooldown, cooldown initiated for invalid ability (specab: %d)!", specab);
+    return (0);
+  }
+
+  if ((pMudEvent = char_has_mud_event(ch, iId))) {
+    /* Player is on cooldown for this ability - just update the event. */
+    /* The number of uses is stored in the pMudEvent->sVariables field. */
+    if (pMudEvent->sVariables == NULL) {
+      /* This is odd - This field should always be populated for daily-use abilities,
+       * maybe some legacy code or bad id. */
+      log("SYSERR: sVariables field is NULL for daily-use-cooldown-event: %d", iId);
+    } else {
+
+      if (sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1) {
+        log("SYSERR: In start_daily_use_cooldown, bad sVariables for daily-use-cooldown-event: %d", iId);
+        uses = 0;
+      }
+      free(pMudEvent->sVariables);
+    }
+    uses++;
+
+    if (uses > daily_uses)
+      log("SYSERR: Daily uses exceeed maximum for %s, specab %s", GET_NAME(ch), special_ability_info[specab].name);
+
+    sprintf(buf, "uses:%d", uses);
+    pMudEvent->sVariables = strdup(buf);
+  } else {
+    /* No event - so attach one. */
+    uses = 1;
+    attach_mud_event(new_mud_event(iId, ch, "uses:1"), (SECS_PER_MUD_DAY / daily_uses) RL_SEC);
+  }
+
+  return uses;
+}
+
+/* Function to return the number of daily uses remaining for a particular armor special ability.
+ * Returns the number of daily uses available or -1 if the object does not have that special ability. */
+int daily_armor_specab_uses_remaining(struct obj_data *, int specab) {
+  struct mud_event_data * pMudEvent = NULL;
+  int uses = 0;
+  int uses_per_day = 0;
+  event_id iId = 0;
+
+  if ((iId = special_ability_info[specab].event) == eNULL)
+    return -1;
+
+  if ((pMudEvent = char_has_mud_event(ch, iId))) {
+    if (pMudEvent->sVariables == NULL) {
+      /* This is odd - This field should always be populated for daily-use abilities,
+       * maybe some legacy code or bad id. */
+      log("SYSERR: sVariables field is NULL for daily-use-cooldown-event: %d", iId);
+    } else {
+      if (sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1) {
+        log("SYSERR: In daily_uses_remaining, bad sVariables for daily-use-cooldown-event: %d", iId);
+        uses = 0;
+      }
+    }
+  }
+
+  uses_per_day = special_ability_info[specab].daily_uses;
+
+  return uses_per_day - uses;
+}
+
 /* line_string()
  * Generate and return a string, alternating between first and second for length characters.
  */
@@ -3641,7 +3724,7 @@ int calculate_cp(struct obj_data *obj) {
       current_cp += GET_ENHANCEMENT_BONUS(obj) * GET_ENHANCEMENT_BONUS(obj) * 2000;
 
       for (specab = obj->special_abilities; specab != NULL; specab = specab->next) {
-        current_cp += (weapon_special_ability_info[specab->ability].cost * weapon_special_ability_info[specab->ability].cost * 2000);
+        current_cp += (special_ability_info[specab->ability].cost * special_ability_info[specab->ability].cost * 2000);
       }
 
       break;

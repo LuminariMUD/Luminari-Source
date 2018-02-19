@@ -143,6 +143,7 @@ struct mud_event_list mud_event_index[] = {
   { "Copyover Event!", event_copyover, EVENT_CHAR}, /* eCOPYOVER */ /* copyover delay */
   { "Autocollect delay", event_countdown, EVENT_CHAR}, //eCOLLECT_DELAY
   { "Metamagic Adept Usage Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eARCANEADEPT
+  { "Armor SpecAb Cooldown: Blinding", event_daily_use_cooldown, EVENT_OBJECT}, // eARMOR_SPECAB_BLINDING
 };
 
 /* init_events() is the ideal function for starting global events. This
@@ -446,8 +447,10 @@ EVENTFUNC(event_countdown) {
 EVENTFUNC(event_daily_use_cooldown) {
   struct mud_event_data *pMudEvent = NULL;
   struct char_data *ch = NULL;
+  struct obj_data *obj = NULL;
   int cooldown = 0;
   int uses = 0;
+  int nonfeat_daily_uses = 0;
   int featnum = 0;
   char buf[128];
 
@@ -463,6 +466,9 @@ EVENTFUNC(event_daily_use_cooldown) {
     case EVENT_CHAR:
       ch = (struct char_data *) pMudEvent->pStruct;
       break;
+    case EVENT_OBJECT:
+      obj = (struct obj_data *) pMudEvent->pStruct;
+      break;
     default:
       return 0;
   }
@@ -473,7 +479,7 @@ EVENTFUNC(event_daily_use_cooldown) {
     log("SYSERR: sVariables field is NULL for daily-use-cooldown-event: %d", pMudEvent->iId);
   } else {
     if (sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1) {
-      log("SYSERR: In daily_uses_remaining, bad sVariables for dauly-use-cooldown-event: %d", pMudEvent->iId);
+      log("SYSERR: In daily_uses_remaining, bad sVariables for daily-use-cooldown-event: %d", pMudEvent->iId);
       uses = 0;
     }
   }
@@ -635,6 +641,10 @@ EVENTFUNC(event_daily_use_cooldown) {
       featnum = FEAT_METAMAGIC_ADEPT;
       send_to_char(ch, "One of your metamagic (arcane) adept uses has recovered.\r\n");
       break;
+    case eARMOR_SPECAB_BLINDING:
+      featnum = FEAT_UNDEFINED;
+      nonfeat_daily_uses = 2; /* 2 uses a day. */      
+      break;
     default:
       break;
   }
@@ -647,8 +657,15 @@ EVENTFUNC(event_daily_use_cooldown) {
     sprintf(buf, "uses:%d", uses);
     pMudEvent->sVariables = strdup(buf);
 
-    if (get_daily_uses(ch, featnum)) /* divide by 0! */
+    if ((featnum == FEAT_UNDEFINED) && (nonfeat_daily_uses > 0)) {
+      /* 
+        This is a 'daily' feature that is not controlled by a feat - for example a weapon or armor special ability. 
+        In this case, the daily uses must be set above - variable nonfeat_daily_uses.
+      */
+      cooldown = (SECS_PER_MUD_DAY / nonfeat_daily_uses) RL_SEC;
+    } else if (get_daily_uses(ch, featnum)) { /* divide by 0! */
       cooldown = (SECS_PER_MUD_DAY / get_daily_uses(ch, featnum)) RL_SEC;
+    }
 
   }
 
