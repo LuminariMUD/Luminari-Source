@@ -89,7 +89,8 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
   int line_length = 80, i = 0;
   char actmtds[MAX_STRING_LENGTH];
   int (*name)(struct char_data *ch, void *me, int cmd, char *argument);
-
+  bool found = FALSE;
+  
   /* zusuk set these up for quicker setup of new items */
   int v1 = GET_OBJ_VAL(item, 0);
   int v2 = GET_OBJ_VAL(item, 1);
@@ -204,7 +205,6 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
               ((GET_OBJ_VAL(item, 2) + 1) / 2.0) * GET_OBJ_VAL(item, 1));
 
       /* weapon special abilities*/
-      bool found = FALSE;
       send_to_char(ch, "Special Abilities:\r\n");
       for (specab = item->special_abilities; specab != NULL; specab = specab->next) {
         found = TRUE;
@@ -329,7 +329,7 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
                 wear_bits[armor_list[armor_val].wear]);
       }
       /* Special abilities*/
-      bool found = FALSE;
+      found = FALSE;
       send_to_char(ch, "Special Abilities:\r\n");
       for (specab = item->special_abilities; specab != NULL; specab = specab->next) {
         found = TRUE;
