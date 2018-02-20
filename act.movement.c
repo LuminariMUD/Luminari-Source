@@ -2365,7 +2365,7 @@ ACMD(do_sit) {
 
 ACMD(do_rest) {
 
-  if (char_has_mud_event(ch, eRAGE))  {
+  if (affected_by_spell(ch, SKILL_RAGE)) {
     send_to_char(ch, "Rest now? No way. PRESS ON!\r\n");
     return;
   }
@@ -2440,7 +2440,7 @@ ACMD(do_recline) {
 
 ACMD(do_sleep) {
     
-  if (char_has_mud_event(ch, eRAGE))  {
+if (affected_by_spell(ch, SKILL_RAGE))  {
     send_to_char(ch, "You are way too hyper for that right now!\r\n");
     return;
   }
