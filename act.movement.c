@@ -2364,9 +2364,8 @@ ACMD(do_sit) {
 }
 
 ACMD(do_rest) {
-    struct mud_event_data *pMudEvent = NULL;
-    
-  if ((pMudEvent = char_has_mud_event(ch, eRAGE)))  {
+
+  if (char_has_mud_event(ch, eRAGE))  {
     send_to_char(ch, "Rest now? No way. PRESS ON!\r\n");
     return;
   }
@@ -2440,9 +2439,8 @@ ACMD(do_recline) {
 }
 
 ACMD(do_sleep) {
-    struct mud_event_data *pMudEvent = NULL;
     
-  if ((pMudEvent = char_has_mud_event(ch, eRAGE)))  {
+  if (char_has_mud_event(ch, eRAGE))  {
     send_to_char(ch, "You are way too hyper for that right now!\r\n");
     return;
   }
