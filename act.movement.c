@@ -1847,12 +1847,15 @@ int ok_pick(struct char_data *ch, obj_vnum keynum, int pickproof, int scmd, int 
     send_to_char(ch, "Odd - you can't seem to find a keyhole.\r\n");
   } else if (pickproof) {
     send_to_char(ch, "It resists your attempts to pick it.\r\n");
+    USE_MOVE_ACTION(ch);
   } else if (lock_dc <= skill_lvl) {
     send_to_char(ch, "Success! [%d dc vs. %d skill]\r\n", lock_dc, skill_lvl);
     return (1);
+    USE_MOVE_ACTION(ch);
   }
 
   /* failed */
+  USE_MOVE_ACTION(ch);
   return (0);
 }
 
