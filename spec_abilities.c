@@ -376,7 +376,7 @@ ARMOR_SPECIAL_ABILITY(armor_specab_blinding) {
 
       /* Display the message for the ability. */
       act("Your $o flashes brightly, bathing the area in intense light!", FALSE, ch, armor, ch, TO_CHAR);
-      act("$N's $o flashes brightly, bathing the area in intense light!", FALSE, ch, armor, ch, TO_ROOM);      
+      act("$N's $o flashes brightly, bathing the area in intense light!", TRUE, ch, armor, ch, TO_ROOM);      
 
       for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room) {
         if (FIGHTING(tch) != ch) {
@@ -389,7 +389,8 @@ ARMOR_SPECIAL_ABILITY(armor_specab_blinding) {
         }
         
         if(mag_savingthrow(ch, tch, SAVING_REFL, 0, CAST_WEAPON_SPELL, 10, SCHOOL_NOSCHOOL)) {
-          send_to_char(tch, "You look away just in time to avoid getting blinded!\r\n");
+          act("You look away just in time to avoid getting blinded!", FALSE, tch, armor, ch, TO_CHAR);
+          act("$n looks away just in time to avoid getting blinded!", TRUE, tch, armor, ch, TO_ROOM);
           continue;
         }
 
