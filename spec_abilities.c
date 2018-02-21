@@ -356,7 +356,7 @@ ARMOR_SPECIAL_ABILITY(armor_specab_blinding) {
    */
   struct char_data *tch = NULL;
   bool found = FALSE;
-  struct affected_type af[MAX_SPELL_AFFECTS];
+  struct affected_type af[2];
   
   switch (actmtd) {
     case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */    
@@ -403,7 +403,7 @@ ARMOR_SPECIAL_ABILITY(armor_specab_blinding) {
         act("You have been blinded!", FALSE, tch, armor, ch, TO_CHAR);
         act("$n seems to be blinded!", TRUE, tch, 0, ch, TO_ROOM);
 
-        for (i = 0; i < MAX_SPELL_AFFECTS; i++) {
+        for (i = 0; i < 2; i++) {
           if (af[i].bitvector[0] || af[i].bitvector[1] ||
               af[i].bitvector[2] || af[i].bitvector[3] ||
               (af[i].location != APPLY_NONE)) {
