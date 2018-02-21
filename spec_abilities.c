@@ -408,7 +408,7 @@ ARMOR_SPECIAL_ABILITY(armor_specab_blinding) {
           if (af[i].bitvector[0] || af[i].bitvector[1] ||
               af[i].bitvector[2] || af[i].bitvector[3] ||
               (af[i].location != APPLY_NONE)) {
-            affect_join(victim, af + i, accum_duration, FALSE, accum_affect, FALSE);             
+            affect_join(tch, af + i, FALSE, FALSE, FALSE, FALSE);             
           }
         }
       }
