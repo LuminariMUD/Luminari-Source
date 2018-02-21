@@ -384,7 +384,7 @@ ARMOR_SPECIAL_ABILITY(armor_specab_blinding) {
         }
 
         found = TRUE;
-        if (MOB_FLAGGED(victim, MOB_NOBLIND)) {          
+        if (MOB_FLAGGED(tch, MOB_NOBLIND)) {          
           continue;
         }
         
