@@ -355,8 +355,9 @@ ARMOR_SPECIAL_ABILITY(armor_specab_blinding) {
    * obj
    */
   struct char_data *tch = NULL;
-  struct list_data *room_list = NULL;
-
+  boolean found = FALSE;
+  struct affected_type af[MAX_SPELL_AFFECTS];
+  
   switch (actmtd) {
     case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */    
       /* Activate the blinding ability.
@@ -365,36 +366,58 @@ ARMOR_SPECIAL_ABILITY(armor_specab_blinding) {
        */      
       if(daily_armor_specab_uses_remaining(armor, ARMOR_SPECAB_BLINDING) == 0) {
         /* No uses remaining... */
-        send_to_char(ch, "The item must regain its energies before this ability can be invoked again.\r\n");
+        send_to_char(ch, "The item must regain its energies before invoking this ability.\r\n");
         break;
       }
 
-      /* When using a list, we have to make sure to allocate the list as it
-       * uses dynamic memory */
-      room_list = create_list();
-
-      /* We search through the "next_in_room", and grab all NPCs fighting ch and add them
-       * to our list */
       if (!IN_ROOM(ch))
         break;
 
-      for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
-        if (FIGHTING(tch) == ch)
-          add_to_list(tch, room_list);
+      /* Display the message for the ability. */
+      act("Your $p flashes brightly, bathing the area in intense light!", FALSE, ch, armor, ch, TO_CHAR);
+      act("$N's shield flashes brightly, bathing the area in intense light!", FALSE, ch, armor, ch, TO_ROOM);      
 
-      /* If our list is empty or has "0" entries print a message and enable coolodown. */
-      if (room_list->iSize == 0) {        
-        send_to_char(ch, "There are no enemies engaged in combat wih you!\r\n");        
-      } else {      
-        /* Find all engaged opponents (in the room), give them a chance to avoid getting blinded, blind the unlucky ones. */
-        send_to_char(ch, "This will have been a short (1d4) blind attack!  Rawr!\r\n");
+      for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room) {
+        if (FIGHTING(tch) != ch) {
+          continue;
+        }
+
+        found = TRUE;
+        if (MOB_FLAGGED(victim, MOB_NOBLIND)) {          
+          continue;
+        }
+        
+        if(mag_savingthrow(ch, tch, SAVING_REFL, 0, CAST_WEAPON_SPELL, 10, SCHOOL_NOSCHOOL))
+          send_to_char(tch, "You look away just in time to avoid getting blinded!\r\n");
+
+        af[0].location = APPLY_HITROLL;
+        af[0].modifier = -4;
+        af[0].duration = 24;
+        SET_BIT_AR(af[0].bitvector, AFF_BLIND);
+
+        af[1].location = APPLY_AC_NEW;
+        af[1].modifier = -4;
+        af[1].duration = 24;
+        SET_BIT_AR(af[1].bitvector, AFF_BLIND);
+
+        act("You have been blinded!", FALSE, tch, armor, ch, TO_CHAR);
+        act("$n seems to be blinded!", TRUE, tch, 0, ch, TO_ROOM);
+
+        for (i = 0; i < MAX_SPELL_AFFECTS; i++) {
+          if (af[i].bitvector[0] || af[i].bitvector[1] ||
+              af[i].bitvector[2] || af[i].bitvector[3] ||
+              (af[i].location != APPLY_NONE)) {
+            affect_join(victim, af + i, accum_duration, FALSE, accum_affect, FALSE);             
+          }
+        }
       }
 
-      /* Now that our attack is done, let's free our list */
-      if (room_list)
-        free_list(room_list);
-   
+      if (!found) {
+        send_to_char(ch, "No enemies are engaged with you!\r\n");        
+      }
+
       start_armor_specab_daily_use_cooldown(armor, ARMOR_SPECAB_BLINDING);
+      
       break;
     case ACTMTD_USE: /* User USEs the item. */
       break;
