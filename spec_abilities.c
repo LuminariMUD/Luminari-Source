@@ -390,13 +390,14 @@ ARMOR_SPECIAL_ABILITY(armor_specab_blinding) {
         
         if(mag_savingthrow(ch, tch, SAVING_REFL, 0, CAST_WEAPON_SPELL, 10, SCHOOL_NOSCHOOL))
           send_to_char(tch, "You look away just in time to avoid getting blinded!\r\n");
-
+        at[0].spell = SPELL_BLINDNESS;
         af[0].location = APPLY_HITROLL;
         af[0].modifier = -4;
         af[0].duration = 4;
         af[0].bonus_type = BONUS_TYPE_UNDEFINED;
         SET_BIT_AR(af[0].bitvector, AFF_BLIND);
 
+        at[1].spell = SPELL_BLINDNESS;
         af[1].location = APPLY_AC_NEW;
         af[1].modifier = -4;
         af[1].duration = 4;
