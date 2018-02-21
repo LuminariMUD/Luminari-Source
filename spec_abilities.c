@@ -355,7 +355,7 @@ ARMOR_SPECIAL_ABILITY(armor_specab_blinding) {
    * obj
    */
   struct char_data *tch = NULL;
-  boolean found = FALSE;
+  bool found = FALSE;
   struct affected_type af[MAX_SPELL_AFFECTS];
   
   switch (actmtd) {
