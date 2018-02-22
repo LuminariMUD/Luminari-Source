@@ -2703,7 +2703,7 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim) {
       stop_fighting(ch);
     if (FIGHTING(victim) && FIGHTING(victim) == ch)
       stop_fighting(victim);
-    return;
+    return (0);
   }
 
   GET_POS(victim) = POS_DEAD;
