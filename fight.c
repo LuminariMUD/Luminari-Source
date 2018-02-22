@@ -2697,6 +2697,15 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim) {
   struct obj_data *corpse_obj;
   room_rnum rnum = NOWHERE;
 
+  if (!ok_damage_shopkeeper(ch, victim) || MOB_FLAGGED(victim, MOB_NOKILL)) {
+    send_to_char(ch, "This mob is immune to your attack.\r\n");
+    if (FIGHTING(ch) && FIGHTING(ch) == victim)
+      stop_fighting(ch);
+    if (FIGHTING(victim) && FIGHTING(victim) == ch)
+      stop_fighting(victim);
+    return;
+  }
+
   GET_POS(victim) = POS_DEAD;
 
   if (ch != victim && (IS_NPC(victim) || victim->desc)) { //xp gain
