@@ -1711,6 +1711,18 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
             sprintbit(R_EXIT(r, DOWN)->exit_info, exit_bits, str, slen);
         } else
           *str = '\0';
+      } else if (!str_cmp(field, "xcoord")){
+        room_rnum rnum = real_room(r->number);  
+        if (rnum != NOWHERE)
+          snprintf(str, slen, "%d", world[rnum].coords[0]);
+        else
+          *str = '\0';      
+      } else if (!str_cmp(field, "ycoord")){
+        room_rnum rnum = real_room(r->number);  
+        if (rnum != NOWHERE)
+          snprintf(str, slen, "%d", world[rnum].coords[1]);
+        else
+          *str = '\0';      
       } else {
         if (SCRIPT(r)) { /* check for global var */
           for (vd = (SCRIPT(r))->global_vars; vd; vd = vd->next)
