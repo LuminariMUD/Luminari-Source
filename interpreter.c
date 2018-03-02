@@ -475,6 +475,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "reneweddefense", "reneweddefense", POS_RECLINING, do_reneweddefense, 1, 0, FALSE, ACTION_SWIFT, {0, 0}},
   { "race", "race", POS_DEAD, do_race, 0, 0, TRUE, ACTION_NONE, {0, 0}},
   { "rank", "rank", POS_DEAD, do_rank, 0, 0, TRUE, ACTION_NONE, {0, 0}},
+  { "rp", "rp", POS_DEAD, do_gen_tog, 0, SCMD_RP, TRUE, ACTION_NONE, {0, 0}},
 
   { "sacrifice", "sac", POS_RECLINING, do_sac, 0, 0, FALSE, ACTION_NONE, {0, 0}},
   { "say", "s", POS_RECLINING, do_say, 0, 0, TRUE, ACTION_NONE, {0, 0}},
