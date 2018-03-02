@@ -3485,7 +3485,10 @@ int determine_threat_range(struct char_data *ch, struct obj_data *wielded) {
   if (HAS_FEAT(ch, FEAT_IMPROVED_CRITICAL)) { /* Check the weapon type, make sure it matches. */
     if (((wielded != NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_IMPROVED_CRITICAL), GET_WEAPON_TYPE(wielded))) ||
             ((wielded == NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_IMPROVED_CRITICAL), WEAPON_TYPE_UNARMED)))
-      threat_range = 20 - (weapon_list[GET_OBJ_VAL(wielded, 0)].critRange * 2);
+      if (weapon_list[GET_OBJ_VAL(wielded, 0)].critRange == 0)
+        threat_range--;
+      else 
+        threat_range = 20 - (weapon_list[GET_OBJ_VAL(wielded, 0)].critRange * 2);
   }
 
   if (HAS_FEAT(ch, FEAT_CRITICAL_SPECIALIST)) { /* Check the weapon type, make sure it matches. */
