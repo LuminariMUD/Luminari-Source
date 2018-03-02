@@ -3534,7 +3534,7 @@ ACMD(do_toggle) {
       "You will now automatically collect your ammo after combat.\r\n"},
     /*40*/
     {"rp", PRF_RP, 0,
-      "You will now display to others that you are out of character.\r\n",
+      "You will no longer display to others that you would like to Role-play.\r\n",
       "You will now display to others that you would like to Role-play.\r\n"},
     /*LAST*/
     {"\n", 0, -1, "\n", "\n"} /* must be last */
