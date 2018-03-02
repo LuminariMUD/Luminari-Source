@@ -4467,6 +4467,9 @@ ACMD(do_gen_tog) {
     /*39*/
     {"You will no longer automatically collect your ammo after combat.\r\n",
       "You will now automatically collect your ammo after combat.\r\n"},
+    /*40*/  
+    {"You will no longer display to others that you would like to Role-play.\r\n",
+      "You will now display to others that you would like to Role-play.\r\n"},  
   };
 
   if (IS_NPC(ch))
