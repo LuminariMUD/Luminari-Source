@@ -420,6 +420,7 @@ ACMD(do_gen_tog);
 #define SCMD_GUI_MODE    37
 #define SCMD_NOHINT      38
 #define SCMD_AUTOCOLLECT 39
+#define SCMD_RP          40
 
 /* do_quit */
 ACMD(do_quit);

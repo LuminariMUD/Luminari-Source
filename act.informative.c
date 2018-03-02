@@ -2976,6 +2976,8 @@ ACMD(do_who) {
           send_to_char(ch, " (Buildwalking)");
         if (PRF_FLAGGED(tch, PRF_AFK))
           send_to_char(ch, " (AFK)");
+        if (PRF_FLAGGED(tch, PRF_RP))
+          send_to_char(ch, " (RP)");
         if (PRF_FLAGGED(tch, PRF_NOGOSS))
           send_to_char(ch, " (nogos)");
         if (PRF_FLAGGED(tch, PRF_NOWIZ))
@@ -3530,6 +3532,10 @@ ACMD(do_toggle) {
     {"autocollect", PRF_AUTOCOLLECT, 0,
       "You will no longer automatically collect your ammo after combat.\r\n",
       "You will now automatically collect your ammo after combat.\r\n"},
+    /*40*/
+    {"rp", PRF_RP, 0,
+      "You will now display to others that you are out of character.\r\n",
+      "You will now display to others that you would like to Role-play.\r\n"},
     /*LAST*/
     {"\n", 0, -1, "\n", "\n"} /* must be last */
   };
@@ -3628,7 +3634,8 @@ ACMD(do_toggle) {
             "       GUI Mode: %-3s\r\n"
 
             "        NoHints: %-3s    "
-            "   Auto Collect: %-3s\r\n"
+            "   Auto Collect: %-3s    "
+            "   Role-Playing: %-3s\r\n"
 
             "*NOTE: The PREFEDIT command is preferred method of optimizing your toggle switches.\r\n",
 
@@ -3662,7 +3669,7 @@ ACMD(do_toggle) {
 
             GET_PAGE_LENGTH(ch),
             GET_SCREEN_WIDTH(ch),
-            ONOFF(PRF_FLAGGED(ch, PRF_AFK)),
+            ONOFF(PRF_FLAGGED(ch, PRF_AFK)),            
 
             ONOFF(PRF_FLAGGED(ch, PRF_AUTOKEY)),
             ONOFF(PRF_FLAGGED(ch, PRF_AUTODOOR)),
@@ -3680,7 +3687,8 @@ ACMD(do_toggle) {
             ONOFF(PRF_FLAGGED(ch, PRF_COMBATROLL)),
             ONOFF(PRF_FLAGGED(ch, PRF_GUI_MODE)),
             ONOFF(PRF_FLAGGED(ch, PRF_NOHINT)),
-            ONOFF(PRF_FLAGGED(ch, PRF_AUTOCOLLECT))
+            ONOFF(PRF_FLAGGED(ch, PRF_AUTOCOLLECT)),
+            ONOFF(PRF_FLAGGED(ch, PRF_RP))
             /*end*/);
     return;
   }
@@ -3763,6 +3771,13 @@ ACMD(do_toggle) {
         act("$n has returned to $s keyboard.", TRUE, ch, 0, 0, TO_ROOM);
         if (has_mail(GET_IDNUM(ch)))
           send_to_char(ch, "You have mail waiting.\r\n");
+      }
+      break;
+    case SCMD_RP:
+      if ((result = PRF_TOG_CHK(ch, PRF_RP)))
+        act("$n is interested in Role-playing.", TRUE, ch, 0, 0, TO_ROOM);
+      else {
+        act("$n is now OOC.", TRUE, ch, 0, 0, TO_ROOM);        
       }
       break;
     case SCMD_WIMPY:
