@@ -975,6 +975,10 @@ void prefedit_Restore_Defaults(struct descriptor_data *d) {
   if (PREFEDIT_FLAGGED(PRF_AFK))
     REMOVE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_AFK);
 
+  /* PRF_AFK - Off */
+  if (PREFEDIT_FLAGGED(PRF_RP))
+    REMOVE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_RP);    
+
   /* PRF_AUTOLOOT   - On */
   if (!PREFEDIT_FLAGGED(PRF_AUTOLOOT))
     SET_BIT_AR(PREFEDIT_GET_FLAGS, PRF_AUTOLOOT);

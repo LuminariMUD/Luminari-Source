@@ -1385,6 +1385,12 @@ static char *make_prompt(struct descriptor_data *d) {
       if (count >= 0)
         len += count;
     }
+    
+    if (PRF_FLAGGED(d->character, PRF_RP) && len < sizeof (prompt)) {
+      count = snprintf(prompt + len, sizeof (prompt) - len, "(RP) ");
+      if (count >= 0)
+        len += count;
+    }
 
     if (GET_LAST_NEWS(d->character) < newsmod && len < sizeof (prompt)) {
       count = snprintf(prompt + len, sizeof (prompt) - len, "(news) ");

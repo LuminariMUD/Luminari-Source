@@ -4562,6 +4562,14 @@ ACMD(do_gen_tog) {
           send_to_char(ch, "You have mail waiting.\r\n");
       }
       break;
+    case SCMD_RP:
+      result = PRF_TOG_CHK(ch, PRF_RP);
+      if (PRF_FLAGGED(ch, PRF_RP))
+        act("$n is interested in Role-play!.", TRUE, ch, 0, 0, TO_ROOM);
+      else {
+        act("$n is now OOC.", TRUE, ch, 0, 0, TO_ROOM);        
+      }
+      break;      
     case SCMD_AUTOLOOT:
       result = PRF_TOG_CHK(ch, PRF_AUTOLOOT);
       break;
