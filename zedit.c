@@ -1414,7 +1414,7 @@ void zedit_parse(struct descriptor_data *d, char *arg) {
           break;
         case 'D':
           pos = atoi(arg);
-          if (pos < 0 || pos > 2)
+          if (pos < 0 || pos > 16)
             write_to_output(d, "Try again : ");
           else {
             OLC_CMD(d).arg3 = pos;
