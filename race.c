@@ -582,7 +582,8 @@ void assign_races(void) {
         "have acquired a reputation as dour and humorless artisans of the earth. "
         "It could be said that their history shapes the dark disposition of many "
         "dwarves, for they reside in high mountains and dangerous realms below the "
-        "earth, constantly at war with giants, goblins, and other such horrors.",
+        "earth, constantly at war with giants, goblins, and other such horrors."
+        "In addition Dwarves gain proficiency with Dwarven War Axes.",
       /*morph to-char*/"Your body twists and contorts painfully until your form becomes Dwarven.",
       /*morph to-room*/"$n's body twists and contorts painfully until $s form becomes Dwarven.");
     set_race_genders(RACE_DWARF, N, Y, Y); /* n m f */
