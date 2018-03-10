@@ -882,6 +882,7 @@ void command_interpreter(struct char_data *ch, char *argument) {
     send_to_char(ch, "You step out of the shadows...\r\n");
   } else if (char_has_mud_event(ch, eCRAFTING) &&
           !is_abbrev(complete_cmd_info[cmd].command, "gossip") &&
+          !is_abbrev(complete_cmd_info[cmd].command, "gemote") &&
           !is_abbrev(complete_cmd_info[cmd].command, "chat") &&
           !is_abbrev(complete_cmd_info[cmd].command, "look") &&
           !is_abbrev(complete_cmd_info[cmd].command, "score") &&
@@ -897,7 +898,7 @@ void command_interpreter(struct char_data *ch, char *argument) {
           !is_abbrev(complete_cmd_info[cmd].command, "tell")
           )
     send_to_char(ch, "You are too busy crafting. [Available commands: gossip/"
-          "chat/look/score/group/say/tell/reply/help/prefedit/bug/typo/idea]\r\n");
+          "chat/gemote/look/score/group/say/tell/reply/help/prefedit/bug/typo/idea]\r\n");
   else if (GET_POS(ch) < complete_cmd_info[cmd].minimum_position)
     switch (GET_POS(ch)) {
       case POS_DEAD:
