@@ -106,7 +106,8 @@ extern const char* activation_methods[];
 
 bool obj_has_special_ability(struct obj_data *obj, int ability); 
 struct obj_special_ability* get_obj_special_ability(struct obj_data *obj, int ability);
-
+int process_armor_abilities(struct char_data *ch, struct char_data *victim,
+        int actmtd, char *cmdword);
 #define SPECAB_PROC_DEF( specab_proc ) \
                         void (*specab_proc)\
                              (struct obj_special_ability *specab, /* The ability structure, to get values. */\
