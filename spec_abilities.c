@@ -58,7 +58,7 @@
 #include "spells.h"
 #include "spec_abilities.h"
 #include "domains_schools.h"
-*/
+ */
 
 struct special_ability_info_type special_ability_info[NUM_SPECABS];
 
@@ -86,7 +86,6 @@ static void add_weapon_special_ability(int specab, const char *name, int level, 
   special_ability_info[specab].special_ability_proc = specab_proc;
 }
 
-
 static void add_armor_special_ability(int specab, const char *name, int level, int actmtd, int targets, int violent, int time, int school, int cost, SPECAB_PROC_DEF(specab_proc)) {
   special_ability_info[specab].type = SPECAB_TYPE_ARMOR;
   special_ability_info[specab].level = level;
@@ -101,7 +100,7 @@ static void add_armor_special_ability(int specab, const char *name, int level, i
 }
 
 void daily_armor_specab(int specab, event_id event, int daily_uses) {
-  special_ability_info[specab].daily_uses = daily_uses;  
+  special_ability_info[specab].daily_uses = daily_uses;
   special_ability_info[specab].event = event;
 }
 
@@ -147,7 +146,7 @@ void initialize_special_abilities(void) {
   add_armor_special_ability(ARMOR_SPECAB_BLINDING, "Blinding", 7, ACTMTD_COMMAND_WORD,
           TAR_IGNORE, TRUE, 0, EVOCATION, 1, armor_specab_blinding);
 
-  daily_armor_specab(ARMOR_SPECAB_BLINDING, eARMOR_SPECAB_BLINDING, 2);          
+  daily_armor_specab(ARMOR_SPECAB_BLINDING, eARMOR_SPECAB_BLINDING, 2);
 
   add_weapon_special_ability(WEAPON_SPECAB_ANARCHIC, "Anarchic", 7, ACTMTD_NONE,
           TAR_IGNORE, FALSE, 0, EVOCATION, 2, NULL);
@@ -270,8 +269,7 @@ int process_weapon_abilities(struct obj_data *weapon, /* The weapon to check for
         struct char_data *victim, /* The target of the ability (either fighting or
 							 * specified explicitly. */
         int actmtd, /* Activation method */
-        char *cmdword) /* Command word (optional, NULL if none. */
- {
+        char *cmdword) /* Command word (optional, NULL if none. */ {
   int activated_abilities = 0;
   struct obj_special_ability *specab; /* struct for iterating through the object's abilities. */
   /* Run the 'callbacks' for each of the special abilities on weapon that match the activation method. */
@@ -299,23 +297,22 @@ int process_weapon_abilities(struct obj_data *weapon, /* The weapon to check for
 }
 
 int process_armor_abilities(struct char_data *ch, /* The player wearing the armor. */
-                            struct char_data *victim, /* The target of the ability (either fighting or specified explicitly. */
-                            int actmtd, /* Activation method */
-                            char *cmdword) /* Command word (optional, NULL if none. */
- {
+        struct char_data *victim, /* The target of the ability (either fighting or specified explicitly. */
+        int actmtd, /* Activation method */
+        char *cmdword) /* Command word (optional, NULL if none. */ {
   int i = 0;
   int activated_abilities = 0;
   struct obj_data *obj;
-  
+
   /* Check every piece of armor/equipment that the player is wearing. */
   for (i = 0; i < NUM_WEARS; i++) {
-    
+
     if ((i == WEAR_WIELD_1) ||
-        (i == WEAR_WIELD_OFFHAND) ||
-        (i == WEAR_WIELD_2H)) {
+            (i == WEAR_WIELD_OFFHAND) ||
+            (i == WEAR_WIELD_2H)) {
       /* Skip weapons */
       continue;
-    } 
+    }
 
     obj = GET_EQ(ch, i);
     if (obj != NULL) {
@@ -325,7 +322,7 @@ int process_armor_abilities(struct char_data *ch, /* The player wearing the armo
         /* Only deal with armor special abilities */
         if (special_ability_info[specab->ability].type != SPECAB_TYPE_ARMOR)
           continue;
-        
+
         /* So we have an ability, check the activation method. */
         if (IS_SET(specab->activation_method, actmtd)) { /* Match! */
           if (actmtd == ACTMTD_COMMAND_WORD) { /* check the command word */
@@ -358,14 +355,14 @@ ARMOR_SPECIAL_ABILITY(armor_specab_blinding) {
   bool found = FALSE;
   struct affected_type af[2];
   int i = 0;
-  
+
   switch (actmtd) {
-    case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */    
+    case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
       /* Activate the blinding ability.
        *  - Check the cooldown - This ability can be used 2x a day, so set a cooldown on the shield using events.
        *  - Send a message to the room, then attempt to blind engaged creatures.
-       */      
-      if(daily_armor_specab_uses_remaining(armor, ARMOR_SPECAB_BLINDING) == 0) {
+       */
+      if (daily_armor_specab_uses_remaining(armor, ARMOR_SPECAB_BLINDING) == 0) {
         /* No uses remaining... */
         send_to_char(ch, "The item must regain its energies before invoking this ability.\r\n");
         break;
@@ -376,7 +373,7 @@ ARMOR_SPECIAL_ABILITY(armor_specab_blinding) {
 
       /* Display the message for the ability. */
       act("Your $o flashes brightly, bathing the area in intense light!", FALSE, ch, armor, ch, TO_CHAR);
-      act("$N's $o flashes brightly, bathing the area in intense light!", TRUE, ch, armor, ch, TO_ROOM);      
+      act("$N's $o flashes brightly, bathing the area in intense light!", TRUE, ch, armor, ch, TO_ROOM);
 
       for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room) {
         if (FIGHTING(tch) != ch) {
@@ -384,11 +381,11 @@ ARMOR_SPECIAL_ABILITY(armor_specab_blinding) {
         }
 
         found = TRUE;
-        if (MOB_FLAGGED(tch, MOB_NOBLIND)) {          
+        if (MOB_FLAGGED(tch, MOB_NOBLIND)) {
           continue;
         }
-        
-        if(mag_savingthrow(ch, tch, SAVING_REFL, 0, CAST_WEAPON_SPELL, 10, SCHOOL_NOSCHOOL)) {
+
+        if (mag_savingthrow(ch, tch, SAVING_REFL, 0, CAST_WEAPON_SPELL, 10, SCHOOL_NOSCHOOL)) {
           act("You look away just in time to avoid getting blinded!", FALSE, tch, armor, ch, TO_CHAR);
           act("$n looks away just in time to avoid getting blinded!", TRUE, tch, armor, ch, TO_ROOM);
           continue;
@@ -413,19 +410,19 @@ ARMOR_SPECIAL_ABILITY(armor_specab_blinding) {
 
         for (i = 0; i < 2; i++) {
           if (af[i].bitvector[0] || af[i].bitvector[1] ||
-              af[i].bitvector[2] || af[i].bitvector[3] ||
-              (af[i].location != APPLY_NONE)) {
-            affect_join(tch, af + i, FALSE, FALSE, FALSE, FALSE);             
+                  af[i].bitvector[2] || af[i].bitvector[3] ||
+                  (af[i].location != APPLY_NONE)) {
+            affect_join(tch, af + i, FALSE, FALSE, FALSE, FALSE);
           }
         }
       }
 
       if (!found) {
-        send_to_char(ch, "No enemies are engaged with you!\r\n");        
+        send_to_char(ch, "No enemies are engaged with you!\r\n");
       }
 
       start_armor_specab_daily_use_cooldown(armor, ARMOR_SPECAB_BLINDING);
-      
+
       break;
     case ACTMTD_USE: /* User USEs the item. */
       break;
@@ -608,8 +605,7 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_frost) {
   }
 }
 
-int add_draconic_claws_elemental_damage(struct char_data *ch, struct char_data *victim)
-{
+int add_draconic_claws_elemental_damage(struct char_data *ch, struct char_data *victim) {
   int dam = dice(1, 6);
   int damtype = draconic_heritage_energy_types[GET_BLOODLINE_SUBTYPE(ch)];
   dam -= compute_damtype_reduction(ch, damtype);
