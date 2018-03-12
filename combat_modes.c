@@ -161,6 +161,7 @@ ACMD(do_mode) {
       send_to_char(ch, "You must specify an argument when entering %s mode.\r\n", combat_mode_info[mode].name);
       return;
     }
+    
     if (IS_NPC(ch)) {
       number = 5;
     } else if (is_number(arg))
@@ -169,18 +170,19 @@ ACMD(do_mode) {
       send_to_char(ch, "The argument must be a number!\r\n");
       return;
     }
+    
     if (number == 1)
       ;
     else if (!IS_NPC(ch) && number > BAB(ch)) {
-      send_to_char(ch, "The maximum value you can specify for %s is %d - your base attack bonus (BAB).\r\n", combat_mode_info[mode].name, BAB(ch));
+      send_to_char(ch, "Mode %s is limited to %d - your base attack bonus (BAB).\r\n", combat_mode_info[mode].name, BAB(ch));
       return;
     }
-    if (number < 1) {
+    else if (number < 1) {
       send_to_char(ch, "The minimum value you can specify for %s is 1.\r\n", combat_mode_info[mode].name);
       return;
     }
-    if (!IS_NPC(ch) && number > MODE_CAP) {
-      send_to_char(ch, "The maximum value you can specify for %s is %d (upper limit).\r\n", combat_mode_info[mode].name, MODE_CAP);
+    else if (!IS_NPC(ch) && number > MODE_CAP) {
+      send_to_char(ch, "The maximum value you can specify for %s is %d (mode cap).\r\n", combat_mode_info[mode].name, MODE_CAP);
       return;
     }
   }
