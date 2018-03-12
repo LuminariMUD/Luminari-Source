@@ -211,7 +211,7 @@ ACMD(do_animatedead) {
 ACMD(do_abundantstep) {
   int steps = 0, i = 0, j, repeat = 0, max = 0;
   room_rnum room_tracker = NOWHERE, nextroom = NOWHERE;
-  char buf[MAX_INPUT_LENGTH] = { '\0' }, tc = '\0';
+  char buf[MAX_INPUT_LENGTH] = {'\0'}, tc = '\0';
   const char *p = NULL;
 
   if (!HAS_FEAT(ch, FEAT_ABUNDANT_STEP)) {
@@ -372,14 +372,14 @@ ACMD(do_ethshift) {
       //counter++;
       //send_to_char(ch, "%d | %d, ", counter, shift_dest);
     } while ((ZONE_FLAGGED(GET_ROOM_ZONE(shift_dest), ZONE_ELEMENTAL) ||
-              ZONE_FLAGGED(GET_ROOM_ZONE(shift_dest), ZONE_ETH_PLANE) ||
-              ZONE_FLAGGED(GET_ROOM_ZONE(shift_dest), ZONE_ASTRAL_PLANE))
-             );
+            ZONE_FLAGGED(GET_ROOM_ZONE(shift_dest), ZONE_ETH_PLANE) ||
+            ZONE_FLAGGED(GET_ROOM_ZONE(shift_dest), ZONE_ASTRAL_PLANE))
+            );
 
     /* check if shiftee is on prime */
-  } else if ( !ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ASTRAL_PLANE) &&
-       !ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ETH_PLANE) &&
-       !ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ELEMENTAL) ) {
+  } else if (!ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ASTRAL_PLANE) &&
+          !ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ETH_PLANE) &&
+          !ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ELEMENTAL)) {
     send_to_char(ch, "Attempting to shift to the ethereal plane...\r\n");
 
     do {
@@ -398,7 +398,7 @@ ACMD(do_ethshift) {
     send_to_char(ch, "You fail to successfully shift!\r\n");
     return;
   }
-  */
+   */
 
   if (!valid_mortal_tele_dest(shiftee, shift_dest, FALSE)) {
     send_to_char(ch, "Your power is being block at the destination (try again)!\r\n");
@@ -441,7 +441,7 @@ ACMD(do_imbuearrow) {
     send_to_char(ch, "Imbue what spell?  Usage: imbuearrow <ammo name> <spell name>\r\n");
     return;
   }
-  
+
   /* feat related restrictions / daily use */
   if (!HAS_FEAT(ch, FEAT_IMBUE_ARROW)) {
     send_to_char(ch, "You do not know how!\r\n");
@@ -466,7 +466,7 @@ ACMD(do_imbuearrow) {
     send_to_char(ch, "You can only imbue ammo!\r\n");
     return;
   }
-  
+
   /* confirm we have a valid spell */
   spell_num = find_skill_num(arg2);
   if (spell_num < 1 || spell_num > MAX_SPELLS) {
@@ -478,30 +478,30 @@ ACMD(do_imbuearrow) {
     send_to_char(ch, "This arrow is already imbued!\r\n");
     return;
   }
-  
+
   if (spell_prep_gen_check(ch, spell_num, METAMAGIC_NONE) == CLASS_UNDEFINED) {
     send_to_char(ch, "You have to have the spell prepared in order to imbue!!\r\n");
     return;
   }
-  
+
   class = spell_prep_gen_extract(ch, spell_num, METAMAGIC_NONE);
   if (class == CLASS_UNDEFINED) {
     send_to_char(ch, "ERR:  Report BUG771 to an IMM!\r\n");
     log("spell_prep_gen_extract() failed in imbue_arrow");
     return;
   }
-  
+
   /* SUCCESS! */
   start_daily_use_cooldown(ch, FEAT_IMBUE_ARROW);
-  
+
   /* store the spell in the arrow, object value 1 */
   GET_OBJ_VAL(arrow, 1) = spell_num;
-  
+
   /* start wear-off timer for the spell placed on the arrow */
-  GET_OBJ_TIMER(arrow) = 8;  /* should be 8 hours right? */
-  
+  GET_OBJ_TIMER(arrow) = 8; /* should be 8 hours right? */
+
   USE_MOVE_ACTION(ch);
-  
+
   /* message */
   act("$n briefly concentrates and you watch as $p flashes with arcane energy.", FALSE, ch, arrow, 0, TO_ROOM);
   act("You concentrate arcane energy and focus it into $p.", FALSE, ch, arrow, 0, TO_CHAR);
@@ -509,8 +509,8 @@ ACMD(do_imbuearrow) {
 
 /* apply poison to a weapon */
 ACMD(do_applypoison) {
-  char arg1[MAX_INPUT_LENGTH] = { '\0' };
-  char arg2[MAX_INPUT_LENGTH] = { '\0' };
+  char arg1[MAX_INPUT_LENGTH] = {'\0'};
+  char arg2[MAX_INPUT_LENGTH] = {'\0'};
   struct obj_data *poison = NULL, *weapon = NULL;
   int amount = 1;
   bool is_trelux = FALSE;
@@ -532,22 +532,22 @@ ACMD(do_applypoison) {
   }
 
   poison = get_obj_in_list_vis(ch, arg1, NULL, ch->carrying);
-  
+
   if (!poison) {
     send_to_char(ch, "You do not carry that poison!\r\n");
     return;
   }
-  
+
   if (GET_RACE(ch) == RACE_TRELUX) {
     is_trelux = TRUE;
   }
-  
+
   if (is_abbrev(arg2, "claws") && !is_trelux) {
     send_to_char(ch, "Only trelux can do that!!\r\n");
-    return;    
+    return;
   } else if (!is_abbrev(arg2, "claws") && is_trelux) {
     send_to_char(ch, "Trelux must apply poison only to their claws!!\r\n");
-    return;    
+    return;
   }
 
   /* checking for equipped weapons */
@@ -557,14 +557,14 @@ ACMD(do_applypoison) {
     if (GET_EQ(ch, WEAR_WIELD_2H))
       weapon = GET_EQ(ch, WEAR_WIELD_2H);
     else if (GET_EQ(ch, WEAR_WIELD_1))
-      weapon = GET_EQ(ch, WEAR_WIELD_1);      
+      weapon = GET_EQ(ch, WEAR_WIELD_1);
   } else if (is_abbrev(arg2, "offhand")) {
     if (GET_EQ(ch, WEAR_WIELD_OFFHAND))
-      weapon = GET_EQ(ch, WEAR_WIELD_OFFHAND);    
+      weapon = GET_EQ(ch, WEAR_WIELD_OFFHAND);
   } else {
-    weapon = get_obj_in_list_vis(ch, arg2, NULL, ch->carrying);    
+    weapon = get_obj_in_list_vis(ch, arg2, NULL, ch->carrying);
   }
-  
+
   if (!weapon && !is_trelux) {
     send_to_char(ch, "You do not carry that weapon! [applypoison <poison name> <weapon-name|ammo-name|primary|offhand|claws>]\r\n");
     return;
@@ -578,7 +578,7 @@ ACMD(do_applypoison) {
     send_to_char(ch, "That vial is empty!\r\n");
     return;
   }
-  
+
   if (is_trelux) {
     ;
   } else if (GET_OBJ_TYPE(weapon) != ITEM_WEAPON && GET_OBJ_TYPE(weapon) != ITEM_MISSILE) {
@@ -594,35 +594,35 @@ ACMD(do_applypoison) {
   }
   if (!is_trelux && IS_SET(weapon_list[GET_OBJ_VAL(weapon, 0)].weaponFlags, WEAPON_FLAG_RANGED)) {
     send_to_char(ch, "You can't apply poison to that, try applying directly to the ammo.\r\n");
-    return;    
+    return;
   }
-  
+
   /* 5% of failure */
   if (rand_number(0, 19)) {
     char buf1[MEDIUM_STRING] = {'\0'};
     char buf2[MEDIUM_STRING] = {'\0'};
-    
+
     if (is_trelux) {
       TRLX_PSN_VAL(ch) = GET_OBJ_VAL(poison, 0);
       TRLX_PSN_LVL(ch) = GET_OBJ_VAL(poison, 1);
       TRLX_PSN_HIT(ch) = GET_OBJ_VAL(poison, 3);
       sprintf(buf1, "\tnYou carefully apply the contents of %s \tnonto your claws\tn...",
-            poison->short_description);
+              poison->short_description);
       sprintf(buf2, "$n \tncarefully applies the contents of %s \tnonto $s claws\tn...",
-            poison->short_description);
+              poison->short_description);
     } else {
       weapon->weapon_poison.poison_hits = GET_OBJ_VAL(poison, 3);
       weapon->weapon_poison.poison = GET_OBJ_VAL(poison, 0);
-      weapon->weapon_poison.poison_level = GET_OBJ_VAL(poison, 1);      
+      weapon->weapon_poison.poison_level = GET_OBJ_VAL(poison, 1);
       sprintf(buf1, "\tnYou carefully apply the contents of %s \tnonto $p\tn...",
-            poison->short_description);
+              poison->short_description);
       sprintf(buf2, "$n \tncarefully applies the contents of %s \tnonto $p\tn...",
-            poison->short_description);
+              poison->short_description);
     }
 
     act(buf1, FALSE, ch, weapon, 0, TO_CHAR);
     act(buf2, FALSE, ch, weapon, 0, TO_ROOM);
-    
+
     if (GET_LEVEL(ch) < LVL_IMMORT)
       USE_FULL_ROUND_ACTION(ch);
   } else {
@@ -632,7 +632,7 @@ ACMD(do_applypoison) {
       act("You fail to \tGpoison\tn your claws.", FALSE, ch, NULL, 0, TO_CHAR);
     } else {
       act("$n fails to apply the \tGpoison\tn onto $p.", FALSE, ch, weapon, 0, TO_ROOM);
-      act("You fail to \tGpoison\tn your $p.", FALSE, ch, weapon, 0, TO_CHAR);      
+      act("You fail to \tGpoison\tn your $p.", FALSE, ch, weapon, 0, TO_CHAR);
     }
   }
 
@@ -641,6 +641,7 @@ ACMD(do_applypoison) {
 
 
 /* bardic performance moved to: bardic_performance.c */
+
 /* this is still being used by NPCs */
 void perform_perform(struct char_data *ch) {
   struct affected_type af[BARD_AFFECTS];
@@ -723,6 +724,7 @@ void perform_perform(struct char_data *ch) {
 }
 
 /* this has been replaced in bardic_performance.c */
+
 /*
 ACMD(do_perform) {
 
@@ -733,7 +735,7 @@ ACMD(do_perform) {
 
   perform_perform(ch);
 }
-*/
+ */
 
 void perform_call(struct char_data *ch, int call_type, int level) {
   int i = 0;
@@ -923,7 +925,7 @@ void perform_call(struct char_data *ch, int call_type, int level) {
   }
 
   send_to_char(ch, "You can 'call' your companion even if you get separated.  "
-      "You can also 'dismiss' your companion to reduce your cooldown drastically.\r\n");
+          "You can also 'dismiss' your companion to reduce your cooldown drastically.\r\n");
 }
 
 ACMD(do_call) {
@@ -1215,7 +1217,7 @@ ACMD(do_mount) {
   USE_MOVE_ACTION(ch);
 
   if (IS_NPC(vict) && !AFF_FLAGGED(vict, AFF_TAMED) &&
-          (compute_ability(ch, ABILITY_RIDE) + dice(1,20)) <= rand_number(1, GET_LEVEL(vict))) {
+          (compute_ability(ch, ABILITY_RIDE) + dice(1, 20)) <= rand_number(1, GET_LEVEL(vict))) {
     act("$N suddenly bucks upwards, throwing you violently to the ground!", FALSE, ch, 0, vict, TO_CHAR);
     act("$n is thrown to the ground as $N violently bucks!", TRUE, ch, 0, vict, TO_NOTVICT);
     act("You buck violently and throw $n to the ground.", FALSE, ch, 0, vict, TO_VICT);
@@ -1374,14 +1376,14 @@ ACMD(do_gain) {
   if (GET_DISGUISE_RACE(ch) || IS_MORPHED(ch)) {
     send_to_char(ch, "You have to remove disguises, wildshape and/or polymorph "
             "before advancing.\r\n");
-    return;    
+    return;
   }
-  
+
   if (GET_LEVEL(ch) >= LVL_IMMORT - 1) {
     send_to_char(ch, "You have reached the level limit! You can not go above level %d!\r\n", LVL_IMMORT - 1);
-    return;    
+    return;
   }
-  
+
   if (!(GET_LEVEL(ch) < LVL_IMMORT - CONFIG_NO_MORT_TO_IMMORT &&
           GET_EXP(ch) >= level_exp(ch, GET_LEVEL(ch) + 1))) {
     send_to_char(ch, "You are not experienced enough to gain a level.\r\n");
@@ -1402,7 +1404,7 @@ ACMD(do_gain) {
       display_all_classes(ch);
       return;
     }
-   
+
     if (class < 0 || class >= NUM_CLASSES ||
             !class_is_available(ch, class, MODE_CLASSLIST_NORMAL, NULL)) {
       send_to_char(ch, "That is not a valid class!\r\n");
@@ -1431,7 +1433,7 @@ ACMD(do_gain) {
     if ((GET_PRACTICES(ch) != 0) ||
             (GET_TRAINS(ch) > 1) ||
             (GET_BOOSTS(ch) != 0) ||
-            (stats_point_left(ch) && GET_LEVEL(ch) == 1) ) {//    ||
+            (stats_point_left(ch) && GET_LEVEL(ch) == 1)) {//    ||
       /*         ((CLASS_LEVEL(ch, CLASS_SORCERER) && !IS_SORC_LEARNED(ch)) ||
                (CLASS_LEVEL(ch, CLASS_WIZARD)   && !IS_WIZ_LEARNED(ch))  ||
                (CLASS_LEVEL(ch, CLASS_BARD)     && !IS_BARD_LEARNED(ch)) ||
@@ -1445,12 +1447,12 @@ ACMD(do_gain) {
       //        send_to_char(ch, "You must use all practices before gaining another level.  You have %d practice%s remaining.\r\n", GET_PRACTICES(ch), (GET_PRACTICES(ch) > 1 ? "s" : ""));
       if (GET_TRAINS(ch) > 1)
         send_to_char(ch, "You must use all but one of your trains before gaining "
-                "another level.  You have %d train%s remaining.\r\n",
-                     GET_TRAINS(ch), (GET_TRAINS(ch) > 1 ? "s" : ""));
+              "another level.  You have %d train%s remaining.\r\n",
+              GET_TRAINS(ch), (GET_TRAINS(ch) > 1 ? "s" : ""));
       if (GET_BOOSTS(ch) != 0)
         send_to_char(ch, "You must use all boosts before gaining another level.  "
-                "You have %d boost%s remaining.\r\n",
-                     GET_BOOSTS(ch), (GET_BOOSTS(ch) > 1 ? "s" : ""));
+              "You have %d boost%s remaining.\r\n",
+              GET_BOOSTS(ch), (GET_BOOSTS(ch) > 1 ? "s" : ""));
       if (stats_point_left(ch) && GET_LEVEL(ch) == 1)
         send_to_char(ch, "You must spend all your stat points before gaining a level.\r\n");
       /*       if(CLASS_LEVEL(ch, CLASS_SORCERER) && !IS_SORC_LEARNED(ch))
@@ -1499,6 +1501,7 @@ ACMD(do_gain) {
 
 /*************************/
 /* shapechange functions */
+
 /*************************/
 struct wild_shape_mods {
   byte strength;
@@ -1666,7 +1669,7 @@ struct wild_shape_mods *set_wild_shape_mods(int race) {
           abil_mods->strength = 10;
           abil_mods->constitution = 6;
           abil_mods->natural_armor = 7;
-          break;          
+          break;
       }
       break;
     case RACE_TYPE_DRAGON:
@@ -1830,12 +1833,13 @@ struct wild_shape_mods *set_wild_shape_mods(int race) {
     case RACE_WOLF:
     case RACE_HYENA:
       break;
-      
+
     default:break;
   }
 
   return abil_mods;
 }
+
 /* At 6th level, a druid can use wild shape to change into a Large or Tiny animal
  * or a Small elemental. When taking the form of an animal, a druid's wild shape
  * now functions as beast shape II. When taking the form of an elemental, the
@@ -2096,7 +2100,7 @@ void assign_wildshape_feats(struct char_data *ch) {
   /* just to be on the safe side, doing a cleanup before assignment*/
   for (counter = 0; counter < NUM_FEATS; counter++)
     MOB_SET_FEAT((ch), counter, 0);
-  
+
   /***************************************************/
   /* make sure -=these=- feats transfer over! -zusuk */
   if (HAS_REAL_FEAT(ch, FEAT_NATURAL_SPELL))
@@ -2105,12 +2109,12 @@ void assign_wildshape_feats(struct char_data *ch) {
   /***************************************************/
 
   /* trying to keep general racial type assignments here */
-  switch (race_list[GET_DISGUISE_RACE(ch)].family) {    
+  switch (race_list[GET_DISGUISE_RACE(ch)].family) {
     case RACE_TYPE_ANIMAL:
-      MOB_SET_FEAT(ch, FEAT_RAGE, shifter_level/5 + 1);
+      MOB_SET_FEAT(ch, FEAT_RAGE, shifter_level / 5 + 1);
       break;
     case RACE_TYPE_PLANT:
-      MOB_SET_FEAT(ch, FEAT_ARMOR_SKIN, shifter_level/5 + 1);
+      MOB_SET_FEAT(ch, FEAT_ARMOR_SKIN, shifter_level / 5 + 1);
       break;
     default:break;
   }
@@ -2230,11 +2234,12 @@ void wildshape_return(struct char_data *ch) {
   save_char(ch, 0);
   Crash_crashsave(ch);
 
-  return;  
+  return;
 }
 
 /* moved the engine out of do_wildshape so we can use it in other places */
 /* mode = 0, druid */
+
 /* mode = 1, polymorph spell (spells.c) */
 bool wildshape_engine(struct char_data *ch, char *argument, int mode) {
   int i = 0;
@@ -2242,7 +2247,7 @@ bool wildshape_engine(struct char_data *ch, char *argument, int mode) {
   struct wild_shape_mods *abil_mods;
 
   skip_spaces(&argument);
-  
+
   if (AFF_FLAGGED(ch, AFF_WILD_SHAPE)) {
     send_to_char(ch, "You must return to your normal shape before assuming a new form.\r\n");
     return FALSE;
@@ -2250,7 +2255,7 @@ bool wildshape_engine(struct char_data *ch, char *argument, int mode) {
   if (GET_DISGUISE_RACE(ch)) {
     send_to_char(ch, "You must remove your disguise before using wildshape.\r\n");
     return FALSE;
-  }  
+  }
   if (IS_MORPHED(ch)) {
     send_to_char(ch, "You can't wildshape while shape-changed!\r\n");
     return FALSE;
@@ -2283,7 +2288,7 @@ bool wildshape_engine(struct char_data *ch, char *argument, int mode) {
   abil_mods = set_wild_shape_mods(GET_DISGUISE_RACE(ch));
   /* set the bonuses */
   set_bonus_stats(ch, abil_mods->strength, abil_mods->constitution,
-                       abil_mods->dexterity, abil_mods->natural_armor);
+          abil_mods->dexterity, abil_mods->natural_armor);
   /* all stat modifications are done */
 
   /* assign appropriate racial/mobile feats here */
@@ -2295,8 +2300,8 @@ bool wildshape_engine(struct char_data *ch, char *argument, int mode) {
   GET_HIT(ch) = MIN(GET_HIT(ch), GET_MAX_HIT(ch));
   affect_total(ch);
   save_char(ch, 0);
-  Crash_crashsave(ch);  
-  
+  Crash_crashsave(ch);
+
   return TRUE;
 }
 
@@ -2332,7 +2337,7 @@ ACMD(do_wildshape) {
     act(buf, true, ch, 0, 0, TO_CHAR);
     sprintf(buf, "$n changes shape into a %s.", race_list[GET_REAL_RACE(ch)].type);
     act(buf, true, ch, 0, 0, TO_ROOM);
-    
+
     /* a little bit of healing */
     GET_HIT(ch) += GET_LEVEL(ch);
     GET_HIT(ch) = MIN(GET_HIT(ch), GET_MAX_HIT(ch));
@@ -2342,30 +2347,29 @@ ACMD(do_wildshape) {
     return;
   }
   /* END wildshape-return */
-  
+
   /* BEGIN wildshape! */
-  
+
   /* can we even use this? */
   if (!HAS_FEAT(ch, FEAT_WILD_SHAPE) && !HAS_REAL_FEAT(ch, FEAT_WILD_SHAPE)) {
     send_to_char(ch, "You do not have the ability to shapechange using wild shape.\r\n");
     return;
   }
-  uses_remaining = daily_uses_remaining(ch, FEAT_WILD_SHAPE);  
+  uses_remaining = daily_uses_remaining(ch, FEAT_WILD_SHAPE);
   if (HAS_FEAT(ch, FEAT_LIMITLESS_SHAPES))
     ;
   else if (uses_remaining <= 0) {
     send_to_char(ch, "You must recover the energy required to take a wild shape.\r\n");
     return;
   }
-  
+
   /* here is the engine, there are some more exit checks over there */
   if (wildshape_engine(ch, argument, 0)) {
     USE_STANDARD_ACTION(ch);
   }
-  
+
   return;
 }
-
 
 /* header file:  act.h */
 void list_forms(struct char_data *ch) {
@@ -2780,8 +2784,8 @@ ACMD(do_lore) {
 
   /* good enough lore for object? */
   if (tobj && GET_OBJ_COST(tobj) <=
-       lore_app[(compute_ability(ch, ABILITY_LORE) + lore_bonus)]
-      ) {
+          lore_app[(compute_ability(ch, ABILITY_LORE) + lore_bonus)]
+          ) {
     knowledge = TRUE;
   }
 
@@ -2792,9 +2796,9 @@ ACMD(do_lore) {
 
   /* good enough lore for mobile? */
   knowledge = FALSE;
-  if ( tch && (GET_LEVEL(tch) * 2) <=
-       lore_app[(compute_ability(ch, ABILITY_LORE) + lore_bonus)]
-      ) {
+  if (tch && (GET_LEVEL(tch) * 2) <=
+          lore_app[(compute_ability(ch, ABILITY_LORE) + lore_bonus)]
+          ) {
     knowledge = TRUE;
   }
 
@@ -2825,7 +2829,7 @@ ACMD(do_land) {
     affect_from_char(ch, SKILL_DRHRT_WINGS);
     msg = TRUE;
   }
-  
+
   if (affected_by_spell(ch, SPELL_LEVITATE)) {
     affect_from_char(ch, SPELL_LEVITATE);
     msg = TRUE;
@@ -2852,61 +2856,61 @@ ACMD(do_land) {
 /* levitate ability (drow) */
 ACMD(do_levitate) {
   int uses_remaining = 0;
-  
+
   if (!HAS_FEAT(ch, FEAT_SLA_LEVITATE)) {
     send_to_char(ch, "You don't have this ability.\r\n");
     return;
   }
-  
+
   if (AFF_FLAGGED(ch, AFF_LEVITATE)) {
     send_to_char(ch, "You are already levitating!\r\n");
     return;
   }
-  
+
   if (!IS_NPC(ch) && ((uses_remaining = daily_uses_remaining(ch, FEAT_SLA_LEVITATE)) == 0)) {
     send_to_char(ch, "You must recover before you can use this ability again.\r\n");
     return;
   }
-  
+
   /*
   SET_BIT_AR(AFF_FLAGS(ch), AFF_FLOAT);
   act("$n begins to levitate above the ground!", TRUE, ch, 0, 0, TO_ROOM);
   send_to_char(ch, "You slow rise above the ground and begin to levitate!\r\n");
-  */
-  
+   */
+
   //int call_magic(struct char_data *caster, struct char_data *cvict,
-        //struct obj_data *ovict, int spellnum, int metamagic, int level, int casttype);
+  //struct obj_data *ovict, int spellnum, int metamagic, int level, int casttype);
   call_magic(ch, ch, NULL, SPELL_LEVITATE, 0, GET_LEVEL(ch), CAST_INNATE);
-  
+
   if (!IS_NPC(ch))
-    start_daily_use_cooldown(ch, FEAT_SLA_LEVITATE);  
+    start_daily_use_cooldown(ch, FEAT_SLA_LEVITATE);
 }
 
 /* darkness ability (drow) */
 ACMD(do_darkness) {
   int uses_remaining = 0;
-  
+
   if (!HAS_FEAT(ch, FEAT_SLA_DARKNESS)) {
     send_to_char(ch, "You don't have this ability.\r\n");
     return;
   }
-  
+
   if (ROOM_AFFECTED(IN_ROOM(ch), RAFF_DARKNESS)) {
     send_to_char(ch, "The area is already dark!\r\n");
-    return;    
+    return;
   }
-  
+
   if (!IS_NPC(ch) && ((uses_remaining = daily_uses_remaining(ch, FEAT_SLA_DARKNESS)) == 0)) {
     send_to_char(ch, "You must recover before you can use this ability again.\r\n");
     return;
   }
-    
+
   //int call_magic(struct char_data *caster, struct char_data *cvict,
-        //struct obj_data *ovict, int spellnum, int metamagic, int level, int casttype);
+  //struct obj_data *ovict, int spellnum, int metamagic, int level, int casttype);
   call_magic(ch, ch, NULL, SPELL_DARKNESS, 0, GET_LEVEL(ch), CAST_SPELL);
 
   if (!IS_NPC(ch))
-    start_daily_use_cooldown(ch, FEAT_SLA_DARKNESS);  
+    start_daily_use_cooldown(ch, FEAT_SLA_DARKNESS);
 }
 
 /* race trelux innate ability */
@@ -2953,13 +2957,13 @@ int get_hidden_door_dc(struct char_data *ch, int door) {
    of the naturally much higher stats in our MUD world */
   if (EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN_EASY))
     return 15;
-    //return 10;
+  //return 10;
   if (EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN_MEDIUM))
     return 30;
-    //return 20;
+  //return 20;
   if (EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN_HARD))
     return 45;
-    //return 30;
+  //return 30;
 
   /* If we get here, the door is not hidden. */
   return 0;
@@ -3219,7 +3223,7 @@ ACMD(do_listen) {
     send_to_char(ch, "You have no idea how to do that.\r\n");
     return;
   }
-  */
+   */
 
   if (AFF_FLAGGED(ch, AFF_LISTEN)) {
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_LISTEN);
@@ -3244,7 +3248,7 @@ ACMD(do_spot) {
     send_to_char(ch, "You have no idea how to do that.\r\n");
     return;
   }
-  */
+   */
 
   if (AFF_FLAGGED(ch, AFF_SPOT)) {
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_SPOT);
@@ -3393,6 +3397,7 @@ ACMD(do_steal) {
 /* entry point for listing spells, the rest of the code is in spec_procs.c */
 
 /* this only lists spells castable for a given class */
+
 /* Ornir:  17.03.16 - Add 'circle' parameter to the command */
 ACMD(do_spells) {
   char arg[MAX_INPUT_LENGTH], arg1[MAX_INPUT_LENGTH];
@@ -3413,11 +3418,11 @@ ACMD(do_spells) {
     }
     if (*arg1) {
       circle = atoi(arg1);
-      if (circle < 1 || circle > 9){
+      if (circle < 1 || circle > 9) {
         send_to_char(ch, "That is an invalid spell circle!\r\n");
         return;
-      }       
-    }       
+      }
+    }
     if (CLASS_LEVEL(ch, class)) {
       list_spells(ch, 0, class, circle);
     } else {
@@ -3435,6 +3440,7 @@ ACMD(do_spells) {
 /* entry point for listing spells, the rest of the code is in spec_procs.c */
 
 /* this lists all spells attainable for given class */
+
 /* Ornir:  17.03.16 - Add 'circle' parameter to the command */
 ACMD(do_spelllist) {
   char arg[MAX_INPUT_LENGTH], arg1[MAX_INPUT_LENGTH];
@@ -3442,7 +3448,7 @@ ACMD(do_spelllist) {
 
   if (IS_NPC(ch))
     return;
-  
+
   two_arguments(argument, arg, arg1);
 
   if (!*arg) {
@@ -3452,16 +3458,16 @@ ACMD(do_spelllist) {
     if (class < 0 || class >= NUM_CLASSES) {
       send_to_char(ch, "That is not a valid class!\r\n");
       return;
-    }    
+    }
     if (*arg1) {
       circle = atoi(arg1);
-      if (circle < 1 || circle > 9){
+      if (circle < 1 || circle > 9) {
         send_to_char(ch, "That is an invalid spell circle!\r\n");
         return;
-      }        
-    }      
-   
-    
+      }
+    }
+
+
     list_spells(ch, 1, class, circle);
   }
 
@@ -3533,7 +3539,7 @@ ACMD(do_train) {
   char arg[MAX_INPUT_LENGTH];
 
   //if (IS_NPC(ch))
-    //return;
+  //return;
 
   one_argument(argument, arg);
 
@@ -3608,44 +3614,44 @@ static void print_group(struct char_data *ch) {
           CCNRM(ch, C_NRM));
 }
 
-/* Putting this here - no better place to put it really. */    
+/* Putting this here - no better place to put it really. */
 void update_msdp_group(struct char_data *ch) {
   char msdp_buffer[MAX_STRING_LENGTH];
   struct char_data *k;
-   
+
   /* MSDP */
-  
+
   msdp_buffer[0] = '\0';
   if (ch && ch->desc) {
-    if (ch->group) { 
-      while ((k = (struct char_data *) simple_list(ch->group->members)) != NULL) {   
+    if (ch->group) {
+      while ((k = (struct char_data *) simple_list(ch->group->members)) != NULL) {
         char buf[4000]; // Buffer for building the group table for MSDP 
         //send_to_char(ch, "DEBUG: group member: %s", GET_NAME(k));
         sprintf(buf, "%c%c"
-                    "%c%s%c%s"
-                    "%c%s%c%d"
-                    "%c%s%c%d"
-                    "%c%s%c%d"
-                    "%c%s%c%d"
-                    "%c%s%c%d"
-                    "%c%s%c%d"
-                          "%c",
-              (char)MSDP_VAL, 
-                (char)MSDP_TABLE_OPEN,
-                  (char)MSDP_VAR, "NAME",         (char)MSDP_VAL, GET_NAME(k),
-                  (char)MSDP_VAR, "LEVEL",        (char)MSDP_VAL, GET_LEVEL(k),
-                  (char)MSDP_VAR, "IS_LEADER",    (char)MSDP_VAL, (GROUP_LEADER(GROUP(k)) == k ? 1 : 0),
-                  (char)MSDP_VAR, "HEALTH",       (char)MSDP_VAL, GET_HIT(k),
-                  (char)MSDP_VAR, "HEALTH_MAX",   (char)MSDP_VAL, GET_MAX_HIT(k),
-                  (char)MSDP_VAR, "MOVEMENT",     (char)MSDP_VAL, GET_MOVE(k),
-                  (char)MSDP_VAR, "MOVEMENT_MAX", (char)MSDP_VAL, GET_MAX_MOVE(k),
-                (char)MSDP_TABLE_CLOSE);
+                "%c%s%c%s"
+                "%c%s%c%d"
+                "%c%s%c%d"
+                "%c%s%c%d"
+                "%c%s%c%d"
+                "%c%s%c%d"
+                "%c%s%c%d"
+                "%c",
+                (char) MSDP_VAL,
+                (char) MSDP_TABLE_OPEN,
+                (char) MSDP_VAR, "NAME", (char) MSDP_VAL, GET_NAME(k),
+                (char) MSDP_VAR, "LEVEL", (char) MSDP_VAL, GET_LEVEL(k),
+                (char) MSDP_VAR, "IS_LEADER", (char) MSDP_VAL, (GROUP_LEADER(GROUP(k)) == k ? 1 : 0),
+                (char) MSDP_VAR, "HEALTH", (char) MSDP_VAL, GET_HIT(k),
+                (char) MSDP_VAR, "HEALTH_MAX", (char) MSDP_VAL, GET_MAX_HIT(k),
+                (char) MSDP_VAR, "MOVEMENT", (char) MSDP_VAL, GET_MOVE(k),
+                (char) MSDP_VAR, "MOVEMENT_MAX", (char) MSDP_VAL, GET_MAX_MOVE(k),
+                (char) MSDP_TABLE_CLOSE);
         strcat(msdp_buffer, buf);
-      }    
-    } 
+      }
+    }
     //send_to_char(ch,"%s", msdp_buffer);
     strip_colors(msdp_buffer);
-    MSDPSetArray(ch->desc, eMSDP_GROUP, msdp_buffer);    
+    MSDPSetArray(ch->desc, eMSDP_GROUP, msdp_buffer);
   }
 }
 
@@ -3659,20 +3665,20 @@ void update_msdp_inventory(struct char_data *ch) {
   if (ch && ch->desc) {
     /* --------- Comment out the following if you don't want to mix eq and worn ---------- */
     for (i = 0; i < NUM_WEARS; i++) {
-      if (GET_EQ(ch, i)) {        
+      if (GET_EQ(ch, i)) {
         if (CAN_SEE_OBJ(ch, GET_EQ(ch, i))) {
           char buf[4000]; // Buffer for building the inventory table for MSDP 
-          obj = GET_EQ(ch, i);            
+          obj = GET_EQ(ch, i);
           sprintf(buf, "%c%c"
-                       "%c%s%c%s"                   
-                       "%c%s%c%s"                   
-                       "%c",
-                (char)MSDP_VAL, 
-                  (char)MSDP_TABLE_OPEN,               
-                  (char)MSDP_VAR, "LOCATION", (char)MSDP_VAL, equipment_types[i],                  
-                  (char)MSDP_VAR, "NAME",  (char)MSDP_VAL, obj->short_description,                
-                 (char)MSDP_TABLE_CLOSE);
-      strcat(msdp_buffer, buf);        
+                  "%c%s%c%s"
+                  "%c%s%c%s"
+                  "%c",
+                  (char) MSDP_VAL,
+                  (char) MSDP_TABLE_OPEN,
+                  (char) MSDP_VAR, "LOCATION", (char) MSDP_VAL, equipment_types[i],
+                  (char) MSDP_VAR, "NAME", (char) MSDP_VAL, obj->short_description,
+                  (char) MSDP_TABLE_CLOSE);
+          strcat(msdp_buffer, buf);
         }
       }
     }
@@ -3681,20 +3687,20 @@ void update_msdp_inventory(struct char_data *ch) {
     for (obj = ch->carrying; obj; obj = obj->next_content) {
       if (CAN_SEE_OBJ(ch, obj)) {
         char buf[4000]; // Buffer for building the inventory table for MSDP             
-        sprintf(buf, "%c%c"                   
-                    "%c%s%c%s"
-                    "%c%s%c%s"                   
-                    "%c",
-              (char)MSDP_VAL, 
-                (char)MSDP_TABLE_OPEN, 
-                  (char)MSDP_VAR, "LOCATION", (char)MSDP_VAL, "Inventory",                  
-                  (char)MSDP_VAR, "NAME", (char)MSDP_VAL, obj->short_description,                
-                (char)MSDP_TABLE_CLOSE);
+        sprintf(buf, "%c%c"
+                "%c%s%c%s"
+                "%c%s%c%s"
+                "%c",
+                (char) MSDP_VAL,
+                (char) MSDP_TABLE_OPEN,
+                (char) MSDP_VAR, "LOCATION", (char) MSDP_VAL, "Inventory",
+                (char) MSDP_VAR, "NAME", (char) MSDP_VAL, obj->short_description,
+                (char) MSDP_TABLE_CLOSE);
         strcat(msdp_buffer, buf);
       }
-    }    
-    strip_colors(msdp_buffer);     
-    MSDPSetArray(ch->desc, eMSDP_INVENTORY, msdp_buffer);    
+    }
+    strip_colors(msdp_buffer);
+    MSDPSetArray(ch->desc, eMSDP_INVENTORY, msdp_buffer);
   }
 }
 
@@ -3984,8 +3990,8 @@ ACMD(do_use) {
       break;
     case SCMD_USE:
       if ((GET_OBJ_TYPE(mag_item) != ITEM_WAND) &&
-          (GET_OBJ_TYPE(mag_item) != ITEM_STAFF)  &&
-          (GET_OBJ_TYPE(mag_item) != ITEM_WEAPON && HAS_SPECIAL_ABILITIES(mag_item))) {
+              (GET_OBJ_TYPE(mag_item) != ITEM_STAFF) &&
+              (GET_OBJ_TYPE(mag_item) != ITEM_WEAPON && HAS_SPECIAL_ABILITIES(mag_item))) {
         send_to_char(ch, "You can't seem to figure out how to use it.\r\n");
         return;
       }
@@ -4013,7 +4019,7 @@ ACMD(do_use) {
       return;
     }
   }
-  
+
   /* Check if we can actually use the item in question... */
   switch (subcmd) {
 
@@ -4028,8 +4034,7 @@ ACMD(do_use) {
 
       dc = 20 + GET_OBJ_VAL(mag_item, 0);
       if (((check_result = skill_check(ch, ABILITY_SPELLCRAFT, dc)) < 0) &&
-          ((check_result = skill_check(ch, ABILITY_USE_MAGIC_DEVICE, dc + 5)) < 0))
-      {
+              ((check_result = skill_check(ch, ABILITY_USE_MAGIC_DEVICE, dc + 5)) < 0)) {
         send_to_char(ch, "You are unable to decipher the magical writings!\r\n");
         return;
       }
@@ -4037,25 +4042,21 @@ ACMD(do_use) {
       /* 2.a. Check the spell type
        *      ARCANE - Wizard, Sorcerer, Bard
        *      DIVINE - Cleric, Druid, Paladin, Ranger */
-      if ((check_result = skill_check(ch, ABILITY_USE_MAGIC_DEVICE, dc)) < 0)
-      {
-        if(spell_info[spell].min_level[CLASS_WIZARD]   < LVL_STAFF ||
-           spell_info[spell].min_level[CLASS_SORCERER] < LVL_STAFF ||
-           spell_info[spell].min_level[CLASS_BARD]     < LVL_STAFF)
-        {
-          if (!(CLASS_LEVEL(ch, CLASS_WIZARD)   > 0 ||
-              CLASS_LEVEL(ch, CLASS_SORCERER) > 0 ||
-              CLASS_LEVEL(ch, CLASS_BARD)     > 0))
-          {
+      if ((check_result = skill_check(ch, ABILITY_USE_MAGIC_DEVICE, dc)) < 0) {
+        if (spell_info[spell].min_level[CLASS_WIZARD] < LVL_STAFF ||
+                spell_info[spell].min_level[CLASS_SORCERER] < LVL_STAFF ||
+                spell_info[spell].min_level[CLASS_BARD] < LVL_STAFF) {
+          if (!(CLASS_LEVEL(ch, CLASS_WIZARD) > 0 ||
+                  CLASS_LEVEL(ch, CLASS_SORCERER) > 0 ||
+                  CLASS_LEVEL(ch, CLASS_BARD) > 0)) {
             send_to_char(ch, "You must be able to use arcane magic to recite this scroll.\r\n");
             return;
           }
         } else {
-          if(!(CLASS_LEVEL(ch, CLASS_CLERIC) > 0 ||
-               CLASS_LEVEL(ch, CLASS_DRUID) > 0 ||
-               CLASS_LEVEL(ch, CLASS_PALADIN) > 0 ||
-               CLASS_LEVEL(ch, CLASS_RANGER) > 0))
-          {
+          if (!(CLASS_LEVEL(ch, CLASS_CLERIC) > 0 ||
+                  CLASS_LEVEL(ch, CLASS_DRUID) > 0 ||
+                  CLASS_LEVEL(ch, CLASS_PALADIN) > 0 ||
+                  CLASS_LEVEL(ch, CLASS_RANGER) > 0)) {
             send_to_char(ch, "You must be able to cast divine magic to recite this scroll.\r\n");
             return;
           }
@@ -4065,15 +4066,14 @@ ACMD(do_use) {
         i = MIN_SPELL_LVL(spell, CLASS_CLERIC, DOMAIN_AIR);
 
         /* 2.b. Check the spell is on class spell list */
-        if (!(((spell_info[spell].min_level[CLASS_WIZARD]   < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_WIZARD) > 0) ||
-              ((spell_info[spell].min_level[CLASS_SORCERER] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_SORCERER) > 0) ||
-              ((spell_info[spell].min_level[CLASS_BARD]     < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_BARD) > 0) ||
-              ((MIN_SPELL_LVL(spell, CLASS_CLERIC, GET_1ST_DOMAIN(ch))   < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_CLERIC) > 0) ||
-              ((MIN_SPELL_LVL(spell, CLASS_CLERIC, GET_2ND_DOMAIN(ch))   < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_CLERIC) > 0) ||
-              ((spell_info[spell].min_level[CLASS_DRUID]    < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_DRUID) > 0) ||
-              ((spell_info[spell].min_level[CLASS_PALADIN]  < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_PALADIN) > 0) ||
-              ((spell_info[spell].min_level[CLASS_RANGER]   < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_RANGER) > 0)))
-        {
+        if (!(((spell_info[spell].min_level[CLASS_WIZARD] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_WIZARD) > 0) ||
+                ((spell_info[spell].min_level[CLASS_SORCERER] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_SORCERER) > 0) ||
+                ((spell_info[spell].min_level[CLASS_BARD] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_BARD) > 0) ||
+                ((MIN_SPELL_LVL(spell, CLASS_CLERIC, GET_1ST_DOMAIN(ch)) < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_CLERIC) > 0) ||
+                ((MIN_SPELL_LVL(spell, CLASS_CLERIC, GET_2ND_DOMAIN(ch)) < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_CLERIC) > 0) ||
+                ((spell_info[spell].min_level[CLASS_DRUID] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_DRUID) > 0) ||
+                ((spell_info[spell].min_level[CLASS_PALADIN] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_PALADIN) > 0) ||
+                ((spell_info[spell].min_level[CLASS_RANGER] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_RANGER) > 0))) {
           send_to_char(ch, "The spell on the scroll is outside your realm of knowledge.\r\n");
           return;
         }
@@ -4098,19 +4098,16 @@ ACMD(do_use) {
         passed = (((GET_CHA(ch) > umd_ability_score) ? GET_CHA(ch) : umd_ability_score) > (10 + compute_spells_circle(CLASS_PALADIN, spell, 0, DOMAIN_UNDEFINED)) ? TRUE : passed);
       if (spell_info[spell].min_level[CLASS_RANGER] < LVL_STAFF)
         passed = (((GET_WIS(ch) > umd_ability_score) ? GET_WIS(ch) : umd_ability_score) > (10 + compute_spells_circle(CLASS_RANGER, spell, 0, DOMAIN_UNDEFINED)) ? TRUE : passed);
-      if (passed == FALSE)
-      {
+      if (passed == FALSE) {
         send_to_char(ch, "You are physically incapable of casting the spell inscribed on the scroll.\r\n");
         return;
       }
       /* 3. Check caster level */
       if ((CASTER_LEVEL(ch) < GET_OBJ_VAL(mag_item, 0)) &&
-          (check_result && GET_LEVEL(ch) < GET_OBJ_VAL(mag_item, 0)))
-      {
+              (check_result && GET_LEVEL(ch) < GET_OBJ_VAL(mag_item, 0))) {
         /* Perform caster level check */
         dc = GET_OBJ_VAL(mag_item, 0) + 1;
-        if (dice(1, 20) + (((check_result >= 0) && (CASTER_LEVEL(ch) < GET_LEVEL(ch))) ? GET_LEVEL(ch) : CASTER_LEVEL(ch)) < dc)
-        {
+        if (dice(1, 20) + (((check_result >= 0) && (CASTER_LEVEL(ch) < GET_LEVEL(ch))) ? GET_LEVEL(ch) : CASTER_LEVEL(ch)) < dc) {
           /* Fail */
           send_to_char(ch, "You try, but the spell on the scroll is far to powerful for you to cast.\r\n");
           return;
@@ -4131,44 +4128,39 @@ ACMD(do_use) {
           /* 1. Class must be able to cast the spell stored in the wand. Use Magic Device can bluff this. */
           spell = GET_OBJ_VAL(mag_item, 3);
           dc = 20;
-          if ((check_result = skill_check(ch, ABILITY_USE_MAGIC_DEVICE, dc)) < 0)
-          {
-            if(spell_info[spell].min_level[CLASS_WIZARD]   < LVL_STAFF ||
-               spell_info[spell].min_level[CLASS_SORCERER] < LVL_STAFF ||
-               spell_info[spell].min_level[CLASS_BARD]     < LVL_STAFF)
-            {
-              if (!(CLASS_LEVEL(ch, CLASS_WIZARD)   > 0 ||
-                  CLASS_LEVEL(ch, CLASS_SORCERER) > 0 ||
-                  CLASS_LEVEL(ch, CLASS_BARD)     > 0))
-              {
+          if ((check_result = skill_check(ch, ABILITY_USE_MAGIC_DEVICE, dc)) < 0) {
+            if (spell_info[spell].min_level[CLASS_WIZARD] < LVL_STAFF ||
+                    spell_info[spell].min_level[CLASS_SORCERER] < LVL_STAFF ||
+                    spell_info[spell].min_level[CLASS_BARD] < LVL_STAFF) {
+              if (!(CLASS_LEVEL(ch, CLASS_WIZARD) > 0 ||
+                      CLASS_LEVEL(ch, CLASS_SORCERER) > 0 ||
+                      CLASS_LEVEL(ch, CLASS_BARD) > 0)) {
                 send_to_char(ch, "You must be able to use arcane magic to use this %s.\r\n",
-                             GET_OBJ_TYPE(mag_item) == ITEM_WAND ? "wand" : "staff");
+                        GET_OBJ_TYPE(mag_item) == ITEM_WAND ? "wand" : "staff");
                 return;
               }
             } else {
-              if(!(CLASS_LEVEL(ch, CLASS_CLERIC) > 0 ||
-                   CLASS_LEVEL(ch, CLASS_DRUID) > 0 ||
-                   CLASS_LEVEL(ch, CLASS_PALADIN) > 0 ||
-                   CLASS_LEVEL(ch, CLASS_RANGER) > 0))
-              {
+              if (!(CLASS_LEVEL(ch, CLASS_CLERIC) > 0 ||
+                      CLASS_LEVEL(ch, CLASS_DRUID) > 0 ||
+                      CLASS_LEVEL(ch, CLASS_PALADIN) > 0 ||
+                      CLASS_LEVEL(ch, CLASS_RANGER) > 0)) {
                 send_to_char(ch, "You must be able to cast divine magic to use this %s.\r\n",
-                             GET_OBJ_TYPE(mag_item) == ITEM_WAND ? "wand" : "staff");
+                        GET_OBJ_TYPE(mag_item) == ITEM_WAND ? "wand" : "staff");
                 return;
               }
             }
 
             /* 1.b. Check the spell is on class spell list */
-            if (!(((spell_info[spell].min_level[CLASS_WIZARD]   < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_WIZARD) > 0) ||
-                  ((spell_info[spell].min_level[CLASS_SORCERER] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_SORCERER) > 0) ||
-                  ((spell_info[spell].min_level[CLASS_BARD]     < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_BARD) > 0) ||
-                  ((MIN_SPELL_LVL(spell, CLASS_CLERIC, GET_1ST_DOMAIN(ch))   < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_CLERIC) > 0) ||
-                  ((MIN_SPELL_LVL(spell, CLASS_CLERIC, GET_2ND_DOMAIN(ch))   < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_CLERIC) > 0) ||
-                  ((spell_info[spell].min_level[CLASS_DRUID]    < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_DRUID) > 0) ||
-                  ((spell_info[spell].min_level[CLASS_PALADIN]  < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_PALADIN) > 0) ||
-                  ((spell_info[spell].min_level[CLASS_RANGER]   < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_RANGER) > 0)))
-            {
+            if (!(((spell_info[spell].min_level[CLASS_WIZARD] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_WIZARD) > 0) ||
+                    ((spell_info[spell].min_level[CLASS_SORCERER] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_SORCERER) > 0) ||
+                    ((spell_info[spell].min_level[CLASS_BARD] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_BARD) > 0) ||
+                    ((MIN_SPELL_LVL(spell, CLASS_CLERIC, GET_1ST_DOMAIN(ch)) < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_CLERIC) > 0) ||
+                    ((MIN_SPELL_LVL(spell, CLASS_CLERIC, GET_2ND_DOMAIN(ch)) < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_CLERIC) > 0) ||
+                    ((spell_info[spell].min_level[CLASS_DRUID] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_DRUID) > 0) ||
+                    ((spell_info[spell].min_level[CLASS_PALADIN] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_PALADIN) > 0) ||
+                    ((spell_info[spell].min_level[CLASS_RANGER] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_RANGER) > 0))) {
               send_to_char(ch, "The spell stored in the %s is outside your realm of knowledge.\r\n",
-                           GET_OBJ_TYPE(mag_item) == ITEM_WAND ? "wand" : "staff");
+                      GET_OBJ_TYPE(mag_item) == ITEM_WAND ? "wand" : "staff");
               return;
             }
           }
@@ -4207,7 +4199,7 @@ ACMD(do_utter) {
         case WEAR_WIELD_2H:
           found += process_weapon_abilities(mag_item, ch, NULL, ACTMTD_COMMAND_WORD, argument);
           break;
-        default:          
+        default:
           break;
       }
     }
@@ -4223,7 +4215,7 @@ ACMD(do_utter) {
 /* in order to handle issues with the prompt this became a necessary function */
 bool is_prompt_empty(struct char_data *ch) {
   bool prompt_is_empty = TRUE;
-  
+
   if (IS_SET_AR(PRF_FLAGS(ch), PRF_DISPAUTO))
     prompt_is_empty = FALSE;
   if (IS_SET_AR(PRF_FLAGS(ch), PRF_DISPHP))
@@ -4242,10 +4234,9 @@ bool is_prompt_empty(struct char_data *ch) {
     prompt_is_empty = FALSE;
   if (IS_SET_AR(PRF_FLAGS(ch), PRF_DISPACTIONS))
     prompt_is_empty = FALSE;
-  
+
   return prompt_is_empty;
 }
-
 
 ACMD(do_display) {
   size_t i;
@@ -4467,9 +4458,9 @@ ACMD(do_gen_tog) {
     /*39*/
     {"You will no longer automatically collect your ammo after combat.\r\n",
       "You will now automatically collect your ammo after combat.\r\n"},
-    /*40*/  
+    /*40*/
     {"You will no longer display to others that you would like to Role-play.\r\n",
-      "You will now display to others that you would like to Role-play.\r\n"},  
+      "You will now display to others that you would like to Role-play.\r\n"},
   };
 
   if (IS_NPC(ch))
@@ -4570,9 +4561,9 @@ ACMD(do_gen_tog) {
       if (PRF_FLAGGED(ch, PRF_RP))
         act("$n is interested in Role-play!.", TRUE, ch, 0, 0, TO_ROOM);
       else {
-        act("$n is now OOC.", TRUE, ch, 0, 0, TO_ROOM);        
+        act("$n is now OOC.", TRUE, ch, 0, 0, TO_ROOM);
       }
-      break;      
+      break;
     case SCMD_AUTOLOOT:
       result = PRF_TOG_CHK(ch, PRF_AUTOLOOT);
       break;
@@ -4749,207 +4740,207 @@ ACMD(do_happyhour) {
  */
 char *hints[NUM_HINTS] = {
   /* 1*/"\tR[HINT]:\tn \ty"
-                "Different spell casting classes use different commands "
-                "to cast their spells.  Typing score will show you the appropriate "
-                "commands.  For helpful information see: HELP CAST and HELP MEMORIZE.  "
-                "You will also need to PREPARE spells either after or before using them."
-                "  [use nohint or prefedit to deactivate this]\tn\r\n",
+  "Different spell casting classes use different commands "
+  "to cast their spells.  Typing score will show you the appropriate "
+  "commands.  For helpful information see: HELP CAST and HELP MEMORIZE.  "
+  "You will also need to PREPARE spells either after or before using them."
+  "  [use nohint or prefedit to deactivate this]\tn\r\n",
   /* 2*/"\tR[HINT]:\tn \ty"
-                "You will gain more experience from grouping.  Monster "
-                "experience is increased for groups, with larger groups receiving "
-                "more total experience.  This total experience is divided amongst "
-                "all members based on their level.  "
-                "  [use nohint or prefedit to deactivate this]\tn\r\n",
+  "You will gain more experience from grouping.  Monster "
+  "experience is increased for groups, with larger groups receiving "
+  "more total experience.  This total experience is divided amongst "
+  "all members based on their level.  "
+  "  [use nohint or prefedit to deactivate this]\tn\r\n",
   /* 3*/"\tR[HINT]:\tn \ty"
-                "To view vital information about your character, type SCORE.  "
-                "Additional helpful information commands include: ATTACKS, DEFENSES, "
-                "AFF, COOLDOWN, ABILITIES and RESISTANCE."
-                "  [use nohint or prefedit to deactivate this]\tn\r\n",
+  "To view vital information about your character, type SCORE.  "
+  "Additional helpful information commands include: ATTACKS, DEFENSES, "
+  "AFF, COOLDOWN, ABILITIES and RESISTANCE."
+  "  [use nohint or prefedit to deactivate this]\tn\r\n",
   /* 4*/"\tR[HINT]:\tn \ty"
-                "Once you have enough experience to advance, you can type GAIN "
-                "<class choice> to level up, you can gain in any class you qualify for, up "
-                "to 3 total classes.  Leveling up will result in an increase in "
-                "training points for skills, more hit points, and possibly more feat points, "
-                "movement points, boosts, PSP points.  To spend your feat points, you will "
-                "use the STUDY menu.  To spend boosts and skill points, you will use a trainer.  "
-                "If you make a mistake in choices when you advance, you can always RESPEC."
-                "  [use nohint or prefedit to deactivate this]\tn\r\n",
+  "Once you have enough experience to advance, you can type GAIN "
+  "<class choice> to level up, you can gain in any class you qualify for, up "
+  "to 3 total classes.  Leveling up will result in an increase in "
+  "training points for skills, more hit points, and possibly more feat points, "
+  "movement points, boosts, PSP points.  To spend your feat points, you will "
+  "use the STUDY menu.  To spend boosts and skill points, you will use a trainer.  "
+  "If you make a mistake in choices when you advance, you can always RESPEC."
+  "  [use nohint or prefedit to deactivate this]\tn\r\n",
   /* 5*/"\tR[HINT]:\tn \ty"
-                "The combination of races, classes (MULTICLASS), stat boosts "
-                "and feat selection make for nearly limitless choices.  Do not be afraid "
-                "to experiment!  Have fun reading up on feats using commands.  FEATS with no "
-                "argument will show your current feats and show you a bunch of other command "
-                "options on the bottom section."
-                "  [use nohint or prefedit to deactivate this]\tn\r\n",
+  "The combination of races, classes (MULTICLASS), stat boosts "
+  "and feat selection make for nearly limitless choices.  Do not be afraid "
+  "to experiment!  Have fun reading up on feats using commands.  FEATS with no "
+  "argument will show your current feats and show you a bunch of other command "
+  "options on the bottom section."
+  "  [use nohint or prefedit to deactivate this]\tn\r\n",
   /* 6*/"\tR[HINT]:\tn \ty"
-                "Worried about missing messages while in a menu system such "
-                "as STUDY?  Do not fret, we have a HISTORY command so you can view "
-                "what was said on all the channels while you were away!  You can "
-                "type HISTORY ALL to view everything!"
-                "  [use nohint or prefedit to deactivate this]\tn\r\n",
+  "Worried about missing messages while in a menu system such "
+  "as STUDY?  Do not fret, we have a HISTORY command so you can view "
+  "what was said on all the channels while you were away!  You can "
+  "type HISTORY ALL to view everything!"
+  "  [use nohint or prefedit to deactivate this]\tn\r\n",
   /* 7*/"\tR[HINT]:\tn \ty"
-                "QUEST PROGRESS and QUEST HISTORY are your best friends when "
-                "working on a quest, they can help remind you exactly what you have done "
-                "and what you need to do.  You can also view details of each individual quest "
-                "you have completed by typing QUEST HISTORY <number>.  Some quests are "
-                "initiated with the ASK command, commonly ASK HI will initiate conversation."
-                "  [use nohint or prefedit to deactivate this]\tn\r\n",
+  "QUEST PROGRESS and QUEST HISTORY are your best friends when "
+  "working on a quest, they can help remind you exactly what you have done "
+  "and what you need to do.  You can also view details of each individual quest "
+  "you have completed by typing QUEST HISTORY <number>.  Some quests are "
+  "initiated with the ASK command, commonly ASK HI will initiate conversation."
+  "  [use nohint or prefedit to deactivate this]\tn\r\n",
   /* 8*/"\tR[HINT]:\tn \ty"
-                "If you have an idea for a hint, please email your ideas to one of "
-                "our programmers: Ornir@@LuminariMUD.com or Zusuk@@LuminariMUD.com."
-                "  [use nohint or prefedit to deactivate this]\tn\r\n",
+  "If you have an idea for a hint, please email your ideas to one of "
+  "our programmers: Ornir@@LuminariMUD.com or Zusuk@@LuminariMUD.com."
+  "  [use nohint or prefedit to deactivate this]\tn\r\n",
   /* 9*/"\tR[HINT]:\tn \ty"
-                "LuminariMUD is considered a 'younger' MUD and is under heavy "
-                "and constant development.  If you run into a bug, our policy is to simply "
-                "report the bug using the BUG command.  Example, BUG SUBMIT <header>, then "
-                "use the in-game text editor that pops up to write details about the bug, then "
-                "you can type /s to save the submission."
-                "  [use nohint or prefedit to deactivate this]\tn\r\n",
+  "LuminariMUD is considered a 'younger' MUD and is under heavy "
+  "and constant development.  If you run into a bug, our policy is to simply "
+  "report the bug using the BUG command.  Example, BUG SUBMIT <header>, then "
+  "use the in-game text editor that pops up to write details about the bug, then "
+  "you can type /s to save the submission."
+  "  [use nohint or prefedit to deactivate this]\tn\r\n",
   /*10*/"\tR[HINT]:\tn \tyThe beginning of your adventure will be focused in on the Ashenport "
-                "Region of the world.  The region is relatively fairly small, maybe 1/10th of the "
-                "surface space of Lumia, yet expands thousands of rooms in our WILDERNESS.  At the "
-                "current time you are able to get between zones quickly using a TELEPORTER.  To use "
-                "the teleporter, just type: TELEPORT <target>.  To get a list of target zones, you can "
-                "type: HELP ZONES."
-                "  [use nohint or prefedit to deactivate this]\tn\r\n",
+  "Region of the world.  The region is relatively fairly small, maybe 1/10th of the "
+  "surface space of Lumia, yet expands thousands of rooms in our WILDERNESS.  At the "
+  "current time you are able to get between zones quickly using a TELEPORTER.  To use "
+  "the teleporter, just type: TELEPORT <target>.  To get a list of target zones, you can "
+  "type: HELP ZONES."
+  "  [use nohint or prefedit to deactivate this]\tn\r\n",
   /*11*/"\tR[HINT]:\tn \tyYou can find a lot of gear in various shops throughout the "
-                "world.  Some shops even include special powerful magic items that can "
-                "be purchased with quest points.  In addition to finding normal loot "
-                "that are on your foes, you may also find 'random treasure' on them "
-                "as well with every victory, there is a slight chance you will find "
-                "this bonus loot.  Also, there is a special BAZAAR in Ashenport where "
-                "you can purchase magic items to fill your missing equipment slots."
-                "  [use nohint or prefedit to deactivate this]\tn\r\n",
+  "world.  Some shops even include special powerful magic items that can "
+  "be purchased with quest points.  In addition to finding normal loot "
+  "that are on your foes, you may also find 'random treasure' on them "
+  "as well with every victory, there is a slight chance you will find "
+  "this bonus loot.  Also, there is a special BAZAAR in Ashenport where "
+  "you can purchase magic items to fill your missing equipment slots."
+  "  [use nohint or prefedit to deactivate this]\tn\r\n",
   /*12*/"\tR[HINT]:\tn \tyIf you find items of value that you do not want to deal with, "
-                "you can always DONATE them.  This will cause them to appear in a "
-                "donation pit throughout the realm.  Alternatively if you find an item"
-                "that is of no value, you can JUNK it to permanently get rid of it.  "
-                "Although not necessary since corpses decompose after a short time, you "
-                "can SACrifice corpses to get rid of them."
-                "  [use nohint or prefedit to deactivate this]\tn\r\n",
+  "you can always DONATE them.  This will cause them to appear in a "
+  "donation pit throughout the realm.  Alternatively if you find an item"
+  "that is of no value, you can JUNK it to permanently get rid of it.  "
+  "Although not necessary since corpses decompose after a short time, you "
+  "can SACrifice corpses to get rid of them."
+  "  [use nohint or prefedit to deactivate this]\tn\r\n",
   /*13*/"\tR[HINT]:\tn \tyBe aware during combat!  Enemies can do various things "
-                "to try and disable you, including knocking you down! You can check AFF "
-                "to see affections both negative and positive that are affecting you."
-                "  [use nohint or prefedit to deactivate this]\tn\r\n",
+  "to try and disable you, including knocking you down! You can check AFF "
+  "to see affections both negative and positive that are affecting you."
+  "  [use nohint or prefedit to deactivate this]\tn\r\n",
   /*14*/"\tR[HINT]:\tn \tyLuminariMUD has a 'main' quest line for the Ashenport Region "
-                "that starts with the Mosswood Elder, in Mossswood.  The quest line is "
-                "important for telling fun and informative details about the lore of the "
-                "Realm, and leading the adventurers to various zones throughout the region. "
-                "In addition some of the rewards of the various quests in the chain have "
-                "very powerful items."
-                "  [use nohint or prefedit to deactivate this]\tn\r\n",
+  "that starts with the Mosswood Elder, in Mossswood.  The quest line is "
+  "important for telling fun and informative details about the lore of the "
+  "Realm, and leading the adventurers to various zones throughout the region. "
+  "In addition some of the rewards of the various quests in the chain have "
+  "very powerful items."
+  "  [use nohint or prefedit to deactivate this]\tn\r\n",
   /*15*/"\tR[HINT]:\tn \ty"
-                "Have a great idea for features or changes to LuminariMUD?  Please "
-                "use the IDEA command, IDEA SUBMIT <title of submission>, you will then "
-                "enter our text editor, type out the details of the idea, and then "
-                "type /s to save the submission."
-                "  [use nohint or prefedit to deactivate this]\tn\r\n",
+  "Have a great idea for features or changes to LuminariMUD?  Please "
+  "use the IDEA command, IDEA SUBMIT <title of submission>, you will then "
+  "enter our text editor, type out the details of the idea, and then "
+  "type /s to save the submission."
+  "  [use nohint or prefedit to deactivate this]\tn\r\n",
   /*16*/"\tR[HINT]:\tn \ty"
-                "We have a lot of end-game content, including building a player treasure "
-                "horde (HELP HOUSE), which allows you to create a corner of the world "
-                "to call home and store your treasure.  You can add 'guests' to your home "
-                "to allow your friends or other characters to enter."
-                "  [use nohint or prefedit to deactivate this]\tn\r\n",
+  "We have a lot of end-game content, including building a player treasure "
+  "horde (HELP HOUSE), which allows you to create a corner of the world "
+  "to call home and store your treasure.  You can add 'guests' to your home "
+  "to allow your friends or other characters to enter."
+  "  [use nohint or prefedit to deactivate this]\tn\r\n",
   /*17*/"\tR[HINT]:\tn \ty"
-                "Reached level 30?  There are a lot of exciting end-game content here "
-                "at LuminariMUD.  We have multiple planes of existence that can be accessed "
-                "through various portals throughout the wilderness and magic.  Epic zones "
-                "with extremely challenging group content with powerful magical items.  "
-                "Hard to find epic quests litter the Realm as well, so explore!"
-                "  [use nohint or prefedit to deactivate this]\tn\r\n",
+  "Reached level 30?  There are a lot of exciting end-game content here "
+  "at LuminariMUD.  We have multiple planes of existence that can be accessed "
+  "through various portals throughout the wilderness and magic.  Epic zones "
+  "with extremely challenging group content with powerful magical items.  "
+  "Hard to find epic quests litter the Realm as well, so explore!"
+  "  [use nohint or prefedit to deactivate this]\tn\r\n",
   /*18*/"\tR[HINT]:\tn \ty"
-                "LuminariMUD has an account system.  Through the account system you "
-                "can manage multiple characters.  In addition you share 'account exp' "
-                "between your characters, which can be spent on various account-wide "
-                "benefits, such as unlocking advanced or epic races, and prestige classes. "
-                "Type ACCOUNT to view your account details and ACCEXP to unlock various "
-                "benefits spending account experience."
-                "  [use nohint or prefedit to deactivate this]\tn\r\n",
+  "LuminariMUD has an account system.  Through the account system you "
+  "can manage multiple characters.  In addition you share 'account exp' "
+  "between your characters, which can be spent on various account-wide "
+  "benefits, such as unlocking advanced or epic races, and prestige classes. "
+  "Type ACCOUNT to view your account details and ACCEXP to unlock various "
+  "benefits spending account experience."
+  "  [use nohint or prefedit to deactivate this]\tn\r\n",
   /*19*/"\tR[HINT]:\tn \ty"
-                "Did you know that some weapons and armor have very special enchantments "
-                "on them that can offer a variety of benefits?  Some of the more powerful "
-                "gear in the Realm can cast their own spells, and act on their own.  "
-                "Some will benefit your feats, stats, imbue you with affections while "
-                "equipped.  Some gear responds to special command words that can be "
-                "discovered either by examining the gear, through quest lines or other "
-                "interesting ways.  Some gear respond to combat maneuvers, such as weapons "
-                "that will help you trip, spikes on a shield when shield-punching, or even "
-                "armor / shields that will cast a heal spell on you when they deflect a blow."
-                "  [use nohint or prefedit to deactivate this]\tn\r\n",
+  "Did you know that some weapons and armor have very special enchantments "
+  "on them that can offer a variety of benefits?  Some of the more powerful "
+  "gear in the Realm can cast their own spells, and act on their own.  "
+  "Some will benefit your feats, stats, imbue you with affections while "
+  "equipped.  Some gear responds to special command words that can be "
+  "discovered either by examining the gear, through quest lines or other "
+  "interesting ways.  Some gear respond to combat maneuvers, such as weapons "
+  "that will help you trip, spikes on a shield when shield-punching, or even "
+  "armor / shields that will cast a heal spell on you when they deflect a blow."
+  "  [use nohint or prefedit to deactivate this]\tn\r\n",
   /*20*/"\tR[HINT]:\tn \ty"
-                "LuminariMUD's crafting system allows you to CREATE, RESTRING (rename), "
-                "RESIZE gear.  You will need a crafting kit and respective molds.  If you "
-                "travel to Sanctus, there is a work area for buying molds.  If you add a "
-                "crafting crystal while creating a new item, you will enchant it.  You "
-                "can acquire crystals from treasure, DISENCHANTing magic items and you can "
-                "even use AUGMENT to combine crystals to make them more powerful.  In addition "
-                "you can do SUPPLYORDERs (basic crafting quests) in Sanctus for rewards "
-                "including quest points. "
-                "  [use nohint or prefedit to deactivate this]\tn\r\n",
+  "LuminariMUD's crafting system allows you to CREATE, RESTRING (rename), "
+  "RESIZE gear.  You will need a crafting kit and respective molds.  If you "
+  "travel to Sanctus, there is a work area for buying molds.  If you add a "
+  "crafting crystal while creating a new item, you will enchant it.  You "
+  "can acquire crystals from treasure, DISENCHANTing magic items and you can "
+  "even use AUGMENT to combine crystals to make them more powerful.  In addition "
+  "you can do SUPPLYORDERs (basic crafting quests) in Sanctus for rewards "
+  "including quest points. "
+  "  [use nohint or prefedit to deactivate this]\tn\r\n",
   /*21*/"\tR[HINT]:\tn \ty"
-                "Reached the end-game?  Forming a CLAN can help you co-ordinate "
-                "team efforts for some serious carnage.  Having a well co-ordinated "
-                "team will allow you to take on the epic foes that require large teams "
-                "to defeat.  In addition, clans can capture 'zones' to charge taxes on "
-                "people that hunt in the zone.  The dynamic can result in clan-wars!  "
-                "  [use nohint or prefedit to deactivate this]\tn\r\n",
+  "Reached the end-game?  Forming a CLAN can help you co-ordinate "
+  "team efforts for some serious carnage.  Having a well co-ordinated "
+  "team will allow you to take on the epic foes that require large teams "
+  "to defeat.  In addition, clans can capture 'zones' to charge taxes on "
+  "people that hunt in the zone.  The dynamic can result in clan-wars!  "
+  "  [use nohint or prefedit to deactivate this]\tn\r\n",
   /*22*/"\tR[HINT]:\tn \ty"
-                "Overwhelmed by all the class and feat choices?  We started a community "
-                "built thread on the FORUM.  We then transfer those submissions to "
-                "help files under the heading HELP CLASS-BUILD.  The forum link is:  "
-                "http://www.luminarimud.com/forums/topic/class-builds/"
-                "  [use nohint or prefedit to deactivate this]\tn\r\n",
+  "Overwhelmed by all the class and feat choices?  We started a community "
+  "built thread on the FORUM.  We then transfer those submissions to "
+  "help files under the heading HELP CLASS-BUILD.  The forum link is:  "
+  "http://www.luminarimud.com/forums/topic/class-builds/"
+  "  [use nohint or prefedit to deactivate this]\tn\r\n",
   /*23*/"\tR[HINT]:\tn \ty"
-                "Help files are critical!  We try our best to anticipate all the subjects "
-                "that are needed, but we rely heavily on contributions from players - "
-                "with emphasis on new ones.  Please take the time to post it on the forum at "
-                "http://www.luminarimud.com/forums/topic/help-files/ you can also "
-                "post it as an IDEA in-game.  You can also help the staff workload by writing "
-                "helpfiles via the forum!"
-                "  [use nohint or prefedit to deactivate this]\tn\r\n",
+  "Help files are critical!  We try our best to anticipate all the subjects "
+  "that are needed, but we rely heavily on contributions from players - "
+  "with emphasis on new ones.  Please take the time to post it on the forum at "
+  "http://www.luminarimud.com/forums/topic/help-files/ you can also "
+  "post it as an IDEA in-game.  You can also help the staff workload by writing "
+  "helpfiles via the forum!"
+  "  [use nohint or prefedit to deactivate this]\tn\r\n",
   /*24*/"\tR[HINT]:\tn \ty"
-                "LuminariMUD has a forum at: https://www.luminarimud.com/forums/ the public "
-                "registration may be closed due to beloved spam-bots, but any staff can make "
-                "you an account manually, just contact us via in-game mail, or email: "
-                "Zusuk@@LuminariMUD.com or Ornir@@LuminariMUD.com"
-                "  [use nohint or prefedit to deactivate this]\tn\r\n",
+  "LuminariMUD has a forum at: https://www.luminarimud.com/forums/ the public "
+  "registration may be closed due to beloved spam-bots, but any staff can make "
+  "you an account manually, just contact us via in-game mail, or email: "
+  "Zusuk@@LuminariMUD.com or Ornir@@LuminariMUD.com"
+  "  [use nohint or prefedit to deactivate this]\tn\r\n",
   /*25*/"\tR[HINT]:\tn \ty"
-                "Voting keeps new players coming! (may require creating an account):\r\n"
-                "http://www.topmudsites.com/vote-luminarimud.html \r\n"
-                "http://www.mudconnect.com/cgi-bin/vote_rank.cgi?mud=LuminariMUD \r\n"
-                "Also the MUD community on Reddit is a great way to promot us:\r\n"
-                "https://www.reddit.com/r/MUD/ \r\n"
-                " [use nohint or prefedit to deactivate this]\tn\r\n",
+  "Voting keeps new players coming! (may require creating an account):\r\n"
+  "http://www.topmudsites.com/vote-luminarimud.html \r\n"
+  "http://www.mudconnect.com/cgi-bin/vote_rank.cgi?mud=LuminariMUD \r\n"
+  "Also the MUD community on Reddit is a great way to promot us:\r\n"
+  "https://www.reddit.com/r/MUD/ \r\n"
+  " [use nohint or prefedit to deactivate this]\tn\r\n",
   /*26*/"\tR[HINT]:\tn \ty"
-                "Lore, story-telling, immersion...  Critical elements of a text based "
-                "world.  View our background story here including an audio version!: "
-                "https://www.luminarimud.com/lumina-voiced-stu-cook/"
-                "  [use nohint or prefedit to deactivate this]\tn\r\n",
+  "Lore, story-telling, immersion...  Critical elements of a text based "
+  "world.  View our background story here including an audio version!: "
+  "https://www.luminarimud.com/lumina-voiced-stu-cook/"
+  "  [use nohint or prefedit to deactivate this]\tn\r\n",
   /*27*/"\tR[HINT]:\tn \ty"
-                "Come visit the LuminariMUD website: https://www.luminarimud.com/ for "
-                "our forums, lore entries, related links, articles, updates.. the works!"
-                "  [use nohint or prefedit to deactivate this]\tn\r\n",
+  "Come visit the LuminariMUD website: https://www.luminarimud.com/ for "
+  "our forums, lore entries, related links, articles, updates.. the works!"
+  "  [use nohint or prefedit to deactivate this]\tn\r\n",
   /*28*/"\tR[HINT]:\tn \ty"
-                "Our Facebook page: https://www.facebook.com/LuminariMud/ \r\n"
-                "  [use nohint or prefedit to deactivate this]\tn\r\n",        
+  "Our Facebook page: https://www.facebook.com/LuminariMud/ \r\n"
+  "  [use nohint or prefedit to deactivate this]\tn\r\n",
   /*29*/"\tR[HINT]:\tn \ty"
-                "Archery is a great way to rain death from afar!  Archery automatically "
-                "gets a bonus attack, and has a huge variety of feats to put her on par "
-                "with melee attacks.  To initiate combat with a ranged weapon use the "
-                "FIRE command.  To gather your ammo and make sure it does not get mixed "
-                "up with other archers, just type COLLECT.  You can even toggle AUTOCOLLECT "
-                "to make sure you automatically collect your ammo after each battle."
-                "  [use nohint or prefedit to deactivate this]\tn\r\n",
+  "Archery is a great way to rain death from afar!  Archery automatically "
+  "gets a bonus attack, and has a huge variety of feats to put her on par "
+  "with melee attacks.  To initiate combat with a ranged weapon use the "
+  "FIRE command.  To gather your ammo and make sure it does not get mixed "
+  "up with other archers, just type COLLECT.  You can even toggle AUTOCOLLECT "
+  "to make sure you automatically collect your ammo after each battle."
+  "  [use nohint or prefedit to deactivate this]\tn\r\n",
   /*30*/"\tR[HINT]:\tn \ty"
-                "Are you using our Mudlet GUI (http://www.luminarimud.com/forums/topic/official-luminari-gui/)?  "
-                "If so, you may want to view our help file: HELP GUI-MAP to get an idea how to use "
-                "the mapper properly!"
-                "  [use nohint or prefedit to deactivate this]\tn\r\n",
+  "Are you using our Mudlet GUI (http://www.luminarimud.com/forums/topic/official-luminari-gui/)?  "
+  "If so, you may want to view our help file: HELP GUI-MAP to get an idea how to use "
+  "the mapper properly!"
+  "  [use nohint or prefedit to deactivate this]\tn\r\n",
   /*31*/"\tR[HINT]:\tn \ty"
-                "Spot a typo?  Just use the command: TYPO SUBMIT <title> to enter our "
-                "text editor.  From there you can type out what you found, then type /s to "
-                "save your submission.  This creates a record for the staff to work off of!"
-                "  [use nohint or prefedit to deactivate this]\tn\r\n",
+  "Spot a typo?  Just use the command: TYPO SUBMIT <title> to enter our "
+  "text editor.  From there you can type out what you found, then type /s to "
+  "save your submission.  This creates a record for the staff to work off of!"
+  "  [use nohint or prefedit to deactivate this]\tn\r\n",
 };
 
 void show_hints(void) {
@@ -4968,7 +4959,7 @@ void show_hints(void) {
     /* player is in a menu */
     if (PLR_FLAGGED(ch, PLR_WRITING))
       continue;
-    
+
     send_to_char(ch, hints[roll]);
   }
 }
@@ -4984,7 +4975,7 @@ ACMD(do_nohints) {
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_NOHINTS);
   }
 }
-*/
+ */
 
 /********** end hint system ********/
 
