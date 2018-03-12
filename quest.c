@@ -331,7 +331,8 @@ void complete_quest(struct char_data *ch) {
   rnum = real_quest(vnum);
   
   if (rnum == NOTHING) {
-    log("UH OH: complete_quest() quest-counter is greater than zero!");
+    send_to_char(ch, "Please 'bug submit': complete_quest() RNum is NOTHING\r\n");
+    log("UH OH: complete_quest() rnum is NOTHING!");
     return;    
   }
 
