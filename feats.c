@@ -601,8 +601,9 @@ void assign_feats(void) {
   feato(FEAT_POWER_ATTACK, "power attack", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
           "subtract a number from hit and add to dam.  If 2H weapon add 2x dam instead",
           "When active, take a value specified as penalty to attack roll and gain that "
-          "value as damage bonus.  Usage: powerattack VALUE, to turn off, "
-          "just type powerattack with no argument.  VALUE must be between 1-5.");
+          "value as damage bonus (melee / thrown weapons only).  Usage: powerattack VALUE, to turn off, "
+          "just type powerattack with no argument.  VALUE must be between 1-5 and is also "
+          "limited by your (BAB) base attack bonus.");
   feat_prereq_attribute(FEAT_POWER_ATTACK, AB_STR, 13);
   feato(FEAT_COMBAT_EXPERTISE, "combat expertise", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
           "subtract a number from attack roll and add it to AC",

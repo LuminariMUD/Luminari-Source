@@ -1,7 +1,7 @@
 TODO:
-*blah
-*blah2
-*blah3
+*
+*
+*
 
 Weapon Resize Charts:
 F      D      T       S     M      L       H      G      C      ?      ??
@@ -42,7 +42,7 @@ crafting related skills:
 #define SKILL_ELVEN_CRAFTING            482
   can make lighter armor
 #define SKILL_MASTERWORK_CRAFTING       483
-  higher chance of critting (creating rare, legendar, mythic)
+  higher chance of "crit"ting (creating rare, legendary, mythic)
 #define SKILL_DRACONIC_CRAFTING         484
   ?  - higher bonus without affecting level?
 #define SKILL_DWARVEN_CRAFTING          485

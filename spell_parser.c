@@ -427,6 +427,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
           (casttype != CAST_POTION) &&
           (casttype != CAST_WEAPON_POISON) &&
           (casttype != CAST_WEAPON_SPELL) &&
+          (casttype != CAST_FOOD_DRINK) &&
           (casttype != CAST_WAND) && !IS_NPC(caster))
     switch (CASTING_CLASS(caster)) {
       case CLASS_BARD:
