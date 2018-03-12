@@ -50,6 +50,7 @@
 #define CAST_WEAPON_POISON  6 /* For apply poison */
 #define CAST_WEAPON_SPELL   7 /* For casting weapons */
 #define CAST_TRAP           8
+#define CAST_FOOD_DRINK     9
 
 #define MAG_DAMAGE        (1 << 0)
 #define MAG_AFFECTS       (1 << 1)

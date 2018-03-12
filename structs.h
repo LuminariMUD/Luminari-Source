@@ -257,18 +257,20 @@
 /* char and mob-related defines */
 
 /* History */
-#define HIST_ALL       0 /**< Index to history of all channels */
-#define HIST_SAY       1 /**< Index to history of all 'say' */
-#define HIST_GOSSIP    2 /**< Index to history of all 'gossip' */
-#define HIST_WIZNET    3 /**< Index to history of all 'wiznet' */
-#define HIST_TELL      4 /**< Index to history of all 'tell' */
-#define HIST_SHOUT     5 /**< Index to history of all 'shout' */
-#define HIST_GRATS     6 /**< Index to history of all 'grats' */
-#define HIST_HOLLER    7 /**< Index to history of all 'holler' */
-#define HIST_AUCTION   8 /**< Index to history of all 'auction' */
-#define HIST_CLANTALK  9 /**< Index to history of all 'clantalk' */
+#define HIST_ALL       0  /**< Index to history of all channels */
+#define HIST_SAY       1  /**< Index to history of all 'say' */
+#define HIST_GOSSIP    2  /**< Index to history of all 'gossip' */
+#define HIST_WIZNET    3  /**< Index to history of all 'wiznet' */
+#define HIST_TELL      4  /**< Index to history of all 'tell' */
+#define HIST_SHOUT     5  /**< Index to history of all 'shout' */
+#define HIST_GRATS     6  /**< Index to history of all 'grats' */
+#define HIST_HOLLER    7  /**< Index to history of all 'holler' */
+#define HIST_AUCTION   8  /**< Index to history of all 'auction' */
+#define HIST_CLANTALK  9  /**< Index to history of all 'clantalk' */
+#define HIST_GSAY      10 /**< Index to history of all 'gsay' */
+#define HIST_GTELL     HIST_GSAY
 /**/
-#define NUM_HIST       10 /**< Total number of history indexes */
+#define NUM_HIST       11 /**< Total number of history indexes */
 #define HISTORY_SIZE   5 /**< Number of last commands kept in each history */
 
 /* Group Defines */

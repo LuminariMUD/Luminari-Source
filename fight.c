@@ -3265,7 +3265,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
    */
 
   /* power attack */
-  if (AFF_FLAGGED(ch, AFF_POWER_ATTACK)) {
+  if (AFF_FLAGGED(ch, AFF_POWER_ATTACK) && attack_type != ATTACK_TYPE_RANGED) {
     if (GET_EQ(ch, WEAR_WIELD_2H) && !is_using_double_weapon(ch)) {
       dambonus += COMBAT_MODE_VALUE(ch) * 2; /* 2h weapons gets 2x bonus */
     } else {
