@@ -1,5 +1,5 @@
 /**************************************************************************
- *  File: act.movement.c                                    Part of LuminariMUD *
+ *  File: act.movement.c                               Part of LuminariMUD *
  *  Usage: Movement commands, door handling, & sleep/rest/etc state.       *
  *                                                                         *
  *  All rights reserved.  See license complete information.                *
@@ -2880,7 +2880,7 @@ ACMD(do_sorcerer_draconic_wings) {
 
   if (affected_by_spell(ch, SKILL_DRHRT_WINGS)) {
     send_to_char(ch, "You retract your draconic wings.\r\n");
-    act("$n extenretracts a large pair of draconic wings into $s back.", TRUE, ch, 0, 0, TO_ROOM);
+    act("$n retracts a large pair of draconic wings into $s back.", TRUE, ch, 0, 0, TO_ROOM);
     affect_from_char(ch, SKILL_DRHRT_WINGS);
     return;
   }
@@ -2895,8 +2895,8 @@ ACMD(do_sorcerer_draconic_wings) {
 
   affect_to_char(ch, &af);
 
-  send_to_char(ch, "You extend your draconic wings, giving you flight at a speed of 60.\r\n");
-  act("$n extendsa large pair of draconic wings from $s back.", TRUE, ch, 0, 0, TO_ROOM);
+  send_to_char(ch, "You spread your draconic wings, giving you flight at a speed of 60.\r\n");
+  act("$n spreads $s draconic wings.", TRUE, ch, 0, 0, TO_ROOM);
 }
 
 ACMD(do_pullswitch) {
