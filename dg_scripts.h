@@ -421,7 +421,7 @@ void wld_command_interpreter(room_data *room, char *argument);
  * mob id's: MOB_ID_BASE to ROOM_ID_BASE - 1
  * room id's: ROOM_ID_BASE to OBJ_ID_BASE - 1
  * object id's: OBJ_ID_BASE and higher */
-#define MOB_ID_BASE	  50000  /* 50000 player IDNUMS should suffice */
+#define MOB_ID_BASE	1000000  /* 50000 player IDNUMS should suffice */
 #define ROOM_ID_BASE    1050000 /* 1000000 Mobs */
 #define OBJ_ID_BASE     1300000 /* 250000 Rooms */
 
