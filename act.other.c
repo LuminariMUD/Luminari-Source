@@ -4121,7 +4121,7 @@ ACMD(do_use) {
       switch (GET_OBJ_TYPE(mag_item)) {
         case ITEM_INSTRUMENT: /* OMG WHAT A HACK */
           if(HAS_SPECIAL_ABILITIES(mag_item)) {
-            process_item_abilities(mag_item, ch, NULL, ACTCMD_USE, NULL);
+            process_item_abilities(mag_item, ch, NULL, ACTMTD_USE, NULL);
           }
           break;
         case ITEM_WEAPON:
