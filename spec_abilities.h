@@ -102,7 +102,9 @@ extern const char* activation_methods[];
 #define ARMOR_SPECAB_UNDEAD_CONTROL   51       /* Control up to 26HD of undead/day, lose control at dawn. */
 #define ARMOR_SPECAB_WILD             52       /* Preserve armo/enhancement bonus while in wild shape. */
 
-#define NUM_SPECABS                   53       /* Number of Special Abilities */
+#define ITEM_SPECAB_HORN_OF_SUMMONING 53       /* Horns only - Summon mobile vnum in val1 */
+
+#define NUM_SPECABS                   54       /* Number of Special Abilities */
 
 bool obj_has_special_ability(struct obj_data *obj, int ability); 
 struct obj_special_ability* get_obj_special_ability(struct obj_data *obj, int ability);
@@ -121,8 +123,9 @@ int process_armor_abilities(struct char_data *ch, struct char_data *victim,
 #define SPECAB_TYPE_WEAPON 1 
 #define SPECAB_TYPE_ARMOR  2
 #define SPECAB_TYPE_OTHER  3
+#define SPECAB_TYPE_ITEM   4
 
-#define NUM_SPECAB_TYPES   4
+#define NUM_SPECAB_TYPES   5
 
 /* Structure to hold ability data. */
 struct special_ability_info_type {  
@@ -158,6 +161,13 @@ void abilityname( struct obj_special_ability *specab, \
                   struct char_data *victim, \
                   int    actmtd)
 
+#define ITEM_SPECIAL_ABILITY(abilityname) \
+void abilityname( struct obj_special_ability *specab, \
+                  struct obj_data *obj, \
+                  struct char_data *ch, \
+                  struct char_data *victim, \
+                  int    actmtd)
+
 void initialize_special_abilities(void);
 
 /* Process weapon abilities for the specified activation method. */
@@ -167,6 +177,14 @@ int process_weapon_abilities(struct obj_data  *weapon, /* The weapon to check fo
                                                         * specified explicitly. */
                              int    actmtd,            /* Activation method */
                              char   *cmdword);          /* Command word (optional, NULL if none. */
+
+/* Process weapon abilities for the specified activation method. */
+int process_item_abilities(  struct obj_data  *obj, /* The weapon to check for special abilities. */
+                             struct char_data *ch,     /* The wielder of the weapon. */
+                             struct char_data *victim, /* The target of the ability (either fighting or 
+                                                        * specified explicitly. */
+                             int    actmtd,            /* Activation method */
+                             char   *cmdword);          /* Command word (optional, NULL if none. */                             
 
 /* Function that deactivates the specified weapon special ability. */
 //int deactivate_weapon_ability(struct obj_data *weapon, /* The weapon to check. */
@@ -188,5 +206,8 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_frost);
 
 /* Prototypes for armor special abilities */
 ARMOR_SPECIAL_ABILITY(armor_specab_blinding);
+
+/* Prototypes for item special abilities */
+ITEM_SPECIAL_ABILITY(item_horn_of_summoning);
 
 #endif

@@ -3991,7 +3991,7 @@ ACMD(do_use) {
     case SCMD_USE:
       if ((GET_OBJ_TYPE(mag_item) != ITEM_WAND) &&
               (GET_OBJ_TYPE(mag_item) != ITEM_STAFF) &&
-              (GET_OBJ_TYPE(mag_item) != ITEM_WEAPON && HAS_SPECIAL_ABILITIES(mag_item))) {
+              (!HAS_SPECIAL_ABILITIES(mag_item))) {
         send_to_char(ch, "You can't seem to figure out how to use it.\r\n");
         return;
       }
@@ -4119,6 +4119,11 @@ ACMD(do_use) {
     case SCMD_USE:
       /* Check the item type */
       switch (GET_OBJ_TYPE(mag_item)) {
+        case ITEM_INSTRUMENT: /* OMG WHAT A HACK */
+          if(HAS_SPECIAL_ABILITIES(mag_item)) {
+            process_item_abilities(mag_item, ch, NULL, ACTCMD_USE, NULL);
+          }
+          break;
         case ITEM_WEAPON:
           /* Special Abilities */
           break;

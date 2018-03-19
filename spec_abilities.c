@@ -99,7 +99,20 @@ static void add_armor_special_ability(int specab, const char *name, int level, i
   special_ability_info[specab].special_ability_proc = specab_proc;
 }
 
-void daily_armor_specab(int specab, event_id event, int daily_uses) {
+static void add_item_special_ability(int specab, const char *name, int level, int actmtd, int targets, int violent, int time, int school, int cost, SPECAB_PROC_DEF(specab_proc)) {
+  special_ability_info[specab].type = SPECAB_TYPE_ITEM;
+  special_ability_info[specab].level = level;
+  special_ability_info[specab].activation_method = actmtd;
+  special_ability_info[specab].targets = targets;
+  special_ability_info[specab].violent = violent;
+  special_ability_info[specab].name = name;
+  special_ability_info[specab].time = time;
+  special_ability_info[specab].school = school;
+  special_ability_info[specab].cost = cost;
+  special_ability_info[specab].special_ability_proc = specab_proc;
+}
+
+void daily_item_specab(int specab, event_id event, int daily_uses) {
   special_ability_info[specab].daily_uses = daily_uses;
   special_ability_info[specab].event = event;
 }
@@ -143,10 +156,15 @@ void initialize_special_abilities(void) {
     add_unused_special_ability(i);
   /* Do not change the loop above. */
 
-  add_armor_special_ability(ARMOR_SPECAB_BLINDING, "Blinding", 7, ACTMTD_COMMAND_WORD,
+  add_item_special_ability(ITEM_SPECAB_HORN_OF_SUMMONING, "Horn of Summoning", 10, ACTMTD_BLOW | ACTCMD_WEAR, 
+          TAR_IGNORE, FALSE, 0, CONJURATION, 1, NULL);
+
+  daily_item_specab(ITEM_SPECAB_HORN_OF_SUMMONING, eITEM_SPECAB_HORN_OF_SUMMONING); 
+
+  add_armor_special_ability(ARMOR_SPECAB_BLINDING, "Blinding", 7, ACTMTD_COMMAND_WORD | ACTCMD_WEAR,
           TAR_IGNORE, TRUE, 0, EVOCATION, 1, armor_specab_blinding);
 
-  daily_armor_specab(ARMOR_SPECAB_BLINDING, eARMOR_SPECAB_BLINDING, 2);
+  daily_item_specab(ARMOR_SPECAB_BLINDING, eARMOR_SPECAB_BLINDING, 2);
 
   add_weapon_special_ability(WEAPON_SPECAB_ANARCHIC, "Anarchic", 7, ACTMTD_NONE,
           TAR_IGNORE, FALSE, 0, EVOCATION, 2, NULL);
@@ -343,13 +361,146 @@ int process_armor_abilities(struct char_data *ch, /* The player wearing the armo
   return activated_abilities;
 }
 
+/* Returns the number of activated abilites. */
+int process_item_abilities(struct obj_data *obj, /* The obj to check for special abilities. */
+        struct char_data *ch, /* The wielder of the weapon. */
+        struct char_data *victim, /* The target of the ability (either fighting or
+							 * specified explicitly. */
+        int actmtd, /* Activation method */
+        char *cmdword) /* Command word (optional, NULL if none. */ {
+  int activated_abilities = 0;
+  struct obj_special_ability *specab; /* struct for iterating through the object's abilities. */
+  /* Run the 'callbacks' for each of the special abilities on weapon that match the activation method. */
+  for (specab = obj->special_abilities; specab != NULL; specab = specab->next) {
+    /* Only deal with weapon special abilities */
+    if (special_ability_info[specab->ability].type != SPECAB_TYPE_ITEM)
+      continue;
+    /* So we have an ability, check the activation method. */
+    if (IS_SET(specab->activation_method, actmtd)) { /* Match! */
+      if (actmtd == ACTMTD_COMMAND_WORD) { /* check the command word */
+        if (strcmp(specab->command_word, cmdword)) /* No Match */
+          continue; /* Skip this ability, no match. */
+      }
+      if (special_ability_info[specab->ability].special_ability_proc == NULL) {
+        log("SYSERR: PROCESS_ITEM_ABILITIES: ability '%s' has no callback function!", special_ability_info[specab->ability].name);
+        continue;
+      }
+      activated_abilities++;
+      (*special_ability_info[specab->ability].special_ability_proc) (specab, obj, ch, victim, actmtd);
+
+    }
+  }
+
+  return activated_abilities;
+}
+
+ITEM_SPECIAL_ABILITY(item_horn_of_summoning) {
+  /* specab
+   * level
+   * obj
+   * ch
+   * victim
+   */  
+  bool found = FALSE;
+  int i = 0;
+  struct char_data *mob = NULL;
+  mob_vnum mob_num = 0;
+
+  switch (actmtd) {
+      case ACTMTD_USE: /* User USEs the item. */           
+      /* Activate the blinding ability.
+       *  - Check the cooldown - This ability can be used 2x a day, so set a cooldown on the shield using events.
+       *  - Send a message to the room, then attempt to blind engaged creatures.
+       */
+      if (daily_item_specab_uses_remaining(armor, ITEM_SPECAB_HORN_OF_SUMMONING) == 0) {
+        /* No uses remaining... */
+        send_to_char(ch, "The item must regain its energies before invoking this ability.\r\n");
+        break;
+      }
+
+      if (!IN_ROOM(ch))
+        break;
+
+      /* start off with some possible fail conditions */
+      if (AFF_FLAGGED(ch, AFF_CHARM)) {
+        send_to_char(ch, "You are too giddy to have any followers!\r\n");
+        break;
+      }
+
+      if (HAS_PET(ch)) {
+        send_to_char(ch, "You can't control more followers!\r\n");
+        break;
+      }
+      mob_num = specab->values[0]; /* Val 0 is mob VNUM */
+
+      /* Display the message for the ability. */
+      act("You play a single, clear note on your $o.", FALSE, ch, obj, ch, TO_CHAR);
+      act("$N plays a single, clear note on $S $o.", TRUE, ch, obj, ch, TO_ROOM);
+
+      //if (!(mob = read_mobile(mob_num, VIRTUAL))) {
+      //  send_to_char(ch, "You don't quite remember how to make that creature.\r\n");
+      //  return;
+      //}
+
+      if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS)) {
+        X_LOC(mob) = world[IN_ROOM(ch)].coords[0];
+        Y_LOC(mob) = world[IN_ROOM(ch)].coords[1];
+      }
+
+      char_to_room(mob, IN_ROOM(ch));
+      IS_CARRYING_W(mob) = 0;
+      IS_CARRYING_N(mob) = 0;
+      SET_BIT_AR(AFF_FLAGS(mob), AFF_CHARM);
+
+      temp_level = MIN(GET_LEVEL(ch), mob_level);
+      GET_LEVEL(mob) = MIN(20, temp_level);
+      autoroll_mob(mob, TRUE, TRUE);
+      GET_LEVEL(mob) = temp_level;
+
+      /* summon augmentation feat */
+      if (HAS_FEAT(ch, FEAT_AUGMENT_SUMMONING)) {
+        send_to_char(ch, "*augmented* ");
+        GET_REAL_STR(mob) = (mob)->aff_abils.str += 4;
+        GET_REAL_CON(mob) = (mob)->aff_abils.con += 4;
+        GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob) += 2 * GET_LEVEL(mob); /* con bonus */
+      }
+      
+      act("$N glides into the area, seemingly from nowhere!", FALSE, ch, 0, mob, TO_ROOM);
+      act("$N glides into the area, seemingly from nowhere!", FALSE, ch, 0, mob, TO_CHAR);
+      
+      load_mtrigger(mob);
+      add_follower(mob, ch);
+      
+      if (GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
+        join_group(mob, GROUP(ch));
+
+      start_item_specab_daily_use_cooldown(armor, ITEM_SPECAB_HORN_OF_SUMMONING);
+
+      break;
+    case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
+      break;
+    case ACTMTD_ON_HIT: /* Called whenever a weapon hits an enemy. */
+      break;
+    case ACTMTD_ON_CRIT: /* Called whenever a weapon hits critically. */
+      break;
+    case ACTMTD_WEAR: /* Called whenever the item is worn. */
+      send_to_char(ch, "The horn speaks in your mind, \"%s\"\r\n", 
+      (daily_item_specab_uses_remaining(obj, ITEM_SPECAB_HORN_OF_SUMMONING) == 0) ? "Your companion is too tired to answer your summons." 
+                                                                                : "Your companion is ready to answer your summons!")
+      );
+      break;
+    default:
+      /* Do nothing. */
+      break;
+  }
+}  
+
 ARMOR_SPECIAL_ABILITY(armor_specab_blinding) {
   /*
    * level
    * armor
    * ch
    * victim
-   * obj
    */
   struct char_data *tch = NULL;
   bool found = FALSE;
@@ -429,7 +580,9 @@ ARMOR_SPECIAL_ABILITY(armor_specab_blinding) {
     case ACTMTD_ON_HIT: /* Called whenever a weapon hits an enemy. */
       break;
     case ACTMTD_ON_CRIT: /* Called whenever a weapon hits critically. */
+      break;
     case ACTMTD_WEAR: /* Called whenever the item is worn. */
+      send_to_char(ch, "The shield speaks in your mind, \"I will blind your enemies!  Utter 'Lumia'!  FOR LUMIA!\"\r\n");
     default:
       /* Do nothing. */
       break;
