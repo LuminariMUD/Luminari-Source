@@ -483,7 +483,7 @@ ITEM_SPECIAL_ABILITY(item_horn_of_summoning) {
       break;
     case ACTMTD_WEAR: /* Called whenever the item is worn. */
       send_to_char(ch, "The horn speaks in your mind, \"%s\"\r\n", 
-      (daily_item_specab_uses_remaining(obj, ITEM_SPECAB_HORN_OF_SUMMONING) == 0) ? "Your companion is too tired to answer your summons." 
+      (daily_item_specab_uses_remaining(obj, ITEM_SPECAB_HORN_OF_SUMMONING) == 0 ? "Your companion is too tired to answer your summons." 
                                                                                 : "Your companion is ready to answer your summons!")
       );
       break;
