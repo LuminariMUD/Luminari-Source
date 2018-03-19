@@ -1321,6 +1321,9 @@ void equip_char(struct char_data *ch, struct obj_data *obj, int pos) {
   obj->worn_by = ch;
   obj->worn_on = pos;
 
+  /* Object special abilities, process for ACTMTD_WEAR */
+  process_item_abilities(obj, ch, NULL, ACTMTD_WEAR, NULL);
+
   /*  Modified this to use the NEW ac system - AC starts at 10 and is modified by armor.
    *  09/09/14 : Ornir */
   if (GET_OBJ_TYPE(obj) == ITEM_ARMOR)
