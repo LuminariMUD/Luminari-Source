@@ -405,6 +405,7 @@ ITEM_SPECIAL_ABILITY(item_horn_of_summoning) {
   int i = 0;
   struct char_data *mob = NULL;
   mob_vnum mob_num = 0;
+  int temp_level = 0;
 
   switch (actmtd) {
       case ACTMTD_USE: /* User USEs the item. */           
