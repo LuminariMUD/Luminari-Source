@@ -917,7 +917,8 @@ int restring(char *argument, struct obj_data *kit, struct char_data *ch) {
   parse_at(argument);
 
   /* success!! */
-  obj->name = strip_colors(strdup(argument));
+  obj->name = strdup(argument);
+  strip_colors(obj->name);
   obj->short_description = strdup(argument);
   sprintf(buf, "%s lies here.", CAP(argument));
   obj->description = strdup(buf);
