@@ -433,10 +433,10 @@ ITEM_SPECIAL_ABILITY(item_specab_horn_of_summoning) {
       act("You play a single, clear note on your $o.", FALSE, ch, obj, ch, TO_CHAR);
       act("$N plays a single, clear note on $S $o.", TRUE, ch, obj, ch, TO_ROOM);
 
-      //if (!(mob = read_mobile(mob_num, VIRTUAL))) {
-      //  send_to_char(ch, "You don't quite remember how to make that creature.\r\n");
-      //  return;
-      //}
+      if (!(mob = read_mobile(mob_num, VIRTUAL))) {
+        send_to_char(ch, "You don't quite remember how to make that creature.\r\n");
+        return;
+      }
 
       if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS)) {
         X_LOC(mob) = world[IN_ROOM(ch)].coords[0];
