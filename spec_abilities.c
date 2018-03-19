@@ -428,7 +428,7 @@ ITEM_SPECIAL_ABILITY(item_horn_of_summoning) {
         send_to_char(ch, "You can't control more followers!\r\n");
         break;
       }
-      mob_num = specab->values[0]; /* Val 0 is mob VNUM */
+      mob_num = specab->value[0]; /* Val 0 is mob VNUM */
 
       /* Display the message for the ability. */
       act("You play a single, clear note on your $o.", FALSE, ch, obj, ch, TO_CHAR);
