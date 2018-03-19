@@ -394,7 +394,7 @@ int process_item_abilities(struct obj_data *obj, /* The obj to check for special
   return activated_abilities;
 }
 
-ITEM_SPECIAL_ABILITY(item_horn_of_summoning) {
+ITEM_SPECIAL_ABILITY(item_specab_horn_of_summoning) {
   /* specab
    * level
    * obj
