@@ -159,9 +159,9 @@ void initialize_special_abilities(void) {
   add_item_special_ability(ITEM_SPECAB_HORN_OF_SUMMONING, "Horn of Summoning", 10, ACTMTD_USE | ACTMTD_WEAR, 
           TAR_IGNORE, FALSE, 0, CONJURATION, 1, NULL);
 
-  daily_item_specab(ITEM_SPECAB_HORN_OF_SUMMONING, eITEM_SPECAB_HORN_OF_SUMMONING); 
+  daily_item_specab(ITEM_SPECAB_HORN_OF_SUMMONING, eITEM_SPECAB_HORN_OF_SUMMONING, 2); 
 
-  add_armor_special_ability(ARMOR_SPECAB_BLINDING, "Blinding", 7, ACTMTD_COMMAND_WORD | ACTCMD_WEAR,
+  add_armor_special_ability(ARMOR_SPECAB_BLINDING, "Blinding", 7, ACTMTD_COMMAND_WORD | ACTMTD_WEAR,
           TAR_IGNORE, TRUE, 0, EVOCATION, 1, armor_specab_blinding);
 
   daily_item_specab(ARMOR_SPECAB_BLINDING, eARMOR_SPECAB_BLINDING, 2);
