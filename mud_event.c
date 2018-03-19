@@ -144,6 +144,7 @@ struct mud_event_list mud_event_index[] = {
   { "Autocollect delay", event_countdown, EVENT_CHAR}, //eCOLLECT_DELAY
   { "Metamagic Adept Usage Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eARCANEADEPT
   { "Armor SpecAb Cooldown: Blinding", event_daily_use_cooldown, EVENT_OBJECT}, // eARMOR_SPECAB_BLINDING
+  { "Item SpecAb Cooldown: Horn of Summoning", event_daily_use_cooldown, EVENT_OBJECT}, // eITEM_SPECAB_HORN_OF_SUMMONING
 };
 
 /* init_events() is the ideal function for starting global events. This
@@ -644,7 +645,10 @@ EVENTFUNC(event_daily_use_cooldown) {
     case eARMOR_SPECAB_BLINDING:
       featnum = FEAT_UNDEFINED;
       nonfeat_daily_uses = 2; /* 2 uses a day. */      
-      break;
+      break
+    case eITEM_SPECAB_HORN_OF_SUMMONING:
+      featnum = FEAT_UNDEFINED;
+      nonfeat_daily_uses = 2; /* 2 uses a day. */
     default:
       break;
   }
