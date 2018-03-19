@@ -430,8 +430,11 @@ ITEM_SPECIAL_ABILITY(item_specab_horn_of_summoning) {
       mob_num = specab->value[0]; /* Val 0 is mob VNUM */
 
       /* Display the message for the ability. */
-      act("You play a single, clear note on your $o.", FALSE, ch, obj, ch, TO_CHAR);
-      act("$N plays a single, clear note on $S $o.", TRUE, ch, obj, ch, TO_ROOM);
+      act("You bring your $o to your mouth and blow.", FALSE, ch, obj, ch, TO_CHAR);
+      act("$N brings $S $o to $S mouth and blows.", TRUE, ch, obj, ch, TO_ROOM);
+
+      /* Echo to the zone. */
+      send_to_zone("The single, clarion note of a horn reverberates throughout the area.")
 
       if (!(mob = read_mobile(mob_num, VIRTUAL))) {
         send_to_char(ch, "You don't quite remember how to make that creature.\r\n");
