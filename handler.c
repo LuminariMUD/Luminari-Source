@@ -27,6 +27,7 @@
 #include "wilderness.h"
 #include "actionqueues.h"
 #include "constants.h"
+#include "spec_abilities.h"
 
 
 /* local file scope variables */
