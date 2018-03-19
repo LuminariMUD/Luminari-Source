@@ -450,7 +450,7 @@ ITEM_SPECIAL_ABILITY(item_horn_of_summoning) {
       IS_CARRYING_N(mob) = 0;
       SET_BIT_AR(AFF_FLAGS(mob), AFF_CHARM);
 
-      temp_level = MIN(GET_LEVEL(ch), mob_level);
+      temp_level = MIN(GET_LEVEL(ch), GET_LEVEL(mob));
       GET_LEVEL(mob) = MIN(20, temp_level);
       autoroll_mob(mob, TRUE, TRUE);
       GET_LEVEL(mob) = temp_level;
