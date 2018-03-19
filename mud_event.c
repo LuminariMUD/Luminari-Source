@@ -645,7 +645,7 @@ EVENTFUNC(event_daily_use_cooldown) {
     case eARMOR_SPECAB_BLINDING:
       featnum = FEAT_UNDEFINED;
       nonfeat_daily_uses = 2; /* 2 uses a day. */      
-      break
+      break;
     case eITEM_SPECAB_HORN_OF_SUMMONING:
       featnum = FEAT_UNDEFINED;
       nonfeat_daily_uses = 2; /* 2 uses a day. */
