@@ -157,7 +157,7 @@ void initialize_special_abilities(void) {
   /* Do not change the loop above. */
 
   add_item_special_ability(ITEM_SPECAB_HORN_OF_SUMMONING, "Horn of Summoning", 10, ACTMTD_USE | ACTMTD_WEAR, 
-          TAR_IGNORE, FALSE, 0, CONJURATION, 1, NULL);
+          TAR_IGNORE, FALSE, 0, CONJURATION, 1, item_specab_horn_of_summoning);
 
   daily_item_specab(ITEM_SPECAB_HORN_OF_SUMMONING, eITEM_SPECAB_HORN_OF_SUMMONING, 2); 
 
