@@ -1364,7 +1364,7 @@ struct obj_data *unequip_char(struct char_data *ch, int pos) {
     empty_bits[i] = 0;
 
   if ((pos < 0 || pos >= NUM_WEARS) || GET_EQ(ch, pos) == NULL) {
-    //core_dump();
+    core_dump();
     return (NULL);
   }
 
