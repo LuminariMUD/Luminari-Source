@@ -4122,6 +4122,7 @@ ACMD(do_use) {
         case ITEM_INSTRUMENT: /* OMG WHAT A HACK */
           if(HAS_SPECIAL_ABILITIES(mag_item)) {
             process_item_abilities(mag_item, ch, NULL, ACTMTD_USE, NULL);
+            return;
           }
           break;
         case ITEM_WEAPON:
