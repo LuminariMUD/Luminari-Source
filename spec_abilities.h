@@ -208,6 +208,6 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_frost);
 ARMOR_SPECIAL_ABILITY(armor_specab_blinding);
 
 /* Prototypes for item special abilities */
-ITEM_SPECIAL_ABILITY(item_horn_of_summoning);
+ITEM_SPECIAL_ABILITY(item_specab_horn_of_summoning);
 
 #endif
