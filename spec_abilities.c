@@ -156,7 +156,7 @@ void initialize_special_abilities(void) {
     add_unused_special_ability(i);
   /* Do not change the loop above. */
 
-  add_item_special_ability(ITEM_SPECAB_HORN_OF_SUMMONING, "Horn of Summoning", 10, ACTMTD_BLOW | ACTCMD_WEAR, 
+  add_item_special_ability(ITEM_SPECAB_HORN_OF_SUMMONING, "Horn of Summoning", 10, ACTMTD_USE | ACTCMD_WEAR, 
           TAR_IGNORE, FALSE, 0, CONJURATION, 1, NULL);
 
   daily_item_specab(ITEM_SPECAB_HORN_OF_SUMMONING, eITEM_SPECAB_HORN_OF_SUMMONING); 
