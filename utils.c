@@ -3560,7 +3560,7 @@ int daily_uses_remaining(struct char_data *ch, int featnum) {
  * 2.) Update an existing event with a new sVariable value
  *
  * Returns the current number of uses on cooldown. */
-int start_armor_specab_daily_use_cooldown(struct obj_data *obj, int specab) {
+int start_item_specab_daily_use_cooldown(struct obj_data *obj, int specab) {
   struct mud_event_data * pMudEvent = NULL;
   int uses = 0, daily_uses = 0;
   char buf[128];
