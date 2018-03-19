@@ -408,11 +408,8 @@ ITEM_SPECIAL_ABILITY(item_horn_of_summoning) {
 
   switch (actmtd) {
       case ACTMTD_USE: /* User USEs the item. */           
-      /* Activate the blinding ability.
-       *  - Check the cooldown - This ability can be used 2x a day, so set a cooldown on the shield using events.
-       *  - Send a message to the room, then attempt to blind engaged creatures.
-       */
-      if (daily_item_specab_uses_remaining(armor, ITEM_SPECAB_HORN_OF_SUMMONING) == 0) {
+      
+      if (daily_item_specab_uses_remaining(obj, ITEM_SPECAB_HORN_OF_SUMMONING) == 0) {
         /* No uses remaining... */
         send_to_char(ch, "The item must regain its energies before invoking this ability.\r\n");
         break;
@@ -474,7 +471,7 @@ ITEM_SPECIAL_ABILITY(item_horn_of_summoning) {
       if (GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
         join_group(mob, GROUP(ch));
 
-      start_item_specab_daily_use_cooldown(armor, ITEM_SPECAB_HORN_OF_SUMMONING);
+      start_item_specab_daily_use_cooldown(obj, ITEM_SPECAB_HORN_OF_SUMMONING);
 
       break;
     case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
