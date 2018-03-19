@@ -434,7 +434,7 @@ ITEM_SPECIAL_ABILITY(item_specab_horn_of_summoning) {
       act("$N brings $S $o to $S mouth and blows.", TRUE, ch, obj, ch, TO_ROOM);
 
       /* Echo to the zone. */
-      send_to_zone("The single clarion note of a horn reverberates throughout the area.", world[IN_ROOM(ch)].zone);
+      send_to_zone("The single clarion note of a horn reverberates throughout the area.\r\n", world[IN_ROOM(ch)].zone);
 
       if (!(mob = read_mobile(mob_num, VIRTUAL))) {
         send_to_char(ch, "You don't quite remember how to make that creature.\r\n");
