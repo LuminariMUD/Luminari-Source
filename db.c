@@ -56,9 +56,9 @@
 #include "race.h"
 #include "spell_prep.h"
 #include "crafts.h" /* NewCraft */
+#include <sys/stat.h>
 #include "trails.h"
 
-#include <sys/stat.h>
 /*  declarations of most of the 'global' variables */
 struct config_data config_info; /* Game configuration list.	 */
 
