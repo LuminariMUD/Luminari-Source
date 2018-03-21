@@ -56,6 +56,7 @@
 #include "race.h"
 #include "spell_prep.h"
 #include "crafts.h" /* NewCraft */
+#include "trails.h"
 
 #include <sys/stat.h>
 /*  declarations of most of the 'global' variables */
@@ -1385,6 +1386,17 @@ void parse_room(FILE *fl, int virtual_nr) {
   world[room_nr].number = virtual_nr;
   world[room_nr].name = fread_string(fl, buf2);
   world[room_nr].description = fread_string(fl, buf2);
+  
+  /* Initialize trails */
+  CREATE(world[room_nr].trail_tracks, struct trail_data_list, 1);
+  world[room_nr].trail_tracks->head = NULL;
+  world[room_nr].trail_tracks->tail = NULL;
+  CREATE(world[room_nr].trail_scent, struct trail_data_list, 1);
+  world[room_nr].trail_scent->head = NULL;
+  world[room_nr].trail_scent->tail = NULL;
+  CREATE(world[room_nr].trail_blood, struct trail_data_list, 1);
+  world[room_nr].trail_blood->head = NULL;
+  world[room_nr].trail_blood->tail = NULL;
 
   if (!get_line(fl, line)) {
     log("SYSERR: Expecting roomflags/sector type of room #%d but file ended!",

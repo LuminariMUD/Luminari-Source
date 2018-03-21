@@ -22,6 +22,7 @@
 #include "constants.h"
 #include "modify.h"
 #include "wilderness.h"
+#include "trails.h"
 
 /* local functions */
 static void redit_setup_new(struct descriptor_data *d);
@@ -306,6 +307,25 @@ void redit_save_to_disk(zone_vnum zone_num)
   save_rooms(zone_num);		/* :) */
 }
 
+void free_trail_data_list(struct trail_data_list *trail) {
+  struct trail_data *cur;
+  struct trail_data *next;
+
+  if (trail == NULL) {
+    /* Nothing to free. */
+    return;
+  } 
+
+  for(cur = trail->head; cur != NULL; cur = next ) {
+    next = cur->next;
+    if (cur->name != NULL)
+      free(cur->name);
+    if (cur->race != NULL)
+      free(cur->race);
+    free(cur);
+  }  
+}
+
 void free_room(struct room_data *room)
 {
   /* Free the strings (Mythran). */
@@ -315,6 +335,11 @@ void free_room(struct room_data *room)
     extract_script(room, WLD_TRIGGER);
   free_proto_script(room, WLD_TRIGGER);
 
+  /* Free trails. */
+  free_trail_data_list(room->trail_tracks);
+  free_trail_data_list(room->trail_scent);
+  free_trail_data_list(room->trail_blood);
+  
   /* Free the room. */
   free(room);	/* XXX ? */
 }
