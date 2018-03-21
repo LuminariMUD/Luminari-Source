@@ -2864,6 +2864,9 @@ struct raff_node {
     struct raff_node *next; /* link to the next node */
 };
 
+/* From trails.h */
+struct trail_data_list;
+
 /** The Room Structure. */
 struct room_data {
     room_vnum number; /**< Rooms number (vnum) */
@@ -2885,6 +2888,12 @@ struct room_data {
     struct char_data *people; /**< List of NPCs / PCs in room */
 
     struct list_data *events; // room events
+
+    struct trail_data_list *trail_tracks;
+    struct trail_data_list *trail_scent;
+    struct trail_data_list *trail_blood;
+    // struct trail_data_list *trail_magic;
+
 };
 
 /* char-related structures */

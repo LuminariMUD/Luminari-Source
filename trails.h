@@ -13,9 +13,14 @@ struct trail_data {
     struct trail_data *prev;
     
     char *name;
-    // race
+    char *race;
     
     int from;
     int to;
-    time_t when;
+    time_t age;
+}
+
+struct trail_data_list {
+    struct trail_data *head;
+    struct trail_data *tail;
 }
