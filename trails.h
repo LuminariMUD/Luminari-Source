@@ -18,9 +18,9 @@ struct trail_data {
     int from;
     int to;
     time_t age;
-}
+};
 
 struct trail_data_list {
     struct trail_data *head;
     struct trail_data *tail;
-}
+};
