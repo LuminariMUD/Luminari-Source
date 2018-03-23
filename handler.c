@@ -82,7 +82,7 @@ int is_name(const char *str, const char *namelist) {
 
 /* allow abbreviations */
 #define WHITESPACE " \t"
-#define KEYWORDJOIN "_"
+#define KEYWORDJOIN "-"
 int isname_tok(const char *str, const char *namelist) {
   char *newlist;
   char *curtok;
