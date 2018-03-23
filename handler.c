@@ -86,7 +86,7 @@ int is_name(const char *str, const char *namelist) {
 int isname_tok(const char *str, const char *namelist) {
   char *newlist;
   char *curtok;
-  char *saveptr;
+  char *saveptr = NULL;
 
   if (!str || !*str || !namelist || !*namelist)
     return 0;
@@ -111,7 +111,7 @@ int isname (const char *str, const char *namelist)
 {
   char *strlist;
   char *substr;
-  char *saveptr;
+  char *saveptr = NULL;
 
   if (!str || !*str || !namelist || !*namelist)
     return 0;
