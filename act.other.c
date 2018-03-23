@@ -228,6 +228,11 @@ ACMD(do_abundantstep) {
     send_to_char(ch, "You are too tired to use this martial art skill!\r\n");
     return;
   }
+  /* 3.23.18 Ornir, bugfix. */
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_NOTELEPORT)) {
+    send_to_char(ch, "You are unable to shift to the ethereal plane in this place!\r\n");
+    return;
+  }
 
   steps = 0;
   room_tracker = IN_ROOM(ch); /* start the room tracker in current location */
@@ -297,6 +302,13 @@ ACMD(do_abundantstep) {
         }
 
         nextroom = W_EXIT(room_tracker, i)->to_room;
+        
+        /* 3.23.18 Ornir, bugfix. */
+        if (ROOM_FLAGGED(nextroom, ROOM_NOTELEPORT) || ROOM_FLAGGED(nextroom, ROOM_HOUSE)) {
+          send_to_char(ch, "You can not access your destination through the ethereal plane!\r\n");
+          return;
+        }
+        
         if (nextroom == NOWHERE)
           break;
 
