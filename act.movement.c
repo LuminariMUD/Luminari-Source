@@ -1123,8 +1123,9 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check) {
             act(buf2, TRUE, RIDDEN_BY(ch), 0, tch, TO_VICT);
           } else {
             /* mount failed, rider failed */
+            /* 3.23.18 Ornir Bugfix. */
             snprintf(buf2, sizeof (buf2), "$n rides %s %s.",
-                    GET_NAME(ch), dirs[dir]);
+                    GET_NAME(RIDING(ch)), dirs[dir]);
             act(buf2, TRUE, RIDDEN_BY(ch), 0, tch, TO_VICT);
           }
         }
