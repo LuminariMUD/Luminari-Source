@@ -173,6 +173,10 @@ ACMD(do_mode) {
     
     if (number == 1)
       ;
+    else if (!IS_NPC(ch) && number > MODE_CAP) {
+      send_to_char(ch, "The maximum value you can specify for %s is %d (mode cap).\r\n", combat_mode_info[mode].name, MODE_CAP);
+      return;
+    }
     else if (!IS_NPC(ch) && number > BAB(ch)) {
       send_to_char(ch, "Mode %s is limited to %d - your base attack bonus (BAB).\r\n", combat_mode_info[mode].name, BAB(ch));
       return;
@@ -181,10 +185,7 @@ ACMD(do_mode) {
       send_to_char(ch, "The minimum value you can specify for %s is 1.\r\n", combat_mode_info[mode].name);
       return;
     }
-    else if (!IS_NPC(ch) && number > MODE_CAP) {
-      send_to_char(ch, "The maximum value you can specify for %s is %d (mode cap).\r\n", combat_mode_info[mode].name, MODE_CAP);
-      return;
-    }
+
   }
   if (!is_mode_enabled(ch, mode)) {
     send_to_char(ch, "You enter %s mode.\r\n", combat_mode_info[mode].name);
