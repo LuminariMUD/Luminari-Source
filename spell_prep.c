@@ -1045,6 +1045,8 @@ int compute_slots_by_circle(struct char_data *ch, int class, int circle) {
   
   return spell_slots;
 }
+
+
 /**** UNDER CONSTRUCTION *****/
 /* in: class we need to assign spell slots to
  * at bootup, we initialize class-data, which includes assignment
@@ -1156,6 +1158,8 @@ void assign_feat_spell_slots(int ch_class) {
 
   /* all done! */
 }
+/**** END CONSTRUCTION ZONE *****/
+
 
 /* this function is our connection between the casting system and spell preparation
    system, we are checking -all- our spell prep systems to see if we have the 
