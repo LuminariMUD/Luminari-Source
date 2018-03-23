@@ -86,6 +86,7 @@ int is_name(const char *str, const char *namelist) {
 int isname_tok(const char *str, const char *namelist) {
   char *newlist;
   char *curtok;
+  char *saveptr;
 
   if (!str || !*str || !namelist || !*namelist)
     return 0;
@@ -94,7 +95,7 @@ int isname_tok(const char *str, const char *namelist) {
     return 1;
 
   newlist = strdup(namelist); /* make a copy since strtok 'modifies' strings */
-  for (curtok = strtok(newlist, WHITESPACE); curtok; curtok = strtok(NULL, WHITESPACE))
+  for (curtok = strtok_r(newlist, WHITESPACE, &saveptr); curtok; curtok = strtok_r(NULL, WHITESPACE, &saveptr))
     if (curtok && is_abbrev(str, curtok)) {
       /* Don't allow abbreviated numbers. - Sryth */
       if (isdigit(*str) && (atoi(str) != atoi(curtok)))
@@ -110,6 +111,7 @@ int isname (const char *str, const char *namelist)
 {
   char *strlist;
   char *substr;
+  char *saveptr;
 
   if (!str || !*str || !namelist || !*namelist)
     return 0;
@@ -118,7 +120,7 @@ int isname (const char *str, const char *namelist)
     return 1;
 
     strlist = strdup(str);
-    for (substr = strtok(strlist, KEYWORDJOIN); substr; substr = strtok (NULL, KEYWORDJOIN))
+    for (substr = strtok_r(strlist, KEYWORDJOIN, &saveptr); substr; substr = strtok_r(NULL, KEYWORDJOIN, &saveptr))
     {
         if (!substr) continue;
         if (!isname_tok(substr, namelist)) return 0;
