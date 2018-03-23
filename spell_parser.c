@@ -1472,6 +1472,13 @@ ACMD(do_gen_cast) {
     return;
   }
   
+  /* 3.23.18 Ornir : Add better message when you try to cast a spell from a restricted school. */
+  if (spell_info[spellnum].schoolOfMagic ==
+            restricted_school_reference[GET_SPECIALTY_SCHOOL(ch)]) {
+    send_to_char(ch, "You are unable to cast spells from this school of magic.\r\n");
+    return;
+  }
+
   /* this is the block to make sure they meet the min-level reqs */
   if (isEpicSpell(spellnum)) {
     switch (spellnum) {
