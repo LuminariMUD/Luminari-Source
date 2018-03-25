@@ -3202,8 +3202,8 @@ void assign_feats(void) {
 }
 
 /* Check to see if ch meets the provided feat prerequisite.
-   iarg is for external comparison */
-bool meets_prerequisite(struct char_data *ch, struct feat_prerequisite *prereq, int iarg) {
+   w_type is the type of the wielded weapon, if any */
+bool meets_prerequisite(struct char_data *ch, struct feat_prerequisite *prereq, int w_type) {
   switch (prereq->prerequisite_type) {
     case FEAT_PREREQ_NONE:
       /* This is a NON-prereq. */
@@ -3331,11 +3331,11 @@ bool meets_prerequisite(struct char_data *ch, struct feat_prerequisite *prereq, 
       break;
     case FEAT_PREREQ_CFEAT:
       /*  SPECIAL CASE - You must have a feat, and it must be the cfeat for the chosen weapon. */
-      if (iarg && !has_combat_feat(ch, feat_to_cfeat(prereq->values[0]), iarg))
+      if (w_type && !has_combat_feat(ch, feat_to_cfeat(prereq->values[0]), w_type))
         return FALSE;
       break;
     case FEAT_PREREQ_WEAPON_PROFICIENCY:
-      if (iarg && !is_proficient_with_weapon(ch, iarg))
+      if (w_type && !is_proficient_with_weapon(ch, w_type))
         return FALSE;
       break;
     default:
@@ -4984,14 +4984,23 @@ bool display_feat_info(struct char_data *ch, char *featname) {
     bool first = TRUE;
     struct feat_prerequisite *prereq;
 
+    /* Get the wielded weapon, so that we can use it for checking prerequesites. 
+     * Don't bother checking the offhand since we can only use one value.        
+     * Don't bother checking for special features like claws, since they can't 
+     *  be selected for feats. 
+     */
+    struct obj_data *weap = GET_EQ(ch, WEAR_WIELD_1);
+    if (GET_EQ(ch, WEAR_WIELD_2H))
+      weap = GET_EQ(ch, WEAR_WIELD_2H);
+
     for (prereq = feat_list[feat].prerequisite_list; prereq != NULL; prereq = prereq->next) {
       if (first) {
         first = FALSE;
         sprintf(buf, "\tcPrerequisites : %s%s%s",
-                (meets_prerequisite(ch, prereq, -1) ? "\tn" : "\tr"), prereq->description, "\tn");
+                (meets_prerequisite(ch, prereq, GET_WEAPON_TYPE(weap)) ? "\tn" : "\tr"), prereq->description, "\tn");
       } else {
         sprintf(buf2, ", %s%s%s",
-                (meets_prerequisite(ch, prereq, -1) ? "\tn" : "\tr"), prereq->description, "\tn");
+                (meets_prerequisite(ch, prereq, GET_WEAPON_TYPE(weap)) ? "\tn" : "\tr"), prereq->description, "\tn");
         strcat(buf, buf2);
       }
     }
