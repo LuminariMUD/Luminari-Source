@@ -4988,19 +4988,21 @@ bool display_feat_info(struct char_data *ch, char *featname) {
      * Don't bother checking the offhand since we can only use one value.        
      * Don't bother checking for special features like claws, since they can't 
      *  be selected for feats. 
+     * DO bother checking if they don't have a weapon at all.
      */
     struct obj_data *weap = GET_EQ(ch, WEAR_WIELD_1);
     if (GET_EQ(ch, WEAR_WIELD_2H))
       weap = GET_EQ(ch, WEAR_WIELD_2H);
+    int w_type = (weap == NULL) ? WEAPON_TYPE_UNARMED : GET_WEAPON_TYPE(weap);
 
     for (prereq = feat_list[feat].prerequisite_list; prereq != NULL; prereq = prereq->next) {
       if (first) {
         first = FALSE;
         sprintf(buf, "\tcPrerequisites : %s%s%s",
-                (meets_prerequisite(ch, prereq, GET_WEAPON_TYPE(weap)) ? "\tn" : "\tr"), prereq->description, "\tn");
+                (meets_prerequisite(ch, prereq, w_type) ? "\tn" : "\tr"), prereq->description, "\tn");
       } else {
         sprintf(buf2, ", %s%s%s",
-                (meets_prerequisite(ch, prereq, GET_WEAPON_TYPE(weap)) ? "\tn" : "\tr"), prereq->description, "\tn");
+                (meets_prerequisite(ch, prereq, w_type) ? "\tn" : "\tr"), prereq->description, "\tn");
         strcat(buf, buf2);
       }
     }
