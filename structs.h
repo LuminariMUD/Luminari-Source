@@ -980,11 +980,12 @@
 #define CON_ACCOUNT_ADD          45
 #define CON_ACCOUNT_ADD_PWD      46
 #define CON_HSEDIT               47 /* OLC mode - house edit      .*/
+#define CON_NEWMAIL		 48 // new mail system mail composition
 
 /* OLC States range - used by IS_IN_OLC and IS_PLAYING */
 #define FIRST_OLC_STATE CON_OEDIT     /**< The first CON_ state that is an OLC */
 #define LAST_OLC_STATE  CON_CRAFTEDIT    /**< The last CON_ state that is an OLC  */
-#define NUM_CON_STATES	48
+#define NUM_CON_STATES	49
 
 /* Character equipment positions: used as index for char_data.equipment[] */
 /* NOTE: Don't confuse these constants with the ITEM_ bitvectors
@@ -3226,6 +3227,7 @@ struct player_special_data_saved {
 
     int sorcerer_bloodline_subtype; //if the sorcerer bloodline has a subtype (ie. draconic)
     int new_arcana_circles[4];
+    int mail_days;
 };
 
 /** Specials needed only by PCs, not NPCs.  Space for this structure is
@@ -3258,6 +3260,9 @@ struct player_special_data {
                                   slots decay at a rate of 1 per 6-second round and cannot have
                                   more than 9 stored at any given time.  They are not saved over
                                   reboots/copyovers/character quitting. */
+  char *new_mail_receiver;
+  char *new_mail_subject;
+  char *new_mail_content;
 };
 
 /** Special data used by NPCs, not PCs */

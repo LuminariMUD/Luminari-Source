@@ -11,6 +11,8 @@
 #include "mud_event.h"
 
 MYSQL *conn = NULL;
+MYSQL *conn2 = NULL;
+MYSQL *conn3 = NULL;
 
 void after_world_load() {
 }
@@ -70,10 +72,48 @@ void connect_to_mysql() {
     log("SYSERR: Unable to connect to MySQL: %s", mysql_error(conn));
     exit(1);
   }
+
+  // 2nd conn for queries within other query loops
+  if (!(conn2 = mysql_init(NULL))) {
+    log("SYSERR: Unable to initialize MySQL connection 2.");
+    exit(1);
+  }
+
+  reconnect = 1;
+  mysql_options(conn2, MYSQL_OPT_RECONNECT, &reconnect);
+
+  if (!mysql_real_connect(conn2, host, username, password, database, 0, NULL, 0)) {
+    log("SYSERR: Unable to connect to MySQL2: %s", mysql_error(conn2));
+    exit(1);
+  }
+
+  // 3rd conn for queries within other query loops
+  if (!(conn3 = mysql_init(NULL))) {
+    log("SYSERR: Unable to initialize MySQL connection 3.");
+    exit(1);
+  }
+
+  reconnect = 1;
+  mysql_options(conn3, MYSQL_OPT_RECONNECT, &reconnect);
+
+  if (!mysql_real_connect(conn3, host, username, password, database, 0, NULL, 0)) {
+    log("SYSERR: Unable to connect to MySQL3: %s", mysql_error(conn3));
+    exit(1);
+  }
 }
 
 void disconnect_from_mysql() {
   mysql_close(conn);
+  mysql_library_end();
+}
+
+void disconnect_from_mysql2() {
+  mysql_close(conn2);
+  mysql_library_end();
+}
+
+void disconnect_from_mysql3() {
+  mysql_close(conn3);
   mysql_library_end();
 }
 

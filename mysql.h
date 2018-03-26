@@ -14,6 +14,8 @@ extern MYSQL *conn;
 
 void connect_to_mysql();
 void disconnect_from_mysql();
+void disconnect_from_mysql2();
+void disconnect_from_mysql3();
 
 /* Wilderness */
 struct wilderness_data* load_wilderness(zone_vnum zone);

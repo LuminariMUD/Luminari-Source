@@ -55,6 +55,7 @@
 #include "bardic_performance.h"
 #include "spell_prep.h"
 #include "crafts.h" /* NewCraft */
+#include "new_mail.h"
 
 /* local (file scope) functions */
 static int perform_dupe_check(struct descriptor_data *d);
@@ -360,7 +361,8 @@ cpp_extern const struct command_info cmd_info[] = {
 
   { "manifest", "m", POS_SITTING, do_gen_cast, 1, SCMD_CAST_PSIONIC, FALSE, ACTION_MOVE, {0, 6}},
   { "memorize", "memorize", POS_RESTING, do_gen_preparation, 0, SCMD_MEMORIZE, FALSE, ACTION_NONE, {0, 0}},
-  { "mail", "mail", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}},
+//  { "mail", "mail", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}},
+  { "mail", "mail", POS_STANDING, do_new_mail, 1, 0, FALSE, ACTION_NONE, {0, 0}},
   { "map", "map", POS_STANDING, do_map, 1, 0, FALSE, ACTION_NONE, {0, 0}},
   { "medit", "med", POS_DEAD, do_oasis_medit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}},
   { "meditate", "meditate", POS_RESTING, do_gen_preparation, 0, SCMD_MEDITATE, FALSE, ACTION_NONE, {0, 0}},
@@ -1641,6 +1643,8 @@ int enter_player_game(struct descriptor_data *d) {
 
   // this is already called in perform_dupe_check() before we get here, shouldn't be needed here -Nashak
   //MXPSendTag(d, "<VERSION>");
+
+  new_mail_alert(d->character);
 
   return load_result;
 }
