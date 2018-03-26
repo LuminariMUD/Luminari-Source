@@ -1448,6 +1448,8 @@ const char *connected_types[NUM_CON_STATES + 1] = {
   "Acct Menu",
   "Acct Add Char",
   "Acct Char Pwd",
+  "House Edit",
+  "Composing Mail Message",
   "\n" /* make sure this matches NUM_CON_STATES */
 };
 
