@@ -617,14 +617,14 @@ void assign_feats(void) {
   /* cleave */
   feato(FEAT_CLEAVE, "cleave", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
           "extra attack against opponent once per round",
-          "You get an extra attack against a second opponent you are fighting, once"
+          "You get an extra attack against a second opponent you are fighting, once "
           "per round.");
   feat_prereq_attribute(FEAT_CLEAVE, AB_STR, 13);
   feat_prereq_feat(FEAT_CLEAVE, FEAT_POWER_ATTACK, 1);
 
   feato(FEAT_GREAT_CLEAVE, "great cleave", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
           "extra attack against opponent once per round",
-          "You get an extra attack against a second opponent you are fighting, once"
+          "You get an extra attack against a second opponent you are fighting, once "
           "per round.  This feat stacks with cleave, effectively giving you 2 "
           "bonus attacks on that target.");
   feat_prereq_feat(FEAT_GREAT_CLEAVE, FEAT_CLEAVE, 1);
