@@ -6772,16 +6772,20 @@ void handle_cleave(struct char_data *ch) {
   tch = random_from_list(target_list);
   if (target_list) /*cleanup*/
           free_list(target_list);
-    if (!tch) return;
+  if (!tch) return;
 
+  send_to_char(ch, "You cleave to %s!\r\n", (CAN_SEE(ch, tch)) ? GET_NAME(tch) : "someone");
+  act("$n cleaves to $N!", TRUE, ch, 0, tch, TO_ROOM);
 
-            hit(ch, tch, TYPE_UNDEFINED, DAM_RESERVED_DBC,
-            -4, ATTACK_TYPE_PRIMARY); /* whack with mainhand */
+  hit(ch, tch, TYPE_UNDEFINED, DAM_RESERVED_DBC,
+       -4, ATTACK_TYPE_PRIMARY); /* whack with mainhand */
 
-      if (HAS_FEAT(ch, FEAT_GREAT_CLEAVE) && !is_using_ranged_weapon(ch, TRUE))
-              hit(ch, tch, TYPE_UNDEFINED, DAM_RESERVED_DBC,
-              0, ATTACK_TYPE_PRIMARY); /* whack with mainhand */
-      }
+  if (HAS_FEAT(ch, FEAT_GREAT_CLEAVE) && !is_using_ranged_weapon(ch, TRUE))
+  {
+    hit(ch, tch, TYPE_UNDEFINED, DAM_RESERVED_DBC,
+        0, ATTACK_TYPE_PRIMARY); /* whack with mainhand */
+  }
+}
 
 void handle_smash_defense(struct char_data *ch) {
   struct char_data *vict = FIGHTING(ch);
