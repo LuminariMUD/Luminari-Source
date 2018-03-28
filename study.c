@@ -811,6 +811,7 @@ int compute_base_str(struct char_data *ch) {
     case RACE_CRYSTAL_DWARF:   base_str += 2; break;
     case RACE_TRELUX:          base_str += 2; break;
     case RACE_ARCANA_GOLEM:    base_str -= 2; break;
+    case RACE_HALF_ORC:        base_str += 2; break;
   }
   return base_str;
 }
@@ -843,6 +844,7 @@ int compute_base_inte(struct char_data *ch) {
     case RACE_HALF_TROLL:     base_inte -= 4; break;
     case RACE_ARCANA_GOLEM:   base_inte += 2; break;
     case RACE_DROW:           base_inte += 2; break;
+    case RACE_HALF_ORC:       base_inte -= 2; break;
   }
   return base_inte;
 }
@@ -872,6 +874,7 @@ int compute_base_cha(struct char_data *ch) {
     case RACE_HALF_TROLL:       base_cha -= 4; break;
     case RACE_CRYSTAL_DWARF:    base_cha += 2; break;
     case RACE_ARCANA_GOLEM:     base_cha += 2; break;
+    case RACE_HALF_ORC:         base_cha -= 2; break;
   }
   return base_cha;
 }
