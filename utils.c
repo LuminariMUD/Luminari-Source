@@ -296,6 +296,7 @@ int comp_base_str(struct char_data *ch) {
       break;
     case RACE_GNOME: base_str -= 2;
       break;
+    case RACE_HALF_ORC:
     case RACE_HALF_TROLL: base_str += 2;
       break;
     case RACE_CRYSTAL_DWARF: base_str += 2;
@@ -345,6 +346,8 @@ int comp_con_cost(struct char_data *ch, int number) {
 int comp_base_inte(struct char_data *ch) {
   int base_inte = BASE_STAT;
   switch (GET_RACE(ch)) {
+    case RACE_HALF_ORC: base_inte -= 2;
+      break;
     case RACE_HALF_TROLL: base_inte -= 4;
       break;
     case RACE_ARCANA_GOLEM: base_inte += 2;
@@ -362,7 +365,7 @@ int comp_inte_cost(struct char_data *ch, int number) {
 
 int comp_base_wis(struct char_data *ch) {
   int base_wis = BASE_STAT;
-  switch (GET_RACE(ch)) {
+  switch (GET_RACE(ch)) {    
     case RACE_HALF_TROLL: base_wis -= 4;
       break;
     case RACE_CRYSTAL_DWARF: base_wis += 2;
@@ -383,7 +386,8 @@ int comp_wis_cost(struct char_data *ch, int number) {
 int comp_base_cha(struct char_data *ch) {
   int base_cha = BASE_STAT;
   switch (GET_RACE(ch)) {
-    case RACE_DWARF: base_cha -= 2;
+    case RACE_DWARF: 
+    case RACE_HALF_ORC: base_cha -= 2;
       break;
     case RACE_DROW: base_cha += 2;
       break;
