@@ -1726,7 +1726,7 @@ static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
     send_to_char(victim, CCRED(victim, C_CMP));
     act(dam_ranged[msgnum].to_victim, FALSE, ch, last_missile, victim, TO_VICT | TO_SLEEP);
     send_to_char(victim, CCNRM(victim, C_CMP));
-  }    /* non ranged */
+  }/* non ranged */
   else if (GET_POS(victim) > POS_DEAD) {
     char *buf = NULL;
 
@@ -1876,7 +1876,7 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
 
           return SKILL_MESSAGE_GENERIC_HIT;
         }
-      }        /* dam == 0, we did not do any damage! */
+      }/* dam == 0, we did not do any damage! */
       else if (ch != vict) {
         /* do we have armor that can stop a blow? */
         struct obj_data *armor = GET_EQ(vict, WEAR_BODY);
@@ -4359,55 +4359,59 @@ void idle_weapon_spells(struct char_data *ch) {
           ROOM_AFFECTED(ch->in_room, RAFF_ANTI_MAGIC)))
     return;
 
-  int random = 0, j = 0, weapon_spellnum = SPELL_RESERVED_DBC;
-  struct obj_data * wielded = GET_EQ(ch, WEAR_WIELD_1);
-  struct obj_data * offWield = GET_EQ(ch, WEAR_WIELD_OFFHAND);
-  char *buf = "$p leaps to action!";
+    int random = 0, j = 0, weapon_spellnum = SPELL_RESERVED_DBC;
+          struct obj_data * wielded = GET_EQ(ch, WEAR_WIELD_1);
+          struct obj_data * offWield = GET_EQ(ch, WEAR_WIELD_OFFHAND);
+          char *buf = "$p leaps to action!";
 
-  /* give some random messages */
-  switch (dice(1, 4)) {
-    case 1:
-      buf = "$p hums with power!";
-      break;
-    case 2:
-      buf = "$p flashes with energy!";
-      break;
-    case 3:
-      buf = "$p glows and lets off a deep sound!";
-      break;
-    default: /* default "leap" */
-      break;
-  }
-  
+          /* give some random messages */
+    switch (dice(1, 4)) {
+      case 1:
+        buf = "$p hums with power!";
+        break;
+      case 2:
+        buf = "$p flashes with energy!";
+        break;
+      case 3:
+        buf = "$p glows and lets off a deep sound!";
+        break;
+      default: /* default "leap" */
+        break;
+    }
+
   /* dummy check -Zusuk */
-  weapon_spellnum = GET_WEAPON_SPELL(wielded, j);
-  if (weapon_spellnum <= SPELL_RESERVED_DBC || weapon_spellnum >= LAST_SPELL_DEFINE)
-    return;
+  if (wielded) {
+    weapon_spellnum = GET_WEAPON_SPELL(wielded, j);
+    if (weapon_spellnum <= SPELL_RESERVED_DBC || weapon_spellnum >= LAST_SPELL_DEFINE)
+      return;
+    }
 
   if (GET_EQ(ch, WEAR_WIELD_2H))
-    wielded = GET_EQ(ch, WEAR_WIELD_2H);
+          wielded = GET_EQ(ch, WEAR_WIELD_2H);
 
-  if (wielded && HAS_SPELLS(wielded)) {
-    for (j = 0; j < MAX_WEAPON_SPELLS; j++) {
-      if (!GET_WEAPON_SPELL_AGG(wielded, j) &&
+    if (wielded && HAS_SPELLS(wielded)) {
+      for (j = 0; j < MAX_WEAPON_SPELLS; j++) {
+        if (!GET_WEAPON_SPELL_AGG(wielded, j) &&
                 weapon_spellnum) {
-        random = rand_number(1, 100);
-        if (!affected_by_spell(ch, weapon_spellnum) &&
-                GET_WEAPON_SPELL_PCT(wielded, j) >= random) {
-          act(buf, TRUE, ch, wielded, 0, TO_CHAR);
-          act(buf, TRUE, ch, wielded, 0, TO_ROOM);
-          call_magic(ch, ch, NULL, weapon_spellnum, 0,
+          random = rand_number(1, 100);
+          if (!affected_by_spell(ch, weapon_spellnum) &&
+                  GET_WEAPON_SPELL_PCT(wielded, j) >= random) {
+            act(buf, TRUE, ch, wielded, 0, TO_CHAR);
+                    act(buf, TRUE, ch, wielded, 0, TO_ROOM);
+                    call_magic(ch, ch, NULL, weapon_spellnum, 0,
                     GET_WEAPON_SPELL_LVL(wielded, j), CAST_WEAPON_SPELL);
+          }
         }
       }
     }
-  }
-  
+
   /* dummy check -Zusuk */
-  weapon_spellnum = GET_WEAPON_SPELL(offWield, j);
-  if (weapon_spellnum <= SPELL_RESERVED_DBC || weapon_spellnum >= LAST_SPELL_DEFINE)
-    return;
-  
+  if (offWield) {
+    weapon_spellnum = GET_WEAPON_SPELL(offWield, j);
+    if (weapon_spellnum <= SPELL_RESERVED_DBC || weapon_spellnum >= LAST_SPELL_DEFINE)
+      return;
+    }
+
   if (offWield && HAS_SPELLS(offWield)) {
     for (j = 0; j < MAX_WEAPON_SPELLS; j++) {
       if (!GET_WEAPON_SPELL_AGG(offWield, j) &&
@@ -4417,9 +4421,9 @@ void idle_weapon_spells(struct char_data *ch) {
                 GET_WEAPON_SPELL_PCT(offWield, j) >= random) {
 
           act(buf, TRUE, ch, offWield, 0, TO_CHAR);
-          act(buf, TRUE, ch, offWield, 0, TO_ROOM);
-          call_magic(ch, ch, NULL, weapon_spellnum, 0,
-          GET_WEAPON_SPELL_LVL(offWield, j), CAST_WEAPON_SPELL);
+                  act(buf, TRUE, ch, offWield, 0, TO_ROOM);
+                  call_magic(ch, ch, NULL, weapon_spellnum, 0,
+                  GET_WEAPON_SPELL_LVL(offWield, j), CAST_WEAPON_SPELL);
         }
       }
     }
