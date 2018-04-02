@@ -1726,8 +1726,7 @@ static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
     send_to_char(victim, CCRED(victim, C_CMP));
     act(dam_ranged[msgnum].to_victim, FALSE, ch, last_missile, victim, TO_VICT | TO_SLEEP);
     send_to_char(victim, CCNRM(victim, C_CMP));
-  }
-    /* non ranged */
+  }    /* non ranged */
   else if (GET_POS(victim) > POS_DEAD) {
     char *buf = NULL;
 
@@ -1877,8 +1876,7 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
 
           return SKILL_MESSAGE_GENERIC_HIT;
         }
-      }
-        /* dam == 0, we did not do any damage! */
+      }        /* dam == 0, we did not do any damage! */
       else if (ch != vict) {
         /* do we have armor that can stop a blow? */
         struct obj_data *armor = GET_EQ(vict, WEAR_BODY);
@@ -2794,6 +2792,7 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim) {
 
 // death < 0, no dam = 0, damage done > 0
 /* ALLLLLL damage goes through this function */
+
 /* probably need to bring in another variable letting us know our source, like:
    -melee attack
    -spell
@@ -2846,11 +2845,11 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
       set_fighting(victim, ch);
     }
   }
-  
+
   /* pets leave if attacked */
-  if (victim->master == ch)    
+  if (victim->master == ch)
     stop_follower(victim);
-  
+
   /* if target is in your group, you forfeit your position in the group -zusuk */
   if (GROUP(ch) && GROUP(victim) && GROUP(ch) == GROUP(victim)) {
     leave_group(ch);
@@ -4360,57 +4359,67 @@ void idle_weapon_spells(struct char_data *ch) {
           ROOM_AFFECTED(ch->in_room, RAFF_ANTI_MAGIC)))
     return;
 
-    int random = 0, j = 0;
-          struct obj_data * wielded = GET_EQ(ch, WEAR_WIELD_1);
-          struct obj_data * offWield = GET_EQ(ch, WEAR_WIELD_OFFHAND);
-          char *buf = "$p leaps to action!";
+  int random = 0, j = 0, weapon_spellnum = SPELL_RESERVED_DBC;
+  struct obj_data * wielded = GET_EQ(ch, WEAR_WIELD_1);
+  struct obj_data * offWield = GET_EQ(ch, WEAR_WIELD_OFFHAND);
+  char *buf = "$p leaps to action!";
 
-          /* give some random messages */
-    switch (dice(1, 4)) {
-      case 1:
-        buf = "$p hums with power!";
-        break;
-      case 2:
-        buf = "$p flashes with energy!";
-        break;
-      case 3:
-        buf = "$p glows and lets off a deep sound!";
-        break;
-      default: /* default "leap" */
-        break;
-    }
+  /* give some random messages */
+  switch (dice(1, 4)) {
+    case 1:
+      buf = "$p hums with power!";
+      break;
+    case 2:
+      buf = "$p flashes with energy!";
+      break;
+    case 3:
+      buf = "$p glows and lets off a deep sound!";
+      break;
+    default: /* default "leap" */
+      break;
+  }
+  
+  /* dummy check -Zusuk */
+  weapon_spellnum = GET_WEAPON_SPELL(wielded, j);
+  if (weapon_spellnum <= SPELL_RESERVED_DBC || weapon_spellnum >= LAST_SPELL_DEFINE)
+    return;
 
   if (GET_EQ(ch, WEAR_WIELD_2H))
-          wielded = GET_EQ(ch, WEAR_WIELD_2H);
+    wielded = GET_EQ(ch, WEAR_WIELD_2H);
 
-    if (wielded && HAS_SPELLS(wielded)) {
-      for (j = 0; j < MAX_WEAPON_SPELLS; j++) {
-        if (!GET_WEAPON_SPELL_AGG(wielded, j) &&
-                GET_WEAPON_SPELL(wielded, j)) {
-          random = rand_number(1, 100);
-          if (!affected_by_spell(ch, GET_WEAPON_SPELL(wielded, j)) &&
-                  GET_WEAPON_SPELL_PCT(wielded, j) >= random) {
-            act(buf, TRUE, ch, wielded, 0, TO_CHAR);
-                    act(buf, TRUE, ch, wielded, 0, TO_ROOM);
-                    call_magic(ch, ch, NULL, GET_WEAPON_SPELL(wielded, j), 0,
+  if (wielded && HAS_SPELLS(wielded)) {
+    for (j = 0; j < MAX_WEAPON_SPELLS; j++) {
+      if (!GET_WEAPON_SPELL_AGG(wielded, j) &&
+                weapon_spellnum) {
+        random = rand_number(1, 100);
+        if (!affected_by_spell(ch, weapon_spellnum) &&
+                GET_WEAPON_SPELL_PCT(wielded, j) >= random) {
+          act(buf, TRUE, ch, wielded, 0, TO_CHAR);
+          act(buf, TRUE, ch, wielded, 0, TO_ROOM);
+          call_magic(ch, ch, NULL, weapon_spellnum, 0,
                     GET_WEAPON_SPELL_LVL(wielded, j), CAST_WEAPON_SPELL);
-          }
         }
       }
     }
-
+  }
+  
+  /* dummy check -Zusuk */
+  weapon_spellnum = GET_WEAPON_SPELL(offWield, j);
+  if (weapon_spellnum <= SPELL_RESERVED_DBC || weapon_spellnum >= LAST_SPELL_DEFINE)
+    return;
+  
   if (offWield && HAS_SPELLS(offWield)) {
     for (j = 0; j < MAX_WEAPON_SPELLS; j++) {
       if (!GET_WEAPON_SPELL_AGG(offWield, j) &&
-              GET_WEAPON_SPELL(offWield, j)) {
+              weapon_spellnum) {
         random = rand_number(1, 100);
-        if (!affected_by_spell(ch, GET_WEAPON_SPELL(wielded, j)) &&
+        if (!affected_by_spell(ch, weapon_spellnum) &&
                 GET_WEAPON_SPELL_PCT(offWield, j) >= random) {
 
           act(buf, TRUE, ch, offWield, 0, TO_CHAR);
-                  act(buf, TRUE, ch, offWield, 0, TO_ROOM);
-                  call_magic(ch, ch, NULL, GET_WEAPON_SPELL(offWield, j), 0,
-                  GET_WEAPON_SPELL_LVL(offWield, j), CAST_WEAPON_SPELL);
+          act(buf, TRUE, ch, offWield, 0, TO_ROOM);
+          call_magic(ch, ch, NULL, weapon_spellnum, 0,
+          GET_WEAPON_SPELL_LVL(offWield, j), CAST_WEAPON_SPELL);
         }
       }
     }
@@ -4467,8 +4476,9 @@ struct obj_data *get_wielded(struct char_data *ch, /* Wielder */
       break;
     case ATTACK_TYPE_TWOHAND:
       wielded = GET_EQ(ch, WEAR_WIELD_2H);
+
       break;
-      
+
     default:
       break;
   }
@@ -4487,23 +4497,23 @@ int compute_attack_bonus(struct char_data *ch, /* Attacker */
         struct char_data *victim, /* Defender */
         int attack_type) /* Type of attack  */ {
   int i = 0;
-  int bonuses[NUM_BONUS_TYPES];
-  int calc_bab = BAB(ch); /* Start with base attack bonus */
-  struct obj_data *wielded = NULL;
+          int bonuses[NUM_BONUS_TYPES];
+          int calc_bab = BAB(ch); /* Start with base attack bonus */
+          struct obj_data *wielded = NULL;
 
-  /* redundancy necessary due to sometimes arriving here without going through
-   * hit()*/
+          /* redundancy necessary due to sometimes arriving here without going through
+           * hit()*/
   if (attack_type == ATTACK_TYPE_UNARMED)
-    wielded = NULL;
+          wielded = NULL;
   else
     wielded = get_wielded(ch, attack_type);
 
-  /* Initialize bonuses to 0 */
-  for (i = 0; i < NUM_BONUS_TYPES; i++)
-    bonuses[i] = 0;
+          /* Initialize bonuses to 0 */
+    for (i = 0; i < NUM_BONUS_TYPES; i++)
+            bonuses[i] = 0;
 
-  /* start with our base bonus of strength (or dex with feat/ranged)
-     should this have a type?  for now it doesn't... */
+            /* start with our base bonus of strength (or dex with feat/ranged)
+               should this have a type?  for now it doesn't... */
       switch (attack_type) {
         case ATTACK_TYPE_OFFHAND:
         case ATTACK_TYPE_PRIMARY:
@@ -4923,7 +4933,7 @@ int combat_maneuver_check(struct char_data *ch, struct char_data *vict,
       return 0;
     }
 
-      else /* roll 2-19 */
+  else /* roll 2-19 */
     return result;
   }
 
@@ -6424,8 +6434,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase) {
       if (valid_fight_cond(ch))
         if (phase == PHASE_0 || ((phase == PHASE_2) && numAttacks == 2) || ((phase == PHASE_3) && numAttacks == 3))
                 hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty, ATTACK_TYPE_PRIMARY);
-        }
-    else if (mode == DISPLAY_ROUTINE_POTENTIAL) {
+        } else if (mode == DISPLAY_ROUTINE_POTENTIAL) {
       /* display hitroll bonus */
       send_to_char(ch, "Mainhand (Haste), Attack Bonus:  %d; ",
               compute_attack_bonus(ch, ch, ATTACK_TYPE_PRIMARY) + penalty);
@@ -6772,19 +6781,19 @@ void handle_cleave(struct char_data *ch) {
   tch = random_from_list(target_list);
   if (target_list) /*cleanup*/
           free_list(target_list);
-  if (!tch) return;
+    if (!tch) return;
 
-  send_to_char(ch, "You cleave to %s!\r\n", (CAN_SEE(ch, tch)) ? GET_NAME(tch) : "someone");
-  act("$n cleaves to $N!", TRUE, ch, 0, tch, TO_ROOM);
+            send_to_char(ch, "You cleave to %s!\r\n", (CAN_SEE(ch, tch)) ? GET_NAME(tch) : "someone");
+            act("$n cleaves to $N!", TRUE, ch, 0, tch, TO_ROOM);
 
-  hit(ch, tch, TYPE_UNDEFINED, DAM_RESERVED_DBC,
-       -4, ATTACK_TYPE_PRIMARY); /* whack with mainhand */
+            hit(ch, tch, TYPE_UNDEFINED, DAM_RESERVED_DBC,
+            -4, ATTACK_TYPE_PRIMARY); /* whack with mainhand */
 
-  if (HAS_FEAT(ch, FEAT_GREAT_CLEAVE) && !is_using_ranged_weapon(ch, TRUE))
-  {
-    hit(ch, tch, TYPE_UNDEFINED, DAM_RESERVED_DBC,
-        0, ATTACK_TYPE_PRIMARY); /* whack with mainhand */
-  }
+      if (HAS_FEAT(ch, FEAT_GREAT_CLEAVE) && !is_using_ranged_weapon(ch, TRUE)) {
+
+        hit(ch, tch, TYPE_UNDEFINED, DAM_RESERVED_DBC,
+                0, ATTACK_TYPE_PRIMARY); /* whack with mainhand */
+      }
 }
 
 void handle_smash_defense(struct char_data *ch) {
