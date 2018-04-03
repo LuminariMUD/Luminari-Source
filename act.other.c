@@ -4750,7 +4750,7 @@ ACMD(do_happyhour) {
 }
 
 /****  little hint system *******/
-#define NUM_HINTS   31
+#define NUM_HINTS   33
 
 /* i am surrounding hints with this:
    \tR[HINT]:\tn \ty
@@ -4958,6 +4958,18 @@ char *hints[NUM_HINTS] = {
   "Spot a typo?  Just use the command: TYPO SUBMIT <title> to enter our "
   "text editor.  From there you can type out what you found, then type /s to "
   "save your submission.  This creates a record for the staff to work off of!"
+  "  [use nohint or prefedit to deactivate this]\tn\r\n",
+  /*32*/"\tR[HINT]:\tn \ty"
+  "Crafting is a critical and important part of the game, we have help files "
+  "such as HELP CRAFTING - but we also have a great guide you can "
+  "view on our forums: http://www.luminarimud.com/forums/topic/crafting-101-2018/"
+  "  [use nohint or prefedit to deactivate this]\tn\r\n",
+  /*33*/"\tR[HINT]:\tn \ty"
+  "You may notice MOBILEs with an (!) exclamation point in front of them.  If the "
+  "(!) is yellow, then this is an AUTOQUEST quest master, and you can type 'quest list' to "
+  "view his/her quests.  If the (!) is red, then this is a HLQUEST mobile and you "
+  "can try asking the mobile 'hi' or other keywords based on clues whereas you may "
+  "also then get directions for a special quest."
   "  [use nohint or prefedit to deactivate this]\tn\r\n",
 };
 
