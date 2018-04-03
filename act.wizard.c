@@ -4852,7 +4852,7 @@ EVENTFUNC(event_copyover) {
 
 /* (c) 1996-97 Erwin S. Andreasen. Modified by Zusuk to accept countdown argument */
 ACMD(do_copyover) {
-  int min_level_to_copyover = LVL_IMPL;
+  int min_level_to_copyover = LVL_GRSTAFF;
   char arg[MAX_INPUT_LENGTH];
   int timer = 0;
   char buf[50] = {'\0'};
