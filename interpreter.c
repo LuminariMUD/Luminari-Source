@@ -181,7 +181,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "commands", "com", POS_DEAD, do_commands, 0, SCMD_COMMANDS, TRUE, ACTION_NONE, {0, 0}},
   { "compact", "comp", POS_DEAD, do_gen_tog, 0, SCMD_COMPACT, TRUE, ACTION_NONE, {0, 0}},
   { "cooldowns", "coo", POS_DEAD, do_affects, 0, SCMD_COOLDOWNS, TRUE, ACTION_NONE, {0, 0}},
-  { "copyover", "copyover", POS_DEAD, do_copyover, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}},
+  { "copyover", "copyover", POS_DEAD, do_copyover, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}},
   { "credits", "cred", POS_DEAD, do_gen_ps, 0, SCMD_CREDITS, TRUE, ACTION_NONE, {0, 0}},
   { "ct", "ct", POS_DEAD, do_clantalk, 1, 0, TRUE, ACTION_NONE, {0, 0}},
   { "craft", "craft", POS_STANDING, do_craft, 0, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}},
