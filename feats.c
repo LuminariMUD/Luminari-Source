@@ -828,10 +828,10 @@ void assign_feats(void) {
           "gives an additional offhand weapon attack at -10 penalty");
   feat_prereq_cfeat(FEAT_GREATER_TWO_WEAPON_FIGHTING, FEAT_IMPROVED_TWO_WEAPON_FIGHTING);
   feat_prereq_attribute(FEAT_GREATER_TWO_WEAPON_FIGHTING, AB_DEX, 19);
-  feato(FEAT_TWO_WEAPON_DEFENSE, "two weapon defense", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+  feato(FEAT_TWO_WEAPON_DEFENSE, "two weapon defense", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
           "when wielding two weapons receive +1 shield ac bonus",
           "When dual-wielding, or using a double-weapon, you automatically get a +1 "
-          "bonus to deflection AC");
+          "shield bonus to AC");
   feat_prereq_cfeat(FEAT_TWO_WEAPON_DEFENSE, FEAT_TWO_WEAPON_FIGHTING);
 
   /* uncategorized combat feats */

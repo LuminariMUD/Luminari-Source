@@ -618,9 +618,9 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
   /* bonus type deflection */
   /* two weapon defense */
   if (!IS_NPC(ch) && is_using_double_weapon(ch) && HAS_FEAT(ch, FEAT_TWO_WEAPON_DEFENSE)) {
-    bonuses[BONUS_TYPE_DEFLECTION]++;
+    bonuses[BONUS_TYPE_SHIELD]++;
   } else if (!IS_NPC(ch) && GET_EQ(ch, WEAR_WIELD_OFFHAND) && HAS_FEAT(ch, FEAT_TWO_WEAPON_DEFENSE)) {
-    bonuses[BONUS_TYPE_DEFLECTION]++;
+    bonuses[BONUS_TYPE_SHIELD]++;
   }
 
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_WEAPON_MASTERY) &&
