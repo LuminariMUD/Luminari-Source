@@ -117,6 +117,7 @@ void assign_mobiles(void) {
 
   /* player owned shop mobiles */
   ASSIGNMOB(899, player_owned_shops);
+  ASSIGNMOB(825, player_owned_shops); /* thazull created shop for Ellyanor */
 
   /* mayors */
   ASSIGNMOB(3105, mayor);
