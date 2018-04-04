@@ -1119,11 +1119,18 @@ void process_skill(struct char_data *ch, int skillnum) {
 /* debug, set to zero 0 to disable */ #define PLAYER_SHOP_DEBUG
 
 bool valid_player_shop_item(struct char_data *ch, struct obj_data *obj) {
-  if (CAN_SEE_OBJ(ch, obj) && (*obj->description != '.' &&
-          !(GET_OBJ_TYPE(obj) == ITEM_MONEY))
-    return TRUE;
   
-  return FALSE;
+  if (!CAN_SEE_OBJ(ch, obj))
+    return FALSE;
+  
+  if (*obj->description == '.')
+    return FALSE;
+  
+  if (GET_OBJ_TYPE(obj) == ITEM_MONEY)
+    return FALSE;
+  
+  /* made it! */
+  return TRUE;
 }
 
 SPECIAL(player_owned_shops) {
