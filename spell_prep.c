@@ -1025,7 +1025,7 @@ int compute_slots_by_circle(struct char_data *ch, int class, int circle) {
     case CLASS_SORCERER:
       spell_slots += spell_bonus[GET_CHA(ch)][circle];
       spell_slots += sorcerer_known[class_level][circle];
-      if (HAS_REAL_FEAT(ch, FEAT_NEW_ARCANA)) {
+      if (circle != 0 && HAS_REAL_FEAT(ch, FEAT_NEW_ARCANA)) {
         for (i = 0; i < 4; i++) {
           if (NEW_ARCANA_SLOT(ch, i) == circle)
             spell_slots++;
