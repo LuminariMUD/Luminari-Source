@@ -1120,6 +1120,9 @@ void process_skill(struct char_data *ch, int skillnum) {
 
 bool valid_player_shop_item(struct char_data *ch, struct obj_data *obj) {
   
+  if (!obj)
+    return FALSE;
+  
   if (!CAN_SEE_OBJ(ch, obj))
     return FALSE;
   
@@ -1244,7 +1247,7 @@ SPECIAL(player_owned_shops) {
       num = 1;
       
 #ifdef PLAYER_SHOP_DEBUG
-      send_to_char(ch, "player_shops: %s looking for item index (%d) in room %d", GET_NAME(ch), index,
+      send_to_char(ch, "player_shops: %s looking for item index (%d) in room %d\r\n", GET_NAME(ch), index,
               world[private_room].number);      
 #endif
       
@@ -1262,7 +1265,7 @@ SPECIAL(player_owned_shops) {
     } else { /* ARGUMENT */
       
 #ifdef PLAYER_SHOP_DEBUG
-      send_to_char(ch, "player_shops: %s looking for %s in room %d", GET_NAME(ch), argument,
+      send_to_char(ch, "player_shops: %s looking for %s in room %d\r\n", GET_NAME(ch), argument,
               world[private_room].number);
 #endif
 
@@ -1277,7 +1280,7 @@ SPECIAL(player_owned_shops) {
     }
     
 #ifdef PLAYER_SHOP_DEBUG
-    send_to_char(ch, "player_shops: found %s (cost: %d)", i->short_description, GET_OBJ_COST(i));
+    send_to_char(ch, "player_shops: found %s (cost: %d)\r\n", i->short_description, GET_OBJ_COST(i));
 #endif
 
     if (GET_GOLD(ch) < GET_OBJ_COST(i)) {
@@ -1308,7 +1311,7 @@ SPECIAL(player_owned_shops) {
             shop_owner);
     
 #ifdef PLAYER_SHOP_DEBUG
-    send_to_char(ch, "player_shops: item bought and paid for");
+    send_to_char(ch, "player_shops: item bought and paid for\r\n");
 #endif
 
     /* we have to save here to cement the transaction, otherwise a well timed
