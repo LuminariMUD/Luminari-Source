@@ -1116,7 +1116,7 @@ void process_skill(struct char_data *ch, int skillnum) {
      3) item type is not ITEM_MONEY 
  */
 
-/* debug, set to zero 0 to disable */ #define PLAYER_SHOP_DEBUG
+/* debug, set to zero 0 to disable */ #define PLAYER_SHOP_DEBUG 0
 
 bool valid_player_shop_item(struct char_data *ch, struct obj_data *obj) {
   
@@ -1219,7 +1219,7 @@ SPECIAL(player_owned_shops) {
     sprintf(buf, "Owner: \tW%s\tn", shop_owner);
     send_to_char(ch, "Player-owned Shop %*s\r\n", count_color_chars(buf) + 55, buf);
     send_to_char(ch,
-            "#     Item                                               Cost\r\n");
+            "###    Item                                                Cost\r\n");
     send_to_char(ch,
             "--------------------------------------------------------------------------------\r\n");
 
