@@ -1104,12 +1104,23 @@ void process_skill(struct char_data *ch, int skillnum) {
 /**** General special procedures for mobiles. ****/
 /*************************************************/
 
-/* Player owned shops - Created by Jamdog - 22nd February 2007
- *   Ported by Zusuk, added flexibility in vnums, debugs, formatting
+/* Player owned shops - Original created by Jamdog - 22nd February 2007
+ * Zusuk had to completely re-write it for usage in LuminariMUD and to add
+ *   the requested functionality from staff/players
  * Mob Special Function: the mob must be in the ATRIUM of the house
- * Items to be sold will be everything on the ground of the house
- */
+ * Items to be sold will be everything on the ground of the house */
 /* debug */ //#define PLAYER_SHOP_DEBUG
+
+/* do we have a valid player-shop item?  currently checking:
+     1) shopper can see the item [unless have holy light]
+     2) the item is not hidden (desc including a period .) [unless have holy light]
+     3) item type is not ITEM_MONEY 
+ */
+bool valid_player_shop_item(struct char_data *ch, struct obj_data *obj) {
+  if (CAN_SEE_OBJ(ch, obj) && (*obj->description != '.' ||
+          PRF_FLAGGED(ch, PRF_HOLYLIGHT)) && !(GET_OBJ_TYPE(obj) == ITEM_MONEY))
+    return TRUE;
+}
 
 SPECIAL(player_owned_shops) {
   room_rnum private_room;
@@ -1117,7 +1128,7 @@ SPECIAL(player_owned_shops) {
   struct obj_data *i, *j;
   int num = 1, num_items = 0, hse;
   char *temp, shop_owner[MAX_NAME_LENGTH + 1], buf[MAX_STRING_LENGTH];
-  bool found = FALSE;
+  bool found = FALSE, is_number = FALSE;
 
   if (!cmd)
     return FALSE;
@@ -1154,16 +1165,20 @@ SPECIAL(player_owned_shops) {
 #endif
 
   if (CMD_IS("list")) {
+    
     if (IS_NPC(ch)) {
       send_to_char(ch, "Mobiles can't buy from a player-owned shop!\r\n");
       return TRUE;
     }
+    
+    /* original version */
+    /*
     sprintf(buf, "Owner: \tW%s\tn", shop_owner);
     send_to_char(ch, "Player-owned Shop %*s\r\n", count_color_chars(buf) + 55, buf);
     send_to_char(ch,
-            "Available   Item                                               Cost\r\n");
+            "#     Available   Item                                               Cost\r\n");
     send_to_char(ch,
-            "-------------------------------------------------------------------\r\n");
+            "--------------------------------------------------------------------------------\r\n");
 
     for (i = world[private_room].contents; i; i = i->next_content) {
       num_items = 0;
@@ -1185,22 +1200,74 @@ SPECIAL(player_owned_shops) {
                 GET_OBJ_COST(i));
       }
     }
+    */
+
+    sprintf(buf, "Owner: \tW%s\tn", shop_owner);
+    send_to_char(ch, "Player-owned Shop %*s\r\n", count_color_chars(buf) + 55, buf);
+    send_to_char(ch,
+            "#     Item                                               Cost\r\n");
+    send_to_char(ch,
+            "--------------------------------------------------------------------------------\r\n");
+
+    for (i = world[private_room].contents; i; i = i->next_content) {
+      if (valid_player_shop_item(ch, i)) {
+        send_to_char(ch, "%3d)   %-*s %11d\r\n", num++,
+                count_color_chars(i->short_description) + 44, i->short_description,
+                GET_OBJ_COST(i));
+      }
+    }
 
     return (TRUE);
+    
   } else if (CMD_IS("buy")) {
 
     skip_spaces(&argument);
+    
+    /* we need to identify if the shopper used a number (reference) to buy -Zusuk */
+    if (isdigit(*argument)) {
+      is_number = TRUE;
+      int index = atoi(argument);
+    }
 
-    log("player_shops: %s looking for %s in room %d", GET_NAME(ch), argument,
-            world[private_room].number);
+    if (is_number) {
+      num = 1;
+      
+#ifdef PLAYER_SHOP_DEBUG
+      send_to_char(ch, "player_shops: %s looking for item index (%d) in room %d", GET_NAME(ch), index,
+              world[private_room].number);      
+#endif
+      
+      for (i = world[private_room].contents; i; i = i->next_content) {
+        if (valid_player_shop_item(ch, i)) {
+          if (num == index) /* found the item i */
+            break;
+          num++;
+        }
+      }
+      
+      if (num != index) /* reached end of list without finding index */
+        i = NULL;
+      
+    } else { /* ARGUMENT */
+      
+#ifdef PLAYER_SHOP_DEBUG
+      send_to_char(ch, "player_shops: %s looking for %s in room %d", GET_NAME(ch), argument,
+              world[private_room].number);
+#endif
 
-    i = get_obj_in_list_vis(ch, argument, NULL, world[private_room].contents);
+      i = get_obj_in_list_vis(ch, argument, NULL, world[private_room].contents);
+    }
+    
+    /* we now have an item */
 
     if ((i == NULL) || (GET_OBJ_TYPE(i) == ITEM_MONEY)) {
-      send_to_char(ch, "There is no such item for sale!\r\n");
+      send_to_char(ch, "There is no such item for sale or the item is not valid for purchase!\r\n");
       return (TRUE);
     }
-    log("player_shops: found %s (cost: %d)", i->short_description, GET_OBJ_COST(i));
+    
+#ifdef PLAYER_SHOP_DEBUG
+    send_to_char(ch, "player_shops: found %s (cost: %d)", i->short_description, GET_OBJ_COST(i));
+#endif
 
     if (GET_GOLD(ch) < GET_OBJ_COST(i)) {
       send_to_char(ch, "You don't have enough gold!\r\n");
@@ -1228,7 +1295,10 @@ SPECIAL(player_owned_shops) {
     act("$n buys $p from $N.", FALSE, ch, i, (struct char_data *) me, TO_ROOM);
     send_to_char(ch, "%s thanks you for your business, 'please come again!'\r\n",
             shop_owner);
-    log("player_shops: item bought and paid for");
+    
+#ifdef PLAYER_SHOP_DEBUG
+    send_to_char(ch, "player_shops: item bought and paid for");
+#endif
 
     /* we have to save here to cement the transaction, otherwise a well timed
        crash or whatnot will duplicate the item -Zusuk */
