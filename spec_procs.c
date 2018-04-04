@@ -1116,7 +1116,7 @@ void process_skill(struct char_data *ch, int skillnum) {
      3) item type is not ITEM_MONEY 
  */
 
-/* debug, set to zero 0 to disable */ #define PLAYER_SHOP_DEBUG 0
+/* debug, comment out to disable */ //#define PLAYER_SHOP_DEBUG
 
 bool valid_player_shop_item(struct char_data *ch, struct obj_data *obj) {
   
@@ -1185,37 +1185,6 @@ SPECIAL(player_owned_shops) {
       return TRUE;
     }
     
-    /* original version */
-    /*
-    sprintf(buf, "Owner: \tW%s\tn", shop_owner);
-    send_to_char(ch, "Player-owned Shop %*s\r\n", count_color_chars(buf) + 55, buf);
-    send_to_char(ch,
-            "#     Available   Item                                               Cost\r\n");
-    send_to_char(ch,
-            "--------------------------------------------------------------------------------\r\n");
-
-    for (i = world[private_room].contents; i; i = i->next_content) {
-      num_items = 0;
-      for (j = world[private_room].contents; j != i; j = j->next_content)
-        if (!strcmp(j->short_description, i->short_description))
-          break;
-
-      if (j != i)
-        continue;
-
-      for (j = i; j; j = j->next_content)
-        if (!strcmp(j->short_description, i->short_description))
-          num_items++;
-
-      if (CAN_SEE_OBJ(ch, i) && (*i->description != '.' || PRF_FLAGGED(ch, PRF_HOLYLIGHT)) &&
-              !(GET_OBJ_TYPE(i) == ITEM_MONEY)) {
-        send_to_char(ch, "%3d)  %5d      %-*s %11d\r\n", num++, num_items,
-                count_color_chars(i->short_description) + 44, i->short_description,
-                GET_OBJ_COST(i));
-      }
-    }
-    */
-
     sprintf(buf, "Owner: \tW%s\tn", shop_owner);
     send_to_char(ch, "Player-owned Shop %*s\r\n", count_color_chars(buf) + 55, buf);
     send_to_char(ch,
