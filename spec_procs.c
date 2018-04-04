@@ -1109,17 +1109,21 @@ void process_skill(struct char_data *ch, int skillnum) {
  *   the requested functionality from staff/players
  * Mob Special Function: the mob must be in the ATRIUM of the house
  * Items to be sold will be everything on the ground of the house */
-/* debug */ //#define PLAYER_SHOP_DEBUG
 
 /* do we have a valid player-shop item?  currently checking:
      1) shopper can see the item [unless have holy light]
      2) the item is not hidden (desc including a period .) [unless have holy light]
      3) item type is not ITEM_MONEY 
  */
+
+/* debug, set to zero 0 to disable */ #define PLAYER_SHOP_DEBUG
+
 bool valid_player_shop_item(struct char_data *ch, struct obj_data *obj) {
-  if (CAN_SEE_OBJ(ch, obj) && (*obj->description != '.' ||
-          PRF_FLAGGED(ch, PRF_HOLYLIGHT)) && !(GET_OBJ_TYPE(obj) == ITEM_MONEY))
+  if (CAN_SEE_OBJ(ch, obj) && (*obj->description != '.' &&
+          !(GET_OBJ_TYPE(obj) == ITEM_MONEY))
     return TRUE;
+  
+  return FALSE;
 }
 
 SPECIAL(player_owned_shops) {
