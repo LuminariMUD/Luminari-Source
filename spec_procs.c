@@ -1137,7 +1137,7 @@ SPECIAL(player_owned_shops) {
   room_rnum private_room;
   room_vnum house_vnum;
   struct obj_data *i, *j;
-  int num = 1, num_items = 0, hse;
+  int num = 1, num_items = 0, hse, index = 0;
   char *temp, shop_owner[MAX_NAME_LENGTH + 1], buf[MAX_STRING_LENGTH];
   bool found = FALSE, is_number = FALSE;
 
@@ -1237,7 +1237,7 @@ SPECIAL(player_owned_shops) {
     /* we need to identify if the shopper used a number (reference) to buy -Zusuk */
     if (isdigit(*argument)) {
       is_number = TRUE;
-      int index = atoi(argument);
+      index = atoi(argument);
     }
 
     if (is_number) {
