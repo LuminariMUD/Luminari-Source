@@ -1211,7 +1211,7 @@ spellnum == SPELL_EPIC_WARDING )
 // weapon spells
 #define HAS_SPELLS(obj)			((obj)->has_spells)
 #define GET_WEAPON_SPELL(obj, i)	((obj)->wpn_spells[i].spellnum)
-#define GET_WEAPON_SPELL_LVL(obj, i)	((obj)->wpn_spells[i].level)
+#define GET_WEAPON_SPELL_LVL(obj, i)	((obj)->wpn_spells[i].level ? (obj)->wpn_spells[i].level : (LVL_IMMORT / 2))
 #define GET_WEAPON_SPELL_PCT(obj, i)	((obj)->wpn_spells[i].percent)
 #define GET_WEAPON_SPELL_AGG(obj, i)	((obj)->wpn_spells[i].inCombat)
 
