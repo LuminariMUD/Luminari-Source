@@ -1266,6 +1266,12 @@ SPECIAL(player_owned_shops) {
     
     /* do we have an item?  accepts an index for the argument */
     i = find_player_shop_obj(ch, argument, private_room);
+    
+    if (i == NULL) {
+      send_to_char(ch, "Can not find that item!  Try the index value in cases "
+              "were some objects have funky keywords.\r\n");
+      return (TRUE);
+    }
         
 #ifdef PLAYER_SHOP_DEBUG
     send_to_char(ch, "player_shops: found %s (cost: %d)\r\n", i->short_description, GET_OBJ_COST(i));
@@ -1316,6 +1322,12 @@ SPECIAL(player_owned_shops) {
     
     /* do we have an item?  accepts an index for the argument */
     i = find_player_shop_obj(ch, argument, private_room);
+
+    if (i == NULL) {
+      send_to_char(ch, "Can not find that item!  Try the index value in cases "
+              "were some objects have funky keywords.\r\n");
+      return (TRUE);
+    }
     
     do_stat_object(ch, i, ITEM_STAT_MODE_IDENTIFY_SPELL);
   
