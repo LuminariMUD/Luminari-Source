@@ -1138,11 +1138,12 @@ bool valid_player_shop_item(struct char_data *ch, struct obj_data *obj) {
   /* made it! */
   return TRUE;
 }
+
 /* given shopper (ch), 'private room' and hopefully an argument
    return object based on argument
    will accept an index value that corresponds to the order of the items
      in the shop storage room (for argument) */
-struct *obj_data find_player_shop_obj(struct char_data *ch, char *argument,
+struct obj_data *find_player_shop_obj(struct char_data *ch, char *argument,
         room_rnum private_room) {
   bool is_number = FALSE;
   int index = 0, num = 1 /*starting index*/;
