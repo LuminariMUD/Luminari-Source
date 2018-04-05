@@ -34,6 +34,7 @@
 #include "domains_schools.h"
 #include "feats.h"
 #include "spell_prep.h"
+#include "item.h" /* do_stat_object */
 
 /* external functions */
 extern struct house_control_rec house_control[];
