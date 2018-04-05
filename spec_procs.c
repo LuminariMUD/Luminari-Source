@@ -1126,6 +1126,9 @@ bool valid_player_shop_item(struct char_data *ch, struct obj_data *obj) {
   if (!CAN_SEE_OBJ(ch, obj))
     return FALSE;
   
+  if (!*obj->description)
+    return FALSE;
+  
   if (*obj->description == '.')
     return FALSE;
   
@@ -1134,6 +1137,57 @@ bool valid_player_shop_item(struct char_data *ch, struct obj_data *obj) {
   
   /* made it! */
   return TRUE;
+}
+/* given shopper (ch), 'private room' and hopefully an argument
+   return object based on argument
+   will accept an index value that corresponds to the order of the items
+     in the shop storage room (for argument) */
+struct *obj_data find_player_shop_obj(struct char_data *ch, char *argument,
+        room_rnum private_room) {
+  bool is_number = FALSE;
+  int index = 0, num = 1 /*starting index*/;
+  struct obj_data *obj = NULL;
+
+  skip_spaces(&argument);
+
+  /* we need to identify if the shopper used a number (reference) to buy -Zusuk */
+  if (isdigit(*argument)) {
+    is_number = TRUE;
+    index = atoi(argument);
+  }
+
+  if (is_number) {
+
+#ifdef PLAYER_SHOP_DEBUG
+    send_to_char(ch, "player_shops: %s looking for item index (%d) in room %d\r\n", GET_NAME(ch), index,
+            world[private_room].number);
+#endif
+
+    for (obj = world[private_room].contents; obj; obj = obj->next_content) {
+      if (valid_player_shop_item(ch, obj)) {
+        if (num == index) /* found the item obj */
+          break;
+        num++;
+      }
+    }
+
+    if (num != index) /* reached end of list without finding index */
+      obj = NULL;
+
+  } else { /* ARGUMENT */
+
+#ifdef PLAYER_SHOP_DEBUG
+    send_to_char(ch, "player_shops: %s looking for %s in room %d\r\n", GET_NAME(ch), argument,
+            world[private_room].number);
+#endif
+
+    obj = get_obj_in_list_vis(ch, argument, NULL, world[private_room].contents);
+
+    if (!valid_player_shop_item(ch, obj))
+      obj = NULL;
+  }
+
+  return obj;
 }
 
 SPECIAL(player_owned_shops) {
@@ -1178,6 +1232,8 @@ SPECIAL(player_owned_shops) {
   send_to_char(ch, "House VNum %d\r\n", house_control[hse].vnum);
 #endif
 
+  /** LIST COMMAND **/
+  
   if (CMD_IS("list")) {
     
     if (IS_NPC(ch)) {
@@ -1202,52 +1258,13 @@ SPECIAL(player_owned_shops) {
 
     return (TRUE);
     
+  /** BUY COMMAND **/
+    
   } else if (CMD_IS("buy")) {
-
-    skip_spaces(&argument);
     
-    /* we need to identify if the shopper used a number (reference) to buy -Zusuk */
-    if (isdigit(*argument)) {
-      is_number = TRUE;
-      index = atoi(argument);
-    }
-
-    if (is_number) {
-      num = 1;
-      
-#ifdef PLAYER_SHOP_DEBUG
-      send_to_char(ch, "player_shops: %s looking for item index (%d) in room %d\r\n", GET_NAME(ch), index,
-              world[private_room].number);      
-#endif
-      
-      for (i = world[private_room].contents; i; i = i->next_content) {
-        if (valid_player_shop_item(ch, i)) {
-          if (num == index) /* found the item i */
-            break;
-          num++;
-        }
-      }
-      
-      if (num != index) /* reached end of list without finding index */
-        i = NULL;
-      
-    } else { /* ARGUMENT */
-      
-#ifdef PLAYER_SHOP_DEBUG
-      send_to_char(ch, "player_shops: %s looking for %s in room %d\r\n", GET_NAME(ch), argument,
-              world[private_room].number);
-#endif
-
-      i = get_obj_in_list_vis(ch, argument, NULL, world[private_room].contents);
-    }
-    
-    /* we now have an item */
-
-    if ((i == NULL) || (GET_OBJ_TYPE(i) == ITEM_MONEY)) {
-      send_to_char(ch, "There is no such item for sale or the item is not valid for purchase!\r\n");
-      return (TRUE);
-    }
-    
+    /* do we have an item?  accepts an index for the argument */
+    i = find_player_shop_obj(ch, argument, private_room);
+        
 #ifdef PLAYER_SHOP_DEBUG
     send_to_char(ch, "player_shops: found %s (cost: %d)\r\n", i->short_description, GET_OBJ_COST(i));
 #endif
@@ -1290,9 +1307,20 @@ SPECIAL(player_owned_shops) {
     House_crashsave(house_vnum);
 
     return (TRUE);
+    
+  /** IDENTIFY COMMAND **/
+    
+  } else if (CMD_IS("identify")) {
+    
+    /* do we have an item?  accepts an index for the argument */
+    i = find_player_shop_obj(ch, argument, private_room);
+    
+    do_stat_object(ch, i, ITEM_STAT_MODE_IDENTIFY_SPELL);
+  
+    return (TRUE);
   }
-
-  /* All commands except list and buy */
+  
+  /* Exit! */
   return (FALSE);
 }
 #ifdef PLAYER_SHOP_DEBUG
