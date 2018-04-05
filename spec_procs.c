@@ -1196,9 +1196,9 @@ SPECIAL(player_owned_shops) {
   room_rnum private_room;
   room_vnum house_vnum;
   struct obj_data *i, *j;
-  int num = 1, hse, index = 0;
+  int num = 1, hse;
   char *temp, shop_owner[MAX_NAME_LENGTH + 1], buf[MAX_STRING_LENGTH];
-  bool found = FALSE, is_number = FALSE;
+  bool found = FALSE;
 
   if (!cmd)
     return FALSE;
