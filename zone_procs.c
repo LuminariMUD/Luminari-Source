@@ -1838,7 +1838,7 @@ SPECIAL(ymir_cloak) {
               "\tBAs $n \tBmutters something under his breath  to $p \tBit flashes bright blue and sends forth a storm of razor sharp icicles in all directions.\tn",
               "\tBAs $n \tBmutters something under his breath  to $p \tBit flashes bright blue and sends forth a storm of razor sharp icicles in all directions.\tn",
               ch, 0, (struct obj_data *) me, SPELL_ICE_STORM);
-      GET_OBJ_SPECTIMER(obj, 0) = 24;
+      GET_OBJ_SPECTIMER(obj, 0) = 6;
       return 1;
     }
   }
