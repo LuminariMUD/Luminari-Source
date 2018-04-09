@@ -3963,7 +3963,11 @@ ACMD(do_use) {
     send_to_char(ch, "What do you want to %s?\r\n", CMD_NAME);
     return;
   }
+  
+  // Find the item - check both held slots, as well as the 2H slot.
   mag_item = GET_EQ(ch, WEAR_HOLD_1);
+  if (!mag_item || !isname(arg, mag_item->name)) mag_item = GET_EQ(ch, WEAR_HOLD_2);
+  if (!mag_item || !isname(arg, mag_item->name)) mag_item = GET_EQ(ch, WEAR_HOLD_2H);
 
   if (!mag_item || !isname(arg, mag_item->name)) {
     switch (subcmd) {
