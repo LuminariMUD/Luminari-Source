@@ -2578,7 +2578,8 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
     }
 
     /* mirror image gives (1 / (# of image + 1)) chance of hitting */
-    if ((affected_by_spell(victim, SPELL_MIRROR_IMAGE) ||
+    /* Don't allow mirror image to absorb spells - Danavan 2018-04-09 */
+    if (!is_spell && (affected_by_spell(victim, SPELL_MIRROR_IMAGE) ||
             affected_by_spell(victim, SPELL_GREATER_MIRROR_IMAGE)) && dam > 0) {
       if (GET_IMAGES(victim) > 0) {
         if (rand_number(0, GET_IMAGES(victim))) {
