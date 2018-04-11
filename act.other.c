@@ -673,12 +673,20 @@ ACMD(do_sorcerer_arcane_apotheosis) {
       }
   }
   
+  // Check if they have room - the cap is 9 charges = 3 uses, although they can always top up after using it.
+  if (APOTHEOSIS_SLOTS(ch) + circle > 9)
+  {
+      send_to_char(ch, "That would give you more arcane energy than you can hold!");
+      return;
+  }
+  
   // Check that they have that spell slot available in their sorcerer queue.
   if (compute_slots_by_circle(ch, CLASS_SORCERER, circle) - count_total_slots(ch, CLASS_SORCERER, circle) <= 0)
   {
       send_to_char(ch, "You don't have any spell slots of that circle remaining!");
       return;
   }
+  
   
   /* If we got here, we know that everything is good: 
    * The circle is valid, the character has slots of that circle, and they can actually
