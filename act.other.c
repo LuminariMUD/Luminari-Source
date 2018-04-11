@@ -663,7 +663,7 @@ ACMD(do_sorcerer_arcane_apotheosis) {
   one_argument(argument, arg);
   
   if (!*arg) {
-      send_to_char(ch, "What circle? Usage: arcaneapotheosis <spell circle>\r\n");
+      send_to_char(ch, "What circle?  Usage: apotheosis <spell circle>\r\n");
       return;
   } else {
       circle = atoi(arg);
@@ -689,8 +689,8 @@ ACMD(do_sorcerer_arcane_apotheosis) {
 
   APOTHEOSIS_SLOTS(ch) += circle;
   
-  act("You focus your magical power.", FALSE, ch, 0, 0, TO_CHAR);
-  act("$n focuses $s magical power.", FALSE, ch, 0, 0, TO_ROOM);  
+  act("You focus your arcane power.", FALSE, ch, 0, 0, TO_CHAR);
+  act("$n focuses $s arcane power.", FALSE, ch, 0, 0, TO_ROOM);  
 }
 
 /* bardic performance moved to: bardic_performance.c */
