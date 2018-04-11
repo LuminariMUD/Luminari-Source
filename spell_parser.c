@@ -842,14 +842,16 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
       else
         act("$n taps $p three times on the ground.", FALSE, ch, obj, 0, TO_ROOM);
 
-      if (GET_OBJ_VAL(obj, 2) <= 0) {
+      if (GET_OBJ_VAL(obj, 2) <= 0 && APOTHEOSIS_SLOTS(ch) < 3) {
         send_to_char(ch, "It seems powerless.\r\n");
         act("Nothing seems to happen.", FALSE, ch, obj, 0, TO_ROOM);
       } else {
-        if (APOTHEOSIS_SLOTS(ch) >= 3)
+        if (APOTHEOSIS_SLOTS(ch) >= 3) {
           APOTHEOSIS_SLOTS(ch) -= 3;
-        else
+          send_to_char(ch, "You power the staff with your focused arcane energy!\r\n"); 
+        } else {
           GET_OBJ_VAL(obj, 2)--;
+        }
         USE_STANDARD_ACTION(ch);
 
         /* Level to cast spell at. */
@@ -898,15 +900,17 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
         return;
       }
 
-      if (GET_OBJ_VAL(obj, 2) <= 0) {
+      if (GET_OBJ_VAL(obj, 2) <= 0 && APOTHEOSIS_SLOTS(ch) < 3) {
         send_to_char(ch, "It seems powerless.\r\n");
         act("Nothing seems to happen.", FALSE, ch, obj, 0, TO_ROOM);
         return;
       }  
-      if (APOTHEOSIS_SLOTS(ch) >= 3)
+      if (APOTHEOSIS_SLOTS(ch) >= 3) {
           APOTHEOSIS_SLOTS(ch) -= 3;
-      else
+          send_to_char(ch, "You power the wand with your focused arcane energy!\r\n"); 
+      } else {
         GET_OBJ_VAL(obj, 2)--;
+      }
       USE_STANDARD_ACTION(ch);
 
       if (GET_OBJ_VAL(obj, 0))
