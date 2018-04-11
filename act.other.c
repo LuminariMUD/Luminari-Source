@@ -651,6 +651,47 @@ ACMD(do_applypoison) {
   GET_OBJ_VAL(poison, 2) -= amount;
 }
 
+ACMD(do_sorcerer_arcane_apotheosis) {
+  char arg[MAX_INPUT_LENGTH];
+  int circle = -1, prep_time = 99;
+  
+  if (!HAS_FEAT(ch, FEAT_ARCANE_APOTHEOSIS)) {
+    send_to_char(ch, "You do not have access to this ability.\r\n");
+    return;
+  }
+  
+  one_argument(argument, arg);
+  
+  if (!*arg) {
+      send_to_char(ch, "What circle? Usage: arcaneapotheosis <spell circle>\r\n");
+      return;
+  } else {
+      circle = atoi(arg);
+      if (circle < 1 || circle > 9) {
+        send_to_char(ch, "That is an invalid spell circle!\r\n");
+        return;
+      }
+  }
+  
+  // Check that they have that spell slot available in their sorcerer queue.
+  if (compute_slots_by_circle(ch, CLASS_SORCERER, circle) - count_total_slots(ch, CLASS_SORCERER, circle) <= 0)
+  {
+      send_to_char(ch, "You don't have any spell slots of that circle remaining!");
+      return;
+  }
+  
+  /* If we got here, we know that everything is good: 
+   * The circle is valid, the character has slots of that circle, and they can actually
+   *   use the command.  Now, spend the spell and increase their pool. */
+  
+  prep_time = compute_spells_prep_time(ch, CLASS_SORCERER, circle, false);
+  innate_magic_add(ch, CLASS_SORCERER, circle, METAMAGIC_NONE, prep_time, false);
+
+  APOTHEOSIS_SLOTS(ch) += circle;
+  
+  act("You focus your magical power.", FALSE, ch, 0, 0, TO_CHAR);
+  act("$n focuses $s magical power.", FALSE, ch, 0, 0, TO_ROOM);  
+}
 
 /* bardic performance moved to: bardic_performance.c */
 
