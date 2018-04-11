@@ -1459,6 +1459,9 @@ void display_available_slots(struct char_data *ch, int class) {
     send_to_char(ch, " \tYno more spells!\tn\r\n");
   else
     send_to_char(ch, "\tn\r\n");
+  
+  if (APOTHEOSIS_SLOTS(ch) > 0)
+      send_to_char(ch, "\tYStored apotheosis charges: \tn%d\r\n", APOTHEOSIS_SLOTS(ch));
 
   *buf = '\0';
   send_to_char(ch, "\tC");
@@ -1492,6 +1495,11 @@ void begin_preparing(struct char_data *ch, int class) {
   char buf[MAX_INPUT_LENGTH];
   
   if (ready_to_prep_spells(ch, class)) {
+    if (class == CLASS_SORCERER && APOTHEOSIS_SLOTS(ch) > 0) {
+        // If they are an arcane sorcerer with stored apotheosis charges, they dissipate.
+        APOTHEOSIS_SLOTS(ch) = 0;
+        send_to_char(ch, "You feel your focused arcane energy fade away.\r\n");
+    }
     send_to_char(ch, "You continue your %s.\r\n",
             spell_prep_dict[class][3]);
     *buf = '\0';
