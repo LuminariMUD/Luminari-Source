@@ -1,5 +1,5 @@
 /**************************************************************************
- *  File: spec_assign.c                                     Part of LuminariMUD *
+ *  File: spec_assign.c                                Part of LuminariMUD *
  *  Usage: Functions to assign function pointers to objs/mobs/rooms        *
  *                                                                         *
  *  All rights reserved.  See license for complete information.            *
@@ -118,6 +118,7 @@ void assign_mobiles(void) {
   /* player owned shop mobiles */
   ASSIGNMOB(899, player_owned_shops);
   ASSIGNMOB(825, player_owned_shops); /* thazull created shop for Ellyanor */
+  ASSIGNMOB(830, player_owned_shops); /* Ickthak the Kobold - for Thimblethorp */  
 
   /* mayors */
   ASSIGNMOB(3105, mayor);
