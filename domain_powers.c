@@ -424,9 +424,7 @@ void perform_auraofprotection(struct char_data *ch) {
           NULL) {
     if (IN_ROOM(tch) != IN_ROOM(ch))
       continue;
-    if (ch == tch)
-      continue; /*doesn't work on initiator*/
-    if (affected_by_spell(tch, SKILL_DESTRUCTIVE_AURA))
+    if (affected_by_spell(tch, SKILL_AURA_OF_PROTECTION))
       continue;
     for (i = 0; i < AURA_OF_PROTECTION_AFFECTS; i++)
       affect_join(tch, af + i, FALSE, FALSE, FALSE, FALSE);
@@ -564,8 +562,6 @@ void perform_destructiveaura(struct char_data *ch) {
           NULL) {
     if (IN_ROOM(tch) != IN_ROOM(ch))
       continue;
-    if (ch == tch)
-      continue; /*doesn't work on initiator*/
     if (affected_by_spell(tch, SKILL_DESTRUCTIVE_AURA))
       continue;
     for (i = 0; i < DESTRUCTIVE_AURA_AFFECTS; i++)
