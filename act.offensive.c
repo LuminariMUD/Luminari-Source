@@ -37,6 +37,27 @@
 
 /**** Utility functions *******/
 
+// Centralize the rage bonus calculation logic.
+int get_rage_bonus(struct char_data *ch) {
+  int bonus;
+  
+  if (!ch)
+    return 0;
+    
+  if (IS_NPC(ch) || IS_MORPHED(ch)) {
+    bonus = (GET_LEVEL(ch) / 3) + 3;
+  } else {
+    bonus = 4;
+    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_GREATER_RAGE))
+      bonus += 2;
+    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_MIGHTY_RAGE))
+      bonus += 3;
+    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_INDOMITABLE_RAGE))
+      bonus += 3;
+  }
+  return bonus;
+}
+
 /* simple function to check whether ch has a piercing weapon, has 3 modes:
    wield == 1  --  primary one hand weapon
    wield == 2  --  off hand weapon
@@ -200,17 +221,7 @@ void perform_rage(struct char_data *ch) {
     return;
   }
 
-  if (IS_NPC(ch) || IS_MORPHED(ch)) {
-    bonus = (GET_LEVEL(ch) / 3) + 3;
-  } else {
-    bonus = 4;
-    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_GREATER_RAGE))
-      bonus += 2;
-    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_MIGHTY_RAGE))
-      bonus += 3;
-    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_INDOMITABLE_RAGE))
-      bonus += 3;
-  }
+  bonus = get_rage_bonus(ch);
 
   duration = 6 + GET_CON_BONUS(ch) * 2;
 
@@ -230,7 +241,7 @@ void perform_rage(struct char_data *ch) {
 
   af[1].location = APPLY_CON;
   af[1].modifier = bonus;
-  GET_HIT(ch) += GET_LEVEL(ch) * bonus; //little boost in current hps
+  GET_HIT(ch) += GET_LEVEL(ch) * bonus / 2; //little boost in current hps
   af[1].bonus_type = BONUS_TYPE_MORALE;
 
   af[2].location = APPLY_SAVING_WILL;
@@ -1577,6 +1588,7 @@ ACMD(do_turnundead) {
 void clear_rage(struct char_data *ch) {
 
   send_to_char(ch, "You calm down from your rage...\r\n");
+  act("$n looks calmer now.", FALSE, ch, NULL, NULL, TO_ROOM);
 
   if (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_TIRELESS_RAGE) &&
           !AFF_FLAGGED(ch, AFF_FATIGUED)) {
@@ -1601,6 +1613,12 @@ void clear_rage(struct char_data *ch) {
     change_event_duration(ch, eCOME_AND_GET_ME, 0);
   }
 
+  /* Remove whatever HP we granted.  This may kill the character. */
+  GET_HIT(ch) -= (get_rage_bonus(ch) / 2) * GET_LEVEL(ch);
+  if (GET_HIT(ch) < 0) {
+    send_to_char(ch, "Your rage no longer sustains you and you pass out!\r\n");
+    act("$n passes out as $s rage no longer sustains $m.", FALSE, ch, NULL, NULL, TO_ROOM);
+  }
 }
 
 /* a function to clear defensive stance and do other dirty work associated with that */
@@ -1749,17 +1767,7 @@ ACMD(do_rage) {
   }
 
   /* bonus */
-  if (IS_NPC(ch) || IS_MORPHED(ch)) {
-    bonus = (GET_LEVEL(ch) / 3) + 3;
-  } else {
-    bonus = 4;
-    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_GREATER_RAGE))
-      bonus += 2;
-    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_MIGHTY_RAGE))
-      bonus += 3;
-    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_INDOMITABLE_RAGE))
-      bonus += 3;
-  }
+  bonus = get_rage_bonus(ch);
 
   /* duration */
   duration = 6 + GET_CON_BONUS(ch) * 2;
