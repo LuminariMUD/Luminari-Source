@@ -241,6 +241,7 @@ ACMD(do_gen_door);
 ACMD(do_disembark);
 ACMD(do_enter);
 ACMD(do_follow);
+ACMD(do_unlead);
 ACMD(do_leave);
 ACMD(do_move);
 ACMD(do_rest);

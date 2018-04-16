@@ -2551,6 +2551,36 @@ ACMD(do_follow) {
   }
 }
 
+ACMD(do_unlead) {
+  char buf[MAX_INPUT_LENGTH];
+  struct char_data *follower;
+  
+  one_argument(argument, buf);
+  
+  if (*buf) {
+    if (!(follower = get_char_vis(ch, buf, NULL, FIND_CHAR_ROOM))) {
+      send_to_char(ch, "%s", CONFIG_NOPERSON);
+      return;
+    }
+  } else {
+    send_to_char(ch, "Whom do you wish to stop leading?\r\n");
+    return;
+  }
+  
+  if (follower->master != ch) {
+    act("$E isn't following you!", FALSE, ch, 0, follower, TO_CHAR);
+    return;
+  }
+  
+  // Not replicating the AFF_CHARM check from do_follow here - if you want to unlead a charmee, 
+  // go right ahead.  We also don't want to call stop_follower() on the follower, or you'd be freeing
+  // your charmees instead of just making them stay put.  We'll use stop_follower_engine() instead.
+  stop_follower_engine(follower);
+  act("$N stops following you.", FALSE, ch, 0, follower, TO_CHAR);
+  act("You are no longer following $n.", TRUE, ch, 0, follower, TO_VICT);
+  act("$N stops following $n.", TRUE, ch, 0, follower, TO_NOTVICT);
+}
+
 /* i put this here for reference */
 /*
 #define POS_DEAD       0	 //Position = dead 

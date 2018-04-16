@@ -572,7 +572,8 @@ cpp_extern const struct command_info cmd_info[] = {
   { "utter", "ut", POS_RECLINING, do_utter, 0, 0, FALSE, ACTION_NONE, {0, 0}},
   { "unadjure", "unadjure", POS_RECLINING, do_consign_to_oblivion, 0, SCMD_UNADJURE, FALSE, ACTION_NONE, {0, 0}},
   { "unbind", "unbind", POS_DEAD, do_unbind, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}},
-
+  { "unlead", "unlead", POS_RECLINING, do_unlead, 0, 0, FALSE, ACTION_NONE, {0, 0}},
+  
   { "value", "val", POS_STANDING, do_not_here, 0, 0, FALSE, ACTION_NONE, {0, 0}},
   { "version", "ver", POS_DEAD, do_gen_ps, 0, SCMD_VERSION, TRUE, ACTION_NONE, {0, 0}},
   { "visible", "vis", POS_RECLINING, do_visible, 1, 0, TRUE, ACTION_NONE, {0, 0}},
