@@ -241,7 +241,7 @@ void string_add(struct descriptor_data *d, char *str) {
         case CON_HLQEDIT:
         case CON_STUDY:
         case CON_IBTEDIT:
-	case CON_NEWMAIL:
+        case CON_NEWMAIL:
           free(*d->str);
           *d->str = d->backstr;
           d->backstr = NULL;
@@ -285,7 +285,7 @@ void string_add(struct descriptor_data *d, char *str) {
       { CON_QEDIT, qedit_string_cleanup},
       //      { CON_HLQEDIT  , hlqedit_string_cleanup },
       { CON_IBTEDIT, ibtedit_string_cleanup},
-      { CON_NEWMAIL, new_mail_string_cleanup },
+      { CON_NEWMAIL, new_mail_string_cleanup},
       { -1, NULL}
     };
 
@@ -733,157 +733,156 @@ void show_string(struct descriptor_data *d, char *input) {
   }
 }
 
-void new_mail_string_cleanup(struct descriptor_data *d, int action)
-{
+void new_mail_string_cleanup(struct descriptor_data *d, int action) {
 
   if (action == STRINGADD_ABORT)
     write_to_output(d, "Mail aborted.\r\n");
   else {
     extern MYSQL *conn;
 
-   /* Check the connection, reconnect if necessary. */
-   mysql_ping(conn);
+    /* Check the connection, reconnect if necessary. */
+    mysql_ping(conn);
 
     int found = FALSE;
-/*  No clan functionality atm
-    struct clan_type *cptr = NULL;
+    /*  No clan functionality atm
+        struct clan_type *cptr = NULL;
 
 
-    for (cptr = clan_info; cptr; cptr = cptr->next) {
+        for (cptr = clan_info; cptr; cptr = cptr->next) {
 
-        if (cptr == NULL) {
-          continue;
+            if (cptr == NULL) {
+              continue;
+            }
+
+            if (!strcmp(cptr->member_look_str, d->character->player_specials->new_mail_receiver)) {
+              found = TRUE;
+    //          send_to_char(d->character, "%s\r\n", cptr->member_look_str);
+              break;
+            }
         }
-
-        if (!strcmp(cptr->member_look_str, d->character->player_specials->new_mail_receiver)) {
-          found = TRUE;
-//          send_to_char(d->character, "%s\r\n", cptr->member_look_str);
-          break;
-        }
-    }
-*/
+     */
 
     if (found) {
 
-    extern MYSQL *conn2;
+      extern MYSQL *conn2;
 
-   /* Check the connection, reconnect if necessary. */
-   mysql_ping(conn2);
-
-
-    MYSQL_RES *res = NULL;
-    MYSQL_ROW row = NULL;
+      /* Check the connection, reconnect if necessary. */
+      mysql_ping(conn2);
 
 
-    char query[MAX_STRING_LENGTH];
+      MYSQL_RES *res = NULL;
+      MYSQL_ROW row = NULL;
 
-    struct char_data *ch = d->character;
 
-    char *end = NULL;
+      char query[MAX_STRING_LENGTH];
 
-    int last_id = 0;
+      struct char_data *ch = d->character;
 
-    sprintf(query, "SELECT name FROM player_data WHERE clan='%s'", "WE WANT THIS TO FAIL TILL WE HAVE CLANS"/*cptr->name // no clans right now */);
-//    send_to_char(ch, "%s\r\n", query);
+      char *end = NULL;
 
-    mysql_query(conn2, query);
-    res = mysql_use_result(conn2);
-    if (res != NULL) {
-      while ((row = mysql_fetch_row(res)) != NULL) {
+      int last_id = 0;
 
-        end = stpcpy(query, "INSERT INTO player_mail (date_sent, sender, receiver, subject, message) VALUES(NOW(),");
-        *end++ = '\'';
-        end += mysql_real_escape_string(conn, end, GET_NAME(ch), strlen(GET_NAME(ch)));
-        *end++ = '\'';
-        *end++ = ',';
-        *end++ = '\'';
-        end += mysql_real_escape_string(conn, end, row[0], strlen(row[0]));
-        *end++ = '\'';
-        *end++ = ',';
-        *end++ = '\'';
-        end += mysql_real_escape_string(conn, end, ch->player_specials->new_mail_subject, strlen(ch->player_specials->new_mail_subject));
-        *end++ = '\'';
-        *end++ = ',';
-        *end++ = '\'';
-        end += mysql_real_escape_string(conn, end, ch->player_specials->new_mail_content, strlen(ch->player_specials->new_mail_content));
-        *end++ = '\'';
-        *end++ = ')';
-        *end++ = '\0';
+      sprintf(query, "SELECT name FROM player_data WHERE clan='%s'", "WE WANT THIS TO FAIL TILL WE HAVE CLANS"/*cptr->name // no clans right now */);
+      //    send_to_char(ch, "%s\r\n", query);
 
-        if (mysql_query(conn, query)) {
-          log("Unable to store note message in database for %s query='%s'.", GET_NAME(d->character), query);
-        }
+      mysql_query(conn2, query);
+      res = mysql_use_result(conn2);
+      if (res != NULL) {
+        while ((row = mysql_fetch_row(res)) != NULL) {
 
-        last_id = mysql_insert_id(conn);
+          end = stpcpy(query, "INSERT INTO player_mail (date_sent, sender, receiver, subject, message) VALUES(NOW(),");
+          *end++ = '\'';
+          end += mysql_real_escape_string(conn, end, GET_NAME(ch), strlen(GET_NAME(ch)));
+          *end++ = '\'';
+          *end++ = ',';
+          *end++ = '\'';
+          end += mysql_real_escape_string(conn, end, row[0], strlen(row[0]));
+          *end++ = '\'';
+          *end++ = ',';
+          *end++ = '\'';
+          end += mysql_real_escape_string(conn, end, ch->player_specials->new_mail_subject, strlen(ch->player_specials->new_mail_subject));
+          *end++ = '\'';
+          *end++ = ',';
+          *end++ = '\'';
+          end += mysql_real_escape_string(conn, end, ch->player_specials->new_mail_content, strlen(ch->player_specials->new_mail_content));
+          *end++ = '\'';
+          *end++ = ')';
+          *end++ = '\0';
 
-        if (last_id > 0 && strcmp(row[0], GET_NAME(ch))) {
-          sprintf(query, "INSERT INTO player_mail_deleted (player_name, mail_id) VALUES('%s','%d')", GET_NAME(ch), last_id);
           if (mysql_query(conn, query)) {
-            log("Unable to add deleted flag to mail in database for %s query='%s'.", GET_NAME(ch), query);
+            log("Unable to store note message in database for %s query='%s'.", GET_NAME(d->character), query);
+          }
+
+          last_id = mysql_insert_id(conn);
+
+          if (last_id > 0 && strcmp(row[0], GET_NAME(ch))) {
+            sprintf(query, "INSERT INTO player_mail_deleted (player_name, mail_id) VALUES('%s','%d')", GET_NAME(ch), last_id);
+            if (mysql_query(conn, query)) {
+              log("Unable to add deleted flag to mail in database for %s query='%s'.", GET_NAME(ch), query);
+            }
+          }
+
+          struct char_data *tch;
+          struct char_data *nch;
+
+          for (tch = character_list; tch; tch = nch) {
+            nch = tch->next;
+            if (!strcmp(GET_NAME(tch), row[0]))
+              send_to_char(tch, "\r\nYou have received a new mail from %s with a subject: %s.\r\n", GET_NAME(ch), ch->player_specials->new_mail_subject);
           }
         }
-
-        struct char_data *tch;
-        struct char_data *nch;
-
-        for (tch = character_list; tch; tch = nch) {
-          nch = tch->next;
-          if (!strcmp(GET_NAME(tch), row[0]))
-            send_to_char(tch, "\r\nYou have received a new mail from %s with a subject: %s.\r\n", GET_NAME(ch), ch->player_specials->new_mail_subject);
-        }
       }
-    }
-    mysql_free_result(res);
+      mysql_free_result(res);
 
-    write_to_output(d, "\r\nYou have send a mail entitled %s to %s.\r\n", ch->player_specials->new_mail_subject, "NO DICE TILL CLANS ARE DONE"/*cptr->name // not till we have clans*/);
+      write_to_output(d, "\r\nYou have send a mail entitled %s to %s.\r\n", ch->player_specials->new_mail_subject, "NO DICE TILL CLANS ARE DONE"/*cptr->name // not till we have clans*/);
 
 
     } else {
 
-    if (!conn) {
-      /* Check the connection, reconnect if necessary. */
-      mysql_ping(conn);
-    }
+      if (!conn) {
+        /* Check the connection, reconnect if necessary. */
+        mysql_ping(conn);
+      }
 
-    char query[MAX_STRING_LENGTH];
+      char query[MAX_STRING_LENGTH];
 
-    struct char_data *ch = d->character;
+      struct char_data *ch = d->character;
 
-    char *end = NULL;
+      char *end = NULL;
 
-    end = stpcpy(query, "INSERT INTO player_mail (date_sent, sender, receiver, subject, message) VALUES(NOW(),");
-    *end++ = '\'';
-    end += mysql_real_escape_string(conn, end, GET_NAME(ch), strlen(GET_NAME(ch)));
-    *end++ = '\'';
-    *end++ = ',';
-    *end++ = '\'';
-    end += mysql_real_escape_string(conn, end, ch->player_specials->new_mail_receiver, strlen(ch->player_specials->new_mail_receiver));
-    *end++ = '\'';
-    *end++ = ',';
-    *end++ = '\'';
-    end += mysql_real_escape_string(conn, end, ch->player_specials->new_mail_subject, strlen(ch->player_specials->new_mail_subject));
-    *end++ = '\'';
-    *end++ = ',';
-    *end++ = '\'';
-    end += mysql_real_escape_string(conn, end, ch->player_specials->new_mail_content, strlen(ch->player_specials->new_mail_content));
-    *end++ = '\'';
-    *end++ = ')';
-    *end++ = '\0';
+      end = stpcpy(query, "INSERT INTO player_mail (date_sent, sender, receiver, subject, message) VALUES(NOW(),");
+      *end++ = '\'';
+      end += mysql_real_escape_string(conn, end, GET_NAME(ch), strlen(GET_NAME(ch)));
+      *end++ = '\'';
+      *end++ = ',';
+      *end++ = '\'';
+      end += mysql_real_escape_string(conn, end, ch->player_specials->new_mail_receiver, strlen(ch->player_specials->new_mail_receiver));
+      *end++ = '\'';
+      *end++ = ',';
+      *end++ = '\'';
+      end += mysql_real_escape_string(conn, end, ch->player_specials->new_mail_subject, strlen(ch->player_specials->new_mail_subject));
+      *end++ = '\'';
+      *end++ = ',';
+      *end++ = '\'';
+      end += mysql_real_escape_string(conn, end, ch->player_specials->new_mail_content, strlen(ch->player_specials->new_mail_content));
+      *end++ = '\'';
+      *end++ = ')';
+      *end++ = '\0';
 
-    if (mysql_query(conn, query)) {
-      log("Unable to store note message in database for %s query='%s'.", GET_NAME(d->character), query);
-    }
+      if (mysql_query(conn, query)) {
+        log("Unable to store note message in database for %s query='%s'.", GET_NAME(d->character), query);
+      }
 
 
-    write_to_output(d, "\r\nYou have send a mail entitled %s to %s.\r\n", ch->player_specials->new_mail_subject, ch->player_specials->new_mail_receiver);
-    struct char_data *tch;
-    struct char_data *nch;
+      write_to_output(d, "\r\nYou have send a mail entitled %s to %s.\r\n", ch->player_specials->new_mail_subject, ch->player_specials->new_mail_receiver);
+      struct char_data *tch;
+      struct char_data *nch;
 
-    for (tch = character_list; tch; tch = nch) {
-      nch = tch->next;
-      if (!strcmp(GET_NAME(tch), ch->player_specials->new_mail_receiver) || !strcmp("All", ch->player_specials->new_mail_receiver))
-        send_to_char(tch, "\r\nYou have received a new mail from %s with a subject: %s.\r\n", GET_NAME(ch), ch->player_specials->new_mail_subject);
-    }
+      for (tch = character_list; tch; tch = nch) {
+        nch = tch->next;
+        if (!strcmp(GET_NAME(tch), ch->player_specials->new_mail_receiver) || !strcmp("All", ch->player_specials->new_mail_receiver))
+          send_to_char(tch, "\r\nYou have received a new mail from %s with a subject: %s.\r\n", GET_NAME(ch), ch->player_specials->new_mail_subject);
+      }
 
     } // end !found
 

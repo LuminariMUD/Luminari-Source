@@ -1409,6 +1409,20 @@ static char *make_prompt(struct descriptor_data *d) {
       if (count >= 0)
         len += count;
     }
+    
+    if (has_mail(GET_IDNUM(d->character)) && len < sizeof (prompt)) {
+      count = snprintf(prompt + len, sizeof (prompt) - len, "(postmaster) ");
+      if (count >= 0)
+        len += count;
+    }
+    
+    if (new_mail_alert(d->character, TRUE) && len < sizeof (prompt)) {
+      count = snprintf(prompt + len, sizeof (prompt) - len, "(mail) ");
+      if (count >= 0)
+        len += count;
+    }
+    
+    new_mail_alert(d->character)
 
     /********* Auto Diagnose Code *************/
     struct char_data *char_fighting = NULL;
