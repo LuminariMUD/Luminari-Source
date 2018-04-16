@@ -444,28 +444,28 @@ ACMD(do_ibt) {
               "       %s%s remove <num>%s\r\n"
               "       %s%s edit <num>%s\r\n"
               "       %s%s resolve <num>%s\r\n",
-              QYEL, CMD_NAME, QNRM,
-              QYEL, CMD_NAME, QNRM,
-              QYEL, CMD_NAME, QNRM,
-              QYEL, CMD_NAME, QNRM,
-              QYEL, CMD_NAME, QNRM,
-              QYEL, CMD_NAME, QNRM);
+              QBYEL, CMD_NAME, QNRM,
+              QBYEL, CMD_NAME, QNRM,
+              QBYEL, CMD_NAME, QNRM,
+              QBYEL, CMD_NAME, QNRM,
+              QBYEL, CMD_NAME, QNRM,
+              QBYEL, CMD_NAME, QNRM);
       return;
     } else if (GET_LEVEL(ch) >= LVL_IMMORT) {
       send_to_char(ch, "Usage: %s%s submit <header>%s\r\n"
               "       %s%s list%s\r\n"
               "       %s%s show <num>%s\r\n",
-              QYEL, CMD_NAME, QNRM,
-              QYEL, CMD_NAME, QNRM,
-              QYEL, CMD_NAME, QNRM);
+              QBYEL, CMD_NAME, QNRM,
+              QBYEL, CMD_NAME, QNRM,
+              QBYEL, CMD_NAME, QNRM);
       return;
     } else {
       send_to_char(ch, "Usage: %s%s submit <header>%s\r\n"
               "       %s%s list%s\r\n"
               "       %s%s show <num>%s\r\n",
-              QYEL, CMD_NAME, QNRM,
-              QYEL, CMD_NAME, QNRM,
-              QYEL, CMD_NAME, QNRM);
+              QBYEL, CMD_NAME, QNRM,
+              QBYEL, CMD_NAME, QNRM,
+              QBYEL, CMD_NAME, QNRM);
       send_to_char(ch, "Note: Only %ss logged by you will be listed or shown.\r\n", CMD_NAME);
       return;
     }
@@ -484,16 +484,16 @@ ACMD(do_ibt) {
         send_to_char(ch, "Sorry but you may only view %ss you have posted yourself.\n\r", ibt_types[subcmd]);
       } else {
 
-        send_to_char(ch, "%s%s by %s%s\r\n", QCYN, ibt_types[subcmd], QYEL, ibtData->name);
-        send_to_char(ch, "%sSubmitted: %s%s", QCYN, QYEL, ibtData->dated ? ctime(&ibtData->dated) : "Unknown\r\n");
+        send_to_char(ch, "%s%s by %s%s\r\n", QCYN, ibt_types[subcmd], QBYEL, ibtData->name);
+        send_to_char(ch, "%sSubmitted: %s%s", QCYN, QBYEL, ibtData->dated ? ctime(&ibtData->dated) : "Unknown\r\n");
         if (GET_LEVEL(ch) >= LVL_IMMORT) {
-          send_to_char(ch, "%sLevel: %s%d\r\n", QCYN, QYEL, ibtData->level);
-          send_to_char(ch, "%sRoom : %s%d\r\n", QCYN, QYEL, ibtData->room);
+          send_to_char(ch, "%sLevel: %s%d\r\n", QCYN, QBYEL, ibtData->level);
+          send_to_char(ch, "%sRoom : %s%d\r\n", QCYN, QBYEL, ibtData->room);
         }
-        send_to_char(ch, "%sTitle: %s%s\r\n", QCYN, QYEL, ibtData->text);
-        send_to_char(ch, "%s%s Details%s\r\n%s\r\n", QCYN, ibt_types[subcmd], QYEL, ibtData->body);
+        send_to_char(ch, "%sTitle: %s%s\r\n", QCYN, QBYEL, ibtData->text);
+        send_to_char(ch, "%s%s Details%s\r\n%s\r\n", QCYN, ibt_types[subcmd], QBYEL, ibtData->body);
         if (ibtData->notes && *(ibtData->notes))
-          send_to_char(ch, "%s%s Notes%s\r\n%s\r\n", QCYN, ibt_types[subcmd], QYEL, ibtData->notes);
+          send_to_char(ch, "%s%s Notes%s\r\n%s\r\n", QCYN, ibt_types[subcmd], QBYEL, ibtData->notes);
         send_to_char(ch, "%s%s Status: %s%s%s%s\r\n", QCYN, ibt_types[subcmd],
                 IBT_FLAGGED(ibtData, IBT_RESOLVED) ? QBGRN : QBRED,
                 IBT_FLAGGED(ibtData, IBT_RESOLVED) ? "Resolved" : "Unresolved",
@@ -543,15 +543,15 @@ ACMD(do_ibt) {
         } else if (IBT_FLAGGED(ibtData, IBT_INPROGRESS)) {
           if (GET_LEVEL(ch) < LVL_IMMORT) {
             send_to_char(ch, "%s%s%3d%s|%s%s%s\r\n",
-                    imp, QYEL, i, QGRN,
-                    QYEL, ibtData->text, QNRM);
+                    imp, QBYEL, i, QGRN,
+                    QBYEL, ibtData->text, QNRM);
           } else {
             send_to_char(ch, "%s%s%3d%s|%s%-12s%s|%s%6d%s|%s%5d%s|%s%s%s\r\n",
-                    imp, QYEL, i, QGRN,
-                    QYEL, ibtData->name, QGRN,
-                    QYEL, ibtData->room, QGRN,
-                    QYEL, ibtData->level, QGRN,
-                    QYEL, ibtData->text, QNRM);
+                    imp, QBYEL, i, QGRN,
+                    QBYEL, ibtData->name, QGRN,
+                    QBYEL, ibtData->room, QGRN,
+                    QBYEL, ibtData->level, QGRN,
+                    QBYEL, ibtData->text, QNRM);
           }
           num_unres++;
         } else {
@@ -573,7 +573,7 @@ ACMD(do_ibt) {
       if ((num_res + num_unres) > 0) {
         send_to_char(ch, "\n\r%s%d %ss in file. %s%d%s resolved, %s%d%s unresolved%s\r\n", QCYN, i, CMD_NAME, QBGRN, num_res, QCYN, QBRED, num_unres, QCYN, QNRM);
         send_to_char(ch, "%s%ss in %sRED%s are unresolved %ss.\r\n", QCYN, ibt_types[subcmd], QRED, QCYN, CMD_NAME);
-        send_to_char(ch, "%s%ss in %sYELLOW%s are in-progress %ss.\r\n", QCYN, ibt_types[subcmd], QYEL, QCYN, CMD_NAME);
+        send_to_char(ch, "%s%ss in %sYELLOW%s are in-progress %ss.\r\n", QCYN, ibt_types[subcmd], QBYEL, QCYN, CMD_NAME);
         send_to_char(ch, "%s%ss in %sGREEN%s are resolved %ss.\r\n", QCYN, ibt_types[subcmd], QGRN, QCYN, CMD_NAME);
       } else {
         send_to_char(ch, "No %ss have been found that were reported by you!\r\n", CMD_NAME);
@@ -581,7 +581,7 @@ ACMD(do_ibt) {
       if (GET_LEVEL(ch) >= LVL_IMMORTAL) {
         send_to_char(ch, "%sYou may use %s remove, resolve or edit to change the list..%s\r\n", QCYN, CMD_NAME, QNRM);
       }
-      send_to_char(ch, "%sYou may use %s%s show <number>%s to see more indepth about the %s.%s\r\n", QCYN, QYEL, CMD_NAME, QCYN, CMD_NAME, QNRM);
+      send_to_char(ch, "%sYou may use %s%s show <number>%s to see more indepth about the %s.%s\r\n", QCYN, QBYEL, CMD_NAME, QCYN, CMD_NAME, QNRM);
     } else {
       send_to_char(ch, "No %ss have been reported!\r\n", CMD_NAME);
     }
