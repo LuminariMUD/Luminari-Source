@@ -86,6 +86,7 @@
 #include "clan.h"
 #include "class.h" /* needed for level_exp for prompt */
 #include "mail.h" /* has_mail() */
+#include "new_mail.h" /* new mail system on prompt */
 #include "screen.h"
 #include "mudlim.h"
 #include "actions.h"
@@ -1422,10 +1423,8 @@ static char *make_prompt(struct descriptor_data *d) {
         len += count;
     }
 
-    new_mail_alert(d->character)
-
-            /********* Auto Diagnose Code *************/
-            struct char_data *char_fighting = NULL;
+    /********* Auto Diagnose Code *************/
+    struct char_data *char_fighting = NULL;
     struct char_data *tank = NULL;
     int percent = 0;
 
