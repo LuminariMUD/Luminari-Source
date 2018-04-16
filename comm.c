@@ -1178,7 +1178,7 @@ static char *make_prompt(struct descriptor_data *d) {
   } else if (d->str) { /* for the modify-str system */
     strcpy(prompt, "] "); // strcpy: OK (for 'MAX_PROMPT_LENGTH >= 3')
     len += 3;
-  }    /* start building a prompt */
+  }/* start building a prompt */
 
   else if (STATE(d) == CON_PLAYING && !IS_NPC(d->character)) { /*PC only*/
 
@@ -1385,7 +1385,7 @@ static char *make_prompt(struct descriptor_data *d) {
       if (count >= 0)
         len += count;
     }
-    
+
     if (PRF_FLAGGED(d->character, PRF_RP) && len < sizeof (prompt)) {
       count = snprintf(prompt + len, sizeof (prompt) - len, "(RP) ");
       if (count >= 0)
@@ -1409,23 +1409,23 @@ static char *make_prompt(struct descriptor_data *d) {
       if (count >= 0)
         len += count;
     }
-    
+
     if (has_mail(GET_IDNUM(d->character)) && len < sizeof (prompt)) {
       count = snprintf(prompt + len, sizeof (prompt) - len, "(postmaster) ");
       if (count >= 0)
         len += count;
     }
-    
+
     if (new_mail_alert(d->character, TRUE) && len < sizeof (prompt)) {
       count = snprintf(prompt + len, sizeof (prompt) - len, "(mail) ");
       if (count >= 0)
         len += count;
     }
-    
+
     new_mail_alert(d->character)
 
-    /********* Auto Diagnose Code *************/
-    struct char_data *char_fighting = NULL;
+            /********* Auto Diagnose Code *************/
+            struct char_data *char_fighting = NULL;
     struct char_data *tank = NULL;
     int percent = 0;
 
@@ -1460,21 +1460,21 @@ static char *make_prompt(struct descriptor_data *d) {
             percent = -1;
 
           if (percent >= 100)
-            strcat(prompt, " \tgperfect\tn");
+            strcat(prompt, " \t[F050]perfect\tn");
           else if (percent >= 90)
-            strcat(prompt, " \tyexcellent\tn");
+            strcat(prompt, " \t[F350]Yexcellent\tn");
           else if (percent >= 75)
-            strcat(prompt, " \tYgood\tn");
+            strcat(prompt, " \t[F450]good\tn");
           else if (percent >= 50)
-            strcat(prompt, " \tMfair\tn");
+            strcat(prompt, " \t[F550]fair\tn");
           else if (percent >= 30)
-            strcat(prompt, " \tmpoor\tn");
+            strcat(prompt, " \t[F530]poor\tn");
           else if (percent >= 15)
-            strcat(prompt, " \tRbad\tn");
+            strcat(prompt, " \t[F520]bad\tn");
           else if (percent >= 0)
-            strcat(prompt, " \trawful\tn");
+            strcat(prompt, " \t[F510]awful\tn");
           else
-            strcat(prompt, " \tRunconscious\tn");
+            strcat(prompt, " \t[F500]unconscious\tn");
         }
         len += 30; // just counting the strcat's above
       } /* end tank elements */
@@ -1497,21 +1497,21 @@ static char *make_prompt(struct descriptor_data *d) {
       if (len < sizeof (prompt)) {
         strcat(prompt, " \tREC:");
         if (percent >= 100)
-          strcat(prompt, " \tgperfect\tn");
+          strcat(prompt, " \t[F050]perfect\tn");
         else if (percent >= 90)
-          strcat(prompt, " \tyexcellent\tn");
+          strcat(prompt, " \t[F350]Yexcellent\tn");
         else if (percent >= 75)
-          strcat(prompt, " \tYgood\tn");
+          strcat(prompt, " \t[F450]good\tn");
         else if (percent >= 50)
-          strcat(prompt, " \tMfair\tn");
+          strcat(prompt, " \t[F550]fair\tn");
         else if (percent >= 30)
-          strcat(prompt, " \tmpoor\tn");
+          strcat(prompt, " \t[F530]poor\tn");
         else if (percent >= 15)
-          strcat(prompt, " \tRbad\tn");
+          strcat(prompt, " \t[F520]bad\tn");
         else if (percent >= 0)
-          strcat(prompt, " \trawful\tn");
+          strcat(prompt, " \t[F510]awful\tn");
         else
-          strcat(prompt, " \tRunconscious\tn");
+          strcat(prompt, " \t[F500]unconscious\tn");
         len += 30; // just counting the strcat's above
       }
     } // end fighting
