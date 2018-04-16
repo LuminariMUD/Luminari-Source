@@ -833,7 +833,7 @@ int compute_ability(struct char_data *ch, int abilityNum) {
       value += compute_gear_armor_penalty(ch);
       return value;
     case ABILITY_TOTAL_DEFENSE: /* not srd */
-      value += GET_CON_BONUS(ch);
+      value += GET_DEX_BONUS(ch);
       value += compute_gear_armor_penalty(ch);
       if (HAS_FEAT(ch, FEAT_PARRY))
         value += 4;
