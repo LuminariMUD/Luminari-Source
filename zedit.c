@@ -24,7 +24,7 @@
 //#define ZCMD            (zone_table[OLC_ZNUM(d)].cmd[subcmd])
 #define MYCMD		(OLC_ZONE(d)->cmd[subcmd])
 #define OLC_CMD(d)	(OLC_ZONE(d)->cmd[OLC_VAL(d)])
-#define MAX_DUPLICATES 100
+//#define MAX_DUPLICATES 100 /* this is defined in oasis.h */
 
 /* local functions */
 static int start_change_command(struct descriptor_data *d, int pos);
