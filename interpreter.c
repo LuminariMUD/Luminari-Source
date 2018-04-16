@@ -1647,7 +1647,7 @@ int enter_player_game(struct descriptor_data *d) {
   // this is already called in perform_dupe_check() before we get here, shouldn't be needed here -Nashak
   //MXPSendTag(d, "<VERSION>");
 
-  new_mail_alert(d->character);
+  new_mail_alert(d->character, FALSE);
 
   return load_result;
 }
