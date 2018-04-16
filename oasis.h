@@ -43,7 +43,7 @@
 #define MAX_EXTRA_DESC   512
 #define MAX_MOB_DESC     1024
 #define MAX_OBJ_DESC	512
-#define MAX_DUPLICATES  100  /* when loading in zedit */
+#define MAX_DUPLICATES  30000  /* when loading in zedit */
 
 /* arbitrary limits - roll your own */
 /* max weapon is 50d50 .. avg. 625 dam... */
