@@ -1423,8 +1423,8 @@ void zedit_parse(struct descriptor_data *d, char *arg) {
           break;
         case 'G':
           pos = atoi(arg);
-          if (pos < 0 || pos > 20000)
-            write_to_output(d, "Try again (0 - 20,000) : ");
+          if (pos < 0 || pos > 100)
+            write_to_output(d, "Try again (0 - 100) : ");
           else {
             OLC_CMD(d).arg3 = pos;
             zedit_disp_menu(d);
