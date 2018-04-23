@@ -1019,7 +1019,19 @@ void look_at_room(struct char_data *ch, int ignore_brief) {
   } else if ((!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_BRIEF) && !can_infra_in_dark)
           || ignore_brief || ROOM_FLAGGED(IN_ROOM(ch), ROOM_DEATH)) {
     if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOMAP) && can_see_map(ch)) {
-      str_and_map(world[target_room].description, ch, target_room);
+      if (PRF_FLAGGED(ch, PRF_GUI_MODE)) { // GUI mode!
+        // Send tags, then map.
+        send_to_char(ch,
+                "<ROOM_MAP>\n"
+                "%s"
+                "</ROOM_MAP>\n"
+                "\tn%s\tn\n",
+                CompactStringMap(MAX_MAP / 2;, CONFIG_MINIMAP_SIZE),
+                world[IN_ROOM(ch)].description
+                );        
+      } else {
+        str_and_map(world[target_room].description, ch, target_room);
+      }
     } else if (world_map && !PRF_FLAGGED(ch, PRF_AUTOMAP)) {
       generated_desc = gen_room_description(ch, IN_ROOM(ch));
       send_to_char(ch, "%s", generated_desc);
