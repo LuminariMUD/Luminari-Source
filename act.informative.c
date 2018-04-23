@@ -1020,18 +1020,15 @@ void look_at_room(struct char_data *ch, int ignore_brief) {
           || ignore_brief || ROOM_FLAGGED(IN_ROOM(ch), ROOM_DEATH)) {
     if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOMAP) && can_see_map(ch)) {
       if (PRF_FLAGGED(ch, PRF_GUI_MODE)) { // GUI mode!
-        char *mapstr = NULL;
-        mapstr = get_map_string(ch, target_room);
         // Send tags, then map.
         send_to_char(ch,
                 "<ROOM_MAP>\n"
                 "%s"
                 "</ROOM_MAP>\n"
                 "\tn%s\tn\n",
-                mapstr,
+                get_map_string(ch, target_room),
                 world[IN_ROOM(ch)].description
-                );        
-        free(mapstr);
+                );                
       } else {
         str_and_map(world[target_room].description, ch, target_room);
       }
