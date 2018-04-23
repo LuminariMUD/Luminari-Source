@@ -1027,7 +1027,7 @@ void look_at_room(struct char_data *ch, int ignore_brief) {
                 "%s"
                 "</ROOM_MAP>\n"
                 "\tn%s\tn\n",
-                mapstr),
+                mapstr,
                 world[IN_ROOM(ch)].description
                 );        
         free(mapstr);
