@@ -20,7 +20,7 @@ bool show_worldmap(struct char_data *ch);
 void perform_map( struct char_data *ch, char *argument, bool worldmap);
 bool can_see_map(struct char_data *ch);
 void str_and_map(char *str, struct char_data *ch, room_vnum target_room );
-static char *CompactStringMap(int centre, int size);
+void get_map_string(char *str);
 
 ACMD(do_map);
 
