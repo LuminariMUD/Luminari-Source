@@ -1026,7 +1026,7 @@ void look_at_room(struct char_data *ch, int ignore_brief) {
                 "%s"
                 "</ROOM_MAP>\n"
                 "\tn%s\tn\n",
-                CompactStringMap(MAX_MAP / 2;, CONFIG_MINIMAP_SIZE),
+                CompactStringMap(51 / 2, CONFIG_MINIMAP_SIZE),
                 world[IN_ROOM(ch)].description
                 );        
       } else {
