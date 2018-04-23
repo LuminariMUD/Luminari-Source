@@ -418,7 +418,7 @@ static char *StringMap(int centre, int size) {
 }
 
 /* public function to return a string representation of the map. */
-char * get_map_string(struct char_data *ch) {
+char * get_map_string(struct char_data *ch, room_vnum target_room) {
   int size, centre, x, y, min, max;
   int ew_size = 0, ns_size = 0;
   bool worldmap;

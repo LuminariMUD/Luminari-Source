@@ -1021,7 +1021,7 @@ void look_at_room(struct char_data *ch, int ignore_brief) {
     if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOMAP) && can_see_map(ch)) {
       if (PRF_FLAGGED(ch, PRF_GUI_MODE)) { // GUI mode!
         char *mapstr = NULL;
-        mapstr = get_map_string(ch);
+        mapstr = get_map_string(ch, target_room);
         // Send tags, then map.
         send_to_char(ch,
                 "<ROOM_MAP>\n"
