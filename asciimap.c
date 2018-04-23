@@ -418,7 +418,7 @@ static char *StringMap(int centre, int size) {
 }
 /* public function to return a string representation of the map. */
 void get_map_string(char *str) {
-  return StringMap(MAX_MAP / 2, DEFAULT_MAP_SIZE);
+  str = StringMap(MAX_MAP / 2, DEFAULT_MAP_SIZE);
 }
 
 static char *WorldMap(int centre, int size, int mapshape, int maptype) {
