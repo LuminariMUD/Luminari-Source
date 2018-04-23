@@ -416,9 +416,29 @@ static char *StringMap(int centre, int size) {
   *mp = '\0';
   return strmap;
 }
+
 /* public function to return a string representation of the map. */
-void get_map_string(char *str) {
-  str = StringMap(MAX_MAP / 2, DEFAULT_MAP_SIZE);
+char * get_map_string(struct char_data *ch) {
+  int size, centre, x, y, min, max
+  int ew_size = 0, ns_size = 0;
+  bool worldmap;
+
+
+  worldmap = show_worldmap(ch);
+
+  size = CONFIG_MINIMAP_SIZE;
+  centre = MAX_MAP / 2;
+  min = centre - 2 * size;
+  max = centre + 2 * size;
+
+  for (x = 0; x < MAX_MAP; ++x)
+    for (y = 0; y < MAX_MAP; ++y)
+      map[x][y] = (!(y % 2) && !worldmap) ? DOOR_NONE : SECT_EMPTY;
+
+  /* starts the mapping with the center room */
+  MapArea(target_room, ch, centre, centre, min, max, ns_size / 2, ew_size / 2, worldmap);
+  map[centre][centre] = SECT_HERE;
+  return CompactStringMap(centre, size);
 }
 
 static char *WorldMap(int centre, int size, int mapshape, int maptype) {
