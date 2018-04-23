@@ -248,7 +248,7 @@ static int vdoor_marks[4] = {VDOOR_NS, VDOOR_EW, VDOOR_NS, VDOOR_EW};
 static void MapArea(room_rnum room, struct char_data *ch, int x, int y, int min, int max, sh_int xpos, sh_int ypos, bool worldmap);
 static char *StringMap(int centre, int size);
 static char *WorldMap(int centre, int size, int mapshape, int maptype);
-static char *CompactStringMap(int centre, int size);
+//static char *CompactStringMap(int centre, int size);
 
 /******************************************************************************
  * End Local (File Scope) Function Prototypes
