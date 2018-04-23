@@ -14,7 +14,7 @@
 #define MAP_OFF      0
 #define MAP_ON       1
 #define MAP_IMM_ONLY 2
-
+ 
 /* Exported function prototypes */
 bool show_worldmap(struct char_data *ch);
 void perform_map( struct char_data *ch, char *argument, bool worldmap);
