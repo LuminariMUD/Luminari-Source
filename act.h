@@ -21,11 +21,59 @@
 
 #include "utils.h" /* for the ACMD macro */
 
+#define CAN_CMD 0
+#define CANT_CMD_PERM 1
+#define CANT_CMD_TEMP 2
+
 /* from accounts.c */
 ACMD(do_accexp);
 bool locked_races[NUM_RACES];
 int has_unlocked_race(struct char_data *ch, int race);
 int has_unlocked_class(struct char_data *ch, int class);
+
+/*****************************************************************************
+ * Begin general helper defines for all act files
+ * These encapsulate some standard "can do this" checks.
+ ****************************************************************************/
+/** Check if character can actually fight. */
+#define PREREQ_CAN_FIGHT()   \
+  if (!MOB_CAN_FIGHT(ch)) { \
+    send_to_char(ch, "But you can't fight!\r\n"); \
+    return; \
+  }
+
+/** Check the specified function to see if we get back a CAN_CMD. */
+#define PREREQ_CHECK(name) \
+   if (!name(ch, true)) return;
+
+/** Check if the character is in the specified position or better. */
+#define PREREQ_IN_POSITION(req_pos, errmsg) \
+  if (GET_POS(ch) <= req_pos) { \
+    send_to_char(ch, errmsg); \
+    return; \
+  }
+
+/** Check if character is not a NPC. */
+#define PREREQ_NOT_NPC() \
+  if (IS_NPC(ch)) { \
+    send_to_char(ch, "But you don't know how!\r\n"); \
+    return; \
+  }
+
+/** Check if character is in a peaceful room. */
+#define PREREQ_NOT_PEACEFUL_ROOM() \
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) { \
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n"); \
+    return; \
+  }
+
+/** CHeck if character is in a single-file room. */
+#define PREREQ_NOT_SINGLEFILE_ROOM() \
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE)) { \
+    send_to_char(ch, "The area is way too cramped to perform this maneuver!\r\n"); \
+    return; \
+  }
+
 
 /*****************************************************************************
  * Begin Functions and defines for act.comm.c

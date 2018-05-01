@@ -28,6 +28,20 @@
 #define ACMD(name)  \
    void name(struct char_data *ch, char *argument, int cmd, int subcmd)
 
+/** Definition of the helper function for checking if a command can be used.
+ *  If show_error is set, an error message will be sent to the user. Otherwise, it 
+ *  just returns the status code.
+ * Returns:
+ *   0 if everything is ok
+ *   1 if the character lacks prerequsites
+ *   2 if the character would normally be able to use the command, but temporarily can't.
+ */
+#define ACMDCHECK(name) \
+   int name(struct char_data *ch, bool show_error)
+#define ACMD_ERRORMSG(error) \
+   if (show_error == true) send_to_char(ch, error);
+
+
 /* external declarations and prototypes */
 
 /** direct all mlog() references to basic_mud_log() function. */
