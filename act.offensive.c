@@ -1823,10 +1823,7 @@ ACMD(do_assist) {
   char arg[MAX_INPUT_LENGTH];
   struct char_data *helpee = NULL;
 
-  if (!MOB_CAN_FIGHT(ch)) {
-    send_to_char(ch, "But you can't fight!\r\n");
-    return;
-  }
+  PREREQ_CAN_FIGHT();
 
   if (FIGHTING(ch)) {
     send_to_char(ch, "You're already fighting!  How can you assist someone else?\r\n");
@@ -2021,27 +2018,27 @@ ACMD(do_kill) {
   }
 }
 
+ACMDCHECK(can_backstab) {
+  if (!HAS_FEAT(ch, FEAT_SNEAK_ATTACK)) {
+    ACMD_ERRORMSG("You have no idea how to do that (you need at least 1 rank "
+            "of the sneak attack feat to perform a backstab).\r\n");
+    return CANT_CMD_PERM;
+  }
+  if (GET_RACE(ch) == RACE_TRELUX)
+    ;
+  else if (!GET_EQ(ch, WEAR_WIELD_1) && !GET_EQ(ch, WEAR_WIELD_OFFHAND) && !GET_EQ(ch, WEAR_WIELD_2H)) {
+    ACMD_ERRORMSG("You need to wield a weapon to make it a success.\r\n");
+    return CANT_CMD_TEMP;
+  }
+  return CAN_CMD;
+} 
+
 ACMD(do_backstab) {
   char buf[MAX_INPUT_LENGTH];
   struct char_data *vict;
 
-  if (!MOB_CAN_FIGHT(ch)) {
-    send_to_char(ch, "But you can't fight!\r\n");
-    return;
-  }
-
-  if (!HAS_FEAT(ch, FEAT_SNEAK_ATTACK)) {
-    send_to_char(ch, "You have no idea how to do that (you need at least 1 rank "
-            "of the sneak attack feat to perform a backstab).\r\n");
-    return;
-  }
-
-  if (GET_RACE(ch) == RACE_TRELUX)
-    ;
-  else if (!GET_EQ(ch, WEAR_WIELD_1) && !GET_EQ(ch, WEAR_WIELD_OFFHAND) && !GET_EQ(ch, WEAR_WIELD_2H)) {
-    send_to_char(ch, "You need to wield a weapon to make it a success.\r\n");
-    return;
-  }
+  PREREQ_CAN_FIGHT();
+  PREREQ_CHECK(can_backstab);
 
   if (FIGHTING(ch)) {
     send_to_char(ch, "You are too busy to attempt a backstab!\r\n");
@@ -2341,35 +2338,30 @@ int perform_intimidate(struct char_data *ch, struct char_data *vict) {
   return success;
 }
 
-ACMD(do_arrowswarm) {
-  struct char_data *vict, *next_vict;
-  int uses_remaining = 0;
-
-  if (!MOB_CAN_FIGHT(ch)) {
-    send_to_char(ch, "But you can't fight!\r\n");
-    return;
-  }
-
+ACMDCHECK(can_arrowswarm) {
   if (!HAS_FEAT(ch, FEAT_SWARM_OF_ARROWS)) {
-    send_to_char(ch, "You don't know how to do this!\r\n");
-    return;
+    ACMD_ERRORMSG("You don't know how to do this!\r\n");
+    return CANT_CMD_PERM;
   }
 
   /* ranged attack requirement */
   if (!can_fire_ammo(ch, TRUE)) {
-    send_to_char(ch, "You have to be using a ranged weapon with ammo ready to "
+    ACMD_ERRORMSG("You have to be using a ranged weapon with ammo ready to "
             "fire in your ammo pouch to do this!\r\n");
-    return;
+    return CANT_CMD_TEMP;
+  }
+  return CAN_CMD;
   }
 
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
-    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
-    return;
-  }
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE)) {
-    send_to_char(ch, "The area is way too cramped to perform this maneuver!\r\n");
-    return;
-  }
+ACMD(do_arrowswarm) {
+  struct char_data *vict, *next_vict;
+  int uses_remaining = 0;
+
+  PREREQ_CAN_FIGHT();
+  PREREQ_CHECK(can_arrowswarm);
+  PREREQ_NOT_PEACEFUL_ROOM();
+  PREREQ_NOT_SINGLEFILE_ROOM();
+
 
   if ((uses_remaining = daily_uses_remaining(ch, FEAT_SWARM_OF_ARROWS)) == 0) {
     send_to_char(ch, "You must recover before you can use another death arrow.\r\n");
@@ -2511,23 +2503,21 @@ ACMD(do_frightful) {
   }
 }
 
+ACMDCHECK(can_breathe) {
+  if (!IS_DRAGON(ch)) {
+    send_to_char(ch, "You have no idea how.\r\n");
+    return CANT_CMD_PERM;
+  }
+  return CAN_CMD;
+  }
+
 ACMD(do_breathe) {
   struct char_data *vict, *next_vict;
 
-  if (!MOB_CAN_FIGHT(ch)) {
-    send_to_char(ch, "But you can't fight!\r\n");
-    return;
-  }
-
-  if (!IS_DRAGON(ch)) {
-    send_to_char(ch, "You have no idea how.\r\n");
-    return;
-  }
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
-    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
-    return;
-  }
-
+  PREREQ_CAN_FIGHT();
+  PREREQ_CHECK(can_breathe);
+  PREREQ_NOT_PEACEFUL_ROOM();
+  
   send_to_char(ch, "You exhale breathing out fire!\r\n");
   act("$n exhales breathing fire!", FALSE, ch, 0, 0, TO_ROOM);
 
@@ -2718,24 +2708,14 @@ ACMD(do_tailsweep) {
   }
 }
 
+
 ACMD(do_bash) {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
 
-  if (IS_NPC(ch)) {
-    send_to_char(ch, "But you don't know how!\r\n");
-    return;
-  }
-
-  if (!MOB_CAN_FIGHT(ch)) {
-    send_to_char(ch, "But you can't fight!\r\n");
-    return;
-  }
-
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
-    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
-    return;
-  }
+  PREREQ_NOT_NPC();
+  PREREQ_CAN_FIGHT();
+  PREREQ_NOT_PEACEFUL_ROOM();
 
   one_argument(argument, arg);
 
@@ -3323,11 +3303,17 @@ ACMD(do_supriseaccuracy) {
   perform_supriseaccuracy(ch);
 }
 
-ACMD(do_comeandgetme) {
-  if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_RP_COME_AND_GET_ME)) {
-    send_to_char(ch, "You have no idea how.\r\n");
-    return;
+ACMDCHECK(can_comeandgetme) {
+  if (!HAS_FEAT(ch, FEAT_RP_COME_AND_GET_ME)) {
+    ACMD_ERRORMSG("You have no idea how.\r\n");
+    return CANT_CMD_PERM;
   }
+  return CAN_CMD;
+}
+
+ACMD(do_comeandgetme) {
+  PREREQ_NOT_NPC();
+  PREREQ_CHECK(can_comeandgetme);
 
   if (affected_by_spell(ch, SKILL_COME_AND_GET_ME)) {
     send_to_char(ch, "You have already focused your rage into 'come and get me'!\r\n");
@@ -3719,21 +3705,31 @@ ACMD(do_hitall) {
   USE_FULL_ROUND_ACTION(ch);
 }
 
+ACMDCHECK(can_circle) {
+  if (!HAS_FEAT(ch, FEAT_SNEAK_ATTACK)) {
+    ACMD_ERRORMSG("You have no idea how to do that (circle requires at least "
+            "1 rank in sneak attack).\r\n");
+    return CANT_CMD_PERM;
+  }
+  if (GET_RACE(ch) == RACE_TRELUX)
+    ;
+  else if (!GET_EQ(ch, WEAR_WIELD_1) && !GET_EQ(ch, WEAR_WIELD_OFFHAND) && !GET_EQ(ch, WEAR_WIELD_2H)) {
+    ACMD_ERRORMSG("You need to wield a weapon to make it a success.\r\n");
+    return CANT_CMD_TEMP;
+  }
+  return CAN_CMD;
+}
+
 /* the ability to backstab a fighting opponent when not tanking  */
 ACMD(do_circle) {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
 
-  if (!MOB_CAN_FIGHT(ch)) {
-    send_to_char(ch, "But you can't fight!\r\n");
-    return;
-  }
 
-  if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_SNEAK_ATTACK)) {
-    send_to_char(ch, "You have no idea how to do that (circle requires at least "
-            "1 rank in sneak attack).\r\n");
-    return;
-  }
+  PREREQ_CAN_FIGHT();
+  PREREQ_NOT_NPC();
+  PREREQ_CHECK(can_circle);
+
 
   if (!FIGHTING(ch)) {
     send_to_char(ch, "You can only circle while in combat.\r\n");
@@ -3742,13 +3738,6 @@ ACMD(do_circle) {
 
   if (is_tanking(ch)) {
     send_to_char(ch, "You are too busy defending yourself to try that.\r\n");
-    return;
-  }
-
-  if (GET_RACE(ch) == RACE_TRELUX)
-    ;
-  else if (!GET_EQ(ch, WEAR_WIELD_1) && !GET_EQ(ch, WEAR_WIELD_OFFHAND) && !GET_EQ(ch, WEAR_WIELD_2H)) {
-    send_to_char(ch, "You need to wield a weapon to make it a success.\r\n");
     return;
   }
 
@@ -3800,20 +3789,14 @@ ACMD(do_bodyslam) {
   struct char_data *vict;
   char buf[MAX_INPUT_LENGTH] = {'\0'};
 
-  if (!MOB_CAN_FIGHT(ch)) {
-    send_to_char(ch, "But you can't fight!\r\n");
-    return;
-  }
+  PREREQ_CAN_FIGHT();
+  PREREQ_NOT_NPC();
 
   one_argument(argument, buf);
 
   send_to_char(ch, "Unimplemented.\r\n");
   return;
 
-  if (IS_NPC(ch)) {
-    send_to_char(ch, "You have no idea how.\r\n");
-    return;
-  }
 
   if (FIGHTING(ch)) {
     send_to_char(ch, "You can't bodyslam while fighting!");
@@ -4190,22 +4173,12 @@ ACMD(do_charge) {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
 
-  if (!MOB_CAN_FIGHT(ch)) {
-    send_to_char(ch, "But you can't fight!\r\n");
-    return;
-  }
+  PREREQ_CAN_FIGHT();
+  PREREQ_NOT_PEACEFUL_ROOM();
+  PREREQ_IN_POSITION(POS_SITTING, "You need to stand to charge!\r\n");
 
   one_argument(argument, arg);
 
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
-    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
-    return;
-  }
-
-  if (GET_POS(ch) <= POS_SITTING) {
-    send_to_char(ch, "You need to stand to charge!\r\n");
-    return;
-  }
 
   if (!*arg) {
     if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
@@ -4441,22 +4414,11 @@ ACMD(do_autofire) {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL, *tch = NULL;
 
-  if (!MOB_CAN_FIGHT(ch)) {
-    send_to_char(ch, "But you can't fight!\r\n");
-    return;
-  }
+  PREREQ_CAN_FIGHT();
+  PREREQ_NOT_NPC();
+  PREREQ_NOT_PEACEFUL_ROOM();
 
   one_argument(argument, arg);
-
-  if (IS_NPC(ch)) {
-    send_to_char(ch, "You have no idea how.\r\n");
-    return;
-  }
-
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
-    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
-    return;
-  }
 
   if (FIGHTING(ch) || FIRING(ch)) {
     send_to_char(ch, "You are too busy fighting to try and fire right now!\r\n");
