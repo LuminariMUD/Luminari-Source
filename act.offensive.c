@@ -985,10 +985,7 @@ void perform_sap(struct char_data *ch, struct char_data *vict) {
     return;
   }
 
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
-    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
-    return;
-  }
+  PREREQ_NOT_PEACEFUL_ROOM();
 
   if (ROOM_FLAGGED(ch->in_room, ROOM_SINGLEFILE)) {
     if (ch->next_in_room != vict && vict->next_in_room != ch) {
@@ -1464,10 +1461,7 @@ ACMD(do_turnundead) {
   int turn_difference = 0, turn_result = 0, turn_roll = 0;
   char buf[MAX_STRING_LENGTH] = {'\0'};
 
-  if (!MOB_CAN_FIGHT(ch)) {
-    send_to_char(ch, "But you can't fight!\r\n");
-    return;
-  }
+  PREREQ_CAN_FIGHT();
 
   if (!HAS_FEAT(ch, FEAT_TURN_UNDEAD)) {
     send_to_char(ch, "You do not possess divine favor!\r\n");
@@ -1641,41 +1635,30 @@ void clear_defensive_stance(struct char_data *ch) {
 
 }
 
+ACMDCHECK(can_defensive_stance) {
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_DEFENSIVE_STANCE, "You don't know how to use a defensive stance.\r\n");
+  ACMDCHECK_TEMPFAIL_IF(AFF_FLAGGED(ch, AFF_FATIGUED), "You are are too fatigued to use defensive stance!\r\n");
+  ACMDCHECK_TEMPFAIL_IF(affected_by_spell(ch, SKILL_RAGE), "You can't enter a defensive stance while raging!\r\n");
+
+  return CAN_CMD;
+}
+
 /* defensive stance skill stalwart defender primarily */
 ACMD(do_defensive_stance) {
   struct affected_type af, aftwo, afthree, affour;
-  int bonus = 0, duration = 0, uses_remaining = 0;
+  int bonus = 0, duration = 0;
 
-  if (!MOB_CAN_FIGHT(ch)) {
-    send_to_char(ch, "But you can't fight!\r\n");
-    return;
-  }
-
+  PREREQ_CAN_FIGHT();
+  
   if (affected_by_spell(ch, SKILL_DEFENSIVE_STANCE)) {
     clear_defensive_stance(ch);
     affect_from_char(ch, SKILL_DEFENSIVE_STANCE);
     return;
   }
 
-  if (AFF_FLAGGED(ch, AFF_FATIGUED)) {
-    send_to_char(ch, "You are are too fatigued to use defensive stance!\r\n");
-    return;
-  }
+  PREREQ_CHECK(can_defensive_stance);
+  PREREQ_HAS_USES(FEAT_DEFENSIVE_STANCE, "You must recover before you can use a defensive stance again.\r\n");
 
-  if (affected_by_spell(ch, SKILL_RAGE)) {
-    send_to_char(ch, "You can't enter a defensive stance while raging!\r\n");
-    return;
-  }
-
-  if (!HAS_FEAT(ch, FEAT_DEFENSIVE_STANCE)) {
-    send_to_char(ch, "You don't know how to use a defensive stance.\r\n");
-    return;
-  }
-
-  if (((uses_remaining = daily_uses_remaining(ch, FEAT_DEFENSIVE_STANCE)) == 0)) {
-    send_to_char(ch, "You must recover before you can use a defensive stance again.\r\n");
-    return;
-  }
 
   /* bonus */
   bonus = 4;
@@ -1733,10 +1716,7 @@ ACMD(do_rage) {
   struct affected_type af, aftwo, afthree, affour;
   int bonus = 0, duration = 0, uses_remaining = 0;
 
-  if (!MOB_CAN_FIGHT(ch)) {
-    send_to_char(ch, "But you can't fight!\r\n");
-    return;
-  }
+  PREREQ_CAN_FIGHT();
 
   if (affected_by_spell(ch, SKILL_RAGE)) {
     clear_rage(ch);
@@ -1846,10 +1826,7 @@ ACMD(do_hit) {
   struct char_data *vict = NULL;
   int chInitiative = dice(1, 20), victInitiative = dice(1, 20);
 
-  if (!MOB_CAN_FIGHT(ch)) {
-    send_to_char(ch, "But you can't fight!\r\n");
-    return;
-  }
+  PREREQ_CAN_FIGHT();
 
   /* temporary solution */
   if (is_using_ranged_weapon(ch, TRUE)) {
@@ -1975,10 +1952,7 @@ ACMD(do_kill) {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
 
-  if (!MOB_CAN_FIGHT(ch)) {
-    send_to_char(ch, "But you can't fight!\r\n");
-    return;
-  }
+  PREREQ_CAN_FIGHT();
 
   one_argument(argument, arg);
 
@@ -2019,11 +1993,10 @@ ACMD(do_kill) {
 }
 
 ACMDCHECK(can_backstab) {
-  if (!HAS_FEAT(ch, FEAT_SNEAK_ATTACK)) {
-    ACMD_ERRORMSG("You have no idea how to do that (you need at least 1 rank "
-            "of the sneak attack feat to perform a backstab).\r\n");
-    return CANT_CMD_PERM;
-  }
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_SNEAK_ATTACK, "You have no idea how to do that "
+            "(you need at least 1 rank of the sneak attack feat to perform a "
+            "backstab).\r\n");
+
   if (GET_RACE(ch) == RACE_TRELUX)
     ;
   else if (!GET_EQ(ch, WEAR_WIELD_1) && !GET_EQ(ch, WEAR_WIELD_OFFHAND) && !GET_EQ(ch, WEAR_WIELD_2H)) {
@@ -2261,10 +2234,7 @@ ACMD(do_taunt) {
   char arg[MAX_INPUT_LENGTH];
   struct char_data *vict;
 
-  if (!MOB_CAN_FIGHT(ch)) {
-    send_to_char(ch, "But you can't fight!\r\n");
-    return;
-  }
+  PREREQ_CAN_FIGHT();
 
   one_argument(argument, arg);
 
@@ -2272,10 +2242,7 @@ ACMD(do_taunt) {
     send_to_char(ch, "You have no idea how (requires diplomacy).\r\n");
     return;
   }
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
-    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
-    return;
-  }
+  PREREQ_NOT_PEACEFUL_ROOM();
   if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
     if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch))) {
       vict = FIGHTING(ch);
@@ -2339,39 +2306,24 @@ int perform_intimidate(struct char_data *ch, struct char_data *vict) {
 }
 
 ACMDCHECK(can_arrowswarm) {
-  if (!HAS_FEAT(ch, FEAT_SWARM_OF_ARROWS)) {
-    ACMD_ERRORMSG("You don't know how to do this!\r\n");
-    return CANT_CMD_PERM;
-  }
-
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_SWARM_OF_ARROWS, "You don't know how to do this!\r\n");
+  
   /* ranged attack requirement */
-  if (!can_fire_ammo(ch, TRUE)) {
-    ACMD_ERRORMSG("You have to be using a ranged weapon with ammo ready to "
+  ACMDCHECK_TEMPFAIL_IF(!can_fire_ammo(ch, TRUE), 
+    "You have to be using a ranged weapon with ammo ready to "
             "fire in your ammo pouch to do this!\r\n");
-    return CANT_CMD_TEMP;
-  }
   return CAN_CMD;
-  }
+}
 
 ACMD(do_arrowswarm) {
   struct char_data *vict, *next_vict;
-  int uses_remaining = 0;
 
   PREREQ_CAN_FIGHT();
   PREREQ_CHECK(can_arrowswarm);
   PREREQ_NOT_PEACEFUL_ROOM();
   PREREQ_NOT_SINGLEFILE_ROOM();
+  PREREQ_HAS_USES(FEAT_SWARM_OF_ARROWS, "You must recover before you can use another death arrow.\r\n");
 
-
-  if ((uses_remaining = daily_uses_remaining(ch, FEAT_SWARM_OF_ARROWS)) == 0) {
-    send_to_char(ch, "You must recover before you can use another death arrow.\r\n");
-    return;
-  }
-
-  if (uses_remaining < 0) {
-    send_to_char(ch, "You are not experienced enough.\r\n");
-    return;
-  }
 
   send_to_char(ch, "You open up a barrage of fire!\r\n");
   act("$n opens up a barrage of fire!", FALSE, ch, 0, 0, TO_ROOM);
@@ -2394,25 +2346,21 @@ ACMD(do_arrowswarm) {
   USE_STANDARD_ACTION(ch);
 }
 
+ACMDCHECK(can_intimidate) {
+  ACMDCHECK_PERMFAIL_IF(!GET_ABILITY(ch, ABILITY_INTIMIDATE), "You have no idea how.\r\n");
+  return CAN_CMD;
+}
+
 ACMD(do_intimidate) {
   char arg[MAX_INPUT_LENGTH];
   struct char_data *vict;
 
-  if (!MOB_CAN_FIGHT(ch)) {
-    send_to_char(ch, "But you can't fight!\r\n");
-    return;
-  }
+  PREREQ_CAN_FIGHT();
+  PREREQ_NOT_NPC();
+  PREREQ_NOT_PEACEFUL_ROOM();
 
   one_argument(argument, arg);
 
-  if (IS_NPC(ch) || !GET_ABILITY(ch, ABILITY_INTIMIDATE)) {
-    send_to_char(ch, "You have no idea how.\r\n");
-    return;
-  }
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
-    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
-    return;
-  }
   if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
     if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch))) {
       vict = FIGHTING(ch);
@@ -2455,10 +2403,7 @@ ACMD(do_frightful) {
     send_to_char(ch, "You have no idea how.\r\n");
     return;
   }
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
-    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
-    return;
-  }
+  PREREQ_NOT_PEACEFUL_ROOM();
 
   send_to_char(ch, "You ROAR!\r\n");
   act("$n lets out a mighty ROAR!", FALSE, ch, 0, 0, TO_ROOM);
@@ -2504,12 +2449,9 @@ ACMD(do_frightful) {
 }
 
 ACMDCHECK(can_breathe) {
-  if (!IS_DRAGON(ch)) {
-    send_to_char(ch, "You have no idea how.\r\n");
-    return CANT_CMD_PERM;
-  }
+  ACMDCHECK_PERMFAIL_IF(!IS_DRAGON(ch), "You have no idea how.\r\n");
   return CAN_CMD;
-  }
+}
 
 ACMD(do_breathe) {
   struct char_data *vict, *next_vict;
@@ -2545,10 +2487,7 @@ ACMD(do_sorcerer_breath_weapon) {
     return;
   }
 
-  if (!MOB_CAN_FIGHT(ch)) {
-    send_to_char(ch, "But you can't fight!\r\n");
-    return;
-  }
+  PREREQ_CAN_FIGHT();
 
   if (!IS_NPC(ch) && ((uses_remaining = daily_uses_remaining(ch, FEAT_DRACONIC_HERITAGE_BREATHWEAPON)) == 0)) {
     send_to_char(ch, "You must recover before you can use your draconic heritage breath weapon again.\r\n");
@@ -2562,10 +2501,7 @@ ACMD(do_sorcerer_breath_weapon) {
     return;
   }
 
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
-    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
-    return;
-  }
+  PREREQ_NOT_PEACEFUL_ROOM();
 
   send_to_char(ch, "You exhale breathing out %s!\r\n", DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)));
   char to_room[200];
@@ -2643,23 +2579,14 @@ ACMD(do_tailsweep) {
   struct char_data *vict, *next_vict;
   int percent = 0, prob = 0;
 
-  if (!MOB_CAN_FIGHT(ch)) {
-    send_to_char(ch, "But you can't fight!\r\n");
-    return;
-  }
+  PREREQ_CAN_FIGHT();
 
   if (!IS_DRAGON(ch)) {
     send_to_char(ch, "You have no idea how.\r\n");
     return;
   }
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
-    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
-    return;
-  }
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE)) {
-    send_to_char(ch, "It is too narrow to try that here.\r\n");
-    return;
-  }
+  PREREQ_NOT_PEACEFUL_ROOM();
+  PREREQ_NOT_SINGLEFILE_ROOM();
 
   send_to_char(ch, "You lash out with your mighty tail!\r\n");
   act("$n lashes out with $s mighty tail!", FALSE, ch, 0, 0, TO_ROOM);
@@ -2746,15 +2673,9 @@ ACMD(do_trip) {
     return;
   }
 
-  if (!MOB_CAN_FIGHT(ch)) {
-    send_to_char(ch, "But you can't fight!\r\n");
-    return;
-  }
+  PREREQ_CAN_FIGHT();
 
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
-    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
-    return;
-  }
+  PREREQ_NOT_PEACEFUL_ROOM();
 
   one_argument(argument, arg);
 
@@ -2772,15 +2693,16 @@ ACMD(do_trip) {
   perform_knockdown(ch, vict, SKILL_TRIP);
 }
 
+ACMDCHECK(can_layonhands) {
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_LAYHANDS, "You have no idea how.\r\n");
+  return CAN_CMD;
+}
+
 ACMD(do_layonhands) {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
-  int uses_remaining = 0;
 
-  if (!HAS_FEAT(ch, FEAT_LAYHANDS)) {
-    send_to_char(ch, "You have no idea how.\r\n");
-    return;
-  }
+  PREREQ_CHECK(can_layonhands);
 
   one_argument(argument, arg);
   if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
@@ -2788,32 +2710,21 @@ ACMD(do_layonhands) {
     return;
   }
 
-  if ((uses_remaining = daily_uses_remaining(ch, FEAT_LAYHANDS)) == 0) {
-    send_to_char(ch, "You must recover the divine energy required to lay on hands.\r\n");
-    return;
-  }
-
-  if (uses_remaining < 0) {
-    send_to_char(ch, "You are not experienced enough.\r\n");
-    return;
-  }
+  PREREQ_HAS_USES(FEAT_LAYHANDS, "You must recover the divine energy required to lay on hands.\r\n");
 
   perform_layonhands(ch, vict);
 }
 
+ACMDCHECK(can_crystalfist) {
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_CRYSTAL_FIST, "How do you plan on doing that?\r\n");
+  return CAN_CMD;
+}
+
 ACMD(do_crystalfist) {
-  int uses_remaining = 0;
 
-  //  if (GET_RACE(ch) != RACE_CRYSTAL_DWARF) {
-  if (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_CRYSTAL_FIST)) {
-    send_to_char(ch, "How do you plan on doing that?\r\n");
-    return;
-  }
-
-  if ((uses_remaining = daily_uses_remaining(ch, FEAT_CRYSTAL_FIST)) == 0) {
-    send_to_char(ch, "You are too exhausted to use crystal fist.\r\n");
-    return;
-  }
+  PREREQ_NOT_NPC();
+  PREREQ_CHECK(can_crystalfist);
+  PREREQ_HAS_USES(FEAT_CRYSTAL_FIST, "You are too exhausted to use crystal fist.\r\n");
 
   send_to_char(ch, "\tCLarge, razor sharp crystals sprout from your hands and arms!\tn\r\n");
   act("\tCRazor sharp crystals sprout from $n's arms and hands!\tn",
@@ -2826,20 +2737,17 @@ ACMD(do_crystalfist) {
     start_daily_use_cooldown(ch, FEAT_CRYSTAL_FIST);
 }
 
+ACMDCHECK(can_crystalbody) {
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_CRYSTAL_BODY, "How do you plan on doing that?\r\n");
+  return CAN_CMD;
+}
+
 ACMD(do_crystalbody) {
-  int uses_remaining = 0;
-  //struct affected_type af;
 
-  //  if (GET_RACE(ch) != RACE_CRYSTAL_DWARF) {
-  if (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_CRYSTAL_BODY)) {
-    send_to_char(ch, "How do you plan on doing that?\r\n");
-    return;
-  }
+  PREREQ_NOT_NPC();
+  PREREQ_CHECK(can_crystalbody);
+  PREREQ_HAS_USES(FEAT_CRYSTAL_BODY, "You are too exhausted to harden your body.\r\n");
 
-  if ((uses_remaining = daily_uses_remaining(ch, FEAT_CRYSTAL_BODY)) == 0) {
-    send_to_char(ch, "You are too exhausted to harden your body.\r\n");
-    return;
-  }
 
   send_to_char(ch, "\tCYour crystalline body becomes harder!\tn\r\n");
   act("\tCYou watch as $n's crystalline body becomes harder!\tn",
@@ -2855,10 +2763,7 @@ ACMD(do_crystalbody) {
 
 ACMD(do_reneweddefense) {
 
-  if (IS_NPC(ch)) {
-    send_to_char(ch, "You have no idea how to do that.\r\n");
-    return;
-  }
+  PREREQ_NOT_NPC();
 
   if (!HAS_FEAT(ch, FEAT_RENEWED_DEFENSE)) {
     send_to_char(ch, "You have no idea how to do that!\r\n");
@@ -2896,10 +2801,7 @@ ACMD(do_reneweddefense) {
 
 ACMD(do_renewedvigor) {
 
-  if (IS_NPC(ch)) {
-    send_to_char(ch, "You have no idea how to do that.\r\n");
-    return;
-  }
+  PREREQ_NOT_NPC();
 
   if (!HAS_FEAT(ch, FEAT_RP_RENEWED_VIGOR)) {
     send_to_char(ch, "You have no idea how to do that!\r\n");
@@ -2937,10 +2839,7 @@ ACMD(do_renewedvigor) {
 
 ACMD(do_wholenessofbody) {
 
-  if (IS_NPC(ch)) {
-    send_to_char(ch, "You have no idea how to do that.\r\n");
-    return;
-  }
+  PREREQ_NOT_NPC();
 
   if (!HAS_FEAT(ch, FEAT_WHOLENESS_OF_BODY)) {
     send_to_char(ch, "You have no idea how to do that!\r\n");
@@ -2971,18 +2870,17 @@ ACMD(do_wholenessofbody) {
   USE_STANDARD_ACTION(ch);
 }
 
+ACMDCHECK(can_emptybody) {
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_EMPTY_BODY, "You have no idea how to do that.\r\n");
+  return CAN_CMD;
+}
+
 ACMD(do_emptybody) {
   struct affected_type af;
 
-  if (IS_NPC(ch)) {
-    send_to_char(ch, "You have no idea how to do that.\r\n");
-    return;
-  }
-
-  if (!HAS_FEAT(ch, FEAT_EMPTY_BODY)) {
-    send_to_char(ch, "You have no idea how to do that.\r\n");
-    return;
-  }
+  PREREQ_NOT_NPC();
+  PREREQ_CHECK(can_emptybody);
+  
 
   if (char_has_mud_event(ch, eEMPTYBODY)) {
     send_to_char(ch, "You must wait longer before you can use this "
@@ -3018,10 +2916,7 @@ ACMD(do_treatinjury) {
   char arg[MAX_INPUT_LENGTH];
   struct char_data *vict;
 
-  if (IS_NPC(ch)) {
-    send_to_char(ch, "You have no idea how to do that.\r\n");
-    return;
-  }
+  PREREQ_NOT_NPC();
   one_argument(argument, arg);
 
   if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
@@ -3088,10 +2983,7 @@ ACMD(do_rescue) {
     return;
   }
 
-  if (!MOB_CAN_FIGHT(ch)) {
-    send_to_char(ch, "But you can't fight!\r\n");
-    return;
-  }
+  PREREQ_CAN_FIGHT();
 
   one_argument(argument, arg);
 
@@ -3108,10 +3000,7 @@ ACMD(do_whirlwind) {
   struct char_data *vict, *next_vict;
   int num_attacks = 1;
 
-  if (!MOB_CAN_FIGHT(ch)) {
-    send_to_char(ch, "But you can't fight!\r\n");
-    return;
-  }
+  PREREQ_CAN_FIGHT();
 
   if (!HAS_FEAT(ch, FEAT_WHIRLWIND_ATTACK)) {
     send_to_char(ch, "You have no idea how.\r\n");
@@ -3122,14 +3011,8 @@ ACMD(do_whirlwind) {
     send_to_char(ch, "You must be on your feet to perform a whirlwind.\r\n");
     return;
   }
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE)) {
-    send_to_char(ch, "It is too narrow to try that here.\r\n");
-    return;
-  }
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
-    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
-    return;
-  }
+  PREREQ_NOT_SINGLEFILE_ROOM();
+  PREREQ_NOT_PEACEFUL_ROOM();
 
 #define RETURN_NUM_ATTACKS 1  
   num_attacks += perform_attacks(ch, RETURN_NUM_ATTACKS, 0);
@@ -3175,37 +3058,24 @@ ACMD(do_whirlwind) {
   //NEW_EVENT(eWHIRLWIND, ch, NULL, 3 * PASSES_PER_SEC);
 }
 
-ACMD(do_deatharrow) {
-  int uses_remaining = 0;
+ACMDCHECK(can_deatharrow) {
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_ARROW_OF_DEATH, "You don't know how to do this!\r\n");
 
-  if (!MOB_CAN_FIGHT(ch)) {
-    send_to_char(ch, "But you can't fight!\r\n");
-    return;
-  }
-
-  if (!HAS_FEAT(ch, FEAT_ARROW_OF_DEATH)) {
-    send_to_char(ch, "You don't know how to do this!\r\n");
-    return;
-  }
   /* ranged attack requirement */
-  if (!can_fire_ammo(ch, TRUE)) {
-    send_to_char(ch, "You have to be using a ranged weapon with ammo ready to "
+  ACMDCHECK_TEMPFAIL_IF(!can_fire_ammo(ch, TRUE), "You have to be using a ranged weapon with ammo ready to "
             "fire in your ammo pouch to do this!\r\n");
-    return;
-  }
+  return CAN_CMD;
+}
+
+ACMD(do_deatharrow) {
+  
+  PREREQ_CAN_FIGHT();
+  PREREQ_CHECK(can_deatharrow);
+  PREREQ_HAS_USES(FEAT_ARROW_OF_DEATH, "You must recover before you can use another death arrow.\r\n");
+  
 
   if (affected_by_spell(ch, SKILL_DEATH_ARROW)) {
     send_to_char(ch, "You have already imbued one of your arrows with death!\r\n");
-    return;
-  }
-
-  if ((uses_remaining = daily_uses_remaining(ch, FEAT_ARROW_OF_DEATH)) == 0) {
-    send_to_char(ch, "You must recover before you can use another death arrow.\r\n");
-    return;
-  }
-
-  if (uses_remaining < 0) {
-    send_to_char(ch, "You are not experienced enough.\r\n");
     return;
   }
 
@@ -3215,10 +3085,7 @@ ACMD(do_deatharrow) {
 ACMD(do_quiveringpalm) {
   int uses_remaining = 0;
 
-  if (!MOB_CAN_FIGHT(ch)) {
-    send_to_char(ch, "But you can't fight!\r\n");
-    return;
-  }
+  PREREQ_CAN_FIGHT();
 
   if (!HAS_FEAT(ch, FEAT_QUIVERING_PALM)) {
     send_to_char(ch, "You have no idea how.\r\n");
@@ -3246,10 +3113,7 @@ ACMD(do_quiveringpalm) {
 ACMD(do_stunningfist) {
   int uses_remaining = 0;
 
-  if (!MOB_CAN_FIGHT(ch)) {
-    send_to_char(ch, "But you can't fight!\r\n");
-    return;
-  }
+  PREREQ_CAN_FIGHT();
 
   if (!HAS_FEAT(ch, FEAT_STUNNING_FIST)) {
     send_to_char(ch, "You have no idea how.\r\n");
@@ -3304,10 +3168,20 @@ ACMD(do_supriseaccuracy) {
 }
 
 ACMDCHECK(can_comeandgetme) {
-  if (!HAS_FEAT(ch, FEAT_RP_COME_AND_GET_ME)) {
-    ACMD_ERRORMSG("You have no idea how.\r\n");
-    return CANT_CMD_PERM;
-  }
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_RP_COME_AND_GET_ME, "You have no idea how.\r\n");
+
+  ACMDCHECK_TEMPFAIL_IF(affected_by_spell(ch, SKILL_COME_AND_GET_ME), 
+    "You have already focused your rage into 'come and get me'!\r\n");
+
+  ACMDCHECK_TEMPFAIL_IF(char_has_mud_event(ch, eCOME_AND_GET_ME), 
+    "You are too exhausted to use 'come and get me' again!\r\n");
+
+  ACMDCHECK_TEMPFAIL_IF(AFF_FLAGGED(ch, AFF_FATIGUED), 
+    "You are are too fatigued to use 'come and get me'!\r\n");
+
+  ACMDCHECK_TEMPFAIL_IF(affected_by_spell(ch, SKILL_RAGE), 
+    "You need to be raging to use 'come and get me'!\r\n");
+
   return CAN_CMD;
 }
 
@@ -3315,55 +3189,27 @@ ACMD(do_comeandgetme) {
   PREREQ_NOT_NPC();
   PREREQ_CHECK(can_comeandgetme);
 
-  if (affected_by_spell(ch, SKILL_COME_AND_GET_ME)) {
-    send_to_char(ch, "You have already focused your rage into 'come and get me'!\r\n");
-    return;
-  }
-
-  if (char_has_mud_event(ch, eCOME_AND_GET_ME)) {
-    send_to_char(ch, "You are too exhausted to use 'come and get me' again!\r\n");
-    return;
-  }
-
-  if (AFF_FLAGGED(ch, AFF_FATIGUED)) {
-    send_to_char(ch, "You are are too fatigued to use 'come and get me'!\r\n");
-    return;
-  }
-
-  if (!affected_by_spell(ch, SKILL_RAGE)) {
-    send_to_char(ch, "You need to be raging to use 'come and get me'!\r\n");
-    return;
-  }
-
   perform_comeandgetme(ch);
+}
+
+ACMDCHECK(can_powerfulblow) {
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_RP_POWERFUL_BLOW, "You have no idea how.\r\n");
+  ACMDCHECK_TEMPFAIL_IF(affected_by_spell(ch, SKILL_POWERFUL_BLOW), 
+    "You have already focused your rage into a powerful blow!\r\n");
+  ACMDCHECK_TEMPFAIL_IF(char_has_mud_event(ch, ePOWERFUL_BLOW), 
+    "You are too exhausted to use powerful blow again!\r\n");
+  ACMDCHECK_TEMPFAIL_IF(AFF_FLAGGED(ch, AFF_FATIGUED),
+    "You are too fatigued to use powerful blow again!\r\n");
+  ACMDCHECK_TEMPFAIL_IF(!affected_by_spell(ch, SKILL_RAGE), 
+    "You need to be raging to use powerful blow!\r\n");
+  
+  return CAN_CMD;
 }
 
 ACMD(do_powerfulblow) {
 
-  if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_RP_POWERFUL_BLOW)) {
-    send_to_char(ch, "You have no idea how.\r\n");
-    return;
-  }
-
-  if (affected_by_spell(ch, SKILL_POWERFUL_BLOW)) {
-    send_to_char(ch, "You have already focused your rage into a powerful blow!\r\n");
-    return;
-  }
-
-  if (char_has_mud_event(ch, ePOWERFUL_BLOW)) {
-    send_to_char(ch, "You are too exhausted to use powerful blow again!\r\n");
-    return;
-  }
-
-  if (AFF_FLAGGED(ch, AFF_FATIGUED)) {
-    send_to_char(ch, "You are are too fatigued to use powerful blow!\r\n");
-    return;
-  }
-
-  if (!affected_by_spell(ch, SKILL_RAGE)) {
-    send_to_char(ch, "You need to be raging to use powerful blow!\r\n");
-    return;
-  }
+  PREREQ_NOT_NPC();
+  PREREQ_CHECK(can_powerfulblow);
 
   perform_powerfulblow(ch);
 }
@@ -3412,10 +3258,7 @@ ACMD(do_smiteevil) {
 
 /* drow faerie fire engine */
 void perform_faerie_fire(struct char_data *ch, struct char_data *vict) {
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
-    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
-    return;
-  }
+  PREREQ_NOT_PEACEFUL_ROOM();
 
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
           ch->next_in_room != vict && vict->next_in_room != ch) {
@@ -3447,10 +3290,7 @@ void perform_kick(struct char_data *ch, struct char_data *vict) {
     return;
   }
 
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
-    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
-    return;
-  }
+  PREREQ_NOT_PEACEFUL_ROOM();
 
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
           ch->next_in_room != vict && vict->next_in_room != ch) {
@@ -3510,10 +3350,7 @@ void perform_seekerarrow(struct char_data *ch, struct char_data *vict) {
     return;
   }
 
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
-    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
-    return;
-  }
+  PREREQ_NOT_PEACEFUL_ROOM();
 
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
           ch->next_in_room != vict && vict->next_in_room != ch) {
@@ -3536,15 +3373,9 @@ ACMD(do_seekerarrow) {
   struct char_data *vict = NULL;
   int uses_remaining = 0;
 
-  if (!MOB_CAN_FIGHT(ch)) {
-    send_to_char(ch, "But you can't fight!\r\n");
-    return;
-  }
+  PREREQ_CAN_FIGHT();
 
-  if (IS_NPC(ch)) {
-    send_to_char(ch, "You have no idea how.\r\n");
-    return;
-  }
+  PREREQ_NOT_NPC();
   if (!HAS_FEAT(ch, FEAT_SEEKER_ARROW)) {
     send_to_char(ch, "You don't know how to do this!\r\n");
     return;
@@ -3573,30 +3404,20 @@ ACMD(do_seekerarrow) {
   perform_seekerarrow(ch, vict);
 }
 
+ACMDCHECK(can_faeriefire) {
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_SLA_FAERIE_FIRE, "You don't know how to do this!\r\n");
+  return CAN_CMD;
+}
+
 ACMD(do_faeriefire) {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
-  int uses_remaining = 0;
-
-  if (!MOB_CAN_FIGHT(ch)) {
-    send_to_char(ch, "But you can't fight!\r\n");
-    return;
-  }
-
-  if (IS_NPC(ch)) {
-    send_to_char(ch, "You have no idea how.\r\n");
-    return;
-  }
-
-  if (!HAS_FEAT(ch, FEAT_SLA_FAERIE_FIRE)) {
-    send_to_char(ch, "You don't know how to do this!\r\n");
-    return;
-  }
-
-  if (!IS_NPC(ch) && ((uses_remaining = daily_uses_remaining(ch, FEAT_SLA_FAERIE_FIRE)) == 0)) {
-    send_to_char(ch, "You must recover before you can use faerie fire again.\r\n");
-    return;
-  }
+ 
+  PREREQ_CAN_FIGHT();
+  PREREQ_NOT_NPC();
+  PREREQ_CHECK(can_faeriefire);
+  PREREQ_HAS_USES(FEAT_SLA_FAERIE_FIRE, "You must recover before you can use faerie fire again.\r\n");
+  
 
   one_argument(argument, arg);
 
@@ -3621,15 +3442,9 @@ ACMD(do_kick) {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
   
-  if (!MOB_CAN_FIGHT(ch)) {
-    send_to_char(ch, "But you can't fight!\r\n");
-    return;
-  }
+  PREREQ_CAN_FIGHT();
 
-  if (IS_NPC(ch)) {
-    send_to_char(ch, "You have no idea how.\r\n");
-    return;
-  }
+  PREREQ_NOT_NPC();
 
   one_argument(argument, arg);
 
@@ -3673,15 +3488,9 @@ ACMD(do_hitall) {
     return;
   }
 
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
-    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
-    return;
-  }
+  PREREQ_NOT_PEACEFUL_ROOM();
 
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE)) {
-    send_to_char(ch, "It is too narrow to try that here.\r\n");
-    return;
-  }
+  PREREQ_NOT_SINGLEFILE_ROOM();
 
   for (vict = world[ch->in_room].people; vict; vict = next_vict) {
     next_vict = vict->next_in_room;
@@ -3706,11 +3515,9 @@ ACMD(do_hitall) {
 }
 
 ACMDCHECK(can_circle) {
-  if (!HAS_FEAT(ch, FEAT_SNEAK_ATTACK)) {
-    ACMD_ERRORMSG("You have no idea how to do that (circle requires at least "
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_SNEAK_ATTACK, "You have no idea how to do that (circle requires at least "
             "1 rank in sneak attack).\r\n");
-    return CANT_CMD_PERM;
-  }
+  
   if (GET_RACE(ch) == RACE_TRELUX)
     ;
   else if (!GET_EQ(ch, WEAR_WIELD_1) && !GET_EQ(ch, WEAR_WIELD_OFFHAND) && !GET_EQ(ch, WEAR_WIELD_2H)) {
@@ -3827,26 +3634,20 @@ ACMD(do_bodyslam) {
   perform_knockdown(ch, vict, SKILL_BODYSLAM);
 }
 
+ACMDCHECK(can_headbutt) {
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_IMPROVED_UNARMED_STRIKE, "You have no idea how.\r\n");
+  return CAN_CMD;
+}
+
 ACMD(do_headbutt) {
   struct char_data *vict = NULL;
   char arg[MAX_INPUT_LENGTH] = {'\0'};
 
-  if (!MOB_CAN_FIGHT(ch)) {
-    send_to_char(ch, "But you can't fight!\r\n");
-    return;
-  }
+  PREREQ_CAN_FIGHT();
 
   one_argument(argument, arg);
 
-  if (!HAS_FEAT(ch, FEAT_IMPROVED_UNARMED_STRIKE)) {
-    send_to_char(ch, "You have no idea how.\r\n");
-    return;
-  }
-
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
-    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
-    return;
-  }
+  PREREQ_NOT_PEACEFUL_ROOM();
 
   if (!*arg || !(vict = get_char_room_vis(ch, arg, NULL))) {
     if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
@@ -3865,10 +3666,7 @@ ACMD(do_sap) {
   struct char_data *vict = NULL;
   char buf[MAX_INPUT_LENGTH] = {'\0'};
 
-  if (!MOB_CAN_FIGHT(ch)) {
-    send_to_char(ch, "But you can't fight!\r\n");
-    return;
-  }
+  PREREQ_CAN_FIGHT();
 
   one_argument(argument, buf);
 
@@ -3937,31 +3735,22 @@ ACMD(do_guard) {
 
 }
 
+ACMDCHECK(can_dirtkick) {
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_DIRT_KICK, "You have no idea how.\r\n");
+  ACMDCHECK_TEMPFAIL_IF(AFF_FLAGGED(ch, AFF_IMMATERIAL), "You got no material feet to dirtkick with.\r\n");
+
+  return CAN_CMD;
+}
+
 ACMD(do_dirtkick) {
   struct char_data *vict = NULL;
   char arg[MAX_INPUT_LENGTH] = {'\0'};
 
-  if (!MOB_CAN_FIGHT(ch)) {
-    send_to_char(ch, "But you can't fight!\r\n");
-    return;
-  }
+  PREREQ_CAN_FIGHT();
+  PREREQ_NOT_PEACEFUL_ROOM();
+  PREREQ_CHECK(can_dirtkick);
 
   one_argument(argument, arg);
-
-  if (!HAS_FEAT(ch, FEAT_DIRT_KICK)) {
-    send_to_char(ch, "You have no idea how.\r\n");
-    return;
-  }
-
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
-    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
-    return;
-  }
-
-  if (AFF_FLAGGED(ch, AFF_IMMATERIAL)) {
-    send_to_char(ch, "You got no material feet to dirtkick with.\r\n");
-    return;
-  }
 
   if (!*arg || !(vict = get_char_room_vis(ch, arg, NULL))) {
     if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
@@ -3988,27 +3777,18 @@ ACMD(do_springleap) {
   struct char_data *vict = NULL;
   char arg[MAX_INPUT_LENGTH] = {'\0'};
 
-  if (!MOB_CAN_FIGHT(ch)) {
-    send_to_char(ch, "But you can't fight!\r\n");
-    return;
-  }
+  PREREQ_CAN_FIGHT();
 
   one_argument(argument, arg);
 
-  if (IS_NPC(ch)) {
-    send_to_char(ch, "You have no idea how.\r\n");
-    return;
-  }
+  PREREQ_NOT_NPC();
 
   if (!HAS_FEAT(ch, FEAT_SPRING_ATTACK) && CLASS_LEVEL(ch, CLASS_MONK) < 5) {
     send_to_char(ch, "You have no idea how.\r\n");
     return;
   }
 
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
-    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
-    return;
-  }
+  PREREQ_NOT_PEACEFUL_ROOM();
 
   if (GET_POS(ch) != POS_SITTING && GET_POS(ch) != POS_RECLINING) {
     send_to_char(ch, "You must be sitting or reclining to springleap.\r\n");
@@ -4037,14 +3817,8 @@ ACMD(do_shieldpunch) {
   struct char_data *vict = NULL;
   char arg[MAX_INPUT_LENGTH] = {'\0'};
 
-  if (!MOB_CAN_FIGHT(ch)) {
-    send_to_char(ch, "But you can't fight!\r\n");
-    return;
-  }
-  if (IS_NPC(ch)) {
-    send_to_char(ch, "You have no idea how.\r\n");
-    return;
-  }
+  PREREQ_CAN_FIGHT();
+  PREREQ_NOT_NPC();
 
   one_argument(argument, arg);
 
@@ -4058,10 +3832,7 @@ ACMD(do_shieldpunch) {
     return;
   }
 
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
-    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
-    return;
-  }
+  PREREQ_NOT_PEACEFUL_ROOM();
 
   if (!*arg) {
     if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
@@ -4084,14 +3855,8 @@ ACMD(do_shieldcharge) {
   struct char_data *vict = NULL;
   char arg[MAX_INPUT_LENGTH] = {'\0'};
 
-  if (!MOB_CAN_FIGHT(ch)) {
-    send_to_char(ch, "But you can't fight!\r\n");
-    return;
-  }
-  if (IS_NPC(ch)) {
-    send_to_char(ch, "You have no idea how.\r\n");
-    return;
-  }
+  PREREQ_CAN_FIGHT();
+  PREREQ_NOT_NPC();
 
   one_argument(argument, arg);
 
@@ -4105,10 +3870,7 @@ ACMD(do_shieldcharge) {
     return;
   }
 
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
-    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
-    return;
-  }
+  PREREQ_NOT_PEACEFUL_ROOM();
 
   if (!*arg) {
     if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
@@ -4133,14 +3895,8 @@ ACMD(do_shieldslam) {
   struct char_data *vict = NULL;
   char arg[MAX_INPUT_LENGTH] = {'\0'};
 
-  if (!MOB_CAN_FIGHT(ch)) {
-    send_to_char(ch, "But you can't fight!\r\n");
-    return;
-  }
-  if (IS_NPC(ch)) {
-    send_to_char(ch, "You have no idea how.\r\n");
-    return;
-  }
+  PREREQ_CAN_FIGHT();
+  PREREQ_NOT_NPC();
 
   one_argument(argument, arg);
 
@@ -4154,10 +3910,7 @@ ACMD(do_shieldslam) {
     return;
   }
 
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
-    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
-    return;
-  }
+  PREREQ_NOT_PEACEFUL_ROOM();
 
   if (!*arg) {
     if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
@@ -4280,15 +4033,9 @@ ACMD(do_fire) {
   room_rnum room = NOWHERE;
   int direction = -1, original_loc = NOWHERE;
 
-  if (IS_NPC(ch)) {
-    send_to_char(ch, "You have no idea how.\r\n");
-    return;
-  }
+  PREREQ_NOT_NPC();
 
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
-    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
-    return;
-  }
+  PREREQ_NOT_PEACEFUL_ROOM();
 
   if (FIGHTING(ch) || FIRING(ch)) {
     send_to_char(ch, "You are too busy fighting to try and fire right now!\r\n");
@@ -4631,20 +4378,9 @@ ACMD(do_feint) {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
 
-  if (IS_NPC(ch)) {
-    send_to_char(ch, "You have no idea how.\r\n");
-    return;
-  }
-
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
-    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
-    return;
-  }
-
-  if (GET_POS(ch) <= POS_SITTING) {
-    send_to_char(ch, "You need to stand to feint!\r\n");
-    return;
-  }
+  PREREQ_NOT_NPC();
+  PREREQ_NOT_PEACEFUL_ROOM();
+  PREREQ_IN_POSITION(POS_SITTING, "You need to stand to feint!\r\n");
 
   one_argument(argument, arg);
 
@@ -4789,20 +4525,9 @@ ACMD(do_disarm) {
   int mod = 0;
   struct char_data *vict = NULL;
 
-  if (IS_NPC(ch)) {
-    send_to_char(ch, "You have no idea how.\r\n");
-    return;
-  }
-
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
-    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
-    return;
-  }
-
-  if (GET_POS(ch) <= POS_SITTING) {
-    send_to_char(ch, "You need to stand to disarm!\r\n");
-    return;
-  }
+  PREREQ_NOT_NPC();
+  PREREQ_NOT_PEACEFUL_ROOM();
+  PREREQ_IN_POSITION(POS_SITTING, "You need to stand to disarm!\r\n");
 
   one_argument(argument, arg);
 

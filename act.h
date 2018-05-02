@@ -35,6 +35,7 @@ int has_unlocked_class(struct char_data *ch, int class);
  * Begin general helper defines for all act files
  * These encapsulate some standard "can do this" checks.
  ****************************************************************************/
+
 /** Check if character can actually fight. */
 #define PREREQ_CAN_FIGHT()   \
   if (!MOB_CAN_FIGHT(ch)) { \
@@ -45,6 +46,19 @@ int has_unlocked_class(struct char_data *ch, int class);
 /** Check the specified function to see if we get back a CAN_CMD. */
 #define PREREQ_CHECK(name) \
    if (!name(ch, true)) return;
+
+/** Check if the character has enough daily uses of the specified feat. */
+#define PREREQ_HAS_USES(feat, errormsg) \
+  int uses_remaining; \
+  if ((uses_remaining = daily_uses_remaining(ch, feat)) == 0) { \
+    send_to_char(ch, errormsg); \
+    return; \
+  } \
+\
+  if (uses_remaining < 0) { \
+    send_to_char(ch, "You are not experienced enough.\r\n"); \
+    return; \
+  }
 
 /** Check if the character is in the specified position or better. */
 #define PREREQ_IN_POSITION(req_pos, errmsg) \
@@ -74,6 +88,30 @@ int has_unlocked_class(struct char_data *ch, int class);
     return; \
   }
 
+/** Check for the target feat - to be used only within the ACMDCHECK() macro. */
+#define ACMDCHECK_PREREQ_HASFEAT(feat, errormsg) \
+  ACMDCHECK_PERMFAIL_IF(!HAS_FEAT(ch, feat), errormsg)
+
+/** Check for the specified condition and fail permanently if it's true. 
+ * In other words, the character doesn't have the ability to use this command. 
+ * To be used only within the ACMDCHECK() macro.
+ */
+#define ACMDCHECK_PERMFAIL_IF(code, errormsg) \
+  if (code) { \
+    ACMD_ERRORMSG(errormsg); \
+    return CANT_CMD_PERM; \
+  }
+
+/** Check for the specified condition and temporarily fail if it's true. 
+ * In other words, the character has the ability to use this command, but are 
+ * missing something else that would cause it to fail. 
+ * To be used only within the ACMDCHECK() macro.
+ */
+#define ACMDCHECK_TEMPFAIL_IF(code, errormsg) \
+  if (code) { \
+    ACMD_ERRORMSG(errormsg); \
+    return CANT_CMD_TEMP; \
+  }
 
 /*****************************************************************************
  * Begin Functions and defines for act.comm.c
