@@ -31,6 +31,7 @@
 #include "actions.h"
 #include "traps.h" /* for check_traps() */
 #include "spell_prep.h"
+#include "trails.h"
 
 /* do_gen_door utility functions */
 static int find_door(struct char_data *ch, const char *type, char *dir,
