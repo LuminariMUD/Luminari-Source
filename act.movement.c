@@ -492,7 +492,7 @@ void create_tracks(struct char_data *ch, int dir, int flag)
     log("SYSERR: Char at location NOWHERE trying to create tracks.");
     return;
   }
-  I
+  
 
       /* 
     Here we create the track structure, set the values and assign it to the room. 
