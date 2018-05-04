@@ -504,7 +504,7 @@ void create_tracks(struct char_data *ch, int dir, int flag)
 
       CREATE(new_trail, struct trail_data, 1);
   new_trail->name = strdup(GET_NAME(ch));
-  new_trail->race = (IS_NPC(ch) ? strdup(&race_family_types[GET_NPC_RACE(ch)]) : strdup(&race_list[GET_RACE(ch)].name));
+  new_trail->race = (IS_NPC(ch) ? strdup(race_family_types[GET_NPC_RACE(ch)]) : strdup(race_list[GET_RACE(ch)].name));
   new_trail->from = (flag == TRACKS_IN ? dir : DIR_NONE);
   new_trail->to = (flag == TRACKS_OUT ? dir : DIR_NONE);
   new_trail->age = time(NULL);
