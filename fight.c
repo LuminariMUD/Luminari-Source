@@ -3488,7 +3488,12 @@ int determine_threat_range(struct char_data *ch, struct obj_data *wielded) {
       if ((wielded == NULL) || weapon_list[GET_OBJ_VAL(wielded, 0)].critRange == 0) {
         threat_range--;
       } else {
-        threat_range = 20 - (weapon_list[GET_OBJ_VAL(wielded, 0)].critRange * 2);
+        /* Subtract the threat range again, with +1 to correspond to 20.
+         * i.e. a 20-only weapon (range 0) will be reduced by (0+1) so that the result is 19-20.
+         *      a 19-20 weapon (range 1) will be reduced by (1+1) so that the result is 17-20.
+         *      a 18-20 weapon (range 2) will be reduced by (2+1) so that the result is 15-20.
+         */
+        threat_range -= (weapon_list[GET_OBJ_VAL(wielded, 0)].critRange + 1);
       }
     }
   }
