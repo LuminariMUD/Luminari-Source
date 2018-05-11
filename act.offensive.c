@@ -1711,41 +1711,28 @@ ACMD(do_defensive_stance) {
   GET_HIT(ch) += (bonus / 2) * GET_LEVEL(ch) + GET_CON_BONUS(ch);
 }
 
+ACMDCHECK(can_rage) {
+  ACMDCHECK_TEMPFAIL_IF(affected_by_spell(ch, SKILL_DEFENSIVE_STANCE), "You can't rage while using a defensive stance!\r\n");
+  ACMDCHECK_TEMPFAIL_IF(AFF_FLAGGED(ch, AFF_FATIGUED), "You are are too fatigued to rage!\r\n");
+  ACMDCHECK_PERMFAIL_IF(!IS_ANIMAL(ch) && !HAS_FEAT(ch, FEAT_RAGE), "You don't know how to rage.\r\n");
+}
+
 /* rage skill (berserk) primarily for berserkers character class */
 ACMD(do_rage) {
   struct affected_type af, aftwo, afthree, affour;
-  int bonus = 0, duration = 0, uses_remaining = 0;
+  int bonus = 0, duration = 0;
 
   PREREQ_CAN_FIGHT();
 
+  // If currently raging, all this does is stop.
   if (affected_by_spell(ch, SKILL_RAGE)) {
     clear_rage(ch);
     affect_from_char(ch, SKILL_RAGE);
     return;
   }
-
-  if (affected_by_spell(ch, SKILL_DEFENSIVE_STANCE)) {
-    send_to_char(ch, "You can't rage while using a defensive stance!\r\n");
-    return;
-  }
-
-  if (AFF_FLAGGED(ch, AFF_FATIGUED)) {
-    send_to_char(ch, "You are are too fatigued to rage!\r\n");
-    return;
-  }
-
-  if (IS_ANIMAL(ch))
-    ;
-  else if (!HAS_FEAT(ch, FEAT_RAGE)) {
-    send_to_char(ch, "You don't know how to rage.\r\n");
-    return;
-  }
-
-  if (!IS_NPC(ch) && ((uses_remaining = daily_uses_remaining(ch, FEAT_RAGE)) == 0)) {
-    send_to_char(ch, "You must recover before you can go into a rage.\r\n");
-    return;
-  }
-
+  PREREQ_CHECK(can_rage);
+  if (!IS_NPC(ch)) {PREREQ_HAS_USES(FEAT_RAGE, "You must recover before you can go into a rage.\r\n");}
+  
   /* bonus */
   bonus = get_rage_bonus(ch);
 
@@ -2761,20 +2748,17 @@ ACMD(do_crystalbody) {
 
 }
 
+ACMDCHECK(can_reneweddefense) {
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_RENEWED_DEFENSE, "You have no idea how to do that!\r\n");
+  ACMDCHECK_TEMPFAIL_IF(char_has_mud_event(ch, eRENEWEDDEFENSE), "You must wait longer before you can use this ability again.\r\n");
+  ACMDCHECK_TEMPFAIL_IF(!affected_by_spell(ch, SKILL_DEFENSIVE_STANCE), "You need to be in a defensive stance to do that!\r\n");
+  return CAN_CMD;
+}
+
 ACMD(do_reneweddefense) {
 
   PREREQ_NOT_NPC();
-
-  if (!HAS_FEAT(ch, FEAT_RENEWED_DEFENSE)) {
-    send_to_char(ch, "You have no idea how to do that!\r\n");
-    return;
-  }
-
-  if (char_has_mud_event(ch, eRENEWEDDEFENSE)) {
-    send_to_char(ch, "You must wait longer before you can use this "
-            "ability again.\r\n");
-    return;
-  }
+  PREREQ_CHECK(can_reneweddefense);
 
   if (FIGHTING(ch) && GET_POS(ch) < POS_FIGHTING) {
     send_to_char(ch, "You need to be in a better position in combat in order"
@@ -2782,10 +2766,6 @@ ACMD(do_reneweddefense) {
     return;
   }
 
-  if (!affected_by_spell(ch, SKILL_DEFENSIVE_STANCE)) {
-    send_to_char(ch, "You need to be in a defensive stance to do that!\r\n");
-    return;
-  }
 
   send_to_char(ch, "Your body glows \tRred\tn as your wounds heal...\r\n");
   act("$n's body glows \tRred\tn as some wounds heal!", FALSE, ch, 0, NULL, TO_NOTVICT);
@@ -2799,29 +2779,22 @@ ACMD(do_reneweddefense) {
   USE_SWIFT_ACTION(ch);
 }
 
+ACMDCHECK(can_renewedvigor) {
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_RP_RENEWED_VIGOR, "You have no idea how to do that!\r\n");
+  ACMDCHECK_TEMPFAIL_IF(char_has_mud_event(ch, eRENEWEDVIGOR), "You must wait longer before you can use this ability again.\r\n");
+  ACMDCHECK_TEMPFAIL_IF(!affected_by_spell(ch, SKILL_RAGE), "You need to be raging to do that!\r\n");
+  return CAN_CMD;
+}
+
 ACMD(do_renewedvigor) {
 
   PREREQ_NOT_NPC();
+  PREREQ_CHECK(can_renewedvigor);
 
-  if (!HAS_FEAT(ch, FEAT_RP_RENEWED_VIGOR)) {
-    send_to_char(ch, "You have no idea how to do that!\r\n");
-    return;
-  }
-
-  if (char_has_mud_event(ch, eRENEWEDVIGOR)) {
-    send_to_char(ch, "You must wait longer before you can use this "
-            "ability again.\r\n");
-    return;
-  }
 
   if (FIGHTING(ch) && GET_POS(ch) < POS_FIGHTING) {
     send_to_char(ch, "You need to be in a better position in combat in order"
             " to use this ability!\r\n");
-    return;
-  }
-
-  if (!affected_by_spell(ch, SKILL_RAGE)) {
-    send_to_char(ch, "You need to be raging to do that!\r\n");
     return;
   }
 
@@ -3082,30 +3055,17 @@ ACMD(do_deatharrow) {
   perform_deatharrow(ch);
 }
 
+ACMDCHECK(can_quiveringpalm) {
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_QUIVERING_PALM, "You have no idea how.\r\n");
+  ACMDCHECK_TEMPFAIL_IF(affected_by_spell(ch, SKILL_QUIVERING_PALM), "You have already focused your ki!\r\n");
+  return CAN_CMD;
+}
+
 ACMD(do_quiveringpalm) {
-  int uses_remaining = 0;
-
   PREREQ_CAN_FIGHT();
+  PREREQ_CHECK(can_quiveringpalm);
+  PREREQ_HAS_USES(FEAT_QUIVERING_PALM, "You must recover before you can focus your ki in this way again.\r\n");
 
-  if (!HAS_FEAT(ch, FEAT_QUIVERING_PALM)) {
-    send_to_char(ch, "You have no idea how.\r\n");
-    return;
-  }
-
-  if (affected_by_spell(ch, SKILL_QUIVERING_PALM)) {
-    send_to_char(ch, "You have already focused your ki!\r\n");
-    return;
-  }
-
-  if ((uses_remaining = daily_uses_remaining(ch, FEAT_QUIVERING_PALM)) == 0) {
-    send_to_char(ch, "You must recover before you can focus your ki in this way again.\r\n");
-    return;
-  }
-
-  if (uses_remaining < 0) {
-    send_to_char(ch, "You are not experienced enough.\r\n");
-    return;
-  }
 
   perform_quiveringpalm(ch);
 }

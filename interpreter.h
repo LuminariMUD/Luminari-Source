@@ -75,6 +75,8 @@ struct command_info {
    sh_int ignore_wait; // set to TRUE if the command can be performed during wait event
    int actions_required;
    int action_cooldowns[NUM_ACTIONS];
+   int (*command_check_pointer)
+           (struct char_data *ch, bool show_error);
 };
 
 struct mob_script_command_t {
