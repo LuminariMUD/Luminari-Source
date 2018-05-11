@@ -170,9 +170,10 @@ void free_recent_players(void);
 /* functions with subcommands */
 /* do_commands */
 ACMD(do_commands);
-#define SCMD_COMMANDS 0
-#define SCMD_SOCIALS  1
-#define SCMD_WIZHELP  2
+#define SCMD_COMMANDS  0
+#define SCMD_SOCIALS   1
+#define SCMD_WIZHELP   2
+#define SCMD_MANEUVERS 3
 /* do_gen_ps */
 ACMD(do_gen_ps);
 #define SCMD_INFO      0
@@ -386,20 +387,20 @@ ACMD(do_collect);
 ACMD(do_hitall);
 ACMD(do_guard);
 ACMD(do_charge);
-ACMD(do_circle);
+ACMD(do_circle);                    ACMDCHECK(can_circle);
 ACMD(do_bodyslam);
 ACMD(do_springleap);
 ACMD(do_feint);
-ACMD(do_headbutt);
+ACMD(do_headbutt);                  ACMDCHECK(can_headbutt);
 ACMD(do_shieldpunch);
 ACMD(do_disarm);
 ACMD(do_shieldcharge);
 ACMD(do_shieldslam);
-ACMD(do_dirtkick);
+ACMD(do_dirtkick);                  ACMDCHECK(can_dirtkick);
 ACMD(do_sap);
 ACMD(do_assist);
-ACMD(do_rage);
-ACMD(do_defensive_stance);
+ACMD(do_rage);                      ACMDCHECK(can_rage);
+ACMD(do_defensive_stance);          ACMDCHECK(can_defensive_stance);
 ACMD(do_turnundead);
 ACMD(do_bash);
 ACMD(do_call);
@@ -408,21 +409,21 @@ ACMD(do_levitate);
 ACMD(do_darkness);
 ACMD(do_land);
 ACMD(do_frightful);
-ACMD(do_breathe);
+ACMD(do_breathe);                   ACMDCHECK(can_breathe);
 ACMD(do_tailsweep);
-ACMD(do_backstab);
+ACMD(do_backstab);                  ACMDCHECK(can_backstab);
 ACMD(do_flee);
 ACMD(do_stunningfist);
-ACMD(do_quiveringpalm);
-ACMD(do_deatharrow);
-ACMD(do_faeriefire);
+ACMD(do_quiveringpalm);             ACMDCHECK(can_quiveringpalm);
+ACMD(do_deatharrow);                ACMDCHECK(can_deatharrow);
+ACMD(do_faeriefire);                ACMDCHECK(can_faeriefire);
 ACMD(do_kick);
 ACMD(do_seekerarrow);
-ACMD(do_arrowswarm);
+ACMD(do_arrowswarm);                ACMDCHECK(can_arrowswarm);
 ACMD(do_smiteevil);
 ACMD(do_smitegood);
 ACMD(do_kill);
-ACMD(do_layonhands);
+ACMD(do_layonhands);                ACMDCHECK(can_layonhands);
 ACMD(do_order);
 ACMD(do_applypoison);
 ACMD(do_sorcerer_arcane_apotheosis);
@@ -431,19 +432,19 @@ ACMD(do_abundantstep);
 ACMD(do_animatedead);
 ACMD(do_rescue);
 ACMD(do_taunt);
-ACMD(do_intimidate);
+ACMD(do_intimidate);                ACMDCHECK(can_intimidate);
 ACMD(do_treatinjury);
-ACMD(do_emptybody);
+ACMD(do_emptybody);                 ACMDCHECK(can_emptybody);
 ACMD(do_wholenessofbody);
 ACMD(do_trip);
 ACMD(do_whirlwind);
-ACMD(do_crystalfist);
-ACMD(do_crystalbody);
-ACMD(do_supriseaccuracy);
-ACMD(do_powerfulblow);
-ACMD(do_renewedvigor);
-ACMD(do_reneweddefense);
-ACMD(do_comeandgetme);
+ACMD(do_crystalfist);               ACMDCHECK(can_crystalfist);
+ACMD(do_crystalbody);               ACMDCHECK(can_crystalbody);
+ACMD(do_supriseaccuracy);  
+ACMD(do_powerfulblow);              ACMDCHECK(can_powerfulblow);
+ACMD(do_renewedvigor);              ACMDCHECK(can_renewedvigor);
+ACMD(do_reneweddefense);            ACMDCHECK(can_reneweddefense);
+ACMD(do_comeandgetme);              ACMDCHECK(can_comeandgetme);
 ACMD(do_sorcerer_breath_weapon);
 ACMD(do_sorcerer_claw_attack);
 ACMD(do_sorcerer_draconic_wings);
