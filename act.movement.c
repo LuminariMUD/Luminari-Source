@@ -3428,6 +3428,12 @@ ACMD(do_pullswitch)
   room = real_room(GET_OBJ_VAL(obj, 1));
   door = GET_OBJ_VAL(obj, 2);
 
+  if (room < 0)
+  {
+    send_to_char(ch, "Bug in switch here, contact an immortal\r\n");
+    log("SYSERR: Broken switch: real_room() for %s (VNUM %d) evaluated to -1", obj->name, obj->id);
+    return;
+  }
   if (!world[room].dir_option[door])
   {
     send_to_char(ch, "Bug in switch here, contact an immortal\r\n");
