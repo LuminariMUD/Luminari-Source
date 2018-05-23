@@ -48,7 +48,7 @@ typedef struct descriptor_data descriptor_t;
  ******************************************************************************/
 
 
-#define MUDLET_PACKAGE "3\nhttp://luminarimud.com/download/LuminariGUI.mpackage"
+#define MUDLET_PACKAGE "4\nhttp://luminarimud.com/download/LuminariGUI.mpackage"
 
 
 /******************************************************************************
