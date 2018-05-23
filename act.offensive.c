@@ -1715,6 +1715,7 @@ ACMDCHECK(can_rage) {
   ACMDCHECK_TEMPFAIL_IF(affected_by_spell(ch, SKILL_DEFENSIVE_STANCE), "You can't rage while using a defensive stance!\r\n");
   ACMDCHECK_TEMPFAIL_IF(AFF_FLAGGED(ch, AFF_FATIGUED), "You are are too fatigued to rage!\r\n");
   ACMDCHECK_PERMFAIL_IF(!IS_ANIMAL(ch) && !HAS_FEAT(ch, FEAT_RAGE), "You don't know how to rage.\r\n");
+  return CAN_CMD;
 }
 
 /* rage skill (berserk) primarily for berserkers character class */

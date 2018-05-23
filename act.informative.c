@@ -3970,16 +3970,15 @@ ACMD(do_commands) {
         continue;
       
       // char has access to the command, copy to commands list with a useful color:
-      // Yellow if they can't use it right now, green if they can.
+      // Red if they can't use it right now, green if they can.
       // Just send it to the character instead of using the column_list(), so that we can color.
-      send_to_char(ch, "%s%-14s%s", can_cmd == CAN_CMD ? "\tG" : "\ty", complete_cmd_info[i].command, no++ % 7 == 0 ? "\r\n" : "");
+      send_to_char(ch, "%s%-14s\r\n", can_cmd == CAN_CMD ? "\tG" : "\tr", complete_cmd_info[i].command);
     }
     else {
       /* matching command: copy to commands list */
       commands[no++] = complete_cmd_info[i].command;
     }
-    if (maneuvers && no % 7 != 1)
-      send_to_char(ch, "\r\n");
+
   }
   /* display commands list in a nice columnized format */
   if (!maneuvers)

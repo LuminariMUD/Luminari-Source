@@ -45,7 +45,7 @@ int has_unlocked_class(struct char_data *ch, int class);
 
 /** Check the specified function to see if we get back a CAN_CMD. */
 #define PREREQ_CHECK(name) \
-   if (!name(ch, true)) return;
+   if (name(ch, true)) return;
 
 /** Check if the character has enough daily uses of the specified feat. */
 #define PREREQ_HAS_USES(feat, errormsg) \
