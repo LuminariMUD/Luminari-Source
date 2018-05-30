@@ -1454,6 +1454,12 @@ EVENTFUNC(event_whirlwind) {
 
 /******* start offensive commands *******/
 
+ACMDCHECK(can_turnundead) {
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_TURN_UNDEAD, "You do not possess divine favor!\r\n");
+  ACMDCHECK_PERMFAIL_IF(CLASS_LEVEL(ch, CLASS_CLERIC) <= 0 && CLASS_LEVEL(ch, CLASS_PALADIN) <= 2, "You do not possess divine favor!\r\n");
+  return CAN_CMD;
+}
+
 /* turn undead skill (clerics, paladins, etc) */
 ACMD(do_turnundead) {
   struct char_data *vict = NULL;
@@ -1462,17 +1468,14 @@ ACMD(do_turnundead) {
   char buf[MAX_STRING_LENGTH] = {'\0'};
 
   PREREQ_CAN_FIGHT();
-
-  if (!HAS_FEAT(ch, FEAT_TURN_UNDEAD)) {
-    send_to_char(ch, "You do not possess divine favor!\r\n");
-    return;
-  }
+  PREREQ_CHECK(can_turnundead);
 
   if (CLASS_LEVEL(ch, CLASS_PALADIN) > 2)
     turn_level += CLASS_LEVEL(ch, CLASS_PALADIN) - 2;
   turn_level += CLASS_LEVEL(ch, CLASS_CLERIC);
 
   if (turn_level <= 0) {
+    // This should never happen because of the ACMDCHECK_PERMFAIL_IF() in can_turnundead, but leave it in place just to be safe.
     send_to_char(ch, "You do not possess divine favor!\r\n");
     return;
   }
@@ -2218,18 +2221,20 @@ int perform_taunt(struct char_data *ch, struct char_data *vict) {
   return success;
 }
 
+ACMDCHECK(can_taunt) {
+  ACMDCHECK_PERMFAIL_IF(!GET_ABILITY(ch, ABILITY_DIPLOMACY), "You have no idea how (requires diplomacy).\r\n");
+  return CAN_CMD;
+}
+
 ACMD(do_taunt) {
   char arg[MAX_INPUT_LENGTH];
   struct char_data *vict;
 
   PREREQ_CAN_FIGHT();
+  PREREQ_NOT_NPC();
 
   one_argument(argument, arg);
 
-  if (IS_NPC(ch) || !GET_ABILITY(ch, ABILITY_DIPLOMACY)) {
-    send_to_char(ch, "You have no idea how (requires diplomacy).\r\n");
-    return;
-  }
   PREREQ_NOT_PEACEFUL_ROOM();
   if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
     if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch))) {
@@ -2466,27 +2471,20 @@ ACMD(do_breathe) {
   USE_STANDARD_ACTION(ch);
 }
 
+ACMDCHECK(can_sorcerer_breath_weapon) {
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_DRACONIC_HERITAGE_BREATHWEAPON, "You do not have access to this ability.\r\n");
+  return CAN_CMD;
+}
+
 ACMD(do_sorcerer_breath_weapon) {
-  int uses_remaining = 0;
   struct char_data *vict, *next_vict;
 
-  if (!HAS_FEAT(ch, FEAT_DRACONIC_HERITAGE_BREATHWEAPON)) {
-    send_to_char(ch, "You do not have access to this ability.\r\n");
-    return;
-  }
-
   PREREQ_CAN_FIGHT();
-
-  if (!IS_NPC(ch) && ((uses_remaining = daily_uses_remaining(ch, FEAT_DRACONIC_HERITAGE_BREATHWEAPON)) == 0)) {
-    send_to_char(ch, "You must recover before you can use your draconic heritage breath weapon again.\r\n");
-    return;
-  }
-
-  send_to_char(ch, "You have %d uses remaining.\r\n", daily_uses_remaining(ch, FEAT_DRACONIC_HERITAGE_BREATHWEAPON));
-
-  if (uses_remaining < 0) {
-    send_to_char(ch, "You do not have access to this ability.\r\n");
-    return;
+  PREREQ_CHECK(can_sorcerer_breath_weapon);
+  
+  if (!IS_NPC(ch)) {
+    PREREQ_HAS_USES(FEAT_DRACONIC_HERITAGE_BREATHWEAPON, "You must recover before you can use your draconic heritage breath weapon again.\r\n");
+    send_to_char(ch, "You have %d uses remaining.\r\n", uses_remaining);
   }
 
   PREREQ_NOT_PEACEFUL_ROOM();
@@ -2513,28 +2511,17 @@ ACMD(do_sorcerer_breath_weapon) {
   USE_STANDARD_ACTION(ch);
 }
 
+ACMDCHECK(can_sorcerer_claw_attack) {
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_DRACONIC_HERITAGE_CLAWS, "You have no idea how.\r\n");
+  ACMDCHECK_TEMPFAIL_IF(affected_by_spell(ch, SKILL_DRHRT_CLAWS), "You are already in the process of making a draconic claws attack.\r\n");
+  return CAN_CMD;
+}
+
 ACMD(do_sorcerer_claw_attack) {
-  int uses_remaining = 0;
-
-  if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_DRACONIC_HERITAGE_CLAWS)) {
-    send_to_char(ch, "You have no idea how.\r\n");
-    return;
-  }
-
-  if (affected_by_spell(ch, SKILL_DRHRT_CLAWS)) {
-    send_to_char(ch, "You are already in the process of making a draconic claws attack.\r\n");
-    return;
-  }
-
-  if ((uses_remaining = daily_uses_remaining(ch, FEAT_DRACONIC_HERITAGE_CLAWS)) == 0) {
-    send_to_char(ch, "You must wait to recover your draconic heritage claw attacks.\r\n");
-    return;
-  }
-
-  if (uses_remaining < 0) {
-    send_to_char(ch, "You are not experienced enough.\r\n");
-    return;
-  }
+  
+  PREREQ_NOT_NPC();
+  PREREQ_CHECK(can_sorcerer_claw_attack);
+  PREREQ_HAS_USES(FEAT_DRACONIC_HERITAGE_CLAWS, "You must wait to recover your draconic heritage claw attacks.\r\n");
 
   if (!FIGHTING(ch)) {
     send_to_char(ch, "You can only use this ability in combat.\r\n");
@@ -2563,16 +2550,18 @@ ACMD(do_sorcerer_claw_attack) {
   USE_STANDARD_ACTION(ch);
 }
 
+ACMDCHECK(can_tailsweep) {
+  ACMDCHECK_PERMFAIL_IF(!IS_DRAGON(ch), "You have no idea how.\r\n");
+  return CAN_CMD;
+}
+
 ACMD(do_tailsweep) {
   struct char_data *vict, *next_vict;
   int percent = 0, prob = 0;
 
   PREREQ_CAN_FIGHT();
 
-  if (!IS_DRAGON(ch)) {
-    send_to_char(ch, "You have no idea how.\r\n");
-    return;
-  }
+  PREREQ_CHECK(can_tailsweep);
   PREREQ_NOT_PEACEFUL_ROOM();
   PREREQ_NOT_SINGLEFILE_ROOM();
 
@@ -2811,20 +2800,17 @@ ACMD(do_renewedvigor) {
   USE_SWIFT_ACTION(ch);
 }
 
+ACMDCHECK(can_wholenessofbody) {
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_WHOLENESS_OF_BODY, "You have no idea how to do that!\r\n");
+  ACMDCHECK_TEMPFAIL_IF(char_has_mud_event(ch, eWHOLENESSOFBODY), "You must wait longer before you can use this "
+                                                                  "ability again.\r\n");
+  return CAN_CMD;
+}
+
 ACMD(do_wholenessofbody) {
 
   PREREQ_NOT_NPC();
-
-  if (!HAS_FEAT(ch, FEAT_WHOLENESS_OF_BODY)) {
-    send_to_char(ch, "You have no idea how to do that!\r\n");
-    return;
-  }
-
-  if (char_has_mud_event(ch, eWHOLENESSOFBODY)) {
-    send_to_char(ch, "You must wait longer before you can use this "
-            "ability again.\r\n");
-    return;
-  }
+  PREREQ_CHECK(can_wholenessofbody);
 
   if (FIGHTING(ch) && GET_POS(ch) < POS_FIGHTING) {
     send_to_char(ch, "You need to be in a better position in combat in order"
@@ -2886,21 +2872,22 @@ ACMD(do_emptybody) {
   USE_MOVE_ACTION(ch);
 }
 
+ACMDCHECK(can_treatinjury) {
+  ACMDCHECK_TEMPFAIL_IF(char_has_mud_event(ch, eTREATINJURY), "You must wait longer before you can use this "
+                                                              "ability again.\r\n");
+  return CAN_CMD;
+}
+
 ACMD(do_treatinjury) {
   char arg[MAX_INPUT_LENGTH];
   struct char_data *vict;
 
   PREREQ_NOT_NPC();
   one_argument(argument, arg);
+  PREREQ_CHECK(can_treatinjury);
 
   if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
     send_to_char(ch, "Whom do you want to treat?\r\n");
-    return;
-  }
-
-  if (char_has_mud_event(ch, eTREATINJURY)) {
-    send_to_char(ch, "You must wait longer before you can use this "
-            "ability again.\r\n");
     return;
   }
 
@@ -2969,22 +2956,19 @@ ACMD(do_rescue) {
   perform_rescue(ch, vict);
 }
 
+ACMDCHECK(can_whirlwind) {
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_WHIRLWIND_ATTACK, "You have no idea how.\r\n");
+  return CAN_CMD;
+}
+
 /* whirlwind attack! */
 ACMD(do_whirlwind) {
   struct char_data *vict, *next_vict;
   int num_attacks = 1;
 
   PREREQ_CAN_FIGHT();
-
-  if (!HAS_FEAT(ch, FEAT_WHIRLWIND_ATTACK)) {
-    send_to_char(ch, "You have no idea how.\r\n");
-    return;
-  }
-
-  if (GET_POS(ch) < POS_FIGHTING) {
-    send_to_char(ch, "You must be on your feet to perform a whirlwind.\r\n");
-    return;
-  }
+  PREREQ_CHECK(can_whirlwind);
+  PREREQ_IN_POSITION(POS_SITTING, "You must be on your feet to perform a whirlwind.\r\n");
   PREREQ_NOT_SINGLEFILE_ROOM();
   PREREQ_NOT_PEACEFUL_ROOM();
 
@@ -3071,60 +3055,35 @@ ACMD(do_quiveringpalm) {
   perform_quiveringpalm(ch);
 }
 
+ACMD(can_stunningfist) {
+  ACMDCHECK_PREREQ_HASFEAT(FETA_STUNNING_FIST, "You have no idea how.\r\n");
+  ACMDCHECK_TEMPFAIL_IF(affected_by_spell(ch, SKILL_STUNNING_FIST), "You have already focused your ki!\r\n");
+  return CAN_CMD;
+}
+
 ACMD(do_stunningfist) {
-  int uses_remaining = 0;
-
+  
   PREREQ_CAN_FIGHT();
-
-  if (!HAS_FEAT(ch, FEAT_STUNNING_FIST)) {
-    send_to_char(ch, "You have no idea how.\r\n");
-    return;
-  }
-
-  if (affected_by_spell(ch, SKILL_STUNNING_FIST)) {
-    send_to_char(ch, "You have already focused your ki!\r\n");
-    return;
-  }
-
-  if ((uses_remaining = daily_uses_remaining(ch, FEAT_STUNNING_FIST)) == 0) {
-    send_to_char(ch, "You must recover before you can focus your ki in this way again.\r\n");
-    return;
-  }
-
-  if (uses_remaining < 0) {
-    send_to_char(ch, "You are not experienced enough.\r\n");
-    return;
-  }
+  PREREQ_CHECK(can_stunningfist);
+  PREREQ_HAS_USES(FEAT_STUNNING_FIST, "You must recover before you can focus your ki in this way again.\r\n");
 
   perform_stunningfist(ch);
 }
 
+ACMDCHECK(can_supriseaccuracy) {
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_RP_SUPRISE_ACCURACY, "You have no idea how.\r\n");
+  ACMDCHECK_TEMPFAIL_IF(affected_by_spell(ch, SKILL_SUPRISE_ACCURACY), "You have already focused your rage into accuracy!\r\n");
+  ACMDCHECK_TEMPFAIL_IF(char_has_mud_event(ch, eSUPRISE_ACCURACY),  "You are too exhausted to use suprise accuracy again!\r\n");
+  ACMDCHECK_TEMPFAIL_IF(AFF_FLAGGED(ch, AFF_FATIGUED), "You are are too fatigued to use suprise accuracy!\r\n");
+  ACMDCHECK_TEMPFAIL_IF(!affected_by_spell(ch, SKILL_RAGE), "You need to be raging to use suprise accuracy!\r\n");
+  return CAN_CMD;
+}
+
 ACMD(do_supriseaccuracy) {
-  if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_RP_SUPRISE_ACCURACY)) {
-    send_to_char(ch, "You have no idea how.\r\n");
-    return;
-  }
-
-  if (affected_by_spell(ch, SKILL_SUPRISE_ACCURACY)) {
-    send_to_char(ch, "You have already focused your rage into accuracy!\r\n");
-    return;
-  }
-
-  if (char_has_mud_event(ch, eSUPRISE_ACCURACY)) {
-    send_to_char(ch, "You are too exhausted to use suprise accuracy again!\r\n");
-    return;
-  }
-
-  if (AFF_FLAGGED(ch, AFF_FATIGUED)) {
-    send_to_char(ch, "You are are too fatigued to use suprise accuracy!\r\n");
-    return;
-  }
-
-  if (!affected_by_spell(ch, SKILL_RAGE)) {
-    send_to_char(ch, "You need to be raging to use suprise accuracy!\r\n");
-    return;
-  }
-
+  
+  PREREQ_NOT_NPC();
+  PREREQ_CHECK(can_supriseaccuracy);
+  
   perform_supriseaccuracy(ch);
 }
 
@@ -3175,44 +3134,30 @@ ACMD(do_powerfulblow) {
   perform_powerfulblow(ch);
 }
 
+ACMDCHECK(can_smitegood) {
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_SMITE_GOOD, "You have no idea how.\r\n");
+  return CAN_CMD;
+}
+
 ACMD(do_smitegood) {
-  int uses_remaining = 0;
-
-  if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_SMITE_GOOD)) {
-    send_to_char(ch, "You have no idea how.\r\n");
-    return;
-  }
-
-  if ((uses_remaining = daily_uses_remaining(ch, FEAT_SMITE_GOOD)) == 0) {
-    send_to_char(ch, "You must recover the divine energy required to smite good.\r\n");
-    return;
-  }
-
-  if (uses_remaining < 0) {
-    send_to_char(ch, "You are not experienced enough.\r\n");
-    return;
-  }
-
+  
+  PREREQ_NOT_NPC();
+  PREREQ_CHECK(can_smitegood);
+  PREREQ_HAS_USES(FEAT_SMITE_GOOD, "You must recover the divine energy required to smite good.\r\n");
+  
   perform_smite(ch, SMITE_TYPE_GOOD);
 }
 
+ACMDCHECK(can_smiteevil){
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_SMITE_EVIL, "You have no idea how.\r\n");
+  return CAN_CMD;
+}
+
 ACMD(do_smiteevil) {
-  int uses_remaining = 0;
 
-  if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_SMITE_EVIL)) {
-    send_to_char(ch, "You have no idea how.\r\n");
-    return;
-  }
-
-  if ((uses_remaining = daily_uses_remaining(ch, FEAT_SMITE_EVIL)) == 0) {
-    send_to_char(ch, "You must recover the divine energy required to smite evil.\r\n");
-    return;
-  }
-
-  if (uses_remaining < 0) {
-    send_to_char(ch, "You are not experienced enough.\r\n");
-    return;
-  }
+  PREREQ_NOT_NPC();
+  PREREQ_CHECK(can_smiteevil);
+  PREREQ_HAS_USES(FEAT_SMITE_EVIL, "You must recover the divine energy required to smite evil.\r\n");
 
   perform_smite(ch, SMITE_TYPE_EVIL);
 }
@@ -3327,30 +3272,26 @@ void perform_seekerarrow(struct char_data *ch, struct char_data *vict) {
   hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 20, ATTACK_TYPE_RANGED);
 }
 
+ACMDCHECK(can_seekerarrow) {
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_SEEKER_ARROW, "You don't know how to do this!\r\n");
+  /* ranged attack requirement */
+  ACMDCHECK_TEMPFAIL_IF(!can_fire_ammo(ch, TRUE), "You have to be using a ranged weapon with ammo ready to "
+                                                  "fire in your ammo pouch to do this!\r\n");
+  return CAN_CMD;
+}
+
 /* As a free action once per day per rank of the seeker arrow feat, the arcane 
                    archer can fire an arrow that does not miss (+20 to hit). */
 ACMD(do_seekerarrow) {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
-  int uses_remaining = 0;
 
   PREREQ_CAN_FIGHT();
 
   PREREQ_NOT_NPC();
-  if (!HAS_FEAT(ch, FEAT_SEEKER_ARROW)) {
-    send_to_char(ch, "You don't know how to do this!\r\n");
-    return;
-  }
-  /* ranged attack requirement */
-  if (!can_fire_ammo(ch, TRUE)) {
-    send_to_char(ch, "You have to be using a ranged weapon with ammo ready to "
-            "fire in your ammo pouch to do this!\r\n");
-    return;
-  }
-  if ((uses_remaining = daily_uses_remaining(ch, FEAT_SEEKER_ARROW)) == 0) {
-    send_to_char(ch, "You must recover the arcane energy required to use another seeker arrow.\r\n");
-    return;
-  }
+  PREREQ_CHECK(can_seekerarrow);
+  PREREQ_HAS_USES(FEAT_SEEKER_ARROW, "You must recover the arcane energy required to use another seeker arrow.\r\n");
+
 
   one_argument(argument, arg);
   if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
@@ -3605,6 +3546,7 @@ ACMD(do_headbutt) {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
 
   PREREQ_CAN_FIGHT();
+  PREREQ_CHECK(can_headbutt);
 
   one_argument(argument, arg);
 
@@ -3623,18 +3565,20 @@ ACMD(do_headbutt) {
   perform_headbutt(ch, vict);
 }
 
+ACMDCHECK(can_sap) {
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_SAP, "But you do not know how!\r\n");
+  return CAN_CMD;
+}
+
 ACMD(do_sap) {
   struct char_data *vict = NULL;
   char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   PREREQ_CAN_FIGHT();
+  PREREQ_CHECK(can_sap);
 
   one_argument(argument, buf);
 
-  if (!HAS_FEAT(ch, FEAT_SAP)) {
-    send_to_char(ch, "But you do not know how!\r\n");
-    return;
-  }
 
   if (FIGHTING(ch)) {
     send_to_char(ch, "You are too busy fighting to do this!\r\n");
@@ -3731,6 +3675,11 @@ ACMD(do_dirtkick) {
   perform_dirtkick(ch, vict);
 }
 
+ACMDCHECK(can_springleap) {
+  ACMDCHECK_PERMFAIL_IF(!HAS_FEAT(ch, FEAT_SPRING_ATTACK) && CLASS_LEVEL(ch, CLASS_MONK) < 5, "You have no idea how.\r\n");
+  return CAN_CMD;
+}
+
 /*
  * Monk sit -> stand skill
  */
@@ -3743,14 +3692,9 @@ ACMD(do_springleap) {
   one_argument(argument, arg);
 
   PREREQ_NOT_NPC();
-
-  if (!HAS_FEAT(ch, FEAT_SPRING_ATTACK) && CLASS_LEVEL(ch, CLASS_MONK) < 5) {
-    send_to_char(ch, "You have no idea how.\r\n");
-    return;
-  }
-
+  PREREQ_CHECK(can_springleap);
   PREREQ_NOT_PEACEFUL_ROOM();
-
+  
   if (GET_POS(ch) != POS_SITTING && GET_POS(ch) != POS_RECLINING) {
     send_to_char(ch, "You must be sitting or reclining to springleap.\r\n");
     return;
@@ -3769,6 +3713,11 @@ ACMD(do_springleap) {
   perform_springleap(ch, vict);
 }
 
+ACMDCHECK(can_shieldpunch) {
+  ACMDCHECK_TEMPFAIL_IF(!GET_EQ(ch, WEAR_SHIELD), "You need to wear a shield to be able to shieldpunch.\r\n");
+  return CAN_CMD;
+}
+
 /* Shieldpunch :
  * Use your shield as a weapon, bashing out with it and doing a
  * small amount of damage.  The feat FEAT_IMPROVED_SHIELD_PUNCH allows
@@ -3780,18 +3729,10 @@ ACMD(do_shieldpunch) {
 
   PREREQ_CAN_FIGHT();
   PREREQ_NOT_NPC();
+  PREREQ_IN_POSITION(POS_SITTING, "You need to get on your feet to shieldpunch.\r\n");
+  PREREQ_CHECK(can_shieldpunch);
 
   one_argument(argument, arg);
-
-  if (GET_POS(ch) <= POS_SITTING) {
-    send_to_char(ch, "You need to get on your feet to shieldpunch.\r\n");
-    return;
-  }
-
-  if (!GET_EQ(ch, WEAR_SHIELD)) {
-    send_to_char(ch, "You need to wear a shield to be able to shieldpunch.\r\n");
-    return;
-  }
 
   PREREQ_NOT_PEACEFUL_ROOM();
 
@@ -3802,6 +3743,11 @@ ACMD(do_shieldpunch) {
     vict = get_char_room_vis(ch, arg, NULL);
 
   perform_shieldpunch(ch, vict);
+}
+
+ACMDCHECK(can_shieldcharge) {
+  ACMDCHECK_TEMPFAIL_IF(!GET_EQ(ch, WEAR_SHIELD), "You need to wear a shield to be able to shieldcharge.\r\n");
+  return CAN_CMD;
 }
 
 /* Shieldcharge :
@@ -3818,18 +3764,10 @@ ACMD(do_shieldcharge) {
 
   PREREQ_CAN_FIGHT();
   PREREQ_NOT_NPC();
+  PREREQ_IN_POSITION(POS_SITTING, "You need to get on your feet to shieldcharge.\r\n");
+  PREREQ_CHECK(can_shieldcharge);
 
   one_argument(argument, arg);
-
-  if (GET_POS(ch) <= POS_SITTING) {
-    send_to_char(ch, "You need to get on your feet to shieldcharge.\r\n");
-    return;
-  }
-
-  if (!GET_EQ(ch, WEAR_SHIELD)) {
-    send_to_char(ch, "You need to wear a shield to be able to shieldcharge.\r\n");
-    return;
-  }
 
   PREREQ_NOT_PEACEFUL_ROOM();
 
@@ -3840,6 +3778,11 @@ ACMD(do_shieldcharge) {
     vict = get_char_room_vis(ch, arg, NULL);
 
   perform_shieldcharge(ch, vict);
+}
+
+ACMDCHECK(can_shieldslam) {
+  ACMDCHECK_TEMPFAIL_IF(!GET_EQ(ch, WEAR_SHIELD), "You need to wear a shield to be able to shieldslam.\r\n");
+  return CAN_CMD;
 }
 
 /* Shieldslam :
@@ -3858,18 +3801,11 @@ ACMD(do_shieldslam) {
 
   PREREQ_CAN_FIGHT();
   PREREQ_NOT_NPC();
+  PREREQ_IN_POSITION(POS_SITTING, "You need to get on your feet to shieldslam.\r\n");
+  PREREQ_CHECK(can_shieldslam);
 
   one_argument(argument, arg);
 
-  if (GET_POS(ch) <= POS_SITTING) {
-    send_to_char(ch, "You need to get on your feet to shieldslam.\r\n");
-    return;
-  }
-
-  if (!GET_EQ(ch, WEAR_SHIELD)) {
-    send_to_char(ch, "You need to wear a shield to be able to shieldslam.\r\n");
-    return;
-  }
 
   PREREQ_NOT_PEACEFUL_ROOM();
 
