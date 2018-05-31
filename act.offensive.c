@@ -3055,8 +3055,8 @@ ACMD(do_quiveringpalm) {
   perform_quiveringpalm(ch);
 }
 
-ACMD(can_stunningfist) {
-  ACMDCHECK_PREREQ_HASFEAT(FETA_STUNNING_FIST, "You have no idea how.\r\n");
+ACMDCHECK(can_stunningfist) {
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_STUNNING_FIST, "You have no idea how.\r\n");
   ACMDCHECK_TEMPFAIL_IF(affected_by_spell(ch, SKILL_STUNNING_FIST), "You have already focused your ki!\r\n");
   return CAN_CMD;
 }
