@@ -3902,8 +3902,8 @@ void do_wizhelp(struct char_data *ch) {
 }
 
 ACMD(do_commands) {
-  int no, i, cmd_num;
-  int wizhelp = 0, socials = 0;
+  int no, i, cmd_num, can_cmd;
+  int wizhelp = 0, socials = 0, maneuvers = 0;
   struct char_data *vict;
   char arg[MAX_INPUT_LENGTH];
   char buf[MAX_STRING_LENGTH];
@@ -3930,10 +3930,12 @@ ACMD(do_commands) {
     do_wizhelp(ch);
     return;
   }
+  else if (subcmd == SCMD_MANEUVERS)
+    maneuvers = 1;
 
   sprintf(buf, "The following %s%s are available to %s:\r\n",
           wizhelp ? "privileged " : "",
-          socials ? "socials" : "commands",
+          socials ? "socials" : maneuvers ? "combat maneuvers" : "commands",
           vict == ch ? "you" : GET_NAME(vict));
 
   /* cmd_num starts at 1, not 0, to remove 'RESERVED' */
@@ -3957,13 +3959,30 @@ ACMD(do_commands) {
 
     if (--overflow < 0)
       continue;
+    
+    if (maneuvers) {
+      if (complete_cmd_info[i].command_check_pointer == NULL)
+        continue;
+      
+      can_cmd = complete_cmd_info[i].command_check_pointer(ch, false);
+      
+      if (can_cmd == CANT_CMD_PERM) // char can't use this command, skip it.
+        continue;
+      
+      // char has access to the command, copy to commands list with a useful color:
+      // Red if they can't use it right now, green if they can.
+      // Just send it to the character instead of using the column_list(), so that we can color.
+      send_to_char(ch, "%s%-14s\r\n", can_cmd == CAN_CMD ? "\tG" : "\tr", complete_cmd_info[i].command);
+    }
+    else {
+      /* matching command: copy to commands list */
+      commands[no++] = complete_cmd_info[i].command;
+    }
 
-    /* matching command: copy to commands list */
-    commands[no++] = complete_cmd_info[i].command;
   }
-
   /* display commands list in a nice columnized format */
-  column_list(ch, 0, commands, no, FALSE);
+  if (!maneuvers)
+    column_list(ch, 0, commands, no, FALSE);
 }
 
 ACMD(do_history) {

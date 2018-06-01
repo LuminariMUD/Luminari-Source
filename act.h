@@ -21,11 +21,97 @@
 
 #include "utils.h" /* for the ACMD macro */
 
+#define CAN_CMD 0
+#define CANT_CMD_PERM 1
+#define CANT_CMD_TEMP 2
+
 /* from accounts.c */
 ACMD(do_accexp);
 bool locked_races[NUM_RACES];
 int has_unlocked_race(struct char_data *ch, int race);
 int has_unlocked_class(struct char_data *ch, int class);
+
+/*****************************************************************************
+ * Begin general helper defines for all act files
+ * These encapsulate some standard "can do this" checks.
+ ****************************************************************************/
+
+/** Check if character can actually fight. */
+#define PREREQ_CAN_FIGHT()   \
+  if (!MOB_CAN_FIGHT(ch)) { \
+    send_to_char(ch, "But you can't fight!\r\n"); \
+    return; \
+  }
+
+/** Check the specified function to see if we get back a CAN_CMD. */
+#define PREREQ_CHECK(name) \
+   if (name(ch, true)) return;
+
+/** Check if the character has enough daily uses of the specified feat. */
+#define PREREQ_HAS_USES(feat, errormsg) \
+  int uses_remaining; \
+  if ((uses_remaining = daily_uses_remaining(ch, feat)) == 0) { \
+    send_to_char(ch, errormsg); \
+    return; \
+  } \
+\
+  if (uses_remaining < 0) { \
+    send_to_char(ch, "You are not experienced enough.\r\n"); \
+    return; \
+  }
+
+/** Check if the character is in the specified position or better. */
+#define PREREQ_IN_POSITION(req_pos, errmsg) \
+  if (GET_POS(ch) <= req_pos) { \
+    send_to_char(ch, errmsg); \
+    return; \
+  }
+
+/** Check if character is not a NPC. */
+#define PREREQ_NOT_NPC() \
+  if (IS_NPC(ch)) { \
+    send_to_char(ch, "But you don't know how!\r\n"); \
+    return; \
+  }
+
+/** Check if character is in a peaceful room. */
+#define PREREQ_NOT_PEACEFUL_ROOM() \
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) { \
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n"); \
+    return; \
+  }
+
+/** CHeck if character is in a single-file room. */
+#define PREREQ_NOT_SINGLEFILE_ROOM() \
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE)) { \
+    send_to_char(ch, "The area is way too cramped to perform this maneuver!\r\n"); \
+    return; \
+  }
+
+/** Check for the target feat - to be used only within the ACMDCHECK() macro. */
+#define ACMDCHECK_PREREQ_HASFEAT(feat, errormsg) \
+  ACMDCHECK_PERMFAIL_IF(!HAS_FEAT(ch, feat), errormsg)
+
+/** Check for the specified condition and fail permanently if it's true. 
+ * In other words, the character doesn't have the ability to use this command. 
+ * To be used only within the ACMDCHECK() macro.
+ */
+#define ACMDCHECK_PERMFAIL_IF(code, errormsg) \
+  if (code) { \
+    ACMD_ERRORMSG(errormsg); \
+    return CANT_CMD_PERM; \
+  }
+
+/** Check for the specified condition and temporarily fail if it's true. 
+ * In other words, the character has the ability to use this command, but are 
+ * missing something else that would cause it to fail. 
+ * To be used only within the ACMDCHECK() macro.
+ */
+#define ACMDCHECK_TEMPFAIL_IF(code, errormsg) \
+  if (code) { \
+    ACMD_ERRORMSG(errormsg); \
+    return CANT_CMD_TEMP; \
+  }
 
 /*****************************************************************************
  * Begin Functions and defines for act.comm.c
@@ -84,9 +170,10 @@ void free_recent_players(void);
 /* functions with subcommands */
 /* do_commands */
 ACMD(do_commands);
-#define SCMD_COMMANDS 0
-#define SCMD_SOCIALS  1
-#define SCMD_WIZHELP  2
+#define SCMD_COMMANDS  0
+#define SCMD_SOCIALS   1
+#define SCMD_WIZHELP   2
+#define SCMD_MANEUVERS 3
 /* do_gen_ps */
 ACMD(do_gen_ps);
 #define SCMD_INFO      0
@@ -300,21 +387,21 @@ ACMD(do_collect);
 ACMD(do_hitall);
 ACMD(do_guard);
 ACMD(do_charge);
-ACMD(do_circle);
+ACMD(do_circle);                    ACMDCHECK(can_circle);
 ACMD(do_bodyslam);
 ACMD(do_springleap);
 ACMD(do_feint);
-ACMD(do_headbutt);
-ACMD(do_shieldpunch);
+ACMD(do_headbutt);                  ACMDCHECK(can_headbutt);
+ACMD(do_shieldpunch);               ACMDCHECK(can_shieldpunch);
 ACMD(do_disarm);
-ACMD(do_shieldcharge);
-ACMD(do_shieldslam);
-ACMD(do_dirtkick);
-ACMD(do_sap);
+ACMD(do_shieldcharge);              ACMDCHECK(can_shieldcharge);
+ACMD(do_shieldslam);                ACMDCHECK(can_shieldslam);
+ACMD(do_dirtkick);                  ACMDCHECK(can_dirtkick);
+ACMD(do_sap);                       ACMDCHECK(can_sap);
 ACMD(do_assist);
-ACMD(do_rage);
-ACMD(do_defensive_stance);
-ACMD(do_turnundead);
+ACMD(do_rage);                      ACMDCHECK(can_rage);
+ACMD(do_defensive_stance);          ACMDCHECK(can_defensive_stance);
+ACMD(do_turnundead);                ACMDCHECK(can_turnundead);
 ACMD(do_bash);
 ACMD(do_call);
 ACMD(do_fly);
@@ -322,21 +409,21 @@ ACMD(do_levitate);
 ACMD(do_darkness);
 ACMD(do_land);
 ACMD(do_frightful);
-ACMD(do_breathe);
-ACMD(do_tailsweep);
-ACMD(do_backstab);
+ACMD(do_breathe);                   ACMDCHECK(can_breathe);
+ACMD(do_tailsweep);                 ACMDCHECK(can_tailsweep);
+ACMD(do_backstab);                  ACMDCHECK(can_backstab);
 ACMD(do_flee);
-ACMD(do_stunningfist);
-ACMD(do_quiveringpalm);
-ACMD(do_deatharrow);
-ACMD(do_faeriefire);
+ACMD(do_stunningfist);              ACMDCHECK(can_stunningfist);
+ACMD(do_quiveringpalm);             ACMDCHECK(can_quiveringpalm);
+ACMD(do_deatharrow);                ACMDCHECK(can_deatharrow);
+ACMD(do_faeriefire);                ACMDCHECK(can_faeriefire);
 ACMD(do_kick);
-ACMD(do_seekerarrow);
-ACMD(do_arrowswarm);
-ACMD(do_smiteevil);
-ACMD(do_smitegood);
+ACMD(do_seekerarrow);               ACMDCHECK(can_seekerarrow);
+ACMD(do_arrowswarm);                ACMDCHECK(can_arrowswarm);
+ACMD(do_smiteevil);                 ACMDCHECK(can_smiteevil);
+ACMD(do_smitegood);                 ACMDCHECK(can_smitegood);
 ACMD(do_kill);
-ACMD(do_layonhands);
+ACMD(do_layonhands);                ACMDCHECK(can_layonhands);
 ACMD(do_order);
 ACMD(do_applypoison);
 ACMD(do_sorcerer_arcane_apotheosis);
@@ -344,22 +431,22 @@ ACMD(do_imbuearrow);
 ACMD(do_abundantstep);
 ACMD(do_animatedead);
 ACMD(do_rescue);
-ACMD(do_taunt);
-ACMD(do_intimidate);
-ACMD(do_treatinjury);
-ACMD(do_emptybody);
-ACMD(do_wholenessofbody);
-ACMD(do_trip);
-ACMD(do_whirlwind);
-ACMD(do_crystalfist);
-ACMD(do_crystalbody);
-ACMD(do_supriseaccuracy);
-ACMD(do_powerfulblow);
-ACMD(do_renewedvigor);
-ACMD(do_reneweddefense);
-ACMD(do_comeandgetme);
-ACMD(do_sorcerer_breath_weapon);
-ACMD(do_sorcerer_claw_attack);
+ACMD(do_taunt);                     ACMDCHECK(can_taunt);
+ACMD(do_intimidate);                ACMDCHECK(can_intimidate);
+ACMD(do_treatinjury);               ACMDCHECK(can_treatinjury);
+ACMD(do_emptybody);                 ACMDCHECK(can_emptybody);
+ACMD(do_wholenessofbody);           ACMDCHECK(can_wholenessofbody);
+ACMD(do_trip);    
+ACMD(do_whirlwind);                 ACMDCHECK(can_whirlwind);
+ACMD(do_crystalfist);               ACMDCHECK(can_crystalfist);
+ACMD(do_crystalbody);               ACMDCHECK(can_crystalbody);
+ACMD(do_supriseaccuracy);           ACMDCHECK(can_supriseaccuracy);
+ACMD(do_powerfulblow);              ACMDCHECK(can_powerfulblow);
+ACMD(do_renewedvigor);              ACMDCHECK(can_renewedvigor);
+ACMD(do_reneweddefense);            ACMDCHECK(can_reneweddefense);
+ACMD(do_comeandgetme);              ACMDCHECK(can_comeandgetme);
+ACMD(do_sorcerer_breath_weapon);    ACMDCHECK(can_sorcerer_breath_weapon);
+ACMD(do_sorcerer_claw_attack);      ACMDCHECK(can_sorcerer_claw_attack);
 ACMD(do_sorcerer_draconic_wings);
 
 /*****************************************************************************
