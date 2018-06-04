@@ -694,11 +694,6 @@ bool perform_shieldpunch(struct char_data *ch, struct char_data *vict) {
     }
   }
 
-  if (!HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_SHIELD)) {
-    send_to_char(ch, "You are not proficient enough in the use of your shield to shieldpunch.\r\n");
-    return FALSE;
-  }
-
   if (!HAS_FEAT(ch, FEAT_IMPROVED_SHIELD_PUNCH)) {
     /* Remove shield bonus from ac. */
     attach_mud_event(new_mud_event(eSHIELD_RECOVERY, ch, NULL), PULSE_VIOLENCE);
@@ -757,11 +752,6 @@ bool perform_shieldcharge(struct char_data *ch, struct char_data *vict) {
       send_to_char(ch, "You simply can't reach that far.\r\n");
       return FALSE;
     }
-  }
-
-  if (!HAS_FEAT(ch, FEAT_SHIELD_CHARGE)) {
-    send_to_char(ch, "You are not proficient enough in the use of your shield to shieldcharge.\r\n");
-    return FALSE;
   }
 
   /*  Use an attack mechanic to determine success.
@@ -825,11 +815,6 @@ bool perform_shieldslam(struct char_data *ch, struct char_data *vict) {
       send_to_char(ch, "You simply can't reach that far.\r\n");
       return FALSE;
     }
-  }
-
-  if (!HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_SHIELD)) {
-    send_to_char(ch, "You are not proficient enough in the use of your shield to shieldslam.\r\n");
-    return FALSE;
   }
 
   /*  Use an attack mechanic to determine success. */
@@ -3714,6 +3699,7 @@ ACMD(do_springleap) {
 }
 
 ACMDCHECK(can_shieldpunch) {
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_ARMOR_PROFICIENCY_SHIELD, "You are not proficient enough in the use of your shield to shieldpunch.\r\n");
   ACMDCHECK_TEMPFAIL_IF(!GET_EQ(ch, WEAR_SHIELD), "You need to wear a shield to be able to shieldpunch.\r\n");
   return CAN_CMD;
 }
@@ -3746,6 +3732,7 @@ ACMD(do_shieldpunch) {
 }
 
 ACMDCHECK(can_shieldcharge) {
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_SHIELD_CHARGE, "You are not proficient enough in the use of your shield to shieldcharge.\r\n");
   ACMDCHECK_TEMPFAIL_IF(!GET_EQ(ch, WEAR_SHIELD), "You need to wear a shield to be able to shieldcharge.\r\n");
   return CAN_CMD;
 }
@@ -3781,6 +3768,7 @@ ACMD(do_shieldcharge) {
 }
 
 ACMDCHECK(can_shieldslam) {
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_ARMOR_PROFICIENCY_SHIELD, "You are not proficient enough in the use of your shield to shieldslam.\r\n");
   ACMDCHECK_TEMPFAIL_IF(!GET_EQ(ch, WEAR_SHIELD), "You need to wear a shield to be able to shieldslam.\r\n");
   return CAN_CMD;
 }

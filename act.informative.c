@@ -3933,9 +3933,11 @@ ACMD(do_commands) {
   else if (subcmd == SCMD_MANEUVERS)
     maneuvers = 1;
 
-  sprintf(buf, "The following %s%s are available to %s:\r\n",
+  send_to_char(ch, "The following %s%s are available to %s:\r\n",
           wizhelp ? "privileged " : "",
-          socials ? "socials" : maneuvers ? "combat maneuvers" : "commands",
+          socials ? "socials" 
+            : maneuvers ? "combat maneuvers"
+            : "commands",
           vict == ch ? "you" : GET_NAME(vict));
 
   /* cmd_num starts at 1, not 0, to remove 'RESERVED' */
@@ -3972,7 +3974,7 @@ ACMD(do_commands) {
       // char has access to the command, copy to commands list with a useful color:
       // Red if they can't use it right now, green if they can.
       // Just send it to the character instead of using the column_list(), so that we can color.
-      send_to_char(ch, "%s%-14s\r\n", can_cmd == CAN_CMD ? "\tG" : "\tr", complete_cmd_info[i].command);
+      send_to_char(ch, "%s%-14s\tn\r\n", can_cmd == CAN_CMD ? "\tG" : "\tr", complete_cmd_info[i].command);
     }
     else {
       /* matching command: copy to commands list */
