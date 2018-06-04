@@ -3906,7 +3906,6 @@ ACMD(do_commands) {
   int wizhelp = 0, socials = 0, maneuvers = 0;
   struct char_data *vict;
   char arg[MAX_INPUT_LENGTH];
-  char buf[MAX_STRING_LENGTH];
   const char *commands[1000];
   int overflow = sizeof (commands) / sizeof (commands[0]);
 
