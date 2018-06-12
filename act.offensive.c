@@ -785,13 +785,8 @@ bool perform_shieldslam(struct char_data *ch, struct char_data *vict) {
   int (*name)(struct char_data *ch, void *me, int cmd, char *argument);
   struct obj_data *shield = GET_EQ(ch, WEAR_SHIELD);
 
-  if (!shield) {
+   if (!shield) {
     send_to_char(ch, "You need a shield to do that.\r\n");
-    return FALSE;
-  }
-
-  if (!HAS_FEAT(ch, FEAT_SHIELD_SLAM)) {
-    send_to_char(ch, "You don't know how to do that.\r\n");
     return FALSE;
   }
 
@@ -3769,6 +3764,7 @@ ACMD(do_shieldcharge) {
 
 ACMDCHECK(can_shieldslam) {
   ACMDCHECK_PREREQ_HASFEAT(FEAT_ARMOR_PROFICIENCY_SHIELD, "You are not proficient enough in the use of your shield to shieldslam.\r\n");
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_SHIELD_SLAM, "You don't know how to do that.\r\n");
   ACMDCHECK_TEMPFAIL_IF(!GET_EQ(ch, WEAR_SHIELD), "You need to wear a shield to be able to shieldslam.\r\n");
   return CAN_CMD;
 }
