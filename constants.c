@@ -3295,6 +3295,12 @@ const char *spell_prep_dict[NUM_CLASSES][4] = {
   {"",         "",           "",          ""            }, /* stalwart defender 13 */
   {"",         "",           "",          ""            }, /* shifter 14 */
   {"",         "",           "",          ""            }, /* duelist 15 */
+  {"",         "",           "",          ""            }, /* psion 16 */
+  {"",         "",           "",          ""            }, /* psy warr 17 */
+  {"",         "",           "",          ""            }, /* soul knife 18 */
+  {"",         "",           "",          ""            }, /* wilder 19 */
+  {"",         "",           "",          ""            }, /* shadow dancer 20 */
+  {"",         "",           "",          ""            }, /* assassin 21 */
 };
 
 /* words to use for the spell preparation process for different classes. */
@@ -3316,6 +3322,12 @@ const char *spell_consign_dict[NUM_CLASSES][4] = {
   {"",          "",            "",           ""            }, /* stalwart defender 13 */
   {"",          "",            "",           ""            }, /* shifter 14 */
   {"",          "",            "",           ""            }, /* duelist 15 */
+  {"",          "",            "",           ""            }, /* psion 16 */
+  {"",          "",            "",           ""            }, /* psy warr 17 */
+  {"",          "",            "",           ""            }, /* soul knife 18 */
+  {"",          "",            "",           ""            }, /* wilder 19 */
+  {"",          "",            "",           ""            }, /* shadow dancer 20 */
+  {"",          "",            "",           ""            }, /* assassin 21 */
 };
 
 /* ... and bloodlines */
