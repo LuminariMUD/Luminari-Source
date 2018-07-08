@@ -3719,6 +3719,8 @@ SPECIAL(mercenary) {
         base = 8;
         break;
       case CLASS_ROGUE:
+      case CLASS_SHADOW_DANCER:
+      case CLASS_ASSASSIN:
       case CLASS_MONK:
       case CLASS_SHIFTER:
         base = 5;

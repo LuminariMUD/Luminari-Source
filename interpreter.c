@@ -2398,6 +2398,13 @@ void nanny(struct descriptor_data *d, char *arg) {
         case CLASS_ROGUE:
           perform_help(d, "class-rogue");
           break;
+        case CLASS_ASSASSIN:
+          perform_help(d, "class-assassin");
+          break;
+        case CLASS_SHADOW_DANCER:
+        case CLASS_SHADOWDANCER:
+          perform_help(d, "class-shadowdancer");
+          break;
         case CLASS_WARRIOR:
           perform_help(d, "class-warrior");
           break;

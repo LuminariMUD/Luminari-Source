@@ -337,10 +337,13 @@
 #define CLASS_SOULKNIFE         18
 #define CLASS_SOUL_KNIFE CLASS_SOULKNIFE
 #define CLASS_WILDER            19
+#define CLASS_SHADOW_DANCER     20
+#define CLASS_SHADOWDANCER CLASS_SHADOW_DANCER
+#define CLASS_ASSASSIN          21
 /* !!!---- CRITICAL ----!!! make sure to add class names to constants.c's
    class_names[] - we are dependent on that for loading the feat-list */
 /** Total number of available PC Classes */
-#define NUM_CLASSES             20
+#define NUM_CLASSES             22
 
 // related to pc (classes, etc)
 /* note that max_classes was established to reign in some of the

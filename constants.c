@@ -330,7 +330,13 @@ const char *class_names[NUM_CLASSES + 1] = {
   "Arcane Archer",
   "Stalwart Defender",
   "Shifter",
-  "Duelist",
+  "Duelist", //15
+  "unfinished",
+  "unfinished",
+  "unfinished",
+  "unfinished",
+  "Shadow Dancer", //20
+  "Assassin",
   "\n"
 };
 

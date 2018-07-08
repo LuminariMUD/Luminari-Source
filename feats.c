@@ -2846,6 +2846,14 @@ void assign_feats(void) {
           "dragon shape",
           "dragon shape");
 
+  /* Assassin */
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
+  /*1*/        
+        
+  /* Shadow Dancer (ShadowDancer) */
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
+  /*1*/        
+        
   /* Duelist */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   /*1*/feato(FEAT_CANNY_DEFENSE, "canny defense", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,

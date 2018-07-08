@@ -1955,6 +1955,8 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned) {
       armor_class -= 60;
       break;
     case CLASS_ROGUE:
+    case CLASS_ASSASSIN:
+    case CLASS_SHADOW_DANCER:
       (mob)->aff_abils.dex += bonus;
       (mob)->aff_abils.str += bonus;
       MOBS_HPS = MOBS_HPS * 3 / 5;
