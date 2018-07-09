@@ -1133,9 +1133,9 @@ int valid_align_by_class(int alignment, int class) {
         case LAWFUL_GOOD:
         case LAWFUL_NEUTRAL:
         case LAWFUL_EVIL:
-          return 1;
+          return TRUE;
         default:
-          return 0;
+          return FALSE;
       }
       /* any 'neutral' alignment */
     case CLASS_DRUID:
@@ -1145,10 +1145,23 @@ int valid_align_by_class(int alignment, int class) {
         case TRUE_NEUTRAL:
         case CHAOTIC_NEUTRAL:
         case NEUTRAL_EVIL:
-          return 1;
+          return TRUE;
         default:
-          return 0;
+          return FALSE;
       }
+      
+      /* evil only */
+    case CLASS_ASSASSIN:
+      switch (alignment) {
+        case LAWFUL_EVIL:
+        case NEUTRAL_EVIL:
+        case CHAOTIC_EVIL:
+          return TRUE;
+        default:
+          return FALSE;
+      }
+      break;
+      
       /* any 'non-lawful' alignment */
     case CLASS_BERSERKER:
     case CLASS_BARD:
@@ -1157,16 +1170,16 @@ int valid_align_by_class(int alignment, int class) {
         case LAWFUL_GOOD:
         case LAWFUL_NEUTRAL:
         case LAWFUL_EVIL:
-          return 0;
+          return FALSE;
         default:
-          return 1;
+          return TRUE;
       }
       /* only lawful good */
     case CLASS_PALADIN:
       if (alignment == LAWFUL_GOOD)
-        return 1;
+        return TRUE;
       else
-        return 0;
+        return FALSE;
       /* default, no alignment restrictions */
     case CLASS_WIZARD:
     case CLASS_CLERIC:
@@ -1178,11 +1191,12 @@ int valid_align_by_class(int alignment, int class) {
     case CLASS_STALWART_DEFENDER:
     case CLASS_DUELIST:
     case CLASS_SHIFTER:
+    case CLASS_SHADOW_DANCER:
     case CLASS_SORCERER:
-      return 1;
+      return TRUE;
   }
   /* shouldn't get here if we got all classes listed above */
-  return 1;
+  return TRUE;
 }
 
 /* homeland-port currently unused */
@@ -1217,6 +1231,8 @@ int parse_class(char arg) {
     case 'g': return CLASS_STALWART_DEFENDER;
     case 'h': return CLASS_SHIFTER;
     case 'i': return CLASS_DUELIST;
+    case 'j': return CLASS_SHADOW_DANCER:
+    case 'k': return CLASS_ASSASSIN:
       /* empty letters */
     case 'm': return CLASS_WIZARD;
       /* empty letters */
@@ -1255,12 +1271,15 @@ int parse_class_long(char *arg) {
   if (is_abbrev(arg, "bard")) return CLASS_BARD;
   if (is_abbrev(arg, "weaponmaster")) return CLASS_WEAPON_MASTER;
   if (is_abbrev(arg, "weapon-master")) return CLASS_WEAPON_MASTER;
+  if (is_abbrev(arg, "shadow-dancer")) return CLASS_SHADOW_DANCER;
+  if (is_abbrev(arg, "shadowdancer")) return CLASS_SHADOW_DANCER;
   if (is_abbrev(arg, "arcanearcher")) return CLASS_ARCANE_ARCHER;
   if (is_abbrev(arg, "arcane-archer")) return CLASS_ARCANE_ARCHER;
   if (is_abbrev(arg, "stalwartdefender")) return CLASS_STALWART_DEFENDER;
   if (is_abbrev(arg, "stalwart-defender")) return CLASS_STALWART_DEFENDER;
   if (is_abbrev(arg, "shifter")) return CLASS_SHIFTER;
   if (is_abbrev(arg, "duelist")) return CLASS_DUELIST;
+  if (is_abbrev(arg, "assassin")) return CLASS_ASSASSIN;
 
   return CLASS_UNDEFINED;
 }
@@ -2586,6 +2605,8 @@ int level_exp(struct char_data *ch, int level) {
     case CLASS_STALWART_DEFENDER:
     case CLASS_SHIFTER:
     case CLASS_DUELIST:
+    case CLASS_ASSASSIN:
+    case CLASS_SHADOW_DANCER:
     case CLASS_ARCANE_ARCHER:
     case CLASS_ROGUE:
     case CLASS_BARD:
