@@ -809,6 +809,8 @@ bool get_random_region_location(region_vnum region, int *x, int*y) {
       free(*it);
     }
   }
+  
+  mysql_free_result(result);
 
   log("xrange: %d - %d yrange: %d - %d", xlow, xhigh, ylow, yhigh);
 
