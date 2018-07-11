@@ -125,7 +125,8 @@ int isname (const char *str, const char *namelist)
         if (!substr) continue;
         if (!isname_tok(substr, namelist)) return 0;
     }
-    /* If we didn't fail, assume we succeded because every token was matched */
+    free(strlist);
+    /* If we didn't fail, assume we succeeded because every token was matched */
     return 1;
 }
 
