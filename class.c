@@ -1231,8 +1231,8 @@ int parse_class(char arg) {
     case 'g': return CLASS_STALWART_DEFENDER;
     case 'h': return CLASS_SHIFTER;
     case 'i': return CLASS_DUELIST;
-    case 'j': return CLASS_SHADOW_DANCER:
-    case 'k': return CLASS_ASSASSIN:
+    case 'j': return CLASS_SHADOW_DANCER;
+    case 'k': return CLASS_ASSASSIN;
       /* empty letters */
     case 'm': return CLASS_WIZARD;
       /* empty letters */
