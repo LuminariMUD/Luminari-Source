@@ -109,8 +109,8 @@ int isname_tok(const char *str, const char *namelist) {
 
 int isname (const char *str, const char *namelist)
 {
-  char *strlist;
-  char *substr;
+  char *strlist = NULL;
+  char *substr = NULL;
   char *saveptr = NULL;
 
   if (!str || !*str || !namelist || !*namelist)
