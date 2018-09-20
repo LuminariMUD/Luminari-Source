@@ -4241,7 +4241,7 @@ SPECIAL(emporium) {
 SPECIAL(wizard_library) {
   bool found = FALSE, full_spellbook = TRUE;
   struct obj_data *obj = NULL;
-  int spellnum = SPELL_RESERVED_DBC, spell_level = 0, cost = 100, i = 0;
+  int spellnum = SPELL_RESERVED_DBC, spell_level = 0, spell_circle = 0, cost = 100, i = 0;
   int class_level = 0;
 
   if (CMD_IS("research")) {
@@ -4266,18 +4266,19 @@ SPECIAL(wizard_library) {
     }
 
     spell_level = spell_info[spellnum].min_level[CLASS_WIZARD];
+    spell_circle = (spell_level + 1) / 2;
     class_level = CLASS_LEVEL(ch, CLASS_WIZARD) +
             BONUS_CASTER_LEVEL(ch, CLASS_WIZARD);
 
-    if (spell_level <= 0 || spell_level >= LVL_IMMORT) {
+    if (spell_level <= 0 || spell_level >= LVL_IMMORT || spell_circle <= 0 || spell_circle > TOP_CIRCLE) {
       send_to_char(ch, "That spell is not available to wizards.\r\n");
       return TRUE;
     }
 
-    if (spell_level < 7) {
-      cost = (spell_level * 50) * (spell_level);
+    if (spell_circle < 7) {
+      cost = (spell_circle * 50) * (spell_circle);
     } else
-      cost = (spell_level * 300) * (spell_level);
+      cost = (spell_circle * 300) * (spell_circle);
 
     if (GET_GOLD(ch) < cost) {
       send_to_char(ch, "You do not have enough coins to research this spell, you "
