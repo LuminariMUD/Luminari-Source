@@ -1423,7 +1423,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   /*****/
 
   /* Leave tracks, if not riding. */
-  if (!riding)
+  if (!riding && (IS_NPC(ch) || !PRF_FLAGGED(ch, PRF_NOHASSLE)))
   {
     /*sprintf(buf3, "%d \"%s\" \"%s\" %s", 6,
                                    (IS_NPC(ch) ? race_family_types[GET_NPC_RACE(ch)] : race_list[GET_RACE(ch)].type),
