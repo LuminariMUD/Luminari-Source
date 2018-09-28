@@ -231,6 +231,13 @@ void redit_setup_existing(struct descriptor_data *d, int real_num)
     }
   }
 
+  /* Create trail data objects for the new room */
+  struct trail_data_list *trails;
+  CREATE(trails, struct trail_data_list, 1);
+  room->trail_tracks = trails;
+  //room->trail_scent = 
+  //room->trail_blood = 
+  
   /* Attach copy of room to player's descriptor. */
   OLC_ROOM(d) = room;
   OLC_VAL(d) = 0;
@@ -267,6 +274,16 @@ void redit_save_internally(struct descriptor_data *d)
   world[room_num].proto_script = OLC_SCRIPT(d);
   assign_triggers(&world[room_num], WLD_TRIGGER);
   /* end trigger update */
+  
+  if (world[room_num].trail_tracks == NULL)
+  {
+    /* Create trail data objects */
+    struct trail_data_list *trails;
+    CREATE(trails, struct trail_data_list, 1);
+    world[room_num].trail_tracks = trails;
+    //room->trail_scent = 
+    //room->trail_blood = 
+  }
 
   /* Don't adjust numbers on a room update. */
   if (!new_room)
@@ -337,8 +354,8 @@ void free_room(struct room_data *room)
 
   /* Free trails. */
   free_trail_data_list(room->trail_tracks);
-  free_trail_data_list(room->trail_scent);
-  free_trail_data_list(room->trail_blood);
+  //free_trail_data_list(room->trail_scent);
+  //free_trail_data_list(room->trail_blood);
   
   /* Free the room. */
   free(room);	/* XXX ? */

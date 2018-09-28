@@ -1391,12 +1391,12 @@ void parse_room(FILE *fl, int virtual_nr) {
   CREATE(world[room_nr].trail_tracks, struct trail_data_list, 1);
   world[room_nr].trail_tracks->head = NULL;
   world[room_nr].trail_tracks->tail = NULL;
-  CREATE(world[room_nr].trail_scent, struct trail_data_list, 1);
-  world[room_nr].trail_scent->head = NULL;
-  world[room_nr].trail_scent->tail = NULL;
-  CREATE(world[room_nr].trail_blood, struct trail_data_list, 1);
-  world[room_nr].trail_blood->head = NULL;
-  world[room_nr].trail_blood->tail = NULL;
+//  CREATE(world[room_nr].trail_scent, struct trail_data_list, 1);
+//  world[room_nr].trail_scent->head = NULL;
+//  world[room_nr].trail_scent->tail = NULL;
+//  CREATE(world[room_nr].trail_blood, struct trail_data_list, 1);
+//  world[room_nr].trail_blood->head = NULL;
+//  world[room_nr].trail_blood->tail = NULL;
 
   if (!get_line(fl, line)) {
     log("SYSERR: Expecting roomflags/sector type of room #%d but file ended!",

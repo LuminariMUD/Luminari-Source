@@ -2894,9 +2894,9 @@ struct room_data {
     struct list_data *events; // room events
 
     struct trail_data_list *trail_tracks;
-    struct trail_data_list *trail_scent;
-    struct trail_data_list *trail_blood;
-    // struct trail_data_list *trail_magic;
+    //struct trail_data_list *trail_scent;
+    //struct trail_data_list *trail_blood;
+    //// struct trail_data_list *trail_magic;
 
 };
 
