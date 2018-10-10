@@ -4849,7 +4849,7 @@ void load_class_list(void) {
   /*     class-number               name      abrv   clr-abrv     menu-name*/
   classo(CLASS_MYSTIC_THEURGE, "mystictheurge", "MTh", "\tmM\tBTh\tn", "f) \tmMystic\tBTheurge\tn",
           /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
-          10, N, Y, L, 4, 0, 1, 2, Y, 0, 0,
+          10, Y, Y, L, 4, 0, 1, 2, Y, 5000, 0,
           /*descrip*/"Mystic theurges place no boundaries on their magical abilities "
           "and find no irreconcilable paradox in devotion to the arcane as well as the "
           "divine. They seek magic in all of its forms, finding no reason or logic in "
