@@ -2834,6 +2834,12 @@ ACMD(do_sac) {
     return;
   }
 
+  if (GET_OBJ_TYPE(j) == ITEM_CONTAINER && j->contains != NULL)
+  {
+    send_to_char(ch, "You should empty that first!\n\r");
+    return;
+  }
+  
   act("$n sacrifices $p.", FALSE, ch, j, 0, TO_ROOM);
 
   switch (rand_number(0, 5)) {
