@@ -150,6 +150,9 @@ int compute_bonus_caster_level(struct char_data *ch, int class) {
     case CLASS_CLERIC:
     case CLASS_DRUID:
       break;
+    case CLASS_MYSTIC_THEURGE: 
+      bonus_levels += CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE);
+      break;
     default:break;
   }
 

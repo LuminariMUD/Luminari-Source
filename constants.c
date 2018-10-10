@@ -331,12 +331,12 @@ const char *class_names[NUM_CLASSES + 1] = {
   "Stalwart Defender",
   "Shifter",
   "Duelist", //15
-  "unfinished",
-  "unfinished",
-  "unfinished",
-  "unfinished",
-  "Shadow Dancer", //20
-  "Assassin",
+  "Mystic Theurge",
+//  "unfinished",
+//  "unfinished",
+//  "unfinished",
+//  "Shadow Dancer", //20
+//  "Assassin",
   "\n"
 };
 
@@ -3295,12 +3295,13 @@ const char *spell_prep_dict[NUM_CLASSES][4] = {
   {"",         "",           "",          ""            }, /* stalwart defender 13 */
   {"",         "",           "",          ""            }, /* shifter 14 */
   {"",         "",           "",          ""            }, /* duelist 15 */
-  {"",         "",           "",          ""            }, /* psion 16 */
-  {"",         "",           "",          ""            }, /* psy warr 17 */
-  {"",         "",           "",          ""            }, /* soul knife 18 */
-  {"",         "",           "",          ""            }, /* wilder 19 */
-  {"",         "",           "",          ""            }, /* shadow dancer 20 */
-  {"",         "",           "",          ""            }, /* assassin 21 */
+  {"",         "",           "",          ""            }, /* mystic theurge 16 */
+//  {"",         "",           "",          ""            }, /* psion 16 */
+//  {"",         "",           "",          ""            }, /* psy warr 17 */
+//  {"",         "",           "",          ""            }, /* soul knife 18 */
+//  {"",         "",           "",          ""            }, /* wilder 19 */
+//  {"",         "",           "",          ""            }, /* shadow dancer 20 */
+//  {"",         "",           "",          ""            }, /* assassin 21 */
 };
 
 /* words to use for the spell preparation process for different classes. */
@@ -3322,12 +3323,13 @@ const char *spell_consign_dict[NUM_CLASSES][4] = {
   {"",          "",            "",           ""            }, /* stalwart defender 13 */
   {"",          "",            "",           ""            }, /* shifter 14 */
   {"",          "",            "",           ""            }, /* duelist 15 */
-  {"",          "",            "",           ""            }, /* psion 16 */
-  {"",          "",            "",           ""            }, /* psy warr 17 */
-  {"",          "",            "",           ""            }, /* soul knife 18 */
-  {"",          "",            "",           ""            }, /* wilder 19 */
-  {"",          "",            "",           ""            }, /* shadow dancer 20 */
-  {"",          "",            "",           ""            }, /* assassin 21 */
+  {"",          "",            "",           ""            }, /* mystic theurge 16 */
+//  {"",          "",            "",           ""            }, /* psion 16 */
+//  {"",          "",            "",           ""            }, /* psy warr 17 */
+//  {"",          "",            "",           ""            }, /* soul knife 18 */
+//  {"",          "",            "",           ""            }, /* wilder 19 */
+//  {"",          "",            "",           ""            }, /* shadow dancer 20 */
+//  {"",          "",            "",           ""            }, /* assassin 21 */
 };
 
 /* ... and bloodlines */

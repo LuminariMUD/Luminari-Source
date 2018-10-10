@@ -330,20 +330,22 @@
 #define CLASS_STALWARTDEFENDER CLASS_STALWART_DEFENDER
 #define CLASS_SHIFTER           14
 #define CLASS_DUELIST           15
-#define CLASS_PSIONICIST        16
-#define CLASS_PSION CLASS_PSIONICIST
-#define CLASS_PSYCHIC_WARRIOR   17
-#define CLASS_PSY_WARR CLASS_PSYCHIC_WARRIOR
-#define CLASS_SOULKNIFE         18
-#define CLASS_SOUL_KNIFE CLASS_SOULKNIFE
-#define CLASS_WILDER            19
-#define CLASS_SHADOW_DANCER     20
-#define CLASS_SHADOWDANCER CLASS_SHADOW_DANCER
-#define CLASS_ASSASSIN          21
+#define CLASS_MYSTIC_THEURGE    16
+#define CLASS_MYSTICTHEURGE     CLASS_MYSTIC_THEURGE
+//#define CLASS_PSIONICIST        16
+//#define CLASS_PSION CLASS_PSIONICIST
+//#define CLASS_PSYCHIC_WARRIOR   17
+//#define CLASS_PSY_WARR CLASS_PSYCHIC_WARRIOR
+//#define CLASS_SOULKNIFE         18
+//#define CLASS_SOUL_KNIFE CLASS_SOULKNIFE
+//#define CLASS_WILDER            19
+//#define CLASS_SHADOW_DANCER     20
+//#define CLASS_SHADOWDANCER CLASS_SHADOW_DANCER
+//#define CLASS_ASSASSIN          21
 /* !!!---- CRITICAL ----!!! make sure to add class names to constants.c's
    class_names[] - we are dependent on that for loading the feat-list */
 /** Total number of available PC Classes */
-#define NUM_CLASSES             22
+#define NUM_CLASSES             17
 
 // related to pc (classes, etc)
 /* note that max_classes was established to reign in some of the
@@ -1672,13 +1674,15 @@
 #define FEAT_NEW_ARCANA                        601
 #define FEAT_SCHOOL_POWER                      602
 #define FEAT_ARCANE_APOTHEOSIS                 603
+/* Mystic theurge */
+#define FEAT_THEURGE_SPELLCASTING              604      
 
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT                      604
+#define FEAT_LAST_FEAT                      605
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS                           605
+#define NUM_FEATS                           606
 /** absolute cap **/
 #define MAX_FEATS                           750
 /*****/
