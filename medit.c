@@ -1955,8 +1955,8 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned) {
       armor_class -= 60;
       break;
     case CLASS_ROGUE:
-    case CLASS_ASSASSIN:
-    case CLASS_SHADOW_DANCER:
+//    case CLASS_ASSASSIN:
+//    case CLASS_SHADOW_DANCER:
       (mob)->aff_abils.dex += bonus;
       (mob)->aff_abils.str += bonus;
       MOBS_HPS = MOBS_HPS * 3 / 5;
@@ -2020,6 +2020,18 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned) {
       (mob)->aff_abils.str += bonus;
       GET_CHA(mob) += bonus;
       break;
+    case CLASS_MYSTIC_THEURGE:
+      MOBS_HPS = MOBS_HPS * 3 / 5; // Average of cleric (4) and wizard (2)
+      GET_SDD(mob) = GET_SDD(mob) * 3 / 5; // Average of cleric (4) and wizard (2)
+      armor_class -= 60; // Use wizard-level AC.
+      // Wizard stat bonuses
+      GET_INT(mob) += bonus;
+      (mob)->aff_abils.dex += bonus;
+      // Cleric stat bonuses
+      (mob)->aff_abils.str += bonus;
+      GET_WIS(mob) += bonus;
+      break;
+
     default:
       break;
   }

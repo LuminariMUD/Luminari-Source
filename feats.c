@@ -1943,6 +1943,13 @@ void assign_feats(void) {
     "expend charges, such as wands and staves.  For every three levels of spell "
     "slots used, one less charge will be expended.  See the apotheosis command and HELP "
     "APOTHEOSIS for more information.");
+  feato(FEAT_THEURGE_SPELLCASTING, "theurge spellcasting", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY, 
+    "mystic theurge",
+    "This feat allows the mystic theurge to progress in both arcane and divine casting "
+    "classes.  Each time its taken, it adds one level to two spellcasting classes the "
+    "theurge previously had access to, but only for purposes of daily spells and spell "
+    "circles available.");
+  
   
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_SPELL_PENETRATION, "spell penetration", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
@@ -3270,11 +3277,11 @@ bool meets_prerequisite(struct char_data *ch, struct feat_prerequisite *prereq, 
                   IS_SORCERER(ch) ||
                   IS_BARD(ch)))
             return FALSE;
-          /* This stuff is all messed up - fix. */
+          /* If they need a certain circle, and they don't have any in any class, fail. */
           if (prereq->values[2] > 0) {
-            if (!(compute_slots_by_circle(ch, CLASS_WIZARD, prereq->values[2]) == 0 ||
-                    compute_slots_by_circle(ch, CLASS_SORCERER, prereq->values[2]) == 0 ||
-                    compute_slots_by_circle(ch, CLASS_BARD, prereq->values[2]) == 0))
+            if (compute_slots_by_circle(ch, CLASS_WIZARD, prereq->values[2]) == 0 &&
+                    compute_slots_by_circle(ch, CLASS_SORCERER, prereq->values[2]) == 0 &&
+                    compute_slots_by_circle(ch, CLASS_BARD, prereq->values[2]) == 0)
               return FALSE;
           }
           break;
@@ -3285,10 +3292,10 @@ bool meets_prerequisite(struct char_data *ch, struct feat_prerequisite *prereq, 
                   IS_RANGER(ch)))
             return FALSE;
           if (prereq->values[2] > 0) {
-            if (!(compute_slots_by_circle(ch, CLASS_CLERIC, prereq->values[2]) == 0 ||
-                    compute_slots_by_circle(ch, CLASS_PALADIN, prereq->values[2]) == 0 ||
-                    compute_slots_by_circle(ch, CLASS_DRUID, prereq->values[2]) == 0 ||
-                    compute_slots_by_circle(ch, CLASS_RANGER, prereq->values[2]) == 0))
+            if (compute_slots_by_circle(ch, CLASS_CLERIC, prereq->values[2]) == 0 &&
+                    compute_slots_by_circle(ch, CLASS_PALADIN, prereq->values[2]) == 0 &&
+                    compute_slots_by_circle(ch, CLASS_DRUID, prereq->values[2]) == 0 &&
+                    compute_slots_by_circle(ch, CLASS_RANGER, prereq->values[2]) == 0)
               return FALSE;
           }
           break;
@@ -3296,13 +3303,13 @@ bool meets_prerequisite(struct char_data *ch, struct feat_prerequisite *prereq, 
           if (!IS_SPELLCASTER(ch))
             return FALSE;
           if (prereq->values[2] > 0) {
-            if (!(compute_slots_by_circle(ch, CLASS_WIZARD, prereq->values[2]) == 0 ||
-                    compute_slots_by_circle(ch, CLASS_SORCERER, prereq->values[2]) == 0 ||
-                    compute_slots_by_circle(ch, CLASS_BARD, prereq->values[2]) == 0 ||
-                    compute_slots_by_circle(ch, CLASS_CLERIC, prereq->values[2]) == 0 ||
-                    compute_slots_by_circle(ch, CLASS_PALADIN, prereq->values[2]) == 0 ||
-                    compute_slots_by_circle(ch, CLASS_DRUID, prereq->values[2]) == 0 ||
-                    compute_slots_by_circle(ch, CLASS_RANGER, prereq->values[2]) == 0))
+            if (compute_slots_by_circle(ch, CLASS_WIZARD, prereq->values[2]) == 0 &&
+                    compute_slots_by_circle(ch, CLASS_SORCERER, prereq->values[2]) == 0 &&
+                    compute_slots_by_circle(ch, CLASS_BARD, prereq->values[2]) == 0 &&
+                    compute_slots_by_circle(ch, CLASS_CLERIC, prereq->values[2]) == 0 &&
+                    compute_slots_by_circle(ch, CLASS_PALADIN, prereq->values[2]) == 0 &&
+                    compute_slots_by_circle(ch, CLASS_DRUID, prereq->values[2]) == 0 &&
+                    compute_slots_by_circle(ch, CLASS_RANGER, prereq->values[2]) == 0)
               return FALSE;
           }
           break;

@@ -3739,6 +3739,10 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
     case 87: /* PRF_RP */
       SET_OR_REMOVE(PRF_FLAGS(vict), PRF_RP);
       break;
+    case 88: // mystic theurge level
+      CLASS_LEVEL(vict, CLASS_MYSTIC_THEURGE) = RANGE(0, LVL_IMMORT - 1);
+      affect_total(vict);
+      break;
     default:
       send_to_char(ch, "Can't set that!\r\n");
       return (0);

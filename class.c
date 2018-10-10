@@ -577,9 +577,9 @@ bool meets_class_prerequisite(struct char_data *ch, struct class_prerequisite *p
             return FALSE;
           /* This stuff is all messed up - fix. */
           if (prereq->values[2] > 0) {
-            if (!(compute_slots_by_circle(ch, CLASS_WIZARD, prereq->values[2]) == 0 ||
-                    compute_slots_by_circle(ch, CLASS_SORCERER, prereq->values[2]) == 0 ||
-                    compute_slots_by_circle(ch, CLASS_BARD, prereq->values[2]) == 0))
+            if (compute_slots_by_circle(ch, CLASS_WIZARD, prereq->values[2]) == 0 &&
+                    compute_slots_by_circle(ch, CLASS_SORCERER, prereq->values[2]) == 0 &&
+                    compute_slots_by_circle(ch, CLASS_BARD, prereq->values[2]) == 0)
               return FALSE;
           }
           break;
@@ -590,10 +590,10 @@ bool meets_class_prerequisite(struct char_data *ch, struct class_prerequisite *p
                   IS_RANGER(ch)))
             return FALSE;
           if (prereq->values[2] > 0) {
-            if (!(compute_slots_by_circle(ch, CLASS_CLERIC, prereq->values[2]) == 0 ||
-                    compute_slots_by_circle(ch, CLASS_PALADIN, prereq->values[2]) == 0 ||
-                    compute_slots_by_circle(ch, CLASS_DRUID, prereq->values[2]) == 0 ||
-                    compute_slots_by_circle(ch, CLASS_RANGER, prereq->values[2]) == 0))
+            if (compute_slots_by_circle(ch, CLASS_CLERIC, prereq->values[2]) == 0 &&
+                    compute_slots_by_circle(ch, CLASS_PALADIN, prereq->values[2]) == 0 &&
+                    compute_slots_by_circle(ch, CLASS_DRUID, prereq->values[2]) == 0 &&
+                    compute_slots_by_circle(ch, CLASS_RANGER, prereq->values[2]) == 0)
               return FALSE;
           }
           break;
@@ -1151,16 +1151,16 @@ int valid_align_by_class(int alignment, int class) {
       }
       
       /* evil only */
-    case CLASS_ASSASSIN:
-      switch (alignment) {
-        case LAWFUL_EVIL:
-        case NEUTRAL_EVIL:
-        case CHAOTIC_EVIL:
-          return TRUE;
-        default:
-          return FALSE;
-      }
-      break;
+//    case CLASS_ASSASSIN:
+//      switch (alignment) {
+//        case LAWFUL_EVIL:
+//        case NEUTRAL_EVIL:
+//        case CHAOTIC_EVIL:
+//          return TRUE;
+//        default:
+//          return FALSE;
+//      }
+//      break;
       
       /* any 'non-lawful' alignment */
     case CLASS_BERSERKER:
@@ -1191,8 +1191,9 @@ int valid_align_by_class(int alignment, int class) {
     case CLASS_STALWART_DEFENDER:
     case CLASS_DUELIST:
     case CLASS_SHIFTER:
-    case CLASS_SHADOW_DANCER:
+//    case CLASS_SHADOW_DANCER:
     case CLASS_SORCERER:
+    case CLASS_MYSTIC_THEURGE:
       return TRUE;
   }
   /* shouldn't get here if we got all classes listed above */
@@ -1231,9 +1232,9 @@ int parse_class(char arg) {
     case 'g': return CLASS_STALWART_DEFENDER;
     case 'h': return CLASS_SHIFTER;
     case 'i': return CLASS_DUELIST;
-    case 'j': return CLASS_SHADOW_DANCER;
-    case 'k': return CLASS_ASSASSIN;
-      /* empty letters */
+//    case 'j': return CLASS_SHADOW_DANCER;
+//    case 'k': return CLASS_ASSASSIN;
+    case 'l': return CLASS_MYSTICTHEURGE;
     case 'm': return CLASS_WIZARD;
       /* empty letters */
     case 'o': return CLASS_MONK;
@@ -1271,15 +1272,17 @@ int parse_class_long(char *arg) {
   if (is_abbrev(arg, "bard")) return CLASS_BARD;
   if (is_abbrev(arg, "weaponmaster")) return CLASS_WEAPON_MASTER;
   if (is_abbrev(arg, "weapon-master")) return CLASS_WEAPON_MASTER;
-  if (is_abbrev(arg, "shadow-dancer")) return CLASS_SHADOW_DANCER;
-  if (is_abbrev(arg, "shadowdancer")) return CLASS_SHADOW_DANCER;
+//  if (is_abbrev(arg, "shadow-dancer")) return CLASS_SHADOW_DANCER;
+//  if (is_abbrev(arg, "shadowdancer")) return CLASS_SHADOW_DANCER;
   if (is_abbrev(arg, "arcanearcher")) return CLASS_ARCANE_ARCHER;
   if (is_abbrev(arg, "arcane-archer")) return CLASS_ARCANE_ARCHER;
   if (is_abbrev(arg, "stalwartdefender")) return CLASS_STALWART_DEFENDER;
   if (is_abbrev(arg, "stalwart-defender")) return CLASS_STALWART_DEFENDER;
   if (is_abbrev(arg, "shifter")) return CLASS_SHIFTER;
   if (is_abbrev(arg, "duelist")) return CLASS_DUELIST;
-  if (is_abbrev(arg, "assassin")) return CLASS_ASSASSIN;
+//  if (is_abbrev(arg, "assassin")) return CLASS_ASSASSIN;
+  if (is_abbrev(arg, "mystictheurge")) return CLASS_MYSTICTHEURGE;
+  if (is_abbrev(arg, "mystic-theurge")) return CLASS_MYSTICTHEURGE;
 
   return CLASS_UNDEFINED;
 }
@@ -2265,6 +2268,20 @@ void process_class_level_feats(struct char_data *ch, int class) {
   send_to_char(ch, "%s", featbuf);
 }
 
+#define GRANT_SPELL_CIRCLE(class, first, epic)      if ((lvl = CLASS_LEVEL(ch, class)) > 0) \
+      { \
+        for (feat_assign = class_list[class].featassign_list; feat_assign != NULL; \
+            feat_assign = feat_assign->next) { \
+          feat_num = feat_assign->feat_num; \
+          if (feat_num >= first && feat_num <= epic \
+                  && !HAS_FEAT(ch, feat_num) \
+                  && feat_assign->level_received == lvl + mystic) { \
+            SET_FEAT(ch, feat_num, 1); \
+            send_to_char(ch, "You have gained access to %s!\r\n", feat_list[feat_num].name); \
+          } \
+        } \
+      }
+
 void process_conditional_class_level_feats(struct char_data *ch, int class) {
 
   switch (class) {
@@ -2332,9 +2349,26 @@ void process_conditional_class_level_feats(struct char_data *ch, int class) {
         }
       }
       break;
-  }
+    case CLASS_MYSTIC_THEURGE:
+    {
+      // This is how extra circles are assigned.
+      struct class_feat_assign *feat_assign = NULL;
+      int mystic,feat_num, lvl;
+      mystic = HAS_FEAT(ch, FEAT_THEURGE_SPELLCASTING);
 
+      GRANT_SPELL_CIRCLE(CLASS_WIZARD,   FEAT_WIZARD_1ST_CIRCLE,   FEAT_WIZARD_EPIC_SPELL);
+      GRANT_SPELL_CIRCLE(CLASS_CLERIC,   FEAT_CLERIC_1ST_CIRCLE,   FEAT_CLERIC_EPIC_SPELL);
+      GRANT_SPELL_CIRCLE(CLASS_BARD,     FEAT_BARD_1ST_CIRCLE,     FEAT_BARD_EPIC_SPELL);
+      GRANT_SPELL_CIRCLE(CLASS_DRUID,    FEAT_DRUID_1ST_CIRCLE,    FEAT_DRUID_EPIC_SPELL);
+      GRANT_SPELL_CIRCLE(CLASS_SORCERER, FEAT_SORCERER_1ST_CIRCLE, FEAT_SORCERER_EPIC_SPELL);
+      GRANT_SPELL_CIRCLE(CLASS_PALADIN,  FEAT_PALADIN_1ST_CIRCLE,  FEAT_PALADIN_4TH_CIRCLE);
+      GRANT_SPELL_CIRCLE(CLASS_RANGER,   FEAT_RANGER_1ST_CIRCLE,   FEAT_RANGER_4TH_CIRCLE);
+
+    }
+    break;
+  }
 }
+#undef GRANT_SPELL_CIRCLE
 
 /* TODO: rewrite this! */
 
@@ -2605,13 +2639,14 @@ int level_exp(struct char_data *ch, int level) {
     case CLASS_STALWART_DEFENDER:
     case CLASS_SHIFTER:
     case CLASS_DUELIST:
-    case CLASS_ASSASSIN:
-    case CLASS_SHADOW_DANCER:
+//    case CLASS_ASSASSIN:
+//    case CLASS_SHADOW_DANCER:
     case CLASS_ARCANE_ARCHER:
     case CLASS_ROGUE:
     case CLASS_BARD:
     case CLASS_BERSERKER:
     case CLASS_CLERIC:
+    case CLASS_MYSTIC_THEURGE:
       level--;
       if (level < 0)
         level = 0;
@@ -4810,6 +4845,68 @@ void load_class_list(void) {
   class_prereq_feat(CLASS_DUELIST, FEAT_WEAPON_FINESSE, 1);
   /****************************************************************************/
 
+    /****************************************************************************/
+  /*     class-number               name      abrv   clr-abrv     menu-name*/
+  classo(CLASS_MYSTIC_THEURGE, "mystictheurge", "MTh", "\tmM\tBTh\tn", "f) \tmMystic\tBTheurge\tn",
+          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
+          10, N, Y, L, 4, 0, 1, 2, Y, 0, 0,
+          /*descrip*/"Mystic theurges place no boundaries on their magical abilities "
+          "and find no irreconcilable paradox in devotion to the arcane as well as the "
+          "divine. They seek magic in all of its forms, finding no reason or logic in "
+          "denying themselves instruction by limiting their knowledge to one stifling "
+          "paradigm, though many are simply hungry for limitless power. No matter what "
+          "their motivations, mystic theurges believe that perception is reality, and "
+          "through the divine forces and astral energies of the multiverse, that "
+          "perception can be used to manipulate and control not only the nature of "
+          "this reality, but destiny itself");
+  /* class-number then saves:        fortitude, reflex, will, poison, death */
+  assign_class_saves(CLASS_MYSTIC_THEURGE, B, B, G, B, B);
+  assign_class_abils(CLASS_MYSTIC_THEURGE, /* class number */
+          /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+          CC, CC, CC, CA, CC, CA, CA,
+          /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+          CA, CC, CC, CA, CA, CC, CC, CC,
+          /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+          CC, CC, CC, CC, CC, CA,
+          /*survival,swim,use_magic_device,perform*/
+          CC, CA, CA, CC
+          );
+  assign_class_titles(CLASS_MYSTIC_THEURGE, /* class number */
+          "", /* <= 4  */
+          "", /* <= 9  */
+          "", /* <= 14 */
+          "", /* <= 19 */
+          "", /* <= 24 */
+          "", /* <= 29 */
+          "", /* <= 30 */
+          "the Immortal MysticTheurge", /* <= LVL_IMMORT */
+          "the Limitless Caster", /* <= LVL_STAFF */
+          "the God of Magic", /* <= LVL_GRSTAFF */
+          "the MysticTheurge" /* default */
+          );
+  /* feat assignment */
+  /*              class num     feat                             cfeat lvl stack */
+  feat_assignment(CLASS_MYSTIC_THEURGE, FEAT_THEURGE_SPELLCASTING, Y, 1, Y);
+  feat_assignment(CLASS_MYSTIC_THEURGE, FEAT_THEURGE_SPELLCASTING, Y, 2, Y);
+  feat_assignment(CLASS_MYSTIC_THEURGE, FEAT_THEURGE_SPELLCASTING, Y, 3, Y);
+  feat_assignment(CLASS_MYSTIC_THEURGE, FEAT_THEURGE_SPELLCASTING, Y, 4, Y);
+  feat_assignment(CLASS_MYSTIC_THEURGE, FEAT_THEURGE_SPELLCASTING, Y, 5, Y);
+  feat_assignment(CLASS_MYSTIC_THEURGE, FEAT_THEURGE_SPELLCASTING, Y, 6, Y);
+  feat_assignment(CLASS_MYSTIC_THEURGE, FEAT_THEURGE_SPELLCASTING, Y, 7, Y);
+  feat_assignment(CLASS_MYSTIC_THEURGE, FEAT_THEURGE_SPELLCASTING, Y, 8, Y);
+  feat_assignment(CLASS_MYSTIC_THEURGE, FEAT_THEURGE_SPELLCASTING, Y, 9, Y);
+  feat_assignment(CLASS_MYSTIC_THEURGE, FEAT_THEURGE_SPELLCASTING, Y, 10, Y);
+  
+  /* no spell assignment */
+  /* class prereqs */
+  class_prereq_spellcasting(CLASS_MYSTIC_THEURGE, CASTING_TYPE_ARCANE,
+          PREP_TYPE_ANY, 2 /*circle*/);
+  class_prereq_spellcasting(CLASS_MYSTIC_THEURGE, CASTING_TYPE_DIVINE,
+          PREP_TYPE_ANY, 2 /*circle*/);
+  class_prereq_ability(CLASS_MYSTIC_THEURGE, ABILITY_LORE, 6);
+  class_prereq_ability(CLASS_MYSTIC_THEURGE, ABILITY_SPELLCRAFT, 6);
+  /****************************************************************************/
+  
   /****************************************************************************/
   /****************************************************************************/
 
