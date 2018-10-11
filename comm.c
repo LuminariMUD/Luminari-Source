@@ -1498,7 +1498,7 @@ static char *make_prompt(struct descriptor_data *d) {
         if (percent >= 100)
           strcat(prompt, " \t[F050]perfect\tn");
         else if (percent >= 90)
-          strcat(prompt, " \t[F350]Yexcellent\tn");
+          strcat(prompt, " \t[F350]excellent\tn");
         else if (percent >= 75)
           strcat(prompt, " \t[F450]good\tn");
         else if (percent >= 50)
