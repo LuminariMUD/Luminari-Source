@@ -120,13 +120,13 @@ bool can_study_known_spells(struct char_data *ch) {
 
   /* sorcerer*/
   if (LEVELUP(ch)->class == CLASS_SORCERER ||
-          (LEVELUP(ch)->class == CLASS_ARCANE_ARCHER &&
+          ((LEVELUP(ch)->class == CLASS_ARCANE_ARCHER || LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE) &&
           GET_PREFERRED_ARCANE(ch) == CLASS_SORCERER))
     return TRUE;
 
   /* bard */
   if (LEVELUP(ch)->class == CLASS_BARD ||
-          (LEVELUP(ch)->class == CLASS_ARCANE_ARCHER &&
+          ((LEVELUP(ch)->class == CLASS_ARCANE_ARCHER || LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE) &&
           GET_PREFERRED_ARCANE(ch) == CLASS_BARD))
     return TRUE;
 
@@ -145,12 +145,13 @@ int compute_bonus_caster_level(struct char_data *ch, int class) {
     case CLASS_SORCERER:
     case CLASS_BARD:
       if (class == GET_PREFERRED_ARCANE(ch))
-        bonus_levels += CLASS_LEVEL(ch, CLASS_ARCANE_ARCHER) * 3 / 4;
+        bonus_levels += CLASS_LEVEL(ch, CLASS_ARCANE_ARCHER) * 3 / 4
+                     +  CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE);
       break;
     case CLASS_CLERIC:
     case CLASS_DRUID:
-      break;
-    case CLASS_MYSTIC_THEURGE: 
+    case CLASS_RANGER:
+    case CLASS_PALADIN:
       bonus_levels += CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE);
       break;
     default:break;
@@ -169,6 +170,7 @@ int compute_arcane_level(struct char_data *ch) {
   arcane_level += CLASS_LEVEL(ch, CLASS_SORCERER);
   arcane_level += CLASS_LEVEL(ch, CLASS_BARD);
   arcane_level += CLASS_LEVEL(ch, CLASS_ARCANE_ARCHER) * 3 / 4;
+  arcane_level += CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE);
   arcane_level += compute_arcana_golem_level(ch) - (SPELLBATTLE(ch) / 2);
 
   return arcane_level;

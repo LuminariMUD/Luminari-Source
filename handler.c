@@ -455,6 +455,7 @@ void compute_char_cap(struct char_data *ch) {
   /* here for reference
   "Wizard"       int, dex, wis
   "Cleric"       wis, str, cha
+  "MysticTheurge"int, wis, cha
   "Rogue"        dex,           hitroll, damroll, (str / int)
   "Warrior"      str, con,      hitroll, damroll
   "WeaponMaster" str, dex,      hitroll, damroll
@@ -481,6 +482,11 @@ void compute_char_cap(struct char_data *ch) {
           cha_cap += class_level / 4 + 1;
           wis_cap += class_level / 4 + 1;
           break;
+        case CLASS_MYSTIC_THEURGE:
+          int_cap += class_level / 4 + 1;
+          cha_cap += class_level / 4 + 1;
+          wis_cap += class_level / 4 + 1;
+          break;          
         case CLASS_ROGUE:
           str_cap += class_level / 8 + 1;
           dex_cap += class_level / 4 + 1;
