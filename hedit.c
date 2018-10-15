@@ -43,7 +43,7 @@ ACMD(do_oasis_hedit) {
     return;
 
   if (!can_edit_zone(ch, HEDIT_PERMISSION)) {
-    send_to_char(ch, "You don't have access to editing help files.\r\n");
+    send_to_char(ch, "You have not been granted access to edit help files.\r\n");
     return;
   }
 
