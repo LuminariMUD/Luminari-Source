@@ -2168,10 +2168,10 @@ int perform_taunt(struct char_data *ch, struct char_data *vict) {
   int success = 0;
 
   /* we started with base roll and defense in the variable declaration */
-  if (!IS_NPC(vict))
+  if (!IS_NPC(ch))
     attempt += compute_ability(ch, ABILITY_DIPLOMACY);
   else
-    attempt += GET_LEVEL(vict);
+    attempt += GET_LEVEL(ch);
   if (!IS_NPC(vict))
     resist += compute_ability(vict, ABILITY_CONCENTRATION);
   else
