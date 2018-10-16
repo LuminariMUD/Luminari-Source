@@ -176,6 +176,22 @@ int compute_arcane_level(struct char_data *ch) {
   return arcane_level;
 }
 
+int compute_divine_level(struct char_data *ch) {
+  int divine_level = 0;
+
+  if (IS_NPC(ch)) /* npc is simple for now */
+    return (GET_LEVEL(ch));
+
+  divine_level += CLASS_LEVEL(ch, CLASS_CLERIC);
+  divine_level += CLASS_LEVEL(ch, CLASS_DRUID);
+  divine_level += CLASS_LEVEL(ch, CLASS_PALADIN)/2;
+  divine_level += CLASS_LEVEL(ch, CLASS_RANGER)/2;
+  divine_level += CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE);
+  divine_level += compute_arcana_golem_level(ch) - (SPELLBATTLE(ch) / 2);
+
+  return divine_level;
+}
+
 /* check to see if CH has a weapon attached to a combat feat
 this use to be a nice(?) compact macro, but circumstances forced expansion */
 bool compute_has_combat_feat(struct char_data *ch, int cfeat, int weapon) {

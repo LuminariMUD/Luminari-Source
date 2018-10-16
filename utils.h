@@ -694,13 +694,7 @@ do                                                              \
 #define IS_EPIC(ch)             (IS_EPIC_LEVEL(ch))
 
 #define SPELLBATTLE(ch)        ((ch)->char_specials.saved.spec_abil[AG_SPELLBATTLE])
-#define DIVINE_LEVEL(ch)	(IS_NPC(ch) ? GET_LEVEL(ch) : \
-                                 ( CLASS_LEVEL(ch, CLASS_CLERIC) + \
-                                   CLASS_LEVEL(ch, CLASS_DRUID) + \
-                                  (CLASS_LEVEL(ch, CLASS_PALADIN)/2) + \
-                                  (CLASS_LEVEL(ch, CLASS_RANGER)/2) + \
-                                  (compute_arcana_golem_level(ch)) - \
-                                  (SPELLBATTLE(ch)/2)) )
+#define DIVINE_LEVEL(ch)	(compute_divine_level(ch))
 #define ARCANE_LEVEL(ch)        (compute_arcane_level(ch))
 #define MAGIC_LEVEL(ch)         ARCANE_LEVEL(ch)
 #define CASTER_LEVEL(ch)	(MIN(IS_NPC(ch) ? GET_LEVEL(ch) : \
