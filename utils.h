@@ -63,6 +63,7 @@ void gui_room_desc_wrap_close(struct char_data *ch);
 bool can_study_known_spells(struct char_data *ch);
 int compute_bonus_caster_level(struct char_data *ch, int class);
 int compute_arcane_level(struct char_data *ch);
+int compute_divine_level(struct char_data *ch);
 bool compute_has_combat_feat(struct char_data *ch, int cfeat, int weapon);
 int compute_dexterity_bonus(struct char_data *ch);
 int stats_point_left(struct char_data *ch);
