@@ -2168,7 +2168,7 @@ void do_start(struct char_data *ch) {
 void process_class_level_feats(struct char_data *ch, int class) {
   char featbuf[MAX_STRING_LENGTH];
   struct class_feat_assign *feat_assign = NULL;
-  int class_level = -1;
+  int class_level = -1, effective_class_level = -1;
   struct damage_reduction_type *dr = NULL, *temp = NULL, *ptr = NULL;
 
   /* deal with some instant disqualification */
@@ -2186,9 +2186,19 @@ void process_class_level_feats(struct char_data *ch, int class) {
   for (feat_assign = class_list[class].featassign_list; feat_assign != NULL;
           feat_assign = feat_assign->next) {
 
+      if (IS_SPELL_CIRCLE_FEAT(feat_assign->feat_num))
+      {
+        // Mystic Theurge levels stack with class levels for purposes of granting spell access.
+        effective_class_level = class_level + CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE);
+      }
+      else
+      {
+        effective_class_level = class_level;
+      }
+    
     /* appropriate level to receive this feat? */
-    if (feat_assign->level_received == class_level) {
-
+    if (feat_assign->level_received == effective_class_level) {
+      
       /* any special handling for this feat? */
       switch (feat_assign->feat_num) {
 
@@ -4873,7 +4883,7 @@ void load_class_list(void) {
           );
   assign_class_titles(CLASS_MYSTIC_THEURGE, /* class number */
           "", /* <= 4  */
-          "", /* <= 9  */
+          "Acolyte of Duality", /* <= 9  */
           "", /* <= 14 */
           "", /* <= 19 */
           "", /* <= 24 */
