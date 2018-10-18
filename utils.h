@@ -1131,6 +1131,13 @@ spellnum == SPELL_EPIC_WARDING )
 #define GET_EPIC_CLASS_FEATS(ch,cl) (ch->player_specials->saved.epic_class_feat_points[cl])
 
 #define IS_EPIC_FEAT(featnum) (feat_list[featnum].epic == TRUE)
+#define IS_SPELL_CIRCLE_FEAT(featnum) ((FEAT_BARD_1ST_CIRCLE <= featnum && featnum <= FEAT_BARD_EPIC_SPELL) \
+                                        || (FEAT_CLERIC_1ST_CIRCLE <= featnum && featnum <= FEAT_CLERIC_EPIC_SPELL) \
+                                        || (FEAT_DRUID_1ST_CIRCLE <= featnum && featnum <= FEAT_DRUID_EPIC_SPELL) \
+                                        || (FEAT_PALADIN_1ST_CIRCLE <= featnum && featnum <= FEAT_PALADIN_4TH_CIRCLE) \
+                                        || (FEAT_RANGER_1ST_CIRCLE <= featnum && featnum <= FEAT_RANGER_4TH_CIRCLE) \
+                                        || (FEAT_SORCERER_1ST_CIRCLE <= featnum && featnum <= FEAT_SORCERER_EPIC_SPELL) \
+                                        || (FEAT_WIZARD_1ST_CIRCLE <= featnum && featnum <= FEAT_WIZARD_EPIC_SPELL))
 
 #define HAS_REAL_FEAT(ch, i)    ((ch)->char_specials.saved.feats[i])
 #define HAS_FEAT(ch, i)         (get_feat_value((ch), i))
