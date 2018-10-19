@@ -304,6 +304,7 @@ cpp_extern const struct command_info cmd_info[] = {
 
   { "help", "h", POS_DEAD, do_help, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
   { "happyhour", "ha", POS_DEAD, do_happyhour, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+  { "here", "here", POS_RECLINING, do_look, 0, SCMD_HERE, TRUE, ACTION_NONE, {0, 0}, NULL},
   { "hedit", "hedit", POS_DEAD, do_oasis_hedit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
   { "helpcheck", "helpch", POS_DEAD, do_helpcheck, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
   { "hide", "hi", POS_RECLINING, do_hide, 1, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
