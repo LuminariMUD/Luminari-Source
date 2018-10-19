@@ -1956,6 +1956,11 @@ ACMD(do_look) {
       }
       return;
     }
+    else if (subcmd == SCMD_HERE) {
+      list_obj_to_char(world[IN_ROOM(ch)].contents, ch, SHOW_OBJ_LONG, FALSE, 0);
+      list_char_to_char(world[IN_ROOM(ch)].people, ch);
+      return;
+    }
     if (!*arg) /* "look" alone, without an argument at all */
       look_at_room(ch, 1);
     else if (is_abbrev(arg, "in"))
@@ -4290,6 +4295,9 @@ ACMD(do_areas) {
     tmp_len = snprintf(buf + len, sizeof (buf) - len, "Areas shown in \trred\tn may have some creatures outside the specified range.\r\n");
     len += tmp_len;
   }
+
+  tmp_len = snprintf(buf + len, sizeof (buf) - len, "More areas are listed in HELP ZONES");
+  len += tmp_len;
 
   if (zcount == 0)
     send_to_char(ch, "No areas found.\r\n");
