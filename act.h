@@ -192,6 +192,7 @@ ACMD(do_gen_ps);
 ACMD(do_look);
 #define SCMD_LOOK 0
 #define SCMD_READ 1
+#define SCMD_HERE 2
 ACMD(do_affects);
 #define SCMD_AFFECTS     0
 #define SCMD_COOLDOWNS   1
