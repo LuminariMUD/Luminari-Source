@@ -3173,6 +3173,9 @@ struct set_struct {
   { "shifter", LVL_STAFF, PC, NUMBER}, /* 84 */
   { "duelist", LVL_STAFF, PC, NUMBER}, /* 85 */
   { "guimode", LVL_BUILDER, PC, BINARY}, /* 86 */
+  { "rpmode", LVL_BUILDER, PC, BINARY}, /* 87 */
+  { "mystictheurge", LVL_STAFF, PC, NUMBER}, /* 88 */ 
+  { "addaccexp", LVL_IMPL, PC, NUMBER}, /* 89 */
 
   { "\n", 0, BOTH, MISC}
 };
@@ -3194,6 +3197,7 @@ CLASS_ARCANE_ARCHER
  * CLASS_STALWART_DEFENDER
  * CLASS_SHIFTER
  * CLASS_DUELIST
+ * CLASS_MYSTIC_THEURGE
  */
 
 static int perform_set(struct char_data *ch, struct char_data *vict, int mode, char *val_arg) {
@@ -3742,6 +3746,9 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
     case 88: // mystic theurge level
       CLASS_LEVEL(vict, CLASS_MYSTIC_THEURGE) = RANGE(0, LVL_IMMORT - 1);
       affect_total(vict);
+      break;
+    case 89: /* addaccexp - Adds *additional* account experience */
+      vict->desc->account->experience += RANGE(0, 34000);
       break;
     default:
       send_to_char(ch, "Can't set that!\r\n");
