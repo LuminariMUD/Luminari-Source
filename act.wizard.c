@@ -3071,6 +3071,7 @@ ACMD(do_show) {
 #define MISC	0
 #define BINARY	1
 #define NUMBER	2
+#define ADDER   3
 
 #define SET_OR_REMOVE(flagset, flags) { \
         if (on) SET_BIT_AR(flagset, flags); \
@@ -3175,7 +3176,7 @@ struct set_struct {
   { "guimode", LVL_BUILDER, PC, BINARY}, /* 86 */
   { "rpmode", LVL_BUILDER, PC, BINARY}, /* 87 */
   { "mystictheurge", LVL_STAFF, PC, NUMBER}, /* 88 */ 
-  { "addaccexp", LVL_IMPL, PC, NUMBER}, /* 89 */
+  { "addaccexp", LVL_IMPL, PC, ADDER}, /* 89 */
 
   { "\n", 0, BOTH, MISC}
 };
@@ -3238,7 +3239,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       send_to_char(ch, "Value must be 'on' or 'off'.\r\n");
       return (0);
     }
-  } else if (set_fields[mode].type == NUMBER) {
+  } else if (set_fields[mode].type == NUMBER || set_fields[mode].type == ADDER) {
     value = atoi(val_arg);
   }
   switch (mode) {
@@ -3759,6 +3760,8 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
     send_to_char(ch, "%s %s for %s.\r\n", set_fields[mode].cmd, ONOFF(on), GET_NAME(vict));
   } else if (set_fields[mode].type == NUMBER) {
     send_to_char(ch, "%s's %s set to %d.\r\n", GET_NAME(vict), set_fields[mode].cmd, value);
+  } else if (set_fields[mode].type == ADDER) {
+    send_to_char(ch, "%s's %s increased by %d.\r\n", GET_NAME(vict), set_fields[mode].cmd, value);
   } else
     send_to_char(ch, "%s", CONFIG_OK);
 
