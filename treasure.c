@@ -38,7 +38,7 @@ char *label_rare_grade(int rare_grade) {
     case RARE_GRADE_RARE:
       return "[Rare] ";
   }
-  return NULL;
+  return "";
 }
 
 /* utility function to determine 'rare grade' - extra special items */
@@ -163,7 +163,7 @@ void say_treasure(struct char_data *ch, struct obj_data *obj) {
 
     send_to_char(ch, "\tYYou have found %s\tn\tY in a nearby lair (random treasure drop)!\tn\r\n", obj->short_description);
 
-    sprintf(buf, "$n \tYhas found %s\tn\tY in a nearby lair (random treasure drop)!\tn", obj->short_description);
+    snprintf(buf, MAX_STRING_LENGTH, "$n \tYhas found %s\tn\tY in a nearby lair (random treasure drop)!\tn", obj->short_description);
     act(buf, FALSE, ch, 0, ch, TO_NOTVICT);
   }
 }
@@ -677,9 +677,9 @@ void determine_treasure(struct char_data *ch, struct char_data *mob) {
 
   if (dice(1, 100) <= MAX(TREASURE_PERCENT, HAPPY_TREASURE)) {
     award_magic_item(1, ch, grade);
-    sprintf(buf, "\tYYou have found %d coins hidden on $N's corpse!\tn", gold);
+    snprintf(buf, MEDIUM_STRING, "\tYYou have found %d coins hidden on $N's corpse!\tn", gold);
     act(buf, FALSE, ch, 0, mob, TO_CHAR);
-    sprintf(buf, "$n \tYhas has found %d coins hidden on $N's corpse!\tn", gold);
+    snprintf(buf, MEDIUM_STRING, "$n \tYhas has found %d coins hidden on $N's corpse!\tn", gold);
     act(buf, FALSE, ch, 0, mob, TO_NOTVICT);
     GET_GOLD(ch) += gold;
     /* does not split this gold, maybe change later */
@@ -855,7 +855,7 @@ void award_random_crystal(struct char_data *ch, int grade) {
 
   /* determine if rare or not, start building string */
   rare_grade = determine_rare_grade();
-  sprintf(buf2, label_rare_grade(rare_grade));
+  snprintf(buf2, 20, label_rare_grade(rare_grade));
 
   /* this is just to make sure the item is set correctly */
   GET_OBJ_TYPE(obj) = ITEM_CRYSTAL;
@@ -872,49 +872,49 @@ void award_random_crystal(struct char_data *ch, int grade) {
 
   // two colors and descriptor
   if (roll >= 91) {
-    sprintf(buf, "%sarcanite crystal %s %s %s", buf2, colors[color1], colors[color2],
+    snprintf(buf, MEDIUM_STRING, "%sarcanite crystal %s %s %s", buf2, colors[color1], colors[color2],
             crystal_descs[desc]);
     obj->name = strdup(buf);
-    sprintf(buf, "%sa %s, %s and %s arcanite crystal", buf2, crystal_descs[desc],
+    snprintf(buf, MEDIUM_STRING, "%sa %s, %s and %s arcanite crystal", buf2, crystal_descs[desc],
             colors[color1], colors[color2]);
     obj->short_description = strdup(buf);
-    sprintf(buf, "%sA %s, %s and %s arcanite crystal lies here.", buf2, crystal_descs[desc],
+    snprintf(buf, MEDIUM_STRING, "%sA %s, %s and %s arcanite crystal lies here.", buf2, crystal_descs[desc],
             colors[color1], colors[color2]);
     obj->description = strdup(buf);
 
     // one color and descriptor
   } else if (roll >= 66) {
-    sprintf(buf, "%sarcanite crystal %s %s", buf2, colors[color1], crystal_descs[desc]);
+    snprintf(buf, MEDIUM_STRING, "%sarcanite crystal %s %s", buf2, colors[color1], crystal_descs[desc]);
     obj->name = strdup(buf);
-    sprintf(buf, "%sa %s %s arcanite crystal", buf2, crystal_descs[desc], colors[color1]);
+    snprintf(buf, MEDIUM_STRING, "%sa %s %s arcanite crystal", buf2, crystal_descs[desc], colors[color1]);
     obj->short_description = strdup(buf);
-    sprintf(buf, "%sA %s %s arcanite crystal lies here.", buf2, crystal_descs[desc],
+    snprintf(buf, MEDIUM_STRING, "%sA %s %s arcanite crystal lies here.", buf2, crystal_descs[desc],
             colors[color1]);
     obj->description = strdup(buf);
 
     // two colors no descriptor
   } else if (roll >= 41) {
-    sprintf(buf, "%sarcanite crystal %s %s", buf2, colors[color1], colors[color2]);
+    snprintf(buf, MEDIUM_STRING, "%sarcanite crystal %s %s", buf2, colors[color1], colors[color2]);
     obj->name = strdup(buf);
-    sprintf(buf, "%sa %s and %s arcanite crystal", buf2, colors[color1], colors[color2]);
+    snprintf(buf, MEDIUM_STRING, "%sa %s and %s arcanite crystal", buf2, colors[color1], colors[color2]);
     obj->short_description = strdup(buf);
-    sprintf(buf, "%sA %s and %s arcanite crystal lies here.", buf2, colors[color1], colors[color2]);
+    snprintf(buf, MEDIUM_STRING, "%sA %s and %s arcanite crystal lies here.", buf2, colors[color1], colors[color2]);
     obj->description = strdup(buf);
   } else if (roll >= 21) {// one color no descriptor
-    sprintf(buf, "%sarcanite crystal %s", buf2, colors[color1]);
+    snprintf(buf, MEDIUM_STRING, "%sarcanite crystal %s", buf2, colors[color1]);
     obj->name = strdup(buf);
-    sprintf(buf, "%sa %s arcanite crystal", buf2, colors[color1]);
+    snprintf(buf, MEDIUM_STRING, "%sa %s arcanite crystal", buf2, colors[color1]);
     obj->short_description = strdup(buf);
-    sprintf(buf, "%sA %s arcanite crystal lies here.", buf2, colors[color1]);
+    snprintf(buf, MEDIUM_STRING, "%sA %s arcanite crystal lies here.", buf2, colors[color1]);
     obj->description = strdup(buf);
 
     // descriptor only
   } else {
-    sprintf(buf, "%sarcanite crystal %s", buf2, crystal_descs[desc]);
+    snprintf(buf, MEDIUM_STRING, "%sarcanite crystal %s", buf2, crystal_descs[desc]);
     obj->name = strdup(buf);
-    sprintf(buf, "%sa %s arcanite crystal", buf2, crystal_descs[desc]);
+    snprintf(buf, MEDIUM_STRING, "%sa %s arcanite crystal", buf2, crystal_descs[desc]);
     obj->short_description = strdup(buf);
-    sprintf(buf, "%sA %s arcanite crystal lies here.", buf2, crystal_descs[desc]);
+    snprintf(buf, MEDIUM_STRING, "%sA %s arcanite crystal lies here.", buf2, crystal_descs[desc]);
     obj->description = strdup(buf);
   }
 
@@ -1019,65 +1019,65 @@ void award_expendable_item(struct char_data *ch, int grade, int type) {
 
       // two colors and descriptor
       if (roll >= 91) {
-        sprintf(keywords, "potion-%s", spell_info[spell_num].name);
+        snprintf(keywords, MEDIUM_STRING, "potion-%s", spell_info[spell_num].name);
         for (i = 0; i < strlen(keywords); i++)
           if (keywords[i] == ' ')
             keywords[i] = '-';
-        sprintf(buf, "vial potion %s %s %s %s %s", colors[color1], colors[color2],
+        snprintf(buf, MAX_STRING_LENGTH, "vial potion %s %s %s %s %s", colors[color1], colors[color2],
                 potion_descs[desc], spell_info[spell_num].name, keywords);
         obj->name = strdup(buf);
-        sprintf(buf, "a glass vial filled with a %s, %s and %s liquid",
+        snprintf(buf, MAX_STRING_LENGTH, "a glass vial filled with a %s, %s and %s liquid",
                 potion_descs[desc], colors[color1], colors[color2]);
         obj->short_description = strdup(buf);
-        sprintf(buf, "A glass vial filled with a %s, %s and %s liquid lies here.",
+        snprintf(buf, MAX_STRING_LENGTH, "A glass vial filled with a %s, %s and %s liquid lies here.",
                 potion_descs[desc], colors[color1], colors[color2]);
         obj->description = strdup(buf);
 
         // one color and descriptor
       } else if (roll >= 66) {
-        sprintf(keywords, "potion-%s", spell_info[spell_num].name);
+        snprintf(keywords, MEDIUM_STRING, "potion-%s", spell_info[spell_num].name);
         for (i = 0; i < strlen(keywords); i++)
           if (keywords[i] == ' ')
             keywords[i] = '-';
-        sprintf(buf, "vial potion %s %s %s %s", colors[color1],
+        snprintf(buf, MAX_STRING_LENGTH, "vial potion %s %s %s %s", colors[color1],
                 potion_descs[desc], spell_info[spell_num].name, keywords);
         obj->name = strdup(buf);
-        sprintf(buf, "a glass vial filled with a %s %s liquid",
+        snprintf(buf, MAX_STRING_LENGTH, "a glass vial filled with a %s %s liquid",
                 potion_descs[desc], colors[color1]);
         obj->short_description = strdup(buf);
-        sprintf(buf, "A glass vial filled with a %s and %s liquid lies here.",
+        snprintf(buf, MAX_STRING_LENGTH, "A glass vial filled with a %s and %s liquid lies here.",
                 potion_descs[desc], colors[color1]);
         obj->description = strdup(buf);
 
         // two colors no descriptor
       } else if (roll >= 41) {
-        sprintf(keywords, "potion-%s", spell_info[spell_num].name);
+        snprintf(keywords, MEDIUM_STRING, "potion-%s", spell_info[spell_num].name);
         for (i = 0; i < strlen(keywords); i++)
           if (keywords[i] == ' ')
             keywords[i] = '-';
-        sprintf(buf, "vial potion %s %s %s %s", colors[color1], colors[color2],
+        snprintf(buf, MAX_STRING_LENGTH, "vial potion %s %s %s %s", colors[color1], colors[color2],
                 spell_info[spell_num].name, keywords);
         obj->name = strdup(buf);
-        sprintf(buf, "a glass vial filled with a %s and %s liquid", colors[color1],
+        snprintf(buf, MAX_STRING_LENGTH, "a glass vial filled with a %s and %s liquid", colors[color1],
                 colors[color2]);
         obj->short_description = strdup(buf);
-        sprintf(buf, "A glass vial filled with a %s and %s liquid lies here.",
+        snprintf(buf, MAX_STRING_LENGTH, "A glass vial filled with a %s and %s liquid lies here.",
                 colors[color1], colors[color2]);
         obj->description = strdup(buf);
 
         // one color no descriptor
       } else {
-        sprintf(keywords, "potion-%s", spell_info[spell_num].name);
+        snprintf(keywords, MEDIUM_STRING, "potion-%s", spell_info[spell_num].name);
         for (i = 0; i < strlen(keywords); i++)
           if (keywords[i] == ' ')
             keywords[i] = '-';
-        sprintf(buf, "vial potion %s %s %s", colors[color1],
+        snprintf(buf, MAX_STRING_LENGTH, "vial potion %s %s %s", colors[color1],
                 spell_info[spell_num].name, keywords);
         obj->name = strdup(buf);
-        sprintf(buf, "a glass vial filled with a %s liquid",
+        snprintf(buf, MAX_STRING_LENGTH, "a glass vial filled with a %s liquid",
                 colors[color1]);
         obj->short_description = strdup(buf);
-        sprintf(buf, "A glass vial filled with a %s liquid lies here.",
+        snprintf(buf, MAX_STRING_LENGTH, "A glass vial filled with a %s liquid lies here.",
                 colors[color1]);
         obj->description = strdup(buf);
       }
@@ -1091,17 +1091,17 @@ void award_expendable_item(struct char_data *ch, int grade, int type) {
       break;
 
     case TYPE_WAND:
-      sprintf(keywords, "wand-%s", spell_info[spell_num].name);
+      snprintf(keywords, MEDIUM_STRING, "wand-%s", spell_info[spell_num].name);
       for (i = 0; i < strlen(keywords); i++)
         if (keywords[i] == ' ')
           keywords[i] = '-';
 
-      sprintf(buf, "wand wooden runes %s %s %s", colors[color1],
+      snprintf(buf, MAX_STRING_LENGTH, "wand wooden runes %s %s %s", colors[color1],
               spell_info[spell_num].name, keywords);
       obj->name = strdup(buf);
-      sprintf(buf, "a wooden wand covered in %s runes", colors[color1]);
+      snprintf(buf, MAX_STRING_LENGTH, "a wooden wand covered in %s runes", colors[color1]);
       obj->short_description = strdup(buf);
-      sprintf(buf, "A wooden wand covered in %s runes lies here.", colors[color1]);
+      snprintf(buf, MAX_STRING_LENGTH, "A wooden wand covered in %s runes lies here.", colors[color1]);
       obj->description = strdup(buf);
 
       GET_OBJ_VAL(obj, 0) = spell_level;
@@ -1118,17 +1118,17 @@ void award_expendable_item(struct char_data *ch, int grade, int type) {
       break;
 
     case TYPE_STAFF:
-      sprintf(keywords, "staff-%s", spell_info[spell_num].name);
+      snprintf(keywords, MEDIUM_STRING, "staff-%s", spell_info[spell_num].name);
       for (i = 0; i < strlen(keywords); i++)
         if (keywords[i] == ' ')
           keywords[i] = '-';
 
-      sprintf(buf, "staff wooden runes %s %s %s", colors[color1],
+      snprintf(buf, MAX_STRING_LENGTH, "staff wooden runes %s %s %s", colors[color1],
               spell_info[spell_num].name, keywords);
       obj->name = strdup(buf);
-      sprintf(buf, "a wooden staff covered in %s runes", colors[color1]);
+      snprintf(buf, MAX_STRING_LENGTH, "a wooden staff covered in %s runes", colors[color1]);
       obj->short_description = strdup(buf);
-      sprintf(buf, "A wooden staff covered in %s runes lies here.",
+      snprintf(buf, MAX_STRING_LENGTH, "A wooden staff covered in %s runes lies here.",
               colors[color1]);
       obj->description = strdup(buf);
 
@@ -1145,17 +1145,17 @@ void award_expendable_item(struct char_data *ch, int grade, int type) {
       break;
 
     default: // Type-Scrolls
-      sprintf(keywords, "scroll-%s", spell_info[spell_num].name);
+      snprintf(keywords, MEDIUM_STRING, "scroll-%s", spell_info[spell_num].name);
       for (i = 0; i < strlen(keywords); i++)
         if (keywords[i] == ' ')
           keywords[i] = '-';
 
-      sprintf(buf, "scroll ink %s %s %s", colors[color1],
+      snprintf(buf, MAX_STRING_LENGTH, "scroll ink %s %s %s", colors[color1],
               spell_info[spell_num].name, keywords);
       obj->name = strdup(buf);
-      sprintf(buf, "a scroll written in %s ink", colors[color1]);
+      snprintf(buf, MAX_STRING_LENGTH, "a scroll written in %s ink", colors[color1]);
       obj->short_description = strdup(buf);
-      sprintf(buf, "A scroll written in %s ink lies here.", colors[color1]);
+      snprintf(buf, MAX_STRING_LENGTH, "A scroll written in %s ink lies here.", colors[color1]);
       obj->description = strdup(buf);
 
       GET_OBJ_VAL(obj, 0) = spell_level;
@@ -1431,7 +1431,7 @@ void award_magic_ammo(struct char_data *ch, int grade) {
 
   /* determine if rare or not, start building string */
   rare_grade = determine_rare_grade();
-  sprintf(desc, label_rare_grade(rare_grade));
+  snprintf(desc, MEDIUM_STRING, label_rare_grade(rare_grade));
 
   /* pick a random ammo, 0 = undefined */
   armor_desc_roll = rand_number(1, NUM_AMMO_TYPES - 1);
@@ -1476,14 +1476,14 @@ void award_magic_ammo(struct char_data *ch, int grade) {
   armor_desc_roll = rand_number(0, NUM_A_AMMO_DESCS - 1);
 
   /* a dwarven-made */
-  sprintf(desc, "%s %s", AN(ammo_descs[armor_desc_roll]),
+  snprintf(desc, MEDIUM_STRING, "%s %s", AN(ammo_descs[armor_desc_roll]),
           ammo_descs[armor_desc_roll]);
-  sprintf(keywords, "%s", ammo_descs[armor_desc_roll]);
+  snprintf(keywords, MEDIUM_STRING, "%s", ammo_descs[armor_desc_roll]);
 
   /* mithril sling-bullet */
-  sprintf(desc, "%s %s %s", desc, material_name[GET_OBJ_MATERIAL(obj)],
+  snprintf(desc, MEDIUM_STRING, "%s %s %s", desc, material_name[GET_OBJ_MATERIAL(obj)],
           ammo_types[GET_OBJ_VAL(obj, 0)]);
-  sprintf(keywords, "%s %s %s", keywords, material_name[GET_OBJ_MATERIAL(obj)],
+  snprintf(keywords, MEDIUM_STRING, "%s %s %s", keywords, material_name[GET_OBJ_MATERIAL(obj)],
           ammo_types[GET_OBJ_VAL(obj, 0)]);
 
   /* sling bullets done! */
@@ -1492,20 +1492,20 @@ void award_magic_ammo(struct char_data *ch, int grade) {
     /* with a grooved tip (arrows, bolts, darts) */
   else {
     armor_desc_roll = rand_number(1, NUM_A_AMMO_HEAD_DESCS - 1);
-    sprintf(desc, "%s with a %s tip", desc, ammo_head_descs[armor_desc_roll]);
-    sprintf(keywords, "%s %s tip", keywords,
+    snprintf(desc, MEDIUM_STRING, "%s with a %s tip", desc, ammo_head_descs[armor_desc_roll]);
+    snprintf(keywords, MEDIUM_STRING, "%s %s tip", keywords,
             ammo_head_descs[armor_desc_roll]);
   }
 
   /* we are adding "ammo" as a keyword here for ease of handling for players */
-  sprintf(keywords, "%s ammo", keywords);
+  snprintf(keywords, MEDIUM_STRING, "%s ammo", keywords);
 
   /* finished descrips, so lets assign them */
   obj->name = strdup(keywords); /* key words */
   // Set descriptions
   obj->short_description = strdup(desc);
   desc[0] = toupper(desc[0]);
-  sprintf(desc, "%s is lying here.", desc);
+  snprintf(desc, MEDIUM_STRING, "%s is lying here.", desc);
   obj->description = strdup(desc);
 
   /* END DESCRIPTION SECTION */
@@ -1542,14 +1542,14 @@ void give_magic_armor(struct char_data *ch, int selection, int enchantment, bool
 
   /* a suit of (body), or a pair of (arm/leg), or AN() (helm) */
   if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_BODY)) {
-    sprintf(desc, "%s%s", desc, "a suit of");
+    snprintf(desc, MEDIUM_STRING, "%s%s", desc, "a suit of");
   } else if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_HEAD) ||
           IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_SHIELD)) {
     armor_desc_roll = rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1);
-    sprintf(desc, "%s%s", desc,
+    snprintf(desc, MEDIUM_STRING, "%s%s", desc,
             AN(armor_special_descs[armor_desc_roll]));
   } else {
-    sprintf(desc, "%s%s", desc, "a pair of");
+    snprintf(desc, MEDIUM_STRING, "%s%s", desc, "a pair of");
   }
 
   /* set the object material, check for upgrade */
@@ -1589,43 +1589,43 @@ void give_magic_armor(struct char_data *ch, int selection, int enchantment, bool
   crest_num = rand_number(0, NUM_A_ARMOR_CRESTS - 1);
 
   /* start with keyword string */
-  sprintf(keywords, "%s %s", keywords, armor_list[GET_ARMOR_TYPE(obj)].name);
-  sprintf(keywords, "%s %s", keywords, material_name[GET_OBJ_MATERIAL(obj)]);
+  snprintf(keywords, MEDIUM_STRING, "%s %s", keywords, armor_list[GET_ARMOR_TYPE(obj)].name);
+  snprintf(keywords, MEDIUM_STRING, "%s %s", keywords, material_name[GET_OBJ_MATERIAL(obj)]);
 
   roll = dice(1, 3);
   if (roll == 3) { // armor spec adjective in desc?
-    sprintf(desc, "%s %s", desc,
+    snprintf(desc, MEDIUM_STRING, "%s %s", desc,
             armor_special_descs[armor_desc_roll]);
-    sprintf(keywords, "%s %s", keywords,
+    snprintf(keywords, MEDIUM_STRING, "%s %s", keywords,
             armor_special_descs[armor_desc_roll]);
   }
 
   roll = dice(1, 5);
   if (roll >= 4) { // color describe #1?
-    sprintf(desc, "%s %s", desc, colors[color1]);
-    sprintf(keywords, "%s %s", keywords, colors[color1]);
+    snprintf(desc, MEDIUM_STRING, "%s %s", desc, colors[color1]);
+    snprintf(keywords, MEDIUM_STRING, "%s %s", keywords, colors[color1]);
   } else if (roll == 3) { // two colors
-    sprintf(desc, "%s %s and %s", desc, colors[color1], colors[color2]);
-    sprintf(keywords, "%s %s and %s", keywords, colors[color1], colors[color2]);
+    snprintf(desc, MEDIUM_STRING, "%s %s and %s", desc, colors[color1], colors[color2]);
+    snprintf(keywords, MEDIUM_STRING, "%s %s and %s", keywords, colors[color1], colors[color2]);
   }
 
   // Insert the material type, then armor type
-  sprintf(desc, "%s %s", desc, material_name[GET_OBJ_MATERIAL(obj)]);
-  sprintf(desc, "%s %s", desc, armor_list[GET_ARMOR_TYPE(obj)].name);
+  snprintf(desc, MEDIUM_STRING, "%s %s", desc, material_name[GET_OBJ_MATERIAL(obj)]);
+  snprintf(desc, MEDIUM_STRING, "%s %s", desc, armor_list[GET_ARMOR_TYPE(obj)].name);
 
   roll = dice(1, 8);
   if (roll >= 7) { // crest?
-    sprintf(desc, "%s with %s %s crest", desc,
+    snprintf(desc, MEDIUM_STRING, "%s with %s %s crest", desc,
             AN(armor_crests[crest_num]),
             armor_crests[crest_num]);
-    sprintf(keywords, "%s with %s %s crest", keywords,
+    snprintf(keywords, MEDIUM_STRING, "%s with %s %s crest", keywords,
             AN(armor_crests[crest_num]),
             armor_crests[crest_num]);
   } else if (roll >= 5) { // or symbol?
-    sprintf(desc, "%s covered in symbols of %s %s", desc,
+    snprintf(desc, MEDIUM_STRING, "%s covered in symbols of %s %s", desc,
             AN(armor_crests[crest_num]),
             armor_crests[crest_num]);
-    sprintf(keywords, "%s covered in symbols of %s %s", keywords,
+    snprintf(keywords, MEDIUM_STRING, "%s covered in symbols of %s %s", keywords,
             AN(armor_crests[crest_num]),
             armor_crests[crest_num]);
   }
@@ -1635,7 +1635,7 @@ void give_magic_armor(struct char_data *ch, int selection, int enchantment, bool
   // Set descriptions
   obj->short_description = strdup(desc);
   desc[0] = toupper(desc[0]);
-  sprintf(desc, "%s is lying here.", desc);
+  snprintf(desc, MEDIUM_STRING, "%s is lying here.", desc);
   obj->description = strdup(desc);
 
   /* END DESCRIPTION SECTION */
@@ -1677,18 +1677,18 @@ void award_magic_armor(struct char_data *ch, int grade, int wear_slot) {
 
   /* determine if rare or not, start building string */
   rare_grade = determine_rare_grade();
-  sprintf(desc, label_rare_grade(rare_grade));
+  snprintf(desc, MEDIUM_STRING, label_rare_grade(rare_grade));
 
   /* a suit of (body), or a pair of (arm/leg), or AN() (helm) */
   if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_BODY)) {
-    sprintf(desc, "%s%s", desc, "a suit of");
+    snprintf(desc, MEDIUM_STRING, "%s%s", desc, "a suit of");
   } else if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_HEAD) ||
           IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_SHIELD)) {
     armor_desc_roll = rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1);
-    sprintf(desc, "%s%s", desc,
+    snprintf(desc, MEDIUM_STRING, "%s%s", desc,
             AN(armor_special_descs[armor_desc_roll]));
   } else {
-    sprintf(desc, "%s%s", desc, "a pair of");
+    snprintf(desc, MEDIUM_STRING, "%s%s", desc, "a pair of");
   }
 
   /* set the object material, check for upgrade */
@@ -1727,43 +1727,43 @@ void award_magic_armor(struct char_data *ch, int grade, int wear_slot) {
   crest_num = rand_number(0, NUM_A_ARMOR_CRESTS - 1);
 
   /* start with keyword string */
-  sprintf(keywords, "%s %s", keywords, armor_list[GET_ARMOR_TYPE(obj)].name);
-  sprintf(keywords, "%s %s", keywords, material_name[GET_OBJ_MATERIAL(obj)]);
+  snprintf(keywords, MEDIUM_STRING, "%s %s", keywords, armor_list[GET_ARMOR_TYPE(obj)].name);
+  snprintf(keywords, MEDIUM_STRING, "%s %s", keywords, material_name[GET_OBJ_MATERIAL(obj)]);
 
   roll = dice(1, 3);
   if (roll == 3) { // armor spec adjective in desc?
-    sprintf(desc, "%s %s", desc,
+    snprintf(desc, MEDIUM_STRING, "%s %s", desc,
             armor_special_descs[armor_desc_roll]);
-    sprintf(keywords, "%s %s", keywords,
+    snprintf(keywords, MEDIUM_STRING, "%s %s", keywords,
             armor_special_descs[armor_desc_roll]);
   }
 
   roll = dice(1, 5);
   if (roll >= 4) { // color describe #1?
-    sprintf(desc, "%s %s", desc, colors[color1]);
-    sprintf(keywords, "%s %s", keywords, colors[color1]);
+    snprintf(desc, MEDIUM_STRING, "%s %s", desc, colors[color1]);
+    snprintf(keywords, MEDIUM_STRING, "%s %s", keywords, colors[color1]);
   } else if (roll == 3) { // two colors
-    sprintf(desc, "%s %s and %s", desc, colors[color1], colors[color2]);
-    sprintf(keywords, "%s %s and %s", keywords, colors[color1], colors[color2]);
+    snprintf(desc, MEDIUM_STRING, "%s %s and %s", desc, colors[color1], colors[color2]);
+    snprintf(keywords, MEDIUM_STRING, "%s %s and %s", keywords, colors[color1], colors[color2]);
   }
 
   // Insert the material type, then armor type
-  sprintf(desc, "%s %s", desc, material_name[GET_OBJ_MATERIAL(obj)]);
-  sprintf(desc, "%s %s", desc, armor_list[GET_ARMOR_TYPE(obj)].name);
+  snprintf(desc, MEDIUM_STRING, "%s %s", desc, material_name[GET_OBJ_MATERIAL(obj)]);
+  snprintf(desc, MEDIUM_STRING, "%s %s", desc, armor_list[GET_ARMOR_TYPE(obj)].name);
 
   roll = dice(1, 8);
   if (roll >= 7) { // crest?
-    sprintf(desc, "%s with %s %s crest", desc,
+    snprintf(desc, MEDIUM_STRING, "%s with %s %s crest", desc,
             AN(armor_crests[crest_num]),
             armor_crests[crest_num]);
-    sprintf(keywords, "%s with %s %s crest", keywords,
+    snprintf(keywords, MEDIUM_STRING, "%s with %s %s crest", keywords,
             AN(armor_crests[crest_num]),
             armor_crests[crest_num]);
   } else if (roll >= 5) { // or symbol?
-    sprintf(desc, "%s covered in symbols of %s %s", desc,
+    snprintf(desc, MEDIUM_STRING, "%s covered in symbols of %s %s", desc,
             AN(armor_crests[crest_num]),
             armor_crests[crest_num]);
-    sprintf(keywords, "%s covered in symbols of %s %s", keywords,
+    snprintf(keywords, MEDIUM_STRING, "%s covered in symbols of %s %s", keywords,
             AN(armor_crests[crest_num]),
             armor_crests[crest_num]);
   }
@@ -1773,7 +1773,7 @@ void award_magic_armor(struct char_data *ch, int grade, int wear_slot) {
   // Set descriptions
   obj->short_description = strdup(desc);
   desc[0] = toupper(desc[0]);
-  sprintf(desc, "%s is lying here.", desc);
+  snprintf(desc, MEDIUM_STRING, "%s is lying here.", desc);
   obj->description = strdup(desc);
 
   /* END DESCRIPTION SECTION */
@@ -2085,7 +2085,7 @@ void award_magic_weapon(struct char_data *ch, int grade) {
 
   /* determine if rare or not, start building string */
   rare_grade = determine_rare_grade();
-  sprintf(desc, label_rare_grade(rare_grade));
+  snprintf(desc, MEDIUM_STRING, label_rare_grade(rare_grade));
 
   /* ok assigning final material here, check for upgrade */
   GET_OBJ_MATERIAL(obj) =
@@ -2121,14 +2121,14 @@ void award_magic_weapon(struct char_data *ch, int grade) {
   while (color2 == color1)
     color2 = rand_number(0, NUM_A_COLORS - 1);
 
-  sprintf(head_color, "%s", colors[color1]);
-  sprintf(hilt_color, "%s", colors[color2]);
+  snprintf(head_color, SHORT_STRING, "%s", colors[color1]);
+  snprintf(hilt_color, SHORT_STRING, "%s", colors[color2]);
   if (IS_BLADE(obj))
-    sprintf(special, "%s%s", desc, blade_descs[rand_number(0, NUM_A_BLADE_DESCS - 1)]);
+    snprintf(special, SHORT_STRING, "%s%s", desc, blade_descs[rand_number(0, NUM_A_BLADE_DESCS - 1)]);
   else if (IS_PIERCE(obj))
-    sprintf(special, "%s%s", desc, piercing_descs[rand_number(0, NUM_A_PIERCING_DESCS - 1)]);
+    snprintf(special, SHORT_STRING, "%s%s", desc, piercing_descs[rand_number(0, NUM_A_PIERCING_DESCS - 1)]);
   else //blunt
-    sprintf(special, "%s%s", desc, blunt_descs[rand_number(0, NUM_A_BLUNT_DESCS - 1)]);
+    snprintf(special, SHORT_STRING, "%s%s", desc, blunt_descs[rand_number(0, NUM_A_BLUNT_DESCS - 1)]);
 
   roll = dice(1, 100);
   roll2 = rand_number(0, NUM_A_HEAD_TYPES - 1);
@@ -2136,19 +2136,19 @@ void award_magic_weapon(struct char_data *ch, int grade) {
 
   // special, head color, hilt color
   if (roll >= 91) {
-    sprintf(buf, "%s %s-%s %s %s %s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s-%s %s %s %s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
             head_color, head_types[roll2],
             material_name[GET_OBJ_MATERIAL(obj)], special,
             hilt_color,
             handle_types[roll3]);
     obj->name = strdup(buf);
-    sprintf(buf, "%s %s, %s-%s %s %s with %s %s %s", a_or_an(special), special,
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s, %s-%s %s %s with %s %s %s", a_or_an(special), special,
             head_color, head_types[roll2],
             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
             a_or_an(hilt_color), hilt_color,
             handle_types[roll3]);
     obj->short_description = strdup(buf);
-    sprintf(buf, "%s %s, %s-%s %s %s with %s %s %s lies here.", a_or_an(special),
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s, %s-%s %s %s with %s %s %s lies here.", a_or_an(special),
             special, head_color, head_types[roll2],
             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
             a_or_an(hilt_color), hilt_color,
@@ -2158,15 +2158,15 @@ void award_magic_weapon(struct char_data *ch, int grade) {
 
     // special, head color
   } else if (roll >= 81) {
-    sprintf(buf, "%s %s-%s %s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s-%s %s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
             head_color, head_types[roll2],
             material_name[GET_OBJ_MATERIAL(obj)], special);
     obj->name = strdup(buf);
-    sprintf(buf, "%s %s, %s-%s %s %s", a_or_an(special), special,
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s, %s-%s %s %s", a_or_an(special), special,
             head_color, head_types[roll2],
             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
     obj->short_description = strdup(buf);
-    sprintf(buf, "%s %s, %s-%s %s %s lies here.", a_or_an(special),
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s, %s-%s %s %s lies here.", a_or_an(special),
             special, head_color, head_types[roll2],
             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
     *buf = UPPER(*buf);
@@ -2174,16 +2174,16 @@ void award_magic_weapon(struct char_data *ch, int grade) {
 
     // special, hilt color
   } else if (roll >= 71) {
-    sprintf(buf, "%s %s %s %s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
             material_name[GET_OBJ_MATERIAL(obj)], special, hilt_color,
             handle_types[roll3]);
     obj->name = strdup(buf);
-    sprintf(buf, "%s %s %s %s with %s %s %s", a_or_an(special), special,
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s with %s %s %s", a_or_an(special), special,
             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
             a_or_an(hilt_color), hilt_color,
             handle_types[roll3]);
     obj->short_description = strdup(buf);
-    sprintf(buf, "%s %s %s %s with %s %s %s lies here.", a_or_an(special),
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s with %s %s %s lies here.", a_or_an(special),
             special, material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
             a_or_an(hilt_color), hilt_color,
             handle_types[roll3]);
@@ -2192,19 +2192,19 @@ void award_magic_weapon(struct char_data *ch, int grade) {
 
     // head color, hilt color
   } else if (roll >= 41) {
-    sprintf(buf, "%s %s-%s %s %s %s",
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s-%s %s %s %s",
             weapon_list[GET_WEAPON_TYPE(obj)].name, head_color, head_types[roll2],
             material_name[GET_OBJ_MATERIAL(obj)],
             hilt_color,
             handle_types[roll3]);
     obj->name = strdup(buf);
-    sprintf(buf, "%s %s-%s %s %s with %s %s %s", a_or_an(head_color),
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s-%s %s %s with %s %s %s", a_or_an(head_color),
             head_color, head_types[roll2],
             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
             a_or_an(hilt_color), hilt_color,
             handle_types[roll3]);
     obj->short_description = strdup(buf);
-    sprintf(buf, "%s %s-%s %s %s with %s %s %s lies here.", a_or_an(head_color),
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s-%s %s %s with %s %s %s lies here.", a_or_an(head_color),
             head_color, head_types[roll2],
             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
             a_or_an(hilt_color), hilt_color,
@@ -2214,15 +2214,15 @@ void award_magic_weapon(struct char_data *ch, int grade) {
 
     // head color
   } else if (roll >= 31) {
-    sprintf(buf, "%s %s-%s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s-%s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
             head_color, head_types[roll2],
             material_name[GET_OBJ_MATERIAL(obj)]);
     obj->name = strdup(buf);
-    sprintf(buf, "%s %s-%s %s %s", a_or_an(head_color),
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s-%s %s %s", a_or_an(head_color),
             head_color, head_types[roll2],
             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
     obj->short_description = strdup(buf);
-    sprintf(buf, "%s %s-%s %s %s lies here.", a_or_an(head_color),
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s-%s %s %s lies here.", a_or_an(head_color),
             head_color, head_types[roll2],
             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
     *buf = UPPER(*buf);
@@ -2230,17 +2230,17 @@ void award_magic_weapon(struct char_data *ch, int grade) {
 
     // hilt color
   } else if (roll >= 21) {
-    sprintf(buf, "%s %s %s %s",
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s",
             weapon_list[GET_WEAPON_TYPE(obj)].name, material_name[GET_OBJ_MATERIAL(obj)],
             hilt_color,
             handle_types[roll3]);
     obj->name = strdup(buf);
-    sprintf(buf, "%s %s %s with %s %s %s", a_or_an((char *) material_name[GET_OBJ_MATERIAL(obj)]),
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s with %s %s %s", a_or_an((char *) material_name[GET_OBJ_MATERIAL(obj)]),
             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
             a_or_an(hilt_color), hilt_color,
             handle_types[roll3]);
     obj->short_description = strdup(buf);
-    sprintf(buf, "%s %s %s with %s %s %s lies here.",
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s with %s %s %s lies here.",
             a_or_an((char *) material_name[GET_OBJ_MATERIAL(obj)]),
             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
             a_or_an(hilt_color), hilt_color,
@@ -2250,26 +2250,26 @@ void award_magic_weapon(struct char_data *ch, int grade) {
 
     // special
   } else if (roll >= 11) {
-    sprintf(buf, "%s %s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
             material_name[GET_OBJ_MATERIAL(obj)], special);
     obj->name = strdup(buf);
-    sprintf(buf, "%s %s %s %s", a_or_an(special), special,
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s", a_or_an(special), special,
             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
     obj->short_description = strdup(buf);
-    sprintf(buf, "%s %s %s %s lies here.", a_or_an(special), special,
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s lies here.", a_or_an(special), special,
             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
     *buf = UPPER(*buf);
     obj->description = strdup(buf);
 
     // none
   } else {
-    sprintf(buf, "%s %s",
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s",
             weapon_list[GET_WEAPON_TYPE(obj)].name, material_name[GET_OBJ_MATERIAL(obj)]);
     obj->name = strdup(buf);
-    sprintf(buf, "%s %s %s", a_or_an((char *) material_name[GET_OBJ_MATERIAL(obj)]),
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s", a_or_an((char *) material_name[GET_OBJ_MATERIAL(obj)]),
             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
     obj->short_description = strdup(buf);
-    sprintf(buf, "%s %s %s lies here.",
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s lies here.",
             a_or_an((char *) material_name[GET_OBJ_MATERIAL(obj)]),
             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
     *buf = UPPER(*buf);
@@ -2343,14 +2343,14 @@ void give_magic_weapon(struct char_data *ch, int selection, int enchantment, boo
   while (color2 == color1)
     color2 = rand_number(0, NUM_A_COLORS - 1);
 
-  sprintf(head_color, "%s", colors[color1]);
-  sprintf(hilt_color, "%s", colors[color2]);
+  snprintf(head_color, SHORT_STRING, "%s", colors[color1]);
+  snprintf(hilt_color, SHORT_STRING, "%s", colors[color2]);
   if (IS_BLADE(obj))
-    sprintf(special, "%s%s", desc, blade_descs[rand_number(0, NUM_A_BLADE_DESCS - 1)]);
+    snprintf(special, SHORT_STRING, "%s%s", desc, blade_descs[rand_number(0, NUM_A_BLADE_DESCS - 1)]);
   else if (IS_PIERCE(obj))
-    sprintf(special, "%s%s", desc, piercing_descs[rand_number(0, NUM_A_PIERCING_DESCS - 1)]);
+    snprintf(special, SHORT_STRING, "%s%s", desc, piercing_descs[rand_number(0, NUM_A_PIERCING_DESCS - 1)]);
   else //blunt
-    sprintf(special, "%s%s", desc, blunt_descs[rand_number(0, NUM_A_BLUNT_DESCS - 1)]);
+    snprintf(special, SHORT_STRING, "%s%s", desc, blunt_descs[rand_number(0, NUM_A_BLUNT_DESCS - 1)]);
 
   roll = dice(1, 100);
   roll2 = rand_number(0, NUM_A_HEAD_TYPES - 1);
@@ -2358,19 +2358,19 @@ void give_magic_weapon(struct char_data *ch, int selection, int enchantment, boo
 
   // special, head color, hilt color
   if (roll >= 91) {
-    sprintf(buf, "%s %s-%s %s %s %s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s-%s %s %s %s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
             head_color, head_types[roll2],
             material_name[GET_OBJ_MATERIAL(obj)], special,
             hilt_color,
             handle_types[roll3]);
     obj->name = strdup(buf);
-    sprintf(buf, "%s %s, %s-%s %s %s with %s %s %s", a_or_an(special), special,
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s, %s-%s %s %s with %s %s %s", a_or_an(special), special,
             head_color, head_types[roll2],
             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
             a_or_an(hilt_color), hilt_color,
             handle_types[roll3]);
     obj->short_description = strdup(buf);
-    sprintf(buf, "%s %s, %s-%s %s %s with %s %s %s lies here.", a_or_an(special),
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s, %s-%s %s %s with %s %s %s lies here.", a_or_an(special),
             special, head_color, head_types[roll2],
             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
             a_or_an(hilt_color), hilt_color,
@@ -2380,15 +2380,15 @@ void give_magic_weapon(struct char_data *ch, int selection, int enchantment, boo
 
     // special, head color
   } else if (roll >= 81) {
-    sprintf(buf, "%s %s-%s %s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s-%s %s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
             head_color, head_types[roll2],
             material_name[GET_OBJ_MATERIAL(obj)], special);
     obj->name = strdup(buf);
-    sprintf(buf, "%s %s, %s-%s %s %s", a_or_an(special), special,
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s, %s-%s %s %s", a_or_an(special), special,
             head_color, head_types[roll2],
             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
     obj->short_description = strdup(buf);
-    sprintf(buf, "%s %s, %s-%s %s %s lies here.", a_or_an(special),
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s, %s-%s %s %s lies here.", a_or_an(special),
             special, head_color, head_types[roll2],
             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
     *buf = UPPER(*buf);
@@ -2396,16 +2396,16 @@ void give_magic_weapon(struct char_data *ch, int selection, int enchantment, boo
 
     // special, hilt color
   } else if (roll >= 71) {
-    sprintf(buf, "%s %s %s %s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
             material_name[GET_OBJ_MATERIAL(obj)], special, hilt_color,
             handle_types[roll3]);
     obj->name = strdup(buf);
-    sprintf(buf, "%s %s %s %s with %s %s %s", a_or_an(special), special,
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s with %s %s %s", a_or_an(special), special,
             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
             a_or_an(hilt_color), hilt_color,
             handle_types[roll3]);
     obj->short_description = strdup(buf);
-    sprintf(buf, "%s %s %s %s with %s %s %s lies here.", a_or_an(special),
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s with %s %s %s lies here.", a_or_an(special),
             special, material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
             a_or_an(hilt_color), hilt_color,
             handle_types[roll3]);
@@ -2414,19 +2414,19 @@ void give_magic_weapon(struct char_data *ch, int selection, int enchantment, boo
 
     // head color, hilt color
   } else if (roll >= 41) {
-    sprintf(buf, "%s %s-%s %s %s %s",
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s-%s %s %s %s",
             weapon_list[GET_WEAPON_TYPE(obj)].name, head_color, head_types[roll2],
             material_name[GET_OBJ_MATERIAL(obj)],
             hilt_color,
             handle_types[roll3]);
     obj->name = strdup(buf);
-    sprintf(buf, "%s %s-%s %s %s with %s %s %s", a_or_an(head_color),
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s-%s %s %s with %s %s %s", a_or_an(head_color),
             head_color, head_types[roll2],
             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
             a_or_an(hilt_color), hilt_color,
             handle_types[roll3]);
     obj->short_description = strdup(buf);
-    sprintf(buf, "%s %s-%s %s %s with %s %s %s lies here.", a_or_an(head_color),
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s-%s %s %s with %s %s %s lies here.", a_or_an(head_color),
             head_color, head_types[roll2],
             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
             a_or_an(hilt_color), hilt_color,
@@ -2436,15 +2436,15 @@ void give_magic_weapon(struct char_data *ch, int selection, int enchantment, boo
 
     // head color
   } else if (roll >= 31) {
-    sprintf(buf, "%s %s-%s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s-%s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
             head_color, head_types[roll2],
             material_name[GET_OBJ_MATERIAL(obj)]);
     obj->name = strdup(buf);
-    sprintf(buf, "%s %s-%s %s %s", a_or_an(head_color),
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s-%s %s %s", a_or_an(head_color),
             head_color, head_types[roll2],
             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
     obj->short_description = strdup(buf);
-    sprintf(buf, "%s %s-%s %s %s lies here.", a_or_an(head_color),
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s-%s %s %s lies here.", a_or_an(head_color),
             head_color, head_types[roll2],
             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
     *buf = UPPER(*buf);
@@ -2452,17 +2452,17 @@ void give_magic_weapon(struct char_data *ch, int selection, int enchantment, boo
 
     // hilt color
   } else if (roll >= 21) {
-    sprintf(buf, "%s %s %s %s",
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s",
             weapon_list[GET_WEAPON_TYPE(obj)].name, material_name[GET_OBJ_MATERIAL(obj)],
             hilt_color,
             handle_types[roll3]);
     obj->name = strdup(buf);
-    sprintf(buf, "%s %s %s with %s %s %s", a_or_an((char *) material_name[GET_OBJ_MATERIAL(obj)]),
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s with %s %s %s", a_or_an((char *) material_name[GET_OBJ_MATERIAL(obj)]),
             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
             a_or_an(hilt_color), hilt_color,
             handle_types[roll3]);
     obj->short_description = strdup(buf);
-    sprintf(buf, "%s %s %s with %s %s %s lies here.",
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s with %s %s %s lies here.",
             a_or_an((char *) material_name[GET_OBJ_MATERIAL(obj)]),
             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
             a_or_an(hilt_color), hilt_color,
@@ -2472,26 +2472,26 @@ void give_magic_weapon(struct char_data *ch, int selection, int enchantment, boo
 
     // special
   } else if (roll >= 11) {
-    sprintf(buf, "%s %s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
             material_name[GET_OBJ_MATERIAL(obj)], special);
     obj->name = strdup(buf);
-    sprintf(buf, "%s %s %s %s", a_or_an(special), special,
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s", a_or_an(special), special,
             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
     obj->short_description = strdup(buf);
-    sprintf(buf, "%s %s %s %s lies here.", a_or_an(special), special,
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s lies here.", a_or_an(special), special,
             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
     *buf = UPPER(*buf);
     obj->description = strdup(buf);
 
     // none
   } else {
-    sprintf(buf, "%s %s",
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s",
             weapon_list[GET_WEAPON_TYPE(obj)].name, material_name[GET_OBJ_MATERIAL(obj)]);
     obj->name = strdup(buf);
-    sprintf(buf, "%s %s %s", a_or_an((char *) material_name[GET_OBJ_MATERIAL(obj)]),
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s", a_or_an((char *) material_name[GET_OBJ_MATERIAL(obj)]),
             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
     obj->short_description = strdup(buf);
-    sprintf(buf, "%s %s %s lies here.",
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s lies here.",
             a_or_an((char *) material_name[GET_OBJ_MATERIAL(obj)]),
             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
     *buf = UPPER(*buf);
@@ -2531,61 +2531,61 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment, b
     case 1: /*finger*/
       vnum = RING_MOLD;
       material = MATERIAL_COPPER;
-      sprintf(armor_name, ring_descs[rand_number(0, NUM_A_RING_DESCS - 1)]);
-      sprintf(desc2, gemstones[rand_number(0, NUM_A_GEMSTONES - 1)]);
+      snprintf(armor_name, MEDIUM_STRING, ring_descs[rand_number(0, NUM_A_RING_DESCS - 1)]);
+      snprintf(desc2, SHORT_STRING, gemstones[rand_number(0, NUM_A_GEMSTONES - 1)]);
       break;
     case 2: /*neck*/
       vnum = NECKLACE_MOLD;
       material = MATERIAL_COPPER;
-      sprintf(armor_name, neck_descs[rand_number(0, NUM_A_NECK_DESCS - 1)]);
-      sprintf(desc2, gemstones[rand_number(0, NUM_A_GEMSTONES - 1)]);
+      snprintf(armor_name, MEDIUM_STRING, neck_descs[rand_number(0, NUM_A_NECK_DESCS - 1)]);
+      snprintf(desc2, SHORT_STRING, gemstones[rand_number(0, NUM_A_GEMSTONES - 1)]);
       break;
     case 3: /*feet*/
       vnum = BOOTS_MOLD;
       material = MATERIAL_LEATHER;
-      sprintf(armor_name, boot_descs[rand_number(0, NUM_A_BOOT_DESCS - 1)]);
-      sprintf(desc2, armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
-      sprintf(desc3, colors[rand_number(0, NUM_A_COLORS - 1)]);
+      snprintf(armor_name, MEDIUM_STRING, boot_descs[rand_number(0, NUM_A_BOOT_DESCS - 1)]);
+      snprintf(desc2, SHORT_STRING, armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
+      snprintf(desc3, SHORT_STRING, colors[rand_number(0, NUM_A_COLORS - 1)]);
       break;
     case 4: /*hands*/
       vnum = GLOVES_MOLD;
       material = MATERIAL_LEATHER;
-      sprintf(armor_name, hands_descs[rand_number(0, NUM_A_HAND_DESCS - 1)]);
-      sprintf(desc2, armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
-      sprintf(desc3, colors[rand_number(0, NUM_A_COLORS - 1)]);
+      snprintf(armor_name, MEDIUM_STRING, hands_descs[rand_number(0, NUM_A_HAND_DESCS - 1)]);
+      snprintf(desc2, SHORT_STRING, armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
+      snprintf(desc3, SHORT_STRING, colors[rand_number(0, NUM_A_COLORS - 1)]);
       break;
     case 5: /*about*/
       vnum = CLOAK_MOLD;
       material = MATERIAL_COTTON;
-      sprintf(armor_name, cloak_descs[rand_number(0, NUM_A_CLOAK_DESCS - 1)]);
-      sprintf(desc2, armor_crests[rand_number(0, NUM_A_ARMOR_CRESTS - 1)]);
-      sprintf(desc3, colors[rand_number(0, NUM_A_COLORS - 1)]);
+      snprintf(armor_name, MEDIUM_STRING, cloak_descs[rand_number(0, NUM_A_CLOAK_DESCS - 1)]);
+      snprintf(desc2, SHORT_STRING, armor_crests[rand_number(0, NUM_A_ARMOR_CRESTS - 1)]);
+      snprintf(desc3, SHORT_STRING, colors[rand_number(0, NUM_A_COLORS - 1)]);
       break;
     case 6: /*waist*/
       vnum = BELT_MOLD;
       material = MATERIAL_LEATHER;
-      sprintf(armor_name, waist_descs[rand_number(0, NUM_A_WAIST_DESCS - 1)]);
-      sprintf(desc2, armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
-      sprintf(desc3, colors[rand_number(0, NUM_A_COLORS - 1)]);
+      snprintf(armor_name, MEDIUM_STRING, waist_descs[rand_number(0, NUM_A_WAIST_DESCS - 1)]);
+      snprintf(desc2, SHORT_STRING, armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
+      snprintf(desc3, SHORT_STRING, colors[rand_number(0, NUM_A_COLORS - 1)]);
       break;
     case 7: /*wrist*/
       vnum = WRIST_MOLD;
       material = MATERIAL_COPPER;
-      sprintf(armor_name, wrist_descs[rand_number(0, NUM_A_WRIST_DESCS - 1)]);
-      sprintf(desc2, gemstones[rand_number(0, NUM_A_GEMSTONES - 1)]);
+      snprintf(armor_name, MEDIUM_STRING, wrist_descs[rand_number(0, NUM_A_WRIST_DESCS - 1)]);
+      snprintf(desc2, SHORT_STRING, gemstones[rand_number(0, NUM_A_GEMSTONES - 1)]);
       break;
     case 8: /*held*/
       vnum = HELD_MOLD;
       material = MATERIAL_ONYX;
-      sprintf(armor_name, crystal_descs[rand_number(0, NUM_A_CRYSTAL_DESCS - 1)]);
-      sprintf(desc2, colors[rand_number(0, NUM_A_COLORS - 1)]);
+      snprintf(armor_name, MEDIUM_STRING, crystal_descs[rand_number(0, NUM_A_CRYSTAL_DESCS - 1)]);
+      snprintf(desc2, SHORT_STRING, colors[rand_number(0, NUM_A_COLORS - 1)]);
       break;
     case 9: /*monk gloves*/
       vnum = GLOVES_MOLD;
       material = MATERIAL_LEATHER;
-      sprintf(armor_name, monk_glove_descs[rand_number(0, NUM_A_MONK_GLOVE_DESCS - 1)]);
-      sprintf(desc2, armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
-      sprintf(desc3, colors[rand_number(0, NUM_A_COLORS - 1)]);
+      snprintf(armor_name, MEDIUM_STRING, monk_glove_descs[rand_number(0, NUM_A_MONK_GLOVE_DESCS - 1)]);
+      snprintf(desc2, SHORT_STRING, armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
+      snprintf(desc3, SHORT_STRING, colors[rand_number(0, NUM_A_COLORS - 1)]);
       break;
   }
 
@@ -2721,58 +2721,58 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment, b
     case RING_MOLD:
     case NECKLACE_MOLD:
     case WRIST_MOLD:
-      sprintf(keywords, "%s %s set with %s gemstone",
+      snprintf(keywords, MEDIUM_STRING, "%s %s set with %s gemstone",
               armor_name, material_name[material], desc2);
       obj->name = strdup(keywords);
-      sprintf(desc, "%s%s %s %s set with %s %s gemstone", desc,
+      snprintf(desc, MEDIUM_STRING, "%s%s %s %s set with %s %s gemstone", desc,
               AN(material_name[material]), material_name[material],
               armor_name, AN(desc2), desc2);
       obj->short_description = strdup(desc);
-      sprintf(desc, "%s %s %s set with %s %s gemstone lies here.",
+      snprintf(desc, MEDIUM_STRING, "%s %s %s set with %s %s gemstone lies here.",
               AN(material_name[material]), material_name[material],
               armor_name, AN(desc2), desc2);
       obj->description = strdup(CAP(desc));
       break;
     case BOOTS_MOLD:
     case GLOVES_MOLD:
-      sprintf(keywords, "%s pair %s %s", armor_name, desc2, desc3);
+      snprintf(keywords, MEDIUM_STRING, "%s pair %s %s", armor_name, desc2, desc3);
       obj->name = strdup(keywords);
-      sprintf(desc, "%sa pair of %s %s %s", desc, desc2, desc3,
+      snprintf(desc, MEDIUM_STRING, "%sa pair of %s %s %s", desc, desc2, desc3,
               armor_name);
       obj->short_description = strdup(desc);
-      sprintf(desc, "A pair of %s %s %s lie here.", desc2, desc3,
+      snprintf(desc, MEDIUM_STRING, "A pair of %s %s %s lie here.", desc2, desc3,
               armor_name);
       obj->description = strdup(desc);
       break;
     case CLOAK_MOLD:
-      sprintf(keywords, "%s %s %s %s bearing crest", armor_name, desc2,
+      snprintf(keywords, MEDIUM_STRING, "%s %s %s %s bearing crest", armor_name, desc2,
               material_name[material], desc3);
       obj->name = strdup(keywords);
-      sprintf(desc, "%s%s %s %s %s bearing the crest of %s %s", desc, AN(desc3), desc3,
+      snprintf(desc, MEDIUM_STRING, "%s%s %s %s %s bearing the crest of %s %s", desc, AN(desc3), desc3,
               material_name[material], armor_name, AN(desc2),
               desc2);
       obj->short_description = strdup(desc);
-      sprintf(desc, "%s %s %s %s bearing the crest of %s %s is lying here.", AN(desc3), desc3,
+      snprintf(desc, MEDIUM_STRING, "%s %s %s %s bearing the crest of %s %s is lying here.", AN(desc3), desc3,
               material_name[material], armor_name, AN(desc2),
               desc2);
       obj->description = strdup(CAP(desc));
       break;
     case BELT_MOLD:
-      sprintf(keywords, "%s %s %s", armor_name, desc2, desc3);
+      snprintf(keywords, MEDIUM_STRING, "%s %s %s", armor_name, desc2, desc3);
       obj->name = strdup(keywords);
-      sprintf(desc, "%s%s %s %s %s", desc, AN(desc2), desc2, desc3,
+      snprintf(desc, MEDIUM_STRING, "%s%s %s %s %s", desc, AN(desc2), desc2, desc3,
               armor_name);
       obj->short_description = strdup(desc);
-      sprintf(desc, "%s %s %s %s lie here.", AN(desc2), desc2, desc3,
+      snprintf(desc, MEDIUM_STRING, "%s %s %s %s lie here.", AN(desc2), desc2, desc3,
               armor_name);
       obj->description = strdup(desc);
       break;
     case HELD_MOLD:
-      sprintf(keywords, "%s %s orb", armor_name, desc2);
+      snprintf(keywords, MEDIUM_STRING, "%s %s orb", armor_name, desc2);
       obj->name = strdup(keywords);
-      sprintf(desc, "%sa %s %s orb", desc, desc2, armor_name);
+      snprintf(desc, MEDIUM_STRING, "%sa %s %s orb", desc, desc2, armor_name);
       obj->short_description = strdup(desc);
-      sprintf(desc, "A %s %s orb is lying here.", desc2, armor_name);
+      snprintf(desc, MEDIUM_STRING, "A %s %s orb is lying here.", desc2, armor_name);
       obj->description = strdup(desc);
       break;
   }
@@ -2805,7 +2805,7 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade) {
 
   /* determine if rare or not, start building string */
   rare_grade = determine_rare_grade();
-  sprintf(desc, label_rare_grade(rare_grade));
+  snprintf(desc, MEDIUM_STRING, label_rare_grade(rare_grade));
 
   /* assign base material
    * and last but not least, give appropriate start of description
@@ -2814,61 +2814,61 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade) {
     case 1: /*finger*/
       vnum = RING_MOLD;
       material = MATERIAL_COPPER;
-      sprintf(armor_name, ring_descs[rand_number(0, NUM_A_RING_DESCS - 1)]);
-      sprintf(desc2, gemstones[rand_number(0, NUM_A_GEMSTONES - 1)]);
+      snprintf(armor_name, MEDIUM_STRING, ring_descs[rand_number(0, NUM_A_RING_DESCS - 1)]);
+      snprintf(desc2, SHORT_STRING, gemstones[rand_number(0, NUM_A_GEMSTONES - 1)]);
       break;
     case 2: /*neck*/
       vnum = NECKLACE_MOLD;
       material = MATERIAL_COPPER;
-      sprintf(armor_name, neck_descs[rand_number(0, NUM_A_NECK_DESCS - 1)]);
-      sprintf(desc2, gemstones[rand_number(0, NUM_A_GEMSTONES - 1)]);
+      snprintf(armor_name, MEDIUM_STRING, neck_descs[rand_number(0, NUM_A_NECK_DESCS - 1)]);
+      snprintf(desc2, SHORT_STRING, gemstones[rand_number(0, NUM_A_GEMSTONES - 1)]);
       break;
     case 3: /*feet*/
       vnum = BOOTS_MOLD;
       material = MATERIAL_LEATHER;
-      sprintf(armor_name, boot_descs[rand_number(0, NUM_A_BOOT_DESCS - 1)]);
-      sprintf(desc2, armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
-      sprintf(desc3, colors[rand_number(0, NUM_A_COLORS - 1)]);
+      snprintf(armor_name, MEDIUM_STRING, boot_descs[rand_number(0, NUM_A_BOOT_DESCS - 1)]);
+      snprintf(desc2, SHORT_STRING, armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
+      snprintf(desc3, SHORT_STRING, colors[rand_number(0, NUM_A_COLORS - 1)]);
       break;
     case 4: /*hands*/
       vnum = GLOVES_MOLD;
       material = MATERIAL_LEATHER;
-      sprintf(armor_name, hands_descs[rand_number(0, NUM_A_HAND_DESCS - 1)]);
-      sprintf(desc2, armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
-      sprintf(desc3, colors[rand_number(0, NUM_A_COLORS - 1)]);
+      snprintf(armor_name, MEDIUM_STRING, hands_descs[rand_number(0, NUM_A_HAND_DESCS - 1)]);
+      snprintf(desc2, SHORT_STRING, armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
+      snprintf(desc3, SHORT_STRING, colors[rand_number(0, NUM_A_COLORS - 1)]);
       break;
     case 5: /*about*/
       vnum = CLOAK_MOLD;
       material = MATERIAL_COTTON;
-      sprintf(armor_name, cloak_descs[rand_number(0, NUM_A_CLOAK_DESCS - 1)]);
-      sprintf(desc2, armor_crests[rand_number(0, NUM_A_ARMOR_CRESTS - 1)]);
-      sprintf(desc3, colors[rand_number(0, NUM_A_COLORS - 1)]);
+      snprintf(armor_name, MEDIUM_STRING, cloak_descs[rand_number(0, NUM_A_CLOAK_DESCS - 1)]);
+      snprintf(desc2, SHORT_STRING, armor_crests[rand_number(0, NUM_A_ARMOR_CRESTS - 1)]);
+      snprintf(desc3, SHORT_STRING, colors[rand_number(0, NUM_A_COLORS - 1)]);
       break;
     case 6: /*waist*/
       vnum = BELT_MOLD;
       material = MATERIAL_LEATHER;
-      sprintf(armor_name, waist_descs[rand_number(0, NUM_A_WAIST_DESCS - 1)]);
-      sprintf(desc2, armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
-      sprintf(desc3, colors[rand_number(0, NUM_A_COLORS - 1)]);
+      snprintf(armor_name, MEDIUM_STRING, waist_descs[rand_number(0, NUM_A_WAIST_DESCS - 1)]);
+      snprintf(desc2, SHORT_STRING, armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
+      snprintf(desc3, SHORT_STRING, colors[rand_number(0, NUM_A_COLORS - 1)]);
       break;
     case 7: /*wrist*/
       vnum = WRIST_MOLD;
       material = MATERIAL_COPPER;
-      sprintf(armor_name, wrist_descs[rand_number(0, NUM_A_WRIST_DESCS - 1)]);
-      sprintf(desc2, gemstones[rand_number(0, NUM_A_GEMSTONES - 1)]);
+      snprintf(armor_name, MEDIUM_STRING, wrist_descs[rand_number(0, NUM_A_WRIST_DESCS - 1)]);
+      snprintf(desc2, SHORT_STRING, gemstones[rand_number(0, NUM_A_GEMSTONES - 1)]);
       break;
     case 8: /*held*/
       vnum = HELD_MOLD;
       material = MATERIAL_ONYX;
-      sprintf(armor_name, crystal_descs[rand_number(0, NUM_A_CRYSTAL_DESCS - 1)]);
-      sprintf(desc2, colors[rand_number(0, NUM_A_COLORS - 1)]);
+      snprintf(armor_name, MEDIUM_STRING, crystal_descs[rand_number(0, NUM_A_CRYSTAL_DESCS - 1)]);
+      snprintf(desc2, SHORT_STRING, colors[rand_number(0, NUM_A_COLORS - 1)]);
       break;
     case 9: /*monk gloves*/
       vnum = GLOVES_MOLD;
       material = MATERIAL_LEATHER;
-      sprintf(armor_name, monk_glove_descs[rand_number(0, NUM_A_MONK_GLOVE_DESCS - 1)]);
-      sprintf(desc2, armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
-      sprintf(desc3, colors[rand_number(0, NUM_A_COLORS - 1)]);
+      snprintf(armor_name, MEDIUM_STRING, monk_glove_descs[rand_number(0, NUM_A_MONK_GLOVE_DESCS - 1)]);
+      snprintf(desc2, SHORT_STRING, armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
+      snprintf(desc3, SHORT_STRING, colors[rand_number(0, NUM_A_COLORS - 1)]);
       break;
   }
 
@@ -3004,58 +3004,58 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade) {
     case RING_MOLD:
     case NECKLACE_MOLD:
     case WRIST_MOLD:
-      sprintf(keywords, "%s %s set with %s gemstone",
+      snprintf(keywords, MEDIUM_STRING, "%s %s set with %s gemstone",
               armor_name, material_name[material], desc2);
       obj->name = strdup(keywords);
-      sprintf(desc, "%s%s %s %s set with %s %s gemstone", desc,
+      snprintf(desc, MEDIUM_STRING, "%s%s %s %s set with %s %s gemstone", desc,
               AN(material_name[material]), material_name[material],
               armor_name, AN(desc2), desc2);
       obj->short_description = strdup(desc);
-      sprintf(desc, "%s %s %s set with %s %s gemstone lies here.",
+      snprintf(desc, MEDIUM_STRING, "%s %s %s set with %s %s gemstone lies here.",
               AN(material_name[material]), material_name[material],
               armor_name, AN(desc2), desc2);
       obj->description = strdup(CAP(desc));
       break;
     case BOOTS_MOLD:
     case GLOVES_MOLD:
-      sprintf(keywords, "%s pair %s %s", armor_name, desc2, desc3);
+      snprintf(keywords, MEDIUM_STRING, "%s pair %s %s", armor_name, desc2, desc3);
       obj->name = strdup(keywords);
-      sprintf(desc, "%sa pair of %s %s %s", desc, desc2, desc3,
+      snprintf(desc, MEDIUM_STRING, "%sa pair of %s %s %s", desc, desc2, desc3,
               armor_name);
       obj->short_description = strdup(desc);
-      sprintf(desc, "A pair of %s %s %s lie here.", desc2, desc3,
+      snprintf(desc, MEDIUM_STRING, "A pair of %s %s %s lie here.", desc2, desc3,
               armor_name);
       obj->description = strdup(desc);
       break;
     case CLOAK_MOLD:
-      sprintf(keywords, "%s %s %s %s bearing crest", armor_name, desc2,
+      snprintf(keywords, MEDIUM_STRING, "%s %s %s %s bearing crest", armor_name, desc2,
               material_name[material], desc3);
       obj->name = strdup(keywords);
-      sprintf(desc, "%s%s %s %s %s bearing the crest of %s %s", desc, AN(desc3), desc3,
+      snprintf(desc, MEDIUM_STRING, "%s%s %s %s %s bearing the crest of %s %s", desc, AN(desc3), desc3,
               material_name[material], armor_name, AN(desc2),
               desc2);
       obj->short_description = strdup(desc);
-      sprintf(desc, "%s %s %s %s bearing the crest of %s %s is lying here.", AN(desc3), desc3,
+      snprintf(desc, MEDIUM_STRING, "%s %s %s %s bearing the crest of %s %s is lying here.", AN(desc3), desc3,
               material_name[material], armor_name, AN(desc2),
               desc2);
       obj->description = strdup(CAP(desc));
       break;
     case BELT_MOLD:
-      sprintf(keywords, "%s %s %s", armor_name, desc2, desc3);
+      snprintf(keywords, MEDIUM_STRING, "%s %s %s", armor_name, desc2, desc3);
       obj->name = strdup(keywords);
-      sprintf(desc, "%s%s %s %s %s", desc, AN(desc2), desc2, desc3,
+      snprintf(desc, MEDIUM_STRING, "%s%s %s %s %s", desc, AN(desc2), desc2, desc3,
               armor_name);
       obj->short_description = strdup(desc);
-      sprintf(desc, "%s %s %s %s lie here.", AN(desc2), desc2, desc3,
+      snprintf(desc, MEDIUM_STRING, "%s %s %s %s lie here.", AN(desc2), desc2, desc3,
               armor_name);
       obj->description = strdup(desc);
       break;
     case HELD_MOLD:
-      sprintf(keywords, "%s %s orb", armor_name, desc2);
+      snprintf(keywords, MEDIUM_STRING, "%s %s orb", armor_name, desc2);
       obj->name = strdup(keywords);
-      sprintf(desc, "%sa %s %s orb", desc, desc2, armor_name);
+      snprintf(desc, MEDIUM_STRING, "%sa %s %s orb", desc, desc2, armor_name);
       obj->short_description = strdup(desc);
-      sprintf(desc, "A %s %s orb is lying here.", desc2, armor_name);
+      snprintf(desc, MEDIUM_STRING, "A %s %s orb is lying here.", desc2, armor_name);
       obj->description = strdup(desc);
       break;
   }
