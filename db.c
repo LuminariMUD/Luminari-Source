@@ -3791,11 +3791,12 @@ int is_empty(zone_rnum zone_nr) {
 
 /* read and allocate space for a '~'-terminated string from a given file */
 char *fread_string(FILE *fl, const char *error) {
-  char buf[MAX_STRING_LENGTH] = {'\0'}, tmp[513] = {'\0'};
+  char buf[MAX_STRING_LENGTH] = {'\0'}, tmp[513];// = {'\0'};
   char *point = NULL;
   int done = 0, length = 0, templength = 0;
 
   do {
+    memset(tmp, '\0', 513);
     if (!fgets(tmp, 512, fl)) {
       log("SYSERR: fread_string: format error at or near %s", error);
       exit(1);
@@ -3804,8 +3805,14 @@ char *fread_string(FILE *fl, const char *error) {
     /* now only removes trailing ~'s -- Welcor */
 
     point = strchr(tmp, '\0');
+    if (point == NULL)
+    {
+      log("SYSERR: freed_string: end of string not found (db.c)");
+      log("String: %s", tmp);
+      exit(1);
+    }
 
-    for (point--; (*point == '\r' || *point == '\n'); point--)
+    for (point--; (*point == '\r' || *point == '\n' || point == 0); point--)
       ;
 
     if (*point == '~') {

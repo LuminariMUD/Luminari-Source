@@ -523,6 +523,7 @@ void create_tracks(struct char_data *ch, int dir, int flag)
   for (cur = room->trail_tracks->head; cur != NULL; cur = cur->next){
     if (time(NULL) - cur->age >= TRAIL_PRUNING_THRESHOLD) {
       if(prev != NULL) {
+        DISPOSE(prev->next);
         prev->next = cur->next;
         if (cur->next != NULL) {
           cur->next->prev = prev;
@@ -530,6 +531,7 @@ void create_tracks(struct char_data *ch, int dir, int flag)
       } else {
         room->trail_tracks->head = cur->next;
         if (cur->next != NULL) {
+          DISPOSE(cur->next->prev);
           cur->next->prev = NULL;
         }
       } 
