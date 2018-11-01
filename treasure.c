@@ -1681,14 +1681,13 @@ void award_magic_armor(struct char_data *ch, int grade, int wear_slot) {
 
   /* a suit of (body), or a pair of (arm/leg), or AN() (helm) */
   if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_BODY)) {
-    snprintf(desc, MEDIUM_STRING, "%s%s", desc, "a suit of");
+    strncat(desc, "a suit of", MEDIUM_STRING - strlen(desc));
   } else if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_HEAD) ||
           IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_SHIELD)) {
     armor_desc_roll = rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1);
-    snprintf(desc, MEDIUM_STRING, "%s%s", desc,
-            AN(armor_special_descs[armor_desc_roll]));
+    strncat(desc, AN(armor_special_descs[armor_desc_roll]), MEDIUM_STRING - strlen(desc));
   } else {
-    snprintf(desc, MEDIUM_STRING, "%s%s", desc, "a pair of");
+    strncat(desc, "a pair of", MEDIUM_STRING - strlen(desc));
   }
 
   /* set the object material, check for upgrade */
@@ -1727,45 +1726,57 @@ void award_magic_armor(struct char_data *ch, int grade, int wear_slot) {
   crest_num = rand_number(0, NUM_A_ARMOR_CRESTS - 1);
 
   /* start with keyword string */
-  snprintf(keywords, MEDIUM_STRING, "%s %s", keywords, armor_list[GET_ARMOR_TYPE(obj)].name);
-  snprintf(keywords, MEDIUM_STRING, "%s %s", keywords, material_name[GET_OBJ_MATERIAL(obj)]);
-
+  strncat(keywords, " ", MEDIUM_STRING - strlen(keywords));
+  strncat(keywords, armor_list[GET_ARMOR_TYPE(obj)].name, MEDIUM_STRING - strlen(keywords));
+  strncat(keywords, " ", MEDIUM_STRING - strlen(keywords));
+  strncat(keywords, material_name[GET_OBJ_MATERIAL(obj)], MEDIUM_STRING - strlen(keywords));
+  
   roll = dice(1, 3);
   if (roll == 3) { // armor spec adjective in desc?
-    snprintf(desc, MEDIUM_STRING, "%s %s", desc,
-            armor_special_descs[armor_desc_roll]);
-    snprintf(keywords, MEDIUM_STRING, "%s %s", keywords,
-            armor_special_descs[armor_desc_roll]);
+    strncat(desc, " ", MEDIUM_STRING - strlen(desc));
+    strncat(desc, armor_special_descs[armor_desc_roll], MEDIUM_STRING - strlen(desc));
+    strncat(keywords, " ", MEDIUM_STRING - strlen(keywords));
+    strncat(keywords, armor_special_descs[armor_desc_roll], MEDIUM_STRING - strlen(keywords));
   }
 
   roll = dice(1, 5);
   if (roll >= 4) { // color describe #1?
-    snprintf(desc, MEDIUM_STRING, "%s %s", desc, colors[color1]);
-    snprintf(keywords, MEDIUM_STRING, "%s %s", keywords, colors[color1]);
+    strncat(desc, " ", MEDIUM_STRING - strlen(desc));
+    strncat(desc, colors[color1], MEDIUM_STRING - strlen(desc));
+    strncat(keywords, " ", MEDIUM_STRING - strlen(keywords));
+    strncat(keywords, colors[color1], MEDIUM_STRING - strlen(keywords));
   } else if (roll == 3) { // two colors
-    snprintf(desc, MEDIUM_STRING, "%s %s and %s", desc, colors[color1], colors[color2]);
-    snprintf(keywords, MEDIUM_STRING, "%s %s and %s", keywords, colors[color1], colors[color2]);
+    strncat(desc, " ", MEDIUM_STRING - strlen(desc));
+    strncat(desc, colors[color1], MEDIUM_STRING - strlen(desc));
+    strncat(desc, " and ", MEDIUM_STRING - strlen(desc));
+    strncat(desc, colors[color2], MEDIUM_STRING - strlen(desc));
+    strncat(keywords, " ", MEDIUM_STRING - strlen(keywords));
+    strncat(keywords, colors[color1], MEDIUM_STRING - strlen(keywords));
+    strncat(keywords, " and ", MEDIUM_STRING - strlen(keywords));
+    strncat(keywords, colors[color2], MEDIUM_STRING - strlen(keywords));
   }
 
   // Insert the material type, then armor type
-  snprintf(desc, MEDIUM_STRING, "%s %s", desc, material_name[GET_OBJ_MATERIAL(obj)]);
-  snprintf(desc, MEDIUM_STRING, "%s %s", desc, armor_list[GET_ARMOR_TYPE(obj)].name);
+  strncat(desc, " ", MEDIUM_STRING - strlen(desc));
+  strncat(desc, material_name[GET_OBJ_MATERIAL(obj)], MEDIUM_STRING - strlen(desc));
+  strncat(desc, " ", MEDIUM_STRING - strlen(desc));
+  strncat(desc, armor_list[GET_ARMOR_TYPE(obj)].name, MEDIUM_STRING - strlen(desc));
 
   roll = dice(1, 8);
   if (roll >= 7) { // crest?
-    snprintf(desc, MEDIUM_STRING, "%s with %s %s crest", desc,
+    char tmp[SMALL_STRING];
+    snprintf(tmp, SMALL_STRING, " with %s %s crest",
             AN(armor_crests[crest_num]),
             armor_crests[crest_num]);
-    snprintf(keywords, MEDIUM_STRING, "%s with %s %s crest", keywords,
-            AN(armor_crests[crest_num]),
-            armor_crests[crest_num]);
+    strncat(desc, tmp, MEDIUM_STRING - strlen(desc));
+    strncat(keywords, tmp, MEDIUM_STRING - strlen(keywords));
   } else if (roll >= 5) { // or symbol?
-    snprintf(desc, MEDIUM_STRING, "%s covered in symbols of %s %s", desc,
+    char tmp[SMALL_STRING];
+    snprintf(tmp, SMALL_STRING, " covered in symbols of %s %s",
             AN(armor_crests[crest_num]),
             armor_crests[crest_num]);
-    snprintf(keywords, MEDIUM_STRING, "%s covered in symbols of %s %s", keywords,
-            AN(armor_crests[crest_num]),
-            armor_crests[crest_num]);
+    strncat(desc, tmp, MEDIUM_STRING - strlen(desc));
+    strncat(keywords, tmp, MEDIUM_STRING - strlen(keywords));
   }
 
   // keywords
@@ -1773,7 +1784,7 @@ void award_magic_armor(struct char_data *ch, int grade, int wear_slot) {
   // Set descriptions
   obj->short_description = strdup(desc);
   desc[0] = toupper(desc[0]);
-  snprintf(desc, MEDIUM_STRING, "%s is lying here.", desc);
+  strncat(desc, " is lying here.", MEDIUM_STRING);
   obj->description = strdup(desc);
 
   /* END DESCRIPTION SECTION */
@@ -2523,6 +2534,7 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment, b
   char desc[MEDIUM_STRING] = {'\0'}, armor_name[MEDIUM_STRING] = {'\0'};
   char keywords[MEDIUM_STRING] = {'\0'};
   char desc2[SHORT_STRING] = {'\0'}, desc3[SHORT_STRING] = {'\0'};
+  char buf[MEDIUM_STRING] = {'\0'};
 
   /* assign base material
    * and last but not least, give appropriate start of description
@@ -2724,21 +2736,21 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment, b
       snprintf(keywords, MEDIUM_STRING, "%s %s set with %s gemstone",
               armor_name, material_name[material], desc2);
       obj->name = strdup(keywords);
-      snprintf(desc, MEDIUM_STRING, "%s%s %s %s set with %s %s gemstone", desc,
+      snprintf(buf, MEDIUM_STRING, "%s %s %s set with %s %s gemstone", 
               AN(material_name[material]), material_name[material],
               armor_name, AN(desc2), desc2);
+      strncpy(desc, buf, MEDIUM_STRING - strlen(desc));
       obj->short_description = strdup(desc);
-      snprintf(desc, MEDIUM_STRING, "%s %s %s set with %s %s gemstone lies here.",
-              AN(material_name[material]), material_name[material],
-              armor_name, AN(desc2), desc2);
+      strncpy(desc, " lies here.", MEDIUM_STRING - strlen(desc));
       obj->description = strdup(CAP(desc));
       break;
     case BOOTS_MOLD:
     case GLOVES_MOLD:
       snprintf(keywords, MEDIUM_STRING, "%s pair %s %s", armor_name, desc2, desc3);
       obj->name = strdup(keywords);
-      snprintf(desc, MEDIUM_STRING, "%sa pair of %s %s %s", desc, desc2, desc3,
+      snprintf(buf, MEDIUM_STRING, "a pair of %s %s %s", desc2, desc3,
               armor_name);
+      strncpy(desc, buf, MEDIUM_STRING - strlen(desc));
       obj->short_description = strdup(desc);
       snprintf(desc, MEDIUM_STRING, "A pair of %s %s %s lie here.", desc2, desc3,
               armor_name);
@@ -2748,9 +2760,10 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment, b
       snprintf(keywords, MEDIUM_STRING, "%s %s %s %s bearing crest", armor_name, desc2,
               material_name[material], desc3);
       obj->name = strdup(keywords);
-      snprintf(desc, MEDIUM_STRING, "%s%s %s %s %s bearing the crest of %s %s", desc, AN(desc3), desc3,
+      snprintf(buf, MEDIUM_STRING, "%s %s %s %s bearing the crest of %s %s", AN(desc3), desc3,
               material_name[material], armor_name, AN(desc2),
               desc2);
+      strncpy(desc, buf, MEDIUM_STRING - strlen(desc));
       obj->short_description = strdup(desc);
       snprintf(desc, MEDIUM_STRING, "%s %s %s %s bearing the crest of %s %s is lying here.", AN(desc3), desc3,
               material_name[material], armor_name, AN(desc2),
@@ -2760,8 +2773,9 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment, b
     case BELT_MOLD:
       snprintf(keywords, MEDIUM_STRING, "%s %s %s", armor_name, desc2, desc3);
       obj->name = strdup(keywords);
-      snprintf(desc, MEDIUM_STRING, "%s%s %s %s %s", desc, AN(desc2), desc2, desc3,
+      snprintf(buf, MEDIUM_STRING, "%s %s %s %s", AN(desc2), desc2, desc3,
               armor_name);
+      strncpy(desc, buf, MEDIUM_STRING - strlen(desc));
       obj->short_description = strdup(desc);
       snprintf(desc, MEDIUM_STRING, "%s %s %s %s lie here.", AN(desc2), desc2, desc3,
               armor_name);
@@ -2770,7 +2784,8 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment, b
     case HELD_MOLD:
       snprintf(keywords, MEDIUM_STRING, "%s %s orb", armor_name, desc2);
       obj->name = strdup(keywords);
-      snprintf(desc, MEDIUM_STRING, "%sa %s %s orb", desc, desc2, armor_name);
+      snprintf(buf, MEDIUM_STRING, "a %s %s orb", desc2, armor_name);
+      strncpy(desc, buf, MEDIUM_STRING - strlen(desc));
       obj->short_description = strdup(desc);
       snprintf(desc, MEDIUM_STRING, "A %s %s orb is lying here.", desc2, armor_name);
       obj->description = strdup(desc);
@@ -2799,7 +2814,7 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade) {
   int vnum = -1, material = MATERIAL_BRONZE;
   int level = 0;
   char desc[MEDIUM_STRING] = {'\0'}, armor_name[MEDIUM_STRING] = {'\0'};
-  char keywords[MEDIUM_STRING] = {'\0'};
+  char keywords[MEDIUM_STRING] = {'\0'}, buf[MEDIUM_STRING] = {'\0'};
   char desc2[SHORT_STRING] = {'\0'}, desc3[SHORT_STRING] = {'\0'};
   int rare_grade = RARE_GRADE_NORMAL;
 
@@ -3007,9 +3022,10 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade) {
       snprintf(keywords, MEDIUM_STRING, "%s %s set with %s gemstone",
               armor_name, material_name[material], desc2);
       obj->name = strdup(keywords);
-      snprintf(desc, MEDIUM_STRING, "%s%s %s %s set with %s %s gemstone", desc,
+      snprintf(buf, MEDIUM_STRING, "%s %s %s set with %s %s gemstone", 
               AN(material_name[material]), material_name[material],
               armor_name, AN(desc2), desc2);
+      strncpy(desc, buf, MEDIUM_STRING - strlen(desc));
       obj->short_description = strdup(desc);
       snprintf(desc, MEDIUM_STRING, "%s %s %s set with %s %s gemstone lies here.",
               AN(material_name[material]), material_name[material],
@@ -3020,8 +3036,9 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade) {
     case GLOVES_MOLD:
       snprintf(keywords, MEDIUM_STRING, "%s pair %s %s", armor_name, desc2, desc3);
       obj->name = strdup(keywords);
-      snprintf(desc, MEDIUM_STRING, "%sa pair of %s %s %s", desc, desc2, desc3,
+      snprintf(buf, MEDIUM_STRING, "a pair of %s %s %s", desc2, desc3,
               armor_name);
+      strncpy(desc, buf, MEDIUM_STRING - strlen(desc));
       obj->short_description = strdup(desc);
       snprintf(desc, MEDIUM_STRING, "A pair of %s %s %s lie here.", desc2, desc3,
               armor_name);
@@ -3031,9 +3048,10 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade) {
       snprintf(keywords, MEDIUM_STRING, "%s %s %s %s bearing crest", armor_name, desc2,
               material_name[material], desc3);
       obj->name = strdup(keywords);
-      snprintf(desc, MEDIUM_STRING, "%s%s %s %s %s bearing the crest of %s %s", desc, AN(desc3), desc3,
+      snprintf(buf, MEDIUM_STRING, "%s %s %s %s bearing the crest of %s %s", AN(desc3), desc3,
               material_name[material], armor_name, AN(desc2),
               desc2);
+      strncpy(desc, buf, MEDIUM_STRING - strlen(desc));
       obj->short_description = strdup(desc);
       snprintf(desc, MEDIUM_STRING, "%s %s %s %s bearing the crest of %s %s is lying here.", AN(desc3), desc3,
               material_name[material], armor_name, AN(desc2),
@@ -3043,8 +3061,9 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade) {
     case BELT_MOLD:
       snprintf(keywords, MEDIUM_STRING, "%s %s %s", armor_name, desc2, desc3);
       obj->name = strdup(keywords);
-      snprintf(desc, MEDIUM_STRING, "%s%s %s %s %s", desc, AN(desc2), desc2, desc3,
+      snprintf(buf, MEDIUM_STRING, "%s %s %s %s", AN(desc2), desc2, desc3,
               armor_name);
+      strncpy(desc, buf, MEDIUM_STRING - strlen(desc));
       obj->short_description = strdup(desc);
       snprintf(desc, MEDIUM_STRING, "%s %s %s %s lie here.", AN(desc2), desc2, desc3,
               armor_name);
@@ -3053,7 +3072,8 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade) {
     case HELD_MOLD:
       snprintf(keywords, MEDIUM_STRING, "%s %s orb", armor_name, desc2);
       obj->name = strdup(keywords);
-      snprintf(desc, MEDIUM_STRING, "%sa %s %s orb", desc, desc2, armor_name);
+      snprintf(buf, MEDIUM_STRING, "a %s %s orb", desc2, armor_name);
+      strncpy(desc, buf, MEDIUM_STRING - strlen(desc));
       obj->short_description = strdup(desc);
       snprintf(desc, MEDIUM_STRING, "A %s %s orb is lying here.", desc2, armor_name);
       obj->description = strdup(desc);
