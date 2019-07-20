@@ -2852,7 +2852,7 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
     stop_follower(victim);
 
   /* if target is in your group, you forfeit your position in the group -zusuk */
-  if (GROUP(ch) && GROUP(victim) && GROUP(ch) == GROUP(victim)) {
+  if (GROUP(ch) && GROUP(victim) && GROUP(ch) == GROUP(victim) && ch != victim) {
     leave_group(ch);
   }
 
