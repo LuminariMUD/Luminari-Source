@@ -1591,7 +1591,12 @@ void clear_rage(struct char_data *ch) {
   }
 
   /* Remove whatever HP we granted.  This may kill the character. */
-  GET_HIT(ch) -= (get_rage_bonus(ch) / 2) * GET_LEVEL(ch);
+  /* PCs only.  Otherwise mobs will die and player won't get exp. */
+  if (IS_NPC(ch)) {
+    GET_HIT(ch) = MAX(0, GET_HIT(ch) - ((get_rage_bonus(ch) / 2) * GET_LEVEL(ch)));
+  } else {
+    GET_HIT(ch) -= (get_rage_bonus(ch) / 2) * GET_LEVEL(ch);
+  }
   if (GET_HIT(ch) < 0) {
     send_to_char(ch, "Your rage no longer sustains you and you pass out!\r\n");
     act("$n passes out as $s rage no longer sustains $m.", FALSE, ch, NULL, NULL, TO_ROOM);
