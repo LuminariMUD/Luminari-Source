@@ -783,7 +783,7 @@ void assign_feats(void) {
   /* end mounted combat feats */
 
   /* ranged attack + mounted combat feats */
-  feato(FEAT_MOUNTED_ARCHERY, "mounted archery", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+  feato(FEAT_MOUNTED_ARCHERY, "mounted archery", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
           "no penalty for mounted archery attacks",
           "normally mounted archery combat imposes a -4 penalty to attacks, with this "
           "feat you have no penalty to your attacks");
