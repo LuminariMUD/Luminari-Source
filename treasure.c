@@ -1417,10 +1417,16 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
 /* Give away random magic ammo */
 void award_magic_ammo(struct char_data *ch, int grade) {
   struct obj_data *obj = NULL;
-  int armor_desc_roll = 0;
+  int armor_desc_rollA = 0;
+  int armor_desc_rollB = 0;
   int rare_grade = RARE_GRADE_NORMAL;
   int level = 0;
   char desc[MEDIUM_STRING] = {'\0'};
+  char desc1[MEDIUM_STRING] = {'\0'};
+  char desc2[MEDIUM_STRING] = {'\0'};
+  char desc3[MEDIUM_STRING] = {'\0'};
+  char desc4[MEDIUM_STRING] = {'\0'};
+  char desc5[MEDIUM_STRING] = {'\0'};
   char keywords[MEDIUM_STRING] = {'\0'};
 
   /* ok load blank object */
@@ -1431,13 +1437,13 @@ void award_magic_ammo(struct char_data *ch, int grade) {
 
   /* determine if rare or not, start building string */
   rare_grade = determine_rare_grade();
-  snprintf(desc, MEDIUM_STRING, label_rare_grade(rare_grade));
+  snprintf(desc1, MEDIUM_STRING, "%s", label_rare_grade(rare_grade));
 
   /* pick a random ammo, 0 = undefined */
-  armor_desc_roll = rand_number(1, NUM_AMMO_TYPES - 1);
+  armor_desc_rollA = rand_number(1, NUM_AMMO_TYPES - 1);
 
   /* now set up this new object */
-  set_ammo_object(obj, armor_desc_roll);
+  set_ammo_object(obj, armor_desc_rollA);
   /* we should have a completely usable ammo now, just missing descrip/stats */
 
   /* set the object material, check for upgrade */
@@ -1473,17 +1479,14 @@ void award_magic_ammo(struct char_data *ch, int grade) {
    * sling bullets
    * a/an [ammo_descs] [material] sling-bullet
    */
-  armor_desc_roll = rand_number(0, NUM_A_AMMO_DESCS - 1);
+  armor_desc_rollA = rand_number(0, NUM_A_AMMO_DESCS - 1);
 
   /* a dwarven-made */
-  snprintf(desc, MEDIUM_STRING, "%s %s", AN(ammo_descs[armor_desc_roll]),
-          ammo_descs[armor_desc_roll]);
-  snprintf(keywords, MEDIUM_STRING, "%s", ammo_descs[armor_desc_roll]);
+  snprintf(desc2, MEDIUM_STRING, "%s %s", AN(ammo_descs[armor_desc_rollA]),
+          ammo_descs[armor_desc_rollA]);
 
   /* mithril sling-bullet */
-  snprintf(desc, MEDIUM_STRING, "%s %s %s", desc, material_name[GET_OBJ_MATERIAL(obj)],
-          ammo_types[GET_OBJ_VAL(obj, 0)]);
-  snprintf(keywords, MEDIUM_STRING, "%s %s %s", keywords, material_name[GET_OBJ_MATERIAL(obj)],
+  snprintf(desc3, MEDIUM_STRING, "%s %s", material_name[GET_OBJ_MATERIAL(obj)],
           ammo_types[GET_OBJ_VAL(obj, 0)]);
 
   /* sling bullets done! */
@@ -1491,22 +1494,22 @@ void award_magic_ammo(struct char_data *ch, int grade) {
     ;
     /* with a grooved tip (arrows, bolts, darts) */
   else {
-    armor_desc_roll = rand_number(1, NUM_A_AMMO_HEAD_DESCS - 1);
-    snprintf(desc, MEDIUM_STRING, "%s with a %s tip", desc, ammo_head_descs[armor_desc_roll]);
-    snprintf(keywords, MEDIUM_STRING, "%s %s tip", keywords,
-            ammo_head_descs[armor_desc_roll]);
+    armor_desc_rollB = rand_number(1, NUM_A_AMMO_HEAD_DESCS - 1);
+    snprintf(desc4, MEDIUM_STRING, "with %s %s tip", AN(ammo_head_descs[armor_desc_rollB]),  ammo_head_descs[armor_desc_rollB]);
   }
 
   /* we are adding "ammo" as a keyword here for ease of handling for players */
-  snprintf(keywords, MEDIUM_STRING, "%s ammo", keywords);
+  snprintf(keywords, MEDIUM_STRING, "ammo %s %s %s %s", ammo_head_descs[armor_desc_rollB], material_name[GET_OBJ_MATERIAL(obj)], ammo_types[GET_OBJ_VAL(obj, 0)], ammo_descs[armor_desc_rollA]);
+  snprintf(desc, MEDIUM_STRING, "%s %s %s %s", desc1, desc2, desc3, desc4);
 
   /* finished descrips, so lets assign them */
   obj->name = strdup(keywords); /* key words */
   // Set descriptions
   obj->short_description = strdup(desc);
   desc[0] = toupper(desc[0]);
-  snprintf(desc, MEDIUM_STRING, "%s is lying here.", desc);
-  obj->description = strdup(desc);
+  snprintf(desc5, MEDIUM_STRING, "%s is lying here.", desc);
+  desc5[0] = toupper(desc5[0]);
+  obj->description = strdup(desc5);
 
   /* END DESCRIPTION SECTION */
 
