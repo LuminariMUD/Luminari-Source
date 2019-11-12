@@ -47,6 +47,10 @@ actions.o: actions.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
 aedit.o: aedit.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  interpreter.h handler.h comm.h db.h oasis.h help.h screen.h constants.h \
  genolc.h act.h
+alchemy.o: alchemy.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
+ comm.h spells.h handler.h db.h constants.h interpreter.h dg_scripts.h \
+ modify.h feats.h class.h mud_event.h dg_event.h assign_wpn_armor.h \
+ domains_schools.h spell_prep.h alchemy.h actions.h act.h
 asciimap.o: asciimap.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h comm.h interpreter.h handler.h db.h spells.h house.h constants.h \
  dg_scripts.h asciimap.h wilderness.h modify.h
@@ -288,7 +292,7 @@ perlin.o: perlin.c perlin.h
 players.o: players.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  db.h handler.h pfdefaults.h dg_scripts.h comm.h interpreter.h genolc.h \
  config.h quest.h spells.h clan.h mud_event.h dg_event.h craft.h \
- spell_prep.h
+ spell_prep.h alchemy.h
 prefedit.o: prefedit.c conf.h sysdep.h structs.h protocol.h lists.h \
  comm.h utils.h handler.h interpreter.h db.h oasis.h help.h prefedit.h \
  screen.h
@@ -350,7 +354,7 @@ spells.o: spells.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
 study.o: study.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  comm.h db.h oasis.h help.h screen.h interpreter.h modify.h spells.h \
  feats.h class.h constants.h assign_wpn_armor.h domains_schools.h \
- spell_prep.h
+ spell_prep.h alchemy.h
 tedit.o: tedit.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  interpreter.h comm.h db.h genolc.h oasis.h help.h improved-edit.h \
  modify.h

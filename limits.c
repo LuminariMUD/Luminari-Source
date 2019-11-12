@@ -27,6 +27,7 @@
 #include "actions.h"
 #include "domains_schools.h"
 #include "grapple.h"
+#include "alchemy.h"
 
 /* added this for falling event, general dummy check */
 bool death_check(struct char_data *ch) {
@@ -175,46 +176,7 @@ void affliction_tick(struct char_data *ch) {
     }
   }
 
-  /* fear -> skill-courage*/
-  if (AFF_FLAGGED(ch, AFF_FEAR) && (!IS_NPC(ch) &&
-          HAS_FEAT(ch, FEAT_AURA_OF_COURAGE))) {
-    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FEAR);
-    send_to_char(ch, "Your divine courage overcomes the fear!\r\n");
-    act("$n \tWovercomes the \tDfear\tW with courage!\tn\tn",
-            TRUE, ch, 0, 0, TO_ROOM);
-    return;
-  }
-
-  /* fearless rage */
-  if (AFF_FLAGGED(ch, AFF_FEAR) && !IS_NPC(ch) &&
-          HAS_FEAT(ch, FEAT_RP_FEARLESS_RAGE) &&
-          affected_by_spell(ch, SKILL_RAGE)) {
-    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FEAR);
-    send_to_char(ch, "Your fearless rage overcomes the fear!\r\n");
-    act("$n \tWis bolstered by $s fearless rage and overcomes $s \tDfear!\tn\tn",
-            TRUE, ch, 0, 0, TO_ROOM);
-    return;
-  }
-
-  /* fearless defense */
-  if (AFF_FLAGGED(ch, AFF_FEAR) && !IS_NPC(ch) &&
-          HAS_FEAT(ch, FEAT_FEARLESS_DEFENSE) &&
-          affected_by_spell(ch, SKILL_DEFENSIVE_STANCE)) {
-    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FEAR);
-    send_to_char(ch, "Your fearless defense overcomes the fear!\r\n");
-    act("$n \tWis bolstered by $s fearless defense and overcomes $s \tDfear!\tn\tn",
-            TRUE, ch, 0, 0, TO_ROOM);
-    return;
-  }
-
-  /* fear -> spell-bravery */
-  if (AFF_FLAGGED(ch, AFF_FEAR) && AFF_FLAGGED(ch, AFF_BRAVERY)) {
-    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FEAR);
-    send_to_char(ch, "Your bravery overcomes the fear!\r\n");
-    act("$n \tWovercomes the \tDfear\tW with bravery!\tn\tn",
-            TRUE, ch, 0, 0, TO_ROOM);
-    return;
-  }
+  remove_fear_affects(ch, TRUE);
 }
 
 /* dummy check mostly, checks to see if mount/rider got seperated */
@@ -397,7 +359,7 @@ void regen_update(struct char_data *ch) {
     if (FIGHTING(ch) || dice(1, 2) == 2) {
       for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room) {
         if (!IS_NPC(tch) && FIGHTING(tch) == ch) {
-          damage(tch, ch, dice(1, 4), SPELL_POISON, DAM_POISON, FALSE);
+          damage(tch, ch, dice(1, 4), SPELL_POISON, KNOWS_DISCOVERY(tch, ALC_DISC_CELESTIAL_POISONS) ? DAM_CELESTIAL_POISON : DAM_POISON, FALSE);
           /* we use to have custom damage message here for this */
           //act("$N looks really \tgsick\tn and shivers uncomfortably.",
           //        FALSE, tch, NULL, ch, TO_CHAR);
@@ -1149,4 +1111,71 @@ void increase_anger(struct char_data *ch, float amount) {
   if (IS_NPC(ch) && GET_ANGER(ch) <= MAX_ANGER)
     GET_ANGER(ch) = MIN(MAX(GET_ANGER(ch) + amount, 0), MAX_ANGER);
 }
+
+void update_damage_and_effects_over_time(void)
+{
+
+
+  int dam = 0;
+  struct affected_type *affects = NULL;
+  struct char_data *ch = NULL, *next_char = NULL;
+
+  for (ch = character_list; ch; ch = next_char) {
+    next_char = ch->next;  
+
+    if (affected_by_spell(ch, BOMB_AFFECT_ACID)) {
+      for (affects = ch->affected; affects; affects = affects->next) {
+        if (affects->spell == BOMB_AFFECT_ACID) {
+          act("You suffer in pain as acid continues to burn you.", FALSE, ch, 0, 0, TO_CHAR);
+          act("$n suffers in pain as acid continues to burn $m.", FALSE, ch, 0, 0, TO_ROOM);
+          dam = damage(ch, ch, affects->modifier, SKILL_BOMB_TOSS, DAM_ACID, SKILL_BOMB_TOSS);
+          affects->duration--;
+          if (affects->duration <= 0)
+            affect_from_char(ch, BOMB_AFFECT_ACID);
+          break;
+        }
+      }
+    } // end acid bombs
+
+    if (affected_by_spell(ch, BOMB_AFFECT_BONESHARD)) {
+      for (affects = ch->affected; affects; affects = affects->next) {
+        if (affects->spell == BOMB_AFFECT_BONESHARD) {
+          act("You suffer in pain as shards of bone embed themselves in your flesh.", FALSE, ch, 0, 0, TO_CHAR);
+          act("$n suffers in pain as shards of bone embed themselves in $s flesh.", FALSE, ch, 0, 0, TO_ROOM);
+          dam = damage(ch, ch, dice(1, 4), SKILL_BOMB_TOSS, DAM_PUNCTURE, SKILL_BOMB_TOSS);
+          affects->duration--;
+          if (affects->duration <= 0)
+            affect_from_char(ch, BOMB_AFFECT_BONESHARD);
+          break;
+        }
+      }
+    } // end boneshard bombs
+
+    if (ch->player_specials->sticky_bomb[0] != BOMB_NONE) {
+      sprintf(buf, "A sticky %s bomb explodes again causing you %s damage.", bomb_types[ch->player_specials->sticky_bomb[0]], weapon_damage_types[ch->player_specials->sticky_bomb[1]]);
+      act(buf, FALSE, ch, 0, 0, TO_CHAR);
+      sprintf(buf, "A sticky %s bomb explodes on $n again causing $m %s damage.", bomb_types[ch->player_specials->sticky_bomb[0]], weapon_damage_types[ch->player_specials->sticky_bomb[1]]);
+      act(buf, FALSE, ch, 0, 0, TO_ROOM);
+      dam = damage(ch, ch, ch->player_specials->sticky_bomb[2], SKILL_BOMB_TOSS, ch->player_specials->sticky_bomb[1], SKILL_BOMB_TOSS);
+      ch->player_specials->sticky_bomb[0] = ch->player_specials->sticky_bomb[1] = ch->player_specials->sticky_bomb[2] = 0;
+    } // sticky bomb effects
+
+    if (affected_by_spell(ch, BOMB_AFFECT_IMMOLATION)) {
+      for (affects = ch->affected; affects; affects = affects->next) {
+        if (affects->spell == BOMB_AFFECT_IMMOLATION) {
+          act("You suffer in pain as liquid flames consume you.", FALSE, ch, 0, 0, TO_CHAR);
+          act("$n suffers in pain as liquid flames consume $m.", FALSE, ch, 0, 0, TO_ROOM);
+          dam = damage(ch, ch, affects->modifier, SKILL_BOMB_TOSS, DAM_FIRE, SKILL_BOMB_TOSS);
+          affects->duration--;
+          if (affects->duration <= 0)
+            affect_from_char(ch, BOMB_AFFECT_IMMOLATION);
+          break;
+        }
+      }
+    } // end immolation bombs
+
+  } // end character_list loop
+
+}
+
 

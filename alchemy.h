@@ -86,13 +86,13 @@
 #define GET_GRAND_DISCOVERY(ch) (ch->player_specials->saved.grand_discovery)
 #define GET_BOMB(ch, i) (ch->player_specials->saved.bombs[i])
 
-ACMD_DECLARE(do_bombs);
-ACMD_DECLARE(do_discoveries);
-ACMD_DECLARE(do_grand_discoveries);
-ACMD_DECLARE(do_swallow);
-ACMD_DECLARE(do_curingtouch);
-ACMD_DECLARE(do_poisontouch);
-ACMD_DECLARE(do_psychokinetic);
+ACMD(do_bombs);
+ACMD(do_discoveries);
+ACMD(do_grand_discoveries);
+ACMD(do_swallow);
+ACMD(do_curingtouch);
+ACMD(do_poisontouch);
+ACMD(do_psychokinetic);
 void perform_bomb_effect(struct char_data *ch, struct char_data *victim, int bomb_type);
 void list_bomb_types_known(struct char_data *ch);
 int find_open_bomb_slot(struct char_data *ch);

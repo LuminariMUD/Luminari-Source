@@ -178,6 +178,7 @@ static void handle_webster_file();
 
 static void msdp_update(void); /* KaVir plugin*/
 void update_msdp_affects(struct char_data *ch);
+void update_damage_and_effects_over_time(void);
 
 /* externally defined functions, used locally */
 #ifdef __CXREF__
@@ -1039,6 +1040,10 @@ void heartbeat(int heart_pulse) {
   /* every 300 sec show a random hint if they have it toggled */
   if (!(pulse % PULSE_HINTS)) {
     show_hints();
+  }
+
+  if (!(heart_pulse % (6 * PASSES_PER_SEC))) { 
+    update_damage_and_effects_over_time();
   }
 
   /* the old skool tick system! */

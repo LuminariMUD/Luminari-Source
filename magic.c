@@ -30,6 +30,7 @@
 #include "domains_schools.h"
 #include "feats.h"
 #include "race.h"
+#include "alchemy.h"
 
 //external
 extern struct raff_node *raff_list;
@@ -189,6 +190,13 @@ int mag_savingthrow(struct char_data *ch, struct char_data *vict,
     case CAST_WEAPON_SPELL:
       challenge += level;
       break;
+   case CAST_BOMB:
+      if (ch) {
+        challenge += CLASS_LEVEL(ch, CLASS_ALCHEMIST) / 2;
+        stat_bonus = GET_INT_BONUS(ch);
+        challenge += stat_bonus;
+      }
+      break;
     case CAST_SPELL:
     default:
       if (ch) {
@@ -223,6 +231,9 @@ int mag_savingthrow(struct char_data *ch, struct char_data *vict,
   if (HAS_REAL_FEAT(ch, FEAT_SCHOOL_POWER) && GET_BLOODLINE_SUBTYPE(ch) == school) {
     challenge += 2;
   }
+  // malignant poison alchemist discovery
+  if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
+    if (casttype == CAST_WEAPON_POISON) challenge += 4;
 
   challenge += GET_DC_BONUS(ch); GET_DC_BONUS(ch) = 0;  // Always set to zero after applying dc_bonus
 
@@ -230,6 +241,11 @@ int mag_savingthrow(struct char_data *ch, struct char_data *vict,
     savethrow += 2;
   if (AFF_FLAGGED(vict, AFF_PROTECT_EVIL) && IS_EVIL(ch))
     savethrow += 2;
+  if (HAS_FEAT(vict, FEAT_POISON_RESIST)) {
+    if (casttype == CAST_WEAPON_POISON) savethrow += 4;
+  }
+  if (IS_FRIGHTENED(ch))
+    savethrow -= 2;
 
   if (diceroll != 1 && (savethrow > challenge || diceroll == 20)) {
     if (diceroll == 20) {
@@ -1335,6 +1351,9 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   if (GET_RACE(victim) == RACE_ARCANA_GOLEM)
     race_bonus -= 2;
 
+  if (element == DAM_POISON && KNOWS_DISCOVERY(ch, ALC_DISC_CELESTIAL_POISONS))
+    element = DAM_CELESTIAL_POISON;
+
   // figure saving throw for finger of death here, because it's not half damage
   if (spellnum == SPELL_FINGER_OF_DEATH) {
     if (mag_savingthrow(ch, victim, save, race_bonus, casttype, level, NECROMANCY)) {
@@ -2319,7 +2338,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         return;
       }
 
-      af[0].duration = (level * 12);
+      af[0].duration = (caster_level * 12);
       SET_BIT_AR(af[0].bitvector, AFF_HASTE);
       to_room = "$n begins to speed up!";
       to_vict = "You begin to speed up!";
@@ -3014,30 +3033,10 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case SPELL_SCARE: //illusion
-      if (!IS_NPC(victim) && HAS_FEAT(victim, FEAT_AURA_OF_COURAGE)) {
-        send_to_char(ch, "%s appears to be fearless!\r\n", GET_NAME(victim));
-        send_to_char(victim, "Your divine courage protects you!\r\n");
-        return;
-      }
-      if (!IS_NPC(victim) && HAS_FEAT(victim, FEAT_RP_FEARLESS_RAGE) &&
-              affected_by_spell(victim, SKILL_RAGE)) {
-        send_to_char(ch, "%s appears to be fearless!\r\n", GET_NAME(victim));
-        send_to_char(victim, "Your fearless rage protects you!\r\n");
-        return;
-      }
-      if (!IS_NPC(victim) && HAS_FEAT(victim, FEAT_FEARLESS_DEFENSE) &&
-              affected_by_spell(victim, SKILL_DEFENSIVE_STANCE)) {
-        send_to_char(ch, "%s appears to be fearless!\r\n", GET_NAME(victim));
-        send_to_char(victim, "Your fearless defense protects you!\r\n");
-        return;
-      }
-      if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
-        send_to_char(ch, "Mind blank protects %s!", GET_NAME(victim));
-        send_to_char(victim, "Mind blank protects you from %s!",
-                GET_NAME(ch));
-        return;
-      }
-
+      if (is_immune_fear(ch, victim, TRUE))
+        return TRUE;
+      if (is_immune_mind_affecting(ch, victim, TRUE))
+        return TRUE; 
       if (mag_resistance(ch, victim, 0))
         return;
       if (mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus, casttype, level, ILLUSION)) {
@@ -3422,23 +3421,10 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case SPELL_WAIL_OF_THE_BANSHEE: //necromancy (does damage too)
-      if (!IS_NPC(victim) && HAS_FEAT(victim, FEAT_AURA_OF_COURAGE)) {
-        send_to_char(ch, "%s appears to be fearless!\r\n", GET_NAME(victim));
-        send_to_char(victim, "Your divine courage protects you!\r\n");
-        return;
-      }
-      if (!IS_NPC(victim) && HAS_FEAT(victim, FEAT_RP_FEARLESS_RAGE) &&
-              affected_by_spell(victim, SKILL_RAGE)) {
-        send_to_char(ch, "%s appears to be fearless!\r\n", GET_NAME(victim));
-        send_to_char(victim, "Your fearless rage protects you!\r\n");
-        return;
-      }
-      if (!IS_NPC(victim) && HAS_FEAT(victim, FEAT_FEARLESS_DEFENSE) &&
-              affected_by_spell(victim, SKILL_DEFENSIVE_STANCE)) {
-        send_to_char(ch, "%s appears to be fearless!\r\n", GET_NAME(victim));
-        send_to_char(victim, "Your fearless defense protects you!\r\n");
-        return;
-      }
+      if (is_immune_fear(ch, victim, TRUE))
+        return TRUE;
+      if (is_immune_mind_affecting(ch, victim, TRUE))
+        return TRUE;
 
       if (mag_resistance(ch, victim, 0))
         return;
@@ -3595,11 +3581,16 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   if (to_room != NULL)
     act(to_room, TRUE, victim, 0, ch, TO_ROOM);
 
-  for (i = 0; i < MAX_SPELL_AFFECTS; i++)
+  for (i = 0; i < MAX_SPELL_AFFECTS; i++) {
     if (af[i].bitvector[0] || af[i].bitvector[1] ||
             af[i].bitvector[2] || af[i].bitvector[3] ||
-            (af[i].location != APPLY_NONE))
+            (af[i].location != APPLY_NONE)) {
+      if (casttype == CAST_POTION)
+        if (KNOWS_DISCOVERY(ch, ALC_DISC_ENHANCE_POTION))
+          af[i].duration *= 2;
       affect_join(victim, af + i, accum_duration, FALSE, accum_affect, FALSE);
+    }
+  }
 }
 
 /* This function is used to provide services to mag_groups.  This function is
@@ -4682,6 +4673,16 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
       break;
   }
 
+  if (affected_by_spell(victim, BOMB_AFFECT_BONESHARD)) {
+    affect_from_char(victim, BOMB_AFFECT_BONESHARD);
+    if (ch == victim) {
+      act("The bone shards in your flesh dissolve and your bleeding stops.", FALSE, ch, 0, victim, TO_CHAR);
+    } else {
+      act("The bone shards in your flesh dissolve and your bleeding stops.", FALSE, ch, 0, victim, TO_VICT);
+      act("The bone shards in $N's flesh dissolve and $S bleeding stops.", FALSE, ch, 0, victim, TO_ROOM);
+    }
+  }
+
   /* black mantle reduces effectiveness of healing by 20% */
   if (AFF_FLAGGED(victim, AFF_BLACKMANTLE) || AFF_FLAGGED(ch, AFF_BLACKMANTLE))
     healing = healing - (healing / 5);
@@ -4708,8 +4709,10 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
 
 void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
         struct obj_data *obj, int spellnum, int type, int casttype) {
-  int spell = 0, msg_not_affected = TRUE, affect = 0;
+  int spell = 0, msg_not_affected = TRUE, affect = 0, affect2 = 0, int found = FALSE;
   const char *to_vict = NULL, *to_char = NULL, *to_notvict = NULL;
+
+  struct affected_type *af = NULL;
 
   if (victim == NULL)
     return;
@@ -4756,6 +4759,7 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
     case SPELL_REMOVE_FEAR:
       spell = SPELL_SCARE;
       affect = AFF_FEAR;
+      affect2 = AFF_SHAKEN;
       to_char = "You remove the fear from $N.";
       to_vict = "$n removes the fear upon you.";
       to_notvict = "$N looks brave again.";
@@ -4763,7 +4767,8 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
 
     case SPELL_BRAVERY:
       spell = SPELL_SCARE;
-      affect = AFF_CURSE;
+      affect = AFF_FEAR;
+      affect2 = AFF_SHAKEN;
       to_char = "You remove the fear from $N.";
       to_vict = "$n removes the fear upon you.";
       to_notvict = "$N looks brave again.";
@@ -4801,14 +4806,25 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
       return;
   }
 
-  if (!affected_by_spell(victim, spell) && !AFF_FLAGGED(victim, affect)) {
+  for (af = ch->affected; af; af = af->next) {
+    if (IS_SET_AR(af->bitvector, affect)) {
+      affect_from_char(victim, af->spell);
+      found = TRUE;
+    }
+    if (affect2 && IS_SET_AR(af->bitvector, affect2)) {
+      affect_from_char(victim, af->spell);
+      found = TRUE;
+    }
+  }
+
+  if (!found && !affected_by_spell(victim, spell) && !AFF_FLAGGED(victim, affect)) {
     if (msg_not_affected)
       send_to_char(ch, "%s", CONFIG_NOEFFECT);
     return;
   }
 
   /* first remove spell affect */
-  affect_from_char(victim, spell);
+   affect_from_char(victim, spell);
   /* special scenario:  dg-script affliction */
   //affect_type_from_char(victim, affect);
   if (affected_by_spell(victim, SPELL_DG_AFFECT) && AFF_FLAGGED(victim, affect)) {

@@ -27,6 +27,7 @@
 #include "mud_event.h"
 #include "craft.h"  // crafting (auto craft quest inits)
 #include "spell_prep.h"
+#include "alchemy.h"
 
 #define LOAD_HIT	0
 #define LOAD_PSP	1
@@ -75,6 +76,8 @@ static void load_quests(FILE *fl, struct char_data *ch);
 static void load_HMVS(struct char_data *ch, const char *line, int mode);
 static void write_aliases_ascii(FILE *file, struct char_data *ch);
 static void read_aliases_ascii(FILE *file, struct char_data *ch, int count);
+static void load_bombs(FILE *fl, struct char_data *ch);
+static void load_discoveries(FILE *fl, struct char_data *ch);
 
 /* New version to build player index for ASCII Player Files. Generate index
  * table for the player file. */
@@ -433,7 +436,12 @@ int load_char(const char *name, struct char_data *ch) {
       PLR_FLAGS(ch)[i] = PFDEF_PLRFLAGS;
     for (i = 0; i < PR_ARRAY_MAX; i++)
       PRF_FLAGS(ch)[i] = PFDEF_PREFFLAGS;
-          
+    for (i = 0;i < MAX_BOMBS_ALLOWED; i++)
+      GET_BOMB(ch, i) = 0;
+    for (i = 0; i < NUM_ALC_DISCOVERIES; i++)
+      KNOWS_DISCOVERY(ch, i) = 0;
+   KNOWS_GRAND_DISCOVERY(ch) = 0;
+
     /* finished inits, start loading from file */
 
     while (get_line(fl, line)) {
@@ -476,6 +484,7 @@ int load_char(const char *name, struct char_data *ch) {
 
         case 'B':
           if (!strcmp(tag, "Badp")) GET_BAD_PWS(ch) = atoi(line);
+          else if (!strcmp(tag, "Bomb")) load_bombs(fl, ch);
           else if (!strcmp(tag, "Bost")) GET_BOOSTS(ch) = atoi(line);
           else if (!strcmp(tag, "Bank")) GET_BANK_GOLD(ch) = atoi(line);
           else if (!strcmp(tag, "Brth")) ch->player.time.birth = atol(line);
@@ -520,6 +529,7 @@ int load_char(const char *name, struct char_data *ch) {
           else if (!strcmp(tag, "Dex ")) GET_REAL_DEX(ch) = atoi(line);
           else if (!strcmp(tag, "Drnk")) GET_COND(ch, DRUNK) = atoi(line);
           else if (!strcmp(tag, "Drol")) GET_REAL_DAMROLL(ch) = atoi(line);
+          else if (!strcmp(tag, "Disc")) load_discoveries(fl, ch);
           else if (!strcmp(tag, "DipT")) GET_DIPTIMER(ch) = atoi(line);
           else if (!strcmp(tag, "DRac")) GET_DISGUISE_RACE(ch) = atoi(line);
           else if (!strcmp(tag, "DDex")) GET_DISGUISE_DEX(ch) = atoi(line);
@@ -547,6 +557,7 @@ int load_char(const char *name, struct char_data *ch) {
 
         case 'G':
           if (!strcmp(tag, "Gold")) GET_GOLD(ch) = atoi(line);
+          else if (!strcmp(tag, "GrDs")) KNOWS_GRAND_DISCOVERY(ch) = atoi(line);
           break;
 
         case 'H':
@@ -1094,6 +1105,18 @@ void save_char(struct char_data * ch, int mode) {
     fprintf(fl, "0 0\n");
   }
 
+  /* Save Bombs */
+  fprintf(fl, "Bomb:\n");
+  for (i = 0; i < MAX_BOMBS_ALLOWED; i++)
+    fprintf(fl, "%d\n", GET_BOMB(ch, i));
+  fprintf(fl, "-1\n");
+
+  fprintf(fl, "Disc:\n");
+  for (i = 0; i < NUM_ALC_DISCOVERIES; i++)
+    fprintf(fl, "%d\n", KNOWS_DISCOVERY(ch, i));
+  fprintf(fl, "-1\n");
+  fprintf(fl, "GrDs: %d\n", KNOWS_GRAND_DISCOVERY(ch));
+
   /* Save Combat Feats */
   for (i = 0; i < NUM_CFEATS; i++) {
     sprintascii(bits, ch->char_specials.saved.combat_feats[i][0]);
@@ -1244,6 +1267,8 @@ void save_char(struct char_data * ch, int mode) {
     if ((pMudEvent = char_has_mud_event(ch, eINTIMIDATE_COOLDOWN)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eRAGE)))
+      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+    if ((pMudEvent = char_has_mud_event(ch, eMUTAGEN)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eCRIPPLING_CRITICAL)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
@@ -1824,6 +1849,35 @@ static void load_spec_abil(FILE *fl, struct char_data *ch) {
     sscanf(line, "%d %d", &num, &num2);
     if (num != -1)
       GET_SPEC_ABIL(ch, num) = num2;
+  } while (num != -1);
+}
+
+static void load_discoveries(FILE *fl, struct char_data *ch) {
+  int num = 0, i = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do {
+    get_line(fl, line);
+    sscanf(line, "%d", &num);
+    if (num != -1) {
+      KNOWS_DISCOVERY(ch, i) = num;
+      i++;
+    }
+  } while (num != -1);
+}
+
+static void load_bombs(FILE *fl, struct char_data *ch) {
+  int num = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  int i = 0;
+
+  do {
+    get_line(fl, line);
+    sscanf(line, "%d", &num);
+    if (num != -1)
+      GET_BOMB(ch, i) = num;
+      i++;
   } while (num != -1);
 }
 

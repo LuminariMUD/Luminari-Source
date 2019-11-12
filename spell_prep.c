@@ -730,6 +730,24 @@ int compute_spells_circle(int class, int spellnum, int metamagic, int domain) {
     metamagic_mod += 3;
 
   switch (class) {
+    case CLASS_ALCHEMIST:
+      switch (spell_info[spellnum].min_level[class]) {
+        case 1: case 2: case 3:
+          return 1 + metamagic_mod;
+        case 4:case 5:case 6:
+          return 2 + metamagic_mod;
+        case 7:case 8:case 9:
+          return 3 + metamagic_mod;
+        case 10:case 11:case 12:
+          return 4 + metamagic_mod;
+        case 13:case 14:case 15:
+          return 5 + metamagic_mod;
+        case 16:case 17: case 18: case 19: case 20:
+          return 6 + metamagic_mod;
+        /* level 20 reserved for epic spells */
+        default: return (NUM_CIRCLES+1);
+      }
+      break;
     case CLASS_BARD:
       switch (spell_info[spellnum].min_level[class]) {
         case 3:case 4:
@@ -802,7 +820,7 @@ int compute_spells_circle(int class, int spellnum, int metamagic, int domain) {
       spell_circle += metamagic_mod;
       if (spell_circle > TOP_CIRCLE) {
         return (NUM_CIRCLES+1);
-      }      
+      }
       return (MAX(1, spell_circle));
     default: return (NUM_CIRCLES+1);
   }
@@ -843,6 +861,13 @@ int get_class_highest_circle(struct char_data *ch, int class) {
       else if (class_level < 11) return 3;
       else if (class_level < 14) return 4;
       else if (class_level < 17) return 5;
+      else return 6;
+    case CLASS_ALCHEMIST:
+      if (class_level < 4) return 1;
+      else if (class_level < 7) return 2;
+      else if (class_level < 10) return 3;
+      else if (class_level < 13) return 4;
+      else if (class_level < 16) return 5;
       else return 6;
     case CLASS_SORCERER: return (MAX(1, (MIN(9, class_level / 2))));
     case CLASS_WIZARD: return (MAX(1, MIN(9, (class_level + 1) / 2)));
@@ -1036,6 +1061,11 @@ int compute_slots_by_circle(struct char_data *ch, int class, int circle) {
       spell_slots += spell_bonus[GET_CHA(ch)][circle];
       spell_slots += bard_slots[class_level][circle];
       break;
+    case CLASS_ALCHEMIST:
+      spell_slots += spell_bonus[GET_INT(ch)][circle];
+      spell_slots += alchemist_slots[class_level][circle];
+      break;
+
     default:
       break;
   }
@@ -1099,6 +1129,9 @@ void assign_feat_spell_slots(int ch_class) {
     case CLASS_PALADIN:
       feat_index = PLD_SLT_0;
       break;
+    case CLASS_ALCHEMIST:
+      feat_index = ALC_SLT_0;
+      break;
     default:
       log("Error in assign_feat_spell_slots(), index default case for class.");
       break;
@@ -1139,6 +1172,10 @@ void assign_feat_spell_slots(int ch_class) {
         case CLASS_PALADIN:
           slots_have[circle_counter] = paladin_slots[level_counter][circle_counter];
           slots_had[circle_counter] = paladin_slots[level_counter - 1][circle_counter];
+          break;
+        case CLASS_ALCHEMIST:
+          slots_have[circle_counter] = alchemist_slots[level_counter][circle_counter];
+          slots_had[circle_counter] = alchemist_slots[level_counter - 1][circle_counter];
           break;
         default:log("Error in assign_feat_spell_slots(), slots_have default case for class.");
           break;
@@ -1214,7 +1251,7 @@ bool spell_prep_gen_extract(struct char_data *ch, int spellnum, int metamagic) {
    system, we are checking -all- our spell prep systems to see if we have the 
    given spell, if we do, returns class, otherwise undefined-class 
    we are checking our spell-prep system, THEN innate magic system */
-bool spell_prep_gen_check(struct char_data *ch, int spellnum, int metamagic) {
+int spell_prep_gen_check(struct char_data *ch, int spellnum, int metamagic) {
   int class = CLASS_UNDEFINED;
 
   /* go through all the classes checking our collection */
@@ -1363,7 +1400,7 @@ void print_collection(struct char_data *ch, int ch_class) {
 
   /* build a nice heading */
   *buf = '\0';
-  sprintf(buf, "\tYSpell Collection for %s\tC", class_names[ch_class]);
+  sprintf(buf, "\tY%s Collection for %s\tC", ch_class == CLASS_ALCHEMIST ? "Extract" : "Spell", class_names[ch_class]);
   send_to_char(ch, "\tC");
   text_line(ch, buf, line_length, '-', '-');
   send_to_char(ch, "\tn");
@@ -1456,7 +1493,7 @@ void display_available_slots(struct char_data *ch, int class) {
     }
   }
   if (!printed)
-    send_to_char(ch, " \tYno more spells!\tn\r\n");
+   send_to_char(ch, " \tYno more %s!\tn\r\n", class == CLASS_ALCHEMIST ? "extracts" : "spells");
   else
     send_to_char(ch, "\tn\r\n");
   
@@ -1481,7 +1518,7 @@ void print_prep_collection_data(struct char_data *ch, int class) {
       display_available_slots(ch, class);
       break;
     case CLASS_CLERIC:case CLASS_WIZARD:case CLASS_RANGER:
-    case CLASS_DRUID:case CLASS_PALADIN:
+    case CLASS_DRUID:case CLASS_PALADIN:case CLASS_ALCHEMIST: 
       print_collection(ch, class);
       print_prep_queue(ch, class);
       display_available_slots(ch, class);
@@ -1563,6 +1600,10 @@ int compute_spells_prep_time(struct char_data *ch, int class, int circle, int do
       prep_time *= BARD_PREP_TIME_FACTOR;
       stat_bonus = GET_CHA_BONUS(ch);
       break;
+    case CLASS_ALCHEMIST:
+      prep_time *= ALCHEMIST_PREP_TIME_FACTOR;
+      stat_bonus = GET_INT_BONUS(ch);
+      break;
   }
 
   /** calculate bonuses **/
@@ -1580,6 +1621,9 @@ int compute_spells_prep_time(struct char_data *ch, int class, int circle, int do
   if (HAS_FEAT(ch, FEAT_FASTER_MEMORIZATION)) {
     bonus_time += prep_time / 4;
   }
+ // If in a regenerating room... normally taverns
+  if (ROOM_FLAGGED(ch->in_room, ROOM_REGEN))
+    bonus_time += prep_time / 4;
   /*spells/affections*/
   /* song of focused mind, halves prep time */
   if (affected_by_spell(ch, SKILL_SONG_OF_FOCUSED_MIND)) {
@@ -1783,6 +1827,7 @@ ACMD(do_consign_to_oblivion) {
     case SCMD_UNADJURE: class = CLASS_RANGER; break;
     case SCMD_OMIT: class = CLASS_PALADIN; break;
     case SCMD_UNCOMMUNE: class = CLASS_DRUID; break;
+   case SCMD_DISCARD: class = CLASS_ALCHEMIST; break;
     /* innate-magic casters such as sorc / bard, do not use this command */
     default:send_to_char(ch, "Invalid command!\r\n");
       return;
@@ -1813,8 +1858,9 @@ ACMD(do_consign_to_oblivion) {
   if (!consign_all) {
     spell_arg = strtok(arg, "'");
     if (spell_arg == NULL) {
-      send_to_char(ch, "Which spell do you want to %s? "
+      send_to_char(ch, "Which %s do you want to %s? "
               "Usage: %s <meta-magic arguments> '<spell name>' or ALL for all spells.\r\n",
+              class == CLASS_ALCHEMIST ? "extract" : "spell",
               spell_consign_dict[class][0], spell_consign_dict[class][0]);
       return;
     }
@@ -1854,8 +1900,9 @@ ACMD(do_consign_to_oblivion) {
       
     /* we have nothing in -either- queue! */
     } else {
-      send_to_char(ch, "There is nothing in your preparation queue or spell "
-              "collection to %s!\r\n", spell_consign_dict[class][0]);
+      send_to_char(ch, "There is nothing in your preparation queue or %s "
+              "collection to %s!\r\n", 
+              class == CLASS_ALCHEMIST ? "extract" : "spell", spell_consign_dict[class][0]);
       stop_prep_event(ch, class);
       return;
     }
@@ -1864,7 +1911,7 @@ ACMD(do_consign_to_oblivion) {
   /* Begin system for forgetting a specific spell */
   
   if (spellnum < 1 || spellnum > MAX_SPELLS) {
-    send_to_char(ch, "You never knew that spell to begin with!\r\n");
+    send_to_char(ch, "You never knew that %s to begin with!\r\n", class == CLASS_ALCHEMIST ? "extract" : "spell");
     return;
   }
 
@@ -1875,17 +1922,19 @@ ACMD(do_consign_to_oblivion) {
     if (SPELL_PREP_QUEUE(ch, class)->spell == spellnum &&
             SPELL_PREP_QUEUE(ch, class)->metamagic == metamagic &&
             PREPARING_STATE(ch, class)) {
-      send_to_char(ch, "Being that spell was the next in your preparation queue, you are "
-              "forced to abort your %s.\r\n", spell_prep_dict[class][3]);
+      send_to_char(ch, "Being that %s was the next in your preparation queue, you are "
+              "forced to abort your %s.\r\n", 
+              class == CLASS_ALCHEMIST ? "extract" : "spell", spell_prep_dict[class][3]);
       stop_prep_event(ch, class);
     }
       
     if (prep_queue_remove_by_class(ch, class, spellnum, metamagic)) {
-      send_to_char(ch, "You %s \tW%s\tn %s%s from your spell preparation queue!\r\n",
+      send_to_char(ch, "You %s \tW%s\tn %s%s from your %s preparation queue!\r\n",
               spell_consign_dict[class][0],
               skill_name(spellnum),
               (IS_SET(metamagic, METAMAGIC_QUICKEN)  ? "\tc[\tnquickened\tc]\tn" : ""),
-              (IS_SET(metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : "")
+              (IS_SET(metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
+              class == CLASS_ALCHEMIST ? "extract" : "spell"
             );
       return;
     }
@@ -1894,21 +1943,22 @@ ACMD(do_consign_to_oblivion) {
   /* check spell-collection for spell, if found, remove and exit */
   if (SPELL_COLLECTION(ch, class)) {
     if (collection_remove_by_class(ch, class, spellnum, metamagic)) {
-      send_to_char(ch, "You %s \tW%s\tn %s%s from your spell collection!\r\n",
-              spell_consign_dict[class][0],              
+      send_to_char(ch, "You %s \tW%s\tn %s%s from your %s collection!\r\n",
+              spell_consign_dict[class][0],
               skill_name(spellnum),
               (IS_SET(metamagic, METAMAGIC_QUICKEN)  ? "\tc[\tnquickened\tc]\tn" : ""),
-              (IS_SET(metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : "")
+              (IS_SET(metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
+              (class == CLASS_ALCHEMIST ? "extract" : "spell")
             );
       return;
     }
   }
 
   /* nowhere else to search to get rid of this spell! */
-  send_to_char(ch, "You do not have %s in your preparation queue or spell collection! "
+  send_to_char(ch, "You do not have %s in your preparation queue or %s collection! "
           "(make sure you used the correct command based on class and you used the "
-          "proper meta-magic arguments)\r\n", spell_info[spellnum].name);
-
+          "proper meta-magic arguments)\r\n", spell_info[spellnum].name,
+          class == CLASS_ALCHEMIST ? "extract" : "spell");
 }
 
 /* preparation command entry point for players */
@@ -1947,6 +1997,7 @@ ACMD(do_gen_preparation) {
     case SCMD_COMMUNE: class = CLASS_DRUID; break;
     case SCMD_MEDITATE: class = CLASS_SORCERER; break;
     case SCMD_COMPOSE: class = CLASS_BARD; break;
+    case SCMD_CONCOCT: class = CLASS_ALCHEMIST; break;
     default:send_to_char(ch, "Invalid command!\r\n");
       return;
   }

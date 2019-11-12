@@ -39,6 +39,7 @@
 #include "craft.h"
 #include "assign_wpn_armor.h"
 #include "grapple.h"
+#include "alchemy.h"
 
 /* return results from hit() */
 #define HIT_MISS           0
@@ -50,6 +51,8 @@ struct obj_data *last_missile = NULL;
 
 /* head of l-list of fighting chars */
 struct char_data *combat_list = NULL;
+
+int hands_used(struct char_data *ch);
 
 /* Weapon attack texts
  * don't forget to add to constants.c attack_hit_types */
@@ -2007,6 +2010,7 @@ int compute_energy_absorb(struct char_data *ch, int dam_type) {
     case DAM_SOUND:
       break;
     case DAM_POISON:
+    case DAM_CELESTIAL_POISON:
       break;
     case DAM_DISEASE:
       break;
@@ -2306,8 +2310,23 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type) {
           damtype_reduction += 50;
         if (GET_NPC_RACE(ch) == RACE_TYPE_PLANT)
           damtype_reduction += 50;
+        if (GET_NPC_RACE(ch) == RACE_TYPE_OUTSIDER && IS_EVIL(ch))
+          damtype_reduction += 75;
         if (GET_NPC_RACE(ch) == RACE_TYPE_UNDEAD)
           damtype_reduction += 75;
+      }
+
+      break;
+
+    case DAM_CELESTIAL_POISON:
+      // celestial poisons are not resisted by undead or evil outsiders
+
+      /* npc vulnerabilities/strengths */
+      if (IS_NPC(ch)) {
+        if (GET_NPC_RACE(ch) == RACE_TYPE_CONSTRUCT)
+          damtype_reduction += 50;
+        if (GET_NPC_RACE(ch) == RACE_TYPE_PLANT)
+          damtype_reduction += 50;
       }
 
       break;
@@ -3119,6 +3138,8 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
         dambonus += GET_STR_BONUS(ch);
       else if (GET_EQ(ch, WEAR_WIELD_2H) && !is_using_double_weapon(ch))
         dambonus += GET_STR_BONUS(ch) * 3 / 2; /* 2handed weapon */
+      else if (hands_available(ch) > 0)
+        dambonus += GET_STR_BONUS(ch) * 3 / 2; /* one handed weapon held in two hands because of empty off hand */
       else
         dambonus += GET_STR_BONUS(ch);
       break;
@@ -3265,7 +3286,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
    */
 
   /* power attack */
-  if (AFF_FLAGGED(ch, AFF_POWER_ATTACK) && attack_type != ATTACK_TYPE_RANGED) {
+  if (AFF_FLAGGED(ch, AFF_POWER_ATTACK) && attack_type != ATTACK_TYPE_RANGED && attack_type != ATTACK_TYPE_BOMB_TOSS) {
     if (GET_EQ(ch, WEAR_WIELD_2H) && !is_using_double_weapon(ch)) {
       dambonus += COMBAT_MODE_VALUE(ch) * 2; /* 2h weapons gets 2x bonus */
     } else {
@@ -3681,6 +3702,9 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
 int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll,
         int calc_bab, int victim_ac) {
   int threat_range, confirm_roll = dice(1, 20) + calc_bab;
+
+  if (FIGHTING(ch) && KNOWS_DISCOVERY(FIGHTING(ch), ALC_DISC_PRESERVE_ORGANS) && dice(1, 4) == 1)
+    return FALSE;
 
   threat_range = determine_threat_range(ch, wielded);
 
@@ -4482,6 +4506,7 @@ struct obj_data *get_wielded(struct char_data *ch, /* Wielder */
       }
       break;
     case ATTACK_TYPE_UNARMED:
+    case ATTACK_TYPE_BOMB_TOSS:
       wielded = NULL;
       break;
     case ATTACK_TYPE_TWOHAND:
@@ -4541,6 +4566,12 @@ int compute_attack_bonus(struct char_data *ch, /* Attacker */
         case ATTACK_TYPE_RANGED:
           calc_bab += GET_DEX_BONUS(ch);
           break;
+        case ATTACK_TYPE_BOMB_TOSS:
+          calc_bab += GET_DEX_BONUS(ch);
+          if (KNOWS_DISCOVERY(ch, ALC_DISC_PRECISE_BOMBS)) {
+            calc_bab += 2;
+          }
+          break;
         case ATTACK_TYPE_UNARMED:
           if (HAS_FEAT(ch, FEAT_UNARMED_STRIKE) &&
                   HAS_FEAT(ch, FEAT_WEAPON_FINESSE) && GET_DEX_BONUS(ch) > GET_STR_BONUS(ch)) {
@@ -4579,8 +4610,12 @@ int compute_attack_bonus(struct char_data *ch, /* Attacker */
     default: break;
   }
 
-  if (AFF_FLAGGED(ch, AFF_FATIGUED))
+    if (AFF_FLAGGED(ch, AFF_FATIGUED))
           bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 2;
+    if (AFF_FLAGGED(ch, AFF_DAZZLED))
+          bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 1;
+    if (IS_FRIGHTENED(ch))
+      bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 2;
 
           /* Competence bonus */
 
@@ -5460,6 +5495,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
 
   /* Calculate sneak attack damage. */
   if (HAS_FEAT(ch, FEAT_SNEAK_ATTACK) &&
+          (!KNOWS_DISCOVERY(victim, ALC_DISC_PRESERVE_ORGANS) || dice(1, 4) > 1) &&
           (compute_concealment(victim) == 0) &&
           ((AFF_FLAGGED(victim, AFF_FLAT_FOOTED)) /* Flat-footed */
           || !(has_dex_bonus_to_ac(ch, victim)) /* No dex bonus to ac */
@@ -6852,34 +6888,7 @@ void perform_violence(struct char_data *ch, int phase) {
           GET_TOTAL_AOO(ch) = 0;
           REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLAT_FOOTED);
 
-  if (AFF_FLAGGED(ch, AFF_FEAR) && !IS_NPC(ch) &&
-          HAS_FEAT(ch, FEAT_AURA_OF_COURAGE)) {
-    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FEAR);
-            send_to_char(ch, "Your divine courage overcomes the fear!\r\n");
-            act("$n \tWis bolstered by $s courage and overcomes $s \tDfear!\tn\tn",
-            TRUE, ch, 0, 0, TO_ROOM);
-    return;
-  }
-
-  if (AFF_FLAGGED(ch, AFF_FEAR) && !IS_NPC(ch) &&
-          HAS_FEAT(ch, FEAT_RP_FEARLESS_RAGE) &&
-          affected_by_spell(ch, SKILL_RAGE)) {
-    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FEAR);
-            send_to_char(ch, "Your fearless rage overcomes the fear!\r\n");
-            act("$n \tWis bolstered by $s fearless rage and overcomes $s \tDfear!\tn\tn",
-            TRUE, ch, 0, 0, TO_ROOM);
-    return;
-  }
-
-  if (AFF_FLAGGED(ch, AFF_FEAR) && !IS_NPC(ch) &&
-          HAS_FEAT(ch, FEAT_FEARLESS_DEFENSE) &&
-          affected_by_spell(ch, SKILL_DEFENSIVE_STANCE)) {
-    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FEAR);
-            send_to_char(ch, "Your fearless defense overcomes the fear!\r\n");
-            act("$n \tWis bolstered by $s fearless defense and overcomes $s \tDfear!\tn\tn",
-            TRUE, ch, 0, 0, TO_ROOM);
-    return;
-  }
+  remove_fear_affects(ch, TRUE);
 
   if (FIGHTING(ch) == NULL || IN_ROOM(ch) != IN_ROOM(FIGHTING(ch))) {
     stop_fighting(ch);

@@ -595,6 +595,8 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn, *red;
 #define STUDY_CONFIRM_BLOODLINE 36
 #define SET_BLOODLINE_ARCANE   37
 #define SET_NEW_ARCANA         38
+#define STUDY_SELECT_ALC_DISCOVERY 39
+#define STUDY_CONFIRM_ADD_DISCOVERY 40
 
 int save_config(IDXTYPE nowhere);
 

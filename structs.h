@@ -332,6 +332,7 @@
 #define CLASS_DUELIST           15
 #define CLASS_MYSTIC_THEURGE    16
 #define CLASS_MYSTICTHEURGE     CLASS_MYSTIC_THEURGE
+#define CLASS_ALCHEMIST         17
 //#define CLASS_PSIONICIST        16
 //#define CLASS_PSION CLASS_PSIONICIST
 //#define CLASS_PSYCHIC_WARRIOR   17
@@ -345,13 +346,13 @@
 /* !!!---- CRITICAL ----!!! make sure to add class names to constants.c's
    class_names[] - we are dependent on that for loading the feat-list */
 /** Total number of available PC Classes */
-#define NUM_CLASSES             17
+#define NUM_CLASSES             18
 
 // related to pc (classes, etc)
 /* note that max_classes was established to reign in some of the
    pfile arrays associated with classes */
 #define MAX_CLASSES	30	// total number of maximum pc classes
-#define NUM_CASTERS	7	//direct reference to pray array
+#define NUM_CASTERS	8	//direct reference to pray array
 /*  x wizard 1
  *  x sorcerer 2
  *  x cleric 3
@@ -784,9 +785,10 @@
 #define PRF_NOHINT       44   /**< show in-game hints to newer players */
 #define PRF_AUTOCOLLECT  45   /**< collect ammo after combat automatically */
 #define PRF_RP           46   /**< Interested in Role-Playing! */
+#define PRF_AOE_BOMBS    47  /** Bombs will use splash damage instead of single target */
 
 /** Total number of available PRF flags */
-#define NUM_PRF_FLAGS    47
+#define NUM_PRF_FLAGS    48
 
 /* Affect bits: used in char_data.char_specials.saved.affected_by */
 /* WARNING: In the world files, NEVER set the bits marked "R" ("Reserved") */
@@ -901,8 +903,12 @@
 #define AFF_AWARE            101 /* aware - too aware to be backstabed */
 #define AFF_CRIPPLING_CRITICAL 102 /* duelist crippling critical affection */
 #define AFF_LEVITATE         103   /**< Char can float above the ground */
+#define AFF_BLEED            104  /* character suffers bleed damage each round unless healed by treatinjury or another healing effect. */
+#define AFF_STAGGERED        105  /* A staggered character has a 50% chance to fail a spell or a single melee attack */4
+#define AFF_DAZZLED          106 /* suffers -1 to attacks and perception checks */
+#define AFF_SHAKEN           107 // fear/mind effect.  -2 to attack rols, saving throws, skill checks and ability checks
 /*---*/
-#define NUM_AFF_FLAGS        104
+#define NUM_AFF_FLAGS        108
 /********************************/
 /* add aff_ flag?  don't forget to add to:
    1)  places in code the affect will directly modify values
@@ -1676,16 +1682,39 @@
 #define FEAT_ARCANE_APOTHEOSIS                 603
 /* Mystic theurge */
 #define FEAT_THEURGE_SPELLCASTING              604      
-
+/* Alchemist */
+#define FEAT_CONCOCT_LVL_1                     605
+#define ALC_SLT_0                              (FEAT_CONCOCT_LVL_1-1)
+#define FEAT_CONCOCT_LVL_2                     606
+#define FEAT_CONCOCT_LVL_3                     607
+#define FEAT_CONCOCT_LVL_4                     608
+#define FEAT_CONCOCT_LVL_5                     609
+#define FEAT_CONCOCT_LVL_6                     610
+#define FEAT_MUTAGEN                           611
+#define FEAT_BOMBS                             612
+#define FEAT_ALCHEMICAL_DISCOVERY              613
+#define FEAT_SWIFT_POISONING                   614
+#define FEAT_SWIFT_ALCHEMY                     615
+#define FEAT_POISON_IMMUNITY                   616
+#define FEAT_PERSISTENT_MUTAGEN                617
+#define FEAT_INSTANT_ALCHEMY                   618
+#define FEAT_GRAND_ALCHEMICAL_DISCOVERY        619
+#define FEAT_PSYCHOKINETIC                     620
+#define FEAT_CURING_TOUCH                      621
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT                      605
+#define FEAT_LAST_FEAT                      622
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS                           606
+#define NUM_FEATS                           623
 /** absolute cap **/
 #define MAX_FEATS                           750
 /*****/
+
+#define NUM_DISCOVERIES_KNOWN                  20
+#define MAX_BOMBS_ALLOWED                      50
+#define NUM_ALC_DISCOVERIES                    44
+#define NUM_GR_ALC_DISCOVERIES                 5
 
 /* Combat feats that apply to a specific weapon type */
 #define CFEAT_IMPROVED_CRITICAL                0
@@ -2410,6 +2439,7 @@
 #define ATTACK_TYPE_RANGED    2
 #define ATTACK_TYPE_UNARMED   3
 #define ATTACK_TYPE_TWOHAND   4 /* doesn't really serve any purpose */
+#define ATTACK_TYPE_BOMB_TOSS 5
 
 /* WEAPON ATTACK TYPES - indicates type of attack both
    armed and unarmed attacks are, example: You BITE Bob.
@@ -2982,7 +3012,7 @@ struct char_ability_data {
 #define NUM_ABILITY_MODS 6
 
 /* make sure this matches spells.h define */
-#define NUM_DAM_TYPES  21
+#define NUM_DAM_TYPES  22
 
 /* Character 'points', or health statistics. (we have points and real_points) */
 struct char_point_data {
@@ -3235,6 +3265,10 @@ struct player_special_data_saved {
     int sorcerer_bloodline_subtype; //if the sorcerer bloodline has a subtype (ie. draconic)
     int new_arcana_circles[4];
     int mail_days;
+
+    int discoveries[NUM_ALC_DISCOVERIES];
+    int bombs[MAX_BOMBS_ALLOWED];
+    int grand_discovery;
 };
 
 /** Specials needed only by PCs, not NPCs.  Space for this structure is
@@ -3270,6 +3304,8 @@ struct player_special_data {
   char *new_mail_receiver;
   char *new_mail_subject;
   char *new_mail_content;
+
+  int sticky_bomb[2];
 };
 
 /** Special data used by NPCs, not PCs */
@@ -3405,6 +3441,10 @@ struct level_data {
 
     // Sorcerer Bloodline Subtype
     int sorcerer_bloodline_subtype;
+    // Alchemist Discoveries
+    int discoveries[NUM_ALC_DISCOVERIES];
+    int tempDiscovery ;
+    int grand_discovery;
 };
 
 /** The list element that makes up a list of characters following this

@@ -27,6 +27,7 @@
 #include "domains_schools.h"
 #include "grapple.h"
 #include "spell_prep.h"
+#include "alchemy.h"
 
 #define SINFO spell_info[spellnum]
 
@@ -159,6 +160,15 @@ bool concentration_check(struct char_data *ch, int spellnum) {
     else if (GRAPPLE_TARGET(ch))
       concentration_dc +=
             compute_cmb(GRAPPLE_TARGET(ch), COMBAT_MANEUVER_TYPE_GRAPPLE);
+  }
+
+  if (CASTING_CLASS(ch) != CLASS_ALCHEMIST && !ch->player_specials->canCastInnate) {
+    if (AFF_FLAGGED(ch, AFF_DEAF) && dice(1, 5) == 1) {
+      send_to_char(ch, "Your deafness has made you fumble your spell!\r\n");
+      act("$n seems to have fumbled his spell for some reason.", TRUE, ch, 0, 0, TO_ROOM);
+      resetCastingData(ch);
+      return FALSE;
+    }
   }
 
   if (!skill_check(ch, ABILITY_CONCENTRATION, concentration_dc)) {
@@ -624,7 +634,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
   switch (spellnum) {
     case SPELL_POISON:
       if (caster && cvict && affected_by_spell(cvict, SPELL_POISON)) {
-        damage(caster, cvict, dice(2, 4), SPELL_POISON, DAM_POISON, FALSE);
+        damage(caster, cvict, dice(2, 4), SPELL_POISON, KNOWS_DISCOVERY(caster, ALC_DISC_CELESTIAL_POISONS) ? DAM_CELESTIAL_POISON : DAM_POISON, FALSE);
         /* we have custom damage message here for this */
         act("$N suffers further from more poison!",
                 FALSE, caster, NULL, cvict, TO_CHAR);
@@ -970,6 +980,7 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
 
       for (i = 1; i <= 3; i++)
         if (call_magic(ch, ch, NULL, GET_OBJ_VAL(obj, i), 0,
+                KNOWS_DISCOVERY(ch, ALC_DISC_ENHANCE_POTION) ? MAX(CLASS_LEVEL(ch, CLASS_ALCHEMIST), GET_OBJ_VAL(obj, 0)) : GET_OBJ_VAL(obj, 0), 
                 GET_OBJ_VAL(obj, 0), CAST_POTION) <= 0)
           break;
 
@@ -1046,7 +1057,7 @@ int castingCheckOk(struct char_data *ch) {
 
 void finishCasting(struct char_data *ch) {
   say_spell(ch, CASTING_SPELLNUM(ch), CASTING_TCH(ch), CASTING_TOBJ(ch), FALSE);
-  send_to_char(ch, "You complete your spell...");
+  send_to_char(ch, "You %s...", CASTING_CLASS(ch) == CLASS_ALCHEMIST ? "complete the extract" : "complete your spell");
   call_magic(ch, CASTING_TCH(ch), CASTING_TOBJ(ch), CASTING_SPELLNUM(ch), CASTING_METAMAGIC(ch),
           CASTER_LEVEL(ch), CAST_SPELL);
   resetCastingData(ch);
@@ -1091,7 +1102,7 @@ EVENTFUNC(event_casting) {
         return 0;
 
       //display time left to finish spell
-      sprintf(buf, "Casting: %s%s%s ",
+      sprintf(buf, "%s: %s%s%s ", CASTING_CLASS(ch) == CLASS_ALCHEMIST ? "Preparing" : "Casting",
               (IS_SET(CASTING_METAMAGIC(ch), METAMAGIC_QUICKEN) ? "quickened " : ""),
               (IS_SET(CASTING_METAMAGIC(ch), METAMAGIC_MAXIMIZE) ? "maximized " : ""),
               SINFO.name);
@@ -1320,8 +1331,13 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     }
 
     /* casting time entry point */
-    send_to_char(ch, "You begin casting your spell...\r\n");
-    say_spell(ch, spellnum, tch, tobj, TRUE);
+    if (CASTING_CLASS(ch) == CLASS_ALCHEMIST) {
+      send_to_char(ch, "You begin preparing your extract...\r\n");
+      act("$n begins preparing an extract.\r\n", FALSE, ch, 0, 0, TO_ROOM);
+    } else {
+      send_to_char(ch, "You begin casting your spell...\r\n");
+      say_spell(ch, spellnum, tch, tobj, TRUE);
+    }
     IS_CASTING(ch) = TRUE;
     CASTING_TIME(ch) = casting_time;
     CASTING_TCH(ch) = tch;
@@ -1373,6 +1389,8 @@ ACMD(do_gen_cast) {
     case SCMD_CAST_SPELL:
       break;
     case SCMD_CAST_PSIONIC:
+      break;
+    case SCMD_CAST_EXTRACT:
       break;
     default:
       break;
@@ -1537,7 +1555,8 @@ ACMD(do_gen_cast) {
           BONUS_CASTER_LEVEL(ch, CLASS_PALADIN) + CLASS_LEVEL(ch, CLASS_PALADIN) < SINFO.min_level[CLASS_PALADIN] &&
           BONUS_CASTER_LEVEL(ch, CLASS_BARD) + CLASS_LEVEL(ch, CLASS_BARD) < SINFO.min_level[CLASS_BARD] &&
 //          BONUS_CASTER_LEVEL(ch, CLASS_PSIONICIST) + CLASS_LEVEL(ch, CLASS_PSIONICIST) < SINFO.min_level[CLASS_PSIONICIST] &&
-          BONUS_CASTER_LEVEL(ch, CLASS_SORCERER) + CLASS_LEVEL(ch, CLASS_SORCERER) < SINFO.min_level[CLASS_SORCERER]
+          BONUS_CASTER_LEVEL(ch, CLASS_SORCERER) + CLASS_LEVEL(ch, CLASS_SORCERER) < SINFO.min_level[CLASS_SORCERER] &&
+          BONUS_CASTER_LEVEL(ch, CLASS_ALCHEMIST) + CLASS_LEVEL(ch, CLASS_ALCHEMIST) < SINFO.min_level[CLASS_ALCHEMIST]
           ) {
     send_to_char(ch, "You do not know that %s!\r\n", do_cast_types[subcmd][2]);
     return;
@@ -1681,6 +1700,11 @@ ACMD(do_gen_cast) {
     send_to_char(ch, "A flash of white light fills the room, dispelling your violent %s!\r\n",
             do_cast_types[subcmd][4]);
     act("White light from no particular source suddenly fills the room, then vanishes.", FALSE, ch, 0, 0, TO_ROOM);
+    return;
+  }
+
+  if ((tch != ch) && subcmd == SCMD_CAST_EXTRACT && !KNOWS_DISCOVERY(ch, ALC_DISC_INFUSION)) {
+    send_to_char(ch, "You can only use extracts upon yourself!\r\n");
     return;
   }
 
@@ -2925,7 +2949,54 @@ void mag_assign_spells(void) {
           TAR_IGNORE, FALSE, MAG_MASSES,
           "Your nausea from the noxious gas passes.", 4, 7,
           CONJURATION, FALSE);
-
+  spello(BOMB_AFFECT_ACID, "acid bomb", 0, 0, 0, POS_SITTING,
+          TAR_IGNORE, TRUE, 0,
+          NULL, 0, 0, NOSCHOOL, FALSE);
+  spello(BOMB_AFFECT_BLINDING, "blinding bomb", 0, 0, 0, POS_SITTING,
+          TAR_IGNORE, TRUE, 0,
+          NULL, 0, 0, NOSCHOOL, FALSE);
+  spello(BOMB_AFFECT_BONESHARD, "boneshard bomb", 0, 0, 0, POS_SITTING,
+          TAR_IGNORE, TRUE, 0,
+          NULL, 0, 0, NOSCHOOL, FALSE);
+  spello(BOMB_AFFECT_CONCUSSIVE, "concussive bomb", 0, 0, 0, POS_SITTING,
+          TAR_IGNORE, TRUE, 0,
+          NULL, 0, 0, NOSCHOOL, FALSE);
+  spello(BOMB_AFFECT_CONFUSION, "confusion bomb", 0, 0, 0, POS_SITTING,
+          TAR_IGNORE, TRUE, 0,
+          NULL, 0, 0, NOSCHOOL, FALSE);
+  spello(BOMB_AFFECT_FIRE_BRAND, "fire brand bomb", 0, 0, 0, POS_SITTING,
+          TAR_IGNORE, TRUE, 0,
+          NULL, 0, 0, NOSCHOOL, FALSE);
+  spello(BOMB_AFFECT_FORCE, "force bomb", 0, 0, 0, POS_SITTING,
+          TAR_IGNORE, TRUE, 0,
+          NULL, 0, 0, NOSCHOOL, FALSE);
+  spello(BOMB_AFFECT_FROST, "frost bomb", 0, 0, 0, POS_SITTING,
+          TAR_IGNORE, TRUE, 0,
+          NULL, 0, 0, NOSCHOOL, FALSE);
+  spello(BOMB_AFFECT_HOLY, "holy bomb", 0, 0, 0, POS_SITTING,
+          TAR_IGNORE, TRUE, 0,
+          NULL, 0, 0, NOSCHOOL, FALSE);
+  spello(BOMB_AFFECT_IMMOLATION, "immolation bomb", 0, 0, 0, POS_SITTING,
+          TAR_IGNORE, TRUE, 0,
+          NULL, 0, 0, NOSCHOOL, FALSE);
+  spello(BOMB_AFFECT_PROFANE, "profane bomb", 0, 0, 0, POS_SITTING,
+          TAR_IGNORE, TRUE, 0,
+          NULL, 0, 0, NOSCHOOL, FALSE);
+  spello(BOMB_AFFECT_SHOCK, "shock bomb", 0, 0, 0, POS_SITTING,
+          TAR_IGNORE, TRUE, 0,
+          NULL, 0, 0, NOSCHOOL, FALSE);
+  spello(BOMB_AFFECT_STICKY, "sticky bomb", 0, 0, 0, POS_SITTING,
+          TAR_IGNORE, TRUE, 0,
+          NULL, 0, 0, NOSCHOOL, FALSE);
+  spello(BOMB_AFFECT_SUNLIGHT, "sunlight bomb", 0, 0, 0, POS_SITTING,
+          TAR_IGNORE, TRUE, 0,
+          NULL, 0, 0, NOSCHOOL, FALSE);
+  spello(BOMB_AFFECT_TANGLEFOOT, "tanglefoot bomb", 0, 0, 0, POS_SITTING,
+          TAR_IGNORE, TRUE, 0,
+          NULL, 0, 0, NOSCHOOL, FALSE);
+  spello(BOMB_AFFECT_PSYCHOKINETIC, "psychokinetic tincture", 0, 0, 0, POS_SITTING,
+          TAR_IGNORE, TRUE, 0,
+          NULL, 0, 0, NOSCHOOL, FALSE);
 
   spello(SPELL_DG_AFFECT, "Afflicted", 0, 0, 0, POS_SITTING,
           TAR_IGNORE, TRUE, 0,
@@ -2994,6 +3065,9 @@ void mag_assign_spells(void) {
   skillo(SKILL_EPIC_MAGE_ARMOR, "es epic mage armor", CASTER_SKILL);
   skillo(SKILL_EPIC_WARDING, "es epic warding", CASTER_SKILL); //455
   skillo(SKILL_RAGE, "rage", ACTIVE_SKILL); //456
+  skillo(SKILL_MUTAGEN, "mutagen", ACTIVE_SKILL); // 
+  skillo(SKILL_COGNATOGEN, "cognatogen", ACTIVE_SKILL); // 
+  skillo(SKILL_INSPIRING_COGNATOGEN, "inspriring cognatogen", ACTIVE_SKILL); // 
   skillo(SKILL_PROF_MINIMAL, "minimal weapon prof", PASSIVE_SKILL); //457
   skillo(SKILL_PROF_BASIC, "basic weapon prof", PASSIVE_SKILL); //458
   skillo(SKILL_PROF_ADVANCED, "advanced weapon prof", PASSIVE_SKILL); //459

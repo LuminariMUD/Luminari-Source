@@ -51,6 +51,7 @@
 #define CAST_WEAPON_SPELL   7 /* For casting weapons */
 #define CAST_TRAP           8
 #define CAST_FOOD_DRINK     9
+#define CAST_BOMB           10
 
 #define MAG_DAMAGE        (1 << 0)
 #define MAG_AFFECTS       (1 << 1)
@@ -488,6 +489,7 @@
 #define PSIONIC_UNNAMED13               380
 #define PSIONIC_UNNAMED14               381
 #define PSIONIC_UNNAMED15               382
+#define ALC_DISC_AFFECT_PSYCHOKINETIC   383
 /* end unfinished list */
 #define LAST_SPELL_DEFINE               383
 
@@ -649,6 +651,11 @@
 #define SKILL_CRIPPLING_CRITICAL        540
 #define SKILL_DRHRT_CLAWS               541
 #define SKILL_DRHRT_WINGS               542
+#define SKILL_BOMB_TOSS			543
+#define SKILL_MUTAGEN                   544
+#define SKILL_COGNATOGEN                545
+#define SKILL_INSPIRING_COGNATOGEN      546
+#define SKILL_PSYCHOKINETIC             547
 
 /* reserving this space for different performances 580 - 599*/
 #define TOP_OF_PERFORMANCES             580
@@ -716,6 +723,24 @@
 #define SKILL_LANG_HIGH         633
 #define MIN_LANGUAGES           SKILL_LANG_LOW
 #define MAX_LANGUAGES           SKILL_LANG_HIGH
+
+
+/* alchemist bombs with effects */
+#define BOMB_AFFECT_ACID                634
+#define BOMB_AFFECT_BLINDING            635
+#define BOMB_AFFECT_BONESHARD           636
+#define BOMB_AFFECT_CONCUSSIVE          637
+#define BOMB_AFFECT_CONFUSION           638
+#define BOMB_AFFECT_FIRE_BRAND          639
+#define BOMB_AFFECT_FORCE               640
+#define BOMB_AFFECT_FROST               641
+#define BOMB_AFFECT_HOLY                642
+#define BOMB_AFFECT_IMMOLATION          643
+#define BOMB_AFFECT_PROFANE             644
+#define BOMB_AFFECT_SHOCK               645
+#define BOMB_AFFECT_STICKY              646
+#define BOMB_AFFECT_SUNLIGHT            647
+#define BOMB_AFFECT_TANGLEFOOT          648
 
 /* Attack types */
 
@@ -891,8 +916,9 @@
 #define DAM_LIGHT		18
 #define DAM_ENERGY		19
 #define DAM_WATER		20
+#define DAM_CELESTIAL_POISON    21
 /* ------------------------------*/
-#define NUM_DAM_TYPES    21
+#define NUM_DAM_TYPES    22
 /* =============================*/
 
 
@@ -1148,6 +1174,7 @@ ACMD(do_scribe);
 ACMD(do_gen_cast);
 #define SCMD_CAST_SPELL   0  /* don't forget to add to constants.c */
 #define SCMD_CAST_PSIONIC 1
+#define SCMD_CAST_EXTRACT 2
 
 ACMD(do_abort);
 void unused_spell(int spl);

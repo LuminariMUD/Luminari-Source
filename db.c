@@ -1950,6 +1950,7 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
   CASE("ResPoison") {
     RANGE(-100, 100);
     GET_REAL_RESISTANCES(mob_proto + i, DAM_POISON) = num_arg;
+    GET_REAL_RESISTANCES(mob_proto + i, DAM_CELESTIAL_POISON) = num_arg;
   }
 
   CASE("ResDisease") {

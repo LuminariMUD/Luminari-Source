@@ -199,10 +199,15 @@ void start_action_cooldown(struct char_data * ch, action_type act_type, int dura
   /* Format the sVariables - Always duration first. */
   sprintf(svar, "%d", duration);
 
-  if (act_type == atMOVE)
+  if (act_type == atMOVE) {
     attach_mud_event(new_mud_event(eMOVEACTION, ch, svar), duration);
-  else if (act_type == atSTANDARD)
+    if (AFF_FLAGGED(ch, AFF_STAGGERED))
+      attach_mud_event(new_mud_event(eSTANDARDACTION, ch, svar), duration);
+  } else if (act_type == atSTANDARD) {
     attach_mud_event(new_mud_event(eSTANDARDACTION, ch, svar), duration);
-  else if (act_type == atSWIFT)
+    if (AFF_FLAGGED(ch, AFF_STAGGERED))
+      attach_mud_event(new_mud_event(eMOVEACTION, ch, svar), duration);
+  } else if (act_type == atSWIFT) {
     attach_mud_event(new_mud_event(eSWIFTACTION, ch, svar), duration);
+  }
 };

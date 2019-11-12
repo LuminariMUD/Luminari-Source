@@ -1056,6 +1056,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
             if (subfield && *subfield) {
               int addition = atoi(subfield);
               GET_RESISTANCES(c, DAM_POISON) += addition;
+              GET_RESISTANCES(c, DAM_CELESTIAL_POISON) += addition;
             }
             snprintf(str, slen, "%d", GET_RESISTANCES(c, DAM_POISON));
           } else if (!str_cmp(field, "resist_disease")) {

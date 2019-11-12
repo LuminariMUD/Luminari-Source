@@ -290,6 +290,8 @@ int process_weapon_abilities(struct obj_data *weapon, /* The weapon to check for
         char *cmdword) /* Command word (optional, NULL if none. */ {
   int activated_abilities = 0;
   struct obj_special_ability *specab; /* struct for iterating through the object's abilities. */
+  int alcFire = FALSE, alcBurst = FALSE;
+
   /* Run the 'callbacks' for each of the special abilities on weapon that match the activation method. */
   for (specab = weapon->special_abilities; specab != NULL; specab = specab->next) {
     /* Only deal with weapon special abilities */
@@ -305,9 +307,26 @@ int process_weapon_abilities(struct obj_data *weapon, /* The weapon to check for
         log("SYSERR: PROCESS_WEAPON_ABILITIES: ability '%s' has no callback function!", special_ability_info[specab->ability].name);
         continue;
       }
+
+      //  Fire brand bombs from alchemists
+      if (affected_by_spell(ch, BOMB_AFFECT_FIRE_BRAND)) {
+        if (specab->ability == TYPE_SPECAB_FLAMING_BURST) alcBurst = TRUE;
+        if (specab->ability == TYPE_SPECAB_FLAMING) alcFire = TRUE;
+      }
+
       activated_abilities++;
       (*special_ability_info[specab->ability].special_ability_proc) (specab, weapon, ch, victim, actmtd);
 
+    }
+  }
+
+  //  Fire brand bombs from alchemists
+  if (affected_by_spell(ch, BOMB_AFFECT_FIRE_BRAND)) {
+    if (actmtd == ACTMTD_ON_CRIT && !alcBurst && CLASS_LEVEL(ch, CLASS_ALCHEMIST) >= 10) {
+      damage(ch, victim, dice(1, 10), TYPE_SPECAB_FLAMING_BURST, DAM_FIRE, FALSE);
+    }
+    else if (actmtd == ACTMTD_ON_HIT && !alcFire && CLASS_LEVEL(ch, CLASS_ALCHEMIST) >= 0 && victim) {
+      damage(ch, victim, dice(1, 6), TYPE_SPECAB_FLAMING, DAM_FIRE, FALSE);
     }
   }
 

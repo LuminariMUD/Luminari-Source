@@ -277,7 +277,8 @@ static void prefedit_disp_toggles_menu(struct descriptor_data *d) {
   send_to_char(d->character, "\r\n"
           "%sOther Flags\r\n"
           "%sF%s) No Summon    %s[%s%3s%s]      %sH%s) Brief    %s[%s%3s%s]\r\n"
-          "%sG%s) No Repeat    %s[%s%3s%s]      %sI%s) Compact  %s[%s%3s%s]\r\n",
+          "%sG%s) No Repeat    %s[%s%3s%s]      %sI%s) Compact  %s[%s%3s%s]\r\n"
+          "%sY%s) AoE Bombs    %s[%s%3s%s]\r\n",
           CBWHT(d->character, C_NRM),
           /* Line 10 - nosummon and brief */
           CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM),
@@ -286,7 +287,9 @@ static void prefedit_disp_toggles_menu(struct descriptor_data *d) {
           /* Line 11 - norepeat and compact */
           CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM),
           ONOFF(PREFEDIT_FLAGGED(PRF_NOREPEAT)), CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
-          CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM), ONOFF(PREFEDIT_FLAGGED(PRF_COMPACT)), CCCYN(d->character, C_NRM)
+          CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM), ONOFF(PREFEDIT_FLAGGED(PRF_COMPACT)), CCCYN(d->character, C_NRM),
+          CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM),
+          ONOFF(PREFEDIT_FLAGGED(PRF_AOE_BOMBS)), CCCYN(d->character, C_NRM)
           );
 
   /* The bottom section of the toggles menu */
@@ -741,7 +744,10 @@ void prefedit_parse(struct descriptor_data * d, char *arg) {
 
           /* do not use X - reserved for exiting this menu */
 
-          /*y*/
+        case 'y':
+        case 'Y':
+          TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_AOE_BOMBS);
+          break;
           /*z*/
 
         default: send_to_char(d->character, "Invalid Choice, try again (Q to Quit to main menu): ");

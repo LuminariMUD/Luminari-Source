@@ -38,6 +38,7 @@
 #include "domains_schools.h"
 #include "desc_engine.h"
 #include "crafts.h"
+#include "alchemy.h"
 
 /* prototypes of local functions */
 /* do_diagnose utility functions */
@@ -622,10 +623,14 @@ static void list_one_char(struct char_data *i, struct char_data *ch) {
       act("...$e is groping around blindly!", FALSE, i, 0, ch, TO_VICT);
     if (AFF_FLAGGED(i, AFF_FAERIE_FIRE))
       act("...$e is surrounded by a pale blue light!", FALSE, i, 0, ch, TO_VICT);
+    if (KNOWS_DISCOVERY(i, ALC_DISC_VESTIGIAL_ARM))
+      act("...$e has an additional arm on $s torso.", FALSE, i, 0, ch, TO_VICT);
     if (affected_by_spell(i, SKILL_DRHRT_WINGS)) {
       char wings[150];
       sprintf(wings, "...$e has two large %s wings sprouting from $s back.", DRCHRTLIST_NAME(GET_BLOODLINE_SUBTYPE(i)));
       act(wings, FALSE, i, 0, ch, TO_VICT);
+    } else if (KNOWS_DISCOVERY(i, ALC_DISC_WINGS)) {
+      act("...$e has two large wings sprouting from $s back.", FALSE, i, 0, ch, TO_VICT);
     }
 
     return;
@@ -654,10 +659,14 @@ static void list_one_char(struct char_data *i, struct char_data *ch) {
       act("...$e is groping around blindly!", FALSE, i, 0, ch, TO_VICT);
     if (AFF_FLAGGED(i, AFF_FAERIE_FIRE))
       act("...$e is surrounded by a pale blue light!", FALSE, i, 0, ch, TO_VICT);
+    if (KNOWS_DISCOVERY(i, ALC_DISC_VESTIGIAL_ARM))
+      act("...$e has an additional arm on $s torso.", FALSE, i, 0, ch, TO_VICT);
     if (affected_by_spell(i, SKILL_DRHRT_WINGS)) {
       char wings[150];
       sprintf(wings, "...$e has two large %s wings sprouting from $s back.", DRCHRTLIST_NAME(GET_BLOODLINE_SUBTYPE(i)));
       act(wings, FALSE, i, 0, ch, TO_VICT);
+    } else if (KNOWS_DISCOVERY(i, ALC_DISC_WINGS)) {
+      act("...$e has two large wings sprouting from $s back.", FALSE, i, 0, ch, TO_VICT);
     }
 
     return;
@@ -772,10 +781,14 @@ static void list_one_char(struct char_data *i, struct char_data *ch) {
     act("...$e is groping around blindly!", FALSE, i, 0, ch, TO_VICT);
   if (AFF_FLAGGED(i, AFF_FAERIE_FIRE))
     act("...$e is surrounded by a pale blue light!", FALSE, i, 0, ch, TO_VICT);
+  if (KNOWS_DISCOVERY(i, ALC_DISC_VESTIGIAL_ARM))
+    act("...$e has an additional arm on $s torso.", FALSE, i, 0, ch, TO_VICT);
   if (affected_by_spell(i, SKILL_DRHRT_WINGS)) {
     char wings[150];
     sprintf(wings, "...$e has two large %s wings sprouting from $s back.", DRCHRTLIST_NAME(GET_BLOODLINE_SUBTYPE(i)));
     act(wings, FALSE, i, 0, ch, TO_VICT);
+  } else if (KNOWS_DISCOVERY(i, ALC_DISC_WINGS)) {
+    act("...$e has two large wings sprouting from $s back.", FALSE, i, 0, ch, TO_VICT);
   }
 }
 
@@ -1371,6 +1384,8 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k) {
     send_to_char(ch, "Vanish Cooldown - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eRAGE)))
     send_to_char(ch, "Rage Cooldown - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eMUTAGEN)))
+    send_to_char(ch, "Mutagen/Cognatogen Cooldown - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eCRIPPLING_CRITICAL)))
     send_to_char(ch, "Crippling Critical Cooldown - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eDEFENSIVE_STANCE)))
@@ -1482,6 +1497,8 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k) {
     send_to_char(ch, "Good Touch Cooldown  - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eHEALING_TOUCH)))
     send_to_char(ch, "Healing Touch Cooldown  - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+if ((pMudEvent = char_has_mud_event(k, eCURING_TOUCH)))
+    send_to_char(ch, "Curing Touch Cooldown  - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eEYE_OF_KNOWLEDGE)))
     send_to_char(ch, "Eye of Knowledge Cooldown  - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eBLESSED_TOUCH)))
@@ -2573,6 +2590,12 @@ ACMD(do_score) {
     send_to_char(ch, "\tDType 'commune' to see your Druid spell interface\tn\r\n");
   if (CLASS_LEVEL(ch, CLASS_PALADIN))
     send_to_char(ch, "\tDType 'chant' to see your Paladin spell interface\tn\r\n");
+  if (CLASS_LEVEL(ch, CLASS_ALCHEMIST)) {
+    send_to_char(ch, "\tDType 'extracts' to see your Alchemist extract interface\tn\r\n");
+    send_to_char(ch, "\tDType 'imbibe' to use an extract, and concoct to prepare an extract.\tn\r\n");
+    send_to_char(ch, "\tDType 'discoveries' to see your alchemist discoveries.\tn\r\n");
+    send_to_char(ch, "\tDType 'swallow' to use a mutagen or cognatogen (if you have cognatogen discovery).\tn\r\n");
+  }
 }
 
 ACMD(do_inventory) {

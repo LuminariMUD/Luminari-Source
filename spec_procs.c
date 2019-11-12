@@ -35,6 +35,7 @@
 #include "feats.h"
 #include "spell_prep.h"
 #include "item.h" /* do_stat_object */
+#include "alchemy.h"
 
 /* external functions */
 extern struct house_control_rec house_control[];
@@ -532,6 +533,8 @@ void list_spells(struct char_data *ch, int mode, int class, int circle) {
 
     if (class == CLASS_PALADIN || class == CLASS_RANGER)
       slot = 4;
+    if (class == CLASS_ALCHEMIST)
+      slot = 6;
     else
       slot = 9;
 
@@ -539,7 +542,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle) {
       if ((circle != -1) && circle != slot)
         continue;
       nlen = snprintf(buf2 + len, sizeof (buf2) - len,
-              "\r\n\tCSpell Circle Level %d\tn\r\n", slot);
+              "\r\n\tC%s Circle Level %d\tn\r\n", class == CLASS_ALCHEMIST ? "Extract" : "Spell", slot);
       if (len + nlen >= sizeof (buf2) || nlen < 0)
         break;
       len += nlen;
@@ -728,6 +731,8 @@ int compute_ability(struct char_data *ch, int abilityNum) {
     value += 6;
   if (!IS_NPC(ch) && IS_DAYLIT(IN_ROOM(ch)) && HAS_FEAT(ch, FEAT_LIGHT_BLINDNESS))
     value -= 1;
+  if (IS_FRIGHTENED(ch))
+    value -= 2;
   // try to avoid sending NPC's here, but just in case:
   /* Note on this:  More and more it seems necessary to have some
    * sort of NPC skill system in place, either an actual set
@@ -740,6 +745,17 @@ int compute_ability(struct char_data *ch, int abilityNum) {
     value += GET_ABILITY(ch, abilityNum);
 
   /* Check for armor proficiency? */
+
+  struct affected_type *aff = NULL;
+
+  for ( af = ch->affected; af; af = af->next) {
+    if (af->location == APPLY_SKILL) {
+      if (af->spell == SKILL_INSPIRING_COGNATOGEN)
+        value += af->modifier;
+      else if (af->specific == abilityNum)
+        value += af->modifier
+    }
+  }
 
   switch (abilityNum) {
 
@@ -768,6 +784,11 @@ int compute_ability(struct char_data *ch, int abilityNum) {
         value += 15;
       if (IS_MORPHED(ch) && SUBRACE(ch) == PC_SUBRACE_PANTHER)
         value += 4;
+      if (KNOWS_DISCOVERY(ch, ALC_DISC_CHAMELEON))
+        if (CLASS_LEVEL(ch, CLASS_ALCHEMIST) >= 10)
+          value += 8;
+        else
+          value += 4;
       value += compute_gear_armor_penalty(ch);
       return value;
 
@@ -786,6 +807,10 @@ int compute_ability(struct char_data *ch, int abilityNum) {
         /* Unnamed bonus */
         value += 2;
       }
+      if (AFF_FLAGGED(ch, AFF_DAZZLED))
+       value--;
+      if (AFF_FLAGGED(ch, AFF_DEAF))
+       value -= 4;
       return value;
     case ABILITY_HEAL:
       value += GET_WIS_BONUS(ch);

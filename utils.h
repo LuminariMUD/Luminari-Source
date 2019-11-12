@@ -54,6 +54,9 @@
  * are made available with the function definition. */
 #define isspace_ignoretabs(c) ((c)!='\t' && isspace(c))
 
+sbyte is_immune_fear(struct char_data *ch, struct char_data *victim, sbyte display);
+sbyte is_immune_mind_affecting(struct char_data *ch, struct char_data *victim, sbyte display);
+void remove_fear_affects(struct char_data *ch, sbyte display);
 void gui_combat_wrap_open(struct char_data *ch);
 void gui_combat_wrap_notvict_open(struct char_data *ch, struct char_data *vict_obj);
 void gui_combat_wrap_close(struct char_data *ch);
@@ -1733,9 +1736,10 @@ spellnum == SPELL_EPIC_WARDING )
 #define IS_BERSERKER(ch)		(CLASS_LEVEL(ch, CLASS_BERSERKER))
 #define IS_PALADIN(ch)		(CLASS_LEVEL(ch, CLASS_PALADIN))
 #define IS_RANGER(ch)		(CLASS_LEVEL(ch, CLASS_RANGER))
+#define IS_ALCHEMIST(ch)	(CLASS_LEVEL(ch, CLASS_ALCHEMIST))
 #define IS_CASTER(ch)	(IS_CLERIC(ch) || IS_WIZARD(ch) || IS_DRUID(ch) \
                          || IS_SORCERER(ch) || IS_PALADIN(ch) || \
-                         IS_RANGER(ch) || IS_BARD(ch))
+                        IS_RANGER(ch) || IS_BARD(ch) || IS_ALCHEMIST(ch))
 #define IS_FIGHTER(ch) ( CLASS_LEVEL(ch, CLASS_WARRIOR) || CLASS_LEVEL(ch, CLASS_WEAPON_MASTER) || \
                          CLASS_LEVEL(ch, CLASS_STALWART_DEFENDER) || CLASS_LEVEL(ch, CLASS_DUELIST) || \
                          CLASS_LEVEL(ch, CLASS_BERSERKER) || CLASS_LEVEL(ch, CLASS_PALADIN) || \
@@ -1747,6 +1751,7 @@ spellnum == SPELL_EPIC_WARDING )
                             GET_CLASS(ch) == CLASS_SORCERER || \
                             GET_CLASS(ch) == CLASS_PALADIN || \
                             GET_CLASS(ch) == CLASS_RANGER || \
+                            GET_CLASS(ch) == CLASS_ALCHEMIST || \
                             GET_CLASS(ch) == CLASS_BARD)
 
 
@@ -1794,11 +1799,15 @@ spellnum == SPELL_EPIC_WARDING )
 				(!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_ELEMENTAL) )
 #define IS_PLANT(ch)    ( (IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_PLANT) || \
                                 (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_PLANT) )
+#define IS_OOZE(ch)    ( (IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_OOZE) || \
+                                (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_OOZE) )
 
 /* IS_ for other special situations */
 #define IS_INCORPOREAL(ch)   (AFF_FLAGGED(ch, AFF_IMMATERIAL) || HAS_SUBRACE(ch, SUBRACE_INCORPOREAL))
 
-#define IS_IMMUNE_CRITS(ch)  (IS_UNDEAD(ch))
+#define IS_IMMUNE_CRITS(ch)  (IS_UNDEAD(ch) || \
+                              (KNOWS_DISCOVERY(ch, ALC_DISC_PRESERVE_ORGANS) && dice(1, 4) == 1) )
+#define IS_FRIGHTENED(ch) (AFF_FLAGGED(ch, AFF_FEAR) || AFF_FLAGGED(ch, AFF_SHAKEN))
 
 /** Defines if ch is outdoors or not. */
 #define OUTDOORS(ch)         (is_outdoors(ch))

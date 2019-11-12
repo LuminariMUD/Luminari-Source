@@ -49,6 +49,8 @@
 #include "domains_schools.h"
 #include "crafts.h" /* NewCraft */
 #include "account.h"
+#include "alchemy.h"
+#include "mud_event.h"
 
 /* local utility functions with file scope */
 static int perform_set(struct char_data *ch, struct char_data *vict, int mode, char *val_arg);
@@ -2558,6 +2560,9 @@ ACMD(do_wizutil) {
         act("\tnA sudden fireball conjured from nowhere thaws $n!", FALSE, vict, 0, 0, TO_ROOM);
         break;
       case SCMD_UNAFFECT:
+        // clear event cooldowns and other timed effects built with the event system
+        clear_char_event_list(vict);
+        // clear affects
         if (vict->affected || AFF_FLAGS(vict)) {
           while (vict->affected)
             affect_remove(vict, vict->affected);
@@ -3177,6 +3182,7 @@ struct set_struct {
   { "rpmode", LVL_BUILDER, PC, BINARY}, /* 87 */
   { "mystictheurge", LVL_STAFF, PC, NUMBER}, /* 88 */ 
   { "addaccexp", LVL_IMPL, PC, ADDER}, /* 89 */
+  { "alchemist", LVL_STAFF, PC, NUMBER}, /* 90 */
 
   { "\n", 0, BOTH, MISC}
 };
@@ -3750,6 +3756,10 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       break;
     case 89: /* addaccexp - Adds *additional* account experience */
       vict->desc->account->experience += RANGE(0, 34000);
+      break;
+    case 90: // alchemist level
+      CLASS_LEVEL(vict, CLASS_ALCHEMIST) = RANGE(0, LVL_IMMORT - 1);
+      affect_total(vict);
       break;
     default:
       send_to_char(ch, "Can't set that!\r\n");

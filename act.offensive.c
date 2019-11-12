@@ -2916,6 +2916,84 @@ ACMD(do_treatinjury) {
       REMOVE_BIT_AR(AFF_FLAGS(vict), AFF_DISEASE);
   }
 
+  if (affected_by_spell(vict, BOMB_AFFECT_BONESHARD)) {
+    affect_from_char(vict, BOMB_AFFECT_BONESHARD);
+    if (ch == vict) {
+      act("The bone shards in your flesh dissolve and your bleeding stops.", FALSE, ch, 0, vict, TO_CHAR);
+    } else {
+      act("The bone shards in your flesh dissolve and your bleeding stops.", FALSE, ch, 0, vict, TO_VICT);
+      act("The bone shards in $N's flesh dissolve and $S bleeding stops.", FALSE, ch, 0, vict, TO_ROOM);
+    }
+  }
+
+  /* Actions */
+  USE_STANDARD_ACTION(ch);
+}
+
+ACMD(do_bandage) {
+  char arg[MAX_INPUT_LENGTH];
+  struct char_data *vict;
+
+  PREREQ_NOT_NPC();
+  one_argument(argument, arg);
+
+  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
+    send_to_char(ch, "Whom do you want to bandage?\r\n");
+    return;
+  }
+
+  if (FIGHTING(ch) && GET_POS(ch) < POS_FIGHTING) {
+    send_to_char(ch, "You need to be in a better position in combat in order"
+            " to use this ability!\r\n");
+    return;
+  }
+
+  sbyte attempted = FALSE;
+
+  if (GET_HIT(vict) <= 0) {
+    if (skill_check(ch, ABILITY_HEAL, 15)) {
+      send_to_char(ch, "You skillfully BANDAGE the wounds...\r\n");
+      act("Your injuries are \tWbandaged\tn by $N!", FALSE, vict, 0, ch, TO_CHAR);
+      act("$n \tWbandages\tn $N's injuries!", FALSE, ch, 0, vict, TO_NOTVICT);
+      GET_HIT(vict) = 1;
+      update_pos(vict);
+    } else {
+      if (ch == vict) {
+        act("You try, but fail to bandage your own wounds.", FALSE, ch, 0, vict, TO_CHAR);
+        act("$n tries, but fails to bandage $s own wounds.", FALSE, ch, 0, vict, TO_ROOM);
+      } else {
+        act("You try, but fail to bandage $N's wounds.", FALSE, ch, 0, vict, TO_CHAR);
+        act("$n tries, but fails to bandage your wounds.", FALSE, ch, 0, vict, TO_VICT);
+        act("$n tries, but fails to bandage $N's wounds.", FALSE, ch, 0, vict, TO_NOTVICT);
+      }
+    }
+    attempted = TRUE;
+  }
+
+  if (affected_by_spell(vict, BOMB_AFFECT_BONESHARD)) {
+    if (skill_check(ch, ABILITY_HEAL, 15)) {
+      affect_from_char(vict, BOMB_AFFECT_BONESHARD);
+      if (ch == vict) {
+        act("The bone shards in your flesh dissolve and your bleeding stops.", FALSE, ch, 0, vict, TO_CHAR);
+      } else {
+        act("The bone shards in your flesh dissolve and your bleeding stops.", FALSE, ch, 0, vict, TO_VICT);
+        act("The bone shards in $N's flesh dissolve and $S bleeding stops.", FALSE, ch, 0, vict, TO_ROOM);
+      }
+      attempted = TRUE;
+    }
+  }
+
+  if (!attempted) {
+    if (ch == vict) {
+      act("You bandage yourself to no effect.", FALSE, ch, 0, vict, TO_CHAR);
+      act("$n bandages $mself to no effect.", FALSE, ch, 0, vict, TO_ROOM);
+    } else {
+      act("You bandage $N to no effect.", FALSE, ch, 0, vict, TO_CHAR);
+      act("$n bandages you to no effect.", FALSE, ch, 0, vict, TO_VICT);
+      act("$n bandages $N to no effect.", FALSE, ch, 0, vict, TO_NOTVICT);
+    }
+  }
+
   /* Actions */
   USE_STANDARD_ACTION(ch);
 }
