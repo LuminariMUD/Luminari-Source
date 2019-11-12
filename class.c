@@ -32,6 +32,7 @@
 #include "modify.h"
 #include "spell_prep.h"
 #include "race.h"
+#include "alchemy.h"
 
 /** LOCAL DEFINES **/
 // good/bad
@@ -1194,6 +1195,7 @@ int valid_align_by_class(int alignment, int class) {
 //    case CLASS_SHADOW_DANCER:
     case CLASS_SORCERER:
     case CLASS_MYSTIC_THEURGE:
+    case CLASS_ALCHEMIST:
       return TRUE;
   }
   /* shouldn't get here if we got all classes listed above */
@@ -1245,6 +1247,7 @@ int parse_class(char arg) {
     case 't': return CLASS_ROGUE;
       /* empty letters */
     case 'w': return CLASS_WARRIOR;
+    case 'u': return CLASS_ALCHEMIST;
       /* empty letters */
 
     default: return CLASS_UNDEFINED;
@@ -1283,6 +1286,7 @@ int parse_class_long(char *arg) {
 //  if (is_abbrev(arg, "assassin")) return CLASS_ASSASSIN;
   if (is_abbrev(arg, "mystictheurge")) return CLASS_MYSTICTHEURGE;
   if (is_abbrev(arg, "mystic-theurge")) return CLASS_MYSTICTHEURGE;
+  if (is_abbrev(arg, "alchemist")) return CLASS_ALCHEMIST;
 
   return CLASS_UNDEFINED;
 }
@@ -1852,6 +1856,23 @@ void newbieEquipment(struct char_data *ch) {
 
       break;
 
+    case CLASS_ALCHEMIST:
+
+      obj = read_object(NOOB_LEATHER_SLEEVES, VIRTUAL);
+      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch); // leather sleeves
+
+      obj = read_object(NOOB_LEATHER_LEGGINGS, VIRTUAL);
+      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch); // leather leggings
+
+      obj = read_object(NOOB_IRON_MACE, VIRTUAL);
+      obj_to_char(obj, ch); // slender iron mace
+
+      obj = read_object(NOOB_STUD_LEATHER, VIRTUAL);
+      GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+      obj_to_char(obj, ch); // scale mail
+
     case CLASS_WIZARD:
       obj_to_char(read_object(NOOB_WIZ_NOTE, VIRTUAL), ch); //wizard note
       obj_to_char(read_object(NOOB_WIZ_SPELLBOOK, VIRTUAL), ch); //spellbook
@@ -1993,6 +2014,11 @@ void init_start_char(struct char_data *ch) {
 
   /* for sorcerer bloodlines subtypes */
   GET_BLOODLINE_SUBTYPE(ch) = 0;
+
+  // alchemist discoveries
+  for (i = 0; i < NUM_ALC_DISCOVERIES; i++)
+    KNOWS_DISCOVERY(ch, i) = 0;
+  KNOWS_GRAND_DISCOVERY(ch) = 0;
 
   for (i = 0; i < 3; i++)
     NEW_ARCANA_SLOT(ch, i) = 0;
@@ -2657,6 +2683,7 @@ int level_exp(struct char_data *ch, int level) {
     case CLASS_BERSERKER:
     case CLASS_CLERIC:
     case CLASS_MYSTIC_THEURGE:
+    case CLASS_ALCHEMSIT:
       level--;
       if (level < 0)
         level = 0;
@@ -4915,6 +4942,180 @@ void load_class_list(void) {
           PREP_TYPE_ANY, 2 /*circle*/);
   class_prereq_ability(CLASS_MYSTIC_THEURGE, ABILITY_LORE, 6);
   class_prereq_ability(CLASS_MYSTIC_THEURGE, ABILITY_SPELLCRAFT, 6);
+  /****************************************************************************/
+  
+  /****************************************************************************/
+  /****************************************************************************/
+
+  /****************************************************************************/
+  /****************************************************************************/
+
+/****************************************************************************/
+  /*     class-number               name      abrv   clr-abrv     menu-name*/
+  classo(CLASS_ALCHEMIST, "alchemist", "Alc", "\tWA\tClc\tn", "f) \tWAlchemist\tn",
+          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
+          20, N, N, M, 8, 0, 1, 4, Y, 0, 0,
+          /*descrip*/
+          "Whether secreted away in a smoky basement laboratory or gleefully experimenting"
+          " in a well-respected school of magic, the alchemist is often regarded as being "
+          " just as unstable, unpredictable, and dangerous as the concoctions he brews. "
+          " While some creators of alchemical items content themselves with sedentary "
+          " lives as merchants, providing tindertwigs and smokesticks, the true "
+          " alchemist answers a deeper calling. Rather than cast magic like a "
+          " spellcaster, the alchemist captures his own magic potential within "
+          " liquids and extracts he creates, infusing his chemicals with virulent power "
+          " to grant him impressive skill with poisons, explosives, and all manner of "
+          " self-transformative magic."
+          "\r\n@RTHIS CLASS IS NOT FINISHED.  AVAILABLE FOR TESTING PURPOSES ONLY\r\n\r\n"
+          );
+  /* class-number then saves:        fortitude, reflex, will, poison, death */
+  assign_class_saves(CLASS_ALCHEMIST, G, G, B, G, B);
+  assign_class_abils(CLASS_ALCHEMIST, /* class number */
+          /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+          CC, CC, CA, CA, CC, CC, CA,
+          /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+          CA, CA, CC, CA, CA, CC, CA, CC,
+          /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+          CC, CA, CC, CC, CC, CA,
+          /*survival,swim,use_magic_device,perform*/
+          CA, CA, CA, CC
+          );
+  assign_class_titles(CLASS_ALCHEMIST, /* class number */
+          "the Novice Alchemist", /* <= 4  */
+          "the Apprentice Alchemist", /* <= 9  */
+          "the Alchemist Adept", /* <= 14 */
+          "the Journeyman Alchemist", /* <= 19 */
+          "the Master Alchemist", /* <= 24 */
+          "the Grandmaster Alchemist", /* <= 29 */
+          "the Alchemy Guru", /* <= 30 */
+          "the Immortal Alchemist", /* <= LVL_IMMORT */
+          "the Limitless Alchemist", /* <= LVL_STAFF */
+          "the God of Alchemy", /* <= LVL_GRSTAFF */
+          "the Alchemist" /* default */
+          );
+  /* spell/concoction assigns */
+
+  /* concoction circle 1 */
+  spell_assignment(CLASS_ALCHEMIST, SPELL_CURE_LIGHT, 1);
+  spell_assignment(CLASS_ALCHEMIST, SPELL_ENLARGE_PERSON, 1);
+  spell_assignment(CLASS_ALCHEMIST, SPELL_EXPEDITIOUS_RETREAT, 1);
+  spell_assignment(CLASS_ALCHEMIST, SPELL_IDENTIFY, 1);
+  spell_assignment(CLASS_ALCHEMIST, SPELL_DETECT_ALIGN, 1);
+  spell_assignment(CLASS_ALCHEMIST, SPELL_SHIELD, 1);
+
+  /* concoction circle 2 */
+  spell_assignment(CLASS_ALCHEMIST, SPELL_AID, 4);
+  spell_assignment(CLASS_ALCHEMIST, SPELL_BARKSKIN, 4);
+  spell_assignment(CLASS_ALCHEMIST, SPELL_ENDURANCE, 4);
+  spell_assignment(CLASS_ALCHEMIST, SPELL_BLUR, 4);
+  spell_assignment(CLASS_ALCHEMIST, SPELL_STRENGTH, 4);
+  spell_assignment(CLASS_ALCHEMIST, SPELL_GRACE, 4);
+  spell_assignment(CLASS_ALCHEMIST, SPELL_CURE_MODERATE, 4);
+  spell_assignment(CLASS_ALCHEMIST, SPELL_INFRAVISION, 4);
+  spell_assignment(CLASS_ALCHEMIST, SPELL_CHARISMA, 4);
+  spell_assignment(CLASS_ALCHEMIST, SPELL_FALSE_LIFE, 4);
+  spell_assignment(CLASS_ALCHEMIST, SPELL_CUNNING, 4);
+  spell_assignment(CLASS_ALCHEMIST, SPELL_INVISIBLE, 4);
+  spell_assignment(CLASS_ALCHEMIST, SPELL_WISDOM, 4);
+  spell_assignment(CLASS_ALCHEMIST, SPELL_RESIST_ENERGY, 4);
+  spell_assignment(CLASS_ALCHEMIST, SPELL_DETECT_INVIS, 4);
+
+  /* concoction circle 3 */
+  spell_assignment(CLASS_ALCHEMIST, SPELL_CURE_SERIOUS, 7);
+  spell_assignment(CLASS_ALCHEMIST, SPELL_DISPLACEMENT, 7);
+  spell_assignment(CLASS_ALCHEMIST, SPELL_FLY, 7);
+  spell_assignment(CLASS_ALCHEMIST, SPELL_HASTE, 7);
+  spell_assignment(CLASS_ALCHEMIST, SPELL_CURE_BLIND, 7);
+  spell_assignment(CLASS_ALCHEMIST, SPELL_CURE_DEAFNESS, 7);
+  spell_assignment(CLASS_ALCHEMIST, SPELL_REMOVE_CURSE, 7);
+  spell_assignment(CLASS_ALCHEMIST, SPELL_REMOVE_DISEASE, 7);
+
+  /* concoction circle 4 */
+  spell_assignment(CLASS_ALCHEMIST, SPELL_CURE_CRITIC, 10);
+  spell_assignment(CLASS_ALCHEMIST, SPELL_DEATH_WARD, 10);
+  spell_assignment(CLASS_ALCHEMIST, SPELL_FIRE_SHIELD, 10);
+  spell_assignment(CLASS_ALCHEMIST, SPELL_GREATER_INVIS, 10);
+  spell_assignment(CLASS_ALCHEMIST, SPELL_REMOVE_POISON, 10);
+  spell_assignment(CLASS_ALCHEMIST, SPELL_MINOR_GLOBE, 10);
+  spell_assignment(CLASS_ALCHEMIST, SPELL_STONESKIN, 10);
+
+  /* concoction circle 5 */
+  spell_assignment(CLASS_ALCHEMIST, SPELL_NIGHTMARE, 13);
+  spell_assignment(CLASS_ALCHEMIST, SPELL_POLYMORPH, 13);
+
+  /* concoction circle 6 */
+  spell_assignment(CLASS_ALCHEMIST, SPELL_EYEBITE, 16);
+  spell_assignment(CLASS_ALCHEMIST, SPELL_HEAL, 16);
+  spell_assignment(CLASS_ALCHEMIST, SPELL_TRANSFORMATION, 16);
+  spell_assignment(CLASS_ALCHEMIST, SPELL_TRUE_SEEING, 16);
+
+  /* starting feats and proficiencies */
+  feat_assignment(CLASS_ALCHEMIST, FEAT_SIMPLE_WEAPON_PROFICIENCY, Y, 1, N);
+  feat_assignment(CLASS_ALCHEMIST, FEAT_ARMOR_PROFICIENCY_LIGHT, Y, 1, N);
+
+  /* feat assignment */
+  /*              class num     feat                             cfeat lvl stack */
+  feat_assignment(CLASS_ALCHEMIST, FEAT_CONCOCT_LVL_1, Y, 1, Y);
+  feat_assignment(CLASS_ALCHEMIST, FEAT_CONCOCT_LVL_2, Y, 4, Y);
+  feat_assignment(CLASS_ALCHEMIST, FEAT_CONCOCT_LVL_3, Y, 7, Y);
+  feat_assignment(CLASS_ALCHEMIST, FEAT_CONCOCT_LVL_4, Y, 10, Y);
+  feat_assignment(CLASS_ALCHEMIST, FEAT_CONCOCT_LVL_5, Y, 13, Y);
+  feat_assignment(CLASS_ALCHEMIST, FEAT_CONCOCT_LVL_6, Y, 16, Y);
+  
+  feat_assignment(CLASS_ALCHEMIST, FEAT_BREW_POTION, Y, 1, Y);
+  feat_assignment(CLASS_ALCHEMIST, FEAT_MUTAGEN, Y, 1, Y);
+  feat_assignment(CLASS_ALCHEMIST, FEAT_BOMBS, Y, 1, Y);
+
+  feat_assignment(CLASS_ALCHEMIST, FEAT_POISON_RESIST, Y, 2, Y);
+  feat_assignment(CLASS_ALCHEMIST, FEAT_APPLY_POISON, Y, 2, Y);
+  feat_assignment(CLASS_ALCHEMIST, FEAT_ALCHEMICAL_DISCOVERY, Y, 2, Y);
+
+  feat_assignment(CLASS_ALCHEMIST, FEAT_SWIFT_ALCHEMY, Y, 3, Y);
+  feat_assignment(CLASS_ALCHEMIST, FEAT_BOMBS, Y, 3, Y);
+
+  feat_assignment(CLASS_ALCHEMIST, FEAT_ALCHEMICAL_DISCOVERY, Y, 4, Y);
+
+  feat_assignment(CLASS_ALCHEMIST, FEAT_POISON_RESIST, Y, 5, Y);
+  feat_assignment(CLASS_ALCHEMIST, FEAT_BOMBS, Y, 5, Y);
+
+  feat_assignment(CLASS_ALCHEMIST, FEAT_SWIFT_POISONING, Y, 6, Y);
+  feat_assignment(CLASS_ALCHEMIST, FEAT_ALCHEMICAL_DISCOVERY, Y, 6, Y);
+
+  feat_assignment(CLASS_ALCHEMIST, FEAT_BOMBS, Y, 7, Y);
+
+  feat_assignment(CLASS_ALCHEMIST, FEAT_POISON_RESIST, Y, 8, Y);
+  feat_assignment(CLASS_ALCHEMIST, FEAT_ALCHEMICAL_DISCOVERY, Y, 8, Y);
+
+  feat_assignment(CLASS_ALCHEMIST, FEAT_BOMBS, Y, 9, Y);
+
+  feat_assignment(CLASS_ALCHEMIST, FEAT_POISON_IMMUNITY, Y, 10, Y);
+  feat_assignment(CLASS_ALCHEMIST, FEAT_ALCHEMICAL_DISCOVERY, Y, 10, Y);
+
+  feat_assignment(CLASS_ALCHEMIST, FEAT_BOMBS, Y, 11, Y);
+
+  feat_assignment(CLASS_ALCHEMIST, FEAT_ALCHEMICAL_DISCOVERY, Y, 12, Y);
+
+  feat_assignment(CLASS_ALCHEMIST, FEAT_BOMBS, Y, 13, Y);
+
+  feat_assignment(CLASS_ALCHEMIST, FEAT_PERSISTENT_MUTAGEN, Y, 14, Y);
+  feat_assignment(CLASS_ALCHEMIST, FEAT_ALCHEMICAL_DISCOVERY, Y, 14, Y);
+
+  feat_assignment(CLASS_ALCHEMIST, FEAT_BOMBS, Y, 15, Y);
+
+  feat_assignment(CLASS_ALCHEMIST, FEAT_ALCHEMICAL_DISCOVERY, Y, 16, Y);
+
+  feat_assignment(CLASS_ALCHEMIST, FEAT_BOMBS, Y, 17, Y);
+
+  feat_assignment(CLASS_ALCHEMIST, FEAT_INSTANT_ALCHEMY, Y, 18, Y);
+  feat_assignment(CLASS_ALCHEMIST, FEAT_ALCHEMICAL_DISCOVERY, Y, 18, Y);
+
+  feat_assignment(CLASS_ALCHEMIST, FEAT_BOMBS, Y, 19, Y);
+
+  feat_assignment(CLASS_ALCHEMIST, FEAT_GRAND_ALCHEMICAL_DISCOVERY, Y, 20, Y);
+
+
+  /* no spell assignment */
+  /* class prereqs */
   /****************************************************************************/
   
   /****************************************************************************/

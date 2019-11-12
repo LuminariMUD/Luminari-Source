@@ -36,6 +36,7 @@
 #include "spec_abilities.h"
 #include "item.h"
 #include "feats.h"
+#include "aclhemy.h"
 
 /* local function prototypes */
 /* do_get utility functions */
@@ -56,8 +57,8 @@ static void perform_put(struct char_data *ch, struct obj_data *obj, struct obj_d
 /* do_remove utility functions */
 /* do_wear utility functions */
 static int hands_have(struct char_data *ch);
-static int hands_used(struct char_data *ch);
-static int hands_available(struct char_data *ch);
+int hands_used(struct char_data *ch);
+int hands_available(struct char_data *ch);
 static void wear_message(struct char_data *ch, struct obj_data *obj, int where);
 
 /**** start file code *****/
@@ -2247,7 +2248,7 @@ static void wear_message(struct char_data *ch, struct obj_data *obj, int where) 
   }
 }
 
-static int hands_used(struct char_data *ch) {
+int hands_used(struct char_data *ch) {
   int num = 0;
   if (GET_EQ(ch, WEAR_WIELD_1)) num++;
   if (GET_EQ(ch, WEAR_WIELD_OFFHAND)) num++;
@@ -2266,12 +2267,16 @@ static int hands_have(struct char_data *ch) {
       num = 2;
       break;
   }
+
+  if (KNOWS_DISCOVERY(ch, ALC_DISC_VESTIGIAL_ARM))
+    num++;
+
   //if (GET_LEVEL(ch) >= LVL_IMPL)
   //num = 4;
   return (num);
 }
 
-static int hands_available(struct char_data *ch) {
+int hands_available(struct char_data *ch) {
   //do our error checking here
   if (hands_used(ch) > hands_have(ch)) {
     log("SYSERR: perform_remove: hands_available problem");

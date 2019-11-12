@@ -1,4 +1,3 @@
-
 /*****************************************************************************
  ** feats.c                                       Part of LuminariMUD        **
  ** Source code for the LuminariMUD Feats System.                            **
@@ -2140,6 +2139,13 @@ void assign_feats(void) {
           "of damage plus 1 for every two cleric levels you possess. You can only "
           "use this ability on a creature that is below half their total hit points. You can use "
           "this ability a number of times per day equal to 3 + your Wisdom modifier.");
+  feato(FEAT_CURING_TOUCH, "curing touch", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+          "you can heal with alchemical salves",
+          "You can apply a salve to yourself as a swift action, healing for 5 hp "
+          "You can use this ability a number of times per day equal to 1/2 your alchemist level. "
+          "Requires the spontaneous healing alchemist discovery.  If you have the curing touch "
+          "alchemist discovery as well, you can target other creatures and use it once per day "
+          "per level of alchemist instead of for every two levels.");
   feato(FEAT_EMPOWERED_HEALING, "empowered healing", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
           "heal spells empowered",
           "At 6th level, all of your cure spells are treated as if they were empowered, "
@@ -2920,6 +2926,88 @@ void assign_feats(void) {
           "allows innate use of animate dead spell",
           "Allows innate use of animate dead spell once per day.  You get one use per ");
 
+  feato(FEAT_CONCOCT_LVL_1, "1st circle alchemical concoctions", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+          "alchemist 1st circle slot",
+          "This gives you the ability to concoct another extract of this slot for the respective "
+          "class.  There may be other requirements for concocting extracts from this "
+          "slot, some classes need the extract to be 'known' or 'scribed' for example.  Once "
+          "the slot is used, you can 'prepare' to recover it.");
+  feato(FEAT_CONCOCT_LVL_2, "2nd circle alchemical concoctions", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+          "alchemist 2nd circle slot",
+          "This gives you the ability to concoct another extract of this slot for the respective "
+          "class.  There may be other requirements for concocting extracts from this "
+          "slot, some classes need the extract to be 'known' or 'scribed' for example.  Once "
+          "the slot is used, you can 'prepare' to recover it.");
+  feato(FEAT_CONCOCT_LVL_3, "3rd circle alchemical concoctions", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+          "alchemist 3rd circle slot",
+          "This gives you the ability to concoct another extract of this slot for the respective "
+          "class.  There may be other requirements for concocting extracts from this "
+          "slot, some classes need the extract to be 'known' or 'scribed' for example.  Once "
+          "the slot is used, you can 'prepare' to recover it.");
+  feato(FEAT_CONCOCT_LVL_4, "4th circle alchemical concoctions", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+          "alchemist 4th circle slot",
+          "This gives you the ability to concoct another extract of this slot for the respective "
+          "class.  There may be other requirements for concocting extracts from this "
+          "slot, some classes need the extract to be 'known' or 'scribed' for example.  Once "
+          "the slot is used, you can 'prepare' to recover it.");
+  feato(FEAT_CONCOCT_LVL_5, "5th circle alchemical concoctions", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+          "alchemist 5th circle slot",
+          "This gives you the ability to concoct another extract of this slot for the respective "
+          "class.  There may be other requirements for concocting extracts from this "
+          "slot, some classes need the extract to be 'known' or 'scribed' for example.  Once "
+          "the slot is used, you can 'prepare' to recover it.");
+  feato(FEAT_CONCOCT_LVL_6, "6th circle alchemical concoctions", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+          "alchemist 6th circle slot",
+          "This gives you the ability to concoct another extract of this slot for the respective "
+          "class.  There may be other requirements for concocting extracts from this "
+          "slot, some classes need the extract to be 'known' or 'scribed' for example.  Once "
+          "the slot is used, you can 'prepare' to recover it.");
+
+  feato(FEAT_MUTAGEN, "mutagen", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+          "allows the alchemist to create and imbibe mutagens",
+          "Alchemists have the ability to create and imbibe mutagens that increase their "
+          "physical stats and natural armor class at the expense of some mental ability. "
+          "See HELP ALCHEMIST-MUTAGENS for more information.");
+feato(FEAT_PSYCHOKINETIC, "psychokinetic tincture", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+          "Allows the alchemist to create a barrier of swirling spirits",
+          "Alchemist can create a barrier of swirling spirits that give "
+          "a bonus to deflection ac for each spirit.  Spirits can be launched "
+          "at foes who will become frightened on a failed will save.  Alchemist "
+          "can decide between frightened or shaken with the FRIGHTEN preference "
+          "in prefedit.  See HELP FRIGHTENED and HELP SHAKEN.");
+  feato(FEAT_BOMBS, "bombs", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
+          "allows the alchemist to throw bombs that can damage single or multiple foes.",
+          "Allows an alchemist to create and toss bombs at foes.  See HELP ALCHEMIST-BOMBS "
+          "for more information.");
+  feato(FEAT_ALCHEMICAL_DISCOVERY, "alchemical discovery", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
+          "allows the alchemist to select from a list of bomb, mutagen and other enhancements",
+          "Allows an alchemist to select among a list of discoveries that will improve the "
+          "effect of their bombs, mutagens or grant other abilities and/or benefits.");
+  feato(FEAT_SWIFT_POISONING, "swift poisoning", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "can poison a weapon with a swift action",
+        "Allows you to apply poison to a weapon without using up an action in combat.");
+  feato(FEAT_SWIFT_ALCHEMY, "swift alchemy", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "can create alchemical items in half the normal time",
+        "Allows the alchemist to create mundane alchemical items in half the normal time. "
+        "Examples of such items are alchemist fire, tanglefoot bags, thunderstones, etc. "
+        "This done not include bombs, extracts or mutagens.");
+  feato(FEAT_PERSISTENT_MUTAGEN, "persistent mutagen", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, 
+        "Increases the duration of all mutagens to 1 hour / alchemist level.",
+        "This enables alchemists to increase the duration of their mutagens to one hour "
+        "per alchemist level, up from one minute per alchemist level.");
+  feato(FEAT_POISON_IMMUNITY, "poison immunity", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "makes the alchemist completely immune to poisons and their effects.",
+        "This ability makes the alchemist completely immune to poisons and their effects.");
+  feato(FEAT_INSTANT_ALCHEMY, "instant alchemy", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "allows the alchemist to create mundane alchemical items in a single round",
+        "This ability allows the alchemist to create mundane alchemical items, such as "
+        "tanglefoot bags and thunderstones, in a single round, provided they have enough "
+        "alchemical supplies on hand.");
+  feato(FEAT_GRAND_ALCHEMICAL_DISCOVERY, "grand alchemical discovery", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "allows for the selection of a single grand discovery in the study menu",
+        "Allows the alchemist to select a single grand discovery upon reaching level 20,"
+        "from the study menu.");
+
   /**************************/
   /* Disabled/Unimplemented */
   /**************************/
@@ -3203,6 +3291,7 @@ void assign_feats(void) {
   dailyfeat(FEAT_EVIL_TOUCH, eEVIL_TOUCH);
   dailyfeat(FEAT_GOOD_TOUCH, eGOOD_TOUCH);
   dailyfeat(FEAT_HEALING_TOUCH, eHEALING_TOUCH);
+  dailyfeat(FEAT_CURING_TOUCH, eCURING_TOUCH);
   dailyfeat(FEAT_EYE_OF_KNOWLEDGE, eEYE_OF_KNOWLEDGE);
   dailyfeat(FEAT_BLESSED_TOUCH, eBLESSED_TOUCH);
   dailyfeat(FEAT_COPYCAT, eCOPYCAT);
@@ -3212,7 +3301,8 @@ void assign_feats(void) {
   dailyfeat(FEAT_DRACONIC_HERITAGE_BREATHWEAPON, eDRACBREATH);
   dailyfeat(FEAT_DRACONIC_HERITAGE_CLAWS, eDRACCLAWS);
   dailyfeat(FEAT_METAMAGIC_ADEPT, eARCANEADEPT);
-
+  dailyfeat(FEAT_MUTAGEN, eMUTAGEN);
+  dailyfeat(FEAT_PSYCHOKINETIC, ePSYCHOKINETIC);
   /** END **/
 }
 
@@ -4686,6 +4776,28 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         } else {
           sprintf(buf3, "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_POISON_SAVE_BONUS));
+          sprintf(buf, "%-40s ", buf3);
+        }
+        strcat(buf2, buf);
+        none_shown = FALSE;
+
+      } else if (i == FEAT_BOMBS) {
+        if (mode == 1) {
+          sprintf(buf3, "%s (%dd6)", feat_list[i].name, HAS_FEAT(ch, FEAT_BOMBS));
+          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+        } else {
+          sprintf(buf3, "%s (%dd6)", feat_list[i].name, HAS_FEAT(ch, FEAT_BOMBS));
+          sprintf(buf, "%-40s ", buf3);
+        }
+        strcat(buf2, buf);
+        none_shown = FALSE;
+
+      } else if (i == FEAT_ALCHEMICAL_DISCOVERY) {
+        if (mode == 1) {
+          sprintf(buf3, "%s (x%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_ALCHEMICAL_DISCOVERY));
+          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+        } else {
+          sprintf(buf3, "%s (x%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_ALCHEMICAL_DISCOVERY));
           sprintf(buf, "%-40s ", buf3);
         }
         strcat(buf2, buf);

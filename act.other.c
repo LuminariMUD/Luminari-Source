@@ -3469,10 +3469,13 @@ ACMD(do_spells) {
 
   two_arguments(argument, arg, arg1);
 
-  if (!*arg) {
+  if (!*arg && subcmd != SCMD_CONCOCT) {
     send_to_char(ch, "The spells command requires at least one argument - Usage:  spells <class name> <circle>\r\n");
   } else {
-    class = get_class_by_name(arg);
+    if (subcmd == SCMD_CONCOCT)
+      class = CLASS_ALCHEMIST;
+    else
+      class = get_class_by_name(arg);
     if (class < 0 || class >= NUM_CLASSES) {
       send_to_char(ch, "That is not a valid class!\r\n");
       return;
@@ -3480,7 +3483,7 @@ ACMD(do_spells) {
     if (*arg1) {
       circle = atoi(arg1);
       if (circle < 1 || circle > 9) {
-        send_to_char(ch, "That is an invalid spell circle!\r\n");
+        send_to_char(ch, "That is an invalid %s circle!\r\n", class == CLASS_ALCHEMIST ? "extract" : "spell");
         return;
       }
     }
@@ -3494,7 +3497,10 @@ ACMD(do_spells) {
   send_to_char(ch, "\tDType 'feats' to see your feats\tn\r\n");
   send_to_char(ch, "\tDType 'train' to see your abilities\tn\r\n");
   send_to_char(ch, "\tDType 'boost' to adjust your stats\tn\r\n");
-  send_to_char(ch, "\tDType 'spelllist <classname>' to see all your class spells\tn\r\n");
+  if (subcmd == SCMD_CONCOCT)
+    send_to_char(ch, "\tDType 'extractlist' to see all of your extracts.\tn\r\n");
+  else
+    send_to_char(ch, "\tDType 'spelllist <classname>' to see all your class spells\tn\r\n");
 }
 
 
@@ -3506,36 +3512,50 @@ ACMD(do_spells) {
 ACMD(do_spelllist) {
   char arg[MAX_INPUT_LENGTH], arg1[MAX_INPUT_LENGTH];
   int class = -1, circle = -1;
+  char stype[20];
 
   if (IS_NPC(ch))
     return;
 
   two_arguments(argument, arg, arg1);
 
-  if (!*arg) {
-    send_to_char(ch, "Spelllist requires at least one argument - Usage:  spelllist <class name> <circle>\r\n");
-  } else {
-    class = get_class_by_name(arg);
-    if (class < 0 || class >= NUM_CLASSES) {
-      send_to_char(ch, "That is not a valid class!\r\n");
-      return;
-    }
-    if (*arg1) {
-      circle = atoi(arg1);
+  if (subcmd == SCMD_CONCOCT) {
+    class = CLASS_ALCHEMIST;
+    if (*arg) {
+      circle = atoi(arg);
       if (circle < 1 || circle > 9) {
-        send_to_char(ch, "That is an invalid spell circle!\r\n");
+        send_to_char(ch, "That is an invalid extract circle!\r\n");
         return;
       }
     }
-
-
-    list_spells(ch, 1, class, circle);
+  } else {
+    if (!*arg) {
+      send_to_char(ch, "Spelllist requires at least one argument - Usage:  spelllist <class name> <circle>\r\n");
+    } else {
+      class = get_class_by_name(arg);
+      if (class < 0 || class >= NUM_CLASSES) {
+        send_to_char(ch, "That is not a valid class!\r\n");
+        return;
+      }
+      if (*arg1) {
+        circle = atoi(arg1);
+        if (circle < 1 || circle > 9) {
+          send_to_char(ch, "That is an invalid spell circle!\r\n");
+          return;
+        }
+      }
+    }
   }
+
+  list_spells(ch, 1, class, circle);
 
   send_to_char(ch, "\tDType 'feats' to see your feats\tn\r\n");
   send_to_char(ch, "\tDType 'train' to see your abilities\tn\r\n");
   send_to_char(ch, "\tDType 'boost' to adjust your stats\tn\r\n");
-  send_to_char(ch, "\tDType 'spells <classname>' to see your currently known spells\tn\r\n");
+  if (subcmd == SCMD_CONCOCT)
+    send_to_char(ch, "\tDType 'extracts' to see your currently known extracts\tn\r\n");
+  else
+    send_to_char(ch, "\tDType 'spells <classname>' to see your currently known spells\tn\r\n");
 }
 
 /* entry point for boost (stat training), the rest of code is in

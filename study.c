@@ -23,6 +23,7 @@
 #include "assign_wpn_armor.h"
 #include "domains_schools.h"
 #include "spell_prep.h"
+#include "alchemy.h"
 
 /*-------------------------------------------------------------------*/
 /*. Function prototypes . */
@@ -402,6 +403,13 @@ void finalize_study(struct descriptor_data *d) {
   // Assign sorcerer bloodline subtype if necessary
   if (LEVELUP(ch)->sorcerer_bloodline_subtype > 0)
     ch->player_specials->saved.sorcerer_bloodline_subtype = LEVELUP(ch)->sorcerer_bloodline_subtype;
+
+  // Assign chosen alchemist discoveries
+  for (i = 0; i < NUM_ALC_DISCOVERIES; i++)
+  {
+    if (LEVELUP(ch)->discoveries[i])
+      ch->player_specials->saved.discoveries[i] = TRUE;
+  }
 
   /* set spells learned for domain */
   assign_domain_spells(ch);
@@ -1109,6 +1117,37 @@ static void set_sorcerer_bloodline(struct descriptor_data *d) {
   OLC_MODE(d) = STUDY_SET_S_BLOODLINE;
 }
 
+static void select_alchemist_discoveries(struct descriptor_data *d)
+{
+  get_char_colors(d->character);
+  clear_screen(d);
+
+  write_to_output(d,
+                  "\r\n-- %sSelect Alchemical Discovery%s\r\n"
+                  "\r\n",
+                  mgn, nrm);
+  int i = 0;
+  for (i = 1; i < NUM_ALC_DISCOVERIES; i++)
+  {
+    if ((i < 1) ||
+        (i >= NUM_ALC_DISCOVERIES) ||
+        (KNOWS_DISCOVERY(d->character, i)) ||
+        (LEVELUP(d->character)->discoveries[i]) ||
+        (!can_learn_discovery(d->character, i)))
+      continue;
+    write_to_output(d, "%s %2d%s) %s\r\n",
+                    grn, i, nrm, alchemical_discovery_names[i]);
+  }
+
+  write_to_output(d, "\r\n"
+                     "%s -1%s) Quit\r\n"
+                     "\r\n"
+                     "Enter Choice : ",
+                  grn, nrm);
+
+  OLC_MODE(d) = STUDY_SELECT_ALC_DISCOVERY;
+}
+
 static void set_domain_submenu(struct descriptor_data *d) {
   const char *domain_names[NUM_DOMAINS];
   int i;
@@ -1622,8 +1661,8 @@ void study_parse(struct descriptor_data *d, char *arg) {
 
     case STUDY_GEN_MAIN_MENU:
       switch (*arg) {
-        case 'q':
-        case 'Q':
+       case 'q':
+           case 'Q':
           if (GET_LEVEL(ch) == 1) {            
             write_to_output(d, "Your training points will be reset upon exit to "
                 "account for any changes made to your intelligence stat. (This will only occur at "
@@ -1720,6 +1759,22 @@ void study_parse(struct descriptor_data *d, char *arg) {
             generic_main_disp_menu(d);
           }
           break;
+        case 'D':
+        case 'd':
+          if (CAN_STUDY_FEATS(ch) && GET_LEVEL(ch) < LVL_IMMORT)
+          {
+            write_to_output(d, "Please choose your feat(s) first.\r\n");
+          }
+          else if (has_alchemist_discoveries_unchosen(ch))
+          {
+            select_alchemist_discoveries(d);
+          }
+          else
+          {
+            write_to_output(d, "That is an invalid choice!\r\n");
+            generic_main_disp_menu(d);
+          }
+          break;
         default:
           write_to_output(d, "That is an invalid choice!\r\n");
           display_main_menu(d);
@@ -1747,6 +1802,58 @@ void study_parse(struct descriptor_data *d, char *arg) {
           break;
       }
       break;
+
+  case STUDY_SELECT_ALC_DISCOVERY:
+    number = atoi(arg);
+    if (number == -1)
+    {
+      display_main_menu(d);
+      break;
+    }
+
+    /* Check if the discovery is available. */
+    if ((number < 1) ||
+        (number >= NUM_ALC_DISCOVERIES) ||
+        (KNOWS_DISCOVERY(d->character, number)) ||
+        (LEVELUP(d->character)->discoveries[number] == TRUE) ||
+        (!can_learn_discovery(d->character, number)))
+    {
+      write_to_output(d, "Invalid discovery, try again.\r\n");
+      break;
+    }
+
+    if (!has_alchemist_discoveries_unchosen_study(ch)) {
+      send_to_char(ch, "You cannot choose new discoveries at this time.  If you wish to change your choices in this study session, quit the study menu without saving the changes.\r\n");
+      break;
+    }
+
+    /* Store the feat number in the work area in the data structure. */
+    LEVELUP(d->character)->tempDiscovery = number;
+
+    /* Display the description of the feat, and give the player an option. */
+    write_to_output(d, "%s%s%s: %s\r\n\r\n"
+                       "Choose this discovery? (y/n) : ",
+                    nrm, alchemical_discovery_names[number], nrm, alchemical_discovery_descriptions[number]);
+
+    OLC_MODE(d) = STUDY_CONFIRM_ADD_DISCOVERY;
+    break;
+
+  case STUDY_CONFIRM_ADD_DISCOVERY:
+    switch (*arg)
+    {
+    case 'n':
+    case 'N':
+      select_alchemist_discoveries(d);
+      break;
+    case 'y':
+    case 'Y':
+      LEVELUP(d->character)->discoveries[LEVELUP(ch)->tempDiscovery] = TRUE;
+      write_to_output(d, "Alchemist Discovery %s chosen!\r\n", alchemical_discovery_names[LEVELUP(ch)->tempDiscovery]);
+      LEVELUP(ch)->tempDiscovery = 0;
+      select_alchemist_discoveries(d);
+      break;
+    }
+    break;
 
     case STUDY_GEN_FEAT_MENU:
       number = atoi(arg);

@@ -30,6 +30,7 @@ ACMD(do_accexp);
 bool locked_races[NUM_RACES];
 int has_unlocked_race(struct char_data *ch, int race);
 int has_unlocked_class(struct char_data *ch, int class);
+int hands_available(struct char_data *ch);
 
 /*****************************************************************************
  * Begin general helper defines for all act files
@@ -596,7 +597,8 @@ ACMD(do_gen_forget);
 #define SCMD_BLANK       2
 #define SCMD_UNCOMMUNE   3
 #define SCMD_OMIT        4
-#define SCMD_UNADJURE        5
+#define SCMD_UNADJURE    5
+#define SCMD_DISCARD     6
 
 ACMD(do_gen_memorize);
 
@@ -607,6 +609,7 @@ ACMD(do_gen_memorize);
 #define SCMD_CHANT      5
 #define SCMD_ADJURE     6
 #define SCMD_COMPOSE    7
+#define SCMD_CONCOCT    8
 
 
 /*****************************************************************************
@@ -707,5 +710,7 @@ ACMD(do_obind);
 ACMD(do_unbind);
 //ACMD(do_plist);
 ACMD(do_finddoor);
+ACMD(do_bombs);
+ACMD(do_bandage);
 
 #endif /* _ACT_H_ */

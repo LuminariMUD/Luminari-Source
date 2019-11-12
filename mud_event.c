@@ -145,6 +145,9 @@ struct mud_event_list mud_event_index[] = {
   { "Metamagic Adept Usage Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eARCANEADEPT
   { "Armor SpecAb Cooldown: Blinding", event_daily_use_cooldown, EVENT_OBJECT}, // eARMOR_SPECAB_BLINDING
   { "Item SpecAb Cooldown: Horn of Summoning", event_daily_use_cooldown, EVENT_OBJECT}, // eITEM_SPECAB_HORN_OF_SUMMONING
+  { "Mutagens/Cognatogens", event_daily_use_cooldown, EVENT_CHAR}, //eMUTAGEN
+  { "Curing Touch", event_daily_use_cooldown, EVENT_CHAR}, // eCURING_TOUCH
+  { "Psychokinetic Tincture", event_daily_use_cooldown, EVENT_CHAR}, // ePSYCHOKINETIC
 };
 
 /* init_events() is the ideal function for starting global events. This
@@ -274,6 +277,12 @@ EVENTFUNC(event_countdown) {
       break;
     case eRAGE:
       send_to_char(ch, "You are now able to Rage again.\r\n");
+      break;
+    case eMUTAGEN:
+      send_to_char(ch, "You are now able to prepare another mutagen or cognatogen again.\r\n");
+      break;
+    case ePSYCHOKINETIC:
+      send_to_char(ch, "You are now able to apply a new psychokinetic tincture.\r\n");
       break;
     case eDEFENSIVE_STANCE:
       send_to_char(ch, "You are now able to use your Defensive Stance again.\r\n");
@@ -537,6 +546,18 @@ EVENTFUNC(event_daily_use_cooldown) {
     case eRAGE:
       featnum = FEAT_RAGE;
       send_to_char(ch, "One of your rage uses has recovered.\r\n");
+      break;
+    case eMUTAGEN:
+      featnum = FEAT_MUTAGEN;
+      send_to_char(ch, "One of your mutagens or cognatogens are ready to prepare.\r\n");
+      break;
+    case ePSYCHOKINETIC:
+      featnum = FEAT_PSYCHOKINETIC;
+      send_to_char(ch, "Your psychokinetic tincture is ready to prepare.\r\n");
+      break;
+    case eCURING_TOUCH:
+      featnum = FEAT_CURING_TOUCH;
+      send_to_char(ch, "One of your curing touch uses has recovered.\r\n");
       break;
     case eDEFENSIVE_STANCE:
       featnum = FEAT_DEFENSIVE_STANCE;

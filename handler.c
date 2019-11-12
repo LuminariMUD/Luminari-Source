@@ -249,6 +249,7 @@ void aff_apply_modify(struct char_data *ch, byte loc, sbyte mod, char *msg) {
       break;
     case APPLY_RES_POISON:
       GET_RESISTANCES(ch, DAM_POISON) += mod;
+      GET_RESISTANCES(ch, DAM_CELESTIAL_POISON) += mod;
       break;
     case APPLY_RES_DISEASE:
       GET_RESISTANCES(ch, DAM_DISEASE) += mod;

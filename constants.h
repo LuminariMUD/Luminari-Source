@@ -122,6 +122,7 @@ extern const int sorcerer_known[LVL_IMPL + 1][NUM_CIRCLES + 1];
 extern const int bard_slots[LVL_IMPL + 1][NUM_CIRCLES + 1];
 extern const int sorcerer_slots[LVL_IMPL + 1][NUM_CIRCLES + 1];
 extern const int wizard_slots[LVL_IMPL + 1][NUM_CIRCLES + 1];
+extern const int alchemist_slots[LVL_IMPL + 1][NUM_CIRCLES + 1];
 extern const char *spell_prep_dictation[NUM_CASTERS][4];
 extern const char *spell_consign_dict[NUM_CLASSES][4];
 extern const char *spell_prep_dict[NUM_CLASSES][4];

@@ -133,6 +133,9 @@ typedef enum {
   eARCANEADEPT, // Sorcerer metamagic adept feat uses
   eARMOR_SPECAB_BLINDING, /* cooldown event for blinding armor special ability */
   eITEM_SPECAB_HORN_OF_SUMMONING, /* cooldown event for the horn of summoning special ability */
+  eMUTAGEN,
+  eCURING_TOUCH, // alchemical discovery curing touch
+  ePSYCHOKINETIC, // alchemical discovery psychokinetic tincture
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

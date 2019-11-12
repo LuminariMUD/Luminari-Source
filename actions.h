@@ -31,7 +31,7 @@
 
 #define USE_STANDARD_ACTION(ch)   start_action_cooldown(ch, atSTANDARD, 6 RL_SEC)
 #define USE_MOVE_ACTION(ch)       (is_action_available(ch, atMOVE, FALSE) ? start_action_cooldown(ch, atMOVE, 6 RL_SEC) : start_action_cooldown(ch, atSTANDARD, 6 RL_SEC))
-#define USE_SWIFT_ACTION(c) start_action_cooldown(ch, atSWIFT, 6 RL_SEC)
+#define USE_SWIFT_ACTION(ch) start_action_cooldown(ch, atSWIFT, 6 RL_SEC)
 #define USE_FULL_ROUND_ACTION(ch) USE_STANDARD_ACTION(ch); USE_MOVE_ACTION(ch)
 
 extern void  (*attack_actions[NUM_ATTACK_ACTIONS])(struct char_data *ch,

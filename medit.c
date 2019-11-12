@@ -1685,6 +1685,7 @@ void medit_parse(struct descriptor_data *d, char *arg) {
       return;
     case MEDIT_DAM_POISON:
       GET_RESISTANCES(OLC_MOB(d), DAM_POISON) = LIMIT(i, -100, 100);
+      GET_RESISTANCES(OLC_MOB(d), DAM_CELESTIAL_POISON) = LIMIT(i, -100, 100);
       OLC_VAL(d) = TRUE;
       medit_disp_resistances_menu(d);
       return;

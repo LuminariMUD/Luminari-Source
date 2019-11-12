@@ -56,6 +56,7 @@
 #include "spell_prep.h"
 #include "crafts.h" /* NewCraft */
 #include "new_mail.h"
+#include "alchemy.h"
 
 /* local (file scope) functions */
 static int perform_dupe_check(struct descriptor_data *d);
@@ -149,6 +150,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "arrowswarm", "arrowswarm", POS_FIGHTING, do_arrowswarm, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_arrowswarm},
 
   { "backstab", "ba", POS_STANDING, do_backstab, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}, can_backstab},
+  { "bandage", "bandage", POS_FIGHTING, do_bandage, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, 0},
   { "ban", "ban", POS_DEAD, do_ban, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
   { "balance", "bal", POS_STANDING, do_not_here, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
   { "bash", "bash", POS_FIGHTING, do_process_attack, 1, AA_TRIP, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -158,6 +160,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "bug", "bug", POS_DEAD, do_ibt, 0, SCMD_BUG, TRUE, ACTION_NONE, {0, 0}, NULL},
   { "breathe", "breathe", POS_FIGHTING, do_breathe, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_breathe},
   { "blank", "blank", POS_RECLINING, do_consign_to_oblivion, 0, SCMD_BLANK, FALSE, ACTION_NONE, {0, 0}, NULL},
+  { "bombs", "bombs", POS_RESTING, do_bombs, 0, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
   { "boosts", "boost", POS_RECLINING, do_boosts, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
   { "buck", "buck", POS_FIGHTING, do_buck, 1, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
   { "bodyslam", "bodyslam", POS_FIGHTING, do_bodyslam, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}, NULL},
@@ -182,6 +185,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "commune", "commune", POS_RESTING, do_gen_preparation, 0, SCMD_COMMUNE, FALSE, ACTION_NONE, {0, 0}, NULL},
   { "commands", "com", POS_DEAD, do_commands, 0, SCMD_COMMANDS, TRUE, ACTION_NONE, {0, 0}, NULL},
   { "compact", "comp", POS_DEAD, do_gen_tog, 0, SCMD_COMPACT, TRUE, ACTION_NONE, {0, 0}, NULL},
+  { "concoct", "conc", POS_RESTING, do_gen_preparation, 0, SCMD_CONCOCT, FALSE, ACTION_NONE, {0, 0}, NULL},
   { "cooldowns", "coo", POS_DEAD, do_affects, 0, SCMD_COOLDOWNS, TRUE, ACTION_NONE, {0, 0}, NULL},
   { "copyover", "copyover", POS_DEAD, do_copyover, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
   { "credits", "cred", POS_DEAD, do_gen_ps, 0, SCMD_CREDITS, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -203,6 +207,7 @@ cpp_extern const struct command_info cmd_info[] = {
   /* we are just using the old do_practice function for crafting for now */
   { "craft", "craft", POS_RECLINING, do_practice, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
   { "comeandgetme", "comeandgetme", POS_FIGHTING, do_comeandgetme, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_comeandgetme},
+  { "curingtouch", "curingtouch", POS_STANDING, do_curingtouch, 0, 0, FALSE, ACTION_SWIFT, {6, 0}, NULL},
   { "cursetouch", "cursetouch", POS_FIGHTING, do_cursetouch, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
   { "copycat", "copycat", POS_FIGHTING, do_copycat, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
   { "class", "class", POS_DEAD, do_class, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -217,6 +222,8 @@ cpp_extern const struct command_info cmd_info[] = {
   { "detach", "detach", POS_DEAD, do_detach, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
   { "diagnose", "diag", POS_RECLINING, do_diagnose, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
   { "dig", "dig", POS_DEAD, do_dig, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+  { "discard", "discard", POS_RECLINING, do_consign_to_oblivion, 0, SCMD_DISCARD, FALSE, ACTION_NONE, {0, 0}, NULL},
+  { "discoveries", "discov", POS_RECLINING, do_discoveries, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
   { "disengage", "disen", POS_STANDING, do_disengage, 1, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
   { "display", "disp", POS_DEAD, do_display, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
   { "donate", "don", POS_RECLINING, do_drop, 0, SCMD_DONATE, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -257,6 +264,8 @@ cpp_extern const struct command_info cmd_info[] = {
   { "ethshift", "ethshift", POS_STANDING, do_ethshift, 0, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}, NULL},
   { "evilscythe", "evilscythe", POS_STANDING, do_evilscythe, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
   { "eviltouch", "eviltouch", POS_STANDING, do_eviltouch, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
+  { "extracts", "extracts", POS_RECLINING, do_spells, 1, SCMD_CONCOCT, FALSE, ACTION_NONE, {0, 0}, NULL},
+  { "extractlist", "extractlist", POS_RECLINING, do_spelllist, 1, SCMD_CONCOCT, FALSE, ACTION_NONE, {0, 0}, NULL},
   { "eyeofknowledge", "eyeofknowledge", POS_STANDING, do_eyeofknowledge, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
 
   { "feats", "fea", POS_SLEEPING, do_feats, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -281,6 +290,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "finddoor", "finddoor", POS_DEAD, do_finddoor, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 
   { "get", "g", POS_RECLINING, do_get, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+  { "gdiscovery", "gdisc", POS_RECLINING, do_grand_discoveries, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
   { "gecho", "gecho", POS_DEAD, do_gecho, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
   { "gemote", "gem", POS_SLEEPING, do_gen_comm, 0, SCMD_GEMOTE, TRUE, ACTION_NONE, {0, 0}, NULL},
   { "genmap", "genmap", POS_SLEEPING, do_genmap, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -330,6 +340,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "inventory", "i", POS_DEAD, do_inventory, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
   { "identify", "id", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
   { "idea", "ide", POS_DEAD, do_ibt, 0, SCMD_IDEA, TRUE, ACTION_NONE, {0, 0}, NULL},
+  { "imbibe", "imb", POS_SITTING, do_gen_cast, 1, SCMD_CAST_EXTRACT, FALSE, ACTION_MOVE, {0, 6}, NULL},
   { "imotd", "imo", POS_DEAD, do_gen_ps, LVL_IMMORT, SCMD_IMOTD, TRUE, ACTION_NONE, {0, 0}, NULL},
   { "immlist", "imm", POS_DEAD, do_gen_ps, 0, SCMD_IMMLIST, TRUE, ACTION_NONE, {0, 0}, NULL},
   { "info", "info", POS_SLEEPING, do_gen_ps, 0, SCMD_INFO, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -429,6 +440,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "powerfulblow", "powerfulblow", POS_FIGHTING, do_powerfulblow, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_powerfulblow},
   { "pin", "pin", POS_FIGHTING, do_pin, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
   //{ "play", "play", POS_FIGHTING, do_play, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
+  { "psychokinetic", "psychokinetic", POS_FIGHTING, do_psychokinetic, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
   { "push", "push", POS_STANDING, do_pullswitch, 0, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
   { "pull", "pull", POS_STANDING, do_pullswitch, 0, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
   //{ "plist", "plist", POS_DEAD, do_plist, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -521,6 +533,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "steal", "ste", POS_STANDING, do_steal, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
   { "stunningfist", "stunningfist", POS_FIGHTING, do_stunningfist, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_stunningfist},
   { "study", "study", POS_RECLINING, do_study, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+  { "swallow", "swallow", POS_RECLINING, do_swallow, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
   { "switch", "switch", POS_DEAD, do_switch, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
   { "shapechange", "shapechange", POS_FIGHTING, do_shapechange, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
   { "supplyorder", "supplyorder", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -2446,6 +2459,9 @@ void nanny(struct descriptor_data *d, char *arg) {
           break;
         case CLASS_BARD:
           perform_help(d, "class-bard");
+          break;
+        case CLASS_ALCHEMIST:
+          perform_help(d, "class-alchemist");
           break;
         default:
           write_to_output(d, "\r\nCommand not understood.\r\n");

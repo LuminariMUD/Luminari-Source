@@ -32,6 +32,7 @@
 #include "domains_schools.h"
 #include "constants.h"
 #include "dg_scripts.h"
+#include "alchemy.h"
 
 /* kavir's protocol (isspace_ignoretabes() was moved to utils.h */
 
@@ -3492,6 +3493,20 @@ int get_daily_uses(struct char_data *ch, int featnum) {
     case FEAT_DRACONIC_HERITAGE_CLAWS:
       daily_uses += 3 + GET_CHA_BONUS(ch);
       break;
+    case FEAT_MUTAGEN:
+      daily_uses = 1;
+      break;
+    case FEAT_PSYCHOKINETIC:
+      daily_uses = 1;
+      break;
+    case FEAT_CURING_TOUCH:
+      if (KNOWS_DISCOVERY(ch, ALC_DISC_HEALING_TOUCH))
+        daily_uses += CLASS_LEVEL(ch, CLASS_ALCHEMIST);
+      else if (KNOWS_DISCOVERY(ch, ALC_DISC_SPONTANEOUS_HEALING))
+        daily_uses += CLASS_LEVEL(ch, CLASS_ALCHEMIST) / 2;
+      else
+        daily_uses = -1;
+      break;
   }
 
   return daily_uses;
@@ -3770,4 +3785,93 @@ bool sleep_immunity(struct char_data *ch) {
   if (!ch) return FALSE;
   if (HAS_FEAT(ch, FEAT_DRACONIC_HERITAGE_POWER_OF_WYRMS)) return TRUE;
   return FALSE;
+}
+
+
+sbyte is_immune_fear(struct char_data *ch, struct char_data *victim, sbyte display) {
+  if (!IS_NPC(victim) && HAS_FEAT(victim, FEAT_AURA_OF_COURAGE)) {
+    if (display) {
+      send_to_char(ch, "%s appears to be fearless!\r\n", GET_NAME(victim));
+      send_to_char(victim, "Your divine courage protects you!\r\n");
+    }
+    return TRUE;
+  }
+  if (!IS_NPC(victim) && HAS_FEAT(victim, FEAT_RP_FEARLESS_RAGE) &&
+          affected_by_spell(victim, SKILL_RAGE)) {
+    if (display) {
+      send_to_char(ch, "%s appears to be fearless!\r\n", GET_NAME(victim));
+      send_to_char(victim, "Your fearless rage protects you!\r\n");
+    }
+    return TRUE;
+  }
+  if (!IS_NPC(victim) && HAS_FEAT(victim, FEAT_FEARLESS_DEFENSE) &&
+          affected_by_spell(victim, SKILL_DEFENSIVE_STANCE)) {
+    if (display) {
+      send_to_char(ch, "%s appears to be fearless!\r\n", GET_NAME(victim));
+      send_to_char(victim, "Your fearless defense protects you!\r\n");
+    }
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
+sbyte is_immune_mind_affecting(struct char_data *ch, struct char_data *victim, sbyte display) {
+  if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
+    if (display) {
+      send_to_char(ch, "Mind blank protects %s!", GET_NAME(victim));
+      send_to_char(victim, "Mind blank protects you from %s!",
+              GET_NAME(ch));
+    }
+    return TRUE;
+  }
+  return FALSE;
+}
+
+void remove_fear_affects(struct char_data *ch, sbyte display) {
+  /* fear -> skill-courage*/
+  if ((AFF_FLAGGED(ch, AFF_FEAR) || AFF_FLAGGED(ch, AFF_SHAKEN))) && (!IS_NPC(ch) &&
+          HAS_FEAT(ch, FEAT_AURA_OF_COURAGE))) {
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FEAR);
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_SHAKEN);
+    send_to_char(ch, "Your divine courage overcomes the fear!\r\n");
+    act("$n \tWovercomes the \tDfear\tW with courage!\tn\tn",
+            TRUE, ch, 0, 0, TO_ROOM);
+    return;
+  }
+
+  /* fearless rage */
+  if ((AFF_FLAGGED(ch, AFF_FEAR) || AFF_FLAGGED(ch, AFF_SHAKEN))) && !IS_NPC(ch) &&
+          HAS_FEAT(ch, FEAT_RP_FEARLESS_RAGE) &&
+          affected_by_spell(ch, SKILL_RAGE)) {
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FEAR);
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_SHAKEN);
+    send_to_char(ch, "Your fearless rage overcomes the fear!\r\n");
+    act("$n \tWis bolstered by $s fearless rage and overcomes $s \tDfear!\tn\tn",
+            TRUE, ch, 0, 0, TO_ROOM);
+    return;
+  }
+
+  /* fearless defense */
+  if ((AFF_FLAGGED(ch, AFF_FEAR) || AFF_FLAGGED(ch, AFF_SHAKEN))) && !IS_NPC(ch) &&
+          HAS_FEAT(ch, FEAT_FEARLESS_DEFENSE) &&
+          affected_by_spell(ch, SKILL_DEFENSIVE_STANCE)) {
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FEAR);
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_SHAKEN);
+    send_to_char(ch, "Your fearless defense overcomes the fear!\r\n");
+    act("$n \tWis bolstered by $s fearless defense and overcomes $s \tDfear!\tn\tn",
+            TRUE, ch, 0, 0, TO_ROOM);
+    return;
+  }
+
+  /* fear -> spell-bravery */
+  if ((AFF_FLAGGED(ch, AFF_FEAR) || AFF_FLAGGED(ch, AFF_SHAKEN))) && AFF_FLAGGED(ch, AFF_BRAVERY)) {
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FEAR);
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_SHAKEN);
+    send_to_char(ch, "Your bravery overcomes the fear!\r\n");
+    act("$n \tWovercomes the \tDfear\tW with bravery!\tn\tn",
+            TRUE, ch, 0, 0, TO_ROOM);
+    return;
+  }
+
 }

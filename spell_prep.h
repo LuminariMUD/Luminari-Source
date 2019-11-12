@@ -220,7 +220,7 @@ extern "C" {
     /* this function is our connection between the casting system and spell preparation
        system, we are checking -all- our spell prep systems to see if we have the 
        given spell, if we do, return TRUE, otherwise FALSE */
-    bool spell_prep_gen_check(struct char_data *ch, int spellnum, int metamagic);
+    int spell_prep_gen_check(struct char_data *ch, int spellnum, int metamagic);
     
     /* in: character, class of the queue you want to work with
      * traverse the prep queue and print out the details
@@ -298,6 +298,7 @@ extern "C" {
     #define CLERIC_PREP_TIME_FACTOR   3.0
     #define SORC_PREP_TIME_FACTOR     3.0
     #define BARD_PREP_TIME_FACTOR     3.0
+    #define ALCHEMIST_PREP_TIME_FACTOR 3.0
     
     /* these are the subcommands for the prep system primary
        entry point: do_gen_preparation */
@@ -308,6 +309,7 @@ extern "C" {
     #define SCMD_CHANT      5
     #define SCMD_ADJURE     6
     #define SCMD_COMPOSE    7
+    #define SCMD_CONCOCT    8
     
     /* these are the subcommands for the prep system command:
      *  do_consign_to_oblivion */
@@ -316,6 +318,7 @@ extern "C" {
     #define SCMD_UNCOMMUNE  3
     #define SCMD_OMIT       4
     #define SCMD_UNADJURE   5
+    #define SCMD_DISCARD    6
     
     /* MODE for searching from our lists */
     #define SPREP_SERACH_NORMAL 0
