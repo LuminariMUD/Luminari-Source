@@ -7179,4 +7179,104 @@ ACMD(do_finddoor) {
   }
 }
 
+ACMD(do_players)
+{
+    struct descriptor_data *d = NULL;
+    char buf[200] = { '\0' };
+    char buf2[200] = { '\0' };
+    char buf3[200] = { '\0' };
+    int counter = 0, i = 0;
+
+    sprintf(buf, "%-15s %-15s %-3s %-15s %-7s %-7s %-20s\r\n", "Name", "Account", "Lvl", "Alignment", "Room", "Race", "Class");
+    send_to_char(ch, "%s", buf);
+
+    sprintf(
+        buf,
+        "---------------------------------------------------------------------------\r\n");
+    send_to_char(ch, "%s", buf);
+
+    for (d = descriptor_list; d; d = d->next)
+    {
+      counter = 0;
+      *buf2 = '\0';
+        for (i = 0; i < MAX_CLASSES; i++) {
+          if (CLASS_LEVEL(d->character, i)) {
+            if (counter)
+              strcat(buf2, " / ");
+            sprintf(buf2, "%s%d %s", buf2, CLASS_LEVEL(d->character, i), CLSLIST_ABBRV(i));
+            counter++;
+          }
+        }
+
+      *buf3 = '\0';
+      sprintf(buf3, "%s", get_align_by_num(GET_ALIGNMENT(d->character)));
+      strip_colors(buf3);
+
+        if (STATE(d) == CON_PLAYING)
+        {
+            sprintf(buf,
+                "%-15s %-15s %-3d %-15s %-7d %-7s %s\r\n",
+                GET_NAME(d->character),
+                (d && d->account && d->account->name) ? d->account->name : "None",
+                GET_LEVEL(d->character),
+                buf3,
+                GET_ROOM_VNUM(IN_ROOM(d->character)),
+                race_list[GET_RACE(d->character)].abbrev,
+                buf2
+            );
+            send_to_char(ch, "%s", buf);
+        }
+
+        else
+        {
+            sprintf(
+                buf, "%-15s %-15s %-3d %-15s %-7s %-7s %s\r\n",
+                GET_NAME(d->character),
+                "Offline",
+                GET_LEVEL(d->character),
+                buf3,
+                "Offline",
+                race_list[GET_RACE(d->character)].abbrev,
+                buf2
+            );
+            send_to_char(ch, "%s", buf);
+        }
+    }
+}
+
+ACMD(do_copyroom)
+{
+
+  skip_spaces(&argument);
+
+  int i = 0;
+
+  if (!*argument) {
+    send_to_char(ch, "You need to specify the source room vnum.\r\n");
+    return;
+  }
+
+  for (i = 0; i < top_of_world; i++) {
+    if (GET_ROOM_VNUM(i) == atoi(argument)) break;
+  }
+
+  if (i >= top_of_world) {
+    send_to_char(ch, "That room vnum doesn't exist. You need to specify the source room vnum.\r\n");
+    return;
+  }
+
+  world[IN_ROOM(ch)].sector_type = world[i].sector_type;
+  world[IN_ROOM(ch)].name = world[i].name;
+  world[IN_ROOM(ch)].description = world[i].description;
+  world[IN_ROOM(ch)].room_flags[0] = world[i].room_flags[0];
+  world[IN_ROOM(ch)].room_flags[1] = world[i].room_flags[1];
+  world[IN_ROOM(ch)].room_flags[2] = world[i].room_flags[2];
+  world[IN_ROOM(ch)].room_flags[3] = world[i].room_flags[3];
+
+  send_to_char(ch, "You have copied this room with the name, description, sector and room flags of room vnum %d.\r\n", GET_ROOM_VNUM(i));
+
+  add_to_save_list(zone_table[world[IN_ROOM(ch)].zone].number, SL_WLD);
+
+}
+
 /* EOF */

@@ -2440,8 +2440,8 @@ ACMD(do_score) {
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
 
-  send_to_char(ch, "\tcHit points:\tn %d(%d)   \tcMoves:\tn %d(%d)\r\n",
-          GET_HIT(ch), GET_MAX_HIT(ch), GET_MOVE(ch), GET_MAX_MOVE(ch));
+  send_to_char(ch, "\tcHit points:\tn %d(%d)   \tcMoves:\tn %d(%d)   \tcSpeed:\tn %d\r\n",
+          GET_HIT(ch), GET_MAX_HIT(ch), GET_MOVE(ch), GET_MAX_MOVE(ch), get_speed(ch, TRUE));
 
   send_to_char(ch, "\tC");
   text_line(ch, "\tyExperience\tC", line_length, '-', '-');

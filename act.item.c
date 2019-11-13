@@ -36,7 +36,7 @@
 #include "spec_abilities.h"
 #include "item.h"
 #include "feats.h"
-#include "aclhemy.h"
+#include "alchemy.h"
 
 /* local function prototypes */
 /* do_get utility functions */

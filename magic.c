@@ -1497,6 +1497,10 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   if (HAS_FEAT(victim, FEAT_RESISTANCE_TO_ILLUSIONS)) {
     illusion_bonus += 2; /* gnome */
   }
+
+  illusion_bonus += GET_RESISTANCES(victim, DAM_ILLUSION);
+  enchantment_bonus += GET_RESISTANCES(victim, DAM_MENTAL);
+
   /****/
 
   /* note, hopefully we have calculated the proper level for this spell
@@ -1848,12 +1852,9 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus, casttype, level, ENCHANTMENT)) {
         return;
       }
-      if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
-        send_to_char(ch, "Mind blank protects %s!", GET_NAME(victim));
-        send_to_char(victim, "Mind blank protects you from %s!",
-                GET_NAME(ch));
+
+      if (is_immune_mind_affecting(ch, victim, TRUE))
         return;
-      }
 
       is_mind_affect = TRUE;
 
@@ -2058,7 +2059,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
     case SPELL_EXPEDITIOUS_RETREAT: //transmutation
       af[0].location = APPLY_MOVE;
-      af[0].modifier = 20 + level;
+      af[0].modifier = 500;
       af[0].duration = level * 2;
       af[0].bonus_type = BONUS_TYPE_ENHANCEMENT;
       to_vict = "You feel expeditious.";
@@ -2110,12 +2111,9 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus, casttype, level, ENCHANTMENT)) {
         return;
       }
-      if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
-        send_to_char(ch, "Mind blank protects %s!", GET_NAME(victim));
-        send_to_char(victim, "Mind blank protects you from %s!",
-                GET_NAME(ch));
-        return;
-      }
+
+      if (is_immune_mind_affecting(ch, victim, TRUE))
+        return; 
 
       is_mind_affect = TRUE;
 
@@ -2211,7 +2209,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       }
 
       af[0].location = APPLY_MOVE;
-      af[0].modifier = -20 - level;
+      af[0].modifier = (-20 - level) * 10;
       af[0].duration = level * 2;
       to_vict = "Your feet are all greased up!";
       to_room = "$n now has greasy feet!";
@@ -2379,12 +2377,9 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus, casttype, level, ENCHANTMENT)) {
         return;
       }
-      if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
-        send_to_char(ch, "Mind blank protects %s!", GET_NAME(victim));
-        send_to_char(victim, "Mind blank protects you from %s!",
-                GET_NAME(ch));
-        return;
-      }
+
+      if (is_immune_mind_affecting(ch, victim, TRUE))
+        return; 
 
       is_mind_affect = TRUE;
 
@@ -2740,12 +2735,9 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         send_to_char(ch, "%s", CONFIG_NOEFFECT);
         return;
       }
-      if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
-        send_to_char(ch, "Mind blank protects %s!", GET_NAME(victim));
-        send_to_char(victim, "Mind blank protects you from %s!",
-                GET_NAME(ch));
-        return;
-      }
+
+      if (is_immune_mind_affecting(ch, victim, TRUE))
+        return; 
 
       is_mind_affect = TRUE;
 
@@ -2774,12 +2766,9 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         return;
       if (mag_savingthrow(ch, victim, SAVING_FORT, illusion_bonus, casttype, level, ILLUSION))
         return;
-      if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
-        send_to_char(ch, "Mind blank protects %s!", GET_NAME(victim));
-        send_to_char(victim, "Mind blank protects you from %s!",
-                GET_NAME(ch));
-        return;
-      }
+
+      if (is_immune_mind_affecting(ch, victim, TRUE))
+        return; 
 
       is_mind_affect = TRUE;
 
@@ -2976,12 +2965,9 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       if (mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus, casttype, level, ILLUSION)) {
         return;
       }
-      if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
-        send_to_char(ch, "Mind blank protects %s!", GET_NAME(victim));
-        send_to_char(victim, "Mind blank protects you from %s!",
-                GET_NAME(ch));
-        return;
-      }
+
+      if (is_immune_mind_affecting(ch, victim, TRUE))
+        return; 
 
       is_mind_affect = TRUE;
 
@@ -3034,9 +3020,9 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
     case SPELL_SCARE: //illusion
       if (is_immune_fear(ch, victim, TRUE))
-        return TRUE;
+        return;
       if (is_immune_mind_affecting(ch, victim, TRUE))
-        return TRUE; 
+        return; 
       if (mag_resistance(ch, victim, 0))
         return;
       if (mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus, casttype, level, ILLUSION)) {
@@ -3183,7 +3169,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         return;
       }
 
-      af[0].duration = (level * 12);
+      af[1].duration = (level * 12);
       SET_BIT_AR(af[0].bitvector, AFF_SLOW);
       to_room = "$n begins to slow down!";
       to_vict = "You feel yourself slow down!";
@@ -3368,12 +3354,9 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         send_to_char(ch, "%s", CONFIG_NOEFFECT);
         return;
       }
-      if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
-        send_to_char(ch, "Mind blank protects %s!", GET_NAME(victim));
-        send_to_char(victim, "Mind blank protects you from %s!",
-                GET_NAME(ch));
-        return;
-      }
+
+      if (is_immune_mind_affecting(ch, victim, TRUE))
+        return; 
 
       is_mind_affect = TRUE;
 
@@ -3422,21 +3405,19 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
     case SPELL_WAIL_OF_THE_BANSHEE: //necromancy (does damage too)
       if (is_immune_fear(ch, victim, TRUE))
-        return TRUE;
+        return;
       if (is_immune_mind_affecting(ch, victim, TRUE))
-        return TRUE;
+        return;
 
       if (mag_resistance(ch, victim, 0))
         return;
       if (mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, NECROMANCY)) {
         return;
       }
-      if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
-        send_to_char(ch, "Mind blank protects %s!", GET_NAME(victim));
-        send_to_char(victim, "Mind blank protects you from %s!",
-                GET_NAME(ch));
-        return;
-      }
+
+      if (is_immune_mind_affecting(ch, victim, TRUE))
+        return; 
+
       is_mind_affect = TRUE;
 
       SET_BIT_AR(af[0].bitvector, AFF_FEAR);
@@ -3544,12 +3525,11 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
 
   /* slippery mind */
-  if (is_mind_affect && !IS_NPC(victim) &&
-          HAS_FEAT(victim, FEAT_SLIPPERY_MIND)) {
-    send_to_char(victim, "\tW*Slippery Mind*\tn  ");
-    if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, spell_school)) {
-      return;
-    }
+  if (!IS_NPC(victim) &&
+      HAS_FEAT(victim, FEAT_SLIPPERY_MIND)) {
+      send_to_char(victim, "\tW*Slippery Mind*\tn  ");
+      if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, spell_school))
+        return;
   }
 
   /* If this is a mob that has this affect set in its mob file, do not perform
@@ -4709,7 +4689,7 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
 
 void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
         struct obj_data *obj, int spellnum, int type, int casttype) {
-  int spell = 0, msg_not_affected = TRUE, affect = 0, affect2 = 0, int found = FALSE;
+  int spell = 0, msg_not_affected = TRUE, affect = 0, affect2 = 0, found = FALSE;
   const char *to_vict = NULL, *to_char = NULL, *to_notvict = NULL;
 
   struct affected_type *af = NULL;

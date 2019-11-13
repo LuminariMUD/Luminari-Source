@@ -162,7 +162,7 @@ bool concentration_check(struct char_data *ch, int spellnum) {
             compute_cmb(GRAPPLE_TARGET(ch), COMBAT_MANEUVER_TYPE_GRAPPLE);
   }
 
-  if (CASTING_CLASS(ch) != CLASS_ALCHEMIST && !ch->player_specials->canCastInnate) {
+  if (CASTING_CLASS(ch) != CLASS_ALCHEMIST) {
     if (AFF_FLAGGED(ch, AFF_DEAF) && dice(1, 5) == 1) {
       send_to_char(ch, "Your deafness has made you fumble your spell!\r\n");
       act("$n seems to have fumbled his spell for some reason.", TRUE, ch, 0, 0, TO_ROOM);
@@ -171,7 +171,7 @@ bool concentration_check(struct char_data *ch, int spellnum) {
     }
   }
 
-  if (!skill_check(ch, ABILITY_CONCENTRATION, concentration_dc)) {
+  if (!skill_check(ch, ABILITY_CONCENTRATION, concentration_dc) && CASTING_CLASS(ch) != CLASS_ALCHEMIST) {
     send_to_char(ch, "You lost your concentration!\r\n");
     act("$n's concentration is lost, and spell is aborted!", TRUE, ch, 0, 0, TO_ROOM);
     resetCastingData(ch);
@@ -981,7 +981,7 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
       for (i = 1; i <= 3; i++)
         if (call_magic(ch, ch, NULL, GET_OBJ_VAL(obj, i), 0,
                 KNOWS_DISCOVERY(ch, ALC_DISC_ENHANCE_POTION) ? MAX(CLASS_LEVEL(ch, CLASS_ALCHEMIST), GET_OBJ_VAL(obj, 0)) : GET_OBJ_VAL(obj, 0), 
-                GET_OBJ_VAL(obj, 0), CAST_POTION) <= 0)
+                CAST_POTION) <= 0)
           break;
 
       if (obj != NULL)
@@ -1703,7 +1703,7 @@ ACMD(do_gen_cast) {
     return;
   }
 
-  if ((tch != ch) && subcmd == SCMD_CAST_EXTRACT && !KNOWS_DISCOVERY(ch, ALC_DISC_INFUSION)) {
+ if ((tch != ch) && subcmd == SCMD_CAST_EXTRACT && !KNOWS_DISCOVERY(ch, ALC_DISC_INFUSION) && SINFO.violent == FALSE) {
     send_to_char(ch, "You can only use extracts upon yourself!\r\n");
     return;
   }
@@ -2994,7 +2994,7 @@ void mag_assign_spells(void) {
   spello(BOMB_AFFECT_TANGLEFOOT, "tanglefoot bomb", 0, 0, 0, POS_SITTING,
           TAR_IGNORE, TRUE, 0,
           NULL, 0, 0, NOSCHOOL, FALSE);
-  spello(BOMB_AFFECT_PSYCHOKINETIC, "psychokinetic tincture", 0, 0, 0, POS_SITTING,
+  spello(ALC_DISC_AFFECT_PSYCHOKINETIC, "psychokinetic tincture", 0, 0, 0, POS_SITTING,
           TAR_IGNORE, TRUE, 0,
           NULL, 0, 0, NOSCHOOL, FALSE);
 

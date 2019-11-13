@@ -746,16 +746,17 @@ int compute_ability(struct char_data *ch, int abilityNum) {
 
   /* Check for armor proficiency? */
 
-  struct affected_type *aff = NULL;
+  struct affected_type *af = NULL;
 
   for ( af = ch->affected; af; af = af->next) {
     if (af->location == APPLY_SKILL) {
       if (af->spell == SKILL_INSPIRING_COGNATOGEN)
         value += af->modifier;
       else if (af->specific == abilityNum)
-        value += af->modifier
+        value += af->modifier;
     }
   }
+
 
   switch (abilityNum) {
 
@@ -784,11 +785,13 @@ int compute_ability(struct char_data *ch, int abilityNum) {
         value += 15;
       if (IS_MORPHED(ch) && SUBRACE(ch) == PC_SUBRACE_PANTHER)
         value += 4;
-      if (KNOWS_DISCOVERY(ch, ALC_DISC_CHAMELEON))
-        if (CLASS_LEVEL(ch, CLASS_ALCHEMIST) >= 10)
+      if (KNOWS_DISCOVERY(ch, ALC_DISC_CHAMELEON)) {
+        if (CLASS_LEVEL(ch, CLASS_ALCHEMIST) >= 10) {
           value += 8;
-        else
+        } else {
           value += 4;
+        }
+      }
       value += compute_gear_armor_penalty(ch);
       return value;
 

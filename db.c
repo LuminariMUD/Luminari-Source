@@ -3119,6 +3119,9 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */ {
   //  for testing purposes - zusuk
   //  GET_CLASS(mob) = rand_number(0, NUM_CLASSES - 1);
 
+  if (MOB_FLAGGED(mob, MOB_MOUNTABLE))
+    GET_REAL_MAX_MOVE(mob) = 2000 + (GET_LEVEL(mob) * 200);
+
   return (mob);
 }
 

@@ -3168,6 +3168,7 @@ void new_affect(struct affected_type *af) {
   af->modifier = 0;
   af->location = APPLY_NONE;
   af->bonus_type = BONUS_TYPE_UNDEFINED;
+  af->specific = 0;
 
   for (i = 0; i < AF_ARRAY_MAX; i++) af->bitvector[i] = 0;
 }
@@ -3830,7 +3831,7 @@ sbyte is_immune_mind_affecting(struct char_data *ch, struct char_data *victim, s
 
 void remove_fear_affects(struct char_data *ch, sbyte display) {
   /* fear -> skill-courage*/
-  if ((AFF_FLAGGED(ch, AFF_FEAR) || AFF_FLAGGED(ch, AFF_SHAKEN))) && (!IS_NPC(ch) &&
+  if ((AFF_FLAGGED(ch, AFF_FEAR) || AFF_FLAGGED(ch, AFF_SHAKEN)) && (!IS_NPC(ch) &&
           HAS_FEAT(ch, FEAT_AURA_OF_COURAGE))) {
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FEAR);
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_SHAKEN);
@@ -3841,7 +3842,7 @@ void remove_fear_affects(struct char_data *ch, sbyte display) {
   }
 
   /* fearless rage */
-  if ((AFF_FLAGGED(ch, AFF_FEAR) || AFF_FLAGGED(ch, AFF_SHAKEN))) && !IS_NPC(ch) &&
+  if ((AFF_FLAGGED(ch, AFF_FEAR) || AFF_FLAGGED(ch, AFF_SHAKEN)) && !IS_NPC(ch) &&
           HAS_FEAT(ch, FEAT_RP_FEARLESS_RAGE) &&
           affected_by_spell(ch, SKILL_RAGE)) {
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FEAR);
@@ -3853,7 +3854,7 @@ void remove_fear_affects(struct char_data *ch, sbyte display) {
   }
 
   /* fearless defense */
-  if ((AFF_FLAGGED(ch, AFF_FEAR) || AFF_FLAGGED(ch, AFF_SHAKEN))) && !IS_NPC(ch) &&
+  if ((AFF_FLAGGED(ch, AFF_FEAR) || AFF_FLAGGED(ch, AFF_SHAKEN)) && !IS_NPC(ch) &&
           HAS_FEAT(ch, FEAT_FEARLESS_DEFENSE) &&
           affected_by_spell(ch, SKILL_DEFENSIVE_STANCE)) {
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FEAR);
@@ -3865,7 +3866,7 @@ void remove_fear_affects(struct char_data *ch, sbyte display) {
   }
 
   /* fear -> spell-bravery */
-  if ((AFF_FLAGGED(ch, AFF_FEAR) || AFF_FLAGGED(ch, AFF_SHAKEN))) && AFF_FLAGGED(ch, AFF_BRAVERY)) {
+  if ((AFF_FLAGGED(ch, AFF_FEAR) || AFF_FLAGGED(ch, AFF_SHAKEN)) && AFF_FLAGGED(ch, AFF_BRAVERY)) {
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FEAR);
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_SHAKEN);
     send_to_char(ch, "Your bravery overcomes the fear!\r\n");
@@ -3875,3 +3876,53 @@ void remove_fear_affects(struct char_data *ch, sbyte display) {
   }
 
 }
+
+// will return TRUE if the poison is resisted, otherwise will return false
+// includes the saving throw against poison.
+sbyte check_poison_resist(struct char_data *ch, struct char_data *victim, int casttype, int level) {
+
+  int bonus = 0;
+
+  if (casttype != CAST_INNATE && mag_resistance(ch, victim, 0))
+    return TRUE;
+  bonus = 0;
+  if (HAS_FEAT(victim, FEAT_POISON_RESIST)) //poison resist feat
+    bonus += 4;
+  if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
+    bonus -= 4;
+  if (mag_savingthrow(ch, victim, SAVING_FORT, bonus, casttype, level, ENCHANTMENT)) {
+    return TRUE;
+  }
+  return FALSE;
+}
+
+int is_player_grouped(struct char_data *target, struct char_data *group) {
+
+  struct char_data *k = NULL;
+  struct follow_type *f = NULL;
+
+  if (!target || !group)
+    return FALSE;
+
+  if (group == target)
+    return TRUE;
+
+  if (!AFF_FLAGGED(target, AFF_GROUP) || !AFF_FLAGGED(group, AFF_GROUP))
+    return FALSE;
+
+  if (group == target->master || target == group->master)
+    return TRUE;
+
+  if (group->master)
+    k = group->master;
+  else
+    k = group;
+
+  for (f = k->followers; f; f = f->next) {
+    if (f->follower == target)
+      return TRUE;
+  }
+
+  return FALSE;
+}
+

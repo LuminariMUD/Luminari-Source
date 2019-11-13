@@ -32,6 +32,8 @@
 #include "traps.h" /* for check_traps() */
 #include "spell_prep.h"
 #include "trails.h"
+#include "assign_wpn_armor.h"
+
 
 /* do_gen_door utility functions */
 static int find_door(struct char_data *ch, const char *type, char *dir,
@@ -369,6 +371,10 @@ int has_boat(struct char_data *ch, room_rnum going_to)
     if (GET_EQ(ch, i) && GET_OBJ_TYPE(GET_EQ(ch, i)) == ITEM_BOAT)
       return (1);
 
+  // they can't swim here, so no need for a skill check.
+  if (SECT(going_to) == SECT_WATER_NOSWIM || SECT(going_to) == SECT_UD_WATER_NOSWIM || SECT(going_to) == SECT_UD_NOSWIM)
+    return 0;
+
   /* we should do a swim check now */
   int swim_dc = 13 + ZONE_MINLVL(GET_ROOM_ZONE(going_to));
   send_to_char(ch, "Swim DC: %d - ", swim_dc);
@@ -481,7 +487,6 @@ void create_tracks(struct char_data *ch, int dir, int flag)
   struct room_data *room = NULL;
   struct trail_data *cur = NULL;
   struct trail_data *prev = NULL;
-  struct trail_data *next = NULL;
   struct trail_data *new_trail = NULL;
 
   if (IN_ROOM(ch) != NOWHERE)
@@ -841,6 +846,20 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
     }
   }
 
+  if (SECT(was_in) == SECT_WATER_SWIM || SECT(was_in) == SECT_UD_WATER || SECT(was_in) == SECT_UNDERWATER ||
+      SECT(going_to) == SECT_WATER_SWIM || SECT(going_to) == SECT_UD_WATER || SECT(going_to) == SECT_UNDERWATER) {
+    if ((riding && !has_boat(RIDING(ch), going_to)) || !has_boat(ch, going_to))
+    {
+      if (GET_MOVE(ch) < 20) {
+        send_to_char(ch, "You don't have the energy to try and swim there.\r\n");
+        return 0;
+      }
+      send_to_char(ch, "You try to swim there, but fail.\r\n");
+      GET_MOVE(ch) -= 20;
+      return (0);
+    }
+  }
+
   /* Flying Required: Does lack of flying prevent movement? */
   if ((SECT(was_in) == SECT_FLYING) || (SECT(going_to) == SECT_FLYING) ||
       (SECT(was_in) == SECT_UD_NOGROUND) || (SECT(going_to) == SECT_UD_NOGROUND))
@@ -1077,6 +1096,29 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   /* if reclined quadruple movement cost */
   if (GET_POS(ch) <= POS_RECLINING)
     need_movement *= 4;
+
+  // new movement system requires we multiply this
+  need_movement *= 10;
+
+  // Now let's reduce based on skills, since this can
+  // be a fraction of 10.
+
+  int skill_bonus = skill_roll(ch, riding ? MAX(ABILITY_RIDE, ABILITY_SURVIVAL) : ABILITY_SURVIVAL);
+  if (SECT(going_to) == SECT_HILLS || SECT(going_to) == SECT_MOUNTAIN || SECT(going_to) == SECT_HIGH_MOUNTAIN)
+    skill_bonus += skill_roll(ch, ABILITY_CLIMB) / 2;
+
+  need_movement -= skill_bonus;
+
+  // we're using a base speed of 30.  If it's 30, then speed won't have an effect on
+  // movement.  If the speed is less than 30, it'll cost more movement.  If it's more
+  // it will reduce the movement points required.
+  // if we're mounted, we'll use the mount's speed instead.
+  int speed_mod = get_speed(riding ? RIDING(ch) : ch, FALSE);
+  speed_mod = speed_mod - 30;
+  need_movement -= speed_mod;
+
+  // regardless of bonuses, we'll never use less than 10 moves per room
+  need_movement = MAX(10, need_movement);
 
   /* Move Point Requirement Check */
   if (riding)
@@ -3433,7 +3475,7 @@ ACMD(do_pullswitch)
   if (room < 0)
   {
     send_to_char(ch, "Bug in switch here, contact an immortal\r\n");
-    log("SYSERR: Broken switch: real_room() for %s (VNUM %d) evaluated to -1", obj->name, obj->id);
+    log("SYSERR: Broken switch: real_room() for %s (VNUM %ld) evaluated to -1", obj->name, obj->id);
     return;
   }
   if (!world[room].dir_option[door])
@@ -3477,6 +3519,56 @@ ACMD(do_pullswitch)
     send_to_room(ch->in_room, obj->action_description);
   else
     send_to_room(ch->in_room, "*ka-ching*\r\n");
+}
+
+int get_speed(struct char_data *ch, sbyte to_display) {
+
+  int speed = 30;
+
+  switch (GET_RACE(ch)) {
+    case RACE_DWARF:
+    case RACE_CRYSTAL_DWARF:
+    case RACE_HALFLING:
+    case RACE_GNOME:
+      speed = 25;
+  }
+
+  if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_MOUNTABLE))
+    speed = 50;
+
+  if (AFF_FLAGGED(ch, AFF_FLYING))
+    speed = 50;
+
+   // haste and exp. retreat don't stack for balance reasons
+  if (AFF_FLAGGED(ch, AFF_HASTE))
+    speed += 30;
+  else if (affected_by_spell(ch, SPELL_EXPEDITIOUS_RETREAT))
+    speed += 30;
+
+  // likewise, monk speed and fast movement don't stack for balance reasons
+  if (monk_gear_ok(ch))
+    speed += MIN(60, CLASS_LEVEL(ch, CLASS_MONK) / 3 * 10);
+  else if (HAS_FEAT(ch, FEAT_FAST_MOVEMENT))
+    if (compute_gear_armor_type(ch) <= ARMOR_TYPE_MEDIUM)
+      speed += 10;
+
+  if (affected_by_spell(ch, SPELL_GREASE))
+    speed -= 10;
+
+  // if they're slowed, it's half regardless.  Same with entangled.
+  // if they're blind, they can make an acrobatics check against dc 10
+  // to avoid halving their speed, but we only want to do this is the
+  // function is called to apply their speed.  If to_display is true,
+  // we won't worry about the blind effect, because it's only showing
+  // the person's base speed for display purposes (ie. score)
+  if (AFF_FLAGGED(ch, AFF_SLOW))
+    speed /= 2;
+  else if (AFF_FLAGGED(ch, AFF_ENTANGLED))
+    speed /= 2;
+  else if (!to_display && AFF_FLAGGED(ch, AFF_BLIND) && skill_roll(ch, ABILITY_ACROBATICS) < 10)
+    speed /= 2;
+
+  return speed;
 }
 
 /*EOF*/

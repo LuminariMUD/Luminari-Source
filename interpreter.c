@@ -114,6 +114,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "alias", "ali", POS_DEAD, do_alias, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
   { "affects", "aff", POS_DEAD, do_affects, 0, SCMD_AFFECTS, TRUE, ACTION_NONE, {0, 0}, NULL},
   { "afk", "afk", POS_DEAD, do_gen_tog, 0, SCMD_AFK, TRUE, ACTION_NONE, {0, 0}, NULL},
+  { "aoebombs", "aoeb", POS_RECLINING, do_gen_tog, 0, SCMD_AOE_BOMBS, TRUE, ACTION_NONE, {0, 0}, NULL},
   { "apotheosis", "apoth", POS_STANDING, do_sorcerer_arcane_apotheosis, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
   { "areas", "are", POS_DEAD, do_areas, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
   { "assist", "as", POS_FIGHTING, do_assist, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -188,6 +189,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "concoct", "conc", POS_RESTING, do_gen_preparation, 0, SCMD_CONCOCT, FALSE, ACTION_NONE, {0, 0}, NULL},
   { "cooldowns", "coo", POS_DEAD, do_affects, 0, SCMD_COOLDOWNS, TRUE, ACTION_NONE, {0, 0}, NULL},
   { "copyover", "copyover", POS_DEAD, do_copyover, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+  { "copyroom", "copyroom", POS_DEAD, do_copyroom, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
   { "credits", "cred", POS_DEAD, do_gen_ps, 0, SCMD_CREDITS, TRUE, ACTION_NONE, {0, 0}, NULL},
   { "ct", "ct", POS_DEAD, do_clantalk, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
   { "craft", "craft", POS_STANDING, do_craft, 0, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}, NULL},
@@ -428,6 +430,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "page", "pag", POS_DEAD, do_page, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
   { "pardon", "pardon", POS_DEAD, do_wizutil, LVL_STAFF, SCMD_PARDON, TRUE, ACTION_NONE, {0, 0}, NULL},
   { "plist", "plist", POS_DEAD, do_plist, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+  { "poisontouch", "poisont", POS_FIGHTING, do_poisontouch, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
   { "policy", "pol", POS_DEAD, do_gen_ps, 0, SCMD_POLICIES, TRUE, ACTION_NONE, {0, 0}, NULL},
   { "pour", "pour", POS_STANDING, do_pour, 0, SCMD_POUR, FALSE, ACTION_NONE, {0, 0}, NULL},
   { "powerattack", "powerattack", POS_FIGHTING, do_mode, 1, MODE_POWER_ATTACK, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -439,6 +442,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "perform", "perform", POS_FIGHTING, do_perform, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
   { "powerfulblow", "powerfulblow", POS_FIGHTING, do_powerfulblow, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_powerfulblow},
   { "pin", "pin", POS_FIGHTING, do_pin, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
+   { "players", "players", POS_DEAD, do_players, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
   //{ "play", "play", POS_FIGHTING, do_play, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
   { "psychokinetic", "psychokinetic", POS_FIGHTING, do_psychokinetic, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
   { "push", "push", POS_STANDING, do_pullswitch, 0, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
@@ -1663,6 +1667,15 @@ int enter_player_game(struct descriptor_data *d) {
   //MXPSendTag(d, "<VERSION>");
 
   new_mail_alert(d->character, FALSE);
+
+  /* START PLAYER STAT HACKS */
+
+  // movement hack.  We changed movement to be out of 1,000
+  // need to check for old characters and get them up to speed.
+  if (GET_REAL_MAX_MOVE(d->character) < 400)
+    GET_REAL_MAX_MOVE(d->character) *= 10;
+
+  /* END PLAYER STAT HACKS */
 
   return load_result;
 }
