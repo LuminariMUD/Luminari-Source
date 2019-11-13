@@ -786,9 +786,11 @@
 #define PRF_AUTOCOLLECT  45   /**< collect ammo after combat automatically */
 #define PRF_RP           46   /**< Interested in Role-Playing! */
 #define PRF_AOE_BOMBS    47  /** Bombs will use splash damage instead of single target */
+#define PRF_FRIGHTENED   48  /* If set, victims of fear affects will flee */
+#define PRF_PVP          49  /* If set, will allow player vs. player combat against others also flagged */
 
 /** Total number of available PRF flags */
-#define NUM_PRF_FLAGS    48
+#define NUM_PRF_FLAGS    50
 
 /* Affect bits: used in char_data.char_specials.saved.affected_by */
 /* WARNING: In the world files, NEVER set the bits marked "R" ("Reserved") */
@@ -904,7 +906,7 @@
 #define AFF_CRIPPLING_CRITICAL 102 /* duelist crippling critical affection */
 #define AFF_LEVITATE         103   /**< Char can float above the ground */
 #define AFF_BLEED            104  /* character suffers bleed damage each round unless healed by treatinjury or another healing effect. */
-#define AFF_STAGGERED        105  /* A staggered character has a 50% chance to fail a spell or a single melee attack */4
+#define AFF_STAGGERED        105  /* A staggered character has a 50% chance to fail a spell or a single melee attack */
 #define AFF_DAZZLED          106 /* suffers -1 to attacks and perception checks */
 #define AFF_SHAKEN           107 // fear/mind effect.  -2 to attack rols, saving throws, skill checks and ability checks
 /*---*/
@@ -2053,9 +2055,10 @@
 
 #define APPLY_DR               48
 #define APPLY_FEAT             49
+#define APPLY_SKILL            50
 
 /** Total number of applies */
-#define NUM_APPLIES            50
+#define NUM_APPLIES            51
 
 /* Equals the total number of SAVING_* defines in spells.h */
 #define NUM_OF_SAVING_THROWS  5
@@ -3349,6 +3352,7 @@ struct affected_type {
     int bonus_type; /**< What type of bonus (if this is a bonus) is this. */
 
     struct affected_type *next; /**< The next affect in the list of affects. */
+    sh_int specific;
 };
 
 /* The Maximum number of types that can be required to bypass DR. */

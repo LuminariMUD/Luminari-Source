@@ -54,6 +54,7 @@
  * are made available with the function definition. */
 #define isspace_ignoretabs(c) ((c)!='\t' && isspace(c))
 
+sbyte check_poison_resist(struct char_data *ch, struct char_data *victim, int casttype, int level);
 sbyte is_immune_fear(struct char_data *ch, struct char_data *victim, sbyte display);
 sbyte is_immune_mind_affecting(struct char_data *ch, struct char_data *victim, sbyte display);
 void remove_fear_affects(struct char_data *ch, sbyte display);

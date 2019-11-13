@@ -27,6 +27,7 @@
 #include "actions.h"
 #include "domains_schools.h"
 #include "grapple.h"
+#include "constants.h"
 #include "alchemy.h"
 
 /* added this for falling event, general dummy check */
@@ -470,6 +471,7 @@ void regen_update(struct char_data *ch) {
       move_regen++;
     if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_ENDURANCE))
       move_regen += 2;
+    move_regen *= 10;
     GET_MOVE(ch) = MIN(GET_MOVE(ch) + (move_regen * 3), GET_MAX_MOVE(ch));
   }
   if (GET_PSP(ch) > GET_MAX_PSP(ch)) {
@@ -613,6 +615,8 @@ int move_gain(struct char_data *ch) {
 
   if (AFF_FLAGGED(ch, AFF_POISON))
     gain /= 4;
+
+  gain *= 10;
 
   return (gain);
 }
@@ -1119,6 +1123,7 @@ void update_damage_and_effects_over_time(void)
   int dam = 0;
   struct affected_type *affects = NULL;
   struct char_data *ch = NULL, *next_char = NULL;
+  char buf[MAX_STRING_LENGTH];
 
   for (ch = character_list; ch; ch = next_char) {
     next_char = ch->next;  
@@ -1159,6 +1164,13 @@ void update_damage_and_effects_over_time(void)
       dam = damage(ch, ch, ch->player_specials->sticky_bomb[2], SKILL_BOMB_TOSS, ch->player_specials->sticky_bomb[1], SKILL_BOMB_TOSS);
       ch->player_specials->sticky_bomb[0] = ch->player_specials->sticky_bomb[1] = ch->player_specials->sticky_bomb[2] = 0;
     } // sticky bomb effects
+
+    // fast healing grand discovery affect
+    if (GET_GRAND_DISCOVERY(ch) == GR_ALC_DISC_FAST_HEALING) {
+      GET_HIT(ch) += 5;
+      if (GET_HIT(ch) > GET_MAX_HIT(ch))
+        GET_HIT(ch) = GET_MAX_HIT(ch);
+    }
 
     if (affected_by_spell(ch, BOMB_AFFECT_IMMOLATION)) {
       for (affects = ch->affected; affects; affects = affects->next) {

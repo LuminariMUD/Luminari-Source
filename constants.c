@@ -1155,6 +1155,8 @@ const char *preference_bits[NUM_PRF_FLAGS + 1] = {
   "Auto-Collect",
   "Role Player",
   "Bombs are Aoe",
+  "Faer-Causes-Flee",
+  "PvP-Enabled",
   "\n"
 };
 
@@ -1863,7 +1865,8 @@ const char *apply_types[NUM_APPLIES + 1] = {
   "Resist-Water",
   "Damage-Reduction",
   "Grant-Feat",
-  "\n"/*50*/
+  "Skill-Bonus",
+  "\n"/*51*/
 };
 
 /** Matrix to show which bonus types are allowed for which apply locations */

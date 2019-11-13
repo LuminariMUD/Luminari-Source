@@ -440,7 +440,7 @@ int load_char(const char *name, struct char_data *ch) {
       GET_BOMB(ch, i) = 0;
     for (i = 0; i < NUM_ALC_DISCOVERIES; i++)
       KNOWS_DISCOVERY(ch, i) = 0;
-   KNOWS_GRAND_DISCOVERY(ch) = 0;
+   GET_GRAND_DISCOVERY(ch) = 0;
 
     /* finished inits, start loading from file */
 
@@ -557,7 +557,7 @@ int load_char(const char *name, struct char_data *ch) {
 
         case 'G':
           if (!strcmp(tag, "Gold")) GET_GOLD(ch) = atoi(line);
-          else if (!strcmp(tag, "GrDs")) KNOWS_GRAND_DISCOVERY(ch) = atoi(line);
+          else if (!strcmp(tag, "GrDs")) GET_GRAND_DISCOVERY(ch) = atoi(line);
           break;
 
         case 'H':
@@ -1115,7 +1115,7 @@ void save_char(struct char_data * ch, int mode) {
   for (i = 0; i < NUM_ALC_DISCOVERIES; i++)
     fprintf(fl, "%d\n", KNOWS_DISCOVERY(ch, i));
   fprintf(fl, "-1\n");
-  fprintf(fl, "GrDs: %d\n", KNOWS_GRAND_DISCOVERY(ch));
+  fprintf(fl, "GrDs: %d\n", GET_GRAND_DISCOVERY(ch));
 
   /* Save Combat Feats */
   for (i = 0; i < NUM_CFEATS; i++) {
@@ -1356,7 +1356,7 @@ void save_char(struct char_data * ch, int mode) {
       aff = &tmp_aff[i];
       if (aff->spell)
         fprintf(fl,
-              "%d %d %d %d %d %d %d %d %d\n",
+              "%d %d %d %d %d %d %d %d %d %d\n",
               aff->spell,
               aff->duration,
               aff->modifier,
@@ -1365,9 +1365,10 @@ void save_char(struct char_data * ch, int mode) {
               aff->bitvector[1],
               aff->bitvector[2],
               aff->bitvector[3],
-              aff->bonus_type);
+              aff->bonus_type,
+              aff->specific);
     }
-    fprintf(fl, "0 0 0 0 0 0 0 0 0\n");
+    fprintf(fl, "0 0 0 0 0 0 0 0 0 0\n");
   }
 
   /* Save Damage Reduction */
@@ -1611,7 +1612,14 @@ static void load_affects(FILE *fl, struct char_data *ch) {
       af.duration = num2;
       af.modifier = num3;
       af.location = num4;
-      if (n_vars == 9) { /* Version with bonus type! */
+      if (n_vars == 10) { /* Version with bonus type! */
+        af.bitvector[0] = num5;
+        af.bitvector[1] = num6;
+        af.bitvector[2] = num7;
+        af.bitvector[3] = num8;
+        af.bonus_type = num9;
+        af.specific = num10;
+      } else if (n_vars == 9) { /* Version with bonus type! */
         af.bitvector[0] = num5;
         af.bitvector[1] = num6;
         af.bitvector[2] = num7;

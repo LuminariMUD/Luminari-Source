@@ -2018,7 +2018,7 @@ void init_start_char(struct char_data *ch) {
   // alchemist discoveries
   for (i = 0; i < NUM_ALC_DISCOVERIES; i++)
     KNOWS_DISCOVERY(ch, i) = 0;
-  KNOWS_GRAND_DISCOVERY(ch) = 0;
+  GET_GRAND_DISCOVERY(ch) = 0;
 
   for (i = 0; i < 3; i++)
     NEW_ARCANA_SLOT(ch, i) = 0;
@@ -2042,7 +2042,7 @@ void init_start_char(struct char_data *ch) {
   GET_REAL_DAMROLL(ch) = 0;
   GET_REAL_MAX_HIT(ch) = 20;
   GET_REAL_MAX_PSP(ch) = 15;
-  GET_REAL_MAX_MOVE(ch) = 82;
+  GET_REAL_MAX_MOVE(ch) = 820;
   GET_PRACTICES(ch) = 0;
   GET_TRAINS(ch) = 0;
   GET_BOOSTS(ch) = 0;
@@ -2555,6 +2555,9 @@ void advance_level(struct char_data *ch, int class) {
       add_hp++;
   }
 
+  // we're using more move points now
+  add_move *= 10;
+
   /* adjust final and report changes! */
   GET_REAL_MAX_HIT(ch) += MAX(1, add_hp);
   send_to_char(ch, "\tMTotal HP:\tn %d\r\n", MAX(1, add_hp));
@@ -2683,7 +2686,7 @@ int level_exp(struct char_data *ch, int level) {
     case CLASS_BERSERKER:
     case CLASS_CLERIC:
     case CLASS_MYSTIC_THEURGE:
-    case CLASS_ALCHEMSIT:
+    case CLASS_ALCHEMIST:
       level--;
       if (level < 0)
         level = 0;

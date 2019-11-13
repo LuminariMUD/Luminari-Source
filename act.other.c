@@ -3512,7 +3512,6 @@ ACMD(do_spells) {
 ACMD(do_spelllist) {
   char arg[MAX_INPUT_LENGTH], arg1[MAX_INPUT_LENGTH];
   int class = -1, circle = -1;
-  char stype[20];
 
   if (IS_NPC(ch))
     return;
@@ -4552,12 +4551,18 @@ ACMD(do_gen_tog) {
     /*40*/
     {"You will no longer display to others that you would like to Role-play.\r\n",
       "You will now display to others that you would like to Role-play.\r\n"},
+    /* 41 */
+    {"Your bombs will now only affect single targets.\r\n",
+     "Your bombs will now affect multiple targets.\r\n"},
   };
 
   if (IS_NPC(ch))
     return;
 
   switch (subcmd) {
+    case SCMD_AOE_BOMBS:
+      result = PRF_TOG_CHK(ch, PRF_AOE_BOMBS);
+      break;
     case SCMD_NOSUMMON:
       result = PRF_TOG_CHK(ch, PRF_SUMMONABLE);
       break;
