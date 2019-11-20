@@ -2592,7 +2592,7 @@ ACMD(do_score) {
     send_to_char(ch, "\tDType 'chant' to see your Paladin spell interface\tn\r\n");
   if (CLASS_LEVEL(ch, CLASS_ALCHEMIST)) {
     send_to_char(ch, "\tDType 'extracts' to see your Alchemist extract interface\tn\r\n");
-    send_to_char(ch, "\tDType 'imbibe' to use an extract, and concoct to prepare an extract.\tn\r\n");
+    send_to_char(ch, "\tDType 'imbibe' to use an extract, and 'concoct' to prepare an extract.\tn\r\n");
     send_to_char(ch, "\tDType 'discoveries' to see your alchemist discoveries.\tn\r\n");
     send_to_char(ch, "\tDType 'swallow' to use a mutagen or cognatogen (if you have cognatogen discovery).\tn\r\n");
   }
@@ -4602,6 +4602,322 @@ EVENTFUNC(event_tracks) {
 /* rank command, in rank.c */
 ACMD(do_rank) {
   do_slug_rank(ch, argument);
+}
+
+
+void display_weapon_families(struct char_data *ch)
+{
+	int i = 0;
+
+	for (i = 0; i < NUM_WEAPON_FAMILIES; i++) {
+		send_to_char(ch, "%s\r\n", weapon_family[i]);
+	}
+}
+
+ACMD(do_weapontypes)
+{
+	skip_spaces(&argument);
+
+	if (!*argument) {
+		send_to_char(ch, "Current weapon families are:\r\n");
+		display_weapon_families(ch);
+		send_to_char(ch, "Type: 'weapontypes (family name)' to view weapons in that family.\r\n");
+		return;
+	}
+
+	int i = 0, j = 0;
+
+	for (i = 0; i < NUM_WEAPON_FAMILIES; i++) {
+		if (is_abbrev(argument, weapon_family[i]))
+			break;
+	}
+
+	if (i >= NUM_WEAPON_FAMILIES) {
+		send_to_char(ch, "Current weapon families are:\r\n");
+		display_weapon_families(ch);
+		send_to_char(ch, "There is no weapon family by that name.\r\n");
+		send_to_char(ch, "Type: 'weapontypes (family name)' to view weapons in that family.\r\n");
+		return;
+	}
+
+	const char *family_weapons[NUM_WEAPON_TYPES];
+	int counter = 0;
+	
+	send_to_char(ch, "The %s weapon family includes the following weapons:\r\n\r\n", weapon_family[i]);
+	for (j = 0; j < NUM_WEAPON_TYPES; j++) {
+		if (weapon_list[j].weaponFamily == i) {
+		  family_weapons[counter] = weapon_list[j].name;
+		  counter++;
+		}
+	}
+	
+	column_list(ch, 2, family_weapons, counter, TRUE);
+	
+}
+
+ACMD(do_weaponlist) {
+	
+	const char *cmd_weapon_names[NUM_WEAPON_TYPES];
+	
+	int j = 0;
+	
+	for (j = 0; j < NUM_WEAPON_TYPES; j++) {
+	  cmd_weapon_names[j] = weapon_list[j].name;
+	}
+	
+	column_list(ch, 4, cmd_weapon_names, j, TRUE);
+}
+
+#define WPT_SIMPLE			1
+#define WPT_MARTIAL			2
+#define WPT_EXOTIC			3
+#define WPT_MONK			4
+#define WPT_DRUID			5
+#define WPT_BARD			6
+#define WPT_ROGUE			7
+#define WPT_WIZARD			8
+#define WPT_DROW			9
+#define WPT_ELF				10
+#define WPT_DWARF			11
+
+
+int is_weapon_proficient(int weapon, int type) {
+
+	  if (type == WPT_SIMPLE) {
+		  if (IS_SET(weapon_list[weapon].weaponFlags, WEAPON_FLAG_SIMPLE)) return true;
+	  } else if (type == WPT_MARTIAL) {
+		  if (IS_SET(weapon_list[weapon].weaponFlags, WEAPON_FLAG_MARTIAL)) return true;
+	  } else if (type == WPT_EXOTIC) {
+		  if (IS_SET(weapon_list[weapon].weaponFlags, WEAPON_FLAG_EXOTIC)) return true;
+	  } else if (type == WPT_MONK) {
+		  if (weapon == WEAPON_TYPE_UNARMED) return true;
+		  if (weapon_list[weapon].weaponFamily == WEAPON_FAMILY_MONK) return true;
+	  } else if (type == WPT_DRUID) {
+		  switch (weapon) {
+		  case WEAPON_TYPE_CLUB:
+		  case WEAPON_TYPE_DAGGER:
+		  case WEAPON_TYPE_QUARTERSTAFF:
+		  case WEAPON_TYPE_SCIMITAR:
+		  case WEAPON_TYPE_SCYTHE:
+		  case WEAPON_TYPE_SICKLE:
+		  case WEAPON_TYPE_SHORTSPEAR:
+		  case WEAPON_TYPE_SLING:
+		  case WEAPON_TYPE_SPEAR:
+			return TRUE;
+		}	
+	  } else if (type == WPT_BARD) {
+		  switch (weapon) {
+		  case WEAPON_TYPE_LONG_SWORD:
+		  case WEAPON_TYPE_RAPIER:
+		  case WEAPON_TYPE_SAP:
+		  case WEAPON_TYPE_SHORT_SWORD:
+		  case WEAPON_TYPE_SHORT_BOW:
+		  case WEAPON_TYPE_WHIP:
+			return TRUE;
+		}
+	  } else if (type == WPT_ROGUE) {
+		  switch (weapon) {
+		  case WEAPON_TYPE_HAND_CROSSBOW:
+		  case WEAPON_TYPE_RAPIER:
+		  case WEAPON_TYPE_SAP:
+		  case WEAPON_TYPE_SHORT_SWORD:
+		  case WEAPON_TYPE_SHORT_BOW:
+			return TRUE;
+		}
+	  } else if (type == WPT_WIZARD) {
+		  switch (weapon) {
+		  case WEAPON_TYPE_DAGGER:
+		  case WEAPON_TYPE_QUARTERSTAFF:
+		  case WEAPON_TYPE_CLUB:
+		  case WEAPON_TYPE_HEAVY_CROSSBOW:
+		  case WEAPON_TYPE_LIGHT_CROSSBOW:
+			return TRUE;
+		}
+	  } else if (type == WPT_DROW) {
+		  switch (weapon) {
+		  case WEAPON_TYPE_HAND_CROSSBOW:
+		  case WEAPON_TYPE_RAPIER:
+		  case WEAPON_TYPE_SHORT_SWORD:
+			return TRUE;
+		}
+	  } else if (type == WPT_ELF) {
+		  switch (weapon) {
+		  case WEAPON_TYPE_LONG_SWORD:
+		  case WEAPON_TYPE_RAPIER:
+		  case WEAPON_TYPE_LONG_BOW:
+		  case WEAPON_TYPE_COMPOSITE_LONGBOW:
+		  case WEAPON_TYPE_COMPOSITE_LONGBOW_2:
+		  case WEAPON_TYPE_COMPOSITE_LONGBOW_3:
+		  case WEAPON_TYPE_COMPOSITE_LONGBOW_4:
+		  case WEAPON_TYPE_COMPOSITE_LONGBOW_5:
+		  case WEAPON_TYPE_SHORT_BOW:
+		  case WEAPON_TYPE_COMPOSITE_SHORTBOW:
+		  case WEAPON_TYPE_COMPOSITE_SHORTBOW_2:
+		  case WEAPON_TYPE_COMPOSITE_SHORTBOW_3:
+		  case WEAPON_TYPE_COMPOSITE_SHORTBOW_4:
+		  case WEAPON_TYPE_COMPOSITE_SHORTBOW_5:
+			return TRUE;
+		}
+	  } else if (type == WPT_DWARF) {
+		  switch (weapon) {
+		  case WEAPON_TYPE_DWARVEN_WAR_AXE:
+		  case WEAPON_TYPE_DWARVEN_URGOSH:
+			return TRUE;
+		}
+	  }
+	  return false;
+}
+
+ACMD(do_weaponproficiencies)
+{
+  skip_spaces(&argument);
+  
+  if (!*argument) {
+	  send_to_char(ch, "Please specify one of the following weapon proficiency types:\r\n"
+	                   "simple\r\n"
+					   "martial\r\n"
+					   "exotic\r\n"
+					   "monk\r\n"
+					   "druid\r\n"
+					   "bard\r\n"
+					   "rogue\r\n"
+					   "wizard\r\n"
+					   "drow\r\n"
+					   "elf\r\n"
+					   "dwarf\r\n"
+					   "\r\n");
+	  return;
+  }
+  
+  int type = 0;
+  
+  if (is_abbrev(argument, "simple")) {
+	  type = WPT_SIMPLE;
+  } else if (is_abbrev(argument, "martial")) {
+	  type = WPT_MARTIAL;
+  } else if (is_abbrev(argument, "exotic")) {
+	  type = WPT_EXOTIC;
+  } else if (is_abbrev(argument, "monk")) {
+	  type = WPT_MONK;
+  } else if (is_abbrev(argument, "druid")) {
+	  type = WPT_DRUID;
+  } else if (is_abbrev(argument, "bard")) {
+	  type = WPT_BARD;
+  } else if (is_abbrev(argument, "rogue")) {
+	  type = WPT_ROGUE;
+  } else if (is_abbrev(argument, "wizard")) {
+	  type = WPT_WIZARD;
+  } else if (is_abbrev(argument, "drow")) {
+	  type = WPT_DROW;
+  } else if (is_abbrev(argument, "elf")) {
+	  type = WPT_ELF;
+  } else if (is_abbrev(argument, "dwarf")) {
+	  type = WPT_DWARF;
+  } else {
+  send_to_char(ch, "Please specify one of the following weapon proficiency types:\r\n"
+				   "simple\r\n"
+				   "martial\r\n"
+				   "exotic\r\n"
+				   "monk\r\n"
+				   "druid\r\n"
+				   "bard\r\n"
+				   "rogue\r\n"
+				   "wizard\r\n"
+				   "drow\r\n"
+				   "elf\r\n"
+				   "dwarf\r\n"
+				   "\r\n");
+  return;  
+  }
+   
+  int i = 0;
+  
+  send_to_char(ch, "Weapons available for proficiency '%s'\r\n", argument);
+  for (i = 0; i < NUM_WEAPON_TYPES; i++) {
+	if (is_weapon_proficient(i, type))
+		send_to_char(ch, "--%s\r\n", weapon_list[i].name);
+  }
+	
+}
+
+#undef WPT_SIMPLE
+#undef WPT_MARTIAL
+#undef WPT_EXOTIC
+#undef WPT_MONK
+#undef WPT_DRUID
+#undef WPT_BARD
+#undef WPT_ROGUE
+#undef WPT_WIZARD
+#undef WPT_DROW
+#undef WPT_ELF
+#undef WPT_DWARF
+
+
+ACMD(do_weaponinfo) {
+	
+  skip_spaces(&argument);
+  
+  if (!*argument) {
+	  send_to_char(ch, "Please specify a weapon type.\r\n"
+                       "A list can be seen by using the weaponlist command.\r\n");
+	  return;
+  }
+  
+  int type = 0;
+  char buf[MAX_STRING_LENGTH];
+  char buf2[100];
+  char buf3[100];
+  size_t len = 0;
+  int crit_multi = 0;
+  sbyte found = false;
+
+  for (type = 0; type < NUM_WEAPON_TYPES; type++) {
+	  
+	if (!is_abbrev(argument, weapon_list[type].name)) continue;
+
+    /* have to do some calculations beforehand */
+    switch (weapon_list[type].critMult) {
+      case CRIT_X2:
+        crit_multi = 2;
+        break;
+      case CRIT_X3:
+        crit_multi = 3;
+        break;
+      case CRIT_X4:
+        crit_multi = 4;
+        break;
+      case CRIT_X5:
+        crit_multi = 5;
+        break;
+      case CRIT_X6:
+        crit_multi = 6;
+        break;
+    }
+    sprintbit(weapon_list[type].weaponFlags, weapon_flags, buf2, sizeof (buf2));
+    sprintbit(weapon_list[type].damageTypes, weapon_damage_types, buf3, sizeof (buf3));
+
+    len += snprintf(buf + len, sizeof (buf) - len,
+            "\tW%s\tn, Dam: %dd%d, Threat: %d, Crit-Multi: %d, Flags: %s, Cost: %d, "
+            "Dam-Types: %s, Weight: %d, Range: %d, Family: %s, Size: %s, Material: %s, "
+            "Handle: %s, Head: %s.\r\n",
+            weapon_list[type].name, weapon_list[type].numDice, weapon_list[type].diceSize,
+            (20 - weapon_list[type].critRange), crit_multi, buf2, weapon_list[type].cost,
+            buf3, weapon_list[type].weight, weapon_list[type].range,
+            weapon_family[weapon_list[type].weaponFamily],
+            sizes[weapon_list[type].size], material_name[weapon_list[type].material],
+            weapon_handle_types[weapon_list[type].handle_type],
+            weapon_head_types[weapon_list[type].head_type]
+            );
+	found = true;
+
+  }
+  
+  if (!found) {
+	  send_to_char(ch, "That is not a valid weapon type.\r\n");
+	  return;
+  }
+  
+  page_string(ch->desc, buf, 1);
 }
 
 /*EOF*/

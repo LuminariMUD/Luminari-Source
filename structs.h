@@ -1805,9 +1805,27 @@
 #define ITEM_RESOURCE    45  // used for trade with wagon
 #define ITEM_PET         46  /* object will convert into a mobile follower upon purchase */
 #define ITEM_BLUEPRINT   47  /* NewCraft */
+#define ITEM_TREASURE_CHEST 48 /* used with the loot command. */
 /**/
 /** Total number of item types.*/
-#define NUM_ITEM_TYPES   48
+#define NUM_ITEM_TYPES   49
+
+// Lootboxes / Treaure chests
+
+#define LOOTBOX_LEVEL_MUNDANE 1
+#define LOOTBOX_LEVEL_MINOR 2
+#define LOOTBOX_LEVEL_TYPICAL 3
+#define LOOTBOX_LEVEL_MEDIUM 4
+#define LOOTBOX_LEVEL_MAJOR 5
+#define LOOTBOX_LEVEL_SUPERIOR 6
+
+#define LOOTBOX_TYPE_GENERIC 1
+#define LOOTBOX_TYPE_WEAPON 2
+#define LOOTBOX_TYPE_ARMOR 3
+#define LOOTBOX_TYPE_CONSUMABLE 4
+#define LOOTBOX_TYPE_TRINKET 5
+#define LOOTBOX_TYPE_GOLD 6
+#define LOOTBOX_TYPE_CRYSTAL 7
 
 /* homeland-port */
 /*  note:  swapped free1 (7) with fireweapon
@@ -2228,24 +2246,27 @@
 // weapon families
 /* *Monk: A monk weapon can be used by a monk to perform a flurry of blows
  * (*see FAQ/Errata.) */
-#define WEAPON_FAMILY_MONK             0
-#define WEAPON_FAMILY_SMALL_BLADE      1
-#define WEAPON_FAMILY_CLUB             2
-#define WEAPON_FAMILY_FLAIL            3
-#define WEAPON_FAMILY_SPEAR            4
-#define WEAPON_FAMILY_DOUBLE           5
-#define WEAPON_FAMILY_CROSSBOW         6
-#define WEAPON_FAMILY_THROWN           7
-#define WEAPON_FAMILY_AXE              8
-#define WEAPON_FAMILY_HAMMER           9
-#define WEAPON_FAMILY_PICK             10
-#define WEAPON_FAMILY_MEDIUM_BLADE     11
-#define WEAPON_FAMILY_LARGE_BLADE      12
-#define WEAPON_FAMILY_POLEARM          13
-#define WEAPON_FAMILY_BOW              14
-#define WEAPON_FAMILY_WHIP             15
+#define WEAPON_FAMILY_MONK 0
+#define WEAPON_FAMILY_LIGHT_BLADE 1
+#define WEAPON_FAMILY_SMALL_BLADE WEAPON_FAMILY_LIGHT_BLADE
+#define WEAPON_FAMILY_WHIP WEAPON_FAMILY_LIGHT_BLADE
+#define WEAPON_FAMILY_HAMMER 2
+#define WEAPON_FAMILY_CLUB WEAPON_FAMILY_HAMMER
+#define WEAPON_FAMILY_FLAIL WEAPON_FAMILY_HAMMER
+#define WEAPON_FAMILY_RANGED 3
+#define WEAPON_FAMILY_BOW WEAPON_FAMILY_RANGED
+#define WEAPON_FAMILY_CROSSBOW WEAPON_FAMILY_RANGED
+#define WEAPON_FAMILY_THROWN WEAPON_FAMILY_RANGED
+#define WEAPON_FAMILY_HEAVY_BLADE 4
+#define WEAPON_FAMILY_MEDIUM_BLADE WEAPON_FAMILY_HEAVY_BLADE
+#define WEAPON_FAMILY_LARGE_BLADE WEAPON_FAMILY_HEAVY_BLADE
+#define WEAPON_FAMILY_POLEARM 5
+#define WEAPON_FAMILY_SPEAR WEAPON_FAMILY_POLEARM
+#define WEAPON_FAMILY_DOUBLE 6
+#define WEAPON_FAMILY_AXE 7
+#define WEAPON_FAMILY_PICK WEAPON_FAMILY_AXE
 
-#define NUM_WEAPON_FAMILIES            16
+#define NUM_WEAPON_FAMILIES 8
 
 /* Armor types */
 #define ARMOR_TYPE_NONE     0
@@ -2412,8 +2433,9 @@
 #define WEAPON_TYPE_COMPOSITE_SHORTBOW_3  71
 #define WEAPON_TYPE_COMPOSITE_SHORTBOW_4  72
 #define WEAPON_TYPE_COMPOSITE_SHORTBOW_5  73
-/**/
-#define NUM_WEAPON_TYPES            74
+#define WEAPON_TYPE_WARMAUL               74
+// One higher than last above
+#define NUM_WEAPON_TYPES                  75
 
 /* different ammo types */
 #define AMMO_TYPE_UNDEFINED             0

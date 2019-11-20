@@ -1496,6 +1496,7 @@ static void generic_main_disp_menu(struct descriptor_data *d) {
           "%s 8%s) Wizard School Selection%s\r\n"
           "%s 9%s) Preferred Caster Classes (Prestige)%s\r\n"
           "%s A%s) Sorcerer Bloodline Selection%s\r\n"
+          "%s D%s) Alchemist Discoveries Selection%s\r\n"
           "\r\n"
           "%s Q%s) Quit\r\n"
           "\r\n"
@@ -1513,6 +1514,7 @@ static void generic_main_disp_menu(struct descriptor_data *d) {
           MENU_OPT(CAN_SET_SCHOOL(ch)), CAN_SET_SCHOOL(ch) ? "" : "*", //8
           MENU_OPT(CAN_SET_P_CASTER(ch)), CAN_SET_P_CASTER(ch) ? "" : "*", //9
           MENU_OPT(CAN_SET_S_BLOODLINE(ch)), CAN_SET_S_BLOODLINE(ch) ? "" : "*", //A
+          MENU_OPT(has_alchemist_discoveries_unchosen(ch)), has_alchemist_discoveries_unchosen(ch) ? "" : "*", //D
           grn, nrm
           );
 
@@ -1521,7 +1523,35 @@ static void generic_main_disp_menu(struct descriptor_data *d) {
 
 /*  This does not work for all cfeats -exotic weapon proficiency is a special
  *  case and needs special handling. */
-static void cfeat_disp_menu(struct descriptor_data *d) {
+
+static void cfeat_disp_menu(struct descriptor_data *d)
+{
+  const char *feat_weapons[NUM_WEAPON_FAMILIES + 1];
+  int i = 0, counter = 0;
+
+  get_char_colors(d->character);
+  clear_screen(d);
+
+  /* we want to use column_list here, but we don't have a pre made list
+   * of string values (without undefined).  Make one, and make sure it is in order. */
+  for (i = 0; i < NUM_WEAPON_FAMILIES; i++)
+  {
+    feat_weapons[counter] = weapon_family[i];
+    counter++;
+  }
+
+  column_list(d->character, 3, feat_weapons, counter, TRUE);
+
+  write_to_output(d, "\r\n%sChoose weapon type for the %s feat : ", nrm, feat_list[LEVELUP(d->character)->tempFeat].name);
+
+  OLC_MODE(d) = STUDY_CFEAT_MENU;
+}
+
+//#define USINGOLDFEATMENU
+
+#ifdef USINGOLDFEATMENU
+
+static void cfeat_disp_menu_old(struct descriptor_data *d) {
   const char *feat_weapons[NUM_WEAPON_TYPES - 1];
   int i = 0, counter = 0;
 
@@ -1554,6 +1584,8 @@ static void cfeat_disp_menu(struct descriptor_data *d) {
 
   OLC_MODE(d) = STUDY_CFEAT_MENU;
 }
+
+#endif
 
 static void sfeat_disp_menu(struct descriptor_data *d) {
   int i = 0;
@@ -1927,11 +1959,12 @@ void study_parse(struct descriptor_data *d, char *arg) {
         gen_feat_disp_menu(d);
         break;
       }
-      if ((number < 1) || (number >= NUM_WEAPON_TYPES)) {
+      if ((number < 1) || (number >= NUM_WEAPON_FAMILIES)) {
         write_to_output(d, "That is an invalid choice!\r\n");
         cfeat_disp_menu(d);
         break;
       }
+      number--;  // menu starts at 1 but weapon family defines start at 0
       if(HAS_COMBAT_FEAT(ch, feat_to_cfeat(LEVELUP(d->character)->tempFeat), number) ||
          HAS_LEVELUP_COMBAT_FEAT(ch, feat_to_cfeat(LEVELUP(ch)->tempFeat), number)) {
         write_to_output(d, "You already have that weapon type selected for this feat!\r\n\r\n");

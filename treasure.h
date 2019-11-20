@@ -310,6 +310,8 @@ int adjust_bonus_value(int apply_location, int bonus);
  *
  * This is a work in progress. */
 void load_treasure(struct char_data *mob);
+int determine_rnd_misc_cat();
+int cp_convert_grade_enchantment(int grade);
 
 // staff tool to load random items
 ACMD(do_loadmagic);
@@ -318,5 +320,17 @@ ACMD(do_loadmagicspecific);
 
 /* special procedures */
 SPECIAL(bazaar);
+
+#define GRADE_MUNDANE  1 // 0-5
+#define GRADE_MINOR    2 // 5-10
+#define GRADE_TYPICAL  3 // 10-15
+#define GRADE_MEDIUM   4 // 15-20
+#define GRADE_MAJOR    5 // 20-25
+#define GRADE_SUPERIOR 6 // 25-30
+
+#define TYPE_POTION 1
+#define TYPE_SCROLL 2
+#define TYPE_WAND   3
+#define TYPE_STAFF  4
 
 #endif	/* TREASURE_H */

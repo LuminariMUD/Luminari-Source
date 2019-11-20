@@ -10,11 +10,16 @@ act.informative.o: act.informative.c conf.h sysdep.h structs.h protocol.h \
  race.h fight.h modify.h asciimap.h clan.h craft.h wilderness.h quest.h \
  feats.h assign_wpn_armor.h domains_schools.h desc_engine.h crafts.h \
  alchemy.h
+act.item.o: act.item.c conf.h sysdep.h structs.h protocol.h lists.h \
+ utils.h comm.h screen.h interpreter.h handler.h db.h spells.h \
+ constants.h dg_scripts.h oasis.h help.h act.h quest.h spec_procs.h \
+ clan.h mud_event.h dg_event.h hlquest.h fight.h mudlim.h actions.h \
+ traps.h assign_wpn_armor.h spec_abilities.h item.h feats.h alchemy.h
 act.movement.o: act.movement.c conf.h sysdep.h structs.h protocol.h \
  lists.h utils.h comm.h interpreter.h handler.h db.h spells.h house.h \
  constants.h dg_scripts.h act.h fight.h oasis.h help.h spec_procs.h \
  mud_event.h dg_event.h hlquest.h mudlim.h wilderness.h actions.h traps.h \
- spell_prep.h trails.h
+ spell_prep.h trails.h assign_wpn_armor.h
 act.offensive.o: act.offensive.c conf.h sysdep.h structs.h protocol.h \
  lists.h utils.h comm.h interpreter.h handler.h db.h spells.h act.h \
  fight.h mud_event.h dg_event.h constants.h spec_procs.h class.h mudlim.h \
@@ -227,7 +232,7 @@ kdtree.o: kdtree.c kdtree.h
 limits.o: limits.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  spells.h comm.h db.h handler.h interpreter.h dg_scripts.h class.h \
  fight.h screen.h mud_event.h dg_event.h mudlim.h act.h actions.h \
- domains_schools.h grapple.h alchemy.h
+ domains_schools.h grapple.h constants.h alchemy.h
 lists.o: lists.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  db.h dg_event.h
 magic.o: magic.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \

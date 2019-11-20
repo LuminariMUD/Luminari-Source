@@ -716,5 +716,9 @@ ACMD(do_bombs);
 ACMD(do_bandage);
 ACMD(do_players);
 ACMD(do_copyroom);
+ACMD(do_loot);
+ACMD(do_weapontypes);
+ACMD(do_weaponproficiencies);
+ACMD(do_weaponinfo);
 
 #endif /* _ACT_H_ */
