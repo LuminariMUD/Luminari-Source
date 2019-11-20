@@ -4968,8 +4968,7 @@ void load_class_list(void) {
           " spellcaster, the alchemist captures his own magic potential within "
           " liquids and extracts he creates, infusing his chemicals with virulent power "
           " to grant him impressive skill with poisons, explosives, and all manner of "
-          " self-transformative magic."
-          "\r\n@RTHIS CLASS IS NOT FINISHED.  AVAILABLE FOR TESTING PURPOSES ONLY\r\n\r\n"
+          " self-transformative magic.\r\n\r\n"
           );
   /* class-number then saves:        fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_ALCHEMIST, G, G, B, G, B);

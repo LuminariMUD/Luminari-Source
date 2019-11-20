@@ -136,6 +136,8 @@ struct alias_data {
 #define SCMD_OASIS_REGLIST     7
 #define SCMD_OASIS_PATHLIST    8
 
+#define SCMD_PILFER 	       1
+
 /* Necessary for CMD_IS macro.  Borland needs the structure defined first
  * so it has been moved down here. */
 /* Global buffering system */

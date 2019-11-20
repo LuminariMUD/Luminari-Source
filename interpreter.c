@@ -358,6 +358,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "kick", "ki", POS_FIGHTING, do_process_attack, 1, AA_KICK, FALSE, ACTION_NONE, {6, 0}, NULL},
 
   { "look", "l", POS_RECLINING, do_look, 0, SCMD_LOOK, TRUE, ACTION_NONE, {0, 0}, NULL},
+  { "loot", "loot", POS_STANDING, do_loot, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
   { "layonhands", "layonhands", POS_FIGHTING, do_layonhands, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_layonhands},
   { "last", "last", POS_DEAD, do_last, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
   { "leave", "lea", POS_STANDING, do_leave, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -426,6 +427,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "put", "p", POS_RECLINING, do_put, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
   { "peace", "pe", POS_DEAD, do_peace, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
   { "pick", "pi", POS_STANDING, do_gen_door, 1, SCMD_PICK, FALSE, ACTION_NONE, {0, 0}, NULL},
+  { "pilfer", "pil", POS_STANDING, do_loot, 1, SCMD_PILFER, FALSE, ACTION_STANDARD, {0, 0}, NULL},
   { "practice", "pr", POS_RECLINING, do_practice, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
   { "page", "pag", POS_DEAD, do_page, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
   { "pardon", "pardon", POS_DEAD, do_wizutil, LVL_STAFF, SCMD_PARDON, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -622,7 +624,10 @@ cpp_extern const struct command_info cmd_info[] = {
   { "write", "write", POS_STANDING, do_write, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
   { "wholenessofbody", "wholenessofbody", POS_RECLINING, do_wholenessofbody, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_wholenessofbody},
   { "wildshape", "wildshape", POS_RESTING ,do_wildshape, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
+  { "weaponinfo", "weaponinfo", POS_DEAD, do_weaponinfo, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
   { "weaponlist", "weaponlist", POS_DEAD, do_weaponlist, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+  { "weaponproficiencies", "weaponprof", POS_DEAD, do_weaponproficiencies, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+  { "weapontypes", "weapontypes", POS_DEAD, do_weapontypes, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 
   { "zreset", "zreset", POS_DEAD, do_zreset, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
   { "zedit", "zedit", POS_DEAD, do_oasis_zedit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},

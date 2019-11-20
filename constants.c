@@ -1543,21 +1543,13 @@ const char *equipment_types[NUM_WEARS + 1] = {
 /* weapon family */
 const char *weapon_family[NUM_WEAPON_FAMILIES + 1] = {
   "Monk",
-  "Small-Blade",
-  "Club",
-  "Flail",
-  "Spear",
-  "Double",
-  "Crossbow",
-  "Thrown",
-  "Axe",
+  "Light-Blade",
   "Hammer",
-  "Pick",
-  "Medium-Blade",
-  "Large-Blade",
+  "Ranged",
+  "Heavy-Blade",
   "Polearm",
-  "Bow",
-  "Whip",
+  "Double-Weapon",
+  "Axe",
   "\n"
 };
 
@@ -1722,6 +1714,7 @@ const char *item_types[NUM_ITEM_TYPES + 1] = {
   "Resources", //45
   "Pet", //46
   "Blueprint", //47 /* NewCraft */
+  "Treasure Chest",
   "\n"
 };
 

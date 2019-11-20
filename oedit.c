@@ -318,6 +318,36 @@ void oedit_disp_weapon_spells(struct descriptor_data *d) {
   send_to_char(d->character, "Enter spell to edit : ");
 }
 
+static void oedit_disp_lootbox_levels(struct descriptor_data *d) {
+  write_to_output(d, 
+	  "This will determine the maximum bonus to be found on the items in the chest.\r\n"
+	  "Please choose the maximum grade of equipment that can drop from this chest.\r\n"
+	  "1) Mundane\r\n"
+	  "2) Minor (level 10 or less)\r\n"
+	  "3) Typical(level 15 or less)\r\n"
+	  "4) Medium (level 20 or less)\r\n"
+	  "5) Major (level 25 or less)\r\n"
+	  "6) Superior (level 26 or higher)\r\n"
+	  "\r\nYour Choice: "
+  );
+}
+
+static void oedit_disp_lootbox_types(struct descriptor_data *d) {
+  write_to_output(d, 
+  "The type guarantees one item of the specified type.\r\n"
+  "Generic has equal chance for any type.  Gold provides 5x as much money.\r\n"
+  "Please choose the type of lootbox you'd like to create:\r\n"
+  "1) Generic, equal chance for all item types.\r\n"
+  "2) Weapons, guaranteed weapon, low chance for other items.\r\n"
+  "3) Armor, guaranteed armor, low chance for other items.\r\n"
+  "4) Consumables, guaranteed at least one consumable, low chance for other items.\r\n"
+  "5) Trinkets, guaranteed trinket (rings, bracers, etc), low chance for other items.\r\n"
+  "6) Gold, much more gold, low chance for other items.\r\n"
+  "7) Crystal, garaunteed arcanite crystal, low chance for other items.\r\n"
+  "\r\nYour Choice: "
+  );
+}
+
 /* Menu functions */
 
 /* For container flags. */
@@ -911,6 +941,9 @@ static void oedit_disp_val1_menu(struct descriptor_data *d) {
     case ITEM_TREASURE:
       oedit_disp_menu(d);
       break;
+    case ITEM_TREASURE_CHEST:
+      oedit_disp_lootbox_levels(d);
+      break;
     default:
       mudlog(BRF, LVL_BUILDER, TRUE, "SYSERR: OLC: Reached default case in oedit_disp_val1_menu()!");
       break;
@@ -1007,6 +1040,9 @@ static void oedit_disp_val2_menu(struct descriptor_data *d) {
           oedit_disp_menu(d);
           break;
       }
+      break;
+    case ITEM_TREASURE_CHEST:
+      oedit_disp_lootbox_types(d);
       break;
 
     default:
@@ -1846,6 +1882,15 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
           oedit_disp_val5_menu(d);
           return;
 
+       case ITEM_TREASURE_CHEST:
+         if (atoi(arg) <= 0 || atoi(arg) > 6) {
+         write_to_output(d, "Invalid option.  Try again: ");
+         return;
+         }
+         GET_OBJ_VAL(OLC_OBJ(d), 0) = atoi(arg);
+         oedit_disp_val2_menu(d);
+         return;
+
         case ITEM_FIREWEAPON:
           GET_OBJ_VAL(OLC_OBJ(d), 0) = MIN(MAX(atoi(arg), 0), NUM_RANGED_WEAPONS - 1);
           break;
@@ -1885,6 +1930,14 @@ void oedit_parse(struct descriptor_data *d, char *arg) {
       switch (GET_OBJ_TYPE(OLC_OBJ(d))) {
         case ITEM_INSTRUMENT: /* reduce difficulty */
           GET_OBJ_VAL(OLC_OBJ(d), 1) = LIMIT(number, 0, 30);
+          oedit_disp_val3_menu(d);
+          break;
+        case ITEM_TREASURE_CHEST:
+          if (atoi(arg) <= 0 || atoi(arg) > 7) {
+          write_to_output(d, "Invalid option.  Try again: ");
+          return;
+          }
+          GET_OBJ_VAL(OLC_OBJ(d), 1) = atoi(arg);
           oedit_disp_val3_menu(d);
           break;
         case ITEM_SCROLL:

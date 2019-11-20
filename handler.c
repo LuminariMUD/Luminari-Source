@@ -291,6 +291,8 @@ void aff_apply_modify(struct char_data *ch, byte loc, sbyte mod, char *msg) {
       break;
     case APPLY_NONE:
       break;
+    case APPLY_SKILL:
+      break;
       /* end Do Not Use */
 
     default:

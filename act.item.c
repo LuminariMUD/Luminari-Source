@@ -37,6 +37,8 @@
 #include "item.h"
 #include "feats.h"
 #include "alchemy.h"
+#include "mysql.h"
+#include "treasure.h"
 
 /* local function prototypes */
 /* do_get utility functions */
@@ -2889,3 +2891,205 @@ ACMD(do_sac) {
   }
   extract_obj(j);
 }
+
+struct obj_data * find_lootbox_in_room_vis(struct char_data *ch) {
+	
+	struct obj_data *obj = NULL;
+	
+	for (obj = world[IN_ROOM(ch)].contents; obj; obj = obj->next_content) {
+		if (GET_OBJ_TYPE(obj) == ITEM_TREASURE_CHEST)
+			if (CAN_SEE_OBJ(ch, obj))
+				return obj;
+	}
+	
+	return NULL;
+}
+
+// Used with treasure chests that allow each individual character to loot it once every 4 hours
+ACMD(do_loot) {
+	
+
+	struct obj_data *obj = find_lootbox_in_room_vis(ch);
+	
+	if (!obj) {
+		send_to_char(ch, "There are no visible loot boxes here.\r\n");
+		return;
+	}
+	
+	if (IS_NPC(ch)) {
+		send_to_char(ch, "Lootboxes can only be opened by player characters.\r\n");
+		return;
+	}
+
+	if (((LOOTBOX_LEVEL(obj) * 5)-10) > GET_LEVEL(ch)) {
+		send_to_char(ch, "You are too low level to open that lootbox.\r\n");
+		return;
+	}
+	
+	struct char_data *tch = NULL;
+	sbyte pilfer = false;
+	
+	for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room) {
+		if (!IS_NPC(tch)) continue;
+		if (AFF_FLAGGED(tch, AFF_CHARM)) continue;
+		if (subcmd == SCMD_PILFER) {
+			if (skill_check(ch, ABILITY_SLEIGHT_OF_HAND, dice(1, 20) + (GET_LEVEL(tch) * 0.75))) {
+				pilfer = true;
+				continue;
+			} else {
+				act("$N notices your attempt to pilfer the treasure and attacks!", TRUE, ch, 0, tch, TO_CHAR);
+				act("You notice $n's attempt to pilfer the treasure and attacks!", TRUE, ch, 0, tch, TO_VICT);
+				act("$N notices $n's attempt to pilfer the treasure and attacks!", TRUE, ch, 0, tch, TO_NOTVICT);
+				hit(tch, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+			}
+		}
+		send_to_char(ch, "You must defeat all non-charmie mobs in this room before you can loot anything.\r\n");
+		return;
+	}
+
+	if (pilfer) {
+		send_to_char(ch, "You deftly maneuver your way to the treasure unseen.\r\n");
+	}
+	
+	obj_vnum vnum = GET_OBJ_VNUM(obj);
+	
+	
+	char query[500], last[20], curr[20];
+	MYSQL_RES *res = NULL;
+	MYSQL_ROW row = NULL;
+	int found = FALSE;
+      
+	/* Check the connection, reconnect if necessary. */
+//	mysql_ping(conn);
+	  
+	sprintf(query, "SELECT last_loot, DATE_ADD(last_loot, INTERVAL 4 HOUR) as curr_time, DATE_ADD(last_loot, INTERVAL 4 HOUR) as reloot "
+			"FROM loot_chests WHERE chest_vnum='%d' AND character_name='%s' AND DATE_ADD(last_loot, INTERVAL 4 HOUR) > NOW()",
+			vnum, GET_NAME(ch));
+
+      mysql_query(conn, query);
+      res = mysql_use_result(conn);
+      if (res != NULL) {
+        if ((row = mysql_fetch_row(res)) != NULL) {
+			sprintf(last, "%s", row[0]);
+			sprintf(curr, "%s", row[1]);
+			found = TRUE;
+	}
+      }
+	  
+	  mysql_free_result(res);
+	  
+	  if (found && GET_LEVEL(ch) < LVL_IMMORT) {  // they've looted it less than four hours ago, so no go.
+            char *tmstr;
+            time_t mytime;
+
+            mytime = time(0);
+
+            tmstr = (char *) asctime(localtime(&mytime));
+            *(tmstr + strlen(tmstr) - 1) = '\0';
+            send_to_char(ch, "You've already looted this chest.  Your last loot was %s, and you can loot again at %s, server time. ", last, curr);
+            send_to_char(ch, "Current machine time: %s\r\n", tmstr);
+//		  send_to_char(ch, "\r\nQUERY: %s\r\n", query);
+		  return;
+	  }
+	  
+	  sprintf(query, "DELETE FROM loot_chests WHERE chest_vnum='%d' AND character_name='%s'", vnum, GET_NAME(ch));
+	  mysql_query(conn, query);
+	  
+	  sprintf(query, "INSERT INTO loot_chests (loot_id, chest_vnum, character_name, last_loot) VALUES(NULL,'%d','%s',NOW())", vnum, GET_NAME(ch));
+	  mysql_query(conn, query);
+	  
+	  int level = 0, max_grade = GRADE_MUNDANE;
+	  
+	  level = LOOTBOX_LEVEL(obj);
+	  
+      if (level >= 6) {
+		max_grade = GRADE_SUPERIOR;
+	  } else if (level >= 5) {
+		max_grade = GRADE_MAJOR;
+	  } else if (level >= 4) {
+		max_grade = GRADE_MEDIUM;
+	  } else if (level >= 3) {
+		max_grade = GRADE_TYPICAL;
+	  } else if (level >= 2) {
+		max_grade = GRADE_MINOR;
+	  } else {
+		max_grade = GRADE_MUNDANE;
+	  }
+	  
+	  int gold = 50;
+	  
+	  gold += dice(level * 5, 10) * 2;
+	  
+	  if (LOOTBOX_TYPE(obj) == LOOTBOX_TYPE_GOLD)
+		  gold *= 5;
+
+	  GET_GOLD(ch) += gold;
+	  send_to_char(ch, "You find %d gold coins in the chest.\r\n", gold);
+	  
+	  sbyte recMagic = false;
+	  sbyte recArmor, recWeapon, recTrinket, recConsumable, recCrystal;
+	  byte chance = 8; // 1 in 8 chance by default for generic chests
+	  
+	  recArmor = recWeapon = recConsumable = recTrinket = recCrystal = false;
+	  
+	  switch (LOOTBOX_TYPE(obj)) {
+		  case LOOTBOX_TYPE_WEAPON:
+		    award_magic_weapon(ch, max_grade);
+			chance = 12;
+			recWeapon = true;
+			recMagic = true;
+			break;
+		  case LOOTBOX_TYPE_ARMOR:
+		    award_magic_armor(ch, max_grade, -1);
+			chance = 12;
+			recArmor = true;
+			recMagic = true;
+			break;
+		  case LOOTBOX_TYPE_CONSUMABLE:
+		    switch(dice(1, 4)) {
+				case 1: award_expendable_item(ch, max_grade, TYPE_SCROLL); break;
+				case 2: award_expendable_item(ch, max_grade, TYPE_POTION); break;
+				case 3: award_expendable_item(ch, max_grade, TYPE_WAND); break;
+				case 4: award_expendable_item(ch, max_grade, TYPE_STAFF); break;
+			}
+			chance = 12;
+			recConsumable = true;
+			recMagic = true;
+			break;
+		  case LOOTBOX_TYPE_TRINKET:
+		    award_misc_magic_item(ch, determine_rnd_misc_cat(), cp_convert_grade_enchantment(max_grade));
+			chance = 12;
+			recTrinket = true;
+			recMagic = true;
+			break;
+		  case LOOTBOX_TYPE_CRYSTAL:
+			award_random_crystal(ch, max_grade);
+			chance = 12;
+			recCrystal = true;
+			recMagic = true;
+			break;
+		  case LOOTBOX_TYPE_GOLD:
+		    chance = 12; // less of a chance to get more than one item in addition to the gold.
+		    recMagic = false;
+		    break;
+		  default: // generic type
+		    chance = 8;
+			recMagic = false;
+		    break;
+	  }
+	  
+	  do {
+		if (dice(1, chance) == 1 && !recCrystal) { award_random_crystal(ch, max_grade); recMagic = true; }
+		if (dice(1, chance) == 1 && !recWeapon) { award_magic_weapon(ch, max_grade); recMagic = true; }
+	        if (dice(1, chance) == 1 && !recConsumable) { award_expendable_item(ch, max_grade, TYPE_SCROLL); recMagic = true; }
+        	if (dice(1, chance) == 1 && !recConsumable) { award_expendable_item(ch, max_grade, TYPE_POTION); recMagic = true; }
+	        if (dice(1, chance) == 1 && !recConsumable) { award_expendable_item(ch, max_grade, TYPE_WAND); recMagic = true; }
+        	if (dice(1, chance) == 1 && !recConsumable) { award_expendable_item(ch, max_grade, TYPE_STAFF); recMagic = true; }
+ 	        if (dice(1, chance) == 1 && !recConsumable) { award_magic_ammo(ch, max_grade); recMagic = true; }
+        	if (dice(1, chance) == 1 && !recTrinket) { award_misc_magic_item(ch, determine_rnd_misc_cat(), cp_convert_grade_enchantment(max_grade)); recMagic = true; }
+	        if (dice(1, chance) == 1 && !recArmor) { award_magic_armor(ch, max_grade, -1); recMagic = true; }
+	  } while (!recMagic);
+	  
+	//mysql_close(conn);
+}
+

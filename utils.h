@@ -2056,6 +2056,11 @@ spellnum == SPELL_EPIC_WARDING )
 #define GUI_RDSC_OPEN(ch)                (gui_room_desc_wrap_open(ch))
 #define GUI_RDSC_CLOSE(ch)               (gui_room_desc_wrap_close(ch))
 
+// LootBoxes / Treasure Chests
+
+#define LOOTBOX_LEVEL(obj)	(GET_OBJ_VAL(obj, 0))
+#define LOOTBOX_TYPE(obj)	(GET_OBJ_VAL(obj, 1))
+
 #endif /* _UTILS_H_ */
 
 /*EOF*/

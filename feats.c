@@ -4308,10 +4308,10 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
 
           if (HAS_COMBAT_FEAT(ch, subfeat, j)) {
             if (mode == 1) {
-              sprintf(buf3, "%s (%s)", feat_list[i].name, weapon_list[j].name);
+              sprintf(buf3, "%s (%s)", feat_list[i].name, j > NUM_WEAPON_FAMILIES ? "respec required" : weapon_family[j]);
               sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
             } else {
-              sprintf(buf3, "%s (%s)", feat_list[i].name, weapon_list[j].name);
+              sprintf(buf3, "%s (%s)", feat_list[i].name, j > NUM_WEAPON_FAMILIES ? "respec required" : weapon_family[j]);
               count++;
               if (count % 2 == 0)
                 sprintf(buf, "%-40s\r\n", buf3);

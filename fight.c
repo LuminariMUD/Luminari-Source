@@ -3243,22 +3243,22 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   /* weapon specialist */
   if (HAS_FEAT(ch, FEAT_WEAPON_SPECIALIZATION)) {
     /* Check the weapon type, make sure it matches. */
-    if (((wielded != NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_SPECIALIZATION), GET_WEAPON_TYPE(wielded))) ||
-            ((wielded == NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_SPECIALIZATION), WEAPON_TYPE_UNARMED)))
+    if (((wielded != NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_SPECIALIZATION), weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily)) ||
+            ((wielded == NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_SPECIALIZATION), weapon_list[WEAPON_TYPE_UNARMED].weaponFamily)))
       dambonus += 2;
   }
 
   if (HAS_FEAT(ch, FEAT_GREATER_WEAPON_SPECIALIZATION)) {
     /* Check the weapon type, make sure it matches. */
-    if (((wielded != NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_GREATER_WEAPON_SPECIALIZATION), GET_WEAPON_TYPE(wielded))) ||
-            ((wielded == NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_GREATER_WEAPON_SPECIALIZATION), WEAPON_TYPE_UNARMED)))
+    if (((wielded != NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_GREATER_WEAPON_SPECIALIZATION), weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily)) ||
+            ((wielded == NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_GREATER_WEAPON_SPECIALIZATION), weapon_list[WEAPON_TYPE_UNARMED].weaponFamily)))
       dambonus += 4;
   }
 
   if (HAS_FEAT(ch, FEAT_EPIC_WEAPON_SPECIALIZATION)) {
     /* Check the weapon type, make sure it matches. */
-    if (((wielded != NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_EPIC_WEAPON_SPECIALIZATION), GET_WEAPON_TYPE(wielded))) ||
-            ((wielded == NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_EPIC_WEAPON_SPECIALIZATION), WEAPON_TYPE_UNARMED)))
+    if (((wielded != NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_EPIC_WEAPON_SPECIALIZATION), weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily)) ||
+            ((wielded == NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_EPIC_WEAPON_SPECIALIZATION), weapon_list[WEAPON_TYPE_UNARMED].weaponFamily)))
       dambonus += 3;
   }
 
@@ -3504,8 +3504,8 @@ int determine_threat_range(struct char_data *ch, struct obj_data *wielded) {
   /* mods */
 
   if (HAS_FEAT(ch, FEAT_IMPROVED_CRITICAL)) { /* Check the weapon type, make sure it matches. */
-    if (((wielded != NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_IMPROVED_CRITICAL), GET_WEAPON_TYPE(wielded))) ||
-            ((wielded == NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_IMPROVED_CRITICAL), WEAPON_TYPE_UNARMED))) {
+    if (((wielded != NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_IMPROVED_CRITICAL), weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily)) ||
+            ((wielded == NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_IMPROVED_CRITICAL), weapon_list[WEAPON_TYPE_UNARMED].weaponFamily))) {
       if ((wielded == NULL) || weapon_list[GET_OBJ_VAL(wielded, 0)].critRange == 0) {
         threat_range--;
       } else {
@@ -3520,8 +3520,8 @@ int determine_threat_range(struct char_data *ch, struct obj_data *wielded) {
   }
 
   if (HAS_FEAT(ch, FEAT_CRITICAL_SPECIALIST)) { /* Check the weapon type, make sure it matches. */
-    if (((wielded != NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), GET_WEAPON_TYPE(wielded))) ||
-            ((wielded == NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), WEAPON_TYPE_UNARMED)))
+    if (((wielded != NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily)) ||
+            ((wielded == NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), weapon_list[WEAPON_TYPE_UNARMED].weaponFamily)))
       threat_range -= HAS_FEAT(ch, FEAT_CRITICAL_SPECIALIST);
   }
 
@@ -3563,8 +3563,8 @@ int determine_critical_multiplier(struct char_data *ch, struct obj_data *wielded
   }
 
   if (HAS_FEAT(ch, FEAT_INCREASED_MULTIPLIER)) { /* Check the weapon type, make sure it matches. */
-    if (((wielded != NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), GET_WEAPON_TYPE(wielded))) ||
-            ((wielded == NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), WEAPON_TYPE_UNARMED)))
+    if (((wielded != NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily)) ||
+            ((wielded == NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), weapon_list[WEAPON_TYPE_UNARMED].weaponFamily)))
       crit_multi += HAS_FEAT(ch, FEAT_INCREASED_MULTIPLIER);
   }
 
@@ -3690,8 +3690,8 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
 
   /* mods */
   if ((HAS_FEAT(ch, FEAT_UNSTOPPABLE_STRIKE) * 5) >= rand_number(1, 100)) { /* Check the weapon type, make sure it matches. */
-    if (((wielded != NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), GET_WEAPON_TYPE(wielded))) ||
-            ((wielded == NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), WEAPON_TYPE_UNARMED)))
+    if (((wielded != NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily)) ||
+            ((wielded == NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), weapon_list[WEAPON_TYPE_UNARMED].weaponFamily)))
       return (diceOne * diceTwo); /* max damage! */
   }
 
@@ -3710,8 +3710,8 @@ int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll
 
   if (diceroll >= threat_range) { /* critical potential? */
     if (HAS_FEAT(ch, FEAT_POWER_CRITICAL)) { /* Check the weapon type, make sure it matches. */
-      if (((wielded != NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_POWER_CRITICAL), GET_WEAPON_TYPE(wielded))) ||
-              ((wielded == NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_POWER_CRITICAL), WEAPON_TYPE_UNARMED)))
+      if (((wielded != NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_POWER_CRITICAL), weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily)) ||
+              ((wielded == NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_POWER_CRITICAL), weapon_list[WEAPON_TYPE_UNARMED].weaponFamily)))
         confirm_roll += 4;
     }
     if (HAS_FEAT(ch, FEAT_WEAPON_TRAINING)) {
@@ -4678,7 +4678,7 @@ int compute_attack_bonus(struct char_data *ch, /* Attacker */
             if (HAS_FEAT(ch, FEAT_WEAPON_FOCUS)) {
               if (wielded) {
                 /* weapon focus - wielded */
-                if (HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), GET_WEAPON_TYPE(wielded))) {
+                if (HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily)) {
                   bonuses[BONUS_TYPE_UNDEFINED] += 1;
                           /* superior weapon focus - wielded */
                   if (HAS_FEAT(ch, FEAT_WEAPON_OF_CHOICE) &&
@@ -4686,7 +4686,7 @@ int compute_attack_bonus(struct char_data *ch, /* Attacker */
                           bonuses[BONUS_TYPE_UNDEFINED] += 1;
                   }
                 /* weapon focus - unarmed */
-              } else if (HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), WEAPON_TYPE_UNARMED)) {
+              } else if (HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), weapon_list[WEAPON_TYPE_UNARMED].weaponFamily)) {
                 bonuses[BONUS_TYPE_UNDEFINED] += 1;
                         /* superior weapon focus - unarmed */
                 if (HAS_FEAT(ch, FEAT_WEAPON_OF_CHOICE) &&
@@ -4698,18 +4698,18 @@ int compute_attack_bonus(struct char_data *ch, /* Attacker */
   /* greater weapon focus */
   if (HAS_FEAT(ch, FEAT_GREATER_WEAPON_FOCUS)) {
     if (wielded) {
-      if (HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), GET_WEAPON_TYPE(wielded)))
+      if (HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily))
               bonuses[BONUS_TYPE_UNDEFINED] += 1;
-      } else if (HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_GREATER_WEAPON_FOCUS), WEAPON_TYPE_UNARMED))
+      } else if (HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_GREATER_WEAPON_FOCUS), weapon_list[WEAPON_TYPE_UNARMED].weaponFamily))
             bonuses[BONUS_TYPE_UNDEFINED] += 1;
     }
 
   /* epic weapon specialization */
   if (HAS_FEAT(ch, FEAT_EPIC_WEAPON_SPECIALIZATION)) {
     if (wielded) {
-      if (HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_EPIC_WEAPON_SPECIALIZATION), GET_WEAPON_TYPE(wielded)))
+      if (HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_EPIC_WEAPON_SPECIALIZATION), weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily))
               bonuses[BONUS_TYPE_UNDEFINED] += 3;
-      } else if (HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_EPIC_WEAPON_SPECIALIZATION), WEAPON_TYPE_UNARMED))
+      } else if (HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_EPIC_WEAPON_SPECIALIZATION), weapon_list[WEAPON_TYPE_UNARMED].weaponFamily))
             bonuses[BONUS_TYPE_UNDEFINED] += 3;
     }
 
