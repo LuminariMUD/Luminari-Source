@@ -22,6 +22,7 @@
 #include "alchemy.h"
 #include "actions.h"
 #include "act.h"
+#include "fight.h"
 
 // external functions
 int attack_roll(struct char_data *ch, struct char_data *victim, int attack_type, int is_touch, int attack_number);
@@ -29,7 +30,7 @@ int damage(struct char_data *ch, struct char_data *victim, int dam, int w_type, 
 int is_player_grouped(struct char_data *target, struct char_data *group);
 
 const char *alchemical_discovery_names[NUM_ALC_DISCOVERIES] = {
-    "none",
+    "normal bomb",
     "acid bomb",
     "blinding bomb",
     "boneshard bomb",
@@ -75,7 +76,7 @@ const char *alchemical_discovery_names[NUM_ALC_DISCOVERIES] = {
     "wings"};
 
 const char *alchemical_discovery_descriptions[NUM_ALC_DISCOVERIES] = {
-    "none",
+    "Deals 1d6/rank fire damage.",
     "Deals 1d6/rank acid damage with additional 1d6 damage 1 round later.",
     "Chance to blind direct target, and dazzle splash targets.",
     "Deals 1d6/rank piercing damage, and direct targets can take 1d4 bleed damage.",
@@ -154,7 +155,8 @@ const char *bomb_types[NUM_BOMB_TYPES] = {
     "shock",
     "stink",
     "sunlight",
-    "tanglefoot"};
+    "tanglefoot"
+  };
 
 const char *bomb_descriptions[NUM_BOMB_TYPES] = {
     "",
@@ -623,6 +625,10 @@ ACMD(do_bombs)
       // we missed :(
       send_to_char(ch, "You throw a bomb, but it misses its intended target.\r\n");
       act("$n throws a bomb, but it misses its intended target and explodes a safe distance away.", TRUE, ch, 0, 0, TO_ROOM);
+      // we want to start combat if not already in combat
+      if (!FIGHTING(target)) {
+        hit(target, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+      }
     }
 
     // let's remove the bomb they just tossed
@@ -2656,4 +2662,235 @@ ACMD(do_poisontouch)
   }
 
   USE_STANDARD_ACTION(ch);
+}
+
+int find_discovery_num(char *name) {
+  int index, ok;
+  char *temp, *temp2;
+  char first[256], first2[256];
+
+  for (index = 0; index < NUM_ALC_DISCOVERIES; index++) {
+    if (is_abbrev(name, alchemical_discovery_names[index]))
+      return (index);
+
+    ok = TRUE;
+    /* It won't be changed, but other uses of this function elsewhere may. */
+    temp = any_one_arg((char *) alchemical_discovery_names[index], first);
+    temp2 = any_one_arg(name, first2);
+    while (*first && *first2 && ok) {
+      if (!is_abbrev(first2, first))
+        ok = FALSE;
+      temp = any_one_arg(temp, first);
+      temp2 = any_one_arg(temp2, first2);
+    }
+    if (ok && !*first2)
+      return (index);
+  }
+
+  return (-1);
+}
+
+/* display_discovery_info()
+ *
+ * Show information about a particular discovery, dynamically
+ * generated to tailor the output to a particular player.
+ *
+ * (NOTE: The headers of the sections above will be colored
+ * differently, making them stand out.) */
+bool display_discovery_info(struct char_data *ch, char *discoveryname) {
+  int discovery = -1;
+  char buf[MAX_STRING_LENGTH];
+
+  //  static int line_length = 57;
+  static int line_length = 80;
+
+  skip_spaces(&discoveryname);
+  
+  discovery = find_discovery_num(discoveryname);
+
+  if (discovery == -1) {
+    /* Not found - Maybe put in a soundex list here? */
+    //send_to_char(ch, "Could not find that discovery.\r\n");
+    return FALSE;
+  }
+
+  /* We found the discovery, and the discovery number is stored in 'discovery'. */
+  /* Display the discovery info, formatted. */
+  send_to_char(ch, "\tC\r\n");
+  //text_line(ch, "discovery Information", line_length, '-', '-');
+  draw_line(ch, line_length, '-', '-');
+  send_to_char(ch, "\tcDiscovery     : \tn%s\r\n",
+          alchemical_discovery_names[discovery]
+          );
+  send_to_char(ch, "\tC");
+  draw_line(ch, line_length, '-', '-');
+
+  /*  Here display the prerequisites */
+  sprintf(buf, "\tCPrerequisites : \tn%s\r\n", discovery_requisites[discovery]);
+  send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
+
+  send_to_char(ch, "\tC");
+  draw_line(ch, line_length, '-', '-');
+
+  /* This we will need to buffer and wrap so that it will fit in the space provided. */
+  sprintf(buf, "\tcDescription   : \tn%s\r\n",
+          alchemical_discovery_descriptions[discovery]
+          );
+  send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
+  send_to_char(ch, "\tC");
+  draw_line(ch, line_length, '-', '-');
+  send_to_char(ch, "\tn\r\n");
+
+  return TRUE;
+}
+
+int find_grand_discovery_num(char *name) {
+  int index, ok;
+  char *temp, *temp2;
+  char first[256], first2[256];
+
+  for (index = 1; index < NUM_GR_ALC_DISCOVERIES; index++) {
+    if (is_abbrev(name, grand_alchemical_discovery_names[index]))
+      return (index);
+
+    ok = TRUE;
+    /* It won't be changed, but other uses of this function elsewhere may. */
+    temp = any_one_arg((char *) grand_alchemical_discovery_names[index], first);
+    temp2 = any_one_arg(name, first2);
+    while (*first && *first2 && ok) {
+      if (!is_abbrev(first2, first))
+        ok = FALSE;
+      temp = any_one_arg(temp, first);
+      temp2 = any_one_arg(temp2, first2);
+    }
+    if (ok && !*first2)
+      return (index);
+  }
+
+  return (-1);
+}
+
+/* display_grand_discovery_info()
+ *
+ * Show information about a particular discovery, dynamically
+ * generated to tailor the output to a particular player.
+ *
+ * (NOTE: The headers of the sections above will be colored
+ * differently, making them stand out.) */
+bool display_grand_discovery_info(struct char_data *ch, char *discoveryname) {
+  int discovery = -1;
+  char buf[MAX_STRING_LENGTH];
+
+  //  static int line_length = 57;
+  static int line_length = 80;
+
+  skip_spaces(&discoveryname);
+  discovery = find_grand_discovery_num(discoveryname);
+
+  if (discovery == -1) {
+    /* Not found - Maybe put in a soundex list here? */
+    //send_to_char(ch, "Could not find that discovery.\r\n");
+    return FALSE;
+  }
+
+  /* We found the discovery, and the discovery number is stored in 'discovery'. */
+  /* Display the discovery info, formatted. */
+  send_to_char(ch, "\tC\r\n");
+  //text_line(ch, "discovery Information", line_length, '-', '-');
+  draw_line(ch, line_length, '-', '-');
+  send_to_char(ch, "\tcGrand Discovery    : \tn%s\r\n",
+          grand_alchemical_discovery_names[discovery]
+          );
+  send_to_char(ch, "\tC");
+  draw_line(ch, line_length, '-', '-');
+
+  /*  Here display the prerequisites */
+  sprintf(buf, "\tCPrerequisites : \tnLevel 20 Alchemist\r\n");
+  send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
+
+  send_to_char(ch, "\tC");
+  draw_line(ch, line_length, '-', '-');
+
+  /* This we will need to buffer and wrap so that it will fit in the space provided. */
+  sprintf(buf, "\tcDescription : \tn%s\r\n",
+          grand_alchemical_discovery_descriptions[discovery]
+          );
+  send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
+  send_to_char(ch, "\tC");
+  draw_line(ch, line_length, '-', '-');
+  send_to_char(ch, "\tn\r\n");
+
+  return TRUE;
+}
+
+bool display_bomb_types(struct char_data *ch, char *keyword) {
+  if (!is_abbrev(keyword, "alchemist bombs") && !is_abbrev(keyword, "alchemist-bombs")) return FALSE;
+  char buf[MAX_STRING_LENGTH];
+
+  //  static int line_length = 57;
+  static int line_length = 80;
+
+  send_to_char(ch, "\tC\r\n");
+  draw_line(ch, line_length, '-', '-');
+  send_to_char(ch, "\tcAlchemist Bomb Types: \tn\r\n");
+  send_to_char(ch, "\tC");
+  draw_line(ch, line_length, '-', '-');
+
+  int i = 0;
+  for (i = 1; i < NUM_BOMB_TYPES; i++) {
+    sprintf(buf, "\tC%s bomb\tn\r\n", bomb_types[i]);
+    send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
+  }
+
+  draw_line(ch, line_length, '-', '-');
+  send_to_char(ch, "\tcType HELP (BOMB NAME) for information on a specific bomb.\tn\r\n");
+  send_to_char(ch, "\tC");
+  draw_line(ch, line_length, '-', '-');
+
+  send_to_char(ch, "\tC");
+  draw_line(ch, line_length, '-', '-');
+  send_to_char(ch, "\tn\r\n");
+  return TRUE;
+}
+
+bool display_discovery_types(struct char_data *ch, char *keyword) {
+
+  if (!is_abbrev(keyword, "alchemist discoveries") && !is_abbrev(keyword, "alchemical discoveries") && !is_abbrev(keyword, "discoveries") &&
+      !is_abbrev(keyword, "alchemist grand discoveries") && !is_abbrev(keyword, "alchemical grand discoveries") && !is_abbrev(keyword, "grand discoveries"))
+      return FALSE;
+
+  bool grand = FALSE;
+
+  if (is_abbrev(keyword, "alchemist discoveries") || is_abbrev(keyword, "alchemical discoveries") || is_abbrev(keyword, "discoveries"))
+    grand = FALSE;
+  else
+    grand = TRUE;
+  
+  char buf[MAX_STRING_LENGTH];
+
+  //  static int line_length = 57;
+  static int line_length = 80;
+
+  send_to_char(ch, "\tC\r\n");
+  draw_line(ch, line_length, '-', '-');
+  send_to_char(ch, "\tcAlchemist %sDiscoveries: \tn\r\n", grand ? "Grand " : "");
+  send_to_char(ch, "\tC");
+  draw_line(ch, line_length, '-', '-');
+
+  int i = 0;
+  for (i = 1; i < (grand ? NUM_GR_ALC_DISCOVERIES : NUM_ALC_DISCOVERIES); i++) {
+    sprintf(buf, "\tC%s\tn\r\n", grand ? grand_alchemical_discovery_names[i] : alchemical_discovery_names[i]);
+    send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
+  }
+
+  draw_line(ch, line_length, '-', '-');
+  send_to_char(ch, "\tcType HELP (DISCOVERY NAME) for information on a specific bomb.\tn\r\n");
+  send_to_char(ch, "\tC");
+  draw_line(ch, line_length, '-', '-');
+
+  send_to_char(ch, "\tC");
+  draw_line(ch, line_length, '-', '-');
+  send_to_char(ch, "\tn\r\n");
+
+  return TRUE;
 }

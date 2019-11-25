@@ -121,6 +121,10 @@ void perform_cognatogen(struct char_data *ch, char * arg2);
 void perform_inspiring_cognatogen(struct char_data *ch);
 void clear_mutagen(struct char_data *ch);
 void add_sticky_bomb_effect(struct char_data *ch, struct char_data *vict, int bomb_type);
+bool display_discovery_info(struct char_data *ch, char *discoveryname);
+bool display_grand_discovery_info(struct char_data *ch, char *discoveryname);
+bool display_bomb_types(struct char_data *ch, char *keyword);
+bool display_discovery_types(struct char_data *ch, char *keyword);
 ACMDCHECK(can_swallow);
 
 

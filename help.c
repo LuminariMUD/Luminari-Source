@@ -19,6 +19,7 @@
 #include "spells.h" /* need this for class.h NUM_ABILITIES */
 #include "class.h"
 #include "race.h"
+#include "alchemy.h"
 
 /* puts -'s instead of spaces */
 void space_to_minus(char *str) {
@@ -245,31 +246,43 @@ ACMD(do_help) {
   }
 
   if ((entries = search_help(argument, GET_LEVEL(ch))) == NULL) {
-    /* Check feats for relevant entries! */
-    if (!display_feat_info(ch, raw_argument)) {
-    
-      send_to_char(ch, "There is no help on that word.\r\n");
-      mudlog(NRM, MAX(LVL_IMPL, GET_INVIS_LEV(ch)), TRUE,
-              "%s tried to get help on %s", GET_NAME(ch), argument);
-  
-      /* Implement 'SOUNDS LIKE' search here... */    
-      if ((keywords = soundex_search_help_keywords(argument, GET_LEVEL(ch))) != NULL) {
-        send_to_char(ch, "\r\nDid you mean:\r\n");
-        tmp_keyword = keywords;
-        while (tmp_keyword != NULL) {
-          send_to_char(ch, "  \t<send href=\"Help %s\">%s\t</send>\r\n",
-                  tmp_keyword->keyword, tmp_keyword->keyword);
-          tmp_keyword = tmp_keyword->next;
-        }
-        send_to_char(ch, "\tDYou can also check the help index, type 'hindex <keyword>'\tn\r\n");
-        while (keywords != NULL) {
-          tmp_keyword = keywords->next; 
-          free(keywords);
-          keywords = tmp_keyword;
-          tmp_keyword = NULL;
+    /* Check alchemist discoveries for relevant entries! */
+    if (!display_discovery_info(ch, raw_argument)) {
+      /* And check grand alchemist discoveries for relevant entries! */
+      if (!display_grand_discovery_info(ch, raw_argument)) {
+        /* And list bomb types if keyword matched */
+        if (!display_bomb_types(ch, raw_argument)) {
+          /* And list discovery types if keyword matched */
+          if (!display_discovery_types(ch, raw_argument)) {
+            /* Check feats for relevant entries! */
+            if (!display_feat_info(ch, raw_argument)) {
+            
+              send_to_char(ch, "There is no help on that word.\r\n");
+              mudlog(NRM, MAX(LVL_IMPL, GET_INVIS_LEV(ch)), TRUE,
+                      "%s tried to get help on %s", GET_NAME(ch), argument);
+          
+              /* Implement 'SOUNDS LIKE' search here... */    
+              if ((keywords = soundex_search_help_keywords(argument, GET_LEVEL(ch))) != NULL) {
+                send_to_char(ch, "\r\nDid you mean:\r\n");
+                tmp_keyword = keywords;
+                while (tmp_keyword != NULL) {
+                  send_to_char(ch, "  \t<send href=\"Help %s\">%s\t</send>\r\n",
+                          tmp_keyword->keyword, tmp_keyword->keyword);
+                  tmp_keyword = tmp_keyword->next;
+                }
+                send_to_char(ch, "\tDYou can also check the help index, type 'hindex <keyword>'\tn\r\n");
+                while (keywords != NULL) {
+                  tmp_keyword = keywords->next; 
+                  free(keywords);
+                  keywords = tmp_keyword;
+                  tmp_keyword = NULL;
+                }
+              }
+            }
+          }
         }
       }
-    } 
+    }
     free(raw_argument);
     return;
   }
