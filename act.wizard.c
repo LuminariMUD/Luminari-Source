@@ -7182,9 +7182,9 @@ ACMD(do_finddoor) {
 ACMD(do_players)
 {
     struct descriptor_data *d = NULL;
-    char buf[200] = { '\0' };
-    char buf2[200] = { '\0' };
-    char buf3[200] = { '\0' };
+    char buf[MAX_STRING_LENGTH] = { '\0' };
+    char buf2[MAX_STRING_LENGTH] = { '\0' };
+    char buf3[MAX_STRING_LENGTH] = { '\0' };
     int counter = 0, i = 0;
 
     sprintf(buf, "%-15s %-15s %-3s %-15s %-7s %-7s %-20s\r\n", "Name", "Account", "Lvl", "Alignment", "Room", "Race", "Class");

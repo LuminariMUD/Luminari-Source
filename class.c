@@ -143,7 +143,7 @@ void class_prereq_cfeat(int class_num, int feat, int special) {
 
   const char *cfeat_special[NUM_CFEAT_SPECIAL] = {
     "no special circumstance",
-    "in any bow",
+    "in any ranged weapon",
   };
 
   prereq = create_prereq(CLASS_PREREQ_CFEAT, feat, special, 0);
@@ -455,6 +455,7 @@ bool has_special_cfeat(struct char_data *ch, int featnum, int mode) {
 
       /* featnum in any bow */
     case CFEAT_SPECIAL_BOW:
+    /*
       if (!HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
               WEAPON_TYPE_LONG_BOW) &&
               !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
@@ -480,7 +481,8 @@ bool has_special_cfeat(struct char_data *ch, int featnum, int mode) {
               WEAPON_TYPE_COMPOSITE_SHORTBOW_4) &&
               !HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum),
               WEAPON_TYPE_COMPOSITE_SHORTBOW_5)
-              ) {
+              ) { */
+      if (!HAS_COMBAT_FEAT(ch, feat_to_cfeat(featnum), WEAPON_FAMILY_RANGED)) {
         return FALSE;
       }
       break;
