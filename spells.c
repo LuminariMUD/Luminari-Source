@@ -29,6 +29,7 @@
 #include "string.h"
 #include "item.h"
 #include "domains_schools.h"
+#include "oasis.h"
 
 #define WALL_ITEM 101220
 /* object values for walls */
@@ -1733,6 +1734,103 @@ ASPELL(spell_wizard_eye) {
   eye->desc = ch->desc;
   ch->desc = NULL;
 }
+
+#define ZOCMD zone_table[zrnum].cmd[subcmd]
+
+//static void list_zone_commands_room(struct char_data *ch, room_vnum rvnum) {
+ASPELL(spell_augury) {
+  
+  if (IN_ROOM(ch) == NOWHERE) return;
+  
+  zone_rnum zrnum = real_zone_by_thing(world[IN_ROOM(ch)].number);
+  room_rnum rrnum = IN_ROOM(ch), cmd_room = NOWHERE;
+  int subcmd = 0, count = 0;
+
+  if (zrnum == NOWHERE || rrnum == NOWHERE) {
+    send_to_char(ch, "Your spell cannot divine anything about this area.\r\n");
+    return;
+  }
+
+  get_char_colors(ch);
+
+  send_to_char(ch, "Your spell reveals the following about this area:%s\r\n", yel);
+  while (ZOCMD.command != 'S') {
+    switch (ZOCMD.command) {
+      case 'M':
+      case 'O':
+      case 'T':
+      case 'V':
+        cmd_room = ZOCMD.arg3;
+        break;
+      case 'D':
+      case 'R':
+        cmd_room = ZOCMD.arg1;
+        break;
+      default:
+        break;
+    }
+    if (cmd_room == rrnum) {
+      count++;
+      /* start listing */
+      switch (ZOCMD.command) {
+        case 'I':
+          send_to_char(ch, "%sMay have random treasure (%d%%)",
+                  ZOCMD.if_flag ? " then " : "",
+                  ZOCMD.arg1);
+          break;
+        case 'L':
+          send_to_char(ch, "%sMay have random treasure in %s [%s%d%s] (%d%%)",
+                  ZOCMD.if_flag ? " then " : "",
+                  obj_proto[ZOCMD.arg1].short_description,
+                  cyn, obj_index[ZOCMD.arg1].vnum, yel,
+                  ZOCMD.arg2);
+          break;
+        case 'M':
+          send_to_char(ch, "%s%s may be found here.\r\n",
+                  ZOCMD.if_flag ? " then " : "",
+                  mob_proto[ZOCMD.arg1].player.short_descr
+                  );
+          break;
+        case 'G':
+          send_to_char(ch, "%sthey may possess %s [%s%d%s].\r\n",
+                  ZOCMD.if_flag ? " then " : "",
+                  obj_proto[ZOCMD.arg1].short_description, 
+				  cyn, obj_index[ZOCMD.arg1].vnum, yel
+                  );
+          break;
+        case 'O':
+          send_to_char(ch, "%s%s may be found here. [%s%d%s]\r\n",
+                  ZOCMD.if_flag ? " then " : "",
+                  obj_proto[ZOCMD.arg1].short_description,
+				  cyn, obj_index[ZOCMD.arg1].vnum, yel
+                  );
+          break;
+        case 'E':
+          send_to_char(ch, "%s they may equip %s  [%s%d%s].\r\n",
+                  ZOCMD.if_flag ? " then " : "",
+                  obj_proto[ZOCMD.arg1].short_description,
+                  cyn, obj_index[ZOCMD.arg1].vnum, yel
+                  );
+          break;
+        case 'P':
+          send_to_char(ch, "%s%s [%s%d%s] may be inside %s.\r\n",
+                  ZOCMD.if_flag ? " then " : "",
+                  obj_proto[ZOCMD.arg1].short_description,
+				   cyn, obj_index[ZOCMD.arg1].vnum, yel,
+                  obj_proto[ZOCMD.arg3].short_description
+                  );
+          break;
+        default:
+          break;
+      }
+    }
+    subcmd++;
+  }
+  send_to_char(ch, "%s", nrm);
+  if (!count)
+    send_to_char(ch, "Your spell reveals nothing about this area.\r\n");
+}
+#undef ZOCMD
 
 #undef WIZARD_EYE
 #undef PRISMATIC_SPHERE

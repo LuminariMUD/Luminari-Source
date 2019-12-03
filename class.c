@@ -143,7 +143,7 @@ void class_prereq_cfeat(int class_num, int feat, int special) {
 
   const char *cfeat_special[NUM_CFEAT_SPECIAL] = {
     "no special circumstance",
-    "in any ranged weapon",
+    "in ranged weapons",
   };
 
   prereq = create_prereq(CLASS_PREREQ_CFEAT, feat, special, 0);
@@ -924,6 +924,20 @@ bool display_class_info(struct char_data *ch, char *classname) {
     }
   }
   send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
+
+  // Draw spellcasting commands if applicable
+  if (strlen(spell_prep_dict[class][0]) > 0) {
+    send_to_char(ch, "\tC");
+    draw_line(ch, line_length, '-', '-');
+    send_to_char(ch, "\tcSpell Prep Command  : \tn%s\r\n", spell_prep_dict[class][0]);
+    send_to_char(ch, "\tcSpell Forget Command: \tn%s\r\n", spell_consign_dict[class][0]);
+    send_to_char(ch, "\tcSpell Cast Command  : \tn%s\r\n", (class != CLASS_ALCHEMIST) ? "cast" : "imbibe");
+    char spellList[30];
+    sprintf(spellList, "spells %s", CLSLIST_NAME(class));
+    for (i = 0; i < strlen(spellList); i++)
+      spellList[i] = tolower(spellList[i]);
+    send_to_char(ch, "\tcSpell List Command  : \tn%s\r\n", (class != CLASS_ALCHEMIST) ? spellList : "extracts");
+  }
 
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
