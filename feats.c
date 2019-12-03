@@ -2978,7 +2978,8 @@ feato(FEAT_PSYCHOKINETIC, "psychokinetic tincture", TRUE, FALSE, FALSE, FEAT_TYP
   feato(FEAT_BOMBS, "bombs", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
           "allows the alchemist to throw bombs that can damage single or multiple foes.",
           "Allows an alchemist to create and toss bombs at foes.  See HELP ALCHEMIST-BOMBS "
-          "for more information.");
+          "for more information. Also see HELP AOEBOMBS for information on how to target "
+          "your bombs.");
   feato(FEAT_ALCHEMICAL_DISCOVERY, "alchemical discovery", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
           "allows the alchemist to select from a list of bomb, mutagen and other enhancements",
           "Allows an alchemist to select among a list of discoveries that will improve the "

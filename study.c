@@ -1959,7 +1959,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
         gen_feat_disp_menu(d);
         break;
       }
-      if ((number < 1) || (number >= NUM_WEAPON_FAMILIES)) {
+      if ((number < 1) || (number > NUM_WEAPON_FAMILIES)) {
         write_to_output(d, "That is an invalid choice!\r\n");
         cfeat_disp_menu(d);
         break;
