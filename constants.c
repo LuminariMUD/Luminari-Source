@@ -1157,6 +1157,7 @@ const char *preference_bits[NUM_PRF_FLAGS + 1] = {
   "Bombs are Aoe",
   "Faer-Causes-Flee",
   "PvP-Enabled",
+  "Auto-Consider",
   "\n"
 };
 
@@ -1801,6 +1802,7 @@ const char *extra_bits[NUM_ITEM_FLAGS + 1] = {
   "Ki-Focus",
   "Anti-WeaponMaster",
   "Anti-Drow",
+  "Masterwork",
   "\n"
 };
 

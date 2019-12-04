@@ -4554,6 +4554,9 @@ ACMD(do_gen_tog) {
     /* 41 */
     {"Your bombs will now only affect single targets.\r\n",
      "Your bombs will now affect multiple targets.\r\n"},
+    /*42*/
+    {"You will no longer see level differences between you and mobs when you type look.\r\n",
+      "You will now see level differences between you and mobs when you type look.\r\n"},
   };
 
   if (IS_NPC(ch))
@@ -4695,6 +4698,9 @@ ACMD(do_gen_tog) {
       break;
     case SCMD_AUTOSCAN:
       result = PRF_TOG_CHK(ch, PRF_AUTOSCAN);
+      break;
+    case SCMD_AUTOCONSIDER:
+      result = PRF_TOG_CHK(ch, PRF_AUTOCON);
       break;
     default:
       log("SYSERR: Unknown subcmd %d in do_gen_toggle.", subcmd);

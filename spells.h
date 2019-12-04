@@ -489,9 +489,10 @@
 #define PSIONIC_UNNAMED13               380
 #define PSIONIC_UNNAMED14               381
 #define PSIONIC_UNNAMED15               382
-#define ALC_DISC_AFFECT_PSYCHOKINETIC   383
 /* end unfinished list */
-#define LAST_SPELL_DEFINE               383
+#define ALC_DISC_AFFECT_PSYCHOKINETIC   383
+#define SPELL_AUGURY                    384
+#define LAST_SPELL_DEFINE               384
 
 /* Other files to be aware of for new spells:
  * 1)  if you want this spell to be avaiable as a npc spellup, mobact.c
@@ -1054,6 +1055,7 @@ void	spellname(int level, struct char_data *ch, \
 
 /* manual spells */
 ASPELL(spell_acid_arrow);
+ASPELL(spell_augury);
 ASPELL(spell_banish);
 ASPELL(spell_charm);
 ASPELL(spell_charm_animal);

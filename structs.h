@@ -788,6 +788,7 @@
 #define PRF_AOE_BOMBS    47  /** Bombs will use splash damage instead of single target */
 #define PRF_FRIGHTENED   48  /* If set, victims of fear affects will flee */
 #define PRF_PVP          49  /* If set, will allow player vs. player combat against others also flagged */
+#define PRF_AUTOCON      50 /* autoconsider, shows level difference of mobs in look command */
 
 /** Total number of available PRF flags */
 #define NUM_PRF_FLAGS    50
@@ -1703,12 +1704,13 @@
 #define FEAT_GRAND_ALCHEMICAL_DISCOVERY        619
 #define FEAT_PSYCHOKINETIC                     620
 #define FEAT_CURING_TOUCH                      621
+#define FEAT_LUCK_OF_HEROES                    622
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT                      622
+#define FEAT_LAST_FEAT                      623
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS                           623
+#define NUM_FEATS                           624
 /** absolute cap **/
 #define MAX_FEATS                           750
 /*****/
@@ -2006,8 +2008,9 @@
 /**/
 /*more item flags!*/
 #define ITEM_ANTI_DROW            49
+#define ITEM_MASTERWORK           50
 /** Total number of item flags */
-#define NUM_ITEM_FLAGS            50
+#define NUM_ITEM_FLAGS            51
 
 /* homeland-port */
 /*

@@ -514,6 +514,7 @@ ACMD(do_gen_tog);
 #define SCMD_AUTOCOLLECT 39
 #define SCMD_RP          40
 #define SCMD_AOE_BOMBS   41
+#define SCMD_AUTOCONSIDER 42
 
 /* do_quit */
 ACMD(do_quit);
@@ -720,5 +721,6 @@ ACMD(do_loot);
 ACMD(do_weapontypes);
 ACMD(do_weaponproficiencies);
 ACMD(do_weaponinfo);
+ACMD(do_autocon);
 
 #endif /* _ACT_H_ */

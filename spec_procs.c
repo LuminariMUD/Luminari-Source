@@ -7244,6 +7244,471 @@ SPECIAL(menzo_chokers) {
   return FALSE;
 }
 
+
+int get_vendor_armor_cost(int level, int armortype, sbyte masterwork)
+{
+	int cost = 0;
+	
+	cost += armor_list[armortype].cost;
+	
+	if (masterwork)
+		cost += 200;
+	
+	switch(level) {
+	  case 1: cost += 5000; break;
+	  case 2: cost += 10000; break;
+	  case 3: cost += 20000; break;
+	  case 4: cost += 50000; break;
+	}
+	
+	if (armor_list[armortype].armorType != ARMOR_TYPE_SHIELD && armor_list[armortype].armorType != ARMOR_TYPE_TOWER_SHIELD)
+		cost /= 4;
+	
+	return MAX(1, cost);
+}
+
+int get_vendor_weapon_cost(int level, int weapontype, sbyte masterwork)
+{
+	int cost = 0;
+	
+	cost += weapon_list[weapontype].cost;
+	
+	if (masterwork)
+		cost += 300;
+	
+	switch(level) {
+	  case 1: cost += 5000; break;
+	  case 2: cost += 10000; break;
+	  case 3: cost += 20000; break;
+	  case 4: cost += 50000; break;
+	}
+	
+	return MAX(1, cost);
+}
+
+void display_buy_armor_types(struct char_data *ch, int level, sbyte masterwork, char *type)
+{
+
+	int i = 0;
+	int cost = 0;
+  int wear = ITEM_WEAR_TAKE;
+  char wear_str[50];
+
+  if (is_abbrev(type, "body")) {
+    wear = ITEM_WEAR_BODY;
+    sprintf(wear_str, "BODY");
+  } else if (is_abbrev(type, "arms")) {
+    wear = ITEM_WEAR_ARMS;
+    sprintf(wear_str, "ARMS");
+  } else if (is_abbrev(type, "legs")) {
+    wear = ITEM_WEAR_LEGS;
+    sprintf(wear_str, "LEGS");
+  } else if (is_abbrev(type, "head")) {
+    wear = ITEM_WEAR_HEAD;
+    sprintf(wear_str, "HEAD");
+  } else if (is_abbrev(type, "shield")) {
+    wear = ITEM_WEAR_SHIELD;
+    sprintf(wear_str, "SHIELD");
+  } else {
+    send_to_char(ch, "Please specify body, arms, legs, head or shield.\r\n");
+    return;
+  }
+
+	send_to_char(ch, "%s\r\n", wear_str);
+	for (i = 1; i < NUM_SPEC_ARMOR_TYPES; i++) {
+    if (armor_list[i].wear != wear) continue;
+		cost = get_vendor_armor_cost(level, i, masterwork);
+		if (armor_list[i].armorType == ARMOR_TYPE_SHIELD || armor_list[i].armorType == ARMOR_TYPE_TOWER_SHIELD) {
+			send_to_char(ch, "%-25s ",armor_list[i].name);
+			send_to_char(ch, " %d gold\r\n", MAX(1, cost));
+		} else {
+			send_to_char(ch, "%-25s ", armor_list[i].name);
+			send_to_char(ch, " %d gold each\r\n", MAX(1, cost));
+		}
+	}
+	if (level > 0)
+		send_to_char(ch, "These prices are for +%d items.\r\n\r\n", level);
+}
+
+void display_buy_weapon_types(struct char_data *ch, int level, sbyte masterwork)
+{
+
+	int i = 0, cost = 0;
+
+	for (i = 2; i < NUM_WEAPON_TYPES; i++) {
+		cost =  get_vendor_weapon_cost(level, i, masterwork);
+		send_to_char(ch, "%25s %6d gold ", weapon_list[i].name, cost);
+		if ((i % 2) == 1)
+			send_to_char(ch, "\r\n");
+	}
+	if ((i % 2) != 1)
+		send_to_char(ch, "\r\n");
+	if (level > 0)
+		send_to_char(ch, "These prices are for +%d items.\r\n\r\n", level);
+}
+
+#define MASTERWORK_MSG "Please specify whether you prefer mundane or masterwork items.\r\n" \
+						"Mundane items provide no bonuses.\r\n" \
+						"Masterwork weapons provide +1 to attack roll, but not damage. They cost an extra 300 gold.\r\n" \
+						"Masterwork armor reduces the armor check penalty for certain skills, by one.  They cost an extra 50 gold per piece.\r\n"
+
+void set_weapon_name(struct obj_data *obj, int type)
+{
+	
+	char buf[200];
+	
+	sprintf(buf, "%s %s", AN(weapon_list[type].name), weapon_list[type].name);
+	obj->short_description = strdup(buf);
+	
+	sprintf(buf, "%s %s lies here.", AN(weapon_list[type].name), weapon_list[type].name);
+	obj->description = strdup(buf);
+	
+	sprintf(buf, "%s", weapon_list[type].name);
+	obj->name = strdup(buf);
+
+}
+
+void set_armor_name(struct obj_data *obj, int type)
+{
+	
+	char buf[200];
+	
+	sprintf(buf, "%s %s", AN(armor_list[type].name), armor_list[type].name);
+	obj->short_description = strdup(buf);
+
+	sprintf(buf, "%s %s lies here.", AN(armor_list[type].name), armor_list[type].name);
+	obj->description = strdup(buf);
+
+	sprintf(buf, "%s", armor_list[type].name);
+	obj->name = strdup(buf);
+
+}
+
+void set_masterwork_obj_name(struct obj_data *obj)
+{
+	
+	char buf[200];
+	
+	sprintf(buf, "%s (masterwork)", obj->short_description);
+	obj->short_description = strdup(buf);
+	
+	sprintf(buf, "%s (masterwork)", obj->description);
+	obj->description = strdup(buf);
+	
+	sprintf(buf, "%s masterwork", obj->name);
+	obj->name = strdup(buf);
+
+}
+
+void set_magical_obj_name(struct obj_data *obj, int level)
+{
+
+	char buf[200]; int i = 0;
+
+	sprintf(buf, "%s (+%d)", obj->short_description, level);
+	obj->short_description = strdup(buf);
+
+	sprintf(buf, "%s (+%d)", obj->description, level);
+	obj->description = strdup(buf);
+
+
+	if (GET_OBJ_TYPE(obj) == ITEM_WEAPON) {
+          sprintf(buf, "%s", weapon_list[GET_OBJ_VAL(obj, 0)].name);
+          for (i = 0; i < strlen(buf); i++)
+	    if (buf[i] == ' ')
+	      buf[i] = '-';
+          sprintf(buf, "%s %s +%d", buf, obj->name, level);
+        } else {
+  	sprintf(buf, "%s +%d", obj->name, level);
+        }
+	obj->name = strdup(buf);
+
+}
+
+SPECIAL(buyarmor)
+{
+
+  if (!CMD_IS("buy") && !CMD_IS("list")) return 0;
+  
+  struct char_data *keeper = (struct char_data *) me;
+  int level = 0;
+  char arg1[100], // masterwork or mundane? if level is zero, if level > 0, then it's the armor's name
+                  // which we'll copy into arg2 so we don't need to mess around with 2 variables, since
+				  // vendors level 1 and up ONLY sell weapons of their level bonus
+       arg2[100]; // name of the armor desired
+
+  half_chop(argument, arg1, arg2);
+  
+  if (GET_LEVEL(keeper) <= 10)
+	  level = 0;
+  else if (GET_LEVEL(keeper) <= 15)
+	  level = 1;
+  else if (GET_LEVEL(keeper) <= 20)
+	  level = 2;
+  else if (GET_LEVEL(keeper) <= 25)
+	  level = 3;
+  else if (GET_LEVEL(keeper) <= 30)
+	  level = 4;
+
+  if (CMD_IS("list")) {
+    if (!*arg1) {
+      if (level == 0) {
+        send_to_char(ch, MASTERWORK_MSG);
+        return 1;
+      }
+    }
+    if (!*arg2 && level == 0) {
+      send_to_char(ch, "Please specify body, arms, legs, head or shield.\r\n");
+      return 1;
+    }
+    if (level == 0 && (!is_abbrev(arg1, "mundane") && !is_abbrev(arg1, "masterwork"))) {
+    send_to_char(ch, MASTERWORK_MSG);
+    return 1;
+    }
+    display_buy_armor_types(ch, level, level == 0 ? !is_abbrev(arg1, "mundane") : false, level == 0 ? strdup(arg2) : strdup(arg1));
+    return 1;
+  }
+
+  if (!*argument) {
+	  if (level == 0)
+		send_to_char(ch, MASTERWORK_MSG);
+	  else
+		send_to_char(ch, "Please specify the type of magical armor/shield you want to purchase.\r\n");
+	  return 1;
+  }
+
+  if (!*arg1) {
+	  if (level == 0)
+		send_to_char(ch, MASTERWORK_MSG);
+	  else
+		send_to_char(ch, "Please specify the type of magical armor/shield you want to purchase.\r\n");
+	  return 1;
+  }
+
+  if (!*arg2 && level == 0) {
+	  send_to_char(ch, "Please specify which armor piece you wish to buy.\r\n"
+                     "Type buy (mundane|masterwork) (full name of armor piece/shield)\r\n"
+                     "A list can be seen by typing: list (mundane|masterwork) (body|arms|legs|head|shield)\r\n");
+	  send_to_char(ch, "Masterwork armor costs 50 gold more per piece, or 200 gold more for shields and bucklers.\r\n");
+	  return 1;
+  }
+
+  if (level == 0 && (!is_abbrev(arg1, "mundane") && !is_abbrev(arg1, "masterwork"))) {
+	  send_to_char(ch, MASTERWORK_MSG);
+	  return 1;
+  }
+  
+  if (level > 0 && *argument) { // let's just work with arg2 to keep things easy
+    skip_spaces(&argument);
+    sprintf(arg2, "%s", argument);
+  }
+
+  int i = 0, cost = 0;
+
+  for (i = 1; i < NUM_SPEC_ARMOR_TYPES; i++) {
+	  if (!strcmp(arg2, armor_list[i].name)) break;
+  }
+
+  if (i >= NUM_SPEC_ARMOR_TYPES) {
+	send_to_char(ch, "Please specify which armor piece you wish to buy.  A list can be seen by typing: list (body|arms|legs|head|shield)\r\n");
+	send_to_char(ch, "Masterwork armor costs 50 gold more per piece, or 200 gold more for shields and bucklers.\r\n");
+	send_to_char(ch, "\r\nYou must specify the exact, full name of the armor you wish to buy, in lowercase.\r\n");
+	return 1;
+  }
+
+  sbyte mundane = TRUE;
+
+  // We want mundane to be the default since we're using is_abbrev and they both start with "m"
+  if (!is_abbrev(arg1, "mundane")) {
+	  mundane = FALSE;
+  }
+
+  cost =  get_vendor_armor_cost(level, i, !mundane);
+
+  if (GET_GOLD(ch) < cost) {
+	  send_to_char(ch, "You need %d gold to buy %s, but you only have %d.\r\n", cost, armor_list[i].name, GET_GOLD(ch));
+	  return 1;
+  }
+
+  if (IS_CARRYING_N(ch) >= CAN_CARRY_N(ch)) {
+      act("You can't carry any more items.", FALSE, ch, 0, 0, TO_CHAR);
+      return (1);
+  }
+
+  struct obj_data *obj = NULL;
+  obj_vnum base_vnum = 0;
+
+  if (armor_list[i].armorType == ARMOR_TYPE_SHIELD || armor_list[i].armorType == ARMOR_TYPE_TOWER_SHIELD) {
+	  base_vnum = 61;
+  } else {
+	switch(i % 4) {
+      case 0: base_vnum = 55; break;
+	  case 1: base_vnum = 56; break;
+	  case 2: base_vnum = 60; break;
+	  case 3: base_vnum = 57; break;
+	}
+  }
+
+  if ((obj = read_object(base_vnum, VIRTUAL)) == NULL) {
+	send_to_char(ch, "There seems to be an error in purchasing %s.  Please inform a staff member.\r\n", armor_list[i].name);
+	return 1;
+  }
+
+  set_armor_object(obj, i);
+  GET_OBJ_COST(obj) = cost;
+  set_armor_name(obj, i);
+  if (!mundane && level == 0) {
+	  set_masterwork_obj_name(obj);
+	  SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MASTERWORK);
+  }
+  if (level > 0) {
+	  set_magical_obj_name(obj, level);
+	  SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MASTERWORK);
+	  GET_OBJ_VAL(obj, 4) = level; // Enhancement Bonus
+  }
+
+  GET_GOLD(ch) -= cost;
+  obj_to_char(obj, ch);
+  send_to_char(ch, "You purchase %s for %d gold coins.\r\n", obj->short_description, cost);
+
+  return 1;
+}
+
+SPECIAL(buyweapons) { 
+
+if (!CMD_IS("buy") && !CMD_IS("list")) return 0;
+  
+  struct char_data *keeper = (struct char_data *) me;
+  int level = 0;
+  char arg1[100], // masterwork or mundane? if level is zero, if level > 0, then it's the weapon's name
+                  // which we'll copy into arg2 so we don't need to mess around with 2 variables, since
+				  // vendors level 1 and up ONLY sell weapons of their level bonus
+       arg2[100]; // name of the weapon desired
+
+  half_chop(argument, arg1, arg2);
+  
+  if (GET_LEVEL(keeper) <= 10)
+	  level = 0;
+  else if (GET_LEVEL(keeper) <= 15)
+	  level = 1;
+  else if (GET_LEVEL(keeper) <= 20)
+	  level = 2;
+  else if (GET_LEVEL(keeper) <= 25)
+	  level = 3;
+  else if (GET_LEVEL(keeper) <= 30)
+	  level = 4;
+
+    if (CMD_IS("list")) {
+	  if (!*arg1) {
+	    if (level == 0) {
+  	        send_to_char(ch, MASTERWORK_MSG);
+		return 1;
+	    }
+	  }
+	  if (level == 0 && (!is_abbrev(arg1, "mundane") && !is_abbrev(arg1, "masterwork"))) {
+		send_to_char(ch, MASTERWORK_MSG);
+		return 1;
+	  }
+      display_buy_weapon_types(ch, level, !is_abbrev(arg1, "mundane"));
+      return 1;
+	}
+
+  if (!*argument) {
+	  if (level == 0)
+		send_to_char(ch, MASTERWORK_MSG);
+	  else
+		send_to_char(ch, "Please specify the type of magical weapon you want to purchase.\r\n");
+	return 1;
+  }
+
+  if (!*arg1) {
+	  if (level == 0)
+		send_to_char(ch, MASTERWORK_MSG);
+	  else
+		send_to_char(ch, "Please specify the type of magical weapon you want to purchase.\r\n");
+	return 1;
+  }
+
+  if (!*arg2 && level == 0) {
+	  display_buy_weapon_types(ch, 0, false);
+	  send_to_char(ch, "Masterwork weapons cost 300 gold pieces more.\r\n");
+	  return 1;
+  }
+
+  if (level == 0 && (!is_abbrev(arg1, "mundane") && !is_abbrev(arg1, "masterwork"))) {
+	  send_to_char(ch, MASTERWORK_MSG);
+	  return 1;
+  }
+  
+  if (level > 0 && *argument) { // let's just work with arg2 to keep things easy
+    skip_spaces(&argument);
+    sprintf(arg2, "%s", argument);
+  }
+
+  int i = 0, cost = 0;
+
+  for (i = 0; i < NUM_WEAPON_TYPES; i++) {
+	  if (!strcmp(arg2, weapon_list[i].name)) break;
+  }
+
+  if (i >= NUM_WEAPON_TYPES) {
+	display_buy_weapon_types(ch, 0, false);
+	send_to_char(ch, "Masterwork weapons cost 300 gold pieces more.\r\n");
+	send_to_char(ch, "\r\nYou must specify the exact, full name of the weapon you wish to buy, in lowercase.\r\n");
+	return 1;
+  }
+
+  sbyte mundane = TRUE;
+
+  // We want mundane to be the default since we're using is_abbrev and they both start with "m"
+  if (!is_abbrev(arg1, "mundane")) {
+	  mundane = FALSE;
+  }
+
+   cost =  get_vendor_weapon_cost(level, i, !mundane);
+
+  if (GET_GOLD(ch) < cost) {
+	  send_to_char(ch, "You need %d gold to buy %s, but you only have %d.\r\n", cost, weapon_list[i].name, GET_GOLD(ch));
+	  return 1;
+  }
+
+  if (IS_CARRYING_N(ch) >= CAN_CARRY_N(ch)) {
+      act("You can't carry any more items.", FALSE, ch, 0, 0, TO_CHAR);
+      return (1);
+  }
+
+  struct obj_data *obj = NULL;
+  obj_vnum base_vnum = 66;
+
+  if ((obj = read_object(base_vnum, VIRTUAL)) == NULL) {
+	send_to_char(ch, "There seems to be an error in purchasing %s.  Please inform a staff member.\r\n", weapon_list[i].name);
+	return 1;
+  }
+
+  set_weapon_object(obj, i);
+  GET_OBJ_COST(obj) = cost;
+  set_weapon_name(obj, i);
+  if (!mundane && level == 0) {
+	  set_masterwork_obj_name(obj);
+	  SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MASTERWORK);
+      obj->affected[0].location = APPLY_HITROLL;
+      obj->affected[0].modifier  = 1;
+      obj->affected[0].bonus_type = BONUS_TYPE_ENHANCEMENT;
+  }
+  if (level > 0) {
+	  set_magical_obj_name(obj, level);
+	  SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MASTERWORK);
+	  GET_OBJ_VAL(obj, 4) = level; // Enhancement Bonus
+  }
+
+  GET_GOLD(ch) -= cost;
+  obj_to_char(obj, ch);
+  send_to_char(ch, "You purchase %s for %d gold coins.\r\n", obj->short_description, cost);
+
+  return 1;
+
+}
+
 /*************************/
 /* end object procedures */
 /*************************/

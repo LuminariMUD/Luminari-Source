@@ -22,6 +22,8 @@
 
 SPECIAL(questmaster);
 SPECIAL(shop_keeper);
+SPECIAL(buyweapons);
+SPECIAL(buyarmor);
 
 /* local (file scope only) functions */
 static void ASSIGNROOM(room_vnum room, SPECIAL(fname));
@@ -61,6 +63,11 @@ static void ASSIGNROOM(room_vnum room, SPECIAL(fname)) {
 /* assign special procedures to mobiles. Guildguards, snake, thief, wizard,
  * puff, fido, janitor, and cityguards are now implemented via triggers. */
 void assign_mobiles(void) {
+
+  // mosswood
+  ASSIGNMOB(145391, buyweapons);
+  ASSIGNMOB(145392, buyarmor);
+  
   assign_kings_castle();
 
   /* cryogenicist */
