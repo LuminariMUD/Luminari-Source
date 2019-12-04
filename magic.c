@@ -136,6 +136,8 @@ int compute_mag_saves(struct char_data *vict,
   }
 
   /* universal bonuses/penalties */
+  if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_LUCK_OF_HEROES))
+        saves += 1;
   if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_DIVINE_GRACE))
     saves += GET_CHA_BONUS(vict);
   if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_LUCK_OF_HEROES))
@@ -3526,7 +3528,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
   /* slippery mind */
   if (!IS_NPC(victim) &&
-      HAS_FEAT(victim, FEAT_SLIPPERY_MIND)) {
+      HAS_FEAT(victim, FEAT_SLIPPERY_MIND) &&
+      spell_info[spellnum].violent) {
       send_to_char(victim, "\tW*Slippery Mind*\tn  ");
       if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, spell_school))
         return;

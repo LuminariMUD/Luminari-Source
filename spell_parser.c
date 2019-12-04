@@ -754,6 +754,9 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
       case SPELL_LOCATE_OBJECT:
         MANUAL_SPELL(spell_locate_object);
         break;
+      case SPELL_AUGURY:
+        MANUAL_SPELL(spell_augury);
+        break;
       case SPELL_MASS_DOMINATION:
         MANUAL_SPELL(spell_mass_domination);
         break;
@@ -2449,6 +2452,9 @@ void mag_assign_spells(void) {
   /* divination */
   spello(SPELL_LOCATE_OBJECT, "locate object", 0, 0, 0, POS_FIGHTING,
           TAR_OBJ_WORLD, FALSE, MAG_MANUAL,
+          NULL, 10, 17, DIVINATION, FALSE);
+  spello(SPELL_AUGURY, "augury", 0, 0, 0, POS_FIGHTING,
+          TAR_IGNORE, FALSE, MAG_MANUAL,
           NULL, 10, 17, DIVINATION, FALSE);
   spello(SPELL_TRUE_SEEING, "true seeing", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS, "Your eyes stop seeing true.", 5, 17,

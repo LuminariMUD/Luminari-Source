@@ -84,6 +84,7 @@ bool auto_reload_weapon(struct char_data *ch, bool silent_mode);
 bool weapon_is_loaded(struct char_data *ch, struct obj_data *wielded, bool silent);
 bool is_bare_handed(struct char_data *ch);        
 bool monk_gear_ok(struct char_data *ch);
+bool is_two_handed_ranged_weapon(struct obj_data *obj);
 /**/
 
 ACMD(do_weaponlist);

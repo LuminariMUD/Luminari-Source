@@ -3124,6 +3124,7 @@ void load_class_list(void) {
   spell_assignment(CLASS_CLERIC, SPELL_REMOVE_FEAR, 1);
   /*              class num      spell                   level acquired */
   /* 2nd circle */
+  spell_assignment(CLASS_CLERIC, SPELL_AUGURY, 3);
   spell_assignment(CLASS_CLERIC, SPELL_CREATE_FOOD, 3);
   spell_assignment(CLASS_CLERIC, SPELL_CREATE_WATER, 3);
   spell_assignment(CLASS_CLERIC, SPELL_DETECT_POISON, 3);

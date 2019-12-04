@@ -600,6 +600,21 @@ static void list_one_char(struct char_data *i, struct char_data *ch) {
     if (AFF_FLAGGED(i, AFF_INVISIBLE))
       send_to_char(ch, "*");
 
+    if (PRF_FLAGGED(ch, PRF_AUTOCON) && IS_NPC(i)) {
+      int level_diff = GET_LEVEL(i) - GET_LEVEL(ch);
+      if (level_diff < -5) {
+        send_to_char(ch, "[--] ");
+      } else if (level_diff < 0) {
+        send_to_char(ch, "[-%d] ", level_diff);
+      } else if (level_diff == 0) {
+        send_to_char(ch, "[==] ");
+      } else if (level_diff < 6) {
+        send_to_char(ch, "[+%d] ", level_diff);
+      } else {
+        send_to_char(ch, "[!!] ");
+      }
+    }    
+
     if (IS_EVIL(i)) {
       if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || HAS_FEAT(ch, FEAT_DETECT_EVIL)) {
         send_to_char(ch, "\tR(Red Aura)\tn ");
@@ -4918,6 +4933,22 @@ ACMD(do_weaponinfo) {
   }
   
   page_string(ch->desc, buf, 1);
+}
+
+ACMD(do_autocon)
+{
+    if (PRF_FLAGGED(ch, PRF_AUTOCON))
+    {
+        REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_AUTOCON);
+        send_to_char(ch, "Auto-consider has been turned off.\r\n");
+        return;
+    }
+    else
+    {
+        SET_BIT_AR(PRF_FLAGS(ch), PRF_AUTOCON);
+        send_to_char(ch, "Auto-consider has been turned on.\r\n");
+        return;
+    }
 }
 
 /*EOF*/

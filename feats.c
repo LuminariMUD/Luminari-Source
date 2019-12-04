@@ -1089,9 +1089,12 @@ void assign_feats(void) {
   feato(FEAT_INVESTIGATOR, "investigator", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
           "+2 to lore and perception checks",
           "+2 to lore and perception checks");
+  feato(FEAT_LUCK_OF_HEROES, "luck of heroes", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+          "+1 to dodge ac and +1 to willpower, fortitude and reflex saves",
+          "+1 to dodge ac and +1 to willpower, fortitude and reflex saves");
   feato(FEAT_IRON_WILL, "iron will", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
           "+2 to all willpower saving throw checks",
-          "+2 to all willpower saving throw checks");
+          "+2 to all willpower saving throw checks");          
   feato(FEAT_LIGHTNING_REFLEXES, "lightning reflexes", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
           "+2 to all reflex saving throw checks",
           "+2 to all reflex saving throw checks");

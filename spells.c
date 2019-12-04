@@ -364,7 +364,7 @@ void effect_charm(struct char_data *ch, struct char_data *victim,
 
   } else {
     /* slippery mind gives a second save */
-    if (!IS_NPC(victim) && HAS_FEAT(victim, FEAT_SLIPPERY_MIND)) {
+    if (!IS_NPC(victim) && HAS_FEAT(victim, FEAT_SLIPPERY_MIND) && spell_info[spellnum].violent) {
       send_to_char(victim, "\tW*Slippery Mind*\tn  ");
       if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, ENCHANTMENT)) {
         return;

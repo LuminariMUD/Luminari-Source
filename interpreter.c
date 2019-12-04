@@ -128,6 +128,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "autoexits", "autoex", POS_DEAD, do_gen_tog, 0, SCMD_AUTOEXIT, TRUE, ACTION_NONE, {0, 0}, NULL},
   { "autoassist", "autoass", POS_DEAD, do_gen_tog, 0, SCMD_AUTOASSIST, TRUE, ACTION_NONE, {0, 0}, NULL},
   { "autocollect", "autocollect", POS_DEAD, do_gen_tog, 0, SCMD_AUTOCOLLECT, TRUE, ACTION_NONE, {0, 0}, NULL},
+  { "autoconsider", "autoconsider", POS_DEAD, do_gen_tog, 0, SCMD_AUTOCONSIDER, TRUE, ACTION_NONE, {0, 0}, NULL},
   { "autodoor", "autodoor", POS_DEAD, do_gen_tog, 0, SCMD_AUTODOOR, TRUE, ACTION_NONE, {0, 0}, NULL},
   { "autogold", "autogold", POS_DEAD, do_gen_tog, 0, SCMD_AUTOGOLD, TRUE, ACTION_NONE, {0, 0}, NULL},
   { "autokey", "autokey", POS_DEAD, do_gen_tog, 0, SCMD_AUTOKEY, TRUE, ACTION_NONE, {0, 0}, NULL},

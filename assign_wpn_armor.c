@@ -1177,6 +1177,7 @@ int compute_gear_spell_failure(struct char_data *ch) {
 /* for doing (usually) dexterity based tasks */
 int compute_gear_armor_penalty(struct char_data *ch) {
   int armor_penalty = 0, i, count = 0;
+  int masterwork_bonus = 0;
 
   struct obj_data *obj = NULL;
 
@@ -1188,8 +1189,20 @@ int compute_gear_armor_penalty(struct char_data *ch) {
       count++;
       /* ok we have an armor piece... */
       armor_penalty += armor_list[GET_OBJ_VAL(obj, 1)].armorCheck;
+      // masterwork armor reduces penalty, but all pieces need to be masterwork, except shields
+      if (OBJ_FLAGGED(obj, ITEM_MASTERWORK)) {
+        if (i == WEAR_SHIELD) {
+          armor_penalty++;
+        } else {
+          masterwork_bonus++;
+        }
+      }
     }
   }
+
+  // for masterwork armor, all 4 pieces need to be masterwork to get the benefit
+  if ((masterwork_bonus / 4) >= 1)
+    armor_penalty++;
 
   if (count) {
     armor_penalty = armor_penalty / count;
@@ -2027,3 +2040,25 @@ int compute_gear_max_dex(struct char_data *ch) {
     return 99; // wearing no weight!
 }
  */
+
+bool is_two_handed_ranged_weapon(struct obj_data *obj) {
+  
+  if (!obj)
+    return FALSE;
+
+  if (GET_OBJ_TYPE(obj) != ITEM_WEAPON)
+    return FALSE;
+
+  int type = GET_OBJ_VAL(obj, 0);
+
+  if (type < 0 || type > NUM_WEAPON_TYPES)
+    return FALSE;  
+  
+  if (weapon_list[type].weaponFamily != WEAPON_FAMILY_RANGED)
+    return FALSE;
+  
+  if (type == WEAPON_TYPE_DART || type == WEAPON_TYPE_SLING || type == WEAPON_TYPE_HAND_CROSSBOW || type == WEAPON_TYPE_BOLA)
+    return FALSE;
+  
+  return TRUE;
+}

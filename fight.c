@@ -656,6 +656,10 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
     /* this will include a dex-cap bonus on equipment as well */
     bonuses[BONUS_TYPE_DODGE] += GET_DEX_BONUS(ch);
 
+    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_LUCK_OF_HEROES)) {
+      bonuses[BONUS_TYPE_DODGE] += 1;
+    }
+
     if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_DODGE)) {
       bonuses[BONUS_TYPE_DODGE] += 1;
     }
@@ -4641,6 +4645,11 @@ int compute_attack_bonus(struct char_data *ch, /* Attacker */
             if (affected_by_spell(ch, SKILL_SUPRISE_ACCURACY)) {
               bonuses[BONUS_TYPE_MORALE] += CLASS_LEVEL(ch, CLASS_BERSERKER) / 4 + 1;
             }
+
+    /* masterwork bonus */
+    // only if the weapon doesn't already have a magical enhancement
+    if (wielded && OBJ_FLAGGED(wielded, ITEM_MASTERWORK) && (bonuses[BONUS_TYPE_ENHANCEMENT] <= 0))
+      bonuses[BONUS_TYPE_ENHANCEMENT] += 1;
 
   /* Profane bonus */
 
