@@ -14,7 +14,8 @@ act.item.o: act.item.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h comm.h screen.h interpreter.h handler.h db.h spells.h \
  constants.h dg_scripts.h oasis.h help.h act.h quest.h spec_procs.h \
  clan.h mud_event.h dg_event.h hlquest.h fight.h mudlim.h actions.h \
- traps.h assign_wpn_armor.h spec_abilities.h item.h feats.h alchemy.h
+ traps.h assign_wpn_armor.h spec_abilities.h item.h feats.h alchemy.h \
+ mysql.h treasure.h
 act.movement.o: act.movement.c conf.h sysdep.h structs.h protocol.h \
  lists.h utils.h comm.h interpreter.h handler.h db.h spells.h house.h \
  constants.h dg_scripts.h act.h fight.h oasis.h help.h spec_procs.h \
@@ -51,7 +52,7 @@ aedit.o: aedit.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
 alchemy.o: alchemy.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  comm.h spells.h handler.h db.h constants.h interpreter.h dg_scripts.h \
  modify.h feats.h class.h mud_event.h dg_event.h assign_wpn_armor.h \
- domains_schools.h spell_prep.h alchemy.h actions.h act.h
+ domains_schools.h spell_prep.h alchemy.h actions.h act.h fight.h
 asciimap.o: asciimap.c conf.h sysdep.h structs.h protocol.h lists.h \
  utils.h comm.h interpreter.h handler.h db.h spells.h house.h constants.h \
  dg_scripts.h asciimap.h wilderness.h modify.h
@@ -200,7 +201,7 @@ hedit.o: hedit.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  handler.h improved-edit.h act.h hedit.h modify.h mysql.h
 help.o: help.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  modify.h comm.h interpreter.h db.h mysql.h help.h feats.h spells.h \
- class.h race.h
+ class.h race.h alchemy.h
 hlqedit.o: hlqedit.c conf.h sysdep.h structs.h protocol.h lists.h comm.h \
  utils.h db.h boards.h handler.h oasis.h help.h interpreter.h constants.h \
  hlquest.h spells.h class.h genzon.h genolc.h genmob.h improved-edit.h \
@@ -351,7 +352,7 @@ spellbook_scroll.o: spellbook_scroll.c conf.h sysdep.h structs.h \
 spells.o: spells.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  comm.h spells.h handler.h db.h constants.h interpreter.h dg_scripts.h \
  act.h fight.h mud_event.h dg_event.h house.h screen.h craft.h mudlim.h \
- item.h domains_schools.h
+ item.h domains_schools.h oasis.h help.h
 study.o: study.c conf.h sysdep.h structs.h protocol.h lists.h utils.h \
  comm.h db.h oasis.h help.h screen.h interpreter.h modify.h spells.h \
  feats.h class.h constants.h assign_wpn_armor.h domains_schools.h \

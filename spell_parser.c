@@ -2087,7 +2087,7 @@ void mag_assign_spells(void) {
           NULL, 3, 7, TRANSMUTATION, FALSE);
   spello(SPELL_IRON_GUTS, "iron guts", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "Your guts feel less resillient.", 3, 7, TRANSMUTATION, FALSE);
+          "Your guts feel less resilient.", 3, 7, TRANSMUTATION, FALSE);
   spello(SPELL_JUMP, "jump", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
           "You feel your jumping ability return to normal.", 3, 7, TRANSMUTATION, FALSE);
@@ -2453,9 +2453,6 @@ void mag_assign_spells(void) {
   spello(SPELL_LOCATE_OBJECT, "locate object", 0, 0, 0, POS_FIGHTING,
           TAR_OBJ_WORLD, FALSE, MAG_MANUAL,
           NULL, 10, 17, DIVINATION, FALSE);
-  spello(SPELL_AUGURY, "augury", 0, 0, 0, POS_FIGHTING,
-          TAR_IGNORE, FALSE, MAG_MANUAL,
-          NULL, 10, 17, DIVINATION, FALSE);
   spello(SPELL_TRUE_SEEING, "true seeing", 0, 0, 0, POS_FIGHTING,
           TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS, "Your eyes stop seeing true.", 5, 17,
           DIVINATION, FALSE);
@@ -2713,6 +2710,8 @@ void mag_assign_spells(void) {
   spello(SPELL_CAUSE_MODERATE_WOUNDS, "cause moderate wound", 37, 22, 1,
           POS_FIGHTING, TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
           NULL, 3, 10, NOSCHOOL, FALSE);
+  spello(SPELL_AUGURY, "augury", 30, 15, 1, POS_STANDING,
+          TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 2, 10, NOSCHOOL, FALSE);
   //detect poison - shared
   //scare - shared
   //summon creature ii - shared

@@ -1421,7 +1421,8 @@ int isMagicArmored(struct char_data *ch, struct char_data *victim) {
 #define MAX_SPELL_AFFECTS 6	/* change if more needed */
 
 void mag_affects(int level, struct char_data *ch, struct char_data *victim,
-        struct obj_data *wpn, int spellnum, int savetype, int casttype, int metamagic) {
+  struct obj_data *wpn, int spellnum, int savetype, int casttype, int metamagic) {
+
   struct affected_type af[MAX_SPELL_AFFECTS];
   bool accum_affect = FALSE, accum_duration = FALSE;
   const char *to_vict = NULL, *to_room = NULL;

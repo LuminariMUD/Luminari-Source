@@ -90,7 +90,7 @@ const char *alchemical_discovery_descriptions[NUM_ALC_DISCOVERIES] = {
     "increases the caster level on any quaffed potion to the alchemist's class level.",
     "Any potions quaffed last twice as long.",
     "Can make and throw bombs with a move action instead of a standard action.",
-    "Makes wielded weapons flaming, and flaming burst at alc level 10.",
+    "Allows use of a bomb that makes your wielded weapons flaming, and and alchemist level 10, also flaming burst.",
     "Deals 1d4/rank force damage with direct targets possibly being knocked prone.",
     "Deals 1d6/rank frost damage with direct targets having a chance to be staggered.",
     "As cognatogen but ability bonus is +8 for one ability, +6 for another and +4 for the third, plus natural ac is +4",
