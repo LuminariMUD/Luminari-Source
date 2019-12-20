@@ -605,7 +605,7 @@ static void list_one_char(struct char_data *i, struct char_data *ch) {
       if (level_diff < -5) {
         send_to_char(ch, "[--] ");
       } else if (level_diff < 0) {
-        send_to_char(ch, "[-%d] ", level_diff);
+        send_to_char(ch, "[%d] ", level_diff);
       } else if (level_diff == 0) {
         send_to_char(ch, "[==] ");
       } else if (level_diff < 6) {

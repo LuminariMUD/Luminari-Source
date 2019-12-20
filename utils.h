@@ -702,8 +702,9 @@ do                                                              \
 #define DIVINE_LEVEL(ch)	(compute_divine_level(ch))
 #define ARCANE_LEVEL(ch)        (compute_arcane_level(ch))
 #define MAGIC_LEVEL(ch)         ARCANE_LEVEL(ch)
+#define ALCHEMIST_LEVEL(ch)     (CLASS_LEVEL(ch, CLASS_ALCHEMIST))
 #define CASTER_LEVEL(ch)	(MIN(IS_NPC(ch) ? GET_LEVEL(ch) : \
-                                 DIVINE_LEVEL(ch) + MAGIC_LEVEL(ch) - \
+                                 DIVINE_LEVEL(ch) + MAGIC_LEVEL(ch) + ALCHEMIST_LEVEL(ch) - \
                                  (compute_arcana_golem_level(ch)), LVL_IMMORT-1))
 #define IS_SPELLCASTER(ch)      (CASTER_LEVEL(ch) > 0)
 #define IS_MEM_BASED_CASTER(ch) ((CLASS_LEVEL(ch, CLASS_WIZARD) > 0))
