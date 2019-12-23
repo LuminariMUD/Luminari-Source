@@ -291,6 +291,10 @@ bool npc_switch_opponents(struct char_data *ch, struct char_data *vict) {
 /* how many times will you loop group list to find rescue target cap */
 #define RESCUE_LOOP  20
 bool npc_rescue(struct char_data *ch) {
+
+  // we want to eventually add a toggle for this, defaulted as off
+  return FALSE;
+
   struct char_data *victim = NULL;
   int loop_counter = 0;
 
