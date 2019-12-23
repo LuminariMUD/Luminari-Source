@@ -3008,9 +3008,9 @@ feato(FEAT_PSYCHOKINETIC, "psychokinetic tincture", TRUE, FALSE, FALSE, FEAT_TYP
         "tanglefoot bags and thunderstones, in a single round, provided they have enough "
         "alchemical supplies on hand.");
   feato(FEAT_GRAND_ALCHEMICAL_DISCOVERY, "grand alchemical discovery", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-        "allows for the selection of a single grand discovery in the study menu",
+        "allows for the selection of a single grand discovery with the 'gdiscovery' command.",
         "Allows the alchemist to select a single grand discovery upon reaching level 20,"
-        "from the study menu.");
+        "with the 'gdiscovery' command.");
 
   /**************************/
   /* Disabled/Unimplemented */

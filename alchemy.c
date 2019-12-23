@@ -2884,7 +2884,9 @@ bool display_discovery_types(struct char_data *ch, char *keyword) {
   }
 
   draw_line(ch, line_length, '-', '-');
-  send_to_char(ch, "\tcType HELP (DISCOVERY NAME) for information on a specific bomb.\tn\r\n");
+  send_to_char(ch, "\tcType HELP (DISCOVERY NAME) for information on a specific bomb or discovery.\r\n"
+                   "Discoveries can be learned in the study menu. Grand discoveries can be learned\r\n"
+                   "with the 'gdiscovery' command.\tn\r\n");
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
 

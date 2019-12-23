@@ -4581,7 +4581,7 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
     ;
   else
     /* bards also get some healing spells */
-    level = DIVINE_LEVEL(ch) + CLASS_LEVEL(ch, CLASS_BARD);
+    level = DIVINE_LEVEL(ch) + CLASS_LEVEL(ch, CLASS_BARD) + ALCHEMIST_LEVEL(ch);
 
   switch (spellnum) {
     case SPELL_CURE_LIGHT:
