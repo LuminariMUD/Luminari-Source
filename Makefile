@@ -2,6 +2,13 @@
 # tbaMUD Makefile.in - Makefile template used by 'configure'
 # Clean-up provided by seqwith.
 
+SHELL := bash
+.ONESHELL:
+.SHELLFLAGS := -eu -o pipefail -c
+.DELETE_ON_ERROR:
+MAKEFLAGS += --warn-undefined-variables
+MAKEFLAGS += --no-builtin-rules
+
 # C compiler to use
 CC = gcc
 
