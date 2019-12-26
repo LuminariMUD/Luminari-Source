@@ -55,12 +55,22 @@ $%.o: %.c
 	$(CC) $< $(CFLAGS) -c -o $@ 
 
 clean:
-	rm -f *.o depend
+	rm -f $(OBJFILES)
+	rm -rf $(DEPDIR)
 
-# Dependencies for the object files (automagically generated with
-# gcc -MM)
+# http://make.mad-scientist.net/papers/advanced-auto-dependency-generation/#tldr
+DEPDIR := .deps
+DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.d
 
-depend:
-	$(CC) -MM *.c > depend
+COMPILE.c = $(CC) $(DEPFLAGS) $(CFLAGS) -c
 
--include depend
+%.o : %.c
+%.o : %.c $(DEPDIR)/%.d | $(DEPDIR)
+	$(COMPILE.c) $(OUTPUT_OPTION) $<
+
+$(DEPDIR): ; @mkdir -p $@
+
+DEPFILES := $(SRCFILES:%.c=$(DEPDIR)/%.d)
+$(DEPFILES):
+
+include $(wildcard $(DEPFILES))
