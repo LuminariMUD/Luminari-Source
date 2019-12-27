@@ -12,6 +12,7 @@
 #ifndef _STRUCTS_H_
 #define _STRUCTS_H_
 
+#include "bool.h" /* for bool */
 #include "protocol.h" /* Kavir Plugin*/
 #include "lists.h"
 
@@ -2695,9 +2696,6 @@ typedef signed char sbyte; /**< 1 byte; vals = -127 to 127 */
 typedef unsigned char ubyte; /**< 1 byte; vals = 0 to 255 */
 typedef signed short int sh_int; /**< 2 bytes; vals = -32,768 to 32,767 */
 typedef unsigned short int ush_int; /**< 2 bytes; vals = 0 to 65,535 */
-#if !defined(__cplusplus)	/* Anyone know a portable method? */
-typedef char bool; /**< Technically 1 signed byte; vals should only = TRUE or FALSE. */
-#endif
 
 #if !defined(CIRCLE_WINDOWS) || defined(LCC_WIN32)	/* Hm, sysdep.h? */
 typedef signed char byte; /**< Technically 1 signed byte; vals should only = TRUE or FALSE. */

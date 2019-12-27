@@ -20,6 +20,10 @@
 #ifndef _UTILS_H_ /* Begin header file protection */
 #define _UTILS_H_
 
+#include "db.h" /* for config_info */
+#include "structs.h" /* for sbyte */
+#include "helpers.h" /* for UPPER */
+
 /** Definition of the action command, for the do_ series of in game functions.
  * This macro is placed here (for now) because it's too general of a macro
  * to be first defined in interpreter.h. The reason for using a macro is
@@ -316,12 +320,6 @@ void char_from_furniture(struct char_data *ch);
 #define ONOFF(a) ((a) ? "ON" : "OFF")
 
 
-
-/** If c is an upper case letter, return the lower case. */
-#define LOWER(c)   (((c)>='A'  && (c) <= 'Z') ? ((c)+('a'-'A')) : (c))
-
-/** If c is a lower case letter, return the upper case. */
-#define UPPER(c)   (((c)>='a'  && (c) <= 'z') ? ((c)+('A'-'a')) : (c) )
 
 
 /** If ch is equal to either a newline or a carriage return, return 1,
@@ -1862,16 +1860,6 @@ spellnum == SPELL_EPIC_WARDING )
 #ifndef NULL
 /** Just in case NULL is not defined. */
 #define NULL (void *)0
-#endif
-
-#if !defined(FALSE)
-/** Just in case FALSE is not defined. */
-#define FALSE 0
-#endif
-
-#if !defined(TRUE)
-/** Just in case TRUE is not defined. */
-#define TRUE  (!FALSE)
 #endif
 
 #if !defined(YES)

@@ -13,6 +13,10 @@
 #ifndef _DB_H_
 #define _DB_H_
 
+#include "conf.h" /* for CIRCLE_ defines */
+#include "bool.h" /* for bool */
+#include "structs.h" /* for room_vnum */
+#include "utils.h" /* for ACMD */
 
 /* arbitrary constants used by index_boot() (must be unique) */
 #define DB_BOOT_WLD   0
@@ -331,7 +335,6 @@ char *parse_object(FILE *obj_f, int nr);
 int is_empty(zone_rnum zone_nr);
 void reset_zone(zone_rnum zone);
 void reboot_wizlists(void);
-ACMD(do_reboot);
 void boot_world(void);
 int count_hash_records(FILE *fl);
 bitvector_t asciiflag_conv(char *flag);
