@@ -30,8 +30,9 @@ CFLAGS = -g -O2 $(MYFLAGS) $(PROFILE)
 
 LIBS =  -lcrypt -lgd -lm -lmysqlclient
 
+OBJDIR := obj
 SRCFILES := $(wildcard *.c)
-OBJFILES := $(patsubst %.c,%.o,$(SRCFILES))  
+OBJFILES := $(patsubst %.c,$(OBJDIR)/%.o,$(SRCFILES))
 
 default: all
 
@@ -53,16 +54,16 @@ clean:
 	rm -rf $(DEPDIR)
 
 # http://make.mad-scientist.net/papers/advanced-auto-dependency-generation/#tldr
-DEPDIR := .deps
+DEPDIR := $(OBJDIR)/.deps
 DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.d
 
 COMPILE.c = $(CC) $(DEPFLAGS) $(CFLAGS) -c
 
-%.o : %.c
-%.o : %.c $(DEPDIR)/%.d | $(DEPDIR)
+$(OBJDIR)/%.o : %.c
+$(OBJDIR)/%.o : %.c $(DEPDIR)/%.d | $(DEPDIR)
 	$(COMPILE.c) $(OUTPUT_OPTION) $<
 
-$(DEPDIR): ; @mkdir -p $@
+$(DEPDIR): ; @mkdir -p $(DEPDIR)
 
 DEPFILES := $(SRCFILES:%.c=$(DEPDIR)/%.d)
 $(DEPFILES):
