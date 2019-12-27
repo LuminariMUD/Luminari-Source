@@ -35,9 +35,7 @@ OBJFILES := $(patsubst %.c,%.o,$(SRCFILES))
 
 default: all
 
-all: .accepted
-	$(MAKE) $(BINDIR)/circle
-	$(MAKE) utils
+all: .accepted circle utils
 
 .accepted:
 	@./licheck less
@@ -45,8 +43,7 @@ all: .accepted
 utils: .accepted
 	(cd util; $(MAKE) all)
 
-circle:
-	$(MAKE) $(BINDIR)/circle
+circle: $(BINDIR)/circle
 
 $(BINDIR)/circle : $(OBJFILES)
 	$(CC) -o $(BINDIR)/circle $(PROFILE) $(OBJFILES) $(LIBS)
