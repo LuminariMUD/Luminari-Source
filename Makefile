@@ -30,7 +30,7 @@ CFLAGS = -g -O2 $(MYFLAGS) $(PROFILE)
 
 LIBS =  -lcrypt -lgd -lm -lmysqlclient
 
-SRCFILES := $(wildcard *.c) $(wildcard rtree/*.c)
+SRCFILES := $(wildcard *.c)
 OBJFILES := $(patsubst %.c,%.o,$(SRCFILES))  
 
 default: all
