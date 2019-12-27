@@ -11,6 +11,10 @@
 
 #define MUD_NAME "LuminariMUD"
 
+/* for ssize_t and friends */
+#include "conf.h"
+#include "sysdep.h"
+
 typedef struct descriptor_data descriptor_t;
 
 /******************************************************************************
@@ -95,8 +99,8 @@ typedef struct descriptor_data descriptor_t;
 
 typedef enum
 {
-   false,
-   true
+   bool_t_false,
+   bool_t_true
 } bool_t;
 
 typedef enum

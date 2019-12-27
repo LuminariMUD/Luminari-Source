@@ -1,0 +1,30 @@
+#### No user serviceable parts below
+SHELL := bash
+.ONESHELL:
+.SHELLFLAGS := -eu -o pipefail -c
+MAKEFLAGS += --warn-undefined-variables
+MAKEFLAGS += --no-builtin-rules
+
+OBJDIR := obj
+CC ?= gcc
+CFLAGS ?= -g -O0 -Wall
+SRCFILES := $(wildcard *.c)
+OBJFILES := $(patsubst %.c,$(OBJDIR)/%.o,$(SRCFILES))
+
+# http://make.mad-scientist.net/papers/advanced-auto-dependency-generation/#tldr
+DEPDIR := $(OBJDIR)/.deps
+DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.d
+
+COMPILE.c = $(CC) $(DEPFLAGS) $(CFLAGS) -c
+BUILD = $(CC) $(DEPFLAGS) $(CFLAGS) -o $@
+
+$(OBJDIR)/%.o : %.c
+$(OBJDIR)/%.o : %.c $(DEPDIR)/%.d | $(DEPDIR)
+	$(COMPILE.c) $(OUTPUT_OPTION) $<
+
+$(DEPDIR): ; @mkdir -p $(DEPDIR)
+
+DEPFILES := $(SRCFILES:%.c=$(DEPDIR)/%.d)
+$(DEPFILES):
+
+include $(wildcard $(DEPFILES))
