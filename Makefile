@@ -48,9 +48,6 @@ circle: $(BINDIR)/circle
 $(BINDIR)/circle : $(OBJFILES)
 	$(CC) -o $(BINDIR)/circle $(PROFILE) $(OBJFILES) $(LIBS)
 
-$%.o: %.c
-	$(CC) $< $(CFLAGS) -c -o $@ 
-
 clean:
 	rm -f $(OBJFILES)
 	rm -rf $(DEPDIR)
