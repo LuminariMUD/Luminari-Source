@@ -8,7 +8,7 @@ ACMD(do_spec_comm) {
   char buf[MAX_INPUT_LENGTH], buf2[MAX_INPUT_LENGTH], *buf3 = NULL;
   struct char_data *vict;
   const char *action_sing, *action_plur, *action_others;
-  char punctuation[1];
+  const char *punctuation;
   int len = 0;
 
   switch (subcmd) {
@@ -16,21 +16,21 @@ ACMD(do_spec_comm) {
       action_sing = "whisper to";
       action_plur = "whispers to";
       action_others = "$n whispers something to $N.";
-      strcpy(punctuation, ".");
+      punctuation = ".";
       break;
 
     case SCMD_ASK:
       action_sing = "ask";
       action_plur = "asks";
       action_others = "$n asks $N a question.";
-      strcpy(punctuation, "?");
+      punctuation = "?";
       break;
 
     default:
       action_sing = "oops";
       action_plur = "oopses";
       action_others = "$n is tongue-tied trying to speak with $N.";
-      strcpy(punctuation, ".");
+      punctuation = ".";
       break;
   }
 
