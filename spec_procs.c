@@ -7255,10 +7255,10 @@ int get_vendor_armor_cost(int level, int armortype, sbyte masterwork)
 		cost += 200;
 	
 	switch(level) {
-	  case 1: cost += 5000; break;
-	  case 2: cost += 10000; break;
-	  case 3: cost += 20000; break;
-	  case 4: cost += 50000; break;
+	  case 1: cost += 8000; break;
+	  case 2: cost += 20000; break;
+	  case 3: cost += 50000; break;
+	  case 4: cost += 100000; break;
 	}
 	
 	if (armor_list[armortype].armorType != ARMOR_TYPE_SHIELD && armor_list[armortype].armorType != ARMOR_TYPE_TOWER_SHIELD)
@@ -7277,10 +7277,10 @@ int get_vendor_weapon_cost(int level, int weapontype, sbyte masterwork)
 		cost += 300;
 	
 	switch(level) {
-	  case 1: cost += 5000; break;
-	  case 2: cost += 10000; break;
-	  case 3: cost += 20000; break;
-	  case 4: cost += 50000; break;
+	  case 1: cost += 8000; break;
+	  case 2: cost += 20000; break;
+	  case 3: cost += 50000; break;
+	  case 4: cost += 100000; break;
 	}
 	
 	return MAX(1, cost);
