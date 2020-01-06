@@ -2,6 +2,13 @@
 # tbaMUD Makefile.in - Makefile template used by 'configure'
 # Clean-up provided by seqwith.
 
+SHELL := bash
+.ONESHELL:
+.SHELLFLAGS := -eu -o pipefail -c
+.DELETE_ON_ERROR:
+MAKEFLAGS += --warn-undefined-variables
+MAKEFLAGS += --no-builtin-rules
+
 # C compiler to use
 CC = gcc
 
@@ -23,14 +30,13 @@ CFLAGS = -g -O2 $(MYFLAGS) $(PROFILE)
 
 LIBS =  -lcrypt -lgd -lm -lmysqlclient
 
-SRCFILES := $(wildcard *.c) $(wildcard rtree/*.c)
-OBJFILES := $(patsubst %.c,%.o,$(SRCFILES))  
+OBJDIR := obj
+SRCFILES := $(wildcard *.c)
+OBJFILES := $(patsubst %.c,$(OBJDIR)/%.o,$(SRCFILES))
 
 default: all
 
-all: .accepted
-	$(MAKE) $(BINDIR)/circle
-	$(MAKE) utils
+all: .accepted circle utils
 
 .accepted:
 	@./licheck less
@@ -38,22 +44,28 @@ all: .accepted
 utils: .accepted
 	(cd util; $(MAKE) all)
 
-circle:
-	$(MAKE) $(BINDIR)/circle
+circle: $(BINDIR)/circle
 
 $(BINDIR)/circle : $(OBJFILES)
 	$(CC) -o $(BINDIR)/circle $(PROFILE) $(OBJFILES) $(LIBS)
 
-$%.o: %.c
-	$(CC) $< $(CFLAGS) -c -o $@ 
-
 clean:
-	rm -f *.o depend
+	rm -f $(OBJFILES)
+	rm -rf $(DEPDIR)
 
-# Dependencies for the object files (automagically generated with
-# gcc -MM)
+# http://make.mad-scientist.net/papers/advanced-auto-dependency-generation/#tldr
+DEPDIR := $(OBJDIR)/.deps
+DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.d
 
-depend:
-	$(CC) -MM *.c > depend
+COMPILE.c = $(CC) $(DEPFLAGS) $(CFLAGS) -c
 
--include depend
+$(OBJDIR)/%.o : %.c
+$(OBJDIR)/%.o : %.c $(DEPDIR)/%.d | $(DEPDIR)
+	$(COMPILE.c) $(OUTPUT_OPTION) $<
+
+$(DEPDIR): ; @mkdir -p $(DEPDIR)
+
+DEPFILES := $(SRCFILES:%.c=$(DEPDIR)/%.d)
+$(DEPFILES):
+
+include $(wildcard $(DEPFILES))
