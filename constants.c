@@ -1585,6 +1585,15 @@ const char *weapon_flags[NUM_WEAPON_FLAGS + 1] = {
   "\n"
 };
 
+const char *ability_score_names[6] = {
+  "strength",
+  "dexterity",
+  "constitution",
+  "intelligence",
+  "wisdom",
+  "charisma"
+};
+
 /* armor type (none, light, medium, heavy, etc) */
 const char *armor_type[NUM_ARMOR_TYPES + 1] = {
   "None",

@@ -3474,6 +3474,8 @@ struct level_data {
     int discoveries[NUM_ALC_DISCOVERIES];
     int tempDiscovery ;
     int grand_discovery;
+
+    int skills[MAX_ABILITIES + 1];
 };
 
 /** The list element that makes up a list of characters following this

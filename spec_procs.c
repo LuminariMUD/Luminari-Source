@@ -2341,7 +2341,11 @@ SPECIAL(guild) {
       sprintf(buf, "Knowledge (%s", ability_name);
       skill_num = find_ability_num(buf);
     } else {
-      skill_num = find_ability_num(argument);
+      send_to_char(ch, "Skills are now trained in the study menu.\r\n");
+      return (1); 
+      // Training is now done in the study menu, but let's leave this code in case
+      // we might want to reuse it in the future -- Gicker
+      // skill_num = find_ability_num(argument);
     }
 
     if (skill_num < 1) {
@@ -2386,6 +2390,10 @@ SPECIAL(guild) {
 
     return (TRUE);
   } else if (CMD_IS("boosts")) {
+    send_to_char(ch, "Boosts are now performed in the study menu.\r\n");
+    return (1);
+    // let's keep the old code just in case -- Gicker
+
     if (!argument || !*argument)
       send_to_char(ch, "\tCStat boost sessions remaining: %d\tn\r\n"
             "\tcStats:\tn\r\n"

@@ -597,6 +597,9 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn, *red;
 #define SET_NEW_ARCANA         38
 #define STUDY_SELECT_ALC_DISCOVERY 39
 #define STUDY_CONFIRM_ADD_DISCOVERY 40
+#define STUDY_MAIN_SKILLS_MENU 41
+#define STUDY_MAIN_BOOSTS_MENU 42
+#define STUDY_CONFIRM_RESET 43
 
 int save_config(IDXTYPE nowhere);
 
