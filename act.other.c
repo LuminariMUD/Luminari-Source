@@ -3560,6 +3560,12 @@ ACMD(do_spelllist) {
 /* entry point for boost (stat training), the rest of code is in
    the guild code in spec_procs */
 ACMD(do_boosts) {
+
+  send_to_char(ch, "Boosts are now performed in the study menu.\r\n");
+  return;
+
+  // let's keep the old code just in case -- Gicker
+
   char arg[MAX_INPUT_LENGTH];
 
   if (IS_NPC(ch))
@@ -3629,8 +3635,11 @@ ACMD(do_train) {
   } else if (*arg && is_abbrev(arg, "craft")) {
     /* Display craft abilities. */
     list_abilities(ch, ABILITY_TYPE_CRAFT);
-  } else if (*arg)
-    send_to_char(ch, "You can only train abilities with a trainer.\r\n");
+  } else if (*arg) {
+    send_to_char(ch, "Skills are now trained in the study menu.\r\n");
+    return;
+    //send_to_char(ch, "You can only train abilities with a trainer.\r\n");
+  }
   else
     list_abilities(ch, ABILITY_TYPE_GENERAL);
 
