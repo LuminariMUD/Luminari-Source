@@ -1718,7 +1718,10 @@ static void parse_simple_mob(FILE *mob_f, int i, int nr) {
     exit(1);
   }
 
-  GET_GOLD(mob_proto + i) = t[0];
+  if (!MOB_FLAGGED(mob_proto + i, MOB_CUSTOM_GOLD))
+    GET_GOLD(mob_proto + i) = 40 + dice( GET_LEVEL(mob_proto + i) * 2, 3);
+  else
+    GET_GOLD(mob_proto + i) = t[0];
   GET_EXP(mob_proto + i) = t[1];
 
   if (!get_line(mob_f, line)) {
