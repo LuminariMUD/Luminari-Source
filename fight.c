@@ -2887,6 +2887,12 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
     if (GET_POS(victim) > POS_STUNNED && (FIGHTING(victim) == NULL)) {
       set_fighting(victim, ch);
     }
+    victim->last_attacker = ch;
+  } else { // mainly for type_suffering, dying without awarding xp
+    if (victim->last_attacker) {
+      if (IN_ROOM(victim->last_attacker) == IN_ROOM(victim))
+        ch = victim->last_attacker;
+    }
   }
 
   /* pets leave if attacked */
