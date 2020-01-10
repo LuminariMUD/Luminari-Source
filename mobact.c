@@ -1128,6 +1128,10 @@ void mobile_activity(void) {
     if (!IS_MOB(ch))
       continue;
 
+    if (MOB_FLAGGED(ch, MOB_NO_AI))
+      continue;
+
+
     if (AFF_FLAGGED(ch, AFF_STUN) || AFF_FLAGGED(ch, AFF_PARALYZED) || AFF_FLAGGED(ch, AFF_DAZED) ||
             char_has_mud_event(ch, eSTUNNED) || AFF_FLAGGED(ch, AFF_NAUSEATED)) {
       send_to_char(ch, "You are unable to move!\r\n");

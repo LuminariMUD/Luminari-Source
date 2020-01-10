@@ -708,8 +708,8 @@
 #define MOB_NOSTEAL        37  /* Can't steal from mob*/
 #define MOB_INFO_KILL      38 /* mob, when killed, sends a message in game to everyone */
 /* we added a bunch of filler flags due to incompatible zone files */
-#define MOB_UNUSED_2       39
-#define MOB_UNUSED_3       40
+#define MOB_CUSTOM_GOLD    39 // These mobs will use the gold amounts set in OLC instead of automated amounts on mob load
+#define MOB_NO_AI          40 // mob will not perform any actions in mobact
 #define MOB_UNUSED_4       41
 #define MOB_UNUSED_5       42
 #define MOB_UNUSED_6       43
