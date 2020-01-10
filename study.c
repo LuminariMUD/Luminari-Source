@@ -1477,13 +1477,13 @@ static void main_boosts_disp_menu(struct descriptor_data *d) {
                    "Wisdom       : %d %s--> %d%s\r\n"
                    "Charisma     : %d %s--> %d%s\r\n",
 
-                   mgn, GET_LEVELUP_BOOSTS(ch), grn, 
-                   GET_REAL_STR(ch), GET_LEVELUP_BOOST_STATS(ch, 0) > 0 ? mgn : grn, GET_REAL_STR(ch) + GET_LEVELUP_BOOST_STATS(ch, 0), grn, 
-                   GET_REAL_DEX(ch), GET_LEVELUP_BOOST_STATS(ch, 1) > 0 ? mgn : grn, GET_REAL_DEX(ch) + GET_LEVELUP_BOOST_STATS(ch, 1), grn, 
-                   GET_REAL_CON(ch), GET_LEVELUP_BOOST_STATS(ch, 2) > 0 ? mgn : grn, GET_REAL_CON(ch) + GET_LEVELUP_BOOST_STATS(ch, 2), grn, 
-                   GET_REAL_INT(ch), GET_LEVELUP_BOOST_STATS(ch, 3) > 0 ? mgn : grn, GET_REAL_INT(ch) + GET_LEVELUP_BOOST_STATS(ch, 3), grn, 
-                   GET_REAL_WIS(ch), GET_LEVELUP_BOOST_STATS(ch, 4) > 0 ? mgn : grn, GET_REAL_WIS(ch) + GET_LEVELUP_BOOST_STATS(ch, 4), grn, 
-                   GET_REAL_CHA(ch), GET_LEVELUP_BOOST_STATS(ch, 5) > 0 ? mgn : grn, GET_REAL_CHA(ch) + GET_LEVELUP_BOOST_STATS(ch, 5), grn
+                   mgn, GET_LEVELUP_BOOSTS(ch), nrm, 
+                   GET_REAL_STR(ch), GET_LEVELUP_BOOST_STATS(ch, 0) > 0 ? mgn : nrm, GET_REAL_STR(ch) + GET_LEVELUP_BOOST_STATS(ch, 0), nrm, 
+                   GET_REAL_DEX(ch), GET_LEVELUP_BOOST_STATS(ch, 1) > 0 ? mgn : nrm, GET_REAL_DEX(ch) + GET_LEVELUP_BOOST_STATS(ch, 1), nrm, 
+                   GET_REAL_CON(ch), GET_LEVELUP_BOOST_STATS(ch, 2) > 0 ? mgn : nrm, GET_REAL_CON(ch) + GET_LEVELUP_BOOST_STATS(ch, 2), nrm, 
+                   GET_REAL_INT(ch), GET_LEVELUP_BOOST_STATS(ch, 3) > 0 ? mgn : nrm, GET_REAL_INT(ch) + GET_LEVELUP_BOOST_STATS(ch, 3), nrm, 
+                   GET_REAL_WIS(ch), GET_LEVELUP_BOOST_STATS(ch, 4) > 0 ? mgn : nrm, GET_REAL_WIS(ch) + GET_LEVELUP_BOOST_STATS(ch, 4), nrm, 
+                   GET_REAL_CHA(ch), GET_LEVELUP_BOOST_STATS(ch, 5) > 0 ? mgn : nrm, GET_REAL_CHA(ch) + GET_LEVELUP_BOOST_STATS(ch, 5), nrm
 
   );
 
@@ -2048,6 +2048,10 @@ void study_parse(struct descriptor_data *d, char *arg) {
       arg[i] = tolower(arg[i]);
 
     if (is_abbrev(arg, "quit")) {
+      // let's update trains
+      if (GET_LEVELUP_BOOST_STATS(ch, 3) > 0)
+      intel_bonus += ((GET_REAL_INT(ch)+1) % 2) ? 0 : 1;
+      GET_LEVELUP_SKILL_POINTS(ch) += intel_bonus;
       display_main_menu(d);
       return;
     }

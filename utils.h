@@ -1177,7 +1177,7 @@ spellnum == SPELL_EPIC_WARDING )
 #define GET_LEVELUP_EPIC_CLASS_FEATS(ch) (LEVELUP(ch)->epic_class_feat_points)
 #define GET_LEVELUP_SKILL_POINTS(ch)     (LEVELUP(ch)->trains)
 #define GET_LEVELUP_BOOSTS(ch)           (LEVELUP(ch)->num_boosts)
-#define GET_LEVELUP_BOOST_STATS(ch, stat)      (LEVELUP(ch)->boosts[stat])
+#define GET_LEVELUP_BOOST_STATS(ch, stat) (LEVELUP(ch)->boosts[stat])
 #define GET_LEVELUP_SKILL(ch, skill_num) (LEVELUP(ch)->skills[skill_num])
 #define GET_LEVELUP_ABILITY(ch, skill_num) (GET_ABILITY(ch, skill_num) + GET_LEVELUP_SKILL(ch, skill_num))
 
@@ -1200,7 +1200,7 @@ spellnum == SPELL_EPIC_WARDING )
                                GET_LEVELUP_EPIC_CLASS_FEATS(ch) > 0 ? 1 : 0))
 
 #define CAN_STUDY_SKILLS(ch)  (GET_LEVELUP_SKILL_POINTS(ch))
-#define CAN_STUDY_BOOSTS(ch)  (GET_LEVELUP_BOOSTS(ch))
+#define CAN_STUDY_BOOSTS(ch)  (GET_LEVELUP_BOOSTS(ch) > 0)
 
 #define CAN_SET_STATS(ch) (GET_LEVEL(ch) <= 1)
 
