@@ -18,6 +18,7 @@
 #include "dg_scripts.h"
 #include "comm.h"
 #include "interpreter.h"
+#include "mysql.h"
 #include "genolc.h" /* for strip_cr */
 #include "config.h" /* for pclean_criteria[] */
 #include "dg_scripts.h" /* To enable saving of player variables to disk */
@@ -2090,6 +2091,22 @@ static void read_aliases_ascii(FILE *file, struct char_data *ch, int count) {
       temp->type = atoi(tbuf);
       temp->next = GET_ALIASES(ch);
       GET_ALIASES(ch) = temp;
+    }
+  }
+}
+
+void update_player_last_on(void) {
+  
+  struct descriptor_data *d = NULL;
+  char buf[2048]; /* For MySQL insert. */
+
+  for (d = descriptor_list; d; d = d->next) {
+
+    sprintf(buf, "UPDATE player_data SET last_online = DATETIME(NOW())"
+            "WHERE name = '%s';",
+            GET_NAME(d->character));
+    if (mysql_query(conn, buf)) {
+      log("SYSERR: Unable to UPDATE last_online for %s on PLAYER_DATA: %s", GET_NAME(d->character), mysql_error(conn));
     }
   }
 }
