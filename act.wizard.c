@@ -24,6 +24,7 @@
 #include "dg_scripts.h"
 #include "shop.h"
 #include "act.h"
+#include "mysql.h"
 #include "genzon.h" /* for real_zone_by_thing */
 #include "class.h"
 #include "genolc.h"
@@ -2184,6 +2185,24 @@ static struct char_data *is_in_game(long idnum) {
   return NULL;
 }
 
+void show_full_last_command(struct char_data *ch)
+{
+  char query[2048];
+  MYSQL_RES *res;
+  MYSQL_ROW row;
+
+  send_to_char(ch, "%-20s %-20s %s\r\n", "ACCOUNT", "NAME", "LAST ONLINE (SERVER TIME)");
+  sprintf(query, "SELECT a.name, a.last_online, b.name AS account_name FROM player_data a LEFT JOIN account_data b ON a.account_id=b.id ORDER BY a.last_online DESC LIMIT 20;");
+  mysql_query(conn, query);
+  res = mysql_use_result(conn);
+  if (res != NULL) {
+    while ((row = mysql_fetch_row(res)) != NULL) {
+      send_to_char(ch, "%-20s %-20s %-15s\r\n", row[2], row[0], row[1]);
+    }
+  }
+  mysql_free_result(res);
+}
+
 ACMD(do_last) {
   char arg[MAX_INPUT_LENGTH], name[MAX_INPUT_LENGTH];
   struct char_data *vict = NULL;
@@ -2197,6 +2216,10 @@ ACMD(do_last) {
 
   if (*argument) { /* parse it */
     half_chop(argument, arg, argument);
+    if (!strcmp(arg, "complete") || !strcmp(arg, "full")) {
+      show_full_last_command(ch);
+      return;
+    }
     while (*arg) {
       if ((*arg == '*') && (GET_LEVEL(ch) == LVL_IMPL)) {
         list_llog_entries(ch);
