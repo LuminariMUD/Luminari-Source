@@ -2102,7 +2102,9 @@ void update_player_last_on(void) {
 
   for (d = descriptor_list; d; d = d->next) {
 
-    sprintf(buf, "UPDATE player_data SET last_online = DATETIME(NOW())"
+    if (!d || ! d->character) continue;
+
+    sprintf(buf, "UPDATE player_data SET last_online = NOW() "
             "WHERE name = '%s';",
             GET_NAME(d->character));
     if (mysql_query(conn, buf)) {

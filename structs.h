@@ -791,7 +791,7 @@
 #define PRF_AUTOCON      50 /* autoconsider, shows level difference of mobs in look command */
 
 /** Total number of available PRF flags */
-#define NUM_PRF_FLAGS    50
+#define NUM_PRF_FLAGS    51
 
 /* Affect bits: used in char_data.char_specials.saved.affected_by */
 /* WARNING: In the world files, NEVER set the bits marked "R" ("Reserved") */
