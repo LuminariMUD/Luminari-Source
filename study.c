@@ -2292,7 +2292,9 @@ void study_parse(struct descriptor_data *d, char *arg) {
       if (add_levelup_feat(d, LEVELUP(d->character)->tempFeat)) {
         SET_LEVELUP_COMBAT_FEAT(d->character, feat_to_cfeat(LEVELUP(d->character)->tempFeat), number);
 
-        write_to_output(d, "Feat %s (%s) chosen!\r\n", feat_list[LEVELUP(d->character)->tempFeat].name, weapon_family[number]);
+        write_to_output(d, "Feat %s (%s) chosen!\r\n",
+          feat_list[LEVELUP(d->character)->tempFeat].name,
+          weapon_family[number]);
 
       } else {
         LEVELUP(d->character)->tempFeat = -1;
