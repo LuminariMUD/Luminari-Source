@@ -36,6 +36,7 @@
 #include "spell_prep.h"
 #include "item.h" /* do_stat_object */
 #include "alchemy.h"
+#include "treasure.h"
 
 /* external functions */
 extern struct house_control_rec house_control[];
