@@ -333,6 +333,7 @@ const char *class_names[NUM_CLASSES + 1] = {
   "Duelist", //15
   "Mystic Theurge",
   "Alchemist",
+  "Arcane Shadow",
 //  "unfinished",
 //  "unfinished",
 //  "unfinished",
@@ -1075,8 +1076,8 @@ const char *action_bits[NUM_MOB_FLAGS + 1] = {
   "Planar-Ally",
   "No-Steal",
   "Info-Kill",
-  "unused",
-  "unused", //40
+  "Custom-Gold",
+  "No-AI", //40
   "unused",
   "unused",
   "unused",
@@ -1583,6 +1584,15 @@ const char *weapon_flags[NUM_WEAPON_FLAGS + 1] = {
   "Strength",
   "Sunder",
   "\n"
+};
+
+const char *ability_score_names[6] = {
+  "strength",
+  "dexterity",
+  "constitution",
+  "intelligence",
+  "wisdom",
+  "charisma"
 };
 
 /* armor type (none, light, medium, heavy, etc) */
@@ -3343,12 +3353,13 @@ const char *spell_prep_dict[NUM_CLASSES][4] = {
   {"",         "",           "",          ""            }, /* duelist 15 */
   {"",         "",           "",          ""            }, /* mystic theurge 16 */
   {"concoct",  "an extract", "concocted", "concoctions" }, /* alchemist 17 */
-//  {"",         "",           "",          ""            }, /* psion 18 */
-//  {"",         "",           "",          ""            }, /* psy warr 19 */
-//  {"",         "",           "",          ""            }, /* soul knife 20 */
-//  {"",         "",           "",          ""            }, /* wilder 21 */
-//  {"",         "",           "",          ""            }, /* shadow dancer 22 */
-//  {"",         "",           "",          ""            }, /* assassin 23 */
+  {"",         "",           "",          ""            }, /* arcane shadow 18 */
+//  {"",         "",           "",          ""            }, /* psion */
+//  {"",         "",           "",          ""            }, /* psy warr */
+//  {"",         "",           "",          ""            }, /* soul knife */
+//  {"",         "",           "",          ""            }, /* wilder */
+//  {"",         "",           "",          ""            }, /* shadow dancer */
+//  {"",         "",           "",          ""            }, /* assassin */
 };
 
 /* words to use for the spell preparation process for different classes. */
@@ -3372,6 +3383,7 @@ const char *spell_consign_dict[NUM_CLASSES][4] = {
   {"",          "",            "",           ""            }, /* duelist 15 */
   {"",          "",            "",           ""            }, /* mystic theurge 16 */
   {"discard",   "discarded",   "discarding", "discarded"   }, /* alchemist 17 */
+  {"",          "",            "",           ""            }, /* arcane shadow 18 */
 //  {"",          "",            "",           ""            }, /* psion 18 */
 //  {"",          "",            "",           ""            }, /* psy warr 19 */
 //  {"",          "",            "",           ""            }, /* soul knife 20 */

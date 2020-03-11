@@ -1,5 +1,5 @@
 /**************************************************************************
-*  File: zmalloc.c                                         Part of LuminariMUD *
+*  File: zmalloc.c                                    Part of LuminariMUD *
 *  Usage: A simple memory allocation monitor.                             *
 *                                                                         *
 *  Version 2. Copyright 1996, 1998, 1999, 2000 Eric Murray ericm@lne.com  *

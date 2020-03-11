@@ -67,6 +67,10 @@ void assign_mobiles(void) {
   // mosswood
   ASSIGNMOB(145391, buyweapons);
   ASSIGNMOB(145392, buyarmor);
+
+  ASSIGNMOB(103499, buyarmor);
+  ASSIGNMOB(103498, buyweapons);
+
   
   assign_kings_castle();
 

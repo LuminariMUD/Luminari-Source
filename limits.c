@@ -1,5 +1,5 @@
 /**************************************************************************
- *  File: limits.c                                          Part of LuminariMUD *
+ *  File: limits.c                                     Part of LuminariMUD *
  *  Usage: Limits & gain funcs for HMV, exp, hunger/thirst, idle time.     *
  *                                                                         *
  *  All rights reserved.  See license for complete information.            *

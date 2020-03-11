@@ -2053,3 +2053,4 @@ spellnum == SPELL_EPIC_WARDING )
 #endif /* _UTILS_H_ */
 
 /*EOF*/
+

@@ -1,6 +1,6 @@
 /* 
  * File:   mobact.h
- * Author: User
+ * Author: Zusuk
  *
  * Created on 16 אפריל 2013, 18:37
  */

@@ -1,4 +1,6 @@
-/* LuminariMUD Procedurally generated wilderness. */
+/* LuminariMUD Procedurally generated wilderness.
+   Author:  Ornir
+ */
 
 #include <math.h>
 #include <gd.h>

@@ -1,5 +1,5 @@
 /**************************************************************************
- *  File: dg_triggers.c                                     Part of LuminariMUD *
+ *  File: dg_triggers.c                                Part of LuminariMUD *
  *  Usage: Contains all the trigger functions for scripts.                 *
  *                                                                         *
  *  All rights reserved.  See license for complete information.            *

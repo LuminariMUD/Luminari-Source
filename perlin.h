@@ -1,3 +1,6 @@
+/* Coherent noise function over 1, 2 or 3 dimensions */
+/* (copyright Ken Perlin) */
+
 #ifndef _PERLIN_H_
 #define _PERLIN_H_
 

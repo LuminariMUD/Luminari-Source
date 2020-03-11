@@ -1,5 +1,5 @@
 /**************************************************************************
- *  File: hedit.c                                           Part of LuminariMUD *
+ *  File: hedit.c                                      Part of LuminariMUD *
  *  Usage: Oasis OLC Help Editor.                                          *
  * Author: Steve Wolfe, Scott Meisenholder, Rhade                          *
  *                                                                         *

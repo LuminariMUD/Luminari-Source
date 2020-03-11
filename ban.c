@@ -1,5 +1,5 @@
 /**************************************************************************
-*  File: ban.c                                             Part of LuminariMUD *
+*  File: ban.c                                        Part of LuminariMUD *
 *  Usage: Banning/unbanning/checking sites and player names.              *
 *                                                                         *
 *  All rights reserved.  See license for complete information.            *

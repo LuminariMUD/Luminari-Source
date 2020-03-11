@@ -2,13 +2,6 @@
 # tbaMUD Makefile.in - Makefile template used by 'configure'
 # Clean-up provided by seqwith.
 
-SHELL := bash
-.ONESHELL:
-.SHELLFLAGS := -eu -o pipefail -c
-.DELETE_ON_ERROR:
-MAKEFLAGS += --warn-undefined-variables
-MAKEFLAGS += --no-builtin-rules
-
 # C compiler to use
 CC = gcc
 
@@ -40,7 +33,9 @@ ALL_OBJFILES := $(TEST_OBJFILES) $(OBJFILES)
 
 default: all
 
-all: .accepted circle utils
+all: .accepted
+	$(MAKE) $(BINDIR)/circle
+	$(MAKE) utils
 
 .accepted:
 	@./licheck less
@@ -70,11 +65,8 @@ clean:
 DEPDIR := $(OBJDIR)/.deps
 DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.d
 
-COMPILE.c = $(CC) $(DEPFLAGS) $(CFLAGS) -c
-
-$(OBJDIR)/%.o : %.c
-$(OBJDIR)/%.o : %.c $(DEPDIR)/%.d | $(DEPDIR)
-	$(COMPILE.c) $(OUTPUT_OPTION) $<
+clean:
+	rm -f *.o depend
 
 $(OBJDIR)/unittests/%.o : unittests/%.c
 $(OBJDIR)/unittests/%.o : unittests/%.c $(DEPDIR)/%.d | $(DEPDIR)
@@ -85,4 +77,4 @@ $(DEPDIR): ; @mkdir -p $(DEPDIR) $(DEPDIR)/unittests $(OBJDIR)/unittests
 DEPFILES := $(ALL_SRCFILES:%.c=$(DEPDIR)/%.d)
 $(DEPFILES):
 
-include $(wildcard $(DEPFILES))
+-include depend

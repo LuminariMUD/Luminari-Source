@@ -1,5 +1,5 @@
 /**************************************************************************
- *  File: lists.c                                           Part of LuminariMUD *
+ *  File: lists.c                                      Part of LuminariMUD *
  *  Usage: Handling of in-game lists                                       *
  *                                                                         *
  *  By Vatiken. Copyright 2012 by Joseph Arnusch                           *

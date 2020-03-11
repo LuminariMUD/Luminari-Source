@@ -1,5 +1,5 @@
 /**************************************************************************
-*  File: dg_comm.c                                         Part of LuminariMUD *
+*  File: dg_comm.c                                    Part of LuminariMUD *
 *  Usage: Contains routines to handle mud to player communication.        *
 *                                                                         *
 *  All rights reserved.  See license for complete information.            *
