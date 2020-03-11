@@ -1,3 +1,9 @@
+/*
+
+Clan Header File
+
+*/
+
 /* Standard clan privs */
 #define CP_NONE    -2   /**< RESERVED! - Special case for 'no players'     */
 #define CP_ALL     -1   /**< RESERVED! - Special case for 'all players'    */

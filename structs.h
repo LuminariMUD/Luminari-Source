@@ -333,6 +333,8 @@
 #define CLASS_MYSTIC_THEURGE    16
 #define CLASS_MYSTICTHEURGE     CLASS_MYSTIC_THEURGE
 #define CLASS_ALCHEMIST         17
+#define CLASS_ARCANE_SHADOW     18
+#define CLASS_ARCANESHADOW      CLASS_ARCANE_SHADOW 
 //#define CLASS_PSIONICIST        16
 //#define CLASS_PSION CLASS_PSIONICIST
 //#define CLASS_PSYCHIC_WARRIOR   17
@@ -346,7 +348,7 @@
 /* !!!---- CRITICAL ----!!! make sure to add class names to constants.c's
    class_names[] - we are dependent on that for loading the feat-list */
 /** Total number of available PC Classes */
-#define NUM_CLASSES             18
+#define NUM_CLASSES             19
 
 // related to pc (classes, etc)
 /* note that max_classes was established to reign in some of the
@@ -707,9 +709,9 @@
 #define MOB_PLANAR_ALLY    36  /* is a planar ally (currently unused) */
 #define MOB_NOSTEAL        37  /* Can't steal from mob*/
 #define MOB_INFO_KILL      38 /* mob, when killed, sends a message in game to everyone */
-/* we added a bunch of filler flags due to incompatible zone files */
 #define MOB_CUSTOM_GOLD    39 // These mobs will use the gold amounts set in OLC instead of automated amounts on mob load
 #define MOB_NO_AI          40 // mob will not perform any actions in mobact
+/* we added a bunch of filler flags due to incompatible zone files */
 #define MOB_UNUSED_4       41
 #define MOB_UNUSED_5       42
 #define MOB_UNUSED_6       43
@@ -1134,7 +1136,7 @@
 #define FEAT_QUICKEN_SPELL          78
 #define FEAT_RAPID_SHOT             79
 #define FEAT_RIDE_BY_ATTACK         80
-#define FEAT_STABILITY              81  //dwarf?
+#define FEAT_STABILITY              81  //dwarf
 #define FEAT_SCRIBE_SCROLL          82
 #define FEAT_SONG_OF_FOCUSED_MIND   83  //bard
 #define FEAT_SHOT_ON_THE_RUN        84
@@ -1705,6 +1707,11 @@
 #define FEAT_PSYCHOKINETIC                     620
 #define FEAT_CURING_TOUCH                      621
 #define FEAT_LUCK_OF_HEROES                    622
+/*arcane shadow (trickster)*/
+#define FEAT_IMPROMPTU_SNEAK_ATTACK            623
+#define FEAT_INVISIBLE_ROGUE                   624
+#define FEAT_MAGICAL_AMBUSH                    625
+#define FEAT_SURPRISE_SPELLS                   626
 
 /**************/
 /** reserved above feat# + 1**/
@@ -1765,7 +1772,7 @@
 #define ITEM_STAFF      4		/**< Item is a staff		*/
 #define ITEM_WEAPON     5		/**< Item is a weapon		*/
 #define ITEM_FURNITURE  6   /**< Sittable Furniture		*/
-#define ITEM_FIREWEAPON 7  // ranged weapon
+#define ITEM_FIREWEAPON 7  // ranged weapon, deprecated
 #define ITEM_TREASURE   8   /**< Item is a treasure, not gold	*/
 #define ITEM_ARMOR      9   /**< Item is armor		*/
 #define ITEM_POTION    10   /**< Item is a potion		*/
@@ -2468,6 +2475,8 @@
 #define ATTACK_TYPE_UNARMED   3
 #define ATTACK_TYPE_TWOHAND   4 /* doesn't really serve any purpose */
 #define ATTACK_TYPE_BOMB_TOSS 5
+#define ATTACK_TYPE_PRIMARY_SNEAK   6  /*impromptu sneak attack*/
+#define ATTACK_TYPE_OFFHAND_SNEAK   7  /*impromptu sneak attack*/
 
 /* WEAPON ATTACK TYPES - indicates type of attack both
    armed and unarmed attacks are, example: You BITE Bob.

@@ -3311,6 +3311,35 @@ void perform_kick(struct char_data *ch, struct char_data *vict) {
     damage(ch, vict, 0, SKILL_KICK, DAM_FORCE, FALSE);
 }
 
+ACMDCHECK(can_impromptu) {
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_IMPROMPTU_SNEAK_ATTACK, "You don't know how to do this!\r\n");
+
+  return CAN_CMD;
+}
+
+/* impromptu sneak attack engine */
+void perform_impromptu(struct char_data *ch, struct char_data *vict) {
+
+  if (vict == ch) {
+    send_to_char(ch, "Aren't we funny today...\r\n");
+    return;
+  }
+
+  PREREQ_NOT_PEACEFUL_ROOM();
+
+  start_daily_use_cooldown(ch, FEAT_IMPROMPTU_SNEAK_ATTACK);
+
+  /* As a free action once per day per rank of the feat, can attack as a sneak attack */
+  send_to_char(ch, "IMPROMPTU:  ");
+  hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 4, ATTACK_TYPE_PRIMARY_SNEAK);
+
+  /* try for offhand */
+  update_pos(vict);
+  update_pos(ch);
+  if (ch && vict && GET_EQ(ch, WEAR_WIELD_OFFHAND))
+    hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 4, ATTACK_TYPE_OFFHAND_SNEAK);
+}
+
 /* seeker arrow engine */
 void perform_seekerarrow(struct char_data *ch, struct char_data *vict) {
 
@@ -3341,6 +3370,30 @@ ACMDCHECK(can_seekerarrow) {
   ACMDCHECK_TEMPFAIL_IF(!can_fire_ammo(ch, TRUE), "You have to be using a ranged weapon with ammo ready to "
                                                   "fire in your ammo pouch to do this!\r\n");
   return CAN_CMD;
+}
+
+/* As a free action once per day per rank of the feat, perform a sneak attack with primary/offhand. */
+ACMD(do_impromptu) {
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  struct char_data *vict = NULL;
+
+  PREREQ_CAN_FIGHT();
+
+  PREREQ_NOT_NPC();
+  PREREQ_CHECK(can_impromptu);
+  PREREQ_HAS_USES(FEAT_IMPROMPTU_SNEAK_ATTACK, "You must recover the energy required to use another impromptu sneak attack.\r\n");
+
+  one_argument(argument, arg);
+  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
+    if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch))) {
+      vict = FIGHTING(ch);
+    } else {
+      send_to_char(ch, "Launch a impromptu sneak attack at who?\r\n");
+      return;
+    }
+  }
+
+  perform_impromptu(ch, vict);
 }
 
 /* As a free action once per day per rank of the seeker arrow feat, the arcane 

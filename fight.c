@@ -1,5 +1,5 @@
 /**************************************************************************
- *  File: fight.c                                           Part of LuminariMUD *
+ *  File: fight.c                                      Part of LuminariMUD *
  *  Usage: Combat system.                                                  *
  *                                                                         *
  *  All rights reserved.  See license for complete information.            *
@@ -3140,11 +3140,14 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
    #define MODE_DISPLAY_OFFHAND  3
    #define MODE_DISPLAY_RANGED   4
  * Valid attack_type(s) are:
- *   ATTACK_TYPE_PRIMARY : Primary hand attack.
- *   ATTACK_TYPE_OFFHAND : Offhand attack.
- *   ATTACK_TYPE_RANGED  : Ranged attack.
- *   ATTACK_TYPE_UNARMED : Unarmed attack.
- *   ATTACK_TYPE_TWOHAND : Two-handed weapon attack. */
+ *   ATTACK_TYPE_PRIMARY       : Primary hand attack.
+ *   ATTACK_TYPE_OFFHAND       : Offhand attack.
+ *   ATTACK_TYPE_RANGED        : Ranged attack.
+ *   ATTACK_TYPE_UNARMED       : Unarmed attack.
+ *   ATTACK_TYPE_TWOHAND       : Two-handed weapon attack.
+ *   ATTACK_TYPE_BOMB_TOSS     : Alchemist - tossing bombs
+ *   ATTACK_TYPE_PRIMARY_SNEAK : impromptu sneak attack, primary hand 
+ *   ATTACK_TYPE_OFFHAND_SNEAK : impromptu sneak attack, offhand */
 int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
         struct obj_data *wielded, int w_type, int mod, int mode, int attack_type) {
   int dambonus = mod;
@@ -3163,6 +3166,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   switch (attack_type) {
 
     case ATTACK_TYPE_PRIMARY:
+    case ATTACK_TYPE_PRIMARY_SNEAK:
       if (affected_by_spell(ch, SKILL_DRHRT_CLAWS))
         dambonus += GET_STR_BONUS(ch);
       else if (GET_EQ(ch, WEAR_WIELD_2H) && !is_using_double_weapon(ch))
@@ -3174,6 +3178,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
       break;
 
     case ATTACK_TYPE_OFFHAND:
+    case ATTACK_TYPE_OFFHAND_SNEAK:
       dambonus += GET_STR_BONUS(ch) / 2;
       break;
 
@@ -3299,7 +3304,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
           GET_EQ(ch, WEAR_HANDS) && GET_OBJ_VAL(GET_EQ(ch, WEAR_HANDS), 0))
     dambonus += GET_OBJ_VAL(GET_EQ(ch, WEAR_HANDS), 0);
 
-  /* ranged includes arrow, what a hack */ /* why is that a hack? */
+  /* ranged includes arrow enhancement bonus */
   if (can_fire_ammo(ch, TRUE)) {
     dambonus += GET_ENHANCEMENT_BONUS(GET_EQ(ch, WEAR_AMMO_POUCH)->contains);
     dambonus += HAS_FEAT(ch, FEAT_ENHANCE_ARROW_MAGIC);
@@ -3766,11 +3771,14 @@ int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll
    #define MODE_DISPLAY_OFFHAND  3
    #define MODE_DISPLAY_RANGED   4
  * Valid attack_type(s) are:
- *   ATTACK_TYPE_PRIMARY : Primary hand attack.
- *   ATTACK_TYPE_OFFHAND : Offhand attack.
- *   ATTACK_TYPE_RANGED  : Ranged attack.
- *   ATTACK_TYPE_UNARMED : Unarmed attack.
- *   ATTACK_TYPE_TWOHAND : Two-handed weapon attack. */
+ *   ATTACK_TYPE_PRIMARY       : Primary hand attack.
+ *   ATTACK_TYPE_OFFHAND       : Offhand attack.
+ *   ATTACK_TYPE_RANGED        : Ranged attack.
+ *   ATTACK_TYPE_UNARMED       : Unarmed attack.
+ *   ATTACK_TYPE_TWOHAND       : Two-handed weapon attack.
+ *   ATTACK_TYPE_BOMB_TOSS     : Alchemist - tossing bombs
+ *   ATTACK_TYPE_PRIMARY_SNEAK : impromptu sneak attack, primary hand 
+ *   ATTACK_TYPE_OFFHAND_SNEAK : impromptu sneak attack, offhand  */
 int compute_hit_damage(struct char_data *ch, struct char_data *victim,
         int w_type, int diceroll, int mode, bool is_critical, int attack_type) {
   int dam = 0, damage_holder = 0;
@@ -4513,7 +4521,10 @@ int weapon_special(struct obj_data *wpn, struct char_data *ch, char *hit_msg) {
  *   ATTACK_TYPE_PRIMARY : Primary hand attack.
  *   ATTACK_TYPE_OFFHAND : Offhand attack.
  *   ATTACK_TYPE_RANGED  : Ranged attack
- *   ATTACK_TYPE_TWOHAND : Two-handed weapon attack. */
+ *   ATTACK_TYPE_TWOHAND : Two-handed weapon attack.
+ *   ATTACK_TYPE_BOMB_TOSS     : Alchemist - tossing bombs
+ *   ATTACK_TYPE_PRIMARY_SNEAK : impromptu sneak attack, primary hand 
+ *   ATTACK_TYPE_OFFHAND_SNEAK : impromptu sneak attack, offhand  */
 struct obj_data *get_wielded(struct char_data *ch, /* Wielder */
         int attack_type) /* Type of attack. */ {
   struct obj_data *wielded = NULL;
@@ -4523,11 +4534,13 @@ struct obj_data *get_wielded(struct char_data *ch, /* Wielder */
   switch (attack_type) {
     case ATTACK_TYPE_RANGED:
     case ATTACK_TYPE_PRIMARY:
+    case ATTACK_TYPE_PRIMARY_SNEAK:
       if (!wielded) { // 2-hand weapon, primary hand
         wielded = GET_EQ(ch, WEAR_WIELD_2H);
       }
       break;
     case ATTACK_TYPE_OFFHAND:
+    case ATTACK_TYPE_OFFHAND_SNEAK:
       if (is_using_double_weapon(ch)) {
         wielded = GET_EQ(ch, WEAR_WIELD_2H);
       } else {
@@ -4556,7 +4569,10 @@ struct obj_data *get_wielded(struct char_data *ch, /* Wielder */
  *   ATTACK_TYPE_OFFHAND : Offhand attack.
  *   ATTACK_TYPE_RANGED  : Ranged attack.
  *   ATTACK_TYPE_UNARMED : Unarmed attack.
- *   ATTACK_TYPE_TWOHAND : Two-handed weapon attack. */
+ *   ATTACK_TYPE_TWOHAND : Two-handed weapon attack.
+ *   ATTACK_TYPE_BOMB_TOSS     : Alchemist - tossing bombs
+ *   ATTACK_TYPE_PRIMARY_SNEAK : impromptu sneak attack, primary hand 
+ *   ATTACK_TYPE_OFFHAND_SNEAK : impromptu sneak attack, offhand  */
 int compute_attack_bonus(struct char_data *ch, /* Attacker */
         struct char_data *victim, /* Defender */
         int attack_type) /* Type of attack  */ {
@@ -4581,6 +4597,8 @@ int compute_attack_bonus(struct char_data *ch, /* Attacker */
       switch (attack_type) {
         case ATTACK_TYPE_OFFHAND:
         case ATTACK_TYPE_PRIMARY:
+        case ATTACK_TYPE_PRIMARY_SNEAK:
+        case ATTACK_TYPE_OFFHAND_SNEAK:
           if (wielded && HAS_FEAT(ch, FEAT_WEAPON_FINESSE) &&
                   is_using_light_weapon(ch, wielded) &&
                   GET_DEX_BONUS(ch) > GET_STR_BONUS(ch)) {
@@ -5026,7 +5044,9 @@ int combat_maneuver_check(struct char_data *ch, struct char_data *vict,
  *   ATTACK_TYPE_OFFHAND : Offhand attack.
  *   ATTACK_TYPE_RANGED  : Ranged attack.
  *   ATTACK_TYPE_UNARMED : Unarmed attack.
- */
+ *   ATTACK_TYPE_BOMB_TOSS     : Alchemist - tossing bombs
+ *   ATTACK_TYPE_PRIMARY_SNEAK : impromptu sneak attack, primary hand 
+ *   ATTACK_TYPE_OFFHAND_SNEAK : impromptu sneak attack, offhand   */
 int attack_roll(struct char_data *ch, /* Attacker */
         struct char_data *victim, /* Defender */
         int attack_type, /* Type of attack */
@@ -5527,8 +5547,27 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     }
   }
 
-  /* Calculate sneak attack damage. */
-  if (HAS_FEAT(ch, FEAT_SNEAK_ATTACK) &&
+  /* impromptu sneak attack */
+  if (attack_type == ATTACK_TYPE_PRIMARY_SNEAK ||
+      attack_type == ATTACK_TYPE_OFFHAND_SNEAK) {
+
+    /* Display why we are sneak attacking */
+    if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL)) {
+      send_to_char(ch, "\tW[IMPROMPTU]\tn");
+    }
+    if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_COMBATROLL)) {
+      send_to_char(victim, "\tR[IMPROMPTU]\tn");
+    }
+
+    sneakdam = dice(HAS_FEAT(ch, FEAT_SNEAK_ATTACK), 6);
+
+    if (sneakdam) {
+      send_to_char(ch, "[\tDSNEAK\tn] ");
+      send_to_char(victim, "[\tRSNEAK\tn] ");
+    }
+
+  /* Calculate regular sneak attack damage. */
+  } else if (HAS_FEAT(ch, FEAT_SNEAK_ATTACK) &&
           (!KNOWS_DISCOVERY(victim, ALC_DISC_PRESERVE_ORGANS) || dice(1, 4) > 1) &&
           (compute_concealment(victim) == 0) &&
           ((AFF_FLAGGED(victim, AFF_FLAT_FOOTED)) /* Flat-footed */
@@ -5562,9 +5601,10 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
 
     if (sneakdam) {
       send_to_char(ch, "[\tDSNEAK\tn] ");
-              send_to_char(victim, "[\tRSNEAK\tn] ");
+      send_to_char(victim, "[\tRSNEAK\tn] ");
     }
   }
+  
   /* ok we checked has_dex_bonus_to_ac(), if the victim was feinted, then
    remove the feint affect on them now*/
   if (affected_by_spell(victim, SKILL_FEINT)) {
@@ -5751,11 +5791,14 @@ int damage_shield_check(struct char_data *ch, struct char_data *victim,
    dam_type -> DAM_FIRE / etc (not used here, passed to dam() function)
    penalty ->  (or bonus)  applied to hitroll, BAB multi-attack for example
    attack_type ->
-     #define ATTACK_TYPE_PRIMARY   0
-     #define ATTACK_TYPE_OFFHAND   1
-     #define ATTACK_TYPE_RANGED    2
-     #define ATTACK_TYPE_UNARMED   3
-     #define ATTACK_TYPE_TWOHAND   4
+    #define ATTACK_TYPE_PRIMARY   0
+    #define ATTACK_TYPE_OFFHAND   1
+    #define ATTACK_TYPE_RANGED    2
+    #define ATTACK_TYPE_UNARMED   3
+    #define ATTACK_TYPE_TWOHAND   4 //doesn't really serve any purpose?
+    #define ATTACK_TYPE_BOMB_TOSS 5
+    #define ATTACK_TYPE_PRIMARY_SNEAK   6  //impromptu sneak attack
+    #define ATTACK_TYPE_OFFHAND_SNEAK   7  //impromptu sneak attack
    Attack queue will determine what kind of hit this is. */
 #define DAM_MES_LENGTH  20
 int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
@@ -5905,27 +5948,36 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
   /* Get the important numbers : ch's Attack bonus and victim's AC
    * attack rolls: 1 = stumble, 20 = hit, also check for threat-range for criticals */
   victim_ac = compute_armor_class(ch, victim, FALSE, MODE_ARMOR_CLASS_NORMAL);
+
   switch (attack_type) {
-    case ATTACK_TYPE_OFFHAND: /* secondary or 'off' hand */
-      if (!wielded)
-              calc_bab += compute_attack_bonus(ch, victim, ATTACK_TYPE_UNARMED);
-      else
-        calc_bab += compute_attack_bonus(ch, victim, ATTACK_TYPE_OFFHAND);
-        break;
-        case ATTACK_TYPE_RANGED: /* ranged weapon */
-        calc_bab += compute_attack_bonus(ch, victim, ATTACK_TYPE_RANGED);
-        break;
-        case ATTACK_TYPE_TWOHAND: /* two handed weapon */
-        calc_bab += compute_attack_bonus(ch, victim, ATTACK_TYPE_TWOHAND);
-        break;
-        case ATTACK_TYPE_PRIMARY: /* primary hand and default */
-        default:
-        if (!wielded)
-              calc_bab += compute_attack_bonus(ch, victim, ATTACK_TYPE_UNARMED);
-      else
-        calc_bab += compute_attack_bonus(ch, victim, ATTACK_TYPE_PRIMARY);
-        break;
+
+    case ATTACK_TYPE_OFFHAND: /*fallthrough*/ /* secondary or 'off' hand */
+    case ATTACK_TYPE_OFFHAND_SNEAK: /* impromptu */
+      if (!wielded) {
+        calc_bab += compute_attack_bonus(ch, victim, ATTACK_TYPE_UNARMED);
+      } else {
+        calc_bab += compute_attack_bonus(ch, victim, attack_type);
       }
+      break;
+
+    case ATTACK_TYPE_RANGED: /* ranged weapon */
+      calc_bab += compute_attack_bonus(ch, victim, attack_type);
+      break;
+      
+    case ATTACK_TYPE_TWOHAND: /* two handed weapon */
+      calc_bab += compute_attack_bonus(ch, victim, attack_type);
+      break;
+      
+    case ATTACK_TYPE_PRIMARY: /* primary hand and default */ /*fallthrough*/
+    case ATTACK_TYPE_PRIMARY_SNEAK: /* impromptu */ /*fallthrough*/
+    default:
+      if (!wielded)
+        calc_bab += compute_attack_bonus(ch, victim, ATTACK_TYPE_UNARMED);
+      else {
+        calc_bab += compute_attack_bonus(ch, victim, attack_type);
+      }
+      break;
+  }
 
   if (type == TYPE_ATTACK_OF_OPPORTUNITY) {
     if (HAS_FEAT(victim, FEAT_MOBILITY) && has_dex_bonus_to_ac(ch, victim))
@@ -6014,7 +6066,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
                 TO_NOTVICT);
 
                 /* Encapsulate this?  We need better control of 'hit()s' */
-                hit(victim, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_PRIMARY);
+                hit(victim, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, attack_type);
                 TOTAL_DEFENSE(victim)--;
         return (HIT_MISS);
       } else {

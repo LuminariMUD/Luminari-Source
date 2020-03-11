@@ -2,7 +2,7 @@
  * File:   bardic_performance.c
  * Author: Zusuk
  * Functions, commands, etc for the bardic performance system
- *   heavy influence from the homelandMUD system
+ *    influence from the homelandMUD bard system
  */
 
 #include "conf.h"

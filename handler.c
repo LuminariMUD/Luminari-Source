@@ -1,5 +1,5 @@
 /**************************************************************************
- *  File: handler.c                                         Part of LuminariMUD *
+ *  File: handler.c                                    Part of LuminariMUD *
  *  Usage: Internal funcs: moving and finding chars/objs.                  *
  *                                                                         *
  *  All rights reserved.  See license for complete information.            *
@@ -497,6 +497,13 @@ void compute_char_cap(struct char_data *ch) {
           hit_cap += class_level / 3;
           dam_cap += class_level / 3;
           break;
+        case CLASS_ARCANE_SHADOW:
+          str_cap += class_level / 8 + 1;
+          dex_cap += class_level / 4 + 1;
+          int_cap += class_level / 4 + 1;
+          hit_cap += class_level / 3;
+          dam_cap += class_level / 3;
+          break;          
         case CLASS_ARCANE_ARCHER:
           dex_cap += class_level / 4 + 1;
           int_cap += class_level / 8 + 1;

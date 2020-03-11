@@ -352,6 +352,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "intimidate", "intimidate", POS_FIGHTING, do_intimidate, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_intimidate},
   { "icicle", "icicle", POS_FIGHTING, do_icicle, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
   { "imbuearrow", "imbuearrow", POS_FIGHTING, do_imbuearrow, 1, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
+  { "impromptu", "impromptu", POS_FIGHTING, do_impromptu, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_impromptu},
 
   { "junk", "j", POS_RECLINING, do_drop, 0, SCMD_JUNK, FALSE, ACTION_NONE, {0, 0}, NULL},
 
@@ -862,7 +863,7 @@ void command_interpreter(struct char_data *ch, char *argument) {
     send_to_char(ch, "You are too busy casting [you can 'abort' the spell]...\r\n");
   else if (AFF_FLAGGED(ch, AFF_HIDE) && !AFF_FLAGGED(ch, AFF_SNEAK)) {
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_HIDE);
-    send_to_char(ch, "You slowly step out of the shadows...\r\n");
+    send_to_char(ch, "You slowly step out of the shadows... (command removed hide, try sneaking before hiding)\r\n");
   } else if (AFF_FLAGGED(ch, AFF_HIDE) && AFF_FLAGGED(ch, AFF_SNEAK) &&
           !is_abbrev(complete_cmd_info[cmd].command, "look") &&
           !is_abbrev(complete_cmd_info[cmd].command, "trip") &&
@@ -906,10 +907,15 @@ void command_interpreter(struct char_data *ch, char *argument) {
           !is_abbrev(complete_cmd_info[cmd].command, "fire") &&
           !is_abbrev(complete_cmd_info[cmd].command, "disabletrap") &&
           !is_abbrev(complete_cmd_info[cmd].command, "detecttrap") &&
+          !is_abbrev(complete_cmd_info[cmd].command, "cast") &&
           !is_abbrev(complete_cmd_info[cmd].command, "attackqueue")
           ) {
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_HIDE);
-    send_to_char(ch, "You step out of the shadows...\r\n");
+    send_to_char(ch, "You step out of the shadows...  (command removed hide)\r\n");
+  } else if (AFF_FLAGGED(ch, AFF_HIDE) && AFF_FLAGGED(ch, AFF_SNEAK) && is_abbrev(complete_cmd_info[cmd].command, "cast")
+             && !HAS_FEAT(ch, FEAT_MAGICAL_AMBUSH) {
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_HIDE);
+    send_to_char(ch, "You step out of the shadows...  (attempting to cast without 'magical ambush' removes hidden status)\r\n");
   } else if (char_has_mud_event(ch, eCRAFTING) &&
           !is_abbrev(complete_cmd_info[cmd].command, "gossip") &&
           !is_abbrev(complete_cmd_info[cmd].command, "gemote") &&
@@ -2457,6 +2463,9 @@ void nanny(struct descriptor_data *d, char *arg) {
           break;
         case CLASS_ARCANE_ARCHER:
           perform_help(d, "class-arcanearcher");
+          break;
+        case CLASS_ARCANE_SHADOW:
+          perform_help(d, "class-arcaneshadow");
           break;
         case CLASS_PALADIN:
           perform_help(d, "class-paladin");

@@ -1,5 +1,5 @@
-     /**************************************************************************
- *  File: mobact.c                                          Part of LuminariMUD *
+/**************************************************************************
+ *  File: mobact.c                                     Part of LuminariMUD *
  *  Usage: Functions for generating intelligent (?) behavior in mobiles.   *
  *                                                                         *
  *  All rights reserved.  See license for complete information.            *

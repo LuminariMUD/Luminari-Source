@@ -1,5 +1,5 @@
 /**************************************************************************
-*  File: genwld.c                                          Part of LuminariMUD *
+*  File: genwld.c                                     Part of LuminariMUD *
 *  Usage: Generic OLC Library - Rooms.                                    *
 *                                                                         *
 *  By Levork. Copyright 1996 by Harvey Gilpin, 1997-2001 by George Greer. *

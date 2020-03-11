@@ -2974,6 +2974,27 @@ ACMD(do_darkness) {
     start_daily_use_cooldown(ch, FEAT_SLA_DARKNESS);
 }
 
+/* invisible rogue feat */
+ACMD(do_invisiblerogue) {
+  int uses_remaining = 0;
+
+  if (!HAS_FEAT(ch, FEAT_INVISIBLE_ROGUE)) {
+    send_to_char(ch, "You don't have this ability.\r\n");
+    return;
+  }
+
+  if (!IS_NPC(ch) && ((uses_remaining = daily_uses_remaining(ch, FEAT_INVISIBLE_ROGUE)) == 0)) {
+    send_to_char(ch, "You must recover before you can use this ability again.\r\n");
+    return;
+  }
+
+  send_to_char(ch, "You invoke your arcane rogue ability and slowly begin to fade from sight...  ");
+  call_magic(ch, ch, NULL, SPELL_GREATER_INVISIBILITY, 0, GET_LEVEL(ch), CAST_SPELL);
+
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_INVISIBLE_ROGUE);
+}
+
 /* race trelux innate ability */
 ACMD(do_fly) {
   if (!HAS_FEAT(ch, FEAT_WINGS)) {
@@ -3833,7 +3854,7 @@ static void display_group_list(struct char_data * ch) {
 }
 
 
-//vatiken's group system 1.2, installed 08/08/12
+//vatiken's group system 1.2, installed 08/08/12 by zusuk
 
 ACMD(do_group) {
   char buf[MAX_STRING_LENGTH];

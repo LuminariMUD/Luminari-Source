@@ -1,5 +1,5 @@
 /**************************************************************************
-*  File: redit.c                                           Part of LuminariMUD *
+*  File: redit.c                                      Part of LuminariMUD *
 *  Usage: Oasis OLC - Rooms.                                              *
 *                                                                         *
 * By Levork. Copyright 1996 Harvey Gilpin. 1997-2001 George Greer.        *

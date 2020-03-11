@@ -1,5 +1,6 @@
 /*
  * Luminari Action System
+ * Author:  Ornir
  *
  */
 #include "conf.h"
@@ -45,6 +46,7 @@ void (*attack_actions[NUM_ATTACK_ACTIONS])(struct char_data *ch,
   do_arrowswarm,        /* AA_ARROW_SWARM */
   do_faeriefire,        /* AA_FAERIE_FIRE */
   do_feint,             /* AA_FEINT */  
+  do_impromptu,         /* AA_IMPROMPT */
 };
 
 void update_msdp_actions(struct char_data * ch) {

@@ -1,3 +1,7 @@
+/* Trading System
+   Author:  Zusuk
+*/
+
 #include "conf.h"
 #include "sysdep.h"
 #include "structs.h"
