@@ -3533,6 +3533,7 @@ struct char_data {
 
     struct list_data * events;
 
+    struct char_data *last_attacker; // mainly to prevent type_suffering from awarding exp
 };
 
 /** descriptor-related structures */
