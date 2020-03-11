@@ -334,6 +334,7 @@
 #define CLASS_MYSTIC_THEURGE    16
 #define CLASS_MYSTICTHEURGE     CLASS_MYSTIC_THEURGE
 #define CLASS_ALCHEMIST         17
+#define CLASS_ARCANE_SHADOW     18
 //#define CLASS_PSIONICIST        16
 //#define CLASS_PSION CLASS_PSIONICIST
 //#define CLASS_PSYCHIC_WARRIOR   17
@@ -347,7 +348,7 @@
 /* !!!---- CRITICAL ----!!! make sure to add class names to constants.c's
    class_names[] - we are dependent on that for loading the feat-list */
 /** Total number of available PC Classes */
-#define NUM_CLASSES             18
+#define NUM_CLASSES             19
 
 // related to pc (classes, etc)
 /* note that max_classes was established to reign in some of the
@@ -709,8 +710,8 @@
 #define MOB_NOSTEAL        37  /* Can't steal from mob*/
 #define MOB_INFO_KILL      38 /* mob, when killed, sends a message in game to everyone */
 /* we added a bunch of filler flags due to incompatible zone files */
-#define MOB_UNUSED_2       39
-#define MOB_UNUSED_3       40
+#define MOB_CUSTOM_GOLD    39
+#define MOB_NO_AI          40
 #define MOB_UNUSED_4       41
 #define MOB_UNUSED_5       42
 #define MOB_UNUSED_6       43
@@ -3477,6 +3478,7 @@ struct level_data {
     int discoveries[NUM_ALC_DISCOVERIES];
     int tempDiscovery ;
     int grand_discovery;
+    int skills[MAX_SKILLS+1];
 };
 
 /** The list element that makes up a list of characters following this
