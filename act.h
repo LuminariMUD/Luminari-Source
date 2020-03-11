@@ -410,6 +410,7 @@ ACMD(do_call);
 ACMD(do_fly);
 ACMD(do_levitate);
 ACMD(do_darkness);
+ACMD(do_invisiblerogue);
 ACMD(do_land);
 ACMD(do_frightful);
 ACMD(do_breathe);                   ACMDCHECK(can_breathe);
