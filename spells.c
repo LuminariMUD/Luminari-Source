@@ -30,6 +30,7 @@
 #include "item.h"
 #include "domains_schools.h"
 #include "oasis.h"
+#include "genzon.h"
 
 #define WALL_ITEM 101220
 /* object values for walls */
