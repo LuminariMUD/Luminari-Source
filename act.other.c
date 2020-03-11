@@ -2989,7 +2989,7 @@ ACMD(do_invisiblerogue) {
   }
 
   send_to_char(ch, "You invoke your arcane rogue ability and slowly begin to fade from sight...  ");
-  call_magic(ch, ch, NULL, SPELL_GREATER_INVISIBILITY, 0, GET_LEVEL(ch), CAST_SPELL);
+  call_magic(ch, ch, NULL, SPELL_GREATER_INVIS, 0, GET_LEVEL(ch), CAST_SPELL);
 
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_INVISIBLE_ROGUE);

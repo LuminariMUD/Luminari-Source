@@ -1500,7 +1500,7 @@ static void main_boosts_disp_menu(struct descriptor_data *d) {
 
 static void main_skills_disp_menu(struct descriptor_data *d) {
   int i, start_ability, end_ability;;
-  bool can_study = FALSE;
+  //bool can_study = FALSE;
   struct char_data *ch = d->character;
   
   start_ability = START_GENERAL_ABILITIES;
