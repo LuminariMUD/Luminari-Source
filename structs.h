@@ -1706,12 +1706,17 @@
 #define FEAT_PSYCHOKINETIC                     620
 #define FEAT_CURING_TOUCH                      621
 #define FEAT_LUCK_OF_HEROES                    622
+/* arcane shadow (trickster) */
+#define FEAT_IMPROMPTU_SNEAK_ATTACK            623
+#define FEAT_INVISIBLE_ROGUE                   624
+#define FEAT_MAGICAL_AMBUSH                    625
+#define FEAT_SURPRISE_SPELLS                   626
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT                      623
+#define FEAT_LAST_FEAT                      627
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS                           624
+#define NUM_FEATS                           628
 /** absolute cap **/
 #define MAX_FEATS                           750
 /*****/
