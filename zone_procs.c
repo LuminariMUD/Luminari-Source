@@ -1,6 +1,7 @@
 /**************************************************************************
  *  File: zone_procs.c                                 Part of LuminariMUD *
- *  Usage: Special procedures for zones                                    *
+ *  Usage: Special procedures for zones     
+ *  Author:  Zusuk                               *
  *                                                                         *
  *  Header File:  spec_procs.h                                             *
  **************************************************************************/

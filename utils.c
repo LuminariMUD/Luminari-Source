@@ -121,13 +121,15 @@ bool can_study_known_spells(struct char_data *ch) {
 
   /* sorcerer*/
   if (LEVELUP(ch)->class == CLASS_SORCERER ||
-          ((LEVELUP(ch)->class == CLASS_ARCANE_ARCHER || LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE) &&
+          ((LEVELUP(ch)->class == CLASS_ARCANE_ARCHER || LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE ||
+          LEVELUP(ch)->class == CLASS_ARCANE_SHADOW) &&
           GET_PREFERRED_ARCANE(ch) == CLASS_SORCERER))
     return TRUE;
 
   /* bard */
   if (LEVELUP(ch)->class == CLASS_BARD ||
-          ((LEVELUP(ch)->class == CLASS_ARCANE_ARCHER || LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE) &&
+          ((LEVELUP(ch)->class == CLASS_ARCANE_ARCHER || LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE ||
+          LEVELUP(ch)->class == CLASS_ARCANE_SHADOW) &&
           GET_PREFERRED_ARCANE(ch) == CLASS_BARD))
     return TRUE;
 
@@ -147,7 +149,8 @@ int compute_bonus_caster_level(struct char_data *ch, int class) {
     case CLASS_BARD:
       if (class == GET_PREFERRED_ARCANE(ch))
         bonus_levels += CLASS_LEVEL(ch, CLASS_ARCANE_ARCHER) * 3 / 4
-                     +  CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE);
+                    +  CLASS_LEVEL(ch, CLASS_ARCANE_SHADOW
+                    +  CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE);
       break;
     case CLASS_CLERIC:
     case CLASS_DRUID:
@@ -170,6 +173,7 @@ int compute_arcane_level(struct char_data *ch) {
   arcane_level += CLASS_LEVEL(ch, CLASS_WIZARD);
   arcane_level += CLASS_LEVEL(ch, CLASS_SORCERER);
   arcane_level += CLASS_LEVEL(ch, CLASS_BARD);
+  arcane_level += CLASS_LEVEL(ch, CLASS_ARCANE_SHADOW);
   arcane_level += CLASS_LEVEL(ch, CLASS_ARCANE_ARCHER) * 3 / 4;
   arcane_level += CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE);
   arcane_level += compute_arcana_golem_level(ch) - (SPELLBATTLE(ch) / 2);
@@ -3474,16 +3478,18 @@ int get_daily_uses(struct char_data *ch, int featnum) {
     case FEAT_IMBUE_ARROW:
       daily_uses += HAS_FEAT(ch, featnum) * 2;
       break;
-    case FEAT_SMITE_EVIL:
-    case FEAT_SMITE_GOOD:
-    case FEAT_RAGE:
-    case FEAT_DEFENSIVE_STANCE:
-    case FEAT_QUIVERING_PALM:
-    case FEAT_ARROW_OF_DEATH:
-    case FEAT_SWARM_OF_ARROWS:
-    case FEAT_WILD_SHAPE:
-    case FEAT_ANIMATE_DEAD:
-    case FEAT_VANISH:
+    case FEAT_SMITE_EVIL:/*fallthrough*/
+    case FEAT_SMITE_GOOD:/*fallthrough*/
+    case FEAT_RAGE:/*fallthrough*/
+    case FEAT_DEFENSIVE_STANCE:/*fallthrough*/
+    case FEAT_QUIVERING_PALM:/*fallthrough*/
+    case FEAT_ARROW_OF_DEATH:/*fallthrough*/
+    case FEAT_SWARM_OF_ARROWS:/*fallthrough*/
+    case FEAT_WILD_SHAPE:/*fallthrough*/
+    case FEAT_ANIMATE_DEAD:/*fallthrough*/
+    case FEAT_VANISH:/*fallthrough*/
+    case FEAT_INVISIBLE_ROGUE:/*fallthrough*/
+    case FEAT_IMPROMPTU_SNEAK_ATTACK:
       daily_uses += HAS_FEAT(ch, featnum);
       break;
     case FEAT_DRACONIC_HERITAGE_BREATHWEAPON:

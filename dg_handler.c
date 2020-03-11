@@ -1,5 +1,5 @@
 /**************************************************************************
-*  File: dg_handler.c                                      Part of LuminariMUD *
+*  File: dg_handler.c                                 Part of LuminariMUD *
 *  Usage: Contains functions to handle memory for scripts.                *
 *                                                                         *
 *  All rights reserved.  See license for complete information.            *

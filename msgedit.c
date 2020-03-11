@@ -1,5 +1,5 @@
 /**************************************************************************
-*  File: msgedit.c                                       Part of LuminariMUD   *
+*  File: msgedit.c                                  Part of LuminariMUD   *
 *  Usage: Handling of loading/saving messages and the olc editor.         *
 *                                                                         *
 *  By Vatiken. Copyright 2012 by Joseph Arnusch                           *

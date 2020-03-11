@@ -1,5 +1,5 @@
 /**************************************************************************
-*  File: tedit.c                                           Part of LuminariMUD *
+*  File: tedit.c                                      Part of LuminariMUD *
 *  Usage: Oasis OLC - Text files.                                         *
 *                                                                         *
 * By Michael Scott [Manx].                                                *

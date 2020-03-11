@@ -333,6 +333,7 @@ const char *class_names[NUM_CLASSES + 1] = {
   "Duelist", //15
   "Mystic Theurge",
   "Alchemist",
+  "Arcane Shadow",
 //  "unfinished",
 //  "unfinished",
 //  "unfinished",
@@ -3352,12 +3353,13 @@ const char *spell_prep_dict[NUM_CLASSES][4] = {
   {"",         "",           "",          ""            }, /* duelist 15 */
   {"",         "",           "",          ""            }, /* mystic theurge 16 */
   {"concoct",  "an extract", "concocted", "concoctions" }, /* alchemist 17 */
-//  {"",         "",           "",          ""            }, /* psion 18 */
-//  {"",         "",           "",          ""            }, /* psy warr 19 */
-//  {"",         "",           "",          ""            }, /* soul knife 20 */
-//  {"",         "",           "",          ""            }, /* wilder 21 */
-//  {"",         "",           "",          ""            }, /* shadow dancer 22 */
-//  {"",         "",           "",          ""            }, /* assassin 23 */
+  {"",         "",           "",          ""            }, /* arcane shadow 18 */
+//  {"",         "",           "",          ""            }, /* psion */
+//  {"",         "",           "",          ""            }, /* psy warr */
+//  {"",         "",           "",          ""            }, /* soul knife */
+//  {"",         "",           "",          ""            }, /* wilder */
+//  {"",         "",           "",          ""            }, /* shadow dancer */
+//  {"",         "",           "",          ""            }, /* assassin */
 };
 
 /* words to use for the spell preparation process for different classes. */
@@ -3381,6 +3383,7 @@ const char *spell_consign_dict[NUM_CLASSES][4] = {
   {"",          "",            "",           ""            }, /* duelist 15 */
   {"",          "",            "",           ""            }, /* mystic theurge 16 */
   {"discard",   "discarded",   "discarding", "discarded"   }, /* alchemist 17 */
+  {"",          "",            "",           ""            }, /* arcane shadow 18 */
 //  {"",          "",            "",           ""            }, /* psion 18 */
 //  {"",          "",            "",           ""            }, /* psy warr 19 */
 //  {"",          "",            "",           ""            }, /* soul knife 20 */

@@ -2782,7 +2782,40 @@ void assign_feats(void) {
           "(whichver is higher) bonus + 10 in order "
           "to survive your arrow of death.  Usage: deatharrow");
 
-  /* class feats that are implemented on classes that are not yet in the game */
+
+  /* arcane shadow */
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
+  /*lvl 1*/
+  feato(FEAT_IMPROMPTU_SNEAK_ATTACK, "impromptu sneak attack", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
+          "can do sneak attack at calling",
+          "For each point in this feat, can once per day perform a sneak attack at will.  "
+          "Will also get a sneak attack for any offhand weapon.");
+  /*lvl 2*/
+       /*sneak attack*/
+  /*lvl 3*/
+       /*impromptu sneak attack*/
+  /*lvl 4*/
+       /*sneak attack*/
+  /*lvl 5*/
+       /*impromptu sneak attack*/
+  /*lvl 6*/
+       /*sneak attack*/
+  /*lvl 7*/
+  feato(FEAT_INVISIBLE_ROGUE, "invisible rogue", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+          "1x spell like ability on self: greater invisibility",
+          "Once per day, with this feat, one can become invisible exactly like the spell 'greater invisibility.'");
+  /*lvl 8*/
+       /*sneak attack*/
+  /*lvl 9*/
+  feato(FEAT_MAGICAL_AMBUSH, "magical ambush", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+          "casting doesn't break stealth",
+          "As a mystical power, casting no longer breaks stealth.");
+  /*lvl 10*/
+       /*sneak attack*/
+  feato(FEAT_SURPRISE_SPELLS, "surprise spells", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+          "add sneak attack damage to spells against unaware targets",
+          "On conditions that would normally qualify one for a sneak attack, any damaging "
+          "spells will now add sneak attack damage.");
 
   /* stalwart defender */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
@@ -3279,9 +3312,11 @@ feato(FEAT_PSYCHOKINETIC, "psychokinetic tincture", TRUE, FALSE, FALSE, FEAT_TYP
   dailyfeat(FEAT_RAGE, eRAGE);
   dailyfeat(FEAT_DEFENSIVE_STANCE, eDEFENSIVE_STANCE);
   dailyfeat(FEAT_VANISH, eVANISHED);
+  dailyfeat(FEAT_INVISIBLE_ROGUE, eINVISIBLE_ROGUE);
   dailyfeat(FEAT_SMITE_EVIL, eSMITE_EVIL);
   dailyfeat(FEAT_IMBUE_ARROW, eIMBUE_ARROW);
   dailyfeat(FEAT_SEEKER_ARROW, eSEEKER_ARROW);
+  dailyfeat(FEAT_IMPROMPTU_SNEAK_ATTACK, eIMPROMPT);
   dailyfeat(FEAT_SWARM_OF_ARROWS, eARROW_SWARM);
   dailyfeat(FEAT_SMITE_GOOD, eSMITE_GOOD);
   dailyfeat(FEAT_DESTRUCTIVE_SMITE, eSMITE_DESTRUCTION);
@@ -4868,6 +4903,17 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         } else {
           sprintf(buf3, "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_ENHANCE_ARROW_MAGIC));
+          sprintf(buf, "%-40s ", buf3);
+        }
+        strcat(buf2, buf);
+        none_shown = FALSE;
+
+      } else if (i == FEAT_IMPROMPTU_SNEAK_ATTACK) {
+        if (mode == 1) {
+          sprintf(buf3, "%s (%dx / day)", feat_list[i].name, HAS_FEAT(ch, FEAT_IMPROMPTU_SNEAK_ATTACK));
+          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+        } else {
+          sprintf(buf3, "%s (%dx / day)", feat_list[i].name, HAS_FEAT(ch, FEAT_IMPROMPTU_SNEAK_ATTACK));
           sprintf(buf, "%-40s ", buf3);
         }
         strcat(buf2, buf);

@@ -1,5 +1,5 @@
 /**************************************************************************
-*  File: act.social.c                                      Part of LuminariMUD *
+*  File: act.social.c                                 Part of LuminariMUD *
 *  Usage: Functions to handle socials.                                    *
 *                                                                         *
 *  All rights reserved.  See license for complete information.            *

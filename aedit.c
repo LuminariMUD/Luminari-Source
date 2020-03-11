@@ -1,5 +1,5 @@
 /**************************************************************************
-*  File: aedit.c                                           Part of LuminariMUD *
+*  File: aedit.c                                      Part of LuminariMUD *
 *  Usage: OLC for MUDs -- this one edits socials.                         *
 *  by Michael Scott                                                       *
 **************************************************************************/

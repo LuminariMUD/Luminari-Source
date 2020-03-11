@@ -1319,7 +1319,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       bonus = level;
       break;
 
-  } /* switch(spellnum) */
+  } /* end switch(spellnum) */
 
   if (IS_SPECIALTY_SCHOOL(ch, spellnum))
     size_dice++;
@@ -1365,8 +1365,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
         dam = dice(num_dice, size_dice) + MIN(25, level);
       }
     }
-  }
-  else if (dam && (save != -1)) {
+  } else if (dam && (save != -1)) {
     //saving throw for half damage if applies
     if (mag_savingthrow(ch, victim, save, race_bonus, casttype, level, spell_school)) {
       if ((!IS_NPC(victim)) && save == SAVING_REFL && // evasion
@@ -1390,6 +1389,21 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
             FALSE, ch, NULL, victim, TO_VICT);
     return 0;
   }
+
+  /* surprise spell feat */
+  if (HAS_FEAT(ch, FEAT_SURPRISE_SPELL) &&
+          (!KNOWS_DISCOVERY(victim, ALC_DISC_PRESERVE_ORGANS) || dice(1, 4) > 1) &&
+          (compute_concealment(victim) == 0) &&
+          ((AFF_FLAGGED(victim, AFF_FLAT_FOOTED)) /* Flat-footed */
+          || !(has_dex_bonus_to_ac(ch, victim)) /* No dex bonus to ac */
+          || is_flanked(ch, victim) /* Flanked */
+          )) {
+
+    dam += dice(HAS_FEAT(ch, FEAT_SNEAK_ATTACK), 6);
+
+    send_to_char(ch, "[\tDSURPRISE SPELL\tn] ");
+    send_to_char(victim, "[\tRSURPRISE SPELL\tn] ");
+  }  
 
   if (!element) //want to make sure all spells have some sort of damage cat
     log("SYSERR: %d is lacking DAM_", spellnum);

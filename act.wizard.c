@@ -3224,6 +3224,7 @@ CLASS_PALADIN
 CLASS_RANGER
 CLASS_WEAPON_MASTER
 CLASS_ARCANE_ARCHER
+CLASS_ARCANE_SHADOW
  * CLASS_STALWART_DEFENDER
  * CLASS_SHIFTER
  * CLASS_DUELIST
@@ -3784,6 +3785,11 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       CLASS_LEVEL(vict, CLASS_ALCHEMIST) = RANGE(0, LVL_IMMORT - 1);
       affect_total(vict);
       break;
+    case 91: // arcane shadow
+      CLASS_LEVEL(vict, CLASS_ARCANE_SHADOW) = RANGE(0, LVL_IMMORT - 1);
+      affect_total(vict);
+      break;
+
     default:
       send_to_char(ch, "Can't set that!\r\n");
       return (0);

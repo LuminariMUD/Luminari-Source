@@ -1,6 +1,6 @@
 /* 
  * File:   desc_engine.h
- * Author: jamclaug
+ * Author: Ornir
  *
  * Created on 9. desember 2015, 12:48
  */
