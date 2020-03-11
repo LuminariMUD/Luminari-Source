@@ -1391,7 +1391,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   }
 
   /* surprise spell feat */
-  if (HAS_FEAT(ch, FEAT_SURPRISE_SPELL) &&
+  if (HAS_FEAT(ch, FEAT_SURPRISE_SPELLS) &&
           (!KNOWS_DISCOVERY(victim, ALC_DISC_PRESERVE_ORGANS) || dice(1, 4) > 1) &&
           (compute_concealment(victim) == 0) &&
           ((AFF_FLAGGED(victim, AFF_FLAT_FOOTED)) /* Flat-footed */
