@@ -913,7 +913,7 @@ void command_interpreter(struct char_data *ch, char *argument) {
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_HIDE);
     send_to_char(ch, "You step out of the shadows...  (command removed hide)\r\n");
   } else if (AFF_FLAGGED(ch, AFF_HIDE) && AFF_FLAGGED(ch, AFF_SNEAK) && is_abbrev(complete_cmd_info[cmd].command, "cast")
-             && !HAS_FEAT(ch, FEAT_MAGICAL_AMBUSH) {
+             && !HAS_FEAT(ch, FEAT_MAGICAL_AMBUSH)) {
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_HIDE);
     send_to_char(ch, "You step out of the shadows...  (attempting to cast without 'magical ambush' removes hidden status)\r\n");
   } else if (char_has_mud_event(ch, eCRAFTING) &&
