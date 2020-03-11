@@ -57,6 +57,7 @@
 #include "crafts.h" /* NewCraft */
 #include "new_mail.h"
 #include "alchemy.h"
+#include "helpers.h"
 
 /* local (file scope) functions */
 static int perform_dupe_check(struct descriptor_data *d);
@@ -71,6 +72,8 @@ static int sort_commands_helper(const void *a, const void *b);
 int *cmd_sort_info = NULL;
 
 struct command_info *complete_cmd_info;
+
+ACMD(do_reboot);
 
 /* This is the Master Command List. You can put new commands in, take commands
  * out, change the order they appear in, etc.  You can adjust the "priority"
@@ -706,17 +709,6 @@ int script_command_interpreter(struct char_data *ch, char *arg) {
   return 1; // We took care of execution. Let caller know.
 }
 
-const char *fill[] = {
-  "in",
-  "from",
-  "with",
-  "the",
-  "on",
-  "at",
-  "to",
-  "\n"
-};
-
 const char *reserved[] = {
   "a",
   "an",
@@ -1158,41 +1150,6 @@ int perform_alias(struct descriptor_data *d, char *orig, size_t maxlen) {
 
 /* Various other parsing utilities. */
 
-/* Searches an array of strings for a target string.  "exact" can be 0 or non-0,
- * depending on whether or not the match must be exact for it to be returned.
- * Returns -1 if not found; 0..n otherwise.  Array must be terminated with a
- * '\n' so it knows to stop searching. */
-int search_block(char *arg, const char **list, int exact) {
-  int i, l;
-
-  /*  We used to have \r as the first character on certain array items to
-   *  prevent the explicit choice of that point.  It seems a bit silly to
-   *  dump control characters into arrays to prevent that, so we'll just
-   *  check in here to see if the first character of the argument is '!',
-   *  and if so, just blindly return a '-1' for not found. - ae. */
-  if (*arg == '!')
-    return (-1);
-
-  /* Make into lower case, and get length of string */
-  for (l = 0; *(arg + l); l++)
-    *(arg + l) = LOWER(*(arg + l));
-
-  if (exact) {
-    for (i = 0; **(list + i) != '\n'; i++)
-      if (!strcmp(arg, *(list + i)))
-        return (i);
-  } else {
-    if (!l)
-      l = 1; /* Avoid "" to match the first available
-				 * string */
-    for (i = 0; **(list + i) != '\n'; i++)
-      if (!strncmp(arg, *(list + i), l))
-        return (i);
-  }
-
-  return (-1);
-}
-
 int is_number(const char *str) {
   if (*str == '-')
     str++;
@@ -1203,11 +1160,6 @@ int is_number(const char *str) {
       return (0);
 
   return (1);
-}
-
-/* Function to skip over the leading spaces of a string. */
-void skip_spaces(char **string) {
-  for (; **string && **string != '\t' && isspace(**string); (*string)++);
 }
 
 /* Given a string, change all instances of double dollar signs ($$) to single
@@ -1239,38 +1191,8 @@ char *delete_doubledollar(char *string) {
   return (string);
 }
 
-int fill_word(char *argument) {
-  return (search_block(argument, fill, TRUE) >= 0);
-}
-
 int reserved_word(char *argument) {
   return (search_block(argument, reserved, TRUE) >= 0);
-}
-
-/* Copy the first non-fill-word, space-delimited argument of 'argument'
- * to 'first_arg'; return a pointer to the remainder of the string. */
-char *one_argument(char *argument, char *first_arg) {
-  char *begin = first_arg;
-
-  if (!argument) {
-    log("SYSERR: one_argument received a NULL pointer!");
-    *first_arg = '\0';
-    return (NULL);
-  }
-
-  do {
-    skip_spaces(&argument);
-
-    first_arg = begin;
-    while (*argument && !isspace(*argument)) {
-      *(first_arg++) = LOWER(*argument);
-      argument++;
-    }
-
-    *first_arg = '\0';
-  } while (fill_word(begin));
-
-  return (argument);
 }
 
 /* one_word is like any_one_arg, except that words in quotes ("") are
@@ -1296,30 +1218,10 @@ char *one_word(char *argument, char *first_arg) {
   return (argument);
 }
 
-/* Same as one_argument except that it doesn't ignore fill words. */
-char *any_one_arg(char *argument, char *first_arg) {
-  skip_spaces(&argument);
-
-  while (*argument && !isspace(*argument)) {
-    *(first_arg++) = LOWER(*argument);
-    argument++;
-  }
-
-  *first_arg = '\0';
-
-  return (argument);
-}
-
 /* Same as one_argument except that it takes three args and returns the rest;
  * ignores fill words */
 char *three_arguments(char *argument, char *first_arg, char *second_arg, char *third_arg) {
   return (one_argument(one_argument(one_argument(argument, first_arg), second_arg), third_arg)); /* :-) */
-}
-
-/* Same as one_argument except that it takes two args and returns the rest;
- * ignores fill words */
-char *two_arguments(char *argument, char *first_arg, char *second_arg) {
-  return (one_argument(one_argument(argument, first_arg), second_arg)); /* :-) */
 }
 
 /* Determine if a given string is an abbreviation of another.
@@ -1336,16 +1238,6 @@ int is_abbrev(const char *arg1, const char *arg2) {
     return (1);
   else
     return (0);
-}
-
-/* Return first space-delimited token in arg1; remainder of string in arg2.
- * NOTE: Requires sizeof(arg2) >= sizeof(string) */
-void half_chop(char *string, char *arg1, char *arg2) {
-  char *temp;
-
-  temp = any_one_arg(string, arg1);
-  skip_spaces(&temp);
-  strcpy(arg2, temp); /* strcpy: OK (documentation) */
 }
 
 /* Used in specprocs, mostly.  (Exactly) matches "command" to cmd number */

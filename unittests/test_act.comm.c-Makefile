@@ -1,0 +1,8 @@
+.PHONY: test
+test: obj/test_act.comm
+	./$^
+
+obj/test_act.comm: obj/test_act.comm.o ../act.comm.do_spec_comm.c ../helpers.c mocks.c
+	$(BUILD) $^
+
+include Makefile-common
