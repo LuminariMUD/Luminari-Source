@@ -353,6 +353,7 @@ cpp_extern const struct command_info cmd_info[] = {
   { "icicle", "icicle", POS_FIGHTING, do_icicle, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
   { "imbuearrow", "imbuearrow", POS_FIGHTING, do_imbuearrow, 1, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
   { "impromptu", "impromptu", POS_FIGHTING, do_impromptu, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_impromptu},
+  { "invisiblerogue", "invisiblerogue", POS_DEAD, do_invisiblerogue, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
 
   { "junk", "j", POS_RECLINING, do_drop, 0, SCMD_JUNK, FALSE, ACTION_NONE, {0, 0}, NULL},
 
