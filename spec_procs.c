@@ -36,7 +36,7 @@
 #include "spell_prep.h"
 #include "item.h" /* do_stat_object */
 #include "alchemy.h"
-#include "treasure.h"
+#include "treasure.h" /* for set_armor_object */
 
 /* external functions */
 extern struct house_control_rec house_control[];
@@ -2342,11 +2342,7 @@ SPECIAL(guild) {
       sprintf(buf, "Knowledge (%s", ability_name);
       skill_num = find_ability_num(buf);
     } else {
-      send_to_char(ch, "Skills are now trained in the study menu.\r\n");
-      return (1); 
-      // Training is now done in the study menu, but let's leave this code in case
-      // we might want to reuse it in the future -- Gicker
-      // skill_num = find_ability_num(argument);
+      skill_num = find_ability_num(argument);
     }
 
     if (skill_num < 1) {
@@ -2391,10 +2387,6 @@ SPECIAL(guild) {
 
     return (TRUE);
   } else if (CMD_IS("boosts")) {
-    send_to_char(ch, "Boosts are now performed in the study menu.\r\n");
-    return (1);
-    // let's keep the old code just in case -- Gicker
-
     if (!argument || !*argument)
       send_to_char(ch, "\tCStat boost sessions remaining: %d\tn\r\n"
             "\tcStats:\tn\r\n"
@@ -7264,10 +7256,10 @@ int get_vendor_armor_cost(int level, int armortype, sbyte masterwork)
 		cost += 200;
 	
 	switch(level) {
-	  case 1: cost += 8000; break;
-	  case 2: cost += 20000; break;
-	  case 3: cost += 50000; break;
-	  case 4: cost += 100000; break;
+	  case 1: cost += 5000; break;
+	  case 2: cost += 10000; break;
+	  case 3: cost += 20000; break;
+	  case 4: cost += 50000; break;
 	}
 	
 	if (armor_list[armortype].armorType != ARMOR_TYPE_SHIELD && armor_list[armortype].armorType != ARMOR_TYPE_TOWER_SHIELD)
@@ -7286,10 +7278,10 @@ int get_vendor_weapon_cost(int level, int weapontype, sbyte masterwork)
 		cost += 300;
 	
 	switch(level) {
-	  case 1: cost += 8000; break;
-	  case 2: cost += 20000; break;
-	  case 3: cost += 50000; break;
-	  case 4: cost += 100000; break;
+	  case 1: cost += 5000; break;
+	  case 2: cost += 10000; break;
+	  case 3: cost += 20000; break;
+	  case 4: cost += 50000; break;
 	}
 	
 	return MAX(1, cost);
@@ -7721,3 +7713,4 @@ if (!CMD_IS("buy") && !CMD_IS("list")) return 0;
 /*************************/
 /* end object procedures */
 /*************************/
+

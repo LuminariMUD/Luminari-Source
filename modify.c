@@ -107,19 +107,6 @@ void strip_colors(char *str) {
   *n = '\0';
 }
 
-/* Parse out the @ character and replace it with the '\t' to work with
- * KaVir's protocol snippet */
-void parse_at(char *str) {
-  char *p = str;
-  for (; *p; p++)
-    if (*p == '@') {
-      if (*(p + 1) != '@')
-        *p = '\t';
-      else
-        p++;
-    }
-}
-
 void parse_tab(char *str) {
   char *p = str;
   for (; *p; p++)
@@ -129,36 +116,6 @@ void parse_tab(char *str) {
       else
         p++;
     }
-}
-
-void sentence_case(char *str) {
-  char *p = str;
-  bool cap_next = TRUE;
-  int len;
-
-  // remove leading spaces  
-  while (*p == ' ' || *p == '\t' || *p == '\n')
-    p++;
-
-  len = strlen(p);
-
-  // remove trailing spaces
-  while (len >= 0 && (p[len - 1] == ' ' || p[len - 1] == '\t' || *p == '\n')) {
-    *(p + len - 1) = '\0';
-    len--;
-  }
-
-  for (; *p; p++) {
-    while (strchr(".!?", *p) && *(p + 1) == ' ') {
-      cap_next = TRUE;
-      p++;
-    }
-
-    if (cap_next && *p != ' ' && *p != '\t') {
-      *p = UPPER(*p);
-      cap_next = FALSE;
-    }
-  }
 }
 
 /* Basic API function to start writing somewhere. 'data' isn't used, but you

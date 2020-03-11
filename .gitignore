@@ -59,3 +59,5 @@ dkms.conf
 # Fortran module files
 *.mod
 *.smod
+
+/unittests/obj

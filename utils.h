@@ -20,6 +20,10 @@
 #ifndef _UTILS_H_ /* Begin header file protection */
 #define _UTILS_H_
 
+#include "db.h" /* for config_info */
+#include "structs.h" /* for sbyte */
+#include "helpers.h" /* for UPPER */
+
 /** Definition of the action command, for the do_ series of in game functions.
  * This macro is placed here (for now) because it's too general of a macro
  * to be first defined in interpreter.h. The reason for using a macro is
@@ -316,12 +320,6 @@ void char_from_furniture(struct char_data *ch);
 #define ONOFF(a) ((a) ? "ON" : "OFF")
 
 
-
-/** If c is an upper case letter, return the lower case. */
-#define LOWER(c)   (((c)>='A'  && (c) <= 'Z') ? ((c)+('a'-'A')) : (c))
-
-/** If c is a lower case letter, return the upper case. */
-#define UPPER(c)   (((c)>='a'  && (c) <= 'z') ? ((c)+('A'-'a')) : (c) )
 
 
 /** If ch is equal to either a newline or a carriage return, return 1,
@@ -1171,15 +1169,10 @@ spellnum == SPELL_EPIC_WARDING )
                 LEVELUP(ch)->skill_focus[i][j] = FALSE : \
                 LEVELUP(ch)->skill_focus[i][j] = TRUE)*/
 
-#define GET_LEVELUP_FEAT_POINTS(ch)      (LEVELUP(ch)->feat_points)
-#define GET_LEVELUP_EPIC_FEAT_POINTS(ch) (LEVELUP(ch)->epic_feat_points)
+#define GET_LEVELUP_FEAT_POINTS(ch)         (LEVELUP(ch)->feat_points)
+#define GET_LEVELUP_EPIC_FEAT_POINTS(ch)    (LEVELUP(ch)->epic_feat_points)
 #define GET_LEVELUP_CLASS_FEATS(ch)      (LEVELUP(ch)->class_feat_points)
 #define GET_LEVELUP_EPIC_CLASS_FEATS(ch) (LEVELUP(ch)->epic_class_feat_points)
-#define GET_LEVELUP_SKILL_POINTS(ch)     (LEVELUP(ch)->trains)
-#define GET_LEVELUP_BOOSTS(ch)           (LEVELUP(ch)->num_boosts)
-#define GET_LEVELUP_BOOST_STATS(ch, stat) (LEVELUP(ch)->boosts[stat])
-#define GET_LEVELUP_SKILL(ch, skill_num) (LEVELUP(ch)->skills[skill_num])
-#define GET_LEVELUP_ABILITY(ch, skill_num) (GET_ABILITY(ch, skill_num) + GET_LEVELUP_SKILL(ch, skill_num))
 
 
 /* MACRO to get a weapon's type. */
@@ -1198,9 +1191,6 @@ spellnum == SPELL_EPIC_WARDING )
                                GET_LEVELUP_CLASS_FEATS(ch) + \
                                GET_LEVELUP_EPIC_FEAT_POINTS(ch) + \
                                GET_LEVELUP_EPIC_CLASS_FEATS(ch) > 0 ? 1 : 0))
-
-#define CAN_STUDY_SKILLS(ch)  (GET_LEVELUP_SKILL_POINTS(ch))
-#define CAN_STUDY_BOOSTS(ch)  (GET_LEVELUP_BOOSTS(ch) > 0)
 
 #define CAN_SET_STATS(ch) (GET_LEVEL(ch) <= 1)
 
@@ -1872,16 +1862,6 @@ spellnum == SPELL_EPIC_WARDING )
 #define NULL (void *)0
 #endif
 
-#if !defined(FALSE)
-/** Just in case FALSE is not defined. */
-#define FALSE 0
-#endif
-
-#if !defined(TRUE)
-/** Just in case TRUE is not defined. */
-#define TRUE  (!FALSE)
-#endif
-
 #if !defined(YES)
 /** In case YES is not defined. */
 #define YES 1
@@ -2073,3 +2053,4 @@ spellnum == SPELL_EPIC_WARDING )
 #endif /* _UTILS_H_ */
 
 /*EOF*/
+

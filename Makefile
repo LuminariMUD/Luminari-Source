@@ -7,7 +7,7 @@ CC = gcc
 
 # Any special flags you want to pass to the compiler
 #MYFLAGS = -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000
-MYFLAGS = -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-unused-value --param=max-vartrack-size=60000000
+MYFLAGS = -Wimplicit-int -Werror=implicit-function-declaration # -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-unused-value --param=max-vartrack-size=60000000
 #MYFLAGS = -Wall
 
 #flags for profiling (see hacker.doc for more information)
@@ -23,8 +23,13 @@ CFLAGS = -g -O2 $(MYFLAGS) $(PROFILE)
 
 LIBS =  -lcrypt -lgd -lm -lmysqlclient
 
-SRCFILES := $(wildcard *.c) $(wildcard rtree/*.c)
-OBJFILES := $(patsubst %.c,%.o,$(SRCFILES))  
+OBJDIR := obj
+SRCFILES := $(wildcard *.c)
+OBJFILES := $(patsubst %.c,$(OBJDIR)/%.o,$(SRCFILES))
+TEST_SRCFILES := $(wildcard unittests/*.c) act.comm.do_spec_comm.c helpers.c
+TEST_OBJFILES := $(patsubst %.c,$(OBJDIR)/%.o,$(TEST_SRCFILES))
+ALL_SRCFILES := $(TEST_SRCFILES) $(SRCFILES)
+ALL_OBJFILES := $(TEST_OBJFILES) $(OBJFILES)
 
 default: all
 
@@ -38,22 +43,38 @@ all: .accepted
 utils: .accepted
 	(cd util; $(MAKE) all)
 
-circle:
-	$(MAKE) $(BINDIR)/circle
+circle: test $(BINDIR)/circle
 
-$(BINDIR)/circle : $(OBJFILES)
+.PHONY: test circle clean $(wildcard unittests/*-Makefile)
+test: $(wildcard unittests/*-Makefile)
+	for mkf in $(notdir $<); do
+	  make -C unittests -f $$mkf
+	done
+
+$(BINDIR)/circle: $(OBJFILES)
 	$(CC) -o $(BINDIR)/circle $(PROFILE) $(OBJFILES) $(LIBS)
 
-$%.o: %.c
-	$(CC) $< $(CFLAGS) -c -o $@ 
+$(BINDIR)/unittests: $(TEST_OBJFILES)
+	$(CC) -o $@ $(PROFILE) $(LIBS) -O0 $^
+
+clean:
+	rm -f $(ALL_OBJFILES)
+	rm -rf $(DEPDIR)
+
+# http://make.mad-scientist.net/papers/advanced-auto-dependency-generation/#tldr
+DEPDIR := $(OBJDIR)/.deps
+DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.d
 
 clean:
 	rm -f *.o depend
 
-# Dependencies for the object files (automagically generated with
-# gcc -MM)
+$(OBJDIR)/unittests/%.o : unittests/%.c
+$(OBJDIR)/unittests/%.o : unittests/%.c $(DEPDIR)/%.d | $(DEPDIR)
+	$(COMPILE.c) $(OUTPUT_OPTION) $<
 
-depend:
-	$(CC) -MM *.c > depend
+$(DEPDIR): ; @mkdir -p $(DEPDIR) $(DEPDIR)/unittests $(OBJDIR)/unittests
+
+DEPFILES := $(ALL_SRCFILES:%.c=$(DEPDIR)/%.d)
+$(DEPFILES):
 
 -include depend

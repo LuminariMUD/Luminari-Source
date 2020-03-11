@@ -12,6 +12,7 @@
 #ifndef _STRUCTS_H_
 #define _STRUCTS_H_
 
+#include "bool.h" /* for bool */
 #include "protocol.h" /* Kavir Plugin*/
 #include "lists.h"
 
@@ -333,8 +334,6 @@
 #define CLASS_MYSTIC_THEURGE    16
 #define CLASS_MYSTICTHEURGE     CLASS_MYSTIC_THEURGE
 #define CLASS_ALCHEMIST         17
-#define CLASS_ARCANE_SHADOW     18
-#define CLASS_ARCANESHADOW      CLASS_ARCANE_SHADOW 
 //#define CLASS_PSIONICIST        16
 //#define CLASS_PSION CLASS_PSIONICIST
 //#define CLASS_PSYCHIC_WARRIOR   17
@@ -348,7 +347,7 @@
 /* !!!---- CRITICAL ----!!! make sure to add class names to constants.c's
    class_names[] - we are dependent on that for loading the feat-list */
 /** Total number of available PC Classes */
-#define NUM_CLASSES             19
+#define NUM_CLASSES             18
 
 // related to pc (classes, etc)
 /* note that max_classes was established to reign in some of the
@@ -709,9 +708,9 @@
 #define MOB_PLANAR_ALLY    36  /* is a planar ally (currently unused) */
 #define MOB_NOSTEAL        37  /* Can't steal from mob*/
 #define MOB_INFO_KILL      38 /* mob, when killed, sends a message in game to everyone */
-#define MOB_CUSTOM_GOLD    39 // These mobs will use the gold amounts set in OLC instead of automated amounts on mob load
-#define MOB_NO_AI          40 // mob will not perform any actions in mobact
 /* we added a bunch of filler flags due to incompatible zone files */
+#define MOB_UNUSED_2       39
+#define MOB_UNUSED_3       40
 #define MOB_UNUSED_4       41
 #define MOB_UNUSED_5       42
 #define MOB_UNUSED_6       43
@@ -793,7 +792,7 @@
 #define PRF_AUTOCON      50 /* autoconsider, shows level difference of mobs in look command */
 
 /** Total number of available PRF flags */
-#define NUM_PRF_FLAGS    51
+#define NUM_PRF_FLAGS    50
 
 /* Affect bits: used in char_data.char_specials.saved.affected_by */
 /* WARNING: In the world files, NEVER set the bits marked "R" ("Reserved") */
@@ -1136,7 +1135,7 @@
 #define FEAT_QUICKEN_SPELL          78
 #define FEAT_RAPID_SHOT             79
 #define FEAT_RIDE_BY_ATTACK         80
-#define FEAT_STABILITY              81  //dwarf
+#define FEAT_STABILITY              81  //dwarf?
 #define FEAT_SCRIBE_SCROLL          82
 #define FEAT_SONG_OF_FOCUSED_MIND   83  //bard
 #define FEAT_SHOT_ON_THE_RUN        84
@@ -1707,17 +1706,12 @@
 #define FEAT_PSYCHOKINETIC                     620
 #define FEAT_CURING_TOUCH                      621
 #define FEAT_LUCK_OF_HEROES                    622
-/*arcane shadow (trickster)*/
-#define FEAT_IMPROMPTU_SNEAK_ATTACK            623
-#define FEAT_INVISIBLE_ROGUE                   624
-#define FEAT_MAGICAL_AMBUSH                    625
-#define FEAT_SURPRISE_SPELLS                   626
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT                      627
+#define FEAT_LAST_FEAT                      623
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS                           628
+#define NUM_FEATS                           624
 /** absolute cap **/
 #define MAX_FEATS                           750
 /*****/
@@ -1772,7 +1766,7 @@
 #define ITEM_STAFF      4		/**< Item is a staff		*/
 #define ITEM_WEAPON     5		/**< Item is a weapon		*/
 #define ITEM_FURNITURE  6   /**< Sittable Furniture		*/
-#define ITEM_FIREWEAPON 7  // ranged weapon, deprecated
+#define ITEM_FIREWEAPON 7  // ranged weapon
 #define ITEM_TREASURE   8   /**< Item is a treasure, not gold	*/
 #define ITEM_ARMOR      9   /**< Item is armor		*/
 #define ITEM_POTION    10   /**< Item is a potion		*/
@@ -2475,8 +2469,6 @@
 #define ATTACK_TYPE_UNARMED   3
 #define ATTACK_TYPE_TWOHAND   4 /* doesn't really serve any purpose */
 #define ATTACK_TYPE_BOMB_TOSS 5
-#define ATTACK_TYPE_PRIMARY_SNEAK   6  /*impromptu sneak attack*/
-#define ATTACK_TYPE_OFFHAND_SNEAK   7  /*impromptu sneak attack*/
 
 /* WEAPON ATTACK TYPES - indicates type of attack both
    armed and unarmed attacks are, example: You BITE Bob.
@@ -2704,9 +2696,6 @@ typedef signed char sbyte; /**< 1 byte; vals = -127 to 127 */
 typedef unsigned char ubyte; /**< 1 byte; vals = 0 to 255 */
 typedef signed short int sh_int; /**< 2 bytes; vals = -32,768 to 32,767 */
 typedef unsigned short int ush_int; /**< 2 bytes; vals = 0 to 65,535 */
-#if !defined(__cplusplus)	/* Anyone know a portable method? */
-typedef char bool; /**< Technically 1 signed byte; vals should only = TRUE or FALSE. */
-#endif
 
 #if !defined(CIRCLE_WINDOWS) || defined(LCC_WIN32)	/* Hm, sysdep.h? */
 typedef signed char byte; /**< Technically 1 signed byte; vals should only = TRUE or FALSE. */
@@ -3483,8 +3472,6 @@ struct level_data {
     int discoveries[NUM_ALC_DISCOVERIES];
     int tempDiscovery ;
     int grand_discovery;
-
-    int skills[MAX_ABILITIES + 1];
 };
 
 /** The list element that makes up a list of characters following this
@@ -3536,8 +3523,6 @@ struct char_data {
     long pref; /**< unique session id */
 
     struct list_data * events;
-
-    struct char_data *last_attacker; // mainly to prevent type_suffering from awarding exp
 
 };
 
@@ -3965,3 +3950,4 @@ struct race_data {
 extern struct race_data race_list[];
 
 #endif /* _STRUCTS_H_ */
+
