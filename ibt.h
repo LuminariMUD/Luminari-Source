@@ -1,5 +1,5 @@
 /**************************************************************************
-*  File: ibt.h                                             Part of LuminariMUD *
+*  File: ibt.h                                        Part of LuminariMUD *
 *  Usage: Loading/saving/editing of Ideas, Bugs and Typos lists           *
 *                                                                         *
 *  All rights reserved.  See license for complete information.            *

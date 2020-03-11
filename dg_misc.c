@@ -1,5 +1,5 @@
 /**************************************************************************
- *  File: dg_misc.c                                         Part of LuminariMUD *
+ *  File: dg_misc.c                                    Part of LuminariMUD *
  *  Usage: Contains general functions for script usage.                    *
  *                                                                         *
  *  $Author: Mark A. Heilpern/egreen/Welcor $                              *

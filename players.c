@@ -18,6 +18,7 @@
 #include "dg_scripts.h"
 #include "comm.h"
 #include "interpreter.h"
+#include "mysql.h"
 #include "genolc.h" /* for strip_cr */
 #include "config.h" /* for pclean_criteria[] */
 #include "dg_scripts.h" /* To enable saving of player variables to disk */
@@ -1254,6 +1255,8 @@ void save_char(struct char_data * ch, int mode) {
     fprintf(fl, "Evnt:\n");
     /* Order:  Event-ID   Duration */
     /* eSTRUGGLE - don't need to save this */
+    if ((pMudEvent = char_has_mud_event(ch, eINVISIBLE_ROGUE)))
+      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eVANISHED)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eVANISH)))
@@ -2090,6 +2093,24 @@ static void read_aliases_ascii(FILE *file, struct char_data *ch, int count) {
       temp->type = atoi(tbuf);
       temp->next = GET_ALIASES(ch);
       GET_ALIASES(ch) = temp;
+    }
+  }
+}
+
+void update_player_last_on(void) {
+  
+  struct descriptor_data *d = NULL;
+  char buf[2048]; /* For MySQL insert. */
+
+  for (d = descriptor_list; d; d = d->next) {
+
+    if (!d || ! d->character) continue;
+
+    sprintf(buf, "UPDATE player_data SET last_online = NOW() "
+            "WHERE name = '%s';",
+            GET_NAME(d->character));
+    if (mysql_query(conn, buf)) {
+      log("SYSERR: Unable to UPDATE last_online for %s on PLAYER_DATA: %s", GET_NAME(d->character), mysql_error(conn));
     }
   }
 }

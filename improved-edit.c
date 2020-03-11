@@ -1,5 +1,5 @@
 /**************************************************************************
-*  File: improved-edit.c                                   Part of LuminariMUD *
+*  File: improved-edit.c                              Part of LuminariMUD *
 *  Usage: Routines specific to the improved editor.                       *
 **************************************************************************/
 

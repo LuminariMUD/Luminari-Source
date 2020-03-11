@@ -32,6 +32,7 @@
 #include "oasis.h"
 #include "genzon.h" /* for real_zone_by_thing */
 
+
 #define WALL_ITEM 101220
 /* object values for walls */
 #define WALL_TYPE   0 /* type, effect */

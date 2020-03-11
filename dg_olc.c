@@ -1,5 +1,5 @@
 /**************************************************************************
-*  File: dg_olc.c                                          Part of LuminariMUD *
+*  File: dg_olc.c                                     Part of LuminariMUD *
 *  Usage: This source file is used in extending Oasis OLC for trigedit.   *
 *                                                                         *
 *  $Author: Chris Jacobsen/Mark A. Heilpern/egreen/Welcor $               *

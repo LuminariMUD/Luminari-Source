@@ -1,5 +1,5 @@
 /**************************************************************************
- *  File: dg_mobcmd.c                                       Part of LuminariMUD *
+ *  File: dg_mobcmd.c                                  Part of LuminariMUD *
  *  Usage: Contains the mobile script commands.                            *
  *                                                                         *
  *  $Author: N'Atas-ha/Mark A. Heilpern/egreen/Welcor $                    *

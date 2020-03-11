@@ -127,15 +127,17 @@ typedef enum {
   eDRACBREATH, // Sorcerer draconic heritage breath weapon
   eDRACCLAWS, // Sorcerer draconic heritage claws attacks
   ePREPARATION, /* new spell preparation system */
-  eCRAFT, /* NewCraft */
+  /*100*/eCRAFT, /* NewCraft */
   eCOPYOVER, /* copyover event */
   eCOLLECT_DELAY, /* autocollect event */
   eARCANEADEPT, // Sorcerer metamagic adept feat uses
   eARMOR_SPECAB_BLINDING, /* cooldown event for blinding armor special ability */
-  eITEM_SPECAB_HORN_OF_SUMMONING, /* cooldown event for the horn of summoning special ability */
+  /*105*/eITEM_SPECAB_HORN_OF_SUMMONING, /* cooldown event for the horn of summoning special ability */
   eMUTAGEN,
   eCURING_TOUCH, // alchemical discovery curing touch
   ePSYCHOKINETIC, // alchemical discovery psychokinetic tincture
+  eIMPROMPT, /*slice & dice!  impromptu sneak attacks*/
+  /*110*/eINVISIBLE_ROGUE,  /* invisible rogue, SLA */
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

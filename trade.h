@@ -1,6 +1,6 @@
 /*
  * File:   trade.h
- * Author: User
+ * Author: Zusuk
  *
  * Created on 18 מאי 2015, 19:16
  */

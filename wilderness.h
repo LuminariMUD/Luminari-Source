@@ -1,4 +1,8 @@
 
+/* LuminariMUD Procedurally generated wilderness.
+   Author:  Ornir
+ */
+
 #ifndef _WILDERNESS_H_
 #define _WILDERNESS_H_
 

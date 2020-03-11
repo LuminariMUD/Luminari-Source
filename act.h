@@ -410,6 +410,7 @@ ACMD(do_call);
 ACMD(do_fly);
 ACMD(do_levitate);
 ACMD(do_darkness);
+ACMD(do_invisiblerogue);
 ACMD(do_land);
 ACMD(do_frightful);
 ACMD(do_breathe);                   ACMDCHECK(can_breathe);
@@ -451,6 +452,8 @@ ACMD(do_comeandgetme);              ACMDCHECK(can_comeandgetme);
 ACMD(do_sorcerer_breath_weapon);    ACMDCHECK(can_sorcerer_breath_weapon);
 ACMD(do_sorcerer_claw_attack);      ACMDCHECK(can_sorcerer_claw_attack);
 ACMD(do_sorcerer_draconic_wings);
+ACMD(do_impromptu);               ACMDCHECK(can_impromptu);
+
 
 /*****************************************************************************
  * Begin Functions and defines for act.other.c

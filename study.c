@@ -19,6 +19,7 @@
 #include "spells.h"
 #include "feats.h"
 #include "class.h"
+#include "handler.h"
 #include "constants.h"
 #include "assign_wpn_armor.h"
 #include "domains_schools.h"
@@ -34,14 +35,19 @@ static void favored_enemy_submenu(struct descriptor_data *d, int favored);
 static void favored_enemy_menu(struct descriptor_data *d);
 static void animal_companion_menu(struct descriptor_data *d);
 static void familiar_menu(struct descriptor_data *d);
+static void set_stats_menu(struct descriptor_data *d);
 
 static void display_main_menu(struct descriptor_data *d);
 static void generic_main_disp_menu(struct descriptor_data *d);
 static void main_feat_disp_menu(struct descriptor_data *d);
+static void main_boosts_disp_menu(struct descriptor_data *d);
 
 void init_study(struct descriptor_data *d, int class);
 void finalize_study(struct descriptor_data *d);
+int compute_ability(struct char_data *ch, int abilityNum);
 /*-------------------------------------------------------------------*/
+
+extern const char *cross_names[];
 
 #define MENU_OPT(i) ((i) ? grn : "\tD"), ((i) ? nrm : "\tD")
 
@@ -288,6 +294,24 @@ void finalize_study(struct descriptor_data *d) {
   GET_REAL_WIS(ch)  = LEVELUP(ch)->wis;
   GET_REAL_CHA(ch)  = LEVELUP(ch)->cha;
 
+  // assign skill choices
+  for (i = START_GENERAL_ABILITIES; i < (END_GENERAL_ABILITIES + 1); i++) {
+    SET_ABILITY(ch, i, GET_ABILITY(ch, i) + LEVELUP(ch)->skills[i] );
+  }
+  // assign boost choice
+  if (LEVELUP(ch)->boosts[0] > 0)
+    GET_REAL_STR(ch) += 1;
+  else if (LEVELUP(ch)->boosts[1] > 0)
+    GET_REAL_DEX(ch) += 1;
+  else if (LEVELUP(ch)->boosts[2] > 0)
+    GET_REAL_CON(ch) += 1;
+  else if (LEVELUP(ch)->boosts[3] > 0)
+    GET_REAL_INT(ch) += 1;
+  else if (LEVELUP(ch)->boosts[4] > 0)
+    GET_REAL_WIS(ch) += 1;
+  else if (LEVELUP(ch)->boosts[5] > 0)
+    GET_REAL_CHA(ch) += 1;
+
   for (i = 0; i < NUM_FEATS; i++) {
     if (LEVELUP(ch)->feats[i]) {
 
@@ -422,6 +446,36 @@ void finalize_study(struct descriptor_data *d) {
   add_domain_feats(ch);
 }
 
+void use_boost_point(struct char_data *ch, int stat) {
+
+  struct descriptor_data *d = ch->desc;
+
+  if (stat < 0 || stat > 6) {
+    send_to_char(ch, "Error: Stat number out of bounds in use_boost_point.  Please report to staff.\r\n");
+    mudlog(NRM, 31, TRUE, "Error: Stat number out of bounds in use_boost_point.  Please report to a coder.\r\n");
+    return;
+  }
+
+  if (GET_LEVELUP_BOOST_STATS(ch, stat) > 0) {
+    GET_LEVELUP_BOOST_STATS(ch, stat) = 0;
+    main_boosts_disp_menu(d);
+    send_to_char(ch, "You unassign your boost point from %s.\r\n", ability_score_names[stat]);
+    GET_LEVELUP_BOOSTS(ch) = 1;
+    return;
+  } else {
+    if (GET_LEVELUP_BOOSTS(ch) <= 0) {
+      send_to_char(d->character, "You do not have any boost points to spend.\r\n");
+      send_to_char(d->character, "Your choice (quit or ability score name) : ");
+      return;
+    }
+    GET_LEVELUP_BOOST_STATS(ch, stat) = 1;
+    main_boosts_disp_menu(d);
+    send_to_char(ch, "You assign your boost point to %s.\r\n", ability_score_names[stat]);
+    GET_LEVELUP_BOOSTS(ch) = 0;
+    return;
+  }
+}
+
 ACMD(do_study) {
   /* gonna have some restrictions here */
   if (IS_WILDSHAPED(ch) || IS_MORPHED(ch)) {  
@@ -444,6 +498,11 @@ ACMD(do_study) {
   act("$n starts adjusting $s skill-set.",
           TRUE, d->character, 0, 0, TO_ROOM);
   SET_BIT_AR(PLR_FLAGS(ch), PLR_WRITING);
+
+  if (GET_LEVEL(ch) == 1 && stat_points_left(ch) > 0) {
+    set_stats_menu(d);
+    return;
+  }
 
   display_main_menu(d);
 }
@@ -1398,6 +1457,93 @@ static void main_feat_disp_menu(struct descriptor_data *d) {
   OLC_MODE(d) = STUDY_MAIN_FEAT_MENU;
 }
 
+static void main_boosts_disp_menu(struct descriptor_data *d) {
+
+  struct char_data *ch = d->character;
+
+  get_char_colors(ch);
+  clear_screen(d);
+
+  write_to_output(d,
+          "\r\n-- %sAbility Score Boost Menu\r\n"
+          "\r\n", grn);
+
+  send_to_char(ch, "Boosts Remaining: %s%d%s\r\n\r\n" 
+  
+                   "Strength     : %d %s--> %d%s\r\n"
+                   "Dexterity    : %d %s--> %d%s\r\n"
+                   "Constitution : %d %s--> %d%s\r\n"
+                   "Intelligence : %d %s--> %d%s\r\n"
+                   "Wisdom       : %d %s--> %d%s\r\n"
+                   "Charisma     : %d %s--> %d%s\r\n",
+
+                   mgn, GET_LEVELUP_BOOSTS(ch), nrm, 
+                   GET_REAL_STR(ch), GET_LEVELUP_BOOST_STATS(ch, 0) > 0 ? mgn : nrm, GET_REAL_STR(ch) + GET_LEVELUP_BOOST_STATS(ch, 0), nrm, 
+                   GET_REAL_DEX(ch), GET_LEVELUP_BOOST_STATS(ch, 1) > 0 ? mgn : nrm, GET_REAL_DEX(ch) + GET_LEVELUP_BOOST_STATS(ch, 1), nrm, 
+                   GET_REAL_CON(ch), GET_LEVELUP_BOOST_STATS(ch, 2) > 0 ? mgn : nrm, GET_REAL_CON(ch) + GET_LEVELUP_BOOST_STATS(ch, 2), nrm, 
+                   GET_REAL_INT(ch), GET_LEVELUP_BOOST_STATS(ch, 3) > 0 ? mgn : nrm, GET_REAL_INT(ch) + GET_LEVELUP_BOOST_STATS(ch, 3), nrm, 
+                   GET_REAL_WIS(ch), GET_LEVELUP_BOOST_STATS(ch, 4) > 0 ? mgn : nrm, GET_REAL_WIS(ch) + GET_LEVELUP_BOOST_STATS(ch, 4), nrm, 
+                   GET_REAL_CHA(ch), GET_LEVELUP_BOOST_STATS(ch, 5) > 0 ? mgn : nrm, GET_REAL_CHA(ch) + GET_LEVELUP_BOOST_STATS(ch, 5), nrm
+
+  );
+
+  send_to_char(ch, "\r\n"
+                   "Type the name of the ability score you wish to change.\r\n"
+                   "Type it once to assign your boost to that score.\r\n"
+                   "Type it again to undo that choice.\r\n"
+                   "Type quit to exit this menu.\r\n"
+                   "Your Choice: ");
+
+  OLC_MODE(d) = STUDY_MAIN_BOOSTS_MENU;
+
+}
+
+static void main_skills_disp_menu(struct descriptor_data *d) {
+  int i, start_ability, end_ability;;
+  //bool can_study = FALSE;
+  struct char_data *ch = d->character;
+  
+  start_ability = START_GENERAL_ABILITIES;
+  end_ability = END_GENERAL_ABILITIES + 1;
+
+  get_char_colors(ch);
+  clear_screen(d);
+
+  write_to_output(d,
+          "\r\n-- %sSkills Menu\r\n"
+          "\r\n", mgn);
+
+  send_to_char(ch, "*Name of skill, invested points, total points with all active bonuses\tn\r\n"
+          "\tcSkill              Inve Tota Class/Cross/Unavailable  \tMUnspent trains: \tm%d\tn\r\n",
+          GET_LEVELUP_SKILL_POINTS(ch));
+
+  for (i = start_ability; i < end_ability; i++) {
+    /* we have some unused defines right now, we are going to skip over
+       them manaully */
+    switch (i) {
+      case ABILITY_UNUSED_1:
+      case ABILITY_UNUSED_2:
+      case ABILITY_UNUSED_3:
+      case ABILITY_UNUSED_4:
+      case ABILITY_UNUSED_5:
+      case ABILITY_UNUSED_6:
+      case ABILITY_UNUSED_7:
+      case ABILITY_UNUSED_8:
+        continue;
+      default:
+        break;
+    }
+    send_to_char(ch, "%-18s [%2d] \tC[%2d]\tn %s\r\n",
+            ability_names[i], GET_ABILITY(ch, i)+LEVELUP(ch)->skills[i], compute_ability(ch, i),
+            cross_names[modify_class_ability(ch, i, GET_CLASS(ch))]);
+
+  }
+
+  send_to_char(ch, "Please type quit or the name of the skill you wish to increase in rank: ");
+
+  OLC_MODE(d) = STUDY_MAIN_SKILLS_MENU;
+}
+
 static void display_study_feats(struct descriptor_data *d) {
   struct char_data *ch = d->character;
   int i = 0, j = 0, feat_marker = 0, feat_counter = 0, sortpos = 0;
@@ -1486,35 +1632,39 @@ static void generic_main_disp_menu(struct descriptor_data *d) {
   write_to_output(d,
           "\r\n-- %sStudy Menu\r\n"
           "\r\n"
-          "%s 1%s) Feats%s\r\n"
-          "%s 2%s) Known Spells%s\r\n"
-          "%s 3%s) Choose Familiar%s\r\n"
-          "%s 4%s) Animal Companion%s\r\n"
-          "%s 5%s) Ranger Favored Enemy%s\r\n"
-          "%s 6%s) Set Stats%s\r\n"
+          "%s 0%s) Skills%s\r\n"
+          "%s 1%s) Ability Score Boosts%s\r\n"
+          "%s 2%s) Feats%s\r\n"
+          "%s 3%s) Known Spells%s\r\n"
+          "%s 4%s) Choose Familiar%s\r\n"
+          "%s 5%s) Animal Companion%s\r\n"
+          "%s 6%s) Ranger Favored Enemy%s\r\n"
           "%s 7%s) Cleric Domain Selection%s\r\n"
           "%s 8%s) Wizard School Selection%s\r\n"
           "%s 9%s) Preferred Caster Classes (Prestige)%s\r\n"
           "%s A%s) Sorcerer Bloodline Selection%s\r\n"
-          "%s D%s) Alchemist Discoveries Selection%s\r\n"
+          "%s B%s) Alchemist Discoveries Selection%s\r\n"
           "\r\n"
+          "%s R%s) Reset Character%s\r\n"
           "%s Q%s) Quit\r\n"
           "\r\n"
           "* - An asterisk indicates you don't have access to this option.\r\n"
           "Enter Choice : ",
 
           mgn,
-          MENU_OPT(CAN_STUDY_FEATS(ch)), CAN_STUDY_FEATS(ch) ? "" : "*", //1
-          MENU_OPT(CAN_STUDY_KNOWN_SPELLS(ch)), CAN_STUDY_KNOWN_SPELLS(ch) ? "" : "*", //2
-          MENU_OPT(CAN_STUDY_FAMILIAR(ch)), CAN_STUDY_FAMILIAR(ch) ? "" : "*", //3
-          MENU_OPT(CAN_STUDY_COMPANION(ch)), CAN_STUDY_COMPANION(ch) ? "" : "*", //4
-          MENU_OPT(CAN_STUDY_FAVORED_ENEMY(ch)), CAN_STUDY_FAVORED_ENEMY(ch) ? "" : "*", //5
-          MENU_OPT(CAN_SET_STATS(ch)), CAN_SET_STATS(ch) ? "" : "*", //6
+          MENU_OPT(CAN_STUDY_SKILLS(ch)), (CAN_STUDY_SKILLS(ch)) ? "" : "*", //0
+          MENU_OPT(CAN_STUDY_BOOSTS(ch)), CAN_STUDY_BOOSTS(ch) ? "" : "*", //1
+          MENU_OPT(CAN_STUDY_FEATS(ch)), CAN_STUDY_FEATS(ch) ? "" : "*", //2
+          MENU_OPT(CAN_STUDY_KNOWN_SPELLS(ch)), CAN_STUDY_KNOWN_SPELLS(ch) ? "" : "*", //3
+          MENU_OPT(CAN_STUDY_FAMILIAR(ch)), CAN_STUDY_FAMILIAR(ch) ? "" : "*", //4
+          MENU_OPT(CAN_STUDY_COMPANION(ch)), CAN_STUDY_COMPANION(ch) ? "" : "*", //5
+          MENU_OPT(CAN_STUDY_FAVORED_ENEMY(ch)), CAN_STUDY_FAVORED_ENEMY(ch) ? "" : "*", //6
           MENU_OPT(CAN_SET_DOMAIN(ch)), CAN_SET_DOMAIN(ch) ? "" : "*", //7
           MENU_OPT(CAN_SET_SCHOOL(ch)), CAN_SET_SCHOOL(ch) ? "" : "*", //8
           MENU_OPT(CAN_SET_P_CASTER(ch)), CAN_SET_P_CASTER(ch) ? "" : "*", //9
           MENU_OPT(CAN_SET_S_BLOODLINE(ch)), CAN_SET_S_BLOODLINE(ch) ? "" : "*", //A
-          MENU_OPT(has_alchemist_discoveries_unchosen(ch)), has_alchemist_discoveries_unchosen(ch) ? "" : "*", //D
+          MENU_OPT(has_alchemist_discoveries_unchosen(ch)), has_alchemist_discoveries_unchosen(ch) ? "" : "*", //B
+          MENU_OPT(GET_LEVEL(ch) == 1), GET_LEVEL(ch) == 1 ? "" : "*", // R
           grn, nrm
           );
 
@@ -1660,6 +1810,9 @@ void study_parse(struct descriptor_data *d, char *arg) {
   int number = -1;
   int counter;
   int points_left = 0, cost_for_number = 0, new_stat = 0;
+  int intel_bonus = 0;
+  int tempXP = 0;
+  int i = 0;
 
   switch (OLC_MODE(d)) {
     case STUDY_CONFIRM_SAVE:
@@ -1669,8 +1822,8 @@ void study_parse(struct descriptor_data *d, char *arg) {
           /* Save the temporary values in LEVELUP(d->character) to the
            * character, print a message, free the structures and exit. */
           write_to_output(d, "Your choices have been finalized!\r\n\r\n");
-          if (GET_LEVEL(ch) == 1) /* in case they modify their intelligence */            
-            reset_training_points(ch);
+          // if (GET_LEVEL(ch) == 1) /* in case they modify their intelligence */            
+          //   reset_training_points(ch);
           finalize_study(d);
           save_char(d->character, 0);
           cleanup_olc(d, CLEANUP_ALL);
@@ -1705,17 +1858,30 @@ void study_parse(struct descriptor_data *d, char *arg) {
           write_to_output(d, "Do you wish to save your changes? : ");
           OLC_MODE(d) = STUDY_CONFIRM_SAVE;
           break;
+        case '0':
+          main_skills_disp_menu(d);
+          break;
         case '1':
-          main_feat_disp_menu(d);
+          if (!CAN_STUDY_BOOSTS(ch)) {
+            generic_main_disp_menu(d);
+            write_to_output(d, "That is an invalid choice!\r\n");
+            break;
+          }
+          main_boosts_disp_menu(d);
           break;
         case '2':
+          main_feat_disp_menu(d);
+          break;
+        case '3':
           if (CAN_STUDY_KNOWN_SPELLS(ch)) {
             if (LEVELUP(ch)->class == CLASS_SORCERER ||
-                    ((LEVELUP(ch)->class == CLASS_ARCANE_ARCHER || LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE) &&
+                    ((LEVELUP(ch)->class == CLASS_ARCANE_ARCHER || LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE ||
+                    LEVELUP(ch)->class == CLASS_ARCANE_SHADOW) &&
                      GET_PREFERRED_ARCANE(ch) == CLASS_SORCERER) )
               sorc_known_spells_disp_menu(d);
             else if (LEVELUP(ch)->class == CLASS_BARD  ||
-                    ((LEVELUP(ch)->class == CLASS_ARCANE_ARCHER || LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE) &&
+                    ((LEVELUP(ch)->class == CLASS_ARCANE_ARCHER || LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE ||
+                    LEVELUP(ch)->class == CLASS_ARCANE_SHADOW) &&
                      GET_PREFERRED_ARCANE(ch) == CLASS_BARD) )
               bard_known_spells_disp_menu(d);
           }    else {
@@ -1723,7 +1889,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
             generic_main_disp_menu(d);
           }
           break;
-        case '3':
+        case '4':
           if (CAN_STUDY_FAMILIAR(ch))
             familiar_menu(d);
           else {
@@ -1731,7 +1897,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
             generic_main_disp_menu(d);
           }
           break;
-        case '4':
+        case '5':
           if (CAN_STUDY_COMPANION(ch))
             animal_companion_menu(d);
           else {
@@ -1739,7 +1905,7 @@ void study_parse(struct descriptor_data *d, char *arg) {
             generic_main_disp_menu(d);
           }
           break;
-        case '5':
+        case '6':
           if (CAN_STUDY_FAVORED_ENEMY(ch))
             favored_enemy_menu(d);
           else {
@@ -1747,14 +1913,16 @@ void study_parse(struct descriptor_data *d, char *arg) {
             generic_main_disp_menu(d);
           }
           break;
-        case '6':
-          if (CAN_SET_STATS(ch))
+        /*
+        case '7':
+          if (CAN_SET_STATS(ch)) {
             set_stats_menu(d);
-          else {
+          } else {
             write_to_output(d, "That is an invalid choice!\r\n");
             generic_main_disp_menu(d);
           }
           break;
+        */
         case '7':
           if (CAN_SET_DOMAIN(ch))
             set_domain_menu(d);
@@ -1791,8 +1959,8 @@ void study_parse(struct descriptor_data *d, char *arg) {
             generic_main_disp_menu(d);
           }
           break;
-        case 'D':
-        case 'd':
+        case 'B':
+        case 'b':
           if (CAN_STUDY_FEATS(ch) && GET_LEVEL(ch) < LVL_IMMORT)
           {
             write_to_output(d, "Please choose your feat(s) first.\r\n");
@@ -1807,11 +1975,46 @@ void study_parse(struct descriptor_data *d, char *arg) {
             generic_main_disp_menu(d);
           }
           break;
+        // reset levelup, level 1 only.
+        case 'R':
+        case 'r':
+          if (GET_LEVEL(ch) != 1) {
+            send_to_char(ch, "You can't reset your level after you've passed level 1.  Please exit the study menu and use the respec command instead.\r\n");
+            break;
+          }
+          send_to_char(ch, "Are you sure you wish to reset your level?  This will undo all of your changes and make you a freshly made level one character again.\r\nY or N?");
+          OLC_MODE(d) = STUDY_CONFIRM_RESET;
+          break;
         default:
           write_to_output(d, "That is an invalid choice!\r\n");
           display_main_menu(d);
           break;
 
+      }
+      break;
+    case STUDY_CONFIRM_RESET:
+      switch (*arg) {
+        case 'y':
+        case 'Y':
+          tempXP = GET_EXP(ch);
+          /* Make sure that players can't make wildshaped forms permanent.*/
+          SUBRACE(ch) = 0;
+          IS_MORPHED(ch) = 0;
+          if (affected_by_spell(ch, SKILL_WILDSHAPE)) {
+            affect_from_char(ch, SKILL_WILDSHAPE);
+            send_to_char(ch, "You return to your normal form..\r\n");
+          }
+          do_start(ch);
+          GET_EXP(ch) = tempXP;
+          send_to_char(ch, "You have reset your  character and can begin choosing stats, skills and feats anew.\r\n");
+          save_char(d->character, 0);
+          cleanup_olc(d, CLEANUP_ALL);
+          free(LEVELUP(d->character));
+          LEVELUP(d->character) = NULL;
+          return;
+        default:
+          display_main_menu(d);
+          break;
       }
       break;
     case STUDY_MAIN_FEAT_MENU:
@@ -1834,6 +2037,122 @@ void study_parse(struct descriptor_data *d, char *arg) {
           break;
       }
       break;
+
+  case STUDY_MAIN_BOOSTS_MENU:
+
+    if (!*arg) {
+      send_to_char(d->character, "\r\nPlease type the full name of the ability score you wish to increase or type quit to leave this menu.\r\n");
+      send_to_char(d->character, "Your choice (quit or ability score name) : ");
+      return;
+    }
+
+    for (i = 0; i < strlen(arg); i++)
+      arg[i] = tolower(arg[i]);
+
+    if (is_abbrev(arg, "quit")) {
+      // let's update trains
+      if (GET_LEVELUP_BOOST_STATS(ch, 3) > 0)
+      intel_bonus += ((GET_REAL_INT(ch)+1) % 2) ? 0 : 1;
+      GET_LEVELUP_SKILL_POINTS(ch) += intel_bonus;
+      display_main_menu(d);
+      return;
+    }
+
+    if (is_abbrev(arg, "strength")) {
+      use_boost_point(ch, 0);
+      break;
+    } else if (is_abbrev(arg, "dexterity")) {
+      use_boost_point(ch, 1);
+      break;
+    } else if (is_abbrev(arg, "constitution")) {
+      use_boost_point(ch, 2);
+      break;
+    } else if (is_abbrev(arg, "intelligence")) {
+      use_boost_point(ch, 3);
+      break;
+    } else if (is_abbrev(arg, "wisdom")) {
+      use_boost_point(ch, 4);
+      break;
+    } else if (is_abbrev(arg, "charisma")) {
+      use_boost_point(ch, 5);
+      break;
+    } else {
+      send_to_char(d->character, "\r\nPlease type the full name of the ability score you wish to increase or type quit to leave this menu.\r\n");
+      send_to_char(d->character, "Your choice (quit or ability score name) : ");
+      return;
+    }
+
+    break;
+
+  case STUDY_MAIN_SKILLS_MENU:
+
+    if (!*arg) {
+      send_to_char(d->character, "\r\nPlease type the full name of the skill you wish to increase or type quit to leave this menu.\r\n");
+      send_to_char(d->character, "Your choice (quit or skill to improve) : ");
+      return;
+    }
+    
+    if (is_abbrev(arg, "quit")) {
+      display_main_menu(d);
+      return;
+    }
+
+    if (GET_LEVELUP_SKILL_POINTS(ch) <= 0) {
+      send_to_char(d->character, "You do not have any skill points left to spend.\r\n");
+      send_to_char(d->character, "Your choice (quit or skill to improve) : ");
+      return;
+    }
+
+    int skill_num = find_ability_num(arg);
+
+    if (skill_num < 1) {
+      send_to_char(ch, "You do not know of that skill.\r\n");
+      send_to_char(d->character, "Your choice (quit or skill to improve) : ");
+      return;
+    }
+
+    //skill not available to this class
+    if (modify_class_ability(ch, skill_num, GET_CLASS(ch)) == 0) {
+      send_to_char(ch, "This skill is not available to your class...\r\n");
+      send_to_char(d->character, "Your choice (quit or skill to improve) : ");
+      return;
+    }
+
+    //cross-class skill
+    if (GET_LEVELUP_SKILL_POINTS(ch) < 2 && modify_class_ability(ch, skill_num, GET_CLASS(ch)) == 1) {
+      send_to_char(ch, "(Cross-Class) You don't have enough skill points to train that skill...\r\n");
+      send_to_char(d->character, "Your choice (quit or skill to improve) : ");
+      return;
+    }
+    if (GET_LEVELUP_ABILITY(ch, skill_num) >= ((int) ((GET_LEVEL(ch) + 3) / 2)) && modify_class_ability(ch, skill_num, GET_CLASS(ch)) == 1) {
+      send_to_char(ch, "You are already fully trained for your level in that area.\r\n");
+      send_to_char(d->character, "Your choice (quit or skill to improve) : ");
+      return;
+    }
+
+    //class skill
+    if (GET_LEVELUP_ABILITY(ch, skill_num) >= (GET_LEVEL(ch) + 3) && modify_class_ability(ch, skill_num, GET_CLASS(ch)) == 2) {
+      send_to_char(ch, "You are already fully trained for your level in that area.\r\n");
+      send_to_char(d->character, "Your choice (quit or skill to improve) : ");
+      return;
+    }
+
+    send_to_char(ch, "You train for a while...\r\n");
+    GET_LEVELUP_SKILL_POINTS(ch)--;
+    if (modify_class_ability(ch, skill_num, GET_CLASS(ch)) == 1) {
+      GET_LEVELUP_SKILL_POINTS(ch)--;
+      send_to_char(ch, "You used two skill points to train a cross-class skill...\r\n");
+    }
+    GET_LEVELUP_SKILL(ch, skill_num)++;
+
+    if (GET_LEVELUP_ABILITY(ch, skill_num) >= (GET_LEVEL(ch) + 3))
+      send_to_char(ch, "You are now fully trained for your level in that area.\r\n");
+    if (GET_LEVELUP_ABILITY(ch, skill_num) >= ((int) ((GET_LEVEL(ch) + 3) / 2)) && CLSLIST_ABIL(GET_CLASS(ch), skill_num) == 1)
+      send_to_char(ch, "You are already fully trained for your level in that area.\r\n");
+
+    main_skills_disp_menu(d);
+
+    break;
 
   case STUDY_SELECT_ALC_DISCOVERY:
     number = atoi(arg);
@@ -1975,7 +2294,9 @@ void study_parse(struct descriptor_data *d, char *arg) {
       if (add_levelup_feat(d, LEVELUP(d->character)->tempFeat)) {
         SET_LEVELUP_COMBAT_FEAT(d->character, feat_to_cfeat(LEVELUP(d->character)->tempFeat), number);
 
-        write_to_output(d, "Feat %s (%s) chosen!\r\n", feat_list[LEVELUP(d->character)->tempFeat].name, weapon_list[number].name);
+        write_to_output(d, "Feat %s (%s) chosen!\r\n",
+          feat_list[LEVELUP(d->character)->tempFeat].name,
+          weapon_family[number]);
 
       } else {
         LEVELUP(d->character)->tempFeat = -1;
@@ -2500,6 +2821,15 @@ void study_parse(struct descriptor_data *d, char *arg) {
       switch (*arg) {
         case 'q':
         case 'Q':
+          if (stat_points_left(ch)) {
+            send_to_char(ch, "You must spend all of your stat points before continuing.\r\n");
+            break;
+          }
+          // let's update trains
+          intel_bonus += ((GET_REAL_INT(ch)+LEVELUP(ch)->inte) - GET_REAL_INT(ch)) / 2;
+          if (GET_LEVEL(ch) == 1)
+            intel_bonus *= 4;
+          GET_LEVELUP_SKILL_POINTS(ch) += intel_bonus;
           display_main_menu(d);
           break;
 

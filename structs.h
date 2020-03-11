@@ -3950,3 +3950,4 @@ struct race_data {
 extern struct race_data race_list[];
 
 #endif /* _STRUCTS_H_ */
+

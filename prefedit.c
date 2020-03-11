@@ -1,5 +1,5 @@
 /**************************************************************************
- *  File: prefedit.c                                        Part of LuminariMUD *
+ *  File: prefedit.c                                   Part of LuminariMUD *
  *  Usage: Player-level OLC for setting preferences and toggles            *
  *                                                                         *
  *  Created by Jamdog for tbaMUD 3.59                                      *

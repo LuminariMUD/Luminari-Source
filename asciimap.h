@@ -1,5 +1,5 @@
 /**************************************************************************
-*  File: asciimap.h                                        Part of LuminariMUD *
+*  File: asciimap.h                                   Part of LuminariMUD *
 *  Usage: Generates an ASCII map of the player's surroundings.            *
 *                                                                         *
 *  All rights reserved.  See license for complete information.            *

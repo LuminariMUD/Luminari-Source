@@ -1,3 +1,11 @@
+/*
+  
+  MySQL Functionality for the MUD
+
+  Author:  Ornir
+
+*/
+
 #include "conf.h"
 #include "sysdep.h"
 #include "structs.h"

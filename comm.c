@@ -179,6 +179,7 @@ static void handle_webster_file();
 static void msdp_update(void); /* KaVir plugin*/
 void update_msdp_affects(struct char_data *ch);
 void update_damage_and_effects_over_time(void);
+void update_player_last_on(void);
 
 /* externally defined functions, used locally */
 #ifdef __CXREF__
@@ -1062,6 +1063,7 @@ void heartbeat(int heart_pulse) {
       Crash_save_all();
       House_save_all();
     }
+    update_player_last_on();
   }
 
   if (!(heart_pulse % PULSE_USAGE))

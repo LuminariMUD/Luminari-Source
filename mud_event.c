@@ -134,20 +134,27 @@ struct mud_event_list mud_event_index[] = {
   { "Crippled by Critical", event_countdown, EVENT_CHAR}, //eCRIPPLING_CRITICAL
   { "Quest Completed!", event_countdown, EVENT_CHAR}, //eQUEST_COMPLETE
   { "Levitate", event_daily_use_cooldown, EVENT_CHAR}, //eSLA_LEVITATE
+  /*95*/
   { "Darkness", event_daily_use_cooldown, EVENT_CHAR}, //eSLA_DARKNESS
   { "Faerie Fire", event_daily_use_cooldown, EVENT_CHAR}, //eSLA_FAERIE_FIRE
   { "Draconic Heritage Breath Weapon Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eDRACBREATH
   { "Draconic Heritage Claws Attack Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eDRACCLAWS
   { "Spell Preparation", event_preparation, EVENT_CHAR}, //ePREPARATION
+  /*100*/
   { "Craft", event_craft, EVENT_CHAR}, /* eCRAFT */ /* NewCraft */
   { "Copyover Event!", event_copyover, EVENT_CHAR}, /* eCOPYOVER */ /* copyover delay */
   { "Autocollect delay", event_countdown, EVENT_CHAR}, //eCOLLECT_DELAY
   { "Metamagic Adept Usage Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eARCANEADEPT
   { "Armor SpecAb Cooldown: Blinding", event_daily_use_cooldown, EVENT_OBJECT}, // eARMOR_SPECAB_BLINDING
+  /*105*/
   { "Item SpecAb Cooldown: Horn of Summoning", event_daily_use_cooldown, EVENT_OBJECT}, // eITEM_SPECAB_HORN_OF_SUMMONING
   { "Mutagens/Cognatogens", event_daily_use_cooldown, EVENT_CHAR}, //eMUTAGEN
   { "Curing Touch", event_daily_use_cooldown, EVENT_CHAR}, // eCURING_TOUCH
   { "Psychokinetic Tincture", event_daily_use_cooldown, EVENT_CHAR}, // ePSYCHOKINETIC
+  { "Impromptu Sneak Attack", event_daily_use_cooldown, EVENT_CHAR}, // eIMPROMPT
+  /*110*/
+  { "Invisible Rogue Cool Down", event_daily_use_cooldown, EVENT_CHAR}, //eINVISIBLE_ROGUE
+
 };
 
 /* init_events() is the ideal function for starting global events. This
@@ -254,6 +261,9 @@ EVENTFUNC(event_countdown) {
     case eVANISHED:
       send_to_char(ch, "You are now able to vanish again.\r\n");
       break;
+    case eINVISIBLE_ROGUE:
+      send_to_char(ch, "You are now able to use your 'invisible rogue' ability again.\r\n");
+      break;
     case eLAYONHANDS:
       send_to_char(ch, "You are now able to lay on hands again.\r\n");
       break;
@@ -292,6 +302,9 @@ EVENTFUNC(event_countdown) {
       break;
     case eSEEKER_ARROW:
       send_to_char(ch, "You regain a usage of your seeker arrow.\r\n");
+      break;
+    case eIMPROMPT:
+      send_to_char(ch, "You regain a usage of your impromptu sneak attack.\r\n");
       break;
     case eIMBUE_ARROW:
       send_to_char(ch, "You regain a usage of your imbue arrow.\r\n");
@@ -567,6 +580,10 @@ EVENTFUNC(event_daily_use_cooldown) {
       featnum = FEAT_VANISH;
       send_to_char(ch, "One of your vanish uses has recovered.\r\n");
       break;
+    case eINVISIBLE_ROGUE:
+      featnum = FEAT_INVISIBLE_ROGUE;
+      send_to_char(ch, "One of your invisible rogue uses has recovered.\r\n");
+      break;
     case eARROW_SWARM:
       featnum = FEAT_SWARM_OF_ARROWS;
       send_to_char(ch, "One of your swarm of arrows uses has recovered.\r\n");
@@ -574,6 +591,10 @@ EVENTFUNC(event_daily_use_cooldown) {
     case eSEEKER_ARROW:
       featnum = FEAT_SEEKER_ARROW;
       send_to_char(ch, "One of your seeker arrow uses has recovered.\r\n");
+      break;
+    case eIMPROMPT:
+      featnum = FEAT_IMPROMPTU_SNEAK_ATTACK;
+      send_to_char(ch, "One of your impromptu sneak attack uses has recovered.\r\n");
       break;
     case eIMBUE_ARROW:
       featnum = FEAT_IMBUE_ARROW;

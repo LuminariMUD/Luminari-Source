@@ -1205,6 +1205,7 @@ int valid_align_by_class(int alignment, int class) {
     case CLASS_WARRIOR:
     case CLASS_WEAPON_MASTER:
     case CLASS_ARCANE_ARCHER:
+    case CLASS_ARCANE_SHADOW:
     case CLASS_STALWART_DEFENDER:
     case CLASS_DUELIST:
     case CLASS_SHIFTER:
@@ -1254,7 +1255,7 @@ int parse_class(char arg) {
 //    case 'k': return CLASS_ASSASSIN;
     case 'l': return CLASS_MYSTICTHEURGE;
     case 'm': return CLASS_WIZARD;
-      /* empty letters */
+    case 'n': return CLASS_ARCANE_SHADOW;
     case 'o': return CLASS_MONK;
     case 'p': return CLASS_PALADIN;
       /* empty letters */
@@ -1295,6 +1296,8 @@ int parse_class_long(char *arg) {
 //  if (is_abbrev(arg, "shadowdancer")) return CLASS_SHADOW_DANCER;
   if (is_abbrev(arg, "arcanearcher")) return CLASS_ARCANE_ARCHER;
   if (is_abbrev(arg, "arcane-archer")) return CLASS_ARCANE_ARCHER;
+  if (is_abbrev(arg, "arcane-shadow")) return CLASS_ARCANE_SHADOW;
+  if (is_abbrev(arg, "arcaneshadow")) return CLASS_ARCANE_SHADOW;  
   if (is_abbrev(arg, "stalwartdefender")) return CLASS_STALWART_DEFENDER;
   if (is_abbrev(arg, "stalwart-defender")) return CLASS_STALWART_DEFENDER;
   if (is_abbrev(arg, "shifter")) return CLASS_SHIFTER;
@@ -2697,6 +2700,7 @@ int level_exp(struct char_data *ch, int level) {
 //    case CLASS_ASSASSIN:
 //    case CLASS_SHADOW_DANCER:
     case CLASS_ARCANE_ARCHER:
+    case CLASS_ARCANE_SHADOW:
     case CLASS_ROGUE:
     case CLASS_BARD:
     case CLASS_BERSERKER:
@@ -4713,6 +4717,70 @@ void load_class_list(void) {
   class_prereq_spellcasting(CLASS_ARCANE_ARCHER, CASTING_TYPE_ARCANE,
           PREP_TYPE_ANY, 1 /*circle*/);
   class_prereq_cfeat(CLASS_ARCANE_ARCHER, FEAT_WEAPON_FOCUS, CFEAT_SPECIAL_BOW);
+  /****************************************************************************/
+
+  /****************************************************************************/
+  /*     class-number               name      abrv   clr-abrv     menu-name*/
+  classo(CLASS_ARCANE_SHADOW, "arcaneshadow", "ArS", "\tGAr\tDS\tn", "n) \tGArcane\tDShadow\tn",
+          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
+          10, Y, Y, M, 6, 0, 2, 4, Y, 5000, 0,
+          /*descrip*/"Few can match the guile and craftiness of arcane shadows. These "
+          "prodigious rogues blend the subtlest aspects of the arcane with the natural cunning "
+          "of the bandit and the scoundrel, using spells to enhance their natural rogue abilities. "
+          "Arcane shadows as often as not seek humiliation as a goal to triumph over "
+          "their foes than more violent solutions.");
+  /* class-number then saves:        fortitude, reflex, will, poison, death */
+  assign_class_saves(CLASS_ARCANE_SHADOW, B, G, G, B, B);
+  assign_class_abils(CLASS_ARCANE_SHADOW, /* class number */
+          /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+          CA, CA, CA, CA, CC, CA, CA,
+          /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+          CC, CC, CC, CA, CA, CA, CA, CC,
+          /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+          CC, CA, CA, CA, CC, CA,
+          /*survival,swim,use_magic_device,perform*/
+          CC, CA, CA, CC
+          );
+  assign_class_titles(CLASS_ARCANE_SHADOW, /* class number */
+          "", /* <= 4  */
+          "the Hidden Cantrip", /* <= 9  */
+          "the Magical Rogue", /* <= 14 */
+          "the Arcane Shadow", /* <= 19 */
+          "the Mystical Shadow", /* <= 24 */
+          "the Rogue Magician", /* <= 29 */
+          "the Stealth Tornado", /* <= 30 */
+          "the Immortal ArcaneShadow", /* <= LVL_IMMORT */
+          "the Limitless ArcaneShadow", /* <= LVL_STAFF */
+          "the God of ArcaneShadow", /* <= LVL_GRSTAFF */
+          "the ArcaneShadow" /* default */
+          );
+  /* feat assignment */
+  /*              class num     feat                             cfeat lvl stack */
+  feat_assignment(CLASS_ARCANE_SHADOW, FEAT_IMPROMPTU_SNEAK_ATTACK, Y, 1, Y);
+  feat_assignment(CLASS_ARCANE_SHADOW, FEAT_SNEAK_ATTACK, Y, 2, Y);
+  feat_assignment(CLASS_ARCANE_SHADOW, FEAT_IMPROMPTU_SNEAK_ATTACK, Y, 3, Y);
+  feat_assignment(CLASS_ARCANE_SHADOW, FEAT_SNEAK_ATTACK, Y, 4, Y);
+  feat_assignment(CLASS_ARCANE_SHADOW, FEAT_IMPROMPTU_SNEAK_ATTACK, Y, 5, Y);
+  feat_assignment(CLASS_ARCANE_SHADOW, FEAT_SNEAK_ATTACK, Y, 6, Y);
+  feat_assignment(CLASS_ARCANE_SHADOW, FEAT_INVISIBLE_ROGUE, Y, 7, N);
+  feat_assignment(CLASS_ARCANE_SHADOW, FEAT_SNEAK_ATTACK, Y, 8, Y);
+  feat_assignment(CLASS_ARCANE_SHADOW, FEAT_MAGICAL_AMBUSH, Y, 9, N);
+  feat_assignment(CLASS_ARCANE_SHADOW, FEAT_SNEAK_ATTACK, Y, 10, Y);
+  feat_assignment(CLASS_ARCANE_SHADOW, FEAT_SURPRISE_SPELLS, Y, 10, N);
+  /* no spell assignment */
+  /* class prereqs */
+  class_prereq_ability(CLASS_ARCANE_SHADOW, ABILITY_DISABLE_DEVICE, 4);
+  class_prereq_ability(CLASS_ARCANE_SHADOW, ABILITY_ESCAPE_ARTIST, 4);
+  class_prereq_ability(CLASS_ARCANE_SHADOW, ABILITY_SPELLCRAFT, 4);
+  class_prereq_spellcasting(CLASS_ARCANE_SHADOW, CASTING_TYPE_ARCANE,
+          PREP_TYPE_ANY, 2 /*circle*/);
+  class_prereq_feat(CLASS_ARCANE_SHADOW, FEAT_SNEAK_ATTACK, 2);
+  class_prereq_align(CLASS_ARCANE_SHADOW, NEUTRAL_GOOD);
+  class_prereq_align(CLASS_ARCANE_SHADOW, TRUE_NEUTRAL);
+  class_prereq_align(CLASS_ARCANE_SHADOW, NEUTRAL_EVIL);
+  class_prereq_align(CLASS_ARCANE_SHADOW, CHAOTIC_EVIL);
+  class_prereq_align(CLASS_ARCANE_SHADOW, CHAOTIC_GOOD);
+  class_prereq_align(CLASS_ARCANE_SHADOW, CHAOTIC_NEUTRAL);
   /****************************************************************************/
 
   /****************************************************************************/

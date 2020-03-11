@@ -1,5 +1,5 @@
 /**************************************************************************
- *  File: graph.c                                           Part of LuminariMUD *
+ *  File: graph.c                                      Part of LuminariMUD *
  *  Usage: Various graph algorithms.                                       *
  *                                                                         *
  *  All rights reserved.  See license for complete information.            *

@@ -1,5 +1,5 @@
 /**************************************************************************
- *  File: oasis_list.c                                      Part of LuminariMUD *
+ *  File: oasis_list.c                                 Part of LuminariMUD *
  *  Usage: Oasis OLC listings.                                             *
  *                                                                         *
  * By Levork. Copyright 1996 Harvey Gilpin. 1997-2001 George Greer.        *

@@ -1,5 +1,5 @@
 /**************************************************************************
- *  File: medit.c                                           Part of LuminariMUD *
+ *  File: medit.c                                      Part of LuminariMUD *
  *  Usage: Oasis OLC - Mobiles.                                            *
  *                                                                         *
  * Copyright 1996 Harvey Gilpin. 1997-2001 George Greer.                   *
@@ -2016,6 +2016,11 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned) {
       GET_INT(mob) += bonus;
       (mob)->aff_abils.dex += bonus;
       (mob)->aff_abils.cha += bonus;
+      break;
+    case CLASS_ARCANE_SHADOW:
+      GET_INT(mob) += bonus;
+      (mob)->aff_abils.dex += bonus;
+      GET_INT(mob) += bonus;
       break;
     case CLASS_PALADIN:
       (mob)->aff_abils.str += bonus;

@@ -1,5 +1,5 @@
-     /**************************************************************************
- *  File: mobact.c                                          Part of LuminariMUD *
+/**************************************************************************
+ *  File: mobact.c                                     Part of LuminariMUD *
  *  Usage: Functions for generating intelligent (?) behavior in mobiles.   *
  *                                                                         *
  *  All rights reserved.  See license for complete information.            *
@@ -1127,6 +1127,10 @@ void mobile_activity(void) {
 
     if (!IS_MOB(ch))
       continue;
+
+    if (MOB_FLAGGED(ch, MOB_NO_AI))
+      continue;
+
 
     if (AFF_FLAGGED(ch, AFF_STUN) || AFF_FLAGGED(ch, AFF_PARALYZED) || AFF_FLAGGED(ch, AFF_DAZED) ||
             char_has_mud_event(ch, eSTUNNED) || AFF_FLAGGED(ch, AFF_NAUSEATED)) {

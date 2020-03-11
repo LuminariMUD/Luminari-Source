@@ -1,5 +1,5 @@
 /**************************************************************************
-*  File: cedit.c                                           Part of LuminariMUD *
+*  File: cedit.c                                      Part of LuminariMUD *
 *  Usage: A graphical in-game game configuration utility for OasisOLC.    *
 *                                                                         *
 *  Copyright 2002-2003 Kip Potter                                         *
