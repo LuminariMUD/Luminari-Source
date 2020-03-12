@@ -68,8 +68,7 @@ ACMD(do_disabletrap);
 ACMD(do_detecttrap);
 
 /* special defines */
-#define TRAP_DARK_WARRIOR_MOBILE  135600
-#define TRAP_SPIDER_MOBILE        180437
+#define TRAP_DARK_WARRIOR_MOBILE 135600
+#define TRAP_SPIDER_MOBILE 180437
 
-#endif	/* TRAPS_H */
-
+#endif /* TRAPS_H */
