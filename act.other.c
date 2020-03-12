@@ -1797,8 +1797,8 @@ ACMD(do_gain)
       if (GET_LEVEL(ch) >= LVL_IMMORT && !PLR_FLAGGED(ch, PLR_NOWIZLIST))
         run_autowiz();
 
-      send_to_char(ch, "\tMDon't forget to \tmTRAIN\tM, \tmSTUDY\tM and "
-                       "\tmBOOST\tM your abilities, feats and stats!\tn\r\n");
+      send_to_char(ch, "\tMDon't forget to \tmSTUDY\tM to improve"
+                       " your abilities, feats and stats!\tn\r\n");
     }
   }
 }
