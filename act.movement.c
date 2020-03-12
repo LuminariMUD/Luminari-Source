@@ -34,7 +34,6 @@
 #include "trails.h"
 #include "assign_wpn_armor.h"
 
-
 /* do_gen_door utility functions */
 static int find_door(struct char_data *ch, const char *type, char *dir,
                      const char *cmdname);
@@ -474,7 +473,7 @@ int can_climb(struct char_data *ch)
   return (0);
 }
 
-  /** Leave tracks in the current room
+/** Leave tracks in the current room
  * */
 
 #define TRACKS_UNDEFINED 0
@@ -498,16 +497,15 @@ void create_tracks(struct char_data *ch, int dir, int flag)
     log("SYSERR: Char at location NOWHERE trying to create tracks.");
     return;
   }
-  
 
-      /* 
+  /* 
     Here we create the track structure, set the values and assign it to the room. 
     At the same time, we can prune off any really old trails.  Threshold is set, 
     in seconds, in trails.h.  Eventually this cna be adjusted based on weather - 
     rain/show/wind can all obscure trails.
   */
 
-      CREATE(new_trail, struct trail_data, 1);
+  CREATE(new_trail, struct trail_data, 1);
   new_trail->name = strdup(GET_NAME(ch));
   new_trail->race = (IS_NPC(ch) ? strdup(race_family_types[GET_NPC_RACE(ch)]) : strdup(race_list[GET_RACE(ch)].name));
   new_trail->from = (flag == TRACKS_IN ? dir : DIR_NONE);
@@ -523,24 +521,31 @@ void create_tracks(struct char_data *ch, int dir, int flag)
   }
 
   room->trail_tracks->head = new_trail;
-  
+
   prev = NULL;
-  for (cur = room->trail_tracks->head; cur != NULL; cur = cur->next){
-    if (time(NULL) - cur->age >= TRAIL_PRUNING_THRESHOLD) {
-      if(prev != NULL) {
+  for (cur = room->trail_tracks->head; cur != NULL; cur = cur->next)
+  {
+    if (time(NULL) - cur->age >= TRAIL_PRUNING_THRESHOLD)
+    {
+      if (prev != NULL)
+      {
         //if (prev->next != NULL) DISPOSE(prev->next);
         prev->next = cur->next;
-        if (cur->next != NULL) {
+        if (cur->next != NULL)
+        {
           cur->next->prev = prev;
         }
-      } else {
+      }
+      else
+      {
         room->trail_tracks->head = cur->next;
-        if (cur->next != NULL) {
+        if (cur->next != NULL)
+        {
           //if (cur->next->prev != NULL) DISPOSE(cur->next->prev);
           cur->next->prev = NULL;
         }
-      } 
-    } 
+      }
+    }
     prev = cur;
   }
 
@@ -847,10 +852,12 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   }
 
   if (SECT(was_in) == SECT_WATER_SWIM || SECT(was_in) == SECT_UD_WATER || SECT(was_in) == SECT_UNDERWATER ||
-      SECT(going_to) == SECT_WATER_SWIM || SECT(going_to) == SECT_UD_WATER || SECT(going_to) == SECT_UNDERWATER) {
+      SECT(going_to) == SECT_WATER_SWIM || SECT(going_to) == SECT_UD_WATER || SECT(going_to) == SECT_UNDERWATER)
+  {
     if ((riding && !has_boat(RIDING(ch), going_to)) || !has_boat(ch, going_to))
     {
-      if (GET_MOVE(ch) < 20) {
+      if (GET_MOVE(ch) < 20)
+      {
         send_to_char(ch, "You don't have the energy to try and swim there.\r\n");
         return 0;
       }
@@ -3017,28 +3024,34 @@ ACMD(do_follow)
   }
 }
 
-ACMD(do_unlead) {
+ACMD(do_unlead)
+{
   char buf[MAX_INPUT_LENGTH];
   struct char_data *follower;
-  
+
   one_argument(argument, buf);
-  
-  if (*buf) {
-    if (!(follower = get_char_vis(ch, buf, NULL, FIND_CHAR_ROOM))) {
+
+  if (*buf)
+  {
+    if (!(follower = get_char_vis(ch, buf, NULL, FIND_CHAR_ROOM)))
+    {
       send_to_char(ch, "%s", CONFIG_NOPERSON);
       return;
     }
-  } else {
+  }
+  else
+  {
     send_to_char(ch, "Whom do you wish to stop leading?\r\n");
     return;
   }
-  
-  if (follower->master != ch) {
+
+  if (follower->master != ch)
+  {
     act("$E isn't following you!", FALSE, ch, 0, follower, TO_CHAR);
     return;
   }
-  
-  // Not replicating the AFF_CHARM check from do_follow here - if you want to unlead a charmee, 
+
+  // Not replicating the AFF_CHARM check from do_follow here - if you want to unlead a charmee,
   // go right ahead.  We also don't want to call stop_follower() on the follower, or you'd be freeing
   // your charmees instead of just making them stay put.  We'll use stop_follower_engine() instead.
   stop_follower_engine(follower);
@@ -3521,16 +3534,18 @@ ACMD(do_pullswitch)
     send_to_room(ch->in_room, "*ka-ching*\r\n");
 }
 
-int get_speed(struct char_data *ch, sbyte to_display) {
+int get_speed(struct char_data *ch, sbyte to_display)
+{
 
   int speed = 30;
 
-  switch (GET_RACE(ch)) {
-    case RACE_DWARF:
-    case RACE_CRYSTAL_DWARF:
-    case RACE_HALFLING:
-    case RACE_GNOME:
-      speed = 25;
+  switch (GET_RACE(ch))
+  {
+  case RACE_DWARF:
+  case RACE_CRYSTAL_DWARF:
+  case RACE_HALFLING:
+  case RACE_GNOME:
+    speed = 25;
   }
 
   if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_MOUNTABLE))
@@ -3539,7 +3554,7 @@ int get_speed(struct char_data *ch, sbyte to_display) {
   if (AFF_FLAGGED(ch, AFF_FLYING))
     speed = 50;
 
-   // haste and exp. retreat don't stack for balance reasons
+  // haste and exp. retreat don't stack for balance reasons
   if (AFF_FLAGGED(ch, AFF_HASTE))
     speed += 30;
   else if (affected_by_spell(ch, SPELL_EXPEDITIOUS_RETREAT))

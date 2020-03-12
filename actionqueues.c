@@ -20,8 +20,9 @@
 #include "actions.h"
 
 /* Initialize the queue, must be performed on any new queues. */
-struct queue_type * create_queue() {
-  struct queue_type * queue = NULL;
+struct queue_type *create_queue()
+{
+  struct queue_type *queue = NULL;
 
   /* Allocate memory. */
   CREATE(queue, struct queue_type, 1);
@@ -34,36 +35,43 @@ struct queue_type * create_queue() {
   return queue;
 };
 
-struct queue_type * create_action_queue() {
+struct queue_type *create_action_queue()
+{
   return create_queue();
 }
 
-struct queue_type * create_attack_queue() {
+struct queue_type *create_attack_queue()
+{
   return create_queue();
 }
 
 /* Empty the queue  and release the memory.  The queue pointer is
  * invalid after this operation. */
-void free_action_queue(struct queue_type * queue) {
+void free_action_queue(struct queue_type *queue)
+{
   clear_action_queue(queue);
   free(queue);
 };
 
-void free_attack_queue(struct queue_type * queue) {
+void free_attack_queue(struct queue_type *queue)
+{
   clear_attack_queue(queue);
   free(queue);
 }
 
 /* Empty the queue. */
-void clear_action_queue(struct queue_type * queue) {
-  struct action_data * action = NULL;
+void clear_action_queue(struct queue_type *queue)
+{
+  struct action_data *action = NULL;
 
   /* Check for NULL queue*/
   if (queue == NULL)
     return;
-  else {
+  else
+  {
     /* Dequeue all the actions from the queue. */
-    while (queue->size > 0) {
+    while (queue->size > 0)
+    {
       action = dequeue_action(queue);
 
       /* Free the memory. */
@@ -72,18 +80,20 @@ void clear_action_queue(struct queue_type * queue) {
     }
   }
   /* Send a custom MSDP event so clients can manage queue displays. */
-
 };
 
-void clear_attack_queue(struct queue_type * queue) {
-  struct attack_action_data * attack = NULL;
+void clear_attack_queue(struct queue_type *queue)
+{
+  struct attack_action_data *attack = NULL;
 
   /* Check for NULL queue*/
   if (queue == NULL)
     return;
-  else {
+  else
+  {
     /* Dequeue all the actions from the queue. */
-    while (queue->size > 0) {
+    while (queue->size > 0)
+    {
       attack = dequeue_attack(queue);
 
       /* Free the memory. */
@@ -94,17 +104,21 @@ void clear_attack_queue(struct queue_type * queue) {
   /* Send a custom MSDP event so clients can manage queue displays. */
 };
 
-void enqueue(struct queue_type * queue, void * data) {
-  struct queue_element_type * el = NULL;
+void enqueue(struct queue_type *queue, void *data)
+{
+  struct queue_element_type *el = NULL;
 
   CREATE(el, struct queue_element_type, 1);
 
   el->data = data;
   el->next = NULL;
 
-  if (queue->first == NULL) {
+  if (queue->first == NULL)
+  {
     queue->first = el;
-  } else {
+  }
+  else
+  {
     queue->last->next = el;
   }
   queue->last = el;
@@ -112,25 +126,29 @@ void enqueue(struct queue_type * queue, void * data) {
 }
 
 /* Add an action to the queue. */
-void enqueue_action(struct queue_type * queue, struct action_data * action) {
-  enqueue(queue, (void *) action);
+void enqueue_action(struct queue_type *queue, struct action_data *action)
+{
+  enqueue(queue, (void *)action);
 
   /* Send a custom MSDP event so clients can manage queue displays */
 };
 
 /* Add an attack to the queue. */
-void enqueue_attack(struct queue_type * queue, struct attack_action_data * attack) {
-  enqueue(queue, (void *) attack);
+void enqueue_attack(struct queue_type *queue, struct attack_action_data *attack)
+{
+  enqueue(queue, (void *)attack);
   /* Send a custom MSDP event so clients can manage queue displays */
 };
 
-void * dequeue(struct queue_type * queue) {
-  void * data;
-  struct queue_element_type * el;
+void *dequeue(struct queue_type *queue)
+{
+  void *data;
+  struct queue_element_type *el;
 
   if ((queue == NULL) || (queue->first == NULL))
     return NULL;
-  else {
+  else
+  {
     el = queue->first;
     data = el->data;
 
@@ -148,12 +166,14 @@ void * dequeue(struct queue_type * queue) {
 }
 
 /* Remove and return an action from the queue. */
-struct action_data * dequeue_action(struct queue_type * queue) {
-  struct action_data * action = NULL;
+struct action_data *dequeue_action(struct queue_type *queue)
+{
+  struct action_data *action = NULL;
 
-  action = (struct action_data *) dequeue(queue);
+  action = (struct action_data *)dequeue(queue);
 
-  if (action != NULL) {
+  if (action != NULL)
+  {
     /* Send a custom MSDP event so clients can manage queue displays */
   }
 
@@ -161,19 +181,22 @@ struct action_data * dequeue_action(struct queue_type * queue) {
 }
 
 /* Remove and return an attack from the queue. */
-struct attack_action_data * dequeue_attack(struct queue_type * queue) {
-  struct attack_action_data * attack = NULL;
+struct attack_action_data *dequeue_attack(struct queue_type *queue)
+{
+  struct attack_action_data *attack = NULL;
 
-  attack = (struct attack_action_data *) dequeue(queue);
+  attack = (struct attack_action_data *)dequeue(queue);
 
-  if (attack != NULL) {
+  if (attack != NULL)
+  {
     /* Send a custom MSDP event so clients can manage queue displays */
   }
 
   return attack;
 }
 
-void * peek(struct queue_type * queue) {
+void *peek(struct queue_type *queue)
+{
   if (queue == NULL)
     return NULL;
   else if (queue->first == NULL)
@@ -184,17 +207,20 @@ void * peek(struct queue_type * queue) {
 
 /* Return a pointer to the first action on the queue.  DO NOT DELETE IT.
  * This function just gives you a 'peek' and does not dequeue the action. */
-struct action_data * peek_action(struct queue_type * queue) {
-  return (struct action_data *) peek(queue);
+struct action_data *peek_action(struct queue_type *queue)
+{
+  return (struct action_data *)peek(queue);
 };
 
-struct attack_action_data * peek_attack(struct queue_type *queue) {
-  return (struct attack_action_data *) peek(queue);
+struct attack_action_data *peek_attack(struct queue_type *queue)
+{
+  return (struct attack_action_data *)peek(queue);
 };
 
 /* Check to see if the next action on the queue owned by ch can be executed.
  * If so, dequeue and execute the action. */
-void execute_next_action(struct char_data *ch) {
+void execute_next_action(struct char_data *ch)
+{
   struct action_data *action = NULL;
 
   if ((ch == NULL))
@@ -216,7 +242,8 @@ void execute_next_action(struct char_data *ch) {
 };
 
 /* Check if there are pending actions on the queue. */
-int pending_actions(struct char_data * ch) {
+int pending_actions(struct char_data *ch)
+{
   if (ch == NULL)
     return 0;
 
@@ -224,7 +251,8 @@ int pending_actions(struct char_data * ch) {
 };
 
 /* Check if there are pending attacks on the queue. */
-int pending_attacks(struct char_data * ch) {
+int pending_attacks(struct char_data *ch)
+{
   if (ch == NULL)
     return 0;
 
@@ -237,10 +265,11 @@ int pending_attacks(struct char_data * ch) {
  * need to change moment by moment.
  * Using this command, the player may manipulate their
  * action queue in various ways. */
-ACMD(do_queue) {
+ACMD(do_queue)
+{
   char arg[MAX_INPUT_LENGTH];
-  struct queue_type * queue;
-  struct queue_element_type * el;
+  struct queue_type *queue;
+  struct queue_element_type *el;
 
   int i = 1;
 
@@ -249,18 +278,24 @@ ACMD(do_queue) {
   else
     queue = GET_ATTACK_QUEUE(ch);
 
-  if (!*argument) {
+  if (!*argument)
+  {
     /* No arguments - List the currently queued actions. */
     send_to_char(ch, "%s:\r\n", (subcmd == SCMD_ACTION_QUEUE ? "Action Queue" : "Attack Queue"));
 
-    if (queue != NULL) {
-      for (el = queue->first; el != NULL; el = el->next) {
-        if (subcmd == SCMD_ACTION_QUEUE) {
-          send_to_char(ch, " %i) %s\r\n", i++, ((struct action_data *) el->data)->argument);
-        } else {
+    if (queue != NULL)
+    {
+      for (el = queue->first; el != NULL; el = el->next)
+      {
+        if (subcmd == SCMD_ACTION_QUEUE)
+        {
+          send_to_char(ch, " %i) %s\r\n", i++, ((struct action_data *)el->data)->argument);
+        }
+        else
+        {
           send_to_char(ch, " %i) %s%s\r\n", i++,
-                  complete_cmd_info[((struct attack_action_data *) el->data)->command].command,
-                  ((struct attack_action_data *) el->data)->argument);
+                       complete_cmd_info[((struct attack_action_data *)el->data)->command].command,
+                       ((struct attack_action_data *)el->data)->argument);
         }
       }
     }
@@ -270,7 +305,8 @@ ACMD(do_queue) {
 
   one_argument(argument, arg);
 
-  if (is_abbrev(arg, "clear")) {
+  if (is_abbrev(arg, "clear"))
+  {
 
     /* Argument: clear - Clear the queue. */
     if (subcmd == SCMD_ACTION_QUEUE)
@@ -279,9 +315,9 @@ ACMD(do_queue) {
       clear_attack_queue(GET_ATTACK_QUEUE(ch));
 
     send_to_char(ch, "%s queue cleared.\r\n", (subcmd == SCMD_ACTION_QUEUE ? "Action" : "Attack"));
-  } else {
+  }
+  else
+  {
     send_to_char(ch, "What do you want to do to your queue? ('queue clear' to clear your queue)\r\n");
   }
 }
-
-

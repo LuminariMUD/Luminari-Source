@@ -155,8 +155,7 @@ const char *bomb_types[NUM_BOMB_TYPES] = {
     "shock",
     "stink",
     "sunlight",
-    "tanglefoot"
-  };
+    "tanglefoot"};
 
 const char *bomb_descriptions[NUM_BOMB_TYPES] = {
     "",
@@ -181,50 +180,50 @@ const char *bomb_descriptions[NUM_BOMB_TYPES] = {
     "Chance to entangle those caught in effect."};
 
 const char *discovery_requisites[NUM_ALC_DISCOVERIES] = {
-  "none", // none
-  "none", // acid
-  "alchemist level 8", // blinding
-  "none", // boneshard
-  "alchemist level 8", //celestial poisons
-  "none", // chameleon
-  "none", // cognatogen
-  "alchemist level 6", // concussive bomb
-  "alchemist level 8", // confusion bomb
-  "alchemist level 6", // dispelling bomb
-  "none", // elemental mutagen
-  "none", // enhance potion
-  "none", // extend potion
-  "alchemist level 8", // fast bombs
-  "none", //fire branks
-  "alchemist level 8", // force bomb
-  "none", // frost bomb
-  "alchemist level 16, greater cognatogen", // grand cognatogen
-  "alchemist level 16, greater inspiring cognatogen", // grand inspiring cognatogen
-  "alchemist level 16, greater mutagen", // grand mutagen
-  "alchemist level 12, cognatogen", // greater cognatogen
-  "alchemist level 12, inspiring cognatogen", // greater inpisiring cognatogen
-  "alchemist level 12", // greater mutagen
-  "none", // healing bomb
-  "alchemist level 6, spontaneous healing", // curing touch
-  "alchemist level 8", // holy bomb
-  "alchemist level 3", // immolation bomb
-  "none", // infuse mutagen
-  "none", // infusion
-  "none", // inspiring cognatogen
-  "alchemist level 10", // malignant poison
-  "alchemist level 12", // poison bomb
-  "none", //precise bomb
-  "none", // preserve organs
-  "alchemist level 8", // profane bomb
-  "alchemist level 4", // psychokinetic tincture
-  "none", // shock bomb
-  "none", // spontaneous healing
-  "alchemist level 10", // sticky bomb
-  "none", // stink bomb
-  "alchemist level 10, blinding bomb", // sunlight bomb
-  "none", // tanglefoot bomb
-  "none", // vestigial arm
-  "alchemist level 6" // wings
+    "none",                                             // none
+    "none",                                             // acid
+    "alchemist level 8",                                // blinding
+    "none",                                             // boneshard
+    "alchemist level 8",                                //celestial poisons
+    "none",                                             // chameleon
+    "none",                                             // cognatogen
+    "alchemist level 6",                                // concussive bomb
+    "alchemist level 8",                                // confusion bomb
+    "alchemist level 6",                                // dispelling bomb
+    "none",                                             // elemental mutagen
+    "none",                                             // enhance potion
+    "none",                                             // extend potion
+    "alchemist level 8",                                // fast bombs
+    "none",                                             //fire branks
+    "alchemist level 8",                                // force bomb
+    "none",                                             // frost bomb
+    "alchemist level 16, greater cognatogen",           // grand cognatogen
+    "alchemist level 16, greater inspiring cognatogen", // grand inspiring cognatogen
+    "alchemist level 16, greater mutagen",              // grand mutagen
+    "alchemist level 12, cognatogen",                   // greater cognatogen
+    "alchemist level 12, inspiring cognatogen",         // greater inpisiring cognatogen
+    "alchemist level 12",                               // greater mutagen
+    "none",                                             // healing bomb
+    "alchemist level 6, spontaneous healing",           // curing touch
+    "alchemist level 8",                                // holy bomb
+    "alchemist level 3",                                // immolation bomb
+    "none",                                             // infuse mutagen
+    "none",                                             // infusion
+    "none",                                             // inspiring cognatogen
+    "alchemist level 10",                               // malignant poison
+    "alchemist level 12",                               // poison bomb
+    "none",                                             //precise bomb
+    "none",                                             // preserve organs
+    "alchemist level 8",                                // profane bomb
+    "alchemist level 4",                                // psychokinetic tincture
+    "none",                                             // shock bomb
+    "none",                                             // spontaneous healing
+    "alchemist level 10",                               // sticky bomb
+    "none",                                             // stink bomb
+    "alchemist level 10, blinding bomb",                // sunlight bomb
+    "none",                                             // tanglefoot bomb
+    "none",                                             // vestigial arm
+    "alchemist level 6"                                 // wings
 };
 
 const char *bomb_requisites[NUM_BOMB_TYPES] = {
@@ -626,7 +625,8 @@ ACMD(do_bombs)
       send_to_char(ch, "You throw a bomb, but it misses its intended target.\r\n");
       act("$n throws a bomb, but it misses its intended target and explodes a safe distance away.", TRUE, ch, 0, 0, TO_ROOM);
       // we want to start combat if not already in combat
-      if (!FIGHTING(target)) {
+      if (!FIGHTING(target))
+      {
         hit(target, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
       }
     }
@@ -706,19 +706,23 @@ ACMD(do_bombs)
     int num_bombs[NUM_BOMB_TYPES];
     int open_slots = 0;
 
-    for ( i = 0; i < NUM_BOMB_TYPES; i++)
+    for (i = 0; i < NUM_BOMB_TYPES; i++)
       num_bombs[i] = BOMB_NONE;
 
     send_to_char(ch, "You have prepared the following bombs:\r\n");
 
     for (i = 0; i < num_of_bombs_preparable(ch); i++)
     {
-      if (GET_BOMB(ch, i) != BOMB_NONE) num_bombs[GET_BOMB(ch, i)]++;
-      else open_slots++;
+      if (GET_BOMB(ch, i) != BOMB_NONE)
+        num_bombs[GET_BOMB(ch, i)]++;
+      else
+        open_slots++;
     }
 
-    for ( i = 0; i < NUM_BOMB_TYPES; i++) {
-      if (num_bombs[i] > 0) {
+    for (i = 0; i < NUM_BOMB_TYPES; i++)
+    {
+      if (num_bombs[i] > 0)
+      {
         send_to_char(ch, "x%2d: %-12s - %s\r\n", num_bombs[i], bomb_types[i], bomb_descriptions[i]);
       }
     }
@@ -922,7 +926,8 @@ void perform_bomb_effect(struct char_data *ch, struct char_data *victim, int bom
       perform_bomb_splash_effect(ch, victim, bomb_type); // entangled
     break;
   }
-  if (KNOWS_DISCOVERY(ch, ALC_DISC_STICKY_BOMBS)) {
+  if (KNOWS_DISCOVERY(ch, ALC_DISC_STICKY_BOMBS))
+  {
     add_sticky_bomb_effect(ch, victim, bomb_type);
   }
 }
@@ -934,10 +939,13 @@ void send_bomb_direct_message(struct char_data *ch, struct char_data *victim, in
 
   sprintf(buf, "%s", bomb_damage_messages[bomb_type][1]);
   act(buf, FALSE, ch, 0, victim, TO_CHAR);
-  if (ch == victim) {
+  if (ch == victim)
+  {
     sprintf(buf, "%s", bomb_damage_messages[bomb_type][2]);
     act(buf, FALSE, ch, 0, victim, TO_ROOM);
-  } else {
+  }
+  else
+  {
     sprintf(buf, "%s", bomb_damage_messages[bomb_type][0]);
     act(buf, FALSE, ch, 0, victim, TO_VICT);
     sprintf(buf, "%s", bomb_damage_messages[bomb_type][2]);
@@ -1360,7 +1368,8 @@ void perform_bomb_direct_effect(struct char_data *ch, struct char_data *victim, 
     break;
   }
 
-  if (KNOWS_DISCOVERY(ch, ALC_DISC_STICKY_BOMBS)) {
+  if (KNOWS_DISCOVERY(ch, ALC_DISC_STICKY_BOMBS))
+  {
     af.duration++;
     af2.duration++;
     af3.duration++;
@@ -1751,7 +1760,8 @@ ACMD(do_discoveries)
   int num = 0, i = 0;
   skip_spaces(&argument);
 
-  if (!*argument) {
+  if (!*argument)
+  {
     send_to_char(ch, "ALCHEMICAL DISCOVERIES KNOWN:\r\n");
     if (list_alchemical_discoveries(ch) == 0)
       send_to_char(ch, "No discoveries known.");
@@ -1763,17 +1773,24 @@ ACMD(do_discoveries)
     send_to_char(ch, "You can type 'discoveries all' to see all available discoveries.\r\n");
     send_to_char(ch, "You can type 'discoveries (discovery name)' to see full information on the discovery specified.\r\n");
     send_to_char(ch, "\r\n");
-  } else if (is_abbrev(argument, "all")) {
+  }
+  else if (is_abbrev(argument, "all"))
+  {
     send_to_char(ch, "ALCHEMICAL DISCOVERIES:\r\n");
-    for (i = 1; i < NUM_ALC_DISCOVERIES; i++) {
+    for (i = 1; i < NUM_ALC_DISCOVERIES; i++)
+    {
       send_to_char(ch, "%-20s - %s\r\n", alchemical_discovery_names[i], alchemical_discovery_descriptions[i]);
     }
     send_to_char(ch, "You can type 'discoveries all' to see all available discoveries.\r\n");
     send_to_char(ch, "You can type 'discoveries (discovery name)' to see full information on the discovery specified.\r\n");
     send_to_char(ch, "\r\n");
-  } else {
-    for (i = 1; i < NUM_ALC_DISCOVERIES; i++) {
-      if (is_abbrev(argument, alchemical_discovery_names[i])) {
+  }
+  else
+  {
+    for (i = 1; i < NUM_ALC_DISCOVERIES; i++)
+    {
+      if (is_abbrev(argument, alchemical_discovery_names[i]))
+      {
         send_to_char(ch, "%-20s:\r\nDesc: %s\r\nRequirements: %s\r\n", alchemical_discovery_names[i], alchemical_discovery_descriptions[i], discovery_requisites[i]);
         return;
       }
@@ -1797,49 +1814,60 @@ ACMD(do_grand_discoveries)
   int num = 0, i = 0;
   skip_spaces(&argument);
 
-  if (!GET_GRAND_DISCOVERY(ch)) {
-    if (!*argument) {
+  if (!GET_GRAND_DISCOVERY(ch))
+  {
+    if (!*argument)
+    {
       send_to_char(ch, "GRAND ALCHEMICAL DISCOVERIES AVAILABLE:\r\n");
-      for (i = 1; i < NUM_GR_ALC_DISCOVERIES; i++) {
+      for (i = 1; i < NUM_GR_ALC_DISCOVERIES; i++)
+      {
         send_to_char(ch, "%-20s - %s\r\n", grand_alchemical_discovery_names[i], grand_alchemical_discovery_descriptions[i]);
       }
       send_to_char(ch, "\r\n"
                        "To choose one, type 'gdiscovery learn (grand discovery name)\r\n"
                        "You may only choose one, and must respec to change that choice if desired.\r\n"
-                       "\r\n"
-                       );
-      return; 
-    } 
+                       "\r\n");
+      return;
+    }
     char arg1[200], arg2[200];
     half_chop(argument, arg1, arg2);
-    if (!*arg1 || !is_abbrev(arg1, "learn")) {
+    if (!*arg1 || !is_abbrev(arg1, "learn"))
+    {
       send_to_char(ch, "To learn a grand discovery type 'gdiscovery learn (grand discovery name)\r\n");
       return;
     }
-    if (!*arg2) {
+    if (!*arg2)
+    {
       send_to_char(ch, "You must specify a grand discovery to learn.  Type 'gdiscovery' by itself to see a list.\r\n");
       return;
     }
-    for (i = 1; i < NUM_GR_ALC_DISCOVERIES; i++) {
-      if (is_abbrev(arg2, grand_alchemical_discovery_names[i])) break;
+    for (i = 1; i < NUM_GR_ALC_DISCOVERIES; i++)
+    {
+      if (is_abbrev(arg2, grand_alchemical_discovery_names[i]))
+        break;
     }
-    if (i >= NUM_GR_ALC_DISCOVERIES) {
+    if (i >= NUM_GR_ALC_DISCOVERIES)
+    {
       send_to_char(ch, "That is not a valid grand discovery. Type 'gdiscovery' by itself to see a list.\r\n");
       return;
     }
     GET_GRAND_DISCOVERY(ch) = i;
     send_to_char(ch, "You have learned the grand discovery: %s!\r\n", grand_alchemical_discovery_names[i]);
-    if (i == GR_ALC_DISC_AWAKENED_INTELLECT) {
+    if (i == GR_ALC_DISC_AWAKENED_INTELLECT)
+    {
       GET_REAL_INT(ch) += 2;
     }
     save_char(ch, 0);
     return;
-  } else {
+  }
+  else
+  {
     send_to_char(ch, "You know the grand discovery:\r\n%-20s : %s\r\n", grand_alchemical_discovery_names[GET_GRAND_DISCOVERY(ch)], grand_alchemical_discovery_descriptions[GET_GRAND_DISCOVERY(ch)]);
     return;
   }
 
-  if (!*argument) {
+  if (!*argument)
+  {
     send_to_char(ch, "GRAND ALCHEMICAL DISCOVERIES AVAILABLE:\r\n");
     if (list_alchemical_discoveries(ch) == 0)
       send_to_char(ch, "No discoveries known.");
@@ -1851,17 +1879,24 @@ ACMD(do_grand_discoveries)
     send_to_char(ch, "You can type 'discoveries all' to see all available discoveries.\r\n");
     send_to_char(ch, "You can type 'discoveries (discovery name)' to see full information on the discovery specified.\r\n");
     send_to_char(ch, "\r\n");
-  } else if (is_abbrev(argument, "all")) {
+  }
+  else if (is_abbrev(argument, "all"))
+  {
     send_to_char(ch, "ALCHEMICAL DISCOVERIES:\r\n");
-    for (i = 1; i < NUM_ALC_DISCOVERIES; i++) {
+    for (i = 1; i < NUM_ALC_DISCOVERIES; i++)
+    {
       send_to_char(ch, "%-20s - %s\r\n", alchemical_discovery_names[i], alchemical_discovery_descriptions[i]);
     }
     send_to_char(ch, "You can type 'discoveries all' to see all available discoveries.\r\n");
     send_to_char(ch, "You can type 'discoveries (discovery name)' to see full information on the discovery specified.\r\n");
     send_to_char(ch, "\r\n");
-  } else {
-    for (i = 1; i < NUM_ALC_DISCOVERIES; i++) {
-      if (is_abbrev(argument, alchemical_discovery_names[i])) {
+  }
+  else
+  {
+    for (i = 1; i < NUM_ALC_DISCOVERIES; i++)
+    {
+      if (is_abbrev(argument, alchemical_discovery_names[i]))
+      {
         send_to_char(ch, "%-20s:\r\nDesc: %s\r\nRequirements: %s\r\n", alchemical_discovery_names[i], alchemical_discovery_descriptions[i], discovery_requisites[i]);
         return;
       }
@@ -1886,18 +1921,21 @@ sbyte bomb_is_friendly(int bomb)
 }
 
 /* a function to clear mutagen effects and do other dirty work associated with that */
-void clear_mutagen(struct char_data *ch) {
+void clear_mutagen(struct char_data *ch)
+{
 
   send_to_char(ch, "Your mutagen's effect expires...\r\n");
   act("$n mutagenic enhancement has faded.", FALSE, ch, NULL, NULL, TO_ROOM);
 }
 
-ACMDCHECK(can_swallow) {
+ACMDCHECK(can_swallow)
+{
   ACMDCHECK_PERMFAIL_IF(!HAS_FEAT(ch, FEAT_MUTAGEN), "You don't know how to prepare a mutagen or cognatogen.\r\n");
   return CAN_CMD;
 }
 
-void perform_mutagen(struct char_data *ch, char * arg2) {
+void perform_mutagen(struct char_data *ch, char *arg2)
+{
 
   struct affected_type af, af2, af3, af4, af5, af6, af7;
   int duration = 0, mod1 = 0, mod2 = 0, mod3 = 0, mod4 = 0;
@@ -1915,121 +1953,163 @@ void perform_mutagen(struct char_data *ch, char * arg2) {
   /* duration */
   duration = 100 * CLASS_LEVEL(ch, CLASS_ALCHEMIST);
 
-  if (is_abbrev(arg2, "strength")) {
-      af.location = APPLY_STR;
-      af2.location = APPLY_INT;
-      if (KNOWS_DISCOVERY(ch, ALC_DISC_GRAND_MUTAGEN)) {
-        mod1 = 8;
-        af3.location = APPLY_DEX;
-        mod3 = 6;
-        af4.location = APPLY_CON;
-        mod4 = 4;
-      } else if (KNOWS_DISCOVERY(ch, ALC_DISC_GREATER_MUTAGEN)) {
-        af3.location = APPLY_DEX;
-        mod3 = 4;
-      } else {
-        mod1 = 4;
-      }
-    } else if (is_abbrev(arg2, "dexterity")) {
-      af.location = APPLY_DEX;
-      af2.location = APPLY_WIS;
-      if (KNOWS_DISCOVERY(ch, ALC_DISC_GRAND_MUTAGEN)) {
-        mod1 = 8;
-        af3.location = APPLY_CON;
-        mod3 = 6;
-        af4.location = APPLY_STR;
-        mod4 = 4;
-      } else if (KNOWS_DISCOVERY(ch, ALC_DISC_GREATER_MUTAGEN)) {
-        af3.location = APPLY_CON;
-        mod3 = 4;
-      } else {
-        mod1 = 4;
-      }
-    } else if (is_abbrev(arg2, "constitution")) {
-      af.location = APPLY_CON;
-      af2.location = APPLY_CHA;
-      if (KNOWS_DISCOVERY(ch, ALC_DISC_GRAND_MUTAGEN)) {
-        mod1 = 8;
-        af3.location = APPLY_STR;
-        mod3 = 6;
-        af4.location = APPLY_DEX;
-        mod4 = 4;
-      } else if (KNOWS_DISCOVERY(ch, ALC_DISC_GREATER_MUTAGEN)) {
-        af3.location = APPLY_STR;
-        mod3 = 4;
-      } else {
-        mod1 = 4;
-      }
-    } else {
-      send_to_char(ch, "Do you want your mutagen to affect your strength (-int), dexterity (-wis) or constitution (-cha)?\r\n");
-      return;
+  if (is_abbrev(arg2, "strength"))
+  {
+    af.location = APPLY_STR;
+    af2.location = APPLY_INT;
+    if (KNOWS_DISCOVERY(ch, ALC_DISC_GRAND_MUTAGEN))
+    {
+      mod1 = 8;
+      af3.location = APPLY_DEX;
+      mod3 = 6;
+      af4.location = APPLY_CON;
+      mod4 = 4;
     }
+    else if (KNOWS_DISCOVERY(ch, ALC_DISC_GREATER_MUTAGEN))
+    {
+      af3.location = APPLY_DEX;
+      mod3 = 4;
+    }
+    else
+    {
+      mod1 = 4;
+    }
+  }
+  else if (is_abbrev(arg2, "dexterity"))
+  {
+    af.location = APPLY_DEX;
+    af2.location = APPLY_WIS;
+    if (KNOWS_DISCOVERY(ch, ALC_DISC_GRAND_MUTAGEN))
+    {
+      mod1 = 8;
+      af3.location = APPLY_CON;
+      mod3 = 6;
+      af4.location = APPLY_STR;
+      mod4 = 4;
+    }
+    else if (KNOWS_DISCOVERY(ch, ALC_DISC_GREATER_MUTAGEN))
+    {
+      af3.location = APPLY_CON;
+      mod3 = 4;
+    }
+    else
+    {
+      mod1 = 4;
+    }
+  }
+  else if (is_abbrev(arg2, "constitution"))
+  {
+    af.location = APPLY_CON;
+    af2.location = APPLY_CHA;
+    if (KNOWS_DISCOVERY(ch, ALC_DISC_GRAND_MUTAGEN))
+    {
+      mod1 = 8;
+      af3.location = APPLY_STR;
+      mod3 = 6;
+      af4.location = APPLY_DEX;
+      mod4 = 4;
+    }
+    else if (KNOWS_DISCOVERY(ch, ALC_DISC_GREATER_MUTAGEN))
+    {
+      af3.location = APPLY_STR;
+      mod3 = 4;
+    }
+    else
+    {
+      mod1 = 4;
+    }
+  }
+  else
+  {
+    send_to_char(ch, "Do you want your mutagen to affect your strength (-int), dexterity (-wis) or constitution (-cha)?\r\n");
+    return;
+  }
 
-    // this is the penalty to ability score associated the physical ability chosen above
-    mod2 = -2;
-    if (KNOWS_DISCOVERY(ch, ALC_DISC_INFUSE_MUTAGEN))
-      mod2++;
-    
-    if (GET_GRAND_DISCOVERY(ch) == GR_ALC_DISC_TRUE_MUTAGEN) {
-      af.modifier = af3.modifier = af4.modifier = af5.modifier = 8;
-      af2.modifier = af6.modifier = af7.modifier = mod2;
-      af2.location = APPLY_INT; af6.location = APPLY_WIS; af7.location = APPLY_CHA;
-      af.location = APPLY_STR; af3.location = APPLY_DEX; af4.location = APPLY_CON;
-    } else if (KNOWS_DISCOVERY(ch, ALC_DISC_GRAND_MUTAGEN)) {
-      af5.modifier = 6;
-    } else if (KNOWS_DISCOVERY(ch, ALC_DISC_GREATER_MUTAGEN)) {
-      af5.modifier = 4;
-    } else {
-      af5.modifier = 2;
-    }
+  // this is the penalty to ability score associated the physical ability chosen above
+  mod2 = -2;
+  if (KNOWS_DISCOVERY(ch, ALC_DISC_INFUSE_MUTAGEN))
+    mod2++;
 
-    if (mod1 != 0)  {
-      af.modifier = mod1;
-      af.spell = SKILL_MUTAGEN;
-      af.duration = duration;
-      affect_to_char(ch, &af);
-    }
-    if (mod2 != 0)  {
-      af2.modifier = mod2;
-      af2.spell = SKILL_MUTAGEN;
-      af2.duration = duration;
-      affect_to_char(ch, &af2);
-    }
-    if (mod3 != 0)  {
-      af3.modifier = mod3;
-      af3.spell = SKILL_MUTAGEN;
-      af3.duration = duration;
-      affect_to_char(ch, &af3);
-    }
-    if (mod4 != 0)  {
-      af4.modifier = mod4;
-      af4.spell = SKILL_MUTAGEN;
-      af4.duration = duration;
-      affect_to_char(ch, &af4);
-    }
-    if (af5.modifier != 0)  {
-      af5.location = APPLY_AC_NEW;
-      af5.bonus_type = BONUS_TYPE_NATURALARMOR;
-      af5.spell = SKILL_MUTAGEN;
-      af5.duration = duration;
-      affect_to_char(ch, &af5);
-    }
-    if (af6.location != APPLY_NONE)  {
-      af6.spell = SKILL_MUTAGEN;
-      af6.duration = duration;
-      affect_to_char(ch, &af6);
-    }
-    if (af7.location != APPLY_NONE)  {;
-      af7.spell = SKILL_MUTAGEN;
-      af7.duration = duration;
-      affect_to_char(ch, &af7);
-    }
+  if (GET_GRAND_DISCOVERY(ch) == GR_ALC_DISC_TRUE_MUTAGEN)
+  {
+    af.modifier = af3.modifier = af4.modifier = af5.modifier = 8;
+    af2.modifier = af6.modifier = af7.modifier = mod2;
+    af2.location = APPLY_INT;
+    af6.location = APPLY_WIS;
+    af7.location = APPLY_CHA;
+    af.location = APPLY_STR;
+    af3.location = APPLY_DEX;
+    af4.location = APPLY_CON;
+  }
+  else if (KNOWS_DISCOVERY(ch, ALC_DISC_GRAND_MUTAGEN))
+  {
+    af5.modifier = 6;
+  }
+  else if (KNOWS_DISCOVERY(ch, ALC_DISC_GREATER_MUTAGEN))
+  {
+    af5.modifier = 4;
+  }
+  else
+  {
+    af5.modifier = 2;
+  }
 
-    act("$n swallows a vial of murky looking substance and grows more physically powerful before your eyes.", FALSE, ch, 0, 0, TO_ROOM);
-    act("You swallow a vial of mutagen and grow more physically powerful in an instant.", FALSE, ch, 0, 0, TO_CHAR);
+  if (mod1 != 0)
+  {
+    af.modifier = mod1;
+    af.spell = SKILL_MUTAGEN;
+    af.duration = duration;
+    affect_to_char(ch, &af);
+  }
+  if (mod2 != 0)
+  {
+    af2.modifier = mod2;
+    af2.spell = SKILL_MUTAGEN;
+    af2.duration = duration;
+    affect_to_char(ch, &af2);
+  }
+  if (mod3 != 0)
+  {
+    af3.modifier = mod3;
+    af3.spell = SKILL_MUTAGEN;
+    af3.duration = duration;
+    affect_to_char(ch, &af3);
+  }
+  if (mod4 != 0)
+  {
+    af4.modifier = mod4;
+    af4.spell = SKILL_MUTAGEN;
+    af4.duration = duration;
+    affect_to_char(ch, &af4);
+  }
+  if (af5.modifier != 0)
+  {
+    af5.location = APPLY_AC_NEW;
+    af5.bonus_type = BONUS_TYPE_NATURALARMOR;
+    af5.spell = SKILL_MUTAGEN;
+    af5.duration = duration;
+    affect_to_char(ch, &af5);
+  }
+  if (af6.location != APPLY_NONE)
+  {
+    af6.spell = SKILL_MUTAGEN;
+    af6.duration = duration;
+    affect_to_char(ch, &af6);
+  }
+  if (af7.location != APPLY_NONE)
+  {
+    ;
+    af7.spell = SKILL_MUTAGEN;
+    af7.duration = duration;
+    affect_to_char(ch, &af7);
+  }
+
+  act("$n swallows a vial of murky looking substance and grows more physically powerful before your eyes.", FALSE, ch, 0, 0, TO_ROOM);
+  act("You swallow a vial of mutagen and grow more physically powerful in an instant.", FALSE, ch, 0, 0, TO_CHAR);
 }
 
-void perform_elemental_mutagen(struct char_data *ch, char * arg2) {
+void perform_elemental_mutagen(struct char_data *ch, char *arg2)
+{
 
   struct affected_type af, af2;
   int duration = 0, mod1 = 5, mod2 = 5;
@@ -2041,61 +2121,76 @@ void perform_elemental_mutagen(struct char_data *ch, char * arg2) {
 
   /* duration */
   duration = 100 * CLASS_LEVEL(ch, CLASS_ALCHEMIST);
-  
-    if (is_abbrev(arg2, "air")) {
-      af.location = APPLY_RES_ELECTRIC;
-      af2.location = APPLY_SKILL;
-      af2.specific = ABILITY_PERCEPTION;
-    } else if (is_abbrev(arg2, "earth")) {
-      af.location = APPLY_RES_ACID;
-      af2.location = APPLY_SKILL;
-      af2.specific = ABILITY_CLIMB;
-    } else if (is_abbrev(arg2, "fire")) {
-      af.location = APPLY_RES_FIRE;
-      af2.location = APPLY_SKILL;
-      af2.specific = ABILITY_ACROBATICS;
-    } else if (is_abbrev(arg2, "water")) {
-      af.location = APPLY_RES_COLD;
-      af2.location = APPLY_SKILL;
-      af2.specific = ABILITY_SWIM;
-    } else {
-      send_to_char(ch, "Do you want your elemental mutagen to affect air (electricity, perception), earth (acid, climb), fire (fire, acrobatics) or water (cold, swim)?\r\n"
-                        "You will gain resistance 5 in the associated element and +5 to the associated skill.\r\n");
-      return;
-    }
 
-    if (KNOWS_DISCOVERY(ch, ALC_DISC_GRAND_INSPIRING_COGNATOGEN)) {
-      mod1 += 5;
-      mod2 += 2;
-    } 
-    if (KNOWS_DISCOVERY(ch, ALC_DISC_GREATER_INSPIRING_COGNATOGEN)) {
-      mod1 += 5;
-      mod2 += 2;
-    } 
-    if (GET_GRAND_DISCOVERY(ch) == GR_ALC_DISC_TRUE_MUTAGEN) {
-      mod1 += 5;
-      mod2 += 2;
-    } 
+  if (is_abbrev(arg2, "air"))
+  {
+    af.location = APPLY_RES_ELECTRIC;
+    af2.location = APPLY_SKILL;
+    af2.specific = ABILITY_PERCEPTION;
+  }
+  else if (is_abbrev(arg2, "earth"))
+  {
+    af.location = APPLY_RES_ACID;
+    af2.location = APPLY_SKILL;
+    af2.specific = ABILITY_CLIMB;
+  }
+  else if (is_abbrev(arg2, "fire"))
+  {
+    af.location = APPLY_RES_FIRE;
+    af2.location = APPLY_SKILL;
+    af2.specific = ABILITY_ACROBATICS;
+  }
+  else if (is_abbrev(arg2, "water"))
+  {
+    af.location = APPLY_RES_COLD;
+    af2.location = APPLY_SKILL;
+    af2.specific = ABILITY_SWIM;
+  }
+  else
+  {
+    send_to_char(ch, "Do you want your elemental mutagen to affect air (electricity, perception), earth (acid, climb), fire (fire, acrobatics) or water (cold, swim)?\r\n"
+                     "You will gain resistance 5 in the associated element and +5 to the associated skill.\r\n");
+    return;
+  }
 
-    if (mod1 != 0)  {
-      af.modifier = mod1;
-      af.spell = SKILL_MUTAGEN;
-      af.duration = duration;
-      af.modifier = mod1;
-      affect_to_char(ch, &af);
-    }
-    if (mod2 != 0)  {
-      af2.spell = SKILL_MUTAGEN;
-      af2.duration = duration;
-      af2.modifier = mod2;
-      affect_to_char(ch, &af2);
-    }
+  if (KNOWS_DISCOVERY(ch, ALC_DISC_GRAND_INSPIRING_COGNATOGEN))
+  {
+    mod1 += 5;
+    mod2 += 2;
+  }
+  if (KNOWS_DISCOVERY(ch, ALC_DISC_GREATER_INSPIRING_COGNATOGEN))
+  {
+    mod1 += 5;
+    mod2 += 2;
+  }
+  if (GET_GRAND_DISCOVERY(ch) == GR_ALC_DISC_TRUE_MUTAGEN)
+  {
+    mod1 += 5;
+    mod2 += 2;
+  }
 
-    act("$n swallows a vial of murky looking substance and looks more resistant before your eyes.", FALSE, ch, 0, 0, TO_ROOM);
-    act("You swallow a vial of inspiring cognatogen and feel more resistant in an instant.", FALSE, ch, 0, 0, TO_CHAR);
+  if (mod1 != 0)
+  {
+    af.modifier = mod1;
+    af.spell = SKILL_MUTAGEN;
+    af.duration = duration;
+    af.modifier = mod1;
+    affect_to_char(ch, &af);
+  }
+  if (mod2 != 0)
+  {
+    af2.spell = SKILL_MUTAGEN;
+    af2.duration = duration;
+    af2.modifier = mod2;
+    affect_to_char(ch, &af2);
+  }
+
+  act("$n swallows a vial of murky looking substance and looks more resistant before your eyes.", FALSE, ch, 0, 0, TO_ROOM);
+  act("You swallow a vial of inspiring cognatogen and feel more resistant in an instant.", FALSE, ch, 0, 0, TO_CHAR);
 }
 
-void perform_cognatogen(struct char_data *ch, char * arg2) {
+void perform_cognatogen(struct char_data *ch, char *arg2)
+{
 
   struct affected_type af, af2, af3, af4, af5, af6, af7;
   int duration = 0, mod1 = 0, mod2 = 0, mod3 = 0, mod4 = 0;
@@ -2113,122 +2208,162 @@ void perform_cognatogen(struct char_data *ch, char * arg2) {
   /* duration */
   duration = 100 * CLASS_LEVEL(ch, CLASS_ALCHEMIST);
 
-  if (is_abbrev(arg2, "intelligence")) {
-      af.location = APPLY_INT;
-      af2.location = APPLY_STR;
-      if (KNOWS_DISCOVERY(ch, ALC_DISC_GRAND_COGNATOGEN)) {
-        mod1 = 8;
-        af3.location = APPLY_WIS;
-        mod3 = 6;
-        af4.location = APPLY_CHA;
-        mod4 = 4;
-      } else if (KNOWS_DISCOVERY(ch, ALC_DISC_GREATER_COGNATOGEN)) {
-        af3.location = APPLY_WIS;
-        mod3 = 4;
-      } else {
-        mod1 = 4;
-      }
-    } else if (is_abbrev(arg2, "wisdom")) {
-      af.location = APPLY_WIS;
-      af2.location = APPLY_DEX;
-      if (KNOWS_DISCOVERY(ch, ALC_DISC_GRAND_COGNATOGEN)) {
-        mod1 = 8;
-        af3.location = APPLY_CHA;
-        mod3 = 6;
-        af4.location = APPLY_INT;
-        mod4 = 4;
-      } else if (KNOWS_DISCOVERY(ch, ALC_DISC_GREATER_COGNATOGEN)) {
-        af3.location = APPLY_CHA;
-        mod3 = 4;
-      } else {
-        mod1 = 4;
-      }
-    } else if (is_abbrev(arg2, "charisma")) {
-      af.location = APPLY_CHA;
-      af2.location = APPLY_CON;
-      if (KNOWS_DISCOVERY(ch, ALC_DISC_GRAND_COGNATOGEN)) {
-        mod1 = 8;
-        af3.location = APPLY_INT;
-        mod3 = 6;
-        af4.location = APPLY_WIS;
-        mod4 = 4;
-      } else if (KNOWS_DISCOVERY(ch, ALC_DISC_GREATER_COGNATOGEN)) {
-        af3.location = APPLY_INT;
-        mod3 = 4;
-      } else {
-        mod1 = 4;
-      }
-    } else {
-      send_to_char(ch, "Do you want your cognatogen to affect your intelligence (-str), wisdom (-dex) or charisma (-con)?\r\n");
-      return;
+  if (is_abbrev(arg2, "intelligence"))
+  {
+    af.location = APPLY_INT;
+    af2.location = APPLY_STR;
+    if (KNOWS_DISCOVERY(ch, ALC_DISC_GRAND_COGNATOGEN))
+    {
+      mod1 = 8;
+      af3.location = APPLY_WIS;
+      mod3 = 6;
+      af4.location = APPLY_CHA;
+      mod4 = 4;
     }
+    else if (KNOWS_DISCOVERY(ch, ALC_DISC_GREATER_COGNATOGEN))
+    {
+      af3.location = APPLY_WIS;
+      mod3 = 4;
+    }
+    else
+    {
+      mod1 = 4;
+    }
+  }
+  else if (is_abbrev(arg2, "wisdom"))
+  {
+    af.location = APPLY_WIS;
+    af2.location = APPLY_DEX;
+    if (KNOWS_DISCOVERY(ch, ALC_DISC_GRAND_COGNATOGEN))
+    {
+      mod1 = 8;
+      af3.location = APPLY_CHA;
+      mod3 = 6;
+      af4.location = APPLY_INT;
+      mod4 = 4;
+    }
+    else if (KNOWS_DISCOVERY(ch, ALC_DISC_GREATER_COGNATOGEN))
+    {
+      af3.location = APPLY_CHA;
+      mod3 = 4;
+    }
+    else
+    {
+      mod1 = 4;
+    }
+  }
+  else if (is_abbrev(arg2, "charisma"))
+  {
+    af.location = APPLY_CHA;
+    af2.location = APPLY_CON;
+    if (KNOWS_DISCOVERY(ch, ALC_DISC_GRAND_COGNATOGEN))
+    {
+      mod1 = 8;
+      af3.location = APPLY_INT;
+      mod3 = 6;
+      af4.location = APPLY_WIS;
+      mod4 = 4;
+    }
+    else if (KNOWS_DISCOVERY(ch, ALC_DISC_GREATER_COGNATOGEN))
+    {
+      af3.location = APPLY_INT;
+      mod3 = 4;
+    }
+    else
+    {
+      mod1 = 4;
+    }
+  }
+  else
+  {
+    send_to_char(ch, "Do you want your cognatogen to affect your intelligence (-str), wisdom (-dex) or charisma (-con)?\r\n");
+    return;
+  }
 
-    // this is the penalty to ability score associated the physical ability chosen above
-    mod2 = -2;
-    if (KNOWS_DISCOVERY(ch, ALC_DISC_INFUSE_MUTAGEN))
-      mod2++;
+  // this is the penalty to ability score associated the physical ability chosen above
+  mod2 = -2;
+  if (KNOWS_DISCOVERY(ch, ALC_DISC_INFUSE_MUTAGEN))
+    mod2++;
 
-    if (GET_GRAND_DISCOVERY(ch) == GR_ALC_DISC_TRUE_MUTAGEN) {
-      af.modifier = af3.modifier = af4.modifier = af5.modifier = 8;
-      af2.modifier = af6.modifier = af7.modifier = mod2;
-      af.location = APPLY_INT; af3.location = APPLY_WIS; af4.location = APPLY_CHA;
-      af2.location = APPLY_STR; af6.location = APPLY_DEX; af7.location = APPLY_CON;
-    } else if (KNOWS_DISCOVERY(ch, ALC_DISC_GRAND_MUTAGEN)) {
-      af5.modifier = 6;
-    } else if (KNOWS_DISCOVERY(ch, ALC_DISC_GREATER_MUTAGEN)) {
-      af5.modifier = 4;
-    } else {
-      af5.modifier = 2;
-    }
+  if (GET_GRAND_DISCOVERY(ch) == GR_ALC_DISC_TRUE_MUTAGEN)
+  {
+    af.modifier = af3.modifier = af4.modifier = af5.modifier = 8;
+    af2.modifier = af6.modifier = af7.modifier = mod2;
+    af.location = APPLY_INT;
+    af3.location = APPLY_WIS;
+    af4.location = APPLY_CHA;
+    af2.location = APPLY_STR;
+    af6.location = APPLY_DEX;
+    af7.location = APPLY_CON;
+  }
+  else if (KNOWS_DISCOVERY(ch, ALC_DISC_GRAND_MUTAGEN))
+  {
+    af5.modifier = 6;
+  }
+  else if (KNOWS_DISCOVERY(ch, ALC_DISC_GREATER_MUTAGEN))
+  {
+    af5.modifier = 4;
+  }
+  else
+  {
+    af5.modifier = 2;
+  }
 
-    if (mod1 != 0)  {
-      af.modifier = mod1;
-      af.spell = SKILL_COGNATOGEN;
-      af.duration = duration;
-      affect_to_char(ch, &af);
-    }
-    if (mod2 != 0)  {
-      af2.modifier = mod2;
-      af2.spell = SKILL_COGNATOGEN;
-      af2.duration = duration;
-      affect_to_char(ch, &af2);
-    }
-    if (mod3 != 0)  {
-      af3.modifier = mod3;
-      af3.spell = SKILL_COGNATOGEN;
-      af3.duration = duration;
-      affect_to_char(ch, &af3);
-    }
-    if (mod4 != 0)  {
-      af4.modifier = mod4;
-      af4.spell = SKILL_COGNATOGEN;
-      af4.duration = duration;
-      affect_to_char(ch, &af4);
-    }
-    if (af5.modifier != 0)  {
-      af5.location = APPLY_AC_NEW;
-      af5.bonus_type = BONUS_TYPE_NATURALARMOR;
-      af5.spell = SKILL_COGNATOGEN;
-      af5.duration = duration;
-      affect_to_char(ch, &af5);
-    }
-    if (af6.location != APPLY_NONE)  {
-      af6.spell = SKILL_COGNATOGEN;
-      af6.duration = duration;
-      affect_to_char(ch, &af6);
-    }
-    if (af7.location != APPLY_NONE)  {
-      af7.spell = SKILL_COGNATOGEN;
-      af7.duration = duration;
-      affect_to_char(ch, &af7);
-    }
+  if (mod1 != 0)
+  {
+    af.modifier = mod1;
+    af.spell = SKILL_COGNATOGEN;
+    af.duration = duration;
+    affect_to_char(ch, &af);
+  }
+  if (mod2 != 0)
+  {
+    af2.modifier = mod2;
+    af2.spell = SKILL_COGNATOGEN;
+    af2.duration = duration;
+    affect_to_char(ch, &af2);
+  }
+  if (mod3 != 0)
+  {
+    af3.modifier = mod3;
+    af3.spell = SKILL_COGNATOGEN;
+    af3.duration = duration;
+    affect_to_char(ch, &af3);
+  }
+  if (mod4 != 0)
+  {
+    af4.modifier = mod4;
+    af4.spell = SKILL_COGNATOGEN;
+    af4.duration = duration;
+    affect_to_char(ch, &af4);
+  }
+  if (af5.modifier != 0)
+  {
+    af5.location = APPLY_AC_NEW;
+    af5.bonus_type = BONUS_TYPE_NATURALARMOR;
+    af5.spell = SKILL_COGNATOGEN;
+    af5.duration = duration;
+    affect_to_char(ch, &af5);
+  }
+  if (af6.location != APPLY_NONE)
+  {
+    af6.spell = SKILL_COGNATOGEN;
+    af6.duration = duration;
+    affect_to_char(ch, &af6);
+  }
+  if (af7.location != APPLY_NONE)
+  {
+    af7.spell = SKILL_COGNATOGEN;
+    af7.duration = duration;
+    affect_to_char(ch, &af7);
+  }
 
-
-    act("$n swallows a vial of murky looking substance and grows more mentally powerful before your eyes.", FALSE, ch, 0, 0, TO_ROOM);
-    act("You swallow a vial of mutagen and grow more mentally powerful in an instant.", FALSE, ch, 0, 0, TO_CHAR);
+  act("$n swallows a vial of murky looking substance and grows more mentally powerful before your eyes.", FALSE, ch, 0, 0, TO_ROOM);
+  act("You swallow a vial of mutagen and grow more mentally powerful in an instant.", FALSE, ch, 0, 0, TO_CHAR);
 }
 
-void perform_inspiring_cognatogen(struct char_data *ch) {
+void perform_inspiring_cognatogen(struct char_data *ch)
+{
 
   struct affected_type af, af2, af3, af4, af5;
   int duration = 0, mod1 = 0, mod2 = 0, mod3 = 0, mod4 = 0, mod5 = 0;
@@ -2244,71 +2379,80 @@ void perform_inspiring_cognatogen(struct char_data *ch) {
   /* duration */
   duration = 100 * CLASS_LEVEL(ch, CLASS_ALCHEMIST);
 
+  af.location = APPLY_AC_NEW;
+  af.bonus_type = BONUS_TYPE_DODGE;
+  af5.location = APPLY_SKILL;
 
-    af.location = APPLY_AC_NEW;
-    af.bonus_type = BONUS_TYPE_DODGE;
-    af5.location = APPLY_SKILL;
+  if (KNOWS_DISCOVERY(ch, ALC_DISC_GRAND_INSPIRING_COGNATOGEN))
+  {
+    mod1 = 4;
+    mod5 = 4;
+    af2.location = APPLY_SAVING_REFL;
+    mod2 = 4;
+    af3.location = APPLY_STR;
+    af3.modifier = KNOWS_DISCOVERY(ch, ALC_DISC_INFUSE_MUTAGEN) ? -3 : -4;
+    af4.location = APPLY_CON;
+    af4.modifier = KNOWS_DISCOVERY(ch, ALC_DISC_INFUSE_MUTAGEN) ? -3 : -4;
+  }
+  else if (KNOWS_DISCOVERY(ch, ALC_DISC_GREATER_INSPIRING_COGNATOGEN))
+  {
+    mod5 = 3;
+    af2.location = APPLY_SAVING_REFL;
+    mod2 = 4;
+    af3.location = APPLY_STR;
+    af3.modifier = KNOWS_DISCOVERY(ch, ALC_DISC_INFUSE_MUTAGEN) ? -1 : -2;
+    af4.location = APPLY_CON;
+    af4.modifier = KNOWS_DISCOVERY(ch, ALC_DISC_INFUSE_MUTAGEN) ? -1 : -2;
+  }
+  else
+  {
+    mod1 = 2;
+    mod5 = 2;
+  }
 
-    if (KNOWS_DISCOVERY(ch, ALC_DISC_GRAND_INSPIRING_COGNATOGEN)) {
-      mod1 = 4;
-      mod5 = 4;
-      af2.location = APPLY_SAVING_REFL;
-      mod2 = 4;
-      af3.location = APPLY_STR;
-      af3.modifier = KNOWS_DISCOVERY(ch, ALC_DISC_INFUSE_MUTAGEN) ? -3 : -4;
-      af4.location = APPLY_CON;
-      af4.modifier = KNOWS_DISCOVERY(ch, ALC_DISC_INFUSE_MUTAGEN) ? -3 : -4;
-    } else if (KNOWS_DISCOVERY(ch, ALC_DISC_GREATER_INSPIRING_COGNATOGEN)) {
-      mod5 = 3;
-      af2.location = APPLY_SAVING_REFL;
-      mod2 = 4;
-      af3.location = APPLY_STR;
-      af3.modifier = KNOWS_DISCOVERY(ch, ALC_DISC_INFUSE_MUTAGEN) ? -1 : -2;
-      af4.location = APPLY_CON;
-      af4.modifier = KNOWS_DISCOVERY(ch, ALC_DISC_INFUSE_MUTAGEN) ? -1 : -2;
-    } else {
-      mod1 = 2;
-      mod5 = 2;
-    }
+  // this is the penalty to ability score associated the physical ability chosen above
+  mod2 = -2;
+  if (KNOWS_DISCOVERY(ch, ALC_DISC_INFUSE_MUTAGEN))
+    mod2++;
 
-    // this is the penalty to ability score associated the physical ability chosen above
-    mod2 = -2;
-    if (KNOWS_DISCOVERY(ch, ALC_DISC_INFUSE_MUTAGEN))
-      mod2++;
+  if (mod1 != 0)
+  {
+    af.modifier = mod1;
+    af.spell = SKILL_INSPIRING_COGNATOGEN;
+    af.duration = duration;
+    affect_to_char(ch, &af);
+  }
+  if (mod2 != 0)
+  {
+    af2.modifier = mod2;
+    af2.spell = SKILL_INSPIRING_COGNATOGEN;
+    af2.duration = duration;
+    affect_to_char(ch, &af2);
+  }
+  if (mod3 != 0)
+  {
+    af3.modifier = mod3;
+    af3.spell = SKILL_INSPIRING_COGNATOGEN;
+    af3.duration = duration;
+    affect_to_char(ch, &af3);
+  }
+  if (mod4 != 0)
+  {
+    af4.modifier = mod4;
+    af4.spell = SKILL_INSPIRING_COGNATOGEN;
+    af4.duration = duration;
+    affect_to_char(ch, &af4);
+  }
+  if (mod5 != 0)
+  {
+    af5.modifier = mod5;
+    af5.spell = SKILL_INSPIRING_COGNATOGEN;
+    af5.duration = duration;
+    affect_to_char(ch, &af5);
+  }
 
-    if (mod1 != 0)  {
-      af.modifier = mod1;
-      af.spell = SKILL_INSPIRING_COGNATOGEN;
-      af.duration = duration;
-      affect_to_char(ch, &af);
-    }
-    if (mod2 != 0)  {
-      af2.modifier = mod2;
-      af2.spell = SKILL_INSPIRING_COGNATOGEN;
-      af2.duration = duration;
-      affect_to_char(ch, &af2);
-    }
-    if (mod3 != 0)  {
-      af3.modifier = mod3;
-      af3.spell = SKILL_INSPIRING_COGNATOGEN;
-      af3.duration = duration;
-      affect_to_char(ch, &af3);
-    }
-    if (mod4 != 0)  {
-      af4.modifier = mod4;
-      af4.spell = SKILL_INSPIRING_COGNATOGEN;
-      af4.duration = duration;
-      affect_to_char(ch, &af4);
-    }
-    if (mod5 != 0)  {
-      af5.modifier = mod5;
-      af5.spell = SKILL_INSPIRING_COGNATOGEN;
-      af5.duration = duration;
-      affect_to_char(ch, &af5);
-    }
-
-    act("$n swallows a vial of murky looking substance and grows more inspired before your eyes.", FALSE, ch, 0, 0, TO_ROOM);
-    act("You swallow a vial of inspiring cognatogen and feel more inspired in an instant.", FALSE, ch, 0, 0, TO_CHAR);
+  act("$n swallows a vial of murky looking substance and grows more inspired before your eyes.", FALSE, ch, 0, 0, TO_ROOM);
+  act("You swallow a vial of inspiring cognatogen and feel more inspired in an instant.", FALSE, ch, 0, 0, TO_CHAR);
 }
 
 ACMD(do_swallow)
@@ -2344,47 +2488,63 @@ ACMD(do_swallow)
 
   two_arguments(argument, arg1, arg2);
 
-  if (!*arg1) {
+  if (!*arg1)
+  {
     send_to_char(ch, "Are you trying to swallow a mutagen, elemental-mutagen, cognatogen or inspiring-cognatogen?\r\n");
     return;
   }
 
-  if (is_abbrev(arg1, "mutagen")) {
-    if (!*arg2) {
+  if (is_abbrev(arg1, "mutagen"))
+  {
+    if (!*arg2)
+    {
       send_to_char(ch, "Do you want your mutagen to affect your strength (-int), dexterity (-wis) or constitution (-cha)?\r\n");
       return;
-    }   
+    }
     perform_mutagen(ch, strdup(arg2));
-  } else if (is_abbrev(arg1, "elemental-mutagen")) {
-    if (!KNOWS_DISCOVERY(ch, ALC_DISC_ELEMENTAL_MUTAGEN)) {
+  }
+  else if (is_abbrev(arg1, "elemental-mutagen"))
+  {
+    if (!KNOWS_DISCOVERY(ch, ALC_DISC_ELEMENTAL_MUTAGEN))
+    {
       send_to_char(ch, "You don't know how to prepare an elemental mutagen.\r\n");
       return;
     }
-    if (!*arg2) {
+    if (!*arg2)
+    {
       send_to_char(ch, "Do you want your elemental mutagen to affect air (electricity, perception), earth (acid, climb), fire (fire, acrobatics) or water (cold, swim)?\r\n"
-                        "You will gain resistance 5 in the associated element and +5 to the associated skill.\r\n");
+                       "You will gain resistance 5 in the associated element and +5 to the associated skill.\r\n");
       return;
-    }   
+    }
     perform_elemental_mutagen(ch, strdup(arg2));
-  } else if (is_abbrev(arg1, "cognatogen")) {
-    if (!KNOWS_DISCOVERY(ch, ALC_DISC_COGNATOGEN)) {
+  }
+  else if (is_abbrev(arg1, "cognatogen"))
+  {
+    if (!KNOWS_DISCOVERY(ch, ALC_DISC_COGNATOGEN))
+    {
       send_to_char(ch, "You don't know how to prepare a cognatogen.\r\n");
       return;
     }
-    if (!*arg2) {
+    if (!*arg2)
+    {
       send_to_char(ch, "Do you want your cognatogen to affect your intelligence (-str), wisdom (-dex) or charisma (-con)?\r\n");
       return;
-    }   
+    }
     perform_cognatogen(ch, strdup(arg2));
-  } else if (is_abbrev(arg1, "inspiring-cognatogen")) {
-    if (!KNOWS_DISCOVERY(ch, ALC_DISC_INSPIRING_COGNATOGEN)) {
+  }
+  else if (is_abbrev(arg1, "inspiring-cognatogen"))
+  {
+    if (!KNOWS_DISCOVERY(ch, ALC_DISC_INSPIRING_COGNATOGEN))
+    {
       send_to_char(ch, "You don't know how to prepare an isnpiring cognatogen.\r\n");
       return;
     }
     perform_inspiring_cognatogen(ch);
-  } else {
-   send_to_char(ch, "Are you trying to swallow a mutagen, elemental-mutagen, cognatogen or inspiring-cognatogen?\r\n");
-    return; 
+  }
+  else
+  {
+    send_to_char(ch, "Are you trying to swallow a mutagen, elemental-mutagen, cognatogen or inspiring-cognatogen?\r\n");
+    return;
   }
 
   if (!IS_NPC(ch))
@@ -2398,81 +2558,116 @@ ACMD(do_swallow)
 
 void add_sticky_bomb_effect(struct char_data *ch, struct char_data *vict, int bomb_type)
 {
-  if (!ch || !vict) return;
+  if (!ch || !vict)
+    return;
 
   int damage = HAS_FEAT(ch, FEAT_BOMBS) + GET_INT_BONUS(ch);
   int dam_type = 0;
 
-  switch (bomb_type) {
-    case BOMB_NORMAL     : dam_type = DAM_FIRE; break;
-    case BOMB_ACID       : dam_type = DAM_ACID; break;
-    case BOMB_CONCUSSIVE : dam_type = DAM_SOUND; break;
-    case BOMB_FORCE      : dam_type = DAM_FORCE; break;
-    case BOMB_FROST      : dam_type = DAM_COLD; break;
-    case BOMB_HOLY       : dam_type = DAM_HOLY; break;
-    case BOMB_PROFANE    : dam_type = DAM_UNHOLY; break;
-    case BOMB_SHOCK      : dam_type = DAM_ELECTRIC; break;
-    case BOMB_SUNLIGHT   : dam_type = DAM_LIGHT; if (IS_UNDEAD(vict) || IS_OOZE(vict)) damage += (HAS_FEAT(ch, FEAT_BOMBS) / 2) + 2; break;
+  switch (bomb_type)
+  {
+  case BOMB_NORMAL:
+    dam_type = DAM_FIRE;
+    break;
+  case BOMB_ACID:
+    dam_type = DAM_ACID;
+    break;
+  case BOMB_CONCUSSIVE:
+    dam_type = DAM_SOUND;
+    break;
+  case BOMB_FORCE:
+    dam_type = DAM_FORCE;
+    break;
+  case BOMB_FROST:
+    dam_type = DAM_COLD;
+    break;
+  case BOMB_HOLY:
+    dam_type = DAM_HOLY;
+    break;
+  case BOMB_PROFANE:
+    dam_type = DAM_UNHOLY;
+    break;
+  case BOMB_SHOCK:
+    dam_type = DAM_ELECTRIC;
+    break;
+  case BOMB_SUNLIGHT:
+    dam_type = DAM_LIGHT;
+    if (IS_UNDEAD(vict) || IS_OOZE(vict))
+      damage += (HAS_FEAT(ch, FEAT_BOMBS) / 2) + 2;
+    break;
   }
 
   vict->player_specials->sticky_bomb[0] = bomb_type;
   vict->player_specials->sticky_bomb[1] = dam_type;
   vict->player_specials->sticky_bomb[2] = damage;
-
 }
 
-ACMD(do_curingtouch) {
+ACMD(do_curingtouch)
+{
   int uses_remaining = 0;
   char arg1[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
 
-  if (!KNOWS_DISCOVERY(ch, ALC_DISC_SPONTANEOUS_HEALING)) {
+  if (!KNOWS_DISCOVERY(ch, ALC_DISC_SPONTANEOUS_HEALING))
+  {
     send_to_char(ch, "You do not know that alchemist discovery!\r\n");
     return;
   }
 
-  if ((uses_remaining = daily_uses_remaining(ch, FEAT_CURING_TOUCH)) == 0) {
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_CURING_TOUCH)) == 0)
+  {
     send_to_char(ch, "You have no alchemical reserves to apply a curing touch.\r\n");
     return;
   }
 
-  if (uses_remaining < 0) {
+  if (uses_remaining < 0)
+  {
     send_to_char(ch, "You are not experienced enough.\r\n");
     return;
   }
 
   one_argument(argument, arg1);
 
-  if (!*arg1) {
+  if (!*arg1)
+  {
     vict = ch;
-  } else {
+  }
+  else
+  {
 
-    if (!KNOWS_DISCOVERY(ch, ALC_DISC_HEALING_TOUCH)) {
+    if (!KNOWS_DISCOVERY(ch, ALC_DISC_HEALING_TOUCH))
+    {
       send_to_char(ch, "You can only perform a curing touch on yourself.  The curing touch alchemical discovery allows for perform this on others as well as increasing the amount you can heal.");
       return;
     }
 
-    if (!(vict = get_char_vis(ch, arg1, NULL, FIND_CHAR_ROOM))) {
+    if (!(vict = get_char_vis(ch, arg1, NULL, FIND_CHAR_ROOM)))
+    {
       send_to_char(ch, "Target who?\r\n");
       return;
     }
   }
 
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
-          ch->next_in_room != vict && vict->next_in_room != ch) {
+      ch->next_in_room != vict && vict->next_in_room != ch)
+  {
     send_to_char(ch, "You simply can't reach that far.\r\n");
     return;
   }
 
-  if (GET_HIT(vict) >= GET_MAX_HIT(vict)) {
+  if (GET_HIT(vict) >= GET_MAX_HIT(vict))
+  {
     send_to_char(ch, "That person does not need curing.\r\n");
     return;
   }
 
-  if (vict == ch) {
+  if (vict == ch)
+  {
     send_to_char(ch, "You cure yourself with your alchemical salve!\r\n");
     act("$n heals some wounds with an alchemical salve!", FALSE, ch, 0, vict, TO_NOTVICT);
-  } else {
+  }
+  else
+  {
     act("You cure $N with an alchemical salve.", FALSE, ch, 0, vict, TO_CHAR);
     act("$n cures you with an alchemical salve", FALSE, ch, 0, vict, TO_VICT);
     act("$n cures $N with an alchemical salve", FALSE, ch, 0, vict, TO_NOTVICT);
@@ -2497,12 +2692,14 @@ ACMD(do_curingtouch) {
 // In either case, they suffer -2 to attack rolls, saving throws,
 // skill checks and ability checks.
 
-ACMD(do_psychokinetic) {
+ACMD(do_psychokinetic)
+{
 
   char buf[200];
 
   // do they know how to do it?
-  if (!KNOWS_DISCOVERY(ch, ALC_DISC_PSYCHOKINETIC_TINCTURE)) {
+  if (!KNOWS_DISCOVERY(ch, ALC_DISC_PSYCHOKINETIC_TINCTURE))
+  {
     send_to_char(ch, "You do not know the psychokinetic tincture alchemist discovery.\r\n");
     return;
   }
@@ -2510,12 +2707,14 @@ ACMD(do_psychokinetic) {
   skip_spaces(&argument);
 
   // check to see if they specified an argument
-  if (!*argument) {
+  if (!*argument)
+  {
     send_to_char(ch, "You need to specify either 'apply' to activate, 'dispel' to end the effect or 'launch' to send one of the psychokinetic spirits at your currently targetted foe.\r\n");
     return;
   }
 
-  if (is_abbrev(argument, "apply")) {
+  if (is_abbrev(argument, "apply"))
+  {
 
     // check if they have any uses available
     if (!IS_NPC(ch))
@@ -2523,7 +2722,8 @@ ACMD(do_psychokinetic) {
       PREREQ_HAS_USES(FEAT_PSYCHOKINETIC, "You must wait some time before you can apply another psychokinetic tincture.\r\n");
     }
 
-    if (affected_by_spell(ch, ALC_DISC_AFFECT_PSYCHOKINETIC)) {
+    if (affected_by_spell(ch, ALC_DISC_AFFECT_PSYCHOKINETIC))
+    {
       send_to_char(ch, "You are already under the effect of a psychokinetic tincture.  You may either 'launch' the psychokinetic spirits in battle, or use 'psychokinetic dispel' to end the effect voluntarily.\r\n");
       return;
     }
@@ -2555,10 +2755,12 @@ ACMD(do_psychokinetic) {
     }
 
     return;
+  }
+  else if (is_abbrev(argument, "dispel"))
+  {
 
-  } else if (is_abbrev(argument, "dispel")) {
-
-    if (!affected_by_spell(ch, ALC_DISC_AFFECT_PSYCHOKINETIC)) {
+    if (!affected_by_spell(ch, ALC_DISC_AFFECT_PSYCHOKINETIC))
+    {
       send_to_char(ch, "You are not under the effect of a psychokinetic tincture.\r\n");
       return;
     }
@@ -2566,12 +2768,14 @@ ACMD(do_psychokinetic) {
     affect_from_char(ch, ALC_DISC_AFFECT_PSYCHOKINETIC);
     send_to_char(ch, "You banish the psychokinetic spirits.\r\n");
     return;
- 
-  } else if (is_abbrev(argument, "launch")) {
+  }
+  else if (is_abbrev(argument, "launch"))
+  {
 
     struct char_data *victim = NULL;
 
-    if (!(victim = FIGHTING(ch))) {
+    if (!(victim = FIGHTING(ch)))
+    {
       send_to_char(ch, "This can only be done in battle.\r\n");
       return;
     }
@@ -2585,21 +2789,28 @@ ACMD(do_psychokinetic) {
     if (is_immune_mind_affecting(ch, victim, TRUE))
       return;
 
-    if (mag_savingthrow(ch, victim, SAVING_WILL, GET_RESISTANCES(victim, DAM_MENTAL), CAST_BOMB, CLASS_LEVEL(ch, CLASS_ALCHEMIST), SCHOOL_NOSCHOOL)) {
+    if (mag_savingthrow(ch, victim, SAVING_WILL, GET_RESISTANCES(victim, DAM_MENTAL), CAST_BOMB, CLASS_LEVEL(ch, CLASS_ALCHEMIST), SCHOOL_NOSCHOOL))
+    {
       act("$N resists the fear effect.", FALSE, ch, 0, victim, TO_CHAR);
       act("You resist the fear effect.", FALSE, ch, 0, victim, TO_VICT);
-    } else {
+    }
+    else
+    {
       act("You are filled with terror.", FALSE, ch, 0, victim, TO_VICT);
       act("$N is filled with terror.", FALSE, ch, 0, victim, TO_ROOM);
-      if (PRF_FLAGGED(ch, PRF_FRIGHTENED)) {
+      if (PRF_FLAGGED(ch, PRF_FRIGHTENED))
+      {
         do_flee(victim, 0, 0, 0);
       }
 
       struct affected_type *af = NULL;
-      for (af = ch->affected; af; af = af->next) {
-        if (af->spell == ALC_DISC_AFFECT_PSYCHOKINETIC) {
+      for (af = ch->affected; af; af = af->next)
+      {
+        if (af->spell == ALC_DISC_AFFECT_PSYCHOKINETIC)
+        {
           af->modifier -= 1;
-          if (af->modifier <= 0) {
+          if (af->modifier <= 0)
+          {
             affect_from_char(ch, ALC_DISC_AFFECT_PSYCHOKINETIC);
             send_to_char(ch, "You have launched the last of your psychokinetic spirits.\r\n");
           }
@@ -2612,7 +2823,9 @@ ACMD(do_psychokinetic) {
       USE_STANDARD_ACTION(ch);
     }
     return;
-  } else {
+  }
+  else
+  {
     send_to_char(ch, "You need to specify either 'apply' to activate, 'dispel' to end the effect or 'launch' to send one of the psychokinetic spirits at your currently targetted foe.\r\n");
     return;
   }
@@ -2620,25 +2833,31 @@ ACMD(do_psychokinetic) {
 
 ACMD(do_poisontouch)
 {
-  if (GET_GRAND_DISCOVERY(ch) != GR_ALC_DISC_POISON_TOUCH) {
+  if (GET_GRAND_DISCOVERY(ch) != GR_ALC_DISC_POISON_TOUCH)
+  {
     send_to_char(ch, "You do not know how to perform a poison touch.\r\n");
     return;
   }
 
   struct char_data *vict = FIGHTING(ch);
 
-  if (!vict) {
+  if (!vict)
+  {
     send_to_char(ch, "You can only use this ability in combat.\r\n");
     return;
   }
 
-  if (attack_roll(ch, vict, ATTACK_TYPE_PRIMARY, TRUE, 1) > 0) {
+  if (attack_roll(ch, vict, ATTACK_TYPE_PRIMARY, TRUE, 1) > 0)
+  {
 
-    if (check_poison_resist(ch, vict, CASTING_TYPE_ANY, CLASS_LEVEL(ch, CLASS_ALCHEMIST))) {
+    if (check_poison_resist(ch, vict, CASTING_TYPE_ANY, CLASS_LEVEL(ch, CLASS_ALCHEMIST)))
+    {
       act("You touch $n with your poisonous touch, but $E resists!", FALSE, ch, 0, vict, TO_CHAR);
       act("$n touches You with $s poisonous touch, but You resist!", FALSE, ch, 0, vict, TO_VICT);
       act("$n touches $N with $s poisonous touch, but $E resists!", FALSE, ch, 0, vict, TO_NOTVICT);
-    } else {
+    }
+    else
+    {
 
       struct affected_type af;
 
@@ -2655,7 +2874,9 @@ ACMD(do_poisontouch)
       act("$n touches You with $s poisonous touch and You become very ill!", FALSE, ch, 0, vict, TO_VICT);
       act("$n touches $N with $s poisonous touch and $E becomes very ill!", FALSE, ch, 0, vict, TO_NOTVICT);
     }
-  } else {
+  }
+  else
+  {
     act("You try to poison $N with your poisonous touch, but fail.", TRUE, ch, 0, vict, TO_CHAR);
     act("$n tries to poison You with $s poisonous touch, but fails.", TRUE, ch, 0, vict, TO_VICT);
     act("$n tries to poison $N with $s poisonous touch, but fails.", TRUE, ch, 0, vict, TO_NOTVICT);
@@ -2664,20 +2885,23 @@ ACMD(do_poisontouch)
   USE_STANDARD_ACTION(ch);
 }
 
-int find_discovery_num(char *name) {
+int find_discovery_num(char *name)
+{
   int index, ok;
   char *temp, *temp2;
   char first[256], first2[256];
 
-  for (index = 0; index < NUM_ALC_DISCOVERIES; index++) {
+  for (index = 0; index < NUM_ALC_DISCOVERIES; index++)
+  {
     if (is_abbrev(name, alchemical_discovery_names[index]))
       return (index);
 
     ok = TRUE;
     /* It won't be changed, but other uses of this function elsewhere may. */
-    temp = any_one_arg((char *) alchemical_discovery_names[index], first);
+    temp = any_one_arg((char *)alchemical_discovery_names[index], first);
     temp2 = any_one_arg(name, first2);
-    while (*first && *first2 && ok) {
+    while (*first && *first2 && ok)
+    {
       if (!is_abbrev(first2, first))
         ok = FALSE;
       temp = any_one_arg(temp, first);
@@ -2697,7 +2921,8 @@ int find_discovery_num(char *name) {
  *
  * (NOTE: The headers of the sections above will be colored
  * differently, making them stand out.) */
-bool display_discovery_info(struct char_data *ch, char *discoveryname) {
+bool display_discovery_info(struct char_data *ch, char *discoveryname)
+{
   int discovery = -1;
   char buf[MAX_STRING_LENGTH];
 
@@ -2705,10 +2930,11 @@ bool display_discovery_info(struct char_data *ch, char *discoveryname) {
   static int line_length = 80;
 
   skip_spaces(&discoveryname);
-  
+
   discovery = find_discovery_num(discoveryname);
 
-  if (discovery == -1) {
+  if (discovery == -1)
+  {
     /* Not found - Maybe put in a soundex list here? */
     //send_to_char(ch, "Could not find that discovery.\r\n");
     return FALSE;
@@ -2720,8 +2946,7 @@ bool display_discovery_info(struct char_data *ch, char *discoveryname) {
   //text_line(ch, "discovery Information", line_length, '-', '-');
   draw_line(ch, line_length, '-', '-');
   send_to_char(ch, "\tcDiscovery     : \tn%s\r\n",
-          alchemical_discovery_names[discovery]
-          );
+               alchemical_discovery_names[discovery]);
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
 
@@ -2734,8 +2959,7 @@ bool display_discovery_info(struct char_data *ch, char *discoveryname) {
 
   /* This we will need to buffer and wrap so that it will fit in the space provided. */
   sprintf(buf, "\tcDescription   : \tn%s\r\n",
-          alchemical_discovery_descriptions[discovery]
-          );
+          alchemical_discovery_descriptions[discovery]);
   send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
@@ -2744,20 +2968,23 @@ bool display_discovery_info(struct char_data *ch, char *discoveryname) {
   return TRUE;
 }
 
-int find_grand_discovery_num(char *name) {
+int find_grand_discovery_num(char *name)
+{
   int index, ok;
   char *temp, *temp2;
   char first[256], first2[256];
 
-  for (index = 1; index < NUM_GR_ALC_DISCOVERIES; index++) {
+  for (index = 1; index < NUM_GR_ALC_DISCOVERIES; index++)
+  {
     if (is_abbrev(name, grand_alchemical_discovery_names[index]))
       return (index);
 
     ok = TRUE;
     /* It won't be changed, but other uses of this function elsewhere may. */
-    temp = any_one_arg((char *) grand_alchemical_discovery_names[index], first);
+    temp = any_one_arg((char *)grand_alchemical_discovery_names[index], first);
     temp2 = any_one_arg(name, first2);
-    while (*first && *first2 && ok) {
+    while (*first && *first2 && ok)
+    {
       if (!is_abbrev(first2, first))
         ok = FALSE;
       temp = any_one_arg(temp, first);
@@ -2777,7 +3004,8 @@ int find_grand_discovery_num(char *name) {
  *
  * (NOTE: The headers of the sections above will be colored
  * differently, making them stand out.) */
-bool display_grand_discovery_info(struct char_data *ch, char *discoveryname) {
+bool display_grand_discovery_info(struct char_data *ch, char *discoveryname)
+{
   int discovery = -1;
   char buf[MAX_STRING_LENGTH];
 
@@ -2787,7 +3015,8 @@ bool display_grand_discovery_info(struct char_data *ch, char *discoveryname) {
   skip_spaces(&discoveryname);
   discovery = find_grand_discovery_num(discoveryname);
 
-  if (discovery == -1) {
+  if (discovery == -1)
+  {
     /* Not found - Maybe put in a soundex list here? */
     //send_to_char(ch, "Could not find that discovery.\r\n");
     return FALSE;
@@ -2799,8 +3028,7 @@ bool display_grand_discovery_info(struct char_data *ch, char *discoveryname) {
   //text_line(ch, "discovery Information", line_length, '-', '-');
   draw_line(ch, line_length, '-', '-');
   send_to_char(ch, "\tcGrand Discovery    : \tn%s\r\n",
-          grand_alchemical_discovery_names[discovery]
-          );
+               grand_alchemical_discovery_names[discovery]);
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
 
@@ -2813,8 +3041,7 @@ bool display_grand_discovery_info(struct char_data *ch, char *discoveryname) {
 
   /* This we will need to buffer and wrap so that it will fit in the space provided. */
   sprintf(buf, "\tcDescription : \tn%s\r\n",
-          grand_alchemical_discovery_descriptions[discovery]
-          );
+          grand_alchemical_discovery_descriptions[discovery]);
   send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
@@ -2823,8 +3050,10 @@ bool display_grand_discovery_info(struct char_data *ch, char *discoveryname) {
   return TRUE;
 }
 
-bool display_bomb_types(struct char_data *ch, char *keyword) {
-  if (!is_abbrev(keyword, "alchemist bombs") && !is_abbrev(keyword, "alchemist-bombs")) return FALSE;
+bool display_bomb_types(struct char_data *ch, char *keyword)
+{
+  if (!is_abbrev(keyword, "alchemist bombs") && !is_abbrev(keyword, "alchemist-bombs"))
+    return FALSE;
   char buf[MAX_STRING_LENGTH];
 
   //  static int line_length = 57;
@@ -2837,7 +3066,8 @@ bool display_bomb_types(struct char_data *ch, char *keyword) {
   draw_line(ch, line_length, '-', '-');
 
   int i = 0;
-  for (i = 1; i < NUM_BOMB_TYPES; i++) {
+  for (i = 1; i < NUM_BOMB_TYPES; i++)
+  {
     sprintf(buf, "\tC%s bomb\tn\r\n", bomb_types[i]);
     send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
   }
@@ -2853,11 +3083,12 @@ bool display_bomb_types(struct char_data *ch, char *keyword) {
   return TRUE;
 }
 
-bool display_discovery_types(struct char_data *ch, char *keyword) {
+bool display_discovery_types(struct char_data *ch, char *keyword)
+{
 
   if (!is_abbrev(keyword, "alchemist discoveries") && !is_abbrev(keyword, "alchemical discoveries") && !is_abbrev(keyword, "discoveries") &&
       !is_abbrev(keyword, "alchemist grand discoveries") && !is_abbrev(keyword, "alchemical grand discoveries") && !is_abbrev(keyword, "grand discoveries"))
-      return FALSE;
+    return FALSE;
 
   bool grand = FALSE;
 
@@ -2865,7 +3096,7 @@ bool display_discovery_types(struct char_data *ch, char *keyword) {
     grand = FALSE;
   else
     grand = TRUE;
-  
+
   char buf[MAX_STRING_LENGTH];
 
   //  static int line_length = 57;
@@ -2878,7 +3109,8 @@ bool display_discovery_types(struct char_data *ch, char *keyword) {
   draw_line(ch, line_length, '-', '-');
 
   int i = 0;
-  for (i = 1; i < (grand ? NUM_GR_ALC_DISCOVERIES : NUM_ALC_DISCOVERIES); i++) {
+  for (i = 1; i < (grand ? NUM_GR_ALC_DISCOVERIES : NUM_ALC_DISCOVERIES); i++)
+  {
     sprintf(buf, "\tC%s\tn\r\n", grand ? grand_alchemical_discovery_names[i] : alchemical_discovery_names[i]);
     send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
   }

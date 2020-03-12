@@ -1,4 +1,4 @@
-/* Copyright Abandoned 1996, 1999, 2001 MySQL AB
+/* Copyright Abandoned 1996, 1999, 2001 MySQL AB                  LuminariMUD
    This file is public domain and comes with NO WARRANTY of any kind */
 
 /* Version numbers for protocol & mysqld */

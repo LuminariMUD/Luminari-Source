@@ -28,7 +28,7 @@
 #include "spec_procs.h"
 #include "class.h"
 #include "fight.h"
-#include "mail.h"  /* for has_mail() */
+#include "mail.h" /* for has_mail() */
 #include "shop.h"
 #include "quest.h"
 #include "modify.h"
@@ -48,12 +48,12 @@
 #include "spells.h"
 #include "spell_prep.h"
 
-#define SHAPE_AFFECTS         3
-#define MOB_ZOMBIE            11   /* animate dead levels 1-7 */
-#define MOB_GHOUL             35   // " " level 11+
-#define MOB_GIANT_SKELETON    36   // " " level 21+
-#define MOB_MUMMY             37   // " " level 30
-#define BARD_AFFECTS          7
+#define SHAPE_AFFECTS 3
+#define MOB_ZOMBIE 11         /* animate dead levels 1-7 */
+#define MOB_GHOUL 35          // " " level 11+
+#define MOB_GIANT_SKELETON 36 // " " level 21+
+#define MOB_MUMMY 37          // " " level 30
+#define BARD_AFFECTS 7
 #define MOB_PALADIN_MOUNT 70
 #define MOB_PALADIN_MOUNT_SMALL 91
 #define MOB_EPIC_PALADIN_MOUNT 79
@@ -62,56 +62,66 @@
 /* some defines for gain/respec */
 #define MODE_CLASSLIST_NORMAL 0
 #define MODE_CLASSLIST_RESPEC 1
-#define MULTICAP	3
+#define MULTICAP 3
 #define WILDSHAPE_AFFECTS 4
 #define TOG_OFF 0
-#define TOG_ON  1
+#define TOG_ON 1
 
 /* Local defined utility functions */
 /* do_group utility functions */
 static void print_group(struct char_data *ch);
-static void display_group_list(struct char_data * ch);
+static void display_group_list(struct char_data *ch);
 
 /*****************/
 
-ACMD(do_nop) {
+ACMD(do_nop)
+{
   send_to_char(ch, "\r\n");
 }
 
-ACMD(do_handleanimal) {
+ACMD(do_handleanimal)
+{
   struct char_data *vict = NULL;
   int dc = 0;
 
-  if (!GET_ABILITY(ch, ABILITY_HANDLE_ANIMAL)) {
+  if (!GET_ABILITY(ch, ABILITY_HANDLE_ANIMAL))
+  {
     send_to_char(ch, "You have no idea how to do that!\r\n");
     return;
   }
 
   skip_spaces(&argument);
 
-  if (!*argument) {
+  if (!*argument)
+  {
     send_to_char(ch, "You need a target to attempt this.\r\n");
     return;
-  } else {
+  }
+  else
+  {
     /* there is an argument, lets make sure it is valid */
-    if (!(vict = get_char_vis(ch, argument, NULL, FIND_CHAR_ROOM))) {
+    if (!(vict = get_char_vis(ch, argument, NULL, FIND_CHAR_ROOM)))
+    {
       send_to_char(ch, "Whom do you wish to shift?\r\n");
       return;
     }
   }
 
-  if (vict == ch) {
+  if (vict == ch)
+  {
     send_to_char(ch, "You are trying to animal-handle yourself?\r\n");
     return;
   }
 
-  if (!IS_ANIMAL(vict)) {
+  if (!IS_ANIMAL(vict))
+  {
     send_to_char(ch, "You can only 'handle animals' that are actually animals.\r\n");
     return;
   }
 
   /* you have to be higher level to have a chance */
-  if (GET_LEVEL(vict) >= GET_LEVEL(ch)) {
+  if (GET_LEVEL(vict) >= GET_LEVEL(ch))
+  {
     dc += 99; /* impossible */
   }
 
@@ -120,11 +130,13 @@ ACMD(do_handleanimal) {
   /* skill check */
   /* dc = hit-dice + 20 */
   dc = GET_LEVEL(vict) + 20;
-  if (!skill_check(ch, ABILITY_HANDLE_ANIMAL, dc)) {
+  if (!skill_check(ch, ABILITY_HANDLE_ANIMAL, dc))
+  {
     /* failed, do another check to see if you pissed off the animal */
-    if (!skill_check(ch, ABILITY_HANDLE_ANIMAL, dc)) {
+    if (!skill_check(ch, ABILITY_HANDLE_ANIMAL, dc))
+    {
       send_to_char(ch, "You failed to properly train the animal to follow your "
-              "commands, and the animal now seems aggressive.\r\n");
+                       "commands, and the animal now seems aggressive.\r\n");
       hit(vict, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
       return;
     }
@@ -141,36 +153,43 @@ ACMD(do_handleanimal) {
 }
 
 /* innate animate dead ability */
-ACMD(do_animatedead) {
+ACMD(do_animatedead)
+{
   int uses_remaining = 0;
   struct char_data *mob = NULL;
   mob_vnum mob_num = 0;
 
-  if (!HAS_FEAT(ch, FEAT_ANIMATE_DEAD)) {
+  if (!HAS_FEAT(ch, FEAT_ANIMATE_DEAD))
+  {
     send_to_char(ch, "You do not know how to animate dead!\r\n");
     return;
   }
 
-  if (IS_HOLY(IN_ROOM(ch))) {
+  if (IS_HOLY(IN_ROOM(ch)))
+  {
     send_to_char(ch, "This place is too holy for such blasphemy!");
     return;
   }
 
-  if (HAS_PET_UNDEAD(ch)) {
+  if (HAS_PET_UNDEAD(ch))
+  {
     send_to_char(ch, "You can't control more undead!\r\n");
     return;
   }
 
-  if (AFF_FLAGGED(ch, AFF_CHARM)) {
+  if (AFF_FLAGGED(ch, AFF_CHARM))
+  {
     send_to_char(ch, "You are too giddy to have any followers!\r\n");
     return;
   }
 
-  if ((uses_remaining = daily_uses_remaining(ch, FEAT_ANIMATE_DEAD)) == 0) {
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_ANIMATE_DEAD)) == 0)
+  {
     send_to_char(ch, "You must recover the energy required to animate the dead.\r\n");
     return;
   }
-  if (uses_remaining < 0) {
+  if (uses_remaining < 0)
+  {
     send_to_char(ch, "You are not experienced enough.\r\n");
     return;
   }
@@ -186,7 +205,8 @@ ACMD(do_animatedead) {
   else
     mob_num = MOB_ZOMBIE;
 
-  if (!(mob = read_mobile(mob_num, VIRTUAL))) {
+  if (!(mob = read_mobile(mob_num, VIRTUAL)))
+  {
     send_to_char(ch, "You don't quite remember how to make that creature.\r\n");
     return;
   }
@@ -208,28 +228,33 @@ ACMD(do_animatedead) {
   USE_STANDARD_ACTION(ch);
 }
 
-ACMD(do_abundantstep) {
+ACMD(do_abundantstep)
+{
   int steps = 0, i = 0, j, repeat = 0, max = 0;
   room_rnum room_tracker = NOWHERE, nextroom = NOWHERE;
   char buf[MAX_INPUT_LENGTH] = {'\0'}, tc = '\0';
   const char *p = NULL;
 
-  if (!HAS_FEAT(ch, FEAT_ABUNDANT_STEP)) {
+  if (!HAS_FEAT(ch, FEAT_ABUNDANT_STEP))
+  {
     send_to_char(ch, "You do not know that martial art skill!\r\n");
     return;
   }
 
-  if (FIGHTING(ch)) {
+  if (FIGHTING(ch))
+  {
     send_to_char(ch, "You can't focus enough in combat to use this martial art skill!\r\n");
     return;
   }
 
-  if (GET_MOVE(ch) < 30) {
+  if (GET_MOVE(ch) < 30)
+  {
     send_to_char(ch, "You are too tired to use this martial art skill!\r\n");
     return;
   }
   /* 3.23.18 Ornir, bugfix. */
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_NOTELEPORT)) {
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_NOTELEPORT))
+  {
     send_to_char(ch, "You are unable to shift to the ethereal plane in this place!\r\n");
     return;
   }
@@ -242,46 +267,52 @@ ACMD(do_abundantstep) {
   while (p && *p && !isdigit(*p) && !isalpha(*p))
     p++; /* looking for first number or letter */
 
-  if (!p || !*p) { /* empty argument */
+  if (!p || !*p)
+  { /* empty argument */
     send_to_char(ch, "You must give directions from your current location.  Examples:\r\n"
-            "  w w n n e\r\n"
-            "  2w n n e\r\n");
+                     "  w w n n e\r\n"
+                     "  2w n n e\r\n");
     return;
   }
 
   /* step through our string */
-  while (*p) {
+  while (*p)
+  {
 
     while (*p && !isdigit(*p) && !isalpha(*p))
       p++; /* skipping spaces, and anything not a letter or number */
 
-    if (isdigit(*p)) { /* value a number?  if so it will be our repeat */
+    if (isdigit(*p))
+    { /* value a number?  if so it will be our repeat */
       repeat = atoi(p);
 
       while (isdigit(*p)) /* get rid of extra numbers */
         p++;
-
-    } else /* value isn't a number, so we are moving just a single space */
+    }
+    else /* value isn't a number, so we are moving just a single space */
       repeat = 1;
 
     /* indication we haven't found a direction to move yet */
     i = -1;
 
-    if (isalpha(*p)) { /* ok found a letter, and repeat is set */
+    if (isalpha(*p))
+    { /* ok found a letter, and repeat is set */
 
       for (i = 0; isalpha(*p); i++, p++)
         buf[i] = LOWER(*p); /* turn a string of letters into lower case  buf */
 
-      j = i; /* how many letters we found */
+      j = i;       /* how many letters we found */
       tc = buf[i]; /* the non-alpha that terminated us */
-      buf[i] = 0; /* placing a '0' in that last spot in this mini buf */
+      buf[i] = 0;  /* placing a '0' in that last spot in this mini buf */
 
       for (i = 1; complete_cmd_info[i].command_pointer == do_move && strcmp(complete_cmd_info[i].sort_as, buf); i++)
         ; /* looking for a move command that matches our buf */
 
-      if (complete_cmd_info[i].command_pointer == do_move) {
+      if (complete_cmd_info[i].command_pointer == do_move)
+      {
         i = complete_cmd_info[i].subcmd;
-      } else
+      }
+      else
         i = -1;
       /* so now i is either our direction to move (define) or -1 */
 
@@ -289,26 +320,30 @@ ACMD(do_abundantstep) {
       //send_to_char(ch, "i: %d\r\n", i);
     }
 
-    if (i > -1) { /* we have a direction to move! */
-      while (repeat > 0) {
+    if (i > -1)
+    { /* we have a direction to move! */
+      while (repeat > 0)
+      {
         repeat--;
 
         if (++steps > max) /* reached our limit of steps! */
           break;
 
-        if (!W_EXIT(room_tracker, i)) { /* is i a valid direction? */
+        if (!W_EXIT(room_tracker, i))
+        { /* is i a valid direction? */
           send_to_char(ch, "Invalid step. Skipping.\r\n");
           break;
         }
 
         nextroom = W_EXIT(room_tracker, i)->to_room;
-        
+
         /* 3.23.18 Ornir, bugfix. */
-        if (ROOM_FLAGGED(nextroom, ROOM_NOTELEPORT) || ROOM_FLAGGED(nextroom, ROOM_HOUSE)) {
+        if (ROOM_FLAGGED(nextroom, ROOM_NOTELEPORT) || ROOM_FLAGGED(nextroom, ROOM_HOUSE))
+        {
           send_to_char(ch, "You can not access your destination through the ethereal plane!\r\n");
           return;
         }
-        
+
         if (nextroom == NOWHERE)
           break;
 
@@ -319,7 +354,8 @@ ACMD(do_abundantstep) {
       break;
   } /* finished stepping through the string */
 
-  if (IN_ROOM(ch) != room_tracker) {
+  if (IN_ROOM(ch) != room_tracker)
+  {
     send_to_char(ch, "Your will bends reality as you travel through the ethereal plane.\r\n");
     act("$n is suddenly absent.", TRUE, ch, 0, 0, TO_ROOM);
 
@@ -331,7 +367,9 @@ ACMD(do_abundantstep) {
     look_at_room(ch, 0);
     GET_MOVE(ch) -= 30;
     USE_MOVE_ACTION(ch);
-  } else {
+  }
+  else
+  {
     send_to_char(ch, "You failed!\r\n");
   }
 
@@ -340,68 +378,82 @@ ACMD(do_abundantstep) {
 
 /* ethereal shift - monk epic feat skill/cleric travel domain power/feat, allows
  * shifting of self and group members to the ethereal plane and back */
-ACMD(do_ethshift) {
+ACMD(do_ethshift)
+{
   struct char_data *shiftee = NULL;
   room_rnum shift_dest = NOWHERE;
   //int counter = 0;
 
   skip_spaces(&argument);
 
-  if (!HAS_FEAT(ch, FEAT_OUTSIDER) && !HAS_FEAT(ch, FEAT_ETH_SHIFT)) {
+  if (!HAS_FEAT(ch, FEAT_OUTSIDER) && !HAS_FEAT(ch, FEAT_ETH_SHIFT))
+  {
     send_to_char(ch, "You do not know how!\r\n");
     return;
   }
 
-  if (!*argument) {
+  if (!*argument)
+  {
     shiftee = ch;
-  } else {
+  }
+  else
+  {
     /* there is an argument, lets make sure it is valid */
-    if (!(shiftee = get_char_vis(ch, argument, NULL, FIND_CHAR_ROOM))) {
+    if (!(shiftee = get_char_vis(ch, argument, NULL, FIND_CHAR_ROOM)))
+    {
       send_to_char(ch, "Whom do you wish to shift?\r\n");
       return;
     }
 
     /* ok we have a target, is this target grouped? */
-    if (GROUP(shiftee) != GROUP(ch)) {
+    if (GROUP(shiftee) != GROUP(ch))
+    {
       send_to_char(ch, "You can only shift someone else if they are in the same "
-              "group as you.\r\n");
+                       "group as you.\r\n");
       return;
     }
   }
 
   /* ok make sure it is ok to teleport */
-  if (!valid_mortal_tele_dest(shiftee, IN_ROOM(ch), FALSE)) {
+  if (!valid_mortal_tele_dest(shiftee, IN_ROOM(ch), FALSE))
+  {
     send_to_char(ch, "Something in this area is stopping your power!\r\n");
     return;
   }
 
   /* check if shiftee is already on eth */
-  if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ETH_PLANE)) {
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ETH_PLANE))
+  {
     send_to_char(ch, "Attempting to shift to the prime plane...\r\n");
 
-    do {
+    do
+    {
       shift_dest = rand_number(0, top_of_world);
       //counter++;
       //send_to_char(ch, "%d | %d, ", counter, shift_dest);
     } while ((ZONE_FLAGGED(GET_ROOM_ZONE(shift_dest), ZONE_ELEMENTAL) ||
-            ZONE_FLAGGED(GET_ROOM_ZONE(shift_dest), ZONE_ETH_PLANE) ||
-            ZONE_FLAGGED(GET_ROOM_ZONE(shift_dest), ZONE_ASTRAL_PLANE))
-            );
+              ZONE_FLAGGED(GET_ROOM_ZONE(shift_dest), ZONE_ETH_PLANE) ||
+              ZONE_FLAGGED(GET_ROOM_ZONE(shift_dest), ZONE_ASTRAL_PLANE)));
 
     /* check if shiftee is on prime */
-  } else if (!ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ASTRAL_PLANE) &&
-          !ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ETH_PLANE) &&
-          !ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ELEMENTAL)) {
+  }
+  else if (!ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ASTRAL_PLANE) &&
+           !ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ETH_PLANE) &&
+           !ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ELEMENTAL))
+  {
     send_to_char(ch, "Attempting to shift to the ethereal plane...\r\n");
 
-    do {
+    do
+    {
       shift_dest = rand_number(0, top_of_world);
       //counter++;
       //send_to_char(ch, "%d | %d, ", counter, shift_dest);
     } while (!ZONE_FLAGGED(GET_ROOM_ZONE(shift_dest), ZONE_ETH_PLANE));
-  } else {
+  }
+  else
+  {
     send_to_char(ch, "This power only works when you are on the prime or ethereal "
-            "planes!\r\n");
+                     "planes!\r\n");
     return;
   }
 
@@ -412,7 +464,8 @@ ACMD(do_ethshift) {
   }
    */
 
-  if (!valid_mortal_tele_dest(shiftee, shift_dest, FALSE)) {
+  if (!valid_mortal_tele_dest(shiftee, shift_dest, FALSE))
+  {
     send_to_char(ch, "Your power is being block at the destination (try again)!\r\n");
     USE_MOVE_ACTION(ch);
     return;
@@ -421,7 +474,7 @@ ACMD(do_ethshift) {
   /* should be successful now */
   send_to_char(shiftee, "You slowly fade out of existence...\r\n");
   act("$n slowly fades out of existence and is gone.",
-          FALSE, shiftee, 0, 0, TO_ROOM);
+      FALSE, shiftee, 0, 0, TO_ROOM);
   char_from_room(shiftee);
   char_to_room(shiftee, shift_dest);
   act("$n slowly fades into existence.", FALSE, shiftee, 0, 0, TO_ROOM);
@@ -435,7 +488,8 @@ ACMD(do_ethshift) {
 }
 
 /* imbue an arrow with one of your spells */
-ACMD(do_imbuearrow) {
+ACMD(do_imbuearrow)
+{
   char arg1[MAX_INPUT_LENGTH];
   char arg2[MAX_INPUT_LENGTH];
   struct obj_data *arrow = NULL;
@@ -445,59 +499,70 @@ ACMD(do_imbuearrow) {
   two_arguments(argument, arg1, arg2);
 
   /* need two arguments */
-  if (!*arg1) {
+  if (!*arg1)
+  {
     send_to_char(ch, "Apply on which ammo?  Usage: imbuearrow <ammo name> <spell name>\r\n");
     return;
   }
-  if (!*arg2) {
+  if (!*arg2)
+  {
     send_to_char(ch, "Imbue what spell?  Usage: imbuearrow <ammo name> <spell name>\r\n");
     return;
   }
 
   /* feat related restrictions / daily use */
-  if (!HAS_FEAT(ch, FEAT_IMBUE_ARROW)) {
+  if (!HAS_FEAT(ch, FEAT_IMBUE_ARROW))
+  {
     send_to_char(ch, "You do not know how!\r\n");
     return;
   }
-  if ((uses_remaining = daily_uses_remaining(ch, FEAT_IMBUE_ARROW)) == 0) {
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_IMBUE_ARROW)) == 0)
+  {
     send_to_char(ch, "You must recover the arcane energy required to imbue and arrow.\r\n");
     return;
   }
-  if (uses_remaining < 0) {
+  if (uses_remaining < 0)
+  {
     send_to_char(ch, "You are not experienced enough.\r\n");
     return;
   }
 
   /* confirm we actually have an arrow targeted */
   arrow = get_obj_in_list_vis(ch, arg1, NULL, ch->carrying);
-  if (!arrow) {
+  if (!arrow)
+  {
     send_to_char(ch, "You do not carry that ammo!\r\n");
     return;
   }
-  if (GET_OBJ_TYPE(arrow) != ITEM_MISSILE) {
+  if (GET_OBJ_TYPE(arrow) != ITEM_MISSILE)
+  {
     send_to_char(ch, "You can only imbue ammo!\r\n");
     return;
   }
 
   /* confirm we have a valid spell */
   spell_num = find_skill_num(arg2);
-  if (spell_num < 1 || spell_num > MAX_SPELLS) {
+  if (spell_num < 1 || spell_num > MAX_SPELLS)
+  {
     send_to_char(ch, "Imbue with which spell??\r\n");
     return;
   }
   /* make sure arrow isn't already imbued! (obj val 1)*/
-  if (GET_OBJ_VAL(arrow, 1)) {
+  if (GET_OBJ_VAL(arrow, 1))
+  {
     send_to_char(ch, "This arrow is already imbued!\r\n");
     return;
   }
 
-  if (spell_prep_gen_check(ch, spell_num, METAMAGIC_NONE) == CLASS_UNDEFINED) {
+  if (spell_prep_gen_check(ch, spell_num, METAMAGIC_NONE) == CLASS_UNDEFINED)
+  {
     send_to_char(ch, "You have to have the spell prepared in order to imbue!!\r\n");
     return;
   }
 
   class = spell_prep_gen_extract(ch, spell_num, METAMAGIC_NONE);
-  if (class == CLASS_UNDEFINED) {
+  if (class == CLASS_UNDEFINED)
+  {
     send_to_char(ch, "ERR:  Report BUG771 to an IMM!\r\n");
     log("spell_prep_gen_extract() failed in imbue_arrow");
     return;
@@ -520,7 +585,8 @@ ACMD(do_imbuearrow) {
 }
 
 /* apply poison to a weapon */
-ACMD(do_applypoison) {
+ACMD(do_applypoison)
+{
   char arg1[MAX_INPUT_LENGTH] = {'\0'};
   char arg2[MAX_INPUT_LENGTH] = {'\0'};
   struct obj_data *poison = NULL, *weapon = NULL;
@@ -529,92 +595,119 @@ ACMD(do_applypoison) {
 
   two_arguments(argument, arg1, arg2);
 
-  if (!HAS_FEAT(ch, FEAT_APPLY_POISON)) {
+  if (!HAS_FEAT(ch, FEAT_APPLY_POISON))
+  {
     send_to_char(ch, "You do not know how!\r\n");
     return;
   }
 
-  if (!*arg1) {
+  if (!*arg1)
+  {
     send_to_char(ch, "Apply what poison? [applypoison <poison name> <weapon-name|ammo-name|primary|offhand|claws>]\r\n");
     return;
   }
-  if (!*arg2) {
+  if (!*arg2)
+  {
     send_to_char(ch, "Apply on which weapon/ammo?  [applypoison <poison name> <weapon-name|ammo-name|primary|offhand|claws>]\r\n");
     return;
   }
 
   poison = get_obj_in_list_vis(ch, arg1, NULL, ch->carrying);
 
-  if (!poison) {
+  if (!poison)
+  {
     send_to_char(ch, "You do not carry that poison!\r\n");
     return;
   }
 
-  if (GET_RACE(ch) == RACE_TRELUX) {
+  if (GET_RACE(ch) == RACE_TRELUX)
+  {
     is_trelux = TRUE;
   }
 
-  if (is_abbrev(arg2, "claws") && !is_trelux) {
+  if (is_abbrev(arg2, "claws") && !is_trelux)
+  {
     send_to_char(ch, "Only trelux can do that!!\r\n");
     return;
-  } else if (!is_abbrev(arg2, "claws") && is_trelux) {
+  }
+  else if (!is_abbrev(arg2, "claws") && is_trelux)
+  {
     send_to_char(ch, "Trelux must apply poison only to their claws!!\r\n");
     return;
   }
 
   /* checking for equipped weapons */
-  if (is_abbrev(arg2, "claws") && is_trelux) {
+  if (is_abbrev(arg2, "claws") && is_trelux)
+  {
     ;
-  } else if (is_abbrev(arg2, "primary")) {
+  }
+  else if (is_abbrev(arg2, "primary"))
+  {
     if (GET_EQ(ch, WEAR_WIELD_2H))
       weapon = GET_EQ(ch, WEAR_WIELD_2H);
     else if (GET_EQ(ch, WEAR_WIELD_1))
       weapon = GET_EQ(ch, WEAR_WIELD_1);
-  } else if (is_abbrev(arg2, "offhand")) {
+  }
+  else if (is_abbrev(arg2, "offhand"))
+  {
     if (GET_EQ(ch, WEAR_WIELD_OFFHAND))
       weapon = GET_EQ(ch, WEAR_WIELD_OFFHAND);
-  } else {
+  }
+  else
+  {
     weapon = get_obj_in_list_vis(ch, arg2, NULL, ch->carrying);
   }
 
-  if (!weapon && !is_trelux) {
+  if (!weapon && !is_trelux)
+  {
     send_to_char(ch, "You do not carry that weapon! [applypoison <poison name> <weapon-name|ammo-name|primary|offhand|claws>]\r\n");
     return;
   }
 
-  if (GET_OBJ_TYPE(poison) != ITEM_POISON) {
+  if (GET_OBJ_TYPE(poison) != ITEM_POISON)
+  {
     send_to_char(ch, "But that is not a poison! [applypoison <poison name> <weapon-name|ammo-name|primary|offhand|claws>]\r\n");
     return;
   }
-  if (GET_OBJ_VAL(poison, 2) <= 0) {
+  if (GET_OBJ_VAL(poison, 2) <= 0)
+  {
     send_to_char(ch, "That vial is empty!\r\n");
     return;
   }
 
-  if (is_trelux) {
+  if (is_trelux)
+  {
     ;
-  } else if (GET_OBJ_TYPE(weapon) != ITEM_WEAPON && GET_OBJ_TYPE(weapon) != ITEM_MISSILE) {
+  }
+  else if (GET_OBJ_TYPE(weapon) != ITEM_WEAPON && GET_OBJ_TYPE(weapon) != ITEM_MISSILE)
+  {
     send_to_char(ch, "But that is not a weapon/ammo! [applypoison <poison name> <weapon-name|ammo-name|primary|offhand|claws>]\r\n");
     return;
   }
-  if (is_trelux && TRLX_PSN_VAL(ch) > 0 && TRLX_PSN_VAL(ch) < NUM_SPELLS) {
+  if (is_trelux && TRLX_PSN_VAL(ch) > 0 && TRLX_PSN_VAL(ch) < NUM_SPELLS)
+  {
     send_to_char(ch, "Your claws are already poisoned!\r\n");
     return;
-  } else if (!is_trelux && weapon->weapon_poison.poison) {
+  }
+  else if (!is_trelux && weapon->weapon_poison.poison)
+  {
     send_to_char(ch, "That weapon/ammo is already poisoned!\r\n");
     return;
   }
-  if (!is_trelux && IS_SET(weapon_list[GET_OBJ_VAL(weapon, 0)].weaponFlags, WEAPON_FLAG_RANGED)) {
+  if (!is_trelux && IS_SET(weapon_list[GET_OBJ_VAL(weapon, 0)].weaponFlags, WEAPON_FLAG_RANGED))
+  {
     send_to_char(ch, "You can't apply poison to that, try applying directly to the ammo.\r\n");
     return;
   }
 
   /* 5% of failure */
-  if (rand_number(0, 19)) {
+  if (rand_number(0, 19))
+  {
     char buf1[MEDIUM_STRING] = {'\0'};
     char buf2[MEDIUM_STRING] = {'\0'};
 
-    if (is_trelux) {
+    if (is_trelux)
+    {
       TRLX_PSN_VAL(ch) = GET_OBJ_VAL(poison, 0);
       TRLX_PSN_LVL(ch) = GET_OBJ_VAL(poison, 1);
       TRLX_PSN_HIT(ch) = GET_OBJ_VAL(poison, 3);
@@ -622,7 +715,9 @@ ACMD(do_applypoison) {
               poison->short_description);
       sprintf(buf2, "$n \tncarefully applies the contents of %s \tnonto $s claws\tn...",
               poison->short_description);
-    } else {
+    }
+    else
+    {
       weapon->weapon_poison.poison_hits = GET_OBJ_VAL(poison, 3);
       weapon->weapon_poison.poison = GET_OBJ_VAL(poison, 0);
       weapon->weapon_poison.poison_level = GET_OBJ_VAL(poison, 1);
@@ -637,12 +732,17 @@ ACMD(do_applypoison) {
 
     if (GET_LEVEL(ch) < LVL_IMMORT)
       USE_FULL_ROUND_ACTION(ch);
-  } else {
+  }
+  else
+  {
     /* fail! suppose to be a chance to poison yourself, might change in the future */
-    if (is_trelux) {
+    if (is_trelux)
+    {
       act("$n fails to apply the \tGpoison\tn onto $s claws.", FALSE, ch, NULL, 0, TO_ROOM);
       act("You fail to \tGpoison\tn your claws.", FALSE, ch, NULL, 0, TO_CHAR);
-    } else {
+    }
+    else
+    {
       act("$n fails to apply the \tGpoison\tn onto $p.", FALSE, ch, weapon, 0, TO_ROOM);
       act("You fail to \tGpoison\tn your $p.", FALSE, ch, weapon, 0, TO_CHAR);
     }
@@ -651,68 +751,75 @@ ACMD(do_applypoison) {
   GET_OBJ_VAL(poison, 2) -= amount;
 }
 
-ACMD(do_sorcerer_arcane_apotheosis) {
+ACMD(do_sorcerer_arcane_apotheosis)
+{
   char arg[MAX_INPUT_LENGTH];
   int circle = -1, prep_time = 99;
-  
-  if (!HAS_FEAT(ch, FEAT_ARCANE_APOTHEOSIS)) {
+
+  if (!HAS_FEAT(ch, FEAT_ARCANE_APOTHEOSIS))
+  {
     send_to_char(ch, "You do not have access to this ability.\r\n");
     return;
   }
-  
+
   one_argument(argument, arg);
-  
-  if (!*arg) {
-      send_to_char(ch, "What circle?  Usage: apotheosis <spell circle>\r\n");
-      return;
-  } else {
-      circle = atoi(arg);
-      if (circle < 1 || circle > 9) {
-        send_to_char(ch, "That is an invalid spell circle!\r\n");
-        return;
-      }
+
+  if (!*arg)
+  {
+    send_to_char(ch, "What circle?  Usage: apotheosis <spell circle>\r\n");
+    return;
   }
-  
+  else
+  {
+    circle = atoi(arg);
+    if (circle < 1 || circle > 9)
+    {
+      send_to_char(ch, "That is an invalid spell circle!\r\n");
+      return;
+    }
+  }
+
   // Check if they have room - the cap is 9 charges = 3 uses, although they can always top up after using it.
   if (APOTHEOSIS_SLOTS(ch) + circle > 9)
   {
-      send_to_char(ch, "That would give you more arcane energy than you can hold!");
-      return;
+    send_to_char(ch, "That would give you more arcane energy than you can hold!");
+    return;
   }
-  
+
   // Check that they have that spell slot available in their sorcerer queue.
   if (compute_slots_by_circle(ch, CLASS_SORCERER, circle) - count_total_slots(ch, CLASS_SORCERER, circle) <= 0)
   {
-      send_to_char(ch, "You don't have any spell slots of that circle remaining!");
-      return;
+    send_to_char(ch, "You don't have any spell slots of that circle remaining!");
+    return;
   }
-  
-  
+
   /* If we got here, we know that everything is good: 
    * The circle is valid, the character has slots of that circle, and they can actually
    *   use the command.  Now, spend the spell and increase their pool. */
-  
+
   prep_time = compute_spells_prep_time(ch, CLASS_SORCERER, circle, false);
   innate_magic_add(ch, CLASS_SORCERER, circle, METAMAGIC_NONE, prep_time, false);
 
   APOTHEOSIS_SLOTS(ch) += circle;
-  
+
   act("You focus your arcane power.", FALSE, ch, 0, 0, TO_CHAR);
-  act("$n focuses $s arcane power.", FALSE, ch, 0, 0, TO_ROOM);  
+  act("$n focuses $s arcane power.", FALSE, ch, 0, 0, TO_ROOM);
 }
 
 /* bardic performance moved to: bardic_performance.c */
 
 /* this is still being used by NPCs */
-void perform_perform(struct char_data *ch) {
+void perform_perform(struct char_data *ch)
+{
   struct affected_type af[BARD_AFFECTS];
   int level = 0, i = 0, duration = 0;
   struct char_data *tch = NULL;
   long cooldown;
 
-  if (char_has_mud_event(ch, ePERFORM)) {
+  if (char_has_mud_event(ch, ePERFORM))
+  {
     send_to_char(ch, "You must wait longer before you can use this ability "
-            "again.\r\n");
+                     "again.\r\n");
     return;
   }
 
@@ -724,7 +831,8 @@ void perform_perform(struct char_data *ch) {
   duration = 14 + GET_CHA_BONUS(ch);
 
   // init affect array
-  for (i = 0; i < BARD_AFFECTS; i++) {
+  for (i = 0; i < BARD_AFFECTS; i++)
+  {
     new_affect(&(af[i]));
     af[i].spell = SKILL_PERFORM;
     af[i].duration = duration;
@@ -759,7 +867,8 @@ void perform_perform(struct char_data *ch) {
   cooldown = (2 * SECS_PER_MUD_DAY) - (level * 100);
   attach_mud_event(new_mud_event(ePERFORM, ch, NULL), cooldown);
 
-  if (!GROUP(ch)) {
+  if (!GROUP(ch))
+  {
     if (affected_by_spell(ch, SKILL_PERFORM))
       return;
     SONG_AFF_VAL(ch) = MAX(1, level / 5);
@@ -769,8 +878,9 @@ void perform_perform(struct char_data *ch) {
     return;
   }
 
-  while ((tch = (struct char_data *) simple_list(GROUP(ch)->members)) !=
-          NULL) {
+  while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) !=
+         NULL)
+  {
     if (IN_ROOM(tch) != IN_ROOM(ch))
       continue;
     if (affected_by_spell(tch, SKILL_PERFORM))
@@ -781,7 +891,6 @@ void perform_perform(struct char_data *ch) {
       affect_join(tch, af + i, FALSE, FALSE, FALSE, FALSE);
     act("A song from $n enhances you!", FALSE, ch, NULL, tch, TO_VICT);
   }
-
 }
 
 /* this has been replaced in bardic_performance.c */
@@ -798,7 +907,8 @@ ACMD(do_perform) {
 }
  */
 
-void perform_call(struct char_data *ch, int call_type, int level) {
+void perform_call(struct char_data *ch, int call_type, int level)
+{
   int i = 0;
   struct follow_type *k = NULL, *next = NULL;
   struct char_data *mob = NULL;
@@ -806,17 +916,23 @@ void perform_call(struct char_data *ch, int call_type, int level) {
   /* tests for whether you can actually call a companion */
 
   /* companion here already ? */
-  for (k = ch->followers; k; k = next) {
+  for (k = ch->followers; k; k = next)
+  {
     next = k->next;
     if (IS_NPC(k->follower) && AFF_FLAGGED(k->follower, AFF_CHARM) &&
-            MOB_FLAGGED(k->follower, call_type)) {
-      if (IN_ROOM(ch) == IN_ROOM(k->follower)) {
+        MOB_FLAGGED(k->follower, call_type))
+    {
+      if (IN_ROOM(ch) == IN_ROOM(k->follower))
+      {
         send_to_char(ch, "Your companion has already been summoned!\r\n");
         return;
-      } else {
+      }
+      else
+      {
         char_from_room(k->follower);
 
-        if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS)) {
+        if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
+        {
           X_LOC(k->follower) = world[IN_ROOM(ch)].coords[0];
           Y_LOC(k->follower) = world[IN_ROOM(ch)].coords[1];
         }
@@ -830,73 +946,83 @@ void perform_call(struct char_data *ch, int call_type, int level) {
   }
 
   /* doing two disqualifying tests in this switch block */
-  switch (call_type) {
-    case MOB_C_ANIMAL:
-      /* do they even have a valid selection yet? */
-      if (!IS_NPC(ch) && GET_ANIMAL_COMPANION(ch) <= 0) {
-        send_to_char(ch, "You have to select your companion via the 'study' "
-                "command.\r\n");
-        return;
-      }
+  switch (call_type)
+  {
+  case MOB_C_ANIMAL:
+    /* do they even have a valid selection yet? */
+    if (!IS_NPC(ch) && GET_ANIMAL_COMPANION(ch) <= 0)
+    {
+      send_to_char(ch, "You have to select your companion via the 'study' "
+                       "command.\r\n");
+      return;
+    }
 
-      /* is the ability on cooldown? */
-      if (char_has_mud_event(ch, eC_ANIMAL)) {
-        send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
-        return;
-      }
+    /* is the ability on cooldown? */
+    if (char_has_mud_event(ch, eC_ANIMAL))
+    {
+      send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
+      return;
+    }
 
-      /* todo:  seriously, fix this */
-      if (!(mob_num = GET_ANIMAL_COMPANION(ch)))
-        mob_num = 63; // meant for npc's
+    /* todo:  seriously, fix this */
+    if (!(mob_num = GET_ANIMAL_COMPANION(ch)))
+      mob_num = 63; // meant for npc's
 
-      break;
-    case MOB_C_FAMILIAR:
-      /* do they even have a valid selection yet? */
-      if (!IS_NPC(ch) && GET_FAMILIAR(ch) <= 0) {
-        send_to_char(ch, "You have to select your companion via the 'study' "
-                "command.\r\n");
-        return;
-      }
+    break;
+  case MOB_C_FAMILIAR:
+    /* do they even have a valid selection yet? */
+    if (!IS_NPC(ch) && GET_FAMILIAR(ch) <= 0)
+    {
+      send_to_char(ch, "You have to select your companion via the 'study' "
+                       "command.\r\n");
+      return;
+    }
 
-      /* is the ability on cooldown? */
-      if (char_has_mud_event(ch, eC_FAMILIAR)) {
-        send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
-        return;
-      }
+    /* is the ability on cooldown? */
+    if (char_has_mud_event(ch, eC_FAMILIAR))
+    {
+      send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
+      return;
+    }
 
-      mob_num = GET_FAMILIAR(ch);
+    mob_num = GET_FAMILIAR(ch);
 
-      break;
-    case MOB_C_MOUNT:
-      /* for now just one selection for paladins, soon to be changed */
-      if (HAS_FEAT(ch, FEAT_EPIC_MOUNT)) {
-        if (GET_SIZE(ch) < SIZE_MEDIUM)
-          GET_MOUNT(ch) = MOB_EPIC_PALADIN_MOUNT_SMALL;
-        else
-          GET_MOUNT(ch) = MOB_EPIC_PALADIN_MOUNT;
-      } else {
-        if (GET_SIZE(ch) < SIZE_MEDIUM)
-          GET_MOUNT(ch) = MOB_PALADIN_MOUNT_SMALL;
-        else
-          GET_MOUNT(ch) = MOB_PALADIN_MOUNT;
-      }
+    break;
+  case MOB_C_MOUNT:
+    /* for now just one selection for paladins, soon to be changed */
+    if (HAS_FEAT(ch, FEAT_EPIC_MOUNT))
+    {
+      if (GET_SIZE(ch) < SIZE_MEDIUM)
+        GET_MOUNT(ch) = MOB_EPIC_PALADIN_MOUNT_SMALL;
+      else
+        GET_MOUNT(ch) = MOB_EPIC_PALADIN_MOUNT;
+    }
+    else
+    {
+      if (GET_SIZE(ch) < SIZE_MEDIUM)
+        GET_MOUNT(ch) = MOB_PALADIN_MOUNT_SMALL;
+      else
+        GET_MOUNT(ch) = MOB_PALADIN_MOUNT;
+    }
 
-      /* do they even have a valid selection yet? */
-      if (GET_MOUNT(ch) <= 0) {
-        send_to_char(ch, "You have to select your companion via the 'study' "
-                "command.\r\n");
-        return;
-      }
+    /* do they even have a valid selection yet? */
+    if (GET_MOUNT(ch) <= 0)
+    {
+      send_to_char(ch, "You have to select your companion via the 'study' "
+                       "command.\r\n");
+      return;
+    }
 
-      /* is the ability on cooldown? */
-      if (char_has_mud_event(ch, eC_MOUNT)) {
-        send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
-        return;
-      }
+    /* is the ability on cooldown? */
+    if (char_has_mud_event(ch, eC_MOUNT))
+    {
+      send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
+      return;
+    }
 
-      mob_num = GET_MOUNT(ch);
+    mob_num = GET_MOUNT(ch);
 
-      break;
+    break;
   }
 
   /* couple of dummy checks */
@@ -909,12 +1035,14 @@ void perform_call(struct char_data *ch, int call_type, int level) {
   /* HAVE to make sure the mobiles for the lists of
      companions / familiars / etc have the proper
      MOB_C_x flag set via medit */
-  if (!(mob = read_mobile(mob_num, VIRTUAL))) {
+  if (!(mob = read_mobile(mob_num, VIRTUAL)))
+  {
     send_to_char(ch, "You don't quite remember how to call that creature.\r\n");
     return;
   }
 
-  if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS)) {
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
+  {
     X_LOC(mob) = world[IN_ROOM(ch)].coords[0];
     Y_LOC(mob) = world[IN_ROOM(ch)].coords[1];
   }
@@ -924,42 +1052,45 @@ void perform_call(struct char_data *ch, int call_type, int level) {
   IS_CARRYING_N(mob) = 0;
 
   /* setting mob strength according to 'level' */
-  switch (call_type) {
-    case MOB_C_ANIMAL:
-      GET_REAL_MAX_HIT(mob) += 20;
-      for (i = 0; i < level; i++)
-        GET_REAL_MAX_HIT(mob) += dice(1, 20) + 1;
-      GET_REAL_HITROLL(mob) += level / 3;
-      GET_REAL_DAMROLL(mob) += level / 3;
-      GET_REAL_AC(mob) += (level * 5); /* 15 ac at level 30 */
-      break;
-    case MOB_C_FAMILIAR:
-      GET_REAL_MAX_HIT(mob) += 10;
-      for (i = 0; i < level; i++)
-        GET_REAL_MAX_HIT(mob) += dice(2, 4) + 1;
-      if (HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR)) {
-        GET_REAL_MAX_HIT(mob) += HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR) * 10;
-        GET_REAL_AC(mob) += HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR) * 10;
-        GET_REAL_STR(mob) += HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR);
-        GET_REAL_DEX(mob) += HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR);
-        GET_REAL_CON(mob) += HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR);
-      }
-      break;
-    case MOB_C_MOUNT:
-      GET_REAL_MAX_HIT(mob) += 20;
-      GET_REAL_HITROLL(mob) += level / 3;
-      GET_REAL_DAMROLL(mob) += level / 4;
-      for (i = 0; i < level; i++) {
-        if (GET_MOUNT(ch) == MOB_EPIC_PALADIN_MOUNT)
-          GET_REAL_MAX_HIT(mob) += dice(2, 12) + 1;
-        else
-          GET_REAL_MAX_HIT(mob) += dice(1, 12) + 1;
-      }
-      GET_REAL_AC(mob) += (level * 4); /* 12 ac at level 30 */
-      /* make sure paladin mount is appropriate size to ride */
-      GET_REAL_SIZE(mob) = GET_SIZE(ch) + 1;
-      GET_MOVE(mob) = GET_REAL_MAX_MOVE(mob) = 500;
-      break;
+  switch (call_type)
+  {
+  case MOB_C_ANIMAL:
+    GET_REAL_MAX_HIT(mob) += 20;
+    for (i = 0; i < level; i++)
+      GET_REAL_MAX_HIT(mob) += dice(1, 20) + 1;
+    GET_REAL_HITROLL(mob) += level / 3;
+    GET_REAL_DAMROLL(mob) += level / 3;
+    GET_REAL_AC(mob) += (level * 5); /* 15 ac at level 30 */
+    break;
+  case MOB_C_FAMILIAR:
+    GET_REAL_MAX_HIT(mob) += 10;
+    for (i = 0; i < level; i++)
+      GET_REAL_MAX_HIT(mob) += dice(2, 4) + 1;
+    if (HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR))
+    {
+      GET_REAL_MAX_HIT(mob) += HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR) * 10;
+      GET_REAL_AC(mob) += HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR) * 10;
+      GET_REAL_STR(mob) += HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR);
+      GET_REAL_DEX(mob) += HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR);
+      GET_REAL_CON(mob) += HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR);
+    }
+    break;
+  case MOB_C_MOUNT:
+    GET_REAL_MAX_HIT(mob) += 20;
+    GET_REAL_HITROLL(mob) += level / 3;
+    GET_REAL_DAMROLL(mob) += level / 4;
+    for (i = 0; i < level; i++)
+    {
+      if (GET_MOUNT(ch) == MOB_EPIC_PALADIN_MOUNT)
+        GET_REAL_MAX_HIT(mob) += dice(2, 12) + 1;
+      else
+        GET_REAL_MAX_HIT(mob) += dice(1, 12) + 1;
+    }
+    GET_REAL_AC(mob) += (level * 4); /* 12 ac at level 30 */
+    /* make sure paladin mount is appropriate size to ride */
+    GET_REAL_SIZE(mob) = GET_SIZE(ch) + 1;
+    GET_MOVE(mob) = GET_REAL_MAX_MOVE(mob) = 500;
+    break;
   }
   GET_LEVEL(mob) = level;
   GET_HIT(mob) = GET_REAL_MAX_HIT(mob);
@@ -975,21 +1106,25 @@ void perform_call(struct char_data *ch, int call_type, int level) {
     join_group(mob, GROUP(ch));
 
   /* finally attach cooldown, approximately 14 minutes right now */
-  if (call_type == MOB_C_ANIMAL) {
+  if (call_type == MOB_C_ANIMAL)
+  {
     attach_mud_event(new_mud_event(eC_ANIMAL, ch, NULL), 4 * SECS_PER_MUD_DAY);
   }
-  if (call_type == MOB_C_FAMILIAR) {
+  if (call_type == MOB_C_FAMILIAR)
+  {
     attach_mud_event(new_mud_event(eC_FAMILIAR, ch, NULL), 4 * SECS_PER_MUD_DAY);
   }
-  if (call_type == MOB_C_MOUNT) {
+  if (call_type == MOB_C_MOUNT)
+  {
     attach_mud_event(new_mud_event(eC_MOUNT, ch, NULL), 4 * SECS_PER_MUD_DAY);
   }
 
   send_to_char(ch, "You can 'call' your companion even if you get separated.  "
-          "You can also 'dismiss' your companion to reduce your cooldown drastically.\r\n");
+                   "You can also 'dismiss' your companion to reduce your cooldown drastically.\r\n");
 }
 
-ACMD(do_call) {
+ACMD(do_call)
+{
   int call_type = -1, level = 0;
 
   skip_spaces(&argument);
@@ -999,53 +1134,68 @@ ACMD(do_call) {
      MOB_C_FAMILIAR -> familiar
      MOB_C_MOUNT -> paladin mount
    */
-  if (!argument) {
+  if (!argument)
+  {
     send_to_char(ch, "Usage:  call <companion/familiar/mount>\r\n");
     return;
-  } else if (is_abbrev(argument, "companion")) {
+  }
+  else if (is_abbrev(argument, "companion"))
+  {
     level = CLASS_LEVEL(ch, CLASS_DRUID);
     if (CLASS_LEVEL(ch, CLASS_RANGER) >= 4)
       level += CLASS_LEVEL(ch, CLASS_RANGER) - 3;
 
-    if (!HAS_FEAT(ch, FEAT_ANIMAL_COMPANION)) {
+    if (!HAS_FEAT(ch, FEAT_ANIMAL_COMPANION))
+    {
       send_to_char(ch, "You do not have an animal companion.\r\n");
       return;
     }
 
-    if (level <= 0) {
+    if (level <= 0)
+    {
       send_to_char(ch, "You are too inexperienced to use this ability!\r\n");
       return;
     }
     call_type = MOB_C_ANIMAL;
-  } else if (is_abbrev(argument, "familiar")) {
+  }
+  else if (is_abbrev(argument, "familiar"))
+  {
     level = CLASS_LEVEL(ch, CLASS_SORCERER) + CLASS_LEVEL(ch, CLASS_WIZARD);
 
-    if (!HAS_FEAT(ch, FEAT_SUMMON_FAMILIAR)) {
+    if (!HAS_FEAT(ch, FEAT_SUMMON_FAMILIAR))
+    {
       send_to_char(ch, "You do not have a familiar.\r\n");
       return;
     }
 
-    if (level <= 0) {
+    if (level <= 0)
+    {
       send_to_char(ch, "You are too inexperienced to use this ability!\r\n");
       return;
     }
 
     call_type = MOB_C_FAMILIAR;
-  } else if (is_abbrev(argument, "mount")) {
+  }
+  else if (is_abbrev(argument, "mount"))
+  {
     level = CLASS_LEVEL(ch, CLASS_PALADIN);
 
-    if (!HAS_FEAT(ch, FEAT_CALL_MOUNT)) {
+    if (!HAS_FEAT(ch, FEAT_CALL_MOUNT))
+    {
       send_to_char(ch, "You do not have a mount that you can call.\r\n");
       return;
     }
 
-    if (level <= 0) {
+    if (level <= 0)
+    {
       send_to_char(ch, "You are too inexperienced to use this ability!\r\n");
       return;
     }
 
     call_type = MOB_C_MOUNT;
-  } else {
+  }
+  else
+  {
     send_to_char(ch, "Usage:  call <companion/familiar/mount>\r\n");
     return;
   }
@@ -1053,30 +1203,35 @@ ACMD(do_call) {
   perform_call(ch, call_type, level);
 }
 
-ACMD(do_purify) {
+ACMD(do_purify)
+{
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
   int uses_remaining = 0;
 
-  if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_REMOVE_DISEASE)) {
+  if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_REMOVE_DISEASE))
+  {
     send_to_char(ch, "You have no idea how.\r\n");
     return;
   }
 
   one_argument(argument, arg);
 
-  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
+  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
+  {
     send_to_char(ch, "Whom do you want to purify?\r\n");
     return;
   }
 
-  if ((uses_remaining = daily_uses_remaining(ch, FEAT_REMOVE_DISEASE)) == 0) {
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_REMOVE_DISEASE)) == 0)
+  {
     send_to_char(ch, "You must recover the divine energy required to remove disease.\r\n");
     return;
   }
 
   if (!IS_AFFECTED(vict, AFF_DISEASE) &&
-          !affected_by_spell(vict, SPELL_EYEBITE)) {
+      !affected_by_spell(vict, SPELL_EYEBITE))
+  {
     send_to_char(ch, "Your target isn't diseased!\r\n");
     return;
   }
@@ -1089,17 +1244,16 @@ ACMD(do_purify) {
   if (IS_AFFECTED(vict, AFF_DISEASE))
     REMOVE_BIT_AR(AFF_FLAGS(vict), AFF_DISEASE);
 
-
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_REMOVE_DISEASE);
 
   update_pos(vict);
-
 }
 
 /* this is a temporary command, a simple cheesy way
    to get rid of your followers in a bind */
-ACMD(do_dismiss) {
+ACMD(do_dismiss)
+{
   struct follow_type *k = NULL;
   char buf[MAX_STRING_LENGTH] = {'\0'};
   char arg[MAX_INPUT_LENGTH] = {'\0'};
@@ -1109,9 +1263,10 @@ ACMD(do_dismiss) {
 
   one_argument(argument, arg);
 
-  if (!*arg) {
+  if (!*arg)
+  {
     send_to_char(ch, "You dismiss your non-present followers.\r\n");
-    snprintf(buf, sizeof (buf), "$n dismisses $s non present followers.");
+    snprintf(buf, sizeof(buf), "$n dismisses $s non present followers.");
     act(buf, FALSE, ch, 0, 0, TO_ROOM);
 
     for (k = ch->followers; k; k = k->next)
@@ -1122,32 +1277,41 @@ ACMD(do_dismiss) {
     return;
   }
 
-  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
+  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
+  {
     send_to_char(ch, "Whom do you want to dismiss?\r\n");
     return;
   }
 
   /* is this follower the target? */
-  if ((vict->master == ch)) {
+  if ((vict->master == ch))
+  {
     /* is this follower charmed? */
-    if (AFF_FLAGGED(vict, AFF_CHARM)) {
+    if (AFF_FLAGGED(vict, AFF_CHARM))
+    {
       /* is this a special companion?
        * if so, modify event cooldown (if it exits) */
-      if (MOB_FLAGGED(vict, MOB_C_ANIMAL)) {
+      if (MOB_FLAGGED(vict, MOB_C_ANIMAL))
+      {
         if ((pMudEvent = char_has_mud_event(ch, eC_ANIMAL)) &&
-                event_time(pMudEvent->pEvent) > (59 * PASSES_PER_SEC)) {
+            event_time(pMudEvent->pEvent) > (59 * PASSES_PER_SEC))
+        {
           change_event_duration(ch, eC_ANIMAL, (59 * PASSES_PER_SEC));
         }
       }
-      if (MOB_FLAGGED(vict, MOB_C_FAMILIAR)) {
+      if (MOB_FLAGGED(vict, MOB_C_FAMILIAR))
+      {
         if ((pMudEvent = char_has_mud_event(ch, eC_FAMILIAR)) &&
-                event_time(pMudEvent->pEvent) > (59 * PASSES_PER_SEC)) {
+            event_time(pMudEvent->pEvent) > (59 * PASSES_PER_SEC))
+        {
           change_event_duration(ch, eC_FAMILIAR, (59 * PASSES_PER_SEC));
         }
       }
-      if (MOB_FLAGGED(vict, MOB_C_MOUNT)) {
+      if (MOB_FLAGGED(vict, MOB_C_MOUNT))
+      {
         if ((pMudEvent = char_has_mud_event(ch, eC_MOUNT)) &&
-                event_time(pMudEvent->pEvent) > (59 * PASSES_PER_SEC)) {
+            event_time(pMudEvent->pEvent) > (59 * PASSES_PER_SEC))
+        {
           change_event_duration(ch, eC_MOUNT, (59 * PASSES_PER_SEC));
         }
       }
@@ -1157,56 +1321,62 @@ ACMD(do_dismiss) {
     }
   }
 
-  if (!found) {
+  if (!found)
+  {
     send_to_char(ch, "Your target is not valid!\r\n");
     return;
-  } else {
-    act("With a wave of your hand, you dismiss $N.",
-            FALSE, ch, 0, vict, TO_CHAR);
-    act("$n waves at you, indicating your dismissal.",
-            FALSE, ch, 0, vict, TO_VICT);
-    act("With a wave, $n dismisses $N.",
-            TRUE, ch, 0, vict, TO_NOTVICT);
   }
-
+  else
+  {
+    act("With a wave of your hand, you dismiss $N.",
+        FALSE, ch, 0, vict, TO_CHAR);
+    act("$n waves at you, indicating your dismissal.",
+        FALSE, ch, 0, vict, TO_VICT);
+    act("With a wave, $n dismisses $N.",
+        TRUE, ch, 0, vict, TO_NOTVICT);
+  }
 }
 
 /* recharge allows the refilling of charges for wands and staves
    for a price */
-ACMD(do_recharge) {
+ACMD(do_recharge)
+{
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   struct obj_data *obj = NULL;
   int maxcharge = 0, mincharge = 0, chargeval = 0;
 
   if (!IS_NPC(ch))
     ;
-  else {
+  else
+  {
     send_to_char(ch, "You don't know how to do that!\r\n");
     return;
   }
 
   argument = one_argument(argument, buf);
 
-  if (!(obj = get_obj_in_list_vis(ch, buf, NULL, ch->carrying))) {
+  if (!(obj = get_obj_in_list_vis(ch, buf, NULL, ch->carrying)))
+  {
     send_to_char(ch, "You don't have that!\r\n");
     return;
   }
 
   if (GET_OBJ_TYPE(obj) != ITEM_STAFF &&
-          GET_OBJ_TYPE(obj) != ITEM_WAND) {
+      GET_OBJ_TYPE(obj) != ITEM_WAND)
+  {
     send_to_char(ch, "Are you daft!  You can't recharge that!\r\n");
     return;
   }
 
   if (((GET_OBJ_TYPE(obj) == ITEM_STAFF) && !HAS_FEAT(ch, FEAT_CRAFT_STAFF)) ||
-          ((GET_OBJ_TYPE(obj) == ITEM_WAND) && !HAS_FEAT(ch, FEAT_CRAFT_WAND))) {
+      ((GET_OBJ_TYPE(obj) == ITEM_WAND) && !HAS_FEAT(ch, FEAT_CRAFT_WAND)))
+  {
     send_to_char(ch, "You don't know how to recharge that.\r\n");
     return;
   }
 
-
-
-  if (GET_GOLD(ch) < 5000) {
+  if (GET_GOLD(ch) < 5000)
+  {
     send_to_char(ch, "You don't have enough gold on hand!\r\n");
     return;
   }
@@ -1214,7 +1384,8 @@ ACMD(do_recharge) {
   maxcharge = GET_OBJ_VAL(obj, 1);
   mincharge = GET_OBJ_VAL(obj, 2);
 
-  if (mincharge < maxcharge) {
+  if (mincharge < maxcharge)
+  {
     chargeval = maxcharge - mincharge;
     GET_OBJ_VAL(obj, 2) += chargeval;
     GET_GOLD(ch) -= 5000;
@@ -1222,47 +1393,69 @@ ACMD(do_recharge) {
     sprintf(buf, "The item now has %d charges remaining.\r\n", maxcharge);
     send_to_char(ch, buf);
     act("$p glows with a subtle blue light as $n recharges it.",
-            FALSE, ch, obj, 0, TO_ROOM);
-  } else {
+        FALSE, ch, obj, 0, TO_ROOM);
+  }
+  else
+  {
     send_to_char(ch, "The item does not need recharging.\r\n");
   }
   return;
 }
 
-ACMD(do_mount) {
+ACMD(do_mount)
+{
   char arg[MAX_INPUT_LENGTH];
   struct char_data *vict;
 
   one_argument(argument, arg);
 
-  if (!*arg) {
+  if (!*arg)
+  {
     send_to_char(ch, "Mount who?\r\n");
     return;
-  } else if (!(vict = get_char_room_vis(ch, arg, NULL))) {
+  }
+  else if (!(vict = get_char_room_vis(ch, arg, NULL)))
+  {
     send_to_char(ch, "There is no-one by that name here.\r\n");
     return;
-  } else if (!IS_NPC(vict) && GET_LEVEL(ch) < LVL_IMMORT) {
+  }
+  else if (!IS_NPC(vict) && GET_LEVEL(ch) < LVL_IMMORT)
+  {
     send_to_char(ch, "Ehh... no.\r\n");
     return;
-  } else if (RIDING(ch) || RIDDEN_BY(ch)) {
+  }
+  else if (RIDING(ch) || RIDDEN_BY(ch))
+  {
     send_to_char(ch, "You are already mounted.\r\n");
     return;
-  } else if (RIDING(vict) || RIDDEN_BY(vict)) {
+  }
+  else if (RIDING(vict) || RIDDEN_BY(vict))
+  {
     send_to_char(ch, "It is already mounted.\r\n");
     return;
-  } else if (GET_LEVEL(ch) < LVL_IMMORT && IS_NPC(vict) && !MOB_FLAGGED(vict, MOB_MOUNTABLE)) {
+  }
+  else if (GET_LEVEL(ch) < LVL_IMMORT && IS_NPC(vict) && !MOB_FLAGGED(vict, MOB_MOUNTABLE))
+  {
     send_to_char(ch, "You can't mount that!\r\n");
     return;
-  } else if (!GET_ABILITY(ch, ABILITY_RIDE)) {
+  }
+  else if (!GET_ABILITY(ch, ABILITY_RIDE))
+  {
     send_to_char(ch, "First you need to learn *how* to mount.\r\n");
     return;
-  } else if (GET_SIZE(vict) < (GET_SIZE(ch) + 1)) {
+  }
+  else if (GET_SIZE(vict) < (GET_SIZE(ch) + 1))
+  {
     send_to_char(ch, "The mount is too small for you!\r\n");
     return;
-  } else if (GET_SIZE(vict) > (GET_SIZE(ch) + 2)) {
+  }
+  else if (GET_SIZE(vict) > (GET_SIZE(ch) + 2))
+  {
     send_to_char(ch, "The mount is too large for you!\r\n");
     return;
-  } else if ((compute_ability(ch, ABILITY_RIDE) + 1) <= rand_number(1, GET_LEVEL(vict))) {
+  }
+  else if ((compute_ability(ch, ABILITY_RIDE) + 1) <= rand_number(1, GET_LEVEL(vict)))
+  {
     act("You try to mount $N, but slip and fall off.", FALSE, ch, 0, vict, TO_CHAR);
     act("$n tries to mount you, but slips and falls off.", FALSE, ch, 0, vict, TO_VICT);
     act("$n tries to mount $N, but slips and falls off.", TRUE, ch, 0, vict, TO_NOTVICT);
@@ -1278,7 +1471,8 @@ ACMD(do_mount) {
   USE_MOVE_ACTION(ch);
 
   if (IS_NPC(vict) && !AFF_FLAGGED(vict, AFF_TAMED) &&
-          (compute_ability(ch, ABILITY_RIDE) + dice(1, 20)) <= rand_number(1, GET_LEVEL(vict))) {
+      (compute_ability(ch, ABILITY_RIDE) + dice(1, 20)) <= rand_number(1, GET_LEVEL(vict)))
+  {
     act("$N suddenly bucks upwards, throwing you violently to the ground!", FALSE, ch, 0, vict, TO_CHAR);
     act("$n is thrown to the ground as $N violently bucks!", TRUE, ch, 0, vict, TO_NOTVICT);
     act("You buck violently and throw $n to the ground.", FALSE, ch, 0, vict, TO_VICT);
@@ -1287,11 +1481,15 @@ ACMD(do_mount) {
   }
 }
 
-ACMD(do_dismount) {
-  if (!RIDING(ch)) {
+ACMD(do_dismount)
+{
+  if (!RIDING(ch))
+  {
     send_to_char(ch, "You aren't even riding anything.\r\n");
     return;
-  } else if (SECT(ch->in_room) == SECT_WATER_NOSWIM && !has_boat(ch, IN_ROOM(ch))) {
+  }
+  else if (SECT(ch->in_room) == SECT_WATER_NOSWIM && !has_boat(ch, IN_ROOM(ch)))
+  {
     send_to_char(ch, "Yah, right, and then drown...\r\n");
     return;
   }
@@ -1302,11 +1500,15 @@ ACMD(do_dismount) {
   dismount_char(ch);
 }
 
-ACMD(do_buck) {
-  if (!RIDDEN_BY(ch)) {
+ACMD(do_buck)
+{
+  if (!RIDDEN_BY(ch))
+  {
     send_to_char(ch, "You're not even being ridden!\r\n");
     return;
-  } else if (AFF_FLAGGED(ch, AFF_TAMED)) {
+  }
+  else if (AFF_FLAGGED(ch, AFF_TAMED))
+  {
     send_to_char(ch, "But you're tamed!\r\n");
     return;
   }
@@ -1314,7 +1516,8 @@ ACMD(do_buck) {
   act("You quickly buck, throwing $N to the ground.", FALSE, ch, 0, RIDDEN_BY(ch), TO_CHAR);
   act("$n quickly bucks, throwing you to the ground.", FALSE, ch, 0, RIDDEN_BY(ch), TO_VICT);
   act("$n quickly bucks, throwing $N to the ground.", FALSE, ch, 0, RIDDEN_BY(ch), TO_NOTVICT);
-  if (rand_number(0, 4)) {
+  if (rand_number(0, 4))
+  {
     send_to_char(RIDDEN_BY(ch), "You hit the ground hard!\r\n");
     damage(RIDDEN_BY(ch), RIDDEN_BY(ch), dice(2, 4), -1, -1, -1);
   }
@@ -1327,29 +1530,41 @@ ACMD(do_buck) {
    */
 }
 
-ACMD(do_tame) {
+ACMD(do_tame)
+{
   char arg[MAX_INPUT_LENGTH];
   struct affected_type af;
   struct char_data *vict;
 
   one_argument(argument, arg);
 
-  if (!*arg) {
+  if (!*arg)
+  {
     send_to_char(ch, "Tame who?\r\n");
     return;
-  } else if (!(vict = get_char_room_vis(ch, arg, NULL))) {
+  }
+  else if (!(vict = get_char_room_vis(ch, arg, NULL)))
+  {
     send_to_char(ch, "They're not here.\r\n");
     return;
-  } else if (GET_LEVEL(ch) < LVL_IMMORT && IS_NPC(vict) && !MOB_FLAGGED(vict, MOB_MOUNTABLE)) {
+  }
+  else if (GET_LEVEL(ch) < LVL_IMMORT && IS_NPC(vict) && !MOB_FLAGGED(vict, MOB_MOUNTABLE))
+  {
     send_to_char(ch, "You can't do that to them.\r\n");
     return;
-  } else if (!GET_ABILITY(ch, ABILITY_RIDE)) {
+  }
+  else if (!GET_ABILITY(ch, ABILITY_RIDE))
+  {
     send_to_char(ch, "You don't even know how to tame something.\r\n");
     return;
-  } else if (!IS_NPC(vict) && GET_LEVEL(ch) < LVL_IMMORT) {
+  }
+  else if (!IS_NPC(vict) && GET_LEVEL(ch) < LVL_IMMORT)
+  {
     send_to_char(ch, "You can't do that.\r\n");
     return;
-  } else if (GET_SKILL(ch, ABILITY_RIDE) <= rand_number(1, GET_LEVEL(vict))) {
+  }
+  else if (GET_SKILL(ch, ABILITY_RIDE) <= rand_number(1, GET_LEVEL(vict)))
+  {
     send_to_char(ch, "You fail to tame it.\r\n");
     return;
   }
@@ -1365,7 +1580,8 @@ ACMD(do_tame) {
 }
 
 /* reset character to level 1, but preserve xp */
-ACMD(do_respec) {
+ACMD(do_respec)
+{
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   int class = -1;
 
@@ -1374,36 +1590,44 @@ ACMD(do_respec) {
 
   one_argument(argument, arg);
 
-  if (!*arg) {
+  if (!*arg)
+  {
     send_to_char(ch, "You need to select a starting class to respec to,"
-            " here are your options:\r\n");
+                     " here are your options:\r\n");
     display_all_classes(ch);
     return;
-  } else {
+  }
+  else
+  {
     class = get_class_by_name(arg);
-    if (class == -1) {
+    if (class == -1)
+    {
       send_to_char(ch, "Invalid class.\r\n");
       display_all_classes(ch);
       return;
     }
     if (class >= NUM_CLASSES ||
-            !class_is_available(ch, class, MODE_CLASSLIST_RESPEC, NULL)) {
+        !class_is_available(ch, class, MODE_CLASSLIST_RESPEC, NULL))
+    {
       send_to_char(ch, "That is not a valid class!\r\n");
       display_all_classes(ch);
       return;
     }
-    if (GET_LEVEL(ch) < 2) {
+    if (GET_LEVEL(ch) < 2)
+    {
       send_to_char(ch, "You need to be at least 2nd level to respec...\r\n");
       return;
     }
-    if (GET_LEVEL(ch) >= LVL_IMMORT) {
+    if (GET_LEVEL(ch) >= LVL_IMMORT)
+    {
       send_to_char(ch, "Sorry staff can't respec...\r\n");
       return;
     }
-    if (CLSLIST_LOCK(class)) {
+    if (CLSLIST_LOCK(class))
+    {
       send_to_char(ch, "You cannot respec into a prestige class, you must respec "
-              "to a base class and meet all the prestige-class requirements to "
-              "advance in it.\r\n");
+                       "to a base class and meet all the prestige-class requirements to "
+                       "advance in it.\r\n");
       return;
     }
 
@@ -1413,7 +1637,8 @@ ACMD(do_respec) {
     /* Make sure that players can't make wildshaped forms permanent.*/
     SUBRACE(ch) = 0;
     IS_MORPHED(ch) = 0;
-    if (affected_by_spell(ch, SKILL_WILDSHAPE)) {
+    if (affected_by_spell(ch, SKILL_WILDSHAPE))
+    {
       affect_from_char(ch, SKILL_WILDSHAPE);
       send_to_char(ch, "You return to your normal form..\r\n");
     }
@@ -1426,7 +1651,8 @@ ACMD(do_respec) {
 }
 
 /* level advancement, with multi-class support */
-ACMD(do_gain) {
+ACMD(do_gain)
+{
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   int is_altered = FALSE, num_levels = 0;
   int class = -1, i = 0, classCount = 0;
@@ -1434,51 +1660,61 @@ ACMD(do_gain) {
   if (IS_NPC(ch) || !ch->desc)
     return;
 
-  if (GET_DISGUISE_RACE(ch) || IS_MORPHED(ch)) {
+  if (GET_DISGUISE_RACE(ch) || IS_MORPHED(ch))
+  {
     send_to_char(ch, "You have to remove disguises, wildshape and/or polymorph "
-            "before advancing.\r\n");
+                     "before advancing.\r\n");
     return;
   }
 
-  if (GET_LEVEL(ch) >= LVL_IMMORT - 1) {
+  if (GET_LEVEL(ch) >= LVL_IMMORT - 1)
+  {
     send_to_char(ch, "You have reached the level limit! You can not go above level %d!\r\n", LVL_IMMORT - 1);
     return;
   }
 
   if (!(GET_LEVEL(ch) < LVL_IMMORT - CONFIG_NO_MORT_TO_IMMORT &&
-          GET_EXP(ch) >= level_exp(ch, GET_LEVEL(ch) + 1))) {
+        GET_EXP(ch) >= level_exp(ch, GET_LEVEL(ch) + 1)))
+  {
     send_to_char(ch, "You are not experienced enough to gain a level.\r\n");
     return;
   }
 
   one_argument(argument, arg);
 
-  if (!*arg) {
+  if (!*arg)
+  {
     send_to_char(ch, "You may gain a level in one of the following classes:\r\n\r\n");
     display_all_classes(ch);
     send_to_char(ch, "Type 'gain <classname>' to gain a level in the chosen class.\r\n");
     return;
-  } else {
+  }
+  else
+  {
     class = get_class_by_name(arg);
-    if (class == -1) {
+    if (class == -1)
+    {
       send_to_char(ch, "Invalid class.\r\n");
       display_all_classes(ch);
       return;
     }
 
     if (class < 0 || class >= NUM_CLASSES ||
-            !class_is_available(ch, class, MODE_CLASSLIST_NORMAL, NULL)) {
+        !class_is_available(ch, class, MODE_CLASSLIST_NORMAL, NULL))
+    {
       send_to_char(ch, "That is not a valid class!\r\n");
       display_all_classes(ch);
       return;
     }
 
     //multi class cap
-    for (i = 0; i < MAX_CLASSES; i++) {
+    for (i = 0; i < MAX_CLASSES; i++)
+    {
       if (CLASS_LEVEL(ch, i) && i != class)
         classCount++;
     }
-    if (classCount >= MULTICAP) {
+    if (classCount >= MULTICAP)
+    {
       send_to_char(ch, "Current cap on multi-classing is %d.\r\n", MULTICAP);
       send_to_char(ch, "Please select one of the classes you already have!\r\n");
       return;
@@ -1487,14 +1723,16 @@ ACMD(do_gain) {
     int max_class_level = CLSLIST_MAXLVL(class);
     if (max_class_level == -1)
       max_class_level = LVL_IMMORT - 1;
-    if (CLASS_LEVEL(ch, class) >= max_class_level) {
+    if (CLASS_LEVEL(ch, class) >= max_class_level)
+    {
       send_to_char(ch, "You have reached the maximum amount of levels for that class.\r\n");
       return;
     }
     if ((GET_PRACTICES(ch) != 0) ||
-            (GET_TRAINS(ch) > 1) ||
-            (GET_BOOSTS(ch) != 0) ||
-            (stats_point_left(ch) > 0 && GET_LEVEL(ch) == 1)) {//    ||
+        (GET_TRAINS(ch) > 1) ||
+        (GET_BOOSTS(ch) != 0) ||
+        (stats_point_left(ch) > 0 && GET_LEVEL(ch) == 1))
+    { //    ||
       /*         ((CLASS_LEVEL(ch, CLASS_SORCERER) && !IS_SORC_LEARNED(ch)) ||
                (CLASS_LEVEL(ch, CLASS_WIZARD)   && !IS_WIZ_LEARNED(ch))  ||
                (CLASS_LEVEL(ch, CLASS_BARD)     && !IS_BARD_LEARNED(ch)) ||
@@ -1508,12 +1746,12 @@ ACMD(do_gain) {
       //        send_to_char(ch, "You must use all practices before gaining another level.  You have %d practice%s remaining.\r\n", GET_PRACTICES(ch), (GET_PRACTICES(ch) > 1 ? "s" : ""));
       if (GET_TRAINS(ch) > 1)
         send_to_char(ch, "You must use all but one of your trains before gaining "
-              "another level.  You have %d train%s remaining.\r\n",
-              GET_TRAINS(ch), (GET_TRAINS(ch) > 1 ? "s" : ""));
+                         "another level.  You have %d train%s remaining.\r\n",
+                     GET_TRAINS(ch), (GET_TRAINS(ch) > 1 ? "s" : ""));
       if (GET_BOOSTS(ch) != 0)
         send_to_char(ch, "You must use all boosts before gaining another level.  "
-              "You have %d boost%s remaining.\r\n",
-              GET_BOOSTS(ch), (GET_BOOSTS(ch) > 1 ? "s" : ""));
+                         "You have %d boost%s remaining.\r\n",
+                     GET_BOOSTS(ch), (GET_BOOSTS(ch) > 1 ? "s" : ""));
       if (stats_point_left(ch) > 0 && GET_LEVEL(ch) == 1)
         send_to_char(ch, "You must spend all your stat points before gaining a level.\r\n");
       /*       if(CLASS_LEVEL(ch, CLASS_SORCERER) && !IS_SORC_LEARNED(ch))
@@ -1528,24 +1766,29 @@ ACMD(do_gain) {
               send_to_char(ch, "You must 'study ranger' before gaining another level.\r\n");
        */
       return;
-
-    } else if (GET_LEVEL(ch) < LVL_IMMORT - CONFIG_NO_MORT_TO_IMMORT &&
-            GET_EXP(ch) >= level_exp(ch, GET_LEVEL(ch) + 1)) {
+    }
+    else if (GET_LEVEL(ch) < LVL_IMMORT - CONFIG_NO_MORT_TO_IMMORT &&
+             GET_EXP(ch) >= level_exp(ch, GET_LEVEL(ch) + 1))
+    {
       GET_LEVEL(ch) += 1;
-      CLASS_LEVEL(ch, class)++;
+      CLASS_LEVEL(ch, class)
+      ++;
       GET_CLASS(ch) = class;
       num_levels++;
       advance_level(ch, class);
       is_altered = TRUE;
-    } else {
+    }
+    else
+    {
       send_to_char(ch, "You are unable to gain a level.\r\n");
       return;
     }
 
-    if (is_altered) {
+    if (is_altered)
+    {
       mudlog(BRF, MAX(LVL_IMMORT, GET_INVIS_LEV(ch)), TRUE,
-              "%s advanced %d level%s to level %d.", GET_NAME(ch),
-              num_levels, num_levels == 1 ? "" : "s", GET_LEVEL(ch));
+             "%s advanced %d level%s to level %d.", GET_NAME(ch),
+             num_levels, num_levels == 1 ? "" : "s", GET_LEVEL(ch));
       if (num_levels == 1)
         send_to_char(ch, "You rise a level!\r\n");
       else
@@ -1555,7 +1798,7 @@ ACMD(do_gain) {
         run_autowiz();
 
       send_to_char(ch, "\tMDon't forget to \tmTRAIN\tM, \tmSTUDY\tM and "
-              "\tmBOOST\tM your abilities, feats and stats!\tn\r\n");
+                       "\tmBOOST\tM your abilities, feats and stats!\tn\r\n");
     }
   }
 }
@@ -1564,21 +1807,24 @@ ACMD(do_gain) {
 /* shapechange functions */
 
 /*************************/
-struct wild_shape_mods {
+struct wild_shape_mods
+{
   byte strength;
   byte constitution;
   byte dexterity;
   byte natural_armor;
 };
 
-void set_bonus_attributes(struct char_data *ch, int str, int con, int dex, int ac) {
+void set_bonus_attributes(struct char_data *ch, int str, int con, int dex, int ac)
+{
   GET_DISGUISE_STR(ch) = str;
   GET_DISGUISE_CON(ch) = con;
   GET_DISGUISE_DEX(ch) = dex;
   GET_DISGUISE_AC(ch) = ac;
 }
 
-void init_wild_shape_mods(struct wild_shape_mods *abil_mods) {
+void init_wild_shape_mods(struct wild_shape_mods *abil_mods)
+{
   abil_mods->strength = 0;
   abil_mods->constitution = 0;
   abil_mods->dexterity = 0;
@@ -1586,316 +1832,328 @@ void init_wild_shape_mods(struct wild_shape_mods *abil_mods) {
 }
 
 /* stat modifications for wildshape! */
-struct wild_shape_mods *set_wild_shape_mods(int race) {
+struct wild_shape_mods *set_wild_shape_mods(int race)
+{
   struct wild_shape_mods *abil_mods;
 
   CREATE(abil_mods, struct wild_shape_mods, 1);
   init_wild_shape_mods(abil_mods);
 
   /* racial-SIZE and default */
-  switch (race_list[race].family) {
-    case RACE_TYPE_ANIMAL:
-      switch (race_list[race].size) {
-        case SIZE_DIMINUTIVE:
-          abil_mods->dexterity = 6;
-          abil_mods->strength = -4;
-          abil_mods->natural_armor = 1;
-          break;
-        case SIZE_TINY:
-          abil_mods->dexterity = 4;
-          abil_mods->strength = -2;
-          abil_mods->natural_armor = 1;
-          break;
-        case SIZE_SMALL:
-          abil_mods->dexterity = 2;
-          abil_mods->natural_armor = 1;
-          break;
-        case SIZE_MEDIUM:
-          abil_mods->strength = 2;
-          abil_mods->natural_armor = 2;
-          break;
-        case SIZE_LARGE:
-          abil_mods->dexterity = -2;
-          abil_mods->strength = 4;
-          abil_mods->natural_armor = 4;
-          break;
-        case SIZE_HUGE:
-          abil_mods->dexterity = -4;
-          abil_mods->strength = 6;
-          abil_mods->natural_armor = 6;
-          break;
-      }
+  switch (race_list[race].family)
+  {
+  case RACE_TYPE_ANIMAL:
+    switch (race_list[race].size)
+    {
+    case SIZE_DIMINUTIVE:
+      abil_mods->dexterity = 6;
+      abil_mods->strength = -4;
+      abil_mods->natural_armor = 1;
       break;
-    case RACE_TYPE_MAGICAL_BEAST:
-      switch (race_list[race].size) {
-        case SIZE_TINY:
-          abil_mods->dexterity = 8;
-          abil_mods->strength = -2;
-          abil_mods->natural_armor = 3;
-          break;
-        case SIZE_SMALL:
-          abil_mods->dexterity = 4;
-          abil_mods->natural_armor = 2;
-          break;
-        case SIZE_MEDIUM:
-          abil_mods->strength = 4;
-          abil_mods->natural_armor = 4;
-          break;
-        case SIZE_LARGE:
-          abil_mods->dexterity = -2;
-          abil_mods->strength = 6;
-          abil_mods->constitution = 2;
-          abil_mods->natural_armor = 6;
-          break;
-      }
+    case SIZE_TINY:
+      abil_mods->dexterity = 4;
+      abil_mods->strength = -2;
+      abil_mods->natural_armor = 1;
       break;
-    case RACE_TYPE_FEY:
-      switch (race_list[race].size) {
-        case SIZE_DIMINUTIVE:
-          abil_mods->dexterity = 12;
-          abil_mods->strength = -4;
-          abil_mods->natural_armor = 4;
-          break;
-        case SIZE_TINY:
-          abil_mods->dexterity = 8;
-          abil_mods->strength = -2;
-          abil_mods->natural_armor = 3;
-          break;
-        case SIZE_SMALL:
-          abil_mods->dexterity = 4;
-          abil_mods->natural_armor = 2;
-          break;
-      }
+    case SIZE_SMALL:
+      abil_mods->dexterity = 2;
+      abil_mods->natural_armor = 1;
       break;
-    case RACE_TYPE_CONSTRUCT:
-      switch (race_list[race].size) {
-        case SIZE_MEDIUM:
-          abil_mods->strength = 4;
-          abil_mods->natural_armor = 4;
-          break;
-        case SIZE_LARGE:
-          abil_mods->dexterity = -2;
-          abil_mods->strength = 6;
-          abil_mods->constitution = 2;
-          abil_mods->natural_armor = 6;
-          break;
-        case SIZE_HUGE:
-          abil_mods->dexterity = -4;
-          abil_mods->strength = 10;
-          abil_mods->constitution = 4;
-          abil_mods->natural_armor = 7;
-          break;
-        case SIZE_GARGANTUAN:
-          abil_mods->dexterity = -8;
-          abil_mods->strength = 16;
-          abil_mods->constitution = 8;
-          abil_mods->natural_armor = 8;
-          break;
-      }
+    case SIZE_MEDIUM:
+      abil_mods->strength = 2;
+      abil_mods->natural_armor = 2;
       break;
-    case RACE_TYPE_OUTSIDER:
-      switch (race_list[race].size) {
-        case SIZE_DIMINUTIVE:
-          abil_mods->dexterity = 10;
-          abil_mods->strength = -4;
-          abil_mods->natural_armor = 4;
-          break;
-        case SIZE_TINY:
-          abil_mods->dexterity = 8;
-          abil_mods->strength = -2;
-          abil_mods->natural_armor = 3;
-          break;
-        case SIZE_SMALL:
-          abil_mods->dexterity = 4;
-          abil_mods->natural_armor = 2;
-          break;
-        case SIZE_MEDIUM:
-          abil_mods->strength = 4;
-          abil_mods->natural_armor = 4;
-          break;
-        case SIZE_LARGE:
-          abil_mods->dexterity = -2;
-          abil_mods->strength = 6;
-          abil_mods->constitution = 2;
-          abil_mods->natural_armor = 6;
-          break;
-        case SIZE_HUGE:
-          abil_mods->dexterity = -4;
-          abil_mods->strength = 8;
-          abil_mods->constitution = 4;
-          abil_mods->natural_armor = 6;
-          break;
-        case SIZE_GARGANTUAN:
-          abil_mods->dexterity = -8;
-          abil_mods->strength = 10;
-          abil_mods->constitution = 6;
-          abil_mods->natural_armor = 7;
-          break;
-      }
+    case SIZE_LARGE:
+      abil_mods->dexterity = -2;
+      abil_mods->strength = 4;
+      abil_mods->natural_armor = 4;
       break;
-    case RACE_TYPE_DRAGON:
-      switch (race_list[race].size) {
-        case SIZE_LARGE:
-          abil_mods->dexterity = -2;
-          abil_mods->strength = 7;
-          abil_mods->constitution = 3;
-          abil_mods->natural_armor = 4;
-          break;
-        case SIZE_HUGE:
-          abil_mods->dexterity = -4;
-          abil_mods->strength = 11;
-          abil_mods->constitution = 6;
-          abil_mods->natural_armor = 5;
-          break;
-        case SIZE_GARGANTUAN:
-          abil_mods->dexterity = -6;
-          abil_mods->strength = 16;
-          abil_mods->constitution = 9;
-          abil_mods->natural_armor = 8;
-          break;
-      }
+    case SIZE_HUGE:
+      abil_mods->dexterity = -4;
+      abil_mods->strength = 6;
+      abil_mods->natural_armor = 6;
       break;
-    case RACE_TYPE_PLANT:
-      switch (race_list[race].size) {
-        case SIZE_SMALL:
-          abil_mods->constitution = 2;
-          abil_mods->natural_armor = 2;
-          break;
-        case SIZE_MEDIUM:
-          abil_mods->strength = 2;
-          abil_mods->constitution = 2;
-          abil_mods->natural_armor = 2;
-          break;
-        case SIZE_LARGE:
-          abil_mods->strength = 4;
-          abil_mods->constitution = 2;
-          abil_mods->natural_armor = 4;
-          break;
-        case SIZE_HUGE:
-          abil_mods->strength = 8;
-          abil_mods->dexterity = -2;
-          abil_mods->constitution = 4;
-          abil_mods->natural_armor = 6;
-          break;
-      }
+    }
+    break;
+  case RACE_TYPE_MAGICAL_BEAST:
+    switch (race_list[race].size)
+    {
+    case SIZE_TINY:
+      abil_mods->dexterity = 8;
+      abil_mods->strength = -2;
+      abil_mods->natural_armor = 3;
       break;
-    case RACE_TYPE_ELEMENTAL:
-      switch (race) {
-        case RACE_SMALL_FIRE_ELEMENTAL:
-          abil_mods->strength = 0;
-          abil_mods->dexterity = 2;
-          abil_mods->constitution = 0;
-          abil_mods->natural_armor = 2;
-          break;
-        case RACE_MEDIUM_FIRE_ELEMENTAL:
-          abil_mods->strength = 0;
-          abil_mods->dexterity = 4;
-          abil_mods->constitution = 0;
-          abil_mods->natural_armor = 3;
-          break;
-        case RACE_LARGE_FIRE_ELEMENTAL:
-          abil_mods->strength = 0;
-          abil_mods->dexterity = 4;
-          abil_mods->constitution = 2;
-          abil_mods->natural_armor = 4;
-          break;
-        case RACE_HUGE_FIRE_ELEMENTAL:
-          abil_mods->strength = 0;
-          abil_mods->dexterity = 6;
-          abil_mods->constitution = 4;
-          abil_mods->natural_armor = 4;
-          break;
-        case RACE_SMALL_AIR_ELEMENTAL:
-          abil_mods->strength = 0;
-          abil_mods->dexterity = 2;
-          abil_mods->constitution = 0;
-          abil_mods->natural_armor = 2;
-          break;
-        case RACE_MEDIUM_AIR_ELEMENTAL:
-          abil_mods->strength = 0;
-          abil_mods->dexterity = 4;
-          abil_mods->constitution = 0;
-          abil_mods->natural_armor = 3;
-          break;
-        case RACE_LARGE_AIR_ELEMENTAL:
-          abil_mods->strength = 2;
-          abil_mods->dexterity = 4;
-          abil_mods->constitution = 0;
-          abil_mods->natural_armor = 4;
-          break;
-        case RACE_HUGE_AIR_ELEMENTAL:
-          abil_mods->strength = 4;
-          abil_mods->dexterity = 6;
-          abil_mods->constitution = 0;
-          abil_mods->natural_armor = 4;
-          break;
-        case RACE_SMALL_EARTH_ELEMENTAL:
-          abil_mods->strength = 0;
-          abil_mods->dexterity = 2;
-          abil_mods->constitution = 0;
-          abil_mods->natural_armor = 4;
-          break;
-        case RACE_MEDIUM_EARTH_ELEMENTAL:
-          abil_mods->strength = 0;
-          abil_mods->dexterity = 4;
-          abil_mods->constitution = 0;
-          abil_mods->natural_armor = 5;
-          break;
-        case RACE_LARGE_EARTH_ELEMENTAL:
-          abil_mods->strength = 6;
-          abil_mods->dexterity = -2;
-          abil_mods->constitution = 2;
-          abil_mods->natural_armor = 6;
-          break;
-        case RACE_HUGE_EARTH_ELEMENTAL:
-          abil_mods->strength = 8;
-          abil_mods->dexterity = -2;
-          abil_mods->constitution = 4;
-          abil_mods->natural_armor = 6;
-          break;
-        case RACE_SMALL_WATER_ELEMENTAL:
-          abil_mods->strength = 0;
-          abil_mods->dexterity = 0;
-          abil_mods->constitution = 2;
-          abil_mods->natural_armor = 4;
-          break;
-        case RACE_MEDIUM_WATER_ELEMENTAL:
-          abil_mods->strength = 0;
-          abil_mods->dexterity = 0;
-          abil_mods->constitution = 4;
-          abil_mods->natural_armor = 5;
-          break;
-        case RACE_LARGE_WATER_ELEMENTAL:
-          abil_mods->strength = 2;
-          abil_mods->dexterity = -2;
-          abil_mods->constitution = 6;
-          abil_mods->natural_armor = 6;
-          break;
-        case RACE_HUGE_WATER_ELEMENTAL:
-          abil_mods->strength = 4;
-          abil_mods->dexterity = -2;
-          abil_mods->constitution = 8;
-          abil_mods->natural_armor = 6;
-          break;
-      }
+    case SIZE_SMALL:
+      abil_mods->dexterity = 4;
+      abil_mods->natural_armor = 2;
       break;
-    default:
-      abil_mods->strength = race_list[race].ability_mods[0];
-      abil_mods->constitution = race_list[race].ability_mods[1];
-      abil_mods->dexterity = race_list[race].ability_mods[4];
+    case SIZE_MEDIUM:
+      abil_mods->strength = 4;
+      abil_mods->natural_armor = 4;
       break;
+    case SIZE_LARGE:
+      abil_mods->dexterity = -2;
+      abil_mods->strength = 6;
+      abil_mods->constitution = 2;
+      abil_mods->natural_armor = 6;
+      break;
+    }
+    break;
+  case RACE_TYPE_FEY:
+    switch (race_list[race].size)
+    {
+    case SIZE_DIMINUTIVE:
+      abil_mods->dexterity = 12;
+      abil_mods->strength = -4;
+      abil_mods->natural_armor = 4;
+      break;
+    case SIZE_TINY:
+      abil_mods->dexterity = 8;
+      abil_mods->strength = -2;
+      abil_mods->natural_armor = 3;
+      break;
+    case SIZE_SMALL:
+      abil_mods->dexterity = 4;
+      abil_mods->natural_armor = 2;
+      break;
+    }
+    break;
+  case RACE_TYPE_CONSTRUCT:
+    switch (race_list[race].size)
+    {
+    case SIZE_MEDIUM:
+      abil_mods->strength = 4;
+      abil_mods->natural_armor = 4;
+      break;
+    case SIZE_LARGE:
+      abil_mods->dexterity = -2;
+      abil_mods->strength = 6;
+      abil_mods->constitution = 2;
+      abil_mods->natural_armor = 6;
+      break;
+    case SIZE_HUGE:
+      abil_mods->dexterity = -4;
+      abil_mods->strength = 10;
+      abil_mods->constitution = 4;
+      abil_mods->natural_armor = 7;
+      break;
+    case SIZE_GARGANTUAN:
+      abil_mods->dexterity = -8;
+      abil_mods->strength = 16;
+      abil_mods->constitution = 8;
+      abil_mods->natural_armor = 8;
+      break;
+    }
+    break;
+  case RACE_TYPE_OUTSIDER:
+    switch (race_list[race].size)
+    {
+    case SIZE_DIMINUTIVE:
+      abil_mods->dexterity = 10;
+      abil_mods->strength = -4;
+      abil_mods->natural_armor = 4;
+      break;
+    case SIZE_TINY:
+      abil_mods->dexterity = 8;
+      abil_mods->strength = -2;
+      abil_mods->natural_armor = 3;
+      break;
+    case SIZE_SMALL:
+      abil_mods->dexterity = 4;
+      abil_mods->natural_armor = 2;
+      break;
+    case SIZE_MEDIUM:
+      abil_mods->strength = 4;
+      abil_mods->natural_armor = 4;
+      break;
+    case SIZE_LARGE:
+      abil_mods->dexterity = -2;
+      abil_mods->strength = 6;
+      abil_mods->constitution = 2;
+      abil_mods->natural_armor = 6;
+      break;
+    case SIZE_HUGE:
+      abil_mods->dexterity = -4;
+      abil_mods->strength = 8;
+      abil_mods->constitution = 4;
+      abil_mods->natural_armor = 6;
+      break;
+    case SIZE_GARGANTUAN:
+      abil_mods->dexterity = -8;
+      abil_mods->strength = 10;
+      abil_mods->constitution = 6;
+      abil_mods->natural_armor = 7;
+      break;
+    }
+    break;
+  case RACE_TYPE_DRAGON:
+    switch (race_list[race].size)
+    {
+    case SIZE_LARGE:
+      abil_mods->dexterity = -2;
+      abil_mods->strength = 7;
+      abil_mods->constitution = 3;
+      abil_mods->natural_armor = 4;
+      break;
+    case SIZE_HUGE:
+      abil_mods->dexterity = -4;
+      abil_mods->strength = 11;
+      abil_mods->constitution = 6;
+      abil_mods->natural_armor = 5;
+      break;
+    case SIZE_GARGANTUAN:
+      abil_mods->dexterity = -6;
+      abil_mods->strength = 16;
+      abil_mods->constitution = 9;
+      abil_mods->natural_armor = 8;
+      break;
+    }
+    break;
+  case RACE_TYPE_PLANT:
+    switch (race_list[race].size)
+    {
+    case SIZE_SMALL:
+      abil_mods->constitution = 2;
+      abil_mods->natural_armor = 2;
+      break;
+    case SIZE_MEDIUM:
+      abil_mods->strength = 2;
+      abil_mods->constitution = 2;
+      abil_mods->natural_armor = 2;
+      break;
+    case SIZE_LARGE:
+      abil_mods->strength = 4;
+      abil_mods->constitution = 2;
+      abil_mods->natural_armor = 4;
+      break;
+    case SIZE_HUGE:
+      abil_mods->strength = 8;
+      abil_mods->dexterity = -2;
+      abil_mods->constitution = 4;
+      abil_mods->natural_armor = 6;
+      break;
+    }
+    break;
+  case RACE_TYPE_ELEMENTAL:
+    switch (race)
+    {
+    case RACE_SMALL_FIRE_ELEMENTAL:
+      abil_mods->strength = 0;
+      abil_mods->dexterity = 2;
+      abil_mods->constitution = 0;
+      abil_mods->natural_armor = 2;
+      break;
+    case RACE_MEDIUM_FIRE_ELEMENTAL:
+      abil_mods->strength = 0;
+      abil_mods->dexterity = 4;
+      abil_mods->constitution = 0;
+      abil_mods->natural_armor = 3;
+      break;
+    case RACE_LARGE_FIRE_ELEMENTAL:
+      abil_mods->strength = 0;
+      abil_mods->dexterity = 4;
+      abil_mods->constitution = 2;
+      abil_mods->natural_armor = 4;
+      break;
+    case RACE_HUGE_FIRE_ELEMENTAL:
+      abil_mods->strength = 0;
+      abil_mods->dexterity = 6;
+      abil_mods->constitution = 4;
+      abil_mods->natural_armor = 4;
+      break;
+    case RACE_SMALL_AIR_ELEMENTAL:
+      abil_mods->strength = 0;
+      abil_mods->dexterity = 2;
+      abil_mods->constitution = 0;
+      abil_mods->natural_armor = 2;
+      break;
+    case RACE_MEDIUM_AIR_ELEMENTAL:
+      abil_mods->strength = 0;
+      abil_mods->dexterity = 4;
+      abil_mods->constitution = 0;
+      abil_mods->natural_armor = 3;
+      break;
+    case RACE_LARGE_AIR_ELEMENTAL:
+      abil_mods->strength = 2;
+      abil_mods->dexterity = 4;
+      abil_mods->constitution = 0;
+      abil_mods->natural_armor = 4;
+      break;
+    case RACE_HUGE_AIR_ELEMENTAL:
+      abil_mods->strength = 4;
+      abil_mods->dexterity = 6;
+      abil_mods->constitution = 0;
+      abil_mods->natural_armor = 4;
+      break;
+    case RACE_SMALL_EARTH_ELEMENTAL:
+      abil_mods->strength = 0;
+      abil_mods->dexterity = 2;
+      abil_mods->constitution = 0;
+      abil_mods->natural_armor = 4;
+      break;
+    case RACE_MEDIUM_EARTH_ELEMENTAL:
+      abil_mods->strength = 0;
+      abil_mods->dexterity = 4;
+      abil_mods->constitution = 0;
+      abil_mods->natural_armor = 5;
+      break;
+    case RACE_LARGE_EARTH_ELEMENTAL:
+      abil_mods->strength = 6;
+      abil_mods->dexterity = -2;
+      abil_mods->constitution = 2;
+      abil_mods->natural_armor = 6;
+      break;
+    case RACE_HUGE_EARTH_ELEMENTAL:
+      abil_mods->strength = 8;
+      abil_mods->dexterity = -2;
+      abil_mods->constitution = 4;
+      abil_mods->natural_armor = 6;
+      break;
+    case RACE_SMALL_WATER_ELEMENTAL:
+      abil_mods->strength = 0;
+      abil_mods->dexterity = 0;
+      abil_mods->constitution = 2;
+      abil_mods->natural_armor = 4;
+      break;
+    case RACE_MEDIUM_WATER_ELEMENTAL:
+      abil_mods->strength = 0;
+      abil_mods->dexterity = 0;
+      abil_mods->constitution = 4;
+      abil_mods->natural_armor = 5;
+      break;
+    case RACE_LARGE_WATER_ELEMENTAL:
+      abil_mods->strength = 2;
+      abil_mods->dexterity = -2;
+      abil_mods->constitution = 6;
+      abil_mods->natural_armor = 6;
+      break;
+    case RACE_HUGE_WATER_ELEMENTAL:
+      abil_mods->strength = 4;
+      abil_mods->dexterity = -2;
+      abil_mods->constitution = 8;
+      abil_mods->natural_armor = 6;
+      break;
+    }
+    break;
+  default:
+    abil_mods->strength = race_list[race].ability_mods[0];
+    abil_mods->constitution = race_list[race].ability_mods[1];
+    abil_mods->dexterity = race_list[race].ability_mods[4];
+    break;
   }
 
   /* individual race modifications */
-  switch (race) {
-    case RACE_CHEETAH:
-      abil_mods->dexterity += 8;
-      break;
-    case RACE_WOLF:
-    case RACE_HYENA:
-      break;
+  switch (race)
+  {
+  case RACE_CHEETAH:
+    abil_mods->dexterity += 8;
+    break;
+  case RACE_WOLF:
+  case RACE_HYENA:
+    break;
 
-    default:break;
+  default:
+    break;
   }
 
   return abil_mods;
@@ -1923,7 +2181,8 @@ At 12th level, a druid can use wild shape to change into a Huge elemental or a
  * shape now functions as elemental body IV. When taking the form of a plant, the
  * druid's wild shape now functions as plant shape III.
  */
-int display_eligible_wildshape_races(struct char_data *ch, char *argument, int silent, int mode) {
+int display_eligible_wildshape_races(struct char_data *ch, char *argument, int silent, int mode)
+{
   int i = 0;
   struct wild_shape_mods *abil_mods;
 
@@ -1931,131 +2190,140 @@ int display_eligible_wildshape_races(struct char_data *ch, char *argument, int s
   init_wild_shape_mods(abil_mods);
 
   /* human = 0, we gotta fix it, but we think a ZERO value is no disguise */
-  for (i = 1; i < NUM_EXTENDED_RACES; i++) {
+  for (i = 1; i < NUM_EXTENDED_RACES; i++)
+  {
 
-    if (mode == 1) { /*polymorph spell*/
+    if (mode == 1)
+    { /*polymorph spell*/
       /* we are just giving polymorph access to everything */
-    } else if (mode == 0) { /*druid*/
-      switch (race_list[i].family) {
+    }
+    else if (mode == 0)
+    { /*druid*/
+      switch (race_list[i].family)
+      {
 
-        case RACE_TYPE_ANIMAL: /* animals! */
-          switch (race_list[i].size) {
-              /* fall through all the way down */
-            case SIZE_SMALL:
-              if (HAS_FEAT(ch, FEAT_WILD_SHAPE))
-                break;
-            case SIZE_MEDIUM:
-              if (HAS_FEAT(ch, FEAT_WILD_SHAPE))
-                break;
-            case SIZE_TINY:
-              if (HAS_FEAT(ch, FEAT_WILD_SHAPE_2))
-                break;
-            case SIZE_LARGE:
-              if (HAS_FEAT(ch, FEAT_WILD_SHAPE_2))
-                break;
-            case SIZE_DIMINUTIVE:
-              if (HAS_FEAT(ch, FEAT_WILD_SHAPE_3))
-                break;
-            case SIZE_HUGE:
-              if (HAS_FEAT(ch, FEAT_WILD_SHAPE_3))
-                break;
-
-            case SIZE_FINE:
-            case SIZE_GARGANTUAN:
-            case SIZE_COLOSSAL:
-            default:
-              continue;
-          }
-          break;
-
-        case RACE_TYPE_PLANT: /* plants! */
-          switch (race_list[i].size) {
-              /* fall through all the way down */
-            case SIZE_SMALL:
-              if (HAS_FEAT(ch, FEAT_WILD_SHAPE_3))
-                break;
-            case SIZE_MEDIUM:
-              if (HAS_FEAT(ch, FEAT_WILD_SHAPE_3))
-                break;
-            case SIZE_LARGE:
-              if (HAS_FEAT(ch, FEAT_WILD_SHAPE_4))
-                break;
-            case SIZE_HUGE:
-              if (HAS_FEAT(ch, FEAT_WILD_SHAPE_5))
-                break;
-
-            case SIZE_DIMINUTIVE:
-            case SIZE_TINY:
-            case SIZE_FINE:
-            case SIZE_GARGANTUAN:
-            case SIZE_COLOSSAL:
-            default:
-              continue;
-          }
-          break;
-
-        case RACE_TYPE_ELEMENTAL: /* elementals! */
-          switch (race_list[i].size) {
-              /* fall through all the way down */
-            case SIZE_SMALL:
-              if (HAS_FEAT(ch, FEAT_WILD_SHAPE_2))
-                break;
-            case SIZE_MEDIUM:
-              if (HAS_FEAT(ch, FEAT_WILD_SHAPE_3))
-                break;
-            case SIZE_LARGE:
-              if (HAS_FEAT(ch, FEAT_WILD_SHAPE_4))
-                break;
-            case SIZE_HUGE:
-              if (HAS_FEAT(ch, FEAT_WILD_SHAPE_5))
-                break;
-
-            case SIZE_DIMINUTIVE:
-            case SIZE_TINY:
-            case SIZE_FINE:
-            case SIZE_GARGANTUAN:
-            case SIZE_COLOSSAL:
-            default:
-              continue;
-          }
-          break;
-
-        case RACE_TYPE_MAGICAL_BEAST:
-          if (HAS_FEAT(ch, FEAT_SHIFTER_SHAPES_1))
+      case RACE_TYPE_ANIMAL: /* animals! */
+        switch (race_list[i].size)
+        {
+          /* fall through all the way down */
+        case SIZE_SMALL:
+          if (HAS_FEAT(ch, FEAT_WILD_SHAPE))
             break;
-          continue;
-
-        case RACE_TYPE_FEY:
-          if (HAS_FEAT(ch, FEAT_SHIFTER_SHAPES_2))
+        case SIZE_MEDIUM:
+          if (HAS_FEAT(ch, FEAT_WILD_SHAPE))
             break;
-          continue;
-
-        case RACE_TYPE_CONSTRUCT:
-          if (HAS_FEAT(ch, FEAT_SHIFTER_SHAPES_3))
+        case SIZE_TINY:
+          if (HAS_FEAT(ch, FEAT_WILD_SHAPE_2))
             break;
-          continue;
-
-        case RACE_TYPE_OUTSIDER:
-          if (HAS_FEAT(ch, FEAT_SHIFTER_SHAPES_4))
+        case SIZE_LARGE:
+          if (HAS_FEAT(ch, FEAT_WILD_SHAPE_2))
             break;
-          continue;
-
-        case RACE_TYPE_DRAGON:
-          if (HAS_FEAT(ch, FEAT_SHIFTER_SHAPES_5))
+        case SIZE_DIMINUTIVE:
+          if (HAS_FEAT(ch, FEAT_WILD_SHAPE_3))
             break;
-          continue;
+        case SIZE_HUGE:
+          if (HAS_FEAT(ch, FEAT_WILD_SHAPE_3))
+            break;
 
+        case SIZE_FINE:
+        case SIZE_GARGANTUAN:
+        case SIZE_COLOSSAL:
         default:
           continue;
+        }
+        break;
+
+      case RACE_TYPE_PLANT: /* plants! */
+        switch (race_list[i].size)
+        {
+          /* fall through all the way down */
+        case SIZE_SMALL:
+          if (HAS_FEAT(ch, FEAT_WILD_SHAPE_3))
+            break;
+        case SIZE_MEDIUM:
+          if (HAS_FEAT(ch, FEAT_WILD_SHAPE_3))
+            break;
+        case SIZE_LARGE:
+          if (HAS_FEAT(ch, FEAT_WILD_SHAPE_4))
+            break;
+        case SIZE_HUGE:
+          if (HAS_FEAT(ch, FEAT_WILD_SHAPE_5))
+            break;
+
+        case SIZE_DIMINUTIVE:
+        case SIZE_TINY:
+        case SIZE_FINE:
+        case SIZE_GARGANTUAN:
+        case SIZE_COLOSSAL:
+        default:
+          continue;
+        }
+        break;
+
+      case RACE_TYPE_ELEMENTAL: /* elementals! */
+        switch (race_list[i].size)
+        {
+          /* fall through all the way down */
+        case SIZE_SMALL:
+          if (HAS_FEAT(ch, FEAT_WILD_SHAPE_2))
+            break;
+        case SIZE_MEDIUM:
+          if (HAS_FEAT(ch, FEAT_WILD_SHAPE_3))
+            break;
+        case SIZE_LARGE:
+          if (HAS_FEAT(ch, FEAT_WILD_SHAPE_4))
+            break;
+        case SIZE_HUGE:
+          if (HAS_FEAT(ch, FEAT_WILD_SHAPE_5))
+            break;
+
+        case SIZE_DIMINUTIVE:
+        case SIZE_TINY:
+        case SIZE_FINE:
+        case SIZE_GARGANTUAN:
+        case SIZE_COLOSSAL:
+        default:
+          continue;
+        }
+        break;
+
+      case RACE_TYPE_MAGICAL_BEAST:
+        if (HAS_FEAT(ch, FEAT_SHIFTER_SHAPES_1))
+          break;
+        continue;
+
+      case RACE_TYPE_FEY:
+        if (HAS_FEAT(ch, FEAT_SHIFTER_SHAPES_2))
+          break;
+        continue;
+
+      case RACE_TYPE_CONSTRUCT:
+        if (HAS_FEAT(ch, FEAT_SHIFTER_SHAPES_3))
+          break;
+        continue;
+
+      case RACE_TYPE_OUTSIDER:
+        if (HAS_FEAT(ch, FEAT_SHIFTER_SHAPES_4))
+          break;
+        continue;
+
+      case RACE_TYPE_DRAGON:
+        if (HAS_FEAT(ch, FEAT_SHIFTER_SHAPES_5))
+          break;
+        continue;
+
+      default:
+        continue;
       } /* end family switch */
     }
     abil_mods = set_wild_shape_mods(i);
-    if (!silent && race_list[i].name != NULL) {
+    if (!silent && race_list[i].name != NULL)
+    {
       send_to_char(ch, "%-40s Str [%s%-2d] Con [%s%-2d] Dex [%s%-2d] NatAC [%s%-2d]\r\n", race_list[i].name,
-              abil_mods->strength >= 0 ? "+" : " ", abil_mods->strength,
-              abil_mods->constitution >= 0 ? "+" : " ", abil_mods->constitution,
-              abil_mods->dexterity >= 0 ? "+" : " ", abil_mods->dexterity,
-              abil_mods->natural_armor >= 0 ? "+" : " ", abil_mods->natural_armor);
+                   abil_mods->strength >= 0 ? "+" : " ", abil_mods->strength,
+                   abil_mods->constitution >= 0 ? "+" : " ", abil_mods->constitution,
+                   abil_mods->dexterity >= 0 ? "+" : " ", abil_mods->dexterity,
+                   abil_mods->natural_armor >= 0 ? "+" : " ", abil_mods->natural_armor);
     }
 
     if (race_list[i].name != NULL && is_abbrev(argument, race_list[i].name)) /* match argument? */
@@ -2070,12 +2338,14 @@ int display_eligible_wildshape_races(struct char_data *ch, char *argument, int s
     return i; /* specific race */
 }
 
-void set_bonus_stats(struct char_data *ch, int str, int con, int dex, int ac) {
+void set_bonus_stats(struct char_data *ch, int str, int con, int dex, int ac)
+{
   struct affected_type af[WILDSHAPE_AFFECTS];
   int i = 0;
 
   /* init affect array */
-  for (i = 0; i < WILDSHAPE_AFFECTS; i++) {
+  for (i = 0; i < WILDSHAPE_AFFECTS; i++)
+  {
     new_affect(&(af[i]));
     af[i].spell = SKILL_WILDSHAPE;
     af[i].duration = 32766; /*what cheese*/
@@ -2100,7 +2370,8 @@ void set_bonus_stats(struct char_data *ch, int str, int con, int dex, int ac) {
 }
 
 /* also clean up anything else assigned such as affections */
-void cleanup_wildshape_feats(struct char_data *ch) {
+void cleanup_wildshape_feats(struct char_data *ch)
+{
   int counter = 0;
   int race = GET_DISGUISE_RACE(ch);
 
@@ -2108,47 +2379,59 @@ void cleanup_wildshape_feats(struct char_data *ch) {
     MOB_SET_FEAT((ch), counter, 0);
 
   /* racial family cleanup here */
-  switch (race_list[race].family) {
-    default:break;
+  switch (race_list[race].family)
+  {
+  default:
+    break;
   }
 
   /* race specific cleanup here */
-  switch (race) {
-    case RACE_BLINK_DOG:
-      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_BLINKING);
-      break;
-    case RACE_CROCODILE:
-    case RACE_GIANT_CROCODILE:
-      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_SCUBA);
-      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_WATER_BREATH);
-      break;
-    case RACE_EAGLE:
-      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLYING);
-      break;
-    case RACE_SMALL_FIRE_ELEMENTAL:case RACE_MEDIUM_FIRE_ELEMENTAL:
-    case RACE_LARGE_FIRE_ELEMENTAL:case RACE_HUGE_FIRE_ELEMENTAL:
-      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FSHIELD);
-      break;
-    case RACE_SMALL_EARTH_ELEMENTAL:case RACE_MEDIUM_EARTH_ELEMENTAL:
-    case RACE_LARGE_EARTH_ELEMENTAL:case RACE_HUGE_EARTH_ELEMENTAL:
-      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_ASHIELD);
-      break;
-    case RACE_SMALL_AIR_ELEMENTAL:case RACE_MEDIUM_AIR_ELEMENTAL:
-    case RACE_LARGE_AIR_ELEMENTAL:case RACE_HUGE_AIR_ELEMENTAL:
-      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_CSHIELD);
-      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLYING);
-      break;
-    case RACE_SMALL_WATER_ELEMENTAL:case RACE_MEDIUM_WATER_ELEMENTAL:
-    case RACE_LARGE_WATER_ELEMENTAL:case RACE_HUGE_WATER_ELEMENTAL:
-      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_SCUBA);
-      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_WATER_BREATH);
-      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_MINOR_GLOBE);
-      break;
+  switch (race)
+  {
+  case RACE_BLINK_DOG:
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_BLINKING);
+    break;
+  case RACE_CROCODILE:
+  case RACE_GIANT_CROCODILE:
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_SCUBA);
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_WATER_BREATH);
+    break;
+  case RACE_EAGLE:
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLYING);
+    break;
+  case RACE_SMALL_FIRE_ELEMENTAL:
+  case RACE_MEDIUM_FIRE_ELEMENTAL:
+  case RACE_LARGE_FIRE_ELEMENTAL:
+  case RACE_HUGE_FIRE_ELEMENTAL:
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FSHIELD);
+    break;
+  case RACE_SMALL_EARTH_ELEMENTAL:
+  case RACE_MEDIUM_EARTH_ELEMENTAL:
+  case RACE_LARGE_EARTH_ELEMENTAL:
+  case RACE_HUGE_EARTH_ELEMENTAL:
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_ASHIELD);
+    break;
+  case RACE_SMALL_AIR_ELEMENTAL:
+  case RACE_MEDIUM_AIR_ELEMENTAL:
+  case RACE_LARGE_AIR_ELEMENTAL:
+  case RACE_HUGE_AIR_ELEMENTAL:
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_CSHIELD);
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLYING);
+    break;
+  case RACE_SMALL_WATER_ELEMENTAL:
+  case RACE_MEDIUM_WATER_ELEMENTAL:
+  case RACE_LARGE_WATER_ELEMENTAL:
+  case RACE_HUGE_WATER_ELEMENTAL:
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_SCUBA);
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_WATER_BREATH);
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_MINOR_GLOBE);
+    break;
   }
 }
 
 /* we also set other special abilities here */
-void assign_wildshape_feats(struct char_data *ch) {
+void assign_wildshape_feats(struct char_data *ch)
+{
   int counter = 0;
   int shifter_level = CLASS_LEVEL(ch, CLASS_DRUID) + CLASS_LEVEL(ch, CLASS_SHIFTER);
   int shifted_race = GET_DISGUISE_RACE(ch);
@@ -2170,109 +2453,153 @@ void assign_wildshape_feats(struct char_data *ch) {
   /***************************************************/
 
   /* trying to keep general racial type assignments here */
-  switch (race_list[GET_DISGUISE_RACE(ch)].family) {
-    case RACE_TYPE_ANIMAL:
-      MOB_SET_FEAT(ch, FEAT_RAGE, shifter_level / 5 + 1);
-      break;
-    case RACE_TYPE_PLANT:
-      MOB_SET_FEAT(ch, FEAT_ARMOR_SKIN, shifter_level / 5 + 1);
-      break;
-    default:break;
+  switch (race_list[GET_DISGUISE_RACE(ch)].family)
+  {
+  case RACE_TYPE_ANIMAL:
+    MOB_SET_FEAT(ch, FEAT_RAGE, shifter_level / 5 + 1);
+    break;
+  case RACE_TYPE_PLANT:
+    MOB_SET_FEAT(ch, FEAT_ARMOR_SKIN, shifter_level / 5 + 1);
+    break;
+  default:
+    break;
   }
 
   /* want to make general assignments due to size? */
-  switch (GET_SIZE(ch)) {
-    case SIZE_FINE:
-    case SIZE_DIMINUTIVE:
-    case SIZE_TINY:
-    case SIZE_SMALL:
-    case SIZE_MEDIUM:
-    case SIZE_LARGE:
-    case SIZE_HUGE:
-    case SIZE_GARGANTUAN:
-    case SIZE_COLOSSAL:
-    default:break;
+  switch (GET_SIZE(ch))
+  {
+  case SIZE_FINE:
+  case SIZE_DIMINUTIVE:
+  case SIZE_TINY:
+  case SIZE_SMALL:
+  case SIZE_MEDIUM:
+  case SIZE_LARGE:
+  case SIZE_HUGE:
+  case SIZE_GARGANTUAN:
+  case SIZE_COLOSSAL:
+  default:
+    break;
   }
 
   /* all fall through */
-  switch (shifter_level) {
-    case 40:case 39:case 38:case 37:
-    case 36:case 35:case 34:case 33:
-    case 32:case 31:case 30:case 29:
-      MOB_SET_FEAT(ch, FEAT_NATURAL_ATTACK, MOB_HAS_FEAT(ch, FEAT_NATURAL_ATTACK) + 1);
-    case 28:case 27:case 26:case 25:
-      MOB_SET_FEAT(ch, FEAT_NATURAL_ATTACK, MOB_HAS_FEAT(ch, FEAT_NATURAL_ATTACK) + 1);
-    case 24:case 23:case 22:case 21:
-      MOB_SET_FEAT(ch, FEAT_NATURAL_ATTACK, MOB_HAS_FEAT(ch, FEAT_NATURAL_ATTACK) + 1);
-    case 20:case 19:case 18:case 17:
-      MOB_SET_FEAT(ch, FEAT_NATURAL_ATTACK, MOB_HAS_FEAT(ch, FEAT_NATURAL_ATTACK) + 1);
-    case 16:case 15:case 14:case 13:
-      MOB_SET_FEAT(ch, FEAT_NATURAL_ATTACK, MOB_HAS_FEAT(ch, FEAT_NATURAL_ATTACK) + 1);
-    case 12:case 11:case 10:case 9:
-      MOB_SET_FEAT(ch, FEAT_NATURAL_ATTACK, MOB_HAS_FEAT(ch, FEAT_NATURAL_ATTACK) + 1);
-    case 8:case 7:case 6:case 5:
-      MOB_SET_FEAT(ch, FEAT_NATURAL_ATTACK, MOB_HAS_FEAT(ch, FEAT_NATURAL_ATTACK) + 1);
-    case 4:case 3:case 2:case 1:
-      MOB_SET_FEAT(ch, FEAT_NATURAL_ATTACK, MOB_HAS_FEAT(ch, FEAT_NATURAL_ATTACK) + 1);
-    default:
-      break;
+  switch (shifter_level)
+  {
+  case 40:
+  case 39:
+  case 38:
+  case 37:
+  case 36:
+  case 35:
+  case 34:
+  case 33:
+  case 32:
+  case 31:
+  case 30:
+  case 29:
+    MOB_SET_FEAT(ch, FEAT_NATURAL_ATTACK, MOB_HAS_FEAT(ch, FEAT_NATURAL_ATTACK) + 1);
+  case 28:
+  case 27:
+  case 26:
+  case 25:
+    MOB_SET_FEAT(ch, FEAT_NATURAL_ATTACK, MOB_HAS_FEAT(ch, FEAT_NATURAL_ATTACK) + 1);
+  case 24:
+  case 23:
+  case 22:
+  case 21:
+    MOB_SET_FEAT(ch, FEAT_NATURAL_ATTACK, MOB_HAS_FEAT(ch, FEAT_NATURAL_ATTACK) + 1);
+  case 20:
+  case 19:
+  case 18:
+  case 17:
+    MOB_SET_FEAT(ch, FEAT_NATURAL_ATTACK, MOB_HAS_FEAT(ch, FEAT_NATURAL_ATTACK) + 1);
+  case 16:
+  case 15:
+  case 14:
+  case 13:
+    MOB_SET_FEAT(ch, FEAT_NATURAL_ATTACK, MOB_HAS_FEAT(ch, FEAT_NATURAL_ATTACK) + 1);
+  case 12:
+  case 11:
+  case 10:
+  case 9:
+    MOB_SET_FEAT(ch, FEAT_NATURAL_ATTACK, MOB_HAS_FEAT(ch, FEAT_NATURAL_ATTACK) + 1);
+  case 8:
+  case 7:
+  case 6:
+  case 5:
+    MOB_SET_FEAT(ch, FEAT_NATURAL_ATTACK, MOB_HAS_FEAT(ch, FEAT_NATURAL_ATTACK) + 1);
+  case 4:
+  case 3:
+  case 2:
+  case 1:
+    MOB_SET_FEAT(ch, FEAT_NATURAL_ATTACK, MOB_HAS_FEAT(ch, FEAT_NATURAL_ATTACK) + 1);
+  default:
+    break;
   }
 
   /* individual race specific assignments, feats, affections, etc */
-  switch (shifted_race) {
-    case RACE_BLINK_DOG:
-      SET_BIT_AR(AFF_FLAGS(ch), AFF_BLINKING);
-      break;
-    case RACE_CHEETAH:
-      MOB_SET_FEAT(ch, FEAT_DODGE, 1);
-      break;
-    case RACE_WOLF:
-    case RACE_HYENA:
-      MOB_SET_FEAT(ch, FEAT_NATURAL_TRACKER, 1);
-      MOB_SET_FEAT(ch, FEAT_INFRAVISION, 1);
-      break;
-    case RACE_CROCODILE:
-    case RACE_GIANT_CROCODILE:
-      SET_BIT_AR(AFF_FLAGS(ch), AFF_SCUBA);
-      SET_BIT_AR(AFF_FLAGS(ch), AFF_WATER_BREATH);
-      break;
-    case RACE_MEDIUM_VIPER:
-    case RACE_LARGE_VIPER:
-    case RACE_HUGE_VIPER:
-      MOB_SET_FEAT(ch, FEAT_POISON_BITE, 1);
-      break;
-    case RACE_CONSTRICTOR_SNAKE:
-    case RACE_GIANT_CONSTRICTOR_SNAKE:
-      MOB_SET_FEAT(ch, FEAT_IMPROVED_GRAPPLE, 1);
-      break;
-    case RACE_EAGLE:
-      MOB_SET_FEAT(ch, FEAT_WINGS, 1);
-      break;
-    case RACE_SMALL_FIRE_ELEMENTAL:case RACE_MEDIUM_FIRE_ELEMENTAL:
-    case RACE_LARGE_FIRE_ELEMENTAL:case RACE_HUGE_FIRE_ELEMENTAL:
-      SET_BIT_AR(AFF_FLAGS(ch), AFF_FSHIELD);
-      break;
-    case RACE_SMALL_EARTH_ELEMENTAL:case RACE_MEDIUM_EARTH_ELEMENTAL:
-    case RACE_LARGE_EARTH_ELEMENTAL:case RACE_HUGE_EARTH_ELEMENTAL:
-      SET_BIT_AR(AFF_FLAGS(ch), AFF_ASHIELD);
-      break;
-    case RACE_SMALL_AIR_ELEMENTAL:case RACE_MEDIUM_AIR_ELEMENTAL:
-    case RACE_LARGE_AIR_ELEMENTAL:case RACE_HUGE_AIR_ELEMENTAL:
-      SET_BIT_AR(AFF_FLAGS(ch), AFF_CSHIELD);
-      SET_BIT_AR(AFF_FLAGS(ch), AFF_FLYING);
-      break;
-    case RACE_SMALL_WATER_ELEMENTAL:case RACE_MEDIUM_WATER_ELEMENTAL:
-    case RACE_LARGE_WATER_ELEMENTAL:case RACE_HUGE_WATER_ELEMENTAL:
-      SET_BIT_AR(AFF_FLAGS(ch), AFF_SCUBA);
-      SET_BIT_AR(AFF_FLAGS(ch), AFF_WATER_BREATH);
-      SET_BIT_AR(AFF_FLAGS(ch), AFF_MINOR_GLOBE);
-      break;
+  switch (shifted_race)
+  {
+  case RACE_BLINK_DOG:
+    SET_BIT_AR(AFF_FLAGS(ch), AFF_BLINKING);
+    break;
+  case RACE_CHEETAH:
+    MOB_SET_FEAT(ch, FEAT_DODGE, 1);
+    break;
+  case RACE_WOLF:
+  case RACE_HYENA:
+    MOB_SET_FEAT(ch, FEAT_NATURAL_TRACKER, 1);
+    MOB_SET_FEAT(ch, FEAT_INFRAVISION, 1);
+    break;
+  case RACE_CROCODILE:
+  case RACE_GIANT_CROCODILE:
+    SET_BIT_AR(AFF_FLAGS(ch), AFF_SCUBA);
+    SET_BIT_AR(AFF_FLAGS(ch), AFF_WATER_BREATH);
+    break;
+  case RACE_MEDIUM_VIPER:
+  case RACE_LARGE_VIPER:
+  case RACE_HUGE_VIPER:
+    MOB_SET_FEAT(ch, FEAT_POISON_BITE, 1);
+    break;
+  case RACE_CONSTRICTOR_SNAKE:
+  case RACE_GIANT_CONSTRICTOR_SNAKE:
+    MOB_SET_FEAT(ch, FEAT_IMPROVED_GRAPPLE, 1);
+    break;
+  case RACE_EAGLE:
+    MOB_SET_FEAT(ch, FEAT_WINGS, 1);
+    break;
+  case RACE_SMALL_FIRE_ELEMENTAL:
+  case RACE_MEDIUM_FIRE_ELEMENTAL:
+  case RACE_LARGE_FIRE_ELEMENTAL:
+  case RACE_HUGE_FIRE_ELEMENTAL:
+    SET_BIT_AR(AFF_FLAGS(ch), AFF_FSHIELD);
+    break;
+  case RACE_SMALL_EARTH_ELEMENTAL:
+  case RACE_MEDIUM_EARTH_ELEMENTAL:
+  case RACE_LARGE_EARTH_ELEMENTAL:
+  case RACE_HUGE_EARTH_ELEMENTAL:
+    SET_BIT_AR(AFF_FLAGS(ch), AFF_ASHIELD);
+    break;
+  case RACE_SMALL_AIR_ELEMENTAL:
+  case RACE_MEDIUM_AIR_ELEMENTAL:
+  case RACE_LARGE_AIR_ELEMENTAL:
+  case RACE_HUGE_AIR_ELEMENTAL:
+    SET_BIT_AR(AFF_FLAGS(ch), AFF_CSHIELD);
+    SET_BIT_AR(AFF_FLAGS(ch), AFF_FLYING);
+    break;
+  case RACE_SMALL_WATER_ELEMENTAL:
+  case RACE_MEDIUM_WATER_ELEMENTAL:
+  case RACE_LARGE_WATER_ELEMENTAL:
+  case RACE_HUGE_WATER_ELEMENTAL:
+    SET_BIT_AR(AFF_FLAGS(ch), AFF_SCUBA);
+    SET_BIT_AR(AFF_FLAGS(ch), AFF_WATER_BREATH);
+    SET_BIT_AR(AFF_FLAGS(ch), AFF_MINOR_GLOBE);
+    break;
   }
-
 }
 
 /* function for clearing wildshape */
-void wildshape_return(struct char_data *ch) {
+void wildshape_return(struct char_data *ch)
+{
 
   if (!AFF_FLAGGED(ch, AFF_WILD_SHAPE) && !GET_DISGUISE_RACE(ch))
     return;
@@ -2302,22 +2629,26 @@ void wildshape_return(struct char_data *ch) {
 /* mode = 0, druid */
 
 /* mode = 1, polymorph spell (spells.c) */
-bool wildshape_engine(struct char_data *ch, char *argument, int mode) {
+bool wildshape_engine(struct char_data *ch, char *argument, int mode)
+{
   int i = 0;
   char buf[200];
   struct wild_shape_mods *abil_mods;
 
   skip_spaces(&argument);
 
-  if (AFF_FLAGGED(ch, AFF_WILD_SHAPE)) {
+  if (AFF_FLAGGED(ch, AFF_WILD_SHAPE))
+  {
     send_to_char(ch, "You must return to your normal shape before assuming a new form.\r\n");
     return FALSE;
   }
-  if (GET_DISGUISE_RACE(ch)) {
+  if (GET_DISGUISE_RACE(ch))
+  {
     send_to_char(ch, "You must remove your disguise before using wildshape.\r\n");
     return FALSE;
   }
-  if (IS_MORPHED(ch)) {
+  if (IS_MORPHED(ch))
+  {
     send_to_char(ch, "You can't wildshape while shape-changed!\r\n");
     return FALSE;
   }
@@ -2329,7 +2660,8 @@ bool wildshape_engine(struct char_data *ch, char *argument, int mode) {
   /* try to match argument to the list */
   i = display_eligible_wildshape_races(ch, argument, TRUE, mode);
 
-  if (i == -1) { /* failed to find the race! (0 is human) */
+  if (i == -1)
+  { /* failed to find the race! (0 is human) */
     send_to_char(ch, "Please select a race to wildshape/polymorph to or select 'return'.\r\n");
     display_eligible_wildshape_races(ch, argument, FALSE, mode);
     return FALSE;
@@ -2349,7 +2681,7 @@ bool wildshape_engine(struct char_data *ch, char *argument, int mode) {
   abil_mods = set_wild_shape_mods(GET_DISGUISE_RACE(ch));
   /* set the bonuses */
   set_bonus_stats(ch, abil_mods->strength, abil_mods->constitution,
-          abil_mods->dexterity, abil_mods->natural_armor);
+                  abil_mods->dexterity, abil_mods->natural_armor);
   /* all stat modifications are done */
 
   /* assign appropriate racial/mobile feats here */
@@ -2367,25 +2699,30 @@ bool wildshape_engine(struct char_data *ch, char *argument, int mode) {
 }
 
 /* wildshape!  druids cup o' tea */
-ACMD(do_wildshape) {
+ACMD(do_wildshape)
+{
   char buf[200];
   int uses_remaining = 0;
 
   skip_spaces(&argument);
 
-  if (!*argument && HAS_FEAT(ch, FEAT_WILD_SHAPE)) {
+  if (!*argument && HAS_FEAT(ch, FEAT_WILD_SHAPE))
+  {
     send_to_char(ch, "Please select a race to switch to or select 'return'.\r\n");
     display_eligible_wildshape_races(ch, argument, FALSE, 0);
     return;
   }
 
-  if (strlen(argument) > 100) {
+  if (strlen(argument) > 100)
+  {
     send_to_char(ch, "The race name argument cannot be any longer than 100 characters.\r\n");
     return;
   }
 
-  if (!strcmp(argument, "return")) {
-    if (!AFF_FLAGGED(ch, AFF_WILD_SHAPE) /*&& !GET_DISGUISE_RACE(ch)*/) {
+  if (!strcmp(argument, "return"))
+  {
+    if (!AFF_FLAGGED(ch, AFF_WILD_SHAPE) /*&& !GET_DISGUISE_RACE(ch)*/)
+    {
       send_to_char(ch, "You are not wild shaped.\r\n");
       return;
     }
@@ -2412,20 +2749,23 @@ ACMD(do_wildshape) {
   /* BEGIN wildshape! */
 
   /* can we even use this? */
-  if (!HAS_FEAT(ch, FEAT_WILD_SHAPE) && !HAS_REAL_FEAT(ch, FEAT_WILD_SHAPE)) {
+  if (!HAS_FEAT(ch, FEAT_WILD_SHAPE) && !HAS_REAL_FEAT(ch, FEAT_WILD_SHAPE))
+  {
     send_to_char(ch, "You do not have the ability to shapechange using wild shape.\r\n");
     return;
   }
   uses_remaining = daily_uses_remaining(ch, FEAT_WILD_SHAPE);
   if (HAS_FEAT(ch, FEAT_LIMITLESS_SHAPES))
     ;
-  else if (uses_remaining <= 0) {
+  else if (uses_remaining <= 0)
+  {
     send_to_char(ch, "You must recover the energy required to take a wild shape.\r\n");
     return;
   }
 
   /* here is the engine, there are some more exit checks over there */
-  if (wildshape_engine(ch, argument, 0)) {
+  if (wildshape_engine(ch, argument, 0))
+  {
     USE_STANDARD_ACTION(ch);
   }
 
@@ -2433,7 +2773,8 @@ ACMD(do_wildshape) {
 }
 
 /* header file:  act.h */
-void list_forms(struct char_data *ch) {
+void list_forms(struct char_data *ch)
+{
   send_to_char(ch, "%s\r\n", npc_race_menu);
 }
 
@@ -2442,29 +2783,38 @@ void list_forms(struct char_data *ch) {
  * mode = 1 = druid
  * mode = 2 = polymorph spell
  * header file:  act.h */
-void perform_shapechange(struct char_data *ch, char *arg, int mode) {
+void perform_shapechange(struct char_data *ch, char *arg, int mode)
+{
   int form = -1;
 
-  if (!*arg) {
-    if (!IS_MORPHED(ch)) {
+  if (!*arg)
+  {
+    if (!IS_MORPHED(ch))
+    {
       send_to_char(ch, "You are already in your natural form!\r\n");
-    } else {
+    }
+    else
+    {
       send_to_char(ch, "You shift back into your natural form...\r\n");
       act("$n shifts back to his natural form.", TRUE, ch, 0, 0, TO_ROOM);
       IS_MORPHED(ch) = 0;
     }
     if (CLASS_LEVEL(ch, CLASS_DRUID) >= 6)
       list_forms(ch);
-  } else {
+  }
+  else
+  {
     form = atoi(arg);
-    if (form < 1 || form > NUM_RACE_TYPES - 1) {
+    if (form < 1 || form > NUM_RACE_TYPES - 1)
+    {
       send_to_char(ch, "That is not a valid race!\r\n");
       list_forms(ch);
       return;
     }
     IS_MORPHED(ch) = form;
     if (mode == 1)
-      GET_SHAPECHANGES(ch)--;
+      GET_SHAPECHANGES(ch)
+      --;
 
     /* the morph_to_x are in race.c */
     send_to_char(ch, "You transform into a %s!\r\n", RACE_ABBR(ch));
@@ -2473,14 +2823,14 @@ void perform_shapechange(struct char_data *ch, char *arg, int mode) {
     act("$n shapechanges!", TRUE, ch, 0, 0, TO_ROOM);
     act(morph_to_room[IS_MORPHED(ch)], TRUE, ch, 0, 0, TO_ROOM);
   }
-
 }
 
 /* engine for shapechanging / wildshape
    turned this into a sub-function in case we want
    to use the engine for spells (like 'animal shapes')
  */
-void perform_wildshape(struct char_data *ch, int form_num, int spellnum) {
+void perform_wildshape(struct char_data *ch, int form_num, int spellnum)
+{
   struct affected_type af[SHAPE_AFFECTS];
   int i = 0;
 
@@ -2495,7 +2845,8 @@ void perform_wildshape(struct char_data *ch, int form_num, int spellnum) {
     affect_from_char(ch, spellnum);
 
   /* should be ok to apply */
-  for (i = 0; i < SHAPE_AFFECTS; i++) {
+  for (i = 0; i < SHAPE_AFFECTS; i++)
+  {
     new_affect(&(af[i]));
     af[i].spell = spellnum;
     if (spellnum == SKILL_WILDSHAPE)
@@ -2506,29 +2857,30 @@ void perform_wildshape(struct char_data *ch, int form_num, int spellnum) {
 
   /* determine stat bonuses, etc */
   SUBRACE(ch) = form_num;
-  switch (SUBRACE(ch)) {
-    case PC_SUBRACE_BADGER:
-      af[0].location = APPLY_DEX;
-      af[0].modifier = 2;
-      break;
-    case PC_SUBRACE_PANTHER:
-      af[0].location = APPLY_DEX;
-      af[0].modifier = 8;
-      break;
-    case PC_SUBRACE_BEAR:
-      af[0].location = APPLY_STR;
-      af[0].modifier = 8;
-      af[1].location = APPLY_CON;
-      af[1].modifier = 6;
-      af[2].location = APPLY_HIT;
-      af[2].modifier = 60;
-      break;
-    case PC_SUBRACE_G_CROCODILE:
-      SET_BIT_AR(af[0].bitvector, AFF_SCUBA);
-      SET_BIT_AR(af[0].bitvector, AFF_WATERWALK);
-      af[1].location = APPLY_STR;
-      af[1].modifier = 6;
-      break;
+  switch (SUBRACE(ch))
+  {
+  case PC_SUBRACE_BADGER:
+    af[0].location = APPLY_DEX;
+    af[0].modifier = 2;
+    break;
+  case PC_SUBRACE_PANTHER:
+    af[0].location = APPLY_DEX;
+    af[0].modifier = 8;
+    break;
+  case PC_SUBRACE_BEAR:
+    af[0].location = APPLY_STR;
+    af[0].modifier = 8;
+    af[1].location = APPLY_CON;
+    af[1].modifier = 6;
+    af[2].location = APPLY_HIT;
+    af[2].modifier = 60;
+    break;
+  case PC_SUBRACE_G_CROCODILE:
+    SET_BIT_AR(af[0].bitvector, AFF_SCUBA);
+    SET_BIT_AR(af[0].bitvector, AFF_WATERWALK);
+    af[1].location = APPLY_STR;
+    af[1].modifier = 6;
+    break;
   }
 
   for (i = 0; i < SHAPE_AFFECTS; i++)
@@ -2546,14 +2898,16 @@ void perform_wildshape(struct char_data *ch, int form_num, int spellnum) {
 }
 
 /* a trivial shapechange code for druids, replaced by wildshape */
-ACMD(do_shapechange) {
+ACMD(do_shapechange)
+{
   int form_num = -1, i = 0, uses_remaining = 0;
 
   if (!ch->desc || IS_NPC(ch))
     return;
 
   /*********  added to factor out this command for the time being ******/
-  if (IS_MORPHED(ch)) {
+  if (IS_MORPHED(ch))
+  {
     send_to_char(ch, "You shift back into your natural form...\r\n");
     act("$n shifts back to his natural form.", TRUE, ch, 0, 0, TO_ROOM);
     IS_MORPHED(ch) = 0;
@@ -2565,17 +2919,20 @@ ACMD(do_shapechange) {
 
   skip_spaces(&argument);
 
-  if (!HAS_FEAT(ch, FEAT_WILD_SHAPE)) {
+  if (!HAS_FEAT(ch, FEAT_WILD_SHAPE))
+  {
     send_to_char(ch, "You do not have a wild shape.\r\n");
     return;
   }
 
-  if (((uses_remaining = daily_uses_remaining(ch, FEAT_WILD_SHAPE)) == 0) && *argument) {
+  if (((uses_remaining = daily_uses_remaining(ch, FEAT_WILD_SHAPE)) == 0) && *argument)
+  {
     send_to_char(ch, "You must recover the energy required to take a wild shape.\r\n");
     return;
   }
 
-  if (!*argument) {
+  if (!*argument)
+  {
     if (CLASS_LEVEL(ch, CLASS_DRUID) < 10)
       form_num = 1;
     if (CLASS_LEVEL(ch, CLASS_DRUID) < 14)
@@ -2585,33 +2942,39 @@ ACMD(do_shapechange) {
     if (CLASS_LEVEL(ch, CLASS_DRUID) >= 14)
       form_num = 4;
     send_to_char(ch, "Available Forms:\r\n\r\n");
-    for (i = 1; i <= form_num; i++) {
+    for (i = 1; i <= form_num; i++)
+    {
       send_to_char(ch, shape_types[i]);
       send_to_char(ch, "\r\n");
     }
     send_to_char(ch, "\r\nYou can return to your normal form by typing:  "
-            "shapechange normal\r\n");
+                     "shapechange normal\r\n");
     return;
   }
 
   /* should be OK at this point */
-  if (is_abbrev(argument, shape_types[1])) {
+  if (is_abbrev(argument, shape_types[1]))
+  {
     /* badger */
     form_num = PC_SUBRACE_BADGER;
-
-  } else if (is_abbrev(argument, shape_types[2])) {
+  }
+  else if (is_abbrev(argument, shape_types[2]))
+  {
     /* panther */
     form_num = PC_SUBRACE_PANTHER;
-
-  } else if (is_abbrev(argument, shape_types[3])) {
+  }
+  else if (is_abbrev(argument, shape_types[3]))
+  {
     /* bear */
     form_num = PC_SUBRACE_BEAR;
-
-  } else if (is_abbrev(argument, shape_types[4])) {
+  }
+  else if (is_abbrev(argument, shape_types[4]))
+  {
     /* giant crocodile */
     form_num = PC_SUBRACE_G_CROCODILE;
-
-  } else if (is_abbrev(argument, "normal")) {
+  }
+  else if (is_abbrev(argument, "normal"))
+  {
     /* return to normal form */
     SUBRACE(ch) = 0;
     IS_MORPHED(ch) = 0;
@@ -2619,12 +2982,12 @@ ACMD(do_shapechange) {
       affect_from_char(ch, SKILL_WILDSHAPE);
     send_to_char(ch, "You return to your normal form..\r\n");
     return;
-
-  } else {
+  }
+  else
+  {
     /* invalid */
     send_to_char(ch, "This is not a valid form to shapechange into!\r\n");
     return;
-
   }
 
   perform_wildshape(ch, form_num, SKILL_WILDSHAPE);
@@ -2635,19 +2998,25 @@ ACMD(do_shapechange) {
 
 /*****************************/
 
-int display_eligible_disguise_races(struct char_data *ch, char *argument, int silent) {
+int display_eligible_disguise_races(struct char_data *ch, char *argument, int silent)
+{
   int i = 0;
 
-  for (i = 0; i < NUM_EXTENDED_RACES; i++) {
-    switch (race_list[i].family) {
-      case RACE_TYPE_HUMANOID:
-        if (race_list[i].size == GET_SIZE(ch)) {
-          break;
-        }
-      default: continue;
+  for (i = 0; i < NUM_EXTENDED_RACES; i++)
+  {
+    switch (race_list[i].family)
+    {
+    case RACE_TYPE_HUMANOID:
+      if (race_list[i].size == GET_SIZE(ch))
+      {
+        break;
+      }
+    default:
+      continue;
     }
 
-    if (!silent) {
+    if (!silent)
+    {
       send_to_char(ch, "%s\r\n", race_list[i].name);
     }
 
@@ -2661,30 +3030,36 @@ int display_eligible_disguise_races(struct char_data *ch, char *argument, int si
     return i;
 }
 
-ACMD(do_disguise) {
+ACMD(do_disguise)
+{
   int i = 0;
   char buf[200];
 
   skip_spaces(&argument);
 
-  if (!GET_ABILITY(ch, ABILITY_DISGUISE)) {
+  if (!GET_ABILITY(ch, ABILITY_DISGUISE))
+  {
     send_to_char(ch, "You do not have the ability to disguise!\r\n");
     return;
   }
 
-  if (!*argument) {
+  if (!*argument)
+  {
     send_to_char(ch, "Please select a race to disguise or type 'disguise remove' to remove your disguise.\r\n");
     display_eligible_disguise_races(ch, argument, FALSE);
     return;
   }
 
-  if (strlen(argument) > 100) {
+  if (strlen(argument) > 100)
+  {
     send_to_char(ch, "The race name argument cannot be any longer than 100 characters.\r\n");
     return;
   }
 
-  if (!strcmp(argument, "remove")) {
-    if (!GET_DISGUISE_RACE(ch)) {
+  if (!strcmp(argument, "remove"))
+  {
+    if (!GET_DISGUISE_RACE(ch))
+    {
       send_to_char(ch, "You are not currently disguised.\r\n");
       return;
     }
@@ -2706,11 +3081,13 @@ ACMD(do_disguise) {
 
   /*attempting to apply a disguise*/
 
-  if (AFF_FLAGGED(ch, AFF_WILD_SHAPE)) {
+  if (AFF_FLAGGED(ch, AFF_WILD_SHAPE))
+  {
     send_to_char(ch, "You must 'wildshape return' to return to your normal shape before trying to assume a disguise.\r\n");
     return;
   }
-  if (GET_DISGUISE_RACE(ch)) {
+  if (GET_DISGUISE_RACE(ch))
+  {
     send_to_char(ch, "You must 'disguise remove' to your normal race before assuming a new disguise.\r\n");
     return;
   }
@@ -2718,7 +3095,8 @@ ACMD(do_disguise) {
   /* try to match argument to the list */
   i = display_eligible_disguise_races(ch, argument, TRUE);
 
-  if (i == 0) { /* failed to find the race */
+  if (i == 0)
+  { /* failed to find the race */
     send_to_char(ch, "Please select a race to disguise to or type 'disguise remove'.\r\n");
     display_eligible_disguise_races(ch, argument, FALSE);
     return;
@@ -2740,7 +3118,8 @@ ACMD(do_disguise) {
   return;
 }
 
-ACMD(do_quit) {
+ACMD(do_quit)
+{
   if (IS_NPC(ch) || !ch->desc)
     return;
 
@@ -2748,10 +3127,13 @@ ACMD(do_quit) {
     send_to_char(ch, "You have to type quit--no less, to quit!\r\n");
   else if (FIGHTING(ch))
     send_to_char(ch, "No way!  You're fighting for your life!\r\n");
-  else if (GET_POS(ch) < POS_STUNNED) {
+  else if (GET_POS(ch) < POS_STUNNED)
+  {
     send_to_char(ch, "You die before your time...\r\n");
     die(ch, NULL);
-  } else {
+  }
+  else
+  {
     act("$n has left the game.", TRUE, ch, 0, 0, TO_ROOM);
     mudlog(NRM, MAX(LVL_IMMORT, GET_INVIS_LEV(ch)), TRUE, "%s has quit the game.", GET_NAME(ch));
 
@@ -2770,7 +3152,8 @@ ACMD(do_quit) {
     GET_LOADROOM(ch) = GET_ROOM_VNUM(IN_ROOM(ch));
 
     /* Stop snooping so you can't see passwords during deletion or change. */
-    if (ch->desc->snoop_by) {
+    if (ch->desc->snoop_by)
+    {
       write_to_output(ch->desc->snoop_by, "Your victim is no longer among us.\r\n");
       ch->desc->snoop_by->snooping = NULL;
       ch->desc->snoop_by = NULL;
@@ -2780,7 +3163,8 @@ ACMD(do_quit) {
   }
 }
 
-ACMD(do_save) {
+ACMD(do_save)
+{
   if (IS_NPC(ch) || !ch->desc)
     return;
 
@@ -2794,12 +3178,14 @@ ACMD(do_save) {
 
 /* Generic function for commands which are normally overridden by special
  * procedures - i.e., shop commands, mail commands, etc. */
-ACMD(do_not_here) {
+ACMD(do_not_here)
+{
   send_to_char(ch, "Sorry, but you cannot do that here!\r\n");
 }
 
 /* ability lore, functions like identify */
-ACMD(do_lore) {
+ACMD(do_lore)
+{
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *tch = NULL;
   struct obj_data *tobj = NULL;
@@ -2810,23 +3196,27 @@ ACMD(do_lore) {
   if (IS_NPC(ch))
     return;
 
-  if (!IS_NPC(ch) && !GET_ABILITY(ch, ABILITY_LORE)) {
+  if (!IS_NPC(ch) && !GET_ABILITY(ch, ABILITY_LORE))
+  {
     send_to_char(ch, "You have no ability to do that!\r\n");
     return;
   }
 
   one_argument(argument, arg);
 
-  target = generic_find(arg, FIND_CHAR_ROOM | FIND_OBJ_INV | FIND_OBJ_ROOM |
-          FIND_OBJ_EQUIP, ch, &tch, &tobj);
+  target = generic_find(arg, FIND_CHAR_ROOM | FIND_OBJ_INV | FIND_OBJ_ROOM | FIND_OBJ_EQUIP, ch, &tch, &tobj);
 
-  if (*arg) {
-    if (!target) {
+  if (*arg)
+  {
+    if (!target)
+    {
       act("There is nothing to here to use your Lore ability on...", FALSE,
-              ch, NULL, NULL, TO_CHAR);
+          ch, NULL, NULL, TO_CHAR);
       return;
     }
-  } else {
+  }
+  else
+  {
     tch = ch;
   }
 
@@ -2834,23 +3224,26 @@ ACMD(do_lore) {
   USE_STANDARD_ACTION(ch);
 
   /* establish any lore bonus */
-  if (HAS_FEAT(ch, FEAT_KNOWLEDGE)) {
+  if (HAS_FEAT(ch, FEAT_KNOWLEDGE))
+  {
     lore_bonus += 4;
     if (GET_WIS_BONUS(ch) > 0)
       lore_bonus += GET_WIS_BONUS(ch);
   }
-  if (CLASS_LEVEL(ch, CLASS_BARD) && HAS_FEAT(ch, FEAT_BARDIC_KNOWLEDGE)) {
+  if (CLASS_LEVEL(ch, CLASS_BARD) && HAS_FEAT(ch, FEAT_BARDIC_KNOWLEDGE))
+  {
     lore_bonus += CLASS_LEVEL(ch, CLASS_BARD);
   }
 
   /* good enough lore for object? */
   if (tobj && GET_OBJ_COST(tobj) <=
-          lore_app[(compute_ability(ch, ABILITY_LORE) + lore_bonus)]
-          ) {
+                  lore_app[(compute_ability(ch, ABILITY_LORE) + lore_bonus)])
+  {
     knowledge = TRUE;
   }
 
-  if (tobj && !knowledge) {
+  if (tobj && !knowledge)
+  {
     send_to_char(ch, "Your knowledge is not extensive enough to know about this object!\r\n");
     return;
   }
@@ -2858,77 +3251,96 @@ ACMD(do_lore) {
   /* good enough lore for mobile? */
   knowledge = FALSE;
   if (tch && (GET_LEVEL(tch) * 2) <=
-          lore_app[(compute_ability(ch, ABILITY_LORE) + lore_bonus)]
-          ) {
+                 lore_app[(compute_ability(ch, ABILITY_LORE) + lore_bonus)])
+  {
     knowledge = TRUE;
   }
 
-  if (tch && !knowledge) {
+  if (tch && !knowledge)
+  {
     send_to_char(ch, "Your knowledge is not extensive enough to know about this creature!\r\n");
     return;
   }
 
   /* success! */
-  if (tobj) {
+  if (tobj)
+  {
     do_stat_object(ch, tobj, ITEM_STAT_MODE_LORE_SKILL);
-  } else if (tch) {
+  }
+  else if (tch)
+  {
     /* victim */
     lore_id_vict(ch, tch);
   }
 }
 
 /* a generic command to get rid of a fly / levitate flag */
-ACMD(do_land) {
+ACMD(do_land)
+{
   bool msg = FALSE;
 
-  if (affected_by_spell(ch, SPELL_FLY)) {
+  if (affected_by_spell(ch, SPELL_FLY))
+  {
     affect_from_char(ch, SPELL_FLY);
     msg = TRUE;
   }
 
-  if (affected_by_spell(ch, SKILL_DRHRT_WINGS)) {
+  if (affected_by_spell(ch, SKILL_DRHRT_WINGS))
+  {
     affect_from_char(ch, SKILL_DRHRT_WINGS);
     msg = TRUE;
   }
 
-  if (affected_by_spell(ch, SPELL_LEVITATE)) {
+  if (affected_by_spell(ch, SPELL_LEVITATE))
+  {
     affect_from_char(ch, SPELL_LEVITATE);
     msg = TRUE;
   }
 
-  if AFF_FLAGGED(ch, AFF_FLYING) {
-    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLYING);
-    msg = TRUE;
-  }
+  if
+    AFF_FLAGGED(ch, AFF_FLYING)
+    {
+      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLYING);
+      msg = TRUE;
+    }
 
-  if AFF_FLAGGED(ch, AFF_LEVITATE) {
-    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_LEVITATE);
-    msg = TRUE;
-  }
+  if
+    AFF_FLAGGED(ch, AFF_LEVITATE)
+    {
+      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_LEVITATE);
+      msg = TRUE;
+    }
 
-  if (msg) {
+  if (msg)
+  {
     send_to_char(ch, "You land on the ground.\r\n");
     act("$n lands on the ground.", TRUE, ch, 0, 0, TO_ROOM);
-  } else {
+  }
+  else
+  {
     send_to_char(ch, "You are not flying or levitating.\r\n");
   }
 }
 
 /* levitate ability (drow) */
-ACMD(do_levitate) {
+ACMD(do_levitate)
+{
   int uses_remaining = 0;
 
-  if (!HAS_FEAT(ch, FEAT_SLA_LEVITATE)) {
+  if (!HAS_FEAT(ch, FEAT_SLA_LEVITATE))
+  {
     send_to_char(ch, "You don't have this ability.\r\n");
     return;
   }
 
-  if (AFF_FLAGGED(ch, AFF_LEVITATE)) {
+  if (AFF_FLAGGED(ch, AFF_LEVITATE))
+  {
     send_to_char(ch, "You are already levitating!\r\n");
     return;
   }
 
-  if (!IS_NPC(ch) && ((uses_remaining = daily_uses_remaining(ch, FEAT_SLA_LEVITATE)) == 0)) {
+  if (!IS_NPC(ch) && ((uses_remaining = daily_uses_remaining(ch, FEAT_SLA_LEVITATE)) == 0))
+  {
     send_to_char(ch, "You must recover before you can use this ability again.\r\n");
     return;
   }
@@ -2948,20 +3360,24 @@ ACMD(do_levitate) {
 }
 
 /* darkness ability (drow) */
-ACMD(do_darkness) {
+ACMD(do_darkness)
+{
   int uses_remaining = 0;
 
-  if (!HAS_FEAT(ch, FEAT_SLA_DARKNESS)) {
+  if (!HAS_FEAT(ch, FEAT_SLA_DARKNESS))
+  {
     send_to_char(ch, "You don't have this ability.\r\n");
     return;
   }
 
-  if (ROOM_AFFECTED(IN_ROOM(ch), RAFF_DARKNESS)) {
+  if (ROOM_AFFECTED(IN_ROOM(ch), RAFF_DARKNESS))
+  {
     send_to_char(ch, "The area is already dark!\r\n");
     return;
   }
 
-  if (!IS_NPC(ch) && ((uses_remaining = daily_uses_remaining(ch, FEAT_SLA_DARKNESS)) == 0)) {
+  if (!IS_NPC(ch) && ((uses_remaining = daily_uses_remaining(ch, FEAT_SLA_DARKNESS)) == 0))
+  {
     send_to_char(ch, "You must recover before you can use this ability again.\r\n");
     return;
   }
@@ -2975,15 +3391,18 @@ ACMD(do_darkness) {
 }
 
 /* invisible rogue feat */
-ACMD(do_invisiblerogue) {
+ACMD(do_invisiblerogue)
+{
   int uses_remaining = 0;
 
-  if (!HAS_FEAT(ch, FEAT_INVISIBLE_ROGUE)) {
+  if (!HAS_FEAT(ch, FEAT_INVISIBLE_ROGUE))
+  {
     send_to_char(ch, "You don't have this ability.\r\n");
     return;
   }
 
-  if (!IS_NPC(ch) && ((uses_remaining = daily_uses_remaining(ch, FEAT_INVISIBLE_ROGUE)) == 0)) {
+  if (!IS_NPC(ch) && ((uses_remaining = daily_uses_remaining(ch, FEAT_INVISIBLE_ROGUE)) == 0))
+  {
     send_to_char(ch, "You must recover before you can use this ability again.\r\n");
     return;
   }
@@ -2996,16 +3415,21 @@ ACMD(do_invisiblerogue) {
 }
 
 /* race trelux innate ability */
-ACMD(do_fly) {
-  if (!HAS_FEAT(ch, FEAT_WINGS)) {
+ACMD(do_fly)
+{
+  if (!HAS_FEAT(ch, FEAT_WINGS))
+  {
     send_to_char(ch, "You don't have this ability.\r\n");
     return;
   }
 
-  if (AFF_FLAGGED(ch, AFF_FLYING)) {
+  if (AFF_FLAGGED(ch, AFF_FLYING))
+  {
     send_to_char(ch, "You are already flying!\r\n");
     return;
-  } else {
+  }
+  else
+  {
     SET_BIT_AR(AFF_FLAGS(ch), AFF_FLYING);
     act("$n begins to fly above the ground!", TRUE, ch, 0, 0, TO_ROOM);
     send_to_char(ch, "You take off and begin to fly!\r\n");
@@ -3016,7 +3440,8 @@ ACMD(do_fly) {
 
 /* Helper function for 'search' command.
  * Returns the DC of the search attempt to find the specified door. */
-int get_hidden_door_dc(struct char_data *ch, int door) {
+int get_hidden_door_dc(struct char_data *ch, int door)
+{
 
   /* (Taken from the d&d 3.5e SRD)
    * Task	                                                Search DC
@@ -3053,7 +3478,8 @@ int get_hidden_door_dc(struct char_data *ch, int door) {
 
 /* 'search' command, uses the rogue's search skill, if available, although
  * the command is available to all.  */
-ACMD(do_search) {
+ACMD(do_search)
+{
   int door, found = FALSE;
   //  int val;
   //  struct char_data *i; // for player/mob
@@ -3064,25 +3490,28 @@ ACMD(do_search) {
   //  struct obj_data *next_obj = NULL;
   int search_dc = 0;
 
-  if (FIGHTING(ch)) {
+  if (FIGHTING(ch))
+  {
     send_to_char(ch, "You can't do that in combat!\r\n");
     return;
   }
 
-  if (AFF_FLAGGED(ch, AFF_GRAPPLED) || AFF_FLAGGED(ch, AFF_ENTANGLED)) {
+  if (AFF_FLAGGED(ch, AFF_GRAPPLED) || AFF_FLAGGED(ch, AFF_ENTANGLED))
+  {
     send_to_char(ch, "You are unable to move to make your attempt!\r\n");
     return;
   }
 
-  if (!LIGHT_OK(ch)) {
+  if (!LIGHT_OK(ch))
+  {
     send_to_char(ch, "You can't see a thing!\r\n");
     return;
   }
 
-
   skip_spaces(&argument);
 
-  if (!*argument) {
+  if (!*argument)
+  {
     /*
         for (obj = objlist; obj; obj = obj->next_content) {
           if (OBJ_FLAGGED(obj, ITEM_HIDDEN)) {
@@ -3111,14 +3540,18 @@ ACMD(do_search) {
           }
         }
      */
-    if (!found) {
+    if (!found)
+    {
       /* find a hidden door */
-      for (door = 0; door < NUM_OF_DIRS && found == FALSE; door++) {
-        if (EXIT(ch, door) && EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN)) {
+      for (door = 0; door < NUM_OF_DIRS && found == FALSE; door++)
+      {
+        if (EXIT(ch, door) && EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN))
+        {
           /* Get the DC */
           search_dc = get_hidden_door_dc(ch, door);
           /* Roll the dice... */
-          if (skill_check(ch, ABILITY_PERCEPTION, search_dc)) {
+          if (skill_check(ch, ABILITY_PERCEPTION, search_dc))
+          {
             act("You find a secret entrance!", FALSE, ch, 0, 0, TO_CHAR);
             act("$n finds a secret entrance!", FALSE, ch, 0, 0, TO_ROOM);
             REMOVE_BIT(EXIT(ch, door)->exit_info, EX_HIDDEN);
@@ -3147,7 +3580,8 @@ ACMD(do_search) {
     }
   } */
 
-  if (!found) {
+  if (!found)
+  {
     send_to_char(ch, "You don't find anything you didn't see before.\r\n");
   }
 
@@ -3155,21 +3589,25 @@ ACMD(do_search) {
 }
 
 /* vanish - epic rogue talent */
-ACMD(do_vanish) {
+ACMD(do_vanish)
+{
   struct char_data *vict, *next_v;
   int uses_remaining = 0;
 
-  if (!HAS_FEAT(ch, FEAT_VANISH)) {
+  if (!HAS_FEAT(ch, FEAT_VANISH))
+  {
     send_to_char(ch, "You do not know how to vanish!\r\n");
     return;
   }
 
-  if (((uses_remaining = daily_uses_remaining(ch, FEAT_VANISH)) == 0)) {
+  if (((uses_remaining = daily_uses_remaining(ch, FEAT_VANISH)) == 0))
+  {
     send_to_char(ch, "You must recover before you can vanish again.\r\n");
     return;
   }
 
-  if (char_has_mud_event(ch, eVANISHED)) {
+  if (char_has_mud_event(ch, eVANISHED))
+  {
     send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
     return;
   }
@@ -3183,17 +3621,21 @@ ACMD(do_vanish) {
   attach_mud_event(new_mud_event(eVANISH, ch, NULL), 12 * PASSES_PER_SEC);
 
   /* stop vanishers combat */
-  if (char_has_mud_event(ch, eCOMBAT_ROUND)) {
+  if (char_has_mud_event(ch, eCOMBAT_ROUND))
+  {
     event_cancel_specific(ch, eCOMBAT_ROUND);
   }
   stop_fighting(ch);
 
   /* stop all those who are fighting vanisher */
-  for (vict = world[IN_ROOM(ch)].people; vict; vict = next_v) {
+  for (vict = world[IN_ROOM(ch)].people; vict; vict = next_v)
+  {
     next_v = vict->next_in_room;
 
-    if (FIGHTING(vict) == ch) {
-      if (char_has_mud_event(vict, eCOMBAT_ROUND)) {
+    if (FIGHTING(vict) == ch)
+    {
+      if (char_has_mud_event(vict, eCOMBAT_ROUND))
+      {
         event_cancel_specific(vict, eCOMBAT_ROUND);
       }
       stop_fighting(vict);
@@ -3208,33 +3650,40 @@ ACMD(do_vanish) {
     GET_HIT(ch) += 20;
 
   /* enter stealth mode */
-  if (!AFF_FLAGGED(ch, AFF_SNEAK)) {
+  if (!AFF_FLAGGED(ch, AFF_SNEAK))
+  {
     SET_BIT_AR(AFF_FLAGS(ch), AFF_SNEAK);
   }
-  if (!AFF_FLAGGED(ch, AFF_HIDE)) {
+  if (!AFF_FLAGGED(ch, AFF_HIDE))
+  {
     SET_BIT_AR(AFF_FLAGS(ch), AFF_HIDE);
   }
 }
 
 /* entry point for sneak, the command just flips the flag */
-ACMD(do_sneak) {
+ACMD(do_sneak)
+{
 
-  if (FIGHTING(ch)) {
+  if (FIGHTING(ch))
+  {
     send_to_char(ch, "You can't do that in combat!\r\n");
     return;
   }
 
-  if (AFF_FLAGGED(ch, AFF_GRAPPLED) || AFF_FLAGGED(ch, AFF_ENTANGLED)) {
+  if (AFF_FLAGGED(ch, AFF_GRAPPLED) || AFF_FLAGGED(ch, AFF_ENTANGLED))
+  {
     send_to_char(ch, "You are unable to move to make your attempt!\r\n");
     return;
   }
 
-  if (IS_NPC(ch) || !GET_ABILITY(ch, ABILITY_STEALTH)) {
+  if (IS_NPC(ch) || !GET_ABILITY(ch, ABILITY_STEALTH))
+  {
     send_to_char(ch, "You have no idea how to do that.\r\n");
     return;
   }
 
-  if (AFF_FLAGGED(ch, AFF_SNEAK)) {
+  if (AFF_FLAGGED(ch, AFF_SNEAK))
+  {
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_SNEAK);
     send_to_char(ch, "You stop sneaking...\r\n");
     return;
@@ -3246,42 +3695,55 @@ ACMD(do_sneak) {
 }
 
 /* entry point for hide, the command just flips the flag */
-ACMD(do_hide) {
+ACMD(do_hide)
+{
 
-  if (FIGHTING(ch) && !AFF_FLAGGED(ch, AFF_GRAPPLED) && !AFF_FLAGGED(ch, AFF_ENTANGLED)) {
-    if (HAS_FEAT(ch, FEAT_HIDE_IN_PLAIN_SIGHT)) {
+  if (FIGHTING(ch) && !AFF_FLAGGED(ch, AFF_GRAPPLED) && !AFF_FLAGGED(ch, AFF_ENTANGLED))
+  {
+    if (HAS_FEAT(ch, FEAT_HIDE_IN_PLAIN_SIGHT))
+    {
       USE_STANDARD_ACTION(ch);
-      if ((skill_roll(FIGHTING(ch), ABILITY_PERCEPTION)) < (skill_roll(ch, ABILITY_STEALTH) - 8)) {
+      if ((skill_roll(FIGHTING(ch), ABILITY_PERCEPTION)) < (skill_roll(ch, ABILITY_STEALTH) - 8))
+      {
         /* don't forget to remove the fight event! */
-        if (char_has_mud_event(FIGHTING(ch), eCOMBAT_ROUND)) {
+        if (char_has_mud_event(FIGHTING(ch), eCOMBAT_ROUND))
+        {
           event_cancel_specific(FIGHTING(ch), eCOMBAT_ROUND);
         }
         stop_fighting(FIGHTING(ch));
-        if (char_has_mud_event(ch, eCOMBAT_ROUND)) {
+        if (char_has_mud_event(ch, eCOMBAT_ROUND))
+        {
           event_cancel_specific(ch, eCOMBAT_ROUND);
         }
         stop_fighting(ch);
-      } else {
+      }
+      else
+      {
         send_to_char(ch, "You failed to hide in plain sight!\r\n");
         return;
       }
-    } else {
+    }
+    else
+    {
       send_to_char(ch, "You can't do that in combat!\r\n");
       return;
     }
   }
 
-  if (AFF_FLAGGED(ch, AFF_GRAPPLED) || AFF_FLAGGED(ch, AFF_ENTANGLED)) {
+  if (AFF_FLAGGED(ch, AFF_GRAPPLED) || AFF_FLAGGED(ch, AFF_ENTANGLED))
+  {
     send_to_char(ch, "You are unable to move to make your attempt!\r\n");
     return;
   }
 
-  if (IS_NPC(ch) || !GET_ABILITY(ch, ABILITY_STEALTH)) {
+  if (IS_NPC(ch) || !GET_ABILITY(ch, ABILITY_STEALTH))
+  {
     send_to_char(ch, "You have no idea how to do that.\r\n");
     return;
   }
 
-  if (AFF_FLAGGED(ch, AFF_HIDE)) {
+  if (AFF_FLAGGED(ch, AFF_HIDE))
+  {
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_HIDE);
     send_to_char(ch, "You step out of the shadows...\r\n");
     return;
@@ -3293,8 +3755,10 @@ ACMD(do_hide) {
 }
 
 /* listen-mode, similar to search - try to find hidden/sneaking targets */
-ACMD(do_listen) {
-  if (AFF_FLAGGED(ch, AFF_GRAPPLED) || AFF_FLAGGED(ch, AFF_ENTANGLED)) {
+ACMD(do_listen)
+{
+  if (AFF_FLAGGED(ch, AFF_GRAPPLED) || AFF_FLAGGED(ch, AFF_ENTANGLED))
+  {
     send_to_char(ch, "You are unable to move to make your attempt!\r\n");
     return;
   }
@@ -3307,7 +3771,8 @@ ACMD(do_listen) {
   }
    */
 
-  if (AFF_FLAGGED(ch, AFF_LISTEN)) {
+  if (AFF_FLAGGED(ch, AFF_LISTEN))
+  {
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_LISTEN);
     send_to_char(ch, "You stop trying to listen...\r\n");
     return;
@@ -3318,8 +3783,10 @@ ACMD(do_listen) {
 }
 
 /* spot-mode, similar to search - try to find hidden/sneaking targets */
-ACMD(do_spot) {
-  if (AFF_FLAGGED(ch, AFF_GRAPPLED) || AFF_FLAGGED(ch, AFF_ENTANGLED)) {
+ACMD(do_spot)
+{
+  if (AFF_FLAGGED(ch, AFF_GRAPPLED) || AFF_FLAGGED(ch, AFF_ENTANGLED))
+  {
     send_to_char(ch, "You are unable to move to make your attempt!\r\n");
     return;
   }
@@ -3332,7 +3799,8 @@ ACMD(do_spot) {
   }
    */
 
-  if (AFF_FLAGGED(ch, AFF_SPOT)) {
+  if (AFF_FLAGGED(ch, AFF_SPOT))
+  {
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_SPOT);
     send_to_char(ch, "You stop trying to spot...\r\n");
     return;
@@ -3343,28 +3811,34 @@ ACMD(do_spot) {
 }
 
 /* fairly stock steal command */
-ACMD(do_steal) {
+ACMD(do_steal)
+{
   struct char_data *vict;
   struct obj_data *obj;
   char vict_name[MAX_INPUT_LENGTH], obj_name[MAX_INPUT_LENGTH];
   int percent, gold, eq_pos, pcsteal = 0, ohoh = 0;
 
-  if (IS_NPC(ch) || !GET_ABILITY(ch, ABILITY_SLEIGHT_OF_HAND)) {
+  if (IS_NPC(ch) || !GET_ABILITY(ch, ABILITY_SLEIGHT_OF_HAND))
+  {
     send_to_char(ch, "You have no idea how to do that.\r\n");
     return;
   }
 
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL))
+  {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
     return;
   }
 
   two_arguments(argument, obj_name, vict_name);
 
-  if (!(vict = get_char_vis(ch, vict_name, NULL, FIND_CHAR_ROOM))) {
+  if (!(vict = get_char_vis(ch, vict_name, NULL, FIND_CHAR_ROOM)))
+  {
     send_to_char(ch, "Steal what from who?\r\n");
     return;
-  } else if (vict == ch) {
+  }
+  else if (vict == ch)
+  {
     send_to_char(ch, "Come on now, that's rather stupid!\r\n");
     return;
   }
@@ -3385,33 +3859,44 @@ ACMD(do_steal) {
   if (GET_LEVEL(vict) >= LVL_IMMORT || pcsteal || GET_MOB_SPEC(vict) == shop_keeper)
     percent = 100; /* Failure */
 
-  if (IS_NPC(vict) && MOB_FLAGGED(vict, MOB_NOSTEAL)) {
+  if (IS_NPC(vict) && MOB_FLAGGED(vict, MOB_NOSTEAL))
+  {
     send_to_char(ch, "Something about this victim makes it clear this will "
-            "not work...\r\n");
+                     "not work...\r\n");
     percent = 100;
   }
 
-  if (str_cmp(obj_name, "coins") && str_cmp(obj_name, "gold")) {
+  if (str_cmp(obj_name, "coins") && str_cmp(obj_name, "gold"))
+  {
 
-    if (!(obj = get_obj_in_list_vis(ch, obj_name, NULL, vict->carrying))) {
+    if (!(obj = get_obj_in_list_vis(ch, obj_name, NULL, vict->carrying)))
+    {
 
       for (eq_pos = 0; eq_pos < NUM_WEARS; eq_pos++)
         if (GET_EQ(vict, eq_pos) &&
-                (isname(obj_name, GET_EQ(vict, eq_pos)->name)) &&
-                CAN_SEE_OBJ(ch, GET_EQ(vict, eq_pos))) {
+            (isname(obj_name, GET_EQ(vict, eq_pos)->name)) &&
+            CAN_SEE_OBJ(ch, GET_EQ(vict, eq_pos)))
+        {
           obj = GET_EQ(vict, eq_pos);
           break;
         }
-      if (!obj) {
+      if (!obj)
+      {
         act("$E hasn't got that item.", FALSE, ch, 0, vict, TO_CHAR);
         return;
-      } else { /* It is equipment */
-        if ((GET_POS(vict) > POS_STUNNED)) {
+      }
+      else
+      { /* It is equipment */
+        if ((GET_POS(vict) > POS_STUNNED))
+        {
           send_to_char(ch, "Steal the equipment now?  Impossible!\r\n");
           return;
-        } else {
+        }
+        else
+        {
           if (!give_otrigger(obj, vict, ch) ||
-                  !receive_mtrigger(ch, vict, obj)) {
+              !receive_mtrigger(ch, vict, obj))
+          {
             send_to_char(ch, "Impossible!\r\n");
             return;
           }
@@ -3420,49 +3905,66 @@ ACMD(do_steal) {
           obj_to_char(unequip_char(vict, eq_pos), ch);
         }
       }
-    } else { /* obj found in inventory */
+    }
+    else
+    { /* obj found in inventory */
 
       percent += GET_OBJ_WEIGHT(obj); /* Make heavy harder */
 
-      if (percent > compute_ability(ch, ABILITY_SLEIGHT_OF_HAND)) {
+      if (percent > compute_ability(ch, ABILITY_SLEIGHT_OF_HAND))
+      {
         ohoh = TRUE;
         send_to_char(ch, "Oops..\r\n");
         act("$n tried to steal something from you!", FALSE, ch, 0, vict, TO_VICT);
         act("$n tries to steal something from $N.", TRUE, ch, 0, vict, TO_NOTVICT);
-      } else { /* Steal the item */
-        if (IS_CARRYING_N(ch) + 1 < CAN_CARRY_N(ch)) {
+      }
+      else
+      { /* Steal the item */
+        if (IS_CARRYING_N(ch) + 1 < CAN_CARRY_N(ch))
+        {
           if (!give_otrigger(obj, vict, ch) ||
-                  !receive_mtrigger(ch, vict, obj)) {
+              !receive_mtrigger(ch, vict, obj))
+          {
             send_to_char(ch, "Impossible!\r\n");
             return;
           }
-          if (IS_CARRYING_W(ch) + GET_OBJ_WEIGHT(obj) < CAN_CARRY_W(ch)) {
+          if (IS_CARRYING_W(ch) + GET_OBJ_WEIGHT(obj) < CAN_CARRY_W(ch))
+          {
             obj_from_char(obj);
             obj_to_char(obj, ch);
             send_to_char(ch, "Got it!\r\n");
           }
-        } else
+        }
+        else
           send_to_char(ch, "You cannot carry that much.\r\n");
       }
     }
-  } else { /* Steal some coins */
-    if (AWAKE(vict) && (percent > compute_ability(ch, ABILITY_SLEIGHT_OF_HAND))) {
+  }
+  else
+  { /* Steal some coins */
+    if (AWAKE(vict) && (percent > compute_ability(ch, ABILITY_SLEIGHT_OF_HAND)))
+    {
       ohoh = TRUE;
       send_to_char(ch, "Oops..\r\n");
       act("You discover that $n has $s hands in your wallet.", FALSE, ch, 0, vict, TO_VICT);
       act("$n tries to steal gold from $N.", TRUE, ch, 0, vict, TO_NOTVICT);
-    } else {
+    }
+    else
+    {
       /* Steal some gold coins */
       gold = (GET_GOLD(vict) * rand_number(1, 10)) / 100;
       gold = MIN(1782, gold);
-      if (gold > 0) {
+      if (gold > 0)
+      {
         increase_gold(ch, gold);
         decrease_gold(vict, gold);
         if (gold > 1)
           send_to_char(ch, "Bingo!  You got %d gold coins.\r\n", gold);
         else
           send_to_char(ch, "You manage to swipe a solitary gold coin.\r\n");
-      } else {
+      }
+      else
+      {
         send_to_char(ch, "You couldn't get any gold...\r\n");
       }
     }
@@ -3475,13 +3977,13 @@ ACMD(do_steal) {
   USE_STANDARD_ACTION(ch);
 }
 
-
 /* entry point for listing spells, the rest of the code is in spec_procs.c */
 
 /* this only lists spells castable for a given class */
 
 /* Ornir:  17.03.16 - Add 'circle' parameter to the command */
-ACMD(do_spells) {
+ACMD(do_spells)
+{
   char arg[MAX_INPUT_LENGTH], arg1[MAX_INPUT_LENGTH];
   int class = -1, circle = -1;
 
@@ -3490,27 +3992,36 @@ ACMD(do_spells) {
 
   two_arguments(argument, arg, arg1);
 
-  if (!*arg && subcmd != SCMD_CONCOCT) {
+  if (!*arg && subcmd != SCMD_CONCOCT)
+  {
     send_to_char(ch, "The spells command requires at least one argument - Usage:  spells <class name> <circle>\r\n");
-  } else {
+  }
+  else
+  {
     if (subcmd == SCMD_CONCOCT)
       class = CLASS_ALCHEMIST;
     else
       class = get_class_by_name(arg);
-    if (class < 0 || class >= NUM_CLASSES) {
+    if (class < 0 || class >= NUM_CLASSES)
+    {
       send_to_char(ch, "That is not a valid class!\r\n");
       return;
     }
-    if (*arg1) {
+    if (*arg1)
+    {
       circle = atoi(arg1);
-      if (circle < 1 || circle > 9) {
+      if (circle < 1 || circle > 9)
+      {
         send_to_char(ch, "That is an invalid %s circle!\r\n", class == CLASS_ALCHEMIST ? "extract" : "spell");
         return;
       }
     }
-    if (CLASS_LEVEL(ch, class)) {
+    if (CLASS_LEVEL(ch, class))
+    {
       list_spells(ch, 0, class, circle);
-    } else {
+    }
+    else
+    {
       send_to_char(ch, "You don't have any levels in that class.\r\n");
     }
   }
@@ -3524,13 +4035,13 @@ ACMD(do_spells) {
     send_to_char(ch, "\tDType 'spelllist <classname>' to see all your class spells\tn\r\n");
 }
 
-
 /* entry point for listing spells, the rest of the code is in spec_procs.c */
 
 /* this lists all spells attainable for given class */
 
 /* Ornir:  17.03.16 - Add 'circle' parameter to the command */
-ACMD(do_spelllist) {
+ACMD(do_spelllist)
+{
   char arg[MAX_INPUT_LENGTH], arg1[MAX_INPUT_LENGTH];
   int class = -1, circle = -1;
 
@@ -3539,27 +4050,38 @@ ACMD(do_spelllist) {
 
   two_arguments(argument, arg, arg1);
 
-  if (subcmd == SCMD_CONCOCT) {
+  if (subcmd == SCMD_CONCOCT)
+  {
     class = CLASS_ALCHEMIST;
-    if (*arg) {
+    if (*arg)
+    {
       circle = atoi(arg);
-      if (circle < 1 || circle > 9) {
+      if (circle < 1 || circle > 9)
+      {
         send_to_char(ch, "That is an invalid extract circle!\r\n");
         return;
       }
     }
-  } else {
-    if (!*arg) {
+  }
+  else
+  {
+    if (!*arg)
+    {
       send_to_char(ch, "Spelllist requires at least one argument - Usage:  spelllist <class name> <circle>\r\n");
-    } else {
+    }
+    else
+    {
       class = get_class_by_name(arg);
-      if (class < 0 || class >= NUM_CLASSES) {
+      if (class < 0 || class >= NUM_CLASSES)
+      {
         send_to_char(ch, "That is not a valid class!\r\n");
         return;
       }
-      if (*arg1) {
+      if (*arg1)
+      {
         circle = atoi(arg1);
-        if (circle < 1 || circle > 9) {
+        if (circle < 1 || circle > 9)
+        {
           send_to_char(ch, "That is an invalid spell circle!\r\n");
           return;
         }
@@ -3580,7 +4102,8 @@ ACMD(do_spelllist) {
 
 /* entry point for boost (stat training), the rest of code is in
    the guild code in spec_procs */
-ACMD(do_boosts) {
+ACMD(do_boosts)
+{
 
   send_to_char(ch, "Boosts are now performed in the study menu.\r\n");
   return;
@@ -3598,16 +4121,16 @@ ACMD(do_boosts) {
     send_to_char(ch, "You can only boost stats with a trainer.\r\n");
   else
     send_to_char(ch, "\tCStat boost sessions remaining: %d\tn\r\n"
-          "\tcStats:\tn\r\n"
-          "Strength\r\n"
-          "Constitution\r\n"
-          "Dexterity\r\n"
-          "Intelligence\r\n"
-          "Wisdom\r\n"
-          "Charisma\r\n"
-          "\tC*Reminder that you can only boost your stats with a trainer.\tn\r\n"
-          "\r\n",
-          GET_BOOSTS(ch));
+                     "\tcStats:\tn\r\n"
+                     "Strength\r\n"
+                     "Constitution\r\n"
+                     "Dexterity\r\n"
+                     "Intelligence\r\n"
+                     "Wisdom\r\n"
+                     "Charisma\r\n"
+                     "\tC*Reminder that you can only boost your stats with a trainer.\tn\r\n"
+                     "\r\n",
+                 GET_BOOSTS(ch));
 
   send_to_char(ch, "\tDType 'feats' to see your feats\tn\r\n");
   send_to_char(ch, "\tDType 'train' to see your abilities\tn\r\n");
@@ -3618,7 +4141,8 @@ ACMD(do_boosts) {
 
 /* skill practice entry point, the rest of the
  * code is in spec_procs.c guild code */
-ACMD(do_practice) {
+ACMD(do_practice)
+{
   char arg[MAX_INPUT_LENGTH];
 
   if (IS_NPC(ch))
@@ -3634,15 +4158,16 @@ ACMD(do_practice) {
   send_to_char(ch, "\tDType 'feats' to see your feats\tn\r\n");
   send_to_char(ch, "\tDType 'train' to see your abilities\tn\r\n");
   send_to_char(ch, "\tDType 'boost' to adjust your stats\tn\r\n");
-  if (IS_CASTER(ch)) {
+  if (IS_CASTER(ch))
+  {
     send_to_char(ch, "\tDType 'spells' to see your spells\tn\r\n");
   }
-
 }
 
 /* ability training entry point, the rest of the
  * code is in spec_procs.c guild code */
-ACMD(do_train) {
+ACMD(do_train)
+{
   char arg[MAX_INPUT_LENGTH];
 
   //if (IS_NPC(ch))
@@ -3650,13 +4175,18 @@ ACMD(do_train) {
 
   one_argument(argument, arg);
 
-  if (*arg && is_abbrev(arg, "knowledge")) {
+  if (*arg && is_abbrev(arg, "knowledge"))
+  {
     /* Display knowledge abilities. */
     list_abilities(ch, ABILITY_TYPE_KNOWLEDGE);
-  } else if (*arg && is_abbrev(arg, "craft")) {
+  }
+  else if (*arg && is_abbrev(arg, "craft"))
+  {
     /* Display craft abilities. */
     list_abilities(ch, ABILITY_TYPE_CRAFT);
-  } else if (*arg) {
+  }
+  else if (*arg)
+  {
     send_to_char(ch, "Skills are now trained in the study menu.\r\n");
     return;
     //send_to_char(ch, "You can only train abilities with a trainer.\r\n");
@@ -3670,26 +4200,33 @@ ACMD(do_train) {
   //send_to_char(ch, "\tDType 'train craft' to see your crafting abilities\tn\r\n");
   send_to_char(ch, "\tDType 'craft' to see your crafting abilities\tn\r\n");
   send_to_char(ch, "\tDType 'boost' to adjust your stats\tn\r\n");
-  if (IS_CASTER(ch)) {
+  if (IS_CASTER(ch))
+  {
     send_to_char(ch, "\tDType 'spells' to see your spells\tn\r\n");
   }
 }
 
 /* general command to drop any invisibility affects */
-ACMD(do_visible) {
-  if (GET_LEVEL(ch) >= LVL_IMMORT) {
+ACMD(do_visible)
+{
+  if (GET_LEVEL(ch) >= LVL_IMMORT)
+  {
     perform_immort_vis(ch);
     return;
   }
 
-  if AFF_FLAGGED(ch, AFF_INVISIBLE) {
-    appear(ch, TRUE); //forced for greater invis
-    send_to_char(ch, "You break the spell of invisibility.\r\n");
-  } else
+  if
+    AFF_FLAGGED(ch, AFF_INVISIBLE)
+    {
+      appear(ch, TRUE); //forced for greater invis
+      send_to_char(ch, "You break the spell of invisibility.\r\n");
+    }
+  else
     send_to_char(ch, "You are already visible.\r\n");
 }
 
-ACMD(do_title) {
+ACMD(do_title)
+{
   skip_spaces(&argument);
   delete_doubledollar(argument);
   parse_at(argument);
@@ -3702,60 +4239,66 @@ ACMD(do_title) {
     send_to_char(ch, "Titles can't contain the ( or ) characters.\r\n");
   else if (strlen(argument) > MAX_TITLE_LENGTH)
     send_to_char(ch, "Sorry, titles can't be longer than %d characters.\r\n", MAX_TITLE_LENGTH);
-  else {
+  else
+  {
     set_title(ch, argument);
     send_to_char(ch, "Okay, you're now %s%s%s.\r\n", GET_NAME(ch), *GET_TITLE(ch) ? " " : "", GET_TITLE(ch));
   }
 }
 
-static void print_group(struct char_data *ch) {
+static void print_group(struct char_data *ch)
+{
   struct char_data *k;
 
   send_to_char(ch, "Your group consists of:\r\n");
 
-  while ((k = (struct char_data *) simple_list(ch->group->members)) != NULL)
+  while ((k = (struct char_data *)simple_list(ch->group->members)) != NULL)
     //send_to_char(ch, "%-*s: %s[%4d/%-4d]H [%4d/%-4d]M [%4d/%-4d]V%s\r\n",
     send_to_char(ch, "%-*s: %s[%4d/%-4d]H [%4d/%-4d]V%s\r\n",
-          count_color_chars(GET_NAME(k)) + 22, GET_NAME(k),
-          GROUP_LEADER(GROUP(ch)) == k ? CBGRN(ch, C_NRM) : CCGRN(ch, C_NRM),
-          GET_HIT(k), GET_MAX_HIT(k),
-          //GET_PSP(k), GET_MAX_PSP(k),
-          GET_MOVE(k), GET_MAX_MOVE(k),
-          CCNRM(ch, C_NRM));
+                 count_color_chars(GET_NAME(k)) + 22, GET_NAME(k),
+                 GROUP_LEADER(GROUP(ch)) == k ? CBGRN(ch, C_NRM) : CCGRN(ch, C_NRM),
+                 GET_HIT(k), GET_MAX_HIT(k),
+                 //GET_PSP(k), GET_MAX_PSP(k),
+                 GET_MOVE(k), GET_MAX_MOVE(k),
+                 CCNRM(ch, C_NRM));
 }
 
 /* Putting this here - no better place to put it really. */
-void update_msdp_group(struct char_data *ch) {
+void update_msdp_group(struct char_data *ch)
+{
   char msdp_buffer[MAX_STRING_LENGTH];
   struct char_data *k;
 
   /* MSDP */
 
   msdp_buffer[0] = '\0';
-  if (ch && ch->desc) {
-    if (ch->group) {
-      while ((k = (struct char_data *) simple_list(ch->group->members)) != NULL) {
-        char buf[4000]; // Buffer for building the group table for MSDP 
+  if (ch && ch->desc)
+  {
+    if (ch->group)
+    {
+      while ((k = (struct char_data *)simple_list(ch->group->members)) != NULL)
+      {
+        char buf[4000]; // Buffer for building the group table for MSDP
         //send_to_char(ch, "DEBUG: group member: %s", GET_NAME(k));
         sprintf(buf, "%c%c"
-                "%c%s%c%s"
-                "%c%s%c%d"
-                "%c%s%c%d"
-                "%c%s%c%d"
-                "%c%s%c%d"
-                "%c%s%c%d"
-                "%c%s%c%d"
-                "%c",
-                (char) MSDP_VAL,
-                (char) MSDP_TABLE_OPEN,
-                (char) MSDP_VAR, "NAME", (char) MSDP_VAL, GET_NAME(k),
-                (char) MSDP_VAR, "LEVEL", (char) MSDP_VAL, GET_LEVEL(k),
-                (char) MSDP_VAR, "IS_LEADER", (char) MSDP_VAL, (GROUP_LEADER(GROUP(k)) == k ? 1 : 0),
-                (char) MSDP_VAR, "HEALTH", (char) MSDP_VAL, GET_HIT(k),
-                (char) MSDP_VAR, "HEALTH_MAX", (char) MSDP_VAL, GET_MAX_HIT(k),
-                (char) MSDP_VAR, "MOVEMENT", (char) MSDP_VAL, GET_MOVE(k),
-                (char) MSDP_VAR, "MOVEMENT_MAX", (char) MSDP_VAL, GET_MAX_MOVE(k),
-                (char) MSDP_TABLE_CLOSE);
+                     "%c%s%c%s"
+                     "%c%s%c%d"
+                     "%c%s%c%d"
+                     "%c%s%c%d"
+                     "%c%s%c%d"
+                     "%c%s%c%d"
+                     "%c%s%c%d"
+                     "%c",
+                (char)MSDP_VAL,
+                (char)MSDP_TABLE_OPEN,
+                (char)MSDP_VAR, "NAME", (char)MSDP_VAL, GET_NAME(k),
+                (char)MSDP_VAR, "LEVEL", (char)MSDP_VAL, GET_LEVEL(k),
+                (char)MSDP_VAR, "IS_LEADER", (char)MSDP_VAL, (GROUP_LEADER(GROUP(k)) == k ? 1 : 0),
+                (char)MSDP_VAR, "HEALTH", (char)MSDP_VAL, GET_HIT(k),
+                (char)MSDP_VAR, "HEALTH_MAX", (char)MSDP_VAL, GET_MAX_HIT(k),
+                (char)MSDP_VAR, "MOVEMENT", (char)MSDP_VAL, GET_MOVE(k),
+                (char)MSDP_VAR, "MOVEMENT_MAX", (char)MSDP_VAL, GET_MAX_MOVE(k),
+                (char)MSDP_TABLE_CLOSE);
         strcat(msdp_buffer, buf);
       }
     }
@@ -3765,47 +4308,54 @@ void update_msdp_group(struct char_data *ch) {
   }
 }
 
-void update_msdp_inventory(struct char_data *ch) {
+void update_msdp_inventory(struct char_data *ch)
+{
   char msdp_buffer[MAX_STRING_LENGTH];
   obj_data *obj;
   int i = 0;
 
   /* Inventory */
   msdp_buffer[0] = '\0';
-  if (ch && ch->desc) {
+  if (ch && ch->desc)
+  {
     /* --------- Comment out the following if you don't want to mix eq and worn ---------- */
-    for (i = 0; i < NUM_WEARS; i++) {
-      if (GET_EQ(ch, i)) {
-        if (CAN_SEE_OBJ(ch, GET_EQ(ch, i))) {
-          char buf[4000]; // Buffer for building the inventory table for MSDP 
+    for (i = 0; i < NUM_WEARS; i++)
+    {
+      if (GET_EQ(ch, i))
+      {
+        if (CAN_SEE_OBJ(ch, GET_EQ(ch, i)))
+        {
+          char buf[4000]; // Buffer for building the inventory table for MSDP
           obj = GET_EQ(ch, i);
           sprintf(buf, "%c%c"
-                  "%c%s%c%s"
-                  "%c%s%c%s"
-                  "%c",
-                  (char) MSDP_VAL,
-                  (char) MSDP_TABLE_OPEN,
-                  (char) MSDP_VAR, "LOCATION", (char) MSDP_VAL, equipment_types[i],
-                  (char) MSDP_VAR, "NAME", (char) MSDP_VAL, obj->short_description,
-                  (char) MSDP_TABLE_CLOSE);
+                       "%c%s%c%s"
+                       "%c%s%c%s"
+                       "%c",
+                  (char)MSDP_VAL,
+                  (char)MSDP_TABLE_OPEN,
+                  (char)MSDP_VAR, "LOCATION", (char)MSDP_VAL, equipment_types[i],
+                  (char)MSDP_VAR, "NAME", (char)MSDP_VAL, obj->short_description,
+                  (char)MSDP_TABLE_CLOSE);
           strcat(msdp_buffer, buf);
         }
       }
     }
     /* ---------- End Worn Equipment ----------*/
 
-    for (obj = ch->carrying; obj; obj = obj->next_content) {
-      if (CAN_SEE_OBJ(ch, obj)) {
-        char buf[4000]; // Buffer for building the inventory table for MSDP             
+    for (obj = ch->carrying; obj; obj = obj->next_content)
+    {
+      if (CAN_SEE_OBJ(ch, obj))
+      {
+        char buf[4000]; // Buffer for building the inventory table for MSDP
         sprintf(buf, "%c%c"
-                "%c%s%c%s"
-                "%c%s%c%s"
-                "%c",
-                (char) MSDP_VAL,
-                (char) MSDP_TABLE_OPEN,
-                (char) MSDP_VAR, "LOCATION", (char) MSDP_VAL, "Inventory",
-                (char) MSDP_VAR, "NAME", (char) MSDP_VAL, obj->short_description,
-                (char) MSDP_TABLE_CLOSE);
+                     "%c%s%c%s"
+                     "%c%s%c%s"
+                     "%c",
+                (char)MSDP_VAL,
+                (char)MSDP_TABLE_OPEN,
+                (char)MSDP_VAR, "LOCATION", (char)MSDP_VAL, "Inventory",
+                (char)MSDP_VAR, "NAME", (char)MSDP_VAL, obj->short_description,
+                (char)MSDP_TABLE_CLOSE);
         strcat(msdp_buffer, buf);
       }
     }
@@ -3814,54 +4364,55 @@ void update_msdp_inventory(struct char_data *ch) {
   }
 }
 
-static void display_group_list(struct char_data * ch) {
-  struct group_data * group;
+static void display_group_list(struct char_data *ch)
+{
+  struct group_data *group;
   int count = 0;
 
-  if (group_list->iSize) {
+  if (group_list->iSize)
+  {
     send_to_char(ch,
-            "#   Group Leader     # of Mem  Open?  In Zone\r\n"
-            "-------------------------------------------------------------------\r\n");
+                 "#   Group Leader     # of Mem  Open?  In Zone\r\n"
+                 "-------------------------------------------------------------------\r\n");
 
-    while ((group = (struct group_data *) simple_list(group_list)) != NULL) {
+    while ((group = (struct group_data *)simple_list(group_list)) != NULL)
+    {
       /* we don't display npc groups */
       if (IS_SET(GROUP_FLAGS(group), GROUP_NPC))
         continue;
       if (GROUP_LEADER(group) && !IS_SET(GROUP_FLAGS(group), GROUP_ANON))
         send_to_char(ch, "%-2d) %s%-12s     %-2d        %-3s    %s%s\r\n",
-              ++count, IS_SET(GROUP_FLAGS(group), GROUP_OPEN) ? CCGRN(ch, C_NRM) :
-              CCRED(ch, C_NRM), GET_NAME(GROUP_LEADER(group)),
-              group->members->iSize, IS_SET(GROUP_FLAGS(group), GROUP_OPEN) ?
-              "\tWYes\tn" : "\tRNo \tn",
-              zone_table[world[IN_ROOM(GROUP_LEADER(group))].zone].name,
-              CCNRM(ch, C_NRM));
+                     ++count, IS_SET(GROUP_FLAGS(group), GROUP_OPEN) ? CCGRN(ch, C_NRM) : CCRED(ch, C_NRM), GET_NAME(GROUP_LEADER(group)),
+                     group->members->iSize, IS_SET(GROUP_FLAGS(group), GROUP_OPEN) ? "\tWYes\tn" : "\tRNo \tn",
+                     zone_table[world[IN_ROOM(GROUP_LEADER(group))].zone].name,
+                     CCNRM(ch, C_NRM));
       else
         send_to_char(ch, "%-2d) Hidden\r\n", ++count);
-
     }
   }
 
   if (count)
     send_to_char(ch, "\r\n");
-    /*
+  /*
                        "%sSeeking Members%s\r\n"
                        "%sClosed%s\r\n",
                        CCGRN(ch, C_NRM), CCNRM(ch, C_NRM),
                        CCRED(ch, C_NRM), CCNRM(ch, C_NRM));*/
   else
     send_to_char(ch, "\r\n"
-          "Currently no groups formed.\r\n");
+                     "Currently no groups formed.\r\n");
 }
-
 
 //vatiken's group system 1.2, installed 08/08/12 by zusuk
 
-ACMD(do_group) {
+ACMD(do_group)
+{
   char buf[MAX_STRING_LENGTH];
   struct char_data *vict;
   argument = one_argument(argument, buf);
 
-  if (!*buf) {
+  if (!*buf)
+  {
     if (GROUP(ch))
       print_group(ch);
     else
@@ -3869,83 +4420,122 @@ ACMD(do_group) {
     return;
   }
 
-  if (is_abbrev(buf, "new")) {
+  if (is_abbrev(buf, "new"))
+  {
     if (GROUP(ch))
       send_to_char(ch, "You are already in a group.\r\n");
     else
       create_group(ch);
-  } else if (is_abbrev(buf, "list"))
+  }
+  else if (is_abbrev(buf, "list"))
     display_group_list(ch);
-  else if (is_abbrev(buf, "join")) {
+  else if (is_abbrev(buf, "join"))
+  {
     skip_spaces(&argument);
-    if (!(vict = get_char_vis(ch, argument, NULL, FIND_CHAR_WORLD))) {
+    if (!(vict = get_char_vis(ch, argument, NULL, FIND_CHAR_WORLD)))
+    {
       send_to_char(ch, "Join who?\r\n");
       return;
-    } else if (vict == ch) {
+    }
+    else if (vict == ch)
+    {
       send_to_char(ch, "That would be one lonely grouping.\r\n");
       return;
-    } else if (GROUP(ch)) {
+    }
+    else if (GROUP(ch))
+    {
       send_to_char(ch, "But you are already part of a group.\r\n");
       return;
-    } else if (!GROUP(vict)) {
+    }
+    else if (!GROUP(vict))
+    {
       send_to_char(ch, "They are not a part of a group!\r\n");
       return;
-    } else if (IS_NPC(vict)) {
+    }
+    else if (IS_NPC(vict))
+    {
       send_to_char(ch, "You can't join that group!\r\n");
       return;
-    } else if (!IS_SET(GROUP_FLAGS(GROUP(vict)), GROUP_OPEN)) {
+    }
+    else if (!IS_SET(GROUP_FLAGS(GROUP(vict)), GROUP_OPEN))
+    {
       send_to_char(ch, "That group isn't accepting members.\r\n");
       return;
     }
     join_group(ch, GROUP(vict));
-  } else if (is_abbrev(buf, "kick")) {
+  }
+  else if (is_abbrev(buf, "kick"))
+  {
     skip_spaces(&argument);
-    if (!(vict = get_char_vis(ch, argument, NULL, FIND_CHAR_ROOM))) {
+    if (!(vict = get_char_vis(ch, argument, NULL, FIND_CHAR_ROOM)))
+    {
       send_to_char(ch, "Kick out who?\r\n");
       return;
-    } else if (vict == ch) {
+    }
+    else if (vict == ch)
+    {
       send_to_char(ch, "There are easier ways to leave the group.\r\n");
       return;
-    } else if (!GROUP(ch)) {
+    }
+    else if (!GROUP(ch))
+    {
       send_to_char(ch, "But you are not part of a group.\r\n");
       return;
-    } else if (GROUP_LEADER(GROUP(ch)) != ch) {
+    }
+    else if (GROUP_LEADER(GROUP(ch)) != ch)
+    {
       send_to_char(ch, "Only the group's leader can kick members out.\r\n");
       return;
-    } else if (GROUP(vict) != GROUP(ch)) {
+    }
+    else if (GROUP(vict) != GROUP(ch))
+    {
       send_to_char(ch, "They are not a member of your group!\r\n");
       return;
     }
     send_to_char(ch, "You have kicked %s out of the group.\r\n", GET_NAME(vict));
     send_to_char(vict, "You have been kicked out of the group.\r\n");
     leave_group(vict);
-  } else if (is_abbrev(buf, "leave")) {
-    if (!GROUP(ch)) {
+  }
+  else if (is_abbrev(buf, "leave"))
+  {
+    if (!GROUP(ch))
+    {
       send_to_char(ch, "But you aren't apart of a group!\r\n");
       return;
     }
     leave_group(ch);
-  } else if (is_abbrev(buf, "option")) {
+  }
+  else if (is_abbrev(buf, "option"))
+  {
     skip_spaces(&argument);
-    if (!GROUP(ch)) {
+    if (!GROUP(ch))
+    {
       send_to_char(ch, "But you aren't part of a group!\r\n");
       return;
-    } else if (GROUP_LEADER(GROUP(ch)) != ch) {
+    }
+    else if (GROUP_LEADER(GROUP(ch)) != ch)
+    {
       send_to_char(ch, "Only the group leader can adjust the group flags.\r\n");
       return;
     }
 
-    if (is_abbrev(argument, "open")) {
+    if (is_abbrev(argument, "open"))
+    {
       TOGGLE_BIT(GROUP_FLAGS(GROUP(ch)), GROUP_OPEN);
       send_to_char(ch, "The group is now %s to new members.\r\n",
-              IS_SET(GROUP_FLAGS(GROUP(ch)), GROUP_OPEN) ? "open" : "closed");
-    } else if (is_abbrev(argument, "anonymous")) {
+                   IS_SET(GROUP_FLAGS(GROUP(ch)), GROUP_OPEN) ? "open" : "closed");
+    }
+    else if (is_abbrev(argument, "anonymous"))
+    {
       TOGGLE_BIT(GROUP_FLAGS(GROUP(ch)), GROUP_ANON);
       send_to_char(ch, "The group location is now %s to other players.\r\n",
-              IS_SET(GROUP_FLAGS(GROUP(ch)), GROUP_ANON) ? "invisible" : "visible");
-    } else
+                   IS_SET(GROUP_FLAGS(GROUP(ch)), GROUP_ANON) ? "invisible" : "visible");
+    }
+    else
       send_to_char(ch, "The flag options are: Open, Anonymous\r\n");
-  } else {
+  }
+  else
+  {
     send_to_char(ch, "You must specify a group option, or type HELP GROUP for more info.\r\n");
   }
 
@@ -3955,33 +4545,37 @@ ACMD(do_group) {
 }
 
 /* the actual group report command */
-ACMD(do_greport) {
+ACMD(do_greport)
+{
   struct group_data *group;
 
-  if ((group = GROUP(ch)) == NULL) {
+  if ((group = GROUP(ch)) == NULL)
+  {
     send_to_char(ch, "But you are not a member of any group!\r\n");
     return;
   }
 
   //send_to_group(NULL, group, "%s reports: %d/%dH, %d/%dM, %d/%dV\r\n",
   send_to_group(NULL, group, "%s reports: %d/%dH, %d/%dV\r\n",
-          GET_NAME(ch), GET_HIT(ch), GET_MAX_HIT(ch),
-          //GET_PSP(ch), GET_MAX_PSP(ch),
-          GET_MOVE(ch), GET_MAX_MOVE(ch));
+                GET_NAME(ch), GET_HIT(ch), GET_MAX_HIT(ch),
+                //GET_PSP(ch), GET_MAX_PSP(ch),
+                GET_MOVE(ch), GET_MAX_MOVE(ch));
 }
 
 /* this use to be group report, switched it to general */
-ACMD(do_report) {
+ACMD(do_report)
+{
 
   /* generalized output due to send_to_room */
   //send_to_room(IN_ROOM(ch), "%s status: %d/%dH, %d/%dM, %d/%dV\r\n",
   send_to_room(IN_ROOM(ch), "%s status: %d/%dH, %d/%dV\r\n",
-          GET_NAME(ch), GET_HIT(ch), GET_MAX_HIT(ch),
-          //GET_PSP(ch), GET_MAX_PSP(ch),
-          GET_MOVE(ch), GET_MAX_MOVE(ch));
+               GET_NAME(ch), GET_HIT(ch), GET_MAX_HIT(ch),
+               //GET_PSP(ch), GET_MAX_PSP(ch),
+               GET_MOVE(ch), GET_MAX_MOVE(ch));
 }
 
-ACMD(do_split) {
+ACMD(do_split)
+{
   char buf[MAX_INPUT_LENGTH];
   int amount, num = 0, share, rest;
   size_t len;
@@ -3992,26 +4586,32 @@ ACMD(do_split) {
 
   one_argument(argument, buf);
 
-  if (is_number(buf)) {
+  if (is_number(buf))
+  {
     amount = atoi(buf);
-    if (amount <= 0) {
+    if (amount <= 0)
+    {
       send_to_char(ch, "Sorry, you can't do that.\r\n");
       return;
     }
-    if (amount > GET_GOLD(ch)) {
+    if (amount > GET_GOLD(ch))
+    {
       send_to_char(ch, "You don't seem to have that much gold to split.\r\n");
       return;
     }
 
     if (GROUP(ch))
-      while ((k = (struct char_data *) simple_list(GROUP(ch)->members)) != NULL)
+      while ((k = (struct char_data *)simple_list(GROUP(ch)->members)) != NULL)
         if (IN_ROOM(ch) == IN_ROOM(k) && !IS_NPC(k))
           num++;
 
-    if (num && GROUP(ch)) {
+    if (num && GROUP(ch))
+    {
       share = amount / num;
       rest = amount % num;
-    } else {
+    }
+    else
+    {
       send_to_char(ch, "With whom do you wish to share your gold?\r\n");
       return;
     }
@@ -4019,34 +4619,40 @@ ACMD(do_split) {
     decrease_gold(ch, share * (num - 1));
 
     /* Abusing signed/unsigned to make sizeof work. */
-    len = snprintf(buf, sizeof (buf), "%s splits %d coins; you receive %d.\r\n",
-            GET_NAME(ch), amount, share);
-    if (rest && len < sizeof (buf)) {
-      snprintf(buf + len, sizeof (buf) - len,
-              "%d coin%s %s not splitable, so %s keeps the money.\r\n", rest,
-              (rest == 1) ? "" : "s", (rest == 1) ? "was" : "were", GET_NAME(ch));
+    len = snprintf(buf, sizeof(buf), "%s splits %d coins; you receive %d.\r\n",
+                   GET_NAME(ch), amount, share);
+    if (rest && len < sizeof(buf))
+    {
+      snprintf(buf + len, sizeof(buf) - len,
+               "%d coin%s %s not splitable, so %s keeps the money.\r\n", rest,
+               (rest == 1) ? "" : "s", (rest == 1) ? "was" : "were", GET_NAME(ch));
     }
 
-    while ((k = (struct char_data *) simple_list(GROUP(ch)->members)) != NULL)
-      if (k != ch && IN_ROOM(ch) == IN_ROOM(k) && !IS_NPC(k)) {
+    while ((k = (struct char_data *)simple_list(GROUP(ch)->members)) != NULL)
+      if (k != ch && IN_ROOM(ch) == IN_ROOM(k) && !IS_NPC(k))
+      {
         increase_gold(k, share);
         send_to_char(k, "%s", buf);
       }
     send_to_char(ch, "You split %d coins among %d members -- %d coins each.\r\n",
-            amount, num, share);
+                 amount, num, share);
 
-    if (rest) {
+    if (rest)
+    {
       send_to_char(ch, "%d coin%s %s not splitable, so you keep the money.\r\n",
-              rest, (rest == 1) ? "" : "s", (rest == 1) ? "was" : "were");
+                   rest, (rest == 1) ? "" : "s", (rest == 1) ? "was" : "were");
       increase_gold(ch, rest);
     }
-  } else {
+  }
+  else
+  {
     send_to_char(ch, "How many coins do you wish to split with your group?\r\n");
     return;
   }
 }
 
-ACMD(do_use) {
+ACMD(do_use)
+{
   char buf[MAX_INPUT_LENGTH] = {'\0'}, arg[MAX_INPUT_LENGTH] = {'\0'};
   struct obj_data *mag_item = NULL;
   int dc = 10;
@@ -4056,271 +4662,313 @@ ACMD(do_use) {
 
   half_chop(argument, arg, buf);
 
-
-  if (!*arg) {
+  if (!*arg)
+  {
     send_to_char(ch, "What do you want to %s?\r\n", CMD_NAME);
     return;
   }
-  
+
   // Find the item - check both held slots, as well as the 2H slot.
   mag_item = GET_EQ(ch, WEAR_HOLD_1);
-  if (!mag_item || !isname(arg, mag_item->name)) mag_item = GET_EQ(ch, WEAR_HOLD_2);
-  if (!mag_item || !isname(arg, mag_item->name)) mag_item = GET_EQ(ch, WEAR_HOLD_2H);
+  if (!mag_item || !isname(arg, mag_item->name))
+    mag_item = GET_EQ(ch, WEAR_HOLD_2);
+  if (!mag_item || !isname(arg, mag_item->name))
+    mag_item = GET_EQ(ch, WEAR_HOLD_2H);
 
-  if (!mag_item || !isname(arg, mag_item->name)) {
-    switch (subcmd) {
-      case SCMD_RECITE:
-      case SCMD_QUAFF:
-        if (!(mag_item = get_obj_in_list_vis(ch, arg, NULL, ch->carrying))) {
-          send_to_char(ch, "You don't seem to have %s %s.\r\n", AN(arg), arg);
-          return;
-        }
-        break;
-      case SCMD_USE:
-        send_to_char(ch, "You don't seem to be holding %s %s.\r\n",
-                AN(arg), arg);
-        return;
-      default:
-        log("SYSERR: Unknown subcmd %d passed to do_use.", subcmd);
-        /* SYSERR_DESC: This is the same as the unhandled case in do_gen_ps(),
-         * but in the function which handles 'quaff', 'recite', and 'use'. */
-        return;
-    }
-  }
-
-  /* Check for object existence. */
-  switch (subcmd) {
-    case SCMD_QUAFF:
-      if (GET_OBJ_TYPE(mag_item) != ITEM_POTION) {
-        send_to_char(ch, "You can only quaff potions.\r\n");
-        return;
-      }
-      break;
+  if (!mag_item || !isname(arg, mag_item->name))
+  {
+    switch (subcmd)
+    {
     case SCMD_RECITE:
-      if (GET_OBJ_TYPE(mag_item) != ITEM_SCROLL) {
-        send_to_char(ch, "You can only recite scrolls.\r\n");
+    case SCMD_QUAFF:
+      if (!(mag_item = get_obj_in_list_vis(ch, arg, NULL, ch->carrying)))
+      {
+        send_to_char(ch, "You don't seem to have %s %s.\r\n", AN(arg), arg);
         return;
       }
       break;
     case SCMD_USE:
-      if ((GET_OBJ_TYPE(mag_item) != ITEM_WAND) &&
-              (GET_OBJ_TYPE(mag_item) != ITEM_STAFF) &&
-              (!HAS_SPECIAL_ABILITIES(mag_item))) {
-        send_to_char(ch, "You can't seem to figure out how to use it.\r\n");
-        return;
-      }
-      break;
+      send_to_char(ch, "You don't seem to be holding %s %s.\r\n",
+                   AN(arg), arg);
+      return;
+    default:
+      log("SYSERR: Unknown subcmd %d passed to do_use.", subcmd);
+      /* SYSERR_DESC: This is the same as the unhandled case in do_gen_ps(),
+         * but in the function which handles 'quaff', 'recite', and 'use'. */
+      return;
+    }
   }
 
-  if ((GET_OBJ_BOUND_ID(mag_item) != NOBODY) && (GET_OBJ_BOUND_ID(mag_item) != GET_IDNUM(ch))) {
-    if (get_name_by_id(GET_OBJ_BOUND_ID(mag_item)) != NULL) {
-      switch (subcmd) {
-        case SCMD_QUAFF:
-          send_to_char(ch, "That potion belongs to %s, go quaff your own!\r\n", CAP(get_name_by_id(GET_OBJ_BOUND_ID(mag_item))));
-          break;
+  /* Check for object existence. */
+  switch (subcmd)
+  {
+  case SCMD_QUAFF:
+    if (GET_OBJ_TYPE(mag_item) != ITEM_POTION)
+    {
+      send_to_char(ch, "You can only quaff potions.\r\n");
+      return;
+    }
+    break;
+  case SCMD_RECITE:
+    if (GET_OBJ_TYPE(mag_item) != ITEM_SCROLL)
+    {
+      send_to_char(ch, "You can only recite scrolls.\r\n");
+      return;
+    }
+    break;
+  case SCMD_USE:
+    if ((GET_OBJ_TYPE(mag_item) != ITEM_WAND) &&
+        (GET_OBJ_TYPE(mag_item) != ITEM_STAFF) &&
+        (!HAS_SPECIAL_ABILITIES(mag_item)))
+    {
+      send_to_char(ch, "You can't seem to figure out how to use it.\r\n");
+      return;
+    }
+    break;
+  }
 
-        case SCMD_RECITE:
-          send_to_char(ch, "That scroll belongs to %s, go recite your own!\r\n", CAP(get_name_by_id(GET_OBJ_BOUND_ID(mag_item))));
-          break;
+  if ((GET_OBJ_BOUND_ID(mag_item) != NOBODY) && (GET_OBJ_BOUND_ID(mag_item) != GET_IDNUM(ch)))
+  {
+    if (get_name_by_id(GET_OBJ_BOUND_ID(mag_item)) != NULL)
+    {
+      switch (subcmd)
+      {
+      case SCMD_QUAFF:
+        send_to_char(ch, "That potion belongs to %s, go quaff your own!\r\n", CAP(get_name_by_id(GET_OBJ_BOUND_ID(mag_item))));
+        break;
 
-        case SCMD_USE:
-          if (GET_OBJ_TYPE(mag_item) == ITEM_WAND)
-            send_to_char(ch, "That wand belongs to %s, go wave your own about!\r\n", CAP(get_name_by_id(GET_OBJ_BOUND_ID(mag_item))));
-          else
-            send_to_char(ch, "That staff belongs to %s, go wave your own about!\r\n", CAP(get_name_by_id(GET_OBJ_BOUND_ID(mag_item))));
-          break;
+      case SCMD_RECITE:
+        send_to_char(ch, "That scroll belongs to %s, go recite your own!\r\n", CAP(get_name_by_id(GET_OBJ_BOUND_ID(mag_item))));
+        break;
+
+      case SCMD_USE:
+        if (GET_OBJ_TYPE(mag_item) == ITEM_WAND)
+          send_to_char(ch, "That wand belongs to %s, go wave your own about!\r\n", CAP(get_name_by_id(GET_OBJ_BOUND_ID(mag_item))));
+        else
+          send_to_char(ch, "That staff belongs to %s, go wave your own about!\r\n", CAP(get_name_by_id(GET_OBJ_BOUND_ID(mag_item))));
+        break;
       }
       return;
     }
   }
 
   /* Check if we can actually use the item in question... */
-  switch (subcmd) {
+  switch (subcmd)
+  {
 
-    case SCMD_RECITE:
-      spell = GET_OBJ_VAL(mag_item, 1);
-      /* remove curse and identify you can use regardless */
-      if (spell == SPELL_REMOVE_CURSE || spell == SPELL_IDENTIFY)
-        break;
+  case SCMD_RECITE:
+    spell = GET_OBJ_VAL(mag_item, 1);
+    /* remove curse and identify you can use regardless */
+    if (spell == SPELL_REMOVE_CURSE || spell == SPELL_IDENTIFY)
+      break;
 
-      /* 1. Decipher Writing
+    /* 1. Decipher Writing
        *    Spellcraft check: DC 20 + spell level */
 
-      dc = 20 + GET_OBJ_VAL(mag_item, 0);
-      if (((check_result = skill_check(ch, ABILITY_SPELLCRAFT, dc)) < 0) &&
-              ((check_result = skill_check(ch, ABILITY_USE_MAGIC_DEVICE, dc + 5)) < 0)) {
-        send_to_char(ch, "You are unable to decipher the magical writings!\r\n");
-        return;
-      }
-      /* 2. Activate the Spell */
-      /* 2.a. Check the spell type
+    dc = 20 + GET_OBJ_VAL(mag_item, 0);
+    if (((check_result = skill_check(ch, ABILITY_SPELLCRAFT, dc)) < 0) &&
+        ((check_result = skill_check(ch, ABILITY_USE_MAGIC_DEVICE, dc + 5)) < 0))
+    {
+      send_to_char(ch, "You are unable to decipher the magical writings!\r\n");
+      return;
+    }
+    /* 2. Activate the Spell */
+    /* 2.a. Check the spell type
        *      ARCANE - Wizard, Sorcerer, Bard
        *      DIVINE - Cleric, Druid, Paladin, Ranger */
-      if ((check_result = skill_check(ch, ABILITY_USE_MAGIC_DEVICE, dc)) < 0) {
-        if (spell_info[spell].min_level[CLASS_WIZARD] < LVL_STAFF ||
-                spell_info[spell].min_level[CLASS_SORCERER] < LVL_STAFF ||
-                spell_info[spell].min_level[CLASS_BARD] < LVL_STAFF) {
-          if (!(CLASS_LEVEL(ch, CLASS_WIZARD) > 0 ||
-                  CLASS_LEVEL(ch, CLASS_SORCERER) > 0 ||
-                  CLASS_LEVEL(ch, CLASS_BARD) > 0)) {
-            send_to_char(ch, "You must be able to use arcane magic to recite this scroll.\r\n");
-            return;
-          }
-        } else {
-          if (!(CLASS_LEVEL(ch, CLASS_CLERIC) > 0 ||
-                  CLASS_LEVEL(ch, CLASS_DRUID) > 0 ||
-                  CLASS_LEVEL(ch, CLASS_PALADIN) > 0 ||
-                  CLASS_LEVEL(ch, CLASS_RANGER) > 0)) {
-            send_to_char(ch, "You must be able to cast divine magic to recite this scroll.\r\n");
-            return;
-          }
-        }
-
-        int i;
-        i = MIN_SPELL_LVL(spell, CLASS_CLERIC, DOMAIN_AIR);
-
-        /* 2.b. Check the spell is on class spell list */
-        if (!(((spell_info[spell].min_level[CLASS_WIZARD] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_WIZARD) > 0) ||
-                ((spell_info[spell].min_level[CLASS_SORCERER] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_SORCERER) > 0) ||
-                ((spell_info[spell].min_level[CLASS_BARD] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_BARD) > 0) ||
-                ((MIN_SPELL_LVL(spell, CLASS_CLERIC, GET_1ST_DOMAIN(ch)) < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_CLERIC) > 0) ||
-                ((MIN_SPELL_LVL(spell, CLASS_CLERIC, GET_2ND_DOMAIN(ch)) < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_CLERIC) > 0) ||
-                ((spell_info[spell].min_level[CLASS_DRUID] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_DRUID) > 0) ||
-                ((spell_info[spell].min_level[CLASS_PALADIN] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_PALADIN) > 0) ||
-                ((spell_info[spell].min_level[CLASS_RANGER] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_RANGER) > 0))) {
-          send_to_char(ch, "The spell on the scroll is outside your realm of knowledge.\r\n");
+    if ((check_result = skill_check(ch, ABILITY_USE_MAGIC_DEVICE, dc)) < 0)
+    {
+      if (spell_info[spell].min_level[CLASS_WIZARD] < LVL_STAFF ||
+          spell_info[spell].min_level[CLASS_SORCERER] < LVL_STAFF ||
+          spell_info[spell].min_level[CLASS_BARD] < LVL_STAFF)
+      {
+        if (!(CLASS_LEVEL(ch, CLASS_WIZARD) > 0 ||
+              CLASS_LEVEL(ch, CLASS_SORCERER) > 0 ||
+              CLASS_LEVEL(ch, CLASS_BARD) > 0))
+        {
+          send_to_char(ch, "You must be able to use arcane magic to recite this scroll.\r\n");
           return;
         }
       }
-      /* 2.c. Check the relevant ability score */
-      /* SPELL PREPARATION HOOK (spellCircle) */
-      umd_ability_score = (skill_check(ch, ABILITY_USE_MAGIC_DEVICE, 15));
-      bool passed = FALSE;
-      if (spell_info[spell].min_level[CLASS_WIZARD] < LVL_STAFF)
-        passed = (((GET_INT(ch) > umd_ability_score) ? GET_INT(ch) : umd_ability_score) > (10 + compute_spells_circle(CLASS_WIZARD, spell, 0, DOMAIN_UNDEFINED)) ? TRUE : passed);
-      if (spell_info[spell].min_level[CLASS_SORCERER] < LVL_STAFF)
-        passed = (((GET_CHA(ch) > umd_ability_score) ? GET_CHA(ch) : umd_ability_score) > (10 + compute_spells_circle(CLASS_SORCERER, spell, 0, DOMAIN_UNDEFINED)) ? TRUE : passed);
-      if (spell_info[spell].min_level[CLASS_BARD] < LVL_STAFF)
-        passed = (((GET_CHA(ch) > umd_ability_score) ? GET_CHA(ch) : umd_ability_score) > (10 + compute_spells_circle(CLASS_BARD, spell, 0, DOMAIN_UNDEFINED)) ? TRUE : passed);
-      if (MIN_SPELL_LVL(spell, CLASS_CLERIC, GET_1ST_DOMAIN(ch)) < LVL_STAFF)
-        passed = (((GET_WIS(ch) > umd_ability_score) ? GET_WIS(ch) : umd_ability_score) > (10 + compute_spells_circle(CLASS_CLERIC, spell, 0, GET_1ST_DOMAIN(ch))) ? TRUE : passed);
-      if (MIN_SPELL_LVL(spell, CLASS_CLERIC, GET_2ND_DOMAIN(ch)) < LVL_STAFF)
-        passed = (((GET_WIS(ch) > umd_ability_score) ? GET_WIS(ch) : umd_ability_score) > (10 + compute_spells_circle(CLASS_CLERIC, spell, 0, GET_2ND_DOMAIN(ch))) ? TRUE : passed);
-      if (spell_info[spell].min_level[CLASS_DRUID] < LVL_STAFF)
-        passed = (((GET_WIS(ch) > umd_ability_score) ? GET_WIS(ch) : umd_ability_score) > (10 + compute_spells_circle(CLASS_DRUID, spell, 0, DOMAIN_UNDEFINED)) ? TRUE : passed);
-      if (spell_info[spell].min_level[CLASS_PALADIN] < LVL_STAFF)
-        passed = (((GET_CHA(ch) > umd_ability_score) ? GET_CHA(ch) : umd_ability_score) > (10 + compute_spells_circle(CLASS_PALADIN, spell, 0, DOMAIN_UNDEFINED)) ? TRUE : passed);
-      if (spell_info[spell].min_level[CLASS_RANGER] < LVL_STAFF)
-        passed = (((GET_WIS(ch) > umd_ability_score) ? GET_WIS(ch) : umd_ability_score) > (10 + compute_spells_circle(CLASS_RANGER, spell, 0, DOMAIN_UNDEFINED)) ? TRUE : passed);
-      if (passed == FALSE) {
-        send_to_char(ch, "You are physically incapable of casting the spell inscribed on the scroll.\r\n");
+      else
+      {
+        if (!(CLASS_LEVEL(ch, CLASS_CLERIC) > 0 ||
+              CLASS_LEVEL(ch, CLASS_DRUID) > 0 ||
+              CLASS_LEVEL(ch, CLASS_PALADIN) > 0 ||
+              CLASS_LEVEL(ch, CLASS_RANGER) > 0))
+        {
+          send_to_char(ch, "You must be able to cast divine magic to recite this scroll.\r\n");
+          return;
+        }
+      }
+
+      int i;
+      i = MIN_SPELL_LVL(spell, CLASS_CLERIC, DOMAIN_AIR);
+
+      /* 2.b. Check the spell is on class spell list */
+      if (!(((spell_info[spell].min_level[CLASS_WIZARD] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_WIZARD) > 0) ||
+            ((spell_info[spell].min_level[CLASS_SORCERER] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_SORCERER) > 0) ||
+            ((spell_info[spell].min_level[CLASS_BARD] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_BARD) > 0) ||
+            ((MIN_SPELL_LVL(spell, CLASS_CLERIC, GET_1ST_DOMAIN(ch)) < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_CLERIC) > 0) ||
+            ((MIN_SPELL_LVL(spell, CLASS_CLERIC, GET_2ND_DOMAIN(ch)) < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_CLERIC) > 0) ||
+            ((spell_info[spell].min_level[CLASS_DRUID] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_DRUID) > 0) ||
+            ((spell_info[spell].min_level[CLASS_PALADIN] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_PALADIN) > 0) ||
+            ((spell_info[spell].min_level[CLASS_RANGER] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_RANGER) > 0)))
+      {
+        send_to_char(ch, "The spell on the scroll is outside your realm of knowledge.\r\n");
         return;
       }
-      /* 3. Check caster level */
-      if ((CASTER_LEVEL(ch) < GET_OBJ_VAL(mag_item, 0)) &&
-              (check_result && GET_LEVEL(ch) < GET_OBJ_VAL(mag_item, 0))) {
-        /* Perform caster level check */
-        dc = GET_OBJ_VAL(mag_item, 0) + 1;
-        if (dice(1, 20) + (((check_result >= 0) && (CASTER_LEVEL(ch) < GET_LEVEL(ch))) ? GET_LEVEL(ch) : CASTER_LEVEL(ch)) < dc) {
-          /* Fail */
-          send_to_char(ch, "You try, but the spell on the scroll is far to powerful for you to cast.\r\n");
-          return;
-        } else {
-          send_to_char(ch, "You release the powerful magics inscribed the scroll!\r\n");
-        }
+    }
+    /* 2.c. Check the relevant ability score */
+    /* SPELL PREPARATION HOOK (spellCircle) */
+    umd_ability_score = (skill_check(ch, ABILITY_USE_MAGIC_DEVICE, 15));
+    bool passed = FALSE;
+    if (spell_info[spell].min_level[CLASS_WIZARD] < LVL_STAFF)
+      passed = (((GET_INT(ch) > umd_ability_score) ? GET_INT(ch) : umd_ability_score) > (10 + compute_spells_circle(CLASS_WIZARD, spell, 0, DOMAIN_UNDEFINED)) ? TRUE : passed);
+    if (spell_info[spell].min_level[CLASS_SORCERER] < LVL_STAFF)
+      passed = (((GET_CHA(ch) > umd_ability_score) ? GET_CHA(ch) : umd_ability_score) > (10 + compute_spells_circle(CLASS_SORCERER, spell, 0, DOMAIN_UNDEFINED)) ? TRUE : passed);
+    if (spell_info[spell].min_level[CLASS_BARD] < LVL_STAFF)
+      passed = (((GET_CHA(ch) > umd_ability_score) ? GET_CHA(ch) : umd_ability_score) > (10 + compute_spells_circle(CLASS_BARD, spell, 0, DOMAIN_UNDEFINED)) ? TRUE : passed);
+    if (MIN_SPELL_LVL(spell, CLASS_CLERIC, GET_1ST_DOMAIN(ch)) < LVL_STAFF)
+      passed = (((GET_WIS(ch) > umd_ability_score) ? GET_WIS(ch) : umd_ability_score) > (10 + compute_spells_circle(CLASS_CLERIC, spell, 0, GET_1ST_DOMAIN(ch))) ? TRUE : passed);
+    if (MIN_SPELL_LVL(spell, CLASS_CLERIC, GET_2ND_DOMAIN(ch)) < LVL_STAFF)
+      passed = (((GET_WIS(ch) > umd_ability_score) ? GET_WIS(ch) : umd_ability_score) > (10 + compute_spells_circle(CLASS_CLERIC, spell, 0, GET_2ND_DOMAIN(ch))) ? TRUE : passed);
+    if (spell_info[spell].min_level[CLASS_DRUID] < LVL_STAFF)
+      passed = (((GET_WIS(ch) > umd_ability_score) ? GET_WIS(ch) : umd_ability_score) > (10 + compute_spells_circle(CLASS_DRUID, spell, 0, DOMAIN_UNDEFINED)) ? TRUE : passed);
+    if (spell_info[spell].min_level[CLASS_PALADIN] < LVL_STAFF)
+      passed = (((GET_CHA(ch) > umd_ability_score) ? GET_CHA(ch) : umd_ability_score) > (10 + compute_spells_circle(CLASS_PALADIN, spell, 0, DOMAIN_UNDEFINED)) ? TRUE : passed);
+    if (spell_info[spell].min_level[CLASS_RANGER] < LVL_STAFF)
+      passed = (((GET_WIS(ch) > umd_ability_score) ? GET_WIS(ch) : umd_ability_score) > (10 + compute_spells_circle(CLASS_RANGER, spell, 0, DOMAIN_UNDEFINED)) ? TRUE : passed);
+    if (passed == FALSE)
+    {
+      send_to_char(ch, "You are physically incapable of casting the spell inscribed on the scroll.\r\n");
+      return;
+    }
+    /* 3. Check caster level */
+    if ((CASTER_LEVEL(ch) < GET_OBJ_VAL(mag_item, 0)) &&
+        (check_result && GET_LEVEL(ch) < GET_OBJ_VAL(mag_item, 0)))
+    {
+      /* Perform caster level check */
+      dc = GET_OBJ_VAL(mag_item, 0) + 1;
+      if (dice(1, 20) + (((check_result >= 0) && (CASTER_LEVEL(ch) < GET_LEVEL(ch))) ? GET_LEVEL(ch) : CASTER_LEVEL(ch)) < dc)
+      {
+        /* Fail */
+        send_to_char(ch, "You try, but the spell on the scroll is far to powerful for you to cast.\r\n");
+        return;
+      }
+      else
+      {
+        send_to_char(ch, "You release the powerful magics inscribed the scroll!\r\n");
+      }
+    }
+    break;
+  case SCMD_USE:
+    /* Check the item type */
+    switch (GET_OBJ_TYPE(mag_item))
+    {
+    case ITEM_INSTRUMENT: /* OMG WHAT A HACK */
+      if (HAS_SPECIAL_ABILITIES(mag_item))
+      {
+        process_item_abilities(mag_item, ch, NULL, ACTMTD_USE, NULL);
+        return;
       }
       break;
-    case SCMD_USE:
-      /* Check the item type */
-      switch (GET_OBJ_TYPE(mag_item)) {
-        case ITEM_INSTRUMENT: /* OMG WHAT A HACK */
-          if(HAS_SPECIAL_ABILITIES(mag_item)) {
-            process_item_abilities(mag_item, ch, NULL, ACTMTD_USE, NULL);
+    case ITEM_WEAPON:
+      /* Special Abilities */
+      break;
+    case ITEM_WAND:
+    case ITEM_STAFF:
+      /* Check requirements for using a wand: Spell Trigger method */
+      /* 1. Class must be able to cast the spell stored in the wand. Use Magic Device can bluff this. */
+      spell = GET_OBJ_VAL(mag_item, 3);
+      dc = 20;
+      if ((check_result = skill_check(ch, ABILITY_USE_MAGIC_DEVICE, dc)) < 0)
+      {
+        if (spell_info[spell].min_level[CLASS_WIZARD] < LVL_STAFF ||
+            spell_info[spell].min_level[CLASS_SORCERER] < LVL_STAFF ||
+            spell_info[spell].min_level[CLASS_BARD] < LVL_STAFF)
+        {
+          if (!(CLASS_LEVEL(ch, CLASS_WIZARD) > 0 ||
+                CLASS_LEVEL(ch, CLASS_SORCERER) > 0 ||
+                CLASS_LEVEL(ch, CLASS_BARD) > 0))
+          {
+            send_to_char(ch, "You must be able to use arcane magic to use this %s.\r\n",
+                         GET_OBJ_TYPE(mag_item) == ITEM_WAND ? "wand" : "staff");
             return;
           }
-          break;
-        case ITEM_WEAPON:
-          /* Special Abilities */
-          break;
-        case ITEM_WAND:
-        case ITEM_STAFF:
-          /* Check requirements for using a wand: Spell Trigger method */
-          /* 1. Class must be able to cast the spell stored in the wand. Use Magic Device can bluff this. */
-          spell = GET_OBJ_VAL(mag_item, 3);
-          dc = 20;
-          if ((check_result = skill_check(ch, ABILITY_USE_MAGIC_DEVICE, dc)) < 0) {
-            if (spell_info[spell].min_level[CLASS_WIZARD] < LVL_STAFF ||
-                    spell_info[spell].min_level[CLASS_SORCERER] < LVL_STAFF ||
-                    spell_info[spell].min_level[CLASS_BARD] < LVL_STAFF) {
-              if (!(CLASS_LEVEL(ch, CLASS_WIZARD) > 0 ||
-                      CLASS_LEVEL(ch, CLASS_SORCERER) > 0 ||
-                      CLASS_LEVEL(ch, CLASS_BARD) > 0)) {
-                send_to_char(ch, "You must be able to use arcane magic to use this %s.\r\n",
-                        GET_OBJ_TYPE(mag_item) == ITEM_WAND ? "wand" : "staff");
-                return;
-              }
-            } else {
-              if (!(CLASS_LEVEL(ch, CLASS_CLERIC) > 0 ||
-                      CLASS_LEVEL(ch, CLASS_DRUID) > 0 ||
-                      CLASS_LEVEL(ch, CLASS_PALADIN) > 0 ||
-                      CLASS_LEVEL(ch, CLASS_RANGER) > 0)) {
-                send_to_char(ch, "You must be able to cast divine magic to use this %s.\r\n",
-                        GET_OBJ_TYPE(mag_item) == ITEM_WAND ? "wand" : "staff");
-                return;
-              }
-            }
-
-            /* 1.b. Check the spell is on class spell list */
-            if (!(((spell_info[spell].min_level[CLASS_WIZARD] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_WIZARD) > 0) ||
-                    ((spell_info[spell].min_level[CLASS_SORCERER] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_SORCERER) > 0) ||
-                    ((spell_info[spell].min_level[CLASS_BARD] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_BARD) > 0) ||
-                    ((MIN_SPELL_LVL(spell, CLASS_CLERIC, GET_1ST_DOMAIN(ch)) < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_CLERIC) > 0) ||
-                    ((MIN_SPELL_LVL(spell, CLASS_CLERIC, GET_2ND_DOMAIN(ch)) < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_CLERIC) > 0) ||
-                    ((spell_info[spell].min_level[CLASS_DRUID] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_DRUID) > 0) ||
-                    ((spell_info[spell].min_level[CLASS_PALADIN] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_PALADIN) > 0) ||
-                    ((spell_info[spell].min_level[CLASS_RANGER] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_RANGER) > 0))) {
-              send_to_char(ch, "The spell stored in the %s is outside your realm of knowledge.\r\n",
-                      GET_OBJ_TYPE(mag_item) == ITEM_WAND ? "wand" : "staff");
-              return;
-            }
+        }
+        else
+        {
+          if (!(CLASS_LEVEL(ch, CLASS_CLERIC) > 0 ||
+                CLASS_LEVEL(ch, CLASS_DRUID) > 0 ||
+                CLASS_LEVEL(ch, CLASS_PALADIN) > 0 ||
+                CLASS_LEVEL(ch, CLASS_RANGER) > 0))
+          {
+            send_to_char(ch, "You must be able to cast divine magic to use this %s.\r\n",
+                         GET_OBJ_TYPE(mag_item) == ITEM_WAND ? "wand" : "staff");
+            return;
           }
+        }
 
-          break;
+        /* 1.b. Check the spell is on class spell list */
+        if (!(((spell_info[spell].min_level[CLASS_WIZARD] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_WIZARD) > 0) ||
+              ((spell_info[spell].min_level[CLASS_SORCERER] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_SORCERER) > 0) ||
+              ((spell_info[spell].min_level[CLASS_BARD] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_BARD) > 0) ||
+              ((MIN_SPELL_LVL(spell, CLASS_CLERIC, GET_1ST_DOMAIN(ch)) < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_CLERIC) > 0) ||
+              ((MIN_SPELL_LVL(spell, CLASS_CLERIC, GET_2ND_DOMAIN(ch)) < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_CLERIC) > 0) ||
+              ((spell_info[spell].min_level[CLASS_DRUID] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_DRUID) > 0) ||
+              ((spell_info[spell].min_level[CLASS_PALADIN] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_PALADIN) > 0) ||
+              ((spell_info[spell].min_level[CLASS_RANGER] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_RANGER) > 0)))
+        {
+          send_to_char(ch, "The spell stored in the %s is outside your realm of knowledge.\r\n",
+                       GET_OBJ_TYPE(mag_item) == ITEM_WAND ? "wand" : "staff");
+          return;
+        }
       }
+
       break;
+    }
+    break;
   }
 
   mag_objectmagic(ch, mag_item, buf);
 }
 
 /* Activate a magic item with a COMMAND WORD! */
-ACMD(do_utter) {
+ACMD(do_utter)
+{
   int i = 0;
   int found = 0;
   struct obj_data *mag_item = NULL;
 
   skip_spaces(&argument);
 
-  if (!*argument) {
+  if (!*argument)
+  {
     send_to_char(ch, "Utter what?\r\n");
     return;
-  } else {
+  }
+  else
+  {
     send_to_char(ch, "You utter '%s'.\r\n", argument);
     act("$n utters a command word, too quietly to hear.", TRUE, ch, 0, 0, TO_ROOM);
   }
 
   /* Check all worn/wielded items and see if they have a command word. */
-  for (i = 0; i < NUM_WEARS; i++) {
+  for (i = 0; i < NUM_WEARS; i++)
+  {
     mag_item = GET_EQ(ch, i);
-    if (mag_item != NULL) {
-      switch (i) { /* Different procedures for weapons and armors. */
-        case WEAR_WIELD_1:
-        case WEAR_WIELD_OFFHAND:
-        case WEAR_WIELD_2H:
-          found += process_weapon_abilities(mag_item, ch, NULL, ACTMTD_COMMAND_WORD, argument);
-          break;
-        default:
-          break;
+    if (mag_item != NULL)
+    {
+      switch (i)
+      { /* Different procedures for weapons and armors. */
+      case WEAR_WIELD_1:
+      case WEAR_WIELD_OFFHAND:
+      case WEAR_WIELD_2H:
+        found += process_weapon_abilities(mag_item, ch, NULL, ACTMTD_COMMAND_WORD, argument);
+        break;
+      default:
+        break;
       }
     }
   }
@@ -4329,11 +4977,11 @@ ACMD(do_utter) {
     send_to_char(ch, "Nothing happens.\r\n");
   else
     USE_STANDARD_ACTION(ch);
-
 }
 
 /* in order to handle issues with the prompt this became a necessary function */
-bool is_prompt_empty(struct char_data *ch) {
+bool is_prompt_empty(struct char_data *ch)
+{
   bool prompt_is_empty = TRUE;
 
   if (IS_SET_AR(PRF_FLAGS(ch), PRF_DISPAUTO))
@@ -4358,30 +5006,35 @@ bool is_prompt_empty(struct char_data *ch) {
   return prompt_is_empty;
 }
 
-ACMD(do_display) {
+ACMD(do_display)
+{
   size_t i;
 
-  if (IS_NPC(ch)) {
+  if (IS_NPC(ch))
+  {
     send_to_char(ch, "Monsters don't need displays.  Go away.\r\n");
     return;
   }
   skip_spaces(&argument);
 
-  if (!*argument) {
+  if (!*argument)
+  {
     send_to_char(ch, "Usage: prompt { { H | P | V | X | T | R | E | A } | all |"
-            " auto | none }\r\n");
+                     " auto | none }\r\n");
     send_to_char(ch, "Notice this command is deprecated, we recommend using "
-            " PREFEDIT instead.\r\n");
+                     " PREFEDIT instead.\r\n");
     return;
   }
 
-  if (!str_cmp(argument, "auto")) {
+  if (!str_cmp(argument, "auto"))
+  {
     TOGGLE_BIT_AR(PRF_FLAGS(ch), PRF_DISPAUTO);
     send_to_char(ch, "Auto prompt %sabled.\r\n", PRF_FLAGGED(ch, PRF_DISPAUTO) ? "en" : "dis");
     return;
   }
 
-  if (!str_cmp(argument, "on") || !str_cmp(argument, "all")) {
+  if (!str_cmp(argument, "on") || !str_cmp(argument, "all"))
+  {
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPAUTO);
 
     SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPHP);
@@ -4392,7 +5045,9 @@ ACMD(do_display) {
     SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPROOM);
     SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPMEMTIME);
     SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPACTIONS);
-  } else if (!str_cmp(argument, "off") || !str_cmp(argument, "none")) {
+  }
+  else if (!str_cmp(argument, "off") || !str_cmp(argument, "none"))
+  {
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPAUTO);
 
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPHP);
@@ -4403,7 +5058,9 @@ ACMD(do_display) {
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPROOM);
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPMEMTIME);
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPACTIONS);
-  } else {
+  }
+  else
+  {
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPAUTO);
 
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPHP);
@@ -4415,36 +5072,38 @@ ACMD(do_display) {
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPMEMTIME);
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPACTIONS);
 
-    for (i = 0; i < strlen(argument); i++) {
-      switch (LOWER(argument[i])) {
-        case 'h':
-          SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPHP);
-          break;
-        case 'p':
-          SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPPSP);
-          break;
-        case 'v':
-          SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPMOVE);
-          break;
-        case 'x':
-          SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPEXP);
-          break;
-        case 't':
-          SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPEXITS);
-          break;
-        case 'r':
-          SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPROOM);
-          break;
-        case 'e':
-          SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPMEMTIME);
-          break;
-        case 'a':
-          SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPACTIONS);
-          break;
-        default:
-          send_to_char(ch, "Usage: prompt { { H | M | V | X | T | R | E | A } | all"
-                  " | auto | none }\r\n");
-          return;
+    for (i = 0; i < strlen(argument); i++)
+    {
+      switch (LOWER(argument[i]))
+      {
+      case 'h':
+        SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPHP);
+        break;
+      case 'p':
+        SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPPSP);
+        break;
+      case 'v':
+        SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPMOVE);
+        break;
+      case 'x':
+        SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPEXP);
+        break;
+      case 't':
+        SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPEXITS);
+        break;
+      case 'r':
+        SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPROOM);
+        break;
+      case 'e':
+        SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPMEMTIME);
+        break;
+      case 'a':
+        SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPACTIONS);
+        break;
+      default:
+        send_to_char(ch, "Usage: prompt { { H | M | V | X | T | R | E | A } | all"
+                         " | auto | none }\r\n");
+        return;
       }
     }
   }
@@ -4452,289 +5111,296 @@ ACMD(do_display) {
   send_to_char(ch, "%s", CONFIG_OK);
 }
 
-ACMD(do_gen_tog) {
+ACMD(do_gen_tog)
+{
   long result;
   int i;
   char arg[MAX_INPUT_LENGTH];
 
   const char *tog_messages[][2] = {
-    /*0*/
-    {"You are now safe from summoning by other players.\r\n",
-      "You may now be summoned by other players.\r\n"},
-    /*1*/
-    {"Nohassle disabled.\r\n",
-      "Nohassle enabled.\r\n"},
-    /*2*/
-    {"Brief mode off.\r\n",
-      "Brief mode on.\r\n"},
-    /*3*/
-    {"Compact mode off.\r\n",
-      "Compact mode on.\r\n"},
-    /*4*/
-    {"You can now hear tells.\r\n",
-      "You are now deaf to tells.\r\n"},
-    /*5*/
-    {"You can now hear auctions.\r\n",
-      "You are now deaf to auctions.\r\n"},
-    /*6*/
-    {"You can now hear shouts.\r\n",
-      "You are now deaf to shouts.\r\n"},
-    /*7*/
-    {"You can now hear gossip.\r\n",
-      "You are now deaf to gossip.\r\n"},
-    /*8*/
-    {"You can now hear the congratulation messages.\r\n",
-      "You are now deaf to the congratulation messages.\r\n"},
-    /*9*/
-    {"You can now hear the Wiz-channel.\r\n",
-      "You are now deaf to the Wiz-channel.\r\n"},
-    /*10*/
-    {"You are no longer part of the Quest.\r\n",
-      "Okay, you are part of the Quest!\r\n"},
-    /*11*/
-    {"You will no longer see the room flags.\r\n",
-      "You will now see the room flags.\r\n"},
-    /*12*/
-    {"You will now have your communication repeated.\r\n",
-      "You will no longer have your communication repeated.\r\n"},
-    /*13*/
-    {"HolyLight mode off.\r\n",
-      "HolyLight mode on.\r\n"},
-    /*14*/
-    {"Nameserver_is_slow changed to NO; IP addresses will now be resolved.\r\n",
-      "Nameserver_is_slow changed to YES; sitenames will no longer be resolved.\r\n"},
-    /*15*/
-    {"Autoexits disabled.\r\n",
-      "Autoexits enabled.\r\n"},
-    /*16*/
-    {"Will no longer track through doors.\r\n",
-      "Will now track through doors.\r\n"},
-    /*17*/
-    {"Will no longer clear screen in OLC.\r\n",
-      "Will now clear screen in OLC.\r\n"},
-    /*18*/
-    {"Buildwalk Off.\r\n",
-      "Buildwalk On.\r\n"},
-    /*19*/
-    {"AFK flag is now off.\r\n",
-      "AFK flag is now on.\r\n"},
-    /*20*/
-    {"Autoloot disabled.\r\n",
-      "Autoloot enabled.\r\n"},
-    /*21*/
-    {"Autogold disabled.\r\n",
-      "Autogold enabled.\r\n"},
-    /*22*/
-    {"Autosplit disabled.\r\n",
-      "Autosplit enabled.\r\n"},
-    /*23*/
-    {"Autosacrifice disabled.\r\n",
-      "Autosacrifice enabled.\r\n"},
-    /*24*/
-    {"Autoassist disabled.\r\n",
-      "Autoassist enabled.\r\n"},
-    /*25*/
-    {"Automap disabled.\r\n",
-      "Automap enabled.\r\n"},
-    /*26*/
-    {"Autokey disabled.\r\n",
-      "Autokey enabled.\r\n"},
-    /*27*/
-    {"Autodoor disabled.\r\n",
-      "Autodoor enabled.\r\n"},
-    /*28*/
-    {"You are now able to see all clantalk.\r\n",
-      "Clantalk channels disabled.\r\n"},
-    /*29*/
-    {"COLOR DISABLE\r\n",
-      "COLOR ENABLE\r\n"},
-    /*30*/
-    {"SYSLOG DISABLE\r\n",
-      "SYSLOG ENABLE\r\n"},
-    /*31*/
-    {"WIMPY DISABLE\r\n",
-      "WIMPY ENABLE\r\n"},
-    /*32*/
-    {"PAGELENGTH DISABLE\r\n",
-      "PAGELENGTH ENABLE\r\n"},
-    /*33*/
-    {"SCREENWIDTH DISABLE\r\n",
-      "SCREENWIDTH DISABLE\r\n"},
-    /*34*/
-    {"Autoscan disabled.\r\n",
-      "Autoscan enabled.\r\n"},
-    /*35*/
-    {"Autoreload disabled.\r\n",
-      "Autoreload enabled.\r\n"},
-    /*36*/
-    {"CombatRoll disabled.\r\n",
-      "CombatRoll enabled, you now will see details behind the combat rolls during combat.\r\n"},
-    /*37*/
-    {"GUI Mode disabled.\r\n",
-      "GUI Mode enabled, make sure you have MSDP enabled in your client.\r\n"},
-    /*38*/
-    {"You will now see approximately every 5 minutes a in-game hint.\r\n",
-      "You will no longer see in-game hints.\r\n"},
-    /*39*/
-    {"You will no longer automatically collect your ammo after combat.\r\n",
-      "You will now automatically collect your ammo after combat.\r\n"},
-    /*40*/
-    {"You will no longer display to others that you would like to Role-play.\r\n",
-      "You will now display to others that you would like to Role-play.\r\n"},
-    /* 41 */
-    {"Your bombs will now only affect single targets.\r\n",
-     "Your bombs will now affect multiple targets.\r\n"},
-    /*42*/
-    {"You will no longer see level differences between you and mobs when you type look.\r\n",
-      "You will now see level differences between you and mobs when you type look.\r\n"},
+      /*0*/
+      {"You are now safe from summoning by other players.\r\n",
+       "You may now be summoned by other players.\r\n"},
+      /*1*/
+      {"Nohassle disabled.\r\n",
+       "Nohassle enabled.\r\n"},
+      /*2*/
+      {"Brief mode off.\r\n",
+       "Brief mode on.\r\n"},
+      /*3*/
+      {"Compact mode off.\r\n",
+       "Compact mode on.\r\n"},
+      /*4*/
+      {"You can now hear tells.\r\n",
+       "You are now deaf to tells.\r\n"},
+      /*5*/
+      {"You can now hear auctions.\r\n",
+       "You are now deaf to auctions.\r\n"},
+      /*6*/
+      {"You can now hear shouts.\r\n",
+       "You are now deaf to shouts.\r\n"},
+      /*7*/
+      {"You can now hear gossip.\r\n",
+       "You are now deaf to gossip.\r\n"},
+      /*8*/
+      {"You can now hear the congratulation messages.\r\n",
+       "You are now deaf to the congratulation messages.\r\n"},
+      /*9*/
+      {"You can now hear the Wiz-channel.\r\n",
+       "You are now deaf to the Wiz-channel.\r\n"},
+      /*10*/
+      {"You are no longer part of the Quest.\r\n",
+       "Okay, you are part of the Quest!\r\n"},
+      /*11*/
+      {"You will no longer see the room flags.\r\n",
+       "You will now see the room flags.\r\n"},
+      /*12*/
+      {"You will now have your communication repeated.\r\n",
+       "You will no longer have your communication repeated.\r\n"},
+      /*13*/
+      {"HolyLight mode off.\r\n",
+       "HolyLight mode on.\r\n"},
+      /*14*/
+      {"Nameserver_is_slow changed to NO; IP addresses will now be resolved.\r\n",
+       "Nameserver_is_slow changed to YES; sitenames will no longer be resolved.\r\n"},
+      /*15*/
+      {"Autoexits disabled.\r\n",
+       "Autoexits enabled.\r\n"},
+      /*16*/
+      {"Will no longer track through doors.\r\n",
+       "Will now track through doors.\r\n"},
+      /*17*/
+      {"Will no longer clear screen in OLC.\r\n",
+       "Will now clear screen in OLC.\r\n"},
+      /*18*/
+      {"Buildwalk Off.\r\n",
+       "Buildwalk On.\r\n"},
+      /*19*/
+      {"AFK flag is now off.\r\n",
+       "AFK flag is now on.\r\n"},
+      /*20*/
+      {"Autoloot disabled.\r\n",
+       "Autoloot enabled.\r\n"},
+      /*21*/
+      {"Autogold disabled.\r\n",
+       "Autogold enabled.\r\n"},
+      /*22*/
+      {"Autosplit disabled.\r\n",
+       "Autosplit enabled.\r\n"},
+      /*23*/
+      {"Autosacrifice disabled.\r\n",
+       "Autosacrifice enabled.\r\n"},
+      /*24*/
+      {"Autoassist disabled.\r\n",
+       "Autoassist enabled.\r\n"},
+      /*25*/
+      {"Automap disabled.\r\n",
+       "Automap enabled.\r\n"},
+      /*26*/
+      {"Autokey disabled.\r\n",
+       "Autokey enabled.\r\n"},
+      /*27*/
+      {"Autodoor disabled.\r\n",
+       "Autodoor enabled.\r\n"},
+      /*28*/
+      {"You are now able to see all clantalk.\r\n",
+       "Clantalk channels disabled.\r\n"},
+      /*29*/
+      {"COLOR DISABLE\r\n",
+       "COLOR ENABLE\r\n"},
+      /*30*/
+      {"SYSLOG DISABLE\r\n",
+       "SYSLOG ENABLE\r\n"},
+      /*31*/
+      {"WIMPY DISABLE\r\n",
+       "WIMPY ENABLE\r\n"},
+      /*32*/
+      {"PAGELENGTH DISABLE\r\n",
+       "PAGELENGTH ENABLE\r\n"},
+      /*33*/
+      {"SCREENWIDTH DISABLE\r\n",
+       "SCREENWIDTH DISABLE\r\n"},
+      /*34*/
+      {"Autoscan disabled.\r\n",
+       "Autoscan enabled.\r\n"},
+      /*35*/
+      {"Autoreload disabled.\r\n",
+       "Autoreload enabled.\r\n"},
+      /*36*/
+      {"CombatRoll disabled.\r\n",
+       "CombatRoll enabled, you now will see details behind the combat rolls during combat.\r\n"},
+      /*37*/
+      {"GUI Mode disabled.\r\n",
+       "GUI Mode enabled, make sure you have MSDP enabled in your client.\r\n"},
+      /*38*/
+      {"You will now see approximately every 5 minutes a in-game hint.\r\n",
+       "You will no longer see in-game hints.\r\n"},
+      /*39*/
+      {"You will no longer automatically collect your ammo after combat.\r\n",
+       "You will now automatically collect your ammo after combat.\r\n"},
+      /*40*/
+      {"You will no longer display to others that you would like to Role-play.\r\n",
+       "You will now display to others that you would like to Role-play.\r\n"},
+      /* 41 */
+      {"Your bombs will now only affect single targets.\r\n",
+       "Your bombs will now affect multiple targets.\r\n"},
+      /*42*/
+      {"You will no longer see level differences between you and mobs when you type look.\r\n",
+       "You will now see level differences between you and mobs when you type look.\r\n"},
   };
 
   if (IS_NPC(ch))
     return;
 
-  switch (subcmd) {
-    case SCMD_AOE_BOMBS:
-      result = PRF_TOG_CHK(ch, PRF_AOE_BOMBS);
-      break;
-    case SCMD_NOSUMMON:
-      result = PRF_TOG_CHK(ch, PRF_SUMMONABLE);
-      break;
-    case SCMD_GUI_MODE:
-      result = PRF_TOG_CHK(ch, PRF_GUI_MODE);
-      break;
-    case SCMD_NOHASSLE:
-      result = PRF_TOG_CHK(ch, PRF_NOHASSLE);
-      break;
-    case SCMD_BRIEF:
-      result = PRF_TOG_CHK(ch, PRF_BRIEF);
-      break;
-    case SCMD_COMPACT:
-      result = PRF_TOG_CHK(ch, PRF_COMPACT);
-      break;
-    case SCMD_NOTELL:
-      result = PRF_TOG_CHK(ch, PRF_NOTELL);
-      break;
-    case SCMD_NOAUCTION:
-      result = PRF_TOG_CHK(ch, PRF_NOAUCT);
-      break;
-    case SCMD_NOSHOUT:
-      result = PRF_TOG_CHK(ch, PRF_NOSHOUT);
-      break;
-    case SCMD_NOGOSSIP:
-      result = PRF_TOG_CHK(ch, PRF_NOGOSS);
-      break;
-    case SCMD_NOHINT:
-      result = PRF_TOG_CHK(ch, PRF_NOHINT);
-      break;
-    case SCMD_AUTOCOLLECT:
-      result = PRF_TOG_CHK(ch, PRF_AUTOCOLLECT);
-      break;
-    case SCMD_NOGRATZ:
-      result = PRF_TOG_CHK(ch, PRF_NOGRATZ);
-      break;
-    case SCMD_NOWIZ:
-      result = PRF_TOG_CHK(ch, PRF_NOWIZ);
-      break;
-    case SCMD_QUEST:
-      result = PRF_TOG_CHK(ch, PRF_QUEST);
-      break;
-    case SCMD_SHOWVNUMS:
-      result = PRF_TOG_CHK(ch, PRF_SHOWVNUMS);
-      break;
-    case SCMD_NOREPEAT:
-      result = PRF_TOG_CHK(ch, PRF_NOREPEAT);
-      break;
-    case SCMD_HOLYLIGHT:
-      result = PRF_TOG_CHK(ch, PRF_HOLYLIGHT);
-      break;
-    case SCMD_AUTOEXIT:
-      result = PRF_TOG_CHK(ch, PRF_AUTOEXIT);
-      break;
-    case SCMD_CLS:
-      result = PRF_TOG_CHK(ch, PRF_CLS);
-      break;
-    case SCMD_BUILDWALK:
-      if (GET_LEVEL(ch) < LVL_BUILDER) {
-        send_to_char(ch, "Builders only, sorry.\r\n");
-        return;
-      }
-      result = PRF_TOG_CHK(ch, PRF_BUILDWALK);
-      if (PRF_FLAGGED(ch, PRF_BUILDWALK)) {
-        one_argument(argument, arg);
-        for (i = 0; *arg && *(sector_types[i]) != '\n'; i++)
-          if (is_abbrev(arg, sector_types[i]))
-            break;
-        if (*(sector_types[i]) == '\n')
-          i = 0;
-        GET_BUILDWALK_SECTOR(ch) = i;
-        send_to_char(ch, "Default sector type is %s\r\n", sector_types[i]);
-
-        mudlog(CMP, GET_LEVEL(ch), TRUE,
-                "OLC: %s turned buildwalk on. Allowed zone %d", GET_NAME(ch), GET_OLC_ZONE(ch));
-      } else
-        mudlog(CMP, GET_LEVEL(ch), TRUE,
-              "OLC: %s turned buildwalk off. Allowed zone %d", GET_NAME(ch), GET_OLC_ZONE(ch));
-      break;
-    case SCMD_AFK:
-      result = PRF_TOG_CHK(ch, PRF_AFK);
-      if (PRF_FLAGGED(ch, PRF_AFK))
-        act("$n has gone AFK.", TRUE, ch, 0, 0, TO_ROOM);
-      else {
-        act("$n has come back from AFK.", TRUE, ch, 0, 0, TO_ROOM);
-        if (has_mail(GET_IDNUM(ch)))
-          send_to_char(ch, "You have mail waiting.\r\n");
-      }
-      break;
-    case SCMD_RP:
-      result = PRF_TOG_CHK(ch, PRF_RP);
-      if (PRF_FLAGGED(ch, PRF_RP))
-        act("$n is interested in Role-play!.", TRUE, ch, 0, 0, TO_ROOM);
-      else {
-        act("$n is now OOC.", TRUE, ch, 0, 0, TO_ROOM);
-      }
-      break;
-    case SCMD_AUTOLOOT:
-      result = PRF_TOG_CHK(ch, PRF_AUTOLOOT);
-      break;
-    case SCMD_AUTORELOAD:
-      result = PRF_TOG_CHK(ch, PRF_AUTORELOAD);
-      break;
-    case SCMD_COMBATROLL:
-      result = PRF_TOG_CHK(ch, PRF_COMBATROLL);
-      break;
-    case SCMD_AUTOGOLD:
-      result = PRF_TOG_CHK(ch, PRF_AUTOGOLD);
-      break;
-    case SCMD_AUTOSPLIT:
-      result = PRF_TOG_CHK(ch, PRF_AUTOSPLIT);
-      break;
-    case SCMD_AUTOSAC:
-      result = PRF_TOG_CHK(ch, PRF_AUTOSAC);
-      break;
-    case SCMD_AUTOASSIST:
-      result = PRF_TOG_CHK(ch, PRF_AUTOASSIST);
-      break;
-    case SCMD_AUTOMAP:
-      result = PRF_TOG_CHK(ch, PRF_AUTOMAP);
-      break;
-    case SCMD_AUTOKEY:
-      result = PRF_TOG_CHK(ch, PRF_AUTOKEY);
-      break;
-    case SCMD_AUTODOOR:
-      result = PRF_TOG_CHK(ch, PRF_AUTODOOR);
-      break;
-    case SCMD_NOCLANTALK:
-      result = PRF_TOG_CHK(ch, PRF_NOCLANTALK);
-      break;
-    case SCMD_AUTOSCAN:
-      result = PRF_TOG_CHK(ch, PRF_AUTOSCAN);
-      break;
-    case SCMD_AUTOCONSIDER:
-      result = PRF_TOG_CHK(ch, PRF_AUTOCON);
-      break;
-    default:
-      log("SYSERR: Unknown subcmd %d in do_gen_toggle.", subcmd);
+  switch (subcmd)
+  {
+  case SCMD_AOE_BOMBS:
+    result = PRF_TOG_CHK(ch, PRF_AOE_BOMBS);
+    break;
+  case SCMD_NOSUMMON:
+    result = PRF_TOG_CHK(ch, PRF_SUMMONABLE);
+    break;
+  case SCMD_GUI_MODE:
+    result = PRF_TOG_CHK(ch, PRF_GUI_MODE);
+    break;
+  case SCMD_NOHASSLE:
+    result = PRF_TOG_CHK(ch, PRF_NOHASSLE);
+    break;
+  case SCMD_BRIEF:
+    result = PRF_TOG_CHK(ch, PRF_BRIEF);
+    break;
+  case SCMD_COMPACT:
+    result = PRF_TOG_CHK(ch, PRF_COMPACT);
+    break;
+  case SCMD_NOTELL:
+    result = PRF_TOG_CHK(ch, PRF_NOTELL);
+    break;
+  case SCMD_NOAUCTION:
+    result = PRF_TOG_CHK(ch, PRF_NOAUCT);
+    break;
+  case SCMD_NOSHOUT:
+    result = PRF_TOG_CHK(ch, PRF_NOSHOUT);
+    break;
+  case SCMD_NOGOSSIP:
+    result = PRF_TOG_CHK(ch, PRF_NOGOSS);
+    break;
+  case SCMD_NOHINT:
+    result = PRF_TOG_CHK(ch, PRF_NOHINT);
+    break;
+  case SCMD_AUTOCOLLECT:
+    result = PRF_TOG_CHK(ch, PRF_AUTOCOLLECT);
+    break;
+  case SCMD_NOGRATZ:
+    result = PRF_TOG_CHK(ch, PRF_NOGRATZ);
+    break;
+  case SCMD_NOWIZ:
+    result = PRF_TOG_CHK(ch, PRF_NOWIZ);
+    break;
+  case SCMD_QUEST:
+    result = PRF_TOG_CHK(ch, PRF_QUEST);
+    break;
+  case SCMD_SHOWVNUMS:
+    result = PRF_TOG_CHK(ch, PRF_SHOWVNUMS);
+    break;
+  case SCMD_NOREPEAT:
+    result = PRF_TOG_CHK(ch, PRF_NOREPEAT);
+    break;
+  case SCMD_HOLYLIGHT:
+    result = PRF_TOG_CHK(ch, PRF_HOLYLIGHT);
+    break;
+  case SCMD_AUTOEXIT:
+    result = PRF_TOG_CHK(ch, PRF_AUTOEXIT);
+    break;
+  case SCMD_CLS:
+    result = PRF_TOG_CHK(ch, PRF_CLS);
+    break;
+  case SCMD_BUILDWALK:
+    if (GET_LEVEL(ch) < LVL_BUILDER)
+    {
+      send_to_char(ch, "Builders only, sorry.\r\n");
       return;
+    }
+    result = PRF_TOG_CHK(ch, PRF_BUILDWALK);
+    if (PRF_FLAGGED(ch, PRF_BUILDWALK))
+    {
+      one_argument(argument, arg);
+      for (i = 0; *arg && *(sector_types[i]) != '\n'; i++)
+        if (is_abbrev(arg, sector_types[i]))
+          break;
+      if (*(sector_types[i]) == '\n')
+        i = 0;
+      GET_BUILDWALK_SECTOR(ch) = i;
+      send_to_char(ch, "Default sector type is %s\r\n", sector_types[i]);
+
+      mudlog(CMP, GET_LEVEL(ch), TRUE,
+             "OLC: %s turned buildwalk on. Allowed zone %d", GET_NAME(ch), GET_OLC_ZONE(ch));
+    }
+    else
+      mudlog(CMP, GET_LEVEL(ch), TRUE,
+             "OLC: %s turned buildwalk off. Allowed zone %d", GET_NAME(ch), GET_OLC_ZONE(ch));
+    break;
+  case SCMD_AFK:
+    result = PRF_TOG_CHK(ch, PRF_AFK);
+    if (PRF_FLAGGED(ch, PRF_AFK))
+      act("$n has gone AFK.", TRUE, ch, 0, 0, TO_ROOM);
+    else
+    {
+      act("$n has come back from AFK.", TRUE, ch, 0, 0, TO_ROOM);
+      if (has_mail(GET_IDNUM(ch)))
+        send_to_char(ch, "You have mail waiting.\r\n");
+    }
+    break;
+  case SCMD_RP:
+    result = PRF_TOG_CHK(ch, PRF_RP);
+    if (PRF_FLAGGED(ch, PRF_RP))
+      act("$n is interested in Role-play!.", TRUE, ch, 0, 0, TO_ROOM);
+    else
+    {
+      act("$n is now OOC.", TRUE, ch, 0, 0, TO_ROOM);
+    }
+    break;
+  case SCMD_AUTOLOOT:
+    result = PRF_TOG_CHK(ch, PRF_AUTOLOOT);
+    break;
+  case SCMD_AUTORELOAD:
+    result = PRF_TOG_CHK(ch, PRF_AUTORELOAD);
+    break;
+  case SCMD_COMBATROLL:
+    result = PRF_TOG_CHK(ch, PRF_COMBATROLL);
+    break;
+  case SCMD_AUTOGOLD:
+    result = PRF_TOG_CHK(ch, PRF_AUTOGOLD);
+    break;
+  case SCMD_AUTOSPLIT:
+    result = PRF_TOG_CHK(ch, PRF_AUTOSPLIT);
+    break;
+  case SCMD_AUTOSAC:
+    result = PRF_TOG_CHK(ch, PRF_AUTOSAC);
+    break;
+  case SCMD_AUTOASSIST:
+    result = PRF_TOG_CHK(ch, PRF_AUTOASSIST);
+    break;
+  case SCMD_AUTOMAP:
+    result = PRF_TOG_CHK(ch, PRF_AUTOMAP);
+    break;
+  case SCMD_AUTOKEY:
+    result = PRF_TOG_CHK(ch, PRF_AUTOKEY);
+    break;
+  case SCMD_AUTODOOR:
+    result = PRF_TOG_CHK(ch, PRF_AUTODOOR);
+    break;
+  case SCMD_NOCLANTALK:
+    result = PRF_TOG_CHK(ch, PRF_NOCLANTALK);
+    break;
+  case SCMD_AUTOSCAN:
+    result = PRF_TOG_CHK(ch, PRF_AUTOSCAN);
+    break;
+  case SCMD_AUTOCONSIDER:
+    result = PRF_TOG_CHK(ch, PRF_AUTOCON);
+    break;
+  default:
+    log("SYSERR: Unknown subcmd %d in do_gen_toggle.", subcmd);
+    return;
   }
 
   if (result)
@@ -4747,22 +5413,25 @@ ACMD(do_gen_tog) {
 
 /*a general diplomacy skill - popularity increase is determined by SCMD */
 struct diplomacy_data diplomacy_types[] = {
-  { SCMD_MURMUR, SKILL_MURMUR, 0.75, 1}, /**< Murmur skill, 0.75% increase, 1 tick wait  */
-  { SCMD_PROPAGANDA, SKILL_PROPAGANDA, 2.32, 3}, /**< Propaganda skill, 2.32% increase, 3 tick wait */
-  { SCMD_LOBBY, SKILL_LOBBY, 6.0, 8}, /**< Lobby skill, 10% increase, 8 tick wait     */
+    {SCMD_MURMUR, SKILL_MURMUR, 0.75, 1},         /**< Murmur skill, 0.75% increase, 1 tick wait  */
+    {SCMD_PROPAGANDA, SKILL_PROPAGANDA, 2.32, 3}, /**< Propaganda skill, 2.32% increase, 3 tick wait */
+    {SCMD_LOBBY, SKILL_LOBBY, 6.0, 8},            /**< Lobby skill, 10% increase, 8 tick wait     */
 
-  { 0, 0, 0.0, 0} /**< This must be the last line */
+    {0, 0, 0.0, 0} /**< This must be the last line */
 };
 
-ACMD(do_diplomacy) {
+ACMD(do_diplomacy)
+{
   // need to make this do something Zusuk :P
 }
 
-void show_happyhour(struct char_data *ch) {
+void show_happyhour(struct char_data *ch)
+{
   char happyexp[80], happygold[80], happyqp[80], happytreasure[80];
   int secs_left;
 
-  if ((IS_HAPPYHOUR) || (GET_LEVEL(ch) >= LVL_GRSTAFF)) {
+  if ((IS_HAPPYHOUR) || (GET_LEVEL(ch) >= LVL_GRSTAFF))
+  {
     if (HAPPY_TIME)
       secs_left = ((HAPPY_TIME - 1) * SECS_PER_MUD_HOUR) + next_tick;
     else
@@ -4774,25 +5443,29 @@ void show_happyhour(struct char_data *ch) {
     sprintf(happytreasure, "%s+%d%%%s to Treasure Drop rate\r\n", CCYEL(ch, C_NRM), HAPPY_TREASURE, CCNRM(ch, C_NRM));
 
     send_to_char(ch, "LuminariMUD Happy Hour!\r\n"
-            "------------------\r\n"
-            "%s%s%s%sTime Remaining: %s%d%s hours %s%d%s mins %s%d%s secs\r\n",
-            (IS_HAPPYEXP || (GET_LEVEL(ch) >= LVL_STAFF)) ? happyexp : "",
-            (IS_HAPPYGOLD || (GET_LEVEL(ch) >= LVL_STAFF)) ? happygold : "",
-            (IS_HAPPYTREASURE || (GET_LEVEL(ch) >= LVL_STAFF)) ? happytreasure : "",
-            (IS_HAPPYQP || (GET_LEVEL(ch) >= LVL_STAFF)) ? happyqp : "",
-            CCYEL(ch, C_NRM), (secs_left / 3600), CCNRM(ch, C_NRM),
-            CCYEL(ch, C_NRM), (secs_left % 3600) / 60, CCNRM(ch, C_NRM),
-            CCYEL(ch, C_NRM), (secs_left % 60), CCNRM(ch, C_NRM));
-  } else {
+                     "------------------\r\n"
+                     "%s%s%s%sTime Remaining: %s%d%s hours %s%d%s mins %s%d%s secs\r\n",
+                 (IS_HAPPYEXP || (GET_LEVEL(ch) >= LVL_STAFF)) ? happyexp : "",
+                 (IS_HAPPYGOLD || (GET_LEVEL(ch) >= LVL_STAFF)) ? happygold : "",
+                 (IS_HAPPYTREASURE || (GET_LEVEL(ch) >= LVL_STAFF)) ? happytreasure : "",
+                 (IS_HAPPYQP || (GET_LEVEL(ch) >= LVL_STAFF)) ? happyqp : "",
+                 CCYEL(ch, C_NRM), (secs_left / 3600), CCNRM(ch, C_NRM),
+                 CCYEL(ch, C_NRM), (secs_left % 3600) / 60, CCNRM(ch, C_NRM),
+                 CCYEL(ch, C_NRM), (secs_left % 60), CCNRM(ch, C_NRM));
+  }
+  else
+  {
     send_to_char(ch, "Sorry, there is currently no happy hour!\r\n");
   }
 }
 
-ACMD(do_happyhour) {
+ACMD(do_happyhour)
+{
   char arg[MAX_INPUT_LENGTH], val[MAX_INPUT_LENGTH];
   int num;
 
-  if (GET_LEVEL(ch) < LVL_STAFF) {
+  if (GET_LEVEL(ch) < LVL_STAFF)
+  {
     show_happyhour(ch);
     return;
   }
@@ -4800,20 +5473,27 @@ ACMD(do_happyhour) {
   /* Only Imms get here, so check args */
   two_arguments(argument, arg, val);
 
-  if (is_abbrev(arg, "experience")) {
+  if (is_abbrev(arg, "experience"))
+  {
     num = MIN(MAX((atoi(val)), 0), 1000);
     HAPPY_EXP = num;
     send_to_char(ch, "Happy Hour Exp rate set to +%d%%\r\n", HAPPY_EXP);
-  } else if (is_abbrev(arg, "treasure")) {
+  }
+  else if (is_abbrev(arg, "treasure"))
+  {
     num = MIN(MAX((atoi(val)), TREASURE_PERCENT + 1), 99 - TREASURE_PERCENT);
     HAPPY_TREASURE = num;
     send_to_char(ch, "Happy Hour Treasure drop-rate set to +%d%%\r\n",
-            HAPPY_TREASURE);
-  } else if ((is_abbrev(arg, "gold")) || (is_abbrev(arg, "coins"))) {
+                 HAPPY_TREASURE);
+  }
+  else if ((is_abbrev(arg, "gold")) || (is_abbrev(arg, "coins")))
+  {
     num = MIN(MAX((atoi(val)), 0), 1000);
     HAPPY_GOLD = num;
     send_to_char(ch, "Happy Hour Gold rate set to +%d%%\r\n", HAPPY_GOLD);
-  } else if ((is_abbrev(arg, "time")) || (is_abbrev(arg, "ticks"))) {
+  }
+  else if ((is_abbrev(arg, "time")) || (is_abbrev(arg, "ticks")))
+  {
     num = MIN(MAX((atoi(val)), 0), 1000);
     if (HAPPY_TIME && !num)
       game_info("Happyhour has been stopped!");
@@ -4822,276 +5502,286 @@ ACMD(do_happyhour) {
 
     HAPPY_TIME = num;
     send_to_char(ch, "Happy Hour Time set to %d ticks (%d hours %d mins and %d secs)\r\n",
-            HAPPY_TIME,
-            (HAPPY_TIME * SECS_PER_MUD_HOUR) / 3600,
-            ((HAPPY_TIME * SECS_PER_MUD_HOUR) % 3600) / 60,
-            (HAPPY_TIME * SECS_PER_MUD_HOUR) % 60);
-  } else if ((is_abbrev(arg, "qp")) || (is_abbrev(arg, "questpoints"))) {
+                 HAPPY_TIME,
+                 (HAPPY_TIME * SECS_PER_MUD_HOUR) / 3600,
+                 ((HAPPY_TIME * SECS_PER_MUD_HOUR) % 3600) / 60,
+                 (HAPPY_TIME * SECS_PER_MUD_HOUR) % 60);
+  }
+  else if ((is_abbrev(arg, "qp")) || (is_abbrev(arg, "questpoints")))
+  {
     num = MIN(MAX((atoi(val)), 0), 1000);
     HAPPY_QP = num;
     send_to_char(ch, "Happy Hour Questpoints rate set to +%d%%\r\n", HAPPY_QP);
-  } else if (is_abbrev(arg, "show")) {
+  }
+  else if (is_abbrev(arg, "show"))
+  {
     show_happyhour(ch);
-  } else if (is_abbrev(arg, "default")) {
+  }
+  else if (is_abbrev(arg, "default"))
+  {
     HAPPY_EXP = 100;
     HAPPY_GOLD = 50;
     HAPPY_QP = 50;
     HAPPY_TREASURE = 20;
     HAPPY_TIME = 48;
     game_info("A Happyhour has started!");
-  } else {
+  }
+  else
+  {
     send_to_char(ch,
-            "Usage: %shappyhour                 %s- show usage (this info)\r\n"
-            "       %shappyhour show            %s- display current settings (what mortals see)\r\n"
-            "       %shappyhour time <ticks>    %s- set happyhour time and start timer\r\n"
-            "       %shappyhour qp <num>        %s- set qp percentage gain\r\n"
-            "       %shappyhour exp <num>       %s- set exp percentage gain\r\n"
-            "       %shappyhour gold <num>      %s- set gold percentage gain\r\n"
-            "       %shappyhour treasure <num>  %s- set treasure drop-rate gain\r\n"
-            "       \tyhappyhour default      \tw- sets a default setting for happyhour\r\n\r\n"
-            "Configure the happyhour settings and start a happyhour.\r\n"
-            "Currently 1 hour IRL = %d ticks\r\n"
-            "If no number is specified, 0 (off) is assumed.\r\nThe command \tyhappyhour time\tn will therefore stop the happyhour timer.\r\n",
-            CCYEL(ch, C_NRM), CCNRM(ch, C_NRM),
-            CCYEL(ch, C_NRM), CCNRM(ch, C_NRM),
-            CCYEL(ch, C_NRM), CCNRM(ch, C_NRM),
-            CCYEL(ch, C_NRM), CCNRM(ch, C_NRM),
-            CCYEL(ch, C_NRM), CCNRM(ch, C_NRM),
-            CCYEL(ch, C_NRM), CCNRM(ch, C_NRM),
-            CCYEL(ch, C_NRM), CCNRM(ch, C_NRM),
-            (3600 / SECS_PER_MUD_HOUR));
+                 "Usage: %shappyhour                 %s- show usage (this info)\r\n"
+                 "       %shappyhour show            %s- display current settings (what mortals see)\r\n"
+                 "       %shappyhour time <ticks>    %s- set happyhour time and start timer\r\n"
+                 "       %shappyhour qp <num>        %s- set qp percentage gain\r\n"
+                 "       %shappyhour exp <num>       %s- set exp percentage gain\r\n"
+                 "       %shappyhour gold <num>      %s- set gold percentage gain\r\n"
+                 "       %shappyhour treasure <num>  %s- set treasure drop-rate gain\r\n"
+                 "       \tyhappyhour default      \tw- sets a default setting for happyhour\r\n\r\n"
+                 "Configure the happyhour settings and start a happyhour.\r\n"
+                 "Currently 1 hour IRL = %d ticks\r\n"
+                 "If no number is specified, 0 (off) is assumed.\r\nThe command \tyhappyhour time\tn will therefore stop the happyhour timer.\r\n",
+                 CCYEL(ch, C_NRM), CCNRM(ch, C_NRM),
+                 CCYEL(ch, C_NRM), CCNRM(ch, C_NRM),
+                 CCYEL(ch, C_NRM), CCNRM(ch, C_NRM),
+                 CCYEL(ch, C_NRM), CCNRM(ch, C_NRM),
+                 CCYEL(ch, C_NRM), CCNRM(ch, C_NRM),
+                 CCYEL(ch, C_NRM), CCNRM(ch, C_NRM),
+                 CCYEL(ch, C_NRM), CCNRM(ch, C_NRM),
+                 (3600 / SECS_PER_MUD_HOUR));
   }
 }
 
 /****  little hint system *******/
-#define NUM_HINTS   33
+#define NUM_HINTS 33
 
 /* i am surrounding hints with this:
    \tR[HINT]:\tn \ty
    [use nohint or prefedit to deactivate this]\tn\r\n
  */
 char *hints[NUM_HINTS] = {
-  /* 1*/"\tR[HINT]:\tn \ty"
-  "Different spell casting classes use different commands "
-  "to cast their spells.  Typing score will show you the appropriate "
-  "commands.  For helpful information see: HELP CAST and HELP MEMORIZE.  "
-  "You will also need to PREPARE spells either after or before using them."
-  "  [use nohint or prefedit to deactivate this]\tn\r\n",
-  /* 2*/"\tR[HINT]:\tn \ty"
-  "You will gain more experience from grouping.  Monster "
-  "experience is increased for groups, with larger groups receiving "
-  "more total experience.  This total experience is divided amongst "
-  "all members based on their level.  "
-  "  [use nohint or prefedit to deactivate this]\tn\r\n",
-  /* 3*/"\tR[HINT]:\tn \ty"
-  "To view vital information about your character, type SCORE.  "
-  "Additional helpful information commands include: ATTACKS, DEFENSES, "
-  "AFF, COOLDOWN, ABILITIES and RESISTANCE."
-  "  [use nohint or prefedit to deactivate this]\tn\r\n",
-  /* 4*/"\tR[HINT]:\tn \ty"
-  "Once you have enough experience to advance, you can type GAIN "
-  "<class choice> to level up, you can gain in any class you qualify for, up "
-  "to 3 total classes.  Leveling up will result in an increase in "
-  "training points for skills, more hit points, and possibly more feat points, "
-  "movement points, boosts, PSP points.  To spend your feat points, you will "
-  "use the STUDY menu.  To spend boosts and skill points, you will use a trainer.  "
-  "If you make a mistake in choices when you advance, you can always RESPEC."
-  "  [use nohint or prefedit to deactivate this]\tn\r\n",
-  /* 5*/"\tR[HINT]:\tn \ty"
-  "The combination of races, classes (MULTICLASS), stat boosts "
-  "and feat selection make for nearly limitless choices.  Do not be afraid "
-  "to experiment!  Have fun reading up on feats using commands.  FEATS with no "
-  "argument will show your current feats and show you a bunch of other command "
-  "options on the bottom section."
-  "  [use nohint or prefedit to deactivate this]\tn\r\n",
-  /* 6*/"\tR[HINT]:\tn \ty"
-  "Worried about missing messages while in a menu system such "
-  "as STUDY?  Do not fret, we have a HISTORY command so you can view "
-  "what was said on all the channels while you were away!  You can "
-  "type HISTORY ALL to view everything!"
-  "  [use nohint or prefedit to deactivate this]\tn\r\n",
-  /* 7*/"\tR[HINT]:\tn \ty"
-  "QUEST PROGRESS and QUEST HISTORY are your best friends when "
-  "working on a quest, they can help remind you exactly what you have done "
-  "and what you need to do.  You can also view details of each individual quest "
-  "you have completed by typing QUEST HISTORY <number>.  Some quests are "
-  "initiated with the ASK command, commonly ASK HI will initiate conversation."
-  "  [use nohint or prefedit to deactivate this]\tn\r\n",
-  /* 8*/"\tR[HINT]:\tn \ty"
-  "If you have an idea for a hint, please email your ideas to one of "
-  "our programmers: Ornir@@LuminariMUD.com or Zusuk@@LuminariMUD.com."
-  "  [use nohint or prefedit to deactivate this]\tn\r\n",
-  /* 9*/"\tR[HINT]:\tn \ty"
-  "LuminariMUD is considered a 'younger' MUD and is under heavy "
-  "and constant development.  If you run into a bug, our policy is to simply "
-  "report the bug using the BUG command.  Example, BUG SUBMIT <header>, then "
-  "use the in-game text editor that pops up to write details about the bug, then "
-  "you can type /s to save the submission."
-  "  [use nohint or prefedit to deactivate this]\tn\r\n",
-  /*10*/"\tR[HINT]:\tn \tyThe beginning of your adventure will be focused in on the Ashenport "
-  "Region of the world.  The region is relatively fairly small, maybe 1/10th of the "
-  "surface space of Lumia, yet expands thousands of rooms in our WILDERNESS.  At the "
-  "current time you are able to get between zones quickly using a TELEPORTER.  To use "
-  "the teleporter, just type: TELEPORT <target>.  To get a list of target zones, you can "
-  "type: HELP ZONES."
-  "  [use nohint or prefedit to deactivate this]\tn\r\n",
-  /*11*/"\tR[HINT]:\tn \tyYou can find a lot of gear in various shops throughout the "
-  "world.  Some shops even include special powerful magic items that can "
-  "be purchased with quest points.  In addition to finding normal loot "
-  "that are on your foes, you may also find 'random treasure' on them "
-  "as well with every victory, there is a slight chance you will find "
-  "this bonus loot.  Also, there is a special BAZAAR in Ashenport where "
-  "you can purchase magic items to fill your missing equipment slots."
-  "  [use nohint or prefedit to deactivate this]\tn\r\n",
-  /*12*/"\tR[HINT]:\tn \tyIf you find items of value that you do not want to deal with, "
-  "you can always DONATE them.  This will cause them to appear in a "
-  "donation pit throughout the realm.  Alternatively if you find an item"
-  "that is of no value, you can JUNK it to permanently get rid of it.  "
-  "Although not necessary since corpses decompose after a short time, you "
-  "can SACrifice corpses to get rid of them."
-  "  [use nohint or prefedit to deactivate this]\tn\r\n",
-  /*13*/"\tR[HINT]:\tn \tyBe aware during combat!  Enemies can do various things "
-  "to try and disable you, including knocking you down! You can check AFF "
-  "to see affections both negative and positive that are affecting you."
-  "  [use nohint or prefedit to deactivate this]\tn\r\n",
-  /*14*/"\tR[HINT]:\tn \tyLuminariMUD has a 'main' quest line for the Ashenport Region "
-  "that starts with the Mosswood Elder, in Mossswood.  The quest line is "
-  "important for telling fun and informative details about the lore of the "
-  "Realm, and leading the adventurers to various zones throughout the region. "
-  "In addition some of the rewards of the various quests in the chain have "
-  "very powerful items."
-  "  [use nohint or prefedit to deactivate this]\tn\r\n",
-  /*15*/"\tR[HINT]:\tn \ty"
-  "Have a great idea for features or changes to LuminariMUD?  Please "
-  "use the IDEA command, IDEA SUBMIT <title of submission>, you will then "
-  "enter our text editor, type out the details of the idea, and then "
-  "type /s to save the submission."
-  "  [use nohint or prefedit to deactivate this]\tn\r\n",
-  /*16*/"\tR[HINT]:\tn \ty"
-  "We have a lot of end-game content, including building a player treasure "
-  "horde (HELP HOUSE), which allows you to create a corner of the world "
-  "to call home and store your treasure.  You can add 'guests' to your home "
-  "to allow your friends or other characters to enter."
-  "  [use nohint or prefedit to deactivate this]\tn\r\n",
-  /*17*/"\tR[HINT]:\tn \ty"
-  "Reached level 30?  There are a lot of exciting end-game content here "
-  "at LuminariMUD.  We have multiple planes of existence that can be accessed "
-  "through various portals throughout the wilderness and magic.  Epic zones "
-  "with extremely challenging group content with powerful magical items.  "
-  "Hard to find epic quests litter the Realm as well, so explore!"
-  "  [use nohint or prefedit to deactivate this]\tn\r\n",
-  /*18*/"\tR[HINT]:\tn \ty"
-  "LuminariMUD has an account system.  Through the account system you "
-  "can manage multiple characters.  In addition you share 'account exp' "
-  "between your characters, which can be spent on various account-wide "
-  "benefits, such as unlocking advanced or epic races, and prestige classes. "
-  "Type ACCOUNT to view your account details and ACCEXP to unlock various "
-  "benefits spending account experience."
-  "  [use nohint or prefedit to deactivate this]\tn\r\n",
-  /*19*/"\tR[HINT]:\tn \ty"
-  "Did you know that some weapons and armor have very special enchantments "
-  "on them that can offer a variety of benefits?  Some of the more powerful "
-  "gear in the Realm can cast their own spells, and act on their own.  "
-  "Some will benefit your feats, stats, imbue you with affections while "
-  "equipped.  Some gear responds to special command words that can be "
-  "discovered either by examining the gear, through quest lines or other "
-  "interesting ways.  Some gear respond to combat maneuvers, such as weapons "
-  "that will help you trip, spikes on a shield when shield-punching, or even "
-  "armor / shields that will cast a heal spell on you when they deflect a blow."
-  "  [use nohint or prefedit to deactivate this]\tn\r\n",
-  /*20*/"\tR[HINT]:\tn \ty"
-  "LuminariMUD's crafting system allows you to CREATE, RESTRING (rename), "
-  "RESIZE gear.  You will need a crafting kit and respective molds.  If you "
-  "travel to Sanctus, there is a work area for buying molds.  If you add a "
-  "crafting crystal while creating a new item, you will enchant it.  You "
-  "can acquire crystals from treasure, DISENCHANTing magic items and you can "
-  "even use AUGMENT to combine crystals to make them more powerful.  In addition "
-  "you can do SUPPLYORDERs (basic crafting quests) in Sanctus for rewards "
-  "including quest points. "
-  "  [use nohint or prefedit to deactivate this]\tn\r\n",
-  /*21*/"\tR[HINT]:\tn \ty"
-  "Reached the end-game?  Forming a CLAN can help you co-ordinate "
-  "team efforts for some serious carnage.  Having a well co-ordinated "
-  "team will allow you to take on the epic foes that require large teams "
-  "to defeat.  In addition, clans can capture 'zones' to charge taxes on "
-  "people that hunt in the zone.  The dynamic can result in clan-wars!  "
-  "  [use nohint or prefedit to deactivate this]\tn\r\n",
-  /*22*/"\tR[HINT]:\tn \ty"
-  "Overwhelmed by all the class and feat choices?  We started a community "
-  "built thread on the FORUM.  We then transfer those submissions to "
-  "help files under the heading HELP CLASS-BUILD.  The forum link is:  "
-  "http://www.luminarimud.com/forums/topic/class-builds/"
-  "  [use nohint or prefedit to deactivate this]\tn\r\n",
-  /*23*/"\tR[HINT]:\tn \ty"
-  "Help files are critical!  We try our best to anticipate all the subjects "
-  "that are needed, but we rely heavily on contributions from players - "
-  "with emphasis on new ones.  Please take the time to post it on the forum at "
-  "http://www.luminarimud.com/forums/topic/help-files/ you can also "
-  "post it as an IDEA in-game.  You can also help the staff workload by writing "
-  "helpfiles via the forum!"
-  "  [use nohint or prefedit to deactivate this]\tn\r\n",
-  /*24*/"\tR[HINT]:\tn \ty"
-  "LuminariMUD has a forum at: https://www.luminarimud.com/forums/ the public "
-  "registration may be closed due to beloved spam-bots, but any staff can make "
-  "you an account manually, just contact us via in-game mail, or email: "
-  "Zusuk@@LuminariMUD.com or Ornir@@LuminariMUD.com"
-  "  [use nohint or prefedit to deactivate this]\tn\r\n",
-  /*25*/"\tR[HINT]:\tn \ty"
-  "Voting keeps new players coming! (may require creating an account):\r\n"
-  "http://www.topmudsites.com/vote-luminarimud.html \r\n"
-  "http://www.mudconnect.com/cgi-bin/vote_rank.cgi?mud=LuminariMUD \r\n"
-  "Also the MUD community on Reddit is a great way to promot us:\r\n"
-  "https://www.reddit.com/r/MUD/ \r\n"
-  " [use nohint or prefedit to deactivate this]\tn\r\n",
-  /*26*/"\tR[HINT]:\tn \ty"
-  "Lore, story-telling, immersion...  Critical elements of a text based "
-  "world.  View our background story here including an audio version!: "
-  "https://www.luminarimud.com/lumina-voiced-stu-cook/"
-  "  [use nohint or prefedit to deactivate this]\tn\r\n",
-  /*27*/"\tR[HINT]:\tn \ty"
-  "Come visit the LuminariMUD website: https://www.luminarimud.com/ for "
-  "our forums, lore entries, related links, articles, updates.. the works!"
-  "  [use nohint or prefedit to deactivate this]\tn\r\n",
-  /*28*/"\tR[HINT]:\tn \ty"
-  "Our Facebook page: https://www.facebook.com/LuminariMud/ \r\n"
-  "  [use nohint or prefedit to deactivate this]\tn\r\n",
-  /*29*/"\tR[HINT]:\tn \ty"
-  "Archery is a great way to rain death from afar!  Archery automatically "
-  "gets a bonus attack, and has a huge variety of feats to put her on par "
-  "with melee attacks.  To initiate combat with a ranged weapon use the "
-  "FIRE command.  To gather your ammo and make sure it does not get mixed "
-  "up with other archers, just type COLLECT.  You can even toggle AUTOCOLLECT "
-  "to make sure you automatically collect your ammo after each battle."
-  "  [use nohint or prefedit to deactivate this]\tn\r\n",
-  /*30*/"\tR[HINT]:\tn \ty"
-  "Are you using our Mudlet GUI (http://www.luminarimud.com/forums/topic/official-luminari-gui/)?  "
-  "If so, you may want to view our help file: HELP GUI-MAP to get an idea how to use "
-  "the mapper properly!"
-  "  [use nohint or prefedit to deactivate this]\tn\r\n",
-  /*31*/"\tR[HINT]:\tn \ty"
-  "Spot a typo?  Just use the command: TYPO SUBMIT <title> to enter our "
-  "text editor.  From there you can type out what you found, then type /s to "
-  "save your submission.  This creates a record for the staff to work off of!"
-  "  [use nohint or prefedit to deactivate this]\tn\r\n",
-  /*32*/"\tR[HINT]:\tn \ty"
-  "Crafting is a critical and important part of the game, we have help files "
-  "such as HELP CRAFTING - but we also have a great guide you can "
-  "view on our forums: http://www.luminarimud.com/forums/topic/crafting-101-2018/"
-  "  [use nohint or prefedit to deactivate this]\tn\r\n",
-  /*33*/"\tR[HINT]:\tn \ty"
-  "You may notice MOBILEs with an (!) exclamation point in front of them.  If the "
-  "(!) is yellow, then this is an AUTOQUEST quest master, and you can type 'quest list' to "
-  "view his/her quests.  If the (!) is red, then this is a HLQUEST mobile and you "
-  "can try asking the mobile 'hi' or other keywords based on clues whereas you may "
-  "also then get directions for a special quest."
-  "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /* 1*/ "\tR[HINT]:\tn \ty"
+           "Different spell casting classes use different commands "
+           "to cast their spells.  Typing score will show you the appropriate "
+           "commands.  For helpful information see: HELP CAST and HELP MEMORIZE.  "
+           "You will also need to PREPARE spells either after or before using them."
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /* 2*/ "\tR[HINT]:\tn \ty"
+           "You will gain more experience from grouping.  Monster "
+           "experience is increased for groups, with larger groups receiving "
+           "more total experience.  This total experience is divided amongst "
+           "all members based on their level.  "
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /* 3*/ "\tR[HINT]:\tn \ty"
+           "To view vital information about your character, type SCORE.  "
+           "Additional helpful information commands include: ATTACKS, DEFENSES, "
+           "AFF, COOLDOWN, ABILITIES and RESISTANCE."
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /* 4*/ "\tR[HINT]:\tn \ty"
+           "Once you have enough experience to advance, you can type GAIN "
+           "<class choice> to level up, you can gain in any class you qualify for, up "
+           "to 3 total classes.  Leveling up will result in an increase in "
+           "training points for skills, more hit points, and possibly more feat points, "
+           "movement points, boosts, PSP points.  To spend your feat points, you will "
+           "use the STUDY menu.  To spend boosts and skill points, you will use a trainer.  "
+           "If you make a mistake in choices when you advance, you can always RESPEC."
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /* 5*/ "\tR[HINT]:\tn \ty"
+           "The combination of races, classes (MULTICLASS), stat boosts "
+           "and feat selection make for nearly limitless choices.  Do not be afraid "
+           "to experiment!  Have fun reading up on feats using commands.  FEATS with no "
+           "argument will show your current feats and show you a bunch of other command "
+           "options on the bottom section."
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /* 6*/ "\tR[HINT]:\tn \ty"
+           "Worried about missing messages while in a menu system such "
+           "as STUDY?  Do not fret, we have a HISTORY command so you can view "
+           "what was said on all the channels while you were away!  You can "
+           "type HISTORY ALL to view everything!"
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /* 7*/ "\tR[HINT]:\tn \ty"
+           "QUEST PROGRESS and QUEST HISTORY are your best friends when "
+           "working on a quest, they can help remind you exactly what you have done "
+           "and what you need to do.  You can also view details of each individual quest "
+           "you have completed by typing QUEST HISTORY <number>.  Some quests are "
+           "initiated with the ASK command, commonly ASK HI will initiate conversation."
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /* 8*/ "\tR[HINT]:\tn \ty"
+           "If you have an idea for a hint, please email your ideas to one of "
+           "our programmers: Ornir@@LuminariMUD.com or Zusuk@@LuminariMUD.com."
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /* 9*/ "\tR[HINT]:\tn \ty"
+           "LuminariMUD is considered a 'younger' MUD and is under heavy "
+           "and constant development.  If you run into a bug, our policy is to simply "
+           "report the bug using the BUG command.  Example, BUG SUBMIT <header>, then "
+           "use the in-game text editor that pops up to write details about the bug, then "
+           "you can type /s to save the submission."
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*10*/ "\tR[HINT]:\tn \tyThe beginning of your adventure will be focused in on the Ashenport "
+           "Region of the world.  The region is relatively fairly small, maybe 1/10th of the "
+           "surface space of Lumia, yet expands thousands of rooms in our WILDERNESS.  At the "
+           "current time you are able to get between zones quickly using a TELEPORTER.  To use "
+           "the teleporter, just type: TELEPORT <target>.  To get a list of target zones, you can "
+           "type: HELP ZONES."
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*11*/ "\tR[HINT]:\tn \tyYou can find a lot of gear in various shops throughout the "
+           "world.  Some shops even include special powerful magic items that can "
+           "be purchased with quest points.  In addition to finding normal loot "
+           "that are on your foes, you may also find 'random treasure' on them "
+           "as well with every victory, there is a slight chance you will find "
+           "this bonus loot.  Also, there is a special BAZAAR in Ashenport where "
+           "you can purchase magic items to fill your missing equipment slots."
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*12*/ "\tR[HINT]:\tn \tyIf you find items of value that you do not want to deal with, "
+           "you can always DONATE them.  This will cause them to appear in a "
+           "donation pit throughout the realm.  Alternatively if you find an item"
+           "that is of no value, you can JUNK it to permanently get rid of it.  "
+           "Although not necessary since corpses decompose after a short time, you "
+           "can SACrifice corpses to get rid of them."
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*13*/ "\tR[HINT]:\tn \tyBe aware during combat!  Enemies can do various things "
+           "to try and disable you, including knocking you down! You can check AFF "
+           "to see affections both negative and positive that are affecting you."
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*14*/ "\tR[HINT]:\tn \tyLuminariMUD has a 'main' quest line for the Ashenport Region "
+           "that starts with the Mosswood Elder, in Mossswood.  The quest line is "
+           "important for telling fun and informative details about the lore of the "
+           "Realm, and leading the adventurers to various zones throughout the region. "
+           "In addition some of the rewards of the various quests in the chain have "
+           "very powerful items."
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*15*/ "\tR[HINT]:\tn \ty"
+           "Have a great idea for features or changes to LuminariMUD?  Please "
+           "use the IDEA command, IDEA SUBMIT <title of submission>, you will then "
+           "enter our text editor, type out the details of the idea, and then "
+           "type /s to save the submission."
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*16*/ "\tR[HINT]:\tn \ty"
+           "We have a lot of end-game content, including building a player treasure "
+           "horde (HELP HOUSE), which allows you to create a corner of the world "
+           "to call home and store your treasure.  You can add 'guests' to your home "
+           "to allow your friends or other characters to enter."
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*17*/ "\tR[HINT]:\tn \ty"
+           "Reached level 30?  There are a lot of exciting end-game content here "
+           "at LuminariMUD.  We have multiple planes of existence that can be accessed "
+           "through various portals throughout the wilderness and magic.  Epic zones "
+           "with extremely challenging group content with powerful magical items.  "
+           "Hard to find epic quests litter the Realm as well, so explore!"
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*18*/ "\tR[HINT]:\tn \ty"
+           "LuminariMUD has an account system.  Through the account system you "
+           "can manage multiple characters.  In addition you share 'account exp' "
+           "between your characters, which can be spent on various account-wide "
+           "benefits, such as unlocking advanced or epic races, and prestige classes. "
+           "Type ACCOUNT to view your account details and ACCEXP to unlock various "
+           "benefits spending account experience."
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*19*/ "\tR[HINT]:\tn \ty"
+           "Did you know that some weapons and armor have very special enchantments "
+           "on them that can offer a variety of benefits?  Some of the more powerful "
+           "gear in the Realm can cast their own spells, and act on their own.  "
+           "Some will benefit your feats, stats, imbue you with affections while "
+           "equipped.  Some gear responds to special command words that can be "
+           "discovered either by examining the gear, through quest lines or other "
+           "interesting ways.  Some gear respond to combat maneuvers, such as weapons "
+           "that will help you trip, spikes on a shield when shield-punching, or even "
+           "armor / shields that will cast a heal spell on you when they deflect a blow."
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*20*/ "\tR[HINT]:\tn \ty"
+           "LuminariMUD's crafting system allows you to CREATE, RESTRING (rename), "
+           "RESIZE gear.  You will need a crafting kit and respective molds.  If you "
+           "travel to Sanctus, there is a work area for buying molds.  If you add a "
+           "crafting crystal while creating a new item, you will enchant it.  You "
+           "can acquire crystals from treasure, DISENCHANTing magic items and you can "
+           "even use AUGMENT to combine crystals to make them more powerful.  In addition "
+           "you can do SUPPLYORDERs (basic crafting quests) in Sanctus for rewards "
+           "including quest points. "
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*21*/ "\tR[HINT]:\tn \ty"
+           "Reached the end-game?  Forming a CLAN can help you co-ordinate "
+           "team efforts for some serious carnage.  Having a well co-ordinated "
+           "team will allow you to take on the epic foes that require large teams "
+           "to defeat.  In addition, clans can capture 'zones' to charge taxes on "
+           "people that hunt in the zone.  The dynamic can result in clan-wars!  "
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*22*/ "\tR[HINT]:\tn \ty"
+           "Overwhelmed by all the class and feat choices?  We started a community "
+           "built thread on the FORUM.  We then transfer those submissions to "
+           "help files under the heading HELP CLASS-BUILD.  The forum link is:  "
+           "http://www.luminarimud.com/forums/topic/class-builds/"
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*23*/ "\tR[HINT]:\tn \ty"
+           "Help files are critical!  We try our best to anticipate all the subjects "
+           "that are needed, but we rely heavily on contributions from players - "
+           "with emphasis on new ones.  Please take the time to post it on the forum at "
+           "http://www.luminarimud.com/forums/topic/help-files/ you can also "
+           "post it as an IDEA in-game.  You can also help the staff workload by writing "
+           "helpfiles via the forum!"
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*24*/ "\tR[HINT]:\tn \ty"
+           "LuminariMUD has a forum at: https://www.luminarimud.com/forums/ the public "
+           "registration may be closed due to beloved spam-bots, but any staff can make "
+           "you an account manually, just contact us via in-game mail, or email: "
+           "Zusuk@@LuminariMUD.com or Ornir@@LuminariMUD.com"
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*25*/ "\tR[HINT]:\tn \ty"
+           "Voting keeps new players coming! (may require creating an account):\r\n"
+           "http://www.topmudsites.com/vote-luminarimud.html \r\n"
+           "http://www.mudconnect.com/cgi-bin/vote_rank.cgi?mud=LuminariMUD \r\n"
+           "Also the MUD community on Reddit is a great way to promot us:\r\n"
+           "https://www.reddit.com/r/MUD/ \r\n"
+           " [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*26*/ "\tR[HINT]:\tn \ty"
+           "Lore, story-telling, immersion...  Critical elements of a text based "
+           "world.  View our background story here including an audio version!: "
+           "https://www.luminarimud.com/lumina-voiced-stu-cook/"
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*27*/ "\tR[HINT]:\tn \ty"
+           "Come visit the LuminariMUD website: https://www.luminarimud.com/ for "
+           "our forums, lore entries, related links, articles, updates.. the works!"
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*28*/ "\tR[HINT]:\tn \ty"
+           "Our Facebook page: https://www.facebook.com/LuminariMud/ \r\n"
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*29*/ "\tR[HINT]:\tn \ty"
+           "Archery is a great way to rain death from afar!  Archery automatically "
+           "gets a bonus attack, and has a huge variety of feats to put her on par "
+           "with melee attacks.  To initiate combat with a ranged weapon use the "
+           "FIRE command.  To gather your ammo and make sure it does not get mixed "
+           "up with other archers, just type COLLECT.  You can even toggle AUTOCOLLECT "
+           "to make sure you automatically collect your ammo after each battle."
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*30*/ "\tR[HINT]:\tn \ty"
+           "Are you using our Mudlet GUI (http://www.luminarimud.com/forums/topic/official-luminari-gui/)?  "
+           "If so, you may want to view our help file: HELP GUI-MAP to get an idea how to use "
+           "the mapper properly!"
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*31*/ "\tR[HINT]:\tn \ty"
+           "Spot a typo?  Just use the command: TYPO SUBMIT <title> to enter our "
+           "text editor.  From there you can type out what you found, then type /s to "
+           "save your submission.  This creates a record for the staff to work off of!"
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*32*/ "\tR[HINT]:\tn \ty"
+           "Crafting is a critical and important part of the game, we have help files "
+           "such as HELP CRAFTING - but we also have a great guide you can "
+           "view on our forums: http://www.luminarimud.com/forums/topic/crafting-101-2018/"
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*33*/ "\tR[HINT]:\tn \ty"
+           "You may notice MOBILEs with an (!) exclamation point in front of them.  If the "
+           "(!) is yellow, then this is an AUTOQUEST quest master, and you can type 'quest list' to "
+           "view his/her quests.  If the (!) is red, then this is a HLQUEST mobile and you "
+           "can try asking the mobile 'hi' or other keywords based on clues whereas you may "
+           "also then get directions for a special quest."
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
 };
 
-void show_hints(void) {
+void show_hints(void)
+{
   int roll = dice(1, NUM_HINTS) - 1;
   struct char_data *ch = NULL, *next_char = NULL;
 
-  for (ch = character_list; ch; ch = next_char) {
+  for (ch = character_list; ch; ch = next_char)
+  {
     next_char = ch->next;
 
     if (IS_NPC(ch) || !ch->desc)
@@ -5124,7 +5814,8 @@ ACMD(do_nohints) {
 /********** end hint system ********/
 
 /* todo list system, from ParagonMUD */
-void display_todo(struct char_data *ch, struct char_data *vict) {
+void display_todo(struct char_data *ch, struct char_data *vict)
+{
   int i;
   struct txt_block *tmp;
   for (tmp = GET_TODO(vict), i = 1; tmp; tmp = tmp->next, i++)
@@ -5132,26 +5823,33 @@ void display_todo(struct char_data *ch, struct char_data *vict) {
 }
 
 /* todo list system, from ParagonMUD, ported by Zusuk */
-ACMD(do_todo) {
+ACMD(do_todo)
+{
   struct txt_block *tmp;
 
   skip_spaces(&argument);
 
-  if (!*argument) {
+  if (!*argument)
+  {
     if (!GET_TODO(ch))
       send_to_char(ch, "You have nothing to do!\r\n");
     else
       display_todo(ch, ch);
     return;
   }
-  if (!isdigit(*argument)) {
+  if (!isdigit(*argument))
+  {
 
-    while (*argument == '~') argument++;
+    while (*argument == '~')
+      argument++;
 
-    if (!(tmp = GET_TODO(ch))) {
+    if (!(tmp = GET_TODO(ch)))
+    {
       CREATE(GET_TODO(ch), struct txt_block, 1);
       GET_TODO(ch)->text = strdup(argument);
-    } else {
+    }
+    else
+    {
       while (tmp->next)
         tmp = tmp->next;
       CREATE(tmp->next, struct txt_block, 1);
@@ -5160,7 +5858,9 @@ ACMD(do_todo) {
     send_to_char(ch, "Great, another thing to do!\r\n");
     save_char(ch, 0);
     Crash_crashsave(ch);
-  } else {
+  }
+  else
+  {
     int num, i, success = 0;
     sscanf(argument, "%d", &num);
 
@@ -5168,7 +5868,8 @@ ACMD(do_todo) {
       GET_TODO(ch) = GET_TODO(ch)->next;
     else
       for (tmp = GET_TODO(ch), i = 1; tmp && tmp->next; tmp = tmp->next, i++)
-        if (i + 1 == num) {
+        if (i + 1 == num)
+        {
           tmp->next = tmp->next->next;
           success = 1;
           break;

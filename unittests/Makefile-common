@@ -1,3 +1,5 @@
+# LuminariMUD
+
 #### No user serviceable parts below
 SHELL := bash
 .ONESHELL:

@@ -1,37 +1,39 @@
-#include "act.h" /* for SCMD_WHISPER */
-#include "comm.h" /* for send_to_char */
+#include "act.h"     /* for SCMD_WHISPER */
+#include "comm.h"    /* for send_to_char */
 #include "handler.h" /* for get_char_vis */
 #include "hlquest.h" /* for quest_ask */
-#include "utils.h" /* for ACMD */
+#include "utils.h"   /* for ACMD */
 
-ACMD(do_spec_comm) {
+ACMD(do_spec_comm)
+{
   char buf[MAX_INPUT_LENGTH], buf2[MAX_INPUT_LENGTH], *buf3 = NULL;
   struct char_data *vict;
   const char *action_sing, *action_plur, *action_others;
   const char *punctuation;
   int len = 0;
 
-  switch (subcmd) {
-    case SCMD_WHISPER:
-      action_sing = "whisper to";
-      action_plur = "whispers to";
-      action_others = "$n whispers something to $N.";
-      punctuation = ".";
-      break;
+  switch (subcmd)
+  {
+  case SCMD_WHISPER:
+    action_sing = "whisper to";
+    action_plur = "whispers to";
+    action_others = "$n whispers something to $N.";
+    punctuation = ".";
+    break;
 
-    case SCMD_ASK:
-      action_sing = "ask";
-      action_plur = "asks";
-      action_others = "$n asks $N a question.";
-      punctuation = "?";
-      break;
+  case SCMD_ASK:
+    action_sing = "ask";
+    action_plur = "asks";
+    action_others = "$n asks $N a question.";
+    punctuation = "?";
+    break;
 
-    default:
-      action_sing = "oops";
-      action_plur = "oopses";
-      action_others = "$n is tongue-tied trying to speak with $N.";
-      punctuation = ".";
-      break;
+  default:
+    action_sing = "oops";
+    action_plur = "oopses";
+    action_others = "$n is tongue-tied trying to speak with $N.";
+    punctuation = ".";
+    break;
   }
 
   half_chop(argument, buf, buf2);
@@ -44,7 +46,8 @@ ACMD(do_spec_comm) {
     send_to_char(ch, "You can't get your mouth close enough to your ear...\r\n");
   else if (AFF_FLAGGED(vict, AFF_DEAF))
     send_to_char(ch, "Your target seems to be deaf!\r\n");
-  else {
+  else
+  {
     char buf1[MAX_STRING_LENGTH];
 
     /* homeland-port copying string before parsing */
@@ -54,10 +57,12 @@ ACMD(do_spec_comm) {
       parse_at(buf2);
     sentence_case(buf2);
 
-    if (subcmd == SCMD_ASK) {
+    if (subcmd == SCMD_ASK)
+    {
       len = strlen(buf2);
       // remove trailing punctuation from ask
-      while (len >= 0 && (buf2[len - 1] == '.' || buf2[len - 1] == '!' || *buf2 == '\n')) {
+      while (len >= 0 && (buf2[len - 1] == '.' || buf2[len - 1] == '!' || *buf2 == '\n'))
+      {
         *(buf2 + len - 1) = '\0';
         len--;
       }
@@ -66,7 +71,7 @@ ACMD(do_spec_comm) {
     if (buf2[strlen(buf2) - 1] != '.' && buf2[strlen(buf2) - 1] != '!' && buf2[strlen(buf2) - 1] != '?')
       strcat(buf2, punctuation);
 
-    snprintf(buf1, sizeof (buf1), "$n %s you, '%s'", action_plur, buf2);
+    snprintf(buf1, sizeof(buf1), "$n %s you, '%s'", action_plur, buf2);
     act(buf1, FALSE, ch, 0, vict, TO_VICT);
 
     if ((!IS_NPC(ch)) && (PRF_FLAGGED(ch, PRF_NOREPEAT)))

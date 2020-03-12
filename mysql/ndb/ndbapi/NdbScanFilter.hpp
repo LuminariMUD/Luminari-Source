@@ -1,4 +1,4 @@
-/* Copyright (C) 2003 MySQL AB
+/* Copyright (C) 2003 MySQL AB          LuminariMUD
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -64,13 +64,13 @@ public:
 
   /**
    *  Begin of compound.
-   *  ®return  0 if successful, -1 otherwize
+   *  ï¿½return  0 if successful, -1 otherwize
    */
   int begin(Group group = AND);    
 
   /**
    *  End of compound.
-   *  ®return  0 if successful, -1 otherwize
+   *  ï¿½return  0 if successful, -1 otherwize
    */
   int end();
 
@@ -96,53 +96,53 @@ public:
    * @{
    */
   /** Compare column value with integer for equal   
-   *  ®return  0 if successful, -1 otherwize
+   *  ï¿½return  0 if successful, -1 otherwize
    */
   int eq(int ColId, Uint32 value) { return cmp(COND_EQ, ColId, &value, 4);}
 
   /** Compare column value with integer for not equal.
-   *  ®return  0 if successful, -1 otherwize 
+   *  ï¿½return  0 if successful, -1 otherwize 
    */
   int ne(int ColId, Uint32 value) { return cmp(COND_NE, ColId, &value, 4);}  
   /** Compare column value with integer for less than.
-   *  ®return  0 if successful, -1 otherwize 
+   *  ï¿½return  0 if successful, -1 otherwize 
    */
   int lt(int ColId, Uint32 value) { return cmp(COND_LT, ColId, &value, 4);}
   /** Compare column value with integer for less than or equal. 
-   *  ®return  0 if successful, -1 otherwize
+   *  ï¿½return  0 if successful, -1 otherwize
    */
   int le(int ColId, Uint32 value) { return cmp(COND_LE, ColId, &value, 4);}
   /** Compare column value with integer for greater than. 
-   *  ®return  0 if successful, -1 otherwize
+   *  ï¿½return  0 if successful, -1 otherwize
    */
   int gt(int ColId, Uint32 value) { return cmp(COND_GT, ColId, &value, 4);} 
   /** Compare column value with integer for greater than or equal.
-   *  ®return  0 if successful, -1 otherwize
+   *  ï¿½return  0 if successful, -1 otherwize
    */
   int ge(int ColId, Uint32 value) { return cmp(COND_GE, ColId, &value, 4);}
 
   /** Compare column value with integer for equal. 64-bit.  
-   *  ®return  0 if successful, -1 otherwize
+   *  ï¿½return  0 if successful, -1 otherwize
    */
   int eq(int ColId, Uint64 value) { return cmp(COND_EQ, ColId, &value, 8);}
   /** Compare column value with integer for not equal. 64-bit.
-   *  ®return  0 if successful, -1 otherwize
+   *  ï¿½return  0 if successful, -1 otherwize
    */
   int ne(int ColId, Uint64 value) { return cmp(COND_NE, ColId, &value, 8);}
   /** Compare column value with integer for less than. 64-bit.
-   *  ®return  0 if successful, -1 otherwize
+   *  ï¿½return  0 if successful, -1 otherwize
    */
   int lt(int ColId, Uint64 value) { return cmp(COND_LT, ColId, &value, 8);}  
   /** Compare column value with integer for less than or equal. 64-bit.
-   *  ®return  0 if successful, -1 otherwize
+   *  ï¿½return  0 if successful, -1 otherwize
    */
   int le(int ColId, Uint64 value) { return cmp(COND_LE, ColId, &value, 8);}
   /** Compare column value with integer for greater than. 64-bit.
-   *  ®return  0 if successful, -1 otherwize
+   *  ï¿½return  0 if successful, -1 otherwize
    */
   int gt(int ColId, Uint64 value) { return cmp(COND_GT, ColId, &value, 8);}
   /** Compare column value with integer for greater than or equal. 64-bit.
-   *  ®return  0 if successful, -1 otherwize
+   *  ï¿½return  0 if successful, -1 otherwize
    */
   int ge(int ColId, Uint64 value) { return cmp(COND_GE, ColId, &value, 8);}
   /** @} *********************************************************************/
@@ -155,12 +155,12 @@ public:
 #ifndef DOXYGEN_SHOULD_SKIP_INTERNAL
   /**
    *  Like comparison operator.
-   *  ®return  0 if successful, -1 otherwize
+   *  ï¿½return  0 if successful, -1 otherwize
    */
   int like(int ColId, const char * val, Uint32 len, bool nopad=false);
   /**
    *  Notlike comparison operator.
-   *  ®return  0 if successful, -1 otherwize
+   *  ï¿½return  0 if successful, -1 otherwize
    */
   int notlike(int ColId, const char * val, Uint32 len, bool nopad=false);
   /** @} *********************************************************************/

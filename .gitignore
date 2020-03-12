@@ -1,4 +1,6 @@
 # Combination of C and C++ files from https://github.com/github/gitignore/blob/master/
+# LuminariMUD project
+# Checked by Zusuk
 
 # Prerequisites
 *.d

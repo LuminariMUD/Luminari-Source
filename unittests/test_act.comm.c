@@ -1,3 +1,5 @@
+/* LuminariMUD */
+
 #include "minunit.h"
 
 #include "../act.h"

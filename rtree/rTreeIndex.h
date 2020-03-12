@@ -1,3 +1,5 @@
+/* LuminariMUD */
+
 /**
  **  This source code originally provided by:
  **     http://www.superliminal.com/sources/sources.htm

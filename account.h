@@ -9,19 +9,17 @@
 \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ /*/
 
 #ifndef ACCOUNT_H
-#define	ACCOUNT_H
+#define ACCOUNT_H
 
-#ifdef	__cplusplus
-extern "C" {
+#ifdef __cplusplus
+extern "C"
+{
 #endif
 
-void perform_do_account(struct char_data *ch, struct char_data *vict);
+    void perform_do_account(struct char_data *ch, struct char_data *vict);
 
-
-
-#ifdef	__cplusplus
+#ifdef __cplusplus
 }
 #endif
 
-#endif	/* ACCOUNT_H */
-
+#endif /* ACCOUNT_H */

@@ -24,7 +24,6 @@
 /* do_action and do_gmote utility function */
 static int find_action(int cmd);
 
-
 ACMD(do_action)
 {
   char arg[MAX_INPUT_LENGTH], part[MAX_INPUT_LENGTH];
@@ -33,14 +32,16 @@ ACMD(do_action)
   struct char_data *vict;
   struct obj_data *targ;
 
-  if ((act_nr = find_action(cmd)) < 0) {
+  if ((act_nr = find_action(cmd)) < 0)
+  {
     send_to_char(ch, "That action is not supported.\r\n");
     return;
   }
 
   action = &soc_mess_list[act_nr];
 
-  if (!argument || !*argument) {
+  if (!argument || !*argument)
+  {
     send_to_char(ch, "%s\r\n", action->char_no_arg);
     act(action->others_no_arg, action->hide, ch, 0, 0, TO_ROOM);
     return;
@@ -48,7 +49,8 @@ ACMD(do_action)
 
   two_arguments(argument, arg, part);
 
-  if ((!action->char_body_found) && (*part)) {
+  if ((!action->char_body_found) && (*part))
+  {
     send_to_char(ch, "Sorry, this social does not support body parts.\r\n");
     return;
   }
@@ -62,11 +64,15 @@ ACMD(do_action)
     *arg = '\0';
 
   vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM);
-  if (!vict) {
-    if (action->char_obj_found) {
+  if (!vict)
+  {
+    if (action->char_obj_found)
+    {
       targ = get_obj_in_list_vis(ch, arg, NULL, ch->carrying);
-      if (!targ) targ = get_obj_in_list_vis(ch, arg, NULL, world[IN_ROOM(ch)].contents);
-      if (targ) {
+      if (!targ)
+        targ = get_obj_in_list_vis(ch, arg, NULL, world[IN_ROOM(ch)].contents);
+      if (targ)
+      {
         act(action->char_obj_found, action->hide, ch, targ, 0, TO_CHAR);
         act(action->others_obj_found, action->hide, ch, targ, 0, TO_ROOM);
         return;
@@ -79,7 +85,8 @@ ACMD(do_action)
     return;
   }
 
-  if (vict == ch) {
+  if (vict == ch)
+  {
     if (action->char_auto)
       send_to_char(ch, "%s\r\n", action->char_auto);
     else
@@ -90,12 +97,16 @@ ACMD(do_action)
 
   if (GET_POS(vict) < action->min_victim_position)
     act("$N is not in a proper position for that.", FALSE, ch, 0, vict, TO_CHAR | TO_SLEEP);
-  else {
-    if (*part) {
+  else
+  {
+    if (*part)
+    {
       act(action->char_body_found, 0, ch, (struct obj_data *)part, vict, TO_CHAR | TO_SLEEP);
       act(action->others_body_found, action->hide, ch, (struct obj_data *)part, vict, TO_NOTVICT);
       act(action->vict_body_found, action->hide, ch, (struct obj_data *)part, vict, TO_VICT);
-    } else {
+    }
+    else
+    {
       act(action->char_found, 0, ch, 0, vict, TO_CHAR | TO_SLEEP);
       act(action->others_found, action->hide, ch, 0, vict, TO_NOTVICT);
       act(action->vict_found, action->hide, ch, 0, vict, TO_VICT);
@@ -114,12 +125,14 @@ void create_command_list(void)
     free_command_list();
 
   /* re check the sort on the socials */
-  for (j = 0; j < top_of_socialt; j++) {
+  for (j = 0; j < top_of_socialt; j++)
+  {
     k = j;
     for (i = j + 1; i <= top_of_socialt; i++)
       if (str_cmp(soc_mess_list[i].sort_as, soc_mess_list[k].sort_as) < 0)
         k = i;
-    if (j != k) {
+    if (j != k)
+    {
       temp = soc_mess_list[j];
       soc_mess_list[j] = soc_mess_list[k];
       soc_mess_list[k] = temp;
@@ -128,7 +141,8 @@ void create_command_list(void)
 
   /* count the commands in the command list */
   i = 0;
-  while(*cmd_info[i].command != '\n') i++;
+  while (*cmd_info[i].command != '\n')
+    i++;
   i++;
 
   CREATE(complete_cmd_info, struct command_info, top_of_socialt + i + 2);
@@ -137,21 +151,23 @@ void create_command_list(void)
   i = 0;
   j = 0;
   k = 0;
-  while ((*cmd_info[i].command != '\n') || (j <= top_of_socialt))  {
+  while ((*cmd_info[i].command != '\n') || (j <= top_of_socialt))
+  {
     if ((i < RESERVE_CMDS) || (j > top_of_socialt) ||
-	(str_cmp(cmd_info[i].sort_as, soc_mess_list[j].sort_as) < 1))
+        (str_cmp(cmd_info[i].sort_as, soc_mess_list[j].sort_as) < 1))
       complete_cmd_info[k++] = cmd_info[i++];
-    else {
-      soc_mess_list[j].act_nr		= k;
-      complete_cmd_info[k].command		= soc_mess_list[j].command;
-      complete_cmd_info[k].sort_as		= soc_mess_list[j].sort_as;
-      complete_cmd_info[k].minimum_position	= soc_mess_list[j].min_char_position;
-      complete_cmd_info[k].command_pointer	= do_action;
-      complete_cmd_info[k].minimum_level    	= soc_mess_list[j++].min_level_char;
-      complete_cmd_info[k++].subcmd		= 0;
+    else
+    {
+      soc_mess_list[j].act_nr = k;
+      complete_cmd_info[k].command = soc_mess_list[j].command;
+      complete_cmd_info[k].sort_as = soc_mess_list[j].sort_as;
+      complete_cmd_info[k].minimum_position = soc_mess_list[j].min_char_position;
+      complete_cmd_info[k].command_pointer = do_action;
+      complete_cmd_info[k].minimum_level = soc_mess_list[j++].min_level_char;
+      complete_cmd_info[k++].subcmd = 0;
     }
   }
-	complete_cmd_info[k] = cmd_info[i];
+  complete_cmd_info[k] = cmd_info[i];
   log("Command info rebuilt, %d total commands.", k);
 }
 
@@ -166,29 +182,46 @@ void free_social_messages(void)
   struct social_messg *mess;
   int i;
 
-  for (i = 0;i <= top_of_socialt;i++)  {
+  for (i = 0; i <= top_of_socialt; i++)
+  {
     mess = &soc_mess_list[i];
     free_action(mess);
   }
   free(soc_mess_list);
 }
 
-void free_action(struct social_messg *mess)  {
-  if (mess->command) free(mess->command);
-  if (mess->sort_as) free(mess->sort_as);
-  if (mess->char_no_arg) free(mess->char_no_arg);
-  if (mess->others_no_arg) free(mess->others_no_arg);
-  if (mess->char_found) free(mess->char_found);
-  if (mess->others_found) free(mess->others_found);
-  if (mess->vict_found) free(mess->vict_found);
-  if (mess->char_body_found) free(mess->char_body_found);
-  if (mess->others_body_found) free(mess->others_body_found);
-  if (mess->vict_body_found) free(mess->vict_body_found);
-  if (mess->not_found) free(mess->not_found);
-  if (mess->char_auto) free(mess->char_auto);
-  if (mess->others_auto) free(mess->others_auto);
-  if (mess->char_obj_found) free(mess->char_obj_found);
-  if (mess->others_obj_found) free(mess->others_obj_found);
+void free_action(struct social_messg *mess)
+{
+  if (mess->command)
+    free(mess->command);
+  if (mess->sort_as)
+    free(mess->sort_as);
+  if (mess->char_no_arg)
+    free(mess->char_no_arg);
+  if (mess->others_no_arg)
+    free(mess->others_no_arg);
+  if (mess->char_found)
+    free(mess->char_found);
+  if (mess->others_found)
+    free(mess->others_found);
+  if (mess->vict_found)
+    free(mess->vict_found);
+  if (mess->char_body_found)
+    free(mess->char_body_found);
+  if (mess->others_body_found)
+    free(mess->others_body_found);
+  if (mess->vict_body_found)
+    free(mess->vict_body_found);
+  if (mess->not_found)
+    free(mess->not_found);
+  if (mess->char_auto)
+    free(mess->char_auto);
+  if (mess->others_auto)
+    free(mess->others_auto);
+  if (mess->char_obj_found)
+    free(mess->char_obj_found);
+  if (mess->others_obj_found)
+    free(mess->others_obj_found);
   memset(mess, 0, sizeof(struct social_messg));
 }
 
@@ -202,7 +235,8 @@ static int find_action(int cmd)
   if (top < 0)
     return (-1);
 
-  for (;;) {
+  for (;;)
+  {
     mid = (bot + top) / 2;
 
     if (soc_mess_list[mid].act_nr == cmd)
@@ -226,46 +260,58 @@ ACMD(do_gmote)
 
   half_chop(argument, buf, arg);
 
-  if(subcmd)
+  if (subcmd)
     for (length = strlen(buf), cmd = 0; *complete_cmd_info[cmd].command != '\n'; cmd++)
       if (!strncmp(complete_cmd_info[cmd].command, buf, length))
         break;
 
-  if ((act_nr = find_action(cmd)) < 0) {
+  if ((act_nr = find_action(cmd)) < 0)
+  {
     snprintf(buf, sizeof(buf), "Gemote: $n%s", argument);
     act(buf, FALSE, ch, 0, vict, TO_GMOTE);
     return;
   }
 
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SOUNDPROOF)) {
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SOUNDPROOF))
+  {
     send_to_char(ch, "The walls seem to absorb your actions.\r\n");
     return;
   }
 
-action = &soc_mess_list[act_nr];
+  action = &soc_mess_list[act_nr];
 
   if (!action->char_found)
     *arg = '\0';
 
-  if (!*arg) {
-    if(!action->others_no_arg || !*action->others_no_arg) {
+  if (!*arg)
+  {
+    if (!action->others_no_arg || !*action->others_no_arg)
+    {
       send_to_char(ch, "Who are you going to do that to?\r\n");
       return;
     }
     snprintf(buf, sizeof(buf), "Gemote: %s", action->others_no_arg);
-  } else if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_WORLD))) {
+  }
+  else if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_WORLD)))
+  {
     send_to_char(ch, "%s\r\n", action->not_found);
     return;
-  } else if (vict == ch) {
-    if(!action->others_auto || !*action->others_auto) {
+  }
+  else if (vict == ch)
+  {
+    if (!action->others_auto || !*action->others_auto)
+    {
       send_to_char(ch, "%s\r\n", action->char_auto);
       return;
     }
     snprintf(buf, sizeof(buf), "Gemote: %s", action->others_auto);
-  } else {
-    if (GET_POS(vict) < action->min_victim_position) {
+  }
+  else
+  {
+    if (GET_POS(vict) < action->min_victim_position)
+    {
       act("$N is not in a proper position for that.",
-           FALSE, ch, 0, vict, TO_CHAR | TO_SLEEP);
+          FALSE, ch, 0, vict, TO_CHAR | TO_SLEEP);
       return;
     }
     snprintf(buf, sizeof(buf), "Gemote: %s", action->others_found);

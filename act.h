@@ -39,55 +39,63 @@ int get_speed(struct char_data *ch, sbyte to_display);
  ****************************************************************************/
 
 /** Check if character can actually fight. */
-#define PREREQ_CAN_FIGHT()   \
-  if (!MOB_CAN_FIGHT(ch)) { \
+#define PREREQ_CAN_FIGHT()                        \
+  if (!MOB_CAN_FIGHT(ch))                         \
+  {                                               \
     send_to_char(ch, "But you can't fight!\r\n"); \
-    return; \
+    return;                                       \
   }
 
 /** Check the specified function to see if we get back a CAN_CMD. */
 #define PREREQ_CHECK(name) \
-   if (name(ch, true)) return;
+  if (name(ch, true))      \
+    return;
 
 /** Check if the character has enough daily uses of the specified feat. */
-#define PREREQ_HAS_USES(feat, errormsg) \
-  int uses_remaining; \
-  if ((uses_remaining = daily_uses_remaining(ch, feat)) == 0) { \
-    send_to_char(ch, errormsg); \
-    return; \
-  } \
-\
-  if (uses_remaining < 0) { \
-    send_to_char(ch, "You are not experienced enough.\r\n"); \
-    return; \
+#define PREREQ_HAS_USES(feat, errormsg)                       \
+  int uses_remaining;                                         \
+  if ((uses_remaining = daily_uses_remaining(ch, feat)) == 0) \
+  {                                                           \
+    send_to_char(ch, errormsg);                               \
+    return;                                                   \
+  }                                                           \
+                                                              \
+  if (uses_remaining < 0)                                     \
+  {                                                           \
+    send_to_char(ch, "You are not experienced enough.\r\n");  \
+    return;                                                   \
   }
 
 /** Check if the character is in the specified position or better. */
 #define PREREQ_IN_POSITION(req_pos, errmsg) \
-  if (GET_POS(ch) <= req_pos) { \
-    send_to_char(ch, errmsg); \
-    return; \
+  if (GET_POS(ch) <= req_pos)               \
+  {                                         \
+    send_to_char(ch, errmsg);               \
+    return;                                 \
   }
 
 /** Check if character is not a NPC. */
-#define PREREQ_NOT_NPC() \
-  if (IS_NPC(ch)) { \
+#define PREREQ_NOT_NPC()                             \
+  if (IS_NPC(ch))                                    \
+  {                                                  \
     send_to_char(ch, "But you don't know how!\r\n"); \
-    return; \
+    return;                                          \
   }
 
 /** Check if character is in a peaceful room. */
-#define PREREQ_NOT_PEACEFUL_ROOM() \
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) { \
+#define PREREQ_NOT_PEACEFUL_ROOM()                                               \
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL))                                  \
+  {                                                                              \
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n"); \
-    return; \
+    return;                                                                      \
   }
 
 /** CHeck if character is in a single-file room. */
-#define PREREQ_NOT_SINGLEFILE_ROOM() \
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE)) { \
+#define PREREQ_NOT_SINGLEFILE_ROOM()                                               \
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE))                                  \
+  {                                                                                \
     send_to_char(ch, "The area is way too cramped to perform this maneuver!\r\n"); \
-    return; \
+    return;                                                                        \
   }
 
 /** Check for the target feat - to be used only within the ACMDCHECK() macro. */
@@ -99,9 +107,10 @@ int get_speed(struct char_data *ch, sbyte to_display);
  * To be used only within the ACMDCHECK() macro.
  */
 #define ACMDCHECK_PERMFAIL_IF(code, errormsg) \
-  if (code) { \
-    ACMD_ERRORMSG(errormsg); \
-    return CANT_CMD_PERM; \
+  if (code)                                   \
+  {                                           \
+    ACMD_ERRORMSG(errormsg);                  \
+    return CANT_CMD_PERM;                     \
   }
 
 /** Check for the specified condition and temporarily fail if it's true. 
@@ -110,9 +119,10 @@ int get_speed(struct char_data *ch, sbyte to_display);
  * To be used only within the ACMDCHECK() macro.
  */
 #define ACMDCHECK_TEMPFAIL_IF(code, errormsg) \
-  if (code) { \
-    ACMD_ERRORMSG(errormsg); \
-    return CANT_CMD_TEMP; \
+  if (code)                                   \
+  {                                           \
+    ACMD_ERRORMSG(errormsg);                  \
+    return CANT_CMD_TEMP;                     \
   }
 
 /*****************************************************************************
@@ -121,20 +131,20 @@ int get_speed(struct char_data *ch, sbyte to_display);
 /* functions with subcommands */
 /* do_gen_comm */
 ACMD(do_gen_comm);
-#define SCMD_HOLLER   0
-#define SCMD_SHOUT    1
-#define SCMD_GOSSIP   2
-#define SCMD_AUCTION  3
-#define SCMD_GRATZ    4
-#define SCMD_GEMOTE   5
+#define SCMD_HOLLER 0
+#define SCMD_SHOUT 1
+#define SCMD_GOSSIP 2
+#define SCMD_AUCTION 3
+#define SCMD_GRATZ 4
+#define SCMD_GEMOTE 5
 /* do_qcomm */
 ACMD(do_qcomm);
-#define SCMD_QSAY     0
-#define SCMD_QECHO    1
+#define SCMD_QSAY 0
+#define SCMD_QECHO 1
 /* do_spec_com */
 ACMD(do_spec_comm);
-#define SCMD_WHISPER  0
-#define SCMD_ASK      1
+#define SCMD_WHISPER 0
+#define SCMD_ASK 1
 /* functions without subcommands */
 ACMD(do_say);
 ACMD(do_gsay);
@@ -158,7 +168,7 @@ void perform_resistances(struct char_data *ch, struct char_data *k);
 
 // displaying more info -zusuk
 void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int mxp_type);
-#define SHOW_OBJ_SHORT	1
+#define SHOW_OBJ_SHORT 1
 void lore_id_vict(struct char_data *ch, struct char_data *tch);
 
 /** @todo Move to a utility library */
@@ -172,32 +182,32 @@ void free_recent_players(void);
 /* functions with subcommands */
 /* do_commands */
 ACMD(do_commands);
-#define SCMD_COMMANDS  0
-#define SCMD_SOCIALS   1
-#define SCMD_WIZHELP   2
+#define SCMD_COMMANDS 0
+#define SCMD_SOCIALS 1
+#define SCMD_WIZHELP 2
 #define SCMD_MANEUVERS 3
 /* do_gen_ps */
 ACMD(do_gen_ps);
-#define SCMD_INFO      0
-#define SCMD_HANDBOOK  1
-#define SCMD_CREDITS   2
-#define SCMD_NEWS      3
-#define SCMD_WIZLIST   4
-#define SCMD_POLICIES  5
-#define SCMD_VERSION   6
-#define SCMD_IMMLIST   7
-#define SCMD_MOTD      8
-#define SCMD_IMOTD     9
-#define SCMD_CLEAR     10
-#define SCMD_WHOAMI    11
+#define SCMD_INFO 0
+#define SCMD_HANDBOOK 1
+#define SCMD_CREDITS 2
+#define SCMD_NEWS 3
+#define SCMD_WIZLIST 4
+#define SCMD_POLICIES 5
+#define SCMD_VERSION 6
+#define SCMD_IMMLIST 7
+#define SCMD_MOTD 8
+#define SCMD_IMOTD 9
+#define SCMD_CLEAR 10
+#define SCMD_WHOAMI 11
 /* do_look */
 ACMD(do_look);
 #define SCMD_LOOK 0
 #define SCMD_READ 1
 #define SCMD_HERE 2
 ACMD(do_affects);
-#define SCMD_AFFECTS     0
-#define SCMD_COOLDOWNS   1
+#define SCMD_AFFECTS 0
+#define SCMD_COOLDOWNS 1
 #define SCMD_RESISTANCES 2
 
 /* functions without subcommands */
@@ -240,33 +250,20 @@ ACMD(do_moves);
 void do_slug_rank(struct char_data *ch, char *arg);
 ACMD(do_rank);
 
-
 /*****************************************************************************
  * Begin Functions and defines for act.item.c
  ****************************************************************************/
 /* defines */
-#define EXITN(room, door)		(world[room].dir_option[door])
-#define OPEN_DOOR(room, obj, door)	((obj) ?\
-		(REMOVE_BIT(GET_OBJ_VAL(obj, 1), CONT_CLOSED)) :\
-		(REMOVE_BIT(EXITN(room, door)->exit_info, EX_CLOSED)))
-#define CLOSE_DOOR(room, obj, door)	((obj) ?\
-		(SET_BIT(GET_OBJ_VAL(obj, 1), CONT_CLOSED)) :\
-		(SET_BIT(EXITN(room, door)->exit_info, EX_CLOSED)))
-#define LOCK_DOOR(room, obj, door)	((obj) ?\
-		(SET_BIT(GET_OBJ_VAL(obj, 1), CONT_LOCKED)) :\
-		(SET_BIT(EXITN(room, door)->exit_info, EX_LOCKED_EASY)))
-#define UNLOCK_DOOR(room, obj, door)	((obj) ?\
-		(REMOVE_BIT(GET_OBJ_VAL(obj, 1), CONT_LOCKED)) :\
-		(REMOVE_BIT(EXITN(room, door)->exit_info, EX_LOCKED)))
+#define EXITN(room, door) (world[room].dir_option[door])
+#define OPEN_DOOR(room, obj, door) ((obj) ? (REMOVE_BIT(GET_OBJ_VAL(obj, 1), CONT_CLOSED)) : (REMOVE_BIT(EXITN(room, door)->exit_info, EX_CLOSED)))
+#define CLOSE_DOOR(room, obj, door) ((obj) ? (SET_BIT(GET_OBJ_VAL(obj, 1), CONT_CLOSED)) : (SET_BIT(EXITN(room, door)->exit_info, EX_CLOSED)))
+#define LOCK_DOOR(room, obj, door) ((obj) ? (SET_BIT(GET_OBJ_VAL(obj, 1), CONT_LOCKED)) : (SET_BIT(EXITN(room, door)->exit_info, EX_LOCKED_EASY)))
+#define UNLOCK_DOOR(room, obj, door) ((obj) ? (REMOVE_BIT(GET_OBJ_VAL(obj, 1), CONT_LOCKED)) : (REMOVE_BIT(EXITN(room, door)->exit_info, EX_LOCKED)))
 #define IS_CLOSED(x, y) (EXIT_FLAGGED(world[(x)].dir_option[(y)], EX_CLOSED))
 
 /* HACK: Had to change this with the new lock strengths from homeland... */
 
-#define TOGGLE_LOCK(room, obj, door)	((obj) ?\
-		(TOGGLE_BIT(GET_OBJ_VAL(obj, 1), CONT_LOCKED)) :\
-		(IS_SET(EXITN(room, door)->exit_info, EX_LOCKED) ?\
-                  UNLOCK_DOOR(room, obj, door) :\
-                  LOCK_DOOR(room, obj, door)))
+#define TOGGLE_LOCK(room, obj, door) ((obj) ? (TOGGLE_BIT(GET_OBJ_VAL(obj, 1), CONT_LOCKED)) : (IS_SET(EXITN(room, door)->exit_info, EX_LOCKED) ? UNLOCK_DOOR(room, obj, door) : LOCK_DOOR(room, obj, door)))
 
 /*(TOGGLE_BIT(EXITN(room, door)->exit_info, EX_LOCKED)))*/
 
@@ -286,19 +283,19 @@ bool perform_wield(struct char_data *ch, struct obj_data *obj, bool not_silent);
 /* functions with subcommands */
 /* do_drop */
 ACMD(do_drop);
-#define SCMD_DROP   0
-#define SCMD_JUNK   1
+#define SCMD_DROP 0
+#define SCMD_JUNK 1
 #define SCMD_DONATE 2
 /* do_eat */
 ACMD(do_eat);
-#define SCMD_EAT    0
-#define SCMD_TASTE  1
-#define SCMD_DRINK  2
-#define SCMD_SIP    3
+#define SCMD_EAT 0
+#define SCMD_TASTE 1
+#define SCMD_DRINK 2
+#define SCMD_SIP 3
 /* do_pour */
 ACMD(do_pour);
-#define SCMD_POUR  0
-#define SCMD_FILL  1
+#define SCMD_POUR 0
+#define SCMD_FILL 1
 /* functions without subcommands */
 ACMD(do_drink);
 ACMD(do_get);
@@ -309,7 +306,6 @@ ACMD(do_remove);
 ACMD(do_sac);
 ACMD(do_wear);
 ACMD(do_wield);
-
 
 /*****************************************************************************
  * Begin Functions and defines for act.movement.c
@@ -322,11 +318,11 @@ int change_position(struct char_data *ch, int position);
 /* Functions with subcommands */
 /* do_gen_door */
 ACMD(do_gen_door);
-#define SCMD_OPEN       0
-#define SCMD_CLOSE      1
-#define SCMD_UNLOCK     2
-#define SCMD_LOCK       3
-#define SCMD_PICK       4
+#define SCMD_OPEN 0
+#define SCMD_CLOSE 1
+#define SCMD_UNLOCK 2
+#define SCMD_LOCK 3
+#define SCMD_PICK 4
 /* Functions without subcommands */
 ACMD(do_disembark);
 ACMD(do_enter);
@@ -343,14 +339,13 @@ ACMD(do_wake);
 ACMD(do_pullswitch);
 
 /* Switch info */
-#define SWITCH_UNHIDE	0
-#define SWITCH_UNLOCK	1
-#define SWITCH_OPEN	2
+#define SWITCH_UNHIDE 0
+#define SWITCH_UNLOCK 1
+#define SWITCH_OPEN 2
 /* Global variables from act.movement.c */
 #ifndef __ACT_MOVEMENT_C__
 extern const char *cmd_door[];
 #endif /* __ACT_MOVEMENT_C__ */
-
 
 /*****************************************************************************
  * Begin Functions and defines for act.offensive.c
@@ -366,7 +361,7 @@ void perform_smite(struct char_data *ch, int smite_type);
 void perform_rage(struct char_data *ch);
 void perform_layonhands(struct char_data *ch, struct char_data *vict);
 bool perform_knockdown(struct char_data *ch, struct char_data *vict,
-        int skill);
+                       int skill);
 bool perform_shieldpunch(struct char_data *ch, struct char_data *vict);
 void perform_headbutt(struct char_data *ch, struct char_data *vict);
 void perform_sap(struct char_data *ch, struct char_data *vict);
@@ -379,7 +374,7 @@ int perform_collect(struct char_data *ch, bool silent);
 /* Functions with subcommands */
 /* do_hit */
 ACMD(do_hit);
-#define SCMD_HIT    0
+#define SCMD_HIT 0
 ACMD(do_process_attack);
 
 /* Functions without subcommands */
@@ -390,21 +385,31 @@ ACMD(do_collect);
 ACMD(do_hitall);
 ACMD(do_guard);
 ACMD(do_charge);
-ACMD(do_circle);                    ACMDCHECK(can_circle);
+ACMD(do_circle);
+ACMDCHECK(can_circle);
 ACMD(do_bodyslam);
 ACMD(do_springleap);
 ACMD(do_feint);
-ACMD(do_headbutt);                  ACMDCHECK(can_headbutt);
-ACMD(do_shieldpunch);               ACMDCHECK(can_shieldpunch);
+ACMD(do_headbutt);
+ACMDCHECK(can_headbutt);
+ACMD(do_shieldpunch);
+ACMDCHECK(can_shieldpunch);
 ACMD(do_disarm);
-ACMD(do_shieldcharge);              ACMDCHECK(can_shieldcharge);
-ACMD(do_shieldslam);                ACMDCHECK(can_shieldslam);
-ACMD(do_dirtkick);                  ACMDCHECK(can_dirtkick);
-ACMD(do_sap);                       ACMDCHECK(can_sap);
+ACMD(do_shieldcharge);
+ACMDCHECK(can_shieldcharge);
+ACMD(do_shieldslam);
+ACMDCHECK(can_shieldslam);
+ACMD(do_dirtkick);
+ACMDCHECK(can_dirtkick);
+ACMD(do_sap);
+ACMDCHECK(can_sap);
 ACMD(do_assist);
-ACMD(do_rage);                      ACMDCHECK(can_rage);
-ACMD(do_defensive_stance);          ACMDCHECK(can_defensive_stance);
-ACMD(do_turnundead);                ACMDCHECK(can_turnundead);
+ACMD(do_rage);
+ACMDCHECK(can_rage);
+ACMD(do_defensive_stance);
+ACMDCHECK(can_defensive_stance);
+ACMD(do_turnundead);
+ACMDCHECK(can_turnundead);
 ACMD(do_bash);
 ACMD(do_call);
 ACMD(do_fly);
@@ -413,21 +418,33 @@ ACMD(do_darkness);
 ACMD(do_invisiblerogue);
 ACMD(do_land);
 ACMD(do_frightful);
-ACMD(do_breathe);                   ACMDCHECK(can_breathe);
-ACMD(do_tailsweep);                 ACMDCHECK(can_tailsweep);
-ACMD(do_backstab);                  ACMDCHECK(can_backstab);
+ACMD(do_breathe);
+ACMDCHECK(can_breathe);
+ACMD(do_tailsweep);
+ACMDCHECK(can_tailsweep);
+ACMD(do_backstab);
+ACMDCHECK(can_backstab);
 ACMD(do_flee);
-ACMD(do_stunningfist);              ACMDCHECK(can_stunningfist);
-ACMD(do_quiveringpalm);             ACMDCHECK(can_quiveringpalm);
-ACMD(do_deatharrow);                ACMDCHECK(can_deatharrow);
-ACMD(do_faeriefire);                ACMDCHECK(can_faeriefire);
+ACMD(do_stunningfist);
+ACMDCHECK(can_stunningfist);
+ACMD(do_quiveringpalm);
+ACMDCHECK(can_quiveringpalm);
+ACMD(do_deatharrow);
+ACMDCHECK(can_deatharrow);
+ACMD(do_faeriefire);
+ACMDCHECK(can_faeriefire);
 ACMD(do_kick);
-ACMD(do_seekerarrow);               ACMDCHECK(can_seekerarrow);
-ACMD(do_arrowswarm);                ACMDCHECK(can_arrowswarm);
-ACMD(do_smiteevil);                 ACMDCHECK(can_smiteevil);
-ACMD(do_smitegood);                 ACMDCHECK(can_smitegood);
+ACMD(do_seekerarrow);
+ACMDCHECK(can_seekerarrow);
+ACMD(do_arrowswarm);
+ACMDCHECK(can_arrowswarm);
+ACMD(do_smiteevil);
+ACMDCHECK(can_smiteevil);
+ACMD(do_smitegood);
+ACMDCHECK(can_smitegood);
 ACMD(do_kill);
-ACMD(do_layonhands);                ACMDCHECK(can_layonhands);
+ACMD(do_layonhands);
+ACMDCHECK(can_layonhands);
 ACMD(do_order);
 ACMD(do_applypoison);
 ACMD(do_sorcerer_arcane_apotheosis);
@@ -435,25 +452,40 @@ ACMD(do_imbuearrow);
 ACMD(do_abundantstep);
 ACMD(do_animatedead);
 ACMD(do_rescue);
-ACMD(do_taunt);                     ACMDCHECK(can_taunt);
-ACMD(do_intimidate);                ACMDCHECK(can_intimidate);
-ACMD(do_treatinjury);               ACMDCHECK(can_treatinjury);
-ACMD(do_emptybody);                 ACMDCHECK(can_emptybody);
-ACMD(do_wholenessofbody);           ACMDCHECK(can_wholenessofbody);
-ACMD(do_trip);    
-ACMD(do_whirlwind);                 ACMDCHECK(can_whirlwind);
-ACMD(do_crystalfist);               ACMDCHECK(can_crystalfist);
-ACMD(do_crystalbody);               ACMDCHECK(can_crystalbody);
-ACMD(do_supriseaccuracy);           ACMDCHECK(can_supriseaccuracy);
-ACMD(do_powerfulblow);              ACMDCHECK(can_powerfulblow);
-ACMD(do_renewedvigor);              ACMDCHECK(can_renewedvigor);
-ACMD(do_reneweddefense);            ACMDCHECK(can_reneweddefense);
-ACMD(do_comeandgetme);              ACMDCHECK(can_comeandgetme);
-ACMD(do_sorcerer_breath_weapon);    ACMDCHECK(can_sorcerer_breath_weapon);
-ACMD(do_sorcerer_claw_attack);      ACMDCHECK(can_sorcerer_claw_attack);
+ACMD(do_taunt);
+ACMDCHECK(can_taunt);
+ACMD(do_intimidate);
+ACMDCHECK(can_intimidate);
+ACMD(do_treatinjury);
+ACMDCHECK(can_treatinjury);
+ACMD(do_emptybody);
+ACMDCHECK(can_emptybody);
+ACMD(do_wholenessofbody);
+ACMDCHECK(can_wholenessofbody);
+ACMD(do_trip);
+ACMD(do_whirlwind);
+ACMDCHECK(can_whirlwind);
+ACMD(do_crystalfist);
+ACMDCHECK(can_crystalfist);
+ACMD(do_crystalbody);
+ACMDCHECK(can_crystalbody);
+ACMD(do_supriseaccuracy);
+ACMDCHECK(can_supriseaccuracy);
+ACMD(do_powerfulblow);
+ACMDCHECK(can_powerfulblow);
+ACMD(do_renewedvigor);
+ACMDCHECK(can_renewedvigor);
+ACMD(do_reneweddefense);
+ACMDCHECK(can_reneweddefense);
+ACMD(do_comeandgetme);
+ACMDCHECK(can_comeandgetme);
+ACMD(do_sorcerer_breath_weapon);
+ACMDCHECK(can_sorcerer_breath_weapon);
+ACMD(do_sorcerer_claw_attack);
+ACMDCHECK(can_sorcerer_claw_attack);
 ACMD(do_sorcerer_draconic_wings);
-ACMD(do_impromptu);               ACMDCHECK(can_impromptu);
-
+ACMD(do_impromptu);
+ACMDCHECK(can_impromptu);
 
 /*****************************************************************************
  * Begin Functions and defines for act.other.c
@@ -475,70 +507,70 @@ void display_todo(struct char_data *ch, struct char_data *vict);
 
 /* do_gen_tog */
 ACMD(do_gen_tog);
-#define SCMD_NOSUMMON    0
-#define SCMD_NOHASSLE    1
-#define SCMD_BRIEF       2
-#define SCMD_COMPACT     3
-#define SCMD_NOTELL      4
-#define SCMD_NOAUCTION   5
-#define SCMD_NOSHOUT     6
-#define SCMD_NOGOSSIP    7
-#define SCMD_NOGRATZ     8
-#define SCMD_NOWIZ       9
-#define SCMD_QUEST       10
-#define SCMD_SHOWVNUMS   11
-#define SCMD_NOREPEAT    12
-#define SCMD_HOLYLIGHT   13
-#define SCMD_SLOWNS      14
-#define SCMD_AUTOEXIT    15
-#define SCMD_TRACK       16
-#define SCMD_CLS         17
-#define SCMD_BUILDWALK   18
-#define SCMD_AFK         19
-#define SCMD_AUTOLOOT    20
-#define SCMD_AUTOGOLD    21
-#define SCMD_AUTOSPLIT   22
-#define SCMD_AUTOSAC     23
-#define SCMD_AUTOASSIST  24
-#define SCMD_AUTOMAP     25
-#define SCMD_AUTOKEY     26
-#define SCMD_AUTODOOR    27
-#define SCMD_NOCLANTALK  28
-#define SCMD_COLOR       29
-#define SCMD_SYSLOG      30
-#define SCMD_WIMPY       31
-#define SCMD_PAGELENGTH  32
+#define SCMD_NOSUMMON 0
+#define SCMD_NOHASSLE 1
+#define SCMD_BRIEF 2
+#define SCMD_COMPACT 3
+#define SCMD_NOTELL 4
+#define SCMD_NOAUCTION 5
+#define SCMD_NOSHOUT 6
+#define SCMD_NOGOSSIP 7
+#define SCMD_NOGRATZ 8
+#define SCMD_NOWIZ 9
+#define SCMD_QUEST 10
+#define SCMD_SHOWVNUMS 11
+#define SCMD_NOREPEAT 12
+#define SCMD_HOLYLIGHT 13
+#define SCMD_SLOWNS 14
+#define SCMD_AUTOEXIT 15
+#define SCMD_TRACK 16
+#define SCMD_CLS 17
+#define SCMD_BUILDWALK 18
+#define SCMD_AFK 19
+#define SCMD_AUTOLOOT 20
+#define SCMD_AUTOGOLD 21
+#define SCMD_AUTOSPLIT 22
+#define SCMD_AUTOSAC 23
+#define SCMD_AUTOASSIST 24
+#define SCMD_AUTOMAP 25
+#define SCMD_AUTOKEY 26
+#define SCMD_AUTODOOR 27
+#define SCMD_NOCLANTALK 28
+#define SCMD_COLOR 29
+#define SCMD_SYSLOG 30
+#define SCMD_WIMPY 31
+#define SCMD_PAGELENGTH 32
 #define SCMD_SCREENWIDTH 33
-#define SCMD_AUTOSCAN    34
-#define SCMD_AUTORELOAD  35
-#define SCMD_COMBATROLL  36
-#define SCMD_GUI_MODE    37
-#define SCMD_NOHINT      38
+#define SCMD_AUTOSCAN 34
+#define SCMD_AUTORELOAD 35
+#define SCMD_COMBATROLL 36
+#define SCMD_GUI_MODE 37
+#define SCMD_NOHINT 38
 #define SCMD_AUTOCOLLECT 39
-#define SCMD_RP          40
-#define SCMD_AOE_BOMBS   41
+#define SCMD_RP 40
+#define SCMD_AOE_BOMBS 41
 #define SCMD_AUTOCONSIDER 42
 
 /* do_quit */
 ACMD(do_quit);
-#define SCMD_QUI  0
+#define SCMD_QUI 0
 #define SCMD_QUIT 1
 /* do_use */
 ACMD(do_use);
-#define SCMD_USE  0
-#define SCMD_QUAFF  1
+#define SCMD_USE 0
+#define SCMD_QUAFF 1
 #define SCMD_RECITE 2
 /* do_utter */
 ACMD(do_utter);
 /* do_diplomacy */
 ACMD(do_diplomacy);
-#define SCMD_MURMUR     0
+#define SCMD_MURMUR 0
 #define SCMD_PROPAGANDA 1
-#define SCMD_LOBBY      2
+#define SCMD_LOBBY 2
 /* used by diplomacy skills */
 #define DIP_SKILL (diplomacy_types[dip_num].skill)
-#define DIP_INCR  (diplomacy_types[dip_num].increase)
-#define DIP_WAIT  (diplomacy_types[dip_num].wait)
+#define DIP_INCR (diplomacy_types[dip_num].increase)
+#define DIP_WAIT (diplomacy_types[dip_num].wait)
 /* Functions without subcommands */
 ACMD(do_recharge);
 ACMD(do_nop);
@@ -599,24 +631,23 @@ ACMD(do_gmote);
  *******************/
 ACMD(do_gen_forget);
 
-#define SCMD_FORGET      1
-#define SCMD_BLANK       2
-#define SCMD_UNCOMMUNE   3
-#define SCMD_OMIT        4
-#define SCMD_UNADJURE    5
-#define SCMD_DISCARD     6
+#define SCMD_FORGET 1
+#define SCMD_BLANK 2
+#define SCMD_UNCOMMUNE 3
+#define SCMD_OMIT 4
+#define SCMD_UNADJURE 5
+#define SCMD_DISCARD 6
 
 ACMD(do_gen_memorize);
 
-#define SCMD_MEMORIZE   1
-#define SCMD_PRAY       2
-#define SCMD_COMMUNE    3
-#define SCMD_MEDITATE   4
-#define SCMD_CHANT      5
-#define SCMD_ADJURE     6
-#define SCMD_COMPOSE    7
-#define SCMD_CONCOCT    8
-
+#define SCMD_MEMORIZE 1
+#define SCMD_PRAY 2
+#define SCMD_COMMUNE 3
+#define SCMD_MEDITATE 4
+#define SCMD_CHANT 5
+#define SCMD_ADJURE 6
+#define SCMD_COMPOSE 7
+#define SCMD_CONCOCT 8
 
 /*****************************************************************************
  * Begin Functions and defines for act.wizard.c
@@ -635,27 +666,27 @@ int get_eq_score(obj_rnum a);
 /* Functions with subcommands */
 /* do_date */
 ACMD(do_date);
-#define SCMD_DATE   0
+#define SCMD_DATE 0
 #define SCMD_UPTIME 1
 /* do_echo */
 ACMD(do_echo);
-#define SCMD_ECHO   0
-#define SCMD_EMOTE  1
+#define SCMD_ECHO 0
+#define SCMD_EMOTE 1
 /* do_last */
 ACMD(do_last);
 #define SCMD_LIST_ALL 1
 /* do_shutdown */
 ACMD(do_shutdown);
-#define SCMD_SHUTDOW   0
-#define SCMD_SHUTDOWN  1
+#define SCMD_SHUTDOW 0
+#define SCMD_SHUTDOWN 1
 /* do_wizutil */
 ACMD(do_wizutil);
-#define SCMD_REROLL   0
-#define SCMD_PARDON   1
-#define SCMD_NOTITLE  2
-#define SCMD_MUTE     3
-#define SCMD_FREEZE   4
-#define SCMD_THAW     5
+#define SCMD_REROLL 0
+#define SCMD_PARDON 1
+#define SCMD_NOTITLE 2
+#define SCMD_MUTE 3
+#define SCMD_FREEZE 4
+#define SCMD_THAW 5
 #define SCMD_UNAFFECT 6
 /* Functions without subcommands */
 ACMD(do_hlqlist);
