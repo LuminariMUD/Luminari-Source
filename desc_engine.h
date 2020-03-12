@@ -6,10 +6,8 @@
  */
 
 #ifndef DESC_ENGINE_H
-#define	DESC_ENGINE_H
+#define DESC_ENGINE_H
 
-char * gen_room_description(struct char_data *ch, room_rnum room);  
+char *gen_room_description(struct char_data *ch, room_rnum room);
 
-
-#endif	/* DESC_ENGINE_H */
-
+#endif /* DESC_ENGINE_H */

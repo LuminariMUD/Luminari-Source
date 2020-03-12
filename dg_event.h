@@ -1,5 +1,5 @@
 /**
-* @file dg_event.h
+* @file dg_event.h                        LuminariMUD
 * This file contains defines for the simplified event system to allow trigedit 
 * to use the "wait" command, causing a delay in the middle of a script.
 * This system could easily be expanded by coders who wish to implement
@@ -25,15 +25,16 @@
  * Begin event structures and defines.
  **************************************************************************/
 /** All Functions handled by the event system must be of this format. */
-#define EVENTFUNC(name) long (name)(void *event_obj)
+#define EVENTFUNC(name) long(name)(void *event_obj)
 
 /** The event structure. Events get attached to the queue and are executed
  * when their turn comes up in the queue. */
-struct event {
-  EVENTFUNC(*func); /**< The function called when this event comes up. */
-  void *event_obj;  /**< event_obj is passed to func when func is called */
-  struct q_element *q_el;  /**< Where this event is located in the queue */
-  bool isMudEvent;  /**< used by the memory routines */
+struct event
+{
+  EVENTFUNC(*func);       /**< The function called when this event comes up. */
+  void *event_obj;        /**< event_obj is passed to func when func is called */
+  struct q_element *q_el; /**< Where this event is located in the queue */
+  bool isMudEvent;        /**< used by the memory routines */
 };
 /**************************************************************************
  * End event structures and defines.
@@ -43,18 +44,20 @@ struct event {
  * Begin priority queue structures and defines.
  **************************************************************************/
 /** Number of buckets available in each queue. Reduces enqueue cost. */
-#define NUM_EVENT_QUEUES    10
+#define NUM_EVENT_QUEUES 10
 
 /** The priority queue. */
-struct dg_queue {
+struct dg_queue
+{
   struct q_element *head[NUM_EVENT_QUEUES]; /**< Front of each queue bucket. */
   struct q_element *tail[NUM_EVENT_QUEUES]; /**< Rear of each queue bucket. */
 };
 
 /** Queued elements. */
-struct q_element {
-  void *data;  /**< The event to be handled. */
-  long key;    /**< When the event should be handled. */
+struct q_element
+{
+  void *data;                    /**< The event to be handled. */
+  long key;                      /**< When the event should be handled. */
   struct q_element *prev, *next; /**< Points to other q_elements in line. */
 };
 /**************************************************************************
@@ -78,6 +81,6 @@ void *queue_head(struct dg_queue *q);
 long queue_key(struct dg_queue *q);
 long queue_elmt_key(struct q_element *qe);
 void queue_free(struct dg_queue *q);
-int  event_is_queued(struct event *event);
+int event_is_queued(struct event *event);
 
 #endif /* _DG_EVENT_H_ */

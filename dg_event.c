@@ -1,5 +1,5 @@
 /**
-* @file dg_event.c
+* @file dg_event.c                          LuminariMUD
 * This file contains a simplified event system to allow trigedit 
 * to use the "wait" command, causing a delay in the middle of a script.
 * This system could easily be expanded by coders who wish to implement
@@ -15,7 +15,6 @@
 * $Revision: 1.0.14 $                                                    
 */
 
-
 #include "conf.h"
 #include "sysdep.h"
 #include "structs.h"
@@ -23,7 +22,7 @@
 #include "db.h"
 #include "dg_event.h"
 #include "constants.h"
-#include "comm.h"  /* For access to the game pulse */
+#include "comm.h" /* For access to the game pulse */
 #include "mud_event.h"
 
 /***************************************************************************
@@ -33,7 +32,6 @@
 /** The mud specific queue of events. */
 static struct dg_queue *event_q = NULL;
 
-
 /** Initializes the main event queue event_q.
  * @post The main event queue, event_q, has been created and initialized.
  */
@@ -41,7 +39,6 @@ void event_init(void)
 {
   event_q = queue_init();
 }
-
 
 /** Creates a new event 'object' that is then enqueued to the global event_q.
  * @post If the newly created event is valid, it is always added to event_q.
@@ -75,18 +72,21 @@ struct event *event_create(EVENTFUNC(*func), void *event_obj, long when)
  */
 void event_cancel(struct event *event)
 {
-  if (!event) {
+  if (!event)
+  {
     log("SYSERR:  Attempted to cancel a NULL event");
     return;
   }
 
-  if (!event->q_el) {
+  if (!event->q_el)
+  {
     log("SYSERR:  Attempted to cancel a non-NULL unqueued event, freeing anyway");
-  } else
+  }
+  else
     queue_deq(event_q, event->q_el);
 
   if (event->event_obj)
-      cleanup_event_obj(event);
+    cleanup_event_obj(event);
 
   free(event);
 }
@@ -94,15 +94,16 @@ void event_cancel(struct event *event)
 /* The memory freeing routine tied into the mud event system */
 void cleanup_event_obj(struct event *event)
 {
-  struct mud_event_data * mud_event = NULL;
+  struct mud_event_data *mud_event = NULL;
 
-  if (event->isMudEvent) {  
-    mud_event = (struct mud_event_data *) event->event_obj;
+  if (event->isMudEvent)
+  {
+    mud_event = (struct mud_event_data *)event->event_obj;
     free_mud_event(mud_event);
-  } else
+  }
+  else
     free(event->event_obj);
 }
-
 
 /** Process any events whose time has come. Should be called from, and at, every
  * pulse of heartbeat. Re-enqueues multi-use events.
@@ -112,9 +113,11 @@ void event_process(void)
   struct event *the_event = NULL;
   long new_time = 0;
 
-  while ((long) pulse >= queue_key(event_q)) {
+  while ((long)pulse >= queue_key(event_q))
+  {
 
-    if (!(the_event = (struct event *) queue_head(event_q))) {
+    if (!(the_event = (struct event *)queue_head(event_q)))
+    {
       log("SYSERR: Attempt to get a NULL event");
       return;
     }
@@ -127,15 +130,14 @@ void event_process(void)
     /* call event func, reenqueue event if retval > 0 */
     if ((new_time = (the_event->func)(the_event->event_obj)) > 0)
       the_event->q_el = queue_enq(event_q, the_event, new_time + pulse);
-    else {
+    else
+    {
       if (the_event->isMudEvent && the_event->event_obj != NULL)
-        free_mud_event((struct mud_event_data *) the_event->event_obj);
+        free_mud_event((struct mud_event_data *)the_event->event_obj);
 
-      
       /* It is assumed that the_event will already have freed ->event_obj. */
       free(the_event);
     }
-      
   }
 }
 
@@ -163,10 +165,10 @@ void event_free_all(void)
  * queued. */
 int event_is_queued(struct event *event)
 {
-   if (event->q_el)
-     return 1;
-   else
-     return 0;
+  if (event->q_el)
+    return 1;
+  else
+    return 0;
 }
 /***************************************************************************
  * End mud specific event queue functions
@@ -205,31 +207,37 @@ struct q_element *queue_enq(struct dg_queue *q, void *data, long key)
   qe->data = data;
   qe->key = key;
 
-  bucket = key % NUM_EVENT_QUEUES;   /* which queue does this go in */
+  bucket = key % NUM_EVENT_QUEUES; /* which queue does this go in */
 
-  if (!q->head[bucket]) { /* queue is empty */
+  if (!q->head[bucket])
+  { /* queue is empty */
     q->head[bucket] = qe;
     q->tail[bucket] = qe;
   }
 
-  else {
-    for (i = q->tail[bucket]; i; i = i->prev) {
+  else
+  {
+    for (i = q->tail[bucket]; i; i = i->prev)
+    {
 
-      if (i->key < key) { /* found insertion point */
-	if (i == q->tail[bucket])
-	  q->tail[bucket] = qe;
-	else {
-	  qe->next = i->next;
-	  i->next->prev = qe;
-	}
+      if (i->key < key)
+      { /* found insertion point */
+        if (i == q->tail[bucket])
+          q->tail[bucket] = qe;
+        else
+        {
+          qe->next = i->next;
+          i->next->prev = qe;
+        }
 
-	qe->prev = i;
-	i->next = qe;
-	break;
+        qe->prev = i;
+        i->next = qe;
+        break;
       }
     }
 
-    if (i == NULL) { /* insertion point is front of list */
+    if (i == NULL)
+    { /* insertion point is front of list */
       qe->next = q->head[bucket];
       q->head[bucket] = qe;
       qe->next->prev = qe;
@@ -327,10 +335,10 @@ void queue_free(struct dg_queue *q)
 
   for (i = 0; i < NUM_EVENT_QUEUES; i++)
   {
-    for (qe = q->head[i]; qe; qe = next_qe) 
+    for (qe = q->head[i]; qe; qe = next_qe)
     {
       next_qe = qe->next;
-      if ((event = (struct event *) qe->data) != NULL) 
+      if ((event = (struct event *)qe->data) != NULL)
       {
         if (event->event_obj)
           cleanup_event_obj(event);
@@ -343,4 +351,3 @@ void queue_free(struct dg_queue *q)
 
   free(q);
 }
-

@@ -1,6 +1,6 @@
 /**
-* @file boards.h
-* Header file for the bulletin board system (boards.c).
+* @file ban.h
+* Header file for the ban system (ban.c).
 * 
 * Part of the core tbaMUD source code distribution, which is a derivative
 * of, and continuation of, CircleMUD.
@@ -19,17 +19,18 @@
 #define _BAN_H_
 
 /* don't change these */
-#define BAN_NOT   0
-#define BAN_NEW   1
-#define BAN_SELECT  2
-#define BAN_ALL   3
+#define BAN_NOT 0
+#define BAN_NEW 1
+#define BAN_SELECT 2
+#define BAN_ALL 3
 
-#define BANNED_SITE_LENGTH    50
-struct ban_list_element {
-   char site[BANNED_SITE_LENGTH+1];
-   int  type;
+#define BANNED_SITE_LENGTH 50
+struct ban_list_element
+{
+   char site[BANNED_SITE_LENGTH + 1];
+   int type;
    time_t date;
-   char name[MAX_NAME_LENGTH+1];
+   char name[MAX_NAME_LENGTH + 1];
    struct ban_list_element *next;
 };
 

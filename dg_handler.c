@@ -37,13 +37,14 @@ void free_var_el(struct trig_var_data *var)
 /* release memory allocated for a variable list */
 void free_varlist(struct trig_var_data *vd)
 {
-    struct trig_var_data *i, *j;
+  struct trig_var_data *i, *j;
 
-    for (i = vd; i;) {
-	j = i;
-	i = i->next;
-	free_var_el(j);
-    }
+  for (i = vd; i;)
+  {
+    j = i;
+    i = i->next;
+    free_var_el(j);
+  }
 }
 
 /* Remove var name from var_list. Returns 1 if found, else 0. */
@@ -52,13 +53,18 @@ int remove_var(struct trig_var_data **var_list, char *name)
   struct trig_var_data *i, *j;
 
   for (j = NULL, i = *var_list; i && str_cmp(name, i->name);
-       j = i, i = i->next);
+       j = i, i = i->next)
+    ;
 
-  if (i) {
-    if (j) {
+  if (i)
+  {
+    if (j)
+    {
       j->next = i->next;
       free_var_el(i);
-    } else {
+    }
+    else
+    {
       *var_list = i->next;
       free_var_el(i);
     }
@@ -73,21 +79,23 @@ int remove_var(struct trig_var_data **var_list, char *name)
  * when shutting down. */
 void free_trigger(struct trig_data *trig)
 {
-    free(trig->name);
-    trig->name = NULL;
+  free(trig->name);
+  trig->name = NULL;
 
-    if (trig->arglist) {
-      free(trig->arglist);
-      trig->arglist = NULL;
-    }
-    if (trig->var_list) {
-      free_varlist(trig->var_list);
-      trig->var_list = NULL;
-    }
-    if (GET_TRIG_WAIT(trig))
-      event_cancel(GET_TRIG_WAIT(trig));
+  if (trig->arglist)
+  {
+    free(trig->arglist);
+    trig->arglist = NULL;
+  }
+  if (trig->var_list)
+  {
+    free_varlist(trig->var_list);
+    trig->var_list = NULL;
+  }
+  if (GET_TRIG_WAIT(trig))
+    event_cancel(GET_TRIG_WAIT(trig));
 
-    free(trig);
+  free(trig);
 }
 
 /* remove a single trigger from a mob/obj/room */
@@ -95,7 +103,8 @@ void extract_trigger(struct trig_data *trig)
 {
   struct trig_data *temp;
 
-  if (GET_TRIG_WAIT(trig)) {
+  if (GET_TRIG_WAIT(trig))
+  {
     event_cancel(GET_TRIG_WAIT(trig));
     GET_TRIG_WAIT(trig) = NULL;
   }
@@ -117,22 +126,23 @@ void extract_script(void *thing, int type)
   obj_data *obj = NULL;
   room_data *room = NULL;
 
-  switch (type) {
-    case MOB_TRIGGER:
-      mob = (struct char_data *)thing;
-      sc = SCRIPT(mob);
-      SCRIPT(mob) = NULL;
-      break;
-    case OBJ_TRIGGER:
-      obj = (struct obj_data *)thing;
-      sc = SCRIPT(obj);
-      SCRIPT(obj) = NULL;
-      break;
-    case WLD_TRIGGER:
-      room = (struct room_data *)thing;
-      sc = SCRIPT(room);
-      SCRIPT(room) = NULL;
-      break;
+  switch (type)
+  {
+  case MOB_TRIGGER:
+    mob = (struct char_data *)thing;
+    sc = SCRIPT(mob);
+    SCRIPT(mob) = NULL;
+    break;
+  case OBJ_TRIGGER:
+    obj = (struct obj_data *)thing;
+    sc = SCRIPT(obj);
+    SCRIPT(obj) = NULL;
+    break;
+  case WLD_TRIGGER:
+    room = (struct room_data *)thing;
+    sc = SCRIPT(room);
+    SCRIPT(room) = NULL;
+    break;
   }
 
   /* zusuk disabled this debug 10/15/2017 */
@@ -153,8 +163,9 @@ void extract_script(void *thing, int type)
     }
   }
 #endif
-  
-  for (trig = TRIGGERS(sc); trig; trig = next_trig) {
+
+  for (trig = TRIGGERS(sc); trig; trig = next_trig)
+  {
     next_trig = trig->next;
     extract_trigger(trig);
   }
@@ -170,39 +181,43 @@ void extract_script(void *thing, int type)
 void extract_script_mem(struct script_memory *sc)
 {
   struct script_memory *next;
-  while (sc) {
+  while (sc)
+  {
     next = sc->next;
-    if (sc->cmd) free(sc->cmd);
+    if (sc->cmd)
+      free(sc->cmd);
     free(sc);
     sc = next;
   }
 }
 
-void free_proto_script(void *thing, int type) {
+void free_proto_script(void *thing, int type)
+{
   struct trig_proto_list *proto = NULL, *fproto = NULL;
   char_data *mob = NULL;
   obj_data *obj = NULL;
   room_data *room = NULL;
 
-  switch (type) {
-    case MOB_TRIGGER:
-      mob = (struct char_data *)thing;
-      proto = mob->proto_script;
-      mob->proto_script = NULL;
-      break;
-    case OBJ_TRIGGER:
-      obj = (struct obj_data *)thing;
-      proto = obj->proto_script;
-      obj->proto_script = NULL;
-      break;
-    case WLD_TRIGGER:
-      room = (struct room_data *)thing;
-      proto = room->proto_script;
-      room->proto_script = NULL;
-      break;
+  switch (type)
+  {
+  case MOB_TRIGGER:
+    mob = (struct char_data *)thing;
+    proto = mob->proto_script;
+    mob->proto_script = NULL;
+    break;
+  case OBJ_TRIGGER:
+    obj = (struct obj_data *)thing;
+    proto = obj->proto_script;
+    obj->proto_script = NULL;
+    break;
+  case WLD_TRIGGER:
+    room = (struct room_data *)thing;
+    proto = room->proto_script;
+    room->proto_script = NULL;
+    break;
   }
-  
-/* zusuk disabled this debug 10/15/2017 */  
+
+/* zusuk disabled this debug 10/15/2017 */
 #if 0 /* debugging */
   {
     struct char_data *i = character_list;
@@ -220,8 +235,9 @@ void free_proto_script(void *thing, int type) {
     }
   }
 #endif
-  
-  while (proto) {
+
+  while (proto)
+  {
     fproto = proto;
     proto = proto->next;
     free(fproto);
@@ -232,33 +248,37 @@ void copy_proto_script(void *source, void *dest, int type)
 {
   struct trig_proto_list *tp_src = NULL, *tp_dst = NULL;
 
-  switch (type) {
-    case MOB_TRIGGER:
-      tp_src = ((char_data *)source)->proto_script;
-      break;
-    case OBJ_TRIGGER:
-      tp_src = ((obj_data *)source)->proto_script;
-      break;
-    case WLD_TRIGGER:
-      tp_src = ((room_data *)source)->proto_script;
-      break;
+  switch (type)
+  {
+  case MOB_TRIGGER:
+    tp_src = ((char_data *)source)->proto_script;
+    break;
+  case OBJ_TRIGGER:
+    tp_src = ((obj_data *)source)->proto_script;
+    break;
+  case WLD_TRIGGER:
+    tp_src = ((room_data *)source)->proto_script;
+    break;
   }
 
-  if (tp_src) {
+  if (tp_src)
+  {
     CREATE(tp_dst, struct trig_proto_list, 1);
-    switch (type) {
-      case MOB_TRIGGER:
-        ((char_data *)dest)->proto_script = tp_dst;
-        break;
-      case OBJ_TRIGGER:
-        ((obj_data *)dest)->proto_script = tp_dst;
-        break;
-      case WLD_TRIGGER:
-        ((room_data *)dest)->proto_script = tp_dst;
-        break;
+    switch (type)
+    {
+    case MOB_TRIGGER:
+      ((char_data *)dest)->proto_script = tp_dst;
+      break;
+    case OBJ_TRIGGER:
+      ((obj_data *)dest)->proto_script = tp_dst;
+      break;
+    case WLD_TRIGGER:
+      ((room_data *)dest)->proto_script = tp_dst;
+      break;
     }
 
-    while (tp_src) {
+    while (tp_src)
+    {
       tp_dst->vnum = tp_src->vnum;
       tp_src = tp_src->next;
       if (tp_src)
@@ -286,7 +306,8 @@ void update_wait_events(struct room_data *to, struct room_data *from)
   if (!SCRIPT(from))
     return;
 
-  for (trig = TRIGGERS(SCRIPT(from)); trig; trig = trig->next) {
+  for (trig = TRIGGERS(SCRIPT(from)); trig; trig = trig->next)
+  {
     if (!GET_TRIG_WAIT(trig))
       continue;
 

@@ -1,5 +1,5 @@
 /**
-* @file comm.h
+* @file comm.h                                          LuminariMUD
 * Header file, prototypes of public communication functions.
 *
 * Part of the core tbaMUD source code distribution, which is a derivative
@@ -13,46 +13,42 @@
 #ifndef _COMM_H_
 #define _COMM_H_
 
-#define NUM_RESERVED_DESCS	8
+#define NUM_RESERVED_DESCS 8
 #define COPYOVER_FILE "copyover.dat"
 
 /* comm.c */
 void close_socket(struct descriptor_data *d);
-void game_info(const char *messg, ...) __attribute__ ((format (printf, 1, 2)));
-size_t send_to_char(struct char_data *ch, const char *messg, ...) __attribute__
-    ((format (printf, 2, 3)));
-void send_to_all(const char *messg, ...) __attribute__ ((format (printf, 1,
-    2)));
-void send_to_room(room_rnum room, const char *messg, ...) __attribute__ ((format
-    (printf, 2, 3)));
-void send_to_outdoor(const char *messg, ...) __attribute__ ((format (printf, 1,
-    2)));
-void send_to_group(struct char_data *ch, struct group_data *group, const char * msg, ...) __attribute__ ((format
-    (printf, 3, 4)));
+void game_info(const char *messg, ...) __attribute__((format(printf, 1, 2)));
+size_t send_to_char(struct char_data *ch, const char *messg, ...) __attribute__((format(printf, 2, 3)));
+void send_to_all(const char *messg, ...) __attribute__((format(printf, 1,
+                                                               2)));
+void send_to_room(room_rnum room, const char *messg, ...) __attribute__((format(printf, 2, 3)));
+void send_to_outdoor(const char *messg, ...) __attribute__((format(printf, 1,
+                                                                   2)));
+void send_to_group(struct char_data *ch, struct group_data *group, const char *msg, ...) __attribute__((format(printf, 3, 4)));
 void send_to_range(room_vnum start, room_vnum finish, const char *messg, ...)
-    __attribute__ ((format (printf, 3, 4)));
+    __attribute__((format(printf, 3, 4)));
 void update_msdp_room(struct char_data *ch);
 
 /* Act type settings and flags */
-#define TO_ROOM     1   /**< act() type: to everyone in room, except ch. */
-#define TO_VICT     2   /**< act() type: to vict_obj. */
-#define TO_NOTVICT  3   /**< act() type: to everyone in room, not ch or vict_obj. */
-#define TO_CHAR     4   /**< act() type: to ch. */
-#define TO_GMOTE    5   /**< act() type: to gemote channel (global emote) */
-#define TO_SLEEP    128	/**< act() flag: to char, even if sleeping */
-#define DG_NO_TRIG  256 /**< act() flag: don't check act trigger   */
-
+#define TO_ROOM 1      /**< act() type: to everyone in room, except ch. */
+#define TO_VICT 2      /**< act() type: to vict_obj. */
+#define TO_NOTVICT 3   /**< act() type: to everyone in room, not ch or vict_obj. */
+#define TO_CHAR 4      /**< act() type: to ch. */
+#define TO_GMOTE 5     /**< act() type: to gemote channel (global emote) */
+#define TO_SLEEP 128   /**< act() flag: to char, even if sleeping */
+#define DG_NO_TRIG 256 /**< act() flag: don't check act trigger   */
 
 /* act functions */
 void perform_act(const char *orig, struct char_data *ch, struct obj_data *obj,
-        void *vict_obj, struct char_data *to, bool carrier_return);
+                 void *vict_obj, struct char_data *to, bool carrier_return);
 char *act(const char *str, int hide_invisible, struct char_data *ch, struct obj_data *obj, void *vict_obj, int type);
 
 /* I/O functions */
-void	write_to_q(const char *txt, struct txt_q *queue, int aliased);
-int	write_to_descriptor(socket_t desc, const char *txt);
-size_t	write_to_output(struct descriptor_data *d, const char *txt, ...) __attribute__ ((format (printf, 2, 3)));
-size_t	vwrite_to_output(struct descriptor_data *d, const char *format, va_list args);
+void write_to_q(const char *txt, struct txt_q *queue, int aliased);
+int write_to_descriptor(socket_t desc, const char *txt);
+size_t write_to_output(struct descriptor_data *d, const char *txt, ...) __attribute__((format(printf, 2, 3)));
+size_t vwrite_to_output(struct descriptor_data *d, const char *format, va_list args);
 
 typedef RETSIGTYPE sigfunc(int);
 

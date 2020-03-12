@@ -16,39 +16,42 @@
 /* defines */
 #define NUM_CHURCHES 13
 
-#define LF_CLASS    0
-#define LF_RACE     1
-#define LF_STACK    2
-#define LF_MIN_LVL  3
-#define LF_FEAT     4
+#define LF_CLASS 0
+#define LF_RACE 1
+#define LF_STACK 2
+#define LF_MIN_LVL 3
+#define LF_FEAT 4
 #define LEVEL_FEATS 5
 #define MAX_NUM_TITLES 11
 #define NUM_PREFERRED_SAVES 5
-#define NOASSIGN_FEAT  -1
+#define NOASSIGN_FEAT -1
 /* end defines */
 
 /* feat assignment / class-feat data for classes */
-struct class_feat_assign {
-  int feat_num;       /* feat number like FEAT_WEAPON_FOCUS */
-  bool is_classfeat;  /* assign this feat as a class feat */
-  int level_received; /* level char get this feat */
-                      /* -1 - not assigned, used for class feat assignment */
-                      /* #define NOASSIGN_FEAT  -1 */
-  bool stacks;        /* does this feat stack? */
+struct class_feat_assign
+{
+  int feat_num;                   /* feat number like FEAT_WEAPON_FOCUS */
+  bool is_classfeat;              /* assign this feat as a class feat */
+  int level_received;             /* level char get this feat */
+                                  /* -1 - not assigned, used for class feat assignment */
+                                  /* #define NOASSIGN_FEAT  -1 */
+  bool stacks;                    /* does this feat stack? */
   struct class_feat_assign *next; /*linked list*/
 };
 
 /* spell data for class */
-struct class_spell_assign {
-  int spell_num; /*spellnum like SPELL_ARMOR */
-  int level; /*actual level class receives*/
+struct class_spell_assign
+{
+  int spell_num;                   /*spellnum like SPELL_ARMOR */
+  int level;                       /*actual level class receives*/
   struct class_spell_assign *next; /*linked list*/
 };
 
 /* prereq data for class */
-struct class_prerequisite {
+struct class_prerequisite
+{
   /* FEAT_PREREQ_* values determine the type */
-  int  prerequisite_type;
+  int prerequisite_type;
   char *description; /* Generated string value describing prerequisite. */
 
   /* 0: ability score, class, feat, race, casting type, BAB
@@ -60,34 +63,34 @@ struct class_prerequisite {
   struct class_prerequisite *next;
 };
 
-
 /* class data, layout for storing class information for each class */
-struct class_table {
-  char *name; /* full name of class, ex. wizard (no color) */
-  char *abbrev; /* abbreviation of class, ex. wiz (no color) */
-  char *colored_abbrev; /* same as abbrev, but colored */
-  char *menu_name; /* colored full name of class for menu(s) */
-  int max_level; /* maximum number of levels you can take in this class, -1 unlimited */
-  bool locked_class; /* whether by default this class is locked or not */
-  bool prestige_class; /* prestige class? */
+struct class_table
+{
+  char *name;            /* full name of class, ex. wizard (no color) */
+  char *abbrev;          /* abbreviation of class, ex. wiz (no color) */
+  char *colored_abbrev;  /* same as abbrev, but colored */
+  char *menu_name;       /* colored full name of class for menu(s) */
+  int max_level;         /* maximum number of levels you can take in this class, -1 unlimited */
+  bool locked_class;     /* whether by default this class is locked or not */
+  bool prestige_class;   /* prestige class? */
   int base_attack_bonus; /* whether high, medium or low */
-  int hit_dice; /* how many hp this class can get on level up */
-  int psp_gain; /* how much psp this class gets on level up */
-  int move_gain; /* how much moves this class gets on level up */
-  int trains_gain; /* how many trains this class gets before int bonus */
-  bool in_game; /* class currently in the game? */
-  int unlock_cost; /* if locked, cost to unlock in account xp */
+  int hit_dice;          /* how many hp this class can get on level up */
+  int psp_gain;          /* how much psp this class gets on level up */
+  int move_gain;         /* how much moves this class gets on level up */
+  int trains_gain;       /* how many trains this class gets before int bonus */
+  bool in_game;          /* class currently in the game? */
+  int unlock_cost;       /* if locked, cost to unlock in account xp */
   /*note: !(CLASS_LEVEL(ch, class) % EPIC_FEAT_PROGRESSION) && IS_EPIC(ch)*/
   int epic_feat_progression;
   char *descrip; /* class description */
-  
-  char *titles[MAX_NUM_TITLES];  /* titles every 5 levels, 3 staff, default */
-  int preferred_saves[NUM_PREFERRED_SAVES];  /*high or low saving throw values */
-  int class_abil[NUM_ABILITIES];  /*class ability (not avail, cross-class, class-skill)*/
-  
+
+  char *titles[MAX_NUM_TITLES];             /* titles every 5 levels, 3 staff, default */
+  int preferred_saves[NUM_PREFERRED_SAVES]; /*high or low saving throw values */
+  int class_abil[NUM_ABILITIES];            /*class ability (not avail, cross-class, class-skill)*/
+
   struct class_spell_assign *spellassign_list; /* list of spell assigns */
-  struct class_feat_assign *featassign_list; /* list of feat assigns */
-  struct class_prerequisite *prereq_list; /* A list of prerequisite sctructures */
+  struct class_feat_assign *featassign_list;   /* list of feat assigns */
+  struct class_prerequisite *prereq_list;      /* A list of prerequisite sctructures */
 };
 
 extern struct class_table class_list[];
@@ -115,7 +118,7 @@ void init_class(struct char_data *ch, int class, int level);
 void load_class_list(void);
 static int level_feats[][LEVEL_FEATS];
 void feat_assignment(int class_num, int feat_num, bool is_classfeat,
-        int level_received, bool stacks);
+                     int level_received, bool stacks);
 
 /* ACMD */
 ACMD(do_class);

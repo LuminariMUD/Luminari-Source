@@ -18,27 +18,27 @@
 /* our cap for combat modes */
 #define MODE_CAP 5
 
-#define MODE_NONE                0
-#define MODE_POWER_ATTACK        1
-#define MODE_COMBAT_EXPERTISE    2
-#define MODE_SPELLBATTLE         3
-#define MODE_TOTAL_DEFENSE       4
-#define MODE_DUAL_WIELD          5
-#define MODE_FLURRY_OF_BLOWS     6
-#define MODE_RAPID_SHOT          7
-#define MODE_COUNTERSPELL        8
-#define MODE_DEFENSIVE_CASTING   9
-#define MODE_WHIRLWIND_ATTACK   10
-#define MAX_MODES               11
+#define MODE_NONE 0
+#define MODE_POWER_ATTACK 1
+#define MODE_COMBAT_EXPERTISE 2
+#define MODE_SPELLBATTLE 3
+#define MODE_TOTAL_DEFENSE 4
+#define MODE_DUAL_WIELD 5
+#define MODE_FLURRY_OF_BLOWS 6
+#define MODE_RAPID_SHOT 7
+#define MODE_COUNTERSPELL 8
+#define MODE_DEFENSIVE_CASTING 9
+#define MODE_WHIRLWIND_ATTACK 10
+#define MAX_MODES 11
 
-#define MODE_GROUP_NONE          0
-#define MODE_GROUP_1             1
-#define MODE_GROUP_2             2
-#define MODE_GROUP_3             3
-#define MAX_MODE_GROUPS          4
-
-struct combat_mode_data {
-  const char* name;
+#define MODE_GROUP_NONE 0
+#define MODE_GROUP_1 1
+#define MODE_GROUP_2 2
+#define MODE_GROUP_3 3
+#define MAX_MODE_GROUPS 4
+struct combat_mode_data
+{
+  const char *name;
   int affect_flag;
   int required_feat;
   bool has_value;
