@@ -115,9 +115,9 @@ sbyte has_alchemist_discoveries_unchosen(struct char_data *ch);
 sbyte has_alchemist_discoveries_unchosen_study(struct char_data *ch);
 int list_alchemical_discoveries(struct char_data *ch);
 sbyte bomb_is_friendly(int bomb);
-void perform_mutagen(struct char_data *ch, char * arg2);
-void perform_elemental_mutagen(struct char_data *ch, char * arg2);
-void perform_cognatogen(struct char_data *ch, char * arg2);
+void perform_mutagen(struct char_data *ch, char *arg2);
+void perform_elemental_mutagen(struct char_data *ch, char *arg2);
+void perform_cognatogen(struct char_data *ch, char *arg2);
 void perform_inspiring_cognatogen(struct char_data *ch);
 void clear_mutagen(struct char_data *ch);
 void add_sticky_bomb_effect(struct char_data *ch, struct char_data *vict, int bomb_type);
@@ -127,8 +127,6 @@ bool display_bomb_types(struct char_data *ch, char *keyword);
 bool display_discovery_types(struct char_data *ch, char *keyword);
 ACMDCHECK(can_swallow);
 
-
-
 extern const char *bomb_damage_messages[NUM_BOMB_TYPES][3];
 extern const char *bomb_requisites[NUM_BOMB_TYPES];
 extern const char *bomb_descriptions[NUM_BOMB_TYPES];
@@ -137,4 +135,3 @@ extern const char *grand_alchemical_discovery_names[NUM_GR_ALC_DISCOVERIES];
 extern const char *alchemical_discovery_names[NUM_ALC_DISCOVERIES];
 extern const char *alchemical_discovery_descriptions[NUM_ALC_DISCOVERIES];
 extern const char *discovery_requisites[NUM_ALC_DISCOVERIES];
-

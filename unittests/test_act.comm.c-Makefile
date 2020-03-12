@@ -1,3 +1,5 @@
+#LuminariMUD
+
 .PHONY: test
 test: obj/test_act.comm
 	./$^

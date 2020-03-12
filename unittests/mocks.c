@@ -1,3 +1,5 @@
+/* LuminariMUD */
+
 #include "../structs.h"
 
 struct char_data;

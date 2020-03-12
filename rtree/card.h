@@ -1,4 +1,6 @@
 
+/* LuminariMUD */
+
 #ifndef __R_TREE_CARD_HEADER__
 #define __R_TREE_CARD_HEADER__
 

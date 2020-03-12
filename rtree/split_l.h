@@ -1,3 +1,4 @@
+/* LuminariMUD */
 
 /**
  ** Definitions and global variables used in linear split code.

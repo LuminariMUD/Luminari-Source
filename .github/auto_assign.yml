@@ -1,3 +1,5 @@
+# LuminariMUD Project, Zusuk handled final acceptance of pull request
+
 # Set to true to add reviewers to pull requests
 addReviewers: true
 
@@ -7,6 +9,8 @@ addAssignees: true
 # A list of reviewers to be added to pull requests (GitHub user name)
 reviewers: 
   - GickerLDS
+  - MoshehBenAvraham
+  - Zusuk
 
 # A list of keywords to be skipped the process that add reviewers if pull requests include it 
 skipKeywords:

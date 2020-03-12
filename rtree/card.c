@@ -1,4 +1,6 @@
 
+/* LuminariMUD */
+
 #include "rTreeIndex.h"
 #include "card.h"
 

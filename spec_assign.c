@@ -711,7 +711,7 @@ void assign_objects(void) {
   ASSIGNOBJ(196073, planetar_sword);
 
   /* more homeland, unsorted */
-  ASSIGNOBJ(100400, gen_board); /* quedt board */
+  ASSIGNOBJ(100400, gen_board); /* quest board */
 
   ASSIGNOBJ(123419, neverwinter_button_control);
   ASSIGNOBJ(123418, neverwinter_valve_control);

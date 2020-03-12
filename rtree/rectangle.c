@@ -1,4 +1,6 @@
 
+/* LuminariMUD */
+
 #ifndef MAKEDEPEND
 # include <stdio.h>
 # include <stdlib.h>
