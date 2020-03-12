@@ -8,21 +8,21 @@
  ****************************************************************************/
 
 #ifndef HL_EVENTS_H
-#define	HL_EVENTS_H
+#define HL_EVENTS_H
 
-#ifdef	__cplusplus
-extern "C" {
+#ifdef __cplusplus
+extern "C"
+{
 #endif
 
+#define EVENTFUNC(name) long(name)(struct event * evet, void *event_obj)
 
-#define EVENTFUNC(name) long (name)(struct event *evet, void *event_obj)
-
-  struct event {
+  struct event
+  {
     EVENTFUNC(*func);
     void *event_obj;
     struct q_element *q_el;
   };
-
 
   /* function protos need by other modules */
   /* events */
@@ -41,11 +41,8 @@ extern "C" {
   long queue_elmt_key(struct q_element *qe);
   void queue_free(struct queue *q);
 
-
-
-#ifdef	__cplusplus
+#ifdef __cplusplus
 }
 #endif
 
-#endif	/* HL_EVENTS_H */
-
+#endif /* HL_EVENTS_H */

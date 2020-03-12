@@ -27,24 +27,30 @@ int main(void)
   char line[BSZ + 1];
   FILE *index = 0, *outfile = 0;
 
-  if (!(index = fopen(INDEX_NAME, "w"))) {
+  if (!(index = fopen(INDEX_NAME, "w")))
+  {
     perror("error opening index for write");
     exit(1);
   }
-  while (fgets(line, BSZ, stdin)) {
-    if (*line == MAGIC_CHAR) {
+  while (fgets(line, BSZ, stdin))
+  {
+    if (*line == MAGIC_CHAR)
+    {
       *(strchr(line, '\n')) = '\0';
-      if (outfile) {
-/*	fputs("$\n", outfile);*/
-	fclose(outfile);
+      if (outfile)
+      {
+        /*	fputs("$\n", outfile);*/
+        fclose(outfile);
       }
-      if (!(outfile = fopen((line + 1), "a"))) {
-	perror("Error opening output file");
-	exit(0);
+      if (!(outfile = fopen((line + 1), "a")))
+      {
+        perror("Error opening output file");
+        exit(0);
       }
       fputs(line + 1, index);
       fputs("\n", index);
-    } else if (outfile)
+    }
+    else if (outfile)
       fputs(line, outfile);
   }
 

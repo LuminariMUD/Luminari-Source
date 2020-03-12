@@ -1,3 +1,6 @@
+# LuminariMUD
+# Zusuk
+
 # Generated automatically from Makefile.in by configure.
 # CircleMUD Makefile.in - Makefile template used by 'configure'
 # for the 'util' directory
