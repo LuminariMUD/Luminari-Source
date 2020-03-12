@@ -1,4 +1,5 @@
 /******************************************************************************
+ *                                                       LuminariMUD
  Protocol snippet by KaVir.  Released into the Public Domain in February 2011.
  ******************************************************************************/
 
@@ -51,47 +52,45 @@ typedef struct descriptor_data descriptor_t;
  If your offer a Mudlet GUI for autoinstallation, put the path/filename here.
  ******************************************************************************/
 
-
 #define MUDLET_PACKAGE "4\nhttp://luminarimud.com/download/LuminariGUI.mpackage"
-
 
 /******************************************************************************
  Symbolic constants.
  ******************************************************************************/
 
-#define SNIPPET_VERSION                8 /* Helpful for debugging */
+#define SNIPPET_VERSION 8 /* Helpful for debugging */
 
-#define MAX_PROTOCOL_BUFFER            MAX_RAW_INPUT_LENGTH
-#define MAX_VARIABLE_LENGTH            4096
-#define MAX_OUTPUT_BUFFER              LARGE_BUFSIZE
-#define MAX_MSSP_BUFFER                4096
+#define MAX_PROTOCOL_BUFFER MAX_RAW_INPUT_LENGTH
+#define MAX_VARIABLE_LENGTH 4096
+#define MAX_OUTPUT_BUFFER LARGE_BUFSIZE
+#define MAX_MSSP_BUFFER 4096
 
-#define SEND                           1
-#define ACCEPTED                       2
-#define REJECTED                       3
+#define SEND 1
+#define ACCEPTED 2
+#define REJECTED 3
 
-#define TELOPT_CHARSET                 42
-#define TELOPT_MSDP                    69
-#define TELOPT_MSSP                    70
-#define TELOPT_MCCP                    86 /* This is MCCP version 2 */
-#define TELOPT_MSP                     90
-#define TELOPT_MXP                     91
-#define TELOPT_GMCP                    201
+#define TELOPT_CHARSET 42
+#define TELOPT_MSDP 69
+#define TELOPT_MSSP 70
+#define TELOPT_MCCP 86 /* This is MCCP version 2 */
+#define TELOPT_MSP 90
+#define TELOPT_MXP 91
+#define TELOPT_GMCP 201
 
-#define MSDP_VAR                       1
-#define MSDP_VAL                       2
-#define MSDP_TABLE_OPEN                3
-#define MSDP_TABLE_CLOSE               4
-#define MSDP_ARRAY_OPEN                5
-#define MSDP_ARRAY_CLOSE               6
-#define MAX_MSDP_SIZE                  100
+#define MSDP_VAR 1
+#define MSDP_VAL 2
+#define MSDP_TABLE_OPEN 3
+#define MSDP_TABLE_CLOSE 4
+#define MSDP_ARRAY_OPEN 5
+#define MSDP_ARRAY_CLOSE 6
+#define MAX_MSDP_SIZE 100
 
-#define MSSP_VAR                       1
-#define MSSP_VAL                       2
+#define MSSP_VAR 1
+#define MSSP_VAL 2
 
-#define UNICODE_MALE                   9794
-#define UNICODE_FEMALE                 9792
-#define UNICODE_NEUTER                 9791
+#define UNICODE_MALE 9794
+#define UNICODE_FEMALE 9792
+#define UNICODE_NEUTER 9791
 
 /******************************************************************************
  Types.
@@ -117,7 +116,7 @@ typedef enum
    eNEGOTIATED_MXP2,
    eNEGOTIATED_MCCP,
 
-   eNEGOTIATED_MAX             /* This must always be last */
+   eNEGOTIATED_MAX /* This must always be last */
 } negotiated_t;
 
 typedef enum
@@ -130,7 +129,7 @@ typedef enum
 
 typedef enum
 {
-   eMSDP_NONE = -1,            /* This must always be first. */
+   eMSDP_NONE = -1, /* This must always be first. */
 
    /* General */
    eMSDP_CHARACTER_NAME,
@@ -141,7 +140,7 @@ typedef enum
    /* Character */
    eMSDP_AFFECTS,
    eMSDP_INVENTORY,
-   eMSDP_ALIGNMENT,   
+   eMSDP_ALIGNMENT,
    eMSDP_EXPERIENCE,
    eMSDP_EXPERIENCE_MAX,
    eMSDP_EXPERIENCE_TNL,
@@ -177,7 +176,7 @@ typedef enum
    eMSDP_MOVE_ACTION,
    eMSDP_SWIFT_ACTION,
    eMSDP_GROUP,
-      
+
    /* Combat */
    eMSDP_OPPONENT_HEALTH,
    eMSDP_OPPONENT_HEALTH_MAX,
@@ -218,64 +217,64 @@ typedef enum
    eMSDP_GAUGE_3,
    eMSDP_GAUGE_4,
    eMSDP_GAUGE_5,
-         
-   eMSDP_MAX                   /* This must always be last */
+
+   eMSDP_MAX /* This must always be last */
 } variable_t;
 
 typedef struct
 {
-   variable_t   Variable;      /* The enum type of this variable */
-   const char  *pName;         /* The string name of this variable */
-   bool_t       bString;       /* Is this variable a string or a number? */
-   bool_t       bConfigurable; /* Can it be configured by the client? */
-   bool_t       bWriteOnce;    /* Can only set this variable once */
-   bool_t       bGUI;          /* It's a special GUI configuration variable */
-   int          Min;           /* The minimum valid value or string length */
-   int          Max;           /* The maximum valid value or string length */
-   int          Default;       /* The default value for a number */
-   const char  *pDefault;      /* The default value for a string */
+   variable_t Variable;  /* The enum type of this variable */
+   const char *pName;    /* The string name of this variable */
+   bool_t bString;       /* Is this variable a string or a number? */
+   bool_t bConfigurable; /* Can it be configured by the client? */
+   bool_t bWriteOnce;    /* Can only set this variable once */
+   bool_t bGUI;          /* It's a special GUI configuration variable */
+   int Min;              /* The minimum valid value or string length */
+   int Max;              /* The maximum valid value or string length */
+   int Default;          /* The default value for a number */
+   const char *pDefault; /* The default value for a string */
 } variable_name_t;
 
 typedef struct
 {
-   bool_t       bReport;       /* Is this variable being reported? */
-   bool_t       bDirty;        /* Does this variable need to be sent again? */
-   int          ValueInt;      /* The numeric value of the variable */
-   char        *pValueString;  /* The string value of the variable */
+   bool_t bReport;     /* Is this variable being reported? */
+   bool_t bDirty;      /* Does this variable need to be sent again? */
+   int ValueInt;       /* The numeric value of the variable */
+   char *pValueString; /* The string value of the variable */
 } MSDP_t;
 
 typedef struct
 {
-   const char  *pName;         /* The name of the MSSP variable */
-   const char  *pValue;        /* The value of the MSSP variable */
-   const char  *(*pFunction)();/* Optional function to return the value */
+   const char *pName;          /* The name of the MSSP variable */
+   const char *pValue;         /* The value of the MSSP variable */
+   const char *(*pFunction)(); /* Optional function to return the value */
 } MSSP_t;
 
 typedef struct
 {
-   int       WriteOOB;         /* Used internally to indicate OOB data */
-   bool_t    Negotiated[eNEGOTIATED_MAX];
-   bool_t    bIACMode;         /* Current mode - deals with broken packets */
-   bool_t    bNegotiated;      /* Indicates client successfully negotiated */
-   bool_t    bRenegotiate;     /* Workaround for clients that autoconnect */
-   bool_t    bNeedMXPVersion;  /* Workaround for clients that autoconnect */
-   bool_t    bBlockMXP;        /* Used internally based on MXP version */
-   bool_t    bTTYPE;           /* The client supports TTYPE */
-   bool_t    bECHO;            /* Toggles ECHO on/off */
-   bool_t    bNAWS;            /* The client supports NAWS */
-   bool_t    bCHARSET;         /* The client supports CHARSET */
-   bool_t    bMSDP;            /* The client supports MSDP */
-   bool_t    bMSSP;            /* The client supports MSSP */
-   bool_t    bGMCP;            /* The client supports GMCP */
-   bool_t    bMSP;             /* The client supports MSP */
-   bool_t    bMXP;             /* The client supports MXP */
-   bool_t    bMCCP;            /* The client supports MCCP */
-   support_t b256Support;      /* The client supports XTerm 256 colors */
-   int       ScreenWidth;      /* The client's screen width */
-   int       ScreenHeight;     /* The client's screen height */
-   char     *pMXPVersion;      /* The version of MXP supported */
-   char     *pLastTTYPE;       /* Used for the cyclic TTYPE check */
-   MSDP_t  **pVariables;       /* The MSDP variables */
+   int WriteOOB; /* Used internally to indicate OOB data */
+   bool_t Negotiated[eNEGOTIATED_MAX];
+   bool_t bIACMode;        /* Current mode - deals with broken packets */
+   bool_t bNegotiated;     /* Indicates client successfully negotiated */
+   bool_t bRenegotiate;    /* Workaround for clients that autoconnect */
+   bool_t bNeedMXPVersion; /* Workaround for clients that autoconnect */
+   bool_t bBlockMXP;       /* Used internally based on MXP version */
+   bool_t bTTYPE;          /* The client supports TTYPE */
+   bool_t bECHO;           /* Toggles ECHO on/off */
+   bool_t bNAWS;           /* The client supports NAWS */
+   bool_t bCHARSET;        /* The client supports CHARSET */
+   bool_t bMSDP;           /* The client supports MSDP */
+   bool_t bMSSP;           /* The client supports MSSP */
+   bool_t bGMCP;           /* The client supports GMCP */
+   bool_t bMSP;            /* The client supports MSP */
+   bool_t bMXP;            /* The client supports MXP */
+   bool_t bMCCP;           /* The client supports MCCP */
+   support_t b256Support;  /* The client supports XTerm 256 colors */
+   int ScreenWidth;        /* The client's screen width */
+   int ScreenHeight;       /* The client's screen height */
+   char *pMXPVersion;      /* The version of MXP supported */
+   char *pLastTTYPE;       /* Used for the cyclic TTYPE check */
+   MSDP_t **pVariables;    /* The MSDP variables */
 } protocol_t;
 
 /******************************************************************************
@@ -287,14 +286,14 @@ typedef struct
  * Creates, initialises and returns a structure containing protocol data for a
  * single user.  This should be called when the descriptor is initialised.
  */
-protocol_t *ProtocolCreate( void );
+protocol_t *ProtocolCreate(void);
 
 /* Function: ProtocolDestroy
  *
  * Frees the memory allocated by the specified structure.  This should be
  * called just before a descriptor is freed.
  */
-void ProtocolDestroy( protocol_t *apProtocol );
+void ProtocolDestroy(protocol_t *apProtocol);
 
 /* Function: ProtocolNegotiate
  *
@@ -304,18 +303,18 @@ void ProtocolDestroy( protocol_t *apProtocol );
  * either immediately after the user has connected, or just after they have
  * entered the game.
  */
-void ProtocolNegotiate( descriptor_t *apDescriptor );
+void ProtocolNegotiate(descriptor_t *apDescriptor);
 
 /* MUD Primary Colours */
-extern const char * RGBone;
-extern const char * RGBtwo;
-extern const char * RGBthree;
+extern const char *RGBone;
+extern const char *RGBtwo;
+extern const char *RGBthree;
 
 /* Function: ProtocolNoEcho
  *
  * Tells the client to switch echo on or off.
  */
-void ProtocolNoEcho( descriptor_t *apDescriptor, bool_t abOn );
+void ProtocolNoEcho(descriptor_t *apDescriptor, bool_t abOn);
 
 /* Function: ProtocolInput
  *
@@ -324,7 +323,7 @@ void ProtocolNoEcho( descriptor_t *apDescriptor, bool_t abOn );
  * been read into the input buffer, before it is used for anything else.
  */
 //void ProtocolInput( descriptor_t *apDescriptor, char *apData, int aSize, char *apOut );
-ssize_t ProtocolInput( descriptor_t *apDescriptor, char *apData, int aSize, char *apOut );
+ssize_t ProtocolInput(descriptor_t *apDescriptor, char *apData, int aSize, char *apOut);
 
 /* Function: ProtocolOutput
  *
@@ -400,7 +399,7 @@ ssize_t ProtocolInput( descriptor_t *apDescriptor, char *apData, int aSize, char
  * Note that the MXP tags will automatically be removed if the user doesn't
  * support MXP, but it's very important you remember to close the tags.
  */
-const char *ProtocolOutput( descriptor_t *apDescriptor, const char *apData, int *apLength );
+const char *ProtocolOutput(descriptor_t *apDescriptor, const char *apData, int *apLength);
 
 /******************************************************************************
  Copyover save/load functions.
@@ -412,7 +411,7 @@ const char *ProtocolOutput( descriptor_t *apDescriptor, const char *apData, int 
  * copyover, you should call this for each player and insert it after their
  * name in the temporary text file.
  */
-const char *CopyoverGet( descriptor_t *apDescriptor );
+const char *CopyoverGet(descriptor_t *apDescriptor);
 
 /* Function: CopyoverSet
  *
@@ -428,7 +427,7 @@ const char *CopyoverGet( descriptor_t *apDescriptor );
  * Client name and version are not saved.  It is recommended you save these in
  * the player file, as then you can grep to collect client usage stats.
  */
-void CopyoverSet( descriptor_t *apDescriptor, const char *apData );
+void CopyoverSet(descriptor_t *apDescriptor, const char *apData);
 
 /******************************************************************************
  MSDP functions.
@@ -440,7 +439,7 @@ void CopyoverSet( descriptor_t *apDescriptor, const char *apData );
  * dirty MSDP variable that has been requested by the client via REPORT.  This
  * will automatically use GMCP instead if MSDP is not supported by the client.
  */
-void MSDPUpdate( descriptor_t *apDescriptor );
+void MSDPUpdate(descriptor_t *apDescriptor);
 
 /* Function: MSDPFlush
  *
@@ -450,7 +449,7 @@ void MSDPUpdate( descriptor_t *apDescriptor );
  * Call this function after setting a variable if you want it to be reported
  * immediately, instead of on the next update.
  */
-void MSDPFlush( descriptor_t *apDescriptor, variable_t aMSDP );
+void MSDPFlush(descriptor_t *apDescriptor, variable_t aMSDP);
 
 /* Function: MSDPSend
  *
@@ -458,14 +457,14 @@ void MSDPFlush( descriptor_t *apDescriptor, variable_t aMSDP );
  * need to do this manually, except perhaps when debugging something.  This
  * will automatically use GMCP instead if MSDP is not supported by the client.
  */
-void MSDPSend( descriptor_t *apDescriptor, variable_t aMSDP );
+void MSDPSend(descriptor_t *apDescriptor, variable_t aMSDP);
 
 /* Function: MSDPSendPair
  *
  * Send the specified strings to the user as an MSDP variable/value pair.  This
  * will automatically use GMCP instead if MSDP is not supported by the client.
  */
-void MSDPSendPair( descriptor_t *apDescriptor, const char *apVariable, const char *apValue );
+void MSDPSendPair(descriptor_t *apDescriptor, const char *apVariable, const char *apValue);
 
 /* Function: MSDPSendList
  *
@@ -473,7 +472,7 @@ void MSDPSendPair( descriptor_t *apDescriptor, const char *apVariable, const cha
  *
  * apValue should be a list of values separated by spaces.
  */
-void MSDPSendList( descriptor_t *apDescriptor, const char *apVariable, const char *apValue );
+void MSDPSendList(descriptor_t *apDescriptor, const char *apVariable, const char *apValue);
 
 /* Function: MSDPSetNumber
  *
@@ -484,7 +483,7 @@ void MSDPSendList( descriptor_t *apDescriptor, const char *apVariable, const cha
  *
  * You can also this function for bools, chars, enums, short ints, etc.
  */
-void MSDPSetNumber( descriptor_t *apDescriptor, variable_t aMSDP, int aValue );
+void MSDPSetNumber(descriptor_t *apDescriptor, variable_t aMSDP, int aValue);
 
 /* Function: MSDPSetString
  *
@@ -493,7 +492,7 @@ void MSDPSetNumber( descriptor_t *apDescriptor, variable_t aMSDP, int aValue );
  * this is what the snippet does by default), but if the variable is only
  * set in one place you can just move its MDSPSend() call to there.
  */
-void MSDPSetString( descriptor_t *apDescriptor, variable_t aMSDP, const char *apValue );
+void MSDPSetString(descriptor_t *apDescriptor, variable_t aMSDP, const char *apValue);
 
 /* Function: MSDPSetTable
  *
@@ -504,7 +503,7 @@ void MSDPSetString( descriptor_t *apDescriptor, variable_t aMSDP, const char *ap
  * sprintf( Buffer, "%c%s%c%s", (char)MSDP_VAR, Name, (char)MSDP_VAL, Value );
  * MSDPSetTable( d, eMSDP_TEST, Buffer );
  */
-void MSDPSetTable( descriptor_t *apDescriptor, variable_t aMSDP, const char *apValue );
+void MSDPSetTable(descriptor_t *apDescriptor, variable_t aMSDP, const char *apValue);
 
 /* Function: MSDPSetArray
  *
@@ -515,7 +514,7 @@ void MSDPSetTable( descriptor_t *apDescriptor, variable_t aMSDP, const char *apV
  * sprintf( Buffer, "%c%s%c%s", (char)MSDP_VAL, Val1, (char)MSDP_VAL, Val2 );
  * MSDPSetArray( d, eMSDP_TEST, Buffer );
  */
-void MSDPSetArray( descriptor_t *apDescriptor, variable_t aMSDP, const char *apValue );
+void MSDPSetArray(descriptor_t *apDescriptor, variable_t aMSDP, const char *apValue);
 
 /******************************************************************************
  MSSP functions.
@@ -526,7 +525,7 @@ void MSDPSetArray( descriptor_t *apDescriptor, variable_t aMSDP, const char *apV
  * Stores the current number of players.  The first time it's called, it also
  * stores the uptime.
  */
-void MSSPSetPlayers( int aPlayers );
+void MSSPSetPlayers(int aPlayers);
 
 /******************************************************************************
  MXP functions.
@@ -540,14 +539,14 @@ void MSSPSetPlayers( int aPlayers );
  * provide a different sequence for other users, or better yet just embed MXP
  * tags for the ProtocolOutput() function.
  */
-const char *MXPCreateTag( descriptor_t *apDescriptor, const char *apTag );
+const char *MXPCreateTag(descriptor_t *apDescriptor, const char *apTag);
 
 /* Function: MXPSendTag
  *
  * This works like MXPCreateTag, but instead of returning the string it sends
  * it directly to the user.  This is mainly useful for the <VERSION> tag.
  */
-void MXPSendTag( descriptor_t *apDescriptor, const char *apTag );
+void MXPSendTag(descriptor_t *apDescriptor, const char *apTag);
 
 /******************************************************************************
  Sound functions.
@@ -559,7 +558,7 @@ void MXPSendTag( descriptor_t *apDescriptor, const char *apTag );
  * supported, MSP if not.  The trigger string itself is a relative path and
  * filename, eg: SoundSend( pDesc, "monster/growl.wav" );
  */
-void SoundSend( descriptor_t *apDescriptor, const char *apTrigger );
+void SoundSend(descriptor_t *apDescriptor, const char *apTrigger);
 
 /******************************************************************************
  Colour functions.
@@ -580,7 +579,7 @@ void SoundSend( descriptor_t *apDescriptor, const char *apTrigger );
  *
  * If you wish to embed colours in strings, use ProtocolOutput().
  */
-const char *ColourRGB( descriptor_t *apDescriptor, const char *apRGB );
+const char *ColourRGB(descriptor_t *apDescriptor, const char *apRGB);
 
 /******************************************************************************
  Unicode (UTF-8 conversion) functions.
@@ -590,13 +589,13 @@ const char *ColourRGB( descriptor_t *apDescriptor, const char *apRGB );
  *
  * Returns the UTF-8 sequence for the specified unicode value.
  */
-char *UnicodeGet( int aValue );
+char *UnicodeGet(int aValue);
 
 /* Function: UnicodeAdd
  *
  * Adds the UTF-8 sequence for the specified unicode value onto the end of the
  * string, without adding a NUL character at the end.
  */
-void UnicodeAdd( char **apString, int aValue );
+void UnicodeAdd(char **apString, int aValue);
 
 #endif /* PROTOCOL_H */

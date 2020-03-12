@@ -30,23 +30,27 @@ static void write_mail_record(FILE *mail_file, struct mail_t *record);
 static void free_mail_record(struct mail_t *record);
 static struct mail_t *read_mail_record(FILE *mail_file);
 
-static int mail_recip_ok(const char *name) {
+static int mail_recip_ok(const char *name)
+{
   int player_i = 0, ret = FALSE;
 
-  if ((player_i = get_ptable_by_name(name)) >= 0) {
+  if ((player_i = get_ptable_by_name(name)) >= 0)
+  {
     if (!IS_SET(player_table[player_i].flags, PINDEX_DELETED))
       ret = TRUE;
   }
   return ret;
 }
 
-static void free_mail_record(struct mail_t *record) {
+static void free_mail_record(struct mail_t *record)
+{
   if (record->body)
     free(record->body);
   free(record);
 }
 
-static struct mail_t *read_mail_record(FILE *mail_file) {
+static struct mail_t *read_mail_record(FILE *mail_file)
+{
   char line[READ_SIZE];
   long sender = 0, recipient = 0;
   time_t sent_time = 0;
@@ -57,7 +61,8 @@ static struct mail_t *read_mail_record(FILE *mail_file) {
   if (!get_line(mail_file, line))
     return NULL;
 
-  if (sscanf(line, "### %ld %ld %ld", &recipient, &sender, (long *) &sent_time) != 3) {
+  if (sscanf(line, "### %ld %ld %ld", &recipient, &sender, (long *)&sent_time) != 3)
+  {
     log("Mail system - fatal error - malformed mail header");
     log("Line was: %s", line);
     return NULL;
@@ -73,12 +78,13 @@ static struct mail_t *read_mail_record(FILE *mail_file) {
   return record;
 }
 
-static void write_mail_record(FILE *mail_file, struct mail_t *record) {
+static void write_mail_record(FILE *mail_file, struct mail_t *record)
+{
   fprintf(mail_file, "### %ld %ld %ld\n"
-          "%s~\n",
+                     "%s~\n",
           record->recipient,
           record->sender,
-          (long) record->sent_time,
+          (long)record->sent_time,
           record->body);
 }
 
@@ -87,12 +93,14 @@ static void write_mail_record(FILE *mail_file, struct mail_t *record) {
  *
  * This is called once during boot-up.  It scans through the mail file
  * and indexes all entries currently in the mail file. */
-int scan_file(void) {
+int scan_file(void)
+{
   FILE *mail_file;
   int count = 0;
   struct mail_t *record = NULL;
 
-  if (!(mail_file = fopen(MAIL_FILE, "r"))) {
+  if (!(mail_file = fopen(MAIL_FILE, "r")))
+  {
     log("   Mail file non-existant... creating new file.");
     touch(MAIL_FILE);
     return TRUE;
@@ -100,7 +108,8 @@ int scan_file(void) {
 
   record = read_mail_record(mail_file);
 
-  while (record) {
+  while (record)
+  {
     free_mail_record(record);
     record = read_mail_record(mail_file);
     count++;
@@ -116,19 +125,23 @@ int scan_file(void) {
  * Returns true or false.
  *
  * A simple little function which tells you if the player has mail or not. */
-int has_mail(long recipient) {
+int has_mail(long recipient)
+{
   FILE *mail_file;
   struct mail_t *record = NULL;
 
-  if (!(mail_file = fopen(MAIL_FILE, "r"))) {
+  if (!(mail_file = fopen(MAIL_FILE, "r")))
+  {
     perror("read_delete: Mail file not accessible.");
     return FALSE;
   }
 
   record = read_mail_record(mail_file);
 
-  while (record) {
-    if (record->recipient == recipient) {
+  while (record)
+  {
+    if (record->recipient == recipient)
+    {
       free_mail_record(record);
       fclose(mail_file);
       return TRUE;
@@ -148,11 +161,13 @@ int has_mail(long recipient) {
  * call store_mail to store mail.  (hard, huh? :-) )  Pass 3 arguments:
  * who the mail is to (long), who it's from (long), and a pointer to the
  * actual message text (char *). */
-void store_mail(long to, long from, char *message_pointer) {
+void store_mail(long to, long from, char *message_pointer)
+{
   FILE *mail_file;
   struct mail_t *record = NULL;
 
-  if (!(mail_file = fopen(MAIL_FILE, "a"))) {
+  if (!(mail_file = fopen(MAIL_FILE, "a")))
+  {
     perror("store_mail: Mail file not accessible.");
     return;
   }
@@ -174,19 +189,22 @@ void store_mail(long to, long from, char *message_pointer) {
  *
  * Retrieves one messsage for a player. The mail is then discarded from
  * the file. Expects mail to exist. */
-char *read_delete(long recipient) {
+char *read_delete(long recipient)
+{
   FILE *mail_file, *new_file;
   struct mail_t *record = NULL, *record_to_keep = NULL;
   char buf[MAX_STRING_LENGTH];
 
   *buf = '\0';
 
-  if (!(mail_file = fopen(MAIL_FILE, "r"))) {
+  if (!(mail_file = fopen(MAIL_FILE, "r")))
+  {
     perror("read_delete: Mail file not accessible.");
     return strdup("Mail system malfunction - please report this");
   }
 
-  if (!(new_file = fopen(MAIL_FILE_TMP, "w"))) {
+  if (!(new_file = fopen(MAIL_FILE_TMP, "w")))
+  {
     perror("read_delete: new Mail file not accessible.");
     fclose(mail_file);
     return strdup("Mail system malfunction - please report this");
@@ -194,8 +212,10 @@ char *read_delete(long recipient) {
 
   record = read_mail_record(mail_file);
 
-  while (record) {
-    if (!record_to_keep && record->recipient == recipient) {
+  while (record)
+  {
+    if (!record_to_keep && record->recipient == recipient)
+    {
       record_to_keep = record;
       record = read_mail_record(mail_file);
       continue; /* don't write and free this one just yet */
@@ -207,7 +227,8 @@ char *read_delete(long recipient) {
 
   if (!record_to_keep)
     sprintf(buf, "Mail system error - please report");
-  else {
+  else
+  {
     char *tmstr, *from, *to;
 
     tmstr = asctime(localtime(&record_to_keep->sent_time));
@@ -216,18 +237,18 @@ char *read_delete(long recipient) {
     from = get_name_by_id(record_to_keep->sender);
     to = get_name_by_id(record_to_keep->recipient);
 
-    snprintf(buf, sizeof (buf),
-            " * * * * LuminariMUD Mail System * * * *\r\n"
-            "Date: %s\r\n"
-            "To  : %s\r\n"
-            "From: %s\r\n"
-            "\r\n"
-            "%s",
+    snprintf(buf, sizeof(buf),
+             " * * * * LuminariMUD Mail System * * * *\r\n"
+             "Date: %s\r\n"
+             "To  : %s\r\n"
+             "From: %s\r\n"
+             "\r\n"
+             "%s",
 
-            tmstr,
-            to ? to : "Unknown",
-            from ? from : "Unknown",
-            record_to_keep->body ? record_to_keep->body : "No message");
+             tmstr,
+             to ? to : "Unknown",
+             from ? from : "Unknown",
+             record_to_keep->body ? record_to_keep->body : "No message");
 
     free_mail_record(record_to_keep);
   }
@@ -241,66 +262,80 @@ char *read_delete(long recipient) {
 }
 
 /* spec_proc for a postmaster using the above routines.  By Jeremy Elson */
-SPECIAL(postmaster) {
+SPECIAL(postmaster)
+{
   if (!ch->desc || IS_NPC(ch))
     return (0); /* so mobs don't get caught here */
 
   if (!(CMD_IS("mail") || CMD_IS("check") || CMD_IS("receive")))
     return (0);
 
-  if (no_mail) {
+  if (no_mail)
+  {
     send_to_char(ch, "Sorry, the mail system is having technical difficulties.\r\n");
     return (0);
   }
 
-  if (CMD_IS("mail")) {
-    postmaster_send_mail(ch, (struct char_data *) me, cmd, argument);
+  if (CMD_IS("mail"))
+  {
+    postmaster_send_mail(ch, (struct char_data *)me, cmd, argument);
     return (1);
-  } else if (CMD_IS("check")) {
-    postmaster_check_mail(ch, (struct char_data *) me, cmd, argument);
+  }
+  else if (CMD_IS("check"))
+  {
+    postmaster_check_mail(ch, (struct char_data *)me, cmd, argument);
     return (1);
-  } else if (CMD_IS("receive")) {
-    postmaster_receive_mail(ch, (struct char_data *) me, cmd, argument);
+  }
+  else if (CMD_IS("receive"))
+  {
+    postmaster_receive_mail(ch, (struct char_data *)me, cmd, argument);
     return (1);
-  } else
+  }
+  else
     return (0);
 }
 
 static void postmaster_send_mail(struct char_data *ch, struct char_data *mailman,
-        int cmd, char *arg) {
+                                 int cmd, char *arg)
+{
   long recipient = 0;
   char buf[MAX_INPUT_LENGTH], **mailwrite = NULL;
 
   *buf = '\0';
 
-  if (GET_LEVEL(ch) < MIN_MAIL_LEVEL) {
-    snprintf(buf, sizeof (buf), "$n tells you, 'Sorry, you have to be level %d to send mail!'", MIN_MAIL_LEVEL);
+  if (GET_LEVEL(ch) < MIN_MAIL_LEVEL)
+  {
+    snprintf(buf, sizeof(buf), "$n tells you, 'Sorry, you have to be level %d to send mail!'", MIN_MAIL_LEVEL);
     act(buf, FALSE, mailman, 0, ch, TO_VICT);
     return;
   }
   one_argument(arg, buf);
 
-  if (!*buf) { /* you'll get no argument from me! */
+  if (!*buf)
+  { /* you'll get no argument from me! */
     act("$n tells you, 'You need to specify an addressee!'",
-            FALSE, mailman, 0, ch, TO_VICT);
+        FALSE, mailman, 0, ch, TO_VICT);
     return;
   }
-  if (GET_GOLD(ch) < STAMP_PRICE && GET_LEVEL(ch) < LVL_IMMORT) {
-    snprintf(buf, sizeof (buf), "$n tells you, 'A stamp costs %d coin%s.'\r\n"
-            "$n tells you, '...which I see you can't afford.'", STAMP_PRICE,
-            STAMP_PRICE == 1 ? "" : "s");
+  if (GET_GOLD(ch) < STAMP_PRICE && GET_LEVEL(ch) < LVL_IMMORT)
+  {
+    snprintf(buf, sizeof(buf), "$n tells you, 'A stamp costs %d coin%s.'\r\n"
+                               "$n tells you, '...which I see you can't afford.'",
+             STAMP_PRICE,
+             STAMP_PRICE == 1 ? "" : "s");
     act(buf, FALSE, mailman, 0, ch, TO_VICT);
     return;
   }
-  if ((recipient = get_id_by_name(buf)) < 0 || !mail_recip_ok(buf)) {
+  if ((recipient = get_id_by_name(buf)) < 0 || !mail_recip_ok(buf))
+  {
     act("$n tells you, 'No one by that name is registered here!'",
-            FALSE, mailman, 0, ch, TO_VICT);
+        FALSE, mailman, 0, ch, TO_VICT);
     return;
   }
   act("$n starts to write some mail.", TRUE, ch, 0, 0, TO_ROOM);
-  snprintf(buf, sizeof (buf), "$n tells you, 'I'll take %d coins for the stamp.'\r\n"
-          "$n tells you, 'Write your message. (/s saves /h for help).'",
-          STAMP_PRICE);
+  snprintf(buf, sizeof(buf), "$n tells you, 'I'll take %d coins for the stamp.'\r\n"
+                             "$n tells you, 'Write your message. (/s saves /h for help).'",
+           STAMP_PRICE);
 
   act(buf, FALSE, mailman, 0, ch, TO_VICT);
 
@@ -315,7 +350,8 @@ static void postmaster_send_mail(struct char_data *ch, struct char_data *mailman
 }
 
 static void postmaster_check_mail(struct char_data *ch, struct char_data *mailman,
-        int cmd, char *arg) {
+                                  int cmd, char *arg)
+{
   if (has_mail(GET_IDNUM(ch)))
     act("$n tells you, 'You have mail waiting.'", FALSE, mailman, 0, ch, TO_VICT);
   else
@@ -323,19 +359,22 @@ static void postmaster_check_mail(struct char_data *ch, struct char_data *mailma
 }
 
 static void postmaster_receive_mail(struct char_data *ch, struct char_data *mailman,
-        int cmd, char *arg) {
+                                    int cmd, char *arg)
+{
   char buf[MEDIUM_STRING];
   struct obj_data *obj = NULL;
   int y = 0;
 
   *buf = '\0';
 
-  if (!has_mail(GET_IDNUM(ch))) {
-    snprintf(buf, sizeof (buf), "$n tells you, 'Sorry, you don't have any mail waiting.'");
+  if (!has_mail(GET_IDNUM(ch)))
+  {
+    snprintf(buf, sizeof(buf), "$n tells you, 'Sorry, you don't have any mail waiting.'");
     act(buf, FALSE, mailman, 0, ch, TO_VICT);
     return;
   }
-  while (has_mail(GET_IDNUM(ch))) {
+  while (has_mail(GET_IDNUM(ch)))
+  {
     obj = create_obj();
     obj->item_number = 1;
     obj->name = strdup("mail paper letter");
@@ -353,7 +392,7 @@ static void postmaster_receive_mail(struct char_data *ch, struct char_data *mail
 
     if (obj->action_description == NULL)
       obj->action_description =
-            strdup("Mail system error - please report.  Error #11.\r\n");
+          strdup("Mail system error - please report.  Error #11.\r\n");
 
     obj_to_char(obj, ch);
 
@@ -362,7 +401,8 @@ static void postmaster_receive_mail(struct char_data *ch, struct char_data *mail
   }
 }
 
-void notify_if_playing(struct char_data *from, int recipient_id) {
+void notify_if_playing(struct char_data *from, int recipient_id)
+{
   struct descriptor_data *d = NULL;
 
   for (d = descriptor_list; d; d = d->next)

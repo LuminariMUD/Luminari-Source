@@ -23,64 +23,79 @@
 #include "act.h"
 
 /* inflict disease with your touch, requires successful touch attack */
-ACMD(do_eviltouch) {
+ACMD(do_eviltouch)
+{
   int uses_remaining = 0;
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
 
-  if (!has_domain_power(ch, DOMAIN_POWER_EVIL_TOUCH)) {
+  if (!has_domain_power(ch, DOMAIN_POWER_EVIL_TOUCH))
+  {
     send_to_char(ch, "You do not have that domain power!\r\n");
     return;
   }
 
-  if (!HAS_FEAT(ch, FEAT_EVIL_TOUCH)) {
+  if (!HAS_FEAT(ch, FEAT_EVIL_TOUCH))
+  {
     send_to_char(ch, "You do not have that feat!\r\n");
     return;
   }
 
-  if ((uses_remaining = daily_uses_remaining(ch, FEAT_EVIL_TOUCH)) == 0) {
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_EVIL_TOUCH)) == 0)
+  {
     send_to_char(ch, "You must recover the divine energy required to use this feat again.\r\n");
     return;
   }
 
-  if (uses_remaining < 0) {
+  if (uses_remaining < 0)
+  {
     send_to_char(ch, "You are not experienced enough.\r\n");
     return;
   }
 
   one_argument(argument, arg);
-  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
-    if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch))) {
+  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
+  {
+    if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
+    {
       vict = FIGHTING(ch);
-    } else {
+    }
+    else
+    {
       send_to_char(ch, "Target who?\r\n");
       return;
     }
   }
 
-  if (vict == ch) {
+  if (vict == ch)
+  {
     send_to_char(ch, "Aren't we funny today...\r\n");
     return;
   }
 
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL))
+  {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
     return;
   }
 
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
-          ch->next_in_room != vict && vict->next_in_room != ch) {
+      ch->next_in_room != vict && vict->next_in_room != ch)
+  {
     send_to_char(ch, "You simply can't reach that far.\r\n");
     return;
   }
 
   /* Perform the unarmed touch attack */
-  if (attack_roll(ch, vict, ATTACK_TYPE_UNARMED, TRUE, 1) > 0) {
+  if (attack_roll(ch, vict, ATTACK_TYPE_UNARMED, TRUE, 1) > 0)
+  {
     act("A \trred\tn aura shoots from your fingertips towards $N!", FALSE, ch, 0, vict, TO_CHAR);
     act("$n shoots a \trred\tn aura towards you!", FALSE, ch, 0, vict, TO_VICT);
     act("$n shoots a \trred\tn aura towards $N!", FALSE, ch, 0, vict, TO_NOTVICT);
     call_magic(ch, vict, 0, SPELL_EYEBITE, 0, CLASS_LEVEL(ch, CLASS_CLERIC), CAST_INNATE);
-  } else {
+  }
+  else
+  {
     /* missed */
     act("A \trred\tn aura shoots from your fingertips towards $N, but fails to land!", FALSE, ch, 0, vict, TO_CHAR);
     act("$n shoots a \trred\tn aura towards you, but you are able to dodge it!", FALSE, ch, 0, vict, TO_VICT);
@@ -93,57 +108,71 @@ ACMD(do_eviltouch) {
   USE_STANDARD_ACTION(ch);
 }
 
-ACMD(do_blessedtouch) {
+ACMD(do_blessedtouch)
+{
   int uses_remaining = 0;
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
 
-  if (!has_domain_power(ch, DOMAIN_POWER_BLESSED_TOUCH)) {
+  if (!has_domain_power(ch, DOMAIN_POWER_BLESSED_TOUCH))
+  {
     send_to_char(ch, "You do not have that domain power!\r\n");
     return;
   }
 
-  if (!HAS_FEAT(ch, FEAT_BLESSED_TOUCH)) {
+  if (!HAS_FEAT(ch, FEAT_BLESSED_TOUCH))
+  {
     send_to_char(ch, "You do not have that feat!\r\n");
     return;
   }
 
-  if (!GROUP(ch)) {
+  if (!GROUP(ch))
+  {
     send_to_char(ch, "You can't use this ability if you're not in a group (group new)!\r\n");
     return;
   }
-  
-  if ((uses_remaining = daily_uses_remaining(ch, FEAT_BLESSED_TOUCH)) == 0) {
+
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_BLESSED_TOUCH)) == 0)
+  {
     send_to_char(ch, "You must recover the divine energy required to use this feat again.\r\n");
     return;
   }
 
-  if (uses_remaining < 0) {
+  if (uses_remaining < 0)
+  {
     send_to_char(ch, "You are not experienced enough.\r\n");
     return;
   }
 
-  if (!*argument) {
+  if (!*argument)
+  {
     vict = ch;
-  } else {
+  }
+  else
+  {
     one_argument(argument, arg);
 
-    if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
+    if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
+    {
       send_to_char(ch, "Target who?\r\n");
       return;
     }
   }
 
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
-          ch->next_in_room != vict && vict->next_in_room != ch) {
+      ch->next_in_room != vict && vict->next_in_room != ch)
+  {
     send_to_char(ch, "You simply can't reach that far.\r\n");
     return;
   }
 
-  if (vict == ch) {
+  if (vict == ch)
+  {
     send_to_char(ch, "You heal yourself with your power!\r\n");
     act("$n glows white and gains some power!", FALSE, ch, 0, vict, TO_NOTVICT);
-  } else {
+  }
+  else
+  {
     act("A \tWwhite\tn aura shoots from your fingertips towards $N!", FALSE, ch, 0, vict, TO_CHAR);
     act("$n shoots a \tWwhite\tn aura towards you!", FALSE, ch, 0, vict, TO_VICT);
     act("$n shoots a \tWwhite\tn aura towards $N!", FALSE, ch, 0, vict, TO_NOTVICT);
@@ -156,60 +185,73 @@ ACMD(do_blessedtouch) {
   USE_STANDARD_ACTION(ch);
 }
 
-ACMD(do_goodtouch) {
+ACMD(do_goodtouch)
+{
   int uses_remaining = 0;
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
 
-  if (!has_domain_power(ch, DOMAIN_POWER_GOOD_TOUCH)) {
+  if (!has_domain_power(ch, DOMAIN_POWER_GOOD_TOUCH))
+  {
     send_to_char(ch, "You do not have that domain power!\r\n");
     return;
   }
 
-  if (!HAS_FEAT(ch, FEAT_GOOD_TOUCH)) {
+  if (!HAS_FEAT(ch, FEAT_GOOD_TOUCH))
+  {
     send_to_char(ch, "You do not have that feat!\r\n");
     return;
   }
 
-  if ((uses_remaining = daily_uses_remaining(ch, FEAT_GOOD_TOUCH)) == 0) {
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_GOOD_TOUCH)) == 0)
+  {
     send_to_char(ch, "You must recover the divine energy required to use this feat again.\r\n");
     return;
   }
 
-  if (uses_remaining < 0) {
+  if (uses_remaining < 0)
+  {
     send_to_char(ch, "You are not experienced enough.\r\n");
     return;
   }
 
-  if (!*argument) {
+  if (!*argument)
+  {
     vict = ch;
-  } else {
+  }
+  else
+  {
     one_argument(argument, arg);
 
-    if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
+    if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
+    {
       send_to_char(ch, "Target who?\r\n");
       return;
     }
   }
 
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
-          ch->next_in_room != vict && vict->next_in_room != ch) {
+      ch->next_in_room != vict && vict->next_in_room != ch)
+  {
     send_to_char(ch, "You simply can't reach that far.\r\n");
     return;
   }
 
-  if (vict == ch) {
+  if (vict == ch)
+  {
     send_to_char(ch, "You heal yourself with your power!\r\n");
     act("$n glows white and heals some afflictions!", FALSE, ch, 0, vict, TO_NOTVICT);
-  } else {
+  }
+  else
+  {
     act("A \tWwhite\tn aura shoots from your fingertips towards $N!", FALSE, ch, 0, vict, TO_CHAR);
     act("$n shoots a \tWwhite\tn aura towards you!", FALSE, ch, 0, vict, TO_VICT);
     act("$n shoots a \tWwhite\tn aura towards $N!", FALSE, ch, 0, vict, TO_NOTVICT);
   }
   mag_unaffects(CLASS_LEVEL(ch, CLASS_CLERIC), ch, vict,
-        NULL, SPELL_REMOVE_POISON, 0, CAST_INNATE);
+                NULL, SPELL_REMOVE_POISON, 0, CAST_INNATE);
   mag_unaffects(CLASS_LEVEL(ch, CLASS_CLERIC), ch, vict,
-        NULL, SPELL_REMOVE_DISEASE, 0, CAST_INNATE);
+                NULL, SPELL_REMOVE_DISEASE, 0, CAST_INNATE);
 
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_GOOD_TOUCH);
@@ -217,68 +259,84 @@ ACMD(do_goodtouch) {
   USE_STANDARD_ACTION(ch);
 }
 
-ACMD(do_evilscythe) {
+ACMD(do_evilscythe)
+{
 }
 
-ACMD(do_goodlance) {
+ACMD(do_goodlance)
+{
 }
 
-ACMD(do_healingtouch) {
+ACMD(do_healingtouch)
+{
   int uses_remaining = 0;
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
 
-  if (!has_domain_power(ch, DOMAIN_POWER_HEALING_TOUCH)) {
+  if (!has_domain_power(ch, DOMAIN_POWER_HEALING_TOUCH))
+  {
     send_to_char(ch, "You do not have that domain power!\r\n");
     return;
   }
 
-  if (!HAS_FEAT(ch, FEAT_HEALING_TOUCH)) {
+  if (!HAS_FEAT(ch, FEAT_HEALING_TOUCH))
+  {
     send_to_char(ch, "You do not have that feat!\r\n");
     return;
   }
 
-  if ((uses_remaining = daily_uses_remaining(ch, FEAT_HEALING_TOUCH)) == 0) {
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_HEALING_TOUCH)) == 0)
+  {
     send_to_char(ch, "You must recover the divine energy required to use this feat again.\r\n");
     return;
   }
 
-  if (uses_remaining < 0) {
+  if (uses_remaining < 0)
+  {
     send_to_char(ch, "You are not experienced enough.\r\n");
     return;
   }
 
-  if (!*argument) {
+  if (!*argument)
+  {
     vict = ch;
-  } else {
+  }
+  else
+  {
     one_argument(argument, arg);
 
-    if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
+    if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
+    {
       send_to_char(ch, "Target who?\r\n");
       return;
     }
   }
 
-  if (GET_HIT(vict) > GET_MAX_HIT(vict)/2) {
+  if (GET_HIT(vict) > GET_MAX_HIT(vict) / 2)
+  {
     send_to_char(ch, "Your target is not injured enough to use this feat!\r\n");
     return;
   }
 
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
-          ch->next_in_room != vict && vict->next_in_room != ch) {
+      ch->next_in_room != vict && vict->next_in_room != ch)
+  {
     send_to_char(ch, "You simply can't reach that far.\r\n");
     return;
   }
 
-  if (vict == ch) {
+  if (vict == ch)
+  {
     send_to_char(ch, "You heal yourself with your power!\r\n");
     act("$n glows white and heals some wounds!", FALSE, ch, 0, vict, TO_NOTVICT);
-  } else {
+  }
+  else
+  {
     act("A \tWwhite\tn aura shoots from your fingertips towards $N!", FALSE, ch, 0, vict, TO_CHAR);
     act("$n shoots a \tWwhite\tn aura towards you!", FALSE, ch, 0, vict, TO_VICT);
     act("$n shoots a \tWwhite\tn aura towards $N!", FALSE, ch, 0, vict, TO_NOTVICT);
   }
-  GET_HIT(vict) += 20 + dice(1, 4) + CLASS_LEVEL(ch, CLASS_CLERIC)/2;
+  GET_HIT(vict) += 20 + dice(1, 4) + CLASS_LEVEL(ch, CLASS_CLERIC) / 2;
 
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_HEALING_TOUCH);
@@ -287,25 +345,30 @@ ACMD(do_healingtouch) {
 }
 
 /* summon a wizard eye */
-ACMD(do_eyeofknowledge) {
+ACMD(do_eyeofknowledge)
+{
   int uses_remaining = 0;
 
-  if (!has_domain_power(ch, DOMAIN_POWER_EYE_OF_KNOWLEDGE)) {
+  if (!has_domain_power(ch, DOMAIN_POWER_EYE_OF_KNOWLEDGE))
+  {
     send_to_char(ch, "You do not have that domain power!\r\n");
     return;
   }
 
-  if (!HAS_FEAT(ch, FEAT_EYE_OF_KNOWLEDGE)) {
+  if (!HAS_FEAT(ch, FEAT_EYE_OF_KNOWLEDGE))
+  {
     send_to_char(ch, "You do not have that feat!\r\n");
     return;
   }
 
-  if ((uses_remaining = daily_uses_remaining(ch, FEAT_EYE_OF_KNOWLEDGE)) == 0) {
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_EYE_OF_KNOWLEDGE)) == 0)
+  {
     send_to_char(ch, "You must recover the divine energy required to use this feat again.\r\n");
     return;
   }
 
-  if (uses_remaining < 0) {
+  if (uses_remaining < 0)
+  {
     send_to_char(ch, "You are not experienced enough.\r\n");
     return;
   }
@@ -319,25 +382,30 @@ ACMD(do_eyeofknowledge) {
 }
 
 /* able to replicate mirror image spell */
-ACMD(do_copycat) {
+ACMD(do_copycat)
+{
   int uses_remaining = 0;
 
-  if (!has_domain_power(ch, DOMAIN_POWER_COPYCAT)) {
+  if (!has_domain_power(ch, DOMAIN_POWER_COPYCAT))
+  {
     send_to_char(ch, "You do not have that domain power!\r\n");
     return;
   }
 
-  if (!HAS_FEAT(ch, FEAT_COPYCAT)) {
+  if (!HAS_FEAT(ch, FEAT_COPYCAT))
+  {
     send_to_char(ch, "You do not have that feat!\r\n");
     return;
   }
 
-  if ((uses_remaining = daily_uses_remaining(ch, FEAT_COPYCAT)) == 0) {
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_COPYCAT)) == 0)
+  {
     send_to_char(ch, "You must recover the divine energy required to use this feat again.\r\n");
     return;
   }
 
-  if (uses_remaining < 0) {
+  if (uses_remaining < 0)
+  {
     send_to_char(ch, "You are not experienced enough.\r\n");
     return;
   }
@@ -351,30 +419,36 @@ ACMD(do_copycat) {
 }
 
 /* able to replicate invisibility sphere spell */
-ACMD(do_massinvis) {
+ACMD(do_massinvis)
+{
   int uses_remaining = 0;
 
-  if (!has_domain_power(ch, DOMAIN_POWER_MASS_INVIS)) {
+  if (!has_domain_power(ch, DOMAIN_POWER_MASS_INVIS))
+  {
     send_to_char(ch, "You do not have that domain power!\r\n");
     return;
   }
 
-  if (!HAS_FEAT(ch, FEAT_MASS_INVIS)) {
+  if (!HAS_FEAT(ch, FEAT_MASS_INVIS))
+  {
     send_to_char(ch, "You do not have that feat!\r\n");
     return;
   }
 
-  if (!GROUP(ch)) {
+  if (!GROUP(ch))
+  {
     send_to_char(ch, "This will only work if you are grouped!\r\n");
     return;
   }
 
-  if ((uses_remaining = daily_uses_remaining(ch, FEAT_MASS_INVIS)) == 0) {
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_MASS_INVIS)) == 0)
+  {
     send_to_char(ch, "You must recover the divine energy required to use this feat again.\r\n");
     return;
   }
 
-  if (uses_remaining < 0) {
+  if (uses_remaining < 0)
+  {
     send_to_char(ch, "You are not experienced enough.\r\n");
     return;
   }
@@ -389,39 +463,43 @@ ACMD(do_massinvis) {
 
 /* engine for aura of protection */
 #define AURA_OF_PROTECTION_AFFECTS 4
-void perform_auraofprotection(struct char_data *ch) {
+void perform_auraofprotection(struct char_data *ch)
+{
   struct affected_type af[AURA_OF_PROTECTION_AFFECTS];
-  int  i = 0, duration = 0;
+  int i = 0, duration = 0;
   struct char_data *tch = NULL;
 
-  if (!GROUP(ch)) return;
+  if (!GROUP(ch))
+    return;
 
   duration = 1;
 
   /* init affect array */
-  for (i = 0; i < AURA_OF_PROTECTION_AFFECTS; i++) {
+  for (i = 0; i < AURA_OF_PROTECTION_AFFECTS; i++)
+  {
     new_affect(&(af[i]));
     af[i].spell = SKILL_AURA_OF_PROTECTION;
     af[i].duration = duration;
   }
 
   af[0].location = APPLY_AC_NEW;
-  af[0].modifier = MAX(1, CLASS_LEVEL(ch, CLASS_CLERIC)/6);
+  af[0].modifier = MAX(1, CLASS_LEVEL(ch, CLASS_CLERIC) / 6);
 
   af[1].location = APPLY_SAVING_REFL;
-  af[1].modifier = MAX(1, CLASS_LEVEL(ch, CLASS_CLERIC)/6);
+  af[1].modifier = MAX(1, CLASS_LEVEL(ch, CLASS_CLERIC) / 6);
   af[2].location = APPLY_SAVING_FORT;
-  af[2].modifier = MAX(1, CLASS_LEVEL(ch, CLASS_CLERIC)/6);
+  af[2].modifier = MAX(1, CLASS_LEVEL(ch, CLASS_CLERIC) / 6);
   af[3].location = APPLY_SAVING_WILL;
-  af[3].modifier = MAX(1, CLASS_LEVEL(ch, CLASS_CLERIC)/6);
+  af[3].modifier = MAX(1, CLASS_LEVEL(ch, CLASS_CLERIC) / 6);
 
   USE_STANDARD_ACTION(ch);
 
   act("$n glows with a \tWwhite\tn aura!!", FALSE, ch, NULL, NULL, TO_ROOM);
   act("You activate your protective aura!!", FALSE, ch, NULL, NULL, TO_CHAR);
 
-  while ((tch = (struct char_data *) simple_list(GROUP(ch)->members)) !=
-          NULL) {
+  while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) !=
+         NULL)
+  {
     if (IN_ROOM(tch) != IN_ROOM(ch))
       continue;
     if (affected_by_spell(tch, SKILL_AURA_OF_PROTECTION))
@@ -436,30 +514,36 @@ void perform_auraofprotection(struct char_data *ch) {
     start_daily_use_cooldown(ch, FEAT_AURA_OF_PROTECTION);
 }
 
-ACMD(do_auraofprotection) {
+ACMD(do_auraofprotection)
+{
   int uses_remaining = 0;
 
-  if (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_AURA_OF_PROTECTION)) {
+  if (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_AURA_OF_PROTECTION))
+  {
     send_to_char(ch, "You don't know how to!\r\n");
     return;
   }
 
-  if (!has_domain_power(ch, DOMAIN_POWER_AURA_OF_PROTECTION)) {
+  if (!has_domain_power(ch, DOMAIN_POWER_AURA_OF_PROTECTION))
+  {
     send_to_char(ch, "You do not have that domain power!\r\n");
     return;
   }
 
-  if (!GROUP(ch)) {
+  if (!GROUP(ch))
+  {
     send_to_char(ch, "This will only work if you are grouped!\r\n");
     return;
   }
 
-  if ((uses_remaining = daily_uses_remaining(ch, FEAT_AURA_OF_PROTECTION)) == 0) {
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_AURA_OF_PROTECTION)) == 0)
+  {
     send_to_char(ch, "You must recover the divine energy required to use your protection aura.\r\n");
     return;
   }
 
-  if (uses_remaining < 0) {
+  if (uses_remaining < 0)
+  {
     send_to_char(ch, "You are not experienced enough.\r\n");
     return;
   }
@@ -473,26 +557,31 @@ ACMD(do_ethshift) {
 }
 */
 
-ACMD(do_battlerage) {
+ACMD(do_battlerage)
+{
   struct affected_type af, aftwo;
   int bonus = 0, duration = 0, uses_remaining = 0;
 
-  if (AFF_FLAGGED(ch, AFF_FATIGUED)) {
+  if (AFF_FLAGGED(ch, AFF_FATIGUED))
+  {
     send_to_char(ch, "You are too fatigued to battle rage!\r\n");
     return;
   }
 
-  if (affected_by_spell(ch, SKILL_RAGE)) {
+  if (affected_by_spell(ch, SKILL_RAGE))
+  {
     send_to_char(ch, "You are already raging!\r\n");
     return;
   }
 
-  if (!HAS_FEAT(ch, FEAT_BATTLE_RAGE)) {
-      send_to_char(ch, "You don't know how to battle rage.\r\n");
-      return;
+  if (!HAS_FEAT(ch, FEAT_BATTLE_RAGE))
+  {
+    send_to_char(ch, "You don't know how to battle rage.\r\n");
+    return;
   }
 
-  if (!IS_NPC(ch) && ((uses_remaining = daily_uses_remaining(ch, FEAT_BATTLE_RAGE)) == 0)) {
+  if (!IS_NPC(ch) && ((uses_remaining = daily_uses_remaining(ch, FEAT_BATTLE_RAGE)) == 0))
+  {
     send_to_char(ch, "You must recover before you can go into a battle rage.\r\n");
     return;
   }
@@ -502,7 +591,8 @@ ACMD(do_battlerage) {
 
   /* bonus */
   bonus = CLASS_LEVEL(ch, CLASS_CLERIC) / 4;
-  if (bonus <= 0) {
+  if (bonus <= 0)
+  {
     send_to_char(ch, "You are not powerful enough to battle rage! (minimum 4 levels in clerci class to use)\r\n");
     return;
   }
@@ -526,7 +616,8 @@ ACMD(do_battlerage) {
   affect_to_char(ch, &af);
   affect_to_char(ch, &aftwo);
 
-  if (!IS_NPC(ch)) {
+  if (!IS_NPC(ch))
+  {
     start_daily_use_cooldown(ch, FEAT_BATTLE_RAGE);
     USE_STANDARD_ACTION(ch);
   }
@@ -534,32 +625,36 @@ ACMD(do_battlerage) {
 
 /* engine for destructive aura */
 #define DESTRUCTIVE_AURA_AFFECTS 1
-void perform_destructiveaura(struct char_data *ch) {
+void perform_destructiveaura(struct char_data *ch)
+{
   struct affected_type af[DESTRUCTIVE_AURA_AFFECTS];
-  int  i = 0, duration = 0;
+  int i = 0, duration = 0;
   struct char_data *tch = NULL;
 
-  if (!GROUP(ch)) return;
+  if (!GROUP(ch))
+    return;
 
   duration = 1;
 
   /* init affect array */
-  for (i = 0; i < DESTRUCTIVE_AURA_AFFECTS; i++) {
+  for (i = 0; i < DESTRUCTIVE_AURA_AFFECTS; i++)
+  {
     new_affect(&(af[i]));
     af[i].spell = SKILL_DESTRUCTIVE_AURA;
     af[i].duration = duration;
   }
 
   af[0].location = APPLY_DAMROLL;
-  af[0].modifier = MAX(1, CLASS_LEVEL(ch, CLASS_CLERIC)/2);
+  af[0].modifier = MAX(1, CLASS_LEVEL(ch, CLASS_CLERIC) / 2);
 
   USE_STANDARD_ACTION(ch);
 
   act("$n glows with a ominous \trred\tn aura!!", FALSE, ch, NULL, NULL, TO_ROOM);
   act("You activate your destructive aura!!", FALSE, ch, NULL, NULL, TO_CHAR);
 
-  while ((tch = (struct char_data *) simple_list(GROUP(ch)->members)) !=
-          NULL) {
+  while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) !=
+         NULL)
+  {
     if (IN_ROOM(tch) != IN_ROOM(ch))
       continue;
     if (affected_by_spell(tch, SKILL_DESTRUCTIVE_AURA))
@@ -575,30 +670,36 @@ void perform_destructiveaura(struct char_data *ch) {
 }
 
 /* destructive aura - give damage bonus to your group */
-ACMD(do_destructiveaura) {
+ACMD(do_destructiveaura)
+{
   int uses_remaining = 0;
 
-  if (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_DESTRUCTIVE_AURA)) {
+  if (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_DESTRUCTIVE_AURA))
+  {
     send_to_char(ch, "You don't know how to!\r\n");
     return;
   }
 
-  if (!has_domain_power(ch, DOMAIN_POWER_DESTRUCTIVE_AURA)) {
+  if (!has_domain_power(ch, DOMAIN_POWER_DESTRUCTIVE_AURA))
+  {
     send_to_char(ch, "You do not have that domain power!\r\n");
     return;
   }
 
-  if (!GROUP(ch)) {
+  if (!GROUP(ch))
+  {
     send_to_char(ch, "This will only work if you are grouped!\r\n");
     return;
   }
 
-  if ((uses_remaining = daily_uses_remaining(ch, FEAT_DESTRUCTIVE_AURA)) == 0) {
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_DESTRUCTIVE_AURA)) == 0)
+  {
     send_to_char(ch, "You must recover the divine energy required to use destructive aura.\r\n");
     return;
   }
 
-  if (uses_remaining < 0) {
+  if (uses_remaining < 0)
+  {
     send_to_char(ch, "You are not experienced enough.\r\n");
     return;
   }
@@ -609,25 +710,30 @@ ACMD(do_destructiveaura) {
 
 /* an unrestricted smite! similar to smite-evil/smite-good, not as powerful
    but less restrictive */
-ACMD(do_destructivesmite) {
+ACMD(do_destructivesmite)
+{
   int uses_remaining = 0;
 
-  if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_DESTRUCTIVE_SMITE)) {
+  if (IS_NPC(ch) || !HAS_FEAT(ch, FEAT_DESTRUCTIVE_SMITE))
+  {
     send_to_char(ch, "You have no idea how.\r\n");
     return;
   }
 
-  if (!has_domain_power(ch, DOMAIN_POWER_DESTRUCTIVE_SMITE)) {
+  if (!has_domain_power(ch, DOMAIN_POWER_DESTRUCTIVE_SMITE))
+  {
     send_to_char(ch, "You do not have that domain power!\r\n");
     return;
   }
 
-  if ((uses_remaining = daily_uses_remaining(ch, FEAT_DESTRUCTIVE_SMITE)) == 0) {
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_DESTRUCTIVE_SMITE)) == 0)
+  {
     send_to_char(ch, "You must recover the divine energy required to use destructive smite.\r\n");
     return;
   }
 
-  if (uses_remaining < 0) {
+  if (uses_remaining < 0)
+  {
     send_to_char(ch, "You are not experienced enough.\r\n");
     return;
   }
@@ -636,19 +742,22 @@ ACMD(do_destructivesmite) {
 }
 
 /* you can fire lightning out of your fingers like a sith lord! :p */
-ACMD(do_lightningarc) {
+ACMD(do_lightningarc)
+{
   int dam = 0;
   int damtype = DAM_ELECTRIC;
   int uses_remaining = 0;
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
 
-  if (!has_domain_power(ch, DOMAIN_POWER_LIGHTNING_ARC)) {
+  if (!has_domain_power(ch, DOMAIN_POWER_LIGHTNING_ARC))
+  {
     send_to_char(ch, "You do not have that domain power!\r\n");
     return;
   }
 
-  if (!HAS_FEAT(ch, FEAT_LIGHTNING_ARC)) {
+  if (!HAS_FEAT(ch, FEAT_LIGHTNING_ARC))
+  {
     send_to_char(ch, "You do not have that feat!\r\n");
     return;
   }
@@ -660,38 +769,47 @@ ACMD(do_lightningarc) {
   }
   */
 
-  if ((uses_remaining = daily_uses_remaining(ch, FEAT_LIGHTNING_ARC)) == 0) {
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_LIGHTNING_ARC)) == 0)
+  {
     send_to_char(ch, "You must recover the divine energy required to use another lightning arc.\r\n");
     return;
   }
 
-  if (uses_remaining < 0) {
+  if (uses_remaining < 0)
+  {
     send_to_char(ch, "You are not experienced enough.\r\n");
     return;
   }
 
   one_argument(argument, arg);
-  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
-    if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch))) {
+  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
+  {
+    if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
+    {
       vict = FIGHTING(ch);
-    } else {
+    }
+    else
+    {
       send_to_char(ch, "Target who?\r\n");
       return;
     }
   }
 
-  if (vict == ch) {
+  if (vict == ch)
+  {
     send_to_char(ch, "Aren't we funny today...\r\n");
     return;
   }
 
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL))
+  {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
     return;
   }
 
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
-          ch->next_in_room != vict && vict->next_in_room != ch) {
+      ch->next_in_room != vict && vict->next_in_room != ch)
+  {
     send_to_char(ch, "You simply can't reach that far.\r\n");
     return;
   }
@@ -709,19 +827,22 @@ ACMD(do_lightningarc) {
 }
 
 /* earth domain - fire an acid dart at an opponent */
-ACMD(do_aciddart) {
+ACMD(do_aciddart)
+{
   int dam = 0;
   int damtype = DAM_ACID;
   int uses_remaining = 0;
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
 
-  if (!has_domain_power(ch, DOMAIN_POWER_ACID_DART)) {
+  if (!has_domain_power(ch, DOMAIN_POWER_ACID_DART))
+  {
     send_to_char(ch, "You do not have that domain power!\r\n");
     return;
   }
 
-  if (!HAS_FEAT(ch, FEAT_ACID_DART)) {
+  if (!HAS_FEAT(ch, FEAT_ACID_DART))
+  {
     send_to_char(ch, "You do not have that feat!\r\n");
     return;
   }
@@ -733,38 +854,47 @@ ACMD(do_aciddart) {
   }
   */
 
-  if ((uses_remaining = daily_uses_remaining(ch, FEAT_ACID_DART)) == 0) {
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_ACID_DART)) == 0)
+  {
     send_to_char(ch, "You must recover the divine energy required to use another acid dart.\r\n");
     return;
   }
 
-  if (uses_remaining < 0) {
+  if (uses_remaining < 0)
+  {
     send_to_char(ch, "You are not experienced enough.\r\n");
     return;
   }
 
   one_argument(argument, arg);
-  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
-    if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch))) {
+  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
+  {
+    if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
+    {
       vict = FIGHTING(ch);
-    } else {
+    }
+    else
+    {
       send_to_char(ch, "Target who?\r\n");
       return;
     }
   }
 
-  if (vict == ch) {
+  if (vict == ch)
+  {
     send_to_char(ch, "Aren't we funny today...\r\n");
     return;
   }
 
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL))
+  {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
     return;
   }
 
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
-          ch->next_in_room != vict && vict->next_in_room != ch) {
+      ch->next_in_room != vict && vict->next_in_room != ch)
+  {
     send_to_char(ch, "You simply can't reach that far.\r\n");
     return;
   }
@@ -782,19 +912,22 @@ ACMD(do_aciddart) {
 }
 
 /* release a bolt of fire at your opponent! */
-ACMD(do_firebolt) {
+ACMD(do_firebolt)
+{
   int dam = 0;
   int damtype = DAM_FIRE;
   int uses_remaining = 0;
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
 
-  if (!has_domain_power(ch, DOMAIN_POWER_FIRE_BOLT)) {
+  if (!has_domain_power(ch, DOMAIN_POWER_FIRE_BOLT))
+  {
     send_to_char(ch, "You do not have that domain power!\r\n");
     return;
   }
 
-  if (!HAS_FEAT(ch, FEAT_FIRE_BOLT)) {
+  if (!HAS_FEAT(ch, FEAT_FIRE_BOLT))
+  {
     send_to_char(ch, "You do not have that feat!\r\n");
     return;
   }
@@ -806,38 +939,47 @@ ACMD(do_firebolt) {
   }
   */
 
-  if ((uses_remaining = daily_uses_remaining(ch, FEAT_FIRE_BOLT)) == 0) {
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_FIRE_BOLT)) == 0)
+  {
     send_to_char(ch, "You must recover the divine energy required to use another fire bolt.\r\n");
     return;
   }
 
-  if (uses_remaining < 0) {
+  if (uses_remaining < 0)
+  {
     send_to_char(ch, "You are not experienced enough.\r\n");
     return;
   }
 
   one_argument(argument, arg);
-  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
-    if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch))) {
+  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
+  {
+    if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
+    {
       vict = FIGHTING(ch);
-    } else {
+    }
+    else
+    {
       send_to_char(ch, "Target who?\r\n");
       return;
     }
   }
 
-  if (vict == ch) {
+  if (vict == ch)
+  {
     send_to_char(ch, "Aren't we funny today...\r\n");
     return;
   }
 
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL))
+  {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
     return;
   }
 
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
-          ch->next_in_room != vict && vict->next_in_room != ch) {
+      ch->next_in_room != vict && vict->next_in_room != ch)
+  {
     send_to_char(ch, "You simply can't reach that far.\r\n");
     return;
   }
@@ -855,19 +997,22 @@ ACMD(do_firebolt) {
 }
 
 /* fire a deadly icicle at an opponent! */
-ACMD(do_icicle) {
+ACMD(do_icicle)
+{
   int dam = 0;
   int damtype = DAM_COLD;
   int uses_remaining = 0;
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
 
-  if (!has_domain_power(ch, DOMAIN_POWER_ICICLE)) {
+  if (!has_domain_power(ch, DOMAIN_POWER_ICICLE))
+  {
     send_to_char(ch, "You do not have that domain power!\r\n");
     return;
   }
 
-  if (!HAS_FEAT(ch, FEAT_ICICLE)) {
+  if (!HAS_FEAT(ch, FEAT_ICICLE))
+  {
     send_to_char(ch, "You do not have that feat!\r\n");
     return;
   }
@@ -879,38 +1024,47 @@ ACMD(do_icicle) {
   }
   */
 
-  if ((uses_remaining = daily_uses_remaining(ch, FEAT_ICICLE)) == 0) {
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_ICICLE)) == 0)
+  {
     send_to_char(ch, "You must recover the divine energy required to use another icicle.\r\n");
     return;
   }
 
-  if (uses_remaining < 0) {
+  if (uses_remaining < 0)
+  {
     send_to_char(ch, "You are not experienced enough.\r\n");
     return;
   }
 
   one_argument(argument, arg);
-  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
-    if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch))) {
+  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
+  {
+    if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
+    {
       vict = FIGHTING(ch);
-    } else {
+    }
+    else
+    {
       send_to_char(ch, "Target who?\r\n");
       return;
     }
   }
 
-  if (vict == ch) {
+  if (vict == ch)
+  {
     send_to_char(ch, "Aren't we funny today...\r\n");
     return;
   }
 
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL))
+  {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
     return;
   }
 
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
-          ch->next_in_room != vict && vict->next_in_room != ch) {
+      ch->next_in_room != vict && vict->next_in_room != ch)
+  {
     send_to_char(ch, "You simply can't reach that far.\r\n");
     return;
   }
@@ -928,17 +1082,20 @@ ACMD(do_icicle) {
 }
 
 /* can 'curse' an opponent with your touch */
-ACMD(do_cursetouch) {
+ACMD(do_cursetouch)
+{
   int uses_remaining = 0;
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
 
-  if (!has_domain_power(ch, DOMAIN_POWER_CURSE_TOUCH)) {
+  if (!has_domain_power(ch, DOMAIN_POWER_CURSE_TOUCH))
+  {
     send_to_char(ch, "You do not have that domain power!\r\n");
     return;
   }
 
-  if (!HAS_FEAT(ch, FEAT_CURSE_TOUCH)) {
+  if (!HAS_FEAT(ch, FEAT_CURSE_TOUCH))
+  {
     send_to_char(ch, "You do not have that feat!\r\n");
     return;
   }
@@ -950,38 +1107,47 @@ ACMD(do_cursetouch) {
   }
   */
 
-  if ((uses_remaining = daily_uses_remaining(ch, FEAT_CURSE_TOUCH)) == 0) {
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_CURSE_TOUCH)) == 0)
+  {
     send_to_char(ch, "You must recover the divine energy required to use this feat again.\r\n");
     return;
   }
 
-  if (uses_remaining < 0) {
+  if (uses_remaining < 0)
+  {
     send_to_char(ch, "You are not experienced enough.\r\n");
     return;
   }
 
   one_argument(argument, arg);
-  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM))) {
-    if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch))) {
+  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
+  {
+    if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
+    {
       vict = FIGHTING(ch);
-    } else {
+    }
+    else
+    {
       send_to_char(ch, "Target who?\r\n");
       return;
     }
   }
 
-  if (vict == ch) {
+  if (vict == ch)
+  {
     send_to_char(ch, "Aren't we funny today...\r\n");
     return;
   }
 
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL))
+  {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
     return;
   }
 
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
-          ch->next_in_room != vict && vict->next_in_room != ch) {
+      ch->next_in_room != vict && vict->next_in_room != ch)
+  {
     send_to_char(ch, "You simply can't reach that far.\r\n");
     return;
   }

@@ -70,27 +70,27 @@
  */
 
 #ifndef GRAPPLE_H
-#define	GRAPPLE_H
+#define GRAPPLE_H
 
 #include "utils.h" /* for the ACMD macro */
 
-#ifdef	__cplusplus
-extern "C" {
+#ifdef __cplusplus
+extern "C"
+{
 #endif
 
+    /* functions */
+    void grapple_cleanup(struct char_data *ch);
+    void clear_grapple(struct char_data *ch, struct char_data *vict);
 
-/* functions */
-void grapple_cleanup(struct char_data *ch);
-void clear_grapple(struct char_data *ch, struct char_data *vict);
+    /* Functions with subcommands */
 
-/* Functions with subcommands */
-
-/* Functions without subcommands */
-ACMD(do_grapple);
-ACMD(do_struggle);
-ACMD(do_free_grapple);
-ACMD(do_bind);
-ACMD(do_pin);
+    /* Functions without subcommands */
+    ACMD(do_grapple);
+    ACMD(do_struggle);
+    ACMD(do_free_grapple);
+    ACMD(do_bind);
+    ACMD(do_pin);
 
 /* Macros */
 #define GRAPPLE_TARGET(ch) ((ch)->char_specials.grapple_target)
@@ -98,15 +98,8 @@ ACMD(do_pin);
 #define GRAPPLING(ch) (GRAPPLE_TARGET(ch))
 #define GRAPPLED(ch) (GRAPPLE_ATTACKER(ch))
 
-
-
-
-
-
-
-#ifdef	__cplusplus
+#ifdef __cplusplus
 }
 #endif
 
-#endif	/* GRAPPLE_H */
-
+#endif /* GRAPPLE_H */

@@ -1,5 +1,5 @@
 /**
-* @file genmob.h
+* @file genmob.h                                LuminariMUD
 * Generic OLC Library - Mobiles.
 * 
 * Part of the core tbaMUD source code distribution, which is a derivative
@@ -31,13 +31,13 @@ int write_mobile_mobprog(mob_vnum mvnum, struct char_data *mob, FILE *fd);
 #endif
 
 /* Handy macros. */
-#define GET_NDD(mob)	((mob)->mob_specials.damnodice)
-#define GET_SDD(mob)	((mob)->mob_specials.damsizedice)
-#define GET_ALIAS(mob)	((mob)->player.name)
-#define GET_SDESC(mob)	((mob)->player.short_descr)
-#define GET_LDESC(mob)	((mob)->player.long_descr)
-#define GET_DDESC(mob)	((mob)->player.description)
-#define GET_ATTACK(mob)	((mob)->mob_specials.attack_type)
+#define GET_NDD(mob) ((mob)->mob_specials.damnodice)
+#define GET_SDD(mob) ((mob)->mob_specials.damsizedice)
+#define GET_ALIAS(mob) ((mob)->player.name)
+#define GET_SDESC(mob) ((mob)->player.short_descr)
+#define GET_LDESC(mob) ((mob)->player.long_descr)
+#define GET_DDESC(mob) ((mob)->player.description)
+#define GET_ATTACK(mob) ((mob)->mob_specials.attack_type)
 #define GET_WALKIN(mob) ((mob)->player.walkin)
-#define GET_WALKOUT(mob)        ((mob)->player.walkout)
+#define GET_WALKOUT(mob) ((mob)->player.walkout)
 #endif /* _GENMOB_H_ */

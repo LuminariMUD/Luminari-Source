@@ -3,11 +3,10 @@
 #include <stdbool.h>
 
 /** If c is an upper case letter, return the lower case. */
-#define LOWER(c)   (((c)>='A'  && (c) <= 'Z') ? ((c)+('a'-'A')) : (c))
+#define LOWER(c) (((c) >= 'A' && (c) <= 'Z') ? ((c) + ('a' - 'A')) : (c))
 
 /** If c is a lower case letter, return the upper case. */
-#define UPPER(c)   (((c)>='a'  && (c) <= 'z') ? ((c)+('A'-'a')) : (c) )
-
+#define UPPER(c) (((c) >= 'a' && (c) <= 'z') ? ((c) + ('A' - 'a')) : (c))
 
 /* Function to skip over the leading spaces of a string. */
 void skip_spaces(char **string);
@@ -41,6 +40,6 @@ char *one_argument(char *argument, char *first_arg);
 
 extern const char *fill[];
 
-bool legal_communication(char * arg);
+bool legal_communication(char *arg);
 
 void sentence_case(char *str);

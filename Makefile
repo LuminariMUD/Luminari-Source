@@ -1,3 +1,4 @@
+# LuminariMUD
 # Generated automatically from Makefile.in by configure.
 # tbaMUD Makefile.in - Makefile template used by 'configure'
 # Clean-up provided by seqwith.

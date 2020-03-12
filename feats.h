@@ -10,7 +10,8 @@
 #define _FEATS_H_
 
 /* Below is the structure for a feat */
-struct feat_info {
+struct feat_info
+{
   char *name;              /* The name of the feat to be displayed to players */
   sbyte in_game;           /* TRUE or FALSE, is the feat in the game yet? */
   sbyte can_learn;         /* TRUE or FALSE, can the feat be learned or is it an automatic feat? */
@@ -26,9 +27,10 @@ struct feat_info {
 };
 
 /* structure for feat prereq system */
-struct feat_prerequisite {
+struct feat_prerequisite
+{
   /* FEAT_PREREQ_* values determine the type */
-  int  prerequisite_type;
+  int prerequisite_type;
   char *description; /* Generated string value describing prerequisite. */
 
   /* 0: ability score, class, feat, race, casting type, BAB
@@ -68,81 +70,81 @@ ACMD(do_feats);
 ACMD(do_featlisting);
 
 /* Feat types, don't forget to update in constants.c feat_types[] */
-#define FEAT_TYPE_NONE           0
-#define FEAT_TYPE_GENERAL        1
-#define FEAT_TYPE_COMBAT         2
-#define FEAT_TYPE_SPELLCASTING   3
-#define FEAT_TYPE_METAMAGIC      4
-#define FEAT_TYPE_CRAFT          5
-#define FEAT_TYPE_WILD           6
-#define FEAT_TYPE_DIVINE         7
+#define FEAT_TYPE_NONE 0
+#define FEAT_TYPE_GENERAL 1
+#define FEAT_TYPE_COMBAT 2
+#define FEAT_TYPE_SPELLCASTING 3
+#define FEAT_TYPE_METAMAGIC 4
+#define FEAT_TYPE_CRAFT 5
+#define FEAT_TYPE_WILD 6
+#define FEAT_TYPE_DIVINE 7
 
 #define NUM_LEARNABLE_FEAT_TYPES 8
 
-#define FEAT_TYPE_CLASS_ABILITY  8
+#define FEAT_TYPE_CLASS_ABILITY 8
 #define FEAT_TYPE_INNATE_ABILITY 9
 #define FEAT_TYPE_DOMAIN_ABILITY 10
-#define FEAT_TYPE_PERFORMANCE    11
+#define FEAT_TYPE_PERFORMANCE 11
 
-#define NUM_FEAT_TYPES           12
+#define NUM_FEAT_TYPES 12
 /******************/
 
 /*  LIST_FEAT defines, for list_feats function. */
-#define LIST_FEATS_KNOWN         0
-#define LIST_FEATS_AVAILABLE     1
-#define LIST_FEATS_ALL           2
+#define LIST_FEATS_KNOWN 0
+#define LIST_FEATS_AVAILABLE 1
+#define LIST_FEATS_ALL 2
 
 /* Defines for prerequisites */
-#define FEAT_PREREQ_NONE                 0
-#define CLASS_PREREQ_NONE                0
-#define FEAT_PREREQ_ATTRIBUTE            1
-#define CLASS_PREREQ_ATTRIBUTE           1
-#define FEAT_PREREQ_CLASS_LEVEL          2
-#define CLASS_PREREQ_CLASS_LEVEL         2
-#define FEAT_PREREQ_FEAT                 3
-#define CLASS_PREREQ_FEAT                3
-#define FEAT_PREREQ_ABILITY              4
-#define CLASS_PREREQ_ABILITY             4
-#define FEAT_PREREQ_SPELLCASTING         5
-#define CLASS_PREREQ_SPELLCASTING        5
-#define FEAT_PREREQ_RACE                 6
-#define CLASS_PREREQ_RACE                6
-#define FEAT_PREREQ_BAB                  7
-#define CLASS_PREREQ_BAB                 7
-#define FEAT_PREREQ_CFEAT                8
-#define CLASS_PREREQ_CFEAT               8
-#define FEAT_PREREQ_WEAPON_PROFICIENCY   9
-#define CLASS_PREREQ_WEAPON_PROFICIENCY  9
-#define CLASS_PREREQ_ALIGN               10
+#define FEAT_PREREQ_NONE 0
+#define CLASS_PREREQ_NONE 0
+#define FEAT_PREREQ_ATTRIBUTE 1
+#define CLASS_PREREQ_ATTRIBUTE 1
+#define FEAT_PREREQ_CLASS_LEVEL 2
+#define CLASS_PREREQ_CLASS_LEVEL 2
+#define FEAT_PREREQ_FEAT 3
+#define CLASS_PREREQ_FEAT 3
+#define FEAT_PREREQ_ABILITY 4
+#define CLASS_PREREQ_ABILITY 4
+#define FEAT_PREREQ_SPELLCASTING 5
+#define CLASS_PREREQ_SPELLCASTING 5
+#define FEAT_PREREQ_RACE 6
+#define CLASS_PREREQ_RACE 6
+#define FEAT_PREREQ_BAB 7
+#define CLASS_PREREQ_BAB 7
+#define FEAT_PREREQ_CFEAT 8
+#define CLASS_PREREQ_CFEAT 8
+#define FEAT_PREREQ_WEAPON_PROFICIENCY 9
+#define CLASS_PREREQ_WEAPON_PROFICIENCY 9
+#define CLASS_PREREQ_ALIGN 10
 
 /* prereq system, ability scores */
 #define AB_NONE 0
-#define AB_STR  1
-#define AB_DEX  2
-#define AB_INT  3
-#define AB_WIS  4
-#define AB_CON  5
-#define AB_CHA  6
+#define AB_STR 1
+#define AB_DEX 2
+#define AB_INT 3
+#define AB_WIS 4
+#define AB_CON 5
+#define AB_CHA 6
 
 /* prereq spell casting types */
-#define CASTING_TYPE_NONE   0
+#define CASTING_TYPE_NONE 0
 #define CASTING_TYPE_ARCANE 1
 #define CASTING_TYPE_DIVINE 2
-#define CASTING_TYPE_ANY    3
+#define CASTING_TYPE_ANY 3
 
 /* prereq spell preparation types */
-#define PREP_TYPE_NONE        0
-#define PREP_TYPE_PREPARED    1
+#define PREP_TYPE_NONE 0
+#define PREP_TYPE_PREPARED 1
 #define PREP_TYPE_SPONTANEOUS 2
-#define PREP_TYPE_ANY         3
+#define PREP_TYPE_ANY 3
 
 /* this was created to handle special scenarios for combat feat requirements
    for classes */
-#define CFEAT_SPECIAL_NONE  0
-#define CFEAT_SPECIAL_BOW   1
-#define NUM_CFEAT_SPECIAL   2
+#define CFEAT_SPECIAL_NONE 0
+#define CFEAT_SPECIAL_BOW 1
+#define NUM_CFEAT_SPECIAL 2
 
 /* just for more clarity in the code */
-#define NO_IARG             0
+#define NO_IARG 0
 
 #endif

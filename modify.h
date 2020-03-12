@@ -1,5 +1,5 @@
 /**
-* @file modify.h
+* @file modify.h                                LuminariMUD
 * Header file for the modify module.
 * 
 * Part of the core tbaMUD source code distribution, which is a derivative
@@ -31,11 +31,11 @@ void paginate_string(char *str, struct descriptor_data *d);
 ACMD(do_skillset);
 ACMD(do_abilityset);
 /* Following function prototypes moved here from comm.h */
-void  string_write(struct descriptor_data *d, char **txt, size_t len, long mailto, void *data);
-void  string_add(struct descriptor_data *d, char *str);
-void  page_string(struct descriptor_data *d, char *str, int keep_internal);
+void string_write(struct descriptor_data *d, char **txt, size_t len, long mailto, void *data);
+void string_add(struct descriptor_data *d, char *str);
+void page_string(struct descriptor_data *d, char *str, int keep_internal);
 /* page string function & defines */
 #define PAGE_LENGTH 22
-#define PAGE_WIDTH  80
+#define PAGE_WIDTH 80
 
 #endif /* _MODIFY_H_*/

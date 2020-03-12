@@ -1,5 +1,5 @@
 /**
-* @file sysdep.h
+* @file sysdep.h                                LuminariMUD
 * Machine-specific defs based on values in conf.h (from configure)
 * 
 * Part of the core tbaMUD source code distribution, which is a derivative

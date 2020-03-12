@@ -1,5 +1,5 @@
 /**
-* @file telnet.h
+* @file telnet.h									LuminariMUD
 * Function prototypes, defines and macros to handle socket connections.
 * 
 * Part of the core tbaMUD source code distribution, which is a derivative

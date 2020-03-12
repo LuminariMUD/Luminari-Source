@@ -6,18 +6,17 @@
  */
 
 #ifndef MOBACT_H
-#define	MOBACT_H
+#define MOBACT_H
 
-#ifdef	__cplusplus
-extern "C" {
+#ifdef __cplusplus
+extern "C"
+{
 #endif
 
-bool is_in_memory(struct char_data *ch, struct char_data *vict);
+    bool is_in_memory(struct char_data *ch, struct char_data *vict);
 
-
-#ifdef	__cplusplus
+#ifdef __cplusplus
 }
 #endif
 
-#endif	/* MOBACT_H */
-
+#endif /* MOBACT_H */

@@ -1,5 +1,5 @@
 /**
-* @file graph.h
+* @file graph.h                                       LuminariMUD
 * Header file for Various graph algorithms.
 * 
 * Part of the core tbaMUD source code distribution, which is a derivative
@@ -21,6 +21,5 @@
 void hunt_victim(struct char_data *ch);
 void hunt_loadroom(struct char_data *ch);
 int find_first_step(room_rnum src, room_rnum target);
-
 
 #endif /* _GRAPH_H_*/

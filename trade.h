@@ -2,6 +2,7 @@
  * File:   trade.h
  * Author: Zusuk
  *
+ * LuminariMUD
  * Created on 18 מאי 2015, 19:16
  */
 

@@ -18,7 +18,8 @@
 static void remove_cmd_from_list(struct reset_com **list, int pos);
 
 /* real zone of room/mobile/object/shop given */
-zone_rnum real_zone_by_thing(room_vnum vznum) {
+zone_rnum real_zone_by_thing(room_vnum vznum)
+{
   zone_rnum bot, top, mid;
   int low, high;
 
@@ -29,7 +30,8 @@ zone_rnum real_zone_by_thing(room_vnum vznum) {
     return (NOWHERE);
 
   /* perform binary search on zone-table */
-  while (bot <= top) {
+  while (bot <= top)
+  {
     mid = (bot + top) / 2;
 
     /* Upper/lower bounds of the zone. */
@@ -46,44 +48,53 @@ zone_rnum real_zone_by_thing(room_vnum vznum) {
   return (NOWHERE);
 }
 
-zone_rnum create_new_zone(zone_vnum vzone_num, room_vnum bottom, room_vnum top, const char **error) {
+zone_rnum create_new_zone(zone_vnum vzone_num, room_vnum bottom, room_vnum top, const char **error)
+{
   FILE *fp;
   struct zone_data *zone;
   //int i, max_zone;
-  int i, max_zone = IDXTYPE_MAX / 100;   
+  int i, max_zone = IDXTYPE_MAX / 100;
   zone_rnum rznum;
   char buf[MAX_STRING_LENGTH];
 
 #if CIRCLE_UNSIGNED_INDEX
-  if (vzone_num == NOWHERE) {
+  if (vzone_num == NOWHERE)
+  {
 #else
-  if (vzone_num < 0) {
+  if (vzone_num < 0)
+  {
 #endif
     *error = "You can't make negative zones.\r\n";
     return NOWHERE;
-  } else if (vzone_num > max_zone) {
+  }
+  else if (vzone_num > max_zone)
+  {
 #if CIRCLE_UNSIGNED_INDEX
     //*error = "New zone cannot be higher than 655.\r\n";
     *error = "New zone cannot be higher than 42949672.\r\n";
 #else
     //*error = "New zone cannot be higher than 327.\r\n";
-    *error = "New zone cannot be higher than 21474836.\r\n"; 
+    *error = "New zone cannot be higher than 21474836.\r\n";
 #endif
     return NOWHERE;
-  } else if (bottom > top) {
+  }
+  else if (bottom > top)
+  {
     *error = "Bottom room cannot be greater than top room.\r\n";
     return NOWHERE;
   }
 
   for (i = 0; i < top_of_zone_table; i++)
-    if (zone_table[i].number == vzone_num) {
+    if (zone_table[i].number == vzone_num)
+    {
       *error = "That virtual zone already exists.\r\n";
       return NOWHERE;
     }
 
   /* Create the zone file. */
-  snprintf(buf, sizeof (buf), "%s/%d.zon", ZON_PREFIX, vzone_num);
-  if (!(fp = fopen(buf, "w"))) {
+  snprintf(buf, sizeof(buf), "%s/%d.zon", ZON_PREFIX, vzone_num);
+  if (!(fp = fopen(buf, "w")))
+  {
     mudlog(BRF, LVL_IMPL, TRUE, "SYSERR: OLC: Can't write new zone file.");
     *error = "Could not write zone file.\r\n";
     return NOWHERE;
@@ -92,8 +103,9 @@ zone_rnum create_new_zone(zone_vnum vzone_num, room_vnum bottom, room_vnum top, 
   fclose(fp);
 
   /* Create the room file. */
-  snprintf(buf, sizeof (buf), "%s/%d.wld", WLD_PREFIX, vzone_num);
-  if (!(fp = fopen(buf, "w"))) {
+  snprintf(buf, sizeof(buf), "%s/%d.wld", WLD_PREFIX, vzone_num);
+  if (!(fp = fopen(buf, "w")))
+  {
     mudlog(BRF, LVL_IMPL, TRUE, "SYSERR: OLC: Can't write new world file.");
     *error = "Could not write world file.\r\n";
     return NOWHERE;
@@ -102,8 +114,9 @@ zone_rnum create_new_zone(zone_vnum vzone_num, room_vnum bottom, room_vnum top, 
   fclose(fp);
 
   /* Create the mobile file. */
-  snprintf(buf, sizeof (buf), "%s/%d.mob", MOB_PREFIX, vzone_num);
-  if (!(fp = fopen(buf, "w"))) {
+  snprintf(buf, sizeof(buf), "%s/%d.mob", MOB_PREFIX, vzone_num);
+  if (!(fp = fopen(buf, "w")))
+  {
     mudlog(BRF, LVL_IMPL, TRUE, "SYSERR: OLC: Can't write new mob file.");
     *error = "Could not write mobile file.\r\n";
     return NOWHERE;
@@ -112,8 +125,9 @@ zone_rnum create_new_zone(zone_vnum vzone_num, room_vnum bottom, room_vnum top, 
   fclose(fp);
 
   /* Create the object file. */
-  snprintf(buf, sizeof (buf), "%s/%d.obj", OBJ_PREFIX, vzone_num);
-  if (!(fp = fopen(buf, "w"))) {
+  snprintf(buf, sizeof(buf), "%s/%d.obj", OBJ_PREFIX, vzone_num);
+  if (!(fp = fopen(buf, "w")))
+  {
     mudlog(BRF, LVL_IMPL, TRUE, "SYSERR: OLC: Can't write new obj file.");
     *error = "Could not write object file.\r\n";
     return NOWHERE;
@@ -122,8 +136,9 @@ zone_rnum create_new_zone(zone_vnum vzone_num, room_vnum bottom, room_vnum top, 
   fclose(fp);
 
   /* Create the shop file. */
-  snprintf(buf, sizeof (buf), "%s/%d.shp", SHP_PREFIX, vzone_num);
-  if (!(fp = fopen(buf, "w"))) {
+  snprintf(buf, sizeof(buf), "%s/%d.shp", SHP_PREFIX, vzone_num);
+  if (!(fp = fopen(buf, "w")))
+  {
     mudlog(BRF, LVL_IMPL, TRUE, "SYSERR: OLC: Can't write new shop file.");
     *error = "Could not write shop file.\r\n";
     return NOWHERE;
@@ -132,8 +147,9 @@ zone_rnum create_new_zone(zone_vnum vzone_num, room_vnum bottom, room_vnum top, 
   fclose(fp);
 
   /* Create the quests file */
-  snprintf(buf, sizeof (buf), "%s/%d.qst", QST_PREFIX, vzone_num);
-  if (!(fp = fopen(buf, "w"))) {
+  snprintf(buf, sizeof(buf), "%s/%d.qst", QST_PREFIX, vzone_num);
+  if (!(fp = fopen(buf, "w")))
+  {
     mudlog(BRF, LVL_IMPL, TRUE, "SYSERR: OLC: Can't write new quest file");
     *error = "Could not write quest file.\r\n";
     return NOWHERE;
@@ -142,8 +158,9 @@ zone_rnum create_new_zone(zone_vnum vzone_num, room_vnum bottom, room_vnum top, 
   fclose(fp);
 
   /* Create the hlquest file (homeland-port) */
-  snprintf(buf, sizeof (buf), "%s/%d.hlq", HLQST_PREFIX, vzone_num);
-  if (!(fp = fopen(buf, "w"))) {
+  snprintf(buf, sizeof(buf), "%s/%d.hlq", HLQST_PREFIX, vzone_num);
+  if (!(fp = fopen(buf, "w")))
+  {
     mudlog(BRF, LVL_IMPL, TRUE, "SYSERR: OLC: Can't write new hlquest file");
     *error = "Could not write hlquest file.\r\n";
     return NOWHERE;
@@ -152,8 +169,9 @@ zone_rnum create_new_zone(zone_vnum vzone_num, room_vnum bottom, room_vnum top, 
   fclose(fp);
 
   /* Create the trigger file. */
-  snprintf(buf, sizeof (buf), "%s/%d.trg", TRG_PREFIX, vzone_num);
-  if (!(fp = fopen(buf, "w"))) {
+  snprintf(buf, sizeof(buf), "%s/%d.trg", TRG_PREFIX, vzone_num);
+  if (!(fp = fopen(buf, "w")))
+  {
     mudlog(BRF, LVL_IMPL, TRUE, "SYSERR: OLC: Can't write new trigger file");
     *error = "Could not write trigger file.\r\n";
     return NOWHERE;
@@ -183,9 +201,11 @@ zone_rnum create_new_zone(zone_vnum vzone_num, room_vnum bottom, room_vnum top, 
 
   if (vzone_num > zone_table[top_of_zone_table].number)
     rznum = top_of_zone_table + 1;
-  else {
+  else
+  {
     int j, room;
-    for (i = top_of_zone_table + 1; i > 0 && vzone_num < zone_table[i - 1].number; i--) {
+    for (i = top_of_zone_table + 1; i > 0 && vzone_num < zone_table[i - 1].number; i--)
+    {
       zone_table[i] = zone_table[i - 1];
       for (j = zone_table[i].bot; j <= zone_table[i].top; j++)
         if ((room = real_room(j)) != NOWHERE)
@@ -208,7 +228,8 @@ zone_rnum create_new_zone(zone_vnum vzone_num, room_vnum bottom, room_vnum top, 
   zone->max_level = -1;
   zone->show_weather = 1;
 
-  for (i = 0; i < ZN_ARRAY_MAX; i++) zone->zone_flags[i] = 0;
+  for (i = 0; i < ZN_ARRAY_MAX; i++)
+    zone->zone_flags[i] = 0;
 
   /* No zone commands, just terminate it with an 'S' */
   CREATE(zone->cmd, struct reset_com, 1);
@@ -220,50 +241,55 @@ zone_rnum create_new_zone(zone_vnum vzone_num, room_vnum bottom, room_vnum top, 
   return rznum;
 }
 
-void create_world_index(int znum, const char *type) {
+void create_world_index(int znum, const char *type)
+{
   FILE *newfile, *oldfile;
   char new_name[32], old_name[32], *prefix;
   int num, found = FALSE;
   char buf[MAX_STRING_LENGTH];
   char buf1[MAX_STRING_LENGTH];
 
-  switch (*type) {
-    case 'z':
-      prefix = ZON_PREFIX;
-      break;
-    case 'w':
-      prefix = WLD_PREFIX;
-      break;
-    case 'o':
-      prefix = OBJ_PREFIX;
-      break;
-    case 'm':
-      prefix = MOB_PREFIX;
-      break;
-    case 's':
-      prefix = SHP_PREFIX;
-      break;
-    case 't':
-      prefix = TRG_PREFIX;
-      break;
-    case 'q':
-      prefix = QST_PREFIX;
-      break;
-    case 'h':
-      prefix = HLQST_PREFIX;
-      break;
-    default:
-      /* Caller messed up. */
-      return;
+  switch (*type)
+  {
+  case 'z':
+    prefix = ZON_PREFIX;
+    break;
+  case 'w':
+    prefix = WLD_PREFIX;
+    break;
+  case 'o':
+    prefix = OBJ_PREFIX;
+    break;
+  case 'm':
+    prefix = MOB_PREFIX;
+    break;
+  case 's':
+    prefix = SHP_PREFIX;
+    break;
+  case 't':
+    prefix = TRG_PREFIX;
+    break;
+  case 'q':
+    prefix = QST_PREFIX;
+    break;
+  case 'h':
+    prefix = HLQST_PREFIX;
+    break;
+  default:
+    /* Caller messed up. */
+    return;
   }
 
-  snprintf(old_name, sizeof (old_name), "%s/index", prefix);
-  snprintf(new_name, sizeof (new_name), "%s/newindex", prefix);
+  snprintf(old_name, sizeof(old_name), "%s/index", prefix);
+  snprintf(new_name, sizeof(new_name), "%s/newindex", prefix);
 
-  if (!(oldfile = fopen(old_name, "r"))) {
+  if (!(oldfile = fopen(old_name, "r")))
+  {
     mudlog(BRF, LVL_IMPL, TRUE, "SYSERR: OLC: Failed to open %s.", old_name);
     return;
-  } else if (!(newfile = fopen(new_name, "w"))) {
+  }
+  else if (!(newfile = fopen(new_name, "w")))
+  {
     mudlog(BRF, LVL_IMPL, TRUE, "SYSERR: OLC: Failed to open %s.", new_name);
     fclose(oldfile);
     return;
@@ -271,18 +297,25 @@ void create_world_index(int znum, const char *type) {
 
   /* Index contents must be in order: search through the old file for the right
    * place, insert the new file, then copy the rest over. */
-  snprintf(buf1, sizeof (buf1), "%d.%s", znum, type);
-  while (get_line(oldfile, buf)) {
-    if (*buf == '$') {
+  snprintf(buf1, sizeof(buf1), "%d.%s", znum, type);
+  while (get_line(oldfile, buf))
+  {
+    if (*buf == '$')
+    {
       /* The following used to add a blank line, thanks to Brian Taylor for the fix. */
-      fprintf(newfile, "%s", (!found ? strncat(buf1, "\n$\n", sizeof (buf1) - 1) : "$\n"));
+      fprintf(newfile, "%s", (!found ? strncat(buf1, "\n$\n", sizeof(buf1) - 1) : "$\n"));
       break;
-    } else if (!found) {
+    }
+    else if (!found)
+    {
       sscanf(buf, "%d", &num);
-      if (num > znum) {
+      if (num > znum)
+      {
         found = TRUE;
         fprintf(newfile, "%s\n", buf1);
-      } else if (num == znum) {
+      }
+      else if (num == znum)
+      {
         /* index file already had an entry for this zone. */
         fclose(oldfile);
         fclose(newfile);
@@ -300,25 +333,28 @@ void create_world_index(int znum, const char *type) {
   rename(new_name, old_name);
 }
 
-void remove_room_zone_commands(zone_rnum zone, room_rnum room_num) {
+void remove_room_zone_commands(zone_rnum zone, room_rnum room_num)
+{
   int subcmd = 0, cmd_room = -2;
 
   /* Delete all entries in zone_table that relate to this room so we can add
    * all the ones we have in their place. */
-  while (zone_table[zone].cmd[subcmd].command != 'S') {
-    switch (zone_table[zone].cmd[subcmd].command) {
-      case 'M':
-      case 'O':
-      case 'T':
-      case 'V':
-        cmd_room = zone_table[zone].cmd[subcmd].arg3;
-        break;
-      case 'D':
-      case 'R':
-        cmd_room = zone_table[zone].cmd[subcmd].arg1;
-        break;
-      default:
-        break;
+  while (zone_table[zone].cmd[subcmd].command != 'S')
+  {
+    switch (zone_table[zone].cmd[subcmd].command)
+    {
+    case 'M':
+    case 'O':
+    case 'T':
+    case 'V':
+      cmd_room = zone_table[zone].cmd[subcmd].arg3;
+      break;
+    case 'D':
+    case 'R':
+      cmd_room = zone_table[zone].cmd[subcmd].arg1;
+      break;
+    default:
+      break;
     }
     if (cmd_room == room_num)
       remove_cmd_from_list(&zone_table[zone].cmd, subcmd);
@@ -330,7 +366,8 @@ void remove_room_zone_commands(zone_rnum zone, room_rnum room_num) {
 /* Save all the zone_table for this zone to disk.  This function now writes
  * simple comments in the form of (<name>) to each record.  A header for each
  * field is also there. */
-int save_zone(zone_rnum zone_num) {
+int save_zone(zone_rnum zone_num)
+{
   int subcmd, arg1 = -1, arg2 = -1, arg3 = -1, arg4 = -1, flag_tot = 0, i;
   char fname[128], oldname[128];
   const char *comment = NULL;
@@ -339,16 +376,19 @@ int save_zone(zone_rnum zone_num) {
   char zbuf3[MAX_STRING_LENGTH], zbuf4[MAX_STRING_LENGTH];
 
 #if CIRCLE_UNSIGNED_INDEX
-  if (zone_num == NOWHERE || zone_num > top_of_zone_table) {
+  if (zone_num == NOWHERE || zone_num > top_of_zone_table)
+  {
 #else
-  if (zone_num < 0 || zone_num > top_of_zone_table) {
+  if (zone_num < 0 || zone_num > top_of_zone_table)
+  {
 #endif
     log("SYSERR: GenOLC: save_zone: Invalid real zone number %d. (0-%d)", zone_num, top_of_zone_table);
     return FALSE;
   }
 
-  snprintf(fname, sizeof (fname), "%s/%d.new", ZON_PREFIX, zone_table[zone_num].number);
-  if (!(zfile = fopen(fname, "w"))) {
+  snprintf(fname, sizeof(fname), "%s/%d.new", ZON_PREFIX, zone_table[zone_num].number);
+  if (!(zfile = fopen(fname, "w")))
+  {
     mudlog(BRF, LVL_BUILDER, TRUE, "SYSERR: OLC: save_zones:  Can't write zone %d.", zone_table[zone_num].number);
     return FALSE;
   }
@@ -357,23 +397,27 @@ int save_zone(zone_rnum zone_num) {
     flag_tot += zone_table[zone_num].zone_flags[(i)];
 
   /* If zone flags or levels aren't set, there is no reason to save them! */
-  if (flag_tot == 0 && zone_table[zone_num].min_level == -1 && zone_table[zone_num].max_level == -1) {
+  if (flag_tot == 0 && zone_table[zone_num].min_level == -1 && zone_table[zone_num].max_level == -1)
+  {
     // Print zone header to file.
     fprintf(zfile, "#%d\n"
-            "%s~\n"
-            "%s~\n"
-            "%d %d %d %d\n",
+                   "%s~\n"
+                   "%s~\n"
+                   "%d %d %d %d\n",
             zone_table[zone_num].number,
             (zone_table[zone_num].builders && *zone_table[zone_num].builders)
-            ? zone_table[zone_num].builders : "None.",
+                ? zone_table[zone_num].builders
+                : "None.",
             (zone_table[zone_num].name && *zone_table[zone_num].name)
-            ? convert_from_tabs(zone_table[zone_num].name) : "undefined",
+                ? convert_from_tabs(zone_table[zone_num].name)
+                : "undefined",
             genolc_zone_bottom(zone_num),
             zone_table[zone_num].top,
             zone_table[zone_num].lifespan,
-            zone_table[zone_num].reset_mode
-            );
-  } else {
+            zone_table[zone_num].reset_mode);
+  }
+  else
+  {
     sprintascii(zbuf1, zone_table[zone_num].zone_flags[0]);
     sprintascii(zbuf2, zone_table[zone_num].zone_flags[1]);
     sprintascii(zbuf3, zone_table[zone_num].zone_flags[2]);
@@ -381,14 +425,16 @@ int save_zone(zone_rnum zone_num) {
 
     /* Print zone header to file. */
     fprintf(zfile, "#%d\n"
-            "%s~\n"
-            "%s~\n"
-            "%d %d %d %d %s %s %s %s %d %d %d\n", /* New tbaMUD data line */
+                   "%s~\n"
+                   "%s~\n"
+                   "%d %d %d %d %s %s %s %s %d %d %d\n", /* New tbaMUD data line */
             zone_table[zone_num].number,
             (zone_table[zone_num].builders && *zone_table[zone_num].builders)
-            ? zone_table[zone_num].builders : "None.",
+                ? zone_table[zone_num].builders
+                : "None.",
             (zone_table[zone_num].name && *zone_table[zone_num].name)
-            ? convert_from_tabs(zone_table[zone_num].name) : "undefined",
+                ? convert_from_tabs(zone_table[zone_num].name)
+                : "undefined",
             genolc_zone_bottom(zone_num),
             zone_table[zone_num].top,
             zone_table[zone_num].lifespan,
@@ -396,8 +442,7 @@ int save_zone(zone_rnum zone_num) {
             zbuf1, zbuf2, zbuf3, zbuf4,
             zone_table[zone_num].min_level,
             zone_table[zone_num].max_level,
-            zone_table[zone_num].show_weather
-            );
+            zone_table[zone_num].show_weather);
   }
 
   /* Handy Quick Reference Chart for Zone Values.
@@ -418,109 +463,111 @@ int save_zone(zone_rnum zone_num) {
    * L (RndCont) Target-Obj-Vnum %Load
    * ------------------------------------------------- */
 
-  for (subcmd = 0; ZCMD(zone_num, subcmd).command != 'S'; subcmd++) {
-    switch (ZCMD(zone_num, subcmd).command) {
-      case 'I':
-        arg1 = ZCMD(zone_num, subcmd).arg1;
-        arg2 = -1;
-        arg3 = -1;
-        arg4 = -1;
-        comment = "RandomGive";
-        break;
-      case 'L':
-        arg1 = obj_index[ZCMD(zone_num, subcmd).arg1].vnum;
-        arg2 = ZCMD(zone_num, subcmd).arg2;
-        arg3 = -1;
-        arg4 = -1;
-        comment = "RandomCont";
-        break;
-      case 'J':
-        arg1 = ZCMD(zone_num, subcmd).arg1;
-        arg2 = ZCMD(zone_num, subcmd).arg2;
-        arg3 = -1;
-        arg4 = -1;
-        comment = "Jump";
-        break;
-      case 'M':
-        arg1 = mob_index[ZCMD(zone_num, subcmd).arg1].vnum;
-        arg2 = ZCMD(zone_num, subcmd).arg2;
-        arg3 = world[ZCMD(zone_num, subcmd).arg3].number;
-        arg4 = ZCMD(zone_num, subcmd).arg4;
-        comment = mob_proto[ZCMD(zone_num, subcmd).arg1].player.short_descr;
-        break;
-      case 'O':
-        arg1 = obj_index[ZCMD(zone_num, subcmd).arg1].vnum;
-        arg2 = ZCMD(zone_num, subcmd).arg2;
-        arg3 = world[ZCMD(zone_num, subcmd).arg3].number;
-        arg4 = ZCMD(zone_num, subcmd).arg4;
-        comment = obj_proto[ZCMD(zone_num, subcmd).arg1].short_description;
-        break;
-      case 'G':
-        arg1 = obj_index[ZCMD(zone_num, subcmd).arg1].vnum;
-        arg2 = ZCMD(zone_num, subcmd).arg2;
-        arg3 = ZCMD(zone_num, subcmd).arg3;
-        arg4 = -1;
-        comment = obj_proto[ZCMD(zone_num, subcmd).arg1].short_description;
-        break;
-      case 'E':
-        arg1 = obj_index[ZCMD(zone_num, subcmd).arg1].vnum;
-        arg2 = ZCMD(zone_num, subcmd).arg2;
-        arg3 = ZCMD(zone_num, subcmd).arg3;
-        arg4 = ZCMD(zone_num, subcmd).arg4;
-        comment = obj_proto[ZCMD(zone_num, subcmd).arg1].short_description;
-        break;
-      case 'P':
-        arg1 = obj_index[ZCMD(zone_num, subcmd).arg1].vnum;
-        arg2 = ZCMD(zone_num, subcmd).arg2;
-        arg3 = obj_index[ZCMD(zone_num, subcmd).arg3].vnum;
-        arg4 = ZCMD(zone_num, subcmd).arg4;
-        comment = obj_proto[ZCMD(zone_num, subcmd).arg1].short_description;
-        break;
-      case 'D':
-        arg1 = world[ZCMD(zone_num, subcmd).arg1].number;
-        arg2 = ZCMD(zone_num, subcmd).arg2;
-        arg3 = ZCMD(zone_num, subcmd).arg3;
-        arg4 = -1;
-        comment = world[ZCMD(zone_num, subcmd).arg1].name;
-        break;
-      case 'R':
-        arg1 = world[ZCMD(zone_num, subcmd).arg1].number;
-        arg2 = obj_index[ZCMD(zone_num, subcmd).arg2].vnum;
-        comment = obj_proto[ZCMD(zone_num, subcmd).arg2].short_description;
-        arg3 = -1;
-        arg4 = -1;
-        break;
-      case 'T':
-        arg1 = ZCMD(zone_num, subcmd).arg1; /* trigger type */
-        arg2 = trig_index[ZCMD(zone_num, subcmd).arg2]->vnum; /* trigger vnum */
-        arg3 = world[ZCMD(zone_num, subcmd).arg3].number; /* room num */
-        arg4 = -1;
-        comment = GET_TRIG_NAME(trig_index[real_trigger(arg2)]->proto);
-        break;
-      case 'V':
-        arg1 = ZCMD(zone_num, subcmd).arg1; /* trigger type */
-        arg2 = ZCMD(zone_num, subcmd).arg2; /* context */
-        arg3 = world[ZCMD(zone_num, subcmd).arg3].number;
-        arg4 = -1;
-        break;
-      case '*':
-        /* Invalid commands are replaced with '*' - Ignore them. */
-        continue;
-      default:
-        mudlog(BRF, LVL_BUILDER, TRUE, "SYSERR: OLC: z_save_to_disk(): Unknown cmd '%c' - NOT saving", ZCMD(zone_num, subcmd).command);
-        continue;
+  for (subcmd = 0; ZCMD(zone_num, subcmd).command != 'S'; subcmd++)
+  {
+    switch (ZCMD(zone_num, subcmd).command)
+    {
+    case 'I':
+      arg1 = ZCMD(zone_num, subcmd).arg1;
+      arg2 = -1;
+      arg3 = -1;
+      arg4 = -1;
+      comment = "RandomGive";
+      break;
+    case 'L':
+      arg1 = obj_index[ZCMD(zone_num, subcmd).arg1].vnum;
+      arg2 = ZCMD(zone_num, subcmd).arg2;
+      arg3 = -1;
+      arg4 = -1;
+      comment = "RandomCont";
+      break;
+    case 'J':
+      arg1 = ZCMD(zone_num, subcmd).arg1;
+      arg2 = ZCMD(zone_num, subcmd).arg2;
+      arg3 = -1;
+      arg4 = -1;
+      comment = "Jump";
+      break;
+    case 'M':
+      arg1 = mob_index[ZCMD(zone_num, subcmd).arg1].vnum;
+      arg2 = ZCMD(zone_num, subcmd).arg2;
+      arg3 = world[ZCMD(zone_num, subcmd).arg3].number;
+      arg4 = ZCMD(zone_num, subcmd).arg4;
+      comment = mob_proto[ZCMD(zone_num, subcmd).arg1].player.short_descr;
+      break;
+    case 'O':
+      arg1 = obj_index[ZCMD(zone_num, subcmd).arg1].vnum;
+      arg2 = ZCMD(zone_num, subcmd).arg2;
+      arg3 = world[ZCMD(zone_num, subcmd).arg3].number;
+      arg4 = ZCMD(zone_num, subcmd).arg4;
+      comment = obj_proto[ZCMD(zone_num, subcmd).arg1].short_description;
+      break;
+    case 'G':
+      arg1 = obj_index[ZCMD(zone_num, subcmd).arg1].vnum;
+      arg2 = ZCMD(zone_num, subcmd).arg2;
+      arg3 = ZCMD(zone_num, subcmd).arg3;
+      arg4 = -1;
+      comment = obj_proto[ZCMD(zone_num, subcmd).arg1].short_description;
+      break;
+    case 'E':
+      arg1 = obj_index[ZCMD(zone_num, subcmd).arg1].vnum;
+      arg2 = ZCMD(zone_num, subcmd).arg2;
+      arg3 = ZCMD(zone_num, subcmd).arg3;
+      arg4 = ZCMD(zone_num, subcmd).arg4;
+      comment = obj_proto[ZCMD(zone_num, subcmd).arg1].short_description;
+      break;
+    case 'P':
+      arg1 = obj_index[ZCMD(zone_num, subcmd).arg1].vnum;
+      arg2 = ZCMD(zone_num, subcmd).arg2;
+      arg3 = obj_index[ZCMD(zone_num, subcmd).arg3].vnum;
+      arg4 = ZCMD(zone_num, subcmd).arg4;
+      comment = obj_proto[ZCMD(zone_num, subcmd).arg1].short_description;
+      break;
+    case 'D':
+      arg1 = world[ZCMD(zone_num, subcmd).arg1].number;
+      arg2 = ZCMD(zone_num, subcmd).arg2;
+      arg3 = ZCMD(zone_num, subcmd).arg3;
+      arg4 = -1;
+      comment = world[ZCMD(zone_num, subcmd).arg1].name;
+      break;
+    case 'R':
+      arg1 = world[ZCMD(zone_num, subcmd).arg1].number;
+      arg2 = obj_index[ZCMD(zone_num, subcmd).arg2].vnum;
+      comment = obj_proto[ZCMD(zone_num, subcmd).arg2].short_description;
+      arg3 = -1;
+      arg4 = -1;
+      break;
+    case 'T':
+      arg1 = ZCMD(zone_num, subcmd).arg1;                   /* trigger type */
+      arg2 = trig_index[ZCMD(zone_num, subcmd).arg2]->vnum; /* trigger vnum */
+      arg3 = world[ZCMD(zone_num, subcmd).arg3].number;     /* room num */
+      arg4 = -1;
+      comment = GET_TRIG_NAME(trig_index[real_trigger(arg2)]->proto);
+      break;
+    case 'V':
+      arg1 = ZCMD(zone_num, subcmd).arg1; /* trigger type */
+      arg2 = ZCMD(zone_num, subcmd).arg2; /* context */
+      arg3 = world[ZCMD(zone_num, subcmd).arg3].number;
+      arg4 = -1;
+      break;
+    case '*':
+      /* Invalid commands are replaced with '*' - Ignore them. */
+      continue;
+    default:
+      mudlog(BRF, LVL_BUILDER, TRUE, "SYSERR: OLC: z_save_to_disk(): Unknown cmd '%c' - NOT saving", ZCMD(zone_num, subcmd).command);
+      continue;
     }
     if (ZCMD(zone_num, subcmd).command != 'V')
       fprintf(zfile, "%c %d %d %d %d %d \t(%s)\n",
-            ZCMD(zone_num, subcmd).command, ZCMD(zone_num, subcmd).if_flag, arg1, arg2, arg3, arg4, comment);
+              ZCMD(zone_num, subcmd).command, ZCMD(zone_num, subcmd).if_flag, arg1, arg2, arg3, arg4, comment);
     else
       fprintf(zfile, "%c %d %d %d %d %d %s %s\n",
-            ZCMD(zone_num, subcmd).command, ZCMD(zone_num, subcmd).if_flag, arg1, arg2, arg3, arg4,
-            ZCMD(zone_num, subcmd).sarg1, ZCMD(zone_num, subcmd).sarg2);
+              ZCMD(zone_num, subcmd).command, ZCMD(zone_num, subcmd).if_flag, arg1, arg2, arg3, arg4,
+              ZCMD(zone_num, subcmd).sarg1, ZCMD(zone_num, subcmd).sarg2);
   }
   fputs("S\n$\n", zfile);
   fclose(zfile);
-  snprintf(oldname, sizeof (oldname), "%s/%d.zon", ZON_PREFIX, zone_table[zone_num].number);
+  snprintf(oldname, sizeof(oldname), "%s/%d.zon", ZON_PREFIX, zone_table[zone_num].number);
   remove(oldname);
   rename(fname, oldname);
 
@@ -530,7 +577,8 @@ int save_zone(zone_rnum zone_num) {
 }
 
 /* Some common code to count the number of comands in the list. */
-int count_commands(struct reset_com *list) {
+int count_commands(struct reset_com *list)
+{
   int count = 0;
 
   while (list[count].command != 'S')
@@ -541,7 +589,8 @@ int count_commands(struct reset_com *list) {
 
 /* Adds a new reset command into a list.  Takes a pointer to the list so that
  * it may play with the memory locations. */
-void add_cmd_to_list(struct reset_com **list, struct reset_com *newcmd, int pos) {
+void add_cmd_to_list(struct reset_com **list, struct reset_com *newcmd, int pos)
+{
   int count, i, l;
   struct reset_com *newlist;
 
@@ -552,7 +601,8 @@ void add_cmd_to_list(struct reset_com **list, struct reset_com *newcmd, int pos)
   CREATE(newlist, struct reset_com, count + 2);
 
   /* Even tighter loop to copy the old list and insert a new command. */
-  for (i = 0, l = 0; i <= count; i++) {
+  for (i = 0, l = 0; i <= count; i++)
+  {
     newlist[i] = ((i == pos) ? *newcmd : (*list)[l++]);
   }
 
@@ -564,7 +614,8 @@ void add_cmd_to_list(struct reset_com **list, struct reset_com *newcmd, int pos)
 
 /* Remove a reset command from a list. Takes a pointer to the list so that it
  * may play with the memory locations. */
-static void remove_cmd_from_list(struct reset_com **list, int pos) {
+static void remove_cmd_from_list(struct reset_com **list, int pos)
+{
   int count, i, l;
   struct reset_com *newlist;
 
@@ -576,8 +627,10 @@ static void remove_cmd_from_list(struct reset_com **list, int pos) {
   CREATE(newlist, struct reset_com, count);
 
   /* Even tighter loop to copy old list and skip unwanted command. */
-  for (i = 0, l = 0; i < count; i++) {
-    if (i != pos) {
+  for (i = 0, l = 0; i < count; i++)
+  {
+    if (i != pos)
+    {
       newlist[l++] = (*list)[i];
     }
   }
@@ -588,7 +641,8 @@ static void remove_cmd_from_list(struct reset_com **list, int pos) {
 }
 
 /* Error check user input and then add new (blank) command. */
-int new_command(struct zone_data *zone, int pos) {
+int new_command(struct zone_data *zone, int pos)
+{
   int subcmd = 0;
   struct reset_com new_com;
 
@@ -606,7 +660,8 @@ int new_command(struct zone_data *zone, int pos) {
 }
 
 /* Error check user input and then remove command. */
-void delete_zone_command(struct zone_data *zone, int pos) {
+void delete_zone_command(struct zone_data *zone, int pos)
+{
   int subcmd = 0;
 
   /* Error check to ensure users hasn't given too large an index. */
@@ -619,4 +674,3 @@ void delete_zone_command(struct zone_data *zone, int pos) {
   /* Ok, let's zap it. */
   remove_cmd_from_list(&zone->cmd, pos);
 }
-

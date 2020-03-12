@@ -28,12 +28,15 @@ void tedit_string_cleanup(struct descriptor_data *d, int terminator)
   if (!storage)
     terminator = STRINGADD_ABORT;
 
-  switch (terminator) {
+  switch (terminator)
+  {
   case STRINGADD_SAVE:
     if (!(fl = fopen(storage, "w")))
       mudlog(CMP, LVL_IMPL, TRUE, "SYSERR: Can't write file '%s'.", storage);
-    else {
-      if (*d->str) {
+    else
+    {
+      if (*d->str)
+      {
         strip_cr(*d->str);
         fputs(*d->str, fl);
       }
@@ -66,42 +69,45 @@ ACMD(do_tedit)
   char field[MAX_INPUT_LENGTH];
   char *backstr = NULL;
 
-  struct {
+  struct
+  {
     char *cmd;
     char level;
     char **buffer;
-    int  size;
+    int size;
     char *filename;
   } fields[] = {
-	/* edit the lvls to your own needs */
-	{ "credits",	LVL_IMPL,	&credits,	2400,	CREDITS_FILE},
-	{ "news",	LVL_GRSTAFF,	&news,		8192,	NEWS_FILE},
-	{ "motd",	LVL_GRSTAFF,	&motd,		2400,	MOTD_FILE},
-	{ "imotd",	LVL_IMPL,	&imotd,		2400,	IMOTD_FILE},
-        { "greetings",  LVL_IMPL,       &GREETINGS,     2400,   GREETINGS_FILE},
-        { "help",       LVL_GRSTAFF,      &help,          2400,   HELP_PAGE_FILE},
-	{ "ihelp",      LVL_GRSTAFF,	&ihelp, 	2400,	IHELP_PAGE_FILE},
-	{ "info",	LVL_GRSTAFF,	&info,		8192,	INFO_FILE},
-	{ "background",	LVL_IMPL,	&background,	8192,	BACKGROUND_FILE},
-	{ "handbook",   LVL_IMPL,	&handbook,	8192,   HANDBOOK_FILE},
-	{ "policies",	LVL_IMPL,	&policies,	8192,	POLICIES_FILE},
-        { "wizlist",    LVL_IMPL,       &wizlist,       2400,   WIZLIST_FILE},
-        { "immlist",    LVL_GRSTAFF,      &immlist,       2400,   IMMLIST_FILE},
-	{ "\n",		0,		NULL,		0,	NULL }
-  };
+      /* edit the lvls to your own needs */
+      {"credits", LVL_IMPL, &credits, 2400, CREDITS_FILE},
+      {"news", LVL_GRSTAFF, &news, 8192, NEWS_FILE},
+      {"motd", LVL_GRSTAFF, &motd, 2400, MOTD_FILE},
+      {"imotd", LVL_IMPL, &imotd, 2400, IMOTD_FILE},
+      {"greetings", LVL_IMPL, &GREETINGS, 2400, GREETINGS_FILE},
+      {"help", LVL_GRSTAFF, &help, 2400, HELP_PAGE_FILE},
+      {"ihelp", LVL_GRSTAFF, &ihelp, 2400, IHELP_PAGE_FILE},
+      {"info", LVL_GRSTAFF, &info, 8192, INFO_FILE},
+      {"background", LVL_IMPL, &background, 8192, BACKGROUND_FILE},
+      {"handbook", LVL_IMPL, &handbook, 8192, HANDBOOK_FILE},
+      {"policies", LVL_IMPL, &policies, 8192, POLICIES_FILE},
+      {"wizlist", LVL_IMPL, &wizlist, 2400, WIZLIST_FILE},
+      {"immlist", LVL_GRSTAFF, &immlist, 2400, IMMLIST_FILE},
+      {"\n", 0, NULL, 0, NULL}};
 
   if (ch->desc == NULL)
     return;
 
   one_argument(argument, field);
 
-  if (!*field) {
+  if (!*field)
+  {
     send_to_char(ch, "Files available to be edited:\r\n");
-    for (l = 0; *fields[l].cmd != '\n'; l++) {
-      if (GET_LEVEL(ch) >= fields[l].level) {
-	send_to_char(ch, "%-11.11s ", fields[l].cmd);
-	if (!(++i % 7))
-	  send_to_char(ch, "\r\n");
+    for (l = 0; *fields[l].cmd != '\n'; l++)
+    {
+      if (GET_LEVEL(ch) >= fields[l].level)
+      {
+        send_to_char(ch, "%-11.11s ", fields[l].cmd);
+        if (!(++i % 7))
+          send_to_char(ch, "\r\n");
       }
     }
     if (i % 7)
@@ -114,12 +120,14 @@ ACMD(do_tedit)
     if (!strncmp(field, fields[l].cmd, strlen(field)))
       break;
 
-  if (*fields[l].cmd == '\n') {
+  if (*fields[l].cmd == '\n')
+  {
     send_to_char(ch, "Invalid text editor option.\r\n");
     return;
   }
 
-  if (GET_LEVEL(ch) < fields[l].level) {
+  if (GET_LEVEL(ch) < fields[l].level)
+  {
     send_to_char(ch, "You are not godly enough for that!\r\n");
     return;
   }
@@ -129,13 +137,15 @@ ACMD(do_tedit)
   send_editor_help(ch->desc);
   send_to_char(ch, "Edit file below:\r\n\r\n");
 
-  if (ch->desc->olc) {
+  if (ch->desc->olc)
+  {
     mudlog(BRF, LVL_IMMORT, TRUE, "SYSERR: do_tedit: Player already had olc structure.");
     free(ch->desc->olc);
   }
   CREATE(ch->desc->olc, struct oasis_olc_data, 1);
 
-  if (*fields[l].buffer) {
+  if (*fields[l].buffer)
+  {
     send_to_char(ch, "%s", *fields[l].buffer);
     backstr = strdup(*fields[l].buffer);
   }

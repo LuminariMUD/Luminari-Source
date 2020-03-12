@@ -1,4 +1,3 @@
-
 /*****************************************************************************
  * assign_wpn_armor.c                        Part of LuminariMUD
  * author: Zusuk
