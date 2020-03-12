@@ -1,5 +1,5 @@
 /**
-* @file config.h
+* @file config.h                                       LuminariMUD
 * Configuration of various aspects of LuminariMUD operation.
 *
 * Part of the core tbaMUD source code distribution, which is a derivative

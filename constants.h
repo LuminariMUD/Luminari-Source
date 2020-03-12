@@ -1,5 +1,5 @@
 /**
-* @file constants.h
+* @file constants.h                         LuminariMUD
 * Declares the global constants defined in constants.c.
 *
 * Part of the core tbaMUD source code distribution, which is a derivative
@@ -36,9 +36,9 @@ extern const char *ammo_types[NUM_AMMO_TYPES + 1];
 extern const char *weapon_head_types[NUM_WEAPON_HEAD_TYPES + 1];
 extern const char *weapon_handle_types[NUM_WEAPON_HANDLE_TYPES + 1];
 extern const char *sizes[NUM_SIZES + 1];
-extern const char *weapon_family[NUM_WEAPON_FAMILIES +1];
+extern const char *weapon_family[NUM_WEAPON_FAMILIES + 1];
 extern const char *weapon_damage_types[NUM_WEAPON_DAMAGE_TYPES + 1];
-extern const char *weapon_flags[NUM_WEAPON_FLAGS +1];
+extern const char *weapon_flags[NUM_WEAPON_FLAGS + 1];
 extern const int *valid_bonus_types[NUM_APPLIES][NUM_BONUS_TYPES];
 extern const char *bonus_types[];
 extern const char *dr_damtypes[];
@@ -54,9 +54,9 @@ extern const char *admin_level_names[]; // for imp prefix
 extern const char *item_profs[];
 extern const char *material_name[];
 extern const char *size_names[];
-extern const int  size_modifiers[];
-extern const int  size_modifiers_inverse[];
-extern const int  grapple_size_modifiers[];
+extern const int size_modifiers[];
+extern const int size_modifiers_inverse[];
+extern const int grapple_size_modifiers[];
 extern const char *room_affections[];
 extern const char *luminari_version;
 extern const char *damtype_display[];
@@ -126,8 +126,8 @@ extern const int alchemist_slots[LVL_IMPL + 1][NUM_CIRCLES + 1];
 extern const char *spell_prep_dictation[NUM_CASTERS][4];
 extern const char *spell_consign_dict[NUM_CLASSES][4];
 extern const char *spell_prep_dict[NUM_CLASSES][4];
-extern const int draconic_heritage_energy_types[NUM_DRACONIC_HERITAGE_TYPES+1];
-extern const char *draconic_heritage_names[NUM_DRACONIC_HERITAGE_TYPES+1];
+extern const int draconic_heritage_energy_types[NUM_DRACONIC_HERITAGE_TYPES + 1];
+extern const char *draconic_heritage_names[NUM_DRACONIC_HERITAGE_TYPES + 1];
 extern const char *bloodline_names[];
 extern const char *do_cast_types[][6];
 extern const char *ability_score_names[6];

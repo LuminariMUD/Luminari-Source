@@ -4,7 +4,7 @@
  */
 
 #ifndef ASSIGN_WPN_ARMOR_H
-#define	ASSIGN_WPN_ARMOR_H
+#define ASSIGN_WPN_ARMOR_H
 
 struct weapon_table
 {
@@ -78,11 +78,11 @@ int is_proficient_with_leggings(struct char_data *ch);
 bool is_reloading_weapon(struct char_data *ch, struct obj_data *wielded, bool silent);
 bool can_fire_ammo(struct char_data *ch, bool silent);
 bool has_ammo_in_pouch(struct char_data *ch, struct obj_data *wielded,
-                               bool silent);
+                       bool silent);
 bool reload_weapon(struct char_data *ch, struct obj_data *wielded, bool silent);
 bool auto_reload_weapon(struct char_data *ch, bool silent_mode);
 bool weapon_is_loaded(struct char_data *ch, struct obj_data *wielded, bool silent);
-bool is_bare_handed(struct char_data *ch);        
+bool is_bare_handed(struct char_data *ch);
 bool monk_gear_ok(struct char_data *ch);
 bool is_two_handed_ranged_weapon(struct obj_data *obj);
 /**/
@@ -92,16 +92,13 @@ ACMD(do_armorlist);
 
 /**/
 
-#ifdef	__cplusplus
-extern "C" {
+#ifdef __cplusplus
+extern "C"
+{
 #endif
 
-
-
-
-#ifdef	__cplusplus
+#ifdef __cplusplus
 }
 #endif
 
-#endif	/* ASSIGN_WPN_ARMOR_H */
-
+#endif /* ASSIGN_WPN_ARMOR_H */

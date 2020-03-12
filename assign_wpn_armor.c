@@ -20,34 +20,33 @@
 #include "modify.h"
 #include "domains_schools.h"
 
-
 /* global */
 struct armor_table armor_list[NUM_SPEC_ARMOR_TYPES];
 struct weapon_table weapon_list[NUM_WEAPON_TYPES];
 const char *weapon_type[NUM_WEAPON_TYPES];
 
-
 /* simply checks if ch has proficiency with given weapon_type */
-int is_proficient_with_weapon(struct char_data *ch, int weapon) {
+int is_proficient_with_weapon(struct char_data *ch, int weapon)
+{
 
   /* :) */
   if (weapon == WEAPON_TYPE_UNARMED && CLASS_LEVEL(ch, CLASS_MONK))
     return TRUE;
 
   if ((HAS_FEAT(ch, FEAT_SIMPLE_WEAPON_PROFICIENCY) || HAS_FEAT(ch, FEAT_WEAPON_EXPERT)) &&
-          IS_SET(weapon_list[weapon].weaponFlags, WEAPON_FLAG_SIMPLE))
+      IS_SET(weapon_list[weapon].weaponFlags, WEAPON_FLAG_SIMPLE))
     return TRUE;
 
   if ((HAS_FEAT(ch, FEAT_MARTIAL_WEAPON_PROFICIENCY) || HAS_FEAT(ch, FEAT_WEAPON_EXPERT)) &&
-          IS_SET(weapon_list[weapon].weaponFlags, WEAPON_FLAG_MARTIAL))
+      IS_SET(weapon_list[weapon].weaponFlags, WEAPON_FLAG_MARTIAL))
     return TRUE;
 
   if (HAS_FEAT(ch, FEAT_EXOTIC_WEAPON_PROFICIENCY) &&
-          IS_SET(weapon_list[weapon].weaponFlags, WEAPON_FLAG_EXOTIC))
+      IS_SET(weapon_list[weapon].weaponFlags, WEAPON_FLAG_EXOTIC))
     return TRUE;
 
   if (HAS_FEAT(ch, FEAT_WEAPON_PROFICIENCY_MONK) &&
-          weapon_list[weapon].weaponFamily == WEAPON_FAMILY_MONK)
+      weapon_list[weapon].weaponFamily == WEAPON_FAMILY_MONK)
     return TRUE;
 
   /* updated by zusuk: Druids are proficient with the following weapons: club, 
@@ -55,98 +54,112 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon) {
    * and spear. They are also proficient with all natural attacks (claw, bite, 
    * and so forth) of any form they assume with wild shape.*/
   if (HAS_FEAT(ch, FEAT_WEAPON_PROFICIENCY_DRUID) ||
-          CLASS_LEVEL(ch, CLASS_DRUID) > 0) {
-    switch (weapon) {
-      case WEAPON_TYPE_CLUB:
-      case WEAPON_TYPE_DAGGER:
-      case WEAPON_TYPE_QUARTERSTAFF:
-      case WEAPON_TYPE_SCIMITAR:
-      case WEAPON_TYPE_SCYTHE:
-      case WEAPON_TYPE_SICKLE:
-      case WEAPON_TYPE_SHORTSPEAR:
-      case WEAPON_TYPE_SLING:
-      case WEAPON_TYPE_SPEAR:
-        return TRUE;
+      CLASS_LEVEL(ch, CLASS_DRUID) > 0)
+  {
+    switch (weapon)
+    {
+    case WEAPON_TYPE_CLUB:
+    case WEAPON_TYPE_DAGGER:
+    case WEAPON_TYPE_QUARTERSTAFF:
+    case WEAPON_TYPE_SCIMITAR:
+    case WEAPON_TYPE_SCYTHE:
+    case WEAPON_TYPE_SICKLE:
+    case WEAPON_TYPE_SHORTSPEAR:
+    case WEAPON_TYPE_SLING:
+    case WEAPON_TYPE_SPEAR:
+      return TRUE;
     }
   }
 
   if (HAS_FEAT(ch, FEAT_WEAPON_PROFICIENCY_BARD) ||
-          CLASS_LEVEL(ch, CLASS_BARD) > 0) {
-    switch (weapon) {
-      case WEAPON_TYPE_LONG_SWORD:
-      case WEAPON_TYPE_RAPIER:
-      case WEAPON_TYPE_SAP:
-      case WEAPON_TYPE_SHORT_SWORD:
-      case WEAPON_TYPE_SHORT_BOW:
-      case WEAPON_TYPE_WHIP:
-        return TRUE;
+      CLASS_LEVEL(ch, CLASS_BARD) > 0)
+  {
+    switch (weapon)
+    {
+    case WEAPON_TYPE_LONG_SWORD:
+    case WEAPON_TYPE_RAPIER:
+    case WEAPON_TYPE_SAP:
+    case WEAPON_TYPE_SHORT_SWORD:
+    case WEAPON_TYPE_SHORT_BOW:
+    case WEAPON_TYPE_WHIP:
+      return TRUE;
     }
   }
 
   if (HAS_FEAT(ch, FEAT_WEAPON_PROFICIENCY_ROGUE) ||
-          CLASS_LEVEL(ch, CLASS_ROGUE) > 0) {
-    switch (weapon) {
-      case WEAPON_TYPE_HAND_CROSSBOW:
-      case WEAPON_TYPE_RAPIER:
-      case WEAPON_TYPE_SAP:
-      case WEAPON_TYPE_SHORT_SWORD:
-      case WEAPON_TYPE_SHORT_BOW:
-        return TRUE;
+      CLASS_LEVEL(ch, CLASS_ROGUE) > 0)
+  {
+    switch (weapon)
+    {
+    case WEAPON_TYPE_HAND_CROSSBOW:
+    case WEAPON_TYPE_RAPIER:
+    case WEAPON_TYPE_SAP:
+    case WEAPON_TYPE_SHORT_SWORD:
+    case WEAPON_TYPE_SHORT_BOW:
+      return TRUE;
     }
   }
 
   if (HAS_FEAT(ch, FEAT_WEAPON_PROFICIENCY_WIZARD) ||
-          CLASS_LEVEL(ch, CLASS_WIZARD) > 0) {
-    switch (weapon) {
-      case WEAPON_TYPE_DAGGER:
-      case WEAPON_TYPE_QUARTERSTAFF:
-      case WEAPON_TYPE_CLUB:
-      case WEAPON_TYPE_HEAVY_CROSSBOW:
-      case WEAPON_TYPE_LIGHT_CROSSBOW:
-        return TRUE;
+      CLASS_LEVEL(ch, CLASS_WIZARD) > 0)
+  {
+    switch (weapon)
+    {
+    case WEAPON_TYPE_DAGGER:
+    case WEAPON_TYPE_QUARTERSTAFF:
+    case WEAPON_TYPE_CLUB:
+    case WEAPON_TYPE_HEAVY_CROSSBOW:
+    case WEAPON_TYPE_LIGHT_CROSSBOW:
+      return TRUE;
     }
   }
 
   if (HAS_FEAT(ch, FEAT_WEAPON_PROFICIENCY_DROW) ||
-          IS_DROW(ch)) {
-    switch (weapon) {
-      case WEAPON_TYPE_HAND_CROSSBOW:
-      case WEAPON_TYPE_RAPIER:
-      case WEAPON_TYPE_SHORT_SWORD:
-        return TRUE;
+      IS_DROW(ch))
+  {
+    switch (weapon)
+    {
+    case WEAPON_TYPE_HAND_CROSSBOW:
+    case WEAPON_TYPE_RAPIER:
+    case WEAPON_TYPE_SHORT_SWORD:
+      return TRUE;
     }
   }
 
   if (HAS_FEAT(ch, FEAT_WEAPON_PROFICIENCY_ELF) ||
-          IS_ELF(ch)) {
-    switch (weapon) {
-      case WEAPON_TYPE_LONG_SWORD:
-      case WEAPON_TYPE_RAPIER:
-      case WEAPON_TYPE_LONG_BOW:
-      case WEAPON_TYPE_COMPOSITE_LONGBOW:
-      case WEAPON_TYPE_COMPOSITE_LONGBOW_2:
-      case WEAPON_TYPE_COMPOSITE_LONGBOW_3:
-      case WEAPON_TYPE_COMPOSITE_LONGBOW_4:
-      case WEAPON_TYPE_COMPOSITE_LONGBOW_5:
-      case WEAPON_TYPE_SHORT_BOW:
-      case WEAPON_TYPE_COMPOSITE_SHORTBOW:
-      case WEAPON_TYPE_COMPOSITE_SHORTBOW_2:
-      case WEAPON_TYPE_COMPOSITE_SHORTBOW_3:
-      case WEAPON_TYPE_COMPOSITE_SHORTBOW_4:
-      case WEAPON_TYPE_COMPOSITE_SHORTBOW_5:
-        return TRUE;
+      IS_ELF(ch))
+  {
+    switch (weapon)
+    {
+    case WEAPON_TYPE_LONG_SWORD:
+    case WEAPON_TYPE_RAPIER:
+    case WEAPON_TYPE_LONG_BOW:
+    case WEAPON_TYPE_COMPOSITE_LONGBOW:
+    case WEAPON_TYPE_COMPOSITE_LONGBOW_2:
+    case WEAPON_TYPE_COMPOSITE_LONGBOW_3:
+    case WEAPON_TYPE_COMPOSITE_LONGBOW_4:
+    case WEAPON_TYPE_COMPOSITE_LONGBOW_5:
+    case WEAPON_TYPE_SHORT_BOW:
+    case WEAPON_TYPE_COMPOSITE_SHORTBOW:
+    case WEAPON_TYPE_COMPOSITE_SHORTBOW_2:
+    case WEAPON_TYPE_COMPOSITE_SHORTBOW_3:
+    case WEAPON_TYPE_COMPOSITE_SHORTBOW_4:
+    case WEAPON_TYPE_COMPOSITE_SHORTBOW_5:
+      return TRUE;
     }
   }
 
   if (IS_DWARF(ch) &&
-          HAS_FEAT(ch, FEAT_MARTIAL_WEAPON_PROFICIENCY)) {
-    switch (weapon) {
-      case WEAPON_TYPE_DWARVEN_WAR_AXE:
-      case WEAPON_TYPE_DWARVEN_URGOSH:
-        return TRUE;
+      HAS_FEAT(ch, FEAT_MARTIAL_WEAPON_PROFICIENCY))
+  {
+    switch (weapon)
+    {
+    case WEAPON_TYPE_DWARVEN_WAR_AXE:
+    case WEAPON_TYPE_DWARVEN_URGOSH:
+      return TRUE;
     }
   }
-  
+
   /* cleric domain, favored weapons */
   if (domain_list[GET_1ST_DOMAIN(ch)].favored_weapon == weapon)
     return TRUE;
@@ -181,9 +194,11 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon) {
 }
 
 /* is weapon out of ammo? */
-bool weapon_needs_reload(struct char_data *ch, struct obj_data *weapon, bool silent_mode) {
+bool weapon_needs_reload(struct char_data *ch, struct obj_data *weapon, bool silent_mode)
+{
   /* object value 5 is for loaded status */
-  if (GET_OBJ_VAL(weapon, 5) > 0) {
+  if (GET_OBJ_VAL(weapon, 5) > 0)
+  {
     if (!silent_mode)
       send_to_char(ch, "Your weapon is not empty yet!\r\n");
     return FALSE;
@@ -191,80 +206,101 @@ bool weapon_needs_reload(struct char_data *ch, struct obj_data *weapon, bool sil
   return TRUE;
 }
 
-bool ready_to_reload(struct char_data *ch, struct obj_data *wielded, bool silent_mode) {
-  switch (GET_OBJ_VAL(wielded, 0)) {
-    case WEAPON_TYPE_HEAVY_REP_XBOW:
-    case WEAPON_TYPE_LIGHT_REP_XBOW:
-    case WEAPON_TYPE_HEAVY_CROSSBOW:
+bool ready_to_reload(struct char_data *ch, struct obj_data *wielded, bool silent_mode)
+{
+  switch (GET_OBJ_VAL(wielded, 0))
+  {
+  case WEAPON_TYPE_HEAVY_REP_XBOW:
+  case WEAPON_TYPE_LIGHT_REP_XBOW:
+  case WEAPON_TYPE_HEAVY_CROSSBOW:
 
-      /* RAPID RELOAD! */
-      if (HAS_FEAT(ch, FEAT_RAPID_RELOAD)) {
-        if (is_action_available(ch, atMOVE, FALSE)) {
-          if (reload_weapon(ch, wielded, silent_mode)) {
-            USE_MOVE_ACTION(ch); /* success! */
-          } else {
-            /* failed reload */
-            if (!silent_mode)
-              send_to_char(ch, "You need a move action to reload!\r\n");
-            return FALSE;
-          }
-        } else {
-          /* reloading requires a move action */
-          if (!silent_mode)
-            send_to_char(ch, "You need a move action to reload!\r\n");
-          return FALSE;
-        }
-
-        /* no rapid reload */
-      } else if (is_action_available(ch, atSTANDARD, FALSE) &&
-              is_action_available(ch, atMOVE, FALSE)) {
-        if (reload_weapon(ch, wielded, silent_mode)) {
-          USE_FULL_ROUND_ACTION(ch); /* success! */
-        } else {
-          if (!silent_mode)
-            send_to_char(ch, "You need a full round action to reload!\r\n");
-          /* failed reload */
-          return FALSE;
-        }
-
-      } else {
-        /* reloading requires a full round action */
-        if (!silent_mode)
-          send_to_char(ch, "You need a full round action to reload!\r\n");
-        return FALSE;
-      }
-
-      break;
-    case WEAPON_TYPE_HAND_CROSSBOW:
-    case WEAPON_TYPE_LIGHT_CROSSBOW:
-    case WEAPON_TYPE_SLING:
-
-      /* RAPID RELOAD! */
-      if (HAS_FEAT(ch, FEAT_RAPID_RELOAD))
-        reload_weapon(ch, wielded, silent_mode);
-
-      else if (is_action_available(ch, atMOVE, FALSE)) {
-        if (reload_weapon(ch, wielded, silent_mode)) {
+    /* RAPID RELOAD! */
+    if (HAS_FEAT(ch, FEAT_RAPID_RELOAD))
+    {
+      if (is_action_available(ch, atMOVE, FALSE))
+      {
+        if (reload_weapon(ch, wielded, silent_mode))
+        {
           USE_MOVE_ACTION(ch); /* success! */
-        } else {
+        }
+        else
+        {
           /* failed reload */
           if (!silent_mode)
             send_to_char(ch, "You need a move action to reload!\r\n");
           return FALSE;
         }
-      } else {
+      }
+      else
+      {
         /* reloading requires a move action */
         if (!silent_mode)
           send_to_char(ch, "You need a move action to reload!\r\n");
         return FALSE;
       }
 
-      break;
-    default:
-      /* shouldn't get here */
+      /* no rapid reload */
+    }
+    else if (is_action_available(ch, atSTANDARD, FALSE) &&
+             is_action_available(ch, atMOVE, FALSE))
+    {
+      if (reload_weapon(ch, wielded, silent_mode))
+      {
+        USE_FULL_ROUND_ACTION(ch); /* success! */
+      }
+      else
+      {
+        if (!silent_mode)
+          send_to_char(ch, "You need a full round action to reload!\r\n");
+        /* failed reload */
+        return FALSE;
+      }
+    }
+    else
+    {
+      /* reloading requires a full round action */
       if (!silent_mode)
-        send_to_char(ch, "The cucumber you are wielding is fully loaded! (error)\r\n");
+        send_to_char(ch, "You need a full round action to reload!\r\n");
       return FALSE;
+    }
+
+    break;
+  case WEAPON_TYPE_HAND_CROSSBOW:
+  case WEAPON_TYPE_LIGHT_CROSSBOW:
+  case WEAPON_TYPE_SLING:
+
+    /* RAPID RELOAD! */
+    if (HAS_FEAT(ch, FEAT_RAPID_RELOAD))
+      reload_weapon(ch, wielded, silent_mode);
+
+    else if (is_action_available(ch, atMOVE, FALSE))
+    {
+      if (reload_weapon(ch, wielded, silent_mode))
+      {
+        USE_MOVE_ACTION(ch); /* success! */
+      }
+      else
+      {
+        /* failed reload */
+        if (!silent_mode)
+          send_to_char(ch, "You need a move action to reload!\r\n");
+        return FALSE;
+      }
+    }
+    else
+    {
+      /* reloading requires a move action */
+      if (!silent_mode)
+        send_to_char(ch, "You need a move action to reload!\r\n");
+      return FALSE;
+    }
+
+    break;
+  default:
+    /* shouldn't get here */
+    if (!silent_mode)
+      send_to_char(ch, "The cucumber you are wielding is fully loaded! (error)\r\n");
+    return FALSE;
   }
 
   /* we made it! */
@@ -281,39 +317,46 @@ bool ready_to_reload(struct char_data *ch, struct obj_data *wielded, bool silent
    finally burn up appropriate action
  * @returns:  true if success */
 bool process_load_weapon(struct char_data *ch, struct obj_data *weapon,
-        bool silent_mode) {
+                         bool silent_mode)
+{
 
   /* position check */
-  if (GET_POS(ch) <= POS_STUNNED) {
+  if (GET_POS(ch) <= POS_STUNNED)
+  {
     if (!silent_mode)
       send_to_char(ch, "You are in no position to do this!\r \n");
     return FALSE;
   }
 
   /* can't do this if stunned */
-  if (AFF_FLAGGED(ch, AFF_STUN) || char_has_mud_event(ch, eSTUNNED)) {
+  if (AFF_FLAGGED(ch, AFF_STUN) || char_has_mud_event(ch, eSTUNNED))
+  {
     if (!silent_mode)
       send_to_char(ch, "You can not reload a weapon while stunned!\r\n");
     return FALSE;
   }
 
   /* ranged weapon? */
-  if (!is_using_ranged_weapon(ch, silent_mode)) {
+  if (!is_using_ranged_weapon(ch, silent_mode))
+  {
     return FALSE;
   }
 
   /* weapon that needs reloading? */
-  if (!is_reloading_weapon(ch, weapon, silent_mode)) {
+  if (!is_reloading_weapon(ch, weapon, silent_mode))
+  {
     return FALSE;
   }
 
   /* emptied out yet? */
-  if (!weapon_needs_reload(ch, weapon, silent_mode)) {
+  if (!weapon_needs_reload(ch, weapon, silent_mode))
+  {
     return FALSE;
   }
 
   /* check for actions, if available, reload */
-  if (!ready_to_reload(ch, weapon, silent_mode)) {
+  if (!ready_to_reload(ch, weapon, silent_mode))
+  {
     return FALSE;
   }
 
@@ -325,7 +368,8 @@ bool process_load_weapon(struct char_data *ch, struct obj_data *weapon,
 }
 
 /* ranged-weapons, reload mechanic for slings, crossbows */
-bool auto_reload_weapon(struct char_data *ch, bool silent_mode) {
+bool auto_reload_weapon(struct char_data *ch, bool silent_mode)
+{
   struct obj_data *wielded = is_using_ranged_weapon(ch, silent_mode);
 
   if (!process_load_weapon(ch, wielded, silent_mode))
@@ -334,27 +378,28 @@ bool auto_reload_weapon(struct char_data *ch, bool silent_mode) {
   return TRUE;
 }
 
-
 #define MAX_AMMO_INSIDE_WEAPON 5 //unused
 
-bool reload_weapon(struct char_data *ch, struct obj_data *wielded, bool silent_mode) {
+bool reload_weapon(struct char_data *ch, struct obj_data *wielded, bool silent_mode)
+{
   int load_amount = 0;
 
-  switch (GET_OBJ_VAL(wielded, 0)) {
-    case WEAPON_TYPE_HEAVY_REP_XBOW:
-      load_amount = 5;
-      break;
-    case WEAPON_TYPE_LIGHT_REP_XBOW:
-      load_amount = 3;
-      break;
-    case WEAPON_TYPE_HAND_CROSSBOW:
-    case WEAPON_TYPE_HEAVY_CROSSBOW:
-    case WEAPON_TYPE_LIGHT_CROSSBOW:
-    case WEAPON_TYPE_SLING:
-      load_amount = 1;
-      break;
-    default:
-      return FALSE;
+  switch (GET_OBJ_VAL(wielded, 0))
+  {
+  case WEAPON_TYPE_HEAVY_REP_XBOW:
+    load_amount = 5;
+    break;
+  case WEAPON_TYPE_LIGHT_REP_XBOW:
+    load_amount = 3;
+    break;
+  case WEAPON_TYPE_HAND_CROSSBOW:
+  case WEAPON_TYPE_HEAVY_CROSSBOW:
+  case WEAPON_TYPE_LIGHT_CROSSBOW:
+  case WEAPON_TYPE_SLING:
+    load_amount = 1;
+    break;
+  default:
+    return FALSE;
   }
 
   /* load her up! Object Value 5 is "loaded status" */
@@ -368,12 +413,14 @@ bool reload_weapon(struct char_data *ch, struct obj_data *wielded, bool silent_m
 }
 
 /* this function checks if weapon is loaded (like crossbows) */
-bool weapon_is_loaded(struct char_data *ch, struct obj_data *wielded, bool silent) {
+bool weapon_is_loaded(struct char_data *ch, struct obj_data *wielded, bool silent)
+{
 
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTORELOAD) && FIGHTING(ch))
     silent = TRUE; /* ornir suggested this */
 
-  if (GET_OBJ_VAL(wielded, 5) <= 0) { /* object value 5 is for loaded status */
+  if (GET_OBJ_VAL(wielded, 5) <= 0)
+  { /* object value 5 is for loaded status */
     if (!silent)
       send_to_char(ch, "You have to reload your weapon!\r\n");
     FIRING(ch) = FALSE;
@@ -385,108 +432,118 @@ bool weapon_is_loaded(struct char_data *ch, struct obj_data *wielded, bool silen
 
 /* this function will check to make sure ammo is ready for firing */
 bool has_ammo_in_pouch(struct char_data *ch, struct obj_data *wielded,
-        bool silent) {
+                       bool silent)
+{
   struct obj_data *ammo_pouch = GET_EQ(ch, WEAR_AMMO_POUCH);
 
-  if (!wielded) {
+  if (!wielded)
+  {
     if (!silent)
       send_to_char(ch, "You have no weapon!\r\n");
     FIRING(ch) = FALSE;
     return FALSE;
   }
 
-  if (!ammo_pouch) {
+  if (!ammo_pouch)
+  {
     if (!silent)
       send_to_char(ch, "You have no ammo pouch!\r\n");
     FIRING(ch) = FALSE;
     return FALSE;
   }
 
-  if (!ammo_pouch->contains) {
+  if (!ammo_pouch->contains)
+  {
     if (!silent)
       send_to_char(ch, "Your ammo pouch is empty!\r\n");
     FIRING(ch) = FALSE;
     return FALSE;
   }
 
-  if (GET_OBJ_TYPE(ammo_pouch->contains) != ITEM_MISSILE) {
+  if (GET_OBJ_TYPE(ammo_pouch->contains) != ITEM_MISSILE)
+  {
     if (!silent)
       send_to_char(ch, "Your ammo pouch needs to be filled with only ammo!\r\n");
     FIRING(ch) = FALSE;
     return FALSE;
   }
 
-  switch (GET_OBJ_VAL(ammo_pouch->contains, 0)) {
+  switch (GET_OBJ_VAL(ammo_pouch->contains, 0))
+  {
 
-    case AMMO_TYPE_ARROW:
-      switch (GET_OBJ_VAL(wielded, 0)) {
-        case WEAPON_TYPE_LONG_BOW:
-        case WEAPON_TYPE_SHORT_BOW:
-        case WEAPON_TYPE_COMPOSITE_LONGBOW:
-        case WEAPON_TYPE_COMPOSITE_LONGBOW_2:
-        case WEAPON_TYPE_COMPOSITE_LONGBOW_3:
-        case WEAPON_TYPE_COMPOSITE_LONGBOW_4:
-        case WEAPON_TYPE_COMPOSITE_LONGBOW_5:
-        case WEAPON_TYPE_COMPOSITE_SHORTBOW:
-        case WEAPON_TYPE_COMPOSITE_SHORTBOW_2:
-        case WEAPON_TYPE_COMPOSITE_SHORTBOW_3:
-        case WEAPON_TYPE_COMPOSITE_SHORTBOW_4:
-        case WEAPON_TYPE_COMPOSITE_SHORTBOW_5:
-          break;
-        default:
-          if (!silent)
-            act("Your $p requires a bow.", FALSE, ch, ammo_pouch->contains, NULL, TO_CHAR);
-          FIRING(ch) = FALSE;
-          return FALSE;
-      }
+  case AMMO_TYPE_ARROW:
+    switch (GET_OBJ_VAL(wielded, 0))
+    {
+    case WEAPON_TYPE_LONG_BOW:
+    case WEAPON_TYPE_SHORT_BOW:
+    case WEAPON_TYPE_COMPOSITE_LONGBOW:
+    case WEAPON_TYPE_COMPOSITE_LONGBOW_2:
+    case WEAPON_TYPE_COMPOSITE_LONGBOW_3:
+    case WEAPON_TYPE_COMPOSITE_LONGBOW_4:
+    case WEAPON_TYPE_COMPOSITE_LONGBOW_5:
+    case WEAPON_TYPE_COMPOSITE_SHORTBOW:
+    case WEAPON_TYPE_COMPOSITE_SHORTBOW_2:
+    case WEAPON_TYPE_COMPOSITE_SHORTBOW_3:
+    case WEAPON_TYPE_COMPOSITE_SHORTBOW_4:
+    case WEAPON_TYPE_COMPOSITE_SHORTBOW_5:
       break;
-
-    case AMMO_TYPE_BOLT:
-      switch (GET_OBJ_VAL(wielded, 0)) {
-        case WEAPON_TYPE_HAND_CROSSBOW:
-        case WEAPON_TYPE_HEAVY_REP_XBOW:
-        case WEAPON_TYPE_LIGHT_REP_XBOW:
-        case WEAPON_TYPE_HEAVY_CROSSBOW:
-        case WEAPON_TYPE_LIGHT_CROSSBOW:
-          break;
-        default:
-          if (!silent)
-            act("Your $p requires a crossbow.", FALSE, ch, ammo_pouch->contains, NULL, TO_CHAR);
-          FIRING(ch) = FALSE;
-          return FALSE;
-      }
-      break;
-
-    case AMMO_TYPE_STONE:
-      switch (GET_OBJ_VAL(wielded, 0)) {
-        case WEAPON_TYPE_SLING:
-          break;
-        default:
-          if (!silent)
-            act("Your $p requires a sling.", FALSE, ch, ammo_pouch->contains, NULL, TO_CHAR);
-          FIRING(ch) = FALSE;
-          return FALSE;
-      }
-      break;
-
-    case AMMO_TYPE_DART:
-      switch (GET_OBJ_VAL(wielded, 0)) {
-        case WEAPON_TYPE_DART:
-          break;
-        default:
-          if (!silent)
-            act("Your $p requires a dart-gun.", FALSE, ch, ammo_pouch->contains, NULL, TO_CHAR);
-          FIRING(ch) = FALSE;
-          return FALSE;
-      }
-      break;
-
-    case AMMO_TYPE_UNDEFINED:
     default:
       if (!silent)
-        act("Your $p does not fit your weapon...", FALSE, ch, ammo_pouch->contains, NULL, TO_CHAR);
+        act("Your $p requires a bow.", FALSE, ch, ammo_pouch->contains, NULL, TO_CHAR);
       FIRING(ch) = FALSE;
       return FALSE;
+    }
+    break;
+
+  case AMMO_TYPE_BOLT:
+    switch (GET_OBJ_VAL(wielded, 0))
+    {
+    case WEAPON_TYPE_HAND_CROSSBOW:
+    case WEAPON_TYPE_HEAVY_REP_XBOW:
+    case WEAPON_TYPE_LIGHT_REP_XBOW:
+    case WEAPON_TYPE_HEAVY_CROSSBOW:
+    case WEAPON_TYPE_LIGHT_CROSSBOW:
+      break;
+    default:
+      if (!silent)
+        act("Your $p requires a crossbow.", FALSE, ch, ammo_pouch->contains, NULL, TO_CHAR);
+      FIRING(ch) = FALSE;
+      return FALSE;
+    }
+    break;
+
+  case AMMO_TYPE_STONE:
+    switch (GET_OBJ_VAL(wielded, 0))
+    {
+    case WEAPON_TYPE_SLING:
+      break;
+    default:
+      if (!silent)
+        act("Your $p requires a sling.", FALSE, ch, ammo_pouch->contains, NULL, TO_CHAR);
+      FIRING(ch) = FALSE;
+      return FALSE;
+    }
+    break;
+
+  case AMMO_TYPE_DART:
+    switch (GET_OBJ_VAL(wielded, 0))
+    {
+    case WEAPON_TYPE_DART:
+      break;
+    default:
+      if (!silent)
+        act("Your $p requires a dart-gun.", FALSE, ch, ammo_pouch->contains, NULL, TO_CHAR);
+      FIRING(ch) = FALSE;
+      return FALSE;
+    }
+    break;
+
+  case AMMO_TYPE_UNDEFINED:
+  default:
+    if (!silent)
+      act("Your $p does not fit your weapon...", FALSE, ch, ammo_pouch->contains, NULL, TO_CHAR);
+    FIRING(ch) = FALSE;
+    return FALSE;
   }
 
   /* cleared all checks */
@@ -496,15 +553,18 @@ bool has_ammo_in_pouch(struct char_data *ch, struct obj_data *wielded,
 /* ranged combat (archery, etc)
  * this function will check for a ranged weapon, ammo and does
  * a check of loaded-status (like x-bow) and "has_ammo_in_pouch" */
-bool can_fire_ammo(struct char_data *ch, bool silent) {
+bool can_fire_ammo(struct char_data *ch, bool silent)
+{
   struct obj_data *wielded = NULL;
 
-  if (!(wielded = is_using_ranged_weapon(ch, silent))) {
+  if (!(wielded = is_using_ranged_weapon(ch, silent)))
+  {
     FIRING(ch) = FALSE;
     return FALSE;
   }
 
-  if (!has_ammo_in_pouch(ch, wielded, silent)) {
+  if (!has_ammo_in_pouch(ch, wielded, silent))
+  {
     FIRING(ch) = FALSE;
     return FALSE;
   }
@@ -525,7 +585,8 @@ bool can_fire_ammo(struct char_data *ch, bool silent) {
 }
 
 /*check all wielded slots looking for ranged weapon*/
-struct obj_data *is_using_ranged_weapon(struct char_data *ch, bool silent_mode) {
+struct obj_data *is_using_ranged_weapon(struct char_data *ch, bool silent_mode)
+{
   struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_2H);
 
   if (!wielded)
@@ -533,13 +594,15 @@ struct obj_data *is_using_ranged_weapon(struct char_data *ch, bool silent_mode) 
   if (!wielded)
     wielded = GET_EQ(ch, WEAR_WIELD_OFFHAND);
 
-  if (!wielded) {
+  if (!wielded)
+  {
     if (!silent_mode)
       send_to_char(ch, "You are not wielding a ranged weapon!\r\n");
     return NULL;
   }
 
-  if (IS_WILDSHAPED(ch) || IS_MORPHED(ch)) {
+  if (IS_WILDSHAPED(ch) || IS_MORPHED(ch))
+  {
     if (!silent_mode)
       send_to_char(ch, "What?!!?\r\n");
     return NULL;
@@ -554,16 +617,18 @@ struct obj_data *is_using_ranged_weapon(struct char_data *ch, bool silent_mode) 
 }
 
 /* is this ranged weapon the type that needs reloading? */
-bool is_reloading_weapon(struct char_data *ch, struct obj_data *wielded, bool silent_mode) {
+bool is_reloading_weapon(struct char_data *ch, struct obj_data *wielded, bool silent_mode)
+{
   /* value 0 = weapon define value */
-  switch (GET_OBJ_VAL(wielded, 0)) {
-    case WEAPON_TYPE_HEAVY_CROSSBOW:
-    case WEAPON_TYPE_HEAVY_REP_XBOW:
-    case WEAPON_TYPE_LIGHT_REP_XBOW:
-    case WEAPON_TYPE_LIGHT_CROSSBOW:
-    case WEAPON_TYPE_SLING:
-    case WEAPON_TYPE_HAND_CROSSBOW:
-      return TRUE;
+  switch (GET_OBJ_VAL(wielded, 0))
+  {
+  case WEAPON_TYPE_HEAVY_CROSSBOW:
+  case WEAPON_TYPE_HEAVY_REP_XBOW:
+  case WEAPON_TYPE_LIGHT_REP_XBOW:
+  case WEAPON_TYPE_LIGHT_CROSSBOW:
+  case WEAPON_TYPE_SLING:
+  case WEAPON_TYPE_HAND_CROSSBOW:
+    return TRUE;
   }
   if (!silent_mode)
     send_to_char(ch, "This is not a ranged weapon that needs reloading!\r\n");
@@ -660,7 +725,8 @@ bool is_reloading_weapon(struct char_data *ch, struct obj_data *wielded, bool si
 //#define WEAPON_FLAG_SUNDER      (1 << 25)
 
 /* light weapons - necessary for some feats such as weapon finesse */
-bool is_using_light_weapon(struct char_data *ch, struct obj_data *wielded) {
+bool is_using_light_weapon(struct char_data *ch, struct obj_data *wielded)
+{
 
   if (!wielded) /* fists are light?  i need to check this */
     return TRUE;
@@ -687,7 +753,8 @@ bool is_using_light_weapon(struct char_data *ch, struct obj_data *wielded) {
  * a light weapon. You can choose to wield one end of a double weapon two-handed,
  * but it cannot be used as a double weapon when wielded in this way—only one
  * end of the weapon can be used in any given round. */
-bool is_using_double_weapon(struct char_data *ch) {
+bool is_using_double_weapon(struct char_data *ch)
+{
   struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_2H);
 
   /* we are going to say it is not enough that the weapon just be flagged
@@ -706,8 +773,9 @@ bool is_using_double_weapon(struct char_data *ch) {
 /* end utility, start base set/load/init functions for weapons/armor */
 
 void setweapon(int type, char *name, int numDice, int diceSize, int critRange, int critMult,
-        int weaponFlags, int cost, int damageTypes, int weight, int range, int weaponFamily, int size,
-        int material, int handle_type, int head_type) {
+               int weaponFlags, int cost, int damageTypes, int weight, int range, int weaponFamily, int size,
+               int material, int handle_type, int head_type)
+{
   weapon_type[type] = strdup(name);
   weapon_list[type].name = name;
   weapon_list[type].numDice = numDice;
@@ -735,7 +803,8 @@ void setweapon(int type, char *name, int numDice, int diceSize, int critRange, i
   weapon_list[type].head_type = head_type;
 }
 
-void initialize_weapons(int type) {
+void initialize_weapons(int type)
+{
   weapon_list[type].name = "unused weapon";
   weapon_list[type].numDice = 1;
   weapon_list[type].diceSize = 1;
@@ -753,7 +822,8 @@ void initialize_weapons(int type) {
   weapon_list[type].head_type = 0;
 }
 
-void load_weapons(void) {
+void load_weapons(void)
+{
   int i = 0;
 
   for (i = 0; i < NUM_WEAPON_TYPES; i++)
@@ -763,236 +833,205 @@ void load_weapons(void) {
    * damageType, weight, range, weaponFamily, Size, material,
    * handle, head) */
   setweapon(WEAPON_TYPE_UNARMED, "unarmed", 1, 3, 0, 2, WEAPON_FLAG_SIMPLE, 2,
-          DAMAGE_TYPE_BLUDGEONING, 1, 0, WEAPON_FAMILY_MONK, SIZE_SMALL, MATERIAL_ORGANIC,
-          HANDLE_TYPE_GLOVE, HEAD_TYPE_FIST);
-  setweapon(WEAPON_TYPE_DAGGER, "dagger", 1, 4, 1, 2, WEAPON_FLAG_THROWN |
-          WEAPON_FLAG_SIMPLE, 2, DAMAGE_TYPE_PIERCING, 1, 10, WEAPON_FAMILY_SMALL_BLADE, SIZE_TINY,
-          MATERIAL_STEEL, HANDLE_TYPE_HILT, HEAD_TYPE_BLADE);
+            DAMAGE_TYPE_BLUDGEONING, 1, 0, WEAPON_FAMILY_MONK, SIZE_SMALL, MATERIAL_ORGANIC,
+            HANDLE_TYPE_GLOVE, HEAD_TYPE_FIST);
+  setweapon(WEAPON_TYPE_DAGGER, "dagger", 1, 4, 1, 2, WEAPON_FLAG_THROWN | WEAPON_FLAG_SIMPLE, 2, DAMAGE_TYPE_PIERCING, 1, 10, WEAPON_FAMILY_SMALL_BLADE, SIZE_TINY,
+            MATERIAL_STEEL, HANDLE_TYPE_HILT, HEAD_TYPE_BLADE);
   setweapon(WEAPON_TYPE_LIGHT_MACE, "light mace", 1, 6, 0, 2, WEAPON_FLAG_SIMPLE, 5,
-          DAMAGE_TYPE_BLUDGEONING, 4, 0, WEAPON_FAMILY_CLUB, SIZE_SMALL, MATERIAL_STEEL,
-          HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD);
+            DAMAGE_TYPE_BLUDGEONING, 4, 0, WEAPON_FAMILY_CLUB, SIZE_SMALL, MATERIAL_STEEL,
+            HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD);
   setweapon(WEAPON_TYPE_SICKLE, "sickle", 1, 6, 0, 2, WEAPON_FLAG_SIMPLE, 6,
-          DAMAGE_TYPE_SLASHING, 2, 0, WEAPON_FAMILY_SMALL_BLADE, SIZE_SMALL, MATERIAL_STEEL,
-          HANDLE_TYPE_HANDLE, HEAD_TYPE_BLADE);
+            DAMAGE_TYPE_SLASHING, 2, 0, WEAPON_FAMILY_SMALL_BLADE, SIZE_SMALL, MATERIAL_STEEL,
+            HANDLE_TYPE_HANDLE, HEAD_TYPE_BLADE);
   setweapon(WEAPON_TYPE_CLUB, "club", 1, 6, 0, 2, WEAPON_FLAG_SIMPLE, 1,
-          DAMAGE_TYPE_BLUDGEONING, 3, 0, WEAPON_FAMILY_CLUB, SIZE_SMALL, MATERIAL_WOOD,
-          HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD);
+            DAMAGE_TYPE_BLUDGEONING, 3, 0, WEAPON_FAMILY_CLUB, SIZE_SMALL, MATERIAL_WOOD,
+            HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD);
   setweapon(WEAPON_TYPE_HEAVY_MACE, "heavy mace", 1, 8, 0, 2, WEAPON_FLAG_SIMPLE, 12,
-          DAMAGE_TYPE_BLUDGEONING, 8, 0, WEAPON_FAMILY_CLUB, SIZE_MEDIUM, MATERIAL_STEEL,
-          HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD);
+            DAMAGE_TYPE_BLUDGEONING, 8, 0, WEAPON_FAMILY_CLUB, SIZE_MEDIUM, MATERIAL_STEEL,
+            HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD);
   setweapon(WEAPON_TYPE_MORNINGSTAR, "morningstar", 1, 8, 0, 2, WEAPON_FLAG_SIMPLE, 8,
-          DAMAGE_TYPE_BLUDGEONING | DAMAGE_TYPE_PIERCING, 6, 0, WEAPON_FAMILY_FLAIL, SIZE_MEDIUM,
-          MATERIAL_STEEL, HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD);
-  setweapon(WEAPON_TYPE_SHORTSPEAR, "shortspear", 1, 6, 0, 2, WEAPON_FLAG_SIMPLE |
-          WEAPON_FLAG_THROWN, 1, DAMAGE_TYPE_PIERCING, 3, 20, WEAPON_FAMILY_SPEAR, SIZE_MEDIUM,
-          MATERIAL_WOOD, HANDLE_TYPE_SHAFT, HEAD_TYPE_POINT);
-  setweapon(WEAPON_TYPE_LONGSPEAR, "longspear", 1, 8, 0, 3, WEAPON_FLAG_SIMPLE |
-          WEAPON_FLAG_REACH, 5, DAMAGE_TYPE_PIERCING, 9, 0, WEAPON_FAMILY_SPEAR, SIZE_LARGE,
-          MATERIAL_WOOD, HANDLE_TYPE_SHAFT, HEAD_TYPE_POINT);
+            DAMAGE_TYPE_BLUDGEONING | DAMAGE_TYPE_PIERCING, 6, 0, WEAPON_FAMILY_FLAIL, SIZE_MEDIUM,
+            MATERIAL_STEEL, HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD);
+  setweapon(WEAPON_TYPE_SHORTSPEAR, "shortspear", 1, 6, 0, 2, WEAPON_FLAG_SIMPLE | WEAPON_FLAG_THROWN, 1, DAMAGE_TYPE_PIERCING, 3, 20, WEAPON_FAMILY_SPEAR, SIZE_MEDIUM,
+            MATERIAL_WOOD, HANDLE_TYPE_SHAFT, HEAD_TYPE_POINT);
+  setweapon(WEAPON_TYPE_LONGSPEAR, "longspear", 1, 8, 0, 3, WEAPON_FLAG_SIMPLE | WEAPON_FLAG_REACH, 5, DAMAGE_TYPE_PIERCING, 9, 0, WEAPON_FAMILY_SPEAR, SIZE_LARGE,
+            MATERIAL_WOOD, HANDLE_TYPE_SHAFT, HEAD_TYPE_POINT);
   setweapon(WEAPON_TYPE_QUARTERSTAFF, "quarterstaff", 1, 6, 0, 2, WEAPON_FLAG_SIMPLE,
-          1, DAMAGE_TYPE_BLUDGEONING, 4, 0, WEAPON_FAMILY_MONK, SIZE_LARGE,
-          MATERIAL_WOOD, HANDLE_TYPE_SHAFT, HEAD_TYPE_HEAD);
-  setweapon(WEAPON_TYPE_SPEAR, "spear", 1, 8, 0, 3, WEAPON_FLAG_SIMPLE |
-          WEAPON_FLAG_THROWN | WEAPON_FLAG_REACH, 2, DAMAGE_TYPE_PIERCING, 6, 20, WEAPON_FAMILY_SPEAR, SIZE_LARGE,
-          MATERIAL_WOOD, HANDLE_TYPE_SHAFT, HEAD_TYPE_POINT);
-  setweapon(WEAPON_TYPE_HEAVY_CROSSBOW, "heavy crossbow", 1, 10, 1, 2, WEAPON_FLAG_SIMPLE
-          | WEAPON_FLAG_SLOW_RELOAD | WEAPON_FLAG_RANGED, 50, DAMAGE_TYPE_PIERCING, 8, 120,
-          WEAPON_FAMILY_CROSSBOW, SIZE_LARGE, MATERIAL_WOOD, HANDLE_TYPE_HANDLE, HEAD_TYPE_BOW);
-  setweapon(WEAPON_TYPE_LIGHT_CROSSBOW, "light crossbow", 1, 8, 1, 2, WEAPON_FLAG_SIMPLE
-          | WEAPON_FLAG_SLOW_RELOAD | WEAPON_FLAG_RANGED, 35, DAMAGE_TYPE_PIERCING, 4, 80,
-          WEAPON_FAMILY_CROSSBOW, SIZE_MEDIUM, MATERIAL_WOOD, HANDLE_TYPE_HANDLE, HEAD_TYPE_BOW);
+            1, DAMAGE_TYPE_BLUDGEONING, 4, 0, WEAPON_FAMILY_MONK, SIZE_LARGE,
+            MATERIAL_WOOD, HANDLE_TYPE_SHAFT, HEAD_TYPE_HEAD);
+  setweapon(WEAPON_TYPE_SPEAR, "spear", 1, 8, 0, 3, WEAPON_FLAG_SIMPLE | WEAPON_FLAG_THROWN | WEAPON_FLAG_REACH, 2, DAMAGE_TYPE_PIERCING, 6, 20, WEAPON_FAMILY_SPEAR, SIZE_LARGE,
+            MATERIAL_WOOD, HANDLE_TYPE_SHAFT, HEAD_TYPE_POINT);
+  setweapon(WEAPON_TYPE_HEAVY_CROSSBOW, "heavy crossbow", 1, 10, 1, 2, WEAPON_FLAG_SIMPLE | WEAPON_FLAG_SLOW_RELOAD | WEAPON_FLAG_RANGED, 50, DAMAGE_TYPE_PIERCING, 8, 120,
+            WEAPON_FAMILY_CROSSBOW, SIZE_LARGE, MATERIAL_WOOD, HANDLE_TYPE_HANDLE, HEAD_TYPE_BOW);
+  setweapon(WEAPON_TYPE_LIGHT_CROSSBOW, "light crossbow", 1, 8, 1, 2, WEAPON_FLAG_SIMPLE | WEAPON_FLAG_SLOW_RELOAD | WEAPON_FLAG_RANGED, 35, DAMAGE_TYPE_PIERCING, 4, 80,
+            WEAPON_FAMILY_CROSSBOW, SIZE_MEDIUM, MATERIAL_WOOD, HANDLE_TYPE_HANDLE, HEAD_TYPE_BOW);
   /*	(weapon num, name, numDamDice, sizeDamDice, critRange, critMult, weapon flags, cost, damageType, weight, range, weaponFamily, Size, material, handle, head) */
-  setweapon(WEAPON_TYPE_DART, "dart", 1, 4, 0, 2, WEAPON_FLAG_SIMPLE | WEAPON_FLAG_THROWN
-          | WEAPON_FLAG_RANGED, 1, DAMAGE_TYPE_PIERCING, 1, 20, WEAPON_FAMILY_THROWN, SIZE_TINY,
-          MATERIAL_WOOD, HANDLE_TYPE_SHAFT, HEAD_TYPE_POINT);
-  setweapon(WEAPON_TYPE_JAVELIN, "javelin", 1, 6, 0, 2, WEAPON_FLAG_SIMPLE |
-          WEAPON_FLAG_THROWN | WEAPON_FLAG_RANGED, 1, DAMAGE_TYPE_PIERCING, 2, 30,
-          WEAPON_FAMILY_SPEAR, SIZE_MEDIUM, MATERIAL_WOOD, HANDLE_TYPE_SHAFT, HEAD_TYPE_POINT);
-  setweapon(WEAPON_TYPE_SLING, "sling", 1, 4, 0, 2, WEAPON_FLAG_SIMPLE |
-          WEAPON_FLAG_RANGED, 1, DAMAGE_TYPE_BLUDGEONING, 1, 50, WEAPON_FAMILY_THROWN, SIZE_SMALL,
-          MATERIAL_LEATHER, HANDLE_TYPE_STRAP, HEAD_TYPE_POUCH);
-  setweapon(WEAPON_TYPE_THROWING_AXE, "throwing axe", 1, 6, 0, 2, WEAPON_FLAG_MARTIAL |
-          WEAPON_FLAG_THROWN, 8, DAMAGE_TYPE_SLASHING, 2, 10, WEAPON_FAMILY_AXE, SIZE_SMALL,
-          MATERIAL_STEEL, HANDLE_TYPE_HANDLE, HEAD_TYPE_BLADE);
-  setweapon(WEAPON_TYPE_LIGHT_HAMMER, "light hammer", 1, 4, 0, 2, WEAPON_FLAG_MARTIAL |
-          WEAPON_FLAG_THROWN, 1, DAMAGE_TYPE_BLUDGEONING, 2, 20, WEAPON_FAMILY_HAMMER, SIZE_SMALL,
-          MATERIAL_STEEL, HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD);
+  setweapon(WEAPON_TYPE_DART, "dart", 1, 4, 0, 2, WEAPON_FLAG_SIMPLE | WEAPON_FLAG_THROWN | WEAPON_FLAG_RANGED, 1, DAMAGE_TYPE_PIERCING, 1, 20, WEAPON_FAMILY_THROWN, SIZE_TINY,
+            MATERIAL_WOOD, HANDLE_TYPE_SHAFT, HEAD_TYPE_POINT);
+  setweapon(WEAPON_TYPE_JAVELIN, "javelin", 1, 6, 0, 2, WEAPON_FLAG_SIMPLE | WEAPON_FLAG_THROWN | WEAPON_FLAG_RANGED, 1, DAMAGE_TYPE_PIERCING, 2, 30,
+            WEAPON_FAMILY_SPEAR, SIZE_MEDIUM, MATERIAL_WOOD, HANDLE_TYPE_SHAFT, HEAD_TYPE_POINT);
+  setweapon(WEAPON_TYPE_SLING, "sling", 1, 4, 0, 2, WEAPON_FLAG_SIMPLE | WEAPON_FLAG_RANGED, 1, DAMAGE_TYPE_BLUDGEONING, 1, 50, WEAPON_FAMILY_THROWN, SIZE_SMALL,
+            MATERIAL_LEATHER, HANDLE_TYPE_STRAP, HEAD_TYPE_POUCH);
+  setweapon(WEAPON_TYPE_THROWING_AXE, "throwing axe", 1, 6, 0, 2, WEAPON_FLAG_MARTIAL | WEAPON_FLAG_THROWN, 8, DAMAGE_TYPE_SLASHING, 2, 10, WEAPON_FAMILY_AXE, SIZE_SMALL,
+            MATERIAL_STEEL, HANDLE_TYPE_HANDLE, HEAD_TYPE_BLADE);
+  setweapon(WEAPON_TYPE_LIGHT_HAMMER, "light hammer", 1, 4, 0, 2, WEAPON_FLAG_MARTIAL | WEAPON_FLAG_THROWN, 1, DAMAGE_TYPE_BLUDGEONING, 2, 20, WEAPON_FAMILY_HAMMER, SIZE_SMALL,
+            MATERIAL_STEEL, HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD);
   setweapon(WEAPON_TYPE_HAND_AXE, "hand axe", 1, 6, 0, 3, WEAPON_FLAG_MARTIAL, 6,
-          DAMAGE_TYPE_SLASHING, 3, 0, WEAPON_FAMILY_AXE, SIZE_SMALL, MATERIAL_STEEL, HANDLE_TYPE_HANDLE,
-          HEAD_TYPE_BLADE);
+            DAMAGE_TYPE_SLASHING, 3, 0, WEAPON_FAMILY_AXE, SIZE_SMALL, MATERIAL_STEEL, HANDLE_TYPE_HANDLE,
+            HEAD_TYPE_BLADE);
   setweapon(WEAPON_TYPE_KUKRI, "kukri", 1, 4, 2, 2, WEAPON_FLAG_MARTIAL, 8,
-          DAMAGE_TYPE_SLASHING, 2, 0, WEAPON_FAMILY_SMALL_BLADE, SIZE_SMALL, MATERIAL_STEEL,
-          HANDLE_TYPE_HILT, HEAD_TYPE_BLADE);
+            DAMAGE_TYPE_SLASHING, 2, 0, WEAPON_FAMILY_SMALL_BLADE, SIZE_SMALL, MATERIAL_STEEL,
+            HANDLE_TYPE_HILT, HEAD_TYPE_BLADE);
   setweapon(WEAPON_TYPE_LIGHT_PICK, "light pick", 1, 4, 0, 4, WEAPON_FLAG_MARTIAL, 4,
-          DAMAGE_TYPE_PIERCING, 3, 0, WEAPON_FAMILY_PICK, SIZE_SMALL, MATERIAL_STEEL,
-          HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD);
-  setweapon(WEAPON_TYPE_SAP, "sap", 1, 6, 0, 2, WEAPON_FLAG_MARTIAL |
-          WEAPON_FLAG_NONLETHAL, 1, DAMAGE_TYPE_BLUDGEONING | DAMAGE_TYPE_NONLETHAL, 2, 0,
-          WEAPON_FAMILY_CLUB, SIZE_SMALL, MATERIAL_LEATHER, HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD);
+            DAMAGE_TYPE_PIERCING, 3, 0, WEAPON_FAMILY_PICK, SIZE_SMALL, MATERIAL_STEEL,
+            HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD);
+  setweapon(WEAPON_TYPE_SAP, "sap", 1, 6, 0, 2, WEAPON_FLAG_MARTIAL | WEAPON_FLAG_NONLETHAL, 1, DAMAGE_TYPE_BLUDGEONING | DAMAGE_TYPE_NONLETHAL, 2, 0,
+            WEAPON_FAMILY_CLUB, SIZE_SMALL, MATERIAL_LEATHER, HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD);
   setweapon(WEAPON_TYPE_SHORT_SWORD, "short sword", 1, 6, 1, 2, WEAPON_FLAG_MARTIAL,
-          10, DAMAGE_TYPE_PIERCING, 2, 0, WEAPON_FAMILY_SMALL_BLADE, SIZE_SMALL, MATERIAL_STEEL,
-          HANDLE_TYPE_HILT, HEAD_TYPE_BLADE);
+            10, DAMAGE_TYPE_PIERCING, 2, 0, WEAPON_FAMILY_SMALL_BLADE, SIZE_SMALL, MATERIAL_STEEL,
+            HANDLE_TYPE_HILT, HEAD_TYPE_BLADE);
   setweapon(WEAPON_TYPE_BATTLE_AXE, "battle axe", 1, 8, 0, 3, WEAPON_FLAG_MARTIAL, 10,
-          DAMAGE_TYPE_SLASHING, 6, 0, WEAPON_FAMILY_AXE, SIZE_MEDIUM, MATERIAL_STEEL,
-          HANDLE_TYPE_HANDLE, HEAD_TYPE_BLADE);
+            DAMAGE_TYPE_SLASHING, 6, 0, WEAPON_FAMILY_AXE, SIZE_MEDIUM, MATERIAL_STEEL,
+            HANDLE_TYPE_HANDLE, HEAD_TYPE_BLADE);
   /*	(weapon num, name, numDamDice, sizeDamDice, critRange, critMult, weapon flags, cost, damageType, weight, range, weaponFamily, Size, material, handle, head) */
   setweapon(WEAPON_TYPE_FLAIL, "flail", 1, 8, 0, 2, WEAPON_FLAG_MARTIAL, 8,
-          DAMAGE_TYPE_BLUDGEONING, 5, 0, WEAPON_FAMILY_FLAIL, SIZE_MEDIUM, MATERIAL_STEEL,
-          HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD);
+            DAMAGE_TYPE_BLUDGEONING, 5, 0, WEAPON_FAMILY_FLAIL, SIZE_MEDIUM, MATERIAL_STEEL,
+            HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD);
   setweapon(WEAPON_TYPE_LONG_SWORD, "long sword", 1, 8, 1, 2, WEAPON_FLAG_MARTIAL, 15,
-          DAMAGE_TYPE_SLASHING, 4, 0, WEAPON_FAMILY_MEDIUM_BLADE, SIZE_MEDIUM, MATERIAL_STEEL,
-          HANDLE_TYPE_HILT, HEAD_TYPE_BLADE);
+            DAMAGE_TYPE_SLASHING, 4, 0, WEAPON_FAMILY_MEDIUM_BLADE, SIZE_MEDIUM, MATERIAL_STEEL,
+            HANDLE_TYPE_HILT, HEAD_TYPE_BLADE);
   setweapon(WEAPON_TYPE_HEAVY_PICK, "heavy pick", 1, 6, 0, 4, WEAPON_FLAG_MARTIAL, 8,
-          DAMAGE_TYPE_PIERCING, 6, 0, WEAPON_FAMILY_PICK, SIZE_MEDIUM, MATERIAL_STEEL,
-          HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD);
-  setweapon(WEAPON_TYPE_RAPIER, "rapier", 1, 6, 2, 2, WEAPON_FLAG_MARTIAL |
-          WEAPON_FLAG_BALANCED, 20, DAMAGE_TYPE_PIERCING, 2, 0, WEAPON_FAMILY_SMALL_BLADE,
-          SIZE_SMALL, MATERIAL_STEEL, HANDLE_TYPE_HILT, HEAD_TYPE_BLADE);
+            DAMAGE_TYPE_PIERCING, 6, 0, WEAPON_FAMILY_PICK, SIZE_MEDIUM, MATERIAL_STEEL,
+            HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD);
+  setweapon(WEAPON_TYPE_RAPIER, "rapier", 1, 6, 2, 2, WEAPON_FLAG_MARTIAL | WEAPON_FLAG_BALANCED, 20, DAMAGE_TYPE_PIERCING, 2, 0, WEAPON_FAMILY_SMALL_BLADE,
+            SIZE_SMALL, MATERIAL_STEEL, HANDLE_TYPE_HILT, HEAD_TYPE_BLADE);
   setweapon(WEAPON_TYPE_SCIMITAR, "scimitar", 1, 6, 2, 2, WEAPON_FLAG_MARTIAL, 15,
-          DAMAGE_TYPE_SLASHING, 4, 0, WEAPON_FAMILY_MEDIUM_BLADE, SIZE_MEDIUM, MATERIAL_STEEL,
-          HANDLE_TYPE_HILT, HEAD_TYPE_BLADE);
-  setweapon(WEAPON_TYPE_TRIDENT, "trident", 1, 8, 0, 2, WEAPON_FLAG_MARTIAL |
-          WEAPON_FLAG_THROWN, 15, DAMAGE_TYPE_PIERCING, 4, 0, WEAPON_FAMILY_SPEAR, SIZE_MEDIUM,
-          MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_POINT);
+            DAMAGE_TYPE_SLASHING, 4, 0, WEAPON_FAMILY_MEDIUM_BLADE, SIZE_MEDIUM, MATERIAL_STEEL,
+            HANDLE_TYPE_HILT, HEAD_TYPE_BLADE);
+  setweapon(WEAPON_TYPE_TRIDENT, "trident", 1, 8, 0, 2, WEAPON_FLAG_MARTIAL | WEAPON_FLAG_THROWN, 15, DAMAGE_TYPE_PIERCING, 4, 0, WEAPON_FAMILY_SPEAR, SIZE_MEDIUM,
+            MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_POINT);
   setweapon(WEAPON_TYPE_WARHAMMER, "warhammer", 1, 8, 0, 3, WEAPON_FLAG_MARTIAL, 12,
-          DAMAGE_TYPE_BLUDGEONING, 5, 0, WEAPON_FAMILY_HAMMER, SIZE_MEDIUM, MATERIAL_STEEL,
-          HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD);
+            DAMAGE_TYPE_BLUDGEONING, 5, 0, WEAPON_FAMILY_HAMMER, SIZE_MEDIUM, MATERIAL_STEEL,
+            HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD);
   setweapon(WEAPON_TYPE_FALCHION, "falchion", 2, 4, 2, 2, WEAPON_FLAG_MARTIAL, 75,
-          DAMAGE_TYPE_SLASHING, 8, 0, WEAPON_FAMILY_LARGE_BLADE, SIZE_LARGE, MATERIAL_STEEL,
-          HANDLE_TYPE_HILT, HEAD_TYPE_BLADE);
-  setweapon(WEAPON_TYPE_GLAIVE, "glaive", 1, 10, 0, 3, WEAPON_FLAG_MARTIAL |
-          WEAPON_FLAG_REACH, 8, DAMAGE_TYPE_SLASHING, 10, 0, WEAPON_FAMILY_POLEARM, SIZE_LARGE,
-          MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_BLADE);
+            DAMAGE_TYPE_SLASHING, 8, 0, WEAPON_FAMILY_LARGE_BLADE, SIZE_LARGE, MATERIAL_STEEL,
+            HANDLE_TYPE_HILT, HEAD_TYPE_BLADE);
+  setweapon(WEAPON_TYPE_GLAIVE, "glaive", 1, 10, 0, 3, WEAPON_FLAG_MARTIAL | WEAPON_FLAG_REACH, 8, DAMAGE_TYPE_SLASHING, 10, 0, WEAPON_FAMILY_POLEARM, SIZE_LARGE,
+            MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_BLADE);
   setweapon(WEAPON_TYPE_GREAT_AXE, "great axe", 1, 12, 0, 3, WEAPON_FLAG_MARTIAL, 20,
-          DAMAGE_TYPE_SLASHING, 12, 0, WEAPON_FAMILY_AXE, SIZE_LARGE, MATERIAL_STEEL,
-          HANDLE_TYPE_HANDLE, HEAD_TYPE_BLADE);
+            DAMAGE_TYPE_SLASHING, 12, 0, WEAPON_FAMILY_AXE, SIZE_LARGE, MATERIAL_STEEL,
+            HANDLE_TYPE_HANDLE, HEAD_TYPE_BLADE);
   setweapon(WEAPON_TYPE_GREAT_CLUB, "great club", 1, 10, 0, 2, WEAPON_FLAG_MARTIAL, 5,
-          DAMAGE_TYPE_BLUDGEONING, 8, 0, WEAPON_FAMILY_CLUB, SIZE_LARGE, MATERIAL_WOOD,
-          HANDLE_TYPE_SHAFT, HEAD_TYPE_HEAD);
+            DAMAGE_TYPE_BLUDGEONING, 8, 0, WEAPON_FAMILY_CLUB, SIZE_LARGE, MATERIAL_WOOD,
+            HANDLE_TYPE_SHAFT, HEAD_TYPE_HEAD);
   /*	(weapon num, name, numDamDice, sizeDamDice, critRange, critMult, weapon flags, cost, damageType, weight, range, weaponFamily, Size, material, handle, head) */
   setweapon(WEAPON_TYPE_HEAVY_FLAIL, "heavy flail", 1, 10, 1, 2, WEAPON_FLAG_MARTIAL,
-          15, DAMAGE_TYPE_BLUDGEONING, 10, 0, WEAPON_FAMILY_FLAIL, SIZE_LARGE, MATERIAL_STEEL,
-          HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD);
+            15, DAMAGE_TYPE_BLUDGEONING, 10, 0, WEAPON_FAMILY_FLAIL, SIZE_LARGE, MATERIAL_STEEL,
+            HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD);
   setweapon(WEAPON_TYPE_GREAT_SWORD, "great sword", 2, 6, 1, 2, WEAPON_FLAG_MARTIAL,
-          50, DAMAGE_TYPE_SLASHING, 8, 0, WEAPON_FAMILY_LARGE_BLADE, SIZE_LARGE, MATERIAL_STEEL,
-          HANDLE_TYPE_HILT, HEAD_TYPE_BLADE);
-  setweapon(WEAPON_TYPE_GUISARME, "guisarme", 2, 4, 0, 3, WEAPON_FLAG_MARTIAL |
-          WEAPON_FLAG_REACH, 9, DAMAGE_TYPE_SLASHING, 12, 0, WEAPON_FAMILY_POLEARM, SIZE_LARGE,
-          MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_BLADE);
-  setweapon(WEAPON_TYPE_HALBERD, "halberd", 1, 10, 0, 3, WEAPON_FLAG_MARTIAL |
-          WEAPON_FLAG_REACH, 10, DAMAGE_TYPE_SLASHING | DAMAGE_TYPE_PIERCING, 12, 0,
-          WEAPON_FAMILY_POLEARM, SIZE_LARGE, MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_BLADE);
-  setweapon(WEAPON_TYPE_LANCE, "lance", 1, 8, 0, 3, WEAPON_FLAG_MARTIAL |
-          WEAPON_FLAG_REACH | WEAPON_FLAG_CHARGE, 10, DAMAGE_TYPE_PIERCING, 10, 0,
-          WEAPON_FAMILY_POLEARM, SIZE_LARGE, MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_POINT);
-  setweapon(WEAPON_TYPE_RANSEUR, "ranseur", 2, 4, 0, 3, WEAPON_FLAG_MARTIAL |
-          WEAPON_FLAG_REACH, 10, DAMAGE_TYPE_PIERCING, 10, 0, WEAPON_FAMILY_POLEARM, SIZE_LARGE,
-          MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_POINT);
+            50, DAMAGE_TYPE_SLASHING, 8, 0, WEAPON_FAMILY_LARGE_BLADE, SIZE_LARGE, MATERIAL_STEEL,
+            HANDLE_TYPE_HILT, HEAD_TYPE_BLADE);
+  setweapon(WEAPON_TYPE_GUISARME, "guisarme", 2, 4, 0, 3, WEAPON_FLAG_MARTIAL | WEAPON_FLAG_REACH, 9, DAMAGE_TYPE_SLASHING, 12, 0, WEAPON_FAMILY_POLEARM, SIZE_LARGE,
+            MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_BLADE);
+  setweapon(WEAPON_TYPE_HALBERD, "halberd", 1, 10, 0, 3, WEAPON_FLAG_MARTIAL | WEAPON_FLAG_REACH, 10, DAMAGE_TYPE_SLASHING | DAMAGE_TYPE_PIERCING, 12, 0,
+            WEAPON_FAMILY_POLEARM, SIZE_LARGE, MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_BLADE);
+  setweapon(WEAPON_TYPE_LANCE, "lance", 1, 8, 0, 3, WEAPON_FLAG_MARTIAL | WEAPON_FLAG_REACH | WEAPON_FLAG_CHARGE, 10, DAMAGE_TYPE_PIERCING, 10, 0,
+            WEAPON_FAMILY_POLEARM, SIZE_LARGE, MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_POINT);
+  setweapon(WEAPON_TYPE_RANSEUR, "ranseur", 2, 4, 0, 3, WEAPON_FLAG_MARTIAL | WEAPON_FLAG_REACH, 10, DAMAGE_TYPE_PIERCING, 10, 0, WEAPON_FAMILY_POLEARM, SIZE_LARGE,
+            MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_POINT);
   setweapon(WEAPON_TYPE_SCYTHE, "scythe", 2, 4, 0, 4, WEAPON_FLAG_MARTIAL, 18,
-          DAMAGE_TYPE_SLASHING | DAMAGE_TYPE_PIERCING, 10, 0, WEAPON_FAMILY_POLEARM, SIZE_LARGE,
-          MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_BLADE);
-  setweapon(WEAPON_TYPE_LONG_BOW, "long bow", 1, 8, 0, 3, WEAPON_FLAG_MARTIAL |
-          WEAPON_FLAG_RANGED, 75, DAMAGE_TYPE_PIERCING, 3, 100, WEAPON_FAMILY_BOW, SIZE_LARGE,
-          MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW);
+            DAMAGE_TYPE_SLASHING | DAMAGE_TYPE_PIERCING, 10, 0, WEAPON_FAMILY_POLEARM, SIZE_LARGE,
+            MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_BLADE);
+  setweapon(WEAPON_TYPE_LONG_BOW, "long bow", 1, 8, 0, 3, WEAPON_FLAG_MARTIAL | WEAPON_FLAG_RANGED, 75, DAMAGE_TYPE_PIERCING, 3, 100, WEAPON_FAMILY_BOW, SIZE_LARGE,
+            MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW);
 
   setweapon(WEAPON_TYPE_COMPOSITE_LONGBOW, "composite long bow", 1, 8, 0, 3,
-          WEAPON_FLAG_MARTIAL | WEAPON_FLAG_RANGED, 100, DAMAGE_TYPE_PIERCING, 3, 110,
-          WEAPON_FAMILY_BOW, SIZE_LARGE, MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW);
+            WEAPON_FLAG_MARTIAL | WEAPON_FLAG_RANGED, 100, DAMAGE_TYPE_PIERCING, 3, 110,
+            WEAPON_FAMILY_BOW, SIZE_LARGE, MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW);
   setweapon(WEAPON_TYPE_COMPOSITE_LONGBOW_2, "composite long bow (2)", 1, 8, 0, 3,
-          WEAPON_FLAG_MARTIAL | WEAPON_FLAG_RANGED, 200, DAMAGE_TYPE_PIERCING, 3, 110,
-          WEAPON_FAMILY_BOW, SIZE_LARGE, MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW);
+            WEAPON_FLAG_MARTIAL | WEAPON_FLAG_RANGED, 200, DAMAGE_TYPE_PIERCING, 3, 110,
+            WEAPON_FAMILY_BOW, SIZE_LARGE, MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW);
   setweapon(WEAPON_TYPE_COMPOSITE_LONGBOW_3, "composite long bow (3)", 1, 8, 0, 3,
-          WEAPON_FLAG_MARTIAL | WEAPON_FLAG_RANGED, 300, DAMAGE_TYPE_PIERCING, 3, 110,
-          WEAPON_FAMILY_BOW, SIZE_LARGE, MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW);
+            WEAPON_FLAG_MARTIAL | WEAPON_FLAG_RANGED, 300, DAMAGE_TYPE_PIERCING, 3, 110,
+            WEAPON_FAMILY_BOW, SIZE_LARGE, MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW);
   setweapon(WEAPON_TYPE_COMPOSITE_LONGBOW_4, "composite long bow (4)", 1, 8, 0, 3,
-          WEAPON_FLAG_MARTIAL | WEAPON_FLAG_RANGED, 400, DAMAGE_TYPE_PIERCING, 3, 110,
-          WEAPON_FAMILY_BOW, SIZE_LARGE, MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW);
+            WEAPON_FLAG_MARTIAL | WEAPON_FLAG_RANGED, 400, DAMAGE_TYPE_PIERCING, 3, 110,
+            WEAPON_FAMILY_BOW, SIZE_LARGE, MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW);
   setweapon(WEAPON_TYPE_COMPOSITE_LONGBOW_5, "composite long bow (5)", 1, 8, 0, 3,
-          WEAPON_FLAG_MARTIAL | WEAPON_FLAG_RANGED, 500, DAMAGE_TYPE_PIERCING, 3, 110,
-          WEAPON_FAMILY_BOW, SIZE_LARGE, MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW);
+            WEAPON_FLAG_MARTIAL | WEAPON_FLAG_RANGED, 500, DAMAGE_TYPE_PIERCING, 3, 110,
+            WEAPON_FAMILY_BOW, SIZE_LARGE, MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW);
 
-  setweapon(WEAPON_TYPE_SHORT_BOW, "short bow", 1, 6, 0, 3, WEAPON_FLAG_MARTIAL |
-          WEAPON_FLAG_RANGED, 30, DAMAGE_TYPE_PIERCING, 2, 60, WEAPON_FAMILY_BOW, SIZE_MEDIUM,
-          MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW);
+  setweapon(WEAPON_TYPE_SHORT_BOW, "short bow", 1, 6, 0, 3, WEAPON_FLAG_MARTIAL | WEAPON_FLAG_RANGED, 30, DAMAGE_TYPE_PIERCING, 2, 60, WEAPON_FAMILY_BOW, SIZE_MEDIUM,
+            MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW);
 
   setweapon(WEAPON_TYPE_COMPOSITE_SHORTBOW, "composite short bow", 1, 6, 0, 3,
-          WEAPON_FLAG_MARTIAL | WEAPON_FLAG_RANGED, 75, DAMAGE_TYPE_PIERCING, 2, 70,
-          WEAPON_FAMILY_BOW, SIZE_SMALL, MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW);
+            WEAPON_FLAG_MARTIAL | WEAPON_FLAG_RANGED, 75, DAMAGE_TYPE_PIERCING, 2, 70,
+            WEAPON_FAMILY_BOW, SIZE_SMALL, MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW);
   setweapon(WEAPON_TYPE_COMPOSITE_SHORTBOW_2, "composite short bow (2)", 1, 6, 0, 3,
-          WEAPON_FLAG_MARTIAL | WEAPON_FLAG_RANGED, 175, DAMAGE_TYPE_PIERCING, 2, 70,
-          WEAPON_FAMILY_BOW, SIZE_SMALL, MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW);
+            WEAPON_FLAG_MARTIAL | WEAPON_FLAG_RANGED, 175, DAMAGE_TYPE_PIERCING, 2, 70,
+            WEAPON_FAMILY_BOW, SIZE_SMALL, MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW);
   setweapon(WEAPON_TYPE_COMPOSITE_SHORTBOW_3, "composite short bow (3)", 1, 6, 0, 3,
-          WEAPON_FLAG_MARTIAL | WEAPON_FLAG_RANGED, 275, DAMAGE_TYPE_PIERCING, 2, 70,
-          WEAPON_FAMILY_BOW, SIZE_SMALL, MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW);
+            WEAPON_FLAG_MARTIAL | WEAPON_FLAG_RANGED, 275, DAMAGE_TYPE_PIERCING, 2, 70,
+            WEAPON_FAMILY_BOW, SIZE_SMALL, MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW);
   setweapon(WEAPON_TYPE_COMPOSITE_SHORTBOW_4, "composite short bow (4)", 1, 6, 0, 3,
-          WEAPON_FLAG_MARTIAL | WEAPON_FLAG_RANGED, 375, DAMAGE_TYPE_PIERCING, 2, 70,
-          WEAPON_FAMILY_BOW, SIZE_SMALL, MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW);
+            WEAPON_FLAG_MARTIAL | WEAPON_FLAG_RANGED, 375, DAMAGE_TYPE_PIERCING, 2, 70,
+            WEAPON_FAMILY_BOW, SIZE_SMALL, MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW);
   setweapon(WEAPON_TYPE_COMPOSITE_SHORTBOW_5, "composite short bow (5)", 1, 6, 0, 3,
-          WEAPON_FLAG_MARTIAL | WEAPON_FLAG_RANGED, 475, DAMAGE_TYPE_PIERCING, 2, 70,
-          WEAPON_FAMILY_BOW, SIZE_SMALL, MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW);
+            WEAPON_FLAG_MARTIAL | WEAPON_FLAG_RANGED, 475, DAMAGE_TYPE_PIERCING, 2, 70,
+            WEAPON_FAMILY_BOW, SIZE_SMALL, MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW);
 
   /*	(weapon num, name, numDamDice, sizeDamDice, critRange, critMult, weapon flags, cost, damageType, weight, range, weaponFamily, Size, material, handle, head) */
   setweapon(WEAPON_TYPE_KAMA, "kama", 1, 6, 0, 2, WEAPON_FLAG_EXOTIC, 2,
-          DAMAGE_TYPE_SLASHING, 2, 0, WEAPON_FAMILY_MONK, SIZE_SMALL, MATERIAL_STEEL,
-          HANDLE_TYPE_HANDLE, HEAD_TYPE_BLADE);
+            DAMAGE_TYPE_SLASHING, 2, 0, WEAPON_FAMILY_MONK, SIZE_SMALL, MATERIAL_STEEL,
+            HANDLE_TYPE_HANDLE, HEAD_TYPE_BLADE);
   setweapon(WEAPON_TYPE_NUNCHAKU, "nunchaku", 1, 6, 1, 2, WEAPON_FLAG_EXOTIC, 2,
-          DAMAGE_TYPE_BLUDGEONING, 2, 0, WEAPON_FAMILY_MONK, SIZE_SMALL, MATERIAL_WOOD,
-          HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD);
+            DAMAGE_TYPE_BLUDGEONING, 2, 0, WEAPON_FAMILY_MONK, SIZE_SMALL, MATERIAL_WOOD,
+            HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD);
   setweapon(WEAPON_TYPE_SAI, "sai", 1, 4, 1, 2, WEAPON_FLAG_EXOTIC | WEAPON_FLAG_THROWN,
-          1, DAMAGE_TYPE_BLUDGEONING, 1, 10, WEAPON_FAMILY_MONK, SIZE_SMALL, MATERIAL_STEEL,
-          HANDLE_TYPE_HANDLE, HEAD_TYPE_POINT);
+            1, DAMAGE_TYPE_BLUDGEONING, 1, 10, WEAPON_FAMILY_MONK, SIZE_SMALL, MATERIAL_STEEL,
+            HANDLE_TYPE_HANDLE, HEAD_TYPE_POINT);
   setweapon(WEAPON_TYPE_SIANGHAM, "siangham", 1, 6, 1, 2, WEAPON_FLAG_EXOTIC, 3,
-          DAMAGE_TYPE_PIERCING, 1, 0, WEAPON_FAMILY_MONK, SIZE_SMALL, MATERIAL_STEEL,
-          HANDLE_TYPE_HANDLE, HEAD_TYPE_POINT);
+            DAMAGE_TYPE_PIERCING, 1, 0, WEAPON_FAMILY_MONK, SIZE_SMALL, MATERIAL_STEEL,
+            HANDLE_TYPE_HANDLE, HEAD_TYPE_POINT);
   setweapon(WEAPON_TYPE_BASTARD_SWORD, "bastard sword", 1, 10, 1, 2, WEAPON_FLAG_EXOTIC,
-          35, DAMAGE_TYPE_SLASHING, 6, 0, WEAPON_FAMILY_MEDIUM_BLADE, SIZE_MEDIUM, MATERIAL_STEEL,
-          HANDLE_TYPE_HILT, HEAD_TYPE_BLADE);
+            35, DAMAGE_TYPE_SLASHING, 6, 0, WEAPON_FAMILY_MEDIUM_BLADE, SIZE_MEDIUM, MATERIAL_STEEL,
+            HANDLE_TYPE_HILT, HEAD_TYPE_BLADE);
   setweapon(WEAPON_TYPE_DWARVEN_WAR_AXE, "dwarven war axe", 1, 10, 0, 3,
-          WEAPON_FLAG_EXOTIC, 30, DAMAGE_TYPE_SLASHING, 8, 0, WEAPON_FAMILY_AXE, SIZE_MEDIUM,
-          MATERIAL_STEEL, HANDLE_TYPE_HANDLE, HEAD_TYPE_BLADE);
-  setweapon(WEAPON_TYPE_WHIP, "whip", 1, 3, 0, 2, WEAPON_FLAG_EXOTIC | WEAPON_FLAG_REACH
-          | WEAPON_FLAG_DISARM | WEAPON_FLAG_TRIP | WEAPON_FLAG_BALANCED, 1, DAMAGE_TYPE_SLASHING, 2, 0, WEAPON_FAMILY_WHIP,
-          SIZE_MEDIUM, MATERIAL_LEATHER, HANDLE_TYPE_HANDLE, HEAD_TYPE_CORD);
-  setweapon(WEAPON_TYPE_SPIKED_CHAIN, "spiked chain", 2, 4, 0, 2, WEAPON_FLAG_EXOTIC |
-          WEAPON_FLAG_REACH | WEAPON_FLAG_DISARM | WEAPON_FLAG_TRIP | WEAPON_FLAG_BALANCED, 25, DAMAGE_TYPE_PIERCING, 10, 0,
-          WEAPON_FAMILY_WHIP, SIZE_LARGE, MATERIAL_STEEL, HANDLE_TYPE_GRIP, HEAD_TYPE_CHAIN);
-  setweapon(WEAPON_TYPE_DOUBLE_AXE, "double-headed axe", 1, 8, 0, 3, WEAPON_FLAG_EXOTIC |
-          WEAPON_FLAG_DOUBLE, 65, DAMAGE_TYPE_SLASHING, 15, 0, WEAPON_FAMILY_DOUBLE, SIZE_LARGE,
-          MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_BLADE);
-  setweapon(WEAPON_TYPE_DIRE_FLAIL, "dire flail", 1, 8, 0, 2, WEAPON_FLAG_EXOTIC |
-          WEAPON_FLAG_DOUBLE, 90, DAMAGE_TYPE_BLUDGEONING, 10, 0, WEAPON_FAMILY_DOUBLE, SIZE_LARGE,
-          MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_HEAD);
-  setweapon(WEAPON_TYPE_HOOKED_HAMMER, "hooked hammer", 1, 6, 0, 4, WEAPON_FLAG_EXOTIC |
-          WEAPON_FLAG_DOUBLE, 20, DAMAGE_TYPE_PIERCING | DAMAGE_TYPE_BLUDGEONING, 6, 0,
-          WEAPON_FAMILY_DOUBLE, SIZE_LARGE, MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_HEAD);
+            WEAPON_FLAG_EXOTIC, 30, DAMAGE_TYPE_SLASHING, 8, 0, WEAPON_FAMILY_AXE, SIZE_MEDIUM,
+            MATERIAL_STEEL, HANDLE_TYPE_HANDLE, HEAD_TYPE_BLADE);
+  setweapon(WEAPON_TYPE_WHIP, "whip", 1, 3, 0, 2, WEAPON_FLAG_EXOTIC | WEAPON_FLAG_REACH | WEAPON_FLAG_DISARM | WEAPON_FLAG_TRIP | WEAPON_FLAG_BALANCED, 1, DAMAGE_TYPE_SLASHING, 2, 0, WEAPON_FAMILY_WHIP,
+            SIZE_MEDIUM, MATERIAL_LEATHER, HANDLE_TYPE_HANDLE, HEAD_TYPE_CORD);
+  setweapon(WEAPON_TYPE_SPIKED_CHAIN, "spiked chain", 2, 4, 0, 2, WEAPON_FLAG_EXOTIC | WEAPON_FLAG_REACH | WEAPON_FLAG_DISARM | WEAPON_FLAG_TRIP | WEAPON_FLAG_BALANCED, 25, DAMAGE_TYPE_PIERCING, 10, 0,
+            WEAPON_FAMILY_WHIP, SIZE_LARGE, MATERIAL_STEEL, HANDLE_TYPE_GRIP, HEAD_TYPE_CHAIN);
+  setweapon(WEAPON_TYPE_DOUBLE_AXE, "double-headed axe", 1, 8, 0, 3, WEAPON_FLAG_EXOTIC | WEAPON_FLAG_DOUBLE, 65, DAMAGE_TYPE_SLASHING, 15, 0, WEAPON_FAMILY_DOUBLE, SIZE_LARGE,
+            MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_BLADE);
+  setweapon(WEAPON_TYPE_DIRE_FLAIL, "dire flail", 1, 8, 0, 2, WEAPON_FLAG_EXOTIC | WEAPON_FLAG_DOUBLE, 90, DAMAGE_TYPE_BLUDGEONING, 10, 0, WEAPON_FAMILY_DOUBLE, SIZE_LARGE,
+            MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_HEAD);
+  setweapon(WEAPON_TYPE_HOOKED_HAMMER, "hooked hammer", 1, 6, 0, 4, WEAPON_FLAG_EXOTIC | WEAPON_FLAG_DOUBLE, 20, DAMAGE_TYPE_PIERCING | DAMAGE_TYPE_BLUDGEONING, 6, 0,
+            WEAPON_FAMILY_DOUBLE, SIZE_LARGE, MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_HEAD);
   /*	(weapon num, name, numDamDice, sizeDamDice, critRange, critMult, weapon flags, cost, damageType, weight, range, weaponFamily, Size, material, handle, head) */
   setweapon(WEAPON_TYPE_2_BLADED_SWORD, "two-bladed sword", 1, 8, 1, 2,
-          WEAPON_FLAG_EXOTIC | WEAPON_FLAG_DOUBLE, 100, DAMAGE_TYPE_SLASHING, 10, 0,
-          WEAPON_FAMILY_DOUBLE, SIZE_LARGE, MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_BLADE);
-  setweapon(WEAPON_TYPE_DWARVEN_URGOSH, "dwarven urgosh", 1, 7, 0, 3, WEAPON_FLAG_EXOTIC
-          | WEAPON_FLAG_DOUBLE, 50, DAMAGE_TYPE_PIERCING | DAMAGE_TYPE_SLASHING, 12, 0,
-          WEAPON_FAMILY_DOUBLE, SIZE_LARGE, MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_BLADE);
-  setweapon(WEAPON_TYPE_HAND_CROSSBOW, "hand crossbow", 1, 4, 1, 2, WEAPON_FLAG_EXOTIC |
-          WEAPON_FLAG_RANGED, 100, DAMAGE_TYPE_PIERCING, 2, 30, WEAPON_FAMILY_CROSSBOW, SIZE_SMALL,
-          MATERIAL_WOOD, HANDLE_TYPE_HANDLE, HEAD_TYPE_BOW);
+            WEAPON_FLAG_EXOTIC | WEAPON_FLAG_DOUBLE, 100, DAMAGE_TYPE_SLASHING, 10, 0,
+            WEAPON_FAMILY_DOUBLE, SIZE_LARGE, MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_BLADE);
+  setweapon(WEAPON_TYPE_DWARVEN_URGOSH, "dwarven urgosh", 1, 7, 0, 3, WEAPON_FLAG_EXOTIC | WEAPON_FLAG_DOUBLE, 50, DAMAGE_TYPE_PIERCING | DAMAGE_TYPE_SLASHING, 12, 0,
+            WEAPON_FAMILY_DOUBLE, SIZE_LARGE, MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_BLADE);
+  setweapon(WEAPON_TYPE_HAND_CROSSBOW, "hand crossbow", 1, 4, 1, 2, WEAPON_FLAG_EXOTIC | WEAPON_FLAG_RANGED, 100, DAMAGE_TYPE_PIERCING, 2, 30, WEAPON_FAMILY_CROSSBOW, SIZE_SMALL,
+            MATERIAL_WOOD, HANDLE_TYPE_HANDLE, HEAD_TYPE_BOW);
   setweapon(WEAPON_TYPE_HEAVY_REP_XBOW, "heavy repeating crossbow", 1, 10, 1, 2,
-          WEAPON_FLAG_EXOTIC | WEAPON_FLAG_RANGED | WEAPON_FLAG_REPEATING, 400, DAMAGE_TYPE_PIERCING, 12, 120,
-          WEAPON_FAMILY_CROSSBOW, SIZE_LARGE, MATERIAL_WOOD, HANDLE_TYPE_HANDLE, HEAD_TYPE_BOW);
+            WEAPON_FLAG_EXOTIC | WEAPON_FLAG_RANGED | WEAPON_FLAG_REPEATING, 400, DAMAGE_TYPE_PIERCING, 12, 120,
+            WEAPON_FAMILY_CROSSBOW, SIZE_LARGE, MATERIAL_WOOD, HANDLE_TYPE_HANDLE, HEAD_TYPE_BOW);
   setweapon(WEAPON_TYPE_LIGHT_REP_XBOW, "light repeating crossbow", 1, 8, 1, 2,
-          WEAPON_FLAG_EXOTIC | WEAPON_FLAG_RANGED, 250, DAMAGE_TYPE_PIERCING, 6, 80,
-          WEAPON_FAMILY_CROSSBOW, SIZE_MEDIUM, MATERIAL_WOOD, HANDLE_TYPE_HANDLE, HEAD_TYPE_BOW);
-  setweapon(WEAPON_TYPE_BOLA, "bola", 1, 4, 0, 2, WEAPON_FLAG_EXOTIC | WEAPON_FLAG_THROWN
-          | WEAPON_FLAG_TRIP, 5, DAMAGE_TYPE_BLUDGEONING, 2, 10, WEAPON_FAMILY_THROWN, SIZE_MEDIUM,
-          MATERIAL_LEATHER, HANDLE_TYPE_GRIP, HEAD_TYPE_CORD);
-  setweapon(WEAPON_TYPE_NET, "net", 1, 1, 0, 1, WEAPON_FLAG_EXOTIC | WEAPON_FLAG_THROWN |
-          WEAPON_FLAG_ENTANGLE, 20, DAMAGE_TYPE_BLUDGEONING, 6, 10, WEAPON_FAMILY_THROWN, SIZE_LARGE,
-          MATERIAL_LEATHER, HANDLE_TYPE_GRIP, HEAD_TYPE_MESH);
-  setweapon(WEAPON_TYPE_SHURIKEN, "shuriken", 1, 2, 0, 2, WEAPON_FLAG_EXOTIC |
-          WEAPON_FLAG_THROWN, 1, DAMAGE_TYPE_PIERCING, 1, 10, WEAPON_FAMILY_MONK, SIZE_SMALL,
-          MATERIAL_STEEL, HANDLE_TYPE_GRIP, HEAD_TYPE_BLADE);
+            WEAPON_FLAG_EXOTIC | WEAPON_FLAG_RANGED, 250, DAMAGE_TYPE_PIERCING, 6, 80,
+            WEAPON_FAMILY_CROSSBOW, SIZE_MEDIUM, MATERIAL_WOOD, HANDLE_TYPE_HANDLE, HEAD_TYPE_BOW);
+  setweapon(WEAPON_TYPE_BOLA, "bola", 1, 4, 0, 2, WEAPON_FLAG_EXOTIC | WEAPON_FLAG_THROWN | WEAPON_FLAG_TRIP, 5, DAMAGE_TYPE_BLUDGEONING, 2, 10, WEAPON_FAMILY_THROWN, SIZE_MEDIUM,
+            MATERIAL_LEATHER, HANDLE_TYPE_GRIP, HEAD_TYPE_CORD);
+  setweapon(WEAPON_TYPE_NET, "net", 1, 1, 0, 1, WEAPON_FLAG_EXOTIC | WEAPON_FLAG_THROWN | WEAPON_FLAG_ENTANGLE, 20, DAMAGE_TYPE_BLUDGEONING, 6, 10, WEAPON_FAMILY_THROWN, SIZE_LARGE,
+            MATERIAL_LEATHER, HANDLE_TYPE_GRIP, HEAD_TYPE_MESH);
+  setweapon(WEAPON_TYPE_SHURIKEN, "shuriken", 1, 2, 0, 2, WEAPON_FLAG_EXOTIC | WEAPON_FLAG_THROWN, 1, DAMAGE_TYPE_PIERCING, 1, 10, WEAPON_FAMILY_MONK, SIZE_SMALL,
+            MATERIAL_STEEL, HANDLE_TYPE_GRIP, HEAD_TYPE_BLADE);
   setweapon(WEAPON_TYPE_WARMAUL, "war maul", 2, 6, 0, 3, WEAPON_FLAG_EXOTIC, 50,
-          DAMAGE_TYPE_BLUDGEONING, 10, 0, WEAPON_FAMILY_HAMMER, SIZE_LARGE, MATERIAL_STEEL,
-          HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD);
+            DAMAGE_TYPE_BLUDGEONING, 10, 0, WEAPON_FAMILY_HAMMER, SIZE_LARGE, MATERIAL_STEEL,
+            HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD);
 }
 
 /************** ------- ARMOR ----------************************************/
@@ -1012,16 +1051,20 @@ void load_weapons(void) {
 /* we have to be strict here, some classes such as monk require armor_type
    check, we are going to return the lowest armortype-value that the given
    ch is wearing */
-int compute_gear_armor_type(struct char_data *ch) {
+int compute_gear_armor_type(struct char_data *ch)
+{
   int armor_type = ARMOR_TYPE_NONE, armor_compare = ARMOR_TYPE_NONE, i;
   struct obj_data *obj = NULL;
 
-  for (i = 0; i < NUM_WEARS; i++) {
+  for (i = 0; i < NUM_WEARS; i++)
+  {
     obj = GET_EQ(ch, i);
-    if (obj && GET_OBJ_TYPE(obj) == ITEM_ARMOR) {
+    if (obj && GET_OBJ_TYPE(obj) == ITEM_ARMOR)
+    {
       /* ok we have an armor piece... */
       armor_compare = armor_list[GET_OBJ_VAL(obj, 1)].armorType;
-      if (armor_compare < ARMOR_TYPE_SHIELD && armor_compare > armor_type) {
+      if (armor_compare < ARMOR_TYPE_SHIELD && armor_compare > armor_type)
+      {
         armor_type = armor_compare;
       }
     }
@@ -1030,13 +1073,16 @@ int compute_gear_armor_type(struct char_data *ch) {
   return armor_type;
 }
 
-int compute_gear_shield_type(struct char_data *ch) {
+int compute_gear_shield_type(struct char_data *ch)
+{
   int shield_type = ARMOR_TYPE_NONE;
   struct obj_data *obj = GET_EQ(ch, WEAR_SHIELD);
 
-  if (obj) {
+  if (obj)
+  {
     shield_type = armor_list[GET_OBJ_VAL(obj, 1)].armorType;
-    if (shield_type != ARMOR_TYPE_SHIELD && shield_type != ARMOR_TYPE_TOWER_SHIELD) {
+    if (shield_type != ARMOR_TYPE_SHIELD && shield_type != ARMOR_TYPE_TOWER_SHIELD)
+    {
       shield_type = ARMOR_TYPE_NONE;
     }
   }
@@ -1045,7 +1091,8 @@ int compute_gear_shield_type(struct char_data *ch) {
 }
 
 /* enhancement bonus + material bonus */
-int compute_gear_enhancement_bonus(struct char_data *ch) {
+int compute_gear_enhancement_bonus(struct char_data *ch)
+{
   struct obj_data *obj = NULL;
   int enhancement_bonus = 0;
   float counter = 0.0;
@@ -1056,17 +1103,19 @@ int compute_gear_enhancement_bonus(struct char_data *ch) {
   /* SPECIAL HANDLING FOR SHIELD */
   /* shield - gets full enchantment bonus, so _do not_ increment num_pieces */
   obj = GET_EQ(ch, WEAR_SHIELD);
-  if (obj && GET_OBJ_TYPE(obj) == ITEM_ARMOR) {
-    switch (GET_OBJ_MATERIAL(obj)) {
-      case MATERIAL_ADAMANTINE:
-      case MATERIAL_MITHRIL:
-      case MATERIAL_DRAGONHIDE:
-      case MATERIAL_DIAMOND:
-      case MATERIAL_DARKWOOD:
-        counter += 1.1;
-        break;
+  if (obj && GET_OBJ_TYPE(obj) == ITEM_ARMOR)
+  {
+    switch (GET_OBJ_MATERIAL(obj))
+    {
+    case MATERIAL_ADAMANTINE:
+    case MATERIAL_MITHRIL:
+    case MATERIAL_DRAGONHIDE:
+    case MATERIAL_DIAMOND:
+    case MATERIAL_DARKWOOD:
+      counter += 1.1;
+      break;
     }
-    counter += (float) GET_OBJ_VAL(obj, 4) * 1.01;
+    counter += (float)GET_OBJ_VAL(obj, 4) * 1.01;
     /* DON'T increment num_pieces, should get full bang for buck on shields */
   }
   enhancement_bonus += counter;
@@ -1076,82 +1125,93 @@ int compute_gear_enhancement_bonus(struct char_data *ch) {
   /* body */
   obj = GET_EQ(ch, WEAR_BODY);
   num_pieces += 0.99;
-  if (obj && GET_OBJ_TYPE(obj) == ITEM_ARMOR) {
-    switch (GET_OBJ_MATERIAL(obj)) {
-      case MATERIAL_ADAMANTINE:
-      case MATERIAL_MITHRIL:
-      case MATERIAL_DRAGONHIDE:
-      case MATERIAL_DIAMOND:
-      case MATERIAL_DARKWOOD:
-        counter += 1.1;
-        break;
+  if (obj && GET_OBJ_TYPE(obj) == ITEM_ARMOR)
+  {
+    switch (GET_OBJ_MATERIAL(obj))
+    {
+    case MATERIAL_ADAMANTINE:
+    case MATERIAL_MITHRIL:
+    case MATERIAL_DRAGONHIDE:
+    case MATERIAL_DIAMOND:
+    case MATERIAL_DARKWOOD:
+      counter += 1.1;
+      break;
     }
-    counter += (float) GET_OBJ_VAL(obj, 4) * 1.01;
+    counter += (float)GET_OBJ_VAL(obj, 4) * 1.01;
   }
 
   /* head */
   obj = GET_EQ(ch, WEAR_HEAD);
   num_pieces += 0.99;
-  if (obj && GET_OBJ_TYPE(obj) == ITEM_ARMOR) {
-    switch (GET_OBJ_MATERIAL(obj)) {
-      case MATERIAL_ADAMANTINE:
-      case MATERIAL_MITHRIL:
-      case MATERIAL_DRAGONHIDE:
-      case MATERIAL_DIAMOND:
-      case MATERIAL_DARKWOOD:
-        counter += 1.1;
-        break;
+  if (obj && GET_OBJ_TYPE(obj) == ITEM_ARMOR)
+  {
+    switch (GET_OBJ_MATERIAL(obj))
+    {
+    case MATERIAL_ADAMANTINE:
+    case MATERIAL_MITHRIL:
+    case MATERIAL_DRAGONHIDE:
+    case MATERIAL_DIAMOND:
+    case MATERIAL_DARKWOOD:
+      counter += 1.1;
+      break;
     }
-    counter += (float) GET_OBJ_VAL(obj, 4) * 1.01;
+    counter += (float)GET_OBJ_VAL(obj, 4) * 1.01;
   }
 
   /* legs */
   obj = GET_EQ(ch, WEAR_LEGS);
   num_pieces += 0.99;
-  if (obj && GET_OBJ_TYPE(obj) == ITEM_ARMOR) {
-    switch (GET_OBJ_MATERIAL(obj)) {
-      case MATERIAL_ADAMANTINE:
-      case MATERIAL_MITHRIL:
-      case MATERIAL_DRAGONHIDE:
-      case MATERIAL_DIAMOND:
-      case MATERIAL_DARKWOOD:
-        counter += 1.1;
-        break;
+  if (obj && GET_OBJ_TYPE(obj) == ITEM_ARMOR)
+  {
+    switch (GET_OBJ_MATERIAL(obj))
+    {
+    case MATERIAL_ADAMANTINE:
+    case MATERIAL_MITHRIL:
+    case MATERIAL_DRAGONHIDE:
+    case MATERIAL_DIAMOND:
+    case MATERIAL_DARKWOOD:
+      counter += 1.1;
+      break;
     }
-    counter += (float) GET_OBJ_VAL(obj, 4) * 1.01;
+    counter += (float)GET_OBJ_VAL(obj, 4) * 1.01;
   }
 
   /* arms */
   obj = GET_EQ(ch, WEAR_ARMS);
   num_pieces += 0.99;
-  if (obj && GET_OBJ_TYPE(obj) == ITEM_ARMOR) {
-    switch (GET_OBJ_MATERIAL(obj)) {
-      case MATERIAL_ADAMANTINE:
-      case MATERIAL_MITHRIL:
-      case MATERIAL_DRAGONHIDE:
-      case MATERIAL_DIAMOND:
-      case MATERIAL_DARKWOOD:
-        counter += 1.1;
-        break;
+  if (obj && GET_OBJ_TYPE(obj) == ITEM_ARMOR)
+  {
+    switch (GET_OBJ_MATERIAL(obj))
+    {
+    case MATERIAL_ADAMANTINE:
+    case MATERIAL_MITHRIL:
+    case MATERIAL_DRAGONHIDE:
+    case MATERIAL_DIAMOND:
+    case MATERIAL_DARKWOOD:
+      counter += 1.1;
+      break;
     }
-    counter += (float) GET_OBJ_VAL(obj, 4) * 1.01;
+    counter += (float)GET_OBJ_VAL(obj, 4) * 1.01;
   }
 
-  enhancement_bonus += MAX(0, (int) (counter / num_pieces));
+  enhancement_bonus += MAX(0, (int)(counter / num_pieces));
 
   return enhancement_bonus;
 }
 
 /* should return a percentage */
-int compute_gear_spell_failure(struct char_data *ch) {
+int compute_gear_spell_failure(struct char_data *ch)
+{
   int spell_failure = 0, i, count = 0;
   struct obj_data *obj = NULL;
 
-  for (i = 0; i < NUM_WEARS; i++) {
+  for (i = 0; i < NUM_WEARS; i++)
+  {
     obj = GET_EQ(ch, i);
     if (obj && GET_OBJ_TYPE(obj) == ITEM_ARMOR &&
-            (i == WEAR_BODY || i == WEAR_HEAD || i == WEAR_LEGS || i == WEAR_ARMS ||
-            i == WEAR_SHIELD)) {
+        (i == WEAR_BODY || i == WEAR_HEAD || i == WEAR_LEGS || i == WEAR_ARMS ||
+         i == WEAR_SHIELD))
+    {
       if (i != WEAR_SHIELD) /* shield and armor combined increase spell failure chance */
         count++;
       /* ok we have an armor piece... */
@@ -1159,7 +1219,8 @@ int compute_gear_spell_failure(struct char_data *ch) {
     }
   }
 
-  if (count) {
+  if (count)
+  {
     spell_failure = spell_failure / count;
   }
 
@@ -1175,25 +1236,32 @@ int compute_gear_spell_failure(struct char_data *ch) {
 }
 
 /* for doing (usually) dexterity based tasks */
-int compute_gear_armor_penalty(struct char_data *ch) {
+int compute_gear_armor_penalty(struct char_data *ch)
+{
   int armor_penalty = 0, i, count = 0;
   int masterwork_bonus = 0;
 
   struct obj_data *obj = NULL;
 
-  for (i = 0; i < NUM_WEARS; i++) {
+  for (i = 0; i < NUM_WEARS; i++)
+  {
     obj = GET_EQ(ch, i);
     if (obj && GET_OBJ_TYPE(obj) == ITEM_ARMOR &&
-            (i == WEAR_BODY || i == WEAR_HEAD || i == WEAR_LEGS || i == WEAR_ARMS ||
-            i == WEAR_SHIELD)) {
+        (i == WEAR_BODY || i == WEAR_HEAD || i == WEAR_LEGS || i == WEAR_ARMS ||
+         i == WEAR_SHIELD))
+    {
       count++;
       /* ok we have an armor piece... */
       armor_penalty += armor_list[GET_OBJ_VAL(obj, 1)].armorCheck;
       // masterwork armor reduces penalty, but all pieces need to be masterwork, except shields
-      if (OBJ_FLAGGED(obj, ITEM_MASTERWORK)) {
-        if (i == WEAR_SHIELD) {
+      if (OBJ_FLAGGED(obj, ITEM_MASTERWORK))
+      {
+        if (i == WEAR_SHIELD)
+        {
           armor_penalty++;
-        } else {
+        }
+        else
+        {
           masterwork_bonus++;
         }
       }
@@ -1204,7 +1272,8 @@ int compute_gear_armor_penalty(struct char_data *ch) {
   if ((masterwork_bonus / 4) >= 1)
     armor_penalty++;
 
-  if (count) {
+  if (count)
+  {
     armor_penalty = armor_penalty / count;
     armor_penalty += HAS_FEAT(ch, FEAT_ARMOR_TRAINING);
   }
@@ -1218,20 +1287,23 @@ int compute_gear_armor_penalty(struct char_data *ch) {
 }
 
 /* maximum dexterity bonus, returns 99 for no limit */
-int compute_gear_max_dex(struct char_data *ch) {
+int compute_gear_max_dex(struct char_data *ch)
+{
   int dexterity_cap = 0;
   int armor_max_dexterity = 0, i, count = 0;
 
-  if (IS_WILDSHAPED(ch) || IS_MORPHED(ch))/* not wearing armor, no limit to dexterity */
+  if (IS_WILDSHAPED(ch) || IS_MORPHED(ch)) /* not wearing armor, no limit to dexterity */
     return 99;
 
   struct obj_data *obj = NULL;
 
-  for (i = 0; i < NUM_WEARS; i++) {
+  for (i = 0; i < NUM_WEARS; i++)
+  {
     obj = GET_EQ(ch, i);
     if (obj && GET_OBJ_TYPE(obj) == ITEM_ARMOR &&
-            (i == WEAR_BODY || i == WEAR_HEAD || i == WEAR_LEGS || i == WEAR_ARMS ||
-            i == WEAR_SHIELD)) {
+        (i == WEAR_BODY || i == WEAR_HEAD || i == WEAR_LEGS || i == WEAR_ARMS ||
+         i == WEAR_SHIELD))
+    {
       /* ok we have an armor piece... */
       armor_max_dexterity = armor_list[GET_OBJ_VAL(obj, 1)].dexBonus;
       if (armor_max_dexterity == 99) /* no limit to dexterity */
@@ -1242,12 +1314,13 @@ int compute_gear_max_dex(struct char_data *ch) {
     }
   }
 
-  if (count > 0) {
+  if (count > 0)
+  {
     dexterity_cap = dexterity_cap / count;
     dexterity_cap += HAS_FEAT(ch, FEAT_ARMOR_TRAINING);
-  } else /* not wearing armor */
+  }
+  else /* not wearing armor */
     dexterity_cap = 99;
-
 
   if (dexterity_cap < 0)
     dexterity_cap = 0;
@@ -1255,7 +1328,8 @@ int compute_gear_max_dex(struct char_data *ch) {
   return dexterity_cap;
 }
 
-int is_proficient_with_shield(struct char_data *ch) {
+int is_proficient_with_shield(struct char_data *ch)
+{
   struct obj_data *shield = GET_EQ(ch, WEAR_SHIELD);
 
   if (IS_NPC(ch))
@@ -1264,21 +1338,23 @@ int is_proficient_with_shield(struct char_data *ch) {
   if (!shield)
     return TRUE;
 
-  switch (GET_ARMOR_TYPE_PROF(shield)) {
-    case ARMOR_TYPE_SHIELD:
-      if (HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_SHIELD))
-        return TRUE;
-      break;
-    case ARMOR_TYPE_TOWER_SHIELD:
-      if (HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_TOWER_SHIELD))
-        return TRUE;
-      break;
+  switch (GET_ARMOR_TYPE_PROF(shield))
+  {
+  case ARMOR_TYPE_SHIELD:
+    if (HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_SHIELD))
+      return TRUE;
+    break;
+  case ARMOR_TYPE_TOWER_SHIELD:
+    if (HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_TOWER_SHIELD))
+      return TRUE;
+    break;
   }
 
   return FALSE;
 }
 
-int is_proficient_with_body_armor(struct char_data *ch) {
+int is_proficient_with_body_armor(struct char_data *ch)
+{
   struct obj_data *body_armor = GET_EQ(ch, WEAR_BODY);
 
   if (IS_NPC(ch))
@@ -1287,30 +1363,32 @@ int is_proficient_with_body_armor(struct char_data *ch) {
   if (!body_armor)
     return TRUE;
 
-  switch (GET_ARMOR_TYPE_PROF(body_armor)) {
-    case ARMOR_TYPE_NONE:
+  switch (GET_ARMOR_TYPE_PROF(body_armor))
+  {
+  case ARMOR_TYPE_NONE:
+    return TRUE;
+    break;
+  case ARMOR_TYPE_LIGHT:
+    if (HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_LIGHT))
       return TRUE;
-      break;
-    case ARMOR_TYPE_LIGHT:
-      if (HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_LIGHT))
-        return TRUE;
-      break;
-    case ARMOR_TYPE_MEDIUM:
-      if (HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_MEDIUM))
-        return TRUE;
-      break;
-    case ARMOR_TYPE_HEAVY:
-      if (HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_HEAVY))
-        return TRUE;
-      break;
-    default:
-      break;
+    break;
+  case ARMOR_TYPE_MEDIUM:
+    if (HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_MEDIUM))
+      return TRUE;
+    break;
+  case ARMOR_TYPE_HEAVY:
+    if (HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_HEAVY))
+      return TRUE;
+    break;
+  default:
+    break;
   }
 
   return FALSE;
 }
 
-int is_proficient_with_helm(struct char_data *ch) {
+int is_proficient_with_helm(struct char_data *ch)
+{
   struct obj_data *head_armor = GET_EQ(ch, WEAR_HEAD);
 
   if (IS_NPC(ch))
@@ -1319,30 +1397,32 @@ int is_proficient_with_helm(struct char_data *ch) {
   if (!head_armor)
     return TRUE;
 
-  switch (GET_ARMOR_TYPE_PROF(head_armor)) {
-    case ARMOR_TYPE_NONE:
+  switch (GET_ARMOR_TYPE_PROF(head_armor))
+  {
+  case ARMOR_TYPE_NONE:
+    return TRUE;
+    break;
+  case ARMOR_TYPE_LIGHT:
+    if (HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_LIGHT))
       return TRUE;
-      break;
-    case ARMOR_TYPE_LIGHT:
-      if (HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_LIGHT))
-        return TRUE;
-      break;
-    case ARMOR_TYPE_MEDIUM:
-      if (HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_MEDIUM))
-        return TRUE;
-      break;
-    case ARMOR_TYPE_HEAVY:
-      if (HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_HEAVY))
-        return TRUE;
-      break;
-    default:
-      break;
+    break;
+  case ARMOR_TYPE_MEDIUM:
+    if (HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_MEDIUM))
+      return TRUE;
+    break;
+  case ARMOR_TYPE_HEAVY:
+    if (HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_HEAVY))
+      return TRUE;
+    break;
+  default:
+    break;
   }
 
   return FALSE;
 }
 
-int is_proficient_with_sleeves(struct char_data *ch) {
+int is_proficient_with_sleeves(struct char_data *ch)
+{
   struct obj_data *arm_armor = GET_EQ(ch, WEAR_ARMS);
 
   if (IS_NPC(ch))
@@ -1351,30 +1431,32 @@ int is_proficient_with_sleeves(struct char_data *ch) {
   if (!arm_armor)
     return TRUE;
 
-  switch (GET_ARMOR_TYPE_PROF(arm_armor)) {
-    case ARMOR_TYPE_NONE:
+  switch (GET_ARMOR_TYPE_PROF(arm_armor))
+  {
+  case ARMOR_TYPE_NONE:
+    return TRUE;
+    break;
+  case ARMOR_TYPE_LIGHT:
+    if (HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_LIGHT))
       return TRUE;
-      break;
-    case ARMOR_TYPE_LIGHT:
-      if (HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_LIGHT))
-        return TRUE;
-      break;
-    case ARMOR_TYPE_MEDIUM:
-      if (HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_MEDIUM))
-        return TRUE;
-      break;
-    case ARMOR_TYPE_HEAVY:
-      if (HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_HEAVY))
-        return TRUE;
-      break;
-    default:
-      break;
+    break;
+  case ARMOR_TYPE_MEDIUM:
+    if (HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_MEDIUM))
+      return TRUE;
+    break;
+  case ARMOR_TYPE_HEAVY:
+    if (HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_HEAVY))
+      return TRUE;
+    break;
+  default:
+    break;
   }
 
   return FALSE;
 }
 
-int is_proficient_with_leggings(struct char_data *ch) {
+int is_proficient_with_leggings(struct char_data *ch)
+{
   struct obj_data *leg_armor = GET_EQ(ch, WEAR_LEGS);
 
   if (IS_NPC(ch))
@@ -1383,46 +1465,48 @@ int is_proficient_with_leggings(struct char_data *ch) {
   if (!leg_armor)
     return TRUE;
 
-  switch (GET_ARMOR_TYPE_PROF(leg_armor)) {
-    case ARMOR_TYPE_NONE:
+  switch (GET_ARMOR_TYPE_PROF(leg_armor))
+  {
+  case ARMOR_TYPE_NONE:
+    return TRUE;
+    break;
+  case ARMOR_TYPE_LIGHT:
+    if (HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_LIGHT))
       return TRUE;
-      break;
-    case ARMOR_TYPE_LIGHT:
-      if (HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_LIGHT))
-        return TRUE;
-      break;
-    case ARMOR_TYPE_MEDIUM:
-      if (HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_MEDIUM))
-        return TRUE;
-      break;
-    case ARMOR_TYPE_HEAVY:
-      if (HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_HEAVY))
-        return TRUE;
-      break;
-    default:
-      break;
+    break;
+  case ARMOR_TYPE_MEDIUM:
+    if (HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_MEDIUM))
+      return TRUE;
+    break;
+  case ARMOR_TYPE_HEAVY:
+    if (HAS_FEAT(ch, FEAT_ARMOR_PROFICIENCY_HEAVY))
+      return TRUE;
+    break;
+  default:
+    break;
   }
 
   return FALSE;
 }
 
 /* simply checks if ch has proficiency with given armor_type */
-int is_proficient_with_armor(struct char_data *ch) {
+int is_proficient_with_armor(struct char_data *ch)
+{
   if (
-          is_proficient_with_leggings(ch) &&
-          is_proficient_with_sleeves(ch) &&
-          is_proficient_with_helm(ch) &&
-          is_proficient_with_body_armor(ch) &&
-          is_proficient_with_shield(ch)
-          )
+      is_proficient_with_leggings(ch) &&
+      is_proficient_with_sleeves(ch) &&
+      is_proficient_with_helm(ch) &&
+      is_proficient_with_body_armor(ch) &&
+      is_proficient_with_shield(ch))
     return TRUE;
 
   return FALSE;
 }
 
 void setarmor(int type, char *name, int armorType, int cost, int armorBonus,
-        int dexBonus, int armorCheck, int spellFail, int thirtyFoot,
-        int twentyFoot, int weight, int material, int wear) {
+              int dexBonus, int armorCheck, int spellFail, int thirtyFoot,
+              int twentyFoot, int weight, int material, int wear)
+{
   armor_list[type].name = name;
   armor_list[type].armorType = armorType;
   armor_list[type].cost = cost;
@@ -1437,7 +1521,8 @@ void setarmor(int type, char *name, int armorType, int cost, int armorBonus,
   armor_list[type].wear = wear;
 }
 
-void initialize_armor(int type) {
+void initialize_armor(int type)
+{
   armor_list[type].name = "unused armor";
   armor_list[type].armorType = 0;
   armor_list[type].cost = 0;
@@ -1452,7 +1537,8 @@ void initialize_armor(int type) {
   armor_list[type].wear = ITEM_WEAR_TAKE;
 }
 
-void load_armor(void) {
+void load_armor(void)
+{
   int i = 0;
 
   for (i = 0; i < NUM_SPEC_ARMOR_TYPES; i++)
@@ -1463,134 +1549,134 @@ void load_armor(void) {
    *    weight, material, wear) */
   /* UNARMORED */
   setarmor(SPEC_ARMOR_TYPE_CLOTHING, "robe", ARMOR_TYPE_NONE,
-          10, 0, 99, 0, 0, 30, 20,
-          1, MATERIAL_COTTON, ITEM_WEAR_BODY);
+           10, 0, 99, 0, 0, 30, 20,
+           1, MATERIAL_COTTON, ITEM_WEAR_BODY);
   setarmor(SPEC_ARMOR_TYPE_CLOTHING_HEAD, "hood", ARMOR_TYPE_NONE,
-          10, 0, 99, 0, 0, 30, 20,
-          1, MATERIAL_COTTON, ITEM_WEAR_HEAD);
+           10, 0, 99, 0, 0, 30, 20,
+           1, MATERIAL_COTTON, ITEM_WEAR_HEAD);
   setarmor(SPEC_ARMOR_TYPE_CLOTHING_ARMS, "sleeves", ARMOR_TYPE_NONE,
-          10, 0, 99, 0, 0, 30, 20,
-          1, MATERIAL_COTTON, ITEM_WEAR_ARMS);
+           10, 0, 99, 0, 0, 30, 20,
+           1, MATERIAL_COTTON, ITEM_WEAR_ARMS);
   setarmor(SPEC_ARMOR_TYPE_CLOTHING_LEGS, "pants", ARMOR_TYPE_NONE,
-          10, 0, 99, 0, 0, 30, 20,
-          1, MATERIAL_COTTON, ITEM_WEAR_LEGS);
+           10, 0, 99, 0, 0, 30, 20,
+           1, MATERIAL_COTTON, ITEM_WEAR_LEGS);
 
   /* LIGHT ARMOR ********************/
   setarmor(SPEC_ARMOR_TYPE_PADDED, "padded body armor", ARMOR_TYPE_LIGHT,
-          50, 9, 8, 0, 5, 30, 20,
-          7, MATERIAL_COTTON, ITEM_WEAR_BODY);
+           50, 9, 8, 0, 5, 30, 20,
+           7, MATERIAL_COTTON, ITEM_WEAR_BODY);
   setarmor(SPEC_ARMOR_TYPE_PADDED_HEAD, "padded armor helm", ARMOR_TYPE_LIGHT,
-          50, 1, 8, 0, 5, 30, 20,
-          1, MATERIAL_COTTON, ITEM_WEAR_HEAD);
+           50, 1, 8, 0, 5, 30, 20,
+           1, MATERIAL_COTTON, ITEM_WEAR_HEAD);
   setarmor(SPEC_ARMOR_TYPE_PADDED_ARMS, "padded armor sleeves", ARMOR_TYPE_LIGHT,
-          50, 1, 8, 0, 5, 30, 20,
-          1, MATERIAL_COTTON, ITEM_WEAR_ARMS);
+           50, 1, 8, 0, 5, 30, 20,
+           1, MATERIAL_COTTON, ITEM_WEAR_ARMS);
   setarmor(SPEC_ARMOR_TYPE_PADDED_LEGS, "padded armor leggings", ARMOR_TYPE_LIGHT,
-          50, 1, 8, 0, 5, 30, 20,
-          1, MATERIAL_COTTON, ITEM_WEAR_LEGS);
+           50, 1, 8, 0, 5, 30, 20,
+           1, MATERIAL_COTTON, ITEM_WEAR_LEGS);
 
   setarmor(SPEC_ARMOR_TYPE_LEATHER, "leather armor", ARMOR_TYPE_LIGHT,
-          100, 14, 6, 0, 10, 30, 20,
-          9, MATERIAL_LEATHER, ITEM_WEAR_BODY);
+           100, 14, 6, 0, 10, 30, 20,
+           9, MATERIAL_LEATHER, ITEM_WEAR_BODY);
   setarmor(SPEC_ARMOR_TYPE_LEATHER_HEAD, "leather helm", ARMOR_TYPE_LIGHT,
-          100, 4, 6, 0, 10, 30, 20,
-          2, MATERIAL_LEATHER, ITEM_WEAR_HEAD);
+           100, 4, 6, 0, 10, 30, 20,
+           2, MATERIAL_LEATHER, ITEM_WEAR_HEAD);
   setarmor(SPEC_ARMOR_TYPE_LEATHER_ARMS, "leather sleeves", ARMOR_TYPE_LIGHT,
-          100, 4, 6, 0, 10, 30, 20,
-          2, MATERIAL_LEATHER, ITEM_WEAR_ARMS);
+           100, 4, 6, 0, 10, 30, 20,
+           2, MATERIAL_LEATHER, ITEM_WEAR_ARMS);
   setarmor(SPEC_ARMOR_TYPE_LEATHER_LEGS, "leather leggings", ARMOR_TYPE_LIGHT,
-          100, 4, 6, 0, 10, 30, 20,
-          2, MATERIAL_LEATHER, ITEM_WEAR_LEGS);
+           100, 4, 6, 0, 10, 30, 20,
+           2, MATERIAL_LEATHER, ITEM_WEAR_LEGS);
 
   /* (armor, name, type,
    *    cost, AC, dexBonusCap, armorCheckPenalty, spellFailChance, (move)30ft, (move)20ft,
    *    weight, material, wear) */
   setarmor(SPEC_ARMOR_TYPE_STUDDED_LEATHER, "studded leather armor", ARMOR_TYPE_LIGHT,
-          250, 20, 5, -1, 15, 30, 20,
-          11, MATERIAL_LEATHER, ITEM_WEAR_BODY);
+           250, 20, 5, -1, 15, 30, 20,
+           11, MATERIAL_LEATHER, ITEM_WEAR_BODY);
   setarmor(SPEC_ARMOR_TYPE_STUDDED_LEATHER_HEAD, "studded leather helm", ARMOR_TYPE_LIGHT,
-          250, 6, 5, -1, 15, 30, 20,
-          3, MATERIAL_LEATHER, ITEM_WEAR_HEAD);
+           250, 6, 5, -1, 15, 30, 20,
+           3, MATERIAL_LEATHER, ITEM_WEAR_HEAD);
   setarmor(SPEC_ARMOR_TYPE_STUDDED_LEATHER_ARMS, "studded leather sleeves", ARMOR_TYPE_LIGHT,
-          250, 6, 5, -1, 15, 30, 20,
-          3, MATERIAL_LEATHER, ITEM_WEAR_ARMS);
+           250, 6, 5, -1, 15, 30, 20,
+           3, MATERIAL_LEATHER, ITEM_WEAR_ARMS);
   setarmor(SPEC_ARMOR_TYPE_STUDDED_LEATHER_LEGS, "studded leather leggings", ARMOR_TYPE_LIGHT,
-          250, 6, 5, -1, 15, 30, 20,
-          3, MATERIAL_LEATHER, ITEM_WEAR_LEGS);
+           250, 6, 5, -1, 15, 30, 20,
+           3, MATERIAL_LEATHER, ITEM_WEAR_LEGS);
 
   setarmor(SPEC_ARMOR_TYPE_LIGHT_CHAIN, "light chainmail armor", ARMOR_TYPE_LIGHT,
-          1000, 24, 4, -2, 20, 30, 20,
-          13, MATERIAL_STEEL, ITEM_WEAR_BODY);
+           1000, 24, 4, -2, 20, 30, 20,
+           13, MATERIAL_STEEL, ITEM_WEAR_BODY);
   setarmor(SPEC_ARMOR_TYPE_LIGHT_CHAIN_HEAD, "light chainmail helm", ARMOR_TYPE_LIGHT,
-          1000, 9, 4, -2, 20, 30, 20,
-          4, MATERIAL_STEEL, ITEM_WEAR_HEAD);
+           1000, 9, 4, -2, 20, 30, 20,
+           4, MATERIAL_STEEL, ITEM_WEAR_HEAD);
   setarmor(SPEC_ARMOR_TYPE_LIGHT_CHAIN_ARMS, "light chainmail sleeves", ARMOR_TYPE_LIGHT,
-          1000, 9, 4, -2, 20, 30, 20,
-          4, MATERIAL_STEEL, ITEM_WEAR_ARMS);
+           1000, 9, 4, -2, 20, 30, 20,
+           4, MATERIAL_STEEL, ITEM_WEAR_ARMS);
   setarmor(SPEC_ARMOR_TYPE_LIGHT_CHAIN_LEGS, "light chainmail leggings", ARMOR_TYPE_LIGHT,
-          1000, 9, 4, -2, 20, 30, 20,
-          4, MATERIAL_STEEL, ITEM_WEAR_LEGS);
+           1000, 9, 4, -2, 20, 30, 20,
+           4, MATERIAL_STEEL, ITEM_WEAR_LEGS);
 
   /******************* MEDIUM ARMOR *******************************************/
 
   setarmor(SPEC_ARMOR_TYPE_HIDE, "hide armor", ARMOR_TYPE_MEDIUM,
-          150, 26, 4, -3, 20, 20, 15,
-          13, MATERIAL_LEATHER, ITEM_WEAR_BODY);
+           150, 26, 4, -3, 20, 20, 15,
+           13, MATERIAL_LEATHER, ITEM_WEAR_BODY);
   setarmor(SPEC_ARMOR_TYPE_HIDE_HEAD, "hide helm", ARMOR_TYPE_MEDIUM,
-          150, 10, 4, -3, 20, 20, 15,
-          4, MATERIAL_LEATHER, ITEM_WEAR_HEAD);
+           150, 10, 4, -3, 20, 20, 15,
+           4, MATERIAL_LEATHER, ITEM_WEAR_HEAD);
   setarmor(SPEC_ARMOR_TYPE_HIDE_ARMS, "hide sleeves", ARMOR_TYPE_MEDIUM,
-          150, 10, 4, -3, 20, 20, 15,
-          4, MATERIAL_LEATHER, ITEM_WEAR_ARMS);
+           150, 10, 4, -3, 20, 20, 15,
+           4, MATERIAL_LEATHER, ITEM_WEAR_ARMS);
   setarmor(SPEC_ARMOR_TYPE_HIDE_LEGS, "hide leggings", ARMOR_TYPE_MEDIUM,
-          150, 10, 4, -3, 20, 20, 15,
-          4, MATERIAL_LEATHER, ITEM_WEAR_LEGS);
+           150, 10, 4, -3, 20, 20, 15,
+           4, MATERIAL_LEATHER, ITEM_WEAR_LEGS);
 
   /* (armor, name, type,
    *    cost, AC, dexBonusCap, armorCheckPenalty, spellFailChance, (move)30ft, (move)20ft,
    *    weight, material, wear) */
   setarmor(SPEC_ARMOR_TYPE_SCALE, "scale armor", ARMOR_TYPE_MEDIUM,
-          500, 32, 3, -4, 25, 20, 15,
-          15, MATERIAL_STEEL, ITEM_WEAR_BODY);
+           500, 32, 3, -4, 25, 20, 15,
+           15, MATERIAL_STEEL, ITEM_WEAR_BODY);
   setarmor(SPEC_ARMOR_TYPE_SCALE_HEAD, "scale helm", ARMOR_TYPE_MEDIUM,
-          500, 12, 3, -4, 25, 20, 15,
-          5, MATERIAL_STEEL, ITEM_WEAR_HEAD);
+           500, 12, 3, -4, 25, 20, 15,
+           5, MATERIAL_STEEL, ITEM_WEAR_HEAD);
   setarmor(SPEC_ARMOR_TYPE_SCALE_ARMS, "scale sleeves", ARMOR_TYPE_MEDIUM,
-          500, 12, 3, -4, 25, 20, 15,
-          5, MATERIAL_STEEL, ITEM_WEAR_ARMS);
+           500, 12, 3, -4, 25, 20, 15,
+           5, MATERIAL_STEEL, ITEM_WEAR_ARMS);
   setarmor(SPEC_ARMOR_TYPE_SCALE_LEGS, "scale leggings", ARMOR_TYPE_MEDIUM,
-          500, 12, 3, -4, 25, 20, 15,
-          5, MATERIAL_STEEL, ITEM_WEAR_LEGS);
+           500, 12, 3, -4, 25, 20, 15,
+           5, MATERIAL_STEEL, ITEM_WEAR_LEGS);
 
   setarmor(SPEC_ARMOR_TYPE_CHAINMAIL, "chainmail armor", ARMOR_TYPE_MEDIUM,
-          1500, 37, 2, -5, 30, 20, 15,
-          27, MATERIAL_STEEL, ITEM_WEAR_BODY);
+           1500, 37, 2, -5, 30, 20, 15,
+           27, MATERIAL_STEEL, ITEM_WEAR_BODY);
   setarmor(SPEC_ARMOR_TYPE_CHAINMAIL_HEAD, "chainmail helm", ARMOR_TYPE_MEDIUM,
-          1500, 15, 2, -5, 30, 20, 15,
-          11, MATERIAL_STEEL, ITEM_WEAR_HEAD);
+           1500, 15, 2, -5, 30, 20, 15,
+           11, MATERIAL_STEEL, ITEM_WEAR_HEAD);
   /* duplicate item */
   setarmor(SPEC_ARMOR_TYPE_CHAIN_HEAD, "chainmail helm", ARMOR_TYPE_MEDIUM,
-          1500, 15, 2, -5, 30, 20, 15,
-          11, MATERIAL_STEEL, ITEM_WEAR_HEAD);
+           1500, 15, 2, -5, 30, 20, 15,
+           11, MATERIAL_STEEL, ITEM_WEAR_HEAD);
   setarmor(SPEC_ARMOR_TYPE_CHAINMAIL_ARMS, "chainmail sleeves", ARMOR_TYPE_MEDIUM,
-          1500, 15, 2, -5, 30, 20, 15,
-          11, MATERIAL_STEEL, ITEM_WEAR_ARMS);
+           1500, 15, 2, -5, 30, 20, 15,
+           11, MATERIAL_STEEL, ITEM_WEAR_ARMS);
   setarmor(SPEC_ARMOR_TYPE_CHAINMAIL_LEGS, "chainmail leggings", ARMOR_TYPE_MEDIUM,
-          1500, 15, 2, -5, 30, 20, 15,
-          11, MATERIAL_STEEL, ITEM_WEAR_LEGS);
+           1500, 15, 2, -5, 30, 20, 15,
+           11, MATERIAL_STEEL, ITEM_WEAR_LEGS);
 
   setarmor(SPEC_ARMOR_TYPE_PIECEMEAL, "piecemeal armor", ARMOR_TYPE_MEDIUM,
-          2000, 35, 3, -4, 25, 20, 15,
-          19, MATERIAL_STEEL, ITEM_WEAR_BODY);
+           2000, 35, 3, -4, 25, 20, 15,
+           19, MATERIAL_STEEL, ITEM_WEAR_BODY);
   setarmor(SPEC_ARMOR_TYPE_PIECEMEAL_HEAD, "piecemeal helm", ARMOR_TYPE_MEDIUM,
-          2000, 14, 3, -4, 25, 20, 15,
-          7, MATERIAL_STEEL, ITEM_WEAR_HEAD);
+           2000, 14, 3, -4, 25, 20, 15,
+           7, MATERIAL_STEEL, ITEM_WEAR_HEAD);
   setarmor(SPEC_ARMOR_TYPE_PIECEMEAL_ARMS, "piecemeal sleeves", ARMOR_TYPE_MEDIUM,
-          2000, 14, 3, -4, 25, 20, 15,
-          7, MATERIAL_STEEL, ITEM_WEAR_ARMS);
+           2000, 14, 3, -4, 25, 20, 15,
+           7, MATERIAL_STEEL, ITEM_WEAR_ARMS);
   setarmor(SPEC_ARMOR_TYPE_PIECEMEAL_LEGS, "piecemeal leggings", ARMOR_TYPE_MEDIUM,
-          2000, 14, 3, -4, 25, 20, 15,
-          7, MATERIAL_STEEL, ITEM_WEAR_LEGS);
+           2000, 14, 3, -4, 25, 20, 15,
+           7, MATERIAL_STEEL, ITEM_WEAR_LEGS);
 
   /******************* HEAVY ARMOR *******************************************/
 
@@ -1598,80 +1684,81 @@ void load_armor(void) {
    *    cost, AC, dexBonusCap, armorCheckPenalty, spellFailChance, (move)30ft, (move)20ft,
    *    weight, material, wear) */
   setarmor(SPEC_ARMOR_TYPE_SPLINT, "splint mail armor", ARMOR_TYPE_HEAVY,
-          2000, 46, 0, -7, 40, 20, 15,
-          21, MATERIAL_STEEL, ITEM_WEAR_BODY);
+           2000, 46, 0, -7, 40, 20, 15,
+           21, MATERIAL_STEEL, ITEM_WEAR_BODY);
   setarmor(SPEC_ARMOR_TYPE_SPLINT_HEAD, "splint mail helm", ARMOR_TYPE_HEAVY,
-          2000, 19, 0, -7, 40, 20, 15,
-          8, MATERIAL_STEEL, ITEM_WEAR_HEAD);
+           2000, 19, 0, -7, 40, 20, 15,
+           8, MATERIAL_STEEL, ITEM_WEAR_HEAD);
   setarmor(SPEC_ARMOR_TYPE_SPLINT_ARMS, "splint mail sleeves", ARMOR_TYPE_HEAVY,
-          2000, 19, 0, -7, 40, 20, 15,
-          8, MATERIAL_STEEL, ITEM_WEAR_ARMS);
+           2000, 19, 0, -7, 40, 20, 15,
+           8, MATERIAL_STEEL, ITEM_WEAR_ARMS);
   setarmor(SPEC_ARMOR_TYPE_SPLINT_LEGS, "splint mail leggings", ARMOR_TYPE_HEAVY,
-          2000, 19, 0, -7, 40, 20, 15,
-          8, MATERIAL_STEEL, ITEM_WEAR_LEGS);
+           2000, 19, 0, -7, 40, 20, 15,
+           8, MATERIAL_STEEL, ITEM_WEAR_LEGS);
 
   setarmor(SPEC_ARMOR_TYPE_BANDED, "banded mail armor", ARMOR_TYPE_HEAVY,
-          2500, 47, 1, -6, 35, 20, 15,
-          17, MATERIAL_STEEL, ITEM_WEAR_BODY);
+           2500, 47, 1, -6, 35, 20, 15,
+           17, MATERIAL_STEEL, ITEM_WEAR_BODY);
   setarmor(SPEC_ARMOR_TYPE_BANDED_HEAD, "banded mail helm", ARMOR_TYPE_HEAVY,
-          2500, 20, 1, -6, 35, 20, 15,
-          6, MATERIAL_STEEL, ITEM_WEAR_HEAD);
+           2500, 20, 1, -6, 35, 20, 15,
+           6, MATERIAL_STEEL, ITEM_WEAR_HEAD);
   setarmor(SPEC_ARMOR_TYPE_BANDED_ARMS, "banded mail sleeves", ARMOR_TYPE_HEAVY,
-          2500, 20, 1, -6, 35, 20, 15,
-          6, MATERIAL_STEEL, ITEM_WEAR_ARMS);
+           2500, 20, 1, -6, 35, 20, 15,
+           6, MATERIAL_STEEL, ITEM_WEAR_ARMS);
   setarmor(SPEC_ARMOR_TYPE_BANDED_LEGS, "banded mail leggings", ARMOR_TYPE_HEAVY,
-          2500, 20, 1, -6, 35, 20, 15,
-          6, MATERIAL_STEEL, ITEM_WEAR_LEGS);
+           2500, 20, 1, -6, 35, 20, 15,
+           6, MATERIAL_STEEL, ITEM_WEAR_LEGS);
 
   setarmor(SPEC_ARMOR_TYPE_HALF_PLATE, "half plate armor", ARMOR_TYPE_HEAVY,
-          6000, 52, 1, -6, 40, 20, 15,
-          23, MATERIAL_STEEL, ITEM_WEAR_BODY);
+           6000, 52, 1, -6, 40, 20, 15,
+           23, MATERIAL_STEEL, ITEM_WEAR_BODY);
   setarmor(SPEC_ARMOR_TYPE_HALF_PLATE_HEAD, "half plate helm", ARMOR_TYPE_HEAVY,
-          6000, 22, 1, -6, 40, 20, 15,
-          9, MATERIAL_STEEL, ITEM_WEAR_HEAD);
+           6000, 22, 1, -6, 40, 20, 15,
+           9, MATERIAL_STEEL, ITEM_WEAR_HEAD);
   setarmor(SPEC_ARMOR_TYPE_HALF_PLATE_ARMS, "half plate sleeves", ARMOR_TYPE_HEAVY,
-          6000, 22, 1, -6, 40, 20, 15,
-          9, MATERIAL_STEEL, ITEM_WEAR_ARMS);
+           6000, 22, 1, -6, 40, 20, 15,
+           9, MATERIAL_STEEL, ITEM_WEAR_ARMS);
   setarmor(SPEC_ARMOR_TYPE_HALF_PLATE_LEGS, "half plate leggings", ARMOR_TYPE_HEAVY,
-          6000, 22, 1, -6, 40, 20, 15,
-          9, MATERIAL_STEEL, ITEM_WEAR_LEGS);
+           6000, 22, 1, -6, 40, 20, 15,
+           9, MATERIAL_STEEL, ITEM_WEAR_LEGS);
 
   /* (armor, name, type,
    *    cost, AC, dexBonusCap, armorCheckPenalty, spellFailChance, (move)30ft, (move)20ft,
    *    weight, material, wear) */
   setarmor(SPEC_ARMOR_TYPE_FULL_PLATE, "full plate armor", ARMOR_TYPE_HEAVY,
-          15000, 60, 1, -6, 35, 20, 15,
-          23, MATERIAL_STEEL, ITEM_WEAR_BODY);
+           15000, 60, 1, -6, 35, 20, 15,
+           23, MATERIAL_STEEL, ITEM_WEAR_BODY);
   setarmor(SPEC_ARMOR_TYPE_FULL_PLATE_HEAD, "full plate helm", ARMOR_TYPE_HEAVY,
-          15000, 25, 1, -6, 35, 20, 15,
-          9, MATERIAL_STEEL, ITEM_WEAR_HEAD);
+           15000, 25, 1, -6, 35, 20, 15,
+           9, MATERIAL_STEEL, ITEM_WEAR_HEAD);
   setarmor(SPEC_ARMOR_TYPE_FULL_PLATE_ARMS, "full plate sleeves", ARMOR_TYPE_HEAVY,
-          15000, 25, 1, -6, 35, 20, 15,
-          9, MATERIAL_STEEL, ITEM_WEAR_ARMS);
+           15000, 25, 1, -6, 35, 20, 15,
+           9, MATERIAL_STEEL, ITEM_WEAR_ARMS);
   setarmor(SPEC_ARMOR_TYPE_FULL_PLATE_LEGS, "full plate leggings", ARMOR_TYPE_HEAVY,
-          15000, 25, 1, -6, 35, 20, 15,
-          9, MATERIAL_STEEL, ITEM_WEAR_LEGS);
+           15000, 25, 1, -6, 35, 20, 15,
+           9, MATERIAL_STEEL, ITEM_WEAR_LEGS);
 
   /* (armor, name, type,
    *    cost, AC, dexBonusCap, armorCheckPenalty, spellFailChance, (move)30ft, (move)20ft,
    *    weight, material, wear) */
   setarmor(SPEC_ARMOR_TYPE_BUCKLER, "buckler shield", ARMOR_TYPE_SHIELD,
-          150, 10, 99, -1, 5, 999, 999,
-          5, MATERIAL_WOOD, ITEM_WEAR_SHIELD);
+           150, 10, 99, -1, 5, 999, 999,
+           5, MATERIAL_WOOD, ITEM_WEAR_SHIELD);
   setarmor(SPEC_ARMOR_TYPE_SMALL_SHIELD, "light shield", ARMOR_TYPE_SHIELD,
-          90, 15, 99, -1, 5, 999, 999,
-          6, MATERIAL_WOOD, ITEM_WEAR_SHIELD);
+           90, 15, 99, -1, 5, 999, 999,
+           6, MATERIAL_WOOD, ITEM_WEAR_SHIELD);
   setarmor(SPEC_ARMOR_TYPE_LARGE_SHIELD, "heavy shield", ARMOR_TYPE_SHIELD,
-          200, 20, 99, -2, 15, 999, 999,
-          13, MATERIAL_WOOD, ITEM_WEAR_SHIELD);
+           200, 20, 99, -2, 15, 999, 999,
+           13, MATERIAL_WOOD, ITEM_WEAR_SHIELD);
   setarmor(SPEC_ARMOR_TYPE_TOWER_SHIELD, "tower shield", ARMOR_TYPE_TOWER_SHIELD,
-          300, 40, 2, -10, 50, 999, 999,
-          45, MATERIAL_WOOD, ITEM_WEAR_SHIELD);
+           300, 40, 2, -10, 50, 999, 999,
+           45, MATERIAL_WOOD, ITEM_WEAR_SHIELD);
 }
 
 /******* special mixed checks (such as monk) */
 
-bool is_bare_handed(struct char_data *ch) {
+bool is_bare_handed(struct char_data *ch)
+{
   if (GET_EQ(ch, WEAR_HOLD_1))
     return FALSE;
   if (GET_EQ(ch, WEAR_HOLD_2))
@@ -1690,7 +1777,8 @@ bool is_bare_handed(struct char_data *ch) {
 
 /* our simple little function to make sure our monk
    is following his martial-arts requirements for gear */
-bool monk_gear_ok(struct char_data *ch) {
+bool monk_gear_ok(struct char_data *ch)
+{
   struct obj_data *obj = NULL;
 
   /* hands have to be free, or wielding monk family weapon */
@@ -1705,17 +1793,17 @@ bool monk_gear_ok(struct char_data *ch) {
 
   obj = GET_EQ(ch, WEAR_WIELD_1);
   if (obj &&
-          (weapon_list[GET_WEAPON_TYPE(obj)].weaponFamily != WEAPON_FAMILY_MONK))
+      (weapon_list[GET_WEAPON_TYPE(obj)].weaponFamily != WEAPON_FAMILY_MONK))
     return FALSE;
 
   obj = GET_EQ(ch, WEAR_WIELD_OFFHAND);
   if (obj &&
-          (weapon_list[GET_WEAPON_TYPE(obj)].weaponFamily != WEAPON_FAMILY_MONK))
+      (weapon_list[GET_WEAPON_TYPE(obj)].weaponFamily != WEAPON_FAMILY_MONK))
     return FALSE;
 
   obj = GET_EQ(ch, WEAR_WIELD_2H);
   if (obj &&
-          (weapon_list[GET_WEAPON_TYPE(obj)].weaponFamily != WEAPON_FAMILY_MONK))
+      (weapon_list[GET_WEAPON_TYPE(obj)].weaponFamily != WEAPON_FAMILY_MONK))
     return FALSE;
 
   /* now check to make sure he isn't wearing invalid armor */
@@ -1729,7 +1817,8 @@ bool monk_gear_ok(struct char_data *ch) {
 /* ACMD */
 
 /* list all the weapon defines in-game */
-ACMD(do_weaponlist_old) {
+ACMD(do_weaponlist_old)
+{
   int type = 0;
   char buf[MAX_STRING_LENGTH];
   char buf2[100];
@@ -1737,61 +1826,62 @@ ACMD(do_weaponlist_old) {
   size_t len = 0;
   int crit_multi = 0;
 
-  for (type = 1; type < NUM_WEAPON_TYPES; type++) {
+  for (type = 1; type < NUM_WEAPON_TYPES; type++)
+  {
 
     /* have to do some calculations beforehand */
-    switch (weapon_list[type].critMult) {
-      case CRIT_X2:
-        crit_multi = 2;
-        break;
-      case CRIT_X3:
-        crit_multi = 3;
-        break;
-      case CRIT_X4:
-        crit_multi = 4;
-        break;
-      case CRIT_X5:
-        crit_multi = 5;
-        break;
-      case CRIT_X6:
-        crit_multi = 6;
-        break;
+    switch (weapon_list[type].critMult)
+    {
+    case CRIT_X2:
+      crit_multi = 2;
+      break;
+    case CRIT_X3:
+      crit_multi = 3;
+      break;
+    case CRIT_X4:
+      crit_multi = 4;
+      break;
+    case CRIT_X5:
+      crit_multi = 5;
+      break;
+    case CRIT_X6:
+      crit_multi = 6;
+      break;
     }
-    sprintbit(weapon_list[type].weaponFlags, weapon_flags, buf2, sizeof (buf2));
-    sprintbit(weapon_list[type].damageTypes, weapon_damage_types, buf3, sizeof (buf3));
+    sprintbit(weapon_list[type].weaponFlags, weapon_flags, buf2, sizeof(buf2));
+    sprintbit(weapon_list[type].damageTypes, weapon_damage_types, buf3, sizeof(buf3));
 
-    len += snprintf(buf + len, sizeof (buf) - len,
-            "\tW%s\tn, Dam: %dd%d, Threat: %d, Crit-Multi: %d, Flags: %s, Cost: %d, "
-            "Dam-Types: %s, Weight: %d, Range: %d, Family: %s, Size: %s, Material: %s, "
-            "Handle: %s, Head: %s.\r\n",
-            weapon_list[type].name, weapon_list[type].numDice, weapon_list[type].diceSize,
-            (20 - weapon_list[type].critRange), crit_multi, buf2, weapon_list[type].cost,
-            buf3, weapon_list[type].weight, weapon_list[type].range,
-            weapon_family[weapon_list[type].weaponFamily],
-            sizes[weapon_list[type].size], material_name[weapon_list[type].material],
-            weapon_handle_types[weapon_list[type].handle_type],
-            weapon_head_types[weapon_list[type].head_type]
-            );
-
+    len += snprintf(buf + len, sizeof(buf) - len,
+                    "\tW%s\tn, Dam: %dd%d, Threat: %d, Crit-Multi: %d, Flags: %s, Cost: %d, "
+                    "Dam-Types: %s, Weight: %d, Range: %d, Family: %s, Size: %s, Material: %s, "
+                    "Handle: %s, Head: %s.\r\n",
+                    weapon_list[type].name, weapon_list[type].numDice, weapon_list[type].diceSize,
+                    (20 - weapon_list[type].critRange), crit_multi, buf2, weapon_list[type].cost,
+                    buf3, weapon_list[type].weight, weapon_list[type].range,
+                    weapon_family[weapon_list[type].weaponFamily],
+                    sizes[weapon_list[type].size], material_name[weapon_list[type].material],
+                    weapon_handle_types[weapon_list[type].handle_type],
+                    weapon_head_types[weapon_list[type].head_type]);
   }
   page_string(ch->desc, buf, 1);
 }
 
 /* list all the weapon defines in-game */
-ACMD(do_armorlist) {
+ACMD(do_armorlist)
+{
   int i = 0;
   char buf[MAX_STRING_LENGTH];
   size_t len = 0;
 
-  for (i = 1; i < NUM_SPEC_ARMOR_TYPES; i++) {
-    len += snprintf(buf + len, sizeof (buf) - len, "\tW%s\tn, Type: %s, Cost: %d, "
-            "AC: %.1f, Max Dex: %d, Armor Penalty: %d, Spell Fail: %d, Weight: %d, "
-            "Material: %s\r\n",
-            armor_list[i].name, armor_type[armor_list[i].armorType],
-            armor_list[i].cost, (float) armor_list[i].armorBonus / 10.0,
-            armor_list[i].dexBonus, armor_list[i].armorCheck, armor_list[i].spellFail,
-            armor_list[i].weight, material_name[armor_list[i].material]
-            );
+  for (i = 1; i < NUM_SPEC_ARMOR_TYPES; i++)
+  {
+    len += snprintf(buf + len, sizeof(buf) - len, "\tW%s\tn, Type: %s, Cost: %d, "
+                                                  "AC: %.1f, Max Dex: %d, Armor Penalty: %d, Spell Fail: %d, Weight: %d, "
+                                                  "Material: %s\r\n",
+                    armor_list[i].name, armor_type[armor_list[i].armorType],
+                    armor_list[i].cost, (float)armor_list[i].armorBonus / 10.0,
+                    armor_list[i].dexBonus, armor_list[i].armorCheck, armor_list[i].spellFail,
+                    armor_list[i].weight, material_name[armor_list[i].material]);
   }
   page_string(ch->desc, buf, 1);
 }
@@ -2041,8 +2131,9 @@ int compute_gear_max_dex(struct char_data *ch) {
 }
  */
 
-bool is_two_handed_ranged_weapon(struct obj_data *obj) {
-  
+bool is_two_handed_ranged_weapon(struct obj_data *obj)
+{
+
   if (!obj)
     return FALSE;
 
@@ -2052,13 +2143,13 @@ bool is_two_handed_ranged_weapon(struct obj_data *obj) {
   int type = GET_OBJ_VAL(obj, 0);
 
   if (type < 0 || type > NUM_WEAPON_TYPES)
-    return FALSE;  
-  
+    return FALSE;
+
   if (weapon_list[type].weaponFamily != WEAPON_FAMILY_RANGED)
     return FALSE;
-  
+
   if (type == WEAPON_TYPE_DART || type == WEAPON_TYPE_SLING || type == WEAPON_TYPE_HAND_CROSSBOW || type == WEAPON_TYPE_BOLA)
     return FALSE;
-  
+
   return TRUE;
 }

@@ -4,7 +4,7 @@
 #include <stdbool.h>
 
 #if 0
-#if !defined(__cplusplus)	/* Anyone know a portable method? */
+#if !defined(__cplusplus) /* Anyone know a portable method? */
 typedef char bool; /**< Technically 1 signed byte; vals should only = TRUE or FALSE. */
 #endif
 
@@ -15,7 +15,7 @@ typedef char bool; /**< Technically 1 signed byte; vals should only = TRUE or FA
 
 #if !defined(TRUE)
 /** Just in case TRUE is not defined. */
-#define TRUE  (!FALSE)
+#define TRUE (!FALSE)
 #endif
 #endif
 

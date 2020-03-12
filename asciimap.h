@@ -12,16 +12,16 @@
 #define ASCIIMAP_H_
 
 /* Map options (settable in cedit) */
-#define MAP_OFF      0
-#define MAP_ON       1
+#define MAP_OFF 0
+#define MAP_ON 1
 #define MAP_IMM_ONLY 2
- 
+
 /* Exported function prototypes */
 bool show_worldmap(struct char_data *ch);
-void perform_map( struct char_data *ch, char *argument, bool worldmap);
+void perform_map(struct char_data *ch, char *argument, bool worldmap);
 bool can_see_map(struct char_data *ch);
-void str_and_map(char *str, struct char_data *ch, room_vnum target_room );
-char * get_map_string(struct char_data *ch, room_vnum target_room);
+void str_and_map(char *str, struct char_data *ch, room_vnum target_room);
+char *get_map_string(struct char_data *ch, room_vnum target_room);
 
 ACMD(do_map);
 
