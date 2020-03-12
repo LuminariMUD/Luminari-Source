@@ -1,5 +1,5 @@
 /**
-* @file genzon.h
+* @file genzon.h                                LuminariMUD
 * Generic OLC Library - Zones.
 * 
 * Part of the core tbaMUD source code distribution, which is a derivative

@@ -1,5 +1,5 @@
 /**
- * @file msgedit.h
+ * @file msgedit.h                              LuminariMUD
  * 
  * Copyright 2012 Joseph Arnusch
  * 
@@ -24,22 +24,21 @@
 void load_messages(void);
 void free_messages(void);
 void save_messages_to_disk(void);
-void free_message_list(struct message_list * mlist);
+void free_message_list(struct message_list *mlist);
 
 /* Defines */
-#define MSGEDIT_MAIN_MENU     1
-#define MSGEDIT_CONFIRM_SAVE  2
-#define MSGEDIT_TYPE          3
-#define MSGEDIT_DEATH_CHAR    4
-#define MSGEDIT_DEATH_VICT    5
-#define MSGEDIT_DEATH_ROOM    6
-#define MSGEDIT_MISS_CHAR     7
-#define MSGEDIT_MISS_VICT     8
-#define MSGEDIT_MISS_ROOM     9
-#define MSGEDIT_HIT_CHAR      10
-#define MSGEDIT_HIT_VICT      11
-#define MSGEDIT_HIT_ROOM      12
-#define MSGEDIT_STAFF_CHAR      13
-#define MSGEDIT_STAFF_VICT      14
-#define MSGEDIT_STAFF_ROOM      15
-
+#define MSGEDIT_MAIN_MENU 1
+#define MSGEDIT_CONFIRM_SAVE 2
+#define MSGEDIT_TYPE 3
+#define MSGEDIT_DEATH_CHAR 4
+#define MSGEDIT_DEATH_VICT 5
+#define MSGEDIT_DEATH_ROOM 6
+#define MSGEDIT_MISS_CHAR 7
+#define MSGEDIT_MISS_VICT 8
+#define MSGEDIT_MISS_ROOM 9
+#define MSGEDIT_HIT_CHAR 10
+#define MSGEDIT_HIT_VICT 11
+#define MSGEDIT_HIT_ROOM 12
+#define MSGEDIT_STAFF_CHAR 13
+#define MSGEDIT_STAFF_VICT 14
+#define MSGEDIT_STAFF_ROOM 15

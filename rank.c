@@ -38,18 +38,20 @@ char *strdup(char *source);
 #endif
 
 #define MAX_RANKED 180
-#define GET_KEY(cc,tk) ((*((tk)->function))(cc))
+#define GET_KEY(cc, tk) ((*((tk)->function))(cc))
 
 typedef char *ranktype;
 
-struct key_data {
+struct key_data
+{
   char *keystring;
   char *outstring;
-  ranktype(*function)(struct char_data *ch);
+  ranktype (*function)(struct char_data *ch);
   struct key_data *next;
 };
 
-struct rank_data {
+struct rank_data
+{
   struct char_data *ch;
   char key[80];
 };
@@ -97,7 +99,7 @@ void eat_spaces(char **source);
 
 void init_keys(void);
 
-void add_key(char *key, char *out, ranktype(*f)(struct char_data *ch));
+void add_key(char *key, char *out, ranktype (*f)(struct char_data *ch));
 struct key_data *search_key(char *key);
 
 struct key_data *key_list = NULL;
@@ -116,7 +118,8 @@ char *kbp;
 struct rank_data tt[MAX_RANKED + 1];
 
 /* primary function for display, in act.informative.c */
-void do_slug_rank(struct char_data *ch, char *arg) {
+void do_slug_rank(struct char_data *ch, char *arg)
+{
   int i, j, k;
   int rk;
   int toprank;
@@ -128,7 +131,8 @@ void do_slug_rank(struct char_data *ch, char *arg) {
 
   char *nbufp;
 
-  if (!keys_inited) {
+  if (!keys_inited)
+  {
     init_keys();
     keys_inited = TRUE;
     log("Setting up Rank keys");
@@ -148,16 +152,20 @@ void do_slug_rank(struct char_data *ch, char *arg) {
 
   the_key = search_key(keybuf);
 
-  if (the_key == NULL) {
+  if (the_key == NULL)
+  {
     send_to_char(ch, "Please specify a valid key. Type \"rank help\" for instructions.\n\r");
     return;
-  } else if (!strcmp(the_key->keystring, "help")) {
+  }
+  else if (!strcmp(the_key->keystring, "help"))
+  {
     send_to_char(ch, "Usage: %srank <key>%s\r\n", QYEL, QNRM);
     send_to_char(ch, "Valid keys:\n\r");
     j = 80 / (maxkeylength + 1);
     i = 0;
     buffer[0] = '\0';
-    for (tk = key_list; tk; tk = tk->next) {
+    for (tk = key_list; tk; tk = tk->next)
+    {
       sprintf(kbuf, "%*s ", maxkeylength, tk->keystring);
       strcat(buffer, kbuf);
       if (++i % j == 0)
@@ -166,24 +174,35 @@ void do_slug_rank(struct char_data *ch, char *arg) {
     strcat(buffer, "\n\r");
     strcat(buffer, "Usage: rank <key> [+-][max]\n\r");
     send_to_char(ch, buffer);
-  } else {
+  }
+  else
+  {
     k = 0;
-    for (d = descriptor_list; d; d = d->next) {
-      if (!d->connected) {
+    for (d = descriptor_list; d; d = d->next)
+    {
+      if (!d->connected)
+      {
         if (d->original)
           c = d->original;
         else
           c = d->character;
         if ((CAN_SEE(ch, c) /*&& !PRF_FLAGGED(c, PRF_NORANK)*/) ||
-                (GET_LEVEL(ch) == LVL_IMPL)) {
-          if (k) {
-            if (k < MAX_RANKED) {
+            (GET_LEVEL(ch) == LVL_IMPL))
+        {
+          if (k)
+          {
+            if (k < MAX_RANKED)
+            {
               tt[k].ch = c;
               k++;
-            } else { /*list is full */
+            }
+            else
+            { /*list is full */
               tt[k].ch = c;
             }
-          } else { /* first player in list */
+          }
+          else
+          { /* first player in list */
             tt[k].ch = c;
             k++;
           }
@@ -193,10 +212,13 @@ void do_slug_rank(struct char_data *ch, char *arg) {
     toprank = TRUE;
     if (!strcmp(the_key->keystring, "deaths"))
       toprank = FALSE;
-    if (*nbufp == '-') {
+    if (*nbufp == '-')
+    {
       toprank = FALSE;
       nbufp++;
-    } else if (*nbufp == '+') {
+    }
+    else if (*nbufp == '+')
+    {
       toprank = TRUE;
       nbufp++;
     }
@@ -210,26 +232,28 @@ void do_slug_rank(struct char_data *ch, char *arg) {
 
     /* sort */
     if (toprank)
-      qsort(tt, k, sizeof (struct rank_data), rank_compare_top);
+      qsort(tt, k, sizeof(struct rank_data), rank_compare_top);
     else
-      qsort(tt, k, sizeof (struct rank_data), rank_compare_bot);
+      qsort(tt, k, sizeof(struct rank_data), rank_compare_bot);
 
     /*print out */
     KEY_PRINTING = TRUE;
     send_to_char(ch, "%s %d players ranked by %s.\n\r", toprank ? "Top" : "Bottom", rk, the_key->outstring);
-    for (i = 0; i < rk; i++) {
+    for (i = 0; i < rk; i++)
+    {
       strcpy(kbuf, GET_KEY(tt[i].ch, the_key));
-      for (kbp = kbuf; *kbp == ' '; kbp++);
+      for (kbp = kbuf; *kbp == ' '; kbp++)
+        ;
       send_to_char(ch, "#%2d: %15s %*s\n\r", i + 1, GET_NAME(tt[i].ch),
-              count_color_chars(kbp) + 18, (GET_LEVEL(ch) >= LVL_IMMORT) ? kbp : "");
+                   count_color_chars(kbp) + 18, (GET_LEVEL(ch) >= LVL_IMMORT) ? kbp : "");
     }
     send_to_char(ch, "%s\n\r", CONFIG_OK);
   }
-
 }
 
 /* put the add_keys in the order you want them displayed in help */
-void init_keys(void) {
+void init_keys(void)
+{
   add_key("hp", "hit points", rank_hp);
   add_key("psp", "psp points", rank_psp);
   add_key("moves", "move points", rank_moves);
@@ -266,7 +290,8 @@ void init_keys(void) {
   add_key("help", "help", NULL);
 } /* end init_keys */
 
-struct key_data *search_key(char *key) {
+struct key_data *search_key(char *key)
+{
 
   struct key_data *tk;
 
@@ -279,7 +304,8 @@ struct key_data *search_key(char *key) {
 
 } /* end search_key */
 
-void add_key(char *key, char *out, ranktype(*f)(struct char_data *ch)) {
+void add_key(char *key, char *out, ranktype (*f)(struct char_data *ch))
+{
 
   struct key_data *tmp_key;
 
@@ -295,14 +321,16 @@ void add_key(char *key, char *out, ranktype(*f)(struct char_data *ch)) {
   /* append to list */
   if (!key_list)
     key_list = key_list_tail = tmp_key;
-  else {
+  else
+  {
     key_list_tail->next = tmp_key;
     key_list_tail = tmp_key;
   }
 
 } /* end add_key */
 
-void eat_spaces(char **source) {
+void eat_spaces(char **source)
+{
   while (**source == ' ')
     (*source)++;
 } /* end eat_spaces */
@@ -310,20 +338,23 @@ void eat_spaces(char **source) {
 char k1[80];
 char k2[80];
 
-int rank_compare_top(const void *n1, const void *n2) {
-  strcpy(k1, (*((struct rank_data *) n1)).key);
-  strcpy(k2, (*((struct rank_data *) n2)).key);
+int rank_compare_top(const void *n1, const void *n2)
+{
+  strcpy(k1, (*((struct rank_data *)n1)).key);
+  strcpy(k2, (*((struct rank_data *)n2)).key);
   return (strcmp(k2, k1));
 }
 
-int char_compare(const void *n1, const void *n2) {
-  return ((*((char *) n1)) - (*((char *) n2)));
+int char_compare(const void *n1, const void *n2)
+{
+  return ((*((char *)n1)) - (*((char *)n2)));
 }
 
-int rank_compare_bot(const void *n1, const void *n2) {
+int rank_compare_bot(const void *n1, const void *n2)
+{
 
-  strcpy(k1, (*((struct rank_data *) n1)).key);
-  strcpy(k2, (*((struct rank_data *) n2)).key);
+  strcpy(k1, (*((struct rank_data *)n1)).key);
+  strcpy(k2, (*((struct rank_data *)n2)).key);
 
   return (strcmp(k1, k2));
 }
@@ -336,129 +367,152 @@ int rank_compare_bot(const void *n1, const void *n2) {
 ranktype rank_clanbucks(struct char_data *ch) {
   sprintf(kbuf, "%27ld", GET_CLANBUCKS(ch));
   return (kbuf);
-}*/ /* end rank_clanbucks */
+}*/
+/* end rank_clanbucks */
 
-ranktype rank_hp(struct char_data *ch) {
+ranktype rank_hp(struct char_data *ch)
+{
   sprintf(kbuf, "%27d", GET_MAX_HIT(ch));
   return (kbuf);
 } /* end rank_hp */
 
-ranktype rank_psp(struct char_data *ch) {
+ranktype rank_psp(struct char_data *ch)
+{
   sprintf(kbuf, "%27d", GET_MAX_PSP(ch));
   return (kbuf);
 } /* end rank_psp */
 
-ranktype rank_moves(struct char_data *ch) {
+ranktype rank_moves(struct char_data *ch)
+{
   sprintf(kbuf, "%27d", GET_MAX_MOVE(ch));
   return (kbuf);
 } /* end rank_move */
 
-ranktype rank_curhp(struct char_data *ch) {
+ranktype rank_curhp(struct char_data *ch)
+{
   sprintf(kbuf, "%27d", GET_HIT(ch));
   return (kbuf);
 } /* end rank_hp */
 
-ranktype rank_power(struct char_data*ch) {
+ranktype rank_power(struct char_data *ch)
+{
   sprintf(kbuf, "%27d", (GET_MAX_MOVE(ch) + GET_MAX_PSP(ch) + GET_MAX_HIT(ch)));
   return (kbuf);
 } /*end rank_power */
 
-ranktype rank_str(struct char_data *ch) {
+ranktype rank_str(struct char_data *ch)
+{
   sprintf(kbuf, "%20d", GET_STR(ch));
   return (kbuf);
 } /* end rank_str */
 
-ranktype rank_int(struct char_data *ch) {
+ranktype rank_int(struct char_data *ch)
+{
   sprintf(kbuf, "%20d", GET_INT(ch));
   return (kbuf);
 } /* end rank_int */
 
-ranktype rank_wis(struct char_data *ch) {
+ranktype rank_wis(struct char_data *ch)
+{
   sprintf(kbuf, "%20d", GET_WIS(ch));
   return (kbuf);
 } /* end rank_wis */
 
-ranktype rank_dex(struct char_data *ch) {
+ranktype rank_dex(struct char_data *ch)
+{
   sprintf(kbuf, "%20d", GET_DEX(ch));
   return (kbuf);
 } /* end rank_dex */
 
-ranktype rank_con(struct char_data *ch) {
+ranktype rank_con(struct char_data *ch)
+{
   sprintf(kbuf, "%20d", GET_CON(ch));
   return (kbuf);
 } /* end rank_con */
 
-ranktype rank_cha(struct char_data *ch) {
+ranktype rank_cha(struct char_data *ch)
+{
   sprintf(kbuf, "%20d", GET_CHA(ch));
   return (kbuf);
 } /* end rank_cha */
 
-ranktype rank_fitness(struct char_data *ch) {
-  sprintf(kbuf, "%20d", GET_STR(ch) + GET_INT(ch) + GET_WIS(ch) + GET_DEX(ch) +
-          GET_CON(ch));
+ranktype rank_fitness(struct char_data *ch)
+{
+  sprintf(kbuf, "%20d", GET_STR(ch) + GET_INT(ch) + GET_WIS(ch) + GET_DEX(ch) + GET_CON(ch));
   return (kbuf);
 } /* end rank_fitness */
 
-ranktype rank_hitroll(struct char_data *ch) {
+ranktype rank_hitroll(struct char_data *ch)
+{
   sprintf(kbuf, "%20d", GET_HITROLL(ch));
   return (kbuf);
 } /* end rank_hitroll */
 
-ranktype rank_damroll(struct char_data *ch) {
+ranktype rank_damroll(struct char_data *ch)
+{
   sprintf(kbuf, "%20d", GET_DAMROLL(ch));
   return (kbuf);
 } /* end rank_damroll */
 
-ranktype rank_armor(struct char_data *ch) {
+ranktype rank_armor(struct char_data *ch)
+{
   sprintf(kbuf, "%20d", GET_AC(ch));
   return (kbuf);
 } /* end rank_armor */
 
-ranktype rank_sp(struct char_data *ch) {
+ranktype rank_sp(struct char_data *ch)
+{
   sprintf(kbuf, "%20d", CASTER_LEVEL(ch));
   return (kbuf);
 } /* end rank_sp */
 
-ranktype rank_xp(struct char_data *ch) {
+ranktype rank_xp(struct char_data *ch)
+{
   sprintf(kbuf, "%27d", GET_EXP(ch));
   return (kbuf);
 } /* end rank_xp */
 
-ranktype rank_height(struct char_data *ch) {
+ranktype rank_height(struct char_data *ch)
+{
   sprintf(kbuf, "%20d", GET_HEIGHT(ch));
   return (kbuf);
 } /* end rank_height */
 
-ranktype rank_weight(struct char_data *ch) {
+ranktype rank_weight(struct char_data *ch)
+{
   sprintf(kbuf, "%20d", GET_WEIGHT(ch));
   return (kbuf);
 } /* end rank_weight */
 
-ranktype rank_fatness(struct char_data *ch) {
+ranktype rank_fatness(struct char_data *ch)
+{
   float bmi;
-  bmi = ((float) GET_WEIGHT(ch)*10000.0) /
-          (2.2 * (float) GET_HEIGHT(ch)*(float) GET_HEIGHT(ch));
+  bmi = ((float)GET_WEIGHT(ch) * 10000.0) /
+        (2.2 * (float)GET_HEIGHT(ch) * (float)GET_HEIGHT(ch));
   sprintf(kbuf, "%20.2f", bmi);
   return (kbuf);
 } /* end rank_fatness */
 
-ranktype rank_coolness(struct char_data *ch) {
-  sprintf(kbuf, "%20d", (GET_LEVEL(ch) == LVL_IMPL) ? 100 :
-          ((GET_GOLD(ch) + GET_EXP(ch) % 100) % 100));
+ranktype rank_coolness(struct char_data *ch)
+{
+  sprintf(kbuf, "%20d", (GET_LEVEL(ch) == LVL_IMPL) ? 100 : ((GET_GOLD(ch) + GET_EXP(ch) % 100) % 100));
   return (kbuf);
 } /* end rank_coolness */
 
-ranktype rank_gold(struct char_data *ch) {
+ranktype rank_gold(struct char_data *ch)
+{
   sprintf(kbuf, "%27d", GET_GOLD(ch));
   return (kbuf);
 } /* end rank_gold */
 
-ranktype rank_bank(struct char_data *ch) {
+ranktype rank_bank(struct char_data *ch)
+{
   sprintf(kbuf, "%27d", GET_BANK_GOLD(ch));
   return (kbuf);
 } /* end rank_bank */
 
-ranktype rank_age(struct char_data *ch) {
+ranktype rank_age(struct char_data *ch)
+{
   sprintf(kbuf, "%3d", GET_AGE(ch));
   return (kbuf);
 } /* end rank_age */
@@ -467,21 +521,25 @@ ranktype rank_age(struct char_data *ch) {
 ranktype rank_kills(struct char_data *ch) {
   sprintf(kbuf, "%20ld", GET_KILLS(ch));
   return (kbuf);
-}*/ /* end rank_kills */
+}*/
+/* end rank_kills */
 
 /*
 ranktype rank_deaths(struct char_data *ch) {
   sprintf(kbuf, "%20ld", GET_DEATHS(ch));
   return (kbuf);
-}*/ /* end rank_deaths */
+}*/
+/* end rank_deaths */
 
 /*
 ranktype rank_kd(struct char_data *ch) {
   sprintf(kbuf, "%20.2f", GET_DEATHS(ch) ? (float) GET_KILLS(ch) / GET_DEATHS(ch) : (float) GET_KILLS(ch));
   return (kbuf);
-} */ /* end rank_kd */
+} */
+/* end rank_kd */
 
-ranktype rank_played(struct char_data *ch) {
+ranktype rank_played(struct char_data *ch)
+{
   struct time_info_data playing_time;
   //struct time_info_data real_time_passed(time_t t2, time_t t1);
   playing_time = *real_time_passed((time(0) - ch->player.time.logon) + ch->player.time.played, 0);
@@ -495,16 +553,19 @@ ranktype rank_birth(struct char_data *ch) {
   playing_time = age(ch);
   sprintf(kbuf, "%3d days, %2d hours.", playing_time->day, playing_time->hours);
   return (kbuf);
-} */ /* end rank_days */
+} */
+/* end rank_days */
 
 /*
 ranktype rank_remorts(struct char_data *ch) {
   sprintf(kbuf, "%20.2d", GET_REMORT_NUMBER(ch));
   return (kbuf);
-}*/ /* end rank_remorts */
+}*/
+/* end rank_remorts */
 
 /*
 ranktype rank_blabber(struct char_data *ch) {
   sprintf(kbuf, "%20.2d", GET_GOSSIPS(ch));
   return (kbuf);
-}*/ /* end rank_blabber */
+}*/
+/* end rank_blabber */

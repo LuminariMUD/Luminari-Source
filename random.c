@@ -24,11 +24,11 @@
 #include "structs.h"
 #include "utils.h" /* for function prototypes */
 
-#define	m  (unsigned long)2147483647
-#define	q  (unsigned long)127773
+#define m (unsigned long)2147483647
+#define q (unsigned long)127773
 
-#define	a (unsigned int)16807
-#define	r (unsigned int)2836
+#define a (unsigned int)16807
+#define r (unsigned int)2836
 
 /* F(z)	= (az)%m
  **	= az-m(az/m)
@@ -42,17 +42,19 @@
 
 static unsigned long seed;
 
-void circle_srandom(unsigned long initial_seed) {
+void circle_srandom(unsigned long initial_seed)
+{
   seed = initial_seed;
 }
 
-unsigned long circle_random(void) {
+unsigned long circle_random(void)
+{
   int lo, hi, test;
 
   hi = seed / q;
   lo = seed % q;
 
-  test = a * lo - r*hi;
+  test = a * lo - r * hi;
 
   if (test > 0)
     seed = test;

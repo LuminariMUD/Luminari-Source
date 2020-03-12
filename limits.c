@@ -31,18 +31,23 @@
 #include "alchemy.h"
 
 /* added this for falling event, general dummy check */
-bool death_check(struct char_data *ch) {
+bool death_check(struct char_data *ch)
+{
   /* we're just making sure damage() is called if he should be dead */
 
-  if (HAS_FEAT(ch, FEAT_DEATHLESS_FRENZY) && affected_by_spell(ch, SKILL_RAGE)) {
-    if (GET_HIT(ch) <= -51) {
+  if (HAS_FEAT(ch, FEAT_DEATHLESS_FRENZY) && affected_by_spell(ch, SKILL_RAGE))
+  {
+    if (GET_HIT(ch) <= -51)
+    {
       damage(ch, ch, 999, TYPE_UNDEFINED, DAM_FORCE, FALSE);
       return TRUE; // dead for sure now!
-    } else
+    }
+    else
       return FALSE;
   }
 
-  if (GET_HIT(ch) <= -12 ) {
+  if (GET_HIT(ch) <= -12)
+  {
     damage(ch, ch, 999, TYPE_UNDEFINED, DAM_FORCE, FALSE);
     return TRUE; // dead for sure now!
   }
@@ -51,115 +56,134 @@ bool death_check(struct char_data *ch) {
 }
 
 /* engine for checking a room-affect to see if it fires */
-void room_aff_tick(struct raff_node *raff) {
+void room_aff_tick(struct raff_node *raff)
+{
   struct room_data *caster_room = NULL;
   struct char_data *caster = NULL;
   int casttype = CAST_SPELL;
   int level = DG_SPELL_LEVEL;
 
-  switch (raff->spell) {
-    case SPELL_ACID_FOG:
-      caster = read_mobile(DG_CASTER_PROXY, VIRTUAL);
-      caster_room = &world[raff->room];
-      if (!caster) {
-        script_log("comm.c: Cannot load the caster mob (acid fog)!");
-        return;
-      }
+  switch (raff->spell)
+  {
+  case SPELL_ACID_FOG:
+    caster = read_mobile(DG_CASTER_PROXY, VIRTUAL);
+    caster_room = &world[raff->room];
+    if (!caster)
+    {
+      script_log("comm.c: Cannot load the caster mob (acid fog)!");
+      return;
+    }
 
-      /* set the caster's name */
-      caster->player.short_descr = strdup("The room");
-      caster->next_in_room = caster_room->people;
-      caster_room->people = caster;
-      caster->in_room = real_room(caster_room->number);
-      call_magic(caster, NULL, NULL, SPELL_ACID, 0, DG_SPELL_LEVEL, CAST_SPELL);
-      extract_char(caster);
-      break;
-    case SPELL_BILLOWING_CLOUD:
-      for (caster = world[raff->room].people; caster; caster = caster->next_in_room) {
-        if (caster && GET_LEVEL(caster) < 13) {
-          if (!mag_savingthrow(caster, caster, SAVING_FORT, 0, casttype, level, CONJURATION)) {
-            send_to_char(caster, "You are bogged down by the billowing cloud!\r\n");
-            act("$n is bogged down by the billowing cloud.", TRUE, caster, 0, NULL, TO_ROOM);
-            USE_MOVE_ACTION(caster);
-          }
+    /* set the caster's name */
+    caster->player.short_descr = strdup("The room");
+    caster->next_in_room = caster_room->people;
+    caster_room->people = caster;
+    caster->in_room = real_room(caster_room->number);
+    call_magic(caster, NULL, NULL, SPELL_ACID, 0, DG_SPELL_LEVEL, CAST_SPELL);
+    extract_char(caster);
+    break;
+  case SPELL_BILLOWING_CLOUD:
+    for (caster = world[raff->room].people; caster; caster = caster->next_in_room)
+    {
+      if (caster && GET_LEVEL(caster) < 13)
+      {
+        if (!mag_savingthrow(caster, caster, SAVING_FORT, 0, casttype, level, CONJURATION))
+        {
+          send_to_char(caster, "You are bogged down by the billowing cloud!\r\n");
+          act("$n is bogged down by the billowing cloud.", TRUE, caster, 0, NULL, TO_ROOM);
+          USE_MOVE_ACTION(caster);
         }
       }
-      break;
-    case SPELL_BLADE_BARRIER:
-      caster = read_mobile(DG_CASTER_PROXY, VIRTUAL);
-      caster_room = &world[raff->room];
-      if (!caster) {
-        script_log("comm.c: Cannot load the caster mob (blade barrier)!");
-        return;
-      }
+    }
+    break;
+  case SPELL_BLADE_BARRIER:
+    caster = read_mobile(DG_CASTER_PROXY, VIRTUAL);
+    caster_room = &world[raff->room];
+    if (!caster)
+    {
+      script_log("comm.c: Cannot load the caster mob (blade barrier)!");
+      return;
+    }
 
-      /* set the caster's name */
-      caster->player.short_descr = strdup("The room");
-      caster->next_in_room = caster_room->people;
-      caster_room->people = caster;
-      caster->in_room = real_room(caster_room->number);
-      call_magic(caster, NULL, NULL, SPELL_BLADES, 0, DG_SPELL_LEVEL, CAST_SPELL);
-      extract_char(caster);
-      break;
-    case SPELL_STINKING_CLOUD:
-      caster = read_mobile(DG_CASTER_PROXY, VIRTUAL);
-      caster_room = &world[raff->room];
-      if (!caster) {
-        script_log("comm.c: Cannot load the caster mob!");
-        return;
-      }
+    /* set the caster's name */
+    caster->player.short_descr = strdup("The room");
+    caster->next_in_room = caster_room->people;
+    caster_room->people = caster;
+    caster->in_room = real_room(caster_room->number);
+    call_magic(caster, NULL, NULL, SPELL_BLADES, 0, DG_SPELL_LEVEL, CAST_SPELL);
+    extract_char(caster);
+    break;
+  case SPELL_STINKING_CLOUD:
+    caster = read_mobile(DG_CASTER_PROXY, VIRTUAL);
+    caster_room = &world[raff->room];
+    if (!caster)
+    {
+      script_log("comm.c: Cannot load the caster mob!");
+      return;
+    }
 
-      /* set the caster's name */
-      caster->player.short_descr = strdup("The room");
-      caster->next_in_room = caster_room->people;
-      caster_room->people = caster;
-      caster->in_room = real_room(caster_room->number);
-      call_magic(caster, NULL, NULL, SPELL_STENCH, 0, DG_SPELL_LEVEL, CAST_SPELL);
-      extract_char(caster);
-      break;
+    /* set the caster's name */
+    caster->player.short_descr = strdup("The room");
+    caster->next_in_room = caster_room->people;
+    caster_room->people = caster;
+    caster->in_room = real_room(caster_room->number);
+    call_magic(caster, NULL, NULL, SPELL_STENCH, 0, DG_SPELL_LEVEL, CAST_SPELL);
+    extract_char(caster);
+    break;
   }
-
 }
 
 /* engine for 'afflictions' related to pulse_luminari */
-void affliction_tick(struct char_data *ch) {
+void affliction_tick(struct char_data *ch)
+{
   /* cloudkill */
-  if (CLOUDKILL(ch)) {
+  if (CLOUDKILL(ch))
+  {
     call_magic(ch, NULL, NULL, SPELL_DEATHCLOUD, 0, MAGIC_LEVEL(ch), CAST_SPELL);
-    CLOUDKILL(ch)--;
-    if (CLOUDKILL(ch) <= 0) {
+    CLOUDKILL(ch)
+    --;
+    if (CLOUDKILL(ch) <= 0)
+    {
       send_to_char(ch, "Your cloud of death dissipates!\r\n");
       act("The cloud of death following $n dissipates!", TRUE, ch, 0, NULL,
-              TO_ROOM);
+          TO_ROOM);
     }
-  }    //end cloudkill
+  } //end cloudkill
 
-    /* creeping doom */
-  else if (DOOM(ch)) {
+  /* creeping doom */
+  else if (DOOM(ch))
+  {
     call_magic(ch, NULL, NULL, SPELL_DOOM, 0, DIVINE_LEVEL(ch), CAST_SPELL);
-    DOOM(ch)--;
-    if (DOOM(ch) <= 0) {
+    DOOM(ch)
+    --;
+    if (DOOM(ch) <= 0)
+    {
       send_to_char(ch, "Your creeping swarm of centipedes dissipates!\r\n");
       act("The creeping swarm of centipedes following $n dissipates!", TRUE, ch, 0, NULL,
-              TO_ROOM);
+          TO_ROOM);
     }
-  }//end creeping doom
+  } //end creeping doom
 
-    /* incendiary cloud */
-  else if (INCENDIARY(ch)) {
+  /* incendiary cloud */
+  else if (INCENDIARY(ch))
+  {
     call_magic(ch, NULL, NULL, SPELL_INCENDIARY, 0, MAGIC_LEVEL(ch), CAST_SPELL);
-    INCENDIARY(ch)--;
-    if (INCENDIARY(ch) <= 0) {
+    INCENDIARY(ch)
+    --;
+    if (INCENDIARY(ch) <= 0)
+    {
       send_to_char(ch, "Your incendiary cloud dissipates!\r\n");
       act("The incendiary cloud following $n dissipates!", TRUE, ch, 0, NULL,
-              TO_ROOM);
+          TO_ROOM);
     }
   }
   //end incendiary cloud
 
   /* disease */
-  if (IS_AFFECTED(ch, AFF_DISEASE)) {
-    if (!IS_NPC(ch) && (HAS_FEAT(ch, FEAT_DIVINE_HEALTH) || HAS_FEAT(ch, FEAT_DIAMOND_BODY))) {
+  if (IS_AFFECTED(ch, AFF_DISEASE))
+  {
+    if (!IS_NPC(ch) && (HAS_FEAT(ch, FEAT_DIVINE_HEALTH) || HAS_FEAT(ch, FEAT_DIAMOND_BODY)))
+    {
       if (affected_by_spell(ch, SPELL_EYEBITE))
         affect_from_char(ch, SPELL_EYEBITE);
       if (affected_by_spell(ch, SPELL_CONTAGION))
@@ -168,11 +192,14 @@ void affliction_tick(struct char_data *ch) {
         REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_DISEASE);
       send_to_char(ch, "The \tYdisease\tn you have fades away!\r\n");
       act("$n glows bright \tWwhite\tn and the \tYdisease\tn $e had "
-              "fades away!", TRUE, ch, 0, NULL, TO_ROOM);
-    } else if (GET_HIT(ch) > (GET_MAX_HIT(ch)*3 / 5)) {
+          "fades away!",
+          TRUE, ch, 0, NULL, TO_ROOM);
+    }
+    else if (GET_HIT(ch) > (GET_MAX_HIT(ch) * 3 / 5))
+    {
       send_to_char(ch, "The \tYdisease\tn you have causes you to suffer!\r\n");
       act("$n suffers from a \tYdisease\tn!", TRUE, ch, 0, NULL,
-              TO_ROOM);
+          TO_ROOM);
       GET_HIT(ch) = GET_MAX_HIT(ch) * 3 / 5;
     }
   }
@@ -181,22 +208,32 @@ void affliction_tick(struct char_data *ch) {
 }
 
 /* dummy check mostly, checks to see if mount/rider got seperated */
-void mount_cleanup(struct char_data *ch) {
-  if (RIDING(ch)) {
-    if (RIDDEN_BY(RIDING(ch)) != ch) {
+void mount_cleanup(struct char_data *ch)
+{
+  if (RIDING(ch))
+  {
+    if (RIDDEN_BY(RIDING(ch)) != ch)
+    {
       /* dismount both of these guys */
       dismount_char(ch);
       dismount_char(RIDDEN_BY(RIDING(ch)));
-    } else if (IN_ROOM(RIDING(ch)) != IN_ROOM(ch)) {
+    }
+    else if (IN_ROOM(RIDING(ch)) != IN_ROOM(ch))
+    {
       /* not in same room?  dismount 'em */
       dismount_char(ch);
     }
-  } else if (RIDDEN_BY(ch)) {
-    if (RIDING(RIDDEN_BY(ch)) != ch) {
+  }
+  else if (RIDDEN_BY(ch))
+  {
+    if (RIDING(RIDDEN_BY(ch)) != ch)
+    {
       /* dismount both of these guys */
       dismount_char(ch);
       dismount_char(RIDING(RIDDEN_BY(ch)));
-    } else if (IN_ROOM(RIDDEN_BY(ch)) != IN_ROOM(ch)) {
+    }
+    else if (IN_ROOM(RIDDEN_BY(ch)) != IN_ROOM(ch))
+    {
       /* not in same room?  dismount 'em */
       dismount_char(ch);
     }
@@ -205,7 +242,8 @@ void mount_cleanup(struct char_data *ch) {
 
 /* a tick counter that checks for room-based hazards, like
  * falling/drowning/lava/etc */
-void hazard_tick(struct char_data *ch) {
+void hazard_tick(struct char_data *ch)
+{
   bool flying = FALSE;
 
   flying = FALSE;
@@ -215,26 +253,29 @@ void hazard_tick(struct char_data *ch) {
     flying = TRUE;
 
   /* falling */
-  if (char_should_fall(ch, TRUE) && !char_has_mud_event(ch, eFALLING)) {
+  if (char_should_fall(ch, TRUE) && !char_has_mud_event(ch, eFALLING))
+  {
     /* the svariable value of 20 is just a rough number for feet */
     attach_mud_event(new_mud_event(eFALLING, ch, "20"), 5);
     send_to_char(ch, "Suddenly your realize you are falling!\r\n");
     act("$n has just realized $e has no visible means of support!",
-            FALSE, ch, 0, 0, TO_ROOM);
+        FALSE, ch, 0, 0, TO_ROOM);
   }
 
-  if (!IS_NPC(ch)) {
-    switch (SECT(IN_ROOM(ch))) {
-      case SECT_LAVA:
-        if (!AFF_FLAGGED(ch, AFF_ELEMENT_PROT))
-          damage(ch, ch, rand_number(1, 50), TYPE_UNDEFINED, DAM_FIRE, FALSE);
+  if (!IS_NPC(ch))
+  {
+    switch (SECT(IN_ROOM(ch)))
+    {
+    case SECT_LAVA:
+      if (!AFF_FLAGGED(ch, AFF_ELEMENT_PROT))
+        damage(ch, ch, rand_number(1, 50), TYPE_UNDEFINED, DAM_FIRE, FALSE);
+      break;
+    case SECT_UNDERWATER:
+      if (IS_NPC(ch) && (GET_MOB_VNUM(ch) == 1260 || IS_UNDEAD(ch)))
         break;
-      case SECT_UNDERWATER:
-        if (IS_NPC(ch) && (GET_MOB_VNUM(ch) == 1260 || IS_UNDEAD(ch)))
-          break;
-        if (!AFF_FLAGGED(ch, AFF_WATER_BREATH) && !ROOM_FLAGGED(IN_ROOM(ch), ROOM_AIRY))
-          damage(ch, ch, rand_number(1, 65), TYPE_UNDEFINED, DAM_WATER, FALSE);
-        break;
+      if (!AFF_FLAGGED(ch, AFF_WATER_BREATH) && !ROOM_FLAGGED(IN_ROOM(ch), ROOM_AIRY))
+        damage(ch, ch, rand_number(1, 65), TYPE_UNDEFINED, DAM_WATER, FALSE);
+      break;
     }
   }
 }
@@ -248,12 +289,14 @@ void hazard_tick(struct char_data *ch) {
  *  Also should be noted, its nice to keep this off-beat with
  *  PULSE_VIOLENCE, it has a little nicer feel to it
  */
-void pulse_luminari() {
+void pulse_luminari()
+{
   struct char_data *i = NULL;
   struct raff_node *raff = NULL, *next_raff = NULL;
 
   // room-affections, loop through em
-  for (raff = raff_list; raff; raff = next_raff) {
+  for (raff = raff_list; raff; raff = next_raff)
+  {
     next_raff = raff->next;
 
     /* will check a room it has room affection to fire */
@@ -261,7 +304,8 @@ void pulse_luminari() {
   }
 
   // looping through char list, what needs to be done?
-  for (i = character_list; i; i = i->next) {
+  for (i = character_list; i; i = i->next)
+  {
 
     /* dummy check + added for falling event */
     if (death_check(i))
@@ -270,7 +314,7 @@ void pulse_luminari() {
     /* 04/07/13 - added position check since pos_fighting is deprecated */
     if (GET_POS(i) == POS_FIGHTING && !FIGHTING(i))
       change_position(i, POS_STANDING);
-    
+
     /* safety check to make sure you aren't firing when not fighting */
     if (!FIGHTING(i))
       FIRING(i) = 0;
@@ -284,9 +328,9 @@ void pulse_luminari() {
 
     /* vitals regeneration */
     if (GET_HIT(i) == GET_MAX_HIT(i) &&
-            GET_MOVE(i) == GET_MAX_MOVE(i) &&
-            GET_PSP(i) == GET_MAX_PSP(i) &&
-            !AFF_FLAGGED(i, AFF_POISON))
+        GET_MOVE(i) == GET_MAX_MOVE(i) &&
+        GET_PSP(i) == GET_MAX_PSP(i) &&
+        !AFF_FLAGGED(i, AFF_POISON))
       ;
     else
       regen_update(i);
@@ -310,7 +354,8 @@ void pulse_luminari() {
  When age is 45..59 calculate the line between p3 & p4
  When age is 60..79 calculate the line between p4 & p5
  When age >= 80 return the value p6 */
-int graf(int grafage, int p0, int p1, int p2, int p3, int p4, int p5, int p6) {
+int graf(int grafage, int p0, int p1, int p2, int p3, int p4, int p5, int p6)
+{
 
   if (grafage < 15)
     return (p0); /* < 15   */
@@ -326,17 +371,20 @@ int graf(int grafage, int p0, int p1, int p2, int p3, int p4, int p5, int p6) {
     return (p6); /* >= 80 */
 }
 
-void regen_update(struct char_data *ch) {
+void regen_update(struct char_data *ch)
+{
   struct char_data *tch = NULL;
   int hp = 0, found = 0;
 
   // poisoned, and dying people should suffer their damage from anyone they are
   // fighting in order that xp goes to the killer (who doesn't strike the last blow)
   // -zusuk
-  if (AFF_FLAGGED(ch, AFF_POISON)) {
+  if (AFF_FLAGGED(ch, AFF_POISON))
+  {
 
     /*  */
-    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_VENOM_IMMUNITY)) {
+    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_VENOM_IMMUNITY))
+    {
       send_to_char(ch, "Your venom immunity purges the poison!\r\n");
       act("$n appears better as their body purges away some poison.", TRUE, ch, 0, 0, TO_ROOM);
       if (affected_by_spell(ch, SPELL_POISON))
@@ -347,7 +395,8 @@ void regen_update(struct char_data *ch) {
     }
 
     /* purity of body feat */
-    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_PURITY_OF_BODY)) {
+    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_PURITY_OF_BODY))
+    {
       send_to_char(ch, "Your purity of body purges the poison!\r\n");
       act("$n appears better as their body purges away some poison.", TRUE, ch, 0, 0, TO_ROOM);
       if (affected_by_spell(ch, SPELL_POISON))
@@ -357,9 +406,12 @@ void regen_update(struct char_data *ch) {
       return;
     }
 
-    if (FIGHTING(ch) || dice(1, 2) == 2) {
-      for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room) {
-        if (!IS_NPC(tch) && FIGHTING(tch) == ch) {
+    if (FIGHTING(ch) || dice(1, 2) == 2)
+    {
+      for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+      {
+        if (!IS_NPC(tch) && FIGHTING(tch) == ch)
+        {
           damage(tch, ch, dice(1, 4), SPELL_POISON, KNOWS_DISCOVERY(tch, ALC_DISC_CELESTIAL_POISONS) ? DAM_CELESTIAL_POISON : DAM_POISON, FALSE);
           /* we use to have custom damage message here for this */
           //act("$N looks really \tgsick\tn and shivers uncomfortably.",
@@ -383,9 +435,12 @@ void regen_update(struct char_data *ch) {
 
   found = 0;
   tch = NULL;
-  if (GET_POS(ch) == POS_MORTALLYW) {
-    for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room) {
-      if (!IS_NPC(tch) && FIGHTING(tch) == ch) {
+  if (GET_POS(ch) == POS_MORTALLYW)
+  {
+    for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+    {
+      if (!IS_NPC(tch) && FIGHTING(tch) == ch)
+      {
         damage(tch, ch, 1, TYPE_SUFFERING, DAM_RESERVED_DBC, FALSE);
         found = 1;
         break;
@@ -400,9 +455,12 @@ void regen_update(struct char_data *ch) {
   //50% chance you'll continue dying when incapacitated
   found = 0;
   tch = NULL;
-  if (GET_POS(ch) == POS_INCAP && dice(1, 2) == 2) {
-    for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room) {
-      if (!IS_NPC(tch) && FIGHTING(tch) == ch) {
+  if (GET_POS(ch) == POS_INCAP && dice(1, 2) == 2)
+  {
+    for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+    {
+      if (!IS_NPC(tch) && FIGHTING(tch) == ch)
+      {
         damage(tch, ch, 1, TYPE_SUFFERING, DAM_RESERVED_DBC, FALSE);
         found = 1;
         break;
@@ -414,7 +472,8 @@ void regen_update(struct char_data *ch) {
     return;
   }
 
-  if (IS_NPC(ch) && GET_LEVEL(ch) <= 6 && !AFF_FLAGGED(ch, AFF_CHARM)) {
+  if (IS_NPC(ch) && GET_LEVEL(ch) <= 6 && !AFF_FLAGGED(ch, AFF_CHARM))
+  {
     update_pos(ch);
     return;
   }
@@ -432,7 +491,8 @@ void regen_update(struct char_data *ch) {
   else if (GET_POS(ch) == POS_SLEEPING)
     hp += dice(3, 2);
 
-  if (HAS_FEAT(ch, FEAT_FAST_HEALING)) {
+  if (HAS_FEAT(ch, FEAT_FAST_HEALING))
+  {
     hp += HAS_FEAT(ch, FEAT_FAST_HEALING) * 3;
   }
 
@@ -442,7 +502,8 @@ void regen_update(struct char_data *ch) {
     hp *= 2;
 
   // half-troll racial innate regeneration
-  if (GET_RACE(ch) == RACE_HALF_TROLL) {
+  if (GET_RACE(ch) == RACE_HALF_TROLL)
+  {
     if (!hp)
       hp++;
     hp *= 2;
@@ -451,21 +512,29 @@ void regen_update(struct char_data *ch) {
   }
 
   if (rand_number(0, 3) && GET_LEVEL(ch) <= LVL_IMMORT && !IS_NPC(ch) &&
-          (GET_COND(ch, THIRST) == 0 || GET_COND(ch, HUNGER) == 0))
+      (GET_COND(ch, THIRST) == 0 || GET_COND(ch, HUNGER) == 0))
     hp = 0;
 
   /* blackmantle stops natural regeneration */
   if (AFF_FLAGGED(ch, AFF_BLACKMANTLE) || ROOM_FLAGGED(IN_ROOM(ch), ROOM_NOHEAL))
     hp = 0;
 
-  if (GET_HIT(ch) > GET_MAX_HIT(ch)) {
-    GET_HIT(ch)--;
-  } else {
+  if (GET_HIT(ch) > GET_MAX_HIT(ch))
+  {
+    GET_HIT(ch)
+    --;
+  }
+  else
+  {
     GET_HIT(ch) = MIN(GET_HIT(ch) + hp, GET_MAX_HIT(ch));
   }
-  if (GET_MOVE(ch) > GET_MAX_MOVE(ch)) {
-    GET_MOVE(ch)--;
-  } else if (!AFF_FLAGGED(ch, AFF_FATIGUED)) {
+  if (GET_MOVE(ch) > GET_MAX_MOVE(ch))
+  {
+    GET_MOVE(ch)
+    --;
+  }
+  else if (!AFF_FLAGGED(ch, AFF_FATIGUED))
+  {
     int move_regen = hp;
     if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_FAST_MOVEMENT))
       move_regen++;
@@ -474,16 +543,19 @@ void regen_update(struct char_data *ch) {
     move_regen *= 10;
     GET_MOVE(ch) = MIN(GET_MOVE(ch) + (move_regen * 3), GET_MAX_MOVE(ch));
   }
-  if (GET_PSP(ch) > GET_MAX_PSP(ch)) {
-    GET_PSP(ch)--;
-  } else {
+  if (GET_PSP(ch) > GET_MAX_PSP(ch))
+  {
+    GET_PSP(ch)
+    --;
+  }
+  else
+  {
     GET_PSP(ch) = MIN(GET_PSP(ch) + (hp * 2), GET_MAX_PSP(ch));
   }
 
   update_pos(ch);
   return;
 }
-
 
 /* The hit_limit, psp_limit, and move_limit functions are gone.  They added an
  * unnecessary level of complexity to the internal structure, weren't
@@ -493,13 +565,17 @@ void regen_update(struct char_data *ch) {
  * the HMV maximums. */
 
 /* psppoint gain pr. game hour */
-int psp_gain(struct char_data *ch) {
+int psp_gain(struct char_data *ch)
+{
   int gain;
 
-  if (IS_NPC(ch)) {
+  if (IS_NPC(ch))
+  {
     /* Neat and fast */
     gain = GET_LEVEL(ch);
-  } else {
+  }
+  else
+  {
     gain = graf(age(ch)->year, 4, 8, 12, 16, 12, 10, 8);
 
     /* Class calculations */
@@ -507,24 +583,24 @@ int psp_gain(struct char_data *ch) {
     /* Skill/Spell calculations */
 
     /* Position calculations    */
-    switch (GET_POS(ch)) {
-      case POS_SLEEPING:
-        gain *= 2;
-        break;
-      case POS_RECLINING:
-        gain *= 3;
-        gain /= 2;
-        break;
-      case POS_RESTING:
-        gain += (gain / 2); /* Divide by 2 */
-        break;
-      case POS_SITTING:
-        gain += (gain / 4); /* Divide by 4 */
-        break;
+    switch (GET_POS(ch))
+    {
+    case POS_SLEEPING:
+      gain *= 2;
+      break;
+    case POS_RECLINING:
+      gain *= 3;
+      gain /= 2;
+      break;
+    case POS_RESTING:
+      gain += (gain / 2); /* Divide by 2 */
+      break;
+    case POS_SITTING:
+      gain += (gain / 4); /* Divide by 4 */
+      break;
     }
 
-    if (IS_WIZARD(ch) || IS_CLERIC(ch) || IS_SORCERER(ch) || IS_BARD(ch)
-            || IS_DRUID(ch) || IS_PALADIN(ch) || IS_RANGER(ch))
+    if (IS_WIZARD(ch) || IS_CLERIC(ch) || IS_SORCERER(ch) || IS_BARD(ch) || IS_DRUID(ch) || IS_PALADIN(ch) || IS_RANGER(ch))
       gain *= 2;
 
     if ((GET_COND(ch, HUNGER) == 0) || (GET_COND(ch, THIRST) == 0))
@@ -538,13 +614,17 @@ int psp_gain(struct char_data *ch) {
 }
 
 /* Hitpoint gain pr. game hour */
-int hit_gain(struct char_data *ch) {
+int hit_gain(struct char_data *ch)
+{
   int gain;
 
-  if (IS_NPC(ch)) {
+  if (IS_NPC(ch))
+  {
     /* Neat and fast */
     gain = GET_LEVEL(ch);
-  } else {
+  }
+  else
+  {
 
     gain = graf(age(ch)->year, 8, 12, 20, 32, 16, 10, 4);
 
@@ -552,23 +632,24 @@ int hit_gain(struct char_data *ch) {
     /* Skill/Spell calculations */
     /* Position calculations    */
 
-    switch (GET_POS(ch)) {
-      case POS_SLEEPING:
-        gain += (gain / 2); /* Divide by 2 */
-        break;
-      case POS_RECLINING:
-        gain += (gain / 3); /* Divide by 3 */
-        break;
-      case POS_RESTING:
-        gain += (gain / 4); /* Divide by 4 */
-        break;
-      case POS_SITTING:
-        gain += (gain / 8); /* Divide by 8 */
-        break;
+    switch (GET_POS(ch))
+    {
+    case POS_SLEEPING:
+      gain += (gain / 2); /* Divide by 2 */
+      break;
+    case POS_RECLINING:
+      gain += (gain / 3); /* Divide by 3 */
+      break;
+    case POS_RESTING:
+      gain += (gain / 4); /* Divide by 4 */
+      break;
+    case POS_SITTING:
+      gain += (gain / 8); /* Divide by 8 */
+      break;
     }
 
     if (IS_WIZARD(ch) || IS_CLERIC(ch) || IS_DRUID(ch) ||
-            IS_SORCERER(ch))
+        IS_SORCERER(ch))
       gain /= 2; /* Ouch. */
 
     if ((GET_COND(ch, HUNGER) == 0) || (GET_COND(ch, THIRST) == 0))
@@ -582,31 +663,36 @@ int hit_gain(struct char_data *ch) {
 }
 
 /* move gain pr. game hour */
-int move_gain(struct char_data *ch) {
+int move_gain(struct char_data *ch)
+{
   int gain;
 
-  if (IS_NPC(ch)) {
+  if (IS_NPC(ch))
+  {
     /* Neat and fast */
     gain = GET_LEVEL(ch);
-  } else {
+  }
+  else
+  {
     gain = graf(age(ch)->year, 16, 20, 24, 20, 16, 12, 10);
 
     /* Class/Level calculations */
     /* Skill/Spell calculations */
     /* Position calculations    */
-    switch (GET_POS(ch)) {
-      case POS_SLEEPING:
-        gain += (gain / 2); /* Divide by 2 */
-        break;
-      case POS_RECLINING:
-        gain += (gain / 3); /* Divide by 3 */
-        break;
-      case POS_RESTING:
-        gain += (gain / 4); /* Divide by 4 */
-        break;
-      case POS_SITTING:
-        gain += (gain / 8); /* Divide by 8 */
-        break;
+    switch (GET_POS(ch))
+    {
+    case POS_SLEEPING:
+      gain += (gain / 2); /* Divide by 2 */
+      break;
+    case POS_RECLINING:
+      gain += (gain / 3); /* Divide by 3 */
+      break;
+    case POS_RESTING:
+      gain += (gain / 4); /* Divide by 4 */
+      break;
+    case POS_SITTING:
+      gain += (gain / 8); /* Divide by 8 */
+      break;
     }
 
     if ((GET_COND(ch, HUNGER) == 0) || (GET_COND(ch, THIRST) == 0))
@@ -621,17 +707,19 @@ int move_gain(struct char_data *ch) {
   return (gain);
 }
 
-void set_title(struct char_data *ch, char *title) {
+void set_title(struct char_data *ch, char *title)
+{
   if (GET_TITLE(ch) != NULL)
     free(GET_TITLE(ch));
 
   //why are we checking sex?  old title system -zusuk
   //OK to remove sex check!
-  if (title == NULL) {
-    GET_TITLE(ch) = strdup(GET_SEX(ch) == SEX_FEMALE ?
-            titles(GET_CLASS(ch), GET_LEVEL(ch)) :
-            titles(GET_CLASS(ch), GET_LEVEL(ch)));
-  } else {
+  if (title == NULL)
+  {
+    GET_TITLE(ch) = strdup(GET_SEX(ch) == SEX_FEMALE ? titles(GET_CLASS(ch), GET_LEVEL(ch)) : titles(GET_CLASS(ch), GET_LEVEL(ch)));
+  }
+  else
+  {
     if (strlen(title) > MAX_TITLE_LENGTH)
       title[MAX_TITLE_LENGTH] = '\0';
 
@@ -639,40 +727,45 @@ void set_title(struct char_data *ch, char *title) {
   }
 }
 
-void run_autowiz(void) {
+void run_autowiz(void)
+{
 #if defined(CIRCLE_UNIX) || defined(CIRCLE_WINDOWS)
-  if (CONFIG_USE_AUTOWIZ) {
+  if (CONFIG_USE_AUTOWIZ)
+  {
     size_t res;
     char buf[1024];
     int i;
 
 #if defined(CIRCLE_UNIX)
-    res = snprintf(buf, sizeof (buf), "nice ../bin/autowiz %d %s %d %s %d &",
-            CONFIG_MIN_WIZLIST_LEV, WIZLIST_FILE, LVL_IMMORT, IMMLIST_FILE, (int) getpid());
+    res = snprintf(buf, sizeof(buf), "nice ../bin/autowiz %d %s %d %s %d &",
+                   CONFIG_MIN_WIZLIST_LEV, WIZLIST_FILE, LVL_IMMORT, IMMLIST_FILE, (int)getpid());
 #elif defined(CIRCLE_WINDOWS)
-    res = snprintf(buf, sizeof (buf), "autowiz %d %s %d %s",
-            CONFIG_MIN_WIZLIST_LEV, WIZLIST_FILE, LVL_IMMORT, IMMLIST_FILE);
+    res = snprintf(buf, sizeof(buf), "autowiz %d %s %d %s",
+                   CONFIG_MIN_WIZLIST_LEV, WIZLIST_FILE, LVL_IMMORT, IMMLIST_FILE);
 #endif /* CIRCLE_WINDOWS */
 
     /* Abusing signed -> unsigned conversion to avoid '-1' check. */
-    if (res < sizeof (buf)) {
+    if (res < sizeof(buf))
+    {
       mudlog(CMP, LVL_IMMORT, FALSE, "Initiating autowiz.");
       i = system(buf);
       reboot_wizlists();
-    } else
+    }
+    else
       log("Cannot run autowiz: command-line doesn't fit in buffer.");
   }
 #endif /* CIRCLE_UNIX || CIRCLE_WINDOWS */
 }
 
 /* changed to return gain */
-#define NEWBIE_EXP               150
-#define MIN_NUM_MOBS_TO_KILL_5   9
-#define MIN_NUM_MOBS_TO_KILL_10  24
-#define MIN_NUM_MOBS_TO_KILL_15  59
-#define MIN_NUM_MOBS_TO_KILL_20  120
-#define MIN_NUM_MOBS_TO_KILL_25  185
-int gain_exp(struct char_data *ch, int gain, int mode) {
+#define NEWBIE_EXP 150
+#define MIN_NUM_MOBS_TO_KILL_5 9
+#define MIN_NUM_MOBS_TO_KILL_10 24
+#define MIN_NUM_MOBS_TO_KILL_15 59
+#define MIN_NUM_MOBS_TO_KILL_20 120
+#define MIN_NUM_MOBS_TO_KILL_25 185
+int gain_exp(struct char_data *ch, int gain, int mode)
+{
   int xp_to_lvl = 0;
   int gain_cap = 0;
 
@@ -680,92 +773,121 @@ int gain_exp(struct char_data *ch, int gain, int mode) {
     return 0;
 
   /* discourage people from killing their pets at the end of the day */
-  if (IS_NPC(ch) && AFF_FLAGGED(ch, AFF_CHARM) && ch->master) {
-    return 0;
-  }
-  
-  if (IS_NPC(ch)) {
-    GET_EXP(ch) += gain/2;
+  if (IS_NPC(ch) && AFF_FLAGGED(ch, AFF_CHARM) && ch->master)
+  {
     return 0;
   }
 
-  if (gain > 0) {
+  if (IS_NPC(ch))
+  {
+    GET_EXP(ch) += gain / 2;
+    return 0;
+  }
+
+  if (gain > 0)
+  {
 
     /* newbie bonus */
     if (GET_LEVEL(ch) <= NEWBIE_LEVEL)
-      gain += (int) ((float) gain * ((float) NEWBIE_EXP / (float) (100)));
+      gain += (int)((float)gain * ((float)NEWBIE_EXP / (float)(100)));
 
     /* flat rate for now! (halfed the rate for testing purposes) */
-    if (ch && ch->desc && ch->desc->account) {
-      if (gain >= 2500 && ch->desc->account->experience < 33999) {
-        if (gain/1250 >= 7) /*reduce spam*/
-          send_to_char(ch, "You gain %d account experience points!\r\n", gain/1250);
+    if (ch && ch->desc && ch->desc->account)
+    {
+      if (gain >= 2500 && ch->desc->account->experience < 33999)
+      {
+        if (gain / 1250 >= 7) /*reduce spam*/
+          send_to_char(ch, "You gain %d account experience points!\r\n", gain / 1250);
         ch->desc->account->experience += gain / 1250;
       }
     }
 
     /* some limited xp cap conditions */
-    switch (mode) {   
-        /* quest, script xp not limited here */
-      case GAIN_EXP_MODE_QUEST:
-      case GAIN_EXP_MODE_SCRIPT:
-      case GAIN_EXP_MODE_DEATH: /* should be negative and not get here! */
-        break;
-      case GAIN_EXP_MODE_EDRAIN:
-      case GAIN_EXP_MODE_CRAFT:
-      case GAIN_EXP_MODE_DAMAGE:
-      case GAIN_EXP_MODE_DUMP:
-        /* further cap these */
-        xp_to_lvl = level_exp(ch, GET_LEVEL(ch) + 1) - level_exp(ch, GET_LEVEL(ch));
-        if (GET_LEVEL(ch) < 6) {
-          gain_cap = gain; /* no cap */
-        } else if (GET_LEVEL(ch) < 11) {
-          gain_cap = xp_to_lvl / (MIN_NUM_MOBS_TO_KILL_5*4);
-        } else if (GET_LEVEL(ch) < 16) {
-          gain_cap = xp_to_lvl / (MIN_NUM_MOBS_TO_KILL_10*4);
-        } else if (GET_LEVEL(ch) < 21) {
-          gain_cap = xp_to_lvl / (MIN_NUM_MOBS_TO_KILL_15*4);
-        } else if (GET_LEVEL(ch) < 26) {
-          gain_cap = xp_to_lvl / (MIN_NUM_MOBS_TO_KILL_20*4);
-        } else {
-          gain_cap = xp_to_lvl / (MIN_NUM_MOBS_TO_KILL_25*4);
-        }
-        gain = MIN(gain_cap, gain);
-        break;
-      case GAIN_EXP_MODE_DEFAULT:
-      case GAIN_EXP_MODE_GROUP:
-      case GAIN_EXP_MODE_SOLO:
-      case GAIN_EXP_MODE_TRAP:
-      default:
-        xp_to_lvl = level_exp(ch, GET_LEVEL(ch) + 1) - level_exp(ch, GET_LEVEL(ch));
-        if (GET_LEVEL(ch) < 6) {
-          gain_cap = gain; /* no cap */
-        } else if (GET_LEVEL(ch) < 11) {
-          gain_cap = xp_to_lvl / (MIN_NUM_MOBS_TO_KILL_5);
-        } else if (GET_LEVEL(ch) < 16) {
-          gain_cap = xp_to_lvl / (MIN_NUM_MOBS_TO_KILL_10);
-        } else if (GET_LEVEL(ch) < 21) {
-          gain_cap = xp_to_lvl / (MIN_NUM_MOBS_TO_KILL_15);
-        } else if (GET_LEVEL(ch) < 26) {
-          gain_cap = xp_to_lvl / (MIN_NUM_MOBS_TO_KILL_20);
-        } else {
-          gain_cap = xp_to_lvl / (MIN_NUM_MOBS_TO_KILL_25);
-        }
-        gain = MIN(gain_cap, gain);
-        break;
+    switch (mode)
+    {
+      /* quest, script xp not limited here */
+    case GAIN_EXP_MODE_QUEST:
+    case GAIN_EXP_MODE_SCRIPT:
+    case GAIN_EXP_MODE_DEATH: /* should be negative and not get here! */
+      break;
+    case GAIN_EXP_MODE_EDRAIN:
+    case GAIN_EXP_MODE_CRAFT:
+    case GAIN_EXP_MODE_DAMAGE:
+    case GAIN_EXP_MODE_DUMP:
+      /* further cap these */
+      xp_to_lvl = level_exp(ch, GET_LEVEL(ch) + 1) - level_exp(ch, GET_LEVEL(ch));
+      if (GET_LEVEL(ch) < 6)
+      {
+        gain_cap = gain; /* no cap */
+      }
+      else if (GET_LEVEL(ch) < 11)
+      {
+        gain_cap = xp_to_lvl / (MIN_NUM_MOBS_TO_KILL_5 * 4);
+      }
+      else if (GET_LEVEL(ch) < 16)
+      {
+        gain_cap = xp_to_lvl / (MIN_NUM_MOBS_TO_KILL_10 * 4);
+      }
+      else if (GET_LEVEL(ch) < 21)
+      {
+        gain_cap = xp_to_lvl / (MIN_NUM_MOBS_TO_KILL_15 * 4);
+      }
+      else if (GET_LEVEL(ch) < 26)
+      {
+        gain_cap = xp_to_lvl / (MIN_NUM_MOBS_TO_KILL_20 * 4);
+      }
+      else
+      {
+        gain_cap = xp_to_lvl / (MIN_NUM_MOBS_TO_KILL_25 * 4);
+      }
+      gain = MIN(gain_cap, gain);
+      break;
+    case GAIN_EXP_MODE_DEFAULT:
+    case GAIN_EXP_MODE_GROUP:
+    case GAIN_EXP_MODE_SOLO:
+    case GAIN_EXP_MODE_TRAP:
+    default:
+      xp_to_lvl = level_exp(ch, GET_LEVEL(ch) + 1) - level_exp(ch, GET_LEVEL(ch));
+      if (GET_LEVEL(ch) < 6)
+      {
+        gain_cap = gain; /* no cap */
+      }
+      else if (GET_LEVEL(ch) < 11)
+      {
+        gain_cap = xp_to_lvl / (MIN_NUM_MOBS_TO_KILL_5);
+      }
+      else if (GET_LEVEL(ch) < 16)
+      {
+        gain_cap = xp_to_lvl / (MIN_NUM_MOBS_TO_KILL_10);
+      }
+      else if (GET_LEVEL(ch) < 21)
+      {
+        gain_cap = xp_to_lvl / (MIN_NUM_MOBS_TO_KILL_15);
+      }
+      else if (GET_LEVEL(ch) < 26)
+      {
+        gain_cap = xp_to_lvl / (MIN_NUM_MOBS_TO_KILL_20);
+      }
+      else
+      {
+        gain_cap = xp_to_lvl / (MIN_NUM_MOBS_TO_KILL_25);
+      }
+      gain = MIN(gain_cap, gain);
+      break;
     }
 
     /* happy hour bonus, purposely applied after above caps */
     if ((IS_HAPPYHOUR) && (IS_HAPPYEXP))
-      gain += (int) ((float) gain * ((float) HAPPY_EXP / (float) (100)));
-    
+      gain += (int)((float)gain * ((float)HAPPY_EXP / (float)(100)));
+
     /* put an absolute cap on the max gain per kill */
     gain = MIN(CONFIG_MAX_EXP_GAIN, gain);
 
     /* new gain xp cap -zusuk */
     GET_EXP(ch) += gain;
-
-  } else if (gain < 0) {
+  }
+  else if (gain < 0)
+  {
 
     gain = MAX(-CONFIG_MAX_EXP_LOSS, gain); /* Cap max exp lost per death */
     GET_EXP(ch) += gain;
@@ -779,37 +901,42 @@ int gain_exp(struct char_data *ch, int gain, int mode) {
     run_autowiz();
 
   if (GET_LEVEL(ch) < LVL_IMMORT - CONFIG_NO_MORT_TO_IMMORT &&
-          GET_EXP(ch) >= level_exp(ch, GET_LEVEL(ch) + 1))
+      GET_EXP(ch) >= level_exp(ch, GET_LEVEL(ch) + 1))
     send_to_char(ch,
-          "\tDYou have gained enough xp to advance, type 'gain' to level.\tn\r\n");
+                 "\tDYou have gained enough xp to advance, type 'gain' to level.\tn\r\n");
 
   return gain;
 }
 
-void gain_exp_regardless(struct char_data *ch, int gain) {
+void gain_exp_regardless(struct char_data *ch, int gain)
+{
   int is_altered = FALSE;
   int num_levels = 0;
 
   if ((IS_HAPPYHOUR) && (IS_HAPPYEXP))
-    gain += (int) ((float) gain * ((float) HAPPY_EXP / (float) (100)));
+    gain += (int)((float)gain * ((float)HAPPY_EXP / (float)(100)));
 
   GET_EXP(ch) += gain;
   if (GET_EXP(ch) < 0)
     GET_EXP(ch) = 0;
 
-  if (!IS_NPC(ch)) {
+  if (!IS_NPC(ch))
+  {
     while (GET_LEVEL(ch) < LVL_IMPL &&
-            GET_EXP(ch) >= level_exp(ch, GET_LEVEL(ch) + 1)) {
+           GET_EXP(ch) >= level_exp(ch, GET_LEVEL(ch) + 1))
+    {
       GET_LEVEL(ch) += 1;
-      CLASS_LEVEL(ch, GET_CLASS(ch))++;
+      CLASS_LEVEL(ch, GET_CLASS(ch))
+      ++;
       num_levels++;
       advance_level(ch, GET_CLASS(ch));
       is_altered = TRUE;
     }
 
-    if (is_altered) {
+    if (is_altered)
+    {
       mudlog(BRF, MAX(LVL_IMMORT, GET_INVIS_LEV(ch)), TRUE, "%s advanced %d level%s to level %d.",
-              GET_NAME(ch), num_levels, num_levels == 1 ? "" : "s", GET_LEVEL(ch));
+             GET_NAME(ch), num_levels, num_levels == 1 ? "" : "s", GET_LEVEL(ch));
       if (num_levels == 1)
         send_to_char(ch, "You rise a level!\r\n");
       else
@@ -821,13 +948,13 @@ void gain_exp_regardless(struct char_data *ch, int gain) {
     run_autowiz();
 
   if (GET_LEVEL(ch) < LVL_IMMORT - CONFIG_NO_MORT_TO_IMMORT &&
-          GET_EXP(ch) >= level_exp(ch, GET_LEVEL(ch) + 1))
+      GET_EXP(ch) >= level_exp(ch, GET_LEVEL(ch) + 1))
     send_to_char(ch,
-          "\tDYou have gained enough xp to advance, type 'gain' to level.\tn\r\n");
-
+                 "\tDYou have gained enough xp to advance, type 'gain' to level.\tn\r\n");
 }
 
-void gain_condition(struct char_data *ch, int condition, int value) {
+void gain_condition(struct char_data *ch, int condition, int value)
+{
   bool intoxicated;
 
   if (!ch)
@@ -846,28 +973,32 @@ void gain_condition(struct char_data *ch, int condition, int value) {
   if (GET_COND(ch, condition) || PLR_FLAGGED(ch, PLR_WRITING))
     return;
 
-  switch (condition) {
-    case HUNGER:
-      send_to_char(ch, "You are hungry.\r\n");
-      break;
-    case THIRST:
-      send_to_char(ch, "You are thirsty.\r\n");
-      break;
-    case DRUNK:
-      if (intoxicated)
-        send_to_char(ch, "You are now sober.\r\n");
-      break;
-    default:
-      break;
+  switch (condition)
+  {
+  case HUNGER:
+    send_to_char(ch, "You are hungry.\r\n");
+    break;
+  case THIRST:
+    send_to_char(ch, "You are thirsty.\r\n");
+    break;
+  case DRUNK:
+    if (intoxicated)
+      send_to_char(ch, "You are now sober.\r\n");
+    break;
+  default:
+    break;
   }
-
 }
 
-void check_idling(struct char_data *ch) {
-  if (ch->char_specials.timer > CONFIG_IDLE_VOID) {
-    if (GET_WAS_IN(ch) == NOWHERE && IN_ROOM(ch) != NOWHERE) {
+void check_idling(struct char_data *ch)
+{
+  if (ch->char_specials.timer > CONFIG_IDLE_VOID)
+  {
+    if (GET_WAS_IN(ch) == NOWHERE && IN_ROOM(ch) != NOWHERE)
+    {
       GET_WAS_IN(ch) = IN_ROOM(ch);
-      if (FIGHTING(ch)) {
+      if (FIGHTING(ch))
+      {
         stop_fighting(FIGHTING(ch));
         stop_fighting(ch);
       }
@@ -877,11 +1008,14 @@ void check_idling(struct char_data *ch) {
       Crash_crashsave(ch);
       char_from_room(ch);
       char_to_room(ch, 1);
-    } else if (ch->char_specials.timer > CONFIG_IDLE_RENT_TIME) {
+    }
+    else if (ch->char_specials.timer > CONFIG_IDLE_RENT_TIME)
+    {
       if (IN_ROOM(ch) != NOWHERE)
         char_from_room(ch);
       char_to_room(ch, 3);
-      if (ch->desc) {
+      if (ch->desc)
+      {
         STATE(ch->desc) = CON_DISCONNECT;
         /*
          * For the 'if (d->character)' test in close_socket().
@@ -902,7 +1036,8 @@ void check_idling(struct char_data *ch) {
 }
 
 /* Update PCs, NPCs, and objects */
-void point_update(void) {
+void point_update(void)
+{
   struct char_data *i = NULL, *next_char = NULL;
   struct obj_data *j = NULL, *next_thing, *jj = NULL, *next_thing2 = NULL;
   int counter = 0;
@@ -912,7 +1047,8 @@ void point_update(void) {
   if (HAPPY_TIME > 1)
     HAPPY_TIME--;
   /* Last tick - set everything back to zero */
-  else if (HAPPY_TIME == 1) {
+  else if (HAPPY_TIME == 1)
+  {
     HAPPY_QP = 0;
     HAPPY_EXP = 0;
     HAPPY_GOLD = 0;
@@ -921,7 +1057,8 @@ void point_update(void) {
   }
 
   /** characters **/
-  for (i = character_list; i; i = next_char) {
+  for (i = character_list; i; i = next_char)
+  {
     next_char = i->next;
 
     gain_condition(i, HUNGER, -1);
@@ -930,7 +1067,8 @@ void point_update(void) {
 
     /* old tick regen code use to be here -zusuk */
 
-    if (!IS_NPC(i)) {
+    if (!IS_NPC(i))
+    {
       update_char_objects(i);
       (i->char_specials.timer)++;
       if (GET_LEVEL(i) < CONFIG_IDLE_MAX_LEVEL)
@@ -940,32 +1078,40 @@ void point_update(void) {
 
   /** objects **/
   /* Make sure there is only one way to decrement each object timer */
-  for (j = object_list; j; j = next_thing) {
+  for (j = object_list; j; j = next_thing)
+  {
     next_thing = j->next; /* Next in object list */
 
     if (!j)
       continue;
 
     /* object spec timers, for old school object procs */
-    for (counter = 0; counter < SPEC_TIMER_MAX; counter++) {
-      if (GET_OBJ_SPECTIMER(j, counter) > 0) {
-        GET_OBJ_SPECTIMER(j, counter)--;
+    for (counter = 0; counter < SPEC_TIMER_MAX; counter++)
+    {
+      if (GET_OBJ_SPECTIMER(j, counter) > 0)
+      {
+        GET_OBJ_SPECTIMER(j, counter)
+        --;
       }
-      if (GET_OBJ_SPECTIMER(j, counter) <= 0) {
+      if (GET_OBJ_SPECTIMER(j, counter) <= 0)
+      {
         /*wear out messages*/
       }
     }
 
     /* decrement timer */
     if (GET_OBJ_TIMER(j) > 0)
-      GET_OBJ_TIMER(j)--;
-    
+      GET_OBJ_TIMER(j)
+      --;
+
     /* timer counting down that doesn't result in extraction */
-        
+
     /** Arrow (that is imbued) */
-    if (GET_OBJ_TYPE(j) == ITEM_MISSILE && GET_OBJ_VAL(j, 1)) {
+    if (GET_OBJ_TYPE(j) == ITEM_MISSILE && GET_OBJ_VAL(j, 1))
+    {
       /* imbued arrow lost its spell! */
-      if (GET_OBJ_TIMER(j) <= 0) {
+      if (GET_OBJ_TIMER(j) <= 0)
+      {
         /* simple mechanic is reset obj-val 1 to 0 */
         GET_OBJ_VAL(j, 1) = 0;
         /* now send a message if appropriate */
@@ -975,65 +1121,78 @@ void point_update(void) {
           act("$p briefly shudders as the imbued magic fades.", FALSE, j->in_obj->carried_by, j, 0, TO_CHAR);
       }
     }
-    
+
     /** for timed object triggers, make sure this is LAST before countdowns
      * that cause extraction!! **/
-    if (GET_OBJ_TIMER(j) <= 0) {
+    if (GET_OBJ_TIMER(j) <= 0)
+    {
       timer_otrigger(j);
     }
 
     /* END timer counting down that doesn't result in extraction */
-  
+
     /* start timer counting down that results in extraction */
-    
+
     /** portals that fade **/
-    if (IS_DECAYING_PORTAL(j)) {
+    if (IS_DECAYING_PORTAL(j))
+    {
       /* the portal fades */
-      if (GET_OBJ_TIMER(j) <= 0) {
+      if (GET_OBJ_TIMER(j) <= 0)
+      {
         /* send message if it makes sense */
-        if ((IN_ROOM(j) != NOWHERE) && (world[IN_ROOM(j)].people)) {
+        if ((IN_ROOM(j) != NOWHERE) && (world[IN_ROOM(j)].people))
+        {
           act("\tnYou watch as $p \tCs\tMh\tCi\tMm\tCm\tMe\tCr\tMs\tn then "
-                  "fades, then disappears.", TRUE, world[IN_ROOM(j)].people,
-                  j, 0, TO_ROOM);
+              "fades, then disappears.",
+              TRUE, world[IN_ROOM(j)].people,
+              j, 0, TO_ROOM);
           act("\tnYou watch as $p \tCs\tMh\tCi\tMm\tCm\tMe\tCr\tMs\tn then "
-                  "fades, then disappears.", TRUE, world[IN_ROOM(j)].people,
-                  j, 0, TO_CHAR);
+              "fades, then disappears.",
+              TRUE, world[IN_ROOM(j)].people,
+              j, 0, TO_CHAR);
         }
         extract_obj(j);
         continue; /* object is gone */
-      } 
+      }
     } /* end portal fade */
-    
-      /** general item that fade **/
-    if (OBJ_FLAGGED(j, ITEM_DECAY)) {
+
+    /** general item that fade **/
+    if (OBJ_FLAGGED(j, ITEM_DECAY))
+    {
       /* the object fades */
-      if (GET_OBJ_TIMER(j) <= 0) {
+      if (GET_OBJ_TIMER(j) <= 0)
+      {
         /* send message if it makes sense */
-        if ((IN_ROOM(j) != NOWHERE) && (world[IN_ROOM(j)].people)) {
+        if ((IN_ROOM(j) != NOWHERE) && (world[IN_ROOM(j)].people))
+        {
           act("\tnYou watch as $p fades, then disappears.", TRUE, world[IN_ROOM(j)].people,
-                  j, 0, TO_ROOM);
+              j, 0, TO_ROOM);
           act("\tnYou watch as $p fades, then disappears.", TRUE, world[IN_ROOM(j)].people,
-                  j, 0, TO_CHAR);
+              j, 0, TO_CHAR);
         }
         extract_obj(j);
         continue; /* object is gone */
-      }  
-    } /* end 'general' fade */ 
-        
+      }
+    } /* end 'general' fade */
+
     /** If this is a corpse **/
-    if (IS_CORPSE(j)) {
+    if (IS_CORPSE(j))
+    {
       /* corpse decayed */
-      if (GET_OBJ_TIMER(j) <= 0) {
+      if (GET_OBJ_TIMER(j) <= 0)
+      {
         if (j->carried_by)
           act("$p decays in your hands.", FALSE, j->carried_by, j, 0, TO_CHAR);
-        else if ((IN_ROOM(j) != NOWHERE) && (world[IN_ROOM(j)].people)) {
+        else if ((IN_ROOM(j) != NOWHERE) && (world[IN_ROOM(j)].people))
+        {
           act("A quivering horde of maggots consumes $p.",
-                  TRUE, world[IN_ROOM(j)].people, j, 0, TO_ROOM);
+              TRUE, world[IN_ROOM(j)].people, j, 0, TO_ROOM);
           act("A quivering horde of maggots consumes $p.",
-                  TRUE, world[IN_ROOM(j)].people, j, 0, TO_CHAR);
+              TRUE, world[IN_ROOM(j)].people, j, 0, TO_CHAR);
         }
 
-        for (jj = j->contains; jj; jj = next_thing2) {
+        for (jj = j->contains; jj; jj = next_thing2)
+        {
           next_thing2 = jj->next_content; /* Next in inventory */
           obj_from_obj(jj);
 
@@ -1048,27 +1207,32 @@ void point_update(void) {
         }
         extract_obj(j);
         continue;
-      }      
-    } 
-    
-  } /* end object loop */
+      }
+    }
 
+  } /* end object loop */
 }
 
 /* Note: amt may be negative */
-int increase_gold(struct char_data *ch, int amt) {
+int increase_gold(struct char_data *ch, int amt)
+{
   int curr_gold = 0;
 
   curr_gold = GET_GOLD(ch);
 
-  if (amt < 0) {
+  if (amt < 0)
+  {
     GET_GOLD(ch) = MAX(0, curr_gold + amt);
     /* Validate to prevent overflow */
-    if (GET_GOLD(ch) > curr_gold) GET_GOLD(ch) = 0;
-  } else {
+    if (GET_GOLD(ch) > curr_gold)
+      GET_GOLD(ch) = 0;
+  }
+  else
+  {
     GET_GOLD(ch) = MIN(MAX_GOLD, curr_gold + amt);
     /* Validate to prevent overflow */
-    if (GET_GOLD(ch) < curr_gold) GET_GOLD(ch) = MAX_GOLD;
+    if (GET_GOLD(ch) < curr_gold)
+      GET_GOLD(ch) = MAX_GOLD;
   }
   if (GET_GOLD(ch) == MAX_GOLD)
     send_to_char(ch, "%sYou have reached the maximum gold!\r\n%sYou must spend it or bank it before you can gain any more.\r\n", QBRED, QNRM);
@@ -1076,42 +1240,52 @@ int increase_gold(struct char_data *ch, int amt) {
   return (GET_GOLD(ch));
 }
 
-int decrease_gold(struct char_data *ch, int deduction) {
+int decrease_gold(struct char_data *ch, int deduction)
+{
   int amt;
   amt = (deduction * -1);
   increase_gold(ch, amt);
   return (GET_GOLD(ch));
 }
 
-int increase_bank(struct char_data *ch, int amt) {
+int increase_bank(struct char_data *ch, int amt)
+{
   int curr_bank;
 
-  if (IS_NPC(ch)) return 0;
+  if (IS_NPC(ch))
+    return 0;
 
   curr_bank = GET_BANK_GOLD(ch);
 
-  if (amt < 0) {
+  if (amt < 0)
+  {
     GET_BANK_GOLD(ch) = MAX(0, curr_bank + amt);
     /* Validate to prevent overflow */
-    if (GET_BANK_GOLD(ch) > curr_bank) GET_BANK_GOLD(ch) = 0;
-  } else {
+    if (GET_BANK_GOLD(ch) > curr_bank)
+      GET_BANK_GOLD(ch) = 0;
+  }
+  else
+  {
     GET_BANK_GOLD(ch) = MIN(MAX_BANK, curr_bank + amt);
     /* Validate to prevent overflow */
-    if (GET_BANK_GOLD(ch) < curr_bank) GET_BANK_GOLD(ch) = MAX_BANK;
+    if (GET_BANK_GOLD(ch) < curr_bank)
+      GET_BANK_GOLD(ch) = MAX_BANK;
   }
   if (GET_BANK_GOLD(ch) == MAX_BANK)
     send_to_char(ch, "%sYou have reached the maximum bank balance!\r\n%sYou cannot put more into your account unless you withdraw some first.\r\n", QBRED, QNRM);
   return (GET_BANK_GOLD(ch));
 }
 
-int decrease_bank(struct char_data *ch, int deduction) {
+int decrease_bank(struct char_data *ch, int deduction)
+{
   int amt;
   amt = (deduction * -1);
   increase_bank(ch, amt);
   return (GET_BANK_GOLD(ch));
 }
 
-void increase_anger(struct char_data *ch, float amount) {
+void increase_anger(struct char_data *ch, float amount)
+{
   if (IS_NPC(ch) && GET_ANGER(ch) <= MAX_ANGER)
     GET_ANGER(ch) = MIN(MAX(GET_ANGER(ch) + amount, 0), MAX_ANGER);
 }
@@ -1119,18 +1293,21 @@ void increase_anger(struct char_data *ch, float amount) {
 void update_damage_and_effects_over_time(void)
 {
 
-
   int dam = 0;
   struct affected_type *affects = NULL;
   struct char_data *ch = NULL, *next_char = NULL;
   char buf[MAX_STRING_LENGTH];
 
-  for (ch = character_list; ch; ch = next_char) {
-    next_char = ch->next;  
+  for (ch = character_list; ch; ch = next_char)
+  {
+    next_char = ch->next;
 
-    if (affected_by_spell(ch, BOMB_AFFECT_ACID)) {
-      for (affects = ch->affected; affects; affects = affects->next) {
-        if (affects->spell == BOMB_AFFECT_ACID) {
+    if (affected_by_spell(ch, BOMB_AFFECT_ACID))
+    {
+      for (affects = ch->affected; affects; affects = affects->next)
+      {
+        if (affects->spell == BOMB_AFFECT_ACID)
+        {
           act("You suffer in pain as acid continues to burn you.", FALSE, ch, 0, 0, TO_CHAR);
           act("$n suffers in pain as acid continues to burn $m.", FALSE, ch, 0, 0, TO_ROOM);
           dam = damage(ch, ch, affects->modifier, SKILL_BOMB_TOSS, DAM_ACID, SKILL_BOMB_TOSS);
@@ -1142,9 +1319,12 @@ void update_damage_and_effects_over_time(void)
       }
     } // end acid bombs
 
-    if (affected_by_spell(ch, BOMB_AFFECT_BONESHARD)) {
-      for (affects = ch->affected; affects; affects = affects->next) {
-        if (affects->spell == BOMB_AFFECT_BONESHARD) {
+    if (affected_by_spell(ch, BOMB_AFFECT_BONESHARD))
+    {
+      for (affects = ch->affected; affects; affects = affects->next)
+      {
+        if (affects->spell == BOMB_AFFECT_BONESHARD)
+        {
           act("You suffer in pain as shards of bone embed themselves in your flesh.", FALSE, ch, 0, 0, TO_CHAR);
           act("$n suffers in pain as shards of bone embed themselves in $s flesh.", FALSE, ch, 0, 0, TO_ROOM);
           dam = damage(ch, ch, dice(1, 4), SKILL_BOMB_TOSS, DAM_PUNCTURE, SKILL_BOMB_TOSS);
@@ -1156,7 +1336,8 @@ void update_damage_and_effects_over_time(void)
       }
     } // end boneshard bombs
 
-    if (ch->player_specials->sticky_bomb[0] != BOMB_NONE) {
+    if (ch->player_specials->sticky_bomb[0] != BOMB_NONE)
+    {
       sprintf(buf, "A sticky %s bomb explodes again causing you %s damage.", bomb_types[ch->player_specials->sticky_bomb[0]], weapon_damage_types[ch->player_specials->sticky_bomb[1]]);
       act(buf, FALSE, ch, 0, 0, TO_CHAR);
       sprintf(buf, "A sticky %s bomb explodes on $n again causing $m %s damage.", bomb_types[ch->player_specials->sticky_bomb[0]], weapon_damage_types[ch->player_specials->sticky_bomb[1]]);
@@ -1166,15 +1347,19 @@ void update_damage_and_effects_over_time(void)
     } // sticky bomb effects
 
     // fast healing grand discovery affect
-    if (GET_GRAND_DISCOVERY(ch) == GR_ALC_DISC_FAST_HEALING) {
+    if (GET_GRAND_DISCOVERY(ch) == GR_ALC_DISC_FAST_HEALING)
+    {
       GET_HIT(ch) += 5;
       if (GET_HIT(ch) > GET_MAX_HIT(ch))
         GET_HIT(ch) = GET_MAX_HIT(ch);
     }
 
-    if (affected_by_spell(ch, BOMB_AFFECT_IMMOLATION)) {
-      for (affects = ch->affected; affects; affects = affects->next) {
-        if (affects->spell == BOMB_AFFECT_IMMOLATION) {
+    if (affected_by_spell(ch, BOMB_AFFECT_IMMOLATION))
+    {
+      for (affects = ch->affected; affects; affects = affects->next)
+      {
+        if (affects->spell == BOMB_AFFECT_IMMOLATION)
+        {
           act("You suffer in pain as liquid flames consume you.", FALSE, ch, 0, 0, TO_CHAR);
           act("$n suffers in pain as liquid flames consume $m.", FALSE, ch, 0, 0, TO_ROOM);
           dam = damage(ch, ch, affects->modifier, SKILL_BOMB_TOSS, DAM_FIRE, SKILL_BOMB_TOSS);
@@ -1187,7 +1372,4 @@ void update_damage_and_effects_over_time(void)
     } // end immolation bombs
 
   } // end character_list loop
-
 }
-
-

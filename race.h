@@ -5,33 +5,36 @@
 * Authors:  Nashak & Zusuk
 *
 */
+
 #ifndef _RACE_H_
 #define _RACE_H_
 
 /* defines */
 // this is for shapechange/wildshape, define for array max
-#define NUM_SHAPE_TYPES  5
+#define NUM_SHAPE_TYPES 5
 
 /* order of stat attributes relevant for race modifications to stats */
-#define R_STR_MOD    0
-#define R_CON_MOD    1
-#define R_INTEL_MOD  2
-#define R_WIS_MOD    3
-#define R_DEX_MOD    4
-#define R_CHA_MOD    5
-  
+#define R_STR_MOD 0
+#define R_CON_MOD 1
+#define R_INTEL_MOD 2
+#define R_WIS_MOD 3
+#define R_DEX_MOD 4
+#define R_CHA_MOD 5
+
 /* feat assignment / race-feat data for races */
-struct race_feat_assign {
-  int feat_num;       /* feat number like FEAT_WEAPON_FOCUS */
-  int level_received; /* level race get this feat */
-  bool stacks;        /* does this feat stack? */
+struct race_feat_assign
+{
+  int feat_num;                  /* feat number like FEAT_WEAPON_FOCUS */
+  int level_received;            /* level race get this feat */
+  bool stacks;                   /* does this feat stack? */
   struct race_feat_assign *next; /*linked list*/
 };
 
 /* feat assignment / race-feat data for races */
-struct affect_assign {
-  int affect_num;       /* aff number like AFF_HIDE */
-  int level_received;   /* level race get this affect */
+struct affect_assign
+{
+  int affect_num;             /* aff number like AFF_HIDE */
+  int level_received;         /* level race get this affect */
   struct affect_assign *next; /*linked list*/
 };
 
@@ -54,8 +57,6 @@ ACMD(do_race);
 
 #ifndef __RACE_C__
 
-
 #endif /* __RACE_C__ */
 
 #endif /* _RACE_H_*/
-

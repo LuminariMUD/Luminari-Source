@@ -1,5 +1,5 @@
 /**
-* @file genwld.h
+* @file genwld.h                                    LuminariMUD
 * Generic OLC Library - Rooms.
 * 
 * Part of the core tbaMUD source code distribution, which is a derivative

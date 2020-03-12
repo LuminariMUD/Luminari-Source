@@ -23,7 +23,6 @@
 #include "fight.h"
 #include "mudlim.h"
 
-
 /* copied from spell_parser.c: */
 #define SINFO spell_info[spellnum]
 

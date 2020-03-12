@@ -1,5 +1,7 @@
 /* Trading System
    Author:  Zusuk
+
+   LuminariMUD
 */
 
 #include "conf.h"

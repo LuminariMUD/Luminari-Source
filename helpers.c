@@ -5,16 +5,20 @@
 #include <string.h>
 
 /* Function to skip over the leading spaces of a string. */
-void skip_spaces(char **string) {
-  for (; **string && **string != '\t' && isspace(**string); (*string)++);
+void skip_spaces(char **string)
+{
+  for (; **string && **string != '\t' && isspace(**string); (*string)++)
+    ;
 }
 
 /* Parse out the @ character and replace it with the '\t' to work with
  * KaVir's protocol snippet */
-void parse_at(char *str) {
+void parse_at(char *str)
+{
   char *p = str;
   for (; *p; p++)
-    if (*p == '@') {
+    if (*p == '@')
+    {
       if (*(p + 1) != '@')
         *p = '\t';
       else
@@ -24,7 +28,8 @@ void parse_at(char *str) {
 
 /* Return first space-delimited token in arg1; remainder of string in arg2.
  * NOTE: Requires sizeof(arg2) >= sizeof(string) */
-void half_chop(char *string, char *arg1, char *arg2) {
+void half_chop(char *string, char *arg1, char *arg2)
+{
   char *temp;
 
   temp = any_one_arg(string, arg1);
@@ -33,10 +38,12 @@ void half_chop(char *string, char *arg1, char *arg2) {
 }
 
 /* Same as one_argument except that it doesn't ignore fill words. */
-char *any_one_arg(char *argument, char *first_arg) {
+char *any_one_arg(char *argument, char *first_arg)
+{
   skip_spaces(&argument);
 
-  while (*argument && !isspace(*argument)) {
+  while (*argument && !isspace(*argument))
+  {
     *(first_arg++) = LOWER(*argument);
     argument++;
   }
@@ -50,7 +57,8 @@ char *any_one_arg(char *argument, char *first_arg) {
  * depending on whether or not the match must be exact for it to be returned.
  * Returns -1 if not found; 0..n otherwise.  Array must be terminated with a
  * '\n' so it knows to stop searching. */
-int search_block(char *arg, const char **list, bool exact) {
+int search_block(char *arg, const char **list, bool exact)
+{
   int i, l;
 
   /*  We used to have \r as the first character on certain array items to
@@ -65,11 +73,14 @@ int search_block(char *arg, const char **list, bool exact) {
   for (l = 0; *(arg + l); l++)
     *(arg + l) = LOWER(*(arg + l));
 
-  if (exact) {
+  if (exact)
+  {
     for (i = 0; **(list + i) != '\n'; i++)
       if (!strcmp(arg, *(list + i)))
         return (i);
-  } else {
+  }
+  else
+  {
     if (!l)
       l = 1; /* Avoid "" to match the first available
 				 * string */
@@ -82,35 +93,39 @@ int search_block(char *arg, const char **list, bool exact) {
 }
 
 const char *fill[] = {
-  "in",
-  "from",
-  "with",
-  "the",
-  "on",
-  "at",
-  "to",
-  "\n"
-};
+    "in",
+    "from",
+    "with",
+    "the",
+    "on",
+    "at",
+    "to",
+    "\n"};
 
-int fill_word(char *argument) {
+int fill_word(char *argument)
+{
   return (search_block(argument, fill, true) >= 0);
 }
 
 /* Copy the first non-fill-word, space-delimited argument of 'argument'
  * to 'first_arg'; return a pointer to the remainder of the string. */
-char *one_argument(char *argument, char *first_arg) {
+char *one_argument(char *argument, char *first_arg)
+{
   char *begin = first_arg;
 
-  if (!argument) {
+  if (!argument)
+  {
     *first_arg = '\0';
     return (NULL);
   }
 
-  do {
+  do
+  {
     skip_spaces(&argument);
 
     first_arg = begin;
-    while (*argument && !isspace(*argument)) {
+    while (*argument && !isspace(*argument))
+    {
       *(first_arg++) = LOWER(*argument);
       argument++;
     }
@@ -123,13 +138,17 @@ char *one_argument(char *argument, char *first_arg) {
 
 /* Same as one_argument except that it takes two args and returns the rest;
  * ignores fill words */
-char *two_arguments(char *argument, char *first_arg, char *second_arg) {
+char *two_arguments(char *argument, char *first_arg, char *second_arg)
+{
   return (one_argument(one_argument(argument, first_arg), second_arg)); /* :-) */
 }
 
-bool legal_communication(char * arg) {
-  while (*arg) {
-    if (*arg == '@') {
+bool legal_communication(char *arg)
+{
+  while (*arg)
+  {
+    if (*arg == '@')
+    {
       arg++;
       if (*arg == '(' || *arg == ')' || *arg == '<' || *arg == '>')
         return false;
@@ -139,33 +158,37 @@ bool legal_communication(char * arg) {
   return true;
 }
 
-void sentence_case(char *str) {
+void sentence_case(char *str)
+{
   char *p = str;
   bool cap_next = true;
   int len;
 
-  // remove leading spaces  
+  // remove leading spaces
   while (*p == ' ' || *p == '\t' || *p == '\n')
     p++;
 
   len = strlen(p);
 
   // remove trailing spaces
-  while (len >= 0 && (p[len - 1] == ' ' || p[len - 1] == '\t' || *p == '\n')) {
+  while (len >= 0 && (p[len - 1] == ' ' || p[len - 1] == '\t' || *p == '\n'))
+  {
     *(p + len - 1) = '\0';
     len--;
   }
 
-  for (; *p; p++) {
-    while (strchr(".!?", *p) && *(p + 1) == ' ') {
+  for (; *p; p++)
+  {
+    while (strchr(".!?", *p) && *(p + 1) == ' ')
+    {
       cap_next = false;
       p++;
     }
 
-    if (cap_next && *p != ' ' && *p != '\t') {
+    if (cap_next && *p != ' ' && *p != '\t')
+    {
       *p = UPPER(*p);
       cap_next = false;
     }
   }
 }
-

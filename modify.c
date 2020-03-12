@@ -69,7 +69,8 @@ static int length[] =
  * smash/show tilde to convert the tilde to another innocuous character to
  * save and then back to display it. Whatever you do, at least keep the
  * function around because other MUD packages use it, like mudFTP. -gg */
-void smash_tilde(char *str) {
+void smash_tilde(char *str)
+{
   /* Erase any _line ending_ tildes inserted in the editor. The load mechanism
    * can't handle those, yet. - Welcor */
   char *p = str;
@@ -80,37 +81,52 @@ void smash_tilde(char *str) {
 
 /* so it turns out that write_to_descriptor can't handle protocol info
  * so i made this simple function to strip color codes -zusuk */
-void strip_colors(char *str) {
+void strip_colors(char *str)
+{
   char *p = str;
   char *n = str;
 
-  while (p && *p) {
+  while (p && *p)
+  {
 
-    if (*p == '@') {
-      if (*(p + 1) != '@') {
+    if (*p == '@')
+    {
+      if (*(p + 1) != '@')
+      {
         p += 2;
-      } else {
+      }
+      else
+      {
         p++;
         *n++ = *p++;
       }
-    } else if (*p == '\t') {
-      if (*(p + 1) != '\t') {
+    }
+    else if (*p == '\t')
+    {
+      if (*(p + 1) != '\t')
+      {
         p += 2;
-      } else {
+      }
+      else
+      {
         p++;
         *n++ = *p++;
       }
-    } else {
+    }
+    else
+    {
       *n++ = *p++;
     }
   }
   *n = '\0';
 }
 
-void parse_tab(char *str) {
+void parse_tab(char *str)
+{
   char *p = str;
   for (; *p; p++)
-    if (*p == '\t') {
+    if (*p == '\t')
+    {
       if (*(p + 1) != '\t')
         *p = '@';
       else
@@ -122,12 +138,13 @@ void parse_tab(char *str) {
  * can use it to pass whatever else you may want through it.  The improved
  * editor patch when updated could use it to pass the old text buffer, for
  * instance. */
-void string_write(struct descriptor_data *d, char **writeto, size_t len, long mailto, void *data) {
+void string_write(struct descriptor_data *d, char **writeto, size_t len, long mailto, void *data)
+{
   if (d->character && !IS_NPC(d->character))
     SET_BIT_AR(PLR_FLAGS(d->character), PLR_WRITING);
 
   if (using_improved_editor)
-    d->backstr = (char *) data;
+    d->backstr = (char *)data;
   else if (data)
     free(data);
 
@@ -138,7 +155,8 @@ void string_write(struct descriptor_data *d, char **writeto, size_t len, long ma
 
 /* Add user input to the 'current' string (as defined by d->str). This is still
  * overly complex. */
-void string_add(struct descriptor_data *d, char *str) {
+void string_add(struct descriptor_data *d, char *str)
+{
   int action;
 
   /* Determine if this is the terminal string, and truncate if so. Changed to
@@ -151,100 +169,112 @@ void string_add(struct descriptor_data *d, char *str) {
    * only accept '\t' if it's by itself. - fnord */
   if ((action = (*str == '\t' && !str[1])))
     *str = '\0';
-  else
-    if ((action = improved_editor_execute(d, str)) == STRINGADD_ACTION)
+  else if ((action = improved_editor_execute(d, str)) == STRINGADD_ACTION)
     return;
 
   if (action != STRINGADD_OK)
     /* Do nothing. */;
-  else if (!(*d->str)) {
-    if (strlen(str) + 3 > d->max_str) { /* \r\n\0 */
+  else if (!(*d->str))
+  {
+    if (strlen(str) + 3 > d->max_str)
+    { /* \r\n\0 */
       send_to_char(d->character, "String too long - Truncated.\r\n");
       strcpy(&str[d->max_str - 3], "\r\n"); /* strcpy: OK (size checked) */
       CREATE(*d->str, char, d->max_str);
       strcpy(*d->str, str); /* strcpy: OK (size checked) */
       if (!using_improved_editor)
         action = STRINGADD_SAVE;
-    } else {
+    }
+    else
+    {
       CREATE(*d->str, char, strlen(str) + 3);
       strcpy(*d->str, str); /* strcpy: OK (size checked) */
     }
-  } else {
-    if (strlen(str) + strlen(*d->str) + 3 > d->max_str) { /* \r\n\0 */
+  }
+  else
+  {
+    if (strlen(str) + strlen(*d->str) + 3 > d->max_str)
+    { /* \r\n\0 */
       send_to_char(d->character, "String too long.  Last line skipped.\r\n");
       if (!using_improved_editor)
         action = STRINGADD_SAVE;
       else if (action == STRINGADD_OK)
         action = STRINGADD_ACTION; /* No appending \r\n\0, but still let them save. */
-    } else {
+    }
+    else
+    {
       RECREATE(*d->str, char, strlen(*d->str) + strlen(str) + 3); /* \r\n\0 */
-      strcat(*d->str, str); /* strcat: OK (size precalculated) */
+      strcat(*d->str, str);                                       /* strcat: OK (size precalculated) */
     }
   }
 
   /* Common cleanup code. */
-  switch (action) {
-    case STRINGADD_ABORT:
-      switch (STATE(d)) {
-        case CON_CEDIT:
-        case CON_TEDIT:
-        case CON_REDIT:
-        case CON_MEDIT:
-        case CON_OEDIT:
-        case CON_PLR_DESC:
-        case CON_TRIGEDIT:
-        case CON_HEDIT:
-        case CON_QEDIT:
-        case CON_HLQEDIT:
-        case CON_STUDY:
-        case CON_IBTEDIT:
-        case CON_NEWMAIL:
-          free(*d->str);
-          *d->str = d->backstr;
-          d->backstr = NULL;
-          d->str = NULL;
-          break;
-        default:
-          log("SYSERR: string_add: Aborting write from unknown origin.");
-          break;
-      }
-      break;
-    case STRINGADD_SAVE:
-      if (d->str && *d->str && **d->str == '\0') {
-        free(*d->str);
-        *d->str = strdup("Nothing.\r\n");
-      }
-      if (d->backstr)
-        free(d->backstr);
+  switch (action)
+  {
+  case STRINGADD_ABORT:
+    switch (STATE(d))
+    {
+    case CON_CEDIT:
+    case CON_TEDIT:
+    case CON_REDIT:
+    case CON_MEDIT:
+    case CON_OEDIT:
+    case CON_PLR_DESC:
+    case CON_TRIGEDIT:
+    case CON_HEDIT:
+    case CON_QEDIT:
+    case CON_HLQEDIT:
+    case CON_STUDY:
+    case CON_IBTEDIT:
+    case CON_NEWMAIL:
+      free(*d->str);
+      *d->str = d->backstr;
       d->backstr = NULL;
+      d->str = NULL;
       break;
-    case STRINGADD_ACTION:
+    default:
+      log("SYSERR: string_add: Aborting write from unknown origin.");
       break;
+    }
+    break;
+  case STRINGADD_SAVE:
+    if (d->str && *d->str && **d->str == '\0')
+    {
+      free(*d->str);
+      *d->str = strdup("Nothing.\r\n");
+    }
+    if (d->backstr)
+      free(d->backstr);
+    d->backstr = NULL;
+    break;
+  case STRINGADD_ACTION:
+    break;
   }
 
   /* Ok, now final cleanup. */
-  if (action == STRINGADD_SAVE || action == STRINGADD_ABORT) {
+  if (action == STRINGADD_SAVE || action == STRINGADD_ABORT)
+  {
     int i;
 
-    struct {
+    struct
+    {
       int mode;
       void (*func)(struct descriptor_data *d, int action);
     } cleanup_modes[] = {
-      { CON_CEDIT, cedit_string_cleanup},
-      { CON_MEDIT, medit_string_cleanup},
-      { CON_OEDIT, oedit_string_cleanup},
-      { CON_REDIT, redit_string_cleanup},
-      { CON_TEDIT, tedit_string_cleanup},
-      { CON_TRIGEDIT, trigedit_string_cleanup},
-      { CON_PLR_DESC, exdesc_string_cleanup},
-      { CON_PLAYING, playing_string_cleanup},
-      { CON_HEDIT, hedit_string_cleanup},
-      { CON_QEDIT, qedit_string_cleanup},
-      //      { CON_HLQEDIT  , hlqedit_string_cleanup },
-      { CON_IBTEDIT, ibtedit_string_cleanup},
-      { CON_NEWMAIL, new_mail_string_cleanup},
-      { -1, NULL}
-    };
+        {CON_CEDIT, cedit_string_cleanup},
+        {CON_MEDIT, medit_string_cleanup},
+        {CON_OEDIT, oedit_string_cleanup},
+        {CON_REDIT, redit_string_cleanup},
+        {CON_TEDIT, tedit_string_cleanup},
+        {CON_TRIGEDIT, trigedit_string_cleanup},
+        {CON_PLR_DESC, exdesc_string_cleanup},
+        {CON_PLAYING, playing_string_cleanup},
+        {CON_HEDIT, hedit_string_cleanup},
+        {CON_QEDIT, qedit_string_cleanup},
+        //      { CON_HLQEDIT  , hlqedit_string_cleanup },
+        {CON_IBTEDIT, ibtedit_string_cleanup},
+        {CON_NEWMAIL, new_mail_string_cleanup},
+        {-1, NULL}};
 
     for (i = 0; cleanup_modes[i].func; i++)
       if (STATE(d) == cleanup_modes[i].mode)
@@ -254,24 +284,30 @@ void string_add(struct descriptor_data *d, char *str) {
     d->str = NULL;
     d->mail_to = 0;
     d->max_str = 0;
-    if (d->character && !IS_NPC(d->character)) {
+    if (d->character && !IS_NPC(d->character))
+    {
       REMOVE_BIT_AR(PLR_FLAGS(d->character), PLR_BUG);
       REMOVE_BIT_AR(PLR_FLAGS(d->character), PLR_IDEA);
       REMOVE_BIT_AR(PLR_FLAGS(d->character), PLR_TYPO);
       REMOVE_BIT_AR(PLR_FLAGS(d->character), PLR_MAILING);
       REMOVE_BIT_AR(PLR_FLAGS(d->character), PLR_WRITING);
     }
-  } else if (action != STRINGADD_ACTION && strlen(*d->str) + 3 <= d->max_str) /* 3 = \r\n\0 */
+  }
+  else if (action != STRINGADD_ACTION && strlen(*d->str) + 3 <= d->max_str) /* 3 = \r\n\0 */
     strcat(*d->str, "\r\n");
 }
 
-static void playing_string_cleanup(struct descriptor_data *d, int action) {
-  if (PLR_FLAGGED(d->character, PLR_MAILING)) {
-    if (action == STRINGADD_SAVE && *d->str) {
+static void playing_string_cleanup(struct descriptor_data *d, int action)
+{
+  if (PLR_FLAGGED(d->character, PLR_MAILING))
+  {
+    if (action == STRINGADD_SAVE && *d->str)
+    {
       store_mail(d->mail_to, GET_IDNUM(d->character), *d->str);
       write_to_output(d, "Message sent!\r\n");
       notify_if_playing(d->character, d->mail_to);
-    } else
+    }
+    else
       write_to_output(d, "Mail aborted.\r\n");
     act("$n stops writing mail.", TRUE, d->character, NULL, NULL, TO_ROOM);
     free(*d->str);
@@ -280,69 +316,82 @@ static void playing_string_cleanup(struct descriptor_data *d, int action) {
 
   /* We have no way of knowing which slot the post was sent to so we can only
    * give the message.   */
-  if (d->mail_to >= BOARD_MAGIC) {
+  if (d->mail_to >= BOARD_MAGIC)
+  {
     board_save_board(d->mail_to - BOARD_MAGIC);
-    if (action == STRINGADD_ABORT) {
+    if (action == STRINGADD_ABORT)
+    {
       act("$n stops writing to the board.", TRUE, d->character, NULL,
-              NULL, TO_ROOM);
+          NULL, TO_ROOM);
       write_to_output(d, "Post not aborted, use REMOVE <post #>.\r\n");
     }
   }
 
-  if (PLR_FLAGGED(d->character, PLR_IDEA)) {
-    if (action == STRINGADD_SAVE && *d->str) {
+  if (PLR_FLAGGED(d->character, PLR_IDEA))
+  {
+    if (action == STRINGADD_SAVE && *d->str)
+    {
       write_to_output(d, "Idea saved!  Changes are implemented in this order:"
-              "  1) bug fixes, 2) ideas parallel to short term development"
-              " goals, 3) simple to implement ideas, 4) hard to implement"
-              " ideas..  If the idea is rejected, a polite game-mail will be"
-              " sent giving the reason why.  Thanks for your input!\r\n");
+                         "  1) bug fixes, 2) ideas parallel to short term development"
+                         " goals, 3) simple to implement ideas, 4) hard to implement"
+                         " ideas..  If the idea is rejected, a polite game-mail will be"
+                         " sent giving the reason why.  Thanks for your input!\r\n");
       act("$n finishes giving an idea.", TRUE, d->character, NULL, NULL, TO_ROOM);
       mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s stops editing an idea.",
-              GET_NAME(d->character));
+             GET_NAME(d->character));
       save_ibt_file(SCMD_IDEA);
-
-    } else {
+    }
+    else
+    {
       act("$n finishes giving an idea.", TRUE, d->character, NULL, NULL, TO_ROOM);
       mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s stops editing an idea.",
-              GET_NAME(d->character));
+             GET_NAME(d->character));
       write_to_output(d, "Idea aborted!\r\n");
 
       clean_ibt_list(SCMD_IDEA);
     }
   }
 
-  if (PLR_FLAGGED(d->character, PLR_BUG)) {
-    if (action == STRINGADD_SAVE && *d->str) {
+  if (PLR_FLAGGED(d->character, PLR_BUG))
+  {
+    if (action == STRINGADD_SAVE && *d->str)
+    {
       write_to_output(d, "Bug saved!  Changes are implemented in this order:"
-              "  1) bug fixes, 2) ideas parallel to short term development"
-              " goals, 3) simple to implement ideas, 4) hard to implement"
-              " ideas..  If the idea is rejected, a polite game-mail will be"
-              " sent giving the reason why.  Thanks for your input!\r\n");
+                         "  1) bug fixes, 2) ideas parallel to short term development"
+                         " goals, 3) simple to implement ideas, 4) hard to implement"
+                         " ideas..  If the idea is rejected, a polite game-mail will be"
+                         " sent giving the reason why.  Thanks for your input!\r\n");
       act("$n finishes submitting a bug.", TRUE, d->character, NULL, NULL, TO_ROOM);
       mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s stops editing a bug.",
-              GET_NAME(d->character));
+             GET_NAME(d->character));
       save_ibt_file(SCMD_BUG);
-    } else {
+    }
+    else
+    {
       act("$n finishes submitting a bug.", TRUE, d->character, NULL, NULL, TO_ROOM);
       mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s stops editing a bug.",
-              GET_NAME(d->character));
+             GET_NAME(d->character));
       write_to_output(d, "Bug aborted!\r\n");
 
       clean_ibt_list(SCMD_BUG);
     }
   }
 
-  if (PLR_FLAGGED(d->character, PLR_TYPO)) {
-    if (action == STRINGADD_SAVE && *d->str) {
+  if (PLR_FLAGGED(d->character, PLR_TYPO))
+  {
+    if (action == STRINGADD_SAVE && *d->str)
+    {
       write_to_output(d, "Typo saved!\r\n");
       act("$n finishes submitting a typo.", TRUE, d->character, NULL, NULL, TO_ROOM);
       mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s stops editing a typo.",
-              GET_NAME(d->character));
+             GET_NAME(d->character));
       save_ibt_file(SCMD_TYPO);
-    } else {
+    }
+    else
+    {
       act("$n finishes submitting a typo.", TRUE, d->character, NULL, NULL, TO_ROOM);
       mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s stops editing a typo.",
-              GET_NAME(d->character));
+             GET_NAME(d->character));
       write_to_output(d, "Typo aborted!\r\n");
 
       clean_ibt_list(SCMD_TYPO);
@@ -350,7 +399,8 @@ static void playing_string_cleanup(struct descriptor_data *d, int action) {
   }
 }
 
-static void exdesc_string_cleanup(struct descriptor_data *d, int action) {
+static void exdesc_string_cleanup(struct descriptor_data *d, int action)
+{
   if (action == STRINGADD_ABORT)
     write_to_output(d, "Description aborted.\r\n");
 
@@ -359,7 +409,8 @@ static void exdesc_string_cleanup(struct descriptor_data *d, int action) {
 }
 
 /* Modification of character skills. */
-ACMD(do_skillset) {
+ACMD(do_skillset)
+{
   struct char_data *vict;
   char name[MAX_INPUT_LENGTH];
   char buf[MAX_INPUT_LENGTH], helpbuf[MAX_STRING_LENGTH];
@@ -367,10 +418,12 @@ ACMD(do_skillset) {
 
   argument = one_argument(argument, name);
 
-  if (!*name) { /* no arguments. print an informative text */
+  if (!*name)
+  { /* no arguments. print an informative text */
     send_to_char(ch, "Syntax: skillset <name> '<skill>' <value>\r\n"
-            "Skill being one of the following:\r\n");
-    for (qend = 0, i = 0; i <= TOP_SPELL_DEFINE; i++) {
+                     "Skill being one of the following:\r\n");
+    for (qend = 0, i = 0; i <= TOP_SPELL_DEFINE; i++)
+    {
       if (spell_info[i].name == unused_spellname) /* This is valid. */
         continue;
       send_to_char(ch, "%18s", spell_info[i].name);
@@ -382,7 +435,8 @@ ACMD(do_skillset) {
     return;
   }
 
-  if (!(vict = get_char_vis(ch, name, NULL, FIND_CHAR_WORLD))) {
+  if (!(vict = get_char_vis(ch, name, NULL, FIND_CHAR_WORLD)))
+  {
     send_to_char(ch, "%s", CONFIG_NOPERSON);
     return;
   }
@@ -391,11 +445,13 @@ ACMD(do_skillset) {
   pl = GET_LEVEL(vict);
 
   /* If there is no chars in argument */
-  if (!*argument) {
+  if (!*argument)
+  {
     send_to_char(ch, "Skill name expected.\r\n");
     return;
   }
-  if (*argument != '\'') {
+  if (*argument != '\'')
+  {
     send_to_char(ch, "Skill must be enclosed in: ''\r\n");
     return;
   }
@@ -404,40 +460,49 @@ ACMD(do_skillset) {
   for (qend = 1; argument[qend] && argument[qend] != '\''; qend++)
     argument[qend] = LOWER(argument[qend]);
 
-  if (argument[qend] != '\'') {
+  if (argument[qend] != '\'')
+  {
     send_to_char(ch, "Skill must be enclosed in: ''\r\n");
     return;
   }
   strcpy(helpbuf, (argument + 1)); /* strcpy: OK (MAX_INPUT_LENGTH <= MAX_STRING_LENGTH) */
   helpbuf[qend - 1] = '\0';
-  if ((skill = find_skill_num(helpbuf)) <= 0) {
+  if ((skill = find_skill_num(helpbuf)) <= 0)
+  {
     send_to_char(ch, "Unrecognized skill.\r\n");
     return;
   }
   argument += qend + 1; /* skip to next parameter */
   argument = one_argument(argument, buf);
 
-  if (!*buf) {
+  if (!*buf)
+  {
     send_to_char(ch, "Learned value expected.\r\n");
     return;
   }
   value = atoi(buf);
-  if (value < 0) {
+  if (value < 0)
+  {
     send_to_char(ch, "Minimum value for learned is 0.\r\n");
     return;
   }
-  if (value > 100) {
+  if (value > 100)
+  {
     send_to_char(ch, "Max value for learned is 100.\r\n");
     return;
   }
-  if (IS_NPC(vict)) {
+  if (IS_NPC(vict))
+  {
     send_to_char(ch, "You can't set NPC skills.\r\n");
     return;
   }
-  if ((spell_info[skill].min_level[(pc)] >= LVL_IMMORT) && (pl < LVL_IMMORT)) {
+  if ((spell_info[skill].min_level[(pc)] >= LVL_IMMORT) && (pl < LVL_IMMORT))
+  {
     send_to_char(ch, "%s cannot be learned by mortals.\r\n", spell_info[skill].name);
     return;
-  } else if (spell_info[skill].min_level[(pc)] > pl) {
+  }
+  else if (spell_info[skill].min_level[(pc)] > pl)
+  {
     send_to_char(ch, "%s is a level %d %s.\r\n", GET_NAME(vict), pl, CLSLIST_NAME(pc));
     send_to_char(ch, "The minimum level for %s is %d for %ss.\r\n", spell_info[skill].name, spell_info[skill].min_level[(pc)], CLSLIST_NAME(pc));
   }
@@ -450,7 +515,8 @@ ACMD(do_skillset) {
 }
 
 /* Modification of character abilities. */
-ACMD(do_abilityset) {
+ACMD(do_abilityset)
+{
   struct char_data *vict;
   char name[MAX_INPUT_LENGTH];
   char buf[MAX_INPUT_LENGTH], helpbuf[MAX_STRING_LENGTH];
@@ -458,10 +524,12 @@ ACMD(do_abilityset) {
 
   argument = one_argument(argument, name);
 
-  if (!*name) { /* no arguments. print an informative text */
+  if (!*name)
+  { /* no arguments. print an informative text */
     send_to_char(ch, "Syntax: abilityset <name> '<ability>' <value>\r\n"
-            "Abilities being one of the following:\r\n");
-    for (qend = 0, i = 1; i < NUM_ABILITIES; i++) {
+                     "Abilities being one of the following:\r\n");
+    for (qend = 0, i = 1; i < NUM_ABILITIES; i++)
+    {
       send_to_char(ch, "%18s", ability_names[i]);
       if (qend++ % 4 == 3)
         send_to_char(ch, "\r\n");
@@ -471,7 +539,8 @@ ACMD(do_abilityset) {
     return;
   }
 
-  if (!(vict = get_char_vis(ch, name, NULL, FIND_CHAR_WORLD))) {
+  if (!(vict = get_char_vis(ch, name, NULL, FIND_CHAR_WORLD)))
+  {
     send_to_char(ch, "%s", CONFIG_NOPERSON);
     return;
   }
@@ -480,11 +549,13 @@ ACMD(do_abilityset) {
   pl = GET_LEVEL(vict);
 
   /* If there is no chars in argument */
-  if (!*argument) {
+  if (!*argument)
+  {
     send_to_char(ch, "Ability name expected.\r\n");
     return;
   }
-  if (*argument != '\'') {
+  if (*argument != '\'')
+  {
     send_to_char(ch, "Ability must be enclosed in: ''\r\n");
     return;
   }
@@ -493,33 +564,39 @@ ACMD(do_abilityset) {
   for (qend = 1; argument[qend] && argument[qend] != '\''; qend++)
     argument[qend] = LOWER(argument[qend]);
 
-  if (argument[qend] != '\'') {
+  if (argument[qend] != '\'')
+  {
     send_to_char(ch, "Ability must be enclosed in: ''\r\n");
     return;
   }
   strcpy(helpbuf, (argument + 1)); /* strcpy: OK (MAX_INPUT_LENGTH <= MAX_STRING_LENGTH) */
   helpbuf[qend - 1] = '\0';
-  if ((skill = find_ability_num(helpbuf)) <= 0) {
+  if ((skill = find_ability_num(helpbuf)) <= 0)
+  {
     send_to_char(ch, "Unrecognized skill.\r\n");
     return;
   }
   argument += qend + 1; /* skip to next parameter */
   argument = one_argument(argument, buf);
 
-  if (!*buf) {
+  if (!*buf)
+  {
     send_to_char(ch, "Trained value expected.\r\n");
     return;
   }
   value = atoi(buf);
-  if (value < 0) {
+  if (value < 0)
+  {
     send_to_char(ch, "Minimum value for trained is 0.\r\n");
     return;
   }
-  if (value > 40) {
+  if (value > 40)
+  {
     send_to_char(ch, "Max value for trained is 40.\r\n");
     return;
   }
-  if (IS_NPC(vict)) {
+  if (IS_NPC(vict))
+  {
     send_to_char(ch, "You can't set NPC abilities.\r\n");
     return;
   }
@@ -533,40 +610,45 @@ ACMD(do_abilityset) {
 
 /* By Michael Buselli. Traverse down the string until the begining of the next
  * page has been reached.  Return NULL if this is the last page of the string. */
-static char *next_page(char *str, struct char_data *ch) {
+static char *next_page(char *str, struct char_data *ch)
+{
   int col = 1, line = 1, count, pw;
 
   pw = (GET_SCREEN_WIDTH(ch) >= 40 && GET_SCREEN_WIDTH(ch) <= 250) ? GET_SCREEN_WIDTH(ch) : PAGE_WIDTH;
 
-  for (;; str++) {
+  for (;; str++)
+  {
     /* If end of string, return NULL. */
     if (*str == '\0')
       return (NULL);
 
-      /* If we're at the start of the next page, return this fact. */
+    /* If we're at the start of the next page, return this fact. */
     else if (line > (GET_PAGE_LENGTH(ch) - (PRF_FLAGGED(ch, PRF_COMPACT) ? 1 : 2)))
       return (str);
 
-      /* Check for the beginning of an ANSI color code block. */
+    /* Check for the beginning of an ANSI color code block. */
     else if (*str == '\x1B') /* Jump to the end of the ANSI code, or max 9 chars */
       for (count = 0; *str != 'm' && count < 9; count++)
         str++;
 
-    else if (*str == '\t') {
+    else if (*str == '\t')
+    {
       if (*(str + 1) != '\t')
         str++;
-    }/* Check for everything else. */
-    else {
+    } /* Check for everything else. */
+    else
+    {
       /* Carriage return puts us in column one. */
       if (*str == '\r')
         col = 1;
-        /* Newline puts us on the next line. */
+      /* Newline puts us on the next line. */
       else if (*str == '\n')
         line++;
 
-        /* We need to check here and see if we are over the page width, and if
+      /* We need to check here and see if we are over the page width, and if
          * so, compensate by going to the begining of the next line. */
-      else if (col++ > pw) {
+      else if (col++ > pw)
+      {
         col = 1;
         line++;
       }
@@ -575,10 +657,12 @@ static char *next_page(char *str, struct char_data *ch) {
 }
 
 /* Function that returns the number of pages in the string. */
-static int count_pages(char *str, struct char_data *ch) {
+static int count_pages(char *str, struct char_data *ch)
+{
   int pages;
 
-  for (pages = 1; (str = next_page(str, ch)); pages++);
+  for (pages = 1; (str = next_page(str, ch)); pages++)
+    ;
 
   return (pages);
 }
@@ -586,7 +670,8 @@ static int count_pages(char *str, struct char_data *ch) {
 /* This function assigns all the pointers for showstr_vector for the
  * page_string function, after showstr_vector has been allocated and
  * showstr_count set. */
-void paginate_string(char *str, struct descriptor_data *d) {
+void paginate_string(char *str, struct descriptor_data *d)
+{
   int i;
 
   if (d->showstr_count)
@@ -599,7 +684,8 @@ void paginate_string(char *str, struct descriptor_data *d) {
 }
 
 /* The call that gets the paging ball rolling... */
-void page_string(struct descriptor_data *d, char *str, int keep_internal) {
+void page_string(struct descriptor_data *d, char *str, int keep_internal)
+{
   char actbuf[MAX_INPUT_LENGTH] = "";
 
   if (!d)
@@ -613,62 +699,71 @@ void page_string(struct descriptor_data *d, char *str, int keep_internal) {
   d->showstr_count = count_pages(str, d->character);
   CREATE(d->showstr_vector, char *, d->showstr_count);
 
-  if (keep_internal) {
+  if (keep_internal)
+  {
     d->showstr_head = strdup(str);
     paginate_string(d->showstr_head, d);
-  } else
+  }
+  else
     paginate_string(str, d);
 
   show_string(d, actbuf);
 }
 
 /* The call that displays the next page. */
-void show_string(struct descriptor_data *d, char *input) {
+void show_string(struct descriptor_data *d, char *input)
+{
   char buffer[MAX_STRING_LENGTH], buf[MAX_INPUT_LENGTH];
   int diff;
 
   any_one_arg(input, buf);
 
   /* Q is for quit. :) */
-  if (LOWER(*buf) == 'q') {
+  if (LOWER(*buf) == 'q')
+  {
     free(d->showstr_vector);
     d->showstr_vector = NULL;
     d->showstr_count = 0;
-    if (d->showstr_head) {
+    if (d->showstr_head)
+    {
       free(d->showstr_head);
       d->showstr_head = NULL;
     }
     return;
-  }/* Back up one page internally so we can display it again. */
+  } /* Back up one page internally so we can display it again. */
   else if (LOWER(*buf) == 'r')
     d->showstr_page = MAX(0, d->showstr_page - 1);
 
-    /* Back up two pages internally so we can display the correct page here. */
+  /* Back up two pages internally so we can display the correct page here. */
   else if (LOWER(*buf) == 'b')
     d->showstr_page = MAX(0, d->showstr_page - 2);
 
-    /* Type the number of the page and you are there! */
+  /* Type the number of the page and you are there! */
   else if (isdigit(*buf))
     d->showstr_page = MAX(0, MIN(atoi(buf) - 1, d->showstr_count - 1));
 
-  else if (*buf) {
+  else if (*buf)
+  {
     send_to_char(d->character, "Valid commands while paging are RETURN, Q, R, B, or a numeric value.\r\n");
     return;
   }
   /* If we're displaying the last page, just send it to the character, and
    * then free up the space we used. Also send a \tn - to make color stop
    * bleeding. - Welcor */
-  if (d->showstr_page + 1 >= d->showstr_count) {
+  if (d->showstr_page + 1 >= d->showstr_count)
+  {
     send_to_char(d->character, "%s\tn", d->showstr_vector[d->showstr_page]);
     free(d->showstr_vector);
     d->showstr_vector = NULL;
     d->showstr_count = 0;
-    if (d->showstr_head) {
+    if (d->showstr_head)
+    {
       free(d->showstr_head);
       d->showstr_head = NULL;
     }
-  }/* Or if we have more to show.... */
-  else {
+  } /* Or if we have more to show.... */
+  else
+  {
     diff = d->showstr_vector[d->showstr_page + 1] - d->showstr_vector[d->showstr_page];
     if (diff > MAX_STRING_LENGTH - 3) /* 3=\r\n\0 */
       diff = MAX_STRING_LENGTH - 3;
@@ -690,11 +785,13 @@ void show_string(struct descriptor_data *d, char *input) {
   }
 }
 
-void new_mail_string_cleanup(struct descriptor_data *d, int action) {
+void new_mail_string_cleanup(struct descriptor_data *d, int action)
+{
 
   if (action == STRINGADD_ABORT)
     write_to_output(d, "Mail aborted.\r\n");
-  else {
+  else
+  {
     extern MYSQL *conn;
 
     /* Check the connection, reconnect if necessary. */
@@ -719,17 +816,16 @@ void new_mail_string_cleanup(struct descriptor_data *d, int action) {
         }
      */
 
-    if (found) {
+    if (found)
+    {
 
       extern MYSQL *conn2;
 
       /* Check the connection, reconnect if necessary. */
       mysql_ping(conn2);
 
-
       MYSQL_RES *res = NULL;
       MYSQL_ROW row = NULL;
-
 
       char query[MAX_STRING_LENGTH];
 
@@ -739,13 +835,15 @@ void new_mail_string_cleanup(struct descriptor_data *d, int action) {
 
       int last_id = 0;
 
-      sprintf(query, "SELECT name FROM player_data WHERE clan='%s'", "WE WANT THIS TO FAIL TILL WE HAVE CLANS"/*cptr->name // no clans right now */);
+      sprintf(query, "SELECT name FROM player_data WHERE clan='%s'", "WE WANT THIS TO FAIL TILL WE HAVE CLANS" /*cptr->name // no clans right now */);
       //    send_to_char(ch, "%s\r\n", query);
 
       mysql_query(conn2, query);
       res = mysql_use_result(conn2);
-      if (res != NULL) {
-        while ((row = mysql_fetch_row(res)) != NULL) {
+      if (res != NULL)
+      {
+        while ((row = mysql_fetch_row(res)) != NULL)
+        {
 
           end = stpcpy(query, "INSERT INTO player_mail (date_sent, sender, receiver, subject, message) VALUES(NOW(),");
           *end++ = '\'';
@@ -766,15 +864,18 @@ void new_mail_string_cleanup(struct descriptor_data *d, int action) {
           *end++ = ')';
           *end++ = '\0';
 
-          if (mysql_query(conn, query)) {
+          if (mysql_query(conn, query))
+          {
             log("Unable to store note message in database for %s query='%s'.", GET_NAME(d->character), query);
           }
 
           last_id = mysql_insert_id(conn);
 
-          if (last_id > 0 && strcmp(row[0], GET_NAME(ch))) {
+          if (last_id > 0 && strcmp(row[0], GET_NAME(ch)))
+          {
             sprintf(query, "INSERT INTO player_mail_deleted (player_name, mail_id) VALUES('%s','%d')", GET_NAME(ch), last_id);
-            if (mysql_query(conn, query)) {
+            if (mysql_query(conn, query))
+            {
               log("Unable to add deleted flag to mail in database for %s query='%s'.", GET_NAME(ch), query);
             }
           }
@@ -782,7 +883,8 @@ void new_mail_string_cleanup(struct descriptor_data *d, int action) {
           struct char_data *tch;
           struct char_data *nch;
 
-          for (tch = character_list; tch; tch = nch) {
+          for (tch = character_list; tch; tch = nch)
+          {
             nch = tch->next;
             if (!strcmp(GET_NAME(tch), row[0]))
               send_to_char(tch, "\r\nYou have received a new mail from %s with a subject: %s.\r\n", GET_NAME(ch), ch->player_specials->new_mail_subject);
@@ -791,12 +893,13 @@ void new_mail_string_cleanup(struct descriptor_data *d, int action) {
       }
       mysql_free_result(res);
 
-      write_to_output(d, "\r\nYou have send a mail entitled %s to %s.\r\n", ch->player_specials->new_mail_subject, "NO DICE TILL CLANS ARE DONE"/*cptr->name // not till we have clans*/);
+      write_to_output(d, "\r\nYou have send a mail entitled %s to %s.\r\n", ch->player_specials->new_mail_subject, "NO DICE TILL CLANS ARE DONE" /*cptr->name // not till we have clans*/);
+    }
+    else
+    {
 
-
-    } else {
-
-      if (!conn) {
+      if (!conn)
+      {
         /* Check the connection, reconnect if necessary. */
         mysql_ping(conn);
       }
@@ -826,28 +929,26 @@ void new_mail_string_cleanup(struct descriptor_data *d, int action) {
       *end++ = ')';
       *end++ = '\0';
 
-      if (mysql_query(conn, query)) {
+      if (mysql_query(conn, query))
+      {
         log("Unable to store note message in database for %s query='%s'.", GET_NAME(d->character), query);
       }
-
 
       write_to_output(d, "\r\nYou have send a mail entitled %s to %s.\r\n", ch->player_specials->new_mail_subject, ch->player_specials->new_mail_receiver);
       struct char_data *tch;
       struct char_data *nch;
 
-      for (tch = character_list; tch; tch = nch) {
+      for (tch = character_list; tch; tch = nch)
+      {
         nch = tch->next;
         if (!strcmp(GET_NAME(tch), ch->player_specials->new_mail_receiver) || !strcmp("All", ch->player_specials->new_mail_receiver))
           send_to_char(tch, "\r\nYou have received a new mail from %s with a subject: %s.\r\n", GET_NAME(ch), ch->player_specials->new_mail_subject);
       }
 
     } // end !found
-
-
   }
 
   STATE(d) = CON_PLAYING;
 
   return;
 }
-

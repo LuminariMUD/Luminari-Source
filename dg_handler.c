@@ -109,7 +109,8 @@ void extract_trigger(struct trig_data *trig)
 }
 
 /* remove all triggers from a mob/obj/room */
-void extract_script(void *thing, int type) {
+void extract_script(void *thing, int type)
+{
   struct script_data *sc = NULL;
   struct trig_data *trig = NULL, *next_trig = NULL;
   char_data *mob = NULL;

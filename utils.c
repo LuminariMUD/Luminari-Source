@@ -1,5 +1,5 @@
 /**
- * @file utils.c
+ * @file utils.c                LuminariMUD
  * Various utility functions used within the core mud code.
  *
  * Part of the core tbaMUD source code distribution, which is a derivative

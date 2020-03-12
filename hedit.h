@@ -1,5 +1,5 @@
 /**
-* @file hedit.h
+* @file hedit.h                               LuminariMUD
 * Oasis OLC Help Editor.
 * 
 * Part of the core tbaMUD source code distribution, which is a derivative
@@ -26,6 +26,5 @@
 /* Action fuctions */
 ACMD(do_helpcheck);
 ACMD(do_hindex);
-
 
 #endif /* _HEDIT_H_*/

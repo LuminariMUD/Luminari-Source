@@ -22,7 +22,8 @@
 #include "alchemy.h"
 
 /* puts -'s instead of spaces */
-void space_to_minus(char *str) {
+void space_to_minus(char *str)
+{
   while ((str = strchr(str, ' ')) != NULL)
     *str = '-';
 }
@@ -34,13 +35,14 @@ void space_to_minus(char *str) {
  * instead of the in-memory help structure.  
  * The consumer of the return value is responsible for freeing the memory!
  * YOU HAVE BEEN WARNED.  */
-struct help_entry_list * search_help(const char *argument, int level) {
+struct help_entry_list *search_help(const char *argument, int level)
+{
 
   MYSQL_RES *result;
   MYSQL_ROW row;
-  
+
   struct help_entry_list *help_entries = NULL, *new_help_entry = NULL, *cur = NULL;
-   
+
   char buf[1024], escaped_arg[MAX_STRING_LENGTH];
 
   /*  Check the connection, reconnect if necessary. */
@@ -52,46 +54,53 @@ struct help_entry_list * search_help(const char *argument, int level) {
                " FROM `help_entries` he, `help_keywords` hk, `help_keywords` hk2"
                " WHERE he.tag = hk.help_tag and hk.help_tag = hk2.help_tag and lower(hk.keyword) like '%s%%' and he.min_level <= %d"
                " group by hk.help_tag ORDER BY length(hk.keyword) asc",
-               argument, level);
- 
-  if (mysql_query(conn, buf)) {
+          argument, level);
+
+  if (mysql_query(conn, buf))
+  {
     log("SYSERR: Unable to SELECT from help_entries: %s", mysql_error(conn));
     return NULL;
   }
- 
-  if (!(result = mysql_store_result(conn))) {
+
+  if (!(result = mysql_store_result(conn)))
+  {
     log("SYSERR: Unable to SELECT from help_entries: %s", mysql_error(conn));
     return NULL;
   }
-  
-  while ((row = mysql_fetch_row(result))) {
+
+  while ((row = mysql_fetch_row(result)))
+  {
 
     /* Allocate memory for the help entry data. */
     CREATE(new_help_entry, struct help_entry_list, 1);
-    new_help_entry->tag                = strdup(row[0]);
-    new_help_entry->entry              = strdup(row[1]);
-    new_help_entry->min_level          = atoi(row[2]);
-    new_help_entry->last_updated       = strdup(row[3]);
-    new_help_entry->keywords           = strdup(row[4]);
+    new_help_entry->tag = strdup(row[0]);
+    new_help_entry->entry = strdup(row[1]);
+    new_help_entry->min_level = atoi(row[2]);
+    new_help_entry->last_updated = strdup(row[3]);
+    new_help_entry->keywords = strdup(row[4]);
 
     new_help_entry->keyword_list = get_help_keywords(new_help_entry->tag);
 
-    if (help_entries == NULL) {
+    if (help_entries == NULL)
+    {
       help_entries = new_help_entry;
       cur = new_help_entry;
-    } else {
+    }
+    else
+    {
       cur->next = new_help_entry;
       cur = new_help_entry;
     }
-    new_help_entry = NULL; 
+    new_help_entry = NULL;
   }
-  
+
   mysql_free_result(result);
 
   return help_entries;
 }
 
-struct help_keyword_list* get_help_keywords(const char *tag) {
+struct help_keyword_list *get_help_keywords(const char *tag)
+{
   MYSQL_RES *result;
   MYSQL_ROW row;
 
@@ -101,24 +110,30 @@ struct help_keyword_list* get_help_keywords(const char *tag) {
 
   /* Get keywords for this entry. */
   sprintf(buf, "select help_tag, CONCAT(UCASE(LEFT(keyword, 1)), LCASE(SUBSTRING(keyword, 2))) from help_keywords where help_tag = '%s'", tag);
-  if (mysql_query(conn, buf)) {
+  if (mysql_query(conn, buf))
+  {
     log("SYSERR: Unable to SELECT from help_keywords: %s", mysql_error(conn));
     return NULL;
   }
-  if (!(result = mysql_store_result(conn))) {
+  if (!(result = mysql_store_result(conn)))
+  {
     log("SYSERR: Unable to SELECT from help_keywords: %s", mysql_error(conn));
     return NULL;
   }
-  while ((row = mysql_fetch_row(result))) {
+  while ((row = mysql_fetch_row(result)))
+  {
     CREATE(new_keyword, struct help_keyword_list, 1);
     new_keyword->tag = strdup(row[0]);
-    new_keyword->keyword  = strdup(row[1]);
+    new_keyword->keyword = strdup(row[1]);
     new_keyword->next = NULL;
 
-    if (keywords == NULL) {
+    if (keywords == NULL)
+    {
       keywords = new_keyword;
       cur = new_keyword;
-    } else {
+    }
+    else
+    {
       cur->next = new_keyword;
       cur = new_keyword;
     }
@@ -128,7 +143,8 @@ struct help_keyword_list* get_help_keywords(const char *tag) {
   return keywords;
 }
 
-struct help_keyword_list* soundex_search_help_keywords(const char *argument, int level) {
+struct help_keyword_list *soundex_search_help_keywords(const char *argument, int level)
+{
 
   MYSQL_RES *result;
   MYSQL_ROW row;
@@ -150,29 +166,35 @@ struct help_keyword_list* soundex_search_help_keywords(const char *argument, int
                "  and hk.keyword sounds like '%s' "
                "  and he.min_level <= %d "
                "ORDER BY length(hk.keyword) asc",
-               argument, level);
+          argument, level);
 
-  if (mysql_query(conn, buf)) {
-    log("SYSERR: Unable to SELECT from help_keywords: %s", mysql_error(conn));
-    return NULL;
-  }
- 
-  if (!(result = mysql_store_result(conn))) {
+  if (mysql_query(conn, buf))
+  {
     log("SYSERR: Unable to SELECT from help_keywords: %s", mysql_error(conn));
     return NULL;
   }
 
-  while ((row = mysql_fetch_row(result))) {
+  if (!(result = mysql_store_result(conn)))
+  {
+    log("SYSERR: Unable to SELECT from help_keywords: %s", mysql_error(conn));
+    return NULL;
+  }
+
+  while ((row = mysql_fetch_row(result)))
+  {
 
     /* Allocate memory for the help entry data. */
     CREATE(new_keyword, struct help_keyword_list, 1);
-    new_keyword->tag     = strdup(row[0]);
+    new_keyword->tag = strdup(row[0]);
     new_keyword->keyword = strdup(row[1]);
 
-    if (keywords == NULL) {
+    if (keywords == NULL)
+    {
       keywords = new_keyword;
       cur = new_keyword;
-    } else {
+    }
+    else
+    {
       cur->next = new_keyword;
       cur = new_keyword;
     }
@@ -184,12 +206,11 @@ struct help_keyword_list* soundex_search_help_keywords(const char *argument, int
   return keywords;
 }
 
-
-
 /* this is used for char creation help */
 
 /* make sure arg doesn't have spaces */
-void perform_help(struct descriptor_data *d, char *argument) {
+void perform_help(struct descriptor_data *d, char *argument)
+{
   struct help_entry_list *entry = NULL, *tmp = NULL;
 
   if (!*argument)
@@ -197,23 +218,24 @@ void perform_help(struct descriptor_data *d, char *argument) {
 
   if ((entry = search_help(argument, LVL_IMPL)) == NULL)
     return;
-  
+
   /* Disable paging for character creation. */
   if ((STATE(d) == CON_QRACE) ||
       (STATE(d) == CON_QCLASS))
     send_to_char(d->character, entry->entry);
-  else 
+  else
     page_string(d, entry->entry, 1);
-  
-  while (entry != NULL) {
-      tmp = entry;
-      entry = entry->next;
-      free(tmp);
+
+  while (entry != NULL)
+  {
+    tmp = entry;
+    entry = entry->next;
+    free(tmp);
   }
-  
 }
 
-ACMD(do_help) {
+ACMD(do_help)
+{
   struct help_entry_list *entries = NULL, *tmp = NULL;
   struct help_keyword_list *keywords = NULL, *tmp_keyword = NULL;
 
@@ -226,7 +248,8 @@ ACMD(do_help) {
 
   skip_spaces(&argument);
 
-  if (!*argument) {
+  if (!*argument)
+  {
     if (GET_LEVEL(ch) < LVL_IMMORT)
       page_string(ch->desc, help, 0);
     else
@@ -236,43 +259,54 @@ ACMD(do_help) {
   raw_argument = strdup(argument);
   space_to_minus(argument);
 
-  if (display_class_info(ch, raw_argument)) {
+  if (display_class_info(ch, raw_argument))
+  {
     free(raw_argument);
     return;
   }
-  if (display_race_info(ch, raw_argument)) {
+  if (display_race_info(ch, raw_argument))
+  {
     free(raw_argument);
     return;
   }
 
-  if ((entries = search_help(argument, GET_LEVEL(ch))) == NULL) {
+  if ((entries = search_help(argument, GET_LEVEL(ch))) == NULL)
+  {
     /* Check alchemist discoveries for relevant entries! */
-    if (!display_discovery_info(ch, raw_argument)) {
+    if (!display_discovery_info(ch, raw_argument))
+    {
       /* And check grand alchemist discoveries for relevant entries! */
-      if (!display_grand_discovery_info(ch, raw_argument)) {
+      if (!display_grand_discovery_info(ch, raw_argument))
+      {
         /* And list bomb types if keyword matched */
-        if (!display_bomb_types(ch, raw_argument)) {
+        if (!display_bomb_types(ch, raw_argument))
+        {
           /* And list discovery types if keyword matched */
-          if (!display_discovery_types(ch, raw_argument)) {
+          if (!display_discovery_types(ch, raw_argument))
+          {
             /* Check feats for relevant entries! */
-            if (!display_feat_info(ch, raw_argument)) {
-            
+            if (!display_feat_info(ch, raw_argument))
+            {
+
               send_to_char(ch, "There is no help on that word.\r\n");
               mudlog(NRM, MAX(LVL_IMPL, GET_INVIS_LEV(ch)), TRUE,
-                      "%s tried to get help on %s", GET_NAME(ch), argument);
-          
-              /* Implement 'SOUNDS LIKE' search here... */    
-              if ((keywords = soundex_search_help_keywords(argument, GET_LEVEL(ch))) != NULL) {
+                     "%s tried to get help on %s", GET_NAME(ch), argument);
+
+              /* Implement 'SOUNDS LIKE' search here... */
+              if ((keywords = soundex_search_help_keywords(argument, GET_LEVEL(ch))) != NULL)
+              {
                 send_to_char(ch, "\r\nDid you mean:\r\n");
                 tmp_keyword = keywords;
-                while (tmp_keyword != NULL) {
+                while (tmp_keyword != NULL)
+                {
                   send_to_char(ch, "  \t<send href=\"Help %s\">%s\t</send>\r\n",
-                          tmp_keyword->keyword, tmp_keyword->keyword);
+                               tmp_keyword->keyword, tmp_keyword->keyword);
                   tmp_keyword = tmp_keyword->next;
                 }
                 send_to_char(ch, "\tDYou can also check the help index, type 'hindex <keyword>'\tn\r\n");
-                while (keywords != NULL) {
-                  tmp_keyword = keywords->next; 
+                while (keywords != NULL)
+                {
+                  tmp_keyword = keywords->next;
                   free(keywords);
                   keywords = tmp_keyword;
                   tmp_keyword = NULL;
@@ -286,7 +320,7 @@ ACMD(do_help) {
     free(raw_argument);
     return;
   }
- 
+
   /* Help entry format:
    *  -------------------------------Help Entry-----------------------------------
    *  Help tag      : <tag> (immortal only)
@@ -298,37 +332,39 @@ ACMD(do_help) {
    *  <HELP ENTRY TEXT>
    *  ----------------------------------------------------------------------------
    *  */
-  sprintf(immo_data_buffer,  "\tcHelp Tag      : \tn%s\r\n",
-                             entries->tag);
+  sprintf(immo_data_buffer, "\tcHelp Tag      : \tn%s\r\n",
+          entries->tag);
   sprintf(help_entry_buffer, "\tC%s\tn"
                              "%s"
                              "\tcHelp Keywords : \tn%s\r\n"
-                            // "\tcHelp Category : \tn%s\r\n"
-                            // "\tcRelated Help  : \tn%s\r\n"
+                             // "\tcHelp Category : \tn%s\r\n"
+                             // "\tcRelated Help  : \tn%s\r\n"
                              "\tcLast Updated  : \tn%s\r\n"
                              "\tC%s"
                              "\tn%s\r\n"
                              "\tC%s",
-                             line_string(GET_SCREEN_WIDTH(ch), '-', '-'),
-                             (IS_IMMORTAL(ch) ? immo_data_buffer : ""),
-                             entries->keywords,
-                            // "<N/I>",
-                            // "<N/I>",
-                             entries->last_updated,
-                             line_string(GET_SCREEN_WIDTH(ch), '-', '-'),
-                             entries->entry,
-                             line_string(GET_SCREEN_WIDTH(ch), '-', '-'));                            
+          line_string(GET_SCREEN_WIDTH(ch), '-', '-'),
+          (IS_IMMORTAL(ch) ? immo_data_buffer : ""),
+          entries->keywords,
+          // "<N/I>",
+          // "<N/I>",
+          entries->last_updated,
+          line_string(GET_SCREEN_WIDTH(ch), '-', '-'),
+          entries->entry,
+          line_string(GET_SCREEN_WIDTH(ch), '-', '-'));
   page_string(ch->desc, help_entry_buffer, 1);
 
   free(raw_argument);
-  while (entries != NULL) {
+  while (entries != NULL)
+  {
     tmp = entries;
     entries = entries->next;
 
-    while(tmp->keyword_list != NULL) {
+    while (tmp->keyword_list != NULL)
+    {
       tmp_keyword = tmp->keyword_list->next;
       free(tmp->keyword_list);
-      tmp->keyword_list = tmp_keyword;    
+      tmp->keyword_list = tmp_keyword;
     }
 
     free(tmp);
@@ -336,5 +372,3 @@ ACMD(do_help) {
 }
 
 //  send_to_char(ch, "\tDYou can also check the help index, type 'hindex <keyword>'\tn\r\n");
-
-

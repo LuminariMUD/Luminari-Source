@@ -31,7 +31,8 @@ static void ASSIGNMOB(mob_vnum mob, SPECIAL(fname));
 static void ASSIGNOBJ(obj_vnum obj, SPECIAL(fname));
 
 /* functions to perform assignments */
-static void ASSIGNMOB(mob_vnum mob, SPECIAL(fname)) {
+static void ASSIGNMOB(mob_vnum mob, SPECIAL(fname))
+{
   mob_rnum rnum;
 
   if ((rnum = real_mobile(mob)) != NOBODY)
@@ -40,7 +41,8 @@ static void ASSIGNMOB(mob_vnum mob, SPECIAL(fname)) {
     log("SYSERR: Attempt to assign spec to non-existant mob #%d", mob);
 }
 
-static void ASSIGNOBJ(obj_vnum obj, SPECIAL(fname)) {
+static void ASSIGNOBJ(obj_vnum obj, SPECIAL(fname))
+{
   obj_rnum rnum;
 
   if ((rnum = real_object(obj)) != NOTHING)
@@ -49,7 +51,8 @@ static void ASSIGNOBJ(obj_vnum obj, SPECIAL(fname)) {
     log("SYSERR: Attempt to assign spec to non-existant obj #%d", obj);
 }
 
-static void ASSIGNROOM(room_vnum room, SPECIAL(fname)) {
+static void ASSIGNROOM(room_vnum room, SPECIAL(fname))
+{
   room_rnum rnum;
 
   if ((rnum = real_room(room)) != NOWHERE)
@@ -62,7 +65,8 @@ static void ASSIGNROOM(room_vnum room, SPECIAL(fname)) {
 
 /* assign special procedures to mobiles. Guildguards, snake, thief, wizard,
  * puff, fido, janitor, and cityguards are now implemented via triggers. */
-void assign_mobiles(void) {
+void assign_mobiles(void)
+{
 
   // mosswood
   ASSIGNMOB(145391, buyweapons);
@@ -71,7 +75,6 @@ void assign_mobiles(void) {
   ASSIGNMOB(103499, buyarmor);
   ASSIGNMOB(103498, buyweapons);
 
-  
   assign_kings_castle();
 
   /* cryogenicist */
@@ -129,7 +132,7 @@ void assign_mobiles(void) {
   /* player owned shop mobiles */
   ASSIGNMOB(899, player_owned_shops);
   ASSIGNMOB(825, player_owned_shops); /* thazull created shop for Ellyanor */
-  ASSIGNMOB(830, player_owned_shops); /* Ickthak the Kobold - for Thimblethorp */  
+  ASSIGNMOB(830, player_owned_shops); /* Ickthak the Kobold - for Thimblethorp */
 
   /* mayors */
   ASSIGNMOB(3105, mayor);
@@ -167,7 +170,7 @@ void assign_mobiles(void) {
 
   /* crimson flame zone mob specs */
   ASSIGNMOB(106040, cf_trainingmaster); // training master
-  ASSIGNMOB(106000, cf_alathar); // lord alathar
+  ASSIGNMOB(106000, cf_alathar);        // lord alathar
 
   /* Jotunheim */
   ASSIGNMOB(196027, thrym);
@@ -290,27 +293,27 @@ void assign_mobiles(void) {
   ASSIGNMOB(103001, receptionist);
   ASSIGNMOB(103010, postmaster);
   ASSIGNMOB(103200, guild_guard); // Anti-Paladin
-  ASSIGNMOB(103201, guild); // Anti-Paladin
+  ASSIGNMOB(103201, guild);       // Anti-Paladin
   ASSIGNMOB(103202, guild_guard); // Assassin
-  ASSIGNMOB(103203, guild); // Assassin
+  ASSIGNMOB(103203, guild);       // Assassin
   ASSIGNMOB(103204, guild_guard); // Bard
-  ASSIGNMOB(103205, guild); // Bard
+  ASSIGNMOB(103205, guild);       // Bard
   ASSIGNMOB(103027, guild_guard); // Berzerker/Warrior
-  ASSIGNMOB(103023, guild); // Berzerker/Warrior
+  ASSIGNMOB(103023, guild);       // Berzerker/Warrior
   ASSIGNMOB(103025, guild_guard); // Cleric/Shaman
-  ASSIGNMOB(103021, guild); // Cleric/Shaman
+  ASSIGNMOB(103021, guild);       // Cleric/Shaman
   ASSIGNMOB(103024, guild_guard); // Conjurer/Necromancer/Sorcerer
-  ASSIGNMOB(103020, guild); // Conjurer/Necromancer/Sorcerer
+  ASSIGNMOB(103020, guild);       // Conjurer/Necromancer/Sorcerer
   ASSIGNMOB(103206, guild_guard); // Druid
-  ASSIGNMOB(103207, guild); // Druid
+  ASSIGNMOB(103207, guild);       // Druid
   ASSIGNMOB(103208, guild_guard); // Monk
-  ASSIGNMOB(103209, guild); // Monk
+  ASSIGNMOB(103209, guild);       // Monk
   ASSIGNMOB(103210, guild_guard); // Paladin
-  ASSIGNMOB(103211, guild); // Paladin
+  ASSIGNMOB(103211, guild);       // Paladin
   ASSIGNMOB(103900, guild_guard); // Ranger
-  ASSIGNMOB(103901, guild); // Ranger
+  ASSIGNMOB(103901, guild);       // Ranger
   ASSIGNMOB(103026, guild_guard); // Thief
-  ASSIGNMOB(103022, guild); // Thief
+  ASSIGNMOB(103022, guild);       // Thief
 
   /*Evereska*/
   ASSIGNMOB(127564, guild); // warrior
@@ -418,10 +421,10 @@ void assign_mobiles(void) {
   ASSIGNMOB(105812, postmaster);
 
   /* Broken Tusk Village */
-  ASSIGNMOB(125957, guild); // Sorcerer
-  ASSIGNMOB(125952, guild); // Fighters
-  ASSIGNMOB(125953, guild); // Rogues
-  ASSIGNMOB(125958, guild); // Clerics
+  ASSIGNMOB(125957, guild);       // Sorcerer
+  ASSIGNMOB(125952, guild);       // Fighters
+  ASSIGNMOB(125953, guild);       // Rogues
+  ASSIGNMOB(125958, guild);       // Clerics
   ASSIGNMOB(125955, guild_guard); // sorc
   ASSIGNMOB(125950, guild_guard); // warrior
   ASSIGNMOB(125987, receptionist);
@@ -537,7 +540,8 @@ void assign_mobiles(void) {
   ASSIGNMOB(106827, receptionist);
 
   int j;
-  for (j = 106830; j <= 106863; j++) {
+  for (j = 106830; j <= 106863; j++)
+  {
     if (j == 106838 || (j > 106846 && j < 106856))
       continue;
     else
@@ -634,14 +638,15 @@ void assign_mobiles(void) {
 }
 
 /* assign special procedures to objects */
-void assign_objects(void) {
-  ASSIGNOBJ(1226, gen_board); /* builder's board */
-  ASSIGNOBJ(1227, gen_board); /* staff board */
-  ASSIGNOBJ(1228, gen_board); /* advertising board */
-  ASSIGNOBJ(3096, gen_board); /* social board */
-  ASSIGNOBJ(3097, gen_board); /* freeze board */
-  ASSIGNOBJ(3098, gen_board); /* immortal board */
-  ASSIGNOBJ(3099, gen_board); /* mortal board */
+void assign_objects(void)
+{
+  ASSIGNOBJ(1226, gen_board);   /* builder's board */
+  ASSIGNOBJ(1227, gen_board);   /* staff board */
+  ASSIGNOBJ(1228, gen_board);   /* advertising board */
+  ASSIGNOBJ(3096, gen_board);   /* social board */
+  ASSIGNOBJ(3097, gen_board);   /* freeze board */
+  ASSIGNOBJ(3098, gen_board);   /* immortal board */
+  ASSIGNOBJ(3099, gen_board);   /* mortal board */
   ASSIGNOBJ(100400, gen_board); /* quest board */
   ASSIGNOBJ(103093, gen_board); /* ashenport market board */
   ASSIGNOBJ(103094, gen_board); /* forger board */
@@ -652,8 +657,8 @@ void assign_objects(void) {
   ASSIGNOBJ(103099, gen_board); /* mortal board */
 
   ASSIGNOBJ(115, bank);
-  ASSIGNOBJ(334, bank); /* atm */
-  ASSIGNOBJ(336, bank); /* cashcard */
+  ASSIGNOBJ(334, bank);  /* atm */
+  ASSIGNOBJ(336, bank);  /* cashcard */
   ASSIGNOBJ(3034, bank); /* atm */
   ASSIGNOBJ(3036, bank); /* cashcard */
   ASSIGNOBJ(3907, bank);
@@ -827,7 +832,8 @@ void assign_objects(void) {
 }
 
 /* assign special procedures to rooms */
-void assign_rooms(void) {
+void assign_rooms(void)
+{
   room_rnum i;
 
   /* bazaar - spend quest points on magic gear */
@@ -837,7 +843,7 @@ void assign_rooms(void) {
   ASSIGNROOM(370, crafting_quest);
 
   /* wizard library - research wizard spells for spellbook */
-  ASSIGNROOM(5905, wizard_library); /* wizard training mansion */
+  ASSIGNROOM(5905, wizard_library);   /* wizard training mansion */
   ASSIGNROOM(103047, wizard_library); /* Ashenport Mage's Guild */
 
   /* buy pets */
@@ -940,73 +946,74 @@ void assign_rooms(void) {
         world[i].func = dump;
 }
 
-struct spec_func_data {
+struct spec_func_data
+{
   char *name;
   SPECIAL(*func);
 };
 
 struct spec_func_data spec_func_list[] = {
-  {"Mayor", mayor},
-  {"Snake", snake},
-  {"Thief", thief},
-  {"wizard", wizard},
-  {"Puff", puff},
-  {"Fido", fido},
-  {"Janitor", janitor},
-  {"Cityguard", cityguard},
-  {"Postmaster", postmaster},
-  {"Receptionist", receptionist},
-  {"Cryogenicist", cryogenicist},
-  {"Bulletin Board", gen_board},
-  {"Bank", bank},
-  {"Pet Shop", pet_shops},
-  {"Dump", dump},
-  {"Guildmaster", guild},
-  {"Guild Guard", guild_guard},
-  {"Questmaster", questmaster},
-  {"Shopkeeper", shop_keeper},
-  {"Magical Wall", wall},
-  {"Faithful Hound", hound},
-  {"Mistweave", mistweave},
-  {"Frostbite", frostbite},
-  {"Ymir Cloak", ymir_cloak},
-  {"Vaprak Claws", vaprak_claws},
-  {"Valkyrie Sword", valkyrie_sword},
-  {"Twilight", twilight},
-  {"Fake Twilight", fake_twilight},
-  {"Giantslayer", giantslayer},
-  {"Planetar Sword", planetar_sword},
-  {"Crafting Kit", crafting_kit},
-  {"Chionthar_Ferry", chionthar_ferry},
-  {"Ches", ches},
-  {"SpikeShield", spikeshield},
-  {"Air Sphere", air_sphere},
-  {"Crafting Quest", crafting_quest},
-  {"Abyss Randomizer", abyss_randomizer},
-  {"Trainingmaster", cf_trainingmaster},
-  {"Alathar", cf_alathar},
-  {"Thrym", thrym},
-  {"Planetar", planetar},
-  {"Ymir", ymir},
-  {"Gatehouse Guard", gatehouse_guard},
-  {"Invasion", jot_invasion_loader},
-  {"Crystal Rapier", tia_rapier},
-  {"Pet Object", bought_pet},
-  {"Player Shop", player_owned_shops},
-  {"Monk Shock Gloves", monk_glove},
-  {"Monk Frost Gloves", monk_glove_cold},
+    {"Mayor", mayor},
+    {"Snake", snake},
+    {"Thief", thief},
+    {"wizard", wizard},
+    {"Puff", puff},
+    {"Fido", fido},
+    {"Janitor", janitor},
+    {"Cityguard", cityguard},
+    {"Postmaster", postmaster},
+    {"Receptionist", receptionist},
+    {"Cryogenicist", cryogenicist},
+    {"Bulletin Board", gen_board},
+    {"Bank", bank},
+    {"Pet Shop", pet_shops},
+    {"Dump", dump},
+    {"Guildmaster", guild},
+    {"Guild Guard", guild_guard},
+    {"Questmaster", questmaster},
+    {"Shopkeeper", shop_keeper},
+    {"Magical Wall", wall},
+    {"Faithful Hound", hound},
+    {"Mistweave", mistweave},
+    {"Frostbite", frostbite},
+    {"Ymir Cloak", ymir_cloak},
+    {"Vaprak Claws", vaprak_claws},
+    {"Valkyrie Sword", valkyrie_sword},
+    {"Twilight", twilight},
+    {"Fake Twilight", fake_twilight},
+    {"Giantslayer", giantslayer},
+    {"Planetar Sword", planetar_sword},
+    {"Crafting Kit", crafting_kit},
+    {"Chionthar_Ferry", chionthar_ferry},
+    {"Ches", ches},
+    {"SpikeShield", spikeshield},
+    {"Air Sphere", air_sphere},
+    {"Crafting Quest", crafting_quest},
+    {"Abyss Randomizer", abyss_randomizer},
+    {"Trainingmaster", cf_trainingmaster},
+    {"Alathar", cf_alathar},
+    {"Thrym", thrym},
+    {"Planetar", planetar},
+    {"Ymir", ymir},
+    {"Gatehouse Guard", gatehouse_guard},
+    {"Invasion", jot_invasion_loader},
+    {"Crystal Rapier", tia_rapier},
+    {"Pet Object", bought_pet},
+    {"Player Shop", player_owned_shops},
+    {"Monk Shock Gloves", monk_glove},
+    {"Monk Frost Gloves", monk_glove_cold},
 
-  {"\n", NULL}
-};
+    {"\n", NULL}};
 
-const char *get_spec_func_name(SPECIAL(*func)) {
+const char *get_spec_func_name(SPECIAL(*func))
+{
   int i;
 
-  for (i = 0; *(spec_func_list[i].name) != '\n'; i++) {
+  for (i = 0; *(spec_func_list[i].name) != '\n'; i++)
+  {
     if (func == spec_func_list[i].func)
       return (spec_func_list[i].name);
   }
 
   return NULL;
 }
-

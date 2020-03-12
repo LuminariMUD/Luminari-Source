@@ -1,5 +1,5 @@
 /**
- * @file spec_procs.h
+ * @file spec_procs.h                                   LuminariMUD
  * Header file for special procedure modules. This file groups a lot of the
  * legacy special procedures found in spec_procs.c and zone_procs.c.
  *
@@ -24,7 +24,7 @@ int sorted_skills[MAX_SKILLS + 1];
  * Begin Functions and defines for zone_procs.c
  ****************************************************************************/
 void assign_kings_castle(void);
-int do_npc_rescue(struct char_data *ch, struct char_data * friend);
+int do_npc_rescue(struct char_data *ch, struct char_data *friend);
 
 /*****************************************************************************
  * Begin Functions and defines for spec_assign.c
@@ -37,9 +37,9 @@ const char *get_spec_func_name(SPECIAL(*func));
 /*****************************************************************************
  * Begin Functions and defines for spec_procs.c
  ****************************************************************************/
-#define ABILITY_TYPE_ALL       0
-#define ABILITY_TYPE_GENERAL   1
-#define ABILITY_TYPE_CRAFT     2
+#define ABILITY_TYPE_ALL 0
+#define ABILITY_TYPE_GENERAL 1
+#define ABILITY_TYPE_CRAFT 2
 #define ABILITY_TYPE_KNOWLEDGE 3
 /* Utility functions */
 void sort_spells(void);
@@ -50,8 +50,8 @@ void list_abilities(struct char_data *ch, int ability_type);
 bool is_wearing(struct char_data *ch, obj_vnum vnum);
 int compute_ability(struct char_data *ch, int abilityNum);
 void weapons_spells(char *to_ch, char *to_vict, char *to_room,
-        struct char_data *ch, struct char_data *vict,
-        struct obj_data *obj, int spl);
+                    struct char_data *ch, struct char_data *vict,
+                    struct obj_data *obj, int spl);
 
 /****************************************************************************/
 /* Special functions */
