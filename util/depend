@@ -1,3 +1,5 @@
+#LuminariMUD
+#Zusuk
 asciipasswd.o: asciipasswd.c ../conf.h ../sysdep.h ../structs.h \
  ../protocol.h ../lists.h ../utils.h
 autowiz.o: autowiz.c ../conf.h ../sysdep.h ../structs.h ../protocol.h \
