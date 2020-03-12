@@ -474,9 +474,9 @@ void use_boost_point(struct char_data *ch, int stat)
   if (GET_LEVELUP_BOOST_STATS(ch, stat) > 0)
   {
     GET_LEVELUP_BOOST_STATS(ch, stat) = 0;
+    GET_LEVELUP_BOOSTS(ch) = 1;
     main_boosts_disp_menu(d);
     send_to_char(ch, "You unassign your boost point from %s.\r\n", ability_score_names[stat]);
-    GET_LEVELUP_BOOSTS(ch) = 1;
     return;
   }
   else
@@ -488,9 +488,9 @@ void use_boost_point(struct char_data *ch, int stat)
       return;
     }
     GET_LEVELUP_BOOST_STATS(ch, stat) = 1;
+    GET_LEVELUP_BOOSTS(ch) = 0;
     main_boosts_disp_menu(d);
     send_to_char(ch, "You assign your boost point to %s.\r\n", ability_score_names[stat]);
-    GET_LEVELUP_BOOSTS(ch) = 0;
     return;
   }
 }
