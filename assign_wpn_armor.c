@@ -1,6 +1,7 @@
+
 /*****************************************************************************
  * assign_wpn_armor.c                        Part of LuminariMUD
- * author: zusuk
+ * author: Zusuk
  * Assigning weapon and armor values for respective types                   
  *****************************************************************************/
 

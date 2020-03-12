@@ -1,5 +1,6 @@
+
 /**
-* @file zmalloc.h
+* @file zmalloc.h                           LuminariMUD
 * A simple memory allocation monitor, header.
 * 
 * Part of the core tbaMUD source code distribution, which is a derivative
