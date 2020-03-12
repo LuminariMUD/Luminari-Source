@@ -131,52 +131,59 @@ General Guidelines of Staff Conduct
 (The Luminari Constitution)
 
 Initial ideas for the world are:
--Worldmap for navigation between zones
--Allows for expansion of system including vehicles, etc
--Heavily quest and story orientated progression
--Keeps players involved to see advancement of a story
--Heavy usage of scripting to create a “living and breathing” world
--Stock zones can only be kept if redesigned
--Keeps content high
--Keeps mud-stats high
--Allows some familiar zones for those who have affectionate memories of some of the stock zones
-  ** We can take out zones as they get replaced with new ones if the lead builder desires
--The goals for Beta in mechanics and code have already been established.  The allowance for change in direction is limited due to time-related goals.  After Beta, major changes in system CAN be considered.
--Very simple to understand the mechanic goals:  view any Pathfinder/d20/DnD3.5 rules website to get the idea
--The lead designer is choosing what to implement and what not to implement based on
-  --Ease
-  --Past experience on what systems work
-  --Fun-factor
--Ideas coming from the staff should be well thought out to avoid clutter.  If you have a lot of ideas, it’s best to start a Forum-Topic and post them under your topic, then go to town
--Bugs and Typos do NOT need to be thought out at all, if you even slightly think something is  a Bug/Typo, do not be afraid to report it
--Builders or Builder’s Leadership should NOT try and change the standards and system established by TBA – that would destroy our primary community of potential builders.
-  --One of the big advantages of using TBA codebase is the active community
--It’s OK to discuss with other leadership ideas in their field of leadership, but remember whose field of leadership it is… and AVOID arguing if that leadership makes a decision; examples:
--If you are the Lead Designer or Lead Builder, don’t try to trump the Lead Admin (for example in establishment of in-game player-to-player rules)
--If you are the Lead Designer or Lead Admin, don’t submit lore or content that isn’t consistent with the Lead Builder/Lore
--If you are the Lead Builder/Admin, don’t try to insist on game mechanics or design of OLC interface, etc
--Try to be at least a little respectful and sensitive to any individuals who are committing a lot more of their effort/work into the MUD	
--Do NOT take other’s time for granted, if you ask a coder to do something that takes 10 hours of his time, you should be prepared to do that much work in return for the coder
--Although the Lead-Designer does tend to heavily implement ideas submitted by the community, the default expectation is quite simple:  we do NOT customize the MUD to individual preferences.
+	-Worldmap for navigation between zones
+	-Allows for expansion of system including vehicles, etc
+	-Heavily quest and story orientated progression
+	-Keeps players involved to see advancement of a story
+	-Heavy usage of scripting to create a “living and breathing” world
+	-Stock zones can only be kept if redesigned
+	-Keeps content high
+	-Keeps mud-stats high
+	-Allows some familiar zones for those who have affectionate memories of some of the stock zones
+  		** We can take out zones as they get replaced with new ones if the lead builder desires
+	-The goals for Beta in mechanics and code have already been established.  The allowance for change in direction is limited due to time-related goals.  After Beta, major changes in system CAN be considered.
+	-Very simple to understand the mechanic goals:  view any Pathfinder/d20/DnD3.5 rules website to get the idea
+	-The lead designer is choosing what to implement and what not to implement based on
+		--Ease
+		--Past experience on what systems work
+		--Fun-factor
+	-Ideas coming from the staff should be well thought out to avoid clutter.  If you have a lot of ideas, it’s best to start a Forum-Topic and post them under your topic, then go to town
+	-Bugs and Typos do NOT need to be thought out at all, if you even slightly think something is  a Bug/Typo, do not be afraid to report it
+	-Builders or Builder’s Leadership should NOT try and change the standards and system established by TBA – that would destroy our primary community of potential builders.
+		--One of the big advantages of using TBA codebase is the active community
+	-It’s OK to discuss with other leadership ideas in their field of leadership, but remember whose field of leadership it is… and AVOID arguing if that leadership makes a decision; examples:
+	-If you are the Lead Designer or Lead Builder, don’t try to trump the Lead Admin (for example in establishment of in-game player-to-player rules)
+	-If you are the Lead Designer or Lead Admin, don’t submit lore or content that isn’t consistent with the Lead Builder/Lore
+	-If you are the Lead Builder/Admin, don’t try to insist on game mechanics or design of OLC interface, etc
+	-Try to be at least a little respectful and sensitive to any individuals who are committing a lot more of their effort/work into the MUD
+	-Do NOT take other’s time for granted, if you ask a coder to do something that takes 10 hours of his time, you should be prepared to do that much work in return for the coder
+	-Although the Lead-Designer does tend to heavily implement ideas submitted by the community, the default expectation is quite simple:  we do NOT customize the MUD to individual preferences.
+
 
 Conflict of Interest (Leaders Only)
--You can NOT hold a position of leadership in Luminari if you are committed more or equally to another MUD.  This includes, but is not limited to, being the leader of a very active guild on another MUD.
--You can NOT hold a position of leadership in Luminari if you are in any sort of conflicting relationship with any other game as per discretion of the Lead Administrator
+	-You can NOT hold a position of leadership in Luminari if you are committed more or equally to another MUD.  This includes, but is not limited to, being the leader of a very active guild on another MUD.
+	-You can NOT hold a position of leadership in Luminari if you are in any sort of conflicting relationship with any other game as per discretion of the Lead Administrator
+
 
 Minimal Log-In Time (All Staff)
--6 weeks on inactivity with no contact can result in demotion
+	-6 weeks on inactivity with no contact can result in demotion
+
 
 Minimal Knowledge (Leaders Only)
--How can one lead a MUD they know nothing about?
--All Leaders are required to be familiar with all base races/classes and MUD lore
--Leadership positions individuals are expected to lead by example
--Life comes first, but if you can’t handle the responsibilities and time investment of leadership, you should try to find a replacement
--If you can’t invest minimal amount of time to work on the MUD as a leader, you will be politely placed in a non-leadership role
+	-How can one lead a MUD they know nothing about?
+	-All Leaders are required to be familiar with all base races/classes and MUD lore
+	-Leadership positions individuals are expected to lead by example
+	-Life comes first, but if you can’t handle the responsibilities and time investment of leadership, you should try to find a replacement
+	-If you can’t invest minimal amount of time to work on the MUD as a leader, you will be politely placed in a non-leadership role
+
 
 Leadership Positions MINIMUM Required Work:
--Building:  3 “things” per week, see Lead Builder for details
--Admin:  X hours of active time on the MUD, see Lead Admin
+	-Building:  3 “things” per week, see Lead Builder for details
+	-Admin:  X hours of active time on the MUD, see Lead Admin
 
 ANYONE has a right to request the code
+
 ANYONE can request a copy of their zone at any time, but see the on-line DISCLAIMER help file for details on the MUD’s rights with the builders zones
+
 REMEMBER:  Ultimately, if push comes to shove, the lead does have a right to trump decisions that aren’t in-line with the initial vision.  Or if he knows the idea to be ineffective based on past MUDding experience.
+
