@@ -9,30 +9,30 @@
 \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ /*/
 
 #ifndef TREASURE_H
-#define	TREASURE_H
+#define TREASURE_H
 
 /* defines */
 
 /* rare grade */
-#define RARE_GRADE_NORMAL     0
-#define RARE_GRADE_RARE       1
-#define RARE_GRADE_LEGENDARY  2
-#define RARE_GRADE_MYTHICAL   3
+#define RARE_GRADE_NORMAL 0
+#define RARE_GRADE_RARE 1
+#define RARE_GRADE_LEGENDARY 2
+#define RARE_GRADE_MYTHICAL 3
 
 /* added this because the apply_X bonus is capped, stop it before
    it causes problems */
-#define RANDOM_BONUS_CAP  127
+#define RANDOM_BONUS_CAP 127
 
 /* misc-slots for random/determined magic items */
-#define TRS_SLOT_FINGER     1
-#define TRS_SLOT_NECK       2
-#define TRS_SLOT_FEET       3
-#define TRS_SLOT_HANDS      4
+#define TRS_SLOT_FINGER 1
+#define TRS_SLOT_NECK 2
+#define TRS_SLOT_FEET 3
+#define TRS_SLOT_HANDS 4
 #define TRS_SLOT_HAND TRS_SLOT_HANDS
-#define TRS_SLOT_ABOUT      5
-#define TRS_SLOT_WAIST      6
-#define TRS_SLOT_WRIST      7
-#define TRS_SLOT_HELD       8
+#define TRS_SLOT_ABOUT 5
+#define TRS_SLOT_WAIST 6
+#define TRS_SLOT_WRIST 7
+#define TRS_SLOT_HELD 8
 #define TRS_SLOT_MONK_GLOVE 9
 #define TRS_SLOT_MONK_GLOVES TRS_SLOT_MONK_GLOVE
 /* for random miscellaneous items, this is the number of categories */
@@ -40,198 +40,198 @@
 
 /* Ornir CP System Defines, CP = creation points*/
 /* we manually add +X to cp_max_bonus in the code */
-#define TREASURE_MAX_BONUS   6
-#define MIN_LEVEL_FOR_BONUS  5
-#define CP_COST(bonus)       ((bonus - 1) * 150 + 100)
+#define TREASURE_MAX_BONUS 6
+#define MIN_LEVEL_FOR_BONUS 5
+#define CP_COST(bonus) ((bonus - 1) * 150 + 100)
 #define CP_BASE_VALUE(level) ((level - 1 + MIN_LEVEL_FOR_BONUS) * 80.6)
 
-#define CP_TYPE_ARMOR        1
-#define CP_TYPE_WEAPON       2
-#define CP_TYPE_MISC         3
-#define CP_TYPE_AMMO         4
-#define CP_TYPE_CRYSTAL      5
+#define CP_TYPE_ARMOR 1
+#define CP_TYPE_WEAPON 2
+#define CP_TYPE_MISC 3
+#define CP_TYPE_AMMO 4
+#define CP_TYPE_CRYSTAL 5
 
 /* percentage chance of random treasure drop */
 /* DO NOT MAKE OVER 98 (because of happyhour settings) */
 #define TREASURE_PERCENT 5
 
 /* array sizes for treasure_const.c */
-#define NUM_A_GEMSTONES       27
-#define NUM_A_RING_DESCS      3
-#define NUM_A_WRIST_DESCS     10
-#define NUM_A_NECK_DESCS      14
-#define NUM_A_HEAD_DESCS      17
-#define NUM_A_HAND_DESCS      4
-#define NUM_A_HANDS_DESCS     NUM_A_HAND_DESCS
+#define NUM_A_GEMSTONES 27
+#define NUM_A_RING_DESCS 3
+#define NUM_A_WRIST_DESCS 10
+#define NUM_A_NECK_DESCS 14
+#define NUM_A_HEAD_DESCS 17
+#define NUM_A_HAND_DESCS 4
+#define NUM_A_HANDS_DESCS NUM_A_HAND_DESCS
 #define NUM_A_MONK_GLOVE_DESCS 4
-#define NUM_A_CLOAK_DESCS     5
-#define NUM_A_WAIST_DESCS     6
-#define NUM_A_BOOT_DESCS      11
-#define NUM_A_BOOTS_DESCS     NUM_A_BOOT_DESCS
-#define NUM_A_BLADE_DESCS     32
-#define NUM_A_PIERCING_DESCS  29
-#define NUM_A_BLUNT_DESCS     30
-#define NUM_A_COLORS          45
-#define NUM_A_CRYSTAL_DESCS   18
-#define NUM_A_POTION_DESCS    30
-#define NUM_A_ARMOR_SPECIAL_DESCS    26
-#define NUM_A_AMMO_DESCS      26
-#define NUM_A_AMMO_HEAD_DESCS      11
-#define NUM_A_ARMOR_CRESTS    39
-#define NUM_A_HANDLE_TYPES    6
-#define NUM_A_HEAD_TYPES      10
+#define NUM_A_CLOAK_DESCS 5
+#define NUM_A_WAIST_DESCS 6
+#define NUM_A_BOOT_DESCS 11
+#define NUM_A_BOOTS_DESCS NUM_A_BOOT_DESCS
+#define NUM_A_BLADE_DESCS 32
+#define NUM_A_PIERCING_DESCS 29
+#define NUM_A_BLUNT_DESCS 30
+#define NUM_A_COLORS 45
+#define NUM_A_CRYSTAL_DESCS 18
+#define NUM_A_POTION_DESCS 30
+#define NUM_A_ARMOR_SPECIAL_DESCS 26
+#define NUM_A_AMMO_DESCS 26
+#define NUM_A_AMMO_HEAD_DESCS 11
+#define NUM_A_ARMOR_CRESTS 39
+#define NUM_A_HANDLE_TYPES 6
+#define NUM_A_HEAD_TYPES 10
 
-#define GRADE_MUNDANE  1 // 0-5
-#define GRADE_MINOR    2 // 5-10
-#define GRADE_TYPICAL  3 // 10-15
-#define GRADE_MEDIUM   4 // 15-20
-#define GRADE_MAJOR    5 // 20-25
+#define GRADE_MUNDANE 1  // 0-5
+#define GRADE_MINOR 2    // 5-10
+#define GRADE_TYPICAL 3  // 10-15
+#define GRADE_MEDIUM 4   // 15-20
+#define GRADE_MAJOR 5    // 20-25
 #define GRADE_SUPERIOR 6 // 25-30
 
 #define TYPE_POTION 1
 #define TYPE_SCROLL 2
-#define TYPE_WAND   3
-#define TYPE_STAFF  4
+#define TYPE_WAND 3
+#define TYPE_STAFF 4
 
 /* armor mold vnums (body, helm, sleeves, leggings) */
 /*body*/
-#define PLATE_BODY            3119
-#define HALFPLATE_BODY        3143
-#define SPLINT_BODY           3144
-#define BREASTPLATE_BODY      3145 /*piecemail armor*/
-#define CHAIN_BODY            3146
-#define STUD_LEATHER_BODY     3147
-#define LEATHER_BODY          3148
-#define PADDED_BODY           3149
-#define CLOTH_BODY            3150
-#define BANDED_BODY           3241
-#define SCALE_BODY            3242
-#define HIDE_BODY             3243
-#define LIGHT_CHAIN_BODY      3244
+#define PLATE_BODY 3119
+#define HALFPLATE_BODY 3143
+#define SPLINT_BODY 3144
+#define BREASTPLATE_BODY 3145 /*piecemail armor*/
+#define CHAIN_BODY 3146
+#define STUD_LEATHER_BODY 3147
+#define LEATHER_BODY 3148
+#define PADDED_BODY 3149
+#define CLOTH_BODY 3150
+#define BANDED_BODY 3241
+#define SCALE_BODY 3242
+#define HIDE_BODY 3243
+#define LIGHT_CHAIN_BODY 3244
 
 /*head*/
-#define PLATE_HELM            3151
-#define HALFPLATE_HELM        3152
-#define SPLINT_HELM           3153
-#define PIECEPLATE_HELM       3154
-#define CHAIN_HELM            3155
-#define STUD_LEATHER_HELM     3156
-#define LEATHER_HELM          3157
-#define PADDED_HELM           3158
-#define CLOTH_HELM            3159
+#define PLATE_HELM 3151
+#define HALFPLATE_HELM 3152
+#define SPLINT_HELM 3153
+#define PIECEPLATE_HELM 3154
+#define CHAIN_HELM 3155
+#define STUD_LEATHER_HELM 3156
+#define LEATHER_HELM 3157
+#define PADDED_HELM 3158
+#define CLOTH_HELM 3159
 
-#define BANDED_HELM           3245
-#define SCALE_HELM            3246
-#define HIDE_HELM             3247
-#define LIGHT_CHAIN_HELM      3248
+#define BANDED_HELM 3245
+#define SCALE_HELM 3246
+#define HIDE_HELM 3247
+#define LIGHT_CHAIN_HELM 3248
 
 /*arms*/
-#define PLATE_ARMS            3160
-#define HALFPLATE_ARMS        3161
-#define SPLINT_ARMS           3162
-#define CHAIN_ARMS            3163
-#define STUD_LEATHER_ARMS     3164
-#define LEATHER_ARMS          3165
-#define PADDED_ARMS           3166
-#define CLOTH_ARMS            3167
+#define PLATE_ARMS 3160
+#define HALFPLATE_ARMS 3161
+#define SPLINT_ARMS 3162
+#define CHAIN_ARMS 3163
+#define STUD_LEATHER_ARMS 3164
+#define LEATHER_ARMS 3165
+#define PADDED_ARMS 3166
+#define CLOTH_ARMS 3167
 
-#define BANDED_ARMS           3249
-#define PIECEPLATE_ARMS       3250
-#define SCALE_ARMS            3251
-#define HIDE_ARMS             3252
-#define LIGHT_CHAIN_ARMS      3253
+#define BANDED_ARMS 3249
+#define PIECEPLATE_ARMS 3250
+#define SCALE_ARMS 3251
+#define HIDE_ARMS 3252
+#define LIGHT_CHAIN_ARMS 3253
 
 /*legs*/
-#define PLATE_LEGS            3168
-#define HALFPLATE_LEGS        3169
-#define SPLINT_LEGS           3170
-#define CHAIN_LEGS            3171
-#define STUD_LEATHER_LEGS     3172
-#define LEATHER_LEGS          3173
-#define PADDED_LEGS           3174
-#define CLOTH_LEGS            3175
+#define PLATE_LEGS 3168
+#define HALFPLATE_LEGS 3169
+#define SPLINT_LEGS 3170
+#define CHAIN_LEGS 3171
+#define STUD_LEATHER_LEGS 3172
+#define LEATHER_LEGS 3173
+#define PADDED_LEGS 3174
+#define CLOTH_LEGS 3175
 
-#define BANDED_LEGS           3254
-#define PIECEPLATE_LEGS       3255
-#define SCALE_LEGS            3256
-#define HIDE_LEGS             3257
-#define LIGHT_CHAIN_LEGS      3258
+#define BANDED_LEGS 3254
+#define PIECEPLATE_LEGS 3255
+#define SCALE_LEGS 3256
+#define HIDE_LEGS 3257
+#define LIGHT_CHAIN_LEGS 3258
 
 /*shields*/
-#define SHIELD_MEDIUM         3180
-#define SHIELD_LARGE          3181
-#define SHIELD_TOWER          3182
+#define SHIELD_MEDIUM 3180
+#define SHIELD_LARGE 3181
+#define SHIELD_TOWER 3182
 /* end armor molds */
 #define NUM_ARMOR_MOLDS 37
 
 /* weapon mold vnums */
 /* simple */
 /* light */
-#define DAGGER                3212  //0
-#define MACE                  3213
-#define SICKLE                3214
+#define DAGGER 3212 //0
+#define MACE 3213
+#define SICKLE 3214
 /* one handed */
-#define CLUB                  3215
-#define MORNINGSTAR           3216
+#define CLUB 3215
+#define MORNINGSTAR 3216
 /* two handed */
-#define SPEAR                 3217  //5
-#define QUARTERSTAFF          3218
+#define SPEAR 3217 //5
+#define QUARTERSTAFF 3218
 /* martial */
 /* light */
-#define HANDAXE               3219
-#define KUKRI                 3220
-#define SHORTSWORD            3221
+#define HANDAXE 3219
+#define KUKRI 3220
+#define SHORTSWORD 3221
 /* one handed */
-#define BATTLEAXE             3222  //10
-#define FLAIL                 3223
-#define LONGSWORD             3224
-#define RAPIER                3225
-#define SCIMITAR              3226
-#define TRIDENT               3227  //15
-#define WARHAMMER             3228
+#define BATTLEAXE 3222 //10
+#define FLAIL 3223
+#define LONGSWORD 3224
+#define RAPIER 3225
+#define SCIMITAR 3226
+#define TRIDENT 3227 //15
+#define WARHAMMER 3228
 /* two handed */
-#define FALCHION              3229
-#define GLAIVE                3230
-#define GREATAXE              3231
-#define GREATCLUB             3232  //20
-#define GREATSWORD            3233
-#define HALBERD               3234
-#define LANCE                 3235
-#define SCYTHE                3236
+#define FALCHION 3229
+#define GLAIVE 3230
+#define GREATAXE 3231
+#define GREATCLUB 3232 //20
+#define GREATSWORD 3233
+#define HALBERD 3234
+#define LANCE 3235
+#define SCYTHE 3236
 /* exotic */
 /* light */
-#define KAMA                  3237  //25
+#define KAMA 3237 //25
 /* one handed */
-#define BASTARDSWORD          3238
-#define DWARVENWARAXE         3239
+#define BASTARDSWORD 3238
+#define DWARVENWARAXE 3239
 /* two handed */
-#define DIREFLAIL             3240
+#define DIREFLAIL 3240
 /* end weapon molds */
 #define NUM_WEAPON_MOLDS 29
 
 /* weapon blank object */
-#define WEAPON_PROTO     3299
+#define WEAPON_PROTO 3299
 /* armor blank object */
-#define ARMOR_PROTO      3298
+#define ARMOR_PROTO 3298
 /* ammo blank object */
-#define AMMO_PROTO       3297
+#define AMMO_PROTO 3297
 
 /* misc mold vnums */
-#define RING_MOLD        3176  //0
-#define NECKLACE_MOLD    3177
-#define BOOTS_MOLD       3178
-#define GLOVES_MOLD      3179
-#define CLOAK_MOLD       3183
-#define BELT_MOLD        3184  //5
-#define WRIST_MOLD       3185
-#define HELD_MOLD        3186
+#define RING_MOLD 3176 //0
+#define NECKLACE_MOLD 3177
+#define BOOTS_MOLD 3178
+#define GLOVES_MOLD 3179
+#define CLOAK_MOLD 3183
+#define BELT_MOLD 3184 //5
+#define WRIST_MOLD 3185
+#define HELD_MOLD 3186
 /* end misc molds */
 #define NUM_MISC_MOLDS 8
 
 /* item prototype for potions/scrolls/wands/staves */
-#define ITEM_PROTOTYPE        3210
+#define ITEM_PROTOTYPE 3210
 /* item prototype for crystals */
-#define CRYSTAL_PROTOTYPE     3211
+#define CRYSTAL_PROTOTYPE 3211
 
 /* treasure_const.c - list of constant arrays */
 extern const char *gemstones[NUM_A_GEMSTONES + 1];
@@ -248,7 +248,7 @@ extern const char *blade_descs[NUM_A_BLADE_DESCS + 1];
 extern const char *piercing_descs[NUM_A_PIERCING_DESCS + 1];
 extern const char *blunt_descs[NUM_A_BLUNT_DESCS + 1];
 extern const char *colors[NUM_A_COLORS + 1];
-extern const char *crystal_descs[NUM_A_CRYSTAL_DESCS+ 1];
+extern const char *crystal_descs[NUM_A_CRYSTAL_DESCS + 1];
 extern const char *potion_descs[NUM_A_POTION_DESCS + 1];
 extern const char *armor_special_descs[NUM_A_ARMOR_SPECIAL_DESCS + 1];
 extern const char *armor_crests[NUM_A_ARMOR_CRESTS + 1];
@@ -267,7 +267,7 @@ bool valid_item_spell(int spellnum);
 struct char_data *find_treasure_recipient(struct char_data *killer);
 /* modify objects bonuses, set value, level, 'say' and deliver */
 void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
-        int enchantment_grade, int cp_type, int rare_grade, int silent_mode);
+                              int enchantment_grade, int cp_type, int rare_grade, int silent_mode);
 // determines whether the character will get treasure or not
 void determine_treasure(struct char_data *ch, struct char_data *mob);
 // character should get treasure, chooses what awards are given out
@@ -321,16 +321,18 @@ ACMD(do_loadmagicspecific);
 /* special procedures */
 SPECIAL(bazaar);
 
-#define GRADE_MUNDANE  1 // 0-5
-#define GRADE_MINOR    2 // 5-10
-#define GRADE_TYPICAL  3 // 10-15
-#define GRADE_MEDIUM   4 // 15-20
-#define GRADE_MAJOR    5 // 20-25
+#define GRADE_MUNDANE 1  // 0-5
+#define GRADE_MINOR 2    // 5-10
+#define GRADE_TYPICAL 3  // 10-15
+#define GRADE_MEDIUM 4   // 15-20
+#define GRADE_MAJOR 5    // 20-25
 #define GRADE_SUPERIOR 6 // 25-30
 
 #define TYPE_POTION 1
 #define TYPE_SCROLL 2
-#define TYPE_WAND   3
-#define TYPE_STAFF  4
+#define TYPE_WAND 3
+#define TYPE_STAFF 4
 
-#endif	/* TREASURE_H */
+#endif /* TREASURE_H */
+
+/*eof*/
