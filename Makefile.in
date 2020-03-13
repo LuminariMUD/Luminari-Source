@@ -1,4 +1,4 @@
-# tbaMUD Makefile.in - Makefile template used by 'configure'
+# LuminariMUD Makefile.in - Makefile template used by 'configure'
 # Clean-up provided by seqwith.
 
 # C compiler to use
