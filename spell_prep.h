@@ -214,8 +214,10 @@ extern "C"
        given spell, if we do:
          gen prep system: extract from collection and move to prep queue
          innate magic system:  put the proper circle in innate magic queue
-     * we check general prep system first, THEN innate magic system  */
-   bool spell_prep_gen_extract(struct char_data *ch, int spellnum, int metamagic);
+      we check general prep system first, THEN innate magic system.
+      This will return the class number for the spell being cast */
+     
+   int spell_prep_gen_extract(struct char_data *ch, int spellnum, int metamagic);
 
    /* this function is our connection between the casting system and spell preparation
        system, we are checking -all- our spell prep systems to see if we have the 

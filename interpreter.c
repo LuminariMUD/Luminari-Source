@@ -548,6 +548,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"swallow", "swallow", POS_RECLINING, do_swallow, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
     {"switch", "switch", POS_DEAD, do_switch, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"shapechange", "shapechange", POS_FIGHTING, do_shapechange, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"skills", "skills", POS_RECLINING, do_train, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"supplyorder", "supplyorder", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"spellbattle", "spellbattle", POS_STANDING, do_spellbattle, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"spellquests", "spellquests", POS_DEAD, do_spellquests, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
