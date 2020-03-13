@@ -1,5 +1,13 @@
 # luminari-source
-# Source for LuminariMUD
+# Source Code for LuminariMUD
+
+The actual README and other documentation included in the original tbaMUD/CircleMUD packaging can be found here:
+https://github.com/LuminariMUD/LuminariMUD/tree/master/doc
+
+Join us on DISCORD: https://discord.gg/Me3Tuu4
+
+
+------------------------------------------------------------------------------------------
 
 Vision
 
