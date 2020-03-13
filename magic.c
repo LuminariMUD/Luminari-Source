@@ -4450,7 +4450,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     if (CASTER_LEVEL(ch) >= 30)
     {
       mob_num = MOB_WIGHT;
-      mob_level = rand_number(MIN(CASTER_LEVEL(ch) - 1, 26),
+      mob_level = rand_number(MIN(CASTER_LEVEL(ch) - 1, 27),
                               CASTER_LEVEL(ch));
     }
     else if (CASTER_LEVEL(ch) >= 25)
@@ -4468,7 +4468,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     else
     {
       mob_num = MOB_GHOST;
-      mob_level = rand_number(MIN(CASTER_LEVEL(ch) - 1, 14),
+      mob_level = rand_number(MIN(CASTER_LEVEL(ch) - 1, 15),
                               CASTER_LEVEL(ch));
     }
     pfail = 10; /* 10% failure, should vary in the future. */
@@ -4748,7 +4748,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     case SPELL_GREATER_ANIMATION: //necromancy
       /* (Zusuk) Temporary variable for capping elementals, etc */
       temp_level = MIN(CASTER_LEVEL(ch), mob_level);
-      GET_LEVEL(mob) = MIN(20, temp_level);
+      GET_LEVEL(mob) = MIN(LVL_IMMORT - 1, temp_level);
       autoroll_mob(mob, TRUE, TRUE);
       GET_LEVEL(mob) = temp_level;
       break;
