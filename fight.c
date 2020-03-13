@@ -2732,7 +2732,7 @@ int compute_damage_reduction(struct char_data *ch, int dam_type)
   //damage_reduction += HAS_FEAT(ch, FEAT_DAMAGE_REDUCTION) * 3;
 
   if (HAS_FEAT(ch, FEAT_SHRUG_DAMAGE))
-    damage_reduction += HAS_FEAT(ch, FEAT_SHRUG_DAMAGE) + 1;
+    damage_reduction += HAS_FEAT(ch, FEAT_SHRUG_DAMAGE);
 
   //damage reduction cap is 20
   return (MIN(MAX_DAM_REDUC, damage_reduction));
@@ -2939,9 +2939,9 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
       dam -= MIN(dam, damage_reduction);
       if (!dam && (ch != victim))
       {
-        send_to_char(victim, "\tWYou absorb all the damage!\tn\r\n");
-        send_to_char(ch, "\tRYou fail to cause %s any harm!\tn\r\n",
-                     GET_NAME(victim));
+        send_to_char(victim, "\tWYou absorb all the damage! (%d)\tn\r\n", damage_reduction);
+        send_to_char(ch, "\tRYou fail to cause %s any harm! (%d)\tn\r\n",
+                     GET_NAME(victim), damage_reduction);
         act("$n fails to do any harm to $N!", FALSE, ch, 0, victim,
             TO_NOTVICT);
         return -1;
