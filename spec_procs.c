@@ -4411,7 +4411,7 @@ SPECIAL(gromph)
 
   if (PATH_DELAY(ch) > 0)
     PATH_DELAY(ch)
-    --;
+  --;
   PATH_DELAY(ch) = 4;
 
   if (cmd)
@@ -5702,6 +5702,12 @@ SPECIAL(forest_idol)
 
   struct obj_data *obj = (struct obj_data *)me;
 
+    if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "???.\r\n");
+    return TRUE;
+  }
+
   if( obj->carried_by != ch )
     return FALSE;
 
@@ -6359,6 +6365,12 @@ SPECIAL(tyrantseye)
   if (!ch || cmd || !vict)
     return FALSE;
 
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "???\r\n");
+    return TRUE;
+  }
+
   if (!IS_NPC(ch))
   {
     act("\tLA \tWbolt \tLof \tGgreen \tLLighting slams into $n from above!\tn",
@@ -6701,6 +6713,12 @@ SPECIAL(chionthar_ferry)
   if (cmd)
     return FALSE;
 
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "This is a ferry.\r\n");
+    return TRUE;
+  }
+
   update_ship((struct obj_data *)me, 104262, 104266, 1, 4);
   return TRUE;
 }
@@ -6711,6 +6729,12 @@ SPECIAL(alandor_ferry)
   if (cmd)
     return FALSE;
 
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "This is a ferry.\r\n");
+    return TRUE;
+  }
+
   update_ship((struct obj_data *)me, 126423, 126428, 1, 4);
   return TRUE;
 }
@@ -6720,6 +6744,12 @@ SPECIAL(md_carpet)
 {
   if (cmd)
     return FALSE;
+
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "This is a transport carpet.\r\n");
+    return TRUE;
+  }
 
   update_ship((struct obj_data *)me, 120036, 120040, 3, 10);
   return TRUE;
@@ -6734,6 +6764,12 @@ SPECIAL(floating_teleport)
 
   if (cmd)
     return FALSE;
+
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "This appears to be a floating (moving) portal.\r\n");
+    return TRUE;
+  }
 
   if (((door = rand_number(0, 30)) < NUM_OF_DIRS) && CAN_GO(obj, door) &&
       (world[EXIT(obj, door)->to_room].zone == world[obj->in_room].zone))
@@ -6808,6 +6844,12 @@ SPECIAL(neverwinter_button_control)
   if (cmd)
     return FALSE;
 
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "This appears to be a button control...\r\n");
+    return TRUE;
+  }
+
   if (!CAN_GO(obj, EAST) && !CAN_GO(obj, SOUTH) && !CAN_GO(obj, WEST))
   {
     if (IS_CLOSED(real_room(123637), DOWN))
@@ -6844,6 +6886,12 @@ SPECIAL(neverwinter_valve_control)
 
   if (cmd)
     return FALSE;
+
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "This appears to be a valve control...\r\n");
+    return TRUE;
+  }
 
   if (!CAN_GO(obj, NORTH))
     avalve = TRUE;
@@ -7589,6 +7637,12 @@ SPECIAL(bank)
 {
   int amount;
 
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "This appears to be a bank.\r\n");
+    return TRUE;
+  }
+
   if (CMD_IS("balance"))
   {
     if (GET_BANK_GOLD(ch) > 0)
@@ -7678,6 +7732,12 @@ SPECIAL(clanportal)
   char obj_name[MAX_INPUT_LENGTH];
   room_rnum was_in = IN_ROOM(ch);
   struct follow_type *k;
+
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "This appears to be a clan portal.\r\n");
+    return TRUE;
+  }
 
   if (!CMD_IS("enter"))
     return FALSE;
@@ -7848,6 +7908,12 @@ SPECIAL(bought_pet)
   if (cmd)
     return FALSE;
 
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "This appears to be a pet.\r\n");
+    return TRUE;
+  }
+
   struct obj_data *obj = (struct obj_data *)me;
 
   if (obj->carried_by == 0)
@@ -7886,6 +7952,12 @@ SPECIAL(bought_pet)
 SPECIAL(storage_chest) {
   if (cmd)
     return FALSE;
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "This is a player storage chest.\r\n");
+    return TRUE;
+  }
+
   struct obj_data *chest = (struct obj_data*) me;
   if (GET_OBJ_VAL(chest, 3) != 0)
     return FALSE;
