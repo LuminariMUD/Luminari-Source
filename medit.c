@@ -2159,6 +2159,12 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned)
     break;
 
   default:
+    /* if we ned up here, just using wizard stats as default */
+    MOBS_HPS = MOBS_HPS * 2 / 5;
+    GET_SDD(mob) = GET_SDD(mob) * 2 / 5;
+    armor_class -= 60;
+    GET_INT(mob) += bonus;
+    (mob)->aff_abils.dex += bonus;
     break;
   }
 

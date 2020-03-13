@@ -2734,6 +2734,9 @@ int compute_damage_reduction(struct char_data *ch, int dam_type)
   if (HAS_FEAT(ch, FEAT_SHRUG_DAMAGE))
     damage_reduction += HAS_FEAT(ch, FEAT_SHRUG_DAMAGE);
 
+  if (affected_by_spell(ch, SPELL_EPIC_MAGE_ARMOR))
+    damage_reduction += 6;
+
   //damage reduction cap is 20
   return (MIN(MAX_DAM_REDUC, damage_reduction));
 }

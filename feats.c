@@ -2042,8 +2042,8 @@ void assign_feats(void)
   feat_prereq_ability(FEAT_HELLBALL, ABILITY_SPELLCRAFT, 29);
   feato(FEAT_EPIC_MAGE_ARMOR, "epic mage armor", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
         "gain access to epic spell - epic mage armor",
-        "Once per game day, you can cast a spell that will give a massive AC bonus to "
-        "the caster.");
+        "Once per game day, you can cast a spell that will give a 10 AC bonus to "
+        "the caster and general damage reduction of 6.");
   feat_prereq_ability(FEAT_EPIC_MAGE_ARMOR, ABILITY_SPELLCRAFT, 31);
   feato(FEAT_EPIC_WARDING, "epic warding", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
         "gain access to epic spell - epic warding",
