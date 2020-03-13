@@ -703,6 +703,7 @@ bool is_spell_in_collection(struct char_data *ch, int class, int spellnum,
   {
     next = current->next;
     if (current->spell == spellnum && current->metamagic == metamagic) {
+//      send_to_char(ch, "Class=%s, Spell=%s.\r\n", class_names[class], spell_info[spellnum].name);
       return TRUE;
     }
   }
@@ -1428,48 +1429,51 @@ void assign_feat_spell_slots(int ch_class)
      gen prep system: extract from collection and move to prep queue
      innate magic system:  put the proper circle in innate magic queue
  * we check general prep system first, THEN innate magic system  */
-int spell_prep_gen_extract(struct char_data *ch, int spellnum, int metamagic)
+bool spell_prep_gen_extract(struct char_data *ch, int spellnum, int metamagic)
 {
-  int ch_class = CLASS_UNDEFINED, prep_time = 99,
+  int class = CLASS_UNDEFINED, prep_time = 99,
       circle = TOP_CIRCLE + 1, is_domain = FALSE;
 
   /* go through all the classes checking our collection */
-  for (ch_class = 0; ch_class < NUM_CLASSES; ch_class ++)
+  for (class = 0; class < NUM_CLASSES; class ++)
   {
-    if (is_spell_in_collection(ch, ch_class, spellnum, metamagic))
+    if (is_spell_in_collection(ch, class, spellnum, metamagic))
     {
 
       /*extract from collection*/
-      if (!collection_remove_by_class(ch, ch_class, spellnum, metamagic))
+      if (!collection_remove_by_class(ch, class, spellnum, metamagic))
         return CLASS_UNDEFINED; /* failed somehow */
 
       /*place in queue*/
       is_domain = is_domain_spell_of_ch(ch, spellnum);
-      circle = compute_spells_circle(ch_class, spellnum, metamagic, is_domain);
-      prep_time = compute_spells_prep_time(ch, ch_class, circle, is_domain);
-      prep_queue_add(ch, ch_class, spellnum, metamagic, prep_time, is_domain);
+      circle = compute_spells_circle(class, spellnum, metamagic, is_domain);
+      prep_time = compute_spells_prep_time(ch, class, circle, is_domain);
+      prep_queue_add(ch, class, spellnum, metamagic, prep_time, is_domain);
 
-      return (ch_class);
+      send_to_char(ch, "2Class=%s\r\n", class_names[class]);
+      return class;
+      send_to_char(ch, "8Class=%s.\r\n", class_names[class]);
     }
   }
 
   /* nothing yet? go through our innate magic system now! */
-  for (ch_class = 0; ch_class < NUM_CLASSES; ch_class ++)
+  for (class = 0; class < NUM_CLASSES; class ++)
   {
     is_domain = is_domain_spell_of_ch(ch, spellnum);
     circle = /* computes adjustment to circle via metamagic */
-        compute_spells_circle(ch_class, spellnum, metamagic, is_domain);
-    if (is_a_known_spell(ch, ch_class, spellnum) &&
-        (compute_slots_by_circle(ch, ch_class, circle) -
-             count_total_slots(ch, ch_class, circle) >
+        compute_spells_circle(class, spellnum, metamagic, is_domain);
+    if (is_a_known_spell(ch, class, spellnum) &&
+        (compute_slots_by_circle(ch, class, circle) -
+             count_total_slots(ch, class, circle) >
          0))
     {
 
       /*place circle in innate magic queue*/
-      prep_time = compute_spells_prep_time(ch, ch_class, circle, is_domain);
-      innate_magic_add(ch, ch_class, circle, metamagic, prep_time, is_domain);
+      prep_time = compute_spells_prep_time(ch, class, circle, is_domain);
+      innate_magic_add(ch, class, circle, metamagic, prep_time, is_domain);
+      send_to_char(ch, "3Class=%s\r\n", class_names[class]);
 
-      return ch_class;
+      return class;
     }
   }
 

@@ -657,6 +657,9 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
                 case CLASS_BARD:
                         spell_level = level;
                         break;
+                case CLASS_ALCHEMIST:
+                        spell_level = level;
+                        break;
                 }
 
         default:
@@ -1263,7 +1266,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
                struct obj_data *tobj, int spellnum, int metamagic)
 {
         int position = GET_POS(ch);
-        int class = CLASS_WIZARD, clevel = 0;
+        int ch_class = CLASS_WIZARD, clevel = 0;
         int casting_time = 0;
 
         if (spellnum < 0 || spellnum > TOP_SPELL_DEFINE)
@@ -1404,8 +1407,8 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
 
                 /* SPELL PREPARATION HOOK */
                 /* NEW SPELL PREP SYSTEM */
-                class = spell_prep_gen_extract(ch, spellnum, metamagic);
-                if (class == CLASS_UNDEFINED)
+                ch_class = spell_prep_gen_extract(ch, spellnum, metamagic);
+                if (ch_class == CLASS_UNDEFINED)
                 {
                         send_to_char(ch, "ERR:  Report BUG770 to an IMM!\r\n");
                         log("spell_prep_gen_extract() failed in cast_spell()");
@@ -1413,18 +1416,17 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
                 }
 
                 /* level to cast this particular spell as */
-                clevel = CLASS_LEVEL(ch, class);
-                CASTING_CLASS(ch) = class;
-
+                clevel = CLASS_LEVEL(ch, ch_class);
+                CASTING_CLASS(ch) = ch_class;
                 /* npc class */
         }
         else if (IS_NPC(ch))
         {
-                class = GET_CLASS(ch);
+                ch_class = GET_CLASS(ch);
 
                 /* level to cast this particular spell as */
                 clevel = GET_LEVEL(ch);
-                CASTING_CLASS(ch) = class;
+                CASTING_CLASS(ch) = ch_class;
         }
 
         /* concentration check */
@@ -1440,7 +1442,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
                 {
                         casting_time = 0;
                 }
-                if ((class == CLASS_SORCERER || class == CLASS_BARD) &&
+                if ((ch_class == CLASS_SORCERER || ch_class == CLASS_BARD) &&
                     IS_SET(metamagic, METAMAGIC_MAXIMIZE) &&
                     !IS_SET(metamagic, METAMAGIC_QUICKEN))
                 {
