@@ -2392,7 +2392,7 @@ void process_class_level_feats(struct char_data *ch, int class)
   char featbuf[MAX_STRING_LENGTH];
   struct class_feat_assign *feat_assign = NULL;
   int class_level = -1, effective_class_level = -1;
-  struct damage_reduction_type *dr = NULL, *temp = NULL, *ptr = NULL;
+  //struct damage_reduction_type *dr = NULL, *temp = NULL, *ptr = NULL;
 
   /* deal with some instant disqualification */
   if (class < 0 || class >= NUM_CLASSES)
