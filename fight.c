@@ -2697,18 +2697,25 @@ int compute_damage_reduction(struct char_data *ch, int dam_type)
 
   if (char_has_mud_event(ch, eCRYSTALBODY_AFF))
     damage_reduction += 3;
+
   //  if (CLASS_LEVEL(ch, CLASS_BERSERKER))
   //    damage_reduction += CLASS_LEVEL(ch, CLASS_BERSERKER) / 4;
+
   //  if (AFF_FLAGGED(ch, AFF_SHADOW_SHIELD))
   //    damage_reduction += 12;
+
   if (HAS_FEAT(ch, FEAT_PERFECT_SELF)) /* temporary mechanic until we upgrade this system */
     damage_reduction += 3;
+
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_RP_HEAVY_SHRUG) && affected_by_spell(ch, SKILL_RAGE))
     damage_reduction += 3;
+
   if (HAS_FEAT(ch, FEAT_IMMOBILE_DEFENSE) && affected_by_spell(ch, SKILL_DEFENSIVE_STANCE))
     damage_reduction += 1;
+
   if (HAS_FEAT(ch, FEAT_ARMOR_MASTERY) && (GET_EQ(ch, WEAR_BODY) || GET_EQ(ch, WEAR_SHIELD)))
     damage_reduction += 5;
+
   /* armor specialization, doesn't stack */
   if (HAS_FEAT(ch, FEAT_ARMOR_SPECIALIZATION_HEAVY) &&
       compute_gear_armor_type(ch) == ARMOR_TYPE_HEAVY)
@@ -2719,9 +2726,13 @@ int compute_damage_reduction(struct char_data *ch, int dam_type)
   else if (HAS_FEAT(ch, FEAT_ARMOR_SPECIALIZATION_LIGHT) &&
            compute_gear_armor_type(ch) == ARMOR_TYPE_LIGHT)
     damage_reduction += 2;
+
   /* this is now in the new system, study sets it up */
   //if (HAS_FEAT(ch, FEAT_DAMAGE_REDUCTION))
   //damage_reduction += HAS_FEAT(ch, FEAT_DAMAGE_REDUCTION) * 3;
+
+  if (HAS_FEAT(ch, FEAT_SHRUG_DAMAGE))
+    damage_reduction += HAS_FEAT(ch, FEAT_SHRUG_DAMAGE) + 1;
 
   //damage reduction cap is 20
   return (MIN(MAX_DAM_REDUC, damage_reduction));
@@ -4758,6 +4769,15 @@ int apply_damage_reduction(struct char_data *ch, struct char_data *victim, struc
       }
     }
   }
+
+  if (reduction)
+  {
+    if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_COMBATROLL))
+      send_to_char(victim, "\tW<nDR:%d>\tn", reduction);
+    if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
+      send_to_char(ch, "\tR<onDR:%d>\tn", reduction);
+  }
+
   return MAX(-1, dam - reduction);
 }
 

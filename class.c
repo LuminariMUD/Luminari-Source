@@ -2354,7 +2354,7 @@ void init_start_char(struct char_data *ch)
   /* warrior bonus */
   if (GET_CLASS(ch) == CLASS_WARRIOR)
     GET_CLASS_FEATS(ch, CLASS_WARRIOR)
-    ++; /* Bonus Feat */
+  ++; /* Bonus Feat */
 
   /* when you study it reinitializes your trains now */
   int int_bonus = GET_INT_BONUS(ch); /* this is the way it should be */
@@ -2433,6 +2433,9 @@ void process_class_level_feats(struct char_data *ch, int class)
         break;
 
       case FEAT_SHRUG_DAMAGE:
+
+        /* the newer DR system, moved it out though for political reasons */
+        /*
         for (dr = GET_DR(ch); dr != NULL; dr = dr->next)
         {
           if (dr->feat == FEAT_SHRUG_DAMAGE)
@@ -2451,12 +2454,13 @@ void process_class_level_feats(struct char_data *ch, int class)
         ptr->bypass_cat[0] = DR_BYPASS_CAT_NONE;
         ptr->bypass_val[0] = 0;
         ptr->bypass_cat[1] = DR_BYPASS_CAT_UNUSED;
-        ptr->bypass_val[1] = 0; /* Unused. */
+        ptr->bypass_val[1] = 0; // Unused.
         ptr->bypass_cat[2] = DR_BYPASS_CAT_UNUSED;
-        ptr->bypass_val[2] = 0; /* Unused. */
+        ptr->bypass_val[2] = 0; // Unused.
 
         ptr->next = GET_DR(ch);
         GET_DR(ch) = ptr;
+        */
 
         sprintf(featbuf, "%s\tMYou can now shrug off %d damage!\tn\r\n", featbuf, HAS_FEAT(ch, FEAT_SHRUG_DAMAGE) + 1);
         break;
