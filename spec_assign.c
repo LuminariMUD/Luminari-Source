@@ -720,24 +720,39 @@ void assign_objects(void)
 
   ASSIGNOBJ(123419, neverwinter_button_control);
   ASSIGNOBJ(123418, neverwinter_valve_control);
+
   ASSIGNOBJ(113803, nutty_bracer);
-  ASSIGNOBJ(110015, floating_teleport);
-  ASSIGNOBJ(112500, floating_teleport);
+
+  /* Moving Portals */
   ASSIGNOBJ(106019, floating_teleport);
+
+  ASSIGNOBJ(110015, floating_teleport);
+
+  ASSIGNOBJ(112500, floating_teleport);
+
+  ASSIGNOBJ(126703, floating_teleport);
+  ASSIGNOBJ(126712, floating_teleport);
+  ASSIGNOBJ(126713, floating_teleport);
+  ASSIGNOBJ(126714, floating_teleport);
+  ASSIGNOBJ(126715, floating_teleport);
+
+  ASSIGNOBJ(129500, floating_teleport);
+  ASSIGNOBJ(129501, floating_teleport);
+  ASSIGNOBJ(129502, floating_teleport);
+
+  ASSIGNOBJ(136400, floating_teleport);
 
   ASSIGNOBJ(139200, floating_teleport);
   ASSIGNOBJ(139201, floating_teleport);
   ASSIGNOBJ(139202, floating_teleport);
-  //ASSIGNOBJ(139203, floating_teleport);
+  ASSIGNOBJ(139203, floating_teleport);
 
-  ASSIGNOBJ(129500, floating_teleport);
+  /* ferry, ferry-like */
   ASSIGNOBJ(104072, chionthar_ferry);
   ASSIGNOBJ(126429, alandor_ferry);
+  ASSIGNOBJ(120010, md_carpet);
 
-  //ASSIGNOBJ(120010, md_carpet);
-
-  ASSIGNOBJ(136400, floating_teleport);
-
+  /* purchased pet objects */
   ASSIGNOBJ(118190, bought_pet);
   ASSIGNOBJ(103670, bought_pet);
   ASSIGNOBJ(103671, bought_pet);
@@ -749,13 +764,6 @@ void assign_objects(void)
   ASSIGNOBJ(101290, storage_chest);
   ASSIGNOBJ(101291, storage_chest);
    */
-
-  /* Mere Teleports*/
-  ASSIGNOBJ(126703, floating_teleport);
-  ASSIGNOBJ(126712, floating_teleport);
-  ASSIGNOBJ(126713, floating_teleport);
-  ASSIGNOBJ(126714, floating_teleport);
-  ASSIGNOBJ(126715, floating_teleport);
 
   /* not yet defined
   ASSIGNOBJ(100600, forest_idol);
@@ -773,13 +781,13 @@ void assign_objects(void)
   ASSIGNOBJ(135534, snakewhip);
   ASSIGNOBJ(135199, acidsword);
   ASSIGNOBJ(100510, halberd);
-  //ASSIGNOBJ(100513, halberd);
+  ASSIGNOBJ(100513, halberd);
 
   ASSIGNOBJ(114838, rughnark);
   ASSIGNOBJ(139900, magma);
   ASSIGNOBJ(136100, air_sphere);
   ASSIGNOBJ(110601, bolthammer);
-  //ASSIGNOBJ(111507, prismorb);
+  ASSIGNOBJ(111507, prismorb);
   ASSIGNOBJ(129602, flamingwhip);
   ASSIGNOBJ(126315, dorfaxe);
   ASSIGNOBJ(121207, helmblade);
@@ -811,7 +819,7 @@ void assign_objects(void)
   ASSIGNOBJ(128150, spikeshield);
   ASSIGNOBJ(128106, ches);
   ASSIGNOBJ(100596, tormblade);
-  //ASSIGNOBJ(100599, tormblade);
+  ASSIGNOBJ(100599, tormblade);
 
   /* not yet defined
   ASSIGNOBJ(132115, warbow);
