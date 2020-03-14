@@ -736,6 +736,8 @@ void assign_objects(void)
   ASSIGNOBJ(126714, floating_teleport);
   ASSIGNOBJ(126715, floating_teleport);
 
+  ASSIGNOBJ(129015, floating_teleport);
+
   ASSIGNOBJ(129500, floating_teleport);
   ASSIGNOBJ(129501, floating_teleport);
   ASSIGNOBJ(129502, floating_teleport);
