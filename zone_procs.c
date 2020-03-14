@@ -262,7 +262,8 @@ static int banzaii(struct char_data *ch)
   return (TRUE);
 }
 
-/* Do_npc_rescue. Makes ch_hero rescue ch_victim. Used by Tim and Tom. */
+/* Do_npc_rescue. Makes ch_hero rescue ch_victim. Used by Tim and Tom.
+   not to be mistaken for npc_rescue() for AI in mobact.c */
 int do_npc_rescue(struct char_data *ch_hero, struct char_data *ch_victim)
 {
   struct char_data *ch_bad_guy;

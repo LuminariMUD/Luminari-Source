@@ -299,7 +299,7 @@ bool npc_rescue(struct char_data *ch)
 {
 
   // we want to eventually add a toggle for this, defaulted as off
-  return FALSE;
+  //return FALSE;
 
   struct char_data *victim = NULL;
   int loop_counter = 0;
