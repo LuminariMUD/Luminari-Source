@@ -1998,9 +1998,6 @@ void medit_string_cleanup(struct descriptor_data *d, int terminator)
 }
 
 /* function to set a ch (mob) to correct stats */
-/* this define is to avoid confusion:  GET_MOVE() is actually hps for
-   all intents and purposes in this context */
-#define MOBS_HPS GET_MOVE(mob)
 /* an important note about mobiles besides these values:
    1)  their attack rotation will match their class/level
    2)  their BAB will match their class/level
@@ -2010,6 +2007,13 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned)
 {
   int level = 0, bonus = 0;
   int armor_class = 100; /* base 10 AC */
+
+  /* this variable is to avoid confusion:  GET_MOVE() is actually hps for
+   !realmode in this context */
+  int mobs_hps = GET_MOVE(mob);
+
+  if (realmode)
+    mobs_hps = GET_MAX_HIT(mob);
 
   /* first cap level at LVL_IMPL */
   level = GET_LEVEL(mob);
@@ -2043,9 +2047,9 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned)
 
   /* hp, default */
   if (summoned)
-    MOBS_HPS = 40 + level * 12;
+    mobs_hps = 40 + (level * 12);
   else
-    MOBS_HPS = (level * level) + (level * 10);
+    mobs_hps = (level * level) + (level * 10);
 
   /* damage dice default */
   GET_NDD(mob) = 1;     /* number damage dice */
@@ -2062,7 +2066,7 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned)
   switch (GET_CLASS(mob))
   {
   case CLASS_WIZARD:
-    MOBS_HPS = MOBS_HPS * 2 / 5;
+    mobs_hps = mobs_hps * 2 / 5;
     GET_SDD(mob) = GET_SDD(mob) * 2 / 5;
     armor_class -= 60;
     GET_INT(mob) += bonus;
@@ -2071,7 +2075,7 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned)
   case CLASS_SORCERER:
     GET_CHA(mob) += bonus;
     (mob)->aff_abils.dex += bonus;
-    MOBS_HPS = MOBS_HPS * 2 / 5;
+    mobs_hps = mobs_hps * 2 / 5;
     GET_SDD(mob) = GET_SDD(mob) * 2 / 5;
     armor_class -= 60;
     break;
@@ -2080,27 +2084,27 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned)
     //    case CLASS_SHADOW_DANCER:
     (mob)->aff_abils.dex += bonus;
     (mob)->aff_abils.str += bonus;
-    MOBS_HPS = MOBS_HPS * 3 / 5;
+    mobs_hps = mobs_hps * 3 / 5;
     armor_class -= 50;
     break;
   case CLASS_BARD:
     GET_CHA(mob) += bonus;
     (mob)->aff_abils.dex += bonus;
     GET_SDD(mob) = GET_SDD(mob) * 4 / 5;
-    MOBS_HPS = MOBS_HPS * 3 / 5;
+    mobs_hps = mobs_hps * 3 / 5;
     armor_class -= 50;
     break;
   case CLASS_MONK:
     GET_WIS(mob) += bonus;
     (mob)->aff_abils.dex += bonus;
-    MOBS_HPS = MOBS_HPS * 4 / 5;
+    mobs_hps = mobs_hps * 4 / 5;
     armor_class -= 60; // they will still get wis bonus
     break;
   case CLASS_CLERIC:
     (mob)->aff_abils.str += bonus;
     GET_WIS(mob) += bonus;
     GET_SDD(mob) = GET_SDD(mob) * 4 / 5;
-    MOBS_HPS = MOBS_HPS * 4 / 5;
+    mobs_hps = mobs_hps * 4 / 5;
     armor_class -= 10;
     break;
   case CLASS_DRUID:
@@ -2108,14 +2112,14 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned)
     GET_WIS(mob) += bonus;
     (mob)->aff_abils.dex += bonus;
     GET_SDD(mob) = GET_SDD(mob) * 4 / 5;
-    MOBS_HPS = MOBS_HPS * 4 / 5;
+    mobs_hps = mobs_hps * 4 / 5;
     armor_class -= 50;
     break;
   case CLASS_BERSERKER:
   case CLASS_STALWART_DEFENDER:
     (mob)->aff_abils.str += bonus;
     (mob)->aff_abils.con += bonus;
-    MOBS_HPS = MOBS_HPS * 6 / 5;
+    mobs_hps = mobs_hps * 6 / 5;
     armor_class -= 40;
     break;
   case CLASS_RANGER:
@@ -2147,7 +2151,7 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned)
     GET_CHA(mob) += bonus;
     break;
   case CLASS_MYSTIC_THEURGE:
-    MOBS_HPS = MOBS_HPS * 3 / 5;         // Average of cleric (4) and wizard (2)
+    mobs_hps = mobs_hps * 3 / 5;         // Average of cleric (4) and wizard (2)
     GET_SDD(mob) = GET_SDD(mob) * 3 / 5; // Average of cleric (4) and wizard (2)
     armor_class -= 60;                   // Use wizard-level AC.
     // Wizard stat bonuses
@@ -2160,11 +2164,9 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned)
 
   default:
     /* if we ned up here, just using wizard stats as default */
-    MOBS_HPS = MOBS_HPS * 2 / 5;
+    mobs_hps = mobs_hps * 2 / 5;
     GET_SDD(mob) = GET_SDD(mob) * 2 / 5;
     armor_class -= 60;
-    GET_INT(mob) += bonus;
-    (mob)->aff_abils.dex += bonus;
     break;
   }
 
@@ -2246,7 +2248,7 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned)
   {
     int bonus_level = GET_LEVEL(mob) - 30;
 
-    MOBS_HPS *= (bonus_level * 2);
+    mobs_hps *= (bonus_level * 2);
     GET_DAMROLL(mob) += bonus_level;
     GET_EXP(mob) += (bonus_level * 5000);
     GET_GOLD(mob) += (bonus_level * 50);
@@ -2269,7 +2271,8 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned)
     GET_REAL_SAVE(mob, SAVING_POISON) = GET_SAVE(mob, SAVING_POISON);
     GET_REAL_SAVE(mob, SAVING_DEATH) = GET_SAVE(mob, SAVING_DEATH);
     GET_REAL_AC(mob) = GET_AC(mob);
-    GET_REAL_MAX_HIT(mob) = GET_HIT(mob) = MOBS_HPS;
+    GET_HIT(mob) = mobs_hps;
+    GET_REAL_MAX_HIT(mob) = mobs_hps;
     GET_REAL_STR(mob) = GET_STR(mob);
     GET_REAL_INT(mob) = GET_INT(mob);
     GET_REAL_WIS(mob) = GET_WIS(mob);
@@ -2284,8 +2287,13 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned)
     GET_GOLD(mob) = 0;
     affect_total(mob);
   }
+  else
+  {
+    /* not realmode, gotta convert hps back to moves */
+    GET_MOVE(mob) = mobs_hps;
+  }
 }
-#undef MOBS_HPS
+#undef mobs_hps
 
 void medit_autoroll_stats(struct descriptor_data *d)
 {
