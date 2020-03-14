@@ -619,6 +619,7 @@ void assign_mobiles(void)
   ASSIGNMOB(113751, dracolich);
   ASSIGNMOB(113750, tiamat);
 
+  /* Tower of Kenjin */
   ASSIGNMOB(132910, kt_kenjin);
 
   ASSIGNMOB(112600, wallach);
@@ -689,8 +690,6 @@ void assign_objects(void)
    */
 
   ASSIGNOBJ(3118, crafting_kit);
-
-  ASSIGNOBJ(104072, chionthar_ferry); //transport
 
   ASSIGNOBJ(128106, ches); //weapon
 
@@ -767,14 +766,13 @@ void assign_objects(void)
   ASSIGNOBJ(101291, storage_chest);
    */
 
-  /* not yet defined
+  /* not yet defined? */
   ASSIGNOBJ(100600, forest_idol);
   ASSIGNOBJ(100601, forest_idol);
   ASSIGNOBJ(100602, forest_idol);
   ASSIGNOBJ(100603, forest_idol);
   ASSIGNOBJ(100604, forest_idol);
   ASSIGNOBJ(100605, forest_idol);
-   */
 
   /* Weapon Procs */
   ASSIGNOBJ(141914, witherdirk);
@@ -823,14 +821,13 @@ void assign_objects(void)
   ASSIGNOBJ(100596, tormblade);
   ASSIGNOBJ(100599, tormblade);
 
-  /* not yet defined
+  /* not yet defined? */
   ASSIGNOBJ(132115, warbow);
   ASSIGNOBJ(132101, malevolence);
   ASSIGNOBJ(132118, tia_moonblade);
   ASSIGNOBJ(132126, drow_scimitar);
   ASSIGNOBJ(133103, mithril_rapier);
   ASSIGNOBJ(141800, treantshield);
-   */
 
   ASSIGNOBJ(132125, tia_rapier);
   ASSIGNOBJ(138447, disruption_mace);
