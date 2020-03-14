@@ -25,6 +25,7 @@
 #include "protocol.h"
 #include "modify.h" /* strip_colors */
 
+
 /******************************************************************************
  * Begin Local (File Scope) Defines and Global Variables
  *****************************************************************************/
