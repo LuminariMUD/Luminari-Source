@@ -2046,10 +2046,7 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned)
   bonus = level / 2; // bonus applied to stats
 
   /* hp, default */
-  if (summoned)
-    mobs_hps = 40 + (level * 12);
-  else
-    mobs_hps = (level * level) + (level * 10);
+  mobs_hps = (level * level) + (level * 10);
 
   /* damage dice default */
   GET_NDD(mob) = 1;     /* number damage dice */
