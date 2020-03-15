@@ -767,12 +767,12 @@ void assign_objects(void)
    */
 
   /* not yet defined? */
-  ASSIGNOBJ(100600, forest_idol);
-  ASSIGNOBJ(100601, forest_idol);
-  ASSIGNOBJ(100602, forest_idol);
-  ASSIGNOBJ(100603, forest_idol);
-  ASSIGNOBJ(100604, forest_idol);
-  ASSIGNOBJ(100605, forest_idol);
+  //ASSIGNOBJ(100600, forest_idol);
+  //ASSIGNOBJ(100601, forest_idol);
+  //ASSIGNOBJ(100602, forest_idol);
+  //ASSIGNOBJ(100603, forest_idol);
+  //ASSIGNOBJ(100604, forest_idol);
+  //ASSIGNOBJ(100605, forest_idol);
 
   /* Weapon Procs */
   ASSIGNOBJ(141914, witherdirk);
@@ -822,12 +822,12 @@ void assign_objects(void)
   ASSIGNOBJ(100599, tormblade);
 
   /* not yet defined? */
-  ASSIGNOBJ(132115, warbow);
-  ASSIGNOBJ(132101, malevolence);
-  ASSIGNOBJ(132118, tia_moonblade);
-  ASSIGNOBJ(132126, drow_scimitar);
-  ASSIGNOBJ(133103, mithril_rapier);
-  ASSIGNOBJ(141800, treantshield);
+  //ASSIGNOBJ(132115, warbow);
+  //ASSIGNOBJ(132101, malevolence);
+  //ASSIGNOBJ(132118, tia_moonblade);
+  //ASSIGNOBJ(132126, drow_scimitar);
+  //ASSIGNOBJ(133103, mithril_rapier);
+  //ASSIGNOBJ(141800, treantshield);
 
   ASSIGNOBJ(132125, tia_rapier);
   ASSIGNOBJ(138447, disruption_mace);
