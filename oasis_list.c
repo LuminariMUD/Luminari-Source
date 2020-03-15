@@ -1178,6 +1178,12 @@ static void list_rooms(struct char_data *ch, zone_rnum rnum, room_vnum vmin, roo
 
       if (len > sizeof(buf))
         break;
+
+      if (counter >= 200)
+      {
+        len += snprintf(buf + len, sizeof(buf) - len, "\r\n OVERFLOW, use a range to view the rest! \r\n");
+        break;
+      }
     }
   }
 

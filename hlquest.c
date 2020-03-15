@@ -169,10 +169,17 @@ void show_quest_to_player(struct char_data *ch, struct quest_entry *quest)
         send_to_char(ch, buf);
         break;
       case QUEST_COMMAND_KIT:
-        sprintf(buf, "\tcSET_KIT\tn of a %s to become %s.\r\n",
-                CLSLIST_NAME(qcom->location),
-                CLSLIST_NAME(qcom->value));
-        send_to_char(ch, buf);
+        if (qcom->location >= NUM_CLASSES || qcom->location >= NUM_CLASSES)
+        {
+          send_to_char(ch, "Invalid Class # set for this quest!\r\n");
+        }
+        else
+        {
+          sprintf(buf, "\tcSET_KIT\tn of a %s to become %s.\r\n",
+                  CLSLIST_NAME(qcom->location),
+                  CLSLIST_NAME(qcom->location));
+          send_to_char(ch, buf);
+        }
         break;
       case QUEST_COMMAND_LOAD_MOB_INROOM:
         if (NOBODY == real_mobile(qcom->value))
