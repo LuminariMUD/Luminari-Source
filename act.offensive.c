@@ -1561,12 +1561,14 @@ bool perform_backstab(struct char_data *ch, struct char_data *vict)
       affect_join(vict, &aware_affect, TRUE, FALSE, FALSE, FALSE);
     }
 
-    /*
-    if (HAS_FEAT(ch, FEAT_BACKSTAB))
-      USE_MOVE_ACTION(ch);
-    else
+    if (HAS_FEAT(ch, FEAT_BACKSTAB) <= 0)
+    {
       USE_FULL_ROUND_ACTION(ch);
-    */
+    }
+    else
+    {
+      USE_MOVE_ACTION(ch);
+    }
 
     return TRUE;
   }
