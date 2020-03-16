@@ -1905,7 +1905,7 @@ void award_magic_armor(struct char_data *ch, int grade, int wear_slot)
   }
 
   // Insert the material type, then armor type
-  if (GET_OBJ_MATERIAL(obj) = !MATERIAL_LEATHER) // leather is redudant in description here
+  if (GET_OBJ_MATERIAL(obj) != MATERIAL_LEATHER) // leather is redudant in description here
   {
     strncat(desc, " ", MEDIUM_STRING - strlen(desc));
     strncat(desc, material_name[GET_OBJ_MATERIAL(obj)], MEDIUM_STRING - strlen(desc));
