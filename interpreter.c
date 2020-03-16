@@ -154,7 +154,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"armorlist", "armorlist", POS_DEAD, do_armorlist, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"arrowswarm", "arrowswarm", POS_FIGHTING, do_arrowswarm, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_arrowswarm},
 
-    {"backstab", "ba", POS_STANDING, do_backstab, 1, 0, FALSE, ACTION_MOVE, {0, 6}, can_backstab},
+    {"backstab", "ba", POS_STANDING, do_backstab, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_backstab},
     {"bandage", "bandage", POS_FIGHTING, do_bandage, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, 0},
     {"ban", "ban", POS_DEAD, do_ban, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"balance", "bal", POS_STANDING, do_not_here, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
