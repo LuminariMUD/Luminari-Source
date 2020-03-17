@@ -2814,7 +2814,7 @@ void perform_shapechange(struct char_data *ch, char *arg, int mode)
     IS_MORPHED(ch) = form;
     if (mode == 1)
       GET_SHAPECHANGES(ch)
-      --;
+    --;
 
     /* the morph_to_x are in race.c */
     send_to_char(ch, "You transform into a %s!\r\n", RACE_ABBR(ch));
@@ -3588,7 +3588,7 @@ ACMD(do_search)
   USE_FULL_ROUND_ACTION(ch);
 }
 
-/* vanish - epic rogue talent */
+/* vanish - epic rogue talent ; free action */
 ACMD(do_vanish)
 {
   struct char_data *vict, *next_v;
