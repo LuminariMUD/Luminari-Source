@@ -2383,7 +2383,7 @@ ACMD(do_enter)
              (OBJ_FLAGGED(portal, ITEM_ANTI_WEAPONMASTER))))
         {
           act("You try to enter $p, but a mysterious power "
-              "forces you back!",
+              "forces you back!  (class restriction)",
               FALSE, ch, portal, 0, TO_CHAR);
           act("\tRA booming voice in your head shouts '\tWNot "
               "for your class!\tR'\tn",
@@ -2397,7 +2397,7 @@ ACMD(do_enter)
         if (IS_EVIL(ch) && OBJ_FLAGGED(portal, ITEM_ANTI_EVIL))
         {
           act("You try to enter $p, but a mysterious power "
-              "forces you back!",
+              "forces you back!  (alignment restriction)",
               FALSE, ch, portal, 0, TO_CHAR);
           act("\tRA booming voice in your head shouts '\tWBEGONE "
               "EVIL-DOER!\tR'\tn",
@@ -2411,7 +2411,7 @@ ACMD(do_enter)
         if (IS_GOOD(ch) && OBJ_FLAGGED(portal, ITEM_ANTI_GOOD))
         {
           act("You try to enter $p, but a mysterious power "
-              "forces you back!",
+              "forces you back!  (alignment restriction)",
               FALSE, ch, portal, 0, TO_CHAR);
           act("\tRA booming voice in your head shouts '\tWBEGONE "
               "DO-GOODER!\tR'\tn",
@@ -2426,7 +2426,7 @@ ACMD(do_enter)
             OBJ_FLAGGED(portal, ITEM_ANTI_NEUTRAL))
         {
           act("You try to enter $p, but a mysterious power "
-              "forces you back!",
+              "forces you back!  (alignment restriction)",
               FALSE, ch, portal, 0, TO_CHAR);
           act("\tRA booming voice in your head shouts '\tWBEGONE!"
               "\tR'\tn",
@@ -2471,13 +2471,13 @@ ACMD(do_enter)
       case PORTAL_RANDOM:
         if (real_room(portal->obj_flags.value[1]) == NOWHERE)
         {
-          send_to_char(ch, "The portal leads nowhere.\r\n");
+          send_to_char(ch, "The portal leads nowhere.  (please tell a staff member)\r\n");
           return;
         }
 
         if (real_room(portal->obj_flags.value[2]) == NOWHERE)
         {
-          send_to_char(ch, "The portal leads nowhere.\r\n");
+          send_to_char(ch, "The portal leads nowhere.  (pleaes tell a staff member)\r\n");
           return;
         }
 
@@ -2512,7 +2512,7 @@ ACMD(do_enter)
 
       if ((real_dest = real_room(portal_dest)) == NOWHERE)
       {
-        send_to_char(ch, "The portal appears to be a vacuum!\r\n");
+        send_to_char(ch, "The portal appears to be a vacuum!  (tell a staff member please)\r\n");
         return;
       }
 
@@ -2521,35 +2521,35 @@ ACMD(do_enter)
       if (ch && !House_can_enter(ch, portal_dest))
       {
         send_to_char(ch, "As you try to enter the portal, it flares "
-                         "brightly, pushing you back!\r\n");
+                         "brightly, pushing you back!  (someone's private house)\r\n");
         return;
       }
 
       if (ROOM_FLAGGED(real_dest, ROOM_PRIVATE))
       {
         send_to_char(ch, "As you try to enter the portal, it flares "
-                         "brightly, pushing you back!!\r\n");
+                         "brightly, pushing you back!!  (private area)\r\n");
         return;
       }
 
       if (ROOM_FLAGGED(real_dest, ROOM_DEATH))
       {
         send_to_char(ch, "As you try to enter the portal, it flares "
-                         "brightly, pushing you back!!!\r\n");
+                         "brightly, pushing you back!!!  (death room, eek!)\r\n");
         return;
       }
 
       if (ROOM_FLAGGED(real_dest, ROOM_STAFFROOM))
       {
         send_to_char(ch, "As you try to enter the portal, it flares "
-                         "brightly, pushing you back!!!!\r\n");
+                         "brightly, pushing you back!!!!  (destination is staff only)\r\n");
         return;
       }
 
       if (ZONE_FLAGGED(GET_ROOM_ZONE(real_dest), ZONE_CLOSED))
       {
         send_to_char(ch, "As you try to enter the portal, it flares "
-                         "brightly, pushing you back!!!!!\r\n");
+                         "brightly, pushing you back!!!!!  (destination zone is closed for construction/repairs)\r\n");
         return;
       }
 
@@ -2631,6 +2631,7 @@ ACMD(do_enter)
         }
       }
     }
+    /*fail!!*/
     send_to_char(ch, "You can't seem to find anything to enter.\r\n");
   }
 }
