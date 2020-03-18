@@ -4943,6 +4943,7 @@ ACMD(do_moves)
 
 /* survey - get information on zone locations and current position, a ?temporary?
             solution for screen readers, etc
+            ToDo:  limit to a certain distance based on perception maybe?
             -Zusuk */
 ACMD(do_survey)
 {
@@ -4967,6 +4968,25 @@ ACMD(do_survey)
     return;
   }
 
+  if (AFF_FLAGGED(ch, AFF_BLIND) && GET_LEVEL(ch) < LVL_IMMORT &&
+      !HAS_FEAT(ch, FEAT_BLINDSENSE))
+  {
+    send_to_char(ch, "You can't see a damned thing, you're blind!\r\n");
+    return;
+  }
+
+  if (IS_SET_AR(ROOM_FLAGS(IN_ROOM(ch)), ROOM_FOG) && GET_LEVEL(ch) < LVL_IMMORT)
+  {
+    send_to_char(ch, "A fog makes the task of surveying impossible!\r\n");
+    return;
+  }
+
+  if (AFF_FLAGGED(ch, AFF_ULTRAVISION) && ULTRA_BLIND(ch, IN_ROOM(ch)))
+  {
+    send_to_char(ch, "Its too bright to survey!\r\n");
+    return;
+  }
+
   last = zone_table[zrnum].top;
   first = zone_table[zrnum].bot;
 
@@ -4985,7 +5005,7 @@ ACMD(do_survey)
 
           if (to_room != NOWHERE && (zrnum != world[to_room].zone) && target_room)
           {
-            send_to_char(ch, "%-30s at (\tC %d\tn, \tC %d\tn) [%-5s]\r\n",
+            send_to_char(ch, "%s at (\tC%d\tn, \tC%d\tn) to the [%s]\r\n",
                          zone_table[world[to_room].zone].name,
                          target_room->coords[0], target_room->coords[1], dirs[j]);
           }
@@ -4994,7 +5014,7 @@ ACMD(do_survey)
     }
   }
 
-  send_to_char(ch, "Current Location : (\tC % d\tn, \tC % d\tn)\r\n", ch->coords[0], ch->coords[1]);
+  send_to_char(ch, "Your Current Location : (\tC%d\tn, \tC%d\tn)\r\n", ch->coords[0], ch->coords[1]);
 }
 
 /* see exits */
