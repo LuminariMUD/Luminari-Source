@@ -4978,7 +4978,7 @@ ACMD(do_survey)
   last = zone_table[zrnum].top;
   first = zone_table[zrnum].bot;
 
-  send_to_char(ch, "You survey the wilderness:\r\n", zvnum);
+  send_to_char(ch, "You survey the wilderness:\r\n");
 
   for (nr = 0; nr <= top_of_world && (GET_ROOM_VNUM(nr) <= last); nr++)
   {
@@ -4995,7 +4995,7 @@ ACMD(do_survey)
           {
             send_to_char(ch, "%-30s at (\tC %d\tn, \tC %d\tn) [%-5s]\r\n",
                          zone_table[world[to_room].zone].name,
-                         target_room->coords[0], target_->coords[1], dirs[j]);
+                         target_room->coords[0], target_room->coords[1], dirs[j]);
           }
         }
       }
