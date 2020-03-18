@@ -79,6 +79,7 @@ ACMD(do_say)
 
       strcpy(type, "say");
     }
+
     snprintf(buf, sizeof(buf), "\tG$n %ss, '%s'\tn", type, argument);
     msg = act(buf, FALSE, ch, 0, 0, TO_ROOM | DG_NO_TRIG);
 
@@ -128,6 +129,7 @@ ACMD(do_gsay)
   {
     parse_at(argument);
     sentence_case(argument);
+
     // append period if it's not already there
     if (argument[strlen(argument) - 1] != '.' && argument[strlen(argument) - 1] != '!' && argument[strlen(argument) - 1] != '?')
       strcat(argument, ".");

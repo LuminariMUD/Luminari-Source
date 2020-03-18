@@ -223,6 +223,7 @@ ACMD(do_disengage);
 ACMD(do_equipment);
 ACMD(do_examine);
 ACMD(do_exits);
+ACMD(do_survey);
 ACMD(do_gold);
 ACMD(do_help);
 ACMD(do_history);
