@@ -1054,9 +1054,9 @@ void look_at_room_number(struct char_data *ch, int ignore_brief, long room_numbe
   list_obj_to_char(world[room_number].contents, ch, SHOW_OBJ_LONG, FALSE, 0);
   list_char_to_char(world[room_number].people, ch);
 }
-
 /* End of Kel's look_at_room_number function */
 
+/* look at a room */
 void look_at_room(struct char_data *ch, int ignore_brief)
 {
   trig_data *t;
@@ -4941,33 +4941,25 @@ ACMD(do_moves)
   send_to_char(ch, "You have %d movement points left.\r\n", GET_MOVE(ch));
 }
 
-/* survey - get information on zone locations and current position, a temporary
-            solution for screen readers, etc */
+/* survey - get information on zone locations and current position, a ?temporary?
+            solution for screen readers, etc
+            -Zusuk */
 ACMD(do_survey)
 {
   zone_rnum zrnum;
   zone_vnum zvnum;
   room_rnum nr, to_room;
   int first, last, j;
-  char arg[MAX_INPUT_LENGTH];
   struct room_data *target_room = NULL;
-
-  /* 
-  struct room_data *rm = &world[IN_ROOM(ch)];
-  room_vnum target_room;
-  int can_infra_in_dark = FALSE, world_map = FALSE, room_dark = FALSE;
-  zone_rnum zn;
-  char buf[MAX_STRING_LENGTH];
-  char *generated_desc = NULL;
-
-  if (!ch->desc)
-    return;
-
-  target_room = IN_ROOM(ch);
-*/
 
   zrnum = world[IN_ROOM(ch)].zone;
   zvnum = zone_table[zrnum].number;
+
+  if (!ZONE_FLAGGED(zrnum, ZONE_WILDERNESS))
+  {
+    send_to_char(ch, "You can only survey in the wilderness.\n\r");
+    return;
+  }
 
   if (zrnum == NOWHERE || zvnum == NOWHERE)
   {
