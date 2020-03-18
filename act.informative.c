@@ -4941,6 +4941,70 @@ ACMD(do_moves)
   send_to_char(ch, "You have %d movement points left.\r\n", GET_MOVE(ch));
 }
 
+/* survey - get information on zone locations and current position, a temporary
+            solution for screen readers, etc */
+ACMD(do_survey)
+{
+  zone_rnum zrnum;
+  zone_vnum zvnum;
+  room_rnum nr, to_room;
+  int first, last, j;
+  char arg[MAX_INPUT_LENGTH];
+  struct room_data *target_room = NULL;
+
+  /* 
+  struct room_data *rm = &world[IN_ROOM(ch)];
+  room_vnum target_room;
+  int can_infra_in_dark = FALSE, world_map = FALSE, room_dark = FALSE;
+  zone_rnum zn;
+  char buf[MAX_STRING_LENGTH];
+  char *generated_desc = NULL;
+
+  if (!ch->desc)
+    return;
+
+  target_room = IN_ROOM(ch);
+*/
+
+  zrnum = world[IN_ROOM(ch)].zone;
+  zvnum = zone_table[zrnum].number;
+
+  if (zrnum == NOWHERE || zvnum == NOWHERE)
+  {
+    send_to_char(ch, "Let a staff know about this, error with survey.\n\r");
+    return;
+  }
+
+  last = zone_table[zrnum].top;
+  first = zone_table[zrnum].bot;
+
+  send_to_char(ch, "You survey the wilderness:\r\n", zvnum);
+
+  for (nr = 0; nr <= top_of_world && (GET_ROOM_VNUM(nr) <= last); nr++)
+  {
+    if (GET_ROOM_VNUM(nr) >= first)
+    {
+      for (j = 0; j < DIR_COUNT; j++)
+      {
+        if (world[nr].dir_option[j])
+        {
+          target_room = &world[nr];
+          to_room = world[nr].dir_option[j]->to_room;
+
+          if (to_room != NOWHERE && (zrnum != world[to_room].zone) && target_room)
+          {
+            send_to_char(ch, "%-30s at (\tC %d\tn, \tC %d\tn) [%-5s]\r\n",
+                         zone_table[world[to_room].zone].name,
+                         target_room->coords[0], target_->coords[1], dirs[j]);
+          }
+        }
+      }
+    }
+  }
+
+  send_to_char(ch, "Current Location : (\tC % d\tn, \tC % d\tn)\r\n", ch->coords[0], ch->coords[1]);
+}
+
 /* see exits */
 ACMD(do_exits)
 {
