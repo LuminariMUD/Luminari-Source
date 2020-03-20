@@ -343,8 +343,10 @@ void complete_quest(struct char_data *ch)
     return;
   }
 
+  rnum = real_quest(vnum);
+
   /* we should NOT be getting this */
-  if (GET_QUEST_COUNTER(ch) > 0)
+  if (GET_QUEST_COUNTER(ch) > 0 && rnum != NOWHERE && rnum != NOTHING)
   {
     send_to_char(ch, "You still have to achieve \tm%d\tn out of \tM%d\tn goals for the quest.\r\n\r\n",
                  --GET_QUEST_COUNTER(ch), QST_QUANTITY(rnum));
@@ -352,8 +354,6 @@ void complete_quest(struct char_data *ch)
     log("UH OH: complete_quest() quest-counter is greater than zero!");
     return;
   }
-
-  rnum = real_quest(vnum);
 
   if (rnum == NOTHING)
   {

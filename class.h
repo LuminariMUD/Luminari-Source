@@ -82,7 +82,8 @@ struct class_table
   int unlock_cost;       /* if locked, cost to unlock in account xp */
   /*note: !(CLASS_LEVEL(ch, class) % EPIC_FEAT_PROGRESSION) && IS_EPIC(ch)*/
   int epic_feat_progression;
-  char *descrip; /* class description */
+  char *prestige_spell_progression; /* spell progression for this prestige class */
+  char *descrip;                    /* class description */
 
   char *titles[MAX_NUM_TITLES];             /* titles every 5 levels, 3 staff, default */
   int preferred_saves[NUM_PREFERRED_SAVES]; /*high or low saving throw values */

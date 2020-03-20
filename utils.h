@@ -1633,6 +1633,8 @@ void char_from_furniture(struct char_data *ch);
 //#define IS_SHADOW_DANCER(ch)		(CLASS_LEVEL(ch, CLASS_SHADOW_DANCER))
 //#define IS_ASSASSIN(ch)		(CLASS_LEVEL(ch, CLASS_ASSASSIN))
 #define IS_MYSTICTHEURGE(ch) (CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE))
+#define IS_ARCANE_ARCHER(ch) (CLASS_LEVEL(ch, CLASS_ARCANE_ARCHER))
+#define IS_ARCANE_SHADOW(ch) (CLASS_LEVEL(ch, CLASS_ARCANE_SHADOW))
 #define IS_SHIFTER(ch) (CLASS_LEVEL(ch, CLASS_SHIFTER))
 #define IS_MONK(ch) (CLASS_LEVEL(ch, CLASS_MONK))
 #define IS_BERSERKER(ch) (CLASS_LEVEL(ch, CLASS_BERSERKER))
@@ -1640,7 +1642,8 @@ void char_from_furniture(struct char_data *ch);
 #define IS_RANGER(ch) (CLASS_LEVEL(ch, CLASS_RANGER))
 #define IS_ALCHEMIST(ch) (CLASS_LEVEL(ch, CLASS_ALCHEMIST))
 #define IS_CASTER(ch) (IS_CLERIC(ch) || IS_WIZARD(ch) || IS_DRUID(ch) || IS_SORCERER(ch) || IS_PALADIN(ch) || \
-                       IS_RANGER(ch) || IS_BARD(ch) || IS_ALCHEMIST(ch))
+                       IS_RANGER(ch) || IS_BARD(ch) || IS_ALCHEMIST(ch) || IS_ARCANE_ARCHER(ch) || \
+                       IS_ARCANE_ARCHER(ch) || IS_ARCANE_ARCHER(ch))
 #define IS_FIGHTER(ch) (CLASS_LEVEL(ch, CLASS_WARRIOR) || CLASS_LEVEL(ch, CLASS_WEAPON_MASTER) ||     \
                         CLASS_LEVEL(ch, CLASS_STALWART_DEFENDER) || CLASS_LEVEL(ch, CLASS_DUELIST) || \
                         CLASS_LEVEL(ch, CLASS_BERSERKER) || CLASS_LEVEL(ch, CLASS_PALADIN) ||         \
@@ -1653,6 +1656,9 @@ void char_from_furniture(struct char_data *ch);
                            GET_CLASS(ch) == CLASS_PALADIN ||   \
                            GET_CLASS(ch) == CLASS_RANGER ||    \
                            GET_CLASS(ch) == CLASS_ALCHEMIST || \
+                           GET_CLASS(ch) == CLASS_MYSTIC_THEURGE || \
+                           GET_CLASS(ch) == CLASS_ARCANE_ARCHER || \
+                           GET_CLASS(ch) == CLASS_ARCANE_SHADOW || \
                            GET_CLASS(ch) == CLASS_BARD)
 
 /* 1 if ch is race, 0 if not */

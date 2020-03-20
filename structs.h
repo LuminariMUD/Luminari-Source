@@ -147,16 +147,16 @@
 #define ROOM_NOFLY 26           /* can't fly in this room */
 #define ROOM_FOG 27             /* fogged (hamper vision/stops daylight) */
 #define ROOM_AIRY 28            /* airy (breathe underwater) */
-#define ROOM_OCCUPIED 29        /* Used only in wilderness zones, if set the \ \
-                                   room will be kept and used for the set    \ \
+#define ROOM_OCCUPIED 29        /* Used only in wilderness zones, if set the \ \ \ \
+                                   room will be kept and used for the set    \ \ \ \
                                    coordinates. */
 #define ROOM_SIZE_TINY 30       /* need to be tiny or smaller to enter */
 #define ROOM_SIZE_DIMINUTIVE 31 /* need to be diminutive or smaller to enter */
 #define ROOM_CLIMB_NEEDED 32    /* need climb skill, based on zone level */
 #define ROOM_HASTRAP 33         /* has trap (not implemented yet) */
-#define ROOM_GENDESC 34         /* Must be a wilderness room!  Use generated \ \
-                                  descriptions in a static room, useful for  \ \
-                                  rooms that block different directions.     \ \
+#define ROOM_GENDESC 34         /* Must be a wilderness room!  Use generated \ \ \ \
+                                  descriptions in a static room, useful for  \ \ \ \
+                                  rooms that block different directions.     \ \ \ \
                                   (eg. around obstacles.) */
 /* idea:  possible room-flag for doing free memorization w/o spellbooks */
 /****/
@@ -902,7 +902,7 @@
 #define AFF_MIRROR_IMAGED 96       /* duplicate illusions of self! */
 #define AFF_WARDED 97              /* warded (damage protection) */
 #define AFF_ENTANGLED 98           /* entangled (can't move) */
-#define AFF_ACROBATIC 99           /* acrobatic!  currently used for druid jump \ \
+#define AFF_ACROBATIC 99           /* acrobatic!  currently used for druid jump \ \ \ \
                                       spell, possible expansion to follow */
 #define AFF_BLINKING 100           /* in a state of blinking between prime/eth */
 #define AFF_AWARE 101              /* aware - too aware to be backstabed */
@@ -1712,12 +1712,14 @@
 #define FEAT_INVISIBLE_ROGUE 624
 #define FEAT_MAGICAL_AMBUSH 625
 #define FEAT_SURPRISE_SPELLS 626
+#define FEAT_WIS_AC_BONUS 627
+#define FEAT_LVL_AC_BONUS 628
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 627
+#define FEAT_LAST_FEAT 629
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 628
+#define NUM_FEATS 630
 /** absolute cap **/
 #define MAX_FEATS 750
 /*****/
