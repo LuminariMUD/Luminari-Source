@@ -848,15 +848,19 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
   {
     bonuses[BONUS_TYPE_UNDEFINED] += GET_WIS_BONUS(ch);
 
-    if (CLASS_LEVEL(ch, CLASS_MONK) >= 5)
+    if (CLASS_LEVEL(ch, CLASS_MONK) >= 4)
     {
       bonuses[BONUS_TYPE_UNDEFINED]++;
     }
-    if (CLASS_LEVEL(ch, CLASS_MONK) >= 10)
+    if (CLASS_LEVEL(ch, CLASS_MONK) >= 8)
     {
       bonuses[BONUS_TYPE_UNDEFINED]++;
     }
-    if (CLASS_LEVEL(ch, CLASS_MONK) >= 15)
+    if (CLASS_LEVEL(ch, CLASS_MONK) >= 12)
+    {
+      bonuses[BONUS_TYPE_UNDEFINED]++;
+    }
+    if (CLASS_LEVEL(ch, CLASS_MONK) >= 16)
     {
       bonuses[BONUS_TYPE_UNDEFINED]++;
     }
@@ -864,11 +868,11 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
     {
       bonuses[BONUS_TYPE_UNDEFINED]++;
     }
-    if (CLASS_LEVEL(ch, CLASS_MONK) >= 25)
+    if (CLASS_LEVEL(ch, CLASS_MONK) >= 24)
     {
       bonuses[BONUS_TYPE_UNDEFINED]++;
     }
-    if (CLASS_LEVEL(ch, CLASS_MONK) >= 30)
+    if (CLASS_LEVEL(ch, CLASS_MONK) >= 28)
     {
       bonuses[BONUS_TYPE_UNDEFINED]++;
     }
@@ -3823,10 +3827,15 @@ void compute_barehand_dam_dice(struct char_data *ch, int *diceOne, int *diceTwo)
         *diceOne = 4;
         *diceTwo = 5;
       }
-      else
+      else if (monkLevel < 29)
       {
         *diceOne = 4;
         *diceTwo = 6;
+      }
+      else
+      {
+        *diceOne = 7;
+        *diceTwo = 5;
       }
       if (GET_RACE(ch) == RACE_TRELUX)
       {
@@ -7026,7 +7035,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
 {
   int i = 0, penalty = 0, numAttacks = 0, bonus_mainhand_attacks = 0;
   int attacks_at_max_bab = 0;
-  int ranged_attacks = 1; /* ranged combat gets 2 bonus attacks currently */
+  int ranged_attacks = 1; /* ranged combat gets 1 bonus attacks currently */
   bool dual = FALSE;
   bool perform_attack = FALSE;
   /* so if ranged is not performed and we fall through to melee, we need to make
@@ -7035,7 +7044,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
   struct obj_data *wielded = NULL;
   int wpn_reload_status = 0;
 
-  /* Check position..  we don't check < POS_STUNNED anymore? */
+  /* Check position..  we don't check < POS_STUNNED anymore */
   if (GET_POS(ch) == POS_DEAD)
     return (0);
 
@@ -7077,8 +7086,9 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
     }
   }
 
-  /* Haste gives one extra attack, ranged or melee, at max BAB. */
-  if (AFF_FLAGGED(ch, AFF_HASTE))
+  /* Haste or equivalent gives one extra attack, ranged or melee, at max BAB. */
+  if (AFF_FLAGGED(ch, AFF_HASTE) ||
+      (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_BLINDING_SPEED)))
   {
     ranged_attacks++;
     attacks_at_max_bab++;
@@ -7439,6 +7449,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       }
       break;
     }
+    
     if (perform_attack)
     {
       if (attacks_at_max_bab > 0)

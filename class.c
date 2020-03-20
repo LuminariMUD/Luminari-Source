@@ -338,7 +338,7 @@ void classo(int class_num, char *name, char *abbrev, char *colored_abbrev,
             char *menu_name, int max_level, bool locked_class, int prestige_class,
             int base_attack_bonus, int hit_dice, int psp_gain, int move_gain,
             int trains_gain, bool in_game, int unlock_cost, int epic_feat_progression,
-            char *descrip)
+            char *spell_prog, char *descrip)
 {
   class_list[class_num].name = name;
   class_list[class_num].abbrev = abbrev;
@@ -355,6 +355,7 @@ void classo(int class_num, char *name, char *abbrev, char *colored_abbrev,
   class_list[class_num].in_game = in_game;
   class_list[class_num].unlock_cost = unlock_cost;
   class_list[class_num].epic_feat_progression = epic_feat_progression;
+  class_list[class_num].prestige_spell_progression = spell_prog;
   class_list[class_num].descrip = descrip;
   /* list of prereqs */
   class_list[class_num].prereq_list = NULL;
@@ -448,6 +449,7 @@ void init_class_list(int class_num)
   class_list[class_num].in_game = N;
   class_list[class_num].unlock_cost = 0;
   class_list[class_num].epic_feat_progression = 5;
+  class_list[class_num].prestige_spell_progression = "no progression";
   class_list[class_num].descrip = "undescribed class";
 
   int i = 0;
@@ -937,6 +939,7 @@ bool display_class_info(struct char_data *ch, char *classname)
   send_to_char(ch, "\tcEpic Feat Prog   : \tnGain an epic feat every %d levels\r\n",
                CLSLIST_EFEATP(class));
   send_to_char(ch, "\tcClass in Game?   : \tn%s\r\n", CLSLIST_INGAME(class) ? "\tnYes\tn" : "\trNo, ask staff\tn");
+  send_to_char(ch, "\tcPrestige Spell   : \tn%s\r\n", class_list[class].prestige_spell_progression");
 
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
@@ -3002,6 +3005,7 @@ void load_class_list(void)
   classo(CLASS_WIZARD, "wizard", "Wiz", "\tmWiz\tn", "m) \tmWizard\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCost efeatp*/
          -1, N, N, L, 4, 0, 1, 2, Y, 0, 5,
+         /*prestige spell progression*/ "none",
          /*Descrip*/ "Beyond the veil of the mundane hide the secrets of absolute "
                      "power. The works of beings beyond mortals, the legends of realms where titans "
                      "and spirits tread, the lore of creations both wondrous and terrible—such "
@@ -3289,6 +3293,7 @@ void load_class_list(void)
   classo(CLASS_CLERIC, "cleric", "Cle", "\tBCle\tn", "c) \tBCleric\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst eFeatp*/
          -1, N, N, M, 8, 0, 1, 2, Y, 0, 0,
+         /*prestige spell progression*/ "none",
          /*descrip*/ "In faith and the miracles of the divine, many find a greater "
                      "purpose. Called to serve powers beyond most mortal understanding, all priests "
                      "preach wonders and provide for the spiritual needs of their people. Clerics "
@@ -3491,6 +3496,7 @@ void load_class_list(void)
   classo(CLASS_ROGUE, "rogue", "Rog", "\twRog\tn", "t) \twRogue\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst eFeatp*/
          -1, N, N, M, 6, 0, 2, 8, Y, 0, 0,
+         /*prestige spell progression*/ "none",
          /*descrip*/ "Life is an endless adventure for those who live by their wits. "
                      "Ever just one step ahead of danger, rogues bank on their cunning, skill, and "
                      "charm to bend fate to their favor. Never knowing what to expect, they prepare "
@@ -3593,6 +3599,7 @@ void load_class_list(void)
   classo(CLASS_WARRIOR, "warrior", "War", "\tRWar\tn", "w) \tRWarrior\tn",
          /* max-lvl  lock? prestige? BAB HD  psp move trains in-game? unlkCst, eFeatp */
          -1, N, N, H, 10, 0, 1, 2, Y, 0, 2,
+         /*prestige spell progression*/ "none",
          /*descrip*/ "Some take up arms for glory, wealth, or revenge. Others do "
                      "battle to prove themselves, to protect others, or because they know nothing "
                      "else. Still others learn the ways of weaponcraft to hone their bodies in "
@@ -3732,6 +3739,7 @@ void load_class_list(void)
   classo(CLASS_MONK, "monk", "Mon", "\tgMon\tn", "o) \tgMonk\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp */
          -1, N, N, M, 8, 0, 2, 4, Y, 0, 0,
+         /*prestige spell progression*/ "none",
          /*descrip*/ "For the truly exemplary, martial skill transcends the "
                      "battlefield—it is a lifestyle, a doctrine, a state of mind. These warrior-"
                      "artists search out methods of battle beyond swords and shields, finding "
@@ -3768,6 +3776,8 @@ void load_class_list(void)
   /* feat assignment */
   /*              class num     feat                           cfeat lvl stack */
   feat_assignment(CLASS_MONK, FEAT_WEAPON_PROFICIENCY_MONK, Y, 1, N);
+  feat_assignment(CLASS_MONK, FEAT_WIS_AC_BONUS, Y, 1, N);
+  feat_assignment(CLASS_MONK, FEAT_LVL_AC_BONUS, Y, 1, N);
   feat_assignment(CLASS_MONK, FEAT_UNARMED_STRIKE, Y, 1, N);
   feat_assignment(CLASS_MONK, FEAT_IMPROVED_UNARMED_STRIKE, Y, 1, N);
   feat_assignment(CLASS_MONK, FEAT_FLURRY_OF_BLOWS, Y, 1, N);
@@ -3823,6 +3833,7 @@ void load_class_list(void)
   classo(CLASS_DRUID, "druid", "Dru", "\tGD\tgr\tGu\tn", "d) \tGD\tgr\tGu\tgi\tGd\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          -1, N, N, M, 8, 0, 3, 4, Y, 0, 0,
+         /*prestige spell progression*/ "none",
          /*descrip*/ "Within the purity of the elements and the order of the wilds "
                      "lingers a power beyond the marvels of civilization. Furtive yet undeniable, "
                      "these primal magics are guarded over by servants of philosophical balance "
@@ -4029,6 +4040,7 @@ void load_class_list(void)
   classo(CLASS_BERSERKER, "berserker", "Bes", "\trB\tRe\trs\tn", "b) \trBer\tRser\trker\tn",
          /* max-lvl  lock? prestige? BAB HD  psp move trains in-game? unlkCst, eFeatp */
          -1, N, N, H, 12, 0, 2, 4, Y, 0, 0,
+         /*prestige spell progression*/ "none",
          /*descrip*/ "For some, there is only rage. In the ways of their people, in "
                      "the fury of their passion, in the howl of battle, conflict is all these brutal "
                      "souls know. Savages, hired muscle, masters of vicious martial techniques, they "
@@ -4140,6 +4152,7 @@ void load_class_list(void)
   classo(CLASS_SORCERER, "sorcerer", "Sor", "\tMSor\tn", "s) \tMSorcerer\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          -1, N, N, L, 4, 0, 1, 2, Y, 0, 0,
+         /*prestige spell progression*/ "none",
          /*descrip*/ "Scions of innately magical bloodlines, the chosen of deities, "
                      "the spawn of monsters, pawns of fate and destiny, or simply flukes of fickle "
                      "magic, sorcerers look within themselves for arcane prowess and draw forth might "
@@ -4421,6 +4434,7 @@ void load_class_list(void)
   classo(CLASS_PALADIN, "paladin", "Pal", "\tWPal\tn", "p) \tWPaladin\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          -1, N, N, H, 10, 0, 1, 2, Y, 0, 0,
+         /*prestige spell progression*/ "none",
          /*descrip*/ "Through a select, worthy few shines the power of the divine. "
                      "Called paladins, these noble souls dedicate their swords and lives to the "
                      "battle against evil. Knights, crusaders, and law-bringers, paladins seek not "
@@ -4549,6 +4563,7 @@ void load_class_list(void)
   classo(CLASS_RANGER, "ranger", "Ran", "\tYRan\tn", "r) \tYRanger\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp */
          -1, N, N, H, 10, 0, 3, 4, Y, 0, 0,
+         /*prestige spell progression*/ "none",
          /*descrip*/ "For those who relish the thrill of the hunt, there are only "
                      "predators and prey. Be they scouts, trackers, or bounty hunters, rangers share "
                      "much in common: unique mastery of specialized weapons, skill at stalking even "
@@ -4679,6 +4694,7 @@ void load_class_list(void)
   classo(CLASS_BARD, "bard", "Bar", "\tCBar\tn", "a) \tCBard\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp */
          -1, N, N, M, 6, 0, 2, 6, Y, 0, 0,
+         /*prestige spell progression*/ "none",
          /*descrip*/ "Untold wonders and secrets exist for those skillful enough to "
                      "discover them. Through cleverness, talent, and magic, these cunning few unravel "
                      "the wiles of the world, becoming adept in the arts of persuasion, manipulation, "
@@ -4827,6 +4843,7 @@ void load_class_list(void)
   classo(CLASS_WEAPON_MASTER, "weaponmaster", "WpM", "\tcWpM\tn", "e) \tcWeaponMaster\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          10, Y, Y, H, 10, 0, 1, 2, Y, 5000, 0,
+         /*prestige spell progression*/ "none",
          /*descrip*/ "For the weapon master, perfection is found in the mastery of a "
                      "single melee weapon. A weapon master seeks to unite this weapon of choice with "
                      "his body, to make them one, and to use the weapon as naturally and without "
@@ -4885,6 +4902,7 @@ void load_class_list(void)
   classo(CLASS_ARCANE_ARCHER, "arcanearcher", "ArA", "\tGArA\tn", "f) \tGArcaneArcher\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          10, Y, Y, H, 10, 0, 1, 4, Y, 5000, 0,
+         /*prestige spell progression*/ "arcane: 3/4 of arcane archer level",
          /*descrip*/ "Many who seek to perfect the use of the bow sometimes pursue "
                      "the path of the arcane archer. Arcane archers are masters of ranged combat, "
                      "as they possess the ability to strike at targets with unerring accuracy and "
@@ -4947,6 +4965,7 @@ void load_class_list(void)
   classo(CLASS_ARCANE_SHADOW, "arcaneshadow", "ArS", "\tGAr\tDS\tn", "n) \tGArcane\tDShadow\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          10, Y, Y, M, 6, 0, 2, 4, Y, 5000, 0,
+         /*prestige spell progression*/ "Arcane advancement every level",
          /*descrip*/ "Few can match the guile and craftiness of arcane shadows. These "
                      "prodigious rogues blend the subtlest aspects of the arcane with the natural cunning "
                      "of the bandit and the scoundrel, using spells to enhance their natural rogue abilities. "
@@ -5010,6 +5029,7 @@ void load_class_list(void)
   classo(CLASS_STALWART_DEFENDER, "stalwartdefender", "SDe", "\tWS\tcDe\tn", "g) \tWStalwart \tcDefender\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          10, Y, Y, H, 12, 0, 1, 2, Y, 5000, 0,
+         /*prestige spell progression*/ "none",
          /*descrip*/ "Drawn from the ranks of guards, knights, mercenaries, and "
                      "thugs alike, stalwart defenders are masters of claiming an area and refusing "
                      "to relinquish it. This behavior is more than a tactical decision for stalwart "
@@ -5080,6 +5100,7 @@ void load_class_list(void)
   classo(CLASS_SHIFTER, "shifter", "Shf", "\twS\tWh\twf\tn", "f) \twSh\tWift\twer\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          10, Y, Y, M, 8, 0, 1, 4, N, 5000, 0,
+         /*prestige spell progression*/ "none",
          /*descrip*/ "A shifter has no form they call their own. Instead, they clothe "
                      "themselves in whatever shape is most expedient at the time. While others base "
                      "their identities largely on their external forms, the shifter actually comes "
@@ -5130,6 +5151,7 @@ void load_class_list(void)
   classo(CLASS_DUELIST, "duelist", "Due", "\tcDue\tn", "i) \tcDuelist\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          10, Y, Y, H, 10, 0, 1, 4, Y, 5000, 0,
+         /*prestige spell progression*/ "none",
          /*descrip*/ "Duelists represent the pinnacle of elegant swordplay. They "
                      "move with a grace unmatched by most foes, parrying blows and countering attacks "
                      "with swift thrusts of their blades. They may wear armor, but generally eschew "
@@ -5194,6 +5216,7 @@ void load_class_list(void)
   classo(CLASS_MYSTIC_THEURGE, "mystictheurge", "MTh", "\tmM\tBTh\tn", "f) \tmMystic\tBTheurge\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          10, Y, Y, L, 4, 0, 1, 2, Y, 5000, 0,
+         /*prestige spell progression*/ "each level in -both- divine/arcane choice",
          /*descrip*/ "Mystic theurges place no boundaries on their magical abilities "
                      "and find no irreconcilable paradox in devotion to the arcane as well as the "
                      "divine. They seek magic in all of its forms, finding no reason or logic in "
@@ -5261,6 +5284,7 @@ void load_class_list(void)
   classo(CLASS_ALCHEMIST, "alchemist", "Alc", "\tWA\tClc\tn", "f) \tWAlchemist\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          20, N, N, M, 8, 0, 1, 4, Y, 0, 0,
+         /*prestige spell progression*/ "none",
          /*descrip*/
          "Whether secreted away in a smoky basement laboratory or gleefully experimenting"
          " in a well-respected school of magic, the alchemist is often regarded as being "
@@ -5358,62 +5382,63 @@ void load_class_list(void)
 
   /* feat assignment */
   /*              class num     feat                             cfeat lvl stack */
+  /* concontions */
   feat_assignment(CLASS_ALCHEMIST, FEAT_CONCOCT_LVL_1, Y, 1, Y);
   feat_assignment(CLASS_ALCHEMIST, FEAT_CONCOCT_LVL_2, Y, 4, Y);
   feat_assignment(CLASS_ALCHEMIST, FEAT_CONCOCT_LVL_3, Y, 7, Y);
   feat_assignment(CLASS_ALCHEMIST, FEAT_CONCOCT_LVL_4, Y, 10, Y);
   feat_assignment(CLASS_ALCHEMIST, FEAT_CONCOCT_LVL_5, Y, 13, Y);
   feat_assignment(CLASS_ALCHEMIST, FEAT_CONCOCT_LVL_6, Y, 16, Y);
-
+  /* level 1 class feats */
   feat_assignment(CLASS_ALCHEMIST, FEAT_BREW_POTION, Y, 1, Y);
   feat_assignment(CLASS_ALCHEMIST, FEAT_MUTAGEN, Y, 1, Y);
   feat_assignment(CLASS_ALCHEMIST, FEAT_BOMBS, Y, 1, Y);
-
+  /* level 2 class feats */
   feat_assignment(CLASS_ALCHEMIST, FEAT_POISON_RESIST, Y, 2, Y);
   feat_assignment(CLASS_ALCHEMIST, FEAT_APPLY_POISON, Y, 2, Y);
   feat_assignment(CLASS_ALCHEMIST, FEAT_ALCHEMICAL_DISCOVERY, Y, 2, Y);
-
+  /* level 3 class feats */
   feat_assignment(CLASS_ALCHEMIST, FEAT_SWIFT_ALCHEMY, Y, 3, Y);
   feat_assignment(CLASS_ALCHEMIST, FEAT_BOMBS, Y, 3, Y);
-
+  /* level 4 class feats */
   feat_assignment(CLASS_ALCHEMIST, FEAT_ALCHEMICAL_DISCOVERY, Y, 4, Y);
-
+  /* level 5 class feats */
   feat_assignment(CLASS_ALCHEMIST, FEAT_POISON_RESIST, Y, 5, Y);
   feat_assignment(CLASS_ALCHEMIST, FEAT_BOMBS, Y, 5, Y);
-
+  /* level 6 class feats */
   feat_assignment(CLASS_ALCHEMIST, FEAT_SWIFT_POISONING, Y, 6, Y);
   feat_assignment(CLASS_ALCHEMIST, FEAT_ALCHEMICAL_DISCOVERY, Y, 6, Y);
-
+  /* level 7 class feats */
   feat_assignment(CLASS_ALCHEMIST, FEAT_BOMBS, Y, 7, Y);
-
+  /* level 8 class feats */
   feat_assignment(CLASS_ALCHEMIST, FEAT_POISON_RESIST, Y, 8, Y);
   feat_assignment(CLASS_ALCHEMIST, FEAT_ALCHEMICAL_DISCOVERY, Y, 8, Y);
-
+  /* level 9 class feats */
   feat_assignment(CLASS_ALCHEMIST, FEAT_BOMBS, Y, 9, Y);
-
+  /* level 10 class feats */
   feat_assignment(CLASS_ALCHEMIST, FEAT_POISON_IMMUNITY, Y, 10, Y);
   feat_assignment(CLASS_ALCHEMIST, FEAT_ALCHEMICAL_DISCOVERY, Y, 10, Y);
-
+  /* level 11 class feats */
   feat_assignment(CLASS_ALCHEMIST, FEAT_BOMBS, Y, 11, Y);
-
+  /* level 12 class feats */
   feat_assignment(CLASS_ALCHEMIST, FEAT_ALCHEMICAL_DISCOVERY, Y, 12, Y);
-
+  /* level 13 class feats */
   feat_assignment(CLASS_ALCHEMIST, FEAT_BOMBS, Y, 13, Y);
-
+  /* level 14 class feats */
   feat_assignment(CLASS_ALCHEMIST, FEAT_PERSISTENT_MUTAGEN, Y, 14, Y);
   feat_assignment(CLASS_ALCHEMIST, FEAT_ALCHEMICAL_DISCOVERY, Y, 14, Y);
-
+  /* level 15 class feats */
   feat_assignment(CLASS_ALCHEMIST, FEAT_BOMBS, Y, 15, Y);
-
+  /* level 16 class feats */
   feat_assignment(CLASS_ALCHEMIST, FEAT_ALCHEMICAL_DISCOVERY, Y, 16, Y);
-
+  /* level 17 class feats */
   feat_assignment(CLASS_ALCHEMIST, FEAT_BOMBS, Y, 17, Y);
-
+  /* level 18 class feats */
   feat_assignment(CLASS_ALCHEMIST, FEAT_INSTANT_ALCHEMY, Y, 18, Y);
   feat_assignment(CLASS_ALCHEMIST, FEAT_ALCHEMICAL_DISCOVERY, Y, 18, Y);
-
+  /* level 19 class feats */
   feat_assignment(CLASS_ALCHEMIST, FEAT_BOMBS, Y, 19, Y);
-
+  /* level 20 class feats */
   feat_assignment(CLASS_ALCHEMIST, FEAT_GRAND_ALCHEMICAL_DISCOVERY, Y, 20, Y);
 
   /* no spell assignment */

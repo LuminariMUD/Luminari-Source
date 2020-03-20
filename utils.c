@@ -175,7 +175,7 @@ int compute_arcane_level(struct char_data *ch) {
   arcane_level += CLASS_LEVEL(ch, CLASS_BARD);
   arcane_level += CLASS_LEVEL(ch, CLASS_ARCANE_SHADOW);
   arcane_level += CLASS_LEVEL(ch, CLASS_ARCANE_ARCHER) * 3 / 4;
-  arcane_level += CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE);
+  arcane_level += CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE)/2;
   arcane_level += compute_arcana_golem_level(ch) - (SPELLBATTLE(ch) / 2);
 
   return arcane_level;
@@ -191,7 +191,7 @@ int compute_divine_level(struct char_data *ch) {
   divine_level += CLASS_LEVEL(ch, CLASS_DRUID);
   divine_level += CLASS_LEVEL(ch, CLASS_PALADIN)/2;
   divine_level += CLASS_LEVEL(ch, CLASS_RANGER)/2;
-  divine_level += CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE);
+  divine_level += CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE)/2;
   divine_level += compute_arcana_golem_level(ch) - (SPELLBATTLE(ch) / 2);
 
   return divine_level;
@@ -788,38 +788,43 @@ char * a_or_an(char *string) {
   return "a";
 }
 
-/* function for sneak-check
- * ch = listener (challenge), vict = sneaker (DC)
+/* function for difficulty of passing a sneak-check
+ * ch = listener (challenge), sneaker = sneaker (DC)
  */
-bool can_hear_sneaking(struct char_data *ch, struct char_data *vict) {
+bool can_hear_sneaking(struct char_data *ch, struct char_data *sneaker) {
   /* free passes */
-  if (!AFF_FLAGGED(vict, AFF_SNEAK))
+  if (!AFF_FLAGGED(sneaker, AFF_SNEAK))
     return TRUE;
 
   /* do listen check here */
-  bool can_hear = FALSE, challenge = dice(1, 20), dc = (dice(1, 20) + 10);
+  bool can_hear = FALSE;
+  int challenge = dice(1, 20), dc = (dice(1, 20) + 10);
 
   //challenger bonuses/penalty (ch)
   if (!IS_NPC(ch)) {
-    challenge += compute_ability(ch, ABILITY_STEALTH);
-  } else
+    challenge += compute_ability(ch, ABILITY_PERCEPTION);
+  } else /* NPC */
     challenge += GET_LEVEL(ch);
+
   if (AFF_FLAGGED(ch, AFF_LISTEN))
     challenge += 10;
 
-  //hider bonus/penalties (vict)
-  if (!IS_NPC(vict)) {
-    dc += compute_ability((struct char_data *) vict, ABILITY_STEALTH);
+  /* sneak bonus/penalties (sneaker) */
+  if (!IS_NPC(sneaker)) {
+    dc += compute_ability((struct char_data *) sneaker, ABILITY_STEALTH);
 
-    if (IN_NATURE(vict) && HAS_FEAT(vict, FEAT_TRACKLESS_STEP)) {
+    if (IN_NATURE(sneaker) && HAS_FEAT(sneaker, FEAT_TRACKLESS_STEP)) {
       dc += 4;
     }
-    if (IN_NATURE(vict) && HAS_FEAT(vict, FEAT_CAMOUFLAGE)) {
+    if (IN_NATURE(sneaker) && HAS_FEAT(sneaker, FEAT_CAMOUFLAGE)) {
       dc += 6;
     }
-  } else
-    dc += GET_LEVEL(vict);
-  dc += (GET_SIZE(ch) - GET_SIZE(vict)) * 2; //size bonus
+  } else /* NPC */ {
+    dc += GET_LEVEL(sneaker);
+  }
+
+  /* size bonus */
+  dc += (GET_SIZE(ch) - GET_SIZE(sneaker)) * 2;
 
   if (challenge > dc)
     can_hear = TRUE;
@@ -830,9 +835,9 @@ bool can_hear_sneaking(struct char_data *ch, struct char_data *vict) {
 /* function for hide-check
  * ch = spotter (challenge), vict = hider (DC)
  */
-bool can_see_hidden(struct char_data *ch, struct char_data *vict) {
+bool can_see_hidden(struct char_data *ch, struct char_data *hider) {
   /* free passes */
-  if (!AFF_FLAGGED(vict, AFF_HIDE) || AFF_FLAGGED(ch, AFF_TRUE_SIGHT))
+  if (!AFF_FLAGGED(hider, AFF_HIDE) || AFF_FLAGGED(ch, AFF_TRUE_SIGHT))
     return TRUE;
 
   /* do spot check here */
@@ -841,24 +846,28 @@ bool can_see_hidden(struct char_data *ch, struct char_data *vict) {
   //challenger bonuses/penalty (ch)
   if (!IS_NPC(ch))
     challenge += compute_ability(ch, ABILITY_PERCEPTION);
-  else
+  else /* NPC */
     challenge += GET_LEVEL(ch);
   if (AFF_FLAGGED(ch, AFF_SPOT))
     challenge += 10;
 
   //hider bonus/penalties (vict)
-  if (!IS_NPC(vict)) {
-    dc += compute_ability((struct char_data *) vict, ABILITY_STEALTH);
+  if (!IS_NPC(hider)) {
+    dc += compute_ability((struct char_data *) hider, ABILITY_STEALTH);
 
-    if (IN_NATURE(vict) && HAS_FEAT(vict, FEAT_TRACKLESS_STEP)) {
+    if (IN_NATURE(hider) && HAS_FEAT(hider, FEAT_TRACKLESS_STEP)) {
       dc += 4;
     }
-    if (IN_NATURE(vict) && HAS_FEAT(vict, FEAT_CAMOUFLAGE)) {
+    if (IN_NATURE(hider) && HAS_FEAT(hider, FEAT_CAMOUFLAGE)) {
       dc += 6;
     }
-  } else
-    dc += GET_LEVEL(vict);
-  dc += (GET_SIZE(ch) - GET_SIZE(vict)) * 2; //size bonus
+
+  /* NPC */
+  } else {
+    dc += GET_LEVEL(hider);
+  }
+
+  dc += (GET_SIZE(ch) - GET_SIZE(hider)) * 2; //size bonus
 
   if (challenge > dc)
     can_see = TRUE;
@@ -890,6 +899,7 @@ int skill_check(struct char_data *ch, int skill, int dc) {
     return (result - dc);
 }
 
+/* deprecated code (skill notching) */
 
 /* simple function to increase skills
    takes character structure and skillnum, based on chance, can
