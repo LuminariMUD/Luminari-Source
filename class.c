@@ -939,7 +939,7 @@ bool display_class_info(struct char_data *ch, char *classname)
   send_to_char(ch, "\tcEpic Feat Prog   : \tnGain an epic feat every %d levels\r\n",
                CLSLIST_EFEATP(class));
   send_to_char(ch, "\tcClass in Game?   : \tn%s\r\n", CLSLIST_INGAME(class) ? "\tnYes\tn" : "\trNo, ask staff\tn");
-  send_to_char(ch, "\tcPrestige Spell   : \tn%s\r\n", class_list[class].prestige_spell_progression");
+  send_to_char(ch, "\tcPrestige Spell   : \tn%s\r\n", class_list[class].prestige_spell_progression);
 
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
