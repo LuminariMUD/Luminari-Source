@@ -2510,9 +2510,9 @@ void assign_feats(void)
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_UNARMED_STRIKE, "unarmed strike", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "Unarmed attacks are considered to be weapons, unarmed damage",
-        "Unarmed attacks are considered to be weapons regarding bonuses and penetration.  In addition 
-        the unarmed damage increases by monk level: Level 1-3: 1d6, 4-7: 1d8, 8-11: 1d10, 12-15: 2d6, 
-        16-19: 4d4, 20-24: 4d5, 25-29: 4d6, 30: 7d5.");
+        "Unarmed attacks are considered to be weapons regarding bonuses and penetration.  In addition "
+        "the unarmed damage increases by monk level: Level 1-3: 1d6, 4-7: 1d8, 8-11: 1d10, 12-15: 2d6, "
+        "16-19: 4d4, 20-24: 4d5, 25-29: 4d6, 30: 7d5.");
   feato(FEAT_WIS_AC_BONUS, "apply wisdom bonus to AC", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "With this feat, one gets to apply their wisdom bonus to AC",
         "With this feat, one gets to apply their wisdom bonus to AC.");
