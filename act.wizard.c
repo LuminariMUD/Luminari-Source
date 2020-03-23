@@ -866,8 +866,11 @@ static void do_stat_character(struct char_data *ch, struct char_data *k)
         counter++;
       }
     }
-    send_to_char(ch, " Pracs(U): %d, Trains: %d\r\n", GET_PRACTICES(k),
-                 GET_TRAINS(k));
+
+    struct account_data *acc = k->desc->account;
+
+    send_to_char(ch, " Pracs(U): %d, Trains: %d, Acct Name: %s\r\n", GET_PRACTICES(k),
+                 GET_TRAINS(k), acc->name);
   }
 
   send_to_char(ch, "\tCCharacter size: \tn%s  ", size_names[GET_SIZE(k)]);
