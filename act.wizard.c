@@ -888,267 +888,266 @@ static void do_stat_character(struct char_data *ch, struct char_data *k)
                    GET_TRAINS(k));
     }
   }
-}
 
-send_to_char(ch, "\tCCharacter size: \tn%s  ", size_names[GET_SIZE(k)]);
-send_to_char(ch, "\tCMounted: \tn%s  ", RIDING(k) ? GET_NAME(RIDING(k)) : "None");
-send_to_char(ch, "\tCRidden By: \tn%s\r\n", RIDDEN_BY(k) ? GET_NAME(RIDDEN_BY(k)) : "None");
-
-send_to_char(ch,
-             "\tC=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\tn\r\n");
-
-if (!IS_NPC(k))
-{
-  char buf1[64], buf2[64];
-
-  strlcpy(buf1, asctime(localtime(&(k->player.time.birth))), sizeof(buf1));
-  strlcpy(buf2, asctime(localtime(&(k->player.time.logon))), sizeof(buf2));
-  buf1[10] = buf2[10] = '\0';
+  send_to_char(ch, "\tCCharacter size: \tn%s  ", size_names[GET_SIZE(k)]);
+  send_to_char(ch, "\tCMounted: \tn%s  ", RIDING(k) ? GET_NAME(RIDING(k)) : "None");
+  send_to_char(ch, "\tCRidden By: \tn%s\r\n", RIDDEN_BY(k) ? GET_NAME(RIDDEN_BY(k)) : "None");
 
   send_to_char(ch,
-               "\tCCreated: [\tn%s\tC], Last Logon: [\tn%s\tC], Played [\tn%d\tCh \tn%d\tCm], Age [\tn%d\tC]\tn\r\n",
-               buf1, buf2, k->player.time.played / 3600,
-               ((k->player.time.played % 3600) / 60), age(k)->year);
+               "\tC=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\tn\r\n");
 
-  /* Display OLC zone for immorts. */
-  if (GET_LEVEL(k) >= LVL_BUILDER)
+  if (!IS_NPC(k))
   {
-    if (GET_OLC_ZONE(k) == AEDIT_PERMISSION)
-      send_to_char(ch, "\tC, OLC[\tnAedit\tC]\tn");
-    else if (GET_OLC_ZONE(k) == HEDIT_PERMISSION)
-      send_to_char(ch, "\tC, OLC[\tnHedit\tC]\tn");
-    else if (GET_OLC_ZONE(k) == ALL_PERMISSION)
-      send_to_char(ch, "\tC, OLC[\tnAll\tC]\tn");
-    else if (GET_OLC_ZONE(k) == NOWHERE)
-      send_to_char(ch, "\tC, OLC[\tnOFF\tC]\tn");
-    else
-      send_to_char(ch, "\tC, OLC[\tn%d\tC]\tn", GET_OLC_ZONE(k));
-  }
-  send_to_char(ch, "\r\n");
-}
+    char buf1[64], buf2[64];
 
-send_to_char(ch,
-             "\tC=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\tn\r\n");
+    strlcpy(buf1, asctime(localtime(&(k->player.time.birth))), sizeof(buf1));
+    strlcpy(buf2, asctime(localtime(&(k->player.time.logon))), sizeof(buf2));
+    buf1[10] = buf2[10] = '\0';
 
-send_to_char(ch, "\tCStr: [\tn%d\tC]  Int: [\tn%d\tC]  Wis: [\tn%d\tC]\tn  "
-                 "\tCDex: [\tn%d\tC]  Con: [\tn%d\tC]  Cha: [\tn%d\tC]\tn\r\n",
-             GET_STR(k), GET_INT(k), GET_WIS(k),
-             GET_DEX(k), GET_CON(k), GET_CHA(k));
+    send_to_char(ch,
+                 "\tCCreated: [\tn%s\tC], Last Logon: [\tn%s\tC], Played [\tn%d\tCh \tn%d\tCm], Age [\tn%d\tC]\tn\r\n",
+                 buf1, buf2, k->player.time.played / 3600,
+                 ((k->player.time.played % 3600) / 60), age(k)->year);
 
-send_to_char(ch, "\tCHit p.:[\tn%d\tC/\tn%d\tC+\tn%d\tC]  PSP p.:[\tn%d\tC/\tn%d\tC+\tn%d\tC]  Move p.:[\tn%d\tC/\tn%d\tC+\tn%d\tC]\tn\r\n",
-             GET_HIT(k), GET_MAX_HIT(k), hit_gain(k),
-             GET_PSP(k), GET_MAX_PSP(k), psp_gain(k),
-             GET_MOVE(k), GET_MAX_MOVE(k), move_gain(k));
-
-send_to_char(ch, "\tCGold: [\tn%9d\tC], Bank: [\tn%9d\tC] (Total: \tn%d\tC), \tn",
-             GET_GOLD(k), GET_BANK_GOLD(k), GET_GOLD(k) + GET_BANK_GOLD(k));
-
-if (!IS_NPC(k))
-  send_to_char(ch, "\tCScreen [\tn%d\tCx\tn%d\tC]\tn",
-               GET_SCREEN_WIDTH(k), GET_PAGE_LENGTH(k));
-send_to_char(ch, "\r\n");
-
-send_to_char(ch, "\tCAC: [\tn%d\tC/\tn%d\tC], Hitroll: [\tn%d\tC/\tn%d\tC], Damroll: [\tn%d\tC/\tn%d\tC],\tn "
-                 "\tCSaving throws: [\tn%d\tC/\tn%d\tC/\tn%d\tC/\tn%d\tC/\tn%d\tC]\tn\r\n",
-             GET_AC(k), compute_armor_class(NULL, k, FALSE, MODE_ARMOR_CLASS_NORMAL), GET_HITROLL(k), compute_attack_bonus(k, NULL, ATTACK_TYPE_PRIMARY),
-             GET_DAMROLL(k), compute_damage_bonus(k, NULL, NULL, w_type, 0, 0, ATTACK_TYPE_PRIMARY), GET_SAVE(k, 0),
-             GET_SAVE(k, 1), GET_SAVE(k, 2), GET_SAVE(k, 3), GET_SAVE(k, 4));
-
-send_to_char(ch,
-             "\tC=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\tn\r\n");
-
-if (CLASS_LEVEL(k, CLASS_CLERIC))
-{
-  send_to_char(ch, "\tc1st Domain: \tn%s\tc, 2nd Domain: \tn%s\tc.\r\n",
-               domain_list[GET_1ST_DOMAIN(k)].name,
-               domain_list[GET_2ND_DOMAIN(k)].name);
-  draw_line(ch, line_length, '-', '-');
-}
-
-if (CLASS_LEVEL(k, CLASS_WIZARD))
-{
-  send_to_char(ch, "\tcSpecialty School: \tn%s\tc, Restricted: \tn%s\tc.\r\n",
-               school_names[GET_SPECIALTY_SCHOOL(k)],
-               school_names[restricted_school_reference[GET_SPECIALTY_SCHOOL(k)]]);
-  draw_line(ch, line_length, '-', '-');
-}
-
-sprinttype(GET_POS(k), position_types, buf, sizeof(buf));
-send_to_char(ch,
-             "\tCPos: \tn%s\tC, Fighting: \tn%s", buf, FIGHTING(k) ? GET_NAME(FIGHTING(k)) : "Nobody");
-
-if (IS_NPC(k))
-  send_to_char(ch,
-               "\tC, Attack type: \tn%s", attack_hit_text[(int)k->mob_specials.attack_type].singular);
-
-if (k->desc)
-{
-  sprinttype(STATE(k->desc), connected_types, buf, sizeof(buf));
-  send_to_char(ch, "\tC, Connected: \tn%s", buf);
-}
-
-if (IS_NPC(k))
-{
-  sprinttype(k->mob_specials.default_pos, position_types, buf, sizeof(buf));
-  send_to_char(ch, "\tC, Default position: \tn%s\r\n", buf);
-  sprintbitarray(MOB_FLAGS(k), action_bits, PM_ARRAY_MAX, buf);
-  send_to_char(ch, "\tCNPC flags: \tn%s\r\n", buf);
-}
-else
-{
-  send_to_char(ch, "\tC, Idle Timer (in tics) [\tn%d\tC]\tn\r\n", k->char_specials.timer);
-
-  sprintbitarray(PLR_FLAGS(k), player_bits, PM_ARRAY_MAX, buf);
-  send_to_char(ch, "\tCPLR: \tn%s\r\n", buf);
-
-  sprintbitarray(PRF_FLAGS(k), preference_bits, PR_ARRAY_MAX, buf);
-  send_to_char(ch, "\tCPRF: \tn%s\r\n", buf);
-
-  send_to_char(ch, "\tCQuest Points: [\tn%9d\tC] Quests Completed: [\tn%5d\tC]\tn\r\n",
-               GET_QUESTPOINTS(k), GET_NUM_QUESTS(k));
-  if (GET_QUEST(k) == NOTHING)
-  {
-    send_to_char(ch, "\tCCurrently not on a Quest.\tn\r\n");
-  }
-  else
-  {
-    send_to_char(ch, "\tCCurrent Quest: [\tn%5d\tC] Time Left: [\tn%5d\tC]\tn\r\n",
-                 GET_QUEST(k), GET_QUEST_TIME(k));
-  }
-
-  send_to_char(ch, "\tCacVnum:\tn %d \tC#:\tn %d\tC QP:\tn %d\tC xp:\tn %d\tC "
-                   "G:\tn %d\tC Dsc:\tn %s\tC, Mat:\tn %s\r\n",
-               GET_AUTOCQUEST_VNUM(k),
-               GET_AUTOCQUEST_MAKENUM(k),
-               GET_AUTOCQUEST_QP(k),
-               GET_AUTOCQUEST_EXP(k),
-               GET_AUTOCQUEST_GOLD(k),
-               GET_AUTOCQUEST_DESC(k),
-               material_name[GET_AUTOCQUEST_MATERIAL(k)]);
-}
-
-if (IS_MOB(k))
-  send_to_char(ch, "\tCMob Spec-Proc: \tn%s\tC, NPC Bare Hand Dam: \tn%d\tCd\tn%d\r\n",
-               (mob_index[GET_MOB_RNUM(k)].func ? get_spec_func_name(mob_index[GET_MOB_RNUM(k)].func) : "None"),
-               k->mob_specials.damnodice, k->mob_specials.damsizedice);
-
-for (i = 0, j = k->carrying; j; j = j->next_content, i++)
-  ;
-send_to_char(ch, "\tCCarried: weight: \tn%d\tC, items: \tn%d\tC; Items in: inventory: \tn%d\tC, ", IS_CARRYING_W(k), IS_CARRYING_N(k), i);
-
-for (i = 0, i2 = 0; i < NUM_WEARS; i++)
-  if (GET_EQ(k, i))
-    i2++;
-send_to_char(ch, "\tCeq: \tn%d\r\n", i2);
-
-send_to_char(ch,
-             "\tC=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\tn\r\n");
-
-if (!IS_NPC(k))
-  send_to_char(ch, "\tCHunger: \tn%d\tC, Thirst: \tn%d\tC, Drunk: \tn%d\tC.\tn", GET_COND(k, HUNGER),
-               GET_COND(k, THIRST), GET_COND(k, DRUNK));
-
-send_to_char(ch, "  \tCDR:\tn %d\tC, CM%%:\tn %d\tC | Trlx WpnPsn: %d/%d/%d.\tn\r\n",
-             compute_damage_reduction(k, -1),
-             compute_concealment(k),
-             TRLX_PSN_VAL(k),
-             TRLX_PSN_LVL(k),
-             TRLX_PSN_HIT(k));
-
-send_to_char(ch, "\tCStoneskin: \tn%d\tC, Mirror Images: \tn%d\tC, Cloudkill/Inc/Doom:"
-                 " \tn%d/%d/%d\tC, Spell Resist: \tn%d\r\n",
-             GET_STONESKIN(k), GET_IMAGES(k), CLOUDKILL(k), INCENDIARY(k), DOOM(k), GET_SPELL_RES(k));
-
-send_to_char(ch, "\tCMemming? \tn%d\tC, Praying? \tn%d\tC, Communing? \tn%d\tC,"
-                 " Meditating? \tn%d\tn\r\n",
-             IS_PREPARING(k, 2), IS_PREPARING(k, 0), IS_PREPARING(k, 1), IS_PREPARING(k, 3));
-
-if (!IS_NPC(k))
-  send_to_char(ch, "\tCWimpy:\tn %d  ", GET_WIMP_LEV(k));
-send_to_char(ch, "\tCDivLvl:\tn %d  \tCMgcLvl:\tn %d"
-                 "  \tCCstrLvl:\tn %d\r\n",
-             DIVINE_LEVEL(k), MAGIC_LEVEL(k),
-             CASTER_LEVEL(k));
-
-send_to_char(ch,
-             "\tC=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\tn\r\n");
-
-column = send_to_char(ch, "\tCMaster is: \tn%s\tC, Followers are:\tn", k->master ? GET_NAME(k->master) : "<none>");
-if (!k->followers)
-  send_to_char(ch, " <none>\r\n");
-else
-{
-  for (fol = k->followers; fol; fol = fol->next)
-  {
-    column += send_to_char(ch, "%s %s", found++ ? "," : "", PERS(fol->follower, ch));
-    if (column >= 62)
+    /* Display OLC zone for immorts. */
+    if (GET_LEVEL(k) >= LVL_BUILDER)
     {
-      send_to_char(ch, "%s\r\n", fol->next ? "," : "");
-      found = FALSE;
-      column = 0;
+      if (GET_OLC_ZONE(k) == AEDIT_PERMISSION)
+        send_to_char(ch, "\tC, OLC[\tnAedit\tC]\tn");
+      else if (GET_OLC_ZONE(k) == HEDIT_PERMISSION)
+        send_to_char(ch, "\tC, OLC[\tnHedit\tC]\tn");
+      else if (GET_OLC_ZONE(k) == ALL_PERMISSION)
+        send_to_char(ch, "\tC, OLC[\tnAll\tC]\tn");
+      else if (GET_OLC_ZONE(k) == NOWHERE)
+        send_to_char(ch, "\tC, OLC[\tnOFF\tC]\tn");
+      else
+        send_to_char(ch, "\tC, OLC[\tn%d\tC]\tn", GET_OLC_ZONE(k));
     }
-  }
-  if (column != 0)
     send_to_char(ch, "\r\n");
-}
+  }
 
-if (PATH_SIZE(k))
-{
-  send_to_char(ch, "Path Index: \tc%d\tn  Delay/Reset \tc%d/%d\tn\r\n",
-               PATH_INDEX(k), PATH_DELAY(k), PATH_RESET(k));
-  send_to_char(ch, "Path: \tc");
-  for (i = 0; i < PATH_SIZE(k); i++)
-    send_to_char(ch, "%d ", GET_PATH(k, i));
-  send_to_char(ch, "\tn\r\n");
-}
+  send_to_char(ch,
+               "\tC=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\tn\r\n");
 
-if (IS_NPC(k))
-{
-  memory_rec *names;
-  send_to_char(ch, "\tcMEMORY:\tC");
-  for (names = MEMORY(k); names; names = names->next)
-    send_to_char(ch, "%ld ", names->id);
-  send_to_char(ch, "\tn\r\n");
-}
+  send_to_char(ch, "\tCStr: [\tn%d\tC]  Int: [\tn%d\tC]  Wis: [\tn%d\tC]\tn  "
+                   "\tCDex: [\tn%d\tC]  Con: [\tn%d\tC]  Cha: [\tn%d\tC]\tn\r\n",
+               GET_STR(k), GET_INT(k), GET_WIS(k),
+               GET_DEX(k), GET_CON(k), GET_CHA(k));
 
-send_to_char(ch,
-             "\tC=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\tn\r\n");
+  send_to_char(ch, "\tCHit p.:[\tn%d\tC/\tn%d\tC+\tn%d\tC]  PSP p.:[\tn%d\tC/\tn%d\tC+\tn%d\tC]  Move p.:[\tn%d\tC/\tn%d\tC+\tn%d\tC]\tn\r\n",
+               GET_HIT(k), GET_MAX_HIT(k), hit_gain(k),
+               GET_PSP(k), GET_MAX_PSP(k), psp_gain(k),
+               GET_MOVE(k), GET_MAX_MOVE(k), move_gain(k));
 
-if (!IS_NPC(k) && (GET_LEVEL(k) >= LVL_IMMORT))
-{
-  if (POOFIN(k))
-    send_to_char(ch, "\tCPOOFIN:\tn  %s %s\tn\r\n", GET_NAME(k), POOFIN(k));
-  else
-    send_to_char(ch, "\tCPOOFIN:\tn  %s appears with an ear-splitting bang.\r\n", GET_NAME(k));
+  send_to_char(ch, "\tCGold: [\tn%9d\tC], Bank: [\tn%9d\tC] (Total: \tn%d\tC), \tn",
+               GET_GOLD(k), GET_BANK_GOLD(k), GET_GOLD(k) + GET_BANK_GOLD(k));
 
-  if (POOFOUT(k))
-    send_to_char(ch, "\tCPOOFOUT:\tn %s %s\tn\r\n", GET_NAME(k), POOFOUT(k));
-  else
-    send_to_char(ch, "\tCPOOFOUT:\tn %s disappears in a puff of smoke.\r\n", GET_NAME(k));
-}
+  if (!IS_NPC(k))
+    send_to_char(ch, "\tCScreen [\tn%d\tCx\tn%d\tC]\tn",
+                 GET_SCREEN_WIDTH(k), GET_PAGE_LENGTH(k));
+  send_to_char(ch, "\r\n");
 
-if (!IS_NPC(k) && IS_IN_CLAN(k))
-{
-  c_n = real_clan(GET_CLAN(k));
-  if ((c_r = GET_CLANRANK(k)) == NO_CLANRANK)
+  send_to_char(ch, "\tCAC: [\tn%d\tC/\tn%d\tC], Hitroll: [\tn%d\tC/\tn%d\tC], Damroll: [\tn%d\tC/\tn%d\tC],\tn "
+                   "\tCSaving throws: [\tn%d\tC/\tn%d\tC/\tn%d\tC/\tn%d\tC/\tn%d\tC]\tn\r\n",
+               GET_AC(k), compute_armor_class(NULL, k, FALSE, MODE_ARMOR_CLASS_NORMAL), GET_HITROLL(k), compute_attack_bonus(k, NULL, ATTACK_TYPE_PRIMARY),
+               GET_DAMROLL(k), compute_damage_bonus(k, NULL, NULL, w_type, 0, 0, ATTACK_TYPE_PRIMARY), GET_SAVE(k, 0),
+               GET_SAVE(k, 1), GET_SAVE(k, 2), GET_SAVE(k, 3), GET_SAVE(k, 4));
+
+  send_to_char(ch,
+               "\tC=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\tn\r\n");
+
+  if (CLASS_LEVEL(k, CLASS_CLERIC))
   {
-    send_to_char(ch, "Applied to : %s%s\r\n", CLAN_NAME(c_n), QNRM);
-    send_to_char(ch, "Status     : %sAwaiting Approval%s\r\n", QBRED, QNRM);
+    send_to_char(ch, "\tc1st Domain: \tn%s\tc, 2nd Domain: \tn%s\tc.\r\n",
+                 domain_list[GET_1ST_DOMAIN(k)].name,
+                 domain_list[GET_2ND_DOMAIN(k)].name);
+    draw_line(ch, line_length, '-', '-');
+  }
+
+  if (CLASS_LEVEL(k, CLASS_WIZARD))
+  {
+    send_to_char(ch, "\tcSpecialty School: \tn%s\tc, Restricted: \tn%s\tc.\r\n",
+                 school_names[GET_SPECIALTY_SCHOOL(k)],
+                 school_names[restricted_school_reference[GET_SPECIALTY_SCHOOL(k)]]);
+    draw_line(ch, line_length, '-', '-');
+  }
+
+  sprinttype(GET_POS(k), position_types, buf, sizeof(buf));
+  send_to_char(ch,
+               "\tCPos: \tn%s\tC, Fighting: \tn%s", buf, FIGHTING(k) ? GET_NAME(FIGHTING(k)) : "Nobody");
+
+  if (IS_NPC(k))
+    send_to_char(ch,
+                 "\tC, Attack type: \tn%s", attack_hit_text[(int)k->mob_specials.attack_type].singular);
+
+  if (k->desc)
+  {
+    sprinttype(STATE(k->desc), connected_types, buf, sizeof(buf));
+    send_to_char(ch, "\tC, Connected: \tn%s", buf);
+  }
+
+  if (IS_NPC(k))
+  {
+    sprinttype(k->mob_specials.default_pos, position_types, buf, sizeof(buf));
+    send_to_char(ch, "\tC, Default position: \tn%s\r\n", buf);
+    sprintbitarray(MOB_FLAGS(k), action_bits, PM_ARRAY_MAX, buf);
+    send_to_char(ch, "\tCNPC flags: \tn%s\r\n", buf);
   }
   else
   {
-    send_to_char(ch, "Current Clan : %s%s\r\n", CLAN_NAME(c_n), QNRM);
-    send_to_char(ch, "Clan Rank    : %s%s (Rank %d)\r\n", clan_list[c_n].rank_name[(c_r - 1)], QNRM, c_r);
-  }
-  if (CLAN_LEADER(c_n) == GET_IDNUM(k))
-  {
-    send_to_char(ch, "Other Info   : %s%s is the leader of this clan!%s\r\n", QBWHT, GET_NAME(k), QNRM);
-  }
-  send_to_char(ch, "Clan Points  : %d\r\n", GET_CLANPOINTS(k));
-}
+    send_to_char(ch, "\tC, Idle Timer (in tics) [\tn%d\tC]\tn\r\n", k->char_specials.timer);
 
-send_to_char(ch,
-             "\tC=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\tn\r\n");
+    sprintbitarray(PLR_FLAGS(k), player_bits, PM_ARRAY_MAX, buf);
+    send_to_char(ch, "\tCPLR: \tn%s\r\n", buf);
+
+    sprintbitarray(PRF_FLAGS(k), preference_bits, PR_ARRAY_MAX, buf);
+    send_to_char(ch, "\tCPRF: \tn%s\r\n", buf);
+
+    send_to_char(ch, "\tCQuest Points: [\tn%9d\tC] Quests Completed: [\tn%5d\tC]\tn\r\n",
+                 GET_QUESTPOINTS(k), GET_NUM_QUESTS(k));
+    if (GET_QUEST(k) == NOTHING)
+    {
+      send_to_char(ch, "\tCCurrently not on a Quest.\tn\r\n");
+    }
+    else
+    {
+      send_to_char(ch, "\tCCurrent Quest: [\tn%5d\tC] Time Left: [\tn%5d\tC]\tn\r\n",
+                   GET_QUEST(k), GET_QUEST_TIME(k));
+    }
+
+    send_to_char(ch, "\tCacVnum:\tn %d \tC#:\tn %d\tC QP:\tn %d\tC xp:\tn %d\tC "
+                     "G:\tn %d\tC Dsc:\tn %s\tC, Mat:\tn %s\r\n",
+                 GET_AUTOCQUEST_VNUM(k),
+                 GET_AUTOCQUEST_MAKENUM(k),
+                 GET_AUTOCQUEST_QP(k),
+                 GET_AUTOCQUEST_EXP(k),
+                 GET_AUTOCQUEST_GOLD(k),
+                 GET_AUTOCQUEST_DESC(k),
+                 material_name[GET_AUTOCQUEST_MATERIAL(k)]);
+  }
+
+  if (IS_MOB(k))
+    send_to_char(ch, "\tCMob Spec-Proc: \tn%s\tC, NPC Bare Hand Dam: \tn%d\tCd\tn%d\r\n",
+                 (mob_index[GET_MOB_RNUM(k)].func ? get_spec_func_name(mob_index[GET_MOB_RNUM(k)].func) : "None"),
+                 k->mob_specials.damnodice, k->mob_specials.damsizedice);
+
+  for (i = 0, j = k->carrying; j; j = j->next_content, i++)
+    ;
+  send_to_char(ch, "\tCCarried: weight: \tn%d\tC, items: \tn%d\tC; Items in: inventory: \tn%d\tC, ", IS_CARRYING_W(k), IS_CARRYING_N(k), i);
+
+  for (i = 0, i2 = 0; i < NUM_WEARS; i++)
+    if (GET_EQ(k, i))
+      i2++;
+  send_to_char(ch, "\tCeq: \tn%d\r\n", i2);
+
+  send_to_char(ch,
+               "\tC=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\tn\r\n");
+
+  if (!IS_NPC(k))
+    send_to_char(ch, "\tCHunger: \tn%d\tC, Thirst: \tn%d\tC, Drunk: \tn%d\tC.\tn", GET_COND(k, HUNGER),
+                 GET_COND(k, THIRST), GET_COND(k, DRUNK));
+
+  send_to_char(ch, "  \tCDR:\tn %d\tC, CM%%:\tn %d\tC | Trlx WpnPsn: %d/%d/%d.\tn\r\n",
+               compute_damage_reduction(k, -1),
+               compute_concealment(k),
+               TRLX_PSN_VAL(k),
+               TRLX_PSN_LVL(k),
+               TRLX_PSN_HIT(k));
+
+  send_to_char(ch, "\tCStoneskin: \tn%d\tC, Mirror Images: \tn%d\tC, Cloudkill/Inc/Doom:"
+                   " \tn%d/%d/%d\tC, Spell Resist: \tn%d\r\n",
+               GET_STONESKIN(k), GET_IMAGES(k), CLOUDKILL(k), INCENDIARY(k), DOOM(k), GET_SPELL_RES(k));
+
+  send_to_char(ch, "\tCMemming? \tn%d\tC, Praying? \tn%d\tC, Communing? \tn%d\tC,"
+                   " Meditating? \tn%d\tn\r\n",
+               IS_PREPARING(k, 2), IS_PREPARING(k, 0), IS_PREPARING(k, 1), IS_PREPARING(k, 3));
+
+  if (!IS_NPC(k))
+    send_to_char(ch, "\tCWimpy:\tn %d  ", GET_WIMP_LEV(k));
+  send_to_char(ch, "\tCDivLvl:\tn %d  \tCMgcLvl:\tn %d"
+                   "  \tCCstrLvl:\tn %d\r\n",
+               DIVINE_LEVEL(k), MAGIC_LEVEL(k),
+               CASTER_LEVEL(k));
+
+  send_to_char(ch,
+               "\tC=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\tn\r\n");
+
+  column = send_to_char(ch, "\tCMaster is: \tn%s\tC, Followers are:\tn", k->master ? GET_NAME(k->master) : "<none>");
+  if (!k->followers)
+    send_to_char(ch, " <none>\r\n");
+  else
+  {
+    for (fol = k->followers; fol; fol = fol->next)
+    {
+      column += send_to_char(ch, "%s %s", found++ ? "," : "", PERS(fol->follower, ch));
+      if (column >= 62)
+      {
+        send_to_char(ch, "%s\r\n", fol->next ? "," : "");
+        found = FALSE;
+        column = 0;
+      }
+    }
+    if (column != 0)
+      send_to_char(ch, "\r\n");
+  }
+
+  if (PATH_SIZE(k))
+  {
+    send_to_char(ch, "Path Index: \tc%d\tn  Delay/Reset \tc%d/%d\tn\r\n",
+                 PATH_INDEX(k), PATH_DELAY(k), PATH_RESET(k));
+    send_to_char(ch, "Path: \tc");
+    for (i = 0; i < PATH_SIZE(k); i++)
+      send_to_char(ch, "%d ", GET_PATH(k, i));
+    send_to_char(ch, "\tn\r\n");
+  }
+
+  if (IS_NPC(k))
+  {
+    memory_rec *names;
+    send_to_char(ch, "\tcMEMORY:\tC");
+    for (names = MEMORY(k); names; names = names->next)
+      send_to_char(ch, "%ld ", names->id);
+    send_to_char(ch, "\tn\r\n");
+  }
+
+  send_to_char(ch,
+               "\tC=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\tn\r\n");
+
+  if (!IS_NPC(k) && (GET_LEVEL(k) >= LVL_IMMORT))
+  {
+    if (POOFIN(k))
+      send_to_char(ch, "\tCPOOFIN:\tn  %s %s\tn\r\n", GET_NAME(k), POOFIN(k));
+    else
+      send_to_char(ch, "\tCPOOFIN:\tn  %s appears with an ear-splitting bang.\r\n", GET_NAME(k));
+
+    if (POOFOUT(k))
+      send_to_char(ch, "\tCPOOFOUT:\tn %s %s\tn\r\n", GET_NAME(k), POOFOUT(k));
+    else
+      send_to_char(ch, "\tCPOOFOUT:\tn %s disappears in a puff of smoke.\r\n", GET_NAME(k));
+  }
+
+  if (!IS_NPC(k) && IS_IN_CLAN(k))
+  {
+    c_n = real_clan(GET_CLAN(k));
+    if ((c_r = GET_CLANRANK(k)) == NO_CLANRANK)
+    {
+      send_to_char(ch, "Applied to : %s%s\r\n", CLAN_NAME(c_n), QNRM);
+      send_to_char(ch, "Status     : %sAwaiting Approval%s\r\n", QBRED, QNRM);
+    }
+    else
+    {
+      send_to_char(ch, "Current Clan : %s%s\r\n", CLAN_NAME(c_n), QNRM);
+      send_to_char(ch, "Clan Rank    : %s%s (Rank %d)\r\n", clan_list[c_n].rank_name[(c_r - 1)], QNRM, c_r);
+    }
+    if (CLAN_LEADER(c_n) == GET_IDNUM(k))
+    {
+      send_to_char(ch, "Other Info   : %s%s is the leader of this clan!%s\r\n", QBWHT, GET_NAME(k), QNRM);
+    }
+    send_to_char(ch, "Clan Points  : %d\r\n", GET_CLANPOINTS(k));
+  }
+
+  send_to_char(ch,
+               "\tC=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\tn\r\n");
 }
 
 ACMD(do_stat)
