@@ -5023,7 +5023,7 @@ SPECIAL(pet_shops)
 /****  object procs general functions ****/
 /*****************************************/
 
-/* NOTE to be confused with the weapon-spells code used in OLC, etc */
+/* NOT to be confused with the weapon-spells code used in OLC, etc */
 
 /*  This was ported to accomodate the HL objects that were imported */
 void weapons_spells(char *to_ch, char *to_vict, char *to_room,
@@ -5093,6 +5093,7 @@ void move_ship(struct obj_data *ship, int dir)
 
   if (!world[ship->in_room].dir_option[dir])
     return;
+
   new_room = world[ship->in_room].dir_option[dir]->to_room;
 
   if (new_room == 0)
@@ -5105,6 +5106,7 @@ void move_ship(struct obj_data *ship, int dir)
   obj_to_room(ship, new_room);
 
   sprintf(buf2, "The ship moves %s.\r\n", dirs[dir]);
+
   if (world[ship->in_room].sector_type == SECT_ZONE_START)
     msg = "Your ship docks here.\r\n";
 
@@ -5117,6 +5119,7 @@ void move_ship(struct obj_data *ship, int dir)
         send_to_room(real_room(ship_info[i][0]), msg);
     }
   }
+  
   sprintf(buf2, "$p floats in from the %s.", dirs[rev_dir[dir]]);
   act(buf2, TRUE, 0, ship, 0, TO_ROOM);
 }
