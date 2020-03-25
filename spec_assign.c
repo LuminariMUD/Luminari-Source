@@ -991,7 +991,7 @@ struct spec_func_data spec_func_list[] = {
     {"Giantslayer", giantslayer},
     {"Planetar Sword", planetar_sword},
     {"Crafting Kit", crafting_kit},
-    {"Chionthar_Ferry", chionthar_ferry},
+    {"Chionthar Ferry", chionthar_ferry},
     {"Ches", ches},
     {"SpikeShield", spikeshield},
     {"Air Sphere", air_sphere},
@@ -1009,6 +1009,8 @@ struct spec_func_data spec_func_list[] = {
     {"Player Shop", player_owned_shops},
     {"Monk Shock Gloves", monk_glove},
     {"Monk Frost Gloves", monk_glove_cold},
+    {"Alandor Ferry", alandor_ferry},
+    /* {"MD Carpet", md_carpet},  doesn't match zone/room */
 
     {"\n", NULL}};
 
