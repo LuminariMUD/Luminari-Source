@@ -2629,7 +2629,6 @@ void wildshape_return(struct char_data *ch)
 
 /* moved the engine out of do_wildshape so we can use it in other places */
 /* mode = 0, druid */
-
 /* mode = 1, polymorph spell (spells.c) */
 bool wildshape_engine(struct char_data *ch, char *argument, int mode)
 {
@@ -2644,11 +2643,13 @@ bool wildshape_engine(struct char_data *ch, char *argument, int mode)
     send_to_char(ch, "You must return to your normal shape before assuming a new form.\r\n");
     return FALSE;
   }
+
   if (GET_DISGUISE_RACE(ch))
   {
     send_to_char(ch, "You must remove your disguise before using wildshape.\r\n");
     return FALSE;
   }
+
   if (IS_MORPHED(ch))
   {
     send_to_char(ch, "You can't wildshape while shape-changed!\r\n");
@@ -2691,8 +2692,10 @@ bool wildshape_engine(struct char_data *ch, char *argument, int mode)
 
   FIRING(ch) = FALSE; /*just in case*/
 
+  /* minor healing */
   GET_HIT(ch) += GET_LEVEL(ch);
   GET_HIT(ch) = MIN(GET_HIT(ch), GET_MAX_HIT(ch));
+
   affect_total(ch);
   save_char(ch, 0);
   Crash_crashsave(ch);

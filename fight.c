@@ -2254,7 +2254,7 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
 
   if (HAS_FEAT(ch, FEAT_DRACONIC_HERITAGE_POWER_OF_WYRMS) && draconic_heritage_energy_types[GET_BLOODLINE_SUBTYPE(ch)] == dam_type)
   {
-    return 999999999; // full immunity
+    return 100; // full immunity
   }
 
   int damtype_reduction = 0;
@@ -7449,7 +7449,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       }
       break;
     }
-    
+
     if (perform_attack)
     {
       if (attacks_at_max_bab > 0)

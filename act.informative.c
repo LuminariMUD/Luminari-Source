@@ -2658,7 +2658,7 @@ ACMD(do_defenses)
 
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
-  send_to_char(ch, "\tn");
+  send_to_char(ch, "\tn\r\nNote that AC caps at 60, but having over 60 is beneficial due to position changes and debuffs.\r\n");
 }
 
 /*
@@ -2707,6 +2707,7 @@ ACMD(do_score)
     else
       w_type = TYPE_HIT;
   }
+
   playing_time = *real_time_passed((time(0) - ch->player.time.logon) +
                                        ch->player.time.played,
                                    0);
@@ -2717,7 +2718,6 @@ ACMD(do_score)
   text_line(ch, "\tYScore Information\tC", line_length, '-', '-');
   send_to_char(ch, "\tcName : \tn%-20s \tcTitle   : \tn%s\r\n",
                GET_NAME(ch), GET_TITLE(ch) ? GET_TITLE(ch) : "None.");
-
   send_to_char(ch, "\tcRace : \tn%-20s ", RACE_ABBR(ch));
 
   /* Build the string of class names and levels */
@@ -2737,18 +2737,17 @@ ACMD(do_score)
   }
   else
     strcpy(buf, CLASS_ABBR(ch));
-  send_to_char(ch, "\tcClass%s : \tn%s\r\n", (counter == 1 ? "  " : "es"), buf);
 
+  send_to_char(ch, "\tcClass%s : \tn%s\r\n", (counter == 1 ? "  " : "es"), buf);
   send_to_char(ch, "\tcSex  : \tn%-20s ",
                (GET_SEX(ch) == SEX_MALE ? "Male" : (GET_SEX(ch) == SEX_FEMALE ? "Female" : "Neutral")));
   ;
-
   send_to_char(ch, "\tcAlignment : \tn%s\r\n", get_align_by_num(GET_ALIGNMENT(ch)));
-
   send_to_char(ch, "\tcAge  : \tn%-3d \tcyrs / \tn%2d \tcmths    \tcPlayed  : \tn%d days / %d hrs\r\n",
                age(ch)->year, age(ch)->month, playing_time.day, playing_time.hours);
   send_to_char(ch, "\tcSize : \tn%-20s \tcLoad    : \tn%d\tc/\tn%d \tclbs\r\n",
                size_names[GET_SIZE(ch)], IS_CARRYING_W(ch), CAN_CARRY_W(ch));
+
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
 
@@ -2757,6 +2756,7 @@ ACMD(do_score)
 
   send_to_char(ch, "\tC");
   text_line(ch, "\tyExperience\tC", line_length, '-', '-');
+
   send_to_char(ch, "\tcLevel : \tn%-2d                       \tcCstrLvl : \tn%-2d  \tcDivLvl : \tn%-2d  \tcMgcLvl : \tn%-2d\r\n"
                    "\tcExp   : \tn%-24d \tcExpTNL  : \tn%d\r\n"
                    "\tC-------------\tyAbility Scores\tC--------------------------\tySaving Throws\tC--------------\r\n"
@@ -2767,6 +2767,7 @@ ACMD(do_score)
                GET_STR(ch), GET_STR_BONUS(ch), GET_DEX(ch), GET_DEX_BONUS(ch), GET_CON(ch), GET_CON_BONUS(ch),
                compute_mag_saves(ch, SAVING_FORT, 0), compute_mag_saves(ch, SAVING_WILL, 0),
                GET_INT(ch), GET_INT_BONUS(ch), GET_WIS(ch), GET_WIS_BONUS(ch), GET_CHA(ch), GET_CHA_BONUS(ch), compute_mag_saves(ch, SAVING_REFL, 0));
+
   send_to_char(ch, "\tC");
   text_line(ch, "\tyCombat\tC", line_length, '-', '-');
 
@@ -2779,6 +2780,7 @@ ACMD(do_score)
 
   if (FIGHTING(ch))
     send_to_char(ch, "(Fighting) - ");
+
   switch (GET_POS(ch))
   {
   case POS_DEAD:
@@ -2896,6 +2898,7 @@ ACMD(do_score)
       send_to_char(ch, "You are NOT summonable by other players.\r\n");
     if (CLASS_LEVEL(ch, CLASS_MONK) && !monk_gear_ok(ch))
       send_to_char(ch, "Your worn gear is interfering with your ki.\r\n");
+
     send_to_char(ch, "\tC");
     draw_line(ch, line_length, '-', '-');
   }
