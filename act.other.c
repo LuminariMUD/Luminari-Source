@@ -1502,6 +1502,7 @@ ACMD(do_dismount)
 
 ACMD(do_buck)
 {
+
   if (!RIDDEN_BY(ch))
   {
     send_to_char(ch, "You're not even being ridden!\r\n");
@@ -1516,18 +1517,11 @@ ACMD(do_buck)
   act("You quickly buck, throwing $N to the ground.", FALSE, ch, 0, RIDDEN_BY(ch), TO_CHAR);
   act("$n quickly bucks, throwing you to the ground.", FALSE, ch, 0, RIDDEN_BY(ch), TO_VICT);
   act("$n quickly bucks, throwing $N to the ground.", FALSE, ch, 0, RIDDEN_BY(ch), TO_NOTVICT);
-  if (rand_number(0, 4))
-  {
-    send_to_char(RIDDEN_BY(ch), "You hit the ground hard!\r\n");
-    damage(RIDDEN_BY(ch), RIDDEN_BY(ch), dice(2, 4), -1, -1, -1);
-  }
-  change_position(RIDDEN_BY(ch), POS_SITTING);
-  dismount_char(ch);
 
-  /*
-   * you might want to call set_fighting() or some nonsense here if you
-   * want the mount to attack the unseated rider or vice-versa.
-   */
+  send_to_char(RIDDEN_BY(ch), "You hit the ground hard!\r\n");
+  change_position(RIDDEN_BY(ch), POS_SITTING);
+  start_action_cooldown(ch, atSTANDARD, 7 RL_SEC);
+  dismount_char(ch);
 }
 
 ACMD(do_tame)
@@ -1566,6 +1560,9 @@ ACMD(do_tame)
   else if (GET_SKILL(ch, ABILITY_RIDE) <= rand_number(1, GET_LEVEL(vict)))
   {
     send_to_char(ch, "You fail to tame it.\r\n");
+
+    /* todo:  probably should be some sort of punishment for failing! */
+
     return;
   }
 
@@ -1634,6 +1631,7 @@ ACMD(do_respec)
     /* in the clear! */
     int tempXP = GET_EXP(ch);
     GET_CLASS(ch) = class;
+
     /* Make sure that players can't make wildshaped forms permanent.*/
     SUBRACE(ch) = 0;
     IS_MORPHED(ch) = 0;
@@ -1719,15 +1717,20 @@ ACMD(do_gain)
       send_to_char(ch, "Please select one of the classes you already have!\r\n");
       return;
     }
+
     /* cap for class ranks */
     int max_class_level = CLSLIST_MAXLVL(class);
+
     if (max_class_level == -1)
       max_class_level = LVL_IMMORT - 1;
+
     if (CLASS_LEVEL(ch, class) >= max_class_level)
     {
       send_to_char(ch, "You have reached the maximum amount of levels for that class.\r\n");
       return;
     }
+
+    /* need to spend their points before advancing */
     if ((GET_PRACTICES(ch) != 0) ||
         (GET_TRAINS(ch) > 1) ||
         (GET_BOOSTS(ch) != 0) ||
@@ -1805,7 +1808,6 @@ ACMD(do_gain)
 
 /*************************/
 /* shapechange functions */
-
 /*************************/
 struct wild_shape_mods
 {
@@ -5558,6 +5560,7 @@ ACMD(do_happyhour)
    \tR[HINT]:\tn \ty
    [use nohint or prefedit to deactivate this]\tn\r\n
  */
+
 char *hints[NUM_HINTS] = {
     /* 1*/ "\tR[HINT]:\tn \ty"
            "Different spell casting classes use different commands "
