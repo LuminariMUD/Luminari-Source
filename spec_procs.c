@@ -5119,7 +5119,7 @@ void move_ship(struct obj_data *ship, int dir)
         send_to_room(real_room(ship_info[i][0]), msg);
     }
   }
-  
+
   sprintf(buf2, "$p floats in from the %s.", dirs[rev_dir[dir]]);
   act(buf2, TRUE, 0, ship, 0, TO_ROOM);
 }
@@ -5135,6 +5135,7 @@ void update_ship(struct obj_data *ship, int start, int end, int movedelay, int w
     dest = real_room(start);
 
   ship->obj_flags.timer--;
+
   if (ship->obj_flags.timer >= 0)
     return;
 
