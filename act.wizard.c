@@ -4468,16 +4468,18 @@ ACMD(do_keycheck)
 {
   obj_vnum keynum = NOWHERE;
   zone_rnum rzone = NOWHERE;
-  room_rnum i = NOWHERE;
-  room_vnum bottom = NOWHERE, top = NOWHERE;
-  int j, len;
+  room_vnum i = NOWHERE, bottom = NOWHERE, top = NOWHERE;
+  int j, len = 0;
   char zone_num[MAX_INPUT_LENGTH], buf[MAX_STRING_LENGTH];
 
   one_argument(argument, zone_num);
 
   /* dummy check, completely unnecessary as far as I know :)  */
   if (!top_of_world)
+  {
+    send_to_char(ch, "Sorry, there's no top of the world?!\r\n");
     return;
+  }
 
   /* figure out which zone we want to look at */
   if (!*zone_num || *zone_num == '.')
@@ -4505,26 +4507,26 @@ ACMD(do_keycheck)
                 "------- -------------------- --------------\r\n",
                 sizeof(buf));
 
-  /* here is a loop that will go through the list of rooms */
+  /* here is a loop that will go through the list of rooms by vnum */
   for (i = bottom; i <= top; i++)
   {
     for (j = 0; j < DIR_COUNT; j++)
     {
       /* easy exits */
-      if (W_EXIT(i, j) == NULL)
+      if (W_EXIT(real_room(i), j) == NULL)
         continue;
-      if (W_EXIT(i, j)->to_room == NOWHERE)
+      if (W_EXIT(real_room(i), j)->to_room == NOWHERE)
         continue;
 
-      keynum = W_EXIT(i, j)->key;
+      keynum = W_EXIT(real_room(i), j)->key;
 
       if (keynum != NOWHERE && keynum > 0)
       {
         if (keynum < bottom || keynum > top)
         {
           len += snprintf(buf + len, sizeof(buf) - len, "[%s%-5d%s] %s%-*s%s %s%s:%d%s\r\n",
-                          QGRN, world[i].number, QNRM,
-                          QCYN, count_color_chars(world[i].name) + 20, world[i].name, QNRM,
+                          QGRN, i, QNRM,
+                          QCYN, count_color_chars(world[real_room(i)].name) + 20, world[real_room(i)].name, QNRM,
                           QBRED, dirs[j], keynum, QNRM);
         }
       }
@@ -4534,7 +4536,10 @@ ACMD(do_keycheck)
       break;
   }
 
-  page_string(ch->desc, buf, TRUE);
+  if (!len || !buf)
+    send_to_char(ch, "Nothing found for zone specified.\r\n");
+  else
+    page_string(ch->desc, buf, TRUE);
 }
 
 /* a command to check all the external zones connected (via exits) to a given zone */
