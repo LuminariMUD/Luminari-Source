@@ -4533,6 +4533,8 @@ ACMD(do_keycheck)
     if (len > sizeof(buf))
       break;
   }
+
+  page_string(ch->desc, buf, TRUE);
 }
 
 /* a command to check all the external zones connected (via exits) to a given zone */
