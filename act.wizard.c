@@ -4564,15 +4564,16 @@ ACMD(do_keycheck)
       continue;
 
     /* more easy outs! */
-    if (GET_OBJ_TYPE(obj) != ITEM_CONTAINER && GET_OBJ_TYPE(obj) != ITEM_AMMO_POUCH)
-      continue;
-    if (GET_OBJ_VAL(obj, 2) >= bottom && GET_OBJ_VAL(obj, 2) <= top)
-      continue;
-
-    len += snprintf(buf + len, sizeof(buf) - len, "[%s%-6d%s] %s%-*s%s %s%d%s\r\n",
-                    QGRN, i, QNRM,
-                    QCYN, count_color_chars(GET_OBJ_SHORT(obj)) + 44, GET_OBJ_SHORT(obj), QNRM,
-                    QBRED, GET_OBJ_VAL(obj, 2), QNRM);
+    if (GET_OBJ_TYPE(obj) == ITEM_CONTAINER || GET_OBJ_TYPE(obj) == ITEM_AMMO_POUCH)
+    {
+      if (GET_OBJ_VAL(obj, 2) < bottom || GET_OBJ_VAL(obj, 2) > top)
+      {
+        len += snprintf(buf + len, sizeof(buf) - len, "[%s%-6d%s] %s%-*s%s %s%d%s\r\n",
+                        QGRN, i, QNRM,
+                        QCYN, count_color_chars(GET_OBJ_SHORT(obj)) + 44, GET_OBJ_SHORT(obj), QNRM,
+                        QBRED, GET_OBJ_VAL(obj, 2), QNRM);
+      }
+    }
   }
 
   if (len <= 0)
