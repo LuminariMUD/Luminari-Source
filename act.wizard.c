@@ -4466,13 +4466,12 @@ ACMD(do_saveall)
 */
 ACMD(do_keycheck)
 {
-  obj_vnum keynum;
+  obj_vnum keynum = NOWHERE;
   zone_rnum rzone = NOWHERE;
-  char zone_num[MAX_INPUT_LENGTH];
-  room_rnum i;
-  room_vnum bottom, top;
-  int j, counter = 0, len, temp_num = 0, subcmd = 0;
-  char buf[MAX_STRING_LENGTH];
+  room_rnum i = NOWHERE;
+  room_vnum bottom = NOWHERE, top = NOWHERE;
+  int j, len;
+  char zone_num[MAX_INPUT_LENGTH], buf[MAX_STRING_LENGTH];
 
   one_argument(argument, zone_num);
 

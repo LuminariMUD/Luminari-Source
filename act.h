@@ -705,6 +705,7 @@ ACMD(do_gecho);
 ACMD(do_goto);
 ACMD(do_invis);
 ACMD(do_links);
+ACMD(do_keycheck);
 ACMD(do_load);
 ACMD(do_oset);
 ACMD(do_peace);
