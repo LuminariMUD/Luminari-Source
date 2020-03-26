@@ -4510,6 +4510,11 @@ ACMD(do_keycheck)
   /* here is a loop that will go through the list of rooms by vnum */
   for (i = bottom; i <= top; i++)
   {
+
+    /* easy out, room doesn't exist */
+    if (real_room(i) == NOWHERE)
+      continue;
+
     for (j = 0; j < DIR_COUNT; j++)
     {
       /* easy exits */
