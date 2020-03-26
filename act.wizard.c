@@ -4503,8 +4503,8 @@ ACMD(do_keycheck)
 
   /* start building the string */
   len = strlcpy(buf,
-                "VNum    Room Name            Exit: Key-VNum\r\n"
-                "------- -------------------- --------------\r\n",
+                "VNum     Room Name                                    Exit:Key-VNum\r\n"
+                "-------- -------------------------------------------- -------------\r\n",
                 sizeof(buf));
 
   /* here is a loop that will go through the list of rooms by vnum */
@@ -4529,9 +4529,9 @@ ACMD(do_keycheck)
       {
         if (keynum < bottom || keynum > top)
         {
-          len += snprintf(buf + len, sizeof(buf) - len, "[%s%-5d%s] %s%-*s%s %s%s:%d%s\r\n",
+          len += snprintf(buf + len, sizeof(buf) - len, "[%s%-6d%s] %s%-*s%s %s%-5s:%d%s\r\n",
                           QGRN, i, QNRM,
-                          QCYN, count_color_chars(world[real_room(i)].name) + 20, world[real_room(i)].name, QNRM,
+                          QCYN, count_color_chars(world[real_room(i)].name) + 44, world[real_room(i)].name, QNRM,
                           QBRED, dirs[j], keynum, QNRM);
         }
       }
