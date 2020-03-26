@@ -4461,7 +4461,6 @@ ACMD(do_saveall)
    keycheck
    keycheck .
    keycheck <zone #>
-
 -Zusuk
 */
 ACMD(do_keycheck)
@@ -4471,6 +4470,7 @@ ACMD(do_keycheck)
   room_vnum i = NOWHERE, bottom = NOWHERE, top = NOWHERE;
   int j, len = 0;
   char zone_num[MAX_INPUT_LENGTH], buf[MAX_STRING_LENGTH];
+  struct obj_data *obj = NULL;
 
   one_argument(argument, zone_num);
 
@@ -4503,7 +4503,7 @@ ACMD(do_keycheck)
 
   /* start building the string */
   len = strlcpy(buf,
-                "VNum     Room Name                                    Exit:Key-VNum\r\n"
+                "VNum     Name                                         Exit:Key-VNum\r\n"
                 "-------- -------------------------------------------- -------------\r\n",
                 sizeof(buf));
 
@@ -4539,6 +4539,40 @@ ACMD(do_keycheck)
 
     if (len > sizeof(buf))
       break;
+  }
+
+  /* going through the objects now! */
+  len += snprintf(buf + len, sizeof(buf) - len,
+                  "VNum     Object Name                                  Key-VNum\r\n"
+                  "-------- -------------------------------------------- --------\r\n");
+
+  /* here is a loop that will go through the list of objects by vnum */
+  for (i = bottom; i <= top; i++)
+  {
+    /* in case we overflowed earlier */
+    if (len > sizeof(buf))
+      break;
+
+    /* easy out, object doesn't exist */
+    if (real_object(i) == NOTHING)
+      continue;
+
+    /* reference the object for ease now */
+    obj = &obj_proto[i];
+
+    if (!obj)
+      continue;
+
+    /* more easy outs! */
+    if (GET_OBJ_TYPE(obj) != ITEM_CONTAINER && GET_OBJ_TYPE(obj) != ITEM_AMMO_POUCH)
+      continue;
+    if (GET_OBJ_VAL(obj, 2) >= bottom && GET_OBJ_VAL(obj, 2) <= top)
+      continue;
+
+    len += snprintf(buf + len, sizeof(buf) - len, "[%s%-6d%s] %s%-*s%s %s%d%s\r\n",
+                    QGRN, i, QNRM,
+                    QCYN, count_color_chars(GET_OBJ_SHORT(obj)) + 44, GET_OBJ_SHORT(obj), QNRM,
+                    QBRED, GET_OBJ_VAL(obj, 2), QNRM);
   }
 
   if (len <= 0)
@@ -7838,7 +7872,6 @@ ACMD(do_coordconvert)
 }
 
 /* findmagic command - finds scrolls, potions, wands or staves with a specified spell */
-
 /* Written by Jamdog - 25th February 2007, ported by Zusuk                                             */
 ACMD(do_findmagic)
 {
