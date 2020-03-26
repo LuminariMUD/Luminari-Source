@@ -4525,7 +4525,7 @@ ACMD(do_keycheck)
           len += snprintf(buf + len, sizeof(buf) - len, "[%s%-5d%s] %s%-*s%s %s%s:%d%s\r\n",
                           QGRN, world[i].number, QNRM,
                           QCYN, count_color_chars(world[i].name) + 20, world[i].name, QNRM,
-                          QBRED, dirs[j], keyvnum, QNRM);
+                          QBRED, dirs[j], keynum, QNRM);
         }
       }
     }
