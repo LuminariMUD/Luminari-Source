@@ -2253,12 +2253,15 @@ ACMD(do_gen_door)
   struct char_data *victim = NULL;
 
   skip_spaces(&argument);
+
   if (!*argument)
   {
     send_to_char(ch, "%c%s what?\r\n", UPPER(*cmd_door[subcmd]), cmd_door[subcmd] + 1);
     return;
   }
+
   two_arguments(argument, type, dir);
+
   if (!generic_find(type, FIND_OBJ_INV | FIND_OBJ_ROOM, ch, &victim, &obj))
     door = find_door(ch, type, dir, cmd_door[subcmd]);
 

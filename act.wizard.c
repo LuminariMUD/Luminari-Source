@@ -4456,6 +4456,87 @@ ACMD(do_saveall)
   }
 }
 
+/* for a given zone, find key vnums that don't match the zone 
+   just a simple utility to help clean up imported zones
+   keycheck
+   keycheck .
+   keycheck <zone #>
+
+-Zusuk
+*/
+ACMD(do_keycheck)
+{
+  obj_vnum keynum;
+  zone_rnum rzone = NOWHERE;
+  char zone_num[MAX_INPUT_LENGTH];
+  room_rnum i;
+  room_vnum bottom, top;
+  int j, counter = 0, len, temp_num = 0, subcmd = 0;
+  char buf[MAX_STRING_LENGTH];
+
+  one_argument(argument, zone_num);
+
+  /* dummy check, completely unnecessary as far as I know :)  */
+  if (!top_of_world)
+    return;
+
+  /* figure out which zone we want to look at */
+  if (!*zone_num || *zone_num == '.')
+  {
+    rzone = world[IN_ROOM(ch)].zone;
+  }
+  else
+  {
+    rzone = real_zone(atoi(zone_num));
+
+    if (rzone == NOWHERE)
+    {
+      send_to_char(ch, "Sorry, there's no zone with that number\r\n");
+      return;
+    }
+  }
+
+  /* set the vnum range we are looking at */
+  bottom = zone_table[rzone].bot;
+  top = zone_table[rzone].top;
+
+  /* start building the string */
+  len = strlcpy(buf,
+                "VNum    Room Name            Exit: Key-VNum\r\n"
+                "------- -------------------- --------------\r\n",
+                sizeof(buf));
+
+  /* here is a loop that will go through the list of rooms */
+  for (i = bottom; i <= top; i++)
+  {
+    for (j = 0; j < DIR_COUNT; j++)
+    {
+      /* easy exits */
+      if (W_EXIT(i, j) == NULL)
+        continue;
+      if (W_EXIT(i, j)->to_room == NOWHERE)
+        continue;
+
+      keynum = W_EXIT(i, j)->key;
+
+      if (keynum != NOWHERE && keynum > 0)
+      {
+        if (keynum < bottom || keynum > top)
+        {
+          len += snprintf(buf + len, sizeof(buf) - len, "[%s%-5d%s] %s%-*s%s %s%s:%d%s\r\n",
+                          QGRN, world[i].number, QNRM,
+                          QCYN, count_color_chars(world[i].name) + 20, world[i].name, QNRM,
+                          QBRED, dirs[j], keyvnum, QNRM);
+        }
+      }
+    }
+
+    if (len > sizeof(buf))
+      break;
+  }
+}
+
+/* a command to check all the external zones connected (via exits) to a given zone */
 ACMD(do_links)
 {
   zone_rnum zrnum;
