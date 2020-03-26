@@ -4563,6 +4563,11 @@ ACMD(do_keycheck)
     if (!obj)
       continue;
 
+    if (GET_OBJ_VAL(obj, 2) == -1 ||
+        GET_OBJ_VAL(obj, 2) == 0 ||
+        GET_OBJ_VAL(obj, 2) == 100000) /* the 'no key' values */
+      continue;
+
     /* has to be a container and out of bottom/top range */
     if (GET_OBJ_TYPE(obj) == ITEM_CONTAINER || GET_OBJ_TYPE(obj) == ITEM_AMMO_POUCH)
     {
