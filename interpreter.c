@@ -362,6 +362,7 @@ cpp_extern const struct command_info cmd_info[] = {
 
     {"kill", "k", POS_FIGHTING, do_kill, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"kick", "ki", POS_FIGHTING, do_process_attack, 1, AA_KICK, FALSE, ACTION_NONE, {6, 0}, NULL},
+    {"keycheck", "keycheck", POS_STANDING, do_keycheck, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 
     {"look", "l", POS_RECLINING, do_look, 0, SCMD_LOOK, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"loot", "loot", POS_STANDING, do_loot, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
