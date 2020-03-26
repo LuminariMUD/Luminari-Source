@@ -4543,6 +4543,7 @@ ACMD(do_keycheck)
 
   /* going through the objects now! */
   len += snprintf(buf + len, sizeof(buf) - len,
+                  "\r\n"
                   "VNum     Object Name                                  Key-VNum\r\n"
                   "-------- -------------------------------------------- --------\r\n");
 
