@@ -4558,12 +4558,12 @@ ACMD(do_keycheck)
       continue;
 
     /* reference the object for ease now */
-    obj = &obj_proto[i];
+    obj = &obj_proto[real_object(i)];
 
     if (!obj)
       continue;
 
-    /* more easy outs! */
+    /* has to be a container and out of bottom/top range */
     if (GET_OBJ_TYPE(obj) == ITEM_CONTAINER || GET_OBJ_TYPE(obj) == ITEM_AMMO_POUCH)
     {
       if (GET_OBJ_VAL(obj, 2) < bottom || GET_OBJ_VAL(obj, 2) > top)
