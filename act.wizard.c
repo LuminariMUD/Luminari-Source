@@ -4536,7 +4536,7 @@ ACMD(do_keycheck)
       break;
   }
 
-  if (!len || !buf)
+  if (len <= 0)
     send_to_char(ch, "Nothing found for zone specified.\r\n");
   else
     page_string(ch->desc, buf, TRUE);
