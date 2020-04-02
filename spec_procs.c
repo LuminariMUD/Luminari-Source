@@ -4373,8 +4373,10 @@ SPECIAL(fp_invoker)
 
   if (!ch)
     return FALSE;
+
   if (FIGHTING(ch))
     return FALSE;
+
   if (!IS_NPC(ch) && cmd && CMD_IS("cast") && GET_POS(ch) >= POS_FIGHTING)
   {
     victim = ch;
@@ -4383,6 +4385,7 @@ SPECIAL(fp_invoker)
     call_magic(ch, victim, 0, SPELL_MISSILE_STORM, 0, 30, CAST_SPELL);
     return FALSE;
   }
+
   return FALSE;
 }
 
@@ -4396,6 +4399,7 @@ SPECIAL(gromph)
 
   if (!ch)
     return FALSE;
+
   if (FIGHTING(ch))
     return FALSE;
 
@@ -4460,7 +4464,6 @@ SPECIAL(gromph)
 
 /********************************************************************/
 /******************** Room Procs      *******************************/
-
 /********************************************************************/
 
 /*
