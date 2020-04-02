@@ -172,7 +172,7 @@ SPECIAL(practice_dummy);
 SPECIAL(prismorb);
 SPECIAL(puff);
 SPECIAL(purity);
-SPECIAL(questmaster;
+SPECIAL(questmaster);
 SPECIAL(quicksand);
 SPECIAL(receptionist);
 SPECIAL(rughnark);
