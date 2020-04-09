@@ -1486,6 +1486,7 @@ obj_save_data *objsave_parse_objects(FILE *fl)
   current->locate = 0;
 
   temp = NULL;
+
   while (TRUE)
   {
     char tag[6];
@@ -1758,6 +1759,19 @@ obj_save_data *objsave_parse_objects(FILE *fl)
     default:
       log("Unknown tag in rentfile: %s", tag);
     }
+
+    /* no longer allowing untyped gear affection -zusuk */
+    for (j = 0; j < MAX_OBJ_AFFECT; j++)
+    {
+      if (temp->affected[j].modifier)
+      {
+        if (temp->affected[j].bonus_type == BONUS_TYPE_UNDEFINED)
+        {
+          temp->affected[j].bonus_type = BONUS_TYPE_ENHANCEMENT;
+        }
+      }
+    }
+
   } //end big while loop
 
   return head;
@@ -1835,7 +1849,7 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
   while ((row = mysql_fetch_row(result)))
   {
     char tag[6];
-    int num;
+    int num, j;
 
     /* Get the data from the row structure. */
     serialized_obj = strdup(row[0]);
@@ -2073,6 +2087,18 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
      * Create space for it and add it to the list.  */
     if (temp)
     {
+
+      /* no longer allowing untyped gear affection -zusuk */
+      for (j = 0; j < MAX_OBJ_AFFECT; j++)
+      {
+        if (temp->affected[j].modifier)
+        {
+          if (temp->affected[j].bonus_type == BONUS_TYPE_UNDEFINED)
+          {
+            temp->affected[j].bonus_type = BONUS_TYPE_ENHANCEMENT;
+          }
+        }
+      }
 
       CREATE(tempsave, obj_save_data, 1);
       tempsave->obj = temp;
