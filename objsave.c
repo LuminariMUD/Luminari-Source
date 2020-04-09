@@ -1761,13 +1761,13 @@ obj_save_data *objsave_parse_objects(FILE *fl)
     }
 
     /* no longer allowing untyped gear affection -zusuk */
-    for (j = 0; j < MAX_OBJ_AFFECT; j++)
+    for (i = 0; i < MAX_OBJ_AFFECT; i++)
     {
-      if (temp->affected[j].modifier)
+      if (temp->affected[i].modifier)
       {
-        if (temp->affected[j].bonus_type == BONUS_TYPE_UNDEFINED)
+        if (temp->affected[i].bonus_type == BONUS_TYPE_UNDEFINED)
         {
-          temp->affected[j].bonus_type = BONUS_TYPE_ENHANCEMENT;
+          temp->affected[i].bonus_type = BONUS_TYPE_ENHANCEMENT;
         }
       }
     }
