@@ -2999,6 +2999,9 @@ char *parse_object(FILE *obj_f, int nr)
       exit(1);
     }
   }
+
+
+
 }
 
 #define Z zone_table[zone]
@@ -3624,6 +3627,16 @@ struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */
   {
     GET_OBJ_VAL(obj, 1) = MIN(MAX_WEAPON_NDICE, GET_OBJ_VAL(obj, 1));
     GET_OBJ_VAL(obj, 2) = MIN(MAX_WEAPON_SDICE, GET_OBJ_VAL(obj, 2));
+  }
+  /* no longer allowing untyped gear affection -zusuk */
+  for (j = 0; j < MAX_OBJ_AFFECT; j++)
+  {
+    if (obj->affected[j].modifier)
+    {
+      if (obj->affected[j].bonus_type == BONUS_TYPE_UNDEFINED) {
+        obj->affected[j].bonus_type = BONUS_TYPE_ENHANCEMENT;
+      }
+    }
   }
   /* item cost cap */
   //GET_OBJ_COST(obj) = MIN(MAX(GET_OBJ_LEVEL(obj), 1) * 100, GET_OBJ_COST(obj));
