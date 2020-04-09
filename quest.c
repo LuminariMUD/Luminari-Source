@@ -786,7 +786,7 @@ void quest_join(struct char_data *ch, struct char_data *qm, char argument[MAX_IN
   if ((QST_PREV(rnum) != NOTHING) && !is_complete(ch, QST_PREV(rnum)))
   {
     snprintf(buf, sizeof(buf),
-             "\r\n%s, that quest is not available to you yet!\r\n", GET_NAME(ch));
+             "\r\n%s, that quest is not available to you yet! (quest chain)\r\n", GET_NAME(ch));
     send_to_char(ch, "%s", buf);
     return;
   }
