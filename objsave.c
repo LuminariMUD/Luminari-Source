@@ -1785,7 +1785,7 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
 
   obj_save_data *head, *current, *tempsave;
   char f1[128], f2[128], f3[128], f4[128];
-  int t[NUM_OBJ_VAL_POSITIONS], i, j = 0, nr;
+  int t[NUM_OBJ_VAL_POSITIONS], i, nr;
   struct obj_data *temp;
   /* MySql Data Structures */
   MYSQL_RES *result;
@@ -1849,7 +1849,7 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
   while ((row = mysql_fetch_row(result)))
   {
     char tag[6];
-    int num, j;
+    int num, j = 0;
 
     /* Get the data from the row structure. */
     serialized_obj = strdup(row[0]);
