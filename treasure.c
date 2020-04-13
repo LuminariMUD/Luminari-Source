@@ -1665,18 +1665,17 @@ void give_magic_armor(struct char_data *ch, int selection, int enchantment, bool
   /* a suit of (body), or a pair of (arm/leg), or AN() (helm) */
   if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_BODY))
   {
-    snprintf(desc, MEDIUM_STRING, "%s%s", desc, "a suit of");
+    sprintf(desc, "%s%s", desc, "a suit of");
   }
   else if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_HEAD) ||
            IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_SHIELD))
   {
     armor_desc_roll = rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1);
-    snprintf(desc, MEDIUM_STRING, "%s%s", desc,
-             AN(armor_special_descs[armor_desc_roll]));
+    sprintf(desc, "%s%s", desc, AN(armor_special_descs[armor_desc_roll]));
   }
   else
   {
-    snprintf(desc, MEDIUM_STRING, "%s%s", desc, "a pair of");
+    sprintf(desc, "%s%s", desc, "a pair of");
   }
 
   /* set the object material, check for upgrade */
@@ -1717,50 +1716,50 @@ void give_magic_armor(struct char_data *ch, int selection, int enchantment, bool
   crest_num = rand_number(0, NUM_A_ARMOR_CRESTS - 1);
 
   /* start with keyword string */
-  snprintf(keywords, MEDIUM_STRING, "%s %s", keywords, armor_list[GET_ARMOR_TYPE(obj)].name);
-  snprintf(keywords, MEDIUM_STRING, "%s %s", keywords, material_name[GET_OBJ_MATERIAL(obj)]);
+  sprintf(keywords, "%s %s", keywords, armor_list[GET_ARMOR_TYPE(obj)].name);
+  sprintf(keywords, "%s %s", keywords, material_name[GET_OBJ_MATERIAL(obj)]);
 
   roll = dice(1, 3);
   if (roll == 3)
   { // armor spec adjective in desc?
-    snprintf(desc, MEDIUM_STRING, "%s %s", desc,
+    sprintf(desc, "%s %s", desc,
              armor_special_descs[armor_desc_roll]);
-    snprintf(keywords, MEDIUM_STRING, "%s %s", keywords,
+    sprintf(keywords, "%s %s", keywords,
              armor_special_descs[armor_desc_roll]);
   }
 
   roll = dice(1, 5);
   if (roll >= 4)
   { // color describe #1?
-    snprintf(desc, MEDIUM_STRING, "%s %s", desc, colors[color1]);
-    snprintf(keywords, MEDIUM_STRING, "%s %s", keywords, colors[color1]);
+    sprintf(desc,  "%s %s", desc, colors[color1]);
+    sprintf(keywords,  "%s %s", keywords, colors[color1]);
   }
   else if (roll == 3)
   { // two colors
-    snprintf(desc, MEDIUM_STRING, "%s %s and %s", desc, colors[color1], colors[color2]);
-    snprintf(keywords, MEDIUM_STRING, "%s %s and %s", keywords, colors[color1], colors[color2]);
+    sprintf(desc,  "%s %s and %s", desc, colors[color1], colors[color2]);
+    sprintf(keywords,  "%s %s and %s", keywords, colors[color1], colors[color2]);
   }
 
   // Insert the material type, then armor type
-  snprintf(desc, MEDIUM_STRING, "%s %s", desc, material_name[GET_OBJ_MATERIAL(obj)]);
-  snprintf(desc, MEDIUM_STRING, "%s %s", desc, armor_list[GET_ARMOR_TYPE(obj)].name);
+  sprintf(desc,  "%s %s", desc, material_name[GET_OBJ_MATERIAL(obj)]);
+  sprintf(desc,  "%s %s", desc, armor_list[GET_ARMOR_TYPE(obj)].name);
 
   roll = dice(1, 8);
   if (roll >= 7)
   { // crest?
-    snprintf(desc, MEDIUM_STRING, "%s with %s %s crest", desc,
+    sprintf(desc,  "%s with %s %s crest", desc,
              AN(armor_crests[crest_num]),
              armor_crests[crest_num]);
-    snprintf(keywords, MEDIUM_STRING, "%s with %s %s crest", keywords,
+    sprintf(keywords,  "%s with %s %s crest", keywords,
              AN(armor_crests[crest_num]),
              armor_crests[crest_num]);
   }
   else if (roll >= 5)
   { // or symbol?
-    snprintf(desc, MEDIUM_STRING, "%s covered in symbols of %s %s", desc,
+    sprintf(desc,  "%s covered in symbols of %s %s", desc,
              AN(armor_crests[crest_num]),
              armor_crests[crest_num]);
-    snprintf(keywords, MEDIUM_STRING, "%s covered in symbols of %s %s", keywords,
+    sprintf(keywords,  "%s covered in symbols of %s %s", keywords,
              AN(armor_crests[crest_num]),
              armor_crests[crest_num]);
   }
@@ -1770,7 +1769,7 @@ void give_magic_armor(struct char_data *ch, int selection, int enchantment, bool
   // Set descriptions
   obj->short_description = strdup(desc);
   desc[0] = toupper(desc[0]);
-  snprintf(desc, MEDIUM_STRING, "%s is lying here.", desc);
+  sprintf(desc,  "%s is lying here.", desc);
   obj->description = strdup(desc);
 
   /* END DESCRIPTION SECTION */
