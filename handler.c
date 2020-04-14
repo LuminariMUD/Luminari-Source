@@ -636,15 +636,16 @@ void compute_char_cap(struct char_data *ch)
   if (affected_by_spell(ch, SKILL_SACRED_FLAMES))
   {
     dam_cap += 20;
-  }  
+  }
   if (affected_by_spell(ch, SPELL_BATTLETIDE))
   {
     /* increased this # drastically due to twilight proc -zusuk */
     dam_cap += 20;
     hit_cap += 20;
-  }  
+  }
 
   /* debug */
+  /*
   send_to_char(ch, "\tGCharacter stat cap debug, ask staff to turn this off please:\tn\r\n"
                    "Str cap: \tR%d\tn.\r\n"
                    "Dex cap: \tR%d\tn.\r\n"
@@ -656,6 +657,7 @@ void compute_char_cap(struct char_data *ch)
                    "Hit cap: \tR%d\tn.\r\n"
                    "Dam cap: \tR%d\tn.\r\n"
                    , str_cap, dex_cap, con_cap, int_cap, wis_cap, cha_cap, hit_cap, dam_cap);
+  */
   /* end debug */
 
   /* cap stats according to adjustments */
