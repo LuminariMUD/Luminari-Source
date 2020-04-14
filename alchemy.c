@@ -1967,6 +1967,7 @@ void perform_mutagen(struct char_data *ch, char *arg2)
     }
     else if (KNOWS_DISCOVERY(ch, ALC_DISC_GREATER_MUTAGEN))
     {
+      mod1 = 6;
       af3.location = APPLY_DEX;
       mod3 = 4;
     }
@@ -2098,7 +2099,6 @@ void perform_mutagen(struct char_data *ch, char *arg2)
   }
   if (af7.location != APPLY_NONE)
   {
-    ;
     af7.spell = SKILL_MUTAGEN;
     af7.duration = duration;
     affect_to_char(ch, &af7);
