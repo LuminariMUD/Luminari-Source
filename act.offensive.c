@@ -221,19 +221,6 @@ void perform_sacred_flames(struct char_data *ch)
   struct affected_type af;
   int bonus = 0, duration = 0;
 
-  if (char_has_mud_event(ch, eSACRED_FLAMES))
-  {
-    send_to_char(ch, "You must wait longer before you can use this ability "
-                     "again.\r\n");
-    return;
-  }
-
-  if (affected_by_spell(ch, SKILL_SACRED_FLAMES))
-  {
-    send_to_char(ch, "You are already using sacred flames!\r\n");
-    return;
-  }
-
   /* The additional damage is equal to the sacred fist's class levels plus his wisdom modifier */
   bonus = GET_WIS_BONUS(ch) + CLASS_LEVEL(ch, CLASS_SACRED_FIST);
 
@@ -2009,7 +1996,9 @@ ACMD(do_rage)
     affect_from_char(ch, SKILL_RAGE);
     return;
   }
+
   PREREQ_CHECK(can_rage);
+ 
   if (!IS_NPC(ch))
   {
     PREREQ_HAS_USES(FEAT_RAGE, "You must recover before you can go into a rage.\r\n");
@@ -2077,6 +2066,19 @@ ACMD(do_sacredflames)
   if (!HAS_FEAT(ch, FEAT_SACRED_FLAMES))
   {
     send_to_char(ch, "You do not know how to use sacred flames...\r\n");
+    return;
+  }
+
+  if (char_has_mud_event(ch, eSACRED_FLAMES))
+  {
+    send_to_char(ch, "You must wait longer before you can use this ability "
+                     "again.\r\n");
+    return;
+  }
+
+  if (affected_by_spell(ch, SKILL_SACRED_FLAMES))
+  {
+    send_to_char(ch, "You are already using sacred flames!\r\n");
     return;
   }
 
