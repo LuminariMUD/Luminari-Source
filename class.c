@@ -1300,6 +1300,7 @@ int valid_align_by_class(int alignment, int class)
     //    case CLASS_SHADOW_DANCER:
   case CLASS_SORCERER:
   case CLASS_MYSTIC_THEURGE:
+  case CLASS_SACRED_FIST:
   case CLASS_ALCHEMIST:
     return TRUE;
   }
@@ -1368,11 +1369,14 @@ int parse_class(char arg)
     return CLASS_SORCERER;
   case 't':
     return CLASS_ROGUE;
-    /* empty letters */
-  case 'w':
-    return CLASS_WARRIOR;
   case 'u':
     return CLASS_ALCHEMIST;
+  case 'v':
+    return CLASS_SACRED_FIST;
+  case 'w':
+    return CLASS_WARRIOR;
+    /* empty letters */
+    /* empty letters */
     /* empty letters */
 
   default:
@@ -1432,6 +1436,10 @@ int parse_class_long(char *arg)
     return CLASS_STALWART_DEFENDER;
   if (is_abbrev(arg, "shifter"))
     return CLASS_SHIFTER;
+  if (is_abbrev(arg, "sacred-fist"))
+    return CLASS_SACRED_FIST;
+  if (is_abbrev(arg, "sacredfist"))
+    return CLASS_SACRED_FIST;
   if (is_abbrev(arg, "duelist"))
     return CLASS_DUELIST;
   //  if (is_abbrev(arg, "assassin")) return CLASS_ASSASSIN;
@@ -2938,6 +2946,7 @@ int level_exp(struct char_data *ch, int level)
     //    case CLASS_SHADOW_DANCER:
   case CLASS_ARCANE_ARCHER:
   case CLASS_ARCANE_SHADOW:
+  case CLASS_SACRED_FIST:
   case CLASS_ROGUE:
   case CLASS_BARD:
   case CLASS_BERSERKER:
@@ -5022,6 +5031,71 @@ void load_class_list(void)
   class_prereq_align(CLASS_ARCANE_SHADOW, CHAOTIC_EVIL);
   class_prereq_align(CLASS_ARCANE_SHADOW, CHAOTIC_GOOD);
   class_prereq_align(CLASS_ARCANE_SHADOW, CHAOTIC_NEUTRAL);
+  /****************************************************************************/
+
+  /****************************************************************************/
+  /*     class-number               name      abrv   clr-abrv     menu-name*/
+  classo(CLASS_SACRED_FIST, "sacredfist", "SaF", "\tGSa\tgF\tn", "n) \tGSacred\tgFist\tn",
+         /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
+         10, Y, Y, M, 8, 0, 4, 4, Y, 5000, 0,
+         /*prestige spell progression*/ "Divine advancement every level",
+         /*descrip*/ "Sacred Fists are independent organizations found within many temples.  "
+                     "Their ascetic members have turned their divine magic inward, bringing their bodies "
+                     "and wills into harmony.  They consider their bodies and minds gifts from their deity, "
+                     "and they believe that not developing those gifts to their fullest potential is a sin. "
+                     "Spellcasting does not dishonor them or their deity. Sacred Fists are strong in faith, "
+                     "will and body.");
+  /* class-number then saves:        fortitude, reflex, will, poison, death */
+  assign_class_saves(CLASS_SACRED_FIST, G, G, B, B, B);
+  assign_class_abils(CLASS_SACRED_FIST, /* class number */
+                     /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+                     CA, CC, CC, CA, CC, CA, CA,
+                     /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+                     CC, CA, CC, CA, CA, CA, CC, CC,
+                     /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+                     CC, CC, CC, CA, CC, CC,
+                     /*survival,swim,use_magic_device,perform*/
+                     CC, CA, CA, CC);
+  assign_class_titles(CLASS_SACRED_FIST,          /* class number */
+                      "",                         /* <= 4  */
+                      "the Adept Fist",           /* <= 9  */
+                      "the Holy Hand",            /* <= 14 */
+                      "the Sacred Fist",          /* <= 19 */
+                      "the Holy Martial Artist",  /* <= 24 */
+                      "the Fist of Holy Fire",    /* <= 29 */
+                      "the Divine Flurry",        /* <= 30 */
+                      "the Immortal SacredFist",  /* <= LVL_IMMORT */
+                      "the Limitless SacredFist", /* <= LVL_STAFF */
+                      "the God of SacredFists",   /* <= LVL_GRSTAFF */
+                      "the SacredFist"            /* default */
+  );
+  /* feat assignment */
+  /*              class num     feat                             cfeat lvl stack */
+  feat_assignment(CLASS_SACRED_FIST, FEAT_WEAPON_PROFICIENCY_MONK, Y, 1, N);
+  feat_assignment(CLASS_SACRED_FIST, FEAT_WIS_AC_BONUS, Y, 1, N);
+  feat_assignment(CLASS_SACRED_FIST, FEAT_LVL_AC_BONUS, Y, 1, N);
+  feat_assignment(CLASS_SACRED_FIST, FEAT_UNARMED_STRIKE, Y, 1, N);
+  feat_assignment(CLASS_SACRED_FIST, FEAT_IMPROVED_UNARMED_STRIKE, Y, 1, N);
+  feat_assignment(CLASS_SACRED_FIST, FEAT_AC_BONUS, Y, 2, Y);
+  feat_assignment(CLASS_SACRED_FIST, FEAT_SACRED_FLAMES, Y, 2, Y);
+  feat_assignment(CLASS_SACRED_FIST, FEAT_SACRED_FLAMES, Y, 3, Y);
+  feat_assignment(CLASS_SACRED_FIST, FEAT_SACRED_FLAMES, Y, 4, Y);
+  feat_assignment(CLASS_SACRED_FIST, FEAT_SACRED_FLAMES, Y, 5, Y);
+  feat_assignment(CLASS_SACRED_FIST, FEAT_UNCANNY_DODGE, Y, 6, N);
+  feat_assignment(CLASS_SACRED_FIST, FEAT_AC_BONUS, Y, 7, Y);
+  feat_assignment(CLASS_SACRED_FIST, FEAT_SACRED_FLAMES, Y, 7, Y);
+  feat_assignment(CLASS_SACRED_FIST, FEAT_SACRED_FLAMES, Y, 8, Y);
+  feat_assignment(CLASS_SACRED_FIST, FEAT_INNER_FLAME, Y, 9, N);
+  feat_assignment(CLASS_SACRED_FIST, FEAT_GREATER_FLURRY, Y, 10, N);
+  feat_assignment(CLASS_SACRED_FIST, FEAT_AC_BONUS, Y, 10, Y);
+  /* no spell assignment */
+  /* class prereqs */
+  class_prereq_spellcasting(CLASS_SACRED_FIST, CASTING_TYPE_DIVINE,
+                            PREP_TYPE_ANY, 1 /*circle*/);
+  class_prereq_feat(CLASS_SACRED_FIST, FEAT_KI_STRIKE, 1);
+  class_prereq_feat(CLASS_SACRED_FIST, FEAT_COMBAT_CASTING, 1);
+  class_prereq_bab(CLASS_SACRED_FIST, 4);
+  class_prereq_ability(CLASS_SACRED_FIST, ABILITY_LORE, 8);
   /****************************************************************************/
 
   /****************************************************************************/

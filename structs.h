@@ -335,6 +335,7 @@
 #define CLASS_MYSTICTHEURGE CLASS_MYSTIC_THEURGE
 #define CLASS_ALCHEMIST 17
 #define CLASS_ARCANE_SHADOW 18
+#define CLASS_SACRED_FIST 19
 //#define CLASS_PSIONICIST        16
 //#define CLASS_PSION CLASS_PSIONICIST
 //#define CLASS_PSYCHIC_WARRIOR   17
@@ -348,7 +349,7 @@
 /* !!!---- CRITICAL ----!!! make sure to add class names to constants.c's
    class_names[] - we are dependent on that for loading the feat-list */
 /** Total number of available PC Classes */
-#define NUM_CLASSES 19
+#define NUM_CLASSES 20
 
 // related to pc (classes, etc)
 /* note that max_classes was established to reign in some of the
@@ -1712,14 +1713,16 @@
 #define FEAT_INVISIBLE_ROGUE 624
 #define FEAT_MAGICAL_AMBUSH 625
 #define FEAT_SURPRISE_SPELLS 626
+/* end arcane shadow */
 #define FEAT_WIS_AC_BONUS 627
 #define FEAT_LVL_AC_BONUS 628
+#define FEAT_INNER_FIRE 629
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 629
+#define FEAT_LAST_FEAT 630
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 630
+#define NUM_FEATS 631
 /** absolute cap **/
 #define MAX_FEATS 750
 /*****/

@@ -563,6 +563,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"struggle", "struggle", POS_RECLINING, do_struggle, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"seekerarrow", "seekerarrow", POS_FIGHTING, do_seekerarrow, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_seekerarrow},
     {"survey", "survey", POS_RECLINING, do_survey, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"sacredflames", "sacredflames", POS_FIGHTING, do_sacredflames, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_rage},
 
     {"tell", "t", POS_DEAD, do_tell, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"take", "ta", POS_RECLINING, do_get, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -2546,6 +2547,9 @@ void nanny(struct descriptor_data *d, char *arg)
       break;
     case CLASS_ARCANE_SHADOW:
       perform_help(d, "class-arcaneshadow");
+      break;
+    case CLASS_SACRED_FIST:
+      perform_help(d, "class-sacredfist");
       break;
     case CLASS_PALADIN:
       perform_help(d, "class-paladin");

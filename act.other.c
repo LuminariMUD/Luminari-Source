@@ -1459,7 +1459,7 @@ ACMD(do_mount)
     act("You try to mount $N, but slip and fall off.", FALSE, ch, 0, vict, TO_CHAR);
     act("$n tries to mount you, but slips and falls off.", FALSE, ch, 0, vict, TO_VICT);
     act("$n tries to mount $N, but slips and falls off.", TRUE, ch, 0, vict, TO_NOTVICT);
-    damage(ch, ch, dice(1, 2), -1, -1, -1);
+    USE_MOVE_ACTION(ch);
     return;
   }
 
@@ -1477,7 +1477,7 @@ ACMD(do_mount)
     act("$n is thrown to the ground as $N violently bucks!", TRUE, ch, 0, vict, TO_NOTVICT);
     act("You buck violently and throw $n to the ground.", FALSE, ch, 0, vict, TO_VICT);
     dismount_char(ch);
-    damage(vict, ch, dice(1, 3), -1, -1, -1);
+    USE_MOVE_ACTION(ch);
   }
 }
 

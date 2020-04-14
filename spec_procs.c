@@ -4201,6 +4201,7 @@ SPECIAL(mercenary)
       //      case CLASS_SHADOW_DANCER:
       //      case CLASS_ASSASSIN:
     case CLASS_MONK:
+    case CLASS_SACRED_FIST:
     case CLASS_SHIFTER:
       base = 5;
       break;
@@ -7485,7 +7486,7 @@ SPECIAL(rughnark)
   if (IS_GOOD(ch) && dice(1, 10) > 5)
     return FALSE;
 
-  if (CLASS_LEVEL(ch, CLASS_MONK) < 20 && !IS_NPC(ch))
+  if (MONK_TYPE(ch) < 20 && !IS_NPC(ch))
     return FALSE;
 
   vict = FIGHTING(ch);
@@ -7536,7 +7537,7 @@ SPECIAL(magma)
   if (dice(1, 40) < 39)
     return FALSE;
 
-  if (CLASS_LEVEL(ch, CLASS_MONK) < 20 && !IS_NPC(ch))
+  if (MONK_TYPE(ch) < 20 && !IS_NPC(ch))
     return FALSE;
 
   vict = FIGHTING(ch);
