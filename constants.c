@@ -320,6 +320,7 @@ const char *class_names[NUM_CLASSES + 1] = {
     "Mystic Theurge",
     "Alchemist",
     "Arcane Shadow",
+    "Sacred Fist",
     //  "unfinished",
     //  "unfinished",
     //  "unfinished",
@@ -3259,6 +3260,7 @@ const char *spell_prep_dict[NUM_CLASSES][4] = {
     {"", "", "", ""},                                       /* mystic theurge 16 */
     {"concoct", "an extract", "concocted", "concoctions"},  /* alchemist 17 */
     {"", "", "", ""},                                       /* arcane shadow 18 */
+    {"", "", "", ""},                                       /* sacred fist 19 */
     //  {"",         "",           "",          ""            }, /* psion */
     //  {"",         "",           "",          ""            }, /* psy warr */
     //  {"",         "",           "",          ""            }, /* soul knife */
@@ -3289,6 +3291,7 @@ const char *spell_consign_dict[NUM_CLASSES][4] = {
     {"", "", "", ""},                                        /* mystic theurge 16 */
     {"discard", "discarded", "discarding", "discarded"},     /* alchemist 17 */
     {"", "", "", ""},                                        /* arcane shadow 18 */
+    {"", "", "", ""},                                        /* sacred fist 19 */
     //  {"",          "",            "",           ""            }, /* psion 18 */
     //  {"",          "",            "",           ""            }, /* psy warr 19 */
     //  {"",          "",            "",           ""            }, /* soul knife 20 */
