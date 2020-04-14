@@ -228,7 +228,7 @@ void perform_sacred_flames(struct char_data *ch)
     return;
   }
 
-  if (affected_by_spell(ch, SKILL_SACRED_FLAMES)
+  if (affected_by_spell(ch, SKILL_SACRED_FLAMES))
   {
     send_to_char(ch, "You are already using sacred flames!\r\n");
     return;
@@ -238,7 +238,7 @@ void perform_sacred_flames(struct char_data *ch)
   bonus = GET_WIS_BONUS(ch) + CLASS_LEVEL(ch, CLASS_SACRED_FIST);
 
   /* a little bit over a minute */
-  duration = 12;  
+  duration = 12;
 
   send_to_char(ch, "You activate \tWsacred \tRflames\tn!\r\n");
   act("$n activates \tWsacred \tRflames\tn!", FALSE, ch, 0, 0, TO_ROOM);
@@ -2074,7 +2074,8 @@ ACMD(do_sacredflames)
 {
   PREREQ_CAN_FIGHT();
 
-  if (!HAS_FEAT(ch, FEAT_SACRED_FLAMES)) {
+  if (!HAS_FEAT(ch, FEAT_SACRED_FLAMES))
+  {
     send_to_char(ch, "You do not know how to use sacred flames...\r\n");
     return;
   }
