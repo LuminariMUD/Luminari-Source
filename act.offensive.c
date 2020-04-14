@@ -251,7 +251,7 @@ void perform_sacred_flames(struct char_data *ch)
   af.modifier = bonus;
   af.bonus_type = BONUS_TYPE_SACRED;
 
-  affect_join(ch, af, FALSE, FALSE, FALSE, FALSE);
+  affect_join(ch, &af, FALSE, FALSE, FALSE, FALSE);
 
   //attach_mud_event(new_mud_event(eSACRED_FLAMES, ch, NULL), (180 * PASSES_PER_SEC));
 }
