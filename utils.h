@@ -1635,30 +1635,33 @@ void char_from_furniture(struct char_data *ch);
 #define IS_MYSTICTHEURGE(ch) (CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE))
 #define IS_ARCANE_ARCHER(ch) (CLASS_LEVEL(ch, CLASS_ARCANE_ARCHER))
 #define IS_ARCANE_SHADOW(ch) (CLASS_LEVEL(ch, CLASS_ARCANE_SHADOW))
+#define IS_SACRED_FIST(ch) (CLASS_LEVEL(ch, CLASS_SACRED_FIST))
 #define IS_SHIFTER(ch) (CLASS_LEVEL(ch, CLASS_SHIFTER))
 #define IS_MONK(ch) (CLASS_LEVEL(ch, CLASS_MONK))
+#define MONK_TYPE(ch) (CLASS_LEVEL(ch, CLASS_MONK) + CLASS_LEVEL(ch, CLASS_SACRED_FIST))
 #define IS_BERSERKER(ch) (CLASS_LEVEL(ch, CLASS_BERSERKER))
 #define IS_PALADIN(ch) (CLASS_LEVEL(ch, CLASS_PALADIN))
 #define IS_RANGER(ch) (CLASS_LEVEL(ch, CLASS_RANGER))
 #define IS_ALCHEMIST(ch) (CLASS_LEVEL(ch, CLASS_ALCHEMIST))
 #define IS_CASTER(ch) (IS_CLERIC(ch) || IS_WIZARD(ch) || IS_DRUID(ch) || IS_SORCERER(ch) || IS_PALADIN(ch) || \
-                       IS_RANGER(ch) || IS_BARD(ch) || IS_ALCHEMIST(ch) || IS_ARCANE_ARCHER(ch) || \
+                       IS_RANGER(ch) || IS_BARD(ch) || IS_ALCHEMIST(ch) || IS_ARCANE_ARCHER(ch) ||            \
                        IS_ARCANE_ARCHER(ch) || IS_ARCANE_ARCHER(ch))
 #define IS_FIGHTER(ch) (CLASS_LEVEL(ch, CLASS_WARRIOR) || CLASS_LEVEL(ch, CLASS_WEAPON_MASTER) ||     \
                         CLASS_LEVEL(ch, CLASS_STALWART_DEFENDER) || CLASS_LEVEL(ch, CLASS_DUELIST) || \
                         CLASS_LEVEL(ch, CLASS_BERSERKER) || CLASS_LEVEL(ch, CLASS_PALADIN) ||         \
                         CLASS_LEVEL(ch, CLASS_RANGER))
 
-#define IS_NPC_CASTER(ch) (GET_CLASS(ch) == CLASS_CLERIC ||    \
-                           GET_CLASS(ch) == CLASS_WIZARD ||    \
-                           GET_CLASS(ch) == CLASS_DRUID ||     \
-                           GET_CLASS(ch) == CLASS_SORCERER ||  \
-                           GET_CLASS(ch) == CLASS_PALADIN ||   \
-                           GET_CLASS(ch) == CLASS_RANGER ||    \
-                           GET_CLASS(ch) == CLASS_ALCHEMIST || \
+#define IS_NPC_CASTER(ch) (GET_CLASS(ch) == CLASS_CLERIC ||         \
+                           GET_CLASS(ch) == CLASS_WIZARD ||         \
+                           GET_CLASS(ch) == CLASS_DRUID ||          \
+                           GET_CLASS(ch) == CLASS_SORCERER ||       \
+                           GET_CLASS(ch) == CLASS_PALADIN ||        \
+                           GET_CLASS(ch) == CLASS_RANGER ||         \
+                           GET_CLASS(ch) == CLASS_ALCHEMIST ||      \
                            GET_CLASS(ch) == CLASS_MYSTIC_THEURGE || \
-                           GET_CLASS(ch) == CLASS_ARCANE_ARCHER || \
-                           GET_CLASS(ch) == CLASS_ARCANE_SHADOW || \
+                           GET_CLASS(ch) == CLASS_ARCANE_ARCHER ||  \
+                           GET_CLASS(ch) == CLASS_ARCANE_SHADOW ||  \
+                           GET_CLASS(ch) == CLASS_SACRED_FIST ||    \
                            GET_CLASS(ch) == CLASS_BARD)
 
 /* 1 if ch is race, 0 if not */

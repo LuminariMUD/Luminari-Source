@@ -2125,6 +2125,11 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned)
     (mob)->aff_abils.dex += bonus;
     armor_class -= 50;
     break;
+  case CLASS_SACRED_FIST:
+    (mob)->aff_abils.wis += bonus;
+    (mob)->aff_abils.dex += bonus;
+    armor_class -= 50;
+    break;
   case CLASS_WARRIOR:
     (mob)->aff_abils.str += bonus;
     (mob)->aff_abils.con += bonus;

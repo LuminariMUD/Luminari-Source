@@ -844,35 +844,35 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
    * flat-footed. She loses these bonuses when she is immobilized or helpless,
    * when she wears any armor, when she carries a shield, or when she carries
    * a medium or heavy load. */
-  if (CLASS_LEVEL(ch, CLASS_MONK) && monk_gear_ok(ch))
+  if (MONK_TYPE(ch) && monk_gear_ok(ch))
   {
     bonuses[BONUS_TYPE_UNDEFINED] += GET_WIS_BONUS(ch);
 
-    if (CLASS_LEVEL(ch, CLASS_MONK) >= 4)
+    if (MONK_TYPE(ch) >= 4)
     {
       bonuses[BONUS_TYPE_UNDEFINED]++;
     }
-    if (CLASS_LEVEL(ch, CLASS_MONK) >= 8)
+    if (MONK_TYPE(ch) >= 8)
     {
       bonuses[BONUS_TYPE_UNDEFINED]++;
     }
-    if (CLASS_LEVEL(ch, CLASS_MONK) >= 12)
+    if (MONK_TYPE(ch) >= 12)
     {
       bonuses[BONUS_TYPE_UNDEFINED]++;
     }
-    if (CLASS_LEVEL(ch, CLASS_MONK) >= 16)
+    if (MONK_TYPE(ch) >= 16)
     {
       bonuses[BONUS_TYPE_UNDEFINED]++;
     }
-    if (CLASS_LEVEL(ch, CLASS_MONK) >= 20)
+    if (MONK_TYPE(ch) >= 20)
     {
       bonuses[BONUS_TYPE_UNDEFINED]++;
     }
-    if (CLASS_LEVEL(ch, CLASS_MONK) >= 24)
+    if (MONK_TYPE(ch) >= 24)
     {
       bonuses[BONUS_TYPE_UNDEFINED]++;
     }
-    if (CLASS_LEVEL(ch, CLASS_MONK) >= 28)
+    if (MONK_TYPE(ch) >= 28)
     {
       bonuses[BONUS_TYPE_UNDEFINED]++;
     }
@@ -3653,7 +3653,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   if (wielded)
     dambonus += GET_ENHANCEMENT_BONUS(wielded);
   /* monk glove enhancement bonus */
-  if (CLASS_LEVEL(ch, CLASS_MONK) && is_bare_handed(ch) && monk_gear_ok(ch) &&
+  if (MONK_TYPE(ch) && is_bare_handed(ch) && monk_gear_ok(ch) &&
       GET_EQ(ch, WEAR_HANDS) && GET_OBJ_VAL(GET_EQ(ch, WEAR_HANDS), 0))
     dambonus += GET_OBJ_VAL(GET_EQ(ch, WEAR_HANDS), 0);
 
@@ -3786,7 +3786,7 @@ void compute_barehand_dam_dice(struct char_data *ch, int *diceOne, int *diceTwo)
   if (!ch)
     return;
 
-  int monkLevel = CLASS_LEVEL(ch, CLASS_MONK);
+  int monkLevel = MONK_TYPE(ch);
 
   if (IS_NPC(ch))
   {
@@ -5248,7 +5248,7 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
   if (IS_WILDSHAPED(ch) || IS_MORPHED(ch))
     bonuses[BONUS_TYPE_ENHANCEMENT] = MAX(bonuses[BONUS_TYPE_ENHANCEMENT], HAS_FEAT(ch, FEAT_NATURAL_ATTACK) / 2);
   /* monk glove */
-  if (CLASS_LEVEL(ch, CLASS_MONK) && is_bare_handed(ch) && monk_gear_ok(ch) &&
+  if (MONK_TYPE(ch) && is_bare_handed(ch) && monk_gear_ok(ch) &&
       GET_EQ(ch, WEAR_HANDS) && GET_OBJ_VAL(GET_EQ(ch, WEAR_HANDS), 0))
     bonuses[BONUS_TYPE_ENHANCEMENT] = GET_OBJ_VAL(GET_EQ(ch, WEAR_HANDS), 0);
   /**/
@@ -5924,7 +5924,7 @@ int determine_weapon_type(struct obj_data *wielded) {
   int i = 0, count = 0;
   int damage_type = -1;
 
-  if (!wielded && CLASS_LEVEL(ch, CLASS_MONK))
+  if (!wielded && MONK_TYPE(ch))
     return DAMAGE_TYPE_BLUDGEONING;
   else if (!wielded)
     return DAMAGE_TYPE_NONLETHAL;
@@ -7065,20 +7065,20 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
   bonus_mainhand_attacks = MIN((BAB(ch) - 1) / 5, ATTACK_CAP);
 
   /* monk flurry of blows */
-  if (CLASS_LEVEL(ch, CLASS_MONK) && monk_gear_ok(ch) &&
+  if (MONK_TYPE(ch) && monk_gear_ok(ch) &&
       AFF_FLAGGED(ch, AFF_FLURRY_OF_BLOWS))
   {
     bonus_mainhand_attacks++;
     attacks_at_max_bab++;
-    if (CLASS_LEVEL(ch, CLASS_MONK) < 5)
+    if (MONK_TYPE(ch) < 5)
       penalty = -2; /* flurry penalty */
-    else if (CLASS_LEVEL(ch, CLASS_MONK) < 9)
+    else if (MONK_TYPE(ch) < 9)
       penalty = -1; /* 9th level+, no more penalty to flurry! */
     if (HAS_FEAT(ch, FEAT_GREATER_FLURRY))
     { /* FEAT_GREATER_FLURRY, 11th level */
       bonus_mainhand_attacks++;
       attacks_at_max_bab++;
-      if (CLASS_LEVEL(ch, CLASS_MONK) >= 15)
+      if (MONK_TYPE(ch) >= 15)
       {
         bonus_mainhand_attacks++;
         attacks_at_max_bab++;

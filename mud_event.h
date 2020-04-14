@@ -139,6 +139,7 @@ typedef enum
   ePSYCHOKINETIC,           // alchemical discovery psychokinetic tincture
   eIMPROMPT,                /*slice & dice!  impromptu sneak attacks*/
   /*110*/ eINVISIBLE_ROGUE, /* invisible rogue, SLA */
+  eSACRED_FLAMES,                /*flaming unarmed attacks!*/
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

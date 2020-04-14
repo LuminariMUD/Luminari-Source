@@ -657,6 +657,8 @@
 #define SKILL_COGNATOGEN 545
 #define SKILL_INSPIRING_COGNATOGEN 546
 #define SKILL_PSYCHOKINETIC 547
+#define SKILL_INNER_FIRE 548
+#define SKILL_SACRED_FLAMES 549
 
 /* reserving this space for different performances 580 - 599*/
 #define TOP_OF_PERFORMANCES 580
@@ -676,7 +678,7 @@
 #define END_OF_PERFORMANCES 600
 /**** end songs ****/
 /* New skills may be added here up to MAX_SKILLS (600) */
-#define NUM_SKILLS 538
+#define NUM_SKILLS 600
 
 /* Special Abilities for weapons */
 

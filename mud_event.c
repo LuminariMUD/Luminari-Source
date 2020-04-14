@@ -294,6 +294,9 @@ EVENTFUNC(event_countdown)
   case eRAGE:
     send_to_char(ch, "You are now able to Rage again.\r\n");
     break;
+  case eSACRED_FLAMES:
+    send_to_char(ch, "You are now able to use Sacred Flames again.\r\n");
+    break;
   case eMUTAGEN:
     send_to_char(ch, "You are now able to prepare another mutagen or cognatogen again.\r\n");
     break;
@@ -580,6 +583,10 @@ EVENTFUNC(event_daily_use_cooldown)
   case eRAGE:
     featnum = FEAT_RAGE;
     send_to_char(ch, "One of your rage uses has recovered.\r\n");
+    break;
+  case eSACRED_FLAMES:
+    featnum = FEAT_SACRED_FLAMES;
+    send_to_char(ch, "One of your sacred flames uses has recovered.\r\n");
     break;
   case eMUTAGEN:
     featnum = FEAT_MUTAGEN;

@@ -1477,7 +1477,7 @@ SPECIAL(tiamat)
           //GET_CLASS(i) == CLASS_GIANTSLAYER || GET_CLASS(i) == CLASS_BATTLERAGER)
           ovnum = 132101;
         /* Speed gauntlets */
-        if (GET_CLASS(i) == CLASS_MONK)
+        if (MONK_TYPE(i))
           ovnum = 132128;
         /* Rapier */
         //if (GET_CLASS(i) == CLASS_SWASHBUCKLER)

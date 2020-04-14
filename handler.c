@@ -427,13 +427,13 @@ void reset_char_points(struct char_data *ch)
   //  }
 }
 
-#define BASE_STAT_CAP 8
-#define HP_CAP 200
-#define PSP_CAP 300
-#define MOVE_CAP 999
-#define HITDAM_CAP 10
-#define AC_CAP -140
-#define SAVE_CAP 10
+#define BASE_STAT_CAP 20
+#define HP_CAP 300
+#define PSP_CAP 400
+#define MOVE_CAP 4000
+#define HITDAM_CAP 15
+#define AC_CAP -160
+#define SAVE_CAP 15
 #define RESIST_CAP 100
 void compute_char_cap(struct char_data *ch)
 {
@@ -443,16 +443,19 @@ void compute_char_cap(struct char_data *ch)
   int rage_bonus = 0;
 
   /* values are between 1..stat-cap, not < 1 and not > stat-cap */
+  /* trying to disable this -zusuk */
+  /*
   (ch)->aff_abils.dex = MAX(1, MIN(GET_DEX(ch), STAT_CAP));
   GET_INT(ch) = MAX(1, MIN(GET_INT(ch), STAT_CAP));
   GET_WIS(ch) = MAX(1, MIN(GET_WIS(ch), STAT_CAP));
   (ch)->aff_abils.con = MAX(1, MIN(GET_CON(ch), STAT_CAP));
   GET_CHA(ch) = MAX(1, MIN(GET_CHA(ch), STAT_CAP));
   (ch)->aff_abils.str = MAX(1, MIN(GET_STR(ch), STAT_CAP));
+  */
 
   (ch)->points.size = MAX(SIZE_FINE, MIN(GET_SIZE(ch), SIZE_COLOSSAL));
 
-  /* can add more restrictions to npc's above this if we like */
+  /* can add more restrictions to npc's above this line if we like */
   if (IS_NPC(ch))
     return;
 
@@ -552,6 +555,12 @@ void compute_char_cap(struct char_data *ch)
         hit_cap += class_level / 3;
         dam_cap += class_level / 3;
         break;
+      case CLASS_SACRED_FIST:
+        wis_cap += class_level / 4 + 1;
+        dex_cap += class_level / 4 + 1;
+        hit_cap += class_level / 3;
+        dam_cap += class_level / 3;
+        break;
       case CLASS_SHIFTER:
         str_cap += class_level / 4 + 1;
         dex_cap += class_level / 4 + 1;
@@ -622,19 +631,44 @@ void compute_char_cap(struct char_data *ch)
     }
   }
 
+  /* some more cap adjustments */
+
+  if (affected_by_spell(ch, SKILL_SACRED_FLAMES))
+  {
+    dam_cap += 20;
+  }  
+  if (affected_by_spell(ch, SPELL_BATTLETIDE))
+  {
+    /* increased this # drastically due to twilight proc -zusuk */
+    dam_cap += 20;
+    hit_cap += 20;
+  }  
+
+  /* debug */
+  send_to_char(ch, "\tGCharacter stat cap debug, ask staff to turn this off please:\tn\r\n"
+                   "Str cap: \tR%d\tn.\r\n"
+                   "Dex cap: \tR%d\tn.\r\n"
+                   "Con cap: \tR%d\tn.\r\n"
+                   "Int cap: \tR%d\tn.\r\n"
+                   "Wis cap: \tR%d\tn.\r\n"
+                   "Cha cap: \tR%d\tn.\r\n"
+                   "\r\n"
+                   "Hit cap: \tR%d\tn.\r\n"
+                   "Dam cap: \tR%d\tn.\r\n"
+                   , str_cap, dex_cap, con_cap, int_cap, wis_cap, cha_cap, hit_cap, dam_cap);
+  /* end debug */
+
   /* cap stats according to adjustments */
-  /* note zusuk added another +3 to the cap just to accomodate berserkers */
-  (ch)->aff_abils.dex = MIN(dex_cap + 4, GET_DEX(ch));
-  GET_INT(ch) = MIN(int_cap + 4, GET_INT(ch));
-  GET_WIS(ch) = MIN(wis_cap + 4, GET_WIS(ch));
-  (ch)->aff_abils.con = MIN(con_cap + 4, GET_CON(ch));
-  GET_CHA(ch) = MIN(cha_cap + 4, GET_CHA(ch));
-  (ch)->aff_abils.str = MIN(str_cap + 4, GET_STR(ch));
+  (ch)->aff_abils.dex = MIN(dex_cap, GET_DEX(ch));
+  GET_INT(ch) = MIN(int_cap, GET_INT(ch));
+  GET_WIS(ch) = MIN(wis_cap, GET_WIS(ch));
+  (ch)->aff_abils.con = MIN(con_cap, GET_CON(ch));
+  GET_CHA(ch) = MIN(cha_cap, GET_CHA(ch));
+  (ch)->aff_abils.str = MIN(str_cap, GET_STR(ch));
 
   GET_HITROLL(ch) = MIN(hit_cap, GET_HITROLL(ch));
   GET_DAMROLL(ch) = MIN(dam_cap, GET_DAMROLL(ch));
 }
-#undef STAT_CAP
 #undef BASE_STAT_CAP
 #undef HP_CAP
 #undef PSP_CAP

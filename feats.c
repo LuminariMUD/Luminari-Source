@@ -2839,13 +2839,24 @@ void assign_feats(void)
         "On conditions that would normally qualify one for a sneak attack, any damaging "
         "spells will now add sneak attack damage.");
 
+  /* sacred fist */
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
+  feato(FEAT_SACRED_FLAMES, "sacred flames", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
+        "bonus unarmed sacred damage of class level + wis mod for 1 minute",
+        "A sacred fist may invoke sacred flames around his hands and feet.  These flames add to the "
+        "sacred fist's unarmed damage.  The additional damage is equal to the sacred fist's class levels "
+        "plus his wisdom modifier (if any).  The sacred flame lasts for 1 minute.");
+  feato(FEAT_INNER_FLAME, "inner flame", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "+4 bonus to AC, Saves, +25 spell resist for limited time",
+        "A sacred fist may use inner armour once per day. This provides +4 "
+        "sacred bonus to AC, +4 sacred bonus to all saves, 25 spell resistance for a number "
+        "of rounds equal to his wisdom modifier plus class level.");
+
   /* stalwart defender */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   /*1*/ feato(FEAT_AC_BONUS, "AC bonus", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
               "+1 dodge AC bonus",
-              "A stalwart defender receives a dodge bonus to AC that starts at +1 and improves "
-              "as the defender gains levels, until it reaches +4 at 10th level.  This"
-              " feat stacks.");
+              "A dodge bonus to AC of +1 - this feat stacks.");
   /*1*/ feato(FEAT_DEFENSIVE_STANCE, "defensive stance", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
               "a position of readiness and trance-like determination",
               "At 1st level, a stalwart defender can enter a defensive stance, a position of readiness and trance-like determination."
@@ -3252,9 +3263,6 @@ void assign_feats(void)
   feato(FEAT_ENHANCE_SPELL, "increase spell damage", FALSE, TRUE, FALSE, FEAT_TYPE_METAMAGIC, "increase max number of damage dice for certain damage based spell by 5", "increase max number of damage dice for certain damage based spell by 5");
   feato(FEAT_AUTOMATIC_QUICKEN_SPELL, "automatic quicken spell", FALSE, TRUE, TRUE, FEAT_TYPE_METAMAGIC, "You can cast level 0, 1, 2 & 3 spells automatically as if quickened.  Every addition rank increases the max spell level by 3.", "You can cast level 0, 1, 2 & 3 spells automatically as if quickened.  Every addition rank increases the max spell level by 3.");
 
-  /* sacred fist */
-  feato(FEAT_SACRED_FLAMES, "sacred flames", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows you to use innate 'flame weapon' 3 times per 10 minutes", "allows you to use innate 'flame weapon' 3 times per 10 minutes");
-
   /* monk */
 
   /* End Class ability Feats */
@@ -3332,6 +3340,7 @@ void assign_feats(void)
   dailyfeat(FEAT_LAYHANDS, eLAYONHANDS);
   dailyfeat(FEAT_REMOVE_DISEASE, ePURIFY);
   dailyfeat(FEAT_RAGE, eRAGE);
+  dailyfeat(FEAT_SACRED_FLAMES, eSACRED_FLAMES);
   dailyfeat(FEAT_DEFENSIVE_STANCE, eDEFENSIVE_STANCE);
   dailyfeat(FEAT_VANISH, eVANISHED);
   dailyfeat(FEAT_INVISIBLE_ROGUE, eINVISIBLE_ROGUE);
@@ -4794,12 +4803,12 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (3x/day)", feat_list[i].name);
+          sprintf(buf3, "%s (%d / day)", feat_list[i].name, HAS_FEAT(ch, FEAT_SACRED_FLAMES));
           sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (3x/day)", feat_list[i].name);
+          sprintf(buf3, "%s (%d / day)", feat_list[i].name, HAS_FEAT(ch, FEAT_SACRED_FLAMES));
           sprintf(buf, "%-40s ", buf3);
         }
         strcat(buf2, buf);

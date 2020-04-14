@@ -157,6 +157,7 @@ int compute_bonus_caster_level(struct char_data *ch, int class) {
     case CLASS_RANGER:
     case CLASS_PALADIN:
       bonus_levels += CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE);
+      bonus_levels += CLASS_LEVEL(ch, CLASS_SACRED_FIST);
       break;
     default:break;
   }
@@ -189,6 +190,7 @@ int compute_divine_level(struct char_data *ch) {
 
   divine_level += CLASS_LEVEL(ch, CLASS_CLERIC);
   divine_level += CLASS_LEVEL(ch, CLASS_DRUID);
+  divine_level += CLASS_LEVEL(ch, CLASS_SACRED_FIST);
   divine_level += CLASS_LEVEL(ch, CLASS_PALADIN)/2;
   divine_level += CLASS_LEVEL(ch, CLASS_RANGER)/2;
   divine_level += CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE)/2;
@@ -3491,6 +3493,7 @@ int get_daily_uses(struct char_data *ch, int featnum) {
     case FEAT_SMITE_EVIL:/*fallthrough*/
     case FEAT_SMITE_GOOD:/*fallthrough*/
     case FEAT_RAGE:/*fallthrough*/
+    case FEAT_SACRED_FLAMES:/*fallthrough*/
     case FEAT_DEFENSIVE_STANCE:/*fallthrough*/
     case FEAT_QUIVERING_PALM:/*fallthrough*/
     case FEAT_ARROW_OF_DEATH:/*fallthrough*/

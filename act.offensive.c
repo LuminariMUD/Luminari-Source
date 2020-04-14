@@ -33,6 +33,7 @@
 
 /* defines */
 #define RAGE_AFFECTS 4
+#define SACRED_FLAMES_AFFECTS 1
 #define D_STANCE_AFFECTS 4
 
 /**** Utility functions *******/
@@ -212,6 +213,47 @@ void perform_powerfulblow(struct char_data *ch)
 
   send_to_char(ch, "You focus your rage and prepare a powerful blow.\r\n");
   act("$n's focuses $s rage, preparing a powerful blow!", FALSE, ch, 0, 0, TO_ROOM);
+}
+
+/* sacred flames engine */
+void perform_sacred_flames(struct char_data *ch)
+{
+  struct affected_type af;
+  int bonus = 0, duration = 0;
+
+  if (char_has_mud_event(ch, eSACRED_FLAMES))
+  {
+    send_to_char(ch, "You must wait longer before you can use this ability "
+                     "again.\r\n");
+    return;
+  }
+
+  if (affected_by_spell(ch, SKILL_SACRED_FLAMES)
+  {
+    send_to_char(ch, "You are already using sacred flames!\r\n");
+    return;
+  }
+
+  /* The additional damage is equal to the sacred fist's class levels plus his wisdom modifier */
+  bonus = GET_WIS_BONUS(ch) + CLASS_LEVEL(ch, CLASS_SACRED_FIST);
+
+  /* a little bit over a minute */
+  duration = 12;  
+
+  send_to_char(ch, "You activate \tWsacred \tRflames\tn!\r\n");
+  act("$n activates \tWsacred \tRflames\tn!", FALSE, ch, 0, 0, TO_ROOM);
+
+  new_affect(&af);
+
+  af.spell = SKILL_SACRED_FLAMES;
+  af.duration = duration;
+  af.location = APPLY_DAMROLL;
+  af.modifier = bonus;
+  af.bonus_type = BONUS_TYPE_SACRED;
+
+  affect_join(ch, af, FALSE, FALSE, FALSE, FALSE);
+
+  //attach_mud_event(new_mud_event(eSACRED_FLAMES, ch, NULL), (180 * PASSES_PER_SEC));
 }
 
 /* rage (berserk) engine */
@@ -528,8 +570,6 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill)
   {
   case SKILL_BODYSLAM:
   case SKILL_SHIELD_CHARGE:
-    attack_check = GET_STR_BONUS(ch);
-    break;
   case SKILL_BASH:
     attack_check = GET_STR_BONUS(ch);
     if (AFF_FLAGGED(vict, AFF_FLYING))
@@ -2027,6 +2067,28 @@ ACMD(do_rage)
 
   /* causing issues with balance? */
   GET_HIT(ch) += (bonus / 2) * GET_LEVEL(ch) + GET_CON_BONUS(ch);
+}
+
+/* sacred flames - sacred fist feat */
+ACMD(do_sacredflames)
+{
+  PREREQ_CAN_FIGHT();
+
+  if (!HAS_FEAT(ch, FEAT_SACRED_FLAMES)) {
+    send_to_char(ch, "You do not know how to use sacred flames...\r\n");
+    return;
+  }
+
+  if (!IS_NPC(ch))
+  {
+    PREREQ_HAS_USES(FEAT_RAGE, "You must recover before you can go into a rage.\r\n");
+  }
+
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_SACRED_FLAMES);
+
+  /*engine*/
+  perform_sacred_flames(ch);
 }
 
 ACMD(do_assist)
