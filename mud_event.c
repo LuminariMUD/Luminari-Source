@@ -157,6 +157,7 @@ struct mud_event_list mud_event_index[] = {
     /*110*/
     {"Invisible Rogue Cool Down", event_daily_use_cooldown, EVENT_CHAR}, //eINVISIBLE_ROGUE
     {"Sacred Flames Cool Down", event_daily_use_cooldown, EVENT_CHAR}, //eSACRED_FLAMES
+    {"Inner Fire Cool Down", event_daily_use_cooldown, EVENT_CHAR}, //eINNER_FIRE
 
 };
 
@@ -297,6 +298,9 @@ EVENTFUNC(event_countdown)
     break;
   case eSACRED_FLAMES:
     send_to_char(ch, "You are now able to use Sacred Flames again.\r\n");
+    break;
+  case eINNER_FIRE:
+    send_to_char(ch, "You are now able to use Inner Fire again.\r\n");
     break;
   case eMUTAGEN:
     send_to_char(ch, "You are now able to prepare another mutagen or cognatogen again.\r\n");
@@ -588,6 +592,10 @@ EVENTFUNC(event_daily_use_cooldown)
   case eSACRED_FLAMES:
     featnum = FEAT_SACRED_FLAMES;
     send_to_char(ch, "One of your sacred flames uses has recovered.\r\n");
+    break;
+  case eINNER_FIRE:
+    featnum = FEAT_INNER_FIRE;
+    send_to_char(ch, "One of your inner fire uses has recovered.\r\n");
     break;
   case eMUTAGEN:
     featnum = FEAT_MUTAGEN;

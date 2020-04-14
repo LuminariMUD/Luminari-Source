@@ -60,6 +60,8 @@ int compute_spell_res(struct char_data *ch, struct char_data *vict, int modifier
     resist += 2 * HAS_FEAT(vict, FEAT_IMPROVED_SPELL_RESISTANCE);
   if (affected_by_spell(vict, SPELL_PROTECT_FROM_SPELLS))
     resist += 10;
+  if (affected_by_spell(vict, SKILL_INNER_FIRE))
+    resist += 25;
   if (IS_AFFECTED(vict, AFF_SPELL_RESISTANT))
     resist += 12 + GET_LEVEL(vict);
   if (!IS_NPC(vict) && GET_EQ(vict, WEAR_SHIELD) &&

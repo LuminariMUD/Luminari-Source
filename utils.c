@@ -3494,6 +3494,7 @@ int get_daily_uses(struct char_data *ch, int featnum) {
     case FEAT_SMITE_GOOD:/*fallthrough*/
     case FEAT_RAGE:/*fallthrough*/
     case FEAT_SACRED_FLAMES:/*fallthrough*/
+    case FEAT_INNER_FIRE:/*fallthrough*/
     case FEAT_DEFENSIVE_STANCE:/*fallthrough*/
     case FEAT_QUIVERING_PALM:/*fallthrough*/
     case FEAT_ARROW_OF_DEATH:/*fallthrough*/

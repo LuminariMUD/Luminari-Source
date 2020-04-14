@@ -3272,9 +3272,6 @@ void mag_assign_spells(void)
         skillo(SKILL_EPIC_MAGE_ARMOR, "es epic mage armor", CASTER_SKILL);
         skillo(SKILL_EPIC_WARDING, "es epic warding", CASTER_SKILL);                //455
         skillo(SKILL_RAGE, "rage", ACTIVE_SKILL);                                   //456
-        skillo(SKILL_MUTAGEN, "mutagen", ACTIVE_SKILL);                             //
-        skillo(SKILL_COGNATOGEN, "cognatogen", ACTIVE_SKILL);                       //
-        skillo(SKILL_INSPIRING_COGNATOGEN, "inspriring cognatogen", ACTIVE_SKILL);  //
         skillo(SKILL_PROF_MINIMAL, "minimal weapon prof", PASSIVE_SKILL);           //457
         skillo(SKILL_PROF_BASIC, "basic weapon prof", PASSIVE_SKILL);               //458
         skillo(SKILL_PROF_ADVANCED, "advanced weapon prof", PASSIVE_SKILL);         //459
@@ -3359,10 +3356,18 @@ void mag_assign_spells(void)
         skillo(SKILL_DEATH_ARROW, "arrow of death", ACTIVE_SKILL);                  //538
         skillo(SKILL_DEFENSIVE_STANCE, "defensive stance", ACTIVE_SKILL);           //539
         skillo(SKILL_CRIPPLING_CRITICAL, "crippling critical", PASSIVE_SKILL);      //540
-        skillo(SKILL_DRHRT_CLAWS, "draconic heritage claws", ACTIVE_SKILL)          // 541
-            skillo(SKILL_DRHRT_WINGS, "draconic heritage wings", ACTIVE_SKILL)      // 542
-            /* songs */
-            skillo(SKILL_SONG_OF_FOCUSED_MIND, "song of focused mind", ACTIVE_SKILL);   //588
+        skillo(SKILL_DRHRT_CLAWS, "draconic heritage claws", ACTIVE_SKILL);          // 541
+        skillo(SKILL_DRHRT_WINGS, "draconic heritage wings", ACTIVE_SKILL);     // 542
+        skillo(SKILL_BOMB_TOSS, "bomb toss", ACTIVE_SKILL);  /* 543 */
+        skillo(SKILL_MUTAGEN, "mutagen", ACTIVE_SKILL);  /* 544 */
+        skillo(SKILL_COGNATOGEN, "cognatogen", ACTIVE_SKILL);  /* 545 */
+        skillo(SKILL_INSPIRING_COGNATOGEN, "inspiring cognatogen", ACTIVE_SKILL);  /* 546 */
+        skillo(SKILL_PSYCHOKINETIC, "psychokinetic", ACTIVE_SKILL);  /* 547 */
+        skillo(SKILL_INNER_FIRE, "inner fire", ACTIVE_SKILL);  /* 548 */
+        skillo(SKILL_SACRED_FLAMES, "sacred flames", ACTIVE_SKILL);  /* 549 */
+
+        /* songs */
+        skillo(SKILL_SONG_OF_FOCUSED_MIND, "song of focused mind", ACTIVE_SKILL);       //588
         skillo(SKILL_SONG_OF_FEAR, "song of fear", ACTIVE_SKILL);                       //589
         skillo(SKILL_SONG_OF_ROOTING, "song of rooting", ACTIVE_SKILL);                 //590
         skillo(SKILL_SONG_OF_THE_MAGI, "song of the magi", ACTIVE_SKILL);               //591
@@ -3374,7 +3379,7 @@ void mag_assign_spells(void)
         skillo(SKILL_ACT_OF_FORGETFULNESS, "skit of forgetfulness", ACTIVE_SKILL);      //597
         skillo(SKILL_SONG_OF_REVELATION, "song of revelation", ACTIVE_SKILL);           //598
         skillo(SKILL_SONG_OF_DRAGONS, "song of dragons", ACTIVE_SKILL);                 //599
-                                                                                        /* end songs */
+        /* end songs */
 
         /****note weapon specialist and luck of heroes inserted in free slots ***/
 }

@@ -34,6 +34,7 @@
 /* defines */
 #define RAGE_AFFECTS 4
 #define SACRED_FLAMES_AFFECTS 1
+#define INNER_FIRE_AFFECTS 6
 #define D_STANCE_AFFECTS 4
 
 /**** Utility functions *******/
@@ -215,6 +216,43 @@ void perform_powerfulblow(struct char_data *ch)
   act("$n's focuses $s rage, preparing a powerful blow!", FALSE, ch, 0, 0, TO_ROOM);
 }
 
+/* inner fire engine */
+void perform_inner_fire(struct char_data *ch)
+{
+  struct affected_type af[INNER_FIRE_AFFECTS];
+  int bonus = 0, duration = 0;
+
+  /* bonus of 4 */
+  bonus = 4;
+
+  /* a little bit over a minute */
+  duration = GET_WIS_BONUS(ch) + CLASS_LEVEL(ch, CLASS_SACRED_FIST);
+
+  send_to_char(ch, "You activate \tWinner \tRfire\tn!\r\n");
+  act("$n activates \tWinner \tRfire\tn!", FALSE, ch, 0, 0, TO_ROOM);
+
+  /* init affect array */
+  for (i = 0; i < INNER_FIRE_AFFECTS; i++)
+  {
+    new_affect(&(af[i]));
+    af[i].spell = SKILL_INNER_FIRE;
+    af[i].duration = duration;
+    af[i].modifier = bonus;
+    af[i].bonus_type = BONUS_TYPE_SACRED;
+  }
+
+  af[0].location = APPLY_AC_NEW;
+  af[1].location = APPLY_SAVING_FORT;
+  af[2].location = APPLY_SAVING_WILL;
+  af[3].location = APPLY_SAVING_REFL;
+  af[4].location = APPLY_SAVING_POISON;
+  af[5].location = APPLY_SAVING_DEATH;
+
+  for (i = 0; i < INNER_FIRE_AFFECTS; i++)
+    affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);
+
+}
+
 /* sacred flames engine */
 void perform_sacred_flames(struct char_data *ch)
 {
@@ -239,8 +277,6 @@ void perform_sacred_flames(struct char_data *ch)
   af.bonus_type = BONUS_TYPE_SACRED;
 
   affect_join(ch, &af, FALSE, FALSE, FALSE, FALSE);
-
-  //attach_mud_event(new_mud_event(eSACRED_FLAMES, ch, NULL), (180 * PASSES_PER_SEC));
 }
 
 /* rage (berserk) engine */
@@ -2058,6 +2094,35 @@ ACMD(do_rage)
   GET_HIT(ch) += (bonus / 2) * GET_LEVEL(ch) + GET_CON_BONUS(ch);
 }
 
+/* inner fire - sacred fist feat */
+ACMD(do_innerfire)
+{
+  PREREQ_CAN_FIGHT();
+
+  if (!HAS_FEAT(ch, FEAT_INNER_FIRE))
+  {
+    send_to_char(ch, "You do not know how to use inner fire...\r\n");
+    return;
+  }
+
+  if (affected_by_spell(ch, SKILL_INNER_FIRE))
+  {
+    send_to_char(ch, "You are already using inner fire!\r\n");
+    return;
+  }
+
+  if (!IS_NPC(ch))
+  {
+    PREREQ_HAS_USES(FEAT_INNER_FIRE, "You must recover before you can use inner fire again.\r\n");
+  }
+
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_INNER_FIRE);
+
+  /*engine*/
+  perform_inner_fire(ch);
+}
+
 /* sacred flames - sacred fist feat */
 ACMD(do_sacredflames)
 {
@@ -2066,13 +2131,6 @@ ACMD(do_sacredflames)
   if (!HAS_FEAT(ch, FEAT_SACRED_FLAMES))
   {
     send_to_char(ch, "You do not know how to use sacred flames...\r\n");
-    return;
-  }
-
-  if (char_has_mud_event(ch, eSACRED_FLAMES))
-  {
-    send_to_char(ch, "You must wait longer before you can use this ability "
-                     "again.\r\n");
     return;
   }
 

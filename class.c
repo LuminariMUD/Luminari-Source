@@ -5085,7 +5085,7 @@ void load_class_list(void)
   feat_assignment(CLASS_SACRED_FIST, FEAT_AC_BONUS, Y, 7, Y);
   feat_assignment(CLASS_SACRED_FIST, FEAT_SACRED_FLAMES, Y, 7, Y);
   feat_assignment(CLASS_SACRED_FIST, FEAT_SACRED_FLAMES, Y, 8, Y);
-  feat_assignment(CLASS_SACRED_FIST, FEAT_INNER_FLAME, Y, 9, N);
+  feat_assignment(CLASS_SACRED_FIST, FEAT_INNER_FIRE, Y, 9, N);
   feat_assignment(CLASS_SACRED_FIST, FEAT_GREATER_FLURRY, Y, 10, N);
   feat_assignment(CLASS_SACRED_FIST, FEAT_AC_BONUS, Y, 10, Y);
   /* no spell assignment */

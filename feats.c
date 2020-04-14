@@ -3341,6 +3341,7 @@ void assign_feats(void)
   dailyfeat(FEAT_REMOVE_DISEASE, ePURIFY);
   dailyfeat(FEAT_RAGE, eRAGE);
   dailyfeat(FEAT_SACRED_FLAMES, eSACRED_FLAMES);
+  dailyfeat(FEAT_INNER_FIRE, eINNER_FIRE);
   dailyfeat(FEAT_DEFENSIVE_STANCE, eDEFENSIVE_STANCE);
   dailyfeat(FEAT_VANISH, eVANISHED);
   dailyfeat(FEAT_INVISIBLE_ROGUE, eINVISIBLE_ROGUE);
