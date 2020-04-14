@@ -1419,7 +1419,7 @@
 #define FEAT_CRIPPLING_CRITICAL 360
 #define FEAT_DRAGON_MOUNT_BOOST 361
 #define FEAT_DRAGON_MOUNT_BREATH 362
-#define FEAT_SACRED_FLAMES 363
+#define FEAT_SACRED_FLAMES 363 /* sacred fist */
 #define FEAT_FINANCIAL_EXPERT 364
 #define FEAT_THEORY_TO_PRACTICE 365
 #define FEAT_RUTHLESS_NEGOTIATOR 366
@@ -1716,7 +1716,8 @@
 /* end arcane shadow */
 #define FEAT_WIS_AC_BONUS 627
 #define FEAT_LVL_AC_BONUS 628
-#define FEAT_INNER_FIRE 629
+#define FEAT_INNER_FIRE 629              /* sacred fist */
+#define FEAT_INNER_FLAME FEAT_INNER_FIRE /* sacred fist */
 
 /**************/
 /** reserved above feat# + 1**/
