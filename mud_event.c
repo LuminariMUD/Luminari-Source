@@ -156,6 +156,7 @@ struct mud_event_list mud_event_index[] = {
     {"Impromptu Sneak Attack", event_daily_use_cooldown, EVENT_CHAR},                    // eIMPROMPT
     /*110*/
     {"Invisible Rogue Cool Down", event_daily_use_cooldown, EVENT_CHAR}, //eINVISIBLE_ROGUE
+    {"Sacred Flames Cool Down", event_daily_use_cooldown, EVENT_CHAR}, //eSACRED_FLAMES
 
 };
 
