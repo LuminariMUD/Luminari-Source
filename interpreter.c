@@ -357,6 +357,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"imbuearrow", "imbuearrow", POS_FIGHTING, do_imbuearrow, 1, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"impromptu", "impromptu", POS_FIGHTING, do_impromptu, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_impromptu},
     {"invisiblerogue", "invisiblerogue", POS_DEAD, do_invisiblerogue, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"innerfire", "innerfire", POS_FIGHTING, do_innerfire, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
 
     {"junk", "j", POS_RECLINING, do_drop, 0, SCMD_JUNK, FALSE, ACTION_NONE, {0, 0}, NULL},
 
@@ -563,7 +564,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"struggle", "struggle", POS_RECLINING, do_struggle, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"seekerarrow", "seekerarrow", POS_FIGHTING, do_seekerarrow, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_seekerarrow},
     {"survey", "survey", POS_RECLINING, do_survey, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"sacredflames", "sacredflames", POS_FIGHTING, do_sacredflames, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_rage},
+    {"sacredflames", "sacredflames", POS_FIGHTING, do_sacredflames, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
 
     {"tell", "t", POS_DEAD, do_tell, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"take", "ta", POS_RECLINING, do_get, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},

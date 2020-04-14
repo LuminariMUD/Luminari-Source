@@ -407,6 +407,7 @@ ACMDCHECK(can_sap);
 ACMD(do_assist);
 ACMD(do_rage);
 ACMD(do_sacredflames);
+ACMD(do_innerfire);
 ACMDCHECK(can_rage);
 ACMD(do_defensive_stance);
 ACMDCHECK(can_defensive_stance);
