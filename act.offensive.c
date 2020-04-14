@@ -220,7 +220,7 @@ void perform_powerfulblow(struct char_data *ch)
 void perform_inner_fire(struct char_data *ch)
 {
   struct affected_type af[INNER_FIRE_AFFECTS];
-  int bonus = 0, duration = 0;
+  int bonus = 0, duration = 0, i = 0;
 
   /* bonus of 4 */
   bonus = 4;
@@ -250,7 +250,6 @@ void perform_inner_fire(struct char_data *ch)
 
   for (i = 0; i < INNER_FIRE_AFFECTS; i++)
     affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);
-
 }
 
 /* sacred flames engine */
@@ -2034,7 +2033,7 @@ ACMD(do_rage)
   }
 
   PREREQ_CHECK(can_rage);
- 
+
   if (!IS_NPC(ch))
   {
     PREREQ_HAS_USES(FEAT_RAGE, "You must recover before you can go into a rage.\r\n");
