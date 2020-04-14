@@ -2082,7 +2082,7 @@ ACMD(do_sacredflames)
 
   if (!IS_NPC(ch))
   {
-    PREREQ_HAS_USES(FEAT_RAGE, "You must recover before you can go into a rage.\r\n");
+    PREREQ_HAS_USES(FEAT_SACRED_FLAMES, "You must recover before you can use sacred flames again.\r\n");
   }
 
   if (!IS_NPC(ch))
