@@ -158,7 +158,6 @@ struct mud_event_list mud_event_index[] = {
     {"Invisible Rogue Cool Down", event_daily_use_cooldown, EVENT_CHAR}, //eINVISIBLE_ROGUE
     {"Sacred Flames Cool Down", event_daily_use_cooldown, EVENT_CHAR}, //eSACRED_FLAMES
     {"Inner Fire Cool Down", event_daily_use_cooldown, EVENT_CHAR}, //eINNER_FIRE
-
 };
 
 /* init_events() is the ideal function for starting global events. This
