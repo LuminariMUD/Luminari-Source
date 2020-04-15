@@ -2641,12 +2641,60 @@ ACMD(do_affects)
 
 ACMD(do_attacks)
 {
-  /* show cmb/d info */
-  send_to_char(ch, "Combat Maneuver Bonus: %d, Combat Maneuver Defense: %d.\r\n\r\n",
+  char arg[MAX_INPUT_LENGTH];
+  int mode = -1, attack_type = -1;
+
+  one_argument(argument, arg);
+
+  if (!*arg)
+  {
+      /* show cmb/d info */
+    send_to_char(ch, "Combat Maneuver Bonus: %d, Combat Maneuver Defense: %d.\r\n\r\n",
                compute_cmb(ch, 0), compute_cmd(ch, 0));
 #define DISPLAY_ROUTINE_POTENTIAL 2
-  perform_attacks(ch, DISPLAY_ROUTINE_POTENTIAL, 0);
+    perform_attacks(ch, DISPLAY_ROUTINE_POTENTIAL, 0);
 #undef DISPLAY_ROUTINE_POTENTIAL
+    send_to_char(ch, "\tC");
+    text_line(ch, "\tYTo view damage bonus breakdown: attacks hit|primary|offhand|ranged\tC", line_length, '-', '-');
+    send_to_char(ch, "\tn");
+
+    return;
+
+  } else if (is_abbrev(arg, "hit")) {
+    mode = MODE_NORMAL_HIT;
+    attack_type = ATTACK_TYPE_UNARMED;
+  } else if (is_abbrev(arg, "primary")) {
+    mode = MODE_DISPLAY_PRIMARY;
+    attack_type = ATTACK_TYPE_PRIMARY;
+  } else if (is_abbrev(arg, "offhand")) {
+    mode = MODE_DISPLAY_OFFHAND;
+    attack_type = ATTACK_TYPE_OFFHAND;
+  } else if (is_abbrev(arg, "ranged")) {
+    mode = MODE_DISPLAY_RANGED;
+    attack_type = ATTACK_TYPE_RANGED;    
+  } else {
+    send_to_char(ch, "Valid arguments: hit/primary/offhand/ranged.\r\n");
+    return;
+  }
+
+  struct char_data *attacker = FIGHTING(ch);
+  int line_length = 80;
+
+  send_to_char(ch, "\tC");
+  text_line(ch, "\tYDamage\tC", line_length, '-', '-');
+  send_to_char(ch, "\tn");
+
+  /* sending -1 for w_type will signal display mode */
+  compute_damage_bonus(ch, attacker, NULL, NULL, -1, mode, attack_type);
+
+  send_to_char(ch, "\tC");
+  draw_line(ch, line_length, '-', '-');
+  send_to_char(ch, "\tn\r\n");
+
+}
+
+ACMD(do_damage)
+{
 }
 
 ACMD(do_defenses)

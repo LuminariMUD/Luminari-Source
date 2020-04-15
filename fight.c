@@ -3487,10 +3487,15 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
  *   ATTACK_TYPE_BOMB_TOSS     : Alchemist - tossing bombs
  *   ATTACK_TYPE_PRIMARY_SNEAK : impromptu sneak attack, primary hand 
  *   ATTACK_TYPE_OFFHAND_SNEAK : impromptu sneak attack, offhand */
+/* using w_type -1 as a display mode */
 int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
                          struct obj_data *wielded, int w_type, int mod, int mode, int attack_type)
 {
   int dambonus = mod;
+  bool display_mode = FALSE;
+
+  if (w_type == -1)
+    display_mode = TRUE;
 
   /* redundancy necessary due to sometimes arriving here without going through
    * compute_hit_damage()*/
@@ -3501,6 +3506,8 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
 
   /* damroll (should be mostly just gear, spell affections) */
   dambonus += GET_DAMROLL(ch);
+  if (display_mode)
+    send_to_char(ch, "Damroll: \tR%d\tn\r\n", GET_DAMROLL(ch));
 
   /* strength bonus */
   switch (attack_type)
@@ -3509,25 +3516,47 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   case ATTACK_TYPE_PRIMARY:
   case ATTACK_TYPE_PRIMARY_SNEAK:
     if (affected_by_spell(ch, SKILL_DRHRT_CLAWS))
+    {
       dambonus += GET_STR_BONUS(ch);
+      if (display_mode)
+        send_to_char(ch, "Strength from Claws: \tR%d\tn\r\n", GET_STR_BONUS(ch));
+    }
     else if (GET_EQ(ch, WEAR_WIELD_2H) && !is_using_double_weapon(ch))
+    {
       dambonus += GET_STR_BONUS(ch) * 3 / 2; /* 2handed weapon */
+      if (display_mode)
+        send_to_char(ch, "Strength from 2Hand Weapon: \tR%d\tn\r\n", GET_STR_BONUS(ch) * 3 / 2);
+    }
     else if (hands_available(ch) > 0)
+    {
       dambonus += GET_STR_BONUS(ch) * 3 / 2; /* one handed weapon held in two hands because of empty off hand */
+      if (display_mode)
+        send_to_char(ch, "Strength from 1Hand Weapon, free offhand: \tR%d\tn\r\n", GET_STR_BONUS(ch) * 3 / 2);
+    }
     else
+    {
       dambonus += GET_STR_BONUS(ch);
+      if (display_mode)
+        send_to_char(ch, "Strength bonus: \tR%d\tn\r\n", GET_STR_BONUS(ch));
+    }
     break;
 
   case ATTACK_TYPE_OFFHAND:
   case ATTACK_TYPE_OFFHAND_SNEAK:
     dambonus += GET_STR_BONUS(ch) / 2;
+    if (display_mode)
+      send_to_char(ch, "Offhand strength bonus: \tR%d\tn\r\n", GET_STR_BONUS(ch) / 2);
     break;
 
   case ATTACK_TYPE_RANGED:
 
     /* strength penalties DO apply to ranged weapons */
     if (GET_STR_BONUS(ch) <= 0)
+    {
       dambonus += GET_STR_BONUS(ch);
+      if (display_mode)
+        send_to_char(ch, "ranged strength penalty: \tR%d\tn\r\n", GET_STR_BONUS(ch));
+    }
     else
     {
       /* some ranged weapons get various strength bonus */
@@ -3537,25 +3566,37 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
         {
         case WEAPON_TYPE_COMPOSITE_SHORTBOW:
         case WEAPON_TYPE_COMPOSITE_LONGBOW:
+          if (display_mode)
+            send_to_char(ch, "Comp bow (1) bonus: \tR%d\tn\r\n", MIN(1, GET_STR_BONUS(ch)));
           dambonus += MIN(1, GET_STR_BONUS(ch));
           break;
         case WEAPON_TYPE_COMPOSITE_LONGBOW_2:
         case WEAPON_TYPE_COMPOSITE_SHORTBOW_2:
+          if (display_mode)
+            send_to_char(ch, "Comp bow (2) bonus: \tR%d\tn\r\n", MIN(2, GET_STR_BONUS(ch)));
           dambonus += MIN(2, GET_STR_BONUS(ch));
           break;
         case WEAPON_TYPE_COMPOSITE_LONGBOW_3:
         case WEAPON_TYPE_COMPOSITE_SHORTBOW_3:
+          if (display_mode)
+            send_to_char(ch, "Comp bow (3) bonus: \tR%d\tn\r\n", MIN(3, GET_STR_BONUS(ch)));
           dambonus += MIN(3, GET_STR_BONUS(ch));
           break;
         case WEAPON_TYPE_COMPOSITE_LONGBOW_4:
         case WEAPON_TYPE_COMPOSITE_SHORTBOW_4:
+          if (display_mode)
+            send_to_char(ch, "Comp bow (4) bonus: \tR%d\tn\r\n", MIN(4, GET_STR_BONUS(ch)));
           dambonus += MIN(4, GET_STR_BONUS(ch));
           break;
         case WEAPON_TYPE_COMPOSITE_LONGBOW_5:
         case WEAPON_TYPE_COMPOSITE_SHORTBOW_5:
+          if (display_mode)
+            send_to_char(ch, "Comp bow (5) bonus: \tR%d\tn\r\n", MIN(5, GET_STR_BONUS(ch)));
           dambonus += MIN(5, GET_STR_BONUS(ch));
           break;
         case WEAPON_TYPE_SLING:
+          if (display_mode)
+            send_to_char(ch, "Sling strength bonus: \tR%d\tn\r\n", GET_STR_BONUS(ch));
           dambonus += GET_STR_BONUS(ch);
           break;
         default:
@@ -3567,14 +3608,23 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     if (vict && IN_ROOM(ch) == IN_ROOM(vict))
     {
       if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_POINT_BLANK_SHOT))
+      {
+        if (display_mode)
+          send_to_char(ch, "Point Blank Shot bonus: \tR1\tn\r\n");
         dambonus++;
+      }
     }
     break;
 
   case ATTACK_TYPE_UNARMED:
+    if (display_mode)
+      send_to_char(ch, "Unarmed strength bonus: \tR%d\tn\r\n", GET_STR_BONUS(ch));
     dambonus += GET_STR_BONUS(ch);
     break;
+
   case ATTACK_TYPE_TWOHAND:
+    if (display_mode)
+      send_to_char(ch, "Two-hand strength bonus: \tR%d\tn\r\n", GET_STR_BONUS(ch) * 3 / 2);
     dambonus += GET_STR_BONUS(ch) * 3 / 2; /* 2handed weapon */
     break;
 
@@ -3584,7 +3634,12 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
 
   // Sorcerer Draconic Bloodline Claw Attacks
   if (ch && vict && affected_by_spell(ch, SKILL_DRHRT_CLAWS) && CLASS_LEVEL(ch, CLASS_SORCERER) >= 11)
-    add_draconic_claws_elemental_damage(ch, vict);
+  {
+    if (display_mode)
+      send_to_char(ch, "Draconic claw elemental damage bonus: \tR%d\tn\r\n",
+                   add_draconic_claws_elemental_damage(ch, vict));
+    dambonus += add_draconic_claws_elemental_damage(ch, vict);
+  }
 
   /* penalties */
 
@@ -3599,6 +3654,8 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   case POS_MORTALLYW:
   case POS_DEAD:
     dambonus -= 2;
+    if (display_mode)
+      send_to_char(ch, "Position penalty: \tR-2\tn\r\n");
     break;
   case POS_FIGHTING:
   case POS_STANDING:
@@ -3608,21 +3665,33 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
 
   /* fatigued */
   if (AFF_FLAGGED(ch, AFF_FATIGUED))
+  {
+    if (display_mode)
+      send_to_char(ch, "Fatigue penalty: \tR-2\tn\r\n");
     dambonus -= 2;
+  }
 
   /* current implementation of intimidate */
   if (char_has_mud_event(ch, eINTIMIDATED))
   {
+    if (display_mode)
+      send_to_char(ch, "Intimidate penalty: \tR-6\tn\r\n");
     dambonus -= 6;
   }
 
   if (AFF_FLAGGED(ch, AFF_GRAPPLED) || AFF_FLAGGED(ch, AFF_ENTANGLED))
+  {
+    if (display_mode)
+      send_to_char(ch, "Grapple/Entangle penalty: \tR-2\tn\r\n");
     dambonus -= 2;
+  }
 
   /* end penalties */
 
   /* size */
   dambonus += size_modifiers[GET_SIZE(ch)];
+  if (display_mode)
+    send_to_char(ch, "Size modifier: \tR%d\tn\r\n", size_modifiers[GET_SIZE(ch)]);
 
   /* weapon specialist */
   if (HAS_FEAT(ch, FEAT_WEAPON_SPECIALIZATION))
@@ -3630,7 +3699,11 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     /* Check the weapon type, make sure it matches. */
     if (((wielded != NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_SPECIALIZATION), weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily)) ||
         ((wielded == NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_SPECIALIZATION), weapon_list[WEAPON_TYPE_UNARMED].weaponFamily)))
+    {
+      if (display_mode)
+        send_to_char(ch, "Weapon specializiation: \tR2\tn\r\n");
       dambonus += 2;
+    }
   }
 
   if (HAS_FEAT(ch, FEAT_GREATER_WEAPON_SPECIALIZATION))
@@ -3638,7 +3711,11 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     /* Check the weapon type, make sure it matches. */
     if (((wielded != NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_GREATER_WEAPON_SPECIALIZATION), weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily)) ||
         ((wielded == NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_GREATER_WEAPON_SPECIALIZATION), weapon_list[WEAPON_TYPE_UNARMED].weaponFamily)))
+    {
+      if (display_mode)
+        send_to_char(ch, "Greater weapon specializiation: \tR4\tn\r\n");
       dambonus += 4;
+    }
   }
 
   if (HAS_FEAT(ch, FEAT_EPIC_WEAPON_SPECIALIZATION))
@@ -3646,27 +3723,51 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     /* Check the weapon type, make sure it matches. */
     if (((wielded != NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_EPIC_WEAPON_SPECIALIZATION), weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily)) ||
         ((wielded == NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_EPIC_WEAPON_SPECIALIZATION), weapon_list[WEAPON_TYPE_UNARMED].weaponFamily)))
+    {
+      if (display_mode)
+        send_to_char(ch, "Greater weapon specializiation: \tR3\tn\r\n");
       dambonus += 3;
+    }
   }
 
   /* weapon enhancement bonus */
   if (wielded)
+  {
+    if (display_mode)
+      send_to_char(ch, "Weapon enhancement bonus: \tR%d\tn\r\n", GET_ENHANCEMENT_BONUS(wielded));
     dambonus += GET_ENHANCEMENT_BONUS(wielded);
+  }
+
   /* monk glove enhancement bonus */
   if (MONK_TYPE(ch) && is_bare_handed(ch) && monk_gear_ok(ch) &&
       GET_EQ(ch, WEAR_HANDS) && GET_OBJ_VAL(GET_EQ(ch, WEAR_HANDS), 0))
+  {
+    if (display_mode)
+      send_to_char(ch, "Monk glove enhancement bonus: \tR%d\tn\r\n", GET_OBJ_VAL(GET_EQ(ch, WEAR_HANDS), 0));
     dambonus += GET_OBJ_VAL(GET_EQ(ch, WEAR_HANDS), 0);
+  }
 
   /* ranged includes arrow enhancement bonus */
   if (can_fire_ammo(ch, TRUE))
   {
+    if (display_mode)
+      send_to_char(ch, "Ammo enhancement bonus: \tR%d\tn\r\n",
+                   GET_ENHANCEMENT_BONUS(GET_EQ(ch, WEAR_AMMO_POUCH)->contains));
     dambonus += GET_ENHANCEMENT_BONUS(GET_EQ(ch, WEAR_AMMO_POUCH)->contains);
+
+    if (HAS_FEAT(ch, FEAT_ENHANCE_ARROW_MAGIC) && display_mode)
+      send_to_char(ch, "Enhance ammo magic bonus: \tR%d\tn\r\n", HAS_FEAT(ch, FEAT_ENHANCE_ARROW_MAGIC));
     dambonus += HAS_FEAT(ch, FEAT_ENHANCE_ARROW_MAGIC);
   }
 
   /* wildshape bonus */
   if (IS_WILDSHAPED(ch) || IS_MORPHED(ch))
+  {
+    if (display_mode)
+      send_to_char(ch, "Natural attack bonus: \tR%d\tn\r\n",
+                   HAS_FEAT(ch, FEAT_NATURAL_ATTACK));
     dambonus += HAS_FEAT(ch, FEAT_NATURAL_ATTACK);
+  }
 
   /*
   if (wielded && GET_OBJ_MATERIAL(wielded) == MATERIAL_ADAMANTINE)
@@ -3679,36 +3780,54 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     if (GET_EQ(ch, WEAR_WIELD_2H) && !is_using_double_weapon(ch))
     {
       dambonus += COMBAT_MODE_VALUE(ch) * 2; /* 2h weapons gets 2x bonus */
+      if (display_mode)
+        send_to_char(ch, "2h power attack bonus: \tR%d\tn\r\n",
+                     COMBAT_MODE_VALUE(ch) * 2);
     }
     else
     {
       dambonus += COMBAT_MODE_VALUE(ch);
+      if (display_mode)
+        send_to_char(ch, "Power attack bonus: \tR%d\tn\r\n",
+                     COMBAT_MODE_VALUE(ch));
     }
   }
 
   /* crystal fist */
   if (char_has_mud_event(ch, eCRYSTALFIST_AFF))
+  {
     dambonus += 3;
+    if (display_mode)
+      send_to_char(ch, "Crystal fist bonus: \tR3\tn\r\n");
+  }
 
   /* smite evil (remove after one attack) */
   if (affected_by_spell(ch, SKILL_SMITE_EVIL) && vict && IS_EVIL(vict))
   {
+    if (display_mode)
+      send_to_char(ch, "Smite Evil bonus: \tR%d\tn\r\n", CLASS_LEVEL(ch, CLASS_PALADIN));
     dambonus += CLASS_LEVEL(ch, CLASS_PALADIN);
-    if (mode == MODE_NORMAL_HIT)
+    if (mode == MODE_NORMAL_HIT && !display_mode)
       affect_from_char(ch, SKILL_SMITE_EVIL);
   }
   /* smite good (remove after one attack) */
   if (affected_by_spell(ch, SKILL_SMITE_GOOD) && vict && IS_GOOD(vict))
   {
-    //dambonus += CLASS_LEVEL(ch, CLASS_PALADIN);
-    if (mode == MODE_NORMAL_HIT)
+    /*
+    if (display_mode)
+      send_to_char(ch, "Smite Good bonus: \tR%d\tn\r\n", CLASS_LEVEL(ch, CLASS_BLACKGUARD));
+    dambonus += CLASS_LEVEL(ch, CLASS_BLACKGUARD);
+    if (mode == MODE_NORMAL_HIT && !display_mode)
       affect_from_char(ch, SKILL_SMITE_GOOD);
+    */
   }
   /* destructive smite (remove after one attack) */
   if (affected_by_spell(ch, SKILL_SMITE_DESTRUCTION) && vict)
   {
-    dambonus += (CLASS_LEVEL(ch, CLASS_CLERIC) / 2) + 1;
-    if (mode == MODE_NORMAL_HIT)
+    if (display_mode)
+      send_to_char(ch, "Destructive Smite bonus: \tR%d\tn\r\n", (DIVINE_LEVEL(ch) / 2) + 1);
+    dambonus += (DIVINE_LEVEL(ch) / 2) + 1;
+    if (mode == MODE_NORMAL_HIT && !display_mode)
       affect_from_char(ch, SKILL_SMITE_DESTRUCTION);
   }
 
@@ -3718,17 +3837,27 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     // checking if we have humanoid favored enemies for PC victims
     if (!IS_NPC(vict) && IS_FAV_ENEMY_OF(ch, RACE_TYPE_HUMANOID))
     {
+      if (display_mode)
+        send_to_char(ch, "Favored enemy bonus: \tR%d\tn\r\n", CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2);
       dambonus += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
+
       if (HAS_FEAT(ch, FEAT_EPIC_FAVORED_ENEMY))
       {
+        if (display_mode)
+          send_to_char(ch, "Epic favored enemy bonus: \tR4\tn\r\n");
         dambonus += 4;
       }
     }
     else if (IS_NPC(vict) && IS_FAV_ENEMY_OF(ch, GET_RACE(vict)))
     {
+      if (display_mode)
+        send_to_char(ch, "Favored enemy bonus: \tR%d\tn\r\n", CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2);
       dambonus += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
+
       if (HAS_FEAT(ch, FEAT_EPIC_FAVORED_ENEMY))
       {
+        if (display_mode)
+          send_to_char(ch, "Epic favored enemy bonus: \tR4\tn\r\n");
         dambonus += 4;
       }
     }
@@ -3738,12 +3867,18 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   /* maximum of 6 damage 1 + level / 3 (past level 5) */
   if (HAS_FEAT(ch, FEAT_DIVINE_BOND))
   {
+    if (display_mode)
+      send_to_char(ch, "Divine bond bonus: \tR%d\tn\r\n",
+                   MIN(6, 1 + MAX(0, (CLASS_LEVEL(ch, CLASS_PALADIN) - 5) / 3)));
     dambonus += MIN(6, 1 + MAX(0, (CLASS_LEVEL(ch, CLASS_PALADIN) - 5) / 3));
   }
 
   /* morale bonus */
   if (affected_by_spell(ch, SKILL_POWERFUL_BLOW))
   {
+    if (display_mode)
+      send_to_char(ch, "Powerful blow bonus: \tR%d\tn\r\n",
+                   CLASS_LEVEL(ch, CLASS_BERSERKER) / 4 + 1);
     dambonus += CLASS_LEVEL(ch, CLASS_BERSERKER) / 4 + 1;
   } /* THIS IS JUST FOR SHOW, it gets taken out before the damage is calculated
      * the actual damage bonus is inserted in the damage code */
@@ -3751,29 +3886,51 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   /* if the victim is using 'come and get me' then they will be vulnerable */
   if (vict && affected_by_spell(vict, SKILL_COME_AND_GET_ME))
   {
+    if (display_mode)
+      send_to_char(ch, "Opponent has 'come and get me' bonus: \tR4\tn\r\n");
     dambonus += 4;
   }
 
   /* temporary filler for ki-strike until we get it working right */
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_KI_STRIKE))
+  {
+    if (display_mode)
+      send_to_char(ch, "Ki Strike bonus: \tR%d\tn\r\n",
+                   HAS_FEAT(ch, FEAT_KI_STRIKE));
     dambonus += HAS_FEAT(ch, FEAT_KI_STRIKE);
+  }
 
   /* precise strike mechanic for duelist */
+  if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_PRECISE_STRIKE) && HAS_FREE_HAND(ch) &&
+      compute_gear_armor_type(ch) <= ARMOR_TYPE_LIGHT)
+  {
+    if (display_mode)
+      send_to_char(ch, "Precise Strike bonus: \tR%d\tn\r\n",
+                   MAX(1, CLASS_LEVEL(ch, CLASS_DUELIST)));
+  }
   if (vict && !IS_IMMUNE_CRITS(vict) && !IS_NPC(ch) &&
       HAS_FEAT(ch, FEAT_PRECISE_STRIKE) && HAS_FREE_HAND(ch) &&
       compute_gear_armor_type(ch) <= ARMOR_TYPE_LIGHT)
   {
-    dambonus += MAX(0, CLASS_LEVEL(ch, CLASS_DUELIST));
+    dambonus += MAX(1, CLASS_LEVEL(ch, CLASS_DUELIST));
   }
 
   /* light blindness - dayblind, underdark/underworld penalties */
   if (!IS_NPC(ch) && IS_DAYLIT(IN_ROOM(ch)) && HAS_FEAT(ch, FEAT_LIGHT_BLINDNESS))
+  {
     dambonus -= 1;
+    if (display_mode)
+      send_to_char(ch, "Dayblind penalty: \tR-1\tn\r\n");
+  }
 
   /****************************************/
   /**** display, keep mods above this *****/
   /****************************************/
-  if (mode != MODE_NORMAL_HIT)
+  if (display_mode)
+  {
+    send_to_char(ch, "\tYTotal Damage Bonus:  \tR**%d**\tn\r\n\r\n", dambonus);
+  }
+  else if (mode != MODE_NORMAL_HIT)
   {
     send_to_char(ch, "Dam Bonus:  %d\r\n\r\n", dambonus);
   }

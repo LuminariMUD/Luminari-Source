@@ -146,11 +146,11 @@ int compute_mag_saves(struct char_data *vict,
   /* universal bonuses/penalties */
   if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_LUCK_OF_HEROES))
     saves += 1;
+  if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_LUCKY))
+    saves += 1; /* halfling feat */
   if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_DIVINE_GRACE))
     saves += GET_CHA_BONUS(vict);
   if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_LUCK_OF_HEROES))
-    saves++;
-  if (!IS_NPC(vict) && GET_RACE(vict) == RACE_HALFLING)
     saves++;
   if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_GRACE))
     saves += GET_CHA_BONUS(vict);
@@ -176,7 +176,6 @@ const char *save_names[] = {"Fort", "Refl", "Will", "", ""};
 // TRUE = resisted
 // FALSE = Failed to resist
 // modifier applies to victim, higher the better (for the victim)
-
 int mag_savingthrow(struct char_data *ch, struct char_data *vict,
                     int type, int modifier, int casttype, int level, int school)
 {
