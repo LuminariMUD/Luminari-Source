@@ -3206,6 +3206,10 @@ void mag_assign_spells(void)
                TAR_IGNORE, TRUE, 0,
                NULL, 0, 0, NOSCHOOL, FALSE);
 
+        spello(PSYCHOKINETIC_FEAR, "psychokinetic fear", 0, 0, 0, POS_SITTING,
+               TAR_IGNORE, TRUE, 0,
+               NULL, 0, 0, NOSCHOOL, FALSE);
+
         spello(SPELL_DG_AFFECT, "Afflicted", 0, 0, 0, POS_SITTING,
                TAR_IGNORE, TRUE, 0,
                NULL, 0, 0, NOSCHOOL, FALSE);

@@ -1275,6 +1275,9 @@ int resize(char *argument, struct obj_data *kit, struct char_data *ch)
 
   /* "cost" of resizing */
   cost = GET_OBJ_COST(obj) / 2;
+  // if it's a race changing the size to their own so they can use it normally, we don't want to penalize them with a cost in gold
+  if (newsize == GET_SIZE(ch))
+    cost = 0;
   if (GET_GOLD(ch) < cost)
   {
     send_to_char(ch, "You need %d coins on hand for supplies to resize this "
@@ -1303,10 +1306,11 @@ int resize(char *argument, struct obj_data *kit, struct char_data *ch)
     }
   }
 
-  send_to_char(ch, "It cost you %d coins to resize this item.\r\n",
-               cost);
-  GET_GOLD(ch) -= cost;
-
+  if (cost > 0) {
+    send_to_char(ch, "It cost you %d coins to resize this item.\r\n",
+                 cost);
+    GET_GOLD(ch) -= cost;
+  }
   send_to_char(ch, "You begin to resize %s from %s to %s.\r\n",
                obj->short_description, size_names[GET_OBJ_SIZE(obj)],
                size_names[newsize]);
@@ -2199,14 +2203,17 @@ EVENTFUNC(event_crafting)
       exp = GET_LEVEL(ch) * 2;
     }
 
-    gain_exp(ch, exp, GAIN_EXP_MODE_CRAFT);
-    send_to_char(ch, "You gained %d exp for crafting...\r\n", exp);
+    if (GET_CRAFTING_TYPE(ch) == SCMD_RESIZE)
+      exp = 0;
+    if (exp > 0) {
+      gain_exp(ch, exp, GAIN_EXP_MODE_CRAFT);
+      send_to_char(ch, "You gained %d exp for crafting...\r\n", exp);
+    }
     send_to_char(ch, "You have approximately %d seconds "
                      "left to go.\r\n",
                  GET_CRAFTING_TICKS(ch) * 6);
 
-    GET_CRAFTING_TICKS(ch)
-    --;
+    GET_CRAFTING_TICKS(ch)--;
 
     /* skill notch */
     if (GET_SKILL(ch, SKILL_FAST_CRAFTER) < 99)

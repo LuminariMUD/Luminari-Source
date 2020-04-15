@@ -983,8 +983,8 @@ void perform_bomb_direct_damage(struct char_data *ch, struct char_data *victim, 
 {
 
   int ndice = HAS_FEAT(ch, FEAT_BOMBS),
-      sdice = 6,
-      damMod = GET_INT_BONUS(ch),
+      sdice = (HAS_FEAT(ch, FEAT_BOMB_MASTERY) ? 8 : 6),
+      damMod = GET_INT_BONUS(ch) * (HAS_FEAT(ch, FEAT_BOMB_MASTERY) ? 2 : 1),
       damType = DAM_FIRE,
       saveType = SAVING_REFL,
       dam = 0,
@@ -1099,8 +1099,8 @@ void perform_bomb_splash_damage(struct char_data *ch, struct char_data *victim, 
   if (!PRF_FLAGGED(ch, PRF_AOE_BOMBS))
     return;
 
-  int ndice = HAS_FEAT(ch, FEAT_BOMBS),
-      damMod = GET_INT_BONUS(ch),
+  int ndice = (int) (HAS_FEAT(ch, FEAT_BOMBS) * (HAS_FEAT(ch, FEAT_BOMB_MASTERY) ? 1.5 : 1)),
+      damMod = GET_INT_BONUS(ch) * (HAS_FEAT(ch, FEAT_BOMB_MASTERY) ? 2 : 1),
       damType = DAM_FIRE,
       saveType = SAVING_REFL,
       dam = 0,
@@ -1374,6 +1374,11 @@ void perform_bomb_direct_effect(struct char_data *ch, struct char_data *victim, 
     af2.duration++;
     af3.duration++;
   }
+  if (HAS_FEAT(ch, FEAT_BOMB_MASTERY)) {
+    af.duration += 2;
+    af2.duration += 2;
+    af3.duration += 2;
+  }
 
   if (af.spell == 0)
     return;
@@ -1460,6 +1465,11 @@ void perform_bomb_splash_effect(struct char_data *ch, struct char_data *victim, 
   if (af.spell == 0)
     return;
 
+  if (HAS_FEAT(ch, FEAT_BOMB_MASTERY)) {
+    af.duration += 1;
+    af2.duration += 1;
+  }
+
   for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
   {
     if (is_player_grouped(ch, tch))
@@ -1508,6 +1518,9 @@ void perform_bomb_direct_healing(struct char_data *ch, struct char_data *victim,
     break;
   }
 
+  if (HAS_FEAT(ch, FEAT_BOMB_MASTERY))
+    healing *= 1.5;
+
   if (to_vict != NULL)
     act(to_vict, FALSE, victim, 0, ch, TO_CHAR);
   if (to_room != NULL)
@@ -1540,6 +1553,9 @@ void perform_bomb_self_effect(struct char_data *ch, struct char_data *victim, in
   if (af.spell == 0)
     return;
 
+  if (HAS_FEAT(ch, FEAT_BOMB_MASTERY))
+    af.duration += 2;
+
   if (to_vict != NULL)
     act(to_vict, FALSE, victim, 0, ch, TO_CHAR);
   if (to_room != NULL)
@@ -1569,7 +1585,7 @@ void perform_bomb_spell_effect(struct char_data *ch, struct char_data *victim, i
   if (spellnum == -1)
     return;
 
-  call_magic(ch, victim, NULL, spellnum, 0, CLASS_LEVEL(ch, CLASS_ALCHEMIST), CAST_BOMB);
+  call_magic(ch, victim, NULL, spellnum, 0, CLASS_LEVEL(ch, CLASS_ALCHEMIST) += (HAS_FEAT(ch, FEAT_BOMB_MASTERY) ? 5 : 0), CAST_BOMB);
 }
 
 /* Alchemical discovery prerequisites */
@@ -1937,6 +1953,11 @@ ACMDCHECK(can_swallow)
 void perform_mutagen(struct char_data *ch, char *arg2)
 {
 
+  if (!IS_NPC(ch))
+  {
+    PREREQ_HAS_USES(FEAT_MUTAGEN, "You must wait some time before you can prepare another mutagen or cognatogen.\r\n");
+  }
+
   struct affected_type af, af2, af3, af4, af5, af6, af7;
   int duration = 0, mod1 = 0, mod2 = 0, mod3 = 0, mod4 = 0;
 
@@ -2033,7 +2054,7 @@ void perform_mutagen(struct char_data *ch, char *arg2)
 
   if (GET_GRAND_DISCOVERY(ch) == GR_ALC_DISC_TRUE_MUTAGEN)
   {
-    af.modifier = af3.modifier = af4.modifier = af5.modifier = 8;
+    mod1 = af5.modifier = mod3 = mod4 = 8;
     af2.modifier = af6.modifier = af7.modifier = mod2;
     af2.location = APPLY_INT;
     af6.location = APPLY_WIS;
@@ -2110,6 +2131,10 @@ void perform_mutagen(struct char_data *ch, char *arg2)
 
 void perform_elemental_mutagen(struct char_data *ch, char *arg2)
 {
+  if (!IS_NPC(ch))
+  {
+    PREREQ_HAS_USES(FEAT_MUTAGEN, "You must wait some time before you can prepare another mutagen or cognatogen.\r\n");
+  }
 
   struct affected_type af, af2;
   int duration = 0, mod1 = 5, mod2 = 5;
@@ -2191,6 +2216,11 @@ void perform_elemental_mutagen(struct char_data *ch, char *arg2)
 
 void perform_cognatogen(struct char_data *ch, char *arg2)
 {
+
+  if (!IS_NPC(ch))
+  {
+    PREREQ_HAS_USES(FEAT_MUTAGEN, "You must wait some time before you can prepare another mutagen or cognatogen.\r\n");
+  }
 
   struct affected_type af, af2, af3, af4, af5, af6, af7;
   int duration = 0, mod1 = 0, mod2 = 0, mod3 = 0, mod4 = 0;
@@ -2365,6 +2395,11 @@ void perform_cognatogen(struct char_data *ch, char *arg2)
 void perform_inspiring_cognatogen(struct char_data *ch)
 {
 
+  if (!IS_NPC(ch))
+  {
+    PREREQ_HAS_USES(FEAT_MUTAGEN, "You must wait some time before you can prepare another mutagen or cognatogen.\r\n");
+  }
+
   struct affected_type af, af2, af3, af4, af5;
   int duration = 0, mod1 = 0, mod2 = 0, mod3 = 0, mod4 = 0, mod5 = 0;
 
@@ -2480,11 +2515,6 @@ ACMD(do_swallow)
   }
 
   PREREQ_CHECK(can_swallow);
-
-  if (!IS_NPC(ch))
-  {
-    PREREQ_HAS_USES(FEAT_MUTAGEN, "You must wait some time before you can prepare another mutagen or cognatogen.\r\n");
-  }
 
   two_arguments(argument, arg1, arg2);
 
@@ -2696,6 +2726,7 @@ ACMD(do_psychokinetic)
 {
 
   char buf[200];
+  struct affected_type af, af2;
 
   // do they know how to do it?
   if (!KNOWS_DISCOVERY(ch, ALC_DISC_PSYCHOKINETIC_TINCTURE))
@@ -2728,17 +2759,11 @@ ACMD(do_psychokinetic)
       return;
     }
 
-    struct affected_type af;
-
     af.spell = ALC_DISC_AFFECT_PSYCHOKINETIC;
     af.duration = 50 * CLASS_LEVEL(ch, CLASS_ALCHEMIST);
     af.modifier = MAX(1, CLASS_LEVEL(ch, CLASS_ALCHEMIST) / 4);
     af.location = APPLY_AC_NEW;
     af.bonus_type = BONUS_TYPE_DEFLECTION;
-    if (PRF_FLAGGED(ch, PRF_FRIGHTENED))
-      SET_BIT_AR(af.bitvector, AFF_FEAR);
-    else
-      SET_BIT_AR(af.bitvector, AFF_SHAKEN);
 
     affect_to_char(ch, &af);
     sprintf(buf, "You drink your psychokinetic tincture and are suddenly surrounded by %d protective spirit%s.\r\n", af.modifier, af.modifier == 1 ? "" : "s");
@@ -2747,7 +2772,7 @@ ACMD(do_psychokinetic)
     act(buf, FALSE, ch, 0, 0, TO_ROOM);
 
     if (!IS_NPC(ch))
-      start_daily_use_cooldown(ch, FEAT_MUTAGEN);
+      start_daily_use_cooldown(ch, FEAT_PSYCHOKINETIC);
 
     if (!IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_ALCHEMIST) < 1)
     {
@@ -2798,10 +2823,24 @@ ACMD(do_psychokinetic)
     {
       act("You are filled with terror.", FALSE, ch, 0, victim, TO_VICT);
       act("$N is filled with terror.", FALSE, ch, 0, victim, TO_ROOM);
-      if (PRF_FLAGGED(ch, PRF_FRIGHTENED))
+
+      if (PRF_FLAGGED(victim, PRF_FRIGHTENED))
       {
         do_flee(victim, 0, 0, 0);
       }
+
+      af2.spell = PSYCHOKINETIC_FEAR;
+      af2.duration = CLASS_LEVEL(ch, CLASS_ALCHEMIST);
+      af2.modifier = -2;
+      af2.location = APPLY_WIS;
+      af2.bonus_type = BONUS_TYPE_MORALE;
+
+      if (PRF_FLAGGED(victim, PRF_FRIGHTENED))
+        SET_BIT_AR(af2.bitvector, AFF_FEAR);
+      else
+        SET_BIT_AR(af2.bitvector, AFF_SHAKEN);
+
+      affect_to_char(victim, &af2);
 
       struct affected_type *af = NULL;
       for (af = ch->affected; af; af = af->next)
