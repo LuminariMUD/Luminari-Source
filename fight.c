@@ -124,11 +124,6 @@ static char *replace_string(const char *str, const char *weapon_singular,
 
 #define IS_WEAPON(type) (((type) >= TOP_ATTACK_TYPES) && ((type) < BOT_WEAPON_TYPES))
 
-#define MODE_NORMAL_HIT 0      //Normal damage calculating in hit()
-#define MODE_DISPLAY_PRIMARY 2 //Display damage info primary
-#define MODE_DISPLAY_OFFHAND 3 //Display damage info offhand
-#define MODE_DISPLAY_RANGED 4  //Display damage info ranged
-
 /************ utility functions *********************/
 
 /* simple utility function to check if ch is tanking */

@@ -2694,7 +2694,7 @@ ACMD(do_attacks)
   send_to_char(ch, "\tn");
 
   /* sending -1 for w_type will signal display mode */
-  compute_damage_bonus(ch, attacker, NULL, NULL, -1, mode, attack_type);
+  compute_damage_bonus(ch, attacker, NULL, -1, 0, mode, attack_type);
 
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
