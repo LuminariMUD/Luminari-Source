@@ -19,6 +19,11 @@
 #define MODE_ARMOR_CLASS_PENALTIES 2
 #define MODE_ARMOR_CLASS_DISPLAY 3
 
+#define MODE_NORMAL_HIT 0      //Normal damage calculating in hit()
+#define MODE_DISPLAY_PRIMARY 2 //Display damage info primary
+#define MODE_DISPLAY_OFFHAND 3 //Display damage info offhand
+#define MODE_DISPLAY_RANGED 4  //Display damage info ranged
+
 #define SKILL_MESSAGE_MISS_FAIL 0
 #define SKILL_MESSAGE_MISS_GENERIC 1
 #define SKILL_MESSAGE_MISS_SHIELDBLOCK 2
