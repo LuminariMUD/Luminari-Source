@@ -12,8 +12,8 @@
 #ifndef _HOUSE_H_
 #define _HOUSE_H_
 
-#define MAX_HOUSES 100
-#define MAX_GUESTS 10
+#define MAX_HOUSES 999
+#define MAX_GUESTS 99
 
 #define HOUSE_PRIVATE 0
 #define HOUSE_GOD 1  /* Imm owned house */

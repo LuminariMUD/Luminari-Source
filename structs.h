@@ -2680,7 +2680,7 @@
 // other MAX_ defines
 #define MAX_WEAPON_SPELLS 3
 #define MAX_BAB 50
-#define MAX_DAM_BONUS 60
+#define MAX_DAM_BONUS 120
 #define MAX_AC 60
 #define MAX_CONCEAL 50 // its percentage
 #define MAX_DAM_REDUC 20
