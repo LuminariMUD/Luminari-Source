@@ -492,7 +492,8 @@
 /* end unfinished list */
 #define ALC_DISC_AFFECT_PSYCHOKINETIC 383
 #define SPELL_AUGURY 384
-#define LAST_SPELL_DEFINE 384
+#define PSYCHOKINETIC_FEAR 385
+#define LAST_SPELL_DEFINE 385
 
 /* Other files to be aware of for new spells:
  * 1)  if you want this spell to be avaiable as a npc spellup, mobact.c

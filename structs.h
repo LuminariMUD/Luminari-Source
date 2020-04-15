@@ -1718,12 +1718,16 @@
 #define FEAT_LVL_AC_BONUS 628
 #define FEAT_INNER_FIRE 629              /* sacred fist */
 #define FEAT_INNER_FLAME FEAT_INNER_FIRE /* sacred fist */
+// more alchemist
+#define FEAT_BOMB_MASTERY 630
+// end more alchemist
+
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 630
+#define FEAT_LAST_FEAT 631
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 631
+#define NUM_FEATS 632
 /** absolute cap **/
 #define MAX_FEATS 750
 /*****/

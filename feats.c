@@ -2563,6 +2563,9 @@ void assign_feats(void)
   feato(FEAT_PURITY_OF_BODY, "purity of body", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "immune to poison",
         "immune to poison");
+  feato(FEAT_POISON_IMMUNITY, "poison immunity", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "immune to poison",
+        "immune to poison");
   feato(FEAT_QUIVERING_PALM, "quivering palm", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "chance to kill on strike with unarmed attack",
         "You will do your wisdom bonus as bonus damage to your next unarmed strike, "
@@ -3049,6 +3052,9 @@ void assign_feats(void)
         "Allows an alchemist to create and toss bombs at foes.  See HELP ALCHEMIST-BOMBS "
         "for more information. Also see HELP AOEBOMBS for information on how to target "
         "your bombs.");
+  feato(FEAT_BOMB_MASTERY, "bomb mastery", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
+        "All bombs have an increased effect.",
+        "All bombs have an increased effect.");
   feato(FEAT_ALCHEMICAL_DISCOVERY, "alchemical discovery", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
         "allows the alchemist to select from a list of bomb, mutagen and other enhancements",
         "Allows an alchemist to select among a list of discoveries that will improve the "
