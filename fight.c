@@ -6970,7 +6970,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
           TO_NOTVICT);
 
       /* fire any parry specs we might have */
-      struct obj_data opp_wpn = get_wielded(victim, ATTACK_TYPE_PRIMARY);
+      struct obj_data *opp_wpn = get_wielded(victim, ATTACK_TYPE_PRIMARY);
       if (opp_wpn && !rand_number(0, 4))
       {
         int (*name)(struct char_data * victim, void *me, int cmd, char *argument);
@@ -6996,7 +6996,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
       --;
 
       /* fire any parry specs we might have */
-      struct obj_data opp_wpn = get_wielded(victim, ATTACK_TYPE_PRIMARY);
+      struct obj_data *opp_wpn = get_wielded(victim, ATTACK_TYPE_PRIMARY);
       if (opp_wpn && !rand_number(0, 4))
       {
         int (*name)(struct char_data * victim, void *me, int cmd, char *argument);
