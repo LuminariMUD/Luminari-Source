@@ -1586,7 +1586,7 @@ void parse_room(FILE *fl, int virtual_nr)
     world[room_nr].room_flags[2] = asciiflag_conv(flags3);
     world[room_nr].room_flags[3] = asciiflag_conv(flags4);
 
-    sprintf(flags, "object #%d", virtual_nr); /* sprintf: OK (until 399-bit integers) */
+    sprintf(flags, "room #%d", virtual_nr); /* sprintf: OK (until 399-bit integers) */
     for (taeller = 0; taeller < AF_ARRAY_MAX; taeller++)
       check_bitvector_names(world[room_nr].room_flags[taeller], room_bits_count, flags, "room");
 
@@ -2999,9 +2999,6 @@ char *parse_object(FILE *obj_f, int nr)
       exit(1);
     }
   }
-
-
-
 }
 
 #define Z zone_table[zone]
@@ -3633,7 +3630,8 @@ struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */
   {
     if (obj->affected[j].modifier)
     {
-      if (obj->affected[j].bonus_type == BONUS_TYPE_UNDEFINED) {
+      if (obj->affected[j].bonus_type == BONUS_TYPE_UNDEFINED)
+      {
         obj->affected[j].bonus_type = BONUS_TYPE_ENHANCEMENT;
       }
     }
