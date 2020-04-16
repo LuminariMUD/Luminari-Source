@@ -6971,7 +6971,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
 
       /* fire any parry specs we might have */
       struct obj_data *opp_wpn = get_wielded(victim, ATTACK_TYPE_PRIMARY);
-      if (opp_wpn && !rand_number(0, 4))
+      if (opp_wpn && !rand_number(0, 3))
       {
         int (*name)(struct char_data * victim, void *me, int cmd, char *argument);
         name = obj_index[GET_OBJ_RNUM(opp_wpn)].func;
@@ -6997,7 +6997,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
 
       /* fire any parry specs we might have */
       struct obj_data *opp_wpn = get_wielded(victim, ATTACK_TYPE_PRIMARY);
-      if (opp_wpn && !rand_number(0, 4))
+      if (opp_wpn && !rand_number(0, 3))
       {
         int (*name)(struct char_data * victim, void *me, int cmd, char *argument);
         name = obj_index[GET_OBJ_RNUM(opp_wpn)].func;
