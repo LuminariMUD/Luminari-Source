@@ -1091,23 +1091,20 @@ SPECIAL(cf_alathar)
 /* unfinished */
 SPECIAL(tia_rapier)
 {
-  //struct affected_type af;
   struct char_data *vict = FIGHTING(ch);
+
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "Proc: dancing parry\r\n");
+    send_to_char(ch, "Proc: dragon strike\r\n");
+    send_to_char(ch, "Proc: dragon gaze\r\n");
+    return TRUE;
+  }
 
   if (!ch || cmd || GET_POS(ch) == POS_DEAD)
     return 0;
 
-  /*
-  if (GET_CLASS(ch) != CLASS_SWASHBUCKLER) {
-    send_to_char("&cLToxins flow into your &cRblood &crstream &cLpumping&c0\r\n"
-                 "&cLslowly through your body.  Your skin &cgw&cyr&cgi&cyt&cgh&cye&cgs&c0\r\n"
-                 "&cLas your &cRblood b&cru&cRr&crn&cRs &cLat its roots.&c0\r\n", ch);
-    act("&cw$n &cLshudders &cw as &cytoxins &cwseep into $s body.&c0\r\n", FALSE, ch, 0, ch, TO_ROOM);
-    return damage(ch, ch, number(20, 50), TYPE_UNDEFINED, DAMBIT_PHYSICAL);
-  }
-   */
-
-  if (!strcmp(argument, "parry") && !rand_number(0, 6))
+  if (!strcmp(argument, "parry"))
   {
     act("\tLYour \tcrapier \tCglows brightly\tL as it steals some \trlifeforce\tn "
         "\tLfrom $N \tLand transfers it back to you.\tn",
@@ -1118,14 +1115,14 @@ SPECIAL(tia_rapier)
     act("$n's \tcrapier \tCglows brightly\tL as it steals some \trlifeforce\tn "
         "\tLfrom you and transfers it back to $m.\tn",
         FALSE, ch, (struct obj_data *)me, vict, TO_VICT);
-    damage(ch, vict, 5, -1, DAM_ENERGY, FALSE); // type -1 = no dam message
+    damage(ch, vict, dice(5, 5), -1, DAM_ENERGY, FALSE); // type -1 = no dam message
     call_magic(ch, ch, 0, SPELL_CURE_LIGHT, 0, 1, CAST_SPELL);
     return 1;
   }
 
   if (vict)
   {
-    if (!rand_number(0, 45))
+    if (!rand_number(0, 30))
     {
       act("\tWA \tBwave \tWof \tDdarkness \tBoozes \tWslowly from your sword, \tbengulfing \tWthe \tn\r\n"
           "\tWarea in a \tLvoid \tWof \tLblack.\tW  You begin to perceive the \tBfaint outline \tn\r\n"
@@ -1141,7 +1138,7 @@ SPECIAL(tia_rapier)
       return 1;
     }
 
-    if (!rand_number(0, 120))
+    if (!rand_number(0, 90))
     {
       weapons_spells("\tWSuddenly your \tn$p\tW is enveloped by \tbsheer \tLdarkness, \tWleaving only a pair of \tn\r\n"
                      "\tBblazing eyes \tWgazing directly into the \tBsoul\tW of \tn$N\tW.  A sudden wave of \tBterror \tbovercomes \tn\r\n"
