@@ -6969,6 +6969,16 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
       act("$N \tDdefends\tn from an attack from $n!", FALSE, ch, 0, victim,
           TO_NOTVICT);
 
+      /* fire any parry specs we might have */
+      struct obj_data opp_wpn = get_wielded(victim, ATTACK_TYPE_PRIMARY);
+      if (opp_wpn && !rand_number(0, 4))
+      {
+        int (*name)(struct char_data * victim, void *me, int cmd, char *argument);
+        name = obj_index[GET_OBJ_RNUM(opp_wpn)].func;
+        if (name)
+          (name)(victim, opp_wpn, 0, "parry");
+      }
+
       /* Encapsulate this?  We need better control of 'hit()s' */
       hit(victim, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, attack_type);
       TOTAL_DEFENSE(victim)
@@ -6984,6 +6994,17 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
           TO_NOTVICT);
       TOTAL_DEFENSE(victim)
       --;
+
+      /* fire any parry specs we might have */
+      struct obj_data opp_wpn = get_wielded(victim, ATTACK_TYPE_PRIMARY);
+      if (opp_wpn && !rand_number(0, 4))
+      {
+        int (*name)(struct char_data * victim, void *me, int cmd, char *argument);
+        name = obj_index[GET_OBJ_RNUM(opp_wpn)].func;
+        if (name)
+          (name)(victim, opp_wpn, 0, "parry");
+      }
+
       return (HIT_MISS);
     }
   } /* End of totaldefense */
