@@ -3333,6 +3333,8 @@ struct player_special_data_saved
     int discoveries[NUM_ALC_DISCOVERIES];
     int bombs[MAX_BOMBS_ALLOWED];
     int grand_discovery;
+
+    ubyte template;
 };
 
 /** Specials needed only by PCs, not NPCs.  Space for this structure is
