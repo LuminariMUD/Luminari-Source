@@ -292,7 +292,7 @@ void oedit_save_internally(struct descriptor_data *d)
       for (i = 0; S_PRODUCT(OLC_SHOP(dsc), i) != NOTHING; i++)
         if (S_PRODUCT(OLC_SHOP(dsc), i) >= robj_num)
           S_PRODUCT(OLC_SHOP(dsc), i)
-          ++;
+  ++;
 
   /* Update other people in zedit too. From: C.Raehl 4/27/99 */
   for (dsc = descriptor_list; dsc; dsc = dsc->next)
@@ -1616,8 +1616,8 @@ static void oedit_disp_menu(struct descriptor_data *d)
                   "%sP%s) Perm Affects           : %s%s\r\n"
                   "%sS%s) Script                 : %s%s\r\n"
                   "%sT%s) Spellbook menu\r\n"
-                  "%sEQ Rating (save/exist first, under development): %s%d\r\n"
-                  "%sSuggested affections based on wear-position (save/exist first): %s%s\r\n"
+                  "%sEQ Rating (save/exit to update, under development): %s%d\r\n"
+                  "%sSuggested affections (save/exit first): %s%s\r\n"
                   "%sW%s) Copy object\r\n"
                   "%sX%s) Delete object\r\n"
                   "%sQ%s) Quit\r\n"
