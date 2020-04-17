@@ -29,6 +29,7 @@
 #include "craft.h" // crafting (auto craft quest inits)
 #include "spell_prep.h"
 #include "alchemy.h"
+#include "templates.h"
 
 #define LOAD_HIT 0
 #define LOAD_PSP 1
@@ -444,6 +445,7 @@ int load_char(const char *name, struct char_data *ch)
     GET_ACCOUNT_NAME(ch) = NULL;
     LEVELUP(ch) = NULL;
     GET_DR(ch) = NULL;
+    GET_TEMPLATE(ch) = PFDEF_TEMPLATE;
     init_spell_prep_queue(ch);
     init_innate_magic_queue(ch);
     init_collection_queue(ch);
@@ -883,7 +885,9 @@ int load_char(const char *name, struct char_data *ch)
         break;
 
       case 'T':
-        if (!strcmp(tag, "Thir"))
+        if (!strcmp(tag, "Tmpl"))
+          GET_TEMPLATE(ch) = atoi(line);
+        else if (!strcmp(tag, "Thir"))
           GET_COND(ch, THIRST) = atoi(line);
         else if (!strcmp(tag, "Thr1"))
           GET_REAL_SAVE(ch, 0) = atoi(line);
@@ -1178,6 +1182,8 @@ void save_char(struct char_data *ch, int mode)
     fprintf(fl, "Wate: %d\n", GET_WEIGHT(ch));
   if (GET_ALIGNMENT(ch) != PFDEF_ALIGNMENT)
     fprintf(fl, "Alin: %d\n", GET_ALIGNMENT(ch));
+  if (GET_TEMPLATE(ch) != PFDEF_TEMPLATE)
+    fprintf(fl, "Tmpl: %d\n", GET_TEMPLATE(ch));
 
   sprintascii(bits, PLR_FLAGS(ch)[0]);
   sprintascii(bits2, PLR_FLAGS(ch)[1]);
