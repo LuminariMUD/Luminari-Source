@@ -5557,7 +5557,7 @@ ACMD(do_happyhour)
 }
 
 /****  little hint system *******/
-#define NUM_HINTS 33
+#define NUM_HINTS 34
 
 /* i am surrounding hints with this:
    \tR[HINT]:\tn \ty
@@ -5778,6 +5778,15 @@ char *hints[NUM_HINTS] = {
            "view his/her quests.  If the (!) is red, then this is a HLQUEST mobile and you "
            "can try asking the mobile 'hi' or other keywords based on clues whereas you may "
            "also then get directions for a special quest."
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*34*/ "\tR[HINT]:\tn \ty"
+           "Stores within the realm will allow you to buy pets, mounts and hire mercenaries.  "
+           "HELP PET, HELP CHARMEE, HELP ORDER for more info.  "
+           "Once hired, they are your obedient servants.  As such you will be able to order them "
+           "to do as you wish.  They will also automatically assist you in combat to the best of their "
+           "abilties (determined by their level, race and class).  If they are groupped, you will get "
+           "full credit for their kills as well.  "
+           "(group new, order followers group join <your name>)"
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
 };
 

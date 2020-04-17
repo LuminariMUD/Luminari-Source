@@ -12,6 +12,8 @@
 #ifndef _HOUSE_H_
 #define _HOUSE_H_
 
+/* NOTE: learned the hard way, changing (one or both) of these will destroy the houses in the
+         game apparently -Zusuk */
 #define MAX_HOUSES 999
 #define MAX_GUESTS 99
 
