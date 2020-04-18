@@ -197,14 +197,14 @@ bool char_should_fall(struct char_data *ch, bool silent)
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_FLY_NEEDED) && EXIT(ch, DOWN))
     falling = TRUE;
 
-  if (RIDING(ch) && AFF_FLAGGED(RIDING(ch), AFF_FLYING))
+  if (RIDING(ch) && is_flying(RIDING(ch)))
   {
     if (!silent)
       send_to_char(ch, "Your mount flies gracefully through the air...\r\n");
     return FALSE;
   }
 
-  if (AFF_FLAGGED(ch, AFF_FLYING))
+  if (is_flying(ch))
   {
     if (!silent)
       send_to_char(ch, "You fly gracefully through the air...\r\n");
@@ -356,7 +356,7 @@ int has_boat(struct char_data *ch, room_rnum going_to)
   if (GET_LEVEL(ch) >= LVL_IMMORT)
     return (1);
 
-  if (AFF_FLAGGED(ch, AFF_WATERWALK) || AFF_FLAGGED(ch, AFF_FLYING) ||
+  if (AFF_FLAGGED(ch, AFF_WATERWALK) || is_flying(ch) ||
       AFF_FLAGGED(ch, AFF_LEVITATE))
     return (1);
 
@@ -401,7 +401,7 @@ int has_flight(struct char_data *ch)
   if (GET_LEVEL(ch) >= LVL_IMMORT)
     return (1);
 
-  if (AFF_FLAGGED(ch, AFF_FLYING))
+  if (is_flying(ch))
     return (1);
 
   /* Non-wearable flying items in inventory will do it. */
@@ -914,7 +914,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   }
 
   /* flight restricted to enter that room */
-  if (ROOM_FLAGGED(going_to, ROOM_NOFLY) && AFF_FLAGGED(ch, AFF_FLYING))
+  if (ROOM_FLAGGED(going_to, ROOM_NOFLY) && is_flying(ch))
   {
     send_to_char(ch, "It is not possible to fly in that direction\r\n");
     return 0;
@@ -3555,7 +3555,7 @@ int get_speed(struct char_data *ch, sbyte to_display)
   if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_MOUNTABLE))
     speed = 50;
 
-  if (AFF_FLAGGED(ch, AFF_FLYING))
+  if (is_flying(ch))
     speed = 50;
 
   // haste and exp. retreat don't stack for balance reasons
