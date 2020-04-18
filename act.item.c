@@ -543,9 +543,9 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
       break;
     }
 
-    //int wall_spellnum = wallinfo[GET_OBJ_VAL(item, WALL_TYPE)].spell_num;
     //char *wall_lname = wallinfo[GET_OBJ_VAL(item, WALL_TYPE)].longname;
     //char *wall_keyword = wallinfo[GET_OBJ_VAL(item, WALL_TYPE)].keyword;
+    int wall_spellnum = wallinfo[GET_OBJ_VAL(item, WALL_TYPE)].spell_num;
     bool wall_stopmove = wallinfo[GET_OBJ_VAL(item, WALL_TYPE)].stops_movement;
     char *wall_sname = wallinfo[GET_OBJ_VAL(item, WALL_TYPE)].shortname;
     int wall_duration = wallinfo[GET_OBJ_VAL(item, WALL_TYPE)].duration;
@@ -565,8 +565,8 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     }
     else
     {
-      level = GET_LEVEL(wall_creator);
-      wall_level = TRUE;
+      wall_level = GET_LEVEL(wall_creator);
+      found_player = TRUE;
     }
 
     send_to_char(ch, "Wall Type:                  %s\r\n", wall_sname);
