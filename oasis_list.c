@@ -455,16 +455,8 @@ void perform_obj_type_list(struct char_data *ch, char *arg)
         case ITEM_CLANARMOR:
         case ITEM_MATERIAL:
         case ITEM_SPELLBOOK:
-        case ITEM_PORTAL:
         case ITEM_PLANT:
-        case ITEM_TRAP:
-        case ITEM_TELEPORT:
-        case ITEM_POISON:
-        case ITEM_SUMMON:
-        case ITEM_SWITCH:
-        case ITEM_AMMO_POUCH:
         case ITEM_PICK:
-        case ITEM_INSTRUMENT:
         case ITEM_DISGUISE:
         case ITEM_WALL:
         case ITEM_BOWL:
