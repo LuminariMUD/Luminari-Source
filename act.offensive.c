@@ -3747,7 +3747,7 @@ ACMDCHECK(can_comeandgetme)
   ACMDCHECK_TEMPFAIL_IF(AFF_FLAGGED(ch, AFF_FATIGUED),
                         "You are are too fatigued to use 'come and get me'!\r\n");
 
-  ACMDCHECK_TEMPFAIL_IF(affected_by_spell(ch, SKILL_RAGE),
+  ACMDCHECK_TEMPFAIL_IF(!affected_by_spell(ch, SKILL_RAGE),
                         "You need to be raging to use 'come and get me'!\r\n");
 
   return CAN_CMD;
