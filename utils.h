@@ -110,6 +110,8 @@ float rand_float(float from, float to);
 int dice(int number, int size);
 size_t sprintbit(bitvector_t vektor, const char *names[], char *result, size_t reslen);
 size_t sprinttype(int type, const char *names[], char *result, size_t reslen);
+bool is_flying(struct char_data *ch);
+bool can_fly(struct char_data *ch);
 void sprintbitarray(int bitvector[], const char *names[], int maxar, char *result);
 int get_line(FILE *fl, char *buf);
 int get_filename(char *filename, size_t fbufsize, int mode, const char *orig_name);

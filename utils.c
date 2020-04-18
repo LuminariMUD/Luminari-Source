@@ -23,6 +23,7 @@
 #include "interpreter.h"
 #include "class.h"
 #include "race.h"
+#include "act.h"
 #include "spec_procs.h"  // for compute_ability
 #include "mud_event.h"  // for purgemob event
 #include "feats.h"
@@ -3946,3 +3947,41 @@ int is_player_grouped(struct char_data *target, struct char_data *group) {
   return FALSE;
 }
 
+bool can_fly(struct char_data *ch)
+{
+
+  if (!ch) return FALSE;
+
+  if (HAS_FEAT(ch, FEAT_WINGS)) return TRUE;
+
+  if (KNOWS_DISCOVERY(ch, ALC_DISC_WINGS)) return TRUE;
+
+  if (affected_by_spell(ch, SKILL_DRHRT_WINGS)) return TRUE;
+
+  if (affected_by_spell(ch, SPELL_FLY)) return TRUE;
+
+  struct obj_data *obj = NULL;
+  int i = 0;
+
+  /* Non-wearable flying items in inventory will do it. */
+  for (obj = ch->carrying; obj; obj = obj->next_content)
+    if (OBJAFF_FLAGGED(obj, AFF_FLYING) && (find_eq_pos(ch, obj, NULL) < 0))
+      return (1);
+
+  /* Any equipped objects with AFF_FLYING will do it too. */
+  for (i = 0; i < NUM_WEARS; i++)
+    if (GET_EQ(ch, i) && OBJAFF_FLAGGED(GET_EQ(ch, i), AFF_FLYING))
+      return (1);
+
+  return FALSE;
+}
+
+bool is_flying(struct char_data *ch)
+{
+
+  if (!ch) return FALSE;
+
+  if (AFF_FLAGGED(ch, AFF_FLYING)) return TRUE;	
+
+  return FALSE;
+}

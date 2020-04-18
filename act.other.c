@@ -3290,6 +3290,12 @@ ACMD(do_land)
     msg = TRUE;
   }
 
+  if (affected_by_spell(ch, SKILL_SONG_OF_FLIGHT))
+  {
+    affect_from_char(ch, SPELL_FLY);
+    msg = TRUE;
+  }
+
   if (affected_by_spell(ch, SKILL_DRHRT_WINGS))
   {
     affect_from_char(ch, SKILL_DRHRT_WINGS);
@@ -3422,7 +3428,8 @@ ACMD(do_invisiblerogue)
 /* race trelux innate ability */
 ACMD(do_fly)
 {
-  if (!HAS_FEAT(ch, FEAT_WINGS))
+
+  if (!can_fly(ch))
   {
     send_to_char(ch, "You don't have this ability.\r\n");
     return;

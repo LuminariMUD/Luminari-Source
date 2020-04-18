@@ -85,7 +85,7 @@ static void wear_message(struct char_data *ch, struct obj_data *obj, int where);
 /* assistant function for statting/identify/lore of objects */
 void display_item_object_values(struct char_data *ch, struct obj_data *item, int mode)
 {
-  struct char_data *tempch;
+  struct char_data *tempch = NULL, *pet = NULL;
   struct obj_special_ability *specab;
   obj_rnum target_obj = NOTHING;
   char buf[MAX_STRING_LENGTH];
@@ -601,7 +601,7 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     break;
 
   case ITEM_PET: /* 46 */
-    struct char_data *pet = read_mobile(GET_OBJ_VNUM(item), VIRTUAL);
+    pet = read_mobile(GET_OBJ_VNUM(item), VIRTUAL);
 
     if (!pet)
     {
