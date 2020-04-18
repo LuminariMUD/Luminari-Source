@@ -39,6 +39,7 @@
 #include "alchemy.h"
 #include "mysql.h"
 #include "treasure.h"
+#include "crafts.h"
 
 /* local function prototypes */
 /* do_get utility functions */
