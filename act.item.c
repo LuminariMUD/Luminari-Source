@@ -550,7 +550,6 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     char *wall_sname = wallinfo[GET_OBJ_VAL(item, WALL_TYPE)].shortname;
     int wall_duration = wallinfo[GET_OBJ_VAL(item, WALL_TYPE)].duration;
     int wall_level = 0;
-    char *wall_direction = dirs[GET_OBJ_VAL(item, WALL_DIR)];
 
     struct char_data *wall_creator = find_char(GET_OBJ_VAL(item, WALL_IDNUM));
     bool found_player = FALSE;
@@ -571,10 +570,10 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
 
     send_to_char(ch, "Wall Type:                  %s\r\n", wall_sname);
     send_to_char(ch, "Stops movement? :           %s\r\n", wall_stopmove ? "yes" : "no");
-    send_to_char(ch, "Direction wall is blocking: %s\r\n", wall_direction);
-    send_to_char(ch, "Level:           %d\r\n", wall_level);
+    send_to_char(ch, "Direction wall is blocking: %s\r\n", dirs[GET_OBJ_VAL(item, WALL_DIR)]);
+    send_to_char(ch, "Level:                      %d\r\n", wall_level);
     /* duration = 0 is default:  */
-    send_to_char(ch, "Duration:        %d\r\n", wall_duration ? wall_duration : 1 + wall_level / 10);
+    send_to_char(ch, "Duration:                   %d\r\n", wall_duration ? wall_duration : 1 + wall_level / 10);
 
     /* if we found the player, we can also check if this victim is a friend! */
     if (found_player && !aoeOK(wall_creator, ch, wall_spellnum))
