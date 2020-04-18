@@ -1833,14 +1833,19 @@
 
 /** Lootboxes / Treaure chests **/
 /* quality of items in chest */
+#define LOOTBOX_LEVEL_UNDEFINED 0
 #define LOOTBOX_LEVEL_MUNDANE 1
 #define LOOTBOX_LEVEL_MINOR 2
 #define LOOTBOX_LEVEL_TYPICAL 3
 #define LOOTBOX_LEVEL_MEDIUM 4
 #define LOOTBOX_LEVEL_MAJOR 5
 #define LOOTBOX_LEVEL_SUPERIOR 6
+/******/
+#define NUM_LOOTBOX_LEVELS 7
+/******/
 
 /* treasure type for lootbox */
+#define LOOTBOX_TYPE_UNDEFINED 0
 #define LOOTBOX_TYPE_GENERIC 1
 #define LOOTBOX_TYPE_WEAPON 2
 #define LOOTBOX_TYPE_ARMOR 3
@@ -1848,6 +1853,8 @@
 #define LOOTBOX_TYPE_TRINKET 5
 #define LOOTBOX_TYPE_GOLD 6
 #define LOOTBOX_TYPE_CRYSTAL 7
+/******/
+#define NUM_LOOTBOX_TYPES 8
 /******/
 
 /* Item profs: used by obj_data.obj_flags.prof_flag

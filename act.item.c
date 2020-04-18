@@ -39,6 +39,7 @@
 #include "alchemy.h"
 #include "mysql.h"
 #include "treasure.h"
+#include "crafts.h"
 
 /* local function prototypes */
 /* do_get utility functions */
@@ -609,7 +610,9 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     }
     else
     {
+      char_to_room(pet, 0);
       send_to_char(ch, "When bought, makes follower: %s\r\n", GET_NAME(pet));
+      extract_char(pet);
     }
 
     break;
@@ -619,8 +622,71 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     break;
 
   case ITEM_TREASURE_CHEST: /* 48 */
-    send_to_char(ch, "Difficulty:       %d\r\n", GET_OBJ_VAL(item, 0));
-    send_to_char(ch, "Level:            %d\r\n", GET_OBJ_VAL(item, 1));
+
+    /*  The type guarantees one item of the specified type.
+        Generic has equal chance for any type.  Gold provides 5x as much money. */
+    switch (LOOTBOX_TYPE(item))
+    {
+    case LOOTBOX_TYPE_GENERIC:
+      send_to_char(ch, "Generic treasure, equal chance for all item types.\r\n");
+      break;
+    case LOOTBOX_TYPE_WEAPON:
+      send_to_char(ch, "Treasure: Weapons, guaranteed weapon, low chance for other items.\r\n");
+      break;
+    case LOOTBOX_TYPE_ARMOR:
+      send_to_char(ch, "Treasure: Armor, guaranteed armor, low chance for other items.\r\n");
+      break;
+    case LOOTBOX_TYPE_CONSUMABLE:
+      send_to_char(ch, "Treasure: Consumables, guaranteed at least one consumable, low chance for other items.\r\n");
+      break;
+    case LOOTBOX_TYPE_TRINKET:
+      send_to_char(ch, "Treasure: Trinkets, guaranteed trinket (rings, bracers, etc), low chance for other items.\r\n");
+      break;
+    case LOOTBOX_TYPE_GOLD:
+      send_to_char(ch, "Treasure: Gold, much more gold, low chance for other items.\r\n");
+      break;
+    case LOOTBOX_TYPE_CRYSTAL:
+      send_to_char(ch, "Treasure: Crystal, garaunteed arcanite crystal, low chance for other items.\r\n");
+      break;
+    case LOOTBOX_TYPE_UNDEFINED:
+    default:
+      send_to_char(ch, "Treasure type is broken, let staff know please.\r\n");
+      break;
+    }
+
+    /* This will determine the maximum bonus to be found on the items in the chest. */
+    switch (LOOTBOX_LEVEL(item))
+    {
+    case LOOTBOX_LEVEL_MUNDANE:
+      send_to_char(ch, "Grade: Mundane\r\n");
+      break;
+
+    case LOOTBOX_LEVEL_MINOR:
+      send_to_char(ch, "Grade: Minor (level 10 or less)\r\n");
+      break;
+
+    case LOOTBOX_LEVEL_TYPICAL:
+      send_to_char(ch, "Grade: Typical(level 15 or less)\r\n");
+      break;
+
+    case LOOTBOX_LEVEL_MEDIUM:
+      send_to_char(ch, "Grade: Medium (level 20 or less)\r\n");
+      break;
+
+    case LOOTBOX_LEVEL_MAJOR:
+      send_to_char(ch, "Grade: Major (level 25 or less)\r\n");
+      break;
+
+    case LOOTBOX_LEVEL_SUPERIOR:
+      send_to_char(ch, "Grade: Superior (level 26 or higher)\r\n");
+      break;
+
+    case LOOTBOX_TYPE_UNDEFINED:
+    default:
+      send_to_char(ch, "Treasure grade is broken, let staff know please.\r\n");
+      break;
+    }
+
     break;
 
   default:
@@ -3459,7 +3525,6 @@ struct obj_data *find_lootbox_in_room_vis(struct char_data *ch)
 // Used with treasure chests that allow each individual character to loot it once every 4 hours
 ACMD(do_loot)
 {
-
   struct obj_data *obj = find_lootbox_in_room_vis(ch);
 
   if (!obj)
@@ -3562,33 +3627,33 @@ ACMD(do_loot)
   sprintf(query, "INSERT INTO loot_chests (loot_id, chest_vnum, character_name, last_loot) VALUES(NULL,'%d','%s',NOW())", vnum, GET_NAME(ch));
   mysql_query(conn, query);
 
-  int level = 0, max_grade = GRADE_MUNDANE;
+  int level = 0, max_grade = LOOTBOX_LEVEL_MUNDANE;
 
   level = LOOTBOX_LEVEL(obj);
 
   if (level >= 6)
   {
-    max_grade = GRADE_SUPERIOR;
+    max_grade = LOOTBOX_LEVEL_SUPERIOR;
   }
   else if (level >= 5)
   {
-    max_grade = GRADE_MAJOR;
+    max_grade = LOOTBOX_LEVEL_MAJOR;
   }
   else if (level >= 4)
   {
-    max_grade = GRADE_MEDIUM;
+    max_grade = LOOTBOX_LEVEL_MEDIUM;
   }
   else if (level >= 3)
   {
-    max_grade = GRADE_TYPICAL;
+    max_grade = LOOTBOX_LEVEL_TYPICAL;
   }
   else if (level >= 2)
   {
-    max_grade = GRADE_MINOR;
+    max_grade = LOOTBOX_LEVEL_MINOR;
   }
   else
   {
-    max_grade = GRADE_MUNDANE;
+    max_grade = LOOTBOX_LEVEL_MUNDANE;
   }
 
   int gold = 50;
@@ -3657,6 +3722,7 @@ ACMD(do_loot)
     chance = 12; // less of a chance to get more than one item in addition to the gold.
     recMagic = false;
     break;
+  case LOOTBOX_TYPE_GENERIC:
   default: // generic type
     chance = 8;
     recMagic = false;
