@@ -181,6 +181,7 @@ void create_wall(struct char_data *ch, int room, int dir, int type, int level)
   }
 
   wall = read_object(WALL_ITEM, VIRTUAL);
+
   if (!wall)
   { /* make sure we have the object */
     send_to_char(ch, "Please Report Wall Bug To Staff\r\n");
@@ -196,10 +197,20 @@ void create_wall(struct char_data *ch, int room, int dir, int type, int level)
   wall->description = strdup(CAP(buf));
 
   /* either use a default time of 1 + level/10 or set duration */
-  if (wallinfo[type].duration == 0)
-    GET_OBJ_TIMER(wall) = 1 + level / 10;
-  else
-    GET_OBJ_TIMER(wall) = wallinfo[type].duration;
+  switch (type)
+  {
+  case WALL_TYPE_FORCE:
+    GET_OBJ_TIMER(wall) = level;
+    break;
+
+  default:
+    if (wallinfo[type].duration == 0)
+      GET_OBJ_TIMER(wall) = 1 + level / 10;
+    else
+      GET_OBJ_TIMER(wall) = wallinfo[type].duration;
+
+    break;
+  }
 
   /* make sure the wall fades eventually */
   if (!OBJ_FLAGGED(wall, ITEM_DECAY))

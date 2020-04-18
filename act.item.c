@@ -520,6 +520,7 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     break;
 
   case ITEM_SUMMON: /* 34 */
+    /* needs to be implemented from HL! */
     break;
 
   case ITEM_PICK: /* 37 */
@@ -590,6 +591,7 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     break;
 
   case ITEM_BLOCKER: /* 43 */
+    /* needs to be implemented from HL! */
     break;
 
   case ITEM_WAGON: /* 44 */
@@ -599,12 +601,26 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     break;
 
   case ITEM_PET: /* 46 */
+    struct char_data *pet = read_mobile(GET_OBJ_VNUM(item), VIRTUAL);
+
+    if (!pet)
+    {
+      send_to_char(ch, "Broken item, let staff know!\r\n");
+    }
+    else
+    {
+      send_to_char(ch, "When bought, makes follower: %s\r\n", GET_NAME(pet));
+    }
+
     break;
 
   case ITEM_BLUEPRINT: /* 47 */
+    show_craft(ch, get_craft_from_id(GET_OBJ_VAL(item, 0)));
     break;
 
   case ITEM_TREASURE_CHEST: /* 48 */
+    send_to_char(ch, "Difficulty:       %d\r\n", GET_OBJ_VAL(item, 0));
+    send_to_char(ch, "Level:            %d\r\n", GET_OBJ_VAL(item, 1));
     break;
 
   default:
