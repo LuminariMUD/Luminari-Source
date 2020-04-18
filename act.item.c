@@ -610,7 +610,9 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     }
     else
     {
+      char_to_room(pet, 0);
       send_to_char(ch, "When bought, makes follower: %s\r\n", GET_NAME(pet));
+      extract_char(pet);
     }
 
     break;
