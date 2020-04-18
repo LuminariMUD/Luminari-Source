@@ -3992,11 +3992,11 @@ int aoeOK(struct char_data *ch, struct char_data *tch, int spellnum)
     return 0;
 
   // earthquake currently doesn't work on flying victims
-  if ((spellnum == SPELL_EARTHQUAKE) && AFF_FLAGGED(tch, AFF_FLYING))
+  if ((spellnum == SPELL_EARTHQUAKE) && is_flying(tch))
     return 0;
 
   // tailsweep currently doesn't work on flying victims
-  if ((spellnum == -2) && AFF_FLAGGED(tch, AFF_FLYING))
+  if ((spellnum == -2) && is_flying(tch))
     return 0;
 
   // same group, skip

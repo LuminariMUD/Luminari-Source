@@ -594,7 +594,7 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill)
   case SKILL_SHIELD_CHARGE:
   case SKILL_BASH:
     attack_check = GET_STR_BONUS(ch);
-    if (AFF_FLAGGED(vict, AFF_FLYING))
+    if (is_flying(vict))
     {
       send_to_char(ch, "Impossible, your target is flying!\r\n");
       return FALSE;
@@ -604,7 +604,7 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill)
     break;
   case SKILL_TRIP:
     attack_check = GET_DEX_BONUS(ch);
-    if (AFF_FLAGGED(vict, AFF_FLYING))
+    if (is_flying(vict))
     {
       send_to_char(ch, "Impossible, your target is flying!\r\n");
       return FALSE;

@@ -247,9 +247,9 @@ void hazard_tick(struct char_data *ch)
   bool flying = FALSE;
 
   flying = FALSE;
-  if (AFF_FLAGGED(ch, AFF_FLYING))
+  if (is_flying(ch))
     flying = TRUE;
-  if (RIDING(ch) && AFF_FLAGGED(RIDING(ch), AFF_FLYING))
+  if (RIDING(ch) && is_flying(RIDING(ch)))
     flying = TRUE;
 
   /* falling */

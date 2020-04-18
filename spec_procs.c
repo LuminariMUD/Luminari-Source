@@ -1998,7 +1998,7 @@ SPECIAL(quicksand)
   if (IS_NPC(ch) && !IS_PET(ch))
     return FALSE;
 
-  if (AFF_FLAGGED(ch, AFF_FLYING))
+  if (is_flying(ch))
     return FALSE;
   if (GET_LEVEL(ch) > LVL_IMMORT)
     return FALSE;
