@@ -106,7 +106,7 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
   switch (GET_OBJ_TYPE(item))
   {
 
-  case ITEM_SWITCH:
+  case ITEM_SWITCH: /* 35 */ /* activation mechanism */
     if (mode == ITEM_STAT_MODE_IMMORTAL)
     {
       send_to_char(ch, "[%s, affecting room VNum %d, %s %s]\r\n",
@@ -122,7 +122,7 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     }
     break;
 
-  case ITEM_TRAP:
+  case ITEM_TRAP: /* 31 */ /* punish those rogue-less groups! */
     /* object value (0) is the trap-type */
     /* object value (1) is the direction of the trap (TRAP_TYPE_OPEN_DOOR and TRAP_TYPE_UNLOCK_DOOR)
            or the object-vnum (TRAP_TYPE_OPEN_CONTAINER and TRAP_TYPE_UNLOCK_CONTAINER and TRAP_TYPE_GET_OBJECT) */
@@ -171,33 +171,38 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     }
     send_to_char(ch, "Trap DC: %d\r\n", GET_OBJ_VAL(item, 3));
     break;
-  case ITEM_LIGHT:
+
+  case ITEM_LIGHT: /* 1 */ /**< Item is a light source */
     if (GET_OBJ_VAL(item, 2) == -1)
       send_to_char(ch, "Hours left: Infinite\r\n");
     else
       send_to_char(ch, "Hours left: [%d]\r\n", GET_OBJ_VAL(item, 2));
     break;
-  case ITEM_SCROLL:
-  case ITEM_POTION:
+  case ITEM_SCROLL: /* 2 */ /* fallthrough */
+  case ITEM_POTION:         /* 10 */
     send_to_char(ch, "Spells: (Level %d) %s, %s, %s\r\n", GET_OBJ_VAL(item, 0),
                  skill_name(GET_OBJ_VAL(item, 1)), skill_name(GET_OBJ_VAL(item, 2)),
                  skill_name(GET_OBJ_VAL(item, 3)));
     break;
-  case ITEM_WAND:
-  case ITEM_STAFF:
+
+  case ITEM_WAND: /* 3 */ /* fallthrough */
+  case ITEM_STAFF:        /* 4 */
     send_to_char(ch, "Spell: %s at level %d, %d (of %d) charges remaining\r\n",
                  skill_name(GET_OBJ_VAL(item, 3)), GET_OBJ_VAL(item, 0),
                  GET_OBJ_VAL(item, 2), GET_OBJ_VAL(item, 1));
     break;
-  case ITEM_FIREWEAPON:
+
+  case ITEM_FIREWEAPON: /* 7 */
     send_to_char(ch,
+                 "**Deprecated, report to staff to fix this item**\r\n"
                  "Type:                   %s\r\n"
                  "Damage:                 %d\r\n"
                  "Breaking Probability:   %d percent\r\n",
                  ranged_weapons[GET_OBJ_VAL(item, 0)], GET_OBJ_VAL(item, 1),
                  GET_OBJ_VAL(item, 2));
     break;
-  case ITEM_WEAPON:
+
+  case ITEM_WEAPON: /* 5 */
     /* weapon poison */
     if (item->weapon_poison.poison)
     {
@@ -316,7 +321,7 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
 
     break;
 
-  case ITEM_ARMOR:
+  case ITEM_ARMOR: /* 9 */
     if (mode == ITEM_STAT_MODE_IMMORTAL)
     {
       send_to_char(ch, "AC-apply: [%d], Enhancement Bonus: +%d\r\n",
@@ -376,39 +381,48 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
       send_to_char(ch, "No special abilities assigned.\r\n");
 
     break;
-  case ITEM_CONTAINER:
+
+  case ITEM_CONTAINER: /* 15 */
     sprintbit(GET_OBJ_VAL(item, 1), container_bits, buf, sizeof(buf));
     send_to_char(ch, "Weight capacity: %d, Lock Type: %s, Key Num: %d, Corpse: %s\r\n",
                  GET_OBJ_VAL(item, 0), buf, GET_OBJ_VAL(item, 2),
                  YESNO(GET_OBJ_VAL(item, 3)));
     break;
-  case ITEM_AMMO_POUCH:
+
+  case ITEM_AMMO_POUCH: /* 36 */
     sprintbit(GET_OBJ_VAL(item, 1), container_bits, buf, sizeof(buf));
     send_to_char(ch, "Weight capacity: %d, Lock Type: %s, Key Num: %d, Corpse?: %s\r\n",
                  GET_OBJ_VAL(item, 0), buf, GET_OBJ_VAL(item, 2),
                  YESNO(GET_OBJ_VAL(item, 3)));
     break;
-  case ITEM_DRINKCON:
-  case ITEM_FOUNTAIN:
+
+  case ITEM_DRINKCON: /* fallthrough */ /* 17 */
+  case ITEM_FOUNTAIN:                   /* 23 */
     sprinttype(GET_OBJ_VAL(item, 2), drinks, buf, sizeof(buf));
     send_to_char(ch, "Capacity: %d, Contains: %d, Spell: %s:%s, Liquid: %s\r\n",
                  GET_OBJ_VAL(item, 0), GET_OBJ_VAL(item, 1), YESNO(GET_OBJ_VAL(item, 3)),
                  (GET_OBJ_VAL(item, 3) > 0) ? spell_info[GET_OBJ_VAL(item, 3)].name : "none", buf);
     break;
-  case ITEM_NOTE:
+
+  case ITEM_NOTE: /* 16 */
     send_to_char(ch, "Tongue: %d\r\n", GET_OBJ_VAL(item, 0));
     break;
-  case ITEM_BOAT:
+
+  case ITEM_BOAT: /* 22 */
     break;
-  case ITEM_KEY: /* Nothing */
+
+  case ITEM_KEY: /* 18 */
     break;
-  case ITEM_FOOD:
+
+  case ITEM_FOOD: /* 19 */
     send_to_char(ch, "Makes full: %d, Spellnum: %d (%s), Poisoned: %s\r\n", GET_OBJ_VAL(item, 0), GET_OBJ_VAL(item, 1), spell_info[GET_OBJ_VAL(item, 1)].name, YESNO(GET_OBJ_VAL(item, 3)));
     break;
-  case ITEM_MONEY:
+
+  case ITEM_MONEY: /* 20 */
     send_to_char(ch, "Coins: %d\r\n", GET_OBJ_VAL(item, 0));
     break;
-  case ITEM_PORTAL:
+
+  case ITEM_PORTAL: /* 29 */
     if (mode == ITEM_STAT_MODE_IMMORTAL)
     {
       if (GET_OBJ_VAL(item, 0) == PORTAL_NORMAL)
@@ -421,14 +435,16 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
         send_to_char(ch, "Type: Checkflags Portal to %d\r\n", GET_OBJ_VAL(item, 1));
     }
     break;
-  case ITEM_FURNITURE:
+
+  case ITEM_FURNITURE: /* 6 */
     send_to_char(ch, "Can hold: [%d] Num. of People in: [%d]\r\n", GET_OBJ_VAL(item, 0), GET_OBJ_VAL(item, 1));
     send_to_char(ch, "Holding : ");
     for (tempch = OBJ_SAT_IN_BY(item); tempch; tempch = NEXT_SITTING(tempch))
       send_to_char(ch, "%s ", GET_NAME(tempch));
     send_to_char(ch, "\r\n");
     break;
-  case ITEM_MISSILE:
+
+  case ITEM_MISSILE: /* 14 */
     /* weapon poison */
     if (item->weapon_poison.poison)
     {
@@ -448,16 +464,19 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     if (mode == ITEM_STAT_MODE_IMMORTAL)
       send_to_char(ch, "Missile belongs to: %ld\r\n", MISSILE_ID(item));
     break;
-  case ITEM_SPELLBOOK:
+
+  case ITEM_SPELLBOOK: /* 28 */
     display_spells(ch, item);
     break;
-  case ITEM_POISON:
+
+  case ITEM_POISON: /* 33 */
     send_to_char(ch, "Poison:       %s\r\n", skill_name(GET_OBJ_VAL(item, 0)));
     send_to_char(ch, "Level:        %d\r\n", GET_OBJ_VAL(item, 1));
     send_to_char(ch, "Applications: %d\r\n", GET_OBJ_VAL(item, 2));
     send_to_char(ch, "Hits/App:     %d\r\n", GET_OBJ_VAL(item, 3));
     break;
-  case ITEM_WORN:
+
+  case ITEM_WORN: /* 11 */
     /* monk glove */
     if (CAN_WEAR(item, ITEM_WEAR_HANDS) && GET_OBJ_VAL(item, 0))
       send_to_char(ch, "Monk Glove Enchantment: %d\r\n", GET_OBJ_VAL(item, 0));
@@ -467,9 +486,128 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
       send_to_char(ch, "Wearable item.\r\n");
     }
     break;
-  case ITEM_CRYSTAL:
+
+  case ITEM_CRYSTAL: /* 25 */
     send_to_char(ch, "Arcanite crafting crystal - can be used in crafting.\r\n");
     break;
+
+  case ITEM_TREASURE: /* 8 */
+    break;
+
+  case ITEM_OTHER: /* 12 */
+    break;
+
+  case ITEM_TRASH: /* 13 */
+    break;
+
+  case ITEM_PEN: /* 21 */
+    break;
+
+  case ITEM_CLANARMOR: /* 24 */
+    break;
+
+  case ITEM_ESSENCE: /* 26 */
+    break;
+
+  case ITEM_MATERIAL: /* 27 */
+    break;
+
+  case ITEM_PLANT: /* 30 */
+    break;
+
+  case ITEM_TELEPORT: /* 32 */
+    /* portal replaced this */
+    break;
+
+  case ITEM_SUMMON: /* 34 */
+    break;
+
+  case ITEM_PICK: /* 37 */
+    break;
+
+  case ITEM_INSTRUMENT: /* 38 */
+    send_to_char(ch, "Instrument class: %s\r\n", instrument_names[GET_OBJ_VAL(item, 0)]);
+    send_to_char(ch, "Difficulty:       %d\r\n", GET_OBJ_VAL(item, 1));
+    send_to_char(ch, "Level:            %d\r\n", GET_OBJ_VAL(item, 2));
+    send_to_char(ch, "Breakability:     %d\r\n", GET_OBJ_VAL(item, 3));
+
+  case ITEM_DISGUISE: /* 39 */
+    break;
+
+  case ITEM_WALL: /* 40 */
+    /* quick out */
+    if (GET_OBJ_VAL(item, WALL_TYPE) >= NUM_WALL_TYPES ||
+        GET_OBJ_VAL(item, WALL_TYPE) < 0)
+    {
+      send_to_char(ch, "Invalid wall type, let staff know please.\r\n");
+      break;
+    }
+
+    //int wall_spellnum = wallinfo[GET_OBJ_VAL(item, WALL_TYPE)].spell_num;
+    //char *wall_lname = wallinfo[GET_OBJ_VAL(item, WALL_TYPE)].longname;
+    //char *wall_keyword = wallinfo[GET_OBJ_VAL(item, WALL_TYPE)].keyword;
+    bool wall_stopmove = wallinfo[GET_OBJ_VAL(item, WALL_TYPE)].stops_movement;
+    char *wall_sname = wallinfo[GET_OBJ_VAL(item, WALL_TYPE)].shortname;
+    int wall_duration = wallinfo[GET_OBJ_VAL(item, WALL_TYPE)].duration;
+    int wall_level = 0;
+    char *wall_direction = dirs[GET_OBJ_VAL(item, WALL_DIR)];
+
+    struct char_data *wall_creator = find_char(GET_OBJ_VAL(item, WALL_IDNUM));
+    bool found_player = FALSE;
+
+    /* lets see if we can find the wall creator! */
+    if (!wall_creator)
+    {
+      /* player probably logged out, so just use WALL_LEVEL to determine
+       * damage */
+      found_player = FALSE;
+      wall_level = GET_OBJ_VAL(item, WALL_LEVEL);
+    }
+    else
+    {
+      level = GET_LEVEL(wall_creator);
+      wall_level = TRUE;
+    }
+
+    send_to_char(ch, "Wall Type:                  %s\r\n", wall_sname);
+    send_to_char(ch, "Stops movement? :           %s\r\n", wall_stopmove ? "yes" : "no");
+    send_to_char(ch, "Direction wall is blocking: %s\r\n", wall_direction);
+    send_to_char(ch, "Level:           %d\r\n", wall_level);
+    /* duration = 0 is default:  */
+    send_to_char(ch, "Duration:        %d\r\n", wall_duration ? wall_duration : 1 + wall_level / 10);
+
+    /* if we found the player, we can also check if this victim is a friend! */
+    if (found_player && !aoeOK(wall_creator, ch, wall_spellnum))
+    {
+      send_to_char(ch, "*An ally created this wall, you can pass it safely.\r\n");
+    }
+
+    break;
+
+  case ITEM_BOWL: /* 41 */
+    break;
+
+  case ITEM_INGREDIENT: /* 42 */
+    break;
+
+  case ITEM_BLOCKER: /* 43 */
+    break;
+
+  case ITEM_WAGON: /* 44 */
+    break;
+
+  case ITEM_RESOURCE: /* 45 */
+    break;
+
+  case ITEM_PET: /* 46 */
+    break;
+
+  case ITEM_BLUEPRINT: /* 47 */
+    break;
+
+  case ITEM_TREASURE_CHEST: /* 48 */
+    break;
+
   default:
     send_to_char(ch, "Report this item to a coder to add the ITEM_type\r\n");
     break;
@@ -3561,3 +3699,5 @@ ACMD(do_loot)
 
   //mysql_close(conn);
 }
+
+/* EOF */

@@ -447,7 +447,12 @@ void perform_obj_type_list(struct char_data *ch, char *arg)
                              QGRN, ++found, QNRM, QYEL, ov, QNRM, instrument_names[v1], QNRM, v2, v3, v4, obj_proto[r_num].short_description, QNRM);
           break;
 
-          /* The 'normal' items - don't provide extra info */
+        /* The 'normal' items - don't provide extra info */
+        case ITEM_TELEPORT:
+        case ITEM_SUMMON:
+        case ITEM_CRYSTAL:
+        case ITEM_ESSENCE:
+        /* stock item types */
         case ITEM_TREASURE:
         case ITEM_TRASH:
         case ITEM_OTHER:
@@ -455,8 +460,6 @@ void perform_obj_type_list(struct char_data *ch, char *arg)
         case ITEM_NOTE:
         case ITEM_PEN:
         case ITEM_BOAT:
-        case ITEM_CRYSTAL:
-        case ITEM_ESSENCE:
         case ITEM_KEY:
         case ITEM_FURNITURE:
           tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %s[%s%8d%s] %s%s\r\n",

@@ -1722,7 +1722,6 @@
 #define FEAT_BOMB_MASTERY 630
 // end more alchemist
 
-
 /**************/
 /** reserved above feat# + 1**/
 #define FEAT_LAST_FEAT 631
@@ -1776,61 +1775,64 @@
 
 /* object-related defines */
 /* Item types: used by obj_data.obj_flags.type_flag */
-#define ITEM_LIGHT 1      /**< Item is a light source	*/
-#define ITEM_SCROLL 2     /**< Item is a scroll		*/
-#define ITEM_WAND 3       /**< Item is a wand		*/
-#define ITEM_STAFF 4      /**< Item is a staff		*/
-#define ITEM_WEAPON 5     /**< Item is a weapon		*/
-#define ITEM_FURNITURE 6  /**< Sittable Furniture		*/
-#define ITEM_FIREWEAPON 7 // ranged weapon
-#define ITEM_TREASURE 8   /**< Item is a treasure, not gold	*/
-#define ITEM_ARMOR 9      /**< Item is armor		*/
-#define ITEM_POTION 10    /**< Item is a potion		*/
-#define ITEM_WORN 11      /**< Unimplemented		*/
-#define ITEM_OTHER 12     /**< Misc object			*/
-#define ITEM_TRASH 13     /**< Trash - shopkeepers won't buy	*/
-#define ITEM_MISSILE 14   // missile weapon (for ranged weapon)
-#define ITEM_CONTAINER 15 /**< Item is a container		*/
-#define ITEM_NOTE 16      /**< Item is note 		*/
-#define ITEM_DRINKCON 17  /**< Item is a drink container	*/
-#define ITEM_KEY 18       /**< Item is a key		*/
-#define ITEM_FOOD 19      /**< Item is food			*/
-#define ITEM_MONEY 20     /**< Item is money (gold)		*/
-#define ITEM_PEN 21       /**< Item is a pen		*/
-#define ITEM_BOAT 22      /**< Item is a boat		*/
-#define ITEM_FOUNTAIN 23  /**< Item is a fountain		*/
-#define ITEM_CLANARMOR 24 /**< Item is clan armor		*/
-#define ITEM_CRYSTAL 25   //crafting
-#define ITEM_ESSENCE 26   //crafting
-#define ITEM_MATERIAL 27  //crafting / general
-#define ITEM_SPELLBOOK 28
-#define ITEM_PORTAL 29
-#define ITEM_PLANT 30 /* for transport via plants spell */
-/* unfinished item_types */
-#define ITEM_TRAP 31           // traps
-#define ITEM_TELEPORT 32       // triggers teleport on command
-#define ITEM_POISON 33         // apply poison
-#define ITEM_SUMMON 34         // summons mob on command
-#define ITEM_SWITCH 35         // activation mechanism
-#define ITEM_AMMO_POUCH 36     // ammo pouch mechanic for missile weapons
-#define ITEM_PICK 37           // pick used for opening locks bonus
-#define ITEM_INSTRUMENT 38     // instrument used for bard song
-#define ITEM_DISGUISE 39       // disguise kit used for disguise command
-#define ITEM_WALL 40           // magical wall (like wall of flames spell)
-#define ITEM_BOWL 41           // bowl for mixing recipes
-#define ITEM_INGREDIENT 42     // ingredient used with bowl for recipes
-#define ITEM_BLOCKER 43        // stops movement in direction X
-#define ITEM_WAGON 44          // used for carrying resources for trade
-#define ITEM_RESOURCE 45       // used for trade with wagon
+/* make sure to add to - display_item_object_values() */
+#define ITEM_LIGHT 1           /**< Item is a light source */
+#define ITEM_SCROLL 2          /**< Item is a scroll */
+#define ITEM_WAND 3            /**< Item is a wand */
+#define ITEM_STAFF 4           /**< Item is a staff	*/
+#define ITEM_WEAPON 5          /**< Item is a weapon */
+#define ITEM_FURNITURE 6       /**< Sittable Furniture */
+#define ITEM_FIREWEAPON 7      /* deprecated - ranged weapon */
+#define ITEM_TREASURE 8        /**< Item is a treasure, not gold */
+#define ITEM_ARMOR 9           /**< Item is armor */
+#define ITEM_POTION 10         /**< Item is a potion */
+#define ITEM_WORN 11           /**< General worn item */
+#define ITEM_OTHER 12          /**< Misc object */
+#define ITEM_TRASH 13          /**< Trash - shopkeepers won't buy */
+#define ITEM_MISSILE 14        /* missile/ammo (for ranged weapon) */
+#define ITEM_CONTAINER 15      /**< Item is a container */
+#define ITEM_NOTE 16           /**< Item is note */
+#define ITEM_DRINKCON 17       /**< Item is a drink container */
+#define ITEM_KEY 18            /**< Item is a key */
+#define ITEM_FOOD 19           /**< Item is food */
+#define ITEM_MONEY 20          /**< Item is money (gold) */
+#define ITEM_PEN 21            /**< Item is a pen */
+#define ITEM_BOAT 22           /**< Item is a boat */
+#define ITEM_FOUNTAIN 23       /**< Item is a fountain */
+#define ITEM_CLANARMOR 24      /**< Item is clan armor */
+#define ITEM_CRYSTAL 25        /* crafting crystal */
+#define ITEM_ESSENCE 26        /* component for crafting */
+#define ITEM_MATERIAL 27       /* material for crafting */
+#define ITEM_SPELLBOOK 28      /* spellbook for wizard types */
+#define ITEM_PORTAL 29         /* portal between two locations */
+#define ITEM_PLANT 30          /* for transport via plants spell */
+#define ITEM_TRAP 31           /* traps */
+#define ITEM_TELEPORT 32       /* triggers teleport on command */
+#define ITEM_POISON 33         /* apply poison to weapon */
+#define ITEM_SUMMON 34         /* summons mob on command */
+#define ITEM_SWITCH 35         /* activation mechanism */
+#define ITEM_AMMO_POUCH 36     /* ammo pouch mechanic for missile weapons */
+#define ITEM_PICK 37           /* pick used for opening locks bonus */
+#define ITEM_INSTRUMENT 38     /* instrument used for bard song */
+#define ITEM_DISGUISE 39       /* disguise kit used for disguise command */
+#define ITEM_WALL 40           /* magical wall (like wall of flames spell) */
+#define ITEM_BOWL 41           /* bowl for mixing recipes */
+#define ITEM_INGREDIENT 42     /* ingredient used with bowl for recipes */
+#define ITEM_BLOCKER 43        /* stops movement in direction X */
+#define ITEM_WAGON 44          /* used for carrying resources for trade */
+#define ITEM_RESOURCE 45       /* used for trade with wagon */
 #define ITEM_PET 46            /* object will convert into a mobile follower upon purchase */
-#define ITEM_BLUEPRINT 47      /* NewCraft */
+#define ITEM_BLUEPRINT 47      /* NewCraft, recipe for crafting item */
 #define ITEM_TREASURE_CHEST 48 /* used with the loot command. */
-/**/
-/** Total number of item types.*/
-#define NUM_ITEM_TYPES 49
+/* make sure to add to - display_item_object_values() */
+#define NUM_ITEM_TYPES 49 /** Total number of item types.*/
 
-// Lootboxes / Treaure chests
+/* reference notes on homeland-port */
+/* swapped free1 (7) with fireweapon, swapped free2 (14) with missile
+#define ITEM_SHIP 28 // travel on oceans -> ITEM_BOAT (22) */
 
+/** Lootboxes / Treaure chests **/
+/* quality of items in chest */
 #define LOOTBOX_LEVEL_MUNDANE 1
 #define LOOTBOX_LEVEL_MINOR 2
 #define LOOTBOX_LEVEL_TYPICAL 3
@@ -1838,6 +1840,7 @@
 #define LOOTBOX_LEVEL_MAJOR 5
 #define LOOTBOX_LEVEL_SUPERIOR 6
 
+/* treasure type for lootbox */
 #define LOOTBOX_TYPE_GENERIC 1
 #define LOOTBOX_TYPE_WEAPON 2
 #define LOOTBOX_TYPE_ARMOR 3
@@ -1845,14 +1848,7 @@
 #define LOOTBOX_TYPE_TRINKET 5
 #define LOOTBOX_TYPE_GOLD 6
 #define LOOTBOX_TYPE_CRYSTAL 7
-
-/* homeland-port */
-/*  note:  swapped free1 (7) with fireweapon
-           swapped free2 (14) with missile */
-/*
-#define ITEM_SHIP        28  // travel on oceans -> ITEM_BOAT  (22)
-#define ITEM_PET         33  // ?                -> ITEM_OTHER (12)
- */
+/******/
 
 /* Item profs: used by obj_data.obj_flags.prof_flag
  * constants.c = item_profs */

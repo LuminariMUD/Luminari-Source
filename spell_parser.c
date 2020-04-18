@@ -1222,7 +1222,7 @@ EVENTFUNC(event_casting)
                         if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_QUICK_CHANT))
                                 if (rand_number(0, 1))
                                         CASTING_TIME(ch)
-                                        --;
+                        --;
 
                         CASTING_TIME(ch)
                         --;
@@ -3360,15 +3360,15 @@ void mag_assign_spells(void)
         skillo(SKILL_DEATH_ARROW, "arrow of death", ACTIVE_SKILL);                  //538
         skillo(SKILL_DEFENSIVE_STANCE, "defensive stance", ACTIVE_SKILL);           //539
         skillo(SKILL_CRIPPLING_CRITICAL, "crippling critical", PASSIVE_SKILL);      //540
-        skillo(SKILL_DRHRT_CLAWS, "draconic heritage claws", ACTIVE_SKILL);          // 541
-        skillo(SKILL_DRHRT_WINGS, "draconic heritage wings", ACTIVE_SKILL);     // 542
-        skillo(SKILL_BOMB_TOSS, "bomb toss", ACTIVE_SKILL);  /* 543 */
-        skillo(SKILL_MUTAGEN, "mutagen", ACTIVE_SKILL);  /* 544 */
-        skillo(SKILL_COGNATOGEN, "cognatogen", ACTIVE_SKILL);  /* 545 */
-        skillo(SKILL_INSPIRING_COGNATOGEN, "inspiring cognatogen", ACTIVE_SKILL);  /* 546 */
-        skillo(SKILL_PSYCHOKINETIC, "psychokinetic", ACTIVE_SKILL);  /* 547 */
-        skillo(SKILL_INNER_FIRE, "inner fire", ACTIVE_SKILL);  /* 548 */
-        skillo(SKILL_SACRED_FLAMES, "sacred flames", ACTIVE_SKILL);  /* 549 */
+        skillo(SKILL_DRHRT_CLAWS, "draconic heritage claws", ACTIVE_SKILL);         // 541
+        skillo(SKILL_DRHRT_WINGS, "draconic heritage wings", ACTIVE_SKILL);         // 542
+        skillo(SKILL_BOMB_TOSS, "bomb toss", ACTIVE_SKILL);                         /* 543 */
+        skillo(SKILL_MUTAGEN, "mutagen", ACTIVE_SKILL);                             /* 544 */
+        skillo(SKILL_COGNATOGEN, "cognatogen", ACTIVE_SKILL);                       /* 545 */
+        skillo(SKILL_INSPIRING_COGNATOGEN, "inspiring cognatogen", ACTIVE_SKILL);   /* 546 */
+        skillo(SKILL_PSYCHOKINETIC, "psychokinetic", ACTIVE_SKILL);                 /* 547 */
+        skillo(SKILL_INNER_FIRE, "inner fire", ACTIVE_SKILL);                       /* 548 */
+        skillo(SKILL_SACRED_FLAMES, "sacred flames", ACTIVE_SKILL);                 /* 549 */
 
         /* songs */
         skillo(SKILL_SONG_OF_FOCUSED_MIND, "song of focused mind", ACTIVE_SKILL);       //588

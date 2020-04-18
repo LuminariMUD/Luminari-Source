@@ -12,6 +12,13 @@
 #ifndef _SPELLS_H_
 #define _SPELLS_H_
 
+/* summon fail message */
+#define SUMMON_FAIL "You failed.\r\n"
+
+/* object vnums for some spells */
+#define PRISMATIC_SPHERE 90
+#define WIZARD_EYE 45
+
 /* Metamagic Defines*/
 #define METAMAGIC_NONE 0
 #define METAMAGIC_QUICKEN (1 << 0)
@@ -1041,6 +1048,13 @@ struct wall_information
 #define WALL_TYPE_PRISM 4
 /******/
 #define NUM_WALL_TYPES 5
+/****/
+#define WALL_ITEM 101220
+/* object values for walls */
+#define WALL_TYPE 0  /* type, effect */
+#define WALL_DIR 1   /* direction blocking */
+#define WALL_LEVEL 2 /* level of wall in case creator can't be found */
+#define WALL_IDNUM 3 /* creator's idnum */
 
 /* manual spell header info */
 #define ASPELL(spellname)                               \
@@ -1182,6 +1196,7 @@ int lowest_spell_level(int spellnum);
 #ifndef __SPELL_PARSER_C__
 
 extern struct spell_info_type spell_info[];
+extern struct wall_information wallinfo[];
 extern char cast_arg2[];
 extern const char *unused_spellname;
 

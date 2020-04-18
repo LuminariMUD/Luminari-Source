@@ -32,18 +32,6 @@
 #include "oasis.h"
 #include "genzon.h" /* for real_zone_by_thing */
 
-#define WALL_ITEM 101220
-/* object values for walls */
-#define WALL_TYPE 0  /* type, effect */
-#define WALL_DIR 1   /* direction blocking */
-#define WALL_LEVEL 2 /* level of wall in case creator can't be found */
-#define WALL_IDNUM 3 /* creator's idnum */
-
-#define PRISMATIC_SPHERE 90
-#define WIZARD_EYE 45
-
-#define SUMMON_FAIL "You failed.\r\n"
-
 /************************************************************/
 /*  Functions, Events, etc needed to perform manual spells  */
 /************************************************************/
@@ -57,7 +45,7 @@
 | stops movement? | spellnum | long name | short name | keywords | duration |
    duration = 0 is default: 1 + level / 10
  */
-struct wall_information wallinfo[] = {
+struct wall_information wallinfo[NUM_WALL_TYPES] = {
     /* WALL_TYPE_FORCE 0 */
     {TRUE,
      SPELL_WALL_OF_FORCE,

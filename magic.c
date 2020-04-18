@@ -5322,7 +5322,7 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
   case SPELL_PORTAL:
     if (vict == NULL)
     {
-      send_to_char(ch, "Spell failed!  You have no target!\r\n");
+      send_to_char(ch, "Portal failed!  You have no target!\r\n");
       return;
     }
 
@@ -5335,7 +5335,7 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
     if (!valid_mortal_tele_dest(ch, IN_ROOM(ch), FALSE) ||
         !valid_mortal_tele_dest(ch, IN_ROOM(vict), FALSE))
     {
-      send_to_char(ch, "Your magic is not working!\r\n");
+      send_to_char(ch, "Your portal is not working!  Must be this location or the target is blocking the portal!\r\n");
       return;
     }
 
@@ -5347,6 +5347,7 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
       send_to_char(ch, "This magic won't help you travel on this plane!\r\n");
       return;
     }
+
     /* no portaling off the prime plane to another */
     if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(vict)), ZONE_ELEMENTAL) ||
         ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(vict)), ZONE_ETH_PLANE) ||
