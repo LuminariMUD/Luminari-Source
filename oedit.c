@@ -2034,7 +2034,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       return;
 
     case ITEM_TREASURE_CHEST:
-      if (atoi(arg) <= 0 || atoi(arg) > 6)
+      if (atoi(arg) <= LOOTBOX_LEVEL_UNDEFINED || atoi(arg) >= NUM_LOOTBOX_LEVELS)
       {
         write_to_output(d, "Invalid option.  Try again: ");
         return;
@@ -2086,7 +2086,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       oedit_disp_val3_menu(d);
       break;
     case ITEM_TREASURE_CHEST:
-      if (atoi(arg) <= 0 || atoi(arg) > 7)
+      if (atoi(arg) <= LOOTBOX_TYPE_UNDEFINED || atoi(arg) >= NUM_LOOTBOX_TYPES)
       {
         write_to_output(d, "Invalid option.  Try again: ");
         return;
