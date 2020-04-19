@@ -3312,7 +3312,7 @@ ACMD(do_renewedvigor)
   attach_mud_event(new_mud_event(eRENEWEDVIGOR, ch, NULL),
                    (2 * SECS_PER_MUD_DAY));
   GET_HIT(ch) += dice(CLASS_LEVEL(ch, CLASS_BERSERKER) + 3, 8) +
-                 10 + GET_CON_BONUS(ch) + GET_DEX_BONUS(ch) + GET_STR_BONUS(ch)));
+                 10 + GET_CON_BONUS(ch) + GET_DEX_BONUS(ch) + GET_STR_BONUS(ch);
   update_pos(ch);
 
   /* Actions */
