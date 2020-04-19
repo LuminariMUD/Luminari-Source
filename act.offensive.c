@@ -3311,8 +3311,8 @@ ACMD(do_renewedvigor)
   act("$n's body glows \tRred\tn as some wounds heal!", FALSE, ch, 0, NULL, TO_NOTVICT);
   attach_mud_event(new_mud_event(eRENEWEDVIGOR, ch, NULL),
                    (2 * SECS_PER_MUD_DAY));
-  GET_HIT(ch) += MIN((GET_MAX_HIT(ch) - GET_HIT(ch)),
-                     (dice(CLASS_LEVEL(ch, CLASS_BERSERKER) / 4 + 3, 8) + 10 + GET_CON_BONUS(ch)));
+  GET_HIT(ch) += dice(CLASS_LEVEL(ch, CLASS_BERSERKER) + 3, 8) +
+                 10 + GET_CON_BONUS(ch) + GET_DEX_BONUS(ch) + GET_STR_BONUS(ch)));
   update_pos(ch);
 
   /* Actions */

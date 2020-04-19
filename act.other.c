@@ -487,7 +487,7 @@ ACMD(do_ethshift)
   USE_FULL_ROUND_ACTION(ch);
 }
 
-/* imbue an arrow with one of your spells */
+/* imbue an arrow with one of your spells -zusuk */
 ACMD(do_imbuearrow)
 {
   char arg1[MAX_INPUT_LENGTH];
@@ -557,6 +557,152 @@ ACMD(do_imbuearrow)
   if (spell_prep_gen_check(ch, spell_num, METAMAGIC_NONE) == CLASS_UNDEFINED)
   {
     send_to_char(ch, "You have to have the spell prepared in order to imbue!!\r\n");
+    return;
+  }
+
+  /* this is where we make sure the spell is a valid one to put on your arrow -zusuk */
+  switch (spell_num)
+  {
+
+  case SPELL_BURNING_HANDS:
+  case SPELL_CALL_LIGHTNING:
+  case SPELL_CHILL_TOUCH:
+  case SPELL_COLOR_SPRAY:
+  case SPELL_CURSE:
+  case SPELL_DISPEL_EVIL:
+  case SPELL_EARTHQUAKE:
+  case SPELL_ENERGY_DRAIN:
+  case SPELL_FIREBALL:
+  case SPELL_HARM:
+  case SPELL_LIGHTNING_BOLT:
+  case SPELL_MAGIC_MISSILE:
+  case SPELL_POISON:
+  case SPELL_SHOCKING_GRASP:
+  case SPELL_SLEEP:
+  case SPELL_DISPEL_GOOD:
+  case SPELL_IDENTIFY:
+  case SPELL_CAUSE_LIGHT_WOUNDS:
+  case SPELL_CAUSE_MODERATE_WOUNDS:
+  case SPELL_CAUSE_SERIOUS_WOUNDS:
+  case SPELL_CAUSE_CRITICAL_WOUNDS:
+  case SPELL_FLAME_STRIKE:
+  case SPELL_DESTRUCTION:
+  case SPELL_ICE_STORM:
+  case SPELL_BALL_OF_LIGHTNING:
+  case SPELL_MISSILE_STORM:
+  case SPELL_CHAIN_LIGHTNING:
+  case SPELL_METEOR_SWARM:
+  case SPELL_GREASE:
+  case SPELL_HORIZIKAULS_BOOM:
+  case SPELL_ICE_DAGGER:
+  case SPELL_NEGATIVE_ENERGY_RAY:
+  case SPELL_RAY_OF_ENFEEBLEMENT:
+  case SPELL_SCARE:
+  case SPELL_SHELGARNS_BLADE:
+  case SPELL_WALL_OF_FOG:
+  case SPELL_DARKNESS:
+  case SPELL_WEB:
+  case SPELL_ACID_ARROW:
+  case SPELL_DAZE_MONSTER:
+  case SPELL_HIDEOUS_LAUGHTER:
+  case SPELL_TOUCH_OF_IDIOCY:
+  case SPELL_SCORCHING_RAY:
+  case SPELL_DEAFNESS:
+  case SPELL_ENERGY_SPHERE:
+  case SPELL_STINKING_CLOUD:
+  case SPELL_HALT_UNDEAD:
+  case SPELL_VAMPIRIC_TOUCH:
+  case SPELL_HOLD_PERSON:
+  case SPELL_DEEP_SLUMBER:
+  case SPELL_DAYLIGHT:
+  case SPELL_SLOW:
+  case SPELL_DISPEL_MAGIC:
+  case SPELL_STENCH:
+  case SPELL_ACID_SPLASH:
+  case SPELL_RAY_OF_FROST:
+  case SPELL_BILLOWING_CLOUD:
+  case SPELL_RAINBOW_PATTERN:
+  case SPELL_FSHIELD_DAM:
+  case SPELL_CSHIELD_DAM:
+  case SPELL_ASHIELD_DAM:
+  case SPELL_INTERPOSING_HAND:
+  case SPELL_WALL_OF_FORCE:
+  case SPELL_CLOUDKILL:
+  case SPELL_WAVES_OF_FATIGUE:
+  case SPELL_SYMBOL_OF_PAIN:
+  case SPELL_DOMINATE_PERSON:
+  case SPELL_FEEBLEMIND:
+  case SPELL_NIGHTMARE:
+  case SPELL_MIND_FOG:
+  case SPELL_DISMISSAL:
+  case SPELL_CONE_OF_COLD:
+  case SPELL_TELEKINESIS:
+  case SPELL_FIREBRAND:
+  case SPELL_DEATHCLOUD:
+  case SPELL_FREEZING_SPHERE:
+  case SPELL_ACID_FOG:
+  case SPELL_EYEBITE:
+  case SPELL_ANTI_MAGIC_FIELD:
+  case SPELL_GREATER_DISPELLING:
+  case SPELL_GRASPING_HAND:
+  case SPELL_POWER_WORD_BLIND:
+  case SPELL_WAVES_OF_EXHAUSTION:
+  case SPELL_MASS_HOLD_PERSON:
+  case SPELL_PRISMATIC_SPRAY:
+  case SPELL_POWER_WORD_STUN:
+  case SPELL_THUNDERCLAP:
+  case SPELL_CLENCHED_FIST:
+  case SPELL_INCENDIARY_CLOUD:
+  case SPELL_HORRID_WILTING:
+  case SPELL_IRRESISTIBLE_DANCE:
+  case SPELL_MASS_DOMINATION:
+  case SPELL_SCINT_PATTERN:
+  case SPELL_BANISH:
+  case SPELL_SUNBURST:
+  case SPELL_WAIL_OF_THE_BANSHEE:
+  case SPELL_POWER_WORD_KILL:
+  case SPELL_ENFEEBLEMENT:
+  case SPELL_WEIRD:
+  case SPELL_PRISMATIC_SPHERE:
+  case SPELL_IMPLODE:
+  case SPELL_ACID:
+  case SPELL_INCENDIARY:
+  case SPELL_FAERIE_FOG:
+  case SPELL_WORD_OF_FAITH:
+  case SPELL_DIMENSIONAL_LOCK:
+  case SPELL_STORM_OF_VENGEANCE:
+  case SPELL_CHARM_ANIMAL:
+  case SPELL_FAERIE_FIRE:
+  case SPELL_PRODUCE_FLAME:
+  case SPELL_FLAME_BLADE:
+  case SPELL_FLAMING_SPHERE:
+  case SPELL_CALL_LIGHTNING_STORM:
+  case SPELL_CONTAGION:
+  case SPELL_FROST_BREATHE:
+  case SPELL_SPIKE_GROWTH:
+  case SPELL_BLIGHT:
+  case SPELL_REINCARNATE:
+  case SPELL_LIGHTNING_BREATHE:
+  case SPELL_SPIKE_STONES:
+  case SPELL_INSECT_PLAGUE:
+  case SPELL_UNHALLOW:
+  case SPELL_WALL_OF_FIRE:
+  case SPELL_WALL_OF_THORNS:
+  case SPELL_FIRE_SEEDS:
+  case SPELL_CREEPING_DOOM:
+  case SPELL_FIRE_STORM:
+  case SPELL_SUNBEAM:
+  case SPELL_FINGER_OF_DEATH:
+  case SPELL_BLADE_BARRIER:
+  case SPELL_BLADES:
+  case SPELL_DOOM:
+  case SPELL_WHIRLWIND:
+    send_to_char(ch, "You attempt to prep the spell.\r\n");
+    return;
+
+  /* no good! */
+  default:
+    send_to_char(ch, "Not a valid spell to imbue your ammo with.\r\n");
     return;
   }
 
@@ -5564,7 +5710,7 @@ ACMD(do_happyhour)
 }
 
 /****  little hint system *******/
-#define NUM_HINTS 34
+#define NUM_HINTS 35
 
 /* i am surrounding hints with this:
    \tR[HINT]:\tn \ty
@@ -5619,8 +5765,7 @@ char *hints[NUM_HINTS] = {
            "initiated with the ASK command, commonly ASK HI will initiate conversation."
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /* 8*/ "\tR[HINT]:\tn \ty"
-           "If you have an idea for a hint, please email your ideas to one of "
-           "our programmers: Ornir@@LuminariMUD.com or Zusuk@@LuminariMUD.com."
+           "If you have an idea for a hint, please let us know on the Discord Server: "
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /* 9*/ "\tR[HINT]:\tn \ty"
            "LuminariMUD is considered a 'younger' MUD and is under heavy "
@@ -5794,6 +5939,10 @@ char *hints[NUM_HINTS] = {
            "abilties (determined by their level, race and class).  If they are groupped, you will get "
            "full credit for their kills as well.  "
            "(group new, order followers group join <your name>)"
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*35*/ "\tR[HINT]:\tn \ty"
+           "Got coin to spare and ready to build up a source of steady reliable income?  Set up a shop "
+           "to the rest of the players!  HELP PLAYER-SHOP"
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
 };
 

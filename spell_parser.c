@@ -1056,6 +1056,8 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
                         extract_obj(obj);
                 break;
         case ITEM_POTION:
+                int potion_level = GET_OBJ_VAL(obj, i);
+
                 tch = ch;
 
                 /*  AOO */
@@ -1073,10 +1075,12 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
 
                 USE_MOVE_ACTION(ch);
 
+                if (KNOWS_DISCOVERY(ch, ALC_DISC_ENHANCE_POTION) &&
+                    potion_level < CLASS_LEVEL(ch, CLASS_ALCHEMIST))
+                        potion_level = CLASS_LEVEL(ch, CLASS_ALCHEMIST);
+
                 for (i = 1; i <= 3; i++)
-                        if (call_magic(ch, ch, NULL, GET_OBJ_VAL(obj, i), 0,
-                                       KNOWS_DISCOVERY(ch, ALC_DISC_ENHANCE_POTION) ? MAX(CLASS_LEVEL(ch, CLASS_ALCHEMIST), GET_OBJ_VAL(obj, 0)) : GET_OBJ_VAL(obj, 0),
-                                       CAST_POTION) <= 0)
+                        if (call_magic(ch, ch, NULL, GET_OBJ_VAL(obj, i), 0, potion_level, CAST_POTION) <= 0)
                                 break;
 
                 if (obj != NULL)
