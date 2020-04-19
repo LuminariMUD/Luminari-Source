@@ -2709,13 +2709,13 @@ void assign_feats(void)
   /*rage power*/ feato(FEAT_RP_POWERFUL_BLOW, "powerful blow", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
                        "bonus damage once/rage",
                        "Gain a +1 bonus on a single damage roll. This bonus increases by +1 for "
-                       "every 4 berserker levels attained. This power is used as a swift action.  "
+                       "every berserker level attained. This power is used as a swift action.  "
                        "This power can only be used once per rage.");
   /*rage power*/ feato(FEAT_RP_RENEWED_VIGOR, "renewed vigor", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
                        "able to heal while raging",
                        "As a standard action, the berserker heals 3d8 points of damage + her "
-                       "Constitution modifier. For every four levels the berserker has attained "
-                       "above 4th, this amount of damage healed increases by 1d8.  This power can "
+                       "Constitution/Str/Dex modifier. For every level the berserker has attained "
+                       "this amount of damage healed increases by 1d8.  This power can "
                        "be used only once per day and only while raging.");
   /*rage power*/ feato(FEAT_RP_HEAVY_SHRUG, "heavy shrug", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
                        "increased DR while raging",
@@ -2739,13 +2739,13 @@ void assign_feats(void)
   /*epic*/ feato(FEAT_EATER_OF_MAGIC, "eater of magic", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
                  "successful saving throws will heal rager",
                  "While raging, if the rager makes a successful saving throw, they recover "
-                 "their level in hit points.");
+                 "30 + their level * 2 + physical stat bonuses (dex, con, str) in hit points.");
   /*epic*/ feato(FEAT_RAGE_RESISTANCE, "rage resistance", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
                  "gain boost in resistances while raging",
-                 "While raging, you will gain a 10 bonus to all your resistances.");
+                 "While raging, you will gain a 15 bonus to all your resistances.");
   /*epic*/ feato(FEAT_DEATHLESS_FRENZY, "deathless frenzy", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
                  "the rager is nearly unstoppable",
-                 "While raging, you have to be brought to -51 or lower to be stopped.");
+                 "While raging, you have to be brought to -121 or lower to be stopped.");
 
   /* Sorcerer/Wizard */
   feato(FEAT_SUMMON_FAMILIAR, "summon familiar", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,

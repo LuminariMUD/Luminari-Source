@@ -928,7 +928,7 @@ void update_pos_dam(struct char_data *victim)
 
   if (HAS_FEAT(victim, FEAT_DEATHLESS_FRENZY) && affected_by_spell(victim, SKILL_RAGE))
   {
-    if (GET_HIT(victim) <= -51)
+    if (GET_HIT(victim) <= -121)
       change_position(victim, POS_DEAD);
     else
       return;
@@ -967,7 +967,7 @@ void update_pos(struct char_data *victim)
 
   if (HAS_FEAT(victim, FEAT_DEATHLESS_FRENZY) && affected_by_spell(victim, SKILL_RAGE))
   {
-    if (GET_HIT(victim) <= -51)
+    if (GET_HIT(victim) <= -121)
       change_position(victim, POS_DEAD);
     else
       return;
@@ -2259,7 +2259,7 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
 
   if (HAS_FEAT(ch, FEAT_RAGE_RESISTANCE) && affected_by_spell(ch, SKILL_RAGE))
   {
-    damtype_reduction += 10;
+    damtype_reduction += 15;
   }
 
   if (HAS_FEAT(ch, FEAT_RESISTANCE))
@@ -3873,8 +3873,8 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   {
     if (display_mode)
       send_to_char(ch, "Powerful blow bonus: \tR%d\tn\r\n",
-                   CLASS_LEVEL(ch, CLASS_BERSERKER) / 4 + 1);
-    dambonus += CLASS_LEVEL(ch, CLASS_BERSERKER) / 4 + 1;
+                   CLASS_LEVEL(ch, CLASS_BERSERKER));
+    dambonus += CLASS_LEVEL(ch, CLASS_BERSERKER);
   } /* THIS IS JUST FOR SHOW, it gets taken out before the damage is calculated
      * the actual damage bonus is inserted in the damage code */
 
@@ -4550,21 +4550,38 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
       if (HAS_FEAT(ch, FEAT_RAGING_CRITICAL) && affected_by_spell(ch, SKILL_RAGE))
       {
         /*fail*/ if ((GET_SIZE(ch) - GET_SIZE(victim)) >= 2)
+        {
           ;
+        }
         /*fail*/ else if ((GET_SIZE(victim) - GET_SIZE(ch)) >= 2)
+        {
           ;
+        }
         /*fail*/ else if (GET_POS(victim) <= POS_SITTING)
+        {
           ;
+        }
         /*fail*/ else if (IS_INCORPOREAL(victim))
+        {
           ;
+        }
         /*fail*/ else if (MOB_FLAGGED(victim, MOB_NOBASH))
+        {
           ;
+        }
+        /*fail*/ else if (MOB_FLAGGED(victim, MOB_NOKILL))
+        {
+          ;
+        }
+        /*fail*/ else if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
+                          ch->next_in_room != victim && victim->next_in_room != ch)
+        {
+          ;
+        }
         else
         { /*success!*/
-          change_position(victim, POS_SITTING);
-          act("\tyYou knock $N to the ground with your powerful blow!\tn", FALSE, ch, NULL, victim, TO_CHAR);
-          act("\ty$n knocks you to the ground with $s powerful blow!\tn", FALSE, ch, NULL, victim, TO_VICT);
-          act("\ty$n knocks $N to the ground with $s powerful blow!\tn", FALSE, ch, NULL, victim, TO_NOTVICT);
+          send_to_char(ch, "\tW[Raging CRIT!]\tn");
+          perform_knockdown(ch, vict, SKILL_BASH);
         }
       }
     }
@@ -6128,9 +6145,44 @@ void imbued_arrow(struct char_data *ch, struct char_data *vict, struct obj_data 
   act("You watch as $p launched by $n ignites with magical energy!", FALSE, ch, missile, vict, TO_VICT);
   act("..$p ignites with magical energy as $n launches it at $N!", FALSE, ch, missile, vict, TO_NOTVICT);
 
-  /* time to call the magic! */
-  call_magic(ch, vict, missile, GET_OBJ_VAL(missile, 1), 0, MAGIC_LEVEL(ch),
-             CAST_SPELL);
+  if (IN_ROOM(ch) != IN_ROOM(vict))
+  {
+    /* a location has been found. */
+    original_loc = IN_ROOM(ch);
+    char_from_room(ch);
+
+    if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(vict)), ZONE_WILDERNESS))
+    {
+      X_LOC(ch) = world[IN_ROOM(vict)].coords[0];
+      Y_LOC(ch) = world[IN_ROOM(vict)].coords[1];
+    }
+
+    char_to_room(ch, IN_ROOM(vict));
+
+    /* time to call the magic! */
+    call_magic(ch, vict, missile, GET_OBJ_VAL(missile, 1), 0, MAGIC_LEVEL(ch),
+               CAST_SPELL);
+
+    /* check if the char is still there */
+    if (IN_ROOM(ch) == IN_ROOM(vict))
+    {
+      char_from_room(ch);
+
+      if (ZONE_FLAGGED(GET_ROOM_ZONE(original_loc), ZONE_WILDERNESS))
+      {
+        X_LOC(ch) = world[original_loc].coords[0];
+        Y_LOC(ch) = world[original_loc].coords[1];
+      }
+
+      char_to_room(ch, original_loc);
+    }
+  }
+  else
+  {
+    /* time to call the magic! */
+    call_magic(ch, vict, missile, GET_OBJ_VAL(missile, 1), 0, MAGIC_LEVEL(ch),
+               CAST_SPELL);
+  }
 
   /* clear the imbued spell on the arrow */
   GET_OBJ_VAL(missile, 1) = 0;
@@ -6249,7 +6301,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   {
     send_to_char(ch, "[\tWPOWERFUL_BLOW\tn] ");
     affect_from_char(ch, SKILL_POWERFUL_BLOW);
-    powerful_blow_bonus += CLASS_LEVEL(ch, CLASS_BERSERKER) / 4 + 1;
+    powerful_blow_bonus += CLASS_LEVEL(ch, CLASS_BERSERKER);
     /* what is this?  because we are removing the affect, it won't
              be calculated properly in damage_bonus, so we just tag it on afterwards */
   }
@@ -8018,9 +8070,7 @@ void handle_smash_defense(struct char_data *ch)
     return;
   if ((GET_SIZE(vict) - GET_SIZE(ch)) >= 2)
     return;
-  if (GET_POS(vict) == POS_SITTING)
-    return;
-  if (GET_POS(vict) == POS_DEAD)
+  if (GET_POS(vict) <= POS_SITTING)
     return;
   if (IS_INCORPOREAL(vict))
     return;
@@ -8028,6 +8078,7 @@ void handle_smash_defense(struct char_data *ch)
     return;
 
   /* OK should be ok now! */
+  send_to_char(ch, "\tW[Smash Defense]\tn");
   perform_knockdown(ch, vict, SKILL_BASH);
 
   /* tag with event to make sure this only happens once per round! */
@@ -8317,7 +8368,7 @@ void perform_violence(struct char_data *ch, int phase)
   {
 
     /* handle smash defense */
-    if (phase == 1 && HAS_FEAT(ch, FEAT_SMASH_DEFENSE) &&
+    if (HAS_FEAT(ch, FEAT_SMASH_DEFENSE) &&
         affected_by_spell(ch, SKILL_DEFENSIVE_STANCE) &&
         !char_has_mud_event(ch, eSMASH_DEFENSE))
       handle_smash_defense(ch);

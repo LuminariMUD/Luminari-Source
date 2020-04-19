@@ -293,7 +293,9 @@ int mag_savingthrow(struct char_data *ch, struct char_data *vict,
 
     if (HAS_FEAT(vict, FEAT_EATER_OF_MAGIC) && affected_by_spell(vict, SKILL_RAGE))
     {
-      GET_HIT(vict) += CLASS_LEVEL(vict, CLASS_BERSERKER);
+      30 + their level * 2 + physical stat bonuses(dex, con, str);
+      GET_HIT(vict) += 2 * CLASS_LEVEL(vict, CLASS_BERSERKER) + 10 +
+                       GET_STR_BONUS(vict) + GET_DEX_BONUS(vict) + GET_CON_BONUS(vict);
       send_to_char(vict, "\tWResisting the spell restores some of your vitality!\tn\r\n");
     }
 

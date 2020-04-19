@@ -2787,7 +2787,8 @@ void advance_level(struct char_data *ch, int class)
   }
   if (!(GET_LEVEL(ch) % 4))
   {
-    GET_BOOSTS(ch)++;
+    GET_BOOSTS(ch)
+    ++;
     send_to_char(ch, "\tMYou gain a boost (to stats) point!\tn\r\n");
   }
 
@@ -4131,8 +4132,6 @@ void load_class_list(void)
   feat_assignment(CLASS_BERSERKER, FEAT_RAGE, Y, 20, Y);
   feat_assignment(CLASS_BERSERKER, FEAT_MIGHTY_RAGE, Y, 20, N);
   /*epic*/
-  /* this ended up being wayyyyy too powerful */
-  //feat_assignment(CLASS_BERSERKER, FEAT_RAGING_CRITICAL, Y, 21, N);
   /* rage power lvl 22*/
   feat_assignment(CLASS_BERSERKER, FEAT_EATER_OF_MAGIC, Y, 22, N);
   feat_assignment(CLASS_BERSERKER, FEAT_SHRUG_DAMAGE, Y, 22, Y);
@@ -4145,6 +4144,7 @@ void load_class_list(void)
   feat_assignment(CLASS_BERSERKER, FEAT_RAGE, Y, 29, Y);
   /* rage power lvl 30*/
   feat_assignment(CLASS_BERSERKER, FEAT_DEATHLESS_FRENZY, Y, 30, N);
+  feat_assignment(CLASS_BERSERKER, FEAT_RAGING_CRITICAL, Y, 30, N);
   /* no spell assignment */
   /* class prerequisites */
   class_prereq_align(CLASS_BERSERKER, NEUTRAL_GOOD);
@@ -5356,7 +5356,7 @@ void load_class_list(void)
   /*     class-number               name      abrv   clr-abrv     menu-name*/
   classo(CLASS_ALCHEMIST, "alchemist", "Alc", "\tWA\tClc\tn", "f) \tWAlchemist\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
-        -1, N, N, M, 8, 0, 1, 4, Y, 0, 0,
+         -1, N, N, M, 8, 0, 1, 4, Y, 0, 0,
          /*prestige spell progression*/ "none",
          /*descrip*/
          "Whether secreted away in a smoky basement laboratory or gleefully experimenting"
@@ -5531,7 +5531,6 @@ void load_class_list(void)
   feat_assignment(CLASS_ALCHEMIST, FEAT_BOMBS, Y, 30, Y);
   feat_assignment(CLASS_ALCHEMIST, FEAT_ALCHEMICAL_DISCOVERY, Y, 30, Y);
   feat_assignment(CLASS_ALCHEMIST, FEAT_BOMB_MASTERY, Y, 30, Y);
-
 
   /* no spell assignment */
   /* class prereqs */

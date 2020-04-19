@@ -2242,7 +2242,7 @@ SPECIAL(fake_twilight)
 
   if (!cmd && !strcmp(argument, "identify"))
   {
-    send_to_char(ch, "Twilight Rage\r\n");
+    send_to_char(ch, "Twilight Rage.\r\n");
     return 1;
   }
 
@@ -2253,7 +2253,7 @@ SPECIAL(fake_twilight)
     return 0;
   }
 
-  if (cmd || !vict || rand_number(0, 18))
+  if (cmd || !vict || rand_number(0, 16))
     return 0;
 
   weapons_spells("\tLA glimmer of insanity crosses your face as your\r\n"
@@ -2297,7 +2297,7 @@ SPECIAL(twilight)
 
   if (!cmd && !strcmp(argument, "identify"))
   {
-    send_to_char(ch, "Twilight Rage\r\n");
+    send_to_char(ch, "Twilight Rage!\r\n");
     return 1;
   }
 
@@ -2308,7 +2308,7 @@ SPECIAL(twilight)
     return 0;
   }
 
-  if (cmd || !vict || rand_number(0, 16))
+  if (cmd || !vict || rand_number(0, 12))
     return 0;
 
   weapons_spells("\tLA glimmer of insanity crosses your face as your\r\n"
