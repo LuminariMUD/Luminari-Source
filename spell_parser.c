@@ -904,6 +904,7 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
         int i, k;
         struct char_data *tch = NULL, *next_tch;
         struct obj_data *tobj = NULL;
+        int potion_level = GET_OBJ_VAL(obj, 0);
 
         one_argument(argument, arg);
 
@@ -1056,7 +1057,6 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
                         extract_obj(obj);
                 break;
         case ITEM_POTION:
-                int potion_level = GET_OBJ_VAL(obj, i);
 
                 tch = ch;
 
