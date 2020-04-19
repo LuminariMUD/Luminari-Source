@@ -4581,7 +4581,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
         else
         { /*success!*/
           send_to_char(ch, "\tW[Raging CRIT!]\tn");
-          perform_knockdown(ch, vict, SKILL_BASH);
+          perform_knockdown(ch, victim, SKILL_BASH);
         }
       }
     }
@@ -6132,6 +6132,8 @@ int determine_weapon_type(struct obj_data *wielded) {
 /* arrow imbued with spell will now activate */
 void imbued_arrow(struct char_data *ch, struct char_data *vict, struct obj_data *missile)
 {
+  int original_loc = NOWHERE;
+
   /* start with the usual dummy checks */
   if (!ch || !vict || !missile)
     return;
