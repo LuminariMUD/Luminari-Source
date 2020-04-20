@@ -200,11 +200,11 @@ ACMD(do_perform)
         }
         if (ch->in_room != NOWHERE && ROOM_FLAGGED(ch->in_room, ROOM_SOUNDPROOF) &&
             (performance_info[i][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_KEYBOARD ||
-            performance_info[i][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_ORATORY ||
-            performance_info[i][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_PERCUSSION ||
-            performance_info[i][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_STRING ||
-            performance_info[i][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_WIND ||
-            performance_info[i][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_SING))
+             performance_info[i][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_ORATORY ||
+             performance_info[i][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_PERCUSSION ||
+             performance_info[i][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_STRING ||
+             performance_info[i][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_WIND ||
+             performance_info[i][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_SING))
         {
           send_to_char(ch, "The silence effectively stops your performance.\r\n");
           return;
@@ -237,7 +237,7 @@ ACMD(do_perform)
           USE_MOVE_ACTION(ch);
         else
           USE_STANDARD_ACTION(ch);
-          
+
         return;
       }
     }
@@ -499,7 +499,7 @@ int process_performance(struct char_data *ch, int spellnum,
   af.modifier = 0;
   af.duration = 2;
   if (HAS_FEAT(ch, FEAT_LINGERING_SONG))
-    af.duration += 2;
+    af.duration += 3;
   af.location = APPLY_NONE;
   af.spell = spellnum;
   af.bonus_type = BONUS_TYPE_MORALE;
