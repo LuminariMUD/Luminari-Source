@@ -119,7 +119,7 @@ const char *alchemical_discovery_descriptions[NUM_ALC_DISCOVERIES] = {
     "Deals 1d6/rank radiant damage, chance to blind, Undead take +2 damage/bomb rank and are staggered on failed save.",
     "Chance to entangle those caught in effect.",
     "Grows a third arm from torso which acts as an additional hand for most purposes.",
-    "Alchemist grows wings that will allow him to fly as per the fly spell."};
+    "Alchemist grows wings that will allow him to fly as per the fly spell (fly/land)."};
 
 const char *grand_alchemical_discovery_names[NUM_GR_ALC_DISCOVERIES] = {
     "none",
