@@ -508,20 +508,19 @@ void regen_update(struct char_data *ch)
     hp += HAS_FEAT(ch, FEAT_FAST_HEALING) * 3;
   }
 
+  // half-troll racial innate regeneration
+  if (GET_RACE(ch) == RACE_HALF_TROLL)
+  {
+    hp += 3;
+    if (FIGHTING(ch))
+      hp += 3;
+  }
+
+  /* probably put these as last bonuses */
   if (ROOM_FLAGGED(ch->in_room, ROOM_REGEN))
     hp *= 2;
   if (AFF_FLAGGED(ch, AFF_REGEN))
     hp *= 2;
-
-  // half-troll racial innate regeneration
-  if (GET_RACE(ch) == RACE_HALF_TROLL)
-  {
-    if (!hp)
-      hp++;
-    hp *= 2;
-    if (FIGHTING(ch))
-      hp *= 2;
-  }
 
   if (rand_number(0, 3) && GET_LEVEL(ch) <= LVL_IMMORT && !IS_NPC(ch) &&
       (GET_COND(ch, THIRST) == 0 || GET_COND(ch, HUNGER) == 0))
@@ -531,7 +530,8 @@ void regen_update(struct char_data *ch)
   if (AFF_FLAGGED(ch, AFF_BLACKMANTLE) || ROOM_FLAGGED(IN_ROOM(ch), ROOM_NOHEAL))
     hp = 0;
 
-  if (GET_HIT(ch) > GET_MAX_HIT(ch))
+  /* some mechanics put you over maximum hp (purposely), this slowly drains that bonus over time */
+  if (GET_HIT(ch) > GET_MAX_HIT(ch) && !rand_number(0, 1))
   {
     GET_HIT(ch)
     --;
@@ -555,6 +555,7 @@ void regen_update(struct char_data *ch)
     move_regen *= 10;
     GET_MOVE(ch) = MIN(GET_MOVE(ch) + (move_regen * 3), GET_MAX_MOVE(ch));
   }
+
   if (GET_PSP(ch) > GET_MAX_PSP(ch))
   {
     GET_PSP(ch)
@@ -1114,7 +1115,7 @@ void point_update(void)
     /* decrement timer */
     if (GET_OBJ_TIMER(j) > 0)
       GET_OBJ_TIMER(j)
-      --;
+    --;
 
     /* timer counting down that doesn't result in extraction */
 

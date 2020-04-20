@@ -1359,6 +1359,10 @@ const char *affected_bit_descs[NUM_AFF_FLAGS + 1] = {
     "You are aware of backstab attempts now!",
     "You have been crippled by a nasty critical attack!",
     "You are levitating above the ground!",
+    "You are suffering bleed damage each round until healed!",
+    "You are staggered - 50% chance to fail spells or a single melee attack!", //105
+    "You are dazzled and will suffer -1 to attacks and perception checks!"
+    "You are shaken: -2 to attack rolls, saves and skills checks!",
     "\n"};
 
 /** Connection type descriptions.

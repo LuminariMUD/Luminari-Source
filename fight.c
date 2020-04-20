@@ -7846,6 +7846,7 @@ void autoDiagnose(struct char_data *ch)
         percent = (100 * GET_HIT(tank)) / GET_MAX_HIT(tank);
       else
         percent = -1;
+
       if (percent >= 100)
       {
         send_to_char(ch, CBWHT(ch, C_NRM));

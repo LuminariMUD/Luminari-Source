@@ -4754,6 +4754,7 @@ void load_class_list(void)
   feat_assignment(CLASS_BARD, FEAT_SONG_OF_HEROISM, Y, 5, N);
   feat_assignment(CLASS_BARD, FEAT_ORATORY_OF_REJUVENATION, Y, 7, N);
   feat_assignment(CLASS_BARD, FEAT_SONG_OF_FLIGHT, Y, 9, N);
+  feat_assignment(CLASS_BARD, FEAT_EFFICIENT_PERFORMANCE, Y, 10, N);
   feat_assignment(CLASS_BARD, FEAT_SONG_OF_REVELATION, Y, 11, N);
   feat_assignment(CLASS_BARD, FEAT_SONG_OF_FEAR, Y, 13, N);
   feat_assignment(CLASS_BARD, FEAT_ACT_OF_FORGETFULNESS, Y, 15, N);
