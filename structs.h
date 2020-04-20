@@ -1721,12 +1721,12 @@
 // more alchemist
 #define FEAT_BOMB_MASTERY 630
 // end more alchemist
-
+#define FEAT_EFFICIENT_PERFORMANCE 631
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 631
+#define FEAT_LAST_FEAT 632
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 632
+#define NUM_FEATS 633
 /** absolute cap **/
 #define MAX_FEATS 750
 /*****/

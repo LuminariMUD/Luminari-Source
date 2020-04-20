@@ -198,7 +198,13 @@ ACMD(do_perform)
                        performance_info[i][PERFORMANCE_DIFF]);
           return;
         }
-        if (ch->in_room != NOWHERE && ROOM_FLAGGED(ch->in_room, ROOM_SOUNDPROOF) && (performance_info[i][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_KEYBOARD || performance_info[i][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_ORATORY || performance_info[i][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_PERCUSSION || performance_info[i][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_STRING || performance_info[i][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_WIND || performance_info[i][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_SING))
+        if (ch->in_room != NOWHERE && ROOM_FLAGGED(ch->in_room, ROOM_SOUNDPROOF) &&
+            (performance_info[i][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_KEYBOARD ||
+            performance_info[i][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_ORATORY ||
+            performance_info[i][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_PERCUSSION ||
+            performance_info[i][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_STRING ||
+            performance_info[i][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_WIND ||
+            performance_info[i][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_SING))
         {
           send_to_char(ch, "The silence effectively stops your performance.\r\n");
           return;
@@ -226,7 +232,12 @@ ACMD(do_perform)
         char buf[128];
         sprintf(buf, "%d", i); /* Build the effect string */
         NEW_EVENT(eBARDIC_PERFORMANCE, ch, strdup(buf), 4 * PASSES_PER_SEC);
-        USE_STANDARD_ACTION(ch);
+
+        if (HAS_FEAT(ch, FEAT_EFFICIENT_PERFORMANCE))
+          USE_MOVE_ACTION(ch);
+        else
+          USE_STANDARD_ACTION(ch);
+          
         return;
       }
     }
