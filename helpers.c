@@ -15,7 +15,11 @@ void skip_spaces(char **string)
  * KaVir's protocol snippet */
 void parse_at(char *str)
 {
+  if (!str)
+    return;
+
   char *p = str;
+
   for (; *p; p++)
     if (*p == '@')
     {
