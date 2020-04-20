@@ -698,7 +698,7 @@ ACMD(do_imbuearrow)
   case SPELL_DOOM:
   case SPELL_WHIRLWIND:
     send_to_char(ch, "You attempt to prep the spell.\r\n");
-    return;
+    break;
 
   /* no good! */
   default:
