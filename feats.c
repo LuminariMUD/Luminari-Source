@@ -2634,6 +2634,9 @@ void assign_feats(void)
                "When listeners hear this song playing, they are given the ability to fly for "
                "a period of time. Movement points are also slightly restored. To play this "
                "song, the bard must be holding a horn.");
+  /*10*/ feato(FEAT_EFFICIENT_PERFORMANCE, "efficient performance", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+               "performance takes move instead of standard action",
+               "A bardic performance now only takes a move action instead of a standard action.");
   /*11*/ feato(FEAT_SONG_OF_REVELATION, "song of revelation", TRUE, FALSE, FALSE, FEAT_TYPE_PERFORMANCE,
                "song enhances perception (flute)",
                "When this song is played, the listeners begin to see things which they "

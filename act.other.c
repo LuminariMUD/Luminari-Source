@@ -5710,7 +5710,7 @@ ACMD(do_happyhour)
 }
 
 /****  little hint system *******/
-#define NUM_HINTS 35
+#define NUM_HINTS 36
 
 /* i am surrounding hints with this:
    \tR[HINT]:\tn \ty
@@ -5943,6 +5943,12 @@ char *hints[NUM_HINTS] = {
     /*35*/ "\tR[HINT]:\tn \ty"
            "Got coin to spare and ready to build up a source of steady reliable income?  Set up a shop "
            "to the rest of the players!  HELP PLAYER-SHOP"
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*36*/ "\tR[HINT]:\tn \ty"
+           "Starting cities have convenient locations to buy supplies, equipment and even house "
+           "donation rooms.  In Mosswood, from the elder: north, east to the armor shop; directly "
+           "east for the general shop; south, west for the donation pit.  There are plenty more shops "
+           "to be found throughout the realms."
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
 };
 
