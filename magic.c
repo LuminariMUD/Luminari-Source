@@ -53,7 +53,7 @@ int compute_spell_res(struct char_data *ch, struct char_data *vict, int modifier
 
   //additional adjustmenets
   if (HAS_FEAT(vict, FEAT_DIAMOND_SOUL))
-    resist += 10 + MONK_TYPE((ch);
+    resist += 10 + MONK_TYPE(ch);
   if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_DROW_SPELL_RESISTANCE))
     resist += 10 + GET_LEVEL(vict);
   if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_IMPROVED_SPELL_RESISTANCE))

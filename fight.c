@@ -6343,7 +6343,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     {
       /* check for save */
       if (!savingthrow(victim, SAVING_FORT, 0,
-                       ((HAS_FEAT(ch, FEAT_KEEN_STRIKE) * 4) + 10 + (MONK_TYPE((ch) / 2) + GET_WIS_BONUS(ch))))
+                       ((HAS_FEAT(ch, FEAT_KEEN_STRIKE) * 4) + 10 + (MONK_TYPE(ch) / 2) + GET_WIS_BONUS(ch))))
       {
         send_to_char(ch, "[STUNNING-FIST] ");
         send_to_char(victim, "[\tRSTUNNING-FIST\tn] ");
@@ -6365,7 +6365,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   }
   if (affected_by_spell(ch, SKILL_QUIVERING_PALM))
   {
-    int quivering_palm_dc = 10 + (MONK_TYPE((ch) / 2) + GET_WIS_BONUS(ch);
+    int quivering_palm_dc = 10 + (MONK_TYPE(ch) / 2) + GET_WIS_BONUS(ch);
     if (!wielded || (OBJ_FLAGGED(wielded, ITEM_KI_FOCUS)) || (weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily == WEAPON_FAMILY_MONK))
     {
       send_to_char(ch, "[QUIVERING-PALM] ");
