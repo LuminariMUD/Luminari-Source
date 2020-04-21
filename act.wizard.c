@@ -8225,6 +8225,10 @@ ACMD(do_finddoor)
   struct char_data *tmp_char;
   struct obj_data *obj;
 
+  /* dummy check */
+  if (!ch)
+    return;
+
   one_argument(argument, arg);
 
   if (!*arg)
@@ -8296,7 +8300,7 @@ ACMD(do_players)
     *buf2 = '\0';
     for (i = 0; i < MAX_CLASSES; i++)
     {
-      if (CLASS_LEVEL(d->character, i))
+      if (d->character && CLASS_LEVEL(d->character, i))
       {
         if (counter)
           strcat(buf2, " / ");

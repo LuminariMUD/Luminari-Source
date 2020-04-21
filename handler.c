@@ -1835,6 +1835,10 @@ void extract_obj(struct obj_data *obj)
   struct char_data *ch = NULL, *next = NULL;
   struct obj_data *temp = NULL;
 
+  /* dummy check */
+  if (!obj)
+    return;
+
   if (obj->worn_by != NULL)
     if (unequip_char(obj->worn_by, obj->worn_on) != obj)
       log("SYSERR: Inconsistent worn_by and worn_on pointers!!");
