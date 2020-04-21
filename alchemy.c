@@ -1011,7 +1011,7 @@ void perform_bomb_direct_damage(struct char_data *ch, struct char_data *victim, 
   if (!ch || !victim)
     return;
 
-  int ndice = HAS_FEAT(ch, FEAT_BOMBS),
+  int ndice = HAS_FEAT(ch, FEAT_BOMBS) + 1,
       sdice = (HAS_FEAT(ch, FEAT_BOMB_MASTERY) ? 8 : 6),
       damMod = GET_INT_BONUS(ch) * (HAS_FEAT(ch, FEAT_BOMB_MASTERY) ? 2 : 1),
       damType = DAM_FIRE,

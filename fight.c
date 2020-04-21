@@ -7821,10 +7821,14 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
 /* this is deprecated with the prompt changes */
 void autoDiagnose(struct char_data *ch)
 {
+  if (!ch) /* silly dummy check */
+    return;
+
   struct char_data *char_fighting = NULL, *tank = NULL;
   int percent;
 
   char_fighting = FIGHTING(ch);
+
   if (char_fighting && (ch->in_room == char_fighting->in_room) &&
       GET_HIT(char_fighting) > 0)
   {
