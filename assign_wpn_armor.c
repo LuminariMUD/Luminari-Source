@@ -30,7 +30,7 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon)
 {
 
   /* :) */
-  if (weapon == WEAPON_TYPE_UNARMED && MONK_TYPE((ch))
+  if (weapon == WEAPON_TYPE_UNARMED && MONK_TYPE((ch)))
     return TRUE;
 
   if ((HAS_FEAT(ch, FEAT_SIMPLE_WEAPON_PROFICIENCY) || HAS_FEAT(ch, FEAT_WEAPON_EXPERT)) &&

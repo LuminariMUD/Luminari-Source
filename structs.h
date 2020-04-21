@@ -2663,6 +2663,8 @@
 /* an arbitrary cap, medium/small in size for text */
 #define SMALL_STRING 128
 #define MEDIUM_STRING 256
+#define LONG_STRING 512
+#define LONGER_STRING 1024
 
 #define MAX_STRING_LENGTH 49152          /**< Max length of string, as defined */
 #define MAX_INPUT_LENGTH 512             /**< Max length per *line* of input */

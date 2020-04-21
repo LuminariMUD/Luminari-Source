@@ -1648,8 +1648,10 @@ void give_magic_armor(struct char_data *ch, int selection, int enchantment, bool
   struct obj_data *obj = NULL;
   int roll = 0, armor_desc_roll = 0, crest_num = 0;
   int color1 = 0, color2 = 0, level = 0;
-  char desc[MEDIUM_STRING] = {'\0'};
-  char keywords[MEDIUM_STRING] = {'\0'};
+  char desc[LONG_STRING] = {'\0'};
+  char keywords[LONG_STRING] = {'\0'};
+  int dcount = 0, kcount = 0;
+  size_t dlen = 0, klen = 0;
 
   /* ok load blank object */
   if ((obj = read_object(ARMOR_PROTO, VIRTUAL)) == NULL)
@@ -1665,17 +1667,24 @@ void give_magic_armor(struct char_data *ch, int selection, int enchantment, bool
   /* a suit of (body), or a pair of (arm/leg), or AN() (helm) */
   if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_BODY))
   {
-    sprintf(desc, "%s%s", desc, "a suit of");
+    dcount = snprintf(desc + dlen, sizeof(desc) - dlen, "%s", "a suit of");
+    if (dcount > 0)
+      dlen += dcount;
   }
   else if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_HEAD) ||
            IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_SHIELD))
   {
     armor_desc_roll = rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1);
-    sprintf(desc, "%s%s", desc, AN(armor_special_descs[armor_desc_roll]));
+    dcount = snprintf(desc + dlen, sizeof(desc) - dlen, "%s", AN(armor_special_descs[armor_desc_roll]));
+    if (dcount > 0)
+      dlen += dcount;
   }
   else
   {
-    sprintf(desc, "%s%s", desc, "a pair of");
+    dcount = snprintf(desc + dlen, sizeof(desc) - dlen, "%s", "a pair of");
+    if (dcount > 0)
+      dlen += dcount;
+
   }
 
   /* set the object material, check for upgrade */
@@ -1716,52 +1725,89 @@ void give_magic_armor(struct char_data *ch, int selection, int enchantment, bool
   crest_num = rand_number(0, NUM_A_ARMOR_CRESTS - 1);
 
   /* start with keyword string */
-  sprintf(keywords, "%s %s", keywords, armor_list[GET_ARMOR_TYPE(obj)].name);
-  sprintf(keywords, "%s %s", keywords, material_name[GET_OBJ_MATERIAL(obj)]);
+  kcount = snprintf(keywords + klen, sizeof(keywords) - klen, " %s", armor_list[GET_ARMOR_TYPE(obj)].name);
+  if (kcount > 0)
+    klen += kcount;
+  kcount = snprintf(keywords + klen, sizeof(keywords) - klen, " %s", material_name[GET_OBJ_MATERIAL(obj)]);
+  if (kcount > 0)
+    klen += kcount;
 
   roll = dice(1, 3);
   if (roll == 3)
   { // armor spec adjective in desc?
-    sprintf(desc, "%s %s", desc,
+    dcount = snprintf(desc + dlen, sizeof(desc) - dlen, " %s",
              armor_special_descs[armor_desc_roll]);
-    sprintf(keywords, "%s %s", keywords,
+    if (dcount > 0)
+      dlen += dcount;
+
+    kcount = snprintf(keywords + klen, sizeof(keywords) - klen, " %s",
              armor_special_descs[armor_desc_roll]);
+    if (kcount > 0)
+      klen += kcount;
+
   }
 
   roll = dice(1, 5);
   if (roll >= 4)
   { // color describe #1?
-    sprintf(desc,  "%s %s", desc, colors[color1]);
-    sprintf(keywords,  "%s %s", keywords, colors[color1]);
+    dcount = snprintf(desc + dlen, sizeof(desc) - dlen, " %s", colors[color1]);
+    if (dcount > 0)
+      dlen += dcount;
+    kcount = snprintf(keywords + klen, sizeof(keywords) - klen, " %s", colors[color1]);
+    if (kcount > 0)
+      klen += kcount;
+
   }
   else if (roll == 3)
   { // two colors
-    sprintf(desc,  "%s %s and %s", desc, colors[color1], colors[color2]);
-    sprintf(keywords,  "%s %s and %s", keywords, colors[color1], colors[color2]);
+    dcount = snprintf(desc + dlen, sizeof(desc) - dlen,  " %s and %s", colors[color1], colors[color2]);
+    if (dcount > 0)
+      dlen += dcount;
+    kcount = snprintf(keywords + klen, sizeof(keywords) - klen, " %s and %s", colors[color1], colors[color2]);
+    if (kcount > 0)
+      klen += kcount;
+
   }
 
   // Insert the material type, then armor type
-  sprintf(desc,  "%s %s", desc, material_name[GET_OBJ_MATERIAL(obj)]);
-  sprintf(desc,  "%s %s", desc, armor_list[GET_ARMOR_TYPE(obj)].name);
+  dcount = snprintf(desc + dlen, sizeof(desc) - dlen,  " %s", material_name[GET_OBJ_MATERIAL(obj)]);
+    if (dcount > 0)
+      dlen += dcount;
+  dcount = snprintf(desc + dlen, sizeof(desc) - dlen,  " %s", armor_list[GET_ARMOR_TYPE(obj)].name);
+    if (dcount > 0)
+      dlen += dcount;
 
   roll = dice(1, 8);
+
   if (roll >= 7)
   { // crest?
-    sprintf(desc,  "%s with %s %s crest", desc,
+    dcount = snprintf(desc + dlen, sizeof(desc) - dlen,  " with %s %s crest", 
              AN(armor_crests[crest_num]),
              armor_crests[crest_num]);
-    sprintf(keywords,  "%s with %s %s crest", keywords,
+    if (dcount > 0)
+      dlen += dcount;
+
+   kcount = snprintf(keywords + klen, sizeof(keywords) - klen,  " with %s %s crest",
              AN(armor_crests[crest_num]),
              armor_crests[crest_num]);
+  if (kcount > 0)
+    klen += kcount;
+
+
   }
   else if (roll >= 5)
   { // or symbol?
-    sprintf(desc,  "%s covered in symbols of %s %s", desc,
+    dcount = snprintf(desc + dlen, sizeof(desc) - dlen, " covered in symbols of %s %s",
              AN(armor_crests[crest_num]),
              armor_crests[crest_num]);
-    sprintf(keywords,  "%s covered in symbols of %s %s", keywords,
+    if (dcount > 0)
+      dlen += dcount;
+
+    kcount = snprintf(keywords + klen, sizeof(keywords) - klen, " covered in symbols of %s %s",
              AN(armor_crests[crest_num]),
              armor_crests[crest_num]);
+    if (kcount > 0)
+      klen += kcount;
   }
 
   // keywords
@@ -1769,7 +1815,9 @@ void give_magic_armor(struct char_data *ch, int selection, int enchantment, bool
   // Set descriptions
   obj->short_description = strdup(desc);
   desc[0] = toupper(desc[0]);
-  sprintf(desc,  "%s is lying here.", desc);
+  dcount = snprintf(desc + dlen, sizeof(desc) - dlen,  " is lying here.");
+  if (dcount > 0)
+    dlen += dcount;
   obj->description = strdup(desc);
 
   /* END DESCRIPTION SECTION */
