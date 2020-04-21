@@ -3390,7 +3390,7 @@ ACMD(do_wholenessofbody)
   attach_mud_event(new_mud_event(eWHOLENESSOFBODY, ch, NULL),
                    (4 * SECS_PER_MUD_DAY));
   GET_HIT(ch) += MIN((GET_MAX_HIT(ch) - GET_HIT(ch)),
-                     (20 + (CLASS_LEVEL(ch, CLASS_MONK) * 2) + GET_WIS_BONUS(ch)));
+                     (20 + (MONK_TYPE((ch) * 2) + GET_WIS_BONUS(ch)));
   update_pos(ch);
 
   /* Actions */
@@ -3433,7 +3433,7 @@ ACMD(do_emptybody)
   new_affect(&af);
 
   af.spell = SPELL_DISPLACEMENT;
-  af.duration = CLASS_LEVEL(ch, CLASS_MONK) + 2;
+  af.duration = MONK_TYPE((ch) + 2;
   SET_BIT_AR(af.bitvector, AFF_DISPLACE);
 
   affect_to_char(ch, &af);

@@ -3926,7 +3926,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
     case FEAT_STUNNING_FIST:
       if (has_feat_requirement_check(ch, FEAT_IMPROVED_UNARMED_STRIKE) && ch->real_abils.wis >= 13 && ch->real_abils.dex >= 13 && BAB(ch) >= 8)
         return TRUE;
-      if (CLASS_LEVEL(ch, CLASS_MONK) > 0)
+      if (MONK_TYPE((ch) > 0)
         return TRUE;
       return FALSE;
 
