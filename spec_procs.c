@@ -394,17 +394,17 @@ int meet_skill_reqs(struct char_data *ch, int skillnum)
 
     /* monk */
   case SKILL_STUNNING_FIST:
-    if (CLASS_LEVEL(ch, CLASS_MONK) >= 2)
+    if (MONK_TYPE(ch) >= 2)
       return TRUE;
     else
       return FALSE;
   case SKILL_SPRINGLEAP:
-    if (CLASS_LEVEL(ch, CLASS_MONK) >= 6)
+    if (MONK_TYPE(ch) >= 6)
       return TRUE;
     else
       return FALSE;
   case SKILL_QUIVERING_PALM:
-    if (CLASS_LEVEL(ch, CLASS_MONK) >= 15)
+    if (MONK_TYPE(ch) >= 15)
       return TRUE;
     else
       return FALSE;

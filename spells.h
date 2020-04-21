@@ -416,15 +416,16 @@
 #define SPELL_WHIRLWIND 308
 #define SPELL_LEVITATE 309 /* levitation spell - very similar to waterwalk */
 #define SPELL_DRACONIC_BLOODLINE_BREATHWEAPON 310
-
-/** Total Number of defined spells  */
-#define NUM_SPELLS 311
-
-/* unfinished spell list (homeland-port) */
 #define SPELL_VIGORIZE_LIGHT 309
 #define SPELL_VIGORIZE_SERIOUS 310
 #define SPELL_VIGORIZE_CRITICAL 311
 #define SPELL_GROUP_VIGORIZE 312
+
+/** Total Number of defined spells  */
+#define NUM_SPELLS 313
+
+/* unfinished spell list (homeland-port) */
+
 #define SPELL_EMBALM 313
 #define SPELL_CONTINUAL_LIGHT 314
 #define SPELL_ELEMENTAL_RESISTANCE 315 // endure elements improved
@@ -497,10 +498,15 @@
 #define PSIONIC_UNNAMED14 381
 #define PSIONIC_UNNAMED15 382
 /* end unfinished list */
+
+/* alchemist */
 #define ALC_DISC_AFFECT_PSYCHOKINETIC 383
 #define SPELL_AUGURY 384
 #define PSYCHOKINETIC_FEAR 385
+/****/
 #define LAST_SPELL_DEFINE 385
+/*******************************/
+
 
 /* Other files to be aware of for new spells:
  * 1)  if you want this spell to be avaiable as a npc spellup, mobact.c
