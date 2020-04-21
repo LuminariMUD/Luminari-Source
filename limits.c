@@ -1305,7 +1305,6 @@ void increase_anger(struct char_data *ch, float amount)
 
 void update_damage_and_effects_over_time(void)
 {
-
   int dam = 0;
   struct affected_type *affects = NULL;
   struct char_data *ch = NULL, *next_char = NULL;
@@ -1315,6 +1314,10 @@ void update_damage_and_effects_over_time(void)
   {
     next_char = ch->next;
 
+    /* dummy check */
+    if (!ch)
+      return;
+
     if (affected_by_spell(ch, BOMB_AFFECT_ACID))
     {
       for (affects = ch->affected; affects; affects = affects->next)
@@ -1323,10 +1326,18 @@ void update_damage_and_effects_over_time(void)
         {
           act("You suffer in pain as acid continues to burn you.", FALSE, ch, 0, 0, TO_CHAR);
           act("$n suffers in pain as acid continues to burn $m.", FALSE, ch, 0, 0, TO_ROOM);
+
           dam = damage(ch, ch, affects->modifier, SKILL_BOMB_TOSS, DAM_ACID, SKILL_BOMB_TOSS);
+
+          if (dam <= 0)
+          { /* they died */
+            break;
+          }
+
           affects->duration--;
           if (affects->duration <= 0)
             affect_from_char(ch, BOMB_AFFECT_ACID);
+
           break;
         }
       }
@@ -1341,6 +1352,10 @@ void update_damage_and_effects_over_time(void)
           act("You suffer in pain as shards of bone embed themselves in your flesh.", FALSE, ch, 0, 0, TO_CHAR);
           act("$n suffers in pain as shards of bone embed themselves in $s flesh.", FALSE, ch, 0, 0, TO_ROOM);
           dam = damage(ch, ch, dice(1, 4), SKILL_BOMB_TOSS, DAM_PUNCTURE, SKILL_BOMB_TOSS);
+          if (dam <= 0)
+          { /* they died */
+            break;
+          }
           affects->duration--;
           if (affects->duration <= 0)
             affect_from_char(ch, BOMB_AFFECT_BONESHARD);
@@ -1376,6 +1391,10 @@ void update_damage_and_effects_over_time(void)
           act("You suffer in pain as liquid flames consume you.", FALSE, ch, 0, 0, TO_CHAR);
           act("$n suffers in pain as liquid flames consume $m.", FALSE, ch, 0, 0, TO_ROOM);
           dam = damage(ch, ch, affects->modifier, SKILL_BOMB_TOSS, DAM_FIRE, SKILL_BOMB_TOSS);
+          if (dam <= 0)
+          { /* they died */
+            break;
+          }
           affects->duration--;
           if (affects->duration <= 0)
             affect_from_char(ch, BOMB_AFFECT_IMMOLATION);

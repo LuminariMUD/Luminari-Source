@@ -331,6 +331,9 @@ const char *bomb_damage_messages[NUM_BOMB_TYPES][3] = {
 
 int num_of_bombs_preparable(struct char_data *ch)
 {
+  /* dummy check */
+  if (!ch)
+    return;
 
   int num = 0;
 
@@ -343,6 +346,9 @@ int num_of_bombs_preparable(struct char_data *ch)
 
 int num_of_bombs_prepared(struct char_data *ch)
 {
+  /* dummy check */
+  if (!ch)
+    return;
 
   int i = 0,
       num_prepped = 0;
@@ -458,6 +464,10 @@ int bomb_type_to_discovery(int bomb)
 
 int find_open_bomb_slot(struct char_data *ch)
 {
+  /* dummy check */
+  if (!ch)
+    return;
+
   int i = 0;
 
   for (i = 0; i < num_of_bombs_preparable(ch); i++)
@@ -471,6 +481,10 @@ int find_open_bomb_slot(struct char_data *ch)
 
 void list_bomb_types_known(struct char_data *ch)
 {
+  /* dummy check */
+  if (!ch)
+    return;
+
   int i = 0, j = 0;
 
   send_to_char(ch, "%-20s - %s\r\n", "normal", bomb_descriptions[0]);
@@ -489,6 +503,9 @@ void list_bomb_types_known(struct char_data *ch)
 
 ACMD(do_bombs)
 {
+  /* dummy check */
+  if (!ch)
+    return;
 
   if (!HAS_FEAT(ch, FEAT_BOMBS))
   {
@@ -776,6 +793,9 @@ ACMD(do_bombs)
 
 void perform_bomb_effect(struct char_data *ch, struct char_data *victim, int bomb_type)
 {
+  /* dummy check */
+  if (!ch || !victim)
+    return;
 
   switch (bomb_type)
   {
@@ -934,6 +954,9 @@ void perform_bomb_effect(struct char_data *ch, struct char_data *victim, int bom
 
 void send_bomb_direct_message(struct char_data *ch, struct char_data *victim, int bomb_type)
 {
+  /* dummy check */
+  if (!ch || !victim)
+    return;
 
   char buf[200];
 
@@ -955,6 +978,9 @@ void send_bomb_direct_message(struct char_data *ch, struct char_data *victim, in
 
 void send_bomb_splash_message(struct char_data *ch, struct char_data *victim, int bomb_type)
 {
+  /* dummy check */
+  if (!ch || !victim)
+    return;
 
   struct char_data *tch = NULL;
   char buf[200];
@@ -981,6 +1007,9 @@ void send_bomb_splash_message(struct char_data *ch, struct char_data *victim, in
 
 void perform_bomb_direct_damage(struct char_data *ch, struct char_data *victim, int bomb_type)
 {
+  /* dummy check */
+  if (!ch || !victim)
+    return;
 
   int ndice = HAS_FEAT(ch, FEAT_BOMBS),
       sdice = (HAS_FEAT(ch, FEAT_BOMB_MASTERY) ? 8 : 6),
@@ -1096,10 +1125,14 @@ void perform_bomb_direct_damage(struct char_data *ch, struct char_data *victim, 
 
 void perform_bomb_splash_damage(struct char_data *ch, struct char_data *victim, int bomb_type)
 {
+  /* dummy check */
+  if (!ch || !victim)
+    return;
+
   if (!PRF_FLAGGED(ch, PRF_AOE_BOMBS))
     return;
 
-  int ndice = (int) (HAS_FEAT(ch, FEAT_BOMBS) * (HAS_FEAT(ch, FEAT_BOMB_MASTERY) ? 1.5 : 1)),
+  int ndice = (int)(HAS_FEAT(ch, FEAT_BOMBS) * (HAS_FEAT(ch, FEAT_BOMB_MASTERY) ? 1.5 : 1)),
       damMod = GET_INT_BONUS(ch) * (HAS_FEAT(ch, FEAT_BOMB_MASTERY) ? 2 : 1),
       damType = DAM_FIRE,
       saveType = SAVING_REFL,
@@ -1223,6 +1256,9 @@ void perform_bomb_splash_damage(struct char_data *ch, struct char_data *victim, 
 
 void perform_bomb_direct_effect(struct char_data *ch, struct char_data *victim, int bomb_type)
 {
+  /* dummy check */
+  if (!ch || !victim)
+    return;
 
   int saveType = SAVING_FORT,
       noAffectOnSave = TRUE;
@@ -1374,7 +1410,8 @@ void perform_bomb_direct_effect(struct char_data *ch, struct char_data *victim, 
     af2.duration++;
     af3.duration++;
   }
-  if (HAS_FEAT(ch, FEAT_BOMB_MASTERY)) {
+  if (HAS_FEAT(ch, FEAT_BOMB_MASTERY))
+  {
     af.duration += 2;
     af2.duration += 2;
     af3.duration += 2;
@@ -1414,6 +1451,9 @@ void perform_bomb_direct_effect(struct char_data *ch, struct char_data *victim, 
 
 void perform_bomb_splash_effect(struct char_data *ch, struct char_data *victim, int bomb_type)
 {
+  /* dummy check */
+  if (!ch || !victim)
+    return;
 
   if (!PRF_FLAGGED(ch, PRF_AOE_BOMBS))
     return;
@@ -1465,7 +1505,8 @@ void perform_bomb_splash_effect(struct char_data *ch, struct char_data *victim, 
   if (af.spell == 0)
     return;
 
-  if (HAS_FEAT(ch, FEAT_BOMB_MASTERY)) {
+  if (HAS_FEAT(ch, FEAT_BOMB_MASTERY))
+  {
     af.duration += 1;
     af2.duration += 1;
   }
@@ -1505,6 +1546,9 @@ void perform_bomb_splash_effect(struct char_data *ch, struct char_data *victim, 
 
 void perform_bomb_direct_healing(struct char_data *ch, struct char_data *victim, int bomb_type)
 {
+  /* dummy check */
+  if (!ch || !victim)
+    return;
 
   int healing = 0, new_hp = 0;
   const char *to_vict = NULL, *to_room = NULL;
@@ -1534,6 +1578,9 @@ void perform_bomb_direct_healing(struct char_data *ch, struct char_data *victim,
 
 void perform_bomb_self_effect(struct char_data *ch, struct char_data *victim, int bomb_type)
 {
+  /* dummy check */
+  if (!ch || !victim)
+    return;
 
   const char *to_vict = NULL, *to_room = NULL;
   struct affected_type af;
@@ -1566,6 +1613,9 @@ void perform_bomb_self_effect(struct char_data *ch, struct char_data *victim, in
 
 void perform_bomb_spell_effect(struct char_data *ch, struct char_data *victim, int bomb_type)
 {
+  /* dummy check */
+  if (!ch || !victim)
+    return;
 
   int spellnum = -1;
 
@@ -1591,6 +1641,10 @@ void perform_bomb_spell_effect(struct char_data *ch, struct char_data *victim, i
 /* Alchemical discovery prerequisites */
 int can_learn_discovery(struct char_data *ch, int discovery)
 {
+  /* dummy check */
+  if (!ch)
+    return;
+
   switch (discovery)
   {
   case ALC_DISC_BONESHARD_BOMBS:
@@ -1697,6 +1751,10 @@ int can_learn_discovery(struct char_data *ch, int discovery)
 
 int num_alchemical_discoveries_known(struct char_data *ch)
 {
+  /* dummy check */
+  if (!ch)
+    return;
+
   int i = 0;
   int num_chosen = 0;
 
@@ -1750,6 +1808,10 @@ sbyte has_alchemist_discoveries_unchosen_study(struct char_data *ch)
 
 int list_alchemical_discoveries(struct char_data *ch)
 {
+  /* dummy check */
+  if (!ch)
+    return;
+
   int i = 0;
   int num = 0;
 
@@ -1766,6 +1828,9 @@ int list_alchemical_discoveries(struct char_data *ch)
 
 ACMD(do_discoveries)
 {
+  /* dummy check */
+  if (!ch)
+    return;
 
   if (!CLASS_LEVEL(ch, CLASS_ALCHEMIST))
   {
@@ -1820,6 +1885,9 @@ ACMD(do_discoveries)
 
 ACMD(do_grand_discoveries)
 {
+  /* dummy check */
+  if (!ch)
+    return;
 
   if (CLASS_LEVEL(ch, CLASS_ALCHEMIST) < 20)
   {
@@ -1939,6 +2007,9 @@ sbyte bomb_is_friendly(int bomb)
 /* a function to clear mutagen effects and do other dirty work associated with that */
 void clear_mutagen(struct char_data *ch)
 {
+  /* dummy check */
+  if (!ch)
+    return;
 
   send_to_char(ch, "Your mutagen's effect expires...\r\n");
   act("$n mutagenic enhancement has faded.", FALSE, ch, NULL, NULL, TO_ROOM);
@@ -1946,12 +2017,19 @@ void clear_mutagen(struct char_data *ch)
 
 ACMDCHECK(can_swallow)
 {
+  /* dummy check */
+  if (!ch)
+    return;
+
   ACMDCHECK_PERMFAIL_IF(!HAS_FEAT(ch, FEAT_MUTAGEN), "You don't know how to prepare a mutagen or cognatogen.\r\n");
   return CAN_CMD;
 }
 
 void perform_mutagen(struct char_data *ch, char *arg2)
 {
+  /* dummy check */
+  if (!ch)
+    return;
 
   if (!IS_NPC(ch))
   {
@@ -2131,6 +2209,10 @@ void perform_mutagen(struct char_data *ch, char *arg2)
 
 void perform_elemental_mutagen(struct char_data *ch, char *arg2)
 {
+  /* dummy check */
+  if (!ch)
+    return;
+
   if (!IS_NPC(ch))
   {
     PREREQ_HAS_USES(FEAT_MUTAGEN, "You must wait some time before you can prepare another mutagen or cognatogen.\r\n");
@@ -2216,6 +2298,9 @@ void perform_elemental_mutagen(struct char_data *ch, char *arg2)
 
 void perform_cognatogen(struct char_data *ch, char *arg2)
 {
+  /* dummy check */
+  if (!ch)
+    return;
 
   if (!IS_NPC(ch))
   {
@@ -2394,6 +2479,9 @@ void perform_cognatogen(struct char_data *ch, char *arg2)
 
 void perform_inspiring_cognatogen(struct char_data *ch)
 {
+  /* dummy check */
+  if (!ch)
+    return;
 
   if (!IS_NPC(ch))
   {
@@ -2492,6 +2580,10 @@ void perform_inspiring_cognatogen(struct char_data *ch)
 
 ACMD(do_swallow)
 {
+  /* dummy check */
+  if (!ch)
+    return;
+
   char arg1[100], arg2[100];
 
   // If currently raging, all this does is stop.
@@ -2634,6 +2726,10 @@ void add_sticky_bomb_effect(struct char_data *ch, struct char_data *vict, int bo
 
 ACMD(do_curingtouch)
 {
+  /* dummy check */
+  if (!ch)
+    return;
+
   int uses_remaining = 0;
   char arg1[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
@@ -2724,6 +2820,9 @@ ACMD(do_curingtouch)
 
 ACMD(do_psychokinetic)
 {
+  /* dummy check */
+  if (!ch)
+    return;
 
   char buf[200];
   struct affected_type af, af2;
@@ -2872,6 +2971,10 @@ ACMD(do_psychokinetic)
 
 ACMD(do_poisontouch)
 {
+  /* dummy check */
+  if (!ch)
+    return;
+
   if (GET_GRAND_DISCOVERY(ch) != GR_ALC_DISC_POISON_TOUCH)
   {
     send_to_char(ch, "You do not know how to perform a poison touch.\r\n");
@@ -2962,6 +3065,10 @@ int find_discovery_num(char *name)
  * differently, making them stand out.) */
 bool display_discovery_info(struct char_data *ch, char *discoveryname)
 {
+  /* dummy check */
+  if (!ch)
+    return;
+
   int discovery = -1;
   char buf[MAX_STRING_LENGTH];
 
@@ -3045,6 +3152,10 @@ int find_grand_discovery_num(char *name)
  * differently, making them stand out.) */
 bool display_grand_discovery_info(struct char_data *ch, char *discoveryname)
 {
+  /* dummy check */
+  if (!ch)
+    return;
+
   int discovery = -1;
   char buf[MAX_STRING_LENGTH];
 
@@ -3091,6 +3202,10 @@ bool display_grand_discovery_info(struct char_data *ch, char *discoveryname)
 
 bool display_bomb_types(struct char_data *ch, char *keyword)
 {
+  /* dummy check */
+  if (!ch)
+    return;
+
   if (!is_abbrev(keyword, "alchemist bombs") && !is_abbrev(keyword, "alchemist-bombs"))
     return FALSE;
   char buf[MAX_STRING_LENGTH];
@@ -3124,6 +3239,9 @@ bool display_bomb_types(struct char_data *ch, char *keyword)
 
 bool display_discovery_types(struct char_data *ch, char *keyword)
 {
+  /* dummy check */
+  if (!ch)
+    return;
 
   if (!is_abbrev(keyword, "alchemist discoveries") && !is_abbrev(keyword, "alchemical discoveries") && !is_abbrev(keyword, "discoveries") &&
       !is_abbrev(keyword, "alchemist grand discoveries") && !is_abbrev(keyword, "alchemical grand discoveries") && !is_abbrev(keyword, "grand discoveries"))
@@ -3167,3 +3285,5 @@ bool display_discovery_types(struct char_data *ch, char *keyword)
 
   return TRUE;
 }
+
+/* EOF */
