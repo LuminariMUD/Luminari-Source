@@ -2874,6 +2874,16 @@ ACMD(do_frightful)
     send_to_char(ch, "You have no idea how.\r\n");
     return;
   }
+
+  /* we have to put a restriction here for npc's, otherwise you can order
+     a dragon to spam this ability -zusuk */
+  if (char_has_mud_event(ch, eDRACBREATH))
+  {
+    send_to_char(ch, "You are too exhausted to do that!\r\n");
+    act("$n tries to use a frightful presence attack, but is too exhausted!", FALSE, ch, 0, 0, TO_ROOM);
+    return;
+  }
+
   PREREQ_NOT_PEACEFUL_ROOM();
 
   send_to_char(ch, "You ROAR!\r\n");
@@ -2924,6 +2934,9 @@ ACMD(do_frightful)
       }
     }
   }
+
+  /* 12 seconds = 2 rounds */
+  attach_mud_event(new_mud_event(eDRACBREATH, ch, NULL), 12 * PASSES_PER_SEC);
 }
 
 ACMDCHECK(can_breathe)
@@ -2939,6 +2952,15 @@ ACMD(do_breathe)
   PREREQ_CAN_FIGHT();
   PREREQ_CHECK(can_breathe);
   PREREQ_NOT_PEACEFUL_ROOM();
+
+  /* we have to put a restriction here for npc's, otherwise you can order
+     a dragon to spam this ability -zusuk */
+  if (char_has_mud_event(ch, eDRACBREATH))
+  {
+    send_to_char(ch, "You are too exhausted to do that!\r\n");
+    act("$n tries to use a breath attack, but is too exhausted!", FALSE, ch, 0, 0, TO_ROOM);
+    return;
+  }
 
   send_to_char(ch, "You exhale breathing out fire!\r\n");
   act("$n exhales breathing fire!", FALSE, ch, 0, 0, TO_ROOM);
@@ -2958,6 +2980,9 @@ ACMD(do_breathe)
     }
   }
   USE_STANDARD_ACTION(ch);
+
+  /* 12 seconds = 2 rounds */
+  attach_mud_event(new_mud_event(eDRACBREATH, ch, NULL), 12 * PASSES_PER_SEC);
 }
 
 ACMDCHECK(can_sorcerer_breath_weapon)
@@ -3014,7 +3039,6 @@ ACMDCHECK(can_sorcerer_claw_attack)
 
 ACMD(do_sorcerer_claw_attack)
 {
-
   PREREQ_NOT_NPC();
   PREREQ_CHECK(can_sorcerer_claw_attack);
   PREREQ_HAS_USES(FEAT_DRACONIC_HERITAGE_CLAWS, "You must wait to recover your draconic heritage claw attacks.\r\n");
@@ -3031,6 +3055,7 @@ ACMD(do_sorcerer_claw_attack)
   }
 
   struct affected_type af;
+  int i = 0;
 
   new_affect(&af);
 
@@ -3043,7 +3068,15 @@ ACMD(do_sorcerer_claw_attack)
 
   send_to_char(ch, "Your hands morph into long draconic claws that you bring to bear on your opponent.\r\n");
   hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_PRIMARY);
-  hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_PRIMARY);
+
+  for (i = 0; i < GET_BAB(ch) / 5 + 1; i++)
+  {
+    if (FIGHTING(ch))
+    {
+      hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_PRIMARY);
+    }
+  }
+
   affect_from_char(ch, SKILL_DRHRT_CLAWS);
   USE_STANDARD_ACTION(ch);
 }
@@ -3064,6 +3097,15 @@ ACMD(do_tailsweep)
   PREREQ_CHECK(can_tailsweep);
   PREREQ_NOT_PEACEFUL_ROOM();
   PREREQ_NOT_SINGLEFILE_ROOM();
+
+  /* we have to put a restriction here for npc's, otherwise you can order
+     a dragon to spam this ability -zusuk */
+  if (char_has_mud_event(ch, eDRACBREATH))
+  {
+    send_to_char(ch, "You are too exhausted to do that!\r\n");
+    act("$n tries to use a tailsweep attack, but is too exhausted!", FALSE, ch, 0, 0, TO_ROOM);
+    return;
+  }
 
   send_to_char(ch, "You lash out with your mighty tail!\r\n");
   act("$n lashes out with $s mighty tail!", FALSE, ch, 0, 0, TO_ROOM);
@@ -3115,6 +3157,9 @@ ACMD(do_tailsweep)
       }
     }
   }
+
+  /* 12 seconds = 2 rounds */
+  attach_mud_event(new_mud_event(eDRACBREATH, ch, NULL), 12 * PASSES_PER_SEC);
 }
 
 ACMD(do_bash)
