@@ -3797,6 +3797,7 @@ void load_class_list(void)
   feat_assignment(CLASS_MONK, FEAT_SLOW_FALL, Y, 4, Y);
   feat_assignment(CLASS_MONK, FEAT_SLOW_FALL, Y, 5, Y);
   feat_assignment(CLASS_MONK, FEAT_PURITY_OF_BODY, Y, 5, N);
+  feat_assignment(CLASS_MONK, FEAT_SPRING_ATTACK, Y, 5, N);
   feat_assignment(CLASS_MONK, FEAT_SLOW_FALL, Y, 6, Y);
   feat_assignment(CLASS_MONK, FEAT_WHOLENESS_OF_BODY, Y, 7, N);
   feat_assignment(CLASS_MONK, FEAT_SLOW_FALL, Y, 8, Y);
