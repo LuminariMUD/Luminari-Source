@@ -4687,7 +4687,7 @@ void load_class_list(void)
   spell_assignment(CLASS_RANGER, SPELL_REMOVE_POISON, 12);
   /*              class num      spell                   level acquired */
   /* 4th circle */
-  spell_assignment(CLASS_RANGER, SPELL_SUMMON_NATURES_ALLY_6, 15);
+  spell_assignment(CLASS_RANGER, SPELL_SUMMON_NATURES_ALLY_4, 15);
   spell_assignment(CLASS_RANGER, SPELL_FREE_MOVEMENT, 15);
   spell_assignment(CLASS_RANGER, SPELL_DISPEL_MAGIC, 15);
   spell_assignment(CLASS_RANGER, SPELL_CURE_SERIOUS, 15);
