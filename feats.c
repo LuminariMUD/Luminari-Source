@@ -4184,7 +4184,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
       return FALSE;
 
     case FEAT_BREW_POTION:
-      if (CASTER_LEVEL(ch) >= 3)
+      if (CASTER_LEVEL(ch) >= 3 || CLASS_LEVEL(ch, CLASS_ALCHEMIST) >= 1)
         return TRUE;
       return FALSE;
 
