@@ -3941,7 +3941,7 @@ void perform_kick(struct char_data *ch, struct char_data *vict)
   if (combat_maneuver_check(ch, vict, COMBAT_MANEUVER_TYPE_KICK, 0) > 0)
   {
     damage(ch, vict, dice(diceOne, diceTwo) + GET_STR_BONUS(ch), SKILL_KICK, DAM_FORCE, FALSE);
-    if (!savingthrow(vict, SAVING_REFL, GET_STR_BONUS(vict), dc))
+    if (!savingthrow(vict, SAVING_REFL, GET_STR_BONUS(vict), dc) && rand_number(0, 2))
     {
       USE_MOVE_ACTION(vict);
       act("You are thrown off-balance by a kick from $N!", FALSE, vict, 0, ch, TO_CHAR);
