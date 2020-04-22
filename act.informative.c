@@ -3684,6 +3684,10 @@ ACMD(do_gen_ps)
     break;
   case SCMD_VERSION:
     send_to_char(ch, "%s\r\n", luminari_version);
+    if (IS_IMMORTAL(ch))
+    {
+      send_to_char(ch, "%s", luminari_build);
+    }
     break;
   case SCMD_WHOAMI:
     send_to_char(ch, "%s\r\n", GET_NAME(ch));
