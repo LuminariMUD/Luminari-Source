@@ -364,7 +364,7 @@ int main(int argc, char **argv)
   /* Moved here to distinguish command line options and to show up
    * in the log if stderr is redirected to a file. */
   log("Loading configuration.");
-  log("%s", luminari_version);
+  log("%s\r\n%s", luminari_version, luminari_build);
 
   if (chdir(dir) < 0)
   {
