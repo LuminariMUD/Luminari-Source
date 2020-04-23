@@ -351,7 +351,8 @@ bool spec_wear_off(struct char_data *ch, int skillnum)
   return TRUE;
 }
 
-/* added this function to add wear off messages for skills -zusuk */
+/* added this function to add wear off messages for skills -zusuk
+   wondering why i didn't just add this to skillo() or whatnot? */
 bool alt_wear_off_msg(struct char_data *ch, int skillnum)
 {
   if (skillnum < (MAX_SPELLS + 1))
