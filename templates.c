@@ -46,8 +46,7 @@ void gain_template_level(struct char_data *ch, int t_type, int level)
   //Check the connection, reconnect if necessary. 
   mysql_ping(conn);
 
-    sprintf(
-        query,
+    snprintf(query, sizeof(query),
         "SELECT level_id, class_number FROM player_levelups WHERE character_name='%s' AND level_number='%d'",
         template_db_names[t_type], level);
     if (mysql_query(conn, query))
@@ -67,8 +66,7 @@ void gain_template_level(struct char_data *ch, int t_type, int level)
 
     mysql_free_result(res);
 
-    sprintf(
-        query,
+    snprintf(query, sizeof(query),
         "SELECT skill_num, skill_ranks FROM player_levelup_skills WHERE level_id='%ld'",
         level_id);
     if (mysql_query(conn, query))
@@ -84,8 +82,7 @@ void gain_template_level(struct char_data *ch, int t_type, int level)
 
     mysql_free_result(res);
 
-    sprintf(
-        query,
+    snprintf(query, sizeof(query),
         "SELECT feat_num, subfeat FROM player_levelup_feats WHERE level_id='%ld'",
         level_id);
     if (mysql_query(conn, query))
@@ -124,8 +121,7 @@ void gain_template_level(struct char_data *ch, int t_type, int level)
 
     mysql_free_result(res);
 
-    sprintf(
-        query,
+    snprintf(query, sizeof(query),
         "SELECT ability_score FROM player_levelup_ability_scores WHERE level_id='%ld'",
         level_id);
     if (mysql_query(conn, query))
@@ -231,8 +227,7 @@ void show_level_history(struct char_data *ch, int level)
 
     mysql_ping(conn);
 
-    sprintf(
-        query,
+    snprintf(query, sizeof(query),
         "SELECT * FROM player_levels WHERE char_name=\"%s\" AND char_level='%d'",
         GET_NAME(ch), level);
     if (mysql_query(conn, query))
@@ -250,8 +245,8 @@ void show_level_history(struct char_data *ch, int level)
 
     char buf[2000];
     int feat_num = 0, sub_feat = 0, num_found = 0;
-    sprintf(buf, "@uFeats:@n ");
-    sprintf(query, "SELECT * FROM player_levelup_feats WHERE level_id='%ld'",
+    snprintf(buf, sizeof(buf), "@uFeats:@n ");
+    snprintf(query, sizeof(query), "SELECT * FROM player_levelup_feats WHERE level_id='%ld'",
         level_id);
     if (mysql_query(conn, query))
         log("%s", query);
@@ -283,7 +278,7 @@ void show_level_history(struct char_data *ch, int level)
             case FEAT_WEAPON_MASTERY:
             case FEAT_WEAPON_FLURRY:
             case FEAT_WEAPON_SUPREMACY:
-                sprintf(buf, "%s (%s)", buf, weapon_family[sub_feat]);
+                snprintf(buf, sizeof(buf), "%s (%s)", buf, weapon_family[sub_feat]);
                 break;
             case FEAT_SKILL_FOCUS:
             case FEAT_EPIC_SKILL_FOCUS:
@@ -405,7 +400,7 @@ long get_level_id_by_level_num(int level_num, char * chname)
 
     mysql_ping(conn);
 
-    sprintf(query, "SELECT level_id from player_levelups WHERE character_name='%s' AND level_number='%d'", chname, level_num);
+    snprintf(query, sizeof(query), "SELECT level_id from player_levelups WHERE character_name='%s' AND level_number='%d'", chname, level_num);
     mysql_query(conn, query);
     res = mysql_use_result(conn);
     if (res != NULL)
@@ -433,20 +428,19 @@ void show_levelinfo_for_specific_level(struct char_data *ch, long level_id, char
 
     char display_name[100], template_name[100];
 
-    sprintf(display_name, "%s", chname);
+    snprintf(display_name, sizeof(display_name), "%s", chname);
 
     for (i = 0; i < NUM_TEMPLATES; i++) {
-      sprintf(template_name, "%s", template_db_names[i]);
+      snprintf(template_name, sizeof(template_name), "%s", template_db_names[i]);
       if (!strcmp(template_name, chname)) {
-        sprintf(display_name, "%s", template_types_capped[i]);
+        snprintf(display_name, sizeof(display_name), "%s", template_types_capped[i]);
         break;
       }
     }
 
     mysql_ping(conn);
 
-        sprintf(
-          query,
+        snprintf(query, sizeof(query),
           "SELECT level_number, class_number FROM player_levelups WHERE level_id='%ld' AND character_name='%s'",
           level_id, chname);
 
@@ -482,8 +476,7 @@ void show_levelinfo_for_specific_level(struct char_data *ch, long level_id, char
             "--------------------------------------------------------------------------------\r\n");
 
         send_to_char(ch, "@5@oFEATS@n\r\n");
-        sprintf(
-            query,
+        snprintf(query, sizeof(query),
             "SELECT feat_num, subfeat FROM player_levelup_feats WHERE level_id='%ld'",
             level_id);
         mysql_query(conn, query);
@@ -499,8 +492,7 @@ void show_levelinfo_for_specific_level(struct char_data *ch, long level_id, char
         send_to_char(ch, "\r\n");
 
         send_to_char(ch, "@5@oSKILLS@n\r\n");
-        sprintf(
-            query,
+        snprintf(query, sizeof(query),
             "SELECT skill_num, skill_ranks FROM player_levelup_skills WHERE level_id='%ld'",
             level_id);
         mysql_query(conn, query);
@@ -519,8 +511,7 @@ void show_levelinfo_for_specific_level(struct char_data *ch, long level_id, char
         send_to_char(ch, "\r\n");
 
         send_to_char(ch, "@5@oLANGUAGES@n\r\n");
-        sprintf(
-            query,
+        snprintf(query, sizeof(query),
             "SELECT skill_num FROM player_levelup_skills WHERE level_id='%ld'",
             level_id);
         mysql_query(conn, query);
@@ -539,8 +530,7 @@ void show_levelinfo_for_specific_level(struct char_data *ch, long level_id, char
         send_to_char(ch, "\r\n");
 
         send_to_char(ch, "@5@oABILITY SCORES@n\r\n");
-        sprintf(
-            query,
+        snprintf(query, sizeof(query),
             "SELECT ability_score FROM player_levelup_ability_scores WHERE level_id='%ld'",
             level_id);
         mysql_query(conn, query);
@@ -583,8 +573,7 @@ ACMD(do_levelinfo)
             ch,
             "--------------------------------------------------------------------------------\r\n");
 
-        sprintf(
-            query,
+        snprintf(query, sizeof(query),
             "SELECT level_id, level_number, class_number FROM player_levelups WHERE character_name='%s' ORDER BY level_number DESC",
             GET_NAME(ch));
         mysql_query(conn, query);
@@ -781,8 +770,7 @@ void levelinfo_search(struct char_data *ch, int type, char *searchString)
             ch, "@5@oLEVELUPS WHEREIN THE FOLLOWING FEAT WAS SELECTED: %s@n\r\n",
             feat_list[i].name);
 
-        sprintf(
-            query,
+        snprintf(query, sizeof(query),
             "SELECT a.feat_num, a.subfeat, b.level_id, b.level_number FROM player_levelup_feats a LEFT JOIN player_levelups b ON a.level_id=b.level_id WHERE b.character_name='%s' AND a.feat_num='%d' ORDER BY b.level_number DESC",
             GET_NAME(ch), i);
         // log("%s", query);
@@ -823,8 +811,7 @@ void levelinfo_search(struct char_data *ch, int type, char *searchString)
             ch, "@5@oLEVELUPS WHEREIN THE FOLLOWING SKILL WAS SELECTED: %s@n\r\n",
             spell_info[i].name);
 
-        sprintf(
-            query,
+        snprintf(query, sizeof(query),
             "SELECT a.skill_num, a.skill_ranks, b.level_id, b.level_number FROM player_levelup_skills a LEFT JOIN player_levelups b ON a.level_id=b.level_id WHERE b.character_name='%s' AND a.skill_num='%d' ORDER BY b.level_number DESC",
             GET_NAME(ch), i);
         // log("%s", query);
@@ -869,8 +856,7 @@ void levelinfo_search(struct char_data *ch, int type, char *searchString)
             "@5@oLEVELUPS WHEREIN THE FOLLOWING LANGUAGE WAS SELECTED: %s@n\r\n",
             spell_info[i].name);
 
-        sprintf(
-            query,
+        snprintf(query, sizeof(query),
             "SELECT a.skill_num, a.skill_ranks, b.level_id, b.level_number FROM player_levelup_skills a LEFT JOIN player_levelups b ON a.level_id=b.level_id WHERE b.character_name='%s' AND a.skill_num='%d' ORDER BY b.level_number DESC",
             GET_NAME(ch), i);
         // log("%s", query);
@@ -913,8 +899,7 @@ void levelinfo_search(struct char_data *ch, int type, char *searchString)
             "@5@oLEVELUPS WHEREIN THE FOLLOWING ABILITY SCORE WAS RAISED: %s@n\r\n",
             levelup_ability_scores[i]);
 
-        sprintf(
-            query,
+        snprintf(query, sizeof(query),
             "SELECT a.ability_score, b.level_id, b.level_number FROM player_levelup_ability_scores a LEFT JOIN player_levelups b ON a.level_id=b.level_id WHERE b.character_name='%s' AND a.ability_score='%d' ORDER BY b.level_number DESC",
             GET_NAME(ch), i);
         // log("%s", query);
@@ -958,8 +943,7 @@ void erase_levelup_info(struct char_data *ch)
     {
         found = false;
         level_id = 0;
-        sprintf(
-            query,
+        snprintf(query, sizeof(query),
             "SELECT level_id FROM player_levelups WHERE character_name='%s' LIMIT 1",
             GET_NAME(ch));
         //    log("%s", query);
@@ -977,22 +961,21 @@ void erase_levelup_info(struct char_data *ch)
 
         if (level_id > 0)
         {
-            sprintf(query, "DELETE FROM player_levelups WHERE level_id='%lld'",
+            snprintf(query, sizeof(query), "DELETE FROM player_levelups WHERE level_id='%lld'",
                 level_id);
             //      log("%s", query);
             mysql_query(conn, query);
-            sprintf(query,
+            snprintf(query, sizeof(query),
                 "DELETE FROM player_levelup_skills WHERE level_id='%lld'",
                 level_id);
             //      log("%s", query);
             mysql_query(conn, query);
-            sprintf(query,
+            snprintf(query, sizeof(query),
                 "DELETE FROM player_levelup_feats WHERE level_id='%lld'",
                 level_id);
             //      log("%s", query);
             mysql_query(conn, query);
-            sprintf(
-                query,
+            snprintf(query, sizeof(query),
                 "DELETE FROM player_levelup_ability_scores WHERE level_id='%lld'",
                 level_id);
             //      log("%s", query);

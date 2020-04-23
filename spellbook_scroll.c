@@ -385,7 +385,7 @@ ACMD(do_scribe)
 
     found = FALSE;
 
-    sprintf(buf, "a scroll of '%s'", spell_info[spellnum].name);
+    snprintf(buf, sizeof(buf), "a scroll of '%s'", spell_info[spellnum].name);
     obj->short_description = strdup(buf);
     send_to_char(ch, "You scribe the spell '%s' onto %s.\r\n",
                  spell_info[spellnum].name, obj->short_description);
@@ -401,7 +401,7 @@ ACMD(do_scribe)
     send_to_char(ch, "The magical energy committed for the spell '%s' has been "
                      "expended.\r\n",
                  spell_info[spellnum].name);
-    sprintf(buf, "%d", spellnum);
+    snprintf(buf, sizeof(buf), "%d", spellnum);
     collection_remove_by_class(ch, CLASS_WIZARD, spellnum, METAMAGIC_NONE);
   }
 }

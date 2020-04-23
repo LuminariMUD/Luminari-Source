@@ -166,7 +166,7 @@ void do_slug_rank(struct char_data *ch, char *arg)
     buffer[0] = '\0';
     for (tk = key_list; tk; tk = tk->next)
     {
-      sprintf(kbuf, "%*s ", maxkeylength, tk->keystring);
+      snprintf(kbuf, sizeof(kbuf), "%*s ", maxkeylength, tk->keystring);
       strcat(buffer, kbuf);
       if (++i % j == 0)
         strcat(buffer, "\n\r");
@@ -365,122 +365,122 @@ int rank_compare_bot(const void *n1, const void *n2)
 
 /*
 ranktype rank_clanbucks(struct char_data *ch) {
-  sprintf(kbuf, "%27ld", GET_CLANBUCKS(ch));
+  snprintf(kbuf, sizeof(kbuf), "%27ld", GET_CLANBUCKS(ch));
   return (kbuf);
 }*/
 /* end rank_clanbucks */
 
 ranktype rank_hp(struct char_data *ch)
 {
-  sprintf(kbuf, "%27d", GET_MAX_HIT(ch));
+  snprintf(kbuf, sizeof(kbuf), "%27d", GET_MAX_HIT(ch));
   return (kbuf);
 } /* end rank_hp */
 
 ranktype rank_psp(struct char_data *ch)
 {
-  sprintf(kbuf, "%27d", GET_MAX_PSP(ch));
+  snprintf(kbuf, sizeof(kbuf), "%27d", GET_MAX_PSP(ch));
   return (kbuf);
 } /* end rank_psp */
 
 ranktype rank_moves(struct char_data *ch)
 {
-  sprintf(kbuf, "%27d", GET_MAX_MOVE(ch));
+  snprintf(kbuf, sizeof(kbuf), "%27d", GET_MAX_MOVE(ch));
   return (kbuf);
 } /* end rank_move */
 
 ranktype rank_curhp(struct char_data *ch)
 {
-  sprintf(kbuf, "%27d", GET_HIT(ch));
+  snprintf(kbuf, sizeof(kbuf), "%27d", GET_HIT(ch));
   return (kbuf);
 } /* end rank_hp */
 
 ranktype rank_power(struct char_data *ch)
 {
-  sprintf(kbuf, "%27d", (GET_MAX_MOVE(ch) + GET_MAX_PSP(ch) + GET_MAX_HIT(ch)));
+  snprintf(kbuf, sizeof(kbuf), "%27d", (GET_MAX_MOVE(ch) + GET_MAX_PSP(ch) + GET_MAX_HIT(ch)));
   return (kbuf);
 } /*end rank_power */
 
 ranktype rank_str(struct char_data *ch)
 {
-  sprintf(kbuf, "%20d", GET_STR(ch));
+  snprintf(kbuf, sizeof(kbuf), "%20d", GET_STR(ch));
   return (kbuf);
 } /* end rank_str */
 
 ranktype rank_int(struct char_data *ch)
 {
-  sprintf(kbuf, "%20d", GET_INT(ch));
+  snprintf(kbuf, sizeof(kbuf), "%20d", GET_INT(ch));
   return (kbuf);
 } /* end rank_int */
 
 ranktype rank_wis(struct char_data *ch)
 {
-  sprintf(kbuf, "%20d", GET_WIS(ch));
+  snprintf(kbuf, sizeof(kbuf), "%20d", GET_WIS(ch));
   return (kbuf);
 } /* end rank_wis */
 
 ranktype rank_dex(struct char_data *ch)
 {
-  sprintf(kbuf, "%20d", GET_DEX(ch));
+  snprintf(kbuf, sizeof(kbuf), "%20d", GET_DEX(ch));
   return (kbuf);
 } /* end rank_dex */
 
 ranktype rank_con(struct char_data *ch)
 {
-  sprintf(kbuf, "%20d", GET_CON(ch));
+  snprintf(kbuf, sizeof(kbuf), "%20d", GET_CON(ch));
   return (kbuf);
 } /* end rank_con */
 
 ranktype rank_cha(struct char_data *ch)
 {
-  sprintf(kbuf, "%20d", GET_CHA(ch));
+  snprintf(kbuf, sizeof(kbuf), "%20d", GET_CHA(ch));
   return (kbuf);
 } /* end rank_cha */
 
 ranktype rank_fitness(struct char_data *ch)
 {
-  sprintf(kbuf, "%20d", GET_STR(ch) + GET_INT(ch) + GET_WIS(ch) + GET_DEX(ch) + GET_CON(ch));
+  snprintf(kbuf, sizeof(kbuf), "%20d", GET_STR(ch) + GET_INT(ch) + GET_WIS(ch) + GET_DEX(ch) + GET_CON(ch));
   return (kbuf);
 } /* end rank_fitness */
 
 ranktype rank_hitroll(struct char_data *ch)
 {
-  sprintf(kbuf, "%20d", GET_HITROLL(ch));
+  snprintf(kbuf, sizeof(kbuf), "%20d", GET_HITROLL(ch));
   return (kbuf);
 } /* end rank_hitroll */
 
 ranktype rank_damroll(struct char_data *ch)
 {
-  sprintf(kbuf, "%20d", GET_DAMROLL(ch));
+  snprintf(kbuf, sizeof(kbuf), "%20d", GET_DAMROLL(ch));
   return (kbuf);
 } /* end rank_damroll */
 
 ranktype rank_armor(struct char_data *ch)
 {
-  sprintf(kbuf, "%20d", GET_AC(ch));
+  snprintf(kbuf, sizeof(kbuf), "%20d", GET_AC(ch));
   return (kbuf);
 } /* end rank_armor */
 
 ranktype rank_sp(struct char_data *ch)
 {
-  sprintf(kbuf, "%20d", CASTER_LEVEL(ch));
+  snprintf(kbuf, sizeof(kbuf), "%20d", CASTER_LEVEL(ch));
   return (kbuf);
 } /* end rank_sp */
 
 ranktype rank_xp(struct char_data *ch)
 {
-  sprintf(kbuf, "%27d", GET_EXP(ch));
+  snprintf(kbuf, sizeof(kbuf), "%27d", GET_EXP(ch));
   return (kbuf);
 } /* end rank_xp */
 
 ranktype rank_height(struct char_data *ch)
 {
-  sprintf(kbuf, "%20d", GET_HEIGHT(ch));
+  snprintf(kbuf, sizeof(kbuf), "%20d", GET_HEIGHT(ch));
   return (kbuf);
 } /* end rank_height */
 
 ranktype rank_weight(struct char_data *ch)
 {
-  sprintf(kbuf, "%20d", GET_WEIGHT(ch));
+  snprintf(kbuf, sizeof(kbuf), "%20d", GET_WEIGHT(ch));
   return (kbuf);
 } /* end rank_weight */
 
@@ -489,51 +489,51 @@ ranktype rank_fatness(struct char_data *ch)
   float bmi;
   bmi = ((float)GET_WEIGHT(ch) * 10000.0) /
         (2.2 * (float)GET_HEIGHT(ch) * (float)GET_HEIGHT(ch));
-  sprintf(kbuf, "%20.2f", bmi);
+  snprintf(kbuf, sizeof(kbuf), "%20.2f", bmi);
   return (kbuf);
 } /* end rank_fatness */
 
 ranktype rank_coolness(struct char_data *ch)
 {
-  sprintf(kbuf, "%20d", (GET_LEVEL(ch) == LVL_IMPL) ? 100 : ((GET_GOLD(ch) + GET_EXP(ch) % 100) % 100));
+  snprintf(kbuf, sizeof(kbuf), "%20d", (GET_LEVEL(ch) == LVL_IMPL) ? 100 : ((GET_GOLD(ch) + GET_EXP(ch) % 100) % 100));
   return (kbuf);
 } /* end rank_coolness */
 
 ranktype rank_gold(struct char_data *ch)
 {
-  sprintf(kbuf, "%27d", GET_GOLD(ch));
+  snprintf(kbuf, sizeof(kbuf), "%27d", GET_GOLD(ch));
   return (kbuf);
 } /* end rank_gold */
 
 ranktype rank_bank(struct char_data *ch)
 {
-  sprintf(kbuf, "%27d", GET_BANK_GOLD(ch));
+  snprintf(kbuf, sizeof(kbuf), "%27d", GET_BANK_GOLD(ch));
   return (kbuf);
 } /* end rank_bank */
 
 ranktype rank_age(struct char_data *ch)
 {
-  sprintf(kbuf, "%3d", GET_AGE(ch));
+  snprintf(kbuf, sizeof(kbuf), "%3d", GET_AGE(ch));
   return (kbuf);
 } /* end rank_age */
 
 /*
 ranktype rank_kills(struct char_data *ch) {
-  sprintf(kbuf, "%20ld", GET_KILLS(ch));
+  snprintf(kbuf, sizeof(kbuf), "%20ld", GET_KILLS(ch));
   return (kbuf);
 }*/
 /* end rank_kills */
 
 /*
 ranktype rank_deaths(struct char_data *ch) {
-  sprintf(kbuf, "%20ld", GET_DEATHS(ch));
+  snprintf(kbuf, sizeof(kbuf), "%20ld", GET_DEATHS(ch));
   return (kbuf);
 }*/
 /* end rank_deaths */
 
 /*
 ranktype rank_kd(struct char_data *ch) {
-  sprintf(kbuf, "%20.2f", GET_DEATHS(ch) ? (float) GET_KILLS(ch) / GET_DEATHS(ch) : (float) GET_KILLS(ch));
+  snprintf(kbuf, sizeof(kbuf), "%20.2f", GET_DEATHS(ch) ? (float) GET_KILLS(ch) / GET_DEATHS(ch) : (float) GET_KILLS(ch));
   return (kbuf);
 } */
 /* end rank_kd */
@@ -543,7 +543,7 @@ ranktype rank_played(struct char_data *ch)
   struct time_info_data playing_time;
   //struct time_info_data real_time_passed(time_t t2, time_t t1);
   playing_time = *real_time_passed((time(0) - ch->player.time.logon) + ch->player.time.played, 0);
-  sprintf(kbuf, "%3d days, %2d hours.", playing_time.day, playing_time.hours);
+  snprintf(kbuf, sizeof(kbuf), "%3d days, %2d hours.", playing_time.day, playing_time.hours);
   return (kbuf);
 } /* end rank_days */
 
@@ -551,21 +551,21 @@ ranktype rank_played(struct char_data *ch)
 ranktype rank_birth(struct char_data *ch) {
   struct time_info_data *playing_time;
   playing_time = age(ch);
-  sprintf(kbuf, "%3d days, %2d hours.", playing_time->day, playing_time->hours);
+  snprintf(kbuf, sizeof(kbuf), "%3d days, %2d hours.", playing_time->day, playing_time->hours);
   return (kbuf);
 } */
 /* end rank_days */
 
 /*
 ranktype rank_remorts(struct char_data *ch) {
-  sprintf(kbuf, "%20.2d", GET_REMORT_NUMBER(ch));
+  snprintf(kbuf, sizeof(kbuf), "%20.2d", GET_REMORT_NUMBER(ch));
   return (kbuf);
 }*/
 /* end rank_remorts */
 
 /*
 ranktype rank_blabber(struct char_data *ch) {
-  sprintf(kbuf, "%20.2d", GET_GOSSIPS(ch));
+  snprintf(kbuf, sizeof(kbuf), "%20.2d", GET_GOSSIPS(ch));
   return (kbuf);
 }*/
 /* end rank_blabber */

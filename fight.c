@@ -3044,7 +3044,7 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim)
       increase_gold(victim, happy_gold);
     }
     local_gold = GET_GOLD(victim);
-    sprintf(local_buf, "%ld", (long)local_gold);
+    snprintf(local_buf, sizeof(local_buf), "%ld", (long)local_gold);
   }
 
   /* grab room number of victim before we extract him for corpse making */
@@ -3301,8 +3301,8 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
 
   if (dam)
   { //display damage done
-    sprintf(buf1, "[%d]", dam);
-    sprintf(buf, "%5s", buf1);
+    snprintf(buf1, sizeof(buf1), "[%d]", dam);
+    snprintf(buf, sizeof(buf), "%5s", buf1);
     if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
       send_to_char(ch, "\tW%s\tn ", buf);
     if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_COMBATROLL))
@@ -4462,7 +4462,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
 
           crippling_critical_var = atoi((char *)pMudEvent->sVariables);
           crippling_critical_var++;
-          sprintf(buf, "%d", crippling_critical_var);
+          snprintf(buf, sizeof(buf), "%d", crippling_critical_var);
           if (pMudEvent->sVariables) /* need to free memory if we changing it */
             free(pMudEvent->sVariables);
           pMudEvent->sVariables = strdup(buf);
@@ -6969,14 +6969,14 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
   }
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
   {
-    sprintf(buf1, "\tW[R:%2d]\tn", diceroll);
-    sprintf(buf, "%7s", buf1);
+    snprintf(buf1, sizeof(buf1), "\tW[R:%2d]\tn", diceroll);
+    snprintf(buf, sizeof(buf), "%7s", buf1);
     send_to_char(ch, "%s", buf);
   }
   if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_COMBATROLL))
   {
-    sprintf(buf1, "\tR[R:%2d]\tn", diceroll);
-    sprintf(buf, "%7s", buf1);
+    snprintf(buf1, sizeof(buf1), "\tR[R:%2d]\tn", diceroll);
+    snprintf(buf, sizeof(buf), "%7s", buf1);
     send_to_char(victim, "%s", buf);
   }
 

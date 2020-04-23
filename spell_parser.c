@@ -1214,7 +1214,7 @@ EVENTFUNC(event_casting)
                                 return 0;
 
                         //display time left to finish spell
-                        sprintf(buf, "%s: %s%s%s ", CASTING_CLASS(ch) == CLASS_ALCHEMIST ? "Preparing" : "Casting",
+                        snprintf(buf, sizeof(buf), "%s: %s%s%s ", CASTING_CLASS(ch) == CLASS_ALCHEMIST ? "Preparing" : "Casting",
                                 (IS_SET(CASTING_METAMAGIC(ch), METAMAGIC_QUICKEN) ? "quickened " : ""),
                                 (IS_SET(CASTING_METAMAGIC(ch), METAMAGIC_MAXIMIZE) ? "maximized " : ""),
                                 SINFO.name);

@@ -446,7 +446,7 @@ void wld_command_interpreter(room_data *room, char *argument);
 #define ADD_UID_VAR(buf, trig, go, name, context)                  \
         do                                                         \
         {                                                          \
-                sprintf(buf, "%c%ld", UID_CHAR, GET_ID(go));       \
+                snprintf(buf, sizeof(buf), "%c%ld", UID_CHAR, GET_ID(go));       \
                 add_var(&GET_TRIG_VARS(trig), name, buf, context); \
         } while (0)
 

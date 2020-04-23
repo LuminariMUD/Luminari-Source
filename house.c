@@ -242,7 +242,7 @@ void House_crashsave(room_vnum vnum)
     return;
   }
   /* Delete existing save data.  In the future may just flag these for deletion. */
-  sprintf(del_buf, "delete from house_data where vnum = '%d';",
+  snprintf(del_buf, sizeof(del_buf), "delete from house_data where vnum = '%d';",
           vnum);
   if (mysql_query(conn, del_buf))
   {

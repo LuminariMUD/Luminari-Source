@@ -737,7 +737,7 @@ EVENTFUNC(event_daily_use_cooldown)
     if (pMudEvent->sVariables != NULL)
       free(pMudEvent->sVariables);
 
-    sprintf(buf, "uses:%d", uses);
+    snprintf(buf, sizeof(buf), "uses:%d", uses);
     pMudEvent->sVariables = strdup(buf);
 
     if ((featnum == FEAT_UNDEFINED) && (nonfeat_daily_uses > 0))

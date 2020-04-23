@@ -986,7 +986,7 @@ static char *list_object(struct obj_data *obj, int cnt, int aindex, int shop_nr,
   if (shop_producing(obj, shop_nr))
     strcpy(quantity, "Unlimited"); /* strcpy: OK (for 'quantity >= 10') */
   else
-    sprintf(quantity, "%d", cnt); /* sprintf: OK (for 'quantity >= 11', 32-bit int) */
+    snprintf(quantity, sizeof(quantity), "%d", cnt); /* sprintf: OK (for 'quantity >= 11', 32-bit int) */
 
   switch (GET_OBJ_TYPE(obj))
   {
@@ -1517,7 +1517,7 @@ static void list_all_shops(struct char_data *ch)
     if (SHOP_KEEPER(shop_nr) == NOBODY)
       strcpy(buf1, "<NONE>"); /* strcpy: OK (for 'buf1 >= 7') */
     else
-      sprintf(buf1, "%6d", mob_index[SHOP_KEEPER(shop_nr)].vnum); /* sprintf: OK (for 'buf1 >= 11', 32-bit int) */
+      snprintf(buf1, sizeof(buf1), "%6d", mob_index[SHOP_KEEPER(shop_nr)].vnum); /* sprintf: OK (for 'buf1 >= 11', 32-bit int) */
 
     len += snprintf(buf + len, sizeof(buf) - len,
                     "%3d   %6d   %6d    %s   %3.2f   %3.2f    %s\r\n",

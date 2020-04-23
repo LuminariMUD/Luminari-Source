@@ -224,7 +224,7 @@ static OCMD(do_ozoneecho)
 
   else
   {
-    sprintf(buf, "%s\r\n", msg);
+    snprintf(buf, sizeof(buf), "%s\r\n", msg);
     send_to_zone(buf, zone);
   }
 }
@@ -546,7 +546,7 @@ static OCMD(do_dgoload)
     if (SCRIPT(obj))
     { /* It _should_ have, but it might be detached. */
       char buf[MAX_INPUT_LENGTH];
-      sprintf(buf, "%c%ld", UID_CHAR, GET_ID(mob));
+      snprintf(buf, sizeof(buf), "%c%ld", UID_CHAR, GET_ID(mob));
       add_var(&(SCRIPT(obj)->global_vars), "lastloaded", buf, 0);
     }
 
@@ -563,7 +563,7 @@ static OCMD(do_dgoload)
     if (SCRIPT(obj))
     { /* It _should_ have, but it might be detached. */
       char buf[MAX_INPUT_LENGTH];
-      sprintf(buf, "%c%ld", UID_CHAR, GET_ID(object));
+      snprintf(buf, sizeof(buf), "%c%ld", UID_CHAR, GET_ID(object));
       add_var(&(SCRIPT(obj)->global_vars), "lastloaded", buf, 0);
     }
 

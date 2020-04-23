@@ -839,7 +839,7 @@ void update_msdp_affects(struct char_data *ch)
   {
     /* Open up the AFFECTS table */
     char buf2[4000];
-    sprintf(buf2, "%c"
+    snprintf(buf2, sizeof(buf2), "%c"
                   "%c%s%c"
                   "%c",
             (char)MSDP_TABLE_OPEN,
@@ -851,7 +851,7 @@ void update_msdp_affects(struct char_data *ch)
       if (IS_SET_AR(AFF_FLAGS(ch), i))
       {
         char buf[4000];
-        sprintf(buf, "%c%c"
+        snprintf(buf, sizeof(buf), "%c%c"
                      "%c%s%c%s"
                      "%c%s%c%s"
                      "%c",
@@ -863,7 +863,7 @@ void update_msdp_affects(struct char_data *ch)
         strcat(msdp_buffer, buf);
       }
     }
-    sprintf(buf2, "%c"
+    snprintf(buf2, sizeof(buf2), "%c"
                   "%c%s%c"
                   "%c",
             (char)MSDP_ARRAY_CLOSE,
@@ -874,7 +874,7 @@ void update_msdp_affects(struct char_data *ch)
     {
       char buf[4000]; // Buffer for building the affect table for MSDP
       next = af->next;
-      sprintf(buf, "%c%c"
+      snprintf(buf, sizeof(buf), "%c%c"
                    "%c%s%c%s"
                    "%c%s%c%s"
                    "%c%s%c%d"
@@ -892,7 +892,7 @@ void update_msdp_affects(struct char_data *ch)
       strcat(msdp_buffer, buf);
       first = FALSE;
     }
-    sprintf(buf2, "%c"
+    snprintf(buf2, sizeof(buf2), "%c"
                   "%c",
             (char)MSDP_ARRAY_CLOSE,
             (char)MSDP_TABLE_CLOSE);

@@ -156,7 +156,7 @@ struct wilderness_data *load_wilderness(zone_vnum zone)
 
   log("INFO: Loading wilderness data for zone: %d", zone);
 
-  sprintf(buf, "SELECT f.id, f.nav_vnum, f.dynamic_vnum_pool_start, f.dynamic_vnum_pool_end, f.x_size, f.y_size, f.elevation_seed, f.distortion_seed, f.moisture_seed, f.min_temp, f.max_temp from wilderness_data as f where f.zone_vnum = %d", zone);
+  snprintf(buf, sizeof(buf), "SELECT f.id, f.nav_vnum, f.dynamic_vnum_pool_start, f.dynamic_vnum_pool_end, f.x_size, f.y_size, f.elevation_seed, f.distortion_seed, f.moisture_seed, f.min_temp, f.max_temp from wilderness_data as f where f.zone_vnum = %d", zone);
 
   if (mysql_query(conn, buf))
   {
@@ -248,7 +248,7 @@ void load_regions()
 
   log("INFO: Loading region data from MySQL");
 
-  sprintf(buf, "SELECT vnum, "
+  snprintf(buf, sizeof(buf), "SELECT vnum, "
                "zone_vnum, "
                "name, "
                "region_type, "
@@ -341,7 +341,7 @@ bool is_point_within_region(region_vnum region, int x, int y)
   char buf[1024];
 
   /* Need an ORDER BY here, since we can have multiple regions. */
-  sprintf(buf, "SELECT 1 "
+  snprintf(buf, sizeof(buf), "SELECT 1 "
                "from region_index "
                "where vnum = %d and "
                "ST_Within(GeomFromText('POINT(%d %d)'), region_polygon)",
@@ -384,7 +384,7 @@ struct region_list *get_enclosing_regions(zone_rnum zone, int x, int y)
   char buf[1024];
 
   /* Need an ORDER BY here, since we can have multiple regions. */
-  sprintf(buf, "SELECT vnum,  "
+  snprintf(buf, sizeof(buf), "SELECT vnum,  "
                "case "
                "  when ST_Within(geomfromtext('Point(%d %d)'), region_polygon) then "
                "  case "
@@ -459,7 +459,7 @@ struct region_proximity_list *get_nearby_regions(zone_rnum zone, int x, int y, i
   char buf[6000];
 
   /* Need an ORDER BY here, since we can have multiple regions. */
-  sprintf(buf, "select * from (select "
+  snprintf(buf, sizeof(buf), "select * from (select "
                "  ri.vnum, "
                "  case "
                "    when ST_Intersects(ri.region_polygon, "
@@ -589,7 +589,7 @@ void load_paths()
 
   log("INFO: Loading path data from MySQL");
 
-  sprintf(buf, "SELECT p.vnum, "
+  snprintf(buf, sizeof(buf), "SELECT p.vnum, "
                "p.zone_vnum, "
                "p.name, "
                "p.path_type, "
@@ -684,17 +684,17 @@ void insert_path(struct path_data *path)
   int vtx = 0;
   char linestring[MAX_STRING_LENGTH];
 
-  sprintf(linestring, "ST_GeomFromText('LINESTRING(");
+  snprintf(linestring, sizeof(linestring), "ST_GeomFromText('LINESTRING(");
 
   for (vtx = 0; vtx < path->num_vertices; vtx++)
   {
     char buf2[100];
-    sprintf(buf2, "%d %d%s", path->vertices[vtx].x, path->vertices[vtx].y, (vtx + 1 == path->num_vertices ? ")')" : ","));
+    snprintf(buf2, sizeof(buf2), "%d %d%s", path->vertices[vtx].x, path->vertices[vtx].y, (vtx + 1 == path->num_vertices ? ")')" : ","));
     strcat(linestring, buf2);
   }
 
   log("INFO: Inserting Path [%d] '%s' into MySQL:", (int)path->vnum, path->name);
-  sprintf(buf, "insert into path_data "
+  snprintf(buf, sizeof(buf), "insert into path_data "
                "(vnum, "
                "zone_vnum, "
                "path_type, "
@@ -728,7 +728,7 @@ bool delete_path(region_vnum vnum)
   char buf[MAX_STRING_LENGTH];
 
   log("INFO: Deleting Path [%d] from MySQL:", (int)vnum);
-  sprintf(buf, "delete from path_data "
+  snprintf(buf, sizeof(buf), "delete from path_data "
                "where vnum = %d;",
           (int)vnum);
 
@@ -759,7 +759,7 @@ struct path_list *get_enclosing_paths(zone_rnum zone, int x, int y)
 
   char buf[1024];
 
-  sprintf(buf, "SELECT vnum, "
+  snprintf(buf, sizeof(buf), "SELECT vnum, "
                "  CASE WHEN (ST_Touches(GeomFromText('POINT(%d %d)'), path_linestring) AND "
                "             ST_Touches(GeomFromText('POINT(%d %d)'), path_linestring)) THEN %d"
                "    WHEN (ST_Touches(GeomFromText('POINT(%d %d)'), path_linestring) AND "
@@ -834,7 +834,7 @@ bool get_random_region_location(region_vnum region, int *x, int *y)
 
   log(" Getting random point in region with vnum : %d", region);
 
-  sprintf(buf, "SELECT ST_AsText(ST_Envelope(region_polygon)) "
+  snprintf(buf, sizeof(buf), "SELECT ST_AsText(ST_Envelope(region_polygon)) "
                "from region_data "
                "where vnum = %d;",
           region);
@@ -938,12 +938,12 @@ void who_to_mysql()
     /* Hide level for anonymous players */
     if (PRF_FLAGGED(tch, PRF_ANON))
     {
-      sprintf(buf, "INSERT INTO who (player, title, killer, thief) VALUES ('%s', '%s', %d, %d)",
+      snprintf(buf, sizeof(buf), "INSERT INTO who (player, title, killer, thief) VALUES ('%s', '%s', %d, %d)",
               GET_NAME(tch), buf2, PLR_FLAGGED(tch, PLR_KILLER) ? 1 : 0, PLR_FLAGGED(tch, PLR_THIEF) ? 1 : 0);
     }
     else
     {
-      sprintf(buf, "INSERT INTO who (player, level, title, killer, thief) VALUES ('%s', %d, '%s', %d, %d)",
+      snprintf(buf, sizeof(buf), "INSERT INTO who (player, level, title, killer, thief) VALUES ('%s', %d, '%s', %d, %d)",
               GET_NAME(tch), GET_LEVEL(tch), buf2,
               PLR_FLAGGED(tch, PLR_KILLER) ? 1 : 0, PLR_FLAGGED(tch, PLR_THIEF) ? 1 : 0);
     }

@@ -51,7 +51,7 @@ void set_off_trap(struct char_data *ch, struct obj_data *trap)
   send_to_char(ch, "Ooops, you must have triggered something.\r\n");
 
   /* Build the effect string */
-  sprintf(buf, "%d", GET_OBJ_VAL(trap, 2));
+  snprintf(buf, sizeof(buf), "%d", GET_OBJ_VAL(trap, 2));
 
   /* Add the event to the character.*/
   NEW_EVENT(eTRAPTRIGGERED, ch, strdup(buf), 1);
