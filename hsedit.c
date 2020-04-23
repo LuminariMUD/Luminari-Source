@@ -262,7 +262,7 @@ void hsedit_owner_menu(struct descriptor_data *d)
 
   house = OLC_HOUSE(d);
 
-  sprintf(buf,
+  snprintf(buf, sizeof(buf),
           "%s1%s) Owner Name : %s%s%s\r\n"
           "%s2%s) Owner ID   : %s%ld%s\r\n"
           "%sQ%s) Back to main menu\r\n"
@@ -288,7 +288,7 @@ void hsedit_dir_menu(struct descriptor_data *d)
 
   if ((house_rnum < 0) || (house_rnum == NOWHERE))
   {
-    sprintf(buf,
+    snprintf(buf, sizeof(buf),
             "%sWARNING%s: %sYou cannot set an atium direction before selecting a valid room vnum%s\r\n"
             "(Press Enter)\r\n",
             CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM));
@@ -305,7 +305,7 @@ void hsedit_dir_menu(struct descriptor_data *d)
         newroom[i] = NOWHERE;
     }
 
-    sprintf(buf,
+    snprintf(buf, sizeof(buf),
             "%s1%s) North  : (%s%s%s)\r\n"
             "%s2%s) East   : (%s%s%s)\r\n"
             "%s3%s) South  : (%s%s%s)\r\n"
@@ -351,9 +351,9 @@ void hsedit_disp_guest_menu(struct descriptor_data *d)
 
   house = OLC_HOUSE(d);
 
-  sprintf(not_set, "%s<NOT SET>%s", CCYEL(d->character, C_NRM), CCNRM(d->character, C_NRM));
+  snprintf(not_set, sizeof(not_set), "%s<NOT SET>%s", CCYEL(d->character, C_NRM), CCNRM(d->character, C_NRM));
 
-  sprintf(buf,
+  snprintf(buf, sizeof(buf),
           "%s 1%s) %s%s%s (%sID: %ld%s)\r\n"
           "%s 2%s) %s%s%s (%sID: %ld%s)\r\n"
           "%s 3%s) %s%s%s (%sID: %ld%s)\r\n"
@@ -495,9 +495,9 @@ void hsedit_disp_menu(struct descriptor_data *d)
 
   *buf2 = '\0';
   sprintbit(house->bitvector, house_flags, buf1, sizeof(buf1));
-  //  sprintf(buf2, "%d %d %d %d", house->value[0], house->value[1], house->value[2], house->value[3]);
-  sprintf(no_name, "%s<NOBODY>%s", CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM));
-  sprintf(buf,
+  //  snprintf(buf2, sizeof(buf2), "%d %d %d %d", house->value[0], house->value[1], house->value[2], house->value[3]);
+  snprintf(no_name, sizeof(no_name), "%s<NOBODY>%s", CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM));
+  snprintf(buf, sizeof(buf),
           "%s                                               %s\r\n"
           "-- House number : [%s%d%s]  	House zone: [%s%d%s]\r\n"
           "%s1%s) Owner       : %s%ld -- %s%s\r\n"

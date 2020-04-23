@@ -141,11 +141,11 @@ char *gen_room_description(struct char_data *ch, room_rnum room)
 			switch (curr_region->pos)
 			{
 			case REGION_POS_CENTER:
-				sprintf(buf, "The Center of %s\r\n", region_table[curr_region->rnum].name);
+				snprintf(buf, sizeof(buf), "The Center of %s\r\n", region_table[curr_region->rnum].name);
 				world[room].name = strdup(buf);
 				break;
 			case REGION_POS_EDGE:
-				sprintf(buf, "The Edge of %s\r\n", region_table[curr_region->rnum].name);
+				snprintf(buf, sizeof(buf), "The Edge of %s\r\n", region_table[curr_region->rnum].name);
 				world[room].name = strdup(buf);
 				break;
 			default:
@@ -163,24 +163,24 @@ char *gen_room_description(struct char_data *ch, room_rnum room)
 		/* Sun/Star/Moonshine */
 		if (time_info.hours < 5 || time_info.hours > 17)
 		{
-			sprintf(weather_buf, "The stars shine in the night sky.  ");
+			snprintf(weather_buf, sizeof(weather_buf), "The stars shine in the night sky.  ");
 		}
 		else if (time_info.hours == 5)
 		{
-			sprintf(weather_buf, "The first rays of dawn are breaking over the eastern horizon, "
+			snprintf(weather_buf, sizeof(weather_buf), "The first rays of dawn are breaking over the eastern horizon, "
 								 "casting the world around you in a warm glow and banishing the shadows of the night.  ");
 		}
 		else if (time_info.hours == 6)
 		{
-			sprintf(weather_buf, "The sun rises over the eastern horizon, heralding the start of a new day.  ");
+			snprintf(weather_buf, sizeof(weather_buf), "The sun rises over the eastern horizon, heralding the start of a new day.  ");
 		}
 		else if (time_info.hours > 6 && time_info.hours < 17)
 		{
-			sprintf(weather_buf, "The sun shines brightly in the clear sky. ");
+			snprintf(weather_buf, sizeof(weather_buf), "The sun shines brightly in the clear sky. ");
 		}
 		else if (time_info.hours == 17)
 		{
-			sprintf(weather_buf, "The sun dips below the western horizon, the rich colors "
+			snprintf(weather_buf, sizeof(weather_buf), "The sun dips below the western horizon, the rich colors "
 								 "of the sunset signaling the end of the day and the onset of the deep shadows of night.  ");
 		}
 	}
@@ -189,26 +189,26 @@ char *gen_room_description(struct char_data *ch, room_rnum room)
 		/* Lightning! */
 		if (time_info.hours < 5 || time_info.hours > 17)
 		{
-			sprintf(weather_buf, "Bright flashes of lightning and crashing thunder illuminate the night sky as a thunderstorm sweeps across the area.  "
+			snprintf(weather_buf, sizeof(weather_buf), "Bright flashes of lightning and crashing thunder illuminate the night sky as a thunderstorm sweeps across the area.  "
 								 "Rain pours down in sheets and whips about in the howling winds. ");
 		}
 		else if (time_info.hours == 5)
 		{
-			sprintf(weather_buf, "The weak light of the dawn struggles to break through the violent thunderclouds, overcome by crashing thunder and violent strokes of lightning.  "
+			snprintf(weather_buf, sizeof(weather_buf), "The weak light of the dawn struggles to break through the violent thunderclouds, overcome by crashing thunder and violent strokes of lightning.  "
 								 "Rain pours down in sheets and whips about in the howling winds. ");
 		}
 		else if (time_info.hours == 6)
 		{
-			sprintf(weather_buf, "The sun barely illuminates the landscape as it weakly rises over the eastern horizon.  "
+			snprintf(weather_buf, sizeof(weather_buf), "The sun barely illuminates the landscape as it weakly rises over the eastern horizon.  "
 								 "Crashes of thunder and violent lightning overshadow any signs of the new day.  Rain pours down in sheets, blowing sideways in the howling winds.  ");
 		}
 		else if (time_info.hours > 6 && time_info.hours < 17)
 		{
-			sprintf(weather_buf, "Dark, ominous clouds race through the skies with crashes of thunder and flashes of lightning.  Rain pours down in sheets and whips about in the howling winds. ");
+			snprintf(weather_buf, sizeof(weather_buf), "Dark, ominous clouds race through the skies with crashes of thunder and flashes of lightning.  Rain pours down in sheets and whips about in the howling winds. ");
 		}
 		else if (time_info.hours == 17)
 		{
-			sprintf(weather_buf, "The sun dips below the western horizon, the rich colors "
+			snprintf(weather_buf, sizeof(weather_buf), "The sun dips below the western horizon, the rich colors "
 								 "of the sunset signaling the end of the day and the onset of the deep shadows of night.  ");
 		}
 	}
@@ -217,23 +217,23 @@ char *gen_room_description(struct char_data *ch, room_rnum room)
 		/* Heavy rain! */
 		if (time_info.hours < 5 || time_info.hours > 17)
 		{
-			sprintf(weather_buf, "Heavy rain pours down, the clouds blocking all light from the starry sky.  ");
+			snprintf(weather_buf, sizeof(weather_buf), "Heavy rain pours down, the clouds blocking all light from the starry sky.  ");
 		}
 		else if (time_info.hours == 5)
 		{
-			sprintf(weather_buf, "Dawn breaks, a sickly light shining through the dark clouds swollen with rain.  Heavy rain falls from the sky in sheets.  ");
+			snprintf(weather_buf, sizeof(weather_buf), "Dawn breaks, a sickly light shining through the dark clouds swollen with rain.  Heavy rain falls from the sky in sheets.  ");
 		}
 		else if (time_info.hours == 6)
 		{
-			sprintf(weather_buf, "The sun rises fully over the eastern horizon, visible as a muted disc through the rain clouds.  Rain falls heavily from the sky, blowing in the wind.  ");
+			snprintf(weather_buf, sizeof(weather_buf), "The sun rises fully over the eastern horizon, visible as a muted disc through the rain clouds.  Rain falls heavily from the sky, blowing in the wind.  ");
 		}
 		else if (time_info.hours > 6 && time_info.hours < 17)
 		{
-			sprintf(weather_buf, "Dark, swollen clouds cruise through the sky, rain falling heavily all around.  ");
+			snprintf(weather_buf, sizeof(weather_buf), "Dark, swollen clouds cruise through the sky, rain falling heavily all around.  ");
 		}
 		else if (time_info.hours == 17)
 		{
-			sprintf(weather_buf, "The sun dips below the western horizon, barely visible through the thick, dark rainclouds.  Rain falls heavily all around.  ");
+			snprintf(weather_buf, sizeof(weather_buf), "The sun dips below the western horizon, barely visible through the thick, dark rainclouds.  Rain falls heavily all around.  ");
 		}
 	}
 	else if (weather >= 178)
@@ -241,23 +241,23 @@ char *gen_room_description(struct char_data *ch, room_rnum room)
 		/* Rain! */
 		if (time_info.hours < 5 || time_info.hours > 17)
 		{
-			sprintf(weather_buf, "Rain falls steadily, the clouds blocking parts of the starry sky.  ");
+			snprintf(weather_buf, sizeof(weather_buf), "Rain falls steadily, the clouds blocking parts of the starry sky.  ");
 		}
 		else if (time_info.hours == 5)
 		{
-			sprintf(weather_buf, "Dawn breaks, a sickly light shining through the clouds.  Rain falls from the sky, pattering on the ground.  ");
+			snprintf(weather_buf, sizeof(weather_buf), "Dawn breaks, a sickly light shining through the clouds.  Rain falls from the sky, pattering on the ground.  ");
 		}
 		else if (time_info.hours == 6)
 		{
-			sprintf(weather_buf, "The sun rises fully over the eastern horizon, visible as a muted disc through the rain clouds.  Rain falls gently from the sky.  ");
+			snprintf(weather_buf, sizeof(weather_buf), "The sun rises fully over the eastern horizon, visible as a muted disc through the rain clouds.  Rain falls gently from the sky.  ");
 		}
 		else if (time_info.hours > 6 && time_info.hours < 17)
 		{
-			sprintf(weather_buf, "Dark clouds cruise lazily through the sky and rain falls gently throughout the area.  ");
+			snprintf(weather_buf, sizeof(weather_buf), "Dark clouds cruise lazily through the sky and rain falls gently throughout the area.  ");
 		}
 		else if (time_info.hours == 17)
 		{
-			sprintf(weather_buf, "The sun dips below the western horizon, the colors of sunset filtered by the dark clouds.  Rain falls steadily all around.  ");
+			snprintf(weather_buf, sizeof(weather_buf), "The sun dips below the western horizon, the colors of sunset filtered by the dark clouds.  Rain falls steadily all around.  ");
 		}
 	}
 
@@ -305,23 +305,23 @@ char *gen_room_description(struct char_data *ch, room_rnum room)
 		{
 			if (first_region == TRUE)
 			{
-				sprintf(buf, "You are %s within %s.\r\n", sector_types_readable[world[room].sector_type], region_table[curr_nearby_region->rnum].name);
+				snprintf(buf, sizeof(buf), "You are %s within %s.\r\n", sector_types_readable[world[room].sector_type], region_table[curr_nearby_region->rnum].name);
 			}
 			else
 			{
-				sprintf(buf, "You are within %s.\r\n", region_table[curr_nearby_region->rnum].name);
+				snprintf(buf, sizeof(buf), "You are within %s.\r\n", region_table[curr_nearby_region->rnum].name);
 			}
 		}
 		else
 		{
 			if (first_region == TRUE)
 			{
-				sprintf(buf, "You are %s.  %s lies %sto the %s.\r\n", sector_types_readable[world[room].sector_type], region_table[curr_nearby_region->rnum].name,
+				snprintf(buf, sizeof(buf), "You are %s.  %s lies %sto the %s.\r\n", sector_types_readable[world[room].sector_type], region_table[curr_nearby_region->rnum].name,
 						(curr_nearby_region->dist <= 1 ? "very near " : (curr_nearby_region->dist <= 2 ? "near " : (curr_nearby_region->dist <= 3 ? "" : (curr_nearby_region->dist <= 4 ? "far " : (curr_nearby_region->dist > 4 ? "very far " : ""))))), direction_strings[region_dir]);
 			}
 			else
 			{
-				sprintf(buf, "%s lies %sto the %s.\r\n", region_table[curr_nearby_region->rnum].name,
+				snprintf(buf, sizeof(buf), "%s lies %sto the %s.\r\n", region_table[curr_nearby_region->rnum].name,
 						(curr_nearby_region->dist <= 1 ? "very near " : (curr_nearby_region->dist <= 2 ? "near " : (curr_nearby_region->dist <= 3 ? "" : (curr_nearby_region->dist <= 4 ? "far " : (curr_nearby_region->dist > 4 ? "very far " : ""))))), direction_strings[region_dir]);
 			}
 		}
@@ -336,7 +336,7 @@ char *gen_room_description(struct char_data *ch, room_rnum room)
 	if (rdesc[0] == '\0')
 	{
 		/* No regions nearby...*/
-		sprintf(buf, "You are %s.\r\n", sector_types_readable[world[room].sector_type]);
+		snprintf(buf, sizeof(buf), "You are %s.\r\n", sector_types_readable[world[room].sector_type]);
 		strcat(buf, weather_buf);
 		strcat(rdesc, buf);
 		weather_buf[0] = '\0';
@@ -745,7 +745,7 @@ char *gen_room_description(struct char_data *ch, char *desc)
 					case 17:
 						strcat(temp, "The beach can be seen to the %s. ");
 					}
-					sprintf(message, temp, dir_name[pexit->vdir]);
+					snprintf(message, sizeof(message), temp, dir_name[pexit->vdir]);
 					strcat(buf, message);
 				}
 			}
@@ -837,7 +837,7 @@ char *gen_room_description(struct char_data *ch, char *desc)
 			break;
 		}
 
-		sprintf(message, sentence, temp);
+		snprintf(message, sizeof(message), sentence, temp);
 		strcat(buf, capitalize(message));
 	}
 */
@@ -894,7 +894,7 @@ char *gen_room_description(struct char_data *ch, char *desc)
 			else
 				strcpy(message, "A flake of dried blood catches your eye. ");
 
-			sprintf(temp, message,
+			snprintf(temp, sizeof(temp), message,
 					(trail->from > -1 ? rev_dir_name[trail->from] : "the center of the room"),
 					(trail->to > -1 ? dir_name[trail->to] : "right here"));
 			strcat(temp, " ");
@@ -907,7 +907,7 @@ char *gen_room_description(struct char_data *ch, char *desc)
 		if (IS_OUTSIDE(ch) && ((ch->in_room->area->weather->temp + 3 * weath_unit - 1) / weath_unit < 3) && ((ch->in_room->area->weather->precip + 3 * weath_unit - 1) / weath_unit > 3))
 		{
 			strcpy(message, "Footprints in the snow seem to lead from %s to %s. ");
-			sprintf(temp, message,
+			snprintf(temp, sizeof(temp), message,
 					(trail->from > -1 ? rev_dir_name[trail->from] : "the center of the room"),
 					(trail->to > -1 ? dir_name[trail->to] : "right here"));
 			strcat(temp, " ");
@@ -931,7 +931,7 @@ char *gen_room_description(struct char_data *ch, char *desc)
 				else
 					strcpy(message, "You notice a footprint on the ground");
 				learn_from_success(ch, gsn_track);
-				sprintf(temp, message,
+				snprintf(temp, sizeof(temp), message,
 						(trail->from > -1 ? rev_dir_name[trail->from] : "right here"),
 						(trail->to > -1 ? dir_name[trail->to] : "right here"),
 						trail->race ? (aoran(trail->race->name))

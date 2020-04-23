@@ -325,7 +325,7 @@ void parse_edit_action(int command, char *string, struct descriptor_data *d)
     }
     *buf = '\0';
     if (line_high < 999999 || line_low > 1)
-      sprintf(buf, "Current buffer range [%d - %d]:\r\n", line_low, line_high);
+      snprintf(buf, sizeof(buf), "Current buffer range [%d - %d]:\r\n", line_low, line_high);
     i = 1;
     total_len = 0;
     s = *d->str;
@@ -416,7 +416,7 @@ void parse_edit_action(int command, char *string, struct descriptor_data *d)
         s++;
         temp = *s;
         *s = '\0';
-        sprintf(buf, "%s%4d: ", buf, (i - 1));
+        snprintf(buf, sizeof(buf), "%s%4d: ", buf, (i - 1));
         strcat(buf, t);
         *s = temp;
         t = s;
@@ -722,7 +722,7 @@ int format_text(char **ptr_string, int mode, struct descriptor_data *d, unsigned
       else if (*flow == '\"' || *flow == '\'')
       {
         char buf[MAX_STRING_LENGTH];
-        sprintf(buf, "%c  ", *flow);
+        snprintf(buf, sizeof(buf), "%c  ", *flow);
         strcat(formatted, buf);
         flow++;
         line_chars++;

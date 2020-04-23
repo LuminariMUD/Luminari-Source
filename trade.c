@@ -232,7 +232,7 @@ int get_profit_factor(struct char_data *ch, struct obj_data *obj, struct char_da
 void show_trade_item(struct obj_data *obj, int index, struct char_data *ch) {
   int price = GET_OBJ_COST(obj);
   sprintfcash(buf2, price / 1000, (price % 1000) / 100, (price % 100) / 10, price % 10);
-  sprintf(buf, "%d) %-40s %s\r\n", index, obj->short_description, buf2);
+  snprintf(buf, sizeof(buf), "%d) %-40s %s\r\n", index, obj->short_description, buf2);
   send_to_char(ch, buf);
 }
 
@@ -262,7 +262,7 @@ SPECIAL(trade_master) {
           break;
         if (demand[read].vnum == GET_MOB_VNUM(master)) {
           send_to_char(ch, "&cw=-=-=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=-=&c0\r\n");
-          sprintf(buf, "We are primarily looking for %s, %s & %s.\r\n"
+          snprintf(buf, sizeof(buf), "We are primarily looking for %s, %s & %s.\r\n"
                   , trade_name[ demand[read].data1 ]
                   , trade_name[ demand[read].data2 ]
                   , trade_name[ demand[read].data3 ]
@@ -346,7 +346,7 @@ SPECIAL(trade_master) {
         count--;
       }
       if (org_count > 1) {
-        sprintf(buf, "You buy %d %s(s).\r\n", org_count - count, proto->short_description);
+        snprintf(buf, sizeof(buf), "You buy %d %s(s).\r\n", org_count - count, proto->short_description);
         send_to_char(ch, buf);
       }
       return TRUE;
@@ -393,7 +393,7 @@ SPECIAL(trade_master) {
         } else {
           found = TRUE;
           int profit = get_profit_factor(ch, obj, master);
-          sprintf(profit_info, "You sold at a profit of %d percent.\r\n", profit - 100);
+          snprintf(profit_info, sizeof(profit_info), "You sold at a profit of %d percent.\r\n", profit - 100);
           int price = GET_OBJ_COST(obj);
           price *= profit;
           price /= 100;
@@ -410,12 +410,12 @@ SPECIAL(trade_master) {
       }
       if (found) {
         if (org_count > 1) {
-          sprintf(buf, "You sell %d %s(s).\r\n", org_count - count, arg2);
+          snprintf(buf, sizeof(buf), "You sell %d %s(s).\r\n", org_count - count, arg2);
           send_to_char(ch, buf);
         }
         send_to_char(ch, profit_info);
         sprintfcash(buf2, total_profit / 1000, (total_profit % 1000) / 100, (total_profit % 100) / 10, total_profit % 10);
-        sprintf(buf, "You gained %s.\r\n", buf2);
+        snprintf(buf, sizeof(buf), "You gained %s.\r\n", buf2);
         send_to_char(ch, buf);
       }
       return TRUE;
@@ -447,7 +447,7 @@ SPECIAL(trade_master) {
         return TRUE;
       }
       int profit = get_profit_factor(ch, obj, master);
-      sprintf(buf, "You estimate you could sell this at a profit of %d percent.\r\n", profit - 100);
+      snprintf(buf, sizeof(buf), "You estimate you could sell this at a profit of %d percent.\r\n", profit - 100);
       send_to_char(ch, buf);
       return TRUE;
     } else if (CMD_IS("getwagon")) {

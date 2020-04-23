@@ -1366,9 +1366,9 @@ void update_damage_and_effects_over_time(void)
 
     if (ch->player_specials->sticky_bomb[0] != BOMB_NONE)
     {
-      sprintf(buf, "A sticky %s bomb explodes again causing you %s damage.", bomb_types[ch->player_specials->sticky_bomb[0]], weapon_damage_types[ch->player_specials->sticky_bomb[1]]);
+      snprintf(buf, sizeof(buf), "A sticky %s bomb explodes again causing you %s damage.", bomb_types[ch->player_specials->sticky_bomb[0]], weapon_damage_types[ch->player_specials->sticky_bomb[1]]);
       act(buf, FALSE, ch, 0, 0, TO_CHAR);
-      sprintf(buf, "A sticky %s bomb explodes on $n again causing $m %s damage.", bomb_types[ch->player_specials->sticky_bomb[0]], weapon_damage_types[ch->player_specials->sticky_bomb[1]]);
+      snprintf(buf, sizeof(buf), "A sticky %s bomb explodes on $n again causing $m %s damage.", bomb_types[ch->player_specials->sticky_bomb[0]], weapon_damage_types[ch->player_specials->sticky_bomb[1]]);
       act(buf, FALSE, ch, 0, 0, TO_ROOM);
       dam = damage(ch, ch, ch->player_specials->sticky_bomb[2], SKILL_BOMB_TOSS, ch->player_specials->sticky_bomb[1], SKILL_BOMB_TOSS);
       ch->player_specials->sticky_bomb[0] = ch->player_specials->sticky_bomb[1] = ch->player_specials->sticky_bomb[2] = 0;

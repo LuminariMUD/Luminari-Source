@@ -266,7 +266,7 @@ int save_quests(zone_rnum zone_num)
       strip_cr(quest_quit);
       /* Save the quest details to the file.  */
       sprintascii(quest_flags, QST_FLAGS(rnum));
-      sprintf(buf,
+      snprintf(buf, sizeof(buf),
               "#%d\n"
               "%s%c\n"
               "%s%c\n"

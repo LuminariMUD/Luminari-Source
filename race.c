@@ -359,7 +359,7 @@ bool display_race_info(struct char_data *ch, char *racename)
   draw_line(ch, line_length, '-', '-');
 
   /* This we will need to buffer and wrap so that it will fit in the space provided. */
-  sprintf(buf, "\tcDescription : \tn%s\r\n", race_list[race].descrip);
+  snprintf(buf, sizeof(buf), "\tcDescription : \tn%s\r\n", race_list[race].descrip);
   send_to_char(ch, strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
 
   send_to_char(ch, "\tC");
