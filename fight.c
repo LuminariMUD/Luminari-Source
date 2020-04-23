@@ -4965,7 +4965,7 @@ int apply_damage_reduction(struct char_data *ch, struct char_data *victim, struc
 /* all weapon poison system is right now is just firing spells off our weapon
    if the weapon has that given spell-num applied to it as a poison
    i have ambitious plans in the future to completely re-work poison in our
-   system, and at that time i will re-work this -z */
+   system, and at that time i will re-work this -zusuk */
 #define MAX_PSN_LVL LVL_IMPL /* maximum level a poison can be */
 #define MAX_PSN_HIT 15       /* maximum times a poison can hit before wearing off */
 void weapon_poison(struct char_data *ch, struct char_data *victim,
