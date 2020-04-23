@@ -378,7 +378,7 @@ ACMD(do_export_zone)
    *     again. Do it silently though ( no logs ). */
   if (!export_info_file(zrnum))
   {
-    sprintf(sysbuf, "mkdir %s", path);
+    snprintf(sysbuf, sizeof(sysbuf), "mkdir %s", path);
     i = system(sysbuf);
   }
 
@@ -412,15 +412,15 @@ ACMD(do_export_zone)
   f = fix_filename(zone_name);
 
   /* Remove the old copy. */
-  sprintf(sysbuf, "rm %s%s.tar.gz", path, f);
+  snprintf(sysbuf, sizeof(sysbuf), "rm %s%s.tar.gz", path, f);
   i = system(sysbuf);
 
   /* Tar the new copy. */
-  sprintf(sysbuf, "tar -cf %s%s.tar %sqq.info %sqq.wld %sqq.zon %sqq.mob %sqq.obj %sqq.trg %sqq.shp", path, f, path, path, path, path, path, path, path);
+  snprintf(sysbuf, sizeof(sysbuf), "tar -cf %s%s.tar %sqq.info %sqq.wld %sqq.zon %sqq.mob %sqq.obj %sqq.trg %sqq.shp", path, f, path, path, path, path, path, path, path);
   i = system(sysbuf);
 
   /* Gzip it. */
-  sprintf(sysbuf, "gzip %s%s.tar", path, f);
+  snprintf(sysbuf, sizeof(sysbuf), "gzip %s%s.tar", path, f);
   i = system(sysbuf);
 
   send_to_char(ch, "Files tar'ed to \"%s%s.tar.gz\"\r\n", path, f);

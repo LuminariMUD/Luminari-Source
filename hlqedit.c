@@ -48,18 +48,18 @@ void zedit_create_index(int znum)
 
   prefix = HLQST_PREFIX;
 
-  sprintf(old_name, "%s/index", prefix);
-  sprintf(new_name, "%s/newindex", prefix);
+  snprintf(old_name, sizeof(old_name), "%s/index", prefix);
+  snprintf(new_name, sizeof(new_name), "%s/newindex", prefix);
 
   if (!(oldfile = fopen(old_name, "r")))
   {
-    sprintf(buf, "SYSERR: OLC: Failed to open %s", buf);
+    snprintf(buf, sizeof(buf), "SYSERR: OLC: Failed to open %s", buf);
     log(buf);
     return;
   }
   else if (!(newfile = fopen(new_name, "w")))
   {
-    sprintf(buf, "SYSERR: OLC: Failed to open %s", buf);
+    snprintf(buf, sizeof(buf), "SYSERR: OLC: Failed to open %s", buf);
     log(buf);
     return;
   }
@@ -68,7 +68,7 @@ void zedit_create_index(int znum)
    * Index contents must be in order: search through the old file for the
    * right place, insert the new file, then copy the rest over. 
    */
-  sprintf(buf1, "%d.%s", znum, "hlq");
+  snprintf(buf1, sizeof(buf1), "%d.%s", znum, "hlq");
   while (get_line(oldfile, buf))
   {
     if (*buf == '$')
@@ -108,7 +108,7 @@ void hlqedit_show_classes(struct descriptor_data *d)
 
   for (i = 0; i < NUM_CLASSES; i++)
   {
-    sprintf(buf, "%d) %s\r\n", i, CLSLIST_NAME(i));
+    snprintf(buf, sizeof(buf), "%d) %s\r\n", i, CLSLIST_NAME(i));
     send_to_char(d->character, buf);
   }
 }
@@ -287,7 +287,7 @@ void hlqedit_save_to_disk(int zone_num)
     return;
   }
 
-  sprintf(buf, "%s/%d.new", HLQST_PREFIX, zone_table[zone_num].number);
+  snprintf(buf, sizeof(buf), "%s/%d.new", HLQST_PREFIX, zone_table[zone_num].number);
   if (!(fp = fopen(buf, "w+")))
   {
     log("SYSERR: OLC: Cannot open hl quest file!");
@@ -355,7 +355,7 @@ void hlqedit_save_to_disk(int zone_num)
 
   fprintf(fp, "$~\n");
   fclose(fp);
-  sprintf(buf2, "%s/%d.hlq", HLQST_PREFIX, zone_table[zone_num].number);
+  snprintf(buf2, sizeof(buf2), "%s/%d.hlq", HLQST_PREFIX, zone_table[zone_num].number);
   /*
    * We're fubar'd if we crash between the two lines below.
    */
@@ -381,7 +381,7 @@ void hlqedit_disp_incommand_menu(struct descriptor_data *d)
 {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
 
-  sprintf(buf,
+  snprintf(buf, sizeof(buf),
           "\r\nQuest-Give Menu\r\n"
           "%sC%s) Give Coins to Mob\r\n"
           "%sI%s) Give Item to Mob\r\n",
@@ -397,7 +397,7 @@ void hlqedit_disp_outcommand_menu(struct descriptor_data *d)
 {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
 
-  sprintf(buf,
+  snprintf(buf, sizeof(buf),
           "\r\nQuest-Out Menu (Quest Rewards)\r\n"
           "%sC%s) Give coins\r\n"
           "%sI%s) Give item\r\n"
@@ -440,11 +440,11 @@ void hlqedit_disp_spells(struct descriptor_data *d)
 
   for (counter = 0; counter < NUM_SPELLS; counter++)
   {
-    sprintf(buf, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel,
+    snprintf(buf, sizeof(buf), "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel,
             spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
     send_to_char(d->character, buf);
   }
-  sprintf(buf, "\r\n%sEnter spell choice (0 for none):  ", nrm);
+  snprintf(buf, sizeof(buf), "\r\n%sEnter spell choice (0 for none):  ", nrm);
   send_to_char(d->character, buf);
 }
 
@@ -467,26 +467,26 @@ void hlqedit_disp_menu(struct descriptor_data *d)
     OLC_QUESTENTRY(d) = 0;
   }
 
-  sprintf(buf, "\r\n---- Quests for %s (vnum: %d)\r\n", GET_NAME(OLC_MOB(d)),
+  snprintf(buf, sizeof(buf), "\r\n---- Quests for %s (vnum: %d)\r\n", GET_NAME(OLC_MOB(d)),
           GET_MOB_VNUM(OLC_MOB(d)));
   send_to_char(d->character, buf);
 
   for (quest = OLC_HLQUEST(d); quest; quest = quest->next)
   {
     if (quest->type == QUEST_ASK)
-      sprintf(buf, "%d) (%s) ASK %s", num, quest->approved ? "OK" : "-", quest->keywords);
+      snprintf(buf, sizeof(buf), "%d) (%s) ASK %s", num, quest->approved ? "OK" : "-", quest->keywords);
     else if (quest->type == QUEST_ROOM)
-      sprintf(buf, "%d) (%s) ROOM %d", num, quest->approved ? "OK" : "-", quest->room);
+      snprintf(buf, sizeof(buf), "%d) (%s) ROOM %d", num, quest->approved ? "OK" : "-", quest->room);
     else
     {
       if (quest->in > 0)
       {
         if (quest->in->type == QUEST_COMMAND_ITEM)
-          sprintf(buf, "%d) (%s) GIVE %s", num,
+          snprintf(buf, sizeof(buf), "%d) (%s) GIVE %s", num,
                   quest->approved ? "OK" : "-",
                   obj_proto[real_object(quest->in->value)].short_description);
         else
-          sprintf(buf, "%d) (%s) GIVE %d coins", num,
+          snprintf(buf, sizeof(buf), "%d) (%s) GIVE %d coins", num,
                   quest->approved ? "OK" : "-",
                   quest->in->value);
 
@@ -500,7 +500,7 @@ void hlqedit_disp_menu(struct descriptor_data *d)
     num++;
   }
 
-  sprintf(buf,
+  snprintf(buf, sizeof(buf),
           "\r\nMain Menu\r\n"
           "%sA%s) Approve quest\r\n"
           "%sN%s) Add new quest for the mob\r\n"
@@ -562,7 +562,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
     case 'Y':
       hlqedit_save_internally(d);
       hlqedit_save_to_disk(real_zone_by_thing(OLC_NUM(d)));
-      sprintf(buf, "OLC: %s edits hl quest %d.", GET_NAME(d->character), OLC_NUM(d));
+      snprintf(buf, sizeof(buf), "OLC: %s edits hl quest %d.", GET_NAME(d->character), OLC_NUM(d));
       log(buf);
       OLC_MOB(d) = 0;
       cleanup_olc(d, CLEANUP_STRUCTS);
@@ -800,7 +800,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
       OLC_MODE(d) = HLQEDIT_OUT_CHURCH;
       for (i = 0; i < NUM_CHURCHES; i++)
       {
-        sprintf(buf, "%3d)%20s \r\n", i, church_types[i]);
+        snprintf(buf, sizeof(buf), "%3d)%20s \r\n", i, church_types[i]);
         send_to_char(d->character, buf);
       }
       send_to_char(d->character, "Select church:  ");

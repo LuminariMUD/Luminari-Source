@@ -503,7 +503,7 @@ void generic_complete_quest(struct char_data *ch)
     }
 
     /* we should be in the clear to tag this player with a completed quest */
-    sprintf(buf, "%d", GET_QUEST(ch)); /* sending vnum to event of quest */
+    snprintf(buf, sizeof(buf), "%d", GET_QUEST(ch)); /* sending vnum to event of quest */
     attach_mud_event(new_mud_event(eQUEST_COMPLETE, ch, buf), 1);
   }
 }

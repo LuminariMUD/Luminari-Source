@@ -538,13 +538,13 @@ static void zedit_disp_menu(struct descriptor_data *d)
   {
     /* Display the conditional */
     if ((counter - abs(MYCMD.if_flag)) < 0)
-      sprintf(buf1, "IF line <Warn: %d> %s,\r\n  ", MYCMD.if_flag,
+      snprintf(buf1, sizeof(buf1), "IF line <Warn: %d> %s,\r\n  ", MYCMD.if_flag,
               (MYCMD.if_flag < 0) ? "fails" : "executes");
     else if (abs(MYCMD.if_flag) > 1)
-      sprintf(buf1, "IF line #%d %s,\r\n  ", counter - abs(MYCMD.if_flag),
+      snprintf(buf1, sizeof(buf1), "IF line #%d %s,\r\n  ", counter - abs(MYCMD.if_flag),
               (MYCMD.if_flag < 0) ? "fails" : "executes");
     else
-      sprintf(buf1, "%s", (MYCMD.if_flag == 0) ? "" : (MYCMD.if_flag < 0) ? "  [ELSE]: " : "  [THEN]: ");
+      snprintf(buf1, sizeof(buf1), "%s", (MYCMD.if_flag == 0) ? "" : (MYCMD.if_flag < 0) ? "  [ELSE]: " : "  [THEN]: ");
 
     /* Translate what the command means. */
     write_to_output(d, "%s%d - %s", nrm, counter, yel);
@@ -620,55 +620,55 @@ static void zedit_disp_menu(struct descriptor_data *d)
       switch (MYCMD.arg3)
       {
       case 0:
-        sprintf(door_reset_string, "open");
+        snprintf(door_reset_string, sizeof(door_reset_string), "open");
         break;
       case 1:
-        sprintf(door_reset_string, "closed");
+        snprintf(door_reset_string, sizeof(door_reset_string), "closed");
         break;
       case 2:
-        sprintf(door_reset_string, "locked (easy)");
+        snprintf(door_reset_string, sizeof(door_reset_string), "locked (easy)");
         break;
       case 3:
-        sprintf(door_reset_string, "locked (easy) and hidden (easy)");
+        snprintf(door_reset_string, sizeof(door_reset_string), "locked (easy) and hidden (easy)");
         break;
       case 4:
-        sprintf(door_reset_string, "locked (easy) and hidden (medium)");
+        snprintf(door_reset_string, sizeof(door_reset_string), "locked (easy) and hidden (medium)");
         break;
       case 5:
-        sprintf(door_reset_string, "locked (easy) and hidden (hard)");
+        snprintf(door_reset_string, sizeof(door_reset_string), "locked (easy) and hidden (hard)");
         break;
       case 6:
-        sprintf(door_reset_string, "closed and hidden (easy)");
+        snprintf(door_reset_string, sizeof(door_reset_string), "closed and hidden (easy)");
         break;
       case 7:
-        sprintf(door_reset_string, "closed and hidden (medium)");
+        snprintf(door_reset_string, sizeof(door_reset_string), "closed and hidden (medium)");
         break;
       case 8:
-        sprintf(door_reset_string, "closed and hidden (hard)");
+        snprintf(door_reset_string, sizeof(door_reset_string), "closed and hidden (hard)");
         break;
       case 9:
-        sprintf(door_reset_string, "locked (medium) and hidden (easy)");
+        snprintf(door_reset_string, sizeof(door_reset_string), "locked (medium) and hidden (easy)");
         break;
       case 10:
-        sprintf(door_reset_string, "locked (medium) and hidden (medium)");
+        snprintf(door_reset_string, sizeof(door_reset_string), "locked (medium) and hidden (medium)");
         break;
       case 11:
-        sprintf(door_reset_string, "locked (medium) and hidden (hard)");
+        snprintf(door_reset_string, sizeof(door_reset_string), "locked (medium) and hidden (hard)");
         break;
       case 12:
-        sprintf(door_reset_string, "locked (medium)");
+        snprintf(door_reset_string, sizeof(door_reset_string), "locked (medium)");
         break;
       case 13:
-        sprintf(door_reset_string, "locked (hard) and hidden (easy)");
+        snprintf(door_reset_string, sizeof(door_reset_string), "locked (hard) and hidden (easy)");
         break;
       case 14:
-        sprintf(door_reset_string, "locked (hard) and hidden (medium)");
+        snprintf(door_reset_string, sizeof(door_reset_string), "locked (hard) and hidden (medium)");
         break;
       case 15:
-        sprintf(door_reset_string, "locked (hard) and hidden (hard)");
+        snprintf(door_reset_string, sizeof(door_reset_string), "locked (hard) and hidden (hard)");
         break;
       case 16:
-        sprintf(door_reset_string, "locked (hard)");
+        snprintf(door_reset_string, sizeof(door_reset_string), "locked (hard)");
         break;
       }
 

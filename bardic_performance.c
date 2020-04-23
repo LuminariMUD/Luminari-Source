@@ -230,7 +230,7 @@ ACMD(do_perform)
         act("You start performing.", FALSE, ch, 0, 0, TO_CHAR);
         act("$n starts performing.", FALSE, ch, 0, 0, TO_ROOM);
         char buf[128];
-        sprintf(buf, "%d", i); /* Build the effect string */
+        snprintf(buf, sizeof(buf), "%d", i); /* Build the effect string */
         NEW_EVENT(eBARDIC_PERFORMANCE, ch, strdup(buf), 4 * PASSES_PER_SEC);
 
         if (HAS_FEAT(ch, FEAT_EFFICIENT_PERFORMANCE))

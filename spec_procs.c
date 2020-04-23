@@ -1388,11 +1388,11 @@ SPECIAL(player_owned_shops)
       /* Avoid seeing <UNDEF> entries from self-deleted people. */
       if ((temp = get_name_by_id(house_control[hse].owner)) == NULL)
       {
-        sprintf(shop_owner, "Someone");
+        snprintf(shop_owner, sizeof(shop_owner), "Someone");
       }
       else
       {
-        sprintf(shop_owner, "%s", CAP(get_name_by_id(house_control[hse].owner)));
+        snprintf(shop_owner, sizeof(shop_owner), "%s", CAP(get_name_by_id(house_control[hse].owner)));
       }
       found = TRUE;
       break;
@@ -1400,7 +1400,7 @@ SPECIAL(player_owned_shops)
   }
 
   if (found == FALSE)
-    sprintf(shop_owner, "Invalid Shop - Tell an Imp");
+    snprintf(shop_owner, sizeof(shop_owner), "Invalid Shop - Tell an Imp");
 
   private_room = real_room(house_control[hse].vnum);
   house_vnum = house_control[hse].vnum;
@@ -1420,7 +1420,7 @@ SPECIAL(player_owned_shops)
       return TRUE;
     }
 
-    sprintf(buf, "Owner: \tW%s\tn", shop_owner);
+    snprintf(buf, sizeof(buf), "Owner: \tW%s\tn", shop_owner);
     send_to_char(ch, "Player-owned Shop %*s\r\n", count_color_chars(buf) + 55, buf);
     send_to_char(ch,
                  "###    Item                                                Cost\r\n");
@@ -2136,8 +2136,8 @@ SPECIAL(kt_twister)
 
   char_to_room(mob, real_room(132906));
 
-  sprintf(l_name, "\tLThe shadow of \tw%s\tL stands here.\tn  ", GET_NAME(ch));
-  sprintf(s_name, "\tLa shadow of \tw%s\tn", GET_NAME(ch));
+  snprintf(l_name, sizeof(l_name), "\tLThe shadow of \tw%s\tL stands here.\tn  ", GET_NAME(ch));
+  snprintf(s_name, sizeof(s_name), "\tLa shadow of \tw%s\tn", GET_NAME(ch));
 
   mob->player.short_descr = strdup(s_name);
   mob->player.name = strdup("shadow");
@@ -2195,7 +2195,7 @@ SPECIAL(feybranche)
   {
     if (enemy->master && enemy->master->in_room == enemy->in_room)
       enemy = enemy->master;
-    sprintf(buf, "%s\tL shouts, '\tmCome to me!!' Fey-Branche is under attack!\tn\r\n",
+    snprintf(buf, sizeof(buf), "%s\tL shouts, '\tmCome to me!!' Fey-Branche is under attack!\tn\r\n",
             ch->player.short_descr);
     for (i = character_list; i; i = i->next)
     {
@@ -2287,7 +2287,7 @@ SPECIAL(agrachdyrr)
     if (enemy->master && enemy->master->in_room == enemy->in_room)
       enemy = enemy->master;
 
-    sprintf(buf, "%s\tL shouts, '\twTo me, \tcAgrach-Dyrr\tw is under attack!'\tn\r\n",
+    snprintf(buf, sizeof(buf), "%s\tL shouts, '\twTo me, \tcAgrach-Dyrr\tw is under attack!'\tn\r\n",
             ch->player.short_descr);
     for (i = character_list; i; i = i->next)
     {
@@ -2334,7 +2334,7 @@ SPECIAL(shobalar)
   {
     if (enemy->master && enemy->master->in_room == enemy->in_room)
       enemy = enemy->master;
-    sprintf(buf, "%s\tL shouts, '\twTo me, \tmShobalar\tw is under attack!'\tn\r\n",
+    snprintf(buf, sizeof(buf), "%s\tL shouts, '\twTo me, \tmShobalar\tw is under attack!'\tn\r\n",
             ch->player.short_descr);
     for (i = character_list; i; i = i->next)
     {
@@ -2619,7 +2619,7 @@ SPECIAL(guild)
         return (TRUE);
       }
       /* Crafting skill */
-      sprintf(buf, "Craft (%s", ability_name);
+      snprintf(buf, sizeof(buf), "Craft (%s", ability_name);
       skill_num = find_ability_num(buf);
     }
     else if (is_abbrev(arg, "knowledge"))
@@ -2631,7 +2631,7 @@ SPECIAL(guild)
         return (TRUE);
       }
       /* Knowledge skill */
-      sprintf(buf, "Knowledge (%s", ability_name);
+      snprintf(buf, sizeof(buf), "Knowledge (%s", ability_name);
       skill_num = find_ability_num(buf);
     }
     else
@@ -3269,7 +3269,7 @@ SPECIAL(clan_cleric)
     }
     if (clan != GET_CLAN(ch))
     {
-      sprintf(buf, "$n will only serve members of %s", CLAN_NAME(real_clan(clan)));
+      snprintf(buf, sizeof(buf), "$n will only serve members of %s", CLAN_NAME(real_clan(clan)));
       act(buf, TRUE, this_mob, 0, ch, TO_VICT);
       return TRUE;
     }
@@ -3683,7 +3683,7 @@ SPECIAL(practice_dummy)
     max_hit += rounddam;
     round_count++;
 
-    sprintf(buf, "\tP%d damage last round!\tn  \tc(total: %d rounds: %d)\tn\r\n",
+    snprintf(buf, sizeof(buf), "\tP%d damage last round!\tn  \tc(total: %d rounds: %d)\tn\r\n",
             rounddam, max_hit, round_count);
     send_to_room(ch->in_room, buf);
     GET_HIT(ch) = GET_MAX_HIT(ch);
@@ -4042,12 +4042,12 @@ SPECIAL(harpell)
   if (FIGHTING(ch) && !ROOM_FLAGGED(ch->in_room, ROOM_SOUNDPROOF))
   {
     if (AFF_FLAGGED(FIGHTING(ch), AFF_CHARM) && FIGHTING(ch)->master)
-      sprintf(buf, "%s shouts, 'HELP! %s has ordered his pets to kill "
+      snprintf(buf, sizeof(buf), "%s shouts, 'HELP! %s has ordered his pets to kill "
                    "me!!'\r\n",
               ch->player.short_descr,
               GET_NAME(FIGHTING(ch)->master));
     else
-      sprintf(buf, "%s shouts, 'HELP! %s is trying to kill me!\r\n",
+      snprintf(buf, sizeof(buf), "%s shouts, 'HELP! %s is trying to kill me!\r\n",
               ch->player.short_descr, GET_NAME(FIGHTING(ch)));
     for (i = character_list; i; i = i->next)
     {
@@ -4615,10 +4615,10 @@ SPECIAL(emporium) {
 
     SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_UNIQUE_SAVE);
     char buf[200] = {'\0'};
-    sprintf(buf, "%s +%d %s", obj->short_description, bonus, get_bonus_type(arg3));
+    snprintf(buf, sizeof(buf), "%s +%d %s", obj->short_description, bonus, get_bonus_type(arg3));
     obj->short_description = strdup(buf);
     obj->name = strdup(buf);
-    sprintf(buf, "%s +%d %s lies here.", CAP(obj->short_description), bonus, 
+    snprintf(buf, sizeof(buf), "%s +%d %s lies here.", CAP(obj->short_description), bonus, 
             get_bonus_type(arg3));
     obj->description = strdup(buf);
 
@@ -4721,7 +4721,7 @@ SPECIAL(emporium) {
 
       cost = MAX(10, GET_OBJ_LEVEL(obj) * (GET_OBJ_LEVEL(obj) / 2) * 3);
 
-      sprintf(buf, "%s +%d %s", obj->short_description, bonus, get_bonus_type(arg3));
+      snprintf(buf, sizeof(buf), "%s +%d %s", obj->short_description, bonus, get_bonus_type(arg3));
       send_to_char(ch, "%-5d %-6d %d %-35s\r\n", i, cost, GET_OBJ_LEVEL(obj), buf);
     }
     send_to_char(ch, "\r\n");
@@ -5103,13 +5103,13 @@ void move_ship(struct obj_data *ship, int dir)
   if (new_room == 0)
     return;
 
-  sprintf(buf2, "$p floats %s.", dirs[dir]);
+  snprintf(buf2, sizeof(buf2), "$p floats %s.", dirs[dir]);
   act(buf2, TRUE, 0, ship, 0, TO_ROOM);
 
   obj_from_room(ship);
   obj_to_room(ship, new_room);
 
-  sprintf(buf2, "The ship moves %s.\r\n", dirs[dir]);
+  snprintf(buf2, sizeof(buf2), "The ship moves %s.\r\n", dirs[dir]);
 
   if (world[ship->in_room].sector_type == SECT_ZONE_START)
     msg = "Your ship docks here.\r\n";
@@ -5124,7 +5124,7 @@ void move_ship(struct obj_data *ship, int dir)
     }
   }
 
-  sprintf(buf2, "$p floats in from the %s.", dirs[rev_dir[dir]]);
+  snprintf(buf2, sizeof(buf2), "$p floats in from the %s.", dirs[rev_dir[dir]]);
   act(buf2, TRUE, 0, ship, 0, TO_ROOM);
 }
 
@@ -7974,19 +7974,19 @@ SPECIAL(storage_chest) {
   if (IS_NPC(ch) || IS_PET(ch))
     return FALSE;
 
-  sprintf(buf2, "chest storage %s", GET_NAME(ch));
+  snprintf(buf2, sizeof(buf2), "chest storage %s", GET_NAME(ch));
   chest->name = str_dup(buf2);
 
   if (GET_OBJ_VNUM(chest) == 1291) {
-    sprintf(buf2, "\tLAn ornate \tcmithril\tL chest owned by \tw%s\tL rests here.\tn", GET_NAME(ch));
+    snprintf(buf2, sizeof(buf2), "\tLAn ornate \tcmithril\tL chest owned by \tw%s\tL rests here.\tn", GET_NAME(ch));
     chest->description = str_dup(buf2);
-    sprintf(buf2, "\tLan ornate \tcmithril\tL chest owned by \tw%s\tn", GET_NAME(ch));
+    snprintf(buf2, sizeof(buf2), "\tLan ornate \tcmithril\tL chest owned by \tw%s\tn", GET_NAME(ch));
     chest->short_description = str_dup(buf2);
 
   } else {
-    sprintf(buf2, "\tLA storage chest owned by \tW%s\tL is standing here.\tn", GET_NAME(ch));
+    snprintf(buf2, sizeof(buf2), "\tLA storage chest owned by \tW%s\tL is standing here.\tn", GET_NAME(ch));
     chest->description = str_dup(buf2);
-    sprintf(buf2, "\tLa chest owned by \tW%s\tn", GET_NAME(ch));
+    snprintf(buf2, sizeof(buf2), "\tLa chest owned by \tW%s\tn", GET_NAME(ch));
     chest->short_description = str_dup(buf2);
   }
   GET_OBJ_VAL(chest, 3) = -GET_IDNUM(ch);
@@ -8186,27 +8186,27 @@ void display_buy_armor_types(struct char_data *ch, int level, sbyte masterwork, 
   if (is_abbrev(type, "body"))
   {
     wear = ITEM_WEAR_BODY;
-    sprintf(wear_str, "BODY");
+    snprintf(wear_str, sizeof(wear_str), "BODY");
   }
   else if (is_abbrev(type, "arms"))
   {
     wear = ITEM_WEAR_ARMS;
-    sprintf(wear_str, "ARMS");
+    snprintf(wear_str, sizeof(wear_str), "ARMS");
   }
   else if (is_abbrev(type, "legs"))
   {
     wear = ITEM_WEAR_LEGS;
-    sprintf(wear_str, "LEGS");
+    snprintf(wear_str, sizeof(wear_str), "LEGS");
   }
   else if (is_abbrev(type, "head"))
   {
     wear = ITEM_WEAR_HEAD;
-    sprintf(wear_str, "HEAD");
+    snprintf(wear_str, sizeof(wear_str), "HEAD");
   }
   else if (is_abbrev(type, "shield"))
   {
     wear = ITEM_WEAR_SHIELD;
-    sprintf(wear_str, "SHIELD");
+    snprintf(wear_str, sizeof(wear_str), "SHIELD");
   }
   else
   {
@@ -8263,13 +8263,13 @@ void set_weapon_name(struct obj_data *obj, int type)
 
   char buf[200];
 
-  sprintf(buf, "%s %s", AN(weapon_list[type].name), weapon_list[type].name);
+  snprintf(buf, sizeof(buf), "%s %s", AN(weapon_list[type].name), weapon_list[type].name);
   obj->short_description = strdup(buf);
 
-  sprintf(buf, "%s %s lies here.", AN(weapon_list[type].name), weapon_list[type].name);
+  snprintf(buf, sizeof(buf), "%s %s lies here.", AN(weapon_list[type].name), weapon_list[type].name);
   obj->description = strdup(buf);
 
-  sprintf(buf, "%s", weapon_list[type].name);
+  snprintf(buf, sizeof(buf), "%s", weapon_list[type].name);
   obj->name = strdup(buf);
 }
 
@@ -8278,13 +8278,13 @@ void set_armor_name(struct obj_data *obj, int type)
 
   char buf[200];
 
-  sprintf(buf, "%s %s", AN(armor_list[type].name), armor_list[type].name);
+  snprintf(buf, sizeof(buf), "%s %s", AN(armor_list[type].name), armor_list[type].name);
   obj->short_description = strdup(buf);
 
-  sprintf(buf, "%s %s lies here.", AN(armor_list[type].name), armor_list[type].name);
+  snprintf(buf, sizeof(buf), "%s %s lies here.", AN(armor_list[type].name), armor_list[type].name);
   obj->description = strdup(buf);
 
-  sprintf(buf, "%s", armor_list[type].name);
+  snprintf(buf, sizeof(buf), "%s", armor_list[type].name);
   obj->name = strdup(buf);
 }
 
@@ -8293,13 +8293,13 @@ void set_masterwork_obj_name(struct obj_data *obj)
 
   char buf[200];
 
-  sprintf(buf, "%s (masterwork)", obj->short_description);
+  snprintf(buf, sizeof(buf), "%s (masterwork)", obj->short_description);
   obj->short_description = strdup(buf);
 
-  sprintf(buf, "%s (masterwork)", obj->description);
+  snprintf(buf, sizeof(buf), "%s (masterwork)", obj->description);
   obj->description = strdup(buf);
 
-  sprintf(buf, "%s masterwork", obj->name);
+  snprintf(buf, sizeof(buf), "%s masterwork", obj->name);
   obj->name = strdup(buf);
 }
 
@@ -8309,23 +8309,23 @@ void set_magical_obj_name(struct obj_data *obj, int level)
   char buf[200];
   int i = 0;
 
-  sprintf(buf, "%s (+%d)", obj->short_description, level);
+  snprintf(buf, sizeof(buf), "%s (+%d)", obj->short_description, level);
   obj->short_description = strdup(buf);
 
-  sprintf(buf, "%s (+%d)", obj->description, level);
+  snprintf(buf, sizeof(buf), "%s (+%d)", obj->description, level);
   obj->description = strdup(buf);
 
   if (GET_OBJ_TYPE(obj) == ITEM_WEAPON)
   {
-    sprintf(buf, "%s", weapon_list[GET_OBJ_VAL(obj, 0)].name);
+    snprintf(buf, sizeof(buf), "%s", weapon_list[GET_OBJ_VAL(obj, 0)].name);
     for (i = 0; i < strlen(buf); i++)
       if (buf[i] == ' ')
         buf[i] = '-';
-    sprintf(buf, "%s %s +%d", buf, obj->name, level);
+    snprintf(buf, sizeof(buf), "%s %s +%d", buf, obj->name, level);
   }
   else
   {
-    sprintf(buf, "%s +%d", obj->name, level);
+    snprintf(buf, sizeof(buf), "%s +%d", obj->name, level);
   }
   obj->name = strdup(buf);
 }
@@ -8416,7 +8416,7 @@ SPECIAL(buyarmor)
   if (level > 0 && *argument)
   { // let's just work with arg2 to keep things easy
     skip_spaces(&argument);
-    sprintf(arg2, "%s", argument);
+    snprintf(arg2, sizeof(arg2), "%s", argument);
   }
 
   int i = 0, cost = 0;
@@ -8590,7 +8590,7 @@ SPECIAL(buyweapons)
   if (level > 0 && *argument)
   { // let's just work with arg2 to keep things easy
     skip_spaces(&argument);
-    sprintf(arg2, "%s", argument);
+    snprintf(arg2, sizeof(arg2), "%s", argument);
   }
 
   int i = 0, cost = 0;

@@ -138,7 +138,7 @@ void feat_prereq_attribute(int featnum, int attribute, int value)
   prereq = create_prerequisite(FEAT_PREREQ_ATTRIBUTE, attribute, value, 0);
 
   /* Generate the description. */
-  sprintf(buf, "%s : %d", attribute_abbr[attribute], value);
+  snprintf(buf, sizeof(buf), "%s : %d", attribute_abbr[attribute], value);
   prereq->description = strdup(buf);
 
   /*  Link it up. */
@@ -154,7 +154,7 @@ void feat_prereq_class_level(int featnum, int cl, int level)
   prereq = create_prerequisite(FEAT_PREREQ_CLASS_LEVEL, cl, level, 0);
 
   /* Generate the description. */
-  sprintf(buf, "%s level %d", class_names[cl], level);
+  snprintf(buf, sizeof(buf), "%s level %d", class_names[cl], level);
   prereq->description = strdup(buf);
 
   /*   Link it up. */
@@ -171,9 +171,9 @@ void feat_prereq_feat(int featnum, int feat, int ranks)
 
   /* Generate the description. */
   if (ranks > 1)
-    sprintf(buf, "%s (%d ranks)", feat_list[feat].name, ranks);
+    snprintf(buf, sizeof(buf), "%s (%d ranks)", feat_list[feat].name, ranks);
   else
-    sprintf(buf, "%s", feat_list[feat].name);
+    snprintf(buf, sizeof(buf), "%s", feat_list[feat].name);
 
   prereq->description = strdup(buf);
 
@@ -189,7 +189,7 @@ void feat_prereq_cfeat(int featnum, int feat)
 
   prereq = create_prerequisite(FEAT_PREREQ_CFEAT, feat, 0, 0);
 
-  sprintf(buf, "%s (may require same weapon)", feat_list[feat].name);
+  snprintf(buf, sizeof(buf), "%s (may require same weapon)", feat_list[feat].name);
   prereq->description = strdup(buf);
 
   /*   Link it up. */
@@ -204,7 +204,7 @@ void feat_prereq_ability(int featnum, int ability, int ranks)
 
   prereq = create_prerequisite(FEAT_PREREQ_ABILITY, ability, ranks, 0);
 
-  sprintf(buf, "%d ranks in %s", ranks, ability_names[ability]);
+  snprintf(buf, sizeof(buf), "%d ranks in %s", ranks, ability_names[ability]);
   prereq->description = strdup(buf);
 
   /*   Link it up. */
@@ -232,7 +232,7 @@ void feat_prereq_spellcasting(int featnum, int casting_type, int prep_type, int 
   prereq = create_prerequisite(FEAT_PREREQ_SPELLCASTING, casting_type, prep_type,
                                circle);
 
-  sprintf(buf, "Ability to cast %s %s spells", casting_types[casting_type],
+  snprintf(buf, sizeof(buf), "Ability to cast %s %s spells", casting_types[casting_type],
           spell_preparation_types[prep_type]);
   prereq->description = strdup(buf);
 
@@ -248,7 +248,7 @@ void feat_prereq_race(int featnum, int race)
 
   prereq = create_prerequisite(FEAT_PREREQ_RACE, race, 0, 0);
 
-  sprintf(buf, "Race: %s", race_list[race].type);
+  snprintf(buf, sizeof(buf), "Race: %s", race_list[race].type);
   prereq->description = strdup(buf);
 
   /*   Link it up. */
@@ -263,7 +263,7 @@ void feat_prereq_bab(int featnum, int bab)
 
   prereq = create_prerequisite(FEAT_PREREQ_BAB, bab, 0, 0);
 
-  sprintf(buf, "BAB +%d", bab);
+  snprintf(buf, sizeof(buf), "BAB +%d", bab);
   prereq->description = strdup(buf);
 
   /* Link it up */
@@ -278,7 +278,7 @@ void feat_prereq_weapon_proficiency(int featnum)
 
   prereq = create_prerequisite(FEAT_PREREQ_WEAPON_PROFICIENCY, 0, 0, 0);
 
-  sprintf(buf, "Proficiency in same weapon");
+  snprintf(buf, sizeof(buf), "Proficiency in same weapon");
   prereq->description = strdup(buf);
 
   /*  Link it up */
@@ -4378,17 +4378,17 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           {
             if (mode == 1)
             { /* description mode */
-              sprintf(buf3, "%s (%s)", feat_list[i].name, spell_schools[j]);
-              sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+              snprintf(buf3, sizeof(buf3), "%s (%s)", feat_list[i].name, spell_schools[j]);
+              snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
             }
             else
             {
-              sprintf(buf3, "%s (%s)", feat_list[i].name, spell_schools[j]);
+              snprintf(buf3, sizeof(buf3), "%s (%s)", feat_list[i].name, spell_schools[j]);
               count++;
               if (count % 2 == 0)
-                sprintf(buf, "%-40s\r\n", buf3);
+                snprintf(buf, sizeof(buf), "%-40s\r\n", buf3);
               else
-                sprintf(buf, "%-40s ", buf3);
+                snprintf(buf, sizeof(buf), "%-40s ", buf3);
               //custom_output = TRUE;
             }
             strcat(buf2, buf);
@@ -4417,17 +4417,17 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           {
             if (mode == 1)
             {
-              sprintf(buf3, "%s (%s)", feat_list[i].name, j > NUM_WEAPON_FAMILIES ? "respec required" : weapon_family[j]);
-              sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+              snprintf(buf3, sizeof(buf3), "%s (%s)", feat_list[i].name, j > NUM_WEAPON_FAMILIES ? "respec required" : weapon_family[j]);
+              snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
             }
             else
             {
-              sprintf(buf3, "%s (%s)", feat_list[i].name, j > NUM_WEAPON_FAMILIES ? "respec required" : weapon_family[j]);
+              snprintf(buf3, sizeof(buf3), "%s (%s)", feat_list[i].name, j > NUM_WEAPON_FAMILIES ? "respec required" : weapon_family[j]);
               count++;
               if (count % 2 == 0)
-                sprintf(buf, "%-40s\r\n", buf3);
+                snprintf(buf, sizeof(buf), "%-40s\r\n", buf3);
               else
-                sprintf(buf, "%-40s ", buf3);
+                snprintf(buf, sizeof(buf), "%-40s ", buf3);
               //custom_output = TRUE;
             }
             strcat(buf2, buf);
@@ -4444,17 +4444,17 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           {
             if (mode == 1)
             {
-              sprintf(buf3, "%s (%s)", feat_list[i].name, ability_names[j]);
-              sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+              snprintf(buf3, sizeof(buf3), "%s (%s)", feat_list[i].name, ability_names[j]);
+              snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
             }
             else
             {
-              sprintf(buf3, "%s (%s) ", feat_list[i].name, ability_names[j]);
+              snprintf(buf3, sizeof(buf3), "%s (%s) ", feat_list[i].name, ability_names[j]);
               count++;
               if (count % 2 == 0)
-                sprintf(buf, "%-40s\r\n", buf3);
+                snprintf(buf, sizeof(buf), "%-40s\r\n", buf3);
               else
-                sprintf(buf, "%-40s ", buf3);
+                snprintf(buf, sizeof(buf), "%-40s ", buf3);
               //custom_output = TRUE;
             }
             strcat(buf2, buf);
@@ -4468,13 +4468,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (+%d hp/5 sec)", feat_list[i].name, HAS_FEAT(ch, FEAT_FAST_HEALING) * 3);
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (+%d hp/5 sec)", feat_list[i].name, HAS_FEAT(ch, FEAT_FAST_HEALING) * 3);
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (+%d hp/5 sec)", feat_list[i].name, HAS_FEAT(ch, FEAT_FAST_HEALING) * 3);
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (+%d hp/5 sec)", feat_list[i].name, HAS_FEAT(ch, FEAT_FAST_HEALING) * 3);
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -4483,13 +4483,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (%d/-)", feat_list[i].name, 3 * HAS_FEAT(ch, FEAT_DAMAGE_REDUCTION));
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (%d/-)", feat_list[i].name, 3 * HAS_FEAT(ch, FEAT_DAMAGE_REDUCTION));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (%d/-)", feat_list[i].name, 3 * HAS_FEAT(ch, FEAT_DAMAGE_REDUCTION));
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (%d/-)", feat_list[i].name, 3 * HAS_FEAT(ch, FEAT_DAMAGE_REDUCTION));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -4498,13 +4498,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR));
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR));
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -4513,13 +4513,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (%d/-)", feat_list[i].name, HAS_FEAT(ch, FEAT_SHRUG_DAMAGE));
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (%d/-)", feat_list[i].name, HAS_FEAT(ch, FEAT_SHRUG_DAMAGE));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (%d/-)", feat_list[i].name, HAS_FEAT(ch, FEAT_SHRUG_DAMAGE));
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (%d/-)", feat_list[i].name, HAS_FEAT(ch, FEAT_SHRUG_DAMAGE));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -4528,13 +4528,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (+%d ac)", feat_list[i].name, HAS_FEAT(ch, FEAT_ARMOR_SKIN));
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (+%d ac)", feat_list[i].name, HAS_FEAT(ch, FEAT_ARMOR_SKIN));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (+%d ac)", feat_list[i].name, HAS_FEAT(ch, FEAT_ARMOR_SKIN));
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (+%d ac)", feat_list[i].name, HAS_FEAT(ch, FEAT_ARMOR_SKIN));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -4543,13 +4543,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (%s dragon)", feat_list[i].name, DRCHRTLIST_NAME(GET_BLOODLINE_SUBTYPE(ch)));
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (%s dragon)", feat_list[i].name, DRCHRTLIST_NAME(GET_BLOODLINE_SUBTYPE(ch)));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (%s dragon)", feat_list[i].name, DRCHRTLIST_NAME(GET_BLOODLINE_SUBTYPE(ch)));
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (%s dragon)", feat_list[i].name, DRCHRTLIST_NAME(GET_BLOODLINE_SUBTYPE(ch)));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -4558,13 +4558,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (%s, %dx/day)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)), get_daily_uses(ch, i));
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (%s, %dx/day)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)), get_daily_uses(ch, i));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (%s, %dx/day)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)), get_daily_uses(ch, i));
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (%s, %dx/day)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)), get_daily_uses(ch, i));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -4573,13 +4573,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (%s, %dx/day)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)), get_daily_uses(ch, i));
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (%s, %dx/day)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)), get_daily_uses(ch, i));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (%s, %dx/day)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)), get_daily_uses(ch, i));
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (%s, %dx/day)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)), get_daily_uses(ch, i));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -4588,13 +4588,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (extra circle slots: %d/%d/%d)", feat_list[i].name, NEW_ARCANA_SLOT(ch, 0), NEW_ARCANA_SLOT(ch, 1), NEW_ARCANA_SLOT(ch, 2));
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (extra circle slots: %d/%d/%d)", feat_list[i].name, NEW_ARCANA_SLOT(ch, 0), NEW_ARCANA_SLOT(ch, 1), NEW_ARCANA_SLOT(ch, 2));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (extra circle slots: %d/%d/%d)", feat_list[i].name, NEW_ARCANA_SLOT(ch, 0), NEW_ARCANA_SLOT(ch, 1), NEW_ARCANA_SLOT(ch, 2));
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (extra circle slots: %d/%d/%d)", feat_list[i].name, NEW_ARCANA_SLOT(ch, 0), NEW_ARCANA_SLOT(ch, 1), NEW_ARCANA_SLOT(ch, 2));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -4603,13 +4603,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (%s damage)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)));
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (%s damage)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (%s damage)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)));
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (%s damage)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -4618,13 +4618,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (resist %s)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)));
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (resist %s)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (resist %s)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)));
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (resist %s)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -4633,13 +4633,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (+%d)", feat_list[i].name, 2 * HAS_FEAT(ch, FEAT_IMPROVED_REACTION));
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (+%d)", feat_list[i].name, 2 * HAS_FEAT(ch, FEAT_IMPROVED_REACTION));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (+%d)", feat_list[i].name, 2 * HAS_FEAT(ch, FEAT_IMPROVED_REACTION));
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (+%d)", feat_list[i].name, 2 * HAS_FEAT(ch, FEAT_IMPROVED_REACTION));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -4648,13 +4648,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (+%d attack dice rolls)", feat_list[i].name, HAS_FEAT(ch, FEAT_NATURAL_ATTACK));
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (+%d attack dice rolls)", feat_list[i].name, HAS_FEAT(ch, FEAT_NATURAL_ATTACK));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (+%d attack dice rolls)", feat_list[i].name, HAS_FEAT(ch, FEAT_NATURAL_ATTACK));
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (+%d attack dice rolls)", feat_list[i].name, HAS_FEAT(ch, FEAT_NATURAL_ATTACK));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -4663,13 +4663,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (+%d ac)", feat_list[i].name, HAS_FEAT(ch, FEAT_AC_BONUS));
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (+%d ac)", feat_list[i].name, HAS_FEAT(ch, FEAT_AC_BONUS));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (+%d ac)", feat_list[i].name, HAS_FEAT(ch, FEAT_AC_BONUS));
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (+%d ac)", feat_list[i].name, HAS_FEAT(ch, FEAT_AC_BONUS));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -4678,13 +4678,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (+%d percent)", feat_list[i].name, HAS_FEAT(ch, FEAT_UNSTOPPABLE_STRIKE) * 5);
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (+%d percent)", feat_list[i].name, HAS_FEAT(ch, FEAT_UNSTOPPABLE_STRIKE) * 5);
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (+%d percent)", feat_list[i].name, HAS_FEAT(ch, FEAT_UNSTOPPABLE_STRIKE) * 5);
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (+%d percent)", feat_list[i].name, HAS_FEAT(ch, FEAT_UNSTOPPABLE_STRIKE) * 5);
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -4693,13 +4693,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (+%d ranks)", feat_list[i].name, HAS_FEAT(ch, FEAT_ARMOR_TRAINING));
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (+%d ranks)", feat_list[i].name, HAS_FEAT(ch, FEAT_ARMOR_TRAINING));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (+%d ranks)", feat_list[i].name, HAS_FEAT(ch, FEAT_ARMOR_TRAINING));
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (+%d ranks)", feat_list[i].name, HAS_FEAT(ch, FEAT_ARMOR_TRAINING));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -4708,13 +4708,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (+%d ranks)", feat_list[i].name, HAS_FEAT(ch, FEAT_WEAPON_TRAINING));
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (+%d ranks)", feat_list[i].name, HAS_FEAT(ch, FEAT_WEAPON_TRAINING));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (+%d ranks)", feat_list[i].name, HAS_FEAT(ch, FEAT_WEAPON_TRAINING));
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (+%d ranks)", feat_list[i].name, HAS_FEAT(ch, FEAT_WEAPON_TRAINING));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -4723,13 +4723,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (-%d threat)", feat_list[i].name, HAS_FEAT(ch, FEAT_CRITICAL_SPECIALIST));
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (-%d threat)", feat_list[i].name, HAS_FEAT(ch, FEAT_CRITICAL_SPECIALIST));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (-%d threat)", feat_list[i].name, HAS_FEAT(ch, FEAT_CRITICAL_SPECIALIST));
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (-%d threat)", feat_list[i].name, HAS_FEAT(ch, FEAT_CRITICAL_SPECIALIST));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -4738,13 +4738,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (+%d feet)", feat_list[i].name, 10 * HAS_FEAT(ch, FEAT_SLOW_FALL));
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (+%d feet)", feat_list[i].name, 10 * HAS_FEAT(ch, FEAT_SLOW_FALL));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (+%d feet)", feat_list[i].name, 10 * HAS_FEAT(ch, FEAT_SLOW_FALL));
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (+%d feet)", feat_list[i].name, 10 * HAS_FEAT(ch, FEAT_SLOW_FALL));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -4753,13 +4753,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (+%d attack bonus)", feat_list[i].name, HAS_FEAT(ch, FEAT_EPIC_PROWESS));
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (+%d attack bonus)", feat_list[i].name, HAS_FEAT(ch, FEAT_EPIC_PROWESS));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (+%d attack bonus)", feat_list[i].name, HAS_FEAT(ch, FEAT_EPIC_PROWESS));
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (+%d attack bonus)", feat_list[i].name, HAS_FEAT(ch, FEAT_EPIC_PROWESS));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -4768,13 +4768,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (+%d hp)", feat_list[i].name, (HAS_FEAT(ch, FEAT_EPIC_TOUGHNESS) * 30));
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (+%d hp)", feat_list[i].name, (HAS_FEAT(ch, FEAT_EPIC_TOUGHNESS) * 30));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (+%d hp)", feat_list[i].name, (HAS_FEAT(ch, FEAT_EPIC_TOUGHNESS) * 30));
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (+%d hp)", feat_list[i].name, (HAS_FEAT(ch, FEAT_EPIC_TOUGHNESS) * 30));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -4783,13 +4783,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (%d/-)", feat_list[i].name, HAS_FEAT(ch, FEAT_ENERGY_RESISTANCE) * 3);
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (%d/-)", feat_list[i].name, HAS_FEAT(ch, FEAT_ENERGY_RESISTANCE) * 3);
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (%d/-)", feat_list[i].name, HAS_FEAT(ch, FEAT_ENERGY_RESISTANCE) * 3);
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (%d/-)", feat_list[i].name, HAS_FEAT(ch, FEAT_ENERGY_RESISTANCE) * 3);
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -4798,13 +4798,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (3x/day)", feat_list[i].name);
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (3x/day)", feat_list[i].name);
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (3x/day)", feat_list[i].name);
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (3x/day)", feat_list[i].name);
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -4813,13 +4813,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (%d / day)", feat_list[i].name, HAS_FEAT(ch, FEAT_SACRED_FLAMES));
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (%d / day)", feat_list[i].name, HAS_FEAT(ch, FEAT_SACRED_FLAMES));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (%d / day)", feat_list[i].name, HAS_FEAT(ch, FEAT_SACRED_FLAMES));
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (%d / day)", feat_list[i].name, HAS_FEAT(ch, FEAT_SACRED_FLAMES));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -4828,13 +4828,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (%dx/day)", feat_list[i].name, HAS_FEAT(ch, FEAT_DRAGON_MOUNT_BREATH));
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (%dx/day)", feat_list[i].name, HAS_FEAT(ch, FEAT_DRAGON_MOUNT_BREATH));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (%dx/day)", feat_list[i].name, HAS_FEAT(ch, FEAT_DRAGON_MOUNT_BREATH));
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (%dx/day)", feat_list[i].name, HAS_FEAT(ch, FEAT_DRAGON_MOUNT_BREATH));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -4843,13 +4843,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_DRAGON_MOUNT_BOOST));
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_DRAGON_MOUNT_BOOST));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_DRAGON_MOUNT_BOOST));
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_DRAGON_MOUNT_BOOST));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -4858,13 +4858,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (%dd8 dmg|%dx/day)", feat_list[i].name, HAS_FEAT(ch, FEAT_BREATH_WEAPON), HAS_FEAT(ch, FEAT_BREATH_WEAPON));
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (%dd8 dmg|%dx/day)", feat_list[i].name, HAS_FEAT(ch, FEAT_BREATH_WEAPON), HAS_FEAT(ch, FEAT_BREATH_WEAPON));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (%dd8 dmg|%dx/day)", feat_list[i].name, HAS_FEAT(ch, FEAT_BREATH_WEAPON), HAS_FEAT(ch, FEAT_BREATH_WEAPON));
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (%dd8 dmg|%dx/day)", feat_list[i].name, HAS_FEAT(ch, FEAT_BREATH_WEAPON), HAS_FEAT(ch, FEAT_BREATH_WEAPON));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -4873,13 +4873,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (%d / day)", feat_list[i].name, HAS_FEAT(ch, FEAT_RAGE));
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (%d / day)", feat_list[i].name, HAS_FEAT(ch, FEAT_RAGE));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (%d / day)", feat_list[i].name, HAS_FEAT(ch, FEAT_RAGE));
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (%d / day)", feat_list[i].name, HAS_FEAT(ch, FEAT_RAGE));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -4888,13 +4888,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (%d / day)", feat_list[i].name, HAS_FEAT(ch, FEAT_DEFENSIVE_STANCE));
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (%d / day)", feat_list[i].name, HAS_FEAT(ch, FEAT_DEFENSIVE_STANCE));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (%d / day)", feat_list[i].name, HAS_FEAT(ch, FEAT_DEFENSIVE_STANCE));
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (%d / day)", feat_list[i].name, HAS_FEAT(ch, FEAT_DEFENSIVE_STANCE));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -4903,13 +4903,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (+%d dam / die)", feat_list[i].name, HAS_FEAT(ch, FEAT_ENHANCED_SPELL_DAMAGE));
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (+%d dam / die)", feat_list[i].name, HAS_FEAT(ch, FEAT_ENHANCED_SPELL_DAMAGE));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (+%d dam / die)", feat_list[i].name, HAS_FEAT(ch, FEAT_ENHANCED_SPELL_DAMAGE));
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (+%d dam / die)", feat_list[i].name, HAS_FEAT(ch, FEAT_ENHANCED_SPELL_DAMAGE));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -4918,13 +4918,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (+%d to dcs)", feat_list[i].name, HAS_FEAT(ch, FEAT_EMPOWERED_MAGIC));
-          sprintf(buf, "\tW%-30s\tC:\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (+%d to dcs)", feat_list[i].name, HAS_FEAT(ch, FEAT_EMPOWERED_MAGIC));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (+%d to dcs)", feat_list[i].name, HAS_FEAT(ch, FEAT_EMPOWERED_MAGIC));
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (+%d to dcs)", feat_list[i].name, HAS_FEAT(ch, FEAT_EMPOWERED_MAGIC));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -4933,13 +4933,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (+%d dam dice)", feat_list[i].name, HAS_FEAT(ch, FEAT_ENHANCE_SPELL) * 5);
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (+%d dam dice)", feat_list[i].name, HAS_FEAT(ch, FEAT_ENHANCE_SPELL) * 5);
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (+%d dam dice)", feat_list[i].name, HAS_FEAT(ch, FEAT_ENHANCE_SPELL) * 5);
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (+%d dam dice)", feat_list[i].name, HAS_FEAT(ch, FEAT_ENHANCE_SPELL) * 5);
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -4948,13 +4948,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (+%d ac)", feat_list[i].name, HAS_FEAT(ch, FEAT_NATURAL_ARMOR_INCREASE));
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (+%d ac)", feat_list[i].name, HAS_FEAT(ch, FEAT_NATURAL_ARMOR_INCREASE));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (+%d ac)", feat_list[i].name, HAS_FEAT(ch, FEAT_NATURAL_ARMOR_INCREASE));
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (+%d ac)", feat_list[i].name, HAS_FEAT(ch, FEAT_NATURAL_ARMOR_INCREASE));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -4963,13 +4963,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_GREAT_STRENGTH));
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_GREAT_STRENGTH));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_GREAT_STRENGTH));
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_GREAT_STRENGTH));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -4978,13 +4978,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_GREAT_DEXTERITY));
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_GREAT_DEXTERITY));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_GREAT_DEXTERITY));
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_GREAT_DEXTERITY));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -4993,13 +4993,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_GREAT_CONSTITUTION));
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_GREAT_CONSTITUTION));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_GREAT_CONSTITUTION));
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_GREAT_CONSTITUTION));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -5008,13 +5008,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_GREAT_INTELLIGENCE));
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_GREAT_INTELLIGENCE));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_GREAT_INTELLIGENCE));
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_GREAT_INTELLIGENCE));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -5023,13 +5023,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_GREAT_WISDOM));
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_GREAT_WISDOM));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_GREAT_WISDOM));
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_GREAT_WISDOM));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -5038,13 +5038,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_GREAT_CHARISMA));
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_GREAT_CHARISMA));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_GREAT_CHARISMA));
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_GREAT_CHARISMA));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -5053,13 +5053,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_POISON_SAVE_BONUS));
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_POISON_SAVE_BONUS));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_POISON_SAVE_BONUS));
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_POISON_SAVE_BONUS));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -5068,13 +5068,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (%dd6)", feat_list[i].name, HAS_FEAT(ch, FEAT_BOMBS));
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (%dd6)", feat_list[i].name, HAS_FEAT(ch, FEAT_BOMBS));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (%dd6)", feat_list[i].name, HAS_FEAT(ch, FEAT_BOMBS));
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (%dd6)", feat_list[i].name, HAS_FEAT(ch, FEAT_BOMBS));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -5083,13 +5083,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (x%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_ALCHEMICAL_DISCOVERY));
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (x%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_ALCHEMICAL_DISCOVERY));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (x%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_ALCHEMICAL_DISCOVERY));
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (x%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_ALCHEMICAL_DISCOVERY));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -5098,13 +5098,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (+%dd6)", feat_list[i].name, HAS_FEAT(ch, FEAT_SNEAK_ATTACK));
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (+%dd6)", feat_list[i].name, HAS_FEAT(ch, FEAT_SNEAK_ATTACK));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (+%dd6)", feat_list[i].name, HAS_FEAT(ch, FEAT_SNEAK_ATTACK));
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (+%dd6)", feat_list[i].name, HAS_FEAT(ch, FEAT_SNEAK_ATTACK));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -5113,13 +5113,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_ANIMATE_DEAD));
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_ANIMATE_DEAD));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_ANIMATE_DEAD));
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_ANIMATE_DEAD));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -5128,13 +5128,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_ARMORED_SPELLCASTING));
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_ARMORED_SPELLCASTING));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_ARMORED_SPELLCASTING));
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_ARMORED_SPELLCASTING));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -5143,13 +5143,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_TRAP_SENSE));
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_TRAP_SENSE));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_TRAP_SENSE));
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_TRAP_SENSE));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -5158,13 +5158,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (%d%% miss)", feat_list[i].name, HAS_FEAT(ch, FEAT_SELF_CONCEALMENT) * 10);
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (%d%% miss)", feat_list[i].name, HAS_FEAT(ch, FEAT_SELF_CONCEALMENT) * 10);
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (%d%% miss)", feat_list[i].name, HAS_FEAT(ch, FEAT_SELF_CONCEALMENT) * 10);
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (%d%% miss)", feat_list[i].name, HAS_FEAT(ch, FEAT_SELF_CONCEALMENT) * 10);
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -5173,13 +5173,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_ENHANCE_ARROW_MAGIC));
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_ENHANCE_ARROW_MAGIC));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_ENHANCE_ARROW_MAGIC));
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_ENHANCE_ARROW_MAGIC));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -5188,13 +5188,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (%dx / day)", feat_list[i].name, HAS_FEAT(ch, FEAT_IMPROMPTU_SNEAK_ATTACK));
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (%dx / day)", feat_list[i].name, HAS_FEAT(ch, FEAT_IMPROMPTU_SNEAK_ATTACK));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (%dx / day)", feat_list[i].name, HAS_FEAT(ch, FEAT_IMPROMPTU_SNEAK_ATTACK));
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (%dx / day)", feat_list[i].name, HAS_FEAT(ch, FEAT_IMPROMPTU_SNEAK_ATTACK));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -5203,13 +5203,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (%d%% less time)", feat_list[i].name, HAS_FEAT(ch, FEAT_FAST_CRAFTER) * 10);
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (%d%% less time)", feat_list[i].name, HAS_FEAT(ch, FEAT_FAST_CRAFTER) * 10);
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (-%d seconds)", feat_list[i].name, HAS_FEAT(ch, FEAT_FAST_CRAFTER) * 10);
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (-%d seconds)", feat_list[i].name, HAS_FEAT(ch, FEAT_FAST_CRAFTER) * 10);
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -5218,13 +5218,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (+%d to checks)", feat_list[i].name, HAS_FEAT(ch, FEAT_PROFICIENT_CRAFTER));
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (+%d to checks)", feat_list[i].name, HAS_FEAT(ch, FEAT_PROFICIENT_CRAFTER));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%s (+%d to checks)", feat_list[i].name, HAS_FEAT(ch, FEAT_PROFICIENT_CRAFTER));
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%s (+%d to checks)", feat_list[i].name, HAS_FEAT(ch, FEAT_PROFICIENT_CRAFTER));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -5233,13 +5233,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (+%d to checks)", feat_list[i].name, HAS_FEAT(ch, FEAT_PROFICIENT_HARVESTER));
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (+%d to checks)", feat_list[i].name, HAS_FEAT(ch, FEAT_PROFICIENT_HARVESTER));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%-20s (+%d to checks)", feat_list[i].name, HAS_FEAT(ch, FEAT_PROFICIENT_HARVESTER));
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%-20s (+%d to checks)", feat_list[i].name, HAS_FEAT(ch, FEAT_PROFICIENT_HARVESTER));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -5248,13 +5248,13 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s (%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_THEURGE_SPELLCASTING));
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s (%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_THEURGE_SPELLCASTING));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf3, "%-20s (%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_THEURGE_SPELLCASTING));
-          sprintf(buf, "%-40s ", buf3);
+          snprintf(buf3, sizeof(buf3), "%-20s (%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_THEURGE_SPELLCASTING));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strcat(buf2, buf);
         none_shown = FALSE;
@@ -5265,12 +5265,12 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         if (mode == 1)
         {
-          sprintf(buf3, "%s", feat_list[i].name);
-          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+          snprintf(buf3, sizeof(buf3), "%s", feat_list[i].name);
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          sprintf(buf, "%-40s ", feat_list[i].name);
+          snprintf(buf, sizeof(buf), "%-40s ", feat_list[i].name);
         }
         strcat(buf2, buf); /* The above, ^ should always be safe to do. */
         none_shown = FALSE;
@@ -5295,12 +5295,12 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       /* Display a simple list of all feats. */
       if (mode == 1)
       {
-        sprintf(buf3, "%s", feat_list[i].name);
-        sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+        snprintf(buf3, sizeof(buf3), "%s", feat_list[i].name);
+        snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
       }
       else
       {
-        sprintf(buf, "%-40s ", feat_list[i].name);
+        snprintf(buf, sizeof(buf), "%-40s ", feat_list[i].name);
       }
 
       strcat(buf2, buf); /* The above, ^ should always be safe to do. */
@@ -5322,7 +5322,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
 
   if (none_shown)
   {
-    sprintf(buf, "You do not know any feats at this time.\r\n");
+    snprintf(buf, sizeof(buf), "You do not know any feats at this time.\r\n");
     strcat(buf2, buf);
   }
 
@@ -5491,7 +5491,7 @@ bool display_feat_info(struct char_data *ch, char *featname)
   /*  Here display the prerequisites */
   if (feat_list[feat].prerequisite_list == NULL)
   {
-    sprintf(buf, "\tCPrerequisites : \tnnone\r\n");
+    snprintf(buf, sizeof(buf), "\tCPrerequisites : \tnnone\r\n");
   }
   else
   {
@@ -5514,12 +5514,12 @@ bool display_feat_info(struct char_data *ch, char *featname)
       if (first)
       {
         first = FALSE;
-        sprintf(buf, "\tcPrerequisites : %s%s%s",
+        snprintf(buf, sizeof(buf), "\tcPrerequisites : %s%s%s",
                 (meets_prerequisite(ch, prereq, w_type) ? "\tn" : "\tr"), prereq->description, "\tn");
       }
       else
       {
-        sprintf(buf2, ", %s%s%s",
+        snprintf(buf2, sizeof(buf2), ", %s%s%s",
                 (meets_prerequisite(ch, prereq, w_type) ? "\tn" : "\tr"), prereq->description, "\tn");
         strcat(buf, buf2);
       }
@@ -5531,7 +5531,7 @@ bool display_feat_info(struct char_data *ch, char *featname)
   draw_line(ch, line_length, '-', '-');
 
   /* This we will need to buffer and wrap so that it will fit in the space provided. */
-  sprintf(buf, "\tcDescription : \tn%s\r\n",
+  snprintf(buf, sizeof(buf), "\tcDescription : \tn%s\r\n",
           feat_list[feat].description);
   send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
   send_to_char(ch, "\tC");

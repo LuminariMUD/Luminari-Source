@@ -110,15 +110,15 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
 
 #ifdef OBJSAVE_DB
   if (ch != NULL) /* GHETTTTTOOOOOOOOO */
-    sprintf(ins_buf, "insert into player_save_objs (name, serialized_obj) values ('%s', '", GET_NAME(ch));
+    snprintf(ins_buf, sizeof(ins_buf), "insert into player_save_objs (name, serialized_obj) values ('%s', '", GET_NAME(ch));
   else
-    sprintf(ins_buf, "insert into house_data (vnum, serialized_obj) values ('%d', '", house_vnum);
+    snprintf(ins_buf, sizeof(ins_buf), "insert into house_data (vnum, serialized_obj) values ('%d', '", house_vnum);
 #endif
 
   fprintf(fp, "#%d\n", GET_OBJ_VNUM(obj));
 
 #ifdef OBJSAVE_DB
-  sprintf(line_buf, "#%d\n", GET_OBJ_VNUM(obj));
+  snprintf(line_buf, sizeof(line_buf), "#%d\n", GET_OBJ_VNUM(obj));
   strcat(ins_buf, line_buf);
 #endif
 
@@ -129,7 +129,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
 #ifdef OBJSAVE_DB
   if (locate)
   {
-    sprintf(line_buf, "Loc : %d\n", locate);
+    snprintf(line_buf, sizeof(line_buf), "Loc : %d\n", locate);
     strcat(ins_buf, line_buf);
   }
 #endif
@@ -173,7 +173,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
             GET_OBJ_VAL(obj, 15));
 
 #ifdef OBJSAVE_DB
-    sprintf(line_buf, "Vals: %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n",
+    snprintf(line_buf, sizeof(line_buf), "Vals: %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n",
             GET_OBJ_VAL(obj, 0),
             GET_OBJ_VAL(obj, 1),
             GET_OBJ_VAL(obj, 2),
@@ -197,7 +197,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
   {
     fprintf(fp, "Flag: %d %d %d %d\n", GET_OBJ_EXTRA(obj)[0], GET_OBJ_EXTRA(obj)[1], GET_OBJ_EXTRA(obj)[2], GET_OBJ_EXTRA(obj)[3]);
 #ifdef OBJSAVE_DB
-    sprintf(line_buf, "Flag: %d %d %d %d\n", GET_OBJ_EXTRA(obj)[0], GET_OBJ_EXTRA(obj)[1], GET_OBJ_EXTRA(obj)[2], GET_OBJ_EXTRA(obj)[3]);
+    snprintf(line_buf, sizeof(line_buf), "Flag: %d %d %d %d\n", GET_OBJ_EXTRA(obj)[0], GET_OBJ_EXTRA(obj)[1], GET_OBJ_EXTRA(obj)[2], GET_OBJ_EXTRA(obj)[3]);
     strcat(ins_buf, line_buf);
 #endif
   }
@@ -210,7 +210,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
   {
     fprintf(fp, "Name: %s\n", obj->name ? obj->name : "Undefined");
 #ifdef OBJSAVE_DB
-    sprintf(line_buf, "Name: %s\n", obj->name ? obj->name : "Undefined");
+    snprintf(line_buf, sizeof(line_buf), "Name: %s\n", obj->name ? obj->name : "Undefined");
     strcat(ins_buf, line_buf);
 #endif
   }
@@ -218,7 +218,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
   {
     fprintf(fp, "Shrt: %s\n", obj->short_description ? obj->short_description : "Undefined");
 #ifdef OBJSAVE_DB
-    sprintf(line_buf, "Shrt: %s\n", obj->short_description ? obj->short_description : "Undefined");
+    snprintf(line_buf, sizeof(line_buf), "Shrt: %s\n", obj->short_description ? obj->short_description : "Undefined");
     strcat(ins_buf, line_buf);
 #endif
   }
@@ -228,7 +228,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
   {
     fprintf(fp, "Desc: %s\n", obj->description ? obj->description : "Undefined");
 #ifdef OBJSAVE_DB
-    sprintf(line_buf, "Desc: %s\n", obj->description ? obj->description : "Undefined");
+    snprintf(line_buf, sizeof(line_buf), "Desc: %s\n", obj->description ? obj->description : "Undefined");
     strcat(ins_buf, line_buf);
 #endif
   }
@@ -238,7 +238,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
     {
       fprintf(fp, "ADes:\n%s~\n", buf1);
 #ifdef OBJSAVE_DB
-      sprintf(line_buf, "ADes:\n%s~\n", buf1);
+      snprintf(line_buf, sizeof(line_buf), "ADes:\n%s~\n", buf1);
       strcat(ins_buf, line_buf);
 #endif
     }
@@ -246,7 +246,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
   {
     fprintf(fp, "Type: %d\n", GET_OBJ_TYPE(obj));
 #ifdef OBJSAVE_DB
-    sprintf(line_buf, "Type: %d\n", GET_OBJ_TYPE(obj));
+    snprintf(line_buf, sizeof(line_buf), "Type: %d\n", GET_OBJ_TYPE(obj));
     strcat(ins_buf, line_buf);
 #endif
   }
@@ -254,7 +254,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
   {
     fprintf(fp, "Prof: %d\n", GET_OBJ_PROF(obj));
 #ifdef OBJSAVE_DB
-    sprintf(line_buf, "Prof: %d\n", GET_OBJ_PROF(obj));
+    snprintf(line_buf, sizeof(line_buf), "Prof: %d\n", GET_OBJ_PROF(obj));
     strcat(ins_buf, line_buf);
 #endif
   }
@@ -262,7 +262,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
   {
     fprintf(fp, "Mats: %d\n", GET_OBJ_MATERIAL(obj));
 #ifdef OBJSAVE_DB
-    sprintf(line_buf, "Mats: %d\n", GET_OBJ_MATERIAL(obj));
+    snprintf(line_buf, sizeof(line_buf), "Mats: %d\n", GET_OBJ_MATERIAL(obj));
     strcat(ins_buf, line_buf);
 #endif
   }
@@ -270,7 +270,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
   {
     fprintf(fp, "Size: %d\n", GET_OBJ_SIZE(obj));
 #ifdef OBJSAVE_DB
-    sprintf(line_buf, "Size: %d\n", GET_OBJ_SIZE(obj));
+    snprintf(line_buf, sizeof(line_buf), "Size: %d\n", GET_OBJ_SIZE(obj));
     strcat(ins_buf, line_buf);
 #endif
   }
@@ -278,7 +278,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
   {
     fprintf(fp, "Wght: %d\n", GET_OBJ_WEIGHT(obj));
 #ifdef OBJSAVE_DB
-    sprintf(line_buf, "Wght: %d\n", GET_OBJ_WEIGHT(obj));
+    snprintf(line_buf, sizeof(line_buf), "Wght: %d\n", GET_OBJ_WEIGHT(obj));
     strcat(ins_buf, line_buf);
 #endif
   }
@@ -286,7 +286,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
   {
     fprintf(fp, "Levl: %d\n", GET_OBJ_LEVEL(obj));
 #ifdef OBJSAVE_DB
-    sprintf(line_buf, "Levl: %d\n", GET_OBJ_LEVEL(obj));
+    snprintf(line_buf, sizeof(line_buf), "Levl: %d\n", GET_OBJ_LEVEL(obj));
     strcat(ins_buf, line_buf);
 #endif
   }
@@ -294,7 +294,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
   {
     fprintf(fp, "Cost: %d\n", GET_OBJ_COST(obj));
 #ifdef OBJSAVE_DB
-    sprintf(line_buf, "Cost: %d\n", GET_OBJ_COST(obj));
+    snprintf(line_buf, sizeof(line_buf), "Cost: %d\n", GET_OBJ_COST(obj));
     strcat(ins_buf, line_buf);
 #endif
   }
@@ -302,7 +302,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
   {
     fprintf(fp, "Rent: %d\n", GET_OBJ_RENT(obj));
 #ifdef OBJSAVE_DB
-    sprintf(line_buf, "Rent: %d\n", GET_OBJ_RENT(obj));
+    snprintf(line_buf, sizeof(line_buf), "Rent: %d\n", GET_OBJ_RENT(obj));
     strcat(ins_buf, line_buf);
 #endif
   }
@@ -310,7 +310,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
   {
     fprintf(fp, "Bind: %d\n", GET_OBJ_BOUND_ID(obj));
 #ifdef OBJSAVE_DB
-    sprintf(line_buf, "Bind: %d\n", GET_OBJ_BOUND_ID(obj));
+    snprintf(line_buf, sizeof(line_buf), "Bind: %d\n", GET_OBJ_BOUND_ID(obj));
     strcat(ins_buf, line_buf);
 #endif
   }
@@ -318,7 +318,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
   {
     fprintf(fp, "Perm: %d %d %d %d\n", GET_OBJ_PERM(obj)[0], GET_OBJ_PERM(obj)[1], GET_OBJ_PERM(obj)[2], GET_OBJ_PERM(obj)[3]);
 #ifdef OBJSAVE_DB
-    sprintf(line_buf, "Perm: %d %d %d %d\n", GET_OBJ_PERM(obj)[0], GET_OBJ_PERM(obj)[1], GET_OBJ_PERM(obj)[2], GET_OBJ_PERM(obj)[3]);
+    snprintf(line_buf, sizeof(line_buf), "Perm: %d %d %d %d\n", GET_OBJ_PERM(obj)[0], GET_OBJ_PERM(obj)[1], GET_OBJ_PERM(obj)[2], GET_OBJ_PERM(obj)[3]);
     strcat(ins_buf, line_buf);
 #endif
   }
@@ -326,7 +326,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
   {
     fprintf(fp, "Wear: %d %d %d %d\n", GET_OBJ_WEAR(obj)[0], GET_OBJ_WEAR(obj)[1], GET_OBJ_WEAR(obj)[2], GET_OBJ_WEAR(obj)[3]);
 #ifdef OBJSAVE_DB
-    sprintf(line_buf, "Wear: %d %d %d %d\n", GET_OBJ_WEAR(obj)[0], GET_OBJ_WEAR(obj)[1], GET_OBJ_WEAR(obj)[2], GET_OBJ_WEAR(obj)[3]);
+    snprintf(line_buf, sizeof(line_buf), "Wear: %d %d %d %d\n", GET_OBJ_WEAR(obj)[0], GET_OBJ_WEAR(obj)[1], GET_OBJ_WEAR(obj)[2], GET_OBJ_WEAR(obj)[3]);
     strcat(ins_buf, line_buf);
 #endif
   }
@@ -340,7 +340,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
               obj->affected[counter2].location,
               obj->affected[counter2].modifier);
 #ifdef OBJSAVE_DB
-      sprintf(line_buf, "Aff : %d %d %d\n",
+      snprintf(line_buf, sizeof(line_buf), "Aff : %d %d %d\n",
               counter2,
               obj->affected[counter2].location,
               obj->affected[counter2].modifier);
@@ -372,7 +372,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
                 ex_desc->keyword,
                 buf1);
 #ifdef OBJSAVE_DB
-        sprintf(line_buf, "EDes:\n"
+        snprintf(line_buf, sizeof(line_buf), "EDes:\n"
                           "%s~\n"
                           "%s~\n",
                 ex_desc->keyword,
@@ -390,7 +390,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
     {
       fprintf(fp, "Spbk: %d %d\n", obj->sbinfo[i].spellname, obj->sbinfo[i].pages);
 #ifdef OBJSAVE_DB
-      sprintf(line_buf, "Spbk: %d %d\n", obj->sbinfo[i].spellname, obj->sbinfo[i].pages);
+      snprintf(line_buf, sizeof(line_buf), "Spbk: %d %d\n", obj->sbinfo[i].spellname, obj->sbinfo[i].pages);
       strcat(ins_buf, line_buf);
 #endif
     }
@@ -401,7 +401,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
   fprintf(fp, "\n");
 
 #ifdef OBJSAVE_DB
-  sprintf(line_buf, "');");
+  snprintf(line_buf, sizeof(line_buf), "');");
   strcat(ins_buf, line_buf);
   if (ch != NULL)
   { /* GHETTTTTTTOOOOOOOOO */
@@ -924,7 +924,7 @@ void Crash_crashsave(struct char_data *ch)
     return;
   }
   /* Delete existing save data.  In the future may just flag these for deletion. */
-  sprintf(del_buf, "delete from player_save_objs where name = '%s';",
+  snprintf(del_buf, sizeof(del_buf), "delete from player_save_objs where name = '%s';",
           GET_NAME(ch));
   if (mysql_query(conn, del_buf))
   {
@@ -1091,7 +1091,7 @@ void Crash_rentsave(struct char_data *ch, int cost)
     return;
   }
   /* Delete existing save data.  In the future may just flag these for deletion. */
-  sprintf(del_buf, "delete from player_save_objs where name = '%s';",
+  snprintf(del_buf, sizeof(del_buf), "delete from player_save_objs where name = '%s';",
           GET_NAME(ch));
   if (mysql_query(conn, del_buf))
   {
@@ -1157,7 +1157,7 @@ static int objsave_write_rentcode(FILE *fl, int rentcode, int cost_per_day, stru
 #ifdef OBJSAVE_DB
   char buf[2048]; /* For MySQL insert. */
 
-  sprintf(buf, "update player_data set obj_save_header = '%d %ld %d %d %d %d'"
+  snprintf(buf, sizeof(buf), "update player_data set obj_save_header = '%d %ld %d %d %d %d'"
                "where name = '%s';",
           rentcode,
           (long)time(0),
@@ -1269,7 +1269,7 @@ static int Crash_report_unrentables(struct char_data *ch, struct char_data *rece
     if (Crash_is_unrentable(obj))
     {
       has_norents = 1;
-      sprintf(buf, "$n tells you, 'You cannot store %s.'", OBJS(obj, ch));
+      snprintf(buf, sizeof(buf), "$n tells you, 'You cannot store %s.'", OBJS(obj, ch));
       act(buf, FALSE, recep, 0, ch, TO_VICT);
     }
     has_norents += Crash_report_unrentables(ch, recep, obj->contains);
@@ -1290,7 +1290,7 @@ static void Crash_report_rent(struct char_data *ch, struct char_data *recep, str
       *cost += MAX(0, (GET_OBJ_RENT(obj) * factor));
       if (display)
       {
-        sprintf(buf, "$n tells you, '%5d coins for %s..'",
+        snprintf(buf, sizeof(buf), "$n tells you, '%5d coins for %s..'",
                 (GET_OBJ_RENT(obj) * factor), OBJS(obj, ch));
         act(buf, FALSE, recep, 0, ch, TO_VICT);
       }
@@ -1329,17 +1329,17 @@ static int Crash_offer_rent(struct char_data *ch, struct char_data *recep,
   }
   if (numitems > CONFIG_MAX_OBJ_SAVE)
   {
-    sprintf(buf, "$n tells you, 'Sorry, but I cannot store more than %d items.'",
+    snprintf(buf, sizeof(buf), "$n tells you, 'Sorry, but I cannot store more than %d items.'",
             CONFIG_MAX_OBJ_SAVE);
     act(buf, FALSE, recep, 0, ch, TO_VICT);
     return FALSE;
   }
   if (display)
   {
-    sprintf(buf, "$n tells you, 'Plus, my %d coin fee..'",
+    snprintf(buf, sizeof(buf), "$n tells you, 'Plus, my %d coin fee..'",
             CONFIG_MIN_RENT_COST * factor);
     act(buf, FALSE, recep, 0, ch, TO_VICT);
-    sprintf(buf, "$n tells you, 'For a total of %ld coins%s.'",
+    snprintf(buf, sizeof(buf), "$n tells you, 'For a total of %ld coins%s.'",
             totalcost, (factor == RENT_FACTOR ? " per day" : ""));
     act(buf, FALSE, recep, 0, ch, TO_VICT);
     if (totalcost > GET_GOLD(ch) + GET_BANK_GOLD(ch))
@@ -1799,7 +1799,7 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
 
   if (house_vnum == NOWHERE)
   {
-    sprintf(buf, "SELECT   serialized_obj "
+    snprintf(buf, sizeof(buf), "SELECT   serialized_obj "
                  "FROM     player_save_objs "
                  "WHERE    name = '%s' "
                  "ORDER BY creation_date ASC;",
@@ -1820,7 +1820,7 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
   else
   {
     /* house_vnum was given, so load the house data instead. */
-    sprintf(buf, "SELECT   serialized_obj "
+    snprintf(buf, sizeof(buf), "SELECT   serialized_obj "
                  "FROM     house_data "
                  "WHERE    vnum = '%d' "
                  "ORDER BY creation_date ASC;",
@@ -2155,7 +2155,7 @@ static int Crash_load_objs(struct char_data *ch)
 
   log("INFO: Loading saved object data from db for: %s", GET_NAME(ch));
 
-  sprintf(sql_buf, "SELECT obj_save_header from player_data where name = '%s';", GET_NAME(ch));
+  snprintf(sql_buf, sizeof(sql_buf), "SELECT obj_save_header from player_data where name = '%s';", GET_NAME(ch));
 
   if (mysql_query(conn, sql_buf))
   {
@@ -2198,7 +2198,7 @@ static int Crash_load_objs(struct char_data *ch)
   {
     if (errno != ENOENT)
     { /* if it fails, NOT because of no file */
-      sprintf(buf, "SYSERR: READING OBJECT FILE %s (5)", filename);
+      snprintf(buf, sizeof(buf), "SYSERR: READING OBJECT FILE %s (5)", filename);
       perror(buf);
       send_to_char(ch, "\r\n********************* NOTICE *********************\r\n"
                        "There was a problem loading your objects from disk.\r\n"
@@ -2214,7 +2214,7 @@ static int Crash_load_objs(struct char_data *ch)
 
   if (rentcode == RENT_RENTED || rentcode == RENT_TIMEDOUT)
   {
-    sprintf(str, "%d", SECS_PER_REAL_DAY);
+    snprintf(str, sizeof(str), "%d", SECS_PER_REAL_DAY);
     num_of_days = (int)((float)(time(0) - timed) / (float)atoi(str));
     cost = (unsigned int)(netcost * num_of_days);
     if (cost > (unsigned int)GET_GOLD(ch) + (unsigned int)GET_BANK_GOLD(ch))

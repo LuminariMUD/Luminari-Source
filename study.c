@@ -664,9 +664,9 @@ static void sorc_known_spells_disp_menu(struct descriptor_data *d)
 
   char arcana_slots[100];
   if (free_arcana_slots(d->character) > 0)
-    sprintf(arcana_slots, "%s A%s) Assign New Arcana Circle\r\n\r\n", grn, nrm);
+    snprintf(arcana_slots, sizeof(arcana_slots), "%s A%s) Assign New Arcana Circle\r\n\r\n", grn, nrm);
   else
-    sprintf(arcana_slots, "%s", nrm);
+    snprintf(arcana_slots, sizeof(arcana_slots), "%s", nrm);
 
   write_to_output(d,
                   "\r\n-- %sSpells Known Menu\r\n"

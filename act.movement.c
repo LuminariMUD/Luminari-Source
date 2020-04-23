@@ -329,7 +329,7 @@ EVENTFUNC(event_falling)
     act("$n drops from sight.", FALSE, ch, 0, 0, TO_ROOM);
 
     /* are we falling more?  then we gotta increase the heigh fallen */
-    sprintf(buf, "%d", height_fallen);
+    snprintf(buf, sizeof(buf), "%d", height_fallen);
     /* Need to free the memory, if we are going to change it. */
     if (pMudEvent->sVariables)
       free(pMudEvent->sVariables);
@@ -1476,7 +1476,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   /* Leave tracks, if not riding. */
   if (!riding && (IS_NPC(ch) || !PRF_FLAGGED(ch, PRF_NOHASSLE)))
   {
-    /*sprintf(buf3, "%d \"%s\" \"%s\" %s", 6,
+    /*snprintf(buf3, sizeof(buf3), "%d \"%s\" \"%s\" %s", 6,
                                    (IS_NPC(ch) ? race_family_types[GET_NPC_RACE(ch)] : race_list[GET_RACE(ch)].type),
                                    GET_NAME(ch),
                                    dirs[dir]);

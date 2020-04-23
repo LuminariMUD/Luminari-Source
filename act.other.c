@@ -857,9 +857,9 @@ ACMD(do_applypoison)
       TRLX_PSN_VAL(ch) = GET_OBJ_VAL(poison, 0);
       TRLX_PSN_LVL(ch) = GET_OBJ_VAL(poison, 1);
       TRLX_PSN_HIT(ch) = GET_OBJ_VAL(poison, 3);
-      sprintf(buf1, "\tnYou carefully apply the contents of %s \tnonto your claws\tn...",
+      snprintf(buf1, sizeof(buf1), "\tnYou carefully apply the contents of %s \tnonto your claws\tn...",
               poison->short_description);
-      sprintf(buf2, "$n \tncarefully applies the contents of %s \tnonto $s claws\tn...",
+      snprintf(buf2, sizeof(buf2), "$n \tncarefully applies the contents of %s \tnonto $s claws\tn...",
               poison->short_description);
     }
     else
@@ -867,9 +867,9 @@ ACMD(do_applypoison)
       weapon->weapon_poison.poison_hits = GET_OBJ_VAL(poison, 3);
       weapon->weapon_poison.poison = GET_OBJ_VAL(poison, 0);
       weapon->weapon_poison.poison_level = GET_OBJ_VAL(poison, 1);
-      sprintf(buf1, "\tnYou carefully apply the contents of %s \tnonto $p\tn...",
+      snprintf(buf1, sizeof(buf1), "\tnYou carefully apply the contents of %s \tnonto $p\tn...",
               poison->short_description);
-      sprintf(buf2, "$n \tncarefully applies the contents of %s \tnonto $p\tn...",
+      snprintf(buf2, sizeof(buf2), "$n \tncarefully applies the contents of %s \tnonto $p\tn...",
               poison->short_description);
     }
 
@@ -1536,7 +1536,7 @@ ACMD(do_recharge)
     GET_OBJ_VAL(obj, 2) += chargeval;
     GET_GOLD(ch) -= 5000;
     send_to_char(ch, "The %s glows blue for a moment.\r\n", (GET_OBJ_TYPE(obj) == ITEM_STAFF ? "staff" : "wand"));
-    sprintf(buf, "The item now has %d charges remaining.\r\n", maxcharge);
+    snprintf(buf, sizeof(buf), "The item now has %d charges remaining.\r\n", maxcharge);
     send_to_char(ch, buf);
     act("$p glows with a subtle blue light as $n recharges it.",
         FALSE, ch, obj, 0, TO_ROOM);
@@ -2816,9 +2816,9 @@ bool wildshape_engine(struct char_data *ch, char *argument, int mode)
     return FALSE;
   }
 
-  sprintf(buf, "You change shape into a %s.", race_list[i].name);
+  snprintf(buf, sizeof(buf), "You change shape into a %s.", race_list[i].name);
   act(buf, true, ch, 0, 0, TO_CHAR);
-  sprintf(buf, "$n changes shape into a %s.", race_list[i].name);
+  snprintf(buf, sizeof(buf), "$n changes shape into a %s.", race_list[i].name);
   act(buf, true, ch, 0, 0, TO_ROOM);
 
   send_to_char(ch, "Type 'wildshape return' to shift back to your normal form.\r\n");
@@ -2882,9 +2882,9 @@ ACMD(do_wildshape)
     wildshape_return(ch);
 
     /* messages */
-    sprintf(buf, "You change shape into a %s.", race_list[GET_REAL_RACE(ch)].type);
+    snprintf(buf, sizeof(buf), "You change shape into a %s.", race_list[GET_REAL_RACE(ch)].type);
     act(buf, true, ch, 0, 0, TO_CHAR);
-    sprintf(buf, "$n changes shape into a %s.", race_list[GET_REAL_RACE(ch)].type);
+    snprintf(buf, sizeof(buf), "$n changes shape into a %s.", race_list[GET_REAL_RACE(ch)].type);
     act(buf, true, ch, 0, 0, TO_ROOM);
 
     /* a little bit of healing */
@@ -3220,9 +3220,9 @@ ACMD(do_disguise)
     save_char(ch, 0);
     Crash_crashsave(ch);
 
-    sprintf(buf, "You remove your disguise and now again appear like a: %s.", race_list[GET_RACE(ch)].type);
+    snprintf(buf, sizeof(buf), "You remove your disguise and now again appear like a: %s.", race_list[GET_RACE(ch)].type);
     act(buf, true, ch, 0, 0, TO_CHAR);
-    sprintf(buf, "$n removes $s disguise, revealing $s race: %s.", race_list[GET_RACE(ch)].type);
+    snprintf(buf, sizeof(buf), "$n removes $s disguise, revealing $s race: %s.", race_list[GET_RACE(ch)].type);
     act(buf, true, ch, 0, 0, TO_ROOM);
 
     USE_STANDARD_ACTION(ch);
@@ -3259,9 +3259,9 @@ ACMD(do_disguise)
   save_char(ch, 0);
   Crash_crashsave(ch);
 
-  sprintf(buf, "You disguises into a %s.", race_list[GET_DISGUISE_RACE(ch)].name);
+  snprintf(buf, sizeof(buf), "You disguises into a %s.", race_list[GET_DISGUISE_RACE(ch)].name);
   act(buf, true, ch, 0, 0, TO_CHAR);
-  sprintf(buf, "$n disguises into a %s.", race_list[GET_DISGUISE_RACE(ch)].name);
+  snprintf(buf, sizeof(buf), "$n disguises into a %s.", race_list[GET_DISGUISE_RACE(ch)].name);
   act(buf, true, ch, 0, 0, TO_ROOM);
 
   USE_STANDARD_ACTION(ch);
@@ -4438,7 +4438,7 @@ void update_msdp_group(struct char_data *ch)
       {
         char buf[4000]; // Buffer for building the group table for MSDP
         //send_to_char(ch, "DEBUG: group member: %s", GET_NAME(k));
-        sprintf(buf, "%c%c"
+        snprintf(buf, sizeof(buf), "%c%c"
                      "%c%s%c%s"
                      "%c%s%c%d"
                      "%c%s%c%d"
@@ -4485,7 +4485,7 @@ void update_msdp_inventory(struct char_data *ch)
         {
           char buf[4000]; // Buffer for building the inventory table for MSDP
           obj = GET_EQ(ch, i);
-          sprintf(buf, "%c%c"
+          snprintf(buf, sizeof(buf), "%c%c"
                        "%c%s%c%s"
                        "%c%s%c%s"
                        "%c",
@@ -4505,7 +4505,7 @@ void update_msdp_inventory(struct char_data *ch)
       if (CAN_SEE_OBJ(ch, obj))
       {
         char buf[4000]; // Buffer for building the inventory table for MSDP
-        sprintf(buf, "%c%c"
+        snprintf(buf, sizeof(buf), "%c%c"
                      "%c%s%c%s"
                      "%c%s%c%s"
                      "%c",
@@ -5595,10 +5595,10 @@ void show_happyhour(struct char_data *ch)
     else
       secs_left = 0;
 
-    sprintf(happyqp, "%s+%d%%%s to Questpoints per quest\r\n", CCYEL(ch, C_NRM), HAPPY_QP, CCNRM(ch, C_NRM));
-    sprintf(happygold, "%s+%d%%%s to Gold gained per kill\r\n", CCYEL(ch, C_NRM), HAPPY_GOLD, CCNRM(ch, C_NRM));
-    sprintf(happyexp, "%s+%d%%%s to Experience per kill\r\n", CCYEL(ch, C_NRM), HAPPY_EXP, CCNRM(ch, C_NRM));
-    sprintf(happytreasure, "%s+%d%%%s to Treasure Drop rate\r\n", CCYEL(ch, C_NRM), HAPPY_TREASURE, CCNRM(ch, C_NRM));
+    snprintf(happyqp, sizeof(happyqp), "%s+%d%%%s to Questpoints per quest\r\n", CCYEL(ch, C_NRM), HAPPY_QP, CCNRM(ch, C_NRM));
+    snprintf(happygold, sizeof(happygold), "%s+%d%%%s to Gold gained per kill\r\n", CCYEL(ch, C_NRM), HAPPY_GOLD, CCNRM(ch, C_NRM));
+    snprintf(happyexp, sizeof(happyexp), "%s+%d%%%s to Experience per kill\r\n", CCYEL(ch, C_NRM), HAPPY_EXP, CCNRM(ch, C_NRM));
+    snprintf(happytreasure, sizeof(happytreasure), "%s+%d%%%s to Treasure Drop rate\r\n", CCYEL(ch, C_NRM), HAPPY_TREASURE, CCNRM(ch, C_NRM));
 
     send_to_char(ch, "LuminariMUD Happy Hour!\r\n"
                      "------------------\r\n"

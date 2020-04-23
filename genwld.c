@@ -351,7 +351,7 @@ int save_rooms(zone_rnum rzone)
       }
 
       /* Save the numeric and string section of the file. */
-      sprintf(buf2, "#%d\n"
+      snprintf(buf2, sizeof(buf2), "#%d\n"
                     "%s%c\n"
                     "%s%c\n"
                     "%d %d %d %d %d %d\n",

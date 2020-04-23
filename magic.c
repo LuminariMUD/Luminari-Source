@@ -5662,7 +5662,7 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj,
     /*******  END ROOM AFFECTIONS ***********/
 
   default:
-    sprintf(buf, "SYSERR: unknown spellnum %d passed to mag_room", spellnum);
+    snprintf(buf, sizeof(buf), "SYSERR: unknown spellnum %d passed to mag_room", spellnum);
     log("%s", buf);
     break;
   }

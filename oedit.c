@@ -330,7 +330,7 @@ void oedit_disp_weapon_spells(struct descriptor_data *d)
 
   for (counter = 0; counter < MAX_WEAPON_SPELLS; counter++)
   {
-    sprintf(buf, "[%s%d%s] Spell: %s%20s%s Level: %s%3d%s Percent: %s%3d%s Combat: %s%3d%s\r\n",
+    snprintf(buf, sizeof(buf), "[%s%d%s] Spell: %s%20s%s Level: %s%3d%s Percent: %s%3d%s Combat: %s%3d%s\r\n",
             cyn, counter + 1, nrm,
             cyn, spell_info[OLC_OBJ(d)->wpn_spells[counter].spellnum].name, nrm,
             cyn, OLC_OBJ(d)->wpn_spells[counter].level, nrm,

@@ -95,7 +95,7 @@ void class_prereq_attribute(int class_num, int attribute, int value)
   prereq = create_prereq(CLASS_PREREQ_ATTRIBUTE, attribute, value, 0);
 
   /* Generate the description. */
-  sprintf(buf, "%s: %d", attribute_abbr[attribute], value);
+  snprintf(buf, sizeof(buf), "%s: %d", attribute_abbr[attribute], value);
   prereq->description = strdup(buf);
 
   /*  Link it up. */
@@ -111,7 +111,7 @@ void class_prereq_class_level(int class_num, int cl, int level)
   prereq = create_prereq(CLASS_PREREQ_CLASS_LEVEL, cl, level, 0);
 
   /* Generate the description */
-  sprintf(buf, "%s level %d", CLSLIST_NAME(cl), level);
+  snprintf(buf, sizeof(buf), "%s level %d", CLSLIST_NAME(cl), level);
   prereq->description = strdup(buf);
 
   /* Link it up */
@@ -128,9 +128,9 @@ void class_prereq_feat(int class_num, int feat, int ranks)
 
   /* Generate the description. */
   if (ranks > 1)
-    sprintf(buf, "%s (%d ranks)", feat_list[feat].name, ranks);
+    snprintf(buf, sizeof(buf), "%s (%d ranks)", feat_list[feat].name, ranks);
   else
-    sprintf(buf, "%s", feat_list[feat].name);
+    snprintf(buf, sizeof(buf), "%s", feat_list[feat].name);
 
   prereq->description = strdup(buf);
 
@@ -151,7 +151,7 @@ void class_prereq_cfeat(int class_num, int feat, int special)
 
   prereq = create_prereq(CLASS_PREREQ_CFEAT, feat, special, 0);
 
-  sprintf(buf, "%s (%s)", feat_list[feat].name, cfeat_special[special]);
+  snprintf(buf, sizeof(buf), "%s (%s)", feat_list[feat].name, cfeat_special[special]);
   prereq->description = strdup(buf);
 
   /*   Link it up. */
@@ -166,7 +166,7 @@ void class_prereq_ability(int class_num, int ability, int ranks)
 
   prereq = create_prereq(CLASS_PREREQ_ABILITY, ability, ranks, 0);
 
-  sprintf(buf, "%d ranks in %s", ranks, ability_names[ability]);
+  snprintf(buf, sizeof(buf), "%d ranks in %s", ranks, ability_names[ability]);
   prereq->description = strdup(buf);
 
   /*   Link it up. */
@@ -193,7 +193,7 @@ void class_prereq_spellcasting(int class_num, int casting_type, int prep_type, i
 
   prereq = create_prereq(CLASS_PREREQ_SPELLCASTING, casting_type, prep_type, circle);
 
-  sprintf(buf, "Has %s %s (circle) %d spells", casting_types[casting_type],
+  snprintf(buf, sizeof(buf), "Has %s %s (circle) %d spells", casting_types[casting_type],
           spell_preparation_types[prep_type], circle);
   prereq->description = strdup(buf);
 
@@ -209,7 +209,7 @@ void class_prereq_race(int class_num, int race)
 
   prereq = create_prereq(CLASS_PREREQ_RACE, race, 0, 0);
 
-  sprintf(buf, "Race: %s", race_list[race].type);
+  snprintf(buf, sizeof(buf), "Race: %s", race_list[race].type);
   prereq->description = strdup(buf);
 
   /*   Link it up. */
@@ -224,7 +224,7 @@ void class_prereq_bab(int class_num, int bab)
 
   prereq = create_prereq(CLASS_PREREQ_BAB, bab, 0, 0);
 
-  sprintf(buf, "Min. BAB +%d", bab);
+  snprintf(buf, sizeof(buf), "Min. BAB +%d", bab);
   prereq->description = strdup(buf);
 
   /* Link it up */
@@ -250,7 +250,7 @@ void class_prereq_align(int class_num, int alignment)
      #define NEUTRAL_EVIL        7
      #define CHAOTIC_EVIL        8 */
 
-  sprintf(buf, "Align: %s", alignment_names_nocolor[alignment]);
+  snprintf(buf, sizeof(buf), "Align: %s", alignment_names_nocolor[alignment]);
   prereq->description = strdup(buf);
 
   /* Link it up */
@@ -265,7 +265,7 @@ void class_prereq_weapon_proficiency(int class_num)
 
   prereq = create_prereq(CLASS_PREREQ_WEAPON_PROFICIENCY, 0, 0, 0);
 
-  sprintf(buf, "Proficiency in same weapon");
+  snprintf(buf, sizeof(buf), "Proficiency in same weapon");
   prereq->description = strdup(buf);
 
   /*  Link it up */
@@ -749,7 +749,7 @@ bool display_class_prereqs(struct char_data *ch, char *classname)
     meets_prereqs = FALSE;
     if (meets_class_prerequisite(ch, prereq, NO_IARG))
       meets_prereqs = TRUE;
-    sprintf(buf, "\tn%s%s%s - %s\r\n",
+    snprintf(buf, sizeof(buf), "\tn%s%s%s - %s\r\n",
             (meets_prereqs ? "\tn" : "\tr"), prereq->description, "\tn",
             (meets_prereqs ? "\tWFulfilled!\tn" : "\trMissing\tn"));
     send_to_char(ch, "%s", buf);
@@ -983,7 +983,7 @@ bool display_class_info(struct char_data *ch, char *classname)
     send_to_char(ch, "\tcSpell Forget Command: \tn%s\r\n", spell_consign_dict[class][0]);
     send_to_char(ch, "\tcSpell Cast Command  : \tn%s\r\n", (class != CLASS_ALCHEMIST) ? "cast" : "imbibe");
     char spellList[30];
-    sprintf(spellList, "spells %s", CLSLIST_NAME(class));
+    snprintf(spellList, sizeof(spellList), "spells %s", CLSLIST_NAME(class));
     for (i = 0; i < strlen(spellList); i++)
       spellList[i] = tolower(spellList[i]);
     send_to_char(ch, "\tcSpell List Command  : \tn%s\r\n", (class != CLASS_ALCHEMIST) ? spellList : "extracts");
@@ -995,7 +995,7 @@ bool display_class_info(struct char_data *ch, char *classname)
   /*  Here display the prerequisites */
   if (class_list[class].prereq_list == NULL)
   {
-    sprintf(buf, "\tCPrerequisites : \tnnone\r\n");
+    snprintf(buf, sizeof(buf), "\tCPrerequisites : \tnnone\r\n");
   }
   else
   {
@@ -1007,12 +1007,12 @@ bool display_class_info(struct char_data *ch, char *classname)
       if (first)
       {
         first = FALSE;
-        sprintf(buf, "\tcPrerequisites : %s%s%s",
+        snprintf(buf, sizeof(buf), "\tcPrerequisites : %s%s%s",
                 (meets_class_prerequisite(ch, prereq, NO_IARG) ? "\tn" : "\tr"), prereq->description, "\tn");
       }
       else
       {
-        sprintf(buf2, ", %s%s%s",
+        snprintf(buf2, sizeof(buf2), ", %s%s%s",
                 (meets_class_prerequisite(ch, prereq, NO_IARG) ? "\tn" : "\tr"), prereq->description, "\tn");
         strcat(buf, buf2);
       }
@@ -1024,7 +1024,7 @@ bool display_class_info(struct char_data *ch, char *classname)
   draw_line(ch, line_length, '-', '-');
 
   /* This we will need to buffer and wrap so that it will fit in the space provided. */
-  sprintf(buf, "\tcDescription : \tn%s\r\n", class_list[class].descrip);
+  snprintf(buf, sizeof(buf), "\tcDescription : \tn%s\r\n", class_list[class].descrip);
   send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
 
   send_to_char(ch, "\tC");
@@ -2414,7 +2414,7 @@ void process_class_level_feats(struct char_data *ch, int class)
   if (class_list[class].featassign_list == NULL)
     return;
 
-  sprintf(featbuf, "\tM");
+  snprintf(featbuf, sizeof(featbuf), "\tM");
 
   /*  This class has potential feat assignment! Traverse the list and assign. */
   for (feat_assign = class_list[class].featassign_list; feat_assign != NULL;
@@ -2440,7 +2440,7 @@ void process_class_level_feats(struct char_data *ch, int class)
       {
 
       case FEAT_SNEAK_ATTACK:
-        sprintf(featbuf, "%s\tMYour sneak attack has increased to +%dd6!\tn\r\n", featbuf, HAS_FEAT(ch, FEAT_SNEAK_ATTACK) + 1);
+        snprintf(featbuf, sizeof(featbuf), "%s\tMYour sneak attack has increased to +%dd6!\tn\r\n", featbuf, HAS_FEAT(ch, FEAT_SNEAK_ATTACK) + 1);
         break;
 
       case FEAT_SHRUG_DAMAGE:
@@ -2473,37 +2473,37 @@ void process_class_level_feats(struct char_data *ch, int class)
         GET_DR(ch) = ptr;
         */
 
-        sprintf(featbuf, "%s\tMYou can now shrug off %d damage!\tn\r\n", featbuf, HAS_FEAT(ch, FEAT_SHRUG_DAMAGE) + 1);
+        snprintf(featbuf, sizeof(featbuf), "%s\tMYou can now shrug off %d damage!\tn\r\n", featbuf, HAS_FEAT(ch, FEAT_SHRUG_DAMAGE) + 1);
         break;
 
       case FEAT_STRENGTH_BOOST:
         ch->real_abils.str += 2;
-        sprintf(featbuf, "%s\tMYour natural strength has increased by +2!\r\n", featbuf);
+        snprintf(featbuf, sizeof(featbuf), "%s\tMYour natural strength has increased by +2!\r\n", featbuf);
         break;
 
       case FEAT_CHARISMA_BOOST:
         ch->real_abils.cha += 2;
-        sprintf(featbuf, "%s\tMYour natural charisma has increased by +2!\r\n", featbuf);
+        snprintf(featbuf, sizeof(featbuf), "%s\tMYour natural charisma has increased by +2!\r\n", featbuf);
         break;
 
       case FEAT_CONSTITUTION_BOOST:
         ch->real_abils.con += 2;
-        sprintf(featbuf, "%s\tMYour natural constitution has increased by +2!\r\n", featbuf);
+        snprintf(featbuf, sizeof(featbuf), "%s\tMYour natural constitution has increased by +2!\r\n", featbuf);
         break;
 
       case FEAT_INTELLIGENCE_BOOST:
         ch->real_abils.intel += 2;
-        sprintf(featbuf, "%s\tMYour natural intelligence has increased by +2!\r\n", featbuf);
+        snprintf(featbuf, sizeof(featbuf), "%s\tMYour natural intelligence has increased by +2!\r\n", featbuf);
         break;
 
         /* no special handling */
       default:
         if (HAS_FEAT(ch, feat_assign->feat_num))
-          sprintf(featbuf, "%s\tMYou have improved your %s %s!\tn\r\n", featbuf,
+          snprintf(featbuf, sizeof(featbuf), "%s\tMYou have improved your %s %s!\tn\r\n", featbuf,
                   feat_list[feat_assign->feat_num].name,
                   feat_types[feat_list[feat_assign->feat_num].feat_type]);
         else
-          sprintf(featbuf, "%s\tMYou have gained the %s %s!\tn\r\n", featbuf,
+          snprintf(featbuf, sizeof(featbuf), "%s\tMYou have gained the %s %s!\tn\r\n", featbuf,
                   feat_list[feat_assign->feat_num].name,
                   feat_types[feat_list[feat_assign->feat_num].feat_type]);
         break;
@@ -2647,7 +2647,7 @@ void process_level_feats(struct char_data *ch, int class)
   char featbuf[MAX_STRING_LENGTH];
   int i = 0;
 
-  sprintf(featbuf, "\tM");
+  snprintf(featbuf, sizeof(featbuf), "\tM");
 
   /* increment through the list, FEAT_UNDEFINED is our terminator */
   while (level_feats[i][LF_FEAT] != FEAT_UNDEFINED)
@@ -2660,11 +2660,11 @@ void process_level_feats(struct char_data *ch, int class)
         !HAS_FEAT(ch, level_feats[i][LF_FEAT]))
     {
       if (HAS_FEAT(ch, level_feats[i][LF_FEAT]))
-        sprintf(featbuf, "%s\tMYou have improved your %s %s!\tn\r\n", featbuf,
+        snprintf(featbuf, sizeof(featbuf), "%s\tMYou have improved your %s %s!\tn\r\n", featbuf,
                 feat_list[level_feats[i][LF_FEAT]].name,
                 feat_types[feat_list[level_feats[i][LF_FEAT]].feat_type]);
       else
-        sprintf(featbuf, "%s\tMYou have gained the %s %s!\tn\r\n", featbuf,
+        snprintf(featbuf, sizeof(featbuf), "%s\tMYou have gained the %s %s!\tn\r\n", featbuf,
                 feat_list[level_feats[i][LF_FEAT]].name,
                 feat_types[feat_list[level_feats[i][LF_FEAT]].feat_type]);
       SET_FEAT(ch, level_feats[i][LF_FEAT], HAS_REAL_FEAT(ch, level_feats[i][LF_FEAT]) + 1);

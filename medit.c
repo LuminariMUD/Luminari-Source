@@ -434,7 +434,7 @@ void medit_disp_size(struct descriptor_data *d)
   clear_screen(d);
   for (i = -1; i < NUM_SIZES; i++)
   {
-    sprintf(buf, "%2d) %-20.20s  %s", i,
+    snprintf(buf, sizeof(buf), "%2d) %-20.20s  %s", i,
             (i == SIZE_UNDEFINED) ? "DEFAULT" : size_names[i],
             !(++columns % 2) ? "\r\n" : "");
     write_to_output(d, buf);
@@ -590,10 +590,10 @@ static void medit_disp_menu(struct descriptor_data *d)
   }
   else
   {
-    sprintf(path, "Delay %d Path - ", PATH_RESET(mob));
+    snprintf(path, sizeof(path), "Delay %d Path - ", PATH_RESET(mob));
     for (i = 0; i < PATH_SIZE(mob); i++)
     {
-      sprintf(buf, "%d ", GET_PATH(mob, i));
+      snprintf(buf, sizeof(buf), "%d ", GET_PATH(mob, i));
       strcat(path, buf);
     }
   }
@@ -767,7 +767,7 @@ static void medit_disp_stats_menu(struct descriptor_data *d)
   clear_screen(d);
 
   /* Color codes have to be used here, for count_color_codes to work */
-  sprintf(buf, "(range \ty%d\tn to \ty%d\tn)", GET_HIT(mob) + GET_MOVE(mob), (GET_HIT(mob) * GET_PSP(mob)) + GET_MOVE(mob));
+  snprintf(buf, sizeof(buf), "(range \ty%d\tn to \ty%d\tn)", GET_HIT(mob) + GET_MOVE(mob), (GET_HIT(mob) * GET_PSP(mob)) + GET_MOVE(mob));
 
   /* Top section - standard stats */
   write_to_output(d,
