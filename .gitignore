@@ -63,3 +63,4 @@ dkms.conf
 *.smod
 
 /unittests/obj
+/depend

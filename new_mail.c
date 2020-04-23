@@ -165,7 +165,7 @@ ACMD(do_new_mail)
       /* Check the connection, reconnect if necessary. */
       mysql_ping(conn);
 
-      sprintf(arg5, "%s", CAP(arg5));
+      snprintf(arg5, sizeof(arg5), "%s", CAP(arg5));
 
       char query[MAX_INPUT_LENGTH];
       char *end;
@@ -197,7 +197,7 @@ ACMD(do_new_mail)
 
                 if (!strcmp(cptr->member_look_str, arg5)) {
                   found = TRUE;
-                  sprintf(arg5, "%s", CAP(cptr->leadersname));
+                  snprintf(arg5, sizeof(arg5), "%s", CAP(cptr->leadersname));
       //            send_to_char(ch, "%s\r\n", cptr->member_look_str);
                   break;
                 }
@@ -267,13 +267,13 @@ void perform_mail_list(struct char_data *ch, int type)
   }
   if (ch->player_specials->saved.mail_days > 0)
   {
-    sprintf(days, " AND date_sent >= DATE_SUB(NOW(), INTERVAL %d DAY) ", ch->player_specials->saved.mail_days);
+    snprintf(days, sizeof(days), " AND date_sent >= DATE_SUB(NOW(), INTERVAL %d DAY) ", ch->player_specials->saved.mail_days);
   }
   else
   {
-    sprintf(days, " ");
+    snprintf(days, sizeof(days), " ");
   }
-  sprintf(query, "SELECT mail_id,sender,receiver,subject FROM player_mail WHERE (%s='%s' OR %s='All') %s ORDER BY mail_id DESC", type == 1 ? "receiver" : "sender", GET_NAME(ch), type == 1 ? "receiver" : "sender", days);
+  snprintf(query, sizeof(query), "SELECT mail_id,sender,receiver,subject FROM player_mail WHERE (%s='%s' OR %s='All') %s ORDER BY mail_id DESC", type == 1 ? "receiver" : "sender", GET_NAME(ch), type == 1 ? "receiver" : "sender", days);
   mysql_query(conn, query);
   res = mysql_use_result(conn);
   if (res != NULL)
@@ -284,7 +284,7 @@ void perform_mail_list(struct char_data *ch, int type)
       unread = TRUE;
       deleted = FALSE;
 
-      sprintf(query, "SELECT mail_id,player_name FROM player_mail_deleted WHERE player_name='%s' AND mail_id='%s'", GET_NAME(ch), row[0]);
+      snprintf(query, sizeof(query), "SELECT mail_id,player_name FROM player_mail_deleted WHERE player_name='%s' AND mail_id='%s'", GET_NAME(ch), row[0]);
       mysql_query(conn2, query);
       res2 = mysql_use_result(conn2);
       if (res2 != NULL)
@@ -296,7 +296,7 @@ void perform_mail_list(struct char_data *ch, int type)
       }
       mysql_free_result(res2);
 
-      sprintf(query, "SELECT mail_id,player_name FROM player_mail_read WHERE player_name='%s' AND mail_id='%s'", GET_NAME(ch), row[0]);
+      snprintf(query, sizeof(query), "SELECT mail_id,player_name FROM player_mail_read WHERE player_name='%s' AND mail_id='%s'", GET_NAME(ch), row[0]);
       //          send_to_char(ch, "%s\r\n", query);
       mysql_query(conn3, query);
       res3 = mysql_use_result(conn3);
@@ -332,12 +332,12 @@ void perform_mail_read(struct char_data *ch, int mnum)
 
   char mnums[20];
 
-  sprintf(mnums, "%d", mnum);
+  snprintf(mnums, sizeof(mnums), "%d", mnum);
 
   byte found = FALSE;
 
   char query[MAX_INPUT_LENGTH];
-  sprintf(query, "SELECT mail_id,sender,receiver,subject FROM player_mail WHERE (sender='%s' OR receiver='%s' OR receiver='All') AND mail_id='%d'", GET_NAME(ch), GET_NAME(ch), mnum);
+  snprintf(query, sizeof(query), "SELECT mail_id,sender,receiver,subject FROM player_mail WHERE (sender='%s' OR receiver='%s' OR receiver='All') AND mail_id='%d'", GET_NAME(ch), GET_NAME(ch), mnum);
   mysql_query(conn, query);
   res = mysql_use_result(conn);
   if (res != NULL)
@@ -378,7 +378,7 @@ void perform_mail_read(struct char_data *ch, int mnum)
                        "Message:\r\n"
                        "%s\r\n\r\n",
                    row[0], row[1], row[2], row[3], row[4]);
-      sprintf(buf, "DELETE FROM player_mail_read WHERE player_name='%s' AND mail_id=", GET_NAME(ch));
+      snprintf(buf, sizeof(buf), "DELETE FROM player_mail_read WHERE player_name='%s' AND mail_id=", GET_NAME(ch));
       end = stpcpy(query, buf);
       *end++ = '\'';
       end += mysql_real_escape_string(conn2, end, mnums, strlen(mnums));
@@ -386,7 +386,7 @@ void perform_mail_read(struct char_data *ch, int mnum)
       *end++ = '\0';
       mysql_query(conn2, query);
 
-      sprintf(buf, "INSERT INTO player_mail_read (player_name, mail_id) VALUES('%s',", GET_NAME(ch));
+      snprintf(buf, sizeof(buf), "INSERT INTO player_mail_read (player_name, mail_id) VALUES('%s',", GET_NAME(ch));
       end = stpcpy(query, buf);
       *end++ = '\'';
       end += mysql_real_escape_string(conn2, end, mnums, strlen(mnums));
@@ -415,12 +415,12 @@ void perform_mail_delete(struct char_data *ch, int mnum)
 
   char mnums[20];
 
-  sprintf(mnums, "%d", mnum);
+  snprintf(mnums, sizeof(mnums), "%d", mnum);
 
   sbyte found = FALSE;
 
   char query[MAX_INPUT_LENGTH];
-  sprintf(query, "SELECT mail_id,sender,receiver,subject FROM player_mail WHERE sender='%s' OR receiver='%s' OR (receiver='All')", GET_NAME(ch), GET_NAME(ch));
+  snprintf(query, sizeof(query), "SELECT mail_id,sender,receiver,subject FROM player_mail WHERE sender='%s' OR receiver='%s' OR (receiver='All')", GET_NAME(ch), GET_NAME(ch));
   mysql_query(conn, query);
   res = mysql_use_result(conn);
   if (res != NULL)
@@ -441,7 +441,7 @@ void perform_mail_delete(struct char_data *ch, int mnum)
 
   char *end;
   char buf[200];
-  sprintf(buf, "DELETE FROM player_mail_read WHERE player_name='%s' AND mail_id=", GET_NAME(ch));
+  snprintf(buf, sizeof(buf), "DELETE FROM player_mail_read WHERE player_name='%s' AND mail_id=", GET_NAME(ch));
   end = stpcpy(query, buf);
   *end++ = '\'';
   end += mysql_real_escape_string(conn, end, mnums, strlen(mnums));
@@ -449,7 +449,7 @@ void perform_mail_delete(struct char_data *ch, int mnum)
   *end++ = '\0';
   mysql_query(conn, query);
 
-  sprintf(buf, "DELETE FROM player_mail_deleted WHERE player_name='%s' AND mail_id=", GET_NAME(ch));
+  snprintf(buf, sizeof(buf), "DELETE FROM player_mail_deleted WHERE player_name='%s' AND mail_id=", GET_NAME(ch));
   end = stpcpy(query, buf);
   *end++ = '\'';
   end += mysql_real_escape_string(conn, end, mnums, strlen(mnums));
@@ -457,7 +457,7 @@ void perform_mail_delete(struct char_data *ch, int mnum)
   *end++ = '\0';
   mysql_query(conn, query);
 
-  sprintf(buf, "INSERT INTO player_mail_deleted (player_name, mail_id) VALUES('%s',", GET_NAME(ch));
+  snprintf(buf, sizeof(buf), "INSERT INTO player_mail_deleted (player_name, mail_id) VALUES('%s',", GET_NAME(ch));
   end = stpcpy(query, buf);
   *end++ = '\'';
   end += mysql_real_escape_string(conn, end, mnums, strlen(mnums));
@@ -496,15 +496,15 @@ int new_mail_alert(struct char_data *ch, bool silent)
   }
   if (ch->player_specials->saved.mail_days > 0)
   {
-    sprintf(days, " AND date_sent >= DATE_SUB(NOW(), INTERVAL %d DAY) ", ch->player_specials->saved.mail_days);
+    snprintf(days, sizeof(days), " AND date_sent >= DATE_SUB(NOW(), INTERVAL %d DAY) ", ch->player_specials->saved.mail_days);
   }
   else
   {
-    sprintf(days, " ");
+    snprintf(days, sizeof(days), " ");
   }
 
   char query[MAX_INPUT_LENGTH];
-  sprintf(query, "SELECT mail_id,sender,receiver,subject FROM player_mail WHERE (receiver='%s' OR %s='All') %s ORDER BY mail_id DESC", GET_NAME(ch), "receiver", days);
+  snprintf(query, sizeof(query), "SELECT mail_id,sender,receiver,subject FROM player_mail WHERE (receiver='%s' OR %s='All') %s ORDER BY mail_id DESC", GET_NAME(ch), "receiver", days);
   mysql_query(conn, query);
   res = mysql_use_result(conn);
   if (res != NULL)
@@ -514,7 +514,7 @@ int new_mail_alert(struct char_data *ch, bool silent)
 
       num_mails++;
 
-      sprintf(query, "SELECT mail_id,player_name FROM player_mail_deleted WHERE player_name='%s' AND mail_id='%s'", GET_NAME(ch), row[0]);
+      snprintf(query, sizeof(query), "SELECT mail_id,player_name FROM player_mail_deleted WHERE player_name='%s' AND mail_id='%s'", GET_NAME(ch), row[0]);
       mysql_query(conn2, query);
       res2 = mysql_use_result(conn2);
       if (res2 != NULL)
@@ -526,7 +526,7 @@ int new_mail_alert(struct char_data *ch, bool silent)
       }
       mysql_free_result(res2);
 
-      sprintf(query, "SELECT mail_id,player_name FROM player_mail_read WHERE player_name='%s' AND mail_id='%s'", GET_NAME(ch), row[0]);
+      snprintf(query, sizeof(query), "SELECT mail_id,player_name FROM player_mail_read WHERE player_name='%s' AND mail_id='%s'", GET_NAME(ch), row[0]);
       mysql_query(conn3, query);
       res3 = mysql_use_result(conn3);
       if (res3 != NULL)

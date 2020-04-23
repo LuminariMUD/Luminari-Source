@@ -137,7 +137,7 @@ static void hedit_save_to_db(struct descriptor_data *d)
   mysql_real_escape_string(conn, buf2, buf1, strlen(buf1));
   //  mysql_real_escape_string(conn, buf1, OLC_HELP(d)->keywords, strlen(OLC_HELP(d)->keywords));
 
-  sprintf(buf, "INSERT INTO help_entries (tag, entry, min_level) VALUES (lower('%s'), '%s', %d)"
+  snprintf(buf, sizeof(buf), "INSERT INTO help_entries (tag, entry, min_level) VALUES (lower('%s'), '%s', %d)"
                " on duplicate key update"
                "  min_level = values(min_level),"
                "  entry = values(entry);",
@@ -148,7 +148,7 @@ static void hedit_save_to_db(struct descriptor_data *d)
     mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Unable to UPSERT into help_entries: %s", mysql_error(conn));
   }
   /* Clear out the old keywords. */
-  sprintf(buf, "DELETE from help_keywords where lower(help_tag) = lower('%s')", OLC_HELP(d)->tag);
+  snprintf(buf, sizeof(buf), "DELETE from help_keywords where lower(help_tag) = lower('%s')", OLC_HELP(d)->tag);
 
   if (mysql_query(conn, buf))
   {
@@ -158,7 +158,7 @@ static void hedit_save_to_db(struct descriptor_data *d)
   /* Insert the new keywords.  */
   for (keyword = OLC_HELP(d)->keyword_list; keyword != NULL; keyword = keyword->next)
   {
-    sprintf(buf, "INSERT INTO help_keywords (help_tag, keyword) VALUES (lower('%s'), '%s')", OLC_HELP(d)->tag, keyword->keyword);
+    snprintf(buf, sizeof(buf), "INSERT INTO help_keywords (help_tag, keyword) VALUES (lower('%s'), '%s')", OLC_HELP(d)->tag, keyword->keyword);
 
     if (mysql_query(conn, buf))
     {
@@ -279,7 +279,7 @@ bool hedit_delete_entry(struct help_entry_list *entry)
   while (hedit_delete_keyword(entry, 1))
     ;
 
-  sprintf(buf, "delete from help_entries where lower(tag) = lower('%s')", entry->tag);
+  snprintf(buf, sizeof(buf), "delete from help_entries where lower(tag) = lower('%s')", entry->tag);
   mudlog(NRM, LVL_STAFF, TRUE, buf);
 
   if (mysql_query(conn, buf))
@@ -611,8 +611,8 @@ ACMD(do_hindex)
     return;
   }
 
-  len = sprintf(buf, "\t1Help index entries beginning with '%s':\t2\r\n", argument);
-  len2 = sprintf(buf2, "\t1Help index entries containing '%s':\t2\r\n", argument);
+  len = snprintf(buf, sizeof(buf), "\t1Help index entries beginning with '%s':\t2\r\n", argument);
+  len2 = snprintf(buf2, sizeof(buf2), "\t1Help index entries containing '%s':\t2\r\n", argument);
   for (i = 0; i < top_of_helpt; i++)
   {
     if (is_abbrev(argument, help_table[i].keywords) && (GET_LEVEL(ch) >= help_table[i].min_level))

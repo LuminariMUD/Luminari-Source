@@ -90,7 +90,7 @@ void build_player_index(void)
   char index_name[40], line[MEDIUM_STRING], bits[64];
   char arg2[80];
 
-  sprintf(index_name, "%s%s", LIB_PLRFILES, INDEX_FILE);
+  snprintf(index_name, sizeof(index_name), "%s%s", LIB_PLRFILES, INDEX_FILE);
   if (!(plr_index = fopen(index_name, "r")))
   {
     top_of_p_table = -1;
@@ -226,7 +226,7 @@ void save_player_index(void)
   char index_name[50] = {'\0'}, bits[64] = {'\0'};
   FILE *index_file;
 
-  sprintf(index_name, "%s%s", LIB_PLRFILES, INDEX_FILE);
+  snprintf(index_name, sizeof(index_name), "%s%s", LIB_PLRFILES, INDEX_FILE);
   if (!(index_file = fopen(index_name, "w")))
   {
     log("SYSERR: Could not write player index file");
@@ -950,7 +950,7 @@ int load_char(const char *name, struct char_data *ch)
         break;
 
       default:
-        sprintf(buf, "SYSERR: Unknown tag %s in pfile %s", tag, name);
+        snprintf(buf, sizeof(buf), "SYSERR: Unknown tag %s in pfile %s", tag, name);
       }
     }
   }
@@ -2547,7 +2547,7 @@ void update_player_last_on(void)
     if (!d || !d->character)
       continue;
 
-    sprintf(buf, "UPDATE player_data SET last_online = NOW() "
+    snprintf(buf, sizeof(buf), "UPDATE player_data SET last_online = NOW() "
                  "WHERE name = '%s';",
             GET_NAME(d->character));
     if (mysql_query(conn, buf))

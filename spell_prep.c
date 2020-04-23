@@ -1160,7 +1160,7 @@ void start_prep_event(struct char_data *ch, int class)
   set_preparing_state(ch, class, TRUE);
   if (!char_has_mud_event(ch, ePREPARATION))
   {
-    sprintf(buf, "%d", class); /* carry our class as the svar */
+    snprintf(buf, sizeof(buf), "%d", class); /* carry our class as the svar */
     NEW_EVENT(ePREPARATION, ch, strdup(buf), (1 * PASSES_PER_SEC));
   }
 }
@@ -1525,7 +1525,7 @@ void print_prep_queue(struct char_data *ch, int ch_class)
 
   /* build a nice heading */
   *buf = '\0';
-  sprintf(buf, "\tYPreparation Queue for %s\tC", class_names[ch_class]);
+  snprintf(buf, sizeof(buf), "\tYPreparation Queue for %s\tC", class_names[ch_class]);
   send_to_char(ch, "\tC");
   text_line(ch, buf, line_length, '-', '-');
   send_to_char(ch, "\tn");
@@ -1565,7 +1565,7 @@ void print_prep_queue(struct char_data *ch, int ch_class)
 
   /* build a nice closing */
   *buf = '\0';
-  sprintf(buf, "\tYTotal Preparation Time Remaining: \tW%d\tC", total_time);
+  snprintf(buf, sizeof(buf), "\tYTotal Preparation Time Remaining: \tW%d\tC", total_time);
   send_to_char(ch, "\tC");
   text_line(ch, buf, line_length, '-', '-');
   send_to_char(ch, "\tn");
@@ -1585,7 +1585,7 @@ void print_innate_magic_queue(struct char_data *ch, int ch_class)
 
   /* build a nice heading */
   *buf = '\0';
-  sprintf(buf, "\tYInnate Magic Queue for %s\tC", class_names[ch_class]);
+  snprintf(buf, sizeof(buf), "\tYInnate Magic Queue for %s\tC", class_names[ch_class]);
   send_to_char(ch, "\tC");
   text_line(ch, buf, line_length, '-', '-');
   send_to_char(ch, "\tn");
@@ -1621,7 +1621,7 @@ void print_innate_magic_queue(struct char_data *ch, int ch_class)
 
   /* build a nice closing */
   *buf = '\0';
-  sprintf(buf, "\tYTotal Preparation Time Remaining: \tW%d\tC", total_time);
+  snprintf(buf, sizeof(buf), "\tYTotal Preparation Time Remaining: \tW%d\tC", total_time);
   send_to_char(ch, "\tC");
   text_line(ch, buf, line_length, '-', '-');
   send_to_char(ch, "\tn");
@@ -1640,7 +1640,7 @@ void print_collection(struct char_data *ch, int ch_class)
 
   /* build a nice heading */
   *buf = '\0';
-  sprintf(buf, "\tY%s Collection for %s\tC", ch_class == CLASS_ALCHEMIST ? "Extract" : "Spell", class_names[ch_class]);
+  snprintf(buf, sizeof(buf), "\tY%s Collection for %s\tC", ch_class == CLASS_ALCHEMIST ? "Extract" : "Spell", class_names[ch_class]);
   send_to_char(ch, "\tC");
   text_line(ch, buf, line_length, '-', '-');
   send_to_char(ch, "\tn");
@@ -1801,7 +1801,7 @@ void begin_preparing(struct char_data *ch, int class)
     send_to_char(ch, "You continue your %s.\r\n",
                  spell_prep_dict[class][3]);
     *buf = '\0';
-    sprintf(buf, "$n continues $s %s.",
+    snprintf(buf, sizeof(buf), "$n continues $s %s.",
             spell_prep_dict[class][3]);
     act(buf, FALSE, ch, 0, 0, TO_ROOM);
     start_prep_event(ch, class);
@@ -2061,7 +2061,7 @@ EVENTFUNC(event_preparation)
     {
       *buf = '\0';
       send_to_char(ch, "Your %s are complete.\r\n", spell_prep_dict[class][3]);
-      sprintf(buf, "$n completes $s %s.", spell_prep_dict[class][3]);
+      snprintf(buf, sizeof(buf), "$n completes $s %s.", spell_prep_dict[class][3]);
       act(buf, FALSE, ch, 0, 0, TO_ROOM);
       set_preparing_state(ch, class, FALSE);
       return 0;
@@ -2072,7 +2072,7 @@ EVENTFUNC(event_preparation)
     {
       *buf = '\0';
       send_to_char(ch, "Your %s are complete.\r\n", spell_prep_dict[class][3]);
-      sprintf(buf, "$n completes $s %s.", spell_prep_dict[class][3]);
+      snprintf(buf, sizeof(buf), "$n completes $s %s.", spell_prep_dict[class][3]);
       act(buf, FALSE, ch, 0, 0, TO_ROOM);
       set_preparing_state(ch, class, FALSE);
       return 0;
@@ -2127,7 +2127,7 @@ ACMD(do_consign_to_oblivion)
   }
 
   /* Copy the argument, strtok mangles it. */
-  sprintf(arg, "%s", argument);
+  snprintf(arg, sizeof(arg), "%s", argument);
 
   /* Check for metamagic. */
   for (metamagic_arg = strtok(argument, " "); metamagic_arg && metamagic_arg[0] != '\'';

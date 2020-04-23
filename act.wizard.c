@@ -1732,19 +1732,19 @@ ACMD(do_vstat)
     extract_obj(obj);
     break;
   case 'r':
-    sprintf(buf2, "room %d", atoi(buf2));
+    snprintf(buf2, sizeof(buf2), "room %d", atoi(buf2));
     do_stat(ch, buf2, 0, 0);
     break;
   case 'z':
-    sprintf(buf2, "zone %d", atoi(buf2));
+    snprintf(buf2, sizeof(buf2), "zone %d", atoi(buf2));
     do_stat(ch, buf2, 0, 0);
     break;
   case 't':
-    sprintf(buf2, "%d", atoi(buf2));
+    snprintf(buf2, sizeof(buf2), "%d", atoi(buf2));
     do_tstat(ch, buf2, 0, 0);
     break;
   case 's':
-    sprintf(buf2, "shops %d", atoi(buf2));
+    snprintf(buf2, sizeof(buf2), "shops %d", atoi(buf2));
     do_show(ch, buf2, 0, 0);
     break;
   default:
@@ -2497,7 +2497,7 @@ void show_full_last_command(struct char_data *ch)
   MYSQL_ROW row;
 
   send_to_char(ch, "%-20s %-20s %s\r\n", "ACCOUNT", "NAME", "LAST ONLINE (SERVER TIME)");
-  sprintf(query, "SELECT a.name, a.last_online, b.name AS account_name FROM player_data a LEFT JOIN account_data b ON a.account_id=b.id ORDER BY a.last_online DESC LIMIT 20;");
+  snprintf(query, sizeof(query), "SELECT a.name, a.last_online, b.name AS account_name FROM player_data a LEFT JOIN account_data b ON a.account_id=b.id ORDER BY a.last_online DESC LIMIT 20;");
   mysql_query(conn, query);
   res = mysql_use_result(conn);
   if (res != NULL)
@@ -3398,7 +3398,7 @@ ACMD(do_show)
       for (g = 0; g < 6; g++)
         for (b = 0; b < 6; b++)
         {
-          sprintf(colour, "F%d%d%d", r, g, b);
+          snprintf(colour, sizeof(colour), "F%d%d%d", r, g, b);
           nlen = snprintf(buf + len, sizeof(buf) - len, "%s%s%s", ColourRGB(ch->desc, colour), colour, ++k % 6 == 0 ? "\tn\r\n" : "    ");
           if (len + nlen >= sizeof(buf))
             break;
@@ -3415,19 +3415,19 @@ ACMD(do_show)
     j *= 100;
     if (real_zone(j) <= 0)
     {
-      sprintf(buf, "\tR%d \tris not in a defined zone.\tn\r\n", j);
+      snprintf(buf, sizeof(buf), "\tR%d \tris not in a defined zone.\tn\r\n", j);
       send_to_char(ch, buf);
       return;
     }
     k = real_zone(j);
     k = zone_table[k].top;
-    sprintf(buf, "Citizens in this zone : From %d to %d\r\n", j, k);
+    snprintf(buf, sizeof(buf), "Citizens in this zone : From %d to %d\r\n", j, k);
     for (i = j; i <= k; i++)
     {
       if ((l = real_mobile(i)) >= 0)
       {
         if (MOB_FLAGGED(&mob_proto[l], MOB_CITIZEN))
-          sprintf(buf, "%s[%5d] %-40s\r\n", buf, i, mob_proto[l].player.short_descr);
+          snprintf(buf, sizeof(buf), "%s[%5d] %-40s\r\n", buf, i, mob_proto[l].player.short_descr);
       }
     }
     page_string(ch->desc, buf, 1);
@@ -3441,19 +3441,19 @@ ACMD(do_show)
     j *= 100;
     if (real_zone(j) <= 0)
     {
-      sprintf(buf, "\tR%d \tris not in a defined zone.\tn\r\n", j);
+      snprintf(buf, sizeof(buf), "\tR%d \tris not in a defined zone.\tn\r\n", j);
       send_to_char(ch, buf);
       return;
     }
     k = real_zone(j);
     k = zone_table[k].top;
-    sprintf(buf, "Guard in this zone : From %d to %d\r\n", j, k);
+    snprintf(buf, sizeof(buf), "Guard in this zone : From %d to %d\r\n", j, k);
     for (i = j; i <= k; i++)
     {
       if ((l = real_mobile(i)) >= 0)
       {
         if (MOB_FLAGGED(&mob_proto[l], MOB_GUARD))
-          sprintf(buf, "%s[%5d] %-40s\r\n", buf, i, mob_proto[l].player.short_descr);
+          snprintf(buf, sizeof(buf), "%s[%5d] %-40s\r\n", buf, i, mob_proto[l].player.short_descr);
       }
     }
     page_string(ch->desc, buf, 1);
@@ -5514,8 +5514,8 @@ void perform_do_copyover()
   fclose(fp);
 
   /* exec - descriptors are inherited */
-  sprintf(buf, "%d", port);
-  sprintf(buf2, "-C%d", mother_desc);
+  snprintf(buf, sizeof(buf), "%d", port);
+  snprintf(buf2, sizeof(buf2), "-C%d", mother_desc);
 
   /* Ugh, seems it is expected we are 1 step above lib - this may be dangerous! */
   i = chdir("..");
@@ -5574,7 +5574,7 @@ EVENTFUNC(event_copyover)
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
         send_to_char(pt->character, "\r\n     \tR[COPYOVER IMMINENT!]\tn\r\n");
-    sprintf(buf, "%d", (timer - 1));
+    snprintf(buf, sizeof(buf), "%d", (timer - 1));
     copyover_event->sVariables = strdup(buf);
     return (1 * PASSES_PER_SEC);
   }
@@ -5583,7 +5583,7 @@ EVENTFUNC(event_copyover)
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
         send_to_char(pt->character, "\r\n     \tR[Copyover in less than 2 seconds]\tn\r\n");
-    sprintf(buf, "%d", (timer - 1));
+    snprintf(buf, sizeof(buf), "%d", (timer - 1));
     copyover_event->sVariables = strdup(buf);
     return (1 * PASSES_PER_SEC);
   }
@@ -5592,7 +5592,7 @@ EVENTFUNC(event_copyover)
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
         send_to_char(pt->character, "\r\n     \tR[Copyover in less than 3 seconds]\tn\r\n");
-    sprintf(buf, "%d", (timer - 1));
+    snprintf(buf, sizeof(buf), "%d", (timer - 1));
     copyover_event->sVariables = strdup(buf);
     return (1 * PASSES_PER_SEC);
   }
@@ -5601,7 +5601,7 @@ EVENTFUNC(event_copyover)
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
         send_to_char(pt->character, "\r\n     \tR[Copyover in less than 10 seconds]\tn\r\n");
-    sprintf(buf, "%d", (3));
+    snprintf(buf, sizeof(buf), "%d", (3));
     copyover_event->sVariables = strdup(buf);
     return ((timer - 3) * PASSES_PER_SEC);
   }
@@ -5610,7 +5610,7 @@ EVENTFUNC(event_copyover)
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
         send_to_char(pt->character, "\r\n     \tR[Copyover in less than 30 seconds]\tn\r\n");
-    sprintf(buf, "%d", (10));
+    snprintf(buf, sizeof(buf), "%d", (10));
     copyover_event->sVariables = strdup(buf);
     return ((timer - 10) * PASSES_PER_SEC);
   }
@@ -5619,7 +5619,7 @@ EVENTFUNC(event_copyover)
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
         send_to_char(pt->character, "\r\n     \tR[Copyover in less than 1 minute, please disengage from combat and find a safe place to wait]\tn\r\n");
-    sprintf(buf, "%d", (30));
+    snprintf(buf, sizeof(buf), "%d", (30));
     copyover_event->sVariables = strdup(buf);
     return ((timer - 30) * PASSES_PER_SEC);
   }
@@ -5628,7 +5628,7 @@ EVENTFUNC(event_copyover)
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
         send_to_char(pt->character, "\r\n     \tR[Copyover in less than 3 minutes]\tn\r\n");
-    sprintf(buf, "%d", (60));
+    snprintf(buf, sizeof(buf), "%d", (60));
     copyover_event->sVariables = strdup(buf);
     return ((timer - 60) * PASSES_PER_SEC);
   }
@@ -5637,7 +5637,7 @@ EVENTFUNC(event_copyover)
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
         send_to_char(pt->character, "\r\n     \tR[Copyover in less than 5 minutes]\tn\r\n");
-    sprintf(buf, "%d", (180));
+    snprintf(buf, sizeof(buf), "%d", (180));
     copyover_event->sVariables = strdup(buf);
     return ((timer - 180) * PASSES_PER_SEC);
   }
@@ -5646,7 +5646,7 @@ EVENTFUNC(event_copyover)
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
         send_to_char(pt->character, "\r\n     \tR[Copyover in less than 10 minutes]\tn\r\n");
-    sprintf(buf, "%d", (300));
+    snprintf(buf, sizeof(buf), "%d", (300));
     copyover_event->sVariables = strdup(buf);
     return ((timer - 300) * PASSES_PER_SEC);
   }
@@ -5716,7 +5716,7 @@ ACMD(do_copyover)
                    "To cancel type: copyover cancel\r\n",
                timer);
 
-  sprintf(buf, "%d", timer); /* sVariable */
+  snprintf(buf, sizeof(buf), "%d", timer); /* sVariable */
   NEW_EVENT(eCOPYOVER, ch, strdup(buf), (1 * PASSES_PER_SEC));
 }
 
@@ -5995,7 +5995,7 @@ ACMD(do_changelog)
     return;
   }
 
-  sprintf(buf, "%s.bak", CHANGE_LOG_FILE);
+  snprintf(buf, sizeof(buf), "%s.bak", CHANGE_LOG_FILE);
   if (rename(CHANGE_LOG_FILE, buf))
   {
     mudlog(BRF, LVL_IMPL, TRUE,
@@ -6031,7 +6031,7 @@ ACMD(do_changelog)
   rawtime = time(0);
   strftime(tmstr, sizeof(tmstr), "%b %d %Y", localtime(&rawtime));
 
-  sprintf(buf, "[%s] - %s", tmstr, GET_NAME(ch));
+  snprintf(buf, sizeof(buf), "[%s] - %s", tmstr, GET_NAME(ch));
 
   fprintf(new, "%s\n", buf);
   fprintf(new, "  %s\n", argument);
@@ -6219,7 +6219,7 @@ bool change_player_name(struct char_data *ch, struct char_data *vict, char *new_
   }
 
   /* Set up a few variables that will be needed */
-  sprintf(old_name, "%s", GET_NAME(vict));
+  snprintf(old_name, sizeof(old_name), "%s", GET_NAME(vict));
   if (!get_filename(old_pfile, sizeof(old_pfile), PLR_FILE, old_name))
   {
     send_to_char(ch, "Unable to ascertain player's old pfile name.\r\n");
@@ -6241,7 +6241,7 @@ bool change_player_name(struct char_data *ch, struct char_data *vict, char *new_
   GET_PC_NAME(vict) = strdup(CAP(new_name)); // Change the name in the victims char struct
 
   /* Rename the player's pfile */
-  sprintf(buf, "mv %s %s", old_pfile, new_pfile);
+  snprintf(buf, sizeof(buf), "mv %s %s", old_pfile, new_pfile);
   j = system(buf);
 
   /* Save the changed player index - the pfile is saved by perform_set */
@@ -6751,13 +6751,13 @@ ACMD(do_objlist)
   //j *= 100;
   if (real_zone(j) == NOWHERE)
   {
-    sprintf(buf, "\tR%d \tris not in a defined zone.\tn\r\n", j);
+    snprintf(buf, sizeof(buf), "\tR%d \tris not in a defined zone.\tn\r\n", j);
     send_to_char(ch, buf);
     return;
   }
   k = real_zone(j);
   k = zone_table[k].top;
-  sprintf(buf, "Detailed Object list : From %d to %d\r\n", j, k);
+  snprintf(buf, sizeof(buf), "Detailed Object list : From %d to %d\r\n", j, k);
   for (i = j; i <= k; i++)
   {
     if ((l = real_object(i)) != NOWHERE)
@@ -6766,18 +6766,18 @@ ACMD(do_objlist)
 
       quest = is_object_in_a_quest(obj);
 
-      sprintf(buf, "%s[%5d] %s   %s\r\n", buf, i,
+      snprintf(buf, sizeof(buf), "%s[%5d] %s   %s\r\n", buf, i,
               obj->short_description, (quest ? "(\tcUsed in Quests\tn)" : ""));
       switch (GET_OBJ_TYPE(obj))
       {
       case ITEM_WEAPON:
-        sprintf(buf, "%s      \tcWeapon\tn: %dd%d ", buf, GET_OBJ_VAL(obj, 1), GET_OBJ_VAL(obj, 2));
+        snprintf(buf, sizeof(buf), "%s      \tcWeapon\tn: %dd%d ", buf, GET_OBJ_VAL(obj, 1), GET_OBJ_VAL(obj, 2));
         break;
       case ITEM_ARMOR:
-        sprintf(buf, "%s      \tcAC\tn: %d ", buf, GET_OBJ_VAL(obj, 0));
+        snprintf(buf, sizeof(buf), "%s      \tcAC\tn: %d ", buf, GET_OBJ_VAL(obj, 0));
         break;
       default:
-        sprintf(buf, "%s      \tcValue\tn: %d/%d/%d/%d ", buf,
+        snprintf(buf, sizeof(buf), "%s      \tcValue\tn: %d/%d/%d/%d ", buf,
                 GET_OBJ_VAL(obj, 0), GET_OBJ_VAL(obj, 1),
                 GET_OBJ_VAL(obj, 2), GET_OBJ_VAL(obj, 3));
         break;
@@ -6787,7 +6787,7 @@ ACMD(do_objlist)
         if (obj->affected[m].modifier)
         {
           sprinttype(obj->affected[m].location, apply_types, buf2, sizeof(buf2));
-          sprintf(buf, "%s\tc%s\tn%s%d ", buf, buf2, (obj->affected[m].modifier > 0 ? "+" : ""),
+          snprintf(buf, sizeof(buf), "%s\tc%s\tn%s%d ", buf, buf2, (obj->affected[m].modifier > 0 ? "+" : ""),
                   obj->affected[m].modifier);
         }
       strcat(buf, "\r\n");
@@ -6803,7 +6803,7 @@ ACMD(do_objlist)
         buf5[0] = 0;
       if (buf3[0] == 0 && buf4[0] == 0 && buf5[0] == 0)
         strcpy(buf3, "NOBITS ");
-      sprintf(buf, "%s      \tcWorn\tn: %s \tcAffects:\tn %s %s %s\r\n", buf,
+      snprintf(buf, sizeof(buf), "%s      \tcWorn\tn: %s \tcAffects:\tn %s %s %s\r\n", buf,
               buf2, buf3, buf4, buf5);
     }
   }
@@ -6947,8 +6947,8 @@ ACMD(do_singlefile)
         if (world[room].dir_option[dirs])
           num_exits++;
 
-      sprintf(exits, "%d   ", num_exits);
-      sprintf(buf, "[%5d] %-*s \tgExits: \tc%4s %s\tn\r\n", world[room].number,
+      snprintf(exits, sizeof(exits), "%d   ", num_exits);
+      snprintf(buf, sizeof(buf), "[%5d] %-*s \tgExits: \tc%4s %s\tn\r\n", world[room].number,
               50 + color_count(world[room].name),
               world[room].name,
               num_exits == 0 ? "NONE" : exits, num_exits != 2 ? "\tRERROR!\tn" : "");
@@ -8039,7 +8039,7 @@ ACMD(do_unbind)
     GET_OBJ_BOUND_ID(obj) = NOBODY;
     return;
   }
-  sprintf(obj_name, "%s", obj->short_description);
+  snprintf(obj_name, sizeof(obj_name), "%s", obj->short_description);
   send_to_char(ch, "%s%s was bound to %s\r\n", CAP(obj_name), CCNRM(ch, C_NRM), get_name_by_id(GET_OBJ_BOUND_ID(obj)));
   send_to_char(ch, "This item has now been unbound!\r\n");
   GET_OBJ_BOUND_ID(obj) = NOBODY;
@@ -8286,11 +8286,10 @@ ACMD(do_players)
   char buf3[MAX_STRING_LENGTH] = {'\0'};
   int counter = 0, i = 0;
 
-  sprintf(buf, "%-15s %-15s %-3s %-15s %-7s %-7s %-20s\r\n", "Name", "Account", "Lvl", "Alignment", "Room", "Race", "Class");
+  snprintf(buf, sizeof(buf), "%-15s %-15s %-3s %-15s %-7s %-7s %-20s\r\n", "Name", "Account", "Lvl", "Alignment", "Room", "Race", "Class");
   send_to_char(ch, "%s", buf);
 
-  sprintf(
-      buf,
+  snprintf(buf, sizeof(buf),
       "---------------------------------------------------------------------------\r\n");
   send_to_char(ch, "%s", buf);
 
@@ -8304,18 +8303,18 @@ ACMD(do_players)
       {
         if (counter)
           strcat(buf2, " / ");
-        sprintf(buf2, "%s%d %s", buf2, CLASS_LEVEL(d->character, i), CLSLIST_ABBRV(i));
+        snprintf(buf2, sizeof(buf2), "%s%d %s", buf2, CLASS_LEVEL(d->character, i), CLSLIST_ABBRV(i));
         counter++;
       }
     }
 
     *buf3 = '\0';
-    sprintf(buf3, "%s", get_align_by_num(GET_ALIGNMENT(d->character)));
+    snprintf(buf3, sizeof(buf3), "%s", get_align_by_num(GET_ALIGNMENT(d->character)));
     strip_colors(buf3);
 
     if (STATE(d) == CON_PLAYING)
     {
-      sprintf(buf,
+      snprintf(buf, sizeof(buf),
               "%-15s %-15s %-3d %-15s %-7d %-7s %s\r\n",
               GET_NAME(d->character),
               (d && d->account && d->account->name) ? d->account->name : "None",
@@ -8329,8 +8328,7 @@ ACMD(do_players)
 
     else
     {
-      sprintf(
-          buf, "%-15s %-15s %-3d %-15s %-7s %-7s %s\r\n",
+      snprintf(buf, sizeof(buf), "%-15s %-15s %-3d %-15s %-7s %-7s %s\r\n",
           GET_NAME(d->character),
           "Offline",
           GET_LEVEL(d->character),
