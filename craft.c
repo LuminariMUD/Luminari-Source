@@ -1086,7 +1086,49 @@ int restring(char *argument, struct obj_data *kit, struct char_data *ch)
     }
   }
 
-  cost = GET_OBJ_COST(obj) + GET_OBJ_LEVEL(obj);
+  /* Thazull wanted very cheap at low level for RP fun */
+  switch (GET_OBJ_LEVEL(obj))
+  {
+  case 1:
+  case 2:
+  case 3:
+  case 4:
+  case 5:
+  case 6:
+    cost = 10;
+    break;
+  case 7:
+  case 8:
+  case 9:
+  case 10:
+  case 11:
+  case 12:
+    cost = 20 + GET_OBJ_LEVEL(obj);
+    break;
+  case 13:
+  case 14:
+  case 15:
+  case 16:
+    cost = 40 + GET_OBJ_LEVEL(obj) + GET_OBJ_COST(obj) / 6;
+    break;
+  case 17:
+  case 18:
+  case 19:
+  case 20:
+    cost = 150 + GET_OBJ_LEVEL(obj) + GET_OBJ_COST(obj) / 5;
+    break;
+  case 21:
+  case 22:
+  case 23:
+  case 24:
+  case 25:
+    cost = 500 + GET_OBJ_LEVEL(obj) + GET_OBJ_COST(obj) / 4;
+    break;
+  default:
+    cost = 2000 + GET_OBJ_LEVEL(obj) + GET_OBJ_COST(obj) / 2;
+    break;
+  }
+
   if (GET_GOLD(ch) < cost)
   {
     send_to_char(ch, "You need %d gold on hand for supplies to restring"
@@ -1306,7 +1348,8 @@ int resize(char *argument, struct obj_data *kit, struct char_data *ch)
     }
   }
 
-  if (cost > 0) {
+  if (cost > 0)
+  {
     send_to_char(ch, "It cost you %d coins to resize this item.\r\n",
                  cost);
     GET_GOLD(ch) -= cost;
@@ -2205,7 +2248,8 @@ EVENTFUNC(event_crafting)
 
     if (GET_CRAFTING_TYPE(ch) == SCMD_RESIZE)
       exp = 0;
-    if (exp > 0) {
+    if (exp > 0)
+    {
       gain_exp(ch, exp, GAIN_EXP_MODE_CRAFT);
       send_to_char(ch, "You gained %d exp for crafting...\r\n", exp);
     }
@@ -2213,7 +2257,8 @@ EVENTFUNC(event_crafting)
                      "left to go.\r\n",
                  GET_CRAFTING_TICKS(ch) * 6);
 
-    GET_CRAFTING_TICKS(ch)--;
+    GET_CRAFTING_TICKS(ch)
+    --;
 
     /* skill notch */
     if (GET_SKILL(ch, SKILL_FAST_CRAFTER) < 99)
@@ -2788,7 +2833,7 @@ ACMD(do_harvest)
 
   if (node)
     GET_OBJ_VAL(node, 0)
-    --;
+  --;
 
   if (node && GET_OBJ_VAL(node, 0) <= 0)
   {
