@@ -3783,11 +3783,16 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
    * have an accumulative effect, then fail the spell. */
   if (affected_by_spell(victim, spellnum) && !(accum_duration || accum_affect))
   {
-    if (casttype == CAST_WEAPON_POISON)
+    if (casttype == CAST_WEAPON_POISON) {
       ; /* nicer with no message here */
-    else
+      return;
+    } else if (spell_info[spellnum].violent) {
       send_to_char(ch, "%s", CONFIG_NOEFFECT);
-    return;
+      return;
+    } else {
+      // if it's a buff, we want to replace it instead of failing
+      affect_from_char(victim, spellnum);
+    }
   }
 
   if (to_vict != NULL)
