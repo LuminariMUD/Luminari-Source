@@ -63,6 +63,21 @@ void increase_skills(struct char_data *ch, int chclass, bool verbose, int level)
       if (GET_REAL_RACE(ch) == RACE_HUMAN)
         give_premade_skill(ch, verbose, ABILITY_RIDE, amount);
       break;
+    case CLASS_MONK:
+      give_premade_skill(ch, verbose, ABILITY_HEAL, amount);
+      give_premade_skill(ch, verbose, ABILITY_LORE, amount);
+      give_premade_skill(ch, verbose, ABILITY_ACROBATICS, amount);
+      give_premade_skill(ch, verbose, ABILITY_DISCIPLINE, amount);
+      if (GET_REAL_RACE(ch) == RACE_HUMAN)
+        give_premade_skill(ch, verbose, ABILITY_SWIM, amount);
+      break;
+    case CLASS_CLERIC:
+      give_premade_skill(ch, verbose, ABILITY_LORE, amount);
+      give_premade_skill(ch, verbose, ABILITY_SPELLCRAFT, amount);
+      give_premade_skill(ch, verbose, ABILITY_CONCENTRATION, amount);
+      if (GET_REAL_RACE(ch) == RACE_HUMAN)
+        give_premade_skill(ch, verbose, ABILITY_HEAL, amount);
+      break;
 
   }
 
@@ -123,6 +138,41 @@ void set_premade_stats(struct char_data *ch, int chclass, int level)
           break;
           case 4: case 8: case 12: case 16: case 20:
             GET_REAL_DEX(ch)++;
+            break;
+        }
+      break;
+    case CLASS_MONK:
+        switch (level) {
+          case 1:
+            GET_REAL_STR(ch) = 14 + race_list[GET_REAL_RACE(ch)].ability_mods[0];
+            GET_REAL_CON(ch) = 10 + race_list[GET_REAL_RACE(ch)].ability_mods[1];
+            GET_REAL_INT(ch) = 10 + race_list[GET_REAL_RACE(ch)].ability_mods[2];
+            GET_REAL_WIS(ch) = 16 + race_list[GET_REAL_RACE(ch)].ability_mods[3];
+            GET_REAL_DEX(ch) = 14 + race_list[GET_REAL_RACE(ch)].ability_mods[4];
+            GET_REAL_CHA(ch) =  8 + race_list[GET_REAL_RACE(ch)].ability_mods[5];
+            if (GET_REAL_RACE(ch) == RACE_HUMAN) { GET_REAL_DEX(ch) += 2; }
+          break;
+          case 4: case 8: case 12: case 16: case 20:
+            GET_REAL_WIS(ch)++;
+            break;
+        }
+      break;
+    case CLASS_CLERIC:
+        switch (level) {
+          case 1:
+            GET_REAL_STR(ch) = 14 + race_list[GET_REAL_RACE(ch)].ability_mods[0];
+            GET_REAL_CON(ch) = 10 + race_list[GET_REAL_RACE(ch)].ability_mods[1];
+            GET_REAL_INT(ch) = 12 + race_list[GET_REAL_RACE(ch)].ability_mods[2];
+            GET_REAL_WIS(ch) = 16 + race_list[GET_REAL_RACE(ch)].ability_mods[3];
+            GET_REAL_DEX(ch) = 14 + race_list[GET_REAL_RACE(ch)].ability_mods[4];
+            GET_REAL_CHA(ch) =  8 + race_list[GET_REAL_RACE(ch)].ability_mods[5];
+            if (GET_REAL_RACE(ch) == RACE_HUMAN) { GET_REAL_CON(ch) += 2; }
+          break;
+          case 4: case 8: case 12: 
+            GET_REAL_WIS(ch)++;
+            break;
+          case 16: case 20:
+            GET_REAL_STR(ch)++;
             break;
         }
       break;
@@ -305,6 +355,178 @@ void levelup_rogue(struct char_data *ch, int level, bool verbose)
   }
 }
 
+void levelup_monk(struct char_data *ch, int level, bool verbose)
+{
+  switch (level) {
+    case 1:
+      set_premade_stats(ch, CLASS_MONK, 1);
+      increase_skills(ch, CLASS_MONK, TRUE, 1);
+      give_premade_feat(ch, verbose, FEAT_LUCK_OF_HEROES, 0);
+      if (GET_REAL_RACE(ch) == RACE_HUMAN) {
+        give_premade_feat(ch, verbose, FEAT_TOUGHNESS, 0);
+      }
+      break;
+    case 2:
+      increase_skills(ch, CLASS_MONK, TRUE, 2);
+      break;
+    case 3:
+      increase_skills(ch, CLASS_MONK, TRUE, 3);
+      give_premade_feat(ch, verbose, FEAT_WEAPON_FOCUS, WEAPON_FAMILY_MONK);
+      break;
+    case 4:
+      set_premade_stats(ch, CLASS_MONK, 4);
+      increase_skills(ch, CLASS_MONK, TRUE, 4);
+      break;
+    case 5:
+      increase_skills(ch, CLASS_MONK, TRUE, 5);
+      break;
+    case 6:
+      increase_skills(ch, CLASS_MONK, TRUE, 6);
+      give_premade_feat(ch, verbose, FEAT_POWER_CRITICAL, WEAPON_FAMILY_MONK);
+      break;
+    case 7:
+      increase_skills(ch, CLASS_MONK, TRUE, 7);
+      break;
+    case 8:
+      set_premade_stats(ch, CLASS_MONK, 8);
+      increase_skills(ch, CLASS_MONK, TRUE, 8);
+      break;
+    case 9:
+      increase_skills(ch, CLASS_MONK, TRUE, 9);
+      give_premade_feat(ch, verbose, FEAT_POWER_ATTACK, 0);
+      break;
+    case 10:
+      increase_skills(ch, CLASS_MONK, TRUE, 10);
+      break;
+    case 11:
+      increase_skills(ch, CLASS_MONK, TRUE, 11);
+      break;
+    case 12:
+      set_premade_stats(ch, CLASS_MONK, 12);
+      increase_skills(ch, CLASS_MONK, TRUE, 12);
+      give_premade_feat(ch, verbose, FEAT_IMPROVED_CRITICAL, WEAPON_FAMILY_MONK);
+      break;
+    case 13:
+      increase_skills(ch, CLASS_MONK, TRUE, 13);
+      break;
+    case 14:
+      increase_skills(ch, CLASS_MONK, TRUE, 14);
+      break;
+    case 15:
+      increase_skills(ch, CLASS_MONK, TRUE, 15);
+      give_premade_feat(ch, verbose, FEAT_FAST_HEALER, 0);
+      break;
+    case 16:
+      set_premade_stats(ch, CLASS_MONK, 16);
+      increase_skills(ch, CLASS_MONK, TRUE, 16);
+      break;
+    case 17:
+      increase_skills(ch, CLASS_MONK, TRUE, 17);
+      break;
+    case 18:
+      increase_skills(ch, CLASS_MONK, TRUE, 18);
+      give_premade_feat(ch, verbose, FEAT_DODGE, 0);
+      break;
+    case 19:
+      increase_skills(ch, CLASS_MONK, TRUE, 19);
+      break;
+    case 20:
+      set_premade_stats(ch, CLASS_MONK, 20);
+      increase_skills(ch, CLASS_MONK, TRUE, 20);
+      break;
+  }
+}
+
+void levelup_cleric(struct char_data *ch, int level, bool verbose)
+{
+  int chclass = CLASS_CLERIC;
+  switch (level) {
+    case 1:
+      set_premade_stats(ch, chclass, 1);
+      increase_skills(ch, chclass, TRUE, 1);
+      give_premade_feat(ch, verbose, FEAT_LUCK_OF_HEROES, 0);
+      if (GET_REAL_RACE(ch) == RACE_HUMAN) {
+        give_premade_feat(ch, verbose, FEAT_TOUGHNESS, 0);
+      }
+      GET_1ST_DOMAIN(ch) = DOMAIN_WAR;
+      GET_2ND_DOMAIN(ch) = DOMAIN_HEALING;
+      /* set spells learned for domain */
+      assign_domain_spells(ch);
+      /* in case adding or changing clear domains, clean up and re-assign */
+      clear_domain_feats(ch);
+      add_domain_feats(ch);
+      break;
+    case 2:
+      increase_skills(ch, chclass, TRUE, 2);
+      break;
+    case 3:
+      increase_skills(ch, chclass, TRUE, 3);
+      give_premade_feat(ch, verbose, FEAT_QUICK_CHANT, 0);
+      break;
+    case 4:
+      set_premade_stats(ch, chclass, 4);
+      increase_skills(ch, chclass, TRUE, 4);
+      break;
+    case 5:
+      increase_skills(ch, chclass, TRUE, 5);
+      break;
+    case 6:
+      increase_skills(ch, chclass, TRUE, 6);
+      give_premade_feat(ch, verbose, FEAT_FASTER_MEMORIZATION, 0);
+      break;
+    case 7:
+      increase_skills(ch, chclass, TRUE, 7);
+      break;
+    case 8:
+      set_premade_stats(ch, chclass, 8);
+      increase_skills(ch, chclass, TRUE, 8);
+      break;
+    case 9:
+      increase_skills(ch, chclass, TRUE, 9);
+      give_premade_feat(ch, verbose, FEAT_WEAPON_FOCUS, WEAPON_FAMILY_HAMMER);
+      break;
+    case 10:
+      increase_skills(ch, chclass, TRUE, 10);
+      break;
+    case 11:
+      increase_skills(ch, chclass, TRUE, 11);
+      break;
+    case 12:
+      set_premade_stats(ch, chclass, 12);
+      increase_skills(ch, chclass, TRUE, 12);
+      give_premade_feat(ch, verbose, FEAT_IMPROVED_CRITICAL, WEAPON_FAMILY_HAMMER);
+      break;
+    case 13:
+      increase_skills(ch, chclass, TRUE, 13);
+      break;
+    case 14:
+      increase_skills(ch, chclass, TRUE, 14);
+      break;
+    case 15:
+      increase_skills(ch, chclass, TRUE, 15);
+      give_premade_feat(ch, verbose, FEAT_POWER_CRITICAL, WEAPON_FAMILY_HAMMER);
+      break;
+    case 16:
+      set_premade_stats(ch, chclass, 16);
+      increase_skills(ch, chclass, TRUE, 16);
+      break;
+    case 17:
+      increase_skills(ch, chclass, TRUE, 17);
+      break;
+    case 18:
+      increase_skills(ch, chclass, TRUE, 18);
+      give_premade_feat(ch, verbose, FEAT_POWER_ATTACK, 0);
+      break;
+    case 19:
+      increase_skills(ch, chclass, TRUE, 19);
+      break;
+    case 20:
+      set_premade_stats(ch, chclass, 20);
+      increase_skills(ch, chclass, TRUE, 20);
+      break;
+  }
+}
+
 void setup_premade_levelup(struct char_data *ch, int chclass)
 {
   GET_FEAT_POINTS(ch) = 0;
@@ -331,6 +553,18 @@ void advance_premade_build(struct char_data *ch)
       setup_premade_levelup(ch, chclass);
       level = CLASS_LEVEL(ch, chclass);
       levelup_rogue(ch, level, TRUE);
+      break;
+    case CLASS_MONK:
+      chclass = CLASS_MONK;
+      setup_premade_levelup(ch, chclass);
+      level = CLASS_LEVEL(ch, chclass);
+      levelup_monk(ch, level, TRUE);
+      break;
+    case CLASS_CLERIC:
+      chclass = CLASS_CLERIC;
+      setup_premade_levelup(ch, chclass);
+      level = CLASS_LEVEL(ch, chclass);
+      levelup_cleric(ch, level, TRUE);
       break;
   }
 
